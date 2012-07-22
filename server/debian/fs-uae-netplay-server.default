@@ -1,0 +1,7 @@
+# options for fs-uae-netplay-server
+# set the following option to yes to enable the server
+
+FS_UAE_NETPLAY_SERVER_ENABLE=no
+
+# there are more options available - see /etc/init.d/fs-uae-netplay-server
+# for a list of options

@@ -1,0 +1,111 @@
+#! /bin/sh
+### BEGIN INIT INFO
+# Provides:		fs-uae-netplay-server
+# Required-Start:	$local_fs $remote_fs $network $syslog
+# Required-Stop:	$local_fs $remote_fs $network $syslog
+# Default-Start:	2 3 4 5
+# Default-Stop:		0 1 6
+# Short-Description:	fs-uae-netplay-server - Daemon for FS-UAE game servers
+# Description:		fs-uae-netplay-server - Daemon for FS-UAE game servers
+### END INIT INFO
+
+
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+DAEMON=/usr/bin/fs-uae-netplay-server
+EXEC=/usr/bin/python
+NAME=fs-uae-netplay-server
+DESC="fs-uae netplay server"
+
+test -x $DAEMON || exit 0
+
+set -e
+
+. /lib/lsb/init-functions
+
+# Edit /etc/default/fs-uae-netplay-server to change this.
+
+FS_UAE_NETPLAY_SERVER_ENABLE=no
+FS_UAE_NETPLAY_SERVER_USER=fs-uae-netplay-server
+FS_UAE_NETPLAY_SERVER_GROUP=fs-uae-netplay-server
+FS_UAE_NETPLAY_SERVER_PORT=25101
+FS_UAE_NETPLAY_SERVER_PORTS_FROM=25102
+FS_UAE_NETPLAY_SERVER_PORTS_TO=25499
+FS_UAE_NETPLAY_SERVER_PASSWORD=
+FS_UAE_NETPLAY_SERVER_MAX_GAMES=10
+FS_UAE_NETPLAY_SERVER_LOG_DIR=/var/log/fs-uae-netplay-server
+
+test -r /etc/default/fs-uae-netplay-server && . /etc/default/fs-uae-netplay-server
+
+DAEMON_ARGS="\
+	--port=$FS_UAE_NETPLAY_SERVER_PORT \
+	--max-games=$FS_UAE_NETPLAY_SERVER_MAX_GAMES \
+	--log-dir=$FS_UAE_NETPLAY_SERVER_LOG_DIR \
+	--password=$FS_UAE_NETPLAY_SERVER_PASSWORD \
+	--ports-from=$FS_UAE_NETPLAY_SERVER_PORTS_FROM \
+	--ports-to=$FS_UAE_NETPLAY_SERVER_PORTS_TO \
+	"
+
+# --name $NAME
+
+START_COMMAND="start-stop-daemon --start --oknodo --exec $EXEC \
+	--chuid $FS_UAE_NETPLAY_SERVER_USER:$FS_UAE_NETPLAY_SERVER_GROUP \
+	--user $FS_UAE_NETPLAY_SERVER_USER \
+	--background \
+	--startas $DAEMON -- $DAEMON_ARGS \
+	"
+
+STOP_COMMAND="start-stop-daemon --stop --oknodo --exec $EXEC \
+	--user $FS_UAE_NETPLAY_SERVER_USER \
+	"
+
+case "$1" in
+  start)
+
+	echo -n "Starting $DESC: "
+	if [ $FS_UAE_NETPLAY_SERVER_ENABLE = yes ]; then
+	$START_COMMAND
+	echo "$NAME."
+	else
+		echo "(not enabled)"
+	fi
+
+	;;
+  stop)
+
+	echo -n "Stopping $DESC: "
+	#start-stop-daemon --stop --oknodo --name $NAME --exec $EXEC --user $FS_UAE_NETPLAY_SERVER_USER
+	$STOP_COMMAND
+	echo "$NAME."
+
+	;;
+  restart|force-reload)
+
+	echo -n "Stopping $DESC: "
+	#start-stop-daemon --stop --oknodo --name $NAME --exec $EXEC --user $FS_UAE_NETPLAY_SERVER_USER
+	$STOP_COMMAND
+	echo "$NAME."
+
+	echo -n "Starting $DESC: "
+	if [ $FS_UAE_NETPLAY_SERVER_ENABLE = yes ]; then
+	$START_COMMAND
+	echo "$NAME."
+	else
+		echo "(not enabled)"
+	fi
+
+	;;
+  status)
+
+	status_of_proc $DAEMON $NAME
+
+	;;
+  *)
+
+	N=/etc/init.d/$NAME
+	echo "Usage: $N {start|stop|restart|force-reload|status}" >&2
+	exit 1
+
+	;;
+esac
+
+exit 0

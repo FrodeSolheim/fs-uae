@@ -1,0 +1,80 @@
+REQUIREMENTS
+============
+- GCC compiler suite (with C/C++ support) (mingw on Windows)
+- GNU make
+
+You need the following libraries (with development files)
+- SDL
+- libpng
+- zlib
+- glib (2.24 or newer)
+- OpenAL
+- OpenGL
+
+
+COMPILATION AND INSTALLATION INSTRUCTIONS
+=========================================
+To compile the program, just enter the command
+
+  make
+
+The resulting program is placed in the "out" directory. If you want to
+install on a Unix-like OS, run:
+
+  make install prefix=/usr/local
+
+(or you can omit prefix to install to the default location /usr)
+
+
+MAC OS X
+========
+You should instead cd into the folder macosx and run make there. This will
+create FS-UAE.app!
+
+Macports is a great way to get all the dependencies.
+
+
+WINDOWS
+======
+You need to have mingw and msys installed and must run "make" from the
+mingw/msys shell (msys.bat). The required libraries must be present on the
+normal development path. 
+
+If you are building the dependencies from source, you can configure them
+with --prefix=/mingw
+
+The easiest way to get most of the dependencies is to download compiled
+versions from http://www.gtk.org/download/win32.php. (glib, zlib, libpng and
+gettext-runtime). You will ned both "Run-Time" and "Dev" packages.
+
+SDL library and development files can be downloaded here:
+http://www.libsdl.org/download-1.2.php
+You will need the runtime libraries, and development libraries (the one
+labeled Mingw32)
+
+When unpacking the dependencies, unpack them to C:\MinGW (or wherever you
+installed MinGW)
+
+
+DEBIAN
+======
+This command will install the needed dependencies for building FS-UAE:
+
+  apt-get install build-essential libsdl1.2-dev libopenal-dev libglib2.0-dev \
+          gettext debhelper
+
+
+FEDORA
+======
+This command will install the needed dependencies for building FS-UAE:
+
+  yum install gcc gcc-c++ make openal-devel SDL-devel mesa-libGL-devel \
+          mesa-libGLU-devel glib2-devel libpng-devel
+
+Then build FS-UAE by running "make".
+
+If you want to create an RPM, please configure your system according to
+http://fedoraproject.org/wiki/How_to_create_an_RPM_package
+You should then be able to build an RPM with
+
+  rpmbuild -ba fs-uae.spec

@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=FS-UAE Launcher
+Comment=Launcher for FS-UAE Amiga Emulator
+TryExec=fs-uae-launcher
+Exec=fs-uae-launcher %f
+StartupNotify=true
+Terminal=false
+Type=Application
+Icon=fs-uae-launcher
+Categories=System;Emulator;

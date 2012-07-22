@@ -1,0 +1,13 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+
+%:
+	dh $@
+
+override_dh_auto_build:
+	dh_auto_build
+	make -f Makefile.mk
+
+override_dh_auto_install:
+	dh_auto_install
+	make -f Makefile.mk install DESTDIR=$$(pwd)/debian/fs-uae-launcher prefix=/usr install

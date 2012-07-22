@@ -1,0 +1,38 @@
+README file for fs-uae-netplay-server
+
+
+INSTALLING THE PACKAGE
+
+Run python setup.py install to install the python package to your system.
+It is also possible to execute the script fs_uae_netplay_server/game.py
+for a single game server directly without installing.
+
+
+RUNNING WITH PYTHON
+
+Then you afterwards can start the netplay service with:
+   python -m fs_uae_netplay_server.service
+
+or a single game server with:
+   python -m fs_uae_netplay_server.game
+
+
+INSTALLED SCRIPTS
+
+Scripts named fs-uae-netplay-server and fs-uae-netplay-game may also be
+installed on your system, which can be used to start the service and/or
+a single game server respectively (same as launching python with the modules
+above).
+
+
+THE SERVICE
+
+The service listens on port 25000
+
+
+RUNNING AS A LINUX SERVICE
+
+If you install the debian packages, you will also get an init scripts which
+starts fs-uae-netplay-server on startup, running as it's own user and storing
+log files in /var/log/fs-uae-netplay-server. You must enable the service
+in the file /etc/defaults/fs-uae-netplay-server first.  

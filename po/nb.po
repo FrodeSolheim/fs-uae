@@ -1,0 +1,214 @@
+# Norwegian Bokmal translations for fs-uae package.
+# Copyright (C) 2012 Frode Solheim
+# This file is distributed under the same license as the fs-uae package.
+# Frode Solheim <fs-uae@fengestad.no>, 2012.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: fs-uae\n"
+"Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
+"POT-Creation-Date: 2012-07-10 14:32+0200\n"
+"PO-Revision-Date: 2012-05-01 23:57+0200\n"
+"Last-Translator: Frode Solheim <fs-uae@fengestad.no>\n"
+"Language-Team: Norwegian Bokmal\n"
+"Language: nb\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: src/fs-uae/menu.c:954
+msgid "Amiga Control"
+msgstr ""
+
+#. TRANSLATORS: In context "Zoom: Auto"
+#: src/fs-uae/video.c:23
+msgid "Auto"
+msgstr ""
+
+#. TRANSLATORS: Empty or nothing
+#: src/fs-uae/menu.c:216
+#, c-format
+msgid "CD%d: Empty"
+msgstr "CD%d: Ingenting"
+
+#: src/fs-uae/menu.c:621 src/fs-uae/menu.c:815
+msgid "CD32 Gamepad"
+msgstr ""
+
+#. TRANSLATORS: Empty or nothing
+#: src/fs-uae/menu.c:199
+#, c-format
+msgid "DF%d: Empty"
+msgstr "DF%d: Ingenting"
+
+#: src/fs-uae/menu.c:191 src/fs-uae/menu.c:229
+msgid "Disabled"
+msgstr "Deaktivert"
+
+#: src/fs-uae/menu.c:518 src/fs-uae/menu.c:558
+msgid "Eject"
+msgstr ""
+
+#: src/fs-uae/menu.c:294 src/fs-uae/menu.c:322
+msgid "Empty"
+msgstr ""
+
+#: src/fs-uae/menu.c:933
+msgid "Emulator Control"
+msgstr ""
+
+#. TRANSLATORS: In context "Zoom: Full Frame"
+#: src/fs-uae/video.c:25
+msgid "Full Frame"
+msgstr ""
+
+#. TRANSLATORS: Hard reset is a computer reboot with an emulated power
+#. cycle
+#: src/fs-uae/menu.c:61
+msgid "Hard Reset"
+msgstr ""
+
+#: src/fs-uae/menu.c:854
+msgid "Host Device"
+msgstr ""
+
+#: src/fs-uae/menu.c:970
+msgid "Input Options"
+msgstr ""
+
+#. TRANSLATORS: This is a menu entry and must not be too long
+#: src/fs-uae/menu.c:551
+#, c-format
+msgid "Insert Into CD%d"
+msgstr ""
+
+#. TRANSLATORS: This is a menu entry and must not be too long
+#: src/fs-uae/menu.c:509
+#, c-format
+msgid "Insert Into DF%d"
+msgstr ""
+
+#: src/fs-uae/menu.c:618 src/fs-uae/menu.c:804
+msgid "Joystick"
+msgstr ""
+
+#. TRANSLATORS: This is a menu entry and must not be too long
+#: src/fs-uae/menu.c:841
+#, c-format
+msgid "Joystick Port %d"
+msgstr ""
+
+#. TRANSLATORS: This is a menu entry and must not be too long
+#: src/fs-uae/menu.c:693
+#, c-format
+msgid "Joystick Port %d Device"
+msgstr ""
+
+#. TRANSLATORS: This is a menu entry and must not be too long
+#: src/fs-uae/menu.c:772
+#, c-format
+msgid "Joystick Port %d Mode"
+msgstr ""
+
+#: src/fs-uae/menu.c:873
+msgid "Joystick Port 0"
+msgstr ""
+
+#: src/fs-uae/menu.c:876
+msgid "Joystick Port 1"
+msgstr ""
+
+#: src/fs-uae/menu.c:879
+msgid "Joystick Port 2"
+msgstr ""
+
+#: src/fs-uae/menu.c:882
+msgid "Joystick Port 3"
+msgstr ""
+
+#: src/fs-uae/menu.c:906
+msgid "Joystick Ports"
+msgstr ""
+
+#: src/fs-uae/menu.c:127 src/fs-uae/menu.c:603 src/fs-uae/menu.c:718
+msgid "Keyboard"
+msgstr ""
+
+#: src/fs-uae/menu.c:328
+msgid "Load"
+msgstr ""
+
+#: src/fs-uae/menu.c:948 src/fs-uae/menu.c:964 src/fs-uae/menu.c:978
+msgid "More..."
+msgstr ""
+
+#: src/fs-uae/menu.c:130 src/fs-uae/menu.c:606 src/fs-uae/menu.c:615
+#: src/fs-uae/menu.c:709 src/fs-uae/menu.c:793
+msgid "Mouse"
+msgstr ""
+
+#. TRANSLATORS: This is a menu entry and must not be too long: If you struggle
+#. to get in short enough, just translate "No Device" instead.
+#: src/fs-uae/menu.c:16
+msgid "No Amiga Device"
+msgstr "Ingen Amiga-enhet"
+
+#. TRANSLATORS: This is a menu entry and must not be too long: If you struggle
+#. to get in short enough, just translate "No Device" instead.
+#: src/fs-uae/menu.c:13
+msgid "No Host Device"
+msgstr "Ingen vertsenhet"
+
+#: src/fs-uae/main.c:312
+msgid "No configuration file was found"
+msgstr ""
+
+#. TRANSLATORS: This is a menu entry and must not be too long
+#: src/fs-uae/menu.c:915
+msgid "Parallel Joystick Ports"
+msgstr ""
+
+#: src/fs-uae/menu.c:177 src/fs-uae/menu.c:938
+msgid "Pause"
+msgstr "Pause"
+
+#: src/fs-uae/menu.c:985
+msgid "Removable Media"
+msgstr ""
+
+#. TRANSLATORS: Reset Amiga as in reboot the computer
+#: src/fs-uae/menu.c:48 src/fs-uae/menu.c:959
+msgid "Reset Amiga"
+msgstr "Amiga-omstart"
+
+#: src/fs-uae/menu.c:174
+msgid "Resume"
+msgstr "Fortsett"
+
+#: src/fs-uae/menu.c:335
+msgid "Save"
+msgstr ""
+
+#: src/fs-uae/menu.c:356 src/fs-uae/menu.c:943
+msgid "Save States"
+msgstr ""
+
+#. TRANSLATORS: Soft reset reboots the computer without a power cycle
+#: src/fs-uae/menu.c:54
+msgid "Soft Reset"
+msgstr "Myk omstart"
+
+#: src/fs-uae/video.c:356
+msgid "Zoom is disabled in RTG mode"
+msgstr ""
+
+#: src/fs-uae/video.c:377
+#, c-format
+msgid "Zoom: %s"
+msgstr ""
+
+#: src/fs-uae/video.c:373
+#, c-format
+msgid "Zoom: %s + Border"
+msgstr ""

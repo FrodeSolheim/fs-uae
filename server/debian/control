@@ -1,0 +1,15 @@
+Source: fs-uae-netplay-server
+Section: unknown
+Priority: extra
+X-Python-Version: >= 2.6
+Maintainer: Frode Solheim <fs-uae@fengestad.no>
+Build-Depends: debhelper (>= 7.0.50~), python (>= 2.6)
+Standards-Version: 3.8.4
+Homepage: http://www.fengestad.no/fs-uae
+
+Package: fs-uae-netplay-server
+Architecture: all
+Depends: python (>= 2.6), ${misc:Depends} ${python:Depends}, adduser (>= 3.11)
+Description: Netplay server for FS-UAE online play
+ This package contains the FS-UAE netplay game server, and a service
+ to start game servers on demand.

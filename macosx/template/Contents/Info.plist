@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>English</string>
+	<key>CFBundleDisplayName</key>
+	<string>FS-UAE</string>
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>fs-uae</string>
+			</array>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>CFBundleTypeName</key>
+			<string>FS-UAE Configuration</string>
+			<key>CFBundleTypeIconFile</key>
+			<string>fs-uae-config.icns</string>
+		</dict>
+	</array>
+	<key>CFBundleExecutable</key>
+	<string>fs-uae</string>
+	<key>CFBundleIconFile</key>
+	<string>fs-uae.icns</string>
+	<key>CFBundleIdentifier</key>
+	<string>no.fengestad.fs-uae</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>FS-UAE</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.3.19</string>
+	<key>CFBundleSignature</key>
+	<string>????</string>
+	<key>CFBundleVersion</key>
+	<string>1.3.19</string>
+	<key>LSHasLocalizedDisplayName</key>
+	<true/>
+	<key>LSMinimumSystemVersion</key>
+	<string>10.6.0</string>
+	<key>NSAppleScriptEnabled</key>
+	<false/>
+	<key>NSHumanReadableCopyright</key>
+	<string>Copyright 2011-2012 Frode Solheim</string>
+	<key>NSMainNibFile</key>
+	<string></string>
+	<key>NSPrincipalClass</key>
+	<string>NSApplication</string>
+</dict>
+</plist>

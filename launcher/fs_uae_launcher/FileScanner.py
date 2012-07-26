@@ -6,6 +6,7 @@ import os
 import time
 import zlib
 import hashlib
+from .Archive import Archive
 from .Database import Database
 from .Settings import Settings
 from .ROMManager import ROMManager
@@ -55,14 +56,6 @@ class FileScanner:
             self.on_status((title, status))
 
     def get_scan_dirs(self):
-        #dirs = []
-        #if self.scan_for_roms:
-        #    dirs.append(Settings.get_kickstarts_dir())
-        #if self.scan_for_files:
-        #    dirs.extend(Settings.get_files_dirs())
-        #if self.scan_for_configs:
-        #    dirs.append(Settings.get_configurations_dir())
-        #return dirs
         return self.paths
 
     def scan(self):
@@ -75,13 +68,16 @@ class FileScanner:
             # aborted
             database.rollback()
         else:
-            #print("FIXME: not removing old files currently")
             self.set_status(_("Scanning files"), _("Purging old entries..."))
             database.remove_unscanned_files(self.scan_version)
             self.set_status(_("Scanning files"), _("Commiting data..."))
+            print("FileScanner.scan - commiting data")
             database.commit()
+            #raise Exception("gnit")
 
     def scan_dir(self, database, dir):
+        #print("scan_dir", repr(dir))
+        #return
         if not os.path.exists(dir):
             return
         for name in os.listdir(dir):
@@ -95,49 +91,91 @@ class FileScanner:
             ext = ext.lower()
             if ext not in self.extensions:
                 continue
+            self.scan_file(database, path)
 
+    def scan_file(self, database, path):
+        #print("scan_file", repr(path))
+
+        name = os.path.basename(path)
+        path = os.path.normcase(os.path.normpath(path))
+
+        self.scan_count += 1
+        self.set_status(_("Scanning files ({count} scanned)").format(
+                count=self.scan_count), name)
+
+        try:
+            st = os.stat(path)
+        except:
+            print("error stat-ing file", repr(path))
+            return
+        size = st.st_size
+        mtime = int(st.st_mtime)
+        result = {}
+        database.find_file(path=path, result=result)
+        #print(result)
+        if result["path"]:
+            if size == result["size"] and mtime == result["mtime"]:
+                # file has not changed
+                #print("ok")
+                #print("not changed")
+                database.update_file_scan(result["id"], self.scan_version)
+                database.update_archive_scan(path, self.scan_version)
+                #print("not changed - ok")
+                return
+        archive = Archive(path)
+        for p in archive.list_files():
+            if self.stop_check():
+                return
+            #n = p.replace("\\", "/").replace("|", "/").split("/")[-1]
+            n = os.path.basename(p)
             self.scan_count += 1
-            self.set_status(_("Scanning files ({count} scanned)").format(
-                    count=self.scan_count), name)
+            self.scan_archive_stream(database, archive, p, n, size, mtime)
+        if self.stop_check():
+            return
+        self.scan_archive_stream(database, archive, path, name, size, mtime)
+    
+    def scan_archive_stream(self, database, archive, path, name, size, mtime):
+        #print(path)
+        base_name, ext = os.path.splitext(name)
+        ext = ext.lower()
+        
+        self.set_status(_("Scanning files ({count} scanned)").format(
+                count=self.scan_count), name)
 
-            try:
-                st = os.stat(path)
-            except:
-                print("error stat-ing file", repr(path))
-                continue
-            size = st.st_size
-            mtime = int(st.st_mtime)
-            result = {}
-            database.find_file(path=path, result=result)
-            #print(result)
-            if result["path"]:
-                if size == result["size"] and mtime == result["mtime"]:
-                    # file has not changed
-                    #print("ok")
-                    database.update_file_scan(result["id"], self.scan_version)
-                    continue
-            s = hashlib.sha1()
-            m = hashlib.md5()
-            c = None
-            with open(path, "rb") as f:
-                while True:
-                    data = f.read(65536)
-                    if not data:
-                        break
-                    s.update(data)
-                    m.update(data)
-                    if c is None:
-                        c = zlib.crc32(data)
-                    else:
-                        c = zlib.crc32(data, c)
-            sha1 = s.hexdigest()
-            md5 = m.hexdigest()
-            # will happen with 0-byte files
+        f = archive.open(path)
+        s = hashlib.sha1()
+        m = hashlib.md5()
+        c = None
+        #with open(path, "rb") as f:
+        while True:
+            if self.stop_check():
+                return
+            data = f.read(65536)
+            if not data:
+                break
+            s.update(data)
+            m.update(data)
             if c is None:
-                c = 0
-            crc32 = c & 0xffffffff
-            if ext == ".rom":
-                sha1_dec = ROMManager.get_decrypted_sha1(path)
+                c = zlib.crc32(data)
+            else:
+                c = zlib.crc32(data, c)
+
+        sha1 = s.hexdigest()
+        md5 = m.hexdigest()
+        # will happen with 0-byte files
+        if c is None:
+            c = 0
+        crc32 = c & 0xffffffff
+        if ext == ".rom":
+            s = hashlib.sha1()
+            try:
+                ROMManager.decrypt_archive_rom(archive, path, sha1=s)
+            except Exception:
+                import traceback
+                traceback.print_exc()
+            else:
+                sha1_dec = s.hexdigest()
+                #sha1_dec = ROMManager.get_decrypted_sha1(path)
                 if sha1_dec != sha1:
                     print("found encrypted rom {0} => {1}".format(sha1, sha1_dec))
                     # sha1 is now the decrypted sha1, not the actual sha1 of the file
@@ -145,16 +183,15 @@ class FileScanner:
                     # hashes, but it works well with the kickstart lookup mechanism
                     sha1 = sha1_dec
 
-            database.add_file(path=path, sha1=sha1, md5=md5, crc32=crc32,
-                    mtime=mtime, size=size, scan=self.scan_version)
-            self.files_added += 1
-            self.bytes_added += size
-            if self.bytes_added > 100 * 1000 * 1000:
-                self.bytes_added = 0
-                database.commit()
-            #elif self.files_added % 500 == 0:
-            #    database.commit()
-            if ext == '.rom':
-                if self.on_rom_found:
-                    self.on_rom_found(path, sha1)
-
+        database.add_file(path=path, sha1=sha1, md5=md5, crc32=crc32,
+                mtime=mtime, size=size, scan=self.scan_version)
+        self.files_added += 1
+        self.bytes_added += size
+        if self.bytes_added > 100 * 1000 * 1000:
+            self.bytes_added = 0
+            database.commit()
+        #elif self.files_added % 500 == 0:
+        #    database.commit()
+        if ext == '.rom':
+            if self.on_rom_found:
+                self.on_rom_found(path, sha1)

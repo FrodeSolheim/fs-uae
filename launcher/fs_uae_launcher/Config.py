@@ -28,6 +28,7 @@ class Config:
         "joystick_port_3": "",
         "joystick_port_3_mode": "nothing",
         "kickstart_file": "",
+        "kickstart_ext_file": "",
         "x_kickstart_name": "",
         "x_kickstart_sha1": "",
         "x_kickstart_type": "default",
@@ -46,6 +47,7 @@ class Config:
         "hard_drive_1",
         "hard_drive_2",
         "hard_drive_3",
+        "kickstart_ext_file",
         #"sub_title",
         "title",
         "viewport",
@@ -59,6 +61,7 @@ class Config:
         "joystick_port_1_mode",
         "joystick_port_0_mode",
         "kickstart_file",
+        "kickstart_ext_file",
     ]
 
     sync_keys = set([
@@ -199,14 +202,6 @@ class Config:
         print("set_kickstart_from_model")
         model = Config.get("amiga_model")
         checksums = Amiga.get_model_config(model)["kickstarts"]
-        #if model == "A500":
-        #    checksums = [
-        #            "891e9a547772fe0c6c19b610baf8bc4ea7fcb785",
-        #    ]
-        #elif model == "A1200":
-        #    checksums = [
-        #            "e21545723fe8374e91342617604f1b3d703094f1",
-        #    ]
         for checksum in checksums:
             path = Database.get_instance().find_file(sha1=checksum)
             if path:
@@ -220,6 +215,24 @@ class Config:
             Warnings.set("hardware", "kickstart",
                          "No suitable kickstart found")
             # FIXME: set sha1 and name x_options also
+
+        checksums = Amiga.get_model_config(model)["ext_roms"]
+        if len(checksums) == 0:
+            Config.set("kickstart_ext_file", "")
+        else:
+            for checksum in checksums:
+                path = Database.get_instance().find_file(sha1=checksum)
+                if path:
+                    #print("set kickstart to", path)
+                    Config.set("kickstart_ext_file", path)
+                    # FIXME: set sha1 and name x_options also
+                    break
+            else:
+                print("WARNING: no suitable kickstart ext file found")
+                Config.set("kickstart_ext_file", "")
+                Warnings.set("hardware", "kickstart_ext",
+                             "No suitable extended kickstart found")
+                # FIXME: set sha1 and name x_options also
 
     @classmethod
     def load_default_config(cls):
@@ -340,7 +353,17 @@ class Config:
     @classmethod
     def load_file(cls, path):
         try:
-            cls._load_file(path)
+            cls._load_file(path, "")
+        except Exception, e:
+            # FIXME: errors should be logged / displayed
+            cls.load_default_config()
+            traceback.print_exc()
+
+    @classmethod
+    def load_data(cls, data):
+        print("Config.load_data")
+        try:
+            cls._load_file("", data)
         except Exception, e:
             # FIXME: errors should be logged / displayed
             cls.load_default_config()
@@ -362,15 +385,24 @@ class Config:
         return name
 
     @classmethod
-    def _load_file(cls, path):
-        print("loading config from " + repr(path))
-        if not os.path.exists(path):
-            print("config file does not exist")
-        if path.endswith(".xml"):
+    def _load_file(cls, path, data):
+        if data:
+            print("loading config from data")
+        else:
+            print("loading config from " + repr(path))
+            if not os.path.exists(path):
+                print("config file does not exist")
+        if data:
+            config_xml_path = ""
+            from .XMLConfigLoader import XMLConfigLoader
+            loader = XMLConfigLoader()
+            loader.load_data(data)
+            config = loader.get_config()
+        elif path.endswith(".xml"):
             config_xml_path = path
             from .XMLConfigLoader import XMLConfigLoader
             loader = XMLConfigLoader()
-            loader.load(path)
+            loader.load_file(path)
             config = loader.get_config()
         else:
             config_xml_path = ""

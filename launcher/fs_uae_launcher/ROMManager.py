@@ -4,6 +4,7 @@ from __future__ import absolute_import
 
 import os
 import hashlib
+from .Archive import Archive
 
 class ROMManager:
 
@@ -45,13 +46,13 @@ class ROMManager:
     @staticmethod
     def decrypt_rom(path, dest):
         print("decrypt_from", path)
-        outf = open(dest, "wb")
+        file = open(dest, "wb")
         with open(path, "rb") as f:
             data = f.read(len("AMIROMTYPE1"))
             if data != "AMIROMTYPE1":
                 # not encrypted, write raw data
-                outf.write(data)
-                outf.write(f.read())
+                file.write(data)
+                file.write(f.read())
                 return
 
             key_file = os.path.join(os.path.dirname(path), "rom.key")
@@ -68,4 +69,47 @@ class ROMManager:
                 for i in range(len(data)):
                     dec.append(chr(ord(data[i]) ^ ord(key_data[i])))
                 dec_data = "".join(dec)
-                outf.write(dec_data)
+                file.write(dec_data)
+
+    @staticmethod
+    def decrypt_archive_rom(archive, path, sha1=None, file=None):
+        print("decrypt_archive_rom", path)
+        result = []
+        f = archive.open(path)
+        data = f.read(len("AMIROMTYPE1"))
+        if data != "AMIROMTYPE1":
+            # not encrypted, write raw data
+            if sha1 is not None:
+                sha1.update(data)
+            if file is not None:
+                file.write(data)
+            data = f.read()
+            if sha1 is not None:
+                sha1.update(data)
+            if file is not None:
+                file.write(data)
+            return
+
+        key_path = archive.join(archive.dirname(path), "rom.key")
+        key_archive = Archive(key_path)
+        try:
+            f2 = key_archive.open(key_path)
+        except Exception:
+            raise Exception("did not find rom.key to decrypt ROM with")
+        #if not os.path.exists(key_file):
+        #    raise Exception("did not find rom.key to decrypt ROM with")
+        key_data = f2.read()
+        f2.close()
+
+        while True:
+            data = f.read(len(key_data))
+            if not data:
+                break
+            dec = []
+            for i in range(len(data)):
+                dec.append(chr(ord(data[i]) ^ ord(key_data[i])))
+            dec_data = "".join(dec)
+            if file is not None:
+                file.write(dec_data)
+            if sha1 is not None:
+                sha1.update(dec_data)

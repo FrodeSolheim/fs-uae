@@ -89,15 +89,18 @@ class Settings:
         path = os.path.join(cls.get_base_dir(), "WHDLoad")
         if os.path.exists(path):
             return path
-            #os.makedirs(path)
-        #return path
-        raise Exception("Could not find WHDLoad dir")
+        return None
 
     @classmethod
     def get_configurations_dir(cls):
         path = os.path.join(cls.get_base_dir(), "Configurations")
         if not os.path.exists(path):
             os.makedirs(path)
+        return path
+
+    @classmethod
+    def get_controllers_dir(cls):
+        path = os.path.join(cls.get_base_dir(), "Controllers")
         return path
 
     @classmethod

@@ -16,7 +16,7 @@ class GroupsDialog(fsui.Dialog):
         self.layout = fsui.VerticalLayout()
         self.layout.add_spacer(width, 0)
         self.layout.padding_top = 20
-        self.layout.padding_right = 20
+        #self.layout.padding_right = 20
         self.layout.padding_bottom = 20
 
         self.groups_layout = fsui.VerticalLayout()

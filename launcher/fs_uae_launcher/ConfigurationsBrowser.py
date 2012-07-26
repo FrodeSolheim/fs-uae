@@ -71,6 +71,8 @@ class ConfigurationsBrowser(fsui.ListView):
 
     def load_configuration(self, configuration_id):
         database = Database.get_instance()
-        path = database.get_configuration_path(configuration_id)
-        Config.load_file(path)
-
+        config_info = database.get_config(configuration_id)
+        if config_info["data"]:
+            Config.load_data(config_info["data"])
+        else:
+            Config.load_file(config_info["path"])

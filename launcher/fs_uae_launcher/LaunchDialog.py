@@ -61,7 +61,9 @@ class LaunchDialog(fsui.Dialog):
         self.end_modal(0)
 
     def on_progress(self, progress):
-        pass
+        def function():
+            self.sub_title_label.set_text(progress)
+        fsui.call_after(function)
 
     def on_complete(self):
         def function():

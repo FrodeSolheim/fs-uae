@@ -13,7 +13,7 @@ class Database:
     @classmethod
     def get_database_path(self):
         path = Settings.get_launcher_dir()
-        path = os.path.join(path, "Database6.sqlite")
+        path = os.path.join(path, "Database7.sqlite")
         return path
 
     @classmethod
@@ -55,7 +55,9 @@ scan int
         except sqlite3.OperationalError:
             self.cursor.execute("""CREATE TABLE configuration (
 id integer primary key,
+uuid text,
 path text,
+data text,
 name text,
 search text,
 scan int
@@ -102,6 +104,18 @@ scan int
         query = "SELECT path FROM configuration WHERE id = ?"
         self.cursor.execute(query, (id,))
         return self.cursor.fetchone()[0]
+
+    def get_config(self, id):
+        self.init()
+        query = "SELECT name, uuid, path, data FROM configuration WHERE id = ?"
+        self.cursor.execute(query, (id,))
+        row = self.cursor.fetchone()
+        return {
+            "name": row[0],
+            "uuid": row[1],
+            "path": row[2],
+            "data": row[3],
+        }
 
     def get_game_info(self, id):
         self.init()
@@ -217,10 +231,12 @@ scan int
                 "md5, crc32, name, scan) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
                 (path, sha1, mtime, size, md5, crc32, name, scan))
 
-    def add_configuration(self, path="", name="", search="", scan=0):
+    def add_configuration(self, path="", uuid="", data="", name="",
+                search="", scan=0):
         self.init()
         self.cursor.execute("INSERT INTO configuration (path, name, scan, "
-                "search) VALUES (?, ?, ?, ?)", (path, name, scan, search))
+                "search, uuid, data) VALUES (?, ?, ?, ?, ?, ?)",
+                (path, name, scan, search, uuid, data))
 
     def add_game(self, uuid="", path="", name="", search="", scan=0):
         self.init()
@@ -228,17 +244,32 @@ scan int
                 "search) VALUES (?, ?, ?, ?, ?)", (uuid, path, name, scan, search))
 
     def update_file_scan(self, id, scan):
+        self.init()
         self.cursor.execute("UPDATE file SET scan = ? WHERE id = ?",
                 (scan, id))
 
+    def update_archive_scan(self, path, scan):
+        self.init()
+        #self.cursor.execute("UPDATE file SET scan = ? WHERE path like ?",
+        #        (scan, path + u"{0}%".format(unicode(os.sep))))
+        
+        a = path + unicode(os.sep)
+        b = path + unicode(chr(ord(os.sep) + 1))
+        self.cursor.execute("UPDATE file SET scan = ? WHERE "
+                "path >= ? AND path < ?", (scan, a, b))
+
+
     def remove_unscanned_files(self, scan):
+        self.init()
         self.cursor.execute("DELETE FROM file WHERE scan != ?", (scan,))
 
     def remove_unscanned_configurations(self, scan):
+        self.init()
         self.cursor.execute("DELETE FROM configuration WHERE scan != ?",
                 (scan,))
 
     def remove_unscanned_games(self, scan):
+        self.init()
         self.cursor.execute("DELETE FROM game WHERE scan != ?",
                 (scan,))
 

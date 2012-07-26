@@ -42,7 +42,7 @@ class ConfigurationsGroup(fsui.Group):
 
         self.layout3.add_spacer(40, 0)
 
-        self.filters_label = fsui.Label(self, "Filters:")
+        self.filters_label = fsui.Label(self, _("Filters:"))
         self.layout3.add(self.filters_label)
 
         self.layout3.add_spacer(10)

@@ -50,9 +50,13 @@ class ScanDialog(fsui.Dialog):
         self.scan_button.on_activate = self.on_scan_button
         hor_layout.add(self.scan_button)
         hor_layout.add_spacer(10)
-        self.cancel_button = fsui.Button(self, _("Close"))
-        self.cancel_button.on_activate = self.on_cancel_button
-        hor_layout.add(self.cancel_button)
+        self.stop_button = fsui.Button(self, _("Abort"))
+        self.stop_button.on_activate = self.on_stop_button
+        hor_layout.add(self.stop_button)
+        hor_layout.add_spacer(10)
+        self.close_button = fsui.Button(self, _("Close"))
+        self.close_button.on_activate = self.on_close_button
+        hor_layout.add(self.close_button)
         hor_layout.add_spacer(20)
 
         self.layout.add_spacer(20)
@@ -100,6 +104,8 @@ class ScanDialog(fsui.Dialog):
                 self.set_scan_title(_("No scan in progress"))
                 self.set_scan_status(_("Click 'Scan' button to start scan"))
             self.scan_button.enable()
+            self.stop_button.disable()
+            self.close_button.enable()
             return
 
         status = Scanner.status
@@ -120,9 +126,15 @@ class ScanDialog(fsui.Dialog):
         Settings.set("scan_files", "1")
         Settings.set("scan_roms", "1")
 
+        self.close_button.disable()
+        self.stop_button.enable()
         Scanner.start(paths, Settings.get("scan_roms") == "1",
                 Settings.get("scan_files") == "1",
                 Settings.get("scan_configs") == "1")
 
-    def on_cancel_button(self):
+    def on_close_button(self):
         self.end_modal(False)
+
+    def on_stop_button(self):
+        Scanner.stop_flag = True
+        #self.close_button.enable()

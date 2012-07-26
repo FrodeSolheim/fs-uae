@@ -40,7 +40,17 @@ class ConfigurationScanner:
             path = c["path"]
             name, ext = os.path.splitext(os.path.basename(path))
             name = self.create_configuration_name(name)
-            database.add_configuration(path=path, name=name,
+            database.add_configuration(path=path, uuid="", name=name,
+                    scan=self.scan_version, search=search)
+
+    def scan_builtin_configs(self, database):
+        from .BuiltinConfigs import builtin_configs
+        for name, data in builtin_configs.iteritems():
+            if self.stop_check():
+                break
+            search = name.lower()
+            name = self.create_configuration_name(name)
+            database.add_configuration(data=data, name=name,
                     scan=self.scan_version, search=search)
 
     def scan(self):
@@ -48,10 +58,8 @@ class ConfigurationScanner:
         database = Database()
 
         self.scan_fs_uae_files(database)
-        if self.stop_check():
-            return
-
         self.scan_configurations(database)
+        self.scan_builtin_configs(database)
 
         if self.stop_check():
             # aborted
@@ -68,8 +76,9 @@ class ConfigurationScanner:
         database.commit()
 
     def scan_configurations(self, database):
-        #scan_dirs = Settings.get_configurations_dirs()
         for dir in self.paths:
+            if self.stop_check():
+                return
             self.scan_dir(database, dir)
 
     def scan_dir(self, database, dir):
@@ -119,8 +128,8 @@ class ConfigurationScanner:
                 search = name.lower()
                 #name = self.create_configuration_name_from_path(path)
                 name = self.create_configuration_name(name)
-                database.add_configuration(path=path, name=name,
-                        scan=self.scan_version, search=search)
+                database.add_configuration(path=path, uuid=result["uuid"],
+                        name=name, scan=self.scan_version, search=search)
 
     def scan_configuration(self, database, tree):
         root = tree.getroot()
@@ -169,6 +178,7 @@ class ConfigurationScanner:
             parts.append(variant_name)
         if game_name and variant_name:
             result["name"] = u"{0} ({1})".format(game_name, u", ".join(parts))
+        result["uuid"] = root.get("uuid", "")
         return result
 
     def scan_game(self, database, tree, path):

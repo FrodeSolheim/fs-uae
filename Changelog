@@ -1,3 +1,24 @@
+Version 1.3.20:
+
+* Preliminary fix for a crash in bsdsocket library.
+* (Launcher) The launcher supports builtin configurations downloading game
+  media on demand, builtin configuration for "Cybernetix" added. 
+* (Launcher) URLs supported in floppy_drive/image options, floppies will
+  be downloaded and cached on demand -used for freeware/shareware section.
+* (Launcher) Launcher creates a base WHDLoad system automatically, downloading
+  necessary (re-distributable) files on demand.
+* (Launcher) Kickstarts can be located in zip files and are temporarily
+  extracted (and decrypted if necessary) on use.
+* (Launcher) Disk images in zip archives are also scanned and indexed,
+  will be automatically (and temporarily) extracted on use.
+* (Launcher) Added GUI for extended kickstart ROM.
+* (Launcher) Explicit abort button in scan dialog, disable close button when
+  scan is running.
+* (Launcher) Respect XDG user dirs when saving joystick configuration.
+* (Launcher) Show error message if trying to configure joystick buttons when
+  no joysticks are connected.
+* (Launcher) Updated translations: sr [Milanchez], it [Speedvicio].
+
 Version 1.3.19:
 
 * Line endings / white space cleanup for public git repo.
@@ -5,10 +26,6 @@ Version 1.3.19:
 * Added docdir option to Makefile [RedDwarf].
 * Compilation fixes and buffer underflow fix [RedDwarf].
 * (Launcher) Support modified database layout format.
-* (Launcher) Updated translations: it [Speedvicio].
-
-Version 1.3.18u1:
-
 * (Launcher) Added missing save disk image from distributions.
 * (Launcher) Updated translations: it [Speedvicio].
 

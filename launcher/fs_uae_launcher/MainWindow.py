@@ -7,6 +7,7 @@ import sys
 import uuid
 import fs_uae_launcher.fsui as fsui
 import fs_uae_launcher.fs as fs
+from .Amiga import Amiga
 from .Config import Config
 from .Settings import Settings
 from .IRC import IRC
@@ -340,11 +341,14 @@ class MainWindow(fsui.Window):
             fsui.show_error(_("No kickstart found for this model. " +
                     "Try 'scan' function."))
             return
-        #config = ConfigWriter.create_fsuae_config()
-        #self.hide()
-        #process = FSUAE.start_with_config(config)
-        #process.wait()
-        #self.show()
+        cs = Amiga.get_model_config(Config.get("amiga_model"))["ext_roms"]
+        if len(cs) > 0:
+            # extended kickstart ROM is needed
+            if not Config.get("kickstart_ext_file"):
+                fsui.show_error(_("No extended kickstart found for this "
+                        "model. Try 'scan' function."))
+                return
+
         from .LaunchHandler import LaunchHandler
         handler = LaunchHandler(Settings.get("config_name"), Config,
                 GameHandler.current())

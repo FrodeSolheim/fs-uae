@@ -4,7 +4,7 @@ from __future__ import absolute_import
 
 import os
 import xml.etree.ElementTree
-from xml.etree.cElementTree import ElementTree
+from xml.etree.cElementTree import ElementTree, fromstring
 from .Database import Database
 
 class XMLConfigLoader:
@@ -16,9 +16,19 @@ class XMLConfigLoader:
     def get_config(self):
         return self.config.copy()
 
-    def load(self, path):
-        self.tree = ElementTree()
-        self.tree.parse(path)
+    def load_file(self, path):
+        tree = ElementTree()
+        tree.parse(path)
+        self.load_tree(tree)
+
+    def load_data(self, data):
+        root = fromstring(data)
+        tree = ElementTree(root)
+        self.load_tree(tree)
+        
+    def load_tree(self, tree):
+        self.tree = tree
+        #self.tree.parse(path)
         self.root = self.tree.getroot()
 
         cd_based = False
@@ -122,27 +132,32 @@ class XMLConfigLoader:
                print(node.text)
                key = node.tag.replace("-", "_")
                value = node.text or ""
-               if key == "viewport":
-                   if "=" in value:
-                       value = value.replace("=", "=>")
-                       value = value.replace("==>", "=>")
-                   else:
-                       value = "* * * * => " + value
-                   self.viewport.append(value)
-                   continue
-               elif key == "whdload_args":
-                   key = "x_whdload_args"
-               elif key == "kickstart":
-                   if value == "2.0+":
-                       key = "amiga_model"
-                       value = "A600"
-                   else:
-                       # FIXME: print warning
-                       continue
-               elif key == "cracktro":
-                   # FIXME: handle
-                   continue
-               self.options[key] = value
+               self.load_option(key, value)
+    
+    def load_option(self, key, value):
+       if key == "viewport":
+           if "=" in value:
+               value = value.replace("=", "=>")
+               value = value.replace("==>", "=>")
+           else:
+               value = "* * * * => " + value
+           self.viewport.append(value)
+       elif key == "whdload_args":
+           self.options["x_whdload_args"] = value
+       elif key == "kickstart":
+           if value == "2.0+":
+               self.options["amiga_model"] = "A600"
+           elif value == "AROS":
+               self.options["kickstart_file"] = "internal"
+               self.options["x_kickstart_type"] = "internal"
+           else:
+               # FIXME: print warning
+               pass
+       elif key == "cracktro":
+           # FIXME: handle
+           pass
+       else:
+           self.options[key] = value
 
     def load_game_info(self, uuid):
         print("load_game_info", uuid)
@@ -208,10 +223,18 @@ class XMLConfigLoader:
                 if type and not type == "floppy":
                     continue
 
+            url_node = file_node.find("url")
+            if url_node is not None:
+                url = url_node.text.strip()
+            else:
+                url = ""
+
             path = ""
             if sha1:
                 print(sha1)
                 path = Database.get_instance().find_file(sha1=sha1)
+            if url and not path:
+                path = u"{0}/{1}".format(url, name)
             if not path:
                 path = Database.get_instance().find_file(name=name)
             if path:

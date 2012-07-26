@@ -46,7 +46,19 @@ CD32_KICKSTARTS = [
     "3525be8887f79b5929e017b42380a79edfee542d",
 ]
 
+CD32_EXT_ROMS = [
+    # amiga-ext-310-cd32.rom (decrypted)
+    # CD32 Extended-ROM r40.60 (1993)(Commodore)(CD32)
+    "5bef3d628ce59cc02a66e6e4ae0da48f60e78f7f",
+]
+                 
 CDTV_KICKSTARTS = A500_KICKSTARTS
+
+CDTV_EXT_ROMS = [
+    # amiga-ext-130-cdtv.rom (decrypted)
+    # CDTV Extended-ROM v1.0 (1991)(Commodore)(CDTV)[!]
+    "7ba40ffa17e500ed9fed041f3424bd81d9c907be",
+]
 
 class Amiga:
 
@@ -56,41 +68,49 @@ class Amiga:
             "title": "A500",
             "cd_based": False,
             "kickstarts": A500_KICKSTARTS,
+            "ext_roms": [],
         }, {
             #"title": "Amiga 500+",
             "title": "A500+",
             "cd_based": False,
             "kickstarts": A500P_KICKSTARTS,
+            "ext_roms": [],
         }, {
             #"title": "Amiga 600",
             "title": "A600",
             "cd_based": False,
             "kickstarts": A600_KICKSTARTS,
+            "ext_roms": [],
         }, {
             #"title": "Amiga 1200",
             "title": "A1200",
             "cd_based": False,
             "kickstarts": A1200_KICKSTARTS,
+            "ext_roms": [],
         }, {
             #"title": "Amiga 1200/020",
             "title": "A1200/020",
             "cd_based": False,
             "kickstarts": A1200_KICKSTARTS,
+            "ext_roms": [],
         }, {
             #"title": "Amiga 4000/040",
             "title": "A4000/040",
             "cd_based": False,
             "kickstarts": A4000_KICKSTARTS,
+            "ext_roms": [],
         }, {
             #"title": "Amiga CD32",
             "title": "CD32",
             "cd_based": True,
             "kickstarts": CD32_KICKSTARTS,
+            "ext_roms": CD32_EXT_ROMS,
         }, {
             #"title": "Commodore CDTV",
             "title": "CDTV",
             "cd_based": True,
             "kickstarts": CDTV_KICKSTARTS,
+            "ext_roms": CDTV_EXT_ROMS,
         }
     ]
 
@@ -124,5 +144,7 @@ class Amiga:
             "title": "Dummy",
             "cd_based": False,
             "kickstarts": [
+            ],
+            "ext_roms": [
             ],
         }

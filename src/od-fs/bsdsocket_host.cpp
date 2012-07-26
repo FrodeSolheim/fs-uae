@@ -1626,6 +1626,12 @@ uae_u32 host_IoctlSocket (TrapContext *context, SB, uae_u32 sd, uae_u32 request,
 #   endif
 
     case 0x8004667E: /* FIONBIO */
+        if (sd == 0) {
+            printf("WARNING: sd was 0 ???\n");
+            sb->resultval = -1;
+            bsdsocklib_seterrno (sb, 9); /* EBADF */
+            return -1;
+        }
         r = fcntl (sock, F_SETFL, argval ?
                flags | O_NONBLOCK : flags & ~O_NONBLOCK);
         if (argval) {

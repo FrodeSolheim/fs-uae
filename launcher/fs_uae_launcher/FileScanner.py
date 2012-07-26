@@ -70,7 +70,7 @@ class FileScanner:
         else:
             self.set_status(_("Scanning files"), _("Purging old entries..."))
             database.remove_unscanned_files(self.scan_version)
-            self.set_status(_("Scanning files"), _("Commiting data..."))
+            self.set_status(_("Scanning files"), _("Committing data..."))
             print("FileScanner.scan - commiting data")
             database.commit()
             #raise Exception("gnit")

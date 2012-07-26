@@ -1,3 +1,13 @@
+Version 1.3.21:
+
+* (Launcher) Add support for a third A600 kickstart (r37.300).
+* (Launcher) Properly look up save_disk with pkg_resources. 
+* (Launcher) Find kickstarts relative to kickstarts directory when using
+  custom kickstart.
+* (Launcher) Properly look up save_disk with pkg_resources. 
+* (Launcher) Fixed a couple of mis-spellings.
+* (Launcher) Updated translations: fr [Foul].
+
 Version 1.3.20:
 
 * Preliminary fix for a crash in bsdsocket library.

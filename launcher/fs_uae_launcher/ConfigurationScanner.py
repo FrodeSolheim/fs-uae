@@ -72,7 +72,7 @@ class ConfigurationScanner:
         database.remove_unscanned_games(self.scan_version)
         print("remove unscanned configurations")
         database.remove_unscanned_configurations(self.scan_version)
-        self.set_status(_("Scanning configurations"), _("Commiting data..."))
+        self.set_status(_("Scanning configurations"), _("Committing data..."))
         database.commit()
 
     def scan_configurations(self, database):

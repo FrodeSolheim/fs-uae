@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae-launcher\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2012-07-26 22:06+0200\n"
+"POT-Creation-Date: 2012-07-27 00:47+0200\n"
 "PO-Revision-Date: 2012-07-23 10:47+0100\n"
 "Last-Translator: Speedvicio <speedvicio@hotmail.com>\n"
 "Language-Team: Italian\n"
@@ -106,7 +106,7 @@ msgstr "Scegli Hard Drive"
 msgid "Choose Kickstart ROM"
 msgstr "Seleziona ROM Kickstart"
 
-#: fs_uae_launcher/LaunchHandler.py:310
+#: fs_uae_launcher/LaunchHandler.py:319
 msgid "Cleaning up..."
 msgstr ""
 
@@ -129,7 +129,7 @@ msgstr "Chiudi"
 
 #: fs_uae_launcher/ConfigurationScanner.py:75
 #: fs_uae_launcher/FileScanner.py:73
-msgid "Commiting data..."
+msgid "Committing data..."
 msgstr "Invia dati..."
 
 #: fs_uae_launcher/configui/ConfigDialog.py:21
@@ -180,7 +180,7 @@ msgstr "Settaggi Personalizzati"
 msgid "Default"
 msgstr "Predefinito"
 
-#: fs_uae_launcher/LaunchHandler.py:88 fs_uae_launcher/LaunchHandler.py:241
+#: fs_uae_launcher/LaunchHandler.py:98 fs_uae_launcher/LaunchHandler.py:250
 msgid "Downloading {0}..."
 msgstr ""
 
@@ -370,15 +370,15 @@ msgstr "Joystick Preferito"
 msgid "Preferred device for secondary joystick:"
 msgstr "Dispositivo preferito per joystick secondario:"
 
-#: fs_uae_launcher/LaunchHandler.py:160
+#: fs_uae_launcher/LaunchHandler.py:169
 msgid "Preparing WHDLoad..."
 msgstr ""
 
-#: fs_uae_launcher/LaunchHandler.py:115
+#: fs_uae_launcher/LaunchHandler.py:124
 msgid "Preparing floppy images..."
 msgstr ""
 
-#: fs_uae_launcher/LaunchHandler.py:140
+#: fs_uae_launcher/LaunchHandler.py:149
 msgid "Preparing hard drives..."
 msgstr ""
 
@@ -392,14 +392,14 @@ msgid "Removable Media"
 msgstr "Media Rimovibili"
 
 #: fs_uae_launcher/ScanPathsGroup.py:53
-msgid "Remove Diretory from Search Path"
+msgid "Remove Directory from Search Path"
 msgstr "Rimuovi Directory dalla Cartella di Ricerca"
 
 #: fs_uae_launcher/MediaListGroup.py:67
 msgid "Remove Selected Files"
 msgstr "Rimuovi Files Selezionati"
 
-#: fs_uae_launcher/LaunchHandler.py:299
+#: fs_uae_launcher/LaunchHandler.py:308
 msgid "Restoring changes..."
 msgstr ""
 
@@ -407,7 +407,7 @@ msgstr ""
 msgid "Save Configuration"
 msgstr "Salva Configurazione"
 
-#: fs_uae_launcher/LaunchHandler.py:305
+#: fs_uae_launcher/LaunchHandler.py:314
 msgid "Saving changes..."
 msgstr ""
 
@@ -468,7 +468,7 @@ msgstr "Settaggi"
 msgid "Start"
 msgstr "Avvia"
 
-#: fs_uae_launcher/LaunchHandler.py:332
+#: fs_uae_launcher/LaunchHandler.py:341
 msgid "Starting FS-UAE..."
 msgstr ""
 
@@ -491,6 +491,9 @@ msgstr "Finestra"
 
 #~ msgid "Amiga Model and Hardware"
 #~ msgstr "Modello Amiga"
+
+#~ msgid "Commiting data..."
+#~ msgstr "Invia dati..."
 
 #~ msgid "Configurations"
 #~ msgstr "Configurazioni"
@@ -515,6 +518,9 @@ msgstr "Finestra"
 
 #~ msgid "ROMs"
 #~ msgstr "ROMs"
+
+#~ msgid "Remove Diretory from Search Path"
+#~ msgstr "Rimuovi Directory dalla Cartella di Ricerca"
 
 #~ msgid "Scan for:"
 #~ msgstr "Scansiona per:"

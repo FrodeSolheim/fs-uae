@@ -50,7 +50,7 @@ class ScanPathsGroup(fsui.Group):
         vlayout.add_spacer(10)
 
         self.remove_button = IconButton(self, "remove_button.png")
-        self.remove_button.set_tooltip(_("Remove Diretory from Search Path"))
+        self.remove_button.set_tooltip(_("Remove Directory from Search Path"))
         self.remove_button.disable()
         self.remove_button.on_activate = self.on_remove_button
         vlayout.add(self.remove_button)

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae-launcher\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2012-07-26 22:06+0200\n"
+"POT-Creation-Date: 2012-07-27 00:47+0200\n"
 "PO-Revision-Date: 2012-07-22 18:11+0100\n"
 "Last-Translator: \n"
 "Language-Team: Serbian\n"
@@ -107,7 +107,7 @@ msgstr "Odabrati hard disk uredjaj"
 msgid "Choose Kickstart ROM"
 msgstr "Izabrati Kickstart ROM"
 
-#: fs_uae_launcher/LaunchHandler.py:310
+#: fs_uae_launcher/LaunchHandler.py:319
 msgid "Cleaning up..."
 msgstr ""
 
@@ -130,7 +130,7 @@ msgstr "Zatvoriti"
 
 #: fs_uae_launcher/ConfigurationScanner.py:75
 #: fs_uae_launcher/FileScanner.py:73
-msgid "Commiting data..."
+msgid "Committing data..."
 msgstr "Izvršavanje podataka"
 
 #: fs_uae_launcher/configui/ConfigDialog.py:21
@@ -181,7 +181,7 @@ msgstr "Prilagođena podešavanja"
 msgid "Default"
 msgstr "Podrazumevano"
 
-#: fs_uae_launcher/LaunchHandler.py:88 fs_uae_launcher/LaunchHandler.py:241
+#: fs_uae_launcher/LaunchHandler.py:98 fs_uae_launcher/LaunchHandler.py:250
 msgid "Downloading {0}..."
 msgstr ""
 
@@ -371,15 +371,15 @@ msgstr "Željeni džojstik"
 msgid "Preferred device for secondary joystick:"
 msgstr "Željeni uređaj za drugi džojstik:"
 
-#: fs_uae_launcher/LaunchHandler.py:160
+#: fs_uae_launcher/LaunchHandler.py:169
 msgid "Preparing WHDLoad..."
 msgstr ""
 
-#: fs_uae_launcher/LaunchHandler.py:115
+#: fs_uae_launcher/LaunchHandler.py:124
 msgid "Preparing floppy images..."
 msgstr ""
 
-#: fs_uae_launcher/LaunchHandler.py:140
+#: fs_uae_launcher/LaunchHandler.py:149
 msgid "Preparing hard drives..."
 msgstr ""
 
@@ -393,14 +393,14 @@ msgid "Removable Media"
 msgstr "Prenosivi medijum"
 
 #: fs_uae_launcher/ScanPathsGroup.py:53
-msgid "Remove Diretory from Search Path"
+msgid "Remove Directory from Search Path"
 msgstr "Ukloniti direktorijum iz putanje pretrage"
 
 #: fs_uae_launcher/MediaListGroup.py:67
 msgid "Remove Selected Files"
 msgstr "Ukloniti odabrane datoteke"
 
-#: fs_uae_launcher/LaunchHandler.py:299
+#: fs_uae_launcher/LaunchHandler.py:308
 msgid "Restoring changes..."
 msgstr ""
 
@@ -408,7 +408,7 @@ msgstr ""
 msgid "Save Configuration"
 msgstr "Snimiti konfiguraciju"
 
-#: fs_uae_launcher/LaunchHandler.py:305
+#: fs_uae_launcher/LaunchHandler.py:314
 msgid "Saving changes..."
 msgstr ""
 
@@ -469,7 +469,7 @@ msgstr "Podešavanja"
 msgid "Start"
 msgstr "Početak"
 
-#: fs_uae_launcher/LaunchHandler.py:332
+#: fs_uae_launcher/LaunchHandler.py:341
 msgid "Starting FS-UAE..."
 msgstr ""
 
@@ -493,6 +493,9 @@ msgstr "U prozoru"
 #~ msgid "Amiga Model and Hardware"
 #~ msgstr "Amiga model i hardver"
 
+#~ msgid "Commiting data..."
+#~ msgstr "Izvršavanje podataka"
+
 #~ msgid "Configurations"
 #~ msgstr "Konfiguracije"
 
@@ -513,6 +516,9 @@ msgstr "U prozoru"
 
 #~ msgid "Refresh Joystick List"
 #~ msgstr "Osvežiti listu džojstika "
+
+#~ msgid "Remove Diretory from Search Path"
+#~ msgstr "Ukloniti direktorijum iz putanje pretrage"
 
 #~ msgid "Scan for:"
 #~ msgstr "Skeniranje:"

@@ -22,6 +22,8 @@ A600_KICKSTARTS = [
     # amiga-os-205.rom (decrypted)
     # Kickstart v2.05 r37.350 (1992)(Commodore)(A600HD)[!]
     "02843c4253bbd29aba535b0aa3bd9a85034ecde4",
+    # Kickstart v2.05 r37.300 (1991)(Commodore)(A600HD)
+    "f72d89148dac39c696e30b10859ebc859226637b",
     # Kickstart v2.05 r37.299 (1991)(Commodore)(A600)[!]
     "87508de834dc7eb47359cede72d2e3c8a2e5d8db",
 ]

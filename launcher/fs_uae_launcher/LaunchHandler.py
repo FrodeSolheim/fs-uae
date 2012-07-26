@@ -64,20 +64,30 @@ class LaunchHandler:
             # not all Amigas have extended ROMs
             roms.append(("kickstart_ext_file",
                     self.config.get("kickstart_ext_file")))
-        for config_key, rom in roms:
-            if not rom:
+        for config_key, src in roms:
+            if not src:
                 continue
-            if rom == "internal":
+            if src == "internal":
                 continue
-            if os.path.exists(rom):
-                print(rom, "is directly accessible")
-                continue 
-            print(rom, "must be extracted")
-            archive = Archive(rom)
-            dest = os.path.join(self.temp_dir, os.path.basename(rom))
+            
+            archive = Archive(src)
+            if not archive.exists(src):
+                dirs = [Settings.get_kickstarts_dir()]
+                for dir in dirs:
+                    path = os.path.join(dir, src)
+                    print("checking", repr(path))
+                    archive = Archive(path)
+                    if archive.exists(path):
+                        src = path
+                        break
+                else:
+                    raise Exception("Cannot find kickstart " + repr(src))
+            dest = os.path.join(self.temp_dir, os.path.basename(src))
+            
             with open(dest, "wb") as f:
-                ROMManager.decrypt_archive_rom(archive, rom, file=f)
-                self.config[config_key] =  dest
+                ROMManager.decrypt_archive_rom(archive, src, file=f)
+                self.config[config_key] = os.path.basename(src)
+            self.config["kickstarts_dir"] = self.temp_dir
 
     def copy_floppy(self, key):
         src = self.config.get(key, "").strip()
@@ -93,7 +103,6 @@ class LaunchHandler:
 
         archive = Archive(src)
         if not archive.exists(src):
-        #if not os.path.exists(src):
             dirs = [Settings.get_floppies_dir()]
             for dir in dirs:
                 path = os.path.join(dir, src)
@@ -125,8 +134,8 @@ class LaunchHandler:
                 max_image = i
 
         save_image = max_image + 1
-        s = pkg_resources.resource_stream("fs_uae_launcher.res",
-                "zipped_save_disk.dat")
+        s = pkg_resources.resource_stream("fs_uae_launcher",
+                "res/zipped_save_disk.dat")
         data = s.read()
         data = zlib.decompress(data)
         save_disk = os.path.join(self.temp_dir, u"Save Disk.adf")

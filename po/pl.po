@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2012-07-10 14:32+0200\n"
+"POT-Creation-Date: 2012-07-27 17:47+0200\n"
 "PO-Revision-Date: 2012-05-03 14:15+0100\n"
 "Last-Translator: Frode Solheim <frode@fsolheim.net>\n"
 "Language-Team: Polish\n"
@@ -18,198 +18,155 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
 "|| n%100>=20) ? 1 : 2);\n"
 
-#: src/fs-uae/menu.c:954
 msgid "Amiga Control"
 msgstr "Sterowanie Amigą"
 
-#. TRANSLATORS: In context "Zoom: Auto"
-#: src/fs-uae/video.c:23
+#. / TRANSLATORS: In context "Zoom: Auto"
 msgid "Auto"
 msgstr ""
 
-#. TRANSLATORS: Empty or nothing
-#: src/fs-uae/menu.c:216
+#. / TRANSLATORS: Empty or nothing
 #, c-format
 msgid "CD%d: Empty"
 msgstr "CD%d: pusta"
 
-#: src/fs-uae/menu.c:621 src/fs-uae/menu.c:815
 msgid "CD32 Gamepad"
 msgstr "Pad CD32"
 
-#. TRANSLATORS: Empty or nothing
-#: src/fs-uae/menu.c:199
+#. / TRANSLATORS: Empty or nothing
 #, c-format
 msgid "DF%d: Empty"
 msgstr "DF%d: pusta"
 
-#: src/fs-uae/menu.c:191 src/fs-uae/menu.c:229
 msgid "Disabled"
 msgstr "wyłączona"
 
-#: src/fs-uae/menu.c:518 src/fs-uae/menu.c:558
 msgid "Eject"
 msgstr ""
 
-#: src/fs-uae/menu.c:294 src/fs-uae/menu.c:322
 msgid "Empty"
 msgstr "pusty"
 
-#: src/fs-uae/menu.c:933
 msgid "Emulator Control"
 msgstr "Sterowanie emulatorem"
 
-#. TRANSLATORS: In context "Zoom: Full Frame"
-#: src/fs-uae/video.c:25
+#. / TRANSLATORS: In context "Zoom: Full Frame"
 msgid "Full Frame"
 msgstr ""
 
-#. TRANSLATORS: Hard reset is a computer reboot with an emulated power
-#. cycle
-#: src/fs-uae/menu.c:61
+#. / TRANSLATORS: Hard reset is a computer reboot with an emulated power
+#. / cycle
 msgid "Hard Reset"
 msgstr "\"Twardy\" reset"
 
-#: src/fs-uae/menu.c:854
 msgid "Host Device"
 msgstr "Urządzenie głowne"
 
-#: src/fs-uae/menu.c:970
 msgid "Input Options"
 msgstr "Opcje wejścia"
 
-#. TRANSLATORS: This is a menu entry and must not be too long
-#: src/fs-uae/menu.c:551
+#. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Insert Into CD%d"
 msgstr "Włóż do CD%d"
 
-#. TRANSLATORS: This is a menu entry and must not be too long
-#: src/fs-uae/menu.c:509
+#. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Insert Into DF%d"
 msgstr "Włóż do DF%d"
 
-#: src/fs-uae/menu.c:618 src/fs-uae/menu.c:804
 msgid "Joystick"
 msgstr "Joystick"
 
-#. TRANSLATORS: This is a menu entry and must not be too long
-#: src/fs-uae/menu.c:841
+#. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Joystick Port %d"
 msgstr "Port joysticka %d"
 
-#. TRANSLATORS: This is a menu entry and must not be too long
-#: src/fs-uae/menu.c:693
+#. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Joystick Port %d Device"
 msgstr "Port joysticka %d - urządzenie"
 
-#. TRANSLATORS: This is a menu entry and must not be too long
-#: src/fs-uae/menu.c:772
+#. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Joystick Port %d Mode"
 msgstr "Port joysticka %d - tryb"
 
-#: src/fs-uae/menu.c:873
 msgid "Joystick Port 0"
 msgstr "Joystick - port 0"
 
-#: src/fs-uae/menu.c:876
 msgid "Joystick Port 1"
 msgstr "Joystick - port 1"
 
-#: src/fs-uae/menu.c:879
 msgid "Joystick Port 2"
 msgstr "Joystick - port 2"
 
-#: src/fs-uae/menu.c:882
 msgid "Joystick Port 3"
 msgstr "Joystick - port 3"
 
-#: src/fs-uae/menu.c:906
 msgid "Joystick Ports"
 msgstr "Porty joysticków"
 
-#: src/fs-uae/menu.c:127 src/fs-uae/menu.c:603 src/fs-uae/menu.c:718
 msgid "Keyboard"
 msgstr "Klawiatura"
 
-#: src/fs-uae/menu.c:328
 msgid "Load"
 msgstr "Ładuj"
 
-#: src/fs-uae/menu.c:948 src/fs-uae/menu.c:964 src/fs-uae/menu.c:978
 msgid "More..."
 msgstr "Więcej..."
 
-#: src/fs-uae/menu.c:130 src/fs-uae/menu.c:606 src/fs-uae/menu.c:615
-#: src/fs-uae/menu.c:709 src/fs-uae/menu.c:793
 msgid "Mouse"
 msgstr "Mysz"
 
-#. TRANSLATORS: This is a menu entry and must not be too long: If you struggle
-#. to get in short enough, just translate "No Device" instead.
-#: src/fs-uae/menu.c:16
+#. / TRANSLATORS: This is a menu entry and must not be too long: If you struggle
+#. / to get in short enough, just translate "No Device" instead.
 msgid "No Amiga Device"
 msgstr "Brak urządzenia Amigi"
 
-#. TRANSLATORS: This is a menu entry and must not be too long: If you struggle
-#. to get in short enough, just translate "No Device" instead.
-#: src/fs-uae/menu.c:13
+#. / TRANSLATORS: This is a menu entry and must not be too long: If you struggle
+#. / to get in short enough, just translate "No Device" instead.
 msgid "No Host Device"
 msgstr "Brak urządzenia głownego"
 
-#: src/fs-uae/main.c:312
 msgid "No configuration file was found"
 msgstr ""
 
-#. TRANSLATORS: This is a menu entry and must not be too long
-#: src/fs-uae/menu.c:915
+#. / TRANSLATORS: This is a menu entry and must not be too long
 msgid "Parallel Joystick Ports"
 msgstr "Równoległe porty joysticków"
 
-#: src/fs-uae/menu.c:177 src/fs-uae/menu.c:938
 msgid "Pause"
 msgstr "Pauza"
 
-#: src/fs-uae/menu.c:985
 msgid "Removable Media"
 msgstr "Nośniki wymienne"
 
-#. TRANSLATORS: Reset Amiga as in reboot the computer
-#: src/fs-uae/menu.c:48 src/fs-uae/menu.c:959
+#. / TRANSLATORS: Reset Amiga as in reboot the computer
 msgid "Reset Amiga"
 msgstr "Resetuj Amigę"
 
-#: src/fs-uae/menu.c:174
 msgid "Resume"
 msgstr "Wznów"
 
-#: src/fs-uae/menu.c:335
 msgid "Save"
 msgstr "Zapisz"
 
-#: src/fs-uae/menu.c:356 src/fs-uae/menu.c:943
 msgid "Save States"
 msgstr "Zapis stanów gry"
 
-#. TRANSLATORS: Soft reset reboots the computer without a power cycle
-#: src/fs-uae/menu.c:54
+#. / TRANSLATORS: Soft reset reboots the computer without a power cycle
 msgid "Soft Reset"
 msgstr "\"Miękki\" reset"
 
-#: src/fs-uae/video.c:356
 msgid "Zoom is disabled in RTG mode"
 msgstr ""
 
-#: src/fs-uae/video.c:377
 #, c-format
 msgid "Zoom: %s"
 msgstr ""
 
-#: src/fs-uae/video.c:373
 #, c-format
 msgid "Zoom: %s + Border"
 msgstr ""

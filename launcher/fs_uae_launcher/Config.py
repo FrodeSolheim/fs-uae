@@ -142,15 +142,16 @@ class Config:
 
     @classmethod
     def set(cls, key, value):
-        if cls.get(key) == value:
-            print(u"set {0} to {1} (no change)".format(key, value))
-            return
-        print(u"set {0} to {1}".format(key, value))
-        cls.config[key] = value
-        for listener in cls.config_listeners:
-            listener.on_config(key, value)
-        if key != "x_ready":
-            cls.set("x_ready", "0")
+        #if cls.get(key) == value:
+        #    print(u"set {0} to {1} (no change)".format(key, value))
+        #    return
+        #print(u"set {0} to {1}".format(key, value))
+        #cls.config[key] = value
+        #for listener in cls.config_listeners:
+        #    listener.on_config(key, value)
+        #if key != "x_ready":
+        #    cls.set("x_ready", "0")
+        cls.set_multiple([(key, value)])
 
     @classmethod
     def set_multiple(cls, items):

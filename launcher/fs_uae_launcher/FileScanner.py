@@ -6,6 +6,7 @@ import os
 import time
 import zlib
 import hashlib
+import traceback
 from .Archive import Archive
 from .Database import Database
 from .Settings import Settings
@@ -65,7 +66,6 @@ class FileScanner:
         for dir in scan_dirs:
             self.scan_dir(database, dir)
         if self.stop_check():
-            # aborted
             database.rollback()
         else:
             self.set_status(_("Scanning files"), _("Purging old entries..."))
@@ -73,11 +73,9 @@ class FileScanner:
             self.set_status(_("Scanning files"), _("Committing data..."))
             print("FileScanner.scan - commiting data")
             database.commit()
-            #raise Exception("gnit")
 
     def scan_dir(self, database, dir):
         #print("scan_dir", repr(dir))
-        #return
         if not os.path.exists(dir):
             return
         for name in os.listdir(dir):
@@ -91,7 +89,10 @@ class FileScanner:
             ext = ext.lower()
             if ext not in self.extensions:
                 continue
-            self.scan_file(database, path)
+            try:
+                self.scan_file(database, path)
+            except Exception:
+                traceback.print_exc()
 
     def scan_file(self, database, path):
         #print("scan_file", repr(path))

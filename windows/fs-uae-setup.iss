@@ -1,10 +1,10 @@
 [Setup]
 AppName=FS-UAE
-AppVersion=1.3.21
+AppVersion=1.3.22
 DefaultDirName={localappdata}\FS-UAE
 DefaultGroupName=FS-UAE
 UninstallDisplayIcon={app}\FS-UAE.exe
-OutputBaseFilename=fs-uae-1.3.21-setup
+OutputBaseFilename=fs-uae-1.3.22-setup
 OutputDir=.
 PrivilegesRequired=lowest
 ShowLanguageDialog=no
@@ -15,7 +15,7 @@ DisableStartupPrompt=yes
 DisableProgramGroupPage=yes
 
 [Files]
-Source: "fs-uae-1.3.21-windows\*"; DestDir: "{app}"; Flags: recursesubdirs;
+Source: "fs-uae-1.3.22-windows\*"; DestDir: "{app}"; Flags: recursesubdirs;
 ;Source: "oalinst.exe"; DestDir: "{app}";
 ;Source: "vcredist_x86.exe"; DestDir: "{app}";
 

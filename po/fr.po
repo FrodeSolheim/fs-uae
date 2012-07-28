@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: FS-UAE\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2012-07-10 14:32+0200\n"
+"POT-Creation-Date: 2012-07-27 17:47+0200\n"
 "PO-Revision-Date: 2012-05-06 12:59+0100\n"
 "Last-Translator: Foul <foulweb@gmail.com>\n"
 "Language-Team: Foul <fs-uae-fr@fengestad.no>\n"
@@ -19,198 +19,155 @@ msgstr ""
 "X-Poedit-Language: French\n"
 "X-Poedit-Country: FRANCE\n"
 
-#: src/fs-uae/menu.c:954
 msgid "Amiga Control"
 msgstr "Contrôles Amiga"
 
-#. TRANSLATORS: In context "Zoom: Auto"
-#: src/fs-uae/video.c:23
+#. / TRANSLATORS: In context "Zoom: Auto"
 msgid "Auto"
 msgstr "Auto"
 
-#. TRANSLATORS: Empty or nothing
-#: src/fs-uae/menu.c:216
+#. / TRANSLATORS: Empty or nothing
 #, c-format
 msgid "CD%d: Empty"
 msgstr "CD%d: Vide"
 
-#: src/fs-uae/menu.c:621 src/fs-uae/menu.c:815
 msgid "CD32 Gamepad"
 msgstr "Gamepad CD32"
 
-#. TRANSLATORS: Empty or nothing
-#: src/fs-uae/menu.c:199
+#. / TRANSLATORS: Empty or nothing
 #, c-format
 msgid "DF%d: Empty"
 msgstr "DF%d: Vide"
 
-#: src/fs-uae/menu.c:191 src/fs-uae/menu.c:229
 msgid "Disabled"
 msgstr "Désactivé"
 
-#: src/fs-uae/menu.c:518 src/fs-uae/menu.c:558
 msgid "Eject"
 msgstr "Éjecter"
 
-#: src/fs-uae/menu.c:294 src/fs-uae/menu.c:322
 msgid "Empty"
 msgstr "Vide"
 
-#: src/fs-uae/menu.c:933
 msgid "Emulator Control"
 msgstr "Contrôles Emulateur"
 
-#. TRANSLATORS: In context "Zoom: Full Frame"
-#: src/fs-uae/video.c:25
+#. / TRANSLATORS: In context "Zoom: Full Frame"
 msgid "Full Frame"
 msgstr "Plein Cadre"
 
-#. TRANSLATORS: Hard reset is a computer reboot with an emulated power
-#. cycle
-#: src/fs-uae/menu.c:61
+#. / TRANSLATORS: Hard reset is a computer reboot with an emulated power
+#. / cycle
 msgid "Hard Reset"
 msgstr "Réinitialisation Matérielle"
 
-#: src/fs-uae/menu.c:854
 msgid "Host Device"
 msgstr "Périphérique Hôte"
 
-#: src/fs-uae/menu.c:970
 msgid "Input Options"
 msgstr "Options d'entrées"
 
-#. TRANSLATORS: This is a menu entry and must not be too long
-#: src/fs-uae/menu.c:551
+#. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Insert Into CD%d"
 msgstr "Insérez dans CD%d"
 
-#. TRANSLATORS: This is a menu entry and must not be too long
-#: src/fs-uae/menu.c:509
+#. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Insert Into DF%d"
 msgstr "Insérez dans DF%d"
 
-#: src/fs-uae/menu.c:618 src/fs-uae/menu.c:804
 msgid "Joystick"
 msgstr "Joystick"
 
-#. TRANSLATORS: This is a menu entry and must not be too long
-#: src/fs-uae/menu.c:841
+#. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Joystick Port %d"
 msgstr "Port Joystick %d"
 
-#. TRANSLATORS: This is a menu entry and must not be too long
-#: src/fs-uae/menu.c:693
+#. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Joystick Port %d Device"
 msgstr "Périph. Port Joystick %d"
 
-#. TRANSLATORS: This is a menu entry and must not be too long
-#: src/fs-uae/menu.c:772
+#. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Joystick Port %d Mode"
 msgstr "Mode Port Joystick %d"
 
-#: src/fs-uae/menu.c:873
 msgid "Joystick Port 0"
 msgstr "Ports Joystick 0"
 
-#: src/fs-uae/menu.c:876
 msgid "Joystick Port 1"
 msgstr "Ports Joystick 1"
 
-#: src/fs-uae/menu.c:879
 msgid "Joystick Port 2"
 msgstr "Ports Joystick 2"
 
-#: src/fs-uae/menu.c:882
 msgid "Joystick Port 3"
 msgstr "Ports Joystick 3"
 
-#: src/fs-uae/menu.c:906
 msgid "Joystick Ports"
 msgstr "Ports Joystick"
 
-#: src/fs-uae/menu.c:127 src/fs-uae/menu.c:603 src/fs-uae/menu.c:718
 msgid "Keyboard"
 msgstr "Clavier"
 
-#: src/fs-uae/menu.c:328
 msgid "Load"
 msgstr "Charger"
 
-#: src/fs-uae/menu.c:948 src/fs-uae/menu.c:964 src/fs-uae/menu.c:978
 msgid "More..."
 msgstr "Plus..."
 
-#: src/fs-uae/menu.c:130 src/fs-uae/menu.c:606 src/fs-uae/menu.c:615
-#: src/fs-uae/menu.c:709 src/fs-uae/menu.c:793
 msgid "Mouse"
 msgstr "Souris"
 
-#. TRANSLATORS: This is a menu entry and must not be too long: If you struggle
-#. to get in short enough, just translate "No Device" instead.
-#: src/fs-uae/menu.c:16
+#. / TRANSLATORS: This is a menu entry and must not be too long: If you struggle
+#. / to get in short enough, just translate "No Device" instead.
 msgid "No Amiga Device"
 msgstr "Périph. Amiga Absent"
 
-#. TRANSLATORS: This is a menu entry and must not be too long: If you struggle
-#. to get in short enough, just translate "No Device" instead.
-#: src/fs-uae/menu.c:13
+#. / TRANSLATORS: This is a menu entry and must not be too long: If you struggle
+#. / to get in short enough, just translate "No Device" instead.
 msgid "No Host Device"
 msgstr "Périph. Hôte Absent"
 
-#: src/fs-uae/main.c:312
 msgid "No configuration file was found"
 msgstr "Fichier de configuration absent"
 
-#. TRANSLATORS: This is a menu entry and must not be too long
-#: src/fs-uae/menu.c:915
+#. / TRANSLATORS: This is a menu entry and must not be too long
 msgid "Parallel Joystick Ports"
 msgstr "Joystick Port Parallèle"
 
-#: src/fs-uae/menu.c:177 src/fs-uae/menu.c:938
 msgid "Pause"
 msgstr "Pause"
 
-#: src/fs-uae/menu.c:985
 msgid "Removable Media"
 msgstr "Supports Amovibles"
 
-#. TRANSLATORS: Reset Amiga as in reboot the computer
-#: src/fs-uae/menu.c:48 src/fs-uae/menu.c:959
+#. / TRANSLATORS: Reset Amiga as in reboot the computer
 msgid "Reset Amiga"
 msgstr "Réinitialiser Amiga"
 
-#: src/fs-uae/menu.c:174
 msgid "Resume"
 msgstr "Reprendre"
 
-#: src/fs-uae/menu.c:335
 msgid "Save"
 msgstr "Sauvegarder"
 
-#: src/fs-uae/menu.c:356 src/fs-uae/menu.c:943
 msgid "Save States"
 msgstr "Sauvegarder l’État"
 
-#. TRANSLATORS: Soft reset reboots the computer without a power cycle
-#: src/fs-uae/menu.c:54
+#. / TRANSLATORS: Soft reset reboots the computer without a power cycle
 msgid "Soft Reset"
 msgstr "Réinitialisation Logicielle"
 
-#: src/fs-uae/video.c:356
 msgid "Zoom is disabled in RTG mode"
 msgstr "Zoom désactivé en mode RTG"
 
-#: src/fs-uae/video.c:377
 #, c-format
 msgid "Zoom: %s"
 msgstr "Zoom: %s"
 
-#: src/fs-uae/video.c:373
 #, c-format
 msgid "Zoom: %s + Border"
 msgstr "Zoom: %s + Bordure"

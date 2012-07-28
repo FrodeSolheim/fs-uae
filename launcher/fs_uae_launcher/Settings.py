@@ -157,7 +157,7 @@ class Settings:
 
     @classmethod
     def get_images_dir(cls):
-        path = os.path.join(cls.get_base_dir(), "Images")
+        path = cls.get_base_dir()
         return path
 
     @classmethod
@@ -216,12 +216,13 @@ class Settings:
     @classmethod
     def get_images_dirs(cls):
         paths = [cls.get_images_dir(),
-                 os.path.join(fs.get_home_dir(), "Games",
-                         "Amiga", "Images"),
-                 os.path.join(fs.get_home_dir(), "Games",
-                         "CD32", "Images"),
-                 os.path.join(fs.get_home_dir(), "Games",
-                         "CDTV", "Images"),
+                 os.path.join(fs.get_home_dir(), "Games"),
+                 #os.path.join(fs.get_home_dir(), "Games",
+                 #        "Amiga", "Images"),
+                 #os.path.join(fs.get_home_dir(), "Games",
+                 #        "CD32", "Images"),
+                 #os.path.join(fs.get_home_dir(), "Games",
+                 #        "CDTV", "Images"),
         ]
         return paths
 

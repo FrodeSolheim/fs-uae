@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae-launcher\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2012-07-27 00:47+0200\n"
+"POT-Creation-Date: 2012-07-27 17:43+0200\n"
 "PO-Revision-Date: 2012-07-26 23:52+0100\n"
 "Last-Translator: Foul <foulweb@gmail.com>\n"
 "Language-Team: Foul <fs-uae-fr@fengestad.no>\n"
@@ -19,476 +19,325 @@ msgstr ""
 "X-Poedit-Language: French\n"
 "X-Poedit-Country: FRANCE\n"
 
-#: fs_uae_launcher/ScanDialog.py:53
 msgid "Abort"
 msgstr "Interrompre"
 
-#: fs_uae_launcher/configui/ModelGroup.py:47
 msgid "Accurate"
 msgstr "Précision Maximale"
 
-#: fs_uae_launcher/ScanPathsGroup.py:46
 msgid "Add Directory to Search Path"
 msgstr "Ajouter Répertoire au Chemin de Recherche"
 
-#: fs_uae_launcher/MediaListGroup.py:60
 msgid "Add Files to List"
 msgstr "Ajouter Fichiers à la Liste"
 
-#: fs_uae_launcher/CDDialog.py:28
 msgid "Add Multiple CD Images at Once"
 msgstr "Ajouter Plusieurs Images de CD à la fois"
 
-#: fs_uae_launcher/RemovableMediaGroup.py:35
 msgid "Add Multiple Files at Once"
 msgstr "Ajouter Plusieurs Fichiers à la fois"
 
-#: fs_uae_launcher/FloppiesDialog.py:28
 msgid "Add Multiple Floppies at Once"
 msgstr "Ajouter Plusieurs Disquettes à la fois"
 
-#: fs_uae_launcher/ConfigGroup.py:67
 msgid "Amiga Hardware Options"
 msgstr "Options du Matériel Amiga"
 
-#. self.hor_layout = fsui.HorizontalLayout()
-#. self.vert_layout.add(self.hor_layout, fill=True, expand=True)
-#: fs_uae_launcher/configui/ModelGroup.py:33
 msgid "Amiga Model"
 msgstr "Modèle d'Amiga"
 
-#: fs_uae_launcher/FloppySelector.py:35
-#: fs_uae_launcher/configui/KickstartGroup.py:49
-#: fs_uae_launcher/configui/KickstartGroup.py:74
 msgid "Browse"
 msgstr "Parcourir"
 
-#: fs_uae_launcher/configui/HardDriveGroup.py:53
 msgid "Browse for File"
 msgstr "Parcourir les Fichiers"
 
-#: fs_uae_launcher/configui/HardDriveGroup.py:60
 msgid "Browse for Folder"
 msgstr "Parcourir les Dossiers"
 
-#: fs_uae_launcher/FloppiesGroup.py:33
 msgid "CD-ROM Drive"
 msgstr "Lecteur CD-ROM"
 
-#. self.cdroms_button = fsui.Button(self, _("CD-ROMs..."))
-#: fs_uae_launcher/RemovableMediaGroup.py:47
 msgid "CD-ROMs"
 msgstr "CD-ROMS"
 
-#: fs_uae_launcher/configui/InputSelector.py:14
 msgid "CD32 Pad"
 msgstr "Pad CD32"
 
-#: fs_uae_launcher/editor/PickGameDialog.py:37
 msgid "Cancel"
 msgstr "Annuler"
 
-#: fs_uae_launcher/FloppySelector.py:80
 msgid "Choose CD-ROM Image"
 msgstr "Choisir Image CD-ROM"
 
-#: fs_uae_launcher/configui/KickstartGroup.py:174
 msgid "Choose Extended ROM"
 msgstr "Choisir ROM Etendue"
 
-#: fs_uae_launcher/FloppySelector.py:83
 msgid "Choose Floppy Image"
 msgstr "Choisir une Disquette"
 
-#: fs_uae_launcher/configui/HardDriveGroup.py:81
 msgid "Choose Hard Drive"
 msgstr "Choisir Disque Dur"
 
-#: fs_uae_launcher/configui/KickstartGroup.py:144
 msgid "Choose Kickstart ROM"
 msgstr "Choisir une ROM Kickstart"
 
-#: fs_uae_launcher/LaunchHandler.py:319
 msgid "Cleaning up..."
 msgstr "Nettoyage ..."
 
-#: fs_uae_launcher/MediaListGroup.py:74
 msgid "Clear List"
 msgstr "Effacer la Liste"
 
-#: fs_uae_launcher/ScanDialog.py:102
 msgid "Click 'Scan' button if you want to re-scan"
 msgstr "Cliquez sur le bouton 'Analyser' si vous voulez re-analyser"
 
-#: fs_uae_launcher/ScanDialog.py:105
 msgid "Click 'Scan' button to start scan"
 msgstr "Cliquez sur le bouton 'Analyser' pour commencer l'analyse"
 
-#: fs_uae_launcher/GroupsDialog.py:42 fs_uae_launcher/InputDialog.py:46
-#: fs_uae_launcher/PagedDialog.py:41 fs_uae_launcher/ScanDialog.py:57
 msgid "Close"
 msgstr "Fermer"
 
-#: fs_uae_launcher/ConfigurationScanner.py:75
-#: fs_uae_launcher/FileScanner.py:73
 msgid "Committing data..."
 msgstr "Données en cours..."
 
-#: fs_uae_launcher/configui/ConfigDialog.py:21
-#: fs_uae_launcher/settingsui/SettingsDialog.py:21
 msgid "Configuration"
 msgstr "Configuration"
 
-#: fs_uae_launcher/CDDialog.py:14
 msgid "Configure CD-ROMs"
 msgstr "Configurer CD-ROMs"
 
-#: fs_uae_launcher/FloppiesDialog.py:14
 msgid "Configure Floppies"
 msgstr "Configurer les disquettes"
 
-#: fs_uae_launcher/HardDrivesDialog.py:14
 msgid "Configure Hard Drives"
 msgstr "Configurer Disque(s) Dur"
 
-#: fs_uae_launcher/InputDialog.py:15
 msgid "Configure Input"
 msgstr "Configurer les Entrées"
 
-#: fs_uae_launcher/settingsui/JoystickSettingsGroup.py:36
 msgid "Configure Joystick Buttons"
 msgstr "Configurer les boutons du Joystick"
 
-#: fs_uae_launcher/configui/InputSelector.py:40
 msgid "Cursor Keys and Right Ctrl/Alt"
 msgstr "Touches de curseur et Ctrl / Alt Droits"
 
-#: fs_uae_launcher/configui/KickstartGroup.py:37
-#: fs_uae_launcher/configui/KickstartGroup.py:62
 msgid "Custom"
 msgstr "Perso"
 
-#: fs_uae_launcher/configui/ConfigDialog.py:26
 msgid "Custom Options"
 msgstr "Options Personnalisées"
 
-#. self.add_page(_("Hard Drives"), HardDrivesPage)
-#: fs_uae_launcher/settingsui/SettingsDialog.py:26
 msgid "Custom Settings"
 msgstr "Réglages Personnalisés"
 
-#: fs_uae_launcher/configui/KickstartGroup.py:37
-#: fs_uae_launcher/configui/KickstartGroup.py:62
 msgid "Default"
 msgstr "Par Défaut"
 
-#: fs_uae_launcher/LaunchHandler.py:98 fs_uae_launcher/LaunchHandler.py:250
 msgid "Downloading {0}..."
 msgstr "Téléchargement {0}..."
 
-#: fs_uae_launcher/FloppySelector.py:29
-#: fs_uae_launcher/configui/HardDriveGroup.py:46
 msgid "Eject"
 msgstr "Ejecter"
 
-#: fs_uae_launcher/configui/KickstartGroup.py:55
 msgid "Extended ROM"
 msgstr "ROM Etendue"
 
-#: fs_uae_launcher/ConfigurationsGroup.py:45
 msgid "Filters:"
 msgstr "Filtres:"
 
-#: fs_uae_launcher/RemovableMediaGroup.py:40
 msgid "Floppies..."
 msgstr "Disquettes"
 
-#: fs_uae_launcher/FloppiesGroup.py:35
 msgid "Floppy Drives"
 msgstr "Lecteurs de Disquettes"
 
-#: fs_uae_launcher/MainWindow.py:175
 msgid "Fullscreen"
 msgstr "Plein Ecran"
 
-#: fs_uae_launcher/ConfigurationsGroup.py:30
 msgid "Games and Configurations"
 msgstr "Jeux et Configurations"
 
-#: fs_uae_launcher/configui/HardDriveGroup.py:33
 msgid "Hard Drive {0}"
 msgstr "Disque Dur {0}"
 
-#: fs_uae_launcher/ConfigGroup.py:79
-#: fs_uae_launcher/configui/ConfigDialog.py:25
 msgid "Hard Drives"
 msgstr "Disques Durs"
 
-#: fs_uae_launcher/configui/ConfigDialog.py:23
 msgid "Hardware"
 msgstr "Matériel"
 
-#: fs_uae_launcher/HostGroup.py:28
 msgid "Host Options"
 msgstr "Options de l’Hôte"
 
-#: fs_uae_launcher/configui/ConfigDialog.py:24
 msgid "Input"
 msgstr "Entrée"
 
-#: fs_uae_launcher/ConfigGroup.py:73
 msgid "Input Options"
 msgstr "Options d'entrée"
 
-#: fs_uae_launcher/configui/KickstartGroup.py:37
 msgid "Internal"
 msgstr "Interne"
 
-#: fs_uae_launcher/configui/InputGroup.py:17
-#: fs_uae_launcher/configui/InputSelector.py:13
-#: fs_uae_launcher/settingsui/PreferredJoysticksGroup.py:16
 msgid "Joystick"
 msgstr "Joystick"
 
-#: fs_uae_launcher/settingsui/JoystickSettingsGroup.py:29
 msgid "Joystick Configuration"
 msgstr "Configuration du Joystick"
 
-#: fs_uae_launcher/configui/InputGroup.py:42
 msgid "Joystick Ports"
 msgstr "Ports Joystick"
 
-#. self.add_page(_("Hardware"), HardwarePage)
-#: fs_uae_launcher/settingsui/SettingsDialog.py:24
 msgid "Joystick Settings"
 msgstr "Paramètres du Joystick"
 
-#: fs_uae_launcher/configui/KickstartGroup.py:30
 msgid "Kickstart ROM"
 msgstr "ROM Kickstart"
 
-#: fs_uae_launcher/ScanKickstartGroup.py:74
 msgid "Kickstart Versions"
 msgstr "Versions du Kickstart"
 
-#: fs_uae_launcher/configui/ModelGroup.py:48
 msgid "Least Accurate"
 msgstr "Précision Minimale"
 
-#: fs_uae_launcher/configui/ModelGroup.py:47
 msgid "Less Accurate"
 msgstr "Précision Moyenne"
 
-#: fs_uae_launcher/MediaListGroup.py:33
 msgid "Media List"
 msgstr "Liste des Médias"
 
-#: fs_uae_launcher/ConfigGroup.py:85
 msgid "More Configuration Options"
 msgstr "Options de Configurations Supplémentaires"
 
-#: fs_uae_launcher/HostGroup.py:55
 msgid "More..."
 msgstr "Plus..."
 
-#: fs_uae_launcher/configui/InputGroup.py:17
-#: fs_uae_launcher/configui/InputSelector.py:13
-#: fs_uae_launcher/configui/InputSelector.py:39
-#: fs_uae_launcher/settingsui/PreferredJoysticksGroup.py:16
 msgid "Mouse"
 msgstr "Souris"
 
-#. self.join_game_button = fsui.Button(parent, "   Join Game   ")
-#. layout.add(self.join_game_button)
-#. layout.add_spacer(10)
-#. self.create_game_button = fsui.Button(parent, "   Create Game   ")
-#. layout.add(self.create_game_button)
-#. layout.add_spacer(10, expand=True)
-#: fs_uae_launcher/MainWindow.py:163
 msgid "Net Play"
 msgstr "Jeux Online"
 
-#: fs_uae_launcher/ConfigGroup.py:42
 msgid "New Configuration"
 msgstr "Nouvelle Configuration"
 
-#: fs_uae_launcher/configui/InputSelector.py:39
 msgid "No Host Device"
 msgstr "Pas de périphérique hôte"
 
-#: fs_uae_launcher/JoystickConfigDialog.py:34
 msgid "No Joysticks"
 msgstr "Pas de Joystick"
 
-#: fs_uae_launcher/MainWindow.py:348
 msgid "No extended kickstart found for this model. Try 'scan' function."
 msgstr ""
 "Pas de Kickstart Etendu trouvé pour ce modèle. Essayez la fonction 'Analyse'."
 
-#: fs_uae_launcher/JoystickConfigDialog.py:33
 msgid "No joysticks are currently connected"
 msgstr "Pas de Joystick actuellement connecté"
 
-#. or not #. os.path.exists(Config.get("kickstart_file")):
-#: fs_uae_launcher/MainWindow.py:341
 msgid "No kickstart found for this model. "
 msgstr "Pas de kickstart trouvé pour ce modèle."
 
-#: fs_uae_launcher/ScanDialog.py:104
 msgid "No scan in progress"
 msgstr "Pas d'analyse en cours"
 
-#: fs_uae_launcher/configui/InputGroup.py:17
-#: fs_uae_launcher/configui/InputSelector.py:13
-#: fs_uae_launcher/settingsui/PreferredJoysticksGroup.py:16
 msgid "Nothing"
 msgstr "Aucun"
 
-#: fs_uae_launcher/editor/PickGameDialog.py:41
 msgid "OK"
 msgstr "OK"
 
-#: fs_uae_launcher/ConfigGroup.py:48
 msgid "Open Configuration"
 msgstr "Ouvrir Configuration"
 
-#: fs_uae_launcher/settingsui/JoystickSettingsGroup.py:38
 msgid "Open Tool to Configure Button Mapping"
 msgstr "Ouvrir l'Outil de Configuration des Boutons"
 
-#: fs_uae_launcher/configui/InputGroup.py:40
 msgid "Parallel Port Joysticks"
 msgstr "Joysticks sur port parallèle"
 
-#: fs_uae_launcher/ConfigurationScanner.py:57
-#: fs_uae_launcher/ScanDialog.py:122
 msgid "Please wait..."
 msgstr "Patientez S.V.P."
 
-#: fs_uae_launcher/settingsui/PreferredJoysticksGroup.py:37
 msgid "Preferred Joystick"
 msgstr "Joystick Préféré"
 
-#: fs_uae_launcher/settingsui/PreferredJoysticksGroup.py:50
 msgid "Preferred device for secondary joystick:"
 msgstr "Périphérique préféré pour le joystick secondaire:"
 
-#: fs_uae_launcher/LaunchHandler.py:169
 msgid "Preparing WHDLoad..."
 msgstr "Préparation de WHDLoad..."
 
-#: fs_uae_launcher/LaunchHandler.py:124
 msgid "Preparing floppy images..."
 msgstr "Préparation des images de disquettes..."
 
-#: fs_uae_launcher/LaunchHandler.py:149
 msgid "Preparing hard drives..."
 msgstr "Préparation du disque dur..."
 
-#: fs_uae_launcher/ConfigurationScanner.py:71
-#: fs_uae_launcher/FileScanner.py:71
 msgid "Purging old entries..."
 msgstr "Purge des anciennes entrées ..."
 
-#: fs_uae_launcher/RemovableMediaGroup.py:52
 msgid "Removable Media"
 msgstr "Média Amovible"
 
-#: fs_uae_launcher/ScanPathsGroup.py:53
 msgid "Remove Directory from Search Path"
 msgstr "Supprimer Répertoire du Chemin de Recherche"
 
-#: fs_uae_launcher/MediaListGroup.py:67
 msgid "Remove Selected Files"
 msgstr "Supprimer les Fichiers Sélectionnés"
 
-#: fs_uae_launcher/LaunchHandler.py:308
 msgid "Restoring changes..."
 msgstr "Restauration des Changements"
 
-#: fs_uae_launcher/ConfigGroup.py:56
 msgid "Save Configuration"
 msgstr "Sauvegarde de la Configuration"
 
-#: fs_uae_launcher/LaunchHandler.py:314
 msgid "Saving changes..."
 msgstr "Sauvegarde des Changements"
 
-#. self.gamepad_config_button = fsui.Button(self,
-#. "Configure Joysticks")
-#. self.gamepad_config_button.on_activate = self.on_gamepad_config_button
-#. self.layout3.add(self.gamepad_config_button)
-#. self.layout3.add_spacer(10)
-#: fs_uae_launcher/ConfigurationsGroup.py:37 fs_uae_launcher/HostGroup.py:48
-#: fs_uae_launcher/ScanDialog.py:20 fs_uae_launcher/ScanDialog.py:49
 msgid "Scan"
 msgstr "Analyse"
 
-#: fs_uae_launcher/ScanDialog.py:100
 msgid "Scan complete"
 msgstr "Analyse complète"
 
-#: fs_uae_launcher/ConfigurationsGroup.py:39
 msgid "Scan for Kickstarts, Games and Configurations"
 msgstr "Analyse des Kickstarts, Jeux et Configurations"
 
-#: fs_uae_launcher/ConfigurationScanner.py:57
-#: fs_uae_launcher/ConfigurationScanner.py:71
-#: fs_uae_launcher/ConfigurationScanner.py:75
 msgid "Scanning configurations"
 msgstr "Analyse des configurations"
 
-#: fs_uae_launcher/ConfigurationScanner.py:107
 msgid "Scanning configurations ({count} scanned)"
 msgstr "Analyse des configurations ({count} analysés)"
 
-#: fs_uae_launcher/FileScanner.py:71 fs_uae_launcher/FileScanner.py:73
 msgid "Scanning files"
 msgstr "Analyse des fichiers"
 
-#: fs_uae_launcher/FileScanner.py:103 fs_uae_launcher/FileScanner.py:142
 msgid "Scanning files ({count} scanned)"
 msgstr "Analyse des Fichiers ({count}) analysés"
 
-#: fs_uae_launcher/CDDialog.py:26 fs_uae_launcher/FloppiesDialog.py:26
-#: fs_uae_launcher/RemovableMediaGroup.py:34
 msgid "Select Files..."
 msgstr "Selection des Fichiers"
 
-#: fs_uae_launcher/CDManager.py:35
 msgid "Select Multiple CD-ROMs"
 msgstr "Sélection de Plusieurs CD-ROMS"
 
-#: fs_uae_launcher/FloppyManager.py:35
 msgid "Select Multiple Floppies"
 msgstr "Sélection de Plusieurs Disquettes"
 
-#: fs_uae_launcher/MainWindow.py:146
 msgid "Settings"
 msgstr "Paramètres"
 
-#: fs_uae_launcher/MainWindow.py:184
 msgid "Start"
 msgstr "Démarrer"
 
-#: fs_uae_launcher/LaunchHandler.py:341
 msgid "Starting FS-UAE..."
 msgstr "Lancement de FS-UAE"
 
-#: fs_uae_launcher/ScanDialog.py:121
 msgid "Starting scan"
 msgstr "Démarrage de l'analyse"
 
-#: fs_uae_launcher/configui/WHDLoadGroup.py:30
 msgid "WHDLoad Arguments"
 msgstr "Arguments de WHDLoad"
 
-#. button = fsui.Button(parent, "Options")
-#. button.disable()
-#. set_min_height(button)
-#. layout.add(button)
-#. layout.add_spacer(10)
-#: fs_uae_launcher/MainWindow.py:175
 msgid "Window"
 msgstr "Fenêtré"
 

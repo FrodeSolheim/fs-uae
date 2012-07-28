@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2012-07-10 14:32+0200\n"
+"POT-Creation-Date: 2012-07-27 17:47+0200\n"
 "PO-Revision-Date: 2012-05-08 00:56+0100\n"
 "Last-Translator: \n"
 "Language-Team: Serbian\n"
@@ -18,198 +18,155 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
-#: src/fs-uae/menu.c:954
 msgid "Amiga Control"
 msgstr "Amiga kontrole"
 
-#. TRANSLATORS: In context "Zoom: Auto"
-#: src/fs-uae/video.c:23
+#. / TRANSLATORS: In context "Zoom: Auto"
 msgid "Auto"
 msgstr "Auto"
 
-#. TRANSLATORS: Empty or nothing
-#: src/fs-uae/menu.c:216
+#. / TRANSLATORS: Empty or nothing
 #, c-format
 msgid "CD%d: Empty"
 msgstr "CD%d: Prazan"
 
-#: src/fs-uae/menu.c:621 src/fs-uae/menu.c:815
 msgid "CD32 Gamepad"
 msgstr "CD32 Gamepad"
 
-#. TRANSLATORS: Empty or nothing
-#: src/fs-uae/menu.c:199
+#. / TRANSLATORS: Empty or nothing
 #, c-format
 msgid "DF%d: Empty"
 msgstr "DF%d: Prazan"
 
-#: src/fs-uae/menu.c:191 src/fs-uae/menu.c:229
 msgid "Disabled"
 msgstr "Deaktiviran"
 
-#: src/fs-uae/menu.c:518 src/fs-uae/menu.c:558
 msgid "Eject"
 msgstr "Izbacivanje"
 
-#: src/fs-uae/menu.c:294 src/fs-uae/menu.c:322
 msgid "Empty"
 msgstr "Prazno"
 
-#: src/fs-uae/menu.c:933
 msgid "Emulator Control"
 msgstr "Kontrole emulatora"
 
-#. TRANSLATORS: In context "Zoom: Full Frame"
-#: src/fs-uae/video.c:25
+#. / TRANSLATORS: In context "Zoom: Full Frame"
 msgid "Full Frame"
 msgstr "Pun okvir"
 
-#. TRANSLATORS: Hard reset is a computer reboot with an emulated power
-#. cycle
-#: src/fs-uae/menu.c:61
+#. / TRANSLATORS: Hard reset is a computer reboot with an emulated power
+#. / cycle
 msgid "Hard Reset"
 msgstr "Hardverski restart"
 
-#: src/fs-uae/menu.c:854
 msgid "Host Device"
 msgstr "Glavni / Host uređaj"
 
-#: src/fs-uae/menu.c:970
 msgid "Input Options"
 msgstr "Opcije ulaza"
 
-#. TRANSLATORS: This is a menu entry and must not be too long
-#: src/fs-uae/menu.c:551
+#. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Insert Into CD%d"
 msgstr "Ubaciti u CD%d"
 
-#. TRANSLATORS: This is a menu entry and must not be too long
-#: src/fs-uae/menu.c:509
+#. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Insert Into DF%d"
 msgstr "Ubaciti u DF%d"
 
-#: src/fs-uae/menu.c:618 src/fs-uae/menu.c:804
 msgid "Joystick"
 msgstr "Džojstik"
 
-#. TRANSLATORS: This is a menu entry and must not be too long
-#: src/fs-uae/menu.c:841
+#. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Joystick Port %d"
 msgstr "Džojstik port %d"
 
-#. TRANSLATORS: This is a menu entry and must not be too long
-#: src/fs-uae/menu.c:693
+#. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Joystick Port %d Device"
 msgstr "Džojstik port %d - Uređaj"
 
-#. TRANSLATORS: This is a menu entry and must not be too long
-#: src/fs-uae/menu.c:772
+#. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Joystick Port %d Mode"
 msgstr "Džojstik port %d Režim"
 
-#: src/fs-uae/menu.c:873
 msgid "Joystick Port 0"
 msgstr "Džojstik port 0"
 
-#: src/fs-uae/menu.c:876
 msgid "Joystick Port 1"
 msgstr "Džojstik port 1"
 
-#: src/fs-uae/menu.c:879
 msgid "Joystick Port 2"
 msgstr "Džojstik port 2"
 
-#: src/fs-uae/menu.c:882
 msgid "Joystick Port 3"
 msgstr "Džojstik port 3"
 
-#: src/fs-uae/menu.c:906
 msgid "Joystick Ports"
 msgstr "Džojstik portovi"
 
-#: src/fs-uae/menu.c:127 src/fs-uae/menu.c:603 src/fs-uae/menu.c:718
 msgid "Keyboard"
 msgstr "Tastatura"
 
-#: src/fs-uae/menu.c:328
 msgid "Load"
 msgstr "Učitavanje"
 
-#: src/fs-uae/menu.c:948 src/fs-uae/menu.c:964 src/fs-uae/menu.c:978
 msgid "More..."
 msgstr "Još..."
 
-#: src/fs-uae/menu.c:130 src/fs-uae/menu.c:606 src/fs-uae/menu.c:615
-#: src/fs-uae/menu.c:709 src/fs-uae/menu.c:793
 msgid "Mouse"
 msgstr "Miš"
 
-#. TRANSLATORS: This is a menu entry and must not be too long: If you struggle
-#. to get in short enough, just translate "No Device" instead.
-#: src/fs-uae/menu.c:16
+#. / TRANSLATORS: This is a menu entry and must not be too long: If you struggle
+#. / to get in short enough, just translate "No Device" instead.
 msgid "No Amiga Device"
 msgstr "Nema uređaja"
 
-#. TRANSLATORS: This is a menu entry and must not be too long: If you struggle
-#. to get in short enough, just translate "No Device" instead.
-#: src/fs-uae/menu.c:13
+#. / TRANSLATORS: This is a menu entry and must not be too long: If you struggle
+#. / to get in short enough, just translate "No Device" instead.
 msgid "No Host Device"
 msgstr "Nema host uređaja"
 
-#: src/fs-uae/main.c:312
 msgid "No configuration file was found"
 msgstr "Konfiguracioni fajl nije pronađen"
 
-#. TRANSLATORS: This is a menu entry and must not be too long
-#: src/fs-uae/menu.c:915
+#. / TRANSLATORS: This is a menu entry and must not be too long
 msgid "Parallel Joystick Ports"
 msgstr "Paralelni džojstik portovi"
 
-#: src/fs-uae/menu.c:177 src/fs-uae/menu.c:938
 msgid "Pause"
 msgstr "Pauziranje"
 
-#: src/fs-uae/menu.c:985
 msgid "Removable Media"
 msgstr "Prenosivi medijum"
 
-#. TRANSLATORS: Reset Amiga as in reboot the computer
-#: src/fs-uae/menu.c:48 src/fs-uae/menu.c:959
+#. / TRANSLATORS: Reset Amiga as in reboot the computer
 msgid "Reset Amiga"
 msgstr "Restart Amige"
 
-#: src/fs-uae/menu.c:174
 msgid "Resume"
 msgstr "Nastavak"
 
-#: src/fs-uae/menu.c:335
 msgid "Save"
 msgstr "Snimanje"
 
-#: src/fs-uae/menu.c:356 src/fs-uae/menu.c:943
 msgid "Save States"
 msgstr "Snimanje stanja"
 
-#. TRANSLATORS: Soft reset reboots the computer without a power cycle
-#: src/fs-uae/menu.c:54
+#. / TRANSLATORS: Soft reset reboots the computer without a power cycle
 msgid "Soft Reset"
 msgstr "Softverski restart"
 
-#: src/fs-uae/video.c:356
 msgid "Zoom is disabled in RTG mode"
 msgstr "Uvećanje je onemogućeno u RTG načinu rada"
 
-#: src/fs-uae/video.c:377
 #, c-format
 msgid "Zoom: %s"
 msgstr "Uvećanje: %s"
 
-#: src/fs-uae/video.c:373
 #, c-format
 msgid "Zoom: %s + Border"
 msgstr "Uvećanje: %s + okvir"

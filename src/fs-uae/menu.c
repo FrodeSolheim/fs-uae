@@ -8,11 +8,11 @@
 #include "fs-uae.h"
 
 #define NUM_SAVE_SLOTS 9
-// TRANSLATORS: This is a menu entry and must not be too long: If you struggle
-// to get in short enough, just translate "No Device" instead.
+/// TRANSLATORS: This is a menu entry and must not be too long: If you struggle
+/// to get in short enough, just translate "No Device" instead.
 #define NO_HOST_DEVICE _("No Host Device")
-// TRANSLATORS: This is a menu entry and must not be too long: If you struggle
-// to get in short enough, just translate "No Device" instead.
+/// TRANSLATORS: This is a menu entry and must not be too long: If you struggle
+/// to get in short enough, just translate "No Device" instead.
 #define NO_AMIGA_DEVICE _("No Amiga Device")
 #define PAUSE_ITEM_INDEX 1
 #define INPUT_ITEM_INDEX 8
@@ -44,20 +44,20 @@ static int reset_menu_function(fs_emu_menu_item *menu_item,
 
     item = fs_emu_menu_item_new();
     fs_emu_menu_append_item(menu, item);
-    // TRANSLATORS: Reset Amiga as in reboot the computer
+    /// TRANSLATORS: Reset Amiga as in reboot the computer
     fs_emu_menu_item_set_title(item, _("Reset Amiga"));
     fs_emu_menu_item_set_type(item, FS_EMU_MENU_ITEM_TYPE_HEADING);
 
     item = fs_emu_menu_item_new();
     fs_emu_menu_append_item(menu, item);
-    // TRANSLATORS: Soft reset reboots the computer without a power cycle
+    /// TRANSLATORS: Soft reset reboots the computer without a power cycle
     fs_emu_menu_item_set_title(item, _("Soft Reset"));
     fs_emu_menu_item_set_activate_function(item, soft_reset_function);
 
     item = fs_emu_menu_item_new();
     fs_emu_menu_append_item(menu, item);
-    // TRANSLATORS: Hard reset is a computer reboot with an emulated power
-    // cycle
+    /// TRANSLATORS: Hard reset is a computer reboot with an emulated power
+    /// cycle
     fs_emu_menu_item_set_title(item, _("Hard Reset"));
     fs_emu_menu_item_set_activate_function(item, hard_reset_function);
 
@@ -195,7 +195,7 @@ static void update_main_menu(fs_emu_menu *menu) {
                 const char *path = amiga_floppy_get_file(drive);
                 fs_emu_log("floppy in %d: %s\n", drive, path);
                 if (path == NULL || *path == 0) {
-                    // TRANSLATORS: Empty or nothing
+                    /// TRANSLATORS: Empty or nothing
                     char *title = fs_strdup_printf(_("DF%d: Empty"), drive);
                     fs_emu_menu_item_set_title(item, title);
                     free(title);
@@ -212,7 +212,7 @@ static void update_main_menu(fs_emu_menu *menu) {
             const char *path = amiga_cdrom_get_file(drive);
             fs_emu_log("CD in %d: %s\n", drive, path);
             if (path == NULL || *path == 0) {
-                // TRANSLATORS: Empty or nothing
+                /// TRANSLATORS: Empty or nothing
                 char *title = fs_strdup_printf(_("CD%d: Empty"), drive);
                 fs_emu_menu_item_set_title(item, title);
                 free(title);
@@ -505,7 +505,7 @@ static int media_menu_function(fs_emu_menu_item *menu_item,
         fs_emu_menu_set_update_function(menu, update_disk_menu);
         item = fs_emu_menu_item_new();
         fs_emu_menu_append_item(menu, item);
-        // TRANSLATORS: This is a menu entry and must not be too long
+        /// TRANSLATORS: This is a menu entry and must not be too long
         str = fs_strdup_printf(_("Insert Into DF%d"), drive);
         fs_emu_menu_item_set_title(item, str);
         g_free(str);
@@ -547,7 +547,7 @@ static int media_menu_function(fs_emu_menu_item *menu_item,
         fs_emu_menu_set_update_function(menu, update_cd_menu);
         item = fs_emu_menu_item_new();
         fs_emu_menu_append_item(menu, item);
-        // TRANSLATORS: This is a menu entry and must not be too long
+        /// TRANSLATORS: This is a menu entry and must not be too long
         str = fs_strdup_printf(_("Insert Into CD%d"), drive);
         fs_emu_menu_item_set_title(item, str);
         g_free(str);
@@ -689,7 +689,7 @@ static int input_host_menu_function(fs_emu_menu_item *menu_item,
 
     item = fs_emu_menu_item_new();
     fs_emu_menu_append_item(menu, item);
-    // TRANSLATORS: This is a menu entry and must not be too long
+    /// TRANSLATORS: This is a menu entry and must not be too long
     str = fs_strdup_printf(_("Joystick Port %d Device"), port);
     fs_emu_menu_item_set_title(item, str);
     g_free(str);
@@ -768,7 +768,7 @@ static int input_amiga_menu_function(fs_emu_menu_item *menu_item,
 
     item = fs_emu_menu_item_new();
     fs_emu_menu_append_item(menu, item);
-    // TRANSLATORS: This is a menu entry and must not be too long
+    /// TRANSLATORS: This is a menu entry and must not be too long
     str = fs_strdup_printf(_("Joystick Port %d Mode"), port);
     fs_emu_menu_item_set_title(item, str);
     g_free(str);
@@ -837,7 +837,7 @@ static int input_menu_function(fs_emu_menu_item *menu_item,
 
     item = fs_emu_menu_item_new();
     fs_emu_menu_append_item(menu, item);
-    // TRANSLATORS: This is a menu entry and must not be too long
+    /// TRANSLATORS: This is a menu entry and must not be too long
     str = fs_strdup_printf(_("Joystick Port %d"), port);
     fs_emu_menu_item_set_title(item, str);
     free(str);
@@ -911,7 +911,7 @@ static int input_options_menu_function(fs_emu_menu_item *menu_item,
 
     item = fs_emu_menu_item_new();
     fs_emu_menu_append_item(menu, item);
-    // TRANSLATORS: This is a menu entry and must not be too long
+    /// TRANSLATORS: This is a menu entry and must not be too long
     fs_emu_menu_item_set_title(item, _("Parallel Joystick Ports"));
     fs_emu_menu_item_set_type(item, FS_EMU_MENU_ITEM_TYPE_HEADING);
 

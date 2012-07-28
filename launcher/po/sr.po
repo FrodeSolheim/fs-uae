@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae-launcher\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2012-07-27 00:47+0200\n"
+"POT-Creation-Date: 2012-07-27 17:43+0200\n"
 "PO-Revision-Date: 2012-07-22 18:11+0100\n"
 "Last-Translator: \n"
 "Language-Team: Serbian\n"
@@ -18,475 +18,324 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
-#: fs_uae_launcher/ScanDialog.py:53
 msgid "Abort"
 msgstr ""
 
-#: fs_uae_launcher/configui/ModelGroup.py:47
 msgid "Accurate"
 msgstr "Precizno"
 
-#: fs_uae_launcher/ScanPathsGroup.py:46
 msgid "Add Directory to Search Path"
 msgstr "Dodati direktorijum u putanju pretrage"
 
-#: fs_uae_launcher/MediaListGroup.py:60
 msgid "Add Files to List"
 msgstr "Dodati fajlove u listu"
 
-#: fs_uae_launcher/CDDialog.py:28
 msgid "Add Multiple CD Images at Once"
 msgstr "Dodati više CD slika odjednom"
 
-#: fs_uae_launcher/RemovableMediaGroup.py:35
 msgid "Add Multiple Files at Once"
 msgstr "Dodati više datoteka odjednom"
 
-#: fs_uae_launcher/FloppiesDialog.py:28
 msgid "Add Multiple Floppies at Once"
 msgstr "Dodati više disketa odjednom"
 
-#: fs_uae_launcher/ConfigGroup.py:67
 msgid "Amiga Hardware Options"
 msgstr "Opcije Amiga hardvera"
 
-#. self.hor_layout = fsui.HorizontalLayout()
-#. self.vert_layout.add(self.hor_layout, fill=True, expand=True)
-#: fs_uae_launcher/configui/ModelGroup.py:33
 msgid "Amiga Model"
 msgstr "Amiga Model"
 
-#: fs_uae_launcher/FloppySelector.py:35
-#: fs_uae_launcher/configui/KickstartGroup.py:49
-#: fs_uae_launcher/configui/KickstartGroup.py:74
 msgid "Browse"
 msgstr "Pretražiti"
 
-#: fs_uae_launcher/configui/HardDriveGroup.py:53
 msgid "Browse for File"
 msgstr "Pretraga za fajlom"
 
-#: fs_uae_launcher/configui/HardDriveGroup.py:60
 msgid "Browse for Folder"
 msgstr "Pretraga za folderom"
 
-#: fs_uae_launcher/FloppiesGroup.py:33
 msgid "CD-ROM Drive"
 msgstr "CD-ROM uređaj"
 
-#. self.cdroms_button = fsui.Button(self, _("CD-ROMs..."))
-#: fs_uae_launcher/RemovableMediaGroup.py:47
 msgid "CD-ROMs"
 msgstr "CD-ROM uređaji"
 
-#: fs_uae_launcher/configui/InputSelector.py:14
 msgid "CD32 Pad"
 msgstr "CD32 "
 
-#: fs_uae_launcher/editor/PickGameDialog.py:37
 msgid "Cancel"
 msgstr "Otkazati"
 
-#: fs_uae_launcher/FloppySelector.py:80
 msgid "Choose CD-ROM Image"
 msgstr "Odabrati CD-ROM sliku"
 
-#: fs_uae_launcher/configui/KickstartGroup.py:174
 msgid "Choose Extended ROM"
 msgstr ""
 
-#: fs_uae_launcher/FloppySelector.py:83
 msgid "Choose Floppy Image"
 msgstr "Izabrati disketnu sliku"
 
-#: fs_uae_launcher/configui/HardDriveGroup.py:81
 msgid "Choose Hard Drive"
 msgstr "Odabrati hard disk uredjaj"
 
-#: fs_uae_launcher/configui/KickstartGroup.py:144
 msgid "Choose Kickstart ROM"
 msgstr "Izabrati Kickstart ROM"
 
-#: fs_uae_launcher/LaunchHandler.py:319
 msgid "Cleaning up..."
 msgstr ""
 
-#: fs_uae_launcher/MediaListGroup.py:74
 msgid "Clear List"
 msgstr "Isprazniti listu"
 
-#: fs_uae_launcher/ScanDialog.py:102
 msgid "Click 'Scan' button if you want to re-scan"
 msgstr "Kliknite na 'Skeniranje' dugme ako želite da ponovo skenira"
 
-#: fs_uae_launcher/ScanDialog.py:105
 msgid "Click 'Scan' button to start scan"
 msgstr "Kliknite na 'Skeniranje' dugme da biste započeli skeniranje"
 
-#: fs_uae_launcher/GroupsDialog.py:42 fs_uae_launcher/InputDialog.py:46
-#: fs_uae_launcher/PagedDialog.py:41 fs_uae_launcher/ScanDialog.py:57
 msgid "Close"
 msgstr "Zatvoriti"
 
-#: fs_uae_launcher/ConfigurationScanner.py:75
-#: fs_uae_launcher/FileScanner.py:73
 msgid "Committing data..."
 msgstr "Izvršavanje podataka"
 
-#: fs_uae_launcher/configui/ConfigDialog.py:21
-#: fs_uae_launcher/settingsui/SettingsDialog.py:21
 msgid "Configuration"
 msgstr "Konfiguracija"
 
-#: fs_uae_launcher/CDDialog.py:14
 msgid "Configure CD-ROMs"
 msgstr "Konfigurisanje CD-ROM-ova"
 
-#: fs_uae_launcher/FloppiesDialog.py:14
 msgid "Configure Floppies"
 msgstr "Konfigurisanje disketa"
 
-#: fs_uae_launcher/HardDrivesDialog.py:14
 msgid "Configure Hard Drives"
 msgstr "Konfigurisanje hard diskova"
 
-#: fs_uae_launcher/InputDialog.py:15
 msgid "Configure Input"
 msgstr "Konfigurisanje ulaznih uređaja"
 
-#: fs_uae_launcher/settingsui/JoystickSettingsGroup.py:36
 msgid "Configure Joystick Buttons"
 msgstr "Konfigurisati dugmeta džojstika"
 
-#: fs_uae_launcher/configui/InputSelector.py:40
 msgid "Cursor Keys and Right Ctrl/Alt"
 msgstr "Kursorski tasteri i desni Ctrl/Alt"
 
-#: fs_uae_launcher/configui/KickstartGroup.py:37
-#: fs_uae_launcher/configui/KickstartGroup.py:62
 msgid "Custom"
 msgstr "Prilagođeno"
 
-#: fs_uae_launcher/configui/ConfigDialog.py:26
 msgid "Custom Options"
 msgstr "Prilagođene opcije"
 
-#. self.add_page(_("Hard Drives"), HardDrivesPage)
-#: fs_uae_launcher/settingsui/SettingsDialog.py:26
 msgid "Custom Settings"
 msgstr "Prilagođena podešavanja"
 
-#: fs_uae_launcher/configui/KickstartGroup.py:37
-#: fs_uae_launcher/configui/KickstartGroup.py:62
 msgid "Default"
 msgstr "Podrazumevano"
 
-#: fs_uae_launcher/LaunchHandler.py:98 fs_uae_launcher/LaunchHandler.py:250
 msgid "Downloading {0}..."
 msgstr ""
 
-#: fs_uae_launcher/FloppySelector.py:29
-#: fs_uae_launcher/configui/HardDriveGroup.py:46
 msgid "Eject"
 msgstr "Izbaciti"
 
-#: fs_uae_launcher/configui/KickstartGroup.py:55
 msgid "Extended ROM"
 msgstr ""
 
-#: fs_uae_launcher/ConfigurationsGroup.py:45
 msgid "Filters:"
 msgstr "Filteri:"
 
-#: fs_uae_launcher/RemovableMediaGroup.py:40
 msgid "Floppies..."
 msgstr "Diskete..."
 
-#: fs_uae_launcher/FloppiesGroup.py:35
 msgid "Floppy Drives"
 msgstr "Disketni uređaji"
 
-#: fs_uae_launcher/MainWindow.py:175
 msgid "Fullscreen"
 msgstr "Preko celog ekrana"
 
-#: fs_uae_launcher/ConfigurationsGroup.py:30
 msgid "Games and Configurations"
 msgstr "Igre i konfiguracije"
 
-#: fs_uae_launcher/configui/HardDriveGroup.py:33
 msgid "Hard Drive {0}"
 msgstr "Hard disk {0}"
 
-#: fs_uae_launcher/ConfigGroup.py:79
-#: fs_uae_launcher/configui/ConfigDialog.py:25
 msgid "Hard Drives"
 msgstr "Hard disk uređaji"
 
-#: fs_uae_launcher/configui/ConfigDialog.py:23
 msgid "Hardware"
 msgstr "Hardver"
 
-#: fs_uae_launcher/HostGroup.py:28
 msgid "Host Options"
 msgstr "Opcije host uređaja"
 
-#: fs_uae_launcher/configui/ConfigDialog.py:24
 msgid "Input"
 msgstr "Ulaz"
 
-#: fs_uae_launcher/ConfigGroup.py:73
 msgid "Input Options"
 msgstr "Opcije ulaza"
 
-#: fs_uae_launcher/configui/KickstartGroup.py:37
 msgid "Internal"
 msgstr "Interno"
 
-#: fs_uae_launcher/configui/InputGroup.py:17
-#: fs_uae_launcher/configui/InputSelector.py:13
-#: fs_uae_launcher/settingsui/PreferredJoysticksGroup.py:16
 msgid "Joystick"
 msgstr "Džojstik"
 
-#: fs_uae_launcher/settingsui/JoystickSettingsGroup.py:29
 msgid "Joystick Configuration"
 msgstr "Konfiguracija džojstika"
 
-#: fs_uae_launcher/configui/InputGroup.py:42
 msgid "Joystick Ports"
 msgstr "Džojstik portovi"
 
-#. self.add_page(_("Hardware"), HardwarePage)
-#: fs_uae_launcher/settingsui/SettingsDialog.py:24
 msgid "Joystick Settings"
 msgstr "Postavke džojstika"
 
-#: fs_uae_launcher/configui/KickstartGroup.py:30
 msgid "Kickstart ROM"
 msgstr ""
 
-#: fs_uae_launcher/ScanKickstartGroup.py:74
 msgid "Kickstart Versions"
 msgstr "Verzije kickstarta"
 
-#: fs_uae_launcher/configui/ModelGroup.py:48
 msgid "Least Accurate"
 msgstr "Najmanje precizno"
 
-#: fs_uae_launcher/configui/ModelGroup.py:47
 msgid "Less Accurate"
 msgstr "Manje precizno"
 
-#: fs_uae_launcher/MediaListGroup.py:33
 msgid "Media List"
 msgstr "Lista medija"
 
-#: fs_uae_launcher/ConfigGroup.py:85
 msgid "More Configuration Options"
 msgstr "Još opcija konfiguracije"
 
-#: fs_uae_launcher/HostGroup.py:55
 msgid "More..."
 msgstr "Još..."
 
-#: fs_uae_launcher/configui/InputGroup.py:17
-#: fs_uae_launcher/configui/InputSelector.py:13
-#: fs_uae_launcher/configui/InputSelector.py:39
-#: fs_uae_launcher/settingsui/PreferredJoysticksGroup.py:16
 msgid "Mouse"
 msgstr "Miš"
 
-#. self.join_game_button = fsui.Button(parent, "   Join Game   ")
-#. layout.add(self.join_game_button)
-#. layout.add_spacer(10)
-#. self.create_game_button = fsui.Button(parent, "   Create Game   ")
-#. layout.add(self.create_game_button)
-#. layout.add_spacer(10, expand=True)
-#: fs_uae_launcher/MainWindow.py:163
 msgid "Net Play"
 msgstr "Igra preko mreže"
 
-#: fs_uae_launcher/ConfigGroup.py:42
 msgid "New Configuration"
 msgstr "Nova konfiguracija"
 
-#: fs_uae_launcher/configui/InputSelector.py:39
 msgid "No Host Device"
 msgstr "Nema host uređaja"
 
-#: fs_uae_launcher/JoystickConfigDialog.py:34
 msgid "No Joysticks"
 msgstr ""
 
-#: fs_uae_launcher/MainWindow.py:348
 msgid "No extended kickstart found for this model. Try 'scan' function."
 msgstr ""
 
-#: fs_uae_launcher/JoystickConfigDialog.py:33
 msgid "No joysticks are currently connected"
 msgstr ""
 
-#. or not #. os.path.exists(Config.get("kickstart_file")):
-#: fs_uae_launcher/MainWindow.py:341
 msgid "No kickstart found for this model. "
 msgstr "Nije pronađen kickstart za ovaj model."
 
-#: fs_uae_launcher/ScanDialog.py:104
 msgid "No scan in progress"
 msgstr "Skeniranje nije u toku"
 
-#: fs_uae_launcher/configui/InputGroup.py:17
-#: fs_uae_launcher/configui/InputSelector.py:13
-#: fs_uae_launcher/settingsui/PreferredJoysticksGroup.py:16
 msgid "Nothing"
 msgstr "Ništa"
 
-#: fs_uae_launcher/editor/PickGameDialog.py:41
 msgid "OK"
 msgstr "OK"
 
-#: fs_uae_launcher/ConfigGroup.py:48
 msgid "Open Configuration"
 msgstr "Otvoriti konfiguraciju"
 
-#: fs_uae_launcher/settingsui/JoystickSettingsGroup.py:38
 msgid "Open Tool to Configure Button Mapping"
 msgstr "Otvoriti alat da bi ste konfigurisali mapiranje tastera"
 
-#: fs_uae_launcher/configui/InputGroup.py:40
 msgid "Parallel Port Joysticks"
 msgstr "Paralelni džojstik portovi"
 
-#: fs_uae_launcher/ConfigurationScanner.py:57
-#: fs_uae_launcher/ScanDialog.py:122
 msgid "Please wait..."
 msgstr "Molimo sačekajte..."
 
-#: fs_uae_launcher/settingsui/PreferredJoysticksGroup.py:37
 msgid "Preferred Joystick"
 msgstr "Željeni džojstik"
 
-#: fs_uae_launcher/settingsui/PreferredJoysticksGroup.py:50
 msgid "Preferred device for secondary joystick:"
 msgstr "Željeni uređaj za drugi džojstik:"
 
-#: fs_uae_launcher/LaunchHandler.py:169
 msgid "Preparing WHDLoad..."
 msgstr ""
 
-#: fs_uae_launcher/LaunchHandler.py:124
 msgid "Preparing floppy images..."
 msgstr ""
 
-#: fs_uae_launcher/LaunchHandler.py:149
 msgid "Preparing hard drives..."
 msgstr ""
 
-#: fs_uae_launcher/ConfigurationScanner.py:71
-#: fs_uae_launcher/FileScanner.py:71
 msgid "Purging old entries..."
 msgstr "Čišćenje starih fajlova"
 
-#: fs_uae_launcher/RemovableMediaGroup.py:52
 msgid "Removable Media"
 msgstr "Prenosivi medijum"
 
-#: fs_uae_launcher/ScanPathsGroup.py:53
 msgid "Remove Directory from Search Path"
 msgstr "Ukloniti direktorijum iz putanje pretrage"
 
-#: fs_uae_launcher/MediaListGroup.py:67
 msgid "Remove Selected Files"
 msgstr "Ukloniti odabrane datoteke"
 
-#: fs_uae_launcher/LaunchHandler.py:308
 msgid "Restoring changes..."
 msgstr ""
 
-#: fs_uae_launcher/ConfigGroup.py:56
 msgid "Save Configuration"
 msgstr "Snimiti konfiguraciju"
 
-#: fs_uae_launcher/LaunchHandler.py:314
 msgid "Saving changes..."
 msgstr ""
 
-#. self.gamepad_config_button = fsui.Button(self,
-#. "Configure Joysticks")
-#. self.gamepad_config_button.on_activate = self.on_gamepad_config_button
-#. self.layout3.add(self.gamepad_config_button)
-#. self.layout3.add_spacer(10)
-#: fs_uae_launcher/ConfigurationsGroup.py:37 fs_uae_launcher/HostGroup.py:48
-#: fs_uae_launcher/ScanDialog.py:20 fs_uae_launcher/ScanDialog.py:49
 msgid "Scan"
 msgstr "Skeniranje"
 
-#: fs_uae_launcher/ScanDialog.py:100
 msgid "Scan complete"
 msgstr "Skeniranje završeno"
 
-#: fs_uae_launcher/ConfigurationsGroup.py:39
 msgid "Scan for Kickstarts, Games and Configurations"
 msgstr "Skeniranje kickstartova, igara i konfiguracija"
 
-#: fs_uae_launcher/ConfigurationScanner.py:57
-#: fs_uae_launcher/ConfigurationScanner.py:71
-#: fs_uae_launcher/ConfigurationScanner.py:75
 msgid "Scanning configurations"
 msgstr "Skeniranje konfiguracija"
 
-#: fs_uae_launcher/ConfigurationScanner.py:107
 msgid "Scanning configurations ({count} scanned)"
 msgstr "Skeniranje konfiguracija ({count} skenirano)"
 
-#: fs_uae_launcher/FileScanner.py:71 fs_uae_launcher/FileScanner.py:73
 msgid "Scanning files"
 msgstr "Skeniranje fajlova"
 
-#: fs_uae_launcher/FileScanner.py:103 fs_uae_launcher/FileScanner.py:142
 msgid "Scanning files ({count} scanned)"
 msgstr "Skeniranje fajlova ({count} skenirano)"
 
-#: fs_uae_launcher/CDDialog.py:26 fs_uae_launcher/FloppiesDialog.py:26
-#: fs_uae_launcher/RemovableMediaGroup.py:34
 msgid "Select Files..."
 msgstr "Izabrati fajlove..."
 
-#: fs_uae_launcher/CDManager.py:35
 msgid "Select Multiple CD-ROMs"
 msgstr "Izabrati više CD-ova"
 
-#: fs_uae_launcher/FloppyManager.py:35
 msgid "Select Multiple Floppies"
 msgstr "Izabrati više disketa"
 
-#: fs_uae_launcher/MainWindow.py:146
 msgid "Settings"
 msgstr "Podešavanja"
 
-#: fs_uae_launcher/MainWindow.py:184
 msgid "Start"
 msgstr "Početak"
 
-#: fs_uae_launcher/LaunchHandler.py:341
 msgid "Starting FS-UAE..."
 msgstr ""
 
-#: fs_uae_launcher/ScanDialog.py:121
 msgid "Starting scan"
 msgstr "Skeniranje započeto"
 
-#: fs_uae_launcher/configui/WHDLoadGroup.py:30
 msgid "WHDLoad Arguments"
 msgstr "WHDLoad argumenti"
 
-#. button = fsui.Button(parent, "Options")
-#. button.disable()
-#. set_min_height(button)
-#. layout.add(button)
-#. layout.add_spacer(10)
-#: fs_uae_launcher/MainWindow.py:175
 msgid "Window"
 msgstr "U prozoru"
 

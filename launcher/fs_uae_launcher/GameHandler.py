@@ -56,7 +56,12 @@ class GameHandler:
                 name = "screen{0}.png".format(number)
             paths = Settings.get_images_dirs()
             for dir in paths:
-                p = os.path.join(dir, self.uuid[:2], self.uuid, name)
+                p = os.path.join(dir, self.platform, u"Images",
+                        self.uuid[:2], self.uuid, name)
+                if os.path.exists(p):
+                    return p
+                p = os.path.join(dir, self.platform, u"Thumbnails",
+                        self.uuid[:2], self.uuid, name)
                 if os.path.exists(p):
                     return p
 
@@ -99,7 +104,12 @@ class GameHandler:
         if self.uuid:
             paths = Settings.get_images_dirs()
             for dir in paths:
-                p = os.path.join(dir, self.uuid[:2], self.uuid, "front.png")
+                p = os.path.join(dir, self.platform, u"Images",
+                        self.uuid[:2], self.uuid, u"front.png")
+                if os.path.exists(p):
+                    return p
+                p = os.path.join(dir, self.platform, u"Thumbnails",
+                        self.uuid[:2], self.uuid, u"front.png")
                 if os.path.exists(p):
                     return p
 

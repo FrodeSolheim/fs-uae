@@ -19,9 +19,9 @@ typedef struct zoom_mode {
 } zoom_mode;
 
 static zoom_mode g_zoom_modes[] = {
-    // TRANSLATORS: In context "Zoom: Auto"
+    /// TRANSLATORS: In context "Zoom: Auto"
     { N_("Auto"), NULL, 0, 0, 0, 0 },
-    // TRANSLATORS: In context "Zoom: Full Frame"
+    /// TRANSLATORS: In context "Zoom: Full Frame"
     { N_("Full Frame"), "full", 0, 0, 752, 572 },
     { "640x512", NULL, 74, 36, 640, 512 },
     { "640x480", NULL, 74, 36, 640, 480 },

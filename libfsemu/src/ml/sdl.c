@@ -28,10 +28,13 @@ static SDL_Surface *g_sdl_screen = NULL;
 // current size of window or fullscreen view
 //static int g_video_width = 0;
 //static int g_video_height = 0;
-static int g_grab_input = 0;
+static int g_has_input_grab = 0;
+static int g_fs_ml_automatic_input_grab = 1;
 static int g_fsaa = 0;
 
 static int g_debug_keys = 0;
+static int g_f12_state = 0;
+static int g_f11_state = 0;
 
 static char *g_window_title;
 static int g_window_width;
@@ -39,6 +42,9 @@ static int g_window_height;
 static int g_window_resizable;
 static int g_fullscreen_width;
 static int g_fullscreen_height;
+
+int g_fs_ml_had_input_grab = 0;
+int g_fs_ml_was_fullscreen = 0;
 
 #define FS_ML_VIDEO_EVENT_GRAB_INPUT 1
 #define FS_ML_VIDEO_EVENT_UNGRAB_INPUT 2
@@ -90,7 +96,11 @@ static void process_video_events() {
 
 int fs_ml_has_input_grab() {
     //printf("has input grab? %d\n", g_grab_input);
-    return g_grab_input;
+    return g_has_input_grab;
+}
+
+int fs_ml_has_automatic_input_grab() {
+    return g_fs_ml_automatic_input_grab;
 }
 
 void fs_ml_grab_input(int grab, int immediate) {
@@ -103,7 +113,7 @@ void fs_ml_grab_input(int grab, int immediate) {
         post_video_event(grab ? FS_ML_VIDEO_EVENT_GRAB_INPUT :
                 FS_ML_VIDEO_EVENT_UNGRAB_INPUT);
     }
-    g_grab_input = grab ? 1 : 0;
+    g_has_input_grab = grab ? 1 : 0;
 }
 
 void fs_ml_set_video_fsaa(int fsaa) {
@@ -197,6 +207,15 @@ static void set_video_mode() {
     g_fs_ml_opengl_context_stamp++;
 
     log_opengl_information();
+
+    //Uint8* keystate;
+    //int numkeys;
+    //keystate = SDL_GetKeyState(&numkeys);
+    //printf("%d\n", keystate[SDLK_F11]);
+    //printf("%d\n", keystate[SDLK_F12]);
+    //g_f11_state = keystate[SDLK_F11] ? FS_ML_KEY_MOD_F11 : 0;
+    //g_f12_state = keystate[SDLK_F12] ? FS_ML_KEY_MOD_F12 : 0;
+    //printf("g_f12_state is %d\n", g_f12_state);
 }
 
 static void destroy_opengl_state() {
@@ -236,11 +255,11 @@ int fs_ml_video_create_window(const char *title) {
         if (g_fs_emu_video_fullscreen_mode == NULL) {
             g_fs_emu_video_fullscreen_window = -1;
         }
-        else if (g_strcasecmp(g_fs_emu_video_fullscreen_mode,
+        else if (g_ascii_strcasecmp(g_fs_emu_video_fullscreen_mode,
                 "window") == 0) {
             g_fs_emu_video_fullscreen_window = 1;
         }
-        else if (g_strcasecmp(g_fs_emu_video_fullscreen_mode,
+        else if (g_ascii_strcasecmp(g_fs_emu_video_fullscreen_mode,
                 "fullscreen") == 0) {
             g_fs_emu_video_fullscreen_window = 0;
         }
@@ -297,9 +316,25 @@ int fs_ml_video_create_window(const char *title) {
 
     SDL_WM_SetCaption(g_window_title, g_get_application_name());
 
-    if (fs_config_get_boolean("input_grab") != 0 &&
-            // deprecated name:
-            fs_config_get_boolean("grab_input") != 0) {
+    g_fs_ml_automatic_input_grab = fs_config_get_boolean(
+            "automatic_input_grab");
+    if (g_fs_ml_automatic_input_grab == FS_CONFIG_NONE) {
+        g_fs_ml_automatic_input_grab = 1;
+    }
+    fs_log("automatic input grab: %d\n", g_fs_ml_automatic_input_grab);
+
+	int initial_input_grab = g_fs_ml_automatic_input_grab;
+    if (fs_config_get_boolean("initial_input_grab") == 1) {
+        initial_input_grab = 1;
+    }
+    else if (fs_config_get_boolean("initial_input_grab") == 0 ||
+            // deprecated names:
+            fs_config_get_boolean("input_grab") == 0 ||
+            fs_config_get_boolean("grab_input") == 0) {
+        initial_input_grab = 0;
+    }
+    fs_log("initial input grab: %d\n", initial_input_grab);
+    if (initial_input_grab) {
         fs_ml_grab_input(1, 1);
     }
     fs_ml_show_cursor(0, 1);
@@ -352,9 +387,6 @@ static void on_resize(int width, int height) {
         recreate_opengl_state();
 #endif
 }
-
-int g_fs_ml_had_input_grab = 0;
-int g_fs_ml_was_fullscreen = 0;
 
 static int event_loop() {
     int result = 0;
@@ -410,6 +442,22 @@ static int event_loop() {
                         event.key.keysym.sym, event.key.keysym.mod,
                         event.key.keysym.scancode, event.key.state);
             }
+            /*
+            if (event.key.keysym.sym == SDLK_F12) {
+                g_f12_state = event.key.state ? FS_ML_KEY_MOD_F12 : 0;
+                printf("-- g_f12_state is %d\n", g_f12_state);
+            }
+            else if (event.key.keysym.sym == SDLK_F11) {
+                g_f11_state = event.key.state ? FS_ML_KEY_MOD_F11 : 0;
+            }
+            */
+
+            Uint8* key_state;
+            int num_keys;
+            key_state = SDL_GetKeyState(&num_keys);
+            g_f11_state = key_state[SDLK_F11] ? FS_ML_KEY_MOD_F11 : 0;
+            g_f12_state = key_state[SDLK_F12] ? FS_ML_KEY_MOD_F12 : 0;
+
             int key = -1;
             if (0) {
             }
@@ -445,7 +493,11 @@ static int event_loop() {
             else {
                 key = fs_ml_scancode_to_key(event.key.keysym.scancode);
             }
-            if (key >= 0) {
+
+            if (g_f12_state || g_f11_state) {
+                // leave translated key code in keysym
+            }
+            else if (key >= 0) {
                 if (g_debug_keys) {
                     fs_log("- key code set to %d (was %d) based on "
                            "scancode %d\n", key, event.key.keysym.sym,
@@ -453,6 +505,7 @@ static int event_loop() {
                 }
                 event.key.keysym.sym = key;
             }
+
             int mod = event.key.keysym.mod;
             if (mod & KMOD_LSHIFT || mod & KMOD_RSHIFT) {
                 event.key.keysym.mod |= KMOD_SHIFT;
@@ -470,6 +523,9 @@ static int event_loop() {
             // filter out other modidifers
             event.key.keysym.mod &= (KMOD_SHIFT | KMOD_ALT | KMOD_CTRL |
                     KMOD_META);
+            // add F11/F12 state
+            event.key.keysym.mod |= g_f11_state | g_f12_state;
+
             //printf("%d %d %d %d\n", event.key.keysym.mod,
             //        KMOD_ALT, KMOD_LALT, KMOD_RALT);
             break;

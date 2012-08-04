@@ -42,6 +42,8 @@ static int g_mod_lctrl = 0;
 static int g_mod_rctrl = 0;
 static int g_mod_lshift = 0;
 static int g_mod_rshift = 0;
+static int g_mod_f11 = 0;
+static int g_mod_f12 = 0;
 static int g_mod = 0;
 
 void fs_ml_clear_keyboard_modifier_state() {
@@ -52,6 +54,8 @@ void fs_ml_clear_keyboard_modifier_state() {
     g_mod_rctrl = 0;
     g_mod_lshift = 0;
     g_mod_rshift = 0;
+    g_mod_f11 = 0;
+    g_mod_f12 = 0;
     g_mod = 0;
 }
 
@@ -124,6 +128,14 @@ static void process_keyboard_input(LPRAWINPUT raw_input) {
         g_mod_ralt = state;
         update_mod = 1;
         break;
+    case 87:
+        g_mod_f11 = state;
+        update_mod = 1;
+        break;
+    case 88:
+        g_mod_f12 = state;
+        update_mod = 1;
+        break;
     }
 
     static unsigned char keyboard_state[256] = {};
@@ -154,6 +166,18 @@ static void process_keyboard_input(LPRAWINPUT raw_input) {
             g_mod = g_mod & ~KMOD_ALT;
             keyboard_state[VK_MENU] = 0x0;
         }
+        if (g_mod_f11) {
+            g_mod = g_mod | FS_ML_KEY_MOD_F11;
+        }
+        else {
+            g_mod = g_mod & ~FS_ML_KEY_MOD_F11;
+        }
+        if (g_mod_f12) {
+            g_mod = g_mod | FS_ML_KEY_MOD_F12;
+        }
+        else {
+            g_mod = g_mod & ~FS_ML_KEY_MOD_F12;
+        }
     }
 
     int key_code = g_key_mapping[vkey];
@@ -176,6 +200,7 @@ static void process_keyboard_input(LPRAWINPUT raw_input) {
             fs_ml_event *event = fs_ml_alloc_event();
             event->type = FS_ML_KEYUP;
             event->key.keysym.sym = key_code;
+
             event->key.keysym.mod = g_mod;
             event->key.keysym.unicode = character;
             event->key.state = 0;
@@ -190,6 +215,7 @@ static void process_keyboard_input(LPRAWINPUT raw_input) {
             fs_ml_event *event = fs_ml_alloc_event();
             event->type = FS_ML_KEYDOWN;
             event->key.keysym.sym = key_code;
+
             event->key.keysym.mod = g_mod;
             event->key.keysym.unicode = character;
             event->key.state = 1;

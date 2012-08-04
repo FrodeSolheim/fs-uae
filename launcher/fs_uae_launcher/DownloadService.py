@@ -20,6 +20,8 @@ class DownloadService:
         if os.path.exists(cache_path):
             print("(in cache)")
             shutil.copy(cache_path, path)
+            # so we later can delete least accessed files in cache...
+            os.utime(cache_path, None)
             return
         ifile = urllib2.urlopen(url)
         temp_path = path + u".part"
@@ -49,6 +51,8 @@ class DownloadService:
         if os.path.exists(cache_path):
             print("(in cache)")
             shutil.copy(cache_path, path)
+            # so we later can delete least accessed files in cache...
+            os.utime(cache_path, None)
             return
         url = cls.sha1_to_url(sha1)
         ifile = urllib2.urlopen(url)

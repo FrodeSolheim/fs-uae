@@ -34,6 +34,7 @@ FILE* g_fs_uae_sync_debug_file = NULL;
 
 int g_amiga_video_format = AMIGA_VIDEO_FORMAT_RGBA;
 
+int g_fs_uae_writable_disk_images = 0;
 /*
  * This is called from the main UAE thread to inform
  * the GUI that a floppy disk has been inserted or ejected.
@@ -67,6 +68,10 @@ void amiga_set_led_function(amiga_led_function function) {
 
 void amiga_set_media_function(amiga_media_function function) {
     g_amiga_media_function = function;
+}
+
+void amiga_floppy_set_writable_images(int writable) {
+    g_fs_uae_writable_disk_images = writable;
 }
 
 int amiga_init() {

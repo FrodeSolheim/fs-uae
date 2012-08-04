@@ -13,10 +13,15 @@ class Dialog(wx.Dialog):
         self.container.get_window = self.get_window
         self.Bind(wx.EVT_SIZE, self.__resize_event)
         self.Bind(wx.EVT_WINDOW_DESTROY, self.__destroy_event)
+        self.Bind(wx.EVT_CLOSE, self.__close_event)
         self.destroy_listeners = []
+        self.close_listeners = []
 
     def add_destroy_listener(self, function):
         self.destroy_listeners.append(function)
+
+    def add_close_listener(self, function):
+        self.close_listeners.append(function)
 
     def get_window(self):
         return self
@@ -67,7 +72,17 @@ class Dialog(wx.Dialog):
     def on_destroy(self):
         pass
 
+    def on_close(self):
+        pass
+
     def __destroy_event(self, event):
         for function in self.destroy_listeners:
             function()
         self.on_destroy()
+
+    def __close_event(self, event):
+        print("__close_event")
+        for function in self.close_listeners:
+            function()
+        self.on_close()
+        self.Destroy()

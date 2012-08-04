@@ -300,9 +300,7 @@ class MainWindow(fsui.Window):
 
     def on_settings_button(self):
         from .settingsui.SettingsDialog import SettingsDialog
-        dialog = SettingsDialog(self)
-        dialog.show_modal()
-        dialog.destroy()
+        SettingsDialog.run(self)
 
     def on_window_mode_change(self):
         index = self.window_mode_choice.get_index()
@@ -356,7 +354,7 @@ class MainWindow(fsui.Window):
         dialog = LaunchDialog(handler)
         dialog.run()
         dialog.show_modal()
-        dialog.destroy()
+        dialog.close()
 
     def on_destroy(self):
         print("MainWindow.destroy")

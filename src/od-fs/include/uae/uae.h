@@ -49,6 +49,7 @@ enum {
 int amiga_get_rand_checksum();
 int amiga_get_state_checksum();
 
+void amiga_floppy_set_writable_images(int writable);
 const char *amiga_floppy_get_file(int index);
 const char *amiga_floppy_get_list_entry(int index);
 

@@ -30,7 +30,7 @@ class SettingsDialog(PagedDialog):
         self.center_on_parent()
 
     @classmethod
-    def run(cls, parent, index):
+    def run(cls, parent, index=0):
         dialog = cls(parent, index)
         dialog.show_modal()
-        dialog.destroy()
+        dialog.close()

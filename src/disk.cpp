@@ -901,7 +901,11 @@ static int openwritefile (struct uae_prefs *p, drive *drv, int create)
 				drv->num_tracks = drv->write_num_tracks;
 		}
 	} else if (zfile_iscompressed (drv->diskfile)) {
+#ifdef FSUAE
+		// overlay .sdf file will be opened on demand
+#else
 		drv->wrprot = 1;
+#endif
 	}
 	return drv->writediskfile ? 1 : 0;
 }
@@ -2093,6 +2097,9 @@ static int drive_write_ext2 (uae_u16 *bigmfmbuf, struct zfile *diskfile, trackid
 	return 1;
 }
 
+#ifdef FSUAE
+extern int g_fs_uae_writable_disk_images;
+#endif
 static void drive_write_data (drive * drv)
 {
 	int ret = -1;
@@ -2100,9 +2107,22 @@ static void drive_write_data (drive * drv)
 	static int warned;
 
 #ifdef FSUAE
-    if (!drv->writediskfile) {
-        write_log("about to call openwritefile(drv, 1)\n");
-        openwritefile (&currprefs, drv, 1);
+	int force_write_disk_file = 1;
+	int write_to_disk_file = 1;
+    switch (drv->filetype) {
+    case ADF_NORMAL:
+    case ADF_EXT2:
+    case ADF_PCDOS:
+        if (g_fs_uae_writable_disk_images) {
+            force_write_disk_file = 0;
+        }
+        break;
+    }
+    if (force_write_disk_file) {
+        if (!drv->writediskfile) {
+            write_log("about to call openwritefile(drv, 1)\n");
+            openwritefile (&currprefs, drv, 1);
+        }
     }
 #endif
 	if (drive_writeprotected (drv) || drv->trackdata[tr].type == TRACK_NONE) {
@@ -2116,20 +2136,29 @@ static void drive_write_data (drive * drv)
 #ifdef FSUAE
 		// when we have written data to writediskfile, we do not want to write
 		// the the original disk
-		return;
+		write_to_disk_file = 0;
 #endif
 	}
 	switch (drv->filetype) {
 	case ADF_NORMAL:
+#ifdef FSUAE
+	    if (write_to_disk_file) {
+#endif
 		if (drive_write_adf_amigados (drv)) {
 			if (!warned)
 				notify_user (NUMSG_NEEDEXT2);
 			warned = 1;
 		}
+#ifdef FSUAE
+	    }
+#endif
 		return;
 	case ADF_EXT1:
 		break;
 	case ADF_EXT2:
+#ifdef FSUAE
+        if (write_to_disk_file) {
+#endif
 		if (!longwritemode)
 			ret = drive_write_adf_amigados (drv);
 		if (ret) {
@@ -2138,13 +2167,22 @@ static void drive_write_data (drive * drv)
 //			drive_write_ext2 (drv->bigmfmbuf, drv->diskfile, &drv->trackdata[drv->cyl * 2 + side],
 //				longwritemode ? dsklength2 * 8 : drv->tracklen);
 		}
+#ifdef FSUAE
+        }
+#endif
 		return;
 	case ADF_IPF:
 		break;
 	case ADF_PCDOS:
+#ifdef FSUAE
+        if (write_to_disk_file) {
+#endif
 		ret = drive_write_pcdos (drv);
 		if (ret)
 			write_log (_T("not a PC formatted track %d (error %d)\n"), drv->cyl * 2 + side, ret);
+#ifdef FSUAE
+        }
+#endif
 		break;
 	}
 	drv->tracktiming[0] = 0;

@@ -98,9 +98,3 @@ class RemovableMediaGroup(FloppiesGroup):
         dialog = FloppiesDialog(self.get_window())
         dialog.show_modal()
         dialog.destroy()
-
-    #def on_hds_button(self):
-    #    from .HardDrivesDialog import HardDrivesDialog
-    #    dialog = HardDrivesDialog(self.get_window())
-    #    dialog.show_modal()
-    #    dialog.destroy()

@@ -41,7 +41,7 @@ typedef struct fs_ml_video_mode {
 } fs_ml_video_mode;
 
 void fs_ml_show_cursor(int show, int immediate);
-
+int fs_ml_has_automatic_input_grab();
 void fs_ml_grab_input(int grab, int immediate);
 
 static inline int64_t fs_ml_monotonic_time() {
@@ -439,6 +439,10 @@ typedef enum {
     FS_ML_KEY_MOD_NONE  = 0x0000,
     FS_ML_KEY_MOD_LSHIFT= 0x0001,
     FS_ML_KEY_MOD_RSHIFT= 0x0002,
+
+    FS_ML_KEY_MOD_F11   = 0x0004,
+    FS_ML_KEY_MOD_F12   = 0x0010,
+
     FS_ML_KEY_MOD_LCTRL = 0x0040,
     FS_ML_KEY_MOD_RCTRL = 0x0080,
     FS_ML_KEY_MOD_LALT  = 0x0100,

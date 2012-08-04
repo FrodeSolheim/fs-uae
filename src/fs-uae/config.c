@@ -745,4 +745,8 @@ void fs_uae_configure_floppies() {
         free(option);
         count++;
     }
+
+    if (fs_config_get_boolean("writable_floppy_images") == 1) {
+        amiga_floppy_set_writable_images(1);
+    }
 }

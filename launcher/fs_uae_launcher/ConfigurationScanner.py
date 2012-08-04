@@ -34,11 +34,13 @@ class ConfigurationScanner:
         for c in configurations:
             if self.stop_check():
                 break
-            name = os.path.basename(c["path"])
-            name = name[:-7]
-            search = name.lower()
+            #name = os.path.basename(c["path"])
+            #name = c["name"]
+            #name = name[:-7]
+            #search = name.lower()
             path = c["path"]
-            name, ext = os.path.splitext(os.path.basename(path))
+            name, ext = os.path.splitext(c["name"])
+            search = name.lower()
             name = self.create_configuration_name(name)
             database.add_configuration(path=path, uuid="", name=name,
                     scan=self.scan_version, search=search)
@@ -131,6 +133,30 @@ class ConfigurationScanner:
                 database.add_configuration(path=path, uuid=result["uuid"],
                         name=name, scan=self.scan_version, search=search)
 
+    def check_if_file_exists(self, database, file_node):
+        if file_node.find("sha1") is not None:
+            sha1 = file_node.find("sha1").text.strip()
+            if database.find_file(sha1=sha1):
+                return True
+        archive_node = file_node.find("archive")
+        if archive_node is not None:
+            sub_file_nodes = archive_node.findall("file")
+            for sub_file_node in sub_file_nodes:
+                sha1 = sub_file_node.find("sha1").text.strip()
+                print("sub-sha1", sha1)
+                if not database.find_file(sha1=sha1):
+                    # file not found, so stop looking for other files
+                    print("not found")
+                    break
+            else:
+                # all files were found
+                print("all found")
+                return True
+        name = file_node.find("name").text.strip()
+        if database.find_file(name=name):
+            return True
+        return False
+
     def scan_configuration(self, database, tree):
         root = tree.getroot()
         file_nodes = root.findall("file")
@@ -138,15 +164,9 @@ class ConfigurationScanner:
             print("no files in configuration")
             return
         for file_node in file_nodes:
-            name = file_node.find("name").text.strip()
-            path = ""
-            if file_node.find("sha1") is not None:
-                sha1 = file_node.find("sha1").text.strip()
-                path = database.find_file(sha1=sha1)
-            if not path:
-                path = database.find_file(name=name)
-                if not path:
-                    return
+            if not self.check_if_file_exists(database, file_node):
+                return
+
         result = {}
 
         game_name = ""

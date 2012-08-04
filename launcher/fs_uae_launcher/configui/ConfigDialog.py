@@ -33,4 +33,4 @@ class ConfigDialog(PagedDialog):
     def run(cls, parent, index):
         dialog = cls(parent, index)
         dialog.show_modal()
-        dialog.destroy()
+        dialog.close()

@@ -50,11 +50,11 @@ class LaunchHandler:
         self.prepare_theme()
 
         self.start()
+        self.update_changes()
+        self.cleanup()
         if self.on_complete:
             print("calling LaunchHandler.on_complete")
             self.on_complete()
-        self.update_changes()
-        self.cleanup()
 
     def prepare_roms(self):
         print("LaunchHandler.prepare_roms")
@@ -157,7 +157,8 @@ class LaunchHandler:
     def unpack_hard_drive(self, i, zip_path):
         dir_name = "DH{0}".format(i)
         dir_path = os.path.join(self.temp_dir, dir_name)
-        self.unpack_zip(zip_path, dir_path)
+        #self.unpack_zip(zip_path, dir_path)
+        self.unpack_archive(zip_path, dir_path)
         key = "hard_drive_{0}".format(i)
         self.config[key] = dir_path
 
@@ -323,13 +324,14 @@ SplashDelay=0        ;time to display splash window (1/50 seconds)
         try:
             # this will only succeed if the directory is empty -we don't
             # want to leave unnecessary empty state directories
-            print("trying to remove", state_dir)
             os.rmdir(state_dir)
+            print("removed", repr(state_dir))
             # also try to remove the parent (letter dir)
-            print("trying to remove", os.path.dirname(state_dir))
             os.rmdir(os.path.dirname(state_dir))
-        except Exception, e:
-            print(repr(e))
+            print("removed", repr(os.path.dirname(state_dir)))
+        except OSError, e:
+            # could not delete directories - ok - probably has content
+            pass
 
     def prepare_theme(self):
         path = self.game_handler.get_theme_path()
@@ -348,6 +350,43 @@ SplashDelay=0        ;time to display splash window (1/50 seconds)
             os.remove(config_file)
         except Exception:
             print("could not remove config file", config_file)
+
+    def unpack_archive(cls, path, destination):
+        #try:
+        print("unpack", path, "to", destination)
+        archive = Archive(path)
+        print(archive)
+        print(archive.get_handler())
+        for name in archive.list_files():
+            print(name)
+            f = archive.open(name)
+            n = name[len(path) + 1:]
+            out_path = os.path.join(destination, n)
+            print("out path", out_path)
+            if not os.path.exists(os.path.dirname(out_path)):
+                os.makedirs(os.path.dirname(out_path))
+            with open(out_path, "wb") as out_f:
+                while True:
+                    data = f.read(65536)
+                    if not data:
+                        break
+                    out_f.write(data)
+        #raise Exception("unpack")
+            #zip = zipfile.ZipFile(archive, "r")
+            #   
+            #def extract_members(zip):
+            #    for name in zip.namelist():
+            #        if ".." in name:
+            #            continue
+            #       if not os.path.normpath(os.path.join(destination, name)
+            #               ).startswith(destination):
+            #            raise Exception("Invalid path")
+            #        yield name
+            #zip.extractall(path=destination, members=extract_members(zip))
+            #zip.close()
+        #except Exception, e:
+        #    print(e)
+        #    raise fs.cause(Exception("Could not unpack game"), e)
 
     def unpack_zip(cls, archive, destination):
         try:

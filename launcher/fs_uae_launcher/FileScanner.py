@@ -44,6 +44,7 @@ class FileScanner:
             self.extensions.append(".iso")
             self.extensions.append(".wav")
             self.extensions.append(".zip")
+            self.extensions.append(".lha")
         if self.scan_for_configs:
             self.extensions.append(".fs-uae")
             #self.extensions.append(".xml")
@@ -124,6 +125,7 @@ class FileScanner:
                 #print("not changed - ok")
                 return
         archive = Archive(path)
+        #if archive.is_archive():
         for p in archive.list_files():
             if self.stop_check():
                 return
@@ -185,7 +187,7 @@ class FileScanner:
                     sha1 = sha1_dec
 
         database.add_file(path=path, sha1=sha1, md5=md5, crc32=crc32,
-                mtime=mtime, size=size, scan=self.scan_version)
+                mtime=mtime, size=size, scan=self.scan_version, name=name)
         self.files_added += 1
         self.bytes_added += size
         if self.bytes_added > 100 * 1000 * 1000:

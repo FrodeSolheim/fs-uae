@@ -39,8 +39,9 @@ class CustomOptionsPage(fsui.Panel):
         #self.layout.add_spacer(20)
         #self.set_size(self.layout.get_min_size())
         #self.center_on_parent()
+        self.get_window().add_close_listener(self.on_close_window)
 
-    def on_destroy(self):
+    def on_close_window(self):
         self.update_config()
 
     def on_close_button(self):

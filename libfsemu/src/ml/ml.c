@@ -201,12 +201,28 @@ int fs_ml_handle_keyboard_shortcut(fs_ml_event *event) {
     int key = event->key.keysym.sym;
     int mod = event->key.keysym.mod;
     //printf("%d %d -- %d %d\n", key, mod, SDLK_RETURN, KMOD_ALT);
+    int special = mod & (FS_ML_KEY_MOD_F11 | FS_ML_KEY_MOD_F12);
 
 #ifdef MACOSX
     int alt_mod = mod & (KMOD_ALT | KMOD_META);
 #else
     int alt_mod = mod & KMOD_ALT;
 #endif
+
+    if (special) {
+        if (key == FS_ML_KEY_F) {
+            if (state) {
+                fs_ml_toggle_fullscreen();
+            }
+            //return 1;
+        }
+        else if (key == FS_ML_KEY_Q) {
+            if (state) {
+                fs_ml_quit();
+            }
+            //return 1;
+        }
+    }
 
     if (key == SDLK_RETURN && alt_mod) {
         if (state) {

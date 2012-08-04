@@ -94,6 +94,8 @@ class GameHandler:
         image = self.load_screenshot(number)
         if image is None:
             return image
+        if image.size == SCREEN_SIZE:
+            return image
         if image.size[0] < 400:
             image.resize((image.size[0] * 2, image.size[1] * 2),
                     fsui.Image.NEAREST)

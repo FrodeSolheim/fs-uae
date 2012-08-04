@@ -1,3 +1,23 @@
+Version 1.3.23:
+
+* New shortcut for quit: F12+q or F11+q.
+* New shortcut for zoom: F12+z or F11+z.
+* New shortcut for zoom border: F12+b or F11+b.
+* New shortcut for grab input (toggle): F12+g or F11+g.
+* New shortcut for fullscreen/window toggle: F12+f or F11+f.
+* New shortcut for screenshot: F12+s or F11+s.
+* Menu mode is now triggered on F12 (or F11) _release_ if key is used alone.
+* F11 does no longer control the zoom function directly.
+* Floppy drives are no longer write-protected when loading compressed ADFs.
+* New option writable_floppy_images, set to "1" to write data back to
+  original disk files (when possible) instead of overlay files.
+* Option "input_grab" renamed to "initial_input_grab".
+* New option "automatic_input_grab" to control whether input is automatically
+  grabbed on mouse click or not.
+* (Launcher) Fixed saving custom settings when closing dialog on Windows.
+* (Launcher) Fixed case in names of scanned .fs-uae configurations on Windows.
+* (Launcher) Updated translations: it [Speedvicio].
+
 Version 1.3.22:
 
 * Some changes to po file management to get smaller diffs between releases.

@@ -85,7 +85,7 @@ scan int
 
     def get_files(self, ext=None):
         self.init()
-        query = "SELECT path FROM file WHERE 1 = 1 "
+        query = "SELECT path, name FROM file WHERE 1 = 1 "
         args = []
         if ext is not None:
             query = query + " AND path like ?"
@@ -94,7 +94,8 @@ scan int
         results = []
         for row in self.cursor:
             data = {
-                'path': row[0]
+                "path": row[0],
+                "name": row[1]
             }
             results.append(data)
         return results
@@ -181,7 +182,7 @@ scan int
             #print("xxx", repr(sha1))
             #import traceback
             #traceback.print_stack()
-            print("check sha1")
+            #print("check sha1")
             self.cursor.execute("SELECT id, path, sha1, mtime, size FROM file "
                     "WHERE sha1 = ? LIMIT 1", (sha1,))
         elif name:
@@ -222,10 +223,10 @@ scan int
             return None
 
     def add_file(self, path="", sha1=None, md5=None, crc32=None, mtime=0,
-            size=0, scan=0):
+            size=0, scan=0, name=""):
         self.init()
         #print("adding path", path)
-        p, name = os.path.split(path)
+        #p, name = os.path.split(path)
         #name = name.lower()
         self.cursor.execute("INSERT INTO file (path, sha1, mtime, size, "
                 "md5, crc32, name, scan) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",

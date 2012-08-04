@@ -19,15 +19,16 @@ class XMLConfigLoader:
     def load_file(self, path):
         tree = ElementTree()
         tree.parse(path)
-        self.load_tree(tree)
+        self.load_tree(tree, path)
 
     def load_data(self, data):
         root = fromstring(data)
         tree = ElementTree(root)
         self.load_tree(tree)
         
-    def load_tree(self, tree):
+    def load_tree(self, tree, path=""):
         self.tree = tree
+        self.path = path
         #self.tree.parse(path)
         self.root = self.tree.getroot()
 
@@ -207,20 +208,22 @@ class XMLConfigLoader:
             #if type == "hd" and not hds:
             #    continue
             if hds:
-                if type and not type == "HD":
-                    continue
+                #if type and not type == "HD":
+                #    continue
                 if ext not in [".zip"]:
                     continue
             elif cds:
-                if type and not type == "cd":
-                    continue
+                #if type and not type == "cd":
+                #    continue
                 if ext not in [".cue", ".iso"]:
                     continue
                 if "(Track" in base:
                     # probably part of a split multi-track cue
                     continue
             elif floppies:
-                if type and not type == "floppy":
+                #if type and not type == "floppy":
+                #    continue
+                if ext not in [".adf", ".adz", ".dms", ".ipf"]:
                     continue
 
             url_node = file_node.find("url")
@@ -237,6 +240,10 @@ class XMLConfigLoader:
                 path = u"{0}/{1}".format(url, name)
             if not path:
                 path = Database.get_instance().find_file(name=name)
+            if not path:
+                if self.path:
+                    # loaded from an external XML file:
+                    path = os.path.join(self.path, name)
             if path:
                 media_list.append(path)
             else:

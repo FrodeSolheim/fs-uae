@@ -177,24 +177,24 @@ static void map_input_config_item(const char* desc, int *out_key,
 
     //int is_keyboard_key = 0;
     //int index = -1;
-    if (g_strcasecmp(parts[0], "key") == 0) {
+    if (g_ascii_strcasecmp(parts[0], "key") == 0) {
         for (int i = 0; g_fs_emu_key_names[i]; i++) {
-            if (g_strcasecmp(parts[1], g_fs_emu_key_names[i]) == 0) {
+            if (g_ascii_strcasecmp(parts[1], g_fs_emu_key_names[i]) == 0) {
                 *out_key = i;
                 break;
             }
         }
     }
-    else if (g_strcasecmp(parts[0], "button") == 0) {
+    else if (g_ascii_strcasecmp(parts[0], "button") == 0) {
         *out_button = atoi(parts[1]);
     }
-    else if (g_strcasecmp(parts[0], "axis") == 0) {
+    else if (g_ascii_strcasecmp(parts[0], "axis") == 0) {
         int axis = atoi(parts[1]);
         int direction = -1;
-        if (g_strcasecmp(parts[2], "pos") == 0) {
+        if (g_ascii_strcasecmp(parts[2], "pos") == 0) {
             direction = 1;
         }
-        else if (g_strcasecmp(parts[2], "neg") == 0) {
+        else if (g_ascii_strcasecmp(parts[2], "neg") == 0) {
             direction = 0;
         }
         else {
@@ -206,19 +206,19 @@ static void map_input_config_item(const char* desc, int *out_key,
         *out_axis = axis;
         *out_value = direction;
     }
-    else if (g_strcasecmp(parts[0], "hat") == 0) {
+    else if (g_ascii_strcasecmp(parts[0], "hat") == 0) {
         int hat = atoi(parts[1]);
         int direction = -1;
-        if (g_strcasecmp(parts[2], "up") == 0) {
+        if (g_ascii_strcasecmp(parts[2], "up") == 0) {
             direction = FS_ML_HAT_UP;
         }
-        else if (g_strcasecmp(parts[2], "down") == 0) {
+        else if (g_ascii_strcasecmp(parts[2], "down") == 0) {
             direction = FS_ML_HAT_DOWN;
         }
-        else if (g_strcasecmp(parts[2], "left") == 0) {
+        else if (g_ascii_strcasecmp(parts[2], "left") == 0) {
             direction = FS_ML_HAT_LEFT;
         }
-        else if (g_strcasecmp(parts[2], "right") == 0) {
+        else if (g_ascii_strcasecmp(parts[2], "right") == 0) {
             direction = FS_ML_HAT_RIGHT;
         }
         else {
@@ -897,8 +897,8 @@ int fs_emu_configure_joystick(const char *name, const char *type,
             continue;
         }
         if (device.name == NULL || (
-                (g_strcasecmp(device.name, name) != 0) &&
-                (g_strcasecmp(device.alias, name) != 0))) {
+                (g_ascii_strcasecmp(device.name, name) != 0) &&
+                (g_ascii_strcasecmp(device.alias, name) != 0))) {
             fs_log("did not match device #%d (%s)\n", i, device.name);
             continue;
         }
@@ -1172,9 +1172,58 @@ static void init_input_configs() {
 }
 
 static int handle_shortcut(fs_ml_event *event) {
+    //int sym = event->key.keysym.sym;
     int key_code = event->key.keysym.sym;
     int key_mod = event->key.keysym.mod;
     int state = (event->type == FS_ML_KEYDOWN);
+    int special = key_mod & (FS_ML_KEY_MOD_F11 | FS_ML_KEY_MOD_F12);
+    // keep track of whether F11/F12 has been used alone or not
+    // this code will get a little confused if you use F11
+    // and F12 keys simultaneously..
+    static int special_pressed = 0;
+    static int special_combo = 0;
+
+    if (key_code == FS_ML_KEY_F11 || key_code == FS_ML_KEY_F12) {
+        if (state) {
+            special_pressed = 1;
+        }
+        // we must check key codes here, not modifiers, since the modifier will
+        // be reset now that the keys are unpressed
+        if (!state) {
+            // we check special pressed here, because we get an bogus
+            // release event after switching fullscreen / window mode
+            if (special_pressed && !special_combo) {
+                fs_emu_menu_toggle();
+            }
+            special_combo = 0;
+            special_pressed = 0;
+        }
+    }
+    else if (special) {
+        if (state) {
+            // F11/F12 has been used in combination with another key
+            special_combo = 1;
+
+            if (key_code == FS_ML_KEY_G) {
+                fs_emu_grab_input(!fs_emu_has_input_grab());
+            }
+            else if (key_code == FS_ML_KEY_S) {
+                fs_log("printscreen pressed\n");
+                g_fs_emu_screenshot = 1;
+            }
+            else if (key_code == FS_ML_KEY_Z) {
+                fs_emu_toggle_zoom(0);
+            }
+            else if (key_code == FS_ML_KEY_B) {
+                // toogle zoom border
+                fs_emu_toggle_zoom(1);
+            }
+        }
+    }
+
+    if (special || key_code == FS_ML_KEY_F11 || key_code == FS_ML_KEY_F12) {
+        return 1;
+    }
 
     if (key_code == FS_ML_KEY_TAB && !fs_emu_in_chat_mode() &&
             !fs_emu_menu_or_dialog_is_active()) {
@@ -1203,6 +1252,7 @@ static int handle_shortcut(fs_ml_event *event) {
             return 1;
         }
     }
+    /*
     else if (key_code == FS_ML_KEY_F11) {
         if (state) {
             if (key_mod & FS_ML_KEY_MOD_SHIFT) {
@@ -1219,6 +1269,7 @@ static int handle_shortcut(fs_ml_event *event) {
             }
         }
     }
+    */
     else if (key_code == FS_ML_KEY_F12) {
         if (state) {
             if (key_mod & FS_ML_KEY_MOD_CTRL) {
@@ -1317,8 +1368,9 @@ static int input_function(fs_ml_event *event) {
                 }
             }
             else {
-                //printf("FIXME: GRAB MOUSE HERE\n");
-                fs_emu_grab_input(1);
+                if (fs_ml_has_automatic_input_grab()) {
+                    fs_emu_grab_input(1);
+                }
             }
         }
         int input_event = g_input_action_table[mouse_index(

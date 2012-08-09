@@ -28,6 +28,9 @@ class Layout:
         #self.origin = (0, 0)
         self.children = []
 
+    def is_visible(self):
+        return True
+
     def set_padding(self, amount):
         self.padding_left = amount
         self.padding_right = amount
@@ -94,6 +97,8 @@ class LinearLayout(Layout):
             print("update, available =", available)
         expanding = 0
         for child in self.children:
+            if not child.element.is_visible():
+                continue
 
             child.min_size = [child.element.get_min_width(),
                               child.element.get_min_height()]
@@ -130,6 +135,9 @@ class LinearLayout(Layout):
                      self.size[1] - self.padding_top - self.padding_bottom)
 
         for child in self.children:
+            if not child.element.is_visible():
+                continue
+
             size = [child.min_size[0], child.min_size[1]]
 
             size[self.vertical] = child.size

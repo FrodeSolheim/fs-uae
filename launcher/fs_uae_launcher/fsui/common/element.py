@@ -22,6 +22,9 @@ class Element:
     #def init(cls, obj):
     #    obj.on_resize = xx_on_resize
 
+    def is_visible(self):
+        return True
+
     def create(self):
         self.on_create()
         return self

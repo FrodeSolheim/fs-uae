@@ -98,7 +98,7 @@ class GamePanel(IRCPanel):
         #Netplay.set_config(nick, key, value)
         if not self.is_op(who):
             return self.abort_launch("game was not started by an op")
-        if Config.get("x_ready") != "1":
+        if Config.get("__netplay_ready") != "1":
             return self.abort_launch("not ready")
         if Config.checksum() == checksum:
             message = "__verified {0}".format(config_version)
@@ -108,7 +108,7 @@ class GamePanel(IRCPanel):
 
     def on_config(self, key, value):
         if self.channel:
-            if key in Config.sync_keys:
+            if key in Config.sync_keys_set:
                 message = u"__config {0}={1}".format(key, value)
                 IRC.irc.privmsg(self.channel, message)
 

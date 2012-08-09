@@ -32,6 +32,7 @@ class FSUAELauncher(fsui.Application):
             elif os.path.exists("launcher/share/fs-uae-launcher/fs-uae-launcher.ico"):
                 icon = "launcher/share/fs-uae-launcher/fs-uae-launcher.ico"
         window = MainWindow(icon=icon)
+        MainWindow.instance = window
         window.show()
 
     def get_settings_file(self):
@@ -85,6 +86,9 @@ class FSUAELauncher(fsui.Application):
         #lines.append(u"[config]")
 
         for key, value in Config.config.iteritems():
+            if key.startswith("__"):
+                # keys starting with __ are never saved
+                continue
             #lines.append(u"{0} = {1}".format(key, value))
             cp.set("config", key, value)
 

@@ -10,11 +10,11 @@ import fs_uae_launcher.fs as fs
 from .Amiga import Amiga
 from .Config import Config
 from .Settings import Settings
-from .IRC import IRC
+from .netplay.IRC import IRC
 #from .FSUAE import FSUAE
 #from .ConfigWriter import ConfigWriter
 from .ConfigurationsGroup import ConfigurationsGroup
-from .Netplay import Netplay
+from .netplay.Netplay import Netplay
 from .Database import Database
 from .GameHandler import GameHandler
 from .Separator import Separator
@@ -27,6 +27,8 @@ def set_min_height(button):
     pass
 
 class MainWindow(fsui.Window):
+
+    instance = None
 
     def __init__(self, icon):
         fsui.Window.__init__(self, None, "FS-UAE Launcher")
@@ -71,6 +73,8 @@ class MainWindow(fsui.Window):
         self.layout.set_size(self.get_size())
         self.layout.update()
 
+        self.netplay_panel = None
+
         self.init_net_play()
 
         self.configurations_group.text_field.focus()
@@ -84,9 +88,12 @@ class MainWindow(fsui.Window):
         self.center_on_screen()
         if was_maximized:
             self.maximize()
+        
+        if "--netplay" in sys.argv:
+            self.on_netplay_button()
 
     def is_editor_enabled(self):
-        return '--editor' in sys.argv
+        return "--editor" in sys.argv
 
     def on_resize(self):
         print("on_resize, size =", self.get_size(), self.is_maximized())
@@ -161,7 +168,8 @@ class MainWindow(fsui.Window):
         #layout.add_spacer(10, expand=True)
 
         self.netplay_button = fsui.Button(parent, _("Net Play"))
-        self.netplay_button.disable()
+        #self.netplay_button.disable()
+        self.netplay_button.on_activate = self.on_netplay_button
         set_min_height(self.netplay_button)
         layout.add(self.netplay_button)
         layout.add_spacer(10)
@@ -204,6 +212,7 @@ class MainWindow(fsui.Window):
 
     def create_right_side(self, parent):
         parent.layout = fsui.VerticalLayout()
+        parent.layout.padding_bottom = 20
         right_width = 460
         extra_screen_width = 222 + 5 + 1
         need_width = 1280
@@ -235,7 +244,7 @@ class MainWindow(fsui.Window):
             self.screenshots_panel = ScreenshotsPanel(parent)
             parent.layout.add(self.screenshots_panel, fill=True, expand=False)
 
-        parent.layout.add_spacer(20)
+        #parent.layout.add_spacer(20)
 
         """
         from .LobbyPanel import LobbyPanel
@@ -286,7 +295,7 @@ class MainWindow(fsui.Window):
         """
 
     def on_ready_button(self):
-        Config.set("x_ready", "1")
+        Config.set("__netplay_ready", "1")
 
     def on_join_button(self):
         from .JoinDialog import JoinDialog
@@ -315,26 +324,28 @@ class MainWindow(fsui.Window):
 
     def on_start_button(self):
         # check if local or online game here
-        net_play = False
-
-        if net_play: # net play
-            Config.set("x_ready", "1")
-            players = []
-            if not Netplay.check_config("x_ready", players):
-                message = u"The following players are not ready: " + \
-                        repr(players)
-                Netplay.notice(message)
-                return
-            # all players were ready
-            Netplay.config_version = str(uuid.uuid4())
-            message = "__check {0} {1}".format(Netplay.config_version,
-                    Config.checksum())
-            Netplay.message(message)
+        #net_play = False
+        #if net_play: # net play
+        #    Config.set("__netplay_ready", "1")
+        #    players = []
+        #    if not Netplay.check_config("__netplay_ready", players):
+        #        message = u"The following players are not ready: " + \
+        #                repr(players)
+        #        Netplay.notice(message)
+        #        return
+        #    # all players were ready
+        #    Netplay.config_version = str(uuid.uuid4())
+        #    message = "__check {0} {1}".format(Netplay.config_version,
+        #            Config.checksum())
+        #    Netplay.message(message)
+        #if Netplay.enabled:
+        if Netplay.game_channel:
+            Netplay.start_netplay_game()
         else:
             self.start_local_game()
 
     def start_local_game(self):
-        if not Config.get("kickstart_file"):# or not \
+        if not Config.get("x_kickstart_file"):# or not \
                 #os.path.exists(Config.get("kickstart_file")):
             fsui.show_error(_("No kickstart found for this model. " +
                     "Try 'scan' function."))
@@ -342,7 +353,7 @@ class MainWindow(fsui.Window):
         cs = Amiga.get_model_config(Config.get("amiga_model"))["ext_roms"]
         if len(cs) > 0:
             # extended kickstart ROM is needed
-            if not Config.get("kickstart_ext_file"):
+            if not Config.get("x_kickstart_ext_file"):
                 fsui.show_error(_("No extended kickstart found for this "
                         "model. Try 'scan' function."))
                 return
@@ -361,17 +372,39 @@ class MainWindow(fsui.Window):
         #from .DeviceManager import DeviceManager
         #DeviceManager.stop()
         #self.irc.stop()
+        IRC.stop()
+        Config.set("__quit", "1")
 
     def on_timer(self):
         fsui.call_later(500, self.on_timer)
         #print("timer")
-        if Netplay.config_version:
-            for player in Netplay.players.values():
-                if player.config_version != Netplay.config_version:
-                    break
-            else:
-                # everyone has acked!
-                self.create_server()
+        #if Netplay.config_version:
+        #    for player in Netplay.players.values():
+        #        if player.config_version != Netplay.config_version:
+        #            break
+        #    else:
+        #        # everyone has acked!
+        #        self.create_server()
 
     def create_server(self):
         pass
+
+    def create_netplay_panel(self):
+        if self.netplay_panel:
+            print("Netplay panel already created")
+            return
+        from .netplay.NetplayPanel import NetplayPanel
+        self.netplay_panel = NetplayPanel(self.right_side)
+        self.right_side.layout.add(self.netplay_panel, fill=True, expand=True)
+        
+        self.screenshots_panel.hide()
+        self.right_side.layout.update()
+
+    def on_netplay_button(self):
+        #if not Settings.get("netplay_mode"):
+        #    Settings.set("netplay_mode", "1")
+        #else:
+        #    Settings.set("netplay_mode", "")
+        self.create_netplay_panel()
+        from .netplay.Netplay import Netplay
+        Netplay.connect()

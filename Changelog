@@ -1,3 +1,11 @@
+Version 1.3.24:
+
+* (Launcher) You now cannot put options recognized as config options in
+  custom settings.
+* (Launcher) Log to Documents/FS-UAE/Logs/Launcher.log.txt (while also
+  logging to console, if available)
+* (Launcher) Updated translations: fr [Foul].
+
 Version 1.3.23:
 
 * New shortcut for quit: F12+q or F11+q.

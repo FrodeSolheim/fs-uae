@@ -16,6 +16,9 @@ def show(self, show=True):
 def hide(self):
     self.Show(False)
 
+def is_visible(self):
+    return self.IsShown()
+
 def set_position_and_size(self, position, size):
     self.SetDimensions(position[0], position[1], size[0], size[1])
     #self.SetPosition(position)
@@ -95,6 +98,7 @@ names = [
     "get_min_height",
     "get_min_width",
     "hide",
+    "is_visible",
     "set_background_color",
     "set_min_height",
     "set_min_width",

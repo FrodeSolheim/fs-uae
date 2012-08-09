@@ -120,10 +120,13 @@ class XMLConfigLoader:
     def load_cdroms(self):
         print("\n\n\nload_cdroms\n\n\n")
         media_list = self.build_media_list(cds=True)
-        for i, path in enumerate(media_list):
+        for i, values in enumerate(media_list):
+            path, sha1 = values
             if i < 1:
                 self.config["cdrom_drive_{0}".format(i)] = path
+                self.config["x_cdrom_drive_{0}_sha1".format(i)] = sha1
             self.config["cdrom_image_{0}".format(i)] = path
+            self.config["x_cdrom_image_{0}_sha1".format(i)] = sha1
 
     def load_options_from_tree(self, tree):
         root = tree.getroot()
@@ -180,10 +183,13 @@ class XMLConfigLoader:
             except ValueError:
                 num_floppy_drives = 1
             num_floppy_drives = max(0, min(4, num_floppy_drives))
-        for i, path in enumerate(media_list):
+        for i, values in enumerate(media_list):
+            path, sha1 = values
             if i < num_floppy_drives:
                 self.config[u"floppy_drive_{0}".format(i)] = path
+                self.config[u"x_floppy_drive_{0}_sha1".format(i)] = sha1
             self.config[u"floppy_image_{0}".format(i)] = path
+            self.config[u"x_floppy_image_{0}_sha1".format(i)] = sha1
         if num_floppy_drives < 4:
             self.config["num_floppy_drives"] = num_floppy_drives
 
@@ -233,9 +239,12 @@ class XMLConfigLoader:
                 url = ""
 
             path = ""
+            found_sha1 = ""
             if sha1:
                 print(sha1)
                 path = Database.get_instance().find_file(sha1=sha1)
+                if path:
+                    found_sha1 = sha1
             if url and not path:
                 path = u"{0}/{1}".format(url, name)
             if not path:
@@ -245,7 +254,7 @@ class XMLConfigLoader:
                     # loaded from an external XML file:
                     path = os.path.join(self.path, name)
             if path:
-                media_list.append(path)
+                media_list.append((path, found_sha1))
             else:
                 pass
                 #return False
@@ -257,6 +266,8 @@ class XMLConfigLoader:
         print("load_hard_drives")
         media_list = self.build_media_list(hds=True)
         print(media_list)
-        for i, path in enumerate(media_list):
+        for i, values in enumerate(media_list):
+            path, sha1 = values
             self.config[u"hard_drive_{0}".format(i)] = path
+            self.config[u"x_hard_drive_{0}_sha1".format(i)] = sha1
 

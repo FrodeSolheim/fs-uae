@@ -1,7 +1,7 @@
 from distutils.core import setup
 
 setup(name="fs_uae_netplay_server",
-      version="1.3.23",
+      version="1.3.23u6",
       description="FS-UAE Netplay Server",
       author="Frode Solheim",
       author_email="fs-uae@fengestad.no",

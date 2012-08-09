@@ -8,7 +8,12 @@ from .System import System
 
 class Button(wx.Button):
     def __init__(self, parent, title=""):
-        title = u"  " + title + u"  "
+        if System.macosx:
+            # spaces at the end seems to affect the left padding
+            # and Mac OS also
+            title = title + u"    "
+        else:
+            title = u"  " + title + u"  "
         wx.Button.__init__(self, parent.get_container(), -1, title)
         self.Bind(wx.EVT_BUTTON, self.__button_event)
         if not System.macosx:

@@ -26,19 +26,7 @@ class CustomOptionsPage(fsui.Panel):
         hor_layout.add_spacer(20)
 
         self.layout.add_spacer(20)
-        #
-        #hor_layout = fsui.HorizontalLayout()
-        #self.layout.add(hor_layout, fill=True)
-        #
-        #hor_layout.add_spacer(20, expand=True)
-        #self.close_button = fsui.Button(self, _("Close"))
-        #self.close_button.on_activate = self.on_close_button
-        #hor_layout.add(self.close_button)
-        #hor_layout.add_spacer(20)
-        #
-        #self.layout.add_spacer(20)
-        #self.set_size(self.layout.get_min_size())
-        #self.center_on_parent()
+
         self.get_window().add_close_listener(self.on_close_window)
 
     def on_close_window(self):
@@ -61,7 +49,7 @@ class CustomOptionsPage(fsui.Panel):
             parts = line.split("=", 1)
             if len(parts) == 2:
                 key = parts[0].strip()
-                if key in Config.default_config:
+                if key in Config.no_custom_config:
                     continue
                 value = parts[1].strip()
                 Config.set(key, value)
@@ -73,7 +61,7 @@ class CustomOptionsPage(fsui.Panel):
                 u"# only.\n\n"
         keys = Config.config.keys()
         for key in sorted(keys):
-            if key in Config.default_config:
+            if key in Config.no_custom_config:
                 continue
             value = Config.config[key]
             text += u"{0} = {1}\n".format(key, value)

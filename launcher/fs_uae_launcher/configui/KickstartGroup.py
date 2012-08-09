@@ -79,10 +79,10 @@ class KickstartGroup(fsui.Group):
         self.set_config_handlers()
 
     def initialize_from_config(self):
-        self.on_config("x_kickstart_type", Config.get("x_kickstart_type"))
+        #self.on_config("x_kickstart_type", Config.get("x_kickstart_type"))
         self.on_config("kickstart_file", Config.get("kickstart_file"))
-        self.on_config("x_kickstart_ext_type",
-                Config.get("x_kickstart_ext_type"))
+        #self.on_config("x_kickstart_ext_type",
+        #        Config.get("x_kickstart_ext_type"))
         self.on_config("kickstart_ext_file", Config.get("kickstart_ext_file"))
 
     def set_config_handlers(self):
@@ -97,133 +97,84 @@ class KickstartGroup(fsui.Group):
     def on_kickstart_type_change(self):
         index = self.kickstart_type_choice.get_index()
         if index == 0:
-            if Config.get("x_kickstart_type") == "default":
+            if Config.get("kickstart_file") == "":
                 return
-            #Config.set("kickstart_file", "")
-            #Config.set("x_kickstart_sha1", sha1)
-            #Config.set("x_kickstart_name", file)
-            Config.set("x_kickstart_type", "default")
-            Config.update_kickstart()
-        elif index == 2:
-            if Config.get("x_kickstart_type") == "internal":
-                return
-            Config.set("x_kickstart_type", "internal")
-            Config.set("kickstart_file", "internal")
-            Config.set("x_kickstart_sha1", "")
-            Config.set("x_kickstart_name", "")
-        else:
-            if Config.get("x_kickstart_type") == "custom":
-                return
-            Config.set("x_kickstart_type", "custom")
-            # FIXME
             Config.set("kickstart_file", "")
-            Config.set("x_kickstart_sha1", "")
-            Config.set("x_kickstart_name", "")
+        elif index == 2:
+            if Config.get("kickstart_file") == "internal":
+                return
+            Config.set("kickstart_file", "internal")
+        else:
+            Config.set("kickstart_file", Config.get("x_kickstart_file"))
+        Config.update_kickstart()
 
     def on_ext_rom_type_change(self):
         index = self.ext_rom_type_choice.get_index()
         if index == 0:
-            if Config.get("x_kickstart_ext_type") == "default":
+            if Config.get("kickstart_ext_file") == "":
                 return
-            #Config.set("kickstart_file", "")
-            #Config.set("x_kickstart_sha1", sha1)
-            #Config.set("x_kickstart_name", file)
-            Config.set("x_kickstart_ext_type", "default")
-            Config.update_kickstart()
-        else:
-            if Config.get("x_kickstart_ext_type") == "custom":
-                return
-            Config.set("x_kickstart_ext_type", "custom")
-            # FIXME
             Config.set("kickstart_ext_file", "")
-            #Config.set("x_kickstart_sha1", "")
-            #Config.set("x_kickstart_name", "")
+        else:
+            Config.set("kickstart_ext_file",
+                    Config.get("x_kickstart_ext_file"))
+        Config.update_kickstart()
 
-    def on_browse_button(self):
+    def on_browse_button(self, extended=False):
         default_dir = Settings.get_kickstarts_dir()
-        dialog = fsui.FileDialog(self.get_window(), _("Choose Kickstart ROM"),
+        if extended:
+            title = _("Choose Extended ROM")
+        else:
+            title = _("Choose Kickstart ROM")
+        dialog = fsui.FileDialog(self.get_window(), title,
                 directory=default_dir)
         if not dialog.show():
             return
         path = dialog.get_path()
 
-        from ..ChecksumDialog import ChecksumDialog
-        dialog = ChecksumDialog(self.get_window(), path)
-        dialog.show()
-        try:
-            sha1 = dialog.checksum(path)
-        except Exception:
-            traceback.print_exc()
-            dialog.destroy()
-            return
-        dialog.destroy()
+        from ..ChecksumTool import ChecksumTool
+        checksum_tool = ChecksumTool(self.get_window())
+        sha1 = checksum_tool.checksum_rom(path)
 
         dir, file = os.path.split(path)
-        self.text_field.set_text(file)
+        if extended:
+            self.ext_text_field.set_text(file)
+        else:
+            self.text_field.set_text(file)
         if os.path.normcase(os.path.normpath(dir)) == \
                 os.path.normcase(os.path.normpath(default_dir)):
             path = file
 
-        Config.set("kickstart_file", path)
-        Config.set("x_kickstart_sha1", sha1)
-        Config.set("x_kickstart_name", file)
-        Config.set("x_kickstart_type", "custom")
+        if extended:
+            Config.set_multiple([
+                    ("kickstart_ext_file", path),
+                    ("x_kickstart_ext_file", path),
+                    ("x_kickstart_ext_file_sha1", sha1)])
+        else:
+            Config.set_multiple([
+                    ("kickstart_file", path),
+                    ("x_kickstart_file", path),
+                    ("x_kickstart_file_sha1", sha1)])
 
     def on_ext_browse_button(self):
-        default_dir = Settings.get_kickstarts_dir()
-        dialog = fsui.FileDialog(self.get_window(), _("Choose Extended ROM"),
-                directory=default_dir)
-        if not dialog.show():
-            return
-        path = dialog.get_path()
-
-        from ..ChecksumDialog import ChecksumDialog
-        dialog = ChecksumDialog(self.get_window(), path)
-        dialog.show()
-        try:
-            sha1 = dialog.checksum(path)
-        except Exception:
-            traceback.print_exc()
-            dialog.destroy()
-            return
-        dialog.destroy()
-
-        dir, file = os.path.split(path)
-        self.text_field.set_text(file)
-        if os.path.normcase(os.path.normpath(dir)) == \
-                os.path.normcase(os.path.normpath(default_dir)):
-            path = file
-
-        Config.set("kickstart_ext_file", path)
-        #Config.set("x_kickstart_ext_sha1", sha1)
-        #Config.set("x_kickstart_name", file)
-        #Config.set("x_kickstart_type", "custom")
+        return self.on_browse_button(extended=True)
 
     def on_config(self, key, value):
-        if key == "x_kickstart_type":
-            if value == "default":
-                self.kickstart_type_choice.set_index(0)
-            elif value == "custom":
-                self.kickstart_type_choice.set_index(1)
-            elif value == "internal":
-                self.kickstart_type_choice.set_index(2)
-        elif key == "kickstart_file":
+        if key == "kickstart_file":
             if value == "internal":
-                Config.set("x_kickstart_type", "internal")
                 self.text_field.set_text("")
+                self.kickstart_type_choice.set_index(2)
             elif value:
                 dir, file = os.path.split(value)
                 self.text_field.set_text(file)
+                self.kickstart_type_choice.set_index(1)
             else:
-                self.text_field.set_text(value)
-        elif key == "x_kickstart_ext_type":
-            if value == "default":
-                self.ext_rom_type_choice.set_index(0)
-            elif value == "custom":
-                self.ext_rom_type_choice.set_index(1)
+                self.text_field.set_text("")
+                self.kickstart_type_choice.set_index(0)
         elif key == "kickstart_ext_file":
             if value:
                 dir, file = os.path.split(value)
                 self.ext_text_field.set_text(file)
+                self.ext_rom_type_choice.set_index(1)
             else:
-                self.ext_text_field.set_text(value)
+                self.ext_text_field.set_text("")
+                self.ext_rom_type_choice.set_index(0)

@@ -39,6 +39,7 @@ else:
     update_version("launcher/setup_py2exe.py")
     update_version("launcher/setup_py2app.py", strict=True)
     update_version("launcher/debian/changelog")
+    update_version("launcher/fs_uae_launcher/Version.py")
     update_version("src/fs-uae/version.c")
     update_version("macosx/template/Contents/Info.plist", strict=True)
     update_version("windows/fs-uae-setup.iss")

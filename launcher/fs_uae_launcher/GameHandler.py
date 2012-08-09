@@ -66,7 +66,6 @@ class GameHandler:
                     return p
 
         letter = self.get_letter(self.name)
-        print(self.name, letter)
         if not letter:
             return None
         name = self.name
@@ -157,6 +156,15 @@ class GameHandler:
         config_name = self.config_name
         if not config_name:
             config_name = "Default"
+
+        # use a temporary state dir, for now, to avoid problems with
+        # floppy overlays etc interfering with net play
+        from .netplay.Netplay import Netplay
+        if Netplay.enabled:
+            netplay_game = Config.get("__netplay_game")
+            if netplay_game:
+                config_name = "Net Play ({0})".format(netplay_game)        
+
         letter = self.get_letter(config_name)
         if not letter:
             config_name = "Default"

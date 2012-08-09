@@ -21,6 +21,7 @@ from __future__ import print_function
 import os
 import sys
 import uuid
+import time
 import random
 import tempfile
 import traceback
@@ -35,6 +36,7 @@ ports_from = 25102
 ports_to = 25499
 log_dir = ""
 service_password = ""
+addresses = "127.0.0.1"
 
 for arg in sys.argv[1:]:
     temp = arg.split("=", 1)
@@ -55,7 +57,10 @@ for arg in sys.argv[1:]:
         log_dir = value
     if key == "--password":
         service_password = value
+    if key == "--addresses":
+        addresses = value
 
+print("addresses:  ", addresses)
 print("max games:  ", max_games)
 print("ports from: ", ports_from)
 print("ports to:   ", ports_to)
@@ -127,9 +132,15 @@ def create_game(s, args):
 
     print("new game: {0} ({1} players)".format(game.id, game.players))
     print("     log: {0}".format(game.log_path))
+    print(proc_args)
     game.proc = subprocess.Popen(proc_args, stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT)
     games[game.id] = game
+    # we wait here until the game process has actually started listening
+    # on the socket, so when we report the connection info back to the client,
+    # connections can actually be established immediately
+    data = game.proc.stdout.read(9)
+    assert data == "listening"
 
     def cleanup():
         try:
@@ -157,10 +168,12 @@ def create_game(s, args):
 
     threading.Thread(target=thread_function).start()
 
-    data = "id={0}&password={1}".format(game.id, game.password)
+    data = "id={0}&password={1}&port={2}&addresses={3}".format(game.id,
+            game.password, game.port, addresses)
     return 200, data
 
 class NetplayServiceHttpHandler(BaseHTTPServer.BaseHTTPRequestHandler):
+
     def do_GET(s):
         temp = s.path.split("?", 1)
         path = temp[0]
@@ -184,6 +197,7 @@ class NetplayServiceHttpHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             with games_lock:
                 response, data = create_game(s, args)
         s.send_response(response)
+        s.send_header("Content-Length", str(len(data)))
         s.end_headers()
         s.wfile.write(data)
 

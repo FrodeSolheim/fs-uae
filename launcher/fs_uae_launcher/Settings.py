@@ -6,8 +6,8 @@ import os
 import fs_uae_launcher.fs as fs
 
 class Settings:
-    irc_lobby_server = "fengestad.no"
-    irc_game_server = "fengestad.no"
+    irc_server = "irc.fengestad.no"
+
     #nick = "FrodeSolheim"
     #nick.
 
@@ -16,7 +16,7 @@ class Settings:
     default_settings = {
         "config_xml_path": "",
         "last_scan": "",
-        "x_ready": "",
+        "__netplay_ready": "",
         "config_base": "",
         "config_refresh": "",
         "maximized": "0",
@@ -59,8 +59,26 @@ class Settings:
             listener.on_setting(key, value)
 
     @classmethod
-    def get_nick(cls):
+    def get_irc_nick(cls):
+        value = cls.settings.get("irc_nick", "").strip()
+        if value:
+            return value
         return fs.get_user_name()
+
+    @classmethod
+    def get_irc_nickserv_pass(cls):
+        value = cls.settings.get("irc_nickserv_pass", "").strip()
+        if value:
+            return value
+        return ""
+
+
+    @classmethod
+    def get_irc_server(cls):
+        value = cls.settings.get("irc_server", "").strip()
+        if value:
+            return value
+        return "irc.fengestad.no"
 
     @classmethod
     def get_base_dir(cls):
@@ -127,6 +145,13 @@ class Settings:
     @classmethod
     def get_cdroms_dir(cls):
         path = os.path.join(cls.get_base_dir(), "CD-ROMs")
+        if not os.path.exists(path):
+            os.makedirs(path)
+        return path
+
+    @classmethod
+    def get_logs_dir(cls):
+        path = os.path.join(cls.get_base_dir(), "Logs")
         if not os.path.exists(path):
             os.makedirs(path)
         return path

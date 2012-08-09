@@ -26,7 +26,9 @@ class Window(wx.Frame):
         # hack to work around window maximizing before show on Windows
         self.container.Bind(wx.EVT_SIZE, self.__resize_event)
         self.Bind(wx.EVT_WINDOW_DESTROY, self.__destroy_event)
+        self.Bind(wx.EVT_CLOSE, self.__close_event)
         self.destroy_listeners = []
+        self.close_listeners = []
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(self.container, 1, wx.EXPAND)
@@ -99,5 +101,19 @@ class Window(wx.Frame):
         for function in self.destroy_listeners:
             function()
         self.on_destroy()
+
+    def on_destroy(self):
+        pass
+
+    def on_close(self):
+        pass
+
+    def __close_event(self, event):
+        print("__close_event")
+        for function in self.close_listeners:
+            function()
+        self.on_close()
+        self.Destroy()
+
 
 update_class(Window)

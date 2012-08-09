@@ -1,7 +1,16 @@
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
+
 import os
 import sys
+import logging
 import codecs
+import platform
 import threading
+
+# using this lock to serialize logging from different threads
+lock = threading.Lock()
 
 class NullOutput(object):
 
@@ -13,6 +22,47 @@ class NullOutput(object):
 
     def write(self, msg):
         pass
+
+class MultiOutput:
+    
+    def __init__(self, *files):
+        self.files = files
+
+    def flush(self):
+        with lock:
+            for f in self.files:
+                try:
+                    f.flush()
+                except Exception:
+                    pass
+
+    def isatty(self):
+        return False
+
+    def write(self, msg):
+        with lock:
+            for f in self.files:
+                try:
+                    f.write(msg)
+                except Exception:
+                    pass
+
+class FileOutput(object):
+
+    def __init__(self, file_obj):
+        self.file = file_obj
+
+    def flush(self):
+        return self.file.flush()
+
+    def isatty(self):
+        return False
+
+    def write(self, msg):
+        if isinstance(msg, unicode):
+            self.file.write(msg.encode("UTF-8"))
+        else:
+            self.file.write(msg)
 
 class SafeOutput(object):
 
@@ -96,6 +146,22 @@ def fix_output():
     except Exception:
         sys.stderr = SafeOutput(sys.stderr, 'ISO-8859-1', 'ASCII')
 
+def setup_logging():
+    from .Settings import Settings
+    logs_dir = Settings.get_logs_dir()
+    log_file = os.path.join(logs_dir, "Launcher.log.txt")
+    try:
+        f = open(log_file, "wb")
+    except Exception:
+        print("could not open log file")
+        # use MultiOutput here too, for the mutex handling
+        sys.stdout = MultiOutput(sys.stdout)
+        sys.stderr = MultiOutput(sys.stderr)
+    else:
+        sys.stdout = MultiOutput(FileOutput(f), sys.stdout)
+        sys.stderr = MultiOutput(FileOutput(f), sys.stderr)
+
+    logging.basicConfig(stream=sys.stdout, level=logging.NOTSET)
 
 def main():
     fix_output()
@@ -108,7 +174,20 @@ def main():
         from fs_uae_launcher.JoystickConfigDialog import joystick_config_main
         return joystick_config_main()
 
-    from fs_uae_launcher.FSUAELauncher import FSUAELauncher
+    if "--server" in sys.argv:
+        from fs_uae_launcher.server.game import run_server
+        return run_server()
+
+    setup_logging()
+
+    from .Version import Version
+    print("FS-UAE Launcher {0}".format(Version.VERSION))
+    print("System: {0}".format(repr(platform.uname())))
+
+    from .ConfigChecker import ConfigChecker
+    config_checker = ConfigChecker()
+
+    from .FSUAELauncher import FSUAELauncher
     application = FSUAELauncher()
     application.run()
     application.save_settings()

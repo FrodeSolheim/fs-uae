@@ -1,5 +1,5 @@
 Name:           fs-uae
-Version:        1.3.23
+Version:        1.3.23u6
 Release:        1%{?dist}
 
 Summary:        Amiga emulator with on-screen GUI and online play support

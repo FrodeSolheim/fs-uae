@@ -13,6 +13,9 @@ class Group:
     def __on_destroy(self):
         self.on_destroy()
 
+    def is_visible(self):
+        return True
+
     def on_destroy(self):
         pass
 

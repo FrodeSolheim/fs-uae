@@ -15,7 +15,8 @@ class HardDriveGroup(fsui.Group):
     def __init__(self, parent, index):
         fsui.Group.__init__(self, parent)
         self.index = index
-        self.hard_drive_key = "hard_drive_{0}".format(index)
+        self.config_key = "hard_drive_{0}".format(index)
+        self.config_key_sha1 = "x_hard_drive_{0}_sha1".format(index)
 
         self.layout = fsui.HorizontalLayout()
         self.layout.padding_right = 20
@@ -65,7 +66,7 @@ class HardDriveGroup(fsui.Group):
         self.set_config_handlers()
 
     def initialize_from_config(self):
-        self.on_config(self.hard_drive_key, Config.get(self.hard_drive_key))
+        self.on_config(self.config_key, Config.get(self.config_key))
 
     def set_config_handlers(self):
         Config.add_listener(self)
@@ -73,10 +74,22 @@ class HardDriveGroup(fsui.Group):
     def on_destroy(self):
         Config.remove_listener(self)
 
-    def on_eject_button(self):
-        Config.set(self.hard_drive_key, "")
+    def on_config(self, key, value):
+        if key == self.config_key:
+            self.text_field.set_text(value)
 
-    def browse(self, dialog_class):
+    def on_eject_button(self):
+        Config.set_multiple([
+                (self.config_key, ""),
+                (self.config_key_sha1, "")])
+
+    def on_browse_folder_button(self):
+        self.browse(fsui.DirDialog, dir_mode=True)
+
+    def on_browse_file_button(self):
+        self.browse(fsui.FileDialog, dir_mode=False)
+
+    def browse(self, dialog_class, dir_mode):
         default_dir = Settings.get_hard_drives_dir()
         dialog = dialog_class(self.get_window(), _("Choose Hard Drive"),
                 directory=default_dir)
@@ -84,19 +97,27 @@ class HardDriveGroup(fsui.Group):
             dialog.destroy()
             return
         path = dialog.get_path()
-        self.text_field.set_text(path)
-        Config.set(self.hard_drive_key, path)
         dialog.destroy()
 
-    def on_browse_folder_button(self):
-        self.browse(fsui.DirDialog)
+        from ..ChecksumTool import ChecksumTool
+        checksum_tool = ChecksumTool(self.get_window())
+        sha1 = ""
+        if dir_mode:
+            print("not calculating HD checksums for directories")
+        else:
+            size = os.path.getsize(path)
+            if size < 64*1024*1024:
+                sha1 = checksum_tool.checksum(path)
+            else:
+                print("not calculating HD checksums HD files > 64MB")
 
-    def on_browse_file_button(self):
-        self.browse(fsui.FileDialog)
+        dir, file = os.path.split(path)
+        self.text_field.set_text(file)
+        if os.path.normcase(os.path.normpath(dir)) == \
+                os.path.normcase(os.path.normpath(default_dir)):
+            path = file
 
-    def on_config(self, key, value):
-        if key == self.hard_drive_key:
-            #print(repr(self.text_field.get_text()))
-            #print(repr(value))
-            #if value != self.text_field.get_text():
-            self.text_field.set_text(value)
+        self.text_field.set_text(path)
+        Config.set_multiple([
+                (self.config_key, path),
+                (self.config_key_sha1, sha1)])

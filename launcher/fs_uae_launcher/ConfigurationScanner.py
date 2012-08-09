@@ -46,8 +46,8 @@ class ConfigurationScanner:
                     scan=self.scan_version, search=search)
 
     def scan_builtin_configs(self, database):
-        from .BuiltinConfigs import builtin_configs
-        for name, data in builtin_configs.iteritems():
+        from .builtin_configs import builtin_configs
+        for name, data in builtin_configs():
             if self.stop_check():
                 break
             search = name.lower()

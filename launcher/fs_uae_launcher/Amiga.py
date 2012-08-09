@@ -64,6 +64,12 @@ CDTV_EXT_ROMS = [
 
 class Amiga:
 
+    MAX_FLOPPY_DRIVES = 4
+    MAX_FLOPPY_IMAGES = 20
+    MAX_CDROM_DRIVES = 4
+    MAX_CDROM_IMAGES = 20
+    MAX_HARD_DRIVES = 4
+
     models = [
         {
             #"title": "Amiga 500",
@@ -138,7 +144,6 @@ class Amiga:
 
     @classmethod
     def get_model_config(cls, model):
-        print("get_model_config for", model)
         for i in range(len(cls.models_config)):
             if cls.models_config[i] == model:
                 return cls.models[i]

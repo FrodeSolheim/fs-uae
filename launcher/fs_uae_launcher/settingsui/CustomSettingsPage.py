@@ -71,11 +71,24 @@ class CustomSettingsPage(fsui.Panel):
         text = u"# You can write key = value pairs here to set FS-UAE options\n" \
                 u"# for which there is no user interface yet, such as theme and\n" \
                 u"# video sync options.\n\n" \
-                u"# The options specified here will apply to all configurations.\n\n"
+                u"# The options specified here will apply to all configurations.\n" \
+                u"# (config options such as hardware and memory options will be ignored)\n\n"
+                
         keys = Settings.settings.keys()
         for key in sorted(keys):
             if key in Settings.default_settings:
                 continue
+            #    #print("(settings) ignoring key", key)
+            #    text += u"# key {0} will be ignored\n".format(key)
+            #if key in Config.config_keys:
+            #    print("(settings) ignoring key", key)
+            #    continue
+            if key in Config.config_keys:
+                #print("(settings) ignoring key", key)
+                text += u"\n# {0} is ignored here " \
+                        u"(use config dialog instead)\n".format(key)
             value = Settings.settings[key]
             text += u"{0} = {1}\n".format(key, value)
+            if key in Config.config_keys:
+                text += u"\n"
         return text

@@ -60,8 +60,10 @@ class FloppySelector(fsui.Group):
     def update_config_key(self):
         if self.cd_mode:
             self.config_key = "cdrom_drive_{0}".format(self.drive)
+            self.config_key_sha1 = "x_cdrom_drive_{0}_sha1".format(self.drive)
         else:
             self.config_key = "floppy_drive_{0}".format(self.drive)
+            self.config_key_sha1 = "x_floppy_drive_{0}_sha1".format(self.drive)
         self.text_field.set_text(Config.get(self.config_key))
 
     def set_cd_mode(self, cd_mode):
@@ -75,7 +77,6 @@ class FloppySelector(fsui.Group):
             FloppyManager.eject(self.drive)
 
     def on_browse(self):
-
         if self.cd_mode:
             title = _("Choose CD-ROM Image")
             default_dir = Settings.get_cdroms_dir()
@@ -89,18 +90,13 @@ class FloppySelector(fsui.Group):
             return
         path = dialog.get_path()
 
-        if not self.cd_mode:
-            from .ChecksumDialog import ChecksumDialog
-            dialog = ChecksumDialog(self.get_window(), path)
-            dialog.show()
-            try:
-                #print("\n\n\nxxxxx\n\n\n")
-                sha1 = dialog.checksum(path)
-            except Exception:
-                traceback.print_exc()
-                dialog.destroy()
-                return
-            dialog.destroy()
+        from .ChecksumTool import ChecksumTool
+        checksum_tool = ChecksumTool(self.get_window())
+        if self.cd_mode:
+            sha1 = ""
+            print("FIXME: not calculating CD checksum just yet")
+        else:
+            sha1 = checksum_tool.checksum(path)
 
         dir, file = os.path.split(path)
         self.text_field.set_text(file)
@@ -108,11 +104,6 @@ class FloppySelector(fsui.Group):
                 os.path.normcase(os.path.normpath(default_dir)):
             path = file
 
-        if self.cd_mode:
-            Config.set_multiple([
-                    ("cdrom_drive_{0}".format(self.drive), path)])
-        else:
-            Config.set_multiple([
-                    ("floppy_drive_{0}".format(self.drive), path),
-                    ("x_floppy_drive_{0}_sha1".format(self.drive), sha1)])
-        #Config.set("x_floppy_drive_{0}_name".format(self.drive), file)
+        Config.set_multiple([
+                (self.config_key, path),
+                (self.config_key_sha1, sha1)])

@@ -25,9 +25,9 @@ import threading
 import os
 import traceback
 
-from fs_uae_launcher.oyoyo.parse import *
-from fs_uae_launcher.oyoyo import helpers
-from fs_uae_launcher.oyoyo.cmdhandler import CommandError
+from fs_uae_launcher.netplay.oyoyo.parse import *
+from fs_uae_launcher.netplay.oyoyo import helpers
+from fs_uae_launcher.netplay.oyoyo.cmdhandler import CommandError
 
 # Python < 3 compatibility
 if sys.version_info < (3,):

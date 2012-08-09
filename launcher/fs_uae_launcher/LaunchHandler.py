@@ -229,10 +229,13 @@ class LaunchHandler:
             #f.write("WHDLoad DH0:{0}/{1}\n".format(whdload_dir, whdload_args))
             f.write("uae-configuration SPC_QUIT 1\n")
 
-        src_dir = Settings.get_whdload_dir()
-        if src_dir and os.path.exists(src_dir):
-            print("WHDLoad base dir exists, copying resources...")
-            self.copy_folder_tree(src_dir, dest_dir)
+        if self.config["__netplay_game"]:
+            print("WHDLoad base dir is not copied in net play mode ")
+        else:
+            src_dir = Settings.get_whdload_dir()
+            if src_dir and os.path.exists(src_dir):
+                print("WHDLoad base dir exists, copying resources...")
+                self.copy_folder_tree(src_dir, dest_dir)
 
         # The User-Startup file is useful if the user has provided a
         # base WHDLoad directory with an existing startup-sequence

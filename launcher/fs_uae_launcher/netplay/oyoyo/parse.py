@@ -18,7 +18,7 @@
 import logging
 import sys
 
-from fs_uae_launcher.oyoyo.ircevents import *
+from fs_uae_launcher.netplay.oyoyo.ircevents import *
 
 # Python < 3 compatibility
 if sys.version_info < (3,):
@@ -46,6 +46,7 @@ def parse_raw_irc_command(element):
 
     <crlf>     ::= CR LF
     """
+    print(element)
     parts = element.strip().split(bytes(" ", "ascii"))
     if parts[0].startswith(bytes(':', 'ascii')):
         prefix = parts[0][1:]

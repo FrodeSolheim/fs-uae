@@ -1,6 +1,7 @@
 from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
 A500_KICKSTARTS = [
     # amiga-os-130.rom (decrypted)
@@ -64,6 +65,9 @@ CDTV_EXT_ROMS = [
 
 class Amiga:
 
+    # FIXME: setting fake checksum, for now
+    INTERNAL_ROM_SHA1 = "0000000000000000000000000000000000000000"
+
     MAX_FLOPPY_DRIVES = 4
     MAX_FLOPPY_IMAGES = 20
     MAX_CDROM_DRIVES = 4
@@ -72,50 +76,50 @@ class Amiga:
 
     models = [
         {
-            #"title": "Amiga 500",
-            "title": "A500",
+            "title": "Amiga 500",
+            #"title": "A500",
             "cd_based": False,
             "kickstarts": A500_KICKSTARTS,
             "ext_roms": [],
         }, {
-            #"title": "Amiga 500+",
-            "title": "A500+",
+            "title": "Amiga 500+",
+            #"title": "A500+",
             "cd_based": False,
             "kickstarts": A500P_KICKSTARTS,
             "ext_roms": [],
         }, {
-            #"title": "Amiga 600",
-            "title": "A600",
+            "title": "Amiga 600",
+            #"title": "A600",
             "cd_based": False,
             "kickstarts": A600_KICKSTARTS,
             "ext_roms": [],
         }, {
-            #"title": "Amiga 1200",
-            "title": "A1200",
+            "title": "Amiga 1200",
+            #"title": "A1200",
             "cd_based": False,
             "kickstarts": A1200_KICKSTARTS,
             "ext_roms": [],
         }, {
-            #"title": "Amiga 1200/020",
-            "title": "A1200/020",
+            "title": "Amiga 1200 (68020)",
+            #"title": "A1200/020",
             "cd_based": False,
             "kickstarts": A1200_KICKSTARTS,
             "ext_roms": [],
         }, {
-            #"title": "Amiga 4000/040",
-            "title": "A4000/040",
+            "title": "Amiga 4000 (68040)",
+            #"title": "A4000/040",
             "cd_based": False,
             "kickstarts": A4000_KICKSTARTS,
             "ext_roms": [],
         }, {
-            #"title": "Amiga CD32",
-            "title": "CD32",
+            "title": "Amiga CD32",
+            #"title": "CD32",
             "cd_based": True,
             "kickstarts": CD32_KICKSTARTS,
             "ext_roms": CD32_EXT_ROMS,
         }, {
-            #"title": "Commodore CDTV",
-            "title": "CDTV",
+            "title": "Commodore CDTV",
+            #"title": "CDTV",
             "cd_based": True,
             "kickstarts": CDTV_KICKSTARTS,
             "ext_roms": CDTV_EXT_ROMS,

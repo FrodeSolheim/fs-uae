@@ -4,12 +4,9 @@ from __future__ import absolute_import
 
 import os
 import fs_uae_launcher.fsui as fsui
+from .ui.Constants import Constants
 from .Config import Config
 from .Settings import Settings
-
-#COVER_SIZE = (110, 146)
-COVER_SIZE = (117, 156)
-SCREEN_SIZE = (222, 146)
 
 class GameHandler:
 
@@ -93,12 +90,12 @@ class GameHandler:
         image = self.load_screenshot(number)
         if image is None:
             return image
-        if image.size == SCREEN_SIZE:
+        if image.size == Constants.SCREEN_SIZE:
             return image
         if image.size[0] < 400:
             image.resize((image.size[0] * 2, image.size[1] * 2),
                     fsui.Image.NEAREST)
-        image.resize(SCREEN_SIZE)
+        image.resize(Constants.SCREEN_SIZE)
         return image
 
     def get_cover_path(self):
@@ -138,7 +135,7 @@ class GameHandler:
         image = self.load_cover()
         if image is None:
             return image
-        image.resize(COVER_SIZE)
+        image.resize(Constants.COVER_SIZE)
         return image
 
     def get_theme_path(self):

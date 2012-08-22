@@ -7,7 +7,8 @@ from .common import update_class
 from .System import System
 
 class TextArea(wx.TextCtrl):
-    def __init__(self, parent, text="", read_only=False, horizontal_scroll=False):
+    def __init__(self, parent, text="", read_only=False, horizontal_scroll=False,
+            font_family=""):
         style = wx.TE_MULTILINE | wx.TE_RICH
         if read_only:
             style = style | wx.TE_READONLY
@@ -15,6 +16,15 @@ class TextArea(wx.TextCtrl):
             style = style | wx.HSCROLL
         wx.TextCtrl.__init__(self, parent.get_container(), -1, text,
                 wx.DefaultPosition, wx.DefaultSize, style)
+        if font_family == "monospace":
+            font = self.GetFont()
+            if System.linux:
+                font.SetFaceName("Monospace")
+                font.SetPointSize(font.GetPointSize() - 1)
+            else:
+                font.SetFaceName("Courier")
+            #font.SetFamily(wx.FONTFAMILY_MODERN)
+            self.SetFont(font)
 
     #def get_min_width(self):
     #    return self.GetBestSize()[0]

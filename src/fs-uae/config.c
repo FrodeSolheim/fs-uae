@@ -467,6 +467,7 @@ void fs_uae_configure_cdrom() {
     }
     */
     fs_emu_log("configure_cdrom\n");
+    int auto_num_drives = 0;
     char *path = fs_config_get_string("cdrom_drive_0");
     if (path) {
         path = fs_uae_expand_path_and_free(path);
@@ -476,12 +477,36 @@ void fs_uae_configure_cdrom() {
         amiga_set_option("cdimage0", temp);
         free(temp);
         free(path);
+        auto_num_drives = 1;
+    }
 
+    int num_drives = auto_num_drives;
+    const char *value = fs_config_get_const_string("cdrom_drive_count");
+    if (value) {
+        if (fs_ascii_strcasecmp(value, "auto") == 0) {
+            // auto
+        }
+        else {
+            num_drives = atoi(value);
+        }
+    }
+
+    if (num_drives == 0) {
+        // do nothing
+    }
+    else if (num_drives == 1) {
         if (g_fs_uae_amiga_model != MODEL_CDTV &&
                 g_fs_uae_amiga_model != MODEL_CD32) {
             amiga_set_option("scsi", "true");
             amiga_map_cd_drives(1);
         }
+        if (auto_num_drives == 0) {
+            // set cdimage0 to force a CD-ROM drive
+            amiga_set_option("cdimage0", "");
+        }
+    }
+    else {
+        fs_emu_warning("Invalid number of CD-ROM drives");
     }
 }
 
@@ -670,40 +695,45 @@ void fs_uae_configure_floppies() {
         option_floppyx[6] = '0' + i;
         char *path = fs_config_get_string(option_dfx);
         fs_emu_log("value for option %s: %s\n", option_dfx, path);
-        if (path) {
-            //if (i == 0) {
-            //    set_default_dirs_from_file_path(path);
-            //}
-            if (path[0] != '\0') {
-                path = fs_uae_expand_path_and_free(path);
-                path = fs_uae_resolve_path_and_free(path, FS_UAE_FLOPPY_PATHS);
-            }
-            amiga_set_option(option_floppyx, path);
-            free(path);
-            auto_num_drives = i + 1;
-            option_floppyxtype[6] = '0' + i;
-            amiga_set_option(option_floppyxtype, "0");
+        if (!path) {
+            path = fs_strdup("");
         }
+
+        if (path[0] != '\0') {
+            path = fs_uae_expand_path_and_free(path);
+            path = fs_uae_resolve_path_and_free(path, FS_UAE_FLOPPY_PATHS);
+            auto_num_drives = i + 1;
+        }
+        amiga_set_option(option_floppyx, path);
+        free(path);
+        option_floppyxtype[6] = '0' + i;
+        amiga_set_option(option_floppyxtype, "0");
     }
-    char *value;
-    value = fs_config_get_string("floppy_drive_speed");
+    const char *value;
+    value = fs_config_get_const_string("floppy_drive_speed");
     if (value) {
         amiga_set_option("floppy_speed", value);
-        free(value);
     }
-    value = fs_config_get_string("floppy_drive_count");
-    if (!value || fs_ascii_strcasecmp(value, "auto") == 0) {
-        fs_emu_log("automatically set num_drives to %d\n", auto_num_drives);
-        value = fs_strdup_printf("%d", auto_num_drives);
+
+    int num_drives = auto_num_drives;
+    value = fs_config_get_const_string("floppy_drive_count");
+    if (value) {
+        if (fs_ascii_strcasecmp(value, "auto") == 0) {
+            // auto
+        }
+        else {
+            num_drives = atoi(value);
+        }
     }
-    int num_drives = atoi(value);
     amiga_set_int_option("nr_floppies", num_drives);
+
     // set remaining floppy drive types to -1
     for (int i = num_drives; i < 4; i++) {
+        option_floppyx[6] = '0' + i;
+        amiga_set_option(option_floppyx, "");
         option_floppyxtype[6] = '0' + i;
         amiga_set_option(option_floppyxtype, "-1");
     }
-    free(value);
 
     int volume = fs_config_get_int_clamped("floppy_drive_volume", 0, 100);
     if (volume != FS_CONFIG_NONE) {

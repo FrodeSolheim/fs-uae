@@ -20,7 +20,12 @@ const char *fs_config_get_const_string(const char *key) {
     if (!g_initialized) {
         initialize();
     }
-    return (const char *) g_hash_table_lookup(g_hash_table, key);
+    const char *value = (const char *) g_hash_table_lookup(g_hash_table, key);
+    if (value && !value[0]) {
+        // an empty string is treated as non-existing (unset value)
+        return NULL;
+    }
+    return value;
 }
 
 char *fs_config_get_string(const char *key) {
@@ -31,9 +36,9 @@ char *fs_config_get_string(const char *key) {
     return NULL;
 }
 
-static void process_key_value(const char *key, char *value) {
+static void process_key_value(const char *key, char *value, int force) {
     gchar *key_lower = g_ascii_strdown(key, -1);
-    if (g_hash_table_lookup(g_hash_table, key_lower)) {
+    if (!force && g_hash_table_lookup(g_hash_table, key_lower)) {
         fs_log("%s = %s (ignored)\n", key_lower, value);
         g_free(key_lower);
         g_free(value);
@@ -47,7 +52,7 @@ static void process_key_value(const char *key, char *value) {
 }
 
 void fs_config_set_string(const char *key, const char *value) {
-    process_key_value(key, value);
+    process_key_value(key, g_strdup(value), 1);
 }
 
 void fs_config_set_string_if_unset(const char *key, const char *value) {
@@ -94,15 +99,7 @@ int fs_config_read_file(const char *path, int force) {
         for (char **key = keys; *key; key++) {
             gchar *value = g_key_file_get_string(key_file, *group, *key, NULL);
             if (value) {
-                process_key_value(*key, value);
-                //gchar *key_lower = g_ascii_strdown(*key, -1);
-                //gchar *value_stripped = g_strstrip(value);
-                //fs_log("'%s' - '%s'\n", value, value_stripped);
-                // hash table now owns both key_lower and value
-                //g_strstrip(value);
-                //fs_log("%s = %s\n", key_lower, value);
-                //g_hash_table_insert(g_hash_table, key_lower, value);
-                //g_free(value);
+                process_key_value(*key, value, 0);
             }
         }
         g_strfreev(keys);
@@ -201,7 +198,7 @@ void fs_config_parse_options(int argc, char **argv) {
             first = 0;
         }
         g_strdelimit (k, "-", '_');
-        process_key_value(k, v);
+        process_key_value(k, v, 0);
         g_free(k);
         // v is owned by process_key_file, do not free here
     }

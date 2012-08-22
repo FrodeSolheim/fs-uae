@@ -17,9 +17,9 @@ class RemovableMediaGroup(FloppiesGroup):
 
     def __init__(self, parent, drives):
         FloppiesGroup.__init__(self, parent, drives)
-        self.layout2.add_spacer(10)
+        #self.layout2.add_spacer(10)
         self.layout3 = fsui.HorizontalLayout()
-        self.layout2.add(self.layout3, fill=True)
+        self.layout.add(self.layout3, fill=True)
 
         self.layout3.add_spacer(0, expand=True)
 
@@ -29,6 +29,7 @@ class RemovableMediaGroup(FloppiesGroup):
         #self.hds_button.on_activate = self.on_hds_button
         #self.layout3.add(self.hds_button)
 
+        """
         self.layout3.add_spacer(10)
         self.multi_select_button = fsui.Button(self,
                 _("Select Files..."))
@@ -47,9 +48,10 @@ class RemovableMediaGroup(FloppiesGroup):
         self.cdroms_button.set_tooltip(_("CD-ROMs"))
         self.cdroms_button.on_activate = self.on_cdroms_button
         self.layout3.add(self.cdroms_button, fill=True)
+        """
 
         self.cd_mode = False
-        self.label.set_text(_("Removable Media"))
+        #self.label.set_text(_("Removable Media"))
 
         self.update_media_type()
         Config.add_listener(self)
@@ -74,13 +76,15 @@ class RemovableMediaGroup(FloppiesGroup):
         #    self.label.set_text(_("Floppy Drives"))
         for selector in self.selectors:
             selector.set_cd_mode(cd_mode)
-        if cd_mode:
-            image = fsui.Image("fs_uae_launcher:res/cd_group.png")
-        else:
-            image = fsui.Image("fs_uae_launcher:res/floppy_group.png")
-        self.image_view.set_image(image)
+        #if cd_mode:
+        #    image = fsui.Image("fs_uae_launcher:res/cd_group.png")
+        #else:
+        #    image = fsui.Image("fs_uae_launcher:res/floppy_group.png")
+        #self.image_view.set_image(image)
+        self.update_heading_label()
         self.selectors[1].enable(not self.cd_mode)
 
+    """
     def on_multi_select_button(self):
         if self.cd_mode:
             CDManager.multiselect(self.get_window())
@@ -98,3 +102,4 @@ class RemovableMediaGroup(FloppiesGroup):
         dialog = FloppiesDialog(self.get_window())
         dialog.show_modal()
         dialog.destroy()
+    """

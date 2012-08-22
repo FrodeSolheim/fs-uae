@@ -17,3 +17,9 @@ def show_error(message):
 def get_screen_size():
     import wx
     return wx.GetDisplaySize()
+
+def get_background_color():
+    import wx
+    c = wx.SystemSettings_GetColour(wx.SYS_COLOUR_BTNFACE)
+    from .Color import Color
+    return Color(c)

@@ -5,12 +5,16 @@ from __future__ import absolute_import
 import os
 import zlib
 import shutil
+import urllib
 import zipfile
 import tempfile
 import pkg_resources
 import fs_uae_launcher.fs as fs
+import fs_uae_launcher.fsui as fsui
 from .FSUAE import FSUAE
 from .Archive import Archive
+from .Amiga import Amiga
+from .Config import Config
 from .ConfigWriter import ConfigWriter
 from .DownloadService import DownloadService
 from .GameHandler import GameHandler
@@ -21,6 +25,30 @@ from .games.GameChangeHandler import GameChangeHandler
 from .I18N import _, ngettext
 
 class LaunchHandler:
+
+    @classmethod
+    def start_local_game(self):
+        if not Config.get("x_kickstart_file"):# or not \
+                #os.path.exists(Config.get("kickstart_file")):
+            fsui.show_error(_("No kickstart found for this model. " +
+                    "Try 'scan' function."))
+            return
+        cs = Amiga.get_model_config(Config.get("amiga_model"))["ext_roms"]
+        if len(cs) > 0:
+            # extended kickstart ROM is needed
+            if not Config.get("x_kickstart_ext_file"):
+                fsui.show_error(_("No extended kickstart found for this "
+                        "model. Try 'scan' function."))
+                return
+
+        #from .LaunchHandler import LaunchHandler
+        handler = LaunchHandler(Settings.get("config_name"), Config,
+                GameHandler.current())
+        from .LaunchDialog import LaunchDialog
+        dialog = LaunchDialog(handler)
+        dialog.run()
+        dialog.show_modal()
+        dialog.close()
 
     def __init__(self, config_name, config, game_handler):
         self.config_name = config_name
@@ -94,10 +122,11 @@ class LaunchHandler:
         if not src:
             return
         if src.startswith("http://") or src.startswith("https://"):
-            url, name = src.rsplit("/", 1)
+            name = src.rsplit("/", 1)[-1]
+            name = urllib.unquote(name)
             self.on_progress(_("Downloading {0}...".format(name)))
             dest = os.path.join(self.temp_dir, name)
-            DownloadService.install_file_from_url(url, dest)
+            DownloadService.install_file_from_url(src, dest)
             self.config[key] = name
             return
 
@@ -152,6 +181,9 @@ class LaunchHandler:
             value = self.config.get(key, "")
             if value.endswith(".zip"):
                 print("zipped hard drive", value)
+                self.unpack_hard_drive(i, value)
+            elif value.endswith("HardDrive"):
+                print("XML-described hard drive", value)
                 self.unpack_hard_drive(i, value)
 
     def unpack_hard_drive(self, i, zip_path):
@@ -252,7 +284,7 @@ class LaunchHandler:
         abs_path = os.path.join(dest_dir, rel_path)
         name = os.path.basename(rel_path)
         self.on_progress(_("Downloading {0}...".format(name)))
-        DownloadService.install_file_by_sha1(sha1, abs_path)
+        DownloadService.install_file_by_sha1(sha1, name, abs_path)
 
     def create_whdload_prefs_file(self, path):
         default_prefs = """

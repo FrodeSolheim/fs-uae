@@ -34,6 +34,9 @@ class Window(wx.Frame):
         sizer.Add(self.container, 1, wx.EXPAND)
         self.SetSizer(sizer)
 
+    def set_background_color(self, color):
+        self.container.SetBackgroundColour(color)
+
     def maximize(self, maximize=True):
         self.Maximize(maximize)
         #print(self.GetSize())

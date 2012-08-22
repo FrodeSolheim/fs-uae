@@ -1,0 +1,319 @@
+# Russian translations for fs-uae-launcher package.
+# Copyright (C) 2012 Frode Solheim
+# This file is distributed under the same license as the fs-uae-launcher package.
+# Frode Solheim <fs-uae@fengestad.no>, 2012.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: fs-uae-launcher\n"
+"Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
+"POT-Creation-Date: 2012-08-14 11:12+0200\n"
+"PO-Revision-Date: 2012-08-14 11:16+0200\n"
+"Last-Translator: Frode Solheim <fs-uae@fengestad.no>\n"
+"Language-Team: Russian <fs-uae@fengestad.no>\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+
+msgid "Abort"
+msgstr ""
+
+msgid "Accurate"
+msgstr ""
+
+msgid "Add Directory to Search Path"
+msgstr ""
+
+msgid "Add Files to List"
+msgstr ""
+
+msgid "Add Multiple CD Images at Once"
+msgstr ""
+
+msgid "Add Multiple CD-ROMs at Once"
+msgstr ""
+
+msgid "Add Multiple Floppies at Once"
+msgstr ""
+
+msgid "Amiga Model"
+msgstr ""
+
+msgid "Browse"
+msgstr ""
+
+msgid "Browse for File"
+msgstr ""
+
+msgid "Browse for Folder"
+msgstr ""
+
+msgid "CD-ROM Drive"
+msgstr ""
+
+msgid "CD-ROM Drives"
+msgstr ""
+
+msgid "CD32 Pad"
+msgstr ""
+
+msgid "Cancel"
+msgstr ""
+
+msgid "Choose CD-ROM Image"
+msgstr ""
+
+msgid "Choose Extended ROM"
+msgstr ""
+
+msgid "Choose Floppy Image"
+msgstr ""
+
+msgid "Choose Hard Drive"
+msgstr ""
+
+msgid "Choose Kickstart ROM"
+msgstr ""
+
+msgid "Cleaning up..."
+msgstr ""
+
+msgid "Clear List"
+msgstr ""
+
+msgid "Click 'Scan' button if you want to re-scan"
+msgstr ""
+
+msgid "Click 'Scan' button to start scan"
+msgstr ""
+
+msgid "Close"
+msgstr ""
+
+msgid "Committing data..."
+msgstr ""
+
+msgid "Configuration"
+msgstr ""
+
+msgid "Configure CD-ROMs"
+msgstr ""
+
+msgid "Configure Floppies"
+msgstr ""
+
+msgid "Configure Input"
+msgstr ""
+
+msgid "Configure Joystick Buttons"
+msgstr ""
+
+msgid "Cursor Keys and Right Ctrl/Alt"
+msgstr ""
+
+msgid "Custom"
+msgstr ""
+
+msgid "Custom Options"
+msgstr ""
+
+msgid "Custom Settings"
+msgstr ""
+
+msgid "Default"
+msgstr ""
+
+msgid "Downloading {0}..."
+msgstr ""
+
+msgid "Eject"
+msgstr ""
+
+msgid "Extended ROM"
+msgstr ""
+
+msgid "Filters:"
+msgstr ""
+
+msgid "Floppy Drives"
+msgstr ""
+
+msgid "Fullscreen"
+msgstr ""
+
+msgid "Games and Configurations"
+msgstr ""
+
+msgid "Hard Drives"
+msgstr ""
+
+msgid "Host Options"
+msgstr ""
+
+msgid "Internal"
+msgstr ""
+
+msgid "Joystick"
+msgstr ""
+
+msgid "Joystick Configuration"
+msgstr ""
+
+msgid "Joystick Ports"
+msgstr ""
+
+msgid "Joystick Settings"
+msgstr ""
+
+msgid "Kickstart ROM"
+msgstr ""
+
+msgid "Kickstart Versions"
+msgstr ""
+
+msgid "Least Accurate"
+msgstr ""
+
+msgid "Less Accurate"
+msgstr ""
+
+msgid "More..."
+msgstr ""
+
+msgid "Mouse"
+msgstr ""
+
+msgid "Net Play"
+msgstr ""
+
+msgid "New Configuration"
+msgstr ""
+
+msgid "No Host Device"
+msgstr ""
+
+msgid "No Joysticks"
+msgstr ""
+
+msgid "No extended kickstart found for this "
+msgstr ""
+
+msgid "No joysticks are currently connected"
+msgstr ""
+
+msgid "No kickstart found for this model. "
+msgstr ""
+
+msgid "No scan in progress"
+msgstr ""
+
+msgid "Nothing"
+msgstr ""
+
+msgid "OK"
+msgstr ""
+
+msgid "Open Configuration"
+msgstr ""
+
+msgid "Open Tool to Configure Button Mapping"
+msgstr ""
+
+msgid "Parallel Port Joysticks"
+msgstr ""
+
+msgid "Please wait..."
+msgstr ""
+
+msgid "Preferred Joystick"
+msgstr ""
+
+msgid "Preferred device for secondary joystick:"
+msgstr ""
+
+msgid "Preparing WHDLoad..."
+msgstr ""
+
+msgid "Preparing floppy images..."
+msgstr ""
+
+msgid "Preparing hard drives..."
+msgstr ""
+
+msgid "Purging old entries..."
+msgstr ""
+
+msgid "Remove Directory from Search Path"
+msgstr ""
+
+msgid "Remove Selected Files"
+msgstr ""
+
+msgid "Restoring changes..."
+msgstr ""
+
+msgid "Save Configuration"
+msgstr ""
+
+msgid "Saving changes..."
+msgstr ""
+
+msgid "Scan"
+msgstr ""
+
+msgid "Scan complete"
+msgstr ""
+
+msgid "Scan for Kickstarts, Games and Configurations"
+msgstr ""
+
+msgid "Scanning configurations"
+msgstr ""
+
+msgid "Scanning configurations ({count} scanned)"
+msgstr ""
+
+msgid "Scanning files"
+msgstr ""
+
+msgid "Scanning files ({count} scanned)"
+msgstr ""
+
+msgid "Select Files..."
+msgstr ""
+
+msgid "Select Multiple CD-ROMs"
+msgstr ""
+
+msgid "Select Multiple Floppies"
+msgstr ""
+
+msgid "Settings"
+msgstr ""
+
+msgid "Show Only Favorites (On/Off)"
+msgstr ""
+
+msgid "Show Only Verified Configurations (On/Off)"
+msgstr ""
+
+msgid "Start"
+msgstr ""
+
+msgid "Starting FS-UAE..."
+msgstr ""
+
+msgid "Starting scan"
+msgstr ""
+
+msgid "Swap List"
+msgstr ""
+
+msgid "WHDLoad Arguments"
+msgstr ""
+
+msgid "Window"
+msgstr ""

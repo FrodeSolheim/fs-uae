@@ -42,7 +42,7 @@ class DownloadService:
         os.rename(temp_path, path)
 
     @classmethod
-    def install_file_by_sha1(cls, sha1, path):
+    def install_file_by_sha1(cls, sha1, name, path):
         print("DownloadService.install_file_by_sha1", sha1)
         print(repr(path))
         if not os.path.exists(os.path.dirname(path)):
@@ -54,7 +54,7 @@ class DownloadService:
             # so we later can delete least accessed files in cache...
             os.utime(cache_path, None)
             return
-        url = cls.sha1_to_url(sha1)
+        url = cls.sha1_to_url(sha1, name)
         ifile = urllib2.urlopen(url)
         temp_path = path + u".part"
         h = hashlib.sha1()
@@ -74,8 +74,10 @@ class DownloadService:
         os.rename(temp_path, path)
 
     @classmethod
-    def sha1_to_url(self, sha1):
-        return "http://fengestad.no/sha1/{0}/{1}".format(sha1[:2], sha1)
+    def sha1_to_url(self, sha1, name):
+        url = "http://fengestad.no/s/{0}/{1}/{2}".format(sha1[:2], sha1, name)
+        print(url)
+        return url
 
     @classmethod
     def get_cache_path(cls, sha1):

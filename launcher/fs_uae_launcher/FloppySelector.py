@@ -21,20 +21,21 @@ class FloppySelector(fsui.Group):
 
         self.layout = fsui.HorizontalLayout()
 
-        self.text_field = fsui.TextField(self, "", read_only=True)
-        self.layout.add(self.text_field, expand=True)#, expand=True, fill=True)
-
-        self.layout.add_spacer(10)
         self.eject_button = IconButton(self, "eject_button.png")
         self.eject_button.set_tooltip(_("Eject"))
         self.eject_button.on_activate = self.on_eject
         self.layout.add(self.eject_button)
 
         self.layout.add_spacer(10)
+
+        self.text_field = fsui.TextField(self, "", read_only=True)
+        self.layout.add(self.text_field, expand=True)#, expand=True, fill=True)
+
+        self.layout.add_spacer(10)
         self.browse_button = IconButton(self, "browse_button.png")
         self.browse_button.set_tooltip(_("Browse"))
         self.browse_button.on_activate = self.on_browse
-        self.layout.add(self.browse_button, fill=True)
+        self.layout.add(self.browse_button)
 
         self.update_config_key()
         Config.add_listener(self)

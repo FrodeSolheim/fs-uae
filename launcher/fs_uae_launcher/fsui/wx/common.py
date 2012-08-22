@@ -81,6 +81,14 @@ def get_window(self):
         parent = self.parent
     return parent
 
+def refresh(self):
+    self.Refresh()
+
+def get_background_color(self):
+    from .Color import Color
+    c= self.GetBackgroundColour()
+    return Color(c.Red(), c.Blue(), c.Green())
+
 def set_background_color(self, color):
     import wx
     self.SetBackgroundColour(wx.Colour(*color))
@@ -93,12 +101,14 @@ names = [
     "disable",
     "enable",
     "focus",
-    "get_parent",
-    "get_window",
+    "get_background_color",
     "get_min_height",
     "get_min_width",
+    "get_parent",
+    "get_window",
     "hide",
     "is_visible",
+    "refresh",
     "set_background_color",
     "set_min_height",
     "set_min_width",

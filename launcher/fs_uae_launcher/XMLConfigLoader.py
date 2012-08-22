@@ -153,7 +153,6 @@ class XMLConfigLoader:
                self.options["amiga_model"] = "A600"
            elif value == "AROS":
                self.options["kickstart_file"] = "internal"
-               self.options["x_kickstart_type"] = "internal"
            else:
                # FIXME: print warning
                pass
@@ -176,25 +175,27 @@ class XMLConfigLoader:
 
     def load_floppies(self):
         media_list = self.build_media_list(floppies=True)
-        num_floppy_drives = 4
-        if "num_floppy_drives" in self.options:
+        floppy_drive_count = 4
+        if "floppy_drive_count" in self.options:
             try:
-                num_floppy_drives = int(self.options["num_floppy_drives"])
+                # FIXME: should be floppy_drive_count, not num_floppy_drives
+                floppy_drive_count = int(self.options["num_floppy_drives"])
             except ValueError:
-                num_floppy_drives = 1
-            num_floppy_drives = max(0, min(4, num_floppy_drives))
+                floppy_drive_count = 1
+            floppy_drive_count = max(0, min(4, floppy_drive_count))
         for i, values in enumerate(media_list):
             path, sha1 = values
-            if i < num_floppy_drives:
+            if i < floppy_drive_count:
                 self.config[u"floppy_drive_{0}".format(i)] = path
                 self.config[u"x_floppy_drive_{0}_sha1".format(i)] = sha1
             self.config[u"floppy_image_{0}".format(i)] = path
             self.config[u"x_floppy_image_{0}_sha1".format(i)] = sha1
-        if num_floppy_drives < 4:
-            self.config["num_floppy_drives"] = num_floppy_drives
+        if floppy_drive_count < 4:
+            self.config["floppy_drive_count"] = floppy_drive_count
 
     def build_media_list(self, floppies=False, cds=False, hds=False):
         media_list = []
+        added = set()
         file_nodes = self.root.findall("file")
         for file_node in file_nodes:
             print(file_node)
@@ -210,6 +211,20 @@ class XMLConfigLoader:
 
             type = file_node.get("type", "")
             name = file_node.find("name").text.strip()
+
+            if name.startswith("HardDrive/"):
+                if hds:
+                    p = os.path.join(self.path, "HardDrive")
+                    if p in added:
+                        # already added
+                        continue
+                    added.add(p)
+                    # FIXME: hack for now
+                    sha1 = "01234567-89ab-cdef-0123-456789abcdef"
+                    media_list.append((p, sha1))
+                else:
+                    continue
+
             base, ext = os.path.splitext(name)
             #if type == "hd" and not hds:
             #    continue
@@ -246,7 +261,8 @@ class XMLConfigLoader:
                 if path:
                     found_sha1 = sha1
             if url and not path:
-                path = u"{0}/{1}".format(url, name)
+                path = url
+                found_sha1 = sha1
             if not path:
                 path = Database.get_instance().find_file(name=name)
             if not path:

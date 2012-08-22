@@ -43,7 +43,7 @@ cfg = [
     ("x_kickstart_ext_file_sha1", True,  True,  False, ""),
 
     ("x_whdload_args",            True,  True,  False, ""),
-    ("num_floppy_drives",         True,  True,  True,  ""),
+    ("floppy_drive_count",        True,  True,  True,  ""),
     ("floppy_drive_speed",        True,  True,  True,  ""),
 
     ("__netplay_game",            True,  True,  False, ""),
@@ -85,34 +85,6 @@ class Config:
     default_config = {}
     for key, checksum, sync, allow_custom, default_value in cfg:
         default_config[key] = default_value
-
-    skip_empty_keys = set([
-        "kickstart_ext_file",
-        #"sub_title",
-        "title",
-        "viewport",
-        "netplay_server",
-        "netplay_password",
-        "netplay_port",
-        "num_floppy_drives",
-        "floppy_drive_speed",
-
-        "chip_memory",
-        "slow_memory",
-        "fast_memory",
-        "zorro_iii_memory",
-    ])
-
-    #for i in range(Amiga.MAX_FLOPPY_DRIVES):        
-    #    skip_empty_keys.add("floppy_drive_{0}".format(i))
-    #for i in range(Amiga.MAX_FLOPPY_IMAGES):
-    #    skip_empty_keys.add("floppy_image_{0}".format(i))
-    #for i in range(Amiga.MAX_CDROM_DRIVES):
-    #    skip_empty_keys.add("cdrom_drive_{0}".format(i))
-    #for i in range(Amiga.MAX_CDROM_IMAGES):
-    #    skip_empty_keys.add("cdrom_image_{0}".format(i))
-    for i in range(Amiga.MAX_HARD_DRIVES):
-        skip_empty_keys.add("hard_drive_{0}".format(i))
 
     key_order = [x[0] for x in cfg]
     checksum_keys = [x[0] for x in cfg if x[1]]
@@ -253,9 +225,14 @@ class Config:
         model = config_dict.setdefault("amiga_model",
                 cls.default_config["amiga_model"])
 
-        if config_dict.setdefault("kickstart_file", ""):
+        kickstart_file = config_dict.setdefault("kickstart_file", "")
+        if kickstart_file:
             config_dict["x_kickstart_file"] = config_dict["kickstart_file"]
-            # FIXME: set checksum
+            if kickstart_file == "internal":
+                config_dict["x_kickstart_file_sha1"] = Amiga.INTERNAL_ROM_SHA1
+            else:
+                # FIXME: set checksum
+                pass
         else:
             checksums = Amiga.get_model_config(model)["kickstarts"]
             for checksum in checksums:
@@ -303,51 +280,6 @@ class Config:
         config_dict = cls.config.copy()
         cls.update_kickstart_in_config_dict(config_dict)
         cls.update_from_config_dict(config_dict)
-        """
-        print("set_kickstart_from_model")
-        model = Config.get("amiga_model")
-        if Config.get("kickstart_file"):
-            Config.set("x_kickstart_file", Config.get("kickstart_file"))
-        else:
-            checksums = Amiga.get_model_config(model)["kickstarts"]
-            for checksum in checksums:
-                path = Database.get_instance().find_file(sha1=checksum)
-                if path:
-                    #print("set kickstart to", path)
-                    Config.set_multiple([("x_kickstart_file", path),
-                            ("x_kickstart_file_sha1", checksum)])
-                    break
-            else:
-                print("WARNING: no suitable kickstart file found")
-                Config.set_multiple([("x_kickstart_file", ""),
-                        ("x_kickstart_file_sha1", "")])
-                Warnings.set("hardware", "kickstart",
-                             "No suitable kickstart found")
-                # FIXME: set sha1 and name x_options also
-
-        if Config.get("kickstart_ext_file"):
-            Config.set("x_kickstart_ext_file",
-                    Config.get("kickstart_ext_file"))
-        else:
-            checksums = Amiga.get_model_config(model)["ext_roms"]
-            if len(checksums) == 0:
-                Config.set_multiple([("x_kickstart_ext_file", ""),
-                        ("x_kickstart_ext_file_sha1", "")])
-            else:
-                for checksum in checksums:
-                    path = Database.get_instance().find_file(sha1=checksum)
-                    if path:
-                        Config.set_multiple([("x_kickstart_ext_file", path),
-                                ("x_kickstart_ext_file_sha1", checksum)])
-                        break
-                else:
-                    print("WARNING: no suitable kickstart ext file found")
-                    Config.set_multiple([("x_kickstart_ext_file", ""),
-                            ("x_kickstart_ext_file_sha1", "")])
-                    Warnings.set("hardware", "kickstart_ext",
-                                 "No suitable extended kickstart found")
-                    # FIXME: set sha1 and name x_options also
-        """
 
     @classmethod
     def load_default_config(cls):

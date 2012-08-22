@@ -220,6 +220,57 @@ static void fix_border(fs_emu_video_buffer *buffer, int *upload_x,
     *upload_h = uh;
 }
 
+static void save_screenshot(const char *type, int cx, int cy, int cw, int ch,
+        int count, uint8_t *frame, int frame_width, int frame_height,
+        int frame_bpp) {
+    gchar *name, *path;
+    time_t t = time(NULL);
+    struct tm *tm_struct = localtime(&t);
+    char strbuf[20];
+    strftime(strbuf, 20, "%Y-%m-%d-%H-%M", tm_struct);
+    name = g_strdup_printf("fs-uae-%s-%s-%d.png", type, strbuf, count);
+    path = g_build_filename(
+            g_get_user_special_dir(G_USER_DIRECTORY_DESKTOP),
+            name, NULL);
+    fs_log("writing screenshot to %s\n", path);
+
+    uint8_t *out_data = malloc(cw * ch * 3);
+    int row_len = cw * 4;
+
+    for (int y = 0; y < ch; y++) {
+        uint8_t *ip = frame + ((cy + y) * frame_width + cx) * frame_bpp;
+        uint8_t *op = out_data + y * cw * 3;
+        if (fs_emu_get_video_format() == FS_EMU_VIDEO_FORMAT_BGRA) {
+            for (int x = 0; x < row_len; x += 4) {
+                *op++ = ip[x + 2];
+                *op++ = ip[x + 1];
+                *op++ = ip[x + 0];
+            }
+        }
+        else {
+            for (int x = 0; x < row_len; x += 4) {
+                *op++ = ip[x + 0];
+                *op++ = ip[x + 1];
+                *op++ = ip[x + 2];
+                ip += frame_bpp;
+            }
+        }
+    }
+
+    int result = fs_image_save_data(path, out_data, cw, ch, 3);
+    if (result) {
+        // FIXME: not a warning
+        fs_emu_warning("Saved %s\n", name);
+        fs_log("saved screenshot\n");
+    }
+    else {
+        fs_log("error saving screenshot\n");
+    }
+    g_free(out_data);
+    g_free(name);
+    g_free(path);
+}
+
 static void update_texture() {
     fs_emu_video_buffer *buffer = fs_emu_lock_video_buffer();
 #ifdef DEBUG_VIDEO_SYNC
@@ -257,49 +308,36 @@ static void update_texture() {
     int height = buffer->height;
     int bpp = buffer->bpp;
 
+    // check for cropping before screenshot, so we can also save cropped
+    // screenshot
+
+    if (g_fs_emu_video_crop_mode) {
+        g_crop = buffer->crop;
+        if (g_crop.w == 0) {
+            g_crop.w = width;
+        }
+        if (g_crop.h == 0) {
+            g_crop.h = height;
+        }
+    }
+    else {
+        g_crop.x = 0;
+        g_crop.y = 0;
+        g_crop.w = width;
+        g_crop.h = height;
+    }
+
+    // g_fs_emu_screenshot is set to 1 when screenshot command is executed
+    // (keyboard shortcut), but screenshot is saved here, as soon as possible.
+
     if (g_fs_emu_screenshot) {
         static int count = 1;
         g_fs_emu_screenshot = 0;
-        gchar *name, *path;
-        time_t t = time(NULL);
-        struct tm *tm_struct = localtime(&t);
-        char strbuf[20];
-        strftime(strbuf, 20, "%Y-%m-%d_%H-%M-%S", tm_struct);
-        name = g_strdup_printf("%s_%d.png", strbuf, count);
+        save_screenshot("full", 0, 0, width, height,
+                count, frame, width, height, 4);
+        save_screenshot("cropped", g_crop.x, g_crop.y, g_crop.w, g_crop.h,
+                count, frame, width, height, 4);
         count += 1;
-        path = g_build_filename(
-                g_get_user_special_dir(G_USER_DIRECTORY_DESKTOP),
-                name, NULL);
-        fs_log("writing screenshot to %s\n", path);
-        int len = width * height * bpp;
-        uint8_t *out_data = malloc(width * height * 3);
-        uint8_t *op = out_data;
-
-        if (fs_emu_get_video_format() == FS_EMU_VIDEO_FORMAT_BGRA) {
-            for (int x = 0; x < len; x += 4) {
-                *op++ = frame[x + 2];
-                *op++ = frame[x + 1];
-                *op++ = frame[x + 0];
-            }
-        }
-        else {
-            for (int x = 0; x < len; x += 4) {
-                *op++ = frame[x + 0];
-                *op++ = frame[x + 1];
-                *op++ = frame[x + 2];
-            }
-        }
-        int result = fs_image_save_data(path, out_data, width, height, 3);
-        if (result) {
-            // FIXME: not a warning
-            fs_emu_warning("Saved %s\n", name);
-            fs_log("saved screenshot\n");
-        }
-        else {
-            fs_log("error saving screenshot\n");
-        }
-        g_free(name);
-        g_free(path);
     }
 
     int format = 0;
@@ -321,21 +359,6 @@ static void update_texture() {
         //fs_log("na..\n");
         return;
         //fs_emu_fatal("bpp is neither 3 nor 4\n");
-    }
-    if (g_fs_emu_video_crop_mode) {
-        g_crop = buffer->crop;
-        if (g_crop.w == 0) {
-            g_crop.w = width;
-        }
-        if (g_crop.h == 0) {
-            g_crop.h = height;
-        }
-    }
-    else {
-        g_crop.x = 0;
-        g_crop.y = 0;
-        g_crop.w = buffer->width;
-        g_crop.h = buffer->height;
     }
 
     int upload_x, upload_y, upload_w, upload_h;

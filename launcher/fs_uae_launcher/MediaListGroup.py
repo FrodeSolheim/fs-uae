@@ -14,29 +14,28 @@ class MediaListGroup(fsui.Group):
 
     def __init__(self, parent, cd_mode):
         fsui.Group.__init__(self, parent)
-        self.layout = fsui.HorizontalLayout()
-        self.layout.padding_left = 20
-        self.layout.padding_right = 20
-
-        if cd_mode:
-            image = fsui.Image("fs_uae_launcher:res/cd_group.png")
-        else:
-            image = fsui.Image("fs_uae_launcher:res/floppy_group.png")
-        self.image_view = fsui.ImageView(self, image)
-        self.layout.add(self.image_view, valign=0.0)
-
-        self.layout.add_spacer(20)
-
-        self.layout2 = fsui.VerticalLayout()
-        self.layout.add(self.layout2, fill=True, expand=True)
-
-        self.label = fsui.HeadingLabel(self, _("Media List"))
-
-        self.layout2.add(self.label)
-        self.layout2.add_spacer(10)
-        self.layout2.add(self.create_list_group(), expand=True, fill=True)
+        self.layout = fsui.VerticalLayout()
 
         self.cd_mode = cd_mode
+
+        #if cd_mode:
+        #    image = fsui.Image("fs_uae_launcher:res/cd_group.png")
+        #else:
+        #    image = fsui.Image("fs_uae_launcher:res/floppy_group.png")
+        #self.image_view = fsui.ImageView(self, image)
+        #self.layout.add(self.image_view, valign=0.0)
+
+        #self.layout.add_spacer(20)
+
+        #self.layout2 = fsui.VerticalLayout()
+        #self.layout.add(self.layout2, fill=True, expand=True)
+
+        self.heading_label = fsui.HeadingLabel(self, _("Swap List"))
+        self.layout.add(self.heading_label, margin=10)
+        self.layout.add_spacer(0)
+
+        self.layout.add(self.create_list_group(), expand=True, fill=True)
+
         self.update_list()
         Config.add_listener(self)
 
@@ -44,38 +43,36 @@ class MediaListGroup(fsui.Group):
         Config.remove_listener(self)
 
     def create_list_group(self):
-        hlayout = fsui.HorizontalLayout()
-        #hlayout.padding_left = 20
-        #hlayout.padding_right = 20
+        hori_layout = fsui.HorizontalLayout()
+        #hori_layout.padding_left = 20
+        #hori_layout.padding_right = 20
 
         self.text = fsui.TextArea(self, read_only=True)
-        self.text.set_min_height(160)
-        hlayout.add(self.text, expand=True, fill=True)
-        hlayout.add_spacer(10)
+        #self.text.set_min_height(160)
+        hori_layout.add(self.text, expand=True, fill=True, margin=10,
+                margin_right=0)
 
-        vlayout = fsui.VerticalLayout()
-        hlayout.add(vlayout, fill=True)
+        vert_layout = fsui.VerticalLayout()
+        hori_layout.add(vert_layout, fill=True)
 
         add_button = IconButton(self, "add_button.png")
         add_button.set_tooltip(_("Add Files to List"))
         add_button.disable()
         #add_button.on_activate = self.on_clear_list
-        vlayout.add(add_button)
-        vlayout.add_spacer(10)
+        vert_layout.add(add_button, margin=10)
 
         remove_button = IconButton(self, "remove_button.png")
         remove_button.set_tooltip(_("Remove Selected Files"))
         remove_button.disable()
         #add_button.on_activate = self.on_clear_list
-        vlayout.add(remove_button)
-        vlayout.add_spacer(10)
+        vert_layout.add(remove_button, margin=10)
 
         clear_button = IconButton(self, "clear_button.png")
         clear_button.set_tooltip(_("Clear List"))
         clear_button.on_activate = self.on_clear_list
-        vlayout.add(clear_button)
+        vert_layout.add(clear_button, margin=10)
 
-        return hlayout
+        return hori_layout
 
     def on_config(self, key, value):
         if self.cd_mode:

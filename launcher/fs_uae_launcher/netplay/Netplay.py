@@ -14,7 +14,7 @@ from .ConnectionTester import ConnectionTester
 from ..Amiga import Amiga
 from ..Config import Config
 from ..Database import Database
-
+from ..builtin_configs import find_downloadable_file
 from ..server.Server import Server
 from ..server.ServerWindow import ServerWindow
 
@@ -116,8 +116,8 @@ class Netplay:
         # we now reset __netplay_addresses so that the ConnectionTester
         # does not connect to the game in progress
         Config.set("__netplay_addresses", "")
-        from ..MainWindow import MainWindow
-        MainWindow.instance.start_local_game()
+        from ..LaunchHandler import LaunchHandler
+        LaunchHandler.start_local_game()
 
         # game done, resetting config as the same game server cannot be
         # used again
@@ -136,8 +136,8 @@ class Netplay:
             return False
         if not Config.get("__netplay_addresses"):
             cls.game_warning("cannot set ready - no server configured")
-            cls.game_info("an operator needs to use /startserver or "
-                    "/setserver first")
+            cls.game_info("an operator needs to use /startgame or "
+                    "/hostgame (or /customgame) first")
             return False
         if not Config.get("__netplay_host"):
             cls.game_warning("cannot set ready - no connection to game "
@@ -153,6 +153,10 @@ class Netplay:
         IRC.connect()
         if cls.connection_tester is None:
             cls.connection_tester = ConnectionTester() 
+
+    @classmethod
+    def is_connected(cls):
+        return cls.enabled
 
     @classmethod
     def on_config(cls, key, value):
@@ -223,8 +227,8 @@ class Netplay:
                 if args["nick"] != IRC.my_nick:
                     if cls.is_op():
                         # operator - send config to new player(s)
-                        IRC.channel(cls.game_channel).privmsg(
-                                "[*] sends config on arrival of new player")
+                        IRC.channel(cls.game_channel).action(
+                                "sends config on arrival of new player")
                         cls.send_config()
         elif key == "part":
             if args["channel"] == cls.game_channel:
@@ -541,7 +545,7 @@ class Netplay:
                 start_sequence, config_hash = arg.split(u" ")
                 my_config_hash = Netplay.get_config_hash()
                 if my_config_hash != config_hash:
-                    channel.privmsg("[*] could not start game "
+                    channel.action("could not start game "
                             "(mismatching config hash)")
                     return
                 Netplay.do_start_game()
@@ -630,14 +634,21 @@ class Netplay:
     def set_kickstart_config(cls, key, value):
         channel = IRC.channel(cls.game_channel)
         if key == "x_kickstart_file_sha1":
-            path = Database.get_instance().find_file(sha1=value)
-            if path:
-                Config.set_multiple([("kickstart_file", path),
-                        ("x_kickstart_file", path),
-                        (key, value)])
+            if value == Amiga.INTERNAL_ROM_SHA1:
+                    Config.set_multiple([
+                            ("kickstart_file", "internal"),
+                            ("x_kickstart_file", "internal"),
+                            (key, value)])                
             else:
-                channel.privmsg(u"[*] could not find kickstart for {0}".format(
-                        repr(value)))
+                path = Database.get_instance().find_file(sha1=value)
+                if path:
+                    Config.set_multiple([
+                            ("kickstart_file", path),
+                            ("x_kickstart_file", path),
+                            (key, value)])
+                else:
+                    channel.action(u"could not find kickstart for {0}".format(
+                            repr(value)))
         elif key == "x_kickstart_ext_file_sha1":
             if not value:
                 Config.set_multiple([
@@ -652,7 +663,7 @@ class Netplay:
                         ("x_kickstart_ext_file", path),
                         (key, value)])
             else:
-                channel.privmsg(u"[*] could not find (ext) kickstart "
+                channel.action(u"could not find (ext) kickstart "
                         "for {0}".format(repr(value)))
 
     @classmethod
@@ -663,11 +674,13 @@ class Netplay:
             Config.set_multiple([(set_key, ""), (key, "")])
             return
         path = Database.get_instance().find_file(sha1=value)
+        if not path:
+            path = find_downloadable_file(value)
         if path:
             Config.set_multiple([(set_key, path), (key, value)])
         else:
             Config.set_multiple([(set_key, ""), (key, "")])
-            channel.privmsg(u"[*] could not find {1} for "
+            channel.action(u"could not find {1} for "
                     "for {0}".format(value, set_key))
 
     file_config = {   

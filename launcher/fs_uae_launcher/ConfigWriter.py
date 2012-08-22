@@ -19,11 +19,10 @@ class ConfigWriter:
                 continue
             config[key] = value
 
+        config["base_dir"] = Settings.get_base_dir()
+
         for key, value in self.config.iteritems():
-            if value == "" and key in Config.skip_empty_keys:
-                pass
-            else:
-                config[key] = value
+            config[key] = value
 
         # overwrite netplay config
         if config["__netplay_host"]:

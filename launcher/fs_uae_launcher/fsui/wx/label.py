@@ -28,7 +28,8 @@ class HeadingLabel(Label):
         Label.__init__(self, parent, title)
         font = self.GetFont()
         if System.windows:
-            font.SetPointSize(font.GetPointSize() + 1)
+            font.SetPointSize(10)
+            font.SetFaceName("Arial")
         font.SetWeight(wx.BOLD)
         self.SetFont(font)
 

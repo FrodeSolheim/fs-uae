@@ -1,7 +1,24 @@
 Version 1.3.24:
 
+* New option cdrom_drive_count -can be used to specify an empty drive.
+* Empty options are now treated as unspecified options. This can break a couple
+  of configurations since you cannot use e.g. cdrom_drive_0= to specify that
+  you want a CD drive without any CD inserted. Use cdrom_drive_count=1 instead
+  (or floppy_drive_count for floppy drives). 
+* Reverted F11 key to zoom setting when used alone (on key depress).
+* Both full-frame and cropped images are saved when taking a screenshot.
+* (Launcher) Redesigned user interface.
+* (Launcher) Net play support with integrated lobby, chat rooms and game
+  channels. Options are automatically synchronized between players.
+* (Launcher) Support --base-dir command line argument.
+* (Launcher) Check recursively upwards from directory containing executable
+  and look for "Portable.ini" -if found, use directory containing Portable.ini
+  as base_dir.
+* (Launcher) Paths in database are converted to/from paths relative to
+  base_dir (if possible) so the database can be portable. 
 * (Launcher) You now cannot put options recognized as config options in
   custom settings.
+* (Launcher) Added built-in configuration for "Transplant" game.
 * (Launcher) Log to Documents/FS-UAE/Logs/Launcher.log.txt (while also
   logging to console, if available)
 * (Launcher) Updated translations: fr [Foul].

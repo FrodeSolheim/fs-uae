@@ -11,6 +11,7 @@ from xml.etree.cElementTree import ElementTree
 from .Database import Database
 from .Settings import Settings
 from .I18N import _, ngettext
+from .Util import get_real_case
 
 class ConfigurationScanner:
 
@@ -56,11 +57,18 @@ class ConfigurationScanner:
                     scan=self.scan_version, search=search)
 
     def scan(self):
-        self.set_status(_("Scanning configurations"), _("Please wait..."))
+        self.set_status(_("Scanning configurations"),
+                _("Please wait..."))
         database = Database()
 
+        self.set_status(_("Scanning configurations"),
+                _("Scanning .fs-uae files..."))
         self.scan_fs_uae_files(database)
+        self.set_status(_("Scanning configurations"),
+                _("Scanning database entries..."))
         self.scan_configurations(database)
+        self.set_status(_("Scanning configurations"),
+                _("Scanning built-in entries..."))
         self.scan_builtin_configs(database)
 
         if self.stop_check():
@@ -84,15 +92,18 @@ class ConfigurationScanner:
             self.scan_dir(database, dir)
 
     def scan_dir(self, database, dir):
-        #print("scan dir for configurations:", dir)
         if not isinstance(dir, unicode):
             dir = dir.decode(sys.getfilesystemencoding())
         if not os.path.exists(dir):
             print("does not exist")
             return
+        dir = get_real_case(dir)
+
         for name in os.listdir(dir):
             if self.stop_check():
                 return
+            if name in [".git"]:
+                continue
             path = os.path.join(dir, name)
             if os.path.isdir(path):
                 self.scan_dir(database, path)
@@ -134,8 +145,10 @@ class ConfigurationScanner:
                         name=name, scan=self.scan_version, search=search)
 
     def check_if_file_exists(self, database, file_node):
+        print("check file", file_node)
         if file_node.find("sha1") is not None:
             sha1 = file_node.find("sha1").text.strip()
+            print(sha1)
             if database.find_file(sha1=sha1):
                 return True
         archive_node = file_node.find("archive")

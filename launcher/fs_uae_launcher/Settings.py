@@ -4,6 +4,7 @@ from __future__ import absolute_import
 
 import os
 import fs_uae_launcher.fs as fs
+from .Util import memoize, get_real_case
 
 class Settings:
     irc_server = "irc.fengestad.no"
@@ -12,6 +13,8 @@ class Settings:
     #nick.
 
     #lobby_nick_number = 0
+    
+    base_dir = ""
 
     default_settings = {
         "config_xml_path": "",
@@ -81,10 +84,16 @@ class Settings:
         return "irc.fengestad.no"
 
     @classmethod
+    @memoize
     def get_base_dir(cls):
-        path = os.path.join(fs.get_documents_dir(True), "FS-UAE")
+        path = cls.base_dir
+        #if "base_dir" in cls.settings.keys():
+        #    path = cls.get("base_dir")
+        if not path:
+            path = os.path.join(fs.get_documents_dir(True), "FS-UAE")
         if not os.path.exists(path):
             os.makedirs(path)
+        path = get_real_case(path)
         return path
 
     @classmethod

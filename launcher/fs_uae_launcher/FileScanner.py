@@ -12,6 +12,7 @@ from .Database import Database
 from .Settings import Settings
 from .ROMManager import ROMManager
 from .I18N import _, ngettext
+from .Util import get_real_case
 
 #SCAN_EXTENSIONS = [".adf", ".ipf", ".dms", ".rom", ".fs-uae"]
 
@@ -79,9 +80,15 @@ class FileScanner:
         #print("scan_dir", repr(dir))
         if not os.path.exists(dir):
             return
+        # this is important to make sure the database is portable across
+        # operating systems
+        dir = get_real_case(dir)
+
         for name in os.listdir(dir):
             if self.stop_check():
                 return
+            if name in [".git"]:
+                continue
             path = os.path.join(dir, name)
             if os.path.isdir(path):
                 self.scan_dir(database, path)
@@ -99,7 +106,7 @@ class FileScanner:
         #print("scan_file", repr(path))
 
         name = os.path.basename(path)
-        path = os.path.normcase(os.path.normpath(path))
+        #path = os.path.normcase(os.path.normpath(path))
 
         self.scan_count += 1
         self.set_status(_("Scanning files ({count} scanned)").format(
@@ -113,6 +120,8 @@ class FileScanner:
         size = st.st_size
         mtime = int(st.st_mtime)
         result = {}
+
+        #print(path)
         database.find_file(path=path, result=result)
         #print(result)
         if result["path"]:
@@ -127,6 +136,7 @@ class FileScanner:
         archive = Archive(path)
         #if archive.is_archive():
         for p in archive.list_files():
+            #print(p)
             if self.stop_check():
                 return
             #n = p.replace("\\", "/").replace("|", "/").split("/")[-1]
@@ -147,7 +157,7 @@ class FileScanner:
 
         f = archive.open(path)
         s = hashlib.sha1()
-        m = hashlib.md5()
+        #m = hashlib.md5()
         c = None
         #with open(path, "rb") as f:
         while True:
@@ -157,18 +167,20 @@ class FileScanner:
             if not data:
                 break
             s.update(data)
-            m.update(data)
-            if c is None:
-                c = zlib.crc32(data)
-            else:
-                c = zlib.crc32(data, c)
+            #m.update(data)
+            #if c is None:
+            #    c = zlib.crc32(data)
+            #else:
+            #    c = zlib.crc32(data, c)
 
         sha1 = s.hexdigest()
-        md5 = m.hexdigest()
+        #md5 = m.hexdigest()
+        md5 = ""
         # will happen with 0-byte files
-        if c is None:
-            c = 0
-        crc32 = c & 0xffffffff
+        #if c is None:
+        #    c = 0
+        #crc32 = c & 0xffffffff
+        crc32 = ""
         if ext == ".rom":
             s = hashlib.sha1()
             try:

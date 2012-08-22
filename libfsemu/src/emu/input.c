@@ -1193,7 +1193,12 @@ static int handle_shortcut(fs_ml_event *event) {
             // we check special pressed here, because we get an bogus
             // release event after switching fullscreen / window mode
             if (special_pressed && !special_combo) {
-                fs_emu_menu_toggle();
+                if (key_code == FS_ML_KEY_F12) {
+                    fs_emu_menu_toggle();
+                }
+                else {
+                    fs_emu_toggle_zoom(0);
+                }
             }
             special_combo = 0;
             special_pressed = 0;

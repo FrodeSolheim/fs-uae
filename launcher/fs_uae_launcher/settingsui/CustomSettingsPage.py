@@ -20,7 +20,7 @@ class CustomSettingsPage(fsui.Panel):
         self.layout.add(hor_layout, fill=True, expand=True)
 
         hor_layout.add_spacer(20)
-        self.text_area = fsui.TextArea(self)
+        self.text_area = fsui.TextArea(self, font_family="monospace")
         self.text_area.set_min_height(400)
         self.text_area.set_text(self.get_initial_text())
         hor_layout.add(self.text_area, fill=True, expand=True)
@@ -68,7 +68,8 @@ class CustomSettingsPage(fsui.Panel):
                 Settings.set(key, value)
 
     def get_initial_text(self):
-        text = u"# You can write key = value pairs here to set FS-UAE options\n" \
+        text = DEFAULT_TEXT
+        u"# You can write key = value pairs here to set FS-UAE options\n" \
                 u"# for which there is no user interface yet, such as theme and\n" \
                 u"# video sync options.\n\n" \
                 u"# The options specified here will apply to all configurations.\n" \
@@ -92,3 +93,17 @@ class CustomSettingsPage(fsui.Panel):
             if key in Config.config_keys:
                 text += u"\n"
         return text
+
+DEFAULT_TEXT = """# Custom Settings
+#
+# You can write key = value pairs here to set FS-UAE options for which there
+# are no user interface yet. This is only a temporary feature until the GUI
+# supports all options directly.
+#
+# The options specified here are global and will apply to all configurations."
+# (config options such as hardware and memory options will be ignored)
+#
+# Options suitable here are options like fullscreen, theme and video_sync,
+# fsaa, initial_input_grab, etc. 
+
+"""

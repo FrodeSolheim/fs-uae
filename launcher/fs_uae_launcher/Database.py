@@ -1,6 +1,7 @@
 from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
 import os
 import sqlite3
@@ -94,7 +95,7 @@ scan int
         results = []
         for row in self.cursor:
             data = {
-                "path": row[0],
+                "path": self.decode_path(row[0]),
                 "name": row[1]
             }
             results.append(data)
@@ -104,7 +105,8 @@ scan int
         self.init()
         query = "SELECT path FROM configuration WHERE id = ?"
         self.cursor.execute(query, (id,))
-        return self.cursor.fetchone()[0]
+        path = self.decode_path(self.cursor.fetchone()[0])
+        return path
 
     def get_config(self, id):
         self.init()
@@ -114,7 +116,7 @@ scan int
         return {
             "name": row[0],
             "uuid": row[1],
-            "path": row[2],
+            "path": self.decode_path(row[2]),
             "data": row[3],
         }
 
@@ -126,8 +128,25 @@ scan int
         return {
             "name": row[0],
             "uuid": row[1],
-            "path": row[2],
+            "path": self.decode_path(row[2]),
         }
+
+    def encode_path(self, path):
+        # this only works if both path and Settings.base_dir (etc) have been
+        # normalized with get_real_case.
+        path = path.replace("\\", "/")
+        base_dir = Settings.get_base_dir()
+        if path.startswith(base_dir):
+            path = path[len(base_dir):]
+            if path.startswith("/"):
+                path = path[1:]
+            path = "$base_dir/" + path
+        return path
+
+    def decode_path(self, path):
+        base_dir = Settings.get_base_dir()
+        path = path.replace("$base_dir", base_dir)
+        return path
 
     def search_configurations(self, search):
         self.init()
@@ -140,7 +159,7 @@ scan int
                     query = query + " WHERE search like ?"
                 else:
                     query = query + " AND search like ?"
-                args.append(u"%{0}%".format(word))
+                args.append("%{0}%".format(word))
         query = query + " ORDER BY name"
         self.cursor.execute(query, args)
         return self.cursor.fetchall()
@@ -156,7 +175,7 @@ scan int
                     query = query + " WHERE search like ?"
                 else:
                     query = query + " AND search like ?"
-                args.append(u"%{0}%".format(word))
+                args.append("%{0}%".format(word))
         query = query + " ORDER BY name"
         self.cursor.execute(query, args)
         return self.cursor.fetchall()
@@ -168,9 +187,10 @@ scan int
                     "WHERE uuid = ? LIMIT 1", (uuid,))
         row = self.cursor.fetchone()
         if row:
+            path = self.decode_path(row[0])
             if result is not None:
-                result["path"] = row[0]
-            return row[0]
+                result["path"] = path
+            return path
         else:
             if result is not None:
                 result["path"] = None
@@ -190,6 +210,7 @@ scan int
             self.cursor.execute("SELECT id, path, sha1, mtime, size FROM file "
                     "WHERE name = ? COLLATE NOCASE LIMIT 1", (name.lower(),))
         else:
+            path = self.encode_path(path)
             #print(path)
             #path = unicode(path)
             #print("SELECT path, sha1, mtime, size FROM file "
@@ -206,13 +227,14 @@ scan int
         #print("---------", row)
         if row:
             #print(row)
+            path = self.decode_path(row[1])
             if result is not None:
                 result["id"] = row[0]
-                result["path"] = row[1]
+                result["path"] = path
                 result["sha1"] = row[2]
                 result["mtime"] = row[3]
                 result["size"] = row[4]
-            return row[1]
+            return path
         else:
             if result is not None:
                 result["id"] = None
@@ -225,9 +247,10 @@ scan int
     def add_file(self, path="", sha1=None, md5=None, crc32=None, mtime=0,
             size=0, scan=0, name=""):
         self.init()
+        path = self.encode_path(path)
+
         #print("adding path", path)
         #p, name = os.path.split(path)
-        #name = name.lower()
         self.cursor.execute("INSERT INTO file (path, sha1, mtime, size, "
                 "md5, crc32, name, scan) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
                 (path, sha1, mtime, size, md5, crc32, name, scan))
@@ -235,12 +258,14 @@ scan int
     def add_configuration(self, path="", uuid="", data="", name="",
                 search="", scan=0):
         self.init()
+        path = self.encode_path(path)
         self.cursor.execute("INSERT INTO configuration (path, name, scan, "
                 "search, uuid, data) VALUES (?, ?, ?, ?, ?, ?)",
                 (path, name, scan, search, uuid, data))
 
     def add_game(self, uuid="", path="", name="", search="", scan=0):
         self.init()
+        path = self.encode_path(path)
         self.cursor.execute("INSERT INTO game (uuid, path, name, scan, "
                 "search) VALUES (?, ?, ?, ?, ?)", (uuid, path, name, scan, search))
 
@@ -251,11 +276,12 @@ scan int
 
     def update_archive_scan(self, path, scan):
         self.init()
+        path = self.encode_path(path)
         #self.cursor.execute("UPDATE file SET scan = ? WHERE path like ?",
         #        (scan, path + u"{0}%".format(unicode(os.sep))))
         
-        a = path + unicode(os.sep)
-        b = path + unicode(chr(ord(os.sep) + 1))
+        a = path + "\u002f" # forward slash
+        b = path + "\u0030" # one more than forward slash 
         self.cursor.execute("UPDATE file SET scan = ? WHERE "
                 "path >= ? AND path < ?", (scan, a, b))
 

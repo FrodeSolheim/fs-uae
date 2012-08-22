@@ -18,8 +18,12 @@ class IRC:
     stopping = False
     nick_number = 0
     channels = {}
-    active_channel = ""
     my_nick = ""
+
+    # FIXME: should not be hardcoded here
+    default_channel = "#lobby"
+
+    active_channel = default_channel
 
     @classmethod
     def message(cls, message, color=None):
@@ -40,6 +44,8 @@ class IRC:
     @classmethod
     def channel(cls, name):
         # FIXME: name should be checked case independently
+        if not name:
+            name = cls.default_channel
 
         from .Channel import Channel
         try:
@@ -82,7 +88,10 @@ class IRC:
     def irc_thread(cls):
         try:
             cls.irc_main()
-        except Exception:
+        except Exception, e:
+            def func():
+                cls.warning(repr(e))
+            fsui.call_after(func)
             import traceback
             traceback.print_exc()
         cls.running = False
@@ -238,11 +247,11 @@ class IRC:
         if len(args) >= 2:
             channel = args[0]
             message = u" ".join(args[1:])
-            cls.channel(channel).privmsg(message)
+            #cls.channel(channel).privmsg(message)
             #cls.channel(channel).message("<{0}> {1}".format(cls.my_nick,
             #        message), IRCColor.MY_MESSAGE)
-            #cls.client.send(u"privmsg {0} :{1}".format(channel,
-            #        message))
+            cls.client.send(u"privmsg {0} :{1}".format(channel,
+                    message))
         else:
             cls.warning("usage: /msg <nick|channel> <message>")
 
@@ -251,7 +260,9 @@ class IRC:
         if len(args) >= 2:
             channel = args[0]
             message = u" ".join(args[1:])
-            cls.channel(channel).notice(message)
+            #cls.channel(channel).notice(message)
+            cls.client.send(u"notice {0} :{1}".format(channel,
+                    message))
         else:
             cls.warning("usage: /notice <nick|channel> <message>")
 
@@ -261,6 +272,25 @@ class IRC:
             cls.client.send(u"oper {0} {1}".format(args[0], args[1]))
         else:
             cls.warning("usage: /oper <user> <password>")
+
+    @classmethod
+    def command_slap(cls, args):
+        if len(args) == 1:
+            message = u"slaps {0} around a bit with a large trout".format(
+                    args[0])
+            cls.channel(cls.active_channel).action(message)
+        else:
+            cls.warning("usage: /slap <nick>")
+
+    @classmethod
+    def command_me(cls, args):
+        if len(args) > 0:
+            message = u" ".join(args)
+            cls.channel(cls.active_channel).action(message)
+        else:
+            cls.warning("usage: /me <message>")
+
+
 
     @classmethod
     def command_mode(cls, args):
@@ -331,7 +361,7 @@ class IRC:
         if password:
             cls.privmsg("nickserv", u"identify {0}".format(password))
         
-        cls.join("#support")
+        #cls.join("#support")
         cls.join("#lobby")
 
         # convenience for development...

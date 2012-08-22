@@ -163,6 +163,21 @@ def setup_logging():
 
     logging.basicConfig(stream=sys.stdout, level=logging.NOTSET)
 
+def setup_portable_launcher():
+    from .Settings import Settings
+    path = os.path.dirname(os.path.abspath(sys.executable))
+    last = ""
+    while last != path:
+        portable_ini_path = os.path.join(path, "Portable.ini")
+        print("checking", portable_ini_path)
+        if os.path.exists(portable_ini_path):
+            print("detected portable dir", path)
+            Settings.base_dir = path
+            return
+        last = path
+        path = os.path.dirname(path)
+    print("no Portable.ini found in search path, using normal base dir")
+
 def main():
     fix_output()
     if "--joystick-config" in sys.argv:
@@ -178,11 +193,27 @@ def main():
         from fs_uae_launcher.server.game import run_server
         return run_server()
 
-    setup_logging()
-
     from .Version import Version
     print("FS-UAE Launcher {0}".format(Version.VERSION))
     print("System: {0}".format(repr(platform.uname())))
+    print(sys.argv)
+
+    from .Settings import Settings
+    for arg in sys.argv:
+        if arg.startswith("--"):
+            if "=" in arg:
+                key, value = arg[2:].split("=", 1)
+                key = key.replace("-", "_")
+                if key == "base_dir":
+                    value = os.path.abspath(value)
+                    print("setting base_dir")
+                    Settings.base_dir = value
+    if Settings.base_dir:
+        print("base_dir was specified so we will not check for portable dir")
+    else: 
+        setup_portable_launcher()
+
+    setup_logging()
 
     from .ConfigChecker import ConfigChecker
     config_checker = ConfigChecker()

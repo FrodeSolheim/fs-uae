@@ -15,21 +15,24 @@ class Image:
             package, file = name.split(":", 1)
             stream = pkg_resources.resource_stream(package, file)
 
-            self.image = wx.ImageFromStream(stream)
+            self._image = wx.ImageFromStream(stream)
             #self.bitmap = wx.BitmapFromImage(image)
         else:
-            self.image = wx.Image(name)
+            self._image = wx.Image(name)
             #self.bitmap = wx.Bitmap(name)
 
             #self.bitmap = wx.BitmapFromImage(image)
+        self._bitmap = None
 
     @property
     def size(self):
-        return (self.image.GetWidth(), self.image.GetHeight())
+        return (self._image.GetWidth(), self._image.GetHeight())
 
     @property
     def bitmap(self):
-        return wx.BitmapFromImage(self.image)
+        if self._bitmap is None:
+            self._bitmap = wx.BitmapFromImage(self._image)
+        return self._bitmap
 
     def resize(self, size, filter=1):
         if size == self.size:
@@ -38,5 +41,5 @@ class Image:
             q = wx.IMAGE_QUALITY_HIGH
         else:
             q = wx.IMAGE_QUALITY_NORMAL
-        self.image.Rescale(size[0], size[1], q)
-
+        self._image.Rescale(size[0], size[1], q)
+        self._bitmap = None

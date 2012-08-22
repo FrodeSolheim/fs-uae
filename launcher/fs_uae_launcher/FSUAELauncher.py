@@ -3,10 +3,12 @@ from __future__ import print_function
 from __future__ import absolute_import
 
 import os
+import sys
 import shutil
 import ConfigParser
 import fs_uae_launcher.fsui as fsui
-from .MainWindow import MainWindow
+from .ui.MainWindow import MainWindow
+#from .MainWindow import MainWindow
 import fs_uae_launcher.fs as fs
 
 from .Settings import Settings
@@ -17,6 +19,7 @@ class FSUAELauncher(fsui.Application):
     def on_create(self):
         print("FSUAELauncherApplication.on_create")
 
+        self.parse_arguments()
         self.load_settings()
 
         # FIXME: should now sanitize check some options -for instance,
@@ -65,10 +68,25 @@ class FSUAELauncher(fsui.Application):
             config[key] = cp.get("config", key)
 
         for key, value in settings.iteritems():
+            #if key in Settings.settings:
+            #    # this setting is already initialized, possibly via
+            #    # command line arguments
+            #    pass
+            #else:
             Settings.settings[key] = value
         for key, value in config.iteritems():
             print("loaded", key, value)
             Config.config[key] = value
+
+    def parse_arguments(self):
+        pass
+        #for arg in sys.argv:
+        #    if arg.startswith("--"):
+        #        if "=" in arg:
+        #            key, value = arg[2:].split("=", 1)
+        #            key = key.replace("-", "_")
+        #            if key == "base_dir":
+        #                Settings.set("base_dir", value)
 
     def save_settings(self):
         path = self.get_settings_file()

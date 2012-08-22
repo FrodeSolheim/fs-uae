@@ -3,7 +3,7 @@
 %define is_fedora %(test -e /etc/fedora-release && echo 1 || echo 0)
 
 Name:           fs-uae-launcher
-Version:        1.3.24
+Version:        1.3.24u1
 Release:        1%{?dist}
 Summary:        Graphical configuration frontend and launcher for FS-UAE
 

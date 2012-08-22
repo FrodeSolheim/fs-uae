@@ -56,7 +56,10 @@ class MainWindow(fsui.Window):
         self.create_column(0, min_width=Skin.get_window_padding_left(),
                 content=False)
         # left content
-        self.create_column(1, min_width=514)
+        if fsui.get_screen_size()[0] > 1024:
+            self.create_column(1, min_width=514)
+        else:
+            self.create_column(1, min_width=400)
         
         # right content
         right_width = Constants.SCREEN_SIZE[0] * 2 + 20 + 10 + 10
@@ -124,22 +127,29 @@ class MainWindow(fsui.Window):
             self.books.append(None)
 
         layout.add_spacer(0, 10)
-        right_margin = 0
-        if column == 0:
-            bottom_panel = BottomPanel(self)
+        if fsui.get_screen_size()[1] >= 768:
+            layout.add_spacer(0, 10)
+            right_margin = 0
+            if column == 0:
+                bottom_panel = BottomPanel(self)
+            elif column == 1:
+                bottom_panel = GameInfoPanel(self)
+            elif column == 2:
+                bottom_panel = ScreenshotsPanel(self)
+                right_margin = -10
+            else:
+                bottom_panel = None
+            # FIXME:
+            if bottom_panel is None:
+                layout.add_spacer(0, Skin.get_bottom_panel_height())
+            else:
+                bottom_panel.set_min_height(Skin.get_bottom_panel_height())
+                layout.add(bottom_panel, fill=True, margin_right=right_margin)
         elif column == 1:
-            bottom_panel = GameInfoPanel(self)
-        elif column == 2:
-            bottom_panel = ScreenshotsPanel(self)
-            right_margin = -10
-        else:
-            bottom_panel = None
-        # FIXME:
-        if bottom_panel is None:
-            layout.add_spacer(0, Skin.get_bottom_panel_height())
-        else:
-            bottom_panel.set_min_height(Skin.get_bottom_panel_height())
-            layout.add(bottom_panel, fill=True, margin_right=right_margin)
+            from .LaunchGroup import LaunchGroup
+            group = LaunchGroup(self)
+            layout.add(group, fill=True, margin=10, margin_top=0)
+            layout.add_spacer(0, 10)
 
     def add_column_content(self, column):
         if column == 1:

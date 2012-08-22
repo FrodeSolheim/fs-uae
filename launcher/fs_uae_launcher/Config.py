@@ -415,6 +415,10 @@ class Config:
                 if not os.path.exists(path):
                     print(repr(path), "does not exist")
                     return
+            if os.path.isdir(path):
+                # could set a fake checksum here or something, to indicate
+                # that it isn't supposed to be set..
+                return
             print("checksumming", repr(path))
             if os.path.getsize(path) > 64 * 1024 * 1024:
                 # not checksumming large files righ now

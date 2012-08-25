@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae-launcher\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2012-08-14 11:12+0200\n"
+"POT-Creation-Date: 2012-08-21 11:38+0200\n"
 "PO-Revision-Date: 2012-08-14 11:16+0200\n"
 "Last-Translator: Frode Solheim <fs-uae@fengestad.no>\n"
 "Language-Team: Russian <fs-uae@fengestad.no>\n"
@@ -28,9 +28,6 @@ msgid "Add Directory to Search Path"
 msgstr ""
 
 msgid "Add Files to List"
-msgstr ""
-
-msgid "Add Multiple CD Images at Once"
 msgstr ""
 
 msgid "Add Multiple CD-ROMs at Once"
@@ -99,15 +96,6 @@ msgstr ""
 msgid "Configuration"
 msgstr ""
 
-msgid "Configure CD-ROMs"
-msgstr ""
-
-msgid "Configure Floppies"
-msgstr ""
-
-msgid "Configure Input"
-msgstr ""
-
 msgid "Configure Joystick Buttons"
 msgstr ""
 
@@ -150,9 +138,6 @@ msgstr ""
 msgid "Hard Drives"
 msgstr ""
 
-msgid "Host Options"
-msgstr ""
-
 msgid "Internal"
 msgstr ""
 
@@ -174,13 +159,13 @@ msgstr ""
 msgid "Kickstart Versions"
 msgstr ""
 
+msgid "Launching FS-UAE"
+msgstr ""
+
 msgid "Least Accurate"
 msgstr ""
 
 msgid "Less Accurate"
-msgstr ""
-
-msgid "More..."
 msgstr ""
 
 msgid "Mouse"
@@ -198,7 +183,7 @@ msgstr ""
 msgid "No Joysticks"
 msgstr ""
 
-msgid "No extended kickstart found for this "
+msgid "No extended kickstart found for this model. Try 'scan' function."
 msgstr ""
 
 msgid "No joysticks are currently connected"
@@ -243,6 +228,9 @@ msgstr ""
 msgid "Preparing hard drives..."
 msgstr ""
 
+msgid "Preparing..."
+msgstr ""
+
 msgid "Purging old entries..."
 msgstr ""
 
@@ -267,13 +255,19 @@ msgstr ""
 msgid "Scan complete"
 msgstr ""
 
-msgid "Scan for Kickstarts, Games and Configurations"
+msgid "Scanning .fs-uae files..."
+msgstr ""
+
+msgid "Scanning built-in entries..."
 msgstr ""
 
 msgid "Scanning configurations"
 msgstr ""
 
 msgid "Scanning configurations ({count} scanned)"
+msgstr ""
+
+msgid "Scanning database entries..."
 msgstr ""
 
 msgid "Scanning files"
@@ -289,9 +283,6 @@ msgid "Select Multiple CD-ROMs"
 msgstr ""
 
 msgid "Select Multiple Floppies"
-msgstr ""
-
-msgid "Settings"
 msgstr ""
 
 msgid "Show Only Favorites (On/Off)"
@@ -313,7 +304,4 @@ msgid "Swap List"
 msgstr ""
 
 msgid "WHDLoad Arguments"
-msgstr ""
-
-msgid "Window"
 msgstr ""

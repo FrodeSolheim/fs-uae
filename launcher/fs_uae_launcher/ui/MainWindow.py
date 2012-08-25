@@ -128,7 +128,6 @@ class MainWindow(fsui.Window):
 
         layout.add_spacer(0, 10)
         if fsui.get_screen_size()[1] >= 768:
-            layout.add_spacer(0, 10)
             right_margin = 0
             if column == 0:
                 bottom_panel = BottomPanel(self)

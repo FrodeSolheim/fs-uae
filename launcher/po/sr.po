@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae-launcher\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2012-07-27 17:43+0200\n"
+"POT-Creation-Date: 2012-08-21 11:38+0200\n"
 "PO-Revision-Date: 2012-07-22 18:11+0100\n"
 "Last-Translator: \n"
 "Language-Team: Serbian\n"
@@ -30,17 +30,11 @@ msgstr "Dodati direktorijum u putanju pretrage"
 msgid "Add Files to List"
 msgstr "Dodati fajlove u listu"
 
-msgid "Add Multiple CD Images at Once"
-msgstr "Dodati više CD slika odjednom"
-
-msgid "Add Multiple Files at Once"
-msgstr "Dodati više datoteka odjednom"
+msgid "Add Multiple CD-ROMs at Once"
+msgstr ""
 
 msgid "Add Multiple Floppies at Once"
 msgstr "Dodati više disketa odjednom"
-
-msgid "Amiga Hardware Options"
-msgstr "Opcije Amiga hardvera"
 
 msgid "Amiga Model"
 msgstr "Amiga Model"
@@ -57,8 +51,8 @@ msgstr "Pretraga za folderom"
 msgid "CD-ROM Drive"
 msgstr "CD-ROM uređaj"
 
-msgid "CD-ROMs"
-msgstr "CD-ROM uređaji"
+msgid "CD-ROM Drives"
+msgstr ""
 
 msgid "CD32 Pad"
 msgstr "CD32 "
@@ -102,18 +96,6 @@ msgstr "Izvršavanje podataka"
 msgid "Configuration"
 msgstr "Konfiguracija"
 
-msgid "Configure CD-ROMs"
-msgstr "Konfigurisanje CD-ROM-ova"
-
-msgid "Configure Floppies"
-msgstr "Konfigurisanje disketa"
-
-msgid "Configure Hard Drives"
-msgstr "Konfigurisanje hard diskova"
-
-msgid "Configure Input"
-msgstr "Konfigurisanje ulaznih uređaja"
-
 msgid "Configure Joystick Buttons"
 msgstr "Konfigurisati dugmeta džojstika"
 
@@ -144,9 +126,6 @@ msgstr ""
 msgid "Filters:"
 msgstr "Filteri:"
 
-msgid "Floppies..."
-msgstr "Diskete..."
-
 msgid "Floppy Drives"
 msgstr "Disketni uređaji"
 
@@ -156,23 +135,8 @@ msgstr "Preko celog ekrana"
 msgid "Games and Configurations"
 msgstr "Igre i konfiguracije"
 
-msgid "Hard Drive {0}"
-msgstr "Hard disk {0}"
-
 msgid "Hard Drives"
 msgstr "Hard disk uređaji"
-
-msgid "Hardware"
-msgstr "Hardver"
-
-msgid "Host Options"
-msgstr "Opcije host uređaja"
-
-msgid "Input"
-msgstr "Ulaz"
-
-msgid "Input Options"
-msgstr "Opcije ulaza"
 
 msgid "Internal"
 msgstr "Interno"
@@ -195,20 +159,14 @@ msgstr ""
 msgid "Kickstart Versions"
 msgstr "Verzije kickstarta"
 
+msgid "Launching FS-UAE"
+msgstr ""
+
 msgid "Least Accurate"
 msgstr "Najmanje precizno"
 
 msgid "Less Accurate"
 msgstr "Manje precizno"
-
-msgid "Media List"
-msgstr "Lista medija"
-
-msgid "More Configuration Options"
-msgstr "Još opcija konfiguracije"
-
-msgid "More..."
-msgstr "Još..."
 
 msgid "Mouse"
 msgstr "Miš"
@@ -270,11 +228,11 @@ msgstr ""
 msgid "Preparing hard drives..."
 msgstr ""
 
+msgid "Preparing..."
+msgstr ""
+
 msgid "Purging old entries..."
 msgstr "Čišćenje starih fajlova"
-
-msgid "Removable Media"
-msgstr "Prenosivi medijum"
 
 msgid "Remove Directory from Search Path"
 msgstr "Ukloniti direktorijum iz putanje pretrage"
@@ -297,14 +255,20 @@ msgstr "Skeniranje"
 msgid "Scan complete"
 msgstr "Skeniranje završeno"
 
-msgid "Scan for Kickstarts, Games and Configurations"
-msgstr "Skeniranje kickstartova, igara i konfiguracija"
+msgid "Scanning .fs-uae files..."
+msgstr ""
+
+msgid "Scanning built-in entries..."
+msgstr ""
 
 msgid "Scanning configurations"
 msgstr "Skeniranje konfiguracija"
 
 msgid "Scanning configurations ({count} scanned)"
 msgstr "Skeniranje konfiguracija ({count} skenirano)"
+
+msgid "Scanning database entries..."
+msgstr ""
 
 msgid "Scanning files"
 msgstr "Skeniranje fajlova"
@@ -321,8 +285,11 @@ msgstr "Izabrati više CD-ova"
 msgid "Select Multiple Floppies"
 msgstr "Izabrati više disketa"
 
-msgid "Settings"
-msgstr "Podešavanja"
+msgid "Show Only Favorites (On/Off)"
+msgstr ""
+
+msgid "Show Only Verified Configurations (On/Off)"
+msgstr ""
 
 msgid "Start"
 msgstr "Početak"
@@ -333,14 +300,26 @@ msgstr ""
 msgid "Starting scan"
 msgstr "Skeniranje započeto"
 
+msgid "Swap List"
+msgstr ""
+
 msgid "WHDLoad Arguments"
 msgstr "WHDLoad argumenti"
 
-msgid "Window"
-msgstr "U prozoru"
+#~ msgid "Add Multiple CD Images at Once"
+#~ msgstr "Dodati više CD slika odjednom"
+
+#~ msgid "Add Multiple Files at Once"
+#~ msgstr "Dodati više datoteka odjednom"
+
+#~ msgid "Amiga Hardware Options"
+#~ msgstr "Opcije Amiga hardvera"
 
 #~ msgid "Amiga Model and Hardware"
 #~ msgstr "Amiga model i hardver"
+
+#~ msgid "CD-ROMs"
+#~ msgstr "CD-ROM uređaji"
 
 #~ msgid "Commiting data..."
 #~ msgstr "Izvršavanje podataka"
@@ -348,17 +327,56 @@ msgstr "U prozoru"
 #~ msgid "Configurations"
 #~ msgstr "Konfiguracije"
 
+#~ msgid "Configure CD-ROMs"
+#~ msgstr "Konfigurisanje CD-ROM-ova"
+
+#~ msgid "Configure Floppies"
+#~ msgstr "Konfigurisanje disketa"
+
+#~ msgid "Configure Hard Drives"
+#~ msgstr "Konfigurisanje hard diskova"
+
 #~ msgid "Configure Hardware"
 #~ msgstr "Konfigurisanje hardvera"
+
+#~ msgid "Configure Input"
+#~ msgstr "Konfigurisanje ulaznih uređaja"
 
 #~ msgid "Configure Joysticks"
 #~ msgstr "Konfigurisanje džojstika"
 
+#~ msgid "Floppies..."
+#~ msgstr "Diskete..."
+
 #~ msgid "Game Files"
 #~ msgstr "Fajlovi igre"
 
+#~ msgid "Hard Drive {0}"
+#~ msgstr "Hard disk {0}"
+
+#~ msgid "Hardware"
+#~ msgstr "Hardver"
+
+#~ msgid "Host Options"
+#~ msgstr "Opcije host uređaja"
+
+#~ msgid "Input"
+#~ msgstr "Ulaz"
+
+#~ msgid "Input Options"
+#~ msgstr "Opcije ulaza"
+
 #~ msgid "Kickstart"
 #~ msgstr "Kickstart"
+
+#~ msgid "Media List"
+#~ msgstr "Lista medija"
+
+#~ msgid "More Configuration Options"
+#~ msgstr "Još opcija konfiguracije"
+
+#~ msgid "More..."
+#~ msgstr "Još..."
 
 #~ msgid "ROMs"
 #~ msgstr "ROM-ovi"
@@ -366,8 +384,20 @@ msgstr "U prozoru"
 #~ msgid "Refresh Joystick List"
 #~ msgstr "Osvežiti listu džojstika "
 
+#~ msgid "Removable Media"
+#~ msgstr "Prenosivi medijum"
+
 #~ msgid "Remove Diretory from Search Path"
 #~ msgstr "Ukloniti direktorijum iz putanje pretrage"
 
+#~ msgid "Scan for Kickstarts, Games and Configurations"
+#~ msgstr "Skeniranje kickstartova, igara i konfiguracija"
+
 #~ msgid "Scan for:"
 #~ msgstr "Skeniranje:"
+
+#~ msgid "Settings"
+#~ msgstr "Podešavanja"
+
+#~ msgid "Window"
+#~ msgstr "U prozoru"

@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae-launcher\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2012-07-27 17:43+0200\n"
-"PO-Revision-Date: 2012-08-06 13:10+0100\n"
+"POT-Creation-Date: 2012-08-21 11:38+0200\n"
+"PO-Revision-Date: 2012-08-22 20:43+0100\n"
 "Last-Translator: Foul <foulweb@gmail.com>\n"
 "Language-Team: Foul <fs-uae-fr@fengestad.no>\n"
 "Language: fr\n"
@@ -31,17 +31,11 @@ msgstr "Ajouter Répertoire au Chemin de Recherche"
 msgid "Add Files to List"
 msgstr "Ajouter Fichiers à la Liste"
 
-msgid "Add Multiple CD Images at Once"
-msgstr "Ajouter Plusieurs Images de CD à la fois"
-
-msgid "Add Multiple Files at Once"
-msgstr "Ajouter Plusieurs Fichiers à la fois"
+msgid "Add Multiple CD-ROMs at Once"
+msgstr "Ajouter Plusieurs CD-ROMS  à la Fois"
 
 msgid "Add Multiple Floppies at Once"
 msgstr "Ajouter Plusieurs Disquettes à la fois"
-
-msgid "Amiga Hardware Options"
-msgstr "Options du Matériel Amiga"
 
 msgid "Amiga Model"
 msgstr "Modèle d'Amiga"
@@ -58,8 +52,8 @@ msgstr "Parcourir les Dossiers"
 msgid "CD-ROM Drive"
 msgstr "Lecteur CD-ROM"
 
-msgid "CD-ROMs"
-msgstr "CD-ROMS"
+msgid "CD-ROM Drives"
+msgstr "Lecteurs CD-ROM"
 
 msgid "CD32 Pad"
 msgstr "Pad CD32"
@@ -103,18 +97,6 @@ msgstr "Données en cours..."
 msgid "Configuration"
 msgstr "Configuration"
 
-msgid "Configure CD-ROMs"
-msgstr "Configurer CD-ROMs"
-
-msgid "Configure Floppies"
-msgstr "Configurer les disquettes"
-
-msgid "Configure Hard Drives"
-msgstr "Configurer Disque(s) Dur"
-
-msgid "Configure Input"
-msgstr "Configurer les Entrées"
-
 msgid "Configure Joystick Buttons"
 msgstr "Configurer les boutons du Joystick"
 
@@ -145,9 +127,6 @@ msgstr "ROM Etendue"
 msgid "Filters:"
 msgstr "Filtres:"
 
-msgid "Floppies..."
-msgstr "Disquettes"
-
 msgid "Floppy Drives"
 msgstr "Lecteurs de Disquettes"
 
@@ -157,23 +136,8 @@ msgstr "Plein Ecran"
 msgid "Games and Configurations"
 msgstr "Jeux et Configurations"
 
-msgid "Hard Drive {0}"
-msgstr "Disque Dur {0}"
-
 msgid "Hard Drives"
 msgstr "Disques Durs"
-
-msgid "Hardware"
-msgstr "Matériel"
-
-msgid "Host Options"
-msgstr "Options de l’Hôte"
-
-msgid "Input"
-msgstr "Entrée"
-
-msgid "Input Options"
-msgstr "Options d'entrée"
 
 msgid "Internal"
 msgstr "Interne"
@@ -196,20 +160,14 @@ msgstr "ROM Kickstart"
 msgid "Kickstart Versions"
 msgstr "Versions du Kickstart"
 
+msgid "Launching FS-UAE"
+msgstr "Démarrage de FS-UAE"
+
 msgid "Least Accurate"
 msgstr "Précision Minimale"
 
 msgid "Less Accurate"
 msgstr "Précision Moyenne"
-
-msgid "Media List"
-msgstr "Liste des Médias"
-
-msgid "More Configuration Options"
-msgstr "Options de Configurations Supplémentaires"
-
-msgid "More..."
-msgstr "Plus..."
 
 msgid "Mouse"
 msgstr "Souris"
@@ -271,11 +229,11 @@ msgstr "Préparation des images de disquettes..."
 msgid "Preparing hard drives..."
 msgstr "Préparation du disque dur..."
 
+msgid "Preparing..."
+msgstr "Préparations..."
+
 msgid "Purging old entries..."
 msgstr "Purge des anciennes entrées ..."
-
-msgid "Removable Media"
-msgstr "Média Amovible"
 
 msgid "Remove Directory from Search Path"
 msgstr "Supprimer Répertoire du Chemin de Recherche"
@@ -298,14 +256,20 @@ msgstr "Analyse"
 msgid "Scan complete"
 msgstr "Analyse complète"
 
-msgid "Scan for Kickstarts, Games and Configurations"
-msgstr "Analyse des Kickstarts, Jeux et Configurations"
+msgid "Scanning .fs-uae files..."
+msgstr "Analyse des fichiers .fs-uae..."
+
+msgid "Scanning built-in entries..."
+msgstr "Analyse des entrées internes..."
 
 msgid "Scanning configurations"
 msgstr "Analyse des configurations"
 
 msgid "Scanning configurations ({count} scanned)"
 msgstr "Analyse des configurations ({count} analysés)"
+
+msgid "Scanning database entries..."
+msgstr "Analyse des entrées de la base de données..."
 
 msgid "Scanning files"
 msgstr "Analyse des fichiers"
@@ -322,8 +286,11 @@ msgstr "Sélection de Plusieurs CD-ROMS"
 msgid "Select Multiple Floppies"
 msgstr "Sélection de Plusieurs Disquettes"
 
-msgid "Settings"
-msgstr "Paramètres"
+msgid "Show Only Favorites (On/Off)"
+msgstr "Montrer Uniquement les Favoris (On/Off)"
+
+msgid "Show Only Verified Configurations (On/Off)"
+msgstr "Afficher Uniquement les Configurations Vérifiées (On/Off)"
 
 msgid "Start"
 msgstr "Démarrer"
@@ -334,26 +301,89 @@ msgstr "Lancement de FS-UAE"
 msgid "Starting scan"
 msgstr "Démarrage de l'analyse"
 
+msgid "Swap List"
+msgstr "Inverser la Liste"
+
 msgid "WHDLoad Arguments"
 msgstr "Arguments de WHDLoad"
 
-msgid "Window"
-msgstr "Fenêtré"
+#~ msgid "Add Multiple CD Images at Once"
+#~ msgstr "Ajouter Plusieurs Images de CD à la fois"
+
+#~ msgid "Add Multiple Files at Once"
+#~ msgstr "Ajouter Plusieurs Fichiers à la fois"
+
+#~ msgid "Amiga Hardware Options"
+#~ msgstr "Options du Matériel Amiga"
 
 #~ msgid "Amiga Model and Hardware"
 #~ msgstr "Modèle d'Amiga et du matériel"
 
+#~ msgid "CD-ROMs"
+#~ msgstr "CD-ROMS"
+
 #~ msgid "Configurations"
 #~ msgstr "Configurations"
+
+#~ msgid "Configure CD-ROMs"
+#~ msgstr "Configurer CD-ROMs"
+
+#~ msgid "Configure Floppies"
+#~ msgstr "Configurer les disquettes"
+
+#~ msgid "Configure Hard Drives"
+#~ msgstr "Configurer Disque(s) Dur"
 
 #~ msgid "Configure Hardware"
 #~ msgstr "Configurer le Matériel"
 
+#~ msgid "Configure Input"
+#~ msgstr "Configurer les Entrées"
+
 #~ msgid "Configure Joysticks"
 #~ msgstr "Configurer les Joysticks"
+
+#~ msgid "Floppies..."
+#~ msgstr "Disquettes"
+
+#~ msgid "Hard Drive {0}"
+#~ msgstr "Disque Dur {0}"
+
+#~ msgid "Hardware"
+#~ msgstr "Matériel"
+
+#~ msgid "Host Options"
+#~ msgstr "Options de l’Hôte"
+
+#~ msgid "Input"
+#~ msgstr "Entrée"
+
+#~ msgid "Input Options"
+#~ msgstr "Options d'entrée"
 
 #~ msgid "Joystick (Emulated by Keyboard)"
 #~ msgstr "Joystick (émulé par le clavier)"
 
 #~ msgid "Kickstart"
 #~ msgstr "Kickstart"
+
+#~ msgid "Media List"
+#~ msgstr "Liste des Médias"
+
+#~ msgid "More Configuration Options"
+#~ msgstr "Options de Configurations Supplémentaires"
+
+#~ msgid "More..."
+#~ msgstr "Plus..."
+
+#~ msgid "Removable Media"
+#~ msgstr "Média Amovible"
+
+#~ msgid "Scan for Kickstarts, Games and Configurations"
+#~ msgstr "Analyse des Kickstarts, Jeux et Configurations"
+
+#~ msgid "Settings"
+#~ msgstr "Paramètres"
+
+#~ msgid "Window"
+#~ msgstr "Fenêtré"

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae-launcher\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2012-07-27 17:43+0200\n"
+"POT-Creation-Date: 2012-08-21 11:38+0200\n"
 "PO-Revision-Date: 2012-05-03 14:15+0100\n"
 "Last-Translator: Frode Solheim <frode@fsolheim.net>\n"
 "Language-Team: Polish\n"
@@ -30,16 +30,10 @@ msgstr ""
 msgid "Add Files to List"
 msgstr ""
 
-msgid "Add Multiple CD Images at Once"
-msgstr ""
-
-msgid "Add Multiple Files at Once"
+msgid "Add Multiple CD-ROMs at Once"
 msgstr ""
 
 msgid "Add Multiple Floppies at Once"
-msgstr ""
-
-msgid "Amiga Hardware Options"
 msgstr ""
 
 msgid "Amiga Model"
@@ -57,7 +51,7 @@ msgstr ""
 msgid "CD-ROM Drive"
 msgstr ""
 
-msgid "CD-ROMs"
+msgid "CD-ROM Drives"
 msgstr ""
 
 msgid "CD32 Pad"
@@ -102,18 +96,6 @@ msgstr ""
 msgid "Configuration"
 msgstr ""
 
-msgid "Configure CD-ROMs"
-msgstr ""
-
-msgid "Configure Floppies"
-msgstr ""
-
-msgid "Configure Hard Drives"
-msgstr ""
-
-msgid "Configure Input"
-msgstr ""
-
 msgid "Configure Joystick Buttons"
 msgstr ""
 
@@ -144,9 +126,6 @@ msgstr ""
 msgid "Filters:"
 msgstr ""
 
-msgid "Floppies..."
-msgstr ""
-
 msgid "Floppy Drives"
 msgstr ""
 
@@ -156,22 +135,7 @@ msgstr ""
 msgid "Games and Configurations"
 msgstr ""
 
-msgid "Hard Drive {0}"
-msgstr ""
-
 msgid "Hard Drives"
-msgstr ""
-
-msgid "Hardware"
-msgstr ""
-
-msgid "Host Options"
-msgstr ""
-
-msgid "Input"
-msgstr ""
-
-msgid "Input Options"
 msgstr ""
 
 msgid "Internal"
@@ -195,19 +159,13 @@ msgstr ""
 msgid "Kickstart Versions"
 msgstr ""
 
+msgid "Launching FS-UAE"
+msgstr ""
+
 msgid "Least Accurate"
 msgstr ""
 
 msgid "Less Accurate"
-msgstr ""
-
-msgid "Media List"
-msgstr ""
-
-msgid "More Configuration Options"
-msgstr ""
-
-msgid "More..."
 msgstr ""
 
 msgid "Mouse"
@@ -270,10 +228,10 @@ msgstr ""
 msgid "Preparing hard drives..."
 msgstr ""
 
-msgid "Purging old entries..."
+msgid "Preparing..."
 msgstr ""
 
-msgid "Removable Media"
+msgid "Purging old entries..."
 msgstr ""
 
 msgid "Remove Directory from Search Path"
@@ -297,13 +255,19 @@ msgstr ""
 msgid "Scan complete"
 msgstr ""
 
-msgid "Scan for Kickstarts, Games and Configurations"
+msgid "Scanning .fs-uae files..."
+msgstr ""
+
+msgid "Scanning built-in entries..."
 msgstr ""
 
 msgid "Scanning configurations"
 msgstr ""
 
 msgid "Scanning configurations ({count} scanned)"
+msgstr ""
+
+msgid "Scanning database entries..."
 msgstr ""
 
 msgid "Scanning files"
@@ -321,7 +285,10 @@ msgstr ""
 msgid "Select Multiple Floppies"
 msgstr ""
 
-msgid "Settings"
+msgid "Show Only Favorites (On/Off)"
+msgstr ""
+
+msgid "Show Only Verified Configurations (On/Off)"
 msgstr ""
 
 msgid "Start"
@@ -333,8 +300,8 @@ msgstr ""
 msgid "Starting scan"
 msgstr ""
 
-msgid "WHDLoad Arguments"
+msgid "Swap List"
 msgstr ""
 
-msgid "Window"
+msgid "WHDLoad Arguments"
 msgstr ""

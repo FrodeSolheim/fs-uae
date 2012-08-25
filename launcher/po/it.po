@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae-launcher\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2012-07-27 17:43+0200\n"
+"POT-Creation-Date: 2012-08-21 11:38+0200\n"
 "PO-Revision-Date: 2012-07-30 18:33+0100\n"
 "Last-Translator: Speedvicio <speedvicio@hotmail.com>\n"
 "Language-Team: Italian\n"
@@ -29,17 +29,11 @@ msgstr "Aggiungi Cartella da Ricercare"
 msgid "Add Files to List"
 msgstr "Aggiungi Files alla Lista"
 
-msgid "Add Multiple CD Images at Once"
-msgstr "Aggiungi Immagini CD Multiple al Volo"
-
-msgid "Add Multiple Files at Once"
-msgstr "Aggiungi Files Multipli al Volo"
+msgid "Add Multiple CD-ROMs at Once"
+msgstr ""
 
 msgid "Add Multiple Floppies at Once"
 msgstr "Aggiungi Floppies Multipli al Volo"
-
-msgid "Amiga Hardware Options"
-msgstr "Opzioni Hardware Amiga"
 
 msgid "Amiga Model"
 msgstr "Modello Amiga"
@@ -56,8 +50,8 @@ msgstr "Ricerca Cartelle"
 msgid "CD-ROM Drive"
 msgstr "Drive CD-ROM"
 
-msgid "CD-ROMs"
-msgstr "CD-ROMs"
+msgid "CD-ROM Drives"
+msgstr ""
 
 msgid "CD32 Pad"
 msgstr "Pad CD32"
@@ -101,18 +95,6 @@ msgstr "Invia dati..."
 msgid "Configuration"
 msgstr "Configurazione"
 
-msgid "Configure CD-ROMs"
-msgstr "Configura CD-ROMs"
-
-msgid "Configure Floppies"
-msgstr "Configura Floppies"
-
-msgid "Configure Hard Drives"
-msgstr "Configura Hard Drives"
-
-msgid "Configure Input"
-msgstr "Configura Ingresso"
-
 msgid "Configure Joystick Buttons"
 msgstr "Configura Tasti Joystick"
 
@@ -143,9 +125,6 @@ msgstr "ROM Estesa"
 msgid "Filters:"
 msgstr "Filtri:"
 
-msgid "Floppies..."
-msgstr "Floppies..."
-
 msgid "Floppy Drives"
 msgstr "Unità Floppy"
 
@@ -155,23 +134,8 @@ msgstr "Schermo Intero"
 msgid "Games and Configurations"
 msgstr "Giochi e Configurazioni"
 
-msgid "Hard Drive {0}"
-msgstr "Hard Drive {0}"
-
 msgid "Hard Drives"
 msgstr "Hard Drives"
-
-msgid "Hardware"
-msgstr "Hardware"
-
-msgid "Host Options"
-msgstr "Opzioni Ospite"
-
-msgid "Input"
-msgstr "Ingresso"
-
-msgid "Input Options"
-msgstr "Opzioni Input"
 
 msgid "Internal"
 msgstr "Interno"
@@ -194,20 +158,14 @@ msgstr "Kickstart ROM"
 msgid "Kickstart Versions"
 msgstr "Versioni Kickstart"
 
+msgid "Launching FS-UAE"
+msgstr ""
+
 msgid "Least Accurate"
 msgstr "Poco Preciso"
 
 msgid "Less Accurate"
 msgstr "Meno Preciso"
-
-msgid "Media List"
-msgstr "Lista Media"
-
-msgid "More Configuration Options"
-msgstr "Più Opzioni Configurazione"
-
-msgid "More..."
-msgstr "Di Più..."
 
 msgid "Mouse"
 msgstr "Mouse"
@@ -225,7 +183,9 @@ msgid "No Joysticks"
 msgstr "Nessun Joysticks"
 
 msgid "No extended kickstart found for this model. Try 'scan' function."
-msgstr "Nessun kickstart esteso trovato per questo modello. Prova la funzione 'scansione'."
+msgstr ""
+"Nessun kickstart esteso trovato per questo modello. Prova la funzione "
+"'scansione'."
 
 msgid "No joysticks are currently connected"
 msgstr "Attualmente nessun joysticks connesso"
@@ -269,11 +229,11 @@ msgstr "Preparando immagine floppy..."
 msgid "Preparing hard drives..."
 msgstr "Preparando hard drives..."
 
+msgid "Preparing..."
+msgstr ""
+
 msgid "Purging old entries..."
 msgstr "Pulisci vecchie voci..."
-
-msgid "Removable Media"
-msgstr "Media Rimovibili"
 
 msgid "Remove Directory from Search Path"
 msgstr "Rimuovi Directory dalla Cartella di Ricerca"
@@ -296,14 +256,20 @@ msgstr "Scansiona"
 msgid "Scan complete"
 msgstr "Scansione completata"
 
-msgid "Scan for Kickstarts, Games and Configurations"
-msgstr "Scansiona Kickstarts, Giochi e Configurazioni"
+msgid "Scanning .fs-uae files..."
+msgstr ""
+
+msgid "Scanning built-in entries..."
+msgstr ""
 
 msgid "Scanning configurations"
 msgstr "Ricercando configurazioni"
 
 msgid "Scanning configurations ({count} scanned)"
 msgstr "Scansionando le configurazioni ({count} scansionati)"
+
+msgid "Scanning database entries..."
+msgstr ""
 
 msgid "Scanning files"
 msgstr "Ricerca Files"
@@ -320,8 +286,11 @@ msgstr "Seleziona CD-ROMs Multipli"
 msgid "Select Multiple Floppies"
 msgstr "Seleziona Floppies Multipli"
 
-msgid "Settings"
-msgstr "Settaggi"
+msgid "Show Only Favorites (On/Off)"
+msgstr ""
+
+msgid "Show Only Verified Configurations (On/Off)"
+msgstr ""
 
 msgid "Start"
 msgstr "Avvia"
@@ -332,14 +301,26 @@ msgstr "Avviando FS-UAE..."
 msgid "Starting scan"
 msgstr "Iniziando scansione"
 
+msgid "Swap List"
+msgstr ""
+
 msgid "WHDLoad Arguments"
 msgstr "Argomenti WHDLoad"
 
-msgid "Window"
-msgstr "Finestra"
+#~ msgid "Add Multiple CD Images at Once"
+#~ msgstr "Aggiungi Immagini CD Multiple al Volo"
+
+#~ msgid "Add Multiple Files at Once"
+#~ msgstr "Aggiungi Files Multipli al Volo"
+
+#~ msgid "Amiga Hardware Options"
+#~ msgstr "Opzioni Hardware Amiga"
 
 #~ msgid "Amiga Model and Hardware"
 #~ msgstr "Modello Amiga"
+
+#~ msgid "CD-ROMs"
+#~ msgstr "CD-ROMs"
 
 #~ msgid "Commiting data..."
 #~ msgstr "Invia dati..."
@@ -347,14 +328,44 @@ msgstr "Finestra"
 #~ msgid "Configurations"
 #~ msgstr "Configurazioni"
 
+#~ msgid "Configure CD-ROMs"
+#~ msgstr "Configura CD-ROMs"
+
+#~ msgid "Configure Floppies"
+#~ msgstr "Configura Floppies"
+
+#~ msgid "Configure Hard Drives"
+#~ msgstr "Configura Hard Drives"
+
 #~ msgid "Configure Hardware"
 #~ msgstr "Configura Hardware"
+
+#~ msgid "Configure Input"
+#~ msgstr "Configura Ingresso"
 
 #~ msgid "Configure Joysticks"
 #~ msgstr "Configura Joysticks"
 
+#~ msgid "Floppies..."
+#~ msgstr "Floppies..."
+
 #~ msgid "Game Files"
 #~ msgstr "Files Di Gioco"
+
+#~ msgid "Hard Drive {0}"
+#~ msgstr "Hard Drive {0}"
+
+#~ msgid "Hardware"
+#~ msgstr "Hardware"
+
+#~ msgid "Host Options"
+#~ msgstr "Opzioni Ospite"
+
+#~ msgid "Input"
+#~ msgstr "Ingresso"
+
+#~ msgid "Input Options"
+#~ msgstr "Opzioni Input"
 
 #~ msgid "Joystick (Emulated by Keyboard)"
 #~ msgstr "Joystick (Emulato da Tastiera)"
@@ -362,14 +373,35 @@ msgstr "Finestra"
 #~ msgid "Kickstart"
 #~ msgstr "Kickstart"
 
+#~ msgid "Media List"
+#~ msgstr "Lista Media"
+
+#~ msgid "More Configuration Options"
+#~ msgstr "Più Opzioni Configurazione"
+
+#~ msgid "More..."
+#~ msgstr "Di Più..."
+
 #~ msgid "Preferred Joysticks"
 #~ msgstr "Joysticks Preferiti"
 
 #~ msgid "ROMs"
 #~ msgstr "ROMs"
 
+#~ msgid "Removable Media"
+#~ msgstr "Media Rimovibili"
+
 #~ msgid "Remove Diretory from Search Path"
 #~ msgstr "Rimuovi Directory dalla Cartella di Ricerca"
 
+#~ msgid "Scan for Kickstarts, Games and Configurations"
+#~ msgstr "Scansiona Kickstarts, Giochi e Configurazioni"
+
 #~ msgid "Scan for:"
 #~ msgstr "Scansiona per:"
+
+#~ msgid "Settings"
+#~ msgstr "Settaggi"
+
+#~ msgid "Window"
+#~ msgstr "Finestra"

@@ -11,13 +11,6 @@ import gettext
 #    fs_log("localization was forced off\n");
 #    return;
 #}
-#print(dir(locale))
-#loc = locale.setlocale(locale.LC_ALL, "")
-#if loc:
-#    print("locale is set to", loc)
-#else:
-#    print("failed to set current locale")
-#locale.setlocale(locale.LC_NUMERIC, "C")
 
 try:
     loc, _charset = locale.getdefaultlocale()
@@ -28,28 +21,30 @@ except:
 if not loc:
     loc = ""
 
-"""
 if sys.platform == 'darwin':
     import wx
     mac_locales = {
-        wx.LANGUAGE_DANISH: ('da_DK', 'da_DK'),
-        wx.LANGUAGE_ENGLISH: ('en_US', 'en_US'),
-        wx.LANGUAGE_ENGLISH_UK: ('en_GB', 'en_GB'),
-        wx.LANGUAGE_ENGLISH_US: ('en_US', 'en_US'),
-        wx.LANGUAGE_FINNISH: ('fi_FI', 'fi_FI'),
-        wx.LANGUAGE_NORWEGIAN_NYNORSK: ('nn_NO', 'no_NO'),
-        wx.LANGUAGE_NORWEGIAN_BOKMAL: ('nb_NO', 'no_NO'),
-        wx.LANGUAGE_SWEDISH: ('sv_SE', 'sv_SE'),
-        wx.LANGUAGE_SWEDISH_FINLAND: ('sv_FI', 'fi_FI'),
+        wx.LANGUAGE_DANISH: "da",
+        wx.LANGUAGE_ENGLISH: "en",
+        wx.LANGUAGE_ENGLISH_UK: "en_GB",
+        wx.LANGUAGE_ENGLISH_US: "en_US",
+        wx.LANGUAGE_FINNISH: "fi",
+        wx.LANGUAGE_FRENCH: "fr",
+        wx.LANGUAGE_GERMAN: "de",
+        wx.LANGUAGE_ITALIAN: "it",
+        wx.LANGUAGE_NORWEGIAN_NYNORSK: "nn",
+        wx.LANGUAGE_NORWEGIAN_BOKMAL: "nb",
+        wx.LANGUAGE_POLISH: "pl",
+        wx.LANGUAGE_RUSSIAN: "ru",
+        wx.LANGUAGE_SERBIAN: "sr",
+        wx.LANGUAGE_SWEDISH: "sv",
+        wx.LANGUAGE_SWEDISH_FINLAND: "sv_FI"
     }
     try:
-        loc, set_locale_to = mac_locales[wx.Locale.GetSystemLanguage()]
+        loc = mac_locales[wx.Locale.GetSystemLanguage()]
     except:
-        print("exception while setting locale")
+        print("no mapping for wx locale value")
     print("mac locale", loc)
-"""
-
-#gettext.textdomain("fs-uae-launcher")
 
 dirs = [os.path.join(os.getcwd(), "launcher", "share"),
         os.path.join(os.getcwd(), "share"),
@@ -64,22 +59,6 @@ for dir in dirs:
     gettext.bindtextdomain("fs-uae-launcher", locale_base)
     break
 
-#gettext.bind_textdomain_codeset("fs-uae-launcher", "UTF-8");
-
-"""
-def _(message):
-    #return unicode(text)
-    return gettext.dgettext("fs-uae-launcher", message).decode("UTF-8")
-
-def ngettext(msgid, msgid2, n):
-    return gettext.dngettext("fs-uae-launcher", msgid1, msgid2,
-            n).decode("UTF-8")
-
-print(_("Close"))
-print(gettext.textdomain())
-
-"""
-
 if locale_base:
     mo_path = gettext.find("fs-uae-launcher", locale_base, [loc])
 else:
@@ -89,18 +68,5 @@ print("path to mo file:", mo_path)
 translations = gettext.translation("fs-uae-launcher", locale_base, [loc],
         fallback=True)
 print(translations)
-
 _ = translations.ugettext
 ngettext = translations.ungettext
-
-#print(_("Close"))
-
-#import sys
-#sys.exit(1)
-
-#    if num == 1:
-#        return text
-#    return plural
-
-#_ = gettext.ugettext
-#ngettext = gettext.ungettext

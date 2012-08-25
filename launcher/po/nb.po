@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae-launcher\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2012-07-27 17:43+0200\n"
-"PO-Revision-Date: 2012-06-03 17:24+0100\n"
+"POT-Creation-Date: 2012-08-21 11:38+0200\n"
+"PO-Revision-Date: 2012-08-21 11:45+0100\n"
 "Last-Translator: Frode Solheim <frode@fsolheim.net>\n"
 "Language-Team: Norwegian Bokmal\n"
 "Language: nb\n"
@@ -18,133 +18,112 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 msgid "Abort"
-msgstr ""
+msgstr "Avbryt"
 
 msgid "Accurate"
 msgstr "Nøyaktig"
 
 msgid "Add Directory to Search Path"
-msgstr ""
+msgstr "Legg til mappe i søkeliste"
 
 msgid "Add Files to List"
-msgstr ""
+msgstr "Legg til filer i liste"
 
-msgid "Add Multiple CD Images at Once"
-msgstr ""
-
-msgid "Add Multiple Files at Once"
-msgstr ""
+msgid "Add Multiple CD-ROMs at Once"
+msgstr "Legg til flere CD-er på en gang"
 
 msgid "Add Multiple Floppies at Once"
-msgstr ""
-
-msgid "Amiga Hardware Options"
-msgstr ""
+msgstr "Legg til flere diskettfiler på en gang"
 
 msgid "Amiga Model"
-msgstr ""
+msgstr "Amiga-modell"
 
 msgid "Browse"
 msgstr "Velg"
 
 msgid "Browse for File"
-msgstr ""
+msgstr "Bla etter filer"
 
 msgid "Browse for Folder"
-msgstr ""
+msgstr "Bla etter mapper"
 
 msgid "CD-ROM Drive"
-msgstr ""
+msgstr "CD-ROM-stasjon"
 
-msgid "CD-ROMs"
-msgstr ""
+msgid "CD-ROM Drives"
+msgstr "CD-ROM-stasjoner"
 
 msgid "CD32 Pad"
-msgstr ""
+msgstr "CD32-kontroll"
 
 msgid "Cancel"
-msgstr ""
+msgstr "Avbryt"
 
 msgid "Choose CD-ROM Image"
-msgstr ""
+msgstr "Velg CD-fil"
 
 msgid "Choose Extended ROM"
-msgstr ""
+msgstr "Velg utvidet ROM"
 
 msgid "Choose Floppy Image"
 msgstr "Velg diskettfile"
 
 msgid "Choose Hard Drive"
-msgstr ""
+msgstr "Velg harddisk"
 
 msgid "Choose Kickstart ROM"
 msgstr "Velg Kickstart-ROM"
 
 msgid "Cleaning up..."
-msgstr ""
+msgstr "Rydder opp..."
 
 msgid "Clear List"
-msgstr ""
+msgstr "Tøm liste"
 
 msgid "Click 'Scan' button if you want to re-scan"
-msgstr ""
+msgstr "Bruk 'søk'-knappen hvis du vil søke på nytt"
 
 msgid "Click 'Scan' button to start scan"
-msgstr ""
+msgstr "Bruk 'søk'-knappen for å starte søk"
 
 msgid "Close"
 msgstr "Lukk"
 
 msgid "Committing data..."
-msgstr ""
+msgstr "Lagrer data..."
 
 msgid "Configuration"
 msgstr "Konfigurasjon"
 
-msgid "Configure CD-ROMs"
-msgstr ""
-
-msgid "Configure Floppies"
-msgstr ""
-
-msgid "Configure Hard Drives"
-msgstr ""
-
-msgid "Configure Input"
-msgstr ""
-
 msgid "Configure Joystick Buttons"
-msgstr ""
+msgstr "Konfigurer joystick-knapper"
 
 msgid "Cursor Keys and Right Ctrl/Alt"
-msgstr ""
+msgstr "Piltaster og høyre ctrl/alt"
 
 msgid "Custom"
-msgstr ""
+msgstr "Egendefinert"
 
 msgid "Custom Options"
-msgstr ""
+msgstr "Egendefinerte valg"
 
 msgid "Custom Settings"
-msgstr ""
+msgstr "Egendefinerte innstillinger"
 
 msgid "Default"
-msgstr ""
+msgstr "Standard"
 
 msgid "Downloading {0}..."
-msgstr ""
+msgstr "Laster ned {0}..."
 
 msgid "Eject"
-msgstr ""
+msgstr "Løs ut"
 
 msgid "Extended ROM"
-msgstr ""
+msgstr "Utvidet ROM"
 
 msgid "Filters:"
-msgstr ""
-
-msgid "Floppies..."
-msgstr ""
+msgstr "Filtere:"
 
 msgid "Floppy Drives"
 msgstr "Diskettstasjoner"
@@ -153,46 +132,34 @@ msgid "Fullscreen"
 msgstr "Fullskjerm"
 
 msgid "Games and Configurations"
-msgstr ""
-
-msgid "Hard Drive {0}"
-msgstr ""
+msgstr "Spill og konfigurasjoner"
 
 msgid "Hard Drives"
-msgstr ""
-
-msgid "Hardware"
-msgstr ""
-
-msgid "Host Options"
-msgstr "Vertsvalg"
-
-msgid "Input"
-msgstr ""
-
-msgid "Input Options"
-msgstr ""
+msgstr "Harddisker"
 
 msgid "Internal"
-msgstr ""
+msgstr "Intern"
 
 msgid "Joystick"
 msgstr "Joystick"
 
 msgid "Joystick Configuration"
-msgstr ""
+msgstr "Joystick-konfigurasjon"
 
 msgid "Joystick Ports"
 msgstr "Joystickinnganger"
 
 msgid "Joystick Settings"
-msgstr ""
+msgstr "Joystick-innstillinger"
 
 msgid "Kickstart ROM"
-msgstr ""
+msgstr "Kickstart ROM"
 
 msgid "Kickstart Versions"
 msgstr "Kickstart-versjoner"
+
+msgid "Launching FS-UAE"
+msgstr "Starter FS-UAE"
 
 msgid "Least Accurate"
 msgstr "Mindre nøyaktig"
@@ -200,95 +167,86 @@ msgstr "Mindre nøyaktig"
 msgid "Less Accurate"
 msgstr "Minst nøyaktig"
 
-msgid "Media List"
-msgstr ""
-
-msgid "More Configuration Options"
-msgstr ""
-
-msgid "More..."
-msgstr "Mer..."
-
 msgid "Mouse"
 msgstr "Mus"
 
 msgid "Net Play"
-msgstr ""
+msgstr "Nettspilling"
 
 msgid "New Configuration"
-msgstr ""
+msgstr "Ny konfigurasjon"
 
 msgid "No Host Device"
 msgstr "Ingen vertsenhet"
 
 msgid "No Joysticks"
-msgstr ""
+msgstr "Ingen joysticker"
 
 msgid "No extended kickstart found for this model. Try 'scan' function."
-msgstr ""
+msgstr "Ingen utvidet kickstart ble funnet for denne modellen. Prøv 'Søk'-funksjonen."
 
 msgid "No joysticks are currently connected"
-msgstr ""
+msgstr "Ingen joysticker er koblet til akkurat nå"
 
 msgid "No kickstart found for this model. "
-msgstr ""
+msgstr "Ingen kickstart ble funnet for denne modellen."
 
 msgid "No scan in progress"
-msgstr ""
+msgstr "Ingen søk pågår"
 
 msgid "Nothing"
 msgstr "Ingenting"
 
 msgid "OK"
-msgstr ""
+msgstr "OK"
 
 msgid "Open Configuration"
-msgstr ""
+msgstr "Åpne konfigurasjon"
 
 msgid "Open Tool to Configure Button Mapping"
-msgstr ""
+msgstr "Start verktøy for å stille inn knapper"
 
 msgid "Parallel Port Joysticks"
-msgstr ""
+msgstr "Parallellport-joysticker"
 
 msgid "Please wait..."
 msgstr "Vennligst vent..."
 
 msgid "Preferred Joystick"
-msgstr ""
+msgstr "Foretrukken joystick"
 
 msgid "Preferred device for secondary joystick:"
-msgstr ""
+msgstr "Foretrukken enhet for sekundær joystick:"
 
 msgid "Preparing WHDLoad..."
-msgstr ""
+msgstr "Forbereder WHDLoad..."
 
 msgid "Preparing floppy images..."
-msgstr ""
+msgstr "Forbereder diskettfiler"
 
 msgid "Preparing hard drives..."
-msgstr ""
+msgstr "Forbereder harddisker..."
+
+msgid "Preparing..."
+msgstr "Forbereder..."
 
 msgid "Purging old entries..."
-msgstr ""
-
-msgid "Removable Media"
-msgstr ""
+msgstr "Fjerner gamle oppføringer..."
 
 msgid "Remove Directory from Search Path"
-msgstr ""
+msgstr "Fjern mappe fra søkeliste"
 
 msgid "Remove Selected Files"
-msgstr ""
+msgstr "Fjern valgte filer"
 
 msgid "Restoring changes..."
-msgstr ""
+msgstr "Gjenoppretter endringer..."
 
 msgid "Save Configuration"
-msgstr ""
+msgstr "Lagre konfigurasjon"
 
 msgid "Saving changes..."
-msgstr ""
+msgstr "Lagrer endringer"
 
 msgid "Scan"
 msgstr "Søk"
@@ -296,53 +254,65 @@ msgstr "Søk"
 msgid "Scan complete"
 msgstr "Søket er fullført"
 
-msgid "Scan for Kickstarts, Games and Configurations"
-msgstr ""
+msgid "Scanning .fs-uae files..."
+msgstr "Undersøker .fs-uae-filer"
+
+msgid "Scanning built-in entries..."
+msgstr "Undersøker innebygde oppføringer"
 
 msgid "Scanning configurations"
 msgstr "Søker etter konfigurasjoner"
 
 msgid "Scanning configurations ({count} scanned)"
-msgstr ""
+msgstr "Undersøker databaseoppføringer ({count})"
+
+msgid "Scanning database entries..."
+msgstr "Undersøker databaseoppføringer"
 
 msgid "Scanning files"
-msgstr ""
+msgstr "Undersøker filer"
 
 msgid "Scanning files ({count} scanned)"
-msgstr "Søker etter filer ({count} funnet)"
+msgstr "Søker etter filer ({count})"
 
 msgid "Select Files..."
-msgstr ""
+msgstr "Velg filer..."
 
 msgid "Select Multiple CD-ROMs"
-msgstr ""
+msgstr "Velg flere CD-er"
 
 msgid "Select Multiple Floppies"
 msgstr "Velg flere disketter"
 
-msgid "Settings"
-msgstr "Innstillinger"
+msgid "Show Only Favorites (On/Off)"
+msgstr "Vis kun favoritter (på/av)"
+
+msgid "Show Only Verified Configurations (On/Off)"
+msgstr "Vis kun verifiserte konfigurasjoner (på/av)"
 
 msgid "Start"
 msgstr "Start"
 
 msgid "Starting FS-UAE..."
-msgstr ""
+msgstr "Starter FS-UAE..."
 
 msgid "Starting scan"
 msgstr "Starter søk"
 
-msgid "WHDLoad Arguments"
-msgstr ""
+msgid "Swap List"
+msgstr "Bytteliste"
 
-msgid "Window"
-msgstr "Vindu"
+msgid "WHDLoad Arguments"
+msgstr "WHDLoad-argumenter"
 
 #~ msgid "Amiga Model and Hardware"
 #~ msgstr "Amiga-modell og maskinvare"
 
 #~ msgid "Configurations"
 #~ msgstr "Konfigurasjoner"
+
+#~ msgid "Host Options"
+#~ msgstr "Vertsvalg"
 
 #~ msgid "Joystick (Emulated by Keyboard)"
 #~ msgstr "Joystick (emulert av tastatur)"
@@ -352,3 +322,12 @@ msgstr "Vindu"
 
 #~ msgid "Kickstarts"
 #~ msgstr "Kickstart-versjoner"
+
+#~ msgid "More..."
+#~ msgstr "Mer..."
+
+#~ msgid "Settings"
+#~ msgstr "Innstillinger"
+
+#~ msgid "Window"
+#~ msgstr "Vindu"

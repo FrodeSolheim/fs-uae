@@ -1101,8 +1101,16 @@ static void setconvert (void)
     */
     picasso_convert = v;
 
-    // FIXME ... ?
-    host_mode = RGBFB_A8R8G8B8;
+    if (g_amiga_video_format == AMIGA_VIDEO_FORMAT_RGBA) {
+        host_mode = RGBFB_R8G8B8A8;
+    }
+    else if (g_amiga_video_format == AMIGA_VIDEO_FORMAT_BGRA) {
+        host_mode = RGBFB_B8G8R8A8;
+    }
+    else { // AMIGA_VIDEO_FORMAT_R5G6B5
+        host_mode = RGBFB_R5G6B5PC;
+    }
+
 #if 0
     if (currprefs.gfx_api) {
         host_mode = d == 4 ? RGBFB_B8G8R8A8 : RGBFB_B5G6R5PC;
@@ -4279,26 +4287,25 @@ static void copyall (uae_u8 *src, uae_u8 *dst, int pwidth, int pheight)
 {
     int y;
 
-    //printf("setting host mode to RGBFormat, pixbytes = %d rowbytes = %d, bytesperbyte(src) = %d\n",
-    //        picasso_vidinfo.pixbytes, picasso_vidinfo.rowbytes, picasso96_state.BytesPerRow);
-    //host_mode = picasso96_state.RGBFormat;
-    picasso_vidinfo.pixbytes = 4;
-    picasso_vidinfo.rowbytes = pwidth * 4;
-    //printf("%d\n", picasso96_state.RGBFormat);
-
-    //printf("%d - %d\n", picasso96_state.RGBFormat, host_mode);
+    picasso_vidinfo.pixbytes = g_amiga_video_bpp;
+    picasso_vidinfo.rowbytes = pwidth * g_amiga_video_bpp;
 
     if (picasso96_state.RGBFormat == host_mode) {
+        //printf("fastcopy\n");
         int w = pwidth * picasso_vidinfo.pixbytes;
         for (y = 0; y < pheight; y++) {
             memcpy (dst, src, w);
             dst += picasso_vidinfo.rowbytes;
             src += picasso96_state.BytesPerRow;
         }
-    } else {
+    }
+    else {
+        //printf("slowcopy\n");
         for (y = 0; y < pheight; y++)
             copyrow (src, dst, 0, y, pwidth);
     }
+    // (picasso96_state.RGBFormat: 9 = RGBFB_B8G8R8A8)
+    // printf("%d - %d\n", picasso96_state.RGBFormat, host_mode);
 }
 
 // FIXME:

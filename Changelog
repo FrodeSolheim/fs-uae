@@ -1,4 +1,6 @@
 Version 1.3.25:
+* Added support for RTG modes with native 16-bit buffers.
+* Copy RTG video row data without pixel conversion when possible.
 * Added support for PPC / Mac OS 10.5 [Tobias Netzel].
 * Added support for 16-bit video and texture formats.
 * (Launcher) Workaround to make translations work on Mac OS X.

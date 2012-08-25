@@ -102,6 +102,38 @@ void fs_emu_initialize_opengl() {
     fs_gl_add_context_notification(context_notification_handler, NULL);
 }
 
+void get_buffer_format(int *gl_buffer_format, int *gl_buffer_type) {
+    int format = fs_emu_get_video_format();
+    if (format == FS_EMU_VIDEO_FORMAT_BGRA) {
+        *gl_buffer_format = GL_BGRA;
+        *gl_buffer_type = GL_UNSIGNED_BYTE;
+    }
+    else if (format == FS_EMU_VIDEO_FORMAT_RGBA) {
+        *gl_buffer_format = GL_RGBA;
+        *gl_buffer_type = GL_UNSIGNED_BYTE;
+    }
+    else if (format == FS_EMU_VIDEO_FORMAT_RGB) {
+        *gl_buffer_format = GL_RGB;
+        *gl_buffer_type = GL_UNSIGNED_BYTE;
+    }
+    else if (format == FS_EMU_VIDEO_FORMAT_R5G6B5) {
+        *gl_buffer_format = GL_RGB;
+#ifdef __BIG_ENDIAN__
+        *gl_buffer_type = GL_UNSIGNED_SHORT_5_6_5_REV;
+#else
+        *gl_buffer_type = GL_UNSIGNED_SHORT_5_6_5;
+#endif
+    }
+    else if (format == FS_EMU_VIDEO_FORMAT_R5G5B5A1) {
+        *gl_buffer_format = GL_RGBA;
+#ifdef __BIG_ENDIAN__
+        *gl_buffer_type = GL_UNSIGNED_SHORT_1_5_5_5_REV;
+#else
+        *gl_buffer_type = GL_UNSIGNED_SHORT_5_5_5_1;
+#endif
+    }
+}
+
 static void create_texture_if_needed(int width, int height) {
     //g_frame_texture.video_version = g_fs_emu_video_version;
     if (g_frame_texture && g_frame_texture_width >= width &&
@@ -132,9 +164,12 @@ static void create_texture_if_needed(int width, int height) {
     void *data = NULL;
     //void *data = g_malloc0(g_frame_texture_width * g_frame_texture_height * 4);
     fs_gl_unpack_row_length(0);
+    int gl_buffer_format = 0;
+    int gl_buffer_type = 0;
+    get_buffer_format(&gl_buffer_format, &gl_buffer_type);
     glTexImage2D(GL_TEXTURE_2D, 0, fs_emu_get_texture_format(),
             g_frame_texture_width, g_frame_texture_height, 0,
-            fs_emu_get_video_format(), GL_UNSIGNED_BYTE, data);
+            gl_buffer_format, gl_buffer_type, data);
     CHECK_GL_ERROR();
     if (data) {
         g_free(data);
@@ -220,6 +255,20 @@ static void fix_border(fs_emu_video_buffer *buffer, int *upload_x,
     *upload_h = uh;
 }
 
+#define R5G6B5_MASK_R 0b1111100000000000
+#define R5G6B5_MASK_G 0b0000011111100000
+#define R5G6B5_MASK_B 0b0000000000011111
+#define R5G6B5_SHIFT_R 11
+#define R5G6B5_SHIFT_G 5
+#define R5G6B5_SHIFT_B 0
+
+#define R5G5B5A1_MASK_R 0b1111100000000000
+#define R5G5B5A1_MASK_G 0b0000011111000000
+#define R5G5B5A1_MASK_B 0b0000000000111110
+#define R5G5B5A1_SHIFT_R 11
+#define R5G5B5A1_SHIFT_G 6
+#define R5G5B5A1_SHIFT_B 1
+
 static void save_screenshot(const char *type, int cx, int cy, int cw, int ch,
         int count, uint8_t *frame, int frame_width, int frame_height,
         int frame_bpp) {
@@ -235,24 +284,48 @@ static void save_screenshot(const char *type, int cx, int cy, int cw, int ch,
     fs_log("writing screenshot to %s\n", path);
 
     uint8_t *out_data = malloc(cw * ch * 3);
-    int row_len = cw * 4;
+    int row_len = cw * frame_bpp;
+    int frame_format = fs_emu_get_video_format();
 
     for (int y = 0; y < ch; y++) {
         uint8_t *ip = frame + ((cy + y) * frame_width + cx) * frame_bpp;
         uint8_t *op = out_data + y * cw * 3;
-        if (fs_emu_get_video_format() == FS_EMU_VIDEO_FORMAT_BGRA) {
-            for (int x = 0; x < row_len; x += 4) {
+        if (frame_format == FS_EMU_VIDEO_FORMAT_BGRA) {
+            for (int x = 0; x < row_len; x += frame_bpp) {
                 *op++ = ip[x + 2];
                 *op++ = ip[x + 1];
                 *op++ = ip[x + 0];
             }
         }
-        else {
-            for (int x = 0; x < row_len; x += 4) {
+        else if (frame_format == FS_EMU_VIDEO_FORMAT_RGBA) {
+            for (int x = 0; x < row_len; x += frame_bpp) {
                 *op++ = ip[x + 0];
                 *op++ = ip[x + 1];
                 *op++ = ip[x + 2];
-                ip += frame_bpp;
+            }
+        }
+        else if (frame_format == FS_EMU_VIDEO_FORMAT_R5G6B5) {
+            for (int x = 0; x < row_len; x += frame_bpp) {
+                unsigned short *p = (unsigned short *) (ip + x);
+                unsigned char c;
+                c = (*p & R5G6B5_MASK_R) >> R5G6B5_SHIFT_R;
+                *op++ = (c << 3) | (c >> 2);
+                c = (*p & R5G6B5_MASK_G) >> R5G6B5_SHIFT_G;
+                *op++ = (c << 2) | (c >> 4);
+                c = (*p & R5G6B5_MASK_B) >> R5G6B5_SHIFT_B;
+                *op++ = (c << 3) | (c >> 2);
+            }
+        }
+        else if (frame_format == FS_EMU_VIDEO_FORMAT_R5G5B5A1) {
+            for (int x = 0; x < row_len; x += frame_bpp) {
+                unsigned short *p = (unsigned short *) (ip + x);
+                unsigned char c;
+                c = (*p & R5G5B5A1_MASK_R) >> R5G5B5A1_SHIFT_R;
+                *op++ = (c << 3) | (c >> 2);
+                c = (*p & R5G5B5A1_MASK_G) >> R5G5B5A1_SHIFT_G;
+                *op++ = (c << 3) | (c >> 2);
+                c = (*p & R5G5B5A1_MASK_B) >> R5G5B5A1_SHIFT_B;
+                *op++ = (c << 3) | (c >> 2);
             }
         }
     }
@@ -334,31 +407,10 @@ static void update_texture() {
         static int count = 1;
         g_fs_emu_screenshot = 0;
         save_screenshot("full", 0, 0, width, height,
-                count, frame, width, height, 4);
+                count, frame, width, height, bpp);
         save_screenshot("cropped", g_crop.x, g_crop.y, g_crop.w, g_crop.h,
-                count, frame, width, height, 4);
+                count, frame, width, height, bpp);
         count += 1;
-    }
-
-    int format = 0;
-    if (bpp == 3) {
-        format = GL_RGB;
-    }
-    else if (bpp == 4) {
-#if 0
-        if (fs_emu_get_video_format() == GL_BGRA) {
-            format = GL_BGRA;
-        }
-        else {
-            format = GL_RGBA;
-        }
-#endif
-        format = fs_emu_get_video_format();
-    }
-    else {
-        //fs_log("na..\n");
-        return;
-        //fs_emu_fatal("bpp is neither 3 nor 4\n");
     }
 
     int upload_x, upload_y, upload_w, upload_h;
@@ -386,7 +438,7 @@ static void update_texture() {
                 if (g_scanline_buffer) {
                     free(g_scanline_buffer);
                 }
-                g_scanline_buffer = malloc(buffer->width * buffer->height * 4);
+                g_scanline_buffer = malloc(buffer->width * buffer->height * bpp);
                 g_scanline_buffer_width = buffer->width;
                 g_scanline_buffer_height = buffer->height;
             }
@@ -405,20 +457,18 @@ static void update_texture() {
     g_frame_height = height;
     g_frame_aspect = buffer->aspect;
 
+    int gl_buffer_format = 0;
+    int gl_buffer_type = 0;
+    get_buffer_format(&gl_buffer_format, &gl_buffer_type);
+
     create_texture_if_needed(width, height);
     fs_gl_bind_texture(g_frame_texture);
 
-    uint8_t *data_start = frame + ((upload_y * width) + upload_x) * 4;
+    uint8_t *gl_buffer_start = frame + ((upload_y * width) + upload_x) * bpp;
     fs_gl_unpack_row_length(width);
-    /*
-    glTexSubImage2D(GL_TEXTURE_2D, 0, upload_x, upload_y,
-            upload_w, upload_h, format,
-            GL_UNSIGNED_BYTE, data_start);
-    CHECK_GL_ERROR();
-    */
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
-            upload_w, upload_h, format,
-            GL_UNSIGNED_BYTE, data_start);
+
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, upload_w, upload_h,
+            gl_buffer_format, gl_buffer_type, gl_buffer_start);
     CHECK_GL_ERROR();
 
     int update_black_border = 1;
@@ -435,13 +485,13 @@ static void update_texture() {
         int black_width = black_right - black_left;
         if (black_width > 0) {
             void *black_data = fs_malloc0(
-                    black_width * g_frame_texture_height * 4);
-            //memset(black_data, 0xff, black_width * g_frame_texture_height * 4);
+                    black_width * g_frame_texture_height * bpp);
+            //memset(black_data, 0xff, black_width * g_frame_texture_height * bpp);
             //printf("black1 w %d h %d\n", black_width, g_frame_texture_height);
             fs_gl_unpack_row_length(0);
             glTexSubImage2D(GL_TEXTURE_2D, 0, black_left, 0,
-                    black_width, g_frame_texture_height, format,
-                    GL_UNSIGNED_BYTE, black_data);
+                    black_width, g_frame_texture_height,
+                    gl_buffer_format, gl_buffer_type, black_data);
             free(black_data);
             CHECK_GL_ERROR();
         }
@@ -456,13 +506,13 @@ static void update_texture() {
         //printf("---- %d %d\n", black_top, black_bottom);
         if (black_height > 0) {
             void *black_data = fs_malloc0(
-                    upload_w * black_height * 4);
-            //memset(black_data, 0xff, upload_w * black_height * 4);
+                    upload_w * black_height * bpp);
+            //memset(black_data, 0xff, upload_w * black_height * bpp);
             //printf("black2 w %d h %d\n", upload_w, black_height);
             fs_gl_unpack_row_length(0);
             glTexSubImage2D(GL_TEXTURE_2D, 0, 0, black_top,
-                    upload_w, black_height, format,
-                    GL_UNSIGNED_BYTE, black_data);
+                    upload_w, black_height,
+                    gl_buffer_format, gl_buffer_type, black_data);
             free(black_data);
             CHECK_GL_ERROR();
         }

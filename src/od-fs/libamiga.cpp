@@ -33,6 +33,7 @@ FILE* g_fs_uae_sync_debug_file = NULL;
 #endif
 
 int g_amiga_video_format = AMIGA_VIDEO_FORMAT_RGBA;
+int g_amiga_video_bpp = 4;
 
 int g_fs_uae_writable_disk_images = 0;
 /*
@@ -103,6 +104,15 @@ int amiga_init() {
 
 void amiga_set_video_format(int format) {
     g_amiga_video_format = format;
+    if (format == AMIGA_VIDEO_FORMAT_R5G6B5) {
+        g_amiga_video_bpp = 2;
+    }
+    else if (format == AMIGA_VIDEO_FORMAT_R5G5B5A1) {
+        g_amiga_video_bpp = 2;
+    }
+    else {
+        g_amiga_video_bpp = 4;
+    }
 }
 
 void amiga_add_rtg_resolution(int width, int height) {

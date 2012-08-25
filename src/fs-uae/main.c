@@ -562,8 +562,20 @@ int main(int argc, char* argv[]) {
     amiga_set_media_function(media_function);
     amiga_set_init_function(on_init);
 
-    if (fs_emu_get_video_format() == FS_EMU_VIDEO_FORMAT_BGRA) {
+    if (fs_emu_get_video_format() == FS_EMU_VIDEO_FORMAT_RGBA) {
+        amiga_set_video_format(AMIGA_VIDEO_FORMAT_RGBA);
+    }
+    else if (fs_emu_get_video_format() == FS_EMU_VIDEO_FORMAT_BGRA) {
         amiga_set_video_format(AMIGA_VIDEO_FORMAT_BGRA);
+    }
+    else if (fs_emu_get_video_format() == FS_EMU_VIDEO_FORMAT_R5G6B5) {
+        amiga_set_video_format(AMIGA_VIDEO_FORMAT_R5G6B5);
+    }
+    else if (fs_emu_get_video_format() == FS_EMU_VIDEO_FORMAT_R5G5B5A1) {
+        amiga_set_video_format(AMIGA_VIDEO_FORMAT_R5G5B5A1);
+    }
+    else {
+        fs_emu_warning("unsupported video format");
     }
     amiga_add_rtg_resolution(fs_emu_get_windowed_width(),
             fs_emu_get_windowed_height());

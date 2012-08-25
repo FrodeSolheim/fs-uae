@@ -14,6 +14,8 @@ extern "C" {
 
 #define AMIGA_VIDEO_FORMAT_RGBA 0
 #define AMIGA_VIDEO_FORMAT_BGRA 1
+#define AMIGA_VIDEO_FORMAT_R5G6B5 2
+#define AMIGA_VIDEO_FORMAT_R5G5B5A1 3
 
 int amiga_init();
 int amiga_set_synchronization_log_file(const char *path);

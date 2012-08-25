@@ -311,7 +311,6 @@ static void render_screen(RenderData* rd) {
     g_buffer->seq = g_frame_seq_no++;
     g_buffer->width = rd_width;
     g_buffer->height = rd_height;
-    g_buffer->bpp = 4;
     g_buffer->crop = crop;
     g_buffer->flags = 0;
     if (rd->flags & AMIGA_RTG_BUFFER_FLAG) {
@@ -382,7 +381,7 @@ static void toggle_zoom(int flags) {
 void fs_uae_init_video(void) {
     fs_log("fs_uae_init_video\n");
     init_window_overrides();
-    fs_emu_initialize_video_buffers(1024, 1024, 4);
+    fs_emu_initialize_video_buffers(1024, 1024, 0);
 
     g_buffer = fs_emu_get_available_video_buffer(g_remember_last_screen);
     amiga_set_render_buffer(g_buffer->data, g_buffer->size,

@@ -143,7 +143,7 @@ bool render_screen (bool immediate) {
         libamiga_rd.flags = AMIGA_RTG_BUFFER_FLAG;
 
 #ifdef USE_BUFMEM
-        //memcpy(libamiga_rd.pixels, g_bufmem, g_picasso_width * g_picasso_height * 4);
+        //memcpy(libamiga_rd.pixels, g_bufmem, g_picasso_width * g_picasso_height * g_amiga_video_bpp);
 #endif
         // FIXME
         memset(libamiga_rd.line, 0, AMIGA_MAX_LINES);
@@ -187,7 +187,7 @@ bool render_screen (bool immediate) {
         libamiga_rd.flags = 0;
 #ifdef USE_BUFMEM
         //printf("libamiga_rd.pixels %p %p", libamiga_rd.pixels, g_bufmem);
-        memcpy(libamiga_rd.pixels, g_bufmem, AMIGA_WIDTH * AMIGA_HEIGHT * 4);
+        memcpy(libamiga_rd.pixels, g_bufmem, AMIGA_WIDTH * AMIGA_HEIGHT * g_amiga_video_bpp);
 #endif
     }
     //libamiga_rd.line[first_line] = 0;
@@ -536,8 +536,8 @@ void flush_line (struct vidbuffer *buffer, int line_no) {
 
     //scrlinebuf
 #ifdef USE_LINEMEM
-    unsigned char *dst = libamiga_rd.pixels + AMIGA_WIDTH * 4 * line_no;
-    memcpy(dst, g_linemem, AMIGA_WIDTH * 4);
+    unsigned char *dst = libamiga_rd.pixels + AMIGA_WIDTH * g_amiga_video_bpp * line_no;
+    memcpy(dst, g_linemem, AMIGA_WIDTH * g_amiga_video_bpp);
 #endif
 
 #ifndef USE_BUFMEM
@@ -633,26 +633,70 @@ uint8_t *uae_get_render_buffer() {
     return libamiga_rd.pixels;
 }
 
+#ifdef __BIG_ENDIAN__
+#define RGBA_MASK_R 0xff000000
+#define RGBA_MASK_G 0x00ff0000
+#define RGBA_MASK_B 0x0000ff00
+#define RGBA_MASK_A 0x000000ff
+#else
+#define RGBA_MASK_R 0x000000ff
+#define RGBA_MASK_G 0x0000ff00
+#define RGBA_MASK_B 0x00ff0000
+#define RGBA_MASK_A 0xff000000
+#endif
+
+#define R5G6B5_MASK_R 0b1111100000000000
+#define R5G6B5_MASK_G 0b0000011111100000
+#define R5G6B5_MASK_B 0b0000000000011111
+
+#define R5G5B5A1_MASK_R 0b1111100000000000
+#define R5G5B5A1_MASK_G 0b0000011111000000
+#define R5G5B5A1_MASK_B 0b0000000000111110
+#define R5G5B5A1_MASK_A 0b0000000000000001
+
 int graphics_init(void) {
     write_log("graphics_init\n");
 
     // FIXME: perhaps modify so custom_limits defaults to -1, -1, -1, -1
     set_custom_limits (-1, -1, -1, -1);
 
-    g_red_bits    = uae_bits_in_mask(0x000000ff);
-    g_green_bits  = uae_bits_in_mask(0x0000ff00);
-    g_blue_bits   = uae_bits_in_mask(0x00ff0000);
-    g_alpha_bits   = uae_bits_in_mask(0xff000000);
-    g_red_shift   = uae_mask_shift(0x000000ff);
-    g_green_shift = uae_mask_shift(0x0000ff00);
-    g_blue_shift  = uae_mask_shift(0x00ff0000);
-    g_alpha_shift  = uae_mask_shift(0xff000000);
-
-    if (g_amiga_video_format == AMIGA_VIDEO_FORMAT_BGRA) {
-        g_blue_bits    = uae_bits_in_mask(0x000000ff);
-        g_blue_shift   = uae_mask_shift(0x000000ff);
-        g_red_bits   = uae_bits_in_mask(0x00ff0000);
-        g_red_shift  = uae_mask_shift(0x00ff0000);
+    if (g_amiga_video_format == AMIGA_VIDEO_FORMAT_R5G6B5) {
+        g_red_bits    = uae_bits_in_mask(R5G6B5_MASK_R);
+        g_red_shift   = uae_mask_shift(R5G6B5_MASK_R);
+        g_green_bits  = uae_bits_in_mask(R5G6B5_MASK_G);
+        g_green_shift = uae_mask_shift(R5G6B5_MASK_G);
+        g_blue_bits   = uae_bits_in_mask(R5G6B5_MASK_B);
+        g_blue_shift  = uae_mask_shift(R5G6B5_MASK_B);
+        g_alpha_bits   = 0;
+        g_alpha_shift  = 0;
+    }
+    else if (g_amiga_video_format == AMIGA_VIDEO_FORMAT_R5G5B5A1) {
+        g_red_bits    = uae_bits_in_mask(R5G5B5A1_MASK_R);
+        g_red_shift   = uae_mask_shift(R5G5B5A1_MASK_R);
+        g_green_bits  = uae_bits_in_mask(R5G5B5A1_MASK_G);
+        g_green_shift = uae_mask_shift(R5G5B5A1_MASK_G);
+        g_blue_bits   = uae_bits_in_mask(R5G5B5A1_MASK_B);
+        g_blue_shift  = uae_mask_shift(R5G5B5A1_MASK_B);
+        g_alpha_bits   = uae_bits_in_mask(R5G5B5A1_MASK_A);
+        g_alpha_shift  = uae_mask_shift(R5G5B5A1_MASK_A);
+    }
+    else { // RGBA or BGRA
+        if (g_amiga_video_format == AMIGA_VIDEO_FORMAT_RGBA) {
+            g_red_bits    = uae_bits_in_mask(RGBA_MASK_R);
+            g_red_shift   = uae_mask_shift(RGBA_MASK_R);
+            g_blue_bits   = uae_bits_in_mask(RGBA_MASK_B);
+            g_blue_shift  = uae_mask_shift(RGBA_MASK_B);
+        }
+        else { // BGRA
+            g_red_bits   = uae_bits_in_mask(RGBA_MASK_B);
+            g_red_shift  = uae_mask_shift(RGBA_MASK_B);
+            g_blue_bits    = uae_bits_in_mask(RGBA_MASK_R);
+            g_blue_shift   = uae_mask_shift(RGBA_MASK_R);
+        }
+        g_green_bits  = uae_bits_in_mask(RGBA_MASK_G);
+        g_green_shift = uae_mask_shift(RGBA_MASK_G);
+        g_alpha_bits   = uae_bits_in_mask(RGBA_MASK_A);
+        g_alpha_shift  = uae_mask_shift(RGBA_MASK_A);
     }
 
     //libamiga_rd.pixels = (unsigned char*) malloc(AMIGA_WIDTH*AMIGA_HEIGHT*4);
@@ -660,9 +704,9 @@ int graphics_init(void) {
     memset(libamiga_rd.line, 0, AMIGA_MAX_LINES);
     gfxvidinfo.maxblocklines = 0;
 #ifdef USE_BUFMEM
-    g_bufmem = (unsigned char*) malloc(AMIGA_WIDTH * AMIGA_HEIGHT * 4);
+    g_bufmem = (unsigned char*) malloc(AMIGA_WIDTH * AMIGA_HEIGHT * g_amiga_video_bpp);
     gfxvidinfo.drawbuffer.bufmem = g_bufmem;
-    memset(g_bufmem, 0, AMIGA_WIDTH * AMIGA_HEIGHT * 4);
+    memset(g_bufmem, 0, AMIGA_WIDTH * AMIGA_HEIGHT * g_amiga_video_bpp);
     gfxvidinfo.maxblocklines = MAXBLOCKLINES_MAX;
 #endif
 
@@ -673,8 +717,8 @@ int graphics_init(void) {
     gfxvidinfo.drawbuffer.emergmem = 0; //g_linemem;
     gfxvidinfo.drawbuffer.linemem = 0;
 #endif
-    gfxvidinfo.drawbuffer.pixbytes = 4;
-    gfxvidinfo.drawbuffer.rowbytes = AMIGA_WIDTH * 4;
+    gfxvidinfo.drawbuffer.pixbytes = g_amiga_video_bpp;
+    gfxvidinfo.drawbuffer.rowbytes = AMIGA_WIDTH * g_amiga_video_bpp;
     gfxvidinfo.drawbuffer.height_allocated = AMIGA_HEIGHT;
     gfxvidinfo.drawbuffer.inheight = AMIGA_HEIGHT;
     gfxvidinfo.drawbuffer.outheight = AMIGA_HEIGHT;

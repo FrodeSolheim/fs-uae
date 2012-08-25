@@ -280,9 +280,12 @@ int fs_emu_font_render(fs_emu_font *font, const char *text, float x, float y,
 
     fs_gl_bind_texture(g_text_texture);
     fs_gl_unpack_row_length(TEXTURE_WIDTH);
+    int gl_buffer_format = GL_RGBA;
+    if (fs_emu_get_video_format() == FS_EMU_VIDEO_FORMAT_BGRA) {
+        gl_buffer_format = GL_BGRA;
+    }
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, position * 32, required_width,
-            required_height, fs_emu_get_video_format(),
-            GL_UNSIGNED_BYTE, g_buffer);
+            required_height, gl_buffer_format, GL_UNSIGNED_BYTE, g_buffer);
 
     cache_item *item = g_malloc(sizeof(cache_item));
     item->font = font;

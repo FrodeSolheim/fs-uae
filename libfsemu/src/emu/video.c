@@ -33,6 +33,7 @@ static fs_emu_video_buffer *g_video_buffer_current = g_video_buffers;
 static fs_emu_video_buffer *g_video_buffer_locked = NULL;
 //static int g_video_buffer_locked = -1;
 int g_fs_emu_video_format = 0;
+int g_fs_emu_video_bpp = 0;
 int g_fs_emu_texture_format = 0;
 
 int g_fs_emu_scanlines = 0;
@@ -60,6 +61,9 @@ int fs_emu_initialize_video_buffers(int width, int height, int bpp) {
     // should only be called once, currently
     if (g_video_buffers_initialized) {
         return 0;
+    }
+    if (bpp == 0) {
+        bpp = g_fs_emu_video_bpp;
     }
     for (int i = 0; i < 3; i++) {
         g_video_buffers[i].width = width;
@@ -135,7 +139,7 @@ void fs_emu_unlock_video_buffer() {
 
 int fs_emu_grow_render_buffer(fs_emu_video_buffer *buffer, int width,
         int height) {
-    int needed_size = width * height * 4;
+    int needed_size = width * height * buffer->bpp;
     if (buffer->size >= needed_size) {
         return 0;
     }
@@ -153,7 +157,7 @@ void copy_buffer_data(fs_emu_video_buffer *new_buffer,
         return;
     }
 
-    int stride = new_buffer->width * 4;
+    int stride = new_buffer->width * new_buffer->bpp;
     unsigned char *src, *dst;
     int width;
     int first_line, last_line;
@@ -166,8 +170,8 @@ void copy_buffer_data(fs_emu_video_buffer *new_buffer,
         first_line = new_buffer->crop.y;
         last_line = new_buffer->crop.y + new_buffer->crop.h - 1;
 
-        src = old_buffer->data + stride * first_line + new_buffer->crop.x * 4;
-        dst = new_buffer->data + stride * first_line + new_buffer->crop.x * 4;
+        src = old_buffer->data + stride * first_line + new_buffer->crop.x * g_fs_emu_video_bpp;
+        dst = new_buffer->data + stride * first_line + new_buffer->crop.x * g_fs_emu_video_bpp;
     }
     else {
         // no cropping; must copy the entire line
@@ -183,7 +187,7 @@ void copy_buffer_data(fs_emu_video_buffer *new_buffer,
 #endif
         for (int y = first_line; y <= last_line; y++) {
             if (new_buffer->line[y]) {
-                memcpy(dst, src, width * 4);
+                memcpy(dst, src, width * g_fs_emu_video_bpp);
             }
             src += stride;
             dst += stride;
@@ -193,7 +197,7 @@ void copy_buffer_data(fs_emu_video_buffer *new_buffer,
     else {
         for (int y = first_line; y <= last_line; y++) {
             if (new_buffer->line[y]) {
-                memcpy(dst, src, width * 4);
+                memcpy(dst, src, width * g_fs_emu_video_bpp);
             }
             else {
                 unsigned char *p = dst;
@@ -207,6 +211,7 @@ void copy_buffer_data(fs_emu_video_buffer *new_buffer,
                         *p = (*p * g_fs_emu_scanlines_dark_i) / 256;
                         p++;
                         *p = (*p * g_fs_emu_scanlines_dark_i) / 256;
+                        // FIXME: depends on bpp
                         p += 2;
                     }
                 }
@@ -223,6 +228,7 @@ void copy_buffer_data(fs_emu_video_buffer *new_buffer,
                         p++;
                         *(p) = (*p * g_fs_emu_scanlines_light_i) / 256
                                 + g_fs_emu_scanlines_light;
+                        // FIXME: depends on bpp
                         p += 2;
                     }
                 }
@@ -555,18 +561,39 @@ void fs_emu_video_init() {
 
     const char *s = fs_config_get_const_string("video_format");
     if (s) {
-        if (g_ascii_strcasecmp(s, "rgba") == 0) {
-            fs_log("using video format RGBA\n");
-            g_fs_emu_video_format = FS_EMU_VIDEO_FORMAT_RGBA;
-        }
-        else if (g_ascii_strcasecmp(s, "bgra") == 0) {
+        if (g_ascii_strcasecmp(s, "bgra") == 0) {
             fs_log("using video format BGRA\n");
             g_fs_emu_video_format = FS_EMU_VIDEO_FORMAT_BGRA;
+            g_fs_emu_video_bpp = 4;
+        }
+        else if (g_ascii_strcasecmp(s, "rgba") == 0) {
+            fs_log("using video format RGBA\n");
+            g_fs_emu_video_format = FS_EMU_VIDEO_FORMAT_RGBA;
+            g_fs_emu_video_bpp = 4;
+        }
+        else if (g_ascii_strcasecmp(s, "rgb") == 0) {
+            fs_log("using video format RGB\n");
+            g_fs_emu_video_format = FS_EMU_VIDEO_FORMAT_RGB;
+            g_fs_emu_video_bpp = 3;
+        }
+        else if (g_ascii_strcasecmp(s, "rgb565") == 0) {
+            fs_log("using video format RGB565\n");
+            g_fs_emu_video_format = FS_EMU_VIDEO_FORMAT_R5G6B5;
+            g_fs_emu_video_bpp = 2;
+        }
+        else if (g_ascii_strcasecmp(s, "rgba5551") == 0) {
+            fs_log("using video format RGBA5551\n");
+            g_fs_emu_video_format = FS_EMU_VIDEO_FORMAT_R5G5B5A1;
+            g_fs_emu_video_bpp = 2;
+        }
+        else {
+            fs_emu_warning("Unknown video format");
         }
     }
     if (!g_fs_emu_video_format) {
         fs_log("using default video format BGRA\n");
         g_fs_emu_video_format = FS_EMU_VIDEO_FORMAT_BGRA;
+        g_fs_emu_video_bpp = 4;
     }
 
     s = fs_config_get_const_string("texture_format");
@@ -586,6 +613,17 @@ void fs_emu_video_init() {
         else if (g_ascii_strcasecmp(s, "rgba8") == 0) {
             fs_log("using texture format RGBA8\n");
             g_fs_emu_texture_format = GL_RGBA8;
+        }
+        else if (g_ascii_strcasecmp(s, "rgb5") == 0) {
+            fs_log("using texture format RGB5\n");
+            g_fs_emu_texture_format = GL_RGB5;
+        }
+        else if (g_ascii_strcasecmp(s, "rgb5_a1") == 0) {
+            fs_log("using texture format RGB5_A1\n");
+            g_fs_emu_texture_format = GL_RGB5_A1;
+        }
+        else {
+            fs_emu_warning("Unknown texture format");
         }
     }
     if (!g_fs_emu_texture_format) {

@@ -24,6 +24,7 @@ const char *get_libamiga_base_version();
 void amiga_configure_port_from_input_event(int input_event);
 
 extern int g_amiga_video_format;
+extern int g_amiga_video_bpp;
 extern int g_amiga_rtg_modes[];
 
 #endif // LIBAMIGA_INTERNAL_H_

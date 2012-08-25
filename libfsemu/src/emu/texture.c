@@ -276,8 +276,12 @@ void load_texture(fs_emu_texture *texture) {
     //texture->opengl_context_stamp = g_fs_ml_opengl_context_stamp;
     fs_gl_bind_texture(opengl_texture);
     fs_gl_unpack_row_length(0);
+    int gl_buffer_format = GL_RGBA;
+    if (fs_emu_get_video_format() == FS_EMU_VIDEO_FORMAT_BGRA) {
+        gl_buffer_format = GL_BGRA;
+    }
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image->width, image->height,
-            0, fs_emu_get_video_format(), GL_UNSIGNED_BYTE, image->data);
+            0, gl_buffer_format, GL_UNSIGNED_BYTE, image->data);
     CHECK_GL_ERROR();
     //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
     //        GL_LINEAR_MIPMAP_LINEAR);

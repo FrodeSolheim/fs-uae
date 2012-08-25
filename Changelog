@@ -1,4 +1,5 @@
 Version 1.3.25:
+* Added support for PPC / Mac OS 10.5 [Tobias Netzel].
 * Added support for 16-bit video and texture formats.
 * (Launcher) Workaround to make translations work on Mac OS X.
 * (Launcher) Fixed bug when setting hard_drive_x folders options from config

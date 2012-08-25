@@ -93,8 +93,8 @@ extern FILE *g_fs_uae_sync_debug_file;
 #define FPU_UAE
 #define GFXFILTER
 
-#ifdef __x86_64__
-// no JIT on __x86_64__
+#if defined(__x86_64__) || defined(__ppc__)
+// no JIT for these architectures
 #else
 #define JIT
 #define JIT_DEBUG
@@ -243,7 +243,13 @@ typedef int BOOL;
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
 
+#ifdef __ppc__
+// REGPARAM are used in JIT code, so for PPC (which does not have JIT) this
+// can be set to nothing
+#define REGPARAM
+#else
 #define REGPARAM __attribute__((regparm(3)))
+#endif
 #define REGPARAM2 REGPARAM
 #define REGPARAM3
 

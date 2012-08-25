@@ -357,6 +357,9 @@ static int set_gc_called = 0, init_picasso_screen_called = 0;
 static uaecptr oldscr = 0;
 
 
+#ifdef WORDS_BIGENDIAN
+#define endianswap(a, b)
+#else
 STATIC_INLINE void endianswap (uae_u32 *vp, int bpp)
 {
     uae_u32 v = *vp;
@@ -370,6 +373,7 @@ STATIC_INLINE void endianswap (uae_u32 *vp, int bpp)
         break;
     }
 }
+#endif
 
 #if P96TRACING_ENABLED
 /*

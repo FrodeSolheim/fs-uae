@@ -72,6 +72,8 @@ uname_m := $(shell uname -m)
 ifneq ($(arch),)
 else ifneq ($(findstring i386,$(uname_m)),)
 arch = i386
+else ifneq ($(findstring Power,$(uname_m)),)
+arch = ppc
 else
 arch = x86_64
 endif

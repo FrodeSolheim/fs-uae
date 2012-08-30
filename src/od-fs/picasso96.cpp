@@ -1105,10 +1105,18 @@ static void setconvert (void)
         host_mode = RGBFB_R8G8B8A8;
     }
     else if (g_amiga_video_format == AMIGA_VIDEO_FORMAT_BGRA) {
+#ifdef WORDS_BIGENDIAN
+        host_mode = RGBFB_A8R8G8B8;
+#else
         host_mode = RGBFB_B8G8R8A8;
+#endif
     }
     else { // AMIGA_VIDEO_FORMAT_R5G6B5
+#ifdef WORDS_BIGENDIAN
+        host_mode = RGBFB_R5G6B5;
+#else
         host_mode = RGBFB_R5G6B5PC;
+#endif
     }
 
 #if 0
@@ -4040,16 +4048,26 @@ static void copyrow (uae_u8 *src, uae_u8 *dst, int x, int y, int width)
     if (currprefs.gfx_api) {
         switch (picasso_convert)
         {
+#ifdef WORDS_BIGENDIAN
+            case RGBFB_A8R8G8B8_32:
+            case RGBFB_R5G6B5_16:
+#else
             case RGBFB_B8G8R8A8_32:
             case RGBFB_R5G6B5PC_16:
+#endif
                 memcpy (dst2 + x * dstpix, src2 + x * srcpix, width * dstpix);
             return;
         }
     } else {
         switch (picasso_convert)
         {
+#ifdef WORDS_BIGENDIAN
+            case RGBFB_A8R8G8B8_32:
+            case RGBFB_R5G6B5_16:
+#else
             case RGBFB_B8G8R8A8_32:
             case RGBFB_R5G6B5PC_16:
+#endif
                 memcpy (dst2 + x * dstpix, src2 + x * srcpix, width * dstpix);
             return;
         }
@@ -4287,7 +4305,6 @@ static void copyall (uae_u8 *src, uae_u8 *dst, int pwidth, int pheight)
 {
     int y;
 
-    picasso_vidinfo.pixbytes = g_amiga_video_bpp;
     picasso_vidinfo.rowbytes = pwidth * g_amiga_video_bpp;
 
     if (picasso96_state.RGBFormat == host_mode) {
@@ -4584,6 +4601,9 @@ void InitPicasso96 (void)
             | ((i & 2) ? 0x0100 : 0)
             | ((i & 1) ? 0x01 : 0));
     }
+
+    picasso_vidinfo.pixbytes = g_amiga_video_bpp;
+
 }
 
 #endif

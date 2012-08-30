@@ -289,6 +289,13 @@ void alloc_colors_picasso (int rw, int gw, int bw, int rs, int gs, int bs, int r
 		break;
 	}
 
+#ifdef WORDS_BIGENDIAN
+       if (byte_swap)
+           byte_swap = 0;
+       else
+           byte_swap = 1;
+#endif
+
 	memset (p96_rgbx16, 0, sizeof p96_rgbx16);
 
 	if (red_bits) {

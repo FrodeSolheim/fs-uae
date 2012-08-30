@@ -106,31 +106,35 @@ void get_buffer_format(int *gl_buffer_format, int *gl_buffer_type) {
     int format = fs_emu_get_video_format();
     if (format == FS_EMU_VIDEO_FORMAT_BGRA) {
         *gl_buffer_format = GL_BGRA;
+#ifdef __BIG_ENDIAN__
+        *gl_buffer_type = GL_UNSIGNED_INT_8_8_8_8_REV;
+#else
         *gl_buffer_type = GL_UNSIGNED_BYTE;
+#endif
     }
     else if (format == FS_EMU_VIDEO_FORMAT_RGBA) {
         *gl_buffer_format = GL_RGBA;
+#ifdef __BIG_ENDIAN__
+        *gl_buffer_type = GL_UNSIGNED_INT_8_8_8_8_REV;
+#else
         *gl_buffer_type = GL_UNSIGNED_BYTE;
+#endif
     }
     else if (format == FS_EMU_VIDEO_FORMAT_RGB) {
         *gl_buffer_format = GL_RGB;
+#ifdef __BIG_ENDIAN__
+        *gl_buffer_type = GL_UNSIGNED_INT_8_8_8_8_REV;
+#else
         *gl_buffer_type = GL_UNSIGNED_BYTE;
+#endif
     }
     else if (format == FS_EMU_VIDEO_FORMAT_R5G6B5) {
         *gl_buffer_format = GL_RGB;
-#ifdef __BIG_ENDIAN__
-        *gl_buffer_type = GL_UNSIGNED_SHORT_5_6_5_REV;
-#else
         *gl_buffer_type = GL_UNSIGNED_SHORT_5_6_5;
-#endif
     }
     else if (format == FS_EMU_VIDEO_FORMAT_R5G5B5A1) {
         *gl_buffer_format = GL_RGBA;
-#ifdef __BIG_ENDIAN__
-        *gl_buffer_type = GL_UNSIGNED_SHORT_1_5_5_5_REV;
-#else
         *gl_buffer_type = GL_UNSIGNED_SHORT_5_5_5_1;
-#endif
     }
 }
 
@@ -255,16 +259,16 @@ static void fix_border(fs_emu_video_buffer *buffer, int *upload_x,
     *upload_h = uh;
 }
 
-#define R5G6B5_MASK_R 0b1111100000000000
-#define R5G6B5_MASK_G 0b0000011111100000
-#define R5G6B5_MASK_B 0b0000000000011111
+#define R5G6B5_MASK_R 0xf800
+#define R5G6B5_MASK_G 0x07e0
+#define R5G6B5_MASK_B 0x001f
 #define R5G6B5_SHIFT_R 11
 #define R5G6B5_SHIFT_G 5
 #define R5G6B5_SHIFT_B 0
 
-#define R5G5B5A1_MASK_R 0b1111100000000000
-#define R5G5B5A1_MASK_G 0b0000011111000000
-#define R5G5B5A1_MASK_B 0b0000000000111110
+#define R5G5B5A1_MASK_R 0xf800
+#define R5G5B5A1_MASK_G 0x07c0
+#define R5G5B5A1_MASK_B 0x003e
 #define R5G5B5A1_SHIFT_R 11
 #define R5G5B5A1_SHIFT_G 6
 #define R5G5B5A1_SHIFT_B 1
@@ -292,9 +296,15 @@ static void save_screenshot(const char *type, int cx, int cy, int cw, int ch,
         uint8_t *op = out_data + y * cw * 3;
         if (frame_format == FS_EMU_VIDEO_FORMAT_BGRA) {
             for (int x = 0; x < row_len; x += frame_bpp) {
+#ifdef __BIG_ENDIAN__
+                *op++ = ip[x + 1];
+                *op++ = ip[x + 2];
+                *op++ = ip[x + 3];
+#else
                 *op++ = ip[x + 2];
                 *op++ = ip[x + 1];
                 *op++ = ip[x + 0];
+#endif
             }
         }
         else if (frame_format == FS_EMU_VIDEO_FORMAT_RGBA) {

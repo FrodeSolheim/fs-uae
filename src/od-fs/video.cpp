@@ -633,26 +633,19 @@ uint8_t *uae_get_render_buffer() {
     return libamiga_rd.pixels;
 }
 
-#ifdef __BIG_ENDIAN__
-#define RGBA_MASK_R 0xff000000
-#define RGBA_MASK_G 0x00ff0000
-#define RGBA_MASK_B 0x0000ff00
-#define RGBA_MASK_A 0x000000ff
-#else
 #define RGBA_MASK_R 0x000000ff
 #define RGBA_MASK_G 0x0000ff00
 #define RGBA_MASK_B 0x00ff0000
 #define RGBA_MASK_A 0xff000000
-#endif
 
-#define R5G6B5_MASK_R 0b1111100000000000
-#define R5G6B5_MASK_G 0b0000011111100000
-#define R5G6B5_MASK_B 0b0000000000011111
+#define R5G6B5_MASK_R 0xf800
+#define R5G6B5_MASK_G 0x07e0
+#define R5G6B5_MASK_B 0x001f
 
-#define R5G5B5A1_MASK_R 0b1111100000000000
-#define R5G5B5A1_MASK_G 0b0000011111000000
-#define R5G5B5A1_MASK_B 0b0000000000111110
-#define R5G5B5A1_MASK_A 0b0000000000000001
+#define R5G5B5A1_MASK_R 0xf800
+#define R5G5B5A1_MASK_G 0x07c0
+#define R5G5B5A1_MASK_B 0x003e
+#define R5G5B5A1_MASK_A 0x0001
 
 int graphics_init(void) {
     write_log("graphics_init\n");

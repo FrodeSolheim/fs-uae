@@ -38,7 +38,11 @@ void target_default_options (struct uae_prefs *p, int type) {
         p->win32_samplersoundcard = -1;
     }
 
+#ifdef __BIG_ENDIAN__
+    p->picasso96_modeflags = 0x442;
+#else
     p->picasso96_modeflags = 0x212;
+#endif
 
     return;
 }

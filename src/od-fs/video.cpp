@@ -583,7 +583,7 @@ void amiga_set_render_buffer(void *data, int size, int need_redraw,
         void *(*grow)(int width, int height)) {
     //printf("set render buffer %p\n", data);
     libamiga_rd.grow = grow;
-    libamiga_rd.pixels = data;
+    libamiga_rd.pixels = (unsigned char *) data;
 
     //printf("\n\n\n\n\n\n\n\n set buffer %p %d\n", data, size);
     //libamiga_rd.pixels = (unsigned char*) data;

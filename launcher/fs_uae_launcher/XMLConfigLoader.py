@@ -178,8 +178,7 @@ class XMLConfigLoader:
         floppy_drive_count = 4
         if "floppy_drive_count" in self.options:
             try:
-                # FIXME: should be floppy_drive_count, not num_floppy_drives
-                floppy_drive_count = int(self.options["num_floppy_drives"])
+                floppy_drive_count = int(self.options["floppy_drive_count"])
             except ValueError:
                 floppy_drive_count = 1
             floppy_drive_count = max(0, min(4, floppy_drive_count))

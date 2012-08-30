@@ -3,6 +3,8 @@ Version 1.3.25:
 * Copy RTG video row data without pixel conversion when possible.
 * Added support for PPC / Mac OS 10.5 [Tobias Netzel].
 * Added support for 16-bit video and texture formats.
+* Fixes to allow for compilation with clang.
+* Replaced deprecated valloc, getpagesize with posix equivalents.
 * (Launcher) Workaround to make translations work on Mac OS X.
 * (Launcher) Fixed bug when setting hard_drive_x folders options from config
   files.

@@ -77,7 +77,13 @@ class MainWindow(fsui.Window):
         # right border
         self.create_column(3, min_width=Skin.get_window_padding_right(),
                 content=False)
-        
+
+        if self.is_editor_enabled():
+            from ..editor.EditorGroup import EditorGroup
+            editor = EditorGroup(self)
+            self.layout.add(editor, fill=True, expand=True,
+                margin_right=20)
+
         was_maximized = Settings.get("maximized") == "1"
 
         self.set_size(self.layout.get_min_size())
@@ -101,7 +107,7 @@ class MainWindow(fsui.Window):
         Config.set("__quit", "1")
 
     def is_editor_enabled(self):
-        return False
+        return "--editor" in sys.argv
 
     def create_column(self, column, content=True, expand=False, min_width=0):
         layout = fsui.VerticalLayout()

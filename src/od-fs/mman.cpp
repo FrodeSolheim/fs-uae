@@ -49,6 +49,22 @@ static int GetLastError() {
     return errno;
 }
 
+static void *my_valloc(size_t size) {
+    size_t alignment = sysconf(_SC_PAGESIZE);
+    void *memptr = NULL;
+    if (posix_memalign(&memptr, alignment, size) == 0) {
+        return memptr;
+    }
+    return NULL;
+}
+
+static int my_getpagesize (void) {
+    return sysconf(_SC_PAGESIZE);
+}
+
+#define valloc my_valloc
+#define getpagesize my_getpagesize
+
 #endif
 
 #ifdef WINDOWS
@@ -757,7 +773,7 @@ void *uae_shmat (int shmid, void *shmaddr, int shmflg)
         shmids[shmid].mode = 0;
 
         // we have natmem -> we can share the memory from there
-        if ( ((shmaddr >= natmem_offset) && ((shmaddr + size) <= natmem_offset_end)) || ((p96mem_offset != NULL) && p96special) ) {
+        if ( ((shmaddr >= natmem_offset) && (((uae_u8 *)shmaddr + size) <= natmem_offset_end)) || ((p96mem_offset != NULL) && p96special) ) {
             shmids[shmid].natmembase = natmem_offset;
             shmids[shmid].attached = shmaddr;
             write_log ("SHMAddr: %08x = %08p - %08p   %s from NATMEM %s\n", (uae_u8*)shmaddr-natmem_offset, shmaddr, natmem_offset, shmids[shmid].name, got ? "identified":"unknown");

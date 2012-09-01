@@ -559,6 +559,10 @@ void fs_emu_video_init() {
         fs_emu_video_set_aspect_correction(1);
     }
 
+    // the default texture format is RGB, set here because some video
+    // formats implicitly changes the default texture format
+    g_fs_emu_texture_format = GL_RGB;
+
     const char *s = fs_config_get_const_string("video_format");
     if (s) {
         if (g_ascii_strcasecmp(s, "bgra") == 0) {
@@ -580,11 +584,13 @@ void fs_emu_video_init() {
             fs_log("using video format RGB565\n");
             g_fs_emu_video_format = FS_EMU_VIDEO_FORMAT_R5G6B5;
             g_fs_emu_video_bpp = 2;
+            g_fs_emu_texture_format = GL_RGB5;
         }
         else if (g_ascii_strcasecmp(s, "rgba5551") == 0) {
             fs_log("using video format RGBA5551\n");
             g_fs_emu_video_format = FS_EMU_VIDEO_FORMAT_R5G5B5A1;
             g_fs_emu_video_bpp = 2;
+            g_fs_emu_texture_format = GL_RGB5_A1;
         }
         else {
             fs_emu_warning("Unknown video format");
@@ -623,12 +629,11 @@ void fs_emu_video_init() {
             g_fs_emu_texture_format = GL_RGB5_A1;
         }
         else {
-            fs_emu_warning("Unknown texture format");
+            fs_emu_warning("Unknown texture format (using default)");
         }
     }
-    if (!g_fs_emu_texture_format) {
-        fs_log("using default texture format RGB\n");
-        g_fs_emu_texture_format = GL_RGB;
+    else {
+        fs_log("using default texture format\n");
     }
 
 

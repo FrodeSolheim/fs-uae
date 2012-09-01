@@ -1,15 +1,18 @@
 Version 1.3.25:
+* Automatically choose best texture format for new video_format rgb565.
+* Added config for Speed-Link Competition Pro Gold [Régis Patroix].
 * Added support for RTG modes with native 16-bit buffers.
 * Copy RTG video row data without pixel conversion when possible.
 * Added support for PPC / Mac OS 10.5 [Tobias Netzel].
-* Added support for 16-bit video and texture formats.
+* Added support for 16-bit video and texture formats (new value
+  video_format = rgb565).
 * Fixes to allow for compilation with clang.
 * Replaced deprecated valloc, getpagesize with posix equivalents.
 * (Launcher) Workaround to make translations work on Mac OS X.
 * (Launcher) Fixed bug when setting hard_drive_x folders options from config
   files.
 * (Launcher) Remove information panels when running on small resolutions.
-* (Launcher) Updated translations: fr [Foul], de [nexusle].
+* (Launcher) Updated translations: fr [Foul], de [nexusle], it [Speedvicio].
 
 Version 1.3.24:
 

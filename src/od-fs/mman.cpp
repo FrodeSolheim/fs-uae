@@ -49,6 +49,11 @@ static int GetLastError() {
     return errno;
 }
 
+#ifdef HAVE_POSIX_MEMALIGN
+// FIXME: Set HAVE_POSIX_MEMALIGN when available in config.h,
+// possibly via autoconf
+#define valloc my_valloc
+
 static void *my_valloc(size_t size) {
     size_t alignment = sysconf(_SC_PAGESIZE);
     void *memptr = NULL;
@@ -58,11 +63,12 @@ static void *my_valloc(size_t size) {
     return NULL;
 }
 
+#endif
+
 static int my_getpagesize (void) {
     return sysconf(_SC_PAGESIZE);
 }
 
-#define valloc my_valloc
 #define getpagesize my_getpagesize
 
 #endif

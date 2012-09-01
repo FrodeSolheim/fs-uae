@@ -1,3 +1,12 @@
+// FIXME: this file was created by configure for PUAE and has been
+// manually altered with reasonable values.
+// New macros that are explicitly used in code are added to config.h for
+// now, to separate them from this messy file. Have to eventually consider
+// using autotools...
+
+#include "config.h"
+
+
 /* src/sysconfig.h.  Generated from sysconfig.h.in by configure.  */
 /* src/sysconfig.h.in.  Generated from configure.in by autoheader.  */
 
@@ -305,25 +314,25 @@
 #define MULTIPLICATION_PROFITABLE 1
 
 /* Name of package */
-#define PACKAGE "puae"
+//#define PACKAGE "fs-uae"
 
 /* Define to the address where bug reports for this package should be sent. */
-#define PACKAGE_BUGREPORT ""
+//#define PACKAGE_BUGREPORT ""
 
 /* Define to the full name of this package. */
-#define PACKAGE_NAME "PUAE"
+//#define PACKAGE_NAME "FS-UAE"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "PUAE 2.3.1"
+//#define PACKAGE_STRING "FS-UAE 1.0.0"
 
 /* Define to the one symbol short name of this package. */
-#define PACKAGE_TARNAME "puae"
+//#define PACKAGE_TARNAME "fs-uae"
 
 /* Define to the home page for this package. */
-#define PACKAGE_URL ""
+//#define PACKAGE_URL ""
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "2.3.1"
+//#define PACKAGE_VERSION "1.0.0"
 
 /* Define to the necessary symbol if this constant uses a non-standard name on
    your system. */

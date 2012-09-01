@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: fs-uae-launcher\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
 "POT-Creation-Date: 2012-08-21 11:38+0200\n"
-"PO-Revision-Date: 2012-07-30 18:33+0100\n"
+"PO-Revision-Date: 2012-08-31 11:21+0100\n"
 "Last-Translator: Speedvicio <speedvicio@hotmail.com>\n"
 "Language-Team: Italian\n"
 "Language: it\n"
@@ -30,7 +30,7 @@ msgid "Add Files to List"
 msgstr "Aggiungi Files alla Lista"
 
 msgid "Add Multiple CD-ROMs at Once"
-msgstr ""
+msgstr "Aggiungi CD-ROM Multipli al Volo"
 
 msgid "Add Multiple Floppies at Once"
 msgstr "Aggiungi Floppies Multipli al Volo"
@@ -51,7 +51,7 @@ msgid "CD-ROM Drive"
 msgstr "Drive CD-ROM"
 
 msgid "CD-ROM Drives"
-msgstr ""
+msgstr "Supporti CD-ROM"
 
 msgid "CD32 Pad"
 msgstr "Pad CD32"
@@ -159,7 +159,7 @@ msgid "Kickstart Versions"
 msgstr "Versioni Kickstart"
 
 msgid "Launching FS-UAE"
-msgstr ""
+msgstr "Avviando FS-UAE"
 
 msgid "Least Accurate"
 msgstr "Poco Preciso"
@@ -183,9 +183,7 @@ msgid "No Joysticks"
 msgstr "Nessun Joysticks"
 
 msgid "No extended kickstart found for this model. Try 'scan' function."
-msgstr ""
-"Nessun kickstart esteso trovato per questo modello. Prova la funzione "
-"'scansione'."
+msgstr "Nessun kickstart esteso trovato per questo modello. Prova la funzione 'scansione'."
 
 msgid "No joysticks are currently connected"
 msgstr "Attualmente nessun joysticks connesso"
@@ -230,7 +228,7 @@ msgid "Preparing hard drives..."
 msgstr "Preparando hard drives..."
 
 msgid "Preparing..."
-msgstr ""
+msgstr "Preparando..."
 
 msgid "Purging old entries..."
 msgstr "Pulisci vecchie voci..."
@@ -257,10 +255,10 @@ msgid "Scan complete"
 msgstr "Scansione completata"
 
 msgid "Scanning .fs-uae files..."
-msgstr ""
+msgstr "Scansionando files .fs-uae..."
 
 msgid "Scanning built-in entries..."
-msgstr ""
+msgstr "Scansionando voci create..."
 
 msgid "Scanning configurations"
 msgstr "Ricercando configurazioni"
@@ -269,7 +267,7 @@ msgid "Scanning configurations ({count} scanned)"
 msgstr "Scansionando le configurazioni ({count} scansionati)"
 
 msgid "Scanning database entries..."
-msgstr ""
+msgstr "Scansionando voci database..."
 
 msgid "Scanning files"
 msgstr "Ricerca Files"
@@ -287,10 +285,10 @@ msgid "Select Multiple Floppies"
 msgstr "Seleziona Floppies Multipli"
 
 msgid "Show Only Favorites (On/Off)"
-msgstr ""
+msgstr "Visualizza Solo i Favoriti (On/Off)"
 
 msgid "Show Only Verified Configurations (On/Off)"
-msgstr ""
+msgstr "Visualizza Solo le Configurazioni Verificate (On/Off)"
 
 msgid "Start"
 msgstr "Avvia"
@@ -302,7 +300,7 @@ msgid "Starting scan"
 msgstr "Iniziando scansione"
 
 msgid "Swap List"
-msgstr ""
+msgstr "Scambia Lista"
 
 msgid "WHDLoad Arguments"
 msgstr "Argomenti WHDLoad"

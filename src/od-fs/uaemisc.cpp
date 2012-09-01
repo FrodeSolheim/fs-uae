@@ -72,14 +72,25 @@ int same_aname (const char *an1, const char *an2) {
     return strcasecmp (an1, an2) == 0;
 }
 
-void console_out_f (const TCHAR *, ...) {
-    // FIXME:
-    STUB("");
+void console_out_f(const TCHAR *fmt, ...) {
+    va_list arg_ptr;
+    va_start(arg_ptr, fmt);
+    vprintf(fmt, arg_ptr);
+    va_end(arg_ptr);
 }
 
-void console_out (const TCHAR *) {
-    // FIXME:
-    STUB("");
+void f_out(void *f, const TCHAR *format, ...) {
+    if (f == NULL) {
+        return;
+    }
+    va_list arg_ptr;
+    va_start(arg_ptr, format);
+    vfprintf((FILE*) f, format, arg_ptr);
+    va_end(arg_ptr);
+}
+
+void console_out (const TCHAR *msg) {
+    printf("%s", msg);
 }
 
 int console_get_gui (TCHAR *out, int maxlen) {
@@ -87,13 +98,17 @@ int console_get_gui (TCHAR *out, int maxlen) {
     return 0;
 }
 
-int console_get (TCHAR *out, int maxlen) {
-    STUB("");
-    return 0;
+int console_get(TCHAR *in, int maxlen) {
+    TCHAR *res = fgets(in, maxlen, stdin);
+    if (res == NULL) {
+        return -1;
+    }
+    int len = strlen(in);
+    return len - 1;
 }
 
-void console_flush (void) {
-    STUB("");
+void console_flush(void) {
+    fflush(stdout);
 }
 
 TCHAR console_getch (void) {

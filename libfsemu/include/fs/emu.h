@@ -81,6 +81,9 @@ void fs_emu_set_actions(fs_emu_action *actions);
 void fs_emu_reset_input_mapping();
 void fs_emu_map_custom_actions();
 
+typedef int (*fs_emu_hotkey_function)(int key_code, int key_mod);
+void fs_emu_set_hotkey_function(fs_emu_hotkey_function handler);
+
 typedef struct fs_emu_rect {
     int x;
     int y;

@@ -1171,6 +1171,11 @@ static void init_input_configs() {
     }
 }
 
+static fs_emu_hotkey_function g_hotkey_function = NULL;
+void fs_emu_set_hotkey_function(fs_emu_hotkey_function function) {
+    g_hotkey_function = function;
+}
+
 static int handle_shortcut(fs_ml_event *event) {
     //int sym = event->key.keysym.sym;
     int key_code = event->key.keysym.sym;
@@ -1222,6 +1227,9 @@ static int handle_shortcut(fs_ml_event *event) {
             else if (key_code == FS_ML_KEY_B) {
                 // toogle zoom border
                 fs_emu_toggle_zoom(1);
+            }
+            else if (g_hotkey_function != NULL) {
+                g_hotkey_function(key_code, key_mod);
             }
         }
     }

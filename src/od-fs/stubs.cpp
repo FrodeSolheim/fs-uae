@@ -56,7 +56,9 @@ uae_u32 emulib_target_getcpurate (uae_u32 v, uae_u32 *low) {
 }
 
 void update_debug_info(void) {
-    STUB("");
+    // used to update debug info in debugger UI , currently FS only supports
+    // using console debugging on Linux/Mac OS X (The Windows version is
+    // not a console application).
 }
 
 void debugger_change (int mode) {
@@ -65,10 +67,6 @@ void debugger_change (int mode) {
 
 void screenshot (int mode, int doprepare) {
     STUB("mode=%d doprepare=%d", mode, doprepare);
-}
-
-void f_out (void *f, const TCHAR *format, ...) {
-    STUB("f=%p, format=\"%s\"", f, format);
 }
 
 void write_dlog (const TCHAR *format, ...) {

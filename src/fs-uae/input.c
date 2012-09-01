@@ -1,5 +1,6 @@
 #include <uae/uae.h>
 #include <fs/emu.h>
+#include <fs/i18n.h>
 
 static fs_emu_action g_actions[] = {
     { INPUTEVENT_MOUSE1_HORIZ, "action_mouse_0_horiz", 0 },
@@ -400,9 +401,43 @@ static fs_emu_action g_actions[] = {
     { INPUTEVENT_AMIGA_JOYPORT_MODE_3_CD32JOY, "action_joyport_3_mode_cd32joy", 0 },
     { INPUTEVENT_AMIGA_JOYPORT_MODE_3_LIGHTPEN, "action_joyport_3_mode_lightpen", 0 },
 
+    { INPUTEVENT_SPC_ENTERDEBUGGER, "action_enter_debugger", 0 },
+
     { 0, 0, 0 },
 };
 
+static int hotkey_function(int key_code, int key_mod) {
+    //write_log("hotkey: %d mod %d\n", key_code, key_mod);
+    switch (key_code) {
+    case FS_ML_KEY_R:
+        fs_emu_log("hot key: soft reset\n");
+        fs_emu_warning(_("Soft Reset"));
+        fs_emu_queue_action(INPUTEVENT_SPC_SOFTRESET, 1);
+        return 0;
+    case FS_ML_KEY_T:
+        fs_emu_log("hot key: hard reset\n");
+        fs_emu_warning(_("Hard Reset"));
+        fs_emu_queue_action(INPUTEVENT_SPC_HARDRESET, 1);
+        return 0;
+    case FS_ML_KEY_A:
+        fs_emu_log("hot key: freeze button\n");
+        fs_emu_queue_action(INPUTEVENT_SPC_FREEZEBUTTON, 1);
+        return 0;
+    case FS_ML_KEY_D:
+        fs_emu_log("hot key: enter debugger\n");
+        if (fs_config_get_boolean("console_debugger") == 1) {
+            fs_emu_warning("Activated Debugger");
+            fs_emu_queue_action(INPUTEVENT_SPC_ENTERDEBUGGER, 1);
+        }
+        else {
+            fs_emu_warning("Option \"console_debugger\" Must Be Set First");
+        }
+        return 0;
+    }
+    return 0;
+}
+
 void fs_uae_configure_actions() {
     fs_emu_set_actions(g_actions);
+	fs_emu_set_hotkey_function(hotkey_function);
 }

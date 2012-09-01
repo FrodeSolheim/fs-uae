@@ -433,6 +433,20 @@ void fs_emu_audio_init() {
     // FIXME:
 }
 
+void fs_emu_audio_shutdown() {
+    //alDeleteSources(NUM_SOURCES, source);
+    //alDeleteBuffers(NUM_BUFFERS, buffers);
+    alcMakeContextCurrent(NULL);
+    if (!g_context) {
+        alcDestroyContext(g_context);
+        g_context = NULL;
+    }
+    if (g_device) {
+        alcCloseDevice(g_device);
+        g_device = NULL;
+    }
+}
+
 void fs_emu_init_audio_stream_options(fs_emu_audio_stream_options *options) {
     options->frequency = 44100;
     options->channels = 2;

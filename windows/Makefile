@@ -22,6 +22,7 @@ program:
 	cp /mingw/bin/libintl*.dll fs-uae-$(version)-windows
 	cp /mingw/bin/libiconv*.dll fs-uae-$(version)-windows
 	cp /mingw/bin/SDL.dll fs-uae-$(version)-windows
+	cp /mingw/bin/soft_oal.dll fs-uae-$(version)-windows/OpenAL32.dll
 	#cp /mingw/dist/SDL.dll fs-uae-$(version)-windows
 	cp -a ../../libfs-capsimage/out/*.dll fs-uae-$(version)-windows
 	cp ../out/fs-uae.exe fs-uae-$(version)-windows/FS-UAE.exe
@@ -40,6 +41,7 @@ launcher:
 	cp -a ../launcher/share fs-uae-$(version)-windows/launcher/
 	mv fs-uae-$(version)-windows/launcher/fs-uae-launcher.exe "fs-uae-$(version)-windows/launcher/FS-UAE Launcher.exe"
 	python replace_icon.py "fs-uae-$(version)-windows/launcher/FS-UAE Launcher.exe" ../icon/fs-uae.ico
+	cp -a C:/Microsoft.VC90.CRT fs-uae-$(version)-windows/launcher/
 
 bindist-plus:
 	zip -r fs-uae-plus-$(version)-windows.zip fs-uae-$(version)-windows

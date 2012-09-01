@@ -5,6 +5,8 @@
 #include "util.h"
 
 void fs_emu_audio_init();
+void fs_emu_audio_shutdown();
+
 void fs_emu_audio_video_sync(int time_ms);
 void fs_emu_audio_render_debug_info(uint32_t *texture);
 void fs_emu_audio_set_default_pitch(double pitch);

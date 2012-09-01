@@ -668,6 +668,8 @@ int fs_emu_run(fs_emu_main_function function) {
     fs_emu_log("fs_emu_run: calling SDL_CloseAudio\n");
     SDL_CloseAudio();
 #endif
+
+    fs_emu_audio_shutdown();
     fs_emu_log("fs_emu_run: returning\n");
     return result;
 }

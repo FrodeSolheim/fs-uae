@@ -9,7 +9,7 @@ OPTIONS = {'argv_emulation': True}
 
 setup(
 name = "FS-UAE Launcher",
-version = "1.3.24",
+version = "1.3.25",
 author = "Frode Solheim",
 author_email = "fs-uae@fengestad.no",
 app = APP,

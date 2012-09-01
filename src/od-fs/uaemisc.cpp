@@ -10,6 +10,14 @@
 uaecptr p96ram_start;
 #endif
 
+#ifdef WINDOWS
+#else
+// need to fake _timezone because some code from WinUAE depend on it (a
+// Windows global variable)
+int _timezone;
+int _daylight;
+#endif
+
 int pause_emulation = 0;
 int uaelib_debug = 0;
 

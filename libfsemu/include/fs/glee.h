@@ -814,6 +814,7 @@ GLEE_EXTERN GLboolean _GLEE_SGIX_texture_range;
 
     /* GLX */
 
+/*
     typedef void (*__GLXextFuncPtr)(void);
 
     #ifndef GLX_ARB_get_proc_address
@@ -822,6 +823,7 @@ GLEE_EXTERN GLboolean _GLEE_SGIX_texture_range;
         extern void ( * glXGetProcAddressARB (const GLubyte *procName))(void);
         typedef __GLXextFuncPtr ( * PFNGLXGETPROCADDRESSARBPROC) (const GLubyte *procName);
     #endif
+*/
 
     #ifndef GLX_SGIX_fbconfig
         typedef XID GLXFBConfigIDSGIX;
@@ -16814,7 +16816,7 @@ GLEE_EXTERN GLboolean _GLEE_GLX_NV_video_output;
 #define GLX_SAMPLES                                        100001
 #ifndef GLEE_H_DEFINED_glXGetProcAddress
 #define GLEE_H_DEFINED_glXGetProcAddress
-  typedef __GLXextFuncPtr (APIENTRYP GLEEPFNGLXGETPROCADDRESSPROC) (const GLubyte * procName);
+  //typedef __GLXextFuncPtr (APIENTRYP GLEEPFNGLXGETPROCADDRESSPROC) (const GLubyte * procName);
   GLEE_EXTERN GLEEPFNGLXGETPROCADDRESSPROC GLeeFuncPtr_glXGetProcAddress;
   #define glXGetProcAddress GLeeFuncPtr_glXGetProcAddress
 #endif

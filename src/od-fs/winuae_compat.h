@@ -45,8 +45,16 @@
 #define _vsntprintf vsnprintf
 #define _vsnprintf vsnprintf
 #define _tprintf printf
-#define _timezone timezone
-#define _daylight daylight
+
+//#define _timezone timezone
+//#define _daylight daylight
+#ifdef WINDOWS
+
+#else
+extern int _timezone;
+extern int _daylight;
+#endif
+
 #define _tzset tzset
 
 #define _istalnum isalnum

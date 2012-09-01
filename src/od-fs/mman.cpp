@@ -557,9 +557,9 @@ void mapped_free (uae_u8 *mem)
     }
 }
 
-static key_t get_next_shmkey (void)
+static uae_key_t get_next_shmkey (void)
 {
-    key_t result = -1;
+    uae_key_t result = -1;
     int i;
     for (i = 0; i < MAX_SHMID; i++) {
         if (shmids[i].key == -1) {
@@ -571,7 +571,7 @@ static key_t get_next_shmkey (void)
     return result;
 }
 
-STATIC_INLINE key_t find_shmkey (key_t key)
+STATIC_INLINE uae_key_t find_shmkey (uae_key_t key)
 {
     int result = -1;
     if(shmids[key].key == key) {
@@ -810,7 +810,7 @@ int uae_shmdt (const void *shmaddr)
     return 0;
 }
 
-int uae_shmget (key_t key, size_t size, int shmflg, const TCHAR *name)
+int uae_shmget (uae_key_t key, size_t size, int shmflg, const TCHAR *name)
 {
     int result = -1;
 

@@ -1,4 +1,5 @@
 Version 1.3.25:
+* FS-UAE compiles and runs on FreeBSD.
 * Automatically choose best texture format for new video_format rgb565.
 * Added config for Speed-Link Competition Pro Gold [Régis Patroix].
 * Added support for RTG modes with native 16-bit buffers.

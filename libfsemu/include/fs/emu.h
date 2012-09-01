@@ -273,13 +273,13 @@ void fs_emu_set_pixel_aspect_ratio(double ratio);
  *
  * This is not the same as fs_emu_get_video_vsync!
  */
-inline int fs_emu_get_vblank_sync() {
+static inline int fs_emu_get_vblank_sync() {
     return fs_ml_get_vblank_sync();
 }
 /**
  * Check whether emulated video is synced to the host display.
  */
-inline int fs_emu_get_video_sync() {
+static inline int fs_emu_get_video_sync() {
     return fs_ml_get_video_sync();
 }
 

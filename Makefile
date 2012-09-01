@@ -21,7 +21,7 @@ endif
 
 libfsemu_dir = libfsemu
 libfsemu-target:
-	make -C libfsemu
+	$(make) -C libfsemu
 
 #ifeq ($(wildcard libfs-capsimage), libfs-capsimage)
 #libfs-capsimage_dir = libfs-capsimage
@@ -97,40 +97,35 @@ uae_warnings = -Wall -Wno-sign-compare
 generate = 0
 
 ifeq ($(os), android)
-
-cppflags += -DANDROID
-cxxflags += 
-libs +=
-
+  cppflags += -DANDROID
+  cxxflags += 
+  libs +=
 else ifeq ($(os), windows)
-
-cppflags += -DWINDOWS
-cxxflags += -U_WIN32 -UWIN32
-libs += -lOpenGL32 -lGLU32 -lgdi32 -lWinmm -lOpenAL32 -lWs2_32
-
+  cppflags += -DWINDOWS
+  cxxflags += -U_WIN32 -UWIN32
+  libs += -lOpenGL32 -lGLU32 -lgdi32 -lWinmm -lOpenAL32 -lWs2_32
 else ifeq ($(os), macosx)
-
-uname_m := $(shell uname -m)
-ifneq ($(arch),)
-else ifneq ($(findstring i386,$(uname_m)),)
-arch = i386
-else ifneq ($(findstring Power,$(uname_m)),)
-arch = ppc
+  uname_m := $(shell uname -m)
+  ifneq ($(arch),)
+  else ifneq ($(findstring i386,$(uname_m)),)
+    arch = i386
+  else ifneq ($(findstring Power,$(uname_m)),)
+    arch = ppc
+  else
+    arch = x86_64
+  endif
+  cflags += -arch $(arch)
+  cxxflags += -arch $(arch)
+  ldflags += -arch $(arch)
+  cppflags += -DMACOSX
+  libs += -framework OpenGL -framework Carbon -framework OpenAL
+else ifeq ($(os), freebsd)
+  cppflags += -DFREEBSD
+  libs += -lGL -lGLU -lopenal -lX11 -lcompat
 else
-arch = x86_64
-endif
-cflags += -arch $(arch)
-cxxflags += -arch $(arch)
-ldflags += -arch $(arch)
-cppflags += -DMACOSX
-libs += -framework OpenGL -framework Carbon -framework OpenAL
-
-else
-
-ldflags += -Wa,--execstack
-libs += -lGL -lGLU -lopenal -ldl -lX11
-generate = 0
-
+  ldflags += -Wa,--execstack
+  libs += -lGL -lGLU -lopenal -ldl -lX11
+  generate = 0
 endif
 
 ifeq ($(debug), 1)
@@ -559,7 +554,7 @@ distdir: distdir-launcher
 	find $(dist_dir) -name *~ -delete
 
 distcheck: distdir
-	cd $(dist_dir) && make
+	cd $(dist_dir) && $(make)
 
 po-dist:
 	mkdir -p dist/files/po/fs-uae
@@ -593,7 +588,7 @@ clean:
 	rm -f gen/build68k gen/genblitter gen/gencpu gen/genlinetoscr
 	rm -f obj/*.o obj/*.a
 	rm -f out/*
-	make -C libfsemu clean
+	$(make) -C libfsemu clean
 
 distclean: clean
 

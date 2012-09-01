@@ -12,6 +12,8 @@ int64_t uae_ftello64(FILE *stream) {
     return ftello64(stream);
 #elif MACOSX
     return ftello(stream);
+#elif FREEBSD
+    return ftello(stream);
 #else
     return ftello64(stream);
 #endif
@@ -21,6 +23,8 @@ int uae_fseeko64(FILE *stream, int64_t offset, int whence) {
 #ifdef WINDOWS
     return fseeko64(stream, offset, whence);
 #elif MACOSX
+    return fseeko(stream, offset, whence);
+#elif FREEBSD
     return fseeko(stream, offset, whence);
 #else
     return fseeko64(stream, offset, whence);

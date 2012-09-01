@@ -14,12 +14,12 @@
 
 extern uae_u8 *natmem_offset, *natmem_offset_end;
 
-typedef int key_t;
+typedef int uae_key_t;
 typedef USHORT ushort;
 
 /* One shmid data structure for each shared memory segment in the system. */
 struct shmid_ds {
-    key_t  key;
+    uae_key_t  key;
     size_t size;
     void   *addr;
     TCHAR  name[MAX_PATH];
@@ -31,7 +31,7 @@ struct shmid_ds {
 //int mprotect (void *addr, size_t len, int prot);
 void *uae_shmat (int shmid, void *shmaddr, int shmflg);
 int uae_shmdt (const void *shmaddr);
-int uae_shmget (key_t key, size_t size, int shmflg, const TCHAR* name);
+int uae_shmget (uae_key_t key, size_t size, int shmflg, const TCHAR* name);
 int uae_shmctl (int shmid, int cmd, struct shmid_ds *buf);
 int init_shm (void);
 

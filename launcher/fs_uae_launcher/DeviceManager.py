@@ -2,6 +2,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
 
+import re
 import traceback
 import subprocess
 from .Config import Config
@@ -39,8 +40,7 @@ class DeviceManager:
             if name_count > 1:
                 name = name + u" #" + str(name_count)
             cls.device_ids.append(name)
-            for i in range(3):
-                name = name.replace("  ", " ")
+            name = re.sub("[ ]+", " ", name)
             cls.device_names.append(name)
             print("a")
 
@@ -59,8 +59,7 @@ class DeviceManager:
             if name_count > 1:
                 name = name + u" #" + str(name_count)
             cls.device_ids.append(name)
-            for i in range(3):
-                name = name.replace("  ", " ")
+            name = re.sub("[ ]+", " ", name)
             cls.device_names.append(name)
 
     @classmethod
@@ -81,11 +80,15 @@ class DeviceManager:
             if name_count > 1:
                 name = name + u" #" + str(name_count)
             cls.device_ids.append(name)
-            for i in range(3):
-                name = name.replace("  ", " ")
+            name = re.sub("[ ]+", " ", name)
             cls.device_names.append(name)
 
     @classmethod
     def get_joystick_names(cls):
         cls.init()
         return cls.device_names[:]
+
+    @classmethod
+    def get_joystick_ids(cls):
+        cls.init()
+        return cls.device_ids[:]

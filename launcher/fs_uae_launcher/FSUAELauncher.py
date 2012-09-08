@@ -29,11 +29,27 @@ class FSUAELauncher(fsui.Application):
         Config.update_kickstart()
 
         icon = None
-        if fs.windows:
-            if os.path.exists("share/fs-uae-launcher/fs-uae-launcher.ico"):
-                icon = "share/fs-uae-launcher/fs-uae-launcher.ico"
-            elif os.path.exists("launcher/share/fs-uae-launcher/fs-uae-launcher.ico"):
-                icon = "launcher/share/fs-uae-launcher/fs-uae-launcher.ico"
+        def check_icon(path):
+            path = os.path.join(path, "fs-uae-launcher.ico")
+            if os.path.exists(path):
+                return path
+            return None
+        if not icon:
+            icon = check_icon("share/fs-uae-launcher")
+        if not icon:
+            icon = check_icon("launcher/share/fs-uae-launcher")
+        # FIXME: should check data directories (XDG_DATA_DIRS) properly
+        # instead
+        if not icon:
+            icon = check_icon(os.expanduser("~/.local/share/fs-uae-launcher"))
+        if not icon:
+            icon = check_icon("/usr/local/share/fs-uae-launcher")
+        if not icon:
+            icon = check_icon("/usr/share/fs-uae-launcher")
+        if fs.macosx:
+            # Icons come from the app bundles
+            icon = None
+
         window = MainWindow(icon=icon)
         MainWindow.instance = window
         window.show()

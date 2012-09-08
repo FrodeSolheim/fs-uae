@@ -5,7 +5,15 @@ from __future__ import unicode_literals
 
 import os
 import sys
-from .fs import memoize
+from .fs import memoize, get_home_dir
+
+def expand_path(path):
+    if path.startswith("~/") or path.startswith("~\\"):
+        path = os.path.join(get_home_dir(), path[2:])
+    lower_path = path.lower()
+    if lower_path.startswith("$home/") or lower_path.startswith("$home\\"):
+        path = os.path.join(get_home_dir(), path[6:])
+    return path
 
 def get_real_case(path):
     """Check the case for the (case insensitive) path. Used to make the

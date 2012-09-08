@@ -34,7 +34,7 @@ static void set_window_icon() {
     for(int *size = sizes; *size; size++) {
         char *rel = fs_strdup_printf("icons/hicolor/%dx%d/apps/fs-uae.png",
                 *size, *size);
-        char *path = fs_get_program_data_file(rel);
+        char *path = fs_get_data_file(rel);
         free(rel);
         if (!path) {
             fs_log("did not find icon for %dx%d\n", *size, *size);

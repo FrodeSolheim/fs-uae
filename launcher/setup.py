@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
 name = "fs_uae_launcher",
-version = "1.3.25",
+version = "1.3.26",
 author = "Frode Solheim",
 author_email = "fs-uae@fengestad.no",
 install_requires = ["wxPython", "pygame"],

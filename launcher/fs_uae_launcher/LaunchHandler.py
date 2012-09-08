@@ -23,6 +23,7 @@ from .Database import Database
 from .ROMManager import ROMManager
 from .games.GameChangeHandler import GameChangeHandler
 from .I18N import _, ngettext
+from .Util import expand_path
 
 class LaunchHandler:
 
@@ -97,6 +98,7 @@ class LaunchHandler:
                 continue
             if src == "internal":
                 continue
+            src = expand_path(src)
             
             archive = Archive(src)
             if not archive.exists(src):
@@ -129,6 +131,7 @@ class LaunchHandler:
             DownloadService.install_file_from_url(src, dest)
             self.config[key] = name
             return
+        src = expand_path(src)
 
         archive = Archive(src)
         if not archive.exists(src):
@@ -187,6 +190,7 @@ class LaunchHandler:
                 self.unpack_hard_drive(i, value)
 
     def unpack_hard_drive(self, i, zip_path):
+        zip_path = expand_path(zip_path)
         dir_name = "DH{0}".format(i)
         dir_path = os.path.join(self.temp_dir, dir_name)
         #self.unpack_zip(zip_path, dir_path)

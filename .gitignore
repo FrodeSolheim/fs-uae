@@ -1,3 +1,4 @@
+*.pyc
 /osc
 /libfs-capsimage
 /*.dsc
@@ -51,4 +52,7 @@ temp
 *.dll
 *.mo
 *.pot
+*.core
 *~
+libfsemu/obj
+libfsemu/out

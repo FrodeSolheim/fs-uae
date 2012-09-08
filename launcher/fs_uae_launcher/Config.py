@@ -10,6 +10,7 @@ from .Amiga import Amiga
 from .Warnings import Warnings
 from .Database import Database
 from .Version import Version
+from .Util import expand_path
 
 # the order of the following keys is significant (for some keys).
 # multiple options should be set in this order since some options will
@@ -331,10 +332,11 @@ class Config:
 
         from .DeviceManager import DeviceManager
         available = DeviceManager.get_joystick_names()
-        available.append("none")
-        available.append("mouse")
-        available.append("keyboard")
+        available.extend(["none", "mouse", "keyboard"])
         available_lower = [x.lower() for x in available]
+
+        device_ids = DeviceManager.get_joystick_ids()
+        device_ids.extend(["none", "mouse", "keyboard"])
 
         # remove devices from available list if specified and found
         try:
@@ -367,9 +369,10 @@ class Config:
                 if index == -1:
                     index = len(available) - 1
                 if index >= 0:
-                    config["joystick_port_1"] = available[index]
+                    config["joystick_port_1"] = device_ids[index]
                     del available[index]
                     del available_lower[index]
+                    del device_ids[index]
         elif config["joystick_port_1_mode"] in ["mouse"]:
             if not config["joystick_port_1"]:
                 config["joystick_port_1"] = "mouse"
@@ -388,9 +391,10 @@ class Config:
                 if index == -1:
                     index = len(available) - 1
                 if index >= 0:
-                    config["joystick_port_0"] = available[index]
+                    config["joystick_port_0"] = device_ids[index]
                     del available[index]
                     del available_lower[index]
+                    del device_ids[index]
         elif config["joystick_port_0_mode"] in ["mouse"]:
             if not config["joystick_port_0"]:
                 config["joystick_port_0"] = "mouse"
@@ -403,6 +407,7 @@ class Config:
         checksum_tool = ChecksumTool(None)
         def fix_file_checksum(sha1_key, key, base_dir, is_rom=False):
             path = config.get(key, "")
+            path = expand_path(path)
             sha1 = config.get(sha1_key, "")
             if not path:
                 return

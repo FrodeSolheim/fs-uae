@@ -36,7 +36,7 @@ int amiga_cpu_set_speed(int speed);
 
 void amiga_enable_netplay_mode();
 
-int amiga_enable_serial_port();
+int amiga_enable_serial_port(const char *serial_name);
 
 void amiga_set_save_image_dir(const char *path);
 

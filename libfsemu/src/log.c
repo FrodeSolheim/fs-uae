@@ -84,7 +84,8 @@ void fs_log_string(const char *str) {
     }
     g_mutex_lock(g_mutex);
     if (g_fs_log_stdout) {
-        printf("L: %s", str);
+        //printf("L: %s", str);
+        printf("%s", str);
     }
     if (g_log_file) {
         fprintf(g_log_file, "%s", str);

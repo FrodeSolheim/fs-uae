@@ -216,7 +216,6 @@ obj/rommgr.o \
 obj/savestate.o \
 obj/scsi.o \
 obj/scsiemul.o \
-obj/serial.o \
 obj/sinctable.o \
 obj/specialmonitors.o \
 obj/statusline.o \
@@ -269,6 +268,7 @@ obj/od-fs-parser.o \
 obj/od-fs-random.o \
 obj/od-fs-roms.o \
 obj/od-fs-picasso96.o \
+obj/od-fs-serial_host.o \
 obj/od-fs-stubs.o \
 obj/od-fs-support.o \
 obj/od-fs-util.o \

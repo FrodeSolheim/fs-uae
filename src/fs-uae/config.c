@@ -412,7 +412,8 @@ void fs_uae_configure_amiga_hardware() {
         amiga_set_option("bsdsocket_emu", "yes");
     }
 
-    amiga_enable_serial_port();
+    amiga_enable_serial_port(fs_config_get_const_string("serial_port"));
+
     configure_accuracy(c);
 
     if (fs_config_get_boolean("line_doubling") == 0) {

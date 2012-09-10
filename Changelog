@@ -1,3 +1,6 @@
+Version 1.3.27
+* Native serial port for POSIX systems [lallafa].
+
 Version 1.3.26u1:
 * Fixed a bug preventing the launcher from starting on some systems.
 

@@ -135,20 +135,6 @@ int enforcer_disable(void) {
     return 1;
 }
 
-int seriallog = 0;
-
-void serial_check_irq (void) {
-    VERBOSE_STUB("");
-}
-
-void serial_uartbreak (int v) {
-    VERBOSE_STUB("");
-}
-
-void serial_hsynchandler (void) {
-    VERBOSE_STUB("");
-}
-
 void machdep_free (void) {
     STUB("");
 }

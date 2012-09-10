@@ -257,12 +257,14 @@ void amiga_write_config(const char *path) {
     cfgfile_save(&currprefs, path, 0);
 }
 
-int amiga_enable_serial_port() {
+int amiga_enable_serial_port(const char *serial_name) {
     write_log("amiga_enable_serial_port\n");
     changed_prefs.use_serial = 1;
     currprefs.use_serial = 1;
-    //strcpy(changed_prefs.sername, "dummy");
-    //strcpy(currprefs.sername, "dummy");
+    if(serial_name != NULL) {
+        strcpy(changed_prefs.sername, serial_name);
+        strcpy(currprefs.sername, serial_name);
+    }
     //config_changed = 1;
     return 1;
 }

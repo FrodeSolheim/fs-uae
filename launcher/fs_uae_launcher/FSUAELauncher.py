@@ -41,7 +41,8 @@ class FSUAELauncher(fsui.Application):
         # FIXME: should check data directories (XDG_DATA_DIRS) properly
         # instead
         if not icon:
-            icon = check_icon(os.expanduser("~/.local/share/fs-uae-launcher"))
+            icon = check_icon(os.path.expanduser(
+                    "~/.local/share/fs-uae-launcher"))
         if not icon:
             icon = check_icon("/usr/local/share/fs-uae-launcher")
         if not icon:

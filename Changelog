@@ -1,10 +1,13 @@
+Version 1.3.26u1:
+* Fixed a bug preventing the launcher from starting on some systems.
+
 Version 1.3.26:
-* Fix window manager icon lookup on Linux [grimi].
+* Fixed window manager icon lookup on Linux [grimi].
 * (Launcher) Associate .fs-uae files with FS-UAE (windows installer).
 * (Launcher) Expand ~/ and $HOME/ in paths from config files.
-* (Launcher) Fixed joystick name matching when joystick contains multiple
+* (Launcher) Fixed joystick matching when joystick name contains multiple
   adjacent spaces.
-* (Launcher) Set window icon for Linux also, in cause the desktop
+* (Launcher) Set window icon for Linux also, in case the desktop
   environment does not pick up the .desktop file icon.
 
 Version 1.3.25:

@@ -174,18 +174,24 @@ static int ser_fd = -1;
 
 int openser (const TCHAR *sername)
 {
+#ifdef POSIX_SERIAL
     ser_fd = open (currprefs.sername, O_RDWR|O_NONBLOCK|O_BINARY, 0);
     write_log("serial: open '%s' -> fd=%d\n", sername, ser_fd);
     return (ser_fd >= 0);
+#else
+    return 0;
+#endif
 }
 
 void closeser (void)
 {
+#ifdef POSIX_SERIAL
     write_log("serial: close fd=%d\n", ser_fd);
     if(ser_fd >= 0) {
         close(ser_fd);
         ser_fd = 0;
     }
+#endif
 }
 
 int setbaud (long baud)
@@ -241,6 +247,7 @@ int setbaud (long baud)
 
 int readseravail (void)
 {
+#ifdef POSIX_SERIAL
     /* device is closed */
     if(ser_fd < 0) {
         return 0;
@@ -255,6 +262,9 @@ int readseravail (void)
     FD_SET(ser_fd, &fd);
     int num_ready = select (FD_SETSIZE, &fd, NULL, NULL, &tv);
     return (num_ready == 1);
+#else
+    return 0;
+#endif
 }
 
 int readser (int *buffer)

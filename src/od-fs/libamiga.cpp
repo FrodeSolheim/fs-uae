@@ -261,9 +261,13 @@ int amiga_enable_serial_port(const char *serial_name) {
     write_log("amiga_enable_serial_port\n");
     changed_prefs.use_serial = 1;
     currprefs.use_serial = 1;
-    if(serial_name != NULL) {
+    if (serial_name != NULL) {
+        write_log("serial port device: %s\n", serial_name);
         strcpy(changed_prefs.sername, serial_name);
         strcpy(currprefs.sername, serial_name);
+    }
+    else {
+        write_log("no native serial port, only logging output\n");
     }
     //config_changed = 1;
     return 1;

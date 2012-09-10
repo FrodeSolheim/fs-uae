@@ -314,6 +314,12 @@ void SERDAT (uae_u16 w)
 
 uae_u16 SERDATR (void)
 {
+    if (!serdev) {
+        // this is done to make serial port "work" and thus AROS bootable
+        // even when we haven't opened a serial device
+        return 0x2000;
+    }
+
 	serdatr &= 0x03ff;
 	if (!data_in_serdat)
 		serdatr |= 0x2000;

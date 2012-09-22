@@ -59,10 +59,14 @@ for dir in dirs:
     gettext.bindtextdomain("fs-uae-launcher", locale_base)
     break
 
+mo_path = None
 if locale_base:
-    mo_path = gettext.find("fs-uae-launcher", locale_base, [loc])
-else:
-    mo_path = None
+    try:
+        mo_path = gettext.find("fs-uae-launcher", locale_base, [loc])
+    except Exception:
+        # a bug in openSUSE 12.2's gettext.py can cause an exception
+        # in gettext.find (checking len of None).
+        pass
 print("path to mo file:", mo_path)
 
 translations = gettext.translation("fs-uae-launcher", locale_base, [loc],

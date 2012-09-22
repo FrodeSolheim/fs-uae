@@ -12,6 +12,7 @@ libcapsimage.dylib
 /*.uae
 .pydevproject
 *.swp
+*-swp
 *.uss
 *.sav
 *.sdf

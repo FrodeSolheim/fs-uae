@@ -196,6 +196,10 @@ void closeser (void)
 
 int setbaud (long baud)
 {
+    if (!currprefs.use_serial) {
+        return 1;
+    }
+
 #if defined POSIX_SERIAL
     int pspeed;
     
@@ -247,6 +251,10 @@ int setbaud (long baud)
 
 int readseravail (void)
 {
+    if (!currprefs.use_serial) {
+        return 0;
+    }
+
 #ifdef POSIX_SERIAL
     /* device is closed */
     if(ser_fd < 0) {
@@ -269,10 +277,10 @@ int readseravail (void)
 
 int readser (int *buffer)
 {
-    if(ser_fd < 0) {
+    if (ser_fd < 0 || !currprefs.use_serial) {
         return 0;
     }
-    
+
     char b;
     int num = read(ser_fd, &b, 1);
     if (num == 1) {
@@ -285,8 +293,8 @@ int readser (int *buffer)
 
 int checkserwrite (void)
 {
-    if(ser_fd < 0) {
-        return 0;
+    if (ser_fd < 0 || !currprefs.use_serial) {
+        return 1;
     }
     
     /* we assume that we can write always */
@@ -295,7 +303,7 @@ int checkserwrite (void)
 
 void writeser (int c)
 {
-    if(ser_fd < 0) {
+    if (ser_fd < 0 || !currprefs.use_serial) {
         return;
     }
     
@@ -307,7 +315,7 @@ void getserstat (int *pstatus)
 {
     *pstatus = 0;
     
-    if(ser_fd < 0) {
+    if (ser_fd < 0 || !currprefs.use_serial) {
         return;
     }
 
@@ -336,7 +344,7 @@ void getserstat (int *pstatus)
 
 void setserstat (int mask, int onoff)
 {
-    if(ser_fd < 0) {
+    if (ser_fd < 0 || !currprefs.use_serial) {
         return;
     }
     
@@ -375,7 +383,7 @@ void setserstat (int mask, int onoff)
 
 void serialuartbreak (int v)
 {
-    if(ser_fd < 0) {
+    if (ser_fd < 0 || !currprefs.use_serial) {
         return;
     }
     

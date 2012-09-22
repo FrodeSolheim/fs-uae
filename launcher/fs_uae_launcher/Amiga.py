@@ -3,6 +3,14 @@ from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
+A1000_KICKSTARTS = [
+    # amiga-os-120.rom (decrypted)
+    # Kickstart v1.2 r33.180 (1986)(Commodore)(A500-A1000-A2000)[!]
+    "11f9e62cf299f72184835b7b2a70a16333fc0d88",
+    # Kickstart v1.2 r33.166 (1986)(Commodore)(A1000)
+    "6a7bfb5dbd6b8f179f03da84d8d9528267b6273b",
+]
+
 A500_KICKSTARTS = [
     # amiga-os-130.rom (decrypted)
     # Kickstart v1.3 r34.5 (1987)(Commodore)(A3000)[!]
@@ -76,6 +84,12 @@ class Amiga:
 
     models = [
         {
+            "title": "Amiga 1000",
+            #"title": "A500",
+            "cd_based": False,
+            "kickstarts": A1000_KICKSTARTS,
+            "ext_roms": [],
+        }, {
             "title": "Amiga 500",
             #"title": "A500",
             "cd_based": False,
@@ -127,6 +141,7 @@ class Amiga:
     ]
 
     models_config = [
+        "A1000",
         "A500",
         "A500+",
         "A600",

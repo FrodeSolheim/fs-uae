@@ -54,8 +54,11 @@ class TabPanel(fsui.Panel):
     def draw_border(cls, widget, dc):
         size = widget.size
 
-        line_color_1 = Skin.get_background_color().mix(
-                fsui.Color(0xff, 0xff, 0xff))
+        line_color_1 = Skin.get_background_color()
+        if line_color_1 is not None:
+	    line_color_1 = line_color_1.mix(fsui.Color(0xff, 0xff, 0xff))
+        else:
+	    line_color_1 = fsui.Color(0xff, 0xff, 0xff)
         line_color_2 = line_color_1
 
         dc.set_color(line_color_1)
@@ -65,9 +68,15 @@ class TabPanel(fsui.Panel):
 
     @classmethod
     def draw_background(cls, widget, dc, selected=False, hover=False):
-        size = widget.size
+        if selected:
+            cls.draw_selected_tab(widget, dc)
+        else:
+            cls.draw_border(widget, dc)
 
         color_1 = Skin.get_background_color()
+        if color_1 is None:
+	    return
+        size = widget.size
         x = 0
         w = widget.size[0]
         h = widget.size[1] - 2
@@ -80,11 +89,6 @@ class TabPanel(fsui.Panel):
             color_2 = color_1.copy().lighten()
         else:
             color_2 = color_1.copy().darken(0.08)
-
-        if selected:
-            cls.draw_selected_tab(widget, dc)
-        else:
-            cls.draw_border(widget, dc)
         dc.draw_vertical_gradient(x, 0, w, h,
                 color_1, color_2)
 
@@ -93,8 +97,12 @@ class TabPanel(fsui.Panel):
         size = widget.size
 
         color_1 = Skin.get_background_color()
-        color_2 = Skin.get_background_color().mix(
-                fsui.Color(0xff, 0xff, 0xff))
+        if color_1 is not None:
+            color_2 = Skin.get_background_color().mix(
+                    fsui.Color(0xff, 0xff, 0xff))
+        else:
+	    color_1 = fsui.Color(0xff, 0xff, 0xff)
+	    color_2 = fsui.Color(0xff, 0xff, 0xff)
 
         dc.draw_vertical_gradient(0, 0, 2, widget.size[1],
                 color_1, color_2)

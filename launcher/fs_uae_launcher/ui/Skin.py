@@ -15,6 +15,8 @@ class Skin:
 
     @classmethod
     def get_background_color(cls):
+        #if not fsui.System.windows and not fsui.System.macosx:
+        #    return None
         return cls._get_background_color().copy()
 
     @classmethod
@@ -32,7 +34,9 @@ class Skin:
 
     @classmethod
     def set_background_color(cls, widget):
-        widget.set_background_color(cls.get_background_color())
+	color = cls.get_background_color()
+	if color is not None:
+            widget.set_background_color(cls.get_background_color())
 
     @classmethod
     def get_window_padding_left(cls):

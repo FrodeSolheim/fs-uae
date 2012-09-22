@@ -32,3 +32,5 @@ from .wx.window import Window
 
 from .wx.image import Image
 from .wx.imageview import ImageView
+
+from .wx.System import System

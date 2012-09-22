@@ -16,6 +16,14 @@ static int g_accuracy = 1;
 void fs_uae_init_configs() {
     amiga_config *c;
 
+    c = g_fs_uae_amiga_configs + CONFIG_A1000;
+    c->id = "A1000";
+    c->model = MODEL_A1000;
+    c->name = "Amiga 1000";
+    c->quickstart_model = 3;
+    c->quickstart_config = 0;
+    c->fast_on_accuracy_level = -999;
+
     c = g_fs_uae_amiga_configs + CONFIG_A500;
     c->id = "A500";
     c->model = MODEL_A500;

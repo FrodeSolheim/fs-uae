@@ -83,10 +83,11 @@ class ScanKickstartGroup(fsui.Group):
         ver_layout = fsui.VerticalLayout()
         hor_layout.add(ver_layout, expand=True, fill=True)
 
+        self.add_kickstart_group(ver_layout, "Amiga 1000", "A1000")
+        ver_layout.add_spacer(10)
         self.add_kickstart_group(ver_layout, "Amiga 500", "A500")
         ver_layout.add_spacer(10)
         self.add_kickstart_group(ver_layout, "Amiga 500+", "A500+")
-
 
         ver_layout = fsui.VerticalLayout()
         hor_layout.add(ver_layout, expand=True, fill=True)

@@ -291,8 +291,7 @@ void SERDAT (uae_u16 w)
 		write_log (_T("%c"), dochar (w));
 
 	if (serper == 372) {
-        // FIXME: enforcermode not found?
-#if 0
+#ifdef ENFORCER
 		if (enforcermode & 2) {
 			console_out_f (_T("%c"), dochar (w));
 			if (w == 256 + 10)
@@ -314,12 +313,6 @@ void SERDAT (uae_u16 w)
 
 uae_u16 SERDATR (void)
 {
-    if (!serdev) {
-        // this is done to make serial port "work" and thus AROS bootable
-        // even when we haven't opened a serial device
-        return 0x2000;
-    }
-
 	serdatr &= 0x03ff;
 	if (!data_in_serdat)
 		serdatr |= 0x2000;

@@ -4592,7 +4592,11 @@ static int bip_a1000 (struct uae_prefs *p, int config, int compa, int romcheck)
 {
 	int roms[2];
 
-	roms[0] = 24;
+#ifdef FSUAE
+	roms[0] = 5;
+#else
+    roms[0] = 24;
+#endif
 	roms[1] = -1;
 	p->chipset_mask = 0;
 	p->bogomem_size = 0;

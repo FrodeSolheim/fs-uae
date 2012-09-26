@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "libfsemu.h"
 
 #define debug_printf(format, ...)
 
@@ -354,6 +355,9 @@ static void handle_element(parse_data *data, const char *element,
     while (link) {
         GLuint shader = GPOINTER_TO_UINT(link->data);
         glAttachShader(program, shader);
+        // schedule shader for deletion so it will be deleted when the
+        // program is deleted
+        glDeleteShader(shader);
         GList *temp = link;
         link = link->next;
         g_list_free_1(temp);
@@ -445,6 +449,32 @@ static GMarkupParser counter_subparser = {
         on_start_element, on_end_element, on_text,
         NULL, on_error };
 
+static void context_notification_handler(int notification, void *data) {
+    static int recreate = 0;
+    if (notification == FS_GL_CONTEXT_DESTROY) {
+        GList *link = g_shader_passes;
+        if (g_shader_passes == NULL) {
+            return;
+        }
+        fs_log("destrying shaders\n");
+        while (link) {
+            shader_pass *pass = link->data;
+            glDeleteProgram(pass->program);
+            g_free(pass);
+            GList *delete_link = link;
+            link = link->next;
+            g_list_free_1(delete_link);
+        }
+        recreate = 1;
+        g_shader_passes = NULL;
+    }
+    else if (notification == FS_GL_CONTEXT_CREATE) {
+        if (recreate) {
+            fs_emu_init_shader();
+        }
+    }
+}
+
 void fs_emu_init_shader() {
     char *path = fs_config_get_string("shader");
     if (!path) {
@@ -515,6 +545,8 @@ void fs_emu_init_shader() {
     CHECK_GL_ERROR();
     fs_log("done loading shader\n");
     //exit(1);
+
+    fs_gl_add_context_notification(context_notification_handler, NULL);
 }
 
 static int g_frame_count = 0;

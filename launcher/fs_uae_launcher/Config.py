@@ -21,11 +21,15 @@ from .Util import expand_path
 cfg = [
     # key                       checksum sync  custom  default
     ("amiga_model",               True,  True,  False, "A500"),
-    ("accuracy",                  True,  True,  False, "1"),
-    ("chip_memory",               True,  True,  True,  ""),
-    ("slow_memory",               True,  True,  True,  ""),
-    ("fast_memory",               True,  True,  True,  ""),
-    ("zorro_iii_memory",          True,  True,  True,  ""),
+    ("ntsc_mode",                 True,  True,  False, ""),
+    ("accuracy",                  True,  True,  False, ""),
+    ("chip_memory",               True,  True,  False, ""),
+    ("slow_memory",               True,  True,  False, ""),
+    ("fast_memory",               True,  True,  False, ""),
+    ("zorro_iii_memory",          True,  True,  False, ""),
+
+    ("bsdsocket_library",         True,  True,  False, ""),
+    ("uaegfx_card",               True,  True,  False, ""),
 
     ("joystick_port_0",           False, False, False, ""),
     ("joystick_port_0_mode",      True,  True,  False, "mouse"),
@@ -289,8 +293,7 @@ class Config:
         from .Settings import Settings
         # FIXME: remove use of config_base
         Settings.set("config_base", "")
-        Settings.set("config_base", "")
-        Settings.set("config_name", "")
+        Settings.set("config_name", "Unnamed Configuration")
         Settings.set("config_path", "")
         Settings.set("config_xml_path", "")
 

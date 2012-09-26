@@ -35,7 +35,7 @@ class ScreenshotsPanel(BottomPanel):
         self.layout.padding_bottom = Skin.get_bottom_margin()
 
         self.default_image = fsui.Image("fs_uae_launcher:res/screenshot.png")
-        self.default_image.resize(Constants.SCREEN_SIZE)
+        #self.default_image.resize(Constants.SCREEN_SIZE)
         self.screenshot_overlay = fsui.Image(
                 "fs_uae_launcher:res/screenshot_overlay.png")
 

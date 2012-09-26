@@ -77,6 +77,9 @@ class Window(wx.Frame):
     def get_size(self):
         return self.GetClientSize()
 
+    def get_position(self):
+        return self.GetPosition()
+
     def set_size(self, size):
         self.SetClientSize(size)
 

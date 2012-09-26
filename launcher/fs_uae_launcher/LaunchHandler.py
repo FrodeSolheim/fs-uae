@@ -28,6 +28,14 @@ from .Util import expand_path
 class LaunchHandler:
 
     @classmethod
+    def start_game(self):
+        from .netplay.Netplay import Netplay
+        if Netplay.game_channel:
+            Netplay.start_netplay_game()
+        else:
+            LaunchHandler.start_local_game()
+
+    @classmethod
     def start_local_game(self):
         if not Config.get("x_kickstart_file"):# or not \
                 #os.path.exists(Config.get("kickstart_file")):
@@ -46,7 +54,8 @@ class LaunchHandler:
         handler = LaunchHandler(Settings.get("config_name"), Config,
                 GameHandler.current())
         from .LaunchDialog import LaunchDialog
-        dialog = LaunchDialog(handler)
+        from .ui.MainWindow import MainWindow
+        dialog = LaunchDialog(MainWindow.instance, handler)
         dialog.run()
         dialog.show_modal()
         dialog.close()
@@ -119,6 +128,23 @@ class LaunchHandler:
                 self.config[config_key] = os.path.basename(src)
             self.config["kickstarts_dir"] = self.temp_dir
 
+    def expand_default_path(self, src, default_dir):
+        src = expand_path(src)
+        archive = Archive(src)
+        if not archive.exists(src):
+            dirs = [default_dir]
+            for dir in dirs:
+                path = os.path.join(dir, src)
+                print("checking", repr(path))
+                archive = Archive(path)
+                if archive.exists(path):
+                #if os.path.exists(path):
+                    src = path
+                    break
+            else:
+                raise Exception("Cannot find path for " + repr(src))
+        return src, archive
+
     def copy_floppy(self, key):
         src = self.config.get(key, "").strip()
         if not src:
@@ -131,21 +157,10 @@ class LaunchHandler:
             DownloadService.install_file_from_url(src, dest)
             self.config[key] = name
             return
-        src = expand_path(src)
 
-        archive = Archive(src)
-        if not archive.exists(src):
-            dirs = [Settings.get_floppies_dir()]
-            for dir in dirs:
-                path = os.path.join(dir, src)
-                print("checking", repr(path))
-                archive = Archive(path)
-                if archive.exists(path):
-                #if os.path.exists(path):
-                    src = path
-                    break
-            else:
-                raise Exception("Cannot find floppy " + repr(src))
+        src, archive = self.expand_default_path(src,
+                Settings.get_floppies_dir())
+        
         dest = os.path.join(self.temp_dir, os.path.basename(src))
         #shutil.copy2(src, dest)
         archive.copy(src, dest)
@@ -155,11 +170,24 @@ class LaunchHandler:
         print("LaunchHandler.copy_floppies")
         self.on_progress(_("Preparing floppy images..."))
 
-        for i in range(4):
+        floppies = []
+        for i in range(Amiga.MAX_FLOPPY_DRIVES):
             key = "floppy_drive_{0}".format(i)
+            if self.config[key]:
+                floppies.append(self.config[key])
             self.copy_floppy(key)
+
+        for i in range(Amiga.MAX_FLOPPY_IMAGES):
+            key = "floppy_image_{0}".format(i)
+            if self.config[key]:
+                break
+        else:
+            print("floppy image list is empty")
+            for i, floppy in enumerate(floppies):
+                self.config["floppy_image_{0}".format(i)] = floppy
+
         max_image = -1
-        for i in range(20):
+        for i in range(Amiga.MAX_FLOPPY_IMAGES):
             key = "floppy_image_{0}".format(i)
             self.copy_floppy(key)
             if self.config.get(key):
@@ -189,12 +217,14 @@ class LaunchHandler:
                 print("XML-described hard drive", value)
                 self.unpack_hard_drive(i, value)
 
-    def unpack_hard_drive(self, i, zip_path):
-        zip_path = expand_path(zip_path)
+    def unpack_hard_drive(self, i, src):
+        src, archive = self.expand_default_path(src,
+                Settings.get_hard_drives_dir())        
+
         dir_name = "DH{0}".format(i)
         dir_path = os.path.join(self.temp_dir, dir_name)
         #self.unpack_zip(zip_path, dir_path)
-        self.unpack_archive(zip_path, dir_path)
+        self.unpack_archive(src, dir_path)
         key = "hard_drive_{0}".format(i)
         self.config[key] = dir_path
 

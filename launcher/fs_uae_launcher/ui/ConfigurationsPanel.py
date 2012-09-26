@@ -36,21 +36,21 @@ class ConfigurationsPanel(fsui.Panel):
         hor_layout.add(self.text_field, expand=True,
                 margin=10, margin_top=0, margin_bottom=0)
 
-        self.favorite_button = IconButton(self, "favorite_button.png")
-        self.favorite_button.set_tooltip(
-                _("Show Only Favorites (On/Off)"))
-        self.favorite_button.disable()
-        self.favorite_button.on_activate = self.on_favorite_button
-        hor_layout.add(self.favorite_button,
-                margin=10, margin_top=0, margin_bottom=0)
+        #self.favorite_button = IconButton(self, "favorite_button.png")
+        #self.favorite_button.set_tooltip(
+        #        _("Show Only Favorites (On/Off)"))
+        #self.favorite_button.disable()
+        #self.favorite_button.on_activate = self.on_favorite_button
+        #hor_layout.add(self.favorite_button,
+        #        margin=10, margin_top=0, margin_bottom=0)
 
-        self.verified_button = IconButton(self, "ok_button.png")
-        self.verified_button.set_tooltip(
-                _("Show Only Verified Configurations (On/Off)"))
-        self.verified_button.disable()
-        self.verified_button.on_activate = self.on_verified_button
-        hor_layout.add(self.verified_button,
-                margin=10, margin_top=0, margin_bottom=0)
+        #self.verified_button = IconButton(self, "ok_button.png")
+        #self.verified_button.set_tooltip(
+        #        _("Show Only Verified Configurations (On/Off)"))
+        #self.verified_button.disable()
+        #self.verified_button.on_activate = self.on_verified_button
+        #hor_layout.add(self.verified_button,
+        #       margin=10, margin_top=0, margin_bottom=0)
 
         self.configurations_browser = ConfigurationsBrowser(self)
         self.layout.add(self.configurations_browser, fill=True, expand=True,

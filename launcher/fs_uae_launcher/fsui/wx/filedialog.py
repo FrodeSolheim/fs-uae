@@ -6,16 +6,23 @@ import wx
 
 class FileDialog():
     def __init__(self, parent, message="", directory="", file="",
-            pattern="*.*", multiple=False):
+            pattern="*.*", multiple=False, dir_mode=False):
         #if parent:
         #    p = parent.get_real_parent()
         #    parent = p._container
-        style = wx.FD_DEFAULT_STYLE
-        if multiple:
-            style |= wx.FD_MULTIPLE
-        self._window = wx.FileDialog(parent, message, directory, file,
-                pattern, style)
-        self._window.CenterOnParent()
+        if dir_mode:
+            style = wx.DD_DEFAULT_STYLE
+            #if multiple:
+            #    style |= wx.FD_MULTIPLE
+            self._window = wx.DirDialog(parent, message, directory, style)
+            self._window.CenterOnParent()
+        else:
+            style = wx.FD_DEFAULT_STYLE
+            if multiple:
+                style |= wx.FD_MULTIPLE
+            self._window = wx.FileDialog(parent, message, directory, file,
+                    pattern, style)
+            self._window.CenterOnParent()
 
     def get_path(self):
         return self._window.GetPath()

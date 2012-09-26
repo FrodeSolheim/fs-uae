@@ -317,7 +317,7 @@ static void configure_memory(amiga_config *c) {
     int z3_memory = fs_config_get_int("zorro_iii_memory");
     if (z3_memory != FS_CONFIG_NONE) {
         if (z3_memory && !c->allow_z3_memory) {
-            fs_emu_warning("Zorro III fast memory needs a processor "
+            fs_emu_warning("Zorro III fast memory needs a CPU "
                     "with 32-bit addressing");
             z3_memory = 0;
         }
@@ -418,6 +418,16 @@ void fs_uae_configure_amiga_hardware() {
 
     if (fs_config_get_boolean("bsdsocket_library") == 1) {
         amiga_set_option("bsdsocket_emu", "yes");
+    }
+
+    int uaegfx_card = fs_config_get_boolean("uaegfx_card");
+    if (uaegfx_card == 1) {
+        if (!c->allow_z3_memory) {
+            fs_emu_warning("uaegfx.card needs a CPU with 32-bit addressing");
+        }
+        else {
+            amiga_set_option("gfxcard_size", "32");
+        }
     }
 
     amiga_enable_serial_port(fs_config_get_const_string("serial_port"));

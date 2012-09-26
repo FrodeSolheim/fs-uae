@@ -5,6 +5,7 @@ from __future__ import absolute_import
 import os
 import fs_uae_launcher.fs as fs
 from .Util import memoize, get_real_case
+from .I18N import _, ngettext
 
 class Settings:
     irc_server = "irc.fengestad.no"
@@ -26,7 +27,7 @@ class Settings:
         "fullscreen": "0",
         "fullscreen_mode": "fullscreen",
         "config_search": "",
-        "config_name": "",
+        "config_name": "Unnamed Configuration",
         "config_path": "",
         "scan_roms": "1",
         "scan_configs": "1",
@@ -34,6 +35,12 @@ class Settings:
         "primary_joystick": "",
         "secondary_joystick": "",
         "search_path": "",
+        "last_cd_dir": "",
+        "last_hd_dir": "",
+        "last_floppy_dir": "",
+        "last_rom_dir": "",
+        "window_width": "",
+        "window_height": "",
         }
 
     settings = default_settings.copy()

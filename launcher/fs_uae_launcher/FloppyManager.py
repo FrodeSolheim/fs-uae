@@ -4,6 +4,7 @@ from __future__ import absolute_import
 
 import os
 import fs_uae_launcher.fsui as fsui
+from .ui.LauncherFileDialog import LauncherFileDialog
 from .Amiga import Amiga
 from .Config import Config
 from .Settings import Settings
@@ -35,8 +36,8 @@ class FloppyManager:
     @classmethod
     def multiselect(cls, parent=None):
         default_dir = Settings.get_floppies_dir()
-        dialog = fsui.FileDialog(parent, _("Select Multiple Floppies"),
-                directory=default_dir, multiple=True)
+        dialog = LauncherFileDialog(parent, _("Select Multiple Floppies"),
+                "floppy", multiple=True)
         if not dialog.show():
             return
         paths = dialog.get_paths()

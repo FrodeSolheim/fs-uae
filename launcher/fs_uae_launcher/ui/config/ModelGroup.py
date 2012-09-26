@@ -12,6 +12,7 @@ from ...FloppyManager import FloppyManager
 from ...CDManager import CDManager
 from ...I18N import _, ngettext
 from .ConfigDialog import ConfigDialog
+from .ConfigCheckBox import ConfigCheckBox
 
 
 ACCURACY_LEVELS = [
@@ -32,6 +33,8 @@ class ModelGroup(fsui.Group):
         self.model_choice = fsui.Choice(self, model_titles)
 
         self.accuracy_choice = fsui.Choice(self, ACCURACY_LEVELS)
+        #self.ntsc_checkbox = fsui.CheckBox(self, "NTSC")
+        self.ntsc_checkbox = ConfigCheckBox(self, "NTSC", "ntsc_mode")
 
         self.layout.add(heading_label, margin=10)
         self.layout.add_spacer(0)
@@ -39,6 +42,7 @@ class ModelGroup(fsui.Group):
         self.layout.add(hori_layout, fill=True)
         hori_layout.add(self.model_choice, expand=True, margin=10)
         hori_layout.add(self.accuracy_choice, expand=False, margin=10)
+        hori_layout.add(self.ntsc_checkbox, expand=False, margin=10)
 
         # FIXME: should not need to call from here...
         Config.update_kickstart()
@@ -49,10 +53,12 @@ class ModelGroup(fsui.Group):
     def initialize_from_config(self):
         self.on_config("amiga_model", Config.get("amiga_model"))
         self.on_config("accuracy", Config.get("accuracy"))
+        #self.on_config("ntsc", Config.get("ntsc"))
 
     def set_config_handlers(self):
         self.model_choice.on_change = self.on_model_change
         self.accuracy_choice.on_change = self.on_accuracy_change
+        #self.ntsc_checkbox.on_change = self.on_ntsc_change
         Config.add_listener(self)
 
     def on_destroy(self):
@@ -77,19 +83,36 @@ class ModelGroup(fsui.Group):
 
     def on_accuracy_change(self):
         index = self.accuracy_choice.get_index()
-        Config.set("accuracy", str(1 - index))
+        if index == 0:
+            Config.set("accuracy", "")
+        else:
+            Config.set("accuracy", str(1 - index))
+
+    #def on_ntsc_change(self):
+    #    if self.ntsc_checkbox.is_checked():
+    #        Config.set("ntsc_mode", "1")
+    #    else:
+    #        Config.set("ntsc_mode", "")
 
     def on_config(self, key, value):
-        if key == 'amiga_model':
+        if key == "amiga_model":
             for i, config in enumerate(Amiga.models_config):
                 if config == value:
                     self.model_choice.set_index(i)
                     break
             else:
                 print("FIXME: could not set model")
-        elif key == 'accuracy':
-            index = 1 - int(value)
+        elif key == "accuracy":
+            if not value:
+                index = 0
+            else:
+                index = 1 - int(value)
             self.accuracy_choice.set_index(index)
+        #elif key == "ntsc_mode":
+        #    if value == "1":
+        #        self.ntsc_checkbox.check(True)
+        #    else:
+        #        self.ntsc_checkbox.check(False)
 
     def on_hds_button(self):
         dialog = ConfigDialog(self.get_window(), ConfigDialog.HARD_DRIVES)

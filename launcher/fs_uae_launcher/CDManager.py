@@ -4,6 +4,7 @@ from __future__ import absolute_import
 
 import os
 import fs_uae_launcher.fsui as fsui
+from .ui.LauncherFileDialog import LauncherFileDialog
 from .Amiga import Amiga
 from .Config import Config
 from .Settings import Settings
@@ -35,8 +36,9 @@ class CDManager:
     @classmethod
     def multiselect(cls, parent=None):
         default_dir = Settings.get_cdroms_dir()
-        dialog = fsui.FileDialog(parent, _("Select Multiple CD-ROMs"),
-                directory=default_dir, multiple=True)
+        dialog = LauncherFileDialog(parent, _("Select Multiple CD-ROMs"),
+                "cd", multiple=True)
+
         if not dialog.show():
             return
         paths = dialog.get_paths()

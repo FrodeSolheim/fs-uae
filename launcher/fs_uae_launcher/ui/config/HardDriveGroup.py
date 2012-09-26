@@ -10,6 +10,7 @@ from ...ChecksumTool import ChecksumTool
 from ...Settings import Settings
 from ...IconButton import IconButton
 from ...I18N import _, ngettext
+from ..LauncherFileDialog import LauncherFileDialog
 
 class HardDriveGroup(fsui.Group):
 
@@ -71,15 +72,20 @@ class HardDriveGroup(fsui.Group):
                 (self.config_key_sha1, "")])
 
     def on_browse_folder_button(self):
-        self.browse(fsui.DirDialog, dir_mode=True)
+        self.browse(dir_mode=True)
 
     def on_browse_file_button(self):
-        self.browse(fsui.FileDialog, dir_mode=False)
+        self.browse(dir_mode=False)
 
-    def browse(self, dialog_class, dir_mode):
+    def browse(self, dir_mode):
         default_dir = Settings.get_hard_drives_dir()
-        dialog = dialog_class(self.get_window(), _("Choose Hard Drive"),
-                directory=default_dir)
+        #if dir_mode:
+        #    dialog = fsui.DirDialog(self.get_window(), _("Choose Hard Drive"),
+        #            directory=default_dir)
+        #else:
+        dialog = LauncherFileDialog(self.get_window(),
+                _("Choose Hard Drive"), "hd", Config.get(self.config_key),
+                dir_mode=dir_mode)
         if not dialog.show_modal():
             dialog.destroy()
             return

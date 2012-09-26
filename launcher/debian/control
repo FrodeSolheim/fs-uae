@@ -9,6 +9,6 @@ Homepage: http://www.fengestad.no/fs-uae
 
 Package: fs-uae-launcher
 Architecture: all
-Depends: python (>= 2.6), ${misc:Depends}, fs-uae, ${python:Depends}, python-pygame, python-wxgtk2.8, fs-uae
+Depends: python (>= 2.6), ${misc:Depends}, fs-uae, ${python:Depends}, python-pygame, python-wxgtk2.8, python-setuptools, fs-uae
 Description: Launcher and configuration program for FS-UAE.
  FS-UAE Launcher is a graphical user interface for setting up FS-UAE.

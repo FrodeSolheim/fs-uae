@@ -5,8 +5,9 @@ from __future__ import absolute_import
 import fs_uae_launcher.fsui as fsui
 from ..Config import Config
 from ..Settings import Settings
-from .settings.FullscreenCheckBox import FullscreenCheckBox
 from ..I18N import _, ngettext
+from ..LaunchHandler import LaunchHandler
+from .settings.FullscreenCheckBox import FullscreenCheckBox
 
 class LaunchGroup(fsui.Group):
 
@@ -24,9 +25,9 @@ class LaunchGroup(fsui.Group):
         self.layout.add(self.start_button, margin_left=20)
 
     def on_start_button(self):
-        from ..netplay.Netplay import Netplay
-        if Netplay.game_channel:
-            Netplay.start_netplay_game()
-        else:
-            from ..LaunchHandler import LaunchHandler
-            LaunchHandler.start_local_game()
+        #from ..netplay.Netplay import Netplay
+        #if Netplay.game_channel:
+        #    Netplay.start_netplay_game()
+        #else:
+        #    from ..LaunchHandler import LaunchHandler
+        LaunchHandler.start_game()

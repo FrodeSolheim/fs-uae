@@ -27,6 +27,10 @@ class ConfigurationsBrowser(fsui.ListView):
         print(index)
         self.load_configuration(self.items[index][0])
 
+    def on_activate_item(self):
+        from ..LaunchHandler import LaunchHandler
+        LaunchHandler.start_game()
+
     def on_setting(self, key, value):
         if key == "config_search":
             self.update_search()

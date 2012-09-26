@@ -35,11 +35,15 @@ class Color(wx.Colour, BaseColor):
         if len(args) == 1:
             c = args[0]
             if isinstance(c, wx.Colour):
-                self.Set(c.Red(), c.Green(), c.Blue())
+                self.Set(c.Red(), c.Green(), c.Blue(), c.Alpha())
             else:
-                r, g, b = c
-                self.Set(r, g, b)
-        elif len(args) == 3:
+                if len(c) == 3:
+                    r, g, b = c
+                    self.Set(r, g, b)
+                else:
+                    r, g, b, a = c
+                    self.Set(r, g, b, a)                    
+        elif len(args) >= 3:
             self.Set(*args)
         else:
             raise TypeError("Color object is not initialized")

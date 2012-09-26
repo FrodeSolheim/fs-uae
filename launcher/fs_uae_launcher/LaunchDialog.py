@@ -9,8 +9,8 @@ from .I18N import _, ngettext
 
 class LaunchDialog(fsui.Dialog):
 
-    def __init__(self, handler):
-        fsui.Dialog.__init__(self, None, _("Launching FS-UAE"))
+    def __init__(self, parent, handler):
+        fsui.Dialog.__init__(self, parent, _("Launching FS-UAE"))
         self.layout = fsui.VerticalLayout()
 
         self.layout.add_spacer(400, 20)
@@ -49,6 +49,7 @@ class LaunchDialog(fsui.Dialog):
 
         self.layout.add_spacer(20)
         self.set_size(self.layout.get_min_size())
+        self.center_on_parent()
 
         self.closed = False
         self.handler = handler

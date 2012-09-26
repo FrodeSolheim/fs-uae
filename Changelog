@@ -1,4 +1,22 @@
-Version 1.3.27
+Version 1.3.28:
+* New official boolean option uaegfx_card to enable the "Picasso 96 card".
+* Re-initialize shaders after fullscreen<->window switching.
+* (Launcher) Double-click (or enter) in configuration list starts FS-UAE.
+* (Launcher) Remember last directories used when browsing for floppies,
+  CDs, hard drives and kickstarts.
+* (Launcher) Automatically add floppies in drives to swap list if swap
+  list is empty.
+* (Launcher) Find hard drive zip file relative to hard drives dir.
+* (Launcher) GUI widgets to override memory settings.
+* (Launcher) Added checkboxes for uaegfx.card and bsdsocket.library.
+* (Launcher) Added checkbox to enable NTSC mode.
+* (Launcher) Updated GUI main window background drawing to make the GUI
+  look better on Linux (looks much nicer on Kubuntu now).
+* (Launcher) Center FS-UAE window on launcher window.
+* (Launcher) Center launch dialog on main window also on OS X.
+* (Launcher) Updated look for OS X.
+
+Version 1.3.27:
 * Config for Retro Joystick interface v1.2 (joystick adapter) [Magnar].
 * Fixed serial port emulation when not serial port is not "used".
 * Native serial port for POSIX systems [lallafa].

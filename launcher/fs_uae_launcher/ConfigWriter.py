@@ -2,6 +2,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
 
+from .Amiga import Amiga
 from .Config import Config
 from .Settings import Settings
 
@@ -50,12 +51,13 @@ class ConfigWriter:
         c = []
 
         num_drives = 0
-        for i in range(4):
+        for i in range(Amiga.MAX_FLOPPY_DRIVES):
             key = "floppy_drive_{0}".format(i)
-            if config.get(key):
+            value = config.get(key)
+            if value:
                 num_drives = i + 1
         num_drives = max(1, num_drives)
-
+        
         print("")
         print("-------------" * 6)
         print("CONFIG")

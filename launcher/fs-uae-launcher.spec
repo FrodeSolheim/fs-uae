@@ -3,11 +3,11 @@
 %define is_fedora %(test -e /etc/fedora-release && echo 1 || echo 0)
 
 Name:           fs-uae-launcher
-Version:        1.3.27
+Version:        1.3.28
 Release:        1%{?dist}
 Summary:        Graphical configuration frontend and launcher for FS-UAE
 
-Requires:       pygame wxPython fs-uae
+Requires:       pygame wxPython fs-uae python-setuptools
 
 Group:          Applications/Emulators
 License:        GPLv2+

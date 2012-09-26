@@ -48,7 +48,7 @@ class TabPanel(fsui.Panel):
     def on_paint(self):
         dc = self.create_dc()
         self.draw_background(self, dc)
-        self.draw_border(self, dc)
+        #self.draw_border(self, dc)
 
     @classmethod
     def draw_border(cls, widget, dc):
@@ -56,15 +56,17 @@ class TabPanel(fsui.Panel):
 
         line_color_1 = Skin.get_background_color()
         if line_color_1 is not None:
-	    line_color_1 = line_color_1.mix(fsui.Color(0xff, 0xff, 0xff))
+            line_color_1 = line_color_1.mix(fsui.Color(0xff, 0xff, 0xff))
+            line_color_2 = line_color_1
         else:
-	    line_color_1 = fsui.Color(0xff, 0xff, 0xff)
-        line_color_2 = line_color_1
+            line_color_1 = fsui.Color(0xff, 0xff, 0xff, 0xa0)
+            line_color_2 = line_color_1
 
-        dc.set_color(line_color_1)
-        dc.draw_line(0, size[1] - 2, size[0], size[1] - 2)
-        dc.set_color(line_color_2)
-        dc.draw_line(0, size[1] - 1, size[0], size[1] - 1)
+        #line_color_1 = fsui.Color(0xff, 0x00, 0x00, 0xff)
+        #line_color_2 = fsui.Color(0x00, 0xff, 0x00, 0xff)
+
+        dc.draw_line(0, size[1] - 2, size[0], size[1] - 2, line_color_1)
+        dc.draw_line(0, size[1] - 1, size[0], size[1] - 1, line_color_2)
 
     @classmethod
     def draw_background(cls, widget, dc, selected=False, hover=False):
@@ -73,38 +75,70 @@ class TabPanel(fsui.Panel):
         else:
             cls.draw_border(widget, dc)
 
-        color_1 = Skin.get_background_color()
-        if color_1 is None:
-	    return
         size = widget.size
         x = 0
+        y = 0
         w = widget.size[0]
         h = widget.size[1] - 2
+        if fsui.System.macosx:
+            dc.draw_line(0, 0, w, 0, fsui.Color(198, 198, 198))
+            y += 1
+            h -= 1
+
         if selected:
-            color_2 = color_1
             x += 2
             w -= 4
             h += 2
-        elif hover:
-            color_2 = color_1.copy().lighten()
+
+        color_1 = Skin.get_background_color()
+        if fsui.System.macosx:
+            if selected:
+                color_2 = color_1
+                color_1 = fsui.Color(0xa7, 0xa7, 0xa7)
+            elif hover:
+                color_1 = fsui.Color(0xa7, 0xa7, 0xa7)
+                color_2 = fsui.Color(0xef, 0xef, 0xef)
+            else:
+                color_1 = fsui.Color(0xa7, 0xa7, 0xa7)
+                color_2 = fsui.Color(0xcf, 0xcf, 0xcf)
+        elif color_1 is not None:
+            if selected:
+                color_2 = color_1
+            elif hover:
+                color_2 = color_1.copy().lighten()
+            else:
+                color_2 = color_1.copy().darken(0.08)
         else:
-            color_2 = color_1.copy().darken(0.08)
-        dc.draw_vertical_gradient(x, 0, w, h,
+            if selected:
+                return
+                #color_1 = fsui.Color(0x00, 0x00, 0x00, 0x00)
+                #color_2 = color_1
+            elif hover:
+                color_1 = fsui.Color(0xff, 0xff, 0xff, 0x00)
+                color_2 = fsui.Color(0xff, 0xff, 0xff, 0x40)
+            else:
+                color_1 = fsui.Color(0x00, 0x00, 0x00, 0x00)
+                color_2 = fsui.Color(0x00, 0x00, 0x00, 0x20)
+        dc.draw_vertical_gradient(x, y, w, h,
                 color_1, color_2)
 
     @classmethod
     def draw_selected_tab(cls, widget, dc):
         size = widget.size
 
-        color_1 = Skin.get_background_color()
-        if color_1 is not None:
-            color_2 = Skin.get_background_color().mix(
+        line_color_1 = Skin.get_background_color()
+        if fsui.System.macosx:
+            line_color_1 = fsui.Color(0xa7, 0xa7, 0xa7)
+            line_color_2 = Skin.get_background_color().mix(
+                    fsui.Color(0xff, 0xff, 0xff))
+        elif line_color_1 is not None:
+            line_color_2 = Skin.get_background_color().mix(
                     fsui.Color(0xff, 0xff, 0xff))
         else:
-	    color_1 = fsui.Color(0xff, 0xff, 0xff)
-	    color_2 = fsui.Color(0xff, 0xff, 0xff)
+            line_color_1 = fsui.Color(0xff, 0xff, 0xff, 0x00)
+            line_color_2 = fsui.Color(0xff, 0xff, 0xff, 0xa0)
 
         dc.draw_vertical_gradient(0, 0, 2, widget.size[1],
-                color_1, color_2)
+                line_color_1, line_color_2)
         dc.draw_vertical_gradient(widget.size[0] - 2, 0, 2, widget.size[1],
-                color_1, color_2)
+                line_color_1, line_color_2)

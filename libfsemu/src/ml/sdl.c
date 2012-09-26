@@ -188,7 +188,7 @@ static void set_video_mode() {
     }
     else {
         fs_log("using windowed mode\n");
-        SDL_putenv("SDL_VIDEO_WINDOW_POS=");
+        //SDL_putenv("SDL_VIDEO_WINDOW_POS=");
         g_fs_ml_video_width = g_window_width;
         g_fs_ml_video_height = g_window_height;
         if (g_window_resizable) {

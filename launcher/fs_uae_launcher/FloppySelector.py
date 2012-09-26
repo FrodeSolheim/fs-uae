@@ -10,6 +10,7 @@ from .IconButton import IconButton
 from .CDManager import CDManager
 from .FloppyManager import FloppyManager
 from .I18N import _, ngettext
+from .ui.LauncherFileDialog import LauncherFileDialog
 
 class FloppySelector(fsui.Group):
 
@@ -81,12 +82,14 @@ class FloppySelector(fsui.Group):
         if self.cd_mode:
             title = _("Choose CD-ROM Image")
             default_dir = Settings.get_cdroms_dir()
+            type = "cd"
         else:
             title = _("Choose Floppy Image")
             default_dir = Settings.get_floppies_dir()
+            type = "floppy"
+        dialog = LauncherFileDialog(self.get_window(), title,
+                type, Config.get(self.config_key))
 
-        dialog = fsui.FileDialog(self.get_window(), title,
-                directory=default_dir)
         if not dialog.show():
             return
         path = dialog.get_path()

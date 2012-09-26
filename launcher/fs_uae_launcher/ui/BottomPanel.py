@@ -19,9 +19,12 @@ class BottomPanel(fsui.Panel):
                     fsui.Color(0xff, 0xff, 0xff))
             self.line_color_2 = self.line_color_1
         else:
-	    self.color_1 = None
-	    self.line_color_1 = fsui.Color(0xff, 0xff, 0xff)
-	    self.line_color_2 = self.line_color_1
+            #self.color_1 = fsui.Color(0x00, 0x00, 0x00, 0x20)
+            #self.color_2 = fsui.Color(0x00, 0x00, 0x00, 0x00)
+            self.color_1 = fsui.Color(0xff, 0xff, 0xff, 0x60)
+            self.color_2 = fsui.Color(0xff, 0xff, 0xff, 0x00)
+            self.line_color_1 = fsui.Color(0xff, 0xff, 0xff, 0xa0)
+            self.line_color_2 = self.line_color_1
 
     def on_paint(self):
         dc = self.create_dc()
@@ -29,11 +32,7 @@ class BottomPanel(fsui.Panel):
 
     def draw_background(self, dc):
         size = self.size
-        dc.set_color(self.line_color_1)
-        dc.draw_line(0, 0, size[0], 0)
-        dc.set_color(self.line_color_2)
-        dc.draw_line(0, 1, size[0], 1)
-
-        if self.color_1 is not None:
-            dc.draw_vertical_gradient(0, 2, self.size[0], self.size[1] - 2,
-                    self.color_1, self.color_2)
+        dc.draw_line(0, 0, size[0], 0, self.line_color_1)
+        dc.draw_line(0, 1, size[0], 1, self.line_color_2)
+        dc.draw_vertical_gradient(0, 2, self.size[0], self.size[1] - 2,
+                self.color_1, self.color_2)

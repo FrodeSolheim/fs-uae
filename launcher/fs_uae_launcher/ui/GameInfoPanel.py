@@ -40,7 +40,7 @@ class GameInfoPanel(BottomPanel):
         self.layout.padding_bottom = Skin.get_bottom_margin()
 
         self.default_image = fsui.Image("fs_uae_launcher:res/cover.png")
-        self.default_image.resize(Constants.COVER_SIZE)
+        #self.default_image.resize(Constants.COVER_SIZE)
         self.cover_overlay = fsui.Image(
                 "fs_uae_launcher:res/cover_overlay.png")
 
@@ -116,7 +116,7 @@ class GameInfoPanel(BottomPanel):
         x = 10
 
         image = self.image
-        dc.draw_image(image, x, y)
+        #dc.draw_image(image, x, y)
         dc.draw_image(image, x + 1, y + 1)
         dc.draw_image(self.cover_overlay, x - 10, y - 10)
 

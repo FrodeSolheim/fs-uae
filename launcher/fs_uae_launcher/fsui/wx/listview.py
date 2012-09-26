@@ -71,6 +71,7 @@ class ListView(ulc.UltimateListCtrl):
         self.SetColumnWidth(0, ulc.ULC_AUTOSIZE_FILL)
 
         self.Bind(ulc.EVT_LIST_ITEM_SELECTED, self.__list_item_selected)
+        self.Bind(ulc.EVT_LIST_ITEM_ACTIVATED, self.__list_item_activated)
         #self.EnableSelectionVista()
         self.__index = 0
         self.__items = []
@@ -79,7 +80,14 @@ class ListView(ulc.UltimateListCtrl):
         self.__index = event.GetIndex()
         self.on_select_item()
 
+    def __list_item_activated(self, event):
+        self.__index = event.GetIndex()
+        self.on_activate_item()
+
     def on_select_item(self):
+        pass
+
+    def on_activate_item(self):
         pass
 
     def get_index(self):

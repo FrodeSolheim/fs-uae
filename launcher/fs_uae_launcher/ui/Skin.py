@@ -15,9 +15,10 @@ class Skin:
 
     @classmethod
     def get_background_color(cls):
-        #if not fsui.System.windows and not fsui.System.macosx:
-        #    return None
-        return cls._get_background_color().copy()
+        c = cls._get_background_color()
+        if c is None:
+            return None
+        return c.copy()
 
     @classmethod
     @memoize
@@ -30,7 +31,11 @@ class Skin:
             g = convert(value[3:5])
             b = convert(value[5:7])
             return fsui.Color(r, g, b)
-        return fsui.Color(LEVEL, LEVEL, LEVEL)
+        if fsui.System.windows:
+            return fsui.Color(LEVEL, LEVEL, LEVEL)
+        elif fsui.System.macosx:
+            return fsui.Color(237, 237, 237)
+        return None
 
     @classmethod
     def set_background_color(cls, widget):

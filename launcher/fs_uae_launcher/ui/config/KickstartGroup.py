@@ -10,6 +10,7 @@ from ...ChecksumTool import ChecksumTool
 from ...Settings import Settings
 from ...IconButton import IconButton
 from ...I18N import _, ngettext
+from ..LauncherFileDialog import LauncherFileDialog
 
 class KickstartGroup(fsui.Group):
 
@@ -36,24 +37,24 @@ class KickstartGroup(fsui.Group):
         self.browse_button.on_activate = self.on_browse_button
         hori_layout.add(self.browse_button, margin=10)
 
-        heading_label = fsui.Label(self, _("Extended ROM"))
-        self.layout.add(heading_label, margin=10)
-        self.layout.add_spacer(0)
-
         hori_layout = fsui.HorizontalLayout()
         self.layout.add(hori_layout, fill=True)
 
+        heading_label = fsui.Label(self, _("Extended ROM:"))
+        hori_layout.add(heading_label, margin_left=10, margin_right=10)
+        #self.layout.add_spacer(0)
+
         kickstart_types = [_("Default"), _("Custom")]
         self.ext_rom_type_choice = fsui.Choice(self, kickstart_types)
-        hori_layout.add(self.ext_rom_type_choice, margin=10)
+        hori_layout.add(self.ext_rom_type_choice, margin_right=10)
 
         self.ext_text_field = fsui.TextField(self, "", read_only=True)
-        hori_layout.add(self.ext_text_field, expand=True, margin=10)
+        hori_layout.add(self.ext_text_field, expand=True, margin_right=10)
 
         self.ext_browse_button = IconButton(self, "browse_button.png")
         self.ext_browse_button.set_tooltip(_("Browse"))
         self.ext_browse_button.on_activate = self.on_ext_browse_button
-        hori_layout.add(self.ext_browse_button, margin=10)
+        hori_layout.add(self.ext_browse_button, margin_right=10)
 
         self.initialize_from_config()
         self.set_config_handlers()
@@ -100,10 +101,12 @@ class KickstartGroup(fsui.Group):
         default_dir = Settings.get_kickstarts_dir()
         if extended:
             title = _("Choose Extended ROM")
+            key = "kickstart_ext_file"
         else:
             title = _("Choose Kickstart ROM")
-        dialog = fsui.FileDialog(self.get_window(), title,
-                directory=default_dir)
+            key = "kickstart_file"
+        dialog = LauncherFileDialog(self.get_window(), title,
+                "rom", Config.get(key))
         if not dialog.show():
             return
         path = dialog.get_path()

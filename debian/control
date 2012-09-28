@@ -1,5 +1,5 @@
 Source: fs-uae
-Section: unknown
+Section: otherosfs
 Priority: extra
 Maintainer: Frode Solheim <fs-uae@fengestad.no>
 Build-Depends: debhelper (>= 7.0.50~), libsdl1.2-dev, libglib2.0-dev, libopenal-dev, gettext

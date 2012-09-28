@@ -1,10 +1,10 @@
 [Setup]
 AppName=FS-UAE
-AppVersion=1.3.28
+AppVersion=9.8.7
 DefaultDirName={localappdata}\FS-UAE
 DefaultGroupName=FS-UAE
 UninstallDisplayIcon={app}\FS-UAE.exe
-OutputBaseFilename=fs-uae-1.3.28-setup
+OutputBaseFilename=fs-uae-9.8.7-setup
 OutputDir=.
 PrivilegesRequired=lowest
 ShowLanguageDialog=no
@@ -15,7 +15,7 @@ DisableStartupPrompt=yes
 DisableProgramGroupPage=yes
 
 [Files]
-Source: "fs-uae-1.3.28-windows\*"; DestDir: "{app}"; Flags: recursesubdirs;
+Source: "fs-uae-9.8.7-windows\*"; DestDir: "{app}"; Flags: recursesubdirs;
 
 [Icons]
 Name: "{group}\FS-UAE Emulator"; Filename: "{app}\FS-UAE.exe"

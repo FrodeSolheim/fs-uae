@@ -18,8 +18,8 @@ bundle:
 	mkdir -p fs-uae-$(version)-macosx/FS-UAE.app/Contents/Resources
 	cp -pPR template/* fs-uae-$(version)-macosx/FS-UAE.app/
 	cp ../out/fs-uae fs-uae-$(version)-macosx/FS-UAE.app/Contents/MacOS
+	cp ../../out/libfs-capsimage.dylib fs-uae-$(version)-macosx/FS-UAE.app/Contents/Frameworks
 	cp -pPR ../share/* fs-uae-$(version)-macosx/FS-UAE.app/Contents/Resources
-	cp ../../libfs-capsimage/CAPSImage/libfs-capsimage.dylib fs-uae-$(version)-macosx/FS-UAE.app/Contents/Frameworks
 	strip fs-uae-$(version)-macosx/FS-UAE.app/Contents/MacOS/*
 	#strip fs-uae-$(version)-macosx/FS-UAE.app/Contents/Frameworks/*
 	cp ../icon/fs-uae.icns fs-uae-$(version)-macosx/FS-UAE.app/Contents/Resources/

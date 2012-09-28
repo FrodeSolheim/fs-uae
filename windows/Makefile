@@ -24,8 +24,8 @@ program:
 	cp /mingw/bin/SDL.dll fs-uae-$(version)-windows
 	cp /mingw/bin/soft_oal.dll fs-uae-$(version)-windows/OpenAL32.dll
 	#cp /mingw/dist/SDL.dll fs-uae-$(version)-windows
-	cp -a ../../libfs-capsimage/out/*.dll fs-uae-$(version)-windows
-	cp ../out/fs-uae.exe fs-uae-$(version)-windows/FS-UAE.exe
+	cp -a ../out/fs-uae.exe fs-uae-$(version)-windows/FS-UAE.exe
+	cp -a ../../out/CAPSImg.dll fs-uae-$(version)-windows
 	#mv fs-uae-$(version)-windows/TEMP.exe fs-uae-$(version)-windows/FS-UAE.exe
 	cp -a ../share fs-uae-$(version)-windows
 	strip fs-uae-$(version)-windows/*.exe

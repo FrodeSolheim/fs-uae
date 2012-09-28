@@ -56,7 +56,7 @@ cmdclass = {
     "py2exe": LauncherBuildExe,
 },
 options=options,
-version="1.3.28",
+version="9.8.7",
 author="Frode Solheim",
 author_email = "fs-uae@fengestad.no",
 #packages=["fs_uae_launcher"],

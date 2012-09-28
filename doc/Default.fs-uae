@@ -1,0 +1,3 @@
+[config]
+amiga_model = A500
+floppy_drive_0 = Disk1.adf

@@ -1,5 +1,6 @@
 include common.mk
 version = $(strip $(shell cat VERSION))
+series = $(strip $(shell cat SERIES))
 
 all: fs-uae mo
 
@@ -399,10 +400,10 @@ out/fs-uae: libfsemu-target obj/uae.a $(objects)
 
 fs-uae: out/fs-uae
 
-dist_dir=fs-uae-$(version)
-dist_dir_launcher=fs-uae-launcher-$(version)
+dist_dir := fs-uae-$(version)
+dist_dir_launcher := fs-uae-launcher-$(version)
 
-distdir-launcher:
+distdir-launcher-base:
 	rm -Rf $(dist_dir_launcher)/*
 	mkdir -p $(dist_dir_launcher)
 
@@ -428,23 +429,21 @@ distdir-launcher:
 	cp -a launcher/scripts/fs-uae-launcher $(dist_dir_launcher)/scripts/
 	cp -a launcher/fs-uae-launcher.spec $(dist_dir_launcher)
 
-	python util/update-version.py $(dist_dir_launcher)/fs-uae-launcher.spec
-	python util/update-version.py $(dist_dir_launcher)/setup.py
-	python util/update-version.py $(dist_dir_launcher)/debian/changelog
-
 	cp -a launcher/share $(dist_dir_launcher)/
 	find $(dist_dir_launcher)/share -name *.mo -delete
 	mkdir $(dist_dir_launcher)/po/
 	cp -a launcher/po/*.po $(dist_dir_launcher)/po/
 
-distdir: distdir-launcher
+distdir-base: distdir-launcher-base
 	rm -Rf $(dist_dir)/*
 	mkdir -p $(dist_dir)
 	cp -a $(dist_dir_launcher) $(dist_dir)/launcher
 
 	mkdir -p $(dist_dir)/obj
+	touch $(dist_dir)/obj/.dummy
 	mkdir -p $(dist_dir)/out
-	cp -a INSTALL README COPYING VERSION Changelog $(dist_dir)
+	touch $(dist_dir)/out/.dummy
+	cp -a INSTALL README COPYING VERSION SERIES Changelog $(dist_dir)
 	cp -a common.mk targets.mk $(dist_dir)
 	# windows.mk macosx.mk debian.mk
 	cp -a Makefile fs-uae.spec example.conf $(dist_dir)
@@ -460,7 +459,9 @@ distdir: distdir-launcher
 	cp -a $(libfsemu_dir)/include $(dist_dir)/libfsemu
 	cp -a $(libfsemu_dir)/src $(dist_dir)/libfsemu
 	mkdir -p $(dist_dir)/libfsemu/obj
+	touch $(dist_dir)/libfsemu/obj/.dummy
 	mkdir -p $(dist_dir)/libfsemu/out
+	touch $(dist_dir)/libfsemu/out/.dummy
 
 	#mkdir -p $(dist_dir)/libfs-capsimage
 	#cp -a ../libfs-capsimage/Makefile $(dist_dir)/libfs-capsimage
@@ -475,6 +476,9 @@ distdir: distdir-launcher
 
 	mkdir -p $(dist_dir)/po
 	cp -a po/*.po $(dist_dir)/po/
+
+	mkdir -p $(dist_dir)/doc
+	cp -a doc/Default.fs-uae $(dist_dir)/doc/
 
 	mkdir -p $(dist_dir)/macosx
 	cp -a macosx/Makefile $(dist_dir)/macosx/
@@ -543,15 +547,19 @@ distdir: distdir-launcher
 	#cp -a util/fix_64_bit.py $(dist_dir)/util/
 	#cd $(dist_dir) && python util/fix_64_bit.py
 	cp -a util/update-version.py $(dist_dir)/util/
-	cd $(dist_dir) && python util/update-version.py
 
 	mkdir -p $(dist_dir)/icon
 	cp icon/fs-uae.ico $(dist_dir)/icon/
 	cp icon/fs-uae.icns $(dist_dir)/icon/
 	cp icon/fs-uae-config.icns $(dist_dir)/icon/
 	
-	find $(dist_dir) -exec touch \{\} \;
 	find $(dist_dir) -name *~ -delete
+
+distdir: distdir-base
+	cd $(dist_dir) && python util/update-version.py
+	python util/update-version.py $(dist_dir_launcher)/fs-uae-launcher.spec
+	python util/update-version.py $(dist_dir_launcher)/setup.py
+	python util/update-version.py $(dist_dir_launcher)/debian/changelog
 
 distcheck: distdir
 	cd $(dist_dir) && $(make)
@@ -562,18 +570,20 @@ po-dist:
 	mkdir -p dist/files/po/fs-uae-launcher
 	cp launcher/po/*.po dist/files/po/fs-uae-launcher/
 
-dist: distdir pubfiles-source po-dist distdir-launcher
+dist: distdir pubfiles-source po-dist
+	find $(dist_dir_launcher) -exec touch \{\} \;
+	find $(dist_dir) -exec touch \{\} \;
+
 	tar zcfv fs-uae-launcher-$(version).tar.gz $(dist_dir_launcher)
 	tar zcfv fs-uae-$(version).tar.gz $(dist_dir)
-	mkdir -p dist/files/$(version)
-	mv fs-uae-$(version).tar.gz dist/files/$(version)/
-	mv fs-uae-launcher-$(version).tar.gz dist/files/$(version)/
+	mkdir -p dist/$(series)/$(version)
+	mv fs-uae-$(version).tar.gz dist/$(series)/$(version)/
+	mv fs-uae-launcher-$(version).tar.gz dist/$(series)/$(version)/
 	cp doc/Default.fs-uae dist/files/
 	cp server/fs_uae_netplay_server/game.py \
 		dist/files/fs-uae-netplay-server.py
 	cp server/fs_uae_netplay_server/game.py \
-		dist/files/$(version)/fs-uae-game-server-$(version).py
-	cp stuff/joyconfig/joyconfig.py dist/files/fs-uae-gamepad-config.py
+		dist/$(series)/$(version)/fs-uae-game-server-$(version).py
 
 install:
 	mkdir -p $(DESTDIR)$(prefix)/bin
@@ -587,7 +597,7 @@ install:
 clean:
 	rm -f gen/build68k gen/genblitter gen/gencpu gen/genlinetoscr
 	rm -f obj/*.o obj/*.a
-	rm -f out/*
+	rm -f out/fs-uae*
 	$(make) -C libfsemu clean
 
 distclean: clean

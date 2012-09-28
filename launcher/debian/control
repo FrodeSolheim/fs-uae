@@ -1,5 +1,5 @@
 Source: fs-uae-launcher
-Section: unknown
+Section: otherosfs
 Priority: extra
 X-Python-Version: >= 2.6
 Maintainer: Frode Solheim <fs-uae@fengestad.no>

@@ -24,13 +24,20 @@ libraries = [
 
 def copy_libs():
     for name in libraries:
-        print(name)
-        shutil.copy2("/opt/local/lib/" + name,
-                "fs-uae.app/Contents/Frameworks/" + name)
+        if os.path.exists("/usr/local/lib/" + name):
+            print("/usr/local/lib/" + name)
+            shutil.copy2("/usr/local/lib/" + name,
+                    "fs-uae.app/Contents/Frameworks/" + name)
+        else:
+            print("/opt/local/lib/" + name)
+            shutil.copy2("/opt/local/lib/" + name,
+                    "fs-uae.app/Contents/Frameworks/" + name)
 
 
 def fix_libs(path):
     print("fixing", path)
+    if not os.path.exists(path):
+        raise Exception("could not find " + repr(path))
     args = ["otool", "-L", path] 
     p = subprocess.Popen(args, stdout=subprocess.PIPE)
     data = p.stdout.read()
@@ -39,7 +46,7 @@ def fix_libs(path):
         line = line.strip()
         if not line:
             continue
-        if line.startswith('/opt/local/lib/'):
+        if line.startswith('/opt/local/lib/') or line.startswith('/usr/local/lib/'):
             old = line.split(' ')[0]
             old_dir, name = os.path.split(old)
             new = old.replace(old, '@executable_path/../Frameworks/' + name)
@@ -70,6 +77,6 @@ for dir_name in os.listdir("."):
         copy_libs()
         for name in libraries:
             fix_libs("fs-uae.app/Contents/Frameworks/" + name)
-        fix_libs("fs-uae.app/Contents/Frameworks/libcapsimage.dylib")
+        fix_libs("fs-uae.app/Contents/Frameworks/libfs-capsimage.dylib")
         fix_libs("fs-uae.app/Contents/MacOS/fs-uae")
         os.chdir(org_dir)

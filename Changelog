@@ -1,4 +1,5 @@
 Version 1.3.29:
+* Fixed problem where A key press could mysteriously appear on OS X.
 * Fixed bug with shader passes being multiplied on mode switch.
 * Link with -headerpad_max_install_names on OS X [Tobias Netzel].
 

@@ -445,6 +445,15 @@ static int event_loop() {
                         event.key.keysym.sym, event.key.keysym.mod,
                         event.key.keysym.scancode, event.key.state);
             }
+            if (event.key.keysym.sym == 0 && event.key.keysym.scancode == 0) {
+                // ignore "ghost key" seen on OS X which without this
+                // specific check will cause the A key to be mysteriously
+                // pressed.
+                if (g_debug_keys) {
+                    fs_log("- ignored key with keysym 0 and scancode 0\n");
+                }
+                continue;
+            }
             /*
             if (event.key.keysym.sym == SDLK_F12) {
                 g_f12_state = event.key.state ? FS_ML_KEY_MOD_F12 : 0;

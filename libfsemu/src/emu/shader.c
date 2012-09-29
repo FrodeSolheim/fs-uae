@@ -449,33 +449,7 @@ static GMarkupParser counter_subparser = {
         on_start_element, on_end_element, on_text,
         NULL, on_error };
 
-static void context_notification_handler(int notification, void *data) {
-    static int recreate = 0;
-    if (notification == FS_GL_CONTEXT_DESTROY) {
-        GList *link = g_shader_passes;
-        if (g_shader_passes == NULL) {
-            return;
-        }
-        fs_log("destrying shaders\n");
-        while (link) {
-            shader_pass *pass = link->data;
-            glDeleteProgram(pass->program);
-            g_free(pass);
-            GList *delete_link = link;
-            link = link->next;
-            g_list_free_1(delete_link);
-        }
-        recreate = 1;
-        g_shader_passes = NULL;
-    }
-    else if (notification == FS_GL_CONTEXT_CREATE) {
-        if (recreate) {
-            fs_emu_init_shader();
-        }
-    }
-}
-
-void fs_emu_init_shader() {
+static void fs_emu_load_shader() {
     char *path = fs_config_get_string("shader");
     if (!path) {
         return;
@@ -545,7 +519,38 @@ void fs_emu_init_shader() {
     CHECK_GL_ERROR();
     fs_log("done loading shader\n");
     //exit(1);
+}
 
+static void context_notification_handler(int notification, void *data) {
+    static int recreate = 0;
+    if (notification == FS_GL_CONTEXT_DESTROY) {
+        fs_log("FS_GL_CONTEXT_DESTROY handler for shader\n");
+        GList *link = g_shader_passes;
+        if (g_shader_passes == NULL) {
+            return;
+        }
+        fs_log("destroying shaders\n");
+        while (link) {
+            shader_pass *pass = link->data;
+            glDeleteProgram(pass->program);
+            g_free(pass);
+            GList *delete_link = link;
+            link = link->next;
+            g_list_free_1(delete_link);
+        }
+        recreate = 1;
+        g_shader_passes = NULL;
+    }
+    else if (notification == FS_GL_CONTEXT_CREATE) {
+        fs_log("FS_GL_CONTEXT_CREATE handler for shader\n");
+        if (recreate) {
+            fs_emu_load_shader();
+        }
+    }
+}
+
+void fs_emu_init_shader() {
+    fs_emu_load_shader();
     fs_gl_add_context_notification(context_notification_handler, NULL);
 }
 

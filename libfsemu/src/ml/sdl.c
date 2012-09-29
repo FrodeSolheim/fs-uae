@@ -219,15 +219,18 @@ static void set_video_mode() {
 }
 
 static void destroy_opengl_state() {
+    fs_log("destroy_opengl_state\n");
     fs_gl_send_context_notification(FS_GL_CONTEXT_DESTROY);
 }
 
 static void recreate_opengl_state() {
+    fs_log("recreate_opengl_state\n");
     fs_gl_reset_client_state();
     fs_gl_send_context_notification(FS_GL_CONTEXT_CREATE);
 }
 
 void fs_ml_toggle_fullscreen() {
+    fs_log("fs_ml_toggle_fullscreen\n");
     g_fs_emu_video_fullscreen = !g_fs_emu_video_fullscreen;
 
     destroy_opengl_state();

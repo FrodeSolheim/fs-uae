@@ -565,10 +565,10 @@ distcheck: distdir
 	cd $(dist_dir) && $(make)
 
 po-dist:
-	mkdir -p dist/files/po/fs-uae
-	cp po/*.po dist/files/po/fs-uae/
-	mkdir -p dist/files/po/fs-uae-launcher
-	cp launcher/po/*.po dist/files/po/fs-uae-launcher/
+	mkdir -p dist/$(series)/po/fs-uae
+	cp po/*.po dist/$(series)/po/fs-uae/
+	mkdir -p dist/$(series)/po/fs-uae-launcher
+	cp launcher/po/*.po dist/$(series)/po/fs-uae-launcher/
 
 dist: distdir pubfiles-source po-dist
 	find $(dist_dir_launcher) -exec touch \{\} \;
@@ -579,6 +579,7 @@ dist: distdir pubfiles-source po-dist
 	mkdir -p dist/$(series)/$(version)
 	mv fs-uae-$(version).tar.gz dist/$(series)/$(version)/
 	mv fs-uae-launcher-$(version).tar.gz dist/$(series)/$(version)/
+	mkdir -p dist/files/
 	cp doc/Default.fs-uae dist/files/
 	cp server/fs_uae_netplay_server/game.py \
 		dist/files/fs-uae-netplay-server.py

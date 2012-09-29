@@ -117,7 +117,7 @@ else ifeq ($(os), macosx)
   endif
   cflags += -arch $(arch)
   cxxflags += -arch $(arch)
-  ldflags += -arch $(arch)
+  ldflags += -arch $(arch) -headerpad_max_install_names
   cppflags += -DMACOSX
   libs += -framework OpenGL -framework Carbon -framework OpenAL
 else ifeq ($(os), freebsd)

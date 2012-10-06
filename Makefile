@@ -433,6 +433,7 @@ distdir-launcher-base:
 	find $(dist_dir_launcher)/share -name *.mo -delete
 	mkdir $(dist_dir_launcher)/po/
 	cp -a launcher/po/*.po $(dist_dir_launcher)/po/
+	cp -a launcher/po/update.py $(dist_dir_launcher)/po/
 
 distdir-base: distdir-launcher-base
 	rm -Rf $(dist_dir)/*

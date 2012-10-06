@@ -1,6 +1,7 @@
 from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
 #from .element import LightElement
 from .spacer import Spacer
@@ -141,7 +142,7 @@ class LinearLayout(Layout):
                 #available = available - child.margin_top - child.margin_bottom
                 #available = available - last_margin + max()
                 #last_margin = child.margin_bottom
-            else: 
+            else:
                 child._skip = max(last_margin, child.margin_left)
                 available-= child._skip
                 last_margin = child.margin_right

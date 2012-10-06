@@ -274,6 +274,11 @@ char *fs_uae_expand_path(const char* path) {
         replace = 7;
         replace_with = fs_uae_base_dir();
     }
+    if (fs_str_has_prefix(lower, "$base/") ||
+            fs_str_has_prefix(lower, "$base\\")) {
+        replace = 7;
+        replace_with = fs_uae_base_dir();
+    }
     if (fs_str_has_prefix(lower, "$documents/") ||
             fs_str_has_prefix(lower, "$documents\\")) {
         replace = 11;

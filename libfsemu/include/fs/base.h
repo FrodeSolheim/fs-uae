@@ -29,6 +29,7 @@ int64_t fs_get_monotonic_time(void);
 
 void *fs_malloc0(size_t n_bytes) FS_MALLOC /* G_GNUC_ALLOC_SIZE(1) */;
 
+void fs_set_argv(int argc, char* argv[]);
 int fs_get_application_exe_path(char *buffer, int size);
 int fs_get_application_exe_dir(char *buffer, int size);
 

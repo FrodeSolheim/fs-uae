@@ -1,6 +1,7 @@
 from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
 import os
 import fs_uae_launcher.fsui as fsui
@@ -160,7 +161,7 @@ class GameHandler:
         if Netplay.enabled:
             netplay_game = Config.get("__netplay_game")
             if netplay_game:
-                config_name = "Net Play ({0})".format(netplay_game)        
+                config_name = "Net Play ({0})".format(netplay_game)
 
         letter = self.get_letter(config_name)
         if not letter:

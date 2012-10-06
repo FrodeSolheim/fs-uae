@@ -28,7 +28,7 @@ bundle:
 launcher:
 	make -C ../launcher -f Makefile.mk
 	mkdir -p fs-uae-$(version)-macosx
-	cd ../launcher && python2.7 setup_py2app.py py2app --iconfile ../icon/fs-uae.icns
+	cd ../launcher && python2.7 setup_py2app.py py2app --iconfile ../icon/fs-uae-launcher.icns
 	mv ../launcher/dist/"FS-UAE Launcher.app" fs-uae-$(version)-macosx/
 	cp -pPR ../launcher/share/* fs-uae-$(version)-macosx/"FS-UAE Launcher.app"/Contents/Resources
 

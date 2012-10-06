@@ -1,7 +1,18 @@
 Version 1.3.29:
+* Implemented fs_application_exe_path for Unix-like systems.
+* Data files ("share") are now also searched relative to fs-uae executable
+  (executabledir/share and executabledir/../share) before checking the
+  default system locations, and no longer searched for under cwd.
 * Fixed problem where A key press could mysteriously appear on OS X.
 * Fixed bug with shader passes being multiplied on mode switch.
 * Link with -headerpad_max_install_names on OS X [Tobias Netzel].
+* (Launcher) Saving configurations is now possible.
+* (Launcher) Added new "default" input device options.
+* (Launcher) Contract paths with $BASE or $HOME if possible.
+* (Launcher) Automatically scan local config files (.fs-uae) on startup.
+* (Launcher) Net play panel must be enabled with custom setting
+  netplay_feature = 1 (temporary for 2.0 series).
+* (Launcher) New icon to distinguish the launcher from FS-UAE.
 
 Version 1.3.28:
 * New official boolean option uaegfx_card to enable the "Picasso 96 card".

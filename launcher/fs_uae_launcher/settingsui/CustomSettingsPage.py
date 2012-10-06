@@ -1,6 +1,7 @@
 from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
 import hashlib
 import fs_uae_launcher.fsui as fsui
@@ -74,7 +75,7 @@ class CustomSettingsPage(fsui.Panel):
                 u"# video sync options.\n\n" \
                 u"# The options specified here will apply to all configurations.\n" \
                 u"# (config options such as hardware and memory options will be ignored)\n\n"
-                
+
         keys = Settings.settings.keys()
         for key in sorted(keys):
             if key in Settings.default_settings:
@@ -104,6 +105,6 @@ DEFAULT_TEXT = """# Custom Settings
 # (config options such as hardware and memory options will be ignored)
 #
 # Options suitable here are options like fullscreen, theme and video_sync,
-# fsaa, initial_input_grab, etc. 
+# fsaa, initial_input_grab, etc.
 
 """

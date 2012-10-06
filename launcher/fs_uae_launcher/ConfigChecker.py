@@ -1,6 +1,7 @@
 from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
 import traceback
 from .Config import Config
@@ -9,7 +10,7 @@ class ConfigChecker:
 
     def __init__(self):
         Config.add_listener(self)
-    
+
     def on_config(self, key, value):
         if key == "floppy_drive_0" and value:
             if not Config.get("x_floppy_drive_0_sha1"):

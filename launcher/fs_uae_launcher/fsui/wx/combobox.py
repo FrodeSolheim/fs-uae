@@ -1,6 +1,7 @@
 from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
 import wx
 from .common import update_class
@@ -17,25 +18,15 @@ class ComboBox(wx.ComboBox):
             self.SetSelection(0)
         self.Bind(wx.EVT_COMBOBOX, self.__combobox_event)
         self.Bind(wx.EVT_TEXT, self.__text_event)
-        #self.min_height = 26
-
-    #def get_min_width(self):
-    #    return self.GetBestSize()[0]
-
-    #def get_min_height(self):
-    #    return self.GetBestSize()[1]
-
-    #def set_position(self, position):
-    #    self.SetPosition(position)
-
-    #def set_size(self, size):
-    #    self.SetSize(size)
 
     def get_index(self):
         return self.GetSelection()
 
     def set_index(self, index):
         self.SetSelection(index)
+
+    def set_item_text(self, index, text):
+        self.SetString(index, text)
 
     def get_text(self):
         return self.GetValue()

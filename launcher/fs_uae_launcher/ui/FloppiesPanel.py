@@ -1,6 +1,7 @@
 from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
 import fs_uae_launcher.fsui as fsui
 from ..Config import Config
@@ -25,18 +26,18 @@ class FloppiesPanel(fsui.Panel):
         #self.add_separator()
         self.layout.add(self.media_list_group, expand=True, fill=True)
 
-        hori_layout = fsui.HorizontalLayout()
-        hori_layout.add_spacer(0, expand=True)
-
-        self.multi_select_button = fsui.Button(self, _("Select Files..."))
-        self.multi_select_button.set_tooltip(
-                _("Add Multiple Floppies at Once"))
-        self.multi_select_button.on_activate = self.on_multi_select_button
-        #self.add_button(self.multi_select_button)
-        
-        self.layout.add(hori_layout, fill=True)
-        hori_layout.add(self.multi_select_button, margin=10)
-
-    def on_multi_select_button(self):
-        from ..FloppyManager import FloppyManager
-        FloppyManager.multiselect(self.get_window())
+#        hori_layout = fsui.HorizontalLayout()
+#        hori_layout.add_spacer(0, expand=True)
+#
+#        self.multi_select_button = fsui.Button(self, _("Select Files..."))
+#        self.multi_select_button.set_tooltip(
+#                _("Add Multiple Floppies at Once"))
+#        self.multi_select_button.on_activate = self.on_multi_select_button
+#        #self.add_button(self.multi_select_button)
+#
+#        self.layout.add(hori_layout, fill=True)
+#        hori_layout.add(self.multi_select_button, margin=10)
+#
+#    def on_multi_select_button(self):
+#        from ..FloppyManager import FloppyManager
+#        FloppyManager.multiselect(self.get_window())

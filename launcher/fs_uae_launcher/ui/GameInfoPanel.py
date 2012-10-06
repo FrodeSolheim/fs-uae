@@ -1,6 +1,7 @@
 from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
 import os
 import time
@@ -51,7 +52,7 @@ class GameInfoPanel(BottomPanel):
         #self.panel = fsui.Panel(self)
         #self.panel.set_background_color((0xdd, 0xdd, 0xdd))
         #self.layout.add(self.panel, expand=True, fill=True)
-        
+
         vert_layout = fsui.VerticalLayout()
         self.layout.add(vert_layout, expand=True, fill=True)
         #self.panel.layout.padding_top = 10
@@ -66,7 +67,7 @@ class GameInfoPanel(BottomPanel):
         #self.sub_title_label = fsui.Label(self)
         #self.sub_title_label.get_min_width = label_min_width
         #vert_layout.add(self.sub_title_label)
-        
+
         self.title = ""
         self.sub_title = ""
 

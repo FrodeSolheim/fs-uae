@@ -1,6 +1,7 @@
 from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
 import os
 import shutil
@@ -81,7 +82,7 @@ class DownloadService:
 
     @classmethod
     def get_cache_path(cls, sha1):
-        path = os.path.join(Settings.get_launcher_dir(), "Cache", 
+        path = os.path.join(Settings.get_launcher_dir(), "Cache",
                 "Download", sha1[:2])
         if not os.path.exists(path):
             os.makedirs(path)
@@ -92,7 +93,7 @@ class DownloadService:
         h = hashlib.sha1()
         h.update(url)
         sha1 = h.hexdigest()
-        path = os.path.join(Settings.get_launcher_dir(), "Cache", 
+        path = os.path.join(Settings.get_launcher_dir(), "Cache",
                 "Download", sha1[:2])
         if not os.path.exists(path):
             os.makedirs(path)

@@ -1,6 +1,7 @@
 from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
 import os
 import traceback
@@ -55,9 +56,9 @@ class ScanPathsGroup(fsui.Group):
         self.remove_button.on_activate = self.on_remove_button
         vlayout.add(self.remove_button)
 
+        """
         self.layout2.add_spacer(10)
 
-        """
         hor_layout = fsui.HorizontalLayout()
         self.layout2.add(hor_layout)
 

@@ -1,6 +1,7 @@
 from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
 import os
 import traceback
@@ -71,7 +72,7 @@ class ScanKickstartGroup(fsui.Group):
         self.layout2 = fsui.VerticalLayout()
         self.layout.add(self.layout2, fill=True, expand=True)
 
-        label = fsui.HeadingLabel(self, _("Kickstart Versions"))
+        label = fsui.HeadingLabel(self, _("Available Kickstart Versions"))
         self.layout2.add(label)#, expand=True, fill=True)
         self.layout2.add_spacer(10)
 

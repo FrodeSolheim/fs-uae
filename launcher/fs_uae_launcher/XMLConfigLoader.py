@@ -1,6 +1,7 @@
 from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
 import os
 import xml.etree.ElementTree
@@ -25,7 +26,7 @@ class XMLConfigLoader:
         root = fromstring(data)
         tree = ElementTree(root)
         self.load_tree(tree)
-        
+
     def load_tree(self, tree, path=""):
         self.tree = tree
         self.path = path
@@ -137,7 +138,7 @@ class XMLConfigLoader:
                key = node.tag.replace("-", "_")
                value = node.text or ""
                self.load_option(key, value)
-    
+
     def load_option(self, key, value):
        if key == "viewport":
            if "=" in value:

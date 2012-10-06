@@ -62,7 +62,7 @@ CD32_EXT_ROMS = [
     # CD32 Extended-ROM r40.60 (1993)(Commodore)(CD32)
     "5bef3d628ce59cc02a66e6e4ae0da48f60e78f7f",
 ]
-                 
+
 CDTV_KICKSTARTS = A500_KICKSTARTS
 
 CDTV_EXT_ROMS = [

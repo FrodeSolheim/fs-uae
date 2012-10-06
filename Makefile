@@ -551,6 +551,8 @@ distdir-base: distdir-launcher-base
 	mkdir -p $(dist_dir)/icon
 	cp icon/fs-uae.ico $(dist_dir)/icon/
 	cp icon/fs-uae.icns $(dist_dir)/icon/
+	cp icon/fs-uae-launcher.ico $(dist_dir)/icon/
+	cp icon/fs-uae-launcher.icns $(dist_dir)/icon/
 	cp icon/fs-uae-config.icns $(dist_dir)/icon/
 	
 	find $(dist_dir) -name *~ -delete

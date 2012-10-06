@@ -1,6 +1,7 @@
 from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
 import sys
 import threading
@@ -360,7 +361,7 @@ class IRC:
         password = Settings.get_irc_nickserv_pass()
         if password:
             cls.privmsg("nickserv", u"identify {0}".format(password))
-        
+
         #cls.join("#support")
         cls.join("#lobby")
 

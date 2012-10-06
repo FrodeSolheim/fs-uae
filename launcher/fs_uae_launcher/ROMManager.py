@@ -1,6 +1,7 @@
 from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
 import os
 import hashlib
@@ -38,7 +39,7 @@ class ROMManager:
                 dec = []
                 for i in range(len(data)):
                     dec.append(chr(ord(data[i]) ^ ord(key_data[i])))
-                dec_data = "".join(dec)
+                dec_data = b"".join(dec)
                 s1.update(data)
                 s2.update(dec_data)
         return s2.hexdigest()
@@ -68,7 +69,7 @@ class ROMManager:
                 dec = []
                 for i in range(len(data)):
                     dec.append(chr(ord(data[i]) ^ ord(key_data[i])))
-                dec_data = "".join(dec)
+                dec_data = b"".join(dec)
                 file.write(dec_data)
 
     @staticmethod
@@ -108,7 +109,7 @@ class ROMManager:
             dec = []
             for i in range(len(data)):
                 dec.append(chr(ord(data[i]) ^ ord(key_data[i])))
-            dec_data = "".join(dec)
+            dec_data = b"".join(dec)
             if file is not None:
                 file.write(dec_data)
             if sha1 is not None:

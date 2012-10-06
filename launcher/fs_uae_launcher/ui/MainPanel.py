@@ -1,12 +1,13 @@
 from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
 import fs_uae_launcher.fsui as fsui
-from ..ConfigGroup import ConfigGroup
 from ..RemovableMediaGroup import RemovableMediaGroup
 from .config.InputGroup import InputGroup
 from .config.ModelGroup import ModelGroup
+from .ConfigGroup import ConfigGroup
 from .Skin import Skin
 
 class MainPanel(fsui.Panel):

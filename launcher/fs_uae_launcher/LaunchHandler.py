@@ -1,6 +1,7 @@
 from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
 import os
 import zlib
@@ -108,7 +109,7 @@ class LaunchHandler:
             if src == "internal":
                 continue
             src = expand_path(src)
-            
+
             archive = Archive(src)
             if not archive.exists(src):
                 dirs = [Settings.get_kickstarts_dir()]
@@ -122,7 +123,7 @@ class LaunchHandler:
                 else:
                     raise Exception("Cannot find kickstart " + repr(src))
             dest = os.path.join(self.temp_dir, os.path.basename(src))
-            
+
             with open(dest, "wb") as f:
                 ROMManager.decrypt_archive_rom(archive, src, file=f)
                 self.config[config_key] = os.path.basename(src)
@@ -160,7 +161,7 @@ class LaunchHandler:
 
         src, archive = self.expand_default_path(src,
                 Settings.get_floppies_dir())
-        
+
         dest = os.path.join(self.temp_dir, os.path.basename(src))
         #shutil.copy2(src, dest)
         archive.copy(src, dest)
@@ -219,7 +220,7 @@ class LaunchHandler:
 
     def unpack_hard_drive(self, i, src):
         src, archive = self.expand_default_path(src,
-                Settings.get_hard_drives_dir())        
+                Settings.get_hard_drives_dir())
 
         dir_name = "DH{0}".format(i)
         dir_path = os.path.join(self.temp_dir, dir_name)
@@ -442,7 +443,7 @@ SplashDelay=0        ;time to display splash window (1/50 seconds)
                     out_f.write(data)
         #raise Exception("unpack")
             #zip = zipfile.ZipFile(archive, "r")
-            #   
+            #
             #def extract_members(zip):
             #    for name in zip.namelist():
             #        if ".." in name:

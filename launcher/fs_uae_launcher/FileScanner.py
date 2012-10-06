@@ -1,6 +1,7 @@
 from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
 import os
 import time
@@ -146,12 +147,12 @@ class FileScanner:
         if self.stop_check():
             return
         self.scan_archive_stream(database, archive, path, name, size, mtime)
-    
+
     def scan_archive_stream(self, database, archive, path, name, size, mtime):
         #print(path)
         base_name, ext = os.path.splitext(name)
         ext = ext.lower()
-        
+
         self.set_status(_("Scanning files ({count} scanned)").format(
                 count=self.scan_count), name)
 

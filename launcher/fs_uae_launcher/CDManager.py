@@ -1,6 +1,7 @@
 from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
 import os
 import fs_uae_launcher.fsui as fsui
@@ -70,7 +71,7 @@ class CDManager:
             Config.set_multiple([
                     ("cdrom_drive_{0}".format(i), ""),
                     ("x_cdrom_drive_{0}_sha1".format(i), "")])
-            
+
             #Config.set("x_cdrom_drive_{0}_sha1".format(i), "")
             #Config.set("x_cdrom_drive_{0}_name".format(i), "")
         # blank the rest of the image list

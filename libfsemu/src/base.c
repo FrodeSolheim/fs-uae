@@ -43,8 +43,19 @@
 
 char *fs_get_data_file(const char *relative) {
     //printf("fs_get_data_file_path %s\n", relative);
+    static int initialized = 0;
+    static char executable_dir[PATH_MAX];
+    if (!initialized) {
+        fs_get_application_exe_dir(executable_dir, PATH_MAX);
+        initialized = 1;
+    }
     char *path;
-    path = fs_path_join("share", relative, NULL);
+    path = fs_path_join(executable_dir, "share", relative, NULL);
+    if (fs_path_exists(path)) {
+        return path;
+    }
+    free(path);
+    path = fs_path_join(executable_dir, "..", "share", relative, NULL);
     if (fs_path_exists(path)) {
         return path;
     }
@@ -323,7 +334,22 @@ int64_t fs_get_monotonic_time(void) {
 #endif
 }
 
+static char** g_argv = NULL;
+static int g_argc = 0;
+
+void fs_set_argv(int argc, char* argv[]) {
+    g_argc = argc;
+    g_argv = argv;
+}
+
 int fs_get_application_exe_path(char *buffer, int size) {
+    fs_log("fs_get_application_exe_path\n");
+    // Mac OS X: _NSGetExecutablePath() (man 3 dyld)
+    // Linux: readlink /proc/self/exe
+    // Solaris: getexecname()
+    // FreeBSD: sysctl CTL_KERN KERN_PROC KERN_PROC_PATHNAME -1
+    // BSD with procfs: readlink /proc/curproc/file
+    // Windows: GetModuleFileName() with hModule = NULL
 #if defined(WINDOWS)
     // FIXME: SHOULD HANDLE UTF8 <--> MBCS..
     size = GetModuleFileName(NULL, buffer, size);
@@ -341,20 +367,39 @@ int fs_get_application_exe_path(char *buffer, int size) {
         buffer[0] = '\0';
         return 0;
     }
-#elif defined(LINUX)
-    fs_log("WARNING: fs_get_application_exe_path not implemented\n");
 #else
-    // Mac OS X: _NSGetExecutablePath() (man 3 dyld)
-    // Linux: readlink /proc/self/exe
-    // Solaris: getexecname()
-    // FreeBSD: sysctl CTL_KERN KERN_PROC KERN_PROC_PATHNAME -1
-    // BSD with procfs: readlink /proc/curproc/file
-    // Windows: GetModuleFileName() with hModule = NULL
-    fs_log("WARNING: fs_get_application_exe_path not implemented\n");
+    if (g_argc == 0) {
+        buffer[0] = '\0';
+        return 0;
+    }
+    gchar* result = g_find_program_in_path(g_argv[0]);
+    if (result == NULL) {
+        buffer[0] = '\0';
+        return 0;
+    }
+    //fs_log("argv[0]: %s result: %s\n", g_argv[0], result);
+    if (result[0] != '/') {
+        gchar* old_result = result;
+        gchar* current_dir = g_get_current_dir();
+        result = g_build_filename(current_dir, old_result, NULL);
+        //fs_log("new result: %s\n", result);
+        g_free(old_result);
+        g_free(current_dir);
+    }
+
+    if (strlen(result) > size - 1) {
+        buffer[0] = '\0';
+        return 0;
+    }
+
+    // we have already checked that the buffer is big enough
+    strcpy(buffer, result);
+    g_free(result);
+    return 1;
 #endif
-    fs_log("WARNING: fs_get_application_exe_path failed\n");
-    buffer[0] = '\0';
-    return 0;
+    //fs_log("WARNING: fs_get_application_exe_path failed\n");
+    //buffer[0] = '\0';
+    //return 0;
 }
 
 int fs_get_application_exe_dir(char *buffer, int size) {

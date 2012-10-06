@@ -1,6 +1,7 @@
 from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
 import time
 import socket
@@ -8,20 +9,25 @@ import threading
 import traceback
 import fs_uae_launcher.fsui as fsui
 from ..Config import Config
+from ..Signal import Signal
 
 class ConnectionTester():
 
     def __init__(self):
-        Config.add_listener(self)
         self.host_info = ("", 0)
         self.running = False
         self.stopping = False
         self.connection_attempt = 0
 
+        Config.add_listener(self)
+        Signal.add_listener("quit", self)
+
+    def on_quit_signal(self):
+        print("on_quit_signal")
+        self.stopping = True
+
     def on_config(self, key, value):
-        if key == "__quit":
-            self.stopping = True
-        elif key in ["__netplay_addresses", "__netplay_port"]:
+        if key in ["__netplay_addresses", "__netplay_port"]:
             addresses = Config.get("__netplay_addresses")
             port = Config.get("__netplay_port")
             host_info = (addresses, port)
@@ -55,7 +61,7 @@ class ConnectionTester():
         last_check_time = 0
         while not self.stopping:
             t = time.time()
-            host_info = self.host_info 
+            host_info = self.host_info
             time_diff = t - last_check_time
             time_for_new_test = time_diff > 30.0 or host_info != last_host_info
             if host_info[0] and host_info[1] and time_for_new_test:

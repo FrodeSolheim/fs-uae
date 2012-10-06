@@ -18,7 +18,7 @@ class Font(object):
             self.font.SetWeight(wx.FONTWEIGHT_NORMAL)
 
 class DrawingContext(object):
-    
+
     def __init__(self, dc):
         self.dc = dc
         self.gc = wx.GraphicsContext_Create(dc)
@@ -101,7 +101,7 @@ class DrawingContext(object):
             if x1 > x2:
                 x1, x2 = x2, x1
             y2 += 1
-        else:  
+        else:
             # Line is neither horizontal nor vertical
             # This function does not support angular lines.
             return

@@ -1,6 +1,7 @@
 from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
 import os
 import sys
@@ -11,6 +12,8 @@ from .ui.MainWindow import MainWindow
 #from .MainWindow import MainWindow
 import fs_uae_launcher.fs as fs
 
+from .Database import Database
+from .ConfigurationScanner import ConfigurationScanner
 from .Settings import Settings
 from .Config import Config
 
@@ -21,12 +24,13 @@ class FSUAELauncher(fsui.Application):
 
         self.parse_arguments()
         self.load_settings()
+        self.config_startup_scan()
 
         # FIXME: should now sanitize check some options -for instance,
         # - check if configured joysticks are still connected
         # - check if paths still exists, etc
 
-        Config.update_kickstart()
+        #Config.update_kickstart()
 
         icon = None
         def check_icon(path):
@@ -69,13 +73,7 @@ class FSUAELauncher(fsui.Application):
         except Exception, e:
             print(repr(e))
             return
-        settings = {}
-        try:
-            keys = cp.options("settings")
-        except ConfigParser.NoSectionError:
-            keys = []
-        for key in keys:
-            settings[key] = cp.get("settings", key)
+
         config = {}
         try:
             keys = cp.options("config")
@@ -83,17 +81,25 @@ class FSUAELauncher(fsui.Application):
             keys = []
         for key in keys:
             config[key] = cp.get("config", key)
+        for key, value in config.iteritems():
+            print("loaded", key, value)
+            Config.config[key] = value
 
+        settings = {}
+        try:
+            keys = cp.options("settings")
+        except ConfigParser.NoSectionError:
+            keys = []
+        for key in keys:
+            settings[key] = cp.get("settings", key)
         for key, value in settings.iteritems():
             #if key in Settings.settings:
             #    # this setting is already initialized, possibly via
             #    # command line arguments
             #    pass
             #else:
+            print("-- setting", key, value)
             Settings.settings[key] = value
-        for key, value in config.iteritems():
-            print("loaded", key, value)
-            Config.config[key] = value
 
     def parse_arguments(self):
         pass
@@ -133,3 +139,25 @@ class FSUAELauncher(fsui.Application):
             #    f.write(line + u"\n".encode("UTF-8"))
         print("moving to " + repr(self.get_settings_file()))
         shutil.move(path, self.get_settings_file())
+
+    def config_startup_scan(self):
+        database = Database.get_instance()
+        local_configs = database.find_local_configurations()
+        configs_dir = Settings.get_configurations_dir()
+        for dir_path, dir_names, file_names in os.walk(configs_dir):
+            for file_name in file_names:
+                path = os.path.join(dir_path, file_name)
+                if path in local_configs:
+                    local_configs[path] = None
+                    # already exists in database
+                    continue
+                name, ext = os.path.splitext(file_name)
+                search = ConfigurationScanner.create_configuration_search(name)
+                name = ConfigurationScanner.create_configuration_name(name)
+                print("adding", path)
+                database.add_configuration(path=path, uuid="", name=name,
+                        scan=0, search=search)
+        for path, id in local_configs.iteritems():
+            if id is not None:
+                database.delete_configuration(id=id)
+        database.commit()

@@ -1,6 +1,7 @@
 from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
 import os
 import sys
@@ -24,7 +25,7 @@ class NullOutput(object):
         pass
 
 class MultiOutput:
-    
+
     def __init__(self, *files):
         self.files = files
 
@@ -210,7 +211,7 @@ def main():
                     Settings.base_dir = value
     if Settings.base_dir:
         print("base_dir was specified so we will not check for portable dir")
-    else: 
+    else:
         setup_portable_launcher()
 
     setup_logging()

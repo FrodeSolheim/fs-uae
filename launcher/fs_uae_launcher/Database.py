@@ -13,8 +13,19 @@ class Database:
 
     @classmethod
     def get_database_path(self):
-        path = Settings.get_launcher_dir()
-        path = os.path.join(path, "Database7.sqlite")
+        launcher_dir = Settings.get_launcher_dir()
+        for i in range(8):
+            if i:
+                path = os.path.join(launcher_dir,
+                        "Database{0}.sqlite".format(i))
+            else:
+                path = os.path.join(launcher_dir, "Database.sqlite")
+            if os.path.exists(path):
+                try:
+                    os.remove(path)
+                except Exception:
+                    pass
+        path = os.path.join(launcher_dir, "Launcher.sqlite")
         return path
 
     @classmethod
@@ -140,13 +151,38 @@ scan int
             path = path[len(base_dir):]
             if path.startswith("/"):
                 path = path[1:]
-            path = "$base_dir/" + path
+            path = "$BASE/" + path
         return path
 
     def decode_path(self, path):
-        base_dir = Settings.get_base_dir()
-        path = path.replace("$base_dir", base_dir)
+        if not path or path[0] != "$":
+            return path
+        base_dir = Settings.get_base_dir() + "/"
+        # FIXME: $base_dir is deprecated
+        path = path.replace("$base_dir/", base_dir)
+        path = path.replace("$BASE/", base_dir)
         return path
+
+    def find_local_configurations(self):
+        self.init()
+        query = "SELECT id, path FROM configuration WHERE path like ?"
+        args = ["$Base/Configurations/%"]
+        self.cursor.execute(query, args)
+        result = {}
+        for row in self.cursor.fetchall():
+            result[self.decode_path(row[1])] = row[0]
+        return result
+
+    def delete_configuration(self, id=-1, path=None):
+        self.init()
+        if path is not None:
+            query = "DELETE FROM configuration WHERE path = ?"
+            path = self.encode_path(path)
+            args = [path]
+        else:
+            query = "DELETE FROM configuration WHERE id = ?"
+            args = [id]
+        self.cursor.execute(query, args)
 
     def search_configurations(self, search):
         self.init()
@@ -279,9 +315,9 @@ scan int
         path = self.encode_path(path)
         #self.cursor.execute("UPDATE file SET scan = ? WHERE path like ?",
         #        (scan, path + u"{0}%".format(unicode(os.sep))))
-        
+
         a = path + "\u002f" # forward slash
-        b = path + "\u0030" # one more than forward slash 
+        b = path + "\u0030" # one more than forward slash
         self.cursor.execute("UPDATE file SET scan = ? WHERE "
                 "path >= ? AND path < ?", (scan, a, b))
 

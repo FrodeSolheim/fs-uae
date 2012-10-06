@@ -1,6 +1,7 @@
 from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
 import os
 import fs_uae_launcher.fsui as fsui
@@ -36,7 +37,7 @@ class LauncherFileDialog(fsui.FileDialog):
         if not directory:
             directory = self.get_default_directory(type)
         fsui.FileDialog.__init__(self, parent, title, directory,
-                dir_mode=dir_mode)
+                dir_mode=dir_mode, multiple=multiple)
 
     def get_default_directory(self, type):
         if type == "floppy":

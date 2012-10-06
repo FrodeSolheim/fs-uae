@@ -40,7 +40,7 @@ launcher:
 	mv ../launcher/dist fs-uae-$(version)-windows/launcher
 	cp -a ../launcher/share fs-uae-$(version)-windows/launcher/
 	mv fs-uae-$(version)-windows/launcher/fs-uae-launcher.exe "fs-uae-$(version)-windows/launcher/FS-UAE Launcher.exe"
-	python replace_icon.py "fs-uae-$(version)-windows/launcher/FS-UAE Launcher.exe" ../icon/fs-uae.ico
+	python replace_icon.py "fs-uae-$(version)-windows/launcher/FS-UAE Launcher.exe" ../icon/fs-uae-launcher.ico
 	cp -a C:/Microsoft.VC90.CRT fs-uae-$(version)-windows/launcher/
 
 bindist-plus:

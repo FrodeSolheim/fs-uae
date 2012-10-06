@@ -10,7 +10,7 @@ from xml.etree.cElementTree import ElementTree, fromstring
 from zipfile import ZipFile
 from .Database import Database
 
-archive_extensions = [".zip", ".xml"] 
+archive_extensions = [".zip", ".xml"]
 supports_lha = False
 
 try:
@@ -22,7 +22,7 @@ else:
     supports_lha = True
 
 class ZipHandler:
-    
+
     def __init__(self, path):
         self.path = path
         self.zip = ZipFile(self.path, "r")
@@ -63,7 +63,7 @@ class ZipHandler:
         return name
 
 class LhaHandler:
-    
+
     def __init__(self, path):
         self.path = path
         self.zip = Lhafile(self.path, "r")
@@ -115,7 +115,7 @@ class LhaHandler:
         return name
 
 class XMLHandler:
-    
+
     def __init__(self, path):
         self.path = path
         self.tree = None
@@ -171,7 +171,7 @@ class NullHandler:
         return []
 
 class Archive:
-    
+
     def __init__(self, path):
         self.path, self.sub_path = self.split_path(path)
 

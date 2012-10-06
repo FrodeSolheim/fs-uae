@@ -1,6 +1,7 @@
 from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
 import uuid
 import urllib2
@@ -21,7 +22,7 @@ from ..server.ServerWindow import ServerWindow
 class Netplay:
 
     host_ports = []
-    
+
     enabled = False
     game_channel = ""
     connection_tester = None
@@ -112,7 +113,7 @@ class Netplay:
     def do_start_game(cls):
         cls.game_info("starting game!")
         print("do start game")
-        
+
         # we now reset __netplay_addresses so that the ConnectionTester
         # does not connect to the game in progress
         Config.set("__netplay_addresses", "")
@@ -152,7 +153,7 @@ class Netplay:
         cls.enabled = True
         IRC.connect()
         if cls.connection_tester is None:
-            cls.connection_tester = ConnectionTester() 
+            cls.connection_tester = ConnectionTester()
 
     @classmethod
     def is_connected(cls):
@@ -533,7 +534,7 @@ class Netplay:
                             "but I am not ready)")
                     return
                 channel.privmsg("__ackstart {0} {1}".format(seq,
-                    my_config_hash))            
+                    my_config_hash))
         elif command == "__ackstart":
             start_sequence, config_hash = arg.split(u" ")
             cls.player(nick).set("start_sequence", start_sequence)
@@ -638,7 +639,7 @@ class Netplay:
                     Config.set_multiple([
                             ("kickstart_file", "internal"),
                             ("x_kickstart_file", "internal"),
-                            (key, value)])                
+                            (key, value)])
             else:
                 path = Database.get_instance().find_file(sha1=value)
                 if path:
@@ -683,7 +684,7 @@ class Netplay:
             channel.action(u"could not find {1} for "
                     "for {0}".format(value, set_key))
 
-    file_config = {   
+    file_config = {
     }
     for i in range(Amiga.MAX_FLOPPY_DRIVES):
         file_config["x_floppy_drive_{0}_sha1".format(i)] = \

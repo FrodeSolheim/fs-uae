@@ -1,9 +1,11 @@
 from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
 from .Amiga import Amiga
 from .Config import Config
+from .DeviceManager import DeviceManager
 from .Settings import Settings
 
 class ConfigWriter:
@@ -24,6 +26,13 @@ class ConfigWriter:
 
         for key, value in self.config.iteritems():
             config[key] = value
+
+        devices = DeviceManager.get_devices_for_ports(config)
+        for port in range(4):
+            key = "joystick_port_{0}".format(port)
+            if not config.get(key):
+                # key not set, use calculated default value
+                config[key] = devices[port].id
 
         # overwrite netplay config
         if config["__netplay_host"]:
@@ -57,7 +66,7 @@ class ConfigWriter:
             if value:
                 num_drives = i + 1
         num_drives = max(1, num_drives)
-        
+
         print("")
         print("-------------" * 6)
         print("CONFIG")

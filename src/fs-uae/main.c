@@ -419,6 +419,8 @@ int main(int argc, char* argv[]) {
     fs_uae_argc = argc;
     fs_uae_argv = argv;
 
+    fs_set_argv(argc, argv);
+
     char **arg = argv;
     arg++;
     while (arg && *arg) {

@@ -1,6 +1,7 @@
 from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
 import os
 import tempfile
@@ -33,6 +34,7 @@ class FSUAE:
         env = os.environ.copy()
         #env = None
         cls.center_window(env)
+        print(repr(env))
         proc = subprocess.Popen(args, env=env, **kwargs)
         return proc
 
@@ -56,13 +58,13 @@ class FSUAE:
 
         main_w, main_h = MainWindow.instance.get_size()
         main_x, main_y = MainWindow.instance.get_position()
-        
+
         x = main_x + (main_w - width) // 2
         y = main_y + (main_h - height) // 2
         if fs.windows:
             import wx
             y += wx.SystemSettings_GetMetric(wx.SYS_CAPTION_Y)
-        env["SDL_VIDEO_WINDOW_POS"] = "{0},{1}".format(x, y)
+        env[str("SDL_VIDEO_WINDOW_POS")] = str("{0},{1}".format(x, y))
         #print("window position", env["SDL_VIDEO_WINDOW_POS"])
         #os.environ["SDL_VIDEO_WINDOW_POS"] = "{0},{1}".format(x, y)
 

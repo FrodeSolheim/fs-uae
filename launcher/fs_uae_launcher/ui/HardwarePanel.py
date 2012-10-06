@@ -1,6 +1,7 @@
 from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
 import fs_uae_launcher.fsui as fsui
 from ..Config import Config
@@ -26,4 +27,3 @@ class HardwarePanel(fsui.Panel):
         self.layout.add(self.memory_group, fill=True)
         self.layout.add_spacer(10)
         self.layout.add(self.expansions_group, fill=True)
-        

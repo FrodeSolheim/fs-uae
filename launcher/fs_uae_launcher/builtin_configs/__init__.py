@@ -31,7 +31,7 @@ def builtin_configs():
     #    m = __import__("fs_uae_launcher.builtin_configs." + name)
     #    for name, data in getattr(m).iteritems:
     #        result.append((name, data))
-    
+
     for config_dict in configurations:
         yield create_xml_from_config_dict(config_dict)
     #return result

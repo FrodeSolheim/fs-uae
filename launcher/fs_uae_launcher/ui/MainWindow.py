@@ -1,6 +1,7 @@
 from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
 import os
 import sys
@@ -9,6 +10,7 @@ import fs_uae_launcher.fsui as fsui
 import fs_uae_launcher.fs as fs
 from ..Amiga import Amiga
 from ..Config import Config
+from ..Signal import Signal
 from ..Settings import Settings
 from ..netplay.IRC import IRC
 #from .FSUAE import FSUAE
@@ -16,7 +18,6 @@ from ..netplay.IRC import IRC
 from ..netplay.Netplay import Netplay
 from ..Database import Database
 from ..GameHandler import GameHandler
-from ..Separator import Separator
 from ..I18N import _, ngettext
 from .ScreenshotsPanel import ScreenshotsPanel
 from .GameInfoPanel import GameInfoPanel
@@ -60,7 +61,7 @@ class MainWindow(fsui.Window):
             self.create_column(1, min_width=514)
         else:
             self.create_column(1, min_width=400)
-        
+
         # right content
         right_width = Constants.SCREEN_SIZE[0] * 2 + 20 + 10 + 10
         extra_screen_width = Constants.SCREEN_SIZE[0] + 20
@@ -71,7 +72,7 @@ class MainWindow(fsui.Window):
             if fsui.get_screen_size()[0] >= need_width:
                 # make room for one more screenshot
                 right_width += extra_screen_width
-                pass        
+                pass
         self.create_column(2, min_width=right_width, expand=True)
 
         # right border
@@ -104,7 +105,8 @@ class MainWindow(fsui.Window):
     def on_destroy(self):
         print("MainWindow.destroy")
         IRC.stop()
-        Config.set("__quit", "1")
+        #Config.set("__quit", "1")
+        Signal.broadcast("quit")
 
     def is_editor_enabled(self):
         return "--editor" in sys.argv
@@ -175,7 +177,8 @@ class MainWindow(fsui.Window):
 
         elif column == 2:
             self.add_content(column, ConfigurationsPanel, "tab_configs")
-            self.add_content(column, NetplayPanel, "tab_netplay")
+            if Settings.get("netplay_feature") == "1":
+                self.add_content(column, NetplayPanel, "tab_netplay")
 
             tab_panel = self.tab_panels[column]
             tab_panel.add_spacer(expand=True)

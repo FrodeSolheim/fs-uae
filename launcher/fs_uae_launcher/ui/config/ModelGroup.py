@@ -1,6 +1,7 @@
 from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
 import fs_uae_launcher.fsui as fsui
 from ...Config import Config
@@ -45,7 +46,7 @@ class ModelGroup(fsui.Group):
         hori_layout.add(self.ntsc_checkbox, expand=False, margin=10)
 
         # FIXME: should not need to call from here...
-        Config.update_kickstart()
+        #Config.update_kickstart()
 
         self.initialize_from_config()
         self.set_config_handlers()

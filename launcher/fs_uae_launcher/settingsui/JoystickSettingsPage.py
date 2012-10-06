@@ -1,6 +1,7 @@
 from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
 import os
 import sys
@@ -8,7 +9,7 @@ import subprocess
 import fs_uae_launcher.fsui as fsui
 from ..Config import Config
 from ..Settings import Settings
-from ..Separator import Separator
+#from ..Separator import Separator
 from ..I18N import _, ngettext
 
 class JoystickSettingsPage(fsui.Panel):
@@ -24,7 +25,7 @@ class JoystickSettingsPage(fsui.Panel):
         self.pref_group = PreferredJoysticksGroup(self)
         self.layout.add(self.pref_group, fill=True)
 
-        self.layout.add(Separator(self), fill=True)
+        self.layout.add_spacer(20)
 
         from .JoystickSettingsGroup import JoystickSettingsGroup
         self.joystick_settings_group = JoystickSettingsGroup(self)

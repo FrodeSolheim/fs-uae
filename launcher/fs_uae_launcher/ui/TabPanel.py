@@ -1,6 +1,7 @@
 from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
 import fs_uae_launcher.fsui as fsui
 from .Constants import Constants
@@ -32,7 +33,7 @@ class TabPanel(fsui.Panel):
             child = child.element
             if hasattr(child, "type"):
                 if child.type == child.TYPE_TAB:
-                    if child == tab:                          
+                    if child == tab:
                         child.state = child.STATE_SELECTED
                         child.refresh()
                     elif child.state == child.STATE_SELECTED:
@@ -69,7 +70,8 @@ class TabPanel(fsui.Panel):
         dc.draw_line(0, size[1] - 1, size[0], size[1] - 1, line_color_2)
 
     @classmethod
-    def draw_background(cls, widget, dc, selected=False, hover=False):
+    def draw_background(cls, widget, dc, selected=False, hover=False,
+                button_style=True):
         if selected:
             cls.draw_selected_tab(widget, dc)
         else:
@@ -89,6 +91,12 @@ class TabPanel(fsui.Panel):
             x += 2
             w -= 4
             h += 2
+
+        #if button_style and hover:
+        #    x += 6
+        #    y += 6
+        #    w -= 12
+        #    h -= 12
 
         color_1 = Skin.get_background_color()
         if fsui.System.macosx:

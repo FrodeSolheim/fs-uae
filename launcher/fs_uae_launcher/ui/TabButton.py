@@ -1,6 +1,7 @@
 from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
 import fs_uae_launcher.fsui as fsui
 from .Constants import Constants
@@ -34,7 +35,8 @@ class TabButton(fsui.Panel):
     def on_paint(self):
         dc = self.create_dc()
         selected = (self.state == self.STATE_SELECTED)
-        TabPanel.draw_background(self, dc, selected=selected, hover=self.hover)
+        TabPanel.draw_background(self, dc, selected=selected, hover=self.hover,
+                button_style=(self.type == self.TYPE_BUTTON))
         #TabPanel.draw_border(self, dc)
 
         x = (self.size[0] - self.icon.size[0]) // 2

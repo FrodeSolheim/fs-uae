@@ -1,13 +1,13 @@
 from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
 import time
 import fs_uae_launcher.fsui as fsui
 from ..Config import Config
 from ..Database import Database
 from ..Scanner import Scanner
-from ..Separator import Separator
 from ..Settings import Settings
 from ..I18N import _, ngettext
 
@@ -26,13 +26,13 @@ class ScanDialog(fsui.Dialog):
         self.scan_kickstart_group = ScanKickstartGroup(self)
         self.layout.add(self.scan_kickstart_group, fill=True)
 
-        self.layout.add(Separator(self), fill=True)
+        self.layout.add_spacer(20)
 
         from .ScanPathsGroup import ScanPathsGroup
         self.scan_paths_group = ScanPathsGroup(self)
         self.layout.add(self.scan_paths_group, fill=True)
 
-        self.layout.add(Separator(self), fill=True)
+        self.layout.add_spacer(20)
 
         from .ScanProgressGroup import ScanProgressGroup
         self.scan_progress_group = ScanProgressGroup(self)

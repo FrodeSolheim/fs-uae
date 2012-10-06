@@ -1,16 +1,19 @@
 from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
 import os
 import hashlib
 import traceback
 import ConfigParser
 from .Amiga import Amiga
-from .Warnings import Warnings
 from .Database import Database
-from .Version import Version
+from .Settings import Settings
+from .Signal import Signal
 from .Util import expand_path
+from .Version import Version
+from .Warnings import Warnings
 
 # the order of the following keys is significant (for some keys).
 # multiple options should be set in this order since some options will
@@ -19,86 +22,83 @@ from .Util import expand_path
 # - file options should be set before corresponding sha1 options
 
 cfg = [
-    # key                       checksum sync  custom  default
-    ("amiga_model",               True,  True,  False, "A500"),
-    ("ntsc_mode",                 True,  True,  False, ""),
-    ("accuracy",                  True,  True,  False, ""),
-    ("chip_memory",               True,  True,  False, ""),
-    ("slow_memory",               True,  True,  False, ""),
-    ("fast_memory",               True,  True,  False, ""),
-    ("zorro_iii_memory",          True,  True,  False, ""),
+    ("amiga_model",           "A500",     "checksum", "sync"),
+    ("ntsc_mode",             "",         "checksum", "sync"),
+    ("accuracy",              "",         "checksum", "sync"),
+    ("chip_memory",           "",         "checksum", "sync"),
+    ("slow_memory",           "",         "checksum", "sync"),
+    ("fast_memory",           "",         "checksum", "sync"),
+    ("zorro_iii_memory",      "",         "checksum", "sync"),
+    ("bsdsocket_library",     "",         "checksum", "sync"),
+    ("uaegfx_card",           "",         "checksum", "sync"),
+    ("joystick_port_0",       ""),
+    ("joystick_port_0_mode",  "mouse",    "checksum", "sync"),
+    ("joystick_port_1",       ""),
+    ("joystick_port_1_mode",  "joystick", "checksum", "sync"),
+    ("joystick_port_2",       ""),
+    ("joystick_port_2_mode",  "nothing",  "checksum", "sync"),
+    ("joystick_port_3",       ""),
+    ("joystick_port_3_mode",  "nothing",  "checksum", "sync"),
 
-    ("bsdsocket_library",         True,  True,  False, ""),
-    ("uaegfx_card",               True,  True,  False, ""),
+    ("kickstart_file",        ""),
+    ("x_kickstart_file",      "",                             "nosave"),
+    ("x_kickstart_file_sha1", "",         "checksum", "sync", "nosave"),
+    ("kickstart_ext_file",    ""),
+    ("x_kickstart_ext_file",  "",                             "nosave"),
+    ("x_kickstart_ext_file_sha1", "",     "checksum", "sync", "nosave"),
 
-    ("joystick_port_0",           False, False, False, ""),
-    ("joystick_port_0_mode",      True,  True,  False, "mouse"),
-    ("joystick_port_1",           False, False, False, ""),
-    ("joystick_port_1_mode",      True,  True,  False, "joystick"),
-    ("joystick_port_2",           False, False, False, ""),
-    ("joystick_port_2_mode",      True,  True,  False, "nothing"),
-    ("joystick_port_3",           False, False, False, ""),
-    ("joystick_port_3_mode",      True,  True,  False, "nothing"),
+    ("x_whdload_args",        "",         "checksum", "sync"),
+    ("floppy_drive_count",    "",         "checksum", "sync", "custom"),
+    ("floppy_drive_speed",    "",         "checksum", "sync", "custom"),
 
-    ("kickstart_file",            False, False, False, ""),
-    ("x_kickstart_file",          False, False, False, ""),
-    ("x_kickstart_file_sha1",     True,  True,  False, ""),
-    ("kickstart_ext_file",        False, False, False, ""),
-    ("x_kickstart_ext_file",      False, False, False, ""),
-    ("x_kickstart_ext_file_sha1", True,  True,  False, ""),
-
-    ("x_whdload_args",            True,  True,  False, ""),
-    ("floppy_drive_count",        True,  True,  True,  ""),
-    ("floppy_drive_speed",        True,  True,  True,  ""),
-
-    ("__netplay_game",            True,  True,  False, ""),
-    ("__netplay_password",        True,  True,  False, ""),
-    ("__netplay_players",         False, True,  False, ""),
-    ("__netplay_port",            False, True,  False, ""),
-    ("__netplay_addresses",       True,  True,  False, ""),
-    ("__netplay_host",            False, False, False, ""),
-    ("__netplay_ready",           False, False, False, "0"),
-    ("__version",                 False, False, False, Version.VERSION),
-
-    ("x_game_uuid",               False, False, False, ""),
-    ("x_game_xml_path",           False, False, False, ""),
-    ("title",                     False, False, True,  ""),
-    ("sub_title",                 False, False, True,  ""),
-    ("viewport",                  False, False, True,  ""),
+    ("__netplay_game",        "",         "checksum", "sync"),
+    ("__netplay_password",    "",         "checksum", "sync"),
+    ("__netplay_players",     "",         "checksum", "sync"),
+    ("__netplay_port",        "",                     "sync"),
+    ("__netplay_addresses",   "",         "checksum", "sync"),
+    ("__netplay_host",        ""),
+    ("__netplay_ready",       "0"),
+    ("__version",             Version.VERSION),
+    ("x_game_uuid",           ""),
+    ("x_game_xml_path",       ""),
+    ("title",                 "",                             "custom"),
+    ("sub_title",             "",                             "custom"),
+    ("viewport",              "",                             "custom"),
 ]
 
 for i in range(Amiga.MAX_FLOPPY_DRIVES):
-    cfg.append(("floppy_drive_{0}".format(i),        False, False, False, ""))
-    cfg.append(("x_floppy_drive_{0}_sha1".format(i), True,  True,  False, ""))
+    cfg.append(("floppy_drive_{0}".format(i),""))
+    cfg.append(("x_floppy_drive_{0}_sha1".format(i), "", "checksum", "sync", "nosave"))
 for i in range(Amiga.MAX_FLOPPY_IMAGES):
-    cfg.append(("floppy_image_{0}".format(i),        False, False, False, ""))
-    cfg.append(("x_floppy_image_{0}_sha1".format(i), True,  True,  False, ""))
+    cfg.append(("floppy_image_{0}".format(i), ""))
+    cfg.append(("x_floppy_image_{0}_sha1".format(i), "", "checksum", "sync", "nosave"))
 for i in range(Amiga.MAX_CDROM_DRIVES):
-    cfg.append(("cdrom_drive_{0}".format(i),         False, False, False, ""))
-    cfg.append(("x_cdrom_drive_{0}_sha1".format(i),  True,  True,  False, ""))
+    cfg.append(("cdrom_drive_{0}".format(i), ""))
+    cfg.append(("x_cdrom_drive_{0}_sha1".format(i), "", "checksum", "sync", "nosave"))
 for i in range(Amiga.MAX_CDROM_IMAGES):
-    cfg.append(("cdrom_image_{0}".format(i),         False, False, False, ""))
-    cfg.append(("x_cdrom_image_{0}_sha1".format(i),  True,  True,  False, ""))
+    cfg.append(("cdrom_image_{0}".format(i), ""))
+    cfg.append(("x_cdrom_image_{0}_sha1".format(i), "", "checksum", "sync", "nosave"))
 for i in range(Amiga.MAX_HARD_DRIVES):
-    cfg.append(("hard_drive_{0}".format(i),          False, False, False, ""))
-    cfg.append(("x_hard_drive_{0}_sha1".format(i),   True,  True,  False, ""))
+    cfg.append(("hard_drive_{0}".format(i), ""))
+    cfg.append(("x_hard_drive_{0}_sha1".format(i), "", "checksum", "sync", "nosave"))
 
 class Config:
 
     config_keys = [x[0] for x in cfg]
 
     default_config = {}
-    for key, checksum, sync, allow_custom, default_value in cfg:
-        default_config[key] = default_value
+    for c in cfg:
+        default_config[c[0]] = c[1]
 
     key_order = [x[0] for x in cfg]
-    checksum_keys = [x[0] for x in cfg if x[1]]
-    sync_keys_list = [x[0] for x in cfg if x[2]]
+    checksum_keys = [x[0] for x in cfg if "checksum" in x]
+    sync_keys_list = [x[0] for x in cfg if "sync" in x]
     sync_keys_set = set(sync_keys_list)
-    no_custom_config = [x[0] for x in cfg if not x[3]]
+    no_custom_config = [x[0] for x in cfg if not "custom" in x]
+    dont_save_keys_set = set([x[0] for x in cfg if "nosave" in x])
 
     reset_values = {}
-    for i in range(Amiga.MAX_FLOPPY_DRIVES):        
+    for i in range(Amiga.MAX_FLOPPY_DRIVES):
         reset_values["floppy_drive_{0}".format(i)] = \
                 ("x_floppy_drive_{0}_sha1".format(i), "")
     for i in range(Amiga.MAX_FLOPPY_IMAGES):
@@ -117,7 +117,7 @@ class Config:
     reset_values["x_kickstart_ext_file"] = ("x_kickstart_ext_file_sha1", "")
 
     config = default_config.copy()
-    config_listeners = []
+    #config_listeners = []
 
     @classmethod
     def copy(cls):
@@ -129,11 +129,13 @@ class Config:
 
     @classmethod
     def add_listener(cls, listener):
-        cls.config_listeners.append(listener)
+        #cls.config_listeners.append(listener)
+        Signal.add_listener("config", listener)
 
     @classmethod
     def remove_listener(cls, listener):
-        cls.config_listeners.remove(listener)
+        #cls.config_listeners.remove(listener)
+        Signal.remove_listener("config", listener)
 
     @classmethod
     def set(cls, key, value):
@@ -189,11 +191,15 @@ class Config:
         # and now broadcast all changed keys at once
         if len(changed_keys) > 0:
             for priority, key in sorted(changed_keys):
-                for listener in cls.config_listeners:
-                    listener.on_config(key, cls.get(key))
+                #for listener in cls.config_listeners:
+                #    listener.on_config(key, cls.get(key))
+                Signal.broadcast("config", key, cls.get(key))
             changed_keys = [x[1] for x in changed_keys]
             if "__netplay_ready" not in changed_keys:
                 cls.set("__netplay_ready", "0")
+
+        if len(changed_keys) > 0:
+            Settings.set("config_changed", "1")
 
     @classmethod
     def update_from_config_dict(cls, config_dict):
@@ -250,7 +256,7 @@ class Config:
                 print("WARNING: no suitable kickstart file found")
                 config_dict["x_kickstart_file"] = ""
                 config_dict["x_kickstart_file_sha1"], ""
-                
+
         if config_dict.setdefault("kickstart_ext_file", ""):
             config_dict["x_kickstart_ext_file"] = \
                     config_dict["kickstart_ext_file"]
@@ -290,7 +296,7 @@ class Config:
     def load_default_config(cls):
         print("load_default_config")
         cls.load({})
-        from .Settings import Settings
+        #from .Settings import Settings
         # FIXME: remove use of config_base
         Settings.set("config_base", "")
         Settings.set("config_name", "Unnamed Configuration")
@@ -310,7 +316,7 @@ class Config:
 
         for key, value in config.iteritems():
             # if this is a settings key, change settings instead
-            if key in Settings.default_settings:
+            if key in Settings.initialize_from_config:
                 Settings.set(key, value)
             else:
                 update_config[key] = value
@@ -321,14 +327,13 @@ class Config:
         cls.update_kickstart_in_config_dict(update_config)
         cls.fix_loaded_config(update_config)
         cls.set_multiple(update_config.iteritems())
-        
+        Settings.set("config_changed", "0")
+
         #cls.update_kickstart()
 
     @classmethod
-    def fix_loaded_config(cls, config):
-        from .Settings import Settings
-        #for i in range(4):
-        pass
+    def fix_joystick_ports(cls, config):
+        #from .Settings import Settings
 
         print("---", config["joystick_port_0"])
         print("---", config["joystick_port_1"])
@@ -404,6 +409,10 @@ class Config:
         elif config["joystick_port_0_mode"] in ["nothing"]:
             if not config["joystick_port_0"]:
                 config["joystick_port_0"] = "none"
+
+    @classmethod
+    def fix_loaded_config(cls, config):
+        #cls.fix_joystick_ports(config)
 
         from .ChecksumTool import ChecksumTool
         # FIXME: parent
@@ -550,12 +559,12 @@ class Config:
             config_base = config_name
         #game = name
 
-        if not Config.get("title"):
-            Config.set("title", config_base)
+        #if not Config.get("title"):
+        #    Config.set("title", config_base)
 
         from .Settings import Settings
         Settings.set("config_base", config_base)
         Settings.set("config_name", config_name)
         Settings.set("config_path", path)
-
         Settings.set("config_xml_path", config_xml_path)
+        Settings.set("config_changed", "0")

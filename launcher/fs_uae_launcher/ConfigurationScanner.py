@@ -1,6 +1,7 @@
 from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
 import os
 import sys
@@ -41,7 +42,7 @@ class ConfigurationScanner:
             #search = name.lower()
             path = c["path"]
             name, ext = os.path.splitext(c["name"])
-            search = name.lower()
+            search = self.create_configuration_search(name)
             name = self.create_configuration_name(name)
             database.add_configuration(path=path, uuid="", name=name,
                     scan=self.scan_version, search=search)
@@ -51,7 +52,7 @@ class ConfigurationScanner:
         for name, data in builtin_configs():
             if self.stop_check():
                 break
-            search = name.lower()
+            search = self.create_configuration_search(name)
             name = self.create_configuration_name(name)
             database.add_configuration(data=data, name=name,
                     scan=self.scan_version, search=search)
@@ -138,7 +139,7 @@ class ConfigurationScanner:
                 else:
                     name, ext = os.path.splitext(name)
                 print("found", name)
-                search = name.lower()
+                search = self.create_configuration_search(name)
                 #name = self.create_configuration_name_from_path(path)
                 name = self.create_configuration_name(name)
                 database.add_configuration(path=path, uuid=result["uuid"],
@@ -219,7 +220,7 @@ class ConfigurationScanner:
         root = tree.getroot()
         uuid = root.get("uuid")
         name = root.find("name").text.strip()
-        search = name.lower()
+        search = self.create_configuration_search(name)
         database.add_game(uuid=uuid, path=path, name=name,
                 scan=self.scan_version, search=search)
 
@@ -231,7 +232,12 @@ class ConfigurationScanner:
     #def create_configuration_name_from_path(self, path):
     #    name, ext = os.path.splitext(os.path.basename(path))
 
-    def create_configuration_name(self, name):
+    @classmethod
+    def create_configuration_search(cls, name):
+        return name.lower()
+
+    @classmethod
+    def create_configuration_name(cls, name):
         #name, ext = os.path.splitext(name)
         if u"(" in name:
             primary, secondary = name.split(u"(", 1)

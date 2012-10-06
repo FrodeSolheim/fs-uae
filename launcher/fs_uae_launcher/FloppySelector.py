@@ -1,6 +1,7 @@
 from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
 import os
 import fs_uae_launcher.fsui as fsui
@@ -10,6 +11,7 @@ from .IconButton import IconButton
 from .CDManager import CDManager
 from .FloppyManager import FloppyManager
 from .I18N import _, ngettext
+from .Paths import Paths
 from .ui.LauncherFileDialog import LauncherFileDialog
 
 class FloppySelector(fsui.Group):
@@ -102,12 +104,7 @@ class FloppySelector(fsui.Group):
         else:
             sha1 = checksum_tool.checksum(path)
 
-        dir, file = os.path.split(path)
-        self.text_field.set_text(file)
-        if os.path.normcase(os.path.normpath(dir)) == \
-                os.path.normcase(os.path.normpath(default_dir)):
-            path = file
-
+        path = Paths.contract_path(path, default_dir)
         Config.set_multiple([
                 (self.config_key, path),
                 (self.config_key_sha1, sha1)])

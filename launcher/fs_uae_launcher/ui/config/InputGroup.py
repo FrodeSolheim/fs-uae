@@ -1,6 +1,7 @@
 from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
 import os
 import sys
@@ -12,11 +13,6 @@ from ...IconButton import IconButton
 from ...DeviceManager import DeviceManager
 from ...I18N import _, ngettext
 from .InputSelector import InputSelector
-
-joystick_mode_values = ["nothing", "mouse", "joystick"]
-joystick_mode_titles = [_("Nothing"), _("Mouse"), _("Joystick")]
-
-joystick_values = ["none", "mouse", "keyboard"]
 
 class InputGroup(fsui.Group):
 

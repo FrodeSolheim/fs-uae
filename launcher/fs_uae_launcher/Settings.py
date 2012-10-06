@@ -1,9 +1,11 @@
 from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
 import os
 import fs_uae_launcher.fs as fs
+from .Signal import Signal
 from .Util import memoize, get_real_case
 from .I18N import _, ngettext
 
@@ -14,7 +16,7 @@ class Settings:
     #nick.
 
     #lobby_nick_number = 0
-    
+
     base_dir = ""
 
     default_settings = {
@@ -41,10 +43,15 @@ class Settings:
         "last_rom_dir": "",
         "window_width": "",
         "window_height": "",
+        "config_changed": "0",
         }
 
     settings = default_settings.copy()
-    settings_listeners = []
+    #settings_listeners = []
+
+    initialize_from_config = set([
+        "fullscreen",
+    ])
 
     @classmethod
     def get(cls, key):
@@ -52,11 +59,13 @@ class Settings:
 
     @classmethod
     def add_listener(cls, listener):
-        cls.settings_listeners.append(listener)
+        #cls.settings_listeners.append(listener)
+        Signal.add_listener("setting", listener)
 
     @classmethod
     def remove_listener(cls, listener):
-        cls.settings_listeners.remove(listener)
+        #cls.settings_listeners.remove(listener)
+        Signal.remove_listener("setting", listener)
 
     @classmethod
     def set(cls, key, value):
@@ -65,8 +74,9 @@ class Settings:
             return
         print(u"set {0} to {1}".format(key, value))
         cls.settings[key] = value
-        for listener in cls.settings_listeners:
-            listener.on_setting(key, value)
+        #for listener in cls.settings_listeners:
+        #    listener.on_setting(key, value)
+        Signal.broadcast("setting", key, value)
 
     @classmethod
     def get_irc_nick(cls):
@@ -122,6 +132,7 @@ class Settings:
             return path
         path = os.path.join(cls.get_base_dir(), "WHDLoad")
         if os.path.exists(path):
+            path = get_real_case(path)
             return path
         return None
 
@@ -130,11 +141,13 @@ class Settings:
         path = os.path.join(cls.get_base_dir(), "Configurations")
         if not os.path.exists(path):
             os.makedirs(path)
+        path = get_real_case(path)
         return path
 
     @classmethod
     def get_controllers_dir(cls):
         path = os.path.join(cls.get_base_dir(), "Controllers")
+        path = get_real_case(path)
         return path
 
     @classmethod
@@ -142,6 +155,7 @@ class Settings:
         path = os.path.join(cls.get_base_dir(), "Kickstarts")
         if not os.path.exists(path):
             os.makedirs(path)
+        path = get_real_case(path)
         return path
 
     @classmethod
@@ -149,6 +163,7 @@ class Settings:
         path = os.path.join(cls.get_base_dir(), "Floppies")
         if not os.path.exists(path):
             os.makedirs(path)
+        path = get_real_case(path)
         return path
 
     @classmethod
@@ -156,6 +171,7 @@ class Settings:
         path = os.path.join(cls.get_base_dir(), "Hard Drives")
         if not os.path.exists(path):
             os.makedirs(path)
+        path = get_real_case(path)
         return path
 
     @classmethod
@@ -163,6 +179,7 @@ class Settings:
         path = os.path.join(cls.get_base_dir(), "CD-ROMs")
         if not os.path.exists(path):
             os.makedirs(path)
+        path = get_real_case(path)
         return path
 
     @classmethod
@@ -170,6 +187,7 @@ class Settings:
         path = os.path.join(cls.get_base_dir(), "Logs")
         if not os.path.exists(path):
             os.makedirs(path)
+        path = get_real_case(path)
         return path
 
     @classmethod
@@ -177,6 +195,7 @@ class Settings:
         path = os.path.join(cls.get_base_dir(), "Launcher")
         if not os.path.exists(path):
             os.makedirs(path)
+        path = get_real_case(path)
         return path
 
     @classmethod
@@ -189,6 +208,7 @@ class Settings:
         path = os.path.join(cls.get_base_dir(), "Save States")
         if not os.path.exists(path):
             os.makedirs(path)
+        path = get_real_case(path)
         return path
 
     @classmethod

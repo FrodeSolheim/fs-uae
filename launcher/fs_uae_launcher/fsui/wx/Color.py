@@ -1,6 +1,7 @@
 from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
 import wx
 
@@ -42,7 +43,7 @@ class Color(wx.Colour, BaseColor):
                     self.Set(r, g, b)
                 else:
                     r, g, b, a = c
-                    self.Set(r, g, b, a)                    
+                    self.Set(r, g, b, a)
         elif len(args) >= 3:
             self.Set(*args)
         else:

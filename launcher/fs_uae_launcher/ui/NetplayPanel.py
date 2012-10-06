@@ -1,6 +1,7 @@
 from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
 import fs_uae_launcher.fsui as fsui
 from ..Settings import Settings
@@ -30,7 +31,7 @@ class NetplayPanel(fsui.Panel):
 
         hori_layout = fsui.HorizontalLayout()
         self.layout.add(hori_layout, fill=True, expand=True)
-        
+
         self.text_area = fsui.TextArea(self, font_family="monospace")
         hori_layout.add(self.text_area, fill=True, expand=True, margin=10,
                 margin_right=0)
@@ -112,7 +113,7 @@ class NetplayPanel(fsui.Panel):
 
     def on_irc(self, key, args):
         if key == "active_channel":
-            self.set_active_channel(args["channel"]) 
+            self.set_active_channel(args["channel"])
         elif key == "nick_list":
             if args["channel"] == self.active_channel:
                 self.update_nick_list()

@@ -1,6 +1,7 @@
 from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
 import os
 import fs_uae_launcher.fsui as fsui
@@ -17,21 +18,29 @@ class FloppiesGroup(fsui.Group):
 
         self.cd_mode = cd_mode
         self.num_drives = drives
-        #if cd_mode:
-        #    image = fsui.Image("fs_uae_launcher:res/cd_group.png")
-        #else:
-        #    image = fsui.Image("fs_uae_launcher:res/floppy_group.png")
-        #self.image_view = fsui.ImageView(self, image)
-        #self.layout.add(self.image_view, valign=0.0)
-        #self.layout.add_spacer(20)
-        #self.layout2 = fsui.VerticalLayout()
-        #self.layout.add(self.layout2, fill=True, expand=True)
+
+        hori_layout = fsui.HorizontalLayout()
+        self.layout.add(hori_layout, fill=True)
 
         if cd_mode:
             self.label = fsui.HeadingLabel(self, _("CD-ROM Drive"))
         else:
             self.label = fsui.HeadingLabel(self, _("Floppy Drives"))
-        self.layout.add(self.label, margin=10)
+        hori_layout.add(self.label, margin=10)
+        hori_layout.add_spacer(0, expand=True)
+
+        self.multi_select_button = fsui.Button(self,
+                _("Select Multiple Files..."))
+        if self.cd_mode:
+            self.multi_select_button.set_tooltip(
+                    _("Add Multiple CD-ROMs at Once"))
+        else:
+            self.multi_select_button.set_tooltip(
+                    _("Add Multiple Floppies at Once"))
+        self.multi_select_button.on_activate = self.on_multi_select_button
+
+        hori_layout.add(self.multi_select_button, margin_right=10)
+
         self.layout.add_spacer(0)
 
         self.selectors = []
@@ -43,6 +52,14 @@ class FloppiesGroup(fsui.Group):
                 selector.set_cd_mode(True)
             self.selectors.append(selector)
             self.layout.add(selector, fill=True, margin=10)
+
+    def on_multi_select_button(self):
+        if self.cd_mode:
+            from .CDManager import CDManager
+            CDManager.multiselect(self.get_window())
+        else:
+            from .FloppyManager import FloppyManager
+            FloppyManager.multiselect(self.get_window())
 
     def update_heading_label(self):
         if self.cd_mode:

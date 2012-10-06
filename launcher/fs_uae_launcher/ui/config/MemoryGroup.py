@@ -1,6 +1,7 @@
 from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import unicode_literals
 
 import os
 import fs_uae_launcher.fsui as fsui
@@ -16,7 +17,7 @@ class MemoryGroup(fsui.Group):
         heading_label = fsui.HeadingLabel(self, _("Memory"))
         self.layout.add(heading_label, margin=10)
         self.layout.add_spacer(0)
-        
+
         hori_layout = fsui.HorizontalLayout()
         self.layout.add(hori_layout, fill=True)
 

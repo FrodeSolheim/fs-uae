@@ -476,6 +476,7 @@ distdir-base: distdir-launcher-base
 
 	mkdir -p $(dist_dir)/po
 	cp -a po/*.po $(dist_dir)/po/
+	cp -a po/update.py $(dist_dir)/po/update.py
 
 	mkdir -p $(dist_dir)/doc
 	cp -a doc/Default.fs-uae $(dist_dir)/doc/

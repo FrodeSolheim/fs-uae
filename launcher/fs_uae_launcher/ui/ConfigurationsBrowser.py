@@ -16,7 +16,7 @@ class ConfigurationsBrowser(fsui.VerticalItemView):
     def __init__(self, parent):
         fsui.VerticalItemView.__init__(self, parent)
         self.items = []
-        self.icon = fsui.Image("fs_uae_launcher:res/16/fsuae_config.png")
+        self.icon = fsui.Image("fs_uae_launcher:res/fsuae_config_16.png")
 
         Settings.add_listener(self)
         self.update_search()

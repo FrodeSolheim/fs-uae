@@ -14,13 +14,16 @@ class ScanProgressGroup(fsui.Group):
     def __init__(self, parent):
         fsui.Group.__init__(self, parent)
         self.layout = fsui.HorizontalLayout()
-        self.layout.padding_right = 20
+        self.layout.padding_left = 10
+        self.layout.padding_top = 10
+        self.layout.padding_right = 10
+        self.layout.padding_bottom = 10
+
+        #image = fsui.Image("fs_uae_launcher:res/search_group.png")
+        #self.image_view = fsui.ImageView(self, image)
         self.layout.add_spacer(20)
-
-        image = fsui.Image("fs_uae_launcher:res/search_group.png")
-        self.image_view = fsui.ImageView(self, image)
-        self.layout.add(self.image_view, valign=0.0)
-
+        #self.layout.add(self.image_view, valign=0.0)
+        self.layout.add_spacer(48)
         self.layout.add_spacer(20)
 
         self.layout2 = fsui.VerticalLayout()

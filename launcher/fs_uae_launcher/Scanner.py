@@ -12,6 +12,7 @@ from .FileScanner import FileScanner
 from .ConfigurationScanner import ConfigurationScanner
 from .Config import Config
 from .Settings import Settings
+from .Signal import Signal
 from .I18N import _, ngettext
 
 class Scanner:
@@ -41,10 +42,14 @@ class Scanner:
             traceback.print_exc()
 
         def on_done():
-            # this must be called from main, since callbacks are broadcast
-            # when settings are changed
+            # FIXME: these should be removed soon
             Settings.set("last_scan", str(time.time()))
             Settings.set("config_refresh", str(time.time()))
+
+            # this must be called from main, since callbacks are broadcast
+            # when settings are changed
+            
+            Signal.broadcast("scan_done")
             Config.update_kickstart()
         # call on_done from main thread
         fsui.call_after(on_done)

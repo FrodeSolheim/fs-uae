@@ -9,7 +9,7 @@ import fs_uae_launcher.fsui as fsui
 from ..Amiga import Amiga
 from ..Database import Database
 from ..Config import Config
-from ..Settings import Settings
+from ..Signal import Signal
 from ..I18N import _, ngettext
 
 class KickstartStatusGroup(fsui.Group):
@@ -22,8 +22,6 @@ class KickstartStatusGroup(fsui.Group):
         self.ok_image = fsui.Image("fs_uae_launcher:res/ok_emblem.png")
         self.na_image = fsui.Image("fs_uae_launcher:res/na_emblem.png")
 
-        #self.status = fsui.Label(self, "N/A")
-        #self.layout.add(self.status)
         self.icon = fsui.ImageView(self, self.na_image)
         self.layout.add(self.icon)
 
@@ -31,78 +29,81 @@ class KickstartStatusGroup(fsui.Group):
         self.label = fsui.Label(self, title)
         self.layout.add(self.label)
         self.update()
-        Settings.add_listener(self)
+        Signal.add_listener("scan_done", self)
 
     def on_destroy(self):
-        Settings.remove_listener(self)
+        Signal.remove_listener("scan_done", self)
 
-    def on_setting(self, key, value):
-        if key == "last_scan":
-            self.update()
+    def on_scan_done_signal(self):
+        self.update()
 
     def update(self):
         database = Database.get_instance()
-
         amiga = Amiga.get_model_config(self.model)
         print(amiga["kickstarts"])
         for sha1 in amiga["kickstarts"]:
-            #print("-----", repr(sha1))
             if database.find_file(sha1=sha1):
-                # ok
-                #self.status.set_text("OK")
                 self.icon.set_image(self.ok_image)
                 return
-        #self.status.set_text("N/A")
         self.icon.set_image(self.na_image)
 
 class ScanKickstartGroup(fsui.Group):
 
     def __init__(self, parent):
         fsui.Group.__init__(self, parent)
-        self.layout = fsui.HorizontalLayout()
-        self.layout.padding_right = 20
-        self.layout.add_spacer(20)
 
+        self.layout = fsui.VerticalLayout()
+        label = fsui.HeadingLabel(self, _("Available Kickstart Versions"))
+        self.layout.add(label, margin=10)
+
+        icon_layout = fsui.HorizontalLayout()
+        self.layout.add(icon_layout, fill=True)
+
+        icon_layout.add_spacer(20)
         image = fsui.Image("fs_uae_launcher:res/kickstart.png")
         self.image_view = fsui.ImageView(self, image)
-        self.layout.add(self.image_view, valign=0.0)
+        icon_layout.add(self.image_view, valign=0.0, margin=10)
 
-        self.layout.add_spacer(20)
+        vert_layout = fsui.VerticalLayout()
+        icon_layout.add(vert_layout, fill=True, expand=True)
 
-        self.layout2 = fsui.VerticalLayout()
-        self.layout.add(self.layout2, fill=True, expand=True)
+        vert_layout.add_spacer(0)
 
-        label = fsui.HeadingLabel(self, _("Available Kickstart Versions"))
-        self.layout2.add(label)#, expand=True, fill=True)
-        self.layout2.add_spacer(10)
+        label = fsui.Label(self, _("You should have kickstart files for "
+                "each Amiga model you want to use:"))
+        vert_layout.add(label, margin=10)
 
-        hor_layout = fsui.HorizontalLayout()
-        self.layout2.add(hor_layout, fill=True)
+        hori_layout = fsui.HorizontalLayout()
+        vert_layout.add(hori_layout, fill=True)
 
         self.kickstart_groups = []
 
-        ver_layout = fsui.VerticalLayout()
-        hor_layout.add(ver_layout, expand=True, fill=True)
+        colu_layout = fsui.VerticalLayout()
+        hori_layout.add(colu_layout, expand=True, fill=True, margin=10)
 
-        self.add_kickstart_group(ver_layout, "Amiga 1000", "A1000")
-        ver_layout.add_spacer(10)
-        self.add_kickstart_group(ver_layout, "Amiga 500", "A500")
-        ver_layout.add_spacer(10)
-        self.add_kickstart_group(ver_layout, "Amiga 500+", "A500+")
+        self.add_kickstart_group(colu_layout, "Amiga 1000", "A1000")
+        colu_layout.add_spacer(10)
+        self.add_kickstart_group(colu_layout, "Amiga 500", "A500")
+        colu_layout.add_spacer(10)
+        self.add_kickstart_group(colu_layout, "Amiga 500+", "A500+")
 
-        ver_layout = fsui.VerticalLayout()
-        hor_layout.add(ver_layout, expand=True, fill=True)
+        colu_layout = fsui.VerticalLayout()
+        hori_layout.add(colu_layout, expand=True, fill=True, margin=10)
 
-        self.add_kickstart_group(ver_layout, "Amiga 600", "A600")
-        ver_layout.add_spacer(10)
-        self.add_kickstart_group(ver_layout, "Amiga 1200", "A1200")
+        self.add_kickstart_group(colu_layout, "Amiga 600", "A600")
+        colu_layout.add_spacer(10)
+        self.add_kickstart_group(colu_layout, "Amiga 1200", "A1200")
+        colu_layout.add_spacer(10)
+        self.add_kickstart_group(colu_layout, "Amiga 1200/020", "A1200/020")
 
-        ver_layout = fsui.VerticalLayout()
-        hor_layout.add(ver_layout, expand=True, fill=True)
+        colu_layout = fsui.VerticalLayout()
+        hori_layout.add(colu_layout, expand=True, fill=True, margin=10)
 
-        self.add_kickstart_group(ver_layout, "Amiga 1200/020", "A1200/020")
-        ver_layout.add_spacer(10)
-        self.add_kickstart_group(ver_layout, "Amiga 4000/040", "A4000/040")
+        self.add_kickstart_group(colu_layout, "Amiga 4000/040", "A4000/040")
+        colu_layout.add_spacer(10)
+        self.add_kickstart_group(colu_layout, "Amiga CD32", "CD32")
+        colu_layout.add_spacer(10)
+        self.add_kickstart_group(colu_layout, "Commodore CDTV", "CDTV")
 
     def add_kickstart_group(self, layout, title, model):
         group = KickstartStatusGroup(self, title, model)

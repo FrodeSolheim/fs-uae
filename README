@@ -8,7 +8,7 @@ Features include emulation of Amiga 500, 1200, 4000, CD32 and CDTV,
 perfectly smooth scrolling on 50Hz displays, support for floppy images in
 ADF and IPF formats, CD-ROM images in ISO or BIN/CUE format, mounting folders
 on your computer as Amiga hard drives, support for Picasso 96 drivers for
-high-color and high-resolution Workbench displays, and more…
+high-color and high-resolution Workbench displays, and more...
 
 A unique feature is support for cross-platform online play. You can now play
 Amiga games against (or with) friends over the Internet.
@@ -26,9 +26,11 @@ Thank you for your interest in FS-UAE :)
 
 IMPORTANT INFORMATION
 =====================
-FS-UAE does not include a configuration UI, so you must create a configuration
-file before the emulator will be usable. This is fairly easy, please
-read on for more information.
+FS-UAE itself does not include a configuration UI, so you must either:
+* Run FS-UAE via the configuration program FS-UAE Launcher.
+* Create a configuration file before the emulator will be usable. This is
+  fairly easy, please read on for more information.
+* Run FS-UAE from a third-party configuration interface / frontend.
 
 Please report any errors found in the documentation to fs-uae@fengestad.no.
 
@@ -121,16 +123,16 @@ you would navigate on the Xbox).
 SCREENSHOTS
 ===========
 Press the "Print Scrn" key on the keyboard to save a screenshot of the
-running game to the desktop.
+running game to the desktop. Alternatively, you can use F12+s if you don't
+have this key.
 
 
 KEYBOARD SHORTCUTS
 ==================
 F12 (or Cmd+F12) -Enter/exit GUI.
-Shift+F12 – release input grab.
+F12+G or Middle mouse click – release input grab.
 Alt+Tab (or Cmd+Tab) – switch to another window / release input grab.
-Alt+Enter (or Cmd+Enter) – toggle fullscreen mode.
-Middle mouse click – release input grab.
+F12+F (or Alt+Enter / Cmd+Enter) – toggle fullscreen mode.
 F11 (or Cmd+F11) – cycle through zoom settings.
 Shift + F11 – zoom out a bit (pad the viewport on all sides).
 
@@ -176,12 +178,13 @@ in the configuration file). See example.conf for more information.
 SUPPORTED AMIGA MODELS
 ======================
 The following Amiga models are supported:
-- Amiga 500
+- Amiga 1000
+- Amiga 500 (Default)
 - Amiga 500+
 - Amiga 600
 - Amiga 1200
 - Amiga 1200/020
-- Amiga 4000
+- Amiga 4000/040
 - Amiga CD32
 - Commodore CDTV
 
@@ -215,16 +218,19 @@ screen, or scale up while maintaining the original aspect ratio.
 
 SUPPORTED HOST OPERATING SYSTEM
 ===============================
-- Linux (Other Unices will probably also work just fine)
-- Windows
-- Mac OS X 10.6 or newer
+- Linux
+- Windows XP or newer
+- Mac OS X 10.5 or newer
+- FreeBSD (Other Unices will probably also work just fine)
 
 
 DEBUGGING SUPPORT
 =================
-FS-UAE does not include a debugger for debugging Amiga programs. For
-debugging FS-UAE itself, a native debugger can be used if you compile FS-UAE
-yourself. Other debug information can be retrieved from the log file.
+FS-UAE does not include a graphical debugger for debugging Amiga programs. It
+is possible to use the internal UAE debugger from the console.
+
+For debugging FS-UAE itself, a native debugger can be used if you compile
+FS-UAE yourself. Other debug information can be retrieved from the log file.
 
 There is debug overlay to debug video, audio and vsync issues. You can toggle
 the display of this with CTRL+F10.
@@ -237,8 +243,6 @@ output with the crop rectangle.
 
 KNOWN ISSUES / TODO
 ===================
-CD32 gamepad (emulated by keyboard)
-
 Amiga mouse must currently be emulated with a native mouse device. A nice
 feature would be to be able to emulate the mouse with gamepads - analogue
 controls for instance.

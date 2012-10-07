@@ -34,6 +34,7 @@ from .InputPanel import InputPanel
 #from .CustomPanel import CustomPanel
 from .ConfigurationsPanel import ConfigurationsPanel
 from .NetplayPanel import NetplayPanel
+from .SetupPanel import SetupPanel
 from .Constants import Constants
 from .Skin import Skin
 
@@ -73,6 +74,10 @@ class MainWindow(fsui.Window):
                 # make room for one more screenshot
                 right_width += extra_screen_width
                 pass
+        
+        #if Skin.EXTRA_GROUP_MARGIN:
+        #    self.layout.add_spacer(Skin.EXTRA_GROUP_MARGIN)
+        
         self.create_column(2, min_width=right_width, expand=True)
 
         # right border
@@ -120,21 +125,26 @@ class MainWindow(fsui.Window):
             tab_panel = TabPanel(self, spacing=min_width)
         else:
             tab_panel = TabPanel(self)
-        layout.add(tab_panel, fill=True)
-        layout.add_spacer(0, 10)
         self.tab_panels.append(tab_panel)
+
+        layout.add(tab_panel, fill=True)
+        layout.add_spacer(0, 10 + Skin.EXTRA_GROUP_MARGIN)
 
         if content:
             book = Book(self)
             Skin.set_background_color(book)
-            layout.add(book, fill=True, expand=True)
+            if column == 1:
+                margin_right = Skin.EXTRA_GROUP_MARGIN
+            else:
+                margin_right = 0
+            layout.add(book, fill=True, expand=True, margin_right=margin_right)
             self.books.append(book)
             self.add_column_content(column)
         else:
             layout.add_spacer(0, expand=True)
             self.books.append(None)
 
-        layout.add_spacer(0, 10)
+        layout.add_spacer(0, 10 + Skin.EXTRA_GROUP_MARGIN)
         if fsui.get_screen_size()[1] >= 768:
             right_margin = 0
             if column == 0:
@@ -143,7 +153,7 @@ class MainWindow(fsui.Window):
                 bottom_panel = GameInfoPanel(self)
             elif column == 2:
                 bottom_panel = ScreenshotsPanel(self)
-                right_margin = -10
+                right_margin = -10 - Skin.EXTRA_GROUP_MARGIN
             else:
                 bottom_panel = None
             # FIXME:
@@ -159,6 +169,7 @@ class MainWindow(fsui.Window):
             layout.add_spacer(0, 10)
 
     def add_column_content(self, column):
+        default_page_index = 0
         if column == 1:
             self.add_content(column, MainPanel, "tab_main")
             self.add_content(column, InputPanel, "tab_input")
@@ -176,9 +187,15 @@ class MainWindow(fsui.Window):
             tab_panel.add(button)
 
         elif column == 2:
+            page_index = 0
             self.add_content(column, ConfigurationsPanel, "tab_configs")
             if Settings.get("netplay_feature") == "1":
+                page_index += 1
                 self.add_content(column, NetplayPanel, "tab_netplay")
+            page_index += 1
+            page = self.add_content(column, SetupPanel, "tab_setup")
+            if page.should_be_automatically_opened():
+                default_page_index = page_index
 
             tab_panel = self.tab_panels[column]
             tab_panel.add_spacer(expand=True)
@@ -193,8 +210,8 @@ class MainWindow(fsui.Window):
             button.on_activate = self.on_settings_button
             tab_panel.add(button)
 
-        self.tab_panels[column].select_tab(0)
-        #self.books[column].set_page(0)
+        self.tab_panels[column].select_tab(default_page_index)
+        self.books[column].set_page(default_page_index)
 
     def add_content(self, column, content_class, icon_name):
         book = self.books[column]
@@ -208,6 +225,7 @@ class MainWindow(fsui.Window):
             book.set_page(instance)
         button.on_select = function
         tab_panel.add(button)
+        return instance
 
     def on_custom_button(self):
         from .config.ConfigDialog import ConfigDialog

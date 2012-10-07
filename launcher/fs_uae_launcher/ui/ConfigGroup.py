@@ -65,7 +65,7 @@ class ConfigGroup(fsui.Group):
         if key == "config_changed":
             self.save_button.enable(value == "1")
         elif key == "config_name":
-            if value != self.config_name_field.get_text():
+            if value != self.config_name_field.get_text().strip():
                 self.config_name_field.set_text(value)
 
     def on_config_name_change(self):

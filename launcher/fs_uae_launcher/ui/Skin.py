@@ -14,6 +14,8 @@ LEVEL = 0xeb
 
 class Skin:
 
+    EXTRA_GROUP_MARGIN = 0
+
     @classmethod
     def get_background_color(cls):
         c = cls._get_background_color()
@@ -46,15 +48,15 @@ class Skin:
 
     @classmethod
     def get_window_padding_left(cls):
-        return 10 # 5
+        return 10 + cls.EXTRA_GROUP_MARGIN
 
     @classmethod
     def get_window_padding_right(cls):
-        return 10 # 5
+        return 10 + cls.EXTRA_GROUP_MARGIN
 
     @classmethod
     def get_window_padding_bottom(cls):
-        return 10 # 5
+        return 10 + cls.EXTRA_GROUP_MARGIN
 
     @classmethod
     def get_bottom_margin(cls):

@@ -24,6 +24,7 @@ class HardwarePanel(fsui.Panel):
         self.layout = fsui.VerticalLayout()
         self.layout.add(self.kickstart_group, fill=True)
         self.layout.add_spacer(10)
+        self.layout.add_spacer(Skin.EXTRA_GROUP_MARGIN)
         self.layout.add(self.memory_group, fill=True)
-        self.layout.add_spacer(10)
+        self.layout.add_spacer(Skin.EXTRA_GROUP_MARGIN)
         self.layout.add(self.expansions_group, fill=True)

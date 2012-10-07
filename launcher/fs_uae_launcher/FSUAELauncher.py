@@ -6,16 +6,16 @@ from __future__ import unicode_literals
 import os
 import sys
 import shutil
+import hashlib
 import ConfigParser
 import fs_uae_launcher.fsui as fsui
 from .ui.MainWindow import MainWindow
-#from .MainWindow import MainWindow
 import fs_uae_launcher.fs as fs
-
-from .Database import Database
-from .ConfigurationScanner import ConfigurationScanner
-from .Settings import Settings
 from .Config import Config
+from .ConfigurationScanner import ConfigurationScanner
+from .Database import Database
+from .ROMManager import ROMManager
+from .Settings import Settings
 
 class FSUAELauncher(fsui.Application):
 
@@ -25,6 +25,7 @@ class FSUAELauncher(fsui.Application):
         self.parse_arguments()
         self.load_settings()
         self.config_startup_scan()
+        self.kickstart_startup_scan()
 
         # FIXME: should now sanitize check some options -for instance,
         # - check if configured joysticks are still connected
@@ -146,6 +147,8 @@ class FSUAELauncher(fsui.Application):
         configs_dir = Settings.get_configurations_dir()
         for dir_path, dir_names, file_names in os.walk(configs_dir):
             for file_name in file_names:
+                if not file_name.endswith(".fs-uae"):
+                    continue
                 path = os.path.join(dir_path, file_name)
                 if path in local_configs:
                     local_configs[path] = None
@@ -154,10 +157,33 @@ class FSUAELauncher(fsui.Application):
                 name, ext = os.path.splitext(file_name)
                 search = ConfigurationScanner.create_configuration_search(name)
                 name = ConfigurationScanner.create_configuration_name(name)
-                print("adding", path)
+                print("[startup] adding config", path)
                 database.add_configuration(path=path, uuid="", name=name,
                         scan=0, search=search)
         for path, id in local_configs.iteritems():
             if id is not None:
+                print("[startup] removing configuration", path)
                 database.delete_configuration(id=id)
+        database.commit()
+
+    def kickstart_startup_scan(self):
+        database = Database.get_instance()
+        local_roms = database.find_local_roms()
+        roms_dir = Settings.get_kickstarts_dir()
+        for dir_path, dir_names, file_names in os.walk(roms_dir):
+            for file_name in file_names:
+                if not file_name.endswith(".rom"):
+                    continue
+                path = os.path.join(dir_path, file_name)
+                if path in local_roms:
+                    local_roms[path] = None
+                    # already exists in database
+                    continue
+                print("[startup] adding kickstart", path)
+                ROMManager.add_rom_to_database(path, database)
+        print(local_roms)
+        for path, id in local_roms.iteritems():
+            if id is not None:
+                print("[startup] removing kickstart", path)
+                database.delete_file(id=id)
         database.commit()

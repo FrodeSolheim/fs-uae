@@ -21,7 +21,7 @@ from .wx.combobox import ComboBox
 from .wx.dialog import Dialog
 from .wx.DirDialog import DirDialog
 from .wx.filedialog import FileDialog
-from .wx.itemview import ItemView
+from .wx.itemview import VerticalItemView
 from .wx.ImageButton import ImageButton
 from .wx.label import Label, BoldLabel, HeadingLabel
 from .wx.listview import ListView

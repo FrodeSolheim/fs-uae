@@ -19,6 +19,7 @@ class InputPanel(fsui.Panel):
         from .config.InputGroup import InputGroup
         self.input_group = InputGroup(self, with_more_options=False)
         self.layout.add(self.input_group, fill=True)
+        self.layout.add_spacer(Skin.EXTRA_GROUP_MARGIN)
 
         self.input_group = InputGroup(self, with_more_options=False,
                 parallel_ports=True)

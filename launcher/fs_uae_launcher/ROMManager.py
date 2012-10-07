@@ -6,8 +6,55 @@ from __future__ import unicode_literals
 import os
 import hashlib
 from .Archive import Archive
+from .Database import Database
 
 class ROMManager:
+
+    @staticmethod
+    def add_rom_to_database(path, database, log_function=None):
+        if log_function is None:
+            log_function = print
+        file_name = os.path.basename(path)
+        try:
+            with open(path, "rb") as f:
+                s = hashlib.sha1()
+                while True:
+                    data = f.read(65536)
+                    if not data:
+                        break
+                    s.update(data)
+                sha1 = s.hexdigest()
+        except:
+            log_function("Error calculating sha1 for {0}".format(repr(path)))
+            import traceback
+            traceback.print_exc()
+            return
+        s = hashlib.sha1()
+        try:
+            archive = Archive(path)
+            ROMManager.decrypt_archive_rom(archive, path, sha1=s)
+        except Exception:
+            import traceback
+            traceback.print_exc()
+        else:
+            sha1_dec = s.hexdigest()
+            if sha1_dec != sha1:
+                #log_function("Found encrypted rom {0} => {1}".format(
+                #        sha1, sha1_dec))
+                print("Found encrypted rom {0} => {1}".format(
+                        sha1, sha1_dec))
+                sha1 = sha1_dec
+        try:
+            st = os.stat(path)
+        except:
+            log_function("Error stat-ing file {0}".format(repr(path)))
+            return
+        size = st.st_size
+        mtime = int(st.st_mtime)
+        log_function("Adding ROM \"{0}\" to database".format(file_name))
+        database.delete_file(path=path)
+        database.add_file(path=path, sha1=sha1, mtime=mtime, size=size,
+                scan=0, name=file_name)
 
     @staticmethod
     def get_decrypted_sha1(path):

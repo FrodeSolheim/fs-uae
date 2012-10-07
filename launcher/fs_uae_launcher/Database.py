@@ -166,7 +166,7 @@ scan int
     def find_local_configurations(self):
         self.init()
         query = "SELECT id, path FROM configuration WHERE path like ?"
-        args = ["$Base/Configurations/%"]
+        args = ["$BASE/Configurations/%"]
         self.cursor.execute(query, args)
         result = {}
         for row in self.cursor.fetchall():
@@ -181,6 +181,27 @@ scan int
             args = [path]
         else:
             query = "DELETE FROM configuration WHERE id = ?"
+            args = [id]
+        self.cursor.execute(query, args)
+
+    def find_local_roms(self):
+        self.init()
+        query = "SELECT id, path FROM file WHERE path like ?"
+        args = ["$BASE/Kickstarts/%"]
+        self.cursor.execute(query, args)
+        result = {}
+        for row in self.cursor.fetchall():
+            result[self.decode_path(row[1])] = row[0]
+        return result
+
+    def delete_file(self, id=-1, path=None):
+        self.init()
+        if path is not None:
+            query = "DELETE FROM file WHERE path = ?"
+            path = self.encode_path(path)
+            args = [path]
+        else:
+            query = "DELETE FROM file WHERE id = ?"
             args = [id]
         self.cursor.execute(query, args)
 

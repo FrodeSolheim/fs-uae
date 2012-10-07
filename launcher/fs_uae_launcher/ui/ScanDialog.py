@@ -18,33 +18,42 @@ class ScanDialog(fsui.Dialog):
     def __init__(self, parent):
         fsui.Dialog.__init__(self, parent, _("Scan"))
         self.layout = fsui.VerticalLayout()
+        self.layout.padding_left = 10
+        self.layout.padding_top = 10
+        self.layout.padding_right = 10
+        self.layout.padding_bottom = 10
+        
         self.layout.add_spacer(640, 0)
 
-        self.layout.add_spacer(20)
+        #self.layout.add_spacer(20)
 
         from .ScanKickstartGroup import ScanKickstartGroup
         self.scan_kickstart_group = ScanKickstartGroup(self)
         self.layout.add(self.scan_kickstart_group, fill=True)
 
-        self.layout.add_spacer(20)
+        #self.layout.add_spacer(20)
+
+        label = fsui.HeadingLabel(self,
+                _("Scan for Kickstarts, Files and Configurations"))
+        self.layout.add(label, margin=10)
 
         from .ScanPathsGroup import ScanPathsGroup
         self.scan_paths_group = ScanPathsGroup(self)
         self.layout.add(self.scan_paths_group, fill=True)
 
-        self.layout.add_spacer(20)
+        #self.layout.add_spacer(20)
 
         from .ScanProgressGroup import ScanProgressGroup
         self.scan_progress_group = ScanProgressGroup(self)
         self.layout.add(self.scan_progress_group, fill=True)
 
         self.layout.add_spacer(20)
-        self.layout.add_spacer(20)
+        #self.layout.add_spacer(20)
 
         hor_layout = fsui.HorizontalLayout()
         self.layout.add(hor_layout, fill=True)
 
-        hor_layout.add_spacer(20, expand=True)
+        hor_layout.add_spacer(10, expand=True)
         self.scan_button = fsui.Button(self, _("Scan"))
         self.scan_button.on_activate = self.on_scan_button
         hor_layout.add(self.scan_button)
@@ -56,9 +65,9 @@ class ScanDialog(fsui.Dialog):
         self.close_button = fsui.Button(self, _("Close"))
         self.close_button.on_activate = self.on_close_button
         hor_layout.add(self.close_button)
-        hor_layout.add_spacer(20)
+        hor_layout.add_spacer(10)
 
-        self.layout.add_spacer(20)
+        self.layout.add_spacer(10)
 
         #self.text.focus()
 

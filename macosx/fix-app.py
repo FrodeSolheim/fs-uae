@@ -16,7 +16,7 @@ libraries = [
     "libglib-2.0.0.dylib",
     "libgthread-2.0.0.dylib",
     "libintl.8.dylib",
-    "libpng14.14.dylib",
+    "libpng15.15.dylib",
     "libz.1.dylib",
     "libiconv.2.dylib",
 ]

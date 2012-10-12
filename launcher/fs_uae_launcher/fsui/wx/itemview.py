@@ -75,19 +75,20 @@ class BaseItemView(wx.ScrolledWindow):
         self.Bind(wx.EVT_LEFT_UP, self.__on_left_up)
 
     def search_for_text(self, text):
+        print("search for", repr(text))
         text = text.lower()
-        start = 0
-        stop = len(self.items) -1
-        while start <= stop:
-            if self.get_item_text(start).lower().startswith(text):
-                return start
-            mid = (start + stop) // 2
-            midval = self.get_item_text(mid).lower()
-            #print(start, stop, mid, midval, text)
-            if midval > text:
-                stop = mid
-            elif not midval.startswith(text):
-                start = mid + 1
+        imin = 0
+        imax = len(self.items) -1
+        while imin < imax:
+            imid = (imin + imax) // 2
+            assert imid < imax
+            mid_text = self.get_item_text(imid).lower()
+            if mid_text < text and not mid_text.startswith(text):
+                imin = imid + 1
+            else:
+                imax = imid
+        if imax == imin and self.get_item_text(imin).lower().startswith(text):
+            return imin
         return None
 
     def setItemHeight(self, height):

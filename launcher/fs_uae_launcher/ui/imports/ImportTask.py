@@ -51,7 +51,7 @@ class ImportTask(threading.Thread):
         with self.log_lock:
             if len(self.log_lines) <= count:
                 return []
-            return self.log_lines[count:] 
+            return self.log_lines[count:]
 
     def log(self, line):
         with self.log_lock:
@@ -62,7 +62,7 @@ class ImportTask(threading.Thread):
             self.import_roms()
         elif self.type == 1:
             self.import_amiga_forever()
-        
+
     def import_roms(self):
         self.copy_roms(self.path, Settings.get_kickstarts_dir())
 

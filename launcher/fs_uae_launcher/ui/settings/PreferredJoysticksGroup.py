@@ -7,11 +7,10 @@ import os
 import sys
 import subprocess
 import fs_uae_launcher.fsui as fsui
-from ..Config import Config
-from ..Settings import Settings
-from ..IconButton import IconButton
-from ..DeviceManager import DeviceManager
-from ..I18N import _, ngettext
+from ...Config import Config
+from ...DeviceManager import DeviceManager
+from ...I18N import _, ngettext
+from ...Settings import Settings
 
 joystick_mode_values = ["nothing", "mouse", "joystick"]
 joystick_mode_titles = [_("Nothing"), _("Mouse"), _("Joystick")]

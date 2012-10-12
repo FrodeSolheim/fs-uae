@@ -8,8 +8,9 @@ import fs_uae_launcher.fsui as fsui
 from .ui.LauncherFileDialog import LauncherFileDialog
 from .Amiga import Amiga
 from .Config import Config
-from .Settings import Settings
 from .I18N import _, ngettext
+from .Paths import Paths
+from .Settings import Settings
 
 class CDManager:
 
@@ -51,11 +52,7 @@ class CDManager:
             #sha1 = checksum_tool.checksum(path)
             sha1 = ""
             print("FIXME: not calculating CD checksum just yet")
-
-            dir, file = os.path.split(path)
-            if os.path.normcase(os.path.normpath(dir)) == \
-                    os.path.normcase(os.path.normpath(default_dir)):
-                path = file
+            path = Paths.contract_path(path, default_dir)
 
             if i < 1:
                 Config.set_multiple([
@@ -64,7 +61,6 @@ class CDManager:
             Config.set_multiple([
                     ("cdrom_image_{0}".format(i), path),
                     ("x_cdrom_image_{0}_sha1".format(i), sha1)])
-
 
         # blank the rest of the drives
         for i in range(len(paths), 1):

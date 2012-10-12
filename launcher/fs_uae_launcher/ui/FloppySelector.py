@@ -5,14 +5,15 @@ from __future__ import unicode_literals
 
 import os
 import fs_uae_launcher.fsui as fsui
-from .Config import Config
-from .Settings import Settings
+from ..ChecksumTool import ChecksumTool
+from ..Config import Config
+from ..CDManager import CDManager
+from ..FloppyManager import FloppyManager
+from ..I18N import _, ngettext
+from ..Paths import Paths
+from ..Settings import Settings
 from .IconButton import IconButton
-from .CDManager import CDManager
-from .FloppyManager import FloppyManager
-from .I18N import _, ngettext
-from .Paths import Paths
-from .ui.LauncherFileDialog import LauncherFileDialog
+from .LauncherFileDialog import LauncherFileDialog
 
 class FloppySelector(fsui.Group):
 
@@ -35,7 +36,7 @@ class FloppySelector(fsui.Group):
         self.layout.add(self.text_field, expand=True)#, expand=True, fill=True)
 
         self.layout.add_spacer(10)
-        self.browse_button = IconButton(self, "browse_button.png")
+        self.browse_button = IconButton(self, "browse_file_16.png")
         self.browse_button.set_tooltip(_("Browse"))
         self.browse_button.on_activate = self.on_browse
         self.layout.add(self.browse_button)
@@ -96,14 +97,12 @@ class FloppySelector(fsui.Group):
             return
         path = dialog.get_path()
 
-        from .ChecksumTool import ChecksumTool
         checksum_tool = ChecksumTool(self.get_window())
         if self.cd_mode:
             sha1 = ""
             print("FIXME: not calculating CD checksum just yet")
         else:
             sha1 = checksum_tool.checksum(path)
-
         path = Paths.contract_path(path, default_dir)
         Config.set_multiple([
                 (self.config_key, path),

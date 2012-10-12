@@ -5,7 +5,6 @@ from __future__ import unicode_literals
 
 import fs_uae_launcher.fsui as fsui
 from ...Config import Config
-from ...IconButton import IconButton
 from ...Warnings import Warnings
 from ...Database import Database
 from ...Amiga import Amiga

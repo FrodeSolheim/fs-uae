@@ -22,7 +22,7 @@ class ScanDialog(fsui.Dialog):
         self.layout.padding_top = 10
         self.layout.padding_right = 10
         self.layout.padding_bottom = 10
-        
+
         self.layout.add_spacer(640, 0)
 
         #self.layout.add_spacer(20)

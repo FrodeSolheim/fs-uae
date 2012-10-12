@@ -5,9 +5,9 @@ from __future__ import unicode_literals
 
 import hashlib
 import fs_uae_launcher.fsui as fsui
-from ..Config import Config
-from ..Settings import Settings
-from ..I18N import _, ngettext
+from ...Config import Config
+from ...I18N import _, ngettext
+from ...Settings import Settings
 
 class CustomSettingsPage(fsui.Panel):
 

@@ -32,13 +32,13 @@ cfg = [
     ("bsdsocket_library",     "",         "checksum", "sync"),
     ("uaegfx_card",           "",         "checksum", "sync"),
     ("joystick_port_0",       ""),
-    ("joystick_port_0_mode",  "mouse",    "checksum", "sync"),
+    ("joystick_port_0_mode",  "",         "checksum", "sync"),
     ("joystick_port_1",       ""),
-    ("joystick_port_1_mode",  "joystick", "checksum", "sync"),
+    ("joystick_port_1_mode",  "",         "checksum", "sync"),
     ("joystick_port_2",       ""),
-    ("joystick_port_2_mode",  "nothing",  "checksum", "sync"),
+    ("joystick_port_2_mode",  "",         "checksum", "sync"),
     ("joystick_port_3",       ""),
-    ("joystick_port_3_mode",  "nothing",  "checksum", "sync"),
+    ("joystick_port_3_mode",  "",         "checksum", "sync"),
 
     ("kickstart_file",        ""),
     ("x_kickstart_file",      "",                             "nosave"),
@@ -47,7 +47,7 @@ cfg = [
     ("x_kickstart_ext_file",  "",                             "nosave"),
     ("x_kickstart_ext_file_sha1", "",     "checksum", "sync", "nosave"),
 
-    ("x_whdload_args",        "",         "checksum", "sync"),
+    ("x_whdload_args",        "",         "checksum", "sync", "custom"),
     ("floppy_drive_count",    "",         "checksum", "sync", "custom"),
     ("floppy_drive_speed",    "",         "checksum", "sync", "custom"),
 

@@ -7,8 +7,7 @@ import os
 import sys
 import subprocess
 import fs_uae_launcher.fsui as fsui
-from ..IconButton import IconButton
-from ..I18N import _, ngettext
+from ...I18N import _, ngettext
 
 class JoystickSettingsGroup(fsui.Group):
 

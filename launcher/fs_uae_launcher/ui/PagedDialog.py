@@ -4,7 +4,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import fs_uae_launcher.fsui as fsui
-from .I18N import _, ngettext
+from ..I18N import _, ngettext
 
 class PagedDialog(fsui.Dialog):
 
@@ -60,8 +60,7 @@ class PagedDialog(fsui.Dialog):
     def on_close_button(self):
         self.end_modal(0)
 
-    def on_select_item(self):
-        index = self.list_view.get_index()
+    def on_select_item(self, index):
         self.set_page(index)
 
     def add_page(self, title, function):

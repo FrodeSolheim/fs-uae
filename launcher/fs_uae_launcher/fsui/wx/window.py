@@ -11,7 +11,6 @@ class Window(wx.Frame):
 
     def __init__(self, parent=None, title=""):
         wx.Frame.__init__(self, parent, -1, title)
-        #Element.init(self)
         if parent:
             wx_parent = parent.container
         else:

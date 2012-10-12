@@ -9,10 +9,9 @@ import fs_uae_launcher.fsui as fsui
 from ..Amiga import Amiga
 from ..Config import Config
 from ..Database import Database
-from ..IconButton import IconButton
 from ..Settings import Settings
 from ..I18N import _, ngettext
-from .imports.ImportGroup import ImportGroup 
+from .imports.ImportGroup import ImportGroup
 from .ScanKickstartGroup import ScanKickstartGroup
 from .Skin import Skin
 
@@ -26,7 +25,7 @@ class SetupPanel(fsui.Panel):
         self.scan_kickstart_group = ScanKickstartGroup(self)
         self.import_rom_group = ImportGroup(self)
         self.import_af_group = ImportGroup(self, ImportGroup.AMIGA_FOREVER)
-        
+
         self.layout.add(self.scan_kickstart_group, fill=True)
         self.layout.add_spacer(Skin.EXTRA_GROUP_MARGIN)
         self.layout.add(self.import_rom_group, fill=True)

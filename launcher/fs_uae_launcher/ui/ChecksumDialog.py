@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 
 import hashlib
 import fs_uae_launcher.fsui as fsui
-from .I18N import _, ngettext
+from ..I18N import _, ngettext
 
 class ChecksumDialog(fsui.Window):
 

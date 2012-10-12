@@ -5,9 +5,9 @@ from __future__ import unicode_literals
 
 import fs_uae_launcher.fsui as fsui
 from ..Config import Config
-from ..FloppiesGroup import FloppiesGroup
-from ..MediaListGroup import MediaListGroup
 from ..I18N import _, ngettext
+from .FloppiesGroup import FloppiesGroup
+from .MediaListGroup import MediaListGroup
 from .Skin import Skin
 
 class CDPanel(fsui.Panel):

@@ -8,9 +8,9 @@ import traceback
 import fs_uae_launcher.fsui as fsui
 from ...Config import Config
 from ...ChecksumTool import ChecksumTool
-from ...Settings import Settings
-from ...IconButton import IconButton
 from ...I18N import _, ngettext
+from ...Settings import Settings
+from ..IconButton import IconButton
 from ..LauncherFileDialog import LauncherFileDialog
 
 class HardDriveGroup(fsui.Group):
@@ -41,14 +41,14 @@ class HardDriveGroup(fsui.Group):
         self.text_field = fsui.TextField(self, "", read_only=True)
         hori_layout.add(self.text_field, expand=True, margin_left=10)
 
-        self.browse_button = IconButton(self, "hd_button.png")
-        self.browse_button.set_tooltip(_("Browse for File"))
-        self.browse_button.on_activate = self.on_browse_file_button
-        hori_layout.add(self.browse_button, margin_left=10)
-
-        self.browse_button = IconButton(self, "browse_button.png")
+        self.browse_button = IconButton(self, "browse_folder_16.png")
         self.browse_button.set_tooltip(_("Browse for Folder"))
         self.browse_button.on_activate = self.on_browse_folder_button
+        hori_layout.add(self.browse_button, margin_left=10)
+
+        self.browse_button = IconButton(self, "browse_file_16.png")
+        self.browse_button.set_tooltip(_("Browse for File"))
+        self.browse_button.on_activate = self.on_browse_file_button
         hori_layout.add(self.browse_button, margin_left=10)
 
         self.initialize_from_config()

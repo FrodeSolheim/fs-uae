@@ -48,7 +48,7 @@ class Scanner:
 
             # this must be called from main, since callbacks are broadcast
             # when settings are changed
-            
+
             Signal.broadcast("scan_done")
             Config.update_kickstart()
         # call on_done from main thread

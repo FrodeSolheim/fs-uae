@@ -68,8 +68,8 @@ class NetplayPanel(fsui.Panel):
             Netplay.connect()
         self.input_field.focus()
 
-    def on_select_channel(self):
-        index = self.channel_list.get_index()
+    def on_select_channel(self, index):
+        #index = self.channel_list.get_index()
         #if index == 0:
         #    channel = ""
         #else:

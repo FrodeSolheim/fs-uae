@@ -6,8 +6,8 @@ from __future__ import unicode_literals
 import threading
 import traceback
 import fs_uae_launcher.fsui as fsui
-from .Config import Config
-from .I18N import _, ngettext
+from ..Config import Config
+from ..I18N import _, ngettext
 
 class LaunchDialog(fsui.Dialog):
 

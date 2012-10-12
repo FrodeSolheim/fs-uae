@@ -5,12 +5,13 @@ from __future__ import unicode_literals
 
 import os
 import time
+import datetime
 import fs_uae_launcher.fsui as fsui
 from ..Config import Config
 from ..ConfigurationScanner import ConfigurationScanner
-from ..IconButton import IconButton
-from ..Settings import Settings
 from ..I18N import _, ngettext
+from ..Settings import Settings
+from .IconButton import IconButton
 
 class ConfigGroup(fsui.Group):
 
@@ -77,6 +78,7 @@ class ConfigGroup(fsui.Group):
 
     def on_new_button(self):
         Config.load_default_config()
+        Settings.set("config_changed", "1")
 
     def on_save_button(self):
         print("ConfigGroup.on_save_button")
@@ -101,6 +103,8 @@ class ConfigGroup(fsui.Group):
         path = os.path.join(Settings.get_configurations_dir(), file_name)
         with open(path, "wb") as f:
             f.write("# FS-UAE configuration saved by FS-UAE Launcher\n")
+            f.write("# Last saved: {0}\n", datetime.datetime.today().format(
+                    "%Y-%m-%d %H:%M:%s"))
             f.write("[config]\n")
             keys = sorted(Config.config.keys())
             for key in keys:

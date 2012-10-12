@@ -37,23 +37,23 @@ from .NetplayPanel import NetplayPanel
 from .SetupPanel import SetupPanel
 from .Constants import Constants
 from .Skin import Skin
+from .WindowWithTabs import WindowWithTabs
 
-class MainWindow(fsui.Window):
+class MainWindow(WindowWithTabs):
 
     instance = None
 
     def __init__(self, icon):
-        fsui.Window.__init__(self, None, "FS-UAE Launcher")
-        Skin.set_background_color(self)
-
-        #self.set_size((1000, 600))
+        WindowWithTabs.__init__(self, None, "FS-UAE Launcher")
         if icon:
             self.set_icon_from_path(icon)
 
-        self.layout = fsui.HorizontalLayout()
-
         self.tab_panels = []
         self.books = []
+
+        self.main_layout = fsui.HorizontalLayout()
+        self.set_content(self.main_layout)
+
         # left border
         self.create_column(0, min_width=Skin.get_window_padding_left(),
                 content=False)
@@ -74,10 +74,10 @@ class MainWindow(fsui.Window):
                 # make room for one more screenshot
                 right_width += extra_screen_width
                 pass
-        
+
         #if Skin.EXTRA_GROUP_MARGIN:
-        #    self.layout.add_spacer(Skin.EXTRA_GROUP_MARGIN)
-        
+        #    self.main_layout.add_spacer(Skin.EXTRA_GROUP_MARGIN)
+
         self.create_column(2, min_width=right_width, expand=True)
 
         # right border
@@ -87,13 +87,13 @@ class MainWindow(fsui.Window):
         if self.is_editor_enabled():
             from ..editor.EditorGroup import EditorGroup
             editor = EditorGroup(self)
-            self.layout.add(editor, fill=True, expand=True,
+            self.main_layout.add(editor, fill=True, expand=True,
                 margin_right=20)
 
-        was_maximized = Settings.get("maximized") == "1"
+        self.realize_tabs()
 
+        was_maximized = Settings.get("maximized") == "1"
         self.set_size(self.layout.get_min_size())
-        #fsui.call_later(500, self.on_timer)
 
         self.center_on_screen()
         if was_maximized:
@@ -110,7 +110,6 @@ class MainWindow(fsui.Window):
     def on_destroy(self):
         print("MainWindow.destroy")
         IRC.stop()
-        #Config.set("__quit", "1")
         Signal.broadcast("quit")
 
     def is_editor_enabled(self):
@@ -118,16 +117,10 @@ class MainWindow(fsui.Window):
 
     def create_column(self, column, content=True, expand=False, min_width=0):
         layout = fsui.VerticalLayout()
-        self.layout.add(layout, fill=True, expand=expand)
+        self.main_layout.add(layout, fill=True, expand=expand)
         if min_width:
             layout.add_spacer(min_width, 0)
-        if min_width < 10:
-            tab_panel = TabPanel(self, spacing=min_width)
-        else:
-            tab_panel = TabPanel(self)
-        self.tab_panels.append(tab_panel)
 
-        layout.add(tab_panel, fill=True)
         layout.add_spacer(0, 10 + Skin.EXTRA_GROUP_MARGIN)
 
         if content:
@@ -171,66 +164,66 @@ class MainWindow(fsui.Window):
     def add_column_content(self, column):
         default_page_index = 0
         if column == 1:
-            self.add_content(column, MainPanel, "tab_main")
-            self.add_content(column, InputPanel, "tab_input")
-            self.add_content(column, FloppiesPanel, "tab_floppies")
-            self.add_content(column, CDPanel, "tab_cdroms")
-            self.add_content(column, HardDrivesPanel, "tab_hard_drives")
-            self.add_content(column, HardwarePanel, "tab_hardware")
-            #self.add_content(column, CustomPanel, "tab_custom")
+            self.add_page(column, MainPanel, "tab_main", _("Config"))
+            self.add_page(column, InputPanel, "tab_input", _("Input"))
+            self.add_page(column, FloppiesPanel, "tab_floppies",
+                    _("Floppies"))
+            self.add_page(column, CDPanel, "tab_cdroms", _("CD-ROMs"))
+            self.add_page(column, HardDrivesPanel, "tab_hard_drives",
+                    _("Hard Drives"))
+            self.add_page(column, HardwarePanel, "tab_hardware",
+                    _("Hardware"))
 
-            tab_panel = self.tab_panels[column]
             icon = fsui.Image("fs_uae_launcher:res/tab_custom.png")
-            button = TabButton(tab_panel, icon, type=TabButton.TYPE_BUTTON)
-            button.on_activate = self.on_custom_button
-            #tab_panel.add_spacer(expand=True)
-            tab_panel.add(button)
+            self.add_tab_button(self.on_custom_button, icon)
+
+            self.add_tab_spacer(60)
 
         elif column == 2:
+            self.new_tab_group()
             page_index = 0
-            self.add_content(column, ConfigurationsPanel, "tab_configs")
+            self.add_page(column, ConfigurationsPanel, "tab_configs",
+                    _("Configurations"))
             if Settings.get("netplay_feature") == "1":
                 page_index += 1
-                self.add_content(column, NetplayPanel, "tab_netplay")
+                self.add_page(column, NetplayPanel, "tab_netplay",
+                        _("Net Play"))
             page_index += 1
-            page = self.add_content(column, SetupPanel, "tab_setup")
+            page = self.add_page(column, SetupPanel, "tab_setup",
+                    _("Setup"))
             if page.should_be_automatically_opened():
                 default_page_index = page_index
 
-            tab_panel = self.tab_panels[column]
-            tab_panel.add_spacer(expand=True)
+            self.add_tab_spacer(60)
 
+            self.add_tab_spacer(expand=True)
             icon = fsui.Image("fs_uae_launcher:res/tab_scan.png")
-            button = TabButton(tab_panel, icon, type=TabButton.TYPE_BUTTON)
-            button.on_activate = self.on_scan_button
-            tab_panel.add(button)
-
+            self.add_tab_button(self.on_scan_button, icon)
             icon = fsui.Image("fs_uae_launcher:res/tab_settings.png")
-            button = TabButton(tab_panel, icon, type=TabButton.TYPE_BUTTON)
-            button.on_activate = self.on_settings_button
-            tab_panel.add(button)
+            self.add_tab_button(self.on_settings_button, icon)
 
-        self.tab_panels[column].select_tab(default_page_index)
+        #if self.toolbar:
+        #    pass
+        #else:
+        #    self.tab_panels[column].select_tab(default_page_index)
+
+        # column - 1 is the group id of the tab group
+        self.select_tab(default_page_index, column - 1)
         self.books[column].set_page(default_page_index)
 
-    def add_content(self, column, content_class, icon_name):
+    def add_page(self, column, content_class, icon_name, title):
         book = self.books[column]
         instance = content_class(book)
         book.add_page(instance)
-        tab_panel = self.tab_panels[column]
-
         icon = fsui.Image("fs_uae_launcher:res/{0}.png".format(icon_name))
-        button = TabButton(tab_panel, icon)
         def function():
             book.set_page(instance)
-        button.on_select = function
-        tab_panel.add(button)
+        self.add_tab(function, icon, title)
         return instance
 
     def on_custom_button(self):
         from .config.ConfigDialog import ConfigDialog
         ConfigDialog.run(self.get_window(), ConfigDialog.CUSTOM_OPTIONS)
-
 
     def on_scan_button(self):
         from .ScanDialog import ScanDialog
@@ -239,5 +232,5 @@ class MainWindow(fsui.Window):
         dialog.destroy()
 
     def on_settings_button(self):
-        from ..settingsui.SettingsDialog import SettingsDialog
+        from .settings.SettingsDialog import SettingsDialog
         SettingsDialog.run(self)

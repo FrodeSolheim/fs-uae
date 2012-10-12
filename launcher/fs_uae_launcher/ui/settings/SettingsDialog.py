@@ -4,8 +4,9 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import fs_uae_launcher.fsui as fsui
+from ...I18N import _, ngettext
+from ...Signal import Signal
 from ..PagedDialog import PagedDialog
-from ..I18N import _, ngettext
 #from .HardwarePage import HardwarePage
 #from .HardDrivesPage import HardDrivesPage
 from .JoystickSettingsPage import JoystickSettingsPage
@@ -35,3 +36,4 @@ class SettingsDialog(PagedDialog):
         dialog = cls(parent, index)
         dialog.show_modal()
         dialog.close()
+        Signal.broadcast("settings_updated")

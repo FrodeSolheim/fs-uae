@@ -7,10 +7,10 @@ import os
 import traceback
 import fs_uae_launcher.fsui as fsui
 from ..Config import Config
-from ..IconButton import IconButton
-from ..Settings import Settings
 from ..I18N import _, ngettext
+from ..Settings import Settings
 from .ConfigurationsBrowser import ConfigurationsBrowser
+from .IconButton import IconButton
 from .Skin import Skin
 
 class ConfigurationsPanel(fsui.Panel):

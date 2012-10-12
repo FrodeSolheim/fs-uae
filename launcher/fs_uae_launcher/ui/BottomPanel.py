@@ -16,9 +16,15 @@ class BottomPanel(fsui.Panel):
         self.color_2 = Skin.get_background_color()
         if self.color_2 is not None:
             self.color_1 = self.color_2.copy().darken(0.08)
-            self.line_color_1 = self.color_2.copy().mix(
-                    fsui.Color(0xff, 0xff, 0xff))
-            self.line_color_2 = self.line_color_1
+            if fsui.System.macosx:
+                self.line_color_1 = self.color_2.copy().mix(
+                        fsui.Color(0x00, 0x00, 0x00), 0.25)
+                self.line_color_2 = self.color_2.copy().mix(
+                        fsui.Color(0xff, 0xff, 0xff), 0.25)
+            else:
+                self.line_color_1 = self.color_2.copy().mix(
+                        fsui.Color(0xff, 0xff, 0xff))
+                self.line_color_2 = self.line_color_1
         else:
             #self.color_1 = fsui.Color(0x00, 0x00, 0x00, 0x20)
             #self.color_2 = fsui.Color(0x00, 0x00, 0x00, 0x00)

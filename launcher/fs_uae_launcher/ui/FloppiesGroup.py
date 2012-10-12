@@ -5,10 +5,12 @@ from __future__ import unicode_literals
 
 import os
 import fs_uae_launcher.fsui as fsui
-from .Config import Config
-from .Settings import Settings
-from .FloppyManager import FloppyManager
-from .I18N import _, ngettext
+from ..Config import Config
+from ..CDManager import CDManager
+from ..FloppyManager import FloppyManager
+from ..Settings import Settings
+from ..I18N import _, ngettext
+from .FloppySelector import FloppySelector
 
 class FloppiesGroup(fsui.Group):
 
@@ -45,8 +47,6 @@ class FloppiesGroup(fsui.Group):
 
         self.selectors = []
         for i in range(drives):
-            #self.layout.add_spacer(10)
-            from .FloppySelector import FloppySelector
             selector = FloppySelector(parent, i)
             if cd_mode:
                 selector.set_cd_mode(True)
@@ -55,10 +55,8 @@ class FloppiesGroup(fsui.Group):
 
     def on_multi_select_button(self):
         if self.cd_mode:
-            from .CDManager import CDManager
             CDManager.multiselect(self.get_window())
         else:
-            from .FloppyManager import FloppyManager
             FloppyManager.multiselect(self.get_window())
 
     def update_heading_label(self):

@@ -7,10 +7,9 @@ import os
 import sys
 import subprocess
 import fs_uae_launcher.fsui as fsui
-from ..Config import Config
-from ..Settings import Settings
-#from ..Separator import Separator
-from ..I18N import _, ngettext
+from ...Config import Config
+from ...I18N import _, ngettext
+from ...Settings import Settings
 
 class JoystickSettingsPage(fsui.Panel):
 

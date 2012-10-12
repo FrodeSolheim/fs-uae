@@ -23,6 +23,7 @@ class TabButton(fsui.Panel):
         #self.set_background_color((0xdd, 0xdd, 0xdd))
         self.set_min_width(Constants.TAB_WIDTH)
         self.set_min_height(Constants.TAB_HEIGHT)
+        self.group_id = 0
         self.icon = icon
         self.type = type
         self.state = self.STATE_NORMAL

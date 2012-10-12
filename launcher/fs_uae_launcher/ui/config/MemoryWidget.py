@@ -6,9 +6,9 @@ from __future__ import unicode_literals
 import os
 import fs_uae_launcher.fsui as fsui
 from ...Config import Config
-from ...Settings import Settings
-from ...IconButton import IconButton
 from ...I18N import _, ngettext
+from ...Settings import Settings
+from ..IconButton import IconButton
 
 class MemoryWidget(fsui.Group):
 

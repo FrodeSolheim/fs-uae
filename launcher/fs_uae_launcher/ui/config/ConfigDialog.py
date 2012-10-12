@@ -4,8 +4,8 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import fs_uae_launcher.fsui as fsui
-from ...PagedDialog import PagedDialog
 from ...I18N import _, ngettext
+from ..PagedDialog import PagedDialog
 from .CustomOptionsPage import CustomOptionsPage
 
 class ConfigDialog(PagedDialog):

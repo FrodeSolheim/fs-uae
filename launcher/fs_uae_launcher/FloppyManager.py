@@ -8,8 +8,9 @@ import fs_uae_launcher.fsui as fsui
 from .ui.LauncherFileDialog import LauncherFileDialog
 from .Amiga import Amiga
 from .Config import Config
-from .Settings import Settings
 from .I18N import _, ngettext
+from .Paths import Paths
+from .Settings import Settings
 
 class FloppyManager:
 
@@ -48,11 +49,7 @@ class FloppyManager:
         checksum_tool = ChecksumTool(parent)
         for i, path in enumerate(paths):
             sha1 = checksum_tool.checksum(path)
-
-            dir, file = os.path.split(path)
-            if os.path.normcase(os.path.normpath(dir)) == \
-                    os.path.normcase(os.path.normpath(default_dir)):
-                path = file
+            path = Paths.contract_path(path, default_dir)
 
             if i < 4:
                 Config.set_multiple([

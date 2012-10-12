@@ -8,10 +8,10 @@ import sys
 import subprocess
 import fs_uae_launcher.fsui as fsui
 from ...Config import Config
-from ...Settings import Settings
-from ...IconButton import IconButton
 from ...DeviceManager import DeviceManager
 from ...I18N import _, ngettext
+from ...Settings import Settings
+from ..IconButton import IconButton
 from .InputSelector import InputSelector
 
 class InputGroup(fsui.Group):

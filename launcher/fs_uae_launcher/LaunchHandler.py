@@ -54,7 +54,7 @@ class LaunchHandler:
         #from .LaunchHandler import LaunchHandler
         handler = LaunchHandler(Settings.get("config_name"), Config,
                 GameHandler.current())
-        from .LaunchDialog import LaunchDialog
+        from .ui.LaunchDialog import LaunchDialog
         from .ui.MainWindow import MainWindow
         dialog = LaunchDialog(MainWindow.instance, handler)
         dialog.run()

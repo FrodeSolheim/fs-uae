@@ -21,7 +21,6 @@ class wxgui:
     def getHighlightPen():
         return None
 
-    @staticmethod
     def getHighlightBrush(self):
         return None
 
@@ -32,8 +31,13 @@ class BaseItemView(wx.ScrolledWindow):
     """Acts as super class for several ItemView classes."""
 
     def __init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition,
-            size=wx.DefaultSize, style=0):
-        wx.ScrolledWindow.__init__(self, parent, id, pos, size, style)
+            size=wx.DefaultSize):
+        if System.windows:
+            style = wx.BORDER_THEME
+        else:
+            style = wx.BORDER_SUNKEN
+        wx.ScrolledWindow.__init__(self, parent.get_container(), id, pos,
+                size, style)
         self.SetBackgroundColour(wx.WHITE)
         self.SetBackgroundStyle(wx.BG_STYLE_CUSTOM)
         self.numrows = 0
@@ -46,8 +50,8 @@ class BaseItemView(wx.ScrolledWindow):
         self.itemwidth = 100
         self.itemheight = 26
         self.selectmode = 0 # FIXME: not used? always 0?
-        self.selecteditems = []
-        self.canreselectitems = False # FIXME: not used? can select selected.
+        self.selected_items = []
+        self.canreselect_items = False # FIXME: not used? can select selected.
         self.trydragdrop = False
         self.selectonmouseup = False
         self.typingsearchstr = ""
@@ -71,10 +75,19 @@ class BaseItemView(wx.ScrolledWindow):
         self.Bind(wx.EVT_LEFT_UP, self.__on_left_up)
 
     def search_for_text(self, text):
-        """Override to implement search-as-you-type
-
-        Return the index of the first item beginning with the string typestr
-        """
+        text = text.lower()
+        start = 0
+        stop = len(self.items) -1
+        while start <= stop:
+            if self.get_item_text(start).lower().startswith(text):
+                return start
+            mid = (start + stop) // 2
+            midval = self.get_item_text(mid).lower()
+            #print(start, stop, mid, midval, text)
+            if midval > text:
+                stop = mid
+            elif not midval.startswith(text):
+                start = mid + 1
         return None
 
     def setItemHeight(self, height):
@@ -123,7 +136,7 @@ class BaseItemView(wx.ScrolledWindow):
         return 0
 
     def reset(self):
-        self.selectitems = []
+        self.selected_items = []
         self.calculateVirtualSize()
         self.Scroll(0, 0)
 
@@ -225,11 +238,11 @@ class BaseItemView(wx.ScrolledWindow):
         #renderdata.index = index;
         renderdata.widgetfocus = wx.Window.FindFocus() == self
         renderdata.itemfocus = False
-        if len(self.selecteditems) > 0:
-            if index == self.selecteditems[0]:
+        if len(self.selected_items) > 0:
+            if index == self.selected_items[0]:
                 renderdata.selected = True
                 renderdata.itemfocus = renderdata.widgetfocus
-            elif index in self.selecteditems:
+            elif index in self.selected_items:
                 renderdata.selected = True
             else:
                 renderdata.selected = False
@@ -243,7 +256,7 @@ class BaseItemView(wx.ScrolledWindow):
         """Must be overriden to render an item"""
         print("Must override render_item " + str (index))
 
-    #def selectItem(self, index):
+    #def select_item(self, index):
     #    """Select the item with the specified index"""
     #
     #    pass
@@ -276,7 +289,7 @@ class BaseItemView(wx.ScrolledWindow):
         # FIXME: IMPLEMENT!
         pass
 
-        #count = len(self.selecteditems)
+        #count = len(self.selected_items)
         #for (int i = count - 1; i >= 0; i--) {
         #    DeselectCell (m_selecteditems.Item (i), false, true, true, i == 0);
         #    //RefreshCell(m_selecteditems.Item(i), true, false);
@@ -287,15 +300,15 @@ class BaseItemView(wx.ScrolledWindow):
         #//Refresh();
         #//sendSelectionUpdateEvent ();
 
-    def selectItem(self, index, addtoselection=False, sendevent=True, d2=0,
+    def select_item(self, index, addtoselection=False, sendevent=True, d2=0,
             d3=0, forceallowreselect=False):
         if index >= self.get_item_count():
             return False
         if index < 0:
             self.clearSelection()
             return False
-        itemcount = len(self.selecteditems)
-        if not self.canreselectitems and not forceallowreselect:
+        itemcount = len(self.selected_items)
+        if not self.canreselect_items and not forceallowreselect:
             # Scroll to item if it is outside the view.
             if self.GetScrollRange(wx.VERTICAL) > 1:
                 scrollrate = self.GetScrollPixelsPerUnit()[1]
@@ -308,11 +321,11 @@ class BaseItemView(wx.ScrolledWindow):
                     new_scroll_pos = virtual_top_y // scrollrate
                     self.Scroll(0, new_scroll_pos - 4)
                 elif virtual_bottom_y > virtual_win_bottom_y:
-                    new_scroll_pos = math.ceil((virtual_bottom_y - 
+                    new_scroll_pos = math.ceil((virtual_bottom_y -
                             self.GetClientSize()[1]) // scrollrate)
                     self.Scroll(0, new_scroll_pos + 4)
             #for i in range (0, itemcount):
-            #    if(self.selecteditems.Item (i) == index) return False;
+            #    if(self.selected_items.Item (i) == index) return False;
             #}
 
         if addtoselection:
@@ -322,14 +335,14 @@ class BaseItemView(wx.ScrolledWindow):
             #    RefreshCell (index, true, true);
             #}
             self.keyendindex = index
-            if not index in self.selecteditems:
-                self.selecteditems.append(index)
+            if not index in self.selected_items:
+                self.selected_items.append(index)
                 self.refreshItem(index, True, True)
         else:
             #m_selecteditem = index;
             self.keyendindex = index
-            olditems = self.selecteditems
-            self.selecteditems = [index]
+            olditems = self.selected_items
+            self.selected_items = [index]
             self.refreshItem(index, True, True)
             for i in range(0, itemcount):
                 if olditems[i] != index:
@@ -490,7 +503,7 @@ class BaseItemView(wx.ScrolledWindow):
                     #logger.debug('painting index %s' %index)
                     if index >= self.numitems:
                         break
-                    #if index in self.selecteditems: selected = True
+                    #if index in self.selected_items: selected = True
                     #else: selected = False
                     # Do not render this item again (if already rendered)
                     if index in rendereditems:
@@ -512,9 +525,9 @@ class BaseItemView(wx.ScrolledWindow):
             mouseend = wx.Size()
             mouseend.x = self.relativeToAbsoluteX(event.GetX())
             mouseend.y = self.relativeToAbsoluteY(event.GetY())
-            distance = math.sqrt((mouseend.x - self.mousestartx) * 
-                    (mouseend.x - self.mousestartx) + 
-                    (mouseend.y - self.mousestarty) * 
+            distance = math.sqrt((mouseend.x - self.mousestartx) *
+                    (mouseend.x - self.mousestartx) +
+                    (mouseend.y - self.mousestarty) *
                     (mouseend.y - self.mousestarty))
             if distance > 15:
                 print("START DRAG AND DROP")
@@ -573,7 +586,7 @@ class BaseItemView(wx.ScrolledWindow):
         mousestartx = self.relativeToAbsoluteX (event.GetX ())
         mousestarty = self.relativeToAbsoluteY (event.GetY ())
         cellindex = self.findItemAt (mousestartx, mousestarty)
-        if cellindex > -1 and cellindex in self.selecteditems:
+        if cellindex > -1 and cellindex in self.selected_items:
             self.on_activate_item (cellindex)
 
     def onRightDownEvent(self, event):
@@ -582,8 +595,8 @@ class BaseItemView(wx.ScrolledWindow):
         mousestarty = self.relativeToAbsoluteY (event.GetY ())
         cellindex = self.findItemAt (mousestartx, mousestarty)
         if cellindex > -1:
-            if self.multi_select and cellindex not in self.selecteditems:
-                self.selectItem(cellindex)
+            if self.multi_select and cellindex not in self.selected_items:
+                self.select_item(cellindex)
             self.onRightClickItem (cellindex)
 
     def onLeftDownEvent(self, event):
@@ -611,35 +624,35 @@ class BaseItemView(wx.ScrolledWindow):
                         add_to_selection = True
                     if event.ShiftDown():
                         shift_down = True
-                if self.canreselectitems:
-                    self.selectItem(cellindex, add_to_selection)
+                if self.canreselect_items:
+                    self.select_item(cellindex, add_to_selection)
                 elif shift_down:
                     if not self.mouselastclickonitem is None and \
                             cellindex != self.mouselastclickonitem:
                         add = [i for i in range(min(cellindex,
                                 self.mouselastclickonitem), max(
                                 cellindex, self.mouselastclickonitem) + 1)]
-                        update = self.selecteditems + add
+                        update = self.selected_items + add
                         if add_to_selection:
-                            self.selecteditems += add
+                            self.selected_items += add
                         else:
-                            self.selecteditems = add
+                            self.selected_items = add
                         for i in update:
                             self.refreshItem(i)
-                elif not cellindex in self.selecteditems:
+                elif not cellindex in self.selected_items:
                     # The item was not already selected
                     #//SendEvent (EVENT_ITEMVIEW_SELECT, cellindex);
-                    self.selectItem(cellindex, add_to_selection)
-                elif cellindex in self.selecteditems:
+                    self.select_item(cellindex, add_to_selection)
+                elif cellindex in self.selected_items:
                     # FIXME: if more than one selected, wait for drag?
-                    #if len(self.selecteditems) > 1:
+                    #if len(self.selected_items) > 1:
                     self.selectonmouseup = cellindex
 #                    if add_to_selection:
-#                        self.selecteditems.remove(cellindex)
+#                        self.selected_items.remove(cellindex)
 #                        self.refreshItem(cellindex, True, False)
 #                    else:
 #                        # Remove selection on other items.
-#                        self.selectItem(cellindex, False, True)
+#                        self.select_item(cellindex, False, True)
         #else {
         #
         #    m_rubberaddeditems.Clear ();
@@ -700,21 +713,21 @@ class BaseItemView(wx.ScrolledWindow):
                 if event.ControlDown():
                     add_to_selection = True
             if add_to_selection:
-                if cellindex in self.selecteditems:
-                    self.selecteditems.remove(cellindex)
+                if cellindex in self.selected_items:
+                    self.selected_items.remove(cellindex)
                 self.refreshItem(cellindex, True, False)
             else:
                 # Remove selection on other items.
-                self.selectItem(cellindex, False, True)
+                self.select_item(cellindex, False, True)
         event.Skip()
 
     def onSetFocusEvent(self, event):
-        if len(self.selecteditems) > 0:
-            self.refreshItem(self.selecteditems[0])
+        if len(self.selected_items) > 0:
+            self.refreshItem(self.selected_items[0])
 
     def onKillFocusEvent(self, event):
-        if len(self.selecteditems) > 0:
-            self.refreshItem(self.selecteditems[0])
+        if len(self.selected_items) > 0:
+            self.refreshItem(self.selected_items[0])
 
     def onKeyPressEvent(self, event):
         cellindex = -1
@@ -730,49 +743,49 @@ class BaseItemView(wx.ScrolledWindow):
             return
         if event.GetKeyCode() == wx.WXK_NEXT:
             skip = False
-            self.Scroll(-1, self.relativeToAbsoluteY (0) + 
+            self.Scroll(-1, self.relativeToAbsoluteY (0) +
                     self.GetClientSize().y)
         elif event.GetKeyCode () == wx.WXK_PRIOR:
             skip = False
-            self.Scroll(-1, self.relativeToAbsoluteY(0) - 
+            self.Scroll(-1, self.relativeToAbsoluteY(0) -
                     self.GetClientSize().y)
         elif event.GetKeyCode() == wx.WXK_LEFT:
-            if len(self.selecteditems) == 0:
+            if len(self.selected_items) == 0:
                 cellindex = 0
             else:
-                cellindex = self.selecteditems[0] - 1
+                cellindex = self.selected_items[0] - 1
             self.keyendindex = self.keyendindex - 1
             skip = False
             handlenavigation = True
         elif event.GetKeyCode() == wx.WXK_RIGHT:
-            if len(self.selecteditems) == 0:
+            if len(self.selected_items) == 0:
                 cellindex = 0
             else:
-                cellindex = self.selecteditems[0] + 1
+                cellindex = self.selected_items[0] + 1
             self.keyendindex = self.keyendindex + 1
             skip = False
             handlenavigation = True
         elif event.GetKeyCode () == wx.WXK_UP:
-            if len(self.selecteditems) == 0:
+            if len(self.selected_items) == 0:
                 cellindex = 0
             else:
-                cellindex = self.selecteditems[0] - self.numcolumns
+                cellindex = self.selected_items[0] - self.numcolumns
             self.keyendindex = self.keyendindex - self.numcolumns
             skip = False
             handlenavigation = True
         elif event.GetKeyCode () == wx.WXK_DOWN:
-            if len(self.selecteditems) == 0:
+            if len(self.selected_items) == 0:
                 cellindex = 0
             else:
-                cellindex = self.selecteditems[0] + self.numcolumns
+                cellindex = self.selected_items[0] + self.numcolumns
             self.keyendindex = self.keyendindex + self.numcolumns
             skip = False
             handlenavigation = True
         elif event.GetKeyCode () == wx.WXK_RETURN:
             # FIXME: IMPLEMENT
-            if len(self.selecteditems) == 1:
+            if len(self.selected_items) == 1:
             #    self.sendEvent (EVENT_ITEMVIEW_ACTIVATE, m_selecteditem)
-                self.on_activate_item(self.selecteditems[0])
+                self.on_activate_item(self.selected_items[0])
             skip = True
         else:
             if self.numitems == 0:
@@ -794,15 +807,15 @@ class BaseItemView(wx.ScrolledWindow):
                 self.typingsearchstr = self.typingsearchstr + chr (char)
             print(self.typingsearchstr)
             pos = self.search_for_text(self.typingsearchstr)
-            if len(self.selecteditems) == 0 or self.selecteditems[0] != pos \
+            if len(self.selected_items) == 0 or self.selected_items[0] != pos \
                     and pos != None and len(self.typingsearchstr) > 0:
                 self.scrollToItem (pos)
-                self.selectItem (pos)
+                self.select_item (pos)
         if handlenavigation:
-            if not event.ShiftDown() or len(self.selecteditems) == 0:
+            if not event.ShiftDown() or len(self.selected_items) == 0:
                 self.keyendindex = cellindex
             else:
-                cellindex = self.selecteditems[0]
+                cellindex = self.selected_items[0]
             if cellindex < 0:
                 cellindex = 0
             if cellindex > self.numitems - 1:
@@ -821,7 +834,7 @@ class BaseItemView(wx.ScrolledWindow):
             #}
             #else {
             #else:
-            self.selectItem(cellindex, False)
+            self.select_item(cellindex, False)
                 #//SendEvent (EVENT_ITEMVIEW_SELECT, cellindex);
             self.scrollToItem(cellindex)
         if skip:
@@ -833,14 +846,68 @@ class BaseItemView(wx.ScrolledWindow):
 class VerticalItemView (BaseItemView):
 
     def __init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition,
-            size=wx.DefaultSize, style=0):
+            size=wx.DefaultSize):
         self.numcolumns = 1 # Default number of columns
         self.wantcolumns = 1
         self.expanditemwidth = True
         self.minitemwidth = 20
         self._singletextlineitemheight = 26
         self._doubletextlineitemheight = 40
-        BaseItemView.__init__(self, parent, id, pos, size, style)
+        BaseItemView.__init__(self, parent, id, pos, size)
+
+    def render_item (self, index, rd):
+        # FIXME: remove direct dependency on wx from this method
+        import wx
+        dc = rd.dc
+        dc.SetFont(self.GetFont())
+
+        c = dc.GetTextForeground()
+        old_foreground = wx.Colour(c.Red(),c.Green(),c.Blue())
+        reset_color = False
+
+        if rd.selected:
+            flags = wx.CONTROL_SELECTED
+            flags |= wx.CONTROL_FOCUSED
+            wx.RendererNative_Get().DrawItemSelectionRect(self, dc,
+                    rd.itemrect, flags=flags)
+            #dc.SetTextForeground(wx.SystemSettings.GetColour(
+            #        wx.SYS_COLOUR_HIGHLIGHTTEXT))
+            dc.SetTextForeground(wx.WHITE)
+            reset_color = True
+
+        x, y, w, h = rd.itemrect
+        icon = self.get_item_icon(index)
+        if icon is not None:
+            bitmap = icon.bitmap
+            if bitmap is not None and bitmap.Ok():
+                dc.DrawBitmap(bitmap, x + 6, y + (h - 16) // 2, True)
+                x += 16 + 6
+                w -= 16 + 6
+        x += 6
+        w -= 6
+
+        primary = self.get_item_text(index)
+        primary = primary.replace(u"\nAmiga \u00b7 ", "\n")
+        secondary = ""
+        SPLIT = u"\n"
+        if SPLIT in primary:
+            primary, secondary = primary.split(SPLIT, 1)
+            primary = primary.rstrip()
+            secondary = u"   " + secondary.lstrip()
+
+        itemRect = wx.Rect(x, y, w, h)
+        dw, dh = dc.GetTextExtent(primary)
+        dc.DrawText(primary, x, y + (h - dh) // 2)
+        x += dw
+        w -= dw
+
+        if secondary:
+            if not rd.selected:
+                dc.SetTextForeground(wx.Colour(0xa0, 0xa0, 0xa0))
+            dc.DrawText(secondary, x, y + (h - dh) // 2)
+            reset_color = True
+        if reset_color:
+            dc.SetTextForeground(old_foreground)
 
     def setupSingleTextLineItems(self):
         self.itemheight = self._singletextlineitemheight
@@ -909,7 +976,7 @@ class VerticalItemView (BaseItemView):
             self.numcolumns = self.wantcolumns
 
         if self.expanditemwidth:
-            self.itemwidth = (width - self.xpadding * 2 - 
+            self.itemwidth = (width - self.xpadding * 2 -
                 self.xspacing * (self.numcolumns - 1)) // (self.numcolumns)
         else:
             self.itemwidth = self.minitemwidth
@@ -967,9 +1034,9 @@ class VerticalItemView (BaseItemView):
                 renderdata.itemrect.height - 1)
         if not renderdata.dragover and not renderdata.selected:
             dc.SetPen (wx.Pen (wx.Color (0xe8, 0xe8, 0xe8)))
-            dc.DrawLine (renderdata.itemrect.x, renderdata.itemrect.y + 
-                    renderdata.itemrect.height - 1, renderdata.itemrect.x + 
-                    renderdata.itemrect.width, renderdata.itemrect.y + 
+            dc.DrawLine (renderdata.itemrect.x, renderdata.itemrect.y +
+                    renderdata.itemrect.height - 1, renderdata.itemrect.x +
+                    renderdata.itemrect.width, renderdata.itemrect.y +
                     renderdata.itemrect.height - 1);
         # Draw item focus if item has focus
         if renderdata.itemfocus:
@@ -986,9 +1053,9 @@ class VerticalItemView (BaseItemView):
 class SimpleListItemView (VerticalItemView):
 
     def __init__(self, parent, id=wx.ID_ANY, doublelinemode=False,
-            pos=wx.DefaultPosition, size=wx.DefaultSize, style=0):
+            pos=wx.DefaultPosition, size=wx.DefaultSize):
 
-        VerticalItemView.__init__(self, parent, id, pos, size, style)
+        VerticalItemView.__init__(self, parent, id, pos, size)
 
         self.doublelinemode = doublelinemode
         self.items = []

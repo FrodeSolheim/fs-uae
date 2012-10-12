@@ -6,9 +6,9 @@ from __future__ import unicode_literals
 import os
 import traceback
 import fs_uae_launcher.fsui as fsui
-from ..IconButton import IconButton
-from ..Settings import Settings
 from ..I18N import _, ngettext
+from ..Settings import Settings
+from .IconButton import IconButton
 
 class ScanPathsGroup(fsui.Group):
 
@@ -31,14 +31,11 @@ class ScanPathsGroup(fsui.Group):
 
         hlayout = fsui.HorizontalLayout()
         self.layout2.add(hlayout, fill=True)
-        #hlayout.padding_left = 20
-        #hlayout.padding_right = 20
 
-        #self.text = fsui.TextArea(self, read_only=True)
-        #self.text.set_min_height(100)
-        #hlayout.add(self.text, expand=True, fill=True)
         self.list_view = fsui.ListView(self)
         self.list_view.set_min_height(130)
+        self.list_view.set_default_icon(fsui.Image(
+                "fs_uae_launcher:res/folder_16.png"))
         hlayout.add(self.list_view, expand=True, fill=True)
         hlayout.add_spacer(10)
 
@@ -58,38 +55,6 @@ class ScanPathsGroup(fsui.Group):
         self.remove_button.on_activate = self.on_remove_button
         vlayout.add(self.remove_button)
 
-        """
-        self.layout2.add_spacer(10)
-
-        hor_layout = fsui.HorizontalLayout()
-        self.layout2.add(hor_layout)
-
-        self.scan_label = fsui.Label(self, _("Scan for:"))
-        hor_layout.add(self.scan_label)
-        hor_layout.add_spacer(10)
-
-        self.scan_roms = fsui.CheckBox(self, _("ROMs"))
-        if Settings.get("scan_roms") == "1":
-            self.scan_roms.check()
-        self.scan_roms.on_change = self.on_change
-        hor_layout.add(self.scan_roms)
-        hor_layout.add_spacer(10)
-
-        self.scan_files = fsui.CheckBox(self, _("Game Files"))
-        if Settings.get("scan_files") == "1":
-            self.scan_files.check()
-        self.scan_files.on_change = self.on_change
-        hor_layout.add(self.scan_files)
-        hor_layout.add_spacer(10)
-
-        self.scan_configs = fsui.CheckBox(self, _("Configurations"))
-        if Settings.get("scan_configs") == "1":
-            self.scan_configs.check()
-        self.scan_configs.on_change = self.on_change
-        hor_layout.add(self.scan_configs)
-        hor_layout.add_spacer(10)
-        """
-
         self.list_view.set_items(self.get_search_path())
         self.list_view.on_select_item = self.on_select_item
         Settings.add_listener(self)
@@ -101,7 +66,7 @@ class ScanPathsGroup(fsui.Group):
         if key == "search_path":
             self.repopulate_list()
 
-    def on_select_item(self):
+    def on_select_item(self, index):
         self.remove_button.enable()
 
     def repopulate_list(self):

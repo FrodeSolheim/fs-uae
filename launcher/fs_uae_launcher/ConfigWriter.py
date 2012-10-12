@@ -27,6 +27,17 @@ class ConfigWriter:
         for key, value in self.config.iteritems():
             config[key] = value
 
+        if not config["joystick_port_0_mode"]:
+            config["joystick_port_0_mode"] = "mouse"
+        if not config["joystick_port_1_mode"]:
+            if config["amiga_model"] == "CD32":
+                config["joystick_port_1_mode"] = "cd32 gamepad"
+            else:
+                config["joystick_port_1_mode"] = "joystick"
+        if not config["joystick_port_2_mode"]:
+            config["joystick_port_2_mode"] = "none"
+        if not config["joystick_port_3_mode"]:
+            config["joystick_port_3_mode"] = "none"
         devices = DeviceManager.get_devices_for_ports(config)
         for port in range(4):
             key = "joystick_port_{0}".format(port)

@@ -37,14 +37,15 @@ class TabPanel(fsui.Panel):
                         child.state = child.STATE_SELECTED
                         child.refresh()
                     elif child.state == child.STATE_SELECTED:
-                        child.state = child.STATE_NORMAL
-                        child.refresh()
+                        if child.group_id == tab.group_id:
+                            child.state = child.STATE_NORMAL
+                            child.refresh()
 
     def add(self, button):
         self.layout.add(button)
 
-    def add_spacer(self, expand=False):
-        self.layout.add_spacer(0, expand=expand)
+    def add_spacer(self, spacer=0, expand=False):
+        self.layout.add_spacer(spacer, 0, expand=expand)
 
     def on_paint(self):
         dc = self.create_dc()

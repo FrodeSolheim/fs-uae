@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae-launcher\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2012-08-21 11:38+0200\n"
-"PO-Revision-Date: 2012-08-31 11:21+0100\n"
+"POT-Creation-Date: 2012-10-07 18:57+0200\n"
+"PO-Revision-Date: 2012-10-08 12:29+0100\n"
 "Last-Translator: Speedvicio <speedvicio@hotmail.com>\n"
 "Language-Team: Italian\n"
 "Language: it\n"
@@ -35,8 +35,14 @@ msgstr "Aggiungi CD-ROM Multipli al Volo"
 msgid "Add Multiple Floppies at Once"
 msgstr "Aggiungi Floppies Multipli al Volo"
 
+msgid "Amiga Forever import task started"
+msgstr "Funzione di importazione Amiga Forever avviata"
+
 msgid "Amiga Model"
 msgstr "Modello Amiga"
+
+msgid "Available Kickstart Versions"
+msgstr "Versioni di Kickstart Disponibili"
 
 msgid "Browse"
 msgstr "Sfoglia"
@@ -46,6 +52,12 @@ msgstr "Ricerca File"
 
 msgid "Browse for Folder"
 msgstr "Ricerca Cartelle"
+
+msgid "Built-in TCP/IP Stack"
+msgstr "TCP/IP Stack Incorporato"
+
+msgid "Built-in TCP/IP Stack (bsdsocket.library)"
+msgstr "TCP/IP Stack Incorporato (bsdsocket.library)"
 
 msgid "CD-ROM Drive"
 msgstr "Drive CD-ROM"
@@ -58,6 +70,9 @@ msgstr "Pad CD32"
 
 msgid "Cancel"
 msgstr "Annulla"
+
+msgid "Chip RAM"
+msgstr "Chip RAM"
 
 msgid "Choose CD-ROM Image"
 msgstr "Scegli Immagine CD-ROM"
@@ -98,6 +113,13 @@ msgstr "Configurazione"
 msgid "Configure Joystick Buttons"
 msgstr "Configura Tasti Joystick"
 
+msgid ""
+"Copy {0}\n"
+"to {1}"
+msgstr ""
+"Copia {0}\n"
+"in {1}"
+
 msgid "Cursor Keys and Right Ctrl/Alt"
 msgstr "Tasti Cursore e Right Ctrl/Alt"
 
@@ -113,14 +135,23 @@ msgstr "Settaggi Personalizzati"
 msgid "Default"
 msgstr "Predefinito"
 
+msgid "Default ({0})"
+msgstr "Predefinito ({0})"
+
 msgid "Downloading {0}..."
 msgstr "Scaricando {0}..."
 
 msgid "Eject"
 msgstr "Espelli"
 
-msgid "Extended ROM"
-msgstr "ROM Estesa"
+msgid "Expansions"
+msgstr "Espansioni"
+
+msgid "Extended ROM:"
+msgstr "ROM Estesa:"
+
+msgid "Fast RAM"
+msgstr "Fast RAM"
 
 msgid "Filters:"
 msgstr "Filtri:"
@@ -136,6 +167,21 @@ msgstr "Giochi e Configurazioni"
 
 msgid "Hard Drives"
 msgstr "Hard Drives"
+
+msgid "If you own Amiga Forever, select the drive/folder and click \"{0}\""
+msgstr "Se possiedi Amiga Forever, seleziona il suo drive/cartella e premi \"{0}\""
+
+msgid "Import"
+msgstr "Importa"
+
+msgid "Import From Amiga Forever CD/DVD"
+msgstr "Importa Da Amiga Forever CD/DVD"
+
+msgid "Import Kickstarts and ROMs"
+msgstr "Importa Kickstarts e ROMs"
+
+msgid "Import task is done"
+msgstr "Funzione di Importazione eseguita"
 
 msgid "Internal"
 msgstr "Interno"
@@ -155,8 +201,8 @@ msgstr "Settaggi Joystick"
 msgid "Kickstart ROM"
 msgstr "Kickstart ROM"
 
-msgid "Kickstart Versions"
-msgstr "Versioni Kickstart"
+msgid "Kickstart import task started"
+msgstr "Funzione di importazione Kickstart avviata"
 
 msgid "Launching FS-UAE"
 msgstr "Avviando FS-UAE"
@@ -167,6 +213,9 @@ msgstr "Poco Preciso"
 msgid "Less Accurate"
 msgstr "Meno Preciso"
 
+msgid "Memory"
+msgstr "Memoria"
+
 msgid "Mouse"
 msgstr "Mouse"
 
@@ -175,6 +224,9 @@ msgstr "Gioco On-Line"
 
 msgid "New Configuration"
 msgstr "Nuova Configurazione"
+
+msgid "No Device"
+msgstr "Nessun Dispositivo"
 
 msgid "No Host Device"
 msgstr "Nessun Dispositivo Ospite"
@@ -200,14 +252,17 @@ msgstr "Nullo"
 msgid "OK"
 msgstr "OK"
 
-msgid "Open Configuration"
-msgstr "Apri Configurazione"
-
 msgid "Open Tool to Configure Button Mapping"
 msgstr "Apri Strumento Configurazione Bottoni"
 
 msgid "Parallel Port Joysticks"
 msgstr "Joysticks Porte Parallele"
+
+msgid "Picasso96 Support"
+msgstr "Supporto al Picasso96"
+
+msgid "Picasso96 Support (uaegfx.card)"
+msgstr "Supporto al Picasso96 (uaegfx.card)"
 
 msgid "Please wait..."
 msgstr "Per favore attendi..."
@@ -254,6 +309,9 @@ msgstr "Scansiona"
 msgid "Scan complete"
 msgstr "Scansione completata"
 
+msgid "Scan for Kickstarts, Files and Configurations"
+msgstr "Scansiona Kickstarts, Files e Configurazioni"
+
 msgid "Scanning .fs-uae files..."
 msgstr "Scansionando files .fs-uae..."
 
@@ -275,20 +333,23 @@ msgstr "Ricerca Files"
 msgid "Scanning files ({count} scanned)"
 msgstr "Ricercando files ({count} scansionati)"
 
-msgid "Select Files..."
-msgstr "Seleziona Files..."
+msgid "Select Directory to Import From"
+msgstr "Seleziona la Cartella da Importare"
 
 msgid "Select Multiple CD-ROMs"
 msgstr "Seleziona CD-ROMs Multipli"
 
+msgid "Select Multiple Files..."
+msgstr "Seleziona Files Multipli..."
+
 msgid "Select Multiple Floppies"
 msgstr "Seleziona Floppies Multipli"
 
-msgid "Show Only Favorites (On/Off)"
-msgstr "Visualizza Solo i Favoriti (On/Off)"
+msgid "Select a folder containing Amiga kickstart files and click \"{0}\""
+msgstr "Seleziona una cartella contenente un kickstart  Amiga  e premi \"{0}\""
 
-msgid "Show Only Verified Configurations (On/Off)"
-msgstr "Visualizza Solo le Configurazioni Verificate (On/Off)"
+msgid "Slow RAM"
+msgstr "Slow RAM"
 
 msgid "Start"
 msgstr "Avvia"
@@ -304,6 +365,12 @@ msgstr "Scambia Lista"
 
 msgid "WHDLoad Arguments"
 msgstr "Argomenti WHDLoad"
+
+msgid "You should have kickstart files for each Amiga model you want to use:"
+msgstr "Dovresti avere un file kickstart per ogni modello Amiga da utilizzare"
+
+msgid "Zorro III RAM"
+msgstr "Zorro III RAM"
 
 #~ msgid "Add Multiple CD Images at Once"
 #~ msgstr "Aggiungi Immagini CD Multiple al Volo"
@@ -344,6 +411,9 @@ msgstr "Argomenti WHDLoad"
 #~ msgid "Configure Joysticks"
 #~ msgstr "Configura Joysticks"
 
+#~ msgid "Extended ROM"
+#~ msgstr "ROM Estesa"
+
 #~ msgid "Floppies..."
 #~ msgstr "Floppies..."
 
@@ -371,6 +441,9 @@ msgstr "Argomenti WHDLoad"
 #~ msgid "Kickstart"
 #~ msgstr "Kickstart"
 
+#~ msgid "Kickstart Versions"
+#~ msgstr "Versioni Kickstart"
+
 #~ msgid "Media List"
 #~ msgstr "Lista Media"
 
@@ -379,6 +452,9 @@ msgstr "Argomenti WHDLoad"
 
 #~ msgid "More..."
 #~ msgstr "Di Più..."
+
+#~ msgid "Open Configuration"
+#~ msgstr "Apri Configurazione"
 
 #~ msgid "Preferred Joysticks"
 #~ msgstr "Joysticks Preferiti"
@@ -398,8 +474,17 @@ msgstr "Argomenti WHDLoad"
 #~ msgid "Scan for:"
 #~ msgstr "Scansiona per:"
 
+#~ msgid "Select Files..."
+#~ msgstr "Seleziona Files..."
+
 #~ msgid "Settings"
 #~ msgstr "Settaggi"
+
+#~ msgid "Show Only Favorites (On/Off)"
+#~ msgstr "Visualizza Solo i Favoriti (On/Off)"
+
+#~ msgid "Show Only Verified Configurations (On/Off)"
+#~ msgstr "Visualizza Solo le Configurazioni Verificate (On/Off)"
 
 #~ msgid "Window"
 #~ msgstr "Finestra"

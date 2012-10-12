@@ -8,9 +8,9 @@ import traceback
 import fs_uae_launcher.fsui as fsui
 from ...Config import Config
 from ...ChecksumTool import ChecksumTool
-from ...Settings import Settings
-from ...IconButton import IconButton
 from ...I18N import _, ngettext
+from ...Settings import Settings
+from ..IconButton import IconButton
 from ..LauncherFileDialog import LauncherFileDialog
 
 class KickstartGroup(fsui.Group):
@@ -33,7 +33,7 @@ class KickstartGroup(fsui.Group):
         self.text_field = fsui.TextField(self, "", read_only=True)
         hori_layout.add(self.text_field, expand=True, margin=10)
 
-        self.browse_button = IconButton(self, "browse_button.png")
+        self.browse_button = IconButton(self, "browse_file_16.png")
         self.browse_button.set_tooltip(_("Browse"))
         self.browse_button.on_activate = self.on_browse_button
         hori_layout.add(self.browse_button, margin=10)
@@ -52,7 +52,7 @@ class KickstartGroup(fsui.Group):
         self.ext_text_field = fsui.TextField(self, "", read_only=True)
         hori_layout.add(self.ext_text_field, expand=True, margin_right=10)
 
-        self.ext_browse_button = IconButton(self, "browse_button.png")
+        self.ext_browse_button = IconButton(self, "browse_file_16.png")
         self.ext_browse_button.set_tooltip(_("Browse"))
         self.ext_browse_button.on_activate = self.on_ext_browse_button
         hori_layout.add(self.ext_browse_button, margin_right=10)

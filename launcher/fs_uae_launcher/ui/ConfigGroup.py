@@ -103,8 +103,8 @@ class ConfigGroup(fsui.Group):
         path = os.path.join(Settings.get_configurations_dir(), file_name)
         with open(path, "wb") as f:
             f.write("# FS-UAE configuration saved by FS-UAE Launcher\n")
-            f.write("# Last saved: {0}\n", datetime.datetime.today().format(
-                    "%Y-%m-%d %H:%M:%s"))
+            f.write("# Last saved: {0}\n".format(
+                    datetime.datetime.today().strftime("%Y-%m-%d %H:%M:%s")))
             f.write("[config]\n")
             keys = sorted(Config.config.keys())
             for key in keys:

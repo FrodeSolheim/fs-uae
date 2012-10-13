@@ -50,6 +50,7 @@ cfg = [
     ("x_whdload_args",        "",         "checksum", "sync", "custom"),
     ("floppy_drive_count",    "",         "checksum", "sync", "custom"),
     ("floppy_drive_speed",    "",         "checksum", "sync", "custom"),
+    ("cdrom_drive_count",     "",         "checksum", "sync", "custom"),
 
     ("__netplay_game",        "",         "checksum", "sync"),
     ("__netplay_password",    "",         "checksum", "sync"),

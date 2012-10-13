@@ -82,6 +82,7 @@ class LaunchHandler:
         self.change_handler = GameChangeHandler(self.temp_dir)
         self.prepare_roms()
         self.copy_floppies()
+        self.prepare_cdroms()
         self.unpack_hard_drives()
         self.copy_whdload_files()
         self.init_changes()
@@ -177,7 +178,6 @@ class LaunchHandler:
             if self.config[key]:
                 floppies.append(self.config[key])
             self.copy_floppy(key)
-
         for i in range(Amiga.MAX_FLOPPY_IMAGES):
             key = "floppy_image_{0}".format(i)
             if self.config[key]:
@@ -204,6 +204,28 @@ class LaunchHandler:
             f.write(data)
         key = "floppy_image_{0}".format(save_image)
         self.config[key] = "Save Disk.adf"
+
+    def prepare_cdroms(self):
+        print("LaunchHandler.prepare_cdroms")
+        if not self.config.get("cdrom_drive_count"):
+            if self.config.get("cdrom_drive_0") or \
+                    self.config.get("cdrom_image_0"):
+                self.config["cdrom_drive_count"] = "1"
+
+        cdroms = []
+        for i in range(Amiga.MAX_CDROM_DRIVES):
+            key = "cdrom_drive_{0}".format(i)
+            if self.config[key]:
+                cdroms.append(self.config[key])
+        for i in range(Amiga.MAX_CDROM_IMAGES):
+            key = "cdrom_image_{0}".format(i)
+            if self.config[key]:
+                break
+        else:
+            print("CD-ROM image list is empty")
+            for i, cdrom in enumerate(cdroms):
+                self.config["cdrom_image_{0}".format(i)] = cdrom
+
 
     def unpack_hard_drives(self):
         print("LaunchHandler.unpack_hard_drives")

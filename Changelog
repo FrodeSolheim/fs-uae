@@ -1,3 +1,10 @@
+Version 1.3.32:
+
+* (Launcher) Implicitly add CD-ROM drive if CD image list is non-empty.
+* (Launcher) Automatically add CDs in drives to image list if list is empty.
+* (Launcher) Fixed bug when saving configurations.
+* (Launcher) Fixed type-ahead search bug in configuration list.
+
 Version 1.3.31:
 
 * (Launcher) Use native toolbar control on Mac.

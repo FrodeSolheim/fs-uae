@@ -59,8 +59,10 @@ class ConfigWriter:
 
         # make sure FS-UAE does not load other config files (Host.fs-uae)
         config["end_config"] = "1"
-        if not config["sub_title"]:
-            config["sub_title"] = config["amiga_model"] or "A500"
+
+        # set titles
+        #if not config["sub_title"]:
+        #    config["sub_title"] = config["amiga_model"] or "A500"
 
         if config["__netplay_game"]:
             print("\nfixing config for netplay game")

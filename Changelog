@@ -1,5 +1,15 @@
 Version 1.3.32:
 
+* Don't quit on parse error when parsing viewport option.
+* (Launcher) Show notification about new versions in the same series
+  (stable or devel) as the installed version.
+* (Launcher) Added information panel to toolbar, currently used to show
+  update notifications.
+* (Launcher) Fix path issue on Windows causing kickstarts to be scanned
+  on every startup.
+* (Launcher) Updated downloadable WHDLoad version to 17.1.
+* (Launcher) Added tooltips to main window tabs.
+* (Launcher) Simplified default scan search path to just FS-UAE dir.
 * (Launcher) Implicitly add CD-ROM drive if CD image list is non-empty.
 * (Launcher) Automatically add CDs in drives to image list if list is empty.
 * (Launcher) Fixed bug when saving configurations.

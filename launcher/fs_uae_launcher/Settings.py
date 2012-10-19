@@ -117,12 +117,12 @@ class Settings:
     def get_default_search_path(cls):
         paths = []
         paths.append(cls.get_base_dir())
-        paths.append(os.path.join(fs.get_home_dir(),
-                "Games", "Amiga"))
-        paths.append(os.path.join(fs.get_home_dir(),
-                "Games", "CD32"))
-        paths.append(os.path.join(fs.get_home_dir(),
-                "Games", "CDTV"))
+        #paths.append(os.path.join(fs.get_home_dir(),
+        #        "Games", "Amiga"))
+        #paths.append(os.path.join(fs.get_home_dir(),
+        #        "Games", "CD32"))
+        #paths.append(os.path.join(fs.get_home_dir(),
+        #        "Games", "CDTV"))
         return paths
 
     @classmethod

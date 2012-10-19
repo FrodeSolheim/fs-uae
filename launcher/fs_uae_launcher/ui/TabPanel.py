@@ -41,8 +41,8 @@ class TabPanel(fsui.Panel):
                             child.state = child.STATE_NORMAL
                             child.refresh()
 
-    def add(self, button):
-        self.layout.add(button)
+    def add(self, button, expand=False):
+        self.layout.add(button, expand=expand)
 
     def add_spacer(self, spacer=0, expand=False):
         self.layout.add_spacer(spacer, 0, expand=expand)

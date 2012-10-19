@@ -34,7 +34,7 @@ class KickstartGroup(fsui.Group):
         hori_layout.add(self.text_field, expand=True, margin=10)
 
         self.browse_button = IconButton(self, "browse_file_16.png")
-        self.browse_button.set_tooltip(_("Browse"))
+        self.browse_button.set_tooltip(_("Browse for File"))
         self.browse_button.on_activate = self.on_browse_button
         hori_layout.add(self.browse_button, margin=10)
 
@@ -53,7 +53,7 @@ class KickstartGroup(fsui.Group):
         hori_layout.add(self.ext_text_field, expand=True, margin_right=10)
 
         self.ext_browse_button = IconButton(self, "browse_file_16.png")
-        self.ext_browse_button.set_tooltip(_("Browse"))
+        self.ext_browse_button.set_tooltip(_("Browse for File"))
         self.ext_browse_button.on_activate = self.on_ext_browse_button
         hori_layout.add(self.ext_browse_button, margin_right=10)
 

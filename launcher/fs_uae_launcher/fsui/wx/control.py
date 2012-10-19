@@ -6,17 +6,14 @@ from __future__ import unicode_literals
 import wx
 from .common import update_class
 
-class Panel(wx.Panel):
+class Control(wx.Control):
     def __init__(self, parent, paintable=False):
         # create it outside the visible area to avoid flickering on Windows
         # when the controls are displayed before they are moved to the
         # correct place
-        wx.Panel.__init__(self, parent.get_container(), -1, (0, 2000),
-                (0, 0), wx.FULL_REPAINT_ON_RESIZE)
-        #p = parent.get_real_parent()
-        #self._window = wx.Panel(p._container, -1)
-        #self._container = self._window
-        #self._window.Bind(wx.EVT_WINDOW_DESTROY, self.__destroy_event)
+        id = wx.NewId()
+        wx.Control.__init__(self, parent.get_container(), id, (0, 2000),
+                (0, 0), wx.NO_BORDER)
         self.Bind(wx.EVT_PAINT, self.__paint_event)
         self.Bind(wx.EVT_ERASE_BACKGROUND, self.__erase_background_event)
         self.Bind(wx.EVT_LEFT_DOWN, self.__left_down_event)
@@ -71,7 +68,6 @@ class Panel(wx.Panel):
 
     def __paint_event(self, event):
         if not self._paintable:
-            #dc = wx.PaintDC(self)
             event.Skip()
             return
         self._paint_dc = wx.PaintDC(self)
@@ -101,5 +97,4 @@ class Panel(wx.Panel):
     def __leave_window_event(self, event):
         self.on_mouse_leave()
 
-
-update_class(Panel)
+update_class(Control)

@@ -65,7 +65,7 @@ class ROMManager:
             data = f.read(len("AMIROMTYPE1"))
             s1.update(data)
 
-            if data != "AMIROMTYPE1":
+            if data != b"AMIROMTYPE1":
                 # not encrypted, return sha1 checksum for original file
                 s1.update(f.read())
                 return s1.hexdigest()
@@ -97,7 +97,7 @@ class ROMManager:
         file = open(dest, "wb")
         with open(path, "rb") as f:
             data = f.read(len("AMIROMTYPE1"))
-            if data != "AMIROMTYPE1":
+            if data != b"AMIROMTYPE1":
                 # not encrypted, write raw data
                 file.write(data)
                 file.write(f.read())
@@ -125,7 +125,7 @@ class ROMManager:
         result = []
         f = archive.open(path)
         data = f.read(len("AMIROMTYPE1"))
-        if data != "AMIROMTYPE1":
+        if data != b"AMIROMTYPE1":
             # not encrypted, write raw data
             if sha1 is not None:
                 sha1.update(data)

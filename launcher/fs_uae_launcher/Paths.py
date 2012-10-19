@@ -11,11 +11,12 @@ class Paths:
 
     @classmethod
     def join(cls, a, b):
-        if not a:
-            return b
-        if a[-1] == "/" or a[-1] == "\\":
-            return a + b
-        return a + "/" + b
+        #if not a:
+        #    return b
+        #if a[-1] == "/" or a[-1] == "\\":
+        #    return a + b
+        #return a + "/" + b
+        return os.path.join(a, b).replace("\\", "/")
 
     @classmethod
     def expand_path(cls, path, default_dir=None):

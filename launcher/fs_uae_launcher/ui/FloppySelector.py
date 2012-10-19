@@ -37,7 +37,7 @@ class FloppySelector(fsui.Group):
 
         self.layout.add_spacer(10)
         self.browse_button = IconButton(self, "browse_file_16.png")
-        self.browse_button.set_tooltip(_("Browse"))
+        self.browse_button.set_tooltip(_("Browse for File"))
         self.browse_button.on_activate = self.on_browse
         self.layout.add(self.browse_button)
 

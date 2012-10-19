@@ -292,24 +292,9 @@ class LaunchHandler:
                 ["5fe04842d04a489720f0f4bb0e46948199406f49"])
         self.create_whdload_prefs_file(os.path.join(s_dir, "WHDLoad.prefs"))
 
-        self.install_whdload_file("1ad1b55e7226bd5cd66def8370a69f19244da796",
-                dest_dir, "Devs/Kickstarts/kick40068.A1200.RTB")
-        self.install_whdload_file("209c109855f94c935439b60950d049527d2f2484",
-                dest_dir, "Devs/Kickstarts/kick34005.A500.RTB")
-        self.install_whdload_file("973b42dcaf8d6cb111484b3c4d3b719b15f6792d",
-                dest_dir, "Devs/Kickstarts/kick40068.A4000.RTB")
-        self.install_whdload_file("09e4d8a055b4a9801c6b011e7a3de42bafaf070d",
-                dest_dir, "C/uae-configuration")
-        self.install_whdload_file("100d80eead41511dfef6086508b1f77d3c1672a8",
-                dest_dir, "C/RawDIC")
-        self.install_whdload_file("e1b6c3871d8327f771874b17258167c2a454029a",
-                dest_dir, "C/Patcher")
-        self.install_whdload_file("0ec213a8c62beb3eb3b3509aaa44f21405929fce",
-                dest_dir, "C/WHDLoad")
-        self.install_whdload_file("57f29b23cff0107eec81b98159ce304ccd69441a",
-                dest_dir, "C/WHDLoadCD32")
-        self.install_whdload_file("2fcb5934019133ed7a2069e333cdbc349ecaa7ee",
-                dest_dir, "C/DIC")
+        whdload_files = whdload_17_1_files
+        for key, value in whdload_files.iteritems(): 
+            self.install_whdload_file(key, dest_dir, value)
 
         startup_sequence = os.path.join(s_dir, "startup-sequence")
         with open(startup_sequence, "wb") as f:
@@ -512,3 +497,27 @@ SplashDelay=0        ;time to display splash window (1/50 seconds)
             else:
                 if overwrite or not os.path.exists(destitempath):
                     shutil.copy(itempath, destitempath)
+
+whdload_17_0_files = {
+    "1ad1b55e7226bd5cd66def8370a69f19244da796": "Devs/Kickstarts/kick40068.A1200.RTB",
+    "209c109855f94c935439b60950d049527d2f2484": "Devs/Kickstarts/kick34005.A500.RTB",
+    "973b42dcaf8d6cb111484b3c4d3b719b15f6792d": "Devs/Kickstarts/kick40068.A4000.RTB",
+    "09e4d8a055b4a9801c6b011e7a3de42bafaf070d": "C/uae-configuration",
+    "100d80eead41511dfef6086508b1f77d3c1672a8": "C/RawDIC",
+    "e1b6c3871d8327f771874b17258167c2a454029a": "C/Patcher",
+    "0ec213a8c62beb3eb3b3509aaa44f21405929fce": "C/WHDLoad",
+    "57f29b23cff0107eec81b98159ce304ccd69441a": "C/WHDLoadCD32",
+    "2fcb5934019133ed7a2069e333cdbc349ecaa7ee": "C/DIC",
+}
+
+whdload_17_1_files = {
+    "1ad1b55e7226bd5cd66def8370a69f19244da796": "Devs/Kickstarts/kick40068.A1200.RTB",
+    "209c109855f94c935439b60950d049527d2f2484": "Devs/Kickstarts/kick34005.A500.RTB",
+    "973b42dcaf8d6cb111484b3c4d3b719b15f6792d": "Devs/Kickstarts/kick40068.A4000.RTB",
+    "09e4d8a055b4a9801c6b011e7a3de42bafaf070d": "C/uae-configuration",
+    "100d80eead41511dfef6086508b1f77d3c1672a8": "C/RawDIC",
+    "e1b6c3871d8327f771874b17258167c2a454029a": "C/Patcher",
+    "1a907ca4539806b42ad5b6f7aeebacb3720e840d": "C/WHDLoad",
+    "a4f425b2c7e29600a970abd90f70a4dd4804c01c": "C/WHDLoadCD32",
+    "2fcb5934019133ed7a2069e333cdbc349ecaa7ee": "C/DIC",
+}

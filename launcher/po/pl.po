@@ -7,9 +7,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae-launcher\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2012-08-21 11:38+0200\n"
-"PO-Revision-Date: 2012-05-03 14:15+0100\n"
-"Last-Translator: Frode Solheim <frode@fsolheim.net>\n"
+"POT-Creation-Date: 2012-10-20 15:37+0200\n"
+"PO-Revision-Date: 2012-10-20 19:46+0100\n"
+"Last-Translator: grimi <grimi at poczta dot fm>\n"
 "Language-Team: Polish\n"
 "Language: pl\n"
 "MIME-Version: 1.0\n"
@@ -19,289 +19,415 @@ msgstr ""
 "|| n%100>=20) ? 1 : 2);\n"
 
 msgid "Abort"
-msgstr ""
+msgstr "Przerwij"
 
 msgid "Accurate"
-msgstr ""
+msgstr "Dokładnie"
 
 msgid "Add Directory to Search Path"
-msgstr ""
+msgstr "Dodaj katalog do ścieżki wyszukiwania"
 
 msgid "Add Files to List"
-msgstr ""
+msgstr "Dodaj pliki do listy"
 
 msgid "Add Multiple CD-ROMs at Once"
-msgstr ""
+msgstr "Dodaj kilka obrazów CD-ROM"
 
 msgid "Add Multiple Floppies at Once"
-msgstr ""
+msgstr "Dodaj kilka obrazów dyskietek"
+
+msgid "Amiga Forever import task started"
+msgstr "Import z Amiga Forever rozpoczęty"
 
 msgid "Amiga Model"
-msgstr ""
+msgstr "Model Amigi"
+
+msgid "Available Kickstart Versions"
+msgstr "Dostępne wersje kickstartu"
 
 msgid "Browse"
-msgstr ""
+msgstr "Przeglądaj"
 
 msgid "Browse for File"
-msgstr ""
+msgstr "Wybierz plik"
 
 msgid "Browse for Folder"
-msgstr ""
+msgstr "Wybierz katalog"
+
+msgid "Built-in TCP/IP Stack"
+msgstr "Wbudowany stos TCP/IP"
+
+msgid "Built-in TCP/IP Stack (bsdsocket.library)"
+msgstr "Wbudowany stos TCP/IP (bsdsocket.library)"
 
 msgid "CD-ROM Drive"
-msgstr ""
+msgstr "Napęd CD-ROM"
 
 msgid "CD-ROM Drives"
-msgstr ""
+msgstr "Napędy CD-ROM"
+
+msgid "CD-ROMs"
+msgstr "CD-ROMy"
 
 msgid "CD32 Pad"
-msgstr ""
+msgstr "CD32 Pad"
 
 msgid "Cancel"
-msgstr ""
+msgstr "Anuluj"
+
+msgid "Chip RAM"
+msgstr "Chip RAM"
 
 msgid "Choose CD-ROM Image"
-msgstr ""
+msgstr "Wybierz obraz CD-ROM"
 
 msgid "Choose Extended ROM"
-msgstr ""
+msgstr "Wybierz rozszerzony ROM"
 
 msgid "Choose Floppy Image"
-msgstr ""
+msgstr "Wybierz obraz dyskietki"
 
 msgid "Choose Hard Drive"
-msgstr ""
+msgstr "Wybierz dysk twardy"
 
 msgid "Choose Kickstart ROM"
-msgstr ""
+msgstr "Wybierz ROM (kickstart)"
 
 msgid "Cleaning up..."
-msgstr ""
+msgstr "Sprzątam..."
 
 msgid "Clear List"
-msgstr ""
+msgstr "Wyczyść listę"
 
 msgid "Click 'Scan' button if you want to re-scan"
-msgstr ""
+msgstr "Kliknij przycisk 'Skanuj', aby ponownie przeskanować"
 
 msgid "Click 'Scan' button to start scan"
-msgstr ""
+msgstr "Kliknij przycisk 'Skanuj', aby przeskanować"
+
+msgid "Click here to download"
+msgstr "Kliknij tutaj aby pobrać"
 
 msgid "Close"
-msgstr ""
+msgstr "Zamknij"
 
 msgid "Committing data..."
-msgstr ""
+msgstr "Przesyłam dane..."
+
+msgid "Config"
+msgstr "Konfiguracja"
 
 msgid "Configuration"
-msgstr ""
+msgstr "Konfiguracja"
+
+msgid "Configuration Browser"
+msgstr "Okno konfiguracji"
+
+msgid "Configurations"
+msgstr "Konfiguracje"
 
 msgid "Configure Joystick Buttons"
+msgstr "Konfigurowanie joysticka"
+
+msgid ""
+"Copy {0}\n"
+"to {1}"
 msgstr ""
+"Kopiuj {0}\n"
+"do {1}"
 
 msgid "Cursor Keys and Right Ctrl/Alt"
-msgstr ""
+msgstr "Klawisze kursora i prawy Ctrl/Alt"
 
 msgid "Custom"
-msgstr ""
+msgstr "Własny"
 
 msgid "Custom Options"
-msgstr ""
+msgstr "Opcje własne"
 
 msgid "Custom Settings"
-msgstr ""
+msgstr "Własne ustawienia"
 
 msgid "Default"
-msgstr ""
+msgstr "Domyślny"
+
+msgid "Default ({0})"
+msgstr "Domyślnie ({0})"
 
 msgid "Downloading {0}..."
-msgstr ""
+msgstr "Pobieram {0}..."
+
+msgid "Edit Custom Options"
+msgstr "Edytuj opcje własne"
 
 msgid "Eject"
-msgstr ""
+msgstr "Wysuń"
 
-msgid "Extended ROM"
-msgstr ""
+msgid "Expansions"
+msgstr "Rozszerzenia"
+
+msgid "Extended ROM:"
+msgstr "Rozszerzony ROM:"
+
+msgid "FS-UAE Launcher Settings"
+msgstr "Ustawienia FS-UAE Launcher"
+
+msgid "Fast RAM"
+msgstr "Fast RAM"
 
 msgid "Filters:"
-msgstr ""
+msgstr "Filtry:"
+
+msgid "Floppies"
+msgstr "Dyskietki"
 
 msgid "Floppy Drives"
-msgstr ""
+msgstr "Napędy dyskietek"
 
 msgid "Fullscreen"
-msgstr ""
+msgstr "Pełny ekran"
 
 msgid "Games and Configurations"
-msgstr ""
+msgstr "Gry i konfiguracje"
 
 msgid "Hard Drives"
-msgstr ""
+msgstr "Dyski twarde"
+
+msgid "Hardware"
+msgstr "Sprzęt"
+
+msgid "Hardware Options"
+msgstr "Opcje sprzętowe"
+
+msgid "If you own Amiga Forever, select the drive/folder and click \"{0}\""
+msgstr "Jeśli posiadasz Amiga Forever, wybierz dysk/folder i kliknij  \"{0}\""
+
+msgid "Import"
+msgstr "Importuj"
+
+msgid "Import From Amiga Forever CD/DVD"
+msgstr "Importuj z Amiga Forever CD/DVD"
+
+msgid "Import Kickstarts and ROMs"
+msgstr "Importuj pliki kickstart i ROM"
+
+msgid "Import task is done"
+msgstr "Importowanie zakończone"
+
+msgid "Input"
+msgstr "Wejście"
+
+msgid "Input Options"
+msgstr "Opcje wejścia"
 
 msgid "Internal"
-msgstr ""
+msgstr "Wbudowany"
 
 msgid "Joystick"
-msgstr ""
+msgstr "Joystick"
 
 msgid "Joystick Configuration"
-msgstr ""
+msgstr "Konfiguracja joysticka"
 
 msgid "Joystick Ports"
-msgstr ""
+msgstr "Porty joysticka"
 
 msgid "Joystick Settings"
-msgstr ""
+msgstr "Ustawienia joysticka"
 
 msgid "Kickstart ROM"
-msgstr ""
+msgstr "Kickstart ROM"
 
-msgid "Kickstart Versions"
-msgstr ""
+msgid "Kickstart Setup"
+msgstr "Ustawienia kickstartu"
+
+msgid "Kickstart import task started"
+msgstr "Importowanie kickstartu uruchomione"
 
 msgid "Launching FS-UAE"
-msgstr ""
+msgstr "Uruchamiam FS-UAE"
 
 msgid "Least Accurate"
-msgstr ""
+msgstr "Najmniej dokładnie"
 
 msgid "Less Accurate"
-msgstr ""
+msgstr "Mniej dokładnie"
+
+msgid "Main Configuration Options"
+msgstr "Główne opcje konfiguracyjne"
+
+msgid "Media Swap List"
+msgstr "Lista zmiany obrazów"
+
+msgid "Memory"
+msgstr "Pamięć"
 
 msgid "Mouse"
-msgstr ""
+msgstr "Myszka"
 
 msgid "Net Play"
-msgstr ""
+msgstr "Gra przez sieć"
 
 msgid "New Configuration"
-msgstr ""
+msgstr "Nowa konfiguracja"
+
+msgid "No Device"
+msgstr "Brak urządzenia"
 
 msgid "No Host Device"
-msgstr ""
+msgstr "Brak urządzenia hosta"
 
 msgid "No Joysticks"
-msgstr ""
+msgstr "Brak joysticków"
 
 msgid "No extended kickstart found for this model. Try 'scan' function."
 msgstr ""
+"Nie znaleziono rozszerzonego kickstartu dla tego modelu. Użyj funkcji "
+"'Skanuj'."
 
 msgid "No joysticks are currently connected"
-msgstr ""
+msgstr "Brak podłączonych joysticków"
 
 msgid "No kickstart found for this model. "
-msgstr ""
+msgstr "Nie znaleziono kickstartu dla tego modelu."
 
 msgid "No scan in progress"
-msgstr ""
+msgstr "Brak skanowania w toku"
 
 msgid "Nothing"
-msgstr ""
+msgstr "Nic"
 
 msgid "OK"
-msgstr ""
+msgstr "OK"
 
-msgid "Open Configuration"
-msgstr ""
+msgid "Open Scan Dialog"
+msgstr "Otwórz okno skanowania"
 
 msgid "Open Tool to Configure Button Mapping"
-msgstr ""
+msgstr "Otwórz narzędzie konfiguracji/mapowania przycisków"
 
 msgid "Parallel Port Joysticks"
-msgstr ""
+msgstr "Równoległy port joysticków"
+
+msgid "Picasso96 Support"
+msgstr "Wsparcie dla Picasso96"
+
+msgid "Picasso96 Support (uaegfx.card)"
+msgstr "Wsparcie dla Picasso96 (uaegfx.card)"
 
 msgid "Please wait..."
-msgstr ""
+msgstr "Proszę czekać..."
 
 msgid "Preferred Joystick"
-msgstr ""
+msgstr "Domyślny joystick"
 
 msgid "Preferred device for secondary joystick:"
-msgstr ""
+msgstr "Domyślne urządzenie drugiego joysticka"
 
 msgid "Preparing WHDLoad..."
-msgstr ""
+msgstr "Przygotowanie WHDLoad ..."
 
 msgid "Preparing floppy images..."
-msgstr ""
+msgstr "Przygotowanie obrazów dyskietek ..."
 
 msgid "Preparing hard drives..."
-msgstr ""
+msgstr "Przygotowywanie dysków twardych ..."
 
 msgid "Preparing..."
-msgstr ""
+msgstr "Przygotowywanie..."
 
 msgid "Purging old entries..."
-msgstr ""
+msgstr "Usuwanie starych wpisów"
 
 msgid "Remove Directory from Search Path"
-msgstr ""
+msgstr "Usuń katalog ze ścieżki wyszukiwania"
 
 msgid "Remove Selected Files"
-msgstr ""
+msgstr "Usuń wybrane pliki"
 
 msgid "Restoring changes..."
-msgstr ""
+msgstr "Przywracam zmiany..."
 
 msgid "Save Configuration"
-msgstr ""
+msgstr "Zapisz konfigurację"
 
 msgid "Saving changes..."
-msgstr ""
+msgstr "Zapisuję zmiany..."
 
 msgid "Scan"
-msgstr ""
+msgstr "Skanuj"
 
 msgid "Scan complete"
-msgstr ""
+msgstr "Skanowanie zakończone"
+
+msgid "Scan for Kickstarts, Files and Configurations"
+msgstr "Skanuj w poszukiwaniu plików, plików kickstart i konfiguracji"
 
 msgid "Scanning .fs-uae files..."
-msgstr ""
+msgstr "Skanuje pliki .fs-uae..."
 
 msgid "Scanning built-in entries..."
-msgstr ""
+msgstr "Skanowanie wbudowany wpisów..."
 
 msgid "Scanning configurations"
-msgstr ""
+msgstr "Skanowanie konfiguracji"
 
 msgid "Scanning configurations ({count} scanned)"
-msgstr ""
+msgstr "Skanowanie konfiguracji ({count} przeskanowanych)"
 
 msgid "Scanning database entries..."
-msgstr ""
+msgstr "Skanowanie wpisów bazy danych ..."
 
 msgid "Scanning files"
-msgstr ""
+msgstr "Skanowanie plików"
 
 msgid "Scanning files ({count} scanned)"
-msgstr ""
+msgstr "Skanowanie plików ({count} przeskanowanych)"
 
-msgid "Select Files..."
-msgstr ""
+msgid "Select Directory to Import From"
+msgstr "Wybierz katalog, z którego importować"
 
 msgid "Select Multiple CD-ROMs"
-msgstr ""
+msgstr "Wybierz kilka obrazów CD-ROM"
+
+msgid "Select Multiple Files..."
+msgstr "Zaznaczanie wielu plików..."
 
 msgid "Select Multiple Floppies"
-msgstr ""
+msgstr "Zaznacz kilka dyskietek"
 
-msgid "Show Only Favorites (On/Off)"
-msgstr ""
+msgid "Select a folder containing Amiga kickstart files and click \"{0}\""
+msgstr "Wybierz folder zawierający pliki kickstart i kliknij \"{0}\""
 
-msgid "Show Only Verified Configurations (On/Off)"
-msgstr ""
+msgid "Settings"
+msgstr "Ustawienia"
+
+msgid "Slow RAM"
+msgstr "Slow RAM"
 
 msgid "Start"
-msgstr ""
+msgstr "Start"
 
 msgid "Starting FS-UAE..."
-msgstr ""
+msgstr "Uruchamiam FS-UAE..."
 
 msgid "Starting scan"
-msgstr ""
+msgstr "Uruchamiam skanowanie"
 
-msgid "Swap List"
-msgstr ""
+msgid "Update ({version}) is available"
+msgstr "Dostępna aktualizacja ({version})"
 
 msgid "WHDLoad Arguments"
-msgstr ""
+msgstr "Argumenty WHDLoad"
+
+msgid "You should have kickstart files for each Amiga model you want to use:"
+msgstr "Potrzebny jest kickstart dla każdego modelu Amigi jaki chesz emulować:"
+
+msgid "Zorro III RAM"
+msgstr "RAM Zorro III"
+
+#~ msgid "Setup"
+#~ msgstr "Ustawienia"
+
+#~ msgid "Unnamed Configuration"
+#~ msgstr "Konfiguracja bez nazwy"

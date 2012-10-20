@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae-launcher\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2012-08-21 11:38+0200\n"
+"POT-Creation-Date: 2012-10-20 15:37+0200\n"
 "PO-Revision-Date: 2012-08-14 11:16+0200\n"
 "Last-Translator: Frode Solheim <fs-uae@fengestad.no>\n"
 "Language-Team: Russian <fs-uae@fengestad.no>\n"
@@ -36,7 +36,13 @@ msgstr ""
 msgid "Add Multiple Floppies at Once"
 msgstr ""
 
+msgid "Amiga Forever import task started"
+msgstr ""
+
 msgid "Amiga Model"
+msgstr ""
+
+msgid "Available Kickstart Versions"
 msgstr ""
 
 msgid "Browse"
@@ -48,16 +54,28 @@ msgstr ""
 msgid "Browse for Folder"
 msgstr ""
 
+msgid "Built-in TCP/IP Stack"
+msgstr ""
+
+msgid "Built-in TCP/IP Stack (bsdsocket.library)"
+msgstr ""
+
 msgid "CD-ROM Drive"
 msgstr ""
 
 msgid "CD-ROM Drives"
 msgstr ""
 
+msgid "CD-ROMs"
+msgstr ""
+
 msgid "CD32 Pad"
 msgstr ""
 
 msgid "Cancel"
+msgstr ""
+
+msgid "Chip RAM"
 msgstr ""
 
 msgid "Choose CD-ROM Image"
@@ -87,16 +105,33 @@ msgstr ""
 msgid "Click 'Scan' button to start scan"
 msgstr ""
 
+msgid "Click here to download"
+msgstr ""
+
 msgid "Close"
 msgstr ""
 
 msgid "Committing data..."
 msgstr ""
 
+msgid "Config"
+msgstr ""
+
 msgid "Configuration"
 msgstr ""
 
+msgid "Configuration Browser"
+msgstr ""
+
+msgid "Configurations"
+msgstr ""
+
 msgid "Configure Joystick Buttons"
+msgstr ""
+
+msgid ""
+"Copy {0}\n"
+"to {1}"
 msgstr ""
 
 msgid "Cursor Keys and Right Ctrl/Alt"
@@ -114,16 +149,34 @@ msgstr ""
 msgid "Default"
 msgstr ""
 
+msgid "Default ({0})"
+msgstr ""
+
 msgid "Downloading {0}..."
+msgstr ""
+
+msgid "Edit Custom Options"
 msgstr ""
 
 msgid "Eject"
 msgstr ""
 
-msgid "Extended ROM"
+msgid "Expansions"
+msgstr ""
+
+msgid "Extended ROM:"
+msgstr ""
+
+msgid "FS-UAE Launcher Settings"
+msgstr ""
+
+msgid "Fast RAM"
 msgstr ""
 
 msgid "Filters:"
+msgstr ""
+
+msgid "Floppies"
 msgstr ""
 
 msgid "Floppy Drives"
@@ -136,6 +189,33 @@ msgid "Games and Configurations"
 msgstr ""
 
 msgid "Hard Drives"
+msgstr ""
+
+msgid "Hardware"
+msgstr ""
+
+msgid "Hardware Options"
+msgstr ""
+
+msgid "If you own Amiga Forever, select the drive/folder and click \"{0}\""
+msgstr ""
+
+msgid "Import"
+msgstr ""
+
+msgid "Import From Amiga Forever CD/DVD"
+msgstr ""
+
+msgid "Import Kickstarts and ROMs"
+msgstr ""
+
+msgid "Import task is done"
+msgstr ""
+
+msgid "Input"
+msgstr ""
+
+msgid "Input Options"
 msgstr ""
 
 msgid "Internal"
@@ -156,7 +236,10 @@ msgstr ""
 msgid "Kickstart ROM"
 msgstr ""
 
-msgid "Kickstart Versions"
+msgid "Kickstart Setup"
+msgstr ""
+
+msgid "Kickstart import task started"
 msgstr ""
 
 msgid "Launching FS-UAE"
@@ -168,6 +251,15 @@ msgstr ""
 msgid "Less Accurate"
 msgstr ""
 
+msgid "Main Configuration Options"
+msgstr ""
+
+msgid "Media Swap List"
+msgstr ""
+
+msgid "Memory"
+msgstr ""
+
 msgid "Mouse"
 msgstr ""
 
@@ -175,6 +267,9 @@ msgid "Net Play"
 msgstr ""
 
 msgid "New Configuration"
+msgstr ""
+
+msgid "No Device"
 msgstr ""
 
 msgid "No Host Device"
@@ -201,13 +296,19 @@ msgstr ""
 msgid "OK"
 msgstr ""
 
-msgid "Open Configuration"
+msgid "Open Scan Dialog"
 msgstr ""
 
 msgid "Open Tool to Configure Button Mapping"
 msgstr ""
 
 msgid "Parallel Port Joysticks"
+msgstr ""
+
+msgid "Picasso96 Support"
+msgstr ""
+
+msgid "Picasso96 Support (uaegfx.card)"
 msgstr ""
 
 msgid "Please wait..."
@@ -255,6 +356,9 @@ msgstr ""
 msgid "Scan complete"
 msgstr ""
 
+msgid "Scan for Kickstarts, Files and Configurations"
+msgstr ""
+
 msgid "Scanning .fs-uae files..."
 msgstr ""
 
@@ -276,19 +380,25 @@ msgstr ""
 msgid "Scanning files ({count} scanned)"
 msgstr ""
 
-msgid "Select Files..."
+msgid "Select Directory to Import From"
 msgstr ""
 
 msgid "Select Multiple CD-ROMs"
 msgstr ""
 
+msgid "Select Multiple Files..."
+msgstr ""
+
 msgid "Select Multiple Floppies"
 msgstr ""
 
-msgid "Show Only Favorites (On/Off)"
+msgid "Select a folder containing Amiga kickstart files and click \"{0}\""
 msgstr ""
 
-msgid "Show Only Verified Configurations (On/Off)"
+msgid "Settings"
+msgstr ""
+
+msgid "Slow RAM"
 msgstr ""
 
 msgid "Start"
@@ -300,8 +410,14 @@ msgstr ""
 msgid "Starting scan"
 msgstr ""
 
-msgid "Swap List"
+msgid "Update ({version}) is available"
 msgstr ""
 
 msgid "WHDLoad Arguments"
+msgstr ""
+
+msgid "You should have kickstart files for each Amiga model you want to use:"
+msgstr ""
+
+msgid "Zorro III RAM"
 msgstr ""

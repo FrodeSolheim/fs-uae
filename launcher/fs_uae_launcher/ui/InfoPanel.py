@@ -59,15 +59,15 @@ class InfoPanel(base_class):
         font.set_bold(True)
         dc.set_font(font)
 
-        text = _("Update ({version}) is available".format(
-                version=self.update_version))
+        text = _("Update ({version}) is available").format(
+                version=self.update_version)
         tw, th = dc.measure_text(text)
         lines_height = th * 2
         y = self.padding_top + (available_height - lines_height) // 2
         #dc.draw_text(text, right_x - tw, y)
         dc.draw_text(text, x, y)
         y += th
-        
+
         font.set_bold(False)
         dc.set_font(font)
         text = _("Click here to download")

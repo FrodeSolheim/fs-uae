@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: fs-uae\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
 "POT-Creation-Date: 2012-07-27 17:47+0200\n"
-"PO-Revision-Date: 2012-05-01 23:57+0200\n"
-"Last-Translator: Frode Solheim <fs-uae@fengestad.no>\n"
+"PO-Revision-Date: 2012-10-20 21:24+0100\n"
+"Last-Translator: Frode Solheim <frode-code@fengestad.no>\n"
 "Language-Team: Norwegian Bokmal\n"
 "Language: nb\n"
 "MIME-Version: 1.0\n"
@@ -18,106 +18,106 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 msgid "Amiga Control"
-msgstr ""
+msgstr "Amiga-styring"
 
 #. / TRANSLATORS: In context "Zoom: Auto"
 msgid "Auto"
-msgstr ""
+msgstr "Auto"
 
 #. / TRANSLATORS: Empty or nothing
 #, c-format
 msgid "CD%d: Empty"
-msgstr "CD%d: Ingenting"
+msgstr "CD%d: Tom"
 
 msgid "CD32 Gamepad"
-msgstr ""
+msgstr "CD32-kontroll"
 
 #. / TRANSLATORS: Empty or nothing
 #, c-format
 msgid "DF%d: Empty"
-msgstr "DF%d: Ingenting"
+msgstr "DF%d: Tom"
 
 msgid "Disabled"
 msgstr "Deaktivert"
 
 msgid "Eject"
-msgstr ""
+msgstr "Løs ut"
 
 msgid "Empty"
-msgstr ""
+msgstr "Tom"
 
 msgid "Emulator Control"
-msgstr ""
+msgstr "Emulator-styring"
 
 #. / TRANSLATORS: In context "Zoom: Full Frame"
 msgid "Full Frame"
-msgstr ""
+msgstr "Fullformat"
 
 #. / TRANSLATORS: Hard reset is a computer reboot with an emulated power
 #. / cycle
 msgid "Hard Reset"
-msgstr ""
+msgstr "Kald omstart"
 
 msgid "Host Device"
-msgstr ""
+msgstr "Vertsenhet"
 
 msgid "Input Options"
-msgstr ""
+msgstr "Inngangsalternativer"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Insert Into CD%d"
-msgstr ""
+msgstr "Sett inn i CD%d"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Insert Into DF%d"
-msgstr ""
+msgstr "Sett inn i DF%d"
 
 msgid "Joystick"
-msgstr ""
+msgstr "Joystick"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Joystick Port %d"
-msgstr ""
+msgstr "Joystick-port %d"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Joystick Port %d Device"
-msgstr ""
+msgstr "Enhet i port %d"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Joystick Port %d Mode"
-msgstr ""
+msgstr "Modus for port %d"
 
 msgid "Joystick Port 0"
-msgstr ""
+msgstr "Joystick-port 0"
 
 msgid "Joystick Port 1"
-msgstr ""
+msgstr "Joystick-port 1"
 
 msgid "Joystick Port 2"
-msgstr ""
+msgstr "Joystick-port 2"
 
 msgid "Joystick Port 3"
-msgstr ""
+msgstr "Joystick-port 3"
 
 msgid "Joystick Ports"
-msgstr ""
+msgstr "Joystick-porter"
 
 msgid "Keyboard"
-msgstr ""
+msgstr "Tastatur"
 
 msgid "Load"
-msgstr ""
+msgstr "Last inn"
 
 msgid "More..."
-msgstr ""
+msgstr "Mer..."
 
 msgid "Mouse"
-msgstr ""
+msgstr "Mus"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long: If you struggle
 #. / to get in short enough, just translate "No Device" instead.
@@ -130,42 +130,43 @@ msgid "No Host Device"
 msgstr "Ingen vertsenhet"
 
 msgid "No configuration file was found"
-msgstr ""
+msgstr "Ingen konfigurasjonsfil funnet"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 msgid "Parallel Joystick Ports"
-msgstr ""
+msgstr "Parallellport-joysticker"
 
 msgid "Pause"
 msgstr "Pause"
 
 msgid "Removable Media"
-msgstr ""
+msgstr "Flyttbare medier"
 
 #. / TRANSLATORS: Reset Amiga as in reboot the computer
 msgid "Reset Amiga"
-msgstr "Amiga-omstart"
+msgstr "Omstart av Amiga"
 
 msgid "Resume"
 msgstr "Fortsett"
 
 msgid "Save"
-msgstr ""
+msgstr "Lagre"
 
 msgid "Save States"
-msgstr ""
+msgstr "Lagrede tilstander"
 
 #. / TRANSLATORS: Soft reset reboots the computer without a power cycle
 msgid "Soft Reset"
 msgstr "Myk omstart"
 
 msgid "Zoom is disabled in RTG mode"
-msgstr ""
+msgstr "Zoom er utilgjengelig i RTG-modus"
 
 #, c-format
 msgid "Zoom: %s"
-msgstr ""
+msgstr "Zoom: %s"
 
 #, c-format
 msgid "Zoom: %s + Border"
-msgstr ""
+msgstr "Zoom: %s + ramme"
+

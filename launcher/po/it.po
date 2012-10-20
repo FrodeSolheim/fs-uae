@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae-launcher\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2012-10-07 18:57+0200\n"
+"POT-Creation-Date: 2012-10-20 15:37+0200\n"
 "PO-Revision-Date: 2012-10-08 12:29+0100\n"
 "Last-Translator: Speedvicio <speedvicio@hotmail.com>\n"
 "Language-Team: Italian\n"
@@ -65,6 +65,9 @@ msgstr "Drive CD-ROM"
 msgid "CD-ROM Drives"
 msgstr "Supporti CD-ROM"
 
+msgid "CD-ROMs"
+msgstr "CD-ROMs"
+
 msgid "CD32 Pad"
 msgstr "Pad CD32"
 
@@ -101,14 +104,26 @@ msgstr "Clikka il bottone 'Scansiona' se vuoi ri-scansionare"
 msgid "Click 'Scan' button to start scan"
 msgstr "Clikka il bottone 'Scansiona' per iniziare la scansione"
 
+msgid "Click here to download"
+msgstr ""
+
 msgid "Close"
 msgstr "Chiudi"
 
 msgid "Committing data..."
 msgstr "Invia dati..."
 
+msgid "Config"
+msgstr ""
+
 msgid "Configuration"
 msgstr "Configurazione"
+
+msgid "Configuration Browser"
+msgstr ""
+
+msgid "Configurations"
+msgstr "Configurazioni"
 
 msgid "Configure Joystick Buttons"
 msgstr "Configura Tasti Joystick"
@@ -141,6 +156,9 @@ msgstr "Predefinito ({0})"
 msgid "Downloading {0}..."
 msgstr "Scaricando {0}..."
 
+msgid "Edit Custom Options"
+msgstr ""
+
 msgid "Eject"
 msgstr "Espelli"
 
@@ -150,11 +168,17 @@ msgstr "Espansioni"
 msgid "Extended ROM:"
 msgstr "ROM Estesa:"
 
+msgid "FS-UAE Launcher Settings"
+msgstr ""
+
 msgid "Fast RAM"
 msgstr "Fast RAM"
 
 msgid "Filters:"
 msgstr "Filtri:"
+
+msgid "Floppies"
+msgstr ""
 
 msgid "Floppy Drives"
 msgstr "Unità Floppy"
@@ -168,8 +192,15 @@ msgstr "Giochi e Configurazioni"
 msgid "Hard Drives"
 msgstr "Hard Drives"
 
+msgid "Hardware"
+msgstr "Hardware"
+
+msgid "Hardware Options"
+msgstr ""
+
 msgid "If you own Amiga Forever, select the drive/folder and click \"{0}\""
-msgstr "Se possiedi Amiga Forever, seleziona il suo drive/cartella e premi \"{0}\""
+msgstr ""
+"Se possiedi Amiga Forever, seleziona il suo drive/cartella e premi \"{0}\""
 
 msgid "Import"
 msgstr "Importa"
@@ -182,6 +213,12 @@ msgstr "Importa Kickstarts e ROMs"
 
 msgid "Import task is done"
 msgstr "Funzione di Importazione eseguita"
+
+msgid "Input"
+msgstr "Ingresso"
+
+msgid "Input Options"
+msgstr "Opzioni Input"
 
 msgid "Internal"
 msgstr "Interno"
@@ -201,6 +238,9 @@ msgstr "Settaggi Joystick"
 msgid "Kickstart ROM"
 msgstr "Kickstart ROM"
 
+msgid "Kickstart Setup"
+msgstr ""
+
 msgid "Kickstart import task started"
 msgstr "Funzione di importazione Kickstart avviata"
 
@@ -212,6 +252,12 @@ msgstr "Poco Preciso"
 
 msgid "Less Accurate"
 msgstr "Meno Preciso"
+
+msgid "Main Configuration Options"
+msgstr ""
+
+msgid "Media Swap List"
+msgstr ""
 
 msgid "Memory"
 msgstr "Memoria"
@@ -235,7 +281,9 @@ msgid "No Joysticks"
 msgstr "Nessun Joysticks"
 
 msgid "No extended kickstart found for this model. Try 'scan' function."
-msgstr "Nessun kickstart esteso trovato per questo modello. Prova la funzione 'scansione'."
+msgstr ""
+"Nessun kickstart esteso trovato per questo modello. Prova la funzione "
+"'scansione'."
 
 msgid "No joysticks are currently connected"
 msgstr "Attualmente nessun joysticks connesso"
@@ -251,6 +299,9 @@ msgstr "Nullo"
 
 msgid "OK"
 msgstr "OK"
+
+msgid "Open Scan Dialog"
+msgstr ""
 
 msgid "Open Tool to Configure Button Mapping"
 msgstr "Apri Strumento Configurazione Bottoni"
@@ -348,6 +399,9 @@ msgstr "Seleziona Floppies Multipli"
 msgid "Select a folder containing Amiga kickstart files and click \"{0}\""
 msgstr "Seleziona una cartella contenente un kickstart  Amiga  e premi \"{0}\""
 
+msgid "Settings"
+msgstr "Settaggi"
+
 msgid "Slow RAM"
 msgstr "Slow RAM"
 
@@ -360,8 +414,8 @@ msgstr "Avviando FS-UAE..."
 msgid "Starting scan"
 msgstr "Iniziando scansione"
 
-msgid "Swap List"
-msgstr "Scambia Lista"
+msgid "Update ({version}) is available"
+msgstr ""
 
 msgid "WHDLoad Arguments"
 msgstr "Argomenti WHDLoad"
@@ -384,14 +438,8 @@ msgstr "Zorro III RAM"
 #~ msgid "Amiga Model and Hardware"
 #~ msgstr "Modello Amiga"
 
-#~ msgid "CD-ROMs"
-#~ msgstr "CD-ROMs"
-
 #~ msgid "Commiting data..."
 #~ msgstr "Invia dati..."
-
-#~ msgid "Configurations"
-#~ msgstr "Configurazioni"
 
 #~ msgid "Configure CD-ROMs"
 #~ msgstr "Configura CD-ROMs"
@@ -423,17 +471,8 @@ msgstr "Zorro III RAM"
 #~ msgid "Hard Drive {0}"
 #~ msgstr "Hard Drive {0}"
 
-#~ msgid "Hardware"
-#~ msgstr "Hardware"
-
 #~ msgid "Host Options"
 #~ msgstr "Opzioni Ospite"
-
-#~ msgid "Input"
-#~ msgstr "Ingresso"
-
-#~ msgid "Input Options"
-#~ msgstr "Opzioni Input"
 
 #~ msgid "Joystick (Emulated by Keyboard)"
 #~ msgstr "Joystick (Emulato da Tastiera)"
@@ -477,14 +516,14 @@ msgstr "Zorro III RAM"
 #~ msgid "Select Files..."
 #~ msgstr "Seleziona Files..."
 
-#~ msgid "Settings"
-#~ msgstr "Settaggi"
-
 #~ msgid "Show Only Favorites (On/Off)"
 #~ msgstr "Visualizza Solo i Favoriti (On/Off)"
 
 #~ msgid "Show Only Verified Configurations (On/Off)"
 #~ msgstr "Visualizza Solo le Configurazioni Verificate (On/Off)"
+
+#~ msgid "Swap List"
+#~ msgstr "Scambia Lista"
 
 #~ msgid "Window"
 #~ msgstr "Finestra"

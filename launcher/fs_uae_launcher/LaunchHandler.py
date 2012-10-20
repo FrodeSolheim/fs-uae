@@ -293,7 +293,7 @@ class LaunchHandler:
         self.create_whdload_prefs_file(os.path.join(s_dir, "WHDLoad.prefs"))
 
         whdload_files = whdload_17_1_files
-        for key, value in whdload_files.iteritems(): 
+        for key, value in whdload_files.iteritems():
             self.install_whdload_file(key, dest_dir, value)
 
         startup_sequence = os.path.join(s_dir, "startup-sequence")

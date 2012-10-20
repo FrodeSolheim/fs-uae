@@ -1,3 +1,9 @@
+Version 2.0.0beta34:
+* Updated translations: pl [grimi], nb.
+* (Launcher) Correctly update version number / series in all distributions.
+* (Launcher) Added translations: pl [grimi], nb.
+* (Launcher) Updated translations: fr [Foul], de [nexusle], sr [Milanchez].
+
 Version 2.0.0beta33:
 
 * (Launcher) When using the "select multiple files" function to select
@@ -492,7 +498,7 @@ Version 1.3.2
 * Bundled additional shaders: hq2x, scale2x (best with line_doubling=0
   and/or low_resolution=1, depending on actual game resolution).
 * New options boolean options "low_resolution", and "line_doubling"
-  to force low-res low-res pixels and disable line doubling) (F11 zoom modes
+  to force low-res pixels and disable line doubling) (F11 zoom modes
   and aspect correction does not work properly in combination with these yet).
 
 Version 1.3.1

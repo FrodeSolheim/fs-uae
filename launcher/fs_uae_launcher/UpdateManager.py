@@ -36,7 +36,7 @@ class UpdateManager:
             platform = "other"
         url = "http://fengestad.no/fs-uae/{0}/latest-{1}".format(series,
                 platform)
-        f = urllib2.urlopen(url) 
+        f = urllib2.urlopen(url)
         version_str = f.read().strip().decode("UTF-8")
         result = fs.compare_versions(version_str, Version.VERSION)
         print("update check result: ", result)

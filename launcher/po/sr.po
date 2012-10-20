@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae-launcher\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2012-08-21 11:38+0200\n"
-"PO-Revision-Date: 2012-07-22 18:11+0100\n"
+"POT-Creation-Date: 2012-10-20 23:21+0200\n"
+"PO-Revision-Date: 2012-10-20 21:52+0100\n"
 "Last-Translator: \n"
 "Language-Team: Serbian\n"
 "Language: sr\n"
@@ -19,7 +19,7 @@ msgstr ""
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
 msgid "Abort"
-msgstr ""
+msgstr "Prekid"
 
 msgid "Accurate"
 msgstr "Precizno"
@@ -31,28 +31,43 @@ msgid "Add Files to List"
 msgstr "Dodati fajlove u listu"
 
 msgid "Add Multiple CD-ROMs at Once"
-msgstr ""
+msgstr "Dodati više CD-ROM-ova odjednom"
 
 msgid "Add Multiple Floppies at Once"
 msgstr "Dodati više disketa odjednom"
 
+msgid "Amiga Forever import task started"
+msgstr "Započet je uvoz iz Amiga Forever"
+
 msgid "Amiga Model"
 msgstr "Amiga Model"
+
+msgid "Available Kickstart Versions"
+msgstr "Dostupne kickstart verzije"
 
 msgid "Browse"
 msgstr "Pretražiti"
 
 msgid "Browse for File"
-msgstr "Pretraga za fajlom"
+msgstr "Pronaći fajl"
 
 msgid "Browse for Folder"
-msgstr "Pretraga za folderom"
+msgstr "Pronaći folder"
+
+msgid "Built-in TCP/IP Stack"
+msgstr "Ugrađen TCP/IP stek"
+
+msgid "Built-in TCP/IP Stack (bsdsocket.library)"
+msgstr "UgrađenTCP/IP stek (bsdsocket.library)"
 
 msgid "CD-ROM Drive"
 msgstr "CD-ROM uređaj"
 
 msgid "CD-ROM Drives"
-msgstr ""
+msgstr "CD-ROM uređaji"
+
+msgid "CD-ROMs"
+msgstr "CD-ROM uređaji"
 
 msgid "CD32 Pad"
 msgstr "CD32 "
@@ -60,32 +75,38 @@ msgstr "CD32 "
 msgid "Cancel"
 msgstr "Otkazati"
 
+msgid "Chip RAM"
+msgstr "Chip RAM"
+
 msgid "Choose CD-ROM Image"
 msgstr "Odabrati CD-ROM sliku"
 
 msgid "Choose Extended ROM"
-msgstr ""
+msgstr "Odabrati prošireni ROM"
 
 msgid "Choose Floppy Image"
 msgstr "Izabrati disketnu sliku"
 
 msgid "Choose Hard Drive"
-msgstr "Odabrati hard disk uredjaj"
+msgstr "Odabrati hard disk uređaj"
 
 msgid "Choose Kickstart ROM"
 msgstr "Izabrati Kickstart ROM"
 
 msgid "Cleaning up..."
-msgstr ""
+msgstr "Čišćenje..."
 
 msgid "Clear List"
 msgstr "Isprazniti listu"
 
 msgid "Click 'Scan' button if you want to re-scan"
-msgstr "Kliknite na 'Skeniranje' dugme ako želite da ponovo skenira"
+msgstr "Kliknite na dugme 'Skeniranje' ako želite da ponovo skenira"
 
 msgid "Click 'Scan' button to start scan"
-msgstr "Kliknite na 'Skeniranje' dugme da biste započeli skeniranje"
+msgstr "Kliknite na dugme 'Skeniranje' da biste započeli skeniranje"
+
+msgid "Click here to download"
+msgstr ""
 
 msgid "Close"
 msgstr "Zatvoriti"
@@ -93,11 +114,27 @@ msgstr "Zatvoriti"
 msgid "Committing data..."
 msgstr "Izvršavanje podataka"
 
+msgid "Config"
+msgstr "Konfiguracija"
+
 msgid "Configuration"
 msgstr "Konfiguracija"
 
+msgid "Configuration Browser"
+msgstr "Pretraživač konfiguracije"
+
+msgid "Configurations"
+msgstr "Konfiguracije"
+
 msgid "Configure Joystick Buttons"
 msgstr "Konfigurisati dugmeta džojstika"
+
+msgid ""
+"Copy {0}\n"
+"to {1}"
+msgstr ""
+"Kopiranje {0}\n"
+"u {1}"
 
 msgid "Cursor Keys and Right Ctrl/Alt"
 msgstr "Kursorski tasteri i desni Ctrl/Alt"
@@ -114,17 +151,35 @@ msgstr "Prilagođena podešavanja"
 msgid "Default"
 msgstr "Podrazumevano"
 
+msgid "Default ({0})"
+msgstr "Podrazumevano ({0})"
+
 msgid "Downloading {0}..."
+msgstr "Preuzimanje {0}..."
+
+msgid "Edit Custom Options"
 msgstr ""
 
 msgid "Eject"
 msgstr "Izbaciti"
 
-msgid "Extended ROM"
+msgid "Expansions"
+msgstr "Proširenja"
+
+msgid "Extended ROM:"
+msgstr "Prošireni ROM:"
+
+msgid "FS-UAE Launcher Settings"
 msgstr ""
+
+msgid "Fast RAM"
+msgstr "Fast RAM"
 
 msgid "Filters:"
 msgstr "Filteri:"
+
+msgid "Floppies"
+msgstr "Diskete"
 
 msgid "Floppy Drives"
 msgstr "Disketni uređaji"
@@ -137,6 +192,33 @@ msgstr "Igre i konfiguracije"
 
 msgid "Hard Drives"
 msgstr "Hard disk uređaji"
+
+msgid "Hardware"
+msgstr "Hardver"
+
+msgid "Hardware Options"
+msgstr "Opcije hardvera"
+
+msgid "If you own Amiga Forever, select the drive/folder and click \"{0}\""
+msgstr "Ako posedujete Amiga Forever, izaberite disk/folder i kliknite \"{0}\""
+
+msgid "Import"
+msgstr "Uvoz podataka"
+
+msgid "Import From Amiga Forever CD/DVD"
+msgstr "Uvoz sa Amiga Forever CD/DVD"
+
+msgid "Import Kickstarts and ROMs"
+msgstr "Uvoz kickstart-ova i ROM-ova"
+
+msgid "Import task is done"
+msgstr "Zadatak uvoženja je završen"
+
+msgid "Input"
+msgstr "Ulaz"
+
+msgid "Input Options"
+msgstr "Opcije ulaza"
 
 msgid "Internal"
 msgstr "Interno"
@@ -154,19 +236,31 @@ msgid "Joystick Settings"
 msgstr "Postavke džojstika"
 
 msgid "Kickstart ROM"
+msgstr "Kickstart ROM"
+
+msgid "Kickstart Setup"
 msgstr ""
 
-msgid "Kickstart Versions"
-msgstr "Verzije kickstarta"
+msgid "Kickstart import task started"
+msgstr "Uvoženje kickstarta je započeto"
 
 msgid "Launching FS-UAE"
-msgstr ""
+msgstr "Pokretanje FS-UAE"
 
 msgid "Least Accurate"
 msgstr "Najmanje precizno"
 
 msgid "Less Accurate"
 msgstr "Manje precizno"
+
+msgid "Main Configuration Options"
+msgstr "Glavne opcije konfiguracije"
+
+msgid "Media Swap List"
+msgstr "Lista izmena medija"
+
+msgid "Memory"
+msgstr "Memorija"
 
 msgid "Mouse"
 msgstr "Miš"
@@ -177,17 +271,22 @@ msgstr "Igra preko mreže"
 msgid "New Configuration"
 msgstr "Nova konfiguracija"
 
+msgid "No Device"
+msgstr "Nema uređaja"
+
 msgid "No Host Device"
 msgstr "Nema host uređaja"
 
 msgid "No Joysticks"
-msgstr ""
+msgstr "Nema džojstika"
 
 msgid "No extended kickstart found for this model. Try 'scan' function."
 msgstr ""
+"Nije pronađen prošireni kickstart za ovaj model. Probajte 'Skeniranje' "
+"funkciju."
 
 msgid "No joysticks are currently connected"
-msgstr ""
+msgstr "Trenutno nema spojenog džojstika"
 
 msgid "No kickstart found for this model. "
 msgstr "Nije pronađen kickstart za ovaj model."
@@ -201,14 +300,20 @@ msgstr "Ništa"
 msgid "OK"
 msgstr "OK"
 
-msgid "Open Configuration"
-msgstr "Otvoriti konfiguraciju"
+msgid "Open Scan Dialog"
+msgstr "Otvoriti dijalog za skeniranje"
 
 msgid "Open Tool to Configure Button Mapping"
 msgstr "Otvoriti alat da bi ste konfigurisali mapiranje tastera"
 
 msgid "Parallel Port Joysticks"
 msgstr "Paralelni džojstik portovi"
+
+msgid "Picasso96 Support"
+msgstr "Picasso96 podrška"
+
+msgid "Picasso96 Support (uaegfx.card)"
+msgstr "Picasso96 podrška (uaegfx.card)"
 
 msgid "Please wait..."
 msgstr "Molimo sačekajte..."
@@ -220,34 +325,34 @@ msgid "Preferred device for secondary joystick:"
 msgstr "Željeni uređaj za drugi džojstik:"
 
 msgid "Preparing WHDLoad..."
-msgstr ""
+msgstr "Priprema WHDLoad..."
 
 msgid "Preparing floppy images..."
-msgstr ""
+msgstr "Priprema slike diskete..."
 
 msgid "Preparing hard drives..."
-msgstr ""
+msgstr "Priprema hard diskova..."
 
 msgid "Preparing..."
-msgstr ""
+msgstr "Priprema..."
 
 msgid "Purging old entries..."
-msgstr "Čišćenje starih fajlova"
+msgstr "Čišćenje starih zapisa..."
 
 msgid "Remove Directory from Search Path"
 msgstr "Ukloniti direktorijum iz putanje pretrage"
 
 msgid "Remove Selected Files"
-msgstr "Ukloniti odabrane datoteke"
+msgstr "Ukloniti izabrane fajlove"
 
 msgid "Restoring changes..."
-msgstr ""
+msgstr "Vraćanje izmena..."
 
 msgid "Save Configuration"
 msgstr "Snimiti konfiguraciju"
 
 msgid "Saving changes..."
-msgstr ""
+msgstr "Snimanje izmena..."
 
 msgid "Scan"
 msgstr "Skeniranje"
@@ -255,11 +360,14 @@ msgstr "Skeniranje"
 msgid "Scan complete"
 msgstr "Skeniranje završeno"
 
+msgid "Scan for Kickstarts, Files and Configurations"
+msgstr "Skeniranje kickstart-ova, datoteka i konfiguracija"
+
 msgid "Scanning .fs-uae files..."
-msgstr ""
+msgstr "Skeniranje .fs-uae fajlova..."
 
 msgid "Scanning built-in entries..."
-msgstr ""
+msgstr "Skeniranje ugrađenih unosa..."
 
 msgid "Scanning configurations"
 msgstr "Skeniranje konfiguracija"
@@ -268,7 +376,7 @@ msgid "Scanning configurations ({count} scanned)"
 msgstr "Skeniranje konfiguracija ({count} skenirano)"
 
 msgid "Scanning database entries..."
-msgstr ""
+msgstr "Skeniranje unosa baze..."
 
 msgid "Scanning files"
 msgstr "Skeniranje fajlova"
@@ -276,35 +384,49 @@ msgstr "Skeniranje fajlova"
 msgid "Scanning files ({count} scanned)"
 msgstr "Skeniranje fajlova ({count} skenirano)"
 
-msgid "Select Files..."
-msgstr "Izabrati fajlove..."
+msgid "Select Directory to Import From"
+msgstr "Izabrati direktorijum iz koga se uvozi"
 
 msgid "Select Multiple CD-ROMs"
 msgstr "Izabrati više CD-ova"
 
+msgid "Select Multiple Files..."
+msgstr "Izabrati više fajlova..."
+
 msgid "Select Multiple Floppies"
 msgstr "Izabrati više disketa"
 
-msgid "Show Only Favorites (On/Off)"
-msgstr ""
+msgid "Select a folder containing Amiga kickstart files and click \"{0}\""
+msgstr "Izabrati folder koji sadrži Amiga kickstart fajlove i kliknuti \"{0}\""
 
-msgid "Show Only Verified Configurations (On/Off)"
-msgstr ""
+msgid "Settings"
+msgstr "Podešavanja"
+
+msgid "Slow RAM"
+msgstr "Slow RAM"
 
 msgid "Start"
-msgstr "Početak"
+msgstr "Start"
 
 msgid "Starting FS-UAE..."
-msgstr ""
+msgstr "FS-UAE se startuje..."
 
 msgid "Starting scan"
 msgstr "Skeniranje započeto"
 
-msgid "Swap List"
-msgstr ""
+msgid "Update ({version}) is available"
+msgstr "Ažuriranje ({version}) je dostupna"
 
 msgid "WHDLoad Arguments"
 msgstr "WHDLoad argumenti"
+
+msgid "You should have kickstart files for each Amiga model you want to use:"
+msgstr ""
+"Trebalo bi da posedujete kickstart fajlove za svaki Amiga model koji "
+"koristite:"
+
+msgid "Zorro III RAM"
+msgstr "Zorro III RAM"
 
 #~ msgid "Add Multiple CD Images at Once"
 #~ msgstr "Dodati više CD slika odjednom"
@@ -318,14 +440,8 @@ msgstr "WHDLoad argumenti"
 #~ msgid "Amiga Model and Hardware"
 #~ msgstr "Amiga model i hardver"
 
-#~ msgid "CD-ROMs"
-#~ msgstr "CD-ROM uređaji"
-
 #~ msgid "Commiting data..."
 #~ msgstr "Izvršavanje podataka"
-
-#~ msgid "Configurations"
-#~ msgstr "Konfiguracije"
 
 #~ msgid "Configure CD-ROMs"
 #~ msgstr "Konfigurisanje CD-ROM-ova"
@@ -354,20 +470,14 @@ msgstr "WHDLoad argumenti"
 #~ msgid "Hard Drive {0}"
 #~ msgstr "Hard disk {0}"
 
-#~ msgid "Hardware"
-#~ msgstr "Hardver"
-
 #~ msgid "Host Options"
 #~ msgstr "Opcije host uređaja"
 
-#~ msgid "Input"
-#~ msgstr "Ulaz"
-
-#~ msgid "Input Options"
-#~ msgstr "Opcije ulaza"
-
 #~ msgid "Kickstart"
 #~ msgstr "Kickstart"
+
+#~ msgid "Kickstart Versions"
+#~ msgstr "Verzije kickstarta"
 
 #~ msgid "Media List"
 #~ msgstr "Lista medija"
@@ -377,6 +487,9 @@ msgstr "WHDLoad argumenti"
 
 #~ msgid "More..."
 #~ msgstr "Još..."
+
+#~ msgid "Open Configuration"
+#~ msgstr "Otvoriti konfiguraciju"
 
 #~ msgid "ROMs"
 #~ msgstr "ROM-ovi"
@@ -396,8 +509,8 @@ msgstr "WHDLoad argumenti"
 #~ msgid "Scan for:"
 #~ msgstr "Skeniranje:"
 
-#~ msgid "Settings"
-#~ msgstr "Podešavanja"
+#~ msgid "Select Files..."
+#~ msgstr "Izabrati fajlove..."
 
 #~ msgid "Window"
 #~ msgstr "U prozoru"

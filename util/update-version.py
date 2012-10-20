@@ -32,7 +32,7 @@ with open("SERIES", "rb") as f:
     series = f.read().strip()
 
 if len(sys.argv) > 1:
-    update_version(sys.argv[1])
+    update_version(sys.argv[1], update_series=("--update-series" in sys.argv))
 else:
     update_version("README")
     update_version("common.mk")

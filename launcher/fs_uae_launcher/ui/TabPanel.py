@@ -13,7 +13,9 @@ class TabPanel(fsui.Panel):
         fsui.Panel.__init__(self, parent, paintable=True)
         Skin.set_background_color(self)
         self.layout = fsui.HorizontalLayout()
-        self.layout.add_spacer(spacing)
+        #self.layout.add_spacer(spacing)
+        self.layout.padding_left = 10
+        self.layout.padding_right = 10
 
         #self.set_background_color((0xdd, 0xdd, 0xdd))
         self.set_min_height(Constants.TAB_HEIGHT)

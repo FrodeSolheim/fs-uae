@@ -21,7 +21,7 @@ class MemoryWidget(fsui.Group):
         label = fsui.Label(self, label + ":")
         self.layout.add(label, expand=True, margin_right=10)
 
-        choices = ["Default"]
+        choices = [_("Default")]
         for val in values:
             if val >= 1024:
                 choices.append("{0:0.1f} MB".format(val / 1024))

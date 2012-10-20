@@ -19,6 +19,7 @@ from ..netplay.Netplay import Netplay
 from ..Database import Database
 from ..GameHandler import GameHandler
 from ..I18N import _, ngettext
+from ..Version import Version
 from .ScreenshotsPanel import ScreenshotsPanel
 from .GameInfoPanel import GameInfoPanel
 from .TabPanel import TabPanel
@@ -45,7 +46,8 @@ class MainWindow(WindowWithTabs):
     instance = None
 
     def __init__(self, icon):
-        WindowWithTabs.__init__(self, None, "FS-UAE Launcher")
+        title = "FS-UAE Launcher {0}".format(Version.VERSION)
+        WindowWithTabs.__init__(self, None, title)
         if icon:
             self.set_icon_from_path(icon)
 

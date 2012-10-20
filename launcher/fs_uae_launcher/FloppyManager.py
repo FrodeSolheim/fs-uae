@@ -7,6 +7,7 @@ import os
 import fs_uae_launcher.fsui as fsui
 from .ui.LauncherFileDialog import LauncherFileDialog
 from .Amiga import Amiga
+from .Archive import Archive
 from .Config import Config
 from .I18N import _, ngettext
 from .Paths import Paths
@@ -42,8 +43,28 @@ class FloppyManager:
                 "floppy", multiple=True)
         if not dialog.show():
             return
-        paths = dialog.get_paths()
-        paths.sort()
+        original_paths = dialog.get_paths()
+        original_paths.sort()
+        paths = []
+        embedded_files = []
+        for path in original_paths:
+            if path.endswith(".zip"):
+                archive = Archive(path)
+                files = archive.list_files()
+                for file in files:
+                    name, ext = os.path.splitext(file)
+                    # FIXME: get list of floppy extensions from a central
+                    # place
+                    if ext in [".adf", ".ipf"]:
+                        embedded_files.append(file)
+        if len(embedded_files) > 0:
+            embedded_files.sort()
+            print("found embedded floppy images:")
+            print(embedded_files)
+            for file in embedded_files:
+                paths.append(file)
+        else:
+            paths.append(path)
 
         from .ChecksumTool import ChecksumTool
         checksum_tool = ChecksumTool(parent)

@@ -44,10 +44,6 @@ class InfoPanel(base_class):
 
     def on_paint(self):
         dc = self.create_dc()
-        font = dc.get_font()
-        font.set_bold(True)
-        dc.set_font(font)
-
         if not self.toolbar_mode:
             TabPanel.draw_background(self, dc)
         if self.mode == "UPDATE":
@@ -56,18 +52,24 @@ class InfoPanel(base_class):
     def draw_update_notification(self, dc):
         available_height = self.size[1]
         available_height -= self.padding_top + self.padding_bottom
-        x = 10
+        x = 20
         #right_x = self.size[0] - 10
-        
-        text = ("Update ({version}) is available".format(
+
+        font = dc.get_font()
+        font.set_bold(True)
+        dc.set_font(font)
+
+        text = _("Update ({version}) is available".format(
                 version=self.update_version))
         tw, th = dc.measure_text(text)
         lines_height = th * 2
         y = self.padding_top + (available_height - lines_height) // 2
-        
         #dc.draw_text(text, right_x - tw, y)
         dc.draw_text(text, x, y)
         y += th
+        
+        font.set_bold(False)
+        dc.set_font(font)
         text = _("Click here to download")
         tw, th = dc.measure_text(text)
         #dc.draw_text(text, right_x - tw, y)

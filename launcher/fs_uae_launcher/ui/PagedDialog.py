@@ -22,7 +22,7 @@ class PagedDialog(fsui.Dialog):
         #layout.padding_right = 20
 
         self.list_view = fsui.ListView(self)
-        self.list_view.set_min_width(160)
+        self.list_view.set_min_width(200)
         self.list_view.on_select_item = self.on_select_item
         layout.add(self.list_view, fill=True, expand=True)
         hor_layout.add(layout, fill=True)

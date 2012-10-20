@@ -164,7 +164,7 @@ class InputSelector(fsui.Group):
                 key = "joystick_port_{0}_mode".format(port)
                 config[key] = self.get_calculated_mode(port)
             device = DeviceManager.get_device_for_port(config, self.port)
-            default_description = _("Default ({0})".format(device.name))
+            default_description = _("Default ({0})").format(device.name)
 
             had_default = (self.device_choice.get_index() == 0)
             #print("had default", had_default, self.device_choice.get_index())

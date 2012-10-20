@@ -1,4 +1,13 @@
-Version 1.3.32:
+Version 2.0.0beta2:
+
+* (Launcher) When using the "select multiple files" function to select
+  a zip file with floppies, automatically selected the floppies within.
+* (Launcher) Increased the width of the configuration dialogs.
+* (Launcher) Include version number in titlebar.
+* (Launcher) Fixed some missing translations.
+* (Launcher) Updated translations: fr [Foul].
+
+Version 2.0.0beta1:
 
 * Don't quit on parse error when parsing viewport option.
 * (Launcher) Show notification about new versions in the same series

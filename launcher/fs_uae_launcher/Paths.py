@@ -35,7 +35,9 @@ class Paths:
 
     @classmethod
     def contract_path(cls, path, default_dir=None):
+        print("before", path)
         path = cls.get_real_case(path)
+        print("after", path)
         #dir, file = os.path.split(path)
         #norm_dir = dir + "/"
         if default_dir is not None:
@@ -83,10 +85,11 @@ class Paths:
             drive = drive + "/"
         last = ""
         while p != last:
-            name = os.path.basename(p).lower()
+            name = os.path.basename(p)#.lower()
             if not name:
                 break
-            parts.append(os.path.basename(p).lower())
+            #parts.append(os.path.basename(p).lower())
+            parts.append(name)
             last = p
             p = os.path.dirname(p)
         parts.reverse()
@@ -102,7 +105,7 @@ class Paths:
             if os.path.isdir(combined):
                 #print("checking case of", combined+ "/" + part)
                 for name in os.listdir(combined):
-                    if name.lower() == part:
+                    if name.lower() == part.lower():
                         #print("found case =", name)
                         combined += "/" + name
                         result[k] = name

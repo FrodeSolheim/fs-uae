@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: FS-UAE\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
 "POT-Creation-Date: 2012-07-27 17:47+0200\n"
-"PO-Revision-Date: 2012-05-06 12:59+0100\n"
+"PO-Revision-Date: 2012-10-20 10:30+0100\n"
 "Last-Translator: Foul <foulweb@gmail.com>\n"
 "Language-Team: Foul <fs-uae-fr@fengestad.no>\n"
 "Language: fr\n"
@@ -43,7 +43,7 @@ msgid "Disabled"
 msgstr "Désactivé"
 
 msgid "Eject"
-msgstr "Éjecter"
+msgstr "Ejecter"
 
 msgid "Empty"
 msgstr "Vide"
@@ -171,3 +171,4 @@ msgstr "Zoom: %s"
 #, c-format
 msgid "Zoom: %s + Border"
 msgstr "Zoom: %s + Bordure"
+

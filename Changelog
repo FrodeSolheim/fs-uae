@@ -1,11 +1,11 @@
-Version 2.0.0beta2:
+Version 2.0.0beta33:
 
 * (Launcher) When using the "select multiple files" function to select
   a zip file with floppies, automatically selected the floppies within.
 * (Launcher) Increased the width of the configuration dialogs.
 * (Launcher) Include version number in titlebar.
 * (Launcher) Fixed some missing translations.
-* (Launcher) Updated translations: fr [Foul].
+* (Launcher) Updated translations: fr [Foul], de [nexusle].
 
 Version 2.0.0beta1:
 

@@ -46,8 +46,8 @@ class FloppyManager:
         original_paths = dialog.get_paths()
         original_paths.sort()
         paths = []
-        embedded_files = []
         for path in original_paths:
+            embedded_files = []
             if path.endswith(".zip"):
                 archive = Archive(path)
                 files = archive.list_files()
@@ -57,14 +57,14 @@ class FloppyManager:
                     # place
                     if ext in [".adf", ".ipf"]:
                         embedded_files.append(file)
-        if len(embedded_files) > 0:
-            embedded_files.sort()
-            print("found embedded floppy images:")
-            print(embedded_files)
-            for file in embedded_files:
-                paths.append(file)
-        else:
-            paths.append(path)
+            if len(embedded_files) > 0:
+                embedded_files.sort()
+                print("found embedded floppy images:")
+                print(embedded_files)
+                for file in embedded_files:
+                    paths.append(file)
+            else:
+                paths.append(path)
 
         from .ChecksumTool import ChecksumTool
         checksum_tool = ChecksumTool(parent)

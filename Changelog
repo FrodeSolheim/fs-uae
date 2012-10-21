@@ -1,3 +1,11 @@
+Version 2.0.0beta35:
+* Make sure memory pointed to by p96mem_offset is contiguous with
+  memory pointed to by natmem_offset, fixes crash on Linux with RTG enabled.
+* (Launcher) Custom setting "kickstart_setup" can be set to 0 if you don't
+  have and/or don't want to install recognized kickstart ROMs.
+* (Launcher) Updated translations: pl [grimi], sr [Milanchez],
+  de [nexusle].
+
 Version 2.0.0beta34:
 * Updated translations: pl [grimi], nb.
 * (Launcher) Correctly update version number / series in all distributions.

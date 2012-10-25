@@ -144,12 +144,22 @@ class FSUAELauncher(fsui.Application):
         print("moving to " + repr(self.get_settings_file()))
         shutil.move(path, self.get_settings_file())
 
+    def get_dir_mtime_str(self, path):
+        try:
+            return str(int(os.path.getmtime(path)))
+        except Exception:
+            return "0"
+
     def config_startup_scan(self):
         print("config_startup_scan")
+        configs_dir = Settings.get_configurations_dir()
+        if Settings.get("configurations_dir_mtime") == \
+                self.get_dir_mtime_str(configs_dir):
+            print("... mtime not changed")
+            return
         database = Database.get_instance()
         print("... database.find_local_configurations")
         local_configs = database.find_local_configurations()
-        configs_dir = Settings.get_configurations_dir()
         print("... walk configs_dir")
         for dir_path, dir_names, file_names in os.walk(configs_dir):
             for file_name in file_names:
@@ -172,15 +182,21 @@ class FSUAELauncher(fsui.Application):
                 database.delete_configuration(id=id)
         print("... commit")
         database.commit()
+        Settings.set("configurations_dir_mtime",
+                self.get_dir_mtime_str(configs_dir))
 
     def kickstart_startup_scan(self):
         print("kickstart_startup_scan")
+        kickstarts_dir = Settings.get_kickstarts_dir()
+        if Settings.get("kickstarts_dir_mtime") == \
+                self.get_dir_mtime_str(kickstarts_dir):
+            print("... mtime not changed")
+            return
         database = Database.get_instance()
         print("... database.find_local_roms")
         local_roms = database.find_local_roms()
-        roms_dir = Settings.get_kickstarts_dir()
-        print("... walk roms_dir")
-        for dir_path, dir_names, file_names in os.walk(roms_dir):
+        print("... walk kickstarts_dir")
+        for dir_path, dir_names, file_names in os.walk(kickstarts_dir):
             for file_name in file_names:
                 if not file_name.endswith(".rom"):
                     continue
@@ -198,3 +214,5 @@ class FSUAELauncher(fsui.Application):
                 database.delete_file(id=id)
         print("... commit")
         database.commit()
+        Settings.set("kickstarts_dir_mtime",
+                self.get_dir_mtime_str(kickstarts_dir))

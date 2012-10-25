@@ -263,16 +263,23 @@ class LaunchHandler:
         whdload_dir = ""
         slave = whdload_args.split(" ", 1)[0]
         slave = slave.lower()
+        found_slave = False
         for dir_path, dir_names, file_names in os.walk(dest_dir):
             for name in file_names:
                 #print(name, slave)
                 if name.lower() == slave:
                     print("found", name)
+                    found_slave = True
                     whdload_dir = dir_path[len(dest_dir):]
                     whdload_dir = whdload_dir.replace("\\", "/")
                     if whdload_dir[0] == "/":
                         whdload_dir = whdload_dir[1:]
                     break
+            if found_slave:
+                break
+        if not found_slave:
+            raise Exception("Did not find the specified WHDLoad slave. "
+                    "Check the WHDLoad arguments")
         print("WHDLoad dir:", repr(whdload_dir))
         print("WHDLoad args:", whdload_args)
 
@@ -318,9 +325,6 @@ class LaunchHandler:
             f.write("cd {0}\n".format(whdload_dir))
             f.write("WHDLoad {0}\n".format(whdload_args))
             f.write("uae-configuration SPC_QUIT 1\n")
-
-        # FIXME:
-        self.config["fast_memory"] = "8192"
 
     def install_whdload_file(self, sha1, dest_dir, rel_path):
         abs_path = os.path.join(dest_dir, rel_path)

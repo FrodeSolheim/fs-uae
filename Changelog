@@ -1,3 +1,10 @@
+Version 2.0.0beta36:
+* (Launcher) Re-enabled the GUI control for WHDLoad arguments.
+* (Launcher) Added a help button for WHDLoad arguments control.
+* (Launcher) Scan kickstarts/configs on start only if dir mtime has changed.
+* (Launcher) fast_memory was always set to 8192 when running WHDLoad games.
+* (Launcher) Updated translations: it [Speedvicio].
+
 Version 2.0.0beta35:
 * Make sure memory pointed to by p96mem_offset is contiguous with
   memory pointed to by natmem_offset, fixes crash on Linux with RTG enabled.

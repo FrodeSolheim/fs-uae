@@ -165,9 +165,14 @@ scan int
 
     def find_local_configurations(self):
         self.init()
-        query = "SELECT id, path FROM configuration WHERE path like ?"
-        args = ["$BASE/Configurations/%"]
-        self.cursor.execute(query, args)
+        #query = "SELECT id, path FROM configuration WHERE path like ?"
+        #args = ["$BASE/Configurations/%"]
+        #self.cursor.execute(query, args)
+        a = "$BASE/Configurations/"
+        b = "$BASE/Configurations" + "\u0030" # one more than forward slash
+        query = "SELECT id, path FROM configuration WHERE " \
+                "path >= ? AND path < ?"
+        self.cursor.execute(query, (a, b))
         result = {}
         for row in self.cursor.fetchall():
             result[self.decode_path(row[1])] = row[0]
@@ -186,9 +191,12 @@ scan int
 
     def find_local_roms(self):
         self.init()
-        query = "SELECT id, path FROM file WHERE path like ?"
-        args = ["$BASE/Kickstarts/%"]
-        self.cursor.execute(query, args)
+        
+        a = "$BASE/Kickstarts/"
+        b = "$BASE/Kickstarts" + "\u0030" # one more than forward slash
+        query = "SELECT id, path FROM file WHERE path >= ? AND path < ?"
+        #args = ["$BASE/Kickstarts/%"]
+        self.cursor.execute(query, (a, b))
         result = {}
         for row in self.cursor.fetchall():
             result[self.decode_path(row[1])] = row[0]

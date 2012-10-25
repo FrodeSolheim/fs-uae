@@ -3,8 +3,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-import os
-import traceback
+import webbrowser
 import fs_uae_launcher.fsui as fsui
 from ...Config import Config
 from ...I18N import _, ngettext
@@ -22,7 +21,13 @@ class WHDLoadGroup(fsui.Group):
         self.layout.add_spacer(0)
 
         self.text_field = fsui.TextField(self, "")
-        self.layout.add(self.text_field, fill=True, margin=10)
+        hori_layout = fsui.HorizontalLayout()
+        self.layout.add(hori_layout, fill=True, margin=10)
+        hori_layout.add(self.text_field, expand=True)
+
+        self.help_button = IconButton(self, "help_16.png")
+        self.help_button.on_activate = self.on_help_button
+        hori_layout.add(self.help_button, margin_left=10)
 
         self.initialize_from_config()
         self.set_config_handlers()
@@ -40,11 +45,11 @@ class WHDLoadGroup(fsui.Group):
 
     def on_config(self, key, value):
         if key == "x_whdload_args":
-            #self.text_field.set_text(value)
-            #print(repr(self.text_field.get_text()))
-            #print(repr(value))
             if value != self.text_field.get_text():
                 self.text_field.set_text(value)
 
     def on_text_change(self):
         Config.set("x_whdload_args", self.text_field.get_text())
+
+    def on_help_button(self):
+        webbrowser.open("http://fengestad.no/fs-uae/whdload-support")

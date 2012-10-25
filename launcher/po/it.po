@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: fs-uae-launcher\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
 "POT-Creation-Date: 2012-10-20 15:37+0200\n"
-"PO-Revision-Date: 2012-10-08 12:29+0100\n"
+"PO-Revision-Date: 2012-10-22 10:42+0100\n"
 "Last-Translator: Speedvicio <speedvicio@hotmail.com>\n"
 "Language-Team: Italian\n"
 "Language: it\n"
@@ -105,7 +105,7 @@ msgid "Click 'Scan' button to start scan"
 msgstr "Clikka il bottone 'Scansiona' per iniziare la scansione"
 
 msgid "Click here to download"
-msgstr ""
+msgstr "Premi qui per scaricare"
 
 msgid "Close"
 msgstr "Chiudi"
@@ -114,13 +114,13 @@ msgid "Committing data..."
 msgstr "Invia dati..."
 
 msgid "Config"
-msgstr ""
+msgstr "Configura"
 
 msgid "Configuration"
 msgstr "Configurazione"
 
 msgid "Configuration Browser"
-msgstr ""
+msgstr "Configurazione Browser"
 
 msgid "Configurations"
 msgstr "Configurazioni"
@@ -157,7 +157,7 @@ msgid "Downloading {0}..."
 msgstr "Scaricando {0}..."
 
 msgid "Edit Custom Options"
-msgstr ""
+msgstr "Modifica Opzioni Personalizzate"
 
 msgid "Eject"
 msgstr "Espelli"
@@ -169,7 +169,7 @@ msgid "Extended ROM:"
 msgstr "ROM Estesa:"
 
 msgid "FS-UAE Launcher Settings"
-msgstr ""
+msgstr "Impostazioni Lanciatore FS-UAE"
 
 msgid "Fast RAM"
 msgstr "Fast RAM"
@@ -178,7 +178,7 @@ msgid "Filters:"
 msgstr "Filtri:"
 
 msgid "Floppies"
-msgstr ""
+msgstr "Floppies"
 
 msgid "Floppy Drives"
 msgstr "Unità Floppy"
@@ -196,11 +196,10 @@ msgid "Hardware"
 msgstr "Hardware"
 
 msgid "Hardware Options"
-msgstr ""
+msgstr "Opzioni Hardware"
 
 msgid "If you own Amiga Forever, select the drive/folder and click \"{0}\""
-msgstr ""
-"Se possiedi Amiga Forever, seleziona il suo drive/cartella e premi \"{0}\""
+msgstr "Se possiedi Amiga Forever, seleziona il suo drive/cartella e premi \"{0}\""
 
 msgid "Import"
 msgstr "Importa"
@@ -239,7 +238,7 @@ msgid "Kickstart ROM"
 msgstr "Kickstart ROM"
 
 msgid "Kickstart Setup"
-msgstr ""
+msgstr "Imposta Kickstart"
 
 msgid "Kickstart import task started"
 msgstr "Funzione di importazione Kickstart avviata"
@@ -254,10 +253,10 @@ msgid "Less Accurate"
 msgstr "Meno Preciso"
 
 msgid "Main Configuration Options"
-msgstr ""
+msgstr "Configurazione Opzioni Principali"
 
 msgid "Media Swap List"
-msgstr ""
+msgstr "Lista Dispositivi di Scambio"
 
 msgid "Memory"
 msgstr "Memoria"
@@ -281,9 +280,7 @@ msgid "No Joysticks"
 msgstr "Nessun Joysticks"
 
 msgid "No extended kickstart found for this model. Try 'scan' function."
-msgstr ""
-"Nessun kickstart esteso trovato per questo modello. Prova la funzione "
-"'scansione'."
+msgstr "Nessun kickstart esteso trovato per questo modello. Prova la funzione 'scansione'."
 
 msgid "No joysticks are currently connected"
 msgstr "Attualmente nessun joysticks connesso"
@@ -301,7 +298,7 @@ msgid "OK"
 msgstr "OK"
 
 msgid "Open Scan Dialog"
-msgstr ""
+msgstr "Apri Finestra Scansione"
 
 msgid "Open Tool to Configure Button Mapping"
 msgstr "Apri Strumento Configurazione Bottoni"
@@ -415,7 +412,7 @@ msgid "Starting scan"
 msgstr "Iniziando scansione"
 
 msgid "Update ({version}) is available"
-msgstr ""
+msgstr "Aggiornamento ({version}) disponibile"
 
 msgid "WHDLoad Arguments"
 msgstr "Argomenti WHDLoad"

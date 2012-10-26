@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: fs-uae\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
 "POT-Creation-Date: 2012-07-27 17:47+0200\n"
-"PO-Revision-Date: 2012-10-21 08:42+0100\n"
+"PO-Revision-Date: 2012-10-24 17:52+0100\n"
 "Last-Translator: grimi <grimi at poczta dot fm>\n"
 "Language-Team: Polish\n"
 "Language: pl\n"
@@ -23,7 +23,7 @@ msgstr "Sterowanie Amigą"
 
 #. / TRANSLATORS: In context "Zoom: Auto"
 msgid "Auto"
-msgstr "Automatycznie"
+msgstr "Automatyczny"
 
 #. / TRANSLATORS: Empty or nothing
 #, c-format
@@ -86,7 +86,7 @@ msgstr "Port joysticka %d"
 #. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Joystick Port %d Device"
-msgstr "Port joysticka %d - urządzenie"
+msgstr "Port joysticka %d - sprzęt"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
@@ -128,14 +128,14 @@ msgstr "Brak urządzenia Amigi"
 #. / TRANSLATORS: This is a menu entry and must not be too long: If you struggle
 #. / to get in short enough, just translate "No Device" instead.
 msgid "No Host Device"
-msgstr "Brak urządzenia głownego"
+msgstr "Brak urządzenia"
 
 msgid "No configuration file was found"
 msgstr "Brak pliku konfiguracyjnego"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 msgid "Parallel Joystick Ports"
-msgstr "Równoległe porty joysticków"
+msgstr "Porty równoległe joyów"
 
 msgid "Pause"
 msgstr "Pauza"
@@ -161,12 +161,12 @@ msgid "Soft Reset"
 msgstr "\"Miękki\" reset"
 
 msgid "Zoom is disabled in RTG mode"
-msgstr "Zbliżenie zablokowane w trybie RTG"
+msgstr "Zmiana rozmiaru wyłączona w trybie RTG"
 
 #, c-format
 msgid "Zoom: %s"
-msgstr "Zbliżenie: %s"
+msgstr "Rozmiar: %s"
 
 #, c-format
 msgid "Zoom: %s + Border"
-msgstr "Zbliżenie: %s + obramowanie"
+msgstr "Rozmiar: %s + obramowanie"

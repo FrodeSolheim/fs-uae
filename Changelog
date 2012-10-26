@@ -1,3 +1,7 @@
+Version 2.0.1:
+* Removed redundant lag display from net play hud.
+* Updated translations: pl [grimi].
+
 Version 2.0.0beta36:
 * (Launcher) Re-enabled the GUI control for WHDLoad arguments.
 * (Launcher) Added a help button for WHDLoad arguments control.

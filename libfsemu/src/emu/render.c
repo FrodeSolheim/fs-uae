@@ -1319,12 +1319,14 @@ void fs_emu_video_render_function() {
                         1.0, 1.0, 1.0, 1.0);
                 g_free(str);
             }
+            /*
             if (rendered_tag || player->lag) {
                 str = g_strdup_printf("%03d", player->lag);
                 fs_emu_font_render(menu_font, str, x + 200, y,
                         1.0, 1.0, 1.0, 1.0);
                 g_free(str);
             }
+            */
         }
     }
 #if 1

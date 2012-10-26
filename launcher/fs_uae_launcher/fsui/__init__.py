@@ -17,6 +17,7 @@ from .wx.button import Button
 from .wx.choice import Choice
 from .wx.CheckBox import CheckBox
 from .wx.Color import Color
+from .wx.control import Control
 from .wx.combobox import ComboBox
 from .wx.dialog import Dialog
 from .wx.DirDialog import DirDialog

@@ -7,9 +7,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae-launcher\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2012-08-21 11:38+0200\n"
-"PO-Revision-Date: 2012-09-23 21:41+0100\n"
-"Last-Translator: Frode Solheim <frode@fsolheim.net>\n"
+"POT-Creation-Date: 2012-10-20 15:37+0200\n"
+"PO-Revision-Date: 2012-10-20 21:45+0100\n"
+"Last-Translator: Frode Solheim <frode-code@fengestad.no>\n"
 "Language-Team: Norwegian Bokmal\n"
 "Language: nb\n"
 "MIME-Version: 1.0\n"
@@ -35,8 +35,14 @@ msgstr "Legg til flere CD-er på en gang"
 msgid "Add Multiple Floppies at Once"
 msgstr "Legg til flere diskettfiler på en gang"
 
+msgid "Amiga Forever import task started"
+msgstr "Importjobb for Amiga Forever er startet"
+
 msgid "Amiga Model"
 msgstr "Amiga-modell"
+
+msgid "Available Kickstart Versions"
+msgstr "Tilgjengelige kickstart-versjoner"
 
 msgid "Browse"
 msgstr "Velg"
@@ -47,17 +53,29 @@ msgstr "Bla etter filer"
 msgid "Browse for Folder"
 msgstr "Bla etter mapper"
 
+msgid "Built-in TCP/IP Stack"
+msgstr "Innebygd TCP/IP-stakk"
+
+msgid "Built-in TCP/IP Stack (bsdsocket.library)"
+msgstr "Innebygd TCP/IP-stakk (bsdsocket.library)"
+
 msgid "CD-ROM Drive"
 msgstr "CD-ROM-stasjon"
 
 msgid "CD-ROM Drives"
 msgstr "CD-ROM-stasjoner"
 
+msgid "CD-ROMs"
+msgstr "CD-er"
+
 msgid "CD32 Pad"
 msgstr "CD32-kontroll"
 
 msgid "Cancel"
 msgstr "Avbryt"
+
+msgid "Chip RAM"
+msgstr "Chip-RAM"
 
 msgid "Choose CD-ROM Image"
 msgstr "Velg CD-fil"
@@ -66,7 +84,7 @@ msgid "Choose Extended ROM"
 msgstr "Velg utvidet ROM"
 
 msgid "Choose Floppy Image"
-msgstr "Velg diskettfile"
+msgstr "Velg diskettfil"
 
 msgid "Choose Hard Drive"
 msgstr "Velg harddisk"
@@ -86,17 +104,36 @@ msgstr "Bruk 'søk'-knappen hvis du vil søke på nytt"
 msgid "Click 'Scan' button to start scan"
 msgstr "Bruk 'søk'-knappen for å starte søk"
 
+msgid "Click here to download"
+msgstr "Klikk her for å laste ned"
+
 msgid "Close"
 msgstr "Lukk"
 
 msgid "Committing data..."
 msgstr "Lagrer data..."
 
+msgid "Config"
+msgstr "Konfigurasjon"
+
 msgid "Configuration"
 msgstr "Konfigurasjon"
 
+msgid "Configuration Browser"
+msgstr "Konfigurasjonsvelger"
+
+msgid "Configurations"
+msgstr "Konfigurasjoner"
+
 msgid "Configure Joystick Buttons"
 msgstr "Konfigurer joystick-knapper"
+
+msgid ""
+"Copy {0}\n"
+"to {1}"
+msgstr ""
+"Kopier {0}\n"
+"til {1}"
 
 msgid "Cursor Keys and Right Ctrl/Alt"
 msgstr "Piltaster og høyre ctrl/alt"
@@ -113,17 +150,35 @@ msgstr "Egendefinerte innstillinger"
 msgid "Default"
 msgstr "Standard"
 
+msgid "Default ({0})"
+msgstr "Standard ({0})"
+
 msgid "Downloading {0}..."
 msgstr "Laster ned {0}..."
+
+msgid "Edit Custom Options"
+msgstr "Rediger egendefinerte valg"
 
 msgid "Eject"
 msgstr "Løs ut"
 
-msgid "Extended ROM"
-msgstr "Utvidet ROM"
+msgid "Expansions"
+msgstr "Utvidelser"
+
+msgid "Extended ROM:"
+msgstr "Utvidet ROM:"
+
+msgid "FS-UAE Launcher Settings"
+msgstr "Innstillinger for FS-UAE Launcher"
+
+msgid "Fast RAM"
+msgstr "Fast-RAM"
 
 msgid "Filters:"
 msgstr "Filtere:"
+
+msgid "Floppies"
+msgstr "Disketter"
 
 msgid "Floppy Drives"
 msgstr "Diskettstasjoner"
@@ -136,6 +191,33 @@ msgstr "Spill og konfigurasjoner"
 
 msgid "Hard Drives"
 msgstr "Harddisker"
+
+msgid "Hardware"
+msgstr "Maskinvare"
+
+msgid "Hardware Options"
+msgstr "Maskinvarevalg"
+
+msgid "If you own Amiga Forever, select the drive/folder and click \"{0}\""
+msgstr "Hvis du har Amiga Forever, velg stasjon/mappe og klikk \"{0}\""
+
+msgid "Import"
+msgstr "Importer"
+
+msgid "Import From Amiga Forever CD/DVD"
+msgstr "Importer fra Amiga Forever CD/DVD"
+
+msgid "Import Kickstarts and ROMs"
+msgstr "Importer kickstart- og ROM-filer"
+
+msgid "Import task is done"
+msgstr "Importjobb er fullført"
+
+msgid "Input"
+msgstr "Innganger"
+
+msgid "Input Options"
+msgstr "Inngangsalternativer"
 
 msgid "Internal"
 msgstr "Intern"
@@ -153,10 +235,13 @@ msgid "Joystick Settings"
 msgstr "Joystick-innstillinger"
 
 msgid "Kickstart ROM"
-msgstr "Kickstart ROM"
+msgstr "Kickstart-ROM"
 
-msgid "Kickstart Versions"
-msgstr "Kickstart-versjoner"
+msgid "Kickstart Setup"
+msgstr "Opsett av kickstart"
+
+msgid "Kickstart import task started"
+msgstr "Importjobb for kickstarter er startet"
 
 msgid "Launching FS-UAE"
 msgstr "Starter FS-UAE"
@@ -167,6 +252,15 @@ msgstr "Minst nøyaktig"
 msgid "Less Accurate"
 msgstr "Mindre nøyaktig"
 
+msgid "Main Configuration Options"
+msgstr "Hovedvalg"
+
+msgid "Media Swap List"
+msgstr "Bytteliste for medier"
+
+msgid "Memory"
+msgstr "Minne"
+
 msgid "Mouse"
 msgstr "Mus"
 
@@ -175,6 +269,9 @@ msgstr "Nettspilling"
 
 msgid "New Configuration"
 msgstr "Ny konfigurasjon"
+
+msgid "No Device"
+msgstr "Ingen enhet"
 
 msgid "No Host Device"
 msgstr "Ingen vertsenhet"
@@ -200,14 +297,20 @@ msgstr "Ingenting"
 msgid "OK"
 msgstr "OK"
 
-msgid "Open Configuration"
-msgstr "Åpne konfigurasjon"
+msgid "Open Scan Dialog"
+msgstr "Åpne søkedialog"
 
 msgid "Open Tool to Configure Button Mapping"
 msgstr "Start verktøy for å stille inn knapper"
 
 msgid "Parallel Port Joysticks"
 msgstr "Parallellport-joysticker"
+
+msgid "Picasso96 Support"
+msgstr "Støtte for Picasso96"
+
+msgid "Picasso96 Support (uaegfx.card)"
+msgstr "Støtte for Picasso96 (uaegfx.card)"
 
 msgid "Please wait..."
 msgstr "Vennligst vent..."
@@ -254,11 +357,14 @@ msgstr "Søk"
 msgid "Scan complete"
 msgstr "Søket er fullført"
 
+msgid "Scan for Kickstarts, Files and Configurations"
+msgstr "Søk etter kickstarter, filer og konfigurasjoner"
+
 msgid "Scanning .fs-uae files..."
-msgstr "Undersøker .fs-uae-filer"
+msgstr "Undersøker .fs-uae-filer..."
 
 msgid "Scanning built-in entries..."
-msgstr "Undersøker innebygde oppføringer"
+msgstr "Undersøker innebygde oppføringer..."
 
 msgid "Scanning configurations"
 msgstr "Søker etter konfigurasjoner"
@@ -267,7 +373,7 @@ msgid "Scanning configurations ({count} scanned)"
 msgstr "Undersøker databaseoppføringer ({count})"
 
 msgid "Scanning database entries..."
-msgstr "Undersøker databaseoppføringer"
+msgstr "Undersøker databaseoppføringer..."
 
 msgid "Scanning files"
 msgstr "Undersøker filer"
@@ -275,20 +381,26 @@ msgstr "Undersøker filer"
 msgid "Scanning files ({count} scanned)"
 msgstr "Søker etter filer ({count})"
 
-msgid "Select Files..."
-msgstr "Velg filer..."
+msgid "Select Directory to Import From"
+msgstr "Velg mappe å importere fra"
 
 msgid "Select Multiple CD-ROMs"
 msgstr "Velg flere CD-er"
 
+msgid "Select Multiple Files..."
+msgstr "Velg flere filer..."
+
 msgid "Select Multiple Floppies"
 msgstr "Velg flere disketter"
 
-msgid "Show Only Favorites (On/Off)"
-msgstr "Vis kun favoritter (på/av)"
+msgid "Select a folder containing Amiga kickstart files and click \"{0}\""
+msgstr "Velg en mappe som inneholder Amiga kickstart-filer og klikk \"{0}\""
 
-msgid "Show Only Verified Configurations (On/Off)"
-msgstr "Vis kun verifiserte konfigurasjoner (på/av)"
+msgid "Settings"
+msgstr "Innstillinger"
+
+msgid "Slow RAM"
+msgstr "Slow-RAM"
 
 msgid "Start"
 msgstr "Start"
@@ -299,17 +411,23 @@ msgstr "Starter FS-UAE..."
 msgid "Starting scan"
 msgstr "Starter søk"
 
-msgid "Swap List"
-msgstr "Bytteliste"
+msgid "Update ({version}) is available"
+msgstr "Oppdatering ({version}) er tilgjengelig"
 
 msgid "WHDLoad Arguments"
 msgstr "WHDLoad-argumenter"
 
+msgid "You should have kickstart files for each Amiga model you want to use:"
+msgstr "Du bør ha kickstart-filer for de Amiga-modellene du ønsker å bruke:"
+
+msgid "Zorro III RAM"
+msgstr "Zorro III-RAM"
+
 #~ msgid "Amiga Model and Hardware"
 #~ msgstr "Amiga-modell og maskinvare"
 
-#~ msgid "Configurations"
-#~ msgstr "Konfigurasjoner"
+#~ msgid "Extended ROM"
+#~ msgstr "Utvidet ROM"
 
 #~ msgid "Host Options"
 #~ msgstr "Vertsvalg"
@@ -320,14 +438,29 @@ msgstr "WHDLoad-argumenter"
 #~ msgid "Kickstart"
 #~ msgstr "Kickstart"
 
+#~ msgid "Kickstart Versions"
+#~ msgstr "Kickstart-versjoner"
+
 #~ msgid "Kickstarts"
 #~ msgstr "Kickstart-versjoner"
 
 #~ msgid "More..."
 #~ msgstr "Mer..."
 
-#~ msgid "Settings"
-#~ msgstr "Innstillinger"
+#~ msgid "Open Configuration"
+#~ msgstr "Åpne konfigurasjon"
+
+#~ msgid "Select Files..."
+#~ msgstr "Velg filer..."
+
+#~ msgid "Show Only Favorites (On/Off)"
+#~ msgstr "Vis kun favoritter (på/av)"
+
+#~ msgid "Show Only Verified Configurations (On/Off)"
+#~ msgstr "Vis kun verifiserte konfigurasjoner (på/av)"
+
+#~ msgid "Swap List"
+#~ msgstr "Bytteliste"
 
 #~ msgid "Window"
 #~ msgstr "Vindu"

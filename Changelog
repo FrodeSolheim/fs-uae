@@ -1,5 +1,49 @@
-Version 1.3.32:
+Version 2.0.1:
+* Removed redundant lag display from net play hud.
+* Updated translations: pl [grimi].
 
+Version 2.0.0beta36:
+* (Launcher) Re-enabled the GUI control for WHDLoad arguments.
+* (Launcher) Added a help button for WHDLoad arguments control.
+* (Launcher) Scan kickstarts/configs on start only if dir mtime has changed.
+* (Launcher) fast_memory was always set to 8192 when running WHDLoad games.
+* (Launcher) Updated translations: it [Speedvicio].
+
+Version 2.0.0beta35:
+* Make sure memory pointed to by p96mem_offset is contiguous with
+  memory pointed to by natmem_offset, fixes crash on Linux with RTG enabled.
+* (Launcher) Custom setting "kickstart_setup" can be set to 0 if you don't
+  have and/or don't want to install recognized kickstart ROMs.
+* (Launcher) Updated translations: pl [grimi], sr [Milanchez],
+  de [nexusle].
+
+Version 2.0.0beta34:
+* Updated translations: pl [grimi], nb.
+* (Launcher) Correctly update version number / series in all distributions.
+* (Launcher) Added translations: pl [grimi], nb.
+* (Launcher) Updated translations: fr [Foul], de [nexusle], sr [Milanchez].
+
+Version 2.0.0beta33:
+
+* (Launcher) When using the "select multiple files" function to select
+  a zip file with floppies, automatically selected the floppies within.
+* (Launcher) Increased the width of the configuration dialogs.
+* (Launcher) Include version number in titlebar.
+* (Launcher) Fixed some missing translations.
+* (Launcher) Updated translations: fr [Foul], de [nexusle].
+
+Version 2.0.0beta1:
+
+* Don't quit on parse error when parsing viewport option.
+* (Launcher) Show notification about new versions in the same series
+  (stable or devel) as the installed version.
+* (Launcher) Added information panel to toolbar, currently used to show
+  update notifications.
+* (Launcher) Fix path issue on Windows causing kickstarts to be scanned
+  on every startup.
+* (Launcher) Updated downloadable WHDLoad version to 17.1.
+* (Launcher) Added tooltips to main window tabs.
+* (Launcher) Simplified default scan search path to just FS-UAE dir.
 * (Launcher) Implicitly add CD-ROM drive if CD image list is non-empty.
 * (Launcher) Automatically add CDs in drives to image list if list is empty.
 * (Launcher) Fixed bug when saving configurations.
@@ -473,7 +517,7 @@ Version 1.3.2
 * Bundled additional shaders: hq2x, scale2x (best with line_doubling=0
   and/or low_resolution=1, depending on actual game resolution).
 * New options boolean options "low_resolution", and "line_doubling"
-  to force low-res low-res pixels and disable line doubling) (F11 zoom modes
+  to force low-res pixels and disable line doubling) (F11 zoom modes
   and aspect correction does not work properly in combination with these yet).
 
 Version 1.3.1

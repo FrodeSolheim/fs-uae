@@ -7,9 +7,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae-launcher\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2012-08-21 11:38+0200\n"
-"PO-Revision-Date: 2012-08-22 20:43+0100\n"
-"Last-Translator: Foul <foulweb@gmail.com>\n"
+"POT-Creation-Date: 2012-10-20 15:37+0200\n"
+"PO-Revision-Date: 2012-10-20 18:04+0100\n"
+"Last-Translator: Frode Solheim <frode-code@fengestad.no>\n"
 "Language-Team: Foul <fs-uae-fr@fengestad.no>\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -37,8 +37,14 @@ msgstr "Ajouter Plusieurs CD-ROMS  à la Fois"
 msgid "Add Multiple Floppies at Once"
 msgstr "Ajouter Plusieurs Disquettes à la fois"
 
+msgid "Amiga Forever import task started"
+msgstr "L'importation d'Amiga Forever à démarré"
+
 msgid "Amiga Model"
 msgstr "Modèle d'Amiga"
+
+msgid "Available Kickstart Versions"
+msgstr "Versions du Kickstart Disponibles"
 
 msgid "Browse"
 msgstr "Parcourir"
@@ -49,17 +55,29 @@ msgstr "Parcourir les Fichiers"
 msgid "Browse for Folder"
 msgstr "Parcourir les Dossiers"
 
+msgid "Built-in TCP/IP Stack"
+msgstr "Pile TCP/IP Intégrée"
+
+msgid "Built-in TCP/IP Stack (bsdsocket.library)"
+msgstr "Pile TCP/IP Intégrée (bsdsocket.library)"
+
 msgid "CD-ROM Drive"
 msgstr "Lecteur CD-ROM"
 
 msgid "CD-ROM Drives"
 msgstr "Lecteurs CD-ROM"
 
+msgid "CD-ROMs"
+msgstr "CD-ROMS"
+
 msgid "CD32 Pad"
 msgstr "Pad CD32"
 
 msgid "Cancel"
 msgstr "Annuler"
+
+msgid "Chip RAM"
+msgstr "Mémoire Chip"
 
 msgid "Choose CD-ROM Image"
 msgstr "Choisir Image CD-ROM"
@@ -88,17 +106,36 @@ msgstr "Cliquez sur le bouton 'Analyser' si vous voulez re-analyser"
 msgid "Click 'Scan' button to start scan"
 msgstr "Cliquez sur le bouton 'Analyser' pour commencer l'analyse"
 
+msgid "Click here to download"
+msgstr "Cliquer ici pour télécharger"
+
 msgid "Close"
 msgstr "Fermer"
 
 msgid "Committing data..."
 msgstr "Données en cours..."
 
+msgid "Config"
+msgstr "Configuration"
+
 msgid "Configuration"
 msgstr "Configuration"
 
+msgid "Configuration Browser"
+msgstr "Configuration du Navigateur"
+
+msgid "Configurations"
+msgstr "Configurations"
+
 msgid "Configure Joystick Buttons"
 msgstr "Configurer les boutons du Joystick"
+
+msgid ""
+"Copy {0}\n"
+"to {1}"
+msgstr ""
+"Copier {0}\n"
+"vers {1}"
 
 msgid "Cursor Keys and Right Ctrl/Alt"
 msgstr "Touches de curseur et Ctrl / Alt Droits"
@@ -115,17 +152,35 @@ msgstr "Réglages Personnalisés"
 msgid "Default"
 msgstr "Par Défaut"
 
+msgid "Default ({0})"
+msgstr "Par défaut ({0})"
+
 msgid "Downloading {0}..."
 msgstr "Téléchargement {0}..."
+
+msgid "Edit Custom Options"
+msgstr "Modifier les options personnalisées"
 
 msgid "Eject"
 msgstr "Ejecter"
 
-msgid "Extended ROM"
-msgstr "ROM Etendue"
+msgid "Expansions"
+msgstr "Extensions"
+
+msgid "Extended ROM:"
+msgstr "ROM Etendue:"
+
+msgid "FS-UAE Launcher Settings"
+msgstr "Réglages du Lanceur FS-UAE"
+
+msgid "Fast RAM"
+msgstr "Mémoire Rapide"
 
 msgid "Filters:"
 msgstr "Filtres:"
+
+msgid "Floppies"
+msgstr "Disquettes"
 
 msgid "Floppy Drives"
 msgstr "Lecteurs de Disquettes"
@@ -138,6 +193,33 @@ msgstr "Jeux et Configurations"
 
 msgid "Hard Drives"
 msgstr "Disques Durs"
+
+msgid "Hardware"
+msgstr "Matériel"
+
+msgid "Hardware Options"
+msgstr "Options Matérielles"
+
+msgid "If you own Amiga Forever, select the drive/folder and click \"{0}\""
+msgstr "Si vous possédez Amiga Forever, sélectionnez le lecteur/dossier et cliquez sur \"{0}\""
+
+msgid "Import"
+msgstr "Importer"
+
+msgid "Import From Amiga Forever CD/DVD"
+msgstr "Importer depuis les CD/DVD d'Amiga Forever"
+
+msgid "Import Kickstarts and ROMs"
+msgstr "Importer Kickstarts et ROMs"
+
+msgid "Import task is done"
+msgstr "L'importation est terminée"
+
+msgid "Input"
+msgstr "Entrée"
+
+msgid "Input Options"
+msgstr "Options d'entrée"
 
 msgid "Internal"
 msgstr "Interne"
@@ -157,8 +239,11 @@ msgstr "Paramètres du Joystick"
 msgid "Kickstart ROM"
 msgstr "ROM Kickstart"
 
-msgid "Kickstart Versions"
-msgstr "Versions du Kickstart"
+msgid "Kickstart Setup"
+msgstr "Configuration du Kickstart"
+
+msgid "Kickstart import task started"
+msgstr "L'importation du Kickstart a démarré"
 
 msgid "Launching FS-UAE"
 msgstr "Démarrage de FS-UAE"
@@ -169,6 +254,15 @@ msgstr "Précision Minimale"
 msgid "Less Accurate"
 msgstr "Précision Moyenne"
 
+msgid "Main Configuration Options"
+msgstr "Options de Configuration Principales"
+
+msgid "Media Swap List"
+msgstr "Liste d’Echange de Média"
+
+msgid "Memory"
+msgstr "Mémoire"
+
 msgid "Mouse"
 msgstr "Souris"
 
@@ -177,6 +271,9 @@ msgstr "Jeux En Ligne"
 
 msgid "New Configuration"
 msgstr "Nouvelle Configuration"
+
+msgid "No Device"
+msgstr "Aucun Périphérique"
 
 msgid "No Host Device"
 msgstr "Pas de périphérique hôte"
@@ -202,14 +299,20 @@ msgstr "Aucun"
 msgid "OK"
 msgstr "OK"
 
-msgid "Open Configuration"
-msgstr "Ouvrir Configuration"
+msgid "Open Scan Dialog"
+msgstr "Ouvrir la boîte de dialogue d'Analyse"
 
 msgid "Open Tool to Configure Button Mapping"
 msgstr "Ouvrir l'Outil de Configuration des Boutons"
 
 msgid "Parallel Port Joysticks"
 msgstr "Joysticks sur port parallèle"
+
+msgid "Picasso96 Support"
+msgstr "Prise en Charge de Picasso96"
+
+msgid "Picasso96 Support (uaegfx.card)"
+msgstr "Prise en Charge de Picasso96 (uaegfx.card)"
 
 msgid "Please wait..."
 msgstr "Patientez S.V.P."
@@ -256,6 +359,9 @@ msgstr "Analyse"
 msgid "Scan complete"
 msgstr "Analyse complète"
 
+msgid "Scan for Kickstarts, Files and Configurations"
+msgstr "Analyser les Kickstarts, Fichiers et Configurations"
+
 msgid "Scanning .fs-uae files..."
 msgstr "Analyse des fichiers .fs-uae..."
 
@@ -277,20 +383,26 @@ msgstr "Analyse des fichiers"
 msgid "Scanning files ({count} scanned)"
 msgstr "Analyse des Fichiers ({count}) analysés"
 
-msgid "Select Files..."
-msgstr "Selection des Fichiers"
+msgid "Select Directory to Import From"
+msgstr "Sélectionner le répertoire d'importation"
 
 msgid "Select Multiple CD-ROMs"
 msgstr "Sélection de Plusieurs CD-ROMS"
 
+msgid "Select Multiple Files..."
+msgstr "Sélectionner plusieurs fichiers ..."
+
 msgid "Select Multiple Floppies"
 msgstr "Sélection de Plusieurs Disquettes"
 
-msgid "Show Only Favorites (On/Off)"
-msgstr "Montrer Uniquement les Favoris (On/Off)"
+msgid "Select a folder containing Amiga kickstart files and click \"{0}\""
+msgstr "Sélectionnez un dossier contenant les fichiers kickstart Amiga et cliquez sur \"{0}\""
 
-msgid "Show Only Verified Configurations (On/Off)"
-msgstr "Afficher Uniquement les Configurations Vérifiées (On/Off)"
+msgid "Settings"
+msgstr "Paramètres"
+
+msgid "Slow RAM"
+msgstr "Mémoire Lente"
 
 msgid "Start"
 msgstr "Démarrer"
@@ -301,11 +413,17 @@ msgstr "Lancement de FS-UAE"
 msgid "Starting scan"
 msgstr "Démarrage de l'analyse"
 
-msgid "Swap List"
-msgstr "Inverser la Liste"
+msgid "Update ({version}) is available"
+msgstr "La mise à jour ({version}) est disponible"
 
 msgid "WHDLoad Arguments"
 msgstr "Arguments de WHDLoad"
+
+msgid "You should have kickstart files for each Amiga model you want to use:"
+msgstr "Kickstart original préférable pour chaque modèle d'Amiga que vous souhaitez utiliser:"
+
+msgid "Zorro III RAM"
+msgstr "Mémoire Zorro III"
 
 #~ msgid "Add Multiple CD Images at Once"
 #~ msgstr "Ajouter Plusieurs Images de CD à la fois"
@@ -318,12 +436,6 @@ msgstr "Arguments de WHDLoad"
 
 #~ msgid "Amiga Model and Hardware"
 #~ msgstr "Modèle d'Amiga et du matériel"
-
-#~ msgid "CD-ROMs"
-#~ msgstr "CD-ROMS"
-
-#~ msgid "Configurations"
-#~ msgstr "Configurations"
 
 #~ msgid "Configure CD-ROMs"
 #~ msgstr "Configurer CD-ROMs"
@@ -343,29 +455,26 @@ msgstr "Arguments de WHDLoad"
 #~ msgid "Configure Joysticks"
 #~ msgstr "Configurer les Joysticks"
 
+#~ msgid "Extended ROM"
+#~ msgstr "ROM Etendue"
+
 #~ msgid "Floppies..."
 #~ msgstr "Disquettes"
 
 #~ msgid "Hard Drive {0}"
 #~ msgstr "Disque Dur {0}"
 
-#~ msgid "Hardware"
-#~ msgstr "Matériel"
-
 #~ msgid "Host Options"
 #~ msgstr "Options de l’Hôte"
-
-#~ msgid "Input"
-#~ msgstr "Entrée"
-
-#~ msgid "Input Options"
-#~ msgstr "Options d'entrée"
 
 #~ msgid "Joystick (Emulated by Keyboard)"
 #~ msgstr "Joystick (émulé par le clavier)"
 
 #~ msgid "Kickstart"
 #~ msgstr "Kickstart"
+
+#~ msgid "Kickstart Versions"
+#~ msgstr "Versions du Kickstart"
 
 #~ msgid "Media List"
 #~ msgstr "Liste des Médias"
@@ -376,14 +485,26 @@ msgstr "Arguments de WHDLoad"
 #~ msgid "More..."
 #~ msgstr "Plus..."
 
+#~ msgid "Open Configuration"
+#~ msgstr "Ouvrir Configuration"
+
 #~ msgid "Removable Media"
 #~ msgstr "Média Amovible"
 
 #~ msgid "Scan for Kickstarts, Games and Configurations"
 #~ msgstr "Analyse des Kickstarts, Jeux et Configurations"
 
-#~ msgid "Settings"
-#~ msgstr "Paramètres"
+#~ msgid "Select Files..."
+#~ msgstr "Selection des Fichiers"
+
+#~ msgid "Show Only Favorites (On/Off)"
+#~ msgstr "Montrer Uniquement les Favoris (On/Off)"
+
+#~ msgid "Show Only Verified Configurations (On/Off)"
+#~ msgstr "Afficher Uniquement les Configurations Vérifiées (On/Off)"
+
+#~ msgid "Swap List"
+#~ msgstr "Inverser la Liste"
 
 #~ msgid "Window"
 #~ msgstr "Fenêtré"

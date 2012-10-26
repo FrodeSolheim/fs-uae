@@ -18,7 +18,7 @@ class ConfigDialog(PagedDialog):
         self.add_page(_("Custom Options"), CustomOptionsPage)
 
         self.list_view.set_index(index)
-        self.set_size((800, 540))
+        self.set_size((900, 540))
         self.center_on_parent()
 
     @classmethod

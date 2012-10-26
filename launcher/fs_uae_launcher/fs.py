@@ -4,6 +4,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import os
+import re
 import sys
 import functools
 import subprocess
@@ -336,3 +337,53 @@ def get_home_dir():
         path = shell.SHGetFolderPath(0, shellcon.CSIDL_PROFILE, 0, 0)
         return path
     return unicode_path(os.path.expanduser("~"))
+
+class Version (object):
+
+    def __init__ (self, version_string):
+        self.string = str(version_string)
+        v = split_version(version_string)
+        self.major = int (v[0])
+        self.minor = int (v[1] or 0)
+        self.revision = int (v[2] or 0)
+        self.build = int (v[3] or 0)
+        self.val = self.major * 10000**3
+        self.val += self.minor * 10000**2
+        self.val += self.revision * 10000**1
+        self.val += self.build * 10000**0
+        self.mod = v[4]
+        self.release = None if v[5] is None else int (v[5])
+
+    def cmp_value(self):
+        return (self.val, self.mod or 'o', int (self.release or 0))
+
+    def __cmp__(self, other):
+        return cmp(self.cmp_value(), other.cmp_value())
+
+    def __str__ (self):
+        return self.string
+
+def split_version(version_string):
+    pattern = re.compile ("^([0-9]{1,4})(?:\.([0-9]{1,4}))?"
+            "(?:\.([0-9]{1,4}))?(?:\.([0-9]{1,4}))?"
+            "([a-z][a-z0-9]*)?(?:_([0-9]+))?$")
+    m = pattern.match(version_string)
+    if m is None:
+        raise ValueError(version_string + u" is not a valid version number")
+    return m.groups()
+
+def compare_versions(a, b):
+    if isinstance(a, Version):
+        pass
+    elif isinstance(a, basestring):
+        a = Version(a)
+    else:
+        raise TypeError("Not a valid version string or object")
+    if isinstance(b, Version):
+        pass
+    elif isinstance(b, basestring):
+        b = Version(b)
+    else:
+        raise TypeError("Not a valid version string or object")
+    return cmp(a, b)
+

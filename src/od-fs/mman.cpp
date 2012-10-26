@@ -201,12 +201,14 @@ void preinit_shm (void)
         free (natmem_offset);
 #endif
     natmem_offset = NULL;
-    if (p96mem_offset)
+    if (p96mem_offset) {
 #ifdef WINDOWS
         VirtualFree (p96mem_offset, 0, MEM_RELEASE);
 #else
-        free (p96mem_offset);
+        // Don't free p96mem_offset - it is freed as part of natmem_offset
+        //free (p96mem_offset);
 #endif
+    }
     p96mem_offset = NULL;
 
 #ifdef WINDOWS
@@ -423,7 +425,12 @@ restart:
         p96mem_offset = (uae_u8*)VirtualAlloc (natmem_offset + natmemsize + rtgbarrier + z3chipbarrier, size,
             MEM_RESERVE | MEM_WRITE_WATCH, PAGE_READWRITE);
 #else
-        p96mem_offset = (uae_u8*)valloc (size);
+        // we reallocate natmem_offset and included p96 memory to make the
+        // memory region contiguous, like the Windows code. Note: p96mem_offset
+        // must not be freed
+        free(natmem_offset);
+        natmem_offset = valloc(natmemsize + rtgbarrier + z3chipbarrier + size);
+        p96mem_offset = natmem_offset + natmemsize + rtgbarrier + z3chipbarrier;
 #endif
         if (!p96mem_offset) {
             currprefs.rtgmem_size = changed_prefs.rtgmem_size = 0;
@@ -485,6 +492,8 @@ restart:
         p96mem_offset = (uae_u8*)VirtualAlloc (natmem_offset + getz2rtgaddr (), size,
             MEM_RESERVE | MEM_WRITE_WATCH, PAGE_READWRITE);
 #else
+        // needs testing
+        write_log("FIXME: this may not work - see allocation code for Zorro III\n");
         p96mem_offset = (uae_u8*)valloc (size);
 #endif
         if (!p96mem_offset) {

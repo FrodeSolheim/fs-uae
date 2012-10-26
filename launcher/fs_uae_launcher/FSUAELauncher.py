@@ -14,8 +14,10 @@ import fs_uae_launcher.fs as fs
 from .Config import Config
 from .ConfigurationScanner import ConfigurationScanner
 from .Database import Database
+from .Paths import Paths
 from .ROMManager import ROMManager
 from .Settings import Settings
+from .UpdateManager import UpdateManager
 
 class FSUAELauncher(fsui.Application):
 
@@ -59,6 +61,7 @@ class FSUAELauncher(fsui.Application):
         window = MainWindow(icon=icon)
         MainWindow.instance = window
         window.show()
+        UpdateManager.run_update_check()
 
     def get_settings_file(self):
         return os.path.join(fs.get_app_data_dir(), "launcher.settings")
@@ -141,15 +144,28 @@ class FSUAELauncher(fsui.Application):
         print("moving to " + repr(self.get_settings_file()))
         shutil.move(path, self.get_settings_file())
 
+    def get_dir_mtime_str(self, path):
+        try:
+            return str(int(os.path.getmtime(path)))
+        except Exception:
+            return "0"
+
     def config_startup_scan(self):
-        database = Database.get_instance()
-        local_configs = database.find_local_configurations()
+        print("config_startup_scan")
         configs_dir = Settings.get_configurations_dir()
+        if Settings.get("configurations_dir_mtime") == \
+                self.get_dir_mtime_str(configs_dir):
+            print("... mtime not changed")
+            return
+        database = Database.get_instance()
+        print("... database.find_local_configurations")
+        local_configs = database.find_local_configurations()
+        print("... walk configs_dir")
         for dir_path, dir_names, file_names in os.walk(configs_dir):
             for file_name in file_names:
                 if not file_name.endswith(".fs-uae"):
                     continue
-                path = os.path.join(dir_path, file_name)
+                path = Paths.join(dir_path, file_name)
                 if path in local_configs:
                     local_configs[path] = None
                     # already exists in database
@@ -164,17 +180,27 @@ class FSUAELauncher(fsui.Application):
             if id is not None:
                 print("[startup] removing configuration", path)
                 database.delete_configuration(id=id)
+        print("... commit")
         database.commit()
+        Settings.set("configurations_dir_mtime",
+                self.get_dir_mtime_str(configs_dir))
 
     def kickstart_startup_scan(self):
+        print("kickstart_startup_scan")
+        kickstarts_dir = Settings.get_kickstarts_dir()
+        if Settings.get("kickstarts_dir_mtime") == \
+                self.get_dir_mtime_str(kickstarts_dir):
+            print("... mtime not changed")
+            return
         database = Database.get_instance()
+        print("... database.find_local_roms")
         local_roms = database.find_local_roms()
-        roms_dir = Settings.get_kickstarts_dir()
-        for dir_path, dir_names, file_names in os.walk(roms_dir):
+        print("... walk kickstarts_dir")
+        for dir_path, dir_names, file_names in os.walk(kickstarts_dir):
             for file_name in file_names:
                 if not file_name.endswith(".rom"):
                     continue
-                path = os.path.join(dir_path, file_name)
+                path = Paths.join(dir_path, file_name)
                 if path in local_roms:
                     local_roms[path] = None
                     # already exists in database
@@ -186,4 +212,7 @@ class FSUAELauncher(fsui.Application):
             if id is not None:
                 print("[startup] removing kickstart", path)
                 database.delete_file(id=id)
+        print("... commit")
         database.commit()
+        Settings.set("kickstarts_dir_mtime",
+                self.get_dir_mtime_str(kickstarts_dir))

@@ -20,30 +20,33 @@ class Settings:
     base_dir = ""
 
     default_settings = {
-        "config_xml_path": "",
-        "last_scan": "",
         "__netplay_ready": "",
         "config_base": "",
-        "config_refresh": "",
-        "maximized": "0",
-        "fullscreen": "0",
-        "fullscreen_mode": "fullscreen",
-        "config_search": "",
+        "config_changed": "0",
         "config_name": "Unnamed Configuration",
         "config_path": "",
-        "scan_roms": "1",
+        "config_refresh": "",
+        "config_search": "",
+        "config_xml_path": "",
+        "configurations_dir_mtime": "",
+        "fullscreen": "0",
+        "fullscreen_mode": "fullscreen",
+        "kickstarts_dir_mtime": "",
+        "last_cd_dir": "",
+        "last_floppy_dir": "",
+        "last_hd_dir": "",
+        "last_rom_dir": "",
+        "last_scan": "",
+        "maximized": "0",
+        "primary_joystick": "",
         "scan_configs": "1",
         "scan_files": "1",
-        "primary_joystick": "",
-        "secondary_joystick": "",
+        "scan_roms": "1",
         "search_path": "",
-        "last_cd_dir": "",
-        "last_hd_dir": "",
-        "last_floppy_dir": "",
-        "last_rom_dir": "",
+        "secondary_joystick": "",
+        "ui_background_color": "",
         "window_width": "",
         "window_height": "",
-        "config_changed": "0",
         }
 
     settings = default_settings.copy()
@@ -117,12 +120,12 @@ class Settings:
     def get_default_search_path(cls):
         paths = []
         paths.append(cls.get_base_dir())
-        paths.append(os.path.join(fs.get_home_dir(),
-                "Games", "Amiga"))
-        paths.append(os.path.join(fs.get_home_dir(),
-                "Games", "CD32"))
-        paths.append(os.path.join(fs.get_home_dir(),
-                "Games", "CDTV"))
+        #paths.append(os.path.join(fs.get_home_dir(),
+        #        "Games", "Amiga"))
+        #paths.append(os.path.join(fs.get_home_dir(),
+        #        "Games", "CD32"))
+        #paths.append(os.path.join(fs.get_home_dir(),
+        #        "Games", "CDTV"))
         return paths
 
     @classmethod

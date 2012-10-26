@@ -2,7 +2,7 @@
 
 import sys
 
-def update_version(path, strict=False):
+def update_version(path, strict=False, update_series=False):
     ver = version
     with open(path, "rb") as f:
         data = f.read()
@@ -20,14 +20,19 @@ def update_version(path, strict=False):
             parts[i] = p
         ver = '.'.join(parts)
     data = data.replace("9.8.7", ver)
+    if update_series:
+        data = data.replace("unknown", series)
     with open(path, "wb") as f:
         f.write(data)
 
 with open("VERSION", "rb") as f:
     version = f.read().strip()
 
+with open("SERIES", "rb") as f:
+    series = f.read().strip()
+
 if len(sys.argv) > 1:
-    update_version(sys.argv[1])
+    update_version(sys.argv[1], update_series=("--update-series" in sys.argv))
 else:
     update_version("README")
     update_version("common.mk")
@@ -39,7 +44,7 @@ else:
     update_version("launcher/setup_py2exe.py")
     update_version("launcher/setup_py2app.py", strict=True)
     update_version("launcher/debian/changelog")
-    update_version("launcher/fs_uae_launcher/Version.py")
+    update_version("launcher/fs_uae_launcher/Version.py", update_series=True)
     update_version("src/fs-uae/version.c")
     update_version("macosx/template/Contents/Info.plist", strict=True)
     update_version("windows/fs-uae-setup.iss")

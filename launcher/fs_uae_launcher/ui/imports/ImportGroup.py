@@ -39,10 +39,10 @@ class ImportGroup(fsui.Group):
 
         if self.type == self.AMIGA_FOREVER:
             text = _("If you own Amiga Forever, select the drive/folder "
-                    "and click \"{0}\"".format(_("Import")))
+                    "and click \"{0}\"").format(_("Import"))
         else:
             text = _("Select a folder containing Amiga kickstart files "
-                    "and click \"{0}\"".format(_("Import")))
+                    "and click \"{0}\"").format(_("Import"))
         label = fsui.Label(self, text)
         vert_layout.add(label, margin=10)
 

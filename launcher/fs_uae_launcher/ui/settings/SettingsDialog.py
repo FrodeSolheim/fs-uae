@@ -20,7 +20,7 @@ class SettingsDialog(PagedDialog):
     #CUSTOM_OPTIONS = 3
 
     def __init__(self, parent, index=0):
-        PagedDialog.__init__(self, parent, _("Configuration"))
+        PagedDialog.__init__(self, parent, _("FS-UAE Launcher Settings"))
 
         #self.add_page(_("Hardware"), HardwarePage)
         self.add_page(_("Joystick Settings"), JoystickSettingsPage)
@@ -28,7 +28,7 @@ class SettingsDialog(PagedDialog):
         self.add_page(_("Custom Settings"), CustomSettingsPage)
 
         self.list_view.set_index(index)
-        self.set_size((800, 540))
+        self.set_size((900, 540))
         self.center_on_parent()
 
     @classmethod

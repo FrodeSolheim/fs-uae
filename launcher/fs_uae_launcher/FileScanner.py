@@ -203,9 +203,9 @@ class FileScanner:
                 mtime=mtime, size=size, scan=self.scan_version, name=name)
         self.files_added += 1
         self.bytes_added += size
-        if self.bytes_added > 100 * 1000 * 1000:
-            self.bytes_added = 0
-            database.commit()
+        #if self.bytes_added > 1024 ** 3:
+        #    self.bytes_added = 0
+        #    database.commit()
         #elif self.files_added % 500 == 0:
         #    database.commit()
         if ext == '.rom':

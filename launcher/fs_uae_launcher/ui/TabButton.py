@@ -5,8 +5,8 @@ from __future__ import unicode_literals
 
 import fs_uae_launcher.fsui as fsui
 from .Constants import Constants
-from .TabPanel import TabPanel
 from .Skin import Skin
+from .TabPanel import TabPanel
 
 class TabButton(fsui.Panel):
 

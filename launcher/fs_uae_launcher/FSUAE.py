@@ -34,7 +34,7 @@ class FSUAE:
         env = os.environ.copy()
         #env = None
         cls.center_window(env)
-        print(repr(env))
+        #print(repr(env))
         proc = subprocess.Popen(args, env=env, **kwargs)
         return proc
 

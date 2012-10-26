@@ -118,7 +118,7 @@ int read_window_override(const char* s, int* pos) {
 }
 
 void init_window_overrides() {
-    char *s = fs_config_get_string("viewport");
+    const char *s = fs_config_get_const_string("viewport");
     if (s == NULL) {
         return;
     }
@@ -140,11 +140,11 @@ void init_window_overrides() {
             break;
         }
         else {
-            fs_emu_log("unexpected end while reading viewport transformation\n");
-            exit(1);
+            fs_emu_warning("unexpected byte (%d) while parsing "
+                    "viewport option\n", c);
+            return;
         }
     }
-    free(s);
 }
 
 static int ucx = 0, ucy = 0, ucw = 0, uch = 0;

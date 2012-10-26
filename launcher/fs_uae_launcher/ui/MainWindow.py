@@ -19,6 +19,7 @@ from ..netplay.Netplay import Netplay
 from ..Database import Database
 from ..GameHandler import GameHandler
 from ..I18N import _, ngettext
+from ..Version import Version
 from .ScreenshotsPanel import ScreenshotsPanel
 from .GameInfoPanel import GameInfoPanel
 from .TabPanel import TabPanel
@@ -30,6 +31,7 @@ from .FloppiesPanel import FloppiesPanel
 from .CDPanel import CDPanel
 from .HardDrivesPanel import HardDrivesPanel
 from .HardwarePanel import HardwarePanel
+from .InfoPanel import InfoPanel
 from .InputPanel import InputPanel
 #from .CustomPanel import CustomPanel
 from .ConfigurationsPanel import ConfigurationsPanel
@@ -44,7 +46,8 @@ class MainWindow(WindowWithTabs):
     instance = None
 
     def __init__(self, icon):
-        WindowWithTabs.__init__(self, None, "FS-UAE Launcher")
+        title = "FS-UAE Launcher {0}".format(Version.VERSION)
+        WindowWithTabs.__init__(self, None, title)
         if icon:
             self.set_icon_from_path(icon)
 
@@ -164,18 +167,22 @@ class MainWindow(WindowWithTabs):
     def add_column_content(self, column):
         default_page_index = 0
         if column == 1:
-            self.add_page(column, MainPanel, "tab_main", _("Config"))
-            self.add_page(column, InputPanel, "tab_input", _("Input"))
+            self.add_page(column, MainPanel, "tab_main", _("Config"),
+                    _("Main Configuration Options"))
+            self.add_page(column, InputPanel, "tab_input", _("Input"),
+                    _("Input Options"))
             self.add_page(column, FloppiesPanel, "tab_floppies",
-                    _("Floppies"))
-            self.add_page(column, CDPanel, "tab_cdroms", _("CD-ROMs"))
+                    _("Floppies"), _("Floppy Drives"))
+            self.add_page(column, CDPanel, "tab_cdroms", _("CD-ROMs"),
+                    _("CD-ROM Drives"))
             self.add_page(column, HardDrivesPanel, "tab_hard_drives",
                     _("Hard Drives"))
             self.add_page(column, HardwarePanel, "tab_hardware",
-                    _("Hardware"))
+                    _("Hardware"), _("Hardware Options"))
 
             icon = fsui.Image("fs_uae_launcher:res/tab_custom.png")
-            self.add_tab_button(self.on_custom_button, icon)
+            self.add_tab_button(self.on_custom_button, icon, _("Custom"),
+                    _("Edit Custom Options"))
 
             self.add_tab_spacer(60)
 
@@ -183,42 +190,45 @@ class MainWindow(WindowWithTabs):
             self.new_tab_group()
             page_index = 0
             self.add_page(column, ConfigurationsPanel, "tab_configs",
-                    _("Configurations"))
+                    _("Configurations"), _("Configuration Browser"))
             if Settings.get("netplay_feature") == "1":
                 page_index += 1
                 self.add_page(column, NetplayPanel, "tab_netplay",
                         _("Net Play"))
             page_index += 1
             page = self.add_page(column, SetupPanel, "tab_setup",
-                    _("Setup"))
+                    _("Kickstart Setup"))
             if page.should_be_automatically_opened():
                 default_page_index = page_index
 
-            self.add_tab_spacer(60)
+            if fsui.System.macosx:
+                self.add_tab_separator()
+            else:
+                self.add_tab_spacer(10)
+                self.add_tab_panel(InfoPanel)
+                self.add_tab_spacer(10)
 
-            self.add_tab_spacer(expand=True)
             icon = fsui.Image("fs_uae_launcher:res/tab_scan.png")
-            self.add_tab_button(self.on_scan_button, icon)
+            self.add_tab_button(self.on_scan_button, icon, _("Scan"),
+                    _("Open Scan Dialog"))
             icon = fsui.Image("fs_uae_launcher:res/tab_settings.png")
-            self.add_tab_button(self.on_settings_button, icon)
+            self.add_tab_button(self.on_settings_button, icon, _("Settings"))
 
-        #if self.toolbar:
-        #    pass
-        #else:
-        #    self.tab_panels[column].select_tab(default_page_index)
+            if fsui.System.macosx:
+                self.add_tab_panel(InfoPanel, min_width=300)
 
         # column - 1 is the group id of the tab group
         self.select_tab(default_page_index, column - 1)
         self.books[column].set_page(default_page_index)
 
-    def add_page(self, column, content_class, icon_name, title):
+    def add_page(self, column, content_class, icon_name, title, tooltip=""):
         book = self.books[column]
         instance = content_class(book)
         book.add_page(instance)
         icon = fsui.Image("fs_uae_launcher:res/{0}.png".format(icon_name))
         def function():
             book.set_page(instance)
-        self.add_tab(function, icon, title)
+        self.add_tab(function, icon, title, tooltip)
         return instance
 
     def on_custom_button(self):

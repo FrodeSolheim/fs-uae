@@ -33,6 +33,8 @@ class SetupPanel(fsui.Panel):
         self.layout.add(self.import_af_group, fill=True)
 
     def should_be_automatically_opened(self):
+        if Settings.get("kickstart_setup") == "0":
+            return False
         database = Database.get_instance()
         amiga = Amiga.get_model_config("A500")
         for sha1 in amiga["kickstarts"]:

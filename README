@@ -178,15 +178,15 @@ in the configuration file). See example.conf for more information.
 SUPPORTED AMIGA MODELS
 ======================
 The following Amiga models are supported:
-- Amiga 1000
-- Amiga 500 (Default)
-- Amiga 500+
-- Amiga 600
-- Amiga 1200
-- Amiga 1200/020
-- Amiga 4000/040
-- Amiga CD32
-- Commodore CDTV
+- A1000 - Amiga 1000
+- A500 - Amiga 500 (Default)
+- A500+ - Amiga 500+
+- A600 - Amiga 600
+- A1200 - Amiga 1200
+- A1200/020 Amiga 1200 with full 68020 CPU
+- A4000/040 Amiga 4000 with 68040 CPU
+- CD32 - Amiga CD32
+- CDTV - Commodore CDTV
 
 The default configurations corresponds to the quickstarts in WinUAE for
 these systems, on the most compatible setting (cycle-exact mode). 
@@ -261,19 +261,22 @@ Large portions are copyrighted by other individuals.
 
 FS-UAE is based on the fantastic work of the original UAE authors, the authors
 of WinUAE, contributions from external contributors as well as some code
-from E-UAE and P-UAE.
+from E-UAE and P-UAE. See http://fengestad.no/fs-uae/contributions for an
+updated list of people having contributed patches, translations and donations.
 
 UAE was created by Bernd Schmidt, with the help of a host of volunteer
-contributors (see the UAE distribution for full credits). WinUAE has been
-developed and maintained by Mathias Ortmann and Toni Wilen.
+contributors (see the UAE distribution for full credits).
 
-E-UAE was developed by Richard Drummond, and P-UAE is developed by
-Mustafa 'GnoStiC' TUFAN.
+WinUAE has been developed and maintained by Mathias Ortmann and Toni Wilen.
+Toni Wilen has developed WinUAE for the last years and is the current
+maintainer. E-UAE was developed by Richard Drummond (no longer maintained),
+and P-UAE is developed by Mustafa "GnoStiC" TUFAN.
 
 http://www.amigaemulator.org/
 http://www.winuae.net/
 http://www.rcdrummond.net/uae/
 https://github.com/GnoStiC/PUAE
+http://www.softpres.org/
 
 libfsemu is Copyright (c) 2011-2012, Frode Solheim
 

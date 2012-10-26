@@ -390,6 +390,7 @@ catalogs = \
 	share/locale/de/LC_MESSAGES/fs-uae.mo \
 	share/locale/fr/LC_MESSAGES/fs-uae.mo \
 	share/locale/it/LC_MESSAGES/fs-uae.mo \
+	share/locale/nb/LC_MESSAGES/fs-uae.mo \
 	share/locale/pl/LC_MESSAGES/fs-uae.mo \
 	share/locale/sr/LC_MESSAGES/fs-uae.mo \
 
@@ -563,6 +564,9 @@ distdir: distdir-base
 	cd $(dist_dir) && python util/update-version.py
 	python util/update-version.py $(dist_dir_launcher)/fs-uae-launcher.spec
 	python util/update-version.py $(dist_dir_launcher)/setup.py
+	python util/update-version.py \
+		$(dist_dir_launcher)/fs_uae_launcher/Version.py \
+		--update-series
 	python util/update-version.py $(dist_dir_launcher)/debian/changelog
 
 distcheck: distdir

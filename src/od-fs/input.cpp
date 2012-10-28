@@ -12,7 +12,11 @@ int sdl_key_to_dik (int keycode);
 //  amiga_floppy_set_frm
 //}
 
-static int handle_custom_action(int action) {
+int tablet_log = 0;
+
+static int g_joystick_port_autofire[4];
+
+static int handle_custom_action(int action, int state) {
     write_log("handle_custom_action %d\n", action);
     if (action >= INPUTEVENT_SPC_DISKSWAPPER_0_0 &&
             action <= INPUTEVENT_SPC_DISKSWAPPER_3_19) {
@@ -23,6 +27,13 @@ static int handle_custom_action(int action) {
         amiga_floppy_set_from_list(drive, entry);
         return 1;
     }
+
+    if (action >= INPUTEVENT_AMIGA_JOYPORT_0_AUTOFIRE &&
+            action <= INPUTEVENT_AMIGA_JOYPORT_3_AUTOFIRE) {
+        int port = action - INPUTEVENT_AMIGA_JOYPORT_0_AUTOFIRE;
+        g_joystick_port_autofire[port] = state;
+    }
+
     return 0;
 }
 
@@ -63,7 +74,7 @@ int amiga_send_input_event(int input_event, int state) {
     int isabs = 0;
 
     if (input_event > INPUTEVENT_PRIVATE_START) {
-        return handle_custom_action(input_event);
+        return handle_custom_action(input_event, state);
     }
     // FIXME: is max = 1 always appropriate?
     int max = 1;
@@ -77,6 +88,11 @@ int amiga_send_input_event(int input_event, int state) {
     case INPUTEVENT_MOUSE1_VERT:
         //printf("INPUTEVENT_MOUSE1_VERT\n");
         mouse_state(0, 1, state, isabs, &max);
+        //return 1;
+        break;
+    case INPUTEVENT_MOUSE1_WHEEL:
+        //printf("INPUTEVENT_MOUSE1_WHEEL\n");
+        mouse_state(0, 2, state, isabs, &max);
         //return 1;
         break;
     case INPUTEVENT_MOUSE2_HORIZ:
@@ -97,6 +113,24 @@ int amiga_send_input_event(int input_event, int state) {
         return 1;
     }
     int autofire = 0;
+
+    if (input_event == INPUTEVENT_JOY1_FIRE_BUTTON &&
+            g_joystick_port_autofire[0]) {
+        autofire = 1;
+    }
+    else if (input_event == INPUTEVENT_JOY2_FIRE_BUTTON &&
+            g_joystick_port_autofire[1]) {
+        autofire = 1;
+    }
+    else if (input_event == INPUTEVENT_PAR_JOY1_FIRE_BUTTON &&
+            g_joystick_port_autofire[2]) {
+        autofire = 1;
+    }
+    else if (input_event == INPUTEVENT_PAR_JOY2_FIRE_BUTTON &&
+            g_joystick_port_autofire[3]) {
+        autofire = 1;
+    }
+
     bool canstopplayback = 1;
     bool playbackevent = 0;
 
@@ -133,7 +167,7 @@ void setid_af (struct uae_input_device *uid, int i, int slot, int sub, int port,
 /*
  * Default inputdevice config for SDL mouse
  */
-int input_get_default_mouse (struct uae_input_device *uid, int i, int port, int af)
+int input_get_default_mouse (struct uae_input_device *uid, int i, int port, int af, bool gp)
 {
     write_log("input_get_default_mouse\n");
     /* SDL supports only one mouse */
@@ -343,11 +377,11 @@ int input_get_default_keyboard (int num) {
     return 0;
 }
 
-int input_get_default_joystick_analog (struct uae_input_device *uid, int num, int port, int af) {
+int input_get_default_joystick_analog (struct uae_input_device *uid, int num, int port, int af, bool gp) {
     return 0;
 }
 
-int input_get_default_lightpen (struct uae_input_device *uid, int i, int port, int af) {
+int input_get_default_lightpen (struct uae_input_device *uid, int i, int port, int af, bool gp) {
     return 0;
 }
 
@@ -535,7 +569,7 @@ struct inputdevice_functions inputdevicefunc_joystick = {
     get_joystick_flags
 };
 
-int input_get_default_joystick (struct uae_input_device *uid, int num, int port, int af, int mode)
+int input_get_default_joystick (struct uae_input_device *uid, int num, int port, int af, int mode, bool gp)
 {
     int h,v;
     unsigned int j;

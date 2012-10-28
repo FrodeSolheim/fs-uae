@@ -239,6 +239,8 @@ void fixup_cpu (struct uae_prefs *p)
 
 	if (p->immediate_blits && p->blitter_cycle_exact)
 		p->immediate_blits = false;
+	if (p->immediate_blits && p->waiting_blits)
+		p->waiting_blits = 0;
 }
 
 
@@ -500,11 +502,13 @@ void fixup_prefs (struct uae_prefs *p)
 #endif
 	if (p->maprom && !p->address_space_24)
 		p->maprom = 0x0f000000;
+	if ((p->maprom & 0xff000000) && p->address_space_24)
+		p->maprom = 0x00e00000;
 	if (p->tod_hack && p->cs_ciaatod == 0)
 		p->cs_ciaatod = p->ntscmode ? 2 : 1;
 
+	built_in_chipset_prefs (p);
 	blkdev_fix_prefs (p);
-
 	target_fixup_options (p);
 }
 
@@ -513,7 +517,7 @@ static int restart_program;
 static TCHAR restart_config[MAX_DPATH];
 static int default_config;
 
-void uae_reset (int hardreset)
+void uae_reset (int hardreset, int keyboardreset)
 {
 	if (debug_dma) {
 		record_dma_reset ();
@@ -546,6 +550,7 @@ void uae_restart (int opengui, TCHAR *cfgfile)
 	default_config = 0;
 	if (cfgfile)
 		_tcscpy (restart_config, cfgfile);
+	target_restart ();
 }
 
 #ifndef DONT_PARSE_CMDLINE
@@ -570,7 +575,19 @@ static void parse_cmdline_2 (int argc, TCHAR **argv)
 	}
 }
 
-static void parse_diskswapper (TCHAR *s)
+static int diskswapper_cb (struct zfile *f, void *vrsd)
+{
+	int *num = (int*)vrsd;
+	if (*num >= MAX_SPARE_DRIVES)
+		return 1;
+	if (zfile_gettype (f) ==  ZFILE_DISKIMAGE) {
+		_tcsncpy (currprefs.dfxlist[*num], zfile_getname (f), 255);
+		(*num)++;
+	}
+	return 0;
+}
+
+static void parse_diskswapper (const TCHAR *s)
 {
 	TCHAR *tmp = my_strdup (s);
 	TCHAR *delim = _T(",");
@@ -585,8 +602,10 @@ static void parse_diskswapper (TCHAR *s)
 		p1 = NULL;
 		if (num >= MAX_SPARE_DRIVES)
 			break;
-		_tcsncpy (currprefs.dfxlist[num], p2, 255);
-		num++;
+		if (!zfile_zopen (p2, diskswapper_cb, &num)) {
+			_tcsncpy (currprefs.dfxlist[num], p2, 255);
+			num++;
+		}
 	}
 	free (tmp);
 }
@@ -738,6 +757,7 @@ void reset_all_systems (void)
 	filesys_prepare_reset ();
 	filesys_reset ();
 #endif
+	init_shm ();
 	memory_reset ();
 #if defined (BSDSOCKET)
 	bsdlib_reset ();
@@ -848,6 +868,7 @@ void do_leave_program (void)
 	device_func_reset ();
 	savestate_free ();
 	memory_cleanup ();
+	free_shm ();
 	cfgfile_addcfgparam (0);
 	machdep_free ();
 }
@@ -860,6 +881,35 @@ void start_program (void)
 void leave_program (void)
 {
 	do_leave_program ();
+}
+
+
+void virtualdevice_init (void)
+{
+#ifdef AUTOCONFIG
+	rtarea_setup ();
+#endif
+#ifdef FILESYS
+	rtarea_init ();
+	uaeres_install ();
+	hardfile_install ();
+#endif
+#ifdef SCSIEMU
+	scsi_reset ();
+	scsidev_install ();
+#endif
+#ifdef SANA2
+	netdev_install ();
+#endif
+#ifdef UAESERIAL
+	uaeserialdev_install ();
+#endif
+#ifdef AUTOCONFIG
+	expansion_init ();
+#endif
+#ifdef FILESYS
+	filesys_install ();
+#endif
 }
 
 static int real_main2 (int argc, TCHAR **argv)
@@ -879,7 +929,11 @@ static int real_main2 (int argc, TCHAR **argv)
 	}
 
 #ifdef NATMEM_OFFSET
+#ifdef FSUAE
 	preinit_shm ();
+#else
+	//preinit_shm ();
+#endif
 #endif
 
 	if (restart_config[0])
@@ -922,6 +976,9 @@ static int real_main2 (int argc, TCHAR **argv)
 		}
 	}
 
+	memset (&gui_data, 0, sizeof gui_data);
+	gui_data.cd = -1;
+	gui_data.hd = -1;
 	logging_init (); /* Yes, we call this twice - the first case handles when the user has loaded
 						 a config using the cmd-line.  This case handles loads through the GUI. */
 
@@ -929,9 +986,15 @@ static int real_main2 (int argc, TCHAR **argv)
 	init_shm ();
 #endif
 
+#ifdef PICASSO96
+	picasso_reset ();
+#endif
+
+#if 0
 #ifdef JIT
 	if (!(currprefs.cpu_model >= 68020 && currprefs.address_space_24 == 0 && currprefs.cachesize))
 		canbang = 0;
+#endif
 #endif
 
 	fixup_prefs (&currprefs);
@@ -943,34 +1006,10 @@ static int real_main2 (int argc, TCHAR **argv)
 	/* force sound settings change */
 	currprefs.produce_sound = 0;
 
-#ifdef AUTOCONFIG
-	rtarea_setup ();
-#endif
-#ifdef FILESYS
-	rtarea_init ();
-	uaeres_install ();
-	hardfile_install ();
-#endif
 	savestate_init ();
-#ifdef SCSIEMU
-	scsi_reset ();
-	scsidev_install ();
-#endif
-#ifdef SANA2
-	netdev_install ();
-#endif
-#ifdef UAESERIAL
-	uaeserialdev_install ();
-#endif
 	keybuf_init (); /* Must come after init_joystick */
 
-#ifdef AUTOCONFIG
-	expansion_init ();
-#endif
-#ifdef FILESYS
-	filesys_install ();
-#endif
-	memory_init ();
+	memory_hardreset (2);
 	memory_reset ();
 
 #ifdef AUTOCONFIG

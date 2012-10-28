@@ -147,7 +147,8 @@ void getfilterrect2 (RECT *sr, RECT *dr, RECT *zr, int dst_width, int dst_height
 	bool specialmode = !isnativevidbuf ();
 	float mrmx, mrmy, mrsx, mrsy;
 	int extraw2;
-
+	bool doautoaspect = false;
+	float autoaspectratio;
 
 	int filter_horiz_zoom = currprefs.gfx_filter_horiz_zoom;
 	int filter_vert_zoom = currprefs.gfx_filter_vert_zoom;
@@ -229,10 +230,10 @@ void getfilterrect2 (RECT *sr, RECT *dr, RECT *zr, int dst_width, int dst_height
 		}
 	}
 
-	set_custom_limits (-1, -1, -1, -1);
+	bool scl = false;
 
 	if (scalemode) {
-		int cw, ch, cx, cy, cv;
+		int cw, ch, cx, cy, cv, crealh = 0;
 		static int oxmult, oymult;
 
 		filterxmult = 1000 / scale;
@@ -258,6 +259,7 @@ void getfilterrect2 (RECT *sr, RECT *dr, RECT *zr, int dst_width, int dst_height
 					ch -= 25 << currprefs.gfx_vresolution;
 				}
 				set_custom_limits (cw, ch, cx, cy);
+				scl = true;
 			}
 
 			if (scalemode == AUTOSCALE_INTEGER || scalemode == AUTOSCALE_INTEGER_AUTOSCALE) {
@@ -275,7 +277,7 @@ void getfilterrect2 (RECT *sr, RECT *dr, RECT *zr, int dst_width, int dst_height
 				}
 
 				if (scalemode == AUTOSCALE_INTEGER_AUTOSCALE)
-					ok = get_custom_limits (&cw, &ch, &cx, &cy);
+					ok = get_custom_limits (&cw, &ch, &cx, &cy, &crealh);
 				if (scalemode == AUTOSCALE_INTEGER || ok == false)
 					getmanualpos (&cx, &cy, &cw, &ch);
 
@@ -321,17 +323,41 @@ void getfilterrect2 (RECT *sr, RECT *dr, RECT *zr, int dst_width, int dst_height
 
 			getmanualpos (&cx, &cy, &cw, &ch);
 			set_custom_limits (cw, ch, cx, cy);
+			scl = true;
 
 			//write_log (_T("%dx%d %dx%d %dx%d\n"), currprefs.gfx_xcenter_pos, currprefs.gfx_ycenter_pos, cx, cy, cw, ch);
 
 			cv = 1;
 
+		} else if (scalemode == AUTOSCALE_CENTER || scalemode == AUTOSCALE_RESIZE) {
+
+			cv = get_custom_limits (&cw, &ch, &cx, &cy, &crealh);
+
 		} else {
 
-			cv = get_custom_limits (&cw, &ch, &cx, &cy);
-			if (cv)
+			cv = get_custom_limits (&cw, &ch, &cx, &cy, &crealh);
+			if (cv) {
 				set_custom_limits (cw, ch, cx, cy);
+				scl = true;
+			}
 
+		}
+
+		if (!scl)
+			set_custom_limits (-1, -1, -1, -1);
+	
+		autoaspectratio = 0;
+		if (currprefs.gfx_filter_keep_autoscale_aspect && cw > 0 && ch > 0 && crealh > 0 && (scalemode == AUTOSCALE_NORMAL || scalemode == AUTOSCALE_INTEGER_AUTOSCALE || scalemode == AUTOSCALE_MANUAL)) {
+			float cw2 = cw;
+			float ch2 = ch;
+			int res = currprefs.gfx_resolution - currprefs.gfx_vresolution;
+
+			if (res < 0)
+				cw2 *= 1 << (-res);
+			else if (res > 0)
+				cw2 /= 1 << res;
+			autoaspectratio = (cw2 / ch2) / (4.0 / 3.0);
+			doautoaspect = true;
 		}
 
 		if (currprefs.gfx_api == 0) {
@@ -348,11 +374,15 @@ void getfilterrect2 (RECT *sr, RECT *dr, RECT *zr, int dst_width, int dst_height
 
 				int ww = cw * scale;
 				int hh = ch * scale;
+
 				SetRect (sr, 0, 0, dst_width, dst_height);
 				SetRect (zr, 0, 0, 0, 0);
-				dr->left = dr->top = 0;
-				dr->right = dr->left + dst_width;
-				dr->bottom = dr->top + dst_height;
+
+				dr->left = (temp_width - aws) /2;
+				dr->top =  (temp_height - ahs) / 2;
+				dr->right = dr->left + dst_width * scale;
+				dr->bottom = dr->top + dst_height * scale;
+
 				OffsetRect (zr, cx * scale - (dst_width - ww) / 2, cy * scale - (dst_height - hh) / 2);
 				goto cont;
 
@@ -439,11 +469,14 @@ void getfilterrect2 (RECT *sr, RECT *dr, RECT *zr, int dst_width, int dst_height
 			filteroffsetx = -zr->left / scale;
 			filteroffsety = -zr->top / scale;
 
+			bool aspect = false;
+			int diffx = dr->right - dr->left;
+			int diffy = dr->bottom - dr->top;
+
+			xmult = 1.0;
+			ymult = 1.0;
+
 			if (currprefs.gfx_filter_keep_aspect || currprefs.gfx_filter_aspect != 0) {
-				int diffx = dr->right - dr->left;
-				int diffy = dr->bottom - dr->top;
-				float xmult = 1.0;
-				float ymult = 1.0;
 
 				if (currprefs.gfx_filter_keep_aspect) {
 					if (currprefs.ntscmode) {
@@ -458,6 +491,19 @@ void getfilterrect2 (RECT *sr, RECT *dr, RECT *zr, int dst_width, int dst_height
 						else if (currprefs.gfx_filter_keep_aspect == 1 && !ispal ())
 							dstratio = dstratio * 0.95;
 					}
+				}
+				aspect = true;
+
+			} else if (doautoaspect) {
+
+				aspect = true;
+
+			}
+
+			if (aspect) {
+
+				if (doautoaspect) {
+					srcratio *= autoaspectratio;
 				}
 
 				if (srcratio > dstratio) {
@@ -489,6 +535,7 @@ void getfilterrect2 (RECT *sr, RECT *dr, RECT *zr, int dst_width, int dst_height
 
 	}
 cont:
+
 	if (!filter_horiz_zoom_mult && !filter_vert_zoom_mult) {
 
 		sizeoffset (dr, zr, extraw, extrah);

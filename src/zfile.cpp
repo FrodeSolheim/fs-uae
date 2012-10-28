@@ -2065,6 +2065,16 @@ struct zfile *zfile_fopen_parent (struct zfile *z, const TCHAR *name, uae_u64 of
 	return l;
 }
 
+struct zfile *zfile_fopen_load_zfile (struct zfile *f)
+{
+	struct zfile *l = zfile_fopen_empty (f, f->name, f->size);
+	if (!l)
+		return NULL;
+	zfile_fseek (f, 0, SEEK_SET);
+	zfile_fread (l->data, f->size, 1, f);
+	return l;
+}
+
 struct zfile *zfile_fopen_data (const TCHAR *name, uae_u64 size, const uae_u8 *data)
 {
 	struct zfile *l;
@@ -2215,7 +2225,7 @@ size_t zfile_fwrite (const void *b, size_t l1, size_t l2, struct zfile *z)
 	if (z->parent && z->useparent)
 		return 0;
 	if (z->data) {
-		int off = z->seek + l1 * l2;
+		uae_s64 off = z->seek + l1 * l2;
 		if (z->allocsize == 0) {
 			write_log (_T("zfile_fwrite(data,%s) but allocsize=0!\n"), z->name);
 			return 0;
@@ -2240,7 +2250,7 @@ size_t zfile_fwrite (const void *b, size_t l1, size_t l2, struct zfile *z)
 	return fwrite (b, l1, l2, z->f);
 }
 
-size_t zfile_fputs (struct zfile *z, TCHAR *s)
+size_t zfile_fputs (struct zfile *z, const TCHAR *s)
 {
 	char *s2 = ua (s);
 	size_t t;

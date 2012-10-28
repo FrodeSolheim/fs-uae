@@ -81,6 +81,8 @@ typedef struct fs_uae_input_port {
     char device[MAX_DEVICE_NAME_LEN + 1];
     int mode;
     int new_mode;
+    int autofire_mode;
+    int new_autofire_mode;
     const char *config_type;
 } fs_uae_input_port;
 

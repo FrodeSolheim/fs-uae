@@ -128,6 +128,12 @@ void close_console (void) {
     STUB("");
 }
 
+bool console_isch (void)
+{
+    STUB("");
+    return false;
+}
+
 /*
 struct uae_filter usedfilter_storage
 struct uae_filter *usedfilter = &usedfilter_storage;

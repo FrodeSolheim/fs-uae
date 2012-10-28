@@ -56,7 +56,7 @@ start:
 	dc.l exter_server-start		;4 28
 	dc.l bootcode-start			;5 32
 	dc.l setup_exter-start		;6 36
-	dc.l mh_e-start				;7 40
+	dc.l 0      				;7 40
 	dc.l clipboard_init-start 	;8 44
 	;52
 
@@ -143,7 +143,7 @@ residentcodeend:
 filesys_init:
 	movem.l d0-d7/a0-a6,-(sp)
 	move.l 4.w,a6
-	move.w #$FFFC,d0 ; filesys base
+	move.w #$FFEC,d0 ; filesys base
 	bsr getrtbase
 	move.l (a0),a5
 	lea.l explibname(pc),a1 ; expansion lib name
@@ -424,6 +424,38 @@ exter_server_exit:
 	movem.l (sp)+,a2
 	rts
 
+heartbeatvblank:
+	movem.l d0-d1/a0-a2,-(sp)
+
+	move.w #$FF38,d0
+	moveq #18,d1
+	bsr.w getrtbase
+	jsr (a0)
+	move.l d0,a2
+
+	moveq #22,d0
+	move.l #65536+1,d1
+	jsr AllocMem(a6)
+	move.l d0,a1
+
+	move.b #2,8(a1) ;NT_INTERRUPT
+	move.b #-10,9(a1) ;priority
+	lea kaname(pc),a0
+	move.l a0,10(a1)
+	lea kaint(pc),a0
+	move.l a0,18(a1)
+	move.l a2,14(a1)
+	moveq #5,d0 ;INTB_VERTB
+	jsr -$00a8(a6)
+
+	movem.l (sp)+,d0-d1/a0-a2
+	rts
+
+kaint:
+	addq.l #1,(a1)
+	moveq #0,d0
+	rts
+
 setup_exter:
 	movem.l d0-d1/a0-a1,-(sp)
 	bsr.w residenthack
@@ -440,7 +472,14 @@ setup_exter:
 	move.w #$0214,8(a1)
 	moveq.l #3,d0
 	jsr -168(a6) ; AddIntServer
-	move.w mh_e(pc),d0
+
+  bsr.w heartbeatvblank
+
+	move.w #$FF38,d0
+	moveq #4,d1
+	bsr.w getrtbase
+	jsr (a0)
+	tst.l d0
 	beq.s .nomh
 	bsr.w mousehack_init
 .nomh
@@ -936,7 +975,7 @@ make_cd_dev: ; IN: A0 param_packet, D6: unit_no | 0x80000000 (=CD)
 	bsr.w	fsres
 	move.l d0,PP_FSRES(a0) ; pointer to FileSystem.resource
 	move.l a0,-(sp)
-	move.w #$FFFC,d0 ; filesys base
+	move.w #$FFEC,d0 ; filesys base
 	bsr.w getrtbase
 	move.l (a0),a5
 	move.w #$FF28,d0 ; fill in unit-dependent info (filesys_dev_storeinfo)
@@ -1031,7 +1070,7 @@ make_dev: ; IN: A0 param_packet, D6: unit_no, D7: b0=autoboot,b1=onthefly,b2=v36
 	bsr.w fsres
 	move.l d0,PP_FSRES(a0) ; pointer to FileSystem.resource
 	move.l a0,-(sp)
-	move.w #$FFFC,d0 ; filesys base
+	move.w #$FFEC,d0 ; filesys base
 	bsr.w getrtbase
 	move.l (a0),a5
 	move.w #$FF28,d0 ; fill in unit-dependent info (filesys_dev_storeinfo)
@@ -1246,6 +1285,21 @@ addfsonthefly ; d1 = fs index
 	movem.l (sp)+,d2-d7/a2-a6
 	rts
 
+clockreset:
+	move.w #$ff58,d0 ; fsmisc_helper
+	bsr.w getrtbase
+	moveq #3,d0 ; get time
+	jsr (a0)
+	move.l 168(a3),a1
+	move.l d0,32(a1)
+	beq.s .cr
+	moveq #0,d0
+	move.l d0,36(a1)
+	move.w #11,28(a1) ;TR_SETSYSTIME
+	move.b #1,30(a1) ;IOF_QUICK
+	jsr -$01c8(a6) ;DoIO
+.cr	rts
+
 filesys_mainloop:
 	move.l 4.w,a6
 	sub.l a1,a1
@@ -1271,6 +1325,7 @@ filesys_mainloop:
 	; 164: input.device ioreq (disk inserted/removed input message)
 	; 168: timer.device ioreq
 	; 172: disk change from host
+	; 173: clock reset
 	; 176: my task
 	; 180: device node
 	move.l #12+20+(80+44+1)+(1+3)+4+4+4+(1+3)+4+4,d0
@@ -1347,7 +1402,14 @@ FSML_loop:
 	bset #13,d0 ; SIGBREAK_CTRL_D
 	jsr -$013e(a6) ;Wait
 .msg
-	; SIGBREAK_CTRL_D = disk change notification from native code
+	; SIGBREAK_CTRL_D checks
+	; clock reset
+	tst.b 173(a3)
+	beq.s .noclk
+	bsr.w clockreset
+	clr.b 173(a3)
+.noclk
+	; disk change notification from native code
 	tst.b 172(a3)
 	beq.s .nodc
 	; call filesys_media_change_reply (pre)
@@ -1542,12 +1604,6 @@ LKCK_ret:
 	move.l (a7)+,d5
 	rts
 
-getrtbase:
-	lea start-8-4(pc),a0
-	and.l #$FFFF,d0
-	add.l d0,a0
-	rts
-
 ; mouse hack
 
 newlist:
@@ -1688,32 +1744,30 @@ mhdoio:
 	jsr -$01c8(a6) ;DoIO
 	rts
 
-; these shouldn't be here but it is easier this way..
-
-mh_e: dc.w 0
-mh_cnt: dc.w -1
-mh_maxx: dc.w 0
-mh_maxy: dc.w 0
-mh_maxz: dc.w 0
-mh_x: dc.w 0
-mh_y: dc.w 0
-mh_z: dc.w 0
-mh_resx: dc.w 0
-mh_resy: dc.w 0
-mh_maxax: dc.w 0
-mh_maxay: dc.w 0
-mh_maxaz: dc.w 0
-mh_ax: dc.w 0
-mh_ay: dc.w 0
-mh_az: dc.w 0
-mh_pressure: dc.w 0
-mh_buttonbits: dc.l 0
-mh_inproximity: dc.w 0
-mh_absx: dc.w 0
-mh_absy: dc.w 0
+MH_E = 0
+MH_CNT = 2
+MH_MAXX = 4
+MH_MAXY = 6
+MH_MAXZ = 8
+MH_X = 10
+MH_Y = 12
+MH_Z = 14
+MH_RESX = 16
+MH_RESY = 18
+MH_MAXAX = 20
+MH_MAXAY = 22
+MH_MAXAZ = 24
+MH_AX = 26
+MH_AY = 28
+MH_AZ = 30
+MH_PRESSURE = 32
+MH_BUTTONBITS = 34
+MH_INPROXIMITY = 38
+MH_ABSX = 40
+MH_ABSY = 42
+MH_DATA_SIZE = 44
 
 MH_INT = 0
-
 MH_FOO = (MH_INT+22)
 MH_FOO_CNT = 0
 MH_FOO_BUTTONS = 4
@@ -1742,7 +1796,8 @@ MH_IEPT = (MH_IEH+22) ;IEPointerTable/IENewTablet
 MH_IENTTAGS = (MH_IEPT+32) ;space for ient_TagList
 MH_IO = (MH_IENTTAGS+16*4*2)
 MH_TM = (MH_IO+4)
-MH_END = (MH_TM+4)
+MH_DATA = (MH_TM+4)
+MH_END = (MH_DATA+MH_DATA_SIZE)
 
 MH_MOUSEHACK = 0
 MH_TABLET = 1
@@ -1858,7 +1913,7 @@ getgfxlimits:
 mousehack_task:
 	move.l 4.w,a6
 
-	move.w 20(a6),d7
+	move.w 20(a6),d7 ; KS version
 
 	moveq #-1,d0
 	jsr -$014a(a6) ;AllocSignal
@@ -1885,6 +1940,14 @@ mousehack_task:
 	move.l d6,MH_FOO_MASK(a3)
 	moveq #-1,d0
 	move.w d0,MH_FOO_CNT(a3)
+
+    ; send data structure address
+	move.w #$FF38,d0
+	moveq #5,d1
+	bsr.w getrtbase
+	move.l a5,d0
+	add.l #MH_DATA,d0
+	jsr (a0)
 
 	lea MH_INT(a5),a1
 	move.b #2,8(a1) ;NT_INTERRUPT
@@ -1992,7 +2055,7 @@ mhloop
 	move.l #22,36(a1) ;sizeof(struct InputEvent)
 	move.l a2,40(a1)
 
-	move.b mh_e(pc),d0
+	move.b MH_E+MH_DATA(a5),d0
 	cmp.w #39,d7
 	bcs.w .notablet
 	btst #MH_TABLET,d0
@@ -2007,85 +2070,78 @@ mhloop
 	move.b #3,5(a2) ;ie_SubClass = IESUBCLASS_NEWTABLET
 	clr.l (a0) ;ient_CallBack
 	clr.l 4(a0)
-	clr.w 6(a2) ;ie_Code
 	clr.l 8(a0)
 	clr.w 12(a0)
 
-	;IEQUALIFIER_MIDBUTTON=0x1000/IEQUALIFIER_RBUTTON=0x2000/IEQUALIFIER_LEFTBUTTON=0x4000
-	move.l mh_buttonbits(pc),d1
-	and.w #7,d1
-	moveq #7,d0
-	sub.w d1,d0
-	lsl.w #8,d0
-	lsl.w #4,d0
-	move.w d0,8(a2) ;ie_Qualifier
+	clr.w 6(a2) ;ie_Code
+	bsr.w buttonstoqual
 
-	move.w mh_x(pc),12+2(a0) ;ient_TabletX
+	move.w MH_X+MH_DATA(a5),12+2(a0) ;ient_TabletX
 	clr.w 16(a0)
-	move.w mh_y(pc),16+2(a0) ;ient_TabletY
+	move.w MH_Y++MH_DATA(a5),16+2(a0) ;ient_TabletY
 	clr.w 20(a0)
-	move.w mh_maxx(pc),20+2(a0) ;ient_RangeX
+	move.w MH_MAXX+MH_DATA(a5),20+2(a0) ;ient_RangeX
 	clr.w 24(a0)
-	move.w mh_maxy(pc),24+2(a0) ;ient_RangeY
+	move.w MH_MAXY+MH_DATA(a5),24+2(a0) ;ient_RangeY
 	lea MH_IENTTAGS(a5),a1
 	move.l a1,28(a0) ;ient_TagList
 	move.l #TABLETA_Pressure,(a1)+
-	move.w mh_pressure(pc),d0
+	move.w MH_PRESSURE+MH_DATA(a5),d0
 	ext.l d0
 	asl.l #8,d0
 	move.l d0,(a1)+
 	move.l #TABLETA_ButtonBits,(a1)+
-	move.l mh_buttonbits(pc),(a1)+
+	move.l MH_BUTTONBITS+MH_DATA(a5),(a1)+
 	
 	moveq #0,d0
 
-	move.w mh_resx(pc),d0
+	move.w MH_RESX+MH_DATA(a5),d0
 	bmi.s .noresx
 	move.l #TABLETA_ResolutionX,(a1)+
 	move.l d0,(a1)+
 .noresx
-	move.w mh_resy(pc),d0
+	move.w MH_RESY+MH_DATA(a5),d0
 	bmi.s .noresy
 	move.l #TABLETA_ResolutionY,(a1)+
 	move.l d0,(a1)+
 .noresy
 
-	move.w mh_maxz(pc),d0
+	move.w MH_MAXZ+MH_DATA(a5),d0
 	bmi.s .noz
 	move.l #TABLETA_RangeZ,(a1)+
 	move.l d0,(a1)+
-	move.w mh_z(pc),d0
+	move.w MH_Z+MH_DATA(a5),d0
 	move.l #TABLETA_TabletZ,(a1)+
 	move.l d0,(a1)+
 .noz
 
-	move.w mh_maxax(pc),d0
+	move.w MH_MAXAX+MH_DATA(a5),d0
 	bmi.s .noax
 	move.l #TABLETA_AngleX,(a1)+
-	move.w mh_ax(pc),d0
+	move.w MH_AX+MH_DATA(a5),d0
 	ext.l d0
 	asl.l #8,d0
 	move.l d0,(a1)+
 .noax
-	move.w mh_maxay(pc),d0
+	move.w MH_MAXAY++MH_DATA(a5),d0
 	bmi.s .noay
 	move.l #TABLETA_AngleY,(a1)+
-	move.w mh_ay(pc),d0
+	move.w MH_AY+MH_DATA(a5),d0
 	ext.l d0
 	asl.l #8,d0
 	move.l d0,(a1)+
 .noay
-	move.w mh_maxaz(pc),d0
+	move.w MH_MAXAZ++MH_DATA(a5),d0
 	bmi.s .noaz
 	move.l #TABLETA_AngleZ,(a1)+
-	move.w mh_az(pc),d0
+	move.w MH_AZ+MH_DATA(a5),d0
 	ext.l d0
 	asl.l #8,d0
 	move.l d0,(a1)+
 .noaz
 	
 	moveq #0,d0
-	move.w mh_inproximity(pc),d0
+	move.w MH_INPROXIMITY+MH_DATA(a5),d0
 	bmi.s .noproxi
 	move.l #TABLETA_InProximity,(a1)+
 	move.l d0,(a1)+
@@ -2097,7 +2153,7 @@ mhloop
 	;create mouse button events if button state changed
 	move.w #$68,d3 ;IECODE_LBUTTON->IECODE_RBUTTON->IECODE_MBUTTON
 	moveq #1,d2
-	move.l mh_buttonbits(pc),d4
+	move.l MH_BUTTONBITS+MH_DATA(a5),d4
 .nextbut
 	move.l d4,d0
 	and.l d2,d0
@@ -2128,18 +2184,18 @@ mhloop
 
 .notablet
 
-	move.b mh_e(pc),d0
+	move.b MH_E+MH_DATA(a5),d0
 	btst #MH_MOUSEHACK,d0
 	beq.w mhloop
 
 	clr.l (a2)
 	move.w #$0400,4(a2) ;IECLASS_POINTERPOS
 	clr.w 6(a2) ;ie_Code
-	clr.w 8(a2) ;ie_Qualifier
+	bsr.w buttonstoqual
 
 	move.l MH_FOO_INTBASE(a3),a0
 
-	move.w mh_absx(pc),d0
+	move.w MH_ABSX+MH_DATA(a5),d0
 	move.w 34+14(a0),d1
 	add.w d1,d1
 	sub.w d1,d0
@@ -2148,7 +2204,7 @@ mhloop
 .xn
 	move.w d0,10(a2)
 
-	move.w mh_absy(pc),d0
+	move.w MH_ABSY+MH_DATA(a5),d0
 	move.w 34+12(a0),d1
 	add.w d1,d1
 	sub.w d1,d0
@@ -2164,12 +2220,31 @@ mhloop
 mhend
 	rts
 
+buttonstoqual:
+	;IEQUALIFIER_MIDBUTTON=0x1000/IEQUALIFIER_RBUTTON=0x2000/IEQUALIFIER_LEFTBUTTON=0x4000
+	move.l MH_BUTTONBITS+MH_DATA(a5),d1
+	moveq #0,d0
+	btst #0,d1
+	beq.s .btq1
+	bset #14,d0
+.btq1:
+	btst #1,d1
+	beq.s .btq2
+	bset #13,d0
+.btq2:
+	btst #2,d1
+	beq.s .btq3
+	bset #12,d0
+.btq3:
+	move.w d0,8(a2) ;ie_Qualifier
+	rts
+
 mousehackint:
 	tst.l MH_IO(a1)
 	beq.s .l1
 	tst.l MH_TM(a1)
 	beq.s .l1
-	move.w mh_cnt(pc),d0
+	move.w MH_CNT+MH_DATA(a1),d0
 	cmp.w MH_FOO+MH_FOO_CNT(a1),d0
 	beq.s .l2
 	move.w d0,MH_FOO+MH_FOO_CNT(a1)
@@ -2611,7 +2686,11 @@ chook:
 	movem.l (sp)+,d0-d1/a0
 	rts
 
-
+getrtbase:
+	lea start-8-4(pc),a0
+	and.l #$FFFF,d0
+	add.l d0,a0
+	rts
 
 inp_dev: dc.b 'input.device',0
 tim_dev: dc.b 'timer.device',0
@@ -2625,6 +2704,7 @@ clip_dev: dc.b 'clipboard.device',0
 pointer_prefs: dc.b 'RAM:Env/Sys/Pointer.prefs',0
 clname: dc.b 'UAE clipboard sharing',0
 mhname: dc.b 'UAE mouse driver',0
+kaname: dc.b 'UAE heart beat',0
 exter_name: dc.b 'UAE filesystem',0
 fstaskname: dc.b 'UAE fs automounter',0
 fsprocname: dc.b 'UAE fs automount process',0

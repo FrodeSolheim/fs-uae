@@ -19,15 +19,13 @@
 #define LANG_DLL 1
 
 //#define WINUAEBETA _T("")
-#define WINUAEBETA _T("2")
-#define WINUAEDATE MAKEBD(2012, 5, 18)
+#define WINUAEBETA _T("21")
+#define WINUAEDATE MAKEBD(2012, 10, 21)
 #define WINUAEEXTRA _T("")
 //#define WINUAEEXTRA _T("AmiKit Preview")
 #define WINUAEREV _T("")
 
 #define IHF_WINDOWHIDDEN 6
-#define NORMAL_WINDOW_STYLE (WS_BORDER | WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU | WS_SIZEBOX)
-
 #define WINUAEAPPNAME _T("Arabuusimiehet.WinUAE")
 extern HMODULE hUIDLL;
 extern HWND hAmigaWnd, hMainWnd, hHiddenWnd, hGUIWnd;
@@ -36,7 +34,8 @@ extern int in_sizemove;
 extern int manual_painting_needed;
 extern int manual_palette_refresh_needed;
 extern int mouseactive;
-extern int ignore_messages_all;
+extern int minimized;
+extern int monitor_off;
 extern void *globalipc, *serialipc;
 
 extern TCHAR start_path_exe[MAX_DPATH];
@@ -59,6 +58,7 @@ extern void remove_brkhandler (void);
 extern void disablecapture (void);
 extern void fullscreentoggle (void);
 extern int isfocus (void);
+extern void gui_restart (void);
 
 extern void setmouseactive (int active);
 extern void minimizewindow (void);
@@ -66,6 +66,8 @@ extern uae_u32 OSDEP_minimize_uae (void);
 
 extern void resumepaused (int priority);
 extern void setpaused (int priority);
+extern void unsetminimized (void);
+extern void setminimized (void);
 
 void finishjob (void);
 void init_colors (void);
@@ -73,7 +75,6 @@ void init_colors (void);
 extern int pause_emulation;
 extern int sound_available;
 extern int framecnt;
-extern TCHAR prtname[];
 extern TCHAR VersionStr[256];
 extern TCHAR BetaStr[64];
 extern int os_winnt_admin, os_64bit, os_vista, os_winxp, os_win7, cpu_number;
@@ -89,6 +90,9 @@ extern int win_x_diff, win_y_diff;
 extern int window_extra_width, window_extra_height;
 extern int af_path_2005;
 extern TCHAR start_path_new1[MAX_DPATH], start_path_new2[MAX_DPATH];
+extern TCHAR bootlogpath[MAX_DPATH];
+extern TCHAR logpath[MAX_DPATH];
+extern bool winuaelog_temporary_enable;
 enum pathtype { PATH_TYPE_DEFAULT, PATH_TYPE_WINUAE, PATH_TYPE_NEWWINUAE, PATH_TYPE_NEWAF, PATH_TYPE_AMIGAFOREVERDATA, PATH_TYPE_END };
 void setpathmode (pathtype pt);
 
@@ -192,5 +196,9 @@ struct assext {
 };
 struct assext exts[];
 void associate_file_extensions (void);
+
+#define PATHPREFIX _T("\\\\?\\")
+DWORD GetFileAttributesSafe (const TCHAR *name);
+BOOL SetFileAttributesSafe (const TCHAR *name, DWORD attr);
 
 #endif

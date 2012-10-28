@@ -1,3 +1,12 @@
+Version 2.1.0:
+* Merged updated emulation core from WinUAE 2.5.0beta21.
+* FS-UAE mman updated to work more like the WinUAE implementation.
+* Ejecting CD images works now, enabled menu option.
+* Added auto-fire toggle mechanism to F12 menu.
+* Auto-fire support, new boolean options joystick_port_x_autofire.
+* Added support for Amiga mouse wheel and middle mouse button.
+* (Launcher) Added button to configure auto-fire per joystick port.
+
 Version 2.0.1:
 * Removed redundant lag display from net play hud.
 * Updated translations: pl [grimi].

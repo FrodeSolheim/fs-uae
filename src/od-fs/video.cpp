@@ -117,6 +117,10 @@ void uae_line_update(int line, int update) {
 }
 #endif
 
+void frame_drawn(void) {
+
+}
+
 void flush_screen (struct vidbuffer *buffer, int first_line, int last_line) {
     //write_log("flush_screen\n");
     g_has_flushed_screen = 1;
@@ -130,7 +134,7 @@ bool render_screen (bool immediate) {
     int flushed = g_has_flushed_line || g_has_flushed_block ||
             g_has_flushed_screen;
 
-    static int cx, cy, cw, ch;
+    static int cx, cy, cw, ch, crealh;
     //printf("g_picasso_enabled %d\n", g_picasso_enabled);
     if (g_picasso_enabled) {
         libamiga_rd.width = g_picasso_width;
@@ -153,7 +157,8 @@ bool render_screen (bool immediate) {
             // if gfxvidinfo.outbuffer is not set, get_custom_limits will
             // crash
             if (flushed) {
-                get_custom_limits(&cw, &ch, &cx, &cy);
+                get_custom_limits(&cw, &ch, &cx, &cy, &crealh);
+                // FIXME: crealh is new - find out what it does
             }
             else {
                 // reuse last custom limits

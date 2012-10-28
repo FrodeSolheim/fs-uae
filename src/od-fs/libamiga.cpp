@@ -297,7 +297,7 @@ int amiga_pause(int pause) {
 }
 
 int amiga_reset(int hard) {
-    uae_reset(hard);
+    uae_reset(hard, 1);
     return hard;
 }
 
@@ -340,12 +340,15 @@ int amiga_floppy_get_drive_type(int index) {
 }
 
 int amiga_get_num_cdrom_drives() {
+    // FIXME: this is a bit of a hack, if CD devices / SCSI system
+    // has not been enabled, it seems type is 0 in all slots, which
+    // is why we return 0 at the end of the function.
     for (int i = 0; i < MAX_TOTAL_SCSI_DEVICES; i++) {
-        if (currprefs.cdslots[i].inuse == 0) {
+        if (currprefs.cdslots[i].type != 0) {
             return i;
         }
     }
-    return MAX_TOTAL_SCSI_DEVICES;
+    return 0;
 }
 
 int amiga_get_num_floppy_drives() {

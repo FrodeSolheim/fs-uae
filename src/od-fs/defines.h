@@ -18,8 +18,9 @@
 
 #include "uae_host.h"
 
-#define STUB(format, ...) write_log(" -- stub -- %s " format "\n", \
-        __func__, ##__VA_ARGS__)
+#define STUB(format, ...) { write_log(" -- stub -- %s " format "\n", \
+        __func__, ##__VA_ARGS__); \
+        printf(" -- stub -- %s " format "\n", __func__, ##__VA_ARGS__); }
 
 #define VERBOSE_STUB(format, ...)
 
@@ -83,6 +84,7 @@ extern FILE *g_fs_uae_sync_debug_file;
 #define CPUEMU_12
 #define CPUEMU_20
 #define CPUEMU_21
+#define CPUEMU_22
 #define CPUEMU_31
 //#define DEBUGGER
 #define DRIVESOUND

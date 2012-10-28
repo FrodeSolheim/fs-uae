@@ -138,13 +138,15 @@ void fs_emu_set_keyboard_translation(fs_emu_key_translation *keymap) {
 }
 
 void fs_emu_configure_mouse(int horiz, int vert, int left, int middle,
-        int right) {
+        int right, int wheel_axis) {
     fs_log("fs_emu_configure_mouse\n");
     g_input_action_table[mouse_index(1, 0, 0)] = horiz;
     g_input_action_table[mouse_index(0, 1, 0)] = vert;
     g_input_action_table[mouse_index(0, 0, SDL_BUTTON_LEFT)] = left;
     g_input_action_table[mouse_index(0, 0, SDL_BUTTON_MIDDLE)] = middle;
     g_input_action_table[mouse_index(0, 0, SDL_BUTTON_RIGHT)] = right;
+    g_input_action_table[mouse_index(0, 0, SDL_BUTTON_WHEELUP)] = wheel_axis;
+    g_input_action_table[mouse_index(0, 0, SDL_BUTTON_WHEELDOWN)] = wheel_axis;
 }
 
 typedef struct input_config_item {
@@ -1386,12 +1388,21 @@ static int input_function(fs_ml_event *event) {
                 }
             }
         }
+
+        int state = event->button.state;
+        if (event->button.button == SDL_BUTTON_WHEELUP) {
+            state = state * 1;
+        }
+        else if (event->button.button == SDL_BUTTON_WHEELDOWN) {
+            state = state * -1;
+        }
         int input_event = g_input_action_table[mouse_index(
                 0, 0, event->button.button)];
-        //printf("mouse button %d\n", event->button.button);
+        //printf("mouse button %d, %d\n", event->button.button, state);
         //printf("button input_event %d\n", input_event);
         if (input_event > 0) {
-            input_event = input_event | (event->button.state << 16);
+            input_event = input_event | (state << 16);
+            input_event = input_event & 0x00ffffff;
             fs_emu_queue_input_event(input_event);
         }
     }

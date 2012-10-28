@@ -29,7 +29,7 @@
 
 #include "sysdeps.h"
 
-#include "resource"
+#include "resource.h"
 
 #include "options.h"
 #include "parser.h"
@@ -48,7 +48,7 @@
 //on my system it work ok with 10 but who
 //know when windows rest for a while
 //with sysex size of 40 win can 8 sec sleep
-#define	INBUFFLEN 18000	      //if this is not enough a warning come
+#define	INBUFFLEN 120000 //if this is not enough a warning come
 int midi_inbuflen = INBUFFLEN;
 
 static int overflow,only_one_time;
@@ -159,7 +159,7 @@ static void MidiOut_Free(void)
 
 	for(i = 0; i < out_allocated; i++) {
 		if(outbuffer[i])  {
-			free(outbuffer[i]);
+			xfree(outbuffer[i]);
 			outbufferlength[i] = 0;
 			outbuffer[i] = NULL;
 		}
@@ -417,6 +417,16 @@ int Midi_Parse(midi_direction_e direction, BYTE *dataptr)
 	return result;
 }
 
+static void putmidibytes(uae_u8 *data, int len)
+{
+	if (!currprefs.win32_midirouter || !midi_ready)
+		return;
+	for (int i = 0; i < len; i++) {
+		BYTE b = data[i];
+		Midi_Parse(midi_output, &b);
+	}
+}
+
 /*
 * FUNCTION:   MidiIn support and Callback function
 *
@@ -435,7 +445,9 @@ static void add1byte(DWORD_PTR w) //put 1 Byte to Midibuffer
 		TRACE((_T("add1byte buffer full %d %d (%02X)\n"), midi_inlast, midi_inptr, w));
 		return;
 	}
-	midibuf[midi_inlast++] = (uae_u8)w;
+	midibuf[midi_inlast] = (uae_u8)w;
+	putmidibytes (&midibuf[midi_inlast], 1);
+	midi_inlast++;
 }
 static void add2byte(DWORD_PTR w) //put 2 Byte to Midibuffer
 {
@@ -443,9 +455,11 @@ static void add2byte(DWORD_PTR w) //put 2 Byte to Midibuffer
 		TRACE((_T("add2byte buffer full %d %d (%04X)\n"), midi_inlast, midi_inptr, w));
 		return;
 	}
-	midibuf[midi_inlast++] = (uae_u8)w;
+	midibuf[midi_inlast+0] = (uae_u8)w;
 	w = w >> 8;
-	midibuf[midi_inlast++] = (uae_u8)w;
+	midibuf[midi_inlast+1] = (uae_u8)w;
+	putmidibytes (&midibuf[midi_inlast], 2);
+	midi_inlast+=2;
 }
 static void add3byte(DWORD_PTR w) //put 3 Byte to Midibuffer
 {
@@ -453,11 +467,13 @@ static void add3byte(DWORD_PTR w) //put 3 Byte to Midibuffer
 		TRACE((_T("add3byte buffer full %d %d (%08X)\n"), midi_inlast, midi_inptr, w));
 		return;
 	}
-	midibuf[midi_inlast++] = (uae_u8)w;
+	midibuf[midi_inlast+0] = (uae_u8)w;
 	w = w >> 8;
-	midibuf[midi_inlast++] = (uae_u8)w;
+	midibuf[midi_inlast+1] = (uae_u8)w;
 	w = w >> 8;
-	midibuf[midi_inlast++] = (uae_u8)w;
+	midibuf[midi_inlast+2] = (uae_u8)w;
+	putmidibytes (&midibuf[midi_inlast], 3);
+	midi_inlast+=3;
 }
 
 int ismidibyte(void)
@@ -523,6 +539,7 @@ static void CALLBACK MidiInProc(HMIDIIN hMidiIn,UINT wMsg,DWORD_PTR dwInstance,D
 			goto end;
 		}
 		memcpy(&midibuf[midi_inlast], midiin->lpData, midiin->dwBytesRecorded);
+		putmidibytes(&midibuf[midi_inlast], midiin->dwBytesRecorded);
 		midi_inlast = midi_inlast + midiin->dwBytesRecorded;
 	}
 

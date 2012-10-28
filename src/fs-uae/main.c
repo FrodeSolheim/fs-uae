@@ -45,6 +45,12 @@ int event_handler_loop(void) {
             }
         }
         else {
+            if (action >= INPUTEVENT_AMIGA_JOYPORT_0_AUTOFIRE &&
+                    action <= INPUTEVENT_AMIGA_JOYPORT_3_AUTOFIRE) {
+                int port = action - INPUTEVENT_AMIGA_JOYPORT_0_AUTOFIRE;
+                g_fs_uae_input_ports[port].autofire_mode = state;
+                fs_emu_update_current_menu();
+            }
             amiga_send_input_event(action, state);
         }
     }

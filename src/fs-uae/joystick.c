@@ -81,12 +81,14 @@ static void map_mouse(int port) {
     if (port == 0) {
         fs_emu_configure_mouse(INPUTEVENT_MOUSE1_HORIZ,
                 INPUTEVENT_MOUSE1_VERT, INPUTEVENT_JOY1_FIRE_BUTTON,
-                0, INPUTEVENT_JOY1_2ND_BUTTON);
+                INPUTEVENT_JOY1_3RD_BUTTON, INPUTEVENT_JOY1_2ND_BUTTON,
+                INPUTEVENT_MOUSE1_WHEEL);
     }
     else if (port == 1) {
         fs_emu_configure_mouse(INPUTEVENT_MOUSE2_HORIZ,
                 INPUTEVENT_MOUSE2_VERT, INPUTEVENT_JOY2_FIRE_BUTTON,
-                0, INPUTEVENT_JOY2_2ND_BUTTON);
+                INPUTEVENT_JOY2_3RD_BUTTON, INPUTEVENT_JOY2_2ND_BUTTON,
+                0);
     }
     else {
         fs_log("WARNING: cannot map mouse to this port\n");
@@ -180,6 +182,12 @@ static void configure_joystick_port(int port, const gchar *value,
         }
         g_free(mode_lower);
     }
+
+    key = fs_strdup_printf("joystick_port_%d_autofire", port);
+    if (fs_config_get_boolean(key) == 1) {
+        p->new_autofire_mode = 1;
+    }
+    free(key);
 }
 
 void fs_uae_configure_input() {
@@ -218,17 +226,6 @@ void fs_uae_configure_input() {
     free(value);
 
     fs_uae_configure_actions();
-
-    /*
-    for (int i = 0; i < FS_UAE_NUM_INPUT_PORTS; i++) {
-        g_fs_uae_input_ports[i].mode = g_fs_uae_input_ports[i].new_mode;
-    }
-    fs_uae_reconfigure_input_ports_host();
-    */
-
-    //fs_emu_reset_input_mapping();
-    //fs_uae_map_keyboard();
-    //fs_uae_reconfigure_input_ports_amiga();
 }
 
 void fs_uae_reconfigure_input_ports_amiga() {
@@ -241,6 +238,11 @@ void fs_uae_reconfigure_input_ports_amiga() {
         int action = INPUTEVENT_AMIGA_JOYPORT_MODE_0_NONE + modes * i + \
                 port->new_mode;
         fs_emu_queue_action(action, 1);
+
+        fs_log("sending event to set port %d to autofire mode %d\n", i,
+                port->new_autofire_mode);
+        action = INPUTEVENT_AMIGA_JOYPORT_0_AUTOFIRE + i;
+        fs_emu_queue_action(action, port->new_autofire_mode);
     }
 }
 

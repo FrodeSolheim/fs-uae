@@ -180,3 +180,7 @@ int machdep_parse_option (struct uae_prefs *p, const char *option, const char *v
 void machdep_default_options (struct uae_prefs *p) {
     STUB("");
 }
+
+void target_restart (void) {
+    STUB("");
+}

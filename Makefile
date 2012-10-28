@@ -159,6 +159,7 @@ obj/gen-cpuemu_11.o \
 obj/gen-cpuemu_12.o \
 obj/gen-cpuemu_20.o \
 obj/gen-cpuemu_21.o \
+obj/gen-cpuemu_22.o \
 obj/gen-cpuemu_31.o \
 obj/gen-cpustbl.o \
 obj/a2091.o \
@@ -217,7 +218,6 @@ obj/rommgr.o \
 obj/savestate.o \
 obj/scsi.o \
 obj/scsiemul.o \
-obj/sinctable.o \
 obj/specialmonitors.o \
 obj/statusline.o \
 obj/traps.o \

@@ -18,6 +18,7 @@
 #include "crc32.h"
 #include "threaddep/thread.h"
 #include "execio.h"
+#include "zfile.h"
 #ifdef RETROPLATFORM
 #include "rp.h"
 #endif
@@ -41,7 +42,7 @@ static uae_u8 play_qcode[MAX_TOTAL_SCSI_DEVICES][SUBQ_SIZE];
 static TCHAR newimagefiles[MAX_TOTAL_SCSI_DEVICES][256];
 static int imagechangetime[MAX_TOTAL_SCSI_DEVICES];
 static bool cdimagefileinuse[MAX_TOTAL_SCSI_DEVICES];
-static bool wasopen[MAX_TOTAL_SCSI_DEVICES];
+static int wasopen[MAX_TOTAL_SCSI_DEVICES];
 
 /* convert minutes, seconds and frames -> logical sector number */
 int msf2lsn (int msf)
@@ -113,7 +114,6 @@ static int cdscsidevicetype[MAX_TOTAL_SCSI_DEVICES];
 
 #include "od-win32/win32.h"
 
-extern struct device_functions devicefunc_win32_aspi;
 extern struct device_functions devicefunc_win32_spti;
 extern struct device_functions devicefunc_win32_ioctl;
 
@@ -127,7 +127,6 @@ static struct device_functions *devicetable[] = {
 #ifdef _WIN32
 	&devicefunc_win32_ioctl,
 	&devicefunc_win32_spti,
-	&devicefunc_win32_aspi,
 #endif
 	NULL
 };
@@ -163,9 +162,6 @@ static void install_driver (int flags)
 				} else {
 					device_func[i] = devicetable[SCSI_UNIT_SPTI];
 				}
-				break;
-				case SCSI_UNIT_ASPI:
-				device_func[i] = devicetable[SCSI_UNIT_ASPI];
 				break;
 			}
 		}
@@ -204,15 +200,6 @@ void blkdev_fix_prefs (struct uae_prefs *p)
 			p->cdslots[i].inuse = true;
 	}
 
-	// blkdev_win32_aspi.cpp does not support multi units
-	if (currprefs.win32_uaescsimode >= UAESCSI_ASPI_FIRST) {
-		for (int i = 0; i < MAX_TOTAL_SCSI_DEVICES; i++) {
-			if (cdscsidevicetype[i] != SCSI_UNIT_DISABLED)
-				cdscsidevicetype[i] = SCSI_UNIT_ASPI;
-		}
-		return;
-	}
-
 	for (int i = 0; i < MAX_TOTAL_SCSI_DEVICES; i++) {
 		if (cdscsidevicetype[i] != SCSI_UNIT_DEFAULT)
 			continue;
@@ -229,8 +216,6 @@ void blkdev_fix_prefs (struct uae_prefs *p)
 		} else if (currprefs.scsi) {
 			if (currprefs.win32_uaescsimode == UAESCSI_CDEMU)
 				cdscsidevicetype[i] = SCSI_UNIT_IOCTL;
-			else if (currprefs.win32_uaescsimode >= UAESCSI_ASPI_FIRST)
-				cdscsidevicetype[i] = SCSI_UNIT_ASPI;
 			else
 				cdscsidevicetype[i] = SCSI_UNIT_SPTI;
 		} else {
@@ -453,7 +438,7 @@ void blkdev_cd_change (int unitnum, const TCHAR *name)
 void device_func_reset (void)
 {
 	for (int i = 0; i < MAX_TOTAL_SCSI_DEVICES; i++) {
-		wasopen[i] = false;
+		wasopen[i] = 0;
 		waspaused[i] = false;
 		imagechangetime[i] = 0;
 		cdimagefileinuse[i] = false;
@@ -492,6 +477,13 @@ void blkdev_exitgui (void)
 	}
 }
 
+void check_prefs_changed_cd (void)
+{
+	if (!config_changed)
+		return;
+	currprefs.sound_volume_cd = changed_prefs.sound_volume_cd;
+}
+
 static void check_changes (int unitnum)
 {
 	bool changed = false;
@@ -513,6 +505,7 @@ static void check_changes (int unitnum)
 		changed = true;
 
 	if (changed) {
+		bool wasimage = currprefs.cdslots[unitnum].name[0] != 0;
 		if (unitsem[unitnum])
 			gotsem = getsem (unitnum, true);
 		cdimagefileinuse[unitnum] = changed_prefs.cdslots[unitnum].inuse;
@@ -523,14 +516,19 @@ static void check_changes (int unitnum)
 		imagechangetime[unitnum] = 3 * 50;
 		struct device_info di;
 		device_func[unitnum]->info (unitnum, &di, 0);
-		wasopen[unitnum] = di.open;
+		if (wasopen[unitnum] >= 0)
+			wasopen[unitnum] = di.open ? 1 : 0;
 		if (wasopen[unitnum]) {
 			device_func[unitnum]->closedev (unitnum);
+			wasopen[unitnum] = -1;
 			if (currprefs.scsi)  {
 				scsi_do_disk_change (unitnum, 0, &pollmode);
 				if (pollmode)
 					imagechangetime[unitnum] = 8 * 50;
-				filesys_do_disk_change (unitnum, 0);
+				if (filesys_do_disk_change (unitnum, 0)) {
+					imagechangetime[unitnum] = newimagefiles[unitnum][0] ? 3 * 50 : 0;
+					pollmode = 0;
+				}
 			}
 		}
 		write_log (_T("CD: eject (%s) open=%d\n"), pollmode ? _T("slow") : _T("fast"), wasopen[unitnum] ? 1 : 0);
@@ -560,6 +558,7 @@ static void check_changes (int unitnum)
 			write_log (_T("-> device open failed\n"));
 			wasopen[unitnum] = 0;
 		} else {
+			wasopen[unitnum] = 1;
 			write_log (_T("-> device reopened\n"));
 		}
 	}
@@ -1838,8 +1837,10 @@ uae_u8 *restore_cd (int num, uae_u8 *src)
 	int type = restore_u32 ();
 	restore_u32 ();
 	if (flags & 4) {
-		_tcscpy (changed_prefs.cdslots[num].name, s);
-		_tcscpy (currprefs.cdslots[num].name, s);
+		if (currprefs.cdslots[num].name[0] == 0 || zfile_exists (s)) {
+			_tcscpy (changed_prefs.cdslots[num].name, s);
+			_tcscpy (currprefs.cdslots[num].name, s);
+		}
 		changed_prefs.cdslots[num].type = currprefs.cdslots[num].type = type;
 	}
 	if (flags & 8) {

@@ -19,13 +19,15 @@ typedef USHORT ushort;
 
 /* One shmid data structure for each shared memory segment in the system. */
 struct shmid_ds {
-    uae_key_t  key;
+    uae_key_t key;
     size_t size;
-    void   *addr;
-    TCHAR  name[MAX_PATH];
-    void   *attached;
-    int    mode;
-    void   *natmembase;
+    size_t rosize;
+    void  *addr;
+    TCHAR name[MAX_PATH];
+    void *attached;
+    int mode;
+    void *natmembase;
+    bool fake;
 };
 
 //int mprotect (void *addr, size_t len, int prot);
@@ -33,7 +35,7 @@ void *uae_shmat (int shmid, void *shmaddr, int shmflg);
 int uae_shmdt (const void *shmaddr);
 int uae_shmget (uae_key_t key, size_t size, int shmflg, const TCHAR* name);
 int uae_shmctl (int shmid, int cmd, struct shmid_ds *buf);
-int init_shm (void);
+bool init_shm (void);
 
 #define PROT_READ  0x01
 #define PROT_WRITE 0x02

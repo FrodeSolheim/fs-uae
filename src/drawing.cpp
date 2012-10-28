@@ -50,7 +50,7 @@ happening, all ports should restrict window widths to be multiples of 16 pixels.
 #include "inputdevice.h"
 #include "debug.h"
 
-extern bool emulate_specialmonitors(struct vidbuffer*, struct vidbuffer*);
+extern bool emulate_specialmonitors (struct vidbuffer*, struct vidbuffer*);
 
 extern int sprite_buffer_res;
 int lores_factor, lores_shift;
@@ -85,7 +85,7 @@ static int linedbl, linedbld;
 int interlace_seen = 0;
 #define AUTO_LORES_FRAMES 10
 static int can_use_lores = 0, frame_res, frame_res_lace, last_max_ypos;
-static uae_u16 bplcon0_store, bplcon3_store;
+static bool center_reset;
 
 /* Lookup tables for dual playfields.  The dblpf_*1 versions are for the case
 that playfield 1 has the priority, dbplpf_*2 are used if playfield 2 has
@@ -206,6 +206,7 @@ int thisframe_first_drawn_line, thisframe_last_drawn_line;
 interlace mode.  */
 static int last_redraw_point;
 
+#define MAX_STOP 30000
 static int first_drawn_line, last_drawn_line;
 static int first_block_line, last_block_line;
 
@@ -219,7 +220,7 @@ static int bplres;
 static int plf1pri, plf2pri, bplxor;
 static uae_u32 plf_sprite_mask;
 static int sbasecol[2] = { 16, 16 };
-static bool brdsprt, brdblank, brdblank_changed;
+static bool brdsprt, brdblank;
 static int hposblank;
 
 bool picasso_requested_on;
@@ -340,7 +341,7 @@ extern int lof_store;
 #define MAX_DISPLAY_W 362
 #define MAX_DISPLAY_H 283
 
-static int gclow, gcloh, gclox, gcloy;
+static int gclow, gcloh, gclox, gcloy, gclorealh;
 
 void get_custom_topedge (int *x, int *y)
 {
@@ -356,6 +357,7 @@ void get_custom_topedge (int *x, int *y)
 static void reset_custom_limits (void)
 {
 	gclow = gcloh = gclox = gcloy = 0;
+	gclorealh = -1;
 }
 
 void set_custom_limits (int w, int h, int dx, int dy)
@@ -367,14 +369,14 @@ void set_custom_limits (int w, int h, int dx, int dy)
 
 	if (w <= 0 || dx < 0) {
 		visible_left_start = 0;
-		visible_right_stop = 1 << 30;
+		visible_right_stop = MAX_STOP;
 	} else {
 		visible_left_start = visible_left_border + dx;
 		visible_right_stop = visible_left_start + w;
 	}
 	if (h <= 0 || dy < 0) {
 		visible_top_start = 0;
-		visible_bottom_stop = 1 << 30;
+		visible_bottom_stop = MAX_STOP;
 	} else {
 		visible_top_start = min_ypos_for_screen + dy;
 		visible_bottom_stop = visible_top_start + h;
@@ -384,7 +386,7 @@ void set_custom_limits (int w, int h, int dx, int dy)
 		notice_screen_contents_lost ();
 }
 
-int get_custom_limits (int *pw, int *ph, int *pdx, int *pdy)
+int get_custom_limits (int *pw, int *ph, int *pdx, int *pdy, int *prealh)
 {
 	int w, h, dx, dy, y1, y2, dbl1, dbl2;
 	int ret = 0;
@@ -399,6 +401,7 @@ int get_custom_limits (int *pw, int *ph, int *pdx, int *pdy)
 		*ph = gfxvidinfo.outbuffer->outheight;
 		*pdx = 0;
 		*pdy = 0;
+		*prealh = -1;
 		return 1;
 	}
 
@@ -406,6 +409,7 @@ int get_custom_limits (int *pw, int *ph, int *pdx, int *pdy)
 	*ph = gcloh;
 	*pdx = gclox;
 	*pdy = gcloy;
+	*prealh = gclorealh;
 
 	if (gclow > 0 && gcloh > 0)
 		ret = -1;
@@ -484,6 +488,15 @@ int get_custom_limits (int *pw, int *ph, int *pdx, int *pdy)
 	if (dx < 0)
 		dx = 0;
 
+	*prealh = -1;
+	if (!programmedmode && first_planes_vpos) {
+		int th = (maxvpos - minfirstline) * 95 / 100;
+		if (th > h) {
+			th = xshift (th, dbl1);
+			*prealh = th;
+		}
+	}
+
 	dy = xshift (dy, dbl2);
 	h = xshift (h, dbl1);
 
@@ -525,6 +538,7 @@ int get_custom_limits (int *pw, int *ph, int *pdx, int *pdy)
 	gcloh = h;
 	gclox = dx;
 	gcloy = dy;
+	gclorealh = *prealh;
 	*pw = w;
 	*ph = h;
 	*pdx = dx;
@@ -535,6 +549,7 @@ int get_custom_limits (int *pw, int *ph, int *pdx, int *pdy)
 		plffirstline_total, plflastline_total,
 		first_planes_vpos, last_planes_vpos, minfirstline);
 #endif
+	center_reset = true;
 	return 1;
 }
 
@@ -568,8 +583,8 @@ void get_custom_mouse_limits (int *pw, int *ph, int *pdx, int *pdy, int dbl)
 
 	delay1 = (firstword_bplcon1 & 0x0f) | ((firstword_bplcon1 & 0x0c00) >> 6);
 	delay2 = ((firstword_bplcon1 >> 4) & 0x0f) | (((firstword_bplcon1 >> 4) & 0x0c00) >> 6);
-	if (delay1 == delay2)
-		;//dx += delay1;
+//	if (delay1 == delay2)
+//		dx += delay1;
 
 	dx = xshift (dx, res_shift);
 
@@ -768,9 +783,10 @@ STATIC_INLINE xcolnr getbgc (bool blank)
 		return xcolors[0x00f];
 	else if (brdblank)
 		return xcolors[0x880];
+	//return colors_for_drawing.acolors[0];
 	return xcolors[0xf0f];
 #endif
-	return (blank || brdblank || hposblank) ? 0 : colors_for_drawing.acolors[0];
+	return (blank || hposblank || colors_for_drawing.borderblank) ? 0 : colors_for_drawing.acolors[0];
 }
 
 STATIC_INLINE void fill_line_16 (uae_u8 *buf, int start, int stop, bool blank)
@@ -1784,11 +1800,21 @@ static void pfield_doline (int lineno)
 
 void init_row_map (void)
 {
+	static uae_u8 *oldbufmem;
+	static int oldheight, oldpitch;
+
 	int i, j;
 	if (gfxvidinfo.drawbuffer.height_allocated > MAX_VIDHEIGHT) {
 		write_log (_T("Resolution too high, aborting\n"));
 		abort ();
 	}
+	if (oldbufmem && oldbufmem == gfxvidinfo.drawbuffer.bufmem &&
+		oldheight == gfxvidinfo.drawbuffer.height_allocated &&
+		oldpitch == gfxvidinfo.drawbuffer.rowbytes)
+		return;
+	oldbufmem = gfxvidinfo.drawbuffer.bufmem;
+	oldheight = gfxvidinfo.drawbuffer.height_allocated;
+	oldpitch = gfxvidinfo.drawbuffer.rowbytes;
 	j = 0;
 	for (i = gfxvidinfo.drawbuffer.height_allocated; i < MAX_VIDHEIGHT + 1; i++)
 		row_map[i] = row_tmp;
@@ -1856,6 +1882,11 @@ void init_aspect_maps (void)
 
 	gfxvidinfo.xchange = 1 << (RES_MAX - currprefs.gfx_resolution);
 	gfxvidinfo.ychange = linedbl ? 1 : 2;
+
+	visible_left_start = 0;
+	visible_right_stop = MAX_STOP;
+	visible_top_start = 0;
+	visible_bottom_stop = MAX_STOP;
 }
 
 /*
@@ -1969,16 +2000,6 @@ static bool isham (uae_u16 bplcon0)
 	return 0;
 }
 
-static void isbrdblank (void)
-{
-#ifdef ECS_DENISE
-	bool brdblank_2 = (currprefs.chipset_mask & CSMASK_ECS_DENISE) && (bplcon0_store & 1) && (bplcon3_store & 0x20);
-	if (brdblank_2 != brdblank)
-		brdblank_changed = true;
-	brdblank = brdblank_2;
-#endif
-}
-
 static void pfield_expand_dp_bplconx (int regno, int v)
 {
 	if (regno == 0xffff) {
@@ -1993,8 +2014,6 @@ static void pfield_expand_dp_bplconx (int regno, int v)
 		dp_for_drawing->bplres = GET_RES_DENISE (v);
 		dp_for_drawing->nr_planes = GET_PLANES (v);
 		dp_for_drawing->ham_seen = isham (v);
-		bplcon0_store = v;
-		isbrdblank ();
 		break;
 	case 0x104:
 		dp_for_drawing->bplcon2 = v;
@@ -2002,8 +2021,6 @@ static void pfield_expand_dp_bplconx (int regno, int v)
 #ifdef ECS_DENISE
 	case 0x106:
 		dp_for_drawing->bplcon3 = v;
-		bplcon3_store = v;
-		isbrdblank ();
 		break;
 #endif
 #ifdef AGA
@@ -2030,6 +2047,7 @@ static void adjust_drawing_colors (int ctable, int need_full)
 		} else {
 			memcpy (colors_for_drawing.acolors, curr_color_tables[ctable].acolors,
 				sizeof colors_for_drawing.acolors);
+			colors_for_drawing.borderblank = curr_color_tables[ctable].borderblank;
 			color_match_type = color_match_acolors;
 		}
 		drawing_color_matches = ctable;
@@ -2087,8 +2105,12 @@ static void do_color_changes (line_draw_func worker_border, line_draw_func worke
 		if (regno >= 0x1000) {
 			pfield_expand_dp_bplconx (regno, value);
 		} else if (regno >= 0) {
-			color_reg_set (&colors_for_drawing, regno, value);
-			colors_for_drawing.acolors[regno] = getxcolor (value);
+			if (regno == 0 && (value & COLOR_CHANGE_BRDBLANK)) {
+				colors_for_drawing.borderblank = (value & 1) != 0;
+			} else {
+				color_reg_set (&colors_for_drawing, regno, value);
+				colors_for_drawing.acolors[regno] = getxcolor (value);
+			}
 		}
 		if (lastpos >= endpos)
 			break;
@@ -2234,7 +2256,7 @@ static void pfield_draw_line (struct vidbuffer *vb, int lineno, int gfx_ypos, in
 			dosprites = 1;
 			pfield_expand_dp_bplcon ();
 			pfield_init_linetoscr ();
-			memset (pixdata.apixels + MAX_PIXELS_PER_LINE, brdblank ? 0 : colors_for_drawing.acolors[0], MAX_PIXELS_PER_LINE);
+			memset (pixdata.apixels + MAX_PIXELS_PER_LINE, colors_for_drawing.borderblank ? 0 : colors_for_drawing.acolors[0], MAX_PIXELS_PER_LINE);
 		}
 #endif
 
@@ -2289,7 +2311,8 @@ static void pfield_draw_line (struct vidbuffer *vb, int lineno, int gfx_ypos, in
 	} else {
 
 		int tmp = hposblank;
-		hposblank = brdblank;
+		//hposblank = brdblank;
+		hposblank = colors_for_drawing.borderblank;
 		fill_line ();
 		do_flush_line (vb, gfx_ypos);
 		hposblank = tmp;
@@ -2316,12 +2339,13 @@ static void center_image (void)
 		/* Would the old value be good enough? If so, leave it as it is if we want to
 		* be clever. */
 		if (currprefs.gfx_xcenter == 2) {
-			if (visible_left_border < prev_x_adjust && prev_x_adjust < min_diwstart && min_diwstart - visible_left_border <= 32)
+			if (center_reset || (visible_left_border < prev_x_adjust && prev_x_adjust < min_diwstart && min_diwstart - visible_left_border <= 32))
 				visible_left_border = prev_x_adjust;
 		}
 	} else if (gfxvidinfo.drawbuffer.extrawidth) {
 		visible_left_border = max_diwlastword - w;
-		//visible_left_border += gfxvidinfo.drawbuffer.extrawidth << currprefs.gfx_resolution;
+		if (gfxvidinfo.drawbuffer.extrawidth > 0)
+			visible_left_border += gfxvidinfo.drawbuffer.extrawidth << currprefs.gfx_resolution;
 	} else {
 		if (gfxvidinfo.drawbuffer.inxoffset < 0) {
 			visible_left_border = 0;
@@ -2329,7 +2353,6 @@ static void center_image (void)
 			visible_left_border = gfxvidinfo.drawbuffer.inxoffset - DISPLAY_LEFT_SHIFT;
 		}
 	}
-
 
 	if (visible_left_border > max_diwlastword - 32)
 		visible_left_border = max_diwlastword - 32;
@@ -2356,9 +2379,9 @@ static void center_image (void)
 		/* Would the old value be good enough? If so, leave it as it is if we want to
 		* be clever. */
 		if (currprefs.gfx_ycenter == 2) {
-			if (thisframe_y_adjust != prev_y_adjust
+			if (center_reset || (thisframe_y_adjust != prev_y_adjust
 				&& prev_y_adjust <= thisframe_first_drawn_line
-				&& prev_y_adjust + max_drawn_amiga_line > thisframe_last_drawn_line)
+				&& prev_y_adjust + max_drawn_amiga_line > thisframe_last_drawn_line))
 				thisframe_y_adjust = prev_y_adjust;
 		}
 	}
@@ -2384,13 +2407,11 @@ static void center_image (void)
 		frame_redraw_necessary |= (interlace_seen > 0 && linedbl) ? 2 : 1;
 
 	max_diwstop = 0;
-	min_diwstart = 10000;
+	min_diwstart = MAX_STOP;
 
 	gfxvidinfo.drawbuffer.xoffset = (DISPLAY_LEFT_SHIFT << RES_MAX) + (visible_left_border << (RES_MAX - currprefs.gfx_resolution));
 	gfxvidinfo.drawbuffer.yoffset = thisframe_y_adjust << VRES_MAX;
-
-	visible_left_start = visible_left_border;
-	visible_right_stop = visible_left_start + gfxvidinfo.drawbuffer.inwidth;;
+	center_reset = false;
 }
 
 #define FRAMES_UNTIL_RES_SWITCH 1
@@ -2407,11 +2428,13 @@ static void init_drawing_frame (void)
 			if (frame_res_cnt == 0) {
 				int m = frame_res * 2 + frame_res_lace;
 				struct wh *dst = currprefs.gfx_apmode[0].gfx_fullscreen ? &changed_prefs.gfx_size_fs : &changed_prefs.gfx_size_win;
-				while (m < 6) {
+				while (m < 3 * 2) {
 					struct wh *src = currprefs.gfx_apmode[0].gfx_fullscreen ? &currprefs.gfx_size_fs_xtra[m] : &currprefs.gfx_size_win_xtra[m];
 					if ((src->width > 0 && src->height > 0) || (currprefs.gfx_api || currprefs.gfx_filter > 0)) {
 						int nr = m >> 1;
 						int nl = (m & 1) == 0 ? 0 : 1;
+						int nr_o = nr;
+						int nl_o = nl;
 
 						if (currprefs.gfx_autoresolution_minh < 0) {
 							if (nr < nl)
@@ -2434,7 +2457,9 @@ static void init_drawing_frame (void)
 						if (changed_prefs.gfx_resolution != nr || changed_prefs.gfx_vresolution != nl) {
 							changed_prefs.gfx_resolution = nr;
 							changed_prefs.gfx_vresolution = nl;
-							write_log (_T("RES -> %d LINE -> %d\n"), nr, nl);
+							write_log (_T("RES -> %d (%d) LINE -> %d (%d) (%d - %d, %d - %d)\n"), nr, nr_o, nl, nl_o,
+								currprefs.gfx_autoresolution_minh, currprefs.gfx_autoresolution_minv,
+								gfxvidinfo.gfx_resolution_reserved, gfxvidinfo.gfx_vresolution_reserved);
 							config_changed = 1;
 							//activate_debugger ();
 						}
@@ -2643,12 +2668,16 @@ static void lightpen_update (struct vidbuffer *vb)
 	for (i = 0; i < LIGHTPEN_HEIGHT; i++) {
 		int line = lightpen_y + i - LIGHTPEN_HEIGHT / 2;
 		if (line >= 0 || line < max_ypos_thisframe) {
-			draw_lightpen_cursor(lightpen_x, i, line, lightpen_cx > 0);
+			if (lightpen_active > 0)
+				draw_lightpen_cursor (lightpen_x, i, line, lightpen_cx > 0);
 			flush_line (vb, line);
 		}
 	}
 	lightpen_y1 = lightpen_y - LIGHTPEN_HEIGHT / 2 - 1 + min_ypos_for_screen;
 	lightpen_y2 = lightpen_y1 + LIGHTPEN_HEIGHT + 2;
+
+	if (lightpen_active < 0)
+		lightpen_active = 0;
 }
 
 void finish_drawing_frame (void)
@@ -2686,7 +2715,7 @@ void finish_drawing_frame (void)
 		hposblank = 0;
 		pfield_draw_line (vb, line, where2, amiga2aspect_line_map[i1 + 1]);
 	}
-
+#if 0
 	/* clear possible old garbage at the bottom if emulated area become smaller */
 	for (i = last_max_ypos; i < vb->outheight; i++) {
 		int i1 = i + min_ypos_for_screen;
@@ -2698,7 +2727,7 @@ void finish_drawing_frame (void)
 		if (where2 < 0)
 			continue;
 
-		hposblank = i > last_max_ypos ;// + AMIGA_HEIGHT_EXTRA;
+		hposblank = i > last_max_ypos || i >= max_ypos_thisframe;
 
 		xlinebuffer = vb->linemem;
 		if (xlinebuffer == 0)
@@ -2709,7 +2738,7 @@ void finish_drawing_frame (void)
 			linestate[line] = LINE_UNDECIDED;
 		do_flush_line (vb, where2);
 	}
-
+#endif
 	if (currprefs.leds_on_screen) {
 		int slx, sly;
 		statusline_getpos (&slx, &sly, vb->outwidth, vb->outheight);
@@ -2727,7 +2756,7 @@ void finish_drawing_frame (void)
 		}
 	}
 
-	if (lightpen_x > 0 || lightpen_y > 0)
+	if (lightpen_active)
 		lightpen_update (vb);
 
 	if (currprefs.monitoremu && gfxvidinfo.tempbuffer.bufmem_allocated) {
@@ -2758,17 +2787,6 @@ void finish_drawing_frame (void)
 
 	if (!didflush)
 		do_flush_screen (vb, first_drawn_line, last_drawn_line);
-
-
-#ifdef ECS_DENISE
-	if (brdblank_changed) {
-		last_max_ypos = max_ypos_thisframe;
-		for (i = 0; i < sizeof linestate / sizeof *linestate; i++)
-			linestate[i] = LINE_UNDECIDED;
-		notice_screen_contents_lost ();
-		brdblank_changed = false;
-	}
-#endif
 }
 
 void hardware_line_completed (int lineno)
@@ -2840,6 +2858,7 @@ void vsync_handle_check (void)
 		notice_new_xcolors ();
 	}
 	check_prefs_changed_audio ();
+	check_prefs_changed_cd ();
 	check_prefs_changed_custom ();
 	check_prefs_changed_cpu ();
 }
@@ -2888,14 +2907,10 @@ void vsync_handle_redraw (int long_frame, int lof_changed, uae_u16 bplcon0p, uae
 			flush_screen (gfxvidinfo.inbuffer, 0, 0); /* vsync mode */
 	}
 
-	/* check borderblank here because bplcon0 or especially bplcon3 may only be written once outside of displayable area */
-	bplcon0_store = bplcon0p;
-	bplcon3_store = bplcon3p;
-	isbrdblank ();
-
 	gui_flicker_led (-1, 0, 0);
 #ifdef AVIOUTPUT
-	frame_drawn ();
+	if (!picasso_on)
+		frame_drawn ();
 #endif
 }
 
@@ -3050,6 +3065,8 @@ void reset_drawing (void)
 
 	clearbuffer (&gfxvidinfo.drawbuffer);
 	clearbuffer (&gfxvidinfo.tempbuffer);
+
+	center_reset = true;
 }
 
 void drawing_init (void)
@@ -3059,7 +3076,6 @@ void drawing_init (void)
 	uae_sem_init (&gui_sem, 0, 1);
 #ifdef PICASSO96
 	if (!isrestore ()) {
-		InitPicasso96 ();
 		picasso_on = 0;
 		picasso_requested_on = 0;
 		gfx_set_picasso_state (0);

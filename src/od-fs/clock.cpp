@@ -26,3 +26,11 @@ struct tm *uae_get_amiga_time() {
         return g_local_time;
     }
 }
+
+// added for WinUAE 2.5.0 beta 21 merge
+uae_u32 getlocaltime (void)
+{
+    // check src/od-win32/poxemu.cpp
+    STUB("");
+    return 0;
+}

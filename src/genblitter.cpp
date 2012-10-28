@@ -15,6 +15,9 @@
 #include <stdlib.h>
 
 #include "genblitter.h"
+#ifdef FSUAE
+#define write_log_standard printf
+#endif
 
 /* Here is the minterm table used in blitter function generation */
 

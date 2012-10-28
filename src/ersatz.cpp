@@ -196,7 +196,7 @@ static void ersatz_init (void)
 
 		m68k_setpc (0xFC0002);
 		fill_prefetch ();
-		uae_reset (0);
+		uae_reset (0, 1); // FIXME: keyboardreset 0 or 1?
 		ersatzkickfile = 0;
 		return;
 	}

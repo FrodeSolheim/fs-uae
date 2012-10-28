@@ -10,3 +10,7 @@ class IconButton(fsui.ImageButton):
         image = fsui.Image("fs_uae_launcher:res/" + name)
         fsui.ImageButton.__init__(self, parent, image)
         self.set_min_width(40)
+
+    def set_icon_name(self, name):
+        image = fsui.Image("fs_uae_launcher:res/" + name)
+        self.set_image(image)

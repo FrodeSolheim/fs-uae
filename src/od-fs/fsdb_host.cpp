@@ -93,11 +93,18 @@ int fsdb_name_invalid(const TCHAR *n) {
     return 0;
 }
 
+int fsdb_name_invalid_dir(const TCHAR *n) {
+    if (g_fsdb_debug) {
+        write_log("fsdb_name_invalid_dir n=%s\n", n);
+    }
+    return 0;
+}
+
 uae_u32 filesys_parse_mask(uae_u32 mask) {
     return mask ^ 0xf;
 }
 
-int fsdb_exists(TCHAR *nname) {
+int fsdb_exists(const TCHAR *nname) {
     return g_file_test(nname, G_FILE_TEST_EXISTS);
 }
 

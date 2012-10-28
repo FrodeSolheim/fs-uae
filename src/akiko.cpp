@@ -835,7 +835,7 @@ static void cdrom_return_data (void)
 	if (cdcomrxinx == cdcomrxcmp) {
 		set_status (CDINTERRUPT_RXDMADONE);
 #if AKIKO_DEBUG_IO_CMD
-		write_log (L"RXDMADONE %d/%d\n", cdrom_receive_offset, cdrom_receive_length);
+		write_log (_T("RXDMADONE %d/%d\n"), cdrom_receive_offset, cdrom_receive_length);
 #endif
 	}
 
@@ -1418,10 +1418,17 @@ static void *akiko_thread (void *null)
 				mediachanged = 1;
 				cdaudiostop_do ();
 			} else if (media != lastmediastate) {
-				write_log (_T("CD32: media changed = %d\n"), media);
-				lastmediastate = cdrom_disk = media;
-				mediachanged = 1;
-				cdaudiostop_do ();
+				if (!media && lastmediastate > 1) {
+					// ignore missing media if statefile restored with cd present
+					if (lastmediastate == 2)
+						write_log (_T("CD32: CD missing but statefile was stored with CD inserted: faking media present\n"));
+					lastmediastate = 3;
+				} else {
+					write_log (_T("CD32: media changed = %d\n"), media);
+					lastmediastate = cdrom_disk = media;
+					mediachanged = 1;
+					cdaudiostop_do ();
+				}
 			}
 		}
 
@@ -1856,6 +1863,7 @@ int akiko_init (void)
 		init_comm_pipe (&requests, 100, 1);
 		uae_start_thread (_T("akiko"), akiko_thread, 0, NULL);
 	}
+	gui_flicker_led (LED_HD, 0, -1);
 	akiko_inited = true;
 	return 1;
 }
@@ -1975,7 +1983,7 @@ uae_u8 *restore_akiko (uae_u8 *src)
 		cdrom_paused = 1;
 	if (v & 4)
 		cdrom_disk = 1;
-	lastmediastate = cdrom_disk;
+	lastmediastate = cdrom_disk ? 2 : 0;
 
 	last_play_pos = msf2lsn (restore_u32 ());
 	last_play_end = msf2lsn (restore_u32 ());

@@ -4,7 +4,7 @@
 
 #if defined(LOGITECHLCD)
 
-#include "resource"
+#include "resource.h"
 #include "gui.h"
 #include "lcd.h"
 
@@ -168,6 +168,8 @@ void lcd_update (int led, int on)
 		lgLcdUpdateBitmap (device, lbh, LGLCD_PRIORITY_IDLE_NO_SHOW);
 		return;
 	}
+	if (on < 0)
+		return;
 
 	if (led >= 1 && led <= 4) {
 		x = 23 + (led - 1) * 40;

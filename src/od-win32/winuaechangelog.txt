@@ -1,7 +1,372 @@
 
 - restore only single input target to default.
-- hdd from command line
-- no-buffer tearing updates
+
+Beta 21:
+
+- Use software volume also in WASAPI non-exclusive because WASAPI main volume control also affects waveOut used by CD audio.
+  (XP + DS also seems to affect waveout.. CDA really should use some more modern sound API, later...)
+- Floppy sound sample mixing volume fix, volume level got lower if more than one drive had enabled sounds.
+- Virtual mouse driver option IECLASS_POINTERPOS inputevent ie_Qualifier apparently needs to include mouse button state bits or
+  Magellan II's (AmiKit) menus won't stay open, possibly affects other programs too. (This is not documented in HRMs, hmm...).
+  "Start menu" still won't work but it is application bug because it also won't work if mouse is moved using Amiga + cursor keys.
+- CDFS crash fix when unsupported media (not unreadable but for example UDF-only DVD) was accessed.
+- Check and ignore possible duplicated CDFS CD insert or eject Windows message.
+- Compile time directory filesystem logging is now runtime option (-filesyslog and -filesyslog2)
+- Borderblank still didn't work correctly in all situations. (Aladdin AGA)
+- Fullscreen DirectDraw mode IDirectDrawSurface7_Flip "Was still drawing" fix. (I still have no idea what was I thinking of..)
+- Added "waiting blits" special case, when blitter is started and blit would use all available cycles: start waiting for the blit immediately.
+- Changing hardfile path does not anymore clear device name and filesystem text boxes.
+- Fixed crash when loading statefile with JIT enabled (b6 "ROM protection" should be disabled temporarily when loading UAE boot rom data..)
+- zlib updated to 1.2.7
+- Built-in AROS ROM updated.
+
+Beta 20:
+
+- Reduced Gayle based configuration CIA memory bank size to 4096 bytes, only accesses to bfdxxx and bfexxx goes to CIA chips if Gayle.
+- Reverted b19 horizontal change, I forgot that it was made to fit max overscan modes better..
+  (Manually adding "gfx_horizontal_tweak=8" to config file can be used as a workaround, if needed for some reason) 
+- RTC update in b11 was not compatible with KS 1.x.
+- improved RF5C01A RTC emulation, previously KS2.0+ detected stopped clock and attempted to reset it (which is no-op because
+  emulated clock's time is currently read-only) and after reset it finally read the time.
+- RTC year value is saved differently depending on OS version, Pre-2.0: RTC year value = current year - 1900,
+  2.0+: year value = last 2 digits. Both methods supported when reading. WinUAE now uses pre-2.0 method if
+  MSM clock chip (because this is the only type that KS1.x supports), 2.0+ if RF clock chip, previously always used -1900 method.
+- RTC 12/24h bit emulated, this is not used by AOS.
+- RTC time/date, alarm and memory data save/load to file supported (alarm time/date, note that alarm interrupt pin is not connected in Amigas,
+  and 104 bits of memory, used mainly for A3000 SCSI settings, included with RF clock chip type). Date/time ignored when loading.
+- added win32.gui_active_page=name, sets default GUI panel after emulation has been started (Old win32.gui_page = before emulation starts)
+- In some situations adv. chipset may have used incompatible data stored in config file even if compatible settings was ticked.
+- Syncronize clock on the fly CIA TOD adjustment is now only active if heartbeat signal (b11) is detected.
+- b11 heartbeat system was not fully disabled when UAE boot rom was unavailable.
+- On screen led HD/CD/NVRAM indicator is blank if device is not available (like floppies already did).
+
+Beta 19:
+
+- GamePorts panel Test function now shows all currently mapped input target(s). Can be used to test any kind of input event mapping.
+- Do not map 3rd button to joystick/pad with more than 2 buttons if GamePorts panel gameport mode is joystick.
+  Joystick is meant to be max 2-button, non-pullup resistor game controller.
+- Directory filesystem ACTION_DISK_INFO InfoData->id_Inuse is now non-zero if any files or locks are open. (Was previously always zero)
+- Use D3D (if available) to fetch GPU names listed in monitor selection GUI. Should now show correct GPU name when running on hybrid GPU systems.
+- GUI CD audio volume control added.
+- Standard PAL/NTSC mode horizontal position (without filters or centering enabled) is not slightly shifted anymore, not sure when this
+  changed, probably in some update that improved programmed mode display positioning.
+
+Beta 18:
+
+- FPS and CPU% react quicker now. Can Show previously hidden CPU usage spikes. NOTE: CPU% now showing "myserious" usage spikes does not mean emulation has become slower!
+- Automatically limit tablet mode X and Y coordinate range to prevent 16-bit signed overflows if tablet has large resolution. (not confirmed)
+- Always generate full size mask texture, workaround for mask pixel mapping errors in some scaling modes.
+- Only release pressed keys if window or screen gets reopened (prevents stuck keys), not when any graphics related config option changes.
+- Do not allow GUI resize if GUI is larger than fullscreen resolution because Windows may automatically resize it to fit on screen, making GUI completely unusable.
+- Always recalculate Display panel horiz/vert centering option internal values when configuration changes.
+- 68030+ CPU and more compatible checkbox checked: enable very basic prefetch emulation, only 68000-68020 have more complex prefetch emulation.
+- JIT + more compatible also enables basic prefetch. Only works if code is not yet translated. (Not much point but it was easy to do)
+- Added route all MIDI In data to MIDI Out configuration option.
+- Improved 68030 MMU instruction decoding. WHDLoad + MMU option enabled + 68030 CPU does not crash anymore. (No, there still is no 68030 MMU emulation, it is
+  only emulating 68EC030 without MMU circuitry which probably does not exist in real world + hack for A3000 1.4 ROM)
+- Few (rare) variants of MOVES didn't increase PC correctly.
+- BSR.L was emulated as 68020+ instruction on 68000/010. (Bcc.L was correct)
+- For some reason 68000 BSR.B and BSR.W address exception stack frame PC field points to new odd PC, instead of address of BSR opcode.
+
+Beta 17:
+
+- Enabled windowed mode window maximize button.
+- Removed windowed mode window inner edge.
+- -diskswapper command line looks inside all supported archive files.
+- Any non-UAE controller harddrive didn't work. (b16)
+- Beta 16 D3D alignment fix updated, previous broke 1:1 pixel mapping in some situations.
+
+Beta 16:
+
+- Added easy to use log options to Paths panel. Open = open selected log or current config to text editor. 
+  Save All = create file that includes both logs and current configuration. Makes requesting logs easier for debugging purposes.
+  Log checkbox overrides misc panel logging option. Checkbox state not saved, resets back to non ticked after restarting.
+  (Included config is exact current configuration, not necessary same as last loaded config file)
+- Fixed uae-configuration config listing garbage ????? line at the end.
+- USB HID game controller [-] and [+] input axis movement used wrong event (one-shot instead of normal press/release).
+- Possible fix for D3D display alignment errors in some modes (AMD only apparently)
+- Fixed D3D blank screen after alt-tabbing back to fullscreen mode. Non-D3DEx (Windows XP mainly) only.
+- Non UAE HD controller harddrives and CDFS config data conflict, inserting CD corrupted HDF path.
+- Some CD (both images and physical drives) on the fly media switching problems fixed.
+- Ignore start uncaptured and start minimized if starting in fullscreen mode.
+- Input panel slots #2-#8 not saved to config file if slot #1 had GamePorts [PORTx] event.
+- Configuration #1-#3 selected and GamePorts not set to <none> and then changed back to <none>, original slot #1 event was not restored.
+- CD32 gameport type also enabled normal joystick firebutton/2nd button event. Only CD32 red and blue are needed.
+- Break to debugger if program jumps to non-existing memory ("Did something stupid") and any break point is already active.
+- Remember last selected Input panel device.
+- 64-bit build now support up to 2.5G memory space and max 2G of Z3 fast RAM, emulated as 2x1G Z3 boards (1G is max Z3 board size)
+  Note that AmigaOS may have signed integer problems if 2G border is crossed.
+
+Beta 15:
+
+- Fixed too large GUI size if non-100% Windows DPI setting and full optimized build. (b13)
+- Fonts with long names caused corrupted dialog structure.
+- Marked WinUAE as Windows Vista/7/8 compatible. This should have been done long time ago, without this Windows enables
+  some backwards compatibility features, for example Aero gets disabled in fullscreen directdraw.
+- Disabled COPJMP bug emulation, it triggers incorrectly in Seven Sins/Scoopex.
+  (Already did some logic analyzer testing but I can't yet confirm exact trigger conditions for this bug, it wasn't as simple
+  as I originally thought)
+- Editing non-custom event's qualifier reset input target to none.
+- Lightpen cursor wasn't removed when lightpen mode was disabled.
+- Wintab tablet messages corrupted memory if Windows driver installed but tablet mode was not enabled. (b6)
+
+Beta 14:
+
+- Borderblank emulation rewritten yet again, now borderblank state is included with color 0 change events (this time
+  exactly where it should be), fully cycle-exact, works even if some strange program toggles it multiple time / scanline.
+- Some GUI sanity checks, for example check if GUI size is really small or huge before opening GUI window and also after
+  GUI is open. Reset size and fonts to default if size is out of range.
+- GUI Windows DPI setting compensation fixed.
+- Activate COPJMP bug emulation, only if 68000 CE. (logged since b11)
+- Autoscale aspect ratio fixed. Setting is enabled by default now.
+- Disable map rom if 24-bit address space and 2M ROM (No space for ROM mirror).
+
+Beta 13:
+
+- Parallel port audio sampler had very bad quality on some systems. NOTE: Sampler requires exact DirectSound
+  recording position reporting = not that good results when using some onboard Realteks etc..
+  (It can be made better but because this is really pointless feature: pay or buy a better PC)
+- Very old statefiles triggered keyboard powerup initialization sequence when restored, caused phantom keypresses.
+- Sinc audio interpolation filter clipping fixed. (Was always wrong in UAE, was much more noticeable after b11 audio update)
+- Input configuration parser didn't parse custom input event strings correctly if it contained '.' or ',' characters.
+- Added experimental (and mostly useless) option that removes DOS reserved name restriction (CON is the most popular because
+  it is also included with WB disks). Note that this causes some interesting side effects: most Windows programs, including
+  Explorer, won't be able to open any file if it has DOS reserved name... You don't need this option, UAE has always
+  mangled illegal names transparently (for example CON becomes something like "__uae__con" on host side)
+  Configuration file only: win32.filesystem_mangle_reserved_names=false (defaults to true if not set)
+- Disable screensaver option didn't work, SetThreadExecutionState() needs to be called periodically, not just once,
+  function documentation is a bit confusing..
+- When deciding first visible line and programmed mode: select which is largest, VBSTOP or VSSTOP. (SuperPlus)
+- Added Keep autoscale aspect ratio checkbox, only sort of working now...
+- Map rom region size mirrors ROM size, address automatically moved to 0xe00000 (512k) or 0xa80000 (1M) if 24-bit CPU.
+- Remove interlace artifacts option halved size of display horizontally in some programmed screen modes.
+- Portaudio sound and sound was deactivated automatically: sound led kept showing buffer underrun state.
+- Disable screen updates if monitor enters power saving mode.
+- When restoring state file with floppy image(s) missing (files moved etc..), there still was rare possibility that floppy
+  drive was reported as empty.
+- Some more manual BPLxDAT emulation updates, Sequential Magnet part garbage introduced in previous update is gone.
+- Color registers were emulated as non-existing instead of write-only in OCS/ECS modes. (I guess only visible difference
+  will be more colorful display if program crashes or does weird things and starts reading from color registers..)
+- DENISEID is now non-existing if 68000 prefetch or cycle-exact and OCS Denise. (Programs may misdetect if no prefetch emulated,
+  and now programs, if they even exist, that misdetect it on real OCS A500 will misdetect it on emulation too! :)
+- Renamed Paths panel "WinUAE defaults"-paths, meaning of selection should make more sense now.
+- Better input qualifier GUI, Windows key default qualifier added.
+- Slot #5-#8 custom events didn't work correctly.
+
+- GUI resize and font selection support added (misc panel). It was possible after all, needed only some hacking..
+  * Default size is now larger then previously.
+  * This is a hack, rebuilds classic Windows dialog resources on the fly while adjusting GUI element coordinates and size.
+  * GUI size after resizing may not be exactly what you expected.
+  * Windows always closes and reopens after resize. It is also normal, can be improved, later if ever..
+  * Window/Fullwindow/Fullscreen have separate position, size and font settings.
+  * Less than 80% size not officially supported, overlapping and clipping is normal. Select smaller font.
+  * Possible future improvements: more preset sizes, some kind of autofit in smaller fullscreen modes.
+  * I hope GUI now appears to be more modern than it actually is :)
+
+- Version bumped to 2.5.0.
+
+Beta 12:
+
+- Moved cycle-exact option to Chipset group in GUI. Other options are minor options/hacks, CE is not.
+- Do not enable wait for blit if immediate blitter is enabled in quickstart mode.
+- Added RTG hardware sprite (mouse cursor) enable/disable option. Enabled by default if D3D mode. Was always enabled
+  previously if D3D mode.
+- GUI Memory panel 32-bit RAM size information text incorrectly included Z2 mode RTG memory.
+- Added directory harddrive limit option to Harddrives panel. When enabled, all directory harddrives size is faked
+  to ~950M with free space relative to original size (for example 500G HD with 100G free = 950M HD with 950*100/500=190M free)
+  This hack is workaround for installers that think drive is full or have negative free space if drive is larger than 2G (32-bit overflow).
+  Can be changed on the fly. Edit configuration file manually if you want custom limit size. Also virtual fake block size changed
+  from 1024 to 512. More compatible with KS1.x dos commands that seem to use hardcoded 512 block sizes when calculating disk size.
+- cpu_throttle configuration entry also accepts decimal values.
+- Added Start minimized and Start mouse uncaptured Misc panel options.
+- In minimized mode D3D/DirectDraw display updates are also now completely stopped.
+- ECS Denise/AGA border blanking handling rewritten again. (Brian the Lion borders are black again)
+- Ignore color 0 (background) writes if borderblank is currently enabled when deciding autoscale start vertical
+  coordinate. (Brian the Lion)
+- Parallel port audio sampler emulation partially rewritten, it actually sounds correct now, mono/stereo option added.
+  AudioMaster IV confirmed working. Very pointless feature.
+  
+Beta 11:
+
+- END special qualifier didn't work when combined with other qualifiers, some END + shortcuts leaked key presses to emulated
+  Amiga side (b10)
+- GUI wasn't centered and/or scrolling if single monitor, full screen mode and resolution smaller than 640x480. (b6)
+  Automatically center to screen if GUI title bar isn't visible on any monitor. Two or more monitors and >800x600 resolution
+  desktop in any monitor = always allow manual GUI positioning.
+- Wait for Blitter changes:
+  - Does nothing in 68000 cycle-exact mode.
+  - Approximate CPU speed or 68020 CE: Pause CPU if blitter would steal all CPU cycles
+  - Fastest possible: Any kind of active blit pauses CPU if writing to any blitter register.
+  - Logged if triggered (only first 10 times)
+- Quickstart modes (except 68000 CE) enables Wait for Blitter option.
+- Wait for Blitter GUI only sets above "automatic" mode, manual config file editing supports forced "always" and "only if not idle" modes.
+  (for debugging purposes)
+- RTG video capturing uses now RTG vsync timing, not (possibly very different) custom chipset vsync timing.
+- Added UAE Boot ROM AOS "heart beat" vblank interrupt, do not sync clock or check filesystem insertions if heart beat counter
+  does not change = OS has been taken over, prevents possible memory corruption if program also overwrote system structures.
+- RTC year tens digit was not in correct BCD format, probably no program cared about the difference. (Bug since the beginning)
+- Extended adf writing was disabled, forgotten debugging and it was also disabled in 2.4.1. Oops. (241b11)
+- POTGO register state was not fully reset when loading state, disabled mouse right/middle button in some situations.
+  (for example Sound of Silents)
+- AUDxDAT manual audio mode and new period was written to AUDxPER: new period value was loaded too late, after first
+  8-bit sample was finished.
+- AUDxVOL is 7-bit register (64-127 = max volume, 128 = 0, 129 = 1 and so on..). Actual volume range is 0-64.
+- Sinc interpolator updated from UADE (from few years ago, better late than never..)
+- Debugger 'm' command didn't show last byte of memory region.
+- Log COPJMPx while copper is waiting blitter cycle conflict. Does not yet emulate blitter pointer = COPxLC copy.
+
+Beta 10:
+
+- BPLxDAT CPU/Copper writes are now accurately emulated. (Blerkenwiegel/Scoopex)
+- COPJMPx triggered second cycle is special, does not need to be free but if it is free, it is allocated for copper.
+  (EyeQlazer/Scoopex is now 100% correct)
+- Emulate copper waiting + CPU write to COPJMPx slightly different copper cycle usage.
+- Fixed chipset emulation infinite loop if program crashed and wrote totally bogus values to programmable display
+  refresh rate registers.
+- Both mouse and joystick enabled in same port: moving joystick does not cause mouse big cursor jumps anymore.
+- Automatic center option incorrectly set display limits to autoscale limits (black borders).
+- "Release" key qualifier support. When [R] qualifier is selected, qualifier key is released before sending mapped
+  keycode and then immediately pressed again. Qualifier selection GUI is currently ugly.
+- Modified Input Qualifier support, now non-matched qualifier combinations (one or more qualifiers pressed but no
+  match in any 8 slots) always trigger non-qualifier input target(s), previously nothing was triggered.
+- Added "Wait for Blitter" GUI option, when enabled, CPU is paused if blitter is active and CPU attempted to modify
+  blitter registers. Previously was always enabled if fastest possible CPU (and still is), now it can be manually
+  enabled in other modes, can be useful when running 68020/AGA programs that run badly in non-ce modes but also have
+  some display problems in ce modes. (because of not accurate enough CPU speed)
+- Fixed flickering graphics corruption in some programs (for example Disposable Hero), also could have caused
+  reduced performance. (b1 display limit feature)
+
+Beta 9:
+
+- Replaced readpu.c 68020+ special case TST An/PC-rel and CMP #imm,PC-rel variants with proper table68k entries.
+- Debugger disassembler decodes illegal instructions if opcode is supported by higher CPU model,
+  shown in parenthesis, note that PC is only incremented by 2 in this situation.
+- Debugger W (write to memory) command supports multiple values and strings.
+- Slow debugger commands can be aborted by pressing return (console only)
+- 64-bit DIVL.L checked div by zero exception before checking if instruction is 68060 compatible.
+- Use IOCTL_STORAGE_QUERY_PROPERTY to query optical drive vendor/product/version information instead of SCSI inquiry.
+- "Take screenshots before filtering" supported in RTG modes, takes screenshot from emulated VRAM buffer.
+  8-bit png if 8-bit RTG mode, 24-bit png if >8 bit RTG mode. Does not capture mouse if mouse is emulated hardware sprite.
+- "Capture before filtering" recording option supported in RTG modes.
+- D3D D3DERR_DEVICELOST handling improved.
+- Inhibit Windows error dialogs completely. On some systems missing harddrive still opened annoying Windows no disk error dialog(s).
+- Improved extended ROM statefile support.
+- Save ROM overlay state to statefile separately from CIA OVL pin state, fixes loading of statefiles if current configuration has
+  CIA overlay support but state configuration does not. (Gayle based chipset or CD32)
+- Misc statefile load compatibility improvements when current config is very different compared to statefile's configuration.
+- DMA debugger 'c' = copper wanted this cycle but it wasn't available
+- BPLxDAT non-DMA modifications emulated while bitplane DMA is disabled, not perfect but at least screen isn't completely blank anymore.
+- Ancient Superfrog copper hack removed, it isn't needed anymore. (EyeQlazer/Scoopex is nearly correct now)
+
+Beta 8:
+
+- 68060 and CPU compatible checkbox ticked: generate unimplemented instruction exceptions instead of emulating instructions
+  that real 68060 don't have. Integer instructions only, 040/060 FPU emulation still supports all 6888x instructions.
+- Set FPU FPIAR register (No one shouldn't care, except unimplemented FPU exception handler which isn't supported)
+- RTG state restore broke in previous update.
+- Save RTG mode palette to statefile (Quite important missing information if display mode is 8-bit..)
+- More memory space reservation updates.
+- "Restart" GUI option improved, shouldn't cause strange errors if new config has 32-bit RAM enabled and old one didn't.
+- Savestates with 32-bit RAM configured should now load without need to first load configuration that has same amount
+  (or more) RAM configured.
+
+Beta 7:
+
+- Directory filesystem 64-bit seek (ACTION_CHANGE_FILE_POSITION64) broke in 240b27
+- -nodirectinput mode was always enabled. (b6)
+- -nodirectinput does not anymore disable mouse/keyboard directinput enumeration if rawinput fails to initialize.
+- Syncronize clock enabled and loading new config crashed in some situations (b6)
+- Blitter emulation didn't leave correct data in blitter's B data register after linedraw finished, fixes
+  No Way demo by Academy that seems to use wrong minterm that requires correct static value in B data register.
+- WASAPI exclusive software volume control support. It seems normal WASAPI volume control does nothing in exclusive mode.
+- Added support for unimplemented integer instructions to 68k emulation code generators. Not yet in use.
+  (This is easy part, unimplemented floating point support is very difficult because it requires special FPU stack frame)
+
+- Experimental memory space rewrite. Now WinUAE reserves address space as much as possible (~1.6G if 64-bit OS, 512M if 32-bit, note
+  that this is only reserved space, actual memory is not yet allocated). Allows more stable on the fly memory size changes.
+  It is not guaranteed that this is safe to use and won't cause side-effects or other bad behavior or loss of performance,
+  please test and report.
+
+Beta 6:
+
+- PC raw MFM decoding improved (uaeunp, Amiga/ST/PC multiformat PC images didn't decode properly)
+- Interlace flag wasn't set if resolution had "i" flag but refresh rate didn't, caused blank screen in D3D modes.
+- Set system time to host time (timer.device/TR_SETSYSTIME) when exiting GUI or unpausing if syncronize clock option is enabled.
+  Only works if at least one directory filesystem is in use. (Shares directory filesystem process to minimize resource usage)
+- Interlaced host resolution field matching with emulated interlace rewritten, now simply waits extra field if fields
+  don't match. Can cause small sound glitches if small buffer but this is also much more reliable than old method. (Need tweaking)
+- Small non-fastest CPU mode low latency vsync tweaks.
+- Ignore CPU writes to DSKDAT. (Useless "DSKDAT: FIFO overflow!" log messages caused by some programs that poke DSKDAT).
+- Added -nodirectinput command line parameter that completely disables directinput device enumeration.
+- Gayle PCMCIA CF IDE emulation improvements, PCMCIA CF config #2 also supported (PC primary IDE IO addresses)
+- GUI position is also saved in fullscreen mode, separate from windowed mode GUI coordinates.
+- Some chipset mode on the fly configuration changes also reset RTG internal variables, causing blank screen when
+  returning back to RTG mode. (Very old bug, "SetSwitch() - Picasso96 0x0x0" in log)
+- Fullscreen RTG mode refresh rate uses chipset mode refresh rate or rate directly set in Expansions panel. Automatically selects
+  lower available refresh rate if selected rate is unsupported. 
+- Added option to enable/disable RTG vblank interrupt emulation. Previously it was automatically enabled if Refresh rate option wasn't set to
+  disabled. Moved to separate GUI option because of above new feature and because some games don't like RTG board generated interrupts.
+- Direct3D mode RTG OSD only updated when any part of RTG bitmap changed.
+- Blank unused displays(s) (opens full screen topmost black window(s)) option added to misc panel.
+- Only save minimal CPU context (registers and PC) during native/m68k code switching. Previously it saved lots of unneeded data,
+  including data that can be changed outside of CPU emulator. May also increase performance in some situations.
+  Finally explanation and fix for mysterious copper state corruption.
+- CD image mounter: MDS image CD audio tracks didn't play if subchannel data was not included, MDS image data tracks that also
+  included subchannel data returned wrong data.
+- Host MMU write protect ROM regions in JIT direct mode because JIT only checks destination address type when generating x86 code for
+  the first time. Badly crashing programs can corrupt loaded ROM image causing repeating red/black screen reset loop. (Another
+  mysterious previously reported problem solved)
+- Restructured UAE boot ROM variable locations, ROM part write protected.
+- Doubleclicking Input panel Input Source column resets clicked line back to default. (Currently keyboards only)
+- Added uae-configuration harddrive attribute modification support:
+  Syntax: uaehfX_Z where X = unit number, Z = attribute name. (for example: "uaehf0_bootpri 10")
+  Attribute names: devicename, volumename, root, bootpri, read-only, filesys, controller.
+  Syntax is write-only. Use plain uaehfX to check current values.
+  Reset required to activate modified settings.
+
+Beta 5:
+
+- More custom input event fixes.
+- Replaced custom event single line string dialog with larger multiline dialog, increased allowed custom event string length.
+- Autoresolution didn't detect interlaced mode in some situations.
+- Added "Internal events" input device category. Currently it only contains two events:
+  "CPU reset" and "Keyboard reset". It can be used to customize what happens when emulated Amiga is reset.
+  For example: set CPU mode back to fastest possible, eject or insert disks, quit emulator, etc..
+- Added 68020 prefetch CPU core. Emulates instruction prefetch without cycle-exact. "More compatible" option
+  enables this mode (Previously it did nothing in 68020 mode)
+- A1200/CD32 Quickstart compatibility slider changed: cycle-exact/prefetch/fastest possible without JIT/JIT
+- ASPI support removed.
+
+Beta 4:
+
+- Custom input event autofire wasn't always canceled when shortcut included qualifier(s).
+- Do not crash if 7zip unpacking fails because out of memory or process address space.
+  (Big compressed CD images and 32-bit Windows)
+- Log also RDB dostype in text format.
+- Replaced misc panel checkboxes with scrolling checkbox list view. Now there is unlimited space
+  for all kinds of on/off options that I previously refused to add because of lack of GUI space.
+- Added disable notification icon option.
+- Loading statefile using GUI now remembers statefile filename, allowing to save configuration files with
+  statefile (running configuration file will automatically load the statefile). This required manual config
+  file editing previously. Statefile path and checkbox that "forgets" stored path added to GUI.
+- Ignore vendor specific USB usage pages (Do not list for example some Logitech USB mouse/keyboard receiver dongles)
+- Z2 RTG + 68EC020 fixed, RTG requires memory mapping. (Memory mapping was originally JIT only and 68EC020 is not JIT compatible)
+
+Beta 3:
+
+- FPS led was always yellow in most non low latency vsync modes.
+- Custom input event toggle didn't work (3rd and 4th slots), (2.4.1)
+- Custom input event non-toggle mode with qualifiers didn't work correctly.
+- Allow D3D RTG hardware sprite if non-power of 2 textures are supported, do not require shader support.
+- Do not override currently selected CD image when loading statefile if new CD path does not exist. 
+- Do not report CD not present state if restoring CD32 statefile that was created with inserted CD.
+  It would usually cause immediate reboot to CD32 title screen and most CD32 shovelware ports won't care about
+  the CD after game has been loaded. This has been broken previously many times..
+- Any active breakpoint stopped all interrupts in some situations if 68020 cycle-exact mode.
+- "ALT-TAB or middle mouse button untraps mouse - F12 opens settings" window title was missing.
+- Uncapture mouse when entering debugger.
+- Fixed blank screen in directdraw + no filter mode. (b1)
+- Do not move directories or empty files to Windows recycle bin (if recycle bin option enabled).
 
 Beta 2:
 

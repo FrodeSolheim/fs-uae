@@ -41,7 +41,7 @@ int g_fs_emu_netplay_connected = 0;
 
 // FIXME: move to emulator
 static int g_fs_emu_netplay_emulation_version_major = 2;
-static int g_fs_emu_netplay_emulation_version_minor = 0;
+static int g_fs_emu_netplay_emulation_version_minor = 1;
 static int g_fs_emu_netplay_emulation_version_revision = 0;
 
 #define TCP

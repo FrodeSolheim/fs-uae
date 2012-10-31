@@ -5,7 +5,7 @@
 
 fs_uae_input_port g_fs_uae_input_ports[4] = {};
 
-static fs_emu_input_mapping g_joystick_mappings[][15] = {
+static fs_emu_input_mapping g_joystick_mappings[][16] = {
     {
         { "left", INPUTEVENT_JOY1_LEFT },
         { "right", INPUTEVENT_JOY1_RIGHT },
@@ -21,6 +21,7 @@ static fs_emu_input_mapping g_joystick_mappings[][15] = {
         { "rewind", INPUTEVENT_JOY1_CD32_RWD },
         { "forward", INPUTEVENT_JOY1_CD32_FFW },
         { "play", INPUTEVENT_JOY1_CD32_PLAY },
+        { "toggle_autofire", INPUTEVENT_AMIGA_JOYPORT_0_AUTOFIRE },
         { NULL, 0 },
     },
     {
@@ -38,6 +39,7 @@ static fs_emu_input_mapping g_joystick_mappings[][15] = {
         { "rewind", INPUTEVENT_JOY2_CD32_RWD },
         { "forward", INPUTEVENT_JOY2_CD32_FFW },
         { "play", INPUTEVENT_JOY2_CD32_PLAY },
+        { "toggle_autofire", INPUTEVENT_AMIGA_JOYPORT_1_AUTOFIRE },
         { NULL, 0 },
     },
     {
@@ -47,6 +49,7 @@ static fs_emu_input_mapping g_joystick_mappings[][15] = {
         { "down", INPUTEVENT_PAR_JOY1_DOWN },
         { "1", INPUTEVENT_PAR_JOY1_FIRE_BUTTON },
         { "2", INPUTEVENT_PAR_JOY1_2ND_BUTTON },
+        { "toggle_autofire", INPUTEVENT_AMIGA_JOYPORT_2_AUTOFIRE },
         { NULL, 0 },
         { NULL, 0 },
         { NULL, 0 },
@@ -64,6 +67,7 @@ static fs_emu_input_mapping g_joystick_mappings[][15] = {
         { "down", INPUTEVENT_PAR_JOY2_DOWN },
         { "1", INPUTEVENT_PAR_JOY2_FIRE_BUTTON },
         { "2", INPUTEVENT_PAR_JOY2_2ND_BUTTON },
+        { "toggle_autofire", INPUTEVENT_AMIGA_JOYPORT_3_AUTOFIRE },
         { NULL, 0 },
         { NULL, 0 },
         { NULL, 0 },
@@ -186,6 +190,8 @@ static void configure_joystick_port(int port, const gchar *value,
     key = fs_strdup_printf("joystick_port_%d_autofire", port);
     if (fs_config_get_boolean(key) == 1) {
         p->new_autofire_mode = 1;
+        p->autofire_mode = 1;
+        amiga_set_joystick_port_autofire(port, 1);
     }
     free(key);
 }
@@ -234,15 +240,18 @@ void fs_uae_reconfigure_input_ports_amiga() {
             INPUTEVENT_AMIGA_JOYPORT_MODE_0_NONE + 1;
     for (int i = 0; i < FS_UAE_NUM_INPUT_PORTS; i++) {
         fs_uae_input_port *port = g_fs_uae_input_ports + i;
-        fs_log("sending event to set port %d to mode %d\n", i, port->new_mode);
-        int action = INPUTEVENT_AMIGA_JOYPORT_MODE_0_NONE + modes * i + \
-                port->new_mode;
-        fs_emu_queue_action(action, 1);
-
-        fs_log("sending event to set port %d to autofire mode %d\n", i,
-                port->new_autofire_mode);
-        action = INPUTEVENT_AMIGA_JOYPORT_0_AUTOFIRE + i;
-        fs_emu_queue_action(action, port->new_autofire_mode);
+        if (port->new_mode != port->mode) {
+            fs_log("sending event to set port %d to mode %d\n", i, port->new_mode);
+            int action = INPUTEVENT_AMIGA_JOYPORT_MODE_0_NONE + modes * i + \
+                    port->new_mode;
+            fs_emu_queue_action(action, 1);
+        }
+        if (port->new_autofire_mode != port->autofire_mode) {
+            fs_log("sending event to set port %d to autofire mode %d\n", i,
+                    port->new_autofire_mode);
+            int action = INPUTEVENT_AMIGA_JOYPORT_0_AUTOFIRE + i;
+            fs_emu_queue_action(action, 1);
+        }
     }
 }
 

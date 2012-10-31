@@ -3,6 +3,14 @@ from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
+try:
+    import wxversion
+except ImportError:
+    pass
+else:
+    wxversion.select(["2.8"])
+import wx
+
 def call_after(function):
     import wx
     wx.CallAfter(function)

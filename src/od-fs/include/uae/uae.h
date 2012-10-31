@@ -149,6 +149,7 @@ void amiga_write_uae_config(const char *path);
 int amiga_get_joystick_port_mode(int port);
 */
 void amiga_set_joystick_port_mode(int port, int mode);
+void amiga_set_joystick_port_autofire(int port, int autofire);
 
 int amiga_send_input_event(int input_event, int state);
 

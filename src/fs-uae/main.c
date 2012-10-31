@@ -45,10 +45,19 @@ int event_handler_loop(void) {
             }
         }
         else {
-            if (action >= INPUTEVENT_AMIGA_JOYPORT_0_AUTOFIRE &&
+            if (state && action >= INPUTEVENT_AMIGA_JOYPORT_0_AUTOFIRE &&
                     action <= INPUTEVENT_AMIGA_JOYPORT_3_AUTOFIRE) {
                 int port = action - INPUTEVENT_AMIGA_JOYPORT_0_AUTOFIRE;
-                g_fs_uae_input_ports[port].autofire_mode = state;
+                if (g_fs_uae_input_ports[port].autofire_mode) {
+                    g_fs_uae_input_ports[port].autofire_mode = 0;
+                    amiga_set_joystick_port_autofire(port, 0);
+                    fs_emu_warning(_("Auto-fire disabled for port %d"), port);
+                }
+                else {
+                    g_fs_uae_input_ports[port].autofire_mode = 1;
+                    amiga_set_joystick_port_autofire(port, 1);
+                    fs_emu_warning(_("Auto-fire enabled for port %d"), port);
+                }
                 fs_emu_update_current_menu();
             }
             amiga_send_input_event(action, state);

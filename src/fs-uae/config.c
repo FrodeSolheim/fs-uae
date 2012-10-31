@@ -529,15 +529,151 @@ void fs_uae_configure_cdrom() {
     }
 }
 
+static void configure_hard_drive_directory (int index, const char *path,
+        const char *device, int read_only, int boot_priority) {
+    char *type = fs_strdup("dir");
+    int surfaces = 1;
+    int reserved = 2;
+    int sectors = 32;
+    int block_size = 512;
+
+    char *mount_name;
+    char *label_option_name = fs_strdup_printf(
+            "hard_drive_%d_label", index);
+    char *label_option = fs_config_get_string(label_option_name);
+    if (label_option) {
+        mount_name = label_option;
+    }
+    else {
+        mount_name = fs_path_get_basename(path);
+    }
+
+    fs_emu_log("hard drive mount: %s\n", path);
+    fs_emu_log("device: %s\n", device);
+    fs_emu_log("mount name: %s\n", mount_name);
+    fs_emu_log("read only: %d\n", read_only);
+    fs_emu_log("boot priority: %d\n", boot_priority);
+
+    char *filesystem2_value = fs_strdup_printf("%s,%s:%s:%s,%d",
+            read_only ? "ro" : "rw", device, mount_name, path,
+            boot_priority);
+    amiga_set_option("filesystem2", filesystem2_value);
+
+    free(filesystem2_value);
+    free(mount_name);
+    free(type);
+}
+
+static void configure_hard_drive_image (int index, const char *path,
+        const char *device, int read_only, int boot_priority) {
+    int rdb_mode = 0;
+    char *key = NULL;
+
+    FILE *f = fs_fopen(path, "rb");
+    if (f == NULL) {
+        fs_emu_log("WARNING: could not open %s\n", path);
+    }
+
+    key = fs_strdup_printf("hard_drive_%d_type", index);
+    const char *hd_type = fs_config_get_const_string(key);
+    free(key);
+    if (hd_type && fs_ascii_strcasecmp(hd_type, "rdb") == 0) {
+        fs_emu_log("hard drive type explicitly set to rdb\n");
+        rdb_mode = 1;
+    }
+    /*
+    else if (enable_rdb_mode == 0) {
+        rdb_mode = 0;
+    }
+    */
+    else if (f != NULL) {
+        // autodetect rdb mode
+        char buffer[5];
+        int read = fread(buffer, 1, 4, f);
+        buffer[4] = '\0';
+        if (read == 4) {
+            if (strcmp(buffer, "RDSK") == 0) {
+                rdb_mode = 1;
+            }
+        }
+        else {
+            fs_emu_log("WARNING: error reading 4 bytes from HD "
+                    "file\n");
+        }
+    }
+    if (f != NULL) {
+        fclose(f);
+    }
+
+    char *type = fs_strdup("hdf");
+    int sectors = 32;
+    int surfaces = 1;
+    int reserved = 2;
+    int block_size = 512;
+
+    if (rdb_mode) {
+        sectors = 0;
+        surfaces = 0;
+        reserved = 0;
+    }
+
+    key = fs_strdup_printf("hard_drive_%d_file_system", index);
+    char *file_system = fs_config_get_string(key);
+    if (file_system == NULL) {
+        file_system = fs_strdup("");
+    }
+    free(key);
+    file_system = fs_uae_expand_path_and_free(file_system);
+    file_system = fs_uae_resolve_path_and_free(file_system,
+            FS_UAE_HD_PATHS);
+    if (file_system[0] && !fs_path_exists(file_system)) {
+        char *msg = fs_strdup_printf(
+                "file system handler \"%s\" not found", file_system);
+        fs_emu_warning(msg);
+        free(msg);
+        return;
+    }
+
+    key = fs_strdup_printf("hard_drive_%d_controller", index);
+    char *hd_controller = fs_config_get_string(key);
+    if (hd_controller == NULL) {
+        hd_controller = fs_strdup("uae");
+    }
+    free(key);
+
+    fs_emu_log("hard drive file: %s\n", path);
+    fs_emu_log("rdb mode: %d\n", rdb_mode);
+    fs_emu_log("device: %s\n", device);
+    fs_emu_log("read only: %d\n", read_only);
+    fs_emu_log("boot priority: %d\n", boot_priority);
+    fs_emu_log("surfaces: %d\n", surfaces);
+    fs_emu_log("reserved: %d\n", reserved);
+    fs_emu_log("hd controller: %s\n", hd_controller);
+    fs_emu_log("sectors: %d\n", sectors);
+    fs_emu_log("block size: %d\n", block_size);
+    fs_emu_log("file system: %s\n", file_system);
+
+    char *hardfile2_value = fs_strdup_printf(
+            "%s,%s:%s,%d,%d,%d,%d,%d,%s,%s",
+            read_only ? "ro" : "rw", device, path,
+            sectors, surfaces, reserved,
+            block_size, boot_priority, file_system, hd_controller);
+    amiga_set_option("hardfile2", hardfile2_value);
+
+    free(hardfile2_value);
+    free(hd_controller);
+    free(file_system);
+    free(type);
+}
+
 void fs_uae_configure_hard_drives() {
-    static const char *ro_string = "ro";
-    static const char *rw_string = "rw";
-    const char *read_write = rw_string;
+    char *key = NULL;
     fs_emu_log("fs_uae_configure_hard_drives\n");
-    for(int i = 0; i < 10; i++) {
-        char *fs_uae_option = fs_strdup_printf("hard_drive_%d", i);
-        char *path = fs_config_get_string(fs_uae_option);
-        free(fs_uae_option);
+
+    for (int i = 0; i < 10; i++) {
+        key = fs_strdup_printf("hard_drive_%d", i);
+        char *path = fs_config_get_string(key);
+        free(key);
         if (path == NULL) {
             continue;
         }
@@ -554,149 +690,41 @@ void fs_uae_configure_hard_drives() {
             continue;
         }
         int boot_priority = -i;
-        read_write = rw_string;
         char *device = fs_strdup_printf("DH%d", i);
 
+        int read_only = 0;
         int virtual = 0;
         if (fs_path_is_dir(path)) {
             virtual = 1;
         }
         else if (fs_str_has_suffix(path, ".zip")) {
             virtual = 1;
-            read_write = ro_string;
+            //read_write = ro_string;
+            read_only = 1;
         }
 
-        fs_uae_option = fs_strdup_printf("hard_drive_%d_read_only", i);
-        if (fs_config_get_boolean(fs_uae_option) == 1) {
-            read_write = ro_string;
+        key = fs_strdup_printf("hard_drive_%d_read_only", i);
+        if (fs_config_get_boolean(key) == 1) {
+            //read_write = ro_string;
+            read_only = 1;
         }
-        free(fs_uae_option);
+        free(key);
 
         if (virtual) {
-            char *type = fs_strdup("dir");
-            int surfaces = 1;
-            int reserved = 2;
-            //char *hd_controller = g_strdup("ide0");
-            int sectors = 32;
-            int block_size = 512;
-
-            char *mount_name;
-            char *label_option_name = fs_strdup_printf(
-                    "hard_drive_%d_label", i);
-            char *label_option = fs_config_get_string(label_option_name);
-            if (label_option) {
-                mount_name = label_option;
-            }
-            else {
-                mount_name = fs_path_get_basename(path);
-            }
-
-            fs_emu_log("hard drive mount: %s\n", path);
-            fs_emu_log("device: %s\n", device);
-            fs_emu_log("mount name: %s\n", mount_name);
-            fs_emu_log("read/write: %s\n", read_write);
-            fs_emu_log("boot priority: %d\n", boot_priority);
-            /*
-            char *option = fs_strdup_printf("uaehf%d", i);
-            char *value = fs_strdup_printf("%s,%s,%s:%s:%s,%d",
-                    type, read_write, device, mount_name, path,
+            configure_hard_drive_directory(i, path, device, read_only,
                     boot_priority);
-            amiga_set_option(option, value);
-            */
-
-            char *option2 = fs_strdup("filesystem2");
-            char *value2 = fs_strdup_printf("%s,%s:%s:%s,%d",
-                    read_write, device, mount_name, path,
-                    boot_priority);
-            amiga_set_option(option2, value2);
-            free(option2);
-            free(value2);
-
-            // uaehf0=hdf,rw,DH0:path.hdf,32,1,2,512,0,,uae;
-
-            //free(option);
-            //free(value);
-            free(device);
-            free(type);
-            free(mount_name);
-            continue;
         }
         else if (fs_path_exists(path)) {
-            int rdb_mode = 0;
-
-            FILE *f = fs_fopen(path, "rb");
-            if (f == NULL) {
-                fs_emu_log("WARNING: could not open %s\n", path);
-            }
-            else {
-                char buffer[5];
-                int read = fread(buffer, 1, 4, f);
-                buffer[4] = '\0';
-                //printf("read %d bytes %s\n", read, buffer);
-                if (read == 4) {
-                    if (strcmp(buffer, "RDSK") == 0) {
-                        rdb_mode = 1;
-                    }
-                }
-                else {
-                    fs_emu_log("WARNING: error reading 4 bytes from HD "
-                            "file\n");
-                }
-                fclose(f);
-            }
-
-            char *type = fs_strdup("hdf");
-            int surfaces = 1;
-            int reserved = 2;
-            char *hd_controller = fs_strdup("uae");
-            //char *hd_controller = g_strdup("ide0");
-            int sectors = 32;
-            int block_size = 512;
-
-            if (rdb_mode) {
-                surfaces = 0;
-                reserved = 0;
-                sectors = 0;
-            }
-
-            fs_emu_log("hard drive file: %s\n", path);
-            fs_emu_log("rdb mode: %d\n", rdb_mode);
-            fs_emu_log("device: %s\n", device);
-            fs_emu_log("read/write: %s\n", read_write);
-            fs_emu_log("boot priority: %d\n", boot_priority);
-            fs_emu_log("surfaces: %d\n", surfaces);
-            fs_emu_log("reserved: %d\n", reserved);
-            fs_emu_log("hd controller: %s\n", hd_controller);
-            fs_emu_log("sectors: %d\n", sectors);
-            fs_emu_log("block size: %d\n", block_size);
-
-            /*
-            char *option = fs_strdup_printf("uaehf%d", i);
-            char *value = fs_strdup_printf("%s,%s,%s:%s,%d,%d,%d,%d,%d,%s,%s",
-                    type, read_write, device, path, sectors, surfaces,
-                    reserved, block_size, boot_priority, "", hd_controller);
-            amiga_set_option(option, value);
-            */
-
-            char *option2 = fs_strdup("hardfile2");
-            char *value2 = fs_strdup_printf("%s,%s:%s,%d,%d,%d,%d,%d,%s,%s",
-                    read_write, device, path, sectors, surfaces,
-                    reserved, block_size, boot_priority, "", hd_controller);
-            amiga_set_option(option2, value2);
-            free(option2);
-            free(value2);
-
-            //free(option);
-            //free(value);
-            free(device);
-            free(type);
-            free(hd_controller);
+            configure_hard_drive_image(i, path, device, read_only,
+                    boot_priority);
         }
         else {
             // FIXME: GUI warning
             fs_emu_warning("Hard drive path does not exist");
             fs_emu_log("hard drive path does not exist: %s\n", path);
         }
+
+        free(device);
     }
 }
 

@@ -16,6 +16,13 @@ int tablet_log = 0;
 
 static int g_joystick_port_autofire[4];
 
+void amiga_set_joystick_port_autofire(int port, int autofire) {
+    if (port < 0 || port > 3) {
+        return;
+    }
+    g_joystick_port_autofire[port] = (autofire > 0);
+}
+
 static int handle_custom_action(int action, int state) {
     write_log("handle_custom_action %d\n", action);
     if (action >= INPUTEVENT_SPC_DISKSWAPPER_0_0 &&
@@ -28,11 +35,13 @@ static int handle_custom_action(int action, int state) {
         return 1;
     }
 
-    if (action >= INPUTEVENT_AMIGA_JOYPORT_0_AUTOFIRE &&
+    /*
+    if (state && action >= INPUTEVENT_AMIGA_JOYPORT_0_AUTOFIRE &&
             action <= INPUTEVENT_AMIGA_JOYPORT_3_AUTOFIRE) {
         int port = action - INPUTEVENT_AMIGA_JOYPORT_0_AUTOFIRE;
-        g_joystick_port_autofire[port] = state;
+        g_joystick_port_autofire[port] = !g_joystick_port_autofire[port];
     }
+    */
 
     return 0;
 }

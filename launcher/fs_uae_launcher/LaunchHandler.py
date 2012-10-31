@@ -232,13 +232,22 @@ class LaunchHandler:
         self.on_progress(_("Preparing hard drives..."))
         for i in range(0, 10):
             key = "hard_drive_{0}".format(i)
-            value = self.config.get(key, "")
-            if value.endswith(".zip"):
-                print("zipped hard drive", value)
-                self.unpack_hard_drive(i, value)
-            elif value.endswith("HardDrive"):
-                print("XML-described hard drive", value)
-                self.unpack_hard_drive(i, value)
+            src = self.config.get(key, "")
+
+            if src.startswith("http://") or src.startswith("https://"):
+                name = src.rsplit("/", 1)[-1]
+                name = urllib.unquote(name)
+                self.on_progress(_("Downloading {0}...".format(name)))
+                dest = os.path.join(self.temp_dir, name)
+                DownloadService.install_file_from_url(src, dest)
+                src = dest
+
+            if src.endswith(".zip"):
+                print("zipped hard drive", src)
+                self.unpack_hard_drive(i, src)
+            elif src.endswith("HardDrive"):
+                print("XML-described hard drive", src)
+                self.unpack_hard_drive(i, src)
 
     def unpack_hard_drive(self, i, src):
         src, archive = self.expand_default_path(src,

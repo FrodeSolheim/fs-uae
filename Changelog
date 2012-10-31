@@ -1,3 +1,17 @@
+Version 2.1.1:
+* Merged updated emulation core from WinUAE 2.5.0beta23.
+* Gamepad button "left trigger" toggles auto-fire, GUI message is displayed
+  when auto-fire mode is toggled.
+* New option hard_drive_x_file_system to specify file system handler,
+  for instance path to SmartFilesystem.
+* New option hard_drive_x_controller to specify HD controller.
+* New option hard_drive_x_type to force RDB mode if RDB cannot be
+  autodetected (unpartitioned/blank disk image).
+* (Launcher) hard_drive_x can be http(s) URL and the HD will be downloaded on
+  demand and used like a local file. URL must end with a "normal file name".
+* (Launcher) Use wxversion.select to ensure 2.8 is used if also older
+  versions of wxPython are installed.
+
 Version 2.1.0:
 * Merged updated emulation core from WinUAE 2.5.0beta21.
 * FS-UAE mman updated to work more like the WinUAE implementation.

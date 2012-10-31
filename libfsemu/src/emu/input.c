@@ -667,7 +667,7 @@ fs_emu_input_device *fs_emu_get_input_devices(int* count) {
 
 static void queue_input_event_with_state(int input_event, int state) {
     //printf("----------------------------- %d\n", state);
-    //printf("action_function => input event %d\n", input_event);
+    //printf("action_function => input event %d (state %d)\n", input_event, state);
     if (input_event > 0) {
         input_event = input_event | (state << 16);
         fs_emu_queue_input_event(input_event);

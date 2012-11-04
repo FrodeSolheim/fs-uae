@@ -479,7 +479,7 @@ static void fs_emu_load_shader() {
     GMarkupParseContext *context = g_markup_parse_context_new(
             &counter_subparser, G_MARKUP_TREAT_CDATA_AS_TEXT, data, NULL);
 
-    FILE *f = fopen(path, "rb");
+    FILE *f = fs_fopen(path, "rb");
     if (f == NULL) {
         fs_log("could not open shader file\n");
         return;

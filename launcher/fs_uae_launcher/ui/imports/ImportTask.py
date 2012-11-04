@@ -62,6 +62,8 @@ class ImportTask(threading.Thread):
             self.import_roms()
         elif self.type == 1:
             self.import_amiga_forever()
+        database = Database()
+        ROMManager.patch_standard_roms(database)
 
     def import_roms(self):
         self.copy_roms(self.path, Settings.get_kickstarts_dir())

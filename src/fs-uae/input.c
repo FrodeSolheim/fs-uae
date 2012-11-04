@@ -439,5 +439,5 @@ static int hotkey_function(int key_code, int key_mod) {
 
 void fs_uae_configure_actions() {
     fs_emu_set_actions(g_actions);
-	fs_emu_set_hotkey_function(hotkey_function);
+    fs_emu_set_hotkey_function(hotkey_function);
 }

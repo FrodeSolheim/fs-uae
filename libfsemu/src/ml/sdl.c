@@ -326,7 +326,7 @@ int fs_ml_video_create_window(const char *title) {
     }
     fs_log("automatic input grab: %d\n", g_fs_ml_automatic_input_grab);
 
-	int initial_input_grab = g_fs_ml_automatic_input_grab;
+    int initial_input_grab = g_fs_ml_automatic_input_grab;
     if (fs_config_get_boolean("initial_input_grab") == 1) {
         initial_input_grab = 1;
     }

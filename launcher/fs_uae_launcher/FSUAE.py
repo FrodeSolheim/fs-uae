@@ -27,7 +27,7 @@ class FSUAE:
     def start_with_args(cls, args, **kwargs):
         print("FSUAE.start_with_args:", args)
         exe = cls.find_executable()
-        print("current dir (cwd): ", os.getcwd())
+        print("current dir (cwd): ", os.getcwdu())
         print("using fs-uae executable:", exe)
         args = [exe] + args
         print(args)

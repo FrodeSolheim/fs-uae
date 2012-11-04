@@ -195,8 +195,8 @@ class LaunchHandler:
                 max_image = i
 
         save_image = max_image + 1
-        s = pkg_resources.resource_stream("fs_uae_launcher",
-                "res/zipped_save_disk.dat")
+        s = pkg_resources.resource_stream(str("fs_uae_launcher"),
+                str("res/zipped_save_disk.dat"))
         data = s.read()
         data = zlib.decompress(data)
         save_disk = os.path.join(self.temp_dir, u"Save Disk.adf")
@@ -380,8 +380,6 @@ SplashDelay=0        ;time to display splash window (1/50 seconds)
             path = Database().find_file(sha1=checksum)
             if path:# and os.path.exists(path):
                 print("found kickstart for", name, "at", path)
-                #ROMManager.decrypt_rom(path, dest)
-                #break
                 archive = Archive(path)
                 if archive.exists(path):
                     with open(dest, "wb") as f:

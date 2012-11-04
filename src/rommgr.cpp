@@ -894,6 +894,7 @@ struct romdata *getromdatabydata (uae_u8 *rom, int size)
 		}
 	}
 	xfree (tmpbuf);
+	//exit(1);
 	return ret;
 }
 
@@ -1040,6 +1041,35 @@ static void descramble (const struct romdata *rd, uae_u8 *data, int size, int od
 	if (flags & (ROMTYPE_NORDIC | ROMTYPE_XPOWER))
 		descramble_nordicpro (data, size, odd);
 }
+#ifdef FSUAE
+#define AMIGA_OS_130_SHA1 "\xc3\x9b\xd9\x09\x4d\x4e\x5f\x4e\x28\xc1" \
+		"\x41\x1f\x30\x86\x95\x04\x06\x06\x2e\x87"
+#define A500_ROM_SHA1 "\x89\x1e\x9a\x54\x77\x72\xfe\x0c\x6c\x19" \
+		"\xb6\x10\xba\xf8\xbc\x4e\xa7\xfc\xb7\x85"
+
+void amiga_patch_rom(uae_u8 *buf, size_t size) {
+	write_log("amiga_patch_rom\n");
+	uae_u8 sha1[SHA1_SIZE];
+	get_sha1 (buf, size, sha1);
+	write_log("ROM: SHA1=");
+	for (int i = 0; i < SHA1_SIZE; i++) {
+		write_log("%02x", sha1[i]);
+	}
+	write_log("\n");
+	if (strncmp(sha1, AMIGA_OS_130_SHA1, SHA1_SIZE) == 0) {
+		write_log("convering amiga-os-130 ROM to preferred A500 ROM\n");
+		buf[413] = '\x08';
+		buf[176029] = '\xb9';
+		buf[262121] = '\x26';
+	}
+	get_sha1 (buf, size, sha1);
+	write_log("ROM: SHA1=");
+	for (int i = 0; i < SHA1_SIZE; i++) {
+		write_log("%02x", sha1[i]);
+	}
+	write_log("\n");
+}
+#endif
 
 static int read_rom_file (uae_u8 *buf, const struct romdata *rd)
 {
@@ -1061,6 +1091,10 @@ static int read_rom_file (uae_u8 *buf, const struct romdata *rd)
 		memcpy (buf, tmp, sizeof tmp);
 		zfile_fread (buf + sizeof tmp, rd->size - sizeof (tmp), 1, zf);
 	}
+#ifdef FSUAE
+	amiga_patch_rom(buf, rd->size);
+#endif
+
 	zfile_fclose (zf);
 	return 1;
 }

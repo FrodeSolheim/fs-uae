@@ -36,6 +36,7 @@ make = make
 endif
 
 debug := 0
+devel := 0
 optimize := 1
 noflags := 0
 prefix := /usr

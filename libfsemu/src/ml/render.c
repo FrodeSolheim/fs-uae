@@ -57,9 +57,9 @@ static void fs_ml_unlock_buffer_swap() {
 }
 #endif
 
-#define CHECK_GL_ERROR(msg)
+#define CHECK_GL_ERROR_MSG(msg)
 /*
-#define CHECK_GL_ERROR(msg) { \
+#define CHECK_GL_ERROR_MSG(msg) { \
     int error = glGetError(); \
     if (error) { \
         printf("%d (%s)\n", error, msg); \
@@ -67,7 +67,6 @@ static void fs_ml_unlock_buffer_swap() {
 } \
 */
 //exit(1); \
-
 
 void fs_ml_frame_update_begin() {
     if (g_fs_ml_video_sync) {
@@ -303,7 +302,7 @@ static void swap_opengl_buffers() {
 static void gl_finish() {
     //int64_t t1 = fs_get_monotonic_time();
     fs_gl_finish();
-    CHECK_GL_ERROR("render_frame");
+    CHECK_GL_ERROR_MSG("render_frame");
     //int64_t t3 = fs_get_monotonic_time();
     //printf("          %lld : %lld\n", t2 - t1, t3 - t2);
 }
@@ -657,15 +656,15 @@ static void opengl_fence(int command) {
         if (g_has_nv_fence) {
             //printf("...\n");
             glSetFenceNV(g_fence, GL_ALL_COMPLETED_NV);
-            CHECK_GL_ERROR("glSetFenceNV(g_fence, GL_ALL_COMPLETED_NV)");
+            CHECK_GL_ERROR_MSG("glSetFenceNV(g_fence, GL_ALL_COMPLETED_NV)");
         }
         else if (g_has_apple_fence) {
             glSetFenceAPPLE(g_fence);
-            CHECK_GL_ERROR("glSetFenceAPPLE(g_fence)");
+            CHECK_GL_ERROR_MSG("glSetFenceAPPLE(g_fence)");
         }
         else if (g_has_arb_sync) {
             g_sync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
-            CHECK_GL_ERROR("glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0)");
+            CHECK_GL_ERROR_MSG("glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0)");
         }
     }
     else if (command == FENCE_WAIT) {
@@ -675,30 +674,30 @@ static void opengl_fence(int command) {
             //int64_t t1 = fs_get_monotonic_time();
             //fs_ml_usleep(10000);
             while (!glTestFenceNV(g_fence)) {
-                CHECK_GL_ERROR("glTestFenceNV(g_fence)");
+                CHECK_GL_ERROR_MSG("glTestFenceNV(g_fence)");
                 //printf("-> %lld\n", fs_get_monotonic_time() - t1);
                 //printf("%d\n", glGetError());
                 fs_ml_usleep(1000);
                 //printf("-> %lld\n", fs_get_monotonic_time() - t1);
             }
-            CHECK_GL_ERROR("glTestFenceNV(g_fence)");
+            CHECK_GL_ERROR_MSG("glTestFenceNV(g_fence)");
         }
         else if (g_has_apple_fence) {
             while (!glTestFenceAPPLE(g_fence)) {
-                CHECK_GL_ERROR("glTestFenceAPPLE(g_fence)");
+                CHECK_GL_ERROR_MSG("glTestFenceAPPLE(g_fence)");
                 fs_ml_usleep(1000);
             }
-            CHECK_GL_ERROR("glTestFenceAPPLE(g_fence)");
+            CHECK_GL_ERROR_MSG("glTestFenceAPPLE(g_fence)");
         }
         else if (g_has_arb_sync) {
             int flags = GL_SYNC_FLUSH_COMMANDS_BIT;
             while (glClientWaitSync(g_sync, flags, 0)
                     == GL_TIMEOUT_EXPIRED) {
-                CHECK_GL_ERROR("glClientWaitSync(g_sync, flags, 0)");
+                CHECK_GL_ERROR_MSG("glClientWaitSync(g_sync, flags, 0)");
                 flags = 0;
                 fs_ml_usleep(1000);
             }
-            CHECK_GL_ERROR("glClientWaitSync(g_sync, flags, 0)");
+            CHECK_GL_ERROR_MSG("glClientWaitSync(g_sync, flags, 0)");
         }
     }
 }
@@ -710,13 +709,13 @@ void fs_ml_render_iteration() {
         init_sync_method();
         if (g_has_nv_fence) {
             glGenFencesNV(1, &g_fence);
-            CHECK_GL_ERROR("glGenFencesNV(1, &g_fence)");
+            CHECK_GL_ERROR_MSG("glGenFencesNV(1, &g_fence)");
             //printf("created fence\n");
             //exit(1);
         }
         else if (g_has_apple_fence) {
             glGenFencesAPPLE(1, &g_fence);
-            CHECK_GL_ERROR("glGenFencesAPPLE(1, &g_fence)");
+            CHECK_GL_ERROR_MSG("glGenFencesAPPLE(1, &g_fence)");
         }
         first = 0;
     }
@@ -726,10 +725,10 @@ void fs_ml_render_iteration() {
     if (g_fs_ml_vblank_sync) {
         frame_wait();
         update_frame();
-        CHECK_GL_ERROR("update_frame");
+        CHECK_GL_ERROR_MSG("update_frame");
 
         render_frame();
-        CHECK_GL_ERROR("render_frame");
+        CHECK_GL_ERROR_MSG("render_frame");
 
         glFlush();
 

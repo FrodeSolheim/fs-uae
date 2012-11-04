@@ -6,9 +6,9 @@ from __future__ import unicode_literals
 import os
 import traceback
 import fs_uae_launcher.fsui as fsui
-from ..I18N import _, ngettext
-from ..Settings import Settings
-from .IconButton import IconButton
+from ...I18N import _, ngettext
+from ...Settings import Settings
+from ..IconButton import IconButton
 
 class ScanPathsGroup(fsui.Group):
 

@@ -62,8 +62,7 @@ def get_lib_dir():
     lib_dir = os.environ.get('LIB_DIR', '').decode('UTF-8')
     if lib_dir:
         return unicode_path(lib_dir)
-    #os.path.join(os.getcwd, sys.argv[0]
-    lib_dir = os.path.join(os.getcwd(), 'lib')
+    lib_dir = os.path.join(os.getcwdu(), "lib")
     if os.path.exists(lib_dir):
         return lib_dir
     #raise RuntimeError("could not detect lib dir")

@@ -191,7 +191,7 @@ scan int
 
     def find_local_roms(self):
         self.init()
-        
+
         a = "$BASE/Kickstarts/"
         b = "$BASE/Kickstarts" + "\u0030" # one more than forward slash
         query = "SELECT id, path FROM file WHERE path >= ? AND path < ?"

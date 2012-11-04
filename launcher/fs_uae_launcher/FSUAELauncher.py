@@ -28,6 +28,9 @@ class FSUAELauncher(fsui.Application):
         self.load_settings()
         self.config_startup_scan()
         self.kickstart_startup_scan()
+        database = Database.get_instance()
+        ROMManager.patch_standard_roms(database)
+        #sys.exit(1)
 
         # FIXME: should now sanitize check some options -for instance,
         # - check if configured joysticks are still connected
@@ -84,7 +87,7 @@ class FSUAELauncher(fsui.Application):
         except ConfigParser.NoSectionError:
             keys = []
         for key in keys:
-            config[key] = cp.get("config", key)
+            config[key] = cp.get("config", key).decode("UTF-8")
         for key, value in config.iteritems():
             print("loaded", key, value)
             Config.config[key] = value
@@ -95,7 +98,7 @@ class FSUAELauncher(fsui.Application):
         except ConfigParser.NoSectionError:
             keys = []
         for key in keys:
-            settings[key] = cp.get("settings", key)
+            settings[key] = cp.get("settings", key).decode("UTF-8")
         for key, value in settings.iteritems():
             #if key in Settings.settings:
             #    # this setting is already initialized, possibly via
@@ -125,7 +128,7 @@ class FSUAELauncher(fsui.Application):
 
         for key, value in Settings.settings.iteritems():
             #lines.append(u"{0} = {1}".format(key, value))
-            cp.set("settings", key, value)
+            cp.set("settings", str(key), value.encode("UTF-8"))
 
         cp.add_section("config")
         #lines.append(u"[config]")
@@ -134,13 +137,10 @@ class FSUAELauncher(fsui.Application):
             if key.startswith("__"):
                 # keys starting with __ are never saved
                 continue
-            #lines.append(u"{0} = {1}".format(key, value))
-            cp.set("config", key, value)
+            cp.set("config", str(key), value.encode("UTF-8"))
 
         with open(path, "wb") as f:
             cp.write(f)
-            #for line in lines:
-            #    f.write(line + u"\n".encode("UTF-8"))
         print("moving to " + repr(self.get_settings_file()))
         shutil.move(path, self.get_settings_file())
 

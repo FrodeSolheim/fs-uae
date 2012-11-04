@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2012-07-27 17:47+0200\n"
+"POT-Creation-Date: 2012-11-01 19:42+0100\n"
 "PO-Revision-Date: 2012-10-24 17:52+0100\n"
 "Last-Translator: grimi <grimi at poczta dot fm>\n"
 "Language-Team: Polish\n"
@@ -25,13 +25,27 @@ msgstr "Sterowanie Amigą"
 msgid "Auto"
 msgstr "Automatyczny"
 
+msgid "Auto-Fire is Off"
+msgstr ""
+
+msgid "Auto-Fire is On"
+msgstr ""
+
+#, c-format
+msgid "Auto-fire disabled for port %d"
+msgstr ""
+
+#, c-format
+msgid "Auto-fire enabled for port %d"
+msgstr ""
+
 #. / TRANSLATORS: Empty or nothing
 #, c-format
 msgid "CD%d: Empty"
 msgstr "CD%d: pusta"
 
-msgid "CD32 Gamepad"
-msgstr "Pad CD32"
+msgid "CD32 Pad Mode"
+msgstr ""
 
 #. / TRANSLATORS: Empty or nothing
 #, c-format
@@ -59,9 +73,6 @@ msgstr "Pełna ramka"
 msgid "Hard Reset"
 msgstr "\"Twardy\" reset"
 
-msgid "Host Device"
-msgstr "Urządzenie główne"
-
 msgid "Input Options"
 msgstr "Opcje wejścia"
 
@@ -75,8 +86,8 @@ msgstr "Włóż do CD%d"
 msgid "Insert Into DF%d"
 msgstr "Włóż do DF%d"
 
-msgid "Joystick"
-msgstr "Joystick"
+msgid "Joystick Mode"
+msgstr ""
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
@@ -120,6 +131,9 @@ msgstr "Więcej..."
 msgid "Mouse"
 msgstr "Mysz"
 
+msgid "Mouse Mode"
+msgstr ""
+
 #. / TRANSLATORS: This is a menu entry and must not be too long: If you struggle
 #. / to get in short enough, just translate "No Device" instead.
 msgid "No Amiga Device"
@@ -139,6 +153,9 @@ msgstr "Porty równoległe joyów"
 
 msgid "Pause"
 msgstr "Pauza"
+
+msgid "Port Settings"
+msgstr ""
 
 msgid "Removable Media"
 msgstr "Nośniki wymienne"
@@ -170,3 +187,12 @@ msgstr "Rozmiar: %s"
 #, c-format
 msgid "Zoom: %s + Border"
 msgstr "Rozmiar: %s + obramowanie"
+
+#~ msgid "CD32 Gamepad"
+#~ msgstr "Pad CD32"
+
+#~ msgid "Host Device"
+#~ msgstr "Urządzenie główne"
+
+#~ msgid "Joystick"
+#~ msgstr "Joystick"

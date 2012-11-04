@@ -195,35 +195,31 @@ static void virtualfreewithlock (LPVOID addr, SIZE_T size, DWORD freetype)
 
 void cache_free (uae_u8 *cache)
 {
-//#ifdef WINDOWS
+#ifdef WINDOWS
     virtualfreewithlock (cache, 0, MEM_RELEASE);
-//#else
-//    free (cache);
-//#endif
+#else
+    // FIXME: Must add (address, size) to a list in cache_alloc, so the memory
+    // can be correctly released here...
+    printf("TODO: free memory with munmap\n");
+    //munmap(cache, size);
+#endif
 }
 
 uae_u8 *cache_alloc (int size)
 {
     printf("cache_alloc size = %d\n", size);
-//#ifdef WINDOWS
+#ifdef WINDOWS
     return virtualallocwithlock (NULL, size, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
-//#else
-    /*
-    void *cache;
-
+#else
     size = size < getpagesize() ? getpagesize() : size;
 
-    if ((cache = valloc (size))) {
-        if (mprotect (cache, size, PROT_READ|PROT_WRITE|PROT_EXEC)) {
-            write_log ("MProtect Cache of %d failed. ERR=%d\n", size, errno);
-        }
-    } else {
+    void *cache = mmap(0, size, PROT_READ | PROT_WRITE | PROT_EXEC,
+            MAP_PRIVATE | MAP_ANON, -1, 0);
+    if (!cache) {
         write_log ("Cache_Alloc of %d failed. ERR=%d\n", size, errno);
     }
-
-    return (uae_u8*) cache;
-    */
-//#endif
+    return (uae_u8 *) cache;
+#endif
 }
 
 #if 0
@@ -1124,7 +1120,8 @@ int uae_shmctl (int shmid, int cmd, struct shmid_ds *buf)
 
 #endif
 
-#if 0
+#ifdef FSUAE
+#else
 int isinf (double x)
 {
     const int nClass = _fpclass (x);

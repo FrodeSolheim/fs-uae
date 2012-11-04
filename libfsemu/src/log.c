@@ -39,7 +39,7 @@ static void initialize() {
         }
     }
     g_initial_log_file = g_build_filename(dir, "fs-uae.log", NULL);
-    g_log_file = fopen(g_initial_log_file, "w");
+    g_log_file = g_fopen(g_initial_log_file, "w");
     if (g_log_file) {
         printf("logging to %s\n", g_initial_log_file);
         //g_mode = MODE_FILE;
@@ -58,11 +58,11 @@ void fs_config_set_log_file(const char *path) {
     if (g_log_file) {
         fclose(g_log_file);
     }
-    g_log_file = fopen(path, "w");
+    g_log_file = g_fopen(path, "w");
     if (g_log_file) {
         printf("logging to %s\n", path);
         if (g_initial_log_file) {
-            FILE *f = fopen(g_initial_log_file, "r");
+            FILE *f = g_fopen(g_initial_log_file, "r");
             if (f) {
                 char *buffer = (char *) g_malloc(1024);
                 int read = fread(buffer, 1, 1024, f);

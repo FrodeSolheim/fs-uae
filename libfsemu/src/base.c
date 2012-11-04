@@ -352,8 +352,15 @@ int fs_get_application_exe_path(char *buffer, int size) {
     // Windows: GetModuleFileName() with hModule = NULL
 #if defined(WINDOWS)
     // FIXME: SHOULD HANDLE UTF8 <--> MBCS..
-    size = GetModuleFileName(NULL, buffer, size);
-    //return utf8(path_buffer);
+    wchar_t * temp_buf = malloc(sizeof(wchar_t) * PATH_MAX);
+    int len = GetModuleFileNameW(NULL, temp_buf, PATH_MAX);
+
+    int result = WideCharToMultiByte(CP_UTF8, 0, temp_buf, len,
+            buffer, size, NULL, NULL);
+    free(temp_buf);
+    if (result == 0) {
+        return 0;
+    }
     return 1;
 #elif defined(MACOSX)
     //fs_log("fs_get_application_exe_path for Mac OS X\n");

@@ -14,11 +14,11 @@ A1000_KICKSTARTS = [
 A500_KICKSTARTS = [
     # amiga-os-130.rom (decrypted)
     # Kickstart v1.3 r34.5 (1987)(Commodore)(A3000)[!]
-    "c39bd9094d4e5f4e28c1411f3086950406062e87",
+    #"c39bd9094d4e5f4e28c1411f3086950406062e87",
     # Kickstart v1.3 r34.5 (1987)(Commodore)(A500-A1000-A2000-CDTV)[!]
     "891e9a547772fe0c6c19b610baf8bc4ea7fcb785",
     # Kickstart v1.3 r34.5 (1987)(Commodore)(A500-A1000-A2000-CDTV)[o]
-    "90933936cce43ca9bc6bf375662c076b27e3c458"
+    #"90933936cce43ca9bc6bf375662c076b27e3c458"
 ]
 
 A500P_KICKSTARTS = [

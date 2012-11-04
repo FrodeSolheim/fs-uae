@@ -22,7 +22,7 @@ endif
 
 libfsemu_dir = libfsemu
 libfsemu-target:
-	$(make) -C libfsemu
+	$(make) -C libfsemu debug=$(debug) devel=$(devel)
 
 #ifeq ($(wildcard libfs-capsimage), libfs-capsimage)
 #libfs-capsimage_dir = libfs-capsimage
@@ -48,19 +48,25 @@ libs = -L$(libfsemu_dir)/out -lfsemu  \
 		-lpng -lz
 
 else
-warnings = -Wno-unused-variable -Wno-unused-function
-#-Wno-unused-but-set-variable
-errors = -Werror=implicit-function-declaration -Werror=return-type
-cxxflags = $(warnings) $(errors) -Isrc/od-fs -Isrc/od-fs/include \
+
+common_flags = -Isrc/od-fs -Isrc/od-fs/include \
 		-Isrc/include -Igen -Isrc -Isrc/od-win32/caps \
 		`pkg-config --cflags glib-2.0` -I$(libfsemu_dir)/include \
-		-Wno-write-strings `sdl-config --cflags` \
-		-fpermissive \
-		$(CXXFLAGS)
-cflags = -std=c99 $(CFLAGS) $(cxxflags)
+		`sdl-config --cflags`
+cflags = $(common_flags) -std=c99 $(CFLAGS)
+cxxflags = $(common_flags) -fpermissive $(CXXFLAGS)
 ldflags = $(LDFLAGS)
 libs = -L$(libfsemu_dir)/out -lfsemu `sdl-config --libs` \
 		`pkg-config --libs glib-2.0 gthread-2.0` -lpng -lz
+
+ifeq ($(devel), 1)
+	warnings = -Wno-unused-variable -Wno-unused-function -Wno-write-strings \
+			-Wno-unused-but-set-variable
+	errors = -Werror=implicit-function-declaration -Werror=return-type
+	cflags += $(warnings) $(errors)
+	cxxflags += $(warnings) $(errors)
+endif
+
 endif
 
 profile_generate := 0
@@ -105,6 +111,12 @@ else ifeq ($(os), windows)
   cppflags += -DWINDOWS
   cxxflags += -U_WIN32 -UWIN32
   libs += -lOpenGL32 -lGLU32 -lgdi32 -lWinmm -lOpenAL32 -lWs2_32
+
+  ifeq ($(devel), 1)
+  libs += -mno-windows
+  endif
+
+
 else ifeq ($(os), macosx)
   uname_m := $(shell uname -m)
   ifneq ($(arch),)
@@ -127,10 +139,6 @@ else
   ldflags += -Wa,--execstack
   libs += -lGL -lGLU -lopenal -ldl -lX11
   generate = 0
-endif
-
-ifeq ($(debug), 1)
-libs += -mno-windows
 endif
 
 objects = \

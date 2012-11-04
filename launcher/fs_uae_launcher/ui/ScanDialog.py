@@ -37,7 +37,7 @@ class ScanDialog(fsui.Dialog):
                 _("Scan for Kickstarts, Files and Configurations"))
         self.layout.add(label, margin=10)
 
-        from .ScanPathsGroup import ScanPathsGroup
+        from .settings.ScanPathsGroup import ScanPathsGroup
         self.scan_paths_group = ScanPathsGroup(self)
         self.layout.add(self.scan_paths_group, fill=True)
 

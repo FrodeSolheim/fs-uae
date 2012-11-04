@@ -47,9 +47,9 @@ if sys.platform == 'darwin':
         print("no mapping for wx locale value")
     print("mac locale", loc)
 
-dirs = [os.path.join(os.getcwd(), "launcher", "share"),
-        os.path.join(os.getcwd(), "share"),
-        os.getcwd(), "/usr/local/share", "/usr/share"]
+dirs = [os.path.join(os.getcwdu(), "launcher", "share"),
+        os.path.join(os.getcwdu(), "share"),
+        os.getcwdu(), "/usr/local/share", "/usr/share"]
 
 locale_base = None
 for dir in dirs:

@@ -21,6 +21,8 @@ class Settings:
 
     default_settings = {
         "__netplay_ready": "",
+        "automatic_input_grab": "",
+        "builtin_configs": "",
         "config_base": "",
         "config_changed": "0",
         "config_name": "Unnamed Configuration",
@@ -29,15 +31,20 @@ class Settings:
         "config_search": "",
         "config_xml_path": "",
         "configurations_dir_mtime": "",
-        "fullscreen": "0",
+        "fsaa": "",
+        "fullscreen": "",
         "fullscreen_mode": "fullscreen",
+        "initial_input_grab": "",
+        "keep_aspect": "",
         "kickstarts_dir_mtime": "",
+        "kickstart_setup": "",
         "last_cd_dir": "",
         "last_floppy_dir": "",
         "last_hd_dir": "",
         "last_rom_dir": "",
         "last_scan": "",
         "maximized": "0",
+        "netplay_feature": "",
         "primary_joystick": "",
         "scan_configs": "1",
         "scan_files": "1",
@@ -45,9 +52,12 @@ class Settings:
         "search_path": "",
         "secondary_joystick": "",
         "ui_background_color": "",
+        "video_sync": "",
+        "video_sync_method": "",
+        "zoom": "",
         "window_width": "",
         "window_height": "",
-        }
+    }
 
     settings = default_settings.copy()
     #settings_listeners = []

@@ -14,7 +14,8 @@ class Image:
         index = name.find(":")
         if index > 1:
             package, file = name.split(":", 1)
-            stream = pkg_resources.resource_stream(package, file)
+            stream = pkg_resources.resource_stream(str(package),
+                    str(file))
 
             self._image = wx.ImageFromStream(stream)
             #self.bitmap = wx.BitmapFromImage(image)

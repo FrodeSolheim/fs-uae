@@ -32,10 +32,8 @@ arch :=
 debug := 0
 noflags := 0
 
-warnings = -Wall
-errors = -Werror=implicit-function-declaration
 cppflags = $(CXXFLAGS)
-cflags = -std=c99 $(warnings) $(errors) -Iinclude \
+cflags = -std=c99 -Iinclude \
 		`sdl-config --cflags` `pkg-config --cflags glib-2.0` \
 		$(CFLAGS) -D_FILE_OFFSET_BITS=64
 objects = obj/emu_emu.o obj/emu_video.o obj/emu_audio.o obj/emu_input.o \
@@ -53,6 +51,10 @@ objects = obj/emu_emu.o obj/emu_video.o obj/emu_audio.o obj/emu_input.o \
 
 ldflags = $(LDFLAGS)
 libs =
+
+ifeq ($(devel), 1)
+	cflags += -Wall -Werror=implicit-function-declaration
+endif
 
 ifeq ($(debug), 1)
 	cflags += -g -O0 -fno-inline

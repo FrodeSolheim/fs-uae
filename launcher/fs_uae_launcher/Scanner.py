@@ -63,6 +63,7 @@ class Scanner:
         scanner.scan()
         if cls.stop_check():
             return
+
         if cls.scan_for_configs:
             scanner = ConfigurationScanner(cls.paths, on_status=cls.on_status,
                     stop_check=cls.stop_check)

@@ -7,15 +7,16 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2012-07-27 17:47+0200\n"
-"PO-Revision-Date: 2012-05-08 11:14+0100\n"
-"Last-Translator: Speedvicio <speedvicio@hotmail.com>\n"
+"POT-Creation-Date: 2012-11-01 10:43+0100\n"
+"PO-Revision-Date: 2012-11-01 19:28+0100\n"
+"Last-Translator: Speedvicio <fs-uae-it@fengestad.no>\n"
 "Language-Team: Italian\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 1.5.4\n"
 
 msgid "Amiga Control"
 msgstr "Controllo Amiga"
@@ -24,13 +25,27 @@ msgstr "Controllo Amiga"
 msgid "Auto"
 msgstr "Auto"
 
+msgid "Auto-Fire is Off"
+msgstr "Auto-Fire Spento"
+
+msgid "Auto-Fire is On"
+msgstr "Auto-Fire Acceso"
+
+#, c-format
+msgid "Auto-fire disabled for port %d"
+msgstr "Auto-fire disabilitato  su porta %d"
+
+#, c-format
+msgid "Auto-fire enabled for port %d"
+msgstr "Auto-fire abilitato su porta %d"
+
 #. / TRANSLATORS: Empty or nothing
 #, c-format
 msgid "CD%d: Empty"
 msgstr "CD%d: Vuoto"
 
-msgid "CD32 Gamepad"
-msgstr "CD32 Gamepad"
+msgid "CD32 Pad Mode"
+msgstr "Modalità Pad CD32"
 
 #. / TRANSLATORS: Empty or nothing
 #, c-format
@@ -58,9 +73,6 @@ msgstr "Fotogramma Completo"
 msgid "Hard Reset"
 msgstr "Forza Riavvio"
 
-msgid "Host Device"
-msgstr "Dispositivo Ospite"
-
 msgid "Input Options"
 msgstr "Opzioni Ingresso"
 
@@ -74,8 +86,8 @@ msgstr "Inserisci In CD%d"
 msgid "Insert Into DF%d"
 msgstr "Inserisci In DF%d"
 
-msgid "Joystick"
-msgstr "Joystick"
+msgid "Joystick Mode"
+msgstr "Modalità Joystick"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
@@ -119,6 +131,9 @@ msgstr "Altro..."
 msgid "Mouse"
 msgstr "Mouse"
 
+msgid "Mouse Mode"
+msgstr "Modalità Mouse"
+
 #. / TRANSLATORS: This is a menu entry and must not be too long: If you struggle
 #. / to get in short enough, just translate "No Device" instead.
 msgid "No Amiga Device"
@@ -138,6 +153,9 @@ msgstr "Porte Parallele Joystick"
 
 msgid "Pause"
 msgstr "Pausa"
+
+msgid "Port Settings"
+msgstr "Settaggi Porte"
 
 msgid "Removable Media"
 msgstr "Supporti Rimovibili"
@@ -169,3 +187,12 @@ msgstr "Ingrandimento: %s"
 #, c-format
 msgid "Zoom: %s + Border"
 msgstr "Ingrandimento: %s + Bordo"
+
+#~ msgid "CD32 Gamepad"
+#~ msgstr "CD32 Gamepad"
+
+#~ msgid "Host Device"
+#~ msgstr "Dispositivo Ospite"
+
+#~ msgid "Joystick"
+#~ msgstr "Joystick"

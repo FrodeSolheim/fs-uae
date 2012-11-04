@@ -1,5 +1,6 @@
 #include <fs/image.h>
 #include <fs/log.h>
+#include <fs/filesys.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -39,7 +40,7 @@ fs_image* fs_image_new_from_file(const char* file) {
 
     fs_image* image = fs_image_new();
 
-    FILE *fp = fopen(file, "rb");
+    FILE *fp = fs_fopen(file, "rb");
     if (!fp) {
         fs_log("file %s could not be opened for reading\n", file);
         fs_unref(image);
@@ -188,7 +189,7 @@ int fs_image_save_data(const char *path, void *buffer, int width, int height,
         return 0;
     }
 
-    fp = fopen(path, "wb");
+    fp = fs_fopen(path, "wb");
     if (fp == NULL) {
         fs_log("could not open png file for writing\n");
         return 0;

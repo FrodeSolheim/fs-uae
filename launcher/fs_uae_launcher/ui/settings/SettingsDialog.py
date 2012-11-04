@@ -9,8 +9,12 @@ from ...Signal import Signal
 from ..PagedDialog import PagedDialog
 #from .HardwarePage import HardwarePage
 #from .HardDrivesPage import HardDrivesPage
-from .JoystickSettingsPage import JoystickSettingsPage
 from .CustomSettingsPage import CustomSettingsPage
+from .ExperimentalFeaturesPage import ExperimentalFeaturesPage
+from .InputSettingsPage import InputSettingsPage
+from .JoystickSettingsPage import JoystickSettingsPage
+from .ScanSettingsPage import ScanSettingsPage
+from .VideoSettingsPage import VideoSettingsPage
 
 class SettingsDialog(PagedDialog):
 
@@ -22,9 +26,11 @@ class SettingsDialog(PagedDialog):
     def __init__(self, parent, index=0):
         PagedDialog.__init__(self, parent, _("FS-UAE Launcher Settings"))
 
-        #self.add_page(_("Hardware"), HardwarePage)
         self.add_page(_("Joystick Settings"), JoystickSettingsPage)
-        #self.add_page(_("Hard Drives"), HardDrivesPage)
+        self.add_page(_("Scan & Indexing"), ScanSettingsPage)
+        self.add_page(_("Input Settings"), InputSettingsPage)
+        self.add_page(_("Video Settings"), VideoSettingsPage)
+        self.add_page(_("Experimental Features"), ExperimentalFeaturesPage)
         self.add_page(_("Custom Settings"), CustomSettingsPage)
 
         self.list_view.set_index(index)

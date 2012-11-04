@@ -68,9 +68,12 @@ class ConfigurationScanner:
         self.set_status(_("Scanning configurations"),
                 _("Scanning database entries..."))
         self.scan_configurations(database)
-        self.set_status(_("Scanning configurations"),
-                _("Scanning built-in entries..."))
-        self.scan_builtin_configs(database)
+        if Settings.get("builtin_configs") == "0":
+            print("builtin_configs was set to 0")
+        else:
+            self.set_status(_("Scanning configurations"),
+                    _("Scanning built-in entries..."))
+            self.scan_builtin_configs(database)
 
         if self.stop_check():
             # aborted

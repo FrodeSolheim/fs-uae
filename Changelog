@@ -1,3 +1,23 @@
+Version 2.1.2:
+* Fix for running from directory with non-ASCII characters on Windows.
+* Use mmap to allocate executable memory on non-Windows platforms, fixes
+  segmentation faults with i386 versions.
+* Patch amiga-os-130.rom to default A500 rom on demand (3 byte diff).
+* Don't use warning-related compiler options by default, (useful for older
+  compiler versions), enable again with make devel=1.
+* Updated translations: it [Speedvicio].
+* (Launcher) New setting dialog pages for video, input, scan and experimental
+  settings, common options added to these pages.
+* (Launcher) New option to disable use of built-in configurations.
+* (Launcher) Can use amiga-os-130.rom as kick34005.A500 for WHDLoad, will
+  patch on demand.
+* (Launcher) amiga-os-130.rom, default A500 rom and overdumped 
+  default A500 rom can be used together in net play mode (they are all
+  normalized to default A500 rom).
+* (Launcher) Use wxversion.select to specifically choose wxPython 2.8.
+* (Launcher) Fix for running from directory with non-ASCII characters,
+  and when user's home directory contains non-ASCII characters.
+
 Version 2.1.1:
 * Merged updated emulation core from WinUAE 2.5.0beta23.
 * Gamepad button "left trigger" toggles auto-fire, GUI message is displayed

@@ -237,7 +237,7 @@ static void on_init() {
     // to output at 44100 Hz even though currprefs.freq says 48000.
     //fs_emu_set_audio_buffer_frequency(0, fs_emu_get_audio_frequency());
 
-    amiga_set_option("gfx_gamma", "40");
+    //amiga_set_option("gfx_gamma", "40");
 
     fs_uae_set_uae_paths();
     fs_uae_read_custom_uae_options(fs_uae_argc, fs_uae_argv);
@@ -260,11 +260,8 @@ void pause_function(int pause) {
 }
 
 static int load_config_file() {
-
-    // FIXME: cascading config files soon supported
-    const char *msg = "checking config file %s\n";
-
     fs_log("load config file\n");
+    const char *msg = "checking config file %s\n";
 
     //g_fs_uae_config = g_key_file_new();
     if (g_fs_uae_config_file_path == NULL) {
@@ -519,9 +516,10 @@ int main(int argc, char* argv[]) {
     }
 
     // force creation of state directories
-    fs_uae_flash_memory_dir();
-    fs_uae_save_states_dir();
-    fs_uae_floppy_overlays_dir();
+    //fs_uae_flash_memory_dir();
+    //fs_uae_save_states_dir();
+    //fs_uae_floppy_overlays_dir();
+    fs_uae_state_dir();
 
     const char *controllers_dir = fs_uae_controllers_dir();
     if (controllers_dir) {
@@ -605,7 +603,15 @@ int main(int argc, char* argv[]) {
     fs_uae_configure_menu();
 
     fs_emu_run(main_function);
-
-    fs_log("fs-uae shutting down (end of main function)\n");
+    fs_log("fs-uae shutting down, fs_emu_run returned\n");
+    if (fs_rmdir(fs_uae_state_dir()) == 0) {
+        fs_log("state dir %s was removed because it was empty\n",
+                fs_uae_state_dir());
+    }
+    else {
+        fs_log("state dir %s was not removed (non-empty)\n",
+                fs_uae_state_dir());
+    }
+    fs_log("end of main function\n");
     return 0;
 }

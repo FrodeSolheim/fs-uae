@@ -549,6 +549,12 @@ class Config:
                 keys = []
             for key in keys:
                 config[key] = cp.get("config", key)
+            try:
+                keys = cp.options("fs-uae")
+            except ConfigParser.NoSectionError:
+                keys = []
+            for key in keys:
+                config[key] = cp.get("fs-uae", key)
 
         cls.load(config)
 

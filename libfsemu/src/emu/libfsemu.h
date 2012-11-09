@@ -63,7 +63,7 @@ void fs_emu_netplay_start();
 int fs_emu_netplay_send_input_event(int input_event);
 void fs_emu_netplay_init();
 
-void fs_emu_clear_menu_input_states();
+void fs_emu_clear_menu_input_states(int key);
 void fs_emu_audio_set_default_pitch(double pitch);
 void fs_emu_render_scanlines(uint8_t* out, fs_emu_video_buffer *buffer,
         int cx, int cy, int cw, int ch, int scanline_dark, int scanline_light);

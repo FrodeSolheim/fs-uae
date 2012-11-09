@@ -83,7 +83,7 @@ class ConfigWriter:
         print("")
         print("-------------" * 6)
         print("CONFIG")
-        c.append("[config]")
+        c.append("[fs-uae]")
         for key in sorted(config.keys()):
             ignore = False
             if key.startswith("floppy_drive_"):

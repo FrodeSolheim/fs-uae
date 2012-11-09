@@ -255,7 +255,7 @@ static int save_function(fs_emu_menu_item *item, void **data) {
 }
 
 static char *get_state_file(int slot, const char *ext) {
-    char *path = fs_strdup_printf("%s_%d.%s", fs_uae_get_state_base_name(),
+    char *path = fs_strdup_printf("%s %d.%s", fs_uae_get_state_base_name(),
             slot + 1, ext);
     return path;
 }

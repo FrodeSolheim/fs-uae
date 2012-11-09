@@ -75,9 +75,10 @@ class LaunchHandler:
         self.config["floppies_dir"] = self.temp_dir
 
         print("state dir", self.get_state_dir())
-        self.config["save_states_dir"] = self.get_state_dir()
-        self.config["floppy_overlays_dir"] = self.get_state_dir()
-        self.config["flash_memory_dir"] = self.get_state_dir()
+        self.config["state_dir"] = self.get_state_dir()
+        self.config["save_states_dir"] = ""
+        self.config["floppy_overlays_dir"] = ""
+        self.config["flash_memory_dir"] = ""
 
         self.change_handler = GameChangeHandler(self.temp_dir)
         self.prepare_roms()

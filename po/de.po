@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: fs-uae\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
 "POT-Creation-Date: 2012-11-01 19:42+0100\n"
-"PO-Revision-Date: 2012-05-06 19:26+0100\n"
+"PO-Revision-Date: 2012-11-04 20:23+0100\n"
 "Last-Translator: Jens Weichert <nexusle@me.com>\n"
 "Language-Team: German\n"
 "Language: de\n"
@@ -16,6 +16,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 1.5.4\n"
 
 msgid "Amiga Control"
 msgstr "Amiga Kontrollen"
@@ -25,18 +26,18 @@ msgid "Auto"
 msgstr "Auto"
 
 msgid "Auto-Fire is Off"
-msgstr ""
+msgstr "Dauerfeuer ist ausgeschaltet"
 
 msgid "Auto-Fire is On"
-msgstr ""
+msgstr "Dauerfeuer ist eingeschaltet"
 
 #, c-format
 msgid "Auto-fire disabled for port %d"
-msgstr ""
+msgstr "Dauerfeuer ausgeschaltet für Port %d"
 
 #, c-format
 msgid "Auto-fire enabled for port %d"
-msgstr ""
+msgstr "Dauerfeuer eingeschaltet für Port %d"
 
 #. / TRANSLATORS: Empty or nothing
 #, c-format
@@ -44,7 +45,7 @@ msgid "CD%d: Empty"
 msgstr "CD%d: Leer"
 
 msgid "CD32 Pad Mode"
-msgstr ""
+msgstr "CD32-Gamepad-Modus"
 
 #. / TRANSLATORS: Empty or nothing
 #, c-format
@@ -86,7 +87,7 @@ msgid "Insert Into DF%d"
 msgstr "In DF%d: einlegen"
 
 msgid "Joystick Mode"
-msgstr ""
+msgstr "Joystick-Modus"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
@@ -131,7 +132,7 @@ msgid "Mouse"
 msgstr "Maus"
 
 msgid "Mouse Mode"
-msgstr ""
+msgstr "Maus-Modus"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long: If you struggle
 #. / to get in short enough, just translate "No Device" instead.
@@ -154,7 +155,7 @@ msgid "Pause"
 msgstr "Pause"
 
 msgid "Port Settings"
-msgstr ""
+msgstr "Port-Einstellungen"
 
 msgid "Removable Media"
 msgstr "Wechseldatenträger"

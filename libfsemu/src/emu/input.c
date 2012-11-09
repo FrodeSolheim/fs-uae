@@ -723,9 +723,10 @@ void fs_emu_grab_input(int mode) {
     g_ignore_next_motion = 1;
 }
 
-void fs_emu_clear_menu_input_states() {
-    // FIXME: quick hack for fixing the return key
-    int index = button_index(SDLK_RETURN, -1, -1, -1, -1, -1);
+void fs_emu_clear_menu_input_states(int key) {
+    // FIXME: quick hack for fixing the state of the key used to exit
+    // menu mode
+    int index = button_index(key, -1, -1, -1, -1, -1);
     g_input_state[index] = 0;
 }
 
@@ -1318,6 +1319,23 @@ static int handle_shortcut(fs_ml_event *event) {
     return 0;
 }
 
+static int g_middle_click_ungrab = 1;
+static int g_fs_emu_mouse_speed = 100;
+
+#define MAX_MICE 2
+#define MAX_MICE_AXES 2
+
+static void adjust_mouse_movement(int mouse, int axis, int *movement) {
+    static double fract[MAX_MICE][MAX_MICE_AXES];
+    double d = *movement * g_fs_emu_mouse_speed / 100.0;
+    int v = (int)d;
+    fract[mouse][axis] += d - v;
+    int diff = (int) fract[mouse][axis];
+    v += diff;
+    fract[mouse][axis] -= diff;
+    *movement = v;
+}
+
 static int input_function(fs_ml_event *event) {
     if (event->type == FS_ML_MOUSEMOTION) {
         if (g_ignore_next_motion) {
@@ -1332,11 +1350,14 @@ static int input_function(fs_ml_event *event) {
         }
 
         if (event->motion.xrel) {
-            //printf("xrel %d\n", event->motion.xrel);
+            //printf("xrel %d x %d\n", event->motion.xrel, event->motion.x);
             int input_event = g_input_action_table[mouse_index(1, 0, 0)];
             //printf("x input_event %d\n", input_event);
+            int movement = event->motion.xrel;
+            adjust_mouse_movement(0, 0, &movement);
+
             if (input_event > 0) {
-                int state = MAX(-128, MIN(127, event->motion.xrel));
+                int state = MAX(-128, MIN(127, movement));
                 input_event = input_event | (state << 16);
                 input_event = input_event & 0x00ffffff;
                 fs_emu_queue_input_event(input_event);
@@ -1344,8 +1365,10 @@ static int input_function(fs_ml_event *event) {
         }
         if (event->motion.yrel) {
             int input_event = g_input_action_table[mouse_index(0, 1, 0)];
+            int movement = event->motion.yrel;
+            adjust_mouse_movement(0, 1, &movement);
             if (input_event > 0) {
-                int state = MAX(-128, MIN(127, event->motion.yrel));
+                int state = MAX(-128, MIN(127, movement));
                 input_event = input_event | (state << 16);
                 input_event = input_event & 0x00ffffff;
                 fs_emu_queue_input_event(input_event);
@@ -1379,7 +1402,9 @@ static int input_function(fs_ml_event *event) {
             //printf("mouse button down\n");
             if (fs_emu_has_input_grab()) {
                 if (event->button.button == SDL_BUTTON_MIDDLE) {
-                    fs_emu_grab_input(0);
+                    if (g_middle_click_ungrab) {
+                        fs_emu_grab_input(0);
+                    }
                 }
             }
             else {
@@ -1425,6 +1450,15 @@ void fs_emu_init_input() {
     for (int i = 0; i < (MAX_DEVICES * SLOTS); i++) {
         g_input_action_table[i] = 0;
         g_menu_action_table[i] = 0;
+    }
+
+    if (fs_config_get_boolean("middle_click_ungrab") == 0) {
+        g_middle_click_ungrab = 0;
+    }
+
+    g_fs_emu_mouse_speed = fs_config_get_int("mouse_speed");
+    if (g_fs_emu_mouse_speed <= 0 || g_fs_emu_mouse_speed > 500) {
+        g_fs_emu_mouse_speed = 100;
     }
 
     fs_log("initializing devices for menu\n");

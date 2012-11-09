@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae-launcher\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2012-10-20 17:54+0200\n"
-"PO-Revision-Date: 2012-10-21 14:29+0100\n"
+"POT-Creation-Date: 2012-11-04 18:52+0100\n"
+"PO-Revision-Date: 2012-11-04 20:20+0100\n"
 "Last-Translator: Frode Solheim <frode-code@fengestad.no>\n"
 "Language-Team: German\n"
 "Language: de\n"
@@ -16,6 +16,25 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 1.5.4\n"
+
+msgid "640x400"
+msgstr "640x400"
+
+msgid "640x400 + Border"
+msgstr "640x400 + Rand"
+
+msgid "640x480"
+msgstr "640x480"
+
+msgid "640x480 + Border"
+msgstr "640x480 + Rand"
+
+msgid "640x512"
+msgstr "640x512"
+
+msgid "640x512 + Border"
+msgstr "640x512 + Rand"
 
 msgid "Abort"
 msgstr "Abbrechen"
@@ -35,11 +54,20 @@ msgstr "Mehrere CD-ROMs gleichzeitig hinzufügen"
 msgid "Add Multiple Floppies at Once"
 msgstr "Mehrere Floppies gleichzeitig hinzufügen"
 
+msgid "Additional Options"
+msgstr "Zusätzliche Optionen"
+
 msgid "Amiga Forever import task started"
 msgstr "Amiga Forever Importprozeß gestartet"
 
 msgid "Amiga Model"
 msgstr "Amiga Modell"
+
+msgid "Auto"
+msgstr "Auto"
+
+msgid "Auto + Border"
+msgstr "Auto + Rand"
 
 msgid "Available Kickstart Versions"
 msgstr "Verfügbare Kickstart-Versionen"
@@ -135,6 +163,9 @@ msgstr ""
 "Kopiere {0}\n"
 "zu {1}"
 
+msgid "Crop Amiga display (zoom)"
+msgstr "Amiga Display anpassen (Zoom)"
+
 msgid "Cursor Keys and Right Ctrl/Alt"
 msgstr "Pfeiltasten und rechts Ctrl/Alt"
 
@@ -162,8 +193,14 @@ msgstr "Eigene Optionen bearbeiten"
 msgid "Eject"
 msgstr "Auswerfen"
 
+msgid "Enable experimental net play GUI (requires re-start)"
+msgstr "Experimentelle NetPlay Oberfläche einschalten (Neustart notwendig)"
+
 msgid "Expansions"
 msgstr "Erweiterungen"
+
+msgid "Experimental Features"
+msgstr "Experimentelle Features"
 
 msgid "Extended ROM:"
 msgstr "Erweiterter ROM:"
@@ -183,11 +220,26 @@ msgstr "Disketten"
 msgid "Floppy Drives"
 msgstr "Floppy Laufwerke"
 
+msgid "Force Full Vsync"
+msgstr "Volles Vsync erzwingen"
+
+msgid "Full Frame"
+msgstr "Voller Rahmen"
+
+msgid "Full-scene anti-aliasing (FSAA)"
+msgstr "Full-Scene Anti-Aliasing (FSAA)"
+
 msgid "Fullscreen"
 msgstr "Vollbild"
 
 msgid "Games and Configurations"
 msgstr "Spiele und Konfigurationen"
+
+msgid "Grab mouse and keyboard input when FS-UAE starts"
+msgstr "Maus und Tastatur übernehmen wenn FS-UAE startet"
+
+msgid "Grab mouse and keyboard input when clicking on FS-UAE window"
+msgstr "Maus und Tastatur übernehmen wenn ins FS-UAE Fenster geklickt wird"
 
 msgid "Hard Drives"
 msgstr "Festplatten"
@@ -213,11 +265,17 @@ msgstr "Kickstarts und ROMs importieren"
 msgid "Import task is done"
 msgstr "Importprozeß beendet"
 
+msgid "Include built-in configurations"
+msgstr "Eingebaute Konfigurationen übernehmen"
+
 msgid "Input"
 msgstr "Eingabe"
 
 msgid "Input Options"
 msgstr "Eingabeoptionen"
+
+msgid "Input Settings"
+msgstr "Eingabeeinstellungen"
 
 msgid "Internal"
 msgstr "Intern"
@@ -252,6 +310,9 @@ msgstr "Nahezu genau"
 msgid "Less Accurate"
 msgstr "Weniger genau"
 
+msgid "List of Folders to Index"
+msgstr "Liste der Ordner für Indexierung"
+
 msgid "Main Configuration Options"
 msgstr "Allgemeine Konfigurationsoptionen"
 
@@ -280,7 +341,9 @@ msgid "No Joysticks"
 msgstr "Keine Joysticks"
 
 msgid "No extended kickstart found for this model. Try 'scan' function."
-msgstr "Kein erweitertes Kickstart ROM für dieses Modell gefunden. Benutzen Sie die \"Suchen\" Funktion."
+msgstr ""
+"Kein erweitertes Kickstart ROM für dieses Modell gefunden. Benutzen Sie die "
+"\"Suchen\" Funktion."
 
 msgid "No joysticks are currently connected"
 msgstr "Derzeit sind keine Joysticks verbunden"
@@ -296,6 +359,12 @@ msgstr "Nichts"
 
 msgid "OK"
 msgstr "OK"
+
+msgid "Off"
+msgstr "Aus"
+
+msgid "On"
+msgstr "Ein"
 
 msgid "Open Scan Dialog"
 msgstr "Öffne Suchdialog"
@@ -351,8 +420,14 @@ msgstr "Konfiguration sichern"
 msgid "Saving changes..."
 msgstr "Sichere Änderungen..."
 
+msgid "Scale with original aspect ratio (instead of stretching video)"
+msgstr "Seitenverhältnis beim Skalieren beibehalten (anstatt Stretching)"
+
 msgid "Scan"
 msgstr "Suchen"
+
+msgid "Scan & Indexing"
+msgstr "Scannen und indexieren"
 
 msgid "Scan complete"
 msgstr "Suche beendet"
@@ -399,11 +474,17 @@ msgstr "Ordner mit Amiga-Kickstart-Dateien auswählen und \"{0}\" drücken"
 msgid "Settings"
 msgstr "Einstellungen"
 
+msgid "Show kickstart setup page on startup when all ROMs are missing"
+msgstr "Kickstart-Einstellungen beim Start anzeigen, wenn alle ROMs fehlen"
+
 msgid "Slow RAM"
 msgstr "Langsames RAM"
 
 msgid "Start"
 msgstr "Start"
+
+msgid "Start FS-UAE in fullscreen mode"
+msgstr "FS-UAE im Vollbild starten"
 
 msgid "Starting FS-UAE..."
 msgstr "Starte FS-UAE..."
@@ -411,14 +492,27 @@ msgstr "Starte FS-UAE..."
 msgid "Starting scan"
 msgstr "Starte Suche"
 
+msgid "Sync to Vblank"
+msgstr "Nach VBlank synchronisieren"
+
 msgid "Update ({version}) is available"
 msgstr "Ein Update ({version}) ist verfügbar"
+
+msgid "Video Settings"
+msgstr "Videoeinstellungen"
+
+msgid "Video synchronization"
+msgstr "Videosynchronisierung"
+
+msgid "Video synchronization method"
+msgstr "Video-Sychronisierungs-Methode"
 
 msgid "WHDLoad Arguments"
 msgstr "WHDLoad Argumente"
 
 msgid "You should have kickstart files for each Amiga model you want to use:"
-msgstr "Sie sollten eine Kickstart-Datei für jedes benutzte Amiga-Modell besitzen:"
+msgstr ""
+"Sie sollten eine Kickstart-Datei für jedes benutzte Amiga-Modell besitzen:"
 
 msgid "Zorro III RAM"
 msgstr "Zorro III RAM"

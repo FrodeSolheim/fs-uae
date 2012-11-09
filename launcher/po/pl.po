@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae-launcher\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2012-10-20 15:37+0200\n"
-"PO-Revision-Date: 2012-10-21 16:51+0100\n"
+"POT-Creation-Date: 2012-11-04 17:15+0100\n"
+"PO-Revision-Date: 2012-11-04 18:29+0100\n"
 "Last-Translator: grimi <grimi at poczta dot fm>\n"
 "Language-Team: Polish\n"
 "Language: pl\n"
@@ -17,6 +17,24 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
 "|| n%100>=20) ? 1 : 2);\n"
+
+msgid "640x400"
+msgstr "640x400"
+
+msgid "640x400 + Border"
+msgstr "640x400 + ramka"
+
+msgid "640x480"
+msgstr "640x480"
+
+msgid "640x480 + Border"
+msgstr "640x480 + ramka"
+
+msgid "640x512"
+msgstr "640x512"
+
+msgid "640x512 + Border"
+msgstr "640x512 + ramka"
 
 msgid "Abort"
 msgstr "Przerwij"
@@ -36,11 +54,20 @@ msgstr "Dodaj kilka obrazów CD-ROM"
 msgid "Add Multiple Floppies at Once"
 msgstr "Dodaj kilka obrazów dyskietek"
 
+msgid "Additional Options"
+msgstr "Opcje dodatkowe"
+
 msgid "Amiga Forever import task started"
 msgstr "Import z Amiga Forever rozpoczęty"
 
 msgid "Amiga Model"
 msgstr "Model Amigi"
+
+msgid "Auto"
+msgstr "Auto"
+
+msgid "Auto + Border"
+msgstr "Auto + ramka"
 
 msgid "Available Kickstart Versions"
 msgstr "Dostępne wersje kickstartu"
@@ -136,6 +163,9 @@ msgstr ""
 "Kopiuj {0}\n"
 "do {1}"
 
+msgid "Crop Amiga display (zoom)"
+msgstr "Przytnij obraz Amigi (zbliżenie)"
+
 msgid "Cursor Keys and Right Ctrl/Alt"
 msgstr "Klawisze kursora i prawy Ctrl/Alt"
 
@@ -163,8 +193,14 @@ msgstr "Edytuj opcje dodatkowe"
 msgid "Eject"
 msgstr "Wysuń"
 
+msgid "Enable experimental net play GUI (requires re-start)"
+msgstr "Włącz eksperymentalny interfejs gry sieciowej (wymaga restartu)"
+
 msgid "Expansions"
 msgstr "Rozszerzenia"
+
+msgid "Experimental Features"
+msgstr "Funkcje eksperymentalne"
 
 msgid "Extended ROM:"
 msgstr "Rozszerzony ROM:"
@@ -184,11 +220,26 @@ msgstr "Dyskietki"
 msgid "Floppy Drives"
 msgstr "Napędy dyskietek"
 
+msgid "Force Full Vsync"
+msgstr "Wymuś pełną synchronizację"
+
+msgid "Full Frame"
+msgstr "Pełna ramka"
+
+msgid "Full-scene anti-aliasing (FSAA)"
+msgstr "Pełnoekranowy antyaliasing (FSAA)"
+
 msgid "Fullscreen"
 msgstr "Pełny ekran"
 
 msgid "Games and Configurations"
 msgstr "Gry i konfiguracje"
+
+msgid "Grab mouse and keyboard input when FS-UAE starts"
+msgstr "Przechwyć polecenia myszy i klawiatury przy starcie FS-UAE"
+
+msgid "Grab mouse and keyboard input when clicking on FS-UAE window"
+msgstr "Przechwyć polecenia myszy i klawiatury po kliknięciu okna FS-UAE"
 
 msgid "Hard Drives"
 msgstr "Dyski twarde"
@@ -214,10 +265,16 @@ msgstr "Importuj pliki kickstart i ROM"
 msgid "Import task is done"
 msgstr "Importowanie zakończone"
 
+msgid "Include built-in configurations"
+msgstr "Dołącz konfiguracje wbudowane"
+
 msgid "Input"
 msgstr "Wejście"
 
 msgid "Input Options"
+msgstr "Opcje wejścia"
+
+msgid "Input Settings"
 msgstr "Opcje wejścia"
 
 msgid "Internal"
@@ -252,6 +309,9 @@ msgstr "Najmniej dokładnie"
 
 msgid "Less Accurate"
 msgstr "Mniej dokładnie"
+
+msgid "List of Folders to Index"
+msgstr "Lista folderów do indeksowania"
 
 msgid "Main Configuration Options"
 msgstr "Główne opcje konfiguracyjne"
@@ -299,6 +359,12 @@ msgstr "Nic"
 
 msgid "OK"
 msgstr "Ok"
+
+msgid "Off"
+msgstr "Nie"
+
+msgid "On"
+msgstr "Tak"
 
 msgid "Open Scan Dialog"
 msgstr "Otwórz okno skanowania"
@@ -354,8 +420,14 @@ msgstr "Zapisz konfigurację"
 msgid "Saving changes..."
 msgstr "Zapisuję zmiany..."
 
+msgid "Scale with original aspect ratio (instead of stretching video)"
+msgstr "Skaluj według oryginalnych proporcji (zamiast rozciągania wideo)"
+
 msgid "Scan"
 msgstr "Skanuj"
+
+msgid "Scan & Indexing"
+msgstr "Skanowanie i indeksowanie"
 
 msgid "Scan complete"
 msgstr "Skanowanie zakończone"
@@ -402,11 +474,17 @@ msgstr "Wybierz folder zawierający pliki kickstart i kliknij \"{0}\""
 msgid "Settings"
 msgstr "Ustawienia"
 
+msgid "Show kickstart setup page on startup when all ROMs are missing"
+msgstr "Pokaż ustawienia kickstartu przy starcie, gdy brak wszystkich ROMów"
+
 msgid "Slow RAM"
 msgstr "Slow RAM"
 
 msgid "Start"
 msgstr "Start"
+
+msgid "Start FS-UAE in fullscreen mode"
+msgstr "Startuj FS-UAE w trybie pełnoekranowym"
 
 msgid "Starting FS-UAE..."
 msgstr "Uruchamiam FS-UAE..."
@@ -414,8 +492,20 @@ msgstr "Uruchamiam FS-UAE..."
 msgid "Starting scan"
 msgstr "Uruchamiam skanowanie"
 
+msgid "Sync to Vblank"
+msgstr "Synchronizacja Vblank"
+
 msgid "Update ({version}) is available"
 msgstr "Dostępna aktualizacja ({version})"
+
+msgid "Video Settings"
+msgstr "Opcje wideo"
+
+msgid "Video synchronization"
+msgstr "Synchronizacja wideo"
+
+msgid "Video synchronization method"
+msgstr "Metoda synchronizacji wideo"
 
 msgid "WHDLoad Arguments"
 msgstr "Argumenty WHDLoad"

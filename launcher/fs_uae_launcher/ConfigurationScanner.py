@@ -227,27 +227,19 @@ class ConfigurationScanner:
         database.add_game(uuid=uuid, path=path, name=name,
                 scan=self.scan_version, search=search)
 
-    #def create_configuration_name_from_game_and_variant(self, game, variant):
-    #    variant = variant.replace(u", ", u" \u00b7 ")
-    #    name = game.strip() + u"\n" + variant.strip()
-    #    return name
-
-    #def create_configuration_name_from_path(self, path):
-    #    name, ext = os.path.splitext(os.path.basename(path))
-
     @classmethod
     def create_configuration_search(cls, name):
         return name.lower()
 
     @classmethod
     def create_configuration_name(cls, name):
-        #name, ext = os.path.splitext(name)
-        if u"(" in name:
-            primary, secondary = name.split(u"(", 1)
-            secondary = secondary.replace(u", ", u" \u00b7 ")
+        if "(" in name:
+            primary, secondary = name.split("(", 1)
+            secondary = secondary.replace(", ", " \u00b7 ")
             #name = primary.rstrip() + u" \u2013 " + secondary.lstrip()
-            name = primary.rstrip() + u"\n" + secondary.lstrip()
-            if name[-1] == u")":
+            name = primary.rstrip() + "\n" + secondary.lstrip()
+            if name[-1] == ")":
                 name = name[:-1]
-        #text = u" " + text
+            name = name.replace(") (", " \u00b7 ")
+            name = name.replace(")(", " \u00b7 ")
         return name

@@ -49,35 +49,12 @@ static int handle_custom_action(int action, int state) {
 #define MAX_MICE 2
 #define MAX_MICE_AXES 2
 
-static void mouse_state(int mouse, int axis, int data, int isabs, int *max) {
-    int i, v, diff;
-    int *mouse_p, *oldm_p;
-    double d;
-    static int mouse_axis[MAX_MICE][MAX_MICE_AXES];
-    static int oldm_axis[MAX_MICE][MAX_MICE_AXES];
-    static double fract[MAX_MICE][MAX_MICE_AXES];
-
-    d = 0;
-    mouse_p = &mouse_axis[mouse][axis];
-    oldm_p = &oldm_axis[mouse][axis];
-
-    *oldm_p = *mouse_p;
-    *mouse_p += data;
-    d = (*mouse_p - *oldm_p) * currprefs.input_mouse_speed / 100.0;
-    v = (int)d;
-    fract[mouse][axis] += d - v;
-    diff = (int)fract[mouse][axis];
-    v += diff;
-    fract[mouse][axis] -= diff;
-    *max = 0;
-}
-
 extern "C" {
 
 int amiga_send_input_event(int input_event, int state) {
-#ifdef DEBUG_SYNC
+//#ifdef DEBUG_SYNC
     write_sync_log("apply action %d state=%d\n", input_event, state);
-#endif
+//#endif
 
     //printf("amiga_send_input_event %d %d\n", input_event, state);
     int isabs = 0;
@@ -90,29 +67,11 @@ int amiga_send_input_event(int input_event, int state) {
 
     switch (input_event) {
     case INPUTEVENT_MOUSE1_HORIZ:
-        //printf("INPUTEVENT_MOUSE1_HORIZ\n");
-        mouse_state(0, 0, state, isabs, &max);
-        //return 1;
-        break;
     case INPUTEVENT_MOUSE1_VERT:
-        //printf("INPUTEVENT_MOUSE1_VERT\n");
-        mouse_state(0, 1, state, isabs, &max);
-        //return 1;
-        break;
     case INPUTEVENT_MOUSE1_WHEEL:
-        //printf("INPUTEVENT_MOUSE1_WHEEL\n");
-        mouse_state(0, 2, state, isabs, &max);
-        //return 1;
-        break;
     case INPUTEVENT_MOUSE2_HORIZ:
-        //printf("INPUTEVENT_MOUSE2_HORIZ\n");
-        mouse_state(1, 0, state, isabs, &max);
-        //return 1;
-        break;
     case INPUTEVENT_MOUSE2_VERT:
-        //printf("INPUTEVENT_MOUSE2_VERT\n");
-        mouse_state(1, 1, state, isabs, &max);
-        //return 1;
+        max = 0;
         break;
     case INPUTEVENT_KEY_CAPS_LOCK:
         // handled specially because of toggle mode

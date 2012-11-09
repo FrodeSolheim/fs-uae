@@ -28,16 +28,18 @@ class GameHandler:
         self.uuid = uuid
 
         self.config_name = name
-        parts = name.split(u"(", 1)
-        if len(parts) == 2:
+        if "(" in name:
+            parts = name.split("(", 1)
             self.name, self.variant = parts
+            self.name = self.name.strip()
+            self.variant = self.variant.strip()
+            if self.variant.endswith(u")"):
+                self.variant = self.variant[:-1]
+            self.variant = self.variant.replace(") (", ", ")
+            self.variant = self.variant.replace(")(", ", ")
         else:
             self.name = name
             self.variant = ""
-        self.name = self.name.strip()
-        self.variant = self.variant.strip()
-        if self.variant.endswith(u")"):
-            self.variant = self.variant[:-1]
         self.platform = platform
 
     def get_name(self):
@@ -62,7 +64,6 @@ class GameHandler:
                         self.uuid[:2], self.uuid, name)
                 if os.path.exists(p):
                     return p
-
         letter = self.get_letter(self.name)
         if not letter:
             return None
@@ -75,6 +76,12 @@ class GameHandler:
             name = u"{0}_{1}".format(name, number)
         for dir in paths:
             path = os.path.join(dir, letter, name + u".png")
+            if os.path.exists(path):
+                return path
+            path = os.path.join(dir, letter, name + u".gif")
+            if os.path.exists(path):
+                return path
+            path = os.path.join(dir, name + u".png")
             if os.path.exists(path):
                 return path
             path = os.path.join(dir, letter, name + u".gif")
@@ -111,7 +118,6 @@ class GameHandler:
                         self.uuid[:2], self.uuid, u"front.png")
                 if os.path.exists(p):
                     return p
-
         letter = self.get_letter(self.name)
         if not letter:
             return None
@@ -122,6 +128,12 @@ class GameHandler:
             if os.path.exists(path):
                 return path
             path = os.path.join(dir, letter, name + u".png")
+            if os.path.exists(path):
+                return path
+            path = os.path.join(dir, name + u".jpg")
+            if os.path.exists(path):
+                return path
+            path = os.path.join(dir, name + u".png")
             if os.path.exists(path):
                 return path
         return None
@@ -167,15 +179,15 @@ class GameHandler:
         if not letter:
             config_name = "Default"
             letter = self.get_letter(config_name)
-        #paths = [Settings.get_save_states_dir()]
-        #for dir in paths:
-        #    path = os.path.join(dir, letter, self.config_name)
-        #    #print(path)
-        #    #if os.path.exists(path):
-        #    #    return path
-        #    return path
-        return os.path.join(Settings.get_save_states_dir(), letter,
+        # we use an existing state dir in a "letter" dir if it exists
+        # (legacy support).
+        path = os.path.join(Settings.get_save_states_dir(), letter,
                 config_name)
+        if os.path.exists(path):
+            return path
+        # if not, we use a direct subfolder of save states dir
+        path = os.path.join(Settings.get_save_states_dir(), config_name)
+        return path
 
     def get_state_dir(self):
         state_dir = self._get_state_dir()

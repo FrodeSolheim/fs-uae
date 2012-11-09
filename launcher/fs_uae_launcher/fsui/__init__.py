@@ -28,6 +28,7 @@ from .wx.label import Label, BoldLabel, HeadingLabel
 from .wx.listview import ListView
 from .wx.panel import Panel
 from .wx.separator import Separator
+from .wx.SpinCtrl import SpinCtrl
 from .wx.textarea import TextArea
 from .wx.textfield import TextField
 from .wx.window import Window

@@ -28,7 +28,7 @@ class ScanSettingsPage(fsui.Panel):
         self.layout.add(self.scan_paths_group, fill=True)
 
         label = fsui.HeadingLabel(self, _("Additional Options"))
-        self.layout.add(label, margin=10)
+        self.layout.add(label, margin=10, margin_bottom=20)
 
         def add_option(name):
             self.layout.add(OptionUI.create_group(self, name), fill=True,

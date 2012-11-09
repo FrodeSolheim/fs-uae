@@ -170,6 +170,7 @@ const char *fs_uae_configurations_dir() {
     return path;
 }
 
+/*
 const char *fs_uae_flash_memory_dir() {
     static const char *path = NULL;
     if (path == NULL) {
@@ -178,12 +179,70 @@ const char *fs_uae_flash_memory_dir() {
     }
     return path;
 }
+*/
 
 const char *fs_uae_save_states_dir() {
     static const char *path = NULL;
     if (path == NULL) {
         path = create_default_dir("Save States", "save_states_dir",
                 "state_dir");
+    }
+    return path;
+}
+
+const char *fs_uae_state_dir_path() {
+    static const char *path = NULL;
+    if (path == NULL) {
+        fs_log("fs_uae_state_dir:\n");
+        path = fs_config_get_const_string("state_dir");
+        if (path && path[0]) {
+            fs_log("state_dir was explicitly set to: %s\n", path);
+            char *expanded_path = fs_uae_expand_path(path);
+            path = fs_uae_resolve_path(expanded_path, FS_UAE_DIR_PATHS);
+            free(expanded_path);
+            return path;
+        }
+        const char *base = fs_uae_save_states_dir();
+        fs_log("save_states_dir: %s\n", base);
+        const char *state_dir_name = fs_config_get_const_string(
+                "state_dir_name");
+        if (!state_dir_name || !state_dir_name[0]) {
+            if (g_fs_uae_config_file_path) {
+                char *n = fs_path_get_basename(g_fs_uae_config_file_path);
+                for (int i = strlen(n) - 1; i >= 0; i--) {
+                    if (n[i] == '.') {
+                        n[i] = '\0';
+                        break;
+                    }
+                }
+                state_dir_name = fs_strdup(n);
+                free(n);
+            }
+            if (!state_dir_name || !state_dir_name[0]) {
+                state_dir_name = "Default";
+            }
+            fs_log("save_dir_name not set, using %s\n", state_dir_name);
+        }
+        path = fs_path_join(base, state_dir_name, NULL);
+    }
+    return path;
+}
+
+const char *fs_uae_state_dir() {
+    static const char *path = NULL;
+    if (path == NULL) {
+        path = fs_uae_state_dir_path();
+        if (!path || !path[0]) {
+            path = fs_uae_base_dir();
+            fs_log("reverting state dir to: %s\n", path);
+        }
+        fs_log("using state dir %s\n", path);
+        int result = fs_mkdir_with_parents(path, 0755);
+        if (result == -1) {
+            fs_emu_warning("Could not create state directory");
+            path = fs_uae_base_dir();
+        }
+        fs_log("final state dir path: %s\n", path);
     }
     return path;
 }
@@ -212,6 +271,7 @@ const char *fs_uae_floppies_dir() {
     return path;
 }
 
+/*
 const char *fs_uae_floppy_overlays_dir() {
     static const char *path = NULL;
     if (path == NULL) {
@@ -220,6 +280,7 @@ const char *fs_uae_floppy_overlays_dir() {
     }
     return path;
 }
+*/
 
 const char *fs_uae_controllers_dir() {
     static const char *path = NULL;
@@ -319,28 +380,67 @@ void fs_uae_set_state_base_name(const char *base_name) {
 void fs_uae_configure_directories() {
     char *path;
 
-    char *state_base_name = fs_path_join(fs_uae_save_states_dir(),
-            "fs-uae-state", NULL);
+    for (int i = 0; i < 10; i++) {
+        char *src_name = fs_strdup_printf("fs-uae-state_%d.uss", i);
+        char *src = fs_path_join(fs_uae_state_dir(), src_name, NULL);
+        free(src_name);
+        char *dst_name = fs_strdup_printf("Saved State %d.uss", i);
+        char *dst = fs_path_join(fs_uae_state_dir(), src_name, NULL);
+        free(dst_name);
+        if (fs_path_exists(src)) {
+            fs_log("renaming file %s to %s\n", src, dst);
+            fs_rename(src, dst);
+        }
+        free(src);
+        free(dst);
+    }
+    char *state_base_name = fs_path_join(fs_uae_state_dir(),
+            "Saved State", NULL);
     fs_uae_set_state_base_name(state_base_name);
 
+    /*
+    path = fs_path_join(fs_uae_state_dir(), "Autoload State.uss", NULL);
+    if (fs_path_exists(path)) {
+        fs_log("found autoload state at %s\n", path);
+        amiga_set_option("statefile", path);
+    }
+    free(path);
+    */
+
+    /*
     path = fs_strconcat(state_base_name, ".uss", NULL);
     amiga_set_option("statefile_name", path);
     free(path);
+    */
+
+    path = fs_strconcat(state_base_name, ".uss", NULL);
+    amiga_set_option("statefile", path);
+    free(path);
 
     if (g_fs_uae_amiga_model == MODEL_CD32) {
-        path = fs_path_join(fs_uae_flash_memory_dir(), "cd32.nvr", NULL);
+        // legacy file name
+        path = fs_path_join(fs_uae_state_dir(), "cd32.nvr", NULL);
+        if (!fs_path_exists(path)) {
+            free(path);
+            // new file name
+            path = fs_path_join(fs_uae_state_dir(), "CD32 Storage.nvr", NULL);
+        }
         amiga_set_option("flash_file", path);
         free(path);
     }
     else if (g_fs_uae_amiga_model == MODEL_CDTV) {
-        path = fs_path_join(fs_uae_flash_memory_dir(), "cdtv.nvr", NULL);
+        // legacy file name
+        path = fs_path_join(fs_uae_state_dir(), "cdtv.nvr", NULL);
+        if (!fs_path_exists(path)) {
+            free(path);
+            // new file name
+            path = fs_path_join(fs_uae_state_dir(), "CDTV Storage.nvr", NULL);
+        }
         amiga_set_option("flash_file", path);
         free(path);
     }
 
-    amiga_set_save_image_dir(fs_uae_floppy_overlays_dir());
-
-    //g_free(state_dir);
+    amiga_set_save_image_dir(fs_uae_state_dir());
     free(state_base_name);
 }
 

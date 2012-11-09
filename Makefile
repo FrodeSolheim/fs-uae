@@ -22,7 +22,7 @@ endif
 
 libfsemu_dir = libfsemu
 libfsemu-target:
-	$(make) -C libfsemu debug=$(debug) devel=$(devel)
+	$(make) -C libfsemu debug=$(debug) devel=$(devel) optimize=$(optimize)
 
 #ifeq ($(wildcard libfs-capsimage), libfs-capsimage)
 #libfs-capsimage_dir = libfs-capsimage

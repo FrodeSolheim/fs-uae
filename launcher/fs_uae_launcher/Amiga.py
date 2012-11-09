@@ -46,7 +46,7 @@ A1200_KICKSTARTS = [
 A4000_KICKSTARTS = [
     # amiga-os-310.rom (decrypted)
     # Kickstart v3.1 r40.68 (1993)(Commodore)(A4000)[h Cloanto]
-    "c3c481160866e60d085e436a24db3617ff60b5f9",
+    #"c3c481160866e60d085e436a24db3617ff60b5f9",
     # Kickstart v3.1 r40.68 (1993)(Commodore)(A4000)
     "5fe04842d04a489720f0f4bb0e46948199406f49",
 ]

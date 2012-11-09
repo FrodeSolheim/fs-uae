@@ -105,7 +105,7 @@ class ConfigGroup(fsui.Group):
             f.write("# FS-UAE configuration saved by FS-UAE Launcher\n")
             f.write("# Last saved: {0}\n".format(
                     datetime.datetime.today().strftime("%Y-%m-%d %H:%M:%S")))
-            f.write("\n[config]\n")
+            f.write("\n[fs-uae]\n")
             keys = sorted(Config.config.keys())
             for key in keys:
                 value = Config.get(key)

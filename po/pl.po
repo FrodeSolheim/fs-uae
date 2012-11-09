@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: fs-uae\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
 "POT-Creation-Date: 2012-11-01 19:42+0100\n"
-"PO-Revision-Date: 2012-10-24 17:52+0100\n"
+"PO-Revision-Date: 2012-11-04 18:30+0100\n"
 "Last-Translator: grimi <grimi at poczta dot fm>\n"
 "Language-Team: Polish\n"
 "Language: pl\n"
@@ -23,21 +23,21 @@ msgstr "Sterowanie Amigą"
 
 #. / TRANSLATORS: In context "Zoom: Auto"
 msgid "Auto"
-msgstr "Automatyczny"
+msgstr "Auto"
 
 msgid "Auto-Fire is Off"
-msgstr ""
+msgstr "Auto-fire wyłączony"
 
 msgid "Auto-Fire is On"
-msgstr ""
+msgstr "Auto-fire włączony"
 
 #, c-format
 msgid "Auto-fire disabled for port %d"
-msgstr ""
+msgstr "Auto-fire wyłączony dla portu %d"
 
 #, c-format
 msgid "Auto-fire enabled for port %d"
-msgstr ""
+msgstr "Auto-fire włączony dla portu %d"
 
 #. / TRANSLATORS: Empty or nothing
 #, c-format
@@ -45,7 +45,7 @@ msgid "CD%d: Empty"
 msgstr "CD%d: pusta"
 
 msgid "CD32 Pad Mode"
-msgstr ""
+msgstr "Tryb pada CD32"
 
 #. / TRANSLATORS: Empty or nothing
 #, c-format
@@ -87,7 +87,7 @@ msgid "Insert Into DF%d"
 msgstr "Włóż do DF%d"
 
 msgid "Joystick Mode"
-msgstr ""
+msgstr "Tryb joysticka"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
@@ -132,7 +132,7 @@ msgid "Mouse"
 msgstr "Mysz"
 
 msgid "Mouse Mode"
-msgstr ""
+msgstr "Tryb myszy"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long: If you struggle
 #. / to get in short enough, just translate "No Device" instead.
@@ -155,7 +155,7 @@ msgid "Pause"
 msgstr "Pauza"
 
 msgid "Port Settings"
-msgstr ""
+msgstr "Ustawienia portu"
 
 msgid "Removable Media"
 msgstr "Nośniki wymienne"
@@ -186,7 +186,7 @@ msgstr "Rozmiar: %s"
 
 #, c-format
 msgid "Zoom: %s + Border"
-msgstr "Rozmiar: %s + obramowanie"
+msgstr "Rozmiar: %s + ramka"
 
 #~ msgid "CD32 Gamepad"
 #~ msgstr "Pad CD32"

@@ -1083,7 +1083,11 @@ void savestate_quick (int slot, int save)
 {
 	int i, len = _tcslen (savestate_fname);
 	i = len - 1;
+#ifdef FSUAE
+	while (i >= 0 && savestate_fname[i] != ' ')
+#else
 	while (i >= 0 && savestate_fname[i] != '_')
+#endif
 		i--;
 	if (i < len - 6 || i <= 0) { /* "_?.uss" */
 		i = len - 1;
@@ -1096,7 +1100,11 @@ void savestate_quick (int slot, int save)
 	}
 	_tcscpy (savestate_fname + i, _T(".uss"));
 	if (slot > 0)
+#ifdef FSUAE
+		_stprintf (savestate_fname + i, _T(" %d.uss"), slot);
+#else
 		_stprintf (savestate_fname + i, _T("_%d.uss"), slot);
+#endif
 	if (save) {
 		write_log (_T("saving '%s'\n"), savestate_fname);
 		savestate_docompress = 1;

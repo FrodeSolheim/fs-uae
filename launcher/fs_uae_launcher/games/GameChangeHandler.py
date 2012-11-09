@@ -14,6 +14,7 @@ class GameChangeHandler(object):
 
     def init(self, state_dir, ignore=[]):
         print("\n" + "-" * 79 + "\n" + "CHANGEHANDLER INIT")
+        print(self._preserve_changes_dir)
         path = self._preserve_changes_dir
         if os.path.exists(state_dir):
             print("Merging preserved changes in", state_dir, "to", path)
@@ -58,6 +59,8 @@ class GameChangeHandler(object):
 
     def update(self, state_dir):
         print("\n" + "-" * 79 + "\n" + "CHANGEHANDLER UPDATE")
+        print("SRC", self._preserve_changes_dir)
+        print("DST", state_dir)
         oldfiles = self._preserve_changes_files
         newfiles = self.create_file_version_list(self._preserve_changes_dir)
         print("checking files")

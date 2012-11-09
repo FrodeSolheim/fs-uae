@@ -70,12 +70,6 @@ class CustomSettingsPage(fsui.Panel):
 
     def get_initial_text(self):
         text = DEFAULT_TEXT
-        u"# You can write key = value pairs here to set FS-UAE options\n" \
-                u"# for which there is no user interface yet, such as theme and\n" \
-                u"# video sync options.\n\n" \
-                u"# The options specified here will apply to all configurations.\n" \
-                u"# (config options such as hardware and memory options will be ignored)\n\n"
-
         keys = Settings.settings.keys()
         for key in sorted(keys):
             if key in Settings.default_settings:
@@ -101,10 +95,9 @@ DEFAULT_TEXT = """# Custom Settings
 # are no user interface yet. This is only a temporary feature until the GUI
 # supports all options directly.
 #
-# The options specified here are global and will apply to all configurations."
+# The options specified here are global and will apply to all configurations.
 # (config options such as hardware and memory options will be ignored)
 #
-# Options suitable here are options like fullscreen, theme and video_sync,
-# fsaa, initial_input_grab, etc.
+# Options suitable here are options like theme options.
 
 """

@@ -177,6 +177,8 @@ void fs_emu_menu_function(int action, int state) {
         if (!go_back_in_menu_stack()) {
             // no more menus to back out of, go out of menu mode instead
             fs_emu_menu_toggle();
+            // hack to clear button input state
+            fs_emu_clear_menu_input_states(SDLK_ESCAPE);
         }
     }
     else if (action == ACTION_MENU_PRIMARY) {
@@ -197,7 +199,7 @@ void fs_emu_menu_function(int action, int state) {
                     // for the enter key (if it was used to activate an
                     // item) will not be properly reset, disabling for now
                     fs_emu_menu_toggle();
-                    fs_emu_clear_menu_input_states();
+                    fs_emu_clear_menu_input_states(SDLK_RETURN);
                     //if (g_menu->update) {
                     //    g_menu->update(g_menu);
                     //}

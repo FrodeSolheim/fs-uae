@@ -110,7 +110,7 @@ class GameChangeHandler(object):
             m = hashlib.md5()
             while True:
                 buffer = f.read(4096)
-                if buffer == "":
+                if buffer == b"":
                     break
                 m.update(buffer)
             return m.hexdigest()

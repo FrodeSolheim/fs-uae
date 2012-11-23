@@ -44,20 +44,20 @@ cxxflags = $(warnings) $(errors) -Isrc/od-fs -Isrc/od-fs/include \
 
 cflags = -std=c99 $(cxxflags)
 ldflags =
-libs = -L$(libfsemu_dir)/out -lfsemu  \
-		-lpng -lz
+libs = -L$(libfsemu_dir)/out -lfsemu -lpng -lz
 
 else
 
 common_flags = -Isrc/od-fs -Isrc/od-fs/include \
 		-Isrc/include -Igen -Isrc -Isrc/od-win32/caps \
-		`pkg-config --cflags glib-2.0` -I$(libfsemu_dir)/include \
+		`pkg-config --cflags glib-2.0 gthread-2.0 libpng` \
+		-I$(libfsemu_dir)/include \
 		`sdl-config --cflags`
 cflags = $(common_flags) -std=c99 $(CFLAGS)
 cxxflags = $(common_flags) -fpermissive $(CXXFLAGS)
 ldflags = $(LDFLAGS)
 libs = -L$(libfsemu_dir)/out -lfsemu `sdl-config --libs` \
-		`pkg-config --libs glib-2.0 gthread-2.0` -lpng -lz
+		`pkg-config --libs glib-2.0 gthread-2.0 libpng` -lpng -lz
 
 ifeq ($(devel), 1)
 	warnings = -Wno-unused-variable -Wno-unused-function -Wno-write-strings \
@@ -135,7 +135,11 @@ else ifeq ($(os), macosx)
 else ifeq ($(os), freebsd)
   cppflags += -DFREEBSD
   libs += -lGL -lGLU -lopenal -lX11 -lcompat
+else ifeq ($(os), openbsd)
+  cppflags += -DOPENBSD
+  libs += -lGL -lGLU -lopenal -lX11 -lcompat
 else
+  cppflags += -DLINUX
   ldflags += -Wa,--execstack
   libs += -lGL -lGLU -lopenal -ldl -lX11
   generate = 0
@@ -396,6 +400,7 @@ share/locale/%/LC_MESSAGES/fs-uae.mo: po/%.po
 
 catalogs = \
 	share/locale/de/LC_MESSAGES/fs-uae.mo \
+	share/locale/es/LC_MESSAGES/fs-uae.mo \
 	share/locale/fr/LC_MESSAGES/fs-uae.mo \
 	share/locale/it/LC_MESSAGES/fs-uae.mo \
 	share/locale/nb/LC_MESSAGES/fs-uae.mo \
@@ -603,13 +608,13 @@ dist: distdir pubfiles-source po-dist
 		dist/$(series)/$(version)/fs-uae-game-server-$(version).py
 
 install:
-	mkdir -p $(DESTDIR)$(prefix)/bin
-	cp out/fs-uae $(DESTDIR)$(prefix)/bin/fs-uae
-	mkdir -p $(DESTDIR)$(prefix)/share
-	cp -a share/* $(DESTDIR)$(prefix)/share
+	install -d $(DESTDIR)$(prefix)/bin
+	install out/fs-uae $(DESTDIR)$(prefix)/bin/fs-uae
+	install -d $(DESTDIR)$(prefix)/share
+	cp -R share/* $(DESTDIR)$(prefix)/share
 
-	mkdir -p $(DESTDIR)$(docdir)
-	cp -a README COPYING example.conf $(DESTDIR)$(docdir)
+	install -d $(DESTDIR)$(docdir)
+	cp README COPYING example.conf $(DESTDIR)$(docdir)
 
 clean:
 	rm -f gen/build68k gen/genblitter gen/gencpu gen/genlinetoscr

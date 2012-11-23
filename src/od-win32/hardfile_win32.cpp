@@ -56,6 +56,7 @@ struct uae_driveinfo {
 	int nomedia;
 	int dangerous;
 	int readonly;
+	int cylinders, sectors, heads;
 };
 
 #define HDF_HANDLE_WIN32 1
@@ -988,7 +989,7 @@ static void generatestorageproperty (struct uae_driveinfo *udi, int ignoreduplic
 {
 	_tcscpy (udi->vendor_id, _T("UAE"));
 	_tcscpy (udi->product_id, _T("DISK"));
-	_tcscpy (udi->product_rev, _T("1.1"));
+	_tcscpy (udi->product_rev, _T("1.2"));
 	_stprintf (udi->device_name, _T("%s"), udi->device_path);
 	udi->removablemedia = 1;
 }
@@ -1202,6 +1203,8 @@ static BOOL GetDevicePropertyFromName(const TCHAR *DevicePath, DWORD Index, DWOR
 		write_log (_T("IOCTL_DISK_GET_LENGTH_INFO failed with error code %d.\n"), GetLastError());
 		if (!nosp)
 			write_log (_T("IOCTL_DISK_GET_LENGTH_INFO not supported, detected disk size may not be correct.\n"));
+	} else {
+		write_log (_T("IOCTL_DISK_GET_LENGTH_INFO returned size: %I64d (0x%I64x)\n"), gli.Length.QuadPart, gli.Length.QuadPart);
 	}
 	if (geom_ok == 0 && gli_ok == 0) {
 		write_log (_T("Can't detect size of device\n"));
@@ -1226,10 +1229,18 @@ static BOOL GetDevicePropertyFromName(const TCHAR *DevicePath, DWORD Index, DWOR
 			dg.BytesPerSector, dg.Cylinders.QuadPart, dg.TracksPerCylinder, dg.SectorsPerTrack, dg.MediaType);
 		udi->size = (uae_u64)dg.BytesPerSector * (uae_u64)dg.Cylinders.QuadPart *
 			(uae_u64)dg.TracksPerCylinder * (uae_u64)dg.SectorsPerTrack;
+		udi->cylinders = dg.Cylinders.QuadPart > 65535 ? 0 : dg.Cylinders.LowPart;
+		udi->sectors = dg.SectorsPerTrack;
+		udi->heads = dg.TracksPerCylinder;
 	}
-	if (gli_ok)
+	if (gli_ok && gli.Length.QuadPart)
 		udi->size = gli.Length.QuadPart;
-	write_log (_T("device size %"PRId64" (0x%I64x) bytes\n"), udi->size, udi->size);
+	if (udi->size == 0) {
+		write_log (_T("device size is zero!\n"));
+		ret = 1;
+		goto end;
+	}
+	write_log (_T("device size %I64d (0x%I64x) bytes\n"), udi->size, udi->size);
 	trim (orgname);
 
 	memset (outBuf, 0, sizeof (outBuf));

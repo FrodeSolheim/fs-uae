@@ -7,6 +7,7 @@ import os
 import fs_uae_launcher.fsui as fsui
 from .ui.Constants import Constants
 from .Config import Config
+from .Paths import Paths
 from .Settings import Settings
 
 class GameHandler:
@@ -48,7 +49,20 @@ class GameHandler:
     def get_variant(self):
         return self.variant
 
+    def get_override_path(self, name):
+        path = Config.get(name)
+        if not path:
+            return ""
+        path = Paths.expand_path(path)
+        return path
+
     def get_screenshot_path(self, number):
+        if number == 0:
+            path = self.get_override_path("title_image")
+        else:
+            path = self.get_override_path("screen{0}_image".format(number))
+        if path and os.path.exists(path):
+            return path
         if self.uuid:
             if number == 0:
                 name = "title.png"
@@ -69,9 +83,17 @@ class GameHandler:
             return None
         name = self.name
         if number == 0:
-            paths = Settings.get_titles_dirs()
+            override_dir = Config.get("titles_dir")
+            if override_dir:
+                paths = [Paths.expand_path(override_dir)]
+            else:
+                paths = Settings.get_titles_dirs()
         else:
-            paths = Settings.get_screenshots_dirs()
+            override_dir = Config.get("screenshots_dir")
+            if override_dir:
+                paths = [Paths.expand_path(override_dir)]
+            else:
+                paths = Settings.get_screenshots_dirs()
         if number >= 2:
             name = u"{0}_{1}".format(name, number)
         for dir in paths:
@@ -107,6 +129,9 @@ class GameHandler:
         return image
 
     def get_cover_path(self):
+        path = self.get_override_path("cover_image")
+        if path and os.path.exists(path):
+            return path
         if self.uuid:
             paths = Settings.get_images_dirs()
             for dir in paths:
@@ -122,7 +147,11 @@ class GameHandler:
         if not letter:
             return None
         name = self.name
-        paths = Settings.get_covers_dirs()
+        override_dir = Config.get("covers_dir")
+        if override_dir:
+            paths = [Paths.expand_path(override_dir)]
+        else:
+            paths = Settings.get_covers_dirs()
         for dir in paths:
             path = os.path.join(dir, letter, name + u".jpg")
             if os.path.exists(path):
@@ -171,9 +200,14 @@ class GameHandler:
         # floppy overlays etc interfering with net play
         from .netplay.Netplay import Netplay
         if Netplay.enabled:
-            netplay_game = Config.get("__netplay_game")
-            if netplay_game:
-                config_name = "Net Play ({0})".format(netplay_game)
+            # it is possible to manually specify the state dir
+            config_name = Config.get("__netplay_state_dir_name")
+            if not config_name:
+                # this is the default behavior, create a clean state
+                # dir for the net play session
+                netplay_game = Config.get("__netplay_game")
+                if netplay_game:
+                    config_name = "Net Play ({0})".format(netplay_game)
 
         letter = self.get_letter(config_name)
         if not letter:

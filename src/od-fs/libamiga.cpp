@@ -47,12 +47,63 @@ void gui_filename (int num, const char *name) {
     }
 }
 
+static void gui_flicker_led2 (int led, int unitnum, int status) {
+    static int resetcounter[LED_MAX];
+    static uae_s8 gui_data_hd, gui_data_cd, gui_data_md;
+    uae_s8 old;
+    uae_s8 *p;
+
+    if (led == LED_HD)
+            p = &gui_data_hd;
+    else if (led == LED_CD)
+            p = &gui_data_cd;
+    else if (led == LED_MD)
+            p = &gui_data_md;
+    else
+            return;
+    old = *p;
+    if (status < 0) {
+            if (old < 0) {
+                    *p = 0;
+                    gui_led (led, 0);
+            }
+            return;
+    }
+    if (status == 0 && old < 0) {
+           resetcounter[led] = 0;
+            return;
+    }
+    if (status == 0) {
+            resetcounter[led]--;
+            if (resetcounter[led] > 0)
+                    return;
+    }
+    *p = status;
+    resetcounter[led] = 6;
+    if (old != *p)
+            gui_led (led, *p);
+}
+
+void gui_flicker_led (int led, int unitnum, int status) {
+    if (led < 0) {
+        gui_flicker_led2 (LED_HD, 0, 0);
+        gui_flicker_led2 (LED_CD, 0, 0);
+        gui_flicker_led2 (LED_MD, 0, 0);
+    }
+    else {
+        gui_flicker_led2 (led, unitnum, status);
+    }
+}
+
 void gui_led (int led, int on) {
     //STUB("led %d on %d", led, on);
     if (led == LED_DF0) led = 0;
     else if (led == LED_DF1) led = 1;
     else if (led == LED_DF2) led = 2;
-    else if (led == LED_DF2) led = 3;
+    else if (led == LED_DF3) led = 3;
+    else if (led == LED_POWER) led = 8;
+    else if (led == LED_HD) led = 9;
+    else if (led == LED_CD) led = 10;
     else {
         return;
     }

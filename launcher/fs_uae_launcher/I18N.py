@@ -32,12 +32,14 @@ if sys.platform == 'darwin':
         wx.LANGUAGE_FINNISH: "fi",
         wx.LANGUAGE_FRENCH: "fr",
         wx.LANGUAGE_GERMAN: "de",
+        wx.LANGUAGE_HUNGARIAN: "hu",
         wx.LANGUAGE_ITALIAN: "it",
         wx.LANGUAGE_NORWEGIAN_NYNORSK: "nn",
         wx.LANGUAGE_NORWEGIAN_BOKMAL: "nb",
         wx.LANGUAGE_POLISH: "pl",
         wx.LANGUAGE_RUSSIAN: "ru",
         wx.LANGUAGE_SERBIAN: "sr",
+        wx.LANGUAGE_SPANISH: "es",
         wx.LANGUAGE_SWEDISH: "sv",
         wx.LANGUAGE_SWEDISH_FINLAND: "sv_FI"
     }

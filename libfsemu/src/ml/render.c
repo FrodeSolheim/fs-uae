@@ -47,26 +47,7 @@ static int64_t g_next_vblank_at = 0;
 
 static int64_t g_epoch = 0;
 
-#if 0
-static void fs_ml_lock_buffer_swap() {
-    g_mutex_lock(g_buffer_swap_mutex);
-}
-
-static void fs_ml_unlock_buffer_swap() {
-    g_mutex_unlock(g_buffer_swap_mutex);
-}
-#endif
-
 #define CHECK_GL_ERROR_MSG(msg)
-/*
-#define CHECK_GL_ERROR_MSG(msg) { \
-    int error = glGetError(); \
-    if (error) { \
-        printf("%d (%s)\n", error, msg); \
-    } \
-} \
-*/
-//exit(1); \
 
 void fs_ml_frame_update_begin() {
     if (g_fs_ml_video_sync) {
@@ -122,11 +103,6 @@ void fs_ml_frame_update_end() {
             g_mutex_unlock(g_video_mutex);
         }
         else {
-#if 0
-            g_mutex_lock(g_buffer_swap_mutex);
-            g_cond_signal(g_buffer_swap_cond);
-            g_mutex_unlock(g_buffer_swap_mutex);
-#endif
             //g_mutex_lock(g_video_mutex);
 #ifdef DEBUG_VIDEO_SYNC
             printf(" 4");
@@ -135,22 +111,6 @@ void fs_ml_frame_update_end() {
 
             g_mutex_unlock(g_video_mutex);
         }
-
-#if 0
-        //GTimeVal abs_time;
-        //g_get_current_time(&abs_time);
-        //g_time_val_add(&abs_time, 40 * 1000);
-
-        g_mutex_lock(g_video_mutex);
-
-        fs_ml_lock_buffer_swap();
-        g_cond_signal(g_buffer_swap_cond);
-        fs_ml_unlock_buffer_swap();
-
-        //g_cond_timed_wait(g_video_cond, g_video_mutex, &abs_time);
-        g_cond_wait(g_video_cond, g_video_mutex);
-        g_mutex_unlock(g_video_mutex);
-#endif
     }
     else {
         g_cond_signal(g_video_cond);
@@ -167,17 +127,6 @@ static void frame_wait() {
         //printf("- 2\n");
         g_cond_signal(g_video_cond);
 
-        /*
-        if (fs_ml_is_quitting) {
-            g_cond_signal(g_video_cond);
-            g_mutex_unlock(g_video_mutex);
-            return;
-        }
-        */
-
-        //g_cond_wait(g_video_cond, g_video_mutex);
-        //printf("a2\n");
-
         static GTimeVal abs_time;
         g_get_current_time(&abs_time);
         g_time_val_add(&abs_time, 40 * 1000);
@@ -189,26 +138,6 @@ static void frame_wait() {
         //printf("a3\n");
         g_mutex_unlock(g_video_mutex);
         //printf("a4\n");
-
-#if 0
-        // signal that a new frame can be created
-        g_cond_signal(g_video_cond);
-
-        // wait for the frame to finish
-
-        fs_ml_lock_buffer_swap();
-        g_cond_signal(g_video_cond);
-
-        static GTimeVal abs_time;
-        g_get_current_time(&abs_time);
-        g_time_val_add(&abs_time, 40 * 1000);
-        g_cond_timed_wait(g_buffer_swap_cond, g_buffer_swap_mutex, &abs_time);
-        fs_ml_unlock_buffer_swap();
-
-        //fs_ml_lock_buffer_swap();
-        //fs_ml_signal_buffer_swap();
-        //fs_ml_unlock_buffer_swap();
-#endif
     }
 }
 
@@ -219,19 +148,6 @@ static void synchronized_buffer_swap() {
             // do nothing
         }
         else {
-#if 0
-            static GTimeVal abs_time;
-            fs_ml_lock_buffer_swap();
-            g_cond_signal(g_video_cond);
-            // give the client max 3 ms to perform the swap / should be almost
-            // instant anyway
-            g_get_current_time(&abs_time);
-            g_time_val_add(&abs_time, 3 * 1000);
-            g_cond_timed_wait(g_buffer_swap_cond, g_buffer_swap_mutex,
-                    &abs_time);
-            fs_ml_unlock_buffer_swap();
-#endif
-
             //printf("a0\n");
             g_mutex_lock(g_video_mutex);
             //printf("a1\n");
@@ -380,104 +296,6 @@ static void full_sleep_until_vsync() {
     }
 }
 
-#if 0
-static void vblank_linear_regression(int64_t *a, int64_t *b, int *c) {
-    int64_t x_sum = 0;
-    int64_t y_sum = 0;
-    int n = 0;
-    for (int i = 0; i < VBLANK_COUNT; i++) {
-        int64_t y = g_vblank_times[(g_vblank_index + i) % VBLANK_COUNT];
-        if (y == 0) {
-            // skip this unset value
-            continue;
-        }
-        y_sum += y;
-        x_sum += i;
-        n++;
-    }
-
-    if (n == 0) {
-        *a = 0;
-        *b = 0;
-        *c = 0;
-        return;
-    }
-
-    int64_t x_avg = x_sum / n;
-    int64_t y_avg = y_sum / n;
-
-    int64_t numerator = 0;
-    int64_t denomerator = 0;
-    for (int i = 0; i < VBLANK_COUNT; i++) {
-        int64_t y = g_vblank_times[(g_vblank_index + i) % VBLANK_COUNT];
-        if (y == 0) {
-            // skip this unset value
-            continue;
-        }
-
-        numerator += (i - x_avg) * (y - y_avg);
-        denomerator += (i - x_avg) * (i - x_avg);
-    }
-
-    if (denomerator == 0) {
-        *a = 0;
-        *b = 0;
-        *c = 0;
-        return;
-    }
-    *b = 1.0 * (numerator / denomerator);
-    *a = y_avg - *b * x_avg;
-    *c = n;
-}
-
-static void *vblank_thread(void *data) {
-    printf("vblank_thread\n");
-
-    while (1) {
-        fs_mutex_lock(g_vblank_mutex);
-
-        // c is number of data points
-        int64_t a, b;
-        int c;
-        vblank_linear_regression(&a, &b, &c);
-        printf("a = %d b = %d\n", a, b);
-
-        fs_mutex_unlock(g_vblank_mutex);
-
-        int64_t t = fs_get_monotonic_time();
-        int64_t next = a + b * c;
-        g_next_vblank_at = next;
-        printf("%lld\n", next);
-
-        int64_t notify = next - b * 0.5;
-
-        int64_t diff = (notify - t);
-        printf("%lld - %lld = %lld\n", notify, t, diff);
-        while (diff > 1000) {
-            printf("sleep_a %d\n", diff);
-            fs_ml_usleep(diff);
-            t = fs_get_monotonic_time();
-            diff = (notify - t);
-        }
-#ifdef NEW_VSYNC
-        g_cond_signal(g_video_cond);
-#endif
-
-        t = fs_get_monotonic_time();
-        diff = (next - t);
-        while (diff > 1000) {
-            printf("sleep_b %d\n", diff);
-            fs_ml_usleep(diff);
-            t = fs_get_monotonic_time();
-            diff = (next - t);
-        }
-    }
-
-    return 0;
-}
-#endif
-
-
 typedef int64_t GLint64;
 typedef uint64_t GLuint64;
 typedef struct __GLsync *GLsync;
@@ -571,53 +389,14 @@ static void init_sync_method() {
     }
     if (g_sync_method == 0) {
         fs_log("- using default sync method\n");
-#ifdef LINUX
-        fs_log("- SYNC_FINISH_SWAP_FINISH\n");
-        g_sync_method = SYNC_FINISH_SWAP_FINISH;
-#else
+#if defined(WINDOWS) || defined(MACOSX)
         fs_log("- SYNC_FINISH_SLEEP_SWAP_FINISH\n");
         g_sync_method = SYNC_FINISH_SLEEP_SWAP_FINISH;
-#endif
-    }
-
-#if 0
-    const char *sync_method = fs_config_get_const_string("sync_method");
-    if (sync_method && fs_ascii_strcasecmp(sync_method, "fence") == 0) {
-        if (g_has_arb_sync || g_has_apple_fence || g_has_nv_fence) {
-            fs_log("- using fences\n");
-            g_sync_flags = SYNC_FLAG_FENCE;
-        }
-        else {
-            fs_log("- no suitable fence extension found\n");
-        }
-    }
-    else if (sync_method && fs_ascii_strcasecmp(sync_method, "finish") == 0) {
-        g_sync_flags = SYNC_FLAG_GLFINISH;
-    }
-    else if (sync_method && fs_ascii_strcasecmp(
-            sync_method, "sleep+finish") == 0) {
-        g_sync_flags = SYNC_FLAG_SLEEP | SYNC_FLAG_GLFINISH;
-    }
-    else {
-        g_sync_flags = SYNC_FLAG_GLFINISH;
-#ifdef LINUX
-
 #else
-        g_sync_flags |= SYNC_FLAG_SLEEP;
+        fs_log("- SYNC_FINISH_SWAP_FINISH\n");
+        g_sync_method = SYNC_FINISH_SWAP_FINISH;
 #endif
     }
-
-    fs_log("- sync flags:\n");
-    if (g_sync_flags & SYNC_FLAG_FENCE) {
-        fs_log("  SYNC_FLAG_FENCE\n");
-    }
-    if (g_sync_flags & SYNC_FLAG_GLFINISH) {
-        fs_log("  SYNC_FLAG_GLFINISH\n");
-    }
-    if (g_sync_flags & SYNC_FLAG_SLEEP) {
-        fs_log("  SYNC_FLAG_SLEEP\n");
-    }
-#endif
 }
 
 static void check_opengl_caps() {
@@ -768,15 +547,6 @@ void fs_ml_render_iteration() {
             glFlush();
             opengl_fence(FENCE_WAIT);
         }
-        /*
-        //sleep_until_vsync();
-        full_sleep_until_vsync();
-        int64_t t1 = fs_get_monotonic_time();
-        glFlush();
-        opengl_fence(FENCE_WAIT);
-        int64_t t2 = fs_get_monotonic_time();
-        //printf("%lld\n", t2 - t1);
-         */
 
         vblank_post_handler();
         synchronized_buffer_swap();

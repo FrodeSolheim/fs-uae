@@ -115,6 +115,10 @@ int statfs ();
 # include <sys/mount.h>
 #endif
 
+#if HAVE_SYS_VFS_H
+# include <sys/vfs.h>
+#endif
+
 #if HAVE_SYS_FS_S5PARAM_H	/* Fujitsu UXP/V */
 # include <sys/fs/s5param.h>
 #endif
@@ -127,19 +131,12 @@ int statfs ();
 # include <fcntl.h>
 #endif
 
-#ifdef FREEBSD
-#include <sys/param.h>
-#include <sys/mount.h>
-#else
 #if HAVE_SYS_STATFS_H
 # include <sys/statfs.h>
 #endif
+
 #if HAVE_DUSTAT_H		/* AIX PS/2 */
 # include <sys/dustat.h>
-#endif
-#if HAVE_SYS_VFS_H
-# include <sys/vfs.h>
-#endif
 #endif
 
 #if HAVE_SYS_STATVFS_H		/* SVR4 */

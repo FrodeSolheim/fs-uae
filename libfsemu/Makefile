@@ -3,6 +3,10 @@ ifneq ($(findstring Msys,$(uname)),)
     os = windows
 else ifneq ($(findstring Darwin,$(uname)),)
     os = macosx
+else ifneq ($(findstring FreeBSD,$(uname)),)
+    os = freebsd
+else ifneq ($(findstring OpenBSD,$(uname)),)
+    os = openbsd
 else
     os = linux
 endif
@@ -33,8 +37,8 @@ debug := 0
 noflags := 0
 
 cppflags = $(CXXFLAGS)
-cflags = -std=c99 -Iinclude \
-		`sdl-config --cflags` `pkg-config --cflags glib-2.0` \
+cflags = -std=c99 -Iinclude `sdl-config --cflags` \
+		`pkg-config --cflags glib-2.0 gthread-2.0 libpng` \
 		$(CFLAGS) -D_FILE_OFFSET_BITS=64
 objects = obj/emu_emu.o obj/emu_video.o obj/emu_audio.o obj/emu_input.o \
 		obj/emu_menu.o obj/emu_texture.o obj/emu_font.o \
@@ -42,8 +46,8 @@ objects = obj/emu_emu.o obj/emu_video.o obj/emu_audio.o obj/emu_input.o \
 		obj/emu_shader.o obj/emu_util.o obj/emu_netplay.o \
 		obj/emu_scanlines.o obj/emu_theme.o \
 		\
-		obj/ml_ml.o obj/ml_windows.o obj/ml_linux.o obj/ml_render.o \
-		obj/ml_sdl.o obj/ml_rawinput.o obj/ml_macosx.o \
+		obj/ml_ml.o obj/ml_windows.o obj/ml_render.o \
+		obj/ml_sdl.o obj/ml_rawinput.o obj/ml_macosx.o obj/ml_x11.o \
 		\
 		obj/base.o obj/log.o obj/config.o obj/image.o obj/ref.o \
 		obj/glee.o obj/opengl.o obj/thread.o obj/string.o obj/filesys.o \
@@ -89,8 +93,15 @@ library = libfsemu.a
 
 else
 
+ifeq ($(os), linux)
 cppflags += -DLINUX
-cppflags += -DWITH_SDL_VIDEO -DWITH_SDL_INPUT -DWITH_OPENAL
+else ifeq ($(os), freebsd)
+cppflags += -DFREEBSD
+else ifeq ($(os), openbsd)
+cppflags += -DOPENBSD
+endif
+
+cppflags += -DWITH_X11 -DWITH_SDL_VIDEO -DWITH_SDL_INPUT -DWITH_OPENAL
 library = libfsemu.a
 shared = libfsemu.so.1.0
 shared_soname = libfsemu.so.1

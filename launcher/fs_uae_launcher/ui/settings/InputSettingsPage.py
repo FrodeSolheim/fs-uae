@@ -30,3 +30,7 @@ class InputSettingsPage(fsui.Panel):
         self.layout.add(label, margin=10, margin_top=20, margin_bottom=20)
         add_option("mouse_speed")
         add_option("middle_click_ungrab")
+
+        label = fsui.HeadingLabel(self, _("Keyboard Settings"))
+        self.layout.add(label, margin=10, margin_top=20, margin_bottom=20)
+        add_option("swap_ctrl_keys")

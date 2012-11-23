@@ -7,15 +7,33 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae-launcher\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2012-10-20 23:21+0200\n"
-"PO-Revision-Date: 2012-10-21 00:15+0100\n"
-"Last-Translator: Frode Solheim <frode-code@fengestad.no>\n"
+"POT-Creation-Date: 2012-11-11 23:06+0100\n"
+"PO-Revision-Date: 2012-11-12 00:23+0100\n"
+"Last-Translator: Milan Zocevic <milanchez@gmail.com>\n"
 "Language-Team: Serbian\n"
 "Language: sr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+
+msgid "16-bit"
+msgstr "16-bit"
+
+msgid "32-bit BGRA"
+msgstr "32-bit BGRA"
+
+msgid "32-bit RGBA"
+msgstr "32-bit RGBA"
+
+msgid "640x400 + Border"
+msgstr "640x400 + okvir"
+
+msgid "640x480 + Border"
+msgstr "640x480 + okvir"
+
+msgid "640x512 + Border"
+msgstr "640x512 + okvir"
 
 msgid "Abort"
 msgstr "Prekid"
@@ -35,11 +53,23 @@ msgstr "Dodati više CD-ROM-ova odjednom"
 msgid "Add Multiple Floppies at Once"
 msgstr "Dodati više disketa odjednom"
 
+msgid "Additional Options"
+msgstr "Dodatne opcije"
+
 msgid "Amiga Forever import task started"
 msgstr "Započet je uvoz iz Amiga Forever"
 
 msgid "Amiga Model"
-msgstr "Amiga Model"
+msgstr "Amiga model"
+
+msgid "Audio Settings"
+msgstr "Postavke zvuka"
+
+msgid "Auto"
+msgstr "Auto"
+
+msgid "Auto + Border"
+msgstr "Auto + okvir"
 
 msgid "Available Kickstart Versions"
 msgstr "Dostupne kickstart verzije"
@@ -90,7 +120,7 @@ msgid "Choose Hard Drive"
 msgstr "Odabrati hard disk uređaj"
 
 msgid "Choose Kickstart ROM"
-msgstr "Izabrati Kickstart ROM"
+msgstr "Izabrati kikstart ROM"
 
 msgid "Cleaning up..."
 msgstr "Čišćenje..."
@@ -141,6 +171,9 @@ msgstr "Kursorski tasteri i desni Ctrl/Alt"
 msgid "Custom"
 msgstr "Prilagođeno"
 
+msgid "Custom IRC server address"
+msgstr "Prilagođena adresa IRC servera"
+
 msgid "Custom Options"
 msgstr "Prilagođene opcije"
 
@@ -162,8 +195,14 @@ msgstr "Urediti prilagođene opcije"
 msgid "Eject"
 msgstr "Izbaciti"
 
+msgid "Enable experimental net play GUI (requires restart)"
+msgstr "Omogući eksperimentalni net play GUI (zahteva restart )"
+
 msgid "Expansions"
 msgstr "Proširenja"
+
+msgid "Experimental Features"
+msgstr "Eksperimentalne funkcije"
 
 msgid "Extended ROM:"
 msgstr "Prošireni ROM:"
@@ -174,6 +213,12 @@ msgstr "Podešavanja FS-UAE Launcher-a"
 msgid "Fast RAM"
 msgstr "Fast RAM"
 
+msgid "Filters"
+msgstr "Filteri"
+
+msgid "Filters & Scaling"
+msgstr "Filteri i skaliranje"
+
 msgid "Filters:"
 msgstr "Filteri:"
 
@@ -183,11 +228,29 @@ msgstr "Diskete"
 msgid "Floppy Drives"
 msgstr "Disketni uređaji"
 
+msgid "Floppy drive volume"
+msgstr "Oznaka disketnog uređaja"
+
+msgid "Force Full Vsync"
+msgstr "Forsirati pun Vsync"
+
+msgid "Full Frame"
+msgstr "Pun okvir"
+
+msgid "Full-scene anti-aliasing (FSAA)"
+msgstr "Full-scene anti-aliasing (FSAA)"
+
 msgid "Fullscreen"
 msgstr "Preko celog ekrana"
 
 msgid "Games and Configurations"
 msgstr "Igre i konfiguracije"
+
+msgid "Grab mouse and keyboard input when FS-UAE starts"
+msgstr "Preuzmi miša i tastaturu kada se FS-UAE pokrene"
+
+msgid "Grab mouse and keyboard input when clicking on FS-UAE window"
+msgstr "Preuzmi miša i tastaturu kada se klikne na FS-UAE prozor"
 
 msgid "Hard Drives"
 msgstr "Hard disk uređaji"
@@ -197,6 +260,9 @@ msgstr "Hardver"
 
 msgid "Hardware Options"
 msgstr "Opcije hardvera"
+
+msgid "IRC nickname"
+msgstr "IRC nadimak"
 
 msgid "If you own Amiga Forever, select the drive/folder and click \"{0}\""
 msgstr "Ako posedujete Amiga Forever, izaberite disk/folder i kliknite \"{0}\""
@@ -213,11 +279,17 @@ msgstr "Uvoz kickstart-ova i ROM-ova"
 msgid "Import task is done"
 msgstr "Zadatak uvoženja je završen"
 
+msgid "Include built-in configurations"
+msgstr "Uključiti ugrađene konfiguracije"
+
 msgid "Input"
 msgstr "Ulaz"
 
 msgid "Input Options"
 msgstr "Opcije ulaza"
+
+msgid "Input Settings"
+msgstr "Podešavanja ulaza"
 
 msgid "Internal"
 msgstr "Interno"
@@ -234,11 +306,14 @@ msgstr "Džojstik portovi"
 msgid "Joystick Settings"
 msgstr "Postavke džojstika"
 
+msgid "Keep aspect ratio when scaling (do not stretch)"
+msgstr "Zadržati razmeru kada se skalira (bez rastezanja)"
+
 msgid "Kickstart ROM"
 msgstr "Kickstart ROM"
 
 msgid "Kickstart Setup"
-msgstr "Podešavanja kickstart-a"
+msgstr "Podešavanja kickstarta"
 
 msgid "Kickstart import task started"
 msgstr "Uvoženje kickstarta je započeto"
@@ -252,6 +327,12 @@ msgstr "Najmanje precizno"
 msgid "Less Accurate"
 msgstr "Manje precizno"
 
+msgid "List of Folders to Index"
+msgstr "Spisak foldera za indeksiranje"
+
+msgid "Low latency vsync (when using full vsync)"
+msgstr "Malo kašnjenje vsync (kada se koristi puni vsync )"
+
 msgid "Main Configuration Options"
 msgstr "Glavne opcije konfiguracije"
 
@@ -264,8 +345,20 @@ msgstr "Memorija"
 msgid "Mouse"
 msgstr "Miš"
 
+msgid "Mouse Settings"
+msgstr "Podešavanje miša"
+
+msgid "Mouse speed (%)"
+msgstr "Brzina miša (%)"
+
 msgid "Net Play"
 msgstr "Igra preko mreže"
+
+msgid "Net Play Settings"
+msgstr "Podešavanja igre preko mreže"
+
+msgid "Net play tag (max 3 characters)"
+msgstr "Oznaka igre preko mreže (maksimalno 3 slova)"
 
 msgid "New Configuration"
 msgstr "Nova konfiguracija"
@@ -280,7 +373,7 @@ msgid "No Joysticks"
 msgstr "Nema džojstika"
 
 msgid "No extended kickstart found for this model. Try 'scan' function."
-msgstr "Nije pronađen prošireni kickstart za ovaj model. Probajte 'Skeniranje' funkciju."
+msgstr "Nije pronađen prošireni kikstart za ovaj model. Probajte  funkciju 'Skeniranje'."
 
 msgid "No joysticks are currently connected"
 msgstr "Trenutno nema spojenog džojstika"
@@ -297,11 +390,20 @@ msgstr "Ništa"
 msgid "OK"
 msgstr "OK"
 
+msgid "Off"
+msgstr "Isključeno"
+
+msgid "On"
+msgstr "Uključeno"
+
 msgid "Open Scan Dialog"
 msgstr "Otvoriti dijalog za skeniranje"
 
 msgid "Open Tool to Configure Button Mapping"
 msgstr "Otvoriti alat da bi ste konfigurisali mapiranje tastera"
+
+msgid "OpenGL Settings"
+msgstr "Podešavanje OpenGL-a "
 
 msgid "Parallel Port Joysticks"
 msgstr "Paralelni džojstik portovi"
@@ -342,6 +444,12 @@ msgstr "Ukloniti direktorijum iz putanje pretrage"
 msgid "Remove Selected Files"
 msgstr "Ukloniti izabrane fajlove"
 
+msgid "Render scan lines"
+msgstr "Renderovanje sken linija"
+
+msgid "Render scan lines in RTG graphics mode"
+msgstr "Renderovanje sken linija u RTG grafičkom režimu"
+
 msgid "Restoring changes..."
 msgstr "Vraćanje izmena..."
 
@@ -351,8 +459,14 @@ msgstr "Snimiti konfiguraciju"
 msgid "Saving changes..."
 msgstr "Snimanje izmena..."
 
+msgid "Scaling Options"
+msgstr "Opcije skaliranja"
+
 msgid "Scan"
 msgstr "Skeniranje"
+
+msgid "Scan & Indexing"
+msgstr "Skeniranje i indeksiranje"
 
 msgid "Scan complete"
 msgstr "Skeniranje završeno"
@@ -399,11 +513,17 @@ msgstr "Izabrati folder koji sadrži Amiga kickstart fajlove i kliknuti \"{0}\""
 msgid "Settings"
 msgstr "Podešavanja"
 
+msgid "Show kickstart setup page on startup when all ROMs are missing"
+msgstr "Prikaži na startu kickstart podešavanja ako svi ROM-ovi nedostaju"
+
 msgid "Slow RAM"
 msgstr "Slow RAM"
 
 msgid "Start"
 msgstr "Start"
+
+msgid "Start FS-UAE in fullscreen mode"
+msgstr "Pokretanje FS-UAE preko celog ekrana"
 
 msgid "Starting FS-UAE..."
 msgstr "FS-UAE se startuje..."
@@ -411,14 +531,41 @@ msgstr "FS-UAE se startuje..."
 msgid "Starting scan"
 msgstr "Skeniranje započeto"
 
+msgid "Sync to Vblank"
+msgstr "Sinhronizacija sa Vblank"
+
+msgid "Texture filter"
+msgstr "Filter teksture"
+
+msgid "Ungrab mouse and keyboard on middle mouse click"
+msgstr "Otpustiti miša i tastaturu na srednji klik miša"
+
 msgid "Update ({version}) is available"
 msgstr "Ažuriranje ({version}) je dostupna"
+
+msgid "Video Settings"
+msgstr "Podešavanje videa"
+
+msgid "Video buffer format and color depth"
+msgstr "Video format bafera i dubine boja"
+
+msgid "Video synchronization"
+msgstr "Video sinhronizacija"
+
+msgid "Video synchronization method"
+msgstr "Metoda sinhronizacije videa"
+
+msgid "Video texture format (on the GPU)"
+msgstr "Video format teksture (na GPU)"
 
 msgid "WHDLoad Arguments"
 msgstr "WHDLoad argumenti"
 
 msgid "You should have kickstart files for each Amiga model you want to use:"
-msgstr "Trebalo bi da posedujete kickstart fajlove za svaki Amiga model koji koristite:"
+msgstr "Trebalo bi da posedujete kikstart fajlove za svaki Amiga model koji koristite:"
+
+msgid "Zoom Amiga display (crop)"
+msgstr "Zumiranje Amiga prikaza (crop opcija)"
 
 msgid "Zorro III RAM"
 msgstr "Zorro III RAM"

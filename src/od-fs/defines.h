@@ -97,6 +97,8 @@ extern FILE *g_fs_uae_sync_debug_file;
 
 #if defined(__x86_64__) || defined(__ppc__)
 // no JIT for these architectures
+#elif defined(OPENBSD)
+// no sys/ucontext.h header
 #else
 #define JIT
 #define JIT_DEBUG

@@ -25,6 +25,12 @@ options = {
     "type": "boolean",
 },
 
+"database_feature": {
+    "default": "0",
+    "description": N_("Enable online database support (requires restart)"),
+    "type": "boolean",
+},
+
 "floppy_drive_volume": {
     "default": "20",
     "description": N_("Floppy drive volume"),
@@ -122,6 +128,12 @@ options = {
 "scanlines": {
     "default": "0",
     "description": N_("Render scan lines"),
+    "type": "boolean",
+},
+
+"swap_ctrl_keys": {
+    "default": "0",
+    "description": N_("Swap left and right CTRL keys"),
     "type": "boolean",
 },
 

@@ -177,7 +177,7 @@ def setup_portable_launcher():
             return
         last = path
         path = os.path.dirname(path)
-    print("no Portable.ini found in search path, using normal base dir")
+    print("no Portable.ini found in search path")
 
 def main():
     fix_output()
@@ -213,6 +213,13 @@ def main():
         print("base_dir was specified so we will not check for portable dir")
     else:
         setup_portable_launcher()
+    if not Settings.base_dir:
+        print("base_dir not decided yet, checking FS_UAE_BASE_DIR")
+        if "FS_UAE_BASE_DIR" in os.environ and os.environ["FS_UAE_BASE_DIR"]:
+            print("base dir specified by FS_UAE_BASE_DIR")
+            Settings.base_dir = os.environ["FS_UAE_BASE_DIR"]
+    if not Settings.base_dir:
+        print("using default base_dir")
 
     setup_logging()
 

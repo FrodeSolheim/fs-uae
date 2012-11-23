@@ -6,13 +6,15 @@ from __future__ import unicode_literals
 import os
 import sys
 import time
+import json
 import traceback
 import xml.etree.ElementTree
 from xml.etree.cElementTree import ElementTree
-from .Database import Database
+#from .Database import Database
 from .Settings import Settings
 from .I18N import _, ngettext
 from .Util import get_real_case
+from .fsgs.GameDatabaseClient import GameDatabaseClient
 
 class ConfigurationScanner:
 
@@ -57,17 +59,23 @@ class ConfigurationScanner:
             database.add_configuration(data=data, name=name,
                     scan=self.scan_version, search=search)
 
-    def scan(self):
+    def scan(self, database, game_database):
         self.set_status(_("Scanning configurations"),
                 _("Please wait..."))
-        database = Database()
 
         self.set_status(_("Scanning configurations"),
                 _("Scanning .fs-uae files..."))
         self.scan_fs_uae_files(database)
-        self.set_status(_("Scanning configurations"),
-                _("Scanning database entries..."))
-        self.scan_configurations(database)
+
+        if Settings.get("database_feature") == "1":
+            self.set_status(_("Scanning configurations"),
+                    _("Scanning game database entries..."))
+            self.scan_game_database(database, game_database)
+        else:
+            self.set_status(_("Scanning configurations"),
+                    _("Scanning database entries..."))
+            self.scan_configurations(database)
+
         if Settings.get("builtin_configs") == "0":
             print("builtin_configs was set to 0")
         else:
@@ -88,6 +96,44 @@ class ConfigurationScanner:
         database.remove_unscanned_configurations(self.scan_version)
         self.set_status(_("Scanning configurations"), _("Committing data..."))
         database.commit()
+
+    def scan_game_database(self, database, game_database):
+        game_database_client = GameDatabaseClient(game_database)
+
+        game_cursor = game_database.cursor()
+        game_cursor.execute("SELECT uuid, game.game, variant, game.name, "
+                "platform, value FROM game, value WHERE "
+                "game.id = value.game AND status = 1 AND "
+                "value.name = 'file_list'")
+        for row in game_cursor:
+            if self.stop_check():
+                return
+
+            uuid, game, variant, alt_name, platform, file_list_json = row
+            #print (uuid, file_list)
+
+            self.scan_count += 1
+            self.set_status(
+                    _("Scanning configurations ({count} scanned)").format(
+                    count=self.scan_count), uuid)
+
+            file_list = json.loads(file_list_json)
+            all_found = True
+            for file_item in file_list:
+                if not self.check_if_file_exists(database, file_item):
+                    all_found = False
+                    break
+            if not all_found:
+                #print("not found", uuid)
+                continue
+            #print("found", uuid)
+            if not game:
+                game = alt_name.split("(", 1)[0]
+            name = "{0} ({1}, {2})".format(game, platform, variant)
+            search = self.create_configuration_search(name)
+            name = self.create_configuration_name(name)
+            database.add_configuration(path="", uuid=uuid,
+                    name=name, scan=self.scan_version, search=search)
 
     def scan_configurations(self, database):
         for dir in self.paths:
@@ -149,10 +195,15 @@ class ConfigurationScanner:
                         name=name, scan=self.scan_version, search=search)
 
     def check_if_file_exists(self, database, file_node):
-        print("check file", file_node)
+        #print("check file", file_node)
+        if isinstance(file_node, dict):
+            sha1 = file_node["sha1"]
+            #print(sha1)
+            if database.find_file(sha1=sha1):
+                return True
         if file_node.find("sha1") is not None:
             sha1 = file_node.find("sha1").text.strip()
-            print(sha1)
+            #print(sha1)
             if database.find_file(sha1=sha1):
                 return True
         archive_node = file_node.find("archive")

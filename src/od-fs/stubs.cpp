@@ -10,10 +10,6 @@ void clipboard_vsync (void) {
 
 }
 
-void gui_flicker_led (int, int, int) {
-
-}
-
 void gui_lock (void) {
 
 }

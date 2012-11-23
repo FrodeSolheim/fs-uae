@@ -443,10 +443,12 @@ static gchar *joystick_long_config_name(const fs_ml_input_device *device) {
     while (*in) {
 #if 0
         if (!with_number) {
+#endif
             if (*in == '#') {
                 // remove #2, #3 from name
                 break;
             }
+#if 0
         }
 #endif
         gchar c = g_ascii_tolower(*in);
@@ -466,22 +468,27 @@ static gchar *joystick_long_config_name(const fs_ml_input_device *device) {
     if (g_str_has_suffix(result, "_")) {
         result[strlen(result) - 1] = '\0';
     }
-#ifdef WINDOWS
+
+#if defined(WINDOWS)
     const char *platform = "windows";
-#endif
-#ifdef MACOSX
+#elif defined(MACOSX)
     const char *platform = "macosx";
-#endif
-#ifdef LINUX
+#elif defined(LINUX)
     const char *platform = "linux";
+#elif defined(FREEBSD)
+    const char *platform = "freebsd";
+#elif defined(OPENBSD)
+    const char *platform = "openbsd";
+#else
+    const char *platform = "unknown";
 #endif
+
     gchar *result2 = g_strdup_printf("%s_%d_%d_%d_%d_%s", result,
             device->buttons, device->axes, device->hats, device->balls,
             platform);
     g_free(result);
     return result2;
 }
-
 
 static gchar *joystick_config_name(const gchar* name, int with_number) {
     const gchar *in = name;
@@ -923,7 +930,14 @@ int fs_emu_configure_joystick(const char *name, const char *type,
             if (config == NULL) {
                 fs_log("did not find config for device \"%s\"\n", config_name);
                 g_free(config_name);
-                break;
+                config_name = fs_strdup("unknown");
+                fs_log("config name \"%s\"\n", config_name);
+                config = get_config_for_device(config_name, type);
+                if (config == NULL) {
+                    fs_log("did not find config for device \"%s\"\n", config_name);
+                    g_free(config_name);
+                    break;
+                }
             }
         }
         //printf("aaa config %p\n", config);
@@ -1320,6 +1334,7 @@ static int handle_shortcut(fs_ml_event *event) {
 }
 
 static int g_middle_click_ungrab = 1;
+static int g_swap_ctrl_keys = 0;
 static int g_fs_emu_mouse_speed = 100;
 
 #define MAX_MICE 2
@@ -1376,6 +1391,14 @@ static int input_function(fs_ml_event *event) {
         }
     }
     else if (event->type == FS_ML_KEYDOWN || event->type == FS_ML_KEYUP) {
+        if (g_swap_ctrl_keys) {
+            if (event->key.keysym.sym == FS_ML_KEY_LCTRL) {
+                event->key.keysym.sym = FS_ML_KEY_RCTRL;
+            }
+            else if (event->key.keysym.sym == FS_ML_KEY_RCTRL) {
+                event->key.keysym.sym = FS_ML_KEY_LCTRL;
+            }
+        }
         if (handle_shortcut(event)) {
             return 1;
         }
@@ -1459,6 +1482,11 @@ void fs_emu_init_input() {
     g_fs_emu_mouse_speed = fs_config_get_int("mouse_speed");
     if (g_fs_emu_mouse_speed <= 0 || g_fs_emu_mouse_speed > 500) {
         g_fs_emu_mouse_speed = 100;
+    }
+
+    g_swap_ctrl_keys = fs_config_get_boolean("swap_ctrl_keys");
+    if (g_swap_ctrl_keys == FS_CONFIG_NONE) {
+        g_swap_ctrl_keys = 0;
     }
 
     fs_log("initializing devices for menu\n");

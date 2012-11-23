@@ -1,3 +1,33 @@
+Version 2.1.4:
+* Merged updated emulation core from WinUAE 2.5.0beta26.
+* Add support for displaying HD/CD/Power leds in themes.
+* Added new option: swap_ctrl_keys.
+* Automatically configure unrecognized joysticks/gamepads as simple
+  Amiga joysticks.
+* Fixes to allow compilation on OpenBSD [vext01].
+* Added translations: es [albconde].
+* Updated translations: fr [Foul], sr [Milanchez].
+* Using directory prefix $BASE/ caused one character to be cut off.
+* Fixed Launcher-created joystick config when using 2+ of the same type.
+* Support environment variable FS_UAE_BASE_DIR.
+* (Launcher) Fixed problem starting joystick configurator on Mac.
+* (Launcher) GUI setting for swap left/right ctrl keys.
+* (Launcher) Support environment variable FS_UAE_BASE_DIR.
+* (Launcher) Fix for non-ASCII characters in joystick device names.
+* (Launcher) Can set option __netplay_state_dir_name with /set to force a
+  specific state dir for net play, for persistent states.
+* (Launcher) URLs for floppies/HDs can be synchronized, so
+  net play-compatible configs can be created for downloadable public
+  domain / shareware games.
+* (Launcher) Can override screenshots_dir, covers_dir, titles_dir in config.
+* (Launcher) Can use title_image, cover_image, screen1_image (...) to
+  override path for individual images.
+* (Launcher) Can prefix paths with $CONFIG/ (referring to the directory
+  containing the current configuration file).
+* (Launcher) Added translations: es [albconde].
+* (Launcher) Updated translations: pl [grimi], it [Speedvicio],
+  fr [Foul], sr [Milanchez].
+
 Version 2.1.3:
 * New option "mouse_speed" - set mouse speed in percentage(1-500).
 * Escape key can be used to navigate back and exit FS-UAE menu.

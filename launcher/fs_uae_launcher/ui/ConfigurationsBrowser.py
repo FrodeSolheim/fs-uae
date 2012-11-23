@@ -10,6 +10,8 @@ from ..Config import Config
 from ..Settings import Settings
 from ..Database import Database
 from ..I18N import _, ngettext
+from ..fsgs.GameDatabase import GameDatabase
+from ..fsgs.GameDatabaseClient import GameDatabaseClient
 
 class ConfigurationsBrowser(fsui.VerticalItemView):
 
@@ -70,5 +72,12 @@ class ConfigurationsBrowser(fsui.VerticalItemView):
         config_info = database.get_config(configuration_id)
         if config_info["data"]:
             Config.load_data(config_info["data"])
-        else:
+        elif config_info["path"]:
             Config.load_file(config_info["path"])
+        else:
+            game_uuid = config_info["uuid"]
+            game_database = GameDatabase.get_instance()
+            game_database_client = GameDatabaseClient(game_database)
+            game_id = game_database_client.get_game_id(game_uuid)
+            values = game_database_client.get_final_game_values(game_id)
+            Config.load_values(values, uuid=game_uuid)

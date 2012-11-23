@@ -94,34 +94,32 @@ const char* fs_uae_documents_dir() {
 
 const char* fs_uae_base_dir() {
     static const char* path = NULL;
-    char *p = fs_config_get_string("base_dir");
-    if (p) {
-        p = fs_uae_expand_path_and_free(p);
-        int result = fs_mkdir_with_parents(p, 0755);
-        if (result == -1) {
-            char *msg = fs_strdup_printf("Could not create specified "
-                    "base dir");
-            fs_emu_warning(msg);
-            free(msg);
-            free(p);
-            p = NULL;
-        }
-        else {
-            path = p;
-        }
+    if (path) {
+        return path;
+    }
+    path = fs_config_get_const_string("base_dir");
+    if (path) {
+        fs_log("base specified via base_dir option\n");
+        path = fs_uae_expand_path(path);
+    }
+    const char *env_path = getenv("FS_UAE_BASE_DIR");
+    if (path == NULL && env_path && env_path[0]) {
+        path = env_path;
+        fs_log("base specified via FS_UAE_BASE_DIR\n");
     }
     if (path == NULL) {
+        fs_log("using base dir <documents>/FS-UAE\n");
         path = fs_path_join(fs_uae_documents_dir(), "FS-UAE", NULL);
-        int result = fs_mkdir_with_parents(path, 0755);
-        if (result == -1) {
-            char *msg = fs_strdup_printf("Could not create base directory "
-                    "at %s", path);
-            fs_emu_warning(msg);
-            g_free(msg);
-            path = fs_uae_documents_dir();
-        }
-        fs_log("using base ($fsuae) directory \"%s\"\n", path);
     }
+    int result = fs_mkdir_with_parents(path, 0755);
+    if (result == -1) {
+        char *msg = fs_strdup_printf("Could not create base directory "
+                "at %s", path);
+        fs_emu_warning(msg);
+        g_free(msg);
+        path = fs_uae_documents_dir();
+    }
+    fs_log("using base ($BASE / $FSUAE) directory \"%s\"\n", path);
     return path;
 }
 
@@ -337,7 +335,7 @@ char *fs_uae_expand_path(const char* path) {
     }
     if (fs_str_has_prefix(lower, "$base/") ||
             fs_str_has_prefix(lower, "$base\\")) {
-        replace = 7;
+        replace = 6;
         replace_with = fs_uae_base_dir();
     }
     if (fs_str_has_prefix(lower, "$documents/") ||

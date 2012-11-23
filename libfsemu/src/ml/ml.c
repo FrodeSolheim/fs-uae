@@ -8,13 +8,11 @@
 #include <fs/log.h>
 #include "fs/ml.h"
 
-#ifdef LINUX
-# if 0
+#if 0
 #include <sched.h>
 #include <errno.h>
 #include <sys/time.h>
 #include <sys/resource.h>
-#endif
 #endif
 
 // FIXME: REMOVE
@@ -264,15 +262,21 @@ int fs_ml_handle_keyboard_shortcut(fs_ml_event *event) {
 }
 
 void fs_ml_init() {
-#ifdef WINDOWS
+
+#if defined(WINDOWS)
     fs_log("WINDOWS\n");
-#endif
-#ifdef MACOSX
+#elif defined(MACOSX)
     fs_log("MACOSX\n");
-#endif
-#ifdef LINUX
+#elif defined(LINUX)
     fs_log("LINUX\n");
+#elif defined(FREEBSD)
+    fs_log("FREEBSD\n");
+#elif defined(OPENBSD)
+    fs_log("OPENBSD\n");
+#else
+    fs_log("UNKNOWN OS\n");
 #endif
+
     g_fs_ml_video_render_function = NULL;
     g_fs_ml_video_post_render_function = NULL;
 
@@ -295,7 +299,6 @@ void fs_ml_init() {
     }
 #endif
 
-#ifdef LINUX
 #if 0
     struct rlimit rlim;
     getrlimit(RLIMIT_RTPRIO, &rlim);
@@ -317,10 +320,6 @@ void fs_ml_init() {
     else {
         fs_log("could not set real time priority, errno = %d\n", errno);
     }
-#endif
-#endif
-#if 0
-    fs_ml_calibrate_clock();
 #endif
 }
 

@@ -7,9 +7,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae-launcher\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2012-10-20 15:37+0200\n"
-"PO-Revision-Date: 2012-10-20 18:04+0100\n"
-"Last-Translator: Frode Solheim <frode-code@fengestad.no>\n"
+"POT-Creation-Date: 2012-11-10 11:56+0100\n"
+"PO-Revision-Date: 2012-11-11 21:34+0100\n"
+"Last-Translator: Foul <foulweb@gmail.com>\n"
 "Language-Team: Foul <fs-uae-fr@fengestad.no>\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -18,6 +18,24 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 "X-Poedit-Language: French\n"
 "X-Poedit-Country: FRANCE\n"
+
+msgid "16-bit"
+msgstr "16-bit"
+
+msgid "32-bit BGRA"
+msgstr "32-bit BGRA"
+
+msgid "32-bit RGBA"
+msgstr "32-bit RGBA"
+
+msgid "640x400 + Border"
+msgstr "640x400 + Bordures"
+
+msgid "640x480 + Border"
+msgstr "640x480 + Bordures"
+
+msgid "640x512 + Border"
+msgstr "640x512 + Bordures"
 
 msgid "Abort"
 msgstr "Interrompre"
@@ -37,11 +55,23 @@ msgstr "Ajouter Plusieurs CD-ROMS  à la Fois"
 msgid "Add Multiple Floppies at Once"
 msgstr "Ajouter Plusieurs Disquettes à la fois"
 
+msgid "Additional Options"
+msgstr "Options Supplémentaires"
+
 msgid "Amiga Forever import task started"
 msgstr "L'importation d'Amiga Forever à démarré"
 
 msgid "Amiga Model"
 msgstr "Modèle d'Amiga"
+
+msgid "Audio Settings"
+msgstr "Paramètres Audio"
+
+msgid "Auto"
+msgstr "Auto"
+
+msgid "Auto + Border"
+msgstr "Auto + Bordures"
 
 msgid "Available Kickstart Versions"
 msgstr "Versions du Kickstart Disponibles"
@@ -56,10 +86,10 @@ msgid "Browse for Folder"
 msgstr "Parcourir les Dossiers"
 
 msgid "Built-in TCP/IP Stack"
-msgstr "Pile TCP/IP Intégrée"
+msgstr "Pile TCP/IP Interne"
 
 msgid "Built-in TCP/IP Stack (bsdsocket.library)"
-msgstr "Pile TCP/IP Intégrée (bsdsocket.library)"
+msgstr "Pile TCP/IP Interne (bsdsocket.library)"
 
 msgid "CD-ROM Drive"
 msgstr "Lecteur CD-ROM"
@@ -141,7 +171,10 @@ msgid "Cursor Keys and Right Ctrl/Alt"
 msgstr "Touches de curseur et Ctrl / Alt Droits"
 
 msgid "Custom"
-msgstr "Perso"
+msgstr "Personnalisé"
+
+msgid "Custom IRC server address"
+msgstr "Adresse du Serveur IRC Personnalisé"
 
 msgid "Custom Options"
 msgstr "Options Personnalisées"
@@ -153,19 +186,25 @@ msgid "Default"
 msgstr "Par Défaut"
 
 msgid "Default ({0})"
-msgstr "Par défaut ({0})"
+msgstr "Par Défaut ({0})"
 
 msgid "Downloading {0}..."
 msgstr "Téléchargement {0}..."
 
 msgid "Edit Custom Options"
-msgstr "Modifier les options personnalisées"
+msgstr "Modifier les Options Personnalisées"
 
 msgid "Eject"
 msgstr "Ejecter"
 
+msgid "Enable experimental net play GUI (requires restart)"
+msgstr "Activer l'Interface de jeu en ligne expérimentale (nécessite un redémarrage)"
+
 msgid "Expansions"
 msgstr "Extensions"
+
+msgid "Experimental Features"
+msgstr "Caractéristiques Expérimentales"
 
 msgid "Extended ROM:"
 msgstr "ROM Etendue:"
@@ -176,6 +215,12 @@ msgstr "Réglages du Lanceur FS-UAE"
 msgid "Fast RAM"
 msgstr "Mémoire Rapide"
 
+msgid "Filters"
+msgstr "Filtres"
+
+msgid "Filters & Scaling"
+msgstr "Filtres et Mise à l’Echelle"
+
 msgid "Filters:"
 msgstr "Filtres:"
 
@@ -185,11 +230,29 @@ msgstr "Disquettes"
 msgid "Floppy Drives"
 msgstr "Lecteurs de Disquettes"
 
+msgid "Floppy drive volume"
+msgstr "Volume du lecteur de disquette"
+
+msgid "Force Full Vsync"
+msgstr "Forcer Utilisation Vsync Complète"
+
+msgid "Full Frame"
+msgstr "Plein Ecran"
+
+msgid "Full-scene anti-aliasing (FSAA)"
+msgstr "Anti-crénelage plein écran (FSAA)"
+
 msgid "Fullscreen"
 msgstr "Plein Ecran"
 
 msgid "Games and Configurations"
 msgstr "Jeux et Configurations"
+
+msgid "Grab mouse and keyboard input when FS-UAE starts"
+msgstr "Capture la souris et le clavier lorsque FS-UAE démarre"
+
+msgid "Grab mouse and keyboard input when clicking on FS-UAE window"
+msgstr "Capture la souris et le clavier lorsque vous cliquez sur la fenêtre FS-UAE"
 
 msgid "Hard Drives"
 msgstr "Disques Durs"
@@ -199,6 +262,9 @@ msgstr "Matériel"
 
 msgid "Hardware Options"
 msgstr "Options Matérielles"
+
+msgid "IRC nickname"
+msgstr "Pseudo IRC"
 
 msgid "If you own Amiga Forever, select the drive/folder and click \"{0}\""
 msgstr "Si vous possédez Amiga Forever, sélectionnez le lecteur/dossier et cliquez sur \"{0}\""
@@ -215,11 +281,17 @@ msgstr "Importer Kickstarts et ROMs"
 msgid "Import task is done"
 msgstr "L'importation est terminée"
 
+msgid "Include built-in configurations"
+msgstr "Inclure les configurations Internes"
+
 msgid "Input"
 msgstr "Entrée"
 
 msgid "Input Options"
 msgstr "Options d'entrée"
+
+msgid "Input Settings"
+msgstr "Paramètres d'Entrée"
 
 msgid "Internal"
 msgstr "Interne"
@@ -235,6 +307,9 @@ msgstr "Ports Joystick"
 
 msgid "Joystick Settings"
 msgstr "Paramètres du Joystick"
+
+msgid "Keep aspect ratio when scaling (do not stretch)"
+msgstr "Conserver les proportions lorsque mise à l'échelle (ne pas étirer)"
 
 msgid "Kickstart ROM"
 msgstr "ROM Kickstart"
@@ -254,6 +329,12 @@ msgstr "Précision Minimale"
 msgid "Less Accurate"
 msgstr "Précision Moyenne"
 
+msgid "List of Folders to Index"
+msgstr "Liste des Dossiers à Indexer"
+
+msgid "Low latency vsync (when using full vsync)"
+msgstr "Vsync à latence faible (lors de l'utilisation de vsync complète)"
+
 msgid "Main Configuration Options"
 msgstr "Options de Configuration Principales"
 
@@ -266,8 +347,20 @@ msgstr "Mémoire"
 msgid "Mouse"
 msgstr "Souris"
 
+msgid "Mouse Settings"
+msgstr "Paramètres de la Souris"
+
+msgid "Mouse speed (%)"
+msgstr "Vitesse de la souris (%)"
+
 msgid "Net Play"
-msgstr "Jeux En Ligne"
+msgstr "Jeu en Ligne"
+
+msgid "Net Play Settings"
+msgstr "Paramètres du Jeu en Ligne"
+
+msgid "Net play tag (max 3 characters)"
+msgstr "Tag jeu en ligne (max 3 caractères)"
 
 msgid "New Configuration"
 msgstr "Nouvelle Configuration"
@@ -299,11 +392,20 @@ msgstr "Aucun"
 msgid "OK"
 msgstr "OK"
 
+msgid "Off"
+msgstr "Off"
+
+msgid "On"
+msgstr "On"
+
 msgid "Open Scan Dialog"
 msgstr "Ouvrir la boîte de dialogue d'Analyse"
 
 msgid "Open Tool to Configure Button Mapping"
 msgstr "Ouvrir l'Outil de Configuration des Boutons"
+
+msgid "OpenGL Settings"
+msgstr "Paramètres OpenGL"
 
 msgid "Parallel Port Joysticks"
 msgstr "Joysticks sur port parallèle"
@@ -344,6 +446,12 @@ msgstr "Supprimer Répertoire du Chemin de Recherche"
 msgid "Remove Selected Files"
 msgstr "Supprimer les Fichiers Sélectionnés"
 
+msgid "Render scan lines"
+msgstr "Afficher les lignes de balayage"
+
+msgid "Render scan lines in RTG graphics mode"
+msgstr "Afficher les lignes de balayage en mode graphique RTG"
+
 msgid "Restoring changes..."
 msgstr "Restauration des Changements"
 
@@ -353,8 +461,14 @@ msgstr "Sauvegarde de la Configuration"
 msgid "Saving changes..."
 msgstr "Sauvegarde des Changements"
 
+msgid "Scaling Options"
+msgstr "Options de mise à l'échelle"
+
 msgid "Scan"
 msgstr "Analyse"
+
+msgid "Scan & Indexing"
+msgstr "Analyse et Indexation"
 
 msgid "Scan complete"
 msgstr "Analyse complète"
@@ -387,13 +501,13 @@ msgid "Select Directory to Import From"
 msgstr "Sélectionner le répertoire d'importation"
 
 msgid "Select Multiple CD-ROMs"
-msgstr "Sélection de Plusieurs CD-ROMS"
+msgstr "Sélectionner Plusieurs CD-ROMS"
 
 msgid "Select Multiple Files..."
 msgstr "Sélectionner plusieurs fichiers ..."
 
 msgid "Select Multiple Floppies"
-msgstr "Sélection de Plusieurs Disquettes"
+msgstr "Sélectionner Plusieurs Disquettes"
 
 msgid "Select a folder containing Amiga kickstart files and click \"{0}\""
 msgstr "Sélectionnez un dossier contenant les fichiers kickstart Amiga et cliquez sur \"{0}\""
@@ -401,11 +515,17 @@ msgstr "Sélectionnez un dossier contenant les fichiers kickstart Amiga et cliqu
 msgid "Settings"
 msgstr "Paramètres"
 
+msgid "Show kickstart setup page on startup when all ROMs are missing"
+msgstr "Afficher la page de configuration du kickstart au démarrage lorsque toutes les ROM sont manquantes"
+
 msgid "Slow RAM"
 msgstr "Mémoire Lente"
 
 msgid "Start"
 msgstr "Démarrer"
+
+msgid "Start FS-UAE in fullscreen mode"
+msgstr "Démarrer FS-UAE en mode plein écran"
 
 msgid "Starting FS-UAE..."
 msgstr "Lancement de FS-UAE"
@@ -413,14 +533,41 @@ msgstr "Lancement de FS-UAE"
 msgid "Starting scan"
 msgstr "Démarrage de l'analyse"
 
+msgid "Sync to Vblank"
+msgstr "Synchro en utilisant VBLANK"
+
+msgid "Texture filter"
+msgstr "Filtre de texture"
+
+msgid "Ungrab mouse and keyboard on middle mouse click"
+msgstr "Relâche la souris et le clavier sur clic du milieu de la souris"
+
 msgid "Update ({version}) is available"
 msgstr "La mise à jour ({version}) est disponible"
+
+msgid "Video Settings"
+msgstr "Paramètres vidéo"
+
+msgid "Video buffer format and color depth"
+msgstr "Format de mémoire vidéo et profondeur de couleur"
+
+msgid "Video synchronization"
+msgstr "Synchronisation vidéo"
+
+msgid "Video synchronization method"
+msgstr "Méthode de synchronisation vidéo"
+
+msgid "Video texture format (on the GPU)"
+msgstr "Format de texture vidéo (sur le GPU)"
 
 msgid "WHDLoad Arguments"
 msgstr "Arguments de WHDLoad"
 
 msgid "You should have kickstart files for each Amiga model you want to use:"
 msgstr "Kickstart original préférable pour chaque modèle d'Amiga que vous souhaitez utiliser:"
+
+msgid "Zoom Amiga display (crop)"
+msgstr "Affichage du Zoom Amiga (découper)"
 
 msgid "Zorro III RAM"
 msgstr "Mémoire Zorro III"

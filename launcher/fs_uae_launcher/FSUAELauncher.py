@@ -19,10 +19,37 @@ from .ROMManager import ROMManager
 from .Settings import Settings
 from .UpdateManager import UpdateManager
 
+from .fsgs.GameDatabase import GameDatabase
+from .OverlayDatabase import OverlayDatabase
+
 class FSUAELauncher(fsui.Application):
+
+    def get_game_database_path(self):
+        launcher_dir = Settings.get_launcher_dir()
+        path = os.path.join(launcher_dir, "Game Database.sqlite")
+        return path
+
+    def get_overlay_database_path(self):
+        launcher_dir = Settings.get_launcher_dir()
+        path = os.path.join(launcher_dir, "Overlay Database.sqlite")
+        return path
 
     def on_create(self):
         print("FSUAELauncherApplication.on_create")
+
+        #from .fsgs.GameDatabase import GameDatabase
+        #GameDatabase.set_database_path(self.get_game_database_path())
+        #from .OverlayDatabase import OverlayDatabase
+        #OverlayDatabase.set_database_path(self.get_overlay_database_path())
+        #database = GameDatabase.get_instance()
+        #from .fsgs.GameDatabaseClient import GameDatabaseClient
+        #client = GameDatabaseClient(database)
+        #from .fsgs.GameDatabaseSynchronizer import GameDatabaseSynchronizer
+        #synchronizer = GameDatabaseSynchronizer(client)
+        #synchronizer.synchronize()
+
+        GameDatabase.set_database_path(self.get_game_database_path())
+        OverlayDatabase.set_database_path(self.get_overlay_database_path())
 
         self.parse_arguments()
         self.load_settings()
@@ -107,6 +134,8 @@ class FSUAELauncher(fsui.Application):
             #else:
             print("-- setting", key, value)
             Settings.settings[key] = value
+
+        #Settings.set("config_search", "")
 
     def parse_arguments(self):
         pass

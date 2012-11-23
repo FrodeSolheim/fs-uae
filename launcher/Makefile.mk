@@ -8,6 +8,7 @@ share/locale/%/LC_MESSAGES/fs-uae-launcher.mo: po/%.po
 
 catalogs = \
 	share/locale/de/LC_MESSAGES/fs-uae-launcher.mo \
+	share/locale/es/LC_MESSAGES/fs-uae-launcher.mo \
 	share/locale/fr/LC_MESSAGES/fs-uae-launcher.mo \
 	share/locale/it/LC_MESSAGES/fs-uae-launcher.mo \
 	share/locale/nb/LC_MESSAGES/fs-uae-launcher.mo \

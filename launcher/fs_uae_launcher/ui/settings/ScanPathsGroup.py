@@ -73,7 +73,8 @@ class ScanPathsGroup(fsui.Group):
         #paths = self.get_search_path()
         self.list_view.set_items(self.get_search_path())
 
-    def get_search_path(self):
+    @classmethod
+    def get_search_path(cls):
         paths = Settings.get_default_search_path()
         search_path = Settings.get("search_path")
         for p in search_path.split(u";"):

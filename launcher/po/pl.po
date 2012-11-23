@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae-launcher\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2012-11-04 17:15+0100\n"
-"PO-Revision-Date: 2012-11-04 18:29+0100\n"
+"POT-Creation-Date: 2012-11-09 20:28+0100\n"
+"PO-Revision-Date: 2012-11-09 22:12+0100\n"
 "Last-Translator: grimi <grimi at poczta dot fm>\n"
 "Language-Team: Polish\n"
 "Language: pl\n"
@@ -18,20 +18,20 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
 "|| n%100>=20) ? 1 : 2);\n"
 
-msgid "640x400"
-msgstr "640x400"
+msgid "16-bit"
+msgstr "16-bit"
+
+msgid "32-bit BGRA"
+msgstr "32-bit BGRA"
+
+msgid "32-bit RGBA"
+msgstr "32-bit RGBA"
 
 msgid "640x400 + Border"
 msgstr "640x400 + ramka"
 
-msgid "640x480"
-msgstr "640x480"
-
 msgid "640x480 + Border"
 msgstr "640x480 + ramka"
-
-msgid "640x512"
-msgstr "640x512"
 
 msgid "640x512 + Border"
 msgstr "640x512 + ramka"
@@ -62,6 +62,9 @@ msgstr "Import z Amiga Forever rozpoczęty"
 
 msgid "Amiga Model"
 msgstr "Model Amigi"
+
+msgid "Audio Settings"
+msgstr "Ustawienia audio"
 
 msgid "Auto"
 msgstr "Auto"
@@ -163,14 +166,14 @@ msgstr ""
 "Kopiuj {0}\n"
 "do {1}"
 
-msgid "Crop Amiga display (zoom)"
-msgstr "Przytnij obraz Amigi (zbliżenie)"
-
 msgid "Cursor Keys and Right Ctrl/Alt"
 msgstr "Klawisze kursora i prawy Ctrl/Alt"
 
 msgid "Custom"
 msgstr "Własny"
+
+msgid "Custom IRC server address"
+msgstr "Adres własnego serwera IRC"
 
 msgid "Custom Options"
 msgstr "Opcje dodatkowe"
@@ -193,7 +196,7 @@ msgstr "Edytuj opcje dodatkowe"
 msgid "Eject"
 msgstr "Wysuń"
 
-msgid "Enable experimental net play GUI (requires re-start)"
+msgid "Enable experimental net play GUI (requires restart)"
 msgstr "Włącz eksperymentalny interfejs gry sieciowej (wymaga restartu)"
 
 msgid "Expansions"
@@ -211,6 +214,12 @@ msgstr "Ustawienia FS-UAE Launcher"
 msgid "Fast RAM"
 msgstr "Fast RAM"
 
+msgid "Filters"
+msgstr "Filtry"
+
+msgid "Filters & Scaling"
+msgstr "Filtry i skalowanie"
+
 msgid "Filters:"
 msgstr "Filtry:"
 
@@ -219,6 +228,9 @@ msgstr "Dyskietki"
 
 msgid "Floppy Drives"
 msgstr "Napędy dyskietek"
+
+msgid "Floppy drive volume"
+msgstr "Głośność stacji dyskietek"
 
 msgid "Force Full Vsync"
 msgstr "Wymuś pełną synchronizację"
@@ -249,6 +261,9 @@ msgstr "Sprzęt"
 
 msgid "Hardware Options"
 msgstr "Opcje sprzętowe"
+
+msgid "IRC nickname"
+msgstr "Nazwa użytkownika IRC"
 
 msgid "If you own Amiga Forever, select the drive/folder and click \"{0}\""
 msgstr "Jeśli posiadasz Amiga Forever, wybierz dysk/folder i kliknij \"{0}\""
@@ -292,6 +307,9 @@ msgstr "Porty joysticka"
 msgid "Joystick Settings"
 msgstr "Ustawienia joysticka"
 
+msgid "Keep aspect ratio when scaling (do not stretch)"
+msgstr "Zachowaj proporcje przy skalowaniu (nie rozciągaj)"
+
 msgid "Kickstart ROM"
 msgstr "Kickstart ROM"
 
@@ -313,6 +331,9 @@ msgstr "Mniej dokładnie"
 msgid "List of Folders to Index"
 msgstr "Lista folderów do indeksowania"
 
+msgid "Low latency vsync (when using full vsync)"
+msgstr "Niskie opóźnienia vsync (przy pełnej synchronizacji)"
+
 msgid "Main Configuration Options"
 msgstr "Główne opcje konfiguracyjne"
 
@@ -325,8 +346,20 @@ msgstr "Pamięć"
 msgid "Mouse"
 msgstr "Myszka"
 
+msgid "Mouse Settings"
+msgstr "Ustawienia myszki"
+
+msgid "Mouse speed (%)"
+msgstr "Prędkość myszki (%)"
+
 msgid "Net Play"
 msgstr "Gra przez sieć"
+
+msgid "Net Play Settings"
+msgstr "Opcje gry sieciowej"
+
+msgid "Net play tag (max 3 characters)"
+msgstr "Oznaczenie gry sieciowej (maks 3 znaki)"
 
 msgid "New Configuration"
 msgstr "Nowa konfiguracja"
@@ -372,6 +405,9 @@ msgstr "Otwórz okno skanowania"
 msgid "Open Tool to Configure Button Mapping"
 msgstr "Otwórz narzędzie konfiguracji/mapowania przycisków"
 
+msgid "OpenGL Settings"
+msgstr "Ustawienia OpenGL"
+
 msgid "Parallel Port Joysticks"
 msgstr "Równoległy port joysticków"
 
@@ -411,6 +447,12 @@ msgstr "Usuń katalog ze ścieżki wyszukiwania"
 msgid "Remove Selected Files"
 msgstr "Usuń wybrane pliki"
 
+msgid "Render scan lines"
+msgstr "Renderuj \"scanlines\""
+
+msgid "Render scan lines in RTG graphics mode"
+msgstr "Renderuj \"scanlines\" w trybie RTG"
+
 msgid "Restoring changes..."
 msgstr "Przywracam zmiany..."
 
@@ -420,8 +462,8 @@ msgstr "Zapisz konfigurację"
 msgid "Saving changes..."
 msgstr "Zapisuję zmiany..."
 
-msgid "Scale with original aspect ratio (instead of stretching video)"
-msgstr "Skaluj według oryginalnych proporcji (zamiast rozciągania wideo)"
+msgid "Scaling Options"
+msgstr "Opcje skalowania"
 
 msgid "Scan"
 msgstr "Skanuj"
@@ -475,7 +517,7 @@ msgid "Settings"
 msgstr "Ustawienia"
 
 msgid "Show kickstart setup page on startup when all ROMs are missing"
-msgstr "Pokaż ustawienia kickstartu przy starcie, gdy brak wszystkich ROMów"
+msgstr "Pokaż ustawienia kickstartu przy starcie, gdy brak plików ROM"
 
 msgid "Slow RAM"
 msgstr "Slow RAM"
@@ -495,11 +537,20 @@ msgstr "Uruchamiam skanowanie"
 msgid "Sync to Vblank"
 msgstr "Synchronizacja Vblank"
 
+msgid "Texture filter"
+msgstr "Filtr teksturowania"
+
+msgid "Ungrab mouse and keyboard on middle mouse click"
+msgstr "Zwolnij myszkę i klawiaturę po kliku środkowego przycisku"
+
 msgid "Update ({version}) is available"
 msgstr "Dostępna aktualizacja ({version})"
 
 msgid "Video Settings"
 msgstr "Opcje wideo"
+
+msgid "Video buffer format and color depth"
+msgstr "Format buforu wideo i głębia kolorów"
 
 msgid "Video synchronization"
 msgstr "Synchronizacja wideo"
@@ -507,14 +558,38 @@ msgstr "Synchronizacja wideo"
 msgid "Video synchronization method"
 msgstr "Metoda synchronizacji wideo"
 
+msgid "Video texture format (on the GPU)"
+msgstr "Format tekstur wideo (dla GPU)"
+
 msgid "WHDLoad Arguments"
 msgstr "Argumenty WHDLoad"
 
 msgid "You should have kickstart files for each Amiga model you want to use:"
 msgstr "Potrzebny jest kickstart dla każdego modelu Amigi jaki chesz emulować:"
 
+msgid "Zoom Amiga display (crop)"
+msgstr "Zbliżenie obrazu Amigi (przycięcie)"
+
 msgid "Zorro III RAM"
 msgstr "RAM Zorro III"
+
+#~ msgid "640x400"
+#~ msgstr "640x400"
+
+#~ msgid "640x480"
+#~ msgstr "640x480"
+
+#~ msgid "640x512"
+#~ msgstr "640x512"
+
+#~ msgid "Crop Amiga display (zoom)"
+#~ msgstr "Przytnij obraz Amigi (zbliżenie)"
+
+#~ msgid "Enable experimental net play GUI (requires re-start)"
+#~ msgstr "Włącz eksperymentalny interfejs gry sieciowej (wymaga restartu)"
+
+#~ msgid "Scale with original aspect ratio (instead of stretching video)"
+#~ msgstr "Skaluj według oryginalnych proporcji (zamiast rozciągania wideo)"
 
 #~ msgid "Setup"
 #~ msgstr "Ustawienia"

@@ -1,4 +1,4 @@
-#ifdef LINUX
+#ifdef WITH_X11
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -382,4 +382,4 @@ int fs_ml_scancode_to_key(int scancode) {
     return g_key_map[scancode];
 }
 
-#endif // LINUX
+#endif // WITH_X11

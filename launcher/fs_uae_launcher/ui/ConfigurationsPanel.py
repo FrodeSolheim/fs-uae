@@ -11,6 +11,7 @@ from ..I18N import _, ngettext
 from ..Settings import Settings
 from .ConfigurationsBrowser import ConfigurationsBrowser
 from .IconButton import IconButton
+from .ScanDialog import ScanDialog
 from .Skin import Skin
 
 class ConfigurationsPanel(fsui.Panel):
@@ -53,6 +54,14 @@ class ConfigurationsPanel(fsui.Panel):
         #hor_layout.add(self.verified_button,
         #       margin=10, margin_top=0, margin_bottom=0)
 
+        if Settings.get("database_feature") == "1":
+            self.refresh_button = IconButton(self, "refresh_button.png")
+            self.refresh_button.set_tooltip(
+                    _("Refresh game configurations from database"))
+            self.refresh_button.on_activate = self.on_refresh_button
+            hor_layout.add(self.refresh_button,
+                   margin=10, margin_top=0, margin_bottom=0)
+
         self.configurations_browser = ConfigurationsBrowser(self)
         self.layout.add(self.configurations_browser, fill=True, expand=True,
                 margin=10)
@@ -62,6 +71,12 @@ class ConfigurationsPanel(fsui.Panel):
 
     def on_favorite_button(self):
         pass
+
+    def on_refresh_button(self):
+        dialog = ScanDialog(self.get_window(), minimal=True, interactive=False,
+                scan_files=False, scan_roms=False, scan_configs=False)
+        dialog.show_modal()
+        dialog.destroy()
 
     def on_search_change(self):
         text = self.text_field.get_text()

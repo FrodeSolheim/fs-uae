@@ -62,7 +62,7 @@ class DeviceManager:
             name_count = cls.device_name_count.get(name, 0) + 1
             cls.device_name_count[name] = name_count
             if name_count > 1:
-                name = name + u" #" + str(name_count)
+                name = name + " #" + str(name_count)
             cls.device_ids.append(name)
             name = re.sub("[ ]+", " ", name)
             cls.device_names.append(name)
@@ -81,13 +81,14 @@ class DeviceManager:
             name_count = cls.device_name_count.get(name, 0) + 1
             cls.device_name_count[name] = name_count
             if name_count > 1:
-                name = name + u" #" + str(name_count)
+                name = name + " #" + str(name_count)
             cls.device_ids.append(name)
             name = re.sub("[ ]+", " ", name)
             cls.device_names.append(name)
 
     @classmethod
     def init_fsuae(cls):
+        print("finding connected joysticks")
         try:
             p = FSUAE.start_with_args(["--list-joysticks"],
                     stdout=subprocess.PIPE)
@@ -97,12 +98,18 @@ class DeviceManager:
             print("exception while listing joysticks")
             traceback.print_exc()
             return
+        print(repr(joysticks))
+        # If the character conversion failes, replace will ensure that
+        # as much as possible succeeds. The joystick in question will
+        # not be pre-selectable in the launcher, but the other ones will
+        # work at least.
+        joysticks = joysticks.decode("UTF-8", "replace")
         joysticks = [x.strip() for x in joysticks.split("\n") if x.strip()]
         for name in joysticks:
             name_count = cls.device_name_count.get(name, 0) + 1
             cls.device_name_count[name] = name_count
             if name_count > 1:
-                name = name + u" #" + str(name_count)
+                name = name + " #" + str(name_count)
             cls.device_ids.append(name)
             name = re.sub("[ ]+", " ", name)
             cls.device_names.append(name)
@@ -132,6 +139,7 @@ class DeviceManager:
 
     @classmethod
     def get_devices_for_ports(cls, config):
+        cls.init()
         ports = [cls.devices[0] for x in range(4)]
         for device in cls.devices:
             device.port = None

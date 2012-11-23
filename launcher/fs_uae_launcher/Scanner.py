@@ -15,6 +15,11 @@ from .Settings import Settings
 from .Signal import Signal
 from .I18N import _, ngettext
 
+from .fsgs.GameDatabase import GameDatabase
+from .fsgs.GameDatabaseClient import GameDatabaseClient
+from .OverlayDatabase import OverlayDatabase
+from .fsgs.GameDatabaseSynchronizer import GameDatabaseSynchronizer
+
 class Scanner:
     #listeners = []
 
@@ -57,20 +62,33 @@ class Scanner:
 
     @classmethod
     def _scan_thread(cls):
-        scanner = FileScanner(cls.paths, cls.scan_for_roms, cls.scan_for_files,
-                cls.scan_for_configs, on_status=cls.on_status,
-                stop_check=cls.stop_check)
-        scanner.scan()
-        if cls.stop_check():
-            return
+        if cls.update_game_database:
+            game_database = GameDatabase.get_instance()
 
-        if cls.scan_for_configs:
+            game_database_client = GameDatabaseClient(game_database)
+            synchronizer = GameDatabaseSynchronizer(game_database_client,
+                    on_status=cls.on_status, stop_check=cls.stop_check)
+            synchronizer.synchronize()
+        else:
+            game_database = None
+
+        if cls.scan_for_roms or cls.scan_for_files or cls.scan_for_configs:
+            scanner = FileScanner(cls.paths, cls.scan_for_roms,
+                    cls.scan_for_files, cls.scan_for_configs,
+                    on_status=cls.on_status, stop_check=cls.stop_check)
+            scanner.scan()
+            if cls.stop_check():
+                return
+
+        database = Database()
+        if cls.scan_for_configs or cls.update_game_database:
             scanner = ConfigurationScanner(cls.paths, on_status=cls.on_status,
                     stop_check=cls.stop_check)
-            scanner.scan()
+            scanner.scan(database, game_database)
 
     @classmethod
-    def start(cls, paths, scan_for_roms, scan_for_files, scan_for_configs):
+    def start(cls, paths, scan_for_roms, scan_for_files, scan_for_configs,
+            update_game_database=False):
         print("Scanner.start")
         if cls.running:
             print("scan already in progress")
@@ -82,6 +100,7 @@ class Scanner:
         cls.scan_for_roms = scan_for_roms
         cls.scan_for_files = scan_for_files
         cls.scan_for_configs = scan_for_configs
+        cls.update_game_database = update_game_database
         threading.Thread(target=cls.scan_thread).start()
 
     @classmethod

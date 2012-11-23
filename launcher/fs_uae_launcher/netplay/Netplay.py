@@ -346,7 +346,8 @@ class Netplay:
         channel = IRC.channel(cls.game_channel)
         # sending keys in preferred key order
         for key in Config.sync_keys_list:
-            message = u"__config {0} {1}".format(key, Config.get(key))
+            value = Config.get(key)
+            message = u"__config {0} {1}".format(key, value)
             channel.privmsg(message)
 
     @classmethod
@@ -502,6 +503,24 @@ class Netplay:
         channel.info(u"started game id: {0} password: {1} "
                 "server: {2} port: {3}".format(
                 game_id, password, addresses, port))
+
+    @classmethod
+    def command_set(cls, args):
+        channel = Channel.active()
+        if not cls.require_game_channel(channel):
+            return
+        if len(args) < 1:
+            IRC.warning("usage: /set <key> [<value>]")
+            return
+        if not channel.is_op():
+            IRC.warning("hostgame: you need to be an operator")
+            return
+
+        key = args[0]
+        value = " ".join(args[1:])
+        print("config, setting", key, "to", value)
+        channel.action("set option {0} to \"{1}\"".format(key, value))
+        Config.set(key, value)
 
     @classmethod
     def handle_game_instruction(cls, nick, message):
@@ -674,7 +693,10 @@ class Netplay:
         if not value:
             Config.set_multiple([(set_key, ""), (key, "")])
             return
-        path = Database.get_instance().find_file(sha1=value)
+        if value.startswith("http://") or value.startswith("https://"):
+            path = value
+        else:
+            path = Database.get_instance().find_file(sha1=value)
         if not path:
             path = find_downloadable_file(value)
         if path:

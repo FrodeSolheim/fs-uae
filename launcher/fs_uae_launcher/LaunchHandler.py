@@ -21,8 +21,9 @@ from .DownloadService import DownloadService
 from .GameHandler import GameHandler
 from .Settings import Settings
 from .Database import Database
+from .Paths import Paths
 from .ROMManager import ROMManager
-from .games.GameChangeHandler import GameChangeHandler
+from .fsgs.GameChangeHandler import GameChangeHandler
 from .I18N import _, ngettext
 from .Util import expand_path
 
@@ -65,10 +66,16 @@ class LaunchHandler:
         self.config_name = config_name
         self.config = config.copy()
         self.game_handler = game_handler
-        self.on_progress = None
-        self.on_complete = None
 
-    def run(self):
+    def on_progress(self, progress):
+        # method can be overriden / replaced in instances
+        pass
+
+    def on_complete(self):
+        # method can be overriden / replaced in instances
+        pass
+
+    def run(self, start=True, cleanup=True):
         print("LaunchHandler.run")
         self.temp_dir = tempfile.mkdtemp(prefix="fs-uae-")
         print("temp dir", self.temp_dir)
@@ -84,18 +91,20 @@ class LaunchHandler:
         self.prepare_roms()
         self.copy_floppies()
         self.prepare_cdroms()
-        self.unpack_hard_drives()
+        self.prepare_hard_drives()
         self.copy_whdload_files()
         self.init_changes()
 
         self.prepare_theme()
 
-        self.start()
+        if start:
+            self.start()
         self.update_changes()
-        self.cleanup()
-        if self.on_complete:
-            print("calling LaunchHandler.on_complete")
-            self.on_complete()
+        if cleanup:
+            self.cleanup()
+
+        print("calling LaunchHandler.on_complete")
+        self.on_complete()
 
     def prepare_roms(self):
         print("LaunchHandler.prepare_roms")
@@ -228,8 +237,8 @@ class LaunchHandler:
                 self.config["cdrom_image_{0}".format(i)] = cdrom
 
 
-    def unpack_hard_drives(self):
-        print("LaunchHandler.unpack_hard_drives")
+    def prepare_hard_drives(self):
+        print("LaunchHandler.prepare_hard_drives")
         self.on_progress(_("Preparing hard drives..."))
         for i in range(0, 10):
             key = "hard_drive_{0}".format(i)
@@ -249,6 +258,9 @@ class LaunchHandler:
             elif src.endswith("HardDrive"):
                 print("XML-described hard drive", src)
                 self.unpack_hard_drive(i, src)
+            else:
+                src = Paths.expand_path(src)
+                self.config[key] = src
 
     def unpack_hard_drive(self, i, src):
         src, archive = self.expand_default_path(src,
@@ -427,10 +439,14 @@ SplashDelay=0        ;time to display splash window (1/50 seconds)
         if path:
             self.config["theme"] = path
 
+    def create_config(self):
+        config = ConfigWriter(self.config).create_fsuae_config()
+        return config
+
     def start(self):
         print("LaunchHandler.start")
         self.on_progress(_("Starting FS-UAE..."))
-        config = ConfigWriter(self.config).create_fsuae_config()
+        config = self.create_config()
         process, config_file = FSUAE.start_with_config(config)
         process.wait()
         print("LaunchHandler.start is done")

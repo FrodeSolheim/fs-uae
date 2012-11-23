@@ -24,6 +24,11 @@ class Paths:
             cmp_path = path.upper().replace("\\", "/")
             if cmp_path.startswith("$BASE/"):
                 return cls.join(cls.get_base_dir(), path[6:])
+            if cmp_path.startswith("$CONFIG/"):
+                config_path = Settings.get("config_path")
+                if config_path:
+                    return cls.join(os.path.dirname(config_path),
+                        path[8:])
             if cmp_path.startswith("$HOME/"):
                 return cls.join(cls.get_home_dir(), path[6:])
             # FIXME: $base_dir is deprecated

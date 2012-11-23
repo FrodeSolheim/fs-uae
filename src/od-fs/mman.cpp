@@ -24,14 +24,11 @@ static int os_64bit = 0;
 
 #ifdef WINDOWS
 
-/*
-static int getpagesize (void) {
-    return si.dwPageSize;
-}
-*/
-
 #else
 
+#ifdef HAVE_SYS_PARAM_H
+#include <sys/param.h>
+#endif
 #include <sys/sysctl.h>
 #include <sys/mman.h>
 

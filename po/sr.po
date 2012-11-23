@@ -8,15 +8,14 @@ msgstr ""
 "Project-Id-Version: fs-uae\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
 "POT-Creation-Date: 2012-11-01 19:42+0100\n"
-"PO-Revision-Date: 2012-05-08 00:56+0100\n"
-"Last-Translator: \n"
+"PO-Revision-Date: 2012-11-12 00:29+0100\n"
+"Last-Translator: Milan Zocevic <milanchez@gmail.com>\n"
 "Language-Team: Serbian\n"
 "Language: sr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
-"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
 msgid "Amiga Control"
 msgstr "Amiga kontrole"
@@ -26,26 +25,26 @@ msgid "Auto"
 msgstr "Auto"
 
 msgid "Auto-Fire is Off"
-msgstr ""
+msgstr "Automatsko pucanje ugašeno"
 
 msgid "Auto-Fire is On"
-msgstr ""
+msgstr "Automatsko pucanje upaljeno"
 
 #, c-format
 msgid "Auto-fire disabled for port %d"
-msgstr ""
+msgstr "Automatsko pucanje deaktivirano za port %d"
 
 #, c-format
 msgid "Auto-fire enabled for port %d"
-msgstr ""
+msgstr "Automatsko pucanje aktivirano za port %d"
 
 #. / TRANSLATORS: Empty or nothing
 #, c-format
 msgid "CD%d: Empty"
-msgstr "CD%d: Prazan"
+msgstr "CD%d: prazan"
 
 msgid "CD32 Pad Mode"
-msgstr ""
+msgstr "CD32 pad mod"
 
 #. / TRANSLATORS: Empty or nothing
 #, c-format
@@ -87,7 +86,7 @@ msgid "Insert Into DF%d"
 msgstr "Ubaciti u DF%d"
 
 msgid "Joystick Mode"
-msgstr ""
+msgstr "Režim džojstika"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
@@ -97,12 +96,12 @@ msgstr "Džojstik port %d"
 #. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Joystick Port %d Device"
-msgstr "Džojstik port %d - Uređaj"
+msgstr "Džojstik port %d uređaj"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Joystick Port %d Mode"
-msgstr "Džojstik port %d Režim"
+msgstr "Džojstik port %d mod"
 
 msgid "Joystick Port 0"
 msgstr "Džojstik port 0"
@@ -132,7 +131,7 @@ msgid "Mouse"
 msgstr "Miš"
 
 msgid "Mouse Mode"
-msgstr ""
+msgstr "Režim miša"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long: If you struggle
 #. / to get in short enough, just translate "No Device" instead.
@@ -155,7 +154,7 @@ msgid "Pause"
 msgstr "Pauziranje"
 
 msgid "Port Settings"
-msgstr ""
+msgstr "Podešenja porta"
 
 msgid "Removable Media"
 msgstr "Prenosivi medijum"

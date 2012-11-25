@@ -23,6 +23,7 @@ void fs_ml_render_init();
 
 //void fs_ml_calibrate_clock();
 
+void fs_ml_prevent_power_saving(void);
 void fs_ml_set_fullscreen_extra();
 
 #ifdef WINDOWS

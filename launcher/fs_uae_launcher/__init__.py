@@ -61,8 +61,12 @@ class FileOutput(object):
 
     def write(self, msg):
         if isinstance(msg, unicode):
+            if "database_password" in msg:
+                return
             self.file.write(msg.encode("UTF-8"))
         else:
+            if b"database_password" in msg:
+                return
             self.file.write(msg)
 
 class SafeOutput(object):

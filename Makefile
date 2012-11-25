@@ -405,6 +405,7 @@ catalogs = \
 	share/locale/it/LC_MESSAGES/fs-uae.mo \
 	share/locale/nb/LC_MESSAGES/fs-uae.mo \
 	share/locale/pl/LC_MESSAGES/fs-uae.mo \
+	share/locale/pt/LC_MESSAGES/fs-uae.mo \
 	share/locale/sr/LC_MESSAGES/fs-uae.mo \
 
 mo: $(catalogs)

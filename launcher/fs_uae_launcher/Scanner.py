@@ -34,6 +34,7 @@ class Scanner:
     running = False
     stop_flag = False
     status = ("", "")
+    error = ""
 
     @classmethod
     def stop_check(cls):
@@ -43,7 +44,8 @@ class Scanner:
     def scan_thread(cls):
         try:
             cls._scan_thread()
-        except Exception:
+        except Exception, e:
+            cls.error = unicode(e)
             traceback.print_exc()
 
         def on_done():
@@ -64,10 +66,11 @@ class Scanner:
     def _scan_thread(cls):
         if cls.update_game_database:
             game_database = GameDatabase.get_instance()
-
             game_database_client = GameDatabaseClient(game_database)
             synchronizer = GameDatabaseSynchronizer(game_database_client,
                     on_status=cls.on_status, stop_check=cls.stop_check)
+            synchronizer.username = Settings.get("database_username")
+            synchronizer.password = Settings.get("database_password")
             synchronizer.synchronize()
         else:
             game_database = None
@@ -95,6 +98,7 @@ class Scanner:
             return
         cls.paths = paths[:]
         cls.running = True
+        cls.error = ""
         cls.stop_flag = False
         cls.status = ("", "")
         cls.scan_for_roms = scan_for_roms

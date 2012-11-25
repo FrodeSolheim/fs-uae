@@ -258,6 +258,13 @@ class Settings:
             os.makedirs(path)
         return path
 
+    @classmethod
+    def get_cache_dir(cls):
+        path = os.path.join(cls.get_base_dir(), "Cache")
+        if not os.path.exists(path):
+            os.makedirs(path)
+        return path
+
     #@classmethod
     #def get_config_dirs(cls):
     #    paths = [cls.get_floppies_dir(), cls.get_cdroms_dir(),

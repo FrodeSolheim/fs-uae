@@ -44,6 +44,13 @@ void fs_ml_configure_window() {
     }
 }
 
+void fs_ml_prevent_power_saving(void) {
+    fs_log("SetThreadExecutionState(ES_CONTINUOUS | ES_DISPLAY_REQUIRED)\n");
+    if (!SetThreadExecutionState(ES_CONTINUOUS | ES_DISPLAY_REQUIRED)) {
+        fs_log("SetThreadExecutionState failed\n");
+    }
+}
+
 // not used
 int fs_ml_scancode_to_key(int scancode) {
     return 0;

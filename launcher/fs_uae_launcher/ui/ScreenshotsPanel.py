@@ -11,8 +11,9 @@ from ..Config import Config
 from ..Settings import Settings
 from ..Database import Database
 from ..GameHandler import GameHandler
-from .Constants import Constants
 from .BottomPanel import BottomPanel
+from .Constants import Constants
+from .ImageLoader import ImageLoader
 from .Skin import Skin
 
 BORDER = 20
@@ -40,22 +41,8 @@ class ScreenshotsPanel(BottomPanel):
         self.screenshot_overlay = fsui.Image(
                 "fs_uae_launcher:res/screenshot_overlay.png")
 
-        #self.title_views = []
-        #self.screen_views = []
-        #self.screen_views.append(fsui.ImageView(self, self.default_image))
-        #self.layout.add(self.screen_views[0], expand=False, fill=True)
-
-
-        #self.screen_view = fsui.ImageView(self, self.default_image)
-        #self.layout.add(self.screen_view, expand=False, fill=True)
-        #self.screen_views.append(
-
-        #for i in range(5):
-        #    #self.layout.add_spacer(BORDER + 1)
-        #    self.layout.add_spacer(BORDER)
-        #    self.screen_views.append(fsui.ImageView(self, self.default_image))
-        #    self.layout.add(self.screen_views[i + 1], expand=False, fill=True)
         self.images = [self.default_image for x in range(6)]
+        self.requests = [None for x in range(6)]
 
         if Settings.get("config_base"):
             self.load_images(Settings.get("config_base"))
@@ -70,29 +57,34 @@ class ScreenshotsPanel(BottomPanel):
         self.set_min_width(w)
 
     def load_images(self, name):
-        t1 = time.time()
+        #t1 = time.time()
         handler = GameHandler.current()
         for i in range(6):
-            image = handler.load_screenshot_preview(i)
-            #view = self.screen_views[i]
-            if image:
-                #view.set_image(image)
-                self.images[i] = image
-                self.refresh()
-            else:
-                #view.set_image(self.default_image)
-                self.images[i] = self.default_image
+            path = handler.get_screenshot_path(i)
+            loader = ImageLoader.get()
+            def on_load(request):
+                #print("on_load, request.image =", request.image)
+                if request.image:
+                    self.images[request.args["index"]] = request.image
+                else:
+                    self.images[request.args["index"]] = self.default_image
                 self.refresh()
 
-        #self.load_image(name, "Titles", 0, self.title_views)
-        #for i in range(5):
-        #    if i == 0:
-        #        screen_name = name
-        #    else:
-        #        screen_name = u"{0}_{1}".format(name, i + 1)
-        #    self.load_image(screen_name, "Screenshots", i, self.screen_views)
-        t2 = time.time()
-        print(t2 - t1)
+            self.requests[i] = loader.load_image(path,
+                    size=Constants.SCREEN_SIZE, on_load=on_load, index=i)
+            self.images[i] = self.default_image
+            self.refresh()
+
+            #image = handler.load_screenshot_preview(i)
+            #if image:
+            #    self.images[i] = image
+            #    self.refresh()
+            #else:
+            #    self.images[i] = self.default_image
+            #    self.refresh()
+
+        #t2 = time.time()
+        #print(t2 - t1)
 
     def on_setting(self, key, value):
         if key == "config_name":

@@ -8,15 +8,15 @@ from ...I18N import _, ngettext
 from ...Settings import Settings
 from ...Signal import Signal
 from ..PagedDialog import PagedDialog
+from .AudioSettingsPage import AudioSettingsPage
 from .CustomSettingsPage import CustomSettingsPage
 from .ExperimentalFeaturesPage import ExperimentalFeaturesPage
+from .FilterSettingsPage import FilterSettingsPage
+from .GameDatabaseSettingsPage import GameDatabaseSettingsPage
 from .InputSettingsPage import InputSettingsPage
 from .JoystickSettingsPage import JoystickSettingsPage
 from .NetplaySettingsPage import NetplaySettingsPage
-#from .OpenGLSettingsPage import OpenGLSettingsPage
 from .ScanSettingsPage import ScanSettingsPage
-from .FilterSettingsPage import FilterSettingsPage
-from .AudioSettingsPage import AudioSettingsPage
 from .VideoSettingsPage import VideoSettingsPage
 
 class SettingsDialog(PagedDialog):
@@ -33,6 +33,8 @@ class SettingsDialog(PagedDialog):
         #self.add_page(_("OpenGL Settings"), OpenGLSettingsPage)
         if Settings.get("netplay_feature") == "1":
             self.add_page(_("Net Play Settings"), NetplaySettingsPage)
+        if Settings.get("database_feature") == "1":
+            self.add_page(_("Game Database"), GameDatabaseSettingsPage)
         self.add_page(_("Experimental Features"), ExperimentalFeaturesPage)
         self.add_page(_("Custom Settings"), CustomSettingsPage)
 

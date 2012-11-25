@@ -12,6 +12,9 @@ from ..I18N import _, ngettext
 
 class GameDatabaseSynchronizer:
 
+    username = ""
+    password = ""
+
     def __init__(self, client, on_status=None, stop_check=None):
         self.client = client
         self.downloaded_size = 0
@@ -107,14 +110,20 @@ class GameDatabaseSynchronizer:
         last_id = self.client.get_last_update_id()
         self.set_status(_("Updating database"),
                 _("Fetching database entries ({0})").format(last_id + 1))
+        
         try:
             server = os.environ["FS_GAME_DATABASE_SERVER"]
         except KeyError:
             server = "fengestad.no"
+        auth_handler = urllib2.HTTPBasicAuthHandler()
+        auth_handler.add_password(realm="FS Game Database",
+                uri="http://{0}".format(server), user=self.username,
+                passwd=self.password)
+        opener = urllib2.build_opener(auth_handler)
         url = "http://{0}/games/api/1/changes?from={1}".format(server,
                 last_id + 1)
         print(url)
-        data = urllib2.urlopen(url).read()
+        data = opener.open(url).read()
         json_data = json.loads(data)
         self.downloaded_size += len(data)
 

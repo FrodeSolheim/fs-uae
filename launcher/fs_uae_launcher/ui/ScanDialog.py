@@ -119,12 +119,16 @@ class ScanDialog(fsui.Dialog):
 
         if not Scanner.running:
             if self.has_started_scan:
-                if not self.interactive:
-                    self.end_modal(True)
-                    return
-                self.set_scan_title(_("Scan complete"))
-                self.set_scan_status(
-                        _("Click 'Scan' button if you want to re-scan"))
+                if Scanner.error:
+                    self.set_scan_title(_("Scan error"))
+                    self.set_scan_status(Scanner.error)
+                else:
+                    if not self.interactive:
+                        self.end_modal(True)
+                        return
+                    self.set_scan_title(_("Scan complete"))
+                    self.set_scan_status(
+                            _("Click 'Scan' button if you want to re-scan"))
             else:
                 self.set_scan_title(_("No scan in progress"))
                 self.set_scan_status(_("Click 'Scan' button to start scan"))

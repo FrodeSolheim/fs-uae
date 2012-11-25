@@ -58,6 +58,13 @@ class GameHandler:
 
     def get_screenshot_path(self, number):
         if number == 0:
+            sha1 = Config.get("title_sha1")
+        else:
+            sha1 = Config.get("screen{0}_sha1".format(number))
+        if sha1:
+            return "sha1:" + sha1
+
+        if number == 0:
             path = self.get_override_path("title_image")
         else:
             path = self.get_override_path("screen{0}_image".format(number))
@@ -129,6 +136,10 @@ class GameHandler:
         return image
 
     def get_cover_path(self):
+        sha1 = Config.get("front_sha1")
+        if sha1:
+            return "sha1:" + sha1
+
         path = self.get_override_path("cover_image")
         if path and os.path.exists(path):
             return path

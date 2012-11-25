@@ -134,11 +134,20 @@ class ValueConfigLoader:
                 self.options["amiga_model"] = "A600"
             elif value == "AGA":
                 self.options["amiga_model"] = "A1200"
+        elif key == "fast_memory":
+            ivalue = int(value)
+            if ivalue > 8192:
+                self.options["zorro_iii_memory"] = value
+                self.options["amiga_model"] = "A1200/020"
+            else:
+                self.options["fast_memory"] = value
         elif key == "cracktro":
             # FIXME: handle
             pass
         elif key in ["amiga_model", "joystick_port_0_mode",
-                "floppy_drive_count", "slow_memory", "fast_memory"]:
+                "floppy_drive_count", "slow_memory", "front_sha1",
+                "screen1_sha1", "screen2_sha1", "screen3_sha1",
+                "screen4_sha1", "screen5_sha1", "title_sha1"]:
             self.options[key] = value
 
     #def load_game_info(self, uuid):

@@ -54,7 +54,7 @@ class GameDatabaseClient:
         return row[0]
 
     def insert_game_value(self, game_id, key, value, status, user=1,
-            submitted=None, update_games=True, value_id=None):
+            submitted=None, update_games=True, value_id=None, reviewer=None):
         key = key.strip().lower().replace("-", "_")
         value = value.strip()
 
@@ -84,6 +84,12 @@ class GameDatabaseClient:
                     user, status))
             cursor.execute(self.database.query(
                     "SELECT max(id) from value"))
+        elif reviewer is not None:
+            cursor.execute(self.database.query("INSERT INTO value (game, "
+                    "name, value, submitted, submitter, status, "
+                    "reviewer, reviewed) "
+                    "VALUES (%s, %s, %s, %s, %s, %s, %s, utc_timestamp())"),
+                    (game_id, key, value, submitted, user, status, reviewer))
         else:
             cursor.execute(self.database.query("INSERT INTO value (game, "
                     "name, value, submitted, submitter, status) "
@@ -91,21 +97,8 @@ class GameDatabaseClient:
                     (game_id, key, value, user, status))
 
         if update_games and status == 1 and key in ["game_name",
-                "variant_name", "config_name", "parent_uuid", "file_list"]:
+                "variant_name", "x_name", "parent_uuid", "file_list"]:
             self.update_game(game_id)
-            """
-            values = self.get_final_game_values(game_id)
-            game = values.get("game_name", "")
-            variant = values.get("variant_name", "")
-            config = values.get("config_name", "")
-            if game and variant:
-                name = "{0} ({1})".format(game, variant)
-            else:
-                name = config
-            search = name.lower()
-            cursor.execute("UPDATE game SET game = %s, variant = %s"
-                    "name = %s, search = %s", game, variant, name, search)
-            """
 
     def get_final_game_values(self, game_id, recursive=True):
         cursor = self.database.cursor()
@@ -149,14 +142,15 @@ class GameDatabaseClient:
     def get_game_value_data(self, game_id):
         cursor = self.database.cursor()
         values = []
-        cursor.execute(self.database.query("SELECT status, name, value, "
-                "username FROM value, user WHERE value.submitter = user.id "
+        cursor.execute(self.database.query("SELECT value.id, status, name, "
+                "value, username FROM value, user "
+                "WHERE value.submitter = user.id "
                 "AND game = %s AND (status = 1 OR status = -1)"
                 "ORDER BY status DESC, name"),
                 (game_id,))
         for row in cursor:
-            status, name, value, username = row
-            values.append((status, name, value, username))
+            id, status, name, value, username = row
+            values.append((id, status, name, value, username))
         return values
 
     def update_game(self, game_id):
@@ -165,7 +159,7 @@ class GameDatabaseClient:
         platform = values.get("platform", "")
         game = values.get("game_name", "")
         variant = values.get("variant_name", "")
-        config = values.get("config_name", "")
+        x_name = values.get("x_name", "")
         parent_uuid = values.get("parent_uuid", "")
         parent = None
         if parent_uuid:
@@ -179,7 +173,7 @@ class GameDatabaseClient:
         if game and variant:
             name = "{0} ({1})".format(game, variant)
         else:
-            name = config or game or variant
+            name = x_name or game or variant
         search = name.lower()
         cursor.execute(self.database.query("UPDATE game SET game = %s, "
                 "variant = %s, name = %s, search = %s, platform = %s, "

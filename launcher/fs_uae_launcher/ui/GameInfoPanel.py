@@ -13,6 +13,7 @@ from ..Database import Database
 from ..GameHandler import GameHandler
 from .BottomPanel import BottomPanel
 from .Constants import Constants
+from .ImageLoader import ImageLoader
 from .LaunchGroup import LaunchGroup
 from .Skin import Skin
 
@@ -83,7 +84,7 @@ class GameInfoPanel(BottomPanel):
         Settings.remove_listener(self)
 
     def load_info(self):
-        t1 = time.time()
+        #t1 = time.time()
         handler = GameHandler.current()
         name = handler.get_name()
         variant = handler.get_variant()
@@ -92,17 +93,32 @@ class GameInfoPanel(BottomPanel):
         self.title = name
         self.sub_title = variant
 
-        image = handler.load_cover_preview()
-        if image:
-            #self.cover_view.set_image(image)
-            self.image = image
-        else:
-            #self.cover_view.set_image(self.default_image)
-            self.image = self.default_image
+        #image = handler.load_cover_preview()
+        #if image:
+        #    #self.cover_view.set_image(image)
+        #    self.image = image
+        #else:
+        #    #self.cover_view.set_image(self.default_image)
+        #    self.image = self.default_image
+        #self.refresh()
+
+        path = handler.get_cover_path()
+        loader = ImageLoader.get()
+        def on_load(request):
+            #print("on_load, request.image =", request.image)
+            if request.image:
+                self.image = request.image
+            else:
+                self.image = self.default_image
+            self.refresh()
+
+        self.requests = loader.load_image(path,
+                size=Constants.COVER_SIZE, on_load=on_load)
+        self.image = self.default_image
         self.refresh()
 
-        t2 = time.time()
-        print(t2 - t1)
+        #t2 = time.time()
+        #print(t2 - t1)
         self.layout.update()
 
     def on_setting(self, key, value):

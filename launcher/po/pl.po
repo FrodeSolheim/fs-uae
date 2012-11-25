@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae-launcher\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2012-11-09 20:28+0100\n"
-"PO-Revision-Date: 2012-11-09 22:12+0100\n"
+"POT-Creation-Date: 2012-11-23 20:37+0100\n"
+"PO-Revision-Date: 2012-11-23 21:22+0100\n"
 "Last-Translator: grimi <grimi at poczta dot fm>\n"
 "Language-Team: Polish\n"
 "Language: pl\n"
@@ -199,6 +199,9 @@ msgstr "Wysuń"
 msgid "Enable experimental net play GUI (requires restart)"
 msgstr "Włącz eksperymentalny interfejs gry sieciowej (wymaga restartu)"
 
+msgid "Enable online database support (requires restart)"
+msgstr "Włącz obsługę bazy danych online (wymaga restartu)"
+
 msgid "Expansions"
 msgstr "Rozszerzenia"
 
@@ -213,6 +216,9 @@ msgstr "Ustawienia FS-UAE Launcher"
 
 msgid "Fast RAM"
 msgstr "Fast RAM"
+
+msgid "Fetching database entries ({0})"
+msgstr "Pobieranie wpisów bazy danych ({0})"
 
 msgid "Filters"
 msgstr "Filtry"
@@ -309,6 +315,9 @@ msgstr "Ustawienia joysticka"
 
 msgid "Keep aspect ratio when scaling (do not stretch)"
 msgstr "Zachowaj proporcje przy skalowaniu (nie rozciągaj)"
+
+msgid "Keyboard Settings"
+msgstr "Opcje klawiatury"
 
 msgid "Kickstart ROM"
 msgstr "Kickstart ROM"
@@ -441,6 +450,9 @@ msgstr "Przygotowywanie..."
 msgid "Purging old entries..."
 msgstr "Usuwanie starych wpisów"
 
+msgid "Refresh game configurations from database"
+msgstr "Odśwież konfiguracje gier z bazy danych"
+
 msgid "Remove Directory from Search Path"
 msgstr "Usuń katalog ze ścieżki wyszukiwania"
 
@@ -453,6 +465,9 @@ msgstr "Renderuj \"scanlines\""
 msgid "Render scan lines in RTG graphics mode"
 msgstr "Renderuj \"scanlines\" w trybie RTG"
 
+msgid "Resetting database..."
+msgstr "Resetowanie bazy danych..."
+
 msgid "Restoring changes..."
 msgstr "Przywracam zmiany..."
 
@@ -460,7 +475,7 @@ msgid "Save Configuration"
 msgstr "Zapisz konfigurację"
 
 msgid "Saving changes..."
-msgstr "Zapisuję zmiany..."
+msgstr "Zapisywanie zmian..."
 
 msgid "Scaling Options"
 msgstr "Opcje skalowania"
@@ -498,6 +513,9 @@ msgstr "Skanowanie plików"
 msgid "Scanning files ({count} scanned)"
 msgstr "Skanowanie plików ({count} przeskanowanych)"
 
+msgid "Scanning game database entries..."
+msgstr "Skanowanie wpisów bazy danych gier..."
+
 msgid "Select Directory to Import From"
 msgstr "Wybierz katalog, z którego importować"
 
@@ -534,8 +552,14 @@ msgstr "Uruchamiam FS-UAE..."
 msgid "Starting scan"
 msgstr "Uruchamiam skanowanie"
 
+msgid "Swap left and right CTRL keys"
+msgstr "Zamień lewy i prawy klawisz CTRL"
+
 msgid "Sync to Vblank"
 msgstr "Synchronizacja Vblank"
+
+msgid "Synchronizing database..."
+msgstr "Synchronizacja bazy danych..."
 
 msgid "Texture filter"
 msgstr "Filtr teksturowania"
@@ -545,6 +569,12 @@ msgstr "Zwolnij myszkę i klawiaturę po kliku środkowego przycisku"
 
 msgid "Update ({version}) is available"
 msgstr "Dostępna aktualizacja ({version})"
+
+msgid "Updating database"
+msgstr "Aktualizacja bazy danych"
+
+msgid "Updating game entries:"
+msgstr "Aktualizacja wpisów gier:"
 
 msgid "Video Settings"
 msgstr "Opcje wideo"

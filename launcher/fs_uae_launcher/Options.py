@@ -31,6 +31,18 @@ options = {
     "type": "boolean",
 },
 
+"database_password": {
+    "default": "",
+    "description": N_("Game database password"),
+    "type": "string",
+},
+
+"database_username": {
+    "default": "",
+    "description": N_("Game database user name"),
+    "type": "string",
+},
+
 "floppy_drive_volume": {
     "default": "20",
     "description": N_("Floppy drive volume"),

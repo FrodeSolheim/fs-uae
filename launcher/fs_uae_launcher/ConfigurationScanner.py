@@ -198,9 +198,13 @@ class ConfigurationScanner:
         #print("check file", file_node)
         if isinstance(file_node, dict):
             sha1 = file_node["sha1"]
-            #print(sha1)
             if database.find_file(sha1=sha1):
                 return True
+            return False
+
+        # The following code is deprecated and will probably be removed
+        # later (used for the old database system)
+
         if file_node.find("sha1") is not None:
             sha1 = file_node.find("sha1").text.strip()
             #print(sha1)

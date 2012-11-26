@@ -144,7 +144,9 @@ class ValueConfigLoader:
         elif key == "cracktro":
             # FIXME: handle
             pass
-        elif key in ["amiga_model", "joystick_port_0_mode",
+        elif key in ["amiga_model", 
+                "joystick_port_0_mode", "joystick_port_1_mode",
+                "joystick_port_2_mode", "joystick_port_3_mode",
                 "floppy_drive_count", "slow_memory", "front_sha1",
                 "screen1_sha1", "screen2_sha1", "screen3_sha1",
                 "screen4_sha1", "screen5_sha1", "title_sha1"]:

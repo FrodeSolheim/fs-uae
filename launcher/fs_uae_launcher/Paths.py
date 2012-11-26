@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 
 import os
 import fs_uae_launcher.fs as fs
+from .Archive import Archive
 from .Settings import Settings
 
 class Paths:

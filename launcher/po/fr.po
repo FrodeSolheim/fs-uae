@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae-launcher\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2012-11-10 11:56+0100\n"
-"PO-Revision-Date: 2012-11-11 21:34+0100\n"
+"POT-Creation-Date: 2012-11-25 22:49+0100\n"
+"PO-Revision-Date: 2012-11-26 12:36+0100\n"
 "Last-Translator: Foul <foulweb@gmail.com>\n"
 "Language-Team: Foul <fs-uae-fr@fengestad.no>\n"
 "Language: fr\n"
@@ -200,6 +200,9 @@ msgstr "Ejecter"
 msgid "Enable experimental net play GUI (requires restart)"
 msgstr "Activer l'Interface de jeu en ligne expérimentale (nécessite un redémarrage)"
 
+msgid "Enable online database support (requires restart)"
+msgstr "Activer le support de la base de données en ligne (nécessite un redémarrage)"
+
 msgid "Expansions"
 msgstr "Extensions"
 
@@ -214,6 +217,9 @@ msgstr "Réglages du Lanceur FS-UAE"
 
 msgid "Fast RAM"
 msgstr "Mémoire Rapide"
+
+msgid "Fetching database entries ({0})"
+msgstr "Obtention des entrées de la base de données ({0})"
 
 msgid "Filters"
 msgstr "Filtres"
@@ -244,6 +250,18 @@ msgstr "Anti-crénelage plein écran (FSAA)"
 
 msgid "Fullscreen"
 msgstr "Plein Ecran"
+
+msgid "Game Database"
+msgstr "Base de données de jeu"
+
+msgid "Game Database Settings"
+msgstr "Réglages de la base de donnée de jeu"
+
+msgid "Game database password"
+msgstr "Mot de passe de la base de données de jeu"
+
+msgid "Game database user name"
+msgstr "Nom d'utilisateur de la base de données de jeu"
 
 msgid "Games and Configurations"
 msgstr "Jeux et Configurations"
@@ -310,6 +328,9 @@ msgstr "Paramètres du Joystick"
 
 msgid "Keep aspect ratio when scaling (do not stretch)"
 msgstr "Conserver les proportions lorsque mise à l'échelle (ne pas étirer)"
+
+msgid "Keyboard Settings"
+msgstr "Réglages du clavier"
 
 msgid "Kickstart ROM"
 msgstr "ROM Kickstart"
@@ -440,6 +461,9 @@ msgstr "Préparations..."
 msgid "Purging old entries..."
 msgstr "Purge des anciennes entrées ..."
 
+msgid "Refresh game configurations from database"
+msgstr "Rafraîchir la base de données des configurations de jeu"
+
 msgid "Remove Directory from Search Path"
 msgstr "Supprimer Répertoire du Chemin de Recherche"
 
@@ -451,6 +475,9 @@ msgstr "Afficher les lignes de balayage"
 
 msgid "Render scan lines in RTG graphics mode"
 msgstr "Afficher les lignes de balayage en mode graphique RTG"
+
+msgid "Resetting database..."
+msgstr "Réinitialisation de la base de données..."
 
 msgid "Restoring changes..."
 msgstr "Restauration des Changements"
@@ -472,6 +499,9 @@ msgstr "Analyse et Indexation"
 
 msgid "Scan complete"
 msgstr "Analyse complète"
+
+msgid "Scan error"
+msgstr "Erreur d'analyse"
 
 msgid "Scan for Kickstarts, Files and Configurations"
 msgstr "Analyser les Kickstarts, Fichiers et Configurations"
@@ -496,6 +526,9 @@ msgstr "Analyse des fichiers"
 
 msgid "Scanning files ({count} scanned)"
 msgstr "Analyse des Fichiers ({count}) analysés"
+
+msgid "Scanning game database entries..."
+msgstr "Analyse des entrées de la base de jeu..."
 
 msgid "Select Directory to Import From"
 msgstr "Sélectionner le répertoire d'importation"
@@ -533,8 +566,14 @@ msgstr "Lancement de FS-UAE"
 msgid "Starting scan"
 msgstr "Démarrage de l'analyse"
 
+msgid "Swap left and right CTRL keys"
+msgstr "Echanger les touches CTRL gauches et droites"
+
 msgid "Sync to Vblank"
 msgstr "Synchro en utilisant VBLANK"
+
+msgid "Synchronizing database..."
+msgstr "Synchronisation de la base de données ..."
 
 msgid "Texture filter"
 msgstr "Filtre de texture"
@@ -544,6 +583,12 @@ msgstr "Relâche la souris et le clavier sur clic du milieu de la souris"
 
 msgid "Update ({version}) is available"
 msgstr "La mise à jour ({version}) est disponible"
+
+msgid "Updating database"
+msgstr "Mise à jour de la base de données"
+
+msgid "Updating game entries:"
+msgstr "Mise à jour des entrées de jeu:"
 
 msgid "Video Settings"
 msgstr "Paramètres vidéo"

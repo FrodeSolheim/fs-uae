@@ -1,3 +1,10 @@
+Version 2.1.6:
+* Updated bitmap font with additional characters for Portuguese.
+* (Launcher) Fix a bug where missing files stopped the scan process (when
+  using the database feature).
+* (Launcher) Fix path expansion when using ADFs from archives.
+* (Launcher) Updated translations: fr [Foul], de [nexusle].
+
 Version 2.1.5:
 * Use Windows API function to prevent display from going to sleep.
 * Added translations: pt [Treco].

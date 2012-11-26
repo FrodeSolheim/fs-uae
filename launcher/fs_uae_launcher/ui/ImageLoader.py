@@ -37,7 +37,7 @@ class ImageLoader:
         Signal.add_listener("quit", self)
 
     def on_quit_signal(self):
-        print("ImageLoaderon_quit_signal")
+        print("ImageLoader.on_quit_signal")
         self.stop_flag = True
 
     def image_loader_thread(self):

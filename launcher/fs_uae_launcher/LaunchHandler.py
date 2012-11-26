@@ -141,20 +141,20 @@ class LaunchHandler:
             self.config["kickstarts_dir"] = self.temp_dir
 
     def expand_default_path(self, src, default_dir):
-        src = expand_path(src)
+        src = Paths.expand_path(src, default_dir)
         archive = Archive(src)
-        if not archive.exists(src):
-            dirs = [default_dir]
-            for dir in dirs:
-                path = os.path.join(dir, src)
-                print("checking", repr(path))
-                archive = Archive(path)
-                if archive.exists(path):
-                #if os.path.exists(path):
-                    src = path
-                    break
-            else:
-                raise Exception("Cannot find path for " + repr(src))
+        #if not archive.exists(src):
+        #    dirs = [default_dir]
+        #    for dir in dirs:
+        #        path = os.path.join(dir, src)
+        #        print("checking", repr(path))
+        #        archive = Archive(path)
+        #        if archive.exists(path):
+        #        #if os.path.exists(path):
+        #            src = path
+        #            break
+        #    else:
+        #        raise Exception("Cannot find path for " + repr(src))
         return src, archive
 
     def copy_floppy(self, key):

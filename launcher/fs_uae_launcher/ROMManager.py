@@ -30,7 +30,8 @@ class ROMManager:
             return
         size = st.st_size
         mtime = int(st.st_mtime)
-        log_function("Adding ROM \"{0}\" to database".format(file_name))
+        log_function("Adding ROM \"{0}\" to database (SHA-1: {1})".format(
+                file_name, rom["sha1"]))
         database.delete_file(path=path)
         database.add_file(path=path, sha1=rom["sha1"], mtime=mtime, size=size,
                 scan=0, name=file_name)
@@ -63,6 +64,7 @@ class ROMManager:
             f2 = key_archive.open(key_path)
         except Exception:
             raise Exception("did not find rom.key to decrypt ROM with")
+        print("using key file", key_path)
         #if not os.path.exists(key_file):
         #    raise Exception("did not find rom.key to decrypt ROM with")
         key_data = f2.read()

@@ -1,3 +1,8 @@
+Version 2.1.8:
+* (Launcher) Fixed Amiga model selection when database key kickstart
+  is used in combination with fast_memory > 8192 (Zorro III).
+* (Launcher) Updated translations: es [albconde].
+
 Version 2.1.7:
 * Merged updated emulation core from WinUAE 2.5.0beta27.
 * (Launcher) WHDLoad support in combination with online database.

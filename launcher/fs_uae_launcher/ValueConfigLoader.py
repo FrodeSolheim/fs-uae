@@ -115,16 +115,22 @@ class ValueConfigLoader:
         elif key == "whdload_args":
             self.options["x_whdload_args"] = value
         elif key == "kickstart":
-            if value in ["2.0", "2.0+"]:
-                model = self.options.get("amiga_model", "")
-                if value == "2.0+" and model == "A1200":
-                    pass
-                elif model == "A500+":
+            model = self.options.get("amiga_model", "")
+            if value == "2.0":
+                if model in ["A500+", "A600"]:
                     pass
                 else:
                     self.options["amiga_model"] = "A600"
-            elif value in ["3.0", "3.0+", "3.1", "3.1+"]:
-                self.options["amiga_model"] = "A1200"
+            elif value == "2.0+":
+                if model in ["A500+", "A600", "A1200", "A1200/020"]:
+                    pass
+                else:
+                    self.options["amiga_model"] = "A600"
+            elif value in ["3.0+", "3.1", "3.1+"]:
+                if model in ["A1200", "A1200/020"]:
+                    pass
+                else:
+                    self.options["amiga_model"] = "A1200"
             elif value == "AROS":
                 self.options["kickstart_file"] = "internal"
             else:

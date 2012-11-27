@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae-launcher\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2012-11-23 20:37+0100\n"
-"PO-Revision-Date: 2012-11-23 21:22+0100\n"
+"POT-Creation-Date: 2012-11-27 16:41+0100\n"
+"PO-Revision-Date: 2012-11-27 17:21+0100\n"
 "Last-Translator: grimi <grimi at poczta dot fm>\n"
 "Language-Team: Polish\n"
 "Language: pl\n"
@@ -250,6 +250,18 @@ msgstr "Pełnoekranowy antyaliasing (FSAA)"
 msgid "Fullscreen"
 msgstr "Pełny ekran"
 
+msgid "Game Database"
+msgstr "Baza danych gier"
+
+msgid "Game Database Settings"
+msgstr "Ustawienia bazy danych gier"
+
+msgid "Game database password"
+msgstr "Hasło bazy danych gier"
+
+msgid "Game database user name"
+msgstr "Nazwa użytkownika bazy danych gier"
+
 msgid "Games and Configurations"
 msgstr "Gry i konfiguracje"
 
@@ -488,6 +500,9 @@ msgstr "Skanowanie i indeksowanie"
 
 msgid "Scan complete"
 msgstr "Skanowanie zakończone"
+
+msgid "Scan error"
+msgstr "Błąd skanowania"
 
 msgid "Scan for Kickstarts, Files and Configurations"
 msgstr "Skanuj w poszukiwaniu plików, plików kickstart i konfiguracji"

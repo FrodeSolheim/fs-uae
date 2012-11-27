@@ -1,3 +1,8 @@
+Version 2.1.7:
+* Merged updated emulation core from WinUAE 2.5.0beta27.
+* (Launcher) WHDLoad support in combination with online database.
+* (Launcher) Updated translations: it [Speedvicio], pl [grimi].
+
 Version 2.1.6:
 * Updated bitmap font with additional characters for Portuguese.
 * (Launcher) Fix a bug where missing files stopped the scan process (when

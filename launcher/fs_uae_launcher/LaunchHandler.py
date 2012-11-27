@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 
 import os
 import zlib
+import json
 import shutil
 import urllib
 import zipfile
@@ -24,6 +25,8 @@ from .Database import Database
 from .Paths import Paths
 from .ROMManager import ROMManager
 from .fsgs.GameChangeHandler import GameChangeHandler
+from .fsgs.GameDatabase import GameDatabase
+from .fsgs.GameDatabaseClient import GameDatabaseClient
 from .I18N import _, ngettext
 from .Util import expand_path
 
@@ -251,6 +254,9 @@ class LaunchHandler:
                 dest = os.path.join(self.temp_dir, name)
                 DownloadService.install_file_from_url(src, dest)
                 src = dest
+            elif src.startswith("game://"):
+                self.unpack_game_hard_drive(i, src)
+                return
 
             if src.endswith(".zip"):
                 print("zipped hard drive", src)
@@ -262,6 +268,34 @@ class LaunchHandler:
                 src = Paths.expand_path(src)
                 self.config[key] = src
 
+    def unpack_game_hard_drive(self, i, src):
+        scheme, dummy, game_uuid, drive = src.split("/")
+        drive_prefix = drive + "/"
+        database = Database()
+        game_database = GameDatabase.get_instance()
+        game_database_client = GameDatabaseClient(game_database)
+        game_id = game_database_client.get_game_id(game_uuid)
+        values = game_database_client.get_final_game_values(game_id)
+        file_list = json.loads(values["file_list"])
+
+        dir_name = "DH{0}".format(i)
+        dir_path = os.path.join(self.temp_dir, dir_name)
+        for file_entry in file_list:
+            name = file_entry["name"]
+            sha1 = file_entry["sha1"]
+            if not name.startswith(drive_prefix):
+                continue
+            src_file = database.find_file(sha1=sha1)
+            dst_file = os.path.join(dir_path, name)
+            if not os.path.exists(os.path.dirname(dst_file)):
+                os.makedirs(os.path.dirname(dst_file))
+            archive = Archive(src_file)
+            f = archive.open(src_file)
+            data = f.read()
+            with open(dst_file, "wb") as out_file:
+                out_file.write(data)
+        self.config["hard_drive_{0}".format(i)] = dir_path
+
     def unpack_hard_drive(self, i, src):
         src, archive = self.expand_default_path(src,
                 Settings.get_hard_drives_dir())
@@ -270,8 +304,7 @@ class LaunchHandler:
         dir_path = os.path.join(self.temp_dir, dir_name)
         #self.unpack_zip(zip_path, dir_path)
         self.unpack_archive(src, dir_path)
-        key = "hard_drive_{0}".format(i)
-        self.config[key] = dir_path
+        self.config["hard_drive_{0}".format(i)] = dir_path
 
     def copy_whdload_files(self):
         whdload_args = self.config.get("x_whdload_args", "").strip()

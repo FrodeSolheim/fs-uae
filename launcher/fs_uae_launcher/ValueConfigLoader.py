@@ -11,9 +11,10 @@ from .Database import Database
 
 class ValueConfigLoader:
 
-    def __init__(self):
+    def __init__(self, uuid=""):
         self.config = {}
         self.options = {}
+        self.uuid = uuid
 
     def get_config(self):
         return self.config.copy()
@@ -196,15 +197,16 @@ class ValueConfigLoader:
             #type = file_node.get("type", "")
             #name = file_node.find("name").text.strip()
 
-            if name.startswith("HardDrive/"):
+            if name.startswith("DH0/"):
                 if hds:
-                    p = os.path.join(self.path, "HardDrive")
+                    #p = os.path.join(self.path, "HardDrive")
+                    p = "game://" + self.uuid + "/DH0"
                     if p in added:
                         # already added
                         continue
                     added.add(p)
                     # FIXME: hack for now
-                    sha1 = "01234567-89ab-cdef-0123-456789abcdef"
+                    sha1 = self.values.get("dh0_sha1")
                     media_list.append((p, sha1))
                 else:
                     continue

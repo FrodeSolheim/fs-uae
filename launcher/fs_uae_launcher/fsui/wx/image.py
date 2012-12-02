@@ -11,6 +11,7 @@ class Image:
     NEAREST = 0
 
     def __init__(self, name):
+        logger = wx.LogNull()
         index = name.find(":")
         if index > 1:
             package, file = name.split(":", 1)

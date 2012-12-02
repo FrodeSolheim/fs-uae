@@ -1,3 +1,11 @@
+Version 2.1.9:
+* Updated bitmap font with additional characters for Turkish.
+* (Launcher) Show only game entries in the main list, show game variants
+  for selected game in separate list.
+* (Launcher) Handle empty file_list values from database.
+* (Launcher) Support new key/value in database: video_standard (=NTSC).
+* (Launcher) Updated translations: pt [Treco], sr [Milanchez].
+
 Version 2.1.8:
 * (Launcher) Fixed Amiga model selection when database key kickstart
   is used in combination with fast_memory > 8192 (Zorro III).

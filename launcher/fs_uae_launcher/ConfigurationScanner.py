@@ -101,23 +101,31 @@ class ConfigurationScanner:
         game_database_client = GameDatabaseClient(game_database)
 
         game_cursor = game_database.cursor()
-        game_cursor.execute("SELECT uuid, game.game, variant, game.name, "
-                "platform, value FROM game, value WHERE "
-                "game.id = value.game AND status = 1 AND "
+        game_cursor.execute("SELECT a.uuid, a.game, a.variant, a.name, "
+                "a.platform, value, b.uuid, b.game "
+                "FROM game a LEFT JOIN game b ON a.parent = b.id, value "
+                "WHERE a.id = value.game AND status = 1 AND "
                 "value.name = 'file_list'")
         for row in game_cursor:
             if self.stop_check():
                 return
 
-            uuid, game, variant, alt_name, platform, file_list_json = row
-            #print (uuid, file_list)
+            uuid, game, variant, alt_name, platform, file_list_json, \
+                    parent_uuid, parent_game = row
+            if not file_list_json:
+                # not a game variant (with files)
+                continue
 
             self.scan_count += 1
             self.set_status(
                     _("Scanning configurations ({count} scanned)").format(
                     count=self.scan_count), uuid)
 
-            file_list = json.loads(file_list_json)
+            try:
+                file_list = json.loads(file_list_json)
+            except Exception:
+                # invalid JSON string
+                continue
             all_found = True
             for file_item in file_list:
                 if not self.check_if_file_exists(database, file_item):
@@ -132,8 +140,30 @@ class ConfigurationScanner:
             name = "{0} ({1}, {2})".format(game, platform, variant)
             search = self.create_configuration_search(name)
             name = self.create_configuration_name(name)
+            
+            if parent_uuid:
+                reference = parent_uuid
+                type = 2
+            else:
+                reference = uuid
+                type = 1
+
+            cursor = game_database.cursor()
+            cursor.execute("SELECT like_rating, work_rating FROM game_rating "
+                    "WHERE game = ?", (uuid,))
+            row = cursor.fetchone()
+            if row is None:
+                like_rating, work_rating = 0, 0
+            else:
+                like_rating, work_rating = row
             database.add_configuration(path="", uuid=uuid,
-                    name=name, scan=self.scan_version, search=search)
+                    name=name, scan=self.scan_version, search=search,
+                    type=type, reference=reference, like_rating=like_rating,
+                    work_rating=work_rating)
+            if parent_uuid:
+                name = "{0}\n{1}".format(parent_game, platform)
+                database.ensure_game_configuration(parent_uuid, name,
+                        scan=self.scan_version)
 
     def scan_configurations(self, database):
         for dir in self.paths:

@@ -209,6 +209,7 @@ class FSUAELauncher(fsui.Application):
             if id is not None:
                 print("[startup] removing configuration", path)
                 database.delete_configuration(id=id)
+                database.delete_file(path=path)
         print("... commit")
         database.commit()
         Settings.set("configurations_dir_mtime",

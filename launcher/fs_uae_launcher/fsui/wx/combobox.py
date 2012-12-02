@@ -25,6 +25,12 @@ class ComboBox(wx.ComboBox):
     def set_index(self, index):
         self.SetSelection(index)
 
+    def set_items(self, items):
+        print("setting items", items)
+        self.Clear()
+        for item in items:
+            self.Append(item)
+
     def set_item_text(self, index, text):
         self.SetString(index, text)
 

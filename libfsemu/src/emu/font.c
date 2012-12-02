@@ -210,7 +210,10 @@ int fs_emu_font_render(fs_emu_font *font, const char *text, float x, float y,
     int required_width = 0;
     int required_height = font->h;
 
-    gunichar2 *utext = g_utf8_to_utf16(text, -1, NULL, NULL, NULL);
+    gchar *upper_text = g_utf8_strup(text, -1);
+    //printf(">>> %s\n", upper_text);
+    gunichar2 *utext = g_utf8_to_utf16(upper_text, -1, NULL, NULL, NULL);
+    g_free(upper_text);
 
     //unsigned char *cp = (unsigned char *) text;
     gunichar2 *cp = (gunichar2 *) utext;

@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 import os
 import json
 import time
+import urllib
 import urllib2
 #import threading
 from ..I18N import _, ngettext
@@ -32,7 +33,7 @@ class GameDatabaseSynchronizer:
     def synchronize(self):
         self._synchronize()
         if self.stop_check():
-            database.rollback()
+            self.client.database.rollback()
         else:
             print("commiting data")
             self.set_status(_("Updating database"), _("Committing data..."))
@@ -47,7 +48,7 @@ class GameDatabaseSynchronizer:
         while True:
             if self.stop_check():
                 return
-            json_data = self.fetch_entries()
+            json_data = self.fetch_change_entries()
             num_changes = len(json_data["changes"])
 
             have_version = self.client.get_game_database_version()
@@ -85,7 +86,29 @@ class GameDatabaseSynchronizer:
                         update_games=False, value_id=change["id"])
             t2 = time.time()
             print("  {0:0.2f} seconds".format(t2 - t1))
-            #self.client.database.commit()
+
+        last_json_data = ""
+        while True:
+            if self.stop_check():
+                return
+            json_data = self.fetch_rating_entries()
+            if json_data == last_json_data:
+                print("no more changes")
+                break
+            last_json_data = json_data
+            print("  processing {0} entries".format(num_changes))
+            t1 = time.time()
+            for update in json_data["ratings"]:
+                cursor = self.client.database.cursor()
+                cursor.execute("DELETE FROM game_rating WHERE game = ?",
+                    (update["game"],))
+                cursor.execute("INSERT INTO game_rating (game, work_rating, "
+                        "like_rating, updated) VALUES (?, ?, ?, ?)",
+                        (update["game"], update["work"], update["like"],
+                        update["updated"]))
+            t2 = time.time()
+            print("  {0:0.2f} seconds".format(t2 - t1))
+
         print("downloaded size: {0:0.2f} MiB".format(
                 self.downloaded_size / (1024 * 1024)))
         count = 0
@@ -106,11 +129,7 @@ class GameDatabaseSynchronizer:
         self.set_status(_("Updating database"), _("Purging old entries..."))
         self.client.delete_old_values()
 
-    def fetch_entries(self):
-        last_id = self.client.get_last_update_id()
-        self.set_status(_("Updating database"),
-                _("Fetching database entries ({0})").format(last_id + 1))
-        
+    def get_server(self):
         try:
             server = os.environ["FS_GAME_DATABASE_SERVER"]
         except KeyError:
@@ -120,8 +139,35 @@ class GameDatabaseSynchronizer:
                 uri="http://{0}".format(server), user=self.username,
                 passwd=self.password)
         opener = urllib2.build_opener(auth_handler)
+        return server, opener
+
+    def fetch_change_entries(self):
+        last_id = self.client.get_last_change_id()
+        self.set_status(_("Updating database"),
+                _("Fetching database entries ({0})").format(last_id + 1))
+        server, opener = self.get_server()
         url = "http://{0}/games/api/1/changes?from={1}".format(server,
                 last_id + 1)
+        print(url)
+        data = opener.open(url).read()
+        json_data = json.loads(data)
+        self.downloaded_size += len(data)
+
+        #print(json_data)
+        return json_data
+
+    def fetch_rating_entries(self):
+        cursor = self.client.database.cursor()
+        cursor.execute("SELECT max(updated) FROM game_rating")
+        row = cursor.fetchone()
+        last_time = row[0]
+        if not last_time:
+            last_time = "2012-01-01 00:00:00"            
+        self.set_status(_("Updating database"),
+                _("Fetching game ratings ({0})").format(last_time))
+        server, opener = self.get_server()
+        url = "http://{0}/games/api/1/ratings?from={1}".format(server,
+                urllib.quote_plus(last_time))
         print(url)
         data = opener.open(url).read()
         json_data = json.loads(data)

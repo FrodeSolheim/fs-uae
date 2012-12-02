@@ -13,6 +13,7 @@ from .ConfigurationsBrowser import ConfigurationsBrowser
 from .IconButton import IconButton
 from .ScanDialog import ScanDialog
 from .Skin import Skin
+from .VariantsBrowser import VariantsBrowser
 
 class ConfigurationsPanel(fsui.Panel):
 
@@ -63,8 +64,15 @@ class ConfigurationsPanel(fsui.Panel):
                    margin=10, margin_top=0, margin_bottom=0)
 
         self.configurations_browser = ConfigurationsBrowser(self)
-        self.layout.add(self.configurations_browser, fill=True, expand=True,
+        self.layout.add(self.configurations_browser, fill=True, expand=3,
                 margin=10)
+
+        if Settings.get("database_feature") == "1":
+            self.variants_browser = VariantsBrowser(self)
+            self.layout.add(self.variants_browser, fill=True, expand=1,
+                    margin=10, margin_top=20)
+            #self.layout.add(self.variants_browser, fill=True, expand=0,
+            #        margin=10)
 
     def on_verified_button(self):
         pass

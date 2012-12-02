@@ -9,7 +9,7 @@ import threading
 
 class GameDatabase:
 
-    VERSION = 1
+    VERSION = 2
 
     thread_local = threading.local()
     database_path = None
@@ -40,19 +40,7 @@ class GameDatabase:
             return
         self._connection = sqlite3.connect(self._path)
         self._cursor = self._connection.cursor()
-
-        try:
-            self._cursor.execute("SELECT version FROM metadata")
-            version = self._cursor.fetchone()[0]
-        except sqlite3.OperationalError:
-            self._cursor.execute("CREATE TABLE metadata (version INTEGER)")
-            self._cursor.execute("INSERT INTO metadata (version) VALUES (?)", (0,))
-            version = 0
-        if self.VERSION < version:
-            raise Exception("GameDatabase: Installed database schema is "
-                    "newer. Have you started an old version?")
-        if self.VERSION > version:
-            self.update_database(version, self.VERSION)
+        self.ensure_updated_database()
 
     def query(self, q):
         return q.replace("%s", "?")
@@ -70,6 +58,20 @@ class GameDatabase:
         print("GameDatabase.commit")
         self.init()
         self._connection.commit()
+
+    def ensure_updated_database(self):
+        try:
+            self._cursor.execute("SELECT version FROM metadata")
+            version = self._cursor.fetchone()[0]
+        except sqlite3.OperationalError:
+            self._cursor.execute("CREATE TABLE metadata (version INTEGER)")
+            self._cursor.execute("INSERT INTO metadata (version) VALUES (?)", (0,))
+            version = 0
+        if self.VERSION < version:
+            raise Exception("GameDatabase: Installed database schema is "
+                    "newer. Have you started an old version?")
+        if self.VERSION > version:
+            self.update_database(version, self.VERSION)
 
     def update_database(self, old, new):
         for i in range(old + 1, new + 1):
@@ -141,3 +143,13 @@ class GameDatabase:
         #self._cursor.execute("""
         #    CREATE INDEX value_game_name_status ON value (game, name, status);
         #""")
+
+    def update_database_to_version_2(self):
+        self._cursor.execute("""
+            CREATE TABLE game_rating (
+                game VARCHAR(36) PRIMARY KEY NOT NULL,
+                work_rating INT NOT NULL,
+                like_rating INT NOT NULL,
+                updated TIMESTAMP NULL
+            );
+        """)

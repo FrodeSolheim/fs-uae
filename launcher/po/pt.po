@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae-launcher\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2012-11-23 20:37+0100\n"
-"PO-Revision-Date: 2012-11-24 03:12-0000\n"
+"POT-Creation-Date: 2012-11-27 22:18+0100\n"
+"PO-Revision-Date: 2012-11-28 01:01-0000\n"
 "Last-Translator: Mário Mateus <fs-uae-pt@fengestad.no>\n"
 "Language-Team: Portuguese\n"
 "Language: pt\n"
@@ -252,6 +252,18 @@ msgstr "Anti-aliasing completo de cena (FSAA)"
 msgid "Fullscreen"
 msgstr "Ecrã completo"
 
+msgid "Game Database"
+msgstr "Base de Dados de Jogos"
+
+msgid "Game Database Settings"
+msgstr "Ajustes da Base de Dados de Jogos"
+
+msgid "Game database password"
+msgstr "Palavra chave da base de dados de jogos"
+
+msgid "Game database user name"
+msgstr "Nome de utilizador da base de dados de jogos"
+
 msgid "Games and Configurations"
 msgstr "Jogos e Configurações"
 
@@ -490,6 +502,9 @@ msgstr "Procurar & Indexar"
 
 msgid "Scan complete"
 msgstr "Procura completa"
+
+msgid "Scan error"
+msgstr "Erro de procura"
 
 msgid "Scan for Kickstarts, Files and Configurations"
 msgstr "Procurar Kickstarts, Ficheiros e Configurações"

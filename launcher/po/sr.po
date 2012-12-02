@@ -7,9 +7,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae-launcher\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2012-11-11 23:06+0100\n"
-"PO-Revision-Date: 2012-11-12 00:23+0100\n"
-"Last-Translator: Milan Zocevic <milanchez@gmail.com>\n"
+"POT-Creation-Date: 2012-12-01 10:58+0100\n"
+"PO-Revision-Date: 2012-12-01 19:51+0100\n"
+"Last-Translator: \n"
 "Language-Team: Serbian\n"
 "Language: sr\n"
 "MIME-Version: 1.0\n"
@@ -196,7 +196,10 @@ msgid "Eject"
 msgstr "Izbaciti"
 
 msgid "Enable experimental net play GUI (requires restart)"
-msgstr "Omogući eksperimentalni net play GUI (zahteva restart )"
+msgstr "Omogućiti eksperimentalni net play GUI (zahteva restart)"
+
+msgid "Enable online database support (requires restart)"
+msgstr "Omogućiti onlajn podršku baze podataka (zahteva restart)"
 
 msgid "Expansions"
 msgstr "Proširenja"
@@ -212,6 +215,9 @@ msgstr "Podešavanja FS-UAE Launcher-a"
 
 msgid "Fast RAM"
 msgstr "Fast RAM"
+
+msgid "Fetching database entries ({0})"
+msgstr "Preuzimanje baze podataka ({0})"
 
 msgid "Filters"
 msgstr "Filteri"
@@ -242,6 +248,18 @@ msgstr "Full-scene anti-aliasing (FSAA)"
 
 msgid "Fullscreen"
 msgstr "Preko celog ekrana"
+
+msgid "Game Database"
+msgstr "Baza igara"
+
+msgid "Game Database Settings"
+msgstr "Postavke baze igara"
+
+msgid "Game database password"
+msgstr "Šifra baze igara"
+
+msgid "Game database user name"
+msgstr "Korisničko ime baze igara"
 
 msgid "Games and Configurations"
 msgstr "Igre i konfiguracije"
@@ -289,7 +307,7 @@ msgid "Input Options"
 msgstr "Opcije ulaza"
 
 msgid "Input Settings"
-msgstr "Podešavanja ulaza"
+msgstr "Postavke ulaza"
 
 msgid "Internal"
 msgstr "Interno"
@@ -308,6 +326,9 @@ msgstr "Postavke džojstika"
 
 msgid "Keep aspect ratio when scaling (do not stretch)"
 msgstr "Zadržati razmeru kada se skalira (bez rastezanja)"
+
+msgid "Keyboard Settings"
+msgstr "Postavke tastature"
 
 msgid "Kickstart ROM"
 msgstr "Kickstart ROM"
@@ -331,7 +352,7 @@ msgid "List of Folders to Index"
 msgstr "Spisak foldera za indeksiranje"
 
 msgid "Low latency vsync (when using full vsync)"
-msgstr "Malo kašnjenje vsync (kada se koristi puni vsync )"
+msgstr "Malo kašnjenje vsync (kada se koristi puni vsync)"
 
 msgid "Main Configuration Options"
 msgstr "Glavne opcije konfiguracije"
@@ -438,6 +459,9 @@ msgstr "Priprema..."
 msgid "Purging old entries..."
 msgstr "Čišćenje starih zapisa..."
 
+msgid "Refresh game configurations from database"
+msgstr "Osvežiti konfiguracije igara iz baze podataka"
+
 msgid "Remove Directory from Search Path"
 msgstr "Ukloniti direktorijum iz putanje pretrage"
 
@@ -449,6 +473,9 @@ msgstr "Renderovanje sken linija"
 
 msgid "Render scan lines in RTG graphics mode"
 msgstr "Renderovanje sken linija u RTG grafičkom režimu"
+
+msgid "Resetting database..."
+msgstr "Resetovanje podataka baze ..."
 
 msgid "Restoring changes..."
 msgstr "Vraćanje izmena..."
@@ -470,6 +497,9 @@ msgstr "Skeniranje i indeksiranje"
 
 msgid "Scan complete"
 msgstr "Skeniranje završeno"
+
+msgid "Scan error"
+msgstr "Greška skeniranja"
 
 msgid "Scan for Kickstarts, Files and Configurations"
 msgstr "Skeniranje kickstart-ova, datoteka i konfiguracija"
@@ -494,6 +524,9 @@ msgstr "Skeniranje fajlova"
 
 msgid "Scanning files ({count} scanned)"
 msgstr "Skeniranje fajlova ({count} skenirano)"
+
+msgid "Scanning game database entries..."
+msgstr "Skeniranje "
 
 msgid "Select Directory to Import From"
 msgstr "Izabrati direktorijum iz koga se uvozi"
@@ -531,8 +564,14 @@ msgstr "FS-UAE se startuje..."
 msgid "Starting scan"
 msgstr "Skeniranje započeto"
 
+msgid "Swap left and right CTRL keys"
+msgstr "Zameniti levi i desni CTRL taster"
+
 msgid "Sync to Vblank"
 msgstr "Sinhronizacija sa Vblank"
+
+msgid "Synchronizing database..."
+msgstr "Sinhronizovanje baze..."
 
 msgid "Texture filter"
 msgstr "Filter teksture"
@@ -542,6 +581,12 @@ msgstr "Otpustiti miša i tastaturu na srednji klik miša"
 
 msgid "Update ({version}) is available"
 msgstr "Ažuriranje ({version}) je dostupna"
+
+msgid "Updating database"
+msgstr "Ažuriranje baze"
+
+msgid "Updating game entries:"
+msgstr "Ažuriranje podataka igre:"
 
 msgid "Video Settings"
 msgstr "Podešavanje videa"

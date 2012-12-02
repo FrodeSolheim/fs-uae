@@ -198,7 +198,6 @@ class GameDatabaseClient:
                 "ORDER BY value.id LIMIT %s"),
                 (start, limit))
         for row in cursor:
-            print(repr(row[2]))
             yield {
                 "id": row[0],
                 "key": row[1],
@@ -206,6 +205,19 @@ class GameDatabaseClient:
                 "submitter": row[3],
                 "submitted": str(row[4]),
                 "game": row[5],
+            }
+
+    def get_ratings(self, start, limit):
+        cursor = self.database.cursor()
+        cursor.execute(self.database.query("SELECT uuid, work_rating, "
+                "like_rating, updated FROM game WHERE updated >= %s "
+                "LIMIT %s"), (start, limit))
+        for row in cursor:
+            yield {
+                "game": row[0],
+                "work": row[1],
+                "like": row[2],
+                "updated": str(row[3]),
             }
 
     def get_user_id(self, username, password):
@@ -218,7 +230,7 @@ class GameDatabaseClient:
             return None
         return row[0]
 
-    def get_last_update_id(self):
+    def get_last_change_id(self):
         cursor = self.database.cursor()
         result = cursor.execute(self.database.query(
                 "SELECT max(id) from value"))

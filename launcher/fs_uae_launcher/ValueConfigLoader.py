@@ -100,8 +100,14 @@ class ValueConfigLoader:
     def load_option(self, key, value):
         if key == "viewport":
             if "=" in value:
-                value = value.replace("=", "=>")
-                value = value.replace("==>", "=>")
+                parts = value.split(",")
+                for i in range(len(parts)):
+                    parts[i] = parts[i].split("#", 1)[0].strip()
+                    parts[i] = parts[i].replace("=", "=>")
+                    parts[i] = parts[i].replace("==>", "=>")
+                value = ", ".join(parts)
+                while "  " in value:
+                    value = value.replace("  ", " ")
             else:
                 value = "* * * * => " + value
             self.viewport.append(value)
@@ -148,6 +154,9 @@ class ValueConfigLoader:
                 self.options["amiga_model"] = "A1200/020"
             else:
                 self.options["fast_memory"] = value
+        elif key == "video_standard":
+            if value == "NTSC":
+                self.options["ntsc_mode"] = "1"
         elif key == "cracktro":
             # FIXME: handle
             pass

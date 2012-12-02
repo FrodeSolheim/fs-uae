@@ -1,5 +1,5 @@
 # French translations for fs-uae package.
-# Copyright (C) 2012 Frode Solheim
+# Copyright (C) 2012 Frode Solheim and translators.
 # This file is distributed under the same license as the fs-uae package.
 # Frode Solheim <fs-uae@fengestad.no>, 2012.
 #

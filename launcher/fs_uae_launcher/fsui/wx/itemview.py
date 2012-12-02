@@ -888,7 +888,7 @@ class VerticalItemView (BaseItemView):
         w -= 6
 
         primary = self.get_item_text(index)
-        primary = primary.replace(u"\nAmiga \u00b7 ", "\n")
+        #primary = primary.replace(u"\nAmiga \u00b7 ", "\n")
         secondary = ""
         SPLIT = u"\n"
         if SPLIT in primary:

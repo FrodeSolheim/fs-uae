@@ -9,6 +9,8 @@ from .Settings import Settings
 
 class Database:
 
+    VERSION = 5
+
     instance = None
 
     @classmethod
@@ -43,57 +45,8 @@ class Database:
             return
         self.connection = sqlite3.connect(self.get_database_path())
         self.cursor = self.connection.cursor()
-
-        try:
-            self.cursor.execute("SELECT count(*) FROM file")
-        except sqlite3.OperationalError:
-            self.cursor.execute("""CREATE TABLE file (
-id integer primary key,
-path text,
-name text,
-sha1 text,
-md5 text,
-crc32 text,
-size integer,
-mtime integer,
-scan int
-)""")
-            self.cursor.execute("CREATE INDEX file_sha1 ON file(sha1)")
-            self.cursor.execute("CREATE INDEX file_path ON file(path)")
-            self.cursor.execute("CREATE INDEX file_name ON file(name collate nocase)")
-
-        try:
-            self.cursor.execute("SELECT count(*) FROM configuration")
-        except sqlite3.OperationalError:
-            self.cursor.execute("""CREATE TABLE configuration (
-id integer primary key,
-uuid text,
-path text,
-data text,
-name text,
-search text,
-scan int
-)""")
-            self.cursor.execute("CREATE INDEX configuration_name "
-                    "ON configuration(name)")
-            self.cursor.execute("CREATE INDEX configuration_search "
-                    "ON configuration(search)")
-            self.cursor.execute("CREATE INDEX configuration_path "
-                    "ON configuration(path)")
-
-        try:
-            self.cursor.execute("SELECT count(*) FROM game")
-        except sqlite3.OperationalError:
-            self.cursor.execute("""CREATE TABLE game (
-id integer primary key,
-uuid text,
-path text,
-name text,
-search text,
-scan int
-)""")
-            self.cursor.execute("CREATE INDEX game_uuid "
-                    "ON game(uuid)")
+        self._cursor = self.cursor
+        self.ensure_updated_database()
 
     def get_files(self, ext=None):
         self.init()
@@ -215,19 +168,44 @@ scan int
 
     def search_configurations(self, search):
         self.init()
-        query = "SELECT id, name FROM configuration"
+        query = "SELECT id, name, type FROM configuration WHERE type < 2"
         args = []
         for word in search.split(" "):
             word = word.strip().lower()
             if word:
-                if len(args) == 0:
-                    query = query + " WHERE search like ?"
-                else:
-                    query = query + " AND search like ?"
+                #if len(args) == 0:
+                #    query = query + " WHERE search like ?"
+                #else:
+                query = query + " AND search like ?"
                 args.append("%{0}%".format(word))
         query = query + " ORDER BY name"
         self.cursor.execute(query, args)
         return self.cursor.fetchall()
+
+    def find_game_variants(self, game_uuid):
+        self.init()
+        query = "SELECT id, name, uuid, like_rating, work_rating " \
+                "FROM configuration WHERE reference = ?"
+        query = query + " ORDER BY name"
+        print(query, game_uuid)
+        self.cursor.execute(query, (game_uuid,))
+        return self.cursor.fetchall()
+
+    def get_last_game_variant(self, game_uuid):
+        query = "SELECT variant_uuid FROM last_variant WHERE game_uuid = ?"
+        self.cursor.execute(query, (game_uuid,))
+        row = self.cursor.fetchone()
+        if row:
+            return row[0]
+        return ""
+
+    def set_last_game_variant(self, game_uuid, variant_uuid):
+        self.cursor.execute("DELETE FROM last_variant WHERE game_uuid = ?",
+                (game_uuid,))
+        self.cursor.execute("INSERT INTO last_variant (game_uuid, "
+                "variant_uuid) VALUES (?, ?)", (game_uuid, variant_uuid))
+        #self.cursor.execute("UPDATE last_variant SET variant_uuid = ? "
+        #        "WHERE game_uuid = ?", (variant_uuid, game_uuid))
 
     def search_games(self, search):
         self.init()
@@ -321,12 +299,28 @@ scan int
                 (path, sha1, mtime, size, md5, crc32, name, scan))
 
     def add_configuration(self, path="", uuid="", data="", name="",
-                search="", scan=0):
+                search="", scan=0, type=0, reference=None,
+                like_rating=0, work_rating=0):
         self.init()
         path = self.encode_path(path)
         self.cursor.execute("INSERT INTO configuration (path, name, scan, "
-                "search, uuid, data) VALUES (?, ?, ?, ?, ?, ?)",
-                (path, name, scan, search, uuid, data))
+                "search, uuid, data, type, reference, like_rating, "
+                "work_rating) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (path, name, scan, search, uuid, data, type, reference,
+                like_rating, work_rating))
+
+    def ensure_game_configuration(self, uuid, name, scan=0, type=1):
+        self.init()
+        self.cursor.execute("SELECT * FROM configuration WHERE uuid = ? "
+                "AND name = ? AND scan = ? AND type = ?",
+                (uuid, name, scan, type))
+        row = self.cursor.fetchone()
+        if row is None:
+            self.cursor.execute("DELETE from configuration WHERE uuid = ?",
+                    (uuid,))
+            #self.cursor.execute("INSERT into configuration WHERE uuid = ?",
+            #        (uuid,))
+            self.add_configuration(uuid=uuid, name=name, scan=scan, type=type)
 
     def add_game(self, uuid="", path="", name="", search="", scan=0):
         self.init()
@@ -378,3 +372,108 @@ scan int
     def clear(self):
         self.init()
         self.cursor.execute("DELETE FROM file")
+
+    def ensure_updated_database(self):
+        try:
+            self._cursor.execute("SELECT version FROM metadata")
+            version = self._cursor.fetchone()[0]
+        except sqlite3.OperationalError:
+            self._cursor.execute("CREATE TABLE metadata (version INTEGER)")
+            self._cursor.execute("INSERT INTO metadata (version) VALUES (?)", (0,))
+            version = 0
+        if self.VERSION < version:
+            raise Exception("GameDatabase: Installed database schema is "
+                    "newer. Have you started an old version?")
+        if self.VERSION > version:
+            self.update_database(version, self.VERSION)
+
+    def update_database(self, old, new):
+        for i in range(old + 1, new + 1):
+            print("upgrading game database to version", i)
+            getattr(self, "update_database_to_version_{0}".format(i))()
+            self._cursor.execute("UPDATE metadata SET version = ?", (i,))
+            self.commit()
+
+    def update_database_to_version_1(self):
+        try:
+            self.cursor.execute("SELECT count(*) FROM file")
+        except sqlite3.OperationalError:
+            self.cursor.execute("""CREATE TABLE file (
+id integer primary key,
+path text,
+name text,
+sha1 text,
+md5 text,
+crc32 text,
+size integer,
+mtime integer,
+scan int
+)""")
+            self.cursor.execute("CREATE INDEX file_sha1 ON file(sha1)")
+            self.cursor.execute("CREATE INDEX file_path ON file(path)")
+            self.cursor.execute("CREATE INDEX file_name ON file(name collate nocase)")
+
+        try:
+            self.cursor.execute("SELECT count(*) FROM configuration")
+        except sqlite3.OperationalError:
+            self.cursor.execute("""CREATE TABLE configuration (
+id integer primary key,
+uuid text,
+path text,
+data text,
+name text,
+search text,
+scan int
+)""")
+            self.cursor.execute("CREATE INDEX configuration_name "
+                    "ON configuration(name)")
+            self.cursor.execute("CREATE INDEX configuration_search "
+                    "ON configuration(search)")
+            self.cursor.execute("CREATE INDEX configuration_path "
+                    "ON configuration(path)")
+
+        try:
+            self.cursor.execute("SELECT count(*) FROM game")
+        except sqlite3.OperationalError:
+            self.cursor.execute("""CREATE TABLE game (
+id integer primary key,
+uuid text,
+path text,
+name text,
+search text,
+scan int
+)""")
+            self.cursor.execute("CREATE INDEX game_uuid "
+                    "ON game(uuid)")
+
+    def update_database_to_version_2(self):
+        self.cursor.execute("ALTER TABLE configuration "
+                "ADD COLUMN type INTEGER NOT NULL DEFAULT 0")
+        self.cursor.execute("UPDATE configuration SET type = 0")
+        self.cursor.execute("ALTER TABLE configuration "
+                "ADD COLUMN reference TEXT")
+        self.cursor.execute("CREATE INDEX configuration_reference "
+                "ON configuration(reference)")
+        self.cursor.execute("CREATE INDEX configuration_type_search "
+                "ON configuration(type, search)")
+
+    def update_database_to_version_3(self):
+            self.cursor.execute("""CREATE TABLE last_variant (
+game_uuid CHAR(36) PRIMARY KEY,
+variant_uuid CHAR(36) NOT NULL
+)""")
+
+    def update_database_to_version_4(self):
+        self.cursor.execute("ALTER TABLE configuration "
+                "ADD COLUMN work_rating INTEGER NOT NULL DEFAULT 0")
+        self.cursor.execute("ALTER TABLE configuration "
+                "ADD COLUMN like_rating INTEGER NOT NULL DEFAULT 0")
+        self.cursor.execute("ALTER TABLE configuration "
+                "ADD COLUMN keywords TEXT NOT NULL DEFAULT ''")
+
+    def update_database_to_version_5(self):
+        # Delete "old" Amiga Forever indexed ROMs
+        self.cursor.execute("DELETE FROM file WHERE sha1 = ?",
+                ("c39bd9094d4e5f4e28c1411f3086950406062e87",))
+        self.cursor.execute("DELETE FROM file WHERE sha1 = ?",
+                ("c3c481160866e60d085e436a24db3617ff60b5f9",))

@@ -282,11 +282,14 @@ class LaunchHandler:
         dir_path = os.path.join(self.temp_dir, dir_name)
         for file_entry in file_list:
             name = file_entry["name"]
-            sha1 = file_entry["sha1"]
             if not name.startswith(drive_prefix):
                 continue
+            dst_file = os.path.join(dir_path, name[len(drive_prefix):])
+            if name.endswith("/"):
+                os.makedirs(dst_file)
+                continue
+            sha1 = file_entry["sha1"]
             src_file = database.find_file(sha1=sha1)
-            dst_file = os.path.join(dir_path, name)
             if not os.path.exists(os.path.dirname(dst_file)):
                 os.makedirs(os.path.dirname(dst_file))
             archive = Archive(src_file)
@@ -313,6 +316,7 @@ class LaunchHandler:
         print("LaunchHandler.copy_whdload_files")
         self.on_progress(_("Preparing WHDLoad..."))
         dest_dir = os.path.join(self.temp_dir, "DH0")
+        print("copy_whdload_files, dest_dir = ", dest_dir)
         #src_dir = os.path.join(fs.get_home_dir(), "Games", "Amiga", "WHDLoad")
 
         whdload_dir = ""
@@ -403,11 +407,11 @@ class LaunchHandler:
 ;NoFlushMem            ;do not flush memory
 ;NoMemReverse            ;do not allocate memory reverse
 ;NoWriteCache            ;disable the disk write cache
-QuitKey=$45
+;QuitKey=$45
 ;ReadDelay=150            ;wait after reading from disk (1/50 seconds)
 ;RestartKey=$5c            ;rawkey code to restart
 ;ShowRegs=SYS:Utilities/MuchMore W WL=80 WT=80 WW=582 WH=700    ;command for Show Regs
-SplashDelay=0        ;time to display splash window (1/50 seconds)
+;SplashDelay=0        ;time to display splash window (1/50 seconds)
 ;WriteDelay=150            ;wait after saving something to disk (1/50 seconds)
 """
         # make sure the data is CRLF line terminated

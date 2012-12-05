@@ -160,7 +160,7 @@ class ValueConfigLoader:
         elif key == "cracktro":
             # FIXME: handle
             pass
-        elif key in ["amiga_model", 
+        elif key in ["amiga_model", "chip_memory",
                 "joystick_port_0_mode", "joystick_port_1_mode",
                 "joystick_port_2_mode", "joystick_port_3_mode",
                 "floppy_drive_count", "slow_memory", "front_sha1",
@@ -205,7 +205,6 @@ class ValueConfigLoader:
         file_list_json = self.values.get("file_list", "[]")
         file_list = json.loads(file_list_json)
         for file_item in file_list:
-            sha1 = file_item["sha1"]
             name = file_item["name"]
             url = file_item.get("url", "")
 
@@ -226,6 +225,7 @@ class ValueConfigLoader:
                 else:
                     continue
 
+            sha1 = file_item["sha1"]
             base, ext = os.path.splitext(name)
             #if type == "hd" and not hds:
             #    continue

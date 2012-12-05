@@ -128,6 +128,9 @@ class ConfigurationScanner:
                 continue
             all_found = True
             for file_item in file_list:
+                if file_item["name"].endswith("/"):
+                    # skip directory entries:
+                    continue
                 if not self.check_if_file_exists(database, file_item):
                     all_found = False
                     break

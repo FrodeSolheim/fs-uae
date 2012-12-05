@@ -1,3 +1,13 @@
+Version 2.1.10:
+* Merged updated emulation core from WinUAE 2.5.0.
+* (Launcher) Support (empty) HD directories in database configurations.
+* (Launcher) Use standard WHDLoad settings by default.
+* (Launcher) WHDLoad games where unpacked one directory level too deep.
+* (Launcher) Support chip_memory override from online database.
+* (Launcher) Skip / ignore file names with invalid encoding.
+* (Launcher) Fix search function for games from database (needs refresh).
+* (Launcher) Updated translations: pt [Treco].
+
 Version 2.1.9:
 * Updated bitmap font with additional characters for Turkish.
 * (Launcher) Show only game entries in the main list, show game variants

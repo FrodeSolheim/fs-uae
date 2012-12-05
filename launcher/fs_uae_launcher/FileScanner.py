@@ -63,6 +63,7 @@ class FileScanner:
         return self.paths
 
     def scan(self):
+        self.set_status(_("Scanning files"), _("Scanning files"))
         database = Database()
         #database.clear()
         scan_dirs = self.get_scan_dirs()
@@ -87,6 +88,13 @@ class FileScanner:
         dir = get_real_case(dir)
 
         for name in os.listdir(dir):
+            try:
+                # check that the file is actually unicode object (indirectly).
+                # listdir will return str objects for file names on Linux
+                # with invalid encoding.
+                unicode(name)
+            except UnicodeDecodeError:
+                continue
             if self.stop_check():
                 return
             if name in [".git"]:

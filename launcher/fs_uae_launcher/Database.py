@@ -318,9 +318,9 @@ class Database:
         if row is None:
             self.cursor.execute("DELETE from configuration WHERE uuid = ?",
                     (uuid,))
-            #self.cursor.execute("INSERT into configuration WHERE uuid = ?",
-            #        (uuid,))
-            self.add_configuration(uuid=uuid, name=name, scan=scan, type=type)
+            search = name.lower()
+            self.add_configuration(uuid=uuid, name=name, search=search,
+                    scan=scan, type=type)
 
     def add_game(self, uuid="", path="", name="", search="", scan=0):
         self.init()

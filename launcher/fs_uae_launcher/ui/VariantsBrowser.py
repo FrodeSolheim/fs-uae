@@ -126,6 +126,12 @@ class VariantsBrowser(fsui.VerticalItemView):
         game_uuid = config_info["uuid"]
         game_database = GameDatabase.get_instance()
         game_database_client = GameDatabaseClient(game_database)
-        game_id = game_database_client.get_game_id(game_uuid)
+        try:
+            game_id = game_database_client.get_game_id(game_uuid)
+        except Exception:
+            # game not found:
+            print("could not find game", repr(game_uuid))
+            Config.load_default_config()
+            return
         values = game_database_client.get_final_game_values(game_id)
         Config.load_values(values, uuid=game_uuid)

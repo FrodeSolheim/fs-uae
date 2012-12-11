@@ -40,10 +40,11 @@ class Paths:
         return path
 
     @classmethod
-    def contract_path(cls, path, default_dir=None):
-        print("before", path)
-        path = cls.get_real_case(path)
-        print("after", path)
+    def contract_path(cls, path, default_dir=None, force_real_case=True):
+        if force_real_case:
+            print("before", path)
+            path = cls.get_real_case(path)
+            print("after", path)
         #dir, file = os.path.split(path)
         #norm_dir = dir + "/"
         if default_dir is not None:

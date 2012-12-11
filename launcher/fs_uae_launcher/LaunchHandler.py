@@ -362,13 +362,6 @@ class LaunchHandler:
         for key, value in whdload_files.iteritems():
             self.install_whdload_file(key, dest_dir, value)
 
-        startup_sequence = os.path.join(s_dir, "startup-sequence")
-        with open(startup_sequence, "wb") as f:
-            f.write("cd {0}\n".format(whdload_dir))
-            f.write("WHDLoad {0}\n".format(whdload_args))
-            #f.write("WHDLoad DH0:{0}/{1}\n".format(whdload_dir, whdload_args))
-            f.write("uae-configuration SPC_QUIT 1\n")
-
         if self.config["__netplay_game"]:
             print("WHDLoad base dir is not copied in net play mode ")
         else:
@@ -376,6 +369,20 @@ class LaunchHandler:
             if src_dir and os.path.exists(src_dir):
                 print("WHDLoad base dir exists, copying resources...")
                 self.copy_folder_tree(src_dir, dest_dir)
+
+        startup_sequence = os.path.join(s_dir, "Startup-Sequence")
+        if not os.path.exists(startup_sequence):
+            with open(startup_sequence, "wb") as f:
+                f.write("""
+IF EXISTS C:SetPatch
+  C:SetPatch    
+EndIF
+
+IF EXISTS S:User-Startup
+  Execute S:User-Startup
+EndIF
+
+""".replace("\r\n", "\n"))
 
         # The User-Startup file is useful if the user has provided a
         # base WHDLoad directory with an existing startup-sequence

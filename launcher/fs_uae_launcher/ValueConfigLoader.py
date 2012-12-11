@@ -7,7 +7,10 @@ import os
 import json
 import xml.etree.ElementTree
 from xml.etree.cElementTree import ElementTree, fromstring
+from .Amiga import Amiga
 from .Database import Database
+from .Paths import Paths
+from .Settings import Settings
 
 class ValueConfigLoader:
 
@@ -68,6 +71,26 @@ class ValueConfigLoader:
            self.config[key] = value
 
         self.set_name_and_uuid()
+        self.contract_paths()
+
+    def contract_paths(self):
+        def fix(key):
+            if self.config.get(key):
+                self.config[key] = Paths.contract_path(
+                        self.config.get(key), default_dir,
+                        force_real_case=False)
+
+        default_dir = Settings.get_floppies_dir()
+        for i in range(Amiga.MAX_FLOPPY_DRIVES):
+            fix("floppy_drive_{0}".format(i))
+        for i in range(Amiga.MAX_FLOPPY_IMAGES):
+            fix("floppy_image_{0}".format(i))
+
+        default_dir = Settings.get_cdroms_dir()
+        for i in range(Amiga.MAX_CDROM_DRIVES):
+            fix("cdrom_drive_{0}".format(i))
+        for i in range(Amiga.MAX_CDROM_IMAGES):
+            fix("cdrom_image_{0}".format(i))
 
     def set_name_and_uuid(self):
         #self.config["x_config_uuid"] = self.root.get("uuid", "")

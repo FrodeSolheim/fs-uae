@@ -1,6 +1,8 @@
 // FIXME: consider using autotools for this
 
-#if !defined(WINDOWS)
+#if defined(WINDOWS)
+#elif defined(MACOSX) && __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ < 1060
+#else
 #define HAVE_POSIX_MEMALIGN 1
 #endif
 

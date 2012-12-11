@@ -37,8 +37,17 @@ class ConfigurationsBrowser(fsui.VerticalItemView):
     def on_setting(self, key, value):
         if key == "config_search":
             self.update_search()
+            if len(self.items) > 0:
+                self.select_item(0)
+            else:
+                Settings.set("parent_uuid", "")
         if key == "config_refresh":
             self.update_search()
+            self.select_item(None)
+            old_parent_uuid = Settings.get("parent_uuid")
+            if old_parent_uuid:
+                Settings.set("parent_uuid", "")
+                Settings.set("parent_uuid", old_parent_uuid)
 
     def set_items(self, items):
         self.items = items
@@ -50,6 +59,9 @@ class ConfigurationsBrowser(fsui.VerticalItemView):
 
     def get_item_text(self, index):
         return self.items[index][1]
+
+    def get_item_search_text(self, index):
+        return self.items[index][3]
 
     def get_item_icon(self, index):
         if self.items[index][2]:

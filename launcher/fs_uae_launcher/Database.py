@@ -9,7 +9,7 @@ from .Settings import Settings
 
 class Database:
 
-    VERSION = 5
+    VERSION = 6
 
     instance = None
 
@@ -168,7 +168,8 @@ class Database:
 
     def search_configurations(self, search):
         self.init()
-        query = "SELECT id, name, type FROM configuration WHERE type < 2"
+        query = "SELECT id, name, type, sort_key FROM configuration WHERE " \
+                "type < 2"
         args = []
         for word in search.split(" "):
             word = word.strip().lower()
@@ -178,7 +179,7 @@ class Database:
                 #else:
                 query = query + " AND search like ?"
                 args.append("%{0}%".format(word))
-        query = query + " ORDER BY name"
+        query = query + " ORDER BY sort_key"
         self.cursor.execute(query, args)
         return self.cursor.fetchall()
 
@@ -300,27 +301,30 @@ class Database:
 
     def add_configuration(self, path="", uuid="", data="", name="",
                 search="", scan=0, type=0, reference=None,
-                like_rating=0, work_rating=0):
+                like_rating=0, work_rating=0, sort_key=""):
         self.init()
+        if not sort_key:
+            sort_key = name.lower()
         path = self.encode_path(path)
         self.cursor.execute("INSERT INTO configuration (path, name, scan, "
                 "search, uuid, data, type, reference, like_rating, "
-                "work_rating) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                "work_rating, sort_key) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, "
+                "?, ?)",
                 (path, name, scan, search, uuid, data, type, reference,
-                like_rating, work_rating))
+                like_rating, work_rating, sort_key))
 
-    def ensure_game_configuration(self, uuid, name, scan=0, type=1):
+    def ensure_game_configuration(self, uuid, name, sort_key, scan=0, type=1):
         self.init()
         self.cursor.execute("SELECT * FROM configuration WHERE uuid = ? "
-                "AND name = ? AND scan = ? AND type = ?",
-                (uuid, name, scan, type))
+                "AND name = ? AND sort_key = ? AND scan = ? AND type = ?",
+                (uuid, name, sort_key, scan, type))
         row = self.cursor.fetchone()
         if row is None:
             self.cursor.execute("DELETE from configuration WHERE uuid = ?",
                     (uuid,))
             search = name.lower()
             self.add_configuration(uuid=uuid, name=name, search=search,
-                    scan=scan, type=type)
+                    scan=scan, type=type, sort_key=sort_key)
 
     def add_game(self, uuid="", path="", name="", search="", scan=0):
         self.init()
@@ -477,3 +481,9 @@ variant_uuid CHAR(36) NOT NULL
                 ("c39bd9094d4e5f4e28c1411f3086950406062e87",))
         self.cursor.execute("DELETE FROM file WHERE sha1 = ?",
                 ("c3c481160866e60d085e436a24db3617ff60b5f9",))
+
+    def update_database_to_version_6(self):
+        self.cursor.execute("ALTER TABLE configuration "
+                "ADD COLUMN sort_key TEXT NOT NULL DEFAULT ''")
+        self.cursor.execute("UPDATE configuration "
+                "SET sort_key = lower(name)")

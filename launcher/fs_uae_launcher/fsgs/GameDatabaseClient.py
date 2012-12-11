@@ -96,7 +96,7 @@ class GameDatabaseClient:
                     "VALUES (%s, %s, %s, utc_timestamp(), %s, %s)"),
                     (game_id, key, value, user, status))
 
-        if update_games and status == 1 and key in ["game_name",
+        if update_games and status == 1 and key in ["game_name", "sort_key",
                 "variant_name", "x_name", "parent_uuid", "file_list"]:
             self.update_game(game_id)
 
@@ -110,6 +110,8 @@ class GameDatabaseClient:
             parent_uuid = ""
             for row in cursor:
                 name, value = row
+                if not value:
+                    continue
                 if name == "parent_uuid":
                     parent_uuid = value
                 if name == "file_list" and game_id != original_game_id:
@@ -158,6 +160,7 @@ class GameDatabaseClient:
         values = self.get_final_game_values(game_id)
         platform = values.get("platform", "")
         game = values.get("game_name", "")
+        sort_key = values.get("sort_key", "")
         variant = values.get("variant_name", "")
         x_name = values.get("x_name", "")
         parent_uuid = values.get("parent_uuid", "")
@@ -174,12 +177,21 @@ class GameDatabaseClient:
             name = "{0} ({1})".format(game, variant)
         else:
             name = x_name or game or variant
+
+        if not sort_key:
+            sort_key = game
+        if sort_key and variant:
+            sort_key = "{0} ({1})".format(sort_key, variant)
+        else:
+            sort_key = x_name or sort_key or variant
+        sort_key = sort_key.lower()
+
         search = name.lower()
         cursor.execute(self.database.query("UPDATE game SET game = %s, "
                 "variant = %s, name = %s, search = %s, platform = %s, "
-                "files = %s, parent = %s WHERE id = %s"),
+                "files = %s, parent = %s, sort_key = %s WHERE id = %s"),
                 (game, variant, name, search, platform, files, parent,
-                game_id))
+                sort_key, game_id))
 
         cursor.execute(self.database.query("SELECT id FROM game WHERE "
                 "parent = %s"), (game_id,))

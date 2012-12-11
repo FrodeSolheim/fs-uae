@@ -38,7 +38,13 @@ class VariantsBrowser(fsui.VerticalItemView):
         self.game_uuid = ""
         self.items = []
         self.last_variants = LastVariants()
+
         self.icon = fsui.Image("fs_uae_launcher:res/fsuae_config_16.png")
+        self.adf_icon = fsui.Image("fs_uae_launcher:res/adf_game_16.png")
+        self.ipf_icon = fsui.Image("fs_uae_launcher:res/ipf_game_16.png")
+        self.cd_icon = fsui.Image("fs_uae_launcher:res/cd_game_16.png")
+        self.hd_icon = fsui.Image("fs_uae_launcher:res/hd_game_16.png")
+
         Settings.add_listener(self)
         self.on_setting("parent_uuid", Settings.get("parent_uuid"))
 
@@ -80,6 +86,15 @@ class VariantsBrowser(fsui.VerticalItemView):
         return self.items[index][2]
 
     def get_item_icon(self, index):
+        name = self.items[index][2]
+        if "IPF" in name:
+            return self.ipf_icon
+        if "ADF" in name:
+            return self.adf_icon
+        if "WHDLoad" in name:
+            return self.hd_icon
+        if "CD32" in name:
+            return self.cd_icon
         return self.icon
 
     def update_list(self, game_uuid):
@@ -95,6 +110,7 @@ class VariantsBrowser(fsui.VerticalItemView):
             name = item[1]
 
             name = name.replace(u"\nAmiga \u00b7 ", "\n")
+            #name = name.replace(u"\nCD32 \u00b7 ", "\n")
             #name = item[1].replace("\n", " \u00b7 ")
             sort_key = (1000000 - item[3], 1000000 - item[4], name)
             self.items.append((sort_key, item[0], name, item[2]))
@@ -134,4 +150,5 @@ class VariantsBrowser(fsui.VerticalItemView):
             Config.load_default_config()
             return
         values = game_database_client.get_final_game_values(game_id)
+        print(values)
         Config.load_values(values, uuid=game_uuid)

@@ -102,7 +102,7 @@ class ConfigurationScanner:
 
         game_cursor = game_database.cursor()
         game_cursor.execute("SELECT a.uuid, a.game, a.variant, a.name, "
-                "a.platform, value, b.uuid, b.game "
+                "a.platform, value, b.uuid, b.game, b.sort_key "
                 "FROM game a LEFT JOIN game b ON a.parent = b.id, value "
                 "WHERE a.id = value.game AND status = 1 AND "
                 "value.name = 'file_list'")
@@ -111,7 +111,7 @@ class ConfigurationScanner:
                 return
 
             uuid, game, variant, alt_name, platform, file_list_json, \
-                    parent_uuid, parent_game = row
+                    parent_uuid, parent_game, parent_sort_key = row
             if not file_list_json:
                 # not a game variant (with files)
                 continue
@@ -164,9 +164,9 @@ class ConfigurationScanner:
                     type=type, reference=reference, like_rating=like_rating,
                     work_rating=work_rating)
             if parent_uuid:
-                name = "{0}\n{1}".format(parent_game, platform)
-                database.ensure_game_configuration(parent_uuid, name,
-                        scan=self.scan_version)
+                parent_name = "{0}\n{1}".format(parent_game, platform)
+                database.ensure_game_configuration(parent_uuid, parent_name,
+                        parent_sort_key, scan=self.scan_version)
 
     def scan_configurations(self, database):
         for dir in self.paths:

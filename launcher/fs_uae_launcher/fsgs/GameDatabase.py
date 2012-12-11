@@ -9,7 +9,7 @@ import threading
 
 class GameDatabase:
 
-    VERSION = 2
+    VERSION = 3
 
     thread_local = threading.local()
     database_path = None
@@ -152,4 +152,12 @@ class GameDatabase:
                 like_rating INT NOT NULL,
                 updated TIMESTAMP NULL
             );
+        """)
+
+    def update_database_to_version_3(self):
+        self._cursor.execute("""
+            ALTER TABLE game ADD COLUMN sort_key TEXT NOT NULL DEFAULT '';
+        """)
+        self._cursor.execute("""
+            UPDATE game SET sort_key = lower(name);
         """)

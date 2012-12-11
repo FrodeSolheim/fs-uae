@@ -1,3 +1,13 @@
+Version 2.1.11:
+* Config for gamtec_ltd/smartjoy_plus_adapter.ini [JOPS].
+* Small compilation fix for OS X 10.5
+* (Launcher) Handle square-ish covers.
+* (Launcher) Indicate ADF, IPF CD, or WHDLoad also with icon.
+* (Launcher) Reload game variant list after refreshing database.
+* (Launcher) Support sort_key from online database.
+* (Launcher) Run SetPatch (if found) before starting WHDLoad games.
+* (Launcher) Kickstart import task can overwrite old read-only files.
+
 Version 2.1.10:
 * Merged updated emulation core from WinUAE 2.5.0.
 * (Launcher) Support (empty) HD directories in database configurations.

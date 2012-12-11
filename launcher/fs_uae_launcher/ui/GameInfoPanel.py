@@ -45,6 +45,8 @@ class GameInfoPanel(BottomPanel):
         #self.default_image.resize(Constants.COVER_SIZE)
         self.cover_overlay = fsui.Image(
                 "fs_uae_launcher:res/cover_overlay.png")
+        self.cover_overlay_square = fsui.Image(
+                "fs_uae_launcher:res/cover_overlay_square.png")
 
         #self.cover_view = fsui.ImageView(self, self.default_image)
         #self.layout.add(self.cover_view, expand=False, fill=True)
@@ -105,7 +107,7 @@ class GameInfoPanel(BottomPanel):
         path = handler.get_cover_path()
         loader = ImageLoader.get()
         def on_load(request):
-            #print("on_load, request.image =", request.image)
+            #print("on_load, request.image =", request.image, request.image.size)
             if request.image:
                 self.image = request.image
             else:
@@ -113,7 +115,8 @@ class GameInfoPanel(BottomPanel):
             self.refresh()
 
         self.requests = loader.load_image(path,
-                size=Constants.COVER_SIZE, on_load=on_load)
+                size=Constants.COVER_SIZE, on_load=on_load,
+                is_cover=True)
         self.image = self.default_image
         self.refresh()
 
@@ -134,17 +137,26 @@ class GameInfoPanel(BottomPanel):
 
         image = self.image
         #dc.draw_image(image, x, y)
-        dc.draw_image(image, x + 1, y + 1)
-        dc.draw_image(self.cover_overlay, x - 10, y - 10)
+        if image.size[0] == image.size[1]:
+            cover_overlay = self.cover_overlay_square
+            y_offset = 28
+            title_x = 10
+        else:
+            cover_overlay = self.cover_overlay
+            y_offset = 0
+            title_x = 10 + Constants.COVER_SIZE[0] + 20
+        dc.draw_image(image, x + 1, y + 1 + y_offset)
+        dc.draw_image(cover_overlay, x - 10, y - 10 + y_offset)
 
         font = dc.get_font()
         font.set_bold(True)
         dc.set_font(font)
 
         x = 10 + Constants.COVER_SIZE[0] + 20
-        dc.draw_text(self.title, x, y)
+        dc.draw_text(self.title, title_x, y)
         tw, th = dc.measure_text(self.title)
-        y += int(th * 1.2)
+        #y += int(th * 1.2)
+        y += 24
 
         font.set_bold(False)
         dc.set_font(font)

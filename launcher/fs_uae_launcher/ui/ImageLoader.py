@@ -84,7 +84,10 @@ class ImageLoader:
 
     def get_cache_path_for_sha1(self, request, sha1):
         #print("get_cache_path_for_sha1", sha1)
-        if request.size:
+        if request.args.get("is_cover", False):
+            size_arg = "?size={0}".format(256)
+            cache_ext = "_{0}".format(256)
+        elif request.size:
             size_arg = "?w={0}&h={1}".format(request.size[0],
                     request.size[1])
             cache_ext = "_{0}x{1}".format(request.size[0],
@@ -125,13 +128,15 @@ class ImageLoader:
         path = ""
         if request.path.startswith("sha1:"):
             path = self.get_cache_path_for_sha1(request, request.path[5:])
+            double_size = False
         else:
             path = request.path
+            double_size = True
 
         if path:
-            #print("loading image from", request.path)
+            print("loading image from", request.path)
             image = fsui.Image(path)
-            #print(image)
+            print(image.size, request.size)
             if request.size is not None:
                 dest_size = request.size
             else:
@@ -139,7 +144,15 @@ class ImageLoader:
             if image.size == dest_size:
                 request.image = image
                 return
-            if image.size[0] < 400:
+            try:
+                ratio = image.size[0] / image.size[1]
+            except Exception:
+                ratio = 1.0
+            if ratio > 0.85 and ratio < 1.20:
+                min_length = min(request.size)
+                dest_size = (min_length, min_length)
+
+            if double_size and image.size[0] < 400:
                 image.resize((image.size[0] * 2,
                         image.size[1] * 2),
                         fsui.Image.NEAREST)
@@ -152,7 +165,7 @@ class ImageLoadRequest:
     def __init__(self):
         self.on_load = None
         self.size = None
-        self.data = {}
+        self.args = {}
 
     def notify(self):
         if self.on_load:

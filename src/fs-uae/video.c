@@ -88,7 +88,7 @@ int read_window_override(const char* s, int* pos) {
     if (!read_window_override_int(s, pos, &sh)) return 0;
     while(s[*pos] == ' ') ++(*pos);
     if (!s[(*pos)++] == '=') return 0;
-    if (!s[(*pos)++] == '>') return 0;
+    if (s[(*pos)++] == '>') ++(*pos);
     if (!read_window_override_int(s, pos, &dx)) return 0;
     if (!read_window_override_int(s, pos, &dy)) return 0;
     if (!read_window_override_int(s, pos, &dw)) return 0;
@@ -182,15 +182,21 @@ static void modify_coordinates(int *cx, int *cy, int *cw, int *ch) {
     }
     else if (*cx == 10 && *cy == 7 && *cw == 716 && *ch == 566) {
         fs_log("* amiga cd32 boot screen?\n");
-        *cx = 10; *cy = 7; *cw = 704; *ch = 562; changed = 1;
+        *cx = 16; *cy = 16; *cw = 704; *ch = 552; changed = 1;
     }
-    else if (*cx == 6 && *cy == 96 && *cw == 724 && *ch == 478) {
-        fs_log("* amiga cd32 boot screen (booting cd)?\n");
-        *cx = 10; *cy = 7; *cw = 704; *ch = 562; changed = 1;
+    else if (*cx == 6 && *cy == 96 && *cw == 724 && *ch == 476) {
+        fs_log("* amiga cd32 boot screen (booting cd)\n");
+        *cx = 16; *cy = 16; *cw = 704; *ch = 552; changed = 1;
+    }
+    else if (*cx == 10 && *cy == 96 && *cw == 716 && *ch == 476) {
+        fs_log("* amiga cd32 boot screen (booting cd)\n");
+        *cx = 16; *cy = 16; *cw = 704; *ch = 552; changed = 1;
     }
     if (changed) {
-        fs_log("* %3d %3d %3d %3d [ %3d %3d %3d %3d ]\n", *cx, *cy, *cw, *ch,
-                ocx, ocy, ocw, och);
+        fs_log("* %3d %3d %3d %3d [ %3d %3d %3d %3d ]\n",
+                *cx, *cy, *cw, *ch, ocx, ocy, ocw, och);
+        printf("* %3d %3d %3d %3d [ %3d %3d %3d %3d ]\n",
+                *cx, *cy, *cw, *ch, ocx, ocy, ocw, och);
     }
     return;
 }

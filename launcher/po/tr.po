@@ -1,0 +1,614 @@
+# Turkish translations for fs-uae-launcher package.
+# Copyright (C) 2012 Frode Solheim
+# This file is distributed under the same license as the fs-uae-launcher package.
+# Frode Solheim <fs-uae@fengestad.no>, 2012.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: fs-uae-launcher\n"
+"Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
+"POT-Creation-Date: 2012-11-28 11:12+0100\n"
+"PO-Revision-Date: 2012-11-28 11:16+0100\n"
+"Last-Translator: Frode Solheim <fs-uae@fengestad.no>\n"
+"Language-Team: Turkish\n"
+"Language: tr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "16-bit"
+msgstr ""
+
+msgid "32-bit BGRA"
+msgstr ""
+
+msgid "32-bit RGBA"
+msgstr ""
+
+msgid "640x400 + Border"
+msgstr ""
+
+msgid "640x480 + Border"
+msgstr ""
+
+msgid "640x512 + Border"
+msgstr ""
+
+msgid "Abort"
+msgstr ""
+
+msgid "Accurate"
+msgstr ""
+
+msgid "Add Directory to Search Path"
+msgstr ""
+
+msgid "Add Files to List"
+msgstr ""
+
+msgid "Add Multiple CD-ROMs at Once"
+msgstr ""
+
+msgid "Add Multiple Floppies at Once"
+msgstr ""
+
+msgid "Additional Options"
+msgstr ""
+
+msgid "Amiga Forever import task started"
+msgstr ""
+
+msgid "Amiga Model"
+msgstr ""
+
+msgid "Audio Settings"
+msgstr ""
+
+msgid "Auto"
+msgstr ""
+
+msgid "Auto + Border"
+msgstr ""
+
+msgid "Available Kickstart Versions"
+msgstr ""
+
+msgid "Browse"
+msgstr ""
+
+msgid "Browse for File"
+msgstr ""
+
+msgid "Browse for Folder"
+msgstr ""
+
+msgid "Built-in TCP/IP Stack"
+msgstr ""
+
+msgid "Built-in TCP/IP Stack (bsdsocket.library)"
+msgstr ""
+
+msgid "CD-ROM Drive"
+msgstr ""
+
+msgid "CD-ROM Drives"
+msgstr ""
+
+msgid "CD-ROMs"
+msgstr ""
+
+msgid "CD32 Pad"
+msgstr ""
+
+msgid "Cancel"
+msgstr ""
+
+msgid "Chip RAM"
+msgstr ""
+
+msgid "Choose CD-ROM Image"
+msgstr ""
+
+msgid "Choose Extended ROM"
+msgstr ""
+
+msgid "Choose Floppy Image"
+msgstr ""
+
+msgid "Choose Hard Drive"
+msgstr ""
+
+msgid "Choose Kickstart ROM"
+msgstr ""
+
+msgid "Cleaning up..."
+msgstr ""
+
+msgid "Clear List"
+msgstr ""
+
+msgid "Click 'Scan' button if you want to re-scan"
+msgstr ""
+
+msgid "Click 'Scan' button to start scan"
+msgstr ""
+
+msgid "Click here to download"
+msgstr ""
+
+msgid "Close"
+msgstr ""
+
+msgid "Committing data..."
+msgstr ""
+
+msgid "Config"
+msgstr ""
+
+msgid "Configuration"
+msgstr ""
+
+msgid "Configuration Browser"
+msgstr ""
+
+msgid "Configurations"
+msgstr ""
+
+msgid "Configure Joystick Buttons"
+msgstr ""
+
+msgid ""
+"Copy {0}\n"
+"to {1}"
+msgstr ""
+
+msgid "Cursor Keys and Right Ctrl/Alt"
+msgstr ""
+
+msgid "Custom"
+msgstr ""
+
+msgid "Custom IRC server address"
+msgstr ""
+
+msgid "Custom Options"
+msgstr ""
+
+msgid "Custom Settings"
+msgstr ""
+
+msgid "Default"
+msgstr ""
+
+msgid "Default ({0})"
+msgstr ""
+
+msgid "Downloading {0}..."
+msgstr ""
+
+msgid "Edit Custom Options"
+msgstr ""
+
+msgid "Eject"
+msgstr ""
+
+msgid "Enable experimental net play GUI (requires restart)"
+msgstr ""
+
+msgid "Enable online database support (requires restart)"
+msgstr ""
+
+msgid "Expansions"
+msgstr ""
+
+msgid "Experimental Features"
+msgstr ""
+
+msgid "Extended ROM:"
+msgstr ""
+
+msgid "FS-UAE Launcher Settings"
+msgstr ""
+
+msgid "Fast RAM"
+msgstr ""
+
+msgid "Fetching database entries ({0})"
+msgstr ""
+
+msgid "Filters"
+msgstr ""
+
+msgid "Filters & Scaling"
+msgstr ""
+
+msgid "Filters:"
+msgstr ""
+
+msgid "Floppies"
+msgstr ""
+
+msgid "Floppy Drives"
+msgstr ""
+
+msgid "Floppy drive volume"
+msgstr ""
+
+msgid "Force Full Vsync"
+msgstr ""
+
+msgid "Full Frame"
+msgstr ""
+
+msgid "Full-scene anti-aliasing (FSAA)"
+msgstr ""
+
+msgid "Fullscreen"
+msgstr ""
+
+msgid "Game Database"
+msgstr ""
+
+msgid "Game Database Settings"
+msgstr ""
+
+msgid "Game database password"
+msgstr ""
+
+msgid "Game database user name"
+msgstr ""
+
+msgid "Games and Configurations"
+msgstr ""
+
+msgid "Grab mouse and keyboard input when FS-UAE starts"
+msgstr ""
+
+msgid "Grab mouse and keyboard input when clicking on FS-UAE window"
+msgstr ""
+
+msgid "Hard Drives"
+msgstr ""
+
+msgid "Hardware"
+msgstr ""
+
+msgid "Hardware Options"
+msgstr ""
+
+msgid "IRC nickname"
+msgstr ""
+
+msgid "If you own Amiga Forever, select the drive/folder and click \"{0}\""
+msgstr ""
+
+msgid "Import"
+msgstr ""
+
+msgid "Import From Amiga Forever CD/DVD"
+msgstr ""
+
+msgid "Import Kickstarts and ROMs"
+msgstr ""
+
+msgid "Import task is done"
+msgstr ""
+
+msgid "Include built-in configurations"
+msgstr ""
+
+msgid "Input"
+msgstr ""
+
+msgid "Input Options"
+msgstr ""
+
+msgid "Input Settings"
+msgstr ""
+
+msgid "Internal"
+msgstr ""
+
+msgid "Joystick"
+msgstr ""
+
+msgid "Joystick Configuration"
+msgstr ""
+
+msgid "Joystick Ports"
+msgstr ""
+
+msgid "Joystick Settings"
+msgstr ""
+
+msgid "Keep aspect ratio when scaling (do not stretch)"
+msgstr ""
+
+msgid "Keyboard Settings"
+msgstr ""
+
+msgid "Kickstart ROM"
+msgstr ""
+
+msgid "Kickstart Setup"
+msgstr ""
+
+msgid "Kickstart import task started"
+msgstr ""
+
+msgid "Launching FS-UAE"
+msgstr ""
+
+msgid "Least Accurate"
+msgstr ""
+
+msgid "Less Accurate"
+msgstr ""
+
+msgid "List of Folders to Index"
+msgstr ""
+
+msgid "Low latency vsync (when using full vsync)"
+msgstr ""
+
+msgid "Main Configuration Options"
+msgstr ""
+
+msgid "Media Swap List"
+msgstr ""
+
+msgid "Memory"
+msgstr ""
+
+msgid "Mouse"
+msgstr ""
+
+msgid "Mouse Settings"
+msgstr ""
+
+msgid "Mouse speed (%)"
+msgstr ""
+
+msgid "Net Play"
+msgstr ""
+
+msgid "Net Play Settings"
+msgstr ""
+
+msgid "Net play tag (max 3 characters)"
+msgstr ""
+
+msgid "New Configuration"
+msgstr ""
+
+msgid "No Device"
+msgstr ""
+
+msgid "No Host Device"
+msgstr ""
+
+msgid "No Joysticks"
+msgstr ""
+
+msgid "No extended kickstart found for this model. Try 'scan' function."
+msgstr ""
+
+msgid "No joysticks are currently connected"
+msgstr ""
+
+msgid "No kickstart found for this model. "
+msgstr ""
+
+msgid "No scan in progress"
+msgstr ""
+
+msgid "Nothing"
+msgstr ""
+
+msgid "OK"
+msgstr ""
+
+msgid "Off"
+msgstr ""
+
+msgid "On"
+msgstr ""
+
+msgid "Open Scan Dialog"
+msgstr ""
+
+msgid "Open Tool to Configure Button Mapping"
+msgstr ""
+
+msgid "OpenGL Settings"
+msgstr ""
+
+msgid "Parallel Port Joysticks"
+msgstr ""
+
+msgid "Picasso96 Support"
+msgstr ""
+
+msgid "Picasso96 Support (uaegfx.card)"
+msgstr ""
+
+msgid "Please wait..."
+msgstr ""
+
+msgid "Preferred Joystick"
+msgstr ""
+
+msgid "Preferred device for secondary joystick:"
+msgstr ""
+
+msgid "Preparing WHDLoad..."
+msgstr ""
+
+msgid "Preparing floppy images..."
+msgstr ""
+
+msgid "Preparing hard drives..."
+msgstr ""
+
+msgid "Preparing..."
+msgstr ""
+
+msgid "Purging old entries..."
+msgstr ""
+
+msgid "Refresh game configurations from database"
+msgstr ""
+
+msgid "Remove Directory from Search Path"
+msgstr ""
+
+msgid "Remove Selected Files"
+msgstr ""
+
+msgid "Render scan lines"
+msgstr ""
+
+msgid "Render scan lines in RTG graphics mode"
+msgstr ""
+
+msgid "Resetting database..."
+msgstr ""
+
+msgid "Restoring changes..."
+msgstr ""
+
+msgid "Save Configuration"
+msgstr ""
+
+msgid "Saving changes..."
+msgstr ""
+
+msgid "Scaling Options"
+msgstr ""
+
+msgid "Scan"
+msgstr ""
+
+msgid "Scan & Indexing"
+msgstr ""
+
+msgid "Scan complete"
+msgstr ""
+
+msgid "Scan error"
+msgstr ""
+
+msgid "Scan for Kickstarts, Files and Configurations"
+msgstr ""
+
+msgid "Scanning .fs-uae files..."
+msgstr ""
+
+msgid "Scanning built-in entries..."
+msgstr ""
+
+msgid "Scanning configurations"
+msgstr ""
+
+msgid "Scanning configurations ({count} scanned)"
+msgstr ""
+
+msgid "Scanning database entries..."
+msgstr ""
+
+msgid "Scanning files"
+msgstr ""
+
+msgid "Scanning files ({count} scanned)"
+msgstr ""
+
+msgid "Scanning game database entries..."
+msgstr ""
+
+msgid "Select Directory to Import From"
+msgstr ""
+
+msgid "Select Multiple CD-ROMs"
+msgstr ""
+
+msgid "Select Multiple Files..."
+msgstr ""
+
+msgid "Select Multiple Floppies"
+msgstr ""
+
+msgid "Select a folder containing Amiga kickstart files and click \"{0}\""
+msgstr ""
+
+msgid "Settings"
+msgstr ""
+
+msgid "Show kickstart setup page on startup when all ROMs are missing"
+msgstr ""
+
+msgid "Slow RAM"
+msgstr ""
+
+msgid "Start"
+msgstr ""
+
+msgid "Start FS-UAE in fullscreen mode"
+msgstr ""
+
+msgid "Starting FS-UAE..."
+msgstr ""
+
+msgid "Starting scan"
+msgstr ""
+
+msgid "Swap left and right CTRL keys"
+msgstr ""
+
+msgid "Sync to Vblank"
+msgstr ""
+
+msgid "Synchronizing database..."
+msgstr ""
+
+msgid "Texture filter"
+msgstr ""
+
+msgid "Ungrab mouse and keyboard on middle mouse click"
+msgstr ""
+
+msgid "Update ({version}) is available"
+msgstr ""
+
+msgid "Updating database"
+msgstr ""
+
+msgid "Updating game entries:"
+msgstr ""
+
+msgid "Video Settings"
+msgstr ""
+
+msgid "Video buffer format and color depth"
+msgstr ""
+
+msgid "Video synchronization"
+msgstr ""
+
+msgid "Video synchronization method"
+msgstr ""
+
+msgid "Video texture format (on the GPU)"
+msgstr ""
+
+msgid "WHDLoad Arguments"
+msgstr ""
+
+msgid "You should have kickstart files for each Amiga model you want to use:"
+msgstr ""
+
+msgid "Zoom Amiga display (crop)"
+msgstr ""
+
+msgid "Zorro III RAM"
+msgstr ""

@@ -373,16 +373,13 @@ class LaunchHandler:
         startup_sequence = os.path.join(s_dir, "Startup-Sequence")
         if not os.path.exists(startup_sequence):
             with open(startup_sequence, "wb") as f:
-                f.write("""
-IF EXISTS C:SetPatch
-  C:SetPatch    
-EndIF
-
-IF EXISTS S:User-Startup
-  Execute S:User-Startup
-EndIF
-
-""".replace("\r\n", "\n"))
+                f.write("IF EXISTS C:SetPatch\n")
+                f.write("C:SetPatch\n")
+                f.write("EndIF\n")
+                f.write("\n")
+                f.write("cd {0}\n".format(whdload_dir))
+                f.write("WHDLoad {0}\n".format(whdload_args))
+                f.write("uae-configuration SPC_QUIT 1\n")
 
         # The User-Startup file is useful if the user has provided a
         # base WHDLoad directory with an existing startup-sequence

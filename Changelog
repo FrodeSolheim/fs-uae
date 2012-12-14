@@ -1,3 +1,7 @@
+Version 2.1.12:
+* Tweaked CD32 startup animation viewport.
+* (Launcher) Fixed Startup-Sequence for WHDLoad.
+
 Version 2.1.11:
 * Config for gamtec_ltd/smartjoy_plus_adapter.ini [JOPS].
 * Small compilation fix for OS X 10.5

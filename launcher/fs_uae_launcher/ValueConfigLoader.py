@@ -126,8 +126,8 @@ class ValueConfigLoader:
                 parts = value.split(",")
                 for i in range(len(parts)):
                     parts[i] = parts[i].split("#", 1)[0].strip()
-                    parts[i] = parts[i].replace("=", "=>")
-                    parts[i] = parts[i].replace("==>", "=>")
+                    #parts[i] = parts[i].replace("=", "=>")
+                    #parts[i] = parts[i].replace("==>", "=>")
                 value = ", ".join(parts)
                 while "  " in value:
                     value = value.replace("  ", " ")
@@ -183,9 +183,10 @@ class ValueConfigLoader:
         elif key == "cracktro":
             # FIXME: handle
             pass
+        elif key in ["joystick_port_0_mode", "joystick_port_1_mode",
+                "joystick_port_2_mode", "joystick_port_3_mode"]:
+            self.options[key] = value.lower()
         elif key in ["amiga_model", "chip_memory",
-                "joystick_port_0_mode", "joystick_port_1_mode",
-                "joystick_port_2_mode", "joystick_port_3_mode",
                 "floppy_drive_count", "slow_memory", "front_sha1",
                 "screen1_sha1", "screen2_sha1", "screen3_sha1",
                 "screen4_sha1", "screen5_sha1", "title_sha1"]:

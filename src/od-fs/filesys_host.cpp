@@ -29,11 +29,17 @@ struct my_openfile_s {
 int my_errno = 0;
 
 bool my_utime (const TCHAR *name, struct mytimeval *tv) {
-
+    STUB("");
+    // return result of mystat so invalid file will return false
+    struct mystat ms;
+    return my_stat(name, &ms);
 }
 
 bool my_chmod (const TCHAR *name, uae_u32 mode) {
     STUB("");
+    // return result of mystat so invalid file will return false
+    struct mystat ms;
+    return my_stat(name, &ms);
 }
 
 bool my_stat (const TCHAR *name, struct mystat *ms) {
@@ -44,6 +50,7 @@ bool my_stat (const TCHAR *name, struct mystat *ms) {
         return false;
     }
     ms->size = sonuc.size;
+    // FIXME: read mode more accurately
     ms->mode = 0;
     if (sonuc.mode & S_IRUSR) {
         ms->mode |= FILEFLAG_READ;
@@ -56,6 +63,7 @@ bool my_stat (const TCHAR *name, struct mystat *ms) {
 #ifdef HAVE_ST_BLOCKS
     //ms->blocks = sonuc.st_blocks;
 #endif
+    return true;
 }
 
 static int compare_strings(const void *a, const void *b) {

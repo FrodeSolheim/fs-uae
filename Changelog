@@ -1,3 +1,7 @@
+Version 2.1.14:
+
+* Fixed return value in two stub functions.
+
 Version 2.1.13:
 
 * Merged updated emulation core from WinUAE 2.5.1.

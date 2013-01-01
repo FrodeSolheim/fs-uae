@@ -6,8 +6,10 @@ from __future__ import unicode_literals
 import os
 import time
 import traceback
+import webbrowser
 import fs_uae_launcher.fsui as fsui
 from ..Config import Config
+from ..I18N import _, ngettext
 from ..Settings import Settings
 from ..Database import Database
 from ..GameHandler import GameHandler
@@ -73,14 +75,48 @@ class GameInfoPanel(BottomPanel):
 
         self.title = ""
         self.sub_title = ""
+        self.year = ""
+        self.publisher = ""
+        self.developer = ""
+        self.companies = ""
 
         vert_layout.add_spacer(0, expand=True)
 
+        hori_layout = fsui.HorizontalLayout()
+        vert_layout.add(hori_layout, fill=True)
+
+        self.link_buttons = {}
+        for name in ["database_url", "hol_url", "lemon_url", "wikipedia_url"]:
+            image = fsui.Image("fs_uae_launcher:res/{0}_16.png".format(name))
+            def create_open_url_function(name):
+                def open_url():
+                    print("link button - open url for", name)
+                    url = Config.get(name)
+                    print("URL:", url)
+                    if url:
+                        webbrowser.open(url)
+                return open_url
+            button = fsui.ImageButton(self, image)
+            if name == "database_url":
+                button.set_tooltip(_("Open Game Database Entry"))
+            elif name == "hol_url":
+                button.set_tooltip(_("Open Hall of Light Entry"))
+            elif name == "lemon_url":
+                button.set_tooltip(_("Open LemonAmiga Entry"))
+            elif name == "wikipedia_url":
+                button.set_tooltip(_("Open Wikipedia Entry"))
+            button.disable()
+            button.on_activate = create_open_url_function(name)
+            hori_layout.add(button, margin_right=4)
+            self.link_buttons[name] = button
+
+        hori_layout.add_spacer(0, expand=True)
         self.launch_group = LaunchGroup(self)
-        vert_layout.add(self.launch_group, fill=True)
+        hori_layout.add(self.launch_group, fill=True)
 
         self.load_info()
         Settings.add_listener(self)
+        Config.add_listener(self)
 
     def on_destroy(self):
         Settings.remove_listener(self)
@@ -128,6 +164,27 @@ class GameInfoPanel(BottomPanel):
         if key == "config_name":
             self.load_info()
 
+    def on_config(self, key, value):
+        if key in ["database_url", "hol_url", "lemon_url", "wikipedia_url"]:
+            print("----", key, bool(value))
+            self.link_buttons[key].enable(bool(value))
+        elif key == "publisher":
+            self.publisher = value
+            self.update_companies()
+        elif key == "developer":
+            self.developer = value
+            self.update_companies()
+        elif key == "year":
+            self.year = value
+
+    def update_companies(self):
+        companies = [x.strip() for x in self.publisher.split("/") if x.strip()]
+        for developer in self.developer.split("/"):
+            developer = developer.strip()
+            if developer and not developer in companies:
+                companies.append(developer)
+        self.companies = " \u00b7 ".join(companies)
+
     def on_paint(self):
         dc = self.create_dc()
         self.draw_background(dc)
@@ -139,12 +196,12 @@ class GameInfoPanel(BottomPanel):
         #dc.draw_image(image, x, y)
         if image.size[0] == image.size[1]:
             cover_overlay = self.cover_overlay_square
-            y_offset = 28
-            title_x = 10
+            #y_offset = 28
+            #title_x = 10
         else:
             cover_overlay = self.cover_overlay
-            y_offset = 0
-            title_x = 10 + Constants.COVER_SIZE[0] + 20
+        y_offset = 0
+        title_x = 10 + Constants.COVER_SIZE[0] + 20
         dc.draw_image(image, x + 1, y + 1 + y_offset)
         dc.draw_image(cover_overlay, x - 10, y - 10 + y_offset)
 
@@ -158,9 +215,20 @@ class GameInfoPanel(BottomPanel):
         #y += int(th * 1.2)
         y += 24
 
-        font.set_bold(False)
-        dc.set_font(font)
         color = dc.get_text_color()
         color.mix(self.get_background_color(), 0.33)
         dc.set_text_color(color)
+
+        if self.year:
+            twy, thy = dc.measure_text(self.year + " ")
+            dc.draw_text(self.year, x, y)
+        else:
+            twy = 0
+        font.set_bold(False)
+        dc.set_font(font)
+        if self.companies:
+            dc.draw_text(self.companies, x + twy, y)
+        y += 24
+
+        #y += 10
         dc.draw_text(self.sub_title, x, y)

@@ -53,6 +53,7 @@ int disk_debug_track = -1;
 #ifdef RETROPLATFORM
 #include "rp.h"
 #endif
+#include "fsdb.h"
 
 #undef CATWEASEL
 
@@ -2440,21 +2441,21 @@ int disk_getwriteprotect (struct uae_prefs *p, const TCHAR *name)
 
 static void diskfile_readonly (const TCHAR *name, bool readonly)
 {
-	struct _stat64 st;
+	struct mystat st;
 	int mode, oldmode;
 
-	if (stat (name, &st))
+	if (!my_stat (name, &st))
 		return;
 #ifdef FSUAE
 	// ADF files are not written to currently, anyway, so disable touching
 	// the files.
 #else
-	oldmode = mode = st.st_mode;
+	oldmode = mode = st.mode;
 	mode &= ~FILEFLAG_WRITE;
 	if (!readonly)
 		mode |= FILEFLAG_WRITE;
 	if (mode != oldmode)
-		chmod (name, mode);
+		my_chmod (name, mode);
 #endif
 }
 

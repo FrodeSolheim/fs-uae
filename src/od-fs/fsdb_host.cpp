@@ -456,7 +456,7 @@ static void get_file_info(const char *nname, file_info *info) {
     }
 }
 
-void fsdb_get_time(const char *nname, long *days, long *mins, long *ticks) {
+void fsdb_get_time(const char *nname, int *days, int *mins, int *ticks) {
     file_info info;
     get_file_info(nname, &info);
     if (info.exists) {

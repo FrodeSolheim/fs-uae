@@ -501,6 +501,11 @@ static int event_loop() {
             else if (event.key.keysym.sym == SDLK_CAPSLOCK) {
                 key = SDLK_CAPSLOCK;
             }
+#elif WINDOWS
+#else
+            else if (event.key.keysym.sym == SDLK_MODE) {
+                key = SDLK_RALT;
+            }
 #endif
             else {
                 key = fs_ml_scancode_to_key(event.key.keysym.scancode);
@@ -604,6 +609,10 @@ void fs_ml_input_init() {
         SDL_Joystick *joystick = SDL_JoystickOpen(i);
         gchar* name = g_ascii_strup(SDL_JoystickName(i), -1);
         name = g_strstrip(name);
+        if (name[0] == '\0') {
+            g_free(name);
+            name = g_ascii_strup("Unnamed", -1);
+        }
         int count = GPOINTER_TO_INT(g_hash_table_lookup(device_counts, name));
         count++;
         // hash table now owns name pointer

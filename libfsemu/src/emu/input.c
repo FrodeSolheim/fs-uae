@@ -1071,17 +1071,21 @@ int fs_emu_process_key_event(int key_code, int key_mod, int state) {
     if (g_debug_input) {
         fs_log("--> key_code %d key_mod %d state %d: \"%s\"\n",
                 key_code, key_mod, state, g_fs_emu_key_names[key_code]);
-        fs_log("  = press (index %d) => "
-                "input event %d\n", index, input_event);
     }
-    if (input_event > 0) {
+    // 65536 is also used as null event
+    if (input_event > 0 && input_event < 65536) {
+        if (g_debug_input) {
+            fs_log("  = press (index %d) => "
+                    "input event %d\n", index, input_event);
+        }
         // encode both state and input event in input_event
         input_event = input_event | (state << 16);
         fs_emu_queue_input_event(input_event);
     }
-
+    else if (g_debug_input) {
+        fs_log("  = press (index %d) => NO INPUT EVENT\n", index);
+    }
     return 1;
-    //return 0;
 }
 
 int fs_emu_process_event(fs_emu_event *event) {

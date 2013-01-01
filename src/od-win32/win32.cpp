@@ -125,6 +125,7 @@ HMODULE hUIDLL = NULL;
 HWND (WINAPI *pHtmlHelp)(HWND, LPCWSTR, UINT, LPDWORD) = NULL;
 HWND hAmigaWnd, hMainWnd, hHiddenWnd, hGUIWnd;
 RECT amigawin_rect, mainwin_rect;
+int setcursoroffset_x, setcursoroffset_y;
 static int mouseposx, mouseposy;
 static UINT TaskbarRestart;
 static HWND TaskbarRestartHWND;
@@ -409,8 +410,8 @@ static void figure_processor_speed (void)
 
 static void setcursor (int oldx, int oldy)
 {
-	int x = (amigawin_rect.right - amigawin_rect.left) / 2;
-	int y = (amigawin_rect.bottom - amigawin_rect.top) / 2;
+	int x = abs (amigawin_rect.right - amigawin_rect.left) / 2;
+	int y = abs (amigawin_rect.bottom - amigawin_rect.top) / 2;
 	mouseposx = oldx - x;
 	mouseposy = oldy - y;
 
@@ -419,9 +420,11 @@ static void setcursor (int oldx, int oldy)
 		return;
 	}
 #if 0
-	write_log (_T("%d %d %d %d %d - %d %d %d %d %d\n"),
-		x, amigawin_rect.left, amigawin_rect.right, mouseposx, oldx,
-		y, amigawin_rect.top, amigawin_rect.bottom, mouseposy, oldy);
+	write_log (_T("%dx%d %dx%d %dx%d (%dx%d %dx%d)\n"),
+		x, y,
+		mouseposx, mouseposy, oldx, oldy,
+		amigawin_rect.left, amigawin_rect.top,
+		amigawin_rect.right, amigawin_rect.bottom);
 #endif
 	if (oldx >= 30000 || oldy >= 30000 || oldx <= -30000 || oldy <= -30000) {
 		mouseposx = mouseposy = 0;
@@ -436,7 +439,10 @@ static void setcursor (int oldx, int oldy)
 			amigawin_rect.left, amigawin_rect.top, amigawin_rect.right, amigawin_rect.bottom);
 		return;
 	}
-	SetCursorPos (amigawin_rect.left + x, amigawin_rect.top + y);
+	int cx = amigawin_rect.left + x;
+	int cy = amigawin_rect.top + y;
+	//write_log (_T("SetCursorPos(%d,%d)\n"), cx, cy);
+	SetCursorPos (cx, cy);
 }
 
 static int pausemouseactive;
@@ -460,6 +466,8 @@ void resumepaused (int priority)
 {
 	//write_log (_T("resume %d (%d)\n"), priority, pause_emulation);
 	if (pause_emulation > priority)
+		return;
+	if (!pause_emulation)
 		return;
 	resumesoundpaused ();
 	blkdev_exitgui ();
@@ -582,6 +590,7 @@ static void releasecapture (void)
 {
 	if (!showcursor)
 		return;
+	write_log (_T("releasecapture\n"));
 	ClipCursor (NULL);
 	ReleaseCapture ();
 	ShowCursor (TRUE);
@@ -592,13 +601,28 @@ void updatemouseclip (void)
 {
 	if (showcursor) {
 		ClipCursor (&amigawin_rect);
-		write_log (_T("CLIP %dx%d %dx%d\n"), amigawin_rect.left, amigawin_rect.top, amigawin_rect.right, amigawin_rect.bottom);
+		write_log (_T("CLIP %dx%d %dx%d %d\n"), amigawin_rect.left, amigawin_rect.top, amigawin_rect.right, amigawin_rect.bottom, isfullscreen ());
+	}
+}
+
+void updatewinrect (bool allowfullscreen)
+{
+	int f = isfullscreen ();
+	if (!allowfullscreen && f > 0)
+		return;
+	GetWindowRect (hAmigaWnd, &amigawin_rect);
+	write_log (_T("GetWindowRect %dx%d %dx%d %d\n"), amigawin_rect.left, amigawin_rect.top, amigawin_rect.right, amigawin_rect.bottom, f);
+	if (f == 0) {
+		changed_prefs.gfx_size_win.x = amigawin_rect.left;
+		changed_prefs.gfx_size_win.y = amigawin_rect.top;
+		currprefs.gfx_size_win.x = changed_prefs.gfx_size_win.x;
+		currprefs.gfx_size_win.y = changed_prefs.gfx_size_win.y;
 	}
 }
 
 static void setmouseactive2 (int active, bool allowpause)
 {
-	//write_log (_T("setmouseactive %d->%d\n"), mouseactive, active);
+	write_log (_T("setmouseactive %d->%d showcursor=%d focus=%d recap=%d\n"), mouseactive, active, showcursor, focus, recapture);
 	if (active == 0)
 		releasecapture ();
 	if (mouseactive == active && active >= 0)
@@ -666,7 +690,8 @@ static void setmouseactive2 (int active, bool allowpause)
 			if (!showcursor) {
 				ShowCursor (FALSE);
 				SetCapture (hAmigaWnd);
-				GetWindowRect (hAmigaWnd, &amigawin_rect);
+				updatewinrect (false);
+				showcursor = 1;
 				updatemouseclip ();
 			}
 			showcursor = 1;
@@ -675,7 +700,7 @@ static void setmouseactive2 (int active, bool allowpause)
 		inputdevice_acquire (TRUE);
 		setpriority (&priorities[currprefs.win32_active_capture_priority]);
 		if (currprefs.win32_active_nocapture_pause) {
-			resumepaused (1);
+			resumepaused (2);
 		} else if (currprefs.win32_active_nocapture_nosound && sound_closed < 0) {
 			resumesoundpaused ();
 		}
@@ -685,7 +710,7 @@ static void setmouseactive2 (int active, bool allowpause)
 	}
 	if (!active && allowpause) {
 		if (currprefs.win32_active_nocapture_pause) {
-			setpaused (1);
+			setpaused (2);
 		} else if (currprefs.win32_active_nocapture_nosound) {
 			setsoundpaused ();
 			sound_closed = -1;
@@ -727,7 +752,10 @@ static void winuae_active (HWND hWnd, int minimized)
 		if (sound_closed < 0) {
 			resumesoundpaused ();
 		} else {
-			if (currprefs.win32_iconified_pause && !currprefs.win32_inactive_pause)
+			if (currprefs.win32_active_nocapture_pause) {
+				if (mouseactive)
+					resumepaused (2);
+			} else if (currprefs.win32_iconified_pause && !currprefs.win32_inactive_pause)
 				resumepaused (1);
 			else if (currprefs.win32_inactive_pause)
 				resumepaused (2);
@@ -948,7 +976,7 @@ void setmouseactivexy (int x, int y, int dir)
 	}
 }
 
-int isfocus (void)
+static int isfocus2 (void)
 {
 	if (isfullscreen () > 0)
 		return 1;
@@ -957,6 +985,11 @@ int isfocus (void)
 	if (focus)
 		return -1;
 	return 0;
+}
+int isfocus (void)
+{
+	int v = isfocus2 ();
+	return v;
 }
 
 static void handleXbutton (WPARAM wParam, int updown)
@@ -1058,7 +1091,7 @@ static LRESULT CALLBACK AmigaWindowProc (HWND hWnd, UINT message, WPARAM wParam,
 		return 0;
 	case WM_RBUTTONDOWN:
 	case WM_RBUTTONDBLCLK:
-		if (dinput_winmouse () >= 0 && isfocus ())
+		if (dinput_winmouse () >= 0 && isfocus () > 0)
 			setmousebuttonstate (dinput_winmouse (), 1, 1);
 		return 0;
 	case WM_MBUTTONUP:
@@ -1079,7 +1112,7 @@ static LRESULT CALLBACK AmigaWindowProc (HWND hWnd, UINT message, WPARAM wParam,
 			if (mouseactive)
 				setmouseactive (0);
 		} else {
-			if (dinput_winmouse () >= 0 && isfocus ())
+			if (dinput_winmouse () >= 0 && isfocus () > 0)
 				setmousebuttonstate (dinput_winmouse (), 2, 1);
 		}
 		return 0;
@@ -1091,13 +1124,13 @@ static LRESULT CALLBACK AmigaWindowProc (HWND hWnd, UINT message, WPARAM wParam,
 		return 0;
 	case WM_XBUTTONDOWN:
 	case WM_XBUTTONDBLCLK:
-		if (dinput_winmouse () >= 0 && isfocus ()) {
+		if (dinput_winmouse () >= 0 && isfocus () > 0) {
 			handleXbutton (wParam, 1);
 			return TRUE;
 		}
 		return 0;
 	case WM_MOUSEWHEEL:
-		if (dinput_winmouse () >= 0 && isfocus ()) {
+		if (dinput_winmouse () >= 0 && isfocus () > 0) {
 			int val = ((short)HIWORD (wParam));
 			setmousestate (dinput_winmouse (), 2, val, 0);
 			if (val < 0)
@@ -1108,7 +1141,7 @@ static LRESULT CALLBACK AmigaWindowProc (HWND hWnd, UINT message, WPARAM wParam,
 		}
 		return 0;
 	case WM_MOUSEHWHEEL:
-		if (dinput_winmouse () >= 0 && isfocus ()) {
+		if (dinput_winmouse () >= 0 && isfocus () > 0) {
 			int val = ((short)HIWORD (wParam));
 			setmousestate (dinput_winmouse (), 3, val, 0);
 			if (val < 0)
@@ -1179,12 +1212,8 @@ static LRESULT CALLBACK AmigaWindowProc (HWND hWnd, UINT message, WPARAM wParam,
 			WINDOWPOS *wp = (WINDOWPOS*)lParam;
 			if (isfullscreen () <= 0) {
 				if (!IsIconic (hWnd) && hWnd == hAmigaWnd) {
-					GetWindowRect (hWnd, &amigawin_rect);
-					if (isfullscreen () == 0) {
-						changed_prefs.gfx_size_win.x = amigawin_rect.left;
-						changed_prefs.gfx_size_win.y = amigawin_rect.top;
-						config_changed = 1;
-					}
+					updatewinrect (false);
+					config_changed = 1;
 					updatemouseclip ();
 				}
 				notice_screen_contents_lost ();
@@ -1211,10 +1240,10 @@ static LRESULT CALLBACK AmigaWindowProc (HWND hWnd, UINT message, WPARAM wParam,
 
 			mx = (signed short) LOWORD (lParam);
 			my = (signed short) HIWORD (lParam);
+			//write_log (_T("%d %d %d %d %d %d %dx%d %dx%d\n"), wm, mouseactive, focus, showcursor, recapture, isfullscreen (), mx, my, mouseposx, mouseposy);
 			mx -= mouseposx;
 			my -= mouseposy;
 
-			//write_log (_T("%d %d %d %d %d %d %dx%d %dx%d\n"), wm, mouseactive, focus, showcursor, recapture, isfullscreen (), mx, my, mouseposx, mouseposy);
 			if (recapture && isfullscreen () <= 0) {
 				enablecapture ();
 				return 0;
@@ -1614,6 +1643,11 @@ static LRESULT CALLBACK MainWindowProc (HWND hWnd, UINT message, WPARAM wParam, 
 			WIN32GFX_DisplayChangeRequested ();
 		break;
 #endif
+		case WM_DWMCOMPOSITIONCHANGED:
+		case WM_THEMECHANGED:
+		WIN32GFX_DisplayChangeRequested (-1);
+		return 0;
+
 	case WM_GETMINMAXINFO:
 		{
 			LPMINMAXINFO lpmmi;
@@ -1918,7 +1952,7 @@ void handle_events (void)
 			TranslateMessage (&msg);
 			DispatchMessage (&msg);
 		}
-		sleep_millis (20);
+		sleep_millis (100);
 		inputdevicefunc_keyboard.read ();
 		inputdevicefunc_mouse.read ();
 		inputdevicefunc_joystick.read ();
@@ -1948,9 +1982,11 @@ void handle_events (void)
 	while (checkIPC (globalipc, &currprefs));
 #endif
 	if (was_paused) {
+		updatedisplayarea ();
+		manual_painting_needed--;
+		pause_emulation = was_paused;
 		resumepaused (was_paused);
 		sound_closed = 0;
-		manual_painting_needed--;
 	}
 	cnt1--;
 	if (cnt1 <= 0) {
@@ -2180,6 +2216,7 @@ HMODULE language_load (WORD language)
 #if LANG_DLL > 0
 	TCHAR dllbuf[MAX_DPATH];
 	TCHAR *dllname;
+	bool nosubrev = true;
 
 	if (language <= 0) {
 		/* new user-specific Windows ME/2K/XP method to get UI language */
@@ -2214,7 +2251,7 @@ HMODULE language_load (WORD language)
 							if (vsFileInfo &&
 								HIWORD(vsFileInfo->dwProductVersionMS) == UAEMAJOR
 								&& LOWORD(vsFileInfo->dwProductVersionMS) == UAEMINOR
-								&& (HIWORD(vsFileInfo->dwProductVersionLS) == UAESUBREV)) {
+								&& (nosubrev || (HIWORD(vsFileInfo->dwProductVersionLS) == UAESUBREV))) {
 									success = TRUE;
 									write_log (_T("Translation DLL '%s' loaded and enabled\n"), dllbuf);
 							} else {
@@ -3254,7 +3291,7 @@ int target_parse_option (struct uae_prefs *p, const TCHAR *option, const TCHAR *
 		int v1, v2;
 		TCHAR *s;
 
-		p->gfx_filter_aspect = -1;
+		p->win32_rtgscaleaspectratio = -1;
 		v1 = _tstol (tmpbuf);
 		s = _tcschr (tmpbuf, ':');
 		if (s) {
@@ -5535,7 +5572,9 @@ LONG WINAPI WIN32_ExceptionFilter (struct _EXCEPTION_POINTERS *pExceptionPointer
 		__time64_t now;
 
 		if (os_winnt && GetModuleFileName (NULL, path, MAX_DPATH)) {
+			TCHAR dumpfilename[100];
 			TCHAR beta[100];
+			TCHAR path3[MAX_DPATH];
 			TCHAR *slash = _tcsrchr (path, '\\');
 			_time64 (&now);
 			when = *_localtime64 (&now);
@@ -5549,10 +5588,11 @@ LONG WINAPI WIN32_ExceptionFilter (struct _EXCEPTION_POINTERS *pExceptionPointer
 				p = slash + 1;
 			else
 				p = path2;
+			p[0] = 0;
 			beta[0] = 0;
 			if (WINUAEPUBLICBETA > 0)
 				_stprintf (beta, _T("b%s"), WINUAEBETA);
-			_stprintf (p, _T("winuae_%d%d%d%s_%d%02d%02d_%02d%02d%02d.dmp"),
+			_stprintf (dumpfilename, _T("winuae_%d%d%d%s_%d%02d%02d_%02d%02d%02d.dmp"),
 				UAEMAJOR, UAEMINOR, UAESUBREV, beta,
 				when.tm_year + 1900, when.tm_mon + 1, when.tm_mday, when.tm_hour, when.tm_min, when.tm_sec);
 			if (dll == NULL)
@@ -5560,13 +5600,26 @@ LONG WINAPI WIN32_ExceptionFilter (struct _EXCEPTION_POINTERS *pExceptionPointer
 			if (dll) {
 				MINIDUMPWRITEDUMP dump = (MINIDUMPWRITEDUMP)GetProcAddress (dll, "MiniDumpWriteDump");
 				if (dump) {
-					HANDLE f = CreateFile (path2, GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+					_tcscpy (path3, path2);
+					_tcscat (path3, dumpfilename);
+					HANDLE f = CreateFile (path3, GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+					if (f == INVALID_HANDLE_VALUE) {
+						_tcscpy (path3, start_path_data);
+						_tcscat (path3, dumpfilename);
+						f = CreateFile (path3, GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+					}
+					if (f == INVALID_HANDLE_VALUE) {
+						if (GetTempPath (MAX_DPATH, path3) > 0) {
+							_tcscat (path3, dumpfilename);
+							f = CreateFile (path3, GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+						}
+					}
 					if (f != INVALID_HANDLE_VALUE) {
 						flush_log ();
 						savedump (dump, f, pExceptionPointers);
 						CloseHandle (f);
 						if (isfullscreen () <= 0) {
-							_stprintf (msg, _T("Crash detected. MiniDump saved as:\n%s\n"), path2);
+							_stprintf (msg, _T("Crash detected. MiniDump saved as:\n%s\n"), path3);
 							MessageBox (NULL, msg, _T("Crash"), MB_OK | MB_ICONWARNING | MB_TASKMODAL | MB_SETFOREGROUND);
 						}
 					}

@@ -72,6 +72,16 @@ cfg = [
     ("title",                 "",                             "custom"),
     ("sub_title",             "",                             "custom"),
     ("viewport",              "",                             "custom"),
+
+    ("year",                  "",                             "custom"),
+    ("developer",             "",                             "custom"),
+    ("publisher",             "",                             "custom"),
+    ("languages",             "",                             "custom"),
+    ("hol_url",               "",                             "custom"),
+    ("wikipedia_url",         "",                             "custom"),
+    ("database_url",          "",                             "custom"),
+    ("lemon_url",             "",                             "custom"),
+
 ]
 
 for i in range(Amiga.MAX_FLOPPY_DRIVES):

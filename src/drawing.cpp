@@ -222,6 +222,7 @@ static uae_u32 plf_sprite_mask;
 static int sbasecol[2] = { 16, 16 };
 static bool brdsprt, brdblank;
 static int hposblank;
+static bool specialmonitoron;
 
 bool picasso_requested_on;
 bool picasso_on;
@@ -2768,7 +2769,6 @@ void finish_drawing_frame (void)
 		lightpen_update (vb);
 
 	if (currprefs.monitoremu && gfxvidinfo.tempbuffer.bufmem_allocated) {
-		static bool specialon;
 		if (emulate_specialmonitors (vb, &gfxvidinfo.tempbuffer)) {
 			vb = gfxvidinfo.outbuffer = &gfxvidinfo.tempbuffer;
 			if (vb->nativepositioning) {
@@ -2780,16 +2780,16 @@ void finish_drawing_frame (void)
 				vb->outheight = gfxvidinfo.drawbuffer.outheight;
 			}
 			gfxvidinfo.drawbuffer.tempbufferinuse = true;
-			if (!specialon)
+			if (!specialmonitoron)
 				compute_framesync ();
-			specialon = true;
+			specialmonitoron = true;
 			do_flush_screen (vb, 0, vb->outheight);
 			didflush = true;
 		} else {
 			gfxvidinfo.drawbuffer.tempbufferinuse = false;
-			if (specialon)
+			if (specialmonitoron)
 				compute_framesync ();
-			specialon = false;
+			specialmonitoron = false;
 		}
 	}
 
@@ -3075,6 +3075,7 @@ void reset_drawing (void)
 	clearbuffer (&gfxvidinfo.tempbuffer);
 
 	center_reset = true;
+	specialmonitoron = false;
 }
 
 void drawing_init (void)

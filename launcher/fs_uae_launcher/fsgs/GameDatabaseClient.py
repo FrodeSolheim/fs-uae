@@ -64,7 +64,8 @@ class GameDatabaseClient:
                 "WHERE game = %s AND name = %s and status = 1"),
                 (game_id, key))
         row = cursor.fetchone()
-        if row is not None and row[0].decode("UTF-8") == value:
+        #if row is not None and row[0].decode("UTF-8") == value:
+        if row is not None and row[0] == value:
             # key - value already active
             if value_id:
                 # we must insert this anyway, since a specific value id is
@@ -213,7 +214,8 @@ class GameDatabaseClient:
             yield {
                 "id": row[0],
                 "key": row[1],
-                "value": row[2].decode("UTF-8"),
+                #"value": row[2].decode("UTF-8"),
+                "value": row[2],
                 "submitter": row[3],
                 "submitted": str(row[4]),
                 "game": row[5],

@@ -17,13 +17,26 @@
 #include "../emu/video.h"
 
 static int g_vblank_count = 0;
-static int64_t g_vblank_time = 0;
+static int64_t g_measured_vblank_time = 0;
+static int64_t g_adjusted_vblank_time = 0;
+static int64_t g_estimated_next_vblank_time = 0;
 
-static GCond *g_video_cond = NULL;
-static GMutex *g_video_mutex = NULL;
+// FIXME
+static int g_estimated_upload_render_duration = 5000;
+
+static GCond *g_frame_available_cond = NULL;
+static GMutex *g_frame_available_mutex = NULL;
 
 static GCond *g_buffer_swap_cond = NULL;
 static GMutex *g_buffer_swap_mutex = NULL;
+
+static volatile int g_start_new_frame = 0;
+static GCond *g_start_new_frame_cond = NULL;
+static GMutex *g_start_new_frame_mutex = NULL;
+
+static int g_available_frame = -1;
+static int g_uploaded_frame = -1;
+static int g_rendered_frame = -1;
 
 static int g_has_apple_fence = 0;
 static int g_has_nv_fence = 0;
@@ -33,24 +46,22 @@ static int g_has_arb_sync = 0;
 #define SYNC_FLAG_SLEEP 2
 #define SYNC_FLAG_FENCE 4
 
-static int g_sync_flags = 0;
-
 static int64_t g_sleep_until_vsync_last_time = 0;
 
 #define VBLANK_COUNT 100
-//static fs_emu_stat_queue g_vblank_times;
-static int64_t g_vblank_times[VBLANK_COUNT] = {};
+//static fs_emu_stat_queue g_measured_vblank_times;
+static int64_t g_measured_vblank_times[VBLANK_COUNT] = {};
 static int g_vblank_index = 0;
 
 static fs_mutex *g_vblank_mutex = NULL;
-static int64_t g_next_vblank_at = 0;
 
 static int64_t g_epoch = 0;
 
 #define CHECK_GL_ERROR_MSG(msg)
 
-void fs_ml_frame_update_begin() {
+void fs_ml_frame_update_begin(int frame) {
     if (g_fs_ml_video_sync) {
+#if 0
         if (g_fs_ml_video_sync_low_latency) {
             // do nothing here
         }
@@ -74,6 +85,7 @@ void fs_ml_frame_update_begin() {
 #endif
             //g_mutex_unlock(g_video_mutex);
         }
+#endif
     }
     else if (g_fs_ml_vblank_sync) {
         // emulation running independently on the video renderer
@@ -84,11 +96,43 @@ void fs_ml_frame_update_begin() {
     else {
         // video renderer is waiting for a new frame -signal that a new
         // frame is ready
-        g_cond_signal(g_video_cond);
+        //g_cond_signal(g_video_cond);
     }
 }
 
-void fs_ml_frame_update_end() {
+void fs_ml_frame_update_end(int frame) {
+
+    //printf("%d\n", frame);
+
+    // in timed mode only (non-vsync), the video renderer is waiting for
+    // a new frame signal
+    g_mutex_lock(g_frame_available_mutex);
+    g_available_frame = frame;
+    g_cond_signal(g_frame_available_cond);
+    g_mutex_unlock(g_frame_available_mutex);
+
+    if (g_fs_ml_video_sync) {
+        g_mutex_lock(g_start_new_frame_mutex);
+        while (!g_start_new_frame) {
+            g_cond_wait (g_start_new_frame_cond,
+                    g_start_new_frame_mutex);
+        }
+        g_start_new_frame = 0;
+        g_mutex_unlock(g_start_new_frame_mutex);
+    }
+    else if (g_fs_ml_vblank_sync) {
+        // emulation running independently on the video renderer
+    }
+    else if (g_fs_ml_benchmarking) {
+        // run as fast as possible
+    }
+    else {
+        // video renderer is waiting for a new frame -signal that a new
+        // frame is ready
+        //g_cond_signal(g_video_cond);
+    }
+
+#if 0
     if (g_fs_ml_video_sync) {
         if (g_fs_ml_video_sync_low_latency) {
 
@@ -115,34 +159,11 @@ void fs_ml_frame_update_end() {
     else {
         g_cond_signal(g_video_cond);
     }
+#endif
 }
-
-static void frame_wait() {
-
-    if (g_fs_ml_video_sync_low_latency && g_fs_ml_video_sync) {
-        //printf("a0\n");
-        g_mutex_lock(g_video_mutex);
-        //printf("a1\n");
-
-        //printf("- 2\n");
-        g_cond_signal(g_video_cond);
-
-        static GTimeVal abs_time;
-        g_get_current_time(&abs_time);
-        g_time_val_add(&abs_time, 40 * 1000);
-        if (!fs_ml_is_quitting()) {
-            g_cond_timed_wait(g_video_cond, g_video_mutex, &abs_time);
-        }
-        //printf("- 4\n");
-
-        //printf("a3\n");
-        g_mutex_unlock(g_video_mutex);
-        //printf("a4\n");
-    }
-}
-
 
 static void synchronized_buffer_swap() {
+#if 0
     if (g_fs_ml_video_sync) {
         if (g_fs_ml_video_sync_low_latency) {
             // do nothing
@@ -176,6 +197,7 @@ static void synchronized_buffer_swap() {
             //printf("a4\n");
         }
     }
+#endif
 }
 
 int fs_ml_get_vblank_count() {
@@ -183,14 +205,14 @@ int fs_ml_get_vblank_count() {
 }
 
 int64_t fs_ml_get_vblank_time() {
-    return g_vblank_time;
+    return g_measured_vblank_time;
 }
 
 void fs_ml_stop() {
     g_fs_ml_running = 0;
-    // signal g_video_cond because video (main) thread may be blocking on
-    // this condition
-    g_cond_signal(g_video_cond);
+    // signal g_frame_available_cond because video (main) thread may be
+    // blocking on this condition
+    // g_cond_signal(g_frame_available_cond);
 }
 
 static int eltime(int64_t t) {
@@ -199,13 +221,14 @@ static int eltime(int64_t t) {
 
 static void update_frame() {
     if (g_fs_ml_video_update_function) {
-        g_fs_ml_video_update_function();
+        g_uploaded_frame = g_fs_ml_video_update_function();
     }
 }
 
 static void render_frame() {
     if (g_fs_ml_video_render_function) {
         g_fs_ml_video_render_function();
+        g_rendered_frame = g_uploaded_frame;
     }
 }
 
@@ -223,42 +246,10 @@ static void gl_finish() {
     //printf("          %lld : %lld\n", t2 - t1, t3 - t2);
 }
 
-static void vblank_post_handler() {
-    g_vblank_time = fs_ml_monotonic_time();
-    g_vblank_count++;
-
-    fs_mutex_lock(g_vblank_mutex);
-    g_vblank_times[g_vblank_index] = g_vblank_time;
-    g_vblank_index = (g_vblank_index + 1) % VBLANK_COUNT;
-
-    fs_mutex_unlock(g_vblank_mutex);
-
-    g_sleep_until_vsync_last_time = g_vblank_time;
-}
-
 //void fs_ml_wait_vblank() {
 //}
 
 static void sleep_until_vsync() {
-#ifdef NEW_VSYNC
-    int64_t t = fs_get_monotonic_time();
-    int64_t diff = g_next_vblank_at - t;
-    //while (diff < 0) {
-    //    diff += 2000;
-    //}
-    printf("%lld -------> %lld (%lld)\n", t, g_next_vblank_at, diff);
-    int64_t t = fs_get_monotonic_time();
-    int64_t diff = g_next_vblank_at - t;
-
-    if (diff > 0) {
-        diff = diff - 3000;
-        if (diff > 0) {
-            fs_ml_usleep(diff);
-        }
-    }
-    return;
-#else
-
     int sleep_time = 5000;
     int64_t t = fs_emu_monotonic_time();
     //int64_t sleep_until = 0;
@@ -276,7 +267,6 @@ static void sleep_until_vsync() {
         //printf("sleep %d\n", sleep_time);
         fs_ml_usleep(sleep_time);
     }
-#endif
 }
 
 static void full_sleep_until_vsync() {
@@ -346,7 +336,7 @@ static int check_sync_method(const char *a, const char *b) {
     return 0;
 }
 
-static void init_sync_method() {
+static void decide_opengl_sync_method() {
     fs_log("deciding video sync method\n");
     const char *c = fs_config_get_const_string("video_sync_method");
     if (check_sync_method(c, "swap")) {
@@ -399,19 +389,16 @@ static void init_sync_method() {
     }
 }
 
-static void check_opengl_caps() {
-    g_sync_flags = 0;
+static void check_opengl_sync_capabilities() {
     fs_log("checking OpenGL capabilities\n");
     const char *ext = (const char *) glGetString(GL_EXTENSIONS);
     if (ext) {
         if (strstr(ext, "GL_NV_fence") != NULL) {
             g_has_nv_fence = 1;
-            //g_sync_flags |= SYNC_FLAG_FENCE;
             fs_log("GL_NV_fence extension found \n");
         }
         if (strstr(ext, "GL_APPLE_fence") != NULL) {
             g_has_apple_fence = 1;
-            //g_sync_flags |= SYNC_FLAG_FENCE;
             fs_log("GL_APPLE_fence extension found\n");
         }
         if (strstr(ext, "GL_ARB_sync") != NULL) {
@@ -421,12 +408,25 @@ static void check_opengl_caps() {
             glClientWaitSync = __GLeeGetProcAddress("glClientWaitSync");
             if (glFenceSync && glClientWaitSync) {
                 g_has_arb_sync = 1;
-                //g_sync_flags |= SYNC_FLAG_FENCE;
             }
             else {
                 fs_log("error looking up functions\n");
             }
         }
+    }
+}
+
+static void initialize_opengl_sync() {
+    check_opengl_sync_capabilities();
+    decide_opengl_sync_method();
+
+    if (g_has_nv_fence) {
+        glGenFencesNV(1, &g_fence);
+        CHECK_GL_ERROR_MSG("glGenFencesNV(1, &g_fence)");
+    }
+    else if (g_has_apple_fence) {
+        glGenFencesAPPLE(1, &g_fence);
+        CHECK_GL_ERROR_MSG("glGenFencesAPPLE(1, &g_fence)");
     }
 }
 
@@ -481,75 +481,142 @@ static void opengl_fence(int command) {
     }
 }
 
+static void opengl_swap_synchronous() {
+    if (g_sync_method == SYNC_SWAP) {
+        swap_opengl_buffers();
+    }
+    else if (g_sync_method == SYNC_SWAP_FINISH) {
+        swap_opengl_buffers();
+        gl_finish();
+    }
+    else if (g_sync_method == SYNC_FINISH_SWAP_FINISH) {
+        gl_finish();
+        swap_opengl_buffers();
+        gl_finish();
+    }
+    else if (g_sync_method == SYNC_SLEEP_SWAP_FINISH) {
+        sleep_until_vsync();
+        swap_opengl_buffers();
+        gl_finish();
+    }
+    else if (g_sync_method == SYNC_FINISH_SLEEP_SWAP_FINISH) {
+        gl_finish();
+        sleep_until_vsync();
+        swap_opengl_buffers();
+        gl_finish();
+    }
+    else if (g_sync_method == SYNC_SWAP_FENCE) {
+        swap_opengl_buffers();
+        opengl_fence(FENCE_SET);
+        glFlush();
+        opengl_fence(FENCE_WAIT);
+    }
+    else if (g_sync_method == SYNC_SWAP_SLEEP_FENCE) {
+        swap_opengl_buffers();
+        sleep_until_vsync();
+        opengl_fence(FENCE_SET);
+        glFlush();
+        opengl_fence(FENCE_WAIT);
+    }
+}
+
+static void render_iteration_vsync() {
+#if 0
+    if (g_fs_ml_video_sync_low_latency && g_fs_ml_video_sync) {
+        //printf("a0\n");
+        g_mutex_lock(g_video_mutex);
+        //printf("a1\n");
+
+        //printf("- 2\n");
+        g_cond_signal(g_video_cond);
+
+        static GTimeVal abs_time;
+        g_get_current_time(&abs_time);
+        g_time_val_add(&abs_time, 40 * 1000);
+        if (!fs_ml_is_quitting()) {
+            g_cond_timed_wait(g_video_cond, g_video_mutex, &abs_time);
+        }
+        //printf("- 4\n");
+
+        //printf("a3\n");
+        g_mutex_unlock(g_video_mutex);
+        //printf("a4\n");
+    }
+#endif
+
+    if (g_fs_ml_video_sync_low_latency) {
+        int current_frame_at_start = g_available_frame;
+
+        //int64_t t1 = fs_ml_monotonic_time();
+
+        int sleep_time = 0;
+        int time_left = g_estimated_upload_render_duration;
+        int64_t t = fs_emu_monotonic_time();
+        if (g_fs_ml_target_frame_time > 0) {
+            sleep_time = g_estimated_next_vblank_time - t - time_left;
+        }
+        if (sleep_time > g_fs_ml_target_frame_time - time_left) {
+            sleep_time = 0;
+        }
+        if (sleep_time > 0) {
+            fs_ml_usleep(sleep_time);
+        }
+
+        if (g_available_frame > current_frame_at_start) {
+            //printf("low latency %d\n", g_available_frame);
+        }
+        else {
+            //printf("...\n");
+        }
+    }
+
+    update_frame();
+    CHECK_GL_ERROR_MSG("update_frame");
+    render_frame();
+    CHECK_GL_ERROR_MSG("render_frame");
+
+    //opengl_fence(FENCE_SET);
+    //glFlush();
+    //opengl_fence(FENCE_WAIT);
+    //int64_t upload_render_time = fs_ml_monotonic_time() - t1;
+    //printf("urt %lld\n", upload_render_time);
+
+    opengl_swap_synchronous();
+
+    g_measured_vblank_time = fs_ml_monotonic_time();
+    g_vblank_count++;
+    fs_mutex_lock(g_vblank_mutex);
+    g_measured_vblank_times[g_vblank_index] = g_measured_vblank_time;
+    g_vblank_index = (g_vblank_index + 1) % VBLANK_COUNT;
+    fs_mutex_unlock(g_vblank_mutex);
+
+    // FIXME: adjust g_measured_vblank_time based on historical data (smooth out
+    // irregularities) and save the result in g_adjusted_vblank_time
+    g_adjusted_vblank_time = g_measured_vblank_time;
+
+    g_sleep_until_vsync_last_time = g_adjusted_vblank_time;
+    g_estimated_next_vblank_time = g_adjusted_vblank_time + \
+            g_fs_ml_target_frame_time;
+
+    // g_start_new_frame_cond is used to signal that a new frame can be
+    // generated when the emulation is running in sync - this is not used
+    // when only display flipping is synced to vblank
+
+    g_mutex_lock(g_start_new_frame_mutex);
+    g_start_new_frame = 1;
+    g_cond_signal(g_start_new_frame_cond);
+    g_mutex_unlock(g_start_new_frame_mutex);
+}
+
 void fs_ml_render_iteration() {
     static int first = 1;
     if (first) {
-        check_opengl_caps();
-        init_sync_method();
-        if (g_has_nv_fence) {
-            glGenFencesNV(1, &g_fence);
-            CHECK_GL_ERROR_MSG("glGenFencesNV(1, &g_fence)");
-            //printf("created fence\n");
-            //exit(1);
-        }
-        else if (g_has_apple_fence) {
-            glGenFencesAPPLE(1, &g_fence);
-            CHECK_GL_ERROR_MSG("glGenFencesAPPLE(1, &g_fence)");
-        }
         first = 0;
+        initialize_opengl_sync();
     }
 
-    g_sync_flags = 0;
-
     if (g_fs_ml_vblank_sync) {
-        frame_wait();
-        update_frame();
-        CHECK_GL_ERROR_MSG("update_frame");
-
-        render_frame();
-        CHECK_GL_ERROR_MSG("render_frame");
-
-        glFlush();
-
-        if (g_sync_method == SYNC_SWAP) {
-            swap_opengl_buffers();
-        }
-        else if (g_sync_method == SYNC_SWAP_FINISH) {
-            swap_opengl_buffers();
-            gl_finish();
-        }
-        else if (g_sync_method == SYNC_FINISH_SWAP_FINISH) {
-            gl_finish();
-            swap_opengl_buffers();
-            gl_finish();
-        }
-        else if (g_sync_method == SYNC_SLEEP_SWAP_FINISH) {
-            sleep_until_vsync();
-            swap_opengl_buffers();
-            gl_finish();
-        }
-        else if (g_sync_method == SYNC_FINISH_SLEEP_SWAP_FINISH) {
-            gl_finish();
-            sleep_until_vsync();
-            swap_opengl_buffers();
-            gl_finish();
-        }
-        else if (g_sync_method == SYNC_SWAP_FENCE) {
-            swap_opengl_buffers();
-            opengl_fence(FENCE_SET);
-            glFlush();
-            opengl_fence(FENCE_WAIT);
-        }
-        else if (g_sync_method == SYNC_SWAP_SLEEP_FENCE) {
-            swap_opengl_buffers();
-            sleep_until_vsync();
-            opengl_fence(FENCE_SET);
-            glFlush();
-            opengl_fence(FENCE_WAIT);
-        }
-
-        vblank_post_handler();
-        synchronized_buffer_swap();
+        render_iteration_vsync();
     }
     else if (g_fs_ml_benchmarking) {
         update_frame();
@@ -559,17 +626,31 @@ void fs_ml_render_iteration() {
     else {
         // when vsync is off, we wait until a new frame is ready and
         // then we display it immediately
-        g_mutex_lock(g_video_mutex);
 
-        // FIXME: TEST THE FOLLOWING...
-        // wait max 40 ms to allow the user interface to work even if
-        // the emu hangs
-        GTimeVal abs_time;
-        g_get_current_time(&abs_time);
-        g_time_val_add(&abs_time, 40 * 1000);
-        g_cond_timed_wait(g_video_cond, g_video_mutex, &abs_time);
+        if (fs_ml_is_quitting()) {
+            // but when the emulation is quitting, we can't expect any new
+            // frames so there's no point waiting for them. Instead, we just
+            // sleep a bit to throttle the frame rate for the quit animation
+            fs_ml_usleep(10000);
+        }
+        else {
+            // wait max 33 ms to allow the user interface to work even if
+            // the emu hangs
 
-        g_mutex_unlock(g_video_mutex);
+            GTimeVal abs_time;
+
+            g_mutex_lock(g_frame_available_mutex);
+            while (g_rendered_frame == g_available_frame) {
+                //printf("%d %d\n", g_rendered_frame, g_available_frame);
+                g_get_current_time(&abs_time);
+                g_time_val_add(&abs_time, 33 * 1000);
+
+                g_cond_timed_wait(g_frame_available_cond,
+                        g_frame_available_mutex, &abs_time);
+            }
+            g_mutex_unlock(g_frame_available_mutex);
+        }
+
         update_frame();
         render_frame();
         swap_opengl_buffers();
@@ -582,19 +663,18 @@ void fs_ml_render_iteration() {
 }
 
 void fs_ml_render_init() {
-    g_video_cond = g_cond_new();
-    g_video_mutex = g_mutex_new();
+    g_frame_available_cond = g_cond_new();
+    g_frame_available_mutex = g_mutex_new();
+
+    g_start_new_frame_cond = g_cond_new();
+    g_start_new_frame_mutex = g_mutex_new();
 
     g_buffer_swap_cond = g_cond_new();
     g_buffer_swap_mutex = g_mutex_new();
 
     g_epoch = fs_get_monotonic_time();
     g_vblank_mutex = fs_mutex_create();
-    //fs_emu_stat_queue_init(&g_vblank_times, VBLANK_TIMES_COUNT);
-
-#ifdef NEW_VSYNC
-    g_thread_create(vblank_thread, NULL, FALSE, NULL);
-#endif
+    //fs_emu_stat_queue_init(&g_measured_vblank_times, VBLANK_TIMES_COUNT);
 
     if (fs_config_get_boolean("low_latency_vsync") == 1) {
         fs_log("using low latency vsync when full vsync is enabled\n");

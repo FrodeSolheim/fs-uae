@@ -652,7 +652,7 @@ uint8_t *uae_get_render_buffer() {
 #define R5G5B5A1_MASK_B 0x003e
 #define R5G5B5A1_MASK_A 0x0001
 
-int graphics_init(void) {
+int graphics_init(bool mousecapture) {
     write_log("graphics_init\n");
 
     // FIXME: perhaps modify so custom_limits defaults to -1, -1, -1, -1

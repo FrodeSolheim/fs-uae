@@ -278,9 +278,9 @@ int port_insert_custom (int inputmap_port, int devicetype, DWORD flags, const TC
 
 	kb = inputdevice_get_device_total (IDTYPE_JOYSTICK) + inputdevice_get_device_total (IDTYPE_MOUSE);
 
-	inputdevice_updateconfig_internal (&changed_prefs);
+	inputdevice_updateconfig_internal (NULL, &changed_prefs);
 	inputdevice_compa_prepare_custom (&changed_prefs, inputmap_port, devicetype);
-	inputdevice_updateconfig_internal (&changed_prefs);
+	inputdevice_updateconfig_internal (NULL, &changed_prefs);
 	max = inputdevice_get_compatibility_input (&changed_prefs, inputmap_port, &mode, &events, &axistable);
 	write_log (_T("custom='%s' max=%d port=%d dt=%d kb=%d kbnum=%d\n"), custom, max, inputmap_port, devicetype, kb, inputdevice_get_device_total (IDTYPE_KEYBOARD));
 	if (!max)
@@ -355,8 +355,8 @@ int port_insert_custom (int inputmap_port, int devicetype, DWORD flags, const TC
 		}
 	}
 
-	inputdevice_updateconfig_internal (&changed_prefs);
-	inputdevice_updateconfig (&currprefs);
+	inputdevice_updateconfig_internal (NULL, &changed_prefs);
+	inputdevice_updateconfig (NULL, &currprefs);
 	return TRUE;
 }
 
@@ -599,15 +599,19 @@ static void get_screenmode (struct RPScreenMode *sm, struct uae_prefs *p)
 			vres = max_vert_dbl;
 		vres += getmult (vmult, &half);
 
+#if 0
 		if (hres > RES_SUPERHIRES)
 			hres = RES_SUPERHIRES;
 		if (vres > VRES_QUAD)
 			vres = VRES_QUAD;
+#endif
 
-		if (hres == RES_HIRES) {
+		if (hres == RES_SUPERHIRES) {
 			m = half ? RP_SCREENMODE_SCALE_3X : RP_SCREENMODE_SCALE_2X;
-		} else if (hres >= RES_SUPERHIRES) {
+		} else if (hres >= RES_SUPERHIRES + 1) {
 			m = half ? RP_SCREENMODE_SCALE_3X : RP_SCREENMODE_SCALE_4X;
+		} else {
+			m = RP_SCREENMODE_SCALE_1X;
 		}
 
 		sm->lClipLeft = p->gfx_xcenter_pos < 0 ? -1 : p->gfx_xcenter_pos;
@@ -698,8 +702,8 @@ static void set_screenmode (struct RPScreenMode *sm, struct uae_prefs *p)
 
 		if (smm == RP_SCREENMODE_SCALE_3X) {
 
-			hdbl = RES_HIRES;
-			vdbl = VRES_DOUBLE;
+			hdbl = RES_SUPERHIRES;
+			vdbl = VRES_QUAD;
 			hmult = 1.5;
 			vmult = 1.5;
 			half = true;
@@ -719,14 +723,17 @@ static void set_screenmode (struct RPScreenMode *sm, struct uae_prefs *p)
 
 			half = false;
 			if (smm == RP_SCREENMODE_SCALE_2X) {
-				hdbl = RES_HIRES;
-				vdbl = VRES_DOUBLE;
-			} else if (smm == RP_SCREENMODE_SCALE_4X) {
+				// 2X
 				hdbl = RES_SUPERHIRES;
 				vdbl = VRES_QUAD;
+			} else if (smm == RP_SCREENMODE_SCALE_4X) {
+				// 4X
+				hdbl = RES_SUPERHIRES + 1;
+				vdbl = VRES_QUAD + 1;
 			} else {
-				hdbl = RES_LORES;
-				vdbl = VRES_NONDOUBLE;
+				// 1X
+				hdbl = RES_HIRES;
+				vdbl = VRES_DOUBLE;
 			}
 
 			if (smm > RP_SCREENMODE_SCALE_4X || smm == RP_SCREENMODE_SCALE_MAX) {
@@ -986,7 +993,7 @@ static LRESULT CALLBACK RPHostMsgFunction2 (UINT uMessage, WPARAM wParam, LPARAM
 			case RP_DEVICECATEGORY_INPUTPORT:
 				ok = port_insert (num, dc->dwInputDevice, dc->dwFlags, n);
 				if (ok)
-					inputdevice_updateconfig (&currprefs);
+					inputdevice_updateconfig (&changed_prefs, &currprefs);
 				break;
 			case RP_DEVICECATEGORY_CD:
 				ok = cd_insert (num, n);

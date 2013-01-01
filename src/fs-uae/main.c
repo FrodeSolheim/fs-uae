@@ -422,7 +422,12 @@ void list_joysticks() {
         return;
     }
     for(int i = 0; i < SDL_NumJoysticks(); i++) {
-        printf("%s\n", SDL_JoystickName(i));
+        if (SDL_JoystickName(i)[0] == '\0') {
+            printf("Unnamed\n");
+        }
+        else {
+            printf("%s\n", SDL_JoystickName(i));
+        }
     }
 }
 

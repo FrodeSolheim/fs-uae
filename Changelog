@@ -1,8 +1,24 @@
+Version 2.1.13:
+
+* Merged updated emulation core from WinUAE 2.5.1.
+* Fixed performance when using full video sync.
+* Fix right alt key on Linux.
+* Use joystick name "Unnamed" when joystick device has no name.
+* Support action_none, so keys can be mapped against "no action".
+* Fixed crash when entering fullscreen mode on OS X 10.5 [Tobias Netzel].
+* Tuned autoscaling for CD32 boot and menu screens.
+* (Launcher) Fixed WHDLoad games in directories with + in name.
+* (Launcher) Some improvements for the game database support.
+* (Launcher) Show year/publisher/developer information if available.
+* (Launcher) URL buttons for links to game entries on several game web sites.
+
 Version 2.1.12:
+
 * Tweaked CD32 startup animation viewport.
 * (Launcher) Fixed Startup-Sequence for WHDLoad.
 
 Version 2.1.11:
+
 * Config for gamtec_ltd/smartjoy_plus_adapter.ini [JOPS].
 * Small compilation fix for OS X 10.5
 * (Launcher) Handle square-ish covers.
@@ -13,6 +29,7 @@ Version 2.1.11:
 * (Launcher) Kickstart import task can overwrite old read-only files.
 
 Version 2.1.10:
+
 * Merged updated emulation core from WinUAE 2.5.0.
 * (Launcher) Support (empty) HD directories in database configurations.
 * (Launcher) Use standard WHDLoad settings by default.
@@ -23,6 +40,7 @@ Version 2.1.10:
 * (Launcher) Updated translations: pt [Treco].
 
 Version 2.1.9:
+
 * Updated bitmap font with additional characters for Turkish.
 * (Launcher) Show only game entries in the main list, show game variants
   for selected game in separate list.
@@ -31,16 +49,19 @@ Version 2.1.9:
 * (Launcher) Updated translations: pt [Treco], sr [Milanchez].
 
 Version 2.1.8:
+
 * (Launcher) Fixed Amiga model selection when database key kickstart
   is used in combination with fast_memory > 8192 (Zorro III).
 * (Launcher) Updated translations: es [albconde].
 
 Version 2.1.7:
+
 * Merged updated emulation core from WinUAE 2.5.0beta27.
 * (Launcher) WHDLoad support in combination with online database.
 * (Launcher) Updated translations: it [Speedvicio], pl [grimi].
 
 Version 2.1.6:
+
 * Updated bitmap font with additional characters for Portuguese.
 * (Launcher) Fix a bug where missing files stopped the scan process (when
   using the database feature).
@@ -48,6 +69,7 @@ Version 2.1.6:
 * (Launcher) Updated translations: fr [Foul], de [nexusle].
 
 Version 2.1.5:
+
 * Use Windows API function to prevent display from going to sleep.
 * Added translations: pt [Treco].
 * (Launcher) Initial online database support.

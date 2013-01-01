@@ -18,6 +18,9 @@ class ValueConfigLoader:
         self.config = {}
         self.options = {}
         self.uuid = uuid
+        if uuid:
+            self.options["database_url"] = "http://fengestad.no/games/" \
+                    "game/" + uuid
 
     def get_config(self):
         return self.config.copy()
@@ -121,7 +124,7 @@ class ValueConfigLoader:
             self.config["x_cdrom_image_{0}_sha1".format(i)] = sha1
 
     def load_option(self, key, value):
-        if key == "viewport":
+        if key in ["variant_viewport", "viewport"]:
             if "=" in value:
                 parts = value.split(",")
                 for i in range(len(parts)):
@@ -189,7 +192,9 @@ class ValueConfigLoader:
         elif key in ["amiga_model", "chip_memory",
                 "floppy_drive_count", "slow_memory", "front_sha1",
                 "screen1_sha1", "screen2_sha1", "screen3_sha1",
-                "screen4_sha1", "screen5_sha1", "title_sha1"]:
+                "screen4_sha1", "screen5_sha1", "title_sha1",
+                "year", "publisher", "developer", "hol_url",
+                "lemon_url", "wikipedia_url", "languages"]:
             self.options[key] = value
 
     #def load_game_info(self, uuid):

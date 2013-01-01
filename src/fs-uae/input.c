@@ -403,6 +403,7 @@ static fs_emu_action g_actions[] = {
 
     { INPUTEVENT_SPC_ENTERDEBUGGER, "action_enter_debugger", 0 },
 
+    { 65536, "action_none", 0 },
     { 0, 0, 0 },
 };
 

@@ -178,15 +178,15 @@
 #define HAVE_STRSTR 1
 
 /* Define to 1 if `st_blocks' is a member of `struct stat'. */
-#ifndef WINDOWS
-#define HAVE_STRUCT_STAT_ST_BLOCKS 1
-#endif
+//#ifndef WINDOWS
+//#define HAVE_STRUCT_STAT_ST_BLOCKS 1
+//#endif
 
 /* Define to 1 if your `struct stat' has `st_blocks'. Deprecated, use
    `HAVE_STRUCT_STAT_ST_BLOCKS' instead. */
-#ifndef WINDOWS
-#define HAVE_ST_BLOCKS 1
-#endif
+//#ifndef WINDOWS
+//#define HAVE_ST_BLOCKS 1
+//#endif
 
 /* Define to 1 if you have the <sun/audioio.h> header file. */
 /* #undef HAVE_SUN_AUDIOIO_H */

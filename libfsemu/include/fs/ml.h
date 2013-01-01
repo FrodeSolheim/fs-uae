@@ -31,6 +31,7 @@ extern int g_fs_ml_opengl_context_stamp;
 void fs_ml_toggle_fullscreen();
 
 typedef void (*fs_ml_simple_function)();
+typedef int (*fs_ml_int_result_function)();
 
 typedef struct fs_ml_video_mode {
     int width;
@@ -74,7 +75,7 @@ int fs_ml_video_create_window(const char *title);
 
 void fs_ml_set_quit_function(fs_ml_simple_function function);
 
-void fs_ml_video_set_update_function(fs_ml_simple_function function);
+void fs_ml_video_set_update_function(fs_ml_int_result_function function);
 void fs_ml_video_set_render_function(fs_ml_simple_function function);
 void fs_ml_video_set_post_render_function(fs_ml_simple_function function);
 
@@ -82,8 +83,8 @@ void fs_ml_video_set_post_render_function(fs_ml_simple_function function);
 //void fs_ml_lock_buffer_swap();
 //void fs_ml_unlock_buffer_swap();
 
-void fs_ml_frame_update_begin();
-void fs_ml_frame_update_end();
+void fs_ml_frame_update_begin(int frame);
+void fs_ml_frame_update_end(int frame);
 
 int fs_ml_video_width();
 int fs_ml_video_height();

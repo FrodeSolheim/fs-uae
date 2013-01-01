@@ -23,7 +23,7 @@ class LaunchGroup(fsui.Group):
 
         self.start_button = fsui.Button(parent, _("Start"))
         self.start_button.on_activate = self.on_start_button
-        self.layout.add(self.start_button, margin_left=20)
+        self.layout.add(self.start_button, margin_left=10)
 
     def on_start_button(self):
         #from ..netplay.Netplay import Netplay

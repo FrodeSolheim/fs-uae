@@ -37,7 +37,7 @@ int g_fs_ml_target_frame_time = 0;
 // to reload textures, etc)
 int g_fs_ml_opengl_context_stamp = 0;
 
-fs_ml_simple_function g_fs_ml_video_update_function = NULL;
+fs_ml_int_result_function g_fs_ml_video_update_function = NULL;
 fs_ml_simple_function g_fs_ml_video_render_function = NULL;
 fs_ml_simple_function g_fs_ml_video_post_render_function = NULL;
 
@@ -121,7 +121,7 @@ int fs_ml_video_height() {
     return g_fs_ml_video_height;
 }
 
-void fs_ml_video_set_update_function(fs_ml_simple_function function) {
+void fs_ml_video_set_update_function(fs_ml_int_result_function function) {
     g_fs_ml_video_update_function = function;
 }
 

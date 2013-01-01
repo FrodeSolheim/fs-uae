@@ -4,6 +4,7 @@
 #include "fsdb.h"
 #include "uae_host.h"
 #include "filesys.h"
+#include "zfile.h"
 #include <fs/fs.h>
 #include <glib.h>
 #include <unistd.h>
@@ -26,6 +27,36 @@ struct my_openfile_s {
 };
 
 int my_errno = 0;
+
+bool my_utime (const TCHAR *name, struct mytimeval *tv) {
+
+}
+
+bool my_chmod (const TCHAR *name, uae_u32 mode) {
+    STUB("");
+}
+
+bool my_stat (const TCHAR *name, struct mystat *ms) {
+    struct fs_stat sonuc;
+    int ret = 0;
+    if (fs_stat(name, &sonuc) == -1) {
+        write_log("my_stat: stat on file %s failed\n", name);
+        return false;
+    }
+    ms->size = sonuc.size;
+    ms->mode = 0;
+    if (sonuc.mode & S_IRUSR) {
+        ms->mode |= FILEFLAG_READ;
+    }
+    if (sonuc.mode & S_IWUSR) {
+        ms->mode |= FILEFLAG_WRITE;
+    }
+    ms->mtime.tv_sec = sonuc.mtime;
+    ms->mtime.tv_usec = 0;
+#ifdef HAVE_ST_BLOCKS
+    //ms->blocks = sonuc.st_blocks;
+#endif
+}
 
 static int compare_strings(const void *a, const void *b) {
     return strcmp((const char *) a, (const char *) b);

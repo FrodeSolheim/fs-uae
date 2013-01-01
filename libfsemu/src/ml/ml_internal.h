@@ -3,7 +3,7 @@
 
 #include "fs/ml.h"
 
-extern fs_ml_simple_function g_fs_ml_video_update_function;
+extern fs_ml_int_result_function g_fs_ml_video_update_function;
 extern fs_ml_simple_function g_fs_ml_video_render_function;
 extern fs_ml_simple_function g_fs_ml_video_post_render_function;
 extern int g_fs_ml_video_width;

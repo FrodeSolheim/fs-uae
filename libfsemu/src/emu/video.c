@@ -157,7 +157,9 @@ void copy_buffer_data(fs_emu_video_buffer *new_buffer,
         return;
     }
 
-    int stride = new_buffer->width * new_buffer->bpp;
+    int src_stride = old_buffer->width * old_buffer->bpp;
+    int dst_stride = new_buffer->width * new_buffer->bpp;
+
     unsigned char *src, *dst;
     int width;
     int first_line, last_line;
@@ -165,13 +167,16 @@ void copy_buffer_data(fs_emu_video_buffer *new_buffer,
     //int crop = g_fs_emu_video_crop_mode;
     int crop = 0;
 
+    // calculate copy parameters
     if (crop) {
         width = new_buffer->crop.w;
         first_line = new_buffer->crop.y;
         last_line = new_buffer->crop.y + new_buffer->crop.h - 1;
 
-        src = old_buffer->data + stride * first_line + new_buffer->crop.x * g_fs_emu_video_bpp;
-        dst = new_buffer->data + stride * first_line + new_buffer->crop.x * g_fs_emu_video_bpp;
+        src = old_buffer->data + src_stride * first_line + \
+                new_buffer->crop.x * g_fs_emu_video_bpp;
+        dst = new_buffer->data + dst_stride * first_line + \
+                new_buffer->crop.x * g_fs_emu_video_bpp;
     }
     else {
         // no cropping; must copy the entire line
@@ -182,62 +187,14 @@ void copy_buffer_data(fs_emu_video_buffer *new_buffer,
         src = old_buffer->data;
         dst = new_buffer->data;
     }
-#if 0
-    if (!g_fs_emu_scanlines) {
-#endif
-        for (int y = first_line; y <= last_line; y++) {
-            if (new_buffer->line[y]) {
-                memcpy(dst, src, width * g_fs_emu_video_bpp);
-            }
-            src += stride;
-            dst += stride;
+    // actually copy the lines
+    for (int y = first_line; y <= last_line; y++) {
+        if (new_buffer->line[y]) {
+            memcpy(dst, src, width * g_fs_emu_video_bpp);
         }
-#if 0
+        src += src_stride;
+        dst += dst_stride;
     }
-    else {
-        for (int y = first_line; y <= last_line; y++) {
-            if (new_buffer->line[y]) {
-                memcpy(dst, src, width * g_fs_emu_video_bpp);
-            }
-            else {
-                unsigned char *p = dst;
-                if ((y % 2) == 0) {
-                    if (g_fs_emu_scanlines_dark == 0) {
-                        continue;
-                    }
-                    for (int x = 0; x < width; x++) {
-                        *p = (*p * g_fs_emu_scanlines_dark_i) / 256;
-                        p++;
-                        *p = (*p * g_fs_emu_scanlines_dark_i) / 256;
-                        p++;
-                        *p = (*p * g_fs_emu_scanlines_dark_i) / 256;
-                        // FIXME: depends on bpp
-                        p += 2;
-                    }
-                }
-                else {
-                    if (g_fs_emu_scanlines_light == 0) {
-                        continue;
-                    }
-                    for (int x = 0; x < width; x++) {
-                        *(p) = (*p * g_fs_emu_scanlines_light_i) / 256
-                                + g_fs_emu_scanlines_light;
-                        p++;
-                        *(p) = (*p * g_fs_emu_scanlines_light_i) / 256
-                                + g_fs_emu_scanlines_light;
-                        p++;
-                        *(p) = (*p * g_fs_emu_scanlines_light_i) / 256
-                                + g_fs_emu_scanlines_light;
-                        // FIXME: depends on bpp
-                        p += 2;
-                    }
-                }
-            }
-            src += stride;
-            dst += stride;
-        }
-    }
-#endif
 }
 
 void fs_emu_set_video_buffer(fs_emu_video_buffer *buffer) {
@@ -248,17 +205,19 @@ void fs_emu_set_video_buffer(fs_emu_video_buffer *buffer) {
         g_fs_emu_total_emu_frames++;
     }
 
+    // lines which are not updated in this frame are copied from the last
+    // completed video frame
     copy_buffer_data(buffer, g_video_buffer_current);
 
     update_video_stats_1();
 
-    fs_ml_frame_update_begin();
+    fs_ml_frame_update_begin(buffer->seq);
 
     g_mutex_lock(g_video_buffers_mutex);
     g_video_buffer_current = buffer;
     g_mutex_unlock(g_video_buffers_mutex);
 
-    fs_ml_frame_update_end();
+    fs_ml_frame_update_end(buffer->seq);
 
     update_video_stats_2();
 

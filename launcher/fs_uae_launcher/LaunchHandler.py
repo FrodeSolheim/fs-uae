@@ -377,7 +377,7 @@ class LaunchHandler:
                 f.write("C:SetPatch\n")
                 f.write("EndIF\n")
                 f.write("\n")
-                f.write("cd {0}\n".format(whdload_dir))
+                f.write("cd \"{0}\"\n".format(whdload_dir))
                 f.write("WHDLoad {0}\n".format(whdload_args))
                 f.write("uae-configuration SPC_QUIT 1\n")
 
@@ -385,7 +385,7 @@ class LaunchHandler:
         # base WHDLoad directory with an existing startup-sequence
         user_startup = os.path.join(s_dir, "User-Startup")
         with open(user_startup, "ab") as f:
-            f.write("cd {0}\n".format(whdload_dir))
+            f.write("cd \"{0}\"\n".format(whdload_dir))
             f.write("WHDLoad {0}\n".format(whdload_args))
             f.write("uae-configuration SPC_QUIT 1\n")
 
@@ -565,6 +565,7 @@ class LaunchHandler:
                 cls.copy_folder_tree(itempath, destitempath)
             else:
                 if overwrite or not os.path.exists(destitempath):
+                    print("copy", repr(itempath), "to", repr(destitempath))
                     shutil.copy(itempath, destitempath)
 
 whdload_17_0_files = {

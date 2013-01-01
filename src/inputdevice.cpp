@@ -277,6 +277,8 @@ static void freejport (struct uae_prefs *dst, int num)
 }
 static void copyjport (const struct uae_prefs *src, struct uae_prefs *dst, int num)
 {
+	if (!src)
+		return;
 	freejport (dst, num);
 	_tcscpy (dst->jports[num].configname, src->jports[num].configname);
 	_tcscpy (dst->jports[num].name, src->jports[num].name);
@@ -1744,7 +1746,9 @@ static int getvelocity (int num, int subnum, int pct)
 	return v;
 }
 
-static void mouseupdate (int pct, int vsync)
+#define MOUSEXY_MAX 16384
+
+static void mouseupdate (int pct, bool vsync)
 {
 	int v, i;
 	int max = 120;
@@ -1797,10 +1801,26 @@ static void mouseupdate (int pct, int vsync)
 			v = getvelocity (i, 0, pct);
 			mxd += v;
 			mouse_x[i] += v;
+			if (mouse_x[i] < 0) {
+				mouse_x[i] += MOUSEXY_MAX;
+				mouse_frame_x[i] = mouse_x[i] - v;
+			}
+			if (mouse_x[i] >= MOUSEXY_MAX) {
+				mouse_x[i] -= MOUSEXY_MAX;
+				mouse_frame_x[i] = mouse_x[i] - v;
+			}
 
 			v = getvelocity (i, 1, pct);
 			myd += v;
 			mouse_y[i] += v;
+			if (mouse_y[i] < 0) {
+				mouse_y[i] += MOUSEXY_MAX;
+				mouse_frame_y[i] = mouse_y[i] - v;
+			}
+			if (mouse_y[i] >= MOUSEXY_MAX) {
+				mouse_y[i] -= MOUSEXY_MAX;
+				mouse_frame_y[i] = mouse_y[i] - v;
+			}
 
 			v = getvelocity (i, 2, pct);
 			if (v > 0)
@@ -1810,10 +1830,14 @@ static void mouseupdate (int pct, int vsync)
 			if (!mouse_deltanoreset[i][2])
 				mouse_delta[i][2] = 0;
 
-			if (mouse_frame_x[i] - mouse_x[i] > max)
+			if (mouse_frame_x[i] - mouse_x[i] > max) {
 				mouse_x[i] = mouse_frame_x[i] - max;
-			if (mouse_frame_x[i] - mouse_x[i] < -max)
+				mouse_x[i] &= MOUSEXY_MAX - 1;
+			}
+			if (mouse_frame_x[i] - mouse_x[i] < -max) {
 				mouse_x[i] = mouse_frame_x[i] + max;
+				mouse_x[i] &= MOUSEXY_MAX - 1;
+			}
 
 			if (mouse_frame_y[i] - mouse_y[i] > max)
 				mouse_y[i] = mouse_frame_y[i] - max;
@@ -1840,9 +1864,9 @@ static void readinput (void)
 	diff = totalvpos - input_vpos;
 	if (diff > 0) {
 		if (diff < 10) {
-			mouseupdate (0, 0);
+			mouseupdate (0, false);
 		} else {
-			mouseupdate (diff * 1000 / current_maxvpos (), 0);
+			mouseupdate (diff * 1000 / current_maxvpos (), false);
 		}
 	}
 	input_vpos = totalvpos;
@@ -2789,7 +2813,7 @@ void inputdevice_handle_inputcode (void)
 	case AKS_INPUT_CONFIG_3:
 	case AKS_INPUT_CONFIG_4:
 		changed_prefs.input_selected_setting = currprefs.input_selected_setting = code - AKS_INPUT_CONFIG_1;
-		inputdevice_updateconfig (&currprefs);
+		inputdevice_updateconfig (&changed_prefs, &currprefs);
 		break;
 	case AKS_DISK_PREV0:
 	case AKS_DISK_PREV1:
@@ -2844,6 +2868,13 @@ static int handle_input_event (int nr, int state, int max, int autofire, bool ca
 
 	if (nr <= 0 || nr == INPUTEVENT_SPC_CUSTOM_EVENT)
 		return 0;
+
+#ifdef _WIN32
+	// ignore norrmal GUI event if forced gui key is in use
+	if (currprefs.win32_guikey >= 0 && nr == INPUTEVENT_SPC_ENTERGUI)
+		return 0;
+#endif
+
 	ie = &events[nr];
 	if (isqual (nr))
 		return 0; // qualifiers do nothing
@@ -3183,7 +3214,7 @@ static void inputdevice_checkconfig (void)
 			currprefs.input_autofire_linecnt = changed_prefs.input_autofire_linecnt;
 			currprefs.input_mouse_speed = changed_prefs.input_mouse_speed;
 
-			inputdevice_updateconfig (&currprefs);
+			inputdevice_updateconfig (&changed_prefs, &currprefs);
 	}
 	if (currprefs.dongle != changed_prefs.dongle) {
 		currprefs.dongle = changed_prefs.dongle;
@@ -3197,7 +3228,7 @@ void inputdevice_vsync (void)
 		write_log (_T("*\n"));
 
 	input_frame++;
-	mouseupdate (0, 1);
+	mouseupdate (0, true);
 
 	if (!input_record) {
 		inputdevice_read ();
@@ -5013,56 +5044,56 @@ static void resetinput (void)
 }
 
 
-void inputdevice_updateconfig_internal (struct uae_prefs *prefs)
+void inputdevice_updateconfig_internal (const struct uae_prefs *srcprrefs, struct uae_prefs *dstprefs)
 {
 	int i;
 
 	keyboard_default = keyboard_default_table[currprefs.input_keyboard_type];
 
-	copyjport (&changed_prefs, &currprefs, 0);
-	copyjport (&changed_prefs, &currprefs, 1);
-	copyjport (&changed_prefs, &currprefs, 2);
-	copyjport (&changed_prefs, &currprefs, 3);
+	copyjport (srcprrefs, dstprefs, 0);
+	copyjport (srcprrefs, dstprefs, 1);
+	copyjport (srcprrefs, dstprefs, 2);
+	copyjport (srcprrefs, dstprefs, 3);
 
 	resetinput ();
 
-	joysticks = prefs->joystick_settings[prefs->input_selected_setting];
-	mice = prefs->mouse_settings[prefs->input_selected_setting];
-	keyboards = prefs->keyboard_settings[prefs->input_selected_setting];
-	internalevents = prefs->internalevent_settings[prefs->input_selected_setting];
+	joysticks = dstprefs->joystick_settings[dstprefs->input_selected_setting];
+	mice = dstprefs->mouse_settings[dstprefs->input_selected_setting];
+	keyboards = dstprefs->keyboard_settings[dstprefs->input_selected_setting];
+	internalevents = dstprefs->internalevent_settings[dstprefs->input_selected_setting];
 
-	matchdevices_all (prefs);
+	matchdevices_all (dstprefs);
 
 	memset (joysticks2, 0, sizeof joysticks2);
 	memset (mice2, 0, sizeof mice2);
 
-	joysticks = prefs->joystick_settings[GAMEPORT_INPUT_SETTINGS];
-	mice = prefs->mouse_settings[GAMEPORT_INPUT_SETTINGS];
-	keyboards = prefs->keyboard_settings[GAMEPORT_INPUT_SETTINGS];
-	internalevents = prefs->internalevent_settings[GAMEPORT_INPUT_SETTINGS];
+	joysticks = dstprefs->joystick_settings[GAMEPORT_INPUT_SETTINGS];
+	mice = dstprefs->mouse_settings[GAMEPORT_INPUT_SETTINGS];
+	keyboards = dstprefs->keyboard_settings[GAMEPORT_INPUT_SETTINGS];
+	internalevents = dstprefs->internalevent_settings[GAMEPORT_INPUT_SETTINGS];
 
 	for (i = 0; i < MAX_INPUT_SETTINGS; i++) {
 		joysticks[i].enabled = 0;
 		mice[i].enabled = 0;
 	}
 
-	compatibility_copy (prefs, true);
-	joysticks = prefs->joystick_settings[prefs->input_selected_setting];
-	mice = prefs->mouse_settings[prefs->input_selected_setting];
-	keyboards = prefs->keyboard_settings[prefs->input_selected_setting];
-	internalevents = prefs->internalevent_settings[prefs->input_selected_setting];
+	compatibility_copy (dstprefs, true);
+	joysticks = dstprefs->joystick_settings[dstprefs->input_selected_setting];
+	mice = dstprefs->mouse_settings[dstprefs->input_selected_setting];
+	keyboards = dstprefs->keyboard_settings[dstprefs->input_selected_setting];
+	internalevents = dstprefs->internalevent_settings[dstprefs->input_selected_setting];
 
-	if (prefs->input_selected_setting != GAMEPORT_INPUT_SETTINGS) {
-		compatibility_copy (prefs, false);
+	if (dstprefs->input_selected_setting != GAMEPORT_INPUT_SETTINGS) {
+		compatibility_copy (dstprefs, false);
 	}
 
-	disableifempty (prefs);
-	scanevents (prefs);
+	disableifempty (dstprefs);
+	scanevents (dstprefs);
 }
 
-void inputdevice_updateconfig (struct uae_prefs *prefs)
+void inputdevice_updateconfig (const struct uae_prefs *srcprefs, struct uae_prefs *dstprefs)
 {
-	inputdevice_updateconfig_internal (prefs);
+	inputdevice_updateconfig_internal (srcprefs, dstprefs);
 	
 	config_changed = 1;
 
@@ -5086,10 +5117,13 @@ void inputdevice_devicechange (struct uae_prefs *prefs)
 	int i, idx;
 	TCHAR *jports[MAX_JPORTS];
 	int jportskb[MAX_JPORTS], jportsmode[MAX_JPORTS];
+	int jportid[MAX_JPORTS], jportaf[MAX_JPORTS];
 
 	for (i = 0; i < MAX_JPORTS; i++) {
 		jports[i] = NULL;
 		jportskb[i] = -1;
+		jportid[i] = prefs->jports[i].id;
+		jportaf[i] = prefs->jports[i].autofire;
 		idx = inputdevice_getjoyportdevice (i, prefs->jports[i].id);
 		if (idx >= JSEM_LASTKBD) {
 			struct inputdevice_functions *idf;
@@ -5117,14 +5151,17 @@ void inputdevice_devicechange (struct uae_prefs *prefs)
 
 	for (i = 0; i < MAX_JPORTS; i++) {
 		freejport (prefs, i);
-		if (jports[i]) {
+		if (jportid[i] == JPORT_CUSTOM) {
+			inputdevice_joyport_config (prefs, _T("custom"), i, jportsmode[i], 0);
+		} else if (jports[i]) {
 			inputdevice_joyport_config (prefs, jports[i], i, jportsmode[i], 2);
-			xfree (jports[i]);
 		} else if (jportskb[i] >= 0) {
 			TCHAR tmp[10];
 			_stprintf (tmp, _T("kbd%d"), jportskb[i]);
 			inputdevice_joyport_config (prefs, tmp, i, jportsmode[i], 0);
 		}
+		prefs->jports[i].autofire = jportaf[i];
+		xfree (jports[i]);
 	}
 
 	if (prefs == &changed_prefs)
@@ -5937,7 +5974,7 @@ void inputdevice_copyconfig (const struct uae_prefs *src, struct uae_prefs *dst)
 		}
 	}
 
-	inputdevice_updateconfig (dst);
+	inputdevice_updateconfig (src, dst);
 }
 
 static void swapjoydevice (struct uae_input_device *uid, int **swaps)
@@ -5991,7 +6028,7 @@ void inputdevice_swap_compa_ports (struct uae_prefs *prefs, int portswap)
 	memcpy (&tmp, &prefs->jports[portswap], sizeof (struct jport));
 	memcpy (&prefs->jports[portswap], &prefs->jports[portswap + 1], sizeof (struct jport));
 	memcpy (&prefs->jports[portswap + 1], &tmp, sizeof (struct jport));
-	inputdevice_updateconfig (prefs);
+	inputdevice_updateconfig (NULL, prefs);
 }
 
 // swap device "devnum" ports 0<>1 and 2<>3

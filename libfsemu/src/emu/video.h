@@ -22,7 +22,7 @@ void fs_emu_video_render_debug_info(uint32_t *texture);
 void fs_emu_video_init();
 void fs_emu_video_init_opengl();
 
-void fs_emu_video_update_function();
+int fs_emu_video_update_function();
 void fs_emu_video_render_function();
 
 void fs_emu_video_after_update();

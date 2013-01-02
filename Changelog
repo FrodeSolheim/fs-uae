@@ -1,3 +1,14 @@
+Version 2.1.15:
+
+* Determine the size of block devices on OS X, making it possible to
+  mount block devices as hard drives on OS X [lallafa].
+* Fixed source to remove some compiler warnings in hardfile_host.cpp.
+* (Launcher) Create "Devs/system-configuration" when running WHDLoad games.
+* (Launcher) Fixed initialization of (last used) game info on startup.
+* (Launcher) Added mobygames link button.
+* (Launcher) Use icon button to toggle fullscreen / windowed mode.
+* (Launcher) Updated translations: de [nexusle].
+
 Version 2.1.14:
 
 * Fixed return value in two stub functions.

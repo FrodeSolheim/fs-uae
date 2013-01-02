@@ -86,7 +86,8 @@ class GameInfoPanel(BottomPanel):
         vert_layout.add(hori_layout, fill=True)
 
         self.link_buttons = {}
-        for name in ["database_url", "hol_url", "lemon_url", "wikipedia_url"]:
+        for name in ["database_url", "hol_url", "lemon_url", "mobygames_url",
+                "wikipedia_url"]:
             image = fsui.Image("fs_uae_launcher:res/{0}_16.png".format(name))
             def create_open_url_function(name):
                 def open_url():
@@ -105,9 +106,11 @@ class GameInfoPanel(BottomPanel):
                 button.set_tooltip(_("Open LemonAmiga Entry"))
             elif name == "wikipedia_url":
                 button.set_tooltip(_("Open Wikipedia Entry"))
+            elif name == "mobygames_url":
+                button.set_tooltip(_("Open MobyGames Entry"))
             button.disable()
             button.on_activate = create_open_url_function(name)
-            hori_layout.add(button, margin_right=4)
+            hori_layout.add(button, margin_right=4, fill=True)
             self.link_buttons[name] = button
 
         hori_layout.add_spacer(0, expand=True)
@@ -117,6 +120,10 @@ class GameInfoPanel(BottomPanel):
         self.load_info()
         Settings.add_listener(self)
         Config.add_listener(self)
+
+        for key in ["database_url", "hol_url", "lemon_url", "mobygames_url",
+                "wikipedia_url", "year", "publisher", "developer"]:
+            self.on_config(key, Config.get(key))
 
     def on_destroy(self):
         Settings.remove_listener(self)
@@ -130,6 +137,7 @@ class GameInfoPanel(BottomPanel):
             variant = variant[7:]
         self.title = name
         self.sub_title = variant
+        self.sub_title = self.sub_title.replace(", ", " \u00b7 ")
 
         #image = handler.load_cover_preview()
         #if image:
@@ -165,7 +173,8 @@ class GameInfoPanel(BottomPanel):
             self.load_info()
 
     def on_config(self, key, value):
-        if key in ["database_url", "hol_url", "lemon_url", "wikipedia_url"]:
+        if key in ["database_url", "hol_url", "lemon_url", "mobygames_url",
+                "wikipedia_url"]:
             print("----", key, bool(value))
             self.link_buttons[key].enable(bool(value))
         elif key == "publisher":

@@ -194,7 +194,8 @@ class ValueConfigLoader:
                 "screen1_sha1", "screen2_sha1", "screen3_sha1",
                 "screen4_sha1", "screen5_sha1", "title_sha1",
                 "year", "publisher", "developer", "hol_url",
-                "lemon_url", "wikipedia_url", "languages"]:
+                "lemon_url", "wikipedia_url", "mobygames_url",
+                "languages"]:
             self.options[key] = value
 
     #def load_game_info(self, uuid):

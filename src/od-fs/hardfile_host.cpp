@@ -14,6 +14,11 @@
 #include "filesys.h"
 #include "zfile.h"
 
+#ifdef MACOSX
+#include <sys/stat.h>
+#include <sys/disk.h>
+#endif
+
 #define hfd_log write_log
 static int g_debug = 0;
 
@@ -186,7 +191,7 @@ int isharddrive (const TCHAR *name)
     return -1;
 }
 
-static TCHAR *hdz[] = { "hdz", "zip", "rar", "7z", NULL };
+static const char *hdz[] = { "hdz", "zip", "rar", "7z", NULL };
 
 int hdf_open_target (struct hardfiledata *hfd, const char *pname)
 {
@@ -284,14 +289,52 @@ int hdf_open_target (struct hardfiledata *hfd, const char *pname)
             i--;
         }
         if (h != INVALID_HANDLE_VALUE) {
+            // determine size of hdf file
             int ret;
             off_t low;
+#ifdef MACOSX
+            // check type of file
+            struct stat st;
+            ret = stat(name,&st);
+            if (ret) {
+                write_log("osx: can't stat '%s'\n", name);
+                goto end;
+            }
+            // block devices need special handling on osx
+            if (S_ISBLK(st.st_mode) || S_ISCHR(st.st_mode)) {
+                uint32_t block_size;
+                uint64_t block_count;
+                int fh = fileno(h);
+                // get number of blocks
+                ret = ioctl(fh, DKIOCGETBLOCKCOUNT, &block_count);
+                if (ret) {
+                    write_log("osx: can't get block count of '%s' (%d)\n",
+                            name, fh);
+                    goto end;
+                }
+                // get block size
+                ret = ioctl(fh, DKIOCGETBLOCKSIZE, &block_size);
+                if (ret) {
+                    write_log("osx: can't get block size of '%s' (%d)\n",
+                            name, fh);
+                    goto end;
+                }
+                write_log("osx: found raw device: block_size=%u "
+                        "block_count=%llu\n", block_size, block_count);
+                low = block_size * block_count;
+            }
+            else {
+#endif
+            // regular file size: seek to end and ftell
             ret = uae_fseeko64 (h, 0, SEEK_END);
             if (ret)
                 goto end;
             low = uae_ftello64 (h);
             if (low == -1)
                 goto end;
+#ifdef MACOSX
+            }
+#endif
             low &= ~(hfd->blocksize - 1);
             hfd->physsize = hfd->virtsize = low;
             if (g_debug) {
@@ -666,8 +709,8 @@ TCHAR *hdf_getnameharddrive (int index, int flags, int *sectorsize, int *dangero
     char tmp[32];
     uae_u64 size = uae_drives[index].size;
     int nomedia = uae_drives[index].nomedia;
-    char *dang = "?";
-    char *rw = "RW";
+    const char *dang = "?";
+    const char *rw = "RW";
 
     if (dangerousdrive)
         *dangerousdrive = 0;

@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae-launcher\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2012-11-25 22:49+0100\n"
-"PO-Revision-Date: 2012-11-26 18:47+0100\n"
+"POT-Creation-Date: 2013-01-01 22:45+0100\n"
+"PO-Revision-Date: 2013-01-02 12:05+0100\n"
 "Last-Translator: Frode Solheim <frode-code@fengestad.no>\n"
 "Language-Team: German\n"
 "Language: de\n"
@@ -220,6 +220,9 @@ msgstr "Fast RAM"
 msgid "Fetching database entries ({0})"
 msgstr "Hole Datenbank-Einträge ({0})"
 
+msgid "Fetching game ratings ({0})"
+msgstr "Hole Spielbewertungen ({0})"
+
 msgid "Filters"
 msgstr "Filter"
 
@@ -420,11 +423,23 @@ msgstr "Aus"
 msgid "On"
 msgstr "Ein"
 
+msgid "Open Game Database Entry"
+msgstr "Öffne Game Database Eintrag"
+
+msgid "Open Hall of Light Entry"
+msgstr "Öffne Hall of Light Eintrag"
+
+msgid "Open LemonAmiga Entry"
+msgstr "Öffne LemonAmiga Eintrag"
+
 msgid "Open Scan Dialog"
 msgstr "Öffne Suchdialog"
 
 msgid "Open Tool to Configure Button Mapping"
 msgstr "Öffne Werkzeug für Schalter-Mapping"
+
+msgid "Open Wikipedia Entry"
+msgstr "Öffne Wikipedia Eintrag"
 
 msgid "OpenGL Settings"
 msgstr "OpenGL Einstellungen"

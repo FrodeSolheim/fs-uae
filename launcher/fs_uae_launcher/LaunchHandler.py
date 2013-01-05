@@ -441,8 +441,6 @@ class LaunchHandler:
             f.write(default_prefs)
 
     def copy_setpatch(self, base_dir):
-        return
-
         dest = os.path.join(base_dir, "C")
         if not os.path.exists(dest):
             os.makedirs(dest)

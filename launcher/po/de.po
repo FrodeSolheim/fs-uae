@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae-launcher\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2013-01-01 22:45+0100\n"
-"PO-Revision-Date: 2013-01-02 12:05+0100\n"
+"POT-Creation-Date: 2013-01-03 19:49+0100\n"
+"PO-Revision-Date: 2013-01-04 18:28+0100\n"
 "Last-Translator: Frode Solheim <frode-code@fengestad.no>\n"
 "Language-Team: German\n"
 "Language: de\n"
@@ -159,6 +159,9 @@ msgstr "Konfigurationen"
 msgid "Configure Joystick Buttons"
 msgstr "Joystick-Schalter konfigurieren"
 
+msgid "Connect"
+msgstr "Verbinden"
+
 msgid ""
 "Copy {0}\n"
 "to {1}"
@@ -186,6 +189,9 @@ msgstr "Vorgabe"
 
 msgid "Default ({0})"
 msgstr "Vorgabe ({0})"
+
+msgid "Disconnect"
+msgstr "Trennen"
 
 msgid "Downloading {0}..."
 msgstr "Lade herunter {0}..."
@@ -388,6 +394,9 @@ msgstr "Net-Play-Tag (max. 3 Zeichen)"
 msgid "New Configuration"
 msgstr "Neue Konfiguration"
 
+msgid "Nick:"
+msgstr "Nickname:"
+
 msgid "No Device"
 msgstr "Kein Gerät"
 
@@ -431,6 +440,9 @@ msgstr "Öffne Hall of Light Eintrag"
 
 msgid "Open LemonAmiga Entry"
 msgstr "Öffne LemonAmiga Eintrag"
+
+msgid "Open MobyGames Entry"
+msgstr "Öffne MobyGames Eintrag"
 
 msgid "Open Scan Dialog"
 msgstr "Öffne Suchdialog"
@@ -593,6 +605,9 @@ msgstr "Synchronisiere Datenbank..."
 
 msgid "Texture filter"
 msgstr "Texturfilter"
+
+msgid "Toggle Between Windowed and Full-Screen Mode"
+msgstr "Wechsle zwischen Fenster- und Vollbildmodus"
 
 msgid "Ungrab mouse and keyboard on middle mouse click"
 msgstr "Maus und Tastatur mit mittlerer Maustaste freigeben"

@@ -19,6 +19,7 @@ from .fsgs.GameDatabase import GameDatabase
 from .fsgs.GameDatabaseClient import GameDatabaseClient
 from .OverlayDatabase import OverlayDatabase
 from .fsgs.GameDatabaseSynchronizer import GameDatabaseSynchronizer
+from .GameRatingSynchronizer import GameRatingSynchronizer
 
 class Scanner:
     #listeners = []
@@ -64,10 +65,18 @@ class Scanner:
 
     @classmethod
     def _scan_thread(cls):
+        database = Database()
+
         if cls.update_game_database:
             game_database = GameDatabase.get_instance()
             game_database_client = GameDatabaseClient(game_database)
             synchronizer = GameDatabaseSynchronizer(game_database_client,
+                    on_status=cls.on_status, stop_check=cls.stop_check)
+            synchronizer.username = Settings.get("database_username")
+            synchronizer.password = Settings.get("database_password")
+            synchronizer.synchronize()
+
+            synchronizer = GameRatingSynchronizer(database,
                     on_status=cls.on_status, stop_check=cls.stop_check)
             synchronizer.username = Settings.get("database_username")
             synchronizer.password = Settings.get("database_password")
@@ -83,7 +92,6 @@ class Scanner:
             if cls.stop_check():
                 return
 
-        database = Database()
         if cls.scan_for_configs or cls.update_game_database:
             scanner = ConfigurationScanner(cls.paths, on_status=cls.on_status,
                     stop_check=cls.stop_check)

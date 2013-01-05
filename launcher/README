@@ -26,24 +26,7 @@ or ~/Games/Amiga/Screenshots/T/Test.png
 
 TODO
 
-- GUI for ext rom (cd32)
-
 - Show error message when FS-UAE is not found.
-
-- Change how save states and other state is saved: save everything to a
-  directory specific for each configuration and/or game.
-
-- Add more configuration options (memory settings, floppy drive speed, etc).
-
-- Implement a "More options" dialog for the current configuration where the
-  user can set some more seldom used configuration-specific options, and
-  also with the ability to specify custom key/values.
-
-- Implement explicit loading and saving of configurations.
-
-- Implement the settings dialog with some common settings such as themes,
-  fullscreen modes, vsync settings, and also allow the user to manually
-  specify custom key/values.
 
 - Support loading just e.g joystick_port_0_mode = joystick config value
   (without joystick_port_0) and set joystick_port_0 to a sensible value
@@ -51,22 +34,6 @@ TODO
 
 - Handle some more corner cases, sanitize configurations a bit better on
   loading.
-
-- Make several paths configurable (scan dirs, etc).
-
-- Make it possible to select the built-in AROS kickstart replacement.
-
-- Automatically create and fill the configuration list based on scanned
-  floppy images (by the use of a database of known good configurations).
-
-- Add CD32 and CDTV as supported systems. Show CD-ROM selector instead of
-  floppy selector when using one of these. Add CD32 gamepad to input ports.
-
-- Add support for managing hard drives (and CD-ROM drives for regular Amigas).
-
-- Add support for launching zipped-down WHDLoad games with functionality to
-  save changed files to the (new) state dir, and merge old changed files
-  when starting the game.
 
 - Finish the net play support with integrated lobby, chat and game setup.
 

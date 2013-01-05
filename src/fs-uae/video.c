@@ -164,6 +164,8 @@ static int modify_coordinates(int *cx, int *cy, int *cw, int *ch) {
         fs_log("* amiga 1200 kickstart screen?\n");
         *cx = 74; *cy = 92; *cw = 640; *ch = 400; changed = 1;
     }
+    // The following interfered with autoscaling for Jim Power
+    /*
     else if (*cx == 74 && *cy == 30 && *cw == 640 && *ch == 518) {
         fs_log("* workbench 1.3/2.0 screen?\n");
         *cx = 74; *cy = 36; *cw = 640; *ch = 512; changed = 1;
@@ -172,6 +174,7 @@ static int modify_coordinates(int *cx, int *cy, int *cw, int *ch) {
         fs_log("* workbench 1.3/2.0 screen?\n");
         *cx = 74; *cy = 36; *cw = 640; *ch = 512; changed = 1;
     }
+    */
     else if (*cx == 6 && *cy == 36 && *cw == 724 && *ch == 512) {
         fs_log("* workbench screen with too much border?\n");
         *cx = 74; *cy = 36; *cw = 640; *ch = 512; changed = 1;

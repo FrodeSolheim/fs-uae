@@ -96,6 +96,7 @@ class GameDatabaseSynchronizer:
                 print("no more changes")
                 break
             last_json_data = json_data
+            num_changes = len(json_data["ratings"])
             print("  processing {0} entries".format(num_changes))
             t1 = time.time()
             for update in json_data["ratings"]:

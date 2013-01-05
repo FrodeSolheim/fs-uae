@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae-launcher\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2012-11-27 16:41+0100\n"
-"PO-Revision-Date: 2012-11-27 17:21+0100\n"
+"POT-Creation-Date: 2013-01-02 20:23+0100\n"
+"PO-Revision-Date: 2013-01-03 06:35+0100\n"
 "Last-Translator: grimi <grimi at poczta dot fm>\n"
 "Language-Team: Polish\n"
 "Language: pl\n"
@@ -220,6 +220,9 @@ msgstr "Fast RAM"
 msgid "Fetching database entries ({0})"
 msgstr "Pobieranie wpisów bazy danych ({0})"
 
+msgid "Fetching game ratings ({0})"
+msgstr "Pobieranie wpisów bazy danych ({0})"
+
 msgid "Filters"
 msgstr "Filtry"
 
@@ -420,11 +423,26 @@ msgstr "Nie"
 msgid "On"
 msgstr "Tak"
 
+msgid "Open Game Database Entry"
+msgstr "Otwórz wpis z bazy danych gier"
+
+msgid "Open Hall of Light Entry"
+msgstr "Otwórz wpis na Hall of Light"
+
+msgid "Open LemonAmiga Entry"
+msgstr "Otwórz wpis na LemonAmiga"
+
+msgid "Open MobyGames Entry"
+msgstr "Otwórz wpis na MobyGames"
+
 msgid "Open Scan Dialog"
 msgstr "Otwórz okno skanowania"
 
 msgid "Open Tool to Configure Button Mapping"
 msgstr "Otwórz narzędzie konfiguracji/mapowania przycisków"
+
+msgid "Open Wikipedia Entry"
+msgstr "Otwórz wpis na Wikipedii"
 
 msgid "OpenGL Settings"
 msgstr "Ustawienia OpenGL"
@@ -578,6 +596,9 @@ msgstr "Synchronizacja bazy danych..."
 
 msgid "Texture filter"
 msgstr "Filtr teksturowania"
+
+msgid "Toggle Between Windowed and Full-Screen Mode"
+msgstr "Przełącz między trybem okna a pełnym ekranem"
 
 msgid "Ungrab mouse and keyboard on middle mouse click"
 msgstr "Zwolnij myszkę i klawiaturę po kliku środkowego przycisku"

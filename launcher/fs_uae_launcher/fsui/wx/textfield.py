@@ -16,12 +16,6 @@ class TextField(wx.TextCtrl):
         self.Bind(wx.EVT_KEY_DOWN, self.__key_down_event)
         self.Bind(wx.EVT_TEXT, self.__text_event)
 
-    def get_min_width(self):
-        return self.GetBestSize()[0]
-
-    def get_min_height(self):
-        return self.GetBestSize()[1]
-
     def set_position(self, position):
         self.SetPosition(position)
 

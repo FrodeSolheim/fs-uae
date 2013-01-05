@@ -19,6 +19,7 @@ class LayoutChild:
         self.margin_right = 0
         self.margin_top = 0
         self.margin_bottom = 0
+        self.size = 0
 
 class Layout:
 

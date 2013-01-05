@@ -62,13 +62,13 @@ class MainWindow(WindowWithTabs):
                 content=False)
         # left content
         if fsui.get_screen_size()[0] > 1024:
-            self.create_column(1, min_width=514)
+            self.create_column(1, min_width=518)
         else:
             self.create_column(1, min_width=400)
 
         # right content
-        right_width = Constants.SCREEN_SIZE[0] * 2 + 20 + 10 + 10
-        extra_screen_width = Constants.SCREEN_SIZE[0] + 20
+        right_width = Constants.SCREEN_SIZE[0] * 2 + 21 + 10 + 10
+        extra_screen_width = Constants.SCREEN_SIZE[0] + 21
         need_width = 1280
         if self.is_editor_enabled():
             need_width += extra_screen_width

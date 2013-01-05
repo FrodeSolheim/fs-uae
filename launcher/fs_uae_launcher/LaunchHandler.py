@@ -9,6 +9,7 @@ import json
 import shutil
 import urllib
 import zipfile
+import hashlib
 import tempfile
 import pkg_resources
 import fs_uae_launcher.fs as fs
@@ -363,13 +364,24 @@ class LaunchHandler:
         self.copy_whdload_kickstart(dest_dir, "kick40068.A4000",
                 ["5fe04842d04a489720f0f4bb0e46948199406f49"])
         self.create_whdload_prefs_file(os.path.join(s_dir, "WHDLoad.prefs"))
+        self.copy_setpatch(dest_dir)
 
         whdload_files = whdload_17_1_files
         for key, value in whdload_files.iteritems():
             self.install_whdload_file(key, dest_dir, value)
 
         if self.config["__netplay_game"]:
-            print("WHDLoad base dir is not copied in net play mode ")
+            print("WHDLoad key is not copied in net play mode")
+        else:
+            key_file = os.path.join(Settings.get_base_dir(), "WHDLoad.key")
+            if os.path.exists(key_file):
+                print("found WHDLoad key at ", key_file)
+                shutil.copy(key_file, os.path.join(s_dir, "WHDLoad.key"))
+            else:
+                print("WHDLoad key not found in base dir (FS-UAE dir)")
+
+        if self.config["__netplay_game"]:
+            print("WHDLoad base dir is not copied in net play mode")
         else:
             src_dir = Settings.get_whdload_dir()
             if src_dir and os.path.exists(src_dir):
@@ -379,21 +391,19 @@ class LaunchHandler:
         startup_sequence = os.path.join(s_dir, "Startup-Sequence")
         if not os.path.exists(startup_sequence):
             with open(startup_sequence, "wb") as f:
-                f.write("IF EXISTS C:SetPatch\n")
-                f.write("C:SetPatch\n")
-                f.write("EndIF\n")
-                f.write("\n")
-                f.write("cd \"{0}\"\n".format(whdload_dir))
-                f.write("WHDLoad {0}\n".format(whdload_args))
-                f.write("uae-configuration SPC_QUIT 1\n")
+                f.write(setpatch_sequence.replace(
+                        "\r\n", "\n").encode("ISO-8859-1"))
+                f.write(whdload_sequence.format(whdload_dir,
+                        whdload_args).replace(
+                        "\r\n", "\n").encode("ISO-8859-1"))
 
         # The User-Startup file is useful if the user has provided a
         # base WHDLoad directory with an existing startup-sequence
         user_startup = os.path.join(s_dir, "User-Startup")
         with open(user_startup, "ab") as f:
-            f.write("cd \"{0}\"\n".format(whdload_dir))
-            f.write("WHDLoad {0}\n".format(whdload_args))
-            f.write("uae-configuration SPC_QUIT 1\n")
+            f.write(whdload_sequence.format(whdload_dir,
+                    whdload_args).replace(
+                    "\r\n", "\n").encode("ISO-8859-1"))
 
     def install_whdload_file(self, sha1, dest_dir, rel_path):
         abs_path = os.path.join(dest_dir, rel_path)
@@ -429,6 +439,42 @@ class LaunchHandler:
         default_prefs = default_prefs.replace("\n", "\r\n")
         with open(path, "wb") as f:
             f.write(default_prefs)
+
+    def copy_setpatch(self, base_dir):
+        return
+
+        dest = os.path.join(base_dir, "C")
+        if not os.path.exists(dest):
+            os.makedirs(dest)
+        dest = os.path.join(dest, "SetPatch")
+        for checksum in workbench_disks_with_setpatch_39_6:
+            path = Database().find_file(sha1=checksum)
+            if path:
+                print("found WB DISK with SetPatch 39.6 at", path)
+                archive = Archive(path)
+                if archive.exists(path):
+                    f = archive.open(path)
+                    wb_data = f.read()
+                    f.close()
+                    if self.extract_setpatch_39_6(wb_data, dest):
+                        return
+                    else:
+                        print("WARNING: extract_setpatch_39_6 returned False")
+        else:
+            print("WARNING: did not find SetPatch 39.6")
+
+    def extract_setpatch_39_6(self, wb_data, dest):
+        offset = wb_data.find(b"$VER: setpatch 39.6 (8.9.92)") - 0x845
+        if offset < 0:
+            return False
+        setpatch_data = wb_data[offset:offset+7364]
+        s = hashlib.sha1()
+        s.update(setpatch_data)
+        if s.hexdigest() != "4d4aae988310b07726329e436b2250c0f769ddff":
+            return False
+        with open(dest, "wb") as f:
+            f.write(setpatch_data)
+        return True
 
     def copy_whdload_kickstart(self, base_dir, name, checksums):
         dest = os.path.join(base_dir, "Devs", "Kickstarts")
@@ -610,3 +656,49 @@ b"\x00\x00\x00\x00\x00\x00\x00\x00\x05\x00K\x00\x00\x00\x00\x00\x00\x00\x07" \
 b"\x00 \x00B\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00" \
 b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00" \
 b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00"
+
+workbench_disks_with_setpatch_39_6 = [
+# Workbench v3.0 rev 39.29 (1992)(Commodore)(A1200-A4000)(M10)(Disk 1 of 6)(Install).adf
+"ba24b4172339b9198e4f724a6804d0c6eb5e394b",
+# Workbench v3.0 rev 39.29 (1992)(Commodore)(A1200-A4000)(M10)(Disk 1 of 6)(Install)[a].adf
+"c0781dece2486b54e15ce54a9b24dec6d9429421",
+# Workbench v3.0 rev 39.29 (1992)(Commodore)(A1200-A4000)(M10)(Disk 1 of 6)(Install)[m drive definitions].adf
+"7eeb2511ce34f8d3f09efe82b290bddeb899d237",
+# Workbench v3.0 rev 39.29 (1992)(Commodore)(A1200-A4000)(M10)(Disk 1 of 6)(Install)[m2].adf
+"7271d7db4472e10fbe4b266278e16f03336c14e3",
+# Workbench v3.0 rev 39.29 (1992)(Commodore)(A1200-A4000)(M10)(Disk 1 of 6)(Install)[m3].adf
+"92c2f33bb73e1bdee5d9a0dc0f5b09a15524f684",
+# Workbench v3.0 rev 39.29 (1992)(Commodore)(A1200-A4000)(M10)(Disk 2 of 6)(Workbench)[!].adf
+"e663c92a9c88fa38d02bbb299bea8ce70c56b417",
+# Workbench v3.0 rev 39.29 (1992)(Commodore)(A1200-A4000)(M10)(Disk 2 of 6)(Workbench)[a2].adf
+"65ab988e597b456ac40320f88a502fc016d590aa",
+# Workbench v3.0 rev 39.29 (1992)(Commodore)(A1200-A4000)(M10)(Disk 2 of 6)(Workbench)[a].adf
+"9496daa66e6b2f4ddde4fa2580bb3983a25e3cd2",
+# Workbench v3.0 rev 39.29 (1992)(Commodore)(A1200-A4000)(M10)(Disk 2 of 6)(Workbench)[m2].adf
+"cf2f24cf5f5065479476a38ec8f1016b1f746884",
+# Workbench v3.0 rev 39.29 (1992)(Commodore)(A1200-A4000)(M10)(Disk 2 of 6)(Workbench)[m3].adf
+"0e7f30223af254df0e2b91ea409f35c56d6164a6",
+# Workbench v3.0 rev 39.29 (1992)(Commodore)(A1200-A4000)(M10)(Disk 2 of 6)(Workbench)[m4].adf
+"08c4afde7a67e6aaee1f07af96e95e9bed897947",
+# amiga-os-300-workbench.adf
+# Workbench v3.0 rev 39.29 (1992)(Commodore)(A1200-A4000)(M10)(Disk 2 of 6)(Workbench)[m5].adf
+"4f4770caae5950eca4a2720e0424df052ced6a32",
+# Workbench v3.0 rev 39.29 (1992)(Commodore)(A1200-A4000)(M10)(Disk 2 of 6)(Workbench)[m].adf
+"53086c3e44ec2d34e60ab65af71fb11941f4e0af",
+]
+
+setpatch_sequence = """
+IF EXISTS C:SetPatch
+C:SetPatch
+ELSE
+echo "Warning: SetPatch (39.6) not found."
+echo "Make sure a WB 3.0 disk is scanned in FS-UAE Launcher"
+echo "and the file will automatically be copied from the disk."
+EndIF
+"""
+
+whdload_sequence = """
+cd "{0}"
+WHDLoad {1}
+uae-configuration SPC_QUIT 1
+"""

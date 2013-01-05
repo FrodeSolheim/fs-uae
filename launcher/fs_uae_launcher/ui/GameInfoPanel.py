@@ -15,6 +15,7 @@ from ..Database import Database
 from ..GameHandler import GameHandler
 from .BottomPanel import BottomPanel
 from .Constants import Constants
+from .VariantRatingButton import VariantRatingButton
 from .ImageLoader import ImageLoader
 from .LaunchGroup import LaunchGroup
 from .Skin import Skin
@@ -63,6 +64,15 @@ class GameInfoPanel(BottomPanel):
         #self.panel.layout.padding_top = 10
         vert_layout.padding_left = BORDER
 
+        vert_layout.add_spacer(58 + 3)
+        hori_layout = fsui.HorizontalLayout()
+        vert_layout.add(hori_layout, fill=True)
+
+        hori_layout.add_spacer(0, expand=True)
+
+        self.variant_rating_button = VariantRatingButton(self)
+        hori_layout.add(self.variant_rating_button, margin_right=3)
+
         #def label_min_width():
         #    return 330
         #self.title_label = fsui.HeadingLabel(self)
@@ -81,6 +91,11 @@ class GameInfoPanel(BottomPanel):
         self.companies = ""
 
         vert_layout.add_spacer(0, expand=True)
+
+        #self.variant_panel = fsui.Panel(self)
+        #self.variant_panel.set_background_color(fsui.Color(0xb0, 0xb0, 0xb0))
+        #self.variant_panel.set_min_height(30)
+        #vert_layout.add(self.variant_panel, fill=True, margin_bottom=20)
 
         hori_layout = fsui.HorizontalLayout()
         vert_layout.add(hori_layout, fill=True)
@@ -185,6 +200,8 @@ class GameInfoPanel(BottomPanel):
             self.update_companies()
         elif key == "year":
             self.year = value
+        elif key == "__variant_rating":
+            self.variant_rating_button.show(bool(value))
 
     def update_companies(self):
         companies = [x.strip() for x in self.publisher.split("/") if x.strip()]
@@ -200,19 +217,24 @@ class GameInfoPanel(BottomPanel):
 
         y = 2 + 20
         x = 10
+        size = self.size
 
         image = self.image
         #dc.draw_image(image, x, y)
         if image.size[0] == image.size[1]:
-            cover_overlay = self.cover_overlay_square
-            #y_offset = 28
-            #title_x = 10
+        #    cover_overlay = self.cover_overlay_square
+             y_offset = 14
+        #    #title_x = 10
         else:
-            cover_overlay = self.cover_overlay
-        y_offset = 0
+            y_offset = 0
+        cover_overlay = self.cover_overlay
+
         title_x = 10 + Constants.COVER_SIZE[0] + 20
+        if image.size[0] == image.size[1]:
+            dc.draw_rectangle(x + 1, y + 1, Constants.COVER_SIZE[0],
+                    Constants.COVER_SIZE[1], fsui.Color(0x0, 0x0, 0x0))
         dc.draw_image(image, x + 1, y + 1 + y_offset)
-        dc.draw_image(cover_overlay, x - 10, y - 10 + y_offset)
+        dc.draw_image(cover_overlay, x - 10, y - 10)
 
         font = dc.get_font()
         font.set_bold(True)
@@ -229,8 +251,9 @@ class GameInfoPanel(BottomPanel):
         dc.set_text_color(color)
 
         if self.year:
-            twy, thy = dc.measure_text(self.year + " ")
+            twy, thy = dc.measure_text(self.year)
             dc.draw_text(self.year, x, y)
+            twy += 10
         else:
             twy = 0
         font.set_bold(False)
@@ -240,4 +263,15 @@ class GameInfoPanel(BottomPanel):
         y += 24
 
         #y += 10
-        dc.draw_text(self.sub_title, x, y)
+        
+        #dc.set_background_color(fsui.Color(0x00, 0x00, 0x00, 0x10))
+        background = fsui.Color(0x00, 0x00, 0x00, 0x20)
+        y = 80
+        h = 30
+        dc.draw_rectangle(x - 18, y, size[0] - x - 10 + 18, h, background)
+
+        #background = fsui.Color(0xff, 0xff, 0xff)
+        #dc.draw_rectangle(size[0] - 10 - 40, y, 40, h, background)
+
+        tw, th = dc.measure_text(self.sub_title)
+        dc.draw_text(self.sub_title, x, y + (h - th) // 2)

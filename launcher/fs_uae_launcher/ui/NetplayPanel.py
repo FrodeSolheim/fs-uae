@@ -25,9 +25,31 @@ class NetplayPanel(fsui.Panel):
         label = fsui.HeadingLabel(self, _("Net Play"))
         hori_layout.add(label, margin=10)
 
-        #self.filters_label = fsui.Label(self, _("Filters:"))
-        #hori_layout.add(self.filters_label,
-        #        margin=10, margin_top=0, margin_bottom=0)
+        hori_layout.add_spacer(0, expand=True)
+
+        # TODO
+        _("Nick:")
+        _("Connect")
+        _("Disconnect")
+
+        """
+        self.nick_label = fsui.Label(self, _("Nick:"))
+        hori_layout.add(self.nick_label,
+                margin=10, margin_top=0, margin_bottom=0)
+
+        self.nick_field = fsui.TextField(self, Settings.get("irc_nick"))
+        self.nick_field.set_min_width(130)
+        hori_layout.add(self.nick_field, margin_right=10)
+        #self.nick_field.on_change = self.on_nick_change
+
+        self.connect_button = fsui.Button(self, _("Connect"))
+        hori_layout.add(self.connect_button, margin_right=10)
+        #self.connect_button.on_activate = self.on_connect_button
+
+        self.disconnect_button = fsui.Button(self, _("Disconnect"))
+        hori_layout.add(self.disconnect_button, margin_right=10)
+        #self.disconnect_button.on_activate = self.on_disconnect_button
+        """
 
         hori_layout = fsui.HorizontalLayout()
         self.layout.add(hori_layout, fill=True, expand=True)
@@ -36,13 +58,11 @@ class NetplayPanel(fsui.Panel):
         hori_layout.add(self.text_area, fill=True, expand=True, margin=10,
                 margin_right=0)
 
-        #hori_layout.add_spacer(6)
-
         ver_layout = fsui.VerticalLayout()
         hori_layout.add(ver_layout, fill=True)
 
         self.channel_list = fsui.ListView(self)
-        self.channel_list.set_min_width(200)
+        self.channel_list.set_min_width(212)
         self.channel_list.on_select_item = self.on_select_channel
         ver_layout.add(self.channel_list, fill=True, expand=True, margin=10)
 

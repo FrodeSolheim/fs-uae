@@ -9,7 +9,7 @@ from .Settings import Settings
 
 class Database:
 
-    VERSION = 6
+    VERSION = 7
 
     instance = None
 
@@ -38,15 +38,19 @@ class Database:
 
     def __init__(self):
         self.connection = None
-        self.cursor = None
+        self._cursor = None
 
     def init(self):
         if self.connection:
             return
         self.connection = sqlite3.connect(self.get_database_path())
-        self.cursor = self.connection.cursor()
-        self._cursor = self.cursor
+        self._cursor = self.connection.cursor()
+        self._cursor = self._cursor
         self.ensure_updated_database()
+
+    def cursor(self):
+        self.init()
+        return self.connection.cursor()
 
     def get_files(self, ext=None):
         self.init()
@@ -55,9 +59,9 @@ class Database:
         if ext is not None:
             query = query + " AND path like ?"
             args.append("%" + ext)
-        self.cursor.execute(query, args)
+        self._cursor.execute(query, args)
         results = []
-        for row in self.cursor:
+        for row in self._cursor:
             data = {
                 "path": self.decode_path(row[0]),
                 "name": row[1]
@@ -68,27 +72,31 @@ class Database:
     def get_configuration_path(self, id):
         self.init()
         query = "SELECT path FROM configuration WHERE id = ?"
-        self.cursor.execute(query, (id,))
-        path = self.decode_path(self.cursor.fetchone()[0])
+        self._cursor.execute(query, (id,))
+        path = self.decode_path(self._cursor.fetchone()[0])
         return path
 
     def get_config(self, id):
         self.init()
-        query = "SELECT name, uuid, path, data FROM configuration WHERE id = ?"
-        self.cursor.execute(query, (id,))
-        row = self.cursor.fetchone()
+        query = "SELECT name, uuid, path, data, game_rating.work_rating, " \
+                "game_rating.like_rating FROM configuration LEFT JOIN " \
+                "game_rating ON game_rating.game = uuid WHERE id = ?"
+        self._cursor.execute(query, (id,))
+        row = self._cursor.fetchone()
         return {
             "name": row[0],
             "uuid": row[1],
             "path": self.decode_path(row[2]),
             "data": row[3],
+            "work_rating": row[4],
+            "like_rating": row[5],
         }
 
     def get_game_info(self, id):
         self.init()
         query = "SELECT name, uuid, path FROM game WHERE id = ?"
-        self.cursor.execute(query, (id,))
-        row = self.cursor.fetchone()
+        self._cursor.execute(query, (id,))
+        row = self._cursor.fetchone()
         return {
             "name": row[0],
             "uuid": row[1],
@@ -120,14 +128,14 @@ class Database:
         self.init()
         #query = "SELECT id, path FROM configuration WHERE path like ?"
         #args = ["$BASE/Configurations/%"]
-        #self.cursor.execute(query, args)
+        #self._cursor.execute(query, args)
         a = "$BASE/Configurations/"
         b = "$BASE/Configurations" + "\u0030" # one more than forward slash
         query = "SELECT id, path FROM configuration WHERE " \
                 "path >= ? AND path < ?"
-        self.cursor.execute(query, (a, b))
+        self._cursor.execute(query, (a, b))
         result = {}
-        for row in self.cursor.fetchall():
+        for row in self._cursor.fetchall():
             result[self.decode_path(row[1])] = row[0]
         return result
 
@@ -140,7 +148,7 @@ class Database:
         else:
             query = "DELETE FROM configuration WHERE id = ?"
             args = [id]
-        self.cursor.execute(query, args)
+        self._cursor.execute(query, args)
 
     def find_local_roms(self):
         self.init()
@@ -149,9 +157,9 @@ class Database:
         b = "$BASE/Kickstarts" + "\u0030" # one more than forward slash
         query = "SELECT id, path FROM file WHERE path >= ? AND path < ?"
         #args = ["$BASE/Kickstarts/%"]
-        self.cursor.execute(query, (a, b))
+        self._cursor.execute(query, (a, b))
         result = {}
-        for row in self.cursor.fetchall():
+        for row in self._cursor.fetchall():
             result[self.decode_path(row[1])] = row[0]
         return result
 
@@ -164,7 +172,7 @@ class Database:
         else:
             query = "DELETE FROM file WHERE id = ?"
             args = [id]
-        self.cursor.execute(query, args)
+        self._cursor.execute(query, args)
 
     def search_configurations(self, search):
         self.init()
@@ -180,8 +188,8 @@ class Database:
                 query = query + " AND search like ?"
                 args.append("%{0}%".format(word))
         query = query + " ORDER BY sort_key"
-        self.cursor.execute(query, args)
-        return self.cursor.fetchall()
+        self._cursor.execute(query, args)
+        return self._cursor.fetchall()
 
     def find_game_variants(self, game_uuid):
         self.init()
@@ -189,23 +197,23 @@ class Database:
                 "FROM configuration WHERE reference = ?"
         query = query + " ORDER BY name"
         print(query, game_uuid)
-        self.cursor.execute(query, (game_uuid,))
-        return self.cursor.fetchall()
+        self._cursor.execute(query, (game_uuid,))
+        return self._cursor.fetchall()
 
     def get_last_game_variant(self, game_uuid):
         query = "SELECT variant_uuid FROM last_variant WHERE game_uuid = ?"
-        self.cursor.execute(query, (game_uuid,))
-        row = self.cursor.fetchone()
+        self._cursor.execute(query, (game_uuid,))
+        row = self._cursor.fetchone()
         if row:
             return row[0]
         return ""
 
     def set_last_game_variant(self, game_uuid, variant_uuid):
-        self.cursor.execute("DELETE FROM last_variant WHERE game_uuid = ?",
+        self._cursor.execute("DELETE FROM last_variant WHERE game_uuid = ?",
                 (game_uuid,))
-        self.cursor.execute("INSERT INTO last_variant (game_uuid, "
+        self._cursor.execute("INSERT INTO last_variant (game_uuid, "
                 "variant_uuid) VALUES (?, ?)", (game_uuid, variant_uuid))
-        #self.cursor.execute("UPDATE last_variant SET variant_uuid = ? "
+        #self._cursor.execute("UPDATE last_variant SET variant_uuid = ? "
         #        "WHERE game_uuid = ?", (variant_uuid, game_uuid))
 
     def search_games(self, search):
@@ -221,15 +229,15 @@ class Database:
                     query = query + " AND search like ?"
                 args.append("%{0}%".format(word))
         query = query + " ORDER BY name"
-        self.cursor.execute(query, args)
-        return self.cursor.fetchall()
+        self._cursor.execute(query, args)
+        return self._cursor.fetchall()
 
     def find_game(self, uuid="", result=None):
         self.init()
         if uuid:
-            self.cursor.execute("SELECT path FROM game "
+            self._cursor.execute("SELECT path FROM game "
                     "WHERE uuid = ? LIMIT 1", (uuid,))
-        row = self.cursor.fetchone()
+        row = self._cursor.fetchone()
         if row:
             path = self.decode_path(row[0])
             if result is not None:
@@ -247,11 +255,11 @@ class Database:
             #import traceback
             #traceback.print_stack()
             #print("check sha1")
-            self.cursor.execute("SELECT id, path, sha1, mtime, size FROM file "
+            self._cursor.execute("SELECT id, path, sha1, mtime, size FROM file "
                     "WHERE sha1 = ? LIMIT 1", (sha1,))
         elif name:
             #print("check name")
-            self.cursor.execute("SELECT id, path, sha1, mtime, size FROM file "
+            self._cursor.execute("SELECT id, path, sha1, mtime, size FROM file "
                     "WHERE name = ? COLLATE NOCASE LIMIT 1", (name.lower(),))
         else:
             path = self.encode_path(path)
@@ -259,15 +267,15 @@ class Database:
             #path = unicode(path)
             #print("SELECT path, sha1, mtime, size FROM file "
             #        "WHERE path = '{0}' LIMIT 1".format(path))
-            #self.cursor.execute("SELECT count(*) FROM file "
+            #self._cursor.execute("SELECT count(*) FROM file "
             #        "WHERE lower(path) = ?", (path.lower(),))
 
-            #self.cursor.execute("SELECT * FROM file LIMIT 1 OFFSET 100")
-            #print(self.cursor.fetchall())
+            #self._cursor.execute("SELECT * FROM file LIMIT 1 OFFSET 100")
+            #print(self._cursor.fetchall())
 
-            self.cursor.execute("SELECT id, path, sha1, mtime, size FROM file "
+            self._cursor.execute("SELECT id, path, sha1, mtime, size FROM file "
                     "WHERE path = ? LIMIT 1", (path,))
-        row = self.cursor.fetchone()
+        row = self._cursor.fetchone()
         #print("---------", row)
         if row:
             #print(row)
@@ -295,7 +303,7 @@ class Database:
 
         #print("adding path", path)
         #p, name = os.path.split(path)
-        self.cursor.execute("INSERT INTO file (path, sha1, mtime, size, "
+        self._cursor.execute("INSERT INTO file (path, sha1, mtime, size, "
                 "md5, crc32, name, scan) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
                 (path, sha1, mtime, size, md5, crc32, name, scan))
 
@@ -306,7 +314,7 @@ class Database:
         if not sort_key:
             sort_key = name.lower()
         path = self.encode_path(path)
-        self.cursor.execute("INSERT INTO configuration (path, name, scan, "
+        self._cursor.execute("INSERT INTO configuration (path, name, scan, "
                 "search, uuid, data, type, reference, like_rating, "
                 "work_rating, sort_key) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, "
                 "?, ?)",
@@ -315,12 +323,12 @@ class Database:
 
     def ensure_game_configuration(self, uuid, name, sort_key, scan=0, type=1):
         self.init()
-        self.cursor.execute("SELECT * FROM configuration WHERE uuid = ? "
+        self._cursor.execute("SELECT * FROM configuration WHERE uuid = ? "
                 "AND name = ? AND sort_key = ? AND scan = ? AND type = ?",
                 (uuid, name, sort_key, scan, type))
-        row = self.cursor.fetchone()
+        row = self._cursor.fetchone()
         if row is None:
-            self.cursor.execute("DELETE from configuration WHERE uuid = ?",
+            self._cursor.execute("DELETE from configuration WHERE uuid = ?",
                     (uuid,))
             search = name.lower()
             self.add_configuration(uuid=uuid, name=name, search=search,
@@ -329,38 +337,38 @@ class Database:
     def add_game(self, uuid="", path="", name="", search="", scan=0):
         self.init()
         path = self.encode_path(path)
-        self.cursor.execute("INSERT INTO game (uuid, path, name, scan, "
+        self._cursor.execute("INSERT INTO game (uuid, path, name, scan, "
                 "search) VALUES (?, ?, ?, ?, ?)", (uuid, path, name, scan, search))
 
     def update_file_scan(self, id, scan):
         self.init()
-        self.cursor.execute("UPDATE file SET scan = ? WHERE id = ?",
+        self._cursor.execute("UPDATE file SET scan = ? WHERE id = ?",
                 (scan, id))
 
     def update_archive_scan(self, path, scan):
         self.init()
         path = self.encode_path(path)
-        #self.cursor.execute("UPDATE file SET scan = ? WHERE path like ?",
+        #self._cursor.execute("UPDATE file SET scan = ? WHERE path like ?",
         #        (scan, path + u"{0}%".format(unicode(os.sep))))
 
         a = path + "\u002f" # forward slash
         b = path + "\u0030" # one more than forward slash
-        self.cursor.execute("UPDATE file SET scan = ? WHERE "
+        self._cursor.execute("UPDATE file SET scan = ? WHERE "
                 "path >= ? AND path < ?", (scan, a, b))
 
 
     def remove_unscanned_files(self, scan):
         self.init()
-        self.cursor.execute("DELETE FROM file WHERE scan != ?", (scan,))
+        self._cursor.execute("DELETE FROM file WHERE scan != ?", (scan,))
 
     def remove_unscanned_configurations(self, scan):
         self.init()
-        self.cursor.execute("DELETE FROM configuration WHERE scan != ?",
+        self._cursor.execute("DELETE FROM configuration WHERE scan != ?",
                 (scan,))
 
     def remove_unscanned_games(self, scan):
         self.init()
-        self.cursor.execute("DELETE FROM game WHERE scan != ?",
+        self._cursor.execute("DELETE FROM game WHERE scan != ?",
                 (scan,))
 
     def rollback(self):
@@ -375,7 +383,7 @@ class Database:
 
     def clear(self):
         self.init()
-        self.cursor.execute("DELETE FROM file")
+        self._cursor.execute("DELETE FROM file")
 
     def ensure_updated_database(self):
         try:
@@ -400,9 +408,9 @@ class Database:
 
     def update_database_to_version_1(self):
         try:
-            self.cursor.execute("SELECT count(*) FROM file")
+            self._cursor.execute("SELECT count(*) FROM file")
         except sqlite3.OperationalError:
-            self.cursor.execute("""CREATE TABLE file (
+            self._cursor.execute("""CREATE TABLE file (
 id integer primary key,
 path text,
 name text,
@@ -413,14 +421,14 @@ size integer,
 mtime integer,
 scan int
 )""")
-            self.cursor.execute("CREATE INDEX file_sha1 ON file(sha1)")
-            self.cursor.execute("CREATE INDEX file_path ON file(path)")
-            self.cursor.execute("CREATE INDEX file_name ON file(name collate nocase)")
+            self._cursor.execute("CREATE INDEX file_sha1 ON file(sha1)")
+            self._cursor.execute("CREATE INDEX file_path ON file(path)")
+            self._cursor.execute("CREATE INDEX file_name ON file(name collate nocase)")
 
         try:
-            self.cursor.execute("SELECT count(*) FROM configuration")
+            self._cursor.execute("SELECT count(*) FROM configuration")
         except sqlite3.OperationalError:
-            self.cursor.execute("""CREATE TABLE configuration (
+            self._cursor.execute("""CREATE TABLE configuration (
 id integer primary key,
 uuid text,
 path text,
@@ -429,17 +437,17 @@ name text,
 search text,
 scan int
 )""")
-            self.cursor.execute("CREATE INDEX configuration_name "
+            self._cursor.execute("CREATE INDEX configuration_name "
                     "ON configuration(name)")
-            self.cursor.execute("CREATE INDEX configuration_search "
+            self._cursor.execute("CREATE INDEX configuration_search "
                     "ON configuration(search)")
-            self.cursor.execute("CREATE INDEX configuration_path "
+            self._cursor.execute("CREATE INDEX configuration_path "
                     "ON configuration(path)")
 
         try:
-            self.cursor.execute("SELECT count(*) FROM game")
+            self._cursor.execute("SELECT count(*) FROM game")
         except sqlite3.OperationalError:
-            self.cursor.execute("""CREATE TABLE game (
+            self._cursor.execute("""CREATE TABLE game (
 id integer primary key,
 uuid text,
 path text,
@@ -447,43 +455,53 @@ name text,
 search text,
 scan int
 )""")
-            self.cursor.execute("CREATE INDEX game_uuid "
+            self._cursor.execute("CREATE INDEX game_uuid "
                     "ON game(uuid)")
 
     def update_database_to_version_2(self):
-        self.cursor.execute("ALTER TABLE configuration "
+        self._cursor.execute("ALTER TABLE configuration "
                 "ADD COLUMN type INTEGER NOT NULL DEFAULT 0")
-        self.cursor.execute("UPDATE configuration SET type = 0")
-        self.cursor.execute("ALTER TABLE configuration "
+        self._cursor.execute("UPDATE configuration SET type = 0")
+        self._cursor.execute("ALTER TABLE configuration "
                 "ADD COLUMN reference TEXT")
-        self.cursor.execute("CREATE INDEX configuration_reference "
+        self._cursor.execute("CREATE INDEX configuration_reference "
                 "ON configuration(reference)")
-        self.cursor.execute("CREATE INDEX configuration_type_search "
+        self._cursor.execute("CREATE INDEX configuration_type_search "
                 "ON configuration(type, search)")
 
     def update_database_to_version_3(self):
-            self.cursor.execute("""CREATE TABLE last_variant (
+            self._cursor.execute("""CREATE TABLE last_variant (
 game_uuid CHAR(36) PRIMARY KEY,
 variant_uuid CHAR(36) NOT NULL
 )""")
 
     def update_database_to_version_4(self):
-        self.cursor.execute("ALTER TABLE configuration "
+        self._cursor.execute("ALTER TABLE configuration "
                 "ADD COLUMN work_rating INTEGER NOT NULL DEFAULT 0")
-        self.cursor.execute("ALTER TABLE configuration "
+        self._cursor.execute("ALTER TABLE configuration "
                 "ADD COLUMN like_rating INTEGER NOT NULL DEFAULT 0")
-        self.cursor.execute("ALTER TABLE configuration "
+        self._cursor.execute("ALTER TABLE configuration "
                 "ADD COLUMN keywords TEXT NOT NULL DEFAULT ''")
 
     def update_database_to_version_5(self):
         # Delete "old" Amiga Forever indexed ROMs
-        self.cursor.execute("DELETE FROM file WHERE sha1 = ?",
+        self._cursor.execute("DELETE FROM file WHERE sha1 = ?",
                 ("c39bd9094d4e5f4e28c1411f3086950406062e87",))
-        self.cursor.execute("DELETE FROM file WHERE sha1 = ?",
+        self._cursor.execute("DELETE FROM file WHERE sha1 = ?",
                 ("c3c481160866e60d085e436a24db3617ff60b5f9",))
 
     def update_database_to_version_6(self):
-        self.cursor.execute("ALTER TABLE configuration "
+        self._cursor.execute("ALTER TABLE configuration "
                 "ADD COLUMN sort_key TEXT NOT NULL DEFAULT ''")
-        self.cursor.execute("UPDATE configuration "
+        self._cursor.execute("UPDATE configuration "
                 "SET sort_key = lower(name)")
+
+    def update_database_to_version_7(self):
+        self._cursor.execute("""
+            CREATE TABLE game_rating (
+                game VARCHAR(36) PRIMARY KEY NOT NULL,
+                work_rating INT NOT NULL,
+                like_rating INT NOT NULL,
+                updated TIMESTAMP NULL
+            );
+        """)

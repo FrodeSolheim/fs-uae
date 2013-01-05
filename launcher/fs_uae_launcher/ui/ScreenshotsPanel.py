@@ -44,6 +44,8 @@ class ScreenshotsPanel(BottomPanel):
         self.images = [self.default_image for x in range(6)]
         self.requests = [None for x in range(6)]
 
+        self.x_offset = 0
+
         if Settings.get("config_base"):
             self.load_images(Settings.get("config_base"))
         Settings.add_listener(self)
@@ -88,7 +90,17 @@ class ScreenshotsPanel(BottomPanel):
 
     def on_setting(self, key, value):
         if key == "config_name":
+            self.x_offset = 0
             self.load_images(value)
+
+    def on_left_down(self):
+        #print("on_left_down")
+        width = 10 + Constants.SCREEN_SIZE[0] * 6 + 20 * 5 + 22
+        if self.x_offset == 0:
+            self.x_offset = self.size[0] - width
+        else:
+            self.x_offset = 0
+        self.refresh()
 
     def on_paint(self):
         dc = self.create_dc()
@@ -96,9 +108,9 @@ class ScreenshotsPanel(BottomPanel):
         size = self.size
 
         y = 2 + 20
-        x = 10
+        x = 10 + self.x_offset
         for i in range(6):
-            if x >= size[0]:
+            if x >= size[0] - 12:
                 break
             image = self.images[i]
             dc.draw_image(image, x + 1, y + 1)

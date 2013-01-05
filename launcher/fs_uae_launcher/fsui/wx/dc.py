@@ -121,3 +121,9 @@ class DrawingContext(object):
         self.gc.SetPen(wx.NullGraphicsPen)
         self.gc.SetBrush(brush)
         self.gc.DrawRectangle(x, y, w, h)
+
+    def draw_rectangle(self, x, y, w, h, c):
+        brush = self.gc.CreateBrush(wx.Brush(c))
+        self.gc.SetPen(wx.NullGraphicsPen)
+        self.gc.SetBrush(brush)
+        self.gc.DrawRectangle(x, y, w, h)

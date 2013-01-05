@@ -40,7 +40,7 @@ class UpdateManager:
         version_str = f.read().strip().decode("UTF-8")
         result = fs.compare_versions(version_str, Version.VERSION)
         print("update check result: ", result)
-        if result > 0:
+        if result > 0 and version_str != "9.9.9":
             # a new version is available
             #if series == "stable":
             #    web_url = "http://fengestad.no/fs-uae/download"

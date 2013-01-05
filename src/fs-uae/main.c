@@ -351,7 +351,7 @@ void print_and_log_copyright_notice() {
     printf("          1999-2012 Toni Wilen\n");
     printf("          2003-2007 Richard Drummond\n");
     printf("          2006-2011 Mustafa 'GnoStiC' Tufan\n");
-    printf("          2011-2012 Frode Solheim\n\n");
+    printf("          2011-2013 Frode Solheim\n\n");
     printf("See the source for a full list of contributors.\n");
     printf("This is free software; see the file COPYING for copying "
             "conditions. There is NO\n");
@@ -363,7 +363,7 @@ void print_and_log_copyright_notice() {
     fs_log("          1999-2012 Toni Wilen\n");
     fs_log("          2003-2007 Richard Drummond\n");
     fs_log("          2006-2011 Mustafa 'GnoStiC' Tufan\n");
-    fs_log("          2011-2012 Frode Solheim\n\n");
+    fs_log("          2011-2013 Frode Solheim\n\n");
     fs_log("See the source for a full list of contributors.\n");
     fs_log("This is free software; see the file COPYING for copying "
             "conditions. There is NO\n");

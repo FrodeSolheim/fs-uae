@@ -158,10 +158,10 @@ class Settings:
 
     @classmethod
     def get_whdload_dir(cls):
-        path = os.path.join(fs.get_home_dir(), "Games", "Amiga", "WHDLoad")
-        if os.path.exists(path):
-            return path
-        path = os.path.join(cls.get_base_dir(), "WHDLoad")
+        #path = os.path.join(fs.get_home_dir(), "Games", "Amiga", "WHDLoad")
+        #if os.path.exists(path):
+        #    return path
+        path = os.path.join(cls.get_hard_drives_dir(), "WHDLoad")
         if os.path.exists(path):
             path = get_real_case(path)
             return path

@@ -10,6 +10,7 @@ from ..Config import Config
 from ..I18N import _, ngettext
 from ..Settings import Settings
 from .ConfigurationsBrowser import ConfigurationsBrowser
+from .Constants import Constants
 from .IconButton import IconButton
 from .ScanDialog import ScanDialog
 from .Skin import Skin
@@ -36,8 +37,14 @@ class ConfigurationsPanel(fsui.Panel):
 
         self.text_field = fsui.TextField(self, Settings.get("config_search"))
         self.text_field.on_change = self.on_search_change
-        hor_layout.add(self.text_field, expand=True,
-                margin=10, margin_top=0, margin_bottom=0)
+        if VariantsBrowser.use_horizontal_layout():
+            # window is big enough to use fixed size
+            self.text_field.set_min_width(210)
+            hor_layout.add(self.text_field, expand=False,
+                    margin=10, margin_top=0, margin_bottom=0)
+        else:
+            hor_layout.add(self.text_field, expand=True,
+                    margin=10, margin_top=0, margin_bottom=0)
 
         #self.favorite_button = IconButton(self, "favorite_button.png")
         #self.favorite_button.set_tooltip(
@@ -63,16 +70,47 @@ class ConfigurationsPanel(fsui.Panel):
             hor_layout.add(self.refresh_button,
                    margin=10, margin_top=0, margin_bottom=0)
 
+        if VariantsBrowser.use_horizontal_layout():
+            hori_layout = fsui.HorizontalLayout()
+            self.layout.add(hori_layout, fill=True, expand=True, margin=10)
+
         self.configurations_browser = ConfigurationsBrowser(self)
-        self.layout.add(self.configurations_browser, fill=True, expand=3,
-                margin=10)
+        if VariantsBrowser.use_horizontal_layout():
+            hori_layout.add(self.configurations_browser, fill=True, expand=2)
+        else:
+            self.layout.add(self.configurations_browser, fill=True, expand=3,
+                    margin=10)
 
         if Settings.get("database_feature") == "1":
             self.variants_browser = VariantsBrowser(self)
-            self.layout.add(self.variants_browser, fill=True, expand=1,
-                    margin=10, margin_top=20)
-            #self.layout.add(self.variants_browser, fill=True, expand=0,
-            #        margin=10)
+            if VariantsBrowser.use_horizontal_layout():
+                hori_layout.add(self.variants_browser, fill=True, expand=1,
+                        margin_left=18)
+                #self.variants_browser.set_min_width(Constants.SCREEN_SIZE[0])
+                self.variants_browser.set_min_width(72)
+                #self.variants_browser.set_min_width(0)
+            else:
+                self.layout.add(self.variants_browser, fill=True, expand=1,
+                        margin=10, margin_top=20)
+        else:
+            self.variants_browser = None
+
+        Settings.add_listener(self)
+        self.on_setting("parent_uuid", Settings.get("parent_uuid"))
+
+    def on_destroy(self):
+        Settings.remove_listener(self)
+
+    def on_setting(self, key, value):
+        if key == "parent_uuid":
+            if self.variants_browser is not None:
+                if VariantsBrowser.use_horizontal_layout():
+                    show = bool(value)
+                    self.variants_browser.show(show)
+                    self.layout.update()
+                else:
+                    # always show variants list
+                    pass
 
     def on_verified_button(self):
         pass

@@ -13,6 +13,7 @@ from ..Database import Database
 from ..I18N import _, ngettext
 from ..fsgs.GameDatabase import GameDatabase
 from ..fsgs.GameDatabaseClient import GameDatabaseClient
+from .Constants import Constants
 
 class LastVariants:
 
@@ -27,7 +28,10 @@ class LastVariants:
         database.commit()
 
 class VariantsBrowser(fsui.VerticalItemView):
-#class VariantsBrowser(fsui.Group):
+
+    @staticmethod
+    def use_horizontal_layout():
+        return fsui.get_screen_size()[0] > 1024
 
     def __init__(self, parent):
         fsui.VerticalItemView.__init__(self, parent)
@@ -73,7 +77,6 @@ class VariantsBrowser(fsui.VerticalItemView):
             else:
                 Settings.set("game_uuid", "")
                 self.set_items([])
-                #Config.load_default_config()
 
     def set_items(self, items):
         self.items = items
@@ -95,6 +98,8 @@ class VariantsBrowser(fsui.VerticalItemView):
             return self.hd_icon
         if "CD32" in name:
             return self.cd_icon
+        if "CDTV" in name:
+            return self.cd_icon
         return self.icon
 
     def update_list(self, game_uuid):
@@ -112,6 +117,9 @@ class VariantsBrowser(fsui.VerticalItemView):
             name = name.replace(u"\nAmiga \u00b7 ", "\n")
             #name = name.replace(u"\nCD32 \u00b7 ", "\n")
             #name = item[1].replace("\n", " \u00b7 ")
+
+            # only show variant name (without game name)
+            name = name.split("\n", 1)[-1]
             sort_key = (1000000 - item[3], 1000000 - item[4], name)
             self.items.append((sort_key, item[0], name, item[2]))
         self.items.sort()
@@ -138,6 +146,7 @@ class VariantsBrowser(fsui.VerticalItemView):
     def load_variant(self, configuration_id):
         database = Database.get_instance()
         config_info = database.get_config(configuration_id)
+        print(config_info)
 
         game_uuid = config_info["uuid"]
         game_database = GameDatabase.get_instance()
@@ -150,5 +159,13 @@ class VariantsBrowser(fsui.VerticalItemView):
             Config.load_default_config()
             return
         values = game_database_client.get_final_game_values(game_id)
+        
         print(values)
         Config.load_values(values, uuid=game_uuid)
+
+        variant_rating = 0
+        if config_info["work_rating"] is not None:
+            variant_rating = config_info["work_rating"]
+        if config_info["like_rating"]:
+            variant_rating = config_info["like_rating"]
+        Config.set("__variant_rating", str(variant_rating))

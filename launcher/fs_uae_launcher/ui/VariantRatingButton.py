@@ -38,21 +38,36 @@ class VariantRatingButton(fsui.Panel):
 
         foreground = fsui.Color(0xff, 0xff, 0xff)
         rating = self.rating
-        if rating == -1:
+        if rating == -3:
             background = fsui.Color(0xa0, 0x00, 0x00)
-            text = "BAD"
-        elif rating == 1:
+        elif rating == -1:
             background = fsui.Color(0x00, 0x70, 0x00)
-            text = "OK"
-        elif rating >= 2:
+        elif rating == 1:
+            background = fsui.Color(0xb0, 0x00, 0x00)
+        elif rating == 2:
+            background = fsui.Color(0xc0, 0x40, 0x00)
+        elif rating == 3:
+            background = fsui.Color(0xd0, 0x70, 0x00)
+        elif rating == 4:
+            background = fsui.Color(0xe0, 0x90, 0x00)
+        elif rating >= 5:
             background = fsui.Color(0xf0, 0xa0, 0x00)
-            text = "+" + str(rating)
         else:
             background = fsui.Color(0xa8, 0xa8, 0xa8)
+
+        if rating == -3:
+            text = "BAD"
+        elif rating == -1:
+            text = "OK"
+        elif rating >= 1:
+            text = str(rating)
+            font = dc.get_font()
+            font.set_bold(True)
+            dc.set_font(font)
+        else:
             text = "-"
 
         tw, th = dc.measure_text(text)
         dc.draw_rectangle(0, 0, size[0], size[1], background)
-
         dc.set_text_color(foreground)
         dc.draw_text(text, (size[0] - tw) // 2, (size[1] - th) // 2)

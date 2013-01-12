@@ -36,7 +36,7 @@
 #include "sysdeps.h"
 #include "gui.h"
 #include "options.h"
-#include "memory.h"
+#include "uae/memory.h"
 #include "rommgr.h"
 #include "custom.h"
 #include "events.h"

@@ -16,7 +16,7 @@
 
 #include "config.h"
 #include "options.h"
-#include "memory.h"
+#include "uae/memory.h"
 #include "events.h"
 #include "savestate.h"
 #include "blkdev.h"

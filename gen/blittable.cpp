@@ -2,7 +2,7 @@
 #include "sysdeps.h"
 #include "options.h"
 #include "custom.h"
-#include "memory.h"
+#include "uae/memory.h"
 #include "blitter.h"
 #include "blitfunc.h"
 

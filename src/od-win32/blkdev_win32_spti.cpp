@@ -17,7 +17,7 @@
 
 #ifdef WINDDK
 
-#include "memory.h"
+#include "uae/memory.h"
 #include "threaddep/thread.h"
 #include "blkdev.h"
 #include "scsidev.h"

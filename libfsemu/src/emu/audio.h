@@ -2,6 +2,7 @@
 #define LIBFSEMU_AUDIO_H_
 
 #include <fs/emu.h>
+#include <fs/thread.h>
 #include "util.h"
 
 void fs_emu_audio_init();
@@ -44,7 +45,7 @@ typedef struct audio_stream {
     fs_emu_stat_queue g_audio_fill_queue;
     fs_emu_stat_queue g_audio_fill_queue2;
     fs_emu_stat_queue g_audio_underrun_queue;
-    GMutex *g_audio_fill_queue2_mutex;
+    fs_mutex *g_audio_fill_queue2_mutex;
 
     int16_t g_old_left;
     int16_t g_old_right;

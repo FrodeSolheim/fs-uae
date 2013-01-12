@@ -221,11 +221,19 @@ class GameDatabaseClient:
                 "game": row[5],
             }
 
-    def get_ratings(self, start, limit):
+    def get_ratings(self, start, limit, user_id=None):
         cursor = self.database.cursor()
-        cursor.execute(self.database.query("SELECT uuid, work_rating, "
-                "like_rating, updated FROM game WHERE updated >= %s "
-                "LIMIT %s"), (start, limit))
+        if user_id is not None:
+            cursor.execute(self.database.query("SELECT game.uuid, "
+                    "game_rating.work_rating, game_rating.like_rating, "
+                    "game_rating.updated FROM game, game_rating WHERE "
+                    "game_rating.game = game.id AND game_rating.updated >= %s "
+                    "AND game_rating.user = %s LIMIT %s"),
+                    (start, user_id, limit))
+        else:
+            cursor.execute(self.database.query("SELECT uuid, work_rating, "
+                    "like_rating, updated FROM game WHERE updated >= %s "
+                    "LIMIT %s"), (start, limit))
         for row in cursor:
             yield {
                 "game": row[0],

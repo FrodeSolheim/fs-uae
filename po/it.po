@@ -7,9 +7,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2012-11-01 10:43+0100\n"
-"PO-Revision-Date: 2012-11-01 19:28+0100\n"
-"Last-Translator: Speedvicio <fs-uae-it@fengestad.no>\n"
+"POT-Creation-Date: 2013-01-12 13:03+0100\n"
+"PO-Revision-Date: 2013-01-12 18:23+0100\n"
+"Last-Translator: Speedvicio <speedvicio@hotmail.com>\n"
 "Language-Team: Italian\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
@@ -153,6 +153,10 @@ msgstr "Porte Parallele Joystick"
 
 msgid "Pause"
 msgstr "Pausa"
+
+#, c-format
+msgid "Port 0: %s"
+msgstr "Porta 0: %s"
 
 msgid "Port Settings"
 msgstr "Settaggi Porte"

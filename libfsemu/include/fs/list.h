@@ -28,6 +28,11 @@ fs_list* fs_list_sort(fs_list *list, fs_compare_func compare_func)
 void fs_list_foreach(fs_list *list, fs_func func, void *user_data);
 fs_list *fs_list_last(fs_list *list);
 fs_list *fs_list_nth(fs_list *list, unsigned int n);
+fs_list *fs_list_insert_before(fs_list *list, fs_list *sibling, void *data);
+int fs_list_index(fs_list *list, const void *data);
+fs_list *fs_list_remove_link(fs_list *list, fs_list *llink);
+int fs_list_position(fs_list *list, fs_list *llink);
+fs_list *fs_list_reverse(fs_list *list);
 
 #ifdef __cplusplus
 }

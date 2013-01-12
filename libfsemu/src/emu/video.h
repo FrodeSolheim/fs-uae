@@ -15,23 +15,32 @@ extern int g_fs_emu_video_crop_mode;
 extern int g_fs_ml_opengl_context_stamp;
 extern int g_fs_emu_screenshot;
 
+extern int g_fs_emu_video_bpp;
+extern int g_fs_emu_video_format;
+extern int g_fs_emu_texture_format;
+extern int g_fs_emu_disable_aspect_correction;
+
 void fs_emu_on_resize(int width, int height);
 
 void fs_emu_video_render_debug_info(uint32_t *texture);
 
-void fs_emu_video_init();
-void fs_emu_video_init_opengl();
+void fs_emu_video_init(void);
+void fs_emu_video_init_options(void);
+void fs_emu_video_init_opengl(void);
 
-int fs_emu_video_update_function();
-void fs_emu_video_render_function();
+int fs_emu_video_update_function(void);
+void fs_emu_video_render_function(void);
 
-void fs_emu_video_after_update();
+void fs_emu_video_after_update(void);
 
 /* this is used to make sure that changes to menu etc is not done while
  * rendering it... handling of input events for menu actions must be done
  * when holding this lock, as well as updates to menu state, pause state, etc
  */
-void fs_emu_video_render_mutex_lock();
-void fs_emu_video_render_mutex_unlock();
+void fs_emu_video_render_mutex_lock(void);
+void fs_emu_video_render_mutex_unlock(void);
+
+void fs_emu_update_video_stats_1(void);
+void fs_emu_update_video_stats_2(void);
 
 #endif // LIBFSEMU_VIDEO_H_

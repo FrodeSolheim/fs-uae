@@ -17,7 +17,7 @@
 #include "audio.h"
 #include "sounddep/sound.h"
 #include "events.h"
-#include "memory.h"
+#include "uae/memory.h"
 #include "custom.h"
 #include "serial.h"
 #include "newcpu.h"
@@ -855,9 +855,6 @@ void do_leave_program (void)
 #endif
 	if (! no_gui)
 		gui_exit ();
-#ifdef USE_SDL
-	SDL_Quit ();
-#endif
 #ifdef AUTOCONFIG
 	expansion_cleanup ();
 #endif

@@ -22,7 +22,8 @@ endif
 
 libfsemu_dir = libfsemu
 libfsemu-target:
-	$(make) -C libfsemu debug=$(debug) devel=$(devel) optimize=$(optimize)
+	$(make) -C libfsemu debug=$(debug) devel=$(devel) optimize=$(optimize) \
+			android=$(android)
 
 #ifeq ($(wildcard libfs-capsimage), libfs-capsimage)
 #libfs-capsimage_dir = libfs-capsimage
@@ -35,19 +36,20 @@ libfsemu-target:
 #endif
 
 ifeq ($(android), 1)
+use_glib := 0
 warnings = 
 errors = -Werror=implicit-function-declaration -Werror=return-type
 cxxflags = $(warnings) $(errors) -Isrc/od-fs -Isrc/od-fs/include \
 		-Isrc/include -Igen -Isrc -Isrc/od-win32/caps \
 		-I$(libfsemu_dir)/include \
-		-Wno-write-strings
+		-Wno-write-strings -fpermissive
 
 cflags = -std=c99 $(cxxflags)
 ldflags =
 libs = -L$(libfsemu_dir)/out -lfsemu -lpng -lz
 
 else
-
+use_glib := 1
 common_flags = -Isrc/od-fs -Isrc/od-fs/include \
 		-Isrc/include -Igen -Isrc -Isrc/od-win32/caps \
 		`pkg-config --cflags glib-2.0 gthread-2.0 libpng` \
@@ -57,7 +59,7 @@ cflags = $(common_flags) -std=c99 $(CFLAGS)
 cxxflags = $(common_flags) -fpermissive $(CXXFLAGS)
 ldflags = $(LDFLAGS)
 libs = -L$(libfsemu_dir)/out -lfsemu `sdl-config --libs` \
-		`pkg-config --libs glib-2.0 gthread-2.0 libpng` -lpng -lz
+		`pkg-config --libs libpng` -lpng -lz
 
 ifeq ($(devel), 1)
 	warnings = -Wno-unused-variable -Wno-unused-function -Wno-write-strings \
@@ -67,6 +69,13 @@ ifeq ($(devel), 1)
 	cxxflags += $(warnings) $(errors)
 endif
 
+endif
+
+ifeq ($(use_glib), 1)
+	libs += `pkg-config --libs glib-2.0 gthread-2.0`
+else ifeq ($(android), 1)
+else
+	libs += -lrt -lpthread
 endif
 
 profile_generate := 0
@@ -106,7 +115,7 @@ generate = 0
 ifeq ($(os), android)
   cppflags += -DANDROID
   cxxflags += 
-  libs +=
+  libs += -lGLESv1_CM
 else ifeq ($(os), windows)
   cppflags += -DWINDOWS
   cxxflags += -U_WIN32 -UWIN32
@@ -143,6 +152,10 @@ else
   ldflags += -Wa,--execstack
   libs += -lGL -lGLU -lopenal -ldl -lX11
   generate = 0
+endif
+
+ifneq ($(os), android)
+	cppflags += -DUSE_SDL -DUSE_GLIB
 endif
 
 objects = \
@@ -255,11 +268,6 @@ obj/dms-archiver-u_init.o \
 obj/dms-archiver-u_medium.o \
 obj/dms-archiver-u_quick.o \
 obj/dms-archiver-u_rle.o \
-obj/gen-drive_click.o \
-obj/gen-drive_snatch.o \
-obj/gen-drive_spin.o \
-obj/gen-drive_spinnd.o \
-obj/gen-drive_startup.o \
 obj/od-fs-audio.o \
 obj/od-fs-bsdsocket_host.o \
 obj/od-fs-caps.o \
@@ -268,6 +276,7 @@ obj/od-fs-charset.o \
 obj/od-fs-clock.o \
 obj/od-fs-cdimage_stubs.o \
 obj/od-fs-clipboard.o \
+obj/od-fs-driveclick.o \
 obj/od-fs-filesys_host.o \
 obj/od-fs-fsdb_host.o \
 obj/od-fs-hardfile_host.o \
@@ -344,14 +353,6 @@ gen/cpuemu_21.cpp: gen/cpuemu_0.cpp
 gen/cpuemu_31.cpp: gen/cpuemu_0.cpp
 
 endif
-
-gen/drive_%.cpp: sound/drive_%.wav
-	(echo "unsigned char drive_$*_data[] = {"; od -txC -v $< | \
-sed -e "s/^[0-9]*//" -e s"/ \([0-9a-f][0-9a-f]\)/0x\1,/g" -e"\$$d") > $@
-	echo "0x00};" >> $@
-	echo "int drive_$*_data_size = " >> $@
-	ls -l $< | awk '{ print $$5}' >> $@
-	echo ";" >> $@
 
 obj/gen-%.o: gen/%.cpp
 	$(cxx) $(cppflags) $(cxxflags) -c $< -o $@
@@ -463,7 +464,7 @@ distdir-base: distdir-launcher-base
 	cp -a common.mk targets.mk $(dist_dir)
 	# windows.mk macosx.mk debian.mk
 	cp -a Makefile fs-uae.spec example.conf $(dist_dir)
-	cp -a src sound share licenses $(dist_dir)
+	cp -a src share licenses $(dist_dir)
 	find $(dist_dir)/share -name *.mo -delete
 	mkdir -p $(dist_dir)/gen
 	cp -a gen/*.cpp gen/*.h $(dist_dir)/gen

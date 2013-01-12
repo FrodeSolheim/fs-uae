@@ -1,10 +1,10 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <limits.h>
 #include <uae/uae.h>
 #include <fs/base.h>
 #include <fs/emu.h>
-#include <glib.h>
 #include "fs-uae.h"
 
 #define MAX_PATHS 8
@@ -50,21 +50,21 @@ const char* fs_uae_app_dir() {
         free(app_dir);
         path = p;
 #ifdef MACOSX
-        char *base_name = g_path_get_basename(p);
+        char *base_name = fs_path_get_basename(p);
         if (strcmp(base_name, "MacOS") == 0) {
             char *temp;
             temp = p;
-            p = g_path_get_dirname(p);
-            g_free(temp);
+            p = fs_path_get_dirname(p);
+            free(temp);
             temp = p;
-            p = g_path_get_dirname(p);
-            g_free(temp);
+            p = fs_path_get_dirname(p);
+            free(temp);
             temp = p;
-            p = g_path_get_dirname(p);
-            g_free(temp);
+            p = fs_path_get_dirname(p);
+            free(temp);
             path = p;
         }
-        g_free(base_name);
+        free(base_name);
 #endif
         fs_log("using $app directory \"%s\"\n", path);
     }
@@ -84,7 +84,7 @@ const char* fs_uae_documents_dir() {
             char *msg = fs_strdup_printf("Documents directory does not "
                     "exist: %s", path);
             fs_emu_warning(msg);
-            g_free(msg);
+            free(msg);
             path = fs_uae_home_dir();
         }
         fs_log("using documents directory \"%s\"\n", path);
@@ -116,7 +116,7 @@ const char* fs_uae_base_dir() {
         char *msg = fs_strdup_printf("Could not create base directory "
                 "at %s", path);
         fs_emu_warning(msg);
-        g_free(msg);
+        free(msg);
         path = fs_uae_documents_dir();
     }
     fs_log("using base ($BASE / $FSUAE) directory \"%s\"\n", path);
@@ -305,11 +305,11 @@ const char *fs_uae_themes_dir() {
 }
 
 char *fs_uae_expand_path(const char* path) {
-    char* lower = g_ascii_strdown(path, -1);
+    char* lower = fs_ascii_strdown(path, -1);
     int replace = 0;
     const char *replace_with = NULL;
 
-    if (fs_str_has_prefix(lower, "~/") || g_str_has_prefix(lower, "~\\")) {
+    if (fs_str_has_prefix(lower, "~/") || fs_str_has_prefix(lower, "~\\")) {
         replace = 2;
         replace_with = fs_uae_home_dir();
     }
@@ -383,7 +383,7 @@ void fs_uae_configure_directories() {
         char *src = fs_path_join(fs_uae_state_dir(), src_name, NULL);
         free(src_name);
         char *dst_name = fs_strdup_printf("Saved State %d.uss", i);
-        char *dst = fs_path_join(fs_uae_state_dir(), src_name, NULL);
+        char *dst = fs_path_join(fs_uae_state_dir(), dst_name, NULL);
         free(dst_name);
         if (fs_path_exists(src)) {
             fs_log("renaming file %s to %s\n", src, dst);
@@ -478,7 +478,7 @@ char *fs_uae_resolve_path(const char *name, int type) {
                 fix_separators(path);
                 return path;
             }
-            g_free(path);
+            free(path);
         }
     }
     fs_log("WARNING: did not find path\n", name);
@@ -499,6 +499,22 @@ void fs_uae_set_uae_paths() {
             g_paths[FS_UAE_FLOPPY_PATHS].path,
             g_paths[FS_UAE_CD_PATHS].path,
             g_paths[FS_UAE_HD_PATHS].path);
+
+    // find path for built-in drive sounds
+    char *path = fs_get_program_data_file("floppy_sounds");
+    if (path) {
+        fs_log("found \"built-in\" driveclick directory at %s\n", path);
+        amiga_set_builtin_driveclick_path(path);
+        free(path);
+    }
+    else {
+        fs_log("did not find \"built-in\" driveclick directory\n");
+    }
+
+    // find path for custom drive sounds
+    path = fs_path_join(fs_uae_base_dir(), "Floppy Sounds", NULL);
+    amiga_set_floppy_sounds_dir(path);
+    free(path);
 }
 
 void fs_uae_init_path_resolver() {

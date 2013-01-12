@@ -349,7 +349,7 @@ static void render_screen(RenderData* rd) {
 
 static void *grow_buffer(int width, int height) {
     //printf("growing buffer: %p\n", g_buffer->data);
-    fs_emu_grow_render_buffer(g_buffer, width, height);
+    fs_emu_video_buffer_grow(g_buffer, width, height);
     return g_buffer->data;
 }
 
@@ -362,14 +362,12 @@ static void display_screen() {
         //printf("%d\n", dt);
     }
 
-    fs_emu_set_video_buffer(g_buffer);
+    fs_emu_video_buffer_set_current(g_buffer);
 
-    g_buffer = fs_emu_get_available_video_buffer(g_remember_last_screen);
+    g_buffer = fs_emu_video_buffer_get_available(g_remember_last_screen);
     //printf("new render buffer: %p\n", g_buffer->data);
     amiga_set_render_buffer(g_buffer->data, g_buffer->size,
             !g_remember_last_screen, grow_buffer);
-
-    fs_emu_video_render(1);
 
     last_time = fs_emu_monotonic_time();
 }
@@ -405,9 +403,9 @@ static void toggle_zoom(int flags) {
 void fs_uae_init_video(void) {
     fs_log("fs_uae_init_video\n");
     init_window_overrides();
-    fs_emu_initialize_video_buffers(1024, 1024, 0);
+    fs_emu_video_buffer_init(1024, 1024, 0);
 
-    g_buffer = fs_emu_get_available_video_buffer(g_remember_last_screen);
+    g_buffer = fs_emu_video_buffer_get_available(g_remember_last_screen);
     amiga_set_render_buffer(g_buffer->data, g_buffer->size,
             !g_remember_last_screen, grow_buffer);
     amiga_set_render_function(render_screen);

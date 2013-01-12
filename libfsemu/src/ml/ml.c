@@ -3,10 +3,14 @@
 #include <Windows.h>
 #endif
 #include <stdio.h>
-#include <glib.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include <fs/base.h>
 #include <fs/log.h>
-#include "fs/ml.h"
+#include <fs/ml.h>
+#include <fs/queue.h>
+#include <fs/thread.h>
 
 #if 0
 #include <sched.h>
@@ -20,9 +24,11 @@
 
 #include "ml_internal.h"
 
-static GQueue *g_input_queue = NULL;
-static GMutex *g_input_mutex = NULL;
+static fs_queue *g_input_queue = NULL;
+static fs_mutex *g_input_mutex = NULL;
 static fs_ml_input_function g_input_function = NULL;
+
+int g_fs_ml_benchmarking = 0;
 
 int g_fs_ml_video_width = 0;
 int g_fs_ml_video_height = 0;
@@ -37,18 +43,18 @@ int g_fs_ml_target_frame_time = 0;
 // to reload textures, etc)
 int g_fs_ml_opengl_context_stamp = 0;
 
-fs_ml_int_result_function g_fs_ml_video_update_function = NULL;
-fs_ml_simple_function g_fs_ml_video_render_function = NULL;
-fs_ml_simple_function g_fs_ml_video_post_render_function = NULL;
+fs_ml_int_function g_fs_ml_video_update_function = NULL;
+fs_ml_void_function g_fs_ml_video_render_function = NULL;
+fs_ml_void_function g_fs_ml_video_post_render_function = NULL;
 
 //fs_ml_input_device *g_fs_ml_input_devices = NULL;
 fs_ml_input_device *g_fs_ml_input_devices = NULL;
 int g_fs_ml_input_device_count = 0;
 
 static int g_quit;
-static fs_ml_simple_function g_quit_function = NULL;
+static fs_ml_void_function g_quit_function = NULL;
 
-void fs_ml_set_quit_function(fs_ml_simple_function function) {
+void fs_ml_set_quit_function(fs_ml_void_function function) {
     g_quit_function = function;
 }
 
@@ -121,41 +127,24 @@ int fs_ml_video_height() {
     return g_fs_ml_video_height;
 }
 
-void fs_ml_video_set_update_function(fs_ml_int_result_function function) {
+void fs_ml_video_set_update_function(fs_ml_int_function function) {
     g_fs_ml_video_update_function = function;
 }
 
-void fs_ml_video_set_render_function(fs_ml_simple_function function) {
+void fs_ml_video_set_render_function(fs_ml_void_function function) {
     g_fs_ml_video_render_function = function;
 }
 
-void fs_ml_video_set_post_render_function(fs_ml_simple_function function) {
+void fs_ml_video_set_post_render_function(fs_ml_void_function function) {
     g_fs_ml_video_post_render_function = function;
 }
 
 fs_ml_event* fs_ml_alloc_event() {
-    return g_malloc(sizeof(fs_ml_event));
+    return malloc(sizeof(fs_ml_event));
 }
 
 void fs_ml_input_event_free(fs_ml_event *event) {
-    g_free(event);
-}
-
-int fs_ml_get_event(fs_ml_event *event) {
-    /*
-    g_mutex_lock(g_input_mutex);
-    fs_ml_event *e = g_queue_pop_head(g_input_queue);
-    g_mutex_unlock(g_input_mutex);
-    if (e == NULL) {
-        // empty queue, we do not modify the event at all and return 0
-        // to signify that there is no more events
-        return 0;
-    }
-    *event = *e;
-    fs_ml_input_event_free(e);
-    return 1;
-    */
-    return 0;
+    free(event);
 }
 
 void fs_ml_set_input_function(fs_ml_input_function function) {
@@ -163,33 +152,33 @@ void fs_ml_set_input_function(fs_ml_input_function function) {
 }
 
 int fs_ml_post_event(fs_ml_event* event) {
-    if (event->type == SDL_KEYDOWN || event->type == SDL_KEYUP) {
+    if (event->type == FS_ML_KEYDOWN || event->type == FS_ML_KEYUP) {
         if (fs_ml_handle_keyboard_shortcut(event)) {
             return 1;
         }
     }
     if (g_input_function) {
-        g_input_function(event);;
+        g_input_function(event);
     }
     /*
-    g_mutex_lock(g_input_mutex);
-    g_queue_push_tail(g_input_queue, event);
-    g_mutex_unlock(g_input_mutex);
+    fs_mutex_lock(g_input_mutex);
+    fs_queue_push_tail(g_input_queue, event);
+    fs_mutex_unlock(g_input_mutex);
     */
     return 1;
 }
 
 static void init_input() {
     fs_log("init_input\n");
-    g_input_queue = g_queue_new();
-    g_input_mutex = g_mutex_new();
+    g_input_queue = fs_queue_new();
+    g_input_mutex = fs_mutex_create();
 
     fs_log("calling fs_ml_video_init\n");
     fs_ml_video_init();
 
     int size = sizeof(fs_ml_input_device) * FS_ML_INPUT_DEVICES_MAX;
     // allocate zeroed memory
-    g_fs_ml_input_devices = g_malloc0(size);
+    g_fs_ml_input_devices = fs_malloc0(size);
     fs_log("calling fs_ml_input_init\n");
     fs_ml_input_init();
 }
@@ -202,9 +191,9 @@ int fs_ml_handle_keyboard_shortcut(fs_ml_event *event) {
     int special = mod & (FS_ML_KEY_MOD_F11 | FS_ML_KEY_MOD_F12);
 
 #ifdef MACOSX
-    int alt_mod = mod & (KMOD_ALT | KMOD_META);
+    int alt_mod = mod & (FS_ML_KEY_MOD_ALT | FS_ML_KEY_MOD_META);
 #else
-    int alt_mod = mod & KMOD_ALT;
+    int alt_mod = mod & FS_ML_KEY_MOD_ALT;
 #endif
 
     if (special) {
@@ -222,20 +211,20 @@ int fs_ml_handle_keyboard_shortcut(fs_ml_event *event) {
         }
     }
 
-    if (key == SDLK_RETURN && alt_mod) {
+    if (key == FS_ML_KEY_RETURN && alt_mod) {
         if (state) {
             fs_log("ALT+Return key press detected\n");
             fs_ml_toggle_fullscreen();
         }
         return 1;
     }
-    else if (key == SDLK_F4 && alt_mod) {
+    else if (key == FS_ML_KEY_F4 && alt_mod) {
         if (state) {
             fs_log("ALT+F4 key press detected\n");
             fs_ml_quit();
         }
     }
-    else if (key == SDLK_TAB && alt_mod) {
+    else if (key == FS_ML_KEY_TAB && alt_mod) {
         if (state) {
             fs_log("ALT+Tab key press detected\n");
 #ifdef WINDOWS

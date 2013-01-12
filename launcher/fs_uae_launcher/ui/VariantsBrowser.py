@@ -165,7 +165,7 @@ class VariantsBrowser(fsui.VerticalItemView):
 
         variant_rating = 0
         if config_info["work_rating"] is not None:
-            variant_rating = config_info["work_rating"]
+            variant_rating = config_info["work_rating"] - 2
         if config_info["like_rating"]:
             variant_rating = config_info["like_rating"]
         Config.set("__variant_rating", str(variant_rating))

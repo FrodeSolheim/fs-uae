@@ -18,7 +18,7 @@
 #include "resource.h"
 
 #include "options.h"
-#include "memory.h"
+#include "uae/memory.h"
 #include "custom.h"
 #include "newcpu.h"
 #include "cia.h"

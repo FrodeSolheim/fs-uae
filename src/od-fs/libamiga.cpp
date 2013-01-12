@@ -3,12 +3,13 @@
 
 #include "uae.h"
 #include "autoconf.h"
-#include <string.h>
-#include <glib.h>
-#include <string.h>
-#include <glib/gstdio.h>
 
-#include "memory.h"
+#include <string.h>
+#include <string.h>
+#include <fs/filesys.h>
+#include <fs/string.h>
+
+#include "uae/memory.h"
 #include "options.h"
 #include "keyboard.h"
 #include "inputdevice.h"
@@ -34,6 +35,8 @@ FILE* g_fs_uae_sync_debug_file = NULL;
 
 int g_amiga_video_format = AMIGA_VIDEO_FORMAT_RGBA;
 int g_amiga_video_bpp = 4;
+
+static char *g_floppy_sounds_dir;
 
 int g_fs_uae_writable_disk_images = 0;
 /*
@@ -113,6 +116,17 @@ void gui_led (int led, int on) {
 }
 
 extern "C" {
+
+void amiga_set_floppy_sounds_dir(const char *path) {
+    int len = strlen(path);
+    if (path[len - 1] == '/') {
+        g_floppy_sounds_dir = fs_strdup(path);
+    }
+    else {
+        // must have directory separator at the end
+        g_floppy_sounds_dir = fs_strconcat(path, "/", NULL);
+    }
+}
 
 void amiga_set_led_function(amiga_led_function function) {
     g_amiga_led_function = function;
@@ -245,7 +259,7 @@ void amiga_set_paths(const char **rom_paths, const char **floppy_paths,
 
 int amiga_set_synchronization_log_file(const char *path) {
 #ifdef DEBUG_SYNC
-    FILE *f = g_fopen(path, "wb");
+    FILE *f = fs_fopen(path, "wb");
     if (f) {
         write_log("sync debug log to %s\n", path);
         g_fs_uae_sync_debug_file = f;
@@ -270,7 +284,7 @@ int amiga_quickstart(int quickstart_model, int quickstart_config,
 
 void amiga_set_save_image_dir(const char *path) {
     write_log("amiga_set_save_image_dir %s\n", path);
-    g_libamiga_save_image_path = g_strdup(path);
+    g_libamiga_save_image_path = fs_strdup(path);
 }
 
 int amiga_get_rand_checksum() {
@@ -553,9 +567,9 @@ int amiga_set_hardware_option(const char *option, const char *value) {
 }
 
 int amiga_set_int_option(const char *option, int value) {
-    gchar *str_value = g_strdup_printf("%d", value);
+    char *str_value = fs_strdup_printf("%d", value);
     int result = amiga_set_option(option, str_value);
-    g_free(str_value);
+    free(str_value);
     return result;
 }
 
@@ -610,18 +624,20 @@ void gui_disk_image_change (int unitnum, const TCHAR *name, bool writeprotected)
 
 bool get_plugin_path (TCHAR *out, int size, const TCHAR *path) {
     static char* plugin_path_none = NULL;
-    static char* plugin_path_floppysounds = NULL;
 
-    write_log("\n-----------------> STUB: get_plugin_path, size: %d, path: %s\n", size, path);
     if (strcmp(path, "floppysounds") == 0) {
-        if (!plugin_path_floppysounds) {
-            plugin_path_floppysounds = strdup("floppysounds/");
+        if (g_floppy_sounds_dir) {
+            strncpy(out, g_floppy_sounds_dir, size);
         }
-        strncpy(out, plugin_path_floppysounds, size);
+        else {
+            strncpy(out, "floppy_sounds", size);
+        }
         // make sure out is null-terminated in any case
         out[size - 1] = '\0';
     }
     else {
+        write_log("\n-----------------> STUB: get_plugin_path, "
+                "size: %d, path: %s\n", size, path);
         out[0] = '\0';
     }
     return TRUE;

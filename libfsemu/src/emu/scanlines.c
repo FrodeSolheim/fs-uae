@@ -1,3 +1,4 @@
+#include <string.h>
 #include <fs/emu.h>
 
 void fs_emu_render_scanlines(uint8_t* out, fs_emu_video_buffer *buffer,

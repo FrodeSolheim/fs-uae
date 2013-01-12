@@ -1,22 +1,30 @@
+#include "input.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "fs/ml.h"
+#include <fs/base.h>
+#include <fs/hashtable.h>
+#include <fs/inifile.h>
+#include <fs/queue.h>
+#include <fs/string.h>
+#include <fs/thread.h>
 
-#include "input.h"
-#include "video.h"
-#include "menu.h"
 #include "actions.h"
+#include "hud.h"
+#include "menu.h"
+#include "netplay.h"
 #include "libfsemu.h"
+#include "video.h"
 
-static gchar *g_controllers_dir = NULL;
+static char *g_controllers_dir = NULL;
 
 void fs_emu_set_controllers_dir(const char *path) {
     if (g_controllers_dir) {
-        g_free(g_controllers_dir);
+        free(g_controllers_dir);
     }
     if (path) {
-        g_controllers_dir = g_strdup(path);
+        g_controllers_dir = fs_strdup(path);
     }
 }
 
@@ -27,17 +35,13 @@ void fs_emu_set_controllers_dir(const char *path) {
 #define MAX_ACTIONS_WITH_LIBFSEMU_INTERNAL 1200
 static fs_emu_action g_actions[MAX_ACTIONS_WITH_LIBFSEMU_INTERNAL] = {};
 
-//#include <glib.h>
-//extern gboolean g_fs_emu_video_fullscreen;
-//extern gboolean g_fs_emu_video_vsync;
-
 /*
 input mapping
 then comes all joysticks in order
 every device has 512 "slots"
 joysticks are device index 0 .. num joysticks - 1
 keyboard is MAX_DEVICES - 1
-- for keyboard, every index corresponds to an SDL keysym
+- for keyboard, every index corresponds to a keysym
 - for joystick: axis, buttons and hats are mapped to an index between
 - 0 and 512 (see button_index)
 */
@@ -51,7 +55,7 @@ static int g_debug_input = 0;
 
 #define MOUSE 59
 
-static GHashTable *configure_input_device(const char *name,
+static fs_hash_table *configure_input_device(const char *name,
         const char *platform);
 
 // FIXME: cleanup here, KEYBOARD occupies more than one "device" at the end,
@@ -84,13 +88,13 @@ static int mouse_index(int horiz, int vert, int button) {
     else if (vert) {
         index = 2;
     }
-    else if (button == SDL_BUTTON_LEFT) {
+    else if (button == FS_ML_BUTTON_LEFT) {
         index = 3;
     }
-    else if (button == SDL_BUTTON_MIDDLE) {
+    else if (button == FS_ML_BUTTON_MIDDLE) {
         index = 4;
     }
-    else if (button == SDL_BUTTON_RIGHT) {
+    else if (button == FS_ML_BUTTON_RIGHT) {
         index = 5;
     }
     return MOUSE * SLOTS + index;
@@ -101,7 +105,7 @@ static int mouse_index(int horiz, int vert, int button) {
 static int g_input_action_table[MAX_DEVICES * SLOTS];
 static int g_menu_action_table[MAX_DEVICES * SLOTS];
 static unsigned char g_input_state[MAX_DEVICES * SLOTS];
-static int g_key_modifiers_at_pressed_state[SDLK_LAST] = {};
+static int g_key_modifiers_at_pressed_state[FS_ML_KEY_LAST] = {};
 
 // used to look up start index from select index and vice-versa for menu
 // button emulation (you can simultaneously press start and select instead
@@ -142,16 +146,16 @@ void fs_emu_configure_mouse(int horiz, int vert, int left, int middle,
     fs_log("fs_emu_configure_mouse\n");
     g_input_action_table[mouse_index(1, 0, 0)] = horiz;
     g_input_action_table[mouse_index(0, 1, 0)] = vert;
-    g_input_action_table[mouse_index(0, 0, SDL_BUTTON_LEFT)] = left;
-    g_input_action_table[mouse_index(0, 0, SDL_BUTTON_MIDDLE)] = middle;
-    g_input_action_table[mouse_index(0, 0, SDL_BUTTON_RIGHT)] = right;
-    g_input_action_table[mouse_index(0, 0, SDL_BUTTON_WHEELUP)] = wheel_axis;
-    g_input_action_table[mouse_index(0, 0, SDL_BUTTON_WHEELDOWN)] = wheel_axis;
+    g_input_action_table[mouse_index(0, 0, FS_ML_BUTTON_LEFT)] = left;
+    g_input_action_table[mouse_index(0, 0, FS_ML_BUTTON_MIDDLE)] = middle;
+    g_input_action_table[mouse_index(0, 0, FS_ML_BUTTON_RIGHT)] = right;
+    g_input_action_table[mouse_index(0, 0, FS_ML_BUTTON_WHEELUP)] = wheel_axis;
+    g_input_action_table[mouse_index(0, 0, FS_ML_BUTTON_WHEELDOWN)] = wheel_axis;
 }
 
 typedef struct input_config_item {
-    gchar *config_key;
-    gchar *config_value;
+    char *config_key;
+    char *config_value;
     int key;
     int axis;
     int hat;
@@ -160,73 +164,70 @@ typedef struct input_config_item {
 } input_config_item;
 
 void free_input_config_item_list(input_config_item *items) {
-    //printf("free_input_config_item_list\n");
     for (input_config_item *item = items; item->config_key; item++) {
-        g_free(item->config_key);
-        g_free(item->config_value);
-        //g_free(item);
+        free(item->config_key);
+        free(item->config_value);
     }
-    g_free(items);
-    //printf("free_input_config_item_list done\n");
+    free(items);
 }
 
 static void map_input_config_item(const char* desc, int *out_key,
         int *out_axis, int *out_hat, int *out_button, int *out_value) {
     // make parts always at least three items -this way we do not have to
     // bounds check parts
-    gchar *tmp = g_strconcat(desc, "_x_x_x_x", NULL);
-    gchar** parts = g_strsplit(tmp, "_", 4);
+    char *tmp = fs_strconcat(desc, "_x_x_x_x", NULL);
+    char** parts = fs_strsplit(tmp, "_", 4);
 
     //int is_keyboard_key = 0;
     //int index = -1;
-    if (g_ascii_strcasecmp(parts[0], "key") == 0) {
+    if (fs_ascii_strcasecmp(parts[0], "key") == 0) {
         for (int i = 0; g_fs_emu_key_names[i]; i++) {
-            if (g_ascii_strcasecmp(parts[1], g_fs_emu_key_names[i]) == 0) {
+            if (fs_ascii_strcasecmp(parts[1], g_fs_emu_key_names[i]) == 0) {
                 *out_key = i;
                 break;
             }
         }
     }
-    else if (g_ascii_strcasecmp(parts[0], "button") == 0) {
+    else if (fs_ascii_strcasecmp(parts[0], "button") == 0) {
         *out_button = atoi(parts[1]);
     }
-    else if (g_ascii_strcasecmp(parts[0], "axis") == 0) {
+    else if (fs_ascii_strcasecmp(parts[0], "axis") == 0) {
         int axis = atoi(parts[1]);
         int direction = -1;
-        if (g_ascii_strcasecmp(parts[2], "pos") == 0) {
+        if (fs_ascii_strcasecmp(parts[2], "pos") == 0) {
             direction = 1;
         }
-        else if (g_ascii_strcasecmp(parts[2], "neg") == 0) {
+        else if (fs_ascii_strcasecmp(parts[2], "neg") == 0) {
             direction = 0;
         }
         else {
             fs_log("error parsing \"%s\"\n", desc);
-            g_free(tmp);
-            g_strfreev(parts);
+            free(tmp);
+            fs_strfreev(parts);
             return;
         }
         *out_axis = axis;
         *out_value = direction;
     }
-    else if (g_ascii_strcasecmp(parts[0], "hat") == 0) {
+    else if (fs_ascii_strcasecmp(parts[0], "hat") == 0) {
         int hat = atoi(parts[1]);
         int direction = -1;
-        if (g_ascii_strcasecmp(parts[2], "up") == 0) {
+        if (fs_ascii_strcasecmp(parts[2], "up") == 0) {
             direction = FS_ML_HAT_UP;
         }
-        else if (g_ascii_strcasecmp(parts[2], "down") == 0) {
+        else if (fs_ascii_strcasecmp(parts[2], "down") == 0) {
             direction = FS_ML_HAT_DOWN;
         }
-        else if (g_ascii_strcasecmp(parts[2], "left") == 0) {
+        else if (fs_ascii_strcasecmp(parts[2], "left") == 0) {
             direction = FS_ML_HAT_LEFT;
         }
-        else if (g_ascii_strcasecmp(parts[2], "right") == 0) {
+        else if (fs_ascii_strcasecmp(parts[2], "right") == 0) {
             direction = FS_ML_HAT_RIGHT;
         }
         else {
             fs_log("error parsing \"%s\"\n", desc);
-            g_free(tmp);
-            g_strfreev(parts);
+            free(tmp);
+            fs_strfreev(parts);
             return;
         }
         *out_hat = hat;
@@ -235,32 +236,32 @@ static void map_input_config_item(const char* desc, int *out_key,
     else {
         fs_log("error parsing \"%s\"\n", desc);
     }
-    g_free(tmp);
-    g_strfreev(parts);
+    free(tmp);
+    fs_strfreev(parts);
 
 }
 
-static input_config_item *get_system_config_for_device(const gchar *device,
-        const gchar *platform) {
+static input_config_item *get_system_config_for_device(const char *device,
+        const char *platform) {
     fs_log("get system config for device: %s\n", device);
-    GHashTable *config = configure_input_device(device, platform);
+    fs_hash_table *config = configure_input_device(device, platform);
     if (config == NULL) {
         return NULL;
     }
-    int num_keys = g_hash_table_size(config);
-    input_config_item *result = g_malloc0((num_keys + 1) *
+    int num_keys = fs_hash_table_size(config);
+    input_config_item *result = fs_malloc0((num_keys + 1) *
             sizeof(input_config_item));
     input_config_item *p = result;
-    GList *keys = g_hash_table_get_keys(config);
-    GList *key_item = keys;
+    fs_list *keys = fs_hash_table_get_keys(config);
+    fs_list *key_item = keys;
     while (key_item) {
-        gchar* value = g_hash_table_lookup(config, key_item->data);
+        char* value = fs_hash_table_lookup(config, key_item->data);
         // both key and value is owned by hash table, must not be freed
-        //*(p++) = g_strdup(key_item->data);
-        //*(p++) = g_strdup(value);
-        //*p = (input_config_item*) g_malloc0(sizeof(input_config_item));
-        p->config_key = g_strdup(key_item->data);
-        p->config_value = g_strdup(value);
+        //*(p++) = fs_strdup(key_item->data);
+        //*(p++) = fs_strdup(value);
+        //*p = (input_config_item*) fs_malloc0(sizeof(input_config_item));
+        p->config_key = fs_strdup(key_item->data);
+        p->config_value = fs_strdup(value);
         p->key = -1;
         p->axis = -1;
         p->hat = -1;
@@ -273,52 +274,52 @@ static input_config_item *get_system_config_for_device(const gchar *device,
         p++;
         key_item = key_item->next;
     }
-    g_list_free(keys);
-    g_hash_table_unref(config);
+    fs_list_free(keys);
+    fs_hash_table_destroy(config);
     // terminate result with NULL pointer and return
     //*(p++) = NULL;
     return result;
 }
 
-static input_config_item *get_config_for_device(const gchar *device,
-        const gchar *platform) {
+static input_config_item *get_config_for_device(const char *device,
+        const char *platform) {
     return get_system_config_for_device(device, platform);
 }
 
 static int find_action_for_name(const char *value) {
-    gchar *value_l = g_ascii_strdown(value, -1);
+    char *value_l = fs_ascii_strdown(value, -1);
     fs_emu_action *action = g_actions;
     while (action->name) {
         if (strcmp(value_l, action->name) == 0) {
             //printf(" ** found %s %d** \n", action->name, action->input_event);
-            g_free(value_l);
+            free(value_l);
             return action->input_event;
         }
         action++;
     }
-    g_free(value_l);
+    free(value_l);
     return -1;
 }
 
 static void map_custom_key_action(const char *key_name, int key_val,
         const char *mod_name, int mod_val) {
-    gchar *config_key = g_strdup_printf("keyboard_key_%s%s", mod_name,
+    char *config_key = fs_strdup_printf("keyboard_key_%s%s", mod_name,
             key_name);
     const char *config_value = fs_config_get_const_string(config_key);
     if (!config_value) {
-        g_free(config_key);
+        free(config_key);
         return;
     }
     int action = find_action_for_name(config_value);
     if (action >= 0) {
         map_keyboard_key(key_val, mod_val, action, 0);
     }
-    g_free(config_key);
+    free(config_key);
 }
 
 static void map_custom_keyboard_actions() {
     fs_log("map_custom_keyboard_actions\n");
-    const gchar **key = g_fs_emu_key_names;
+    const char **key = g_fs_emu_key_names;
     int k = 0;
     while (*key) {
         if (**key == 0) {
@@ -326,7 +327,7 @@ static void map_custom_keyboard_actions() {
             k++;
             continue;
         }
-        gchar *keyl = g_ascii_strdown(*key, -1);
+        char *keyl = fs_ascii_strdown(*key, -1);
         map_custom_key_action(keyl, k, "", -1);
         map_custom_key_action(keyl, k, "ctrl_", FS_ML_KEY_MOD_CTRL);
         map_custom_key_action(keyl, k, "ctrl_shift_",
@@ -339,7 +340,7 @@ static void map_custom_keyboard_actions() {
         map_custom_key_action(keyl, k, "shift_alt_", FS_ML_KEY_MOD_SHIFT |
                 FS_ML_KEY_MOD_ALT);
         map_custom_key_action(keyl, k, "alt_", FS_ML_KEY_MOD_ALT);
-        g_free(keyl);
+        free(keyl);
         key++;
         k++;
     }
@@ -379,13 +380,13 @@ static int button_index(int key, int joystick, int axis, int hat, int button,
 void map_custom_joystick_action(int joy, const char *name,
         int axis, int hat, int button, int value, const char *n1,
         int n2, const char *n3) {
-    gchar *config_key = g_strdup_printf("%s%s%d%s", name, n1, n2, n3);
+    char *config_key = fs_strdup_printf("%s%s%d%s", name, n1, n2, n3);
     if (g_debug_input) {
         fs_log("%s\n", config_key);
     }
     const char *config_value = fs_config_get_const_string(config_key);
     if (!config_value) {
-        g_free(config_key);
+        free(config_key);
         return;
     }
     int index = button_index(-1, joy, axis, hat, button, value);
@@ -393,7 +394,7 @@ void map_custom_joystick_action(int joy, const char *name,
     if (action >= 0) {
         g_input_action_table[index] = action;
     }
-    g_free(config_key);
+    free(config_key);
 }
 
 // 0-based or 1-based configuuration
@@ -435,10 +436,10 @@ void map_custom_joystick_actions_2(int joy, const char *name,
     }
 }
 
-static gchar *joystick_long_config_name(const fs_ml_input_device *device) {
-    const gchar *in = device->name;
-    gchar *result = g_malloc(strlen(device->name) + 1);
-    gchar *out = result;
+static char *joystick_long_config_name(const fs_ml_input_device *device) {
+    const char *in = device->name;
+    char *result = malloc(strlen(device->name) + 1);
+    char *out = result;
     int other = 0;
     while (*in) {
 #if 0
@@ -451,7 +452,7 @@ static gchar *joystick_long_config_name(const fs_ml_input_device *device) {
 #if 0
         }
 #endif
-        gchar c = g_ascii_tolower(*in);
+        char c = fs_ascii_tolower(*in);
         if ((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9')) {
             if (other) {
                 *(out++) = '_';
@@ -465,7 +466,7 @@ static gchar *joystick_long_config_name(const fs_ml_input_device *device) {
         in++;
     }
     *out = '\0';
-    if (g_str_has_suffix(result, "_")) {
+    if (fs_str_has_suffix(result, "_")) {
         result[strlen(result) - 1] = '\0';
     }
 
@@ -483,17 +484,17 @@ static gchar *joystick_long_config_name(const fs_ml_input_device *device) {
     const char *platform = "unknown";
 #endif
 
-    gchar *result2 = g_strdup_printf("%s_%d_%d_%d_%d_%s", result,
+    char *result2 = fs_strdup_printf("%s_%d_%d_%d_%d_%s", result,
             device->buttons, device->axes, device->hats, device->balls,
             platform);
-    g_free(result);
+    free(result);
     return result2;
 }
 
-static gchar *joystick_config_name(const gchar* name, int with_number) {
-    const gchar *in = name;
-    gchar *result = g_malloc(strlen(name) + 1);
-    gchar *out = result;
+static char *joystick_config_name(const char* name, int with_number) {
+    const char *in = name;
+    char *result = malloc(strlen(name) + 1);
+    char *out = result;
     int other = 0;
     while (*in) {
         if (!with_number) {
@@ -502,7 +503,7 @@ static gchar *joystick_config_name(const gchar* name, int with_number) {
                 break;
             }
         }
-        gchar c = g_ascii_tolower(*in);
+        char c = fs_ascii_tolower(*in);
         if ((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9')) {
             if (other) {
                 *(out++) = '_';
@@ -516,7 +517,7 @@ static gchar *joystick_config_name(const gchar* name, int with_number) {
         in++;
     }
     *out = '\0';
-    if (g_str_has_suffix(result, "_")) {
+    if (fs_str_has_suffix(result, "_")) {
         result[strlen(result) - 1] = '\0';
     }
     return result;
@@ -524,33 +525,33 @@ static gchar *joystick_config_name(const gchar* name, int with_number) {
 
 void map_custom_gamepad_actions(int joy, const char *name,
         fs_ml_input_device *device) {
-    gchar* config_name = joystick_long_config_name(device);
+    char* config_name = joystick_long_config_name(device);
     fs_log("config name \"%s\"\n", config_name);
     input_config_item *config = get_config_for_device(config_name,
             "universal");
     if (config == NULL) {
         fs_log("did not find generic gamepad config for device \"%s\"\n",
                 config_name);
-        g_free(config_name);
+        free(config_name);
         config_name = joystick_config_name(device->name, 0);
         fs_log("config name \"%s\"\n", config_name);
         config = get_config_for_device(config_name, "universal");
         if (config == NULL) {
             fs_log("did not find generic gamepad config for device \"%s\"\n",
                     config_name);
-            g_free(config_name);
+            free(config_name);
             return;
         }
     }
     for (int j = 0; config[j].config_key != NULL; j++) {
-        gchar *config_key = g_strdup_printf("%s_%s", name,
+        char *config_key = fs_strdup_printf("%s_%s", name,
                 config[j].config_value);
         if (g_debug_input) {
             fs_log("%s\n", config_key);
         }
         const char *config_value = fs_config_get_const_string(config_key);
         if (!config_value) {
-            g_free(config_key);
+            free(config_key);
             continue;
         }
         int index = button_index(-1, joy, config[j].axis, config[j].hat,
@@ -561,7 +562,7 @@ void map_custom_gamepad_actions(int joy, const char *name,
         }
     }
     free_input_config_item_list(config);
-    g_free(config_name);
+    free(config_name);
 }
 
 static void map_custom_joystick_actions() {
@@ -576,19 +577,18 @@ static void map_custom_joystick_actions() {
         }
         char *name, *config_name;
         fs_log("map_custom_joystick_actions for %s\n", device.name);
-        name = g_ascii_strdown(device.name, -1);
+        name = fs_ascii_strdown(device.name, -1);
         config_name = joystick_config_name(name, 1);
         map_custom_joystick_actions_2(i, config_name, device.axes,
                 device.hats, device.buttons);
         map_custom_gamepad_actions(i, config_name, &device);
-        g_free(config_name);
-        g_free(name);
-        name = g_strdup_printf("joystick_%d", i);
+        free(config_name);
+        free(name);
+        name = fs_strdup_printf("joystick_%d", i);
         map_custom_joystick_actions_2(i, name, device.axes, device.hats,
                 device.buttons);
         map_custom_gamepad_actions(i, name, &device);
-        g_free(name);
-
+        free(name);
     }
 }
 
@@ -609,7 +609,7 @@ void fs_emu_set_actions(fs_emu_action *actions) {
             fs_log("MAX_ACTIONS reached\n");
             break;
         }
-        g_actions[k].name = g_ascii_strdown(actions->name, -1);
+        g_actions[k].name = fs_ascii_strdown(actions->name, -1);
         g_actions[k].input_event = actions->input_event;
         g_actions[k].flags = actions->flags;
         k++;
@@ -620,15 +620,21 @@ void fs_emu_set_actions(fs_emu_action *actions) {
 
 void fs_emu_reset_input_mapping() {
     memset(g_input_action_table, 0, INPUT_ACTION_TABLE_SIZE_BYTES);
+    int count;
+    fs_ml_input_device *devices = fs_ml_get_input_devices(&count);
+    for (int i = 0; i < count; i++) {
+        devices[i].usage = 0;
+    }
 }
 
-static GMutex* g_input_event_mutex;
-static GQueue* g_input_event_queue;
+static fs_mutex* g_input_event_mutex;
+static fs_queue* g_input_event_queue;
 
 int fs_emu_get_input_event() {
-    g_mutex_lock(g_input_event_mutex);
-    int input_event = GPOINTER_TO_INT(g_queue_pop_tail(g_input_event_queue));
-    g_mutex_unlock(g_input_event_mutex);
+    fs_mutex_lock(g_input_event_mutex);
+    int input_event = FS_POINTER_TO_INT(fs_queue_pop_tail(
+            g_input_event_queue));
+    fs_mutex_unlock(g_input_event_mutex);
     return input_event;
 }
 
@@ -637,9 +643,9 @@ void fs_emu_queue_input_event_internal(int input_event) {
         fs_log("WARNING: tried to queue input event 0\n");
         return;
     }
-    g_mutex_lock(g_input_event_mutex);
-    g_queue_push_head(g_input_event_queue, GINT_TO_POINTER(input_event));
-    g_mutex_unlock(g_input_event_mutex);
+    fs_mutex_lock(g_input_event_mutex);
+    fs_queue_push_head(g_input_event_queue, FS_INT_TO_POINTER(input_event));
+    fs_mutex_unlock(g_input_event_mutex);
 }
 
 void fs_emu_queue_action(int action, int state) {
@@ -661,9 +667,13 @@ void fs_emu_queue_input_event(int input_event) {
             // local application action
         }
     }
+#ifdef WITH_NETPLAY
     if (!fs_emu_netplay_send_input_event(input_event)) {
+#endif
         fs_emu_queue_input_event_internal(input_event);
+#ifdef WITH_NETPLAY
     }
+#endif
 }
 
 #include "keynames.c"
@@ -691,12 +701,10 @@ void fs_emu_show_pointer(int show) {
 }
 
 void fs_emu_show_pointer_msec(int duration) {
-    //SDL_ShowCursor(1);
     fs_ml_show_cursor(1, 0);
     g_pointer_visible = 1;
     g_pointer_visible_to = fs_emu_monotonic_time() + \
             (int64_t) duration * 1000;
-    //fs_log("visible to %lld\n", g_pointer_visible_to);
 }
 
 int fs_emu_is_pointer_visible() {
@@ -717,14 +725,10 @@ void fs_emu_grab_input(int mode) {
     fs_log("grab input mode: %d\n", mode);
     if (mode) {
         fs_ml_grab_input(1, 0);
-        //SDL_WM_GrabInput(SDL_GRAB_ON);
-        //SDL_ShowCursor(SDL_DISABLE);
         fs_emu_show_pointer(0);
     }
     else {
-        //SDL_WM_GrabInput(SDL_GRAB_OFF);
         fs_ml_grab_input(0, 0);
-        //SDL_ShowCursor(SDL_ENABLE);
         fs_emu_show_pointer_msec(FS_EMU_MOUSE_DEFAULT_DURATION);
     }
     g_ignore_next_motion = 1;
@@ -788,25 +792,25 @@ static int map_joystick(int joystick, input_config_item *config,
     }
 }
 
-static GHashTable *g_input_config_paths = NULL;
+static fs_hash_table *g_input_config_paths = NULL;
 
-int read_input_config(const gchar *config_name, GHashTable *config,
-        const gchar *platform) {
-    const gchar *path = g_hash_table_lookup(g_input_config_paths, config_name);
+int read_input_config(const char *config_name, fs_hash_table *config,
+        const char *platform) {
+    const char *path = fs_hash_table_lookup(g_input_config_paths, config_name);
     if (path == NULL) {
         fs_log("config file for %s was not found\n", config_name);
         return 0;
     }
     fs_log("read config for %s for %s (from %s)\n", config_name, platform,
             path);
-    GKeyFile *kf = g_key_file_new();
-    if (!g_key_file_load_from_file(kf, path, G_KEY_FILE_NONE, NULL)) {
+    fs_ini_file *ini_file = fs_ini_file_open(path);
+    if (ini_file == NULL) {
         fs_log("error loading config file\n");
         return 0;
     }
 
-    gchar *value;
-    //value = g_key_file_get_string(kf, "device", "type", NULL);
+    char *value;
+    //value = fs_ini_file_get_string(ini_file, "device", "type");
 #if 0
     if cp.has_option('device', 'type'):
         self.type = cp.get('device', 'type')
@@ -815,11 +819,11 @@ int read_input_config(const gchar *config_name, GHashTable *config,
         self.decorate_name_with_number()
 #endif
 
-    const gchar *section = "default";
-    if (g_key_file_has_group(kf, platform)) {
+    const char *section = "default";
+    if (fs_ini_file_has_group(ini_file, platform)) {
         section = platform;
     }
-    else if (g_key_file_has_group(kf, "default")) {
+    else if (fs_ini_file_has_group(ini_file, "default")) {
 
     }
     else {
@@ -827,7 +831,7 @@ int read_input_config(const gchar *config_name, GHashTable *config,
         return 0;
     }
 
-    value = g_key_file_get_string(kf, section, "include", NULL);
+    value = fs_ini_file_get_string(ini_file, section, "include");
     if (value) {
         //fs_log("has section/include\n");
         int len = strlen(value);
@@ -837,16 +841,16 @@ int read_input_config(const gchar *config_name, GHashTable *config,
             }
         }
         int result = read_input_config(value, config, platform);
-        g_free(value);
+        free(value);
         if (!result) {
             return 0;
         }
     }
 
-    gchar **keys = g_key_file_get_keys(kf, section, NULL, NULL);
-    for (gchar **k = keys; *k; k++) {
-        gchar *key = *k;
-        value = g_key_file_get_string(kf, section, key, NULL);
+    char **keys = fs_ini_file_get_keys(ini_file, section, NULL);
+    for (char **k = keys; *k; k++) {
+        char *key = *k;
+        value = fs_ini_file_get_string(ini_file, section, key);
         if (value == NULL) {
             continue;
         }
@@ -860,55 +864,57 @@ int read_input_config(const gchar *config_name, GHashTable *config,
             value = value[1:-1]
 #endif
 
-        gchar *temp = g_hash_table_lookup(config, value);
+        char *temp = fs_hash_table_lookup(config, value);
         if (temp) {
-            g_hash_table_insert(config, g_strdup(key), g_strdup(temp));
-            g_hash_table_remove(config, value);
+            fs_hash_table_insert(config, fs_strdup(key), fs_strdup(temp));
+            fs_hash_table_remove(config, value);
         }
         else {
-            g_hash_table_insert(config, g_strdup(key), g_strdup(value));
+            fs_hash_table_insert(config, fs_strdup(key), fs_strdup(value));
         }
-        g_free(value);
+        free(value);
     }
     if (keys) {
-        g_strfreev(keys);
+        fs_strfreev(keys);
         keys = NULL;
     }
     // indicate success
     return 1;
 }
 
-static GHashTable *configure_input_device(const char *name,
+static fs_hash_table *configure_input_device(const char *name,
         const char *platform) {
-    GHashTable *config = g_hash_table_new(g_str_hash, g_str_equal);
-    //gchar *config_name = joystick_config_name(name, 0);
+    fs_hash_table *config = fs_hash_table_new(fs_str_hash, fs_str_equal);
+    //char *config_name = joystick_config_name(name, 0);
     int result = read_input_config(name, config, platform);
-    //g_free(config_name);
+    //free(config_name);
     if (result) {
         return config;
     }
     else {
-        g_hash_table_unref(config);
+        fs_hash_table_destroy(config);
         return NULL;
     }
 }
 
 int fs_emu_configure_joystick(const char *name, const char *type,
-        fs_emu_input_mapping *mapping, char *out_name, int out_name_len) {
-    //gchar *uname = g_ascii_strup(name, -1);
+        fs_emu_input_mapping *mapping, int usage,
+        char *out_name, int out_name_len) {
     fs_log("configure joystick \"%s\" for \"%s\"\n", name, type);
     if (name == NULL || name[0] == '\0') {
         return 0;
     }
 
+    // FIXME: replace use of fs_ml_input_device_get, use a function returning
+    // a pointer instead, we we can use the usage flag
     fs_ml_input_device device;
     for (int i = 0; i < FS_ML_INPUT_DEVICES_MAX; i++) {
         if (!fs_ml_input_device_get(i, &device)) {
             continue;
         }
         if (device.name == NULL || (
-                (g_ascii_strcasecmp(device.name, name) != 0) &&
-                (g_ascii_strcasecmp(device.alias, name) != 0))) {
+                (fs_ascii_strcasecmp(device.name, name) != 0) &&
+                (fs_ascii_strcasecmp(device.alias, name) != 0))) {
             fs_log("did not match device #%d (%s)\n", i, device.name);
             continue;
         }
@@ -917,25 +923,25 @@ int fs_emu_configure_joystick(const char *name, const char *type,
             strncpy(out_name, device.name, out_name_len);
         }
 
-        gchar* config_name = joystick_long_config_name(&device);
+        char* config_name = joystick_long_config_name(&device);
         fs_log("config name \"%s\"\n", config_name);
         input_config_item *config = get_config_for_device(
                 config_name, type);
         if (config == NULL) {
             fs_log("did not find config for device \"%s\"\n", config_name);
-            g_free(config_name);
+            free(config_name);
             config_name = joystick_config_name(device.name, 0);
             fs_log("config name \"%s\"\n", config_name);
             config = get_config_for_device(config_name, type);
             if (config == NULL) {
                 fs_log("did not find config for device \"%s\"\n", config_name);
-                g_free(config_name);
+                free(config_name);
                 config_name = fs_strdup("unknown");
                 fs_log("config name \"%s\"\n", config_name);
                 config = get_config_for_device(config_name, type);
                 if (config == NULL) {
                     fs_log("did not find config for device \"%s\"\n", config_name);
-                    g_free(config_name);
+                    free(config_name);
                     break;
                 }
             }
@@ -946,9 +952,12 @@ int fs_emu_configure_joystick(const char *name, const char *type,
             map_joystick(i, config + j, mapping, g_input_action_table,
                     NULL, NULL);
         }
+
+        fs_ml_input_device *devices = fs_ml_get_input_devices(NULL);
+        devices[i].usage = usage;
         //printf("bbb\n");
         free_input_config_item_list(config);
-        g_free(config_name);
+        free(config_name);
         return 1;
     }
     return 0;
@@ -985,8 +994,6 @@ int fs_emu_configure_joystick(const char *name, const char *type,
                 } \
             } \
         }
-
-//static int handle_input_event(SDL_Event* event) {
 
 static int process_input_event(fs_ml_event *event) {
     int handled = 0;
@@ -1106,85 +1113,83 @@ static fs_emu_input_mapping g_menu_mapping[] = {
     { NULL, ACTION_MENU_NONE },
 };
 
-void read_input_configs_from_dir(const gchar *dir_name) {
-    // FIXME: PATH
-    //gchar *dir_name = g_build_filename(fs_emu_get_share_dir(), "input", NULL);
+void read_input_configs_from_dir(const char *dir_name) {
     fs_log("reading input device configs from %s\n", dir_name);
-    GDir *dir = g_dir_open(dir_name, 0, NULL);
+    fs_dir *dir = fs_dir_open(dir_name, 0);
     if (dir == NULL) {
         fs_log("could not read directory %s\n", dir_name);
         return;
     }
-    const gchar *name;
-    while ((name = g_dir_read_name(dir)) != NULL) {
+    const char *name;
+    while ((name = fs_dir_read_name(dir)) != NULL) {
         //fs_log("name: %s\n", name);
-        gchar *dir2_name = g_build_filename(dir_name, name, NULL);
-        GDir *dir2 = g_dir_open(dir2_name, 0, NULL);
+        char *dir2_name = fs_path_join(dir_name, name, NULL);
+        fs_dir *dir2 = fs_dir_open(dir2_name, 0);
         if (dir2 == NULL) {
-            if (g_str_has_suffix(name, ".ini")) {
+            if (fs_str_has_suffix(name, ".ini")) {
                 // remove .ini suffix
-                gchar* name3 = g_strdup(name);
+                char* name3 = fs_strdup(name);
                 name3[strlen(name3) - 4] = '\0';
-                g_hash_table_insert(g_input_config_paths, g_strdup(name3),
-                        g_strdup(dir2_name));
+                fs_hash_table_insert(g_input_config_paths, fs_strdup(name3),
+                        fs_strdup(dir2_name));
                 ////fs_log("[*] %s\n", name3);
-                g_free(name3);
+                free(name3);
             }
-            else if (g_str_has_suffix(name, ".conf")) {
+            else if (fs_str_has_suffix(name, ".conf")) {
                 // remove .conf suffix
-                gchar* name3 = g_strdup(name);
+                char* name3 = fs_strdup(name);
                 name3[strlen(name3) - 5] = '\0';
-                g_hash_table_insert(g_input_config_paths, g_strdup(name3),
-                        g_strdup(dir2_name));
+                fs_hash_table_insert(g_input_config_paths, fs_strdup(name3),
+                        fs_strdup(dir2_name));
                 //fs_log("[*] %s\n", name3);
-                g_free(name3);
+                free(name3);
             }
-            g_free(dir2_name);
+            free(dir2_name);
             continue;
         }
-        const gchar *name2;
-        while ((name2 = g_dir_read_name(dir2)) != NULL) {
+        const char *name2;
+        while ((name2 = fs_dir_read_name(dir2)) != NULL) {
             //fs_log("name2: %s\n", name2);
-            if (!g_str_has_suffix(name2, ".ini")) {
+            if (!fs_str_has_suffix(name2, ".ini")) {
                 continue;
             }
             // remove .ini suffix
-            gchar* name3 = g_strdup(name2);
+            char* name3 = fs_strdup(name2);
             name3[strlen(name3) - 4] = '\0';
-            gchar *path = g_build_filename(dir2_name, name2, NULL);
-            gchar* full_name = g_strconcat(name, "_", name3, NULL);
+            char *path = fs_path_join(dir2_name, name2, NULL);
+            char* full_name = fs_strconcat(name, "_", name3, NULL);
             //register_input_config(full_name, path);
             //register_input_config(name2, path);
-            g_hash_table_insert(g_input_config_paths, g_strdup(full_name),
-                    g_strdup(path));
-            g_hash_table_insert(g_input_config_paths, g_strconcat(
-                    full_name, "_usb", NULL), g_strdup(path));
+            fs_hash_table_insert(g_input_config_paths, fs_strdup(full_name),
+                    fs_strdup(path));
+            fs_hash_table_insert(g_input_config_paths, fs_strconcat(
+                    full_name, "_usb", NULL), fs_strdup(path));
             ////fs_log("[*] %s\n", full_name);
-            g_hash_table_insert(g_input_config_paths, g_strdup(name3),
-                    g_strdup(path));
-            g_hash_table_insert(g_input_config_paths, g_strconcat(
-                    name3, "_usb", NULL), g_strdup(path));
+            fs_hash_table_insert(g_input_config_paths, fs_strdup(name3),
+                    fs_strdup(path));
+            fs_hash_table_insert(g_input_config_paths, fs_strconcat(
+                    name3, "_usb", NULL), fs_strdup(path));
             ////fs_log("[*] %s\n", name3);
-            g_free(full_name);
-            g_free(path);
-            g_free(name3);
+            free(full_name);
+            free(path);
+            free(name3);
         }
 
-        g_dir_close(dir2);
-        g_free(dir2_name);
+        fs_dir_close(dir2);
+        free(dir2_name);
     }
 
-    g_dir_close(dir);
+    fs_dir_close(dir);
 }
 
 static void init_input_configs() {
     fs_log("init_input_configs\n");
-    g_input_config_paths = g_hash_table_new_full(g_str_hash, g_str_equal,
-            g_free, g_free);
-    gchar *dir_name = fs_get_program_data_file("input");
+    g_input_config_paths = fs_hash_table_new_full(fs_str_hash, fs_str_equal,
+            free, free);
+    char *dir_name = fs_get_program_data_file("input");
     if (dir_name != NULL) {
         read_input_configs_from_dir(dir_name);
-        g_free(dir_name);
+        free(dir_name);
     }
     // read override configurations
     if (g_controllers_dir) {
@@ -1259,11 +1264,11 @@ static int handle_shortcut(fs_ml_event *event) {
         return 1;
     }
 
-    if (key_code == FS_ML_KEY_TAB && !fs_emu_in_chat_mode() &&
+    if (key_code == FS_ML_KEY_TAB && !fs_emu_hud_in_chat_mode() &&
             !fs_emu_menu_or_dialog_is_active()) {
         if (key_mod == 0 && fs_emu_netplay_enabled()) {
             if (state) {
-                fs_emu_enable_chat_mode();
+                fs_emu_hud_enable_chat_mode();
             }
             return 1;
         }
@@ -1328,9 +1333,9 @@ static int handle_shortcut(fs_ml_event *event) {
         }
         return 1;
     }
-    else if (fs_emu_in_chat_mode() && !fs_emu_menu_or_dialog_is_active()) {
+    else if (fs_emu_hud_in_chat_mode() && !fs_emu_menu_or_dialog_is_active()) {
         if (state) {
-            fs_emu_handle_chat_input(event);
+            fs_emu_hud_handle_chat_input(event);
         }
         return 1;
     }
@@ -1428,7 +1433,7 @@ static int input_function(fs_ml_event *event) {
         if (event->type == FS_ML_MOUSEBUTTONDOWN) {
             //printf("mouse button down\n");
             if (fs_emu_has_input_grab()) {
-                if (event->button.button == SDL_BUTTON_MIDDLE) {
+                if (event->button.button == FS_ML_BUTTON_MIDDLE) {
                     if (g_middle_click_ungrab) {
                         fs_emu_grab_input(0);
                     }
@@ -1442,10 +1447,10 @@ static int input_function(fs_ml_event *event) {
         }
 
         int state = event->button.state;
-        if (event->button.button == SDL_BUTTON_WHEELUP) {
+        if (event->button.button == FS_ML_BUTTON_WHEELUP) {
             state = state * 1;
         }
-        else if (event->button.button == SDL_BUTTON_WHEELDOWN) {
+        else if (event->button.button == FS_ML_BUTTON_WHEELDOWN) {
             state = state * -1;
         }
         int input_event = g_input_action_table[mouse_index(
@@ -1462,14 +1467,14 @@ static int input_function(fs_ml_event *event) {
     return process_input_event(event);
 }
 
-void fs_emu_init_input() {
+void fs_emu_input_init() {
     fs_log("fs_emu_input_init\n");
 
     g_debug_input = getenv("FS_DEBUG_INPUT") && \
             getenv("FS_DEBUG_INPUT")[0] == '1';
 
-    g_input_event_mutex = g_mutex_new();
-    g_input_event_queue = g_queue_new();
+    g_input_event_mutex = fs_mutex_create();
+    g_input_event_queue = fs_queue_new();
 
     init_input_configs();
 
@@ -1500,12 +1505,12 @@ void fs_emu_init_input() {
             continue;
         }
         fs_log("%i %s\n", i, device.name);
-        gchar *config_name = joystick_long_config_name(&device);
+        char *config_name = joystick_long_config_name(&device);
         input_config_item *config = get_config_for_device(config_name, "menu");
         if (config == NULL) {
             fs_log("did not find menu config for device \"%s\"\n",
                     config_name);
-            g_free(config_name);
+            free(config_name);
             config_name = joystick_config_name(device.name, 0);
             config = get_config_for_device(config_name, "menu");
             if (config == NULL) {
@@ -1535,7 +1540,7 @@ void fs_emu_init_input() {
             }
             free_input_config_item_list(config);
         }
-        g_free(config_name);
+        free(config_name);
     }
     fs_ml_set_input_function(input_function);
 }

@@ -2,7 +2,7 @@
 #if defined(JIT)
 #include "sysdeps.h"
 #include "options.h"
-#include "memory.h"
+#include "uae/memory.h"
 #include "newcpu.h"
 #include "comptbl.h"
 #include "compemu.h"

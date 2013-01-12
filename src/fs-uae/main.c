@@ -3,7 +3,7 @@
 #include <fs/base.h>
 #include <fs/emu.h>
 #include <fs/i18n.h>
-#include <glib.h>
+#include <fs/string.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -18,6 +18,59 @@ static char **fs_uae_argv;
 #define LOG_LINE "---------------------------------------------------------" \
         "-------------------\n"
 
+void change_port_device_mode(int data) {
+    int modes = INPUTEVENT_AMIGA_JOYPORT_MODE_0_LAST -
+            INPUTEVENT_AMIGA_JOYPORT_MODE_0_NONE + 1;
+    int port = data / modes;
+    int mode = data % modes;
+    if (port >= 0 && port < FS_UAE_NUM_INPUT_PORTS) {
+        g_fs_uae_input_ports[port].mode = mode;
+        g_fs_uae_input_ports[port].new_mode = mode;
+        amiga_set_joystick_port_mode(port, mode);
+        fs_uae_reconfigure_input_ports_host();
+        fs_emu_menu_update_current();
+    }
+}
+
+void select_port_0_device(int data) {
+    printf("--> device index %d\n", data);
+    int port = 0;
+    if (data == 9) {
+        // 9 is currently a hack to indicate the local mouse
+        g_fs_uae_input_ports[port].mode = AMIGA_JOYPORT_MOUSE;
+        g_fs_uae_input_ports[port].new_mode = AMIGA_JOYPORT_MOUSE;
+        strcpy(g_fs_uae_input_ports[port].device, "MOUSE");
+        amiga_set_joystick_port_mode(port, AMIGA_JOYPORT_MOUSE);
+        // FIXME: not a warning, rather a notification
+        fs_emu_warning(_("Port 0: %s"), _("Mouse"));
+    }
+    else {
+        int count = 0;
+        int new_mode = new_mode = AMIGA_JOYPORT_DJOY;
+        if (g_fs_uae_amiga_model == MODEL_CD32) {
+            new_mode = AMIGA_JOYPORT_CD32JOY;
+        }
+        fs_emu_input_device *devices = fs_emu_get_input_devices(&count);
+        if (data < count) {
+            g_fs_uae_input_ports[port].mode = new_mode;
+            g_fs_uae_input_ports[port].new_mode = new_mode;
+            strcpy(g_fs_uae_input_ports[port].device, devices[data].name);
+            amiga_set_joystick_port_mode(port, new_mode);
+            // FIXME: not a warning, rather a notification
+            fs_emu_warning(_("Port 0: %s"), devices[data].name);
+        }
+    }
+    fs_uae_reconfigure_input_ports_host();
+    fs_emu_menu_update_current();
+
+    //fs_emu_get_input_devices()
+    //g_fs_uae_input_ports[port].mode = mode;
+    //amiga_set_joystick_port_mode(port,  mode);
+    //g_fs_uae_input_ports[port].new_mode = mode;
+    //fs_uae_reconfigure_input_ports_host();
+    //fs_emu_menu_update_current();
+}
+
 int event_handler_loop(void) {
     int action;
     //int reconfigure_input = 0;
@@ -31,18 +84,13 @@ int event_handler_loop(void) {
 
         if (action >= INPUTEVENT_AMIGA_JOYPORT_MODE_0_NONE &&
                 action < INPUTEVENT_AMIGA_JOYPORT_MODE_3_LAST) {
-            int offset = action - INPUTEVENT_AMIGA_JOYPORT_MODE_0_NONE;
-            int modes = INPUTEVENT_AMIGA_JOYPORT_MODE_0_LAST -
-                    INPUTEVENT_AMIGA_JOYPORT_MODE_0_NONE + 1;
-            int port = offset / modes;
-            int mode = offset % modes;
-            if (port >= 0 && port < FS_UAE_NUM_INPUT_PORTS) {
-                g_fs_uae_input_ports[port].mode = mode;
-                amiga_set_joystick_port_mode(port,  mode);
-                g_fs_uae_input_ports[port].new_mode = mode;
-                fs_uae_reconfigure_input_ports_host();
-                fs_emu_update_current_menu();
-            }
+            change_port_device_mode(
+                    action - INPUTEVENT_AMIGA_JOYPORT_MODE_0_NONE);
+
+        }
+        else if (action >= INPUTEVENT_AMIGA_JOYPORT_0_DEVICE_0 &&
+                action < INPUTEVENT_AMIGA_JOYPORT_0_DEVICE_LAST) {
+            select_port_0_device(action - INPUTEVENT_AMIGA_JOYPORT_0_DEVICE_0);
         }
         else {
             if (state && action >= INPUTEVENT_AMIGA_JOYPORT_0_AUTOFIRE &&
@@ -58,7 +106,7 @@ int event_handler_loop(void) {
                     amiga_set_joystick_port_autofire(port, 1);
                     fs_emu_warning(_("Auto-fire enabled for port %d"), port);
                 }
-                fs_emu_update_current_menu();
+                fs_emu_menu_update_current();
             }
             amiga_send_input_event(action, state);
         }
@@ -91,12 +139,12 @@ void event_handler(void) {
     }
     */
 
-    fs_emu_netplay_wait_for_frame(frame);
+    fs_emu_wait_for_frame(frame);
     if (frame == 1) {
         // we configure input ports after first frame are confirmed,
         // because otherwise configure events would get lost if initially
-        // connected to the server, but aborted connection before game
-        // started
+        // connected to the server (for net play game), but aborted connection
+        // before game started
         fs_uae_reconfigure_input_ports_amiga();
     }
 
@@ -110,11 +158,6 @@ void event_handler(void) {
         if (!event_handler_loop()) {
             break;
         }
-        //fs_emu_render();
-        //fs_emu_swap_buffers();
-
-        fs_emu_video_render(1);
-        //fs_emu_video_swap_buffers();
         pause_throttle();
         if (fs_emu_is_quitting()) {
             break;
@@ -172,7 +215,7 @@ char *fs_uae_encode_path(const char* path) {
 #ifdef WINDOWS
     return g_locale_from_utf8(path, -1, NULL, NULL, NULL);
 #else
-    return g_strdup(path);
+    return fs_strdup(path);
 #endif
 */
 }
@@ -185,7 +228,7 @@ char *fs_uae_decode_path(const char* path) {
 #ifdef WINDOWS
     return g_locale_to_utf8(path, -1, NULL, NULL, NULL);
 #else
-    return g_strdup(path);
+    return fs_strdup(path);
 #endif
 */
 }
@@ -288,7 +331,7 @@ static int load_config_file() {
         }
     }
     if (g_fs_uae_config_file_path == NULL) {
-        char *path = fs_path_join(g_get_user_config_dir(),
+        char *path = fs_path_join(fs_get_user_config_dir(),
                 "fs-uae", "fs-uae.conf", NULL);
         fs_log(msg, path);
         if (fs_path_exists(path)) {
@@ -385,6 +428,7 @@ void init_i18n() {
         printf("failed to set current locale\n");
         fs_log("failed to set current locale\n");
     }
+#ifndef ANDROID
     textdomain("fs-uae");
     char *path = fs_get_data_file("fs-uae/share-dir");
     if (path) {
@@ -400,11 +444,8 @@ void init_i18n() {
         free(locale_base);
         free(path);
     }
-
-    //printf("%s\n", _("Reset Amiga"));
-    //exit(1);
-    //bind_textdomain_codeset("fs-uae", "ISO-8859-15");
     bind_textdomain_codeset("fs-uae", "UTF-8");
+#endif
 }
 
 static void led_function(int led, int on) {
@@ -417,7 +458,12 @@ static void media_function(int drive, const char *path) {
     fs_emu_enable_custom_overlay(4 + drive, path && path[0]);
 }
 
+#ifdef USE_SDL
+#include <SDL/SDL.h>
+#endif
+
 void list_joysticks() {
+#ifdef USE_SDL
     if (SDL_Init(SDL_INIT_JOYSTICK ) < 0) {
         return;
     }
@@ -429,17 +475,27 @@ void list_joysticks() {
             printf("%s\n", SDL_JoystickName(i));
         }
     }
+#endif
 }
 
 int main(int argc, char* argv[]) {
+#ifdef USE_GLIB
+    GMemVTable vtable;
+    memset(&vtable, 0, sizeof(GMemVTable));
+    vtable.malloc = malloc;
+    vtable.realloc = realloc;
+    vtable.free = free;
+    g_mem_set_vtable(&vtable);
+#endif
+
     int result;
     fs_uae_argc = argc;
     fs_uae_argv = argv;
 
     fs_set_argv(argc, argv);
 
-    char **arg = argv;
-    arg++;
+    char **arg;
+    arg = argv + 1;
     while (arg && *arg) {
         if (strcmp(*arg, "--list-joysticks") == 0) {
             list_joysticks();
@@ -451,8 +507,8 @@ int main(int argc, char* argv[]) {
     //g_thread_init(NULL);
     fs_init();
 
-    g_set_prgname("fs-uae");
-    g_set_application_name("Amiga Emulator");
+    fs_set_prgname("fs-uae");
+    fs_set_application_name("Amiga Emulator");
     amiga_set_log_function(log_to_libfsemu);
 
     //result = parse_options(argc, argv);
@@ -464,13 +520,12 @@ int main(int argc, char* argv[]) {
 
     amiga_init();
 
-    arg = argv;
     // skip first entry
-    arg++;
+    arg = argv + 1;
     if (g_fs_uae_config_file_path == NULL) {
         while (arg && *arg) {
             if (fs_path_exists(*arg)) {
-                g_fs_uae_config_file_path = g_strdup(*arg);
+                g_fs_uae_config_file_path = fs_strdup(*arg);
             }
             arg++;
         }

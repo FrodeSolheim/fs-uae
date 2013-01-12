@@ -12,7 +12,7 @@
 #include "sysconfig.h"
 #include "sysdeps.h"
 #include "mman_host.h"
-#include "memory.h"
+#include "uae/memory.h"
 #include "options.h"
 #include "autoconf.h"
 
@@ -29,7 +29,9 @@ static int os_64bit = 0;
 #ifdef HAVE_SYS_PARAM_H
 #include <sys/param.h>
 #endif
+#if defined(__APPLE__)
 #include <sys/sysctl.h>
+#endif
 #include <sys/mman.h>
 
 #define MEM_COMMIT 0x00001000
@@ -879,6 +881,9 @@ STATIC_INLINE uae_key_t find_shmkey (uae_key_t key)
 }
 
 int mprotect (void *addr, size_t len, int prot)
+#ifdef PANDORA    
+    __THROW
+#endif
 {
     int result = 0;
     return result;

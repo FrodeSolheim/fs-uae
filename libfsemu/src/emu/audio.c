@@ -1,4 +1,4 @@
-#ifdef WITH_OPENAL
+#ifdef USE_OPENAL
 
 #include <stdio.h>
 #ifdef MACOSX
@@ -8,7 +8,10 @@
 #include <AL/al.h>
 #include <AL/alc.h>
 #endif
+#include <fs/base.h>
 #include <fs/emu.h>
+#include <fs/queue.h>
+#include <fs/thread.h>
 #include "libfsemu.h"
 
 // the actual frequency negotiated with the audio driver
@@ -47,8 +50,8 @@ typedef struct audio_stream {
     int num_buffers;
     int buffer_size;
     int frequency;
-    GQueue *queue;
-    GMutex *mutex;
+    fs_queue *queue;
+    fs_mutex *mutex;
     int buffers_queued;
     int min_buffers;
     int fill_target;
@@ -142,7 +145,7 @@ static void pid_controller_step(int stream, int time_ms) {
 static void unqueue_old_buffers(int stream) {
     audio_stream *s = g_streams[stream];
     ALint old_buffers = 0;
-    g_mutex_lock(s->mutex);
+    fs_mutex_lock(s->mutex);
     // locking here because unqueue_old_buffers can be run called from
     // both the video thread and the emulation thread (consider changing this,
     // perhaps even have a separate thread for periodically unqueuing).
@@ -157,27 +160,27 @@ static void unqueue_old_buffers(int stream) {
             fs_log("while trying to unqueue %d buffers\n");
         }
         for (int i = 0; i < old_buffers; i++) {
-            g_queue_push_tail(s->queue, GUINT_TO_POINTER(buffers[i]));
+            fs_queue_push_tail(s->queue, FS_UINT_TO_POINTER(buffers[i]));
         }
         s->buffers_queued -= old_buffers;
     }
-    g_mutex_unlock(s->mutex);
+    fs_mutex_unlock(s->mutex);
 }
 
 int fs_emu_check_audio_buffer_done(int stream, int buffer) {
     unqueue_old_buffers(stream);
     audio_stream *s = g_streams[stream];
     // not extremely efficient
-    g_mutex_lock(s->mutex);
-    GList *link = g_queue_peek_head_link(s->queue);
+    fs_mutex_lock(s->mutex);
+    fs_list *link = fs_queue_peek_head_link(s->queue);
     while (link) {
-        if ((unsigned int) buffer == GPOINTER_TO_UINT(link->data)) {
-            g_mutex_unlock(s->mutex);
+        if ((unsigned int) buffer == FS_POINTER_TO_UINT(link->data)) {
+            fs_mutex_unlock(s->mutex);
             return 1;
         }
         link = link->next;
     }
-    g_mutex_unlock(s->mutex);
+    fs_mutex_unlock(s->mutex);
     return 0;
 }
 
@@ -190,18 +193,18 @@ int fs_emu_queue_audio_buffer(int stream, int16_t* data, int size) {
     audio_stream *s = g_streams[stream];
 
     ALuint buffer = 0;
-    g_mutex_lock(s->mutex);
+    fs_mutex_lock(s->mutex);
     //while (1) {
-    buffer = GPOINTER_TO_UINT(g_queue_pop_head(s->queue));
+    buffer = FS_POINTER_TO_UINT(fs_queue_pop_head(s->queue));
     if (!buffer) {
         fs_log("no audio buffer available - dropping data\n");
-        g_mutex_unlock(s->mutex);
+        fs_mutex_unlock(s->mutex);
         return 0;
     }
     s->buffers_queued += 1;
     // create a local copy while we have the lock
-    int buffers_queued = s->buffers_queued;
-    g_mutex_unlock(s->mutex);
+    //int buffers_queued = s->buffers_queued;
+    fs_mutex_unlock(s->mutex);
 
     alBufferData(buffer, AL_FORMAT_STEREO16, data, size, s->frequency);
     check_al_error("alBufferData");
@@ -460,22 +463,22 @@ void fs_emu_init_audio_stream_options(fs_emu_audio_stream_options *options) {
 void fs_emu_init_audio_stream(int stream,
         fs_emu_audio_stream_options *options) {
     fs_log("initializing audio stream %d\n", stream);
-    audio_stream *s = g_malloc0(sizeof(audio_stream));
+    audio_stream *s = fs_malloc0(sizeof(audio_stream));
     s->buffer_size = options->buffer_size;
     s->frequency = options->frequency;
     s->num_buffers = MAX_BUFFERS;
     s->min_buffers = options->min_buffers;
     fs_log("frequency: %d, buffers: %d buffer size: %d bytes\n",
             s->frequency, s->num_buffers, s->buffer_size);
-    s->mutex = g_mutex_new();
-    s->queue = g_queue_new();
+    s->mutex = fs_mutex_create();
+    s->queue = fs_queue_new();
     alGenSources(1, &s->source);
     check_al_error("alGenSources");
     for (int i = 0; i < s->num_buffers; i++) {
         ALuint buffer;
         alGenBuffers(1, &buffer);
         check_al_error("alGenBuffers");
-        g_queue_push_tail(s->queue, GUINT_TO_POINTER(buffer));
+        fs_queue_push_tail(s->queue, FS_UINT_TO_POINTER(buffer));
     }
     s->buffers_queued = 0;
 
@@ -575,4 +578,4 @@ void fs_emu_audio_render_debug_info(uint32_t *texture) {
     }
 }
 
-#endif // WITH_OPENAL
+#endif // USE_OPENAL

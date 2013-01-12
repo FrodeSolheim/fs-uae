@@ -24,7 +24,9 @@
 //#include <SDL.h>
 //#endif
 
+#ifdef WITH_SDL
 #include <SDL.h>
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -177,7 +179,8 @@ fs_emu_input_device *fs_emu_get_input_devices(int* count);
 //void fs_emu_set_action_function(fs_emu_action_function function);
 
 int fs_emu_configure_joystick(const char *name, const char *type,
-        fs_emu_input_mapping *mapping, char *out_name, int out_name_len);
+        fs_emu_input_mapping *mapping, int usage,
+        char *out_name, int out_name_len);
 
 void fs_emu_configure_mouse(int horiz, int vert, int left, int middle,
         int right, int wheel_axis);
@@ -218,17 +221,18 @@ int fs_emu_is_quitting();
 void fs_emu_disable_throttling();
 void fs_emu_disallow_full_sync();
 
-void fs_emu_add_console_line(const char *text, int flags);
+void fs_emu_hud_add_console_line(const char *text, int flags);
+
+int fs_emu_wait_for_frame(int frame);
 
 // net play
 
-void fs_emu_say(const char *text);
-void fs_emu_add_chat_message(const char *text, const char *player);
+void fs_emu_netplay_say(const char *text);
+void fs_emu_hud_add_chat_message(const char *text, const char *player);
 
 int fs_emu_netplay_enabled();
 int fs_emu_netplay_connected();
 void fs_emu_netplay_disconnect();
-int fs_emu_netplay_wait_for_frame(int frame);
 const char *fs_emu_get_netplay_tag(int player);
 int fs_emu_send_netplay_message(const char *text);
 
@@ -240,10 +244,8 @@ const char *fs_emu_get_title();
 void fs_emu_set_title(const char *title);
 const char *fs_emu_get_sub_title();
 void fs_emu_set_sub_title(const char *title);
-void fs_emu_set_window_title(const char *title);
-//void fs_emu_create_window();
+
 void fs_emu_toggle_fullscreen();
-//void fs_emu_set_application_title(const char *title);
 
 double fs_emu_get_average_emu_fps();
 double fs_emu_get_average_sys_fps();
@@ -316,8 +318,6 @@ void fs_emu_update_video_with_raw_data(const void *frame, int width,
 
 //void fs_emu_video_frame_finish();
 
-void fs_emu_video_render(int allow_wait);
-
 void fs_emu_video_render_synchronous();
 
 #define FS_EMU_MAX_LINES 2048
@@ -341,11 +341,11 @@ typedef struct fs_emu_video_buffer {
     int flags;
 } fs_emu_video_buffer;
 
-int fs_emu_initialize_video_buffers(int width, int height, int bpp);
-fs_emu_video_buffer *fs_emu_get_available_video_buffer(int copy);
-void fs_emu_set_video_buffer(fs_emu_video_buffer *buffer);
-fs_emu_video_buffer *fs_emu_get_current_video_buffer();
-int fs_emu_grow_render_buffer(fs_emu_video_buffer *buffer, int width,
+int fs_emu_video_buffer_init(int width, int height, int bpp);
+fs_emu_video_buffer *fs_emu_video_buffer_get_available(int copy);
+void fs_emu_video_buffer_set_current(fs_emu_video_buffer *buffer);
+fs_emu_video_buffer *fs_emu_video_buffer_get_current();
+int fs_emu_video_buffer_grow(fs_emu_video_buffer *buffer, int width,
         int height);
 
 // audio interface
@@ -428,11 +428,11 @@ typedef struct fs_emu_menu {
     int idata;
 } fs_emu_menu;
 
-void fs_emu_update_current_menu();
+void fs_emu_menu_update_current();
 
 void fs_emu_menu_toggle();
 
-void fs_emu_set_menu(fs_emu_menu *menu);
+void fs_emu_menu_set_current(fs_emu_menu *menu);
 
 int fs_emu_menu_is_active();
 
@@ -464,12 +464,6 @@ void fs_emu_menu_item_set_pdata(fs_emu_menu_item *item, void *pdata);
 
 void fs_emu_menu_item_set_activate_function(fs_emu_menu_item *item,
         int (*function)(fs_emu_menu_item *menu_item, void **data));
-
-#if 0
-#ifdef USE_GLIB
-GOptionGroup* fs_emu_get_option_group();
-#endif
-#endif
 
 void fs_emu_acquire_gui_lock();
 void fs_emu_assert_gui_lock();

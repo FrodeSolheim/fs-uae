@@ -16,7 +16,7 @@ DisableStartupPrompt=yes
 DisableProgramGroupPage=yes
 
 [Files]
-Source: "fs-uae-9.8.7-windows\*"; DestDir: "{app}"; Flags: recursesubdirs;
+Source: "fs-uae-9.8.7-windows\*"; DestDir: "{app}"; Flags: recursesubdirs replacesameversion;
 
 [Icons]
 Name: "{group}\FS-UAE Emulator"; Filename: "{app}\FS-UAE.exe"

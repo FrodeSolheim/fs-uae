@@ -1,12 +1,22 @@
-#include <glib.h>
+#include "xml_shader.h"
+
+#ifdef WITH_XML_SHADER
+
 #include <fs/ml/opengl.h>
 #include <fs/glee.h>
-#include <fs/log.h>
+
 #include <fs/emu.h>
+#include <fs/list.h>
+#include <fs/log.h>
+#include <fs/string.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "libfsemu.h"
+
+#ifdef USE_GLIB
+#include <glib.h>
+#endif
 
 #define debug_printf(format, ...)
 
@@ -32,8 +42,8 @@ typedef struct shader_pass {
 } shader_pass;
 
 static int g_shader_ok;
-static GList *g_shader_passes = NULL;
-static GList *g_current_shaders = NULL;
+static fs_list *g_shader_passes = NULL;
+static fs_list *g_current_shaders = NULL;
 
 #define MAX_TEXT_SIZE 65536
 
@@ -90,7 +100,7 @@ static void on_start_element(GMarkupParseContext *context,
     const gchar **v = attribute_values;
     for (const gchar **k = attribute_names; *k; k++, v++) {
         if (strcmp(*k, "filter") == 0) {
-            data->filter = g_strdup(*v);
+            data->filter = fs_strdup(*v);
             data->flags |= A_FILTER;
         }
         else if (strcmp(*k, "size_x") == 0) {
@@ -214,8 +224,8 @@ static void handle_element(parse_data *data, const char *element,
             fs_log("compiled vertex shader successfully\n");
         }
 
-        g_current_shaders = g_list_append(g_current_shaders,
-                GUINT_TO_POINTER(shader));
+        g_current_shaders = fs_list_append(g_current_shaders,
+                FS_UINT_TO_POINTER(shader));
         return;
     }
     // If the element has more than one attribute from the set
@@ -337,8 +347,8 @@ static void handle_element(parse_data *data, const char *element,
 
     // Add the shader handle to the current list of shaders.
 
-    g_current_shaders = g_list_append(g_current_shaders,
-            GUINT_TO_POINTER(shader));
+    g_current_shaders = fs_list_append(g_current_shaders,
+            FS_UINT_TO_POINTER(shader));
 
     // Take the shader-handles from the current list of shaders and link
     // them into a shader program.
@@ -351,16 +361,16 @@ static void handle_element(parse_data *data, const char *element,
         return;
     }
 
-    GList *link = g_current_shaders;
+    fs_list *link = g_current_shaders;
     while (link) {
         GLuint shader = GPOINTER_TO_UINT(link->data);
         glAttachShader(program, shader);
         // schedule shader for deletion so it will be deleted when the
         // program is deleted
         glDeleteShader(shader);
-        GList *temp = link;
+        fs_list *temp = link;
         link = link->next;
-        g_list_free_1(temp);
+        fs_list_free_1(temp);
     }
     g_current_shaders = NULL;
 
@@ -410,7 +420,7 @@ static void handle_element(parse_data *data, const char *element,
         }
     }
     // Add the shader pass to the list of shader passes.
-    g_shader_passes = g_list_append(g_shader_passes, pass);
+    g_shader_passes = fs_list_append(g_shader_passes, pass);
 }
 
 static void on_end_element(GMarkupParseContext *context, const gchar *element_name,
@@ -525,7 +535,7 @@ static void context_notification_handler(int notification, void *data) {
     static int recreate = 0;
     if (notification == FS_GL_CONTEXT_DESTROY) {
         fs_log("FS_GL_CONTEXT_DESTROY handler for shader\n");
-        GList *link = g_shader_passes;
+        fs_list *link = g_shader_passes;
         if (g_shader_passes == NULL) {
             return;
         }
@@ -534,9 +544,9 @@ static void context_notification_handler(int notification, void *data) {
             shader_pass *pass = link->data;
             glDeleteProgram(pass->program);
             g_free(pass);
-            GList *delete_link = link;
+            fs_list *delete_link = link;
             link = link->next;
-            g_list_free_1(delete_link);
+            fs_list_free_1(delete_link);
         }
         recreate = 1;
         g_shader_passes = NULL;
@@ -549,7 +559,7 @@ static void context_notification_handler(int notification, void *data) {
     }
 }
 
-void fs_emu_init_shader() {
+void fs_emu_xml_shader_init(void) {
     fs_emu_load_shader();
     fs_gl_add_context_notification(context_notification_handler, NULL);
 }
@@ -964,11 +974,11 @@ static void render_pass(shader_pass *pass, int first, int last) {
     g_cur_texture = output_texture;
 }
 
-int fs_emu_using_shader() {
+int fs_emu_xml_shader_is_enabled() {
     return g_shader_ok;
 }
 
-int fs_emu_render_with_shader(int texture, int texture_width,
+int fs_emu_xml_shader_render(int texture, int texture_width,
         int texture_height, int input_width, int input_height,
         int output_width, int output_height, float x1, float y1,
         float x2, float y2, int render_textured_side, float alpha) {
@@ -1018,7 +1028,7 @@ int fs_emu_render_with_shader(int texture, int texture_width,
     debug_printf("cur tex %d\n", g_cur_texture);
 
     // For each shader pass in the list of shader passes...
-    GList *link = g_shader_passes;
+    fs_list *link = g_shader_passes;
     int first = 1;
     while (link) {
         shader_pass *pass = link->data;
@@ -1079,3 +1089,5 @@ int fs_emu_render_with_shader(int texture, int texture_width,
 
     return 1;
 }
+
+#endif

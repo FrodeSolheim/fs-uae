@@ -19,6 +19,20 @@
 #ifndef LIBFSGL_OPENGL_H_
 #define LIBFSGL_OPENGL_H_
 
+#if defined(USE_GLES) && !defined(FAKE_GLES)
+#include <GLES/gl.h>
+#define GL_BGRA 0x80e1
+#else
+#include <fs/glee.h>
+#endif
+
+#ifndef APIENTRY
+    #define APIENTRY
+#endif
+#ifndef APIENTRYP
+    #define APIENTRYP APIENTRY *
+#endif
+
 void fs_gl_finish();
 void fs_gl_texturing(int enable);
 void fs_gl_bind_texture(int texture);

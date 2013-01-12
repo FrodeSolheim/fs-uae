@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae-launcher\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2012-12-01 10:58+0100\n"
-"PO-Revision-Date: 2012-12-01 19:51+0100\n"
+"POT-Creation-Date: 2013-01-05 16:15+0100\n"
+"PO-Revision-Date: 2013-01-05 17:56+0100\n"
 "Last-Translator: \n"
 "Language-Team: Serbian\n"
 "Language: sr\n"
@@ -158,6 +158,9 @@ msgstr "Konfiguracije"
 msgid "Configure Joystick Buttons"
 msgstr "Konfigurisati dugmeta džojstika"
 
+msgid "Connect"
+msgstr "Povezivanje"
+
 msgid ""
 "Copy {0}\n"
 "to {1}"
@@ -185,6 +188,9 @@ msgstr "Podrazumevano"
 
 msgid "Default ({0})"
 msgstr "Podrazumevano ({0})"
+
+msgid "Disconnect"
+msgstr "Prekid veze"
 
 msgid "Downloading {0}..."
 msgstr "Preuzimanje {0}..."
@@ -218,6 +224,12 @@ msgstr "Fast RAM"
 
 msgid "Fetching database entries ({0})"
 msgstr "Preuzimanje baze podataka ({0})"
+
+msgid "Fetching game ratings ({0})"
+msgstr "Preuzimanje ocena igre ({0})"
+
+msgid "Fetching user game ratings ({0})"
+msgstr "Preuzimanje korisničkih ocena igre ({0})"
 
 msgid "Filters"
 msgstr "Filteri"
@@ -292,7 +304,7 @@ msgid "Import From Amiga Forever CD/DVD"
 msgstr "Uvoz sa Amiga Forever CD/DVD"
 
 msgid "Import Kickstarts and ROMs"
-msgstr "Uvoz kickstart-ova i ROM-ova"
+msgstr "Uvoz kikstart-ova i ROM-ova"
 
 msgid "Import task is done"
 msgstr "Zadatak uvoženja je završen"
@@ -331,13 +343,13 @@ msgid "Keyboard Settings"
 msgstr "Postavke tastature"
 
 msgid "Kickstart ROM"
-msgstr "Kickstart ROM"
+msgstr "Kikstart ROM"
 
 msgid "Kickstart Setup"
-msgstr "Podešavanja kickstarta"
+msgstr "Podešavanja kikstarta"
 
 msgid "Kickstart import task started"
-msgstr "Uvoženje kickstarta je započeto"
+msgstr "Uvoženje kikstarta je započeto"
 
 msgid "Launching FS-UAE"
 msgstr "Pokretanje FS-UAE"
@@ -384,6 +396,9 @@ msgstr "Oznaka igre preko mreže (maksimalno 3 slova)"
 msgid "New Configuration"
 msgstr "Nova konfiguracija"
 
+msgid "Nick:"
+msgstr "Nadimak:"
+
 msgid "No Device"
 msgstr "Nema uređaja"
 
@@ -394,13 +409,13 @@ msgid "No Joysticks"
 msgstr "Nema džojstika"
 
 msgid "No extended kickstart found for this model. Try 'scan' function."
-msgstr "Nije pronađen prošireni kikstart za ovaj model. Probajte  funkciju 'Skeniranje'."
+msgstr "Nije pronađen prošireni kikstart za ovaj model. Probajte funkciju 'Skeniranje'."
 
 msgid "No joysticks are currently connected"
 msgstr "Trenutno nema spojenog džojstika"
 
 msgid "No kickstart found for this model. "
-msgstr "Nije pronađen kickstart za ovaj model."
+msgstr "Nije pronađen kikstart za ovaj model."
 
 msgid "No scan in progress"
 msgstr "Skeniranje nije u toku"
@@ -417,11 +432,26 @@ msgstr "Isključeno"
 msgid "On"
 msgstr "Uključeno"
 
+msgid "Open Game Database Entry"
+msgstr "Otvoriti bazu igara"
+
+msgid "Open Hall of Light Entry"
+msgstr "Otvoriti Hall of Light unos  "
+
+msgid "Open LemonAmiga Entry"
+msgstr "Otvoriti LemonAmiga unos"
+
+msgid "Open MobyGames Entry"
+msgstr "Otvoriti MobyGames unos "
+
 msgid "Open Scan Dialog"
 msgstr "Otvoriti dijalog za skeniranje"
 
 msgid "Open Tool to Configure Button Mapping"
 msgstr "Otvoriti alat da bi ste konfigurisali mapiranje tastera"
+
+msgid "Open Wikipedia Entry"
+msgstr "Otvoriti Wikipedia unos "
 
 msgid "OpenGL Settings"
 msgstr "Podešavanje OpenGL-a "
@@ -502,7 +532,7 @@ msgid "Scan error"
 msgstr "Greška skeniranja"
 
 msgid "Scan for Kickstarts, Files and Configurations"
-msgstr "Skeniranje kickstart-ova, datoteka i konfiguracija"
+msgstr "Skeniranje kikstart-ova, datoteka i konfiguracija"
 
 msgid "Scanning .fs-uae files..."
 msgstr "Skeniranje .fs-uae fajlova..."
@@ -541,13 +571,13 @@ msgid "Select Multiple Floppies"
 msgstr "Izabrati više disketa"
 
 msgid "Select a folder containing Amiga kickstart files and click \"{0}\""
-msgstr "Izabrati folder koji sadrži Amiga kickstart fajlove i kliknuti \"{0}\""
+msgstr "Izabrati folder koji sadrži Amiga kikstart fajlove i kliknuti \"{0}\""
 
 msgid "Settings"
 msgstr "Podešavanja"
 
 msgid "Show kickstart setup page on startup when all ROMs are missing"
-msgstr "Prikaži na startu kickstart podešavanja ako svi ROM-ovi nedostaju"
+msgstr "Prikaži na startu kikstart podešavanja ako svi ROM-ovi nedostaju"
 
 msgid "Slow RAM"
 msgstr "Slow RAM"
@@ -573,8 +603,14 @@ msgstr "Sinhronizacija sa Vblank"
 msgid "Synchronizing database..."
 msgstr "Sinhronizovanje baze..."
 
+msgid "Synchronizing personal ratings..."
+msgstr "Sinhronizovanje ličnih ocena..."
+
 msgid "Texture filter"
 msgstr "Filter teksture"
+
+msgid "Toggle Between Windowed and Full-Screen Mode"
+msgstr "Prelaženje između moda prozora i čitavog ekrana"
 
 msgid "Ungrab mouse and keyboard on middle mouse click"
 msgstr "Otpustiti miša i tastaturu na srednji klik miša"

@@ -6,7 +6,7 @@
 #include "filesys.h"
 #include "zfile.h"
 #include <fs/fs.h>
-#include <glib.h>
+#include <fs/unicode.h>
 #include <unistd.h>
 #ifdef WINDOWS
 #include <Windows.h>
@@ -109,9 +109,7 @@ struct my_opendir_s *my_opendir(const TCHAR *name, const TCHAR *mask) {
             continue;
         }
 
-        gsize read, written;
-        char *cresult = g_convert(result, -1, "ISO-8859-1", "UTF-8", &read,
-                &written, NULL);
+        char *cresult = fs_utf8_to_latin1(result, -1);
         if (cresult == NULL) {
             // file name could not be represented as ISO-8859-1, so it
             // will be ignored
@@ -236,7 +234,7 @@ struct my_openfile_s *my_open(const TCHAR *name, int flags) {
         open_flags = open_flags | O_WRONLY;
     }
     char *path = uae_expand_path(name);
-    int file = fs_open(path, open_flags, S_IREAD | S_IWRITE);
+    int file = fs_open(path, open_flags, S_IRUSR | S_IWUSR);
     free(path);
     if (file == -1) {
         my_errno = errno;

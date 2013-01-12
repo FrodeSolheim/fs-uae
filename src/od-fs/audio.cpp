@@ -83,7 +83,7 @@ void update_sound (double freq, int longframe, int linetoggle) {
  */
 
 #include "audio.h"
-#include "memory.h"
+#include "uae/memory.h"
 #include "events.h"
 #include "custom.h"
 #include "gui.h"

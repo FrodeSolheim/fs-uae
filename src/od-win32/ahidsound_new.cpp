@@ -23,7 +23,7 @@
 #include "sysdeps.h"
 #include "options.h"
 #include "audio.h"
-#include "memory.h"
+#include "uae/memory.h"
 #include "events.h"
 #include "custom.h"
 #include "newcpu.h"
@@ -309,12 +309,12 @@ struct AHIAudioCtrlDrv
 are supported by AHI_LoadSound(). */
 #define AHIST_M8S		(0UL)			/* Mono, 8 bit signed (BYTE) */
 #define AHIST_M16S		(1UL)			/* Mono, 16 bit signed (WORD) */
-#define AHIST_S8S		(2UL)			/* Stereo, 8 bit signed (2×BYTE) */
-#define AHIST_S16S		(3UL)			/* Stereo, 16 bit signed (2×WORD) */
+#define AHIST_S8S		(2UL)			/* Stereo, 8 bit signed (2ï¿½BYTE) */
+#define AHIST_S16S		(3UL)			/* Stereo, 16 bit signed (2ï¿½WORD) */
 #define AHIST_M32S		(8UL)			/* Mono, 32 bit signed (LONG) */
-#define AHIST_S32S		(10UL)			/* Stereo, 32 bit signed (2×LONG) */
+#define AHIST_S32S		(10UL)			/* Stereo, 32 bit signed (2ï¿½LONG) */
 #define AHIST_M8U		(4UL)			/* OBSOLETE! */
-#define AHIST_L7_1		(0x00c3000aUL)		/* 7.1, 32 bit signed (8×LONG) */
+#define AHIST_L7_1		(0x00c3000aUL)		/* 7.1, 32 bit signed (8ï¿½LONG) */
 
 /* Error codes */
 #define AHIE_OK			(0UL)			/* No error */

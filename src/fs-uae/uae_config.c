@@ -1,3 +1,5 @@
+#include <stdlib.h>
+#include <string.h>
 #include <uae/uae.h>
 #include <fs/fs.h>
 #include "fs-uae.h"

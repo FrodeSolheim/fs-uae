@@ -3,8 +3,6 @@
 
 #include "options.h"
 #include "scsidev.h"
-//#include <memory.h>
-#include <glib.h>
 
 void clipboard_vsync (void) {
 

@@ -28,6 +28,11 @@ void amiga_set_video_format(int format);
 // must be called before main_main
 void amiga_add_rtg_resolution(int width, int height);
 
+// must be called early
+void amiga_set_builtin_driveclick_path(const char *path);
+// for custom floppy sound files
+void amiga_set_floppy_sounds_dir(const char *path);
+
 void amiga_main();
 int amiga_reset(int hard);
 int amiga_pause(int pause);

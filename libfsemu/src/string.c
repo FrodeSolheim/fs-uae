@@ -2,19 +2,19 @@
 // some code adapted from glib
 
 #include <fs/base.h>
+#include <fs/list.h>
 #include <fs/string.h>
 
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <limits.h>
 #include <stddef.h>
 #include <locale.h>
 #include <string.h>
 #include <locale.h>
 #include <errno.h>
 #include <ctype.h>              /* For tolower() */
-
-#include <glib.h>
 
 #define FS_STR_DELIMITERS       "_-|> <."
 
@@ -44,6 +44,21 @@ static const uint16_t ascii_table_data[256] = { 0x004, 0x004, 0x004, 0x004,
 };
 
 const uint16_t * const fs_ascii_table = ascii_table_data;
+
+int fs_str_equal (const void *v1, const void *v2) {
+    const char *string1 = v1;
+    const char *string2 = v2;
+    return strcmp (string1, string2) == 0;
+}
+
+unsigned int fs_str_hash (const void *v) {
+    const signed char *p;
+    uint32_t h = 5381;
+    for (p = v; *p != '\0'; p++) {
+        h = (h << 5) + h + *p;
+    }
+    return h;
+}
 
 int fs_ascii_strcasecmp(const char *s1, const char *s2) {
     int c1, c2;
@@ -143,13 +158,39 @@ char *fs_stpcpy(char *dest, const char *src) {
 #endif
 }
 
-char* fs_strdup_vprintf(const char *format, va_list args) {
-    /*
-    char *string = NULL;
-    g_vasprintf(&string, format, args);
-    return string;
-    */
-    return g_strdup_vprintf(format, args);
+char *fs_strdup_vprintf(const char *format, va_list args) {
+    int n;
+    int size = 100;     /* Guess we need no more than 100 bytes. */
+    char *p, *np;
+    va_list ap;
+
+    if ((p = malloc(size)) == NULL)
+        return NULL;
+    while (1) {
+        va_copy(ap, args);
+        n = vsnprintf(p, size, format, ap);
+        va_end(ap);
+
+        // If that worked, return the string.
+
+        if (n > -1 && n < size)
+            return p;
+
+        // Else try again with more space.
+
+        if (n > -1)     // glibc 2.1
+            size = n+1; // precisely what is needed
+        else            // glibc 2.0
+            size *= 2;  // twice the old size
+
+        if ((np = realloc (p, size)) == NULL) {
+            free(p);
+            return NULL;
+        }
+        else {
+            p = np;
+        }
+    }
 }
 
 char* fs_strdup_printf(const char *format, ...) {
@@ -260,7 +301,7 @@ char *fs_strchug(char *string) {
             start++)
         ;
 
-    g_memmove(string, start, strlen((char *) start) + 1);
+    memmove(string, start, strlen((char *) start) + 1);
 
     return string;
 }
@@ -320,4 +361,207 @@ char *fs_ascii_strup(const char *str, ssize_t len) {
         *s = fs_ascii_toupper(*s);
 
     return result;
+}
+
+double fs_ascii_strtod(const char *nptr, char **endptr) {
+    char *fail_pos;
+    double val;
+    //struct lconv *locale_data;
+    const char *decimal_point;
+    int decimal_point_len;
+    const char *p, *decimal_point_pos;
+    const char *end = NULL; /* Silence gcc */
+    int strtod_errno;
+
+    if (nptr == NULL) {
+        return 0;
+    }
+
+    fail_pos = NULL;
+
+    //locale_data = localeconv();
+    //decimal_point = locale_data->decimal_point;
+    decimal_point = ".";
+    decimal_point_len = strlen(decimal_point);
+
+    //g_assert(decimal_point_len != 0);
+
+    decimal_point_pos = NULL;
+    end = NULL;
+
+    if (decimal_point[0] != '.' || decimal_point[1] != 0) {
+        p = nptr;
+        /* Skip leading space */
+        while (fs_ascii_isspace (*p))
+            p++;
+
+        /* Skip leading optional sign */
+        if (*p == '+' || *p == '-')
+            p++;
+
+        if (p[0] == '0' && (p[1] == 'x' || p[1] == 'X')) {
+            p += 2;
+            /* HEX - find the (optional) decimal point */
+
+            while (fs_ascii_isxdigit (*p))
+                p++;
+
+            if (*p == '.')
+                decimal_point_pos = p++;
+
+            while (fs_ascii_isxdigit (*p))
+                p++;
+
+            if (*p == 'p' || *p == 'P')
+                p++;
+            if (*p == '+' || *p == '-')
+                p++;
+            while (fs_ascii_isdigit (*p))
+                p++;
+
+            end = p;
+        }
+        else if (fs_ascii_isdigit (*p) || *p == '.') {
+            while (fs_ascii_isdigit (*p))
+                p++;
+
+            if (*p == '.')
+                decimal_point_pos = p++;
+
+            while (fs_ascii_isdigit (*p))
+                p++;
+
+            if (*p == 'e' || *p == 'E')
+                p++;
+            if (*p == '+' || *p == '-')
+                p++;
+            while (fs_ascii_isdigit (*p))
+                p++;
+
+            end = p;
+        }
+        /* For the other cases, we need not convert the decimal point */
+    }
+
+    if (decimal_point_pos) {
+        char *copy, *c;
+
+        /* We need to convert the '.' to the locale specific decimal point */
+        copy = malloc(end - nptr + 1 + decimal_point_len);
+
+        c = copy;
+        memcpy(c, nptr, decimal_point_pos - nptr);
+        c += decimal_point_pos - nptr;
+        memcpy(c, decimal_point, decimal_point_len);
+        c += decimal_point_len;
+        memcpy(c, decimal_point_pos + 1, end - (decimal_point_pos + 1));
+        c += end - (decimal_point_pos + 1);
+        *c = 0;
+
+        errno = 0;
+        val = strtod(copy, &fail_pos);
+        strtod_errno = errno;
+
+        if (fail_pos) {
+            if (fail_pos - copy > decimal_point_pos - nptr)
+                fail_pos = (char *) nptr + (fail_pos - copy)
+                        - (decimal_point_len - 1);
+            else
+                fail_pos = (char *) nptr + (fail_pos - copy);
+        }
+
+        free(copy);
+
+    }
+    else if (end) {
+        char *copy;
+
+        copy = malloc(end - (char *) nptr + 1);
+        memcpy(copy, nptr, end - nptr);
+        *(copy + (end - (char *) nptr)) = 0;
+
+        errno = 0;
+        val = strtod(copy, &fail_pos);
+        strtod_errno = errno;
+
+        if (fail_pos) {
+            fail_pos = (char *) nptr + (fail_pos - copy);
+        }
+
+        free(copy);
+    }
+    else {
+        errno = 0;
+        val = strtod(nptr, &fail_pos);
+        strtod_errno = errno;
+    }
+
+    if (endptr)
+        *endptr = fail_pos;
+
+    errno = strtod_errno;
+
+    return val;
+}
+
+void fs_strfreev(char **str_array) {
+    if (str_array) {
+        int i;
+        for (i = 0; str_array[i] != NULL ; i++) {
+            free(str_array[i]);
+        }
+        free(str_array);
+    }
+}
+
+char** fs_strsplit(const char *string, const char *delimiter, int max_tokens) {
+    fs_list *string_list = NULL, *slist;
+    char **str_array, *s;
+    unsigned int n = 0;
+    const char *remainder;
+
+    if (string == NULL) {
+        return NULL;
+    }
+    if (delimiter == NULL) {
+        return NULL;
+    }
+    if (delimiter[0] == '\0') {
+        return NULL;
+    }
+
+    if (max_tokens < 1) {
+        max_tokens = INT_MAX;
+    }
+
+    remainder = string;
+    s = strstr(remainder, delimiter);
+    if (s) {
+        size_t delimiter_len = strlen(delimiter);
+
+        while (--max_tokens && s) {
+            size_t len;
+
+            len = s - remainder;
+            string_list = fs_list_prepend(string_list,
+                    fs_strndup(remainder, len));
+            n++;
+            remainder = s + delimiter_len;
+            s = strstr(remainder, delimiter);
+        }
+    }
+    if (*string) {
+        n++;
+        string_list = fs_list_prepend(string_list, fs_strdup(remainder));
+    }
+
+    str_array = fs_new(char*, n + 1);
+
+    str_array[n--] = NULL;
+    for (slist = string_list; slist; slist = slist->next)
+        str_array[n--] = slist->data;
+
+    fs_list_free(string_list);
+
+    return str_array;
 }

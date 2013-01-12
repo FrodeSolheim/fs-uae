@@ -1,4 +1,5 @@
-#include "libfsemu.h"
+#include "theme.h"
+
 #include <fs/config.h>
 #include <fs/base.h>
 #include <fs/log.h>
@@ -6,10 +7,14 @@
 #include <fs/string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
+#include "texture.h"
+#include "libfsemu.h"
 
 struct fs_emu_theme g_fs_emu_theme;
 
-char *fs_emu_get_theme_resource(const char *name) {
+char *fs_emu_theme_get_resource(const char *name) {
     if (fs_path_exists(name)) {
         return fs_strdup(name);
     }
@@ -166,8 +171,8 @@ static void load_theme() {
     }
 }
 
-void fs_emu_init_theme() {
-    fs_log("fs_emu_init_theme\n");
+void fs_emu_theme_init() {
+    fs_log("fs_emu_theme_init\n");
 
     const char *theme = fs_config_get_const_string("theme");
     if (theme) {

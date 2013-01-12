@@ -377,6 +377,7 @@ int is_tablet (void) {
  * Copyright 1998 Krister Walfridsson
  * Copyright 2003-2005 Richard Drummond
  */
+/*
 #include <SDL.h>
 
 #define MAX_MAPPINGS 256
@@ -391,7 +392,7 @@ struct joyinfo {
 };
 
 static struct joyinfo joys[MAX_INPUT_DEVICES];
-
+*/
 /*
 static void read_joy (unsigned int nr) {
     unsigned int num, i, axes, axis;
@@ -420,37 +421,17 @@ static int get_joystick_num (void) {
     return 4;
 }
 
-static int get_joystick_widget_num (int joy)
-{
+static int get_joystick_widget_num (int joy) {
     write_log("get_joystick_widget_num joy=%d\n", joy);
-    return joys[joy].axles + joys[joy].buttons;
+    return 0;
 }
 
 static int get_joystick_widget_type (int joy, int num, char *name,
         uae_u32 *code) {
-    write_log("get_joystick_widget_type joy=%d\n", joy);
-    if (num >= (int) joys[joy].axles && num < (int) (joys[joy].axles +
-            joys[joy].buttons)) {
-        if (name) {
-            sprintf (name, "Button %d", num + 1 - joys[joy].axles);
-        }
-        return IDEV_WIDGET_BUTTON;
-    }
-    else if (num < (int) joys[joy].axles) {
-        if (name)
-            sprintf (name, "Axis %d", num + 1);
-        return IDEV_WIDGET_AXIS;
-    }
     return IDEV_WIDGET_NONE;
 }
 
 static int get_joystick_widget_first (int joy, int type) {
-    switch (type) {
-    case IDEV_WIDGET_BUTTON:
-        return joys[joy].axles;
-    case IDEV_WIDGET_AXIS:
-        return 0;
-    }
     return -1;
 }
 
@@ -496,10 +477,6 @@ static void read_joystick (void) {
 
 static int init_joystick (void) {
     write_log("init_joystick\n");
-    if (!initialized) {
-        nr_joysticks = 2;
-        initialized = 1;
-    }
     return 1;
 }
 

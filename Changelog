@@ -1,3 +1,19 @@
+Version 2.1.17:
+
+* Autoselect device for port 0 when "fire" button of unmapped device is
+  pressed.
+* New options to specify alternative floppy drive sound sets
+  (floppy_drive_x_sounds).
+* Built-in floppy drive sounds are now loaded from disk.
+* Partially merged GLES support code [lunixbochs, lallafa].
+* Some code in libfsemu is restructured / cleaned up.
+* FS-UAE can be compiled without Glib (with a few caveats).
+* Compile-time option to use posix threads/mutex/semaphores.
+* Updated translations: it [Speedvicio].
+* (Launcher) Fixed display of variant user rating.
+* (Launcher) Updated translations: fr [Foul], sr [Milanchez],
+  de [nexusle], pl [grimi], it [Speedvicio].
+
 Version 2.1.16:
 
 * (Launcher) Only show variant name (without game name) in variant list.

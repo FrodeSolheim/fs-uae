@@ -11,7 +11,7 @@
 #include "sysdeps.h"
 #include "options.h"
 
-#include "memory.h"
+#include "uae/memory.h"
 
 #include "threaddep/thread.h"
 #include "blkdev.h"

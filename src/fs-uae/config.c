@@ -1,3 +1,6 @@
+#include <stdlib.h>
+#include <string.h>
+
 #include <uae/uae.h>
 #include <fs/emu.h>
 #include "fs-uae.h"
@@ -733,15 +736,23 @@ void fs_uae_configure_floppies() {
         return;
     }
     fs_emu_log("configure_floppies\n");
-    char option_dfx[] = "floppy_drive_0";
+    char option_floppy_drive_x[] = "floppy_drive_0";
+    char option_floppy_drive_x_sounds[] = "floppy_drive_0_sounds";
     char option_floppyx[] = "floppy0";
     char option_floppyxtype[] = "floppy0type";
+    char option_floppyxsound[] = "floppy0sound";
+    char option_floppyxsoundext[] = "floppy0soundext";
     int auto_num_drives = 1;
     for(int i = 0; i < 4; i++) {
-        option_dfx[13] = '0' + i;
+        option_floppy_drive_x[13] = '0' + i;
+        option_floppy_drive_x_sounds[13] = '0' + i;
         option_floppyx[6] = '0' + i;
-        char *path = fs_config_get_string(option_dfx);
-        fs_emu_log("value for option %s: %s\n", option_dfx, path);
+        option_floppyxtype[6] = '0' + i;
+        option_floppyxsound[6] = '0' + i;
+        option_floppyxsoundext[6] = '0' + i;
+
+        char *path = fs_config_get_string(option_floppy_drive_x);
+        fs_emu_log("value for option %s: %s\n", option_floppy_drive_x, path);
         if (!path) {
             path = fs_strdup("");
         }
@@ -753,8 +764,15 @@ void fs_uae_configure_floppies() {
         }
         amiga_set_option(option_floppyx, path);
         free(path);
-        option_floppyxtype[6] = '0' + i;
-        amiga_set_option(option_floppyxtype, "0");
+
+        char *floppy_sounds = fs_config_get_const_string(
+                option_floppy_drive_x_sounds);
+        if (floppy_sounds) {
+            fs_log("custom floppy sounds for drive %d: %s\n", i,
+                    floppy_sounds);
+            amiga_set_option(option_floppyxsound, "-1");
+            amiga_set_option(option_floppyxsoundext, floppy_sounds);
+        }
     }
     const char *value;
     value = fs_config_get_const_string("floppy_drive_speed");

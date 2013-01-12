@@ -7,7 +7,7 @@
 #include "sysconfig.h"
 #include "sysdeps.h"
 #include "sys/mman.h"
-#include "memory.h"
+#include "uae/memory.h"
 #include "options.h"
 #include "autoconf.h"
 #include "win32.h"

@@ -16,15 +16,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
  */
 
-#include <fs/emu.h>
-#include <glib.h>
 #include "actions.h"
 
-/*
-void fs_emu_taunt_action(int state) {
-
-}
-*/
+#include <stdlib.h>
+#include <fs/emu.h>
+#include <fs/random.h>
 
 static const char* g_taunts[] = {
         "You play like a dairy farmer!",
@@ -41,8 +37,8 @@ static int g_num_taunts = 8;
 
 static void taunt() {
     char *text = fs_strdup_printf("%c%s\n", 1,
-            g_taunts[g_random_int_range(0, g_num_taunts)]);
-    fs_emu_say(text);
+            g_taunts[fs_random_int_range(0, g_num_taunts)]);
+    fs_emu_netplay_say(text);
     free(text);
 }
 

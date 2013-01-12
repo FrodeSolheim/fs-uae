@@ -1,7 +1,9 @@
 // FIXME: consider using autotools for this
 
 #if defined(WINDOWS)
+#elif defined(ANDROID)
 #elif defined(MACOSX) && __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ < 1060
+// no posix_memalign
 #else
 #define HAVE_POSIX_MEMALIGN 1
 #endif

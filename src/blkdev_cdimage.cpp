@@ -24,7 +24,7 @@
 #include "scsidev.h"
 #include "mp3decoder.h"
 #include "cda_play.h"
-#include "memory.h"
+#include "uae/memory.h"
 #ifdef RETROPLATFORM
 #include "rp.h"
 #endif

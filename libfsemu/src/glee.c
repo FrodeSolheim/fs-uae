@@ -1,3 +1,5 @@
+#if !defined(USE_GLES) || defined(FAKE_GLES)
+
 /***************************************************************************
 *
 * GLee.c
@@ -18168,3 +18170,5 @@ GLEE_EXTERN GLboolean GLeeInit( void )
     __GLeeExtList_clean(&extensionNames);
     return GL_TRUE;
 }
+
+#endif

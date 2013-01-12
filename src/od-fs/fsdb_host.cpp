@@ -12,13 +12,14 @@
 #include "sysconfig.h"
 #include "sysdeps.h"
 #include "options.h"
-#include "memory.h"
+#include "uae/memory.h"
 
 #include "fsdb.h"
 
 //#include "win32.h"
 //#include <windows.h>
 #include <fs/fs.h>
+#include <fs/filesys.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -28,8 +29,6 @@
 #include <sys/time.h>
 #endif
 #include <string.h>
-#include <glib.h>
-#include <glib/gstdio.h>
 
 extern int g_fsdb_debug;
 
@@ -105,7 +104,7 @@ uae_u32 filesys_parse_mask(uae_u32 mask) {
 }
 
 int fsdb_exists(const TCHAR *nname) {
-    return g_file_test(nname, G_FILE_TEST_EXISTS);
+    return fs_path_exists(nname);
 }
 
 int fsdb_set_file_attrs(a_inode *aino) {
@@ -186,7 +185,7 @@ int fsdb_set_file_attrs(a_inode *aino) {
      }
      */
     fsdb_unlock();
-    //g_free(meta_file_path);
+    //free(meta_file_path);
     return result;
 #endif
 }
@@ -276,9 +275,11 @@ char *aname_to_nname(const char *aname) {
     *p++ = '\0';
 
     //char *result = strdup(buf);
-    gsize read, written;
-    gchar *result = g_convert(buf, -1, "UTF-8", "ISO-8859-1", &read, &written,
-            NULL);
+    //gsize read, written;
+    //gchar *result = g_convert(buf, -1, "UTF-8", "ISO-8859-1", &read, &written,
+    //        NULL);
+
+    char* result = fs_utf8_from_latin1(buf, -1);
     free(buf);
 
     if (g_fsdb_debug) {
@@ -316,9 +317,10 @@ char *nname_to_aname(const char *nname) {
     }
     *p++ = '\0';
 
-    gsize read, written;
-    gchar *cresult = g_convert(result, -1, "ISO-8859-1", "UTF-8", &read,
-            &written, NULL);
+    //gsize read, written;
+    //gchar *cresult = g_convert(result, -1, "ISO-8859-1", "UTF-8", &read,
+    //        &written, NULL);
+    char* cresult = fs_utf8_to_latin1(result, -1);
     free(result);
 
     if (g_fsdb_debug) {
@@ -513,24 +515,26 @@ static void find_nname_case(const char *dir_path, char **name) {
         return;
     }
 
-    gsize read, written;
-    gchar *cmp_name = g_convert(*name, -1, "ISO-8859-1", "UTF-8", &read,
-            &written, NULL);
+    //gsize read, written;
+    //gchar *cmp_name = g_convert(*name, -1, "ISO-8859-1", "UTF-8", &read,
+    //        &written, NULL);
+    char *cmp_name = fs_utf8_to_latin1(*name, -1);
     if (cmp_name == NULL) {
         write_log("WARNING: could not convert to latin1: %s", *name);
         return;
     }
     lower_latin1(cmp_name);
 
-    const gchar *result;
+    const char *result;
     while (1) {
         result = fs_dir_read_name(dir);
         if (!result) {
             break;
         }
 
-        gchar *cmp_result = g_convert(result, -1, "ISO-8859-1", "UTF-8", &read,
-                &written, NULL);
+        //char *cmp_result = g_convert(result, -1, "ISO-8859-1", "UTF-8", &read,
+        //        &written, NULL);
+        char *cmp_result = fs_utf8_to_latin1(result, -1);
         //printf("%s %s\n", result, cmp_result);
         if (cmp_result == NULL) {
             // file name could not be represented as ISO-8859-1, so it
@@ -547,7 +551,7 @@ static void find_nname_case(const char *dir_path, char **name) {
             }
             break;
         }
-        g_free(cmp_result);
+        free(cmp_result);
     }
     fs_dir_close(dir);
     free(cmp_name);

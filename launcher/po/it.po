@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae-launcher\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2012-11-27 16:41+0100\n"
-"PO-Revision-Date: 2012-11-27 18:18+0100\n"
+"POT-Creation-Date: 2013-01-12 13:03+0100\n"
+"PO-Revision-Date: 2013-01-12 18:30+0100\n"
 "Last-Translator: Speedvicio <speedvicio@hotmail.com>\n"
 "Language-Team: Italian\n"
 "Language: it\n"
@@ -158,6 +158,9 @@ msgstr "Configurazioni"
 msgid "Configure Joystick Buttons"
 msgstr "Configura Tasti Joystick"
 
+msgid "Connect"
+msgstr "Connetti"
+
 msgid ""
 "Copy {0}\n"
 "to {1}"
@@ -185,6 +188,9 @@ msgstr "Predefinito"
 
 msgid "Default ({0})"
 msgstr "Predefinito ({0})"
+
+msgid "Disconnect"
+msgstr "Disconnetti"
 
 msgid "Downloading {0}..."
 msgstr "Scaricando {0}..."
@@ -218,6 +224,12 @@ msgstr "Fast RAM"
 
 msgid "Fetching database entries ({0})"
 msgstr "Recupera voci del database ({0})"
+
+msgid "Fetching game ratings ({0})"
+msgstr "Recupera valutazioni giochi ({0})"
+
+msgid "Fetching user game ratings ({0})"
+msgstr "Recupera valutazioni giochi utente ({0})"
 
 msgid "Filters"
 msgstr "Filtri"
@@ -384,6 +396,9 @@ msgstr "Net play tag (massimo 3 caratteri)"
 msgid "New Configuration"
 msgstr "Nuova Configurazione"
 
+msgid "Nick:"
+msgstr "Nick:"
+
 msgid "No Device"
 msgstr "Nessun Dispositivo"
 
@@ -417,11 +432,26 @@ msgstr "Spento"
 msgid "On"
 msgstr "Acceso"
 
+msgid "Open Game Database Entry"
+msgstr "Apri Voce Database Giochi"
+
+msgid "Open Hall of Light Entry"
+msgstr "Apri Voce Hall of Light"
+
+msgid "Open LemonAmiga Entry"
+msgstr "Apri Voce LemonAmiga"
+
+msgid "Open MobyGames Entry"
+msgstr "Apri Voce MobyGames"
+
 msgid "Open Scan Dialog"
 msgstr "Apri Finestra Scansione"
 
 msgid "Open Tool to Configure Button Mapping"
 msgstr "Apri Strumento Configurazione Bottoni"
+
+msgid "Open Wikipedia Entry"
+msgstr "Apri Voce Wikipedia"
 
 msgid "OpenGL Settings"
 msgstr "Settaggi OpenGL"
@@ -573,8 +603,14 @@ msgstr "Sincronizza si Vblank"
 msgid "Synchronizing database..."
 msgstr "Sincronizza database..."
 
+msgid "Synchronizing personal ratings..."
+msgstr "Sincronizza valutazioni personali..."
+
 msgid "Texture filter"
 msgstr "Filtri Texture"
+
+msgid "Toggle Between Windowed and Full-Screen Mode"
+msgstr "Scambia fra modalità Finestra e Schermo Intero"
 
 msgid "Ungrab mouse and keyboard on middle mouse click"
 msgstr "Sgancia mouse e tastiera al click del tasto medio del mouse"

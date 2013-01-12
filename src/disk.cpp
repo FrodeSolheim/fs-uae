@@ -22,7 +22,7 @@ int disk_debug_track = -1;
 
 #include "uae.h"
 #include "options.h"
-#include "memory.h"
+#include "uae/memory.h"
 #include "events.h"
 #include "custom.h"
 #include "ersatz.h"
@@ -1003,8 +1003,10 @@ static int drive_insert (drive * drv, struct uae_prefs *p, int dnum, const TCHAR
 	if (!fake)
 		inprec_recorddiskchange (dnum, fname, drv->wrprot);
 
-	_tcsncpy (currprefs.floppyslots[dnum].df, fname, 255);
-	currprefs.floppyslots[dnum].df[255] = 0;
+	if (currprefs.floppyslots[dnum].df != fname) {
+		_tcsncpy (currprefs.floppyslots[dnum].df, fname, 255);
+		currprefs.floppyslots[dnum].df[255] = 0;
+	}
 	_tcsncpy (changed_prefs.floppyslots[dnum].df, fname, 255);
 	changed_prefs.floppyslots[dnum].df[255] = 0;
 	_tcscpy (drv->newname, fname);

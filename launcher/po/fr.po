@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae-launcher\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2012-11-25 22:49+0100\n"
-"PO-Revision-Date: 2012-11-26 12:36+0100\n"
+"POT-Creation-Date: 2013-01-05 16:15+0100\n"
+"PO-Revision-Date: 2013-01-08 11:11+0100\n"
 "Last-Translator: Foul <foulweb@gmail.com>\n"
 "Language-Team: Foul <fs-uae-fr@fengestad.no>\n"
 "Language: fr\n"
@@ -74,7 +74,7 @@ msgid "Auto + Border"
 msgstr "Auto + Bordures"
 
 msgid "Available Kickstart Versions"
-msgstr "Versions du Kickstart Disponibles"
+msgstr "Versions des Kickstart Disponibles"
 
 msgid "Browse"
 msgstr "Parcourir"
@@ -119,7 +119,7 @@ msgid "Choose Floppy Image"
 msgstr "Choisir une Disquette"
 
 msgid "Choose Hard Drive"
-msgstr "Choisir Disque Dur"
+msgstr "Choisir un Disque Dur"
 
 msgid "Choose Kickstart ROM"
 msgstr "Choisir une ROM Kickstart"
@@ -160,6 +160,9 @@ msgstr "Configurations"
 msgid "Configure Joystick Buttons"
 msgstr "Configurer les boutons du Joystick"
 
+msgid "Connect"
+msgstr "Connexion"
+
 msgid ""
 "Copy {0}\n"
 "to {1}"
@@ -187,6 +190,9 @@ msgstr "Par Défaut"
 
 msgid "Default ({0})"
 msgstr "Par Défaut ({0})"
+
+msgid "Disconnect"
+msgstr "Déconnexion"
 
 msgid "Downloading {0}..."
 msgstr "Téléchargement {0}..."
@@ -220,6 +226,12 @@ msgstr "Mémoire Rapide"
 
 msgid "Fetching database entries ({0})"
 msgstr "Obtention des entrées de la base de données ({0})"
+
+msgid "Fetching game ratings ({0})"
+msgstr "Obtention de l'évaluation des jeux ({0})"
+
+msgid "Fetching user game ratings ({0})"
+msgstr "Obtention de l'évaluation des jeux utilisateur ({0})"
 
 msgid "Filters"
 msgstr "Filtres"
@@ -386,11 +398,14 @@ msgstr "Tag jeu en ligne (max 3 caractères)"
 msgid "New Configuration"
 msgstr "Nouvelle Configuration"
 
+msgid "Nick:"
+msgstr "Pseudo:"
+
 msgid "No Device"
 msgstr "Aucun Périphérique"
 
 msgid "No Host Device"
-msgstr "Pas de périphérique hôte"
+msgstr "Pas de Périphérique Hôte"
 
 msgid "No Joysticks"
 msgstr "Pas de Joystick"
@@ -419,11 +434,26 @@ msgstr "Off"
 msgid "On"
 msgstr "On"
 
+msgid "Open Game Database Entry"
+msgstr "Ouvrir les Entrées de la base de donnée de jeu"
+
+msgid "Open Hall of Light Entry"
+msgstr "Ouvrir les Entrées de Hall of Light"
+
+msgid "Open LemonAmiga Entry"
+msgstr "Ouvrir les Entrées de LemonAmiga"
+
+msgid "Open MobyGames Entry"
+msgstr "Ouvrir les Entrées de MobyGames"
+
 msgid "Open Scan Dialog"
 msgstr "Ouvrir la boîte de dialogue d'Analyse"
 
 msgid "Open Tool to Configure Button Mapping"
 msgstr "Ouvrir l'Outil de Configuration des Boutons"
+
+msgid "Open Wikipedia Entry"
+msgstr "Ouvrir les Entrées de Wikipedia"
 
 msgid "OpenGL Settings"
 msgstr "Paramètres OpenGL"
@@ -575,8 +605,14 @@ msgstr "Synchro en utilisant VBLANK"
 msgid "Synchronizing database..."
 msgstr "Synchronisation de la base de données ..."
 
+msgid "Synchronizing personal ratings..."
+msgstr "Synchronisation des évaluations personnelles ..."
+
 msgid "Texture filter"
 msgstr "Filtre de texture"
+
+msgid "Toggle Between Windowed and Full-Screen Mode"
+msgstr "Basculer Entre le Mode Fenêtré et Plein Ecran"
 
 msgid "Ungrab mouse and keyboard on middle mouse click"
 msgstr "Relâche la souris et le clavier sur clic du milieu de la souris"

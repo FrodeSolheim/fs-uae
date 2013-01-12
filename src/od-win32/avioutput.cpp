@@ -3,7 +3,7 @@ UAE - The Ultimate Amiga Emulator
 
 avioutput.c
 
-Copyright(c) 2001 - 2002; §ane
+Copyright(c) 2001 - 2002; ï¿½ane
 2005-2006; Toni Wilen
 
 */
@@ -26,7 +26,7 @@ Copyright(c) 2001 - 2002; §ane
 #include "options.h"
 #include "audio.h"
 #include "custom.h"
-#include "memory.h"
+#include "uae/memory.h"
 #include "newcpu.h"
 #include "picasso96.h"
 #include "dxwrap.h"

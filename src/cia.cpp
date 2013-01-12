@@ -14,7 +14,7 @@
 
 #include "options.h"
 #include "events.h"
-#include "memory.h"
+#include "uae/memory.h"
 #include "custom.h"
 #include "newcpu.h"
 #include "cia.h"

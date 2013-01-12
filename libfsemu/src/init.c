@@ -1,13 +1,19 @@
-#include <fs/init.h>
-#include <fs/thread.h>
-#include <glib.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include <fs/init.h>
+#include <fs/thread.h>
+
+#ifdef USE_GLIB
+#include <glib.h>
+#endif
 
 static fs_mutex *g_init_mutex;
 
 void fs_init() {
+#ifdef USE_GLIB
     g_thread_init(NULL);
+#endif
     g_init_mutex = fs_mutex_create();
 }
 

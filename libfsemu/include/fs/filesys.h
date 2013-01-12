@@ -41,14 +41,16 @@ int fs_mkdir_with_parents(const char *path, int mode);
 char *fs_path_get_dirname(const char *path) FS_MALLOC;
 char *fs_path_get_basename(const char *path) FS_MALLOC;
 
-const char *fs_get_home_dir();
-const char *fs_get_documents_dir();
-char *fs_get_current_dir();
+const char *fs_get_home_dir(void);
+const char *fs_get_documents_dir(void);
+const char *fs_get_desktop_dir(void);
+char *fs_get_current_dir(void);
 
 int fs_path_exists(const char *path);
 int fs_path_is_file(const char *path);
 int fs_path_is_dir(const char *path);
 int fs_path_is_absolute(const char *path);
+int64_t fs_path_get_size(const char *path);
 
 char *fs_path_join(const char *first_element, ...) FS_MALLOC FS_SENTINEL;
 

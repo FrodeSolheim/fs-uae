@@ -37,7 +37,7 @@
 #include <math.h>
 #include <stdio.h>
 
-#include "memory.h"
+#include "uae/memory.h"
 #include "readcpu.h"
 #include "newcpu.h"
 #include "main.h"

@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae-launcher\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2013-01-03 19:49+0100\n"
-"PO-Revision-Date: 2013-01-04 18:28+0100\n"
+"POT-Creation-Date: 2013-01-05 16:15+0100\n"
+"PO-Revision-Date: 2013-01-05 21:04+0100\n"
 "Last-Translator: Frode Solheim <frode-code@fengestad.no>\n"
 "Language-Team: German\n"
 "Language: de\n"
@@ -228,6 +228,9 @@ msgstr "Hole Datenbank-Einträge ({0})"
 
 msgid "Fetching game ratings ({0})"
 msgstr "Hole Spielbewertungen ({0})"
+
+msgid "Fetching user game ratings ({0})"
+msgstr "Hole User-Spielebewertungen ({0})"
 
 msgid "Filters"
 msgstr "Filter"
@@ -602,6 +605,9 @@ msgstr "Nach VBlank synchronisieren"
 
 msgid "Synchronizing database..."
 msgstr "Synchronisiere Datenbank..."
+
+msgid "Synchronizing personal ratings..."
+msgstr "Synchronisiere persönliche Bewertungen…"
 
 msgid "Texture filter"
 msgstr "Texturfilter"

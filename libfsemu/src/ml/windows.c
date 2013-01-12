@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stddef.h>
 #include <glib.h>
+#include <SDL.h>
 #include <SDL_syswm.h>
 
 #include <fs/log.h>

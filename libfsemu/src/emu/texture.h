@@ -1,22 +1,7 @@
 #ifndef LIBFSEMU_TEXTURE_H_
 #define LIBFSEMU_TEXTURE_H_
 
-#include "fs/emu.h"
 #include "fs/image.h"
-
-typedef struct _fs_emu_texture {
-    unsigned int texture;
-    unsigned int width;
-    unsigned int height;
-    fs_image* image;
-    int opengl_context_stamp;
-} fs_emu_texture;
-
-fs_emu_texture *fs_emu_texture_new_from_file(const char *name);
-void fs_emu_set_texture(fs_emu_texture* texture);
-void fs_emu_texture_render(fs_emu_texture *texture, int x, int y);
-void fs_emu_render_texture_with_size(fs_emu_texture *texture, int x, int y,
-        int w, int h);
 
 #define TEXTURE_GLOSS 1
 #define TEXTURE_GLOW_LEFT 2
@@ -36,5 +21,19 @@ void fs_emu_render_texture_with_size(fs_emu_texture *texture, int x, int y,
 #define TEXTURE_HEADING_BG 14
 #define TEXTURE_PAUSE 15
 #define TEXTURE_LAST 16
+
+typedef struct _fs_emu_texture {
+    unsigned int texture;
+    unsigned int width;
+    unsigned int height;
+    fs_image* image;
+    int opengl_context_stamp;
+} fs_emu_texture;
+
+fs_emu_texture *fs_emu_texture_new_from_file(const char *name);
+void fs_emu_set_texture(fs_emu_texture* texture);
+void fs_emu_texture_render(fs_emu_texture *texture, int x, int y);
+void fs_emu_render_texture_with_size(fs_emu_texture *texture, int x, int y,
+        int w, int h);
 
 #endif // LIBFSEMU_TEXTURE_H_

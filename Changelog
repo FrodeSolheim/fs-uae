@@ -1,3 +1,11 @@
+Version 2.1.18:
+
+* Fixed overflow preventing alt/cmd modifier key from working.
+* Updated translations: es [albconde].
+* (Launcher) No floppy drive sounds when loading a WHDLoad variant from
+  the online database.
+* (Launcher) Updated translations: es [albconde].
+
 Version 2.1.17:
 
 * Autoselect device for port 0 when "fire" button of unmapped device is

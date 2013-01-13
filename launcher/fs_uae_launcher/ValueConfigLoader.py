@@ -146,6 +146,7 @@ class ValueConfigLoader:
         #        self.viewport.append(value)
         elif key == "whdload_args":
             self.options["x_whdload_args"] = value
+            self.options["floppy_drive_volume"] = "0"
         elif key == "kickstart":
             model = self.options.get("amiga_model", "")
             if value == "2.0":

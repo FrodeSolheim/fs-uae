@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae-launcher\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2012-11-27 20:38+0100\n"
-"PO-Revision-Date: 2012-11-27 21:17+0100\n"
+"POT-Creation-Date: 2013-01-12 22:12+0100\n"
+"PO-Revision-Date: 2013-01-13 12:02+0100\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
 "Language: es\n"
@@ -159,6 +159,9 @@ msgstr "Configuraciones"
 msgid "Configure Joystick Buttons"
 msgstr "Configurar Botones Joystick"
 
+msgid "Connect"
+msgstr "Conectado"
+
 msgid ""
 "Copy {0}\n"
 "to {1}"
@@ -186,6 +189,9 @@ msgstr "Por Defecto"
 
 msgid "Default ({0})"
 msgstr "Por Defecto ({0})"
+
+msgid "Disconnect"
+msgstr "Desconectado"
 
 msgid "Downloading {0}..."
 msgstr "Descargando {0}..."
@@ -219,6 +225,12 @@ msgstr "Fast RAM"
 
 msgid "Fetching database entries ({0})"
 msgstr "Obteniendo entrada base de datos ({0})"
+
+msgid "Fetching game ratings ({0})"
+msgstr "Buscando Clasificación juego ({0})"
+
+msgid "Fetching user game ratings ({0})"
+msgstr "Buscando Clasificación usuario juego ({0})"
 
 msgid "Filters"
 msgstr "Filtros"
@@ -385,6 +397,9 @@ msgstr "Tag Juego en Red (max 3 Caracteres)"
 msgid "New Configuration"
 msgstr "Nueva configuración"
 
+msgid "Nick:"
+msgstr "Apodo:"
+
 msgid "No Device"
 msgstr "Ningún Dispositivo"
 
@@ -419,11 +434,26 @@ msgstr "Desactivado"
 msgid "On"
 msgstr "Activado"
 
+msgid "Open Game Database Entry"
+msgstr "Abrir entrada Base de datos Juegos"
+
+msgid "Open Hall of Light Entry"
+msgstr "Abrir Entrada Hall of Light"
+
+msgid "Open LemonAmiga Entry"
+msgstr "Abrir Entrada LemonAmiga"
+
+msgid "Open MobyGames Entry"
+msgstr "Abrir Entrada Mobygames"
+
 msgid "Open Scan Dialog"
 msgstr "Abrir Ventana Escaneo"
 
 msgid "Open Tool to Configure Button Mapping"
 msgstr "Abrir Herramienta para Configurar Bottones"
+
+msgid "Open Wikipedia Entry"
+msgstr "Abrir Entrada Wikipedia"
 
 msgid "OpenGL Settings"
 msgstr "Ajustes OpenGL"
@@ -575,8 +605,14 @@ msgstr "Sincronizar a VBlank"
 msgid "Synchronizing database..."
 msgstr "Sincronizando base de datos..."
 
+msgid "Synchronizing personal ratings..."
+msgstr "Sincronizando calificación personal…"
+
 msgid "Texture filter"
 msgstr "Filtro Texturas"
+
+msgid "Toggle Between Windowed and Full-Screen Mode"
+msgstr "Cambiar entre modo ventana y pantalla completa"
 
 msgid "Ungrab mouse and keyboard on middle mouse click"
 msgstr "Devolver control teclado y ratón con el botón medio del ratón"

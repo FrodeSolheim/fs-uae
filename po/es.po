@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2012-11-10 13:31+0100\n"
-"PO-Revision-Date: 2012-11-11 11:22+0100\n"
+"POT-Creation-Date: 2013-01-12 22:12+0100\n"
+"PO-Revision-Date: 2013-01-13 11:46+0100\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
 "Language: es\n"
@@ -153,6 +153,10 @@ msgstr "Joystick Puerto Paralelo"
 
 msgid "Pause"
 msgstr "Pausa"
+
+#, c-format
+msgid "Port 0: %s"
+msgstr "Puerto 0: %s"
 
 msgid "Port Settings"
 msgstr "Ajustes Puerto"

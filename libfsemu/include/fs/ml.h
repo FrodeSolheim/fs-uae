@@ -137,7 +137,7 @@ typedef struct fs_ml_keysym {
     uint16_t scancode;
     uint16_t sym;
     uint16_t unicode;
-    uint8_t mod;
+    uint16_t mod;
 } fs_ml_keysym;
 
 typedef struct fs_ml_ActiveEvent {

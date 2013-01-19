@@ -74,10 +74,16 @@ class FSUAE:
             if os.path.exists("out/fs-uae.exe"):
                 # for testing / development
                 return "out/fs-uae.exe"
+            if os.path.exists("./fs-uae.exe"):
+                # for testing / development
+                return "./fs-uae.exe"
         else:
             if os.path.exists("out/fs-uae"):
                 # for testing / development
                 return "out/fs-uae"
+            if os.path.exists("./fs-uae"):
+                # for testing / development
+                return "./fs-uae"
         if fs.windows:
             exe = "../FS-UAE.exe"
         elif fs.macosx:

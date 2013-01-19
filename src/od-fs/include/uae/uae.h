@@ -99,6 +99,7 @@ typedef struct _RenderData {
     char line[AMIGA_MAX_LINES];
     int flags;
     void *(*grow)(int width, int height);
+    int refresh_rate;
 } RenderData;
 
 typedef void (*event_function)(void);

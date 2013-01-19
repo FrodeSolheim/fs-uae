@@ -20,6 +20,10 @@ extern int g_fs_emu_video_format;
 extern int g_fs_emu_texture_format;
 extern int g_fs_emu_disable_aspect_correction;
 
+extern int g_fs_emu_video_allow_full_sync;
+extern int g_fs_emu_video_frame_rate_host;
+extern int g_fs_emu_video_sync_to_vblank;
+
 void fs_emu_on_resize(int width, int height);
 
 void fs_emu_video_render_debug_info(uint32_t *texture);

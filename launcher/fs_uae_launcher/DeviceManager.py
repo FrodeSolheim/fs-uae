@@ -140,7 +140,7 @@ class DeviceManager:
     @classmethod
     def get_devices_for_ports(cls, config):
         cls.init()
-        ports = [cls.devices[0] for x in range(4)]
+        ports = [cls.devices[0] for x in range(5)]
         for device in cls.devices:
             device.port = None
         for p in range(4):

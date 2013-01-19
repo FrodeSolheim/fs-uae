@@ -1057,7 +1057,7 @@ void amiga_patch_rom(uae_u8 *buf, size_t size) {
 	}
 	write_log("\n");
 	int converted = 0;
-	if (strncmp(sha1, AMIGA_OS_130_SHA1, SHA1_SIZE) == 0) {
+	if (memcmp(sha1, AMIGA_OS_130_SHA1, SHA1_SIZE) == 0) {
 		write_log("convering amiga-os-130 ROM (in-memory) "
 				"to preferred A500 ROM\n");
 		buf[413] = '\x08';
@@ -1065,7 +1065,7 @@ void amiga_patch_rom(uae_u8 *buf, size_t size) {
 		buf[262121] = '\x26';
 		converted = 1;
 	}
-	else if (strncmp(sha1, AMIGA_OS_310_SHA1, SHA1_SIZE) == 0) {
+	else if (memcmp(sha1, AMIGA_OS_310_SHA1, SHA1_SIZE) == 0) {
 		write_log("convering amiga-os-310 ROM (in-memory) "
 				"to preferred A4000 ROM\n");
 		buf[220] = '\x74';

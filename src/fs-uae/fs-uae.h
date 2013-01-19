@@ -76,7 +76,9 @@ const char *fs_uae_themes_dir();
 #define FS_UAE_CONFIG_TYPE_JOYSTICK "amiga"
 #define FS_UAE_CONFIG_TYPE_MOUSE "amiga_mouse"
 
-#define FS_UAE_NUM_INPUT_PORTS 4
+#define FS_UAE_MAX_PORT_ACTIONS 16
+
+#define FS_UAE_NUM_INPUT_PORTS 5
 #define MAX_DEVICE_NAME_LEN 128
 typedef struct fs_uae_input_port {
     char device[MAX_DEVICE_NAME_LEN + 1];
@@ -88,6 +90,8 @@ typedef struct fs_uae_input_port {
 } fs_uae_input_port;
 
 extern fs_uae_input_port g_fs_uae_input_ports[FS_UAE_NUM_INPUT_PORTS];
+void fs_uae_read_override_actions_for_port(int port);
+
 void fs_uae_reconfigure_input_ports_amiga();
 void fs_uae_reconfigure_input_ports_host();
 

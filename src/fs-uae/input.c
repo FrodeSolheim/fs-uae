@@ -1,3 +1,5 @@
+#include "fs-uae.h"
+#include <stdlib.h>
 #include <uae/uae.h>
 #include <fs/emu.h>
 #include <fs/i18n.h>
@@ -439,6 +441,10 @@ static int hotkey_function(int key_code, int key_mod) {
 }
 
 void fs_uae_configure_actions() {
+    fs_log("fs_uae_configure_actions\n");
     fs_emu_set_actions(g_actions);
+    for (int i = 0; i < FS_UAE_NUM_INPUT_PORTS; i++) {
+        fs_uae_read_override_actions_for_port(i);
+    }
     fs_emu_set_hotkey_function(hotkey_function);
 }

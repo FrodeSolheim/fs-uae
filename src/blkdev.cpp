@@ -1635,7 +1635,7 @@ static int scsi_emulate (int unitnum, uae_u8 *cmdbuf, int scsi_cmd_len,
 				goto nodisk;
 			int start = rl (cmdbuf + 2);
 			int len;
-			if (cmd = 0xa5)
+			if (cmd == 0xa5)
 				len = rl (cmdbuf + 6);
 			else
 				len = rw (cmdbuf + 7);

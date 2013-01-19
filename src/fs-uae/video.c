@@ -8,6 +8,7 @@
 //#define MAX_ZOOM_MODES 5
 static int g_zoom_mode = 0;
 static int g_zoom_border = 0;
+static int g_last_refresh_rate = 0;
 
 typedef struct zoom_mode {
     char *name;
@@ -345,6 +346,7 @@ static void render_screen(RenderData* rd) {
     }
     g_last_seen_mode_rtg = rd->flags & AMIGA_RTG_BUFFER_FLAG;
     memcpy(g_buffer->line, rd->line, AMIGA_MAX_LINES);
+    g_last_refresh_rate = rd->refresh_rate;
 }
 
 static void *grow_buffer(int width, int height) {
@@ -363,6 +365,7 @@ static void display_screen() {
     }
 
     fs_emu_video_buffer_set_current(g_buffer);
+    fs_emu_set_video_frame_rate(g_last_refresh_rate);
 
     g_buffer = fs_emu_video_buffer_get_available(g_remember_last_screen);
     //printf("new render buffer: %p\n", g_buffer->data);

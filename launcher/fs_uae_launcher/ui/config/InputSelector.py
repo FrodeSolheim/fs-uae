@@ -4,6 +4,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import os
+import webbrowser
 import fs_uae_launcher.fsui as fsui
 from ...Config import Config
 from ...DeviceManager import DeviceManager
@@ -31,14 +32,14 @@ class InputSelector(fsui.Group):
         fsui.Group.__init__(self, parent)
         self.layout = fsui.HorizontalLayout()
 
+        #if port < 4:
         self.mode_choice = fsui.Choice(self, joystick_mode_titles)
-        #if port == 0:
-        #    self.mode_choice.set_index(1)
-        #elif port == 1:
-        #    self.mode_choice.set_index(2)
         self.layout.add(self.mode_choice)
-
         self.layout.add_spacer(10)
+        #else:
+        #    self.mode_choice = None
+        if port >= 4:
+            self.mode_choice.disable()
 
         devices = ["", _("No Host Device"), _("Mouse"),
                 _("Cursor Keys and Right Ctrl/Alt")]
@@ -51,12 +52,22 @@ class InputSelector(fsui.Group):
         self.device_choice = fsui.ComboBox(self, devices, read_only=True)
         self.layout.add(self.device_choice, expand=True)
 
-        self.autofire_button = IconButton(self, "autofire_off_16.png")
-        self.autofire_button.on_activate = self.on_autofire_button
-        self.layout.add(self.autofire_button, margin_left=10)
+        if port < 4:
+            self.autofire_button = IconButton(self, "autofire_off_16.png")
+            self.autofire_button.on_activate = self.on_autofire_button
+            self.layout.add(self.autofire_button, margin_left=10)
+        else:
+            self.autofire_button = None
+
+            self.help_button = IconButton(self, "help_16.png")
+            self.help_button.on_activate = self.on_help_button
+            self.layout.add(self.help_button, margin_left=10)
 
         self.initialize_from_config()
         self.set_config_handlers()
+
+    def on_help_button(self):
+        webbrowser.open("http://fengestad.no/fs-uae/custom-joystick-port")
 
     def initialize_from_config(self):
         self.on_config(self.device_option_key,
@@ -67,7 +78,8 @@ class InputSelector(fsui.Group):
                 Config.get(self.autofire_mode_option_key))
 
     def set_config_handlers(self):
-        self.mode_choice.on_change = self.on_mode_change
+        if self.mode_choice is not None:
+            self.mode_choice.on_change = self.on_mode_change
         self.device_choice.on_change = self.on_device_change
         Config.add_listener(self)
         Signal.add_listener("settings_updated", self)
@@ -78,9 +90,10 @@ class InputSelector(fsui.Group):
         Signal.remove_listener("settings_updated", self)
 
     def on_mode_change(self):
-        index = self.mode_choice.get_index()
-        value = joystick_mode_values[index]
-        self.set_value_or_default(value)
+        if self.mode_choice is not None:
+            index = self.mode_choice.get_index()
+            value = joystick_mode_values[index]
+            self.set_value_or_default(value)
 
     def set_value_or_default(self, value):
         if self.port == 0:
@@ -139,7 +152,10 @@ class InputSelector(fsui.Group):
             value = self.get_calculated_mode(self.port)
             for i, config in enumerate(joystick_mode_values):
                 if config == value:
-                    self.mode_choice.set_index(i)
+                    if self.mode_choice is not None:
+                        self.mode_choice.set_index(i)
+                        if self.port >= 4:
+                            self.device_choice.enable(i != 0)
                     break
             else:
                 print("FIXME: could not set mode")
@@ -151,12 +167,13 @@ class InputSelector(fsui.Group):
                     self.device_choice.set_index(i)
                     break
         elif key == self.autofire_mode_option_key:
-            if value == "1":
-                self.autofire_button.set_tooltip("Auto-Fire is On")
-                self.autofire_button.set_icon_name("autofire_on_16.png")
-            else:
-                self.autofire_button.set_tooltip("Auto-Fire is Off")
-                self.autofire_button.set_icon_name("autofire_off_16.png")
+            if self.autofire_button is not None:
+                if value == "1":
+                    self.autofire_button.set_tooltip("Auto-Fire is On")
+                    self.autofire_button.set_icon_name("autofire_on_16.png")
+                else:
+                    self.autofire_button.set_tooltip("Auto-Fire is Off")
+                    self.autofire_button.set_icon_name("autofire_off_16.png")
 
         # this is intended to catch all config changes for all ports (both
         # mode and device) to update the defaults

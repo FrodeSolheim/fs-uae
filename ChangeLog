@@ -1,3 +1,15 @@
+Version 2.1.19:
+
+* Fix proper stereo audio output when using OpenAL soft implementation.
+* Automatically adjust to 50hz / 60hz amiga modes.
+* video_sync = full is deprecated (now handled as auto), will enable full
+  video sync only when host frame rate ~= Amiga frame rate.
+* Fixed a bug related to the number of floppy drive count, introduced with
+  the support for custom floppy sounds.
+* Some minor source code and build improvements.
+* Experimental support for a "fifth joystick port", which can be mapped
+  to Amiga keyboard keys.
+
 Version 2.1.18:
 
 * Fixed overflow preventing alt/cmd modifier key from working.

@@ -24,3 +24,7 @@ class InputPanel(fsui.Panel):
         self.input_group = InputGroup(self, with_more_options=False,
                 parallel_ports=True)
         self.layout.add(self.input_group, fill=True)
+
+        self.input_group = InputGroup(self, with_more_options=False,
+                custom_ports=True)
+        self.layout.add(self.input_group, fill=True)

@@ -80,6 +80,8 @@ typedef struct fs_emu_action {
 } fs_emu_action;
 
 void fs_emu_set_actions(fs_emu_action *actions);
+int fs_emu_input_action_from_string(const char *value);
+
 void fs_emu_reset_input_mapping();
 void fs_emu_map_custom_actions();
 

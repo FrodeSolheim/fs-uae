@@ -206,6 +206,14 @@ int fs_emu_queue_audio_buffer(int stream, int16_t* data, int size) {
     //int buffers_queued = s->buffers_queued;
     fs_mutex_unlock(s->mutex);
 
+    // for debugging, clear one of the stereo channels
+    //int16_t *d = data;
+    //for (int i = 0; i < size / 4; i++) {
+    //    d++;
+    //    *d = 0;
+    //    d++;
+    //}
+
     alBufferData(buffer, AL_FORMAT_STEREO16, data, size, s->frequency);
     check_al_error("alBufferData");
     alSourceQueueBuffers(s->source, 1, &buffer);
@@ -390,8 +398,6 @@ static void log_openal_info() {
 void fs_emu_audio_init() {
     fs_log("fs_emu_audio_init\n");
 
-    log_openal_info();
-
     // select the "preferred device"
     g_device = alcOpenDevice(NULL);
     if (g_device) {
@@ -418,8 +424,11 @@ void fs_emu_audio_init() {
    }
 #endif
 
+    ALCint attributes[] = { ALC_MONO_SOURCES, 0,
+            ALC_STEREO_SOURCES, 2, 0 };
+
     if (!g_context) {
-        g_context = alcCreateContext(g_device, NULL);
+        g_context = alcCreateContext(g_device, attributes);
         g_audio_out_frequency = 44100;
     }
 
@@ -433,7 +442,12 @@ void fs_emu_audio_init() {
         fs_log("ERROR: no OpenAL context\n");
         //check_al_error("alcCreateContext");
     }
-    // FIXME:
+
+    log_openal_info();
+
+    int stereo_sources;
+    alcGetIntegerv(g_device, ALC_STEREO_SOURCES, 1, &stereo_sources);
+    fs_log("openal: number of stereo sources is %d\n", stereo_sources);
 }
 
 void fs_emu_audio_shutdown() {
@@ -473,6 +487,14 @@ void fs_emu_init_audio_stream(int stream,
     s->mutex = fs_mutex_create();
     s->queue = fs_queue_new();
     alGenSources(1, &s->source);
+
+    //alSourcei (s->source, AL_SOURCE_RELATIVE, AL_TRUE);
+    //alSource3f(s->source, AL_POSITION, 0.0, 0.0, -1.0);
+    //alSourcef (s->source, AL_ROLLOFF_FACTOR, 0.0);
+
+    // AL_DIRECT_CHANNELS_SOFT
+    alSourcei (s->source, 0x1033, AL_TRUE);
+
     check_al_error("alGenSources");
     for (int i = 0; i < s->num_buffers; i++) {
         ALuint buffer;

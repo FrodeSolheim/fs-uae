@@ -763,9 +763,10 @@ void fs_uae_configure_floppies() {
             auto_num_drives = i + 1;
         }
         amiga_set_option(option_floppyx, path);
+        amiga_set_option(option_floppyxtype, "0");
         free(path);
 
-        char *floppy_sounds = fs_config_get_const_string(
+        const char *floppy_sounds = fs_config_get_const_string(
                 option_floppy_drive_x_sounds);
         if (floppy_sounds) {
             fs_log("custom floppy sounds for drive %d: %s\n", i,
@@ -795,8 +796,8 @@ void fs_uae_configure_floppies() {
     // set remaining floppy drive types to -1
     for (int i = num_drives; i < 4; i++) {
         option_floppyx[6] = '0' + i;
-        amiga_set_option(option_floppyx, "");
         option_floppyxtype[6] = '0' + i;
+        amiga_set_option(option_floppyx, "");
         amiga_set_option(option_floppyxtype, "-1");
     }
 

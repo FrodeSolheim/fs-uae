@@ -204,6 +204,8 @@ bool render_screen (bool immediate) {
     //printf("flush_screen (%d -> %d) %d %d %d %d\n", first_line, last_line,
     //        cx, cy, cw, ch);
 
+    libamiga_rd.refresh_rate = (int) (currprefs.chipset_refreshrate + 0.5);
+    //printf("%d\n", libamiga_rd.refresh_rate);
     if (g_libamiga_callbacks.render) {
         g_libamiga_callbacks.render(&libamiga_rd);
     }

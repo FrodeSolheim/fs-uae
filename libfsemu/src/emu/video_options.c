@@ -20,8 +20,8 @@ extern int g_fs_ml_benchmarking;
 void fs_emu_video_init_options(void) {
 
 	int auto_sync_mode = 1;
-    int sync_to_vblank = 0;
-    int sync_with_emu = 0;
+    //int sync_to_vblank = 1;
+    //int sync_with_emu = 0;
     char *sync_mode_str = NULL;
 
     int fsaa = fs_config_get_int_clamped("fsaa", 0, 4);
@@ -34,6 +34,7 @@ void fs_emu_video_init_options(void) {
         fs_log("full-scene anti-aliasing is not requested\n");
     }
 
+/*
     int frame_rate = fs_config_get_int("frame_rate");
     if (frame_rate != FS_CONFIG_NONE) {
         fs_log("WARNING: video/frame_rate set manually to %d\n",
@@ -43,12 +44,15 @@ void fs_emu_video_init_options(void) {
     else {
         frame_rate = fs_emu_get_video_frame_rate();
     }
+*/
+    int frame_rate = fs_emu_get_video_frame_rate();
 
     fs_ml_video_mode mode;
     memset(&mode, 0, sizeof(fs_ml_video_mode));
     if (fs_ml_video_mode_get_current(&mode) == 0) {
         fs_log("current display mode is %dx%d@%dhz\n", mode.width,
                 mode.height, mode.fps);
+        g_fs_emu_video_frame_rate_host = mode.fps;
     }
     else {
         fs_log("could not get display mode\n");
@@ -65,17 +69,21 @@ void fs_emu_video_init_options(void) {
         if (fs_ascii_strcasecmp(sync_mode_str, "auto") == 0) {
 
         }
+        else if (fs_ascii_strcasecmp(sync_mode_str, "full") == 0) {
+            //auto_sync_mode = 0;
+            //sync_to_vblank = 1;
+            //sync_with_emu = 1;
+        }
         else if (fs_ascii_strcasecmp(sync_mode_str, "off") == 0) {
-            auto_sync_mode = 0;
+            //auto_sync_mode = 0;
+            g_fs_emu_video_sync_to_vblank = 0;
+            g_fs_emu_video_allow_full_sync = 0;
         }
         else if (fs_ascii_strcasecmp(sync_mode_str, "vblank") == 0) {
-            auto_sync_mode = 0;
-            sync_to_vblank = 1;
-        }
-        else if (fs_ascii_strcasecmp(sync_mode_str, "full") == 0) {
-            auto_sync_mode = 0;
-            sync_to_vblank = 1;
-            sync_with_emu = 1;
+            //auto_sync_mode = 0;
+            //sync_to_vblank = 1;
+
+            g_fs_emu_video_allow_full_sync = 0;
         }
         else {
             fs_log("WARNING: invalid value for video-sync: %s\n",
@@ -87,6 +95,7 @@ void fs_emu_video_init_options(void) {
         fs_log("not specified: using automatic video sync mode\n");
     }
 
+/*
     if (auto_sync_mode) {
         fs_log("auto sync mode is enabled\n");
         if (frame_rate && frame_rate == mode.fps) {
@@ -101,26 +110,35 @@ void fs_emu_video_init_options(void) {
             sync_to_vblank = 1;
         }
     }
+*/
 
     if (fs_emu_netplay_enabled()) {
         fs_log("netplay is enabled, disabling full video/emulator sync\n");
-        sync_with_emu = 0;
+        g_fs_emu_video_allow_full_sync = 0;
+        //sync_with_emu = 0;
         //sync_to_vblank = 0;
     }
 
     if (fs_config_get_boolean("benchmark") != FS_CONFIG_NONE) {
         fs_log("benchmarking enable, disabling video sync\n");
-        sync_to_vblank = 0;
-        sync_with_emu = 0;
+        g_fs_emu_video_sync_to_vblank = 0;
+        //sync_with_emu = 0;
         g_fs_emu_benchmarking = 1;
         g_fs_ml_benchmarking = 1;
+
+        g_fs_emu_video_allow_full_sync = 0;
     }
 
-    if (sync_with_emu && !g_fs_emu_full_sync_allowed) {
+    //if (sync_with_emu && !g_fs_emu_full_sync_allowed) {
+
+    // FIXME: check where g_fs_emu_full_sync_allowed is used
+    if (!g_fs_emu_full_sync_allowed) {
         fs_log("full video/emu sync is not allowed in this mode\n");
-        sync_with_emu = 0;
+        //sync_with_emu = 0;
+        g_fs_emu_video_allow_full_sync = 0;
     }
 
+    /*
     if (sync_with_emu) {
         fs_log("will sync emulation and video with vblank\n");
         fs_ml_video_sync_enable();
@@ -138,6 +156,15 @@ void fs_emu_video_init_options(void) {
     }
     else {
         fs_log("no video sync\n");
+    }
+    */
+
+    if (g_fs_emu_video_sync_to_vblank) {
+        fs_log("will sync video updates to vblank\n");
+        fs_ml_vblank_sync_enable();
+    }
+    else {
+        fs_log("no video sync (using timers only)\n");
     }
 
     if (fs_config_get_boolean("disable_aspect_correction") == 1) {

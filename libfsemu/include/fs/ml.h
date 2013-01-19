@@ -89,7 +89,7 @@ void fs_ml_frame_update_end(int frame);
 
 int fs_ml_video_width();
 int fs_ml_video_height();
-void fs_ml_video_sync_enable();
+void fs_ml_video_sync_enable(int enable);
 void fs_ml_vblank_sync_enable();
 void fs_ml_set_video_fsaa(int fsaa);
 

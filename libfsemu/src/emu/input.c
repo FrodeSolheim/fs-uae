@@ -286,12 +286,13 @@ static input_config_item *get_config_for_device(const char *device,
     return get_system_config_for_device(device, platform);
 }
 
-static int find_action_for_name(const char *value) {
+int fs_emu_input_action_from_string(const char *value) {
     char *value_l = fs_ascii_strdown(value, -1);
     fs_emu_action *action = g_actions;
     while (action->name) {
+        //fs_log(" %s vs %s\n", value_l, action->name);
         if (strcmp(value_l, action->name) == 0) {
-            //printf(" ** found %s %d** \n", action->name, action->input_event);
+            //fs_log(" ** found %s %d** \n", action->name, action->input_event);
             free(value_l);
             return action->input_event;
         }
@@ -310,7 +311,7 @@ static void map_custom_key_action(const char *key_name, int key_val,
         free(config_key);
         return;
     }
-    int action = find_action_for_name(config_value);
+    int action = fs_emu_input_action_from_string(config_value);
     if (action >= 0) {
         map_keyboard_key(key_val, mod_val, action, 0);
     }
@@ -390,7 +391,7 @@ void map_custom_joystick_action(int joy, const char *name,
         return;
     }
     int index = button_index(-1, joy, axis, hat, button, value);
-    int action = find_action_for_name(config_value);
+    int action = fs_emu_input_action_from_string(config_value);
     if (action >= 0) {
         g_input_action_table[index] = action;
     }
@@ -556,7 +557,7 @@ void map_custom_gamepad_actions(int joy, const char *name,
         }
         int index = button_index(-1, joy, config[j].axis, config[j].hat,
                 config[j].button, config[j].value);
-        int action = find_action_for_name(config_value);
+        int action = fs_emu_input_action_from_string(config_value);
         if (action >= 0) {
             g_input_action_table[index] = action;
         }
@@ -655,7 +656,7 @@ void fs_emu_queue_action(int action, int state) {
 
 void fs_emu_queue_input_event(int input_event) {
     if (input_event & 0x8000) {
-        int state = input_event & (0xff0000) >> 16;
+        int state = (input_event & 0xff0000) >> 16;
         int action = input_event & 0xffff;
         // local action
         if (input_event & 0xc000) {

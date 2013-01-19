@@ -56,7 +56,8 @@ common_flags = -Isrc/od-fs -Isrc/od-fs/include \
 		-I$(libfsemu_dir)/include \
 		`sdl-config --cflags`
 cflags = $(common_flags) -std=c99 $(CFLAGS)
-cxxflags = $(common_flags) -fpermissive $(CXXFLAGS)
+#cxxflags = $(common_flags) -fpermissive $(CXXFLAGS)
+cxxflags = $(common_flags) $(CXXFLAGS)
 ldflags = $(LDFLAGS)
 libs = -L$(libfsemu_dir)/out -lfsemu `sdl-config --libs` \
 		`pkg-config --libs libpng` -lpng -lz
@@ -106,10 +107,10 @@ ifeq ($(force_32bit), 1)
 	cxxflags += -m32
 endif
 
-#uae_warnings = -Wno-unused-value -Wno-uninitialized -Wno-sign-compare
-#uae_warnings += -fpermissive -Wno-unused-function -Wno-format
-#uae_warnings +=  -Wmissing-braces -Wall -Wno-sign-compare
-uae_warnings = -Wall -Wno-sign-compare
+#uae_warn = -Wno-unused-value -Wno-uninitialized -Wno-sign-compare
+#uae_warn += -fpermissive -Wno-unused-function -Wno-format
+#uae_warn +=  -Wmissing-braces -Wall -Wno-sign-compare
+uae_warn = -Wall -Wno-sign-compare
 generate = 0
 
 ifeq ($(os), android)
@@ -358,16 +359,19 @@ obj/gensrc-%.o: gensrc/%.cpp
 	$(cxx) $(cppflags) $(cxxflags) -c $< -o $@
 
 obj/%.o: src/%.cpp
-	$(cxx) $(cppflags) $(cxxflags) $(uae_warnings) -c $< -o $@
+	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -c $< -o $@
 
 obj/zip-archiver-%.o: src/archivers/zip/%.cpp
-	$(cxx) $(cppflags) $(cxxflags) $(uae_warnings) -c $< -o $@
+	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -c $< -o $@
 
 obj/dms-archiver-%.o: src/archivers/dms/%.cpp
-	$(cxx) $(cppflags) $(cxxflags) $(uae_warnings) -c $< -o $@
+	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -c $< -o $@
 
 obj/jit-%.o: src/jit/%.cpp
-	$(cxx) $(cppflags) $(cxxflags) $(uae_warnings) -c $< -o $@
+	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -c $< -o $@
+
+obj/jit-compemu_support.o: src/jit/compemu_support.cpp
+	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -fpermissive -c $< -o $@
 
 obj/od-fs-%.o: src/od-fs/%.cpp
 	$(cxx) $(cppflags) $(cxxflags) -c $< -o $@
@@ -460,7 +464,7 @@ distdir-base: distdir-launcher-base
 	touch $(dist_dir)/obj/.dummy
 	mkdir -p $(dist_dir)/out
 	touch $(dist_dir)/out/.dummy
-	cp -a INSTALL README COPYING VERSION SERIES Changelog $(dist_dir)
+	cp -a INSTALL README COPYING VERSION SERIES ChangeLog $(dist_dir)
 	cp -a common.mk targets.mk $(dist_dir)
 	# windows.mk macosx.mk debian.mk
 	cp -a Makefile fs-uae.spec example.conf $(dist_dir)

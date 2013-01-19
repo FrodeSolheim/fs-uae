@@ -44,6 +44,8 @@ void fs_emu_disable_throttling() {
 }
 
 void fs_emu_disallow_full_sync() {
+    // FIXME: can rename to client_inhibit_full_sync, and let it be turn
+    // on and off
     g_fs_emu_full_sync_allowed = 0;
 }
 
@@ -400,8 +402,15 @@ static int wait_for_frame_no_netplay() {
     static int64_t frame_time = 0;
     if (last_time == 0) {
         last_time = fs_emu_monotonic_time();
-        int frame_rate = fs_emu_get_video_frame_rate();
+    }
+
+    static int last_frame_rate = 0;
+    int frame_rate = fs_emu_get_video_frame_rate();
+    if (frame_rate != last_frame_rate) {
         frame_time = ((int64_t) 1000000) / frame_rate;
+        fs_log("wait_for_frame_no_netplay: new frame rate %d (time: %d)\n",
+                frame_rate, (int) frame_time);
+        last_frame_rate = frame_rate;
     }
 
     int64_t wait_until = last_time + frame_time;

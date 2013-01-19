@@ -111,8 +111,9 @@ int fs_ml_get_vblank_sync() {
 int fs_ml_get_video_sync() {
     return g_fs_ml_video_sync;
 }
-void fs_ml_video_sync_enable() {
-    g_fs_ml_video_sync = 1;
+void fs_ml_video_sync_enable(int enable) {
+    fs_log("fs_ml_video_sync_enable(%d)\n", enable);
+    g_fs_ml_video_sync = enable;
 }
 
 void fs_ml_vblank_sync_enable() {

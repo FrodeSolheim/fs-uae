@@ -54,7 +54,18 @@ class ValueConfigLoader:
         #    self.load_game_info(game_uuid)
 
         #self.load_options())
-        for key in sorted(values):
+        
+        sort_list = []
+        for key in values:
+            if key == "chip_memory":
+                # chip memory is checked at the end because of support for
+                # the 1024+ value, and others keys can change amiga_model..
+                sort_list.append(("x_chip_memory", key))
+            else:
+                sort_list.append((key, key))
+        sort_list.sort()
+
+        for dummy, key in sort_list:
             self.load_option(key, values[key])
 
         if self.viewport:
@@ -135,7 +146,7 @@ class ValueConfigLoader:
                 while "  " in value:
                     value = value.replace("  ", " ")
             else:
-                value = "* * * * => " + value
+                value = "* * * * = " + value
             self.viewport.append(value)
         #if key.startswith("viewport_"):
         #    parts = key.split("_")
@@ -181,6 +192,15 @@ class ValueConfigLoader:
                 self.options["amiga_model"] = "A1200/020"
             else:
                 self.options["fast_memory"] = value
+        elif key == "chip_memory":
+            model = self.options.get("amiga_model", "")
+            if value == "1024+":
+                if model in ["A1200", "A1200/020", "A4000/040"]:
+                    pass
+                else:
+                    self.options["chip_memory"] = "1024"
+            else:
+                self.options["chip_memory"] = value
         elif key == "video_standard":
             if value == "NTSC":
                 self.options["ntsc_mode"] = "1"
@@ -188,9 +208,10 @@ class ValueConfigLoader:
             # FIXME: handle
             pass
         elif key in ["joystick_port_0_mode", "joystick_port_1_mode",
-                "joystick_port_2_mode", "joystick_port_3_mode"]:
-            self.options[key] = value.lower()
-        elif key in ["amiga_model", "chip_memory",
+                "joystick_port_2_mode", "joystick_port_3_mode",
+                "joystick_port_4_mode"]:
+            self. load_joystick_port_x_mode_option(key, value)
+        elif key in ["amiga_model",
                 "floppy_drive_count", "slow_memory", "front_sha1",
                 "screen1_sha1", "screen2_sha1", "screen3_sha1",
                 "screen4_sha1", "screen5_sha1", "title_sha1",
@@ -198,6 +219,24 @@ class ValueConfigLoader:
                 "lemon_url", "wikipedia_url", "mobygames_url",
                 "languages"]:
             self.options[key] = value
+
+    def load_joystick_port_x_mode_option(self, key, value):
+        value = value.lower()
+        if "," not in value:
+            self.options[key] = value
+            return
+        parts = value.split(",")
+        assert "=" not in parts[0]
+        self.options[key] = parts[0]
+        port = ["0", "1", "2", "3", "4"].index(key[14])
+        for part in parts[1:]:
+            k, v = part.split("=")
+            k = k.strip()
+            v = v.strip()
+            if not v.startswith("action_"):
+                v = "action_" + v
+            k = "joystick_port_{0}_{1}".format(port, k)
+            self.options[k] = v
 
     #def load_game_info(self, uuid):
     #    print("load_game_info", uuid)

@@ -7,6 +7,9 @@ import os
 import shutil
 import hashlib
 
+# TODO: review the algorithm and add support for saving information about
+# (empty) directories.
+
 class GameChangeHandler(object):
 
     def __init__(self, path):

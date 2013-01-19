@@ -46,6 +46,9 @@ cfg = [
     ("joystick_port_3_mode",  "",         "checksum", "sync"),
     ("joystick_port_3_autofire",  "",     "checksum", "sync"),
 
+    # this is not an Amiga device, so no need to checksum / sync
+    ("joystick_port_4_mode",  "", "custom"),
+
     ("kickstart_file",        ""),
     ("x_kickstart_file",      "",                             "nosave"),
     ("x_kickstart_file_sha1", "",         "checksum", "sync", "nosave"),

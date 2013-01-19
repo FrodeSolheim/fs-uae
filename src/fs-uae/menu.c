@@ -610,29 +610,31 @@ static void update_input_menu(fs_emu_menu *menu) {
     }
     fs_emu_menu_item_set_title(item, s);
 
-    item = menu->items[3];
-    if (g_fs_uae_input_ports[port].mode == AMIGA_JOYPORT_NONE) {
-        fs_emu_menu_item_set_title(item, NO_AMIGA_DEVICE);
-    }
-    else if (g_fs_uae_input_ports[port].mode == AMIGA_JOYPORT_MOUSE) {
-        fs_emu_menu_item_set_title(item, _("Mouse Mode"));
-    }
-    else if (g_fs_uae_input_ports[port].mode == AMIGA_JOYPORT_DJOY) {
-        fs_emu_menu_item_set_title(item, _("Joystick Mode"));
-    }
-    else if (g_fs_uae_input_ports[port].mode == AMIGA_JOYPORT_CD32JOY) {
-        fs_emu_menu_item_set_title(item, _("CD32 Pad Mode"));
-    }
-    else {
-        fs_emu_menu_item_set_title(item, "???");
-    }
+    if (port < 4) {
+        item = menu->items[3];
+        if (g_fs_uae_input_ports[port].mode == AMIGA_JOYPORT_NONE) {
+            fs_emu_menu_item_set_title(item, NO_AMIGA_DEVICE);
+        }
+        else if (g_fs_uae_input_ports[port].mode == AMIGA_JOYPORT_MOUSE) {
+            fs_emu_menu_item_set_title(item, _("Mouse Mode"));
+        }
+        else if (g_fs_uae_input_ports[port].mode == AMIGA_JOYPORT_DJOY) {
+            fs_emu_menu_item_set_title(item, _("Joystick Mode"));
+        }
+        else if (g_fs_uae_input_ports[port].mode == AMIGA_JOYPORT_CD32JOY) {
+            fs_emu_menu_item_set_title(item, _("CD32 Pad Mode"));
+        }
+        else {
+            fs_emu_menu_item_set_title(item, "???");
+        }
 
-    item = menu->items[4];
-    if (g_fs_uae_input_ports[port].autofire_mode) {
-        fs_emu_menu_item_set_title(item, _("Auto-Fire is On"));
-    }
-    else {
-        fs_emu_menu_item_set_title(item, _("Auto-Fire is Off"));
+        item = menu->items[4];
+        if (g_fs_uae_input_ports[port].autofire_mode) {
+            fs_emu_menu_item_set_title(item, _("Auto-Fire is On"));
+        }
+        else {
+            fs_emu_menu_item_set_title(item, _("Auto-Fire is Off"));
+        }
     }
 }
 
@@ -752,10 +754,18 @@ static int input_type_function(fs_emu_menu_item *menu_item,
         void **result_data) {
     int port = fs_emu_menu_item_get_idata(menu_item);
     int mode = port & 0xff;
-    port = port >> 8;
-    fs_log("[menu] port %d set mode to %d\n", port, mode);
-    g_fs_uae_input_ports[port].new_mode = mode;
-    fs_uae_reconfigure_input_ports_amiga();
+    if (port < 4) {
+        port = port >> 8;
+        fs_log("[menu] port %d set mode to %d\n", port, mode);
+        g_fs_uae_input_ports[port].new_mode = mode;
+        fs_uae_reconfigure_input_ports_amiga();
+    }
+    else {
+        // this is set directly, locally, for custom joystick ("port 4")
+        g_fs_uae_input_ports[port].mode = mode;
+        g_fs_uae_input_ports[port].new_mode = mode;
+        fs_uae_reconfigure_input_ports_host();
+    }
     return FS_EMU_MENU_RESULT_BACK;
 }
 
@@ -799,14 +809,16 @@ static int input_amiga_menu_function(fs_emu_menu_item *menu_item,
         }
     }
 
-    item = fs_emu_menu_item_new();
-    index++;
-    fs_emu_menu_append_item(menu, item);
-    fs_emu_menu_item_set_title(item, _("Joystick Mode"));
-    fs_emu_menu_item_set_idata(item, (port << 8) | AMIGA_JOYPORT_DJOY);
-    fs_emu_menu_item_set_activate_function(item, input_type_function);
-    if (g_fs_uae_input_ports[port].mode == AMIGA_JOYPORT_DJOY) {
-        menu->index = index;
+    if (port < 4) {
+        item = fs_emu_menu_item_new();
+        index++;
+        fs_emu_menu_append_item(menu, item);
+        fs_emu_menu_item_set_title(item, _("Joystick Mode"));
+        fs_emu_menu_item_set_idata(item, (port << 8) | AMIGA_JOYPORT_DJOY);
+        fs_emu_menu_item_set_activate_function(item, input_type_function);
+        if (g_fs_uae_input_ports[port].mode == AMIGA_JOYPORT_DJOY) {
+            menu->index = index;
+        }
     }
 
     if (port < 2) {
@@ -817,6 +829,18 @@ static int input_amiga_menu_function(fs_emu_menu_item *menu_item,
         fs_emu_menu_item_set_idata(item, (port << 8) | AMIGA_JOYPORT_CD32JOY);
         fs_emu_menu_item_set_activate_function(item, input_type_function);
         if (g_fs_uae_input_ports[port].mode == AMIGA_JOYPORT_CD32JOY) {
+            menu->index = index;
+        }
+    }
+
+    if (port >= 4) {
+        item = fs_emu_menu_item_new();
+        index++;
+        fs_emu_menu_append_item(menu, item);
+        fs_emu_menu_item_set_title(item, _("Custom Mode"));
+        fs_emu_menu_item_set_idata(item, (port << 8) | AMIGA_JOYPORT_DJOY);
+        fs_emu_menu_item_set_activate_function(item, input_type_function);
+        if (g_fs_uae_input_ports[port].mode == AMIGA_JOYPORT_DJOY) {
             menu->index = index;
         }
     }
@@ -861,22 +885,24 @@ static int input_menu_function(fs_emu_menu_item *menu_item,
     fs_emu_menu_item_set_idata(item, port);
     fs_emu_menu_item_set_activate_function(item, input_host_menu_function);
 
-    item = fs_emu_menu_item_new();
-    fs_emu_menu_append_item(menu, item);
-    fs_emu_menu_item_set_title(item, _("Port Settings"));
-    fs_emu_menu_item_set_type(item, FS_EMU_MENU_ITEM_TYPE_HEADING);
+    if (port < 4) {
+        item = fs_emu_menu_item_new();
+        fs_emu_menu_append_item(menu, item);
+        fs_emu_menu_item_set_title(item, _("Port Settings"));
+        fs_emu_menu_item_set_type(item, FS_EMU_MENU_ITEM_TYPE_HEADING);
 
-    item = fs_emu_menu_item_new();
-    fs_emu_menu_append_item(menu, item);
-    fs_emu_menu_item_set_type(item, FS_EMU_MENU_ITEM_TYPE_MENU);
-    fs_emu_menu_item_set_idata(item, port);
-    fs_emu_menu_item_set_activate_function(item, input_amiga_menu_function);
+        item = fs_emu_menu_item_new();
+        fs_emu_menu_append_item(menu, item);
+        fs_emu_menu_item_set_type(item, FS_EMU_MENU_ITEM_TYPE_MENU);
+        fs_emu_menu_item_set_idata(item, port);
+        fs_emu_menu_item_set_activate_function(item, input_amiga_menu_function);
 
-    // autofire option
-    item = fs_emu_menu_item_new();
-    fs_emu_menu_append_item(menu, item);
-    fs_emu_menu_item_set_idata(item, port);
-    fs_emu_menu_item_set_activate_function(item, input_autofire_function);
+        // autofire option
+        item = fs_emu_menu_item_new();
+        fs_emu_menu_append_item(menu, item);
+        fs_emu_menu_item_set_idata(item, port);
+        fs_emu_menu_item_set_activate_function(item, input_autofire_function);
+    }
 
     *result_data = menu;
     return FS_EMU_MENU_RESULT_MENU;
@@ -899,6 +925,12 @@ void add_input_item(fs_emu_menu *menu, int index) {
     else if (index == 3) {
         fs_emu_menu_item_set_title(item, _("Joystick Port 3"));
     }
+    else if (index == 4) {
+        fs_emu_menu_item_set_title(item, _("Joystick Port 4"));
+        if (g_fs_uae_input_ports[4].mode == AMIGA_JOYPORT_NONE) {
+            fs_emu_menu_item_set_enabled(item, 0);
+        }
+    }
     fs_emu_menu_item_set_type(item, FS_EMU_MENU_ITEM_TYPE_MENU);
     fs_emu_menu_item_set_idata(item, index);
     fs_emu_menu_item_set_activate_function(item, input_menu_function);
@@ -909,6 +941,7 @@ static void update_input_options_menu(fs_emu_menu *menu) {
     update_input_item(menu->items[2], 1);
     update_input_item(menu->items[4], 2);
     update_input_item(menu->items[5], 3);
+    update_input_item(menu->items[7], 4);
 }
 
 static int input_options_menu_function(fs_emu_menu_item *menu_item,
@@ -935,6 +968,14 @@ static int input_options_menu_function(fs_emu_menu_item *menu_item,
 
     add_input_item(menu, 2);
     add_input_item(menu, 3);
+
+    item = fs_emu_menu_item_new();
+    fs_emu_menu_append_item(menu, item);
+    /// TRANSLATORS: This is a menu entry and must not be too long
+    fs_emu_menu_item_set_title(item, _("Custom Joystick Port"));
+    fs_emu_menu_item_set_type(item, FS_EMU_MENU_ITEM_TYPE_HEADING);
+
+    add_input_item(menu, 4);
 
     *result_data = menu;
     return FS_EMU_MENU_RESULT_MENU;

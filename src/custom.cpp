@@ -3790,21 +3790,6 @@ static void ADKCON (int hpos, uae_u16 v)
 
 static void BEAMCON0 (uae_u16 v)
 {
-#ifdef FSUAE
-    write_log("BEAMCON0 v = %d (0x04%x)\n", v, v);
-    for (int i = 15; i >= 0; i--) {
-    	if (v & (1 << i)) {
-    		write_log(" - bit %d\n", i);
-    	}
-    }
-    if (currprefs.rtgmem_size) {
-        if (!(v & 0x20)) {
-            write_log("FIXME: adding bit 5 of write to BEAMCON0\n");
-            printf("FIXME: adding bit 5 of write to BEAMCON0\n");
-            v |= 0x20;
-        }
-    }
-#endif
 	if (currprefs.chipset_mask & CSMASK_ECS_AGNUS) {
 		if (!(currprefs.chipset_mask & CSMASK_ECS_DENISE))
 			v &= 0x20;
@@ -4596,7 +4581,7 @@ static int custom_wput_copper (int hpos, uaecptr addr, uae_u32 value, int noget)
 	return v;
 }
 
-static void dump_copper (TCHAR *error, int until_hpos)
+static void dump_copper (const TCHAR *error, int until_hpos)
 {
 	write_log (_T("\n"));
 	write_log (_T("%s: vpos=%d until_hpos=%d vp=%d\n"),
@@ -5748,7 +5733,6 @@ static bool framewait (void)
 #ifdef FSUAE
 
 static bool framewait (void) {
-
     //printf("fw\n");
     //if (currprefs.m68k_speed == -1) {
     //    return framewait_2();

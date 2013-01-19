@@ -2537,7 +2537,7 @@ static void memory_map_dump_2 (int log)
 			int k, mirrored, size, size_out;
 			TCHAR size_ext;
 			uae_u8 *caddr;
-			TCHAR *name;
+			const TCHAR *name;
 			TCHAR tmp[MAX_DPATH];
 
 			name = a1->name;

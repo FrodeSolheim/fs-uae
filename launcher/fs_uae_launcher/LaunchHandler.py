@@ -296,6 +296,7 @@ class LaunchHandler:
             archive = Archive(src_file)
             f = archive.open(src_file)
             data = f.read()
+            print(dst_file)
             with open(dst_file, "wb") as out_file:
                 out_file.write(data)
         self.config["hard_drive_{0}".format(i)] = dir_path

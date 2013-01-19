@@ -95,7 +95,7 @@ typedef struct {
 	ourselves. This holds the memory address where the start of memory is
 	for this particular bank. */
 	uae_u8 *baseaddr;
-	TCHAR *name;
+	const TCHAR *name;
 	/* for instruction opcode/operand fetches */
 	mem_get_func lgeti, wgeti;
 	int flags;

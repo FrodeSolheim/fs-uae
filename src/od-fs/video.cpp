@@ -126,6 +126,15 @@ void flush_screen (struct vidbuffer *buffer, int first_line, int last_line) {
     g_has_flushed_screen = 1;
 }
 
+
+bool target_graphics_buffer_update (void) {
+    write_log("target_graphics_buffer_update - clearing buffer\n");
+    memset(libamiga_rd.pixels, 0, \
+            AMIGA_WIDTH * AMIGA_HEIGHT * g_amiga_video_bpp);
+    memset(libamiga_rd.line, 0, AMIGA_MAX_LINES);
+    return 0;
+}
+
 bool render_screen (bool immediate) {
 // FIXME: immediate is a new parameter
 
@@ -406,11 +415,6 @@ static void vsync_notvblank (void) {
         vsync_sleep (true);
     }
 #endif
-}
-
-bool target_graphics_buffer_update (void) {
-    STUB("");
-    return 0;
 }
 
 int target_get_display (const TCHAR *name) {

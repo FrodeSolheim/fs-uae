@@ -74,11 +74,17 @@ void fs_emu_render_scanlines(uint8_t* out, fs_emu_video_buffer *buffer,
                     continue;
                 }
                 for (int x = 0; x < cw; x++) {
-                    *dst++ = (*src++ * light_ia) / 256 + scanline_light;
-                    *dst++ = (*src++ * light_ia) / 256 + scanline_light;
-                    *dst++ = (*src++ * light_ia) / 256 + scanline_light;
+#ifdef __BIG_ENDIAN__
                     src ++;
                     dst ++;
+#endif
+                    *dst++ = (*src++ * light_ia) / 256 + scanline_light;
+                    *dst++ = (*src++ * light_ia) / 256 + scanline_light;
+                    *dst++ = (*src++ * light_ia) / 256 + scanline_light;
+#ifndef __BIG_ENDIAN__
+                    src ++;
+                    dst ++;
+#endif
                 }
             }
             else {
@@ -87,11 +93,17 @@ void fs_emu_render_scanlines(uint8_t* out, fs_emu_video_buffer *buffer,
                     continue;
                 }
                 for (int x = 0; x < cw; x++) {
-                    *dst++ = (*src++ * dark_ia) / 256;
-                    *dst++ = (*src++ * dark_ia) / 256;
-                    *dst++ = (*src++ * dark_ia) / 256;
+#ifdef __BIG_ENDIAN__
                     src ++;
                     dst ++;
+#endif
+                    *dst++ = (*src++ * dark_ia) / 256;
+                    *dst++ = (*src++ * dark_ia) / 256;
+                    *dst++ = (*src++ * dark_ia) / 256;
+#ifndef __BIG_ENDIAN__
+                    src ++;
+                    dst ++;
+#endif
                 }
             }
         }

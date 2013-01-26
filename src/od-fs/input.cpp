@@ -361,8 +361,27 @@ void gui_gameport_button_change (int port, int button, int onoff) {
 
 }
 
+#ifdef WINDOWS
+#include <Windows.h>
+#endif
+
 int handle_msgpump (void) {
+#ifdef WINDOWS
+    // this message queue is used to dispatch messages for bsdsocket emulation
+    // on Windows. Socket functions are run asynchronously with results posted
+    // to a dummy Window.
+	int got = 0;
+	MSG msg;
+
+	while (PeekMessage (&msg, 0, 0, 0, PM_REMOVE)) {
+		got = 1;
+		TranslateMessage (&msg);
+		DispatchMessage (&msg);
+	}
+	return got;
+#else
     return 0;
+#endif
 }
 
 int is_tablet (void) {

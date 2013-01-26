@@ -5,6 +5,13 @@
 #include <fs/thread.h>
 #include "util.h"
 
+
+typedef struct fs_emu_audio_driver {
+    const char *name;
+    void(*init)(void);
+    void(*shutdown)(void);
+} fs_emu_audio_driver;
+
 void fs_emu_audio_init();
 void fs_emu_audio_shutdown();
 
@@ -15,6 +22,7 @@ void fs_emu_audio_set_default_pitch(double pitch);
 #define AUDIO_ENABLED
 #define MEMORY_BARRIER __asm__ __volatile__ ("" ::: "memory")
 
+#if 0
 // ring buffer for audio, byte size must be a multiple of 4
 #define RING_BUFFER_SIZE_FRAMES (4096 * 4)
 //#define RING_BUFFER_SIZE_FRAMES (16384 * 4)
@@ -84,5 +92,6 @@ typedef struct audio_stream {
     int pid_last_time;
 
 } audio_stream;
+#endif
 
 #endif // LIBFSEMU_AUDIO_H_

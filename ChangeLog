@@ -1,10 +1,27 @@
+Version 2.1.20:
+
+* Implemented bsdsocket_library support for Windows.
+* New LED/overlays: CDTV/32 memory access, vsync, fps, audio.
+* Flicker CD LED instead of HD LED when CDFS is used.
+* New modes for LED / overlays (overlays can have several states).
+* Improved scanline renderer (but also more resource hungry..), may become
+  optional or rewritten as a GPU shader.
+* Fixed bug selecting joystick port mode for port > 0 (2.1.19).
+* Fixed stuttering in RTG modes (2.1.19).
+* Fixed scanline rendering on bigendian computers (PPC).
+* Clear video buffer on target_graphics_buffer_update, e.g. when display
+  mode switches from PAL to NTSC. Fixes garbled graphics on bottom of
+  display.
+* Allow theme config to overwrite (default) values set by Launcher.
+* (Launcher) Removed unnused dependency on Python Imaging (PIL).
+
 Version 2.1.19:
 
 * Fix proper stereo audio output when using OpenAL soft implementation.
-* Automatically adjust to 50hz / 60hz amiga modes.
+* Automatically adjust to 50Hz / 60Hz Amiga mode change.
 * video_sync = full is deprecated (now handled as auto), will enable full
   video sync only when host frame rate ~= Amiga frame rate.
-* Fixed a bug related to the number of floppy drive count, introduced with
+* Fixed a bug with the number of enabled floppy drives, introduced with
   the support for custom floppy sounds.
 * Some minor source code and build improvements.
 * Experimental support for a "fifth joystick port", which can be mapped

@@ -48,7 +48,10 @@ char *fs_config_get_string(const char *key) {
 
 static void process_key_value(const char *key, char *value, int force) {
     char *key_lower = fs_ascii_strdown(key, -1);
-    if (!force && fs_hash_table_lookup(g_hash_table, key_lower)) {
+    // using fs_config_get_const_string here instead of just
+    // fs_hash_table_lookup, since that also checks for empty strings, which
+    // should be treated as non-existing keys
+    if (!force && fs_config_get_const_string(key_lower)) {
         fs_log("%s = %s (ignored)\n", key_lower, value);
         free(key_lower);
         free(value);

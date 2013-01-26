@@ -40,7 +40,9 @@ cppflags = $(CXXFLAGS)
 cflags = -std=c99 -Iinclude `sdl-config --cflags` \
 		`pkg-config --cflags glib-2.0 gthread-2.0 libpng` \
 		$(CFLAGS) -D_FILE_OFFSET_BITS=64
-objects = obj/emu_emu.o obj/emu_video.o obj/emu_audio.o obj/emu_input.o \
+objects = obj/emu_emu.o obj/emu_video.o obj/emu_audio_openal.o \
+		obj/emu_audio_common.o obj/emu_audio_dummy.o obj/emu_audio_sdl.o \
+		obj/emu_audio_debug.o obj/emu_input.o \
 		obj/emu_menu.o obj/emu_texture.o obj/emu_font.o \
 		obj/emu_render.o obj/emu_dialog.o obj/emu_hud.o obj/emu_actions.o \
 		obj/emu_xml_shader.o obj/emu_util.o obj/emu_netplay.o \

@@ -448,14 +448,17 @@ void init_i18n() {
 #endif
 }
 
-static void led_function(int led, int on) {
+static void led_function(int led, int state) {
     // floppy led status is custom overlay 0..3
-    fs_emu_enable_custom_overlay(led, on);
+    //if (led >= 0) {
+    //    printf("led %d state %d\n", led, state);
+    //}
+    fs_emu_set_custom_overlay_state(led, state);
 }
 
 static void media_function(int drive, const char *path) {
     // media insertion status is custom overlay 4..7
-    fs_emu_enable_custom_overlay(4 + drive, path && path[0]);
+    fs_emu_set_custom_overlay_state(4 + drive, path && path[0]);
 }
 
 #ifdef USE_SDL
@@ -572,7 +575,7 @@ int main(int argc, char* argv[]) {
         //fs_log("fastest possible mode - disabling frame throttling\n");
         //fs_emu_disable_throttling();
         fs_log("fastest possible mode - disallowing full sync\n");
-        fs_emu_disallow_full_sync();
+        //fs_emu_disallow_full_sync();
     }
 
     // force creation of state directories
@@ -652,6 +655,8 @@ int main(int argc, char* argv[]) {
     else {
         fs_emu_warning("unsupported video format");
     }
+    amiga_add_rtg_resolution(672, 540);
+    amiga_add_rtg_resolution(672 * 2, 540 * 2);
     amiga_add_rtg_resolution(fs_emu_get_windowed_width(),
             fs_emu_get_windowed_height());
     amiga_add_rtg_resolution(fs_emu_get_fullscreen_width(),

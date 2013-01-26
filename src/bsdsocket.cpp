@@ -1550,7 +1550,7 @@ done:
 
 static uae_u32 REGPARAM2 bsdsocklib_GetSocketEvents (TrapContext *context)
 {
-#ifdef _WIN32
+#ifdef WINDOWS
 	struct socketbase *sb = get_socketbase (context);
 	int i;
 	int flags;

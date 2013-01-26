@@ -875,7 +875,7 @@ static void picasso_handle_vsync2 (void)
 
     framecnt++;
     mouseupdate ();
-
+    //printf("picasso_handle_vsync2 %d\n", thisisvsync);
     if (thisisvsync) {
         rendered = rtg_render ();
         frame_drawn ();
@@ -907,7 +907,8 @@ void picasso_handle_vsync (void)
     }
 
     int vsync = isvsync_rtg ();
-    //printf("isvsync_rtg = %d\n", vsync);
+    //printf("isvsync_rtg = %d currprefs.win32_rtgvblankrate = %d\n",
+    //        vsync, currprefs.win32_rtgvblankrate);
     if (vsync < 0) {
         p96hsync = 0;
         picasso_handle_vsync2 ();
@@ -3725,12 +3726,10 @@ static uae_u32 REGPARAM2 picasso_SetDisplay (TrapContext *ctx)
 
 void init_hz_p96 (void)
 {
-    currprefs.win32_rtgvblankrate = 50;
-
-    if (    1    || currprefs.win32_rtgvblankrate < 0 || isvsync_rtg ())  {
-        write_log("FIXME: setting p96vblank to 50.0\n");
-        p96vblank = 50.0;
-#if 0
+#if 1
+    if (0) {
+#else
+    if (currprefs.win32_rtgvblankrate < 0 || isvsync_rtg ())  {
         double rate = getcurrentvblankrate ();
         if (rate < 0)
             p96vblank = vblank_hz;
@@ -4974,9 +4973,9 @@ static uaecptr uaegfx_card_install (TrapContext *ctx, uae_u32 extrasize)
     put_long (uaegfx_base + CARD_RESLIST, uaegfx_base + CARD_SIZEOF);
     put_long (uaegfx_base + CARD_RESLISTSIZE, extrasize);
 
-    changed_prefs.win32_rtgvblankrate = 50;
-    currprefs.win32_rtgvblankrate = 50;
-    printf("%d\n", currprefs.win32_rtgvblankrate);
+    //changed_prefs.win32_rtgvblankrate = 50;
+    //currprefs.win32_rtgvblankrate = 50;
+    //printf("%d\n", currprefs.win32_rtgvblankrate);
 
     if (currprefs.win32_rtgvblankrate >= -1)
         initvblankirq (ctx, uaegfx_base);

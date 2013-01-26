@@ -98,20 +98,30 @@ void gui_flicker_led (int led, int unitnum, int status) {
     }
 }
 
-void gui_led (int led, int on) {
-    //STUB("led %d on %d", led, on);
-    if (led == LED_DF0) led = 0;
-    else if (led == LED_DF1) led = 1;
-    else if (led == LED_DF2) led = 2;
-    else if (led == LED_DF3) led = 3;
-    else if (led == LED_POWER) led = 8;
-    else if (led == LED_HD) led = 9;
-    else if (led == LED_CD) led = 10;
-    else {
-        return;
+void gui_led (int led, int state) {
+    //STUB("led %d state %d", led, state);
+    int out_led = -1;
+
+    if (led == LED_DF0) out_led = 0;
+    else if (led == LED_DF1) out_led = 1;
+    else if (led == LED_DF2) out_led = 2;
+    else if (led == LED_DF3) out_led = 3;
+    else if (led == LED_POWER) {
+        //printf("POWER %d b %d\n", state, gui_data.powerled_brightness);
+        out_led = 8;
     }
-    if (g_amiga_led_function) {
-        g_amiga_led_function(led, on);
+    else if (led == LED_HD) out_led = 9;
+    else if (led == LED_CD) out_led = 10;
+    else if (led == LED_MD) out_led = 11;
+
+    if (led >= LED_DF0 && led <= LED_DF3) {
+        if (gui_data.drive_writing[led - 1]) {
+            state = 2;
+        }
+    }
+
+    if (g_amiga_led_function && out_led > -1) {
+        g_amiga_led_function(out_led, state);
     }
 }
 
@@ -305,7 +315,7 @@ void amiga_main() {
     keyboard_settrans();
     int argc = 1;
     char *argv[4] = {
-            "fs-uae",
+            strdup("fs-uae"),
             NULL,
     };
     real_main(argc, argv);

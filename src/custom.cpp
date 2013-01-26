@@ -5738,7 +5738,7 @@ static bool framewait (void) {
     //    return framewait_2();
     //}
     //currprefs.cpu_idle = 150;
-    rtg_vsync ();
+    //rtg_vsync ();
 
     //if (!frame_rendered && !picasso_on)
     if (!frame_rendered) {
@@ -5782,6 +5782,7 @@ static bool framewait (void) {
     //    t += read_processor_time () - curr_time;
     //}
     //t += frameskipt_avg;
+
     frame_time_t t = 0;
     vsynctimeperline = (vsynctimebase - t) / 3;
     if (vsynctimeperline < 0)

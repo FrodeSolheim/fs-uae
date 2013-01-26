@@ -10,7 +10,6 @@ import weakref
 import urllib2
 import threading
 import traceback
-import Image
 import fs_uae_launcher.fsui as fsui
 from ..Settings import Settings
 from ..Signal import Signal

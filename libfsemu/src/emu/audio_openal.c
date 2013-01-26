@@ -13,6 +13,7 @@
 #include <fs/queue.h>
 #include <fs/thread.h>
 #include "libfsemu.h"
+#include "audio.h"
 
 // the actual frequency negotiated with the audio driver
 static double g_audio_out_frequency = 0.0;
@@ -395,8 +396,8 @@ static void log_openal_info() {
 }
 
 
-void fs_emu_audio_init() {
-    fs_log("fs_emu_audio_init\n");
+static void openal_audio_init() {
+    fs_log("openal_audio_init\n");
 
     // select the "preferred device"
     g_device = alcOpenDevice(NULL);
@@ -450,7 +451,12 @@ void fs_emu_audio_init() {
     fs_log("openal: number of stereo sources is %d\n", stereo_sources);
 }
 
-void fs_emu_audio_shutdown() {
+void fs_emu_audio_init() {
+    fs_log("fs_emu_audio_init\n");
+    openal_audio_init();
+}
+
+static void openal_audio_shutdown() {
     //alDeleteSources(NUM_SOURCES, source);
     //alDeleteBuffers(NUM_BUFFERS, buffers);
     alcMakeContextCurrent(NULL);
@@ -462,6 +468,10 @@ void fs_emu_audio_shutdown() {
         alcCloseDevice(g_device);
         g_device = NULL;
     }
+}
+
+void fs_emu_audio_shutdown() {
+    openal_audio_shutdown();
 }
 
 void fs_emu_init_audio_stream_options(fs_emu_audio_stream_options *options) {
@@ -599,5 +609,11 @@ void fs_emu_audio_render_debug_info(uint32_t *texture) {
         *(line++) = color;
     }
 }
+
+fs_emu_audio_driver g_fs_emu_audio_openal_driver = {
+    "openal",
+    openal_audio_init,
+    openal_audio_shutdown,
+};
 
 #endif // USE_OPENAL

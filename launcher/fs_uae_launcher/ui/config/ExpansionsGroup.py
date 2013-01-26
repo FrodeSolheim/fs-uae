@@ -35,6 +35,4 @@ class ExpansionsGroup(fsui.Group):
         widget = ConfigCheckBox(self, _("Built-in TCP/IP Stack"),
                 "bsdsocket_library")
         widget.set_tooltip(_("Built-in TCP/IP Stack (bsdsocket.library)"))
-        if fsui.System.windows:
-            widget.disable()
         vert_layout.add(widget, fill=True, margin=10)

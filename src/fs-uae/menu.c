@@ -754,8 +754,8 @@ static int input_type_function(fs_emu_menu_item *menu_item,
         void **result_data) {
     int port = fs_emu_menu_item_get_idata(menu_item);
     int mode = port & 0xff;
+    port = port >> 8;
     if (port < 4) {
-        port = port >> 8;
         fs_log("[menu] port %d set mode to %d\n", port, mode);
         g_fs_uae_input_ports[port].new_mode = mode;
         fs_uae_reconfigure_input_ports_amiga();

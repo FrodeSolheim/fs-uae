@@ -259,7 +259,9 @@ static void render_screen(RenderData* rd) {
         lastch = ch;
         struct WindowOverride* wo = NULL;
 
-        if (!modify_coordinates(&cx, &cy, &cw, &ch)) {
+        modify_coordinates(&cx, &cy, &cw, &ch);
+        //if (!modify_coordinates(&cx, &cy, &cw, &ch)) {
+        if (1) {
             wo = g_window_override;
             while (wo != NULL) {
                 if ((wo->sx == -1 || wo->sx == cx) &&

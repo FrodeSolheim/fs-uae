@@ -14,6 +14,7 @@
 #include "libfsemu.h"
 #include "menu.h"
 #include "texture.h"
+#include "theme.h"
 #include "util.h"
 #include "video.h"
 #include "video_buffer.h"
@@ -51,6 +52,7 @@ fs_emu_stat_queue g_fs_emu_emu2_frame_times = {};
 fs_emu_stat_queue g_fs_emu_sys_frame_times = {};
 int g_fs_emu_repeated_frames = 0;
 int g_fs_emu_lost_frames = 0;
+int64_t g_fs_emu_lost_frame_time = 0;
 int g_fs_emu_lost_vblanks = 0;
 int g_fs_emu_audio_buffer_underruns = 0;
 
@@ -255,10 +257,14 @@ double fs_emu_get_average_sys_fps() {
             ((double) g_fs_emu_sys_frame_times.count));
 }
 
+
+int g_fs_emu_audio_enabled;
+
 void fs_emu_video_after_update() {
     fs_emu_video_buffer_unlock();
 
-//void fs_emu_swap_buffers() {
+    int64_t t = fs_emu_monotonic_time();
+
     if (fs_emu_pointer_is_visible_to() > 0) {
         if (fs_emu_pointer_is_visible_to() < fs_emu_monotonic_time()) {
             //fs_log("%lld\n", fs_emu_monotonic_time());
@@ -266,18 +272,64 @@ void fs_emu_video_after_update() {
         }
     }
 
+    double diff;
+    diff = g_fs_emu_video_frame_rate_host - fs_emu_get_average_sys_fps();
+    if (g_fs_emu_video_frame_rate_host == 0) {
+        // unknown host frame rate
+        diff = 0;
+    }
+    if (diff < 0) {
+        diff = diff * -1;
+    }
+
+    if (diff > 0.2) {
+        fs_emu_set_custom_overlay_state(FS_EMU_VSYNC_LED_OVERLAY, 3);
+    }
+    else if (fs_ml_get_vblank_sync()) {
+        if (fs_ml_get_video_sync()) {
+            fs_emu_set_custom_overlay_state(FS_EMU_VSYNC_LED_OVERLAY, 1);
+        }
+        else {
+            fs_emu_set_custom_overlay_state(FS_EMU_VSYNC_LED_OVERLAY, 2);
+        }
+    }
+    else {
+        fs_emu_set_custom_overlay_state(FS_EMU_VSYNC_LED_OVERLAY, 0);
+    }
+
+
+    diff = g_video_frame_rate - fs_emu_get_average_emu_fps();
+    if (diff < 0) {
+        diff = diff * -1;
+    }
+
+    if (diff > 0.1) {
+        fs_emu_set_custom_overlay_state(FS_EMU_FPS_LED_OVERLAY, 3);
+    }
+    else if (t - g_fs_emu_lost_frame_time < 100000) {
+        fs_emu_set_custom_overlay_state(FS_EMU_FPS_LED_OVERLAY, 3);
+    }
+    else if (g_video_frame_rate == 60) {
+        fs_emu_set_custom_overlay_state(FS_EMU_FPS_LED_OVERLAY, 2);
+    }
+    else {
+        fs_emu_set_custom_overlay_state(FS_EMU_FPS_LED_OVERLAY, 1);
+    }
+
+    fs_emu_set_custom_overlay_state(FS_EMU_AUDIO_LED_OVERLAY,
+            g_fs_emu_audio_enabled);
+
     update_video_stats_system_video();
 
     if (g_fs_emu_benchmark_start_time) {
         static int64_t last_report = 0;
-        int64_t t2 = fs_emu_monotonic_time();
-        if (t2 - last_report > 5000000) {
-            double ttime = ((t2 - g_fs_emu_benchmark_start_time) / 1000000);
+        if (t - last_report > 5000000) {
+            double ttime = ((t - g_fs_emu_benchmark_start_time) / 1000000);
             double sys_fps = g_fs_emu_total_sys_frames / ttime;
             double emu_fps = g_fs_emu_total_emu_frames / ttime;
             //fs_log("average fps sys: %0.1f emu: %0.1f\n", sys_fps, emu_fps);
             printf("average fps sys: %0.1f emu: %0.1f\n", sys_fps, emu_fps);
-            last_report = t2;
+            last_report = t;
         }
     }
 }

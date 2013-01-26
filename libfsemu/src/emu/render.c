@@ -77,27 +77,32 @@ static double g_align_x = 0.5;
 static double g_align_y = 0.5;
 
 struct overlay_status {
-    int current;
-    int was_enabled;
-    int was_disabled;
+    int state;
+    int render_state;
+    //int was_enabled;
+    //int was_disabled;
     int render_status;
 };
 static struct overlay_status g_overlay_status[MAX_CUSTOM_OVERLAYS];
 static fs_mutex *g_overlay_mutex = NULL;
 
-void fs_emu_enable_custom_overlay(int overlay, int enable) {
+void fs_emu_set_custom_overlay_state(int overlay, int state) {
     if (overlay < 0 || overlay >= MAX_CUSTOM_OVERLAYS) {
         return;
     }
     fs_mutex_lock(g_overlay_mutex);
-    if (enable) {
-        g_overlay_status[overlay].current = 1;
+    g_overlay_status[overlay].state = state;
+
+#if 0
+    if (state) {
+        g_overlay_status[overlay].state = 1;
         g_overlay_status[overlay].was_enabled = 1;
     }
     else {
-        g_overlay_status[overlay].current = 0;
+        g_overlay_status[overlay].state = 0;
         g_overlay_status[overlay].was_disabled = 1;
     }
+#endif
     fs_mutex_unlock(g_overlay_mutex);
 }
 
@@ -407,6 +412,7 @@ static int update_texture() {
     else {
         int lost_frame_count = buffer->seq - last_seq_no - 1;
         g_fs_emu_lost_frames += lost_frame_count;
+        g_fs_emu_lost_frame_time = fs_get_monotonic_time();
         //fs_log("lost %d frame(s)\n", lost_frame_count);
     }
     last_seq_no = buffer->seq;
@@ -1151,7 +1157,7 @@ static void render_frame(double alpha, int perspective) {
 
     fs_mutex_lock(g_overlay_mutex);
     for (int i = 0; i < MAX_CUSTOM_OVERLAYS; i++) {
-        int show = g_overlay_status[i].current;
+        int state = g_overlay_status[i].state;
 #if 0
         if (g_overlay_status[i].render_status &&
                 g_overlay_status[i].was_disabled) {
@@ -1161,10 +1167,11 @@ static void render_frame(double alpha, int perspective) {
                 g_overlay_status[i].was_enabled) {
             show = 1;
         }
-#endif
         g_overlay_status[i].was_enabled = 0;
         g_overlay_status[i].was_disabled = 0;
-        if (show) {
+#endif
+        g_overlay_status[i].render_state = state;
+        if (state) {
             g_overlay_status[i].render_status++;
         }
         else {
@@ -1174,17 +1181,25 @@ static void render_frame(double alpha, int perspective) {
     fs_mutex_unlock(g_overlay_mutex);
 
     for (int i = 0; i < MAX_CUSTOM_OVERLAYS; i++) {
-        if (g_overlay_status[i].render_status < 2) {
-            continue;
+        //if (g_overlay_status[i].render_status < 1) {
+        //    continue;
+        //}
+        int state = g_overlay_status[i].render_state;
+        if (state < 0) state = 0;
+        if (state > MAX_CUSTOM_OVERLAY_STATES - 1) {
+            state = MAX_CUSTOM_OVERLAY_STATES - 1;
         }
-        if (!g_fs_emu_theme.overlay_textures[i]) {
+
+        fs_emu_texture *overlay_texture = \
+                g_fs_emu_theme.overlay_textures[i][state];
+        if (!overlay_texture) {
             continue;
         }
 
         float x1 = g_fs_emu_theme.overlay_x[i] / 1920.0;
         float y1 = g_fs_emu_theme.overlay_y[i] / 1080.0;
-        float x2 = x1 + g_fs_emu_theme.overlay_textures[i]->width / 1920.0;
-        float y2 = y1 + g_fs_emu_theme.overlay_textures[i]->height / 1080.0;
+        float x2 = x1 + overlay_texture->width / 1920.0;
+        float y2 = y1 + overlay_texture->height / 1080.0;
 
         x1 = -1.0 + 2.0 * x1;
         x2 = -1.0 + 2.0 * x2;
@@ -1194,7 +1209,7 @@ static void render_frame(double alpha, int perspective) {
         fs_gl_blending(1);
         fs_gl_texturing(1);
         fs_gl_color4f(1.0, 1.0, 1.0, 1.0);
-        fs_emu_set_texture(g_fs_emu_theme.overlay_textures[i]);
+        fs_emu_set_texture(overlay_texture);
 
 #ifdef USE_GLES
         GLfloat tex[] = {

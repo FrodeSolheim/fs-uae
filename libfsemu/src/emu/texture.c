@@ -369,16 +369,30 @@ void fs_emu_initialize_textures() {
     }
 
     for (int i = 0; i < MAX_CUSTOM_OVERLAYS; i++) {
-        char *name;
-        name = fs_strdup_printf("custom_%d.png", i);
-        char *path = fs_emu_theme_get_resource(name);
-        if (path) {
-            //printf("loading %s\n", path);
-            g_fs_emu_theme.overlay_textures[i] =
-                    fs_emu_texture_new_from_file(path);
-            free(path);
+        for (int j = 0; j < MAX_CUSTOM_OVERLAY_STATES; j++) {
+            char *name = fs_strdup_printf("custom_%d_%d.png", i, j);
+            char *path = fs_emu_theme_get_resource(name);
+            if (path) {
+                g_fs_emu_theme.overlay_textures[i][j] =
+                        fs_emu_texture_new_from_file(path);
+                free(path);
+            }
+            else if (j == 1) {
+                char *base_name = fs_strdup_printf("custom_%d.png", i);
+                path = fs_emu_theme_get_resource(base_name);
+                if (path) {
+                    g_fs_emu_theme.overlay_textures[i][j] =
+                            fs_emu_texture_new_from_file(path);
+                    free(path);
+                }
+                free(base_name);
+            }
+            else if (j >= 2) {
+                g_fs_emu_theme.overlay_textures[i][j] = \
+                        g_fs_emu_theme.overlay_textures[i][j - 1];
+            }
+            free(name);
         }
-        free(name);
     }
 }
 

@@ -120,7 +120,7 @@ ifeq ($(os), android)
 else ifeq ($(os), windows)
   cppflags += -DWINDOWS
   cxxflags += -U_WIN32 -UWIN32
-  libs += -lOpenGL32 -lGLU32 -lgdi32 -lWinmm -lOpenAL32 -lWs2_32
+  libs += -lOpenGL32 -lGLU32 -lgdi32 -lWinmm -lOpenAL32 -lWs2_32 -lWininet
 
   ifeq ($(devel), 1)
   libs += -mno-windows
@@ -371,6 +371,9 @@ obj/jit-%.o: src/jit/%.cpp
 	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -c $< -o $@
 
 obj/jit-compemu_support.o: src/jit/compemu_support.cpp
+	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -fpermissive -c $< -o $@
+
+obj/bsdsocket.o: src/bsdsocket.cpp
 	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -fpermissive -c $< -o $@
 
 obj/od-fs-%.o: src/od-fs/%.cpp

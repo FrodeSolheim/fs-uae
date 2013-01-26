@@ -3,7 +3,12 @@
 
 #include "texture.h"
 
-#define MAX_CUSTOM_OVERLAYS 20
+#define MAX_CUSTOM_OVERLAYS 32
+#define MAX_CUSTOM_OVERLAY_STATES 5
+
+#define FS_EMU_VSYNC_LED_OVERLAY (MAX_CUSTOM_OVERLAYS - 3)
+#define FS_EMU_FPS_LED_OVERLAY (MAX_CUSTOM_OVERLAYS - 2)
+#define FS_EMU_AUDIO_LED_OVERLAY (MAX_CUSTOM_OVERLAYS - 1)
 
 struct fs_emu_theme {
     char *name;
@@ -18,7 +23,8 @@ struct fs_emu_theme {
     float heading_color[4];
     float item_color[4];
 
-    fs_emu_texture *overlay_textures[MAX_CUSTOM_OVERLAYS];
+    fs_emu_texture *overlay_textures[MAX_CUSTOM_OVERLAYS]
+            [MAX_CUSTOM_OVERLAY_STATES];
     int overlay_x[MAX_CUSTOM_OVERLAYS];
     int overlay_y[MAX_CUSTOM_OVERLAYS];
 };

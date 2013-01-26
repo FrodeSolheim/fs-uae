@@ -110,7 +110,7 @@ typedef struct fs_emu_key_translation {
 int fs_emu_get_input_event();
 void fs_emu_queue_action(int action, int state);
 
-void fs_emu_enable_custom_overlay(int overlay, int enable);
+void fs_emu_set_custom_overlay_state(int overlay, int state);
 
 void fs_emu_set_keyboard_translation(fs_emu_key_translation *keymap);
 

@@ -71,7 +71,7 @@ extern FILE *g_fs_uae_sync_debug_file;
 #define ARCADIA
 #define AUTOCONFIG
 
-#if !defined(WINDOWS) && !defined(ANDROID) && !defined(__LSB_VERSION__)
+#if !defined(ANDROID) && !defined(__LSB_VERSION__)
 #define BSDSOCKET
 #endif
 

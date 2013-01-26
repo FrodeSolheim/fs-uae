@@ -133,6 +133,16 @@ void fs_uae_init_configs() {
     c->no_accuracy_adjustment = 1;
     c->allow_z3_memory = 1;
 
+    c = g_fs_uae_amiga_configs + CONFIG_A3000;
+    c->id = "A3000";
+    c->model = MODEL_A3000;
+    c->name = "Amiga 3000";
+    c->quickstart_model = 5;
+    c->quickstart_config = 2;
+    c->fast_on_accuracy_level = 1;
+    c->no_accuracy_adjustment = 1;
+    c->allow_z3_memory = 1;
+
     /*
     c = g_amiga_configs + CONFIG_A1200_030;
     c->id = "A1200/030";

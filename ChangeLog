@@ -1,3 +1,7 @@
+Version 2.1.21:
+
+* Added A3000 model (68030 + FPU, 2 MB chip + 8 MB fast, KS 3.1)
+
 Version 2.1.20:
 
 * Implemented bsdsocket_library support for Windows.

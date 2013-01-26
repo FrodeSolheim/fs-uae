@@ -122,7 +122,8 @@ void fs_uae_set_uae_paths();
 //#define CONFIG_A1200_040 8
 
 #define CONFIG_A1000 10
-#define CONFIG_LAST 11
+#define CONFIG_A3000 11
+#define CONFIG_LAST 12
 
 #define MODEL_A500 1
 #define MODEL_A1200 2
@@ -132,6 +133,7 @@ void fs_uae_set_uae_paths();
 #define MODEL_A600 6
 #define MODEL_A4000 7
 #define MODEL_A1000 8
+#define MODEL_A3000 9
 
 extern amiga_config g_fs_uae_amiga_configs[];
 extern int g_fs_uae_amiga_config;

@@ -1,3 +1,9 @@
+Version 2.1.22:
+
+* Fixed a missing bit in the UTF-8 decoding (for text rendering).
+* Fixed a potential crash due to an uninitialized variable (2.1.21).
+* Generated source files were by mistake not updated.
+
 Version 2.1.21:
 
 * Added A3000 model (68030 + FPU, 2 MB chip + 8 MB fast, KS 3.1)

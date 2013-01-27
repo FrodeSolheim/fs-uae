@@ -12,7 +12,7 @@
 #include "texture.h"
 #include "libfsemu.h"
 
-struct fs_emu_theme g_fs_emu_theme;
+struct fs_emu_theme g_fs_emu_theme = {};
 
 void fs_emu_init_overlays(const char **overlay_names) {
     int k = FS_EMU_FIRST_CUSTOM_OVERLAY;

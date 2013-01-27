@@ -2763,7 +2763,7 @@ generate_includes (FILE * f)
 {
     fprintf (f, "#include \"sysdeps.h\"\n");
 	fprintf (f, "#include \"m68k.h\"\n");
-    fprintf (f, "#include \"memory.h\"\n");
+    fprintf (f, "#include \"uae/memory.h\"\n");
     fprintf (f, "#include \"readcpu.h\"\n");
     fprintf (f, "#include \"newcpu.h\"\n");
     fprintf (f, "#include \"comptbl.h\"\n");

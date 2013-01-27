@@ -4370,10 +4370,10 @@ void REGPARAM2 CPUFUNC(op_0ad0_21)(uae_u32 opcode)
 	SET_VFLG ((flgs != flgo) && (flgn != flgo));
 	SET_CFLG (((uae_u8)(m68k_dreg (regs, rc))) > ((uae_u8)(dst)));
 	SET_NFLG (flgn != 0);
-	if (GET_ZFLG ()){	x_put_byte (dsta, (m68k_dreg (regs, ru)));
-}else{m68k_dreg (regs, rc) = dst;
-}}}}}}}}	regs.ce020memcycles += 2 * cpucycleunit;
 	m68k_incpc (4);
+	if (GET_ZFLG ()){	x_put_byte (dsta, (m68k_dreg (regs, ru)));
+}else{	m68k_dreg(regs, rc) = (m68k_dreg(regs, rc) & ~0xff) | (dst & 0xff);
+}}}}}}}}	regs.ce020memcycles += 2 * cpucycleunit;
 return;
 }
 
@@ -4397,10 +4397,10 @@ void REGPARAM2 CPUFUNC(op_0ad8_21)(uae_u32 opcode)
 	SET_VFLG ((flgs != flgo) && (flgn != flgo));
 	SET_CFLG (((uae_u8)(m68k_dreg (regs, rc))) > ((uae_u8)(dst)));
 	SET_NFLG (flgn != 0);
-	if (GET_ZFLG ()){	x_put_byte (dsta, (m68k_dreg (regs, ru)));
-}else{m68k_dreg (regs, rc) = dst;
-}}}}}}}}	regs.ce020memcycles += 2 * cpucycleunit;
 	m68k_incpc (4);
+	if (GET_ZFLG ()){	x_put_byte (dsta, (m68k_dreg (regs, ru)));
+}else{	m68k_dreg(regs, rc) = (m68k_dreg(regs, rc) & ~0xff) | (dst & 0xff);
+}}}}}}}}	regs.ce020memcycles += 2 * cpucycleunit;
 return;
 }
 
@@ -4425,10 +4425,10 @@ void REGPARAM2 CPUFUNC(op_0ae0_21)(uae_u32 opcode)
 	SET_VFLG ((flgs != flgo) && (flgn != flgo));
 	SET_CFLG (((uae_u8)(m68k_dreg (regs, rc))) > ((uae_u8)(dst)));
 	SET_NFLG (flgn != 0);
-	if (GET_ZFLG ()){	x_put_byte (dsta, (m68k_dreg (regs, ru)));
-}else{m68k_dreg (regs, rc) = dst;
-}}}}}}}}	regs.ce020memcycles += 2 * cpucycleunit;
 	m68k_incpc (4);
+	if (GET_ZFLG ()){	x_put_byte (dsta, (m68k_dreg (regs, ru)));
+}else{	m68k_dreg(regs, rc) = (m68k_dreg(regs, rc) & ~0xff) | (dst & 0xff);
+}}}}}}}}	regs.ce020memcycles += 2 * cpucycleunit;
 return;
 }
 
@@ -4451,10 +4451,10 @@ void REGPARAM2 CPUFUNC(op_0ae8_21)(uae_u32 opcode)
 	SET_VFLG ((flgs != flgo) && (flgn != flgo));
 	SET_CFLG (((uae_u8)(m68k_dreg (regs, rc))) > ((uae_u8)(dst)));
 	SET_NFLG (flgn != 0);
-	if (GET_ZFLG ()){	x_put_byte (dsta, (m68k_dreg (regs, ru)));
-}else{m68k_dreg (regs, rc) = dst;
-}}}}}}}}	regs.ce020memcycles += 2 * cpucycleunit;
 	m68k_incpc (6);
+	if (GET_ZFLG ()){	x_put_byte (dsta, (m68k_dreg (regs, ru)));
+}else{	m68k_dreg(regs, rc) = (m68k_dreg(regs, rc) & ~0xff) | (dst & 0xff);
+}}}}}}}}	regs.ce020memcycles += 2 * cpucycleunit;
 return;
 }
 
@@ -4480,7 +4480,7 @@ void REGPARAM2 CPUFUNC(op_0af0_21)(uae_u32 opcode)
 	SET_CFLG (((uae_u8)(m68k_dreg (regs, rc))) > ((uae_u8)(dst)));
 	SET_NFLG (flgn != 0);
 	if (GET_ZFLG ()){	x_put_byte (dsta, (m68k_dreg (regs, ru)));
-}else{m68k_dreg (regs, rc) = dst;
+}else{	m68k_dreg(regs, rc) = (m68k_dreg(regs, rc) & ~0xff) | (dst & 0xff);
 }}}}}}}}}	regs.ce020memcycles += 2 * cpucycleunit;
 return;
 }
@@ -4503,10 +4503,10 @@ void REGPARAM2 CPUFUNC(op_0af8_21)(uae_u32 opcode)
 	SET_VFLG ((flgs != flgo) && (flgn != flgo));
 	SET_CFLG (((uae_u8)(m68k_dreg (regs, rc))) > ((uae_u8)(dst)));
 	SET_NFLG (flgn != 0);
-	if (GET_ZFLG ()){	x_put_byte (dsta, (m68k_dreg (regs, ru)));
-}else{m68k_dreg (regs, rc) = dst;
-}}}}}}}}	regs.ce020memcycles += 2 * cpucycleunit;
 	m68k_incpc (6);
+	if (GET_ZFLG ()){	x_put_byte (dsta, (m68k_dreg (regs, ru)));
+}else{	m68k_dreg(regs, rc) = (m68k_dreg(regs, rc) & ~0xff) | (dst & 0xff);
+}}}}}}}}	regs.ce020memcycles += 2 * cpucycleunit;
 return;
 }
 
@@ -4528,10 +4528,10 @@ void REGPARAM2 CPUFUNC(op_0af9_21)(uae_u32 opcode)
 	SET_VFLG ((flgs != flgo) && (flgn != flgo));
 	SET_CFLG (((uae_u8)(m68k_dreg (regs, rc))) > ((uae_u8)(dst)));
 	SET_NFLG (flgn != 0);
-	if (GET_ZFLG ()){	x_put_byte (dsta, (m68k_dreg (regs, ru)));
-}else{m68k_dreg (regs, rc) = dst;
-}}}}}}}}	regs.ce020memcycles += 2 * cpucycleunit;
 	m68k_incpc (8);
+	if (GET_ZFLG ()){	x_put_byte (dsta, (m68k_dreg (regs, ru)));
+}else{	m68k_dreg(regs, rc) = (m68k_dreg(regs, rc) & ~0xff) | (dst & 0xff);
+}}}}}}}}	regs.ce020memcycles += 2 * cpucycleunit;
 return;
 }
 
@@ -5181,10 +5181,10 @@ void REGPARAM2 CPUFUNC(op_0cd0_21)(uae_u32 opcode)
 	SET_VFLG ((flgs != flgo) && (flgn != flgo));
 	SET_CFLG (((uae_u16)(m68k_dreg (regs, rc))) > ((uae_u16)(dst)));
 	SET_NFLG (flgn != 0);
-	if (GET_ZFLG ()){	x_put_word (dsta, (m68k_dreg (regs, ru)));
-}else{m68k_dreg (regs, rc) = dst;
-}}}}}}}}	regs.ce020memcycles += 2 * cpucycleunit;
 	m68k_incpc (4);
+	if (GET_ZFLG ()){	x_put_word (dsta, (m68k_dreg (regs, ru)));
+}else{	m68k_dreg(regs, rc) = (m68k_dreg(regs, rc) & ~0xffff) | (dst & 0xffff);
+}}}}}}}}	regs.ce020memcycles += 2 * cpucycleunit;
 return;
 }
 
@@ -5208,10 +5208,10 @@ void REGPARAM2 CPUFUNC(op_0cd8_21)(uae_u32 opcode)
 	SET_VFLG ((flgs != flgo) && (flgn != flgo));
 	SET_CFLG (((uae_u16)(m68k_dreg (regs, rc))) > ((uae_u16)(dst)));
 	SET_NFLG (flgn != 0);
-	if (GET_ZFLG ()){	x_put_word (dsta, (m68k_dreg (regs, ru)));
-}else{m68k_dreg (regs, rc) = dst;
-}}}}}}}}	regs.ce020memcycles += 2 * cpucycleunit;
 	m68k_incpc (4);
+	if (GET_ZFLG ()){	x_put_word (dsta, (m68k_dreg (regs, ru)));
+}else{	m68k_dreg(regs, rc) = (m68k_dreg(regs, rc) & ~0xffff) | (dst & 0xffff);
+}}}}}}}}	regs.ce020memcycles += 2 * cpucycleunit;
 return;
 }
 
@@ -5236,10 +5236,10 @@ void REGPARAM2 CPUFUNC(op_0ce0_21)(uae_u32 opcode)
 	SET_VFLG ((flgs != flgo) && (flgn != flgo));
 	SET_CFLG (((uae_u16)(m68k_dreg (regs, rc))) > ((uae_u16)(dst)));
 	SET_NFLG (flgn != 0);
-	if (GET_ZFLG ()){	x_put_word (dsta, (m68k_dreg (regs, ru)));
-}else{m68k_dreg (regs, rc) = dst;
-}}}}}}}}	regs.ce020memcycles += 2 * cpucycleunit;
 	m68k_incpc (4);
+	if (GET_ZFLG ()){	x_put_word (dsta, (m68k_dreg (regs, ru)));
+}else{	m68k_dreg(regs, rc) = (m68k_dreg(regs, rc) & ~0xffff) | (dst & 0xffff);
+}}}}}}}}	regs.ce020memcycles += 2 * cpucycleunit;
 return;
 }
 
@@ -5262,10 +5262,10 @@ void REGPARAM2 CPUFUNC(op_0ce8_21)(uae_u32 opcode)
 	SET_VFLG ((flgs != flgo) && (flgn != flgo));
 	SET_CFLG (((uae_u16)(m68k_dreg (regs, rc))) > ((uae_u16)(dst)));
 	SET_NFLG (flgn != 0);
-	if (GET_ZFLG ()){	x_put_word (dsta, (m68k_dreg (regs, ru)));
-}else{m68k_dreg (regs, rc) = dst;
-}}}}}}}}	regs.ce020memcycles += 2 * cpucycleunit;
 	m68k_incpc (6);
+	if (GET_ZFLG ()){	x_put_word (dsta, (m68k_dreg (regs, ru)));
+}else{	m68k_dreg(regs, rc) = (m68k_dreg(regs, rc) & ~0xffff) | (dst & 0xffff);
+}}}}}}}}	regs.ce020memcycles += 2 * cpucycleunit;
 return;
 }
 
@@ -5291,7 +5291,7 @@ void REGPARAM2 CPUFUNC(op_0cf0_21)(uae_u32 opcode)
 	SET_CFLG (((uae_u16)(m68k_dreg (regs, rc))) > ((uae_u16)(dst)));
 	SET_NFLG (flgn != 0);
 	if (GET_ZFLG ()){	x_put_word (dsta, (m68k_dreg (regs, ru)));
-}else{m68k_dreg (regs, rc) = dst;
+}else{	m68k_dreg(regs, rc) = (m68k_dreg(regs, rc) & ~0xffff) | (dst & 0xffff);
 }}}}}}}}}	regs.ce020memcycles += 2 * cpucycleunit;
 return;
 }
@@ -5314,10 +5314,10 @@ void REGPARAM2 CPUFUNC(op_0cf8_21)(uae_u32 opcode)
 	SET_VFLG ((flgs != flgo) && (flgn != flgo));
 	SET_CFLG (((uae_u16)(m68k_dreg (regs, rc))) > ((uae_u16)(dst)));
 	SET_NFLG (flgn != 0);
-	if (GET_ZFLG ()){	x_put_word (dsta, (m68k_dreg (regs, ru)));
-}else{m68k_dreg (regs, rc) = dst;
-}}}}}}}}	regs.ce020memcycles += 2 * cpucycleunit;
 	m68k_incpc (6);
+	if (GET_ZFLG ()){	x_put_word (dsta, (m68k_dreg (regs, ru)));
+}else{	m68k_dreg(regs, rc) = (m68k_dreg(regs, rc) & ~0xffff) | (dst & 0xffff);
+}}}}}}}}	regs.ce020memcycles += 2 * cpucycleunit;
 return;
 }
 
@@ -5339,10 +5339,10 @@ void REGPARAM2 CPUFUNC(op_0cf9_21)(uae_u32 opcode)
 	SET_VFLG ((flgs != flgo) && (flgn != flgo));
 	SET_CFLG (((uae_u16)(m68k_dreg (regs, rc))) > ((uae_u16)(dst)));
 	SET_NFLG (flgn != 0);
-	if (GET_ZFLG ()){	x_put_word (dsta, (m68k_dreg (regs, ru)));
-}else{m68k_dreg (regs, rc) = dst;
-}}}}}}}}	regs.ce020memcycles += 2 * cpucycleunit;
 	m68k_incpc (8);
+	if (GET_ZFLG ()){	x_put_word (dsta, (m68k_dreg (regs, ru)));
+}else{	m68k_dreg(regs, rc) = (m68k_dreg(regs, rc) & ~0xffff) | (dst & 0xffff);
+}}}}}}}}	regs.ce020memcycles += 2 * cpucycleunit;
 return;
 }
 
@@ -5374,11 +5374,11 @@ void REGPARAM2 CPUFUNC(op_0cfc_21)(uae_u32 opcode)
 	SET_NFLG (flgn != 0);
 	if (GET_ZFLG ()) {
 	x_put_word (rn1, m68k_dreg (regs, (extra >> 22) & 7));
-	x_put_word (rn1, m68k_dreg (regs, (extra >> 6) & 7));
+	x_put_word (rn2, m68k_dreg (regs, (extra >> 6) & 7));
 	}}
 }}}}	if (! GET_ZFLG ()) {
-	m68k_dreg (regs, (extra >> 22) & 7) = (m68k_dreg (regs, (extra >> 22) & 7) & ~0xffff) | (dst1 & 0xffff);
 	m68k_dreg (regs, (extra >> 6) & 7) = (m68k_dreg (regs, (extra >> 6) & 7) & ~0xffff) | (dst2 & 0xffff);
+	m68k_dreg (regs, (extra >> 22) & 7) = (m68k_dreg (regs, (extra >> 22) & 7) & ~0xffff) | (dst1 & 0xffff);
 	}
 }}	regs.ce020memcycles += 2 * cpucycleunit;
 	m68k_incpc (6);
@@ -5950,10 +5950,10 @@ void REGPARAM2 CPUFUNC(op_0ed0_21)(uae_u32 opcode)
 	SET_VFLG ((flgs != flgo) && (flgn != flgo));
 	SET_CFLG (((uae_u32)(m68k_dreg (regs, rc))) > ((uae_u32)(dst)));
 	SET_NFLG (flgn != 0);
-	if (GET_ZFLG ()){	x_put_long (dsta, (m68k_dreg (regs, ru)));
-}else{m68k_dreg (regs, rc) = dst;
-}}}}}}}}	regs.ce020memcycles += 2 * cpucycleunit;
 	m68k_incpc (4);
+	if (GET_ZFLG ()){	x_put_long (dsta, (m68k_dreg (regs, ru)));
+}else{	m68k_dreg(regs, rc) = dst;
+}}}}}}}}	regs.ce020memcycles += 2 * cpucycleunit;
 return;
 }
 
@@ -5977,10 +5977,10 @@ void REGPARAM2 CPUFUNC(op_0ed8_21)(uae_u32 opcode)
 	SET_VFLG ((flgs != flgo) && (flgn != flgo));
 	SET_CFLG (((uae_u32)(m68k_dreg (regs, rc))) > ((uae_u32)(dst)));
 	SET_NFLG (flgn != 0);
-	if (GET_ZFLG ()){	x_put_long (dsta, (m68k_dreg (regs, ru)));
-}else{m68k_dreg (regs, rc) = dst;
-}}}}}}}}	regs.ce020memcycles += 2 * cpucycleunit;
 	m68k_incpc (4);
+	if (GET_ZFLG ()){	x_put_long (dsta, (m68k_dreg (regs, ru)));
+}else{	m68k_dreg(regs, rc) = dst;
+}}}}}}}}	regs.ce020memcycles += 2 * cpucycleunit;
 return;
 }
 
@@ -6005,10 +6005,10 @@ void REGPARAM2 CPUFUNC(op_0ee0_21)(uae_u32 opcode)
 	SET_VFLG ((flgs != flgo) && (flgn != flgo));
 	SET_CFLG (((uae_u32)(m68k_dreg (regs, rc))) > ((uae_u32)(dst)));
 	SET_NFLG (flgn != 0);
-	if (GET_ZFLG ()){	x_put_long (dsta, (m68k_dreg (regs, ru)));
-}else{m68k_dreg (regs, rc) = dst;
-}}}}}}}}	regs.ce020memcycles += 2 * cpucycleunit;
 	m68k_incpc (4);
+	if (GET_ZFLG ()){	x_put_long (dsta, (m68k_dreg (regs, ru)));
+}else{	m68k_dreg(regs, rc) = dst;
+}}}}}}}}	regs.ce020memcycles += 2 * cpucycleunit;
 return;
 }
 
@@ -6031,10 +6031,10 @@ void REGPARAM2 CPUFUNC(op_0ee8_21)(uae_u32 opcode)
 	SET_VFLG ((flgs != flgo) && (flgn != flgo));
 	SET_CFLG (((uae_u32)(m68k_dreg (regs, rc))) > ((uae_u32)(dst)));
 	SET_NFLG (flgn != 0);
-	if (GET_ZFLG ()){	x_put_long (dsta, (m68k_dreg (regs, ru)));
-}else{m68k_dreg (regs, rc) = dst;
-}}}}}}}}	regs.ce020memcycles += 2 * cpucycleunit;
 	m68k_incpc (6);
+	if (GET_ZFLG ()){	x_put_long (dsta, (m68k_dreg (regs, ru)));
+}else{	m68k_dreg(regs, rc) = dst;
+}}}}}}}}	regs.ce020memcycles += 2 * cpucycleunit;
 return;
 }
 
@@ -6060,7 +6060,7 @@ void REGPARAM2 CPUFUNC(op_0ef0_21)(uae_u32 opcode)
 	SET_CFLG (((uae_u32)(m68k_dreg (regs, rc))) > ((uae_u32)(dst)));
 	SET_NFLG (flgn != 0);
 	if (GET_ZFLG ()){	x_put_long (dsta, (m68k_dreg (regs, ru)));
-}else{m68k_dreg (regs, rc) = dst;
+}else{	m68k_dreg(regs, rc) = dst;
 }}}}}}}}}	regs.ce020memcycles += 2 * cpucycleunit;
 return;
 }
@@ -6083,10 +6083,10 @@ void REGPARAM2 CPUFUNC(op_0ef8_21)(uae_u32 opcode)
 	SET_VFLG ((flgs != flgo) && (flgn != flgo));
 	SET_CFLG (((uae_u32)(m68k_dreg (regs, rc))) > ((uae_u32)(dst)));
 	SET_NFLG (flgn != 0);
-	if (GET_ZFLG ()){	x_put_long (dsta, (m68k_dreg (regs, ru)));
-}else{m68k_dreg (regs, rc) = dst;
-}}}}}}}}	regs.ce020memcycles += 2 * cpucycleunit;
 	m68k_incpc (6);
+	if (GET_ZFLG ()){	x_put_long (dsta, (m68k_dreg (regs, ru)));
+}else{	m68k_dreg(regs, rc) = dst;
+}}}}}}}}	regs.ce020memcycles += 2 * cpucycleunit;
 return;
 }
 
@@ -6108,10 +6108,10 @@ void REGPARAM2 CPUFUNC(op_0ef9_21)(uae_u32 opcode)
 	SET_VFLG ((flgs != flgo) && (flgn != flgo));
 	SET_CFLG (((uae_u32)(m68k_dreg (regs, rc))) > ((uae_u32)(dst)));
 	SET_NFLG (flgn != 0);
-	if (GET_ZFLG ()){	x_put_long (dsta, (m68k_dreg (regs, ru)));
-}else{m68k_dreg (regs, rc) = dst;
-}}}}}}}}	regs.ce020memcycles += 2 * cpucycleunit;
 	m68k_incpc (8);
+	if (GET_ZFLG ()){	x_put_long (dsta, (m68k_dreg (regs, ru)));
+}else{	m68k_dreg(regs, rc) = dst;
+}}}}}}}}	regs.ce020memcycles += 2 * cpucycleunit;
 return;
 }
 
@@ -6143,11 +6143,11 @@ void REGPARAM2 CPUFUNC(op_0efc_21)(uae_u32 opcode)
 	SET_NFLG (flgn != 0);
 	if (GET_ZFLG ()) {
 	x_put_long (rn1, m68k_dreg (regs, (extra >> 22) & 7));
-	x_put_long (rn1, m68k_dreg (regs, (extra >> 6) & 7));
+	x_put_long (rn2, m68k_dreg (regs, (extra >> 6) & 7));
 	}}
 }}}}	if (! GET_ZFLG ()) {
-	m68k_dreg (regs, (extra >> 22) & 7) = dst1;
 	m68k_dreg (regs, (extra >> 6) & 7) = dst2;
+	m68k_dreg (regs, (extra >> 22) & 7) = dst1;
 	}
 }}	regs.ce020memcycles += 2 * cpucycleunit;
 	m68k_incpc (6);

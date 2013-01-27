@@ -262,8 +262,8 @@ int fs_emu_font_render(fs_emu_font *font, const char *text, float x, float y,
         else if ((*c & 0xc0) == 0x80) {
             continuations--;
             cp = cp << 6;
-            //cp = cp | (*c & 0b0011111);
-            cp = cp | (*c & 0x1f);
+            //cp = cp | (*c & 0b00111111);
+            cp = cp | (*c & 0x3f);
         }
         //else if ((*c & 0b11111110) == 0b11111100) { // 1111110x
         else if ((*c & 0xfe) == 0xfc) { // 1111110x
@@ -313,10 +313,12 @@ int fs_emu_font_render(fs_emu_font *font, const char *text, float x, float y,
     int dx = 0;
     int dy = 0;
     c = (unsigned const char*) base_text;
+    //printf("base_text: %s\n", c);
     continuations = 0;
     cp = 0;
     int k = 0;
     while(*c) {
+        //printf("%d\n", *c);
         //if ((*c & 0b10000000) == 0b00000000) {
         if ((*c & 0x80) == 0x0) {
             continuations = 0;
@@ -327,8 +329,8 @@ int fs_emu_font_render(fs_emu_font *font, const char *text, float x, float y,
         else if ((*c & 0xc0) == 0x80) {
             continuations--;
             cp = cp << 6;
-            //cp = cp | (*c & 0b0011111);
-            cp = cp | (*c & 0x1f);
+            //cp = cp | (*c & 0b00111111);
+            cp = cp | (*c & 0x3f);
         }
         //else if ((*c & 0b11111110) == 0b11111100) { // 1111110x
         else if ((*c & 0xfe) == 0xfc) { // 1111110x
@@ -384,6 +386,7 @@ int fs_emu_font_render(fs_emu_font *font, const char *text, float x, float y,
         //}
 
         // draw character
+        //printf("-----------> %d\n", cp);
 
         int *sl = ((int *) font->image->data) + font->image->width * sy + sx;
         int ss = font->image->width; // source stride

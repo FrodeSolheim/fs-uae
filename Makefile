@@ -341,7 +341,7 @@ gensrc/cpudefs.cpp: gensrc/build68k src/table68k
 	#python util/fix_tchar.py gensrc/cpudefs.cpp
 
 gensrc/cpuemu_0.cpp: gensrc/gencpu
-	cd gen && ./gencpu --optimized-flags
+	cd gensrc && ./gencpu --optimized-flags
 
 gensrc/cpustbl.cpp: gensrc/cpuemu_0.cpp
 

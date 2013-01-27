@@ -2876,7 +2876,7 @@ generate_includes (FILE * f, int bigger)
     fprintf (f, "#include \"sysdeps.h\"\n");
 	if (bigger)
 		fprintf (f, "#include \"options.h\"\n");
-    fprintf (f, "#include \"memory.h\"\n");
+    fprintf (f, "#include \"uae/memory.h\"\n");
     fprintf (f, "#include \"newcpu.h\"\n");
     fprintf (f, "#include \"comptbl.h\"\n");
 }

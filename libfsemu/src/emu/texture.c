@@ -374,7 +374,7 @@ void fs_emu_initialize_textures() {
 
     for (int i = 0; i < FS_EMU_MAX_OVERLAYS; i++) {
         for (int j = 0; j < FS_EMU_MAX_OVERLAY_STATES; j++) {
-            fs_emu_texture *tex;
+            fs_emu_texture *tex = NULL;
             char *name = fs_strdup_printf("custom_%d_%d.png",
                     i - FS_EMU_FIRST_CUSTOM_OVERLAY, j);
             char *path = fs_emu_theme_get_resource(name);

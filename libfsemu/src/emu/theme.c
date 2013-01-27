@@ -2,8 +2,9 @@
 
 #include <fs/config.h>
 #include <fs/base.h>
-#include <fs/log.h>
 #include <fs/filesys.h>
+#include <fs/i18n.h>
+#include <fs/log.h>
 #include <fs/string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -267,17 +268,10 @@ void fs_emu_theme_init() {
             fs_log("theme found at %s\n", g_fs_emu_theme.path);
         }
         else {
-            fs_emu_warning("Did not find theme %s\n", g_fs_emu_theme.name);
+            fs_emu_warning(_("Theme not found: %s"), g_fs_emu_theme.name);
             free(g_fs_emu_theme.name);
-            //g_fs_emu_theme.name = fs_strdup("default");
-            //g_fs_emu_theme.path = fs_get_program_data_file(g_fs_emu_theme.name);
-            //if (!g_fs_emu_theme.path) {
-            //    fs_emu_warning("Did not find theme %s\n", g_fs_emu_theme.name);
-            //    free(g_fs_emu_theme.name);
-            //    g_fs_emu_theme.name = fs_strdup("none");
             // resources will not be found, but path should not be NULL...
             g_fs_emu_theme.path = fs_strdup("");
-            //}
         }
     }
     else {

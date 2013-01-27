@@ -144,7 +144,7 @@ void init_window_overrides() {
             break;
         }
         else {
-            fs_emu_warning("unexpected byte (%d) while parsing "
+            fs_emu_warning("Unexpected byte (%d) while parsing "
                     "viewport option\n", c);
             return;
         }

@@ -19,7 +19,7 @@ extern int g_fs_ml_benchmarking;
 
 void fs_emu_video_init_options(void) {
 
-	int auto_sync_mode = 1;
+	//int auto_sync_mode = 1;
     //int sync_to_vblank = 1;
     //int sync_with_emu = 0;
     char *sync_mode_str = NULL;
@@ -33,19 +33,6 @@ void fs_emu_video_init_options(void) {
     else {
         fs_log("full-scene anti-aliasing is not requested\n");
     }
-
-/*
-    int frame_rate = fs_config_get_int("frame_rate");
-    if (frame_rate != FS_CONFIG_NONE) {
-        fs_log("WARNING: video/frame_rate set manually to %d\n",
-                frame_rate);
-        fs_emu_set_video_frame_rate(frame_rate);
-    }
-    else {
-        frame_rate = fs_emu_get_video_frame_rate();
-    }
-*/
-    int frame_rate = fs_emu_get_video_frame_rate();
 
     fs_ml_video_mode mode;
     memset(&mode, 0, sizeof(fs_ml_video_mode));

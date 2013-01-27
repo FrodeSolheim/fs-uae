@@ -392,7 +392,6 @@ void fs_emu_initialize_textures() {
             else if (j == 1) {
                 char *base_name = fs_strdup_printf("custom_%d.png",
                         i - FS_EMU_FIRST_CUSTOM_OVERLAY);
-                printf("FIND %s\n", base_name);
                 path = fs_emu_theme_get_resource(base_name);
                 if (!path && g_fs_emu_theme.overlays[i].name) {
                     free(name);

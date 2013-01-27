@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <fs/i18n.h>
 #include <fs/list.h>
 #include <fs/string.h>
 
@@ -479,13 +480,13 @@ static fs_image *load_font_from_file(const char *path) {
     //char *path = g_build_filename(fs_emu_get_share_dir(), full_name, NULL);
     //char *path = fs_get_program_data_file(full_name);
     if (path == NULL) {
-        fs_emu_warning("Could not find font");
+        fs_emu_warning(_("Could not find font: %s"), path);
         return NULL;
     }
     fs_emu_log("loading image \"%s\"\n", path);
     fs_image *image = fs_image_new_from_file(path);
     if (image == NULL) {
-        fs_emu_warning("Error loading font");
+        fs_emu_warning(_("Error loading font: %s"), path);
         return NULL;
     }
 

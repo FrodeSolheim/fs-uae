@@ -4,8 +4,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <fs/ml.h>
 #include <fs/filesys.h>
+#include <fs/i18n.h>
+#include <fs/ml.h>
 #include <fs/queue.h>
 #include <fs/string.h>
 #include <fs/thread.h>
@@ -378,7 +379,7 @@ static void save_screenshot(const char *type, int cx, int cy, int cw, int ch,
     int result = fs_image_save_data(path, out_data, cw, ch, 3);
     if (result) {
         // FIXME: not a warning
-        fs_emu_warning("Saved %s\n", name);
+        fs_emu_warning(_("Saved screenshot: %s"), name);
         fs_log("saved screenshot\n");
     }
     else {

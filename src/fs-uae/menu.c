@@ -1001,6 +1001,9 @@ void fs_uae_configure_menu() {
     fs_emu_menu_append_item(menu, item);
     fs_emu_menu_item_set_title(item, _("Save States"));
     fs_emu_menu_item_set_activate_function(item, save_states_menu_function);
+    if (fs_config_get_boolean("save_states") == 0) {
+        fs_emu_menu_item_set_enabled(item, 0);
+    }
 
     item = fs_emu_menu_item_new();
     fs_emu_menu_append_item(menu, item);

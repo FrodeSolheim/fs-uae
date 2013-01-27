@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2012-11-01 19:42+0100\n"
-"PO-Revision-Date: 2012-11-04 20:23+0100\n"
+"POT-Creation-Date: 2013-01-27 19:22+0100\n"
+"PO-Revision-Date: 2013-01-27 20:38+0100\n"
 "Last-Translator: Jens Weichert <nexusle@me.com>\n"
 "Language-Team: German\n"
 "Language: de\n"
@@ -46,6 +46,13 @@ msgstr "CD%d: Leer"
 
 msgid "CD32 Pad Mode"
 msgstr "CD32-Gamepad-Modus"
+
+#. / TRANSLATORS: This is a menu entry and must not be too long
+msgid "Custom Joystick Port"
+msgstr "Benutzerdef. Joystickport"
+
+msgid "Custom Mode"
+msgstr "Benutzerdef. Modus"
 
 #. / TRANSLATORS: Empty or nothing
 #, c-format
@@ -92,32 +99,35 @@ msgstr "Joystick-Modus"
 #. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Joystick Port %d"
-msgstr "Joystick Anschluß %d"
+msgstr "Joystickport %d"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Joystick Port %d Device"
-msgstr "Gerät Joystick Anschluß %d"
+msgstr "Gerät Joystickport %d"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Joystick Port %d Mode"
-msgstr "Modus Joystick Anschluß %d"
+msgstr "Modus Joystickport %d"
 
 msgid "Joystick Port 0"
-msgstr "Joystick Anschluß 0"
+msgstr "Joystickport 0"
 
 msgid "Joystick Port 1"
-msgstr "Joystick Anschluß 1"
+msgstr "Joystickport 1"
 
 msgid "Joystick Port 2"
-msgstr "Joystick Anschluß 2"
+msgstr "Joystickport 2"
 
 msgid "Joystick Port 3"
-msgstr "Joystick Anschluß 3"
+msgstr "Joystickport 3"
+
+msgid "Joystick Port 4"
+msgstr "Joystickport 4"
 
 msgid "Joystick Ports"
-msgstr "Joystick Anschlüsse"
+msgstr "Joystickports"
 
 msgid "Keyboard"
 msgstr "Tastatur"
@@ -154,8 +164,12 @@ msgstr "Par. Joystick Anschl."
 msgid "Pause"
 msgstr "Pause"
 
+#, c-format
+msgid "Port 0: %s"
+msgstr "Anschluß 0: %s"
+
 msgid "Port Settings"
-msgstr "Port-Einstellungen"
+msgstr "Anschluß-Einstellungen"
 
 msgid "Removable Media"
 msgstr "Wechseldatenträger"

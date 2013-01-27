@@ -509,15 +509,6 @@ static const char *overlay_names[] = {
 };
 
 int main(int argc, char* argv[]) {
-#ifdef USE_GLIB
-    GMemVTable vtable;
-    memset(&vtable, 0, sizeof(GMemVTable));
-    vtable.malloc = malloc;
-    vtable.realloc = realloc;
-    vtable.free = free;
-    g_mem_set_vtable(&vtable);
-#endif
-
     int result;
     fs_uae_argc = argc;
     fs_uae_argv = argv;
@@ -534,7 +525,6 @@ int main(int argc, char* argv[]) {
         arg++;
     }
 
-    //g_thread_init(NULL);
     fs_init();
 
     fs_set_prgname("fs-uae");
@@ -681,7 +671,7 @@ int main(int argc, char* argv[]) {
         amiga_set_video_format(AMIGA_VIDEO_FORMAT_R5G5B5A1);
     }
     else {
-        fs_emu_warning("unsupported video format");
+        fs_emu_warning("Unsupported video format requested");
     }
     amiga_add_rtg_resolution(672, 540);
     amiga_add_rtg_resolution(672 * 2, 540 * 2);

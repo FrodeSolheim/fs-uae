@@ -6,6 +6,7 @@
 #include <fs/glee.h>
 
 #include <fs/emu.h>
+#include <fs/i18n.h>
 #include <fs/list.h>
 #include <fs/log.h>
 #include <fs/string.h>
@@ -475,9 +476,8 @@ static void fs_emu_load_shader() {
         free(path);
         path = path2;
         if (!path) {
-            fs_log("shader does not exist: %s\n",
+            fs_emu_warning(_("Shader not found: %s"),
                     fs_config_get_const_string("shader"));
-            fs_emu_warning("Did not find specified shader\n");
             return;
         }
     }
@@ -510,11 +510,11 @@ static void fs_emu_load_shader() {
     // the file.
 
     if (g_shader_passes == NULL) {
-        fs_emu_warning("no shader passes loaded\n");
+        fs_emu_warning("no shader passes loaded");
         g_shader_ok = 0;
     }
     else if (data->error) {
-        fs_emu_warning("error occured while loading shader\n");
+        fs_emu_warning("error occured while loading shader");
         g_shader_ok = 0;
     }
     else {

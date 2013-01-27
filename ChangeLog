@@ -1,3 +1,12 @@
+Version 2.1.23:
+
+* New option save_states can be used to disable the save state feature.
+* Marked several warning messages for translation.
+* Updated translations: de [nexusle].
+* (Launcher) Disable the save state feature in cases were it is known to
+  not work (with temporarily created hard drives).
+* (Launcher) Updated translations: de [nexusle].
+
 Version 2.1.22:
 
 * Fixed a missing bit in the UTF-8 decoding (for text rendering).

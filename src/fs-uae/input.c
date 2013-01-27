@@ -429,11 +429,12 @@ static int hotkey_function(int key_code, int key_mod) {
     case FS_ML_KEY_D:
         fs_emu_log("hot key: enter debugger\n");
         if (fs_config_get_boolean("console_debugger") == 1) {
-            fs_emu_warning("Activated Debugger");
+            fs_emu_warning(_("Activated debugger"));
             fs_emu_queue_action(INPUTEVENT_SPC_ENTERDEBUGGER, 1);
         }
         else {
-            fs_emu_warning("Option \"console_debugger\" Must Be Set First");
+            fs_emu_warning(_("Option \"%s\" is not enabled"),
+                    "console_debugger");
         }
         return 0;
     }

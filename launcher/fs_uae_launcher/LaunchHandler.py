@@ -257,17 +257,27 @@ class LaunchHandler:
                 src = dest
             elif src.startswith("game://"):
                 self.unpack_game_hard_drive(i, src)
+                self.disable_save_states()
                 return
 
             if src.endswith(".zip"):
                 print("zipped hard drive", src)
                 self.unpack_hard_drive(i, src)
+                self.disable_save_states()
             elif src.endswith("HardDrive"):
                 print("XML-described hard drive", src)
                 self.unpack_hard_drive(i, src)
+                self.disable_save_states()
             else:
                 src = Paths.expand_path(src)
                 self.config[key] = src
+
+    def disable_save_states(self):
+        # Save states cannot currently be used with temporarily created
+        # hard drives, as HD paths are embedded into the save states, and
+        # restoring the save state causes problems.
+        self.config["save_states"] = "0"
+
 
     def unpack_game_hard_drive(self, i, src):
         scheme, dummy, game_uuid, drive = src.split("/")

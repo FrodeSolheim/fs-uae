@@ -45,6 +45,7 @@ void fs_emu_set_controllers_dir(const char *path);
 
 // initialize libfsemu
 
+void fs_emu_init_overlays(const char **overlay_names);
 void fs_emu_init();
 
 #define FS_EMU_INIT_VIDEO 1
@@ -368,6 +369,8 @@ typedef struct fs_emu_audio_stream_options {
 void fs_emu_init_audio_stream(int stream,
         fs_emu_audio_stream_options *options);
 void fs_emu_init_audio_stream_options(fs_emu_audio_stream_options *options);
+void fs_emu_audio_pause_stream(int stream);
+void fs_emu_audio_resume_stream(int stream);
 int fs_emu_queue_audio_buffer(int stream, int16_t* buffer, int size);
 int fs_emu_check_audio_buffer_done(int stream, int buffer);
 

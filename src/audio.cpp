@@ -1107,11 +1107,7 @@ static void audio_deactivate (void)
 		return;
 	gui_data.sndbuf_status = 3;
 	gui_data.sndbuf = 0;
-#ifdef FSUAE
-	printf("FIXME: audio_deactivate - pause_sound_buffer not implemented\n");
-#else
 	pause_sound_buffer ();
-#endif
 	clear_sound_buffers ();
 	audio_event_reset ();
 }

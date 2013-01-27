@@ -343,6 +343,10 @@ static void context_notification_handler(int notification, void *data) {
 }
 
 void fs_emu_initialize_textures() {
+    if (g_fs_emu_theme.width == 0) {
+        fs_emu_fatal("theme is not initialized yet");
+    }
+
     //g_atlas = fs_emu_texture_new_from_file("atlas");
     fs_image *image = fs_image_new();
     image->width = 1024;
@@ -368,30 +372,55 @@ void fs_emu_initialize_textures() {
         }
     }
 
-    for (int i = 0; i < MAX_CUSTOM_OVERLAYS; i++) {
-        for (int j = 0; j < MAX_CUSTOM_OVERLAY_STATES; j++) {
-            char *name = fs_strdup_printf("custom_%d_%d.png", i, j);
+    for (int i = 0; i < FS_EMU_MAX_OVERLAYS; i++) {
+        for (int j = 0; j < FS_EMU_MAX_OVERLAY_STATES; j++) {
+            fs_emu_texture *tex;
+            char *name = fs_strdup_printf("custom_%d_%d.png",
+                    i - FS_EMU_FIRST_CUSTOM_OVERLAY, j);
             char *path = fs_emu_theme_get_resource(name);
+            if (!path && g_fs_emu_theme.overlays[i].name) {
+                free(name);
+                name = fs_strdup_printf("%s_%d.png",
+                        g_fs_emu_theme.overlays[i].name, j);
+                path = fs_emu_theme_get_resource(name);
+            }
             if (path) {
-                g_fs_emu_theme.overlay_textures[i][j] =
-                        fs_emu_texture_new_from_file(path);
+                tex = fs_emu_texture_new_from_file(path);
+                g_fs_emu_theme.overlays[i].textures[j] = tex;
                 free(path);
             }
             else if (j == 1) {
-                char *base_name = fs_strdup_printf("custom_%d.png", i);
+                char *base_name = fs_strdup_printf("custom_%d.png",
+                        i - FS_EMU_FIRST_CUSTOM_OVERLAY);
+                printf("FIND %s\n", base_name);
                 path = fs_emu_theme_get_resource(base_name);
+                if (!path && g_fs_emu_theme.overlays[i].name) {
+                    free(name);
+                    name = fs_strdup_printf("%s.png",
+                            g_fs_emu_theme.overlays[i].name);
+                    path = fs_emu_theme_get_resource(name);
+                }
                 if (path) {
-                    g_fs_emu_theme.overlay_textures[i][j] =
-                            fs_emu_texture_new_from_file(path);
+                    tex = fs_emu_texture_new_from_file(path);
+                    g_fs_emu_theme.overlays[i].textures[j] = tex;
                     free(path);
                 }
                 free(base_name);
             }
             else if (j >= 2) {
-                g_fs_emu_theme.overlay_textures[i][j] = \
-                        g_fs_emu_theme.overlay_textures[i][j - 1];
+                g_fs_emu_theme.overlays[i].textures[j] = \
+                        g_fs_emu_theme.overlays[i].textures[j - 1];
             }
             free(name);
+
+            // size will be determined from the last loaded texture/state
+            // for the overlay
+            if (tex) {
+                g_fs_emu_theme.overlays[i].w =
+                        (double) tex->width / g_fs_emu_theme.width;
+                g_fs_emu_theme.overlays[i].h =
+                        (double) tex->height / g_fs_emu_theme.height;
+            }
         }
     }
 }

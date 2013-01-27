@@ -27,7 +27,7 @@ void fs_emu_audio_set_default_pitch(double pitch) {
     g_default_audio_pitch = pitch;
 }
 
-#define MAX_STREAMS 4
+int g_fs_emu_audio_stream_playing[MAX_STREAMS] = {};
 
 #define FRAME_TIME_LIST_COUNT 256
 #define AUDIO_AVG_FILL_QUEUE_COUNT 256
@@ -168,6 +168,23 @@ static void unqueue_old_buffers(int stream) {
     fs_mutex_unlock(s->mutex);
 }
 
+void fs_emu_audio_pause_stream(int stream) {
+    fs_log("fs_emu_audio_resume_stream %d\n", stream);
+    audio_stream *s = g_streams[stream];
+    alSourcePause(s->source);
+    g_fs_emu_audio_stream_playing[stream] = 0;
+    check_al_error("alSourcePlay");
+}
+
+void fs_emu_audio_resume_stream(int stream) {
+    fs_log("fs_emu_audio_resume_stream %d\n", stream);
+    audio_stream *s = g_streams[stream];
+    alSourcePlay(s->source);
+    g_fs_emu_audio_stream_playing[stream] = 1;
+    check_al_error("alSourcePlay");
+}
+
+
 int fs_emu_check_audio_buffer_done(int stream, int buffer) {
     unqueue_old_buffers(stream);
     audio_stream *s = g_streams[stream];
@@ -224,6 +241,7 @@ int fs_emu_queue_audio_buffer(int stream, int16_t* data, int size) {
     alGetSourcei(s->source, AL_SOURCE_STATE, &state);
     check_al_error("alGetSourcei (AL_SOURCE_STATE)");
     if (state != AL_PLAYING) {
+        g_fs_emu_audio_buffer_underrun_time = fs_get_monotonic_time();
         // we have had a buffer underrun - we now wait until we have queued
         // some buffers
         //if (buffers_queued < s->min_buffers) {
@@ -232,6 +250,7 @@ int fs_emu_queue_audio_buffer(int stream, int16_t* data, int size) {
         //else {
             fs_log("restarting audio stream %d (buffer underrun)\n", stream);
             alSourcePlay(s->source);
+            g_fs_emu_audio_stream_playing[stream] = 1;
             check_al_error("alSourcePlay");
             //}
     }
@@ -285,6 +304,9 @@ void fs_emu_audio_sample(int stream, int16_t left, int16_t right) {
 
 
 static void update_stats(int stream, int time_ms) {
+    if (!g_fs_emu_audio_stream_playing[stream]) {
+        return;
+    }
     audio_stream *s = g_streams[stream];
     int available = s->buffers_queued * s->buffer_size;
     //int error = available - s->fill_target;

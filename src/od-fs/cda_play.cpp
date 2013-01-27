@@ -4,7 +4,7 @@
 #include "cda_play.h"
 #include "libamiga_internal.h"
 
-static int (*g_audio_callback)(int16_t *buffer, int size) = NULL;
+static int (*g_audio_callback)(int type, int16_t *buffer, int size) = NULL;
 
 int amiga_set_cd_audio_callback(audio_callback func) {
     g_audio_callback = func;
@@ -48,7 +48,7 @@ static void *audio_thread(void *cda_pointer) {
         uae_s16 *p = (uae_s16*)(cda->buffers[bufnum]);
         if (g_audio_callback) {
             for (int i = 0; i < cda->num_sectors; i++) {
-                g_audio_callback(p, 2352);
+                g_audio_callback(3, p, 2352);
                 p += (2352 / 2);
                 // FIXME: use a clock here as well, to time the sleeps
                 // better..
@@ -111,7 +111,7 @@ bool cda_audio::play(int bufnum) {
     }
 
     if (g_audio_callback) {
-        buffer_ids[bufnum] = g_audio_callback(p, num_sectors * 2352);
+        buffer_ids[bufnum] = g_audio_callback(3, p, num_sectors * 2352);
     }
     else {
         buffer_ids[bufnum] = 0;
@@ -134,7 +134,7 @@ void cda_audio::wait(int bufnum) {
     }
 
     // calling g_audio_callback with NULL parameter to check status
-    while (!g_audio_callback(NULL, buffer_ids[bufnum])) {
+    while (!g_audio_callback(3, NULL, buffer_ids[bufnum])) {
         Sleep (10);
     }
 

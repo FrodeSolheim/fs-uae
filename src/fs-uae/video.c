@@ -19,6 +19,8 @@ typedef struct zoom_mode {
     int h;
 } zoom_mode;
 
+#define CUSTOM_ZOOM_MODE 5
+
 static zoom_mode g_zoom_modes[] = {
     /// TRANSLATORS: In context "Zoom: Auto"
     { N_("Auto"), NULL, 0, 0, 0, 0 },
@@ -27,6 +29,7 @@ static zoom_mode g_zoom_modes[] = {
     { "640x512", NULL, 74, 36, 640, 512 },
     { "640x480", NULL, 74, 36, 640, 480 },
     { "640x400", NULL, 74, 36, 640, 400 },
+    { NULL, NULL, 0, 0, 0, 0 },
     { NULL, NULL, 0, 0, 0, 0 },
 };
 
@@ -449,7 +452,24 @@ void fs_uae_init_video(void) {
             k++;
             z++;
         }
-
         free(value);
+    }
+
+    const char* cvalue = fs_config_get_const_string("theme_zoom");
+    if (cvalue) {
+        zoom_mode *z = g_zoom_modes + CUSTOM_ZOOM_MODE;
+        //char *name = malloc(strlen(cvalue) + 1);
+        int x, y, w, h;
+        //printf("---------\n");
+        //if (sscanf(value, "%s,%d,%d,%d,%d", &name, &x, &y, &w, &h) == 5) {
+        //    printf("---------\n");
+        if (sscanf(cvalue, "%d,%d,%d,%d", &x, &y, &w, &h) == 4) {
+            z->name = fs_strdup("Theme");
+            z->x = x;
+            z->y = y;
+            z->w = w;
+            z->h = h;
+        }
+        g_zoom_mode = CUSTOM_ZOOM_MODE;
     }
 }

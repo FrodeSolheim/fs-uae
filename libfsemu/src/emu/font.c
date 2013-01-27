@@ -245,9 +245,10 @@ int fs_emu_font_render(fs_emu_font *font, const char *text, float x, float y,
     int required_width = 0;
     int required_height = font->h;
 
-    char *upper_text = fs_utf8_strup(text, -1);
+    //char *base_text = fs_utf8_strup(text, -1);
+    const char *base_text = text;
 
-    unsigned char *c = (unsigned char*) upper_text;
+    unsigned const char *c = (unsigned const char*) base_text;
     int continuations = 0;
     int cp = 0;
     while(*c) {
@@ -311,7 +312,7 @@ int fs_emu_font_render(fs_emu_font *font, const char *text, float x, float y,
 
     int dx = 0;
     int dy = 0;
-    c = (unsigned char*) upper_text;
+    c = (unsigned const char*) base_text;
     continuations = 0;
     cp = 0;
     int k = 0;
@@ -412,6 +413,7 @@ int fs_emu_font_render(fs_emu_font *font, const char *text, float x, float y,
         dx += sw;
     }
     //free(utext);
+    //free(base_text);
 
     fs_list *last = fs_list_last(g_cache);
     cache_item *last_item = (cache_item *) last->data;

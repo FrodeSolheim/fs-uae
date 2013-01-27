@@ -14,6 +14,7 @@ extern uae_u16 *paula_sndbufpt;
 extern int paula_sndbufsize;
 extern void finish_sound_buffer (void);
 extern void restart_sound_buffer (void);
+extern void pause_sound_buffer (void);
 extern int init_sound (void);
 extern void close_sound (void);
 extern int setup_sound (void);

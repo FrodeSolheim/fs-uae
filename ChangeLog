@@ -1,6 +1,14 @@
 Version 2.1.21:
 
 * Added A3000 model (68030 + FPU, 2 MB chip + 8 MB fast, KS 3.1)
+* New aliases for theme overlays (power_led, df0_led, etc)
+* Theme coordinate system can be defined with theme_width, theme_height.
+* Old overlay option is deprecated, new overlay types available.
+* Audio led flashes red on buffer underruns, turns off when the Amiga is not
+  outputting audio data.
+* New theme_zoom option (preferred over viewport for theme purposes).
+* Updated translations: pl [grimi].
+* (Launcher) Updated translations: pl [grimi].
 
 Version 2.1.20:
 

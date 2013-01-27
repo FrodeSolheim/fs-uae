@@ -83,11 +83,15 @@ struct overlay_status {
     //int was_disabled;
     int render_status;
 };
-static struct overlay_status g_overlay_status[MAX_CUSTOM_OVERLAYS];
+static struct overlay_status g_overlay_status[FS_EMU_MAX_OVERLAYS];
 static fs_mutex *g_overlay_mutex = NULL;
 
 void fs_emu_set_custom_overlay_state(int overlay, int state) {
-    if (overlay < 0 || overlay >= MAX_CUSTOM_OVERLAYS) {
+    fs_emu_set_overlay_state(FS_EMU_FIRST_CUSTOM_OVERLAY + overlay, state);
+}
+
+void fs_emu_set_overlay_state(int overlay, int state) {
+    if (overlay < 0 || overlay >= FS_EMU_MAX_OVERLAYS) {
         return;
     }
     fs_mutex_lock(g_overlay_mutex);
@@ -392,6 +396,11 @@ static int update_texture() {
 #endif
     // unlocked in fs_emu_video_after_update
 
+    if (buffer->seq == 0) {
+        // we haven't received a video frame from the emulator yet
+        return -1;
+    }
+
     uint8_t *frame = buffer->data;
     if (frame == NULL) {
         return -1;
@@ -473,7 +482,8 @@ static int update_texture() {
 
     if (g_fs_emu_scanlines &&
             (buffer->flags & FS_EMU_NO_SCANLINES_FLAG) == 0) {
-        //printf("new frame? %d\n", is_new_frame);
+        //printf("w %d h %d new frame? %d\n", buffer->width, buffer->height,
+        //        is_new_frame);
         if (is_new_frame) {
             if (g_scanline_buffer_width != buffer->width ||
                     g_scanline_buffer_height != buffer->height) {
@@ -1156,7 +1166,7 @@ static void render_frame(double alpha, int perspective) {
     }
 
     fs_mutex_lock(g_overlay_mutex);
-    for (int i = 0; i < MAX_CUSTOM_OVERLAYS; i++) {
+    for (int i = 0; i < FS_EMU_MAX_OVERLAYS; i++) {
         int state = g_overlay_status[i].state;
 #if 0
         if (g_overlay_status[i].render_status &&
@@ -1180,26 +1190,35 @@ static void render_frame(double alpha, int perspective) {
     }
     fs_mutex_unlock(g_overlay_mutex);
 
-    for (int i = 0; i < MAX_CUSTOM_OVERLAYS; i++) {
+    for (int i = 0; i < FS_EMU_MAX_OVERLAYS; i++) {
         //if (g_overlay_status[i].render_status < 1) {
         //    continue;
         //}
         int state = g_overlay_status[i].render_state;
         if (state < 0) state = 0;
-        if (state > MAX_CUSTOM_OVERLAY_STATES - 1) {
-            state = MAX_CUSTOM_OVERLAY_STATES - 1;
+        if (state > FS_EMU_MAX_OVERLAY_STATES - 1) {
+            state = FS_EMU_MAX_OVERLAY_STATES - 1;
         }
 
         fs_emu_texture *overlay_texture = \
-                g_fs_emu_theme.overlay_textures[i][state];
+                g_fs_emu_theme.overlays[i].textures[state];
         if (!overlay_texture) {
             continue;
         }
 
-        float x1 = g_fs_emu_theme.overlay_x[i] / 1920.0;
-        float y1 = g_fs_emu_theme.overlay_y[i] / 1080.0;
-        float x2 = x1 + overlay_texture->width / 1920.0;
-        float y2 = y1 + overlay_texture->height / 1080.0;
+        float w = g_fs_emu_theme.overlays[i].w;
+        float h = g_fs_emu_theme.overlays[i].h;
+        float x1 = g_fs_emu_theme.overlays[i].x;
+        if (g_fs_emu_theme.overlays[i].anchor & FS_EMU_ANCHOR_RIGHT_BIT) {
+            x1 = x1 + 1.0 - w;
+        }
+        float y1 = g_fs_emu_theme.overlays[i].y;
+        if (g_fs_emu_theme.overlays[i].anchor & FS_EMU_ANCHOR_BOTTOM_BIT) {
+            y1 = y1 + 1.0 - h;
+        }
+
+        float x2 = x1 + w;
+        float y2 = y1 + h;
 
         x1 = -1.0 + 2.0 * x1;
         x2 = -1.0 + 2.0 * x2;

@@ -167,8 +167,6 @@ void fs_emu_video_init() {
     g_video_render_mutex = fs_mutex_create();
     g_emu_video_struct_queue = fs_queue_new();
     g_emu_video_struct_mutex = fs_mutex_create();
-
-    fs_emu_init_render();
 }
 
 int fs_emu_get_video_format() {
@@ -283,18 +281,18 @@ void fs_emu_video_after_update() {
     }
 
     if (diff > 0.2) {
-        fs_emu_set_custom_overlay_state(FS_EMU_VSYNC_LED_OVERLAY, 3);
+        fs_emu_set_overlay_state(FS_EMU_VSYNC_LED_OVERLAY, 3);
     }
     else if (fs_ml_get_vblank_sync()) {
         if (fs_ml_get_video_sync()) {
-            fs_emu_set_custom_overlay_state(FS_EMU_VSYNC_LED_OVERLAY, 1);
+            fs_emu_set_overlay_state(FS_EMU_VSYNC_LED_OVERLAY, 1);
         }
         else {
-            fs_emu_set_custom_overlay_state(FS_EMU_VSYNC_LED_OVERLAY, 2);
+            fs_emu_set_overlay_state(FS_EMU_VSYNC_LED_OVERLAY, 2);
         }
     }
     else {
-        fs_emu_set_custom_overlay_state(FS_EMU_VSYNC_LED_OVERLAY, 0);
+        fs_emu_set_overlay_state(FS_EMU_VSYNC_LED_OVERLAY, 0);
     }
 
 
@@ -304,20 +302,25 @@ void fs_emu_video_after_update() {
     }
 
     if (diff > 0.1) {
-        fs_emu_set_custom_overlay_state(FS_EMU_FPS_LED_OVERLAY, 3);
+        fs_emu_set_overlay_state(FS_EMU_FPS_LED_OVERLAY, 3);
     }
     else if (t - g_fs_emu_lost_frame_time < 100000) {
-        fs_emu_set_custom_overlay_state(FS_EMU_FPS_LED_OVERLAY, 3);
+        fs_emu_set_overlay_state(FS_EMU_FPS_LED_OVERLAY, 3);
     }
     else if (g_video_frame_rate == 60) {
-        fs_emu_set_custom_overlay_state(FS_EMU_FPS_LED_OVERLAY, 2);
+        fs_emu_set_overlay_state(FS_EMU_FPS_LED_OVERLAY, 2);
     }
     else {
-        fs_emu_set_custom_overlay_state(FS_EMU_FPS_LED_OVERLAY, 1);
+        fs_emu_set_overlay_state(FS_EMU_FPS_LED_OVERLAY, 1);
     }
 
-    fs_emu_set_custom_overlay_state(FS_EMU_AUDIO_LED_OVERLAY,
-            g_fs_emu_audio_enabled);
+    if (t - g_fs_emu_audio_buffer_underrun_time < 100000) {
+        fs_emu_set_overlay_state(FS_EMU_AUDIO_LED_OVERLAY, 3);
+    }
+    else {
+        fs_emu_set_overlay_state(FS_EMU_AUDIO_LED_OVERLAY,
+                g_fs_emu_audio_stream_playing[0]);
+    }
 
     update_video_stats_system_video();
 

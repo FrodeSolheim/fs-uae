@@ -119,7 +119,7 @@ void amiga_set_gui_message_function(log_function function);
 void amiga_set_led_function(amiga_led_function function);
 void amiga_set_media_function(amiga_media_function function);
 
-typedef int (*audio_callback)(int16_t *buffer, int size);
+typedef int (*audio_callback)(int type, int16_t *buffer, int size);
 int amiga_set_audio_callback(audio_callback func);
 int amiga_set_cd_audio_callback(audio_callback func);
 int amiga_set_audio_buffer_size(int size);

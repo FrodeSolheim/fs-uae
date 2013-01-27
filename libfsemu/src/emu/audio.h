@@ -5,6 +5,10 @@
 #include <fs/thread.h>
 #include "util.h"
 
+#define MAX_STREAMS 4
+
+extern int g_fs_emu_audio_stream_playing[MAX_STREAMS];
+extern int64_t g_fs_emu_audio_buffer_underrun_time;
 
 typedef struct fs_emu_audio_driver {
     const char *name;

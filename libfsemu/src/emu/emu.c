@@ -243,6 +243,15 @@ void fs_emu_init_2(int options) {
         fs_emu_video_init();
     }
 
+    fs_emu_init_render();
+
+    // these must (currently) be called after renderer has been initialized,
+    // due to a mutex that must be initialized first
+    fs_emu_set_overlay_state(FS_EMU_TOP_LEFT_OVERLAY, 1);
+    fs_emu_set_overlay_state(FS_EMU_TOP_RIGHT_OVERLAY, 1);
+    fs_emu_set_overlay_state(FS_EMU_BOTTOM_RIGHT_OVERLAY, 1);
+    fs_emu_set_overlay_state(FS_EMU_BOTTOM_LEFT_OVERLAY, 1);
+
     fs_emu_log("calling fs_ml_init_2\n");
     fs_ml_init_2();
     fs_ml_set_quit_function(on_quit);

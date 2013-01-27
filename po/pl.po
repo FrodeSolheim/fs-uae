@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2012-11-01 19:42+0100\n"
-"PO-Revision-Date: 2012-11-04 18:30+0100\n"
+"POT-Creation-Date: 2013-01-26 17:16+0100\n"
+"PO-Revision-Date: 2013-01-26 23:57+0100\n"
 "Last-Translator: grimi <grimi at poczta dot fm>\n"
 "Language-Team: Polish\n"
 "Language: pl\n"
@@ -17,6 +17,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
 "|| n%100>=20) ? 1 : 2);\n"
+"X-Generator: Poedit 1.5.4\n"
 
 msgid "Amiga Control"
 msgstr "Sterowanie Amigą"
@@ -46,6 +47,13 @@ msgstr "CD%d: pusta"
 
 msgid "CD32 Pad Mode"
 msgstr "Tryb pada CD32"
+
+#. / TRANSLATORS: This is a menu entry and must not be too long
+msgid "Custom Joystick Port"
+msgstr "Własny port joysticka"
+
+msgid "Custom Mode"
+msgstr "Tryb własny"
 
 #. / TRANSLATORS: Empty or nothing
 #, c-format
@@ -116,6 +124,9 @@ msgstr "Joystick - port 2"
 msgid "Joystick Port 3"
 msgstr "Joystick - port 3"
 
+msgid "Joystick Port 4"
+msgstr "Joystick - port 4"
+
 msgid "Joystick Ports"
 msgstr "Porty joysticków"
 
@@ -153,6 +164,10 @@ msgstr "Porty równoległe joyów"
 
 msgid "Pause"
 msgstr "Pauza"
+
+#, c-format
+msgid "Port 0: %s"
+msgstr "Port 0: %s"
 
 msgid "Port Settings"
 msgstr "Ustawienia portu"

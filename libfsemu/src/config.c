@@ -104,11 +104,17 @@ int fs_config_read_file(const char *path, int force) {
 
     char **groups = fs_ini_file_get_groups(ini_file, NULL);
     for (char **group = groups; *group; group++) {
+        const char *prefix = "";
+        if (strcmp(*group, "theme") == 0) {
+            prefix = "theme_";
+        }
         char **keys = fs_ini_file_get_keys(ini_file, *group, NULL);
         for (char **key = keys; *key; key++) {
             char *value = fs_ini_file_get_value(ini_file, *group, *key);
             if (value) {
-                process_key_value(*key, value, 0);
+                char *key2 = fs_strconcat(prefix, *key, NULL);
+                process_key_value(key2, value, 0);
+                free(key2);
             }
         }
         fs_strfreev(keys);

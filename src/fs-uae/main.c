@@ -172,16 +172,27 @@ char *g_fs_uae_config_file_path = NULL;
 char *g_fs_uae_config_dir_path = NULL;
 //GKeyFile *g_fs_uae_config = NULL;
 
-static int audio_callback_function (int16_t *buffer, int size) {
-    return fs_emu_queue_audio_buffer(0, buffer, size);
-}
-
-static int cd_audio_callback_function (int16_t *buffer, int size) {
-    if (buffer == NULL) {
-        // check status of buffer number given by size
-        return fs_emu_check_audio_buffer_done(1, size);
+static int audio_callback_function(int type, int16_t *buffer, int size) {
+    if (type == 0) {
+        return fs_emu_queue_audio_buffer(0, buffer, size);
     }
-    return fs_emu_queue_audio_buffer(1, buffer, size);
+    else if (type == 1) {
+        fs_emu_audio_pause_stream(0);
+        return 0;
+    }
+    else if (type == 2) {
+        fs_emu_audio_resume_stream(0);
+        return 0;
+    }
+    else if (type == 3) {
+        // cd audio stream
+        if (buffer == NULL) {
+            // check status of buffer number given by size
+            return fs_emu_check_audio_buffer_done(1, size);
+        }
+        return fs_emu_queue_audio_buffer(1, buffer, size);
+    }
+    return -1;
 }
 
 void fs_uae_load_rom_files(const char *path) {
@@ -267,7 +278,7 @@ static void on_init() {
     // with sound_auto set to true, UAE stops audio output if the amiga does
     // not produce sound, but this just confuses libfsemu which expects
     // continuous output
-    amiga_set_option("sound_auto", "false");
+    //amiga_set_option("sound_auto", "false");
     //amiga_set_audio_frequency(fs_emu_get_audio_frequency());
 
     //amiga_set_audio_frequency(22050);
@@ -481,6 +492,22 @@ void list_joysticks() {
 #endif
 }
 
+static const char *overlay_names[] = {
+    "df0_led",
+    "df1_led",
+    "df2_led",
+    "df3_led",
+    "df0_disk",
+    "df1_disk",
+    "df2_disk",
+    "df3_disk",
+    "power_led",
+    "hd_led",
+    "cd_led",
+    "md_led",
+    NULL,
+};
+
 int main(int argc, char* argv[]) {
 #ifdef USE_GLIB
     GMemVTable vtable;
@@ -546,6 +573,7 @@ int main(int argc, char* argv[]) {
 
     init_i18n();
 
+    fs_emu_init_overlays(overlay_names);
     fs_emu_init();
 
     // then load the config file
@@ -632,7 +660,7 @@ int main(int argc, char* argv[]) {
     fs_emu_init_audio_stream(1, &options);
 
     amiga_set_audio_callback(audio_callback_function);
-    amiga_set_cd_audio_callback(cd_audio_callback_function);
+    amiga_set_cd_audio_callback(audio_callback_function);
 
     //amiga_set_cd_audio_callback(audio_callback_function);
     amiga_set_event_function(event_handler);

@@ -4,7 +4,7 @@
 #include "include/uae.h"
 #include "include/options.h"
 
-static int (*g_audio_callback)(int16_t *buffer, int size) = NULL;
+static int (*g_audio_callback)(int type, int16_t *buffer, int size) = NULL;
 static int g_audio_frequency = 44100;
 static int g_audio_buffer_size = 512 * 2 * 2;
 
@@ -134,7 +134,7 @@ void finish_sound_buffer (void) {
 */
 
     if (g_audio_callback) {
-        g_audio_callback((int16_t *) paula_sndbuffer, paula_sndbufsize);
+        g_audio_callback(0, (int16_t *) paula_sndbuffer, paula_sndbufsize);
     }
     //uae_sem_post (&data_available_sem);
     //uae_sem_wait (&callback_done_sem);
@@ -283,9 +283,17 @@ void reset_sound (void) {
 void sound_volume (int dir) {
 }
 
-void restart_sound_buffer (void) {
+void pause_sound_buffer(void) {
+    if (g_audio_callback) {
+        g_audio_callback(1, NULL, 0);
+    }
 }
 
+void restart_sound_buffer(void) {
+    if (g_audio_callback) {
+        g_audio_callback(2, NULL, 0);
+    }
+}
 
 void audio_save_options (FILE *f, const struct uae_prefs *p) {
 }

@@ -101,6 +101,7 @@ void gui_flicker_led (int led, int unitnum, int status) {
 void gui_led (int led, int state) {
     //STUB("led %d state %d", led, state);
     int out_led = -1;
+    int out_state = state;
 
     if (led == LED_DF0) out_led = 0;
     else if (led == LED_DF1) out_led = 1;
@@ -111,17 +112,28 @@ void gui_led (int led, int state) {
         out_led = 8;
     }
     else if (led == LED_HD) out_led = 9;
-    else if (led == LED_CD) out_led = 10;
+    else if (led == LED_CD) {
+        out_led = 10;
+        if (state == 0) {
+            out_state = 0;
+        }
+        else if (state == 4) {
+            out_state = 2;
+        }
+        else {
+            out_state = 1;
+        }
+    }
     else if (led == LED_MD) out_led = 11;
 
     if (led >= LED_DF0 && led <= LED_DF3) {
         if (gui_data.drive_writing[led - 1]) {
-            state = 2;
+            out_state = 2;
         }
     }
 
     if (g_amiga_led_function && out_led > -1) {
-        g_amiga_led_function(out_led, state);
+        g_amiga_led_function(out_led, out_state);
     }
 }
 

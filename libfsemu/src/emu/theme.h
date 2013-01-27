@@ -3,15 +3,43 @@
 
 #include "texture.h"
 
-#define MAX_CUSTOM_OVERLAYS 32
-#define MAX_CUSTOM_OVERLAY_STATES 5
+#define FS_EMU_MAX_OVERLAYS 32
+#define FS_EMU_MAX_OVERLAY_STATES 5
 
-#define FS_EMU_VSYNC_LED_OVERLAY (MAX_CUSTOM_OVERLAYS - 3)
-#define FS_EMU_FPS_LED_OVERLAY (MAX_CUSTOM_OVERLAYS - 2)
-#define FS_EMU_AUDIO_LED_OVERLAY (MAX_CUSTOM_OVERLAYS - 1)
+enum {
+    FS_EMU_TOP_LEFT_OVERLAY,
+    FS_EMU_TOP_RIGHT_OVERLAY,
+    FS_EMU_BOTTOM_RIGHT_OVERLAY,
+    FS_EMU_BOTTOM_LEFT_OVERLAY,
+    FS_EMU_VSYNC_LED_OVERLAY,
+    FS_EMU_FPS_LED_OVERLAY,
+    FS_EMU_AUDIO_LED_OVERLAY,
+    FS_EMU_FIRST_CUSTOM_OVERLAY,
+};
+
+#define FS_EMU_ANCHOR_RIGHT_BIT 1
+#define FS_EMU_ANCHOR_BOTTOM_BIT 2
+
+#define FS_EMU_ANCHOR_TOP_LEFT 0
+#define FS_EMU_ANCHOR_TOP_RIGHT (FS_EMU_ANCHOR_RIGHT_BIT)
+#define FS_EMU_ANCHOR_BOTTOM_RIGHT (FS_EMU_ANCHOR_BOTTOM_BIT | \
+        FS_EMU_ANCHOR_RIGHT_BIT)
+#define FS_EMU_ANCHOR_BOTTOM_LEFT (FS_EMU_ANCHOR_BOTTOM_BIT)
+
+typedef struct fs_emu_theme_overlay {
+    char *name;
+    fs_emu_texture *textures[FS_EMU_MAX_OVERLAY_STATES];
+    float x;
+    float y;
+    float w;
+    float h;
+    int anchor;
+} fs_emu_theme_overlay;
 
 struct fs_emu_theme {
     char *name;
+    int width;
+    int height;
     char *path;
     float wall_color_1[4];
     float wall_color_2[4];
@@ -23,14 +51,12 @@ struct fs_emu_theme {
     float heading_color[4];
     float item_color[4];
 
-    fs_emu_texture *overlay_textures[MAX_CUSTOM_OVERLAYS]
-            [MAX_CUSTOM_OVERLAY_STATES];
-    int overlay_x[MAX_CUSTOM_OVERLAYS];
-    int overlay_y[MAX_CUSTOM_OVERLAYS];
+    fs_emu_theme_overlay overlays[FS_EMU_MAX_OVERLAYS];
 };
 
 void fs_emu_theme_init();
 char *fs_emu_theme_get_resource(const char *name);
+void fs_emu_set_overlay_state(int overlay, int state);
 
 extern struct fs_emu_theme g_fs_emu_theme;
 

@@ -8,6 +8,8 @@
 #endif
 
 #include <fs/config.h>
+#include <fs/i18n.h>
+#include <fs/image.h>
 
 #ifdef USE_OPENGL
 #include <fs/ml/opengl.h>
@@ -113,6 +115,62 @@ void fs_ml_frame_update_end(int frame) {
         // frame is ready
         //fs_condition_signal(g_video_cond);
     }
+}
+
+static void save_screenshot_of_opengl_framebuffer() {
+    static int count = 0;
+    count += 1;
+
+    time_t t = time(NULL);
+    struct tm tm_struct;
+    localtime_r(&t, &tm_struct);
+    char strbuf[20];
+    strftime(strbuf, 20, "%Y-%m-%d-%H-%M", &tm_struct);
+    char *name = fs_strdup_printf("fs-uae-%s-%s-%03d.png", "opengl",
+            strbuf, g_fs_ml_video_screenshot);
+    char *path = fs_path_join(fs_get_desktop_dir(), name, NULL);
+    fs_log("writing screenshot to %s\n", path);
+
+    int w = fs_ml_video_width();
+    int h = fs_ml_video_height();
+    fs_log("reading opengl frame buffer (%d x %d)\n", w, h);
+    void *out_data = malloc(w * h * 4);
+
+    // when using GL_RGB, remeber to temporarily set GL_UNPACK_ALIGNMENT so
+    // all rows will be contiguous (the OpenGL default is to align rows on
+    // 4-byte boundaries
+    //GLint unpack_alignment;
+    //glGetIntegerv(GL_UNPACK_ALIGNMENT, &unpack_alignment);
+    //glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, out_data);
+    //glPixelStorei(GL_UNPACK_ALIGNMENT, unpack_alignment);
+
+    // flip image vertically
+    int stride = w * 4;
+    void *tmp = malloc(stride);
+    void *line1 = out_data;
+    void *line2 = out_data + stride * (h - 1);
+    for (int i = 0; i < h / 2; i++) {
+        memcpy(tmp, line1, stride);
+        memcpy(line1, line2, stride);
+        memcpy(line2, tmp, stride);
+        line1 += stride;
+        line2 -= stride;
+    }
+    free(tmp);
+
+    int result = fs_image_save_data(path, out_data, w, h, 4);
+    if (result) {
+        fs_log("saved screenshot\n");
+    }
+    else {
+        fs_log("error saving screenshot\n");
+    }
+    free(out_data);
+    free(name);
+    free(path);
+
+    g_fs_ml_video_screenshot = 0;
 }
 
 int fs_ml_get_vblank_count() {
@@ -567,6 +625,10 @@ void fs_ml_render_iteration() {
         render_frame();
         swap_opengl_buffers();
         //gl_finish();
+    }
+
+    if (g_fs_ml_video_screenshot) {
+        save_screenshot_of_opengl_framebuffer();
     }
 
     if (g_fs_ml_video_post_render_function) {

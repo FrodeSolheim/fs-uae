@@ -54,6 +54,11 @@ struct uae_filter uaefilters[] = {
     { 0 }
 };
 
+#define SET_FLAG(x, y) ((x) |= (y))
+#define CLEAR_FLAG(x, y) ((x) &= ~(y))
+#define SET_OR_CLEAR_FLAG(x, y, z) ((z) ? \
+        SET_FLAG((x), (y)) : CLEAR_FLAG((x), (y)))
+
 static bool render_ok;
 volatile bool thread_vblank_found;
 // --- win32gfx.c
@@ -63,7 +68,7 @@ uae_u32 redc[3 * 256], grec[3 * 256], bluc[3 * 256];
 
 static double remembered_vblank;
 static int vblankbasewait, vblankbasefull;
-RenderData libamiga_rd;
+RenderData g_renderdata;
 static int g_screen_updated = 0;
 
 static uae_u8 g_linemem[4096 * 4];
@@ -112,7 +117,7 @@ void uae_line_update(int line, int update) {
         return;
     }
     // mark this line as not needing copy from the previous render buffer
-    libamiga_rd.line[line] = 0;
+    g_renderdata.line[line] = 0;
     g_screen_updated = 1;
 }
 #endif
@@ -129,9 +134,9 @@ void flush_screen (struct vidbuffer *buffer, int first_line, int last_line) {
 
 bool target_graphics_buffer_update (void) {
     write_log("target_graphics_buffer_update - clearing buffer\n");
-    memset(libamiga_rd.pixels, 0, \
+    memset(g_renderdata.pixels, 0, \
             AMIGA_WIDTH * AMIGA_HEIGHT * g_amiga_video_bpp);
-    memset(libamiga_rd.line, 0, AMIGA_MAX_LINES);
+    memset(g_renderdata.line, 0, AMIGA_MAX_LINES);
     return 0;
 }
 
@@ -146,20 +151,20 @@ bool render_screen (bool immediate) {
     static int cx, cy, cw, ch, crealh;
     //printf("g_picasso_enabled %d\n", g_picasso_enabled);
     if (g_picasso_enabled) {
-        libamiga_rd.width = g_picasso_width;
-        libamiga_rd.height = g_picasso_height;
-        libamiga_rd.limit_x = 0;
-        libamiga_rd.limit_y = 0;
-        libamiga_rd.limit_w = g_picasso_width;
-        libamiga_rd.limit_h = g_picasso_height;
-        //libamiga_rd.updated = g_screen_updated;
-        libamiga_rd.flags = AMIGA_RTG_BUFFER_FLAG;
+        g_renderdata.width = g_picasso_width;
+        g_renderdata.height = g_picasso_height;
+        g_renderdata.limit_x = 0;
+        g_renderdata.limit_y = 0;
+        g_renderdata.limit_w = g_picasso_width;
+        g_renderdata.limit_h = g_picasso_height;
+        //g_renderdata.updated = g_screen_updated;
+        g_renderdata.flags |= AMIGA_VIDEO_RTG_MODE;
 
 #ifdef USE_BUFMEM
-        //memcpy(libamiga_rd.pixels, g_bufmem, g_picasso_width * g_picasso_height * g_amiga_video_bpp);
+        //memcpy(g_renderdata.pixels, g_bufmem, g_picasso_width * g_picasso_height * g_amiga_video_bpp);
 #endif
         // FIXME
-        memset(libamiga_rd.line, 0, AMIGA_MAX_LINES);
+        memset(g_renderdata.line, 0, AMIGA_MAX_LINES);
     }
     else {
         if (gfxvidinfo.outbuffer) {
@@ -191,32 +196,37 @@ bool render_screen (bool immediate) {
             //        "AMIGA_HEIGHT (%d) - clamping\n", cy, ch, AMIGA_HEIGHT);
             ch = AMIGA_HEIGHT - cy;
         }
-        libamiga_rd.width = AMIGA_WIDTH;
-        libamiga_rd.height = AMIGA_HEIGHT;
-        libamiga_rd.limit_x = cx;
-        libamiga_rd.limit_y = cy;
-        libamiga_rd.limit_w = cw;
-        libamiga_rd.limit_h = ch;
-        //libamiga_rd.updated = g_screen_updated;
-        libamiga_rd.flags = 0;
+        g_renderdata.width = AMIGA_WIDTH;
+        g_renderdata.height = AMIGA_HEIGHT;
+        g_renderdata.limit_x = cx;
+        g_renderdata.limit_y = cy;
+        g_renderdata.limit_w = cw;
+        g_renderdata.limit_h = ch;
+        //g_renderdata.updated = g_screen_updated;
+        CLEAR_FLAG(g_renderdata.flags, AMIGA_VIDEO_RTG_MODE);
+        SET_OR_CLEAR_FLAG(g_renderdata.flags, AMIGA_VIDEO_LOW_RESOLUTION,
+                currprefs.gfx_resolution == 0);
+        SET_OR_CLEAR_FLAG(g_renderdata.flags, AMIGA_VIDEO_LINE_DOUBLING,
+                currprefs.gfx_vresolution == 1);
+
 #ifdef USE_BUFMEM
-        //printf("libamiga_rd.pixels %p %p", libamiga_rd.pixels, g_bufmem);
-        memcpy(libamiga_rd.pixels, g_bufmem, AMIGA_WIDTH * AMIGA_HEIGHT * g_amiga_video_bpp);
+        //printf("g_renderdata.pixels %p %p", g_renderdata.pixels, g_bufmem);
+        memcpy(g_renderdata.pixels, g_bufmem, AMIGA_WIDTH * AMIGA_HEIGHT * g_amiga_video_bpp);
 #endif
     }
-    //libamiga_rd.line[first_line] = 0;
-    //libamiga_rd.line[first_line + 1] = 0;
+    //g_renderdata.line[first_line] = 0;
+    //g_renderdata.line[first_line + 1] = 0;
     //for (int y = first_line; y <= last_line; y++) {
-    //    libamiga_rd.line[y] = 0;
+    //    g_renderdata.line[y] = 0;
     //}
     g_screen_updated = 0;
     //printf("flush_screen (%d -> %d) %d %d %d %d\n", first_line, last_line,
     //        cx, cy, cw, ch);
 
-    libamiga_rd.refresh_rate = (int) (currprefs.chipset_refreshrate + 0.5);
-    //printf("%d\n", libamiga_rd.refresh_rate);
+    g_renderdata.refresh_rate = (int) (currprefs.chipset_refreshrate + 0.5);
+    //printf("%d\n", g_renderdata.refresh_rate);
     if (g_libamiga_callbacks.render) {
-        g_libamiga_callbacks.render(&libamiga_rd);
+        g_libamiga_callbacks.render(&g_renderdata);
     }
 
     g_has_flushed_line = 0;
@@ -547,13 +557,13 @@ void flush_line (struct vidbuffer *buffer, int line_no) {
 
     //scrlinebuf
 #ifdef USE_LINEMEM
-    unsigned char *dst = libamiga_rd.pixels + AMIGA_WIDTH * g_amiga_video_bpp * line_no;
+    unsigned char *dst = g_renderdata.pixels + AMIGA_WIDTH * g_amiga_video_bpp * line_no;
     memcpy(dst, g_linemem, AMIGA_WIDTH * g_amiga_video_bpp);
 #endif
 
 #ifndef USE_BUFMEM
     // mark this line as not needing copy from the previous render buffer
-    libamiga_rd.line[line_no] = 0;
+    g_renderdata.line[line_no] = 0;
 #endif
     g_screen_updated = 1;
     g_has_flushed_line = 1;
@@ -579,11 +589,11 @@ int graphics_setup() {
 }
 
 static void grow_render_buffer(int width, int height) {
-    unsigned char *new_pixels = (unsigned char*) libamiga_rd.grow(width, height);
-    if (new_pixels != libamiga_rd.pixels) {
-        //printf("new %p old %p\n", new_pixels, libamiga_rd.pixels);
+    unsigned char *new_pixels = (unsigned char*) g_renderdata.grow(width, height);
+    if (new_pixels != g_renderdata.pixels) {
+        //printf("new %p old %p\n", new_pixels, g_renderdata.pixels);
         //printf("grow_render_buffer %d %d\n", width, height);
-        libamiga_rd.pixels = new_pixels;
+        g_renderdata.pixels = new_pixels;
         gfxvidinfo.drawbuffer.bufmem = new_pixels;
         init_row_map();
         //printf("grow_render_buffer %d %d done\n", width, height);
@@ -593,16 +603,16 @@ static void grow_render_buffer(int width, int height) {
 void amiga_set_render_buffer(void *data, int size, int need_redraw,
         void *(*grow)(int width, int height)) {
     //printf("set render buffer %p\n", data);
-    libamiga_rd.grow = grow;
-    libamiga_rd.pixels = (unsigned char *) data;
+    g_renderdata.grow = grow;
+    g_renderdata.pixels = (unsigned char *) data;
 
     //printf("\n\n\n\n\n\n\n\n set buffer %p %d\n", data, size);
-    //libamiga_rd.pixels = (unsigned char*) data;
-    //libamiga_rd.pixels = (unsigned char*) data;
+    //g_renderdata.pixels = (unsigned char*) data;
+    //g_renderdata.pixels = (unsigned char*) data;
 
 #ifndef USE_BUFMEM
     // reset line information
-    memset(libamiga_rd.line, 1, AMIGA_MAX_LINES);
+    memset(g_renderdata.line, 1, AMIGA_MAX_LINES);
 #ifndef USE_LINEMEM
     //printf("setting bufmem\n");
     gfxvidinfo.drawbuffer.bufmem = (unsigned char*) data;
@@ -641,7 +651,7 @@ void gfx_set_picasso_modeinfo (uae_u32 w, uae_u32 h, uae_u32 depth,
 }
 
 uint8_t *uae_get_render_buffer() {
-    return libamiga_rd.pixels;
+    return g_renderdata.pixels;
 }
 
 #define RGBA_MASK_R 0x000000ff
@@ -703,9 +713,9 @@ int graphics_init(bool mousecapture) {
         g_alpha_shift  = uae_mask_shift(RGBA_MASK_A);
     }
 
-    //libamiga_rd.pixels = (unsigned char*) malloc(AMIGA_WIDTH*AMIGA_HEIGHT*4);
+    //g_renderdata.pixels = (unsigned char*) malloc(AMIGA_WIDTH*AMIGA_HEIGHT*4);
 
-    memset(libamiga_rd.line, 0, AMIGA_MAX_LINES);
+    memset(g_renderdata.line, 0, AMIGA_MAX_LINES);
     gfxvidinfo.maxblocklines = 0;
 #ifdef USE_BUFMEM
     g_bufmem = (unsigned char*) malloc(AMIGA_WIDTH * AMIGA_HEIGHT * g_amiga_video_bpp);

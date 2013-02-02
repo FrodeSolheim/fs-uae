@@ -70,20 +70,14 @@ class FSUAE:
 
     @classmethod
     def find_executable(cls):
-        if fs.windows:
-            if os.path.exists("out/fs-uae.exe"):
-                # for testing / development
-                return "out/fs-uae.exe"
-            if os.path.exists("./fs-uae.exe"):
-                # for testing / development
-                return "./fs-uae.exe"
-        else:
-            if os.path.exists("out/fs-uae"):
-                # for testing / development
-                return "out/fs-uae"
-            if os.path.exists("./fs-uae"):
-                # for testing / development
-                return "./fs-uae"
+        if os.path.isdir("launcher"):
+            # may be running FS-UAE Launcher from source directory, we
+            # then want to run the locally compiled fs-uae binary, if any
+            for path in ["out/fs-uae", "./fs-uae"]:
+                if fs.windows:
+                    path += ".exe"
+                if os.path.isfile(path):
+                    return path
         if fs.windows:
             exe = "../FS-UAE.exe"
         elif fs.macosx:

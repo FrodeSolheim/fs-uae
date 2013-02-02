@@ -150,24 +150,28 @@ static void log_opengl_information() {
         return;
     }
     written = 1;
-    const GLubyte *s;
-    s = glGetString(GL_VENDOR);
+    char *software_renderer = NULL;
+    const char *s;
+    s = (const char*) glGetString(GL_VENDOR);
     if (s) {
         fs_log("opengl vendor: %s\n", s);
     }
-    s = glGetString(GL_RENDERER);
+    s = (const char*) glGetString(GL_RENDERER);
     if (s) {
         fs_log("opengl renderer: %s\n", s);
+        if (strstr(s, "GDI Generic") != NULL) {
+            software_renderer = fs_strdup(s);
+        }
     }
-    s = glGetString(GL_VERSION);
+    s = (const char*) glGetString(GL_VERSION);
     if (s) {
         fs_log("opengl version: %s\n", s);
     }
-    s = glGetString(GL_SHADING_LANGUAGE_VERSION);
+    s = (const char*) glGetString(GL_SHADING_LANGUAGE_VERSION);
     if (s) {
         fs_log("opengl shading language version: %s\n", s);
     }
-    s = glGetString(GL_EXTENSIONS);
+    s = (const char*) glGetString(GL_EXTENSIONS);
     if (s) {
         fs_log("opengl extensions: %s\n", s);
     }
@@ -175,6 +179,12 @@ static void log_opengl_information() {
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max_texture_size);
     fs_log("opengl max texture size (estimate): %dx%d\n", max_texture_size,
             max_texture_size);
+
+    if (software_renderer) {
+        fs_emu_warning("No HW OpenGL driver (\"%s\")",
+                software_renderer);
+        free(software_renderer);
+    }
 }
 
 static void set_video_mode() {

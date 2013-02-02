@@ -1,3 +1,22 @@
+Version 2.1.24:
+
+* Screenshot function also saves a screenshot of the OpenGL frame buffer.
+* Support some RetroArch extensions to the XML shader spec, as a result,
+  the CRT-interlaced-halation shader works now.
+* Fixed zoom modes and viewport correction when disabling line doubling or
+  using low_resolution option.
+* Warn if OpenGL renderer is "GDI Generic" (no real driver installed).
+* Fixed problem loading state when using directory hard drives on case
+  sensitive file systems.
+* Don't warn (with LEDs) about missed frames / repeated frames when this is
+  normal (host frame rate != Amiga frame rate).
+* Blank sync leds a few seconds after startup until the statistics have
+  settled.
+* New option fade_out_duration (miliseconds).
+* Updated translations: fr [Foul], de [nexusle], pl [grimi].
+* (Launcher) Fixed problem initializing joystick device list on Windows.
+* (Launcher) Updated translations: fr [Foul], de [nexusle].
+
 Version 2.1.23:
 
 * New option save_states can be used to disable the save state feature.
@@ -16,7 +35,7 @@ Version 2.1.22:
 Version 2.1.21:
 
 * Added A3000 model (68030 + FPU, 2 MB chip + 8 MB fast, KS 3.1)
-* New aliases for theme overlays (power_led, df0_led, etc)
+* New aliases for theme overlays (power_led, df0_led, etc).
 * Theme coordinate system can be defined with theme_width, theme_height.
 * Old overlay option is deprecated, new overlay types available.
 * Audio led flashes red on buffer underruns, turns off when the Amiga is not

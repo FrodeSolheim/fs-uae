@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <fs/config.h>
 #include <fs/filesys.h>
 #include <fs/i18n.h>
 #include <fs/ml.h>
@@ -316,10 +317,11 @@ static void save_screenshot(const char *type, int cx, int cy, int cw, int ch,
         int frame_bpp) {
     char *name, *path;
     time_t t = time(NULL);
-    struct tm *tm_struct = localtime(&t);
+    struct tm tm_struct;
+    localtime_r(&t, &tm_struct);
     char strbuf[20];
-    strftime(strbuf, 20, "%Y-%m-%d-%H-%M", tm_struct);
-    name = fs_strdup_printf("fs-uae-%s-%s-%d.png", type, strbuf, count);
+    strftime(strbuf, 20, "%Y-%m-%d-%H-%M", &tm_struct);
+    name = fs_strdup_printf("fs-uae-%s-%s-%03d.png", type, strbuf, count);
     path = fs_path_join(fs_get_desktop_dir(), name, NULL);
     fs_log("writing screenshot to %s\n", path);
 
@@ -378,8 +380,6 @@ static void save_screenshot(const char *type, int cx, int cy, int cw, int ch,
 
     int result = fs_image_save_data(path, out_data, cw, ch, 3);
     if (result) {
-        // FIXME: not a warning
-        fs_emu_warning(_("Saved screenshot: %s"), name);
         fs_log("saved screenshot\n");
     }
     else {
@@ -417,6 +417,7 @@ static int update_texture() {
         if (g_fs_emu_repeated_frames > 9999) {
             g_fs_emu_repeated_frames = 9999;
         }
+        g_fs_emu_repeated_frame_time = fs_get_monotonic_time();
         is_new_frame = 0;
     }
     else {
@@ -455,14 +456,27 @@ static int update_texture() {
     // g_fs_emu_screenshot is set to 1 when screenshot command is executed
     // (keyboard shortcut), but screenshot is saved here, as soon as possible.
 
-    if (g_fs_emu_screenshot) {
-        static int count = 1;
-        g_fs_emu_screenshot = 0;
-        save_screenshot("full", 0, 0, width, height,
-                count, frame, width, height, bpp);
-        save_screenshot("cropped", g_crop.x, g_crop.y, g_crop.w, g_crop.h,
-                count, frame, width, height, bpp);
-        count += 1;
+    if (g_fs_emu_screenshot > 0) {
+        printf("%d\n", g_fs_emu_screenshot);
+        static int count = 0;
+        if (g_fs_emu_screenshot == 1) {
+            count += 1;
+            save_screenshot("full", 0, 0, width, height,
+                    count, frame, width, height, bpp);
+            save_screenshot("cropped", g_crop.x, g_crop.y, g_crop.w, g_crop.h,
+                    count, frame, width, height, bpp);
+            g_fs_emu_screenshot++;
+            fs_ml_video_screenshot(count);
+        }
+        else if (g_fs_emu_screenshot > 4) {
+            // we wait a bit until printing the notification, so the OpenGL
+            // screenshot can be captured before the notification is shown
+            g_fs_emu_screenshot = 0;
+            fs_emu_warning(_("Saved screenshot %d"), count);
+        }
+        else {
+            g_fs_emu_screenshot++;
+        }
     }
 
     int upload_x, upload_y, upload_w, upload_h;
@@ -1485,7 +1499,11 @@ static void render_glow(double opacity) {
  * This function is called at the end of the frame rendering function
  */
 static void handle_quit_sequence() {
-    int fade_time = 750 * 1000;
+    int fade_time = fs_config_get_int_clamped("fade_out_duration", 0, 10000);
+    if (fade_time == FS_CONFIG_NONE) {
+        fade_time = 750;
+    }
+    fade_time = fade_time * 1000;
 
     int64_t dt = fs_emu_monotonic_time() - g_fs_emu_quit_time;
     if (dt > fade_time && g_fs_emu_emulation_thread_stopped) {

@@ -49,6 +49,8 @@ extern int g_fs_emu_total_sys_frames;
 extern int g_fs_emu_repeated_frames;
 extern int g_fs_emu_lost_frames;
 extern int64_t g_fs_emu_lost_frame_time;
+extern int64_t g_fs_emu_repeated_frame_time;
+extern int64_t g_fs_emu_video_mode_change_time;
 extern int g_fs_emu_lost_vblanks;
 extern fs_emu_stat_queue g_fs_emu_emu_frame_times;
 extern fs_emu_stat_queue g_fs_emu_emu2_frame_times;

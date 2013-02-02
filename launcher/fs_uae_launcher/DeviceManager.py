@@ -106,6 +106,8 @@ class DeviceManager:
         joysticks = joysticks.decode("UTF-8", "replace")
         joysticks = [x.strip() for x in joysticks.split("\n") if x.strip()]
         for name in joysticks:
+            if name.startswith("#"):
+                continue
             name_count = cls.device_name_count.get(name, 0) + 1
             cls.device_name_count[name] = name_count
             if name_count > 1:

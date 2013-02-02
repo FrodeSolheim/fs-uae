@@ -545,6 +545,7 @@ static void find_nname_case(const char *dir_path, char **name) {
         lower_latin1(cmp_result);
 
         if (strcmp(cmp_name, cmp_result) == 0) {
+            // FIXME: memory leak, free name first?
             *name = fs_strdup(result);
             if (g_fsdb_debug) {
                 write_log("              %s\n", *name);
@@ -557,6 +558,31 @@ static void find_nname_case(const char *dir_path, char **name) {
     free(cmp_name);
 }
 
+char *fsdb_native_path(const char *root_dir, const char *amiga_path) {
+    if (g_fsdb_debug) {
+        write_log("fsdb_native_path (%s) %s\n", root_dir, amiga_path);
+    }
+    // splitting / allocating strings is not the most efficient way to do it,
+    // but the code gets very readable...
+    char *current_path = fs_strdup(root_dir);
+    char **parts = fs_strsplit(amiga_path, "/", 0);
+    char **part = parts;
+    while (*part) {
+        if (g_fsdb_debug) {
+            write_log("-  %s\n", *part);
+        }
+        char *nname = aname_to_nname(*part);
+        find_nname_case(current_path, &nname);
+        char *free_me = current_path;
+        current_path = fs_path_join(current_path, nname, NULL);
+        free(free_me);
+        free(nname);
+        part++;
+    }
+    fs_strfreev(parts);
+    return current_path;
+}
+
 a_inode *custom_fsdb_lookup_aino_aname(a_inode *base, const TCHAR *aname) {
     //STUB("base=? aname=\"%s\"", aname);
 
@@ -567,6 +593,10 @@ a_inode *custom_fsdb_lookup_aino_aname(a_inode *base, const TCHAR *aname) {
     file_info info;
     get_file_info(full_nname, &info);
     if (!info.exists) {
+        if (g_fsdb_debug) {
+            write_log("custom_fsdb_lookup_aino_aname aname = %s "
+                    "(does not exist)\n", aname);
+        }
         free(full_nname);
         return NULL;
     }
@@ -579,6 +609,10 @@ a_inode *custom_fsdb_lookup_aino_aname(a_inode *base, const TCHAR *aname) {
     aino->has_dbentry = 0;
     aino->dirty = 0;
     aino->db_offset = 0;
+    if (g_fsdb_debug) {
+        write_log("custom_fsdb_lookup_aino_aname aname = %s "
+                "(full_nname = %s)\n", aname, full_nname);
+    }
     return aino;
 }
 

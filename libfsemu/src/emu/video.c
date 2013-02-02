@@ -50,11 +50,13 @@ int g_fs_emu_total_sys_frames = 0;
 fs_emu_stat_queue g_fs_emu_emu_frame_times = {};
 fs_emu_stat_queue g_fs_emu_emu2_frame_times = {};
 fs_emu_stat_queue g_fs_emu_sys_frame_times = {};
-int g_fs_emu_repeated_frames = 0;
 int g_fs_emu_lost_frames = 0;
-int64_t g_fs_emu_lost_frame_time = 0;
+int g_fs_emu_repeated_frames = 0;
 int g_fs_emu_lost_vblanks = 0;
 int g_fs_emu_audio_buffer_underruns = 0;
+int64_t g_fs_emu_lost_frame_time = 0;
+int64_t g_fs_emu_repeated_frame_time = 0;
+int64_t g_fs_emu_video_mode_change_time = 0;
 
 // this is used to make sure that changes to menu etc is not done while
 // rendering it... handling of input events for menu actions must be done
@@ -258,20 +260,40 @@ double fs_emu_get_average_sys_fps() {
 
 int g_fs_emu_audio_enabled;
 
-void fs_emu_video_after_update() {
-    fs_emu_video_buffer_unlock();
-
-    int64_t t = fs_emu_monotonic_time();
-
-    if (fs_emu_pointer_is_visible_to() > 0) {
-        if (fs_emu_pointer_is_visible_to() < fs_emu_monotonic_time()) {
-            //fs_log("%lld\n", fs_emu_monotonic_time());
-            fs_emu_show_pointer(0);
-        }
+static void update_leds(int64_t t) {
+    if (g_fs_emu_video_mode_change_time == 0) {
+        // we use this variable to ignore sync warnings for a short while
+        // after the emulation has started and/or video mode changes, since
+        // it will be temporarily "unstable" then. (normal)
+        g_fs_emu_video_mode_change_time = t;
     }
 
+    int vsync_led_state = 0;
+    int fps_led_state = 0;
+    int audio_led_state = 0;
+
     double diff;
-    diff = g_fs_emu_video_frame_rate_host - fs_emu_get_average_sys_fps();
+    int ignore_lossed_frames = 0;
+    int ignore_repeated_frames = 0;
+    if (fs_ml_get_vblank_sync()) {
+        if (g_fs_emu_video_frame_rate_host == 0) {
+            // ?
+        }
+        else if (g_fs_emu_video_frame_rate_host == g_video_frame_rate) {
+            // should ideally not lose / get repeated frames
+        }
+        else if (g_fs_emu_video_frame_rate_host > g_video_frame_rate) {
+            ignore_repeated_frames = 1;
+        }
+        else if (g_fs_emu_video_frame_rate_host < g_video_frame_rate) {
+            ignore_lossed_frames = 1;
+        }
+        diff = g_fs_emu_video_frame_rate_host - fs_emu_get_average_sys_fps();
+    }
+    else {
+        diff = g_video_frame_rate - fs_emu_get_average_sys_fps();
+    }
+
     if (g_fs_emu_video_frame_rate_host == 0) {
         // unknown host frame rate
         diff = 0;
@@ -281,20 +303,19 @@ void fs_emu_video_after_update() {
     }
 
     if (diff > 0.2) {
-        fs_emu_set_overlay_state(FS_EMU_VSYNC_LED_OVERLAY, 3);
+        vsync_led_state = 3;
     }
     else if (fs_ml_get_vblank_sync()) {
         if (fs_ml_get_video_sync()) {
-            fs_emu_set_overlay_state(FS_EMU_VSYNC_LED_OVERLAY, 1);
+            vsync_led_state = 1;
         }
         else {
-            fs_emu_set_overlay_state(FS_EMU_VSYNC_LED_OVERLAY, 2);
+            vsync_led_state = 2;
         }
     }
     else {
-        fs_emu_set_overlay_state(FS_EMU_VSYNC_LED_OVERLAY, 0);
+        // leave at 0
     }
-
 
     diff = g_video_frame_rate - fs_emu_get_average_emu_fps();
     if (diff < 0) {
@@ -302,25 +323,62 @@ void fs_emu_video_after_update() {
     }
 
     if (diff > 0.1) {
-        fs_emu_set_overlay_state(FS_EMU_FPS_LED_OVERLAY, 3);
+        fps_led_state = 3;
     }
-    else if (t - g_fs_emu_lost_frame_time < 100000) {
-        fs_emu_set_overlay_state(FS_EMU_FPS_LED_OVERLAY, 3);
+    else if (!ignore_lossed_frames &&
+            t - g_fs_emu_lost_frame_time < 100000) {
+        fps_led_state = 3;
+    }
+    else if (!ignore_repeated_frames &&
+            t - g_fs_emu_repeated_frame_time < 100000) {
+        fps_led_state = 3;
     }
     else if (g_video_frame_rate == 60) {
-        fs_emu_set_overlay_state(FS_EMU_FPS_LED_OVERLAY, 2);
+        fps_led_state = 2;
     }
     else {
-        fs_emu_set_overlay_state(FS_EMU_FPS_LED_OVERLAY, 1);
+        fps_led_state = 1;
     }
 
     if (t - g_fs_emu_audio_buffer_underrun_time < 100000) {
-        fs_emu_set_overlay_state(FS_EMU_AUDIO_LED_OVERLAY, 3);
+        audio_led_state = 3;
     }
     else {
-        fs_emu_set_overlay_state(FS_EMU_AUDIO_LED_OVERLAY,
-                g_fs_emu_audio_stream_playing[0]);
+        audio_led_state = g_fs_emu_audio_stream_playing[0];
     }
+
+    int64_t time_since_change = t - g_fs_emu_video_mode_change_time;
+    if (time_since_change < 6000000) { // 6 seconds
+        //int state = ((t - g_fs_emu_video_mode_change_time) / 250000) % 2;
+        //vsync_led_state = state ? vsync_led_state : 0;
+        //fps_led_state = state ? fps_led_state : 0;
+        //audio_led_state = state;
+        fps_led_state = 0;
+    }
+    if (time_since_change < 5000000) {
+        vsync_led_state = 0;
+    }
+    if (time_since_change < 2000000) {
+        audio_led_state = 0;
+    }
+
+    fs_emu_set_overlay_state(FS_EMU_VSYNC_LED_OVERLAY, vsync_led_state);
+    fs_emu_set_overlay_state(FS_EMU_FPS_LED_OVERLAY, fps_led_state);
+    fs_emu_set_overlay_state(FS_EMU_AUDIO_LED_OVERLAY, audio_led_state);
+}
+
+void fs_emu_video_after_update() {
+    fs_emu_video_buffer_unlock();
+    int64_t t = fs_emu_monotonic_time();
+
+    if (fs_emu_pointer_is_visible_to() > 0) {
+        if (fs_emu_pointer_is_visible_to() < fs_emu_monotonic_time()) {
+            //fs_log("%lld\n", fs_emu_monotonic_time());
+            fs_emu_show_pointer(0);
+        }
+    }
+
+    update_leds(t);
 
     update_video_stats_system_video();
 

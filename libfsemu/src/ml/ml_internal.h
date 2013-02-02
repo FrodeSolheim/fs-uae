@@ -10,6 +10,7 @@ extern int g_fs_ml_video_width;
 extern int g_fs_ml_video_height;
 extern int g_fs_ml_target_refresh_rate;
 extern int g_fs_ml_target_frame_time;
+extern int g_fs_ml_video_screenshot;
 
 void fs_ml_initialize_keymap();
 int fs_ml_scancode_to_key(int scancode);

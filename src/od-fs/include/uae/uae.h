@@ -85,7 +85,9 @@ void amiga_set_render_buffer(void *data, int size, int need_redraw,
 
 #define AMIGA_MAX_LINES 2048
 
-#define AMIGA_RTG_BUFFER_FLAG 1
+#define AMIGA_VIDEO_RTG_MODE 1
+#define AMIGA_VIDEO_LOW_RESOLUTION 2
+#define AMIGA_VIDEO_LINE_DOUBLING 4
 
 typedef struct _RenderData {
     unsigned char* pixels;

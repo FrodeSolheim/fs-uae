@@ -1,9 +1,17 @@
 #include <uae/uae.h>
-#include <fs/thread.h>
+
+#ifdef USE_SDL
+// we must include SDL first before emu.h, so libfsemu's #definition of main
+// is the current one (on Windows) when main is encountered further down
+#include <SDL/SDL.h>
+#undef main
+#endif
+
 #include <fs/base.h>
 #include <fs/emu.h>
 #include <fs/i18n.h>
 #include <fs/string.h>
+#include <fs/thread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -472,15 +480,15 @@ static void media_function(int drive, const char *path) {
     fs_emu_set_custom_overlay_state(4 + drive, path && path[0]);
 }
 
-#ifdef USE_SDL
-#include <SDL/SDL.h>
-#endif
-
 void list_joysticks() {
+    printf("# FS-UAE VERSION %s\n", g_fs_uae_version);
+    printf("# listing joysticks\n");
 #ifdef USE_SDL
     if (SDL_Init(SDL_INIT_JOYSTICK ) < 0) {
+        printf("# SDL_Init(SDL_INIT_JOYSTICK ) < 0\n");
         return;
     }
+    printf("# SDL_NumJoysticks(): %d\n", SDL_NumJoysticks());
     for(int i = 0; i < SDL_NumJoysticks(); i++) {
         if (SDL_JoystickName(i)[0] == '\0') {
             printf("Unnamed\n");
@@ -489,7 +497,10 @@ void list_joysticks() {
             printf("%s\n", SDL_JoystickName(i));
         }
     }
+#else
+    printf("# USE_SDL is not defined\n");
 #endif
+    printf("# listing joysticks done\n");
 }
 
 static const char *overlay_names[] = {

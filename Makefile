@@ -527,6 +527,7 @@ distdir-base: distdir-launcher-base
 	mkdir -p $(dist_dir)/server
 	cp -a server/fs_uae_netplay_server $(dist_dir)/server/
 	find $(dist_dir)/server -name "*.pyc" -delete
+	cp -a server/COPYING $(dist_dir)/server/
 	cp -a server/README $(dist_dir)/server/
 	cp -a server/setup.py $(dist_dir)/server/
 

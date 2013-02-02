@@ -7170,6 +7170,9 @@ static a_inode *restore_filesys_get_base (Unit *u, TCHAR *npath)
 
 static TCHAR *makenativepath (UnitInfo *ui, TCHAR *apath)
 {
+#ifdef FSUAE
+    return fsdb_native_path(ui->rootdir, apath);
+#else
 	int i;
 	TCHAR *pn;
 	/* create native path. FIXME: handle 'illegal' characters */
@@ -7182,6 +7185,7 @@ static TCHAR *makenativepath (UnitInfo *ui, TCHAR *apath)
 		}
 	}
 	return pn;
+#endif
 }
 
 static uae_u8 *restore_aino (UnitInfo *ui, Unit *u, uae_u8 *src)

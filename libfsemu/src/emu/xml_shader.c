@@ -20,6 +20,7 @@
 #endif
 
 #define debug_printf(format, ...)
+//#define debug_printf printf
 
 #define FILTERING_NOTSET 0
 #define FILTERING_NEAREST 1
@@ -565,12 +566,19 @@ void fs_emu_xml_shader_init(void) {
 }
 
 static int g_frame_count = 0;
+
 static int g_cur_input_w = 0;
 static int g_cur_input_h = 0;
-
-static GLuint g_cur_texture = 0;
 static int g_cur_texture_w = 0;
 static int g_cur_texture_h = 0;
+static GLuint g_cur_texture = 0;
+
+static int g_orig_input_w = 0;
+static int g_orig_input_h = 0;
+static int g_orig_texture_w = 0;
+static int g_orig_texture_h = 0;
+static GLuint g_orig_texture = 0;
+
 
 static int g_final_output_w = 0;
 static int g_final_output_h = 0;
@@ -582,20 +590,19 @@ static float g_alpha;
 static int g_render_textured_side = 0;
 
 
-static void render_quad(float s2, float t1, float t2, int first, int last) {
+static void render_quad(float s2, float t1, float t2, int first, int last,
+        int flip) {
 
     float x1 = -1.0;
     float x2 = 1.0;
     float y1 = -1.0;
     float y2 = 1.0;
 
-    if (first) {
-        float temp = t1;
-        t1 = t2;
-        t2 = temp;
-    }
-
     if (last) {
+        float t3 = t1;
+        t1 = t2;
+        t2 = t3;
+
         x1 = g_x1;
         x2 = g_x2;
         y1 = g_y1;
@@ -622,9 +629,20 @@ static void render_quad(float s2, float t1, float t2, int first, int last) {
     glEnd();
 }
 
+static int round_up_pow2(int val) {
+    // simple implementation, but works
+    int x = 1;
+    while (x < val) {
+        x = x << 1;
+    }
+    return x;
+}
+
 static void render_pass(shader_pass *pass, int first, int last) {
     int output_w = -1;
     int output_h = -1;
+
+    debug_printf("\n");
 
     // If the horizontal scale method is fixed, set the output width to
     // the horizontal scale value.
@@ -654,6 +672,8 @@ static void render_pass(shader_pass *pass, int first, int last) {
 
     else if (first && !last) {
         output_w = 1024;
+        debug_printf("setting output width to arbitrary value %d\n",
+                output_w);
     }
 
     // If this is the last shader pass:
@@ -687,6 +707,8 @@ static void render_pass(shader_pass *pass, int first, int last) {
 
     if (pass->ver_scale_method == SCALING_FIXED) {
         output_h = pass->ver_scale_value;
+        debug_printf("pass->ver_scale_method == SCALING_FIXED, "
+                "output_h = %d\n", output_h);
     }
 
     // If the vertical scale method is input, set the output height to the
@@ -695,6 +717,8 @@ static void render_pass(shader_pass *pass, int first, int last) {
 
     else if (pass->ver_scale_method == SCALING_INPUT) {
         output_h = g_cur_input_h * pass->ver_scale_value;
+        debug_printf("pass->ver_scale_method == SCALING_INPUT, "
+                "output_h = %d\n", output_h);
     }
 
     // If the vertical scale method is output, set the output height to the
@@ -703,6 +727,8 @@ static void render_pass(shader_pass *pass, int first, int last) {
 
     else if (pass->ver_scale_method == SCALING_OUTPUT) {
         output_h = g_final_output_h * pass->ver_scale_value;
+        debug_printf("pass->ver_scale_method == SCALING_OUTPUT, "
+                "output_h = %d\n", output_h);
     }
 
     // If this is the first shader pass, and the output height is not yet
@@ -711,6 +737,8 @@ static void render_pass(shader_pass *pass, int first, int last) {
 
     else if (first && !last) {
         output_h = 1024;
+        debug_printf("setting output height to arbitrary value %d\n",
+                output_h);
     }
 
     // If this is the last shader pass:
@@ -763,28 +791,35 @@ static void render_pass(shader_pass *pass, int first, int last) {
         }
         output_texture = pass->texture;
 
-        // FIXME!!
-        output_texture_w = output_w;
-        output_texture_h = output_h;
-        //output_texture_w = 2048;
-        //output_texture_h = 2048;
+        output_texture_w = round_up_pow2(output_w);
+        output_texture_h = round_up_pow2(output_h);
 
-        //glBindTexture(GL_TEXTURE_2D, output_texture);
+        // The following is a hack to fix compatibility with
+        // CRT-interlaced-halation.shader which has a faulty assumption,
+        // that rubyTextureSize and rubyOriginalTextureSize will be the
+        // same in the final pass. The reason they may not be the same is
+        // because of the crop / zoom function, so for example, FS-UAE may
+        // allocate a 1024x1024 texture, but because of cropping, a
+        // 1024x512 will be big enough for subsequent passes.
+
+        if (output_texture_h < g_orig_texture_h) {
+            output_texture_h = g_orig_texture_h;
+        }
+        if (output_texture_w < g_orig_texture_w) {
+            output_texture_w = g_orig_texture_w;
+        }
+
         fs_gl_bind_texture(output_texture);
         // using RGBA ensures that line size in bytes is a multiple of 4
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, output_texture_w,
                 output_texture_h, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-
-        //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, output_texture_w + 2,
-        //        output_texture_h + 2, 1, GL_RGB, GL_UNSIGNED_BYTE, NULL);
         CHECK_GL_ERROR();
 
-        //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-        //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        //glBindTexture(GL_TEXTURE_2D, 0);
         fs_gl_bind_texture(0);
 
         // Construct a framebuffer object, and bind the output texture to it
@@ -797,8 +832,6 @@ static void render_pass(shader_pass *pass, int first, int last) {
             CHECK_GL_ERROR();
         }
         frame_buffer = pass->frame_buffer;
-
-        //debug_printf("frame_buffer %d\n", frame_buffer);
 
         glPushMatrix();
         glLoadIdentity();
@@ -851,9 +884,43 @@ static void render_pass(shader_pass *pass, int first, int last) {
 
     GLint rubyFrameCount = glGetUniformLocation(pass->program,
             "rubyFrameCount");
-    //debug_printf("%d\n", rubyFrameCount);
     if (rubyFrameCount >= 0) {
         glUniform1i(rubyFrameCount, g_frame_count);
+    }
+    CHECK_GL_ERROR();
+
+    // Set the uniform rubyOrigTexture to the original texture.
+
+    GLint rubyOrigTexture = glGetUniformLocation(pass->program,
+            "rubyOrigTexture");
+    if (rubyOrigTexture >= 0) {
+        debug_printf("set rubyOrigTexture to %d\n", 1);
+        glUniform1i(rubyOrigTexture, 1);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, g_orig_texture);
+        glActiveTexture(GL_TEXTURE0);
+    }
+    CHECK_GL_ERROR();
+
+    // Set the uniform rubyOrigTextureSize to the original texture size.
+
+    GLint rubyOrigTextureSize = glGetUniformLocation(pass->program,
+            "rubyOrigTextureSize");
+    if (rubyOrigTextureSize >= 0) {
+        debug_printf("set rubyOrigTextureSize to %dx%d\n",
+                g_orig_texture_w, g_orig_texture_h);
+        glUniform2f(rubyOrigTextureSize, g_orig_texture_w, g_orig_texture_h);
+    }
+    CHECK_GL_ERROR();
+
+    // Set the uniform rubyOrigInputSize to the original input size.
+
+    GLint rubyOrigInputSize = glGetUniformLocation(pass->program,
+            "rubyOrigInputSize");
+    if (rubyOrigInputSize >= 0) {
+        debug_printf("set rubyOrigInputSize to %dx%d\n",
+                g_orig_input_w, g_orig_input_h);
+        glUniform2f(rubyOrigInputSize, g_orig_input_w, g_orig_input_h);
     }
     CHECK_GL_ERROR();
 
@@ -871,7 +938,8 @@ static void render_pass(shader_pass *pass, int first, int last) {
     GLint rubyTextureSize = glGetUniformLocation(pass->program,
             "rubyTextureSize");
     if (rubyTextureSize >= 0) {
-        debug_printf("set rubyTextureSize to %dx%d\n", g_cur_texture_w, g_cur_texture_h);
+        debug_printf("set rubyTextureSize to %dx%d\n",
+                g_cur_texture_w, g_cur_texture_h);
         glUniform2f(rubyTextureSize, g_cur_texture_w, g_cur_texture_h);
     }
     CHECK_GL_ERROR();
@@ -881,7 +949,8 @@ static void render_pass(shader_pass *pass, int first, int last) {
     GLint rubyInputSize = glGetUniformLocation(pass->program,
             "rubyInputSize");
     if (rubyInputSize >= 0) {
-        debug_printf("set rubyInputSize to %dx%d\n", g_cur_input_w, g_cur_input_h);
+        debug_printf("set rubyInputSize to %dx%d\n",
+                g_cur_input_w, g_cur_input_h);
         glUniform2f(rubyInputSize, g_cur_input_w, g_cur_input_h);
     }
     CHECK_GL_ERROR();
@@ -891,7 +960,7 @@ static void render_pass(shader_pass *pass, int first, int last) {
     GLint rubyOutputSize = glGetUniformLocation(pass->program,
             "rubyOutputSize");
     if (rubyOutputSize >= 0) {
-        debug_printf("set rubyInputSize to %dx%d\n", output_w, output_h);
+        debug_printf("set rubyOutputSize to %dx%d\n", output_w, output_h);
         glUniform2f(rubyOutputSize, output_w, output_h);
     }
     CHECK_GL_ERROR();
@@ -899,36 +968,10 @@ static void render_pass(shader_pass *pass, int first, int last) {
     // Render a quad, textured with the current texture, with a vertex at
     // each corner of the output size.
 
-    //glBegin(GL_QUADS);
-    //glVertex2f(-1.0, -1.0);
-    //glVertex2f( 1.0, -1.0);
-    //glVertex2f( 1.0,  1.0);
-    //glVertex2f(-1.0,  1.0);
-    //glEnd();
-
     float s2 = (float) g_cur_input_w / (float) g_cur_texture_w;
     float t2 = (float) g_cur_input_h / (float) g_cur_texture_h;
-
-    debug_printf("s, t = %0.2f %0.2f\n", s2, t2);
-
-    //glBindTexture(GL_TEXTURE_2D, g_cur_texture);
     fs_gl_bind_texture(g_cur_texture);
-    //glColor3f(1.0, 0.0, 0.0);
-
-    //render_side(s2, t2);
-
-    render_quad(s2, 0.0, t2, first, last && !g_requires_implicit_pass);
-    //glBegin(GL_QUADS);
-    //glTexCoord2f(0.0,  t2); glVertex2f(-1.0, -1.0);
-    //glTexCoord2f( s2,  t2); glVertex2f( 1.0, -1.0);
-    //glTexCoord2f( s2, 0.0); glVertex2f( 1.0,  1.0);
-    //glTexCoord2f(0.0, 0.0); glVertex2f(-1.0,  1.0);
-
-    //glMultiTexCoord2f(GL_TEXTURE0, 0.0,  t2); glVertex2f(-1.0, -1.0);
-    //glMultiTexCoord2f(GL_TEXTURE0,  s2,  t2); glVertex2f( 1.0, -1.0);
-    //glMultiTexCoord2f(GL_TEXTURE0,  s2, 0.0); glVertex2f( 1.0,  1.0);
-    //glMultiTexCoord2f(GL_TEXTURE0, 0.0, 0.0); glVertex2f(-1.0,  1.0);
-    //glEnd();
+    render_quad(s2, 0.0, t2, first, last && !g_requires_implicit_pass, first);
     CHECK_GL_ERROR();
 
     // Tell OpenGL not to use a shader program (i.e. glUseProgram(0)).
@@ -944,14 +987,8 @@ static void render_pass(shader_pass *pass, int first, int last) {
         // Tell OpenGL not to use the frame-buffer object.
         debug_printf("unbind framebuffer\n");
 
-        //glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-        //        GL_TEXTURE_2D, 0, 0);
-        //CHECK_GL_ERROR();
-
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         CHECK_GL_ERROR();
-        //glDeleteFramebuffers(1, &frame_buffer);
-        //CHECK_GL_ERROR();
 
         glViewport(0, 0, fs_ml_video_width(), fs_ml_video_height());
         glPopMatrix();
@@ -1025,7 +1062,18 @@ int fs_emu_xml_shader_render(int texture, int texture_width,
     // application into it.
 
     g_cur_texture = texture;
+    debug_printf("\n\n\n\n\n");
     debug_printf("cur tex %d\n", g_cur_texture);
+
+    g_orig_texture = g_cur_texture;
+    g_orig_texture_w = g_cur_texture_w;
+    g_orig_texture_h = g_cur_texture_h;
+    g_orig_input_w = g_cur_input_w;
+    g_orig_input_h = g_cur_input_h;
+
+    debug_printf("final output: %d %d\n", g_final_output_w, g_final_output_h);
+    debug_printf("       input: %d %d\n", g_cur_input_w, g_cur_input_h);
+    debug_printf("     texture: %d %d\n", g_cur_texture_w, g_cur_texture_h);
 
     // For each shader pass in the list of shader passes...
     fs_list *link = g_shader_passes;
@@ -1046,45 +1094,16 @@ int fs_emu_xml_shader_render(int texture, int texture_width,
 
         float s2 = (float) g_cur_input_w / (float) g_cur_texture_w;
         float t2 = (float) g_cur_input_h / (float) g_cur_texture_h;
-        //s2 = 1.0;
-        //t2 = 1.0;
-        debug_printf("%0.2f %0.2f\n", s2, t2);
-
-        // FIXME
-        //glClear(GL_COLOR_BUFFER_BIT);
-
-        //glEnable(GL_TEXTURE_2D);
-        //glColor3f(1.0, 1.0, 1.0);
-        //glBindTexture(GL_TEXTURE_2D, g_cur_texture);
         fs_gl_bind_texture(g_cur_texture);
-
-        render_quad(s2, 0.0, t2, 0, 1);
-
-        /*
-        render_side(s2, t2);
-        glBegin(GL_QUADS);
-        glTexCoord2f(0.0, 0.0); glVertex2f(x1, y1);
-        glTexCoord2f( s2, 0.0); glVertex2f(x2, y1);
-        glTexCoord2f( s2,  t2); glVertex2f(x2, y2);
-        glTexCoord2f(0.0,  t2); glVertex2f(x1, y2);
-        */
-        /*
-        glTexCoord2f(0.0, 0.0); glVertex2f(-1.0, -1.0);
-        glTexCoord2f( s2, 0.0); glVertex2f( 1.0, -1.0);
-        glTexCoord2f( s2,  t2); glVertex2f( 1.0,  1.0);
-        glTexCoord2f(0.0,  t2); glVertex2f(-1.0,  1.0);
-        */
-        /*
-        glEnd();
-        */
+        render_quad(s2, 0.0, t2, 0, 1, 0);
     }
     CHECK_GL_ERROR();
 
     g_frame_count++;
 
-    // because fs_emu_render_with_shader does not use fs_gl_functions
-    //glBindTexture(GL_TEXTURE_2D, 0);
-    //fs_gl_bind_texture(0);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glActiveTexture(GL_TEXTURE0);
     CHECK_GL_ERROR();
 
     return 1;

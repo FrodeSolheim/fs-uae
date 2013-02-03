@@ -4,7 +4,6 @@
 // we must include SDL first before emu.h, so libfsemu's #definition of main
 // is the current one (on Windows) when main is encountered further down
 #include <SDL/SDL.h>
-#undef main
 #endif
 
 #include <fs/base.h>

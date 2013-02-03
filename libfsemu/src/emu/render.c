@@ -317,10 +317,15 @@ static void save_screenshot(const char *type, int cx, int cy, int cw, int ch,
         int frame_bpp) {
     char *name, *path;
     time_t t = time(NULL);
+#ifdef WINDOWS
+    struct tm *tm_p = localtime(&t);
+#else
     struct tm tm_struct;
-    localtime_r(&t, &tm_struct);
+    struct tm *tm_p = &tm_struct;
+    localtime_r(&t, tm_p);
+#endif
     char strbuf[20];
-    strftime(strbuf, 20, "%Y-%m-%d-%H-%M", &tm_struct);
+    strftime(strbuf, 20, "%Y-%m-%d-%H-%M", tm_p);
     name = fs_strdup_printf("fs-uae-%s-%s-%03d.png", type, strbuf, count);
     path = fs_path_join(fs_get_desktop_dir(), name, NULL);
     fs_log("writing screenshot to %s\n", path);

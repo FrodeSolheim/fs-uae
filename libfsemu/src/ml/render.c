@@ -122,10 +122,15 @@ static void save_screenshot_of_opengl_framebuffer() {
     count += 1;
 
     time_t t = time(NULL);
+#ifdef WINDOWS
+    struct tm *tm_p = localtime(&t);
+#else
     struct tm tm_struct;
-    localtime_r(&t, &tm_struct);
+    struct tm *tm_p = &tm_struct;
+    localtime_r(&t, tm_p);
+#endif
     char strbuf[20];
-    strftime(strbuf, 20, "%Y-%m-%d-%H-%M", &tm_struct);
+    strftime(strbuf, 20, "%Y-%m-%d-%H-%M", tm_p);
     char *name = fs_strdup_printf("fs-uae-%s-%s-%03d.png", "opengl",
             strbuf, g_fs_ml_video_screenshot);
     char *path = fs_path_join(fs_get_desktop_dir(), name, NULL);

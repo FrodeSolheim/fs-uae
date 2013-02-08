@@ -16,6 +16,11 @@ TIMER_INTERVAL = 100
 
 class ScanDialog(fsui.Dialog):
 
+    @classmethod
+    def refresh_game_database(cls, window):
+        return cls(window, minimal=True, interactive=False,
+                scan_files=False, scan_roms=False, scan_configs=False)
+
     def __init__(self, parent, minimal=False, interactive=True,
             scan_roms=True, scan_files=True, scan_configs=True):
         fsui.Dialog.__init__(self, parent, _("Scan"))

@@ -55,12 +55,12 @@ class FloppySelector(fsui.Group):
     def on_config(self, key, value):
         if key != self.config_key:
             return
-        #if value:
-        #    dir, file = os.path.split(value)
-        #    self.text_field.set_text(file)
-        #else:
-        #    self.text_field.set_text(value)
-        self.text_field.set_text(value)
+        dir, name = os.path.split(value)
+        if dir:
+            path = "{0} ({1})".format(name, dir)
+        else:
+            path = name
+        self.text_field.set_text(path)
 
     def update_config_key(self):
         if self.cd_mode:
@@ -69,7 +69,8 @@ class FloppySelector(fsui.Group):
         else:
             self.config_key = "floppy_drive_{0}".format(self.drive)
             self.config_key_sha1 = "x_floppy_drive_{0}_sha1".format(self.drive)
-        self.text_field.set_text(Config.get(self.config_key))
+        #self.text_field.set_text(Config.get(self.config_key))
+        self.on_config(self.config_key, Config.get(self.config_key))
 
     def set_cd_mode(self, cd_mode):
         self.cd_mode = cd_mode

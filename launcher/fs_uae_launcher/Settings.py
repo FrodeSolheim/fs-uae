@@ -132,16 +132,36 @@ class Settings:
         return "irc.fengestad.no"
 
     @classmethod
+    def read_custom_path(cls, name):
+        for app in ["fs-uae-launcher", "fs-uae"]:
+            key_path = os.path.join(fs.get_app_config_dir(app), name)
+            print("- checking", key_path)
+            if os.path.exists(key_path):
+                try:
+                    with open(key_path, "rb") as f:
+                        path = f.read().strip()
+                        break
+                except Exception, e:
+                    print("error reading custom path", repr(e))
+        else:
+            return None
+        lpath = path.lower()
+        if lpath.startswith("$home/") or lpath.startswith("$home\\"):
+            path = os.path.join(fs.get_home_dir(), path[6:])
+        return path
+
+    @classmethod
     @memoize
     def get_base_dir(cls):
         path = cls.base_dir
-        #if "base_dir" in cls.settings.keys():
-        #    path = cls.get("base_dir")
+        if not path:
+            path = cls.read_custom_path("base-dir")
         if not path:
             path = os.path.join(fs.get_documents_dir(True), "FS-UAE")
         if not os.path.exists(path):
             os.makedirs(path)
         path = get_real_case(path)
+        print("base dir is", path)
         return path
 
     @classmethod

@@ -180,30 +180,31 @@ def get_data_dir():
     return path
 
 
-@cache
-def get_app_data_dir():
-    path = os.path.join(get_data_dir(), get_app_id())
+@memoize
+def get_app_data_dir(app=None):
+    if not app:
+        app = get_app_id()
+    path = os.path.join(get_data_dir(), app)
     if not os.path.exists(path):
         os.makedirs(path)
     return path
 
-
-@cache
-def get_app_config_dir():
+@memoize
+def get_app_config_dir(app=None):
+    if not app:
+        app = get_app_id()
     if windows:
-        path = os.path.join(get_app_data_dir(), 'config')
+        path = os.path.join(get_app_data_dir())
     elif macosx:
-        path = os.path.join(get_home_dir(), 'Library', 'Preferences',
-                get_app_id())
+        path = os.path.join(get_home_dir(), "Library", "Preferences", app)
     else:
-        path = os.path.join(get_home_dir(), '.config')
+        path = os.path.join(get_home_dir(), ".config")
         path = os.environ.get('XDG_CONFIG_HOME', path)
-        path = os.path.join(path, get_app_id())
+        path = os.path.join(path, app)
         path = unicode_path(path)
     if not os.path.isdir(path):
         os.makedirs(path)
     return path
-
 
 @cache
 def get_app_cache_dir():

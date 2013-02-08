@@ -7,6 +7,7 @@ import os
 import fs_uae_launcher.fsui as fsui
 from ...I18N import _, ngettext
 from .ConfigCheckBox import ConfigCheckBox
+from ..HelpButton import HelpButton
 
 class ExpansionsGroup(fsui.Group):
 
@@ -24,15 +25,25 @@ class ExpansionsGroup(fsui.Group):
         vert_layout = fsui.VerticalLayout()
         hori_layout.add(vert_layout, fill=True, expand=True)
 
+        hor2_layout = fsui.HorizontalLayout()
         widget = ConfigCheckBox(self, _("Picasso96 Support"),
                 "uaegfx_card")
         widget.set_tooltip(_("Picasso96 Support (uaegfx.card)"))
-        vert_layout.add(widget, fill=True, margin=10)
+        hor2_layout.add(widget, expand=True)
+        widget = HelpButton(self,
+                "http://fengestad.no/fs-uae/options#uaegfx-card")
+        hor2_layout.add(widget, margin_left=10)
+        vert_layout.add(hor2_layout, fill=True, margin=10)
 
-        vert_layout = fsui.VerticalLayout()
-        hori_layout.add(vert_layout, fill=True, expand=True)
+        #vert_layout = fsui.VerticalLayout()
+        #hori_layout.add(vert_layout, fill=True, expand=True)
 
+        hor2_layout = fsui.HorizontalLayout()
         widget = ConfigCheckBox(self, _("Built-in TCP/IP Stack"),
                 "bsdsocket_library")
         widget.set_tooltip(_("Built-in TCP/IP Stack (bsdsocket.library)"))
-        vert_layout.add(widget, fill=True, margin=10)
+        hor2_layout.add(widget, expand=True)
+        widget = HelpButton(self,
+                "http://fengestad.no/fs-uae/options#bsdsocket-library")
+        hor2_layout.add(widget, margin_left=10)
+        vert_layout.add(hor2_layout, fill=True, margin=10)

@@ -55,6 +55,7 @@ class Panel(wx.Panel):
         pass
 
     def __left_down_event(self, event):
+        #self.CaptureMouse()
         self.on_left_down()
 
     def on_left_dclick(self):
@@ -69,6 +70,8 @@ class Panel(wx.Panel):
         pass
 
     def __left_up_event(self, event):
+        #if self.HasCapture():
+        #    self.ReleaseMouse()
         self.on_left_up()
 
     def create_dc(self):

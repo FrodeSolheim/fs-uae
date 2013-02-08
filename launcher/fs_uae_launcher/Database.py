@@ -193,8 +193,11 @@ class Database:
 
     def find_game_variants(self, game_uuid):
         self.init()
-        query = "SELECT id, name, uuid, like_rating, work_rating " \
-                "FROM configuration WHERE reference = ?"
+        query = "SELECT id, name, uuid, configuration.like_rating, " \
+                "configuration.work_rating, game_rating.like_rating " \
+                "FROM configuration LEFT JOIN " \
+                "game_rating ON game_rating.game = uuid WHERE " \
+                "reference = ?"
         query = query + " ORDER BY name"
         print(query, game_uuid)
         self._cursor.execute(query, (game_uuid,))

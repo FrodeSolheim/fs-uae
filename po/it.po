@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2013-01-12 13:03+0100\n"
-"PO-Revision-Date: 2013-01-12 18:23+0100\n"
+"POT-Creation-Date: 2013-02-03 11:16+0100\n"
+"PO-Revision-Date: 2013-02-04 13:02+0100\n"
 "Last-Translator: Speedvicio <speedvicio@hotmail.com>\n"
 "Language-Team: Italian\n"
 "Language: it\n"
@@ -17,6 +17,9 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 1.5.4\n"
+
+msgid "Activated debugger"
+msgstr "Attiva debugger"
 
 msgid "Amiga Control"
 msgstr "Controllo Amiga"
@@ -47,6 +50,13 @@ msgstr "CD%d: Vuoto"
 msgid "CD32 Pad Mode"
 msgstr "Modalità Pad CD32"
 
+#. / TRANSLATORS: This is a menu entry and must not be too long
+msgid "Custom Joystick Port"
+msgstr "Porta Joystick Personalizzata"
+
+msgid "Custom Mode"
+msgstr "Modalità Personalizzata"
+
 #. / TRANSLATORS: Empty or nothing
 #, c-format
 msgid "DF%d: Empty"
@@ -68,6 +78,10 @@ msgstr "Controllo Emulatore"
 msgid "Full Frame"
 msgstr "Fotogramma Completo"
 
+#, c-format
+msgid "HD not found: %s"
+msgstr "HD non rilevabile: %s"
+
 #. / TRANSLATORS: Hard reset is a computer reboot with an emulated power
 #. / cycle
 msgid "Hard Reset"
@@ -85,6 +99,9 @@ msgstr "Inserisci In CD%d"
 #, c-format
 msgid "Insert Into DF%d"
 msgstr "Inserisci In DF%d"
+
+msgid "Invalid number of CD-ROM drives specified"
+msgstr "Numero di drives CD-ROM specificati non validi"
 
 msgid "Joystick Mode"
 msgstr "Modalità Joystick"
@@ -116,6 +133,9 @@ msgstr "Porta Joystick 2"
 msgid "Joystick Port 3"
 msgstr "Porta Joystick 3"
 
+msgid "Joystick Port 4"
+msgstr "Porta Joystick 4"
+
 msgid "Joystick Ports"
 msgstr "Porte Joystick"
 
@@ -146,6 +166,28 @@ msgstr "Nessun Dispositivo"
 
 msgid "No configuration file was found"
 msgstr "File di Configurazione Assente"
+
+#, c-format
+msgid "Option \"%s\" is not enabled"
+msgstr "Optione \"%s\" non è abilitata"
+
+msgid "Option chip_memory must be a multiple of 512"
+msgstr "Opzione chip_memory deve essere un multiplo di 512"
+
+msgid "Option fast_memory must be a multiple of 1024"
+msgstr "Opzione fast_memory deve essere un multiplo di 1024"
+
+msgid "Option slow_memory must be a multiple of 256"
+msgstr "Opzione slow_memory deve essere un multiplo di 256"
+
+msgid "Option uaegfx.card needs a CPU with 32-bit addressing"
+msgstr "Opzione uaegfx.card  necessita di una CPU  con indirizzamento a 32-bit"
+
+msgid "Option zorro_iii_memory must be a multiple of 1024"
+msgstr "Opzione zorro_iii_memory deve essere un multiplo di 1024"
+
+msgid "Options zorro_iii_memory needs a CPU with 32-bit addressing"
+msgstr "Opzioni zorro_iii_memory necessitano una CPU con indirizzamento a 32-bit"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 msgid "Parallel Joystick Ports"

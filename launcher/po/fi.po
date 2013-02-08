@@ -7,9 +7,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae-launcher\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2013-02-01 21:15+0100\n"
-"PO-Revision-Date: 2013-02-03 10:02+0100\n"
-"Last-Translator: Frode Solheim <fs-uae@fengestad.no>\n"
+"POT-Creation-Date: 2013-02-04 23:38+0100\n"
+"PO-Revision-Date: 2013-02-05 07:13+0200\n"
+"Last-Translator: Mika Vaisanen <mjvaisane@gmail.com>\n"
 "Language-Team: Finnish\n"
 "Language: fi\n"
 "MIME-Version: 1.0\n"
@@ -18,636 +18,741 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 msgid "16-bit"
-msgstr ""
+msgstr "16-bittinen"
 
 msgid "32-bit BGRA"
-msgstr ""
+msgstr "32-bittinen BGRA"
 
 msgid "32-bit RGBA"
-msgstr ""
+msgstr "32-bittinen RGBA"
 
 msgid "640x400 + Border"
-msgstr ""
+msgstr "640x400 + kehys"
 
 msgid "640x480 + Border"
-msgstr ""
+msgstr "640x480 + kehys"
 
 msgid "640x512 + Border"
-msgstr ""
+msgstr "640x512 + kehys"
+
+msgid "ADF & HDF Creator"
+msgstr "ADF & HDF Teko"
+
+msgid "ADF - MFM Extended Floppy Disk Image"
+msgstr "ADF- MFM Laajennettu levykkeen levykuva"
+
+msgid "ADF - Standard Floppy Disk Image"
+msgstr "ADS - normaali levykkeen levykuva"
 
 msgid "Abort"
-msgstr ""
+msgstr "Keskeytä"
 
 msgid "Accurate"
-msgstr ""
+msgstr "Tarkka"
 
 msgid "Add Directory to Search Path"
-msgstr ""
+msgstr "Lisää hakemisto hakupolkuun"
 
 msgid "Add Files to List"
-msgstr ""
+msgstr "Lisää tiedostoja listalle"
 
 msgid "Add Multiple CD-ROMs at Once"
-msgstr ""
+msgstr "Lisää useita CD-ROM levyjä kerralla"
 
 msgid "Add Multiple Floppies at Once"
-msgstr ""
+msgstr "Lisää useita levykkeitä kerralla"
 
 msgid "Additional Options"
-msgstr ""
+msgstr "Lisävalinnat"
+
+msgid "Amiga Forever Import"
+msgstr "Amiga Forever - tuonti"
 
 msgid "Amiga Forever import task started"
-msgstr ""
+msgstr "Amiga  Forever - tuonti aloitettu"
 
 msgid "Amiga Model"
-msgstr ""
+msgstr "Amigan malli"
 
 msgid "Audio Settings"
-msgstr ""
+msgstr "Ääniasetukset"
 
 msgid "Auto"
-msgstr ""
+msgstr "Automaattinen"
 
 msgid "Auto + Border"
-msgstr ""
+msgstr "Automaattinen + kehys"
+
+msgid "Auto-Fire is Off"
+msgstr "Automaattitulitus on pois päältä"
+
+msgid "Auto-Fire is On"
+msgstr "Automaattitulitus on päällä"
 
 msgid "Available Kickstart Versions"
-msgstr ""
+msgstr "Saatavilla olevat Kickstart versiot"
 
 msgid "Browse"
-msgstr ""
+msgstr "Selaa"
 
 msgid "Browse for File"
-msgstr ""
+msgstr "Selaa tiedosto"
 
 msgid "Browse for Folder"
-msgstr ""
+msgstr "Selaa kansio"
 
 msgid "Built-in TCP/IP Stack"
-msgstr ""
+msgstr "Sisäänrakennettu TCP/IP pino"
 
 msgid "Built-in TCP/IP Stack (bsdsocket.library)"
-msgstr ""
+msgstr "Sisäänrakennettu TCP/IP pino (bsdsocket.library)"
 
 msgid "CD-ROM Drive"
-msgstr ""
+msgstr "CD-ROM asema"
 
 msgid "CD-ROM Drives"
-msgstr ""
+msgstr "CD-ROM asemat"
 
 msgid "CD-ROMs"
-msgstr ""
+msgstr "CD-ROM:t"
 
 msgid "CD32 Pad"
-msgstr ""
+msgstr "CD32 peliohjain"
 
 msgid "Cancel"
-msgstr ""
+msgstr "Peruuta"
 
 msgid "Chip RAM"
-msgstr ""
+msgstr "Chip muisti"
 
 msgid "Choose CD-ROM Image"
-msgstr ""
+msgstr "Valitse CD-ROM levyn kuvatiedosto"
 
 msgid "Choose Extended ROM"
-msgstr ""
+msgstr "Valitse laajennettu ROM"
 
 msgid "Choose Floppy Image"
-msgstr ""
+msgstr "Valitse levykkeen kuvatiedosto"
 
 msgid "Choose Hard Drive"
-msgstr ""
+msgstr "Valitse kovalevy"
 
 msgid "Choose Kickstart ROM"
-msgstr ""
+msgstr "Valitse Kickstart ROM"
 
 msgid "Cleaning up..."
-msgstr ""
+msgstr "Siivotaan..."
 
 msgid "Clear List"
-msgstr ""
+msgstr "Tyhjennä lista"
 
 msgid "Click 'Scan' button if you want to re-scan"
-msgstr ""
+msgstr "Klikkaa 'Skannaus' nappia skannataksesi uudelleen"
 
 msgid "Click 'Scan' button to start scan"
-msgstr ""
+msgstr "Klikkaa 'Skannaus' nappia käynnistääksesi skannauksen"
 
 msgid "Click here to download"
-msgstr ""
+msgstr "Klikkaa tästä ladataksesi"
+
+msgid "Click here to import kickstarts"
+msgstr "Klikkaa tästä tuodaksesi Kickstart:it"
 
 msgid "Close"
-msgstr ""
+msgstr "Sulje"
 
 msgid "Committing data..."
-msgstr ""
+msgstr "Tallennetaan tietoja..."
 
 msgid "Config"
-msgstr ""
+msgstr "Kokoonpano"
 
 msgid "Configuration"
-msgstr ""
+msgstr "Kokoonpano"
 
 msgid "Configuration Browser"
-msgstr ""
+msgstr "Kokoonpanoselain"
 
 msgid "Configurations"
-msgstr ""
+msgstr "Kokoonpanomääritykset"
 
 msgid "Configure Joystick Buttons"
-msgstr ""
+msgstr "Määritä peliohjaimen napit"
 
 msgid "Connect"
-msgstr ""
+msgstr "Yhdistä"
 
 msgid ""
 "Copy {0}\n"
 "to {1}"
 msgstr ""
+"Kopioi {0}\n"
+"kohteeseen {1}"
+
+msgid "Could not open file for writing"
+msgstr "Tiedostoa ei voi avata kirjoitusta varten"
+
+msgid "Create"
+msgstr "Luo"
 
 msgid "Cursor Keys and Right Ctrl/Alt"
-msgstr ""
+msgstr "Kursorinäpp. ja oikea Ctrl/Alt"
 
 msgid "Custom"
-msgstr ""
+msgstr "Mukautettu"
+
+msgid "Custom Configuration"
+msgstr "Mukautettu kokoonpano"
 
 msgid "Custom IRC server address"
-msgstr ""
+msgstr "Mukautettu IRC palvelinosoite"
 
 msgid "Custom Joystick Port"
-msgstr ""
+msgstr "Mukautettu peliohjainportti"
 
 msgid "Custom Options"
-msgstr ""
+msgstr "Mukautetut valinnat"
 
 msgid "Custom Settings"
-msgstr ""
+msgstr "Mukautetut asetukset"
 
 msgid "Default"
-msgstr ""
+msgstr "Oletus"
 
 msgid "Default ({0})"
-msgstr ""
+msgstr "Oletus ({0})"
+
+msgid "Destination Directory:"
+msgstr "Kohdehakemisto:"
 
 msgid "Disconnect"
-msgstr ""
+msgstr "Irrota"
+
+msgid "Disk Image Name:"
+msgstr "Levykuvan nimi:"
 
 msgid "Downloading {0}..."
-msgstr ""
+msgstr "Ladataan {0}..."
 
 msgid "Edit Custom Options"
-msgstr ""
+msgstr "Muokkaa mukautettuja valintoja"
 
 msgid "Eject"
-msgstr ""
+msgstr "Poista levy"
 
 msgid "Enable experimental net play GUI (requires restart)"
 msgstr ""
+"Aktivoi kokeellinen verkkopeli-käyttöliittymä (vaatii uudelleenkäynnistyksen)"
 
 msgid "Enable online database support (requires restart)"
-msgstr ""
+msgstr "Aktivoi verkkopelitietokannan tuki (vaatii uudelleenkäynnistyksen)"
+
+msgid "Error moving file into place"
+msgstr "Virhe siirrettäessä tiedostoa paikalleen"
+
+msgid "Error writing disk image:"
+msgstr "Virhe kirjoitettaessa levykuvaa:"
 
 msgid "Expansions"
-msgstr ""
+msgstr "Laajennukset"
 
 msgid "Experimental Features"
-msgstr ""
+msgstr "Kokeelliset ominaisuudet"
 
 msgid "Extended ROM:"
-msgstr ""
+msgstr "Laajennettu ROM:"
 
 msgid "FS-UAE Launcher Settings"
-msgstr ""
+msgstr "FS-UAE Käynnistimen asetukset"
 
 msgid "Fast RAM"
-msgstr ""
+msgstr "Fast muisti"
 
 msgid "Fetching database entries ({0})"
-msgstr ""
+msgstr "Ladataan tietokannan merkintöjä ({0})"
 
 msgid "Fetching game ratings ({0})"
-msgstr ""
+msgstr "Ladataan pelien arvioita ({0})"
 
 msgid "Fetching user game ratings ({0})"
-msgstr ""
+msgstr "Ladataan pelien käyttäjäarvioita ({0})"
+
+msgid "File already exists"
+msgstr "Tiedosto on jo olemassa"
 
 msgid "Filters"
-msgstr ""
+msgstr "Suodattimet"
 
 msgid "Filters & Scaling"
-msgstr ""
+msgstr "Suodattimet & Skaalaus"
 
 msgid "Filters:"
-msgstr ""
+msgstr "Suodattimet:"
 
 msgid "Floppies"
-msgstr ""
+msgstr "Levykkeet"
 
 msgid "Floppy Drives"
-msgstr ""
+msgstr "Levykeasemat"
 
 msgid "Floppy drive volume"
-msgstr ""
+msgstr "Levykeaseman äänitaso"
 
 msgid "Force Full Vsync"
-msgstr ""
+msgstr "Pakota täysi Vsync"
 
 msgid "Full Frame"
-msgstr ""
+msgstr "Täysi kehys"
 
 msgid "Full-scene anti-aliasing (FSAA)"
-msgstr ""
+msgstr "Koko ruudun reunojenpehmennys (FSAA)"
 
 msgid "Fullscreen"
-msgstr ""
+msgstr "Kokoruutu"
 
 msgid "Game Database"
-msgstr ""
+msgstr "Pelitietokanta"
 
 msgid "Game Database Settings"
-msgstr ""
+msgstr "Pelitietokannan asetukset"
 
 msgid "Game database password"
-msgstr ""
+msgstr "Pelitietokannan salasana"
 
 msgid "Game database user name"
-msgstr ""
+msgstr "Pelitietokannan käyttäjänimi"
 
 msgid "Games and Configurations"
-msgstr ""
+msgstr "Pelit ja kokoonpanot"
 
 msgid "Grab mouse and keyboard input when FS-UAE starts"
-msgstr ""
+msgstr "Kaappaa hiiri ja näppäimistö FS-UAE:n käynnistyksen yhteydessä"
 
 msgid "Grab mouse and keyboard input when clicking on FS-UAE window"
-msgstr ""
+msgstr "Kaappaa hiiri ja näppäimistö kun FS-UAE ikkunaa klikataan"
+
+msgid "HDF - Partitionable Hard Drive Image (RDB)"
+msgstr "HDF - Monipartitioinen kovalevytiedosto (RDB)"
+
+msgid "HDF - Single Partition Hard Disk File"
+msgstr "HDF - Yksipartitioinen kovalevytiedosto"
 
 msgid "Hard Drives"
-msgstr ""
+msgstr "Kovalevyt"
 
 msgid "Hardware"
-msgstr ""
+msgstr "Rauta"
 
 msgid "Hardware Options"
-msgstr ""
+msgstr "Rautavalinnat"
 
 msgid "IRC nickname"
-msgstr ""
+msgstr "IRC nimimerkki"
 
 msgid "If you own Amiga Forever, select the drive/folder and click \"{0}\""
 msgstr ""
+"Jos omistat Amiga Foreverin, valitse asema ja kansio, sekä klikkaa \"{0}\""
 
 msgid "Import"
-msgstr ""
+msgstr "Haku"
 
 msgid "Import From Amiga Forever CD/DVD"
-msgstr ""
+msgstr "Tuo Amiga Forever CD/DVD levyltä"
+
+msgid "Import Kickstarts"
+msgstr "Tuo Kickstart:it"
 
 msgid "Import Kickstarts and ROMs"
-msgstr ""
+msgstr "Tuo Kickstartit ja ROM:it"
 
 msgid "Import task is done"
-msgstr ""
+msgstr "Haku suoritettu"
 
 msgid "Include built-in configurations"
-msgstr ""
+msgstr "Sisällytä sisäänrakennetut määritykset"
 
 msgid "Input"
-msgstr ""
+msgstr "Syöttölaitteet"
 
 msgid "Input Options"
-msgstr ""
+msgstr "Syöttölaitevalinnat"
 
 msgid "Input Settings"
-msgstr ""
+msgstr "Syöttölaiteasetukset"
 
 msgid "Internal"
-msgstr ""
+msgstr "Sisäinen"
+
+msgid "Invalid size specified"
+msgstr "Virheellinen koko määritelty"
 
 msgid "Joystick"
-msgstr ""
+msgstr "Peliohjain"
 
 msgid "Joystick Configuration"
-msgstr ""
+msgstr "Peliohjainkokoonpano"
 
 msgid "Joystick Ports"
-msgstr ""
+msgstr "Peliohjainportit"
 
 msgid "Joystick Settings"
-msgstr ""
+msgstr "Peliohjainasetukset"
 
 msgid "Keep aspect ratio when scaling (do not stretch)"
-msgstr ""
+msgstr "Säilytä kuvasuhde skaalatessa (älä venytä)"
 
 msgid "Keyboard Settings"
-msgstr ""
+msgstr "Näppäimistön asetukset"
 
 msgid "Kickstart ROM"
-msgstr ""
+msgstr "Kickstart ROM"
 
-msgid "Kickstart Setup"
-msgstr ""
+msgid "Kickstart ROMs are missing"
+msgstr "Kickstart ROM:it puuttuvat"
 
 msgid "Kickstart import task started"
-msgstr ""
+msgstr "Kickstart tuonti aloitettu"
 
 msgid "Launching FS-UAE"
-msgstr ""
+msgstr "Käynnistetään FS-UAE"
 
 msgid "Least Accurate"
-msgstr ""
+msgstr "Epätarkka"
 
 msgid "Less Accurate"
-msgstr ""
+msgstr "Vähemmän tarkka"
 
 msgid "List of Folders to Index"
-msgstr ""
+msgstr "Lista indeksoitavista kansioista"
 
 msgid "Low latency vsync (when using full vsync)"
-msgstr ""
+msgstr "Matalalatenssinen vsync (kun vsync käytössä)"
+
+msgid "MB"
+msgstr "MB"
 
 msgid "Main Configuration Options"
-msgstr ""
+msgstr "Pääkokoonpanovalinnat"
+
+msgid "Main Menu"
+msgstr "Päävalikko"
 
 msgid "Media Swap List"
-msgstr ""
+msgstr "Median pikavaihtolista"
 
 msgid "Memory"
-msgstr ""
+msgstr "Muisti"
 
 msgid "Mouse"
-msgstr ""
+msgstr "Hiiri"
 
 msgid "Mouse Settings"
-msgstr ""
+msgstr "Hiiren asetukset"
 
 msgid "Mouse speed (%)"
-msgstr ""
+msgstr "Hiiren nopeus (%)"
 
 msgid "Net Play"
-msgstr ""
+msgstr "Verkkopeli"
 
 msgid "Net Play Settings"
-msgstr ""
+msgstr "Verkkopeliasetukset"
 
 msgid "Net play tag (max 3 characters)"
-msgstr ""
+msgstr "Verkkopeli tagi (maksimi 3 merkkiä)"
 
 msgid "New Configuration"
-msgstr ""
+msgstr "Uusi kokoonpanomääritys"
+
+msgid "New Disk Image"
+msgstr "Uusi levykuva"
 
 msgid "Nick:"
-msgstr ""
+msgstr "Nimimerkki:"
 
 msgid "No Device"
-msgstr ""
+msgstr "Ei laitetta"
 
 msgid "No Host Device"
-msgstr ""
+msgstr "Ei isäntälaitetta"
 
 msgid "No Joysticks"
-msgstr ""
+msgstr "Ei peliohjaimia"
 
 msgid "No extended kickstart found for this model. Try 'scan' function."
 msgstr ""
+"Laajennettua Kickstartia ei löytynyt tälle mallille. Yritä 'Skannaus' "
+"toimintoa."
 
 msgid "No joysticks are currently connected"
-msgstr ""
+msgstr "Peliohjaimia ei ole liitettynä"
 
 msgid "No kickstart found for this model. "
-msgstr ""
+msgstr "Kickstart ROM:ia ei löytynyt tälle mallille."
 
 msgid "No scan in progress"
-msgstr ""
+msgstr "Ei skannausta käynnissä"
 
 msgid "Nothing"
-msgstr ""
+msgstr "Ei mitään"
 
 msgid "OK"
-msgstr ""
+msgstr "OK"
 
 msgid "Off"
-msgstr ""
+msgstr "Pois"
 
 msgid "On"
-msgstr ""
+msgstr "Päällä"
 
 msgid "Open Game Database Entry"
-msgstr ""
+msgstr "Avaa pelitietokannan merkintä"
 
 msgid "Open Hall of Light Entry"
-msgstr ""
+msgstr "Avaa Hall of Light - merkintä"
 
 msgid "Open LemonAmiga Entry"
-msgstr ""
+msgstr "Avaa LemonAmiga - merkintä"
 
 msgid "Open MobyGames Entry"
-msgstr ""
+msgstr "Avaa MobyGames - merkintä"
 
 msgid "Open Scan Dialog"
-msgstr ""
+msgstr "Avaa skannus-ikkuna"
 
 msgid "Open Tool to Configure Button Mapping"
-msgstr ""
+msgstr "Avaa Nappienmääritystyökalu"
 
 msgid "Open Wikipedia Entry"
-msgstr ""
+msgstr "Avaa Wikipedia - merkintä"
 
 msgid "OpenGL Settings"
-msgstr ""
+msgstr "OpenGL asetukset"
 
 msgid "Parallel Port Joysticks"
-msgstr ""
+msgstr "Rinnakkaisportti-peliohjaimet"
 
 msgid "Picasso96 Support"
-msgstr ""
+msgstr "Picasso96 - tuki"
 
 msgid "Picasso96 Support (uaegfx.card)"
-msgstr ""
+msgstr "Picasso96 - tuki (uaegfx.card)"
 
 msgid "Please wait..."
-msgstr ""
+msgstr "Odota..."
+
+msgid "Preferences"
+msgstr "Asetukset"
 
 msgid "Preferred Joystick"
-msgstr ""
+msgstr "Ensisijainen peliohjain"
 
 msgid "Preferred device for secondary joystick:"
-msgstr ""
+msgstr "Ensisijainen laite toissijaiselle peliohjaimelle:"
 
 msgid "Preparing WHDLoad..."
-msgstr ""
+msgstr "Valmistellaan WHDLoadia..."
 
 msgid "Preparing floppy images..."
-msgstr ""
+msgstr "Valmistellaan levykekuvia..."
 
 msgid "Preparing hard drives..."
-msgstr ""
+msgstr "Valmistellaan kovalevyjä..."
 
 msgid "Preparing..."
-msgstr ""
+msgstr "Valmistellaan..."
 
 msgid "Purging old entries..."
-msgstr ""
+msgstr "Siivotaan vanhoja merkintöjä..."
+
+msgid "Refresh Game Database"
+msgstr "Päivitä pelitietokanta"
 
 msgid "Refresh game configurations from database"
-msgstr ""
+msgstr "Päivitä pelikokoonpanot tietokannasta"
 
 msgid "Remove Directory from Search Path"
-msgstr ""
+msgstr "Poista hakemisto hakupolusta"
 
 msgid "Remove Selected Files"
-msgstr ""
+msgstr "Poista valitut tiedostot"
 
 msgid "Render scan lines"
-msgstr ""
+msgstr "Renderöi pyyhkäisyjuovat"
 
 msgid "Render scan lines in RTG graphics mode"
-msgstr ""
+msgstr "Renderöi pyyhkäisyjuovat RTG grafiikkatilassa"
 
 msgid "Resetting database..."
-msgstr ""
+msgstr "Resetoidaan tietokantaa..."
 
 msgid "Restoring changes..."
-msgstr ""
+msgstr "Palautetaan muutokset..."
 
 msgid "Save Configuration"
-msgstr ""
+msgstr "Tallenna kokoonpano"
 
 msgid "Saving changes..."
-msgstr ""
+msgstr "Tallennetaan muutoksia..."
 
 msgid "Scaling Options"
-msgstr ""
+msgstr "Skaalausvalinnat"
 
 msgid "Scan"
-msgstr ""
+msgstr "Skannaus"
 
 msgid "Scan & Indexing"
-msgstr ""
+msgstr "Skannaus & indeksointi"
+
+msgid "Scan Files and Configurations"
+msgstr "Skannaa tiedostoja ja kokoonpanoja"
 
 msgid "Scan complete"
-msgstr ""
+msgstr "Skannaus suoritettu"
 
 msgid "Scan error"
-msgstr ""
+msgstr "Skannausvirhe"
+
+msgid "Scan for Files"
+msgstr "Skannaa tiedostoja"
 
 msgid "Scan for Kickstarts, Files and Configurations"
-msgstr ""
+msgstr "Skannaa Kickstartit, tiedostot ja kokoonpanomääritykset"
 
 msgid "Scanning .fs-uae files..."
-msgstr ""
+msgstr "Skannataan .fs-uae tiedostot..."
 
 msgid "Scanning built-in entries..."
-msgstr ""
+msgstr "Skannataan sisäänrakennettuja merkintöjä..."
 
 msgid "Scanning configurations"
-msgstr ""
+msgstr "Skannataan kokoonpanomäärityksiä"
 
 msgid "Scanning configurations ({count} scanned)"
-msgstr ""
+msgstr "Skannataan kokoonpanomäärityksiä ({count} skannattu)"
 
 msgid "Scanning database entries..."
-msgstr ""
+msgstr "Skannataan tietokantamerkintöjä..."
 
 msgid "Scanning files"
-msgstr ""
+msgstr "Skannataan tiedostoja"
 
 msgid "Scanning files ({count} scanned)"
-msgstr ""
+msgstr "Skannataan tiedostoja ({count} skannattu)"
 
 msgid "Scanning game database entries..."
-msgstr ""
+msgstr "Skannataan pelitietokannan merkintöjä..."
 
-msgid "Select Directory to Import From"
-msgstr ""
+msgid "Select Destination Directory"
+msgstr "Valitse kohdehakemisto"
 
 msgid "Select Multiple CD-ROMs"
-msgstr ""
+msgstr "Valitse useita CD-ROM:eja "
 
 msgid "Select Multiple Files..."
-msgstr ""
+msgstr "Valitse useita tiedostoja..."
 
 msgid "Select Multiple Floppies"
-msgstr ""
+msgstr "Valitse useita levykkeitä"
+
+msgid "Select Source Directory"
+msgstr "Valitse lähdehakemisto"
 
 msgid "Select a folder containing Amiga kickstart files and click \"{0}\""
 msgstr ""
+"Valitse kansio joka sisältää Amiga kickstart tiedostot ja klikkaa \"{0}\""
 
 msgid "Settings"
-msgstr ""
+msgstr "Asetukset"
 
 msgid "Show kickstart setup page on startup when all ROMs are missing"
-msgstr ""
+msgstr "Näytä Kickstart-asetukset käynnistettäessä jos yhtään ROM:ia ei löydy"
+
+msgid "Size:"
+msgstr "Koko:"
 
 msgid "Slow RAM"
-msgstr ""
+msgstr "Slow muisti"
+
+msgid "Specified directory does not exist"
+msgstr "Määriteltyä hakemistoa ei ole olemassa"
 
 msgid "Start"
-msgstr ""
+msgstr "Käynnistä"
 
 msgid "Start FS-UAE in fullscreen mode"
-msgstr ""
+msgstr "Käynnistä FS-UAE kokoruututilassa"
 
 msgid "Starting FS-UAE..."
-msgstr ""
+msgstr "Käynnistetään FS-UAE..."
 
 msgid "Starting scan"
-msgstr ""
+msgstr "Käynnistetään skannaus"
 
 msgid "Swap left and right CTRL keys"
-msgstr ""
+msgstr "Vaihda vasemman ja oikean CTRL napin paikkoja"
 
 msgid "Sync to Vblank"
-msgstr ""
+msgstr "Synkronoi Vblank:iin"
 
 msgid "Synchronizing database..."
-msgstr ""
+msgstr "Tietokannan synkronointi..."
 
 msgid "Synchronizing personal ratings..."
-msgstr ""
+msgstr "Henkilökohtaisten arvioiden synkronointi..."
 
 msgid "Texture filter"
-msgstr ""
+msgstr "Tekstuurisuodatin"
 
 msgid "Toggle Between Windowed and Full-Screen Mode"
-msgstr ""
+msgstr "Vaihda ikkuna- ja kokoruututilan välillä"
 
 msgid "Ungrab mouse and keyboard on middle mouse click"
-msgstr ""
+msgstr "Vapauta hiiri ja näppäimistö hiiren keskinapin klikkauksella"
 
 msgid "Update ({version}) is available"
-msgstr ""
+msgstr "Päivitys ({version}) on saatavilla"
 
 msgid "Updating database"
-msgstr ""
+msgstr "Päivitetään tietokantaa"
 
 msgid "Updating game entries:"
-msgstr ""
+msgstr "Päivitetään pelien merkintöjä:"
+
+msgid "Use RDB disk images for size >= {0}"
+msgstr "Käytä RDB-levykuvia jos koko >= {0}"
 
 msgid "Video Settings"
-msgstr ""
+msgstr "Näyttöasetukset"
 
 msgid "Video buffer format and color depth"
-msgstr ""
+msgstr "Näyttöpuskurin muoto ja värisyvyys"
 
 msgid "Video synchronization"
-msgstr ""
+msgstr "Näytön synkronointi"
 
 msgid "Video synchronization method"
-msgstr ""
+msgstr "Näytön synkronointimenetelmä"
 
 msgid "Video texture format (on the GPU)"
-msgstr ""
+msgstr "Näytön tekstuurimuoto (GPU:lla)"
 
 msgid "WHDLoad Arguments"
-msgstr ""
+msgstr "WHDLoad optiot"
 
 msgid "You should have kickstart files for each Amiga model you want to use:"
 msgstr ""
+"Sinulla täytyy olla Kickstart tiedosto jokaiselle Amiga-mallille mitä haluat "
+"käyttää:"
 
 msgid "Zoom Amiga display (crop)"
-msgstr ""
+msgstr "Zoomaa Amiga-näyttö (leikkaa)"
 
 msgid "Zorro III RAM"
-msgstr ""
+msgstr "Zorro III muisti"
+
+#~ msgid "Kickstart Setup"
+#~ msgstr "Kickstart asetuset"
+
+#~ msgid "Select Directory to Import From"
+#~ msgstr "Valitse hakemisto tuontia varten"

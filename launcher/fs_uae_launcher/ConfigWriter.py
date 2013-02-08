@@ -45,6 +45,10 @@ class ConfigWriter:
                 # key not set, use calculated default value
                 config[key] = devices[port].id
 
+        for remove_key in ["database_username", "database_password"]:
+            if remove_key in config:
+                del config[remove_key]
+
         # overwrite netplay config
         if config["__netplay_host"]:
             config["netplay_server"] = config["__netplay_host"]

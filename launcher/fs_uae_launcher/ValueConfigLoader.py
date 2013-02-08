@@ -219,6 +219,12 @@ class ValueConfigLoader:
                 "lemon_url", "wikipedia_url", "mobygames_url",
                 "languages"]:
             self.options[key] = value
+        elif key == "requirements":
+            if "wb" in value.lower():
+                self.options["hard_drive_0"] = "hd://template/workbench/DH0"
+                self.options["hard_drive_0_priority"] = "6"
+            elif "hd" in value.lower():
+                self.options["hard_drive_0"] = "hd://template/empty/DH0"
 
     def load_joystick_port_x_mode_option(self, key, value):
         value = value.lower()
@@ -284,7 +290,7 @@ class ValueConfigLoader:
             if name.startswith("DH0/"):
                 if hds:
                     #p = os.path.join(self.path, "HardDrive")
-                    p = "game://" + self.uuid + "/DH0"
+                    p = "hd://game/" + self.uuid + "/DH0"
                     if p in added:
                         # already added
                         continue

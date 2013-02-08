@@ -9,7 +9,7 @@ from ...Settings import Settings
 from ...Signal import Signal
 from ..PagedDialog import PagedDialog
 from .AudioSettingsPage import AudioSettingsPage
-from .CustomSettingsPage import CustomSettingsPage
+#from .CustomSettingsPage import CustomSettingsPage
 from .ExperimentalFeaturesPage import ExperimentalFeaturesPage
 from .FilterSettingsPage import FilterSettingsPage
 from .GameDatabaseSettingsPage import GameDatabaseSettingsPage
@@ -31,12 +31,12 @@ class SettingsDialog(PagedDialog):
         self.add_page(_("Video Settings"), VideoSettingsPage)
         self.add_page(_("Filters & Scaling"), FilterSettingsPage)
         #self.add_page(_("OpenGL Settings"), OpenGLSettingsPage)
+        self.add_page(_("Experimental Features"), ExperimentalFeaturesPage)
         if Settings.get("netplay_feature") == "1":
             self.add_page(_("Net Play Settings"), NetplaySettingsPage)
         if Settings.get("database_feature") == "1":
             self.add_page(_("Game Database"), GameDatabaseSettingsPage)
-        self.add_page(_("Experimental Features"), ExperimentalFeaturesPage)
-        self.add_page(_("Custom Settings"), CustomSettingsPage)
+        #self.add_page(_("Custom Settings"), CustomSettingsPage)
 
         self.list_view.set_index(index)
         self.set_size((900, 540))

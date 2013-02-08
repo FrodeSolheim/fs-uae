@@ -68,7 +68,7 @@ class PreferredJoystickSelector(fsui.Group):
         self.layout = fsui.HorizontalLayout()
 
         devices = []
-        devices.append("keyboard")
+        devices.append(get_keyboard_title())
         for i, name in enumerate(DeviceManager.get_joystick_names()):
             devices.append(name)
         self.device_choice = fsui.ComboBox(self, devices)
@@ -91,22 +91,17 @@ class PreferredJoystickSelector(fsui.Group):
         Settings.remove_listener(self)
 
     def on_device_change(self):
-        #index = self.device_choice.get_index()
-        #if index == 1:
-        #    # mouse
-        #    Config.set(self.mode_option_key, "mouse")
-        #elif index > 1:
-        #    # joystick / keyboard emulation
-        #    Config.set(self.mode_option_key, "joystick")
-        #Config.set(self.device_option_key, joystick_values[index])
-        Settings.set(self.key, self.device_choice.get_text())
+        value = self.device_choice.get_text()
+        print("on_device_change", value)
+        if value == get_keyboard_title():
+            value = "keyboard"
+        Settings.set(self.key, value)
 
     def on_setting(self, key, value):
         if key == self.key:
+            if value == "keyboard":
+                value = get_keyboard_title()
             self.device_choice.set_text(value)
-            #print(joystick_values)
-            #value_lower = value.lower()
-            #for i, name in enumerate(joystick_values):
-            #    if value_lower == name.lower():
-            #        self.device_choice.set_index(i)
-            #        break
+
+def get_keyboard_title():
+    return _("Cursor Keys and Right Ctrl/Alt")

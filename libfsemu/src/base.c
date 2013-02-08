@@ -45,7 +45,14 @@
 // some function adapted from glib
 
 const char *fs_get_user_config_dir(void) {
-#ifdef USE_GLIB
+#if defined(MACOSX)
+    static char *path = NULL;
+    if (path == NULL) {
+        path = g_build_filename(g_get_home_dir(), "Library", "Preferences",
+                NULL);
+    }
+    return path;
+#elif defined(USE_GLIB)
     return g_get_user_config_dir();
 #else
     // FIXME

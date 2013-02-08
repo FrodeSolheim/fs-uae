@@ -2,652 +2,655 @@
 # Copyright (C) 2013 Frode Solheim
 # This file is distributed under the same license as the fs-uae-launcher package.
 # Frode Solheim <fs-uae@fengestad.no>, 2013.
-#
+# z551693 <spajdr@centrum.cz>, 2013.
 msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae-launcher\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
 "POT-Creation-Date: 2013-01-30 21:27+0100\n"
-"PO-Revision-Date: 2013-02-01 18:08+0100\n"
-"Last-Translator: Frode Solheim <fs-uae@fengestad.no>\n"
-"Language-Team: Czech\n"
+"PO-Revision-Date: 2013-02-04 11:50+0200\n"
+"Last-Translator: z551693 <spajdr@centrum.cz>\n"
+"Language-Team: FS-UAE translation team\n"
 "Language: cs\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
+"X-Generator: Virtaal 0.7.1\n"
 
 msgid "16-bit"
-msgstr ""
+msgstr "16-bitové"
 
 msgid "32-bit BGRA"
-msgstr ""
+msgstr "32-bitové BGRA"
 
 msgid "32-bit RGBA"
-msgstr ""
+msgstr "32-bitové RGBA"
 
 msgid "640x400 + Border"
-msgstr ""
+msgstr "640x400 + okraje"
 
 msgid "640x480 + Border"
-msgstr ""
+msgstr "640x480 + okraje"
 
 msgid "640x512 + Border"
-msgstr ""
+msgstr "640x512 + okraje"
 
 msgid "Abort"
-msgstr ""
+msgstr "Zrušit"
 
 msgid "Accurate"
-msgstr ""
+msgstr "Přesnost"
 
 msgid "Add Directory to Search Path"
-msgstr ""
+msgstr "Přidat adresář do cesty hledání"
 
 msgid "Add Files to List"
-msgstr ""
+msgstr "Přidat soubory do seznamu"
 
 msgid "Add Multiple CD-ROMs at Once"
-msgstr ""
+msgstr "Přidat více CD-ROM najednou"
 
 msgid "Add Multiple Floppies at Once"
-msgstr ""
+msgstr "Přidat více disket najednou"
 
 msgid "Additional Options"
-msgstr ""
+msgstr "Dodatečná nastavení"
 
 msgid "Amiga Forever import task started"
-msgstr ""
+msgstr "Amiga Forever požadavek importu spuštěn"
 
 msgid "Amiga Model"
-msgstr ""
+msgstr "Amiga model"
 
 msgid "Audio Settings"
-msgstr ""
+msgstr "Nastavení zvuku"
 
 msgid "Auto"
-msgstr ""
+msgstr "Automaticky"
 
 msgid "Auto + Border"
-msgstr ""
+msgstr "Automaticky + okraje"
 
 msgid "Available Kickstart Versions"
-msgstr ""
+msgstr "Kickstart verze k dispozici"
 
 msgid "Browse"
-msgstr ""
+msgstr "Procházet"
 
 msgid "Browse for File"
-msgstr ""
+msgstr "Procházet soubor"
 
 msgid "Browse for Folder"
-msgstr ""
+msgstr "Procházet složky"
 
 msgid "Built-in TCP/IP Stack"
-msgstr ""
+msgstr "Vestavěný TCP/IP stack"
 
 msgid "Built-in TCP/IP Stack (bsdsocket.library)"
-msgstr ""
+msgstr "Vestavěný TCP/IP Stack (bsdsocket.library)"
 
 msgid "CD-ROM Drive"
-msgstr ""
+msgstr "Mechanika CD-ROM"
 
 msgid "CD-ROM Drives"
-msgstr ""
+msgstr "Mechaniky CD-ROM"
 
 msgid "CD-ROMs"
-msgstr ""
+msgstr "CD-ROM disky"
 
 msgid "CD32 Pad"
-msgstr ""
+msgstr "CD32 Pad"
 
 msgid "Cancel"
-msgstr ""
+msgstr "Zrušit"
 
 msgid "Chip RAM"
-msgstr ""
+msgstr "Chip RAM"
 
 msgid "Choose CD-ROM Image"
-msgstr ""
+msgstr "Zvolit CD-ROM Image soubor"
 
 msgid "Choose Extended ROM"
-msgstr ""
+msgstr "Zvolit rozšířenou ROM"
 
 msgid "Choose Floppy Image"
-msgstr ""
+msgstr "Zvolit Floppy Image soubor"
 
 msgid "Choose Hard Drive"
-msgstr ""
+msgstr "Zvolit Harddisk"
 
 msgid "Choose Kickstart ROM"
-msgstr ""
+msgstr "Zvolit Kickstart ROM"
 
 msgid "Cleaning up..."
-msgstr ""
+msgstr "Probíhá čištění..."
 
 msgid "Clear List"
-msgstr ""
+msgstr "Vyčistit seznam"
 
 msgid "Click 'Scan' button if you want to re-scan"
-msgstr ""
+msgstr "Klikni na 'Scan' tlačítko, pro znovuhledání "
 
 msgid "Click 'Scan' button to start scan"
-msgstr ""
+msgstr "Klikni na 'Scan' tlačítko na zahájení znovuhledání"
 
 msgid "Click here to download"
-msgstr ""
+msgstr "Klikněte zde na stažení"
 
 msgid "Close"
-msgstr ""
+msgstr "Zavřít"
 
 msgid "Committing data..."
-msgstr ""
+msgstr "Zasílám data..."
 
 msgid "Config"
-msgstr ""
+msgstr "Konfigurace"
 
 msgid "Configuration"
-msgstr ""
+msgstr "Nastavení"
 
 msgid "Configuration Browser"
-msgstr ""
+msgstr "Prohlížeč nastavení"
 
 msgid "Configurations"
-msgstr ""
+msgstr "Více nastavení"
 
 msgid "Configure Joystick Buttons"
-msgstr ""
+msgstr "Nastavení Joystick tlačítek"
 
 msgid "Connect"
-msgstr ""
+msgstr "Připojit"
 
 msgid ""
 "Copy {0}\n"
 "to {1}"
 msgstr ""
+"Zkopírovat {0}\n"
+"do {1}"
 
 msgid "Cursor Keys and Right Ctrl/Alt"
-msgstr ""
+msgstr "Klávesové šipky a Pravý CTRL/ALT"
 
 msgid "Custom"
-msgstr ""
+msgstr "Vlastní"
 
 msgid "Custom IRC server address"
-msgstr ""
+msgstr "Vlastní IRC server adresa"
 
 msgid "Custom Joystick Port"
-msgstr ""
+msgstr "Vlastní Joystick Port"
 
 msgid "Custom Options"
-msgstr ""
+msgstr "Vlastní možnosti"
 
 msgid "Custom Settings"
-msgstr ""
+msgstr "Vlastní nastavení"
 
 msgid "Default"
-msgstr ""
+msgstr "Výchozí"
 
 msgid "Default ({0})"
-msgstr ""
+msgstr "Výchozí ({0})"
 
 msgid "Disconnect"
-msgstr ""
+msgstr "Odpojit"
 
 msgid "Downloading {0}..."
-msgstr ""
+msgstr "Stahuje se {0}..."
 
 msgid "Edit Custom Options"
-msgstr ""
+msgstr "Upravit vlastní možnosti"
 
 msgid "Eject"
-msgstr ""
+msgstr "Vysunout"
 
 msgid "Enable experimental net play GUI (requires restart)"
-msgstr ""
+msgstr "Povolit experimentální grafické rozhraní síťové hry (vyžaduje restart)"
 
 msgid "Enable online database support (requires restart)"
-msgstr ""
+msgstr "Povolit podporu online databáze (vyžaduje restart)"
 
 msgid "Expansions"
-msgstr ""
+msgstr "Rozšíření"
 
 msgid "Experimental Features"
-msgstr ""
+msgstr "Experimentální obsah"
 
 msgid "Extended ROM:"
-msgstr ""
+msgstr "Extended ROM:"
 
 msgid "FS-UAE Launcher Settings"
-msgstr ""
+msgstr "FS-UAE nastavení spouštění"
 
 msgid "Fast RAM"
-msgstr ""
+msgstr "Fast RAM"
 
 msgid "Fetching database entries ({0})"
-msgstr ""
+msgstr "Načítám záznamy v databázi ({0})"
 
 msgid "Fetching game ratings ({0})"
-msgstr ""
+msgstr "Načítám hodnocení hry ({0})"
 
 msgid "Fetching user game ratings ({0})"
-msgstr ""
+msgstr "Načítám uživ. hodnocení hry ({0})"
 
 msgid "Filters"
-msgstr ""
+msgstr "Filtry"
 
 msgid "Filters & Scaling"
-msgstr ""
+msgstr "Filtry & Škálování"
 
 msgid "Filters:"
-msgstr ""
+msgstr "Filtry:"
 
 msgid "Floppies"
-msgstr ""
+msgstr "Diskety"
 
 msgid "Floppy Drives"
-msgstr ""
+msgstr "Disketové mechaniky"
 
 msgid "Floppy drive volume"
-msgstr ""
+msgstr "Svazek disketové mechaniky"
 
 msgid "Force Full Vsync"
-msgstr ""
+msgstr "Vnutit Plnou Vertikální synchronizaci"
 
 msgid "Full Frame"
-msgstr ""
+msgstr "Přesné snímkování"
 
 msgid "Full-scene anti-aliasing (FSAA)"
-msgstr ""
+msgstr "Celoobrazové vyhlazení (FSAA)"
 
 msgid "Fullscreen"
-msgstr ""
+msgstr "Celá obrazovka"
 
 msgid "Game Database"
-msgstr ""
+msgstr "Databáze her"
 
 msgid "Game Database Settings"
-msgstr ""
+msgstr "Nastavení herní databáze"
 
 msgid "Game database password"
-msgstr ""
+msgstr "Heslo herní databáze"
 
 msgid "Game database user name"
-msgstr ""
+msgstr "Jméno herní databáze"
 
 msgid "Games and Configurations"
-msgstr ""
+msgstr "Hry a nastavení"
 
 msgid "Grab mouse and keyboard input when FS-UAE starts"
-msgstr ""
+msgstr "Uchyť vstup myši a klávesnice při startu FS-UAE"
 
 msgid "Grab mouse and keyboard input when clicking on FS-UAE window"
-msgstr ""
+msgstr "Uchyť vstup myši a klávesnice při kliknutí na okno FS-UAE"
 
 msgid "Hard Drives"
-msgstr ""
+msgstr "Pevné disky"
 
 msgid "Hardware"
-msgstr ""
+msgstr "Hardware"
 
 msgid "Hardware Options"
-msgstr ""
+msgstr "Možnosti hardware"
 
 msgid "IRC nickname"
-msgstr ""
+msgstr "Přezdívka na IRC"
 
 msgid "If you own Amiga Forever, select the drive/folder and click \"{0}\""
-msgstr ""
+msgstr "Jestli vlastníte Amiga Forever, zvolte disk/adresář a klikni \"{0}\""
 
 msgid "Import"
-msgstr ""
+msgstr "Importovat"
 
 msgid "Import From Amiga Forever CD/DVD"
-msgstr ""
+msgstr "Importovat z Amiga Forever CD/DVD"
 
 msgid "Import Kickstarts and ROMs"
-msgstr ""
+msgstr "Importovat Kickstart a ROM soubory"
 
 msgid "Import task is done"
-msgstr ""
+msgstr "Import je dokončen"
 
 msgid "Include built-in configurations"
-msgstr ""
+msgstr "Zahrnout vestavěná nastavení"
 
 msgid "Input"
-msgstr ""
+msgstr "Vstupní zařízení"
 
 msgid "Input Options"
-msgstr ""
+msgstr "Nastavení vstupu"
 
 msgid "Input Settings"
-msgstr ""
+msgstr "Možnosti vstupu"
 
 msgid "Internal"
-msgstr ""
+msgstr "Vnitřní"
 
 msgid "Joystick"
-msgstr ""
+msgstr "Joystick"
 
 msgid "Joystick Configuration"
-msgstr ""
+msgstr "Joystick konfigurace"
 
 msgid "Joystick Ports"
-msgstr ""
+msgstr "Joystick porty"
 
 msgid "Joystick Settings"
-msgstr ""
+msgstr "Joystick nastavení"
 
 msgid "Keep aspect ratio when scaling (do not stretch)"
-msgstr ""
+msgstr "Drž poměr stran při škálování (neroztahovat)"
 
 msgid "Keyboard Settings"
-msgstr ""
+msgstr "Nastavení klávesnice"
 
 msgid "Kickstart ROM"
-msgstr ""
+msgstr "Kickstart ROM"
 
 msgid "Kickstart Setup"
-msgstr ""
+msgstr "Kickstart nastavení"
 
 msgid "Kickstart import task started"
-msgstr ""
+msgstr "Zadání importu kickstart spuštěno"
 
 msgid "Launching FS-UAE"
-msgstr ""
+msgstr "Spouštím FS-UAE"
 
 msgid "Least Accurate"
-msgstr ""
+msgstr "Nejmenší přesnost"
 
 msgid "Less Accurate"
-msgstr ""
+msgstr "Menší přesnost"
 
 msgid "List of Folders to Index"
-msgstr ""
+msgstr "Seznam složek k indexaci"
 
 msgid "Low latency vsync (when using full vsync)"
-msgstr ""
+msgstr "Nízká latence vsync (při použití plné vsync)"
 
 msgid "Main Configuration Options"
-msgstr ""
+msgstr "Hlavní volby konfigurace"
 
 msgid "Media Swap List"
-msgstr ""
+msgstr "Prohození seznamu média"
 
 msgid "Memory"
-msgstr ""
+msgstr "Paměť"
 
 msgid "Mouse"
-msgstr ""
+msgstr "Myš"
 
 msgid "Mouse Settings"
-msgstr ""
+msgstr "Nastavení myši"
 
 msgid "Mouse speed (%)"
-msgstr ""
+msgstr "Rychlost myši (%)"
 
 msgid "Net Play"
-msgstr ""
+msgstr "Síťová hra"
 
 msgid "Net Play Settings"
-msgstr ""
+msgstr "Nastavení síťové hry"
 
 msgid "Net play tag (max 3 characters)"
-msgstr ""
+msgstr "Označení síťové hry (max. tři znaky)"
 
 msgid "New Configuration"
-msgstr ""
+msgstr "Nová konfigurace"
 
 msgid "Nick:"
-msgstr ""
+msgstr "Přezdívka:"
 
 msgid "No Device"
-msgstr ""
+msgstr "Žádné zařízení"
 
 msgid "No Host Device"
-msgstr ""
+msgstr "Žádné hostitelské zařízení"
 
 msgid "No Joysticks"
-msgstr ""
+msgstr "Žádný joystick"
 
 msgid "No extended kickstart found for this model. Try 'scan' function."
-msgstr ""
+msgstr "Nenalezen rozšířený kickstart pro tento model. Zkus funkci 'skenovat'"
 
 msgid "No joysticks are currently connected"
-msgstr ""
+msgstr "Žádné joysticky nejsou momentálně připojeny"
 
 msgid "No kickstart found for this model. "
-msgstr ""
+msgstr "Kickstart nenalezen pro tento model."
 
 msgid "No scan in progress"
-msgstr ""
+msgstr "Žádné skenování neprobíhá"
 
 msgid "Nothing"
-msgstr ""
+msgstr "Nic"
 
 msgid "OK"
-msgstr ""
+msgstr "OK"
 
 msgid "Off"
-msgstr ""
+msgstr "Vypnuto"
 
 msgid "On"
-msgstr ""
+msgstr "Zapnuto"
 
 msgid "Open Game Database Entry"
-msgstr ""
+msgstr "Otevřít záznam v herní databázi"
 
 msgid "Open Hall of Light Entry"
-msgstr ""
+msgstr "Otevřít záznam Hall of Light"
 
 msgid "Open LemonAmiga Entry"
-msgstr ""
+msgstr "Otevřít záznam LemonAmiga"
 
 msgid "Open MobyGames Entry"
-msgstr ""
+msgstr "Otevřít záznam MobyGames"
 
 msgid "Open Scan Dialog"
-msgstr ""
+msgstr "Otevřít dialog skenování"
 
 msgid "Open Tool to Configure Button Mapping"
-msgstr ""
+msgstr "Otevřít nástroj na konfiguraci mapování tlačítek"
 
 msgid "Open Wikipedia Entry"
-msgstr ""
+msgstr "Otevřít záznam Wikipedia"
 
 msgid "OpenGL Settings"
-msgstr ""
+msgstr "OpenGL nastav"
 
 msgid "Parallel Port Joysticks"
-msgstr ""
+msgstr "Paralelní porty Joysticků"
 
 msgid "Picasso96 Support"
-msgstr ""
+msgstr "Podpora Picasso96"
 
 msgid "Picasso96 Support (uaegfx.card)"
-msgstr ""
+msgstr "Podpora Picasso96 (uaegfx.card)"
 
 msgid "Please wait..."
-msgstr ""
+msgstr "Čekejte prosím…"
 
 msgid "Preferred Joystick"
-msgstr ""
+msgstr "Preferovaný joystick"
 
 msgid "Preferred device for secondary joystick:"
-msgstr ""
+msgstr "Preferované zařízení pro sekundární joystick:"
 
 msgid "Preparing WHDLoad..."
-msgstr ""
+msgstr "Příprava WHDLoad..."
 
 msgid "Preparing floppy images..."
-msgstr ""
+msgstr "Příprava floppy obrazů disket"
 
 msgid "Preparing hard drives..."
-msgstr ""
+msgstr "Příprava pevných disků..."
 
 msgid "Preparing..."
-msgstr ""
+msgstr "Připravuje se…"
 
 msgid "Purging old entries..."
-msgstr ""
+msgstr "Čistím staré záznamy..."
 
 msgid "Refresh game configurations from database"
-msgstr ""
+msgstr "Obnovit konfigurace her z databáze"
 
 msgid "Remove Directory from Search Path"
-msgstr ""
+msgstr "Odstranit adresář z cesty hledání"
 
 msgid "Remove Selected Files"
-msgstr ""
+msgstr "Odstranit vybrané soubory"
 
 msgid "Render scan lines"
-msgstr ""
+msgstr "Vykresli řádkování"
 
 msgid "Render scan lines in RTG graphics mode"
-msgstr ""
+msgstr "Vykresli řádkování v RTG grafickém módu"
 
 msgid "Resetting database..."
-msgstr ""
+msgstr "Resetování databáze..."
 
 msgid "Restoring changes..."
-msgstr ""
+msgstr "Obnovování změn..."
 
 msgid "Save Configuration"
-msgstr ""
+msgstr "Uložení konfigurace"
 
 msgid "Saving changes..."
-msgstr ""
+msgstr "Ukládání změn..."
 
 msgid "Scaling Options"
-msgstr ""
+msgstr "Nastavení škálování"
 
 msgid "Scan"
-msgstr ""
+msgstr "Skenovat"
 
 msgid "Scan & Indexing"
-msgstr ""
+msgstr "Skenování & Indexace"
 
 msgid "Scan complete"
-msgstr ""
+msgstr "Hledání dokončeno"
 
 msgid "Scan error"
-msgstr ""
+msgstr "Chyba při skenování"
 
 msgid "Scan for Kickstarts, Files and Configurations"
-msgstr ""
+msgstr "Hledání Kickstart, souborů a konfigurací"
 
 msgid "Scanning .fs-uae files..."
-msgstr ""
+msgstr "Prohledávám .fs-uae soubory..."
 
 msgid "Scanning built-in entries..."
-msgstr ""
+msgstr "Prohledávám vestavěné záznamy..."
 
 msgid "Scanning configurations"
-msgstr ""
+msgstr "Prohledávám konfigurace"
 
 msgid "Scanning configurations ({count} scanned)"
-msgstr ""
+msgstr "Prohledávám konfigurace ({count} prohledáno)"
 
 msgid "Scanning database entries..."
-msgstr ""
+msgstr "Prohledávám záznamy v databázi"
 
 msgid "Scanning files"
-msgstr ""
+msgstr "Prohledávám soubory"
 
 msgid "Scanning files ({count} scanned)"
-msgstr ""
+msgstr "Prohledávám soubory ({count} prohledáno)"
 
 msgid "Scanning game database entries..."
-msgstr ""
+msgstr "Prohledávám záznamy v herní databázi"
 
 msgid "Select Directory to Import From"
-msgstr ""
+msgstr "Vybrat adresář, odkud provést Import"
 
 msgid "Select Multiple CD-ROMs"
-msgstr ""
+msgstr "Vybrat několik CD-ROM mechanik"
 
 msgid "Select Multiple Files..."
-msgstr ""
+msgstr "Vybrat několik souborů..."
 
 msgid "Select Multiple Floppies"
-msgstr ""
+msgstr "Vybrat několik disket"
 
 msgid "Select a folder containing Amiga kickstart files and click \"{0}\""
-msgstr ""
+msgstr "Vyber adresář, obsahující Amiga kickstart soubory a klikni na \"{0}\""
 
 msgid "Settings"
-msgstr ""
+msgstr "Nastavení"
 
 msgid "Show kickstart setup page on startup when all ROMs are missing"
-msgstr ""
+msgstr "Ukaž kickstart stránku nastavení, pokud všechny ROM soubory chybějí"
 
 msgid "Slow RAM"
-msgstr ""
+msgstr "Slow RAM"
 
 msgid "Start"
-msgstr ""
+msgstr "Start"
 
 msgid "Start FS-UAE in fullscreen mode"
-msgstr ""
+msgstr "Spouštění her v režimu celé obrazovky"
 
 msgid "Starting FS-UAE..."
-msgstr ""
+msgstr "Spouštím FS-UAE..."
 
 msgid "Starting scan"
-msgstr ""
+msgstr "Spouštím skenování"
 
 msgid "Swap left and right CTRL keys"
-msgstr ""
+msgstr "Prohodit levé a pravé CTRL tlačít"
 
 msgid "Sync to Vblank"
-msgstr ""
+msgstr "Synchronizace Vblank (vertikální)"
 
 msgid "Synchronizing database..."
-msgstr ""
+msgstr "Synchronizuji databázi..."
 
 msgid "Synchronizing personal ratings..."
-msgstr ""
+msgstr "Synchronizuji osobní nastavení..."
 
 msgid "Texture filter"
-msgstr ""
+msgstr "Filtr textury"
 
 msgid "Toggle Between Windowed and Full-Screen Mode"
-msgstr ""
+msgstr "Přepnout mód plná obrazovka/v okně"
 
 msgid "Ungrab mouse and keyboard on middle mouse click"
-msgstr ""
+msgstr "Odznač myš a klávesnici po kliknutí prostředním tlačítkem myši"
 
 msgid "Update ({version}) is available"
-msgstr ""
+msgstr "Update ({version}) je k dispozici"
 
 msgid "Updating database"
-msgstr ""
+msgstr "Aktualizuji databázi"
 
 msgid "Updating game entries:"
-msgstr ""
+msgstr "Aktualizuji záznamy her:"
 
 msgid "Video Settings"
-msgstr ""
+msgstr "Nastavení videa"
 
 msgid "Video buffer format and color depth"
-msgstr ""
+msgstr "Typ video bufferu a hloubka barev"
 
 msgid "Video synchronization"
-msgstr ""
+msgstr "Synchronizace videa"
 
 msgid "Video synchronization method"
-msgstr ""
+msgstr "Metoda synchronizace videa"
 
 msgid "Video texture format (on the GPU)"
-msgstr ""
+msgstr "Formát video textury (na GPU)"
 
 msgid "WHDLoad Arguments"
-msgstr ""
+msgstr "WHDLoad parametry"
 
 msgid "You should have kickstart files for each Amiga model you want to use:"
-msgstr ""
+msgstr "Měl bys mít soubory kickstart, pro každý model Amiga, který použiješ:"
 
 msgid "Zoom Amiga display (crop)"
-msgstr ""
+msgstr "Přiblížit Amiga displej (ostřihnout)"
 
 msgid "Zorro III RAM"
-msgstr ""
+msgstr "Zorro III RAM"

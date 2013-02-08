@@ -8,8 +8,8 @@ from .common import update_class
 from .System import System
 
 class TextArea(wx.TextCtrl):
-    def __init__(self, parent, text="", read_only=False, horizontal_scroll=False,
-            font_family=""):
+    def __init__(self, parent, text="", read_only=False,
+            horizontal_scroll=False, font_family=""):
         style = wx.TE_MULTILINE | wx.TE_RICH
         if read_only:
             style = style | wx.TE_READONLY
@@ -26,18 +26,8 @@ class TextArea(wx.TextCtrl):
                 font.SetFaceName("Courier")
             #font.SetFamily(wx.FONTFAMILY_MODERN)
             self.SetFont(font)
-
-    #def get_min_width(self):
-    #    return self.GetBestSize()[0]
-
-    #def get_min_height(self):
-    #    return self.GetBestSize()[1]
-
-    def set_position(self, position):
-        self.SetPosition(position)
-
-    def set_size(self, size):
-        self.SetSize(size)
+        #self.SetScrollPos(wx.VERTICAL, 0, True)
+        self.ShowPosition(0)
 
     def get_text(self):
         return self.GetValue()

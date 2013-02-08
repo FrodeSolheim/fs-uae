@@ -65,8 +65,14 @@ class HardDriveGroup(fsui.Group):
         Config.remove_listener(self)
 
     def on_config(self, key, value):
-        if key == self.config_key:
-            self.text_field.set_text(value)
+        if key != self.config_key:
+            return
+        dir, name = os.path.split(value)
+        if dir:
+            path = "{0} ({1})".format(name, dir)
+        else:
+            path = name
+        self.text_field.set_text(path)
 
     def on_eject_button(self):
         Config.set_multiple([

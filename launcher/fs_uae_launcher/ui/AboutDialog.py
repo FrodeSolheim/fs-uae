@@ -1,31 +1,49 @@
-FS-UAE LAUNCHER
+# -*- coding: UTF-8 -*-
 
-If you are using the source distribution, you should be able to install
-FS-UAE Launcher by running "python setup.py install". The setup procedure
-requires python setuptools to be installed.
-(sudo apt-get install python-setuptools)
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
+from __future__ import unicode_literals
 
-You start FS-UAE Launcher by running "fs-uae-launcher". This requires
-wxPython and pygame to be installed.
-(sudo apt-get install python-wxgtk2.8 python-pygame)
+import fs_uae_launcher.fsui as fsui
+from ..I18N import _, ngettext
 
-SCREENSHOTS
+class AboutDialog(fsui.Dialog):
 
-Screenshot paths are currently derived from the name of the configuration file.
-If the configuration file is named Test.fs-uae, the two displayed screenshots 
-will be found in:
+    def __init__(self, parent):
+        fsui.Dialog.__init__(self, parent, _("About {name}").format(
+                name="FS-UAE Launcher"))
+        self.layout = fsui.VerticalLayout()
+        self.layout.padding_top = 10
+        self.layout.padding_bottom = 10
+        self.layout.padding_left = 10
+        self.layout.padding_right = 10
 
-(My) Documents/FS-UAE/Titles/T/Test.png 
-or ~/Games/Amiga/Titles/T/Test.png 
+        self.text_area = fsui.TextArea(self, about_message,
+                read_only=True, font_family="monospace")
+        self.text_area.set_min_width(700)
+        self.text_area.set_min_height(400)
+        self.layout.add(self.text_area, fill=True, margin=10)
 
-and (the right one):
+        self.layout.add_spacer(10)
+        hori_layout = fsui.HorizontalLayout()
+        hori_layout.add_spacer(10, expand=True)
+        self.layout.add(hori_layout, fill=True)
 
-(My) Documents/FS-UAE/Screenshots/T/Test.png
-or ~/Games/Amiga/Screenshots/T/Test.png
+        self.close_button = fsui.Button(self, _("Close"))
+        self.close_button.on_activate = self.on_close_button
+        hori_layout.add(self.close_button, margin_left=10)
+        hori_layout.add_spacer(10)
+        self.layout.add_spacer(10)
 
-ABOUT FS-UAE LAUNCHER
+        self.set_size(self.layout.get_min_size())
+        self.center_on_parent()
 
-FS-UAE Launcher is Copyright (C) 2012-2013 Frode Solheim.
+    def on_close_button(self):
+        self.end_modal(False)
+
+
+about_message = u"""FS-UAE Launcher is Copyright (C) 2012-2013 Frode Solheim.
 
 This package is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
@@ -82,3 +100,4 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 FS-UAE Launcher depends on several open source third party software packages,
 including but not limited to, Python and wxPython.
+"""

@@ -23,7 +23,7 @@ const char* fs_uae_home_dir() {
             fs_log("WARNING: did not find home directory\n");
             path = fs_strdup("");
         }
-        fs_log("using home directory \"%s\"\n", path);
+        fs_log("- using home directory \"%s\"\n", path);
     }
     return path;
 }
@@ -36,7 +36,7 @@ const char* fs_uae_exe_dir() {
         char *p = fs_strdup(app_dir);
         free(app_dir);
         path = p;
-        fs_log("using $exe directory \"%s\"\n", path);
+        fs_log("- using $exe directory \"%s\"\n", path);
     }
     return path;
 }
@@ -66,7 +66,7 @@ const char* fs_uae_app_dir() {
         }
         free(base_name);
 #endif
-        fs_log("using $app directory \"%s\"\n", path);
+        fs_log("- using $app directory \"%s\"\n", path);
     }
     return path;
 }
@@ -87,9 +87,39 @@ const char* fs_uae_documents_dir() {
             free(msg);
             path = fs_uae_home_dir();
         }
-        fs_log("using documents directory \"%s\"\n", path);
+        fs_log("- using documents directory \"%s\"\n", path);
     }
     return path;
+}
+
+static char* read_custom_path(const char *key) {
+    char *key_path = fs_path_join(fs_get_user_config_dir(),
+            "fs-uae", key, NULL);
+    fs_log("- checking %s\n", key_path);
+    if (fs_path_is_file(key_path)) {
+        FILE * f = fopen(key_path, "rb");
+        free(key_path);
+        if (f == NULL) {
+            fs_log("- file exists but could not open\n");
+            return NULL;
+        }
+
+        char *buffer = (char *) malloc(PATH_MAX + 1);
+        int read_bytes = fread(buffer, 1, PATH_MAX, f);
+        if (!feof(f)) {
+            fs_log("- did not get EOF\n");
+            free(buffer);
+            return NULL;
+        }
+        buffer[read_bytes] = '\0';
+        fs_strchomp(buffer);
+        fs_log("- read from file: %s\n", buffer);
+        char *result = fs_uae_expand_path(buffer);
+        free(buffer);
+        fs_log("- expanded path: %s\n", result);
+        return result;
+    }
+    return NULL;
 }
 
 const char* fs_uae_base_dir() {
@@ -97,20 +127,29 @@ const char* fs_uae_base_dir() {
     if (path) {
         return path;
     }
+
     path = fs_config_get_const_string("base_dir");
     if (path) {
         fs_log("base specified via base_dir option\n");
         path = fs_uae_expand_path(path);
     }
-    const char *env_path = getenv("FS_UAE_BASE_DIR");
-    if (path == NULL && env_path && env_path[0]) {
-        path = env_path;
-        fs_log("base specified via FS_UAE_BASE_DIR\n");
+    if (path == NULL) {
+        // FIXME: deprecated
+        const char *env_path = getenv("FS_UAE_BASE_DIR");
+        if (env_path && env_path[0]) {
+            path = env_path;
+            fs_log("base specified via FS_UAE_BASE_DIR\n");
+            fs_emu_deprecated("FS_UAE_BASE_DIR is deprecated");
+        }
     }
     if (path == NULL) {
-        fs_log("using base dir <documents>/FS-UAE\n");
+        path = read_custom_path("base-dir");
+    }
+    if (path == NULL) {
+        fs_log("- using base dir $DOCUMENTS/FS-UAE\n");
         path = fs_path_join(fs_uae_documents_dir(), "FS-UAE", NULL);
     }
+
     int result = fs_mkdir_with_parents(path, 0755);
     if (result == -1) {
         char *msg = fs_strdup_printf("Could not create base directory "
@@ -119,12 +158,12 @@ const char* fs_uae_base_dir() {
         free(msg);
         path = fs_uae_documents_dir();
     }
-    fs_log("using base ($BASE / $FSUAE) directory \"%s\"\n", path);
+    fs_log("- using base ($BASE / $FSUAE) directory \"%s\"\n", path);
     return path;
 }
 
 static char *create_default_dir(const char *name, const char *key1,
-        const char *key2) {
+        const char *key2, const char *dashed_key) {
     char *path = NULL;
 
     if (path == NULL && key1 != NULL) {
@@ -132,6 +171,9 @@ static char *create_default_dir(const char *name, const char *key1,
     }
     if (path == NULL && key2 != NULL) {
         path = fs_config_get_string(key2);
+    }
+    if (path == NULL) {
+        path = read_custom_path(dashed_key);
     }
     if (path == NULL) {
         path = fs_path_join(fs_uae_base_dir(), name, NULL);
@@ -147,15 +189,15 @@ static char *create_default_dir(const char *name, const char *key1,
         free(msg);
         path = fs_strdup(fs_uae_base_dir());
     }
-    fs_log("using \"%s\" directory \"%s\"\n", name, path);
+    fs_log("- using \"%s\" directory \"%s\"\n", name, path);
     return path;
 }
 
 const char *fs_uae_kickstarts_dir() {
     static const char *path = NULL;
     if (path == NULL) {
-        path = create_default_dir("Kickstarts", "kickstarts_dir",
-                "roms_dir");
+        path = create_default_dir("Kickstarts", "kickstarts_dir", "roms_dir",
+                "kickstarts-dir");
     }
     return path;
 }
@@ -163,7 +205,8 @@ const char *fs_uae_kickstarts_dir() {
 const char *fs_uae_configurations_dir() {
     static const char *path = NULL;
     if (path == NULL) {
-        path = create_default_dir("Configurations", NULL, NULL);
+        path = create_default_dir("Configurations", NULL, NULL,
+                "configurations-dir");
     }
     return path;
 }
@@ -183,7 +226,7 @@ const char *fs_uae_save_states_dir() {
     static const char *path = NULL;
     if (path == NULL) {
         path = create_default_dir("Save States", "save_states_dir",
-                "state_dir");
+                NULL, "save-states-dir");
     }
     return path;
 }
@@ -234,7 +277,7 @@ const char *fs_uae_state_dir() {
             path = fs_uae_base_dir();
             fs_log("reverting state dir to: %s\n", path);
         }
-        fs_log("using state dir %s\n", path);
+        fs_log("- using state dir %s\n", path);
         int result = fs_mkdir_with_parents(path, 0755);
         if (result == -1) {
             fs_emu_warning("Could not create state directory");
@@ -248,7 +291,8 @@ const char *fs_uae_state_dir() {
 const char *fs_uae_cdroms_dir() {
     static const char *path = NULL;
     if (path == NULL) {
-        path = create_default_dir("CD-ROMs", "cdroms_dir", NULL);
+        path = create_default_dir("CD-ROMs", "cdroms_dir", NULL,
+                "cdroms-dir");
     }
     return path;
 }
@@ -256,7 +300,8 @@ const char *fs_uae_cdroms_dir() {
 const char *fs_uae_hard_drives_dir() {
     static const char *path = NULL;
     if (path == NULL) {
-        path = create_default_dir("Hard Drives", "hard_drives_dir", NULL);
+        path = create_default_dir("Hard Drives", "hard_drives_dir", NULL,
+                "hard-drives-dir");
     }
     return path;
 }
@@ -264,26 +309,17 @@ const char *fs_uae_hard_drives_dir() {
 const char *fs_uae_floppies_dir() {
     static const char *path = NULL;
     if (path == NULL) {
-        path = create_default_dir("Floppies", "floppies_dir", NULL);
+        path = create_default_dir("Floppies", "floppies_dir", NULL,
+                "floppies-dir");
     }
     return path;
 }
-
-/*
-const char *fs_uae_floppy_overlays_dir() {
-    static const char *path = NULL;
-    if (path == NULL) {
-        path = create_default_dir("Floppy Overlays", "floppy_overlays_dir",
-                "state_dir");
-    }
-    return path;
-}
-*/
 
 const char *fs_uae_controllers_dir() {
     static const char *path = NULL;
     if (path == NULL) {
-        path = create_default_dir("Controllers", "controllers_dir", NULL);
+        path = create_default_dir("Controllers", "controllers_dir", NULL,
+                "controllers-dir");
     }
     return path;
 }
@@ -291,7 +327,8 @@ const char *fs_uae_controllers_dir() {
 const char *fs_uae_logs_dir() {
     static const char *path = NULL;
     if (path == NULL) {
-        path = create_default_dir("Logs", "logs_dir", NULL);
+        path = create_default_dir("Logs", "logs_dir", NULL,
+                "logs-dir");
     }
     return path;
 }
@@ -299,7 +336,8 @@ const char *fs_uae_logs_dir() {
 const char *fs_uae_themes_dir() {
     static const char *path = NULL;
     if (path == NULL) {
-        path = create_default_dir("Themes", "themes_dir", NULL);
+        path = create_default_dir("Themes", "themes_dir", NULL,
+                "themes-dir");
     }
     return path;
 }

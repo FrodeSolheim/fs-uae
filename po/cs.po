@@ -2,233 +2,234 @@
 # Copyright (C) 2013 Frode Solheim
 # This file is distributed under the same license as the fs-uae package.
 # Frode Solheim <fs-uae@fengestad.no>, 2013.
-#
+# z551693 <spajdr@centrum.cz>, 2013.
 msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
 "POT-Creation-Date: 2013-01-30 21:27+0100\n"
-"PO-Revision-Date: 2013-02-01 18:08+0100\n"
-"Last-Translator: Frode Solheim <fs-uae@fengestad.no>\n"
-"Language-Team: Czech\n"
+"PO-Revision-Date: 2013-02-04 12:03+0200\n"
+"Last-Translator: z551693 <spajdr@centrum.cz>\n"
+"Language-Team: FS-UAE translation team\n"
 "Language: cs\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
+"X-Generator: Virtaal 0.7.1\n"
 
 msgid "Activated debugger"
-msgstr ""
+msgstr "Debugger aktivován"
 
 msgid "Amiga Control"
-msgstr ""
+msgstr "Amiga ovládání"
 
 #. / TRANSLATORS: In context "Zoom: Auto"
 msgid "Auto"
-msgstr ""
+msgstr "Automaticky"
 
 msgid "Auto-Fire is Off"
-msgstr ""
+msgstr "Auto-fire je vypnut"
 
 msgid "Auto-Fire is On"
-msgstr ""
+msgstr "Auto-fire je zapnut"
 
 #, c-format
 msgid "Auto-fire disabled for port %d"
-msgstr ""
+msgstr "Auto-fire vypnut pro port %d"
 
 #, c-format
 msgid "Auto-fire enabled for port %d"
-msgstr ""
+msgstr "Auto-fire zapnut pro port %d"
 
 #. / TRANSLATORS: Empty or nothing
 #, c-format
 msgid "CD%d: Empty"
-msgstr ""
+msgstr "CD%d:"
 
 msgid "CD32 Pad Mode"
-msgstr ""
+msgstr "Mód CD32 Padu"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 msgid "Custom Joystick Port"
-msgstr ""
+msgstr "Nastavení Joystick portu"
 
 msgid "Custom Mode"
-msgstr ""
+msgstr "Vlastní mód"
 
 #. / TRANSLATORS: Empty or nothing
 #, c-format
 msgid "DF%d: Empty"
-msgstr ""
+msgstr "DF%d:"
 
 msgid "Disabled"
-msgstr ""
+msgstr "Vypnuto"
 
 msgid "Eject"
-msgstr ""
+msgstr "Vysunout"
 
 msgid "Empty"
-msgstr ""
+msgstr "Prázdné"
 
 msgid "Emulator Control"
-msgstr ""
+msgstr "Ovládání emulátoru"
 
 #. / TRANSLATORS: In context "Zoom: Full Frame"
 msgid "Full Frame"
-msgstr ""
+msgstr "Plné snímkování"
 
 #, c-format
 msgid "HD not found: %s"
-msgstr ""
+msgstr "HD nenalezen: %s"
 
 #. / TRANSLATORS: Hard reset is a computer reboot with an emulated power
 #. / cycle
 msgid "Hard Reset"
-msgstr ""
+msgstr "Tvrdý reset"
 
 msgid "Input Options"
-msgstr ""
+msgstr "Volby vstupu"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Insert Into CD%d"
-msgstr ""
+msgstr "Vložit do CD%d"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Insert Into DF%d"
-msgstr ""
+msgstr "Vložit do DF%d"
 
 msgid "Invalid number of CD-ROM drives specified"
-msgstr ""
+msgstr "Uveden špatný počet CD-ROM mechanik"
 
 msgid "Joystick Mode"
-msgstr ""
+msgstr "Mód Joysticku"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Joystick Port %d"
-msgstr ""
+msgstr "Joystick Port %d"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Joystick Port %d Device"
-msgstr ""
+msgstr "Joystick Port %d zařízení"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Joystick Port %d Mode"
-msgstr ""
+msgstr "Joystick Port %d mód"
 
 msgid "Joystick Port 0"
-msgstr ""
+msgstr "Joystick Port 0"
 
 msgid "Joystick Port 1"
-msgstr ""
+msgstr "Joystick Port 1"
 
 msgid "Joystick Port 2"
-msgstr ""
+msgstr "Joystick Port 2"
 
 msgid "Joystick Port 3"
-msgstr ""
+msgstr "Joystick Port 3"
 
 msgid "Joystick Port 4"
-msgstr ""
+msgstr "Joystick Port 4"
 
 msgid "Joystick Ports"
-msgstr ""
+msgstr "Joystick porty"
 
 msgid "Keyboard"
-msgstr ""
+msgstr "Klávesnice"
 
 msgid "Load"
-msgstr ""
+msgstr "Načíst"
 
 msgid "More..."
-msgstr ""
+msgstr "více..."
 
 msgid "Mouse"
-msgstr ""
+msgstr "Myš"
 
 msgid "Mouse Mode"
-msgstr ""
+msgstr "Mód myši"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long: If you struggle
 #. / to get in short enough, just translate "No Device" instead.
 msgid "No Amiga Device"
-msgstr ""
+msgstr "Žádné zařízení"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long: If you struggle
 #. / to get in short enough, just translate "No Device" instead.
 msgid "No Host Device"
-msgstr ""
+msgstr "Žádné zařízení"
 
 msgid "No configuration file was found"
-msgstr ""
+msgstr "Konfigurační soubor nenalezen"
 
 #, c-format
 msgid "Option \"%s\" is not enabled"
-msgstr ""
+msgstr "Nastavení \"%s\" nebylo povoleno"
 
 msgid "Option chip_memory must be a multiple of 512"
-msgstr ""
+msgstr "Nastavení chip_memory musí být násobek 512ti"
 
 msgid "Option fast_memory must be a multiple of 1024"
-msgstr ""
+msgstr "Nastavení fast_memory musí být násobek 1024"
 
 msgid "Option slow_memory must be a multiple of 256"
-msgstr ""
+msgstr "Nastavení slow_memory musí být násobek 256ti"
 
 msgid "Option uaegfx.card needs a CPU with 32-bit addressing"
-msgstr ""
+msgstr "Nastavení uaegfx.card vyžaduje CPU s 32-bit adresováním"
 
 msgid "Option zorro_iii_memory must be a multiple of 1024"
-msgstr ""
+msgstr "Nastavení zorro_iii_memory musí být násobek 1024"
 
 msgid "Options zorro_iii_memory needs a CPU with 32-bit addressing"
-msgstr ""
+msgstr "Nastavení zorro_iii_memory vyžaduje CPU s 32-bit adresováním"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 msgid "Parallel Joystick Ports"
-msgstr ""
+msgstr "Joystick paralelní porty"
 
 msgid "Pause"
-msgstr ""
+msgstr "Zastavit"
 
 #, c-format
 msgid "Port 0: %s"
-msgstr ""
+msgstr "Port 0: %s"
 
 msgid "Port Settings"
-msgstr ""
+msgstr "Nastavení portu"
 
 msgid "Removable Media"
-msgstr ""
+msgstr "Vyměnitelná média"
 
 #. / TRANSLATORS: Reset Amiga as in reboot the computer
 msgid "Reset Amiga"
-msgstr ""
+msgstr "Reset Amiga"
 
 msgid "Resume"
-msgstr ""
+msgstr "Obnovit"
 
 msgid "Save"
-msgstr ""
+msgstr "Uložit"
 
 msgid "Save States"
-msgstr ""
+msgstr "Uložit pozice"
 
 #. / TRANSLATORS: Soft reset reboots the computer without a power cycle
 msgid "Soft Reset"
-msgstr ""
+msgstr "Soft Reset"
 
 msgid "Zoom is disabled in RTG mode"
-msgstr ""
+msgstr "Přiblížení vypnuto v RTG módu"
 
 #, c-format
 msgid "Zoom: %s"
-msgstr ""
+msgstr "Přiblížení: %s"
 
 #, c-format
 msgid "Zoom: %s + Border"
-msgstr ""
+msgstr "Přiblížení: %s + okraje"

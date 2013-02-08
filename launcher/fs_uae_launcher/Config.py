@@ -111,6 +111,8 @@ for i in range(Amiga.MAX_CDROM_IMAGES):
     cfg.append(("x_cdrom_image_{0}_sha1".format(i), "", "checksum", "sync", "nosave"))
 for i in range(Amiga.MAX_HARD_DRIVES):
     cfg.append(("hard_drive_{0}".format(i), ""))
+    cfg.append(("hard_drive_{0}_label".format(i), "", "checksum", "sync"))
+    cfg.append(("hard_drive_{0}_priority".format(i), "", "checksum", "sync"))
     cfg.append(("x_hard_drive_{0}_sha1".format(i), "", "checksum", "sync", "nosave"))
 
 class Config:

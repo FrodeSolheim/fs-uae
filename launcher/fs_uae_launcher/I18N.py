@@ -25,6 +25,7 @@ if not loc:
 if sys.platform == 'darwin':
     import wx
     mac_locales = {
+        wx.LANGUAGE_CZECH: "cs",
         wx.LANGUAGE_DANISH: "da",
         wx.LANGUAGE_ENGLISH: "en",
         wx.LANGUAGE_ENGLISH_UK: "en_GB",

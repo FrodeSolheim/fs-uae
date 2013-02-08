@@ -14,7 +14,8 @@ class MemoryGroup(fsui.Group):
         fsui.Group.__init__(self, parent)
         self.layout = fsui.VerticalLayout()
 
-        heading_label = fsui.HeadingLabel(self, _("Memory"))
+        _("Memory")
+        heading_label = fsui.HeadingLabel(self, _("Override Installed Memory"))
         self.layout.add(heading_label, margin=10)
         self.layout.add_spacer(0)
 
@@ -22,7 +23,7 @@ class MemoryGroup(fsui.Group):
         self.layout.add(hori_layout, fill=True)
 
         vert_layout = fsui.VerticalLayout()
-        hori_layout.add(vert_layout, fill=True, expand=True)
+        hori_layout.add(vert_layout, fill=True, expand=-1)
 
         widget = MemoryWidget(self, _("Chip RAM"), "chip_memory",
                 [((x + 1) * 512) for x in range(16)])
@@ -33,7 +34,7 @@ class MemoryGroup(fsui.Group):
         vert_layout.add(widget, fill=True, margin=10)
 
         vert_layout = fsui.VerticalLayout()
-        hori_layout.add(vert_layout, fill=True, expand=True)
+        hori_layout.add(vert_layout, fill=True, expand=-1)
 
         widget = MemoryWidget(self, _("Fast RAM"), "fast_memory",
                 [(x * 1024) for x in range(9)])

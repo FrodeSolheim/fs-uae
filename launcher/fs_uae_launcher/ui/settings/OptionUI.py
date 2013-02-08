@@ -62,7 +62,7 @@ class OptionUI:
                 except ValueError:
                     pass
             current_int = max(option["min"], min(option["max"], current_int))
-            check_box = fsui.CheckBox(group, "Default")
+            check_box = fsui.CheckBox(group, _("Default"))
             spin_ctrl = fsui.SpinCtrl(group, option["min"],
                     option["max"], current_int)
             if current == "":

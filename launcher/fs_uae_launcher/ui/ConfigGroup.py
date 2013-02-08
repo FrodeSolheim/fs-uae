@@ -79,6 +79,7 @@ class ConfigGroup(fsui.Group):
     def on_new_button(self):
         Config.load_default_config()
         Settings.set("config_changed", "1")
+        Settings.set("parent_uuid", "")
 
     def on_save_button(self):
         print("ConfigGroup.on_save_button")

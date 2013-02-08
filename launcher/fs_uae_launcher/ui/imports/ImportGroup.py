@@ -65,7 +65,7 @@ class ImportGroup(fsui.Group):
 
     def on_browse(self):
         dialog = fsui.DirDialog(self.get_window(),
-                _("Select Directory to Import From"))
+                _("Select Source Directory"))
         if dialog.show_modal():
             self.set_path(dialog.get_path())
         dialog.destroy()

@@ -121,10 +121,18 @@ class VariantsBrowser(fsui.VerticalItemView):
             # only show variant name (without game name)
             name = name.split("\n", 1)[-1]
             sort_key = (1000000 - item[3], 1000000 - item[4], name)
-            self.items.append((sort_key, item[0], name, item[2]))
+            self.items.append((sort_key, item[0], name, item[2], item[5]))
         self.items.sort()
         self.set_items(self.items)
 
+        for i, item in enumerate(self.items):
+            if item[4] == 5:
+                self.select_item(i)
+                break
+        else:
+            if len(self.items) > 0:
+                self.select_item(0)
+        """
         try:
             variant_uuid = self.last_variants.cache[game_uuid]
         except KeyError:
@@ -136,12 +144,7 @@ class VariantsBrowser(fsui.VerticalItemView):
                     break
             else:
                 self.select_item(0)
-
-    #def select_item(self, index):
-    #    self.combo.set_index(index)
-    #
-    #def set_items(self, items):
-    #    self.combo.set_items([x[1] for x in items])
+        """
 
     def load_variant(self, configuration_id):
         database = Database.get_instance()
@@ -169,3 +172,4 @@ class VariantsBrowser(fsui.VerticalItemView):
         if config_info["like_rating"]:
             variant_rating = config_info["like_rating"]
         Config.set("__variant_rating", str(variant_rating))
+        Settings.set("config_changed", "0")

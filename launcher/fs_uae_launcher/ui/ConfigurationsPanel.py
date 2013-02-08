@@ -119,8 +119,7 @@ class ConfigurationsPanel(fsui.Panel):
         pass
 
     def on_refresh_button(self):
-        dialog = ScanDialog(self.get_window(), minimal=True, interactive=False,
-                scan_files=False, scan_roms=False, scan_configs=False)
+        dialog = ScanDialog.refresh_game_database(self.get_window())
         dialog.show_modal()
         dialog.destroy()
 

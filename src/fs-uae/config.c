@@ -611,6 +611,12 @@ static void configure_hard_drive_image (int index, const char *path,
             if (strcmp(buffer, "RDSK") == 0) {
                 rdb_mode = 1;
             }
+            else if (strcmp(buffer, "rdsk") == 0) {
+                // this is a unformatted disk file prepared by for example
+                // FS-UAE Launcher, using rdsk to indicate that the file
+                // is intended to be used as an RDB file
+                rdb_mode = 1;
+            }
         }
         else {
             fs_emu_log("WARNING: error reading 4 bytes from HD "
@@ -705,7 +711,13 @@ void fs_uae_configure_hard_drives() {
             free(msg);
             continue;
         }
-        int boot_priority = -i;
+        key = fs_strdup_printf("hard_drive_%d_priority", i);
+        int boot_priority = fs_config_get_int(key);
+        free(key);
+        if (boot_priority == FS_CONFIG_NONE) {
+            boot_priority = 0;
+        }
+
         char *device = fs_strdup_printf("DH%d", i);
 
         int read_only = 0;

@@ -26,6 +26,7 @@ from .wx.itemview import VerticalItemView
 from .wx.ImageButton import ImageButton
 from .wx.label import Label, BoldLabel, HeadingLabel
 from .wx.listview import ListView
+from .wx.Menu import Menu
 from .wx.panel import Panel
 from .wx.separator import Separator
 from .wx.SpinCtrl import SpinCtrl

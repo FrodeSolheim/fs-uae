@@ -131,10 +131,13 @@ class LinearLayout(Layout):
             child.min_size = [child.element.get_min_width(),
                               child.element.get_min_height()]
 
-            child.size = child.min_size[self.vertical]
+            if child.expand < 0:
+                child.size = 0
+            else:
+                child.size = child.min_size[self.vertical]
 
             available -= child.size
-            expanding += child.expand
+            expanding += abs(child.expand)
 
             if self.vertical:
                 child._skip = max(last_margin, child.margin_top)
@@ -156,7 +159,7 @@ class LinearLayout(Layout):
                 print("distributing extra pixels:", available)
             available2 = available
             for child in self.children:
-                extra = int(available2 * (child.expand / expanding))
+                extra = int(available2 * (abs(child.expand) / expanding))
                 if DEBUG:
                     print(child.expand, expanding, extra)
                 child.size += extra
@@ -165,7 +168,7 @@ class LinearLayout(Layout):
             if available > 0:
                 #print("distributing extra pixels:", available)
                 for child in self.children:
-                    if child.expand:
+                    if abs(child.expand):
                         child.size += 1
                         available -= 1
                         if available == 0:

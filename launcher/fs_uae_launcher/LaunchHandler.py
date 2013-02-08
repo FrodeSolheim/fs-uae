@@ -46,7 +46,7 @@ class LaunchHandler:
         if not Config.get("x_kickstart_file"):# or not \
                 #os.path.exists(Config.get("kickstart_file")):
             fsui.show_error(_("No kickstart found for this model. " +
-                    "Try 'scan' function."))
+                    "Use the 'Import Kickstarts' function from the menu."))
             return
         cs = Amiga.get_model_config(Config.get("amiga_model"))["ext_roms"]
         if len(cs) > 0:
@@ -210,7 +210,7 @@ class LaunchHandler:
 
         save_image = max_image + 1
         s = pkg_resources.resource_stream(str("fs_uae_launcher"),
-                str("res/zipped_save_disk.dat"))
+                str("res/adf_save_disk.dat"))
         data = s.read()
         data = zlib.decompress(data)
         save_disk = os.path.join(self.temp_dir, u"Save Disk.adf")
@@ -255,8 +255,16 @@ class LaunchHandler:
                 dest = os.path.join(self.temp_dir, name)
                 DownloadService.install_file_from_url(src, dest)
                 src = dest
-            elif src.startswith("game://"):
+            elif src.startswith("hd://game/"):
                 self.unpack_game_hard_drive(i, src)
+                self.disable_save_states()
+                return
+            elif src.startswith("hd://template/workbench/"):
+                self.prepare_workbench_hard_drive(i, src)
+                self.disable_save_states()
+                return
+            elif src.startswith("hd://template/empty/"):
+                self.prepare_empty_hard_drive(i, src)
                 self.disable_save_states()
                 return
 
@@ -278,9 +286,45 @@ class LaunchHandler:
         # restoring the save state causes problems.
         self.config["save_states"] = "0"
 
+    def prepare_workbench_hard_drive(self, i, src):
+        #dir_name = "DH{0}".format(i)
+        dir_name = src.rsplit("/", 1)[-1]
+        dir_path = os.path.join(self.temp_dir, dir_name)
+        if not os.path.exists(dir_path):
+            os.makedirs(dir_path)
+
+        amiga_model = self.config.get("amiga_model", "A500")
+        if amiga_model.startswith("A1200") or amiga_model.startswith("A4000"):
+            workbench = "Minimal Workbench v3.1"
+        elif amiga_model == "A600":
+            workbench = "Minimal Workbench v2.05"
+        elif amiga_model == "A500+":
+            workbench = "Minimal Workbench v2.04"
+        else:
+            workbench = "Minimal Workbench v1.3"
+        
+        print("Try to find pre-configured hard drive", workbench)
+        src_dir = os.path.join(Settings.get_hard_drives_dir(), workbench)
+        if src_dir and os.path.exists(src_dir):
+            print("found", src_dir)
+            self.copy_folder_tree(src_dir, dir_path)
+        else:
+            print(" - not found -")
+            raise Exception("Did not found pre-configured hard drive " +
+                    repr(workbench))
+            
+        self.config["hard_drive_{0}".format(i)] = dir_path
+
+    def prepare_empty_hard_drive(self, i, src):
+        dir_name = src.rsplit("/", 1)[-1]
+        #dir_name = "DH{0}".format(i)
+        dir_path = os.path.join(self.temp_dir, dir_name)
+        if not os.path.exists(dir_path):
+            os.makedirs(dir_path)
+        self.config["hard_drive_{0}".format(i)] = dir_path
 
     def unpack_game_hard_drive(self, i, src):
-        scheme, dummy, game_uuid, drive = src.split("/")
+        scheme, dummy, dummy, game_uuid, drive = src.split("/")
         drive_prefix = drive + "/"
         database = Database()
         game_database = GameDatabase.get_instance()

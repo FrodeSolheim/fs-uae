@@ -26,6 +26,9 @@ class KickstartGroup(fsui.Group):
         hori_layout = fsui.HorizontalLayout()
         self.layout.add(hori_layout, fill=True)
 
+        #label = fsui.Label(self, _("Kickstart ROM") + ":")
+        #hori_layout.add(label, margin_left=10, margin_right=10)
+
         kickstart_types = [_("Default"), _("Custom"), _("Internal")]
         self.kickstart_type_choice = fsui.Choice(self, kickstart_types)
         hori_layout.add(self.kickstart_type_choice, margin=10)
@@ -41,8 +44,8 @@ class KickstartGroup(fsui.Group):
         hori_layout = fsui.HorizontalLayout()
         self.layout.add(hori_layout, fill=True)
 
-        heading_label = fsui.Label(self, _("Extended ROM:"))
-        hori_layout.add(heading_label, margin_left=10, margin_right=10)
+        label = fsui.Label(self, _("Extended ROM:"))
+        hori_layout.add(label, margin_left=10, margin_right=10)
         #self.layout.add_spacer(0)
 
         kickstart_types = [_("Default"), _("Custom")]

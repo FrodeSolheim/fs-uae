@@ -61,6 +61,9 @@ void fs_emu_set_toggle_zoom_function(fs_emu_zoom_function function);
 void fs_emu_toggle_zoom();
 
 void fs_emu_warning(const char *format, ...);
+void fs_emu_deprecated(const char *format, ...);
+void fs_emu_notification(const char *format, ...);
+
 //void fs_emu_warning(const char* warning);
 
 // FIXME: REMOVE

@@ -10,6 +10,7 @@ from .System import System
 class Label(wx.StaticText):
 
     def __init__(self, parent, title=""):
+        title = title.replace("&", "&&")
         wx.StaticText.__init__(self, parent.get_container(), -1, title)
 
     def set_text(self, text):

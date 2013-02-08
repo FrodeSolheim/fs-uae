@@ -35,4 +35,4 @@ class ScanSettingsPage(fsui.Panel):
                     margin=10)
 
         add_option("builtin_configs")
-        add_option("kickstart_setup")
+        #add_option("kickstart_setup")

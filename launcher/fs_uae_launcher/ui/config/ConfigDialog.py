@@ -7,15 +7,17 @@ import fs_uae_launcher.fsui as fsui
 from ...I18N import _, ngettext
 from ..PagedDialog import PagedDialog
 from .CustomOptionsPage import CustomOptionsPage
+from ..settings.CustomSettingsPage import CustomSettingsPage
 
 class ConfigDialog(PagedDialog):
 
     CUSTOM_OPTIONS = 0
 
     def __init__(self, parent, index):
-        PagedDialog.__init__(self, parent, _("Configuration"))
+        PagedDialog.__init__(self, parent, _("Custom Configuration"))
 
         self.add_page(_("Custom Options"), CustomOptionsPage)
+        self.add_page(_("Custom Settings"), CustomSettingsPage)
 
         self.list_view.set_index(index)
         self.set_size((900, 540))

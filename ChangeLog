@@ -1,3 +1,37 @@
+Version 2.1.26:
+
+* Implemented options hard_drive_x_priority.
+* Renamed FS-UAE.log to FS-UAE.log.txt for easier upload to EAB.
+* Better method to override directories (e.g. base_dir), old ones deprecated.
+* Added translations: cs [spajdr], fi [GoingDown].
+* Updated translations: it [Speedvicio].
+* (Launcher) Added refresh button to update list of connected joysticks.
+* (Launcher) Added support for the recently added A3000 FS-UAE Amiga model.
+* (Launcher) Improved memory widgets, you now see the current default value.
+* (Launcher) A new simple ADF & HDF Creator dialog is included.
+* (Launcher) Display name first, then directory in media selectors.
+* (Launcher) Fixed a bug where you could get an error message about missing
+  kickstart after just having imported kickstarts and tried to start the
+  emulation.
+* (Launcher) Do not expose database username/password in FS-UAE logs.
+* (Launcher) Added main menu button, moved scan and settings to this menu.
+* (Launcher) Also add menu entries to application menu on OS X.
+* (Launcher) Moved custom options and custom settings to new dialog
+  accessible from the new menu.
+* (Launcher) Moved kickstart import to new kickstart import dialog, removed
+  the "setup" / wizard tab.
+* (Launcher) New "kickstarts are missing" notification in the top tab area.
+* (Launcher) Marked some additional text for translation.
+* (Launcher) Added new about dialog.
+* (Launcher) Database: Game variants can specify that an empty HD or
+  or a HD with Workbench must be added to the system.
+* (Launcher) Preselect variant with personal rating = 5, or else highest
+  rated game variant when selecting a game from the database.
+* (Launcher) Respect new base_dir override.
+* (Launcher) Updated GUI layout in several places, minor improvements here
+  and there.
+* (Launcher) Added translations: cs [spajdr], fi [GoingDown].
+
 Version 2.1.25:
 
 * Fixed startup when running under OS X (2.1.24).

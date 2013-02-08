@@ -302,8 +302,16 @@ static void on_init() {
 
     fs_uae_set_uae_paths();
     fs_uae_read_custom_uae_options(fs_uae_argc, fs_uae_argv);
-    char *uae_file = fs_path_join(fs_uae_logs_dir(), "LastConfig.uae",
-            NULL);
+
+    char *uae_file;
+
+    uae_file = fs_path_join(fs_uae_logs_dir(), "LastConfig.uae", NULL);
+    if (fs_path_exists(uae_file)) {
+        fs_unlink(uae_file);
+    }
+    free(uae_file);
+
+    uae_file = fs_path_join(fs_uae_logs_dir(), "DebugConfig.uae", NULL);
     amiga_write_uae_config(uae_file);
     free(uae_file);
 
@@ -618,7 +626,15 @@ int main(int argc, char* argv[]) {
     }
     const char *logs_dir = fs_uae_logs_dir();
     if (logs_dir) {
-        char *log_file = fs_path_join(logs_dir, "FS-UAE.log", NULL);
+        char *log_file;
+
+        log_file = fs_path_join(logs_dir, "FS-UAE.log", NULL);
+        if (fs_path_exists(log_file)) {
+            fs_unlink(log_file);
+        }
+        free(log_file);
+
+        log_file = fs_path_join(logs_dir, "FS-UAE.log.txt", NULL);
         fs_config_set_log_file(log_file);
         free(log_file);
     }

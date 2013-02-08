@@ -325,6 +325,7 @@ void getserstat (int *pstatus)
     /* read control signals */
     if (ioctl (ser_fd, TIOCMGET, &status) < 0) {
         write_log ("serial: ioctl TIOCMGET failed\n");
+        *pstatus = TIOCM_CTS | TIOCM_CAR | TIOCM_DSR;
         return;
     }
 

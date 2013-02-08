@@ -108,9 +108,10 @@ ifeq ($(profile_use), 1)
 	cxxflags += -fprofile-use
 endif
 
-ifeq ($(force_32bit), 1)
+ifeq ($(force_32bit),1)
 	cflags += -m32
 	cxxflags += -m32
+	ldflags += -m32
 endif
 
 #uae_warn = -Wno-unused-value -Wno-uninitialized -Wno-sign-compare

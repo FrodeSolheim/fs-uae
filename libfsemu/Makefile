@@ -93,6 +93,10 @@ objects = obj/emu_emu.o obj/emu_video.o obj/emu_audio_openal.o \
 
 ldflags = $(LDFLAGS)
 libs =
+ifeq ($(force_32bit),1)
+    cflags += -m32
+    ldflags += -m32
+endif
 
 ifeq ($(devel), 1)
 	cflags += -Wall -Wno-deprecated-declarations

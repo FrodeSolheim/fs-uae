@@ -211,7 +211,7 @@ static uae_u8 *flac_get_data (struct cdtoc *t)
 	return t->data;
 }
 
-static void sub_to_interleaved (const uae_u8 *s, uae_u8 *d)
+void sub_to_interleaved (const uae_u8 *s, uae_u8 *d)
 {
 	for (int i = 0; i < 8 * 12; i ++) {
 		int dmask = 0x80;
@@ -224,7 +224,7 @@ static void sub_to_interleaved (const uae_u8 *s, uae_u8 *d)
 		d++;
 	}
 }
-static void sub_to_deinterleaved (const uae_u8 *s, uae_u8 *d)
+void sub_to_deinterleaved (const uae_u8 *s, uae_u8 *d)
 {
 	for (int i = 0; i < 8 * 12; i ++) {
 		int dmask = 0x80;

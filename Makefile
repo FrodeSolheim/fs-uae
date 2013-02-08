@@ -278,6 +278,7 @@ obj/dms-archiver-u_quick.o \
 obj/dms-archiver-u_rle.o \
 obj/od-fs-audio.o \
 obj/od-fs-bsdsocket_host.o \
+obj/od-fs-blkdev-linux.o \
 obj/od-fs-caps.o \
 obj/od-fs-cda_play.o \
 obj/od-fs-charset.o \

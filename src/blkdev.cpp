@@ -115,6 +115,11 @@ extern struct device_functions devicefunc_win32_ioctl;
 
 #endif
 
+#ifdef LINUX
+extern struct device_functions devicefunc_scsi_linux_raw;
+extern struct device_functions devicefunc_scsi_linux_ioctl;
+#endif
+
 extern struct device_functions devicefunc_cdimage;
 
 static struct device_functions *devicetable[] = {
@@ -122,7 +127,15 @@ static struct device_functions *devicetable[] = {
 	&devicefunc_cdimage,
 #ifdef _WIN32
 	&devicefunc_win32_ioctl,
+#elif defined(LINUX)
+	&devicefunc_scsi_linux_ioctl,
+#else
+        NULL,
+#endif
+#ifdef _WIN32
 	&devicefunc_win32_spti,
+#else
+        NULL,
 #endif
 	NULL
 };

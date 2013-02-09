@@ -10,6 +10,13 @@
 #include <fs/ml/opengl.h>
 #endif
 
+#ifdef USE_FREETYPE
+#include <ft2build.h>
+#include FT_FREETYPE_H
+
+FT_Library library;
+#endif
+
 #include "video.h"
 #include "render.h"
 
@@ -99,11 +106,28 @@ static void context_notification_handler(int notification, void *data) {
     }
 }
 
+#ifdef USE_FREETYPE
+
+void init_freetype(void) {
+    int error = FT_Init_FreeType(&library);
+    if (error) {
+        fs_emu_warning("Could not initialize freetype");
+    }
+    else {
+        fs_emu_log("freetype initialized\n");
+    }
+}
+
+#endif
+
 void initialize() {
     initialize_cache();
     create_text_texture();
     fs_gl_add_context_notification(context_notification_handler, NULL);
     g_buffer = malloc(TEXTURE_WIDTH * 32 * 4);
+#ifdef USE_FREETYPE
+    init_freetype();
+#endif
     g_initialized = 1;
 }
 

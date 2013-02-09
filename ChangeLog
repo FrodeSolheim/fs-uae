@@ -1,3 +1,15 @@
+Version 2.1.27:
+
+* Added lua (sandboxed), (possibly) to be used as a scripting engine.
+* Added freetype as a build dependency, will be used for truetype fonts.
+* Some changes to the build system, fs-uae binary now linked in root dir.
+* Updated translations: fi [GoingDown].
+* (Launcher) Index content in .lha files if lhafile python module is found
+  (implemented earlier, but not announced).
+* (Launcher) Added lhafile module to Windows / OS X binary distributions.
+* (Launcher) Updated translations: it [Speedvicio], pl [grimi], de [nexusle],
+  fi [GoingDown].
+
 Version 2.1.26:
 
 * Implemented options hard_drive_x_priority.
@@ -23,8 +35,8 @@ Version 2.1.26:
 * (Launcher) New "kickstarts are missing" notification in the top tab area.
 * (Launcher) Marked some additional text for translation.
 * (Launcher) Added new about dialog.
-* (Launcher) Database: Game variants can specify that an empty HD or
-  or a HD with Workbench must be added to the system.
+* (Launcher) Database: Game variants can specify that an empty HD or a HD with
+   Workbench must be added to the system.
 * (Launcher) Preselect variant with personal rating = 5, or else highest
   rated game variant when selecting a game from the database.
 * (Launcher) Respect new base_dir override.

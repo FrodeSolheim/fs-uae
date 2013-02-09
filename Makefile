@@ -50,6 +50,7 @@ libs = -L$(libfsemu_dir)/out -lfsemu -lpng -lz
 
 else
 use_glib := 1
+use_freetype := 1
 common_flags = -Isrc/od-fs -Isrc/od-fs/include \
 		-Isrc/include -Igensrc -Isrc -Isrc/od-win32/caps \
 		`pkg-config --cflags glib-2.0 gthread-2.0 libpng` \
@@ -77,6 +78,10 @@ ifeq ($(use_glib), 1)
 else ifeq ($(android), 1)
 else
 	libs += -lrt -lpthread
+endif
+
+ifeq ($(use_freetype), 1)
+	libs += `pkg-config --libs freetype2`
 endif
 
 profile_generate := 0
@@ -420,10 +425,9 @@ catalogs = \
 
 mo: $(catalogs)
 
-out/fs-uae: libfsemu-target obj/uae.a $(objects)
-	$(cxx) $(ldflags) $(objects) obj/uae.a $(libs) -o out/fs-uae
-
-fs-uae: out/fs-uae
+fs-uae: libfsemu-target obj/uae.a $(objects)
+	rm -f out/fs-uae
+	$(cxx) $(ldflags) $(objects) obj/uae.a $(libs) -o fs-uae
 
 dist_dir := fs-uae-$(version)
 dist_dir_launcher := fs-uae-launcher-$(version)
@@ -622,7 +626,7 @@ dist: distdir pubfiles-source po-dist
 
 install:
 	install -d $(DESTDIR)$(prefix)/bin
-	install out/fs-uae $(DESTDIR)$(prefix)/bin/fs-uae
+	install fs-uae $(DESTDIR)$(prefix)/bin/fs-uae
 	install -d $(DESTDIR)$(prefix)/share
 	cp -R share/* $(DESTDIR)$(prefix)/share
 
@@ -633,6 +637,8 @@ clean:
 	rm -f gensrc/build68k gensrc/genblitter gensrc/gencpu gensrc/genlinetoscr
 	rm -f obj/*.o obj/*.a
 	rm -f out/fs-uae*
+	rm -f fs-uae
+	rm -f fs-uae.exe
 	$(make) -C libfsemu clean
 
 distclean: clean

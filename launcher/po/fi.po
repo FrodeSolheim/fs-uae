@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae-launcher\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2013-02-04 23:38+0100\n"
-"PO-Revision-Date: 2013-02-05 07:13+0200\n"
+"POT-Creation-Date: 2013-02-08 20:18+0100\n"
+"PO-Revision-Date: 2013-02-09 08:58+0200\n"
 "Last-Translator: Mika Vaisanen <mjvaisane@gmail.com>\n"
 "Language-Team: Finnish\n"
 "Language: fi\n"
@@ -36,16 +36,19 @@ msgid "640x512 + Border"
 msgstr "640x512 + kehys"
 
 msgid "ADF & HDF Creator"
-msgstr "ADF & HDF Teko"
+msgstr "ADF & HDF Levykuvien teko"
 
-msgid "ADF - MFM Extended Floppy Disk Image"
-msgstr "ADF- MFM Laajennettu levykkeen levykuva"
+msgid "ADF - Extended Floppy Disk Image (MFM)"
+msgstr "ADF - Laajennettu levykkeen levykuva (MFM)"
 
 msgid "ADF - Standard Floppy Disk Image"
-msgstr "ADS - normaali levykkeen levykuva"
+msgstr "ADF - Normaali levykkeen levykuva"
 
 msgid "Abort"
 msgstr "Keskeytä"
+
+msgid "About {name}"
+msgstr "Tietoja {name}ista"
 
 msgid "Accurate"
 msgstr "Tarkka"
@@ -117,7 +120,7 @@ msgid "CD-ROMs"
 msgstr "CD-ROM:t"
 
 msgid "CD32 Pad"
-msgstr "CD32 peliohjain"
+msgstr "CD32 Pad-ohjain"
 
 msgid "Cancel"
 msgstr "Peruuta"
@@ -156,7 +159,7 @@ msgid "Click here to download"
 msgstr "Klikkaa tästä ladataksesi"
 
 msgid "Click here to import kickstarts"
-msgstr "Klikkaa tästä tuodaksesi Kickstart:it"
+msgstr "Klikkaa tästä tuodaksesi Kickstart ROMit"
 
 msgid "Close"
 msgstr "Sulje"
@@ -231,6 +234,9 @@ msgstr "Irrota"
 msgid "Disk Image Name:"
 msgstr "Levykuvan nimi:"
 
+msgid "Disk image created"
+msgstr "Levykuva luotu"
+
 msgid "Downloading {0}..."
 msgstr "Ladataan {0}..."
 
@@ -250,8 +256,8 @@ msgstr "Aktivoi verkkopelitietokannan tuki (vaatii uudelleenkäynnistyksen)"
 msgid "Error moving file into place"
 msgstr "Virhe siirrettäessä tiedostoa paikalleen"
 
-msgid "Error writing disk image:"
-msgstr "Virhe kirjoitettaessa levykuvaa:"
+msgid "Error writing disk image"
+msgstr "Virhe levykuvan kirjoittamisessa"
 
 msgid "Expansions"
 msgstr "Laajennukset"
@@ -322,6 +328,9 @@ msgstr "Pelitietokannan salasana"
 msgid "Game database user name"
 msgstr "Pelitietokannan käyttäjänimi"
 
+msgid "Gamepad/Joystick Setup"
+msgstr "Pad-ohjain/Peliohjain asetukset"
+
 msgid "Games and Configurations"
 msgstr "Pelit ja kokoonpanot"
 
@@ -360,10 +369,10 @@ msgid "Import From Amiga Forever CD/DVD"
 msgstr "Tuo Amiga Forever CD/DVD levyltä"
 
 msgid "Import Kickstarts"
-msgstr "Tuo Kickstart:it"
+msgstr "Tuo Kickstart ROMit"
 
 msgid "Import Kickstarts and ROMs"
-msgstr "Tuo Kickstartit ja ROM:it"
+msgstr "Tuo Kickstartit ja muut ROMit"
 
 msgid "Import task is done"
 msgstr "Haku suoritettu"
@@ -411,7 +420,7 @@ msgid "Kickstart ROMs are missing"
 msgstr "Kickstart ROM:it puuttuvat"
 
 msgid "Kickstart import task started"
-msgstr "Kickstart tuonti aloitettu"
+msgstr "Kickstart ROMien tuonti aloitettu"
 
 msgid "Launching FS-UAE"
 msgstr "Käynnistetään FS-UAE"
@@ -426,7 +435,7 @@ msgid "List of Folders to Index"
 msgstr "Lista indeksoitavista kansioista"
 
 msgid "Low latency vsync (when using full vsync)"
-msgstr "Matalalatenssinen vsync (kun vsync käytössä)"
+msgstr "Matalaviiveinen vsync (kun vsync käytössä)"
 
 msgid "MB"
 msgstr "MB"
@@ -446,6 +455,9 @@ msgstr "Muisti"
 msgid "Mouse"
 msgstr "Hiiri"
 
+msgid "Mouse & Joystick Ports"
+msgstr "Hiiri- ja peliohjainportit"
+
 msgid "Mouse Settings"
 msgstr "Hiiren asetukset"
 
@@ -459,7 +471,7 @@ msgid "Net Play Settings"
 msgstr "Verkkopeliasetukset"
 
 msgid "Net play tag (max 3 characters)"
-msgstr "Verkkopeli tagi (maksimi 3 merkkiä)"
+msgstr "Verkkopelitagi (maksimi 3 merkkiä)"
 
 msgid "New Configuration"
 msgstr "Uusi kokoonpanomääritys"
@@ -488,7 +500,7 @@ msgid "No joysticks are currently connected"
 msgstr "Peliohjaimia ei ole liitettynä"
 
 msgid "No kickstart found for this model. "
-msgstr "Kickstart ROM:ia ei löytynyt tälle mallille."
+msgstr "Kickstart ROMia ei löytynyt tälle mallille."
 
 msgid "No scan in progress"
 msgstr "Ei skannausta käynnissä"
@@ -529,6 +541,9 @@ msgstr "Avaa Wikipedia - merkintä"
 msgid "OpenGL Settings"
 msgstr "OpenGL asetukset"
 
+msgid "Override Installed Memory"
+msgstr "Ohita asennetun muistin määrä"
+
 msgid "Parallel Port Joysticks"
 msgstr "Rinnakkaisportti-peliohjaimet"
 
@@ -554,7 +569,7 @@ msgid "Preparing WHDLoad..."
 msgstr "Valmistellaan WHDLoadia..."
 
 msgid "Preparing floppy images..."
-msgstr "Valmistellaan levykekuvia..."
+msgstr "Valmistellaan levykuvia..."
 
 msgid "Preparing hard drives..."
 msgstr "Valmistellaan kovalevyjä..."
@@ -566,10 +581,13 @@ msgid "Purging old entries..."
 msgstr "Siivotaan vanhoja merkintöjä..."
 
 msgid "Refresh Game Database"
-msgstr "Päivitä pelitietokanta"
+msgstr "Virkistä pelitietokanta"
 
 msgid "Refresh game configurations from database"
-msgstr "Päivitä pelikokoonpanot tietokannasta"
+msgstr "Virkistä pelikokoonpanot tietokannasta"
+
+msgid "Refresh list of connected joystick devices"
+msgstr "Virkistä liitettyjen peliohjaimien lista"
 
 msgid "Remove Directory from Search Path"
 msgstr "Poista hakemisto hakupolusta"
@@ -660,13 +678,13 @@ msgstr "Valitse lähdehakemisto"
 
 msgid "Select a folder containing Amiga kickstart files and click \"{0}\""
 msgstr ""
-"Valitse kansio joka sisältää Amiga kickstart tiedostot ja klikkaa \"{0}\""
+"Valitse kansio joka sisältää Amiga kickstart ROM tiedostot ja klikkaa \"{0}\""
 
 msgid "Settings"
 msgstr "Asetukset"
 
 msgid "Show kickstart setup page on startup when all ROMs are missing"
-msgstr "Näytä Kickstart-asetukset käynnistettäessä jos yhtään ROM:ia ei löydy"
+msgstr "Näytä Kickstart-asetukset käynnistettäessä jos yhtään ROMia ei löydy"
 
 msgid "Size:"
 msgstr "Koko:"
@@ -707,11 +725,14 @@ msgstr "Tekstuurisuodatin"
 msgid "Toggle Between Windowed and Full-Screen Mode"
 msgstr "Vaihda ikkuna- ja kokoruututilan välillä"
 
+msgid "Tools"
+msgstr "Työkalut"
+
 msgid "Ungrab mouse and keyboard on middle mouse click"
 msgstr "Vapauta hiiri ja näppäimistö hiiren keskinapin klikkauksella"
 
-msgid "Update ({version}) is available"
-msgstr "Päivitys ({version}) on saatavilla"
+msgid "Update available ({version})"
+msgstr "Päivitys saatavilla ({version})"
 
 msgid "Updating database"
 msgstr "Päivitetään tietokantaa"
@@ -751,8 +772,17 @@ msgstr "Zoomaa Amiga-näyttö (leikkaa)"
 msgid "Zorro III RAM"
 msgstr "Zorro III muisti"
 
+#~ msgid "ADF - MFM Extended Floppy Disk Image"
+#~ msgstr "ADF- MFM Laajennettu levykkeen levykuva"
+
+#~ msgid "Error writing disk image:"
+#~ msgstr "Virhe kirjoitettaessa levykuvaa:"
+
 #~ msgid "Kickstart Setup"
 #~ msgstr "Kickstart asetuset"
 
 #~ msgid "Select Directory to Import From"
 #~ msgstr "Valitse hakemisto tuontia varten"
+
+#~ msgid "Update ({version}) is available"
+#~ msgstr "Päivitys ({version}) on saatavilla"

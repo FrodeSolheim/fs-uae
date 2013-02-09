@@ -17,6 +17,7 @@ program:
 	cp /mingw/bin/libgthread-2.0-0.dll fs-uae-$(version)-windows
 	cp /mingw/bin/intl.dll fs-uae-$(version)-windows
 	cp /mingw/bin/libpng*.dll fs-uae-$(version)-windows
+	cp /mingw/bin/libfreetype*.dll fs-uae-$(version)-windows
 	cp /mingw/bin/libgcc_s_*.dll fs-uae-$(version)-windows
 	cp /mingw/bin/libstdc++*.dll fs-uae-$(version)-windows
 	cp /mingw/bin/libintl*.dll fs-uae-$(version)-windows
@@ -24,7 +25,7 @@ program:
 	cp /mingw/bin/SDL.dll fs-uae-$(version)-windows
 	cp /mingw/bin/soft_oal.dll fs-uae-$(version)-windows/OpenAL32.dll
 	#cp /mingw/dist/SDL.dll fs-uae-$(version)-windows
-	cp -a ../out/fs-uae.exe fs-uae-$(version)-windows/FS-UAE.exe
+	cp -a ../fs-uae.exe fs-uae-$(version)-windows/FS-UAE.exe
 	cp -a ../../out/CAPSImg.dll fs-uae-$(version)-windows
 	#mv fs-uae-$(version)-windows/TEMP.exe fs-uae-$(version)-windows/FS-UAE.exe
 	cp -a ../share fs-uae-$(version)-windows

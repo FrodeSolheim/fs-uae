@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: fs-uae\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
 "POT-Creation-Date: 2013-02-01 21:15+0100\n"
-"PO-Revision-Date: 2013-02-03 21:12+0200\n"
+"PO-Revision-Date: 2013-02-09 08:55+0200\n"
 "Last-Translator: Mika Vaisanen <mjvaisane@gmail.com>\n"
 "Language-Team: Finnish\n"
 "Language: fi\n"
@@ -47,7 +47,7 @@ msgid "CD%d: Empty"
 msgstr "CD%d: Tyhjä"
 
 msgid "CD32 Pad Mode"
-msgstr "CD32 peliohjaintila"
+msgstr "CD32 Pad-ohjaintila"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 msgid "Custom Joystick Port"

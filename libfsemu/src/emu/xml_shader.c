@@ -19,6 +19,10 @@
 #include <glib.h>
 #endif
 
+#ifdef WITH_LUA
+#include "emu_lua.h"
+#endif
+
 #define debug_printf(format, ...)
 //#define debug_printf printf
 
@@ -32,20 +36,27 @@
 #define SCALING_OUTPUT 3
 
 typedef struct shader_pass {
-    GLuint program;
     int filtering;
     int hor_scale_method;
     float hor_scale_value;
     int ver_scale_method;
     float ver_scale_value;
-
+    GLuint program;
     GLuint texture;
     GLuint frame_buffer;
 } shader_pass;
 
-static int g_shader_ok;
-static fs_list *g_shader_passes = NULL;
-static fs_list *g_current_shaders = NULL;
+typedef struct fs_emu_shader {
+    char *path;
+    int ok;
+    fs_list *passes;
+    fs_list *current_shaders;
+} fs_emu_shader;
+
+//static int g_shader_ok;
+//static fs_list *g_shader_passes = NULL;
+//static fs_list *g_current_shaders = NULL;
+static fs_emu_shader *g_active_shader = NULL;
 
 #define MAX_TEXT_SIZE 65536
 
@@ -81,6 +92,7 @@ typedef struct parse_data {
     float outscale_y;
     float outscale;
 
+    fs_emu_shader *shader;
 } parse_data;
 
 static void on_start_element(GMarkupParseContext *context,
@@ -188,7 +200,7 @@ static void handle_element(parse_data *data, const char *element,
         return;
     }
     if (vertex_shader) {
-        if (g_current_shaders != NULL) {
+        if (data->shader->current_shaders != NULL) {
             // If "the current list of shaders" is not empty, this shader
             // file is invalid. Abort this algorithm, do not continue
             // trying to load the file. Host applications should alert
@@ -226,7 +238,8 @@ static void handle_element(parse_data *data, const char *element,
             fs_log("compiled vertex shader successfully\n");
         }
 
-        g_current_shaders = fs_list_append(g_current_shaders,
+        data->shader->current_shaders = fs_list_append(
+                data->shader->current_shaders,
                 FS_UINT_TO_POINTER(shader));
         return;
     }
@@ -349,7 +362,8 @@ static void handle_element(parse_data *data, const char *element,
 
     // Add the shader handle to the current list of shaders.
 
-    g_current_shaders = fs_list_append(g_current_shaders,
+    data->shader->current_shaders = fs_list_append(
+            data->shader->current_shaders,
             FS_UINT_TO_POINTER(shader));
 
     // Take the shader-handles from the current list of shaders and link
@@ -363,7 +377,7 @@ static void handle_element(parse_data *data, const char *element,
         return;
     }
 
-    fs_list *link = g_current_shaders;
+    fs_list *link = data->shader->current_shaders;
     while (link) {
         GLuint shader = GPOINTER_TO_UINT(link->data);
         glAttachShader(program, shader);
@@ -374,7 +388,7 @@ static void handle_element(parse_data *data, const char *element,
         link = link->next;
         fs_list_free_1(temp);
     }
-    g_current_shaders = NULL;
+    data->shader->current_shaders = NULL;
 
     glLinkProgram(program);
     CHECK_GL_ERROR();
@@ -422,10 +436,11 @@ static void handle_element(parse_data *data, const char *element,
         }
     }
     // Add the shader pass to the list of shader passes.
-    g_shader_passes = fs_list_append(g_shader_passes, pass);
+    data->shader->passes = fs_list_append(data->shader->passes, pass);
 }
 
-static void on_end_element(GMarkupParseContext *context, const gchar *element_name,
+static void on_end_element(GMarkupParseContext *context,
+        const gchar *element_name,
         gpointer user_data, GError **error) {
     debug_printf("on_end_element %s\n", element_name);
 
@@ -461,36 +476,47 @@ static GMarkupParser counter_subparser = {
         on_start_element, on_end_element, on_text,
         NULL, on_error };
 
-static void fs_emu_load_shader() {
-    char *path = fs_config_get_string("shader");
-    if (!path) {
-        return;
-    }
-    fs_log("checking shader %s\n", path);
-    if (!fs_path_exists(path)) {
-        char *name2 = fs_strconcat(path, ".shader", NULL);
-        free(path);
-        path = fs_path_join("shaders", name2, NULL);
-        free(name2);
-        fs_log("checking shader (share)/%s\n", path);
-        char *path2 = fs_get_program_data_file(path);
-        free(path);
-        path = path2;
-        if (!path) {
-            fs_emu_warning(_("Shader not found: %s"),
-                    fs_config_get_const_string("shader"));
+void fs_emu_load_shader(fs_emu_shader *shader);
+
+static void context_notification_handler(int notification, void *data) {
+    static int recreate = 0;
+    fs_emu_shader *shader = (fs_emu_shader *) data;
+    if (notification == FS_GL_CONTEXT_DESTROY) {
+        fs_log("FS_GL_CONTEXT_DESTROY handler for shader\n");
+        fs_list *link = shader->passes;
+        if (shader->passes == NULL) {
             return;
         }
+        printf("destroying shaders\n");
+        fs_log("destroying shaders\n");
+        while (link) {
+            shader_pass *pass = link->data;
+            glDeleteProgram(pass->program);
+            g_free(pass);
+            fs_list *delete_link = link;
+            link = link->next;
+            fs_list_free_1(delete_link);
+        }
+        recreate = 1;
+        shader->passes = NULL;
     }
-    fs_log("loading shader from %s\n", path);
+    else if (notification == FS_GL_CONTEXT_CREATE) {
+        fs_log("FS_GL_CONTEXT_CREATE handler for shader\n");
+        if (recreate) {
+            fs_emu_load_shader(shader);
+        }
+    }
+}
 
+void fs_emu_load_shader(fs_emu_shader *shader) {
     parse_data *data = g_new0(parse_data, 1);
+    data->shader = shader;
     data->buffer = malloc(MAX_TEXT_SIZE);
 
     GMarkupParseContext *context = g_markup_parse_context_new(
             &counter_subparser, G_MARKUP_TREAT_CDATA_AS_TEXT, data, NULL);
 
-    FILE *f = fs_fopen(path, "rb");
+    FILE *f = fs_fopen(data->shader->path, "rb");
     if (f == NULL) {
         fs_log("could not open shader file\n");
         return;
@@ -503,24 +529,23 @@ static void fs_emu_load_shader() {
     }
     fclose(f);
     free(buffer);
-    free(path);
 
     // If the list of shader passes is empty, this shader file is invalid.
     // Abort this algorithm, do not continue trying to load the file. Host
     // applications should alert the user that there was a problem loading
     // the file.
 
-    if (g_shader_passes == NULL) {
+    if (data->shader->passes == NULL) {
         fs_emu_warning("no shader passes loaded");
-        g_shader_ok = 0;
+        data->shader->ok = 0;
     }
     else if (data->error) {
         fs_emu_warning("error occured while loading shader");
-        g_shader_ok = 0;
+        data->shader->ok = 0;
     }
     else {
         fs_log("shader ok\n");
-        g_shader_ok = 1;
+        data->shader->ok = 1;
     }
 
     free(data->buffer);
@@ -528,41 +553,45 @@ static void fs_emu_load_shader() {
     g_markup_parse_context_free(context);
 
     CHECK_GL_ERROR();
+
     fs_log("done loading shader\n");
     //exit(1);
 }
 
-static void context_notification_handler(int notification, void *data) {
-    static int recreate = 0;
-    if (notification == FS_GL_CONTEXT_DESTROY) {
-        fs_log("FS_GL_CONTEXT_DESTROY handler for shader\n");
-        fs_list *link = g_shader_passes;
-        if (g_shader_passes == NULL) {
-            return;
-        }
-        fs_log("destroying shaders\n");
-        while (link) {
-            shader_pass *pass = link->data;
-            glDeleteProgram(pass->program);
-            g_free(pass);
-            fs_list *delete_link = link;
-            link = link->next;
-            fs_list_free_1(delete_link);
-        }
-        recreate = 1;
-        g_shader_passes = NULL;
+static char *find_shader(const char *name) {
+    //char *path = fs_strdup(name);
+    fs_log("checking shader %s\n", name);
+    if (fs_path_exists(name)) {
+        return fs_strdup(name);
     }
-    else if (notification == FS_GL_CONTEXT_CREATE) {
-        fs_log("FS_GL_CONTEXT_CREATE handler for shader\n");
-        if (recreate) {
-            fs_emu_load_shader();
-        }
+    char *name2 = fs_strconcat(name, ".shader", NULL);
+    char *path = fs_path_join("shaders", name2, NULL);
+    free(name2);
+    fs_log("checking shader (share)/%s\n", path);
+    char *path2 = fs_get_program_data_file(path);
+    free(path);
+    if (path2) {
+        return path2;
     }
+    return NULL;
 }
 
-void fs_emu_xml_shader_init(void) {
-    fs_emu_load_shader();
-    fs_gl_add_context_notification(context_notification_handler, NULL);
+static void fs_emu_load_default_shader() {
+    const char *name = fs_config_get_const_string("shader");
+    if (!name) {
+        return;
+    }
+    char *path = find_shader(name);
+    if (!path) {
+        fs_emu_warning(_("Shader not found: %s"), name);
+        return;
+    }
+
+    fs_emu_shader *shader= g_new0(fs_emu_shader, 1);
+    shader->path = path;
+    fs_emu_load_shader(shader);
+    fs_gl_add_context_notification(context_notification_handler, shader);
+    g_active_shader = shader;
 }
 
 static int g_frame_count = 0;
@@ -1012,7 +1041,7 @@ static void render_pass(shader_pass *pass, int first, int last) {
 }
 
 int fs_emu_xml_shader_is_enabled() {
-    return g_shader_ok;
+    return g_active_shader && g_active_shader->ok;
 }
 
 int fs_emu_xml_shader_render(int texture, int texture_width,
@@ -1020,7 +1049,7 @@ int fs_emu_xml_shader_render(int texture, int texture_width,
         int output_width, int output_height, float x1, float y1,
         float x2, float y2, int render_textured_side, float alpha) {
 
-    if (!g_shader_ok) {
+    if (!fs_emu_xml_shader_is_enabled()) {
         return 0;
     }
 
@@ -1076,7 +1105,7 @@ int fs_emu_xml_shader_render(int texture, int texture_width,
     debug_printf("     texture: %d %d\n", g_cur_texture_w, g_cur_texture_h);
 
     // For each shader pass in the list of shader passes...
-    fs_list *link = g_shader_passes;
+    fs_list *link = g_active_shader->passes;
     int first = 1;
     while (link) {
         shader_pass *pass = link->data;
@@ -1107,6 +1136,50 @@ int fs_emu_xml_shader_render(int texture, int texture_width,
     CHECK_GL_ERROR();
 
     return 1;
+}
+
+#ifdef WITH_LUA
+
+static int l_fs_emu_load_shader(lua_State *L) {
+    const char *name = luaL_checkstring(L, 1);
+    char *path = find_shader(name);
+    if (!path) {
+        lua_pushnil(L);
+        return 1;
+    }
+    fs_emu_shader *shader = g_new0(fs_emu_shader, 1);
+    shader->path = path;
+    fs_emu_load_shader(shader);
+    fs_gl_add_context_notification(context_notification_handler, shader);
+    lua_pushlightuserdata(L, shader);
+    luaL_newmetatable(L, "fs_emu_shader");
+    lua_setmetatable(L, -2);
+    return 1;
+}
+
+static int l_fs_emu_set_shader(lua_State *L) {
+    if (lua_isnil(L, 1)) {
+        g_active_shader = NULL;
+        return 0;
+    }
+    fs_emu_shader *shader = luaL_checkudata(L, 1, "fs_emu_shader");
+    g_active_shader = shader;
+    return 0;
+}
+
+#endif
+
+void fs_emu_xml_shader_init(void) {
+    fs_log("fs_emu_xml_shader_init\n");
+    fs_emu_load_default_shader();
+
+#ifdef WITH_LUA
+    lua_State *L = fs_emu_lua_state;
+
+    lua_register(L, "fs_emu_load_shader", l_fs_emu_load_shader);
+    lua_register(L, "fs_emu_set_shader", l_fs_emu_set_shader);
+
+#endif
 }
 
 #endif

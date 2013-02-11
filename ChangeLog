@@ -1,3 +1,12 @@
+Version 2.1.28:
+
+* Reverted the scanline function to its older / simpler behavior, use
+  the shader "scanlines-nonlinear" instead.
+* New shaders included: scanlines-classic (same as scanline CPU filter),
+  and scanlines-nonlinear (a scanline filter which varies with pixel
+  intensity and also introduces some pixel blending).
+* (Launcher) Fixed an issue with selecting Amiga 1000 (2.1.26).
+
 Version 2.1.27:
 
 * Added lua (sandboxed), (possibly) to be used as a scripting engine.

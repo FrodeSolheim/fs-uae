@@ -247,6 +247,8 @@ class LaunchHandler:
         for i in range(0, 10):
             key = "hard_drive_{0}".format(i)
             src = self.config.get(key, "")
+            dummy, ext = os.path.splitext(src)
+            ext = ext.lower()
 
             if src.startswith("http://") or src.startswith("https://"):
                 name = src.rsplit("/", 1)[-1]
@@ -268,10 +270,11 @@ class LaunchHandler:
                 self.disable_save_states()
                 return
 
-            if src.endswith(".zip"):
+            if ext in [".zip", ".lha"]:
                 print("zipped hard drive", src)
                 self.unpack_hard_drive(i, src)
                 self.disable_save_states()
+
             elif src.endswith("HardDrive"):
                 print("XML-described hard drive", src)
                 self.unpack_hard_drive(i, src)

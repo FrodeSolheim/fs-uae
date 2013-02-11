@@ -48,6 +48,7 @@ char *fs_config_get_string(const char *key) {
 
 static void process_key_value(const char *key, char *value, int force) {
     char *key_lower = fs_ascii_strdown(key, -1);
+    fs_strdelimit (key_lower, "-", '_');
     // using fs_config_get_const_string here instead of just
     // fs_hash_table_lookup, since that also checks for empty strings, which
     // should be treated as non-existing keys
@@ -214,7 +215,6 @@ void fs_config_parse_options(int argc, char **argv) {
             fs_log("\n");
             first = 0;
         }
-        fs_strdelimit (k, "-", '_');
         process_key_value(k, v, 0);
         free(k);
         // v is owned by process_key_file, do not free here

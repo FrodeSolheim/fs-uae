@@ -124,7 +124,8 @@ class HardDriveGroup(fsui.Group):
                 (self.config_key_sha1, sha1)]
         if self.index == 0:
             whdload_args = ""
-            if not dir_mode and path.lower().endswith(".zip"):
+            dummy, ext = os.path.splitext(path)
+            if not dir_mode and ext.lower() in [".zip", ".lha"]:
                 try:
                     whdload_args = self.calculate_whdload_args(full_path)
                 except Exception:

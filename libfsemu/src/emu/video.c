@@ -10,6 +10,7 @@
 #endif
 
 #include "audio.h"
+#include "emu_lua.h"
 #include "font.h"
 #include "libfsemu.h"
 #include "menu.h"
@@ -180,12 +181,14 @@ int fs_emu_get_texture_format() {
 }
 
 void fs_emu_video_init_opengl() {
+    fs_log("fs_emu_video_init_opengl\n");
     fs_emu_initialize_opengl();
     initialize();
     fs_emu_menu_init_opengl();
 #ifdef WITH_XML_SHADER
     fs_emu_xml_shader_init();
 #endif
+    fs_emu_lua_run_handler("on_fs_emu_init_video");
 }
 
 void fs_emu_toggle_fullscreen() {

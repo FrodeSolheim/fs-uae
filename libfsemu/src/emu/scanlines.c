@@ -16,7 +16,7 @@ void fs_emu_render_scanlines(uint8_t* out, fs_emu_video_buffer *buffer,
     unsigned char *dst_line = (unsigned char *) out;
     dst_line += cy * stride + cx * buffer->bpp;
 
-    unsigned char *src, *dst, *src2;
+    unsigned char *src, *dst;
 
     int light_ia = 255 - scanline_light;
     int dark_ia = 255 - scanline_dark;
@@ -26,13 +26,8 @@ void fs_emu_render_scanlines(uint8_t* out, fs_emu_video_buffer *buffer,
 
     int alt = 0;
 
-    static int c = 0;
-    //alt = c++;
-    c = c % 2;
-
     for (int y = 0; y < ch; y++) {
         src = src_line;
-        src2 = src_line;
         src_line += stride;
         dst = dst_line;
         dst_line += stride;
@@ -42,28 +37,13 @@ void fs_emu_render_scanlines(uint8_t* out, fs_emu_video_buffer *buffer,
                 continue;
             }
             for (int x = 0; x < cw; x++) {
-#ifdef __BIG_ENDIAN__
-                src ++;
-                src2 ++;
-                dst ++;
-#endif
-/*
                 *dst++ = (*src++ * light_ia) / 256 + scanline_light;
                 *dst++ = (*src++ * light_ia) / 256 + scanline_light;
                 *dst++ = (*src++ * light_ia) / 256 + scanline_light;
-*/
-                *dst++ = ((*src++ + *src2++) / 2 * light_ia) / 256 + scanline_light;
-                *dst++ = ((*src++ + *src2++) / 2 * light_ia) / 256 + scanline_light;
-                *dst++ = ((*src++ + *src2++) / 2 * light_ia) / 256 + scanline_light;
-
 #ifndef __BIG_ENDIAN__
                 src ++;
-                src2 ++;
                 dst ++;
 #endif
-                if (x == 0) {
-                    src2 -= 4;
-                }
             }
         }
         else {
@@ -77,25 +57,13 @@ void fs_emu_render_scanlines(uint8_t* out, fs_emu_video_buffer *buffer,
                 src2 ++;
                 dst ++;
 #endif
-                unsigned char level = ((int) src[0] + (int) src[1] + (int) src[2]) / 3;
-                dark_ia = 128 - 10 + level / 2;
-/*
                 *dst++ = (*src++ * dark_ia) / 256;
                 *dst++ = (*src++ * dark_ia) / 256;
                 *dst++ = (*src++ * dark_ia) / 256;
-*/
-                *dst++ = ((*src++ + *src2++) / 2 * dark_ia) / 256;
-                *dst++ = ((*src++ + *src2++) / 2 * dark_ia) / 256;
-                *dst++ = ((*src++ + *src2++) / 2 * dark_ia) / 256;
-
 #ifndef __BIG_ENDIAN__
                 src ++;
-                src2 ++;
                 dst ++;
 #endif
-                if (x == 0) {
-                    src2 -= 4;
-                }
             }
         }
     }

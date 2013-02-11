@@ -24,12 +24,19 @@
 //#include <SDL.h>
 //#endif
 
-#ifdef WITH_SDL
-#include <SDL.h>
-#endif
+//#ifdef WITH_SDL
+//#include <SDL.h>
+//#endif
 
 #ifdef __cplusplus
 extern "C" {
+#endif
+
+#ifdef WITH_LUA
+#include <lauxlib.h>
+lua_State *fs_emu_get_lua_state(void);
+void fs_emu_acquire_lua(void);
+void fs_emu_release_lua(void);
 #endif
 
 // Can (or should) be called before fs_emu_init

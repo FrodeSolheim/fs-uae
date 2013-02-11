@@ -55,6 +55,7 @@ common_flags = -Isrc/od-fs -Isrc/od-fs/include \
 		-Isrc/include -Igensrc -Isrc -Isrc/od-win32/caps \
 		`pkg-config --cflags glib-2.0 gthread-2.0 libpng` \
 		-I$(libfsemu_dir)/include \
+		-I$(libfsemu_dir)/src/lua \
 		`sdl-config --cflags`
 cflags = $(common_flags) -std=c99 $(CFLAGS)
 #cxxflags = $(common_flags) -fpermissive $(CXXFLAGS)
@@ -161,7 +162,7 @@ else
 endif
 
 ifneq ($(os), android)
-	cppflags += -DUSE_SDL -DUSE_GLIB
+	cppflags += -DUSE_SDL -DUSE_GLIB -DWITH_LUA
 endif
 
 objects = \
@@ -238,6 +239,7 @@ obj/identify.o \
 obj/inputrecord.o \
 obj/isofs.o \
 obj/keybuf.o \
+obj/luascript.o \
 obj/main.o \
 obj/memory.o \
 obj/missing.o \

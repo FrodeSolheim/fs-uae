@@ -59,6 +59,7 @@
 #ifdef RETROPLATFORM
 #include "rp.h"
 #endif
+#include "luascript.h"
 
 #define CUSTOM_DEBUG 0
 #define SPRITE_DEBUG 0
@@ -5944,6 +5945,10 @@ static void vsync_handler_post (void)
 		write_log (_T("vblank interrupt not cleared\n"));
 #endif
 	DISK_vsync ();
+
+#ifdef WITH_LUA
+	uae_lua_run_handler("on_uae_vsync");
+#endif
 
 	if (bplcon0 & 4)
 		lof_store = lof_store ? 0 : 1;

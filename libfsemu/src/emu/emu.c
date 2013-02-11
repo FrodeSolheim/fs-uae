@@ -19,6 +19,7 @@
 
 #include "audio.h"
 #include "dialog.h"
+#include "emu_lua.h"
 #include "hud.h"
 #include "input.h"
 #include "libfsemu.h"
@@ -245,6 +246,10 @@ void fs_emu_init() {
 
     fs_emu_log("calling fs_ml_init\n");
     fs_ml_init();
+
+#ifdef WITH_LUA
+    fs_emu_lua_init();
+#endif
 
     g_gui_mutex = fs_mutex_create();
     fs_emu_hud_init();

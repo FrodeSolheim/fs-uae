@@ -15,6 +15,7 @@
 #include "libfsemu.h"
 #include "audio.h"
 #include "dialog.h"
+#include "emu_lua.h"
 #include "font.h"
 #include "hud.h"
 #include "menu.h"
@@ -77,6 +78,14 @@ static double g_scale_x = -1.0;
 static double g_scale_y = -1.0;
 static double g_align_x = 0.5;
 static double g_align_y = 0.5;
+
+static int g_frame_override = 0;
+static int g_frame_override_x = 0;
+static int g_frame_override_y = 0;
+static int g_frame_override_w = 0;
+static int g_frame_override_h = 0;
+static int g_l_scale_x = 1920;
+static int g_l_scale_y = 1080;
 
 struct overlay_status {
     int state;
@@ -685,10 +694,133 @@ static void render_gloss(double alpha) {
     //glEnd();
 }
 
+static void render_quad(float x1, float y1, float x2, float y2, float s1,
+        float t1, float s2, float t2) {
+#ifdef USE_GLES
+    GLfloat tex[] = {
+        s1, t2,
+        s2, t2,
+        s2, t1,
+        s1, t1
+    };
+    GLfloat vert[] = {
+        x1, y1,
+        x2, y1,
+        x2, y2,
+        x1, y2
+    };
+
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+    glVertexPointer(2, GL_FLOAT, 0, vert);
+    glTexCoordPointer(2, GL_FLOAT, 0, tex);
+    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+#else
+    glBegin(GL_QUADS);
+    glTexCoord2d(s1, t2);
+    glVertex2f(x1, y1);
+    glTexCoord2d(s2, t2);
+    glVertex2f(x2, y1);
+    glTexCoord2d(s2, t1);
+    glVertex2f(x2, y2);
+    glTexCoord2d(s1, t1);
+    glVertex2f(x1, y2);
+    glEnd();
+#endif
+    CHECK_GL_ERROR();
+}
+
 static void render_frame(double alpha, int perspective) {
-    //printf("--- render frame ---\n");
-    //float t = g_snes_height / 512.0;
-    //fs_log("%d %d %d %d\n", g_crop.x, g_crop.y, g_crop.w, g_crop.h);
+    fs_emu_lua_run_handler("on_fs_emu_render_frame");
+
+#ifdef WITH_LUA
+
+#if 0
+    fs_emu_acquire_lua();
+    lua_getglobal(fs_emu_lua_state, "on_fs_emu_render_frame");
+    if (lua_isnil(fs_emu_lua_state, -1)) {
+        lua_pop(fs_emu_lua_state, 1);
+    }
+    else if (lua_pcall(fs_emu_lua_state, 0, 0, 0) != 0) {
+        fs_emu_lua_log_error("error calling on_render_frame");
+        lua_pop(fs_emu_lua_state, 1);
+    }
+    //else if (!lua_isnumber(fs_emu_lua_state, -1)) {
+    //    fs_log("fs_emu_on_render_frame must return a number\n");
+    //}
+    else {
+    //    //int handled = lua_tonumber(fs_emu_lua_state, -1);
+    //    //lua_pop(fs_emu_lua_state, 1);
+    //    //if (handled) {
+    //    //    return;
+    //    //}
+        //fs_emu_release_lua();
+        //return;
+    }
+    fs_emu_release_lua();
+#endif
+
+#endif
+
+    if (g_frame_override) {
+        int x = g_frame_override_x;
+        int y = g_frame_override_y;
+        int w = g_frame_override_w;
+        int h = g_frame_override_h;
+
+        float color = 1.0;
+        if (g_frame_texture == 0) {
+            // texture has not been created yet
+            color = 0.0;
+            fs_gl_texturing(0);
+        }
+        else {
+            fs_gl_texturing(1);
+            fs_gl_bind_texture(g_frame_texture);
+        }
+        fs_gl_blending(0);
+        fs_gl_color4f(color, color, color, 1.0);
+
+        float x1 = -1.0 + x * 2.0 / g_l_scale_x;
+        float x2 = -1.0 + (x + w) * 2.0 / g_l_scale_x;
+        float y2 = 1.0 - y * 2.0 / g_l_scale_y;
+        float y1 = 1.0 - (y + h) * 2.0 / g_l_scale_y;
+
+        double s1 = 0.0;
+        double t1 = 0.0;
+        double s2 = (double) g_crop.w / g_frame_texture_width;
+        double t2 = (double) g_crop.h / g_frame_texture_height;
+
+        int shader_result = 0;
+#ifdef WITH_XML_SHADER
+        if (g_frame_texture) {
+            // only try to render with shader passes if we have a valid texture
+
+            int screen_w = fs_ml_video_width();
+            int screen_h = fs_ml_video_height();
+            double doutput_w = screen_w;
+            double doutput_h = screen_h;
+            doutput_w = doutput_w * g_frame_override_w / (double) g_l_scale_x;
+            doutput_h = doutput_h * g_frame_override_h / (double) g_l_scale_y;
+            int output_w = doutput_w + 0.5;
+            int output_h = doutput_h + 0.5;
+
+            shader_result = fs_emu_xml_shader_render(g_frame_texture,
+                    g_frame_texture_width, g_frame_texture_height,
+                    g_crop.w, g_crop.h, output_w, output_h,
+                    x1, y1, x2, y2, 0, 1.0);
+        }
+#endif
+        if (!shader_result) {
+            render_quad(x1, y1, x2, y2, s1, t1, s2, t2);
+        }
+
+        return;
+    }
 
     int input_w = g_crop.w;
     int input_h = g_crop.h;
@@ -1069,38 +1201,7 @@ static void render_frame(double alpha, int perspective) {
     }
 #endif
     if (!shader_result) {
-#ifdef USE_GLES
-        GLfloat tex[] = {
-            s1, t2,
-            s2, t2,
-            s2, t1,
-            s1, t1
-        };
-        GLfloat vert[] = {
-            x1, y1,
-            x2, y1,
-            x2, y2,
-            x1, y2
-        };
-    
-        glEnableClientState(GL_VERTEX_ARRAY);
-        glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-    
-        glVertexPointer(2, GL_FLOAT, 0, vert);
-        glTexCoordPointer(2, GL_FLOAT, 0, tex);
-        glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-    
-        glDisableClientState(GL_VERTEX_ARRAY);
-        glDisableClientState(GL_TEXTURE_COORD_ARRAY);        
-#else
-        glBegin(GL_QUADS);
-        glTexCoord2d(s1, t2); glVertex2f(x1, y1);
-        glTexCoord2d(s2, t2); glVertex2f(x2, y1);
-        glTexCoord2d(s2, t1); glVertex2f(x2, y2);
-        glTexCoord2d(s1, t1); glVertex2f(x1, y2);
-        glEnd();
-#endif
-        CHECK_GL_ERROR();
+        render_quad(x1, y1, x2, y2, s1, t1, s2, t2);
     }
 
     //repeat_right_border = 0;
@@ -1592,6 +1693,7 @@ void fs_emu_video_render_function() {
     // FIXME: can perhaps remove this soon..
     fs_emu_video_render_mutex_lock();
 
+
     int in_menu = fs_emu_menu_is_active();
     if (in_menu && g_menu_transition_target < 1.0) {
         g_menu_transition_target = 1.0;
@@ -1600,16 +1702,37 @@ void fs_emu_video_render_function() {
         g_menu_transition_target = 0.0;
     }
 
+    float menu_transition_speed = 0.10;
+    int allow_perspective = 1;
+
+#ifdef WITH_LUA
+    //fs_emu_acquire_lua();
+    //lua_getglobal(fs_emu_lua_state, "on_render_frame");
+    //if (lua_isnil(fs_emu_lua_state, -1)) {
+    //    lua_pop(fs_emu_lua_state, 1);
+    //}
+
+    if (g_frame_override) {
+        // don't allow perspective with the new scripted rendering system
+        allow_perspective = 0;
+        menu_transition_speed = 1.0 / 7.0;
+        glClearColor(0.0, 0.0, 0.0, 1.0);
+        glClear(GL_COLOR_BUFFER_BIT);
+    }
+
+    //fs_emu_release_lua();
+#endif
+
     // FIXME: ideally, we would use time-based animation - for now, we use a
     // simple frame-based animation
     if (g_menu_transition < g_menu_transition_target) {
         if (g_menu_transition_target == 1.0) {
-            g_menu_transition += 0.10;
+            g_menu_transition += menu_transition_speed;
         }
     }
     if (g_menu_transition > g_menu_transition_target) {
         if (g_menu_transition_target == 0.0) {
-            g_menu_transition -= 0.10;
+            g_menu_transition -= menu_transition_speed;
         }
     }
     if (g_menu_transition > 1.0) {
@@ -1633,7 +1756,7 @@ void fs_emu_video_render_function() {
     double r1_a = 30.0;
 
     int perspective = 0;
-    if (g_menu_transition == 0.0) {
+    if (g_menu_transition == 0.0 || allow_perspective == 0) {
         perspective = 0;
         fs_gl_ortho();
         //glTranslated(1920.0 / 2.0, 1080.0 / 2.0, 0.0);
@@ -2093,6 +2216,90 @@ void fs_emu_video_render_debug_info(uint32_t *texture) {
     }
 }
 
+#ifdef WITH_LUA
+
+static int l_fs_emu_set_scale(lua_State *L) {
+    int x = luaL_checkinteger(L, 1);
+    int y = luaL_checkinteger(L, 2);
+    // make sure we don't divide by zero later, zero scale not allowed
+    if (x == 0) {
+        x = 1;
+    }
+    if (y == 0) {
+        y = 1;
+    }
+    g_l_scale_x = x;
+    g_l_scale_y = y;
+
+    return 0;
+}
+
+/*
+static int l_fs_emu_render_frame(lua_State *L) {
+    int x = luaL_checkinteger(L, 1);
+    int y = luaL_checkinteger(L, 2);
+    int w = luaL_checkinteger(L, 3);
+    int h = luaL_checkinteger(L, 4);
+
+    float color = 1.0;
+    if (g_frame_texture == 0) {
+        // texture has not been created yet
+        color = 0.0;
+        fs_gl_texturing(0);
+    }
+    else {
+        fs_gl_texturing(1);
+        fs_gl_bind_texture(g_frame_texture);
+    }
+    fs_gl_blending(0);
+    fs_gl_color4f(color, color, color, 1.0);
+
+    float x1 = -1.0 + x * 2.0 / g_l_scale_x;
+    float x2 = -1.0 + (x + w) * 2.0 / g_l_scale_x;
+    float y2 = 1.0 - y * 2.0 / g_l_scale_y;
+    float y1 = 1.0 - (y + h) * 2.0 / g_l_scale_y;
+
+    double s1 = 0.0;
+    double t1 = 0.0;
+    double s2 = (double) g_crop.w / g_frame_texture_width;
+    double t2 = (double) g_crop.h / g_frame_texture_height;
+
+    render_quad(x1, y1, x2, y2, s1, t1, s2, t2);
+
+    return 0;
+}
+*/
+
+static int l_fs_emu_set_frame_position_and_size(lua_State *L) {
+    int x = luaL_checkinteger(L, 1);
+    int y = luaL_checkinteger(L, 2);
+    int w = luaL_checkinteger(L, 3);
+    int h = luaL_checkinteger(L, 4);
+
+    g_frame_override_x = x;
+    g_frame_override_y = y;
+    g_frame_override_w = w;
+    g_frame_override_h = h;
+
+    g_frame_override = g_frame_override_w > 0 || g_frame_override_h > 0 ||
+            g_frame_override_x > 0 || g_frame_override_y > 0;
+
+    return 0;
+}
+
+void fs_emu_render_init_lua(void) {
+    fs_log("fs_emu_render_init_lua\n");
+
+    //lua_register(fs_emu_lua_state, "fs_emu_render_frame",
+    //        l_fs_emu_render_frame);
+    lua_register(fs_emu_lua_state, "fs_emu_set_scale",
+            l_fs_emu_set_scale);
+    lua_register(fs_emu_lua_state, "fs_emu_set_frame_position_and_size",
+            l_fs_emu_set_frame_position_and_size);
+}
+
+#endif
+
 void fs_emu_init_render() {
     fs_log("fs_emu_init_render\n");
 
@@ -2122,4 +2329,8 @@ void fs_emu_init_render() {
             g_align_x, g_align_y);
 
     g_overlay_mutex = fs_mutex_create();
+
+#ifdef WITH_LUA
+    fs_emu_render_init_lua();
+#endif
 }

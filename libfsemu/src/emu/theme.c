@@ -15,6 +15,38 @@
 
 struct fs_emu_theme g_fs_emu_theme = {};
 
+#ifdef WITH_LUA
+
+#include "emu_lua.h"
+
+static int l_fs_emu_log(lua_State *L) {
+    int n = lua_gettop(L);
+    if (n != 1 || lua_isstring(L, 1)) {
+        lua_pushstring(L, "incorrect argument");
+        lua_error(L);
+    }
+
+    const char *s = luaL_checkstring(L, 1);
+    fs_emu_log("%s\n", s);
+    return 0;
+}
+
+void fs_emu_theme_init_lua(void) {
+    fs_log("fs_emu_theme_init_lua\n");
+
+    char *path = fs_path_join(g_fs_emu_theme.path, "theme.lua", NULL);
+    if (fs_path_exists(path)) {
+        int result = luaL_dofile(fs_emu_lua_state, path);
+        if (result != 0) {
+            fs_emu_warning("Error loading/running theme.lua");
+            fs_emu_lua_log_error("Error loading/running theme.lua");
+        }
+    }
+    free(path);
+}
+
+#endif
+
 void fs_emu_init_overlays(const char **overlay_names) {
     int k = FS_EMU_FIRST_CUSTOM_OVERLAY;
     const char **name = overlay_names;
@@ -222,6 +254,10 @@ static void load_theme() {
             }
         }
     }
+
+#ifdef WITH_LUA
+    fs_emu_theme_init_lua();
+#endif
 }
 
 void fs_emu_theme_init() {

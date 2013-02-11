@@ -7,6 +7,12 @@
 extern "C" {
 #endif
 
+#ifdef WITH_LUA
+#include <lauxlib.h>
+void amiga_init_lua(void (*lock)(void), void (*unlock)(void));
+void amiga_init_lua_state(lua_State *L);
+#endif
+
 #define AMIGA_FLOPPY_LIST_SIZE 20
 
 // FIXME

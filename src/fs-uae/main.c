@@ -684,6 +684,11 @@ int main(int argc, char* argv[]) {
     amiga_set_media_function(media_function);
     amiga_set_init_function(on_init);
 
+#ifdef WITH_LUA
+    amiga_init_lua(fs_emu_acquire_lua, fs_emu_release_lua);
+    amiga_init_lua_state(fs_emu_get_lua_state());
+#endif
+
     if (fs_emu_get_video_format() == FS_EMU_VIDEO_FORMAT_RGBA) {
         amiga_set_video_format(AMIGA_VIDEO_FORMAT_RGBA);
     }

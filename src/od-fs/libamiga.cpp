@@ -16,6 +16,7 @@
 #include "disk.h"
 #include "gui.h"
 #include "events.h"
+#include "luascript.h"
 
 int uae_get_memory_checksum();
 
@@ -138,6 +139,18 @@ void gui_led (int led, int state) {
 }
 
 extern "C" {
+
+void amiga_init_lua(void (*lock)(void), void (*unlock)(void)) {
+#ifdef WITH_LUA
+    uae_lua_init(lock, unlock);
+#endif
+}
+
+void amiga_init_lua_state(lua_State *L) {
+#ifdef WITH_LUA
+    uae_lua_init_state(L);
+#endif
+}
 
 void amiga_set_floppy_sounds_dir(const char *path) {
     int len = strlen(path);

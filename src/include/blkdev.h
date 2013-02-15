@@ -194,8 +194,8 @@ extern void blkdev_default_prefs (struct uae_prefs *p);
 extern void blkdev_fix_prefs (struct uae_prefs *p);
 extern int isaudiotrack (struct cd_toc_head*, int block);
 extern int isdatatrack (struct cd_toc_head*, int block);
-extern void sub_to_interleaved (const uae_u8 *s, uae_u8 *d);
-extern void sub_to_deinterleaved (const uae_u8 *s, uae_u8 *d);
+void sub_to_interleaved (const uae_u8 *s, uae_u8 *d);
+void sub_to_deinterleaved (const uae_u8 *s, uae_u8 *d);
 
 enum cd_standard_unit { CD_STANDARD_UNIT_DEFAULT, CD_STANDARD_UNIT_AUDIO, CD_STANDARD_UNIT_CDTV, CD_STANDARD_UNIT_CD32 };
 

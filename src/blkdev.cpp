@@ -116,7 +116,6 @@ extern struct device_functions devicefunc_win32_ioctl;
 #endif
 
 #ifdef LINUX
-extern struct device_functions devicefunc_scsi_linux_raw;
 extern struct device_functions devicefunc_scsi_linux_ioctl;
 #endif
 

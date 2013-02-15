@@ -142,6 +142,9 @@ static int driver_installed[6];
 
 static void install_driver (int flags)
 {
+#ifdef FSUAE
+    write_log("install_driver flags=%d\n", flags);
+#endif
 	for (int i = 0; i < MAX_TOTAL_SCSI_DEVICES; i++) {
 		scsiemu[i] = false;
 		device_func[i] = NULL;
@@ -149,6 +152,9 @@ static void install_driver (int flags)
 	if (flags > 0) {
 		device_func[0] = devicetable[flags];
 		scsiemu[0] = true;
+#ifdef FSUAE
+		write_log("CD: setting device_func[0] = devicetable[%d]\n", flags);
+#endif
 	} else {
 		for (int i = 0; i < MAX_TOTAL_SCSI_DEVICES; i++) {
 			scsiemu[i] = false;
@@ -342,12 +348,24 @@ static int get_standard_cd_unit2 (cd_standard_unit csu)
 	int isaudio = 0;
 	if (currprefs.cdslots[unitnum].name[0] || currprefs.cdslots[unitnum].inuse) {
 		if (currprefs.cdslots[unitnum].name[0]) {
+#ifdef FSUAE
+            if (cdscsidevicetype[unitnum]) {
+                device_func_init (cdscsidevicetype[unitnum]);
+                if (!sys_command_open_internal (unitnum, currprefs.cdslots[unitnum].name, csu)) {
+                    goto fallback;
+                }
+            }
+            else {
+                goto fallback;
+            }
+#else
 			device_func_init (SCSI_UNIT_IOCTL);
 			if (!sys_command_open_internal (unitnum, currprefs.cdslots[unitnum].name, csu)) {
 				device_func_init (SCSI_UNIT_IMAGE);
 				if (!sys_command_open_internal (unitnum, currprefs.cdslots[unitnum].name, csu))
 					goto fallback;
 			}
+#endif
 		} else {
 			goto fallback;
 		}

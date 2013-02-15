@@ -508,7 +508,7 @@ void fs_uae_configure_cdrom() {
         path = fs_uae_expand_path_and_free(path);
         path = fs_uae_resolve_path_and_free(path, FS_UAE_CD_PATHS);
         //set_default_dirs_from_file_path(path);
-        char* temp = fs_strconcat(path, ",", NULL);
+        char* temp = fs_strconcat(path, ",image", NULL);
         amiga_set_option("cdimage0", temp);
         free(temp);
         free(path);

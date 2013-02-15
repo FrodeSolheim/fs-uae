@@ -176,14 +176,6 @@ int amiga_clipboard_want_data (void) {
     return 0;
 }
 
-void fpux_save (int *v) {
-    STUB("");
-}
-
-void fpux_restore (int *v) {
-    STUB("");
-}
-
 int target_get_volume_name (struct uaedev_mount_info *mtinf,
         const TCHAR *volumepath, TCHAR *volumename, int size, bool inserted,
         bool fullcheck) {
@@ -386,14 +378,3 @@ void setup_brkhandler (void)
 #endif
     */
 }
-
-#include "include/zfile.h"
-// --- win32gui.cpp ---
-static int qs_override;
-
-int target_cfgfile_load (struct uae_prefs *p, const TCHAR *filename, int type, int isdefault)
-{
-    STUB("");
-    return 1;
-}
-

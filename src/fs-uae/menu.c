@@ -1,9 +1,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <uae/uae.h>
-#include <fs/fs.h>
 #include <fs/emu.h>
+#include <fs/fs.h>
 #include <fs/i18n.h>
+#include <fs/time.h>
 #include "fs-uae.h"
 
 #define NUM_SAVE_SLOTS 9
@@ -274,10 +275,11 @@ static char *check_save_state(int slot) {
             //GDate date;
             //g_date_clear(&date, 1);
             //g_date_set_time_t(&date, buf.mtime);
-            struct tm *tm_struct = localtime(&buf.mtime);
+            struct tm tm_struct;
+            fs_localtime_r(&buf.mtime, &tm_struct);
             char strbuf[32];
             //g_date_strftime(strbuf, 32, "");
-            strftime(strbuf, 32, "%Y-%m-%d %H:%M:%S", tm_struct);
+            strftime(strbuf, 32, "%Y-%m-%d %H:%M:%S", &tm_struct);
             //title = fs_strdup_printf("%d", buf.mtime);
             title = fs_strdup(strbuf);
         }

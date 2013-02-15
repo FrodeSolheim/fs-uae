@@ -274,9 +274,9 @@ static void render_screen(RenderData* rd) {
                     ucy = wo->dy == -1 ? cy : wo->dy;
                     ucw = wo->dw == -1 ? cw : wo->dw;
                     uch = wo->dh == -1 ? ch : wo->dh;
-                    fs_emu_log("> %3d %3d %3d %3d [ %3d %3d %3d %3d ]\n",
+                    fs_log("%3d %3d %3d %3d [ %3d %3d %3d %3d ]\n",
                             ucx, ucy, ucw, uch, cx, cy, cw, ch);
-                    printf("> %3d %3d %3d %3d [ %3d %3d %3d %3d ]\n",
+                    printf("%3d %3d %3d %3d [ %3d %3d %3d %3d ]\n",
                             ucx, ucy, ucw, uch, cx, cy, cw, ch);
                     break;
                 }
@@ -288,8 +288,8 @@ static void render_screen(RenderData* rd) {
             ucy = cy;
             ucw = cw;
             uch = ch;
-            fs_emu_log("> %3d %3d %3d %3d\n", ucx, ucy, ucw, uch);
-            printf("> %3d %3d %3d %3d\n", ucx, ucy, ucw, uch);
+            fs_log("%3d %3d %3d %3d\n", ucx, ucy, ucw, uch);
+            printf("%3d %3d %3d %3d\n", ucx, ucy, ucw, uch);
         }
     }
     float tx0, ty0, tx1, ty1; //source buffer coords

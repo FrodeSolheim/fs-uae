@@ -12,6 +12,8 @@
 #include <Windows.h>
 #endif
 
+#include "fsdb_host.h"
+
 int g_fsdb_debug = 0;
 
 struct my_opendir_s {
@@ -27,13 +29,6 @@ struct my_openfile_s {
 };
 
 int my_errno = 0;
-
-bool my_utime (const TCHAR *name, struct mytimeval *tv) {
-    STUB("");
-    // return result of mystat so invalid file will return false
-    struct mystat ms;
-    return my_stat(name, &ms);
-}
 
 bool my_chmod (const TCHAR *name, uae_u32 mode) {
     STUB("");
@@ -96,16 +91,22 @@ struct my_opendir_s *my_opendir(const TCHAR *name, const TCHAR *mask) {
         if (!result) {
             break;
         }
+        int len = strlen(result);
+
         if (strcasecmp(result, "_UAEFSDB.___") == 0) {
-            continue;
-        }
-        if (strcasecmp(result, ".meta") == 0) {
             continue;
         }
         if (strcasecmp(result, "Thumbs.db") == 0) {
             continue;
         }
         if (strcasecmp(result, ".DS_Store") == 0) {
+            continue;
+        }
+        if (strcasecmp(result, "UAEFS.ini") == 0) {
+            continue;
+        }
+        if (len > 5 && strncmp(result + len - 5, ".uaem", 5) == 0) {
+            // ignore metadata / attribute files, obviously
             continue;
         }
 
@@ -150,7 +151,7 @@ void my_closedir(struct my_opendir_s* mod) {
 
 int my_readdir(struct my_opendir_s* mod, TCHAR* name) {
     if (mod->current) {
-        strcpy(name, (char*) mod->current->data);
+        strcpy(name, (const char*) mod->current->data);
         if (g_fsdb_debug) {
             write_log("my_readdir => %s\n", name);
         }
@@ -214,28 +215,24 @@ struct my_openfile_s *my_open(const TCHAR *name, int flags) {
 
     int open_flags = O_BINARY;
     if (flags & O_TRUNC) {
-        //write_log("  O_TRUNC\n");
-        open_flags = open_flags | O_TRUNC;
+        open_flags = open_flags | O_TRUNC; //write_log("  O_TRUNC\n");
     }
     if (flags & O_CREAT) {
-        //write_log("  O_CREAT\n");
-        open_flags = open_flags | O_CREAT;
+        open_flags = open_flags | O_CREAT; //write_log("  O_CREAT\n");
     }
     if (flags & O_RDWR) {
-        //write_log("  O_RDRW\n");
-        open_flags = open_flags | O_RDWR;
+        open_flags = open_flags | O_RDWR; //write_log("  O_RDRW\n");
     }
     else if (flags & O_RDONLY) {
-        //write_log("  O_RDONLY\n");
-        open_flags = open_flags | O_RDONLY;
+        open_flags = open_flags | O_RDONLY; //write_log("  O_RDONLY\n");
     }
     else if (flags & O_WRONLY) {
-        //write_log("  O_WRONLY\n");
-        open_flags = open_flags | O_WRONLY;
+        open_flags = open_flags | O_WRONLY; //write_log("  O_WRONLY\n");
     }
     char *path = uae_expand_path(name);
-    int file = fs_open(path, open_flags, S_IRUSR | S_IWUSR);
-    free(path);
+
+    int file_existed = fs_path_exists(path);
+    int file = fs_open(path, open_flags, 0644);
     if (file == -1) {
         my_errno = errno;
         write_log("WARNING: my_open could not open (%s, %d)\n", name,
@@ -255,12 +252,24 @@ struct my_openfile_s *my_open(const TCHAR *name, int flags) {
         else if (open_flags & O_WRONLY) {
             write_log("  O_WRONLY\n");
         }
+        free(path);
         return NULL;
     }
+    if (!file_existed) {
+        fsdb_file_info info;
+        fsdb_init_file_info(&info);
+        int error = fsdb_set_file_info(path, &info);
+        if (error != 0) {
+            if (g_fsdb_debug) {
+                write_log("WARNING: fsdb_set_file_info error %d\n", error);
+            }
+        }
+    }
+    free(path);
+
     struct my_openfile_s *mos = xmalloc (struct my_openfile_s, 1);
     mos->fd = file;
     mos->path = fs_strdup(name);
-    //write_log("  mos %p -> fd=%d\n", mos, mos->fd);
     my_errno = 0;
     return mos;
 }
@@ -363,25 +372,31 @@ int my_rmdir(const TCHAR *path) {
     errno = 0;
     int result = fs_rmdir(path);
     my_errno = errno;
+
+    char *meta_name = fs_strconcat(path, ".uaem", NULL);
+    fs_unlink(meta_name);
+    free(meta_name);
+
     return result;
 }
 
 int my_unlink(const TCHAR *path) {
     if (g_fsdb_debug) {
-        write_log("my_rmdir %s\n", path);
+        write_log("my_unlink %s\n", path);
     }
     errno = 0;
     int result = fs_unlink(path);
     my_errno = errno;
+
+    char *meta_name = fs_strconcat(path, ".uaem", NULL);
+    fs_unlink(meta_name);
+    free(meta_name);
+
     return result;
 }
 
-int my_rename(const TCHAR *oldname, const TCHAR *newname) {
-    if (g_fsdb_debug) {
-        write_log("my_rename %s => %s\n", oldname, newname);
-    }
-    errno = 0;
-    int result;
+static int rename_file(const char *oldname, const char *newname) {
+    int result = 0;
     for (int i = 0; i < 10; i++) {
         result = fs_rename(oldname, newname);
         my_errno = errno;
@@ -394,6 +409,34 @@ int my_rename(const TCHAR *oldname, const TCHAR *newname) {
 #endif
         sleep_millis(10);
     }
+    return result;
+}
+
+int my_rename(const TCHAR *oldname, const TCHAR *newname) {
+    if (g_fsdb_debug) {
+        write_log("my_rename %s => %s\n", oldname, newname);
+    }
+    errno = 0;
+    int result = rename_file(oldname, newname);
+    if (result != 0) {
+        // could not rename file
+        return result;
+    }
+
+    char *oldname2 = fs_strconcat(oldname, ".uaem", NULL);
+    if (fs_path_exists(oldname2)) {
+        char *newname2 = fs_strconcat(newname, ".uaem", NULL);
+        if (rename_file(oldname2, newname2) != 0) {
+            // could not rename meta file, revert changes
+            int saved_errno = my_errno;
+            rename_file(newname, oldname);
+            my_errno = saved_errno;
+            result = -1;
+        }
+        free(newname2);
+    }
+    free(oldname2);
+
     return result;
 }
 
@@ -417,12 +460,10 @@ FILE *my_opentext(const TCHAR* name) {
     return fs_fopen(name, "rb");
 }
 
-int dos_errno(void) {
+int host_errno_to_dos_errno(int err) {
     static int warned = 0;
-    if (g_fsdb_debug) {
-        write_log(_T("dos_errno: my_errno=%d\n"), my_errno);
-    }
-    switch (my_errno) {
+
+    switch (err) {
     case ENOMEM:
         return ERROR_NO_FREE_STORE;
     case EEXIST:
@@ -445,16 +486,18 @@ int dos_errno(void) {
         return ERROR_SEEK_ERROR;
     default:
         if (!warned) {
-            gui_message(_T("Unimplemented error %d\nContact author!"),
-                    my_errno);
+            gui_message(_T("Unimplemented error %d\nContact author!"), err);
             warned = 1;
         }
         return ERROR_NOT_IMPLEMENTED;
     }
 }
 
-void filesys_addexternals() {
-    STUB("");
+int dos_errno(void) {
+    if (g_fsdb_debug) {
+        write_log(_T("dos_errno: my_errno=%d\n"), my_errno);
+    }
+    return host_errno_to_dos_errno(my_errno);
 }
 
 void filesys_host_init() {

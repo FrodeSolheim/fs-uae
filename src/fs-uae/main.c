@@ -414,32 +414,6 @@ static void main_function() {
     fs_log("amiga_main returned\n");
 }
 
-void print_and_log_copyright_notice() {
-    printf("FS-UAE VERSION %s\n", g_fs_uae_version);
-    printf("Copyright 1995-2002 Bernd Schmidt\n");
-    printf("          1999-2012 Toni Wilen\n");
-    printf("          2003-2007 Richard Drummond\n");
-    printf("          2006-2011 Mustafa 'GnoStiC' Tufan\n");
-    printf("          2011-2013 Frode Solheim\n\n");
-    printf("See the source for a full list of contributors.\n");
-    printf("This is free software; see the file COPYING for copying "
-            "conditions. There is NO\n");
-    printf("warranty; not even for MERCHANTABILITY or FITNESS FOR A "
-            "PARTICULAR PURPOSE.\n\n");
-
-    fs_log("FS-UAE VERSION %s\n", g_fs_uae_version);
-    fs_log("Copyright 1995-2002 Bernd Schmidt\n");
-    fs_log("          1999-2012 Toni Wilen\n");
-    fs_log("          2003-2007 Richard Drummond\n");
-    fs_log("          2006-2011 Mustafa 'GnoStiC' Tufan\n");
-    fs_log("          2011-2013 Frode Solheim\n\n");
-    fs_log("See the source for a full list of contributors.\n");
-    fs_log("This is free software; see the file COPYING for copying "
-            "conditions. There is NO\n");
-    fs_log("warranty; not even for MERCHANTABILITY or FITNESS FOR A "
-            "PARTICULAR PURPOSE.\n\n");
-}
-
 void init_i18n() {
     if (fs_config_get_boolean("localization") == 0) {
         fs_log("localization was forced off\n");
@@ -447,25 +421,23 @@ void init_i18n() {
     }
     char *locale = setlocale(LC_MESSAGES, "");
     if (locale) {
-        printf("locale is set to %s\n", locale);
         fs_log("locale is set to %s\n", locale);
     }
     else {
-        printf("failed to set current locale\n");
         fs_log("failed to set current locale\n");
     }
 #ifndef ANDROID
     textdomain("fs-uae");
     char *path = fs_get_data_file("fs-uae/share-dir");
     if (path) {
-        printf("%s\n", path);
-        // remove 17 chars
+        fs_log("using data dir \"%s\"\n", path);
+        // remove "fs-uae/share-dir" from the returned path
         int len = strlen(path);
-        if (len > 17) {
-            path[len - 17] = '\0';
+        if (len > 16) {
+            path[len - 16] = '\0';
         }
         char *locale_base = fs_path_join(path, "locale", NULL);
-        printf("%s\n", locale_base);
+        fs_log("using locale dir \"%s\"\n", locale_base);
         bindtextdomain("fs-uae", locale_base);
         free(locale_base);
         free(path);
@@ -526,6 +498,16 @@ static const char *overlay_names[] = {
     NULL,
 };
 
+#define COPYRIGHT_NOTICE "\nFS-UAE VERSION %s\n" \
+"Copyright 1995-2002 Bernd Schmidt, 1999-2012 Toni Wilen,\n" \
+"2003-2007 Richard Drummond, 2006-2011 Mustafa 'GnoStiC' Tufan,\n" \
+"2011-2013 Frode Solheim, and contributors.\n" \
+"\n" \
+"This is free software; see the file COPYING for copying conditions. There\n" \
+"is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR\n" \
+"PURPOSE. See the README for more copyright info, and the source code for\n" \
+"a full list of contributors\n\n"
+
 int main(int argc, char* argv[]) {
     int result;
     fs_uae_argc = argc;
@@ -551,7 +533,9 @@ int main(int argc, char* argv[]) {
 
     //result = parse_options(argc, argv);
 
-    print_and_log_copyright_notice();
+    printf(COPYRIGHT_NOTICE, g_fs_uae_version);
+    fs_log(COPYRIGHT_NOTICE, g_fs_uae_version);
+
     char *current_dir = fs_get_current_dir();
     fs_log("current directory is %s\n", current_dir);
     free(current_dir);

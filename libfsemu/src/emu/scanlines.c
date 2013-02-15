@@ -54,7 +54,6 @@ void fs_emu_render_scanlines(uint8_t* out, fs_emu_video_buffer *buffer,
             for (int x = 0; x < cw; x++) {
 #ifdef __BIG_ENDIAN__
                 src ++;
-                src2 ++;
                 dst ++;
 #endif
                 *dst++ = (*src++ * dark_ia) / 256;

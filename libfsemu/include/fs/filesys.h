@@ -4,6 +4,10 @@
 #include <fs/defines.h>
 #include <stdio.h>
 #include <stdint.h>
+#ifdef WINDOWS
+// struct timeval is defined here...
+#include <Winsock2.h>
+#endif
 #include <time.h>
 
 #ifdef __cplusplus
@@ -16,7 +20,12 @@ struct fs_stat {
     time_t atime;
     time_t mtime;
     time_t ctime;
+    int atime_nsec;
+    int mtime_nsec;
+    int ctime_nsec;
 };
+
+int fs_set_file_time(const char *path, struct timeval *tv);
 
 int fs_stat(const char *path, struct fs_stat *buf);
 int fs_fstat(int fd, struct fs_stat *buf);

@@ -785,14 +785,6 @@ int check_prefs_changed_gfx (void) {
     return 0;
 }
 
-void refreshtitle (void) {
-    STUB("");
-}
-
-void updatedisplayarea (void) {
-    STUB("");
-}
-
 void gui_fps(int fps, int idle) {
     //double ffps = (fps + 5) / 10;
     //write_log("fps %0.1f idle %d\n", ffps, idle);

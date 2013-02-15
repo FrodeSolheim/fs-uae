@@ -40,12 +40,11 @@ int g_amiga_video_bpp = 4;
 static char *g_floppy_sounds_dir;
 
 int g_fs_uae_writable_disk_images = 0;
-/*
- * This is called from the main UAE thread to inform
- * the GUI that a floppy disk has been inserted or ejected.
- */
+
+// This is called from the main UAE thread to inform the GUI that a floppy
+// disk has been inserted or ejected.
+
 void gui_filename (int num, const char *name) {
-    STUB("num=%d name=\"%s\"", num, name);
     if (g_amiga_media_function) {
         g_amiga_media_function(num, name);
     }
@@ -176,9 +175,9 @@ void amiga_floppy_set_writable_images(int writable) {
 }
 
 int amiga_init() {
-    printf("libamiga (based on %s) initialized\n",
+    printf("libamiga (based on emulation core from %s) initialized\n",
             get_libamiga_base_version());
-    write_log("libamiga (based on %s) initialized\n",
+    write_log("libamiga (based on emulation core from %s) initialized\n",
             get_libamiga_base_version());
 
     // because frame_time_t is sometimes cast to int, we make sure to

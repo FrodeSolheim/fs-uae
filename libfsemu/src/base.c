@@ -484,9 +484,7 @@ int fs_get_application_exe_path(char *buffer, int size) {
         return 0;
     }
 
-    printf("find program in path\n");
     char* result = find_program_in_path(g_argv[0]);
-    printf("find program in path 2\n");
     if (result == NULL) {
         buffer[0] = '\0';
         return 0;

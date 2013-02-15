@@ -1,10 +1,21 @@
 Version 2.1.28:
 
+* Save file attributes in .uaem files when necessary to store metadata
+  accurately (non-default attributes, file comments, or when time cannot
+  be stored accurate enough on the host fs).
+* Fix for directory hard drives so correct case is reported back to the
+  Amiga when the Amiga opens a file with another case than what's stored.
+* Report local time for files in directory hard drive.
+* Use re-entrant / thread-safe variants of time functions.
 * Reverted the scanline function to its older / simpler behavior, use
   the shader "scanlines-nonlinear" instead.
 * New shaders included: scanlines-classic (same as scanline CPU filter),
   and scanlines-nonlinear (a scanline filter which varies with pixel
   intensity and also introduces some pixel blending).
+* Removed a some useless stubs printed to stdout, removed several printf
+  statements logging stuff to stdout.
+* Updated translations: fi [GoingDown].
+* (Launcher) Allowing selecting .lha files as hard drives.
 * (Launcher) Fixed an issue with selecting Amiga 1000 (2.1.26).
 
 Version 2.1.27:

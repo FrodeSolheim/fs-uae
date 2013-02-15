@@ -230,7 +230,8 @@ static void handle_element(parse_data *data, const char *element,
         glGetShaderiv(shader, GL_COMPILE_STATUS, &compile_status);
         CHECK_GL_ERROR();
         if (compile_status == GL_FALSE) {
-            fs_emu_warning("failed to compile fragment shader");
+            fs_emu_warning("failed to compile vertex shader");
+            // FIXME: write shader compiler log to log file
             data->error = 1;
             return;
         }
@@ -353,6 +354,7 @@ static void handle_element(parse_data *data, const char *element,
     CHECK_GL_ERROR();
     if (compile_status == GL_FALSE) {
         fs_emu_warning("failed to compile fragment shader");
+        // FIXME: write shader compiler log to log file
         data->error = 1;
         return;
     }

@@ -57,7 +57,7 @@ objects = obj/emu_emu.o obj/emu_video.o obj/emu_audio_openal.o \
 		obj/base.o obj/log.o obj/config.o obj/image.o obj/ref.o \
 		obj/glee.o obj/opengl.o obj/thread.o obj/string.o obj/filesys.o \
 		obj/unicode.o obj/init.o obj/random.o obj/list.o obj/eventlog.o \
-		obj/queue.o obj/hashtable.o obj/inifile.o \
+		obj/queue.o obj/hashtable.o obj/inifile.o obj/time.o \
 		obj/lua_lapi.o \
 		obj/lua_lauxlib.o \
 		obj/lua_lbaselib.o \

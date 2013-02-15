@@ -263,12 +263,12 @@ struct inputdevice_functions inputdevicefunc_mouse = {
 
 
 static int init_kb (void) {
-    STUB("");
+    LOG_STUB("");
     return 1;
 }
 
 static void close_kb (void) {
-    STUB("");
+    LOG_STUB("");
 }
 
 static int acquire_kb (int num, int flags) {

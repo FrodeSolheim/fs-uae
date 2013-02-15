@@ -3357,7 +3357,7 @@ static void
 	put_long (info + 128, (statbuf.size + blocksize - 1) / blocksize);
 #endif
 #ifdef FSUAE
-	fsdb_get_time(aino->nname, &days, &mins, &ticks);
+	fsdb_get_file_time(aino, &days, &mins, &ticks);
 #else
 	timeval_to_amiga (&statbuf.mtime, &days, &mins, &ticks);
 #endif
@@ -3662,7 +3662,7 @@ static int exalldo (uaecptr exalldata, uae_u32 exalldatasize, uae_u32 type, uaec
 	}
 	if (type >= 5) {
 #ifdef FSUAE
-		fsdb_get_time(aino->nname, &days, &mins, &ticks);
+		fsdb_get_file_time(aino, &days, &mins, &ticks);
 #else
 		timeval_to_amiga (&statbuf.mtime, &days, &mins, &ticks);
 #endif
@@ -4371,9 +4371,6 @@ static void updatedirtime (a_inode *a1, int now)
 	} else {
 		my_utime (a1->parent->nname, NULL);
 	}
-#ifdef FSUAE
-	// FIXME: update meta file?
-#endif
 }
 
 static void
@@ -5124,10 +5121,6 @@ static void
 	write_log (_T("%llu.%u (%d,%d,%d) %s\n"), tv.tv_sec, tv.tv_usec, get_long (date), get_long (date + 4), get_long (date + 8), a->nname);
 	if (err == 0 && !my_utime (a->nname, &tv))
 		err = dos_errno ();
-#ifdef FSUAE
-	// FIXME: update meta file?
-	// get_long (date), get_long (date + 4), get_long (date + 8)
-#endif
 	if (err != 0) {
 		PUT_PCK_RES1 (packet, DOS_FALSE);
 		PUT_PCK_RES2 (packet, err);

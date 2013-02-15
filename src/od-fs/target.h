@@ -31,8 +31,6 @@ int filesys_get_max_frame_packages();
 //void frame_wait_for_filesys();
 //void filesys_handle_events();
 
-void fsdb_get_time(const char *nname, int *days, int *mins, int *ticks);
-
 extern int g_amiga_netplay_mode;
 
 static inline int uae_synchronous_mode() {

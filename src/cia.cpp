@@ -1763,9 +1763,13 @@ static void write_battclock (void)
 	if (f) {
 		uae_u8 zero[13] = { 0 };
 		struct tm *ct;
+#ifdef FSUAE
+		ct = uae_get_amiga_time();
+#else
 		time_t t = time (0);
 		t += currprefs.cs_rtc_adjust;
 		ct = localtime (&t);
+#endif
 		uae_u8 od = clock_control_d;
 		if (currprefs.cs_rtc == 2)
 			clock_control_d &= ~3;

@@ -12,6 +12,7 @@
 #include <fs/ml.h>
 #include <fs/string.h>
 #include <fs/thread.h>
+#include <fs/time.h>
 
 #ifdef USE_GLIB
 #include <glib.h>
@@ -239,6 +240,7 @@ void fs_emu_init() {
     //if (!g_fs_emu_config) {
     //    g_fs_emu_config = g_key_file_new();
     //}
+    fs_time_init();
 
     if (fs_config_get_boolean("stdout") == 1) {
         fs_log_enable_stdout();

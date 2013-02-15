@@ -41,7 +41,7 @@ A1200_KICKSTARTS = [
 ]
 
 A3000_KICKSTARTS = [
-    # amiga-os-310-a3000.rom
+    # amiga-os-310-a3000.rom (decrypted)
     # Kickstart v3.1 r40.68 (1993)(Commodore)(A3000).rom
     "f8e210d72b4c4853e0c9b85d223ba20e3d1b36ee",
 ]

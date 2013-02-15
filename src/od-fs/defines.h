@@ -22,6 +22,9 @@
         __func__, ##__VA_ARGS__); \
         printf(" -- stub -- %s " format "\n", __func__, ##__VA_ARGS__); }
 
+#define LOG_STUB(format, ...) { write_log(" -- stub -- %s " format "\n", \
+        __func__, ##__VA_ARGS__); }
+
 #define VERBOSE_STUB(format, ...)
 
 // we are using our own main function, not the one from UAE...

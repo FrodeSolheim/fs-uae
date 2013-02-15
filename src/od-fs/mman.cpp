@@ -62,15 +62,16 @@ void GetSystemInfo(SYSTEM_INFO *si) {
 
 void *VirtualAlloc(void *lpAddress, size_t dwSize, int flAllocationType,
         int flProtect) {
-    printf("- VirtualAlloc %p %zu %d %d\n", lpAddress, dwSize, flAllocationType, flProtect);
+    write_log("- VirtualAlloc %p %zu %d %d\n", lpAddress, dwSize,
+            flAllocationType, flProtect);
     if (flAllocationType & MEM_RESERVE) {
-        printf("  MEM_RESERVE\n");
+        write_log("  MEM_RESERVE\n");
     }
     if (flAllocationType & MEM_COMMIT) {
-        printf("  MEM_COMMIT\n");
+        write_log("  MEM_COMMIT\n");
     }
     if (flAllocationType & PAGE_READWRITE) {
-        printf("  PAGE_READWRITE\n");
+        write_log("  PAGE_READWRITE\n");
     }
     int prot = 0;
     void *memory = NULL;
@@ -78,7 +79,7 @@ void *VirtualAlloc(void *lpAddress, size_t dwSize, int flAllocationType,
     if (flAllocationType == MEM_COMMIT && lpAddress == NULL) {
         memory = malloc(dwSize);
         if (memory == NULL) {
-            printf("memory allocated failed errno %d\n", errno);
+            write_log("memory allocated failed errno %d\n", errno);
         }
         return memory;
     }
@@ -86,7 +87,7 @@ void *VirtualAlloc(void *lpAddress, size_t dwSize, int flAllocationType,
     if (flAllocationType & MEM_RESERVE) {
         memory = malloc(dwSize);
         if (memory == NULL) {
-            printf("memory allocated failed errno %d\n", errno);
+            write_log("memory allocated failed errno %d\n", errno);
         }
 #if 0
         memory = mmap(lpAddress, dwSize, prot, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
@@ -294,7 +295,7 @@ static void clear_shm (void)
 
 bool preinit_shm (void)
 {
-    printf("preinit_shm\n");
+    write_log("preinit_shm\n");
     uae_u64 total64;
     uae_u64 totalphys64;
 #ifdef WINDOWS
@@ -627,7 +628,7 @@ static uae_u8 *va (uae_u32 offset, uae_u32 len, DWORD alloc, DWORD protect)
 
 static int doinit_shm (void)
 {
-    printf("doinit_shm\n");
+    write_log("doinit_shm\n");
     uae_u32 size, totalsize, z3size, natmemsize;
     uae_u32 rtgbarrier, z3chipbarrier, rtgextra;
     int rounds = 0;
@@ -786,7 +787,7 @@ static int doinit_shm (void)
 
 bool init_shm (void)
 {
-    printf("init_shm\n");
+    write_log("init_shm\n");
     static uae_u32 oz3fastmem_size, oz3fastmem2_size;
     static uae_u32 oz3chipmem_size;
     static uae_u32 ortgmem_size;
@@ -891,7 +892,7 @@ int mprotect (void *addr, size_t len, int prot)
 
 void *uae_shmat (int shmid, void *shmaddr, int shmflg)
 {
-    printf("uae_shmat shmid %d shmaddr %p, shmflg %d natmem_offset = %p\n",
+    write_log("uae_shmat shmid %d shmaddr %p, shmflg %d natmem_offset = %p\n",
             shmid, shmaddr, shmflg, natmem_offset);
     void *result = (void *)-1;
     BOOL got = FALSE, readonly = FALSE, maprom = FALSE;

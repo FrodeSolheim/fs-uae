@@ -144,3 +144,13 @@ extern const char *g_fs_uae_version;
 extern int g_fs_uae_fastest_possible;
 extern char *g_fs_uae_config_file_path;
 extern char *g_fs_uae_config_dir_path;
+
+extern int g_fs_uae_state_number;
+extern int g_fs_uae_last_input_event;
+extern int g_fs_uae_last_input_event_state;
+
+void fs_uae_process_input_event(int action, int state);
+
+#ifdef WITH_LUA
+void fs_uae_init_lua_state(lua_State *L);
+#endif

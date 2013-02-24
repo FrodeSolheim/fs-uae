@@ -119,9 +119,9 @@ class ValueConfigLoader:
             parts.append(variant_name)
         if game_name and variant_name:
             config_name = u"{0} ({1})".format(game_name, u", ".join(parts))
-            self.config["x_config_name"] = config_name
+            self.config["__config_name"] = config_name
         else:
-            self.config["x_config_name"] = self.values.get("config_name", "")
+            self.config["__config_name"] = self.values.get("config_name", "")
 
     def load_cdroms(self):
         print("\n\n\nload_cdroms\n\n\n")

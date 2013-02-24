@@ -26,7 +26,7 @@ log_function g_amiga_gui_message_function = NULL;
 amiga_led_function g_amiga_led_function = NULL;
 amiga_media_function g_amiga_media_function = NULL;
 
-int g_amiga_netplay_mode = 0;
+int g_uae_deterministic_mode = 0;
 int g_amiga_paused = 0;
 char *g_libamiga_save_image_path = NULL;
 
@@ -241,9 +241,9 @@ void amiga_map_cd_drives(int enable) {
     changed_prefs.win32_automount_cddrives = (enable != 0);
 }
 
-void amiga_enable_netplay_mode() {
+void amiga_set_deterministic_mode() {
     write_log("libamiga enabling net play mode\n");
-    g_amiga_netplay_mode = 1;
+    g_uae_deterministic_mode = 1;
 }
 
 void amiga_write_uae_config(const char *path) {

@@ -47,6 +47,7 @@ class FileScanner:
             self.extensions.append(".wav")
             self.extensions.append(".zip")
             self.extensions.append(".lha")
+            self.extensions.append(".rp9")
         if self.scan_for_configs:
             self.extensions.append(".fs-uae")
             #self.extensions.append(".xml")

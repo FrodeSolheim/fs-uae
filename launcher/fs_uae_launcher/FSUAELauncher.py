@@ -11,6 +11,7 @@ import ConfigParser
 import fs_uae_launcher.fsui as fsui
 from .ui.MainWindow import MainWindow
 import fs_uae_launcher.fs as fs
+from .Amiga import Amiga
 from .Config import Config
 from .ConfigurationScanner import ConfigurationScanner
 from .Database import Database
@@ -203,6 +204,8 @@ class FSUAELauncher(fsui.Application):
                 search = ConfigurationScanner.create_configuration_search(name)
                 name = ConfigurationScanner.create_configuration_name(name)
                 print("[startup] adding config", path)
+                database.delete_file(path=path)
+                database.add_file(path=path)
                 database.add_configuration(path=path, uuid="", name=name,
                         scan=0, search=search)
         for path, id in local_configs.iteritems():
@@ -246,3 +249,32 @@ class FSUAELauncher(fsui.Application):
         database.commit()
         Settings.set("kickstarts_dir_mtime",
                 self.get_dir_mtime_str(kickstarts_dir))
+
+        database = Database.get_instance()
+        amiga = Amiga.get_model_config("A500")
+        for sha1 in amiga["kickstarts"]:
+            if database.find_file(sha1=sha1):
+                break
+        else:
+            self.amiga_forever_kickstart_scan(database)
+
+    def amiga_forever_kickstart_scan(self, database):
+        if fs.windows:
+            from win32com.shell import shell, shellcon
+            path = shell.SHGetFolderPath(0, shellcon.CSIDL_COMMON_DOCUMENTS, 0, 0)
+            path = os.path.join(path, "Amiga Files", "Shared", "rom")
+            self.scan_dir_for_kickstarts(database, path)
+
+    def scan_dir_for_kickstarts(self, database, scan_dir):
+        for dir_path, dir_names, file_names in os.walk(scan_dir):
+            for file_name in file_names:
+                if not file_name.endswith(".rom"):
+                    continue
+                path = Paths.join(dir_path, file_name)
+                if database.find_file(path):
+                #if path in local_roms:
+                #    local_roms[path] = None
+                #    # already exists in database
+                    continue
+                print("[startup] adding kickstart", path)
+                ROMManager.add_rom_to_database(path, database)

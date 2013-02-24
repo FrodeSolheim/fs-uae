@@ -302,6 +302,8 @@ class Database:
     def add_file(self, path="", sha1=None, md5=None, crc32=None, mtime=0,
             size=0, scan=0, name=""):
         self.init()
+        if not name:
+            name = os.path.basename(path)
         path = self.encode_path(path)
 
         #print("adding path", path)

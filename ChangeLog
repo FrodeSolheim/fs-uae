@@ -1,8 +1,7 @@
 Version 2.1.28:
 
-* Save file attributes in .uaem files when necessary to store metadata
-  accurately (non-default attributes, file comments, or when time cannot
-  be stored accurate enough on the host fs).
+* For directory hard drives, save file attributes in .uaem files
+  (permissions, timestamp, file note).
 * Fix for directory hard drives so correct case is reported back to the
   Amiga when the Amiga opens a file with another case than what's stored.
 * Report local time for files in directory hard drive.
@@ -12,11 +11,38 @@ Version 2.1.28:
 * New shaders included: scanlines-classic (same as scanline CPU filter),
   and scanlines-nonlinear (a scanline filter which varies with pixel
   intensity and also introduces some pixel blending).
+* Text cache texture size is now 2048x2048 (was 1024x1024).
+* For automatic directory hard drive volume label, only use the part before
+  an opening parenthesis (if it exists).
+* New options to configure what screenshots to save and where to save them.
+* A bit more compact naming of screenshots, and reset sub-minute counter
+  for each minute (makes sorted names always cronological even with large
+  number of screenshots).
+* Can now bind keys to action_screenshot, notification replaces previous
+  notification (of same type).
+* Lua scripts can be used to read/write Amiga memory, position the
+  output video rectangle, change shader (experimental feature).
+* Support /dev/tty as the serial output [Jason S. McMullan].
+* Patch for Linux CD ioctl support [Jason S. McMullan].
 * Removed a some useless stubs printed to stdout, removed several printf
   statements logging stuff to stdout.
-* Updated translations: fi [GoingDown].
+* Updated translations: fi [GoingDown], cs [spajdr].
+* (Launcher) Make sure the nickname is a valid IRC nickname (net play).
+* (Launcher) Fixed problem where .fs-uae configurations could in some cases
+  disappear from the configuration list when refreshing the online database.
+* (Launcher) Fixed a bug where config name was saved in config file if
+  based on a config from online database.
+* (Launcher) Automatically set screenshots_output_prefix based on floppy name.
+* (Launcher) If A500 kickstart is not found on startup, look for Amiga Forever
+  in default location and add kickstarts to database if found (Windows).
+* (Launcher) Add Amiga Forever shared documents directory to search path.
+* (Launcher) Index files in .rp9 archives, contained disk images can be used
+  with the online database (when match is found).
+* (Launcher) Support file comments for WHDLoad slave files when using the
+  online database, comments are stored in .uaem files. Fixes Embryo.
 * (Launcher) Allowing selecting .lha files as hard drives.
 * (Launcher) Fixed an issue with selecting Amiga 1000 (2.1.26).
+* (Launcher) Updated translations: cs [spajdr].
 
 Version 2.1.27:
 

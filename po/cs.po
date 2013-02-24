@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: fs-uae\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
 "POT-Creation-Date: 2013-01-30 21:27+0100\n"
-"PO-Revision-Date: 2013-02-04 12:03+0200\n"
+"PO-Revision-Date: 2013-02-22 11:25+0200\n"
 "Last-Translator: z551693 <spajdr@centrum.cz>\n"
 "Language-Team: FS-UAE translation team\n"
 "Language: cs\n"
@@ -22,7 +22,7 @@ msgid "Activated debugger"
 msgstr "Debugger aktivován"
 
 msgid "Amiga Control"
-msgstr "Amiga ovládání"
+msgstr "Nastavení Amiga"
 
 #. / TRANSLATORS: In context "Zoom: Auto"
 msgid "Auto"
@@ -60,7 +60,7 @@ msgstr "Vlastní mód"
 #. / TRANSLATORS: Empty or nothing
 #, c-format
 msgid "DF%d: Empty"
-msgstr "DF%d:"
+msgstr "DF%d: "
 
 msgid "Disabled"
 msgstr "Vypnuto"
@@ -146,7 +146,7 @@ msgid "Load"
 msgstr "Načíst"
 
 msgid "More..."
-msgstr "více..."
+msgstr "Více..."
 
 msgid "Mouse"
 msgstr "Myš"
@@ -194,7 +194,7 @@ msgid "Parallel Joystick Ports"
 msgstr "Joystick paralelní porty"
 
 msgid "Pause"
-msgstr "Zastavit"
+msgstr "Pozastavit"
 
 #, c-format
 msgid "Port 0: %s"

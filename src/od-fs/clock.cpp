@@ -15,7 +15,7 @@ static struct tm g_amiga_time;
 struct tm *uae_get_amiga_time() {
     //printf("uae_get_amiga_time\n");
 
-    if (uae_synchronous_mode()) {
+    if (uae_deterministic_mode()) {
         // FIXME: get synchronized clock here
         time_t t = 0;
 #ifdef DEBUG_SYNC

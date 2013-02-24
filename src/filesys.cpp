@@ -2567,7 +2567,7 @@ static void filesys_start_thread (UnitInfo *ui, int nr)
 		init_comm_pipe (ui->unit_pipe, 100, 3);
 		init_comm_pipe (ui->back_pipe, 100, 1);
 #ifdef FSUAE
-		if (!uae_synchronous_mode()) {
+		if (!uae_deterministic_mode()) {
 #endif
 		uae_start_thread (_T("filesys"), filesys_thread, (void *)ui, &ui->tid);
 #ifdef FSUAE
@@ -4364,12 +4364,17 @@ static void updatedirtime (a_inode *a1, int now)
 
 	if (!a1->parent)
 		return;
+#ifdef FSUAE
+	if (!a1->parent->parent) {
+	    return;
+	}
+#endif
 	if (!now) {
 		if (!my_stat (a1->nname, &statbuf))
 			return;
 		my_utime (a1->parent->nname, &statbuf.mtime);
 	} else {
-		my_utime (a1->parent->nname, NULL);
+	    my_utime (a1->parent->nname, NULL);
 	}
 }
 
@@ -5919,7 +5924,7 @@ static void filesys_prepare_reset2 (void)
 			write_comm_pipe_int (uip[i].unit_pipe, 0, 0);
 			write_comm_pipe_int (uip[i].unit_pipe, 0, 1);
 #ifdef FSUAE
-			if (uae_synchronous_mode()) {
+			if (uae_deterministic_mode()) {
 				while (comm_pipe_has_data(uip[i].unit_pipe)) {
 	            	// process remaining packets until all are done
 	            	filesys_hsync();
@@ -6903,7 +6908,7 @@ static void run_filesys_iterations(int max_count) {
 }
 
 void filesys_hsync() {
-    if (!uae_synchronous_mode()) {
+    if (!uae_deterministic_mode()) {
         return;
     }
     //printf("%d\n", g_hsync_line++);

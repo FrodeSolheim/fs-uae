@@ -62,7 +62,7 @@ cflags = $(common_flags) -std=c99 $(CFLAGS)
 cxxflags = $(common_flags) $(CXXFLAGS)
 ldflags = $(LDFLAGS)
 libs = -L$(libfsemu_dir)/out -lfsemu `sdl-config --libs` \
-		`pkg-config --libs libpng` -lpng -lz
+		`pkg-config --libs libpng` -lz
 
 ifeq ($(devel), 1)
 	warnings = -Wno-unused-variable -Wno-unused-function -Wno-write-strings \
@@ -171,6 +171,7 @@ obj/fs-uae-config.o \
 obj/fs-uae-input.o \
 obj/fs-uae-joystick.o \
 obj/fs-uae-keyboard.o \
+obj/fs-uae-luascript.o \
 obj/fs-uae-main.o \
 obj/fs-uae-menu.o \
 obj/fs-uae-mouse.o \

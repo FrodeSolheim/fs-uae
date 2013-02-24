@@ -92,7 +92,7 @@ class XMLConfigLoader:
         self.set_name_and_uuid()
 
     def set_name_and_uuid(self):
-        self.config["x_config_uuid"] = self.root.get("uuid", "")
+        #self.config["x_config_uuid"] = self.root.get("uuid", "")
         game_name = ""
         platform_name = ""
         variant_name = ""
@@ -116,7 +116,7 @@ class XMLConfigLoader:
             parts.append(variant_name)
         if game_name and variant_name:
             config_name = u"{0} ({1})".format(game_name, u", ".join(parts))
-            self.config["x_config_name"] = config_name
+            self.config["__config_name"] = config_name
 
     def load_cdroms(self):
         print("\n\n\nload_cdroms\n\n\n")

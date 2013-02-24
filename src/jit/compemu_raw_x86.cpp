@@ -2142,7 +2142,12 @@ static void vec(int x, struct sigcontext sc)
 			blockinfo* bi;
 
 			if (currprefs.comp_oldsegv) {
+#ifdef FSUAE
+// FIXME: check why (uae_u8 was here originally...?)
+				addr -= (uae_u32)NATMEM_OFFSET;
+#else
 				addr -= (uae_u8)NATMEM_OFFSET;
+#endif
 
 				if ((addr>=0x10000000 && addr<0x40000000) ||
 					(addr>=0x50000000)) {
@@ -2170,11 +2175,16 @@ static void vec(int x, struct sigcontext sc)
 				sc.CONTEXT_MEMBER(eip) += len;
 			}
 			else {
-				void* tmp=target;
+				uint8_t* tmp=target;
 				int i;
 				uae_u8 vecbuf[5];
 
+#ifdef FSUAE
+// FIXME: check why (uae_u8 was here originally...?)
+				addr -= (uae_u32)NATMEM_OFFSET;
+#else
 				addr-=(uae_u8)NATMEM_OFFSET;
+#endif
 
 				if ((addr>=0x10000000 && addr<0x40000000) ||
 					(addr>=0x50000000)) {

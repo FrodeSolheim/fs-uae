@@ -45,7 +45,7 @@ int amiga_pause(int pause);
 int amiga_cpu_get_speed();
 int amiga_cpu_set_speed(int speed);
 
-void amiga_enable_netplay_mode();
+void amiga_set_deterministic_mode();
 
 int amiga_enable_serial_port(const char *serial_name);
 

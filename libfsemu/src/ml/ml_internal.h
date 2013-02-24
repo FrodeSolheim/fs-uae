@@ -1,7 +1,8 @@
 #ifndef LIBFSML_ML_INTERNAL__H_
 #define LIBFSML_ML_INTERNAL_H_
 
-#include "fs/ml.h"
+#include <fs/ml.h>
+#include <fs/thread.h>
 
 extern fs_ml_int_function g_fs_ml_video_update_function;
 extern fs_ml_void_function g_fs_ml_video_render_function;
@@ -10,7 +11,9 @@ extern int g_fs_ml_video_width;
 extern int g_fs_ml_video_height;
 extern int g_fs_ml_target_refresh_rate;
 extern int g_fs_ml_target_frame_time;
-extern int g_fs_ml_video_screenshot;
+
+extern fs_mutex *g_fs_ml_video_screenshot_mutex;
+extern char *g_fs_ml_video_screenshot_path;
 
 void fs_ml_initialize_keymap();
 int fs_ml_scancode_to_key(int scancode);

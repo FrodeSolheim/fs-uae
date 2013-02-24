@@ -592,7 +592,7 @@ class Config:
 
         cls.load(config)
 
-        config_name = config.get("x_config_name", "")
+        config_name = config.get("__config_name", "")
         if config_name:
             config_name = cls.create_fs_name(config_name)
         else:
@@ -619,14 +619,14 @@ class Config:
         value_config_loader = ValueConfigLoader(uuid=uuid)
         value_config_loader.load_values(values)
         config = value_config_loader.get_config()
-        config["x_config_uuid"] = uuid
+        #config["x_config_uuid"] = uuid
 
         from .Settings import Settings
         Settings.set("config_path", "")
 
         cls.load(config)
 
-        config_name = config.get("x_config_name", "")
+        config_name = config.get("__config_name", "")
         if config_name:
             config_name = cls.create_fs_name(config_name)
         #else:

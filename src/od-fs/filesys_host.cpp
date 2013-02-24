@@ -331,14 +331,25 @@ unsigned int my_write(struct my_openfile_s *mos, void *b, unsigned int size) {
     return (unsigned int) bytes_written;
 }
 
-int my_mkdir(const TCHAR *name) {
+int my_mkdir(const TCHAR *path) {
     if (g_fsdb_debug) {
-        write_log("my_mkdir %s\n", name);
+        write_log("my_mkdir %s\n", path);
     }
-    int error = fs_mkdir(name, 0755);
+    int error = fs_mkdir(path, 0755);
     if (error) {
         my_errno = errno;
         return -1;
+    }
+    int file_existed = 0;
+    if (!file_existed) {
+        fsdb_file_info info;
+        fsdb_init_file_info(&info);
+        int error = fsdb_set_file_info(path, &info);
+        if (error != 0) {
+            if (g_fsdb_debug) {
+                write_log("WARNING: fsdb_set_file_info error %d\n", error);
+            }
+        }
     }
     my_errno = 0;
     return 0;

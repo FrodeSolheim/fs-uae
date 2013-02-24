@@ -11,6 +11,7 @@
 #include <fs/queue.h>
 #include <fs/string.h>
 #include <fs/thread.h>
+#include <fs/time.h>
 
 #include "libfsemu.h"
 #include "audio.h"
@@ -321,22 +322,9 @@ static void fix_border(fs_emu_video_buffer *buffer, int *upload_x,
 #define R5G5B5A1_SHIFT_G 6
 #define R5G5B5A1_SHIFT_B 1
 
-static void save_screenshot(const char *type, int cx, int cy, int cw, int ch,
+static void save_screenshot(const char *path, int cx, int cy, int cw, int ch,
         int count, uint8_t *frame, int frame_width, int frame_height,
         int frame_bpp) {
-    char *name, *path;
-    time_t t = time(NULL);
-#ifdef WINDOWS
-    struct tm *tm_p = localtime(&t);
-#else
-    struct tm tm_struct;
-    struct tm *tm_p = &tm_struct;
-    localtime_r(&t, tm_p);
-#endif
-    char strbuf[20];
-    strftime(strbuf, 20, "%Y-%m-%d-%H-%M", tm_p);
-    name = fs_strdup_printf("fs-uae-%s-%s-%03d.png", type, strbuf, count);
-    path = fs_path_join(fs_get_desktop_dir(), name, NULL);
     fs_log("writing screenshot to %s\n", path);
 
     uint8_t *out_data = malloc(cw * ch * 3);
@@ -400,8 +388,10 @@ static void save_screenshot(const char *type, int cx, int cy, int cw, int ch,
         fs_log("error saving screenshot\n");
     }
     free(out_data);
+#if 0
     free(name);
     free(path);
+#endif
 }
 
 static int update_texture() {
@@ -471,22 +461,91 @@ static int update_texture() {
     // (keyboard shortcut), but screenshot is saved here, as soon as possible.
 
     if (g_fs_emu_screenshot > 0) {
-        printf("%d\n", g_fs_emu_screenshot);
-        static int count = 0;
+        static char* screenshots_dir = NULL;
+        static char* screenshots_prefix = NULL;
+        static int screenshots_mask = 7;
+        if (screenshots_dir == NULL) {
+            char *path = fs_config_get_string("screenshots_output_dir");
+            if (path) {
+                if (fs_path_exists(path)) {
+                    screenshots_dir = path;
+                }
+                else {
+                    fs_emu_warning("Directory does not exist: %s", path);
+                    free(path);
+                }
+            }
+            if (!screenshots_dir) {
+                screenshots_dir = fs_strdup(fs_get_desktop_dir());
+            }
+            screenshots_mask = fs_config_get_int("screenshots_output_mask");
+            if (screenshots_mask == FS_CONFIG_NONE) {
+                screenshots_mask = 7;
+            }
+
+            screenshots_prefix = fs_config_get_string(
+                    "screenshots_output_prefix");
+            if (!screenshots_prefix) {
+                screenshots_prefix = fs_strdup("fs-uae");
+            }
+        }
+
+        static int total_count = 0;
         if (g_fs_emu_screenshot == 1) {
+
+            char *name, *path;
+            time_t t = time(NULL);
+            struct tm tm_struct;
+            struct tm *tm_p = &tm_struct;
+            fs_localtime_r(&t, tm_p);
+
+            static int count = 0;
+            static char laststrbuf[20] = {};
+
+            char strbuf[20];
+            strftime(strbuf, 20, "%y%m%d%H%M", tm_p);
+            if (strcmp(strbuf, laststrbuf) != 0) {
+                count = 0;
+                strncpy(laststrbuf, strbuf, 20);
+            }
+
             count += 1;
-            save_screenshot("full", 0, 0, width, height,
-                    count, frame, width, height, bpp);
-            save_screenshot("cropped", g_crop.x, g_crop.y, g_crop.w, g_crop.h,
-                    count, frame, width, height, bpp);
+            total_count += 1;
+
+            if (screenshots_mask & 1) {
+                name = fs_strdup_printf("%s-%s-%s-%02d.png",
+                        screenshots_prefix, "full", strbuf, count);
+                path = fs_path_join(screenshots_dir, name, NULL);
+                save_screenshot(path, 0, 0, width, height, count, frame,
+                        width, height, bpp);
+                free(path);
+                free(name);
+            }
+            if (screenshots_mask & 2) {
+                name = fs_strdup_printf("%s-%s-%s-%02d.png",
+                        screenshots_prefix, "crop", strbuf, count);
+                path = fs_path_join(screenshots_dir, name, NULL);
+                save_screenshot(path, g_crop.x, g_crop.y, g_crop.w, g_crop.h,
+                        count, frame, width, height, bpp);
+                free(path);
+                free(name);
+            }
+            if (screenshots_mask & 4) {
+                name = fs_strdup_printf("%s-%s-%s-%02d.png",
+                        screenshots_prefix, "real", strbuf, count);
+                path = fs_path_join(screenshots_dir, name, NULL);
+                fs_ml_video_screenshot(path);
+                free(path);
+                free(name);
+            }
             g_fs_emu_screenshot++;
-            fs_ml_video_screenshot(count);
         }
         else if (g_fs_emu_screenshot > 4) {
             // we wait a bit until printing the notification, so the OpenGL
             // screenshot can be captured before the notification is shown
             g_fs_emu_screenshot = 0;
-            fs_emu_warning(_("Saved screenshot %d"), count);
+            fs_emu_notification(81830444,
+                    _("Saved screenshot %d"), total_count);
         }
         else {
             g_fs_emu_screenshot++;

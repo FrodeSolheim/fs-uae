@@ -128,6 +128,8 @@ class ConfigGroup(fsui.Group):
         print("adding", path)
         # deleting the path from the database first in case it already exists
         database.delete_configuration(path=path)
+        database.delete_file(path=path)
+        database.add_file(path=path)
         database.add_configuration(path=path, uuid="", name=name,
                 scan=0, search=search)
         database.commit()

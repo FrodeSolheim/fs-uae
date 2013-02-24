@@ -603,7 +603,8 @@ void fs_emu_set_actions(fs_emu_action *actions) {
 
     g_actions[k].name = "action_taunt";
     g_actions[k++].input_event = FS_EMU_ACTION_TAUNT;
-    //g_actions[k++].function = fs_emu_taunt_action();
+    g_actions[k].name = "action_screenshot";
+    g_actions[k++].input_event = FS_EMU_ACTION_SCREENSHOT;
 
     while (actions->name) {
         if (k == MAX_ACTIONS) {
@@ -1254,6 +1255,15 @@ static int handle_shortcut(fs_ml_event *event) {
             else if (key_code == FS_ML_KEY_B) {
                 // toogle zoom border
                 fs_emu_toggle_zoom(1);
+            }
+            else if (key_code == FS_ML_KEY_M) {
+                fs_emu_log("toggle mute\n");
+                if (fs_emu_audio_get_volume() > 0.0) {
+                    fs_emu_audio_set_volume(0.0);
+                }
+                else {
+                    fs_emu_audio_set_volume(1.0);
+                }
             }
             else if (g_hotkey_function != NULL) {
                 g_hotkey_function(key_code, key_mod);

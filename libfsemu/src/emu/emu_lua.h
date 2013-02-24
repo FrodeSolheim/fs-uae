@@ -12,6 +12,4 @@ extern lua_State *fs_emu_lua_state;
 
 #endif
 
-void fs_emu_lua_run_handler(const char *name);
-
 #endif // LIBFSEMU_EMU_LUA_H_

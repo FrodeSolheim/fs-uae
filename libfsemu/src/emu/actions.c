@@ -22,6 +22,8 @@
 #include <fs/emu.h>
 #include <fs/random.h>
 
+#include "video.h"
+
 static const char* g_taunts[] = {
         "You play like a dairy farmer!",
         "No one will ever catch ME playing as badly as you do!",
@@ -44,7 +46,12 @@ static void taunt() {
 
 void fs_emu_handle_libfsemu_action(int action, int state) {
     printf("internal action %d %d\n", action, state);
-    if (action == FS_EMU_ACTION_TAUNT) {
-        taunt();
+    if (state) {
+        if (action == FS_EMU_ACTION_TAUNT) {
+            taunt();
+        }
+        else if (action == FS_EMU_ACTION_SCREENSHOT) {
+            g_fs_emu_screenshot = 1;
+        }
     }
 }

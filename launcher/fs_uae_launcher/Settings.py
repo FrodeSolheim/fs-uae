@@ -112,9 +112,23 @@ class Settings:
     @classmethod
     def get_irc_nick(cls):
         value = cls.settings.get("irc_nick", "").strip()
-        if value:
-            return value
-        return fs.get_user_name()
+        if not value:
+            value = fs.get_user_name()
+        # these are probably valid too: \`
+        valid_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ" \
+                      "abcdefghijklmnopqrstuvwxyz" \
+                      "_[]{}|^"
+        extra_valid_chars = "0123456789-"
+        nick = ""
+        for c in value:
+            if c in valid_chars:
+                nick = nick + c
+                if extra_valid_chars:
+                    valid_chars += extra_valid_chars
+                    extra_valid_chars = ""
+        if not nick:
+            nick = "User"
+        return nick
 
     @classmethod
     def get_irc_nickserv_pass(cls):
@@ -122,7 +136,6 @@ class Settings:
         if value:
             return value
         return ""
-
 
     @classmethod
     def get_irc_server(cls):
@@ -174,6 +187,12 @@ class Settings:
         #        "Games", "CD32"))
         #paths.append(os.path.join(fs.get_home_dir(),
         #        "Games", "CDTV"))
+
+        if fs.windows:
+            from win32com.shell import shell, shellcon
+            path = shell.SHGetFolderPath(0, shellcon.CSIDL_COMMON_DOCUMENTS, 0, 0)
+            path = os.path.join(path, "Amiga Files")
+            paths.append(path)
         return paths
 
     @classmethod

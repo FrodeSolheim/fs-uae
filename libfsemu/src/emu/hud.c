@@ -18,8 +18,10 @@
 
 #include "hud.h"
 
+#include <string.h>
 #include <stdlib.h>
 #include <fs/emu.h>
+#include <fs/queue.h>
 #include "libfsemu.h"
 #include "render.h"
 #include "menu.h"
@@ -38,6 +40,7 @@ static int64_t g_last_line_time = 0;
 int g_fs_emu_hud_mode = 0;
 
 typedef struct console_line {
+    int type;
     int64_t time;
     char *text;
 } console_line;
@@ -57,8 +60,44 @@ void fs_emu_hud_enable_chat_mode() {
     g_fs_emu_hud_mode = 1;
 }
 
+void fs_emu_notification(int type, const char *format, ...) {
+    va_list ap;
+    va_start(ap, format);
+    char *buffer = fs_strdup_vprintf(format, ap);
+    va_end(ap);
+    int len = strlen(buffer);
+    // strip trailing newline, if any
+    if (len > 0 && buffer[len - 1] == '\n') {
+        buffer[len - 1] = '\0';
+    }
+    fs_log("WARNING: %s\n", buffer);
+
+    fs_emu_acquire_gui_lock();
+
+    if (type != 0) {
+       console_line *line = fs_queue_peek_tail(g_console_lines);
+       if (line && line->type == type) {
+           free(line->text);
+           line->text = buffer;
+           line->time = fs_emu_monotonic_time();
+           g_last_line_time = line->time;
+           fs_emu_release_gui_lock();
+           return;
+       }
+    }
+
+    console_line *line = malloc(sizeof(console_line));
+    line->type = type;
+    line->text = buffer;
+    line->time = fs_emu_monotonic_time();
+    fs_queue_push_head(g_console_lines, line);
+    g_last_line_time = line->time;
+    fs_emu_release_gui_lock();
+}
+
 void fs_emu_hud_add_console_line(const char *text, int flags) {
     console_line *line = malloc(sizeof(console_line));
+    line->type = 0;
     line->text = fs_strdup(text);
     line->time = fs_emu_monotonic_time();
     fs_emu_acquire_gui_lock();

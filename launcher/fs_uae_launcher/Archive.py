@@ -10,11 +10,11 @@ from xml.etree.cElementTree import ElementTree, fromstring
 from zipfile import ZipFile
 from .Database import Database
 
-archive_extensions = [".zip", ".xml"]
+archive_extensions = [".zip", ".rp9", ".xml"]
 supports_lha = False
 
 try:
-    from lhafile import Lhafile
+    from .lhafile import Lhafile
 except ImportError:
     print("lhafile module not found")
 else:
@@ -207,6 +207,8 @@ class Archive:
         ext = ext.lower()
         print(name, ext)
         if ext == ".zip":
+            self._handler = ZipHandler(self.path)
+        elif ext == ".rp9":
             self._handler = ZipHandler(self.path)
         elif ext == ".lha" and supports_lha:
             self._handler = LhaHandler(self.path)

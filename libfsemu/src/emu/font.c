@@ -20,8 +20,8 @@ FT_Library library;
 #include "video.h"
 #include "render.h"
 
-#define TEXTURE_WIDTH 1024
-#define TEXTURE_HEIGHT 1024
+#define TEXTURE_WIDTH 2048
+#define TEXTURE_HEIGHT 2048
 
 // FIXME: little-endian only
 #define MASK 0x00ffffff

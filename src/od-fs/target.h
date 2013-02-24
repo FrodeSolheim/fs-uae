@@ -31,10 +31,10 @@ int filesys_get_max_frame_packages();
 //void frame_wait_for_filesys();
 //void filesys_handle_events();
 
-extern int g_amiga_netplay_mode;
+extern int g_uae_deterministic_mode;
 
-static inline int uae_synchronous_mode() {
-    return g_amiga_netplay_mode;
+static inline int uae_deterministic_mode() {
+    return g_uae_deterministic_mode;
 }
 
 //void uae_line_update(int line, int updated);

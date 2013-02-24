@@ -77,32 +77,50 @@ static wchar_t *wide(const char *utf8) {
     return wstr;
 }
 
-static void file_time_to_time_val(FILETIME *ft, struct timeval *tv) {
-    uint64_t time64;
+static void time_val_to_file_time(struct timeval *tv, FILETIME *ft) {
+    // Note that LONGLONG is a 64-bit value
+    //LONGLONG ll;
+    ULARGE_INTEGER uli;
 
-    memmove(&time64, &ft, sizeof(FILETIME));
+    uli.QuadPart = Int32x32To64(tv->tv_sec, 10000000) + 116444736000000000LL;
+    // FILETIME contains 100-nanosecond intervals
+    uli.QuadPart += ((LONGLONG) tv->tv_usec) * 10;
+    //ft->dwLowDateTime = (DWORD)ll;
+    //ft->dwHighDateTime = ll >> 32;
+    ft->dwLowDateTime = uli.LowPart;
+    ft->dwHighDateTime = uli.HighPart;
+    //printf("%d %d %lld, %d, %d\n", (int) tv->tv_sec, (int) tv->tv_usec, uli.QuadPart, ft->dwHighDateTime, ft->dwLowDateTime);
+}
+
+static void file_time_to_time_val(FILETIME *ft, struct timeval *tv) {
+#if 0
+    static int test = 1;
+    if (test == 1) {
+        test = 0;
+        FILETIME ft;
+        struct timeval tv;
+        tv.tv_sec = 0;
+        tv.tv_usec = 0;
+        time_val_to_file_time(&tv, &ft);
+        file_time_to_time_val(&ft, &tv);
+        printf("%d %d\n", (int) tv.tv_sec, (int) tv.tv_usec);
+        exit(1);
+    }
+#endif
+
+    ULARGE_INTEGER uli;
+    uli.LowPart = ft->dwLowDateTime;
+    uli.HighPart = ft->dwHighDateTime;
 
     // Convert from 100s of nanoseconds since 1601-01-01
     // to Unix epoch. Yes, this is Y2038 unsafe.
 
-    time64 -= ((int64_t) 116444736) * ((int64_t) 1000000000);
-    time64 /= 10;
+    uli.QuadPart -= ((int64_t) 116444736) * ((int64_t) 1000000000);
+    uli.QuadPart /= 10;
 
-    tv->tv_sec = time64 / 1000000;
-    tv->tv_usec = time64 % 1000000;
+    tv->tv_sec = uli.QuadPart / 1000000;
+    tv->tv_usec = uli.QuadPart % 1000000;
 }
-
-static void time_val_to_file_time(struct timeval *tv, FILETIME *ft) {
-    // Note that LONGLONG is a 64-bit value
-    LONGLONG ll;
-
-    ll = Int32x32To64(tv->tv_sec, 10000000) + 116444736000000000LL;
-    // FILETIME contains 100-nanosecond intervals
-    ll += ((LONGLONG) tv->tv_usec) * 10;
-    ft->dwLowDateTime = (DWORD)ll;
-    ft->dwHighDateTime = ll >> 32;
-}
-
 
 #endif
 
@@ -205,12 +223,12 @@ int fs_set_file_time(const char *path, struct timeval *t) {
             flags, NULL);
     if (h != INVALID_HANDLE_VALUE) {
         if (SetFileTime (h, NULL, NULL, &ft)) {
-            struct timeval tv;
             result = 0;
         }
         CloseHandle (h);
     }
     free(upath);
+    return result;
 #else
     struct timeval tv[2];
     tv[0].tv_sec = t->tv_sec;

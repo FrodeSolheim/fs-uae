@@ -562,6 +562,20 @@ static void configure_hard_drive_directory (int index, const char *path,
     }
     else {
         mount_name = fs_path_get_basename(path);
+        char *c = mount_name;
+        int stop = 0;
+        for(int i = 0; mount_name[i]; i++) {
+            if (mount_name[i] == '(') {
+                stop = i;
+                break;
+            }
+        }
+        while (stop > 0 && mount_name[stop - 1] == ' ') {
+            stop--;
+        }
+        if (stop > 0) {
+            mount_name[stop] = '\0';
+        }
     }
 
     fs_emu_log("hard drive mount: %s\n", path);

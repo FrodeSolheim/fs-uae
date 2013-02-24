@@ -53,14 +53,35 @@ int g_fs_ml_input_device_count = 0;
 
 static int g_quit;
 static fs_ml_void_function g_quit_function = NULL;
-int g_fs_ml_video_screenshot = 0;
+
+fs_mutex *g_fs_ml_video_screenshot_mutex = NULL;
+//int g_fs_ml_video_screenshot = 0;
+//char *g_fs_ml_video_screenshots_dir = NULL;
+//char *g_fs_ml_video_screenshots_prefix = NULL;
+char *g_fs_ml_video_screenshot_path = NULL;
 
 void fs_ml_set_quit_function(fs_ml_void_function function) {
     g_quit_function = function;
 }
 
-void fs_ml_video_screenshot(int number) {
+void fs_ml_video_screenshot(const char *path) {
+    fs_mutex_lock(g_fs_ml_video_screenshot_mutex);
+    if (g_fs_ml_video_screenshot_path) {
+        free(g_fs_ml_video_screenshot_path);
+    }
+    g_fs_ml_video_screenshot_path = fs_strdup(path);
+#if 0
+    if (g_fs_ml_video_screenshots_dir) {
+        free(g_fs_ml_video_screenshots_dir);
+    }
+    if (g_fs_ml_video_screenshots_prefix) {
+        free(g_fs_ml_video_screenshots_prefix);
+    }
+    g_fs_ml_video_screenshots_dir = fs_strdup(screenshots_dir);
+    g_fs_ml_video_screenshots_prefix = fs_strdup(prefix);
     g_fs_ml_video_screenshot = number;
+#endif
+    fs_mutex_unlock(g_fs_ml_video_screenshot_mutex);
 }
 
 void fs_ml_quit() {
@@ -339,6 +360,7 @@ void fs_ml_init_2() {
             g_fs_ml_target_refresh_rate, g_fs_ml_target_frame_time);
 
     init_input();
+    g_fs_ml_video_screenshot_mutex = fs_mutex_create();
 }
 
 double fs_ml_get_refresh_rate() {

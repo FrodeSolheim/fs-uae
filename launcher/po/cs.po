@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae-launcher\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2013-01-30 21:27+0100\n"
-"PO-Revision-Date: 2013-02-04 11:50+0200\n"
+"POT-Creation-Date: 2013-02-14 19:26+0100\n"
+"PO-Revision-Date: 2013-02-22 11:51+0200\n"
 "Last-Translator: z551693 <spajdr@centrum.cz>\n"
 "Language-Team: FS-UAE translation team\n"
 "Language: cs\n"
@@ -36,8 +36,20 @@ msgstr "640x480 + okraje"
 msgid "640x512 + Border"
 msgstr "640x512 + okraje"
 
+msgid "ADF & HDF Creator"
+msgstr "ADF & HDF vytváření"
+
+msgid "ADF - Extended Floppy Disk Image (MFM)"
+msgstr "ADF - Rozšířený obraz diskety (MFM)"
+
+msgid "ADF - Standard Floppy Disk Image"
+msgstr "ADF - Standardní obraz diskety"
+
 msgid "Abort"
 msgstr "Zrušit"
+
+msgid "About {name}"
+msgstr "O {name}"
 
 msgid "Accurate"
 msgstr "Přesnost"
@@ -57,6 +69,9 @@ msgstr "Přidat více disket najednou"
 msgid "Additional Options"
 msgstr "Dodatečná nastavení"
 
+msgid "Amiga Forever Import"
+msgstr "Importovat Amiga Forever"
+
 msgid "Amiga Forever import task started"
 msgstr "Amiga Forever požadavek importu spuštěn"
 
@@ -71,6 +86,12 @@ msgstr "Automaticky"
 
 msgid "Auto + Border"
 msgstr "Automaticky + okraje"
+
+msgid "Auto-Fire is Off"
+msgstr "Auto-fire je vypnut"
+
+msgid "Auto-Fire is On"
+msgstr "Auto-fire je zapnut"
 
 msgid "Available Kickstart Versions"
 msgstr "Kickstart verze k dispozici"
@@ -109,13 +130,13 @@ msgid "Chip RAM"
 msgstr "Chip RAM"
 
 msgid "Choose CD-ROM Image"
-msgstr "Zvolit CD-ROM Image soubor"
+msgstr "Zvolit soubor obrazu CD-ROM"
 
 msgid "Choose Extended ROM"
 msgstr "Zvolit rozšířenou ROM"
 
 msgid "Choose Floppy Image"
-msgstr "Zvolit Floppy Image soubor"
+msgstr "Zvolit soubor obrazu diskety"
 
 msgid "Choose Hard Drive"
 msgstr "Zvolit Harddisk"
@@ -130,13 +151,16 @@ msgid "Clear List"
 msgstr "Vyčistit seznam"
 
 msgid "Click 'Scan' button if you want to re-scan"
-msgstr "Klikni na 'Scan' tlačítko, pro znovuhledání "
+msgstr "Klikněte na 'Prohledat' tlačítko, pro znovuhledání "
 
 msgid "Click 'Scan' button to start scan"
-msgstr "Klikni na 'Scan' tlačítko na zahájení znovuhledání"
+msgstr "Klikněte na 'Prohledat' tlačítko na zahájení hledání"
 
 msgid "Click here to download"
 msgstr "Klikněte zde na stažení"
+
+msgid "Click here to import kickstarts"
+msgstr "Klikněte zde na import kickstart souborů"
 
 msgid "Close"
 msgstr "Zavřít"
@@ -169,17 +193,26 @@ msgstr ""
 "Zkopírovat {0}\n"
 "do {1}"
 
+msgid "Could not open file for writing"
+msgstr "Nelze otevřít soubor pro zápis"
+
+msgid "Create"
+msgstr "Vytvořit"
+
 msgid "Cursor Keys and Right Ctrl/Alt"
 msgstr "Klávesové šipky a Pravý CTRL/ALT"
 
 msgid "Custom"
 msgstr "Vlastní"
 
+msgid "Custom Configuration"
+msgstr "Vlastní konfigurace"
+
 msgid "Custom IRC server address"
 msgstr "Vlastní IRC server adresa"
 
 msgid "Custom Joystick Port"
-msgstr "Vlastní Joystick Port"
+msgstr "Vlastní port joysticku"
 
 msgid "Custom Options"
 msgstr "Vlastní možnosti"
@@ -193,8 +226,17 @@ msgstr "Výchozí"
 msgid "Default ({0})"
 msgstr "Výchozí ({0})"
 
+msgid "Destination Directory:"
+msgstr "Cílový adresář:"
+
 msgid "Disconnect"
 msgstr "Odpojit"
+
+msgid "Disk Image Name:"
+msgstr "Jméno obrazu disku:"
+
+msgid "Disk image created"
+msgstr "Obraz disku vytvořen"
 
 msgid "Downloading {0}..."
 msgstr "Stahuje se {0}..."
@@ -210,6 +252,12 @@ msgstr "Povolit experimentální grafické rozhraní síťové hry (vyžaduje re
 
 msgid "Enable online database support (requires restart)"
 msgstr "Povolit podporu online databáze (vyžaduje restart)"
+
+msgid "Error moving file into place"
+msgstr "Chyba při přemístění souboru do místa"
+
+msgid "Error writing disk image"
+msgstr "Chybu při zápisu do obrazu disku"
 
 msgid "Expansions"
 msgstr "Rozšíření"
@@ -235,6 +283,9 @@ msgstr "Načítám hodnocení hry ({0})"
 msgid "Fetching user game ratings ({0})"
 msgstr "Načítám uživ. hodnocení hry ({0})"
 
+msgid "File already exists"
+msgstr "Soubor již existuje"
+
 msgid "Filters"
 msgstr "Filtry"
 
@@ -254,7 +305,7 @@ msgid "Floppy drive volume"
 msgstr "Svazek disketové mechaniky"
 
 msgid "Force Full Vsync"
-msgstr "Vnutit Plnou Vertikální synchronizaci"
+msgstr "Vnutit plnou vertikální synchronizaci"
 
 msgid "Full Frame"
 msgstr "Přesné snímkování"
@@ -277,6 +328,9 @@ msgstr "Heslo herní databáze"
 msgid "Game database user name"
 msgstr "Jméno herní databáze"
 
+msgid "Gamepad/Joystick Setup"
+msgstr "Gamepad/Joystick nastavení"
+
 msgid "Games and Configurations"
 msgstr "Hry a nastavení"
 
@@ -285,6 +339,12 @@ msgstr "Uchyť vstup myši a klávesnice při startu FS-UAE"
 
 msgid "Grab mouse and keyboard input when clicking on FS-UAE window"
 msgstr "Uchyť vstup myši a klávesnice při kliknutí na okno FS-UAE"
+
+msgid "HDF - Partitionable Hard Drive Image (RDB)"
+msgstr "HDF - Rozdělitelný oddíl harddisku (RDB)"
+
+msgid "HDF - Single Partition Hard Disk File"
+msgstr "HDF - Jednotlivý oddíl harddisku"
 
 msgid "Hard Drives"
 msgstr "Pevné disky"
@@ -299,13 +359,16 @@ msgid "IRC nickname"
 msgstr "Přezdívka na IRC"
 
 msgid "If you own Amiga Forever, select the drive/folder and click \"{0}\""
-msgstr "Jestli vlastníte Amiga Forever, zvolte disk/adresář a klikni \"{0}\""
+msgstr "Jestli vlastníte Amiga Forever, zvolte disk/adresář a klikněte \"{0}\""
 
 msgid "Import"
 msgstr "Importovat"
 
 msgid "Import From Amiga Forever CD/DVD"
 msgstr "Importovat z Amiga Forever CD/DVD"
+
+msgid "Import Kickstarts"
+msgstr "Importovat více Kickstart verzí"
 
 msgid "Import Kickstarts and ROMs"
 msgstr "Importovat Kickstart a ROM soubory"
@@ -328,6 +391,9 @@ msgstr "Možnosti vstupu"
 msgid "Internal"
 msgstr "Vnitřní"
 
+msgid "Invalid size specified"
+msgstr "Specifikována špatná velikost"
+
 msgid "Joystick"
 msgstr "Joystick"
 
@@ -349,8 +415,8 @@ msgstr "Nastavení klávesnice"
 msgid "Kickstart ROM"
 msgstr "Kickstart ROM"
 
-msgid "Kickstart Setup"
-msgstr "Kickstart nastavení"
+msgid "Kickstart ROMs are missing"
+msgstr "Chybí Kickstart ROM soubory "
 
 msgid "Kickstart import task started"
 msgstr "Zadání importu kickstart spuštěno"
@@ -370,8 +436,14 @@ msgstr "Seznam složek k indexaci"
 msgid "Low latency vsync (when using full vsync)"
 msgstr "Nízká latence vsync (při použití plné vsync)"
 
+msgid "MB"
+msgstr ""
+
 msgid "Main Configuration Options"
 msgstr "Hlavní volby konfigurace"
+
+msgid "Main Menu"
+msgstr "Hlavní nabídka"
 
 msgid "Media Swap List"
 msgstr "Prohození seznamu média"
@@ -381,6 +453,9 @@ msgstr "Paměť"
 
 msgid "Mouse"
 msgstr "Myš"
+
+msgid "Mouse & Joystick Ports"
+msgstr "Porty myši & joysticků"
 
 msgid "Mouse Settings"
 msgstr "Nastavení myši"
@@ -399,6 +474,9 @@ msgstr "Označení síťové hry (max. tři znaky)"
 
 msgid "New Configuration"
 msgstr "Nová konfigurace"
+
+msgid "New Disk Image"
+msgstr "Nový obraz disku"
 
 msgid "Nick:"
 msgstr "Přezdívka:"
@@ -458,7 +536,10 @@ msgid "Open Wikipedia Entry"
 msgstr "Otevřít záznam Wikipedia"
 
 msgid "OpenGL Settings"
-msgstr "OpenGL nastav"
+msgstr "OpenGL nastavení"
+
+msgid "Override Installed Memory"
+msgstr "Přepsat instalovanou paměť"
 
 msgid "Parallel Port Joysticks"
 msgstr "Paralelní porty Joysticků"
@@ -471,6 +552,9 @@ msgstr "Podpora Picasso96 (uaegfx.card)"
 
 msgid "Please wait..."
 msgstr "Čekejte prosím…"
+
+msgid "Preferences"
+msgstr "Možnosti"
 
 msgid "Preferred Joystick"
 msgstr "Preferovaný joystick"
@@ -493,8 +577,14 @@ msgstr "Připravuje se…"
 msgid "Purging old entries..."
 msgstr "Čistím staré záznamy..."
 
+msgid "Refresh Game Database"
+msgstr "Obnovit databázi her"
+
 msgid "Refresh game configurations from database"
 msgstr "Obnovit konfigurace her z databáze"
+
+msgid "Refresh list of connected joystick devices"
+msgstr "Obnovit seznam připojených joystick zařízení"
 
 msgid "Remove Directory from Search Path"
 msgstr "Odstranit adresář z cesty hledání"
@@ -524,16 +614,22 @@ msgid "Scaling Options"
 msgstr "Nastavení škálování"
 
 msgid "Scan"
-msgstr "Skenovat"
+msgstr "Prohledat"
 
 msgid "Scan & Indexing"
-msgstr "Skenování & Indexace"
+msgstr "Prohledat & Indexace"
+
+msgid "Scan Files and Configurations"
+msgstr "Prohledávám soubory a konfigurace"
 
 msgid "Scan complete"
 msgstr "Hledání dokončeno"
 
 msgid "Scan error"
 msgstr "Chyba při skenování"
+
+msgid "Scan for Files"
+msgstr "Hledat soubory"
 
 msgid "Scan for Kickstarts, Files and Configurations"
 msgstr "Hledání Kickstart, souborů a konfigurací"
@@ -562,8 +658,8 @@ msgstr "Prohledávám soubory ({count} prohledáno)"
 msgid "Scanning game database entries..."
 msgstr "Prohledávám záznamy v herní databázi"
 
-msgid "Select Directory to Import From"
-msgstr "Vybrat adresář, odkud provést Import"
+msgid "Select Destination Directory"
+msgstr "Vybrat cílový adresář"
 
 msgid "Select Multiple CD-ROMs"
 msgstr "Vybrat několik CD-ROM mechanik"
@@ -574,6 +670,9 @@ msgstr "Vybrat několik souborů..."
 msgid "Select Multiple Floppies"
 msgstr "Vybrat několik disket"
 
+msgid "Select Source Directory"
+msgstr "Vybrat zdrojový adresář"
+
 msgid "Select a folder containing Amiga kickstart files and click \"{0}\""
 msgstr "Vyber adresář, obsahující Amiga kickstart soubory a klikni na \"{0}\""
 
@@ -581,13 +680,19 @@ msgid "Settings"
 msgstr "Nastavení"
 
 msgid "Show kickstart setup page on startup when all ROMs are missing"
-msgstr "Ukaž kickstart stránku nastavení, pokud všechny ROM soubory chybějí"
+msgstr "Ukaž stránku nastavení pro kickstart, pokud všechny ROM soubory chybějí"
+
+msgid "Size:"
+msgstr "Velikost:"
 
 msgid "Slow RAM"
 msgstr "Slow RAM"
 
+msgid "Specified directory does not exist"
+msgstr "Zadaný adresář neexistuje"
+
 msgid "Start"
-msgstr "Start"
+msgstr "Spustit"
 
 msgid "Start FS-UAE in fullscreen mode"
 msgstr "Spouštění her v režimu celé obrazovky"
@@ -599,7 +704,7 @@ msgid "Starting scan"
 msgstr "Spouštím skenování"
 
 msgid "Swap left and right CTRL keys"
-msgstr "Prohodit levé a pravé CTRL tlačít"
+msgstr "Prohodit levou a pravou klávesu CTRL"
 
 msgid "Sync to Vblank"
 msgstr "Synchronizace Vblank (vertikální)"
@@ -616,17 +721,23 @@ msgstr "Filtr textury"
 msgid "Toggle Between Windowed and Full-Screen Mode"
 msgstr "Přepnout mód plná obrazovka/v okně"
 
-msgid "Ungrab mouse and keyboard on middle mouse click"
-msgstr "Odznač myš a klávesnici po kliknutí prostředním tlačítkem myši"
+msgid "Tools"
+msgstr "Nástroje"
 
-msgid "Update ({version}) is available"
-msgstr "Update ({version}) je k dispozici"
+msgid "Ungrab mouse and keyboard on middle mouse click"
+msgstr "Vypni/zapni myš a klávesnici po kliknutí prostředním tlačítkem myši"
+
+msgid "Update available ({version})"
+msgstr "Aktualizace k dispozici ({version})"
 
 msgid "Updating database"
 msgstr "Aktualizuji databázi"
 
 msgid "Updating game entries:"
 msgstr "Aktualizuji záznamy her:"
+
+msgid "Use RDB disk images for size >= {0}"
+msgstr "Použít RDB obrazy disků pro velikost >= {0}"
 
 msgid "Video Settings"
 msgstr "Nastavení videa"
@@ -654,3 +765,12 @@ msgstr "Přiblížit Amiga displej (ostřihnout)"
 
 msgid "Zorro III RAM"
 msgstr "Zorro III RAM"
+
+#~ msgid "Kickstart Setup"
+#~ msgstr "Kickstart nastavení"
+
+#~ msgid "Select Directory to Import From"
+#~ msgstr "Vybrat adresář, odkud provést Import"
+
+#~ msgid "Update ({version}) is available"
+#~ msgstr "Update ({version}) je k dispozici"

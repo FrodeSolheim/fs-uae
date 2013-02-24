@@ -106,26 +106,11 @@ void fs_emu_deprecated(const char *format, ...) {
     char *buffer = fs_strdup_vprintf(format, ap);
     va_end(ap);
     int len = strlen(buffer);
-    // strip trailing newline, of any
-    if (len > 0 && buffer[len] == '\n') {
-        buffer[len] = '\0';
+    // strip trailing newline, if any
+    if (len > 0 && buffer[len - 1] == '\n') {
+        buffer[len - 1] = '\0';
     }
     fs_log("DEPRECATED: %s\n", buffer);
-    fs_emu_hud_add_console_line(buffer, 0);
-    free(buffer);
-}
-
-void fs_emu_notification(const char *format, ...) {
-    va_list ap;
-    va_start(ap, format);
-    char *buffer = fs_strdup_vprintf(format, ap);
-    va_end(ap);
-    int len = strlen(buffer);
-    // strip trailing newline, of any
-    if (len > 0 && buffer[len] == '\n') {
-        buffer[len] = '\0';
-    }
-    fs_log("NOTIFICATION: %s\n", buffer);
     fs_emu_hud_add_console_line(buffer, 0);
     free(buffer);
 }

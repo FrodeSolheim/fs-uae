@@ -33,9 +33,17 @@ struct tm *fs_localtime_r(const time_t *timep, struct tm *result) {
         fs_mutex_lock(g_mutex);
     }
     struct tm* tm = localtime(timep);
-    *result = *tm;
+    if (tm == NULL) {
+        fs_log("WARNING: localtime - invalid time_t (%d)\n", *timep);
+    }
+    else {
+        *result = *tm;
+    }
     if (g_mutex) {
         fs_mutex_unlock(g_mutex);
+    }
+    if (tm == NULL) {
+        return NULL;
     }
     return result;
 #endif
@@ -52,9 +60,17 @@ struct tm *fs_gmtime_r(const time_t *timep, struct tm *result) {
         fs_mutex_lock(g_mutex);
     }
     struct tm* tm = gmtime(timep);
-    *result = *tm;
+    if (tm == NULL) {
+        fs_log("WARNING: gmtime - invalid time_t (%d)\n", *timep);
+    }
+    else {
+        *result = *tm;
+    }
     if (g_mutex) {
         fs_mutex_unlock(g_mutex);
+    }
+    if (tm == NULL) {
+        return NULL;
     }
     return result;
 #endif
@@ -106,13 +122,20 @@ time_t fs_timegm(struct tm *tm) {
     return ret;
 }
 
+#include <stdio.h>
+
 int fs_get_local_time_offset(time_t time) {
     time_t t = time;
     struct tm lt;
-    fs_localtime_r(&t, &lt);
+    void *result1 = fs_localtime_r(&t, &lt);
     struct tm gt;
-    fs_gmtime_r(&t, &gt);
-    return mktime(&lt) - mktime(&gt);
+    void *result2 = fs_gmtime_r(&t, &gt);
+    gt.tm_isdst = lt.tm_isdst;
+    if (result1 == NULL || result2 == NULL) {
+        return 0;
+    }
+    //fs_log("------------- isdst %d -------------\n", lt.tm_isdst);
+    return t - mktime(&gt);
 }
 
 static int g_initialized = 0;
@@ -138,4 +161,6 @@ void fs_time_init(void) {
     fs_time_val tv;
     fs_get_current_time(&tv);
     fs_log("time of day:       %d + (%d / 1000000)\n", tv.tv_sec, tv.tv_usec);
+    fs_log("localtime offset:  %d\n", fs_get_local_time_offset(t));
+
 }

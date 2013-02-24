@@ -88,7 +88,7 @@ void fsdb_init_file_info(fsdb_file_info *info) {
     info->comment = NULL;
     info->mode = A_FIBF_READ | A_FIBF_WRITE | A_FIBF_EXECUTE | A_FIBF_DELETE;
 
-    if (uae_synchronous_mode()) {
+    if (uae_deterministic_mode()) {
         // leave time at 0, 0, 0
     }
     else {
@@ -111,7 +111,7 @@ FILE *fsdb_open_meta_file_for_path(const char *path, const char *mode,
         int always_open) {
     char *meta_file = fs_strconcat(path, ".uaem", NULL);
     if (g_fsdb_debug) {
-        write_log("opening meta file %s mode %s\n", path, mode);
+        write_log("opening meta file %s mode %s\n", meta_file, mode);
     }
     if (!always_open) {
         if (!fs_path_exists(meta_file)) {
@@ -457,13 +457,13 @@ int fsdb_get_file_info(const char *nname, fsdb_file_info *info) {
         info->mode |= A_FIBF_WRITE;
         info->mode |= A_FIBF_EXECUTE;
         info->mode |= A_FIBF_DELETE;
-        if (! uae_synchronous_mode()) {
+        if (! uae_deterministic_mode()) {
             // FIXME: remove WRITE and DELETE if file is not writable
         }
     }
 
     if (!read_time) {
-        if (uae_synchronous_mode()) {
+        if (uae_deterministic_mode()) {
             // this is not a very good solution. For instance, WB 1.3 does
             // not update .info files correctly when the file date/time is
             // constant.
@@ -521,7 +521,7 @@ int fsdb_set_file_info(const char *nname, fsdb_file_info *info) {
     else {
         struct mytimeval mtv;
         amiga_to_timeval(&mtv, info->days, info->mins, info->ticks);
-        //mtv.tv_sec -= fs_get_local_time_offset(mtv.tv_sec);
+        mtv.tv_sec -= fs_get_local_time_offset(mtv.tv_sec);
         if (g_fsdb_debug) {
             write_log("- days %d mins %d ticks %d - %lld %d\n",
                     info->days, info->mins, info->ticks, mtv.tv_sec,
@@ -529,7 +529,6 @@ int fsdb_set_file_info(const char *nname, fsdb_file_info *info) {
             write_log("- fs_get_local_time_offset %d\n",
                     fs_get_local_time_offset(mtv.tv_sec));
         }
-        mtv.tv_sec += fs_get_local_time_offset(mtv.tv_sec);
 
         struct timeval tv;
         tv.tv_sec = mtv.tv_sec;
@@ -546,8 +545,8 @@ int fsdb_set_file_info(const char *nname, fsdb_file_info *info) {
             }
             struct fs_stat buf;
             if (fs_stat(nname, &buf) == 0) {
-                printf("- %d vs %d\n", (int) buf.mtime, (int) mtv.tv_sec);
-                printf("- %d vs %d\n", (int) buf.mtime_nsec, (int) (mtv.tv_usec * 1000));
+                write_log("- %d vs %d\n", (int) buf.mtime, (int) mtv.tv_sec);
+                write_log("- %d vs %d\n", (int) buf.mtime_nsec, (int) (mtv.tv_usec * 1000));
                 if (buf.mtime == mtv.tv_sec &&
                         buf.mtime_nsec == mtv.tv_usec * 1000) {
                     if (g_fsdb_debug) {
@@ -563,6 +562,9 @@ int fsdb_set_file_info(const char *nname, fsdb_file_info *info) {
             }
         }
     }
+
+    // always write metadata file, for now...
+    need_metadata_file = 1;
 
     if (!error) {
         f = fsdb_open_meta_file_for_path(nname, "wb", need_metadata_file);
@@ -588,7 +590,7 @@ int fsdb_set_file_info(const char *nname, fsdb_file_info *info) {
         if (info->mode & A_FIBF_WRITE) astr[5] = 'w';
         if (info->mode & A_FIBF_EXECUTE) astr[6] = 'e';
         if (info->mode & A_FIBF_DELETE) astr[7] = 'd';
-        printf("- writing mode %s\n", astr);
+        write_log("- writing mode %s\n", astr);
 
         if (fwrite(astr, 8, 1, f) != 1) {
             error = host_errno_to_dos_errno(errno);
@@ -619,7 +621,7 @@ int fsdb_set_file_info(const char *nname, fsdb_file_info *info) {
 
     if (!error) {
         if (info->comment) {
-            printf("- writing comment %s\n", info->comment);
+            write_log("- writing comment %s\n", info->comment);
             int len = strlen(info->comment);
             if (len && fwrite(info->comment, len, 1, f) != 1) {
                 error = host_errno_to_dos_errno(errno);
@@ -673,7 +675,10 @@ bool my_utime(const char *name, struct mytimeval *tv) {
         timeval_to_amiga (&mtv, &days, &mins, &ticks);
     }
     else {
-        timeval_to_amiga(tv, &days, &mins, &ticks);
+        struct mytimeval mtv2;
+        mtv2.tv_sec = tv->tv_sec + fs_get_local_time_offset(tv->tv_sec);
+        mtv2.tv_usec = tv->tv_usec;
+        timeval_to_amiga(&mtv2, &days, &mins, &ticks);
     }
 
     if (g_fsdb_debug) {
@@ -787,7 +792,8 @@ static void find_nname_case(const char *dir_path, char **name) {
         if (cmp_result == NULL) {
             // file name could not be represented as ISO-8859-1, so it
             // will be ignored
-            printf("ignoring\n");
+            write_log("cannot convert name \"%s\" to ISO-8859-1 - ignoring\n",
+                    result);
             continue;
         }
         lower_latin1(cmp_result);

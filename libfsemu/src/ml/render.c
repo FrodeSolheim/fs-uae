@@ -117,7 +117,8 @@ void fs_ml_frame_update_end(int frame) {
     }
 }
 
-static void save_screenshot_of_opengl_framebuffer() {
+static void save_screenshot_of_opengl_framebuffer(const char *path) {
+#if 0
     static int count = 0;
     count += 1;
 
@@ -131,9 +132,11 @@ static void save_screenshot_of_opengl_framebuffer() {
 #endif
     char strbuf[20];
     strftime(strbuf, 20, "%Y-%m-%d-%H-%M", tm_p);
-    char *name = fs_strdup_printf("fs-uae-%s-%s-%03d.png", "opengl",
+    char *name = fs_strdup_printf("%s-%s-%03d.png",
+            g_fs_ml_video_screenshots_prefix,
             strbuf, g_fs_ml_video_screenshot);
-    char *path = fs_path_join(fs_get_desktop_dir(), name, NULL);
+    char *path = fs_path_join(g_fs_ml_video_screenshots_dir, name, NULL);
+#endif
     fs_log("writing screenshot to %s\n", path);
 
     int w = fs_ml_video_width();
@@ -172,10 +175,10 @@ static void save_screenshot_of_opengl_framebuffer() {
         fs_log("error saving screenshot\n");
     }
     free(out_data);
+#if 0
     free(name);
     free(path);
-
-    g_fs_ml_video_screenshot = 0;
+#endif
 }
 
 int fs_ml_get_vblank_count() {
@@ -276,11 +279,12 @@ typedef int64_t GLint64;
 typedef uint64_t GLuint64;
 typedef struct __GLsync *GLsync;
 
-void (APIENTRYP glWaitSync)(GLsync sync, GLbitfield flags,
+static void (APIENTRYP glWaitSync)(GLsync sync, GLbitfield flags,
         GLuint64 timeout) = NULL;
-GLenum (APIENTRYP glClientWaitSync)(GLsync sync, GLbitfield flags,
+static GLenum (APIENTRYP glClientWaitSync)(GLsync sync, GLbitfield flags,
         GLuint64 timeout) = NULL;
-GLsync (APIENTRYP glFenceSync)(GLenum condition, GLbitfield flags) = NULL;
+static GLsync (APIENTRYP glFenceSync)(GLenum condition, 
+        GLbitfield flags) = NULL;
 
 #define GL_OBJECT_TYPE                 0x9112
 #define GL_SYNC_CONDITION              0x9113
@@ -632,8 +636,15 @@ void fs_ml_render_iteration() {
         //gl_finish();
     }
 
-    if (g_fs_ml_video_screenshot) {
-        save_screenshot_of_opengl_framebuffer();
+    if (g_fs_ml_video_screenshot_path) {
+        fs_mutex_lock(g_fs_ml_video_screenshot_mutex);
+        if (g_fs_ml_video_screenshot_path) {
+            save_screenshot_of_opengl_framebuffer(
+                    g_fs_ml_video_screenshot_path);
+            free(g_fs_ml_video_screenshot_path);
+            g_fs_ml_video_screenshot_path = NULL;
+        }
+        fs_mutex_unlock(g_fs_ml_video_screenshot_mutex);
     }
 
     if (g_fs_ml_video_post_render_function) {

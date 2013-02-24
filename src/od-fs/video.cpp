@@ -223,7 +223,12 @@ bool render_screen (bool immediate) {
     //printf("flush_screen (%d -> %d) %d %d %d %d\n", first_line, last_line,
     //        cx, cy, cw, ch);
 
-    g_renderdata.refresh_rate = (int) (currprefs.chipset_refreshrate + 0.5);
+    if (currprefs.turbo_emulation) {
+        g_renderdata.refresh_rate = -1;
+    }
+    else {
+        g_renderdata.refresh_rate = (int) (currprefs.chipset_refreshrate + 0.5);
+    }
     //printf("%d\n", g_renderdata.refresh_rate);
     if (g_libamiga_callbacks.render) {
         g_libamiga_callbacks.render(&g_renderdata);

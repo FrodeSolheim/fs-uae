@@ -18,7 +18,9 @@
 // the actual frequency negotiated with the audio driver
 static double g_audio_out_frequency = 0.0;
 
-static double g_volume = 1.0;
+static int g_volume = 100;
+static int g_mute = 0;
+static double g_want_volume = 1.0;
 static int g_sys_buffer_bytes = 0;
 
 double g_default_audio_pitch = 1.0;
@@ -255,7 +257,7 @@ int fs_emu_queue_audio_buffer(int stream, int16_t* data, int size) {
             //}
     }
 
-    double want_volume = g_volume * 0.9;
+    double want_volume = g_want_volume * 0.9;
     if (want_volume != s->source_volume_current) {
         s->source_volume_current = want_volume;
         alSourcef(s->source, AL_GAIN, want_volume);
@@ -278,12 +280,22 @@ void fs_emu_disable_audio_stream(int stream) {
     fs_log("disabling audio stream %d\n", stream);
 }
 
-double fs_emu_audio_get_volume() {
+void fs_emu_audio_set_volume(int volume) {
+    g_volume = volume;
+    g_want_volume = g_mute ? 0.0 : g_volume / 100.0;
+}
+
+void fs_emu_audio_set_mute(int mute) {
+    g_mute = mute;
+    g_want_volume = g_mute ? 0.0 : g_volume / 100.0;
+}
+
+int fs_emu_audio_get_volume() {
     return g_volume;
 }
 
-void fs_emu_audio_set_volume(double volume) {
-    g_volume = volume;
+int fs_emu_audio_get_mute() {
+    return g_mute;
 }
 
 void fs_emu_set_audio_buffer_frequency(int stream, int frequency) {

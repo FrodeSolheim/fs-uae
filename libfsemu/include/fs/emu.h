@@ -366,8 +366,10 @@ int fs_emu_video_buffer_grow(fs_emu_video_buffer *buffer, int width,
 
 // audio interface
 
-double fs_emu_audio_get_volume();
-void fs_emu_audio_set_volume(double volume);
+int fs_emu_audio_get_volume();
+int fs_emu_audio_get_mute();
+void fs_emu_audio_set_volume(int volume);
+void fs_emu_audio_set_mute(int mute);
 
 
 typedef struct fs_emu_audio_stream_options {

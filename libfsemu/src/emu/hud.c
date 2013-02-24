@@ -70,12 +70,12 @@ void fs_emu_notification(int type, const char *format, ...) {
     if (len > 0 && buffer[len - 1] == '\n') {
         buffer[len - 1] = '\0';
     }
-    fs_log("WARNING: %s\n", buffer);
+    fs_log("%s\n", buffer);
 
     fs_emu_acquire_gui_lock();
 
     if (type != 0) {
-       console_line *line = fs_queue_peek_tail(g_console_lines);
+       console_line *line = fs_queue_peek_head(g_console_lines);
        if (line && line->type == type) {
            free(line->text);
            line->text = buffer;
@@ -87,6 +87,7 @@ void fs_emu_notification(int type, const char *format, ...) {
     }
 
     console_line *line = malloc(sizeof(console_line));
+    printf("new console line at %p\n", line);
     line->type = type;
     line->text = buffer;
     line->time = fs_emu_monotonic_time();

@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae-launcher\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2013-01-05 16:15+0100\n"
-"PO-Revision-Date: 2013-01-05 17:56+0100\n"
+"POT-Creation-Date: 2013-02-24 01:12+0100\n"
+"PO-Revision-Date: 2013-02-24 18:03+0100\n"
 "Last-Translator: \n"
 "Language-Team: Serbian\n"
 "Language: sr\n"
@@ -35,8 +35,20 @@ msgstr "640x480 + okvir"
 msgid "640x512 + Border"
 msgstr "640x512 + okvir"
 
+msgid "ADF & HDF Creator"
+msgstr "Kreiranje ADF i HDF"
+
+msgid "ADF - Extended Floppy Disk Image (MFM)"
+msgstr "ADF - Proširena slika diskete (MFM)"
+
+msgid "ADF - Standard Floppy Disk Image"
+msgstr "ADF - Standardna slika diskete "
+
 msgid "Abort"
 msgstr "Prekid"
+
+msgid "About {name}"
+msgstr "O {name}"
 
 msgid "Accurate"
 msgstr "Precizno"
@@ -56,6 +68,9 @@ msgstr "Dodati više disketa odjednom"
 msgid "Additional Options"
 msgstr "Dodatne opcije"
 
+msgid "Amiga Forever Import"
+msgstr "Uvoženje iz Amiga Forever"
+
 msgid "Amiga Forever import task started"
 msgstr "Započet je uvoz iz Amiga Forever"
 
@@ -70,6 +85,12 @@ msgstr "Auto"
 
 msgid "Auto + Border"
 msgstr "Auto + okvir"
+
+msgid "Auto-Fire is Off"
+msgstr "Automatsko pucanje je isključeno"
+
+msgid "Auto-Fire is On"
+msgstr "Automatsko pucanje je uključeno"
 
 msgid "Available Kickstart Versions"
 msgstr "Dostupne kickstart verzije"
@@ -137,6 +158,9 @@ msgstr "Kliknite na dugme 'Skeniranje' da biste započeli skeniranje"
 msgid "Click here to download"
 msgstr "Kliknuti ovde za preuzimanje"
 
+msgid "Click here to import kickstarts"
+msgstr "Kliknuti ovde za uvoz kikstarta"
+
 msgid "Close"
 msgstr "Zatvoriti"
 
@@ -168,14 +192,26 @@ msgstr ""
 "Kopiranje {0}\n"
 "u {1}"
 
+msgid "Could not open file for writing"
+msgstr "Nije moguće otvoriti fajl za upis"
+
+msgid "Create"
+msgstr "Kreirati"
+
 msgid "Cursor Keys and Right Ctrl/Alt"
 msgstr "Kursorski tasteri i desni Ctrl/Alt"
 
 msgid "Custom"
 msgstr "Prilagođeno"
 
+msgid "Custom Configuration"
+msgstr "Prilagođena konfiguracija"
+
 msgid "Custom IRC server address"
 msgstr "Prilagođena adresa IRC servera"
+
+msgid "Custom Joystick Port"
+msgstr "Prilagođeni džojstik port"
 
 msgid "Custom Options"
 msgstr "Prilagođene opcije"
@@ -189,8 +225,17 @@ msgstr "Podrazumevano"
 msgid "Default ({0})"
 msgstr "Podrazumevano ({0})"
 
+msgid "Destination Directory:"
+msgstr "Ciljni direktorijum:"
+
 msgid "Disconnect"
 msgstr "Prekid veze"
+
+msgid "Disk Image Name:"
+msgstr "Ime slike diskete:"
+
+msgid "Disk image created"
+msgstr "Slika diskete je kreirana"
 
 msgid "Downloading {0}..."
 msgstr "Preuzimanje {0}..."
@@ -206,6 +251,12 @@ msgstr "Omogućiti eksperimentalni net play GUI (zahteva restart)"
 
 msgid "Enable online database support (requires restart)"
 msgstr "Omogućiti onlajn podršku baze podataka (zahteva restart)"
+
+msgid "Error moving file into place"
+msgstr "Greška pomeranja fajla u mestu"
+
+msgid "Error writing disk image"
+msgstr "Greška prilikom upisa slike diskete"
 
 msgid "Expansions"
 msgstr "Proširenja"
@@ -230,6 +281,9 @@ msgstr "Preuzimanje ocena igre ({0})"
 
 msgid "Fetching user game ratings ({0})"
 msgstr "Preuzimanje korisničkih ocena igre ({0})"
+
+msgid "File already exists"
+msgstr "Fajl već postoji"
 
 msgid "Filters"
 msgstr "Filteri"
@@ -273,6 +327,9 @@ msgstr "Šifra baze igara"
 msgid "Game database user name"
 msgstr "Korisničko ime baze igara"
 
+msgid "Gamepad/Joystick Setup"
+msgstr "Gamepad / džojstik konfiguracija"
+
 msgid "Games and Configurations"
 msgstr "Igre i konfiguracije"
 
@@ -281,6 +338,12 @@ msgstr "Preuzmi miša i tastaturu kada se FS-UAE pokrene"
 
 msgid "Grab mouse and keyboard input when clicking on FS-UAE window"
 msgstr "Preuzmi miša i tastaturu kada se klikne na FS-UAE prozor"
+
+msgid "HDF - Partitionable Hard Drive Image (RDB)"
+msgstr "HDF - Slika hard diska sa mogućnošću particionisanja (RDB)"
+
+msgid "HDF - Single Partition Hard Disk File"
+msgstr "HDF - Fajl hard diska sa jednom particijom"
 
 msgid "Hard Drives"
 msgstr "Hard disk uređaji"
@@ -303,6 +366,9 @@ msgstr "Uvoz podataka"
 msgid "Import From Amiga Forever CD/DVD"
 msgstr "Uvoz sa Amiga Forever CD/DVD"
 
+msgid "Import Kickstarts"
+msgstr "Uvoženje kikstartova"
+
 msgid "Import Kickstarts and ROMs"
 msgstr "Uvoz kikstart-ova i ROM-ova"
 
@@ -323,6 +389,9 @@ msgstr "Postavke ulaza"
 
 msgid "Internal"
 msgstr "Interno"
+
+msgid "Invalid size specified"
+msgstr "Specificirana nevalidna veličina"
 
 msgid "Joystick"
 msgstr "Džojstik"
@@ -345,8 +414,8 @@ msgstr "Postavke tastature"
 msgid "Kickstart ROM"
 msgstr "Kikstart ROM"
 
-msgid "Kickstart Setup"
-msgstr "Podešavanja kikstarta"
+msgid "Kickstart ROMs are missing"
+msgstr "Kikstart romovi nedostaju"
 
 msgid "Kickstart import task started"
 msgstr "Uvoženje kikstarta je započeto"
@@ -366,8 +435,14 @@ msgstr "Spisak foldera za indeksiranje"
 msgid "Low latency vsync (when using full vsync)"
 msgstr "Malo kašnjenje vsync (kada se koristi puni vsync)"
 
+msgid "MB"
+msgstr "MB"
+
 msgid "Main Configuration Options"
 msgstr "Glavne opcije konfiguracije"
+
+msgid "Main Menu"
+msgstr "Glavni meni"
 
 msgid "Media Swap List"
 msgstr "Lista izmena medija"
@@ -377,6 +452,9 @@ msgstr "Memorija"
 
 msgid "Mouse"
 msgstr "Miš"
+
+msgid "Mouse & Joystick Ports"
+msgstr "Portovi miša i džojstika"
 
 msgid "Mouse Settings"
 msgstr "Podešavanje miša"
@@ -395,6 +473,9 @@ msgstr "Oznaka igre preko mreže (maksimalno 3 slova)"
 
 msgid "New Configuration"
 msgstr "Nova konfiguracija"
+
+msgid "New Disk Image"
+msgstr "Nova slika diskete"
 
 msgid "Nick:"
 msgstr "Nadimak:"
@@ -456,6 +537,9 @@ msgstr "Otvoriti Wikipedia unos "
 msgid "OpenGL Settings"
 msgstr "Podešavanje OpenGL-a "
 
+msgid "Override Installed Memory"
+msgstr "Zanemariti instaliranu memoriju"
+
 msgid "Parallel Port Joysticks"
 msgstr "Paralelni džojstik portovi"
 
@@ -467,6 +551,9 @@ msgstr "Picasso96 podrška (uaegfx.card)"
 
 msgid "Please wait..."
 msgstr "Molimo sačekajte..."
+
+msgid "Preferences"
+msgstr "Postavke"
 
 msgid "Preferred Joystick"
 msgstr "Željeni džojstik"
@@ -489,8 +576,14 @@ msgstr "Priprema..."
 msgid "Purging old entries..."
 msgstr "Čišćenje starih zapisa..."
 
+msgid "Refresh Game Database"
+msgstr "Osvežiti bazu igara"
+
 msgid "Refresh game configurations from database"
 msgstr "Osvežiti konfiguracije igara iz baze podataka"
+
+msgid "Refresh list of connected joystick devices"
+msgstr "Osvežiti listu povezanih džojstika"
 
 msgid "Remove Directory from Search Path"
 msgstr "Ukloniti direktorijum iz putanje pretrage"
@@ -525,11 +618,17 @@ msgstr "Skeniranje"
 msgid "Scan & Indexing"
 msgstr "Skeniranje i indeksiranje"
 
+msgid "Scan Files and Configurations"
+msgstr "Skeniranje fajlova i konfiguacija"
+
 msgid "Scan complete"
 msgstr "Skeniranje završeno"
 
 msgid "Scan error"
 msgstr "Greška skeniranja"
+
+msgid "Scan for Files"
+msgstr "Skeniranje fajlova"
 
 msgid "Scan for Kickstarts, Files and Configurations"
 msgstr "Skeniranje kikstart-ova, datoteka i konfiguracija"
@@ -558,8 +657,8 @@ msgstr "Skeniranje fajlova ({count} skenirano)"
 msgid "Scanning game database entries..."
 msgstr "Skeniranje "
 
-msgid "Select Directory to Import From"
-msgstr "Izabrati direktorijum iz koga se uvozi"
+msgid "Select Destination Directory"
+msgstr "Odabrati ciljni direktorijum"
 
 msgid "Select Multiple CD-ROMs"
 msgstr "Izabrati više CD-ova"
@@ -570,6 +669,9 @@ msgstr "Izabrati više fajlova..."
 msgid "Select Multiple Floppies"
 msgstr "Izabrati više disketa"
 
+msgid "Select Source Directory"
+msgstr "Odabrati izvorni direktorijum"
+
 msgid "Select a folder containing Amiga kickstart files and click \"{0}\""
 msgstr "Izabrati folder koji sadrži Amiga kikstart fajlove i kliknuti \"{0}\""
 
@@ -579,8 +681,14 @@ msgstr "Podešavanja"
 msgid "Show kickstart setup page on startup when all ROMs are missing"
 msgstr "Prikaži na startu kikstart podešavanja ako svi ROM-ovi nedostaju"
 
+msgid "Size:"
+msgstr "Veličina:"
+
 msgid "Slow RAM"
 msgstr "Slow RAM"
+
+msgid "Specified directory does not exist"
+msgstr "Navedeni direktorijum ne postoji"
 
 msgid "Start"
 msgstr "Start"
@@ -612,17 +720,23 @@ msgstr "Filter teksture"
 msgid "Toggle Between Windowed and Full-Screen Mode"
 msgstr "Prelaženje između moda prozora i čitavog ekrana"
 
+msgid "Tools"
+msgstr "Alati"
+
 msgid "Ungrab mouse and keyboard on middle mouse click"
 msgstr "Otpustiti miša i tastaturu na srednji klik miša"
 
-msgid "Update ({version}) is available"
-msgstr "Ažuriranje ({version}) je dostupna"
+msgid "Update available ({version})"
+msgstr "Ažurna verzija dostupna ({version})"
 
 msgid "Updating database"
 msgstr "Ažuriranje baze"
 
 msgid "Updating game entries:"
 msgstr "Ažuriranje podataka igre:"
+
+msgid "Use RDB disk images for size >= {0}"
+msgstr "Koristiti RDB sliku diska za veličinu >= {0}"
 
 msgid "Video Settings"
 msgstr "Podešavanje videa"
@@ -699,6 +813,9 @@ msgstr "Zorro III RAM"
 #~ msgid "Kickstart"
 #~ msgstr "Kickstart"
 
+#~ msgid "Kickstart Setup"
+#~ msgstr "Podešavanja kikstarta"
+
 #~ msgid "Kickstart Versions"
 #~ msgstr "Verzije kickstarta"
 
@@ -732,8 +849,14 @@ msgstr "Zorro III RAM"
 #~ msgid "Scan for:"
 #~ msgstr "Skeniranje:"
 
+#~ msgid "Select Directory to Import From"
+#~ msgstr "Izabrati direktorijum iz koga se uvozi"
+
 #~ msgid "Select Files..."
 #~ msgstr "Izabrati fajlove..."
+
+#~ msgid "Update ({version}) is available"
+#~ msgstr "Ažuriranje ({version}) je dostupna"
 
 #~ msgid "Window"
 #~ msgstr "U prozoru"

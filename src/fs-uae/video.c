@@ -361,6 +361,8 @@ static void *grow_buffer(int width, int height) {
     return g_buffer->data;
 }
 
+#define TURBO_FRAME_RATE 10000
+
 static void display_screen() {
 
     static int64_t last_time = 0;
@@ -371,7 +373,18 @@ static void display_screen() {
     }
 
     fs_emu_video_buffer_set_current(g_buffer);
-    fs_emu_set_video_frame_rate(g_last_refresh_rate);
+    if (g_last_refresh_rate == -1) {
+        if (fs_emu_get_video_frame_rate() != TURBO_FRAME_RATE) {
+            fs_emu_notification(45194412, _("Warp mode enabled"));
+        }
+        fs_emu_set_video_frame_rate(TURBO_FRAME_RATE);
+    }
+    else {
+        if (fs_emu_get_video_frame_rate() == TURBO_FRAME_RATE) {
+            fs_emu_notification(45194412, _("Warp mode disabled"));
+        }
+        fs_emu_set_video_frame_rate(g_last_refresh_rate);
+    }
 
     g_buffer = fs_emu_video_buffer_get_available(g_remember_last_screen);
     //printf("new render buffer: %p\n", g_buffer->data);
@@ -383,7 +396,7 @@ static void display_screen() {
 
 static void toggle_zoom(int flags) {
     if (g_last_seen_mode_rtg) {
-        fs_emu_warning(_("Zoom is disabled in RTG mode"));
+        fs_emu_notification(1511162016, _("Zoom is disabled in RTG mode"));
         return;
     }
 
@@ -400,11 +413,11 @@ static void toggle_zoom(int flags) {
         }
     }
     if (g_zoom_border) {
-        fs_emu_warning(_("Zoom: %s + Border"),
+        fs_emu_notification(1511162016, _("Zoom: %s + Border"),
                 _(g_zoom_modes[g_zoom_mode].name));
     }
     else {
-        fs_emu_warning(_("Zoom: %s"),
+        fs_emu_notification(1511162016, _("Zoom: %s"),
                 _(g_zoom_modes[g_zoom_mode].name));
     }
 }

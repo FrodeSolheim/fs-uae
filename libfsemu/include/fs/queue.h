@@ -25,6 +25,7 @@ fs_list *fs_queue_peek_nth_link(fs_queue *queue, unsigned int n);
 void fs_queue_push_tail(fs_queue *queue, void *data);
 void *fs_queue_pop_head(fs_queue *queue);
 void *fs_queue_pop_tail(fs_queue *queue);
+void *fs_queue_peek_head(fs_queue *queue);
 void *fs_queue_peek_tail(fs_queue *queue);
 void fs_queue_push_head(fs_queue *queue, void *data);
 unsigned int fs_queue_get_length(fs_queue *queue);

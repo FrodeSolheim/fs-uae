@@ -1,3 +1,14 @@
+Version 2.1.29:
+
+* Fixed a bug with notification replacing earlier notifications of the
+  same type.
+* F12 + w to toggle warp mode (no frame limit, no audio).
+* F12 + m to mute the sound (was implemented in 2.1.28).
+* F12 + comma to decrease the volume.
+* F12 + period to increase the volume.
+* Updated translations: fi [GoingDown], sr [Milanchez].
+* (Launcher) Updated translations: sr [Milanchez].
+
 Version 2.1.28:
 
 * For directory hard drives, save file attributes in .uaem files

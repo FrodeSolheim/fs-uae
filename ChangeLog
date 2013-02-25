@@ -5,6 +5,8 @@ Version 2.1.30:
 * Make the scanline shaders more standards-compatible, fixes compilation
   errors which occured with some GL drivers.
 * Write shader compiler log to log file on shader compilation failure.
+* Updated translations: cs [spajdr], de [nexusle].
+* (Launcher) Updated translations: cs [spajdr].
 
 Version 2.1.29:
 

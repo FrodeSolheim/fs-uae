@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2013-01-30 21:27+0100\n"
-"PO-Revision-Date: 2013-02-22 11:25+0200\n"
+"POT-Creation-Date: 2013-02-24 22:16+0100\n"
+"PO-Revision-Date: 2013-02-25 08:34+0200\n"
 "Last-Translator: z551693 <spajdr@centrum.cz>\n"
 "Language-Team: FS-UAE translation team\n"
 "Language: cs\n"
@@ -222,6 +222,12 @@ msgstr "Uložit pozice"
 #. / TRANSLATORS: Soft reset reboots the computer without a power cycle
 msgid "Soft Reset"
 msgstr "Soft Reset"
+
+msgid "Warp mode disabled"
+msgstr "Mód zrychlení vypnut"
+
+msgid "Warp mode enabled"
+msgstr "Mód zrychlení zapnut"
 
 msgid "Zoom is disabled in RTG mode"
 msgstr "Přiblížení vypnuto v RTG módu"

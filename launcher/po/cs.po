@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: fs-uae-launcher\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
 "POT-Creation-Date: 2013-02-14 19:26+0100\n"
-"PO-Revision-Date: 2013-02-22 11:51+0200\n"
+"PO-Revision-Date: 2013-02-25 08:46+0200\n"
 "Last-Translator: z551693 <spajdr@centrum.cz>\n"
 "Language-Team: FS-UAE translation team\n"
 "Language: cs\n"
@@ -94,7 +94,7 @@ msgid "Auto-Fire is On"
 msgstr "Auto-fire je zapnut"
 
 msgid "Available Kickstart Versions"
-msgstr "Kickstart verze k dispozici"
+msgstr "K dispozici jsou verze Kickstart"
 
 msgid "Browse"
 msgstr "Procházet"
@@ -103,7 +103,7 @@ msgid "Browse for File"
 msgstr "Procházet soubor"
 
 msgid "Browse for Folder"
-msgstr "Procházet složky"
+msgstr "Procházet složku"
 
 msgid "Built-in TCP/IP Stack"
 msgstr "Vestavěný TCP/IP stack"
@@ -263,7 +263,7 @@ msgid "Expansions"
 msgstr "Rozšíření"
 
 msgid "Experimental Features"
-msgstr "Experimentální obsah"
+msgstr "Experimentální funkce"
 
 msgid "Extended ROM:"
 msgstr "Extended ROM:"
@@ -446,7 +446,7 @@ msgid "Main Menu"
 msgstr "Hlavní nabídka"
 
 msgid "Media Swap List"
-msgstr "Prohození seznamu média"
+msgstr "Prohození pořadí média v seznamu"
 
 msgid "Memory"
 msgstr "Paměť"
@@ -539,7 +539,7 @@ msgid "OpenGL Settings"
 msgstr "OpenGL nastavení"
 
 msgid "Override Installed Memory"
-msgstr "Přepsat instalovanou paměť"
+msgstr "Nastavit instalovanou paměť na:"
 
 msgid "Parallel Port Joysticks"
 msgstr "Paralelní porty Joysticků"

@@ -57,6 +57,8 @@ static int g_window_resizable;
 static int g_fullscreen_width;
 static int g_fullscreen_height;
 
+static GLint g_max_texture_size;
+
 int g_fs_ml_had_input_grab = 0;
 int g_fs_ml_was_fullscreen = 0;
 
@@ -64,6 +66,10 @@ int g_fs_ml_was_fullscreen = 0;
 #define FS_ML_VIDEO_EVENT_UNGRAB_INPUT 2
 #define FS_ML_VIDEO_EVENT_SHOW_CURSOR 3
 #define FS_ML_VIDEO_EVENT_HIDE_CURSOR 4
+
+int fs_ml_get_max_texture_size() {
+    return g_max_texture_size;
+}
 
 int fs_ml_get_fullscreen_width() {
     return g_fullscreen_width;
@@ -175,10 +181,9 @@ static void log_opengl_information() {
     if (s) {
         fs_log("opengl extensions: %s\n", s);
     }
-    GLint max_texture_size;
-    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max_texture_size);
-    fs_log("opengl max texture size (estimate): %dx%d\n", max_texture_size,
-            max_texture_size);
+    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &g_max_texture_size);
+    fs_log("opengl max texture size (estimate): %dx%d\n", g_max_texture_size,
+            g_max_texture_size);
 
     if (software_renderer) {
         fs_emu_warning("No HW OpenGL driver (\"%s\")",

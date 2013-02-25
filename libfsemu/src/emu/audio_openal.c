@@ -295,7 +295,7 @@ int fs_emu_audio_get_volume() {
 }
 
 int fs_emu_audio_get_mute() {
-    return g_mute;
+    return g_mute || g_volume == 0;
 }
 
 void fs_emu_set_audio_buffer_frequency(int stream, int frequency) {

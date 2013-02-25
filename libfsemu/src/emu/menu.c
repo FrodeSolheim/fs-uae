@@ -77,12 +77,8 @@ static int on_quit(fs_emu_menu_item* item, void **result_data) {
 
 static int on_volume(fs_emu_menu_item* item, void **result_data) {
     fs_emu_log("on_volume selected from menu\n");
-    if (fs_emu_audio_get_volume() > 0.0) {
-        fs_emu_audio_set_volume(0.0);
-    }
-    else {
-        fs_emu_audio_set_volume(1.0);
-    }
+    //fs_emu_toggle_mute();
+    fs_emu_volume_control(-1);
     return FS_EMU_MENU_RESULT_NONE;
 }
 
@@ -578,7 +574,7 @@ static void render_top_item(int mode, int index) {
         if (mode == 0) {
             //fs_emu_texture *texture = NULL;
             int texture = TEXTURE_VOLUME;
-            if (fs_emu_audio_get_volume() == 0.0) {
+            if (fs_emu_audio_get_mute()) {
                 //texture = g_tex_volume_mute;
                 texture = TEXTURE_VOLUME_MUTED;
             }

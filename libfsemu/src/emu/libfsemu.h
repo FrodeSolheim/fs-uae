@@ -40,6 +40,8 @@ void fs_emu_clear_menu_input_states(int key);
 void fs_emu_audio_set_default_pitch(double pitch);
 void fs_emu_initialize_opengl();
 
+void fs_emu_volume_control();
+
 void fs_emu_init_render();
 
 extern int g_fs_emu_benchmarking;

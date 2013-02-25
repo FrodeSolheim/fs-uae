@@ -178,6 +178,22 @@ static void on_text(GMarkupParseContext *context, const gchar *text,
     g_free(value);
 }
 
+static void log_shader_error(int shader) {
+    GLint info_length = 0;
+    glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &info_length);
+    if (info_length > 0) {
+        char *buffer = (char *) malloc(info_length + 1);
+        GLsizei length;
+        glGetShaderInfoLog(shader, info_length, &length, buffer);
+        buffer[length] = 0;
+        fs_emu_log("%s\n", buffer);
+        free(buffer);
+    }
+    else {
+        fs_log("GL_INFO_LENGTH was %d\n", info_length);
+    }
+}
+
 #define HASATTR(name) ((data->flags & A_ ## name))
 
 static void handle_element(parse_data *data, const char *element,
@@ -231,7 +247,7 @@ static void handle_element(parse_data *data, const char *element,
         CHECK_GL_ERROR();
         if (compile_status == GL_FALSE) {
             fs_emu_warning("failed to compile vertex shader");
-            // FIXME: write shader compiler log to log file
+            log_shader_error(shader);
             data->error = 1;
             return;
         }
@@ -354,7 +370,7 @@ static void handle_element(parse_data *data, const char *element,
     CHECK_GL_ERROR();
     if (compile_status == GL_FALSE) {
         fs_emu_warning("failed to compile fragment shader");
-        // FIXME: write shader compiler log to log file
+        log_shader_error(shader);
         data->error = 1;
         return;
     }

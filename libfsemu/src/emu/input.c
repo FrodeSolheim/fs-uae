@@ -1258,28 +1258,13 @@ static int handle_shortcut(fs_ml_event *event) {
                 fs_emu_toggle_zoom(1);
             }
             else if (key_code == FS_ML_KEY_M) {
-                fs_emu_log("toggle mute\n");
-                if (fs_emu_audio_get_mute()) {
-                    fs_emu_audio_set_mute(0);
-                    fs_emu_notification(1418909137, _("Volume: %d%%"),
-                            fs_emu_audio_get_volume());
-                }
-                else {
-                    fs_emu_audio_set_mute(1);
-                    fs_emu_notification(1418909137, _("Volume: Muted"));
-                }
+                fs_emu_volume_control(-1);
             }
             else if (key_code == FS_ML_KEY_COMMA) {
-                fs_emu_log("decrease volume\n");
-                int volume = MAX(0, fs_emu_audio_get_volume() - 10);
-                fs_emu_audio_set_volume(volume);
-                fs_emu_notification(1418909137, _("Volume: %d%%"), volume);
+                fs_emu_volume_control(-2);
             }
             else if (key_code == FS_ML_KEY_PERIOD) {
-                fs_emu_log("increase volume\n");
-                int volume = MIN(100, fs_emu_audio_get_volume() + 10);
-                fs_emu_audio_set_volume(volume);
-                fs_emu_notification(1418909137, _("Volume: %d%%"), volume);
+                fs_emu_volume_control(-3);
             }
             else if (key_code == FS_ML_KEY_W) {
                 // FIXME: UAE-specific, must be moved out of libfsemu

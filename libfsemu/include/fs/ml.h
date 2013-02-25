@@ -105,6 +105,8 @@ int fs_ml_get_windowed_height();
 //void fs_ml_wait_vblank();
 void fs_ml_video_swap_buffers();
 
+int fs_ml_get_max_texture_size();
+
 typedef enum {
        FS_ML_NOEVENT = 0,
        FS_ML_ACTIVEEVENT,

@@ -9,6 +9,7 @@
 
 #include <fs/base.h>
 #include <fs/emu.h>
+#include <fs/i18n.h>
 #include <fs/ml.h>
 #include <fs/string.h>
 #include <fs/thread.h>
@@ -218,6 +219,63 @@ void fs_emu_assert_gui_lock() {
 void fs_emu_release_gui_lock() {
     g_gui_mutex_locked = 0;
     fs_mutex_unlock(g_gui_mutex);
+}
+
+void fs_emu_volume_control(int volume) {
+    if (volume == -1) {
+        if (fs_emu_audio_get_mute()) {
+            fs_emu_audio_set_mute(0);
+            if (fs_emu_audio_get_volume() == 0) {
+                fs_emu_audio_set_volume(10);
+            }
+        }
+        else {
+            fs_emu_audio_set_mute(1);
+        }
+    }
+    else if (volume == -2) {
+        int volume = MAX(0, fs_emu_audio_get_volume() - 10);
+        fs_emu_audio_set_volume(volume);
+        if (fs_emu_audio_get_mute()) {
+            fs_emu_audio_set_mute(0);
+        }
+    }
+    else if (volume == -3) {
+        int volume = MIN(100, fs_emu_audio_get_volume() + 10);
+        fs_emu_audio_set_volume(volume);
+        if (fs_emu_audio_get_mute()) {
+            fs_emu_audio_set_mute(0);
+        }
+    }
+
+    if (fs_emu_audio_get_mute()) {
+        fs_emu_notification(1418909137, _("Volume: Muted"));
+    }
+    else {
+        fs_emu_notification(1418909137, _("Volume: %d%%"),
+                fs_emu_audio_get_volume());
+    }
+#if 0
+
+
+    fs_emu_log("decrease volume\n");
+    if (fs_emu_audio_get_mute()) {
+        fs_emu_audio_set_mute(0);
+    }
+    int volume = MAX(0, fs_emu_audio_get_volume() - 10);
+    fs_emu_audio_set_volume(volume);
+    fs_emu_notification(1418909137, _("Volume: %d%%"), volume);
+}
+else if (key_code == FS_ML_KEY_PERIOD) {
+    fs_emu_volume_control(-3);
+    fs_emu_log("increase volume\n");
+    if (fs_emu_audio_get_mute()) {
+        fs_emu_audio_set_mute(0);
+    }
+    int volume = MIN(100, fs_emu_audio_get_volume() + 10);
+    fs_emu_audio_set_volume(volume);
+    fs_emu_notification(1418909137, _("Volume: %d%%"), volume);
+#endif
 }
 
 void fs_emu_init() {

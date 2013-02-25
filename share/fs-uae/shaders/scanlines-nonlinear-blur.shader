@@ -25,12 +25,12 @@ void main(void) {
     		vec2(-1.0 / rubyTextureSize.x, 0));
     }
 	int line = int(gl_FragCoord.y);
-	if (mod(line, 2) == 0) {
+	if (int(mod(line, 2)) == 0) {
 		gl_FragColor = mix(mix(rgb, rgb2, 0.5),
 				vec4(1.0, 1.0, 1.0, 1.0), 0.05);
 	}
 	else {
-        float ia = (128 - 10) / 255.0 +
+        float ia = (128.0 - 10.0) / 255.0 +
         		((rgb.r + rgb.g + rgb.b) / 3.0) / 2.0;
 		gl_FragColor = mix(rgb, rgb2, 0.5) * vec4(ia, ia, ia, 1.0);
 	}

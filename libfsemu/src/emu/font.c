@@ -20,8 +20,8 @@ FT_Library library;
 #include "video.h"
 #include "render.h"
 
-#define TEXTURE_WIDTH 2048
-#define TEXTURE_HEIGHT 2048
+static int g_texture_width = 2048;
+static int g_texture_height = 2048;
 
 // FIXME: little-endian only
 #define MASK 0x00ffffff
@@ -32,7 +32,7 @@ static int g_video_version = 0;
 static GLuint g_text_texture = 0;
 static uint8_t *g_buffer = NULL;
 
-#define CACHE_SIZE (TEXTURE_HEIGHT / 32)
+#define CACHE_SIZE (g_texture_height / 32)
 
 //static char g_positions[64] = {};
 
@@ -70,8 +70,8 @@ static void create_text_texture() {
     fs_gl_bind_texture(g_text_texture);
     // want to clear data to color (0, 0, 0, 0), probably a better
     // way to to this...
-    void *data = fs_malloc0(TEXTURE_WIDTH * TEXTURE_HEIGHT * 4);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, TEXTURE_WIDTH, TEXTURE_HEIGHT,
+    void *data = fs_malloc0(g_texture_width * g_texture_height * 4);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, g_texture_width, g_texture_height,
             0, GL_RGBA, GL_UNSIGNED_BYTE, data);
     free(data);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -121,10 +121,25 @@ void init_freetype(void) {
 #endif
 
 void initialize() {
+    g_texture_width = 2048;
+    g_texture_height = 2048;
+    int max_texture_size = fs_ml_get_max_texture_size();
+    if (max_texture_size > 0) {
+        if (max_texture_size < g_texture_width) {
+            g_texture_width = max_texture_size;
+        }
+        if (max_texture_size < g_texture_height) {
+            g_texture_height = max_texture_size;
+        }
+    }
+    fs_log("using text cache texture size %dx%d\n", g_texture_width,
+            g_texture_height);
+
     initialize_cache();
     create_text_texture();
     fs_gl_add_context_notification(context_notification_handler, NULL);
-    g_buffer = malloc(TEXTURE_WIDTH * 32 * 4);
+    g_buffer = malloc(g_texture_width * 32 * 4);
+
 #ifdef USE_FREETYPE
     init_freetype();
 #endif
@@ -328,7 +343,7 @@ int fs_emu_font_render(fs_emu_font *font, const char *text, float x, float y,
 
         cp = fix_char(font, cp);
         //printf("%d\n", cp);
-        if (required_width + font->w[cp] > TEXTURE_WIDTH) {
+        if (required_width + font->w[cp] > g_texture_width) {
             break;
         }
         required_width += font->w[cp];
@@ -416,8 +431,8 @@ int fs_emu_font_render(fs_emu_font *font, const char *text, float x, float y,
         int *sl = ((int *) font->image->data) + font->image->width * sy + sx;
         int ss = font->image->width; // source stride
         //int *sl = sp;
-        int *dl = ((int *) g_buffer) + TEXTURE_WIDTH * dy + dx;
-        int ds = TEXTURE_WIDTH; // destination stride
+        int *dl = ((int *) g_buffer) + g_texture_width * dy + dx;
+        int ds = g_texture_width; // destination stride
         //int *dl = dp;
 
         for (int y = 0; y < sh; y++) {
@@ -458,10 +473,10 @@ int fs_emu_font_render(fs_emu_font *font, const char *text, float x, float y,
     for(int y=0;y<required_height;y++) {
         glTexSubImage2D(GL_TEXTURE_2D, 0, 0, position * 32 + y, required_width,
                 1, gl_buffer_format, GL_UNSIGNED_BYTE, buf);
-        buf += TEXTURE_WIDTH * 4;
+        buf += g_texture_width * 4;
     }
 #else
-    fs_gl_unpack_row_length(TEXTURE_WIDTH);
+    fs_gl_unpack_row_length(g_texture_width);
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, position * 32, required_width,
             required_height, gl_buffer_format, GL_UNSIGNED_BYTE, g_buffer);
 #endif
@@ -474,10 +489,10 @@ int fs_emu_font_render(fs_emu_font *font, const char *text, float x, float y,
     item->position = position;
 
     item->x1 = 0;
-    item->x2 = required_width / (1.0 * TEXTURE_WIDTH);
-    item->y1 = (item->position * 32) / (1.0 * TEXTURE_HEIGHT);
+    item->x2 = required_width / (1.0 * g_texture_width);
+    item->y1 = (item->position * 32) / (1.0 * g_texture_height);
     item->y2 = (item->position * 32 + required_height) /
-            (1.0 * TEXTURE_HEIGHT);
+            (1.0 * g_texture_height);
     //item->texture = render_texture;
     g_cache = fs_list_prepend(g_cache, item);
     sanity_check();

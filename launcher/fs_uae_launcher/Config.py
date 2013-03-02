@@ -57,6 +57,7 @@ cfg = [
     ("x_kickstart_ext_file_sha1", "",     "checksum", "sync", "nosave"),
 
     ("x_whdload_args",        "",         "checksum", "sync"),
+    ("x_whdload_version",     "17.1",     "checksum", "sync"),
     ("floppy_drive_count",    "",         "checksum", "sync", "custom"),
     ("floppy_drive_speed",    "",         "checksum", "sync", "custom"),
     ("cdrom_drive_count",     "",         "checksum", "sync", "custom"),

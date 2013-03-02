@@ -154,6 +154,12 @@ void copy_buffer_data(fs_emu_video_buffer *new_buffer,
     }
 }
 
+void fs_emu_video_buffer_update_lines(fs_emu_video_buffer *buffer) {
+    // lines which are not updated in this frame are copied from the last
+    // completed video frame
+    copy_buffer_data(buffer, g_video_buffer_current);
+}
+
 void fs_emu_video_buffer_set_current(fs_emu_video_buffer *buffer) {
     if (buffer == NULL) {
         return;
@@ -161,10 +167,6 @@ void fs_emu_video_buffer_set_current(fs_emu_video_buffer *buffer) {
     if (g_fs_emu_benchmark_start_time > 0) {
         g_fs_emu_total_emu_frames++;
     }
-
-    // lines which are not updated in this frame are copied from the last
-    // completed video frame
-    copy_buffer_data(buffer, g_video_buffer_current);
 
     fs_emu_update_video_stats_1();
 

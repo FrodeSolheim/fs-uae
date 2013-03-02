@@ -384,12 +384,7 @@ void fs_uae_reconfigure_input_ports_host() {
         }
     }
 
-#if 0
     fs_uae_input_port *port0 = g_fs_uae_input_ports;
-#if 0
-    if (mouse_mapped_to_port == -1 && port0->mode != AMIGA_JOYPORT_NONE &&
-            port0->device && port0->device[0]) {
-#endif
     if (mouse_mapped_to_port == -1 && port0->mode != AMIGA_JOYPORT_NONE) {
         // there is a device in port 0, but mouse is not use in either
         // port
@@ -397,16 +392,16 @@ void fs_uae_reconfigure_input_ports_host() {
         fs_emu_configure_mouse(0, 0, INPUTEVENT_JOY1_FIRE_BUTTON,
                 0, INPUTEVENT_JOY1_2ND_BUTTON, 0);
     }
-#endif
 
     if (!fs_emu_netplay_enabled()) {
         // auto-select for other devices when not in netplay mode
-
+#if 0
         if (mouse_mapped_to_port == -1) {
             // FIXME: device "9" is a bit of a hack here, should promote
             fs_emu_configure_mouse(0, 0, INPUTEVENT_AMIGA_JOYPORT_0_DEVICE_9,
                     0, 0, 0);
         }
+#endif
 
         int count;
         fs_emu_input_device *input_device = fs_emu_get_input_devices(&count);
@@ -414,9 +409,13 @@ void fs_uae_reconfigure_input_ports_host() {
             //printf("---- %d %s\n", i, input_device->name);
             //printf("usage: %d\n", input_device->usage);
             if (input_device->usage) {
-                // this device is used, to we don't want auto-select for this
+                // this device is used, so we don't want auto-select for this
                 // device
                 input_device++;
+                continue;
+            }
+
+            if (strcmp(input_device->name, "KEYBOARD") == 0) {
                 continue;
             }
 

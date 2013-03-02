@@ -9,34 +9,36 @@ import time
 import urllib
 import urllib2
 from .I18N import _, ngettext
+from .fsgs.GameDatabaseSynchronizer import GameDatabaseSynchronizer
 
-class GameRatingSynchronizer:
+class GameRatingSynchronizer(GameDatabaseSynchronizer):
 
     username = ""
     password = ""
 
     def __init__(self, database, on_status=None, stop_check=None):
+        GameDatabaseSynchronizer.__init__(self, None, on_status, stop_check)
         self.database = database
-        self.on_status = on_status
-        self._stop_check = stop_check
+        #self.on_status = on_status
+        #self._stop_check = stop_check
 
-    def stop_check(self):
-        if self._stop_check:
-            return self._stop_check()
+    #def stop_check(self):
+    #    if self._stop_check:
+    #        return self._stop_check()
+    #
+    #def set_status(self, title, status):
+    #    if self.on_status:
+    #        self.on_status((title, status))
 
-    def set_status(self, title, status):
-        if self.on_status:
-            self.on_status((title, status))
-
-    def synchronize(self):
-        self._synchronize()
-        if self.stop_check():
-            self.database.rollback()
-        else:
-            print("commiting data")
-            self.set_status(_("Updating database"), _("Committing data..."))
-            self.database.commit()
-            print("done")
+    #def synchronize(self):
+    #    self._synchronize()
+    #    if self.stop_check():
+    #        self.database.rollback()
+    #    else:
+    #        print("commiting data")
+    #        self.set_status(_("Updating database"), _("Committing data..."))
+    #        self.database.commit()
+    #        print("done")
 
     def _synchronize(self):
         self.set_status(_("Updating database"),
@@ -65,17 +67,17 @@ class GameRatingSynchronizer:
             t2 = time.time()
             print("  {0:0.2f} seconds".format(t2 - t1))
 
-    def get_server(self):
-        try:
-            server = os.environ["FS_GAME_DATABASE_SERVER"]
-        except KeyError:
-            server = "fengestad.no"
-        auth_handler = urllib2.HTTPBasicAuthHandler()
-        auth_handler.add_password(realm="FS Game Database",
-                uri="http://{0}".format(server), user=self.username,
-                passwd=self.password)
-        opener = urllib2.build_opener(auth_handler)
-        return server, opener
+    #def get_server(self):
+    #    try:
+    #        server = os.environ["FS_GAME_DATABASE_SERVER"]
+    #    except KeyError:
+    #        server = "fengestad.no"
+    #    auth_handler = urllib2.HTTPBasicAuthHandler()
+    #    auth_handler.add_password(realm="FS Game Database",
+    #            uri="http://{0}".format(server), user=self.username,
+    #            passwd=self.password)
+    #    opener = urllib2.build_opener(auth_handler)
+    #    return server, opener
 
     def fetch_rating_entries(self):
         cursor = self.database.cursor()
@@ -86,13 +88,11 @@ class GameRatingSynchronizer:
             last_time = "2012-01-01 00:00:00"            
         self.set_status(_("Updating database"),
                 _("Fetching user game ratings ({0})").format(last_time))
-        server, opener = self.get_server()
+        server = self.get_server()[0]
         url = "http://{0}/games/api/1/user_ratings?from={1}".format(server,
                 urllib.quote_plus(last_time))
         print(url)
-        data = opener.open(url).read()
-        json_data = json.loads(data)
+        data, json_data = self.fetch_json(url)
         #self.downloaded_size += len(data)
 
-        print(json_data)
         return json_data

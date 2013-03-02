@@ -945,6 +945,8 @@ int fs_emu_configure_joystick(const char *name, const char *type,
                 if (config == NULL) {
                     fs_log("did not find config for device \"%s\"\n", config_name);
                     free(config_name);
+                    fs_emu_notification(0, _("Device needs config for %s: %s"),
+                            type, name);
                     break;
                 }
             }
@@ -1266,6 +1268,9 @@ static int handle_shortcut(fs_ml_event *event) {
             else if (key_code == FS_ML_KEY_PERIOD) {
                 fs_emu_volume_control(-3);
             }
+            else if (key_code == FS_ML_KEY_P) {
+                fs_emu_pause(!fs_emu_is_paused());
+            }
             else if (key_code == FS_ML_KEY_W) {
                 // FIXME: UAE-specific, must be moved out of libfsemu
                 fs_emu_queue_input_event(0x00010000 | 274);
@@ -1348,6 +1353,11 @@ static int handle_shortcut(fs_ml_event *event) {
             g_fs_emu_screenshot = 1;
         }
         return 1;
+    }
+    else if (key_code == FS_ML_KEY_PAUSE) {
+        if (state) {
+            fs_emu_pause(!fs_emu_is_paused());
+        }
     }
     else if (fs_emu_hud_in_chat_mode() && !fs_emu_menu_or_dialog_is_active()) {
         if (state) {

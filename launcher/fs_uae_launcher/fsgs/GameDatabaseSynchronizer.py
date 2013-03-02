@@ -17,7 +17,9 @@ class GameDatabaseSynchronizer:
     password = ""
 
     def __init__(self, client, on_status=None, stop_check=None):
-        self.client = client
+        if client:
+            self.client = client
+            self.database = client.database
         self.downloaded_size = 0
         self.on_status = on_status
         self._stop_check = stop_check
@@ -37,7 +39,7 @@ class GameDatabaseSynchronizer:
         else:
             print("commiting data")
             self.set_status(_("Updating database"), _("Committing data..."))
-            self.client.database.commit()
+            self.database.commit()
             print("done")
 
     def _synchronize(self):
@@ -146,12 +148,11 @@ class GameDatabaseSynchronizer:
         last_id = self.client.get_last_change_id()
         self.set_status(_("Updating database"),
                 _("Fetching database entries ({0})").format(last_id + 1))
-        server, opener = self.get_server()
+        server = self.get_server()[0]
         url = "http://{0}/games/api/1/changes?from={1}".format(server,
                 last_id + 1)
         print(url)
-        data = opener.open(url).read()
-        json_data = json.loads(data)
+        data, json_data = self.fetch_json(url)
         self.downloaded_size += len(data)
 
         #print(json_data)
@@ -166,13 +167,36 @@ class GameDatabaseSynchronizer:
             last_time = "2012-01-01 00:00:00"            
         self.set_status(_("Updating database"),
                 _("Fetching game ratings ({0})").format(last_time))
-        server, opener = self.get_server()
+        server = self.get_server()[0]
         url = "http://{0}/games/api/1/ratings?from={1}".format(server,
                 urllib.quote_plus(last_time))
         print(url)
-        data = opener.open(url).read()
-        json_data = json.loads(data)
+        data, json_data = self.fetch_json(url)
         self.downloaded_size += len(data)
 
         #print(json_data)
         return json_data
+
+    def fetch_json_attempt(self, url):
+        server, opener = self.get_server()
+        data = opener.open(url).read()
+        #if int(time.time()) % 2 == 0:
+        #    raise Exception("fail horribly")
+        return data, json.loads(data)
+
+    def fetch_json(self, url):
+        for i in range(20):
+            try:
+                return self.fetch_json_attempt(url)
+            except Exception, e:
+                sleep_time = 2.0 + i * 0.3
+                self.set_status(_("Updating database"),
+                        _("Download failed (attempt {0}) - "
+                                "retrying in {0} seconds").format(
+                                i + 1, int(sleep_time)))
+                time.sleep(sleep_time)
+                self.set_status(_("Updating database"),
+                        _("Retrying last operation (attempt {0})").format(
+                                i + 1))
+
+        return self.fetch_json_attempt(url)

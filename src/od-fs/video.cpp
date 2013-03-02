@@ -148,6 +148,8 @@ bool render_screen (bool immediate) {
     int flushed = g_has_flushed_line || g_has_flushed_block ||
             g_has_flushed_screen;
 
+    g_renderdata.bpp = g_amiga_video_bpp;
+
     static int cx, cy, cw, ch, crealh;
     //printf("g_picasso_enabled %d\n", g_picasso_enabled);
     if (g_picasso_enabled) {

@@ -16,6 +16,7 @@ import fs_uae_launcher.fs as fs
 import fs_uae_launcher.fsui as fsui
 from fs_uae_launcher.fsgs.GameNameUtil import GameNameUtil
 from .FSUAE import FSUAE
+from .ADFFileExtractor import ADFFileExtractor
 from .Archive import Archive
 from .Amiga import Amiga
 from .Config import Config
@@ -176,10 +177,19 @@ class LaunchHandler:
             self.config[key] = name
             return
 
+        if src.startswith("db://"):
+            parts = src.split("/")
+            sha1 = parts[2].strip()
+            dest_name = parts[-1].strip()
+            database = Database()
+            src = database.find_file(sha1=sha1)
+        else:
+            dest_name = os.path.basename(src)
+
         src, archive = self.expand_default_path(src,
                 Settings.get_floppies_dir())
 
-        dest = os.path.join(self.temp_dir, os.path.basename(src))
+        dest = os.path.join(self.temp_dir, dest_name)
         #shutil.copy2(src, dest)
         archive.copy(src, dest)
         self.config[key] = os.path.basename(dest)
@@ -448,8 +458,11 @@ class LaunchHandler:
         self.create_whdload_prefs_file(os.path.join(s_dir, "WHDLoad.prefs"))
         self.copy_setpatch(dest_dir)
 
-        whdload_files = whdload_17_1_files
-        for key, value in whdload_files.iteritems():
+        whdload_version = self.config["x_whdload_version"]
+
+        for key, value in whdload_files[whdload_version].iteritems():
+            self.install_whdload_file(key, dest_dir, value)
+        for key, value in whdload_support_files.iteritems():
             self.install_whdload_file(key, dest_dir, value)
 
         if self.config["__netplay_game"]:
@@ -544,12 +557,14 @@ class LaunchHandler:
             print("WARNING: did not find SetPatch 39.6")
 
     def extract_setpatch_39_6(self, wb_data, dest):
-        offset = wb_data.find(b"$VER: setpatch 39.6 (8.9.92)") - 0x845
-        if offset < 0:
+        extractor = ADFFileExtractor(wb_data)
+        try:
+            setpatch_data = extractor.extract_file("C/SetPatch")
+        except KeyError:
             return False
-        setpatch_data = wb_data[offset:offset+7364]
         s = hashlib.sha1()
         s.update(setpatch_data)
+        print(s.hexdigest())
         if s.hexdigest() != "4d4aae988310b07726329e436b2250c0f769ddff":
             return False
         with open(dest, "wb") as f:
@@ -717,28 +732,65 @@ class LaunchHandler:
                     print("copy", repr(itempath), "to", repr(destitempath))
                     shutil.copy(itempath, destitempath)
 
-whdload_17_0_files = {
+whdload_support_files = {
     "1ad1b55e7226bd5cd66def8370a69f19244da796": "Devs/Kickstarts/kick40068.A1200.RTB",
     "209c109855f94c935439b60950d049527d2f2484": "Devs/Kickstarts/kick34005.A500.RTB",
     "973b42dcaf8d6cb111484b3c4d3b719b15f6792d": "Devs/Kickstarts/kick40068.A4000.RTB",
     "09e4d8a055b4a9801c6b011e7a3de42bafaf070d": "C/uae-configuration",
-    "100d80eead41511dfef6086508b1f77d3c1672a8": "C/RawDIC",
-    "e1b6c3871d8327f771874b17258167c2a454029a": "C/Patcher",
-    "0ec213a8c62beb3eb3b3509aaa44f21405929fce": "C/WHDLoad",
-    "57f29b23cff0107eec81b98159ce304ccd69441a": "C/WHDLoadCD32",
-    "2fcb5934019133ed7a2069e333cdbc349ecaa7ee": "C/DIC",
 }
 
-whdload_17_1_files = {
-    "1ad1b55e7226bd5cd66def8370a69f19244da796": "Devs/Kickstarts/kick40068.A1200.RTB",
-    "209c109855f94c935439b60950d049527d2f2484": "Devs/Kickstarts/kick34005.A500.RTB",
-    "973b42dcaf8d6cb111484b3c4d3b719b15f6792d": "Devs/Kickstarts/kick40068.A4000.RTB",
-    "09e4d8a055b4a9801c6b011e7a3de42bafaf070d": "C/uae-configuration",
-    "100d80eead41511dfef6086508b1f77d3c1672a8": "C/RawDIC",
-    "e1b6c3871d8327f771874b17258167c2a454029a": "C/Patcher",
-    "1a907ca4539806b42ad5b6f7aeebacb3720e840d": "C/WHDLoad",
-    "a4f425b2c7e29600a970abd90f70a4dd4804c01c": "C/WHDLoadCD32",
-    "2fcb5934019133ed7a2069e333cdbc349ecaa7ee": "C/DIC",
+# Other 17.0 files
+# "100d80eead41511dfef6086508b1f77d3c1672a8": "C/RawDIC",
+# "e1b6c3871d8327f771874b17258167c2a454029a": "C/Patcher",
+# "57f29b23cff0107eec81b98159ce304ccd69441a": "C/WHDLoadCD32",
+# "2fcb5934019133ed7a2069e333cdbc349ecaa7ee": "C/DIC",
+
+# Other 17.1 files
+# "100d80eead41511dfef6086508b1f77d3c1672a8": "C/RawDIC",
+# "e1b6c3871d8327f771874b17258167c2a454029a": "C/Patcher",
+# "a4f425b2c7e29600a970abd90f70a4dd4804c01c": "C/WHDLoadCD32",
+# "2fcb5934019133ed7a2069e333cdbc349ecaa7ee": "C/DIC",
+
+whdload_files = {
+    "16.0": {
+        "883b9e37bc81fc081f78a3f278b732f97bdddf5c": "C/WHDLoad",
+    },
+    "16.1": {
+        "250506c2444d9fb89b711b4fba5d70dd554e6f0e": "C/WHDLoad",
+    },
+    "16.2": {
+        "a8bc2828c7da88f6236a8e82c763c71582f66cfd": "C/WHDLoad",
+    },
+    "16.3": {
+        "5d636899fa9332b7dfccd49df3447238b5b71e49": "C/WHDLoad",
+    },
+    "16.4": {
+        "1bb42fc83ee9237a6cfffdf15a3eb730504c9f65": "C/WHDLoad",
+    },
+    "16.5": {
+        "8974e6c828ac18ff1cc29e56a31da0775ddeb0f0": "C/WHDLoad",
+    },
+    "16.6": {
+        "b268bf7a05630d5b2bbf99616b32f282bac997bf": "C/WHDLoad",
+    },
+    "16.7": {
+        "be94bc3d70d5980fac7fd04df996120e8220c1c0": "C/WHDLoad",
+    },
+    "16.8": {
+        "a3286827c821386ac6e0bb519a7df807550d6a70": "C/WHDLoad",
+    },
+    "16.9": {
+        "b4267a21918d6375e1bbdcaee0bc8b812e366802": "C/WHDLoad",
+    },
+    "17.0": {
+        "0ec213a8c62beb3eb3b3509aaa44f21405929fce": "C/WHDLoad",
+    },
+    "17.1": {
+        "1a907ca4539806b42ad5b6f7aeebacb3720e840d": "C/WHDLoad",
+    },
+    "2013-03-01": {
+        "7ee8516eceb9e799295f1b16909749d08f13d26c": "C/WHDLoad",
+    }
 }
 
 system_configuration = b"\x08\x00\x00\x05\x00\x00\x00\x00\x00\x00" \

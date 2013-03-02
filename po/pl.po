@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2013-01-28 00:16+0100\n"
-"PO-Revision-Date: 2013-01-28 22:32+0100\n"
+"POT-Creation-Date: 2013-02-25 21:55+0100\n"
+"PO-Revision-Date: 2013-02-26 19:01+0100\n"
 "Last-Translator: grimi <grimi at poczta dot fm>\n"
 "Language-Team: Polish\n"
 "Language: pl\n"
@@ -223,6 +223,12 @@ msgstr "Zapis stanów gry"
 #. / TRANSLATORS: Soft reset reboots the computer without a power cycle
 msgid "Soft Reset"
 msgstr "\"Miękki\" reset"
+
+msgid "Warp mode disabled"
+msgstr "Tryb warp wyłączony"
+
+msgid "Warp mode enabled"
+msgstr "Tryb warp włączony"
 
 msgid "Zoom is disabled in RTG mode"
 msgstr "Zmiana rozmiaru wyłączona w trybie RTG"

@@ -108,6 +108,7 @@ typedef struct _RenderData {
     int flags;
     void *(*grow)(int width, int height);
     int refresh_rate;
+    int bpp;
 } RenderData;
 
 typedef void (*event_function)(void);

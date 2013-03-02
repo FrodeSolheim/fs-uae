@@ -44,6 +44,11 @@ struct WindowOverride {
     int dy;
     int dw;
     int dh;
+
+    int ssx;
+    int ssy;
+    int ssw;
+    int ssh;
     struct WindowOverride* next;
 };
 
@@ -85,12 +90,24 @@ int read_window_override_int(const char* s, int* pos, int* out) {
 
 int read_window_override(const char* s, int* pos) {
     while(s[*pos] == ' ') ++(*pos);
-    int sx, sy, sw, sh, dx, dy, dw, dh;
+    int sx, sy, sw, sh;
+    int dx, dy, dw, dh;
+    int ssx = 0, ssy = 0, ssw = 0, ssh = 0;
     if (!read_window_override_int(s, pos, &sx)) return 0;
     if (!read_window_override_int(s, pos, &sy)) return 0;
     if (!read_window_override_int(s, pos, &sw)) return 0;
     if (!read_window_override_int(s, pos, &sh)) return 0;
     while(s[*pos] == ' ') ++(*pos);
+    if (s[(*pos)] == '[') {
+        ++(*pos);
+        if (!read_window_override_int(s, pos, &ssx)) return 0;
+        if (!read_window_override_int(s, pos, &ssy)) return 0;
+        if (!read_window_override_int(s, pos, &ssw)) return 0;
+        if (!read_window_override_int(s, pos, &ssh)) return 0;
+        while(s[*pos] == ' ') ++(*pos);
+        if (!s[(*pos)++] == ']') return 0;
+    }
+
     if (!s[(*pos)++] == '=') return 0;
     if (s[(*pos)++] == '>') ++(*pos);
     if (!read_window_override_int(s, pos, &dx)) return 0;
@@ -109,6 +126,11 @@ int read_window_override(const char* s, int* pos) {
     wo->dy = dy;
     wo->dw = dw;
     wo->dh = dh;
+
+    wo->ssx = ssx;
+    wo->ssy = ssy;
+    wo->ssw = ssw;
+    wo->ssh = ssh;
     wo->next = NULL;
 
     if (g_last_window_override == NULL) {
@@ -220,6 +242,126 @@ static int modify_coordinates(int *cx, int *cy, int *cw, int *ch) {
     return changed;
 }
 
+#define SUBSCAN
+
+#ifdef SUBSCAN
+static void narrow_rect(RenderData* rd, int *nx, int *ny, int *nw, int *nh) {
+    if (rd->bpp != 4) {
+        // not implemented for 16-bit video.
+        return;
+    }
+#if 0
+    int64_t t1 = fs_get_monotonic_time();
+#endif
+    int x = *nx;
+    int y = *ny;
+    int w = *nw;
+    int h = *nh;
+
+    uint32_t *ibuffer = (uint32_t *) rd->pixels;
+    uint32_t *p1, *p;
+    uint32_t cmpval;
+
+    p1 = ibuffer + y * rd->width + x;
+    cmpval = 0;
+    for (int i = 0; i < h; i++) {
+        cmpval += *p1;
+    }
+    while (w > 0) {
+        p = p1;
+        uint32_t val = 0;
+        for (int i = 0; i < h; i++) {
+            val = val + *p;
+            p += rd->width;
+        }
+        if (val != cmpval) {
+            break;
+        }
+        x = x + 1;
+        w = w - 1;
+        p1 += 1;
+    }
+
+    p1 = ibuffer + y * rd->width + x + w - 1;
+    cmpval = 0;
+    for (int i = 0; i < h; i++) {
+        cmpval += *p1;
+    }
+    while (w > 0) {
+        p = p1;
+        uint32_t val = 0;
+        for (int i = 0; i < h; i++) {
+            val = val + *p;
+            p += rd->width;
+        }
+        if (val != cmpval) {
+            break;
+        }
+        w = w - 1;
+        p1 -= 1;
+    }
+
+    p1 = ibuffer + y * rd->width + x;
+    cmpval = 0;
+    for (int i = 0; i < w; i++) {
+        cmpval += *p1;
+    }
+    while (h > 0) {
+        p = p1;
+        uint32_t val = 0;
+        for (int i = 0; i < w; i++) {
+            val = val + *p;
+            p++;
+        }
+        if (val != cmpval) {
+            break;
+        }
+        y = y + 1;
+        h = h - 1;
+        p1 += rd->width;
+    }
+
+    p1 = ibuffer + (y + h - 1) * rd->width + x;
+    cmpval = 0;
+    for (int i = 0; i < w; i++) {
+        cmpval += *p1;
+    }
+    while (h > 0) {
+        p = p1;
+        uint32_t val = 0;
+        for (int i = 0; i < w; i++) {
+            val = val + *p;
+            p++;
+        }
+        if (val != cmpval) {
+            break;
+        }
+        h = h - 1;
+        p1 -= rd->width;
+    }
+
+    static int px = 0, py = 0, pw = 0, ph = 0;
+    if (x != px || y != py || w != pw || h != ph) {
+        fs_log(" sub: %3d %3d %3d %3d\n", x, y, w, h);
+        printf(" sub: %3d %3d %3d %3d\n", x, y, w, h);
+        px = x;
+        py = y;
+        pw = w;
+        ph = h;
+    }
+
+    *nx = x;
+    *ny = y;
+    *nw = w;
+    *nh = h;
+#if 0
+    int64_t t2 = fs_get_monotonic_time();
+    int64_t diff = t2 - t1;
+    printf("in %d us\n", (int) diff);
+#endif
+}
+#endif
+
 static void render_screen(RenderData* rd) {
 #if 0
     static int64_t last_time = 0;
@@ -235,7 +377,22 @@ static void render_screen(RenderData* rd) {
 
     rd_width = rd->width;
     rd_height = rd->height;
+
+    g_buffer->seq = g_frame_seq_no++;
+    g_buffer->width = rd_width;
+    g_buffer->height = rd_height;
+    g_buffer->flags = 0;
+    if (rd->flags & AMIGA_VIDEO_RTG_MODE) {
+        g_buffer->flags = FS_EMU_FORCE_VIEWPORT_CROP_FLAG;
+        if (g_use_rtg_scanlines == 0) {
+            g_buffer->flags |= FS_EMU_NO_SCANLINES_FLAG;
+        }
+    }
+    memcpy(g_buffer->line, rd->line, AMIGA_MAX_LINES);
+    fs_emu_video_buffer_update_lines(g_buffer);
+
     static int lastcx = 0, lastcy = 0, lastcw = 0, lastch = 0;
+    static int lastsubscan = 0;
 
     // crop rectangle for autoscale
     int cx = rd->limit_x;
@@ -254,13 +411,24 @@ static void render_screen(RenderData* rd) {
     cy <<= vshift;
     ch <<= vshift;
 
-    if (lastcx != cx || lastcy != cy || lastcw != cw || lastch != ch) {
-        lastcx = cx;
-        lastcy = cy;
-        lastcw = cw;
-        lastch = ch;
+    int cchange = lastcx != cx || lastcy != cy || lastcw != cw || lastch != ch;
+    if (cchange || lastsubscan) {
+        if (cchange) {
+            lastcx = cx;
+            lastcy = cy;
+            lastcw = cw;
+            lastch = ch;
+        }
+        lastsubscan = 0;
         struct WindowOverride* wo = NULL;
-
+#ifdef SUBSCAN
+        int ncx, ncy, ncw, nch;
+        int have_narrowed = 0;
+#endif
+        if (cchange) {
+            fs_log("auto: %3d %3d %3d %3d\n", cx, cy, cw, ch);
+            printf("auto: %3d %3d %3d %3d\n", cx, cy, cw, ch);
+        }
         modify_coordinates(&cx, &cy, &cw, &ch);
         //if (!modify_coordinates(&cx, &cy, &cw, &ch)) {
         if (1) {
@@ -274,10 +442,38 @@ static void render_screen(RenderData* rd) {
                     ucy = wo->dy == -1 ? cy : wo->dy;
                     ucw = wo->dw == -1 ? cw : wo->dw;
                     uch = wo->dh == -1 ? ch : wo->dh;
+#ifdef SUBSCAN
+                    if (wo->ssx != 0) {
+                        lastsubscan = 1;
+                        if (!have_narrowed) {
+                            ncx = cx;
+                            ncy = cy;
+                            ncw = cw;
+                            nch = ch;
+                            narrow_rect(rd, &ncx, &ncy, &ncw, &nch);
+                            have_narrowed = 1;
+                        }
+                        if ((wo->ssx == -1 || wo->ssx == ncx) &&
+                                (wo->ssy == -1 || wo->ssy == ncy) &&
+                                (wo->ssw == -1 || wo->ssw == ncw) &&
+                                (wo->ssh == -1 || wo->ssh == nch)) {
+                            ucx = wo->dx == -1 ? ncx : wo->dx;
+                            ucy = wo->dy == -1 ? ncy : wo->dy;
+                            ucw = wo->dw == -1 ? ncw : wo->dw;
+                            uch = wo->dh == -1 ? nch : wo->dh;
+                            break;
+                        }
+                        // continue searching
+                        wo = wo->next;
+                        continue;
+                    }
+#endif
+                    /*
                     fs_log("%3d %3d %3d %3d [ %3d %3d %3d %3d ]\n",
                             ucx, ucy, ucw, uch, cx, cy, cw, ch);
                     printf("%3d %3d %3d %3d [ %3d %3d %3d %3d ]\n",
                             ucx, ucy, ucw, uch, cx, cy, cw, ch);
+                    */
                     break;
                 }
                 wo = wo->next;
@@ -288,11 +484,24 @@ static void render_screen(RenderData* rd) {
             ucy = cy;
             ucw = cw;
             uch = ch;
+            /*
             fs_log("%3d %3d %3d %3d\n", ucx, ucy, ucw, uch);
             printf("%3d %3d %3d %3d\n", ucx, ucy, ucw, uch);
+            */
+        }
+        static int lucx = 0, lucy = 0, lucw = 0, luch = 0;
+        if (ucx != lucx || ucy != lucy || ucw != lucw || uch != luch) {
+            fs_log("    = %3d %3d %3d %3d\n", ucx, ucy, ucw, uch);
+            printf("    = %3d %3d %3d %3d\n", ucx, ucy, ucw, uch);
+            lucx = ucx;
+            lucy = ucy;
+            lucw = ucw;
+            luch = uch;
         }
     }
     float tx0, ty0, tx1, ty1; //source buffer coords
+
+
 
     fs_emu_rect crop;
     crop.x = 0;
@@ -339,19 +548,9 @@ static void render_screen(RenderData* rd) {
         }
     }
 
-    g_buffer->seq = g_frame_seq_no++;
-    g_buffer->width = rd_width;
-    g_buffer->height = rd_height;
     g_buffer->crop = crop;
-    g_buffer->flags = 0;
-    if (rd->flags & AMIGA_VIDEO_RTG_MODE) {
-        g_buffer->flags = FS_EMU_FORCE_VIEWPORT_CROP_FLAG;
-        if (g_use_rtg_scanlines == 0) {
-            g_buffer->flags |= FS_EMU_NO_SCANLINES_FLAG;
-        }
-    }
+
     g_last_seen_mode_rtg = rd->flags & AMIGA_VIDEO_RTG_MODE;
-    memcpy(g_buffer->line, rd->line, AMIGA_MAX_LINES);
     g_last_refresh_rate = rd->refresh_rate;
 }
 

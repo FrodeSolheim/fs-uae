@@ -158,6 +158,8 @@ class ValueConfigLoader:
         elif key == "whdload_args":
             self.options["x_whdload_args"] = value
             self.options["floppy_drive_volume"] = "0"
+        elif key == "whdload_version":
+            self.options["x_whdload_version"] = value
         elif key == "kickstart":
             model = self.options.get("amiga_model", "")
             if value == "2.0":
@@ -185,6 +187,9 @@ class ValueConfigLoader:
                 self.options["amiga_model"] = "A600"
             elif value == "AGA":
                 self.options["amiga_model"] = "A1200"
+        elif key == "cpu":
+            if value == "68020+" or value == "68020":
+                self.options["amiga_model"] = "A1200"
         elif key == "fast_memory":
             ivalue = int(value)
             if ivalue > 8192:
@@ -199,6 +204,12 @@ class ValueConfigLoader:
                     pass
                 else:
                     self.options["chip_memory"] = "1024"
+            elif value == "2048+":
+                if model in ["A1200", "A1200/020", "A4000/040"]:
+                    pass
+                else:
+                #    self.options["amiga_model"] = "A1200"
+                    self.options["chip_memory"] = "2048"
             else:
                 self.options["chip_memory"] = value
         elif key == "video_standard":
@@ -244,19 +255,17 @@ class ValueConfigLoader:
             k = "joystick_port_{0}_{1}".format(port, k)
             self.options[k] = v
 
-    #def load_game_info(self, uuid):
-    #    print("load_game_info", uuid)
-    #    path = Database.get_instance().find_game(uuid=uuid)
-    #    if not path:
-    #        print("game xml file not found")
-    #        return
-    #    tree = ElementTree()
-    #    tree.parse(path)
-    #    self.config["x_game_xml_path"] = path
-    #    self.load_options_from_tree(tree)
+    def load_floppies_from_floppy_list(self):
+        media_list = []
+        for item in self.values.get("floppy_list").split(","):
+            name, sha1 = item.split(":")
+            name = name.strip()
+            sha1 = sha1.strip()
+            path = "db://{0}/{1}/{2}".format(sha1, "", name)
+            media_list.append((path, sha1))
+        return media_list
 
     def load_floppies(self):
-        media_list = self.build_media_list(floppies=True)
         floppy_drive_count = 4
         if "floppy_drive_count" in self.options:
             try:
@@ -264,6 +273,12 @@ class ValueConfigLoader:
             except ValueError:
                 floppy_drive_count = 1
             floppy_drive_count = max(0, min(4, floppy_drive_count))
+
+        if self.values.get("floppy_list", ""):
+            media_list = self.load_floppies_from_floppy_list()
+        else:
+            media_list = self.build_media_list(floppies=True)
+
         for i, values in enumerate(media_list):
             path, sha1 = values
             if i < floppy_drive_count:

@@ -1,3 +1,27 @@
+Version 2.1.31:
+
+* Shortcuts F12 + P or Pause/Break key to pause the emulation.
+* Left and right mouse buttons are aliased to joystick port 0 fire and
+  2nd button (unless joystick_port0_mode is nothing, or mouse is already
+  used in a port).
+* Disabled automatic port 0 joystick switching for mouse, alias
+  mouse buttons instead.
+* Disabled automatic port 0 joystick switching for emulated joystick.
+* Warn, if necessary, when joystick/gamepad has no config for CD32 game pad.
+* Fixed scanline code for PPC.
+* Support for a more advanced viewport syntax.
+* Updated bitmap font with new character.
+* Updated translations: pl [grimi].
+* (Launcher) Retry database download operations several times on failure.
+* (Launcher) Support floppy_list field from online database, as well as 
+  new database fields.
+* (Launcher) WHDLoad versions can be selected via the new x_whdload_version
+  option.
+* (Launcher) Added WHDLoad versions 16.0 - 16.9 [TheCyberDruid].
+* (Launcher) ADFFileExtractor module [TheCyberDruid].
+* (Launcher) SetPatch is extracted using the new ADFFileExtractor module
+  instead of the old hack.
+
 Version 2.1.30:
 
 * Make the volume function more sane.

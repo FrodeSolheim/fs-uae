@@ -188,7 +188,7 @@ static int ini_parse_file(FILE* file,
 
 /* Maximum line length for any line in INI file. */
 #ifndef INI_MAX_LINE
-#define INI_MAX_LINE 512
+#define INI_MAX_LINE 4096
 #endif
 
 #ifdef __cplusplus

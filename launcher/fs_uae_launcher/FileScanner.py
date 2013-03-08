@@ -80,7 +80,7 @@ class FileScanner:
             database.commit()
             ROMManager.patch_standard_roms(database)
 
-    def scan_dir(self, database, dir):
+    def scan_dir(self, database, dir, all_files=False):
         #print("scan_dir", repr(dir))
         if not os.path.exists(dir):
             return
@@ -88,7 +88,23 @@ class FileScanner:
         # operating systems
         dir = get_real_case(dir)
 
-        for name in os.listdir(dir):
+        dir_content = os.listdir(dir)
+
+        if not all_files:
+            for name in dir_content:
+                try:
+                    # check that the file is actually unicode object (indirectly).
+                    # listdir will return str objects for file names on Linux
+                    # with invalid encoding.
+                    unicode(name)
+                except UnicodeDecodeError:
+                    continue
+                lname = name.lower()
+                if lname.endswith(".slave") or lname.endswith(".slave"):
+                    all_files = True
+                    break
+
+        for name in dir_content:
             try:
                 # check that the file is actually unicode object (indirectly).
                 # listdir will return str objects for file names on Linux
@@ -102,12 +118,13 @@ class FileScanner:
                 continue
             path = os.path.join(dir, name)
             if os.path.isdir(path):
-                self.scan_dir(database, path)
+                self.scan_dir(database, path, all_files=all_files)
                 continue
-            dummy, ext = os.path.splitext(path)
-            ext = ext.lower()
-            if ext not in self.extensions:
-                continue
+            if not all_files:
+                dummy, ext = os.path.splitext(path)
+                ext = ext.lower()
+                if ext not in self.extensions:
+                    continue
             try:
                 self.scan_file(database, path)
             except Exception:

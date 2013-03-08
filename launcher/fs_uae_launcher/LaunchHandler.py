@@ -299,6 +299,9 @@ class LaunchHandler:
         # Save states cannot currently be used with temporarily created
         # hard drives, as HD paths are embedded into the save states, and
         # restoring the save state causes problems.
+        
+        if Settings.get("unsafe_save_states") == "1":
+            return
         self.config["save_states"] = "0"
 
     def prepare_workbench_hard_drive(self, i, src):
@@ -446,8 +449,11 @@ class LaunchHandler:
         devs_dir = os.path.join(dest_dir, "Devs")
         if not os.path.exists(devs_dir):
             os.makedirs(devs_dir)
-        with open(os.path.join(devs_dir, "system-configuration"), "wb") as f:
-            f.write(system_configuration)
+        system_configuration_file = os.path.join(devs_dir,
+                "system-configuration")
+        if not os.path.exists(system_configuration_file):
+            with open(system_configuration_file, "wb") as f:
+                f.write(system_configuration)
 
         self.copy_whdload_kickstart(dest_dir, "kick34005.A500",
                 ["891e9a547772fe0c6c19b610baf8bc4ea7fcb785"])
@@ -470,10 +476,20 @@ class LaunchHandler:
         else:
             key_file = os.path.join(Settings.get_base_dir(), "WHDLoad.key")
             if os.path.exists(key_file):
-                print("found WHDLoad key at ", key_file)
+                print("found WHDLoad.key at ", key_file)
                 shutil.copy(key_file, os.path.join(s_dir, "WHDLoad.key"))
             else:
                 print("WHDLoad key not found in base dir (FS-UAE dir)")
+
+            # temporary feature, at least until it's possible to set more
+            # WHDLoad settings directly in the Launcher
+            prefs_file = os.path.join(Settings.get_base_dir(), "WHDLoad.prefs")
+            if os.path.exists(prefs_file):
+                print("found WHDLoad.prefs at ", prefs_file)
+                shutil.copy(prefs_file, os.path.join(s_dir, "WHDLoad.prefs"))
+            else:
+                print("WHDLoad key not found in base dir (FS-UAE dir)")
+
 
         if self.config["__netplay_game"]:
             print("WHDLoad base dir is not copied in net play mode")
@@ -631,13 +647,14 @@ class LaunchHandler:
         prefix = self.config.get("screenshots_output_prefix", "")
         if prefix:
             return
-        name = self.config.get("floppy_drive_0", "")
+        #name = self.config.get("floppy_drive_0", "")
         #if not name:
         #    name = self.config.get("hard_drive_0", "")
-        if not name:
-            name = self.config.get("cdrom_drive_0", "")
+        #if not name:
+        #    name = self.config.get("cdrom_drive_0", "")
         #if not name:
         #    name = self.config.get("floppy_image_0", "")
+        name = self.config_name
         if not name:
             name = "fs-uae"
         name, variant = GameNameUtil.extract_names(name)

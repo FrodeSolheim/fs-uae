@@ -311,7 +311,7 @@ class ValueConfigLoader:
                         continue
                     added.add(p)
                     # FIXME: hack for now
-                    sha1 = self.values.get("dh0_sha1")
+                    sha1 = self.values.get("dh0_sha1", "")
                     media_list.append((p, sha1))
                 else:
                     continue

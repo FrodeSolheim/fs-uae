@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae-launcher\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2013-02-14 19:26+0100\n"
-"PO-Revision-Date: 2013-02-25 08:46+0200\n"
+"POT-Creation-Date: 2013-03-02 21:48+0100\n"
+"PO-Revision-Date: 2013-03-04 10:10+0200\n"
 "Last-Translator: z551693 <spajdr@centrum.cz>\n"
 "Language-Team: FS-UAE translation team\n"
 "Language: cs\n"
@@ -237,6 +237,9 @@ msgstr "Jméno obrazu disku:"
 
 msgid "Disk image created"
 msgstr "Obraz disku vytvořen"
+
+msgid "Download failed (attempt {0}) - retrying in {0} seconds"
+msgstr "Stahování selhalo (pokus {0}) - opakuji za {0} sekund"
 
 msgid "Downloading {0}..."
 msgstr "Stahuje se {0}..."
@@ -604,6 +607,9 @@ msgstr "Resetování databáze..."
 msgid "Restoring changes..."
 msgstr "Obnovování změn..."
 
+msgid "Retrying last operation (attempt {0})"
+msgstr "Opakuji poslední operaci (pokus {0})"
+
 msgid "Save Configuration"
 msgstr "Uložení konfigurace"
 
@@ -680,7 +686,8 @@ msgid "Settings"
 msgstr "Nastavení"
 
 msgid "Show kickstart setup page on startup when all ROMs are missing"
-msgstr "Ukaž stránku nastavení pro kickstart, pokud všechny ROM soubory chybějí"
+msgstr ""
+"Ukaž stránku nastavení pro kickstart, pokud všechny ROM soubory chybějí"
 
 msgid "Size:"
 msgstr "Velikost:"

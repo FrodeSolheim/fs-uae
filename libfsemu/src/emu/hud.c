@@ -21,6 +21,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <fs/emu.h>
+#include <fs/config.h>
 #include <fs/thread.h>
 #include <fs/queue.h>
 #include "libfsemu.h"
@@ -33,6 +34,9 @@
 #endif
  
 #define MAX_VISIBLE_TIME (10 * 1000 * 1000)
+#define DEFAULT_DURATION (10 * 1000 * 1000)
+
+static int g_notification_duration = DEFAULT_DURATION;
 
 char g_fs_emu_chat_string[FS_EMU_MAX_CHAT_STRING_SIZE + 1] = {};
 static int g_fs_emu_chat_string_pos = 0;
@@ -43,6 +47,7 @@ int g_fs_emu_hud_mode = 0;
 typedef struct console_line {
     int type;
     int64_t time;
+    int64_t show_until;
     char *text;
 } console_line;
 
@@ -52,6 +57,15 @@ static fs_mutex *g_console_mutex = NULL;
 void fs_emu_hud_init() {
     g_console_mutex = fs_mutex_create();
     g_console_lines = fs_queue_new();
+
+    g_notification_duration = fs_config_get_int_clamped(
+            "notification_duration", 0, 60 * 1000);
+    if (g_notification_duration == FS_CONFIG_NONE) {
+        g_notification_duration = DEFAULT_DURATION;
+    }
+    else {
+        g_notification_duration *= 1000;
+    }
 }
 
 int fs_emu_hud_in_chat_mode() {
@@ -83,7 +97,8 @@ void fs_emu_notification(int type, const char *format, ...) {
            free(line->text);
            line->text = buffer;
            line->time = fs_emu_monotonic_time();
-           g_last_line_time = line->time;
+           line->show_until = line->time + g_notification_duration;
+           g_last_line_time = MAX(line->show_until, line->show_until);
            fs_mutex_unlock(g_console_mutex);
            return;
        }
@@ -94,8 +109,10 @@ void fs_emu_notification(int type, const char *format, ...) {
     line->type = type;
     line->text = buffer;
     line->time = fs_emu_monotonic_time();
+    line->show_until = line->time + g_notification_duration;
+    g_last_line_time = MAX(line->show_until, line->show_until);
+
     fs_queue_push_head(g_console_lines, line);
-    g_last_line_time = line->time;
     fs_mutex_unlock(g_console_mutex);
 }
 
@@ -104,9 +121,11 @@ void fs_emu_hud_add_console_line(const char *text, int flags) {
     line->type = 0;
     line->text = fs_strdup(text);
     line->time = fs_emu_monotonic_time();
+    line->show_until = line->time + DEFAULT_DURATION;
+    g_last_line_time = MAX(line->show_until, line->show_until);
+
     fs_mutex_lock(g_console_mutex);
     fs_queue_push_head(g_console_lines, line);
-    g_last_line_time = line->time;
     fs_mutex_unlock(g_console_mutex);
 }
 
@@ -198,7 +217,8 @@ void fs_emu_hud_render_chat() {
     int64_t now = fs_emu_monotonic_time();
 
     int64_t time_diff = now - g_last_line_time;
-    if (time_diff > MAX_VISIBLE_TIME && !g_fs_emu_chat_mode) {
+    //if (time_diff > MAX_VISIBLE_TIME && !g_fs_emu_chat_mode) {
+    if (time_diff >= 0 && !g_fs_emu_chat_mode) {
         fs_mutex_unlock(g_console_mutex);
         return;
     }

@@ -271,10 +271,14 @@ def normalize_path(path):
 @memoize
 def get_user_name():
     if windows:
-        # FIXME: This is not tested on Windows yet
-        return win32api.GetUserName()
+        user_name = win32api.GetUserName()
+        encoding = "mbcs"
     else:
-        return getpass.getuser()
+        user_name = getpass.getuser()
+        encoding = "UTF-8"
+    if isinstance(user_name, unicode):
+        return user_name
+    return unicode(user_name, encoding, "replace")
 
 @memoize
 def xdg_user_dir(name):

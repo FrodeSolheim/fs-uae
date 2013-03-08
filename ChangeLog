@@ -1,3 +1,12 @@
+Version 2.1.32:
+
+* New option notification_duration (ms). Does not apply to warnings.
+* Fixed bug in IPF handling causing Buggy Boy to not load.
+* (Launcher) Scan entire directory tree for dirs with .slave files.
+* (Launcher) Make sure usernames are converted to unicode.
+* (Launcher) Base screenshots prefix on configuration name.
+* (Launcher) Updated translations: cs [spajdr].
+
 Version 2.1.31:
 
 * Shortcuts F12 + P or Pause/Break key to pause the emulation.

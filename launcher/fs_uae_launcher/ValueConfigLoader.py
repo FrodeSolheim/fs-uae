@@ -162,7 +162,9 @@ class ValueConfigLoader:
             self.options["x_whdload_version"] = value
         elif key == "kickstart":
             model = self.options.get("amiga_model", "")
-            if value == "2.0":
+            if value == "1.2":
+                self.options["amiga_model"] = "A1000"
+            elif value == "2.0":
                 if model in ["A500+", "A600"]:
                     pass
                 else:
@@ -228,7 +230,7 @@ class ValueConfigLoader:
                 "screen4_sha1", "screen5_sha1", "title_sha1",
                 "year", "publisher", "developer", "hol_url",
                 "lemon_url", "wikipedia_url", "mobygames_url",
-                "languages"]:
+                "languages", "dongle_type"]:
             self.options[key] = value
         elif key == "requirements":
             if "wb" in value.lower():

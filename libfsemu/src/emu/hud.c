@@ -54,10 +54,12 @@ typedef struct console_line {
 static fs_queue *g_console_lines = NULL;
 static fs_mutex *g_console_mutex = NULL;
 
-void fs_emu_hud_init() {
+void fs_emu_hud_init(void) {
     g_console_mutex = fs_mutex_create();
     g_console_lines = fs_queue_new();
+}
 
+void fs_emu_hud_init_after_config(void) {
     g_notification_duration = fs_config_get_int_clamped(
             "notification_duration", 0, 60 * 1000);
     if (g_notification_duration == FS_CONFIG_NONE) {

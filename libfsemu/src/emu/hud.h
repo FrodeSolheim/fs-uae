@@ -6,6 +6,8 @@
 #define FS_EMU_MAX_CHAT_STRING_SIZE 128
 
 void fs_emu_hud_init(void);
+void fs_emu_hud_init_after_config(void);
+
 void fs_emu_hud_enable_chat_mode(void);
 void fs_emu_hud_render_chat(void);
 int fs_emu_hud_in_chat_mode(void);

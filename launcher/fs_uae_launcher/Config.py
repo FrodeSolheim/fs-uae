@@ -61,6 +61,7 @@ cfg = [
     ("floppy_drive_count",    "",         "checksum", "sync", "custom"),
     ("floppy_drive_speed",    "",         "checksum", "sync", "custom"),
     ("cdrom_drive_count",     "",         "checksum", "sync", "custom"),
+    ("dongle_type",           "",         "checksum", "sync", "custom"),
 
     ("__netplay_game",        "",         "checksum", "sync"),
     ("__netplay_password",    "",         "checksum", "sync"),

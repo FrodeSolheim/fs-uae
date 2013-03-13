@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae-launcher\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2013-02-08 20:18+0100\n"
-"PO-Revision-Date: 2013-02-09 08:58+0200\n"
+"POT-Creation-Date: 2013-03-08 23:38+0100\n"
+"PO-Revision-Date: 2013-03-09 13:28+0200\n"
 "Last-Translator: Mika Vaisanen <mjvaisane@gmail.com>\n"
 "Language-Team: Finnish\n"
 "Language: fi\n"
@@ -156,10 +156,10 @@ msgid "Click 'Scan' button to start scan"
 msgstr "Klikkaa 'Skannaus' nappia käynnistääksesi skannauksen"
 
 msgid "Click here to download"
-msgstr "Klikkaa tästä ladataksesi"
+msgstr "Lataa klikkaamalla tästä"
 
 msgid "Click here to import kickstarts"
-msgstr "Klikkaa tästä tuodaksesi Kickstart ROMit"
+msgstr "Tuo Kickstart ROMit klikkaamalla tästä"
 
 msgid "Close"
 msgstr "Sulje"
@@ -199,7 +199,7 @@ msgid "Create"
 msgstr "Luo"
 
 msgid "Cursor Keys and Right Ctrl/Alt"
-msgstr "Kursorinäpp. ja oikea Ctrl/Alt"
+msgstr "Kursorinäppäimet ja oikea Ctrl/Alt"
 
 msgid "Custom"
 msgstr "Mukautettu"
@@ -236,6 +236,11 @@ msgstr "Levykuvan nimi:"
 
 msgid "Disk image created"
 msgstr "Levykuva luotu"
+
+msgid "Download failed (attempt {0}) - retrying in {0} seconds"
+msgstr ""
+"Lataus epäonnistui (yrityskerta {0}) - yritetään uudelleen {0} sekunnin "
+"kuluttua"
 
 msgid "Downloading {0}..."
 msgstr "Ladataan {0}..."
@@ -363,7 +368,7 @@ msgstr ""
 "Jos omistat Amiga Foreverin, valitse asema ja kansio, sekä klikkaa \"{0}\""
 
 msgid "Import"
-msgstr "Haku"
+msgstr "Tuonti"
 
 msgid "Import From Amiga Forever CD/DVD"
 msgstr "Tuo Amiga Forever CD/DVD levyltä"
@@ -375,10 +380,10 @@ msgid "Import Kickstarts and ROMs"
 msgstr "Tuo Kickstartit ja muut ROMit"
 
 msgid "Import task is done"
-msgstr "Haku suoritettu"
+msgstr "Tuonti suoritettu"
 
 msgid "Include built-in configurations"
-msgstr "Sisällytä sisäänrakennetut määritykset"
+msgstr "Sisällytä sisäänrakennetut kokoonpanot"
 
 msgid "Input"
 msgstr "Syöttölaitteet"
@@ -606,6 +611,9 @@ msgstr "Resetoidaan tietokantaa..."
 
 msgid "Restoring changes..."
 msgstr "Palautetaan muutokset..."
+
+msgid "Retrying last operation (attempt {0})"
+msgstr "Yritetään viimeistä toimintoa uudelleen (yrityskerta {0})"
 
 msgid "Save Configuration"
 msgstr "Tallenna kokoonpano"

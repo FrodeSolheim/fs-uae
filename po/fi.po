@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2013-02-01 21:15+0100\n"
-"PO-Revision-Date: 2013-02-24 08:32+0200\n"
+"POT-Creation-Date: 2013-03-08 23:38+0100\n"
+"PO-Revision-Date: 2013-03-09 13:20+0200\n"
 "Last-Translator: Mika Vaisanen <mjvaisane@gmail.com>\n"
 "Language-Team: Finnish\n"
 "Language: fi\n"
@@ -62,7 +62,7 @@ msgid "DF%d: Empty"
 msgstr "DF%d: Tyhjä"
 
 msgid "Disabled"
-msgstr "Pois käytöstä"
+msgstr "Ei käytössä"
 
 msgid "Eject"
 msgstr "Poista levy"
@@ -230,6 +230,12 @@ msgstr "Tallennetut tilat"
 #. / TRANSLATORS: Soft reset reboots the computer without a power cycle
 msgid "Soft Reset"
 msgstr "Pehmeä resetointi"
+
+msgid "Warp mode disabled"
+msgstr "Warp-nopeus pois päältä"
+
+msgid "Warp mode enabled"
+msgstr "Warp-nopeus päällä"
 
 msgid "Zoom is disabled in RTG mode"
 msgstr "Zoomaus ei ole käytössä RTG-tilassa"

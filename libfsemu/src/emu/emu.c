@@ -310,7 +310,7 @@ void fs_emu_init_2(int options) {
     SDL_Init(SDL_INIT_EVERYTHING);
 #endif
 
-    fs_emu_log("fs_emu_init\n");
+    fs_emu_hud_init_after_config();
 
     fs_emu_theme_init();
 

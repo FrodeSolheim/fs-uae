@@ -11,6 +11,7 @@ import urllib
 import zipfile
 import hashlib
 import tempfile
+import unittest
 import pkg_resources
 import fs_uae_launcher.fs as fs
 import fs_uae_launcher.fsui as fsui
@@ -341,7 +342,7 @@ class LaunchHandler:
             os.makedirs(dir_path)
         self.config["hard_drive_{0}".format(i)] = dir_path
 
-    def unpack_game_hard_drive(self, i, src):
+    def unpack_game_hard_drive(self, drive_index, src):
         scheme, dummy, dummy, game_uuid, drive = src.split("/")
         drive_prefix = drive + "/"
         database = Database()
@@ -351,13 +352,27 @@ class LaunchHandler:
         values = game_database_client.get_final_game_values(game_id)
         file_list = json.loads(values["file_list"])
 
-        dir_name = "DH{0}".format(i)
+        dir_name = "DH{0}".format(drive_index)
         dir_path = os.path.join(self.temp_dir, dir_name)
         for file_entry in file_list:
             name = file_entry["name"]
             if not name.startswith(drive_prefix):
                 continue
-            dst_file = os.path.join(dir_path, name[len(drive_prefix):])
+
+            # extract Amiga relative path and convert each path component
+            # to host file name (where needed).
+
+            amiga_rel_path = name[len(drive_prefix):]
+            print("amiga_rel_path", amiga_rel_path)
+            amiga_rel_parts = amiga_rel_path.split("/")
+            for i, part in enumerate(amiga_rel_parts):
+                # part can be blank if amiga_rel_parts is a directory
+                # (ending with /)
+                if part:
+                    amiga_rel_parts[i] = amiga_filename_to_host_filename(part)
+            amiga_rel_path = "/".join(amiga_rel_parts)
+
+            dst_file = os.path.join(dir_path, amiga_rel_path)
             print(repr(dst_file))
             if name.endswith("/"):
                 os.makedirs(fs.encode_path(dst_file))
@@ -378,7 +393,7 @@ class LaunchHandler:
             with open(dst_file + ".uaem", "wb") as out_file:
                 out_file.write("".join(metadata))
             
-        self.config["hard_drive_{0}".format(i)] = dir_path
+        self.config["hard_drive_{0}".format(drive_index)] = dir_path
 
     def encode_file_comment(self, comment):
         result = []
@@ -749,6 +764,62 @@ class LaunchHandler:
                     print("copy", repr(itempath), "to", repr(destitempath))
                     shutil.copy(itempath, destitempath)
 
+EVILCHARS = '%\\*?\"/|<>'
+
+def amiga_filename_to_host_filename(amiga_filename, ascii=False):
+    """
+    Converted from FS-UAE C code (src/od-fs/fsdb-host.py)
+    @author: TheCyberDruid
+    """
+    length = len(amiga_filename)
+
+    repl_1 = -1
+    repl_2 = -1
+
+    check = amiga_filename[:3].upper()
+    dot_pos = -1
+    if check in ["AUX", "CON", "PRN", "NUL"]:
+        dot_pos = 4
+    elif check in ["LPT", "COM"] and length >= 4 and amiga_filename[3].isdigit():        
+        dot_pos = 5
+    if (dot_pos > -1 and (length == (dot_pos - 1) or (length > dot_pos and \
+            amiga_filename[dot_pos] == "."))):
+        repl_1 = 2
+
+    if (amiga_filename[-1] == "." or amiga_filename[-1] == " "):
+        repl_2 = length - 1
+
+    i = 0
+    filename = ""
+    for char in amiga_filename:
+        x = ord(char)
+        repl = False
+        if (i == repl_1):
+            repl = True
+        elif (i == repl_2):
+            repl = True
+        elif (x < 32):
+            repl = True
+        elif (ascii and x > 127):
+            repl = True
+
+        if (not repl):
+            for evil in EVILCHARS:
+                if (evil == char):
+                    repl = True
+                    break
+        if (i == length - 1) and amiga_filename[-5:] == ".uaem":
+            repl = True
+
+        if (repl):
+            filename += "%" + "%02x" % ord(char)
+        else:
+            filename += char
+
+        i += 1
+
+    return filename
+
 whdload_support_files = {
     "1ad1b55e7226bd5cd66def8370a69f19244da796": "Devs/Kickstarts/kick40068.A1200.RTB",
     "209c109855f94c935439b60950d049527d2f2484": "Devs/Kickstarts/kick34005.A500.RTB",
@@ -868,3 +939,32 @@ cd "{0}"
 WHDLoad {1}
 uae-configuration SPC_QUIT 1
 """
+
+class TestCase(unittest.TestCase):
+
+    def test_convert_amiga_file_name(self):
+        result = amiga_filename_to_host_filename("pro.i*riska")
+        self.assertEquals(result, "pro.i%2ariska")
+
+    def test_convert_amiga_file_name_2(self):
+        result = amiga_filename_to_host_filename("mypony.uaem")
+        self.assertEquals(result, "mypony.uae%6d")
+
+    def test_convert_amiga_file_name_short(self):
+        result = amiga_filename_to_host_filename("t")
+        self.assertEquals(result, "t")
+
+    def test_convert_amiga_file_name_short_2(self):
+        result = amiga_filename_to_host_filename("t ")
+        self.assertEquals(result, "t%20")
+
+    def test_convert_amiga_file_name_lpt1(self):
+        result = amiga_filename_to_host_filename("LPT1")
+        self.assertEquals(result, "LP%541")
+
+    def test_convert_amiga_file_name_aux(self):
+        result = amiga_filename_to_host_filename("AUX")
+        self.assertEquals(result, "AU%58")
+
+if __name__ == '__main__':
+    unittest.main()

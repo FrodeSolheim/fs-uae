@@ -7,9 +7,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae-launcher\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2013-02-08 20:18+0100\n"
-"PO-Revision-Date: 2013-02-09 11:19+0100\n"
-"Last-Translator: Frode Solheim <frode-code@fengestad.no>\n"
+"POT-Creation-Date: 2013-03-12 22:03+0100\n"
+"PO-Revision-Date: 2013-03-13 10:17+0100\n"
+"Last-Translator: Jens Weichert <nexusle@me.com>\n"
 "Language-Team: German\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
@@ -237,6 +237,9 @@ msgstr "Diskimage-Name:"
 
 msgid "Disk image created"
 msgstr "Disk-Image wurde erzeugt"
+
+msgid "Download failed (attempt {0}) - retrying in {0} seconds"
+msgstr "Download fehlgeschlagen (Versuch {0}) - Wiederholung in {0} Sekunden"
 
 msgid "Downloading {0}..."
 msgstr "Lade herunter {0}..."
@@ -605,6 +608,9 @@ msgstr "Setze Datenbank zurück..."
 
 msgid "Restoring changes..."
 msgstr "Stelle Änderungen wieder her..."
+
+msgid "Retrying last operation (attempt {0})"
+msgstr "Vorgang wird wiederholt (Versuch {0})"
 
 msgid "Save Configuration"
 msgstr "Konfiguration sichern"

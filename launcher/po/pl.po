@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae-launcher\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2013-02-08 20:18+0100\n"
-"PO-Revision-Date: 2013-02-08 23:01+0100\n"
+"POT-Creation-Date: 2013-03-08 23:38+0100\n"
+"PO-Revision-Date: 2013-03-09 07:45+0100\n"
 "Last-Translator: grimi <grimi at poczta dot fm>\n"
 "Language-Team: Polish\n"
 "Language: pl\n"
@@ -146,7 +146,7 @@ msgid "Choose Kickstart ROM"
 msgstr "Wybierz ROM (kickstart)"
 
 msgid "Cleaning up..."
-msgstr "Sprzątam..."
+msgstr "Sprzątanie..."
 
 msgid "Clear List"
 msgstr "Wyczyść listę"
@@ -167,7 +167,7 @@ msgid "Close"
 msgstr "Zamknij"
 
 msgid "Committing data..."
-msgstr "Przesyłam dane..."
+msgstr "Przydzielanie danych..."
 
 msgid "Config"
 msgstr "Konfiguracja"
@@ -239,8 +239,11 @@ msgstr "Nazwa obrazu dysku:"
 msgid "Disk image created"
 msgstr "Obraz dysku utworzony"
 
+msgid "Download failed (attempt {0}) - retrying in {0} seconds"
+msgstr "Pobieranie nieudane (próba {0}) - ponowienie za {0} sekund"
+
 msgid "Downloading {0}..."
-msgstr "Pobieram {0}..."
+msgstr "Pobieranie {0}..."
 
 msgid "Edit Custom Options"
 msgstr "Edytuj opcje dodatkowe"
@@ -605,7 +608,10 @@ msgid "Resetting database..."
 msgstr "Resetowanie bazy danych..."
 
 msgid "Restoring changes..."
-msgstr "Przywracam zmiany..."
+msgstr "Przywracanie zmian..."
+
+msgid "Retrying last operation (attempt {0})"
+msgstr "Ponawianie ostatniej operacji (próba{0})"
 
 msgid "Save Configuration"
 msgstr "Zapisz konfigurację"
@@ -701,10 +707,10 @@ msgid "Start FS-UAE in fullscreen mode"
 msgstr "Startuj FS-UAE w trybie pełnoekranowym"
 
 msgid "Starting FS-UAE..."
-msgstr "Uruchamiam FS-UAE..."
+msgstr "Uruchamianie FS-UAE..."
 
 msgid "Starting scan"
-msgstr "Uruchamiam skanowanie"
+msgstr "Uruchamianie skanowania"
 
 msgid "Swap left and right CTRL keys"
 msgstr "Zamień lewy i prawy klawisz CTRL"

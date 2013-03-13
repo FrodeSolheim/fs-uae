@@ -446,7 +446,14 @@ void fs_uae_configure_amiga_hardware() {
         }
     }
 
-    amiga_enable_serial_port(fs_config_get_const_string("serial_port"));
+    const char *serial_port = fs_config_get_const_string("serial_port");
+    if (!serial_port) {
+    }
+    else if (fs_ascii_strcasecmp(serial_port, "none") == 0) {
+    }
+    else {
+        amiga_enable_serial_port(fs_config_get_const_string("serial_port"));
+    }
 
     configure_accuracy(c);
 
@@ -458,6 +465,10 @@ void fs_uae_configure_amiga_hardware() {
     if (fs_config_get_boolean("low_resolution") == 1) {
         fs_log("force low resolution\n");
         amiga_set_option("gfx_lores", "true");
+    }
+
+    if (fs_config_get_const_string("dongle_type")) {
+        amiga_set_option("dongle", fs_config_get_const_string("dongle_type"));
     }
 
     /*

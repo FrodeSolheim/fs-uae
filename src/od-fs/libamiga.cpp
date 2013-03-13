@@ -365,9 +365,11 @@ int amiga_enable_serial_port(const char *serial_name) {
         changed_prefs.use_serial = 1;
         currprefs.use_serial = 1;
     }
+    /*
     else {
         write_log("serial: using dummy serial port\n");
     }
+    */
     //config_changed = 1;
     return 1;
 }

@@ -135,9 +135,9 @@ int fsdb_mode_supported(const a_inode *aino) {
     return mask;
 }
 
-#define NUM_EVILCHARS 10
+#define NUM_EVILCHARS 9
 static TCHAR evilchars[NUM_EVILCHARS] = { '%', '\\', '*', '?', '\"', '/', '|',
-        '<', '>', '|' };
+        '<', '>'};
 static char hex_chars[] = "0123456789abcdef";
 
 char *aname_to_nname(const char *aname, int ascii) {

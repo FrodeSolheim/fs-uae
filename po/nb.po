@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2012-11-01 19:42+0100\n"
-"PO-Revision-Date: 2012-10-20 21:24+0100\n"
+"POT-Creation-Date: 2013-03-17 18:50+0100\n"
+"PO-Revision-Date: 2013-03-17 18:54+0100\n"
 "Last-Translator: Frode Solheim <frode-code@fengestad.no>\n"
 "Language-Team: Norwegian Bokmal\n"
 "Language: nb\n"
@@ -16,6 +16,9 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Activated debugger"
+msgstr "Debugger er aktivert"
 
 msgid "Amiga Control"
 msgstr "Amiga-styring"
@@ -25,18 +28,18 @@ msgid "Auto"
 msgstr "Auto"
 
 msgid "Auto-Fire is Off"
-msgstr ""
+msgstr "Auto-fire er av"
 
 msgid "Auto-Fire is On"
-msgstr ""
+msgstr "Auto-fire er på"
 
 #, c-format
 msgid "Auto-fire disabled for port %d"
-msgstr ""
+msgstr "Auto-fire for port %d er av"
 
 #, c-format
 msgid "Auto-fire enabled for port %d"
-msgstr ""
+msgstr "Auto-fire for port %d er på"
 
 #. / TRANSLATORS: Empty or nothing
 #, c-format
@@ -44,7 +47,14 @@ msgid "CD%d: Empty"
 msgstr "CD%d: Tom"
 
 msgid "CD32 Pad Mode"
-msgstr ""
+msgstr "CD32-modus"
+
+#. / TRANSLATORS: This is a menu entry and must not be too long
+msgid "Custom Joystick Port"
+msgstr "Egendefinert joystick-port"
+
+msgid "Custom Mode"
+msgstr "Egendefinert modus"
 
 #. / TRANSLATORS: Empty or nothing
 #, c-format
@@ -67,6 +77,10 @@ msgstr "Emulator-styring"
 msgid "Full Frame"
 msgstr "Fullformat"
 
+#, c-format
+msgid "HD not found: %s"
+msgstr "Fann ikke HD: %s"
+
 #. / TRANSLATORS: Hard reset is a computer reboot with an emulated power
 #. / cycle
 msgid "Hard Reset"
@@ -85,8 +99,11 @@ msgstr "Sett inn i CD%d"
 msgid "Insert Into DF%d"
 msgstr "Sett inn i DF%d"
 
+msgid "Invalid number of CD-ROM drives specified"
+msgstr "Ugyldig antall CD-ROM-stasjoner spesifisert"
+
 msgid "Joystick Mode"
-msgstr ""
+msgstr "Joystick-modus"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
@@ -115,6 +132,9 @@ msgstr "Joystick-port 2"
 msgid "Joystick Port 3"
 msgstr "Joystick-port 3"
 
+msgid "Joystick Port 4"
+msgstr "Joystick-port 4"
+
 msgid "Joystick Ports"
 msgstr "Joystick-porter"
 
@@ -131,7 +151,7 @@ msgid "Mouse"
 msgstr "Mus"
 
 msgid "Mouse Mode"
-msgstr ""
+msgstr "Mus-modus"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long: If you struggle
 #. / to get in short enough, just translate "No Device" instead.
@@ -146,6 +166,28 @@ msgstr "Ingen vertsenhet"
 msgid "No configuration file was found"
 msgstr "Ingen konfigurasjonsfil funnet"
 
+#, c-format
+msgid "Option \"%s\" is not enabled"
+msgstr "Instillingen \"%s\" er ikke aktivert"
+
+msgid "Option chip_memory must be a multiple of 512"
+msgstr "Instillingen chip_memory må være multiplum av 512"
+
+msgid "Option fast_memory must be a multiple of 1024"
+msgstr "Instillingen fast_memory må være multiplum av 1024"
+
+msgid "Option slow_memory must be a multiple of 256"
+msgstr "Instillingen slow_memory må være multiplum av 256"
+
+msgid "Option uaegfx.card needs a CPU with 32-bit addressing"
+msgstr "Instillingen uaegfx.card trenger en CPU med 32-bits adressering"
+
+msgid "Option zorro_iii_memory must be a multiple of 1024"
+msgstr "Instillingen zorro_iii_memory må være multiplum av 1024"
+
+msgid "Options zorro_iii_memory needs a CPU with 32-bit addressing"
+msgstr "Instillingen zorro_iii_memory trenger en CPU med 32-bits adressering"
+
 #. / TRANSLATORS: This is a menu entry and must not be too long
 msgid "Parallel Joystick Ports"
 msgstr "Parallellport-joysticker"
@@ -153,8 +195,12 @@ msgstr "Parallellport-joysticker"
 msgid "Pause"
 msgstr "Pause"
 
+#, c-format
+msgid "Port 0: %s"
+msgstr "Port 0: %s"
+
 msgid "Port Settings"
-msgstr ""
+msgstr "Port-innstillinger"
 
 msgid "Removable Media"
 msgstr "Flyttbare medier"
@@ -175,6 +221,12 @@ msgstr "Lagrede tilstander"
 #. / TRANSLATORS: Soft reset reboots the computer without a power cycle
 msgid "Soft Reset"
 msgstr "Myk omstart"
+
+msgid "Warp mode disabled"
+msgstr "Hurtig-modus deaktivert"
+
+msgid "Warp mode enabled"
+msgstr "Hurtig-modus aktivert"
 
 msgid "Zoom is disabled in RTG mode"
 msgstr "Zoom er utilgjengelig i RTG-modus"

@@ -107,7 +107,7 @@ void fs_emu_notification(int type, const char *format, ...) {
     }
 
     console_line *line = malloc(sizeof(console_line));
-    printf("new console line at %p\n", line);
+    //printf("new console line at %p\n", line);
     line->type = type;
     line->text = buffer;
     line->time = fs_emu_monotonic_time();

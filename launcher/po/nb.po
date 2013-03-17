@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae-launcher\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2012-10-20 15:37+0200\n"
-"PO-Revision-Date: 2012-10-20 21:45+0100\n"
+"POT-Creation-Date: 2013-03-17 18:50+0100\n"
+"PO-Revision-Date: 2013-03-17 19:52+0100\n"
 "Last-Translator: Frode Solheim <frode-code@fengestad.no>\n"
 "Language-Team: Norwegian Bokmal\n"
 "Language: nb\n"
@@ -17,8 +17,38 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
+msgid "16-bit"
+msgstr "16-bit"
+
+msgid "32-bit BGRA"
+msgstr "32-bit BGRA"
+
+msgid "32-bit RGBA"
+msgstr "32-bit RGBA"
+
+msgid "640x400 + Border"
+msgstr "640x400 + kant"
+
+msgid "640x480 + Border"
+msgstr "640x480 + kant"
+
+msgid "640x512 + Border"
+msgstr "640x512 + kant"
+
+msgid "ADF & HDF Creator"
+msgstr "Lag ADF & HDF-filer"
+
+msgid "ADF - Extended Floppy Disk Image (MFM)"
+msgstr "ADF - Utvidet diskettfil (MFM)"
+
+msgid "ADF - Standard Floppy Disk Image"
+msgstr "ADF - Standard diskettfil"
+
 msgid "Abort"
 msgstr "Avbryt"
+
+msgid "About {name}"
+msgstr "Om {name}"
 
 msgid "Accurate"
 msgstr "Nøyaktig"
@@ -35,11 +65,32 @@ msgstr "Legg til flere CD-er på en gang"
 msgid "Add Multiple Floppies at Once"
 msgstr "Legg til flere diskettfiler på en gang"
 
+msgid "Additional Options"
+msgstr "Flere innstillinger"
+
+msgid "Amiga Forever Import"
+msgstr "Importer fra Amiga Forever"
+
 msgid "Amiga Forever import task started"
 msgstr "Importjobb for Amiga Forever er startet"
 
 msgid "Amiga Model"
 msgstr "Amiga-modell"
+
+msgid "Audio Settings"
+msgstr "Innstillinger for audio"
+
+msgid "Auto"
+msgstr "Auto"
+
+msgid "Auto + Border"
+msgstr "Auto + kant"
+
+msgid "Auto-Fire is Off"
+msgstr "Auto-fire er av"
+
+msgid "Auto-Fire is On"
+msgstr "Auto-fire er på"
 
 msgid "Available Kickstart Versions"
 msgstr "Tilgjengelige kickstart-versjoner"
@@ -107,6 +158,9 @@ msgstr "Bruk 'søk'-knappen for å starte søk"
 msgid "Click here to download"
 msgstr "Klikk her for å laste ned"
 
+msgid "Click here to import kickstarts"
+msgstr "Klikk her for å importere kickstart-filer"
+
 msgid "Close"
 msgstr "Lukk"
 
@@ -128,6 +182,9 @@ msgstr "Konfigurasjoner"
 msgid "Configure Joystick Buttons"
 msgstr "Konfigurer joystick-knapper"
 
+msgid "Connect"
+msgstr "Koble til"
+
 msgid ""
 "Copy {0}\n"
 "to {1}"
@@ -135,11 +192,26 @@ msgstr ""
 "Kopier {0}\n"
 "til {1}"
 
+msgid "Could not open file for writing"
+msgstr "Kunne ikke åpne fil for skriving"
+
+msgid "Create"
+msgstr "Opprett"
+
 msgid "Cursor Keys and Right Ctrl/Alt"
 msgstr "Piltaster og høyre ctrl/alt"
 
 msgid "Custom"
 msgstr "Egendefinert"
+
+msgid "Custom Configuration"
+msgstr "Egendefinert konfigurasjon"
+
+msgid "Custom IRC server address"
+msgstr "Egendefinert adresse for IRC-server"
+
+msgid "Custom Joystick Port"
+msgstr "Egendefinert joystick-port"
 
 msgid "Custom Options"
 msgstr "Egendefinerte valg"
@@ -153,6 +225,21 @@ msgstr "Standard"
 msgid "Default ({0})"
 msgstr "Standard ({0})"
 
+msgid "Destination Directory:"
+msgstr "Destinasjonsmappe:"
+
+msgid "Disconnect"
+msgstr "Koble fra"
+
+msgid "Disk Image Name:"
+msgstr "Navn på diskfil:"
+
+msgid "Disk image created"
+msgstr "Diskfil er opprettet"
+
+msgid "Download failed (attempt {0}) - retrying in {0} seconds"
+msgstr "Nedlasting feilet (forsøk {0}) - prøver på nytt om {0} sekunder"
+
 msgid "Downloading {0}..."
 msgstr "Laster ned {0}..."
 
@@ -162,8 +249,23 @@ msgstr "Rediger egendefinerte valg"
 msgid "Eject"
 msgstr "Løs ut"
 
+msgid "Enable experimental net play GUI (requires restart)"
+msgstr "Eksperimentelt GUI for online-spilling (krever omstart)"
+
+msgid "Enable online database support (requires restart)"
+msgstr "Støtte for online database (krever omstart)"
+
+msgid "Error moving file into place"
+msgstr "Feil under flytting av fil"
+
+msgid "Error writing disk image"
+msgstr "Feil under skriving av diskfil"
+
 msgid "Expansions"
 msgstr "Utvidelser"
+
+msgid "Experimental Features"
+msgstr "Eksperimentelle funksjoner"
 
 msgid "Extended ROM:"
 msgstr "Utvidet ROM:"
@@ -174,6 +276,24 @@ msgstr "Innstillinger for FS-UAE Launcher"
 msgid "Fast RAM"
 msgstr "Fast-RAM"
 
+msgid "Fetching database entries ({0})"
+msgstr "Henter databaseoppføringer ({0})"
+
+msgid "Fetching game ratings ({0})"
+msgstr "Henter spill-poengsummer ({0})"
+
+msgid "Fetching user game ratings ({0})"
+msgstr "Henter spill-poengsummer for bruker ({0})"
+
+msgid "File already exists"
+msgstr "Filen finnes allerede"
+
+msgid "Filters"
+msgstr "Filtere"
+
+msgid "Filters & Scaling"
+msgstr "Filtere & skalering"
+
 msgid "Filters:"
 msgstr "Filtere:"
 
@@ -183,11 +303,50 @@ msgstr "Disketter"
 msgid "Floppy Drives"
 msgstr "Diskettstasjoner"
 
+msgid "Floppy drive volume"
+msgstr "Volum for diskettstasjon"
+
+msgid "Force Full Vsync"
+msgstr "Tving full vsync"
+
+msgid "Full Frame"
+msgstr "Fullt bilde"
+
+msgid "Full-scene anti-aliasing (FSAA)"
+msgstr "Full-scene anti-aliasing (FSAA)"
+
 msgid "Fullscreen"
 msgstr "Fullskjerm"
 
+msgid "Game Database"
+msgstr "Spill-database"
+
+msgid "Game Database Settings"
+msgstr "Innstillinger for spill-database"
+
+msgid "Game database password"
+msgstr "Passord for spill-database"
+
+msgid "Game database user name"
+msgstr "Brukernavn for spill-database"
+
+msgid "Gamepad/Joystick Setup"
+msgstr "Oppsett av Gamepad/Joystick"
+
 msgid "Games and Configurations"
 msgstr "Spill og konfigurasjoner"
+
+msgid "Grab mouse and keyboard input when FS-UAE starts"
+msgstr "Ta kontroll over mus og tastatur når FS-UAE starter"
+
+msgid "Grab mouse and keyboard input when clicking on FS-UAE window"
+msgstr "Ta kontroll over mus og tastatur ved klikk på FS-UAE-vinduet"
+
+msgid "HDF - Partitionable Hard Drive Image (RDB)"
+msgstr "HDF - Partisjonerbar harddisk fil (RDB)"
+
+msgid "HDF - Single Partition Hard Disk File"
+msgstr "HDF - Harddisk-fil med en enkelt partisjon"
 
 msgid "Hard Drives"
 msgstr "Harddisker"
@@ -198,6 +357,9 @@ msgstr "Maskinvare"
 msgid "Hardware Options"
 msgstr "Maskinvarevalg"
 
+msgid "IRC nickname"
+msgstr "IRC-kallenavn"
+
 msgid "If you own Amiga Forever, select the drive/folder and click \"{0}\""
 msgstr "Hvis du har Amiga Forever, velg stasjon/mappe og klikk \"{0}\""
 
@@ -207,11 +369,17 @@ msgstr "Importer"
 msgid "Import From Amiga Forever CD/DVD"
 msgstr "Importer fra Amiga Forever CD/DVD"
 
+msgid "Import Kickstarts"
+msgstr "Importer kickstart-filer"
+
 msgid "Import Kickstarts and ROMs"
 msgstr "Importer kickstart- og ROM-filer"
 
 msgid "Import task is done"
 msgstr "Importjobb er fullført"
+
+msgid "Include built-in configurations"
+msgstr "Inkluder innebygde konfigurasjoner"
 
 msgid "Input"
 msgstr "Innganger"
@@ -219,8 +387,14 @@ msgstr "Innganger"
 msgid "Input Options"
 msgstr "Inngangsalternativer"
 
+msgid "Input Settings"
+msgstr "Innstillinger for inndata"
+
 msgid "Internal"
 msgstr "Intern"
+
+msgid "Invalid size specified"
+msgstr "Ugyldig størrelse spesifisert"
 
 msgid "Joystick"
 msgstr "Joystick"
@@ -234,11 +408,17 @@ msgstr "Joystickinnganger"
 msgid "Joystick Settings"
 msgstr "Joystick-innstillinger"
 
+msgid "Keep aspect ratio when scaling (do not stretch)"
+msgstr "Behold aspektratio ved skalering (ikke strekk)"
+
+msgid "Keyboard Settings"
+msgstr "Innstillinger for tastatur"
+
 msgid "Kickstart ROM"
 msgstr "Kickstart-ROM"
 
-msgid "Kickstart Setup"
-msgstr "Opsett av kickstart"
+msgid "Kickstart ROMs are missing"
+msgstr "Kickstart-filer mangler"
 
 msgid "Kickstart import task started"
 msgstr "Importjobb for kickstarter er startet"
@@ -252,8 +432,20 @@ msgstr "Minst nøyaktig"
 msgid "Less Accurate"
 msgstr "Mindre nøyaktig"
 
+msgid "List of Folders to Index"
+msgstr "Liste over mapper som skal indekseres"
+
+msgid "Low latency vsync (when using full vsync)"
+msgstr "V-sync med lav forsinkelse (ved full v-sync)"
+
+msgid "MB"
+msgstr "MB"
+
 msgid "Main Configuration Options"
 msgstr "Hovedvalg"
+
+msgid "Main Menu"
+msgstr "Hovedmeny"
 
 msgid "Media Swap List"
 msgstr "Bytteliste for medier"
@@ -264,11 +456,32 @@ msgstr "Minne"
 msgid "Mouse"
 msgstr "Mus"
 
+msgid "Mouse & Joystick Ports"
+msgstr "Mus og joystick-innganger"
+
+msgid "Mouse Settings"
+msgstr "Innstillinger for mus"
+
+msgid "Mouse speed (%)"
+msgstr "Mushastighet (%)"
+
 msgid "Net Play"
-msgstr "Nettspilling"
+msgstr "Nettspill"
+
+msgid "Net Play Settings"
+msgstr "Innstillinger for nettspill"
+
+msgid "Net play tag (max 3 characters)"
+msgstr "Tagg for nettspill (maks 3 tegn)"
 
 msgid "New Configuration"
 msgstr "Ny konfigurasjon"
+
+msgid "New Disk Image"
+msgstr "Ny diskfil"
+
+msgid "Nick:"
+msgstr "Kallenavn:"
 
 msgid "No Device"
 msgstr "Ingen enhet"
@@ -297,11 +510,38 @@ msgstr "Ingenting"
 msgid "OK"
 msgstr "OK"
 
+msgid "Off"
+msgstr "Av"
+
+msgid "On"
+msgstr "På"
+
+msgid "Open Game Database Entry"
+msgstr "Åpne oppføring i spill-database"
+
+msgid "Open Hall of Light Entry"
+msgstr "Åpne oppføring i Hall of Light"
+
+msgid "Open LemonAmiga Entry"
+msgstr "Åpne oppføring i LemonAmiga"
+
+msgid "Open MobyGames Entry"
+msgstr "Åpne oppføring i MobyGames"
+
 msgid "Open Scan Dialog"
 msgstr "Åpne søkedialog"
 
 msgid "Open Tool to Configure Button Mapping"
 msgstr "Start verktøy for å stille inn knapper"
+
+msgid "Open Wikipedia Entry"
+msgstr "Åpne oppføring i Wikipedia"
+
+msgid "OpenGL Settings"
+msgstr "OpenGL-innstillinger"
+
+msgid "Override Installed Memory"
+msgstr "Overstyr installert minne"
 
 msgid "Parallel Port Joysticks"
 msgstr "Parallellport-joysticker"
@@ -314,6 +554,9 @@ msgstr "Støtte for Picasso96 (uaegfx.card)"
 
 msgid "Please wait..."
 msgstr "Vennligst vent..."
+
+msgid "Preferences"
+msgstr "Innstillinger"
 
 msgid "Preferred Joystick"
 msgstr "Foretrukken joystick"
@@ -336,14 +579,35 @@ msgstr "Forbereder..."
 msgid "Purging old entries..."
 msgstr "Fjerner gamle oppføringer..."
 
+msgid "Refresh Game Database"
+msgstr "Oppdater spill-database"
+
+msgid "Refresh game configurations from database"
+msgstr "Oppdater spill-konfigurasjoner fra database"
+
+msgid "Refresh list of connected joystick devices"
+msgstr "Oppdater liste over tilkoblede joysticker"
+
 msgid "Remove Directory from Search Path"
 msgstr "Fjern mappe fra søkeliste"
 
 msgid "Remove Selected Files"
 msgstr "Fjern valgte filer"
 
+msgid "Render scan lines"
+msgstr "Tegn scanlines"
+
+msgid "Render scan lines in RTG graphics mode"
+msgstr "Tegn scanlines i RTG video-modus"
+
+msgid "Resetting database..."
+msgstr "Nullstiller database..."
+
 msgid "Restoring changes..."
 msgstr "Gjenoppretter endringer..."
+
+msgid "Retrying last operation (attempt {0})"
+msgstr "Forsøker siste operasjon på nytt (forsøk {0})"
 
 msgid "Save Configuration"
 msgstr "Lagre konfigurasjon"
@@ -351,11 +615,26 @@ msgstr "Lagre konfigurasjon"
 msgid "Saving changes..."
 msgstr "Lagrer endringer"
 
+msgid "Scaling Options"
+msgstr "Valg for skalering"
+
 msgid "Scan"
 msgstr "Søk"
 
+msgid "Scan & Indexing"
+msgstr "Skanning og indeksering"
+
+msgid "Scan Files and Configurations"
+msgstr "Skann filer og konfigurasjoner"
+
 msgid "Scan complete"
 msgstr "Søket er fullført"
+
+msgid "Scan error"
+msgstr "Feil ved skanning"
+
+msgid "Scan for Files"
+msgstr "Skann etter filer"
 
 msgid "Scan for Kickstarts, Files and Configurations"
 msgstr "Søk etter kickstarter, filer og konfigurasjoner"
@@ -381,8 +660,11 @@ msgstr "Undersøker filer"
 msgid "Scanning files ({count} scanned)"
 msgstr "Søker etter filer ({count})"
 
-msgid "Select Directory to Import From"
-msgstr "Velg mappe å importere fra"
+msgid "Scanning game database entries..."
+msgstr "Skanner oppføringer i spill-database..."
+
+msgid "Select Destination Directory"
+msgstr "Velg destinasjonsmappe"
 
 msgid "Select Multiple CD-ROMs"
 msgstr "Velg flere CD-er"
@@ -393,17 +675,32 @@ msgstr "Velg flere filer..."
 msgid "Select Multiple Floppies"
 msgstr "Velg flere disketter"
 
+msgid "Select Source Directory"
+msgstr "Velg kildemappe"
+
 msgid "Select a folder containing Amiga kickstart files and click \"{0}\""
 msgstr "Velg en mappe som inneholder Amiga kickstart-filer og klikk \"{0}\""
 
 msgid "Settings"
 msgstr "Innstillinger"
 
+msgid "Show kickstart setup page on startup when all ROMs are missing"
+msgstr "Vis side for kickstart-oppsett ved oppstart når alle ROM-filer mangler"
+
+msgid "Size:"
+msgstr "Størrelse:"
+
 msgid "Slow RAM"
 msgstr "Slow-RAM"
 
+msgid "Specified directory does not exist"
+msgstr "Spesifisert mappe finnes ikke"
+
 msgid "Start"
 msgstr "Start"
+
+msgid "Start FS-UAE in fullscreen mode"
+msgstr "Start FS-UAE i fullskjerm-modus"
 
 msgid "Starting FS-UAE..."
 msgstr "Starter FS-UAE..."
@@ -411,14 +708,65 @@ msgstr "Starter FS-UAE..."
 msgid "Starting scan"
 msgstr "Starter søk"
 
-msgid "Update ({version}) is available"
-msgstr "Oppdatering ({version}) er tilgjengelig"
+msgid "Swap left and right CTRL keys"
+msgstr "Bytt venstre og høyre CTRL-taster"
+
+msgid "Sync to Vblank"
+msgstr "Synk. til vblank"
+
+msgid "Synchronizing database..."
+msgstr "Synkroniserer database..."
+
+msgid "Synchronizing personal ratings..."
+msgstr "Synkroniserer personlige poengsummer..."
+
+msgid "Texture filter"
+msgstr "Teksturfiler"
+
+msgid "Toggle Between Windowed and Full-Screen Mode"
+msgstr "Bytt mellom vindu- og fullskjerm-modus"
+
+msgid "Tools"
+msgstr "Verktøy"
+
+msgid "Ungrab mouse and keyboard on middle mouse click"
+msgstr "Frigi mus og tastatur ved klikk på midterste museknapp"
+
+msgid "Update available ({version})"
+msgstr "Oppdatering tilgjengelig ({version})"
+
+msgid "Updating database"
+msgstr "Opdaterer database"
+
+msgid "Updating game entries:"
+msgstr "Oppdaterer spilloppføringer:"
+
+msgid "Use RDB disk images for size >= {0}"
+msgstr "Bruk RDB diskfiler for størrelse >= {0}"
+
+msgid "Video Settings"
+msgstr "Innstillinger for video"
+
+msgid "Video buffer format and color depth"
+msgstr "Format og fargedybde for video-buffer"
+
+msgid "Video synchronization"
+msgstr "Synkronisering av video"
+
+msgid "Video synchronization method"
+msgstr "Synkroniseringsmåte for video"
+
+msgid "Video texture format (on the GPU)"
+msgstr "Teksturformat for video (på GPU)"
 
 msgid "WHDLoad Arguments"
 msgstr "WHDLoad-argumenter"
 
 msgid "You should have kickstart files for each Amiga model you want to use:"
 msgstr "Du bør ha kickstart-filer for de Amiga-modellene du ønsker å bruke:"
+
+msgid "Zoom Amiga display (crop)"
+msgstr "Zoom Amiga-bilde (crop)"
 
 msgid "Zorro III RAM"
 msgstr "Zorro III-RAM"
@@ -438,6 +786,9 @@ msgstr "Zorro III-RAM"
 #~ msgid "Kickstart"
 #~ msgstr "Kickstart"
 
+#~ msgid "Kickstart Setup"
+#~ msgstr "Opsett av kickstart"
+
 #~ msgid "Kickstart Versions"
 #~ msgstr "Kickstart-versjoner"
 
@@ -450,6 +801,9 @@ msgstr "Zorro III-RAM"
 #~ msgid "Open Configuration"
 #~ msgstr "Åpne konfigurasjon"
 
+#~ msgid "Select Directory to Import From"
+#~ msgstr "Velg mappe å importere fra"
+
 #~ msgid "Select Files..."
 #~ msgstr "Velg filer..."
 
@@ -461,6 +815,9 @@ msgstr "Zorro III-RAM"
 
 #~ msgid "Swap List"
 #~ msgstr "Bytteliste"
+
+#~ msgid "Update ({version}) is available"
+#~ msgstr "Oppdatering ({version}) er tilgjengelig"
 
 #~ msgid "Window"
 #~ msgstr "Vindu"

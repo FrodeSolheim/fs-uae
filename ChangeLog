@@ -1,3 +1,10 @@
+Version 2.1.35:
+
+* Updated translations: nb.
+* (Launcher) Support db_version from online game database, show warning if
+  the launcher is too old to support the chosen variant.
+* (Launcher) Updated translations: nb.
+
 Version 2.1.34:
 
 * Updated translations: it [speedvicio], fr [Foul], sr [Milanchez].

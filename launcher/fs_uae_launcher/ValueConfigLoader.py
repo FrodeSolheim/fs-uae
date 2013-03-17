@@ -14,6 +14,8 @@ from .Settings import Settings
 
 class ValueConfigLoader:
 
+    DB_VERSION_MAX = 1
+
     def __init__(self, uuid=""):
         self.config = {}
         self.options = {}
@@ -26,6 +28,16 @@ class ValueConfigLoader:
         return self.config.copy()
 
     def load_values(self, values):
+        if values.get("db_version"):
+            try:
+                version = int(values.get("db_version"))
+            except ValueError:
+                version = 10000
+            if version > self.DB_VERSION_MAX:
+                self.config["__config_name"] = "Unsupported Database " \
+                        "Version (Please upgrade FS-UAE Launcher)"
+                return
+            
         self.values = values
 
         cd_based = False

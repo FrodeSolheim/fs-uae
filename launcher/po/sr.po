@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae-launcher\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2013-02-24 01:12+0100\n"
-"PO-Revision-Date: 2013-02-24 18:03+0100\n"
+"POT-Creation-Date: 2013-03-15 21:48+0100\n"
+"PO-Revision-Date: 2013-03-17 08:47+0100\n"
 "Last-Translator: \n"
 "Language-Team: Serbian\n"
 "Language: sr\n"
@@ -236,6 +236,9 @@ msgstr "Ime slike diskete:"
 
 msgid "Disk image created"
 msgstr "Slika diskete je kreirana"
+
+msgid "Download failed (attempt {0}) - retrying in {0} seconds"
+msgstr "Preuzimanje nije uspelo (pokušaj {0}) - ponovni pokušaj u {0} sekundi"
 
 msgid "Downloading {0}..."
 msgstr "Preuzimanje {0}..."
@@ -602,6 +605,9 @@ msgstr "Resetovanje podataka baze ..."
 
 msgid "Restoring changes..."
 msgstr "Vraćanje izmena..."
+
+msgid "Retrying last operation (attempt {0})"
+msgstr "Izvršavanje poslednje operacije (pokušaj {0})"
 
 msgid "Save Configuration"
 msgstr "Snimiti konfiguraciju"

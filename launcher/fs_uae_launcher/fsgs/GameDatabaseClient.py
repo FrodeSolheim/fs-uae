@@ -122,6 +122,7 @@ class GameDatabaseClient:
             if not recursive:
                 return values
             if parent_uuid:
+                print("cannot find parent for", game_id, parent_uuid)
                 cursor.execute(self.database.query("SELECT id FROM game "
                         "WHERE uuid = %s"), (parent_uuid,))
                 game_id = cursor.fetchone()[0]

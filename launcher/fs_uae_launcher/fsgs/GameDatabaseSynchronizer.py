@@ -6,6 +6,9 @@ from __future__ import unicode_literals
 import os
 import json
 import time
+#import zlib
+from gzip import GzipFile
+from cStringIO import StringIO
 import urllib
 import urllib2
 #import threading
@@ -179,7 +182,22 @@ class GameDatabaseSynchronizer:
 
     def fetch_json_attempt(self, url):
         server, opener = self.get_server()
-        data = opener.open(url).read()
+        request = urllib2.Request(url)
+        request.add_header("Accept-Encoding", "gzip")
+        response = opener.open(request)
+        # print(response.headers)
+        data = response.read()
+
+        #print(dir(response.headers))
+        content_encoding = response.headers.getheader(
+                "content-encoding", "").lower()
+        if content_encoding == "gzip":
+            #data = zlib.decompress(data)
+            fake_stream = StringIO(data)
+            data = GzipFile(fileobj=fake_stream).read()
+
+        #else:
+        #    data = response.read()
         #if int(time.time()) % 2 == 0:
         #    raise Exception("fail horribly")
         return data, json.loads(data)
@@ -189,7 +207,9 @@ class GameDatabaseSynchronizer:
             try:
                 return self.fetch_json_attempt(url)
             except Exception, e:
+                print(e)
                 sleep_time = 2.0 + i * 0.3
+                # FIXME: change second {0} to {1}
                 self.set_status(_("Updating database"),
                         _("Download failed (attempt {0}) - "
                                 "retrying in {0} seconds").format(

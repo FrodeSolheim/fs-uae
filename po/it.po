@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2013-02-03 11:16+0100\n"
-"PO-Revision-Date: 2013-02-04 13:02+0100\n"
+"POT-Creation-Date: 2013-03-13 22:00+0100\n"
+"PO-Revision-Date: 2013-03-15 11:41+0100\n"
 "Last-Translator: Speedvicio <speedvicio@hotmail.com>\n"
 "Language-Team: Italian\n"
 "Language: it\n"
@@ -222,6 +222,12 @@ msgstr "Salva Stati"
 #. / TRANSLATORS: Soft reset reboots the computer without a power cycle
 msgid "Soft Reset"
 msgstr "Riavvia"
+
+msgid "Warp mode disabled"
+msgstr "Modalità distorta disabilitata"
+
+msgid "Warp mode enabled"
+msgstr "Modalità distorta abilitata"
 
 msgid "Zoom is disabled in RTG mode"
 msgstr "Ingrandimento disabilitato in modalità RTG"

@@ -55,7 +55,10 @@ static int get_fs_usage_fake (const TCHAR *path, const TCHAR *disk,
 }
 #endif
 #ifdef WINDOWS
+#ifdef FSUAE
+#else
 #include "od-win32/posixemu.h"
+#endif
 #include <windows.h>
 int get_fs_usage (const TCHAR *path, const TCHAR *disk, struct fs_usage *fsp)
 {

@@ -840,6 +840,12 @@ whdload_support_files = {
 # "2fcb5934019133ed7a2069e333cdbc349ecaa7ee": "C/DIC",
 
 whdload_files = {
+    "10.0": {
+        "3096b2f41dfebf490aac015bdf0e91a80045c2c0": "C/WHDLoad",
+    },
+    "13.0": {
+        "4bcb393e820d68b0520da9131e0d529018e303d1": "C/WHDLoad",
+    },
     "16.0": {
         "883b9e37bc81fc081f78a3f278b732f97bdddf5c": "C/WHDLoad",
     },

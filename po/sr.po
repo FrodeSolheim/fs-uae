@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2013-02-24 01:12+0100\n"
-"PO-Revision-Date: 2013-02-24 18:15+0100\n"
+"POT-Creation-Date: 2013-03-15 21:48+0100\n"
+"PO-Revision-Date: 2013-03-17 08:56+0100\n"
 "Last-Translator: \n"
 "Language-Team: Serbian\n"
 "Language: sr\n"
@@ -35,11 +35,11 @@ msgstr "Automatsko pucanje upaljeno"
 
 #, c-format
 msgid "Auto-fire disabled for port %d"
-msgstr "Automatsko pucanje deaktivirano za port %d"
+msgstr "Automatsko pucanje onemogućeno za port %d"
 
 #, c-format
 msgid "Auto-fire enabled for port %d"
-msgstr "Automatsko pucanje aktivirano za port %d"
+msgstr "Automatsko pucanje omogućeno za port %d"
 
 #. / TRANSLATORS: Empty or nothing
 #, c-format
@@ -62,7 +62,7 @@ msgid "DF%d: Empty"
 msgstr "DF%d: Prazan"
 
 msgid "Disabled"
-msgstr "Deaktiviran"
+msgstr "Onemogućeno"
 
 msgid "Eject"
 msgstr "Izbacivanje"
@@ -221,6 +221,12 @@ msgstr "Snimanje stanja"
 #. / TRANSLATORS: Soft reset reboots the computer without a power cycle
 msgid "Soft Reset"
 msgstr "Softverski restart"
+
+msgid "Warp mode disabled"
+msgstr "Warp mod onemogućen"
+
+msgid "Warp mode enabled"
+msgstr "Warp mod omogućen"
 
 msgid "Zoom is disabled in RTG mode"
 msgstr "Uvećanje je onemogućeno u RTG načinu rada"

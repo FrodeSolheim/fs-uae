@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: FS-UAE\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2013-01-28 00:16+0100\n"
-"PO-Revision-Date: 2013-01-28 15:16+0100\n"
+"POT-Creation-Date: 2013-03-13 22:00+0100\n"
+"PO-Revision-Date: 2013-03-14 11:55+0100\n"
 "Last-Translator: Foul <foulweb@gmail.com>\n"
 "Language-Team: Foul <fs-uae-fr@fengestad.no>\n"
 "Language: fr\n"
@@ -223,6 +223,12 @@ msgstr "Sauvegarder l’État"
 #. / TRANSLATORS: Soft reset reboots the computer without a power cycle
 msgid "Soft Reset"
 msgstr "Réinitialisation Logicielle"
+
+msgid "Warp mode disabled"
+msgstr "Mode Warp désactivé"
+
+msgid "Warp mode enabled"
+msgstr "Mode Warp activé"
 
 msgid "Zoom is disabled in RTG mode"
 msgstr "Zoom désactivé en mode RTG"

@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae-launcher\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2013-02-08 20:18+0100\n"
-"PO-Revision-Date: 2013-02-09 11:05+0100\n"
+"POT-Creation-Date: 2013-03-13 22:40+0100\n"
+"PO-Revision-Date: 2013-03-15 11:44+0100\n"
 "Last-Translator: Speedvicio <speedvicio@hotmail.com>\n"
 "Language-Team: Italian\n"
 "Language: it\n"
@@ -236,6 +236,9 @@ msgstr "Nome Disco Immagine:"
 
 msgid "Disk image created"
 msgstr "Disco immagine creato"
+
+msgid "Download failed (attempt {0}) - retrying in {0} seconds"
+msgstr "Download fallito (tentativo {0}) - ritento in {0} seconds"
 
 msgid "Downloading {0}..."
 msgstr "Scaricando {0}..."
@@ -602,6 +605,9 @@ msgstr "Resetta database..."
 
 msgid "Restoring changes..."
 msgstr "Ripristinando modifiche..."
+
+msgid "Retrying last operation (attempt {0})"
+msgstr "Ritento l'ultima operazione (tentativo {0})"
 
 msgid "Save Configuration"
 msgstr "Salva Configurazione"

@@ -9,7 +9,7 @@ int uae_start_thread_fast (void *(*f)(void *), void *arg,
     return uae_start_thread("(fast)", f, arg, thread);
 }
 
-int uae_start_thread (char *name, uae_thread_function fn, void *arg,
+int uae_start_thread (const char *name, uae_thread_function fn, void *arg,
         uae_thread_id *tid) {
     int result = 1;
     write_log("uae_start_tread \"%s\" function at %p arg %p\n", name,

@@ -178,15 +178,15 @@
 #define HAVE_STRSTR 1
 
 /* Define to 1 if `st_blocks' is a member of `struct stat'. */
-#ifndef WINDOWS
-#define HAVE_STRUCT_STAT_ST_BLOCKS 1
-#endif
+//#ifndef WINDOWS
+//#define HAVE_STRUCT_STAT_ST_BLOCKS 1
+//#endif
 
 /* Define to 1 if your `struct stat' has `st_blocks'. Deprecated, use
    `HAVE_STRUCT_STAT_ST_BLOCKS' instead. */
-#ifndef WINDOWS
-#define HAVE_ST_BLOCKS 1
-#endif
+//#ifndef WINDOWS
+//#define HAVE_ST_BLOCKS 1
+//#endif
 
 /* Define to 1 if you have the <sun/audioio.h> header file. */
 /* #undef HAVE_SUN_AUDIOIO_H */
@@ -222,30 +222,15 @@
 /* Define to 1 if you have the <sys/mman.h> header file. */
 #define HAVE_SYS_MMAN_H 1
 
-/* Define to 1 if you have the <sys/mount.h> header file. */
-#ifndef WINDOWS
-#define HAVE_SYS_MOUNT_H 1
-#endif
-
 /* Define to 1 if you have the <sys/ndir.h> header file, and it defines `DIR'.
    */
 /* #undef HAVE_SYS_NDIR_H */
-
-/* Define to 1 if you have the <sys/param.h> header file. */
-#define HAVE_SYS_PARAM_H 1
 
 /* Define to 1 if you have the <sys/shm.h> header file. */
 #define HAVE_SYS_SHM_H 1
 
 /* Define to 1 if you have the <sys/soundcard.h> header file. */
 #define HAVE_SYS_SOUNDCARD_H 1
-
-/* Define to 1 if you have the <sys/statfs.h> header file. */
-#ifndef WINDOWS
-#ifndef MACOSX
-#define HAVE_SYS_STATFS_H 1
-#endif
-#endif
 
 /* Define to 1 if you have the <sys/statvfs.h> header file. */
 #if !defined(WINDOWS) && !defined(ANDROID)
@@ -263,13 +248,6 @@
 
 /* Define to 1 if you have the <sys/types.h> header file. */
 #define HAVE_SYS_TYPES_H 1
-
-/* Define to 1 if you have the <sys/vfs.h> header file. */
-#ifndef WINDOWS
-#ifndef MACOSX
-#define HAVE_SYS_VFS_H 1
-#endif
-#endif
 
 /* Define to 1 if you have the `timegm' function. */
 #define HAVE_TIMEGM 1

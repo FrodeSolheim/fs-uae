@@ -375,27 +375,6 @@ struct direct
 #define S_IRUSR FILEFLAG_READ
 #define S_IXUSR FILEFLAG_EXECUTE
 
-/* These are prototypes for functions from the Win32 posixemu file */
-extern void get_time (time_t t, long* days, long* mins, long* ticks);
-extern time_t put_time (long days, long mins, long ticks);
-
-/* #define DONT_HAVE_POSIX - don't need all of Mathias' posixemu_functions, just a subset (below) */
-#define chmod(a,b) posixemu_chmod ((a), (b))
-extern int posixemu_chmod (const TCHAR *, int);
-#define stat(a,b) posixemu_stat ((a), (b))
-extern int posixemu_stat (const TCHAR *, struct _stat64 *);
-#define mkdir(x,y) mkdir(x)
-#define truncate posixemu_truncate
-extern int posixemu_truncate (const TCHAR *, long int);
-#define utime posixemu_utime
-extern int posixemu_utime (const TCHAR *, struct utimbuf *);
-#define opendir posixemu_opendir
-extern DIR * posixemu_opendir (const TCHAR *);
-#define readdir posixemu_readdir
-extern struct dirent* posixemu_readdir (DIR *);
-#define closedir posixemu_closedir
-extern void posixemu_closedir (DIR *);
-
 #endif
 
 #endif /* _WIN32 */
@@ -501,6 +480,7 @@ extern void console_out (const TCHAR *);
 extern void console_out_f (const TCHAR *, ...);
 extern void console_flush (void);
 extern int console_get (TCHAR *, int);
+extern bool console_isch (void);
 extern TCHAR console_getch (void);
 extern void f_out (void *, const TCHAR *, ...);
 extern TCHAR* buf_out (TCHAR *buffer, int *bufsize, const TCHAR *format, ...);
@@ -508,7 +488,7 @@ extern void gui_message (const TCHAR *,...);
 extern int gui_message_multibutton (int flags, const TCHAR *format,...);
 #define write_log_err write_log
 extern void logging_init (void);
-extern FILE *log_open (const TCHAR *name, int append, int bootlog);
+extern FILE *log_open (const TCHAR *name, int append, int bootlog, TCHAR*);
 extern void log_close (FILE *f);
 
 

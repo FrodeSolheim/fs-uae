@@ -14,7 +14,7 @@
 #include "config.h"
 #include "options.h"
 #include "uae.h"
-#include "memory.h"
+#include "uae/memory.h"
 #include "custom.h"
 #include "newcpu.h"
 #include "cia.h"
@@ -316,7 +316,8 @@ uae_u8 serial_readstatus(uae_u8 ignored)
 	int status = 0;
 
 #ifdef POSIX_SERIAL
-	ioctl (sd, TIOCMGET, &status);
+	if (ioctl (sd, TIOCMGET, &status) < 0)
+	    status = TIOCM_CAR | TIOCM_DSR | TIOCM_CTS;
 
 	if (status & TIOCM_CAR) {
 		if (!carrier) {

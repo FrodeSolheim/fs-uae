@@ -1,26 +1,40 @@
-#ifdef WITH_SDL_VIDEO
+#ifdef USE_SDL_VIDEO
 
-#include <stdlib.h>
-#include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <stddef.h>
-#include <glib.h>
+#include <string.h>
+
+#ifdef USE_SDL
 #include <SDL.h>
+#endif
+
+//#ifdef USE_GLIB
+//#include <glib.h>
+//#endif
 
 #include <fs/config.h>
 #include <fs/glee.h>
+#include <fs/hashtable.h>
 #include <fs/ml.h>
+#include <fs/queue.h>
+#include <fs/thread.h>
+
+#ifdef USE_OPENGL
+#include <fs/ml/opengl.h>
+#endif
+
 //#include "fs/emu.h"
 #include "ml_internal.h"
 
 // FIXME: make libfsml independent of libfsmeu
 #include "../emu/video.h"
 
-static GQueue *g_video_event_queue = NULL;
-static GMutex *g_video_event_mutex = NULL;
+static fs_queue *g_video_event_queue = NULL;
+static fs_mutex *g_video_event_mutex = NULL;
 
-static GCond *g_video_cond = NULL;
-static GMutex *g_video_mutex = NULL;
+static fs_condition *g_video_cond = NULL;
+static fs_mutex *g_video_mutex = NULL;
 
 static SDL_Surface *g_sdl_screen = NULL;
 //static int g_sync_vblank = 1;
@@ -43,6 +57,8 @@ static int g_window_resizable;
 static int g_fullscreen_width;
 static int g_fullscreen_height;
 
+static GLint g_max_texture_size;
+
 int g_fs_ml_had_input_grab = 0;
 int g_fs_ml_was_fullscreen = 0;
 
@@ -50,6 +66,10 @@ int g_fs_ml_was_fullscreen = 0;
 #define FS_ML_VIDEO_EVENT_UNGRAB_INPUT 2
 #define FS_ML_VIDEO_EVENT_SHOW_CURSOR 3
 #define FS_ML_VIDEO_EVENT_HIDE_CURSOR 4
+
+int fs_ml_get_max_texture_size() {
+    return g_max_texture_size;
+}
 
 int fs_ml_get_fullscreen_width() {
     return g_fullscreen_width;
@@ -68,16 +88,16 @@ int fs_ml_get_windowed_height() {
 }
 
 static void post_video_event(int event) {
-    g_mutex_lock(g_video_event_mutex);
-    g_queue_push_head(g_video_event_queue, GINT_TO_POINTER(event));
-    g_mutex_unlock(g_video_event_mutex);
+    fs_mutex_lock(g_video_event_mutex);
+    fs_queue_push_head(g_video_event_queue, FS_INT_TO_POINTER(event));
+    fs_mutex_unlock(g_video_event_mutex);
 }
 
 static void process_video_events() {
-    g_mutex_lock(g_video_event_mutex);
-    int count = g_queue_get_length(g_video_event_queue);
+    fs_mutex_lock(g_video_event_mutex);
+    int count = fs_queue_get_length(g_video_event_queue);
     for (int i = 0; i < count; i++) {
-        int event = GPOINTER_TO_INT(g_queue_pop_tail(g_video_event_queue));
+        int event = FS_POINTER_TO_INT(fs_queue_pop_tail(g_video_event_queue));
         if (event == FS_ML_VIDEO_EVENT_GRAB_INPUT) {
             fs_ml_grab_input(1, 1);
         }
@@ -91,7 +111,7 @@ static void process_video_events() {
             fs_ml_show_cursor(0, 1);
         }
     }
-    g_mutex_unlock(g_video_event_mutex);
+    fs_mutex_unlock(g_video_event_mutex);
 }
 
 int fs_ml_has_input_grab() {
@@ -136,31 +156,40 @@ static void log_opengl_information() {
         return;
     }
     written = 1;
-    const GLubyte *s;
-    s = glGetString(GL_VENDOR);
+    char *software_renderer = NULL;
+    const char *s;
+    s = (const char*) glGetString(GL_VENDOR);
     if (s) {
         fs_log("opengl vendor: %s\n", s);
     }
-    s = glGetString(GL_RENDERER);
+    s = (const char*) glGetString(GL_RENDERER);
     if (s) {
         fs_log("opengl renderer: %s\n", s);
+        if (strstr(s, "GDI Generic") != NULL) {
+            software_renderer = fs_strdup(s);
+        }
     }
-    s = glGetString(GL_VERSION);
+    s = (const char*) glGetString(GL_VERSION);
     if (s) {
         fs_log("opengl version: %s\n", s);
     }
-    s = glGetString(GL_SHADING_LANGUAGE_VERSION);
+    s = (const char*) glGetString(GL_SHADING_LANGUAGE_VERSION);
     if (s) {
         fs_log("opengl shading language version: %s\n", s);
     }
-    s = glGetString(GL_EXTENSIONS);
+    s = (const char*) glGetString(GL_EXTENSIONS);
     if (s) {
         fs_log("opengl extensions: %s\n", s);
     }
-    GLint max_texture_size;
-    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max_texture_size);
-    fs_log("opengl max texture size (estimate): %dx%d\n", max_texture_size,
-            max_texture_size);
+    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &g_max_texture_size);
+    fs_log("opengl max texture size (estimate): %dx%d\n", g_max_texture_size,
+            g_max_texture_size);
+
+    if (software_renderer) {
+        fs_emu_warning("No HW OpenGL driver (\"%s\")",
+                software_renderer);
+        free(software_renderer);
+    }
 }
 
 static void set_video_mode() {
@@ -240,7 +269,7 @@ void fs_ml_toggle_fullscreen() {
 
 int fs_ml_video_create_window(const char *title) {
     fs_log("fs_ml_video_create_window\n");
-    g_window_title = g_strdup(title);
+    g_window_title = fs_strdup(title);
 
     static int initialized = 0;
     SDL_Init(SDL_INIT_VIDEO);
@@ -258,11 +287,11 @@ int fs_ml_video_create_window(const char *title) {
         if (g_fs_emu_video_fullscreen_mode == NULL) {
             g_fs_emu_video_fullscreen_window = -1;
         }
-        else if (g_ascii_strcasecmp(g_fs_emu_video_fullscreen_mode,
+        else if (fs_ascii_strcasecmp(g_fs_emu_video_fullscreen_mode,
                 "window") == 0) {
             g_fs_emu_video_fullscreen_window = 1;
         }
-        else if (g_ascii_strcasecmp(g_fs_emu_video_fullscreen_mode,
+        else if (fs_ascii_strcasecmp(g_fs_emu_video_fullscreen_mode,
                 "fullscreen") == 0) {
             g_fs_emu_video_fullscreen_window = 0;
         }
@@ -317,7 +346,7 @@ int fs_ml_video_create_window(const char *title) {
     SDL_GL_SwapBuffers();
     fs_gl_finish();
 
-    SDL_WM_SetCaption(g_window_title, g_get_application_name());
+    SDL_WM_SetCaption(g_window_title, fs_get_application_name());
 
     g_fs_ml_automatic_input_grab = fs_config_get_boolean(
             "automatic_input_grab");
@@ -326,7 +355,7 @@ int fs_ml_video_create_window(const char *title) {
     }
     fs_log("automatic input grab: %d\n", g_fs_ml_automatic_input_grab);
 
-	int initial_input_grab = g_fs_ml_automatic_input_grab;
+    int initial_input_grab = g_fs_ml_automatic_input_grab;
     if (fs_config_get_boolean("initial_input_grab") == 1) {
         initial_input_grab = 1;
     }
@@ -501,6 +530,11 @@ static int event_loop() {
             else if (event.key.keysym.sym == SDLK_CAPSLOCK) {
                 key = SDLK_CAPSLOCK;
             }
+#elif WINDOWS
+#else
+            else if (event.key.keysym.sym == SDLK_MODE) {
+                key = SDLK_RALT;
+            }
 #endif
             else {
                 key = fs_ml_scancode_to_key(event.key.keysym.scancode);
@@ -544,9 +578,71 @@ static int event_loop() {
         //case SDL_MOUSEBUTTONDOWN:
         //    printf("--- mousebutton down ---\n");
         }
-        fs_ml_event *new_event = fs_ml_alloc_event();
-        *new_event = event;
-        fs_ml_post_event(new_event);
+        fs_ml_event *new_event = NULL;
+        if (event.type == SDL_KEYDOWN) {
+            new_event = fs_ml_alloc_event();
+            new_event->type = FS_ML_KEYDOWN;
+            new_event->key.keysym.sym = event.key.keysym.sym;
+            new_event->key.keysym.mod = event.key.keysym.mod;
+            new_event->key.keysym.unicode = event.key.keysym.unicode;
+            new_event->key.state = event.key.state;
+        }
+        else if (event.type == SDL_KEYUP) {
+            new_event = fs_ml_alloc_event();
+            new_event->type = FS_ML_KEYUP;
+            new_event->key.keysym.sym = event.key.keysym.sym;
+            new_event->key.keysym.mod = event.key.keysym.mod;
+            new_event->key.state = event.key.state;
+        }
+        else if (event.type == SDL_JOYBUTTONDOWN) {
+            new_event = fs_ml_alloc_event();
+            new_event->type = FS_ML_JOYBUTTONDOWN;
+            new_event->jbutton.which = event.jbutton.which;
+            new_event->jbutton.button = event.jbutton.button;
+            new_event->jbutton.state = event.jbutton.state;
+        }
+        else if (event.type == SDL_JOYBUTTONUP) {
+            new_event = fs_ml_alloc_event();
+            new_event->type = FS_ML_JOYBUTTONUP;
+            new_event->jbutton.which = event.jbutton.which;
+            new_event->jbutton.button = event.jbutton.button;
+            new_event->jbutton.state = event.jbutton.state;
+        }
+        else if (event.type == SDL_JOYAXISMOTION) {
+            new_event = fs_ml_alloc_event();
+            new_event->type = FS_ML_JOYAXISMOTION;
+            new_event->jaxis.which = event.jaxis.which;
+            new_event->jaxis.axis = event.jaxis.axis;
+            new_event->jaxis.value = event.jaxis.value;
+        }
+        else if (event.type == SDL_JOYHATMOTION) {
+            new_event = fs_ml_alloc_event();
+            new_event->type = FS_ML_JOYHATMOTION;
+            new_event->jhat.which = event.jhat.which;
+            new_event->jhat.hat = event.jhat.hat;
+            new_event->jhat.value = event.jhat.value;
+        }
+        else if (event.type == SDL_MOUSEMOTION) {
+            new_event = fs_ml_alloc_event();
+            new_event->type = FS_ML_MOUSEMOTION;
+            new_event->motion.xrel = event.motion.xrel;
+            new_event->motion.yrel = event.motion.yrel;
+        }
+        else if (event.type == SDL_MOUSEBUTTONDOWN) {
+            new_event = fs_ml_alloc_event();
+            new_event->type = FS_ML_MOUSEBUTTONDOWN;
+            new_event->button.button = event.button.button;
+            new_event->button.state = event.button.state;
+        }
+        else if (event.type == SDL_MOUSEBUTTONUP) {
+            new_event = fs_ml_alloc_event();
+            new_event->type = FS_ML_MOUSEBUTTONUP;
+            new_event->button.button = event.button.button;
+            new_event->button.state = event.button.state;
+        }
+        if (new_event) {
+            fs_ml_post_event(new_event);
+        }
     }
     return result;
 }
@@ -566,12 +662,12 @@ int fs_ml_main_loop() {
 
 void fs_ml_video_init() {
     fs_log("creating condition\n");
-    g_video_cond = g_cond_new();
+    g_video_cond = fs_condition_create();
     fs_log("creating mutex\n");
-    g_video_mutex = g_mutex_new();
+    g_video_mutex = fs_mutex_create();
 
-    g_video_event_queue = g_queue_new();
-    g_video_event_mutex = g_mutex_new();
+    g_video_event_queue = fs_queue_new();
+    g_video_event_mutex = fs_mutex_create();
 
     g_debug_keys = getenv("FS_DEBUG_INPUT") && \
             getenv("FS_DEBUG_INPUT")[0] == '1';
@@ -589,11 +685,11 @@ void fs_ml_input_init() {
         g_menu_action_table[i] = 0;
     }
     */
-    //g_fs_ml_input_devices[FS_ML_KEYBOARD].name = g_strdup("KEYBOARD");
-    //g_fs_ml_input_devices[FS_ML_KEYBOARD].alias = g_strdup("");
+    //g_fs_ml_input_devices[FS_ML_KEYBOARD].name = fs_strdup("KEYBOARD");
+    //g_fs_ml_input_devices[FS_ML_KEYBOARD].alias = fs_strdup("");
 
-    GHashTable *device_counts = g_hash_table_new_full(g_str_hash, g_str_equal,
-            g_free, NULL);
+    fs_hash_table *device_counts = fs_hash_table_new_full(fs_str_hash,
+            fs_str_equal, free, NULL);
 
     int num_joysticks = SDL_NumJoysticks();
     for (int i = 0; i < num_joysticks; i++) {
@@ -602,26 +698,31 @@ void fs_ml_input_init() {
             break;
         }
         SDL_Joystick *joystick = SDL_JoystickOpen(i);
-        gchar* name = g_ascii_strup(SDL_JoystickName(i), -1);
-        name = g_strstrip(name);
-        int count = GPOINTER_TO_INT(g_hash_table_lookup(device_counts, name));
+        char* name = fs_ascii_strup(SDL_JoystickName(i), -1);
+        name = fs_strstrip(name);
+        if (name[0] == '\0') {
+            free(name);
+            name = fs_ascii_strup("Unnamed", -1);
+        }
+        int count = FS_POINTER_TO_INT(fs_hash_table_lookup(
+                device_counts, name));
         count++;
         // hash table now owns name pointer
-        g_hash_table_replace(device_counts, g_strdup(name),
-                GINT_TO_POINTER(count));
+        fs_hash_table_replace(device_counts, fs_strdup(name),
+                FS_INT_TO_POINTER(count));
         if (count > 1) {
-            gchar *result = g_strdup_printf("%s #%d", name, count);
-            g_free(name);
+            char *result = fs_strdup_printf("%s #%d", name, count);
+            free(name);
             name = result;
         }
         g_fs_ml_input_devices[i].index = i;
         g_fs_ml_input_devices[i].name = name;
-        //g_input_devices[i].alias = g_strdup_printf("JOYSTICK #%d", i);
+        //g_input_devices[i].alias = fs_strdup_printf("JOYSTICK #%d", i);
         if (i == 0) {
-            g_fs_ml_input_devices[i].alias = g_strdup("JOYSTICK");
+            g_fs_ml_input_devices[i].alias = fs_strdup("JOYSTICK");
         }
         else {
-            g_fs_ml_input_devices[i].alias = g_strdup_printf("JOYSTICK #%d",
+            g_fs_ml_input_devices[i].alias = fs_strdup_printf("JOYSTICK #%d",
                     i + 1);
         }
         g_fs_ml_input_devices[i].hats = SDL_JoystickNumHats(joystick);
@@ -641,11 +742,11 @@ void fs_ml_input_init() {
                 g_fs_ml_input_devices[i].balls);
     }
 
-    g_fs_ml_input_devices[num_joysticks].name = g_strdup("KEYBOARD");
-    g_fs_ml_input_devices[num_joysticks].alias = g_strdup("");
+    g_fs_ml_input_devices[num_joysticks].name = fs_strdup("KEYBOARD");
+    g_fs_ml_input_devices[num_joysticks].alias = fs_strdup("");
 
     g_fs_ml_input_device_count = num_joysticks + 1;
-    g_hash_table_destroy(device_counts);
+    fs_hash_table_destroy(device_counts);
 
     fs_ml_initialize_keymap();
 }

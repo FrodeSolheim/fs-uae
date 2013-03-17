@@ -3,38 +3,10 @@ from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-import os
-import sys
-import uuid
 import fs_uae_launcher.fsui as fsui
-import fs_uae_launcher.fs as fs
-from ..Amiga import Amiga
-from ..Config import Config
-from ..Signal import Signal
-from ..Settings import Settings
-from ..netplay.IRC import IRC
-#from .FSUAE import FSUAE
-#from .ConfigWriter import ConfigWriter
-from ..netplay.Netplay import Netplay
-from ..Database import Database
-from ..GameHandler import GameHandler
 from ..I18N import _, ngettext
-from .ScreenshotsPanel import ScreenshotsPanel
-from .GameInfoPanel import GameInfoPanel
 from .TabPanel import TabPanel
 from .TabButton import TabButton
-from .BottomPanel import BottomPanel
-from .Book import Book
-from .MainPanel import MainPanel
-from .FloppiesPanel import FloppiesPanel
-from .CDPanel import CDPanel
-from .HardDrivesPanel import HardDrivesPanel
-from .HardwarePanel import HardwarePanel
-from .InputPanel import InputPanel
-#from .CustomPanel import CustomPanel
-from .ConfigurationsPanel import ConfigurationsPanel
-from .NetplayPanel import NetplayPanel
-from .SetupPanel import SetupPanel
 from .Constants import Constants
 from .Skin import Skin
 
@@ -114,7 +86,9 @@ class WindowWithTabs(fsui.Window):
         if self.toolbar:
             pass
         else:
+            print("\n\n\nselect tab", index, group)
             self.tab_groups[group][index].select()
+            #self.tab_groups[group].select_tab(index)
 
     def add_tab(self, function, icon, title="", tooltip=""):
         if not tooltip:
@@ -138,7 +112,8 @@ class WindowWithTabs(fsui.Window):
             self.tab_panel.add(button)
             self.tab_groups[self.current_tab_group_id].append(button)
 
-    def add_tab_button(self, function, icon, title="", tooltip=""):
+    def add_tab_button(self, function, icon, title="", tooltip="",
+            menu_function=None, left_padding=0, right_padding=0):
         if not tooltip:
             tooltip = title
         if self.toolbar:
@@ -148,18 +123,29 @@ class WindowWithTabs(fsui.Window):
             self.toolbar.AddLabelTool(tool_id, title, icon.bitmap,
                     wx.NullBitmap, 0, tooltip)
             def event_handler(event):
-                function()
+                if function:
+                    function()
+                else:
+                    menu_function()
             self.toolbar.Bind(wx.EVT_TOOL, event_handler, id=tool_id)
             self.add_toolbar_spacer(3)
             self.tab_groups[self.current_tab_group_id].append(tool_id)
         else:
             button = TabButton(self.tab_panel, icon,
-                    type=TabButton.TYPE_BUTTON)
+                    type=TabButton.TYPE_BUTTON, left_padding=left_padding,
+                    right_padding=right_padding)
             button.set_tooltip(tooltip)
             button.group_id = self.current_tab_group_id
-            button.on_activate = function
+            if function:
+                button.on_activate = function
+            elif menu_function:
+                def menu_wrapper():
+                    menu_function()
+                    button.check_hover()
+                button.on_left_down = menu_wrapper
             self.tab_panel.add(button)
             self.tab_groups[self.current_tab_group_id].append(button)
+            return button
 
     def add_tab_panel(self, class_, min_width=0):
         if self.toolbar:

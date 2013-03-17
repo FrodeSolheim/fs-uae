@@ -14,6 +14,9 @@ class ImageButton(wx.BitmapButton):
         if not System.macosx:
             self.min_height = 26
 
+    def set_image(self, image):
+        self.SetBitmapLabel(image.bitmap)
+
     def on_activate(self):
         pass
 

@@ -40,7 +40,6 @@ class KickstartStatusGroup(fsui.Group):
     def update(self):
         database = Database.get_instance()
         amiga = Amiga.get_model_config(self.model)
-        print(amiga["kickstarts"])
         for sha1 in amiga["kickstarts"]:
             if database.find_file(sha1=sha1):
                 self.icon.set_image(self.ok_image)
@@ -94,12 +93,12 @@ class ScanKickstartGroup(fsui.Group):
         colu_layout.add_spacer(10)
         self.add_kickstart_group(colu_layout, "Amiga 1200", "A1200")
         colu_layout.add_spacer(10)
-        self.add_kickstart_group(colu_layout, "Amiga 1200/020", "A1200/020")
+        self.add_kickstart_group(colu_layout, "Amiga 3000", "A3000")
 
         colu_layout = fsui.VerticalLayout()
         hori_layout.add(colu_layout, expand=True, fill=True, margin=10)
 
-        self.add_kickstart_group(colu_layout, "Amiga 4000/040", "A4000/040")
+        self.add_kickstart_group(colu_layout, "Amiga 4000", "A4000/040")
         colu_layout.add_spacer(10)
         self.add_kickstart_group(colu_layout, "Amiga CD32", "CD32")
         colu_layout.add_spacer(10)

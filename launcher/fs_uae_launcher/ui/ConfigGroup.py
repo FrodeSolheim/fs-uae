@@ -79,6 +79,7 @@ class ConfigGroup(fsui.Group):
     def on_new_button(self):
         Config.load_default_config()
         Settings.set("config_changed", "1")
+        Settings.set("parent_uuid", "")
 
     def on_save_button(self):
         print("ConfigGroup.on_save_button")
@@ -105,7 +106,7 @@ class ConfigGroup(fsui.Group):
             f.write("# FS-UAE configuration saved by FS-UAE Launcher\n")
             f.write("# Last saved: {0}\n".format(
                     datetime.datetime.today().strftime("%Y-%m-%d %H:%M:%S")))
-            f.write("\n[config]\n")
+            f.write("\n[fs-uae]\n")
             keys = sorted(Config.config.keys())
             for key in keys:
                 value = Config.get(key)
@@ -127,6 +128,8 @@ class ConfigGroup(fsui.Group):
         print("adding", path)
         # deleting the path from the database first in case it already exists
         database.delete_configuration(path=path)
+        database.delete_file(path=path)
+        database.add_file(path=path)
         database.add_configuration(path=path, uuid="", name=name,
                 scan=0, search=search)
         database.commit()

@@ -20,7 +20,7 @@
 #include "sysdeps.h"
 
 #include "options.h"
-#include "memory.h"
+#include "uae/memory.h"
 #include "custom.h"
 #include "newcpu.h"
 #include "debug.h"
@@ -1761,6 +1761,7 @@ void cdtv_init (void)
 
 	cdtv_battram_reset ();
 	open_unit ();
+	gui_flicker_led (LED_CD, 0, -1);
 }
 
 void cdtv_check_banks (void)

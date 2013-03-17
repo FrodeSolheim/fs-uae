@@ -10,11 +10,11 @@ from xml.etree.cElementTree import ElementTree, fromstring
 from zipfile import ZipFile
 from .Database import Database
 
-archive_extensions = [".zip", ".xml"]
+archive_extensions = [".zip", ".rp9", ".xml"]
 supports_lha = False
 
 try:
-    from lhafile import Lhafile
+    from .lhafile import Lhafile
 except ImportError:
     print("lhafile module not found")
 else:
@@ -31,7 +31,7 @@ class ZipHandler:
         if sub_path:
             return
         for name in self.zip.namelist():
-            if name.endswith("/"):
+            if name.endswith(str("/")):
                 continue
             yield self.decode_name(name)
 
@@ -52,11 +52,13 @@ class ZipHandler:
         name = name.replace("\\", "/")
         name = name.replace("%5f", "\\")
         name = name.replace("%25", "%")
-        name = name.encode("CP437")
+        #name = name.encode("CP437")
+        name = name.encode("ISO-8859-1")
         return name
 
     def decode_name(self, name):
-        name = name.decode("CP437")
+        #name = name.decode("CP437")
+        name = name.decode("ISO-8859-1")
         name = name.replace("%", "%25")
         name = name.replace("\\", "%5f")
         name = name.replace("/", os.sep)
@@ -72,7 +74,7 @@ class LhaHandler:
         if sub_path:
             return
         for name in self.zip.namelist():
-            if name.endswith("/"):
+            if name.endswith(str("/")):
                 continue
             yield self.decode_name(name)
 
@@ -95,20 +97,22 @@ class LhaHandler:
         name = name.replace("\\", "/")
         name = name.replace("%5f", "\\")
         name = name.replace("%25", "%")
-        name = name.encode("ISO-8859-1")
 
         # FIXME: a little hack here, Lhafile uses os.sep
         # as path separator
         name = name.replace("/", os.sep)
+
+        name = name.encode("ISO-8859-1")
         return name
 
     def decode_name(self, name):
-        print("decode_name", name)
+        #print("decode_name", name)
+
+        name = name.decode("ISO-8859-1")
         # FIXME: a little hack here, Lhafile uses os.sep
         # as path separator, normalizing to /
         name = name.replace(os.sep, "/")
 
-        name = name.decode("ISO-8859-1")
         name = name.replace("%", "%25")
         name = name.replace("\\", "%5f")
         name = name.replace("/", os.sep)
@@ -203,6 +207,8 @@ class Archive:
         ext = ext.lower()
         print(name, ext)
         if ext == ".zip":
+            self._handler = ZipHandler(self.path)
+        elif ext == ".rp9":
             self._handler = ZipHandler(self.path)
         elif ext == ".lha" and supports_lha:
             self._handler = LhaHandler(self.path)

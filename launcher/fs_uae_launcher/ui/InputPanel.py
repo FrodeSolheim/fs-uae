@@ -17,10 +17,14 @@ class InputPanel(fsui.Panel):
         self.layout = fsui.VerticalLayout()
 
         from .config.InputGroup import InputGroup
-        self.input_group = InputGroup(self, with_more_options=False)
+        self.input_group = InputGroup(self, with_more_options=True)
         self.layout.add(self.input_group, fill=True)
         self.layout.add_spacer(Skin.EXTRA_GROUP_MARGIN)
 
         self.input_group = InputGroup(self, with_more_options=False,
                 parallel_ports=True)
+        self.layout.add(self.input_group, fill=True)
+
+        self.input_group = InputGroup(self, with_more_options=False,
+                custom_ports=True)
         self.layout.add(self.input_group, fill=True)

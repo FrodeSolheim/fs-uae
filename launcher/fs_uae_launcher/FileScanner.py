@@ -47,6 +47,7 @@ class FileScanner:
             self.extensions.append(".wav")
             self.extensions.append(".zip")
             self.extensions.append(".lha")
+            self.extensions.append(".rp9")
         if self.scan_for_configs:
             self.extensions.append(".fs-uae")
             #self.extensions.append(".xml")
@@ -63,6 +64,7 @@ class FileScanner:
         return self.paths
 
     def scan(self):
+        self.set_status(_("Scanning files"), _("Scanning files"))
         database = Database()
         #database.clear()
         scan_dirs = self.get_scan_dirs()
@@ -76,8 +78,9 @@ class FileScanner:
             self.set_status(_("Scanning files"), _("Committing data..."))
             print("FileScanner.scan - commiting data")
             database.commit()
+            ROMManager.patch_standard_roms(database)
 
-    def scan_dir(self, database, dir):
+    def scan_dir(self, database, dir, all_files=False):
         #print("scan_dir", repr(dir))
         if not os.path.exists(dir):
             return
@@ -85,19 +88,43 @@ class FileScanner:
         # operating systems
         dir = get_real_case(dir)
 
-        for name in os.listdir(dir):
+        dir_content = os.listdir(dir)
+
+        if not all_files:
+            for name in dir_content:
+                try:
+                    # check that the file is actually unicode object (indirectly).
+                    # listdir will return str objects for file names on Linux
+                    # with invalid encoding.
+                    unicode(name)
+                except UnicodeDecodeError:
+                    continue
+                lname = name.lower()
+                if lname.endswith(".slave") or lname.endswith(".slave"):
+                    all_files = True
+                    break
+
+        for name in dir_content:
+            try:
+                # check that the file is actually unicode object (indirectly).
+                # listdir will return str objects for file names on Linux
+                # with invalid encoding.
+                unicode(name)
+            except UnicodeDecodeError:
+                continue
             if self.stop_check():
                 return
             if name in [".git"]:
                 continue
             path = os.path.join(dir, name)
             if os.path.isdir(path):
-                self.scan_dir(database, path)
+                self.scan_dir(database, path, all_files=all_files)
                 continue
-            dummy, ext = os.path.splitext(path)
-            ext = ext.lower()
-            if ext not in self.extensions:
-                continue
+            if not all_files:
+                dummy, ext = os.path.splitext(path)
+                ext = ext.lower()
+                if ext not in self.extensions:
+                    continue
             try:
                 self.scan_file(database, path)
             except Exception:
@@ -183,21 +210,18 @@ class FileScanner:
         #crc32 = c & 0xffffffff
         crc32 = ""
         if ext == ".rom":
-            s = hashlib.sha1()
             try:
-                ROMManager.decrypt_archive_rom(archive, path, sha1=s)
+                sha1_dec = ROMManager.decrypt_archive_rom(archive, path)["sha1"]
             except Exception:
                 import traceback
                 traceback.print_exc()
-            else:
-                sha1_dec = s.hexdigest()
-                #sha1_dec = ROMManager.get_decrypted_sha1(path)
-                if sha1_dec != sha1:
-                    print("found encrypted rom {0} => {1}".format(sha1, sha1_dec))
-                    # sha1 is now the decrypted sha1, not the actual sha1 of the file
-                    # itself, a bit ugly, since md5 and crc32 are still encrypted
-                    # hashes, but it works well with the kickstart lookup mechanism
-                    sha1 = sha1_dec
+                sha1_dec = None
+            if sha1_dec != sha1:
+                print("found encrypted rom {0} => {1}".format(sha1, sha1_dec))
+                # sha1 is now the decrypted sha1, not the actual sha1 of the file
+                # itself, a bit ugly, since md5 and crc32 are still encrypted
+                # hashes, but it works well with the kickstart lookup mechanism
+                sha1 = sha1_dec
 
         database.add_file(path=path, sha1=sha1, md5=md5, crc32=crc32,
                 mtime=mtime, size=size, scan=self.scan_version, name=name)

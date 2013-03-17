@@ -1,6 +1,7 @@
 #ifndef FS_STRING_H_
 #define FS_STRING_H_
 
+#include <stdarg.h>
 #include <fs/defines.h>
 
 #ifdef __cplusplus
@@ -24,40 +25,43 @@ typedef enum {
 extern const uint16_t * const fs_ascii_table;
 
 #define fs_ascii_isalnum(c) \
-  ((fs_ascii_table[(guchar) (c)] & FS_ASCII_ALNUM) != 0)
+  ((fs_ascii_table[(unsigned char) (c)] & FS_ASCII_ALNUM) != 0)
 
 #define fs_ascii_isalpha(c) \
-  ((fs_ascii_table[(guchar) (c)] & FS_ASCII_ALPHA) != 0)
+  ((fs_ascii_table[(unsigned char) (c)] & FS_ASCII_ALPHA) != 0)
 
 #define fs_ascii_iscntrl(c) \
-  ((fs_ascii_table[(guchar) (c)] & FS_ASCII_CNTRL) != 0)
+  ((fs_ascii_table[(unsigned char) (c)] & FS_ASCII_CNTRL) != 0)
 
 #define fs_ascii_isdigit(c) \
-  ((fs_ascii_table[(guchar) (c)] & FS_ASCII_DIGIT) != 0)
+  ((fs_ascii_table[(unsigned char) (c)] & FS_ASCII_DIGIT) != 0)
 
 #define fs_ascii_isgraph(c) \
-  ((fs_ascii_table[(guchar) (c)] & FS_ASCII_GRAPH) != 0)
+  ((fs_ascii_table[(unsigned char) (c)] & FS_ASCII_GRAPH) != 0)
 
 #define fs_ascii_islower(c) \
-  ((fs_ascii_table[(guchar) (c)] & FS_ASCII_LOWER) != 0)
+  ((fs_ascii_table[(unsigned char) (c)] & FS_ASCII_LOWER) != 0)
 
 #define fs_ascii_isprint(c) \
-  ((fs_ascii_table[(guchar) (c)] & FS_ASCII_PRINT) != 0)
+  ((fs_ascii_table[(unsigned char) (c)] & FS_ASCII_PRINT) != 0)
 
 #define fs_ascii_ispunct(c) \
-  ((fs_ascii_table[(guchar) (c)] & FS_ASCII_PUNCT) != 0)
+  ((fs_ascii_table[(unsigned char) (c)] & FS_ASCII_PUNCT) != 0)
 
 #define fs_ascii_isspace(c) \
-  ((fs_ascii_table[(guchar) (c)] & FS_ASCII_SPACE) != 0)
+  ((fs_ascii_table[(unsigned char) (c)] & FS_ASCII_SPACE) != 0)
 
 #define fs_ascii_isupper(c) \
-  ((fs_ascii_table[(guchar) (c)] & FS_ASCII_UPPER) != 0)
+  ((fs_ascii_table[(unsigned char) (c)] & FS_ASCII_UPPER) != 0)
 
 #define fs_ascii_isxdigit(c) \
-  ((fs_ascii_table[(guchar) (c)] & FS_ASCII_XDIGIT) != 0)
+  ((fs_ascii_table[(unsigned char) (c)] & FS_ASCII_XDIGIT) != 0)
 
+#define fs_strstrip(string) fs_strchomp (fs_strchug(string))
 
 char *fs_strdup_printf(const char *format, ...) FS_MALLOC;
+char *fs_strdup_vprintf(const char *format, va_list args);
+
 char *fs_strconcat(const char *string1, ...) FS_SENTINEL;
 
 int fs_ascii_strcasecmp(const char *s1, const char *s2);
@@ -67,7 +71,7 @@ char fs_ascii_toupper(char c);
 char *fs_ascii_strdown(const char *str, ssize_t len);
 char *fs_ascii_strup(const char *str, ssize_t len);
 
-//double fs_ascii_strtod(const char *nptr, char **endptr);
+double fs_ascii_strtod(const char *nptr, char **endptr);
 //char *fs_ascii_formatd(char *buffer, int buf_len, const char *format, double d);
 
 int fs_str_has_suffix(const char *str, const char *suffix);
@@ -80,6 +84,14 @@ char *fs_strdelimit(char *string, const char *delimiters, char new_delim);
 
 char *fs_strchug(char *string);
 char *fs_strchomp(char *string);
+
+void *fs_memdup(const void *mem, unsigned int byte_size);
+
+int fs_str_equal (const void *v1, const void *v2);
+unsigned int fs_str_hash (const void *v);
+
+void fs_strfreev(char **str_array);
+char **fs_strsplit(const char *string, const char *delimiter, int max_tokens);
 
 #ifdef __cplusplus
 }

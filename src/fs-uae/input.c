@@ -1,3 +1,5 @@
+#include "fs-uae.h"
+#include <stdlib.h>
 #include <uae/uae.h>
 #include <fs/emu.h>
 #include <fs/i18n.h>
@@ -403,6 +405,7 @@ static fs_emu_action g_actions[] = {
 
     { INPUTEVENT_SPC_ENTERDEBUGGER, "action_enter_debugger", 0 },
 
+    { 65536, "action_none", 0 },
     { 0, 0, 0 },
 };
 
@@ -426,11 +429,12 @@ static int hotkey_function(int key_code, int key_mod) {
     case FS_ML_KEY_D:
         fs_emu_log("hot key: enter debugger\n");
         if (fs_config_get_boolean("console_debugger") == 1) {
-            fs_emu_warning("Activated Debugger");
+            fs_emu_warning(_("Activated debugger"));
             fs_emu_queue_action(INPUTEVENT_SPC_ENTERDEBUGGER, 1);
         }
         else {
-            fs_emu_warning("Option \"console_debugger\" Must Be Set First");
+            fs_emu_warning(_("Option \"%s\" is not enabled"),
+                    "console_debugger");
         }
         return 0;
     }
@@ -438,6 +442,10 @@ static int hotkey_function(int key_code, int key_mod) {
 }
 
 void fs_uae_configure_actions() {
+    fs_log("fs_uae_configure_actions\n");
     fs_emu_set_actions(g_actions);
-	fs_emu_set_hotkey_function(hotkey_function);
+    for (int i = 0; i < FS_UAE_NUM_INPUT_PORTS; i++) {
+        fs_uae_read_override_actions_for_port(i);
+    }
+    fs_emu_set_hotkey_function(hotkey_function);
 }

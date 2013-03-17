@@ -102,6 +102,9 @@ def set_tooltip(self, text):
     import wx
     self.SetToolTip(wx.ToolTip(text))
 
+def popup_menu(self, menu, pos=(0, 0)):
+    self.PopupMenu(menu._menu, pos)
+
 names = [
     "disable",
     "enable",
@@ -121,6 +124,7 @@ names = [
     "set_size",
     "set_tooltip",
     "show",
+    "popup_menu",
 ]
 
 def update_class(klass):

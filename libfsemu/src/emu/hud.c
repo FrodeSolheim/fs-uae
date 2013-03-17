@@ -16,13 +16,27 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
  */
 
+#include "hud.h"
+
+#include <string.h>
+#include <stdlib.h>
 #include <fs/emu.h>
+#include <fs/config.h>
+#include <fs/thread.h>
+#include <fs/queue.h>
 #include "libfsemu.h"
 #include "render.h"
 #include "menu.h"
 #include "font.h"
 
+#ifdef USE_OPENGL
+#include <fs/ml/opengl.h>
+#endif
+ 
 #define MAX_VISIBLE_TIME (10 * 1000 * 1000)
+#define DEFAULT_DURATION (10 * 1000 * 1000)
+
+static int g_notification_duration = DEFAULT_DURATION;
 
 char g_fs_emu_chat_string[FS_EMU_MAX_CHAT_STRING_SIZE + 1] = {};
 static int g_fs_emu_chat_string_pos = 0;
@@ -31,54 +45,113 @@ static int64_t g_last_line_time = 0;
 int g_fs_emu_hud_mode = 0;
 
 typedef struct console_line {
+    int type;
     int64_t time;
+    int64_t show_until;
     char *text;
 } console_line;
 
-static GQueue *g_console_lines = NULL;
+static fs_queue *g_console_lines = NULL;
+static fs_mutex *g_console_mutex = NULL;
 
-void fs_emu_initialize_hud_module() {
-    g_console_lines = g_queue_new();
+void fs_emu_hud_init(void) {
+    g_console_mutex = fs_mutex_create();
+    g_console_lines = fs_queue_new();
 }
 
-int fs_emu_in_chat_mode() {
+void fs_emu_hud_init_after_config(void) {
+    g_notification_duration = fs_config_get_int_clamped(
+            "notification_duration", 0, 60 * 1000);
+    if (g_notification_duration == FS_CONFIG_NONE) {
+        g_notification_duration = DEFAULT_DURATION;
+    }
+    else {
+        g_notification_duration *= 1000;
+    }
+}
+
+int fs_emu_hud_in_chat_mode() {
     return g_fs_emu_chat_mode;
 }
 
-void fs_emu_enable_chat_mode() {
+void fs_emu_hud_enable_chat_mode() {
     g_fs_emu_chat_mode = 1;
     g_fs_emu_hud_mode = 1;
 }
 
-void fs_emu_add_console_line(const char *text, int flags) {
-    console_line *line = g_malloc(sizeof(console_line));
-    line->text = g_strdup(text);
+void fs_emu_notification(int type, const char *format, ...) {
+    va_list ap;
+    va_start(ap, format);
+    char *buffer = fs_strdup_vprintf(format, ap);
+    va_end(ap);
+    int len = strlen(buffer);
+    // strip trailing newline, if any
+    if (len > 0 && buffer[len - 1] == '\n') {
+        buffer[len - 1] = '\0';
+    }
+    fs_log("%s\n", buffer);
+
+    fs_mutex_lock(g_console_mutex);
+
+    if (type != 0) {
+       console_line *line = fs_queue_peek_head(g_console_lines);
+       if (line && line->type == type) {
+           free(line->text);
+           line->text = buffer;
+           line->time = fs_emu_monotonic_time();
+           line->show_until = line->time + g_notification_duration;
+           g_last_line_time = MAX(line->show_until, line->show_until);
+           fs_mutex_unlock(g_console_mutex);
+           return;
+       }
+    }
+
+    console_line *line = malloc(sizeof(console_line));
+    //printf("new console line at %p\n", line);
+    line->type = type;
+    line->text = buffer;
     line->time = fs_emu_monotonic_time();
-    fs_emu_acquire_gui_lock();
-    g_queue_push_head(g_console_lines, line);
-    g_last_line_time = line->time;
-    fs_emu_release_gui_lock();
+    line->show_until = line->time + g_notification_duration;
+    g_last_line_time = MAX(line->show_until, line->show_until);
+
+    fs_queue_push_head(g_console_lines, line);
+    fs_mutex_unlock(g_console_mutex);
 }
 
-void fs_emu_add_chat_message(const char *text, const char *player) {
+void fs_emu_hud_add_console_line(const char *text, int flags) {
+    console_line *line = malloc(sizeof(console_line));
+    line->type = 0;
+    line->text = fs_strdup(text);
+    line->time = fs_emu_monotonic_time();
+    line->show_until = line->time + DEFAULT_DURATION;
+    g_last_line_time = MAX(line->show_until, line->show_until);
+
+    fs_mutex_lock(g_console_mutex);
+    fs_queue_push_head(g_console_lines, line);
+    fs_mutex_unlock(g_console_mutex);
+}
+
+void fs_emu_hud_add_chat_message(const char *text, const char *player) {
     char *line;
     if (text[0] == 1) {
-        line = g_strdup_printf("* %s taunts: %s", player, text);
+        line = fs_strdup_printf("* %s taunts: %s", player, text);
     }
     else {
-        line = g_strdup_printf("<%s> %s", player, text);
+        line = fs_strdup_printf("<%s> %s", player, text);
     }
-    fs_emu_add_console_line(line, 0);
-    g_free(line);
+    fs_emu_hud_add_console_line(line, 0);
+    free(line);
 }
 
-void fs_emu_say(const char *text) {
+void fs_emu_netplay_say(const char *text) {
+#ifdef WITH_NETPLAY
     fs_emu_send_netplay_message(text);
-    //char *line = g_strdup_printf("<%s> %s",
+    //char *line = fs_strdup_printf("<%s> %s",
      //       fs_emu_get_netplay_tag(-1), text);
     //fs_emu_add_console_line(line, 0);
     //g_free(line);
-    fs_emu_add_chat_message(text, fs_emu_get_netplay_tag(-1));
+    fs_emu_hud_add_chat_message(text, fs_emu_get_netplay_tag(-1));
+#endif
 }
 
 static void process_command(const char* text) {
@@ -87,17 +160,17 @@ static void process_command(const char* text) {
     }
     fs_log("process_command: %s\n", g_fs_emu_chat_string);
     if (text[0] != '/') {
-        fs_emu_say(text);
+        fs_emu_netplay_say(text);
     }
 }
 
-int fs_emu_handle_chat_input(fs_emu_event *event) {
-    fs_emu_acquire_gui_lock();
+int fs_emu_hud_handle_chat_input(fs_emu_event *event) {
+    fs_mutex_lock(g_console_mutex);
     int key_code = event->key.keysym.sym;
     if (key_code == FS_ML_KEY_RETURN) {
-        fs_emu_release_gui_lock();
+        fs_mutex_unlock(g_console_mutex);
         process_command(g_fs_emu_chat_string);
-        fs_emu_acquire_gui_lock();
+        fs_mutex_lock(g_console_mutex);
         g_fs_emu_chat_string_pos = 0;
         g_fs_emu_chat_string[g_fs_emu_chat_string_pos] = 0;
     }
@@ -131,21 +204,24 @@ int fs_emu_handle_chat_input(fs_emu_event *event) {
         }
     }
     //fs_log("chat: %s\n", g_fs_emu_chat_string);
-    fs_emu_release_gui_lock();
+    fs_mutex_unlock(g_console_mutex);
     return 1;
 }
 
 #define MAX_VISIBLE_LINES 12
 
-void fs_emu_render_chat() {
-    GList *link;
+void fs_emu_hud_render_chat() {
+    fs_list *link;
     int k;
 
-    fs_emu_assert_gui_lock();
+    //fs_emu_assert_gui_lock();
+    fs_mutex_lock(g_console_mutex);
     int64_t now = fs_emu_monotonic_time();
 
     int64_t time_diff = now - g_last_line_time;
-    if (time_diff > MAX_VISIBLE_TIME && !g_fs_emu_chat_mode) {
+    //if (time_diff > MAX_VISIBLE_TIME && !g_fs_emu_chat_mode) {
+    if (time_diff >= 0 && !g_fs_emu_chat_mode) {
+        fs_mutex_unlock(g_console_mutex);
         return;
     }
 
@@ -212,12 +288,27 @@ void fs_emu_render_chat() {
         fs_gl_blending(1);
         fs_gl_texturing(0);
         fs_gl_color4f(0.0, 0.3, 0.5, 0.75);
+
+#ifdef USE_GLES
+        GLfloat vert[] = {
+            0, 0,
+            1920, 0,
+            1920, 60,
+            0, 60
+        };
+
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glVertexPointer(2, GL_FLOAT, 0, vert);
+        glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+        glDisableClientState(GL_VERTEX_ARRAY);
+#else
         glBegin(GL_QUADS);
         glVertex2f(0, 0);
         glVertex2f(1920, 0);
         glVertex2f(1920, 60);
         glVertex2f(0, 60);
         glEnd();
+#endif
     }
 
     fs_emu_font *font = fs_emu_font_get_menu();
@@ -236,7 +327,7 @@ void fs_emu_render_chat() {
     tx = 65;
     ty = 65;
 
-    link = g_queue_peek_head_link(g_console_lines);
+    link = fs_queue_peek_head_link(g_console_lines);
     k = 0;
     while (link) {
         console_line *line = (console_line *) link->data;
@@ -254,5 +345,5 @@ void fs_emu_render_chat() {
             break;
         }
     }
-
+    fs_mutex_unlock(g_console_mutex);
 }

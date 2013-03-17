@@ -1,9 +1,13 @@
 #include <fs/image.h>
 #include <fs/log.h>
+#include <fs/filesys.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#ifdef USE_PNG
 #include <png.h>
+#endif
 
 void fs_image_destroy(void* ptr) {
     fs_log("fs_image_destroy\n");
@@ -26,6 +30,7 @@ fs_image* fs_image_new() {
 }
 
 fs_image* fs_image_new_from_file(const char* file) {
+#ifdef USE_PNG
     int y;
     int width, height;
     png_byte color_type;
@@ -39,14 +44,17 @@ fs_image* fs_image_new_from_file(const char* file) {
 
     fs_image* image = fs_image_new();
 
-    FILE *fp = fopen(file, "rb");
+    FILE *fp = fs_fopen(file, "rb");
     if (!fp) {
         fs_log("file %s could not be opened for reading\n", file);
         fs_unref(image);
         //return image;
         return NULL;
     }
-    fread(header, 1, 8, fp);
+    if (fread(header, 1, 8, fp) != 8) {
+        fs_log("could not read 8 bytes from PNG file %s\n", file);
+        return NULL;
+    }
     if (png_sig_cmp(header, 0, 8)) {
         fs_log("file %s is not recognized as a PNG file\n", file);
         fs_unref(image);
@@ -158,10 +166,14 @@ fs_image* fs_image_new_from_file(const char* file) {
     image->width = width;
     image->height = height;
     return image;
+#else
+    return NULL;
+#endif
 }
 
 int fs_image_save_data(const char *path, void *buffer, int width, int height,
         int bpp) {
+#ifdef USE_PNG
     FILE *fp;
     void *data;
     png_structp png_ptr;
@@ -188,7 +200,7 @@ int fs_image_save_data(const char *path, void *buffer, int width, int height,
         return 0;
     }
 
-    fp = fopen(path, "wb");
+    fp = fs_fopen(path, "wb");
     if (fp == NULL) {
         fs_log("could not open png file for writing\n");
         return 0;
@@ -251,4 +263,7 @@ int fs_image_save_data(const char *path, void *buffer, int width, int height,
     free(row_pointers);
     fclose(fp);
     return 1;
+#else
+    return 0;
+#endif
 }

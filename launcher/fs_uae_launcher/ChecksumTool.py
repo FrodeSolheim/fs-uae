@@ -35,6 +35,4 @@ class ChecksumTool():
     def checksum_rom(self, path):
         print("checksum_rom", repr(path))
         archive = Archive(path)
-        sha1 = hashlib.sha1()
-        ROMManager.decrypt_archive_rom(archive, path, sha1=sha1)
-        return sha1.hexdigest()
+        return ROMManager.decrypt_archive_rom(archive, path)["sha1"]

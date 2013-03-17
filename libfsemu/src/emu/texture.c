@@ -1,16 +1,22 @@
 #include "texture.h"
 
-#include <fs/glee.h>
+#ifdef USE_OPENGL
+#include <fs/ml/opengl.h>
+
+#ifdef USE_SDL
 #include <SDL.h>
 #include <SDL_opengl.h>
+#endif
+
+#endif
 
 #include <fs/ml.h>
-
 #include "fs/image.h"
-#include "video.h"
-#include "render.h"
-#include "libfsemu.h"
 
+#include "libfsemu.h"
+#include "render.h"
+#include "theme.h"
+#include "video.h"
 static fs_emu_texture *g_atlas = NULL;
 fs_emu_texture *g_fs_emu_overlay_texture = NULL;
 
@@ -55,12 +61,36 @@ void fs_emu_draw_from_atlas(float dx, float dy, float dw, float dh,
     //printf("%f %f %f %f - %f %f %f %f\n", dx, dy, dw, dh, tx, ty, tw, th);
 
     fs_emu_set_texture(g_atlas);
+#ifdef USE_GLES
+    GLfloat tex[] = {
+        tx, ty + th,
+        tx + tw, ty + th,
+        tx + tw, ty,
+        tx, ty
+    };
+    GLfloat vert[] = {
+        dx, dy,
+        dx + dw, dy,
+        dx + dw, dy + dh,
+        dx, dy + dh
+    };
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+    glVertexPointer(2, GL_FLOAT, 0, vert);
+    glTexCoordPointer(2, GL_FLOAT, 0, tex);
+    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+#else
     glBegin(GL_QUADS);
     glTexCoord2f(tx, ty + th); glVertex2f(dx, dy);
     glTexCoord2f(tx + tw, ty + th); glVertex2f(dx + dw, dy);
     glTexCoord2f(tx + tw, ty); glVertex2f(dx + dw, dy + dh);
     glTexCoord2f(tx, ty); glVertex2f(dx, dy + dh);
     glEnd();
+#endif
     CHECK_GL_ERROR();
 }
 
@@ -119,7 +149,7 @@ static inline void copy_pixel(unsigned char **dst, unsigned char **src) {
 
 static void load_atlas_texture(fs_image *atlas_image,
         int texture_id, const char *name) {
-    char *path = fs_emu_get_theme_resource(name);
+    char *path = fs_emu_theme_get_resource(name);
     if (!path) {
         fs_emu_warning("Could not find resource %s\n", name);
         return;
@@ -313,6 +343,10 @@ static void context_notification_handler(int notification, void *data) {
 }
 
 void fs_emu_initialize_textures() {
+    if (g_fs_emu_theme.width == 0) {
+        fs_emu_fatal("theme is not initialized yet");
+    }
+
     //g_atlas = fs_emu_texture_new_from_file("atlas");
     fs_image *image = fs_image_new();
     image->width = 1024;
@@ -330,7 +364,7 @@ void fs_emu_initialize_textures() {
     fs_gl_add_context_notification(context_notification_handler, g_atlas);
 
     if (g_fs_emu_theme.overlay_image[0]) {
-        char *path = fs_emu_get_theme_resource(g_fs_emu_theme.overlay_image);
+        char *path = fs_emu_theme_get_resource(g_fs_emu_theme.overlay_image);
         fs_log("g_fs_emu_theme.overlay_image %s => %s\n",
                 g_fs_emu_theme.overlay_image, path);
         if (path) {
@@ -338,17 +372,55 @@ void fs_emu_initialize_textures() {
         }
     }
 
-    for (int i = 0; i < MAX_CUSTOM_OVERLAYS; i++) {
-        char *name;
-        name = fs_strdup_printf("custom_%d.png", i);
-        char *path = fs_emu_get_theme_resource(name);
-        if (path) {
-            //printf("loading %s\n", path);
-            g_fs_emu_theme.overlay_textures[i] =
-                    fs_emu_texture_new_from_file(path);
-            free(path);
+    for (int i = 0; i < FS_EMU_MAX_OVERLAYS; i++) {
+        for (int j = 0; j < FS_EMU_MAX_OVERLAY_STATES; j++) {
+            fs_emu_texture *tex = NULL;
+            char *name = fs_strdup_printf("custom_%d_%d.png",
+                    i - FS_EMU_FIRST_CUSTOM_OVERLAY, j);
+            char *path = fs_emu_theme_get_resource(name);
+            if (!path && g_fs_emu_theme.overlays[i].name) {
+                free(name);
+                name = fs_strdup_printf("%s_%d.png",
+                        g_fs_emu_theme.overlays[i].name, j);
+                path = fs_emu_theme_get_resource(name);
+            }
+            if (path) {
+                tex = fs_emu_texture_new_from_file(path);
+                g_fs_emu_theme.overlays[i].textures[j] = tex;
+                free(path);
+            }
+            else if (j == 1) {
+                char *base_name = fs_strdup_printf("custom_%d.png",
+                        i - FS_EMU_FIRST_CUSTOM_OVERLAY);
+                path = fs_emu_theme_get_resource(base_name);
+                if (!path && g_fs_emu_theme.overlays[i].name) {
+                    free(name);
+                    name = fs_strdup_printf("%s.png",
+                            g_fs_emu_theme.overlays[i].name);
+                    path = fs_emu_theme_get_resource(name);
+                }
+                if (path) {
+                    tex = fs_emu_texture_new_from_file(path);
+                    g_fs_emu_theme.overlays[i].textures[j] = tex;
+                    free(path);
+                }
+                free(base_name);
+            }
+            else if (j >= 2) {
+                g_fs_emu_theme.overlays[i].textures[j] = \
+                        g_fs_emu_theme.overlays[i].textures[j - 1];
+            }
+            free(name);
+
+            // size will be determined from the last loaded texture/state
+            // for the overlay
+            if (tex) {
+                g_fs_emu_theme.overlays[i].w =
+                        (double) tex->width / g_fs_emu_theme.width;
+                g_fs_emu_theme.overlays[i].h =
+                        (double) tex->height / g_fs_emu_theme.height;
+            }
         }
-        free(name);
     }
 }
 
@@ -463,8 +535,32 @@ void fs_emu_render_texture_with_size(fs_emu_texture *texture, int x, int y,
     //fs_emu_texturing(0);
     //return;
     //fs_log("%d %d %d %d\n", x, y, x + w , y + h);
-    glBegin(GL_QUADS);
     fs_gl_color4f(1.0, 1.0, 1.0, 1.0);
+#ifdef USE_GLES
+    GLfloat tex[] = {
+        0.0, 1.0,
+        1.0, 1.0,
+        1.0, 0.0,
+        0.0, 0.0
+    };
+    GLfloat vert[] = {
+        x, y,
+        x + w, y,
+        x + w, y + h,
+        x, y + h
+    };
+    
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+    
+    glVertexPointer(2, GL_FLOAT, 0, vert);
+    glTexCoordPointer(2, GL_FLOAT, 0, tex);
+    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+    
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+#else
+    glBegin(GL_QUADS);
     glTexCoord2f(0.0, 1.0);
     glVertex2f(x, y);
     glTexCoord2f(1.0, 1.0);
@@ -474,5 +570,6 @@ void fs_emu_render_texture_with_size(fs_emu_texture *texture, int x, int y,
     glTexCoord2f(0.0, 0.0);
     glVertex2f(x, y + h);
     glEnd();
+#endif
     CHECK_GL_ERROR();
 }

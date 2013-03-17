@@ -62,8 +62,7 @@ def get_lib_dir():
     lib_dir = os.environ.get('LIB_DIR', '').decode('UTF-8')
     if lib_dir:
         return unicode_path(lib_dir)
-    #os.path.join(os.getcwd, sys.argv[0]
-    lib_dir = os.path.join(os.getcwd(), 'lib')
+    lib_dir = os.path.join(os.getcwdu(), "lib")
     if os.path.exists(lib_dir):
         return lib_dir
     #raise RuntimeError("could not detect lib dir")
@@ -181,30 +180,31 @@ def get_data_dir():
     return path
 
 
-@cache
-def get_app_data_dir():
-    path = os.path.join(get_data_dir(), get_app_id())
+@memoize
+def get_app_data_dir(app=None):
+    if not app:
+        app = get_app_id()
+    path = os.path.join(get_data_dir(), app)
     if not os.path.exists(path):
         os.makedirs(path)
     return path
 
-
-@cache
-def get_app_config_dir():
+@memoize
+def get_app_config_dir(app=None):
+    if not app:
+        app = get_app_id()
     if windows:
-        path = os.path.join(get_app_data_dir(), 'config')
+        path = os.path.join(get_app_data_dir())
     elif macosx:
-        path = os.path.join(get_home_dir(), 'Library', 'Preferences',
-                get_app_id())
+        path = os.path.join(get_home_dir(), "Library", "Preferences", app)
     else:
-        path = os.path.join(get_home_dir(), '.config')
+        path = os.path.join(get_home_dir(), ".config")
         path = os.environ.get('XDG_CONFIG_HOME', path)
-        path = os.path.join(path, get_app_id())
+        path = os.path.join(path, app)
         path = unicode_path(path)
     if not os.path.isdir(path):
         os.makedirs(path)
     return path
-
 
 @cache
 def get_app_cache_dir():
@@ -271,10 +271,14 @@ def normalize_path(path):
 @memoize
 def get_user_name():
     if windows:
-        # FIXME: This is not tested on Windows yet
-        return win32api.GetUserName()
+        user_name = win32api.GetUserName()
+        encoding = "mbcs"
     else:
-        return getpass.getuser()
+        user_name = getpass.getuser()
+        encoding = "UTF-8"
+    if isinstance(user_name, unicode):
+        return user_name
+    return unicode(user_name, encoding, "replace")
 
 @memoize
 def xdg_user_dir(name):

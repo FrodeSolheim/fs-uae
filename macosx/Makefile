@@ -7,7 +7,7 @@ bindist: bundle
 	cp ../COPYING fs-uae-$(version)-macosx/
 	cp ../README fs-uae-$(version)-macosx/
 	cp ../example.conf fs-uae-$(version)-macosx/
-	tar zcfv fs-uae-$(version)-macosx.tar.gz fs-uae-$(version)-macosx
+	GZIP=-9 tar zcfv fs-uae-$(version)-macosx.tar.gz fs-uae-$(version)-macosx
 
 bundle:
 	make -C ..
@@ -17,8 +17,8 @@ bundle:
 	mkdir -p fs-uae-$(version)-macosx/FS-UAE.app/Contents/MacOS
 	mkdir -p fs-uae-$(version)-macosx/FS-UAE.app/Contents/Resources
 	cp -pPR template/* fs-uae-$(version)-macosx/FS-UAE.app/
-	cp ../out/fs-uae fs-uae-$(version)-macosx/FS-UAE.app/Contents/MacOS
-	cp ../../out/libfs-capsimage.dylib fs-uae-$(version)-macosx/FS-UAE.app/Contents/Frameworks
+	cp ../fs-uae fs-uae-$(version)-macosx/FS-UAE.app/Contents/MacOS
+	cp ../../libfs-capsimage.dylib fs-uae-$(version)-macosx/FS-UAE.app/Contents/Frameworks || cp ../libfs-capsimage.dylib fs-uae-$(version)-macosx/FS-UAE.app/Contents/Frameworks
 	cp -pPR ../share/* fs-uae-$(version)-macosx/FS-UAE.app/Contents/Resources
 	strip fs-uae-$(version)-macosx/FS-UAE.app/Contents/MacOS/*
 	#strip fs-uae-$(version)-macosx/FS-UAE.app/Contents/Frameworks/*
@@ -33,4 +33,4 @@ launcher:
 	cp -pPR ../launcher/share/* fs-uae-$(version)-macosx/"FS-UAE Launcher.app"/Contents/Resources
 
 bindist-plus:
-	tar zcfv fs-uae-plus-$(version)-macosx.tar.gz fs-uae-$(version)-macosx
+	GZIP=-9 tar zcfv fs-uae-plus-$(version)-macosx.tar.gz fs-uae-$(version)-macosx

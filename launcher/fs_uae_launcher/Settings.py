@@ -21,6 +21,8 @@ class Settings:
 
     default_settings = {
         "__netplay_ready": "",
+        "automatic_input_grab": "",
+        "builtin_configs": "",
         "config_base": "",
         "config_changed": "0",
         "config_name": "Unnamed Configuration",
@@ -29,25 +31,51 @@ class Settings:
         "config_search": "",
         "config_xml_path": "",
         "configurations_dir_mtime": "",
-        "fullscreen": "0",
+        "database_feature": "",
+        "database_password": "",
+        "database_username": "",
+        "fsaa": "",
+        "floppy_drive_volume": "",
+        "fullscreen": "",
         "fullscreen_mode": "fullscreen",
+        "game_uuid": "",
+        "initial_input_grab": "",
+        "irc_nick": "",
+        "irc_server": "",
+        "keep_aspect": "",
         "kickstarts_dir_mtime": "",
+        "kickstart_setup": "",
         "last_cd_dir": "",
         "last_floppy_dir": "",
         "last_hd_dir": "",
         "last_rom_dir": "",
         "last_scan": "",
+        "low_latency_vsync": "",
         "maximized": "0",
+        "middle_click_ungrab": "",
+        "mouse_speed": "",
+        "netplay_feature": "",
+        "netplay_tag": "",
+        "parent_uuid": "",
         "primary_joystick": "",
+        "rtg_scanlines": "",
         "scan_configs": "1",
         "scan_files": "1",
         "scan_roms": "1",
+        "scanlines": "",
         "search_path": "",
         "secondary_joystick": "",
+        "swap_ctrl_keys": "",
+        "texture_filter": "",
+        "texture_format": "",
         "ui_background_color": "",
+        "video_format": "",
+        "video_sync": "",
+        "video_sync_method": "",
+        "zoom": "",
         "window_width": "",
         "window_height": "",
-        }
+    }
 
     settings = default_settings.copy()
     #settings_listeners = []
@@ -84,9 +112,23 @@ class Settings:
     @classmethod
     def get_irc_nick(cls):
         value = cls.settings.get("irc_nick", "").strip()
-        if value:
-            return value
-        return fs.get_user_name()
+        if not value:
+            value = fs.get_user_name()
+        # these are probably valid too: \`
+        valid_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ" \
+                      "abcdefghijklmnopqrstuvwxyz" \
+                      "_[]{}|^"
+        extra_valid_chars = "0123456789-"
+        nick = ""
+        for c in value:
+            if c in valid_chars:
+                nick = nick + c
+                if extra_valid_chars:
+                    valid_chars += extra_valid_chars
+                    extra_valid_chars = ""
+        if not nick:
+            nick = "User"
+        return nick
 
     @classmethod
     def get_irc_nickserv_pass(cls):
@@ -94,7 +136,6 @@ class Settings:
         if value:
             return value
         return ""
-
 
     @classmethod
     def get_irc_server(cls):
@@ -104,16 +145,36 @@ class Settings:
         return "irc.fengestad.no"
 
     @classmethod
+    def read_custom_path(cls, name):
+        for app in ["fs-uae-launcher", "fs-uae"]:
+            key_path = os.path.join(fs.get_app_config_dir(app), name)
+            print("- checking", key_path)
+            if os.path.exists(key_path):
+                try:
+                    with open(key_path, "rb") as f:
+                        path = f.read().strip()
+                        break
+                except Exception, e:
+                    print("error reading custom path", repr(e))
+        else:
+            return None
+        lpath = path.lower()
+        if lpath.startswith("$home/") or lpath.startswith("$home\\"):
+            path = os.path.join(fs.get_home_dir(), path[6:])
+        return path
+
+    @classmethod
     @memoize
     def get_base_dir(cls):
         path = cls.base_dir
-        #if "base_dir" in cls.settings.keys():
-        #    path = cls.get("base_dir")
+        if not path:
+            path = cls.read_custom_path("base-dir")
         if not path:
             path = os.path.join(fs.get_documents_dir(True), "FS-UAE")
         if not os.path.exists(path):
             os.makedirs(path)
         path = get_real_case(path)
+        print("base dir is", path)
         return path
 
     @classmethod
@@ -126,14 +187,20 @@ class Settings:
         #        "Games", "CD32"))
         #paths.append(os.path.join(fs.get_home_dir(),
         #        "Games", "CDTV"))
+
+        if fs.windows:
+            from win32com.shell import shell, shellcon
+            path = shell.SHGetFolderPath(0, shellcon.CSIDL_COMMON_DOCUMENTS, 0, 0)
+            path = os.path.join(path, "Amiga Files")
+            paths.append(path)
         return paths
 
     @classmethod
     def get_whdload_dir(cls):
-        path = os.path.join(fs.get_home_dir(), "Games", "Amiga", "WHDLoad")
-        if os.path.exists(path):
-            return path
-        path = os.path.join(cls.get_base_dir(), "WHDLoad")
+        #path = os.path.join(fs.get_home_dir(), "Games", "Amiga", "WHDLoad")
+        #if os.path.exists(path):
+        #    return path
+        path = os.path.join(cls.get_hard_drives_dir(), "WHDLoad")
         if os.path.exists(path):
             path = get_real_case(path)
             return path
@@ -232,6 +299,13 @@ class Settings:
     @classmethod
     def get_themes_dir(cls):
         path = os.path.join(cls.get_base_dir(), "Themes")
+        if not os.path.exists(path):
+            os.makedirs(path)
+        return path
+
+    @classmethod
+    def get_cache_dir(cls):
+        path = os.path.join(cls.get_base_dir(), "Cache")
         if not os.path.exists(path):
             os.makedirs(path)
         return path

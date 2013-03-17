@@ -1,0 +1,792 @@
+# Portuguese translations for fs-uae-launcher package.
+# Copyright (C) 2012 Frode Solheim
+# This file is distributed under the same license as the fs-uae-launcher package.
+# Frode Solheim <fs-uae@fengestad.no>, 2012.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: fs-uae-launcher\n"
+"Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
+"POT-Creation-Date: 2013-03-12 22:03+0100\n"
+"PO-Revision-Date: 2013-03-13 14:14-0000\n"
+"Last-Translator: Mário Mateus <fs-uae-pt@fengestad.no>\n"
+"Language-Team: Portuguese\n"
+"Language: pt\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 1.5.5\n"
+
+msgid "16-bit"
+msgstr "16-bit"
+
+msgid "32-bit BGRA"
+msgstr "32-bit BGRA"
+
+msgid "32-bit RGBA"
+msgstr "32-bit RGBA"
+
+msgid "640x400 + Border"
+msgstr "640x400 + Margem"
+
+msgid "640x480 + Border"
+msgstr "640x480 + Margem"
+
+msgid "640x512 + Border"
+msgstr "640x512 + Margem"
+
+msgid "ADF & HDF Creator"
+msgstr "Criador de ADF & HDF"
+
+msgid "ADF - Extended Floppy Disk Image (MFM)"
+msgstr "ADF - Imagem de Diskette Extendida (MFM)"
+
+msgid "ADF - Standard Floppy Disk Image"
+msgstr "ADF - Formato Standard de Disquete"
+
+msgid "Abort"
+msgstr "Cancelar"
+
+msgid "About {name}"
+msgstr "Acerca "
+
+msgid "Accurate"
+msgstr "Preciso"
+
+msgid "Add Directory to Search Path"
+msgstr "Adicionar pasta para ao caminho da procura"
+
+msgid "Add Files to List"
+msgstr "Adicionar Ficheiros à Lista"
+
+msgid "Add Multiple CD-ROMs at Once"
+msgstr "Adicionar Vários CD-ROMs de Uma Vez"
+
+msgid "Add Multiple Floppies at Once"
+msgstr "Adicionar Várias Disquetes de Uma  Vez"
+
+msgid "Additional Options"
+msgstr "Opções Adicionais"
+
+msgid "Amiga Forever Import"
+msgstr "Importação de Amiga Forever"
+
+msgid "Amiga Forever import task started"
+msgstr "A Acção de  Importar Amiga Forever Começou "
+
+msgid "Amiga Model"
+msgstr "Modelo do Amiga"
+
+msgid "Audio Settings"
+msgstr "Opções de Som"
+
+msgid "Auto"
+msgstr "Auto"
+
+msgid "Auto + Border"
+msgstr "Auto + Margem"
+
+msgid "Auto-Fire is Off"
+msgstr "Auto-Fire está desligado"
+
+msgid "Auto-Fire is On"
+msgstr "Auto-Fire está ligado"
+
+msgid "Available Kickstart Versions"
+msgstr "Versões do Kickstart Disponiveis"
+
+msgid "Browse"
+msgstr "Procurar"
+
+msgid "Browse for File"
+msgstr "Procurar por um Ficheiro"
+
+msgid "Browse for Folder"
+msgstr "Procurar por uma Pasta"
+
+msgid "Built-in TCP/IP Stack"
+msgstr "Pilha TCP/IP Integrada"
+
+msgid "Built-in TCP/IP Stack (bsdsocket.library)"
+msgstr "Pilha TCP/IP Integrada (bsdsocket.library)"
+
+msgid "CD-ROM Drive"
+msgstr "Leitor de CD-ROM"
+
+msgid "CD-ROM Drives"
+msgstr "Leitores de CD-ROM"
+
+msgid "CD-ROMs"
+msgstr "CD-ROMs"
+
+msgid "CD32 Pad"
+msgstr "CD32 Joypad"
+
+msgid "Cancel"
+msgstr "Cancelar"
+
+msgid "Chip RAM"
+msgstr "Chip RAM"
+
+msgid "Choose CD-ROM Image"
+msgstr "Escolha uma Imagem de CD-ROM"
+
+msgid "Choose Extended ROM"
+msgstr "Escolha ROM Extendida"
+
+msgid "Choose Floppy Image"
+msgstr "Escolha uma Imagem disquete"
+
+msgid "Choose Hard Drive"
+msgstr "Escolher um Disco Rígido"
+
+msgid "Choose Kickstart ROM"
+msgstr "Escolher uma ROM Kickstart"
+
+msgid "Cleaning up..."
+msgstr "Limpando..."
+
+msgid "Clear List"
+msgstr "Limpar a Lista"
+
+msgid "Click 'Scan' button if you want to re-scan"
+msgstr "Clica no butão 'Procurar' se queres re-examinar"
+
+msgid "Click 'Scan' button to start scan"
+msgstr "Clica no butão 'Procurar' para começar"
+
+msgid "Click here to download"
+msgstr "Clica aqui para baixar"
+
+msgid "Click here to import kickstarts"
+msgstr "Clicar aqui para importar kickstarts"
+
+msgid "Close"
+msgstr "Fechar"
+
+msgid "Committing data..."
+msgstr "Enviando dados..."
+
+msgid "Config"
+msgstr "Configuração"
+
+msgid "Configuration"
+msgstr "Configuração"
+
+msgid "Configuration Browser"
+msgstr "Opções de Configuração"
+
+msgid "Configurations"
+msgstr "Configurações"
+
+msgid "Configure Joystick Buttons"
+msgstr "Configurar os Botões do Joystick"
+
+msgid "Connect"
+msgstr "Ligar"
+
+msgid ""
+"Copy {0}\n"
+"to {1}"
+msgstr ""
+"Copiar {0}\n"
+"para {1}"
+
+msgid "Could not open file for writing"
+msgstr "Não se conseguiu abrir ficheiro para escrita"
+
+msgid "Create"
+msgstr "Criar"
+
+msgid "Cursor Keys and Right Ctrl/Alt"
+msgstr "Teclas dos Cursores e Ctlr/Alt Direitos"
+
+msgid "Custom"
+msgstr "Personalizado"
+
+msgid "Custom Configuration"
+msgstr "Configuração Costumisada"
+
+msgid "Custom IRC server address"
+msgstr "Servidor de IRC Personalizado"
+
+msgid "Custom Joystick Port"
+msgstr "Porto de Joystick"
+
+msgid "Custom Options"
+msgstr "Opções Personalizadas"
+
+msgid "Custom Settings"
+msgstr "Ajustes Personalizados"
+
+msgid "Default"
+msgstr "Por Defeito"
+
+msgid "Default ({0})"
+msgstr "Por Defeito ({0})"
+
+msgid "Destination Directory:"
+msgstr "Directório de Destino:"
+
+msgid "Disconnect"
+msgstr "Desligar"
+
+msgid "Disk Image Name:"
+msgstr "Nome da Imagem de Disco:"
+
+msgid "Disk image created"
+msgstr "Imagem de disco criada"
+
+msgid "Download failed (attempt {0}) - retrying in {0} seconds"
+msgstr ""
+"Tentativa de download falhada (tentativa {0}) - voltar a tentar em {0} "
+"segundos"
+
+msgid "Downloading {0}..."
+msgstr "A baixar {0}..."
+
+msgid "Edit Custom Options"
+msgstr "Editar Opções Personalizadas"
+
+msgid "Eject"
+msgstr "Ejectar"
+
+msgid "Enable experimental net play GUI (requires restart)"
+msgstr ""
+"Activar GUI experimental de jogar em rede (requere o reiniciar da aplicação)"
+
+msgid "Enable online database support (requires restart)"
+msgstr ""
+"Ligar o suporte da base de dados online(requere o reiniciar da aplicação)"
+
+msgid "Error moving file into place"
+msgstr "Erro ao mover fichiero para o lugar"
+
+msgid "Error writing disk image"
+msgstr "Erro ao escrever a imagem de disco"
+
+msgid "Expansions"
+msgstr "Expansões"
+
+msgid "Experimental Features"
+msgstr "Características Experimentais"
+
+msgid "Extended ROM:"
+msgstr "ROM Extendida:"
+
+msgid "FS-UAE Launcher Settings"
+msgstr "Opções do FS-UAE Launcher"
+
+msgid "Fast RAM"
+msgstr "Fast RAM"
+
+msgid "Fetching database entries ({0})"
+msgstr "Adquirindo as entradas da base de dados ({0})"
+
+msgid "Fetching game ratings ({0})"
+msgstr "Adquirindo avaliações de jogos ({0})"
+
+msgid "Fetching user game ratings ({0})"
+msgstr "Buscando as classificações de utilizador ({0})"
+
+msgid "File already exists"
+msgstr "Ficheiro já existente"
+
+msgid "Filters"
+msgstr "Filtros"
+
+msgid "Filters & Scaling"
+msgstr "Filtros e Escala"
+
+msgid "Filters:"
+msgstr "Filtros:"
+
+msgid "Floppies"
+msgstr "Disquetes"
+
+msgid "Floppy Drives"
+msgstr "Drive de disquetes"
+
+msgid "Floppy drive volume"
+msgstr "Nome da Disquete"
+
+msgid "Force Full Vsync"
+msgstr "Vsync Completa Forçada"
+
+msgid "Full Frame"
+msgstr "Ecrã Completo (sem margens)"
+
+msgid "Full-scene anti-aliasing (FSAA)"
+msgstr "Anti-aliasing completo de cena (FSAA)"
+
+msgid "Fullscreen"
+msgstr "Ecrã completo"
+
+msgid "Game Database"
+msgstr "Base de Dados de Jogos"
+
+msgid "Game Database Settings"
+msgstr "Ajustes da Base de Dados de Jogos"
+
+msgid "Game database password"
+msgstr "Palavra chave da base de dados de jogos"
+
+msgid "Game database user name"
+msgstr "Nome de utilizador da base de dados de jogos"
+
+msgid "Gamepad/Joystick Setup"
+msgstr "Configurações de Gamepad/Joystick"
+
+msgid "Games and Configurations"
+msgstr "Jogos e Configurações"
+
+msgid "Grab mouse and keyboard input when FS-UAE starts"
+msgstr "Capturar as entradas de rato e teclado no arranque do FS-UAE"
+
+msgid "Grab mouse and keyboard input when clicking on FS-UAE window"
+msgstr "Capturar o rato e o teclado quando clicar na janela do FS-UAE"
+
+msgid "HDF - Partitionable Hard Drive Image (RDB)"
+msgstr "HDF - Imagem de Disco Rígido Particionável (RDB)"
+
+msgid "HDF - Single Partition Hard Disk File"
+msgstr "HDF - Imagem de Disco Rígido de Partição Única"
+
+msgid "Hard Drives"
+msgstr "Discos Rígidos"
+
+msgid "Hardware"
+msgstr "Hardware"
+
+msgid "Hardware Options"
+msgstr "Opções do Hardware"
+
+msgid "IRC nickname"
+msgstr "Alcunha de IRC "
+
+msgid "If you own Amiga Forever, select the drive/folder and click \"{0}\""
+msgstr "Se tens o Amiga Forever, selecciona o disco/pasta e carrega em \"{0}\""
+
+msgid "Import"
+msgstr "Importar"
+
+msgid "Import From Amiga Forever CD/DVD"
+msgstr "Importar do CD/DVD Amiga Forever"
+
+msgid "Import Kickstarts"
+msgstr "Importar os Kickstarts"
+
+msgid "Import Kickstarts and ROMs"
+msgstr "Importar Kickstarts e ROMs"
+
+msgid "Import task is done"
+msgstr "Terefa de importação concluída"
+
+msgid "Include built-in configurations"
+msgstr "Incluir configurações Integradas"
+
+msgid "Input"
+msgstr "Entrada"
+
+msgid "Input Options"
+msgstr "Opções de Entrada"
+
+msgid "Input Settings"
+msgstr "Ajustes da Entrada"
+
+msgid "Internal"
+msgstr "Interno"
+
+msgid "Invalid size specified"
+msgstr "Tamanho especificado inválido"
+
+msgid "Joystick"
+msgstr "Joystick"
+
+msgid "Joystick Configuration"
+msgstr "Configuração do Joystick"
+
+msgid "Joystick Ports"
+msgstr "Porta do Joystick"
+
+msgid "Joystick Settings"
+msgstr "Ajustes do Joystick"
+
+msgid "Keep aspect ratio when scaling (do not stretch)"
+msgstr "Manter a proporção de aspecto quando mudar de escala (sem esticar)"
+
+msgid "Keyboard Settings"
+msgstr "Ajustes do teclado"
+
+msgid "Kickstart ROM"
+msgstr "Kickstart ROM"
+
+msgid "Kickstart ROMs are missing"
+msgstr "ROMs the Kickstart não encontradas"
+
+msgid "Kickstart import task started"
+msgstr "A tarefa da importação do Kickstart começou"
+
+msgid "Launching FS-UAE"
+msgstr "Iniciando o FS-UAE"
+
+msgid "Least Accurate"
+msgstr "Precisão menor"
+
+msgid "Less Accurate"
+msgstr "Menor precisão"
+
+msgid "List of Folders to Index"
+msgstr "Lista de Pastas a Indexar"
+
+msgid "Low latency vsync (when using full vsync)"
+msgstr "Vsync de baixa latência (quando se usa vsync completa)"
+
+msgid "MB"
+msgstr "MB"
+
+msgid "Main Configuration Options"
+msgstr "Opções de Configuração Principais"
+
+msgid "Main Menu"
+msgstr "Menú Principal"
+
+msgid "Media Swap List"
+msgstr "Lista dos Media para Trocar"
+
+msgid "Memory"
+msgstr "Memória"
+
+msgid "Mouse"
+msgstr "Rato"
+
+msgid "Mouse & Joystick Ports"
+msgstr "Portas de Rato & Joystick"
+
+msgid "Mouse Settings"
+msgstr "Ajustes do Rato"
+
+msgid "Mouse speed (%)"
+msgstr "Velocidade do Rato (%)"
+
+msgid "Net Play"
+msgstr "Jogar em Rede"
+
+msgid "Net Play Settings"
+msgstr "Ajustar Jogos em Rede"
+
+msgid "Net play tag (max 3 characters)"
+msgstr "Tag para Jogar em Rede (max 3 Caracteres)"
+
+msgid "New Configuration"
+msgstr "Nova Configuração"
+
+msgid "New Disk Image"
+msgstr "Nova Imagem de Disco"
+
+msgid "Nick:"
+msgstr "Alcunha:"
+
+msgid "No Device"
+msgstr "Sem Dispositivo"
+
+msgid "No Host Device"
+msgstr "Nenhum Dispositivo Host"
+
+msgid "No Joysticks"
+msgstr "Sem Joysticks"
+
+msgid "No extended kickstart found for this model. Try 'scan' function."
+msgstr ""
+"O Kickstart expandido deste modelo não foi encontrado. Tente a função "
+"'Procurar'."
+
+msgid "No joysticks are currently connected"
+msgstr "Sem Joysticks actualmente ligados"
+
+msgid "No kickstart found for this model. "
+msgstr "Não foi encontrado Kickstart para este modelo"
+
+msgid "No scan in progress"
+msgstr "Não extiste nenhuma procura a decorrer"
+
+msgid "Nothing"
+msgstr "Nada"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Off"
+msgstr "Desligado"
+
+msgid "On"
+msgstr "Ligado"
+
+msgid "Open Game Database Entry"
+msgstr "Abrir entrada de Open Game Database"
+
+msgid "Open Hall of Light Entry"
+msgstr "Abrir entrada de Hall of Light"
+
+msgid "Open LemonAmiga Entry"
+msgstr "Abrir entrada de LemonAmiga"
+
+msgid "Open MobyGames Entry"
+msgstr "Abrir entrada de Moby Games"
+
+msgid "Open Scan Dialog"
+msgstr "Abre a Janela de Procura"
+
+msgid "Open Tool to Configure Button Mapping"
+msgstr "Abrir a Ferramenta de Configuração para mapeamento dos botões"
+
+msgid "Open Wikipedia Entry"
+msgstr "Abrir entrada de Wikipedia"
+
+msgid "OpenGL Settings"
+msgstr "Ajustar OpenGL"
+
+msgid "Override Installed Memory"
+msgstr "Ultrapassar Memória Instalada"
+
+msgid "Parallel Port Joysticks"
+msgstr "Joysticks pela Porta Paralela"
+
+msgid "Picasso96 Support"
+msgstr "Suporte para Picasso96"
+
+msgid "Picasso96 Support (uaegfx.card)"
+msgstr "Suporte para Picasso96 (uaegfx.card)"
+
+msgid "Please wait..."
+msgstr "Espere se faz favor..."
+
+msgid "Preferences"
+msgstr "Preferências"
+
+msgid "Preferred Joystick"
+msgstr "Joystick Preferido"
+
+msgid "Preferred device for secondary joystick:"
+msgstr "Dispositivo preferido para joystick secundário:"
+
+msgid "Preparing WHDLoad..."
+msgstr "Preparando WHDLoad..."
+
+msgid "Preparing floppy images..."
+msgstr "Preparando  as imagens de disquete..."
+
+msgid "Preparing hard drives..."
+msgstr "Preparando os discos rígidos..."
+
+msgid "Preparing..."
+msgstr "A Preparar..."
+
+msgid "Purging old entries..."
+msgstr "A purgar as entradas antigas..."
+
+msgid "Refresh Game Database"
+msgstr "Rescanear Base de Dados"
+
+msgid "Refresh game configurations from database"
+msgstr "Actualizar a configuração dos jogos pela base de dados"
+
+msgid "Refresh list of connected joystick devices"
+msgstr "Rescanear lista de joysticks ligados"
+
+msgid "Remove Directory from Search Path"
+msgstr "Remove Pasta do caminho da pesquisa"
+
+msgid "Remove Selected Files"
+msgstr "Remover os Ficheiros Seleccionados"
+
+msgid "Render scan lines"
+msgstr "Usar scanlines"
+
+msgid "Render scan lines in RTG graphics mode"
+msgstr "Usar scanlines no modo RTG"
+
+msgid "Resetting database..."
+msgstr "Reiniciando a base de dados"
+
+msgid "Restoring changes..."
+msgstr "A restaurar as mudanças..."
+
+msgid "Retrying last operation (attempt {0})"
+msgstr "Voltar a tentar última operação (tentativa {0})"
+
+msgid "Save Configuration"
+msgstr "Guardar a Configuracão"
+
+msgid "Saving changes..."
+msgstr "A Guardar as mudanças..."
+
+msgid "Scaling Options"
+msgstr "Opções de Escala"
+
+msgid "Scan"
+msgstr "Procurar"
+
+msgid "Scan & Indexing"
+msgstr "Procurar & Indexar"
+
+msgid "Scan Files and Configurations"
+msgstr "Scanear Ficheiros e Configurações"
+
+msgid "Scan complete"
+msgstr "Procura completa"
+
+msgid "Scan error"
+msgstr "Erro de procura"
+
+msgid "Scan for Files"
+msgstr "Scanear Ficheiros"
+
+msgid "Scan for Kickstarts, Files and Configurations"
+msgstr "Procurar Kickstarts, Ficheiros e Configurações"
+
+msgid "Scanning .fs-uae files..."
+msgstr "A procurar ficheiros .fs-uae..."
+
+msgid "Scanning built-in entries..."
+msgstr "Procurando pelas Entradas Internas..."
+
+msgid "Scanning configurations"
+msgstr "Procurando configurações"
+
+msgid "Scanning configurations ({count} scanned)"
+msgstr "Procurando configurações, ({count} encontrada(s))"
+
+msgid "Scanning database entries..."
+msgstr "Lendo entradas na base de datos..."
+
+msgid "Scanning files"
+msgstr "Procurando Ficheiros"
+
+msgid "Scanning files ({count} scanned)"
+msgstr "Procurando Ficheiros, ({count} encontrado(s))"
+
+msgid "Scanning game database entries..."
+msgstr "Lendo as entradas de jogos na base de dados..."
+
+msgid "Select Destination Directory"
+msgstr "Seleccionar Directório de Destino"
+
+msgid "Select Multiple CD-ROMs"
+msgstr "Seleccionar Vários CD-ROMs"
+
+msgid "Select Multiple Files..."
+msgstr "Seleccionar Vários Ficheiros..."
+
+msgid "Select Multiple Floppies"
+msgstr "Seleccionar Várias Disquetes"
+
+msgid "Select Source Directory"
+msgstr "Seleccionar Directório de Origem"
+
+msgid "Select a folder containing Amiga kickstart files and click \"{0}\""
+msgstr ""
+"Seleccione a pasta onde se encontram os Kickstart do Amiga e carregue em  "
+"\"{0}\""
+
+msgid "Settings"
+msgstr "Ajustar"
+
+msgid "Show kickstart setup page on startup when all ROMs are missing"
+msgstr ""
+"Mostra a página de configuração dos Kickstart se as ROMs não forem encotradas"
+
+msgid "Size:"
+msgstr "Tamanho:"
+
+msgid "Slow RAM"
+msgstr "Slow RAM"
+
+msgid "Specified directory does not exist"
+msgstr "Directório especificado não existe"
+
+msgid "Start"
+msgstr "Iniciar"
+
+msgid "Start FS-UAE in fullscreen mode"
+msgstr "Iniciar o FS-UAE no modo de ecrã completo"
+
+msgid "Starting FS-UAE..."
+msgstr "Iniciando o FS-UAE..."
+
+msgid "Starting scan"
+msgstr "A começar a procura"
+
+msgid "Swap left and right CTRL keys"
+msgstr "Trocar as teclas CTRL esquerda pela direita"
+
+msgid "Sync to Vblank"
+msgstr "Sincronizar a VBlank"
+
+msgid "Synchronizing database..."
+msgstr "Sincronizando a base de dados..."
+
+msgid "Synchronizing personal ratings..."
+msgstr "Sincronizando classificações pessoais..."
+
+msgid "Texture filter"
+msgstr "Filtro de Texturas"
+
+msgid "Toggle Between Windowed and Full-Screen Mode"
+msgstr "Mudar entre modo de Écran Total ou Janela"
+
+msgid "Tools"
+msgstr "Ferramentas"
+
+msgid "Ungrab mouse and keyboard on middle mouse click"
+msgstr "Dar o controle do teclado e do rato ao clicar o botão do meio do rato"
+
+msgid "Update available ({version})"
+msgstr "Actualização existente ({version})"
+
+msgid "Updating database"
+msgstr "Actualizando a base de dados"
+
+msgid "Updating game entries:"
+msgstr "Actualizando as entradas de jogos"
+
+msgid "Use RDB disk images for size >= {0}"
+msgstr "Usar RDB de imagens de disco para tamanho >= {0}"
+
+msgid "Video Settings"
+msgstr "Ajustes de Video"
+
+msgid "Video buffer format and color depth"
+msgstr "Formato do buffer de Video e profundidade de cor"
+
+msgid "Video synchronization"
+msgstr "Sincronização de Video"
+
+msgid "Video synchronization method"
+msgstr "Método Sincronização de Video"
+
+msgid "Video texture format (on the GPU)"
+msgstr "Formato das Texturas de  Video (no GPU)"
+
+msgid "WHDLoad Arguments"
+msgstr "Argumentos para o WHDLoad"
+
+msgid "You should have kickstart files for each Amiga model you want to use:"
+msgstr ""
+"Deverá possuir os ficheiros Kickstart dos modelos Amiga que queira usar:"
+
+msgid "Zoom Amiga display (crop)"
+msgstr "Zoom da Imagem do Amiga (recortado)"
+
+msgid "Zorro III RAM"
+msgstr "Zorro III RAM"
+
+#~ msgid "Kickstart Setup"
+#~ msgstr "Configuração do Kickstart"
+
+#~ msgid "Select Directory to Import From"
+#~ msgstr "Seleccionar a Pasta para Importar de"
+
+#~ msgid "Update ({version}) is available"
+#~ msgstr "Actualização para a  versão ({version}) está disponivel"

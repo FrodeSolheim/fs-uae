@@ -3,6 +3,22 @@ from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
+import sys
+if not hasattr(sys, "frozen"):
+    try:
+        import wxversion
+    except ImportError:
+        pass
+    else:
+        try:
+            wxversion.select(["2.8"])
+        except wxversion.VersionError, e:
+            # if a new interpreter is started with sys.executable on
+            # Mac, sys.frozen may not be set, so we allow/ignore
+            # this error
+            print(repr(e))
+import wx
+
 def call_after(function):
     import wx
     wx.CallAfter(function)

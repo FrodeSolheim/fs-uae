@@ -31,6 +31,7 @@ class Signal:
 
     @classmethod
     def do_broadcast(cls, signal, *args):
+        print("broadcasting signal", signal)
         for listener in cls.listeners.setdefault(signal, []):
             if signal == "config":
                 listener.on_config(*args)

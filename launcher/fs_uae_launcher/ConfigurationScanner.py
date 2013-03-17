@@ -6,13 +6,15 @@ from __future__ import unicode_literals
 import os
 import sys
 import time
+import json
 import traceback
 import xml.etree.ElementTree
 from xml.etree.cElementTree import ElementTree
-from .Database import Database
+#from .Database import Database
 from .Settings import Settings
 from .I18N import _, ngettext
 from .Util import get_real_case
+from .fsgs.GameDatabaseClient import GameDatabaseClient
 
 class ConfigurationScanner:
 
@@ -57,20 +59,29 @@ class ConfigurationScanner:
             database.add_configuration(data=data, name=name,
                     scan=self.scan_version, search=search)
 
-    def scan(self):
+    def scan(self, database, game_database):
         self.set_status(_("Scanning configurations"),
                 _("Please wait..."))
-        database = Database()
 
         self.set_status(_("Scanning configurations"),
                 _("Scanning .fs-uae files..."))
         self.scan_fs_uae_files(database)
-        self.set_status(_("Scanning configurations"),
-                _("Scanning database entries..."))
-        self.scan_configurations(database)
-        self.set_status(_("Scanning configurations"),
-                _("Scanning built-in entries..."))
-        self.scan_builtin_configs(database)
+
+        if Settings.get("database_feature") == "1":
+            self.set_status(_("Scanning configurations"),
+                    _("Scanning game database entries..."))
+            self.scan_game_database(database, game_database)
+        else:
+            self.set_status(_("Scanning configurations"),
+                    _("Scanning database entries..."))
+            self.scan_configurations(database)
+
+        if Settings.get("builtin_configs") == "0":
+            print("builtin_configs was set to 0")
+        else:
+            self.set_status(_("Scanning configurations"),
+                    _("Scanning built-in entries..."))
+            self.scan_builtin_configs(database)
 
         if self.stop_check():
             # aborted
@@ -85,6 +96,77 @@ class ConfigurationScanner:
         database.remove_unscanned_configurations(self.scan_version)
         self.set_status(_("Scanning configurations"), _("Committing data..."))
         database.commit()
+
+    def scan_game_database(self, database, game_database):
+        game_database_client = GameDatabaseClient(game_database)
+
+        game_cursor = game_database.cursor()
+        game_cursor.execute("SELECT a.uuid, a.game, a.variant, a.name, "
+                "a.platform, value, b.uuid, b.game, b.sort_key "
+                "FROM game a LEFT JOIN game b ON a.parent = b.id, value "
+                "WHERE a.id = value.game AND status = 1 AND "
+                "value.name = 'file_list'")
+        for row in game_cursor:
+            if self.stop_check():
+                return
+
+            uuid, game, variant, alt_name, platform, file_list_json, \
+                    parent_uuid, parent_game, parent_sort_key = row
+            if not file_list_json:
+                # not a game variant (with files)
+                continue
+
+            self.scan_count += 1
+            self.set_status(
+                    _("Scanning configurations ({count} scanned)").format(
+                    count=self.scan_count), uuid)
+
+            try:
+                file_list = json.loads(file_list_json)
+            except Exception:
+                # invalid JSON string
+                continue
+            all_found = True
+            for file_item in file_list:
+                if file_item["name"].endswith("/"):
+                    # skip directory entries:
+                    continue
+                if not self.check_if_file_exists(database, file_item):
+                    all_found = False
+                    break
+            if not all_found:
+                #print("not found", uuid)
+                continue
+            #print("found", uuid)
+            if not game:
+                game = alt_name.split("(", 1)[0]
+            name = "{0} ({1}, {2})".format(game, platform, variant)
+            search = self.create_configuration_search(name)
+            name = self.create_configuration_name(name)
+            
+            if parent_uuid:
+                reference = parent_uuid
+                type = 2
+            else:
+                reference = uuid
+                type = 1
+
+            cursor = game_database.cursor()
+            cursor.execute("SELECT like_rating, work_rating FROM game_rating "
+                    "WHERE game = ?", (uuid,))
+            row = cursor.fetchone()
+            if row is None:
+                like_rating, work_rating = 0, 0
+            else:
+                like_rating, work_rating = row
+            database.add_configuration(path="", uuid=uuid,
+                    name=name, scan=self.scan_version, search=search,
+                    type=type, reference=reference, like_rating=like_rating,
+                    work_rating=work_rating)
+            if parent_uuid:
+                parent_name = "{0}\n{1}".format(parent_game, platform)
+                database.ensure_game_configuration(parent_uuid, parent_name,
+                        parent_sort_key, scan=self.scan_version)
 
     def scan_configurations(self, database):
         for dir in self.paths:
@@ -146,10 +228,19 @@ class ConfigurationScanner:
                         name=name, scan=self.scan_version, search=search)
 
     def check_if_file_exists(self, database, file_node):
-        print("check file", file_node)
+        #print("check file", file_node)
+        if isinstance(file_node, dict):
+            sha1 = file_node["sha1"]
+            if database.find_file(sha1=sha1):
+                return True
+            return False
+
+        # The following code is deprecated and will probably be removed
+        # later (used for the old database system)
+
         if file_node.find("sha1") is not None:
             sha1 = file_node.find("sha1").text.strip()
-            print(sha1)
+            #print(sha1)
             if database.find_file(sha1=sha1):
                 return True
         archive_node = file_node.find("archive")
@@ -224,27 +315,19 @@ class ConfigurationScanner:
         database.add_game(uuid=uuid, path=path, name=name,
                 scan=self.scan_version, search=search)
 
-    #def create_configuration_name_from_game_and_variant(self, game, variant):
-    #    variant = variant.replace(u", ", u" \u00b7 ")
-    #    name = game.strip() + u"\n" + variant.strip()
-    #    return name
-
-    #def create_configuration_name_from_path(self, path):
-    #    name, ext = os.path.splitext(os.path.basename(path))
-
     @classmethod
     def create_configuration_search(cls, name):
         return name.lower()
 
     @classmethod
     def create_configuration_name(cls, name):
-        #name, ext = os.path.splitext(name)
-        if u"(" in name:
-            primary, secondary = name.split(u"(", 1)
-            secondary = secondary.replace(u", ", u" \u00b7 ")
+        if "(" in name:
+            primary, secondary = name.split("(", 1)
+            secondary = secondary.replace(", ", " \u00b7 ")
             #name = primary.rstrip() + u" \u2013 " + secondary.lstrip()
-            name = primary.rstrip() + u"\n" + secondary.lstrip()
-            if name[-1] == u")":
+            name = primary.rstrip() + "\n" + secondary.lstrip()
+            if name[-1] == ")":
                 name = name[:-1]
-        #text = u" " + text
+            name = name.replace(") (", " \u00b7 ")
+            name = name.replace(")(", " \u00b7 ")
         return name

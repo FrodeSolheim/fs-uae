@@ -12,7 +12,7 @@
 
 #include "threaddep/thread.h"
 #include "options.h"
-#include "memory.h"
+#include "uae/memory.h"
 #include "custom.h"
 #include "newcpu.h"
 #include "disk.h"
@@ -134,7 +134,7 @@ static void getchs2 (struct hardfiledata *hfd, int *cyl, int *cylsec, int *head,
 	*head = heads;
 }
 
-static void getchs (struct hardfiledata *hfd, int *cyl, int *cylsec, int *head, int *tracksec)
+static void getchsx (struct hardfiledata *hfd, int *cyl, int *cylsec, int *head, int *tracksec)
 {
 	getchs2 (hfd, cyl, cylsec, head, tracksec);
 	hf_log (_T("CHS: %08X-%08X %d %d %d %d %d\n"),
@@ -228,19 +228,31 @@ void getchsgeometry_hdf (struct hardfiledata *hfd, uae_u64 size, int *pcyl, int 
 	getchsgeometry2 (size, pcyl, phead, psectorspertrack, 2);
 }
 
-static void getchshd (struct hardfiledata *hfd, int *pcyl, int *phead, int *psectorspertrack)
+void getchspgeometry (uae_u64 total, int *pcyl, int *phead, int *psectorspertrack, bool idegeometry)
 {
-	uae_u64 total = hfd->virtsize / 512;
+	uae_u64 blocks = total / 512;
 
-	if (total > 16515072) {
+	if (blocks > 16515072) {
 		/* >8G, CHS=16383/16/63 */
 		*pcyl = 16383;
 		*phead = 16;
 		*psectorspertrack = 63;
 		return;
 	}
-	getchsgeometry (hfd->virtsize, pcyl, phead, psectorspertrack);
+	if (idegeometry) {
+		*phead = 16;
+		*psectorspertrack = 63;
+		*pcyl = blocks / ((*psectorspertrack) * (*phead));
+		return;
+	}
+	getchsgeometry (total, pcyl, phead, psectorspertrack);
 }
+
+static void getchshd (struct hardfiledata *hfd, int *pcyl, int *phead, int *psectorspertrack)
+{
+	getchspgeometry (hfd->virtsize, pcyl, phead, psectorspertrack, false);
+}
+
 
 static void pl (uae_u8 *p, int off, uae_u32 v)
 {
@@ -365,8 +377,9 @@ void hdf_hd_close (struct hd_hardfiledata *hfd)
 }
 
 int hdf_hd_open (struct hd_hardfiledata *hfd, const TCHAR *path, int blocksize, int readonly,
-	const TCHAR *devname, int sectors, int surfaces, int reserved,
-	int bootpri, const TCHAR *filesys)
+	const TCHAR *devname, int cyls, int sectors, int surfaces, int reserved,
+	int bootpri, const TCHAR *filesys,
+	int pcyls, int pheads, int psecs)
 {
 	memset (hfd, 0, sizeof (struct hd_hardfiledata));
 	hfd->bootpri = bootpri;
@@ -375,12 +388,23 @@ int hdf_hd_open (struct hd_hardfiledata *hfd, const TCHAR *path, int blocksize, 
 	if (!hdf_open (&hfd->hfd, path))
 		return 0;
 	hfd->path = my_strdup(path);
+	hfd->hfd.cylinders = cyls;
 	hfd->hfd.heads = surfaces;
 	hfd->hfd.reservedblocks = reserved;
 	hfd->hfd.secspertrack = sectors;
 	if (devname)
 		_tcscpy (hfd->hfd.device_name, devname);
-	getchshd (&hfd->hfd, &hfd->cyls, &hfd->heads, &hfd->secspertrack);
+	if (pcyls && pheads && psecs) {
+		hfd->cyls = pcyls;
+		hfd->heads = pheads;
+		hfd->secspertrack = psecs;
+	} else if (cyls && surfaces && sectors) {
+		hfd->cyls = cyls;
+		hfd->heads = surfaces;
+		hfd->secspertrack = sectors;
+	} else {
+		getchshd (&hfd->hfd, &hfd->cyls, &hfd->heads, &hfd->secspertrack);
+	}
 	hfd->cyls_def = hfd->cyls;
 	hfd->secspertrack_def = hfd->secspertrack;
 	hfd->heads_def = hfd->heads;
@@ -411,6 +435,26 @@ static uae_u32 vhd_checksum (uae_u8 *p, int offset)
 		sum += p[i];
 	}
 	return ~sum;
+}
+
+static int hdf_write2 (struct hardfiledata *hfd, void *buffer, uae_u64 offset, int len);
+static int hdf_read2 (struct hardfiledata *hfd, void *buffer, uae_u64 offset, int len);
+
+static void hdf_init_cache (struct hardfiledata *hfd)
+{
+}
+static void hdf_flush_cache (struct hardfiledata *hdf)
+{
+}
+
+static int hdf_cache_read (struct hardfiledata *hfd, void *buffer, uae_u64 offset, int len)
+{
+	return hdf_read2 (hfd, buffer, offset, len);
+}
+
+static int hdf_cache_write (struct hardfiledata *hfd, void *buffer, uae_u64 offset, int len)
+{
+	return hdf_write2 (hfd, buffer, offset, len);
 }
 
 int hdf_open (struct hardfiledata *hfd, const TCHAR *pname)
@@ -472,6 +516,7 @@ int hdf_open (struct hardfiledata *hfd, const TCHAR *pname)
 	write_log (_T("HDF is VHD %s image, virtual size=%dK\n"),
 		hfd->vhd_type == 2 ? _T("fixed") : _T("dynamic"),
 		hfd->virtsize / 1024);
+	hdf_init_cache (hfd);
 	return 1;
 nonvhd:
 	hfd->vhd_type = 0;
@@ -483,6 +528,7 @@ end:
 
 void hdf_close (struct hardfiledata *hfd)
 {
+	hdf_flush_cache (hfd);
 	hdf_close_target (hfd);
 	hfd->vhd_type = 0;
 	xfree (hfd->vhd_header);
@@ -792,6 +838,16 @@ static int hdf_read2 (struct hardfiledata *hfd, void *buffer, uae_u64 offset, in
 		return hdf_read_target (hfd, buffer, offset, len);
 }
 
+static int hdf_write2 (struct hardfiledata *hfd, void *buffer, uae_u64 offset, int len)
+{
+	if (hfd->vhd_type == VHD_DYNAMIC)
+		return vhd_write (hfd, buffer, offset, len);
+	else if (hfd->vhd_type == VHD_FIXED)
+		return hdf_write_target (hfd, buffer, offset + 512, len);
+	else
+		return hdf_write_target (hfd, buffer, offset, len);
+}
+
 static void adide_decode (void *v, int len)
 {
 	int i;
@@ -938,25 +994,15 @@ int hdf_read (struct hardfiledata *hfd, void *buffer, uae_u64 offset, int len)
 	int v;
 
 	if (!hfd->adide) {
-		v = hdf_read2 (hfd, buffer, offset, len);
+		v = hdf_cache_read (hfd, buffer, offset, len);
 	} else {
 		offset += 512;
-		v = hdf_read2 (hfd, buffer, offset, len);
+		v = hdf_cache_read (hfd, buffer, offset, len);
 		adide_decode (buffer, len);
 	}
 	if (hfd->byteswap)
 		hdf_byteswap (buffer, len);
 	return v;
-}
-
-static int hdf_write2 (struct hardfiledata *hfd, void *buffer, uae_u64 offset, int len)
-{
-	if (hfd->vhd_type == VHD_DYNAMIC)
-		return vhd_write (hfd, buffer, offset, len);
-	else if (hfd->vhd_type == VHD_FIXED)
-		return hdf_write_target (hfd, buffer, offset + 512, len);
-	else
-		return hdf_write_target (hfd, buffer, offset, len);
 }
 
 int hdf_write (struct hardfiledata *hfd, void *buffer, uae_u64 offset, int len)
@@ -966,11 +1012,11 @@ int hdf_write (struct hardfiledata *hfd, void *buffer, uae_u64 offset, int len)
 	if (hfd->byteswap)
 		hdf_byteswap (buffer, len);
 	if (!hfd->adide) {
-		v = hdf_write2 (hfd, buffer, offset, len);
+		v = hdf_cache_write (hfd, buffer, offset, len);
 	} else {
 		offset += 512;
 		adide_encode (buffer, len);
-		v = hdf_write2 (hfd, buffer, offset, len);
+		v = hdf_cache_write (hfd, buffer, offset, len);
 		adide_decode (buffer, len);
 	}
 	if (hfd->byteswap)
@@ -1136,7 +1182,7 @@ int scsi_emulate (struct hardfiledata *hfd, struct hd_hardfiledata *hdhfd, uae_u
 				tracksec = hdhfd->secspertrack;
 				cylsec = 0;
 			} else {
-				getchs (hfd, &cyl, &cylsec, &head, &tracksec);
+				getchsx (hfd, &cyl, &cylsec, &head, &tracksec);
 			}
 			//write_log (_T("MODE SENSE PC=%d CODE=%d DBD=%d\n"), pc, pcode, dbd);
 			p = r;
@@ -1202,7 +1248,7 @@ int scsi_emulate (struct hardfiledata *hfd, struct hd_hardfiledata *hdhfd, uae_u
 				tracksec = hdhfd->secspertrack;
 				cylsec = 0;
 			} else {
-				getchs (hfd, &cyl, &cylsec, &head, &tracksec);
+				getchsx (hfd, &cyl, &cylsec, &head, &tracksec);
 			}
 			if (pmi == 0 && lba != 0)
 				goto errreq;
@@ -1736,7 +1782,7 @@ no_disk:
 	case CMD_GETNUMTRACKS:
 		{
 			int cyl, cylsec, head, tracksec;
-			getchs (hfd, &cyl, &cylsec, &head, &tracksec);
+			getchsx (hfd, &cyl, &cylsec, &head, &tracksec);
 			actual = cyl * head;
 			break;
 		}
@@ -1745,7 +1791,7 @@ no_disk:
 		{
 			int cyl, cylsec, head, tracksec;
 			uae_u64 size;
-			getchs (hfd, &cyl, &cylsec, &head, &tracksec);
+			getchsx (hfd, &cyl, &cylsec, &head, &tracksec);
 			put_long (dataptr + 0, hfd->blocksize);
 			size = hfd->virtsize / hfd->blocksize;
 			if (size > 0x00ffffffff)
@@ -1845,6 +1891,8 @@ static int hardfile_can_quick (uae_u32 command)
 {
 	switch (command)
 	{
+	case CMD_REMCHANGEINT:
+		return -1;
 	case CMD_RESET:
 	case CMD_STOP:
 	case CMD_START:
@@ -1852,8 +1900,8 @@ static int hardfile_can_quick (uae_u32 command)
 	case CMD_PROTSTATUS:
 	case CMD_MOTOR:
 	case CMD_GETDRIVETYPE:
-	case CMD_GETNUMTRACKS:
 	case CMD_GETGEOMETRY:
+	case CMD_GETNUMTRACKS:
 	case NSCMD_DEVICEQUERY:
 		return 1;
 	}
@@ -1874,6 +1922,7 @@ static uae_u32 REGPARAM2 hardfile_beginio (TrapContext *context)
 	int unit = mangleunit (get_long (request + 24));
 	struct hardfiledata *hfd = get_hardfile_data (unit);
 	struct hardfileprivdata *hfpd = &hardfpd[unit];
+	int canquick;
 
 	put_byte (request + 8, NT_MESSAGE);
 	start_thread (context, unit);
@@ -1882,10 +1931,13 @@ static uae_u32 REGPARAM2 hardfile_beginio (TrapContext *context)
 		return get_byte (request + 31);
 	}
 	put_byte (request + 31, 0);
-	if ((flags & 1) && hardfile_canquick (hfd, request)) {
+	canquick = hardfile_canquick (hfd, request);
+	if (((flags & 1) && canquick) || (canquick < 0)) {
 		hf_log (_T("hf quickio unit=%d request=%p cmd=%d\n"), unit, request, cmd);
 		if (hardfile_do_io (hfd, hfpd, request))
 			hf_log2 (_T("uaehf.device cmd %d bug with IO_QUICK\n"), cmd);
+		if (!(flags & 1))
+			uae_ReplyMsg (request);
 		return get_byte (request + 31);
 	} else {
 		hf_log2 (_T("hf asyncio unit=%d request=%p cmd=%d\n"), unit, request, cmd);

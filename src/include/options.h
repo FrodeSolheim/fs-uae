@@ -8,8 +8,8 @@
 */
 
 #define UAEMAJOR 2
-#define UAEMINOR 4
-#define UAESUBREV 2
+#define UAEMINOR 5
+#define UAESUBREV 1
 
 typedef enum { KBD_LANG_US, KBD_LANG_DK, KBD_LANG_DE, KBD_LANG_SE, KBD_LANG_FR, KBD_LANG_IT, KBD_LANG_ES } KbdLang;
 
@@ -30,7 +30,7 @@ struct strlist {
 #define MAX_TOTAL_SCSI_DEVICES 8
 
 /* maximum number native input devices supported (single type) */
-#define MAX_INPUT_DEVICES 8
+#define MAX_INPUT_DEVICES 16
 /* maximum number of native input device's buttons and axles supported */
 #define MAX_INPUT_DEVICE_EVENTS 256
 /* 4 different customization settings */
@@ -41,12 +41,14 @@ struct strlist {
 #define MAX_INPUT_SUB_EVENT_ALL 9
 #define SPARE_SUB_EVENT 8
 
+#define INTERNALEVENT_COUNT 1
+
 struct uae_input_device {
 	TCHAR *name;
 	TCHAR *configname;
 	uae_s16 eventid[MAX_INPUT_DEVICE_EVENTS][MAX_INPUT_SUB_EVENT_ALL];
 	TCHAR *custom[MAX_INPUT_DEVICE_EVENTS][MAX_INPUT_SUB_EVENT_ALL];
-	uae_u32 flags[MAX_INPUT_DEVICE_EVENTS][MAX_INPUT_SUB_EVENT_ALL];
+	uae_u64 flags[MAX_INPUT_DEVICE_EVENTS][MAX_INPUT_SUB_EVENT_ALL];
 	uae_s8 port[MAX_INPUT_DEVICE_EVENTS][MAX_INPUT_SUB_EVENT_ALL];
 	uae_s16 extra[MAX_INPUT_DEVICE_EVENTS];
 	uae_s8 enabled;
@@ -114,12 +116,15 @@ struct uaedev_config_info {
 	bool autoboot;
 	bool donotmount;
 	TCHAR filesys[MAX_DPATH];
+	int cyls; // zero if detected from size
 	int surfaces;
 	int sectors;
 	int reserved;
 	int blocksize;
 	int configoffset;
 	int controller;
+	// zero if default
+	int pcyls, pheads, psecs;
 };
 
 enum { CP_GENERIC = 1, CP_CDTV, CP_CD32, CP_A500, CP_A500P, CP_A600, CP_A1000,
@@ -232,6 +237,10 @@ struct uae_prefs {
 	bool sound_stereo_swap_ahi;
 	bool sound_auto;
 
+	int sampler_freq;
+	int sampler_buffer;
+	bool sampler_stereo;
+
 	int comptrustbyte;
 	int comptrustword;
 	int comptrustlong;
@@ -273,6 +282,7 @@ struct uae_prefs {
 	bool gfx_blackerthanblack;
 	int gfx_api;
 	int color_mode;
+	int gfx_extrawidth;
 
 	int gfx_filter;
 	TCHAR gfx_filtershader[MAX_DPATH];
@@ -292,9 +302,13 @@ struct uae_prefs {
 	int gfx_filter_saturation, gfx_filter_luminance, gfx_filter_contrast, gfx_filter_gamma;
 	int gfx_filter_keep_aspect, gfx_filter_aspect;
 	int gfx_filter_autoscale;
+	int gfx_filter_keep_autoscale_aspect;
+
+	int rtg_horiz_zoom_mult;
+	int rtg_vert_zoom_mult;
 
 	bool immediate_blits;
-	bool waiting_blits;
+	int waiting_blits;
 	unsigned int chipset_mask;
 	bool ntscmode;
 	bool genlock;
@@ -304,6 +318,7 @@ struct uae_prefs {
 	int cr_selected;
 	int collision_level;
 	int leds_on_screen;
+	int leds_on_screen_mask[2];
 	struct wh osd_pos;
 	int keyboard_leds[3];
 	bool keyboard_leds_in_use;
@@ -320,10 +335,12 @@ struct uae_prefs {
 	int floppy_write_length;
 	int floppy_random_bits_min;
 	int floppy_random_bits_max;
+	int floppy_auto_ext2;
 	bool tod_hack;
 	uae_u32 maprom;
 	int turbo_emulation;
 	bool headless;
+	int filesys_limit;
 
 	int cs_compatible;
 	int cs_ciaatod;
@@ -363,6 +380,7 @@ struct uae_prefs {
 	TCHAR romextfile2[MAX_DPATH];
 	TCHAR romextident[256];
 	TCHAR flashfile[MAX_DPATH];
+	TCHAR rtcfile[MAX_DPATH];
 	TCHAR cartfile[MAX_DPATH];
 	TCHAR cartident[256];
 	int cart_internal;
@@ -383,7 +401,7 @@ struct uae_prefs {
 	struct multipath path_cd;
 
 	int m68k_speed;
-	int m68k_speed_throttle;
+	double m68k_speed_throttle;
 	int cpu_model;
 	int mmu_model;
 	int cpu060_revision;
@@ -405,6 +423,8 @@ struct uae_prefs {
 	uae_u32 mbresmem_low_size;
 	uae_u32 mbresmem_high_size;
 	uae_u32 rtgmem_size;
+	bool rtg_hardwareinterrupt;
+	bool rtg_hardwaresprite;
 	int rtgmem_type;
 	uae_u32 custom_memory_addrs[MAX_CUSTOM_MEMORY_ADDRS];
 	uae_u32 custom_memory_sizes[MAX_CUSTOM_MEMORY_ADDRS];
@@ -432,10 +452,13 @@ struct uae_prefs {
 	bool win32_middle_mouse;
 	bool win32_logfile;
 	bool win32_notaskbarbutton;
+	bool win32_nonotificationicon;
 	bool win32_alwaysontop;
 	bool win32_powersavedisabled;
 	bool win32_minimize_inactive;
 	int win32_statusbar;
+	bool win32_start_minimized;
+	bool win32_start_uncaptured;
 
 	int win32_active_capture_priority;
 	bool win32_active_nocapture_pause;
@@ -461,17 +484,21 @@ struct uae_prefs {
 	bool win32_automount_removabledrives;
 	int win32_midioutdev;
 	int win32_midiindev;
+	bool win32_midirouter;
 	int win32_uaescsimode;
 	int win32_soundcard;
 	int win32_samplersoundcard;
 	bool win32_norecyclebin;
 	int win32_guikey;
 	int win32_kbledmode;
+	bool win32_blankmonitors;
 	TCHAR win32_commandpathstart[MAX_DPATH];
 	TCHAR win32_commandpathend[MAX_DPATH];
 	TCHAR win32_parjoyport0[MAX_DPATH];
 	TCHAR win32_parjoyport1[MAX_DPATH];
 	TCHAR win32_guipage[32];
+	TCHAR win32_guiactivepage[32];
+	bool win32_filesystem_mangle_reserved_names;
 
 	int statecapturerate, statecapturebuffersize;
 
@@ -494,6 +521,7 @@ struct uae_prefs {
 	struct uae_input_device joystick_settings[MAX_INPUT_SETTINGS][MAX_INPUT_DEVICES];
 	struct uae_input_device mouse_settings[MAX_INPUT_SETTINGS][MAX_INPUT_DEVICES];
 	struct uae_input_device keyboard_settings[MAX_INPUT_SETTINGS][MAX_INPUT_DEVICES];
+	struct uae_input_device internalevent_settings[MAX_INPUT_SETTINGS][INTERNALEVENT_COUNT];
 	TCHAR input_config_name[GAMEPORT_INPUT_SETTINGS][256];
 	int dongle;
 	int input_contact_bounce;
@@ -523,9 +551,10 @@ extern void cfgfile_target_dwrite_str (struct zfile *f, const TCHAR *option, con
 
 extern void cfgfile_backup (const TCHAR *path);
 extern struct uaedev_config_info *add_filesys_config (struct uae_prefs *p, int index,
-	TCHAR *devname, TCHAR *volname, TCHAR *rootdir, bool readonly,
-	int secspertrack, int surfaces, int reserved,
-	int blocksize, int bootpri, TCHAR *filesysdir, int hdc, int flags);
+	const TCHAR *devname, const TCHAR *volname, const TCHAR *rootdir, bool readonly,
+	int cyls, int secspertrack, int surfaces, int reserved,
+	int blocksize, int bootpri, const TCHAR *filesysdir, int hdc, int flags,
+	int pcyls, int pheads, int psecs);
 
 extern void default_prefs (struct uae_prefs *, int);
 extern void discard_prefs (struct uae_prefs *, int);
@@ -570,6 +599,7 @@ extern void fixup_cpu (struct uae_prefs *prefs);
 extern void check_prefs_changed_custom (void);
 extern void check_prefs_changed_cpu (void);
 extern void check_prefs_changed_audio (void);
+extern void check_prefs_changed_cd (void);
 extern int check_prefs_changed_gfx (void);
 
 extern struct uae_prefs currprefs, changed_prefs;

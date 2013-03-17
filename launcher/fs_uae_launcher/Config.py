@@ -12,8 +12,10 @@ from .Database import Database
 from .Settings import Settings
 from .Signal import Signal
 from .Util import expand_path
+from .ValueConfigLoader import ValueConfigLoader
 from .Version import Version
 from .Warnings import Warnings
+from .XMLConfigLoader import XMLConfigLoader
 
 # the order of the following keys is significant (for some keys).
 # multiple options should be set in this order since some options will
@@ -33,12 +35,19 @@ cfg = [
     ("uaegfx_card",           "",         "checksum", "sync"),
     ("joystick_port_0",       ""),
     ("joystick_port_0_mode",  "",         "checksum", "sync"),
+    ("joystick_port_0_autofire",  "",     "checksum", "sync"),
     ("joystick_port_1",       ""),
     ("joystick_port_1_mode",  "",         "checksum", "sync"),
+    ("joystick_port_1_autofire",  "",     "checksum", "sync"),
     ("joystick_port_2",       ""),
     ("joystick_port_2_mode",  "",         "checksum", "sync"),
+    ("joystick_port_2_autofire",  "",     "checksum", "sync"),
     ("joystick_port_3",       ""),
     ("joystick_port_3_mode",  "",         "checksum", "sync"),
+    ("joystick_port_3_autofire",  "",     "checksum", "sync"),
+
+    # this is not an Amiga device, so no need to checksum / sync
+    ("joystick_port_4_mode",  "", "custom"),
 
     ("kickstart_file",        ""),
     ("x_kickstart_file",      "",                             "nosave"),
@@ -48,9 +57,11 @@ cfg = [
     ("x_kickstart_ext_file_sha1", "",     "checksum", "sync", "nosave"),
 
     ("x_whdload_args",        "",         "checksum", "sync"),
+    ("x_whdload_version",     "17.1",     "checksum", "sync"),
     ("floppy_drive_count",    "",         "checksum", "sync", "custom"),
     ("floppy_drive_speed",    "",         "checksum", "sync", "custom"),
     ("cdrom_drive_count",     "",         "checksum", "sync", "custom"),
+    ("dongle_type",           "",         "checksum", "sync", "custom"),
 
     ("__netplay_game",        "",         "checksum", "sync"),
     ("__netplay_password",    "",         "checksum", "sync"),
@@ -59,16 +70,37 @@ cfg = [
     ("__netplay_addresses",   "",         "checksum", "sync"),
     ("__netplay_host",        ""),
     ("__netplay_ready",       "0"),
+    ("__netplay_state_dir_name",  "",     "checksum", "sync"),
     ("__version",             Version.VERSION),
     ("x_game_uuid",           ""),
     ("x_game_xml_path",       ""),
     ("title",                 "",                             "custom"),
     ("sub_title",             "",                             "custom"),
     ("viewport",              "",                             "custom"),
+
+    ("year",                  ""),
+    ("developer",             ""),
+    ("publisher",             ""),
+    ("languages",             ""),
+    ("hol_url",               ""),
+    ("wikipedia_url",         ""),
+    ("database_url",          ""),
+    ("lemon_url",             ""),
+    ("mobygames_url",         ""),
+    ("__variant_rating",      ""),
+
+    ("screen1_sha1",          ""),
+    ("screen2_sha1",          ""),
+    ("screen3_sha1",          ""),
+    ("screen4_sha1",          ""),
+    ("screen5_sha1",          ""),
+    ("front_sha1",            ""),
+    ("title_sha1",            ""),
+
 ]
 
 for i in range(Amiga.MAX_FLOPPY_DRIVES):
-    cfg.append(("floppy_drive_{0}".format(i),""))
+    cfg.append(("floppy_drive_{0}".format(i), ""))
     cfg.append(("x_floppy_drive_{0}_sha1".format(i), "", "checksum", "sync", "nosave"))
 for i in range(Amiga.MAX_FLOPPY_IMAGES):
     cfg.append(("floppy_image_{0}".format(i), ""))
@@ -81,6 +113,8 @@ for i in range(Amiga.MAX_CDROM_IMAGES):
     cfg.append(("x_cdrom_image_{0}_sha1".format(i), "", "checksum", "sync", "nosave"))
 for i in range(Amiga.MAX_HARD_DRIVES):
     cfg.append(("hard_drive_{0}".format(i), ""))
+    cfg.append(("hard_drive_{0}_label".format(i), "", "checksum", "sync"))
+    cfg.append(("hard_drive_{0}_priority".format(i), "", "checksum", "sync"))
     cfg.append(("x_hard_drive_{0}_sha1".format(i), "", "checksum", "sync", "nosave"))
 
 class Config:
@@ -420,6 +454,11 @@ class Config:
         checksum_tool = ChecksumTool(None)
         def fix_file_checksum(sha1_key, key, base_dir, is_rom=False):
             path = config.get(key, "")
+            # hack to synchronize URLs
+            if path.startswith("http://") or path.startswith("https://"):
+                sha1 = path
+                config[sha1_key] = sha1
+                return
             path = expand_path(path)
             sha1 = config.get(sha1_key, "")
             if not path:
@@ -520,13 +559,11 @@ class Config:
                 print("config file does not exist")
         if data:
             config_xml_path = ""
-            from .XMLConfigLoader import XMLConfigLoader
             loader = XMLConfigLoader()
             loader.load_data(data)
             config = loader.get_config()
         elif path.endswith(".xml"):
             config_xml_path = path
-            from .XMLConfigLoader import XMLConfigLoader
             loader = XMLConfigLoader()
             loader.load_file(path)
             config = loader.get_config()
@@ -545,10 +582,19 @@ class Config:
                 keys = []
             for key in keys:
                 config[key] = cp.get("config", key)
+            try:
+                keys = cp.options("fs-uae")
+            except ConfigParser.NoSectionError:
+                keys = []
+            for key in keys:
+                config[key] = cp.get("fs-uae", key)
+
+        from .Settings import Settings
+        Settings.set("config_path", path)
 
         cls.load(config)
 
-        config_name = config.get("x_config_name", "")
+        config_name = config.get("__config_name", "")
         if config_name:
             config_name = cls.create_fs_name(config_name)
         else:
@@ -563,9 +609,41 @@ class Config:
         #if not Config.get("title"):
         #    Config.set("title", config_base)
 
-        from .Settings import Settings
         Settings.set("config_base", config_base)
         Settings.set("config_name", config_name)
-        Settings.set("config_path", path)
         Settings.set("config_xml_path", config_xml_path)
+        Settings.set("config_changed", "0")
+
+    @classmethod
+    def load_values(cls, values, uuid=""):
+        print("loading config values", values)
+
+        value_config_loader = ValueConfigLoader(uuid=uuid)
+        value_config_loader.load_values(values)
+        config = value_config_loader.get_config()
+        #config["x_config_uuid"] = uuid
+
+        from .Settings import Settings
+        Settings.set("config_path", "")
+
+        cls.load(config)
+
+        config_name = config.get("__config_name", "")
+        if config_name:
+            config_name = cls.create_fs_name(config_name)
+        #else:
+        #    config_name, ext = os.path.splitext(os.path.basename(path))
+
+        if u"(" in config_name:
+            config_base = config_name.split(u"(")[0].strip()
+        else:
+            config_base = config_name
+        #game = name
+
+        #if not Config.get("title"):
+        #    Config.set("title", config_base)
+
+        Settings.set("config_base", config_base)
+        Settings.set("config_name", config_name)
+        Settings.set("config_xml_path", "")
         Settings.set("config_changed", "0")

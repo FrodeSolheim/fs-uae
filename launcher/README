@@ -1,4 +1,4 @@
-FS-UAE LAUNCHERS
+FS-UAE LAUNCHER
 
 If you are using the source distribution, you should be able to install
 FS-UAE Launcher by running "python setup.py install". The setup procedure
@@ -23,56 +23,86 @@ and (the right one):
 (My) Documents/FS-UAE/Screenshots/T/Test.png
 or ~/Games/Amiga/Screenshots/T/Test.png
 
+ABOUT FS-UAE LAUNCHER
 
-TODO
+FS-UAE Launcher is Copyright (C) 2012-2013 Frode Solheim.
 
-- GUI for ext rom (cd32)
+This package is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
 
-- Show error message when FS-UAE is not found.
+This package is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
-- Change how save states and other state is saved: save everything to a
-  directory specific for each configuration and/or game.
+You should have received a copy of the GNU General Public License along with
+this package; if not, write to the Free Software Foundation, Inc.,
+51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
 
-- Add more configuration options (memory settings, floppy drive speed, etc).
+The following people have translated FS-UAE Launcher into several languages: 
+Cédric "Foul" Monféfoul (French), nexusle (German), Speedvicio (Italian),
+grimi (Polish), Milanchez (Serbian), albconde (Spanish), Treco (Portuguese),
+GoingDown (Finish), spajdr (Czech).
 
-- Implement a "More options" dialog for the current configuration where the
-  user can set some more seldom used configuration-specific options, and
-  also with the ability to specify custom key/values.
+A big thanks to everyone who have tested the software and provided valuable
+feedback! Especially the encouraging members of the English Amiga Board, and
+all you who have commented on the official FS-UAE web site.
 
-- Implement explicit loading and saving of configurations.
+FS-UAE Launcher includes icons from GNOME icon theme from the GNOME Project
+(http://www.gnome.org). The GNOME icon theme is distributed under the terms
+of either GNU LGPL v.3 or Creative Commons BY-SA 3.0 license.
 
-- Implement the settings dialog with some common settings such as themes,
-  fullscreen modes, vsync settings, and also allow the user to manually
-  specify custom key/values.
+FS-UAE Launcher includes icons from humanity-icon-theme, licensed under the
+terms of the GNU General Public license.
 
-- Support loading just e.g joystick_port_0_mode = joystick config value
-  (without joystick_port_0) and set joystick_port_0 to a sensible value
-  automatically (last used joystick in that port, if available).
+FS-UAE includes icons from oxygen-icon-theme, licensed under the terms of the
+GNU Lesser General Public License as published by the Free Software
+Foundation; either version 3 of the License, or (at your option) any later
+version.
 
-- Handle some more corner cases, sanitize configurations a bit better on
-  loading.
+The Amiga Forever icon is (probably) copyright Cloanto Italia srl.
 
-- Make several paths configurable (scan dirs, etc).
+FS-UAE Launcher includes the oyoyo library, Copyright (c) 2008 Duncan Fordyce,
+The license for this library is contained in the following paragraph:
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software. THE SOFTWARE IS PROVIDED
+"AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT
+LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE
+AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-- Make it possible to select the built-in AROS kickstart replacement.
+FS-UAE Launcher may include lhafile, Copyright (c) 2010 Hidekazu Ohnishi.
+All rights reserved. Redistribution and use in source and binary forms,
+with or without modification, are permitted provided that the following
+conditions are met:
+* Redistributions of source code must retain the above copyright notice,
+  this list of conditions and the following disclaimer.
+* Redistributions in binary form must reproduce the above copyright notice,
+  this list of conditions and the following disclaimer in the documentation
+  and/or other materials provided with the distribution.
+* Neither the name of the author nor the names of its contributors may be
+  used to endorse or promote products derived from this software without
+  specific prior written permission.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGE.
 
-- Automatically create and fill the configuration list based on scanned
-  floppy images (by the use of a database of known good configurations).
-
-- Add CD32 and CDTV as supported systems. Show CD-ROM selector instead of
-  floppy selector when using one of these. Add CD32 gamepad to input ports.
-
-- Add support for managing hard drives (and CD-ROM drives for regular Amigas).
-
-- Add support for launching zipped-down WHDLoad games with functionality to
-  save changed files to the (new) state dir, and merge old changed files
-  when starting the game.
-
-- Finish the net play support with integrated lobby, chat and game setup.
-
-- Perhaps bundle a freely distributable and fun single-player game with some
-  fs-uae / launcher distributions (must work with the AROS kickstart).
-
-- Perhaps bundle a freely distributable and fun multi-player game with some
-  fs-uae / launcher distributions (must work with the AROS kickstart) when the
-  net play functionality is integrated into the launcher.
+FS-UAE Launcher depends on several open source third party software packages,
+including but not limited to, Python and wxPython.

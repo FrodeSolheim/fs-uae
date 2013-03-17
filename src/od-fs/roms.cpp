@@ -3,7 +3,7 @@
 
 #include "gui.h"
 #include "options.h"
-#include "memory.h"
+#include "uae/memory.h"
 #include "rommgr.h"
 #include "custom.h"
 #include "events.h"
@@ -29,6 +29,8 @@
 #include <stdlib.h>
 
 #include <fs/filesys.h>
+
+void amiga_patch_rom(uae_u8 *buf, size_t size);
 
 static struct romdata *scan_single_rom_2 (struct zfile *f)
 {
@@ -63,6 +65,7 @@ static struct romdata *scan_single_rom_2 (struct zfile *f)
         decode_cloanto_rom_do (rombuf, size, size);
         cl = 0;
     }
+    amiga_patch_rom(rombuf, size);
     if (!cl) {
         rd = getromdatabydata (rombuf, size);
         if (!rd && (size & 65535) == 0) {

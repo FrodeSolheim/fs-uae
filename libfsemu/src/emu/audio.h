@@ -2,7 +2,19 @@
 #define LIBFSEMU_AUDIO_H_
 
 #include <fs/emu.h>
+#include <fs/thread.h>
 #include "util.h"
+
+#define MAX_STREAMS 4
+
+extern int g_fs_emu_audio_stream_playing[MAX_STREAMS];
+extern int64_t g_fs_emu_audio_buffer_underrun_time;
+
+typedef struct fs_emu_audio_driver {
+    const char *name;
+    void(*init)(void);
+    void(*shutdown)(void);
+} fs_emu_audio_driver;
 
 void fs_emu_audio_init();
 void fs_emu_audio_shutdown();
@@ -14,6 +26,7 @@ void fs_emu_audio_set_default_pitch(double pitch);
 #define AUDIO_ENABLED
 #define MEMORY_BARRIER __asm__ __volatile__ ("" ::: "memory")
 
+#if 0
 // ring buffer for audio, byte size must be a multiple of 4
 #define RING_BUFFER_SIZE_FRAMES (4096 * 4)
 //#define RING_BUFFER_SIZE_FRAMES (16384 * 4)
@@ -44,7 +57,7 @@ typedef struct audio_stream {
     fs_emu_stat_queue g_audio_fill_queue;
     fs_emu_stat_queue g_audio_fill_queue2;
     fs_emu_stat_queue g_audio_underrun_queue;
-    GMutex *g_audio_fill_queue2_mutex;
+    fs_mutex *g_audio_fill_queue2_mutex;
 
     int16_t g_old_left;
     int16_t g_old_right;
@@ -83,5 +96,6 @@ typedef struct audio_stream {
     int pid_last_time;
 
 } audio_stream;
+#endif
 
 #endif // LIBFSEMU_AUDIO_H_

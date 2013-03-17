@@ -7,6 +7,12 @@
 extern "C" {
 #endif
 
+#ifdef WITH_LUA
+#include <lauxlib.h>
+void amiga_init_lua(void (*lock)(void), void (*unlock)(void));
+void amiga_init_lua_state(lua_State *L);
+#endif
+
 #define AMIGA_FLOPPY_LIST_SIZE 20
 
 // FIXME
@@ -28,13 +34,18 @@ void amiga_set_video_format(int format);
 // must be called before main_main
 void amiga_add_rtg_resolution(int width, int height);
 
+// must be called early
+void amiga_set_builtin_driveclick_path(const char *path);
+// for custom floppy sound files
+void amiga_set_floppy_sounds_dir(const char *path);
+
 void amiga_main();
 int amiga_reset(int hard);
 int amiga_pause(int pause);
 int amiga_cpu_get_speed();
 int amiga_cpu_set_speed(int speed);
 
-void amiga_enable_netplay_mode();
+void amiga_set_deterministic_mode();
 
 int amiga_enable_serial_port(const char *serial_name);
 
@@ -80,7 +91,9 @@ void amiga_set_render_buffer(void *data, int size, int need_redraw,
 
 #define AMIGA_MAX_LINES 2048
 
-#define AMIGA_RTG_BUFFER_FLAG 1
+#define AMIGA_VIDEO_RTG_MODE 1
+#define AMIGA_VIDEO_LOW_RESOLUTION 2
+#define AMIGA_VIDEO_LINE_DOUBLING 4
 
 typedef struct _RenderData {
     unsigned char* pixels;
@@ -94,6 +107,8 @@ typedef struct _RenderData {
     char line[AMIGA_MAX_LINES];
     int flags;
     void *(*grow)(int width, int height);
+    int refresh_rate;
+    int bpp;
 } RenderData;
 
 typedef void (*event_function)(void);
@@ -113,7 +128,7 @@ void amiga_set_gui_message_function(log_function function);
 void amiga_set_led_function(amiga_led_function function);
 void amiga_set_media_function(amiga_media_function function);
 
-typedef int (*audio_callback)(int16_t *buffer, int size);
+typedef int (*audio_callback)(int type, int16_t *buffer, int size);
 int amiga_set_audio_callback(audio_callback func);
 int amiga_set_cd_audio_callback(audio_callback func);
 int amiga_set_audio_buffer_size(int size);
@@ -149,6 +164,7 @@ void amiga_write_uae_config(const char *path);
 int amiga_get_joystick_port_mode(int port);
 */
 void amiga_set_joystick_port_mode(int port, int mode);
+void amiga_set_joystick_port_autofire(int port, int autofire);
 
 int amiga_send_input_event(int input_event, int state);
 

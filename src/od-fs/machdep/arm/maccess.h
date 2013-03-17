@@ -48,6 +48,8 @@ static __inline__ void do_put_mem_byte(uint8_t *a, uint8_t v)
     *a = v;
 }
 
+#define ALIGN_POINTER_TO32(p) ((~(unsigned long)(p)) & 3)
+
 #define call_mem_get_func(func, addr) ((*func)(addr))
 #define call_mem_put_func(func, addr, v) ((*func)(addr, v))
 

@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 import os
 import traceback
 import fs_uae_launcher.fsui as fsui
+from ...Archive import Archive
 from ...Config import Config
 from ...ChecksumTool import ChecksumTool
 from ...I18N import _, ngettext
@@ -64,8 +65,14 @@ class HardDriveGroup(fsui.Group):
         Config.remove_listener(self)
 
     def on_config(self, key, value):
-        if key == self.config_key:
-            self.text_field.set_text(value)
+        if key != self.config_key:
+            return
+        dir, name = os.path.split(value)
+        if dir:
+            path = "{0} ({1})".format(name, dir)
+        else:
+            path = name
+        self.text_field.set_text(path)
 
     def on_eject_button(self):
         Config.set_multiple([
@@ -103,7 +110,9 @@ class HardDriveGroup(fsui.Group):
                 sha1 = checksum_tool.checksum(path)
             else:
                 print("not calculating HD checksums HD files > 64MB")
+        full_path = path
 
+        # FIXME: use contract function
         dir, file = os.path.split(path)
         self.text_field.set_text(file)
         if os.path.normcase(os.path.normpath(dir)) == \
@@ -111,6 +120,32 @@ class HardDriveGroup(fsui.Group):
             path = file
 
         self.text_field.set_text(path)
-        Config.set_multiple([
-                (self.config_key, path),
-                (self.config_key_sha1, sha1)])
+        values = [(self.config_key, path),
+                (self.config_key_sha1, sha1)]
+        if self.index == 0:
+            whdload_args = ""
+            dummy, ext = os.path.splitext(path)
+            if not dir_mode and ext.lower() in [".zip", ".lha"]:
+                try:
+                    whdload_args = self.calculate_whdload_args(full_path)
+                except Exception:
+                    traceback.print_exc()
+            values.append(("x_whdload_args", whdload_args))
+        Config.set_multiple(values)
+
+    def calculate_whdload_args(self, archive_path):
+        archive = Archive(archive_path)
+        slave = ""
+        for path in archive.list_files():
+            name = os.path.basename(path)
+            lname = name.lower()
+            if lname.endswith(".slave"):
+                if slave:
+                    print("already found one slave, don't know which "
+                            "one to choose")
+                    return ""
+                slave = name
+            elif lname == "startup-sequence":
+                print("found startup-sequence, assuming non-whdload "
+                        "archive")
+        return slave

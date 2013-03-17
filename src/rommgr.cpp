@@ -12,7 +12,7 @@
 #include "uae.h"
 #include "gui.h"
 #include "rommgr.h"
-#include "memory.h"
+#include "uae/memory.h"
 #include "zfile.h"
 #include "crc32.h"
 
@@ -894,6 +894,7 @@ struct romdata *getromdatabydata (uae_u8 *rom, int size)
 		}
 	}
 	xfree (tmpbuf);
+	//exit(1);
 	return ret;
 }
 
@@ -1040,6 +1041,51 @@ static void descramble (const struct romdata *rd, uae_u8 *data, int size, int od
 	if (flags & (ROMTYPE_NORDIC | ROMTYPE_XPOWER))
 		descramble_nordicpro (data, size, odd);
 }
+#ifdef FSUAE
+#define AMIGA_OS_130_SHA1 "\xc3\x9b\xd9\x09\x4d\x4e\x5f\x4e\x28\xc1" \
+		"\x41\x1f\x30\x86\x95\x04\x06\x06\x2e\x87"
+#define AMIGA_OS_310_SHA1 "\xc3\xc4\x81\x16\x08\x66\xe6\x0d\x08\x5e" \
+		"\x43\x6a\x24\xdb\x36\x17\xff\x60\xb5\xf9"
+
+void amiga_patch_rom(uae_u8 *buf, size_t size) {
+	write_log("amiga_patch_rom\n");
+	uae_u8 sha1[SHA1_SIZE];
+	get_sha1 (buf, size, sha1);
+	write_log("ROM: SHA1=");
+	for (int i = 0; i < SHA1_SIZE; i++) {
+		write_log("%02x", sha1[i]);
+	}
+	write_log("\n");
+	int converted = 0;
+	if (memcmp(sha1, AMIGA_OS_130_SHA1, SHA1_SIZE) == 0) {
+		write_log("convering amiga-os-130 ROM (in-memory) "
+				"to preferred A500 ROM\n");
+		buf[413] = '\x08';
+		buf[176029] = '\xb9';
+		buf[262121] = '\x26';
+		converted = 1;
+	}
+	else if (memcmp(sha1, AMIGA_OS_310_SHA1, SHA1_SIZE) == 0) {
+		write_log("convering amiga-os-310 ROM (in-memory) "
+				"to preferred A4000 ROM\n");
+		buf[220] = '\x74';
+		buf[222] = '\x7a';
+		buf[326] = '\x70';
+		buf[434] = '\x7c';
+		buf[524264] = '\x45';
+		buf[524266] = '\x14';
+		converted = 1;
+	}
+	if (converted) {
+		get_sha1 (buf, size, sha1);
+		write_log("ROM: SHA1=");
+		for (int i = 0; i < SHA1_SIZE; i++) {
+			write_log("%02x", sha1[i]);
+		}
+		write_log("\n");
+	}
+}
+#endif
 
 static int read_rom_file (uae_u8 *buf, const struct romdata *rd)
 {
@@ -1061,6 +1107,10 @@ static int read_rom_file (uae_u8 *buf, const struct romdata *rd)
 		memcpy (buf, tmp, sizeof tmp);
 		zfile_fread (buf + sizeof tmp, rd->size - sizeof (tmp), 1, zf);
 	}
+#ifdef FSUAE
+	amiga_patch_rom(buf, rd->size);
+#endif
+
 	zfile_fclose (zf);
 	return 1;
 }

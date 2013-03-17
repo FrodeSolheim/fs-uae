@@ -16,7 +16,7 @@
 
 #include "options.h"
 #include "uae.h"
-#include "memory.h"
+#include "uae/memory.h"
 #include "custom.h"
 #include "newcpu.h"
 #include "xwin.h"
@@ -41,13 +41,13 @@ static uae_u32 emulib_GetVersion (void)
 */
 static uae_u32 emulib_HardReset (void)
 {
-	uae_reset(0);
+	uae_reset(1, 1);
 	return 0;
 }
 
 static uae_u32 emulib_Reset (void)
 {
-	uae_reset(0);
+	uae_reset(0, 0);
 	return 0;
 }
 
@@ -140,7 +140,7 @@ static uae_u32 REGPARAM2 emulib_ChgCMemSize (uae_u32 memsize)
 	m68k_dreg (regs, 0) = 0;
 
 	changed_prefs.chipmem_size = memsize;
-	uae_reset(0);
+	uae_reset(1, 1);
 	return 1;
 }
 
@@ -158,7 +158,7 @@ static uae_u32 REGPARAM2 emulib_ChgSMemSize (uae_u32 memsize)
 
 	m68k_dreg (regs, 0) = 0;
 	changed_prefs.bogomem_size = memsize;
-	uae_reset (0);
+	uae_reset (1, 1);
 	return 1;
 }
 
@@ -175,7 +175,7 @@ static uae_u32 REGPARAM2 emulib_ChgFMemSize (uae_u32 memsize)
 	}
 	m68k_dreg (regs, 0) = 0;
 	changed_prefs.fastmem_size = memsize;
-	uae_reset (0);
+	uae_reset (1, 1);
 	return 0;
 }
 
@@ -401,7 +401,12 @@ static uae_u32 REGPARAM2 uaelib_demux2 (TrapContext *context)
 
 	case 70: return 0; /* RESERVED. Something uses this.. */
 
-	case 80: return currprefs.maprom ? currprefs.maprom : 0xffffffff;
+	case 80:
+		if (!currprefs.maprom)
+			return 0xffffffff;
+		/* Disable possible ROM protection */
+		unprotect_maprom ();
+		return currprefs.maprom;
 	case 81: return cfgfile_uaelib (ARG1, ARG2, ARG3, ARG4);
 	case 82: return cfgfile_uaelib_modify (ARG1, ARG2, ARG3, ARG4, ARG5);
 	case 83: currprefs.mmkeyboard = ARG1 ? 1 : 0; return currprefs.mmkeyboard;

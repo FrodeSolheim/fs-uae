@@ -16,7 +16,7 @@
 #include "gensound.h"
 #include "events.h"
 #include "uae.h"
-#include "include/memory.h"
+#include "uae/memory.h"
 #include "custom.h"
 #include "autoconf.h"
 #include "newcpu.h"
@@ -325,6 +325,7 @@ void getserstat (int *pstatus)
     /* read control signals */
     if (ioctl (ser_fd, TIOCMGET, &status) < 0) {
         write_log ("serial: ioctl TIOCMGET failed\n");
+        *pstatus = TIOCM_CTS | TIOCM_CAR | TIOCM_DSR;
         return;
     }
 

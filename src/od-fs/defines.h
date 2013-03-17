@@ -18,8 +18,12 @@
 
 #include "uae_host.h"
 
-#define STUB(format, ...) write_log(" -- stub -- %s " format "\n", \
-        __func__, ##__VA_ARGS__)
+#define STUB(format, ...) { write_log(" -- stub -- %s " format "\n", \
+        __func__, ##__VA_ARGS__); \
+        printf(" -- stub -- %s " format "\n", __func__, ##__VA_ARGS__); }
+
+#define LOG_STUB(format, ...) { write_log(" -- stub -- %s " format "\n", \
+        __func__, ##__VA_ARGS__); }
 
 #define VERBOSE_STUB(format, ...)
 
@@ -70,7 +74,7 @@ extern FILE *g_fs_uae_sync_debug_file;
 #define ARCADIA
 #define AUTOCONFIG
 
-#if !defined(WINDOWS) && !defined(ANDROID) && !defined(__LSB_VERSION__)
+#if !defined(ANDROID) && !defined(__LSB_VERSION__)
 #define BSDSOCKET
 #endif
 
@@ -83,6 +87,7 @@ extern FILE *g_fs_uae_sync_debug_file;
 #define CPUEMU_12
 #define CPUEMU_20
 #define CPUEMU_21
+#define CPUEMU_22
 #define CPUEMU_31
 //#define DEBUGGER
 #define DRIVESOUND
@@ -93,8 +98,10 @@ extern FILE *g_fs_uae_sync_debug_file;
 #define FPU_UAE
 #define GFXFILTER
 
-#if defined(__x86_64__) || defined(__ppc__)
+#if defined(__x86_64__) || defined(__ppc__) || defined(__ARMEL__)
 // no JIT for these architectures
+#elif defined(OPENBSD)
+// no sys/ucontext.h header
 #else
 #define JIT
 #define JIT_DEBUG
@@ -243,7 +250,7 @@ typedef int BOOL;
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
 
-#ifdef __ppc__
+#if defined(__ppc__) || defined(__ARMEL__)
 // REGPARAM are used in JIT code, so for PPC (which does not have JIT) this
 // can be set to nothing
 #define REGPARAM

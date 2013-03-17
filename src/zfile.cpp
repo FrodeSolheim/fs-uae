@@ -1681,7 +1681,7 @@ static struct zfile *zfile_fopen_2 (const TCHAR *name, const TCHAR *mode, int ma
 		}
 		l->zfdmask = mask;
 	} else {
-		struct _stat64 st;
+		struct mystat st;
 		l = zfile_create (NULL);
 		l->mode = my_strdup (mode);
 		l->name = my_strdup (name);
@@ -1696,8 +1696,8 @@ static struct zfile *zfile_fopen_2 (const TCHAR *name, const TCHAR *mode, int ma
 			zfile_fclose (l);
 			return 0;
 		}
-		if (stat (l->name, &st) != -1)
-			l->size = st.st_size;
+		if (my_stat (l->name, &st))
+			l->size = st.size;
 		l->f = f;
 	}
 	return l;
@@ -2065,6 +2065,16 @@ struct zfile *zfile_fopen_parent (struct zfile *z, const TCHAR *name, uae_u64 of
 	return l;
 }
 
+struct zfile *zfile_fopen_load_zfile (struct zfile *f)
+{
+	struct zfile *l = zfile_fopen_empty (f, f->name, f->size);
+	if (!l)
+		return NULL;
+	zfile_fseek (f, 0, SEEK_SET);
+	zfile_fread (l->data, f->size, 1, f);
+	return l;
+}
+
 struct zfile *zfile_fopen_data (const TCHAR *name, uae_u64 size, const uae_u8 *data)
 {
 	struct zfile *l;
@@ -2215,7 +2225,7 @@ size_t zfile_fwrite (const void *b, size_t l1, size_t l2, struct zfile *z)
 	if (z->parent && z->useparent)
 		return 0;
 	if (z->data) {
-		int off = z->seek + l1 * l2;
+		uae_s64 off = z->seek + l1 * l2;
 		if (z->allocsize == 0) {
 			write_log (_T("zfile_fwrite(data,%s) but allocsize=0!\n"), z->name);
 			return 0;
@@ -2240,7 +2250,7 @@ size_t zfile_fwrite (const void *b, size_t l1, size_t l2, struct zfile *z)
 	return fwrite (b, l1, l2, z->f);
 }
 
-size_t zfile_fputs (struct zfile *z, TCHAR *s)
+size_t zfile_fputs (struct zfile *z, const TCHAR *s)
 {
 	char *s2 = ua (s);
 	size_t t;
@@ -2756,7 +2766,8 @@ static void zfile_fopen_archive_recurse2 (struct zvolume *zv, struct znode *zn, 
 		zvnew = zvolume_alloc_empty (zv, tmp);
 		zvnew->parentz = zn;
 		zai.name = tmp;
-		zai.t = zn->mtime;
+		zai.tv.tv_sec = zn->mtime.tv_sec;
+		zai.tv.tv_usec = zn->mtime.tv_usec;
 		zai.comment = zv->volumename;
 		if (zn->flags < 0)
 			zai.flags = zn->flags;
@@ -2940,7 +2951,8 @@ struct znode *znode_adddir (struct znode *parent, const TCHAR *name, struct zarc
 	if (zn)
 		return zn;
 	zn = znode_alloc_child (parent, name);
-	zn->mtime = zai->t;
+	zn->mtime.tv_sec = zai->tv.tv_sec;
+	zn->mtime.tv_usec = zai->tv.tv_usec;
 	zn->type = ZNODE_DIR;
 	if (zai->comment)
 		zn->comment = my_strdup (zai->comment);
@@ -2998,7 +3010,8 @@ struct znode *zvolume_addfile_abs (struct zvolume *zv, struct zarchive_info *zai
 		zn = znode_alloc_child (zn2, p2);
 		zn->size = zai->size;
 		zn->type = ZNODE_FILE;
-		zn->mtime = zai->t;
+		zn->mtime.tv_sec = zai->tv.tv_sec;
+		zn->mtime.tv_usec = zai->tv.tv_usec;
 		if (zai->comment)
 			zn->comment = my_strdup (zai->comment);
 		zn->flags = zai->flags;
@@ -3020,19 +3033,20 @@ struct zvolume *zfile_fopen_directory (const TCHAR *dirname)
 	zv = zvolume_alloc_nofile (dirname, ArchiveFormatDIR, NULL, NULL);
 	while (my_readdir (dir, fname)) {
 		TCHAR fullname[MAX_DPATH];
-		struct _stat64 statbuf;
+		struct mystat statbuf;
 		struct zarchive_info zai = { 0 };
 		if (!_tcscmp (fname, _T(".")) || !_tcscmp (fname, _T("..")))
 			continue;
 		_tcscpy (fullname, dirname);
 		_tcscat (fullname, FSDB_DIR_SEPARATOR_S);
 		_tcscat (fullname, fname);
-		if (stat (fullname, &statbuf) == -1)
+		if (!my_stat (fullname, &statbuf))
 			continue;
 		zai.name = fname;
-		zai.size = statbuf.st_size;
-		zai.t = statbuf.st_mtime;
-		if (statbuf.st_mode & FILEFLAG_DIR) {
+		zai.size = statbuf.size;
+		zai.tv.tv_sec = statbuf.mtime.tv_sec;
+		zai.tv.tv_usec = statbuf.mtime.tv_usec;
+		if (statbuf.mode & FILEFLAG_DIR) {
 			zvolume_adddir_abs (zv, &zai);
 		} else {
 			struct znode *zn;
@@ -3321,17 +3335,17 @@ int zfile_fs_usage_archive (const TCHAR *path, const TCHAR *disk, struct fs_usag
 	return 0;
 }
 
-int zfile_stat_archive (const TCHAR *path, struct _stat64 *s)
+int zfile_stat_archive (const TCHAR *path, struct mystat *s)
 {
 	struct zvolume *zv = get_zvolume (path);
 	struct znode *zn = get_znode (zv, path, TRUE);
 
-	memset (s, 0, sizeof (struct _stat64));
+	memset (s, 0, sizeof (struct mystat));
 	if (!zn)
 		return 0;
-	s->st_mode = zn->type == ZNODE_FILE ? 0 : FILEFLAG_DIR;
-	s->st_size = zn->size;
-	s->st_mtime = zn->mtime;
+	s->size = zn->size;
+	s->mtime.tv_sec = zn->mtime.tv_sec;
+	s->mtime.tv_usec = zn->mtime.tv_usec;
 	return 1;
 }
 

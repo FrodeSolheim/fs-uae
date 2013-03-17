@@ -6,7 +6,7 @@ bindist: program
 	cp -a ../README fs-uae-$(version)-windows/README.txt
 	cp -a ../COPYING fs-uae-$(version)-windows/COPYING.txt
 	cp -a ../example.conf fs-uae-$(version)-windows
-	zip -r fs-uae-$(version)-windows.zip fs-uae-$(version)-windows
+	zip -9 -r fs-uae-$(version)-windows.zip fs-uae-$(version)-windows
 
 program:
 	make -C ..
@@ -17,20 +17,18 @@ program:
 	cp /mingw/bin/libgthread-2.0-0.dll fs-uae-$(version)-windows
 	cp /mingw/bin/intl.dll fs-uae-$(version)-windows
 	cp /mingw/bin/libpng*.dll fs-uae-$(version)-windows
+	cp /mingw/bin/*freetype*.dll fs-uae-$(version)-windows
 	cp /mingw/bin/libgcc_s_*.dll fs-uae-$(version)-windows
 	cp /mingw/bin/libstdc++*.dll fs-uae-$(version)-windows
 	cp /mingw/bin/libintl*.dll fs-uae-$(version)-windows
 	cp /mingw/bin/libiconv*.dll fs-uae-$(version)-windows
 	cp /mingw/bin/SDL.dll fs-uae-$(version)-windows
-	cp /mingw/bin/soft_oal.dll fs-uae-$(version)-windows/OpenAL32.dll
-	#cp /mingw/dist/SDL.dll fs-uae-$(version)-windows
-	cp -a ../out/fs-uae.exe fs-uae-$(version)-windows/FS-UAE.exe
-	cp -a ../../out/CAPSImg.dll fs-uae-$(version)-windows
-	#mv fs-uae-$(version)-windows/TEMP.exe fs-uae-$(version)-windows/FS-UAE.exe
+	cp /mingw/bin/OpenAL32.dll fs-uae-$(version)-windows
+	cp -a ../fs-uae.exe fs-uae-$(version)-windows/fs-uae.exe
+	cp -a ../../CAPSImg.dll fs-uae-$(version)-windows || cp -a ../CAPSImg.dll fs-uae-$(version)-windows
 	cp -a ../share fs-uae-$(version)-windows
 	strip fs-uae-$(version)-windows/*.exe
 	strip fs-uae-$(version)-windows/*.dll
-	#python replace_icon.py fs-uae-$(version)-windows/FS-UAE.exe ../icon/fs-uae.ico
 
 launcher:
 	make -C ../launcher -f Makefile.mk
@@ -41,10 +39,10 @@ launcher:
 	cp -a ../launcher/share fs-uae-$(version)-windows/launcher/
 	mv fs-uae-$(version)-windows/launcher/fs-uae-launcher.exe "fs-uae-$(version)-windows/launcher/FS-UAE Launcher.exe"
 	python replace_icon.py "fs-uae-$(version)-windows/launcher/FS-UAE Launcher.exe" ../icon/fs-uae-launcher.ico
-	cp -a C:/Microsoft.VC90.CRT fs-uae-$(version)-windows/launcher/
+	cp -a /mingw/Microsoft.VC90.CRT fs-uae-$(version)-windows/launcher/
 
 bindist-plus:
-	zip -r fs-uae-plus-$(version)-windows.zip fs-uae-$(version)-windows
+	zip -9 -r fs-uae-plus-$(version)-windows.zip fs-uae-$(version)-windows
 
 setup:
 	iscc fs-uae-setup.iss

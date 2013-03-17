@@ -62,6 +62,8 @@ class ImportTask(threading.Thread):
             self.import_roms()
         elif self.type == 1:
             self.import_amiga_forever()
+        database = Database()
+        ROMManager.patch_standard_roms(database)
 
     def import_roms(self):
         self.copy_roms(self.path, Settings.get_kickstarts_dir())
@@ -75,6 +77,13 @@ class ImportTask(threading.Thread):
             self.log_lines.append(_("Copy {0}\nto {1}").format(src, dst))
         if not os.path.exists(os.path.dirname(dst)):
             os.makedirs(os.path.dirname(dst))
+        if os.path.exists(dst):
+            # try to remove the file first, in case the file has read-only
+            # permissions
+            try:
+                os.remove(dst)
+            except Exception:
+                pass
         shutil.copy(src, dst)
 
     def copy_roms(self, src, dst):

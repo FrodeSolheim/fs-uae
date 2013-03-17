@@ -40,7 +40,7 @@ static inline int uae_sem_trywait(uae_sem_t *sem) {
 
 //typedef int (*uae_thread_function) (void *);
 typedef fs_thread_function uae_thread_function;
-int uae_start_thread (char *name, uae_thread_function fn, void *arg,
+int uae_start_thread (const char *name, uae_thread_function fn, void *arg,
         uae_thread_id *tid);
 int uae_wait_thread (uae_thread_id thread);
 void uae_end_thread (uae_thread_id *thread);

@@ -1,7 +1,6 @@
 #include "sysconfig.h"
 #include "sysdeps.h"
 
-//#include <glib.h>
 #include <string.h>
 
 // fs-uae uses only chars / UTF-8 internally, so TCHAR is typedefed to
@@ -84,7 +83,7 @@ char *ua_fs (const TCHAR *s, int defchar) {
 
     // duplicate with libc malloc
     char *result_malloced = strdup(result);
-    g_free(result);
+    free(result);
     return result_malloced;
 #endif
 }
@@ -105,7 +104,7 @@ TCHAR *au_fs_copy (TCHAR *dst, int maxlen, const char *src) {
     }
 
     strncpy(dst, result, maxlen);
-    g_free(result);
+    free(result);
     return dst;
 #endif
 }
@@ -131,7 +130,7 @@ char *ua_fs_copy (char *dst, int maxlen, const TCHAR *src, int defchar) {
     }
 
     strncpy(dst, result, maxlen);
-    g_free(result);
+    free(result);
     return dst;
 #endif
 }

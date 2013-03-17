@@ -74,6 +74,9 @@ class BaseItemView(wx.ScrolledWindow):
         self.Bind(wx.EVT_KILL_FOCUS, self.onKillFocusEvent)
         self.Bind(wx.EVT_LEFT_UP, self.__on_left_up)
 
+    def get_item_search_text(self, index):
+        return self.get_item_text(index).lower()
+
     def search_for_text(self, text):
         print("search for", repr(text))
         text = text.lower()
@@ -82,12 +85,13 @@ class BaseItemView(wx.ScrolledWindow):
         while imin < imax:
             imid = (imin + imax) // 2
             assert imid < imax
-            mid_text = self.get_item_text(imid).lower()
+            mid_text = self.get_item_search_text(imid)
             if mid_text < text and not mid_text.startswith(text):
                 imin = imid + 1
             else:
                 imax = imid
-        if imax == imin and self.get_item_text(imin).lower().startswith(text):
+        if imax == imin and self.get_item_search_text(imin).lower(
+                ).startswith(text):
             return imin
         return None
 
@@ -288,24 +292,17 @@ class BaseItemView(wx.ScrolledWindow):
 
     def clearSelection(self):
         # FIXME: IMPLEMENT!
-        pass
-
-        #count = len(self.selected_items)
-        #for (int i = count - 1; i >= 0; i--) {
-        #    DeselectCell (m_selecteditems.Item (i), false, true, true, i == 0);
-        #    //RefreshCell(m_selecteditems.Item(i), true, false);
-        #}
-        #
-        #m_selecteditems.Clear ();
-        #/* FIXME: Need not refresh the entire thing.. */
-        #//Refresh();
-        #//sendSelectionUpdateEvent ();
+        self.selected_items = []
+        olditems = self.selected_items[:]
+        itemcount = len(self.selected_items)
+        for i in range(0, itemcount):
+            self.refreshItem(olditems[i], True, False)
 
     def select_item(self, index, addtoselection=False, sendevent=True, d2=0,
             d3=0, forceallowreselect=False):
         if index >= self.get_item_count():
             return False
-        if index < 0:
+        if index < 0 or index is None:
             self.clearSelection()
             return False
         itemcount = len(self.selected_items)
@@ -342,7 +339,7 @@ class BaseItemView(wx.ScrolledWindow):
         else:
             #m_selecteditem = index;
             self.keyendindex = index
-            olditems = self.selected_items
+            olditems = self.selected_items[:]
             self.selected_items = [index]
             self.refreshItem(index, True, True)
             for i in range(0, itemcount):
@@ -888,7 +885,7 @@ class VerticalItemView (BaseItemView):
         w -= 6
 
         primary = self.get_item_text(index)
-        primary = primary.replace(u"\nAmiga \u00b7 ", "\n")
+        #primary = primary.replace(u"\nAmiga \u00b7 ", "\n")
         secondary = ""
         SPLIT = u"\n"
         if SPLIT in primary:

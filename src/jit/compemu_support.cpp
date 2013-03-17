@@ -10,7 +10,7 @@
 
 #include "options.h"
 #include "events.h"
-#include "include/memory.h"
+#include "uae/memory.h"
 #include "custom.h"
 #include "newcpu.h"
 #include "comptbl.h"
@@ -288,7 +288,7 @@ STATIC_INLINE void set_dhtu(blockinfo* bi, cpuop_func *dh)
 			//write_log (_T("JIT: x->prev_p is %p\n"),x->prev_p);
 
 			if (x->jmp_off) {
-				adjust_jmpdep(x,dh);
+				adjust_jmpdep(x, (void*) dh);
 			}
 			x=x->next;
 		}
@@ -5704,7 +5704,7 @@ void build_comp(void)
 	write_log (_T("JIT: Setting signal handler\n"));
 #ifndef _WIN32
 	struct sigaction sa;
-	sa.sa_handler = (void *) vec;
+	sa.sa_handler = (void (*)(int)) vec;
  	sigemptyset(&sa.sa_mask);
 	sa.sa_flags = SA_RESTART;
 

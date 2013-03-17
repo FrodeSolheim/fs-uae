@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 import os
 import sys
 from cStringIO import StringIO
+import fs_uae_launcher.fsui as fsui
 import wx
 import pygame
 

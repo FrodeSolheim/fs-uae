@@ -12,7 +12,18 @@ int sdl_key_to_dik (int keycode);
 //  amiga_floppy_set_frm
 //}
 
-static int handle_custom_action(int action) {
+int tablet_log = 0;
+
+static int g_joystick_port_autofire[4];
+
+void amiga_set_joystick_port_autofire(int port, int autofire) {
+    if (port < 0 || port > 3) {
+        return;
+    }
+    g_joystick_port_autofire[port] = (autofire > 0);
+}
+
+static int handle_custom_action(int action, int state) {
     write_log("handle_custom_action %d\n", action);
     if (action >= INPUTEVENT_SPC_DISKSWAPPER_0_0 &&
             action <= INPUTEVENT_SPC_DISKSWAPPER_3_19) {
@@ -23,71 +34,44 @@ static int handle_custom_action(int action) {
         amiga_floppy_set_from_list(drive, entry);
         return 1;
     }
+
+    /*
+    if (state && action >= INPUTEVENT_AMIGA_JOYPORT_0_AUTOFIRE &&
+            action <= INPUTEVENT_AMIGA_JOYPORT_3_AUTOFIRE) {
+        int port = action - INPUTEVENT_AMIGA_JOYPORT_0_AUTOFIRE;
+        g_joystick_port_autofire[port] = !g_joystick_port_autofire[port];
+    }
+    */
+
     return 0;
 }
 
 #define MAX_MICE 2
 #define MAX_MICE_AXES 2
 
-static void mouse_state(int mouse, int axis, int data, int isabs, int *max) {
-    int i, v, diff;
-    int *mouse_p, *oldm_p;
-    double d;
-    static int mouse_axis[MAX_MICE][MAX_MICE_AXES];
-    static int oldm_axis[MAX_MICE][MAX_MICE_AXES];
-    static double fract[MAX_MICE][MAX_MICE_AXES];
-
-    d = 0;
-    mouse_p = &mouse_axis[mouse][axis];
-    oldm_p = &oldm_axis[mouse][axis];
-
-    *oldm_p = *mouse_p;
-    *mouse_p += data;
-    d = (*mouse_p - *oldm_p) * currprefs.input_mouse_speed / 100.0;
-    v = (int)d;
-    fract[mouse][axis] += d - v;
-    diff = (int)fract[mouse][axis];
-    v += diff;
-    fract[mouse][axis] -= diff;
-    *max = 0;
-}
-
 extern "C" {
 
 int amiga_send_input_event(int input_event, int state) {
-#ifdef DEBUG_SYNC
+//#ifdef DEBUG_SYNC
     write_sync_log("apply action %d state=%d\n", input_event, state);
-#endif
+//#endif
 
     //printf("amiga_send_input_event %d %d\n", input_event, state);
     int isabs = 0;
 
     if (input_event > INPUTEVENT_PRIVATE_START) {
-        return handle_custom_action(input_event);
+        return handle_custom_action(input_event, state);
     }
     // FIXME: is max = 1 always appropriate?
     int max = 1;
 
     switch (input_event) {
     case INPUTEVENT_MOUSE1_HORIZ:
-        //printf("INPUTEVENT_MOUSE1_HORIZ\n");
-        mouse_state(0, 0, state, isabs, &max);
-        //return 1;
-        break;
     case INPUTEVENT_MOUSE1_VERT:
-        //printf("INPUTEVENT_MOUSE1_VERT\n");
-        mouse_state(0, 1, state, isabs, &max);
-        //return 1;
-        break;
+    case INPUTEVENT_MOUSE1_WHEEL:
     case INPUTEVENT_MOUSE2_HORIZ:
-        //printf("INPUTEVENT_MOUSE2_HORIZ\n");
-        mouse_state(1, 0, state, isabs, &max);
-        //return 1;
-        break;
     case INPUTEVENT_MOUSE2_VERT:
-        //printf("INPUTEVENT_MOUSE2_VERT\n");
-        mouse_state(1, 1, state, isabs, &max);
-        //return 1;
+        max = 0;
         break;
     case INPUTEVENT_KEY_CAPS_LOCK:
         // handled specially because of toggle mode
@@ -97,6 +81,24 @@ int amiga_send_input_event(int input_event, int state) {
         return 1;
     }
     int autofire = 0;
+
+    if (input_event == INPUTEVENT_JOY1_FIRE_BUTTON &&
+            g_joystick_port_autofire[0]) {
+        autofire = 1;
+    }
+    else if (input_event == INPUTEVENT_JOY2_FIRE_BUTTON &&
+            g_joystick_port_autofire[1]) {
+        autofire = 1;
+    }
+    else if (input_event == INPUTEVENT_PAR_JOY1_FIRE_BUTTON &&
+            g_joystick_port_autofire[2]) {
+        autofire = 1;
+    }
+    else if (input_event == INPUTEVENT_PAR_JOY2_FIRE_BUTTON &&
+            g_joystick_port_autofire[3]) {
+        autofire = 1;
+    }
+
     bool canstopplayback = 1;
     bool playbackevent = 0;
 
@@ -133,7 +135,7 @@ void setid_af (struct uae_input_device *uid, int i, int slot, int sub, int port,
 /*
  * Default inputdevice config for SDL mouse
  */
-int input_get_default_mouse (struct uae_input_device *uid, int i, int port, int af)
+int input_get_default_mouse (struct uae_input_device *uid, int i, int port, int af, bool gp)
 {
     write_log("input_get_default_mouse\n");
     /* SDL supports only one mouse */
@@ -261,12 +263,12 @@ struct inputdevice_functions inputdevicefunc_mouse = {
 
 
 static int init_kb (void) {
-    STUB("");
+    LOG_STUB("");
     return 1;
 }
 
 static void close_kb (void) {
-    STUB("");
+    LOG_STUB("");
 }
 
 static int acquire_kb (int num, int flags) {
@@ -343,11 +345,11 @@ int input_get_default_keyboard (int num) {
     return 0;
 }
 
-int input_get_default_joystick_analog (struct uae_input_device *uid, int num, int port, int af) {
+int input_get_default_joystick_analog (struct uae_input_device *uid, int num, int port, int af, bool gp) {
     return 0;
 }
 
-int input_get_default_lightpen (struct uae_input_device *uid, int i, int port, int af) {
+int input_get_default_lightpen (struct uae_input_device *uid, int i, int port, int af, bool gp) {
     return 0;
 }
 
@@ -359,8 +361,27 @@ void gui_gameport_button_change (int port, int button, int onoff) {
 
 }
 
+#ifdef WINDOWS
+#include <Windows.h>
+#endif
+
 int handle_msgpump (void) {
+#ifdef WINDOWS
+    // this message queue is used to dispatch messages for bsdsocket emulation
+    // on Windows. Socket functions are run asynchronously with results posted
+    // to a dummy Window.
+	int got = 0;
+	MSG msg;
+
+	while (PeekMessage (&msg, 0, 0, 0, PM_REMOVE)) {
+		got = 1;
+		TranslateMessage (&msg);
+		DispatchMessage (&msg);
+	}
+	return got;
+#else
     return 0;
+#endif
 }
 
 int is_tablet (void) {
@@ -375,6 +396,7 @@ int is_tablet (void) {
  * Copyright 1998 Krister Walfridsson
  * Copyright 2003-2005 Richard Drummond
  */
+/*
 #include <SDL.h>
 
 #define MAX_MAPPINGS 256
@@ -389,7 +411,7 @@ struct joyinfo {
 };
 
 static struct joyinfo joys[MAX_INPUT_DEVICES];
-
+*/
 /*
 static void read_joy (unsigned int nr) {
     unsigned int num, i, axes, axis;
@@ -418,37 +440,17 @@ static int get_joystick_num (void) {
     return 4;
 }
 
-static int get_joystick_widget_num (int joy)
-{
+static int get_joystick_widget_num (int joy) {
     write_log("get_joystick_widget_num joy=%d\n", joy);
-    return joys[joy].axles + joys[joy].buttons;
+    return 0;
 }
 
 static int get_joystick_widget_type (int joy, int num, char *name,
         uae_u32 *code) {
-    write_log("get_joystick_widget_type joy=%d\n", joy);
-    if (num >= (int) joys[joy].axles && num < (int) (joys[joy].axles +
-            joys[joy].buttons)) {
-        if (name) {
-            sprintf (name, "Button %d", num + 1 - joys[joy].axles);
-        }
-        return IDEV_WIDGET_BUTTON;
-    }
-    else if (num < (int) joys[joy].axles) {
-        if (name)
-            sprintf (name, "Axis %d", num + 1);
-        return IDEV_WIDGET_AXIS;
-    }
     return IDEV_WIDGET_NONE;
 }
 
 static int get_joystick_widget_first (int joy, int type) {
-    switch (type) {
-    case IDEV_WIDGET_BUTTON:
-        return joys[joy].axles;
-    case IDEV_WIDGET_AXIS:
-        return 0;
-    }
     return -1;
 }
 
@@ -494,10 +496,6 @@ static void read_joystick (void) {
 
 static int init_joystick (void) {
     write_log("init_joystick\n");
-    if (!initialized) {
-        nr_joysticks = 2;
-        initialized = 1;
-    }
     return 1;
 }
 
@@ -535,7 +533,7 @@ struct inputdevice_functions inputdevicefunc_joystick = {
     get_joystick_flags
 };
 
-int input_get_default_joystick (struct uae_input_device *uid, int num, int port, int af, int mode)
+int input_get_default_joystick (struct uae_input_device *uid, int num, int port, int af, int mode, bool gp)
 {
     int h,v;
     unsigned int j;

@@ -1,0 +1,249 @@
+# Finnish translations for fs-uae package.
+# Copyright (C) 2013 Frode Solheim
+# This file is distributed under the same license as the fs-uae package.
+# Frode Solheim <fs-uae@fengestad.no>, 2013.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: fs-uae\n"
+"Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
+"POT-Creation-Date: 2013-03-08 23:38+0100\n"
+"PO-Revision-Date: 2013-03-09 13:20+0200\n"
+"Last-Translator: Mika Vaisanen <mjvaisane@gmail.com>\n"
+"Language-Team: Finnish\n"
+"Language: fi\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Activated debugger"
+msgstr "Debuggeri aktivoitu"
+
+msgid "Amiga Control"
+msgstr "Amigan hallinta"
+
+#. / TRANSLATORS: In context "Zoom: Auto"
+msgid "Auto"
+msgstr "Automaattinen"
+
+msgid "Auto-Fire is Off"
+msgstr "Automaattitulitus EI"
+
+msgid "Auto-Fire is On"
+msgstr "Automaattitulitus ON"
+
+#, c-format
+msgid "Auto-fire disabled for port %d"
+msgstr "Automaattitulitus poistettu käytöstä portille %d"
+
+#, c-format
+msgid "Auto-fire enabled for port %d"
+msgstr "Automaattitulitus asetettu käyttöön portille %d"
+
+#. / TRANSLATORS: Empty or nothing
+#, c-format
+msgid "CD%d: Empty"
+msgstr "CD%d: Tyhjä"
+
+msgid "CD32 Pad Mode"
+msgstr "CD32 Pad-ohjaintila"
+
+#. / TRANSLATORS: This is a menu entry and must not be too long
+msgid "Custom Joystick Port"
+msgstr "Mukautettu peliohjain"
+
+msgid "Custom Mode"
+msgstr "Mukautettu tila"
+
+#. / TRANSLATORS: Empty or nothing
+#, c-format
+msgid "DF%d: Empty"
+msgstr "DF%d: Tyhjä"
+
+msgid "Disabled"
+msgstr "Ei käytössä"
+
+msgid "Eject"
+msgstr "Poista levy"
+
+msgid "Empty"
+msgstr "Tyhjä"
+
+msgid "Emulator Control"
+msgstr "Emulaattorin hallinta"
+
+#. / TRANSLATORS: In context "Zoom: Full Frame"
+msgid "Full Frame"
+msgstr "Täysi kehys"
+
+#, c-format
+msgid "HD not found: %s"
+msgstr "Kovalevyä %s ei löydy"
+
+# olisiko "Täysi resetointi" parempi?
+#. / TRANSLATORS: Hard reset is a computer reboot with an emulated power
+#. / cycle
+msgid "Hard Reset"
+msgstr "Kova resetointi"
+
+msgid "Input Options"
+msgstr "Syöttölaitteet"
+
+#. / TRANSLATORS: This is a menu entry and must not be too long
+#, c-format
+msgid "Insert Into CD%d"
+msgstr "Aseta asemaan CD%d"
+
+#. / TRANSLATORS: This is a menu entry and must not be too long
+#, c-format
+msgid "Insert Into DF%d"
+msgstr "Aseta asemaan DF%d"
+
+msgid "Invalid number of CD-ROM drives specified"
+msgstr "Virheellinen määrä CD-ROM asemia määritelty"
+
+msgid "Joystick Mode"
+msgstr "Peliohjaintila"
+
+#. / TRANSLATORS: This is a menu entry and must not be too long
+#, c-format
+msgid "Joystick Port %d"
+msgstr "Peliohjain portti %d"
+
+#. / TRANSLATORS: This is a menu entry and must not be too long
+#, c-format
+msgid "Joystick Port %d Device"
+msgstr "Peliohjain portti %d laite"
+
+#. / TRANSLATORS: This is a menu entry and must not be too long
+#, c-format
+msgid "Joystick Port %d Mode"
+msgstr "Peliohjain portti %d tila"
+
+msgid "Joystick Port 0"
+msgstr "Peliohjain portti 0"
+
+msgid "Joystick Port 1"
+msgstr "Peliohjain portti 1"
+
+msgid "Joystick Port 2"
+msgstr "Peliohjain portti 2"
+
+msgid "Joystick Port 3"
+msgstr "Peliohjain portti 3"
+
+msgid "Joystick Port 4"
+msgstr "Peliohjain portti 4"
+
+msgid "Joystick Ports"
+msgstr "Peliohjainportit"
+
+msgid "Keyboard"
+msgstr "Näppäimistö"
+
+msgid "Load"
+msgstr "Lataa"
+
+msgid "More..."
+msgstr "Lisää..."
+
+msgid "Mouse"
+msgstr "Hiiri"
+
+msgid "Mouse Mode"
+msgstr "Hiiritila"
+
+#. / TRANSLATORS: This is a menu entry and must not be too long: If you struggle
+#. / to get in short enough, just translate "No Device" instead.
+msgid "No Amiga Device"
+msgstr "Ei Amiga laitetta"
+
+#. / TRANSLATORS: This is a menu entry and must not be too long: If you struggle
+#. / to get in short enough, just translate "No Device" instead.
+msgid "No Host Device"
+msgstr "Ei isäntälaitetta"
+
+msgid "No configuration file was found"
+msgstr "Asetustiedostoa ei löytynyt"
+
+#, c-format
+msgid "Option \"%s\" is not enabled"
+msgstr "Asetusta \"%s\" ei ole määritetty"
+
+msgid "Option chip_memory must be a multiple of 512"
+msgstr "Asetuksen \"Chip muisti\" (chip_memory) täytyy olla 512:n kerrannainen"
+
+msgid "Option fast_memory must be a multiple of 1024"
+msgstr ""
+"Asetuksen \"Fast muisti\" (fast_memory) täytyy olla 1024:n kerrannainen"
+
+msgid "Option slow_memory must be a multiple of 256"
+msgstr "Asetuksen \"Slow muisti\" (slow_memory) täytyy olla 256:n kerrannainen"
+
+msgid "Option uaegfx.card needs a CPU with 32-bit addressing"
+msgstr ""
+"Asetus \"Picasso96-tuki\" (uaegfx.card) vaatii suorittimen 32-bittisellä "
+"muistiosoituksella"
+
+msgid "Option zorro_iii_memory must be a multiple of 1024"
+msgstr ""
+"Asetuksen \"Zorro III muisti\" (zorro_iii_memory) täytyy olla 1024:n "
+"kerrannainen"
+
+msgid "Options zorro_iii_memory needs a CPU with 32-bit addressing"
+msgstr ""
+"Asetus \"Zorro III muisti\" (zorro_iii_memory) vaatii suorittimen 32-"
+"bittisellä muistiosoituksella"
+
+#. / TRANSLATORS: This is a menu entry and must not be too long
+msgid "Parallel Joystick Ports"
+msgstr "Rinnakkaisportti-ohjaimet"
+
+msgid "Pause"
+msgstr "Tauko"
+
+#, c-format
+msgid "Port 0: %s"
+msgstr "Portti 0: %s"
+
+msgid "Port Settings"
+msgstr "Portin asetukset"
+
+msgid "Removable Media"
+msgstr "Irrotettavat mediat"
+
+#. / TRANSLATORS: Reset Amiga as in reboot the computer
+msgid "Reset Amiga"
+msgstr "Resetoi Amiga"
+
+msgid "Resume"
+msgstr "Jatka"
+
+msgid "Save"
+msgstr "Tallenna"
+
+msgid "Save States"
+msgstr "Tallennetut tilat"
+
+# olisiko "Nopea resetointi" parempi?
+#. / TRANSLATORS: Soft reset reboots the computer without a power cycle
+msgid "Soft Reset"
+msgstr "Pehmeä resetointi"
+
+msgid "Warp mode disabled"
+msgstr "Warp-nopeus pois päältä"
+
+msgid "Warp mode enabled"
+msgstr "Warp-nopeus päällä"
+
+msgid "Zoom is disabled in RTG mode"
+msgstr "Zoomaus ei ole käytössä RTG-tilassa"
+
+#, c-format
+msgid "Zoom: %s"
+msgstr "Zoomaus: %s"
+
+#, c-format
+msgid "Zoom: %s + Border"
+msgstr "Zoomaus: %s + Kehys"

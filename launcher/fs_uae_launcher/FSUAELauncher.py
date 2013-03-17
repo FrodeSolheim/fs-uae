@@ -11,6 +11,7 @@ import ConfigParser
 import fs_uae_launcher.fsui as fsui
 from .ui.MainWindow import MainWindow
 import fs_uae_launcher.fs as fs
+from .Amiga import Amiga
 from .Config import Config
 from .ConfigurationScanner import ConfigurationScanner
 from .Database import Database
@@ -19,15 +20,45 @@ from .ROMManager import ROMManager
 from .Settings import Settings
 from .UpdateManager import UpdateManager
 
+from .fsgs.GameDatabase import GameDatabase
+from .OverlayDatabase import OverlayDatabase
+
 class FSUAELauncher(fsui.Application):
+
+    def get_game_database_path(self):
+        launcher_dir = Settings.get_launcher_dir()
+        path = os.path.join(launcher_dir, "Game Database.sqlite")
+        return path
+
+    def get_overlay_database_path(self):
+        launcher_dir = Settings.get_launcher_dir()
+        path = os.path.join(launcher_dir, "Overlay Database.sqlite")
+        return path
 
     def on_create(self):
         print("FSUAELauncherApplication.on_create")
+
+        #from .fsgs.GameDatabase import GameDatabase
+        #GameDatabase.set_database_path(self.get_game_database_path())
+        #from .OverlayDatabase import OverlayDatabase
+        #OverlayDatabase.set_database_path(self.get_overlay_database_path())
+        #database = GameDatabase.get_instance()
+        #from .fsgs.GameDatabaseClient import GameDatabaseClient
+        #client = GameDatabaseClient(database)
+        #from .fsgs.GameDatabaseSynchronizer import GameDatabaseSynchronizer
+        #synchronizer = GameDatabaseSynchronizer(client)
+        #synchronizer.synchronize()
+
+        GameDatabase.set_database_path(self.get_game_database_path())
+        OverlayDatabase.set_database_path(self.get_overlay_database_path())
 
         self.parse_arguments()
         self.load_settings()
         self.config_startup_scan()
         self.kickstart_startup_scan()
+        database = Database.get_instance()
+        ROMManager.patch_standard_roms(database)
+        #sys.exit(1)
 
         # FIXME: should now sanitize check some options -for instance,
         # - check if configured joysticks are still connected
@@ -84,7 +115,7 @@ class FSUAELauncher(fsui.Application):
         except ConfigParser.NoSectionError:
             keys = []
         for key in keys:
-            config[key] = cp.get("config", key)
+            config[key] = cp.get("config", key).decode("UTF-8")
         for key, value in config.iteritems():
             print("loaded", key, value)
             Config.config[key] = value
@@ -95,7 +126,7 @@ class FSUAELauncher(fsui.Application):
         except ConfigParser.NoSectionError:
             keys = []
         for key in keys:
-            settings[key] = cp.get("settings", key)
+            settings[key] = cp.get("settings", key).decode("UTF-8")
         for key, value in settings.iteritems():
             #if key in Settings.settings:
             #    # this setting is already initialized, possibly via
@@ -104,6 +135,8 @@ class FSUAELauncher(fsui.Application):
             #else:
             print("-- setting", key, value)
             Settings.settings[key] = value
+
+        #Settings.set("config_search", "")
 
     def parse_arguments(self):
         pass
@@ -125,7 +158,7 @@ class FSUAELauncher(fsui.Application):
 
         for key, value in Settings.settings.iteritems():
             #lines.append(u"{0} = {1}".format(key, value))
-            cp.set("settings", key, value)
+            cp.set("settings", str(key), value.encode("UTF-8"))
 
         cp.add_section("config")
         #lines.append(u"[config]")
@@ -134,13 +167,10 @@ class FSUAELauncher(fsui.Application):
             if key.startswith("__"):
                 # keys starting with __ are never saved
                 continue
-            #lines.append(u"{0} = {1}".format(key, value))
-            cp.set("config", key, value)
+            cp.set("config", str(key), value.encode("UTF-8"))
 
         with open(path, "wb") as f:
             cp.write(f)
-            #for line in lines:
-            #    f.write(line + u"\n".encode("UTF-8"))
         print("moving to " + repr(self.get_settings_file()))
         shutil.move(path, self.get_settings_file())
 
@@ -174,12 +204,15 @@ class FSUAELauncher(fsui.Application):
                 search = ConfigurationScanner.create_configuration_search(name)
                 name = ConfigurationScanner.create_configuration_name(name)
                 print("[startup] adding config", path)
+                database.delete_file(path=path)
+                database.add_file(path=path)
                 database.add_configuration(path=path, uuid="", name=name,
                         scan=0, search=search)
         for path, id in local_configs.iteritems():
             if id is not None:
                 print("[startup] removing configuration", path)
                 database.delete_configuration(id=id)
+                database.delete_file(path=path)
         print("... commit")
         database.commit()
         Settings.set("configurations_dir_mtime",
@@ -216,3 +249,32 @@ class FSUAELauncher(fsui.Application):
         database.commit()
         Settings.set("kickstarts_dir_mtime",
                 self.get_dir_mtime_str(kickstarts_dir))
+
+        database = Database.get_instance()
+        amiga = Amiga.get_model_config("A500")
+        for sha1 in amiga["kickstarts"]:
+            if database.find_file(sha1=sha1):
+                break
+        else:
+            self.amiga_forever_kickstart_scan(database)
+
+    def amiga_forever_kickstart_scan(self, database):
+        if fs.windows:
+            from win32com.shell import shell, shellcon
+            path = shell.SHGetFolderPath(0, shellcon.CSIDL_COMMON_DOCUMENTS, 0, 0)
+            path = os.path.join(path, "Amiga Files", "Shared", "rom")
+            self.scan_dir_for_kickstarts(database, path)
+
+    def scan_dir_for_kickstarts(self, database, scan_dir):
+        for dir_path, dir_names, file_names in os.walk(scan_dir):
+            for file_name in file_names:
+                if not file_name.endswith(".rom"):
+                    continue
+                path = Paths.join(dir_path, file_name)
+                if database.find_file(path):
+                #if path in local_roms:
+                #    local_roms[path] = None
+                #    # already exists in database
+                    continue
+                print("[startup] adding kickstart", path)
+                ROMManager.add_rom_to_database(path, database)

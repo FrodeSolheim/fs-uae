@@ -9,6 +9,10 @@
 #define FS_MALLOC __attribute__((__malloc__))
 #define FS_WARN_UNUSED_RESULT __attribute__((warn_unused_result))
 
+// FIXME
+//#define FS_UNLIKELY(expr) (__builtin_expect (_G_BOOLEAN_EXPR(expr), 0))
+#define FS_UNLIKELY(expr) expr
+
 #define FS_PATH_MAX 2048
 
 typedef int fs_bool;
@@ -20,6 +24,19 @@ typedef int fs_bool;
 #ifndef FALSE
 #define FALSE 0
 #endif
+
+#ifndef MAX
+#define MAX(a, b)  (((a) > (b)) ? (a) : (b))
+#endif
+
+#ifndef MIN
+#define MIN(a, b)  (((a) < (b)) ? (a) : (b))
+#endif
+
+#define FS_INT_TO_POINTER(i) ((void *) (long) (i))
+#define FS_POINTER_TO_INT(p) ((int)  (long) (p))
+#define FS_UINT_TO_POINTER(u) ((void *) (unsigned long) (u))
+#define FS_POINTER_TO_UINT(p) ((unsigned int) (unsigned long) (p))
 
 #ifdef __cplusplus
 extern "C" {
@@ -33,6 +50,8 @@ typedef void (*fs_destroy_notify)(void *data);
 typedef void (*fs_func)(void * data, void *user_data);
 typedef unsigned int (*fs_hash_func)(const void *key);
 typedef void (*fs_h_func)(void *key, void *value, void *user_data);
+typedef int (*fs_hr_func)(void *key, void *value, void *user_data);
+
 typedef void (*fs_free_func)(void *data);
 
 #ifdef __cplusplus

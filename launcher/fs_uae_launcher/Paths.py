@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 
 import os
 import fs_uae_launcher.fs as fs
+from .Archive import Archive
 from .Settings import Settings
 
 class Paths:
@@ -24,6 +25,11 @@ class Paths:
             cmp_path = path.upper().replace("\\", "/")
             if cmp_path.startswith("$BASE/"):
                 return cls.join(cls.get_base_dir(), path[6:])
+            if cmp_path.startswith("$CONFIG/"):
+                config_path = Settings.get("config_path")
+                if config_path:
+                    return cls.join(os.path.dirname(config_path),
+                        path[8:])
             if cmp_path.startswith("$HOME/"):
                 return cls.join(cls.get_home_dir(), path[6:])
             # FIXME: $base_dir is deprecated
@@ -34,10 +40,11 @@ class Paths:
         return path
 
     @classmethod
-    def contract_path(cls, path, default_dir=None):
-        print("before", path)
-        path = cls.get_real_case(path)
-        print("after", path)
+    def contract_path(cls, path, default_dir=None, force_real_case=True):
+        if force_real_case:
+            print("before", path)
+            path = cls.get_real_case(path)
+            print("after", path)
         #dir, file = os.path.split(path)
         #norm_dir = dir + "/"
         if default_dir is not None:

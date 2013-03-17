@@ -19,6 +19,7 @@ libraries = [
     "libpng15.15.dylib",
     "libz.1.dylib",
     "libiconv.2.dylib",
+    "libfreetype.6.dylib",
 ]
 
 

@@ -2876,7 +2876,7 @@ generate_includes (FILE * f, int bigger)
     fprintf (f, "#include \"sysdeps.h\"\n");
 	if (bigger)
 		fprintf (f, "#include \"options.h\"\n");
-    fprintf (f, "#include \"memory.h\"\n");
+    fprintf (f, "#include \"uae/memory.h\"\n");
     fprintf (f, "#include \"newcpu.h\"\n");
     fprintf (f, "#include \"comptbl.h\"\n");
 }
@@ -3022,11 +3022,11 @@ generate_one_opcode (int rp, int noflags)
 	    if (noflags) {
 		fprintf (stblfile, "{ op_%lx_%d_comp_nf, %ld, 0x%08x }, /* %s */\n", opcode, postfix, opcode, flags, name);
 		fprintf (headerfile, "extern compop_func op_%lx_%d_comp_nf;\n", opcode, postfix);
-		printf ("unsigned long REGPARAM2 op_%lx_%d_comp_nf(uae_u32 opcode) /* %s */\n{\n", opcode, postfix, name);
+		printf ("uae_u32 REGPARAM2 op_%lx_%d_comp_nf(uae_u32 opcode) /* %s */\n{\n", opcode, postfix, name);
 	    } else {
 		fprintf (stblfile, "{ op_%lx_%d_comp_ff, %ld, 0x%08x }, /* %s */\n", opcode, postfix, opcode, flags, name);
 		fprintf (headerfile, "extern compop_func op_%lx_%d_comp_ff;\n", opcode, postfix);
-		printf ("unsigned long REGPARAM2 op_%lx_%d_comp_ff(uae_u32 opcode) /* %s */\n{\n", opcode, postfix, name);
+		printf ("uae_u32 REGPARAM2 op_%lx_%d_comp_ff(uae_u32 opcode) /* %s */\n{\n", opcode, postfix, name);
 	    }
 	    com_flush();
 	}

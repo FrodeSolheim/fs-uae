@@ -1,10 +1,10 @@
+#include <stdlib.h>
 #include <string.h>
 #include <uae/uae.h>
-#include <fs/fs.h>
 #include <fs/emu.h>
+#include <fs/fs.h>
 #include <fs/i18n.h>
-#include <glib.h>
-#include <glib/gstdio.h>
+#include <fs/time.h>
 #include "fs-uae.h"
 
 #define NUM_SAVE_SLOTS 9
@@ -65,11 +65,12 @@ static int reset_menu_function(fs_emu_menu_item *menu_item,
     return FS_EMU_MENU_RESULT_MENU;
 }
 
-static gchar *get_floppy_label(const gchar* path) {
+static char *get_floppy_label(const char* path) {
     if (!path || path[0] == '\0') {
         return fs_strdup("");
     }
     char *name = fs_path_get_basename(path);
+#ifdef USE_GLIB
     GError *error = NULL;
     GRegex *re = g_regex_new(
             "([A-Za-z0-9_ ]*[Dd][Ii][Ss][Kk][A-Za-z0-9_ ]*)",
@@ -86,7 +87,7 @@ static gchar *get_floppy_label(const gchar* path) {
         return name;
     }
     //fs_emu_log(" *** ok?\n");
-    gchar *result = g_match_info_fetch(mi, 1);
+    char *result = g_match_info_fetch(mi, 1);
     g_match_info_free(mi);
     g_regex_unref(re);
     if (!result) {
@@ -94,6 +95,9 @@ static gchar *get_floppy_label(const gchar* path) {
     }
     free(name);
     return result;
+#else
+    return name;
+#endif
 }
 
 static char g_input_desc[4][MAX_DEVICE_NAME_LEN + 1] = {};
@@ -255,14 +259,14 @@ static int save_function(fs_emu_menu_item *item, void **data) {
 }
 
 static char *get_state_file(int slot, const char *ext) {
-    char *path = fs_strdup_printf("%s_%d.%s", fs_uae_get_state_base_name(),
+    char *path = fs_strdup_printf("%s %d.%s", fs_uae_get_state_base_name(),
             slot + 1, ext);
     return path;
 }
 
-static gchar *check_save_state(int slot) {
-    gchar *title = NULL;
-    gchar *state_file = get_state_file(slot, "uss");
+static char *check_save_state(int slot) {
+    char *title = NULL;
+    char *state_file = get_state_file(slot, "uss");
     fs_emu_log("check %s\n", state_file);
     if (fs_path_exists(state_file)) {
         fs_emu_log("exists\n");
@@ -271,10 +275,11 @@ static gchar *check_save_state(int slot) {
             //GDate date;
             //g_date_clear(&date, 1);
             //g_date_set_time_t(&date, buf.mtime);
-            struct tm *tm_struct = localtime(&buf.mtime);
+            struct tm tm_struct;
+            fs_localtime_r(&buf.mtime, &tm_struct);
             char strbuf[32];
             //g_date_strftime(strbuf, 32, "");
-            strftime(strbuf, 32, "%Y-%m-%d %H:%M:%S", tm_struct);
+            strftime(strbuf, 32, "%Y-%m-%d %H:%M:%S", &tm_struct);
             //title = fs_strdup_printf("%d", buf.mtime);
             title = fs_strdup(strbuf);
         }
@@ -285,10 +290,10 @@ static gchar *check_save_state(int slot) {
 
 static void update_save_state_item(fs_emu_menu_item* item, int slot,
         int save) {
-    gchar *title = check_save_state(slot);
+    char *title = check_save_state(slot);
     if (title) {
         fs_emu_menu_item_set_title(item, title);
-        g_free(title);
+        free(title);
     }
     else {
         fs_emu_menu_item_set_title(item, _("Empty"));
@@ -311,7 +316,7 @@ static int save_state_menu_function(fs_emu_menu_item *menu_item,
     fs_emu_menu *menu = fs_emu_menu_new();
     //fs_emu_menu_set_update_function(menu, update_save_states_menu);
 
-    gchar *title = check_save_state(slot);
+    char *title = check_save_state(slot);
 
     item = fs_emu_menu_item_new();
     fs_emu_menu_append_item(menu, item);
@@ -337,7 +342,7 @@ static int save_state_menu_function(fs_emu_menu_item *menu_item,
     fs_emu_menu_item_set_activate_function(item, save_function);
 
     if (title) {
-        g_free(title);
+        free(title);
     }
 
     *result_data = menu;
@@ -395,15 +400,15 @@ static void insert_cdrom(int drive_index, int disk_index) {
     }
     fs_emu_log("menu: insert CD index %d into drive %d\n", disk_index,
             drive_index);
-    gchar *key = fs_strdup_printf("cdrom_image_%d", disk_index);
-    gchar* path = fs_config_get_string(key);
-    g_free(key);
+    char *key = fs_strdup_printf("cdrom_image_%d", disk_index);
+    char* path = fs_config_get_string(key);
+    free(key);
     if (path == NULL) {
         fs_emu_log("no CD at this index in CD-ROM list\n");
     }
     path = fs_uae_expand_path_and_free(path);
     amiga_cdrom_set_file(drive_index, path);
-    g_free(path);
+    free(path);
 }
 
 static int df0_function(fs_emu_menu_item *menu_item, void **result_data) {
@@ -441,9 +446,9 @@ static void update_disk_menu(fs_emu_menu *menu) {
         const char *path = amiga_floppy_get_list_entry(i);
         //printf("inserted in %d: %s\n", menu->idata, inserted_path);
         //printf("at          %d: %s\n", i, path);
-        //gchar *key = fs_strdup_printf("floppy_image_%d", i);
-        //gchar* path = fs_config_get_string(key);
-        //g_free(key);
+        //char *key = fs_strdup_printf("floppy_image_%d", i);
+        //char* path = fs_config_get_string(key);
+        //free(key);
         if (path == NULL) {
             fs_emu_menu_item_set_enabled(item, 0);
             continue;
@@ -459,7 +464,7 @@ static void update_disk_menu(fs_emu_menu *menu) {
         else {
             fs_emu_menu_item_set_enabled(item, 1);
         }
-        //g_free(path);
+        //free(path);
     }
 }
 
@@ -470,9 +475,9 @@ static void update_cd_menu(fs_emu_menu *menu) {
     //fs_emu_menu_item_set_enabled(item, inserted_path[0] != '\0');
     for (int i = 0; i < menu->count - 2; i++) {
         item = menu->items[i + 2];
-        gchar *key = fs_strdup_printf("cdrom_image_%d", i);
-        gchar* path = fs_config_get_string(key);
-        g_free(key);
+        char *key = fs_strdup_printf("cdrom_image_%d", i);
+        char* path = fs_config_get_string(key);
+        free(key);
         if (path == NULL) {
             fs_emu_menu_item_set_enabled(item, 0);
             continue;
@@ -485,7 +490,7 @@ static void update_cd_menu(fs_emu_menu *menu) {
         else {
             fs_emu_menu_item_set_enabled(item, 1);
         }
-        g_free(path);
+        free(path);
     }
 }
 
@@ -500,7 +505,7 @@ static int media_menu_function(fs_emu_menu_item *menu_item,
 
     if (type == 0) { // floppy
         fs_emu_log("disk_menu_function for df%d\n");
-        gchar *str;
+        char *str;
         menu->idata = drive;
         fs_emu_menu_set_update_function(menu, update_disk_menu);
         item = fs_emu_menu_item_new();
@@ -508,7 +513,7 @@ static int media_menu_function(fs_emu_menu_item *menu_item,
         /// TRANSLATORS: This is a menu entry and must not be too long
         str = fs_strdup_printf(_("Insert Into DF%d"), drive);
         fs_emu_menu_item_set_title(item, str);
-        g_free(str);
+        free(str);
         fs_emu_menu_item_set_type(item, FS_EMU_MENU_ITEM_TYPE_HEADING);
 
         for (int i = -1; i < AMIGA_FLOPPY_LIST_SIZE; i++) {
@@ -521,7 +526,7 @@ static int media_menu_function(fs_emu_menu_item *menu_item,
                 const char *path = amiga_floppy_get_list_entry(i);
                 str = get_floppy_label(path);
                 fs_emu_menu_item_set_title(item, str);
-                g_free(str);
+                free(str);
             }
 
             //fs_emu_menu_item_set_type(item, FS_EMU_MENU_ITEM_TYPE_ITEM);
@@ -542,7 +547,7 @@ static int media_menu_function(fs_emu_menu_item *menu_item,
     }
     else if (type == 1) {
         fs_emu_log("cd_menu_function for CD %d\n");
-        gchar *str;
+        char *str;
         menu->idata = drive;
         fs_emu_menu_set_update_function(menu, update_cd_menu);
         item = fs_emu_menu_item_new();
@@ -550,7 +555,7 @@ static int media_menu_function(fs_emu_menu_item *menu_item,
         /// TRANSLATORS: This is a menu entry and must not be too long
         str = fs_strdup_printf(_("Insert Into CD%d"), drive);
         fs_emu_menu_item_set_title(item, str);
-        g_free(str);
+        free(str);
         fs_emu_menu_item_set_type(item, FS_EMU_MENU_ITEM_TYPE_HEADING);
 
         item = fs_emu_menu_item_new();
@@ -560,13 +565,13 @@ static int media_menu_function(fs_emu_menu_item *menu_item,
         fs_emu_menu_item_set_activate_function(item, cd0_function);
         // FIXME: Disabled because inserting nothing seems to make it crash,
         // currently -needs to be investigated
-        fs_emu_menu_item_set_enabled(item, 0);
+        //fs_emu_menu_item_set_enabled(item, 0);
 
         for (int i = 0; ; i++) {
             // FIXME: GET FROM UAE OPTIONS...?
-            gchar *key = fs_strdup_printf("cdrom_image_%d", i);
-            gchar *path = fs_config_get_string(key);
-            g_free(key);
+            char *key = fs_strdup_printf("cdrom_image_%d", i);
+            char *path = fs_config_get_string(key);
+            free(key);
             if (path == NULL) {
                 if (i == 0) {
                     // try starting from index 1
@@ -578,13 +583,13 @@ static int media_menu_function(fs_emu_menu_item *menu_item,
             fs_emu_menu_append_item(menu, item);
             str = get_floppy_label(path);
             fs_emu_menu_item_set_title(item, str);
-            g_free(str);
+            free(str);
             //fs_emu_menu_item_set_type(item, FS_EMU_MENU_ITEM_TYPE_ITEM);
             fs_emu_menu_item_set_idata(item, i);
             if (drive == 0) {
                 fs_emu_menu_item_set_activate_function(item, cd0_function);
             }
-            g_free(path);
+            free(path);
         }
     }
     *result_data = menu;
@@ -594,7 +599,7 @@ static int media_menu_function(fs_emu_menu_item *menu_item,
 static void update_input_menu(fs_emu_menu *menu) {
     int port = menu->idata;
     fs_emu_menu_item *item;
-    item = menu->items[3];
+    item = menu->items[1];
     const char* s = g_fs_uae_input_ports[port].device;
     if (s[0] == '\0') {
         s = NO_HOST_DEVICE;
@@ -607,33 +612,33 @@ static void update_input_menu(fs_emu_menu *menu) {
     }
     fs_emu_menu_item_set_title(item, s);
 
-    item = menu->items[1];
-    if (g_fs_uae_input_ports[port].mode == AMIGA_JOYPORT_NONE) {
-        fs_emu_menu_item_set_title(item, NO_AMIGA_DEVICE);
-    }
-    else if (g_fs_uae_input_ports[port].mode == AMIGA_JOYPORT_MOUSE) {
-        fs_emu_menu_item_set_title(item, _("Mouse"));
-    }
-    else if (g_fs_uae_input_ports[port].mode == AMIGA_JOYPORT_DJOY) {
-        fs_emu_menu_item_set_title(item, _("Joystick"));
-    }
-    else if (g_fs_uae_input_ports[port].mode == AMIGA_JOYPORT_CD32JOY) {
-        fs_emu_menu_item_set_title(item, _("CD32 Gamepad"));
-    }
-    else {
-        fs_emu_menu_item_set_title(item, "???");
+    if (port < 4) {
+        item = menu->items[3];
+        if (g_fs_uae_input_ports[port].mode == AMIGA_JOYPORT_NONE) {
+            fs_emu_menu_item_set_title(item, NO_AMIGA_DEVICE);
+        }
+        else if (g_fs_uae_input_ports[port].mode == AMIGA_JOYPORT_MOUSE) {
+            fs_emu_menu_item_set_title(item, _("Mouse Mode"));
+        }
+        else if (g_fs_uae_input_ports[port].mode == AMIGA_JOYPORT_DJOY) {
+            fs_emu_menu_item_set_title(item, _("Joystick Mode"));
+        }
+        else if (g_fs_uae_input_ports[port].mode == AMIGA_JOYPORT_CD32JOY) {
+            fs_emu_menu_item_set_title(item, _("CD32 Pad Mode"));
+        }
+        else {
+            fs_emu_menu_item_set_title(item, "???");
+        }
+
+        item = menu->items[4];
+        if (g_fs_uae_input_ports[port].autofire_mode) {
+            fs_emu_menu_item_set_title(item, _("Auto-Fire is On"));
+        }
+        else {
+            fs_emu_menu_item_set_title(item, _("Auto-Fire is Off"));
+        }
     }
 }
-
-/*
-static void update_input_host_menu(fs_emu_menu *menu) {
-
-}
-
-static void update_amiga_host_menu(fs_emu_menu *menu) {
-
-}
-*/
 
 static void set_input_port(int port, const char *device, int remove_other) {
     strncpy(g_fs_uae_input_ports[port].device, device, MAX_DEVICE_NAME_LEN);
@@ -692,7 +697,7 @@ static int input_host_menu_function(fs_emu_menu_item *menu_item,
     /// TRANSLATORS: This is a menu entry and must not be too long
     str = fs_strdup_printf(_("Joystick Port %d Device"), port);
     fs_emu_menu_item_set_title(item, str);
-    g_free(str);
+    free(str);
     fs_emu_menu_item_set_type(item, FS_EMU_MENU_ITEM_TYPE_HEADING);
 
     item = fs_emu_menu_item_new();
@@ -752,16 +757,24 @@ static int input_type_function(fs_emu_menu_item *menu_item,
     int port = fs_emu_menu_item_get_idata(menu_item);
     int mode = port & 0xff;
     port = port >> 8;
-    fs_log("[menu] port %d set mode to %d\n", port, mode);
-    g_fs_uae_input_ports[port].new_mode = mode;
-    fs_uae_reconfigure_input_ports_amiga();
+    if (port < 4) {
+        fs_log("[menu] port %d set mode to %d\n", port, mode);
+        g_fs_uae_input_ports[port].new_mode = mode;
+        fs_uae_reconfigure_input_ports_amiga();
+    }
+    else {
+        // this is set directly, locally, for custom joystick ("port 4")
+        g_fs_uae_input_ports[port].mode = mode;
+        g_fs_uae_input_ports[port].new_mode = mode;
+        fs_uae_reconfigure_input_ports_host();
+    }
     return FS_EMU_MENU_RESULT_BACK;
 }
 
 static int input_amiga_menu_function(fs_emu_menu_item *menu_item,
         void **result_data) {
     int port = fs_emu_menu_item_get_idata(menu_item);
-    gchar *str;
+    char *str;
     fs_emu_menu_item *item;
     fs_emu_menu *menu = fs_emu_menu_new();
     menu->idata = port;
@@ -771,7 +784,7 @@ static int input_amiga_menu_function(fs_emu_menu_item *menu_item,
     /// TRANSLATORS: This is a menu entry and must not be too long
     str = fs_strdup_printf(_("Joystick Port %d Mode"), port);
     fs_emu_menu_item_set_title(item, str);
-    g_free(str);
+    free(str);
     fs_emu_menu_item_set_type(item, FS_EMU_MENU_ITEM_TYPE_HEADING);
 
     int index = 0;
@@ -790,7 +803,7 @@ static int input_amiga_menu_function(fs_emu_menu_item *menu_item,
         item = fs_emu_menu_item_new();
         index++;
         fs_emu_menu_append_item(menu, item);
-        fs_emu_menu_item_set_title(item, _("Mouse"));
+        fs_emu_menu_item_set_title(item, _("Mouse Mode"));
         fs_emu_menu_item_set_idata(item, (port << 8) | AMIGA_JOYPORT_MOUSE);
         fs_emu_menu_item_set_activate_function(item, input_type_function);
         if (g_fs_uae_input_ports[port].mode == AMIGA_JOYPORT_MOUSE) {
@@ -798,21 +811,23 @@ static int input_amiga_menu_function(fs_emu_menu_item *menu_item,
         }
     }
 
-    item = fs_emu_menu_item_new();
-    index++;
-    fs_emu_menu_append_item(menu, item);
-    fs_emu_menu_item_set_title(item, _("Joystick"));
-    fs_emu_menu_item_set_idata(item, (port << 8) | AMIGA_JOYPORT_DJOY);
-    fs_emu_menu_item_set_activate_function(item, input_type_function);
-    if (g_fs_uae_input_ports[port].mode == AMIGA_JOYPORT_DJOY) {
-        menu->index = index;
+    if (port < 4) {
+        item = fs_emu_menu_item_new();
+        index++;
+        fs_emu_menu_append_item(menu, item);
+        fs_emu_menu_item_set_title(item, _("Joystick Mode"));
+        fs_emu_menu_item_set_idata(item, (port << 8) | AMIGA_JOYPORT_DJOY);
+        fs_emu_menu_item_set_activate_function(item, input_type_function);
+        if (g_fs_uae_input_ports[port].mode == AMIGA_JOYPORT_DJOY) {
+            menu->index = index;
+        }
     }
 
     if (port < 2) {
         item = fs_emu_menu_item_new();
         index++;
         fs_emu_menu_append_item(menu, item);
-        fs_emu_menu_item_set_title(item, _("CD32 Gamepad"));
+        fs_emu_menu_item_set_title(item, _("CD32 Pad Mode"));
         fs_emu_menu_item_set_idata(item, (port << 8) | AMIGA_JOYPORT_CD32JOY);
         fs_emu_menu_item_set_activate_function(item, input_type_function);
         if (g_fs_uae_input_ports[port].mode == AMIGA_JOYPORT_CD32JOY) {
@@ -820,8 +835,31 @@ static int input_amiga_menu_function(fs_emu_menu_item *menu_item,
         }
     }
 
+    if (port >= 4) {
+        item = fs_emu_menu_item_new();
+        index++;
+        fs_emu_menu_append_item(menu, item);
+        fs_emu_menu_item_set_title(item, _("Custom Mode"));
+        fs_emu_menu_item_set_idata(item, (port << 8) | AMIGA_JOYPORT_DJOY);
+        fs_emu_menu_item_set_activate_function(item, input_type_function);
+        if (g_fs_uae_input_ports[port].mode == AMIGA_JOYPORT_DJOY) {
+            menu->index = index;
+        }
+    }
+
     *result_data = menu;
     return FS_EMU_MENU_RESULT_MENU;
+}
+
+static int input_autofire_function(fs_emu_menu_item *menu_item,
+        void **result_data) {
+    int port = fs_emu_menu_item_get_idata(menu_item);
+    g_fs_uae_input_ports[port].new_autofire_mode = \
+            !g_fs_uae_input_ports[port].new_autofire_mode;
+    fs_log("[menu] port %d toggle autofire mode %d\n", port,
+            g_fs_uae_input_ports[port].new_autofire_mode);
+    fs_uae_reconfigure_input_ports_amiga();
+    return FS_EMU_MENU_RESULT_NONE;
 }
 
 static int input_menu_function(fs_emu_menu_item *menu_item,
@@ -847,18 +885,26 @@ static int input_menu_function(fs_emu_menu_item *menu_item,
     fs_emu_menu_append_item(menu, item);
     fs_emu_menu_item_set_type(item, FS_EMU_MENU_ITEM_TYPE_MENU);
     fs_emu_menu_item_set_idata(item, port);
-    fs_emu_menu_item_set_activate_function(item, input_amiga_menu_function);
-
-    item = fs_emu_menu_item_new();
-    fs_emu_menu_append_item(menu, item);
-    fs_emu_menu_item_set_title(item, _("Host Device"));
-    fs_emu_menu_item_set_type(item, FS_EMU_MENU_ITEM_TYPE_HEADING);
-
-    item = fs_emu_menu_item_new();
-    fs_emu_menu_append_item(menu, item);
-    fs_emu_menu_item_set_type(item, FS_EMU_MENU_ITEM_TYPE_MENU);
-    fs_emu_menu_item_set_idata(item, port);
     fs_emu_menu_item_set_activate_function(item, input_host_menu_function);
+
+    if (port < 4) {
+        item = fs_emu_menu_item_new();
+        fs_emu_menu_append_item(menu, item);
+        fs_emu_menu_item_set_title(item, _("Port Settings"));
+        fs_emu_menu_item_set_type(item, FS_EMU_MENU_ITEM_TYPE_HEADING);
+
+        item = fs_emu_menu_item_new();
+        fs_emu_menu_append_item(menu, item);
+        fs_emu_menu_item_set_type(item, FS_EMU_MENU_ITEM_TYPE_MENU);
+        fs_emu_menu_item_set_idata(item, port);
+        fs_emu_menu_item_set_activate_function(item, input_amiga_menu_function);
+
+        // autofire option
+        item = fs_emu_menu_item_new();
+        fs_emu_menu_append_item(menu, item);
+        fs_emu_menu_item_set_idata(item, port);
+        fs_emu_menu_item_set_activate_function(item, input_autofire_function);
+    }
 
     *result_data = menu;
     return FS_EMU_MENU_RESULT_MENU;
@@ -881,6 +927,12 @@ void add_input_item(fs_emu_menu *menu, int index) {
     else if (index == 3) {
         fs_emu_menu_item_set_title(item, _("Joystick Port 3"));
     }
+    else if (index == 4) {
+        fs_emu_menu_item_set_title(item, _("Joystick Port 4"));
+        if (g_fs_uae_input_ports[4].mode == AMIGA_JOYPORT_NONE) {
+            fs_emu_menu_item_set_enabled(item, 0);
+        }
+    }
     fs_emu_menu_item_set_type(item, FS_EMU_MENU_ITEM_TYPE_MENU);
     fs_emu_menu_item_set_idata(item, index);
     fs_emu_menu_item_set_activate_function(item, input_menu_function);
@@ -891,6 +943,7 @@ static void update_input_options_menu(fs_emu_menu *menu) {
     update_input_item(menu->items[2], 1);
     update_input_item(menu->items[4], 2);
     update_input_item(menu->items[5], 3);
+    update_input_item(menu->items[7], 4);
 }
 
 static int input_options_menu_function(fs_emu_menu_item *menu_item,
@@ -918,6 +971,14 @@ static int input_options_menu_function(fs_emu_menu_item *menu_item,
     add_input_item(menu, 2);
     add_input_item(menu, 3);
 
+    item = fs_emu_menu_item_new();
+    fs_emu_menu_append_item(menu, item);
+    /// TRANSLATORS: This is a menu entry and must not be too long
+    fs_emu_menu_item_set_title(item, _("Custom Joystick Port"));
+    fs_emu_menu_item_set_type(item, FS_EMU_MENU_ITEM_TYPE_HEADING);
+
+    add_input_item(menu, 4);
+
     *result_data = menu;
     return FS_EMU_MENU_RESULT_MENU;
 }
@@ -942,6 +1003,9 @@ void fs_uae_configure_menu() {
     fs_emu_menu_append_item(menu, item);
     fs_emu_menu_item_set_title(item, _("Save States"));
     fs_emu_menu_item_set_activate_function(item, save_states_menu_function);
+    if (fs_config_get_boolean("save_states") == 0) {
+        fs_emu_menu_item_set_enabled(item, 0);
+    }
 
     item = fs_emu_menu_item_new();
     fs_emu_menu_append_item(menu, item);
@@ -1013,5 +1077,5 @@ void fs_uae_configure_menu() {
     fs_emu_menu_item_set_idata(item, 3);
     fs_emu_menu_item_set_activate_function(item, media_menu_function);
 
-    fs_emu_set_menu(menu);
+    fs_emu_menu_set_current(menu);
 }

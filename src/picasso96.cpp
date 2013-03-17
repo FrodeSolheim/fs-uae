@@ -37,7 +37,7 @@
 #include "options.h"
 #include "threaddep/thread.h"
 #include "uae.h"
-#include "memory.h"
+#include "uae/memory.h"
 #include "custom.h"
 #include "newcpu.h"
 #include "xwin.h"

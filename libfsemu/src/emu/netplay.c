@@ -1,5 +1,27 @@
 #ifdef WINDOWS
 #define WINVER 0x0502
+#endif
+#include "netplay.h"
+
+char *g_fs_emu_netplay_server = 0;
+static fs_emu_checksum_function g_rand_checksum_function = 0;
+static fs_emu_checksum_function g_state_checksum_function = 0;
+
+int fs_emu_netplay_enabled() {
+    return g_fs_emu_netplay_server != 0;
+}
+
+void fs_emu_set_rand_check_function(fs_emu_checksum_function function) {
+    g_rand_checksum_function = function;
+}
+
+void fs_emu_set_state_check_function(fs_emu_checksum_function function) {
+    g_state_checksum_function = function;
+}
+
+#ifdef WITH_NETPLAY
+
+#ifdef WINDOWS
 #include <Winsock2.h>
 #include <Ws2tcpip.h>
 #else
@@ -10,8 +32,20 @@
 #include <netinet/tcp.h>
 #include <unistd.h>
 #endif
+#include <stdlib.h>
+#include <string.h>
+
 #include <fs/emu.h>
+#include <fs/random.h>
+#include <fs/string.h>
+#include <fs/thread.h>
+
+#include "hud.h"
 #include "libfsemu.h"
+
+#ifdef USE_GLIB
+#include <glib.h>
+#endif
 
 #define FS_EMU_NETPLAY_PROTOCOL_VERSION 1
 
@@ -20,17 +54,16 @@ static int g_socket = 0;
 //static gchar *g_port = "9999";
 static volatile int g_frame = 0;
 //static const char *g_hostname = "127.0.0.1";
-static GThread *g_receive_thread = NULL;
-static GThread *g_netplay_thread = NULL;
-static GMutex *g_send_mutex = NULL;
-static GMutex *g_connection_mutex = NULL;
+static fs_thread *g_receive_thread = NULL;
+static fs_thread *g_netplay_thread = NULL;
+static fs_mutex *g_send_mutex = NULL;
+static fs_mutex *g_connection_mutex = NULL;
 
-static GCond *g_wait_for_frame_cond = NULL;
-static GMutex *g_wait_for_frame_mutex = NULL;
+static fs_condition *g_wait_for_frame_cond = NULL;
+static fs_mutex *g_wait_for_frame_mutex = NULL;
 
-gchar *g_fs_emu_netplay_server = NULL;
-gchar *g_fs_emu_netplay_port = "25100";
-gchar g_fs_emu_netplay_tag[4];
+char *g_fs_emu_netplay_port = "25100";
+char g_fs_emu_netplay_tag[4];
 unsigned char g_fs_emu_netplay_password[20 + 1] = {};
 //uint32_t g_fs_emu_netplay_pass_checksum = 0;
 uint32_t g_fs_emu_netplay_session_key = 0;
@@ -41,7 +74,7 @@ int g_fs_emu_netplay_connected = 0;
 
 // FIXME: move to emulator
 static int g_fs_emu_netplay_emulation_version_major = 2;
-static int g_fs_emu_netplay_emulation_version_minor = 0;
+static int g_fs_emu_netplay_emulation_version_minor = 2;
 static int g_fs_emu_netplay_emulation_version_revision = 0;
 
 #define TCP
@@ -93,11 +126,8 @@ int close(int socket) {
 
 #define CREATE_EXT_MESSAGE(x, y) (0x80000000 | (x << 24) | (y & 0x00ffffff))
 
-static GMutex* g_input_event_mutex;
-static GQueue* g_input_event_queue;
-
-static fs_emu_checksum_function g_rand_checksum_function = NULL;
-static fs_emu_checksum_function g_state_checksum_function = NULL;
+static fs_mutex* g_input_event_mutex;
+static fs_queue* g_input_event_queue;
 
 static fs_emu_dialog* g_waiting_dialog = NULL;
 
@@ -136,22 +166,14 @@ const char *fs_emu_get_netplay_tag(int player) {
     return "PLY";
 }
 
-void fs_emu_set_state_check_function(fs_emu_checksum_function function) {
-    g_state_checksum_function = function;
-}
-
-void fs_emu_set_rand_check_function(fs_emu_checksum_function function) {
-    g_rand_checksum_function = function;
-}
-
 static void check_random_number_generator() {
-    g_random_set_seed(1234);
+    fs_random_set_seed(1234);
     // random number generator must be same across platforms
     // generate a sequence of random numbers and compare to expected value
     for(int i = 0; i < 1001; i++) {
-        g_random_int_range(0, 2147483647);
+        fs_random_int_range(0, 2147483647);
     }
-    int random_number = g_random_int_range(0, 2147483647);
+    int random_number = fs_random_int_range(0, 2147483647);
     if (random_number == 317699229) {
         fs_log("random number generator for netplay verified (%d)\n",
                 random_number);
@@ -170,16 +192,16 @@ int fs_emu_netplay_connected() {
 void fs_emu_netplay_init() {
     const char *value;
 
-    g_send_mutex = g_mutex_new();
-    g_connection_mutex = g_mutex_new();
-    g_input_event_mutex = g_mutex_new();
-    g_input_event_queue = g_queue_new();
-    g_wait_for_frame_cond = g_cond_new();
-    g_wait_for_frame_mutex = g_mutex_new();
+    g_send_mutex = fs_mutex_create();
+    g_connection_mutex = fs_mutex_create();
+    g_input_event_mutex = fs_mutex_create();
+    g_input_event_queue = fs_queue_new();
+    g_wait_for_frame_cond = fs_condition_create();
+    g_wait_for_frame_mutex = fs_mutex_create();
 
     value = fs_config_get_const_string("netplay_server");
     if (value) {
-        g_fs_emu_netplay_server = g_strdup(value);
+        g_fs_emu_netplay_server = fs_strdup(value);
     }
     if (!fs_emu_netplay_enabled()) {
         return;
@@ -199,7 +221,7 @@ void fs_emu_netplay_init() {
 
     value = fs_config_get_const_string("netplay_port");
     if (value) {
-        g_fs_emu_netplay_port = g_strdup(value);
+        g_fs_emu_netplay_port = fs_strdup(value);
     }
 
     char *password_value = fs_config_get_string("netplay_password");
@@ -216,16 +238,17 @@ void fs_emu_netplay_init() {
         }
         gsize digest_len = 20;
         g_checksum_get_digest(cs, g_fs_emu_netplay_password, &digest_len);
-        g_free(password_value);
+        free(password_value);
         g_checksum_free(cs);
     }
 
 }
 
 static int fs_emu_get_netplay_input_event() {
-    g_mutex_lock(g_input_event_mutex);
-    int input_event = GPOINTER_TO_INT(g_queue_pop_tail(g_input_event_queue));
-    g_mutex_unlock(g_input_event_mutex);
+    fs_mutex_lock(g_input_event_mutex);
+    int input_event = FS_POINTER_TO_INT(fs_queue_pop_tail(
+            g_input_event_queue));
+    fs_mutex_unlock(g_input_event_mutex);
     return input_event;
 }
 
@@ -234,9 +257,9 @@ void fs_emu_queue_netplay_input_event(int input_event) {
         fs_log("WARNING: tried to queue input event 0\n");
         return;
     }
-    g_mutex_lock(g_input_event_mutex);
-    g_queue_push_head(g_input_event_queue, GINT_TO_POINTER(input_event));
-    g_mutex_unlock(g_input_event_mutex);
+    fs_mutex_lock(g_input_event_mutex);
+    fs_queue_push_head(g_input_event_queue, FS_INT_TO_POINTER(input_event));
+    fs_mutex_unlock(g_input_event_mutex);
 }
 
 static void uint_to_bytes(uint32_t message, unsigned char* buffer) {
@@ -254,9 +277,9 @@ static uint32_t bytes_to_uint(unsigned char* buffer) {
 void fs_emu_netplay_on_disconnect() {
     dismiss_waiting_dialog();
     //fs_emu_log("fs_emu_netplay_on_disconnect\n");
-    g_mutex_lock(g_connection_mutex);
+    fs_mutex_lock(g_connection_mutex);
     if (!g_fs_emu_netplay_connected) {
-        g_mutex_unlock(g_connection_mutex);
+        fs_mutex_unlock(g_connection_mutex);
         //fs_emu_log("fs_emu_netplay_on_disconnect - not connected\n");
         return;
     }
@@ -267,7 +290,7 @@ void fs_emu_netplay_on_disconnect() {
     if (fs_emu_netplay_enabled()) {
         fs_emu_warning("disconnected or connection error");
         // for now, continue without netplay
-        g_free(g_fs_emu_netplay_server);
+        free(g_fs_emu_netplay_server);
         g_fs_emu_netplay_server = NULL;
         g_fs_emu_netplay_connected = 0;
         fs_emu_warning("emulator is now running in offline mode");
@@ -278,7 +301,7 @@ void fs_emu_netplay_on_disconnect() {
         fs_emu_warning("disconnected");
         g_fs_emu_netplay_connected = 0;
     }
-    g_mutex_unlock(g_connection_mutex);
+    fs_mutex_unlock(g_connection_mutex);
 }
 
 void fs_emu_netplay_disconnect() {
@@ -299,9 +322,9 @@ static int send_bytes(void *buffer, int len) {
         printf("ping no %d\n", temp_a);
     }
     */
-    g_mutex_lock(g_send_mutex);
+    fs_mutex_lock(g_send_mutex);
     int bytes_written = send(g_socket, (char *) buffer, len, 0);
-    g_mutex_unlock(g_send_mutex);
+    fs_mutex_unlock(g_send_mutex);
     if (bytes_written != len) {
         fs_emu_warning("ERROR: send returned %d (should be %d)\n",
                 bytes_written, len);
@@ -328,10 +351,10 @@ int fs_emu_send_netplay_message(const char *text) {
     int len = strlen(text);
     static unsigned char buffer[5] = {};
     uint_to_bytes(CREATE_EXT_MESSAGE(MESSAGE_TEXT, len), buffer);
-    g_mutex_lock(g_send_mutex);
+    fs_mutex_lock(g_send_mutex);
     int bytes_written = send(g_socket, (char *) buffer, 4, 0);
     bytes_written += send(g_socket, (char *) text, len, 0);
-    g_mutex_unlock(g_send_mutex);
+    fs_mutex_unlock(g_send_mutex);
     if (bytes_written != len + 4) {
         fs_emu_warning("ERROR: send returned %d (should be %d)\n",
                 bytes_written, len + 4);
@@ -359,58 +382,7 @@ int fs_emu_netplay_send_input_event(int input_event) {
     return 1;
 }
 
-static int wait_for_frame_no_netplay() {
-#if 0
-    while (1) {
-        fs_ml_usleep(100 * 1000);
-    }
-#endif
-
-    if (g_fs_emu_benchmarking) {
-        return 1;
-    }
-    if (!g_fs_emu_throttling) {
-        return 1;
-    }
-    //fs_log("wait_for_frame_no_netplay\n");
-    static int64_t last_time = 0;
-    static int64_t frame_time = 0;
-    if (last_time == 0) {
-        last_time = fs_emu_monotonic_time();
-        int frame_rate = fs_emu_get_video_frame_rate();
-        frame_time = ((int64_t) 1000000) / frame_rate;
-    }
-
-    int64_t wait_until = last_time + frame_time;
-    //int64_t sleep_until = wait_until;
-    int64_t sleep_until = wait_until - 100;
-    int64_t t = fs_emu_monotonic_time();
-    //fs_log("%lld %lld\n", sleep_until, t);
-    while (t < sleep_until) {
-        int64_t sleep_time = sleep_until - t;
-        //fs_log("%lld %lld %lld\n", sleep_until, t, sleep_time);
-        fs_ml_usleep(sleep_time);
-        t = fs_emu_monotonic_time();
-    }
-    while (t < wait_until) {
-        t = fs_emu_monotonic_time();
-    }
-    last_time = last_time + frame_time;
-    if (fs_emu_monotonic_time() > last_time + frame_time) {
-        // time has elapsed too far, probably due to pause function having
-        // been used
-        last_time = fs_emu_monotonic_time();
-    }
-    return 1;
-}
-
 int fs_emu_netplay_wait_for_frame(int frame) {
-    if (!fs_emu_netplay_enabled()) {
-        if (fs_emu_get_video_sync()) {
-            return 1;
-        }
-        return wait_for_frame_no_netplay();
-    }
 
     //printf("fs_emu_netplay_wait_for_frame %d\n", frame);
     /*
@@ -431,36 +403,35 @@ int fs_emu_netplay_wait_for_frame(int frame) {
             warned = 1;
         }
     }
-    //printf("wait for frame: %d\n", frame);
-    /*
-    while (g_frame < frame) {
-        //printf("%d < %d\n", g_frame, frame);
-        // FIXME: do better than busy-waiting or sleeping, wait on condition
-        // with timeout or something
-        //fs_ml_usleep(1000);
 
-        g_cond_timed_wait (GCond g_wait_for_frame_cond,
-                g_wait_for_frame_mutex, GTimeVal *abs_time);
-        continue;
-    }
-    */
-    g_mutex_lock(g_wait_for_frame_mutex);
+    fs_mutex_lock(g_wait_for_frame_mutex);
     while (g_frame < frame) {
-        GTimeVal abs_time;
+        //fs_time_val abs_time;
         // wait max 100 ms for a new frame, to allow the loop to end if the
         // emu is quitting
+
+        /*
         g_get_current_time(&abs_time);
         g_time_val_add(&abs_time, 100 * 1000);
         g_cond_timed_wait(g_wait_for_frame_cond, g_wait_for_frame_mutex,
                 &abs_time);
+        */
+
+        //fs_get_current_time(&abs_time);
+        //fs_time_val_add(&abs_time, 100 * 1000);
+        int64_t abs_time = fs_get_real_time() + 100 * 1000;
+
+        fs_condition_timed_wait(g_wait_for_frame_cond, g_wait_for_frame_mutex,
+                abs_time);
+
         if (fs_emu_is_quitting()) {
             fs_log("fs_emu_netplay_wait_for_frame: quitting\n");
-            g_mutex_unlock(g_wait_for_frame_mutex);
+            fs_mutex_unlock(g_wait_for_frame_mutex);
             return 0;
         }
         if (!fs_emu_netplay_enabled()) {
             // no longer in net play mode
-            g_mutex_unlock(g_wait_for_frame_mutex);
+            fs_mutex_unlock(g_wait_for_frame_mutex);
             return 0;
         }
         if (g_waiting_dialog) {
@@ -474,7 +445,7 @@ int fs_emu_netplay_wait_for_frame(int frame) {
             fs_emu_release_gui_lock();
         }
     }
-    g_mutex_unlock(g_wait_for_frame_mutex);
+    fs_mutex_unlock(g_wait_for_frame_mutex);
 
     if (frame == 1) {
         dismiss_waiting_dialog();
@@ -537,13 +508,13 @@ void process_text_message(const char *text, int from_player) {
         return;
     }
     /*
-    char *line = g_strdup_printf("<%s> %s",
+    char *line = fs_strdup_printf("<%s> %s",
             fs_emu_get_netplay_tag(from_player), text);
     fs_emu_add_console_line(line, 0);
     g_free(line);
     */
 
-    fs_emu_add_chat_message(text, fs_emu_get_netplay_tag(from_player));
+    fs_emu_hud_add_chat_message(text, fs_emu_get_netplay_tag(from_player));
 }
 
 void handle_ext_message(int message, int data) {
@@ -661,10 +632,10 @@ void handle_message(uint32_t message) {
         fs_emu_queue_netplay_input_event(0x80000000 | frame);
         //printf("queueing sentinel %x\n", 0x80000000 | frame);
 
-        g_mutex_lock(g_wait_for_frame_mutex);
+        fs_mutex_lock(g_wait_for_frame_mutex);
         g_frame = frame;
-        g_cond_signal(g_wait_for_frame_cond);
-        g_mutex_unlock(g_wait_for_frame_mutex);
+        fs_condition_signal(g_wait_for_frame_cond);
+        fs_mutex_unlock(g_wait_for_frame_mutex);
     }
     else if (message_type & MESSAGE_INPUT_MASK) {
         // received input event
@@ -675,7 +646,7 @@ void handle_message(uint32_t message) {
     }
 }
 
-gpointer receive_thread(gpointer data) {
+void *receive_thread(void * data) {
     static unsigned char buffer[5] = {};
     int count = 0;
     while (1) {
@@ -701,10 +672,6 @@ gpointer receive_thread(gpointer data) {
     return NULL;
 }
 
-int fs_emu_netplay_enabled() {
-    return g_fs_emu_netplay_server != NULL;
-}
-
 int fs_emu_netplay_connect() {
     g_socket = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -726,7 +693,7 @@ int fs_emu_netplay_connect() {
     if (s != 0) {
          fs_emu_log("getaddrinfo: %s\n", gai_strerror(s));
          // FIXME:
-         exit(1);
+         //exit(1);
          return 0;
      }
 
@@ -817,7 +784,7 @@ int fs_emu_netplay_connect() {
     return 1;
 }
 
-gpointer netplay_thread(gpointer data) {
+void *netplay_thread(void * data) {
     fs_log("netplay_thread started\n");
     int connected = 0;
     int retry_secs = 2;
@@ -826,10 +793,10 @@ gpointer netplay_thread(gpointer data) {
     fs_emu_dialog* dialog = fs_emu_dialog_create(
             "Connecting To Net Play Server", NULL, "Abort");
     //fs_emu_dialog_add_option(dialog, "Abort", 1);
-    char *line = g_strdup_printf("%s:%s", g_fs_emu_netplay_server,
+    char *line = fs_strdup_printf("%s:%s", g_fs_emu_netplay_server,
             g_fs_emu_netplay_port);
     fs_emu_dialog_set_line(dialog, 0, line);
-    g_free(line);
+    free(line);
     fs_emu_dialog_show(dialog);
     fs_emu_release_gui_lock();
 
@@ -837,10 +804,10 @@ gpointer netplay_thread(gpointer data) {
     while (1) {
         if (connection_attempt > 1) {
             fs_emu_acquire_gui_lock();
-            char *line = g_strdup_printf("Connection attempt %d",
+            char *line = fs_strdup_printf("Connection attempt %d",
                     connection_attempt);
             fs_emu_dialog_set_line(dialog, 2, line);
-            g_free(line);
+            free(line);
             fs_emu_release_gui_lock();
         }
         connected = fs_emu_netplay_connect();
@@ -880,11 +847,12 @@ gpointer netplay_thread(gpointer data) {
     else {
         // the user aborted netplay connection
         fs_emu_warning("Continuing game without net play\n");
-        g_free(g_fs_emu_netplay_server);
+        free(g_fs_emu_netplay_server);
         g_fs_emu_netplay_server = NULL;
     }
 
-    g_receive_thread = g_thread_create(receive_thread, NULL, FALSE, NULL);
+    // FIXME: use non-joinable thread?
+    g_receive_thread = fs_thread_create(receive_thread, NULL);
     if (g_receive_thread == NULL) {
         fs_log("ERROR: could not create receive thread\n");
     }
@@ -904,8 +872,12 @@ void fs_emu_netplay_start() {
     }
 #endif
 
-    g_netplay_thread = g_thread_create(netplay_thread, NULL, FALSE, NULL);
+    // FIXME: use non-joinable thread?
+    g_netplay_thread = fs_thread_create(netplay_thread, NULL);
     if (g_netplay_thread == NULL) {
         fs_emu_warning("ERROR: could not create netplay thread\n");
     }
 }
+
+#endif
+

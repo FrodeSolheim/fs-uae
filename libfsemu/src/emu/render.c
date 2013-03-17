@@ -1,16 +1,44 @@
-#include <stdio.h>
-#include <string.h>
-#include <fs/ml.h>
-#include <fs/thread.h>
-#include <fs/string.h>
 #include "render.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include <fs/config.h>
+#include <fs/filesys.h>
+#include <fs/i18n.h>
+#include <fs/ml.h>
+#include <fs/queue.h>
+#include <fs/string.h>
+#include <fs/thread.h>
+#include <fs/time.h>
+
 #include "libfsemu.h"
-#include "video.h"
-#include "texture.h"
-#include "util.h"
-#include "menu.h"
 #include "audio.h"
+#include "dialog.h"
+#include "emu_lua.h"
 #include "font.h"
+#include "hud.h"
+#include "menu.h"
+#include "scanlines.h"
+#include "texture.h"
+#include "theme.h"
+#include "util.h"
+#include "video.h"
+#include "video_buffer.h"
+#include "xml_shader.h"
+
+#ifdef USE_OPENGL
+#include <fs/ml/opengl.h>
+#include <fs/glu.h>
+#endif
+
+#ifdef USE_GLES
+#define glScaled glScalef
+#define glTranslated glTranslatef
+#define glRotated glRotatef
+#define double float
+#endif
 
 #define VIDEO_DEBUG_SCALE_TIMES 2.5
 
@@ -52,28 +80,45 @@ static double g_scale_y = -1.0;
 static double g_align_x = 0.5;
 static double g_align_y = 0.5;
 
+static int g_frame_override = 0;
+static int g_frame_override_x = 0;
+static int g_frame_override_y = 0;
+static int g_frame_override_w = 0;
+static int g_frame_override_h = 0;
+static int g_l_scale_x = 1920;
+static int g_l_scale_y = 1080;
+
 struct overlay_status {
-    int current;
-    int was_enabled;
-    int was_disabled;
+    int state;
+    int render_state;
+    //int was_enabled;
+    //int was_disabled;
     int render_status;
 };
-static struct overlay_status g_overlay_status[MAX_CUSTOM_OVERLAYS];
+static struct overlay_status g_overlay_status[FS_EMU_MAX_OVERLAYS];
 static fs_mutex *g_overlay_mutex = NULL;
 
-void fs_emu_enable_custom_overlay(int overlay, int enable) {
-    if (overlay < 0 || overlay >= MAX_CUSTOM_OVERLAYS) {
+void fs_emu_set_custom_overlay_state(int overlay, int state) {
+    fs_emu_set_overlay_state(FS_EMU_FIRST_CUSTOM_OVERLAY + overlay, state);
+}
+
+void fs_emu_set_overlay_state(int overlay, int state) {
+    if (overlay < 0 || overlay >= FS_EMU_MAX_OVERLAYS) {
         return;
     }
     fs_mutex_lock(g_overlay_mutex);
-    if (enable) {
-        g_overlay_status[overlay].current = 1;
+    g_overlay_status[overlay].state = state;
+
+#if 0
+    if (state) {
+        g_overlay_status[overlay].state = 1;
         g_overlay_status[overlay].was_enabled = 1;
     }
     else {
-        g_overlay_status[overlay].current = 0;
+        g_overlay_status[overlay].state = 0;
         g_overlay_status[overlay].was_disabled = 1;
     }
+#endif
     fs_mutex_unlock(g_overlay_mutex);
 }
 
@@ -166,7 +211,7 @@ static void create_texture_if_needed(int width, int height) {
     // with high quality borders, there should be no reason to initialize
     // the texture to black
     void *data = NULL;
-    //void *data = g_malloc0(g_frame_texture_width * g_frame_texture_height * 4);
+    //void *data = fs_malloc0(g_frame_texture_width * g_frame_texture_height * 4);
     fs_gl_unpack_row_length(0);
     int gl_buffer_format = 0;
     int gl_buffer_type = 0;
@@ -176,7 +221,7 @@ static void create_texture_if_needed(int width, int height) {
             gl_buffer_format, gl_buffer_type, data);
     CHECK_GL_ERROR();
     if (data) {
-        g_free(data);
+        free(data);
     }
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, g_texture_filter);
     CHECK_GL_ERROR();
@@ -186,10 +231,14 @@ static void create_texture_if_needed(int width, int height) {
     //CHECK_GL_ERROR();
     //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     //CHECK_GL_ERROR();
+#ifdef USE_GLES
+
+#else
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
     CHECK_GL_ERROR();
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
     CHECK_GL_ERROR();
+#endif
 
     // texture contains no data now, so we ensure that the upload routine
     // blanks the border if necessary
@@ -273,18 +322,9 @@ static void fix_border(fs_emu_video_buffer *buffer, int *upload_x,
 #define R5G5B5A1_SHIFT_G 6
 #define R5G5B5A1_SHIFT_B 1
 
-static void save_screenshot(const char *type, int cx, int cy, int cw, int ch,
+static void save_screenshot(const char *path, int cx, int cy, int cw, int ch,
         int count, uint8_t *frame, int frame_width, int frame_height,
         int frame_bpp) {
-    gchar *name, *path;
-    time_t t = time(NULL);
-    struct tm *tm_struct = localtime(&t);
-    char strbuf[20];
-    strftime(strbuf, 20, "%Y-%m-%d-%H-%M", tm_struct);
-    name = g_strdup_printf("fs-uae-%s-%s-%d.png", type, strbuf, count);
-    path = g_build_filename(
-            g_get_user_special_dir(G_USER_DIRECTORY_DESKTOP),
-            name, NULL);
     fs_log("writing screenshot to %s\n", path);
 
     uint8_t *out_data = malloc(cw * ch * 3);
@@ -342,28 +382,33 @@ static void save_screenshot(const char *type, int cx, int cy, int cw, int ch,
 
     int result = fs_image_save_data(path, out_data, cw, ch, 3);
     if (result) {
-        // FIXME: not a warning
-        fs_emu_warning("Saved %s\n", name);
         fs_log("saved screenshot\n");
     }
     else {
         fs_log("error saving screenshot\n");
     }
-    g_free(out_data);
-    g_free(name);
-    g_free(path);
+    free(out_data);
+#if 0
+    free(name);
+    free(path);
+#endif
 }
 
-static void update_texture() {
-    fs_emu_video_buffer *buffer = fs_emu_lock_video_buffer();
+static int update_texture() {
+    fs_emu_video_buffer *buffer = fs_emu_video_buffer_lock();
 #ifdef DEBUG_VIDEO_SYNC
     printf("u %p\n", buffer);
 #endif
     // unlocked in fs_emu_video_after_update
 
+    if (buffer->seq == 0) {
+        // we haven't received a video frame from the emulator yet
+        return -1;
+    }
+
     uint8_t *frame = buffer->data;
     if (frame == NULL) {
-        return;
+        return -1;
     }
     int is_new_frame = 1;
     static int last_seq_no = -1;
@@ -376,11 +421,13 @@ static void update_texture() {
         if (g_fs_emu_repeated_frames > 9999) {
             g_fs_emu_repeated_frames = 9999;
         }
+        g_fs_emu_repeated_frame_time = fs_get_monotonic_time();
         is_new_frame = 0;
     }
     else {
         int lost_frame_count = buffer->seq - last_seq_no - 1;
         g_fs_emu_lost_frames += lost_frame_count;
+        g_fs_emu_lost_frame_time = fs_get_monotonic_time();
         //fs_log("lost %d frame(s)\n", lost_frame_count);
     }
     last_seq_no = buffer->seq;
@@ -413,14 +460,96 @@ static void update_texture() {
     // g_fs_emu_screenshot is set to 1 when screenshot command is executed
     // (keyboard shortcut), but screenshot is saved here, as soon as possible.
 
-    if (g_fs_emu_screenshot) {
-        static int count = 1;
-        g_fs_emu_screenshot = 0;
-        save_screenshot("full", 0, 0, width, height,
-                count, frame, width, height, bpp);
-        save_screenshot("cropped", g_crop.x, g_crop.y, g_crop.w, g_crop.h,
-                count, frame, width, height, bpp);
-        count += 1;
+    if (g_fs_emu_screenshot > 0) {
+        static char* screenshots_dir = NULL;
+        static char* screenshots_prefix = NULL;
+        static int screenshots_mask = 7;
+        if (screenshots_dir == NULL) {
+            char *path = fs_config_get_string("screenshots_output_dir");
+            if (path) {
+                if (fs_path_exists(path)) {
+                    screenshots_dir = path;
+                }
+                else {
+                    fs_emu_warning("Directory does not exist: %s", path);
+                    free(path);
+                }
+            }
+            if (!screenshots_dir) {
+                screenshots_dir = fs_strdup(fs_get_desktop_dir());
+            }
+            screenshots_mask = fs_config_get_int("screenshots_output_mask");
+            if (screenshots_mask == FS_CONFIG_NONE) {
+                screenshots_mask = 7;
+            }
+
+            screenshots_prefix = fs_config_get_string(
+                    "screenshots_output_prefix");
+            if (!screenshots_prefix) {
+                screenshots_prefix = fs_strdup("fs-uae");
+            }
+        }
+
+        static int total_count = 0;
+        if (g_fs_emu_screenshot == 1) {
+
+            char *name, *path;
+            time_t t = time(NULL);
+            struct tm tm_struct;
+            struct tm *tm_p = &tm_struct;
+            fs_localtime_r(&t, tm_p);
+
+            static int count = 0;
+            static char laststrbuf[20] = {};
+
+            char strbuf[20];
+            strftime(strbuf, 20, "%y%m%d%H%M", tm_p);
+            if (strcmp(strbuf, laststrbuf) != 0) {
+                count = 0;
+                strncpy(laststrbuf, strbuf, 20);
+            }
+
+            count += 1;
+            total_count += 1;
+
+            if (screenshots_mask & 1) {
+                name = fs_strdup_printf("%s-%s-%s-%02d.png",
+                        screenshots_prefix, "full", strbuf, count);
+                path = fs_path_join(screenshots_dir, name, NULL);
+                save_screenshot(path, 0, 0, width, height, count, frame,
+                        width, height, bpp);
+                free(path);
+                free(name);
+            }
+            if (screenshots_mask & 2) {
+                name = fs_strdup_printf("%s-%s-%s-%02d.png",
+                        screenshots_prefix, "crop", strbuf, count);
+                path = fs_path_join(screenshots_dir, name, NULL);
+                save_screenshot(path, g_crop.x, g_crop.y, g_crop.w, g_crop.h,
+                        count, frame, width, height, bpp);
+                free(path);
+                free(name);
+            }
+            if (screenshots_mask & 4) {
+                name = fs_strdup_printf("%s-%s-%s-%02d.png",
+                        screenshots_prefix, "real", strbuf, count);
+                path = fs_path_join(screenshots_dir, name, NULL);
+                fs_ml_video_screenshot(path);
+                free(path);
+                free(name);
+            }
+            g_fs_emu_screenshot++;
+        }
+        else if (g_fs_emu_screenshot > 4) {
+            // we wait a bit until printing the notification, so the OpenGL
+            // screenshot can be captured before the notification is shown
+            g_fs_emu_screenshot = 0;
+            fs_emu_notification(81830444,
+                    _("Saved screenshot %d"), total_count);
+        }
+        else {
+            g_fs_emu_screenshot++;
+        }
     }
 
     int upload_x, upload_y, upload_w, upload_h;
@@ -441,7 +570,8 @@ static void update_texture() {
 
     if (g_fs_emu_scanlines &&
             (buffer->flags & FS_EMU_NO_SCANLINES_FLAG) == 0) {
-        //printf("new frame? %d\n", is_new_frame);
+        //printf("w %d h %d new frame? %d\n", buffer->width, buffer->height,
+        //        is_new_frame);
         if (is_new_frame) {
             if (g_scanline_buffer_width != buffer->width ||
                     g_scanline_buffer_height != buffer->height) {
@@ -475,10 +605,16 @@ static void update_texture() {
     fs_gl_bind_texture(g_frame_texture);
 
     uint8_t *gl_buffer_start = frame + ((upload_y * width) + upload_x) * bpp;
-    fs_gl_unpack_row_length(width);
 
+#ifdef USE_GLES
+    /* we don't have unpack padding in GLES. uploading full width lines instead */
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, upload_h,
+            gl_buffer_format, gl_buffer_type, gl_buffer_start);
+#else
+    fs_gl_unpack_row_length(width);
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, upload_w, upload_h,
             gl_buffer_format, gl_buffer_type, gl_buffer_start);
+#endif
     CHECK_GL_ERROR();
 
     int update_black_border = 1;
@@ -598,6 +734,7 @@ static void update_texture() {
     }
 #endif
 #endif
+    return last_seq_no;
 }
 
 static void render_gloss(double alpha) {
@@ -616,10 +753,133 @@ static void render_gloss(double alpha) {
     //glEnd();
 }
 
+static void render_quad(float x1, float y1, float x2, float y2, float s1,
+        float t1, float s2, float t2) {
+#ifdef USE_GLES
+    GLfloat tex[] = {
+        s1, t2,
+        s2, t2,
+        s2, t1,
+        s1, t1
+    };
+    GLfloat vert[] = {
+        x1, y1,
+        x2, y1,
+        x2, y2,
+        x1, y2
+    };
+
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+    glVertexPointer(2, GL_FLOAT, 0, vert);
+    glTexCoordPointer(2, GL_FLOAT, 0, tex);
+    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+#else
+    glBegin(GL_QUADS);
+    glTexCoord2d(s1, t2);
+    glVertex2f(x1, y1);
+    glTexCoord2d(s2, t2);
+    glVertex2f(x2, y1);
+    glTexCoord2d(s2, t1);
+    glVertex2f(x2, y2);
+    glTexCoord2d(s1, t1);
+    glVertex2f(x1, y2);
+    glEnd();
+#endif
+    CHECK_GL_ERROR();
+}
+
 static void render_frame(double alpha, int perspective) {
-    //printf("--- render frame ---\n");
-    //float t = g_snes_height / 512.0;
-    //fs_log("%d %d %d %d\n", g_crop.x, g_crop.y, g_crop.w, g_crop.h);
+    fs_emu_lua_run_handler("on_fs_emu_render_frame");
+
+#ifdef WITH_LUA
+
+#if 0
+    fs_emu_acquire_lua();
+    lua_getglobal(fs_emu_lua_state, "on_fs_emu_render_frame");
+    if (lua_isnil(fs_emu_lua_state, -1)) {
+        lua_pop(fs_emu_lua_state, 1);
+    }
+    else if (lua_pcall(fs_emu_lua_state, 0, 0, 0) != 0) {
+        fs_emu_lua_log_error("error calling on_render_frame");
+        lua_pop(fs_emu_lua_state, 1);
+    }
+    //else if (!lua_isnumber(fs_emu_lua_state, -1)) {
+    //    fs_log("fs_emu_on_render_frame must return a number\n");
+    //}
+    else {
+    //    //int handled = lua_tonumber(fs_emu_lua_state, -1);
+    //    //lua_pop(fs_emu_lua_state, 1);
+    //    //if (handled) {
+    //    //    return;
+    //    //}
+        //fs_emu_release_lua();
+        //return;
+    }
+    fs_emu_release_lua();
+#endif
+
+#endif
+
+    if (g_frame_override) {
+        int x = g_frame_override_x;
+        int y = g_frame_override_y;
+        int w = g_frame_override_w;
+        int h = g_frame_override_h;
+
+        float color = 1.0;
+        if (g_frame_texture == 0) {
+            // texture has not been created yet
+            color = 0.0;
+            fs_gl_texturing(0);
+        }
+        else {
+            fs_gl_texturing(1);
+            fs_gl_bind_texture(g_frame_texture);
+        }
+        fs_gl_blending(0);
+        fs_gl_color4f(color, color, color, 1.0);
+
+        float x1 = -1.0 + x * 2.0 / g_l_scale_x;
+        float x2 = -1.0 + (x + w) * 2.0 / g_l_scale_x;
+        float y2 = 1.0 - y * 2.0 / g_l_scale_y;
+        float y1 = 1.0 - (y + h) * 2.0 / g_l_scale_y;
+
+        double s1 = 0.0;
+        double t1 = 0.0;
+        double s2 = (double) g_crop.w / g_frame_texture_width;
+        double t2 = (double) g_crop.h / g_frame_texture_height;
+
+        int shader_result = 0;
+#ifdef WITH_XML_SHADER
+        if (g_frame_texture) {
+            // only try to render with shader passes if we have a valid texture
+
+            int screen_w = fs_ml_video_width();
+            int screen_h = fs_ml_video_height();
+            double doutput_w = screen_w;
+            double doutput_h = screen_h;
+            doutput_w = doutput_w * g_frame_override_w / (double) g_l_scale_x;
+            doutput_h = doutput_h * g_frame_override_h / (double) g_l_scale_y;
+            int output_w = doutput_w + 0.5;
+            int output_h = doutput_h + 0.5;
+
+            shader_result = fs_emu_xml_shader_render(g_frame_texture,
+                    g_frame_texture_width, g_frame_texture_height,
+                    g_crop.w, g_crop.h, output_w, output_h,
+                    x1, y1, x2, y2, 0, 1.0);
+        }
+#endif
+        if (!shader_result) {
+            render_quad(x1, y1, x2, y2, s1, t1, s2, t2);
+        }
+
+        return;
+    }
 
     int input_w = g_crop.w;
     int input_h = g_crop.h;
@@ -772,53 +1032,131 @@ static void render_frame(double alpha, int perspective) {
         }
 
         if (x1 > -1.0) {
+#ifdef USE_GLES
+            GLfloat vert[] = {
+                   -1.0, -1.0,
+                   x1, -1.0,
+                   x1,  1.0,
+                   -1.0, 1.0
+            };
+            glEnableClientState(GL_VERTEX_ARRAY);
+            glVertexPointer(2, GL_FLOAT, 0, vert);
+            glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+            glDisableClientState(GL_VERTEX_ARRAY);
+#else
             glBegin(GL_QUADS);
             glVertex2f(-1.0, -1.0);
             glVertex2f(  x1, -1.0);
             glVertex2f(  x1,  1.0);
             glVertex2f(-1.0,  1.0);
             glEnd();
+#endif
             CHECK_GL_ERROR();
         }
         if (x2 < 1.0) {
+#ifdef USE_GLES
+            GLfloat vert[] = {
+                    x2, -1.0,
+                   1.0, -1.0,
+                   1.0,  1.0,
+                    x2,  1.0
+            };
+            glEnableClientState(GL_VERTEX_ARRAY);
+            glVertexPointer(2, GL_FLOAT, 0, vert);
+            glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+            glDisableClientState(GL_VERTEX_ARRAY);
+#else
             glBegin(GL_QUADS);
             glVertex2f(  x2, -1.0);
             glVertex2f( 1.0, -1.0);
             glVertex2f( 1.0,  1.0);
             glVertex2f(  x2,  1.0);
             glEnd();
+#endif
             CHECK_GL_ERROR();
         }
         if (y1 > -1.0) {
+#ifdef USE_GLES
+            GLfloat vert[] = {
+                   x1, -1.0,
+                   x2, -1.0,
+                   x2,   y1,
+                   x1,   y1
+            };
+            glEnableClientState(GL_VERTEX_ARRAY);
+            glVertexPointer(2, GL_FLOAT, 0, vert);
+            glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+            glDisableClientState(GL_VERTEX_ARRAY);
+#else
             glBegin(GL_QUADS);
             glVertex2f(x1, -1.0);
             glVertex2f(x2, -1.0);
             glVertex2f(x2,   y1);
             glVertex2f(x1,   y1);
             glEnd();
+#endif
             // left side (3D)
+#ifdef USE_GLES
+            GLfloat vert2[] = {
+                   -1.0, -1.0, -0.1,
+                   -1.0, -1.0,  0.0,
+                   -1.0,   y1,  0.0,
+                   -1.0,   y1, -0.1
+            };
+            glEnableClientState(GL_VERTEX_ARRAY);
+            glVertexPointer(3, GL_FLOAT, 0, vert2);
+            glDrawArrays(GL_TRIANGLE_FAN, 0, 4);            
+            glDisableClientState(GL_VERTEX_ARRAY);
+#else
             glBegin(GL_QUADS);
             glVertex3f(-1.0, -1.0, -0.1);
             glVertex3f(-1.0, -1.0,  0.0);
             glVertex3f(-1.0,   y1,  0.0);
             glVertex3f(-1.0,   y1, -0.1);
             glEnd();
+#endif
             CHECK_GL_ERROR();
         }
         if (y2 < 1.0) {
+#ifdef USE_GLES
+            GLfloat vert[] = {
+                x1, y2,
+                x2, y2,
+                x2, 1.0,
+                x1, 1.0
+            };
+            glEnableClientState(GL_VERTEX_ARRAY);
+            glVertexPointer(2, GL_FLOAT, 0, vert);
+            glDrawArrays(GL_TRIANGLE_FAN, 0, 4);            
+            glDisableClientState(GL_VERTEX_ARRAY);
+#else
             glBegin(GL_QUADS);
             glVertex2f(x1,   y2);
             glVertex2f(x2,   y2);
             glVertex2f(x2,  1.0);
             glVertex2f(x1,  1.0);
             glEnd();
+#endif
             // left side (3D)
+#ifdef USE_GLES
+            GLfloat vert2[] = {
+                   -1.0,   y2, -0.1,
+                   -1.0,   y2,  0.0,
+                   -1.0,  1.0,  0.0,
+                   -1.0,  1.0, -0.1
+            };
+            glEnableClientState(GL_VERTEX_ARRAY);
+            glVertexPointer(3, GL_FLOAT, 0, vert2);
+            glDrawArrays(GL_TRIANGLE_FAN, 0, 4);            
+            glDisableClientState(GL_VERTEX_ARRAY);
+#else
             glBegin(GL_QUADS);
             glVertex3f(-1.0,  y2, -0.1);
             glVertex3f(-1.0,  y2,  0.0);
             glVertex3f(-1.0, 1.0,  0.0);
             glVertex3f(-1.0, 1.0, -0.1);
             glEnd();
+#endif
             CHECK_GL_ERROR();
         }
     }
@@ -852,13 +1190,42 @@ static void render_frame(double alpha, int perspective) {
             fs_gl_color4f(0.33 * alpha, 0.33 * alpha, 0.33 * alpha, alpha);
         }
 
-        if (render_textured_side == 0 || !fs_emu_using_shader()) {
+        if (render_textured_side == 0
+#ifdef WITH_XML_SHADER
+                || !fs_emu_xml_shader_is_enabled()
+#endif
+        ) {
+#ifdef USE_GLES
+            GLfloat tex[] = {
+                s1, t2,
+                s1, t2,
+                s1, t1,
+                s1, t1
+            };
+            GLfloat vert[] = {
+                -1.0, y1, -0.1,
+                -1.0, y1, 0.0,
+                -1.0, y2, 0.0,
+                -1.0, y2, -0.1
+            };
+    
+            glEnableClientState(GL_VERTEX_ARRAY);
+            glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+    
+            glVertexPointer(3, GL_FLOAT, 0, vert);
+            glTexCoordPointer(2, GL_FLOAT, 0, tex);
+            glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+    
+            glDisableClientState(GL_VERTEX_ARRAY);
+            glDisableClientState(GL_TEXTURE_COORD_ARRAY);        
+#else
             glBegin(GL_QUADS);
             glTexCoord2d(s1, t2); glVertex3f(-1.0, y1, -0.1);
             glTexCoord2d(s1, t2); glVertex3f(-1.0, y1,  0.0);
             glTexCoord2d(s1, t1); glVertex3f(-1.0, y2,  0.0);
             glTexCoord2d(s1, t1); glVertex3f(-1.0, y2, -0.1);
             glEnd();
+#endif
             CHECK_GL_ERROR();
         }
     }
@@ -883,37 +1250,54 @@ static void render_frame(double alpha, int perspective) {
     }
 
     int shader_result = 0;
-
+#ifdef WITH_XML_SHADER
     if (g_frame_texture) {
         // only try to render with shader passes if we have a valid texture
-        shader_result = fs_emu_render_with_shader(g_frame_texture,
+        shader_result = fs_emu_xml_shader_render(g_frame_texture,
                 g_frame_texture_width, g_frame_texture_height,
                 g_crop.w, g_crop.h, output_w, output_h,
                 x1, y1, x2, y2, render_textured_side, alpha);
     }
-
+#endif
     if (!shader_result) {
-
-        glBegin(GL_QUADS);
-        glTexCoord2d(s1, t2); glVertex2f(x1, y1);
-        glTexCoord2d(s2, t2); glVertex2f(x2, y1);
-        glTexCoord2d(s2, t1); glVertex2f(x2, y2);
-        glTexCoord2d(s1, t1); glVertex2f(x1, y2);
-        glEnd();
-        CHECK_GL_ERROR();
-
+        render_quad(x1, y1, x2, y2, s1, t1, s2, t2);
     }
 
     //repeat_right_border = 0;
     if (repeat_right_border > 0.0) {
         s1 = s2 = (double) (g_frame_width - 1) / g_frame_texture_width;
 
+#ifdef USE_GLES
+        GLfloat tex[] = {
+            s1, t2,
+            s2, t2,
+            s2, t1,
+            s1, t1
+        };
+        GLfloat vert[] = {
+            repeat_right_border, y1,
+            1.0, y1,
+            1.0, y2,
+            repeat_right_border, y2
+        };
+    
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+    
+        glVertexPointer(2, GL_FLOAT, 0, vert);
+        glTexCoordPointer(2, GL_FLOAT, 0, tex);
+        glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+    
+        glDisableClientState(GL_VERTEX_ARRAY);
+        glDisableClientState(GL_TEXTURE_COORD_ARRAY);        
+#else
         glBegin(GL_QUADS);
         glTexCoord2d(s1, t2); glVertex2f(repeat_right_border, y1);
         glTexCoord2d(s2, t2); glVertex2f(1.0, y1);
         glTexCoord2d(s2, t1); glVertex2f(1.0, y2);
         glTexCoord2d(s1, t1); glVertex2f(repeat_right_border, y2);
         glEnd();
+#endif
         CHECK_GL_ERROR();
 
         // so the following code does not render black rectangle over
@@ -927,17 +1311,43 @@ static void render_frame(double alpha, int perspective) {
         fs_gl_color4f(alpha, alpha, alpha, alpha);
         //fs_gl_bind_texture(g_fs_emu_overlay_texture->texture);
         fs_emu_set_texture(g_fs_emu_overlay_texture);
+        
+#ifdef USE_GLES
+        GLfloat tex[] = {
+            0.0, 1.0,
+            1.0, 1.0,
+            1.0, 0.0,
+            0.0, 0.0
+        };
+        GLfloat vert[] = {
+            -1.0, -1.0,
+             1.0, -1.0,
+             1.0, 1.0,
+            -1.0, 1.0
+        };
+    
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+    
+        glVertexPointer(2, GL_FLOAT, 0, vert);
+        glTexCoordPointer(2, GL_FLOAT, 0, tex);
+        glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+    
+        glDisableClientState(GL_VERTEX_ARRAY);
+        glDisableClientState(GL_TEXTURE_COORD_ARRAY);        
+#else        
         glBegin(GL_QUADS);
         glTexCoord2f(0.0, 1.0); glVertex2f(-1.0, -1.0);
         glTexCoord2f(1.0, 1.0); glVertex2f( 1.0, -1.0);
         glTexCoord2f(1.0, 0.0); glVertex2f( 1.0,  1.0);
         glTexCoord2f(0.0, 0.0); glVertex2f(-1.0,  1.0);
         glEnd();
+#endif
     }
 
     fs_mutex_lock(g_overlay_mutex);
-    for (int i = 0; i < MAX_CUSTOM_OVERLAYS; i++) {
-        int show = g_overlay_status[i].current;
+    for (int i = 0; i < FS_EMU_MAX_OVERLAYS; i++) {
+        int state = g_overlay_status[i].state;
 #if 0
         if (g_overlay_status[i].render_status &&
                 g_overlay_status[i].was_disabled) {
@@ -947,10 +1357,11 @@ static void render_frame(double alpha, int perspective) {
                 g_overlay_status[i].was_enabled) {
             show = 1;
         }
-#endif
         g_overlay_status[i].was_enabled = 0;
         g_overlay_status[i].was_disabled = 0;
-        if (show) {
+#endif
+        g_overlay_status[i].render_state = state;
+        if (state) {
             g_overlay_status[i].render_status++;
         }
         else {
@@ -959,18 +1370,35 @@ static void render_frame(double alpha, int perspective) {
     }
     fs_mutex_unlock(g_overlay_mutex);
 
-    for (int i = 0; i < MAX_CUSTOM_OVERLAYS; i++) {
-        if (g_overlay_status[i].render_status < 2) {
-            continue;
+    for (int i = 0; i < FS_EMU_MAX_OVERLAYS; i++) {
+        //if (g_overlay_status[i].render_status < 1) {
+        //    continue;
+        //}
+        int state = g_overlay_status[i].render_state;
+        if (state < 0) state = 0;
+        if (state > FS_EMU_MAX_OVERLAY_STATES - 1) {
+            state = FS_EMU_MAX_OVERLAY_STATES - 1;
         }
-        if (!g_fs_emu_theme.overlay_textures[i]) {
+
+        fs_emu_texture *overlay_texture = \
+                g_fs_emu_theme.overlays[i].textures[state];
+        if (!overlay_texture) {
             continue;
         }
 
-        float x1 = g_fs_emu_theme.overlay_x[i] / 1920.0;
-        float y1 = g_fs_emu_theme.overlay_y[i] / 1080.0;
-        float x2 = x1 + g_fs_emu_theme.overlay_textures[i]->width / 1920.0;
-        float y2 = y1 + g_fs_emu_theme.overlay_textures[i]->height / 1080.0;
+        float w = g_fs_emu_theme.overlays[i].w;
+        float h = g_fs_emu_theme.overlays[i].h;
+        float x1 = g_fs_emu_theme.overlays[i].x;
+        if (g_fs_emu_theme.overlays[i].anchor & FS_EMU_ANCHOR_RIGHT_BIT) {
+            x1 = x1 + 1.0 - w;
+        }
+        float y1 = g_fs_emu_theme.overlays[i].y;
+        if (g_fs_emu_theme.overlays[i].anchor & FS_EMU_ANCHOR_BOTTOM_BIT) {
+            y1 = y1 + 1.0 - h;
+        }
+
+        float x2 = x1 + w;
+        float y2 = y1 + h;
 
         x1 = -1.0 + 2.0 * x1;
         x2 = -1.0 + 2.0 * x2;
@@ -980,13 +1408,39 @@ static void render_frame(double alpha, int perspective) {
         fs_gl_blending(1);
         fs_gl_texturing(1);
         fs_gl_color4f(1.0, 1.0, 1.0, 1.0);
-        fs_emu_set_texture(g_fs_emu_theme.overlay_textures[i]);
+        fs_emu_set_texture(overlay_texture);
+
+#ifdef USE_GLES
+        GLfloat tex[] = {
+            0.0, 0.0,
+            1.0, 0.0,
+            1.0, 1.0,
+            0.0, 1.0
+        };
+        GLfloat vert[] = {
+            x1, y1,
+            x2, y1,
+            x2, y2,
+            x1, y2
+        };
+    
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+    
+        glVertexPointer(2, GL_FLOAT, 0, vert);
+        glTexCoordPointer(2, GL_FLOAT, 0, tex);
+        glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+    
+        glDisableClientState(GL_VERTEX_ARRAY);
+        glDisableClientState(GL_TEXTURE_COORD_ARRAY);        
+#else        
         glBegin(GL_QUADS);
         glTexCoord2f(0.0, 0.0); glVertex2f(x1, y1);
         glTexCoord2f(1.0, 0.0); glVertex2f(x2, y1);
         glTexCoord2f(1.0, 1.0); glVertex2f(x2, y2);
         glTexCoord2f(0.0, 1.0); glVertex2f(x1, y2);
         glEnd();
+#endif
     }
 }
 
@@ -1003,15 +1457,77 @@ static void render_glow(double opacity) {
     //fs_emu_set_texture(g_tex_glow_top);
     fs_emu_prepare_texture(TEXTURE_GLOW_TOP, &tx1, &ty1, &tx2, &ty2);
     // render top edge
+#ifdef USE_GLES
+    GLfloat tex[] = {
+        tx1, ty2,
+        tx2, ty2,
+        tx2, ty1,
+        tx1, ty1
+    };
+    GLfloat vert[] = {
+        -1.0 + dx, 1.0 - dy, z,
+        1.0 - dx, 1.0 - dy, z,
+        1.0 - dx, 1.0 + dy, z,
+        -1.0 + dx, 1.0 + dy, z
+    };
+
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+    glVertexPointer(3, GL_FLOAT, 0, vert);
+    glTexCoordPointer(2, GL_FLOAT, 0, tex);
+    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+#else
     glBegin(GL_QUADS);
     glTexCoord2f(tx1, ty2); glVertex3f(-1.0 + dx, 1.0 - dy, z);
     glTexCoord2f(tx2, ty2); glVertex3f( 1.0 - dx, 1.0 - dy, z);
     glTexCoord2f(tx2, ty1); glVertex3f( 1.0 - dx, 1.0 + dy, z);
     glTexCoord2f(tx1, ty1); glVertex3f(-1.0 + dx, 1.0 + dy, z);
     glEnd();
+#endif
     CHECK_GL_ERROR();
     // render corners
     fs_emu_prepare_texture(TEXTURE_GLOW_TOP_LEFT, &tx1, &ty1, &tx2, &ty2);
+#ifdef USE_GLES
+    GLfloat tex2[] = {
+        // top left corner
+        tx1, ty2,
+        tx2, ty2,
+        tx2, ty1,
+        tx1, ty1,
+        // top right corner
+        tx2, ty2,
+        tx1, ty2,
+        tx1, ty1,
+        tx2, ty1
+    };
+    GLfloat vert2[] = {
+        // top left corner
+        -1.0 - dx, 1.0 - dy, z,
+        -1.0 + dx, 1.0 - dy, z,
+        -1.0 + dx, 1.0 + dy, z,
+        -1.0 - dx, 1.0 + dy, z,
+        // top right corner
+        1.0 - dx, 1.0 - dy, z,
+        1.0 + dx, 1.0 - dy, z,
+        1.0 + dx, 1.0 + dy, z,
+        1.0 - dx, 1.0 + dy, z
+    };
+
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+    glVertexPointer(3, GL_FLOAT, 0, vert2);
+    glTexCoordPointer(2, GL_FLOAT, 0, tex2);
+    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+    glDrawArrays(GL_TRIANGLE_FAN, 4, 4);
+
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+#else
     glBegin(GL_QUADS);
     // top left corner
     glTexCoord2f(tx1, ty2); glVertex3f(-1.0 - dx, 1.0 - dy, z);
@@ -1024,11 +1540,95 @@ static void render_glow(double opacity) {
     glTexCoord2f(tx1, ty1); glVertex3f( 1.0 + dx, 1.0 + dy, z);
     glTexCoord2f(tx2, ty1); glVertex3f( 1.0 - dx, 1.0 + dy, z);
     glEnd();
+#endif
     CHECK_GL_ERROR();
     // render left and right edge
     fs_emu_prepare_texture(TEXTURE_GLOW_LEFT, &tx1, &ty1, &tx2, &ty2);
     //fs_emu_set_texture(g_tex_glow_left);
+#ifdef USE_GLES
+    GLfloat color3[] = {
+        // left edge
+        s, s, s, s,
+        s, s, s, s,
+        s, s, s, s,
+        s, s, s, s,
+        // right edge
+        s, s, s, s,
+        s, s, s, s,
+        s, s, s, s,
+        s, s, s, s,
+        // left edge bottom
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        s, s, s, s,
+        s, s, s, s,
+        // right edge bottom
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        s, s, s, s,
+        s, s, s, s,
+    };
+    GLfloat tex3[] = {
+        // left edge
+        tx1, ty2,
+        tx2, ty2,
+        tx2, ty1,
+        tx1, ty1,
+        // right edge
+        tx2, ty2,
+        tx1, ty2,
+        tx1, ty1,
+        tx2, ty1,
+        // left edge bottom
+        tx1, ty2,
+        tx2, ty2,
+        tx2, ty1,
+        tx1, ty1,
+        // right edge bottom
+        tx2, ty2,
+        tx1, ty2,
+        tx1, ty1,
+        tx2, ty1
+    };
+    GLfloat vert3[] = {
+        // left edge
+        -1.0 - dx, -0.5, z,
+        -1.0 + dx, -0.5, z,
+        -1.0 + dx, 1.0 - dy, z,
+        -1.0 - dx, 1.0 - dy, z,
+        // right edge
+        1.0 - dx, -0.5, z,
+        1.0 + dx, -0.5, z,
+        1.0 + dx, 1.0 - dy, z,
+        1.0 - dx, 1.0 - dy, z,
+        // left edge bottom
+        -1.0 - dx, -1.0, z,
+        -1.0 + dx, -1.0, z,
+        -1.0 + dx, -0.5, z,
+        -1.0 - dx, -0.5, z,
+        // right edge bottom
+        1.0 - dx, -1.0, z,
+        1.0 + dx, -1.0, z,
+        1.0 + dx, -0.5, z,
+        1.0 - dx, -0.5, z
+    };
 
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+    glEnableClientState(GL_COLOR_ARRAY);
+
+    glColorPointer(4, GL_FLOAT, 0, color3);
+    glVertexPointer(3, GL_FLOAT, 0, vert3);
+    glTexCoordPointer(2, GL_FLOAT, 0, tex3);
+    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+    glDrawArrays(GL_TRIANGLE_FAN, 4, 4);
+    glDrawArrays(GL_TRIANGLE_FAN, 8, 4);
+    glDrawArrays(GL_TRIANGLE_FAN, 12, 4);
+
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+    glDisableClientState(GL_COLOR_ARRAY);
+#else
     glBegin(GL_QUADS);
     // left edge
     glTexCoord2f(tx1, ty2); glVertex3f(-1.0 - dx, -0.5, z);
@@ -1055,6 +1655,7 @@ static void render_glow(double opacity) {
     glTexCoord2f(tx1, ty1); glVertex3f( 1.0 + dx, -0.5, z);
     glTexCoord2f(tx2, ty1); glVertex3f( 1.0 - dx, -0.5, z);
     glEnd();
+#endif
     CHECK_GL_ERROR();
     //printf("--- render glow done ---\n");
 }
@@ -1063,7 +1664,11 @@ static void render_glow(double opacity) {
  * This function is called at the end of the frame rendering function
  */
 static void handle_quit_sequence() {
-    int fade_time = 750 * 1000;
+    int fade_time = fs_config_get_int_clamped("fade_out_duration", 0, 10000);
+    if (fade_time == FS_CONFIG_NONE) {
+        fade_time = 750;
+    }
+    fade_time = fade_time * 1000;
 
     int64_t dt = fs_emu_monotonic_time() - g_fs_emu_quit_time;
     if (dt > fade_time && g_fs_emu_emulation_thread_stopped) {
@@ -1095,17 +1700,34 @@ static void handle_quit_sequence() {
             g_fs_emu_theme.fade_color[1] * fade,
             g_fs_emu_theme.fade_color[2] * fade, fade);
 
+#ifdef USE_GLES
+    GLfloat vert[] = {
+        0, 0,
+        1920, 0,
+        1920, 1080,
+        0, 1080
+    };
+    
+    glEnableClientState(GL_VERTEX_ARRAY);
+    
+    glVertexPointer(2, GL_FLOAT, 0, vert);
+    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+    
+    glDisableClientState(GL_VERTEX_ARRAY);
+#else        
     glBegin(GL_QUADS);
     glVertex2f(0, 0);
     glVertex2f(1920, 0);
     glVertex2f(1920, 1080);
     glVertex2f(0, 1080);
     glEnd();
+#endif
+    
     CHECK_GL_ERROR();
 }
 
-void fs_emu_video_update_function() {
-    update_texture();
+int fs_emu_video_update_function() {
+    return update_texture();
 }
 
 void fs_emu_video_render_function() {
@@ -1114,7 +1736,7 @@ void fs_emu_video_render_function() {
         // render menu once (without really showing it, so all menu
         // resources are initialized and loaded, -prevents flickering
         // when really opening the menu later
-        fs_emu_render_menu(g_menu_transition);
+        fs_emu_menu_render(g_menu_transition);
         initialized_menu = 1;
     }
 
@@ -1130,6 +1752,7 @@ void fs_emu_video_render_function() {
     // FIXME: can perhaps remove this soon..
     fs_emu_video_render_mutex_lock();
 
+
     int in_menu = fs_emu_menu_is_active();
     if (in_menu && g_menu_transition_target < 1.0) {
         g_menu_transition_target = 1.0;
@@ -1138,16 +1761,37 @@ void fs_emu_video_render_function() {
         g_menu_transition_target = 0.0;
     }
 
+    float menu_transition_speed = 0.10;
+    int allow_perspective = 1;
+
+#ifdef WITH_LUA
+    //fs_emu_acquire_lua();
+    //lua_getglobal(fs_emu_lua_state, "on_render_frame");
+    //if (lua_isnil(fs_emu_lua_state, -1)) {
+    //    lua_pop(fs_emu_lua_state, 1);
+    //}
+
+    if (g_frame_override) {
+        // don't allow perspective with the new scripted rendering system
+        allow_perspective = 0;
+        menu_transition_speed = 1.0 / 7.0;
+        glClearColor(0.0, 0.0, 0.0, 1.0);
+        glClear(GL_COLOR_BUFFER_BIT);
+    }
+
+    //fs_emu_release_lua();
+#endif
+
     // FIXME: ideally, we would use time-based animation - for now, we use a
     // simple frame-based animation
     if (g_menu_transition < g_menu_transition_target) {
         if (g_menu_transition_target == 1.0) {
-            g_menu_transition += 0.10;
+            g_menu_transition += menu_transition_speed;
         }
     }
     if (g_menu_transition > g_menu_transition_target) {
         if (g_menu_transition_target == 0.0) {
-            g_menu_transition -= 0.10;
+            g_menu_transition -= menu_transition_speed;
         }
     }
     if (g_menu_transition > 1.0) {
@@ -1171,7 +1815,7 @@ void fs_emu_video_render_function() {
     double r1_a = 30.0;
 
     int perspective = 0;
-    if (g_menu_transition == 0.0) {
+    if (g_menu_transition == 0.0 || allow_perspective == 0) {
         perspective = 0;
         fs_gl_ortho();
         //glTranslated(1920.0 / 2.0, 1080.0 / 2.0, 0.0);
@@ -1189,6 +1833,57 @@ void fs_emu_video_render_function() {
         int splt = g_fs_emu_theme.floor_height;
         fs_gl_blending(FALSE);
         fs_gl_texturing(FALSE);
+
+#ifdef USE_GLES
+        GLfloat vert[] = {
+            // q1
+            0, splt, -0.9,
+            1920, splt, -0.9,
+            1920, 1020, -0.9,
+            0, 1020, -0.9,
+            // q2
+            0, 1020, -0.9,
+            1920, 1020, -0.9,
+            1920, 1080, -0.9,
+            0, 1080, -0.9,
+            // q3
+            0, 0, -0.9,
+            1920, 0, -0.9,
+            1920, splt, -0.9,
+            0, splt, -0.9
+        };
+        GLfloat *wc1 = g_fs_emu_theme.wall_color_1;
+        GLfloat *wc2 = g_fs_emu_theme.wall_color_2;
+        GLfloat color[] = {
+            // q1
+            wc2[0], wc2[1], wc2[2], wc2[3],
+            wc2[0], wc2[1], wc2[2], wc2[3],
+            wc1[0], wc1[1], wc1[2], wc1[3],
+            wc1[0], wc1[1], wc1[2], wc1[3],
+            // q2
+            wc1[0], wc1[1], wc1[2], wc1[3],
+            wc1[0], wc1[1], wc1[2], wc1[3],
+            wc1[0], wc1[1], wc1[2], wc1[3],
+            wc1[0], wc1[1], wc1[2], wc1[3],
+            // q3
+            wc2[0], wc2[1], wc2[2], wc2[3],
+            wc2[0], wc2[1], wc2[2], wc2[3],
+            wc1[0], wc1[1], wc1[2], wc1[3],
+            wc1[0], wc1[1], wc1[2], wc1[3],    
+        };
+    
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glEnableClientState(GL_COLOR_ARRAY);
+    
+        glVertexPointer(3, GL_FLOAT, 0, vert);
+        glColorPointer(4, GL_FLOAT, 0, color);
+        glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+        glDrawArrays(GL_TRIANGLE_FAN, 4, 4);
+        glDrawArrays(GL_TRIANGLE_FAN, 8, 4);
+    
+        glDisableClientState(GL_VERTEX_ARRAY);
+        glDisableClientState(GL_COLOR_ARRAY);
+#else
         glBegin(GL_QUADS);
 
         fs_gl_color4fv(g_fs_emu_theme.wall_color_2);
@@ -1212,6 +1907,7 @@ void fs_emu_video_render_function() {
         glVertex3f(   0, splt, -0.9);
 
         glEnd();
+#endif
         CHECK_GL_ERROR();
 
         fs_gl_perspective();
@@ -1266,27 +1962,41 @@ void fs_emu_video_render_function() {
     }
 
     fs_emu_acquire_gui_lock();
-    fs_emu_render_chat();
+    fs_emu_hud_render_chat();
 
     //if (fs_emu_menu_is_active()) {
     if (g_menu_transition > 0.0) {
-        fs_emu_render_menu(g_menu_transition);
+        fs_emu_menu_render(g_menu_transition);
     }
 
-    fs_emu_render_dialog();
+    fs_emu_dialog_render();
     fs_emu_release_gui_lock();
 
+#ifdef WITH_NETPLAY
     if (g_fs_emu_hud_mode && fs_emu_netplay_enabled()) {
         fs_gl_ortho_hd();
         fs_gl_texturing(0);
         fs_gl_blending(1);
-        glBegin(GL_QUADS);
         fs_gl_color4f(0.0, 0.0, 0.0, 0.5);
+#ifdef USE_GLES
+        GLfloat vert[] = {
+            0, 1030,
+            1920, 1030,
+            1920, 1080,
+            0, 1080
+        };
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glVertexPointer(2, GL_FLOAT, 0, vert);
+        glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+        glDisableClientState(GL_VERTEX_ARRAY);
+#else
+        glBegin(GL_QUADS);
         glVertex2f(0, 1030);
         glVertex2f(1920, 1030);
         glVertex2f(1920, 1080);
         glVertex2f(0, 1080);
         glEnd();
+#endif
         CHECK_GL_ERROR();
 #if 0
         glBegin(GL_QUADS);
@@ -1307,28 +2017,30 @@ void fs_emu_video_render_function() {
 
             int rendered_tag = 0;
             if (player->tag && player->tag[0]) {
-                str = g_strdup_printf("%s", player->tag);
+                str = fs_strdup_printf("%s", player->tag);
                 fs_emu_font_render(menu_font, str, x, y,
                         1.0, 1.0, 1.0, 1.0);
-                g_free(str);
+                free(str);
                 rendered_tag = 1;
             }
             if (rendered_tag || player->ping) {
-                str = g_strdup_printf("%03d", player->ping);
+                str = fs_strdup_printf("%03d", player->ping);
                 fs_emu_font_render(menu_font, str, x + 100, y,
                         1.0, 1.0, 1.0, 1.0);
-                g_free(str);
+                free(str);
             }
             /*
             if (rendered_tag || player->lag) {
-                str = g_strdup_printf("%03d", player->lag);
+                str = fs_strdup_printf("%03d", player->lag);
                 fs_emu_font_render(menu_font, str, x + 200, y,
                         1.0, 1.0, 1.0, 1.0);
-                g_free(str);
+                free(str);
             }
             */
         }
     }
+#endif
+
 #if 1
     if (fs_emu_is_paused()) {
         fs_gl_ortho_hd();
@@ -1348,7 +2060,7 @@ void fs_emu_video_render_function() {
         static GLuint debug_texture = 0;
         static uint32_t *debug_texture_data = NULL;
         if (debug_texture == 0) {
-            debug_texture_data = g_malloc0(256 * 256 * 4);
+            debug_texture_data = fs_malloc0(256 * 256 * 4);
             glGenTextures(1, &debug_texture);
             CHECK_GL_ERROR();
             fs_gl_bind_texture(debug_texture);
@@ -1384,8 +2096,32 @@ void fs_emu_video_render_function() {
         fs_gl_ortho_hd();
         fs_gl_texturing(1);
         fs_gl_blending(0);
-        glBegin(GL_QUADS);
         fs_gl_color4f(1.0, 1.0, 1.0, 1.0);
+#ifdef USE_GLES
+        GLfloat tex[] = {
+            0.0, 0.0,
+            1.0, 0.0,
+            1.0, 1.0,
+            0.0, 1.0
+        };
+        GLfloat vert[] = {
+            0, 0,
+            1920, 0,
+            1920, 1080,
+            0, 1080
+        };
+
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+        glTexCoordPointer(2, GL_FLOAT, 0, tex);
+        glVertexPointer(2, GL_FLOAT, 0, vert);
+        glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+        glDisableClientState(GL_VERTEX_ARRAY);
+        glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+#else
+        glBegin(GL_QUADS);
         glTexCoord2f(0.0, 0.0);
         glVertex2f(0, 0);
         glTexCoord2f(1.0, 0.0);
@@ -1395,6 +2131,7 @@ void fs_emu_video_render_function() {
         glTexCoord2f(0.0, 1.0);
         glVertex2f(0, 1080);
         glEnd();
+#endif
         CHECK_GL_ERROR();
 
         glPushMatrix();
@@ -1404,40 +2141,40 @@ void fs_emu_video_render_function() {
         char *str;
 
         /*
-        str = g_strdup_printf("%d", fs_emu_get_audio_frequency());
+        str = fs_strdup_printf("%d", fs_emu_get_audio_frequency());
         fs_emu_font_render(menu_font, str, 1920 / 2 + 20, 3,
                 1.0, 1.0, 1.0, 1.0);
-        g_free(str);
+        free(str);
         */
 
-        str = g_strdup_printf("%0.1f",
+        str = fs_strdup_printf("%0.1f",
                 fs_emu_audio_get_measured_avg_buffer_fill(0) / 1000.0);
         fs_emu_font_render(menu_font, str, 1920 / 2 + 220, 3,
                 1.0, 1.0, 1.0, 1.0);
-        g_free(str);
-        str = g_strdup_printf("%d", g_fs_emu_audio_buffer_underruns);
+        free(str);
+        str = fs_strdup_printf("%d", g_fs_emu_audio_buffer_underruns);
         fs_emu_font_render(menu_font, str, 1920 / 2 + 420, 3,
                 1.0, 1.0, 1.0, 1.0);
-        g_free(str);
+        free(str);
 
         fs_emu_font_render(menu_font, "EMU", 20, 3, 1.0, 1.0, 1.0, 1.0);
-        str = g_strdup_printf("%0.1f", fs_emu_get_average_emu_fps());
+        str = fs_strdup_printf("%0.1f", fs_emu_get_average_emu_fps());
         fs_emu_font_render(menu_font, str, 220, 3, 1.0, 1.0, 1.0, 1.0);
-        g_free(str);
-        str = g_strdup_printf("%d", g_fs_emu_lost_frames);
+        free(str);
+        str = fs_strdup_printf("%d", g_fs_emu_lost_frames);
         fs_emu_font_render(menu_font, str, 420, 3, 1.0, 1.0, 1.0, 1.0);
-        g_free(str);
-        str = g_strdup_printf("%d", g_fs_emu_repeated_frames);
+        free(str);
+        str = fs_strdup_printf("%d", g_fs_emu_repeated_frames);
         fs_emu_font_render(menu_font, str, 620, 3, 1.0, 1.0, 1.0, 1.0);
-        g_free(str);
+        free(str);
 
         fs_emu_font_render(menu_font, "SYS", 20, 140, 1.0, 1.0, 1.0, 1.0);
-        str = g_strdup_printf("%0.1f", fs_emu_get_average_sys_fps());
+        str = fs_strdup_printf("%0.1f", fs_emu_get_average_sys_fps());
         fs_emu_font_render(menu_font, str, 220, 140, 1.0, 1.0, 1.0, 1.0);
-        g_free(str);
-        str = g_strdup_printf("%d", g_fs_emu_lost_vblanks);
+        free(str);
+        str = fs_strdup_printf("%d", g_fs_emu_lost_vblanks);
         fs_emu_font_render(menu_font, str, 420, 140, 1.0, 1.0, 1.0, 1.0);
-        g_free(str);
+        free(str);
 
         glPopMatrix();
         CHECK_GL_ERROR();
@@ -1455,7 +2192,7 @@ void fs_emu_video_render_debug_info(uint32_t *texture) {
     int x;
     //, y;
     int y1;
-    GList *link;
+    fs_list *link;
     uint32_t color = 0x80404080;
     fs_gl_ortho_hd();
     fs_gl_blending(TRUE);
@@ -1480,9 +2217,9 @@ void fs_emu_video_render_debug_info(uint32_t *texture) {
     x = 127;
     y1 = 128;
     color = 0x80404080;
-    link = g_queue_peek_head_link(g_fs_emu_sys_frame_times.queue);
+    link = fs_queue_peek_head_link(g_fs_emu_sys_frame_times.queue);
     while (link) {
-        int val = GPOINTER_TO_INT(link->data);
+        int val = FS_POINTER_TO_INT(link->data);
         //int x2 = x - 8;
         int y2 = y1 + val * VIDEO_DEBUG_SCALE_TIMES;
         if (y2 > 256) {
@@ -1500,9 +2237,9 @@ void fs_emu_video_render_debug_info(uint32_t *texture) {
     x = 127;
     y1 = 0;
     color = 0x80205080;
-    link = g_queue_peek_head_link(g_fs_emu_emu_frame_times.queue);
+    link = fs_queue_peek_head_link(g_fs_emu_emu_frame_times.queue);
     while (link) {
-        int val = GPOINTER_TO_INT(link->data);
+        int val = FS_POINTER_TO_INT(link->data);
         //int x2 = x - 8;
         int y2 = y1 + val * VIDEO_DEBUG_SCALE_TIMES;
         if (y2 > 256) {
@@ -1520,9 +2257,9 @@ void fs_emu_video_render_debug_info(uint32_t *texture) {
     x = 127;
     y1 = 0;
     color = 0x80008080;
-    link = g_queue_peek_head_link(g_fs_emu_emu2_frame_times.queue);
+    link = fs_queue_peek_head_link(g_fs_emu_emu2_frame_times.queue);
     while (link) {
-        int val = GPOINTER_TO_INT(link->data);
+        int val = FS_POINTER_TO_INT(link->data);
         //int x2 = x - 8;
         int y2 = y1 + val * VIDEO_DEBUG_SCALE_TIMES;
         if (y2 > 256) {
@@ -1537,6 +2274,90 @@ void fs_emu_video_render_debug_info(uint32_t *texture) {
         link = link->next;
     }
 }
+
+#ifdef WITH_LUA
+
+static int l_fs_emu_set_scale(lua_State *L) {
+    int x = luaL_checkinteger(L, 1);
+    int y = luaL_checkinteger(L, 2);
+    // make sure we don't divide by zero later, zero scale not allowed
+    if (x == 0) {
+        x = 1;
+    }
+    if (y == 0) {
+        y = 1;
+    }
+    g_l_scale_x = x;
+    g_l_scale_y = y;
+
+    return 0;
+}
+
+/*
+static int l_fs_emu_render_frame(lua_State *L) {
+    int x = luaL_checkinteger(L, 1);
+    int y = luaL_checkinteger(L, 2);
+    int w = luaL_checkinteger(L, 3);
+    int h = luaL_checkinteger(L, 4);
+
+    float color = 1.0;
+    if (g_frame_texture == 0) {
+        // texture has not been created yet
+        color = 0.0;
+        fs_gl_texturing(0);
+    }
+    else {
+        fs_gl_texturing(1);
+        fs_gl_bind_texture(g_frame_texture);
+    }
+    fs_gl_blending(0);
+    fs_gl_color4f(color, color, color, 1.0);
+
+    float x1 = -1.0 + x * 2.0 / g_l_scale_x;
+    float x2 = -1.0 + (x + w) * 2.0 / g_l_scale_x;
+    float y2 = 1.0 - y * 2.0 / g_l_scale_y;
+    float y1 = 1.0 - (y + h) * 2.0 / g_l_scale_y;
+
+    double s1 = 0.0;
+    double t1 = 0.0;
+    double s2 = (double) g_crop.w / g_frame_texture_width;
+    double t2 = (double) g_crop.h / g_frame_texture_height;
+
+    render_quad(x1, y1, x2, y2, s1, t1, s2, t2);
+
+    return 0;
+}
+*/
+
+static int l_fs_emu_set_frame_position_and_size(lua_State *L) {
+    int x = luaL_checkinteger(L, 1);
+    int y = luaL_checkinteger(L, 2);
+    int w = luaL_checkinteger(L, 3);
+    int h = luaL_checkinteger(L, 4);
+
+    g_frame_override_x = x;
+    g_frame_override_y = y;
+    g_frame_override_w = w;
+    g_frame_override_h = h;
+
+    g_frame_override = g_frame_override_w > 0 || g_frame_override_h > 0 ||
+            g_frame_override_x > 0 || g_frame_override_y > 0;
+
+    return 0;
+}
+
+void fs_emu_render_init_lua(void) {
+    fs_log("fs_emu_render_init_lua\n");
+
+    //lua_register(fs_emu_lua_state, "fs_emu_render_frame",
+    //        l_fs_emu_render_frame);
+    lua_register(fs_emu_lua_state, "fs_emu_set_scale",
+            l_fs_emu_set_scale);
+    lua_register(fs_emu_lua_state, "fs_emu_set_frame_position_and_size",
+            l_fs_emu_set_frame_position_and_size);
+}
+
+#endif
 
 void fs_emu_init_render() {
     fs_log("fs_emu_init_render\n");
@@ -1567,4 +2388,8 @@ void fs_emu_init_render() {
             g_align_x, g_align_y);
 
     g_overlay_mutex = fs_mutex_create();
+
+#ifdef WITH_LUA
+    fs_emu_render_init_lua();
+#endif
 }

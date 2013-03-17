@@ -15,6 +15,9 @@
 #include <stdlib.h>
 
 #include "genblitter.h"
+#ifdef FSUAE
+#define write_log_standard printf
+#endif
 
 /* Here is the minterm table used in blitter function generation */
 
@@ -43,7 +46,7 @@ static void generate_func(void)
     printf("#include \"sysdeps.h\"\n");
     printf("#include \"options.h\"\n");
     printf("#include \"custom.h\"\n");
-    printf("#include \"memory.h\"\n");
+    printf("#include \"uae/memory.h\"\n");
     printf("#include \"blitter.h\"\n");
     printf("#include \"blitfunc.h\"\n\n");
 
@@ -232,7 +235,7 @@ static void generate_table(void)
     printf("#include \"sysdeps.h\"\n");
     printf("#include \"options.h\"\n");
     printf("#include \"custom.h\"\n");
-    printf("#include \"memory.h\"\n");
+    printf("#include \"uae/memory.h\"\n");
     printf("#include \"blitter.h\"\n");
     printf("#include \"blitfunc.h\"\n\n");
     printf("blitter_func * const blitfunc_dofast[256] = {\n");

@@ -8,17 +8,14 @@ A1000_KICKSTARTS = [
     # Kickstart v1.2 r33.180 (1986)(Commodore)(A500-A1000-A2000)[!]
     "11f9e62cf299f72184835b7b2a70a16333fc0d88",
     # Kickstart v1.2 r33.166 (1986)(Commodore)(A1000)
-    "6a7bfb5dbd6b8f179f03da84d8d9528267b6273b",
+    # "6a7bfb5dbd6b8f179f03da84d8d9528267b6273b",
 ]
 
 A500_KICKSTARTS = [
-    # amiga-os-130.rom (decrypted)
-    # Kickstart v1.3 r34.5 (1987)(Commodore)(A3000)[!]
-    "c39bd9094d4e5f4e28c1411f3086950406062e87",
+    # amiga-os-130.rom (decrypted, patched)
     # Kickstart v1.3 r34.5 (1987)(Commodore)(A500-A1000-A2000-CDTV)[!]
+    # Kickstart v1.3 r34.5 (1987)(Commodore)(A500-A1000-A2000-CDTV)[o] (patch)
     "891e9a547772fe0c6c19b610baf8bc4ea7fcb785",
-    # Kickstart v1.3 r34.5 (1987)(Commodore)(A500-A1000-A2000-CDTV)[o]
-    "90933936cce43ca9bc6bf375662c076b27e3c458"
 ]
 
 A500P_KICKSTARTS = [
@@ -32,9 +29,9 @@ A600_KICKSTARTS = [
     # Kickstart v2.05 r37.350 (1992)(Commodore)(A600HD)[!]
     "02843c4253bbd29aba535b0aa3bd9a85034ecde4",
     # Kickstart v2.05 r37.300 (1991)(Commodore)(A600HD)
-    "f72d89148dac39c696e30b10859ebc859226637b",
+    # "f72d89148dac39c696e30b10859ebc859226637b",
     # Kickstart v2.05 r37.299 (1991)(Commodore)(A600)[!]
-    "87508de834dc7eb47359cede72d2e3c8a2e5d8db",
+    # "87508de834dc7eb47359cede72d2e3c8a2e5d8db",
 ]
 
 A1200_KICKSTARTS = [
@@ -43,12 +40,20 @@ A1200_KICKSTARTS = [
     "e21545723fe8374e91342617604f1b3d703094f1",
 ]
 
+A3000_KICKSTARTS = [
+    # amiga-os-310-a3000.rom (decrypted)
+    # Kickstart v3.1 r40.68 (1993)(Commodore)(A3000).rom
+    "f8e210d72b4c4853e0c9b85d223ba20e3d1b36ee",
+]
+
 A4000_KICKSTARTS = [
-    # amiga-os-310.rom (decrypted)
-    # Kickstart v3.1 r40.68 (1993)(Commodore)(A4000)[h Cloanto]
-    "c3c481160866e60d085e436a24db3617ff60b5f9",
+    # amiga-os-310.rom (decrypted, patched)
+    # amiga-os-310-a4000.rom (decrypted)
     # Kickstart v3.1 r40.68 (1993)(Commodore)(A4000)
     "5fe04842d04a489720f0f4bb0e46948199406f49",
+
+    # Kickstart v3.1 r40.68 (1993)(Commodore)(A4000)[h Cloanto]
+    #"c3c481160866e60d085e436a24db3617ff60b5f9",
 ]
 
 CD32_KICKSTARTS = [
@@ -89,54 +94,120 @@ class Amiga:
             "cd_based": False,
             "kickstarts": A1000_KICKSTARTS,
             "ext_roms": [],
+            "defaults": {
+                "chip_memory": "512",
+                "slow_memory": "0",
+                "fast_memory": "0",
+                "zorro_iii_memory": "0",
+            }
         }, {
             "title": "Amiga 500",
             #"title": "A500",
             "cd_based": False,
             "kickstarts": A500_KICKSTARTS,
             "ext_roms": [],
+            "defaults": {
+                "chip_memory": "512",
+                "slow_memory": "512",
+                "fast_memory": "0",
+                "zorro_iii_memory": "0",
+            }
         }, {
             "title": "Amiga 500+",
             #"title": "A500+",
             "cd_based": False,
             "kickstarts": A500P_KICKSTARTS,
             "ext_roms": [],
+            "defaults": {
+                "chip_memory": "1024",
+                "slow_memory": "0",
+                "fast_memory": "0",
+                "zorro_iii_memory": "0",
+            }
         }, {
             "title": "Amiga 600",
             #"title": "A600",
             "cd_based": False,
             "kickstarts": A600_KICKSTARTS,
             "ext_roms": [],
+            "defaults": {
+                "chip_memory": "1024",
+                "slow_memory": "0",
+                "fast_memory": "0",
+                "zorro_iii_memory": "0",
+            }
         }, {
             "title": "Amiga 1200",
             #"title": "A1200",
             "cd_based": False,
             "kickstarts": A1200_KICKSTARTS,
             "ext_roms": [],
+            "defaults": {
+                "chip_memory": "2048",
+                "slow_memory": "0",
+                "fast_memory": "0",
+                "zorro_iii_memory": "0",
+            }
         }, {
             "title": "Amiga 1200 (68020)",
             #"title": "A1200/020",
             "cd_based": False,
             "kickstarts": A1200_KICKSTARTS,
             "ext_roms": [],
+            "defaults": {
+                "chip_memory": "2048",
+                "slow_memory": "0",
+                "fast_memory": "0",
+                "zorro_iii_memory": "0",
+            }
+        }, {
+            "title": "Amiga 3000",
+            #"title": "A4000/040",
+            "cd_based": False,
+            "kickstarts": A3000_KICKSTARTS,
+            "ext_roms": [],
+            "defaults": {
+                "chip_memory": "1024",
+                "slow_memory": "0",
+                "fast_memory": "0",
+                "zorro_iii_memory": "0",
+            }
         }, {
             "title": "Amiga 4000 (68040)",
             #"title": "A4000/040",
             "cd_based": False,
             "kickstarts": A4000_KICKSTARTS,
             "ext_roms": [],
+            "defaults": {
+                "chip_memory": "2048",
+                "slow_memory": "0",
+                "fast_memory": "0",
+                "zorro_iii_memory": "0",
+            }
         }, {
             "title": "Amiga CD32",
             #"title": "CD32",
             "cd_based": True,
             "kickstarts": CD32_KICKSTARTS,
             "ext_roms": CD32_EXT_ROMS,
+            "defaults": {
+                "chip_memory": "2048",
+                "slow_memory": "0",
+                "fast_memory": "0",
+                "zorro_iii_memory": "0",
+            }
         }, {
             "title": "Commodore CDTV",
             #"title": "CDTV",
             "cd_based": True,
             "kickstarts": CDTV_KICKSTARTS,
             "ext_roms": CDTV_EXT_ROMS,
+            "defaults": {
+                "chip_memory": "1024",
+                "slow_memory": "0",
+                "fast_memory": "0",
+                "zorro_iii_memory": "0",
+            }
         }
     ]
 
@@ -147,6 +218,7 @@ class Amiga:
         "A600",
         "A1200",
         "A1200/020",
+        "A3000",
         "A4000/040",
         "CD32",
         "CDTV",
@@ -160,6 +232,10 @@ class Amiga:
     def get_current_config(cls):
         from .Config import Config
         return cls.get_model_config(Config.get("amiga_model"))
+
+    @classmethod
+    def get_default_option_value(cls, model, key):
+        return cls.get_model_config(model)["defaults"][key]
 
     @classmethod
     def get_model_config(cls, model):

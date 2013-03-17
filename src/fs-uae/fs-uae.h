@@ -64,9 +64,10 @@ const char *fs_uae_cdroms_dir();
 const char *fs_uae_floppies_dir();
 const char *fs_uae_hard_drives_dir();
 const char *fs_uae_kickstarts_dir();
-const char *fs_uae_flash_memory_dir();
-const char *fs_uae_save_states_dir();
-const char *fs_uae_floppy_overlays_dir();
+//const char *fs_uae_flash_memory_dir();
+//const char *fs_uae_save_states_dir();
+const char *fs_uae_state_dir();
+//const char *fs_uae_floppy_overlays_dir();
 const char *fs_uae_controllers_dir();
 const char *fs_uae_logs_dir();
 const char *fs_uae_exe_dir();
@@ -75,16 +76,22 @@ const char *fs_uae_themes_dir();
 #define FS_UAE_CONFIG_TYPE_JOYSTICK "amiga"
 #define FS_UAE_CONFIG_TYPE_MOUSE "amiga_mouse"
 
-#define FS_UAE_NUM_INPUT_PORTS 4
+#define FS_UAE_MAX_PORT_ACTIONS 16
+
+#define FS_UAE_NUM_INPUT_PORTS 5
 #define MAX_DEVICE_NAME_LEN 128
 typedef struct fs_uae_input_port {
     char device[MAX_DEVICE_NAME_LEN + 1];
     int mode;
     int new_mode;
+    int autofire_mode;
+    int new_autofire_mode;
     const char *config_type;
 } fs_uae_input_port;
 
 extern fs_uae_input_port g_fs_uae_input_ports[FS_UAE_NUM_INPUT_PORTS];
+void fs_uae_read_override_actions_for_port(int port);
+
 void fs_uae_reconfigure_input_ports_amiga();
 void fs_uae_reconfigure_input_ports_host();
 
@@ -115,7 +122,8 @@ void fs_uae_set_uae_paths();
 //#define CONFIG_A1200_040 8
 
 #define CONFIG_A1000 10
-#define CONFIG_LAST 11
+#define CONFIG_A3000 11
+#define CONFIG_LAST 12
 
 #define MODEL_A500 1
 #define MODEL_A1200 2
@@ -125,6 +133,7 @@ void fs_uae_set_uae_paths();
 #define MODEL_A600 6
 #define MODEL_A4000 7
 #define MODEL_A1000 8
+#define MODEL_A3000 9
 
 extern amiga_config g_fs_uae_amiga_configs[];
 extern int g_fs_uae_amiga_config;
@@ -135,3 +144,13 @@ extern const char *g_fs_uae_version;
 extern int g_fs_uae_fastest_possible;
 extern char *g_fs_uae_config_file_path;
 extern char *g_fs_uae_config_dir_path;
+
+extern int g_fs_uae_state_number;
+extern int g_fs_uae_last_input_event;
+extern int g_fs_uae_last_input_event_state;
+
+void fs_uae_process_input_event(int action, int state);
+
+#ifdef WITH_LUA
+void fs_uae_init_lua_state(lua_State *L);
+#endif

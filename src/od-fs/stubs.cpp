@@ -3,14 +3,8 @@
 
 #include "options.h"
 #include "scsidev.h"
-//#include <memory.h>
-#include <glib.h>
 
 void clipboard_vsync (void) {
-
-}
-
-void gui_flicker_led (int, int, int) {
 
 }
 
@@ -27,12 +21,12 @@ void gui_display (int shortcut) {
 }
 
 int gui_init() {
-    STUB("");
+    LOG_STUB("");
     return 1;
 }
 
 void gui_exit() {
-    STUB("");
+    LOG_STUB("");
 }
 
 int get_guid_target (uae_u8 *out) {
@@ -95,8 +89,18 @@ void sampler_free (void) {
 void sampler_vsync (void) {
 }
 
+#include "include/zfile.h"
+// --- win32gui.cpp ---
+static int qs_override;
+
+int target_cfgfile_load (struct uae_prefs *p, const TCHAR *filename, int type, int isdefault)
+{
+    LOG_STUB("");
+    return 1;
+}
+
 void target_save_options (struct zfile *f, struct uae_prefs *p) {
-    STUB("zfile=? p=%p", p);
+    LOG_STUB("zfile=%p p=%p", f, p);
 }
 
 int target_parse_option (struct uae_prefs *p, const TCHAR *option, const TCHAR *value) {
@@ -110,10 +114,6 @@ void target_startup_sequence (struct uae_prefs *p) {
 
 void notify_user_parms (int msg, const TCHAR *parms, ...) {
     STUB("msg=%d parms=\"%s\"", msg, parms);
-}
-
-void target_reset (void) {
-    STUB("");
 }
 
 uae_u8 *target_load_keyfile (struct uae_prefs *p, const TCHAR *path, int *sizep, TCHAR *name) {
@@ -135,20 +135,41 @@ int enforcer_disable(void) {
     return 1;
 }
 
-void machdep_free (void) {
+void refreshtitle (void) {
     STUB("");
 }
 
+void updatedisplayarea (void) {
+    LOG_STUB("");
+}
+
+void filesys_addexternals() {
+    LOG_STUB("");
+}
+
+void machdep_free (void) {
+    LOG_STUB("");
+}
+
 void target_run (void) {
+    LOG_STUB("");
+}
+
+void target_reset (void) {
+    LOG_STUB("");
+}
+
+void target_restart (void) {
     STUB("");
 }
 
 void target_quit (void) {
-    STUB("");
+    write_log("UAE emulation core is quitting\n");
+    printf("UAE emulation core is quitting\n");
 }
 
 void target_fixup_options (struct uae_prefs *p) {
-    STUB("");
+    LOG_STUB("");
 }
 
 int debuggable (void) {
@@ -156,7 +177,7 @@ int debuggable (void) {
 }
 
 void logging_init(void) {
-    STUB("");
+    LOG_STUB("");
 }
 
 void flush_log(void) {
@@ -169,7 +190,7 @@ int translate_message (int msg, TCHAR *out) {
 }
 
 void machdep_save_options (FILE *f, const struct uae_prefs *p) {
-    STUB("");
+    LOG_STUB("");
 }
 
 int machdep_parse_option (struct uae_prefs *p, const char *option, const char *value) {
@@ -179,4 +200,12 @@ int machdep_parse_option (struct uae_prefs *p, const char *option, const char *v
 
 void machdep_default_options (struct uae_prefs *p) {
     STUB("");
+}
+
+//void fpux_save (int *v) {
+//    STUB("");
+//}
+
+void fpux_restore (int *v) {
+    LOG_STUB("");
 }

@@ -36,8 +36,9 @@ extern int is_ar_pc_in_ram(void);
 extern void action_replay_enter (void);
 extern void action_replay_ciaread (void);
 extern void action_replay_hide (void);
-extern void action_replay_reset (void);
+extern void action_replay_reset (bool hardreset, bool keyboardreset);
 extern int action_replay_load (void);
+extern int action_replay_unload (int in_memory_reset);
 
 extern void action_replay_memory_reset (void);
 extern void action_replay_init (int);

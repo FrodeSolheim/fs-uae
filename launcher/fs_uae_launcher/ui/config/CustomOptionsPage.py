@@ -50,8 +50,8 @@ class CustomOptionsPage(fsui.Panel):
             parts = line.split("=", 1)
             if len(parts) == 2:
                 key = parts[0].strip()
-                if key in Config.no_custom_config:
-                    continue
+                #if key in Config.no_custom_config:
+                #    continue
                 value = parts[1].strip()
                 Config.set(key, value)
 

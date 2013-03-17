@@ -281,13 +281,7 @@ static int load (struct CapsTrackInfoT2 *ci, int drv, int track, bool seed)
         ci->type = 2;
         if (seed) {
             flags |= DI_LOCK_SETWSEED;
-#ifdef FSUAE
-            // FIX FOR NETPLAY - CAN BE IMPROVED - SIMPLE FIX FOR NOW
-            ci->wseed = 0;
-#else
             ci->wseed = uaerand ();
-
-#endif
         }
     } else {
         ci->type = 1;

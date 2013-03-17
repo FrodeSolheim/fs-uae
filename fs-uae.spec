@@ -21,6 +21,7 @@ BuildRequires:  pkgconfig(openal)
 BuildRequires:  pkgconfig(sdl)
 BuildRequires:  pkgconfig(x11)
 BuildRequires:  pkgconfig(zlib)
+BuildRequires:  pkgconfig(freetype2)
 
 %description
 FS-UAE is an Amiga emulator for Windows, Linux and Mac OS X

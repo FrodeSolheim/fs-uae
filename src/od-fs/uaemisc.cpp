@@ -46,6 +46,8 @@ void target_default_options (struct uae_prefs *p, int type) {
         p->win32_samplersoundcard = -1;
     }
 
+    p->win32_rtgvblankrate = 0;
+
 #ifdef __BIG_ENDIAN__
     p->picasso96_modeflags = 0x442;
 #else
@@ -128,6 +130,12 @@ void close_console (void) {
     STUB("");
 }
 
+bool console_isch (void)
+{
+    STUB("");
+    return false;
+}
+
 /*
 struct uae_filter usedfilter_storage
 struct uae_filter *usedfilter = &usedfilter_storage;
@@ -149,86 +157,6 @@ void mapped_free (uae_u8 *p)
 //#include "fsdb.h"
 // FIXME: to fsdb_unix.cpp
 
-
-#include "include/driveclick.h"
-
-extern unsigned char drive_click_data[];
-extern unsigned char drive_spin_data[];
-extern unsigned char drive_spinnd_data[];
-extern unsigned char drive_startup_data[];
-extern unsigned char drive_snatch_data[];
-extern int drive_click_data_size;
-extern int drive_spin_data_size;
-extern int drive_spinnd_data_size;
-extern int drive_startup_data_size;
-extern int drive_snatch_data_size;
-
-int driveclick_loadresource (struct drvsample *sp, int drivetype) {
-    int i, ok;
-    ok = 1;
-    for (i = 0; i < 5; i++) {
-        int type = -1;
-        int len = -1;
-        unsigned char* data = NULL;
-        switch(i) {
-            case 0:
-                type = DS_CLICK;
-                data = drive_click_data;
-                len = drive_click_data_size;
-                break;
-            case 1:
-                type = DS_SPIN;
-                data = drive_spin_data;
-                len = drive_spin_data_size;
-                break;
-            case 2:
-                type = DS_SPINND;
-                data = drive_spinnd_data;
-                len = drive_spinnd_data_size;
-                break;
-            case 3:
-                type = DS_START;
-                data = drive_startup_data;
-                len = drive_startup_data_size;
-                break;
-            case 4:
-                type = DS_SNATCH;
-                data = drive_snatch_data;
-                len = drive_snatch_data_size;
-                break;
-        }
-        struct drvsample* s = sp + type;
-        //write_log("decode drive click sample %d from %p len %d\n", type,
-        //        data, len);
-        s->p = decodewav((uae_u8*) data, &len);
-        s->len = len;
-    }
-    return ok;
-}
-
-void driveclick_fdrawcmd_close(int drive) {
-
-}
-
-int driveclick_fdrawcmd_open(int drive) {
-    return 0;
-}
-
-void driveclick_fdrawcmd_detect(void) {
-
-}
-
-void driveclick_fdrawcmd_seek(int drive, int cyl) {
-
-}
-void driveclick_fdrawcmd_motor (int drive, int running) {
-
-}
-
-void driveclick_fdrawcmd_vsync(void) {
-
-}
-
 int my_setcurrentdir (const TCHAR *curdir, TCHAR *oldcur) {
     STUB("curdir=\"%s\" oldcur=\"%s\"", curdir, oldcur);
     return 0;
@@ -246,14 +174,6 @@ void my_setfilehidden (const TCHAR *path, bool hidden) {
 int amiga_clipboard_want_data (void) {
     STUB("");
     return 0;
-}
-
-void fpux_save (int *v) {
-    STUB("");
-}
-
-void fpux_restore (int *v) {
-    STUB("");
 }
 
 int target_get_volume_name (struct uaedev_mount_info *mtinf,
@@ -458,14 +378,3 @@ void setup_brkhandler (void)
 #endif
     */
 }
-
-#include "include/zfile.h"
-// --- win32gui.cpp ---
-static int qs_override;
-
-int target_cfgfile_load (struct uae_prefs *p, const TCHAR *filename, int type, int isdefault)
-{
-    STUB("");
-    return 1;
-}
-

@@ -1,5 +1,5 @@
 # Russian translations for fs-uae package.
-# Copyright (C) 2012 Frode Solheim
+# Copyright (C) 2012 Frode Solheim and translators.
 # This file is distributed under the same license as the fs-uae package.
 # Frode Solheim <fs-uae@fengestad.no>, 2012.
 #
@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2012-08-14 11:12+0200\n"
+"POT-Creation-Date: 2012-11-01 19:42+0100\n"
 "PO-Revision-Date: 2012-08-14 11:13+0200\n"
 "Last-Translator: Frode Solheim <fs-uae@fengestad.no>\n"
 "Language-Team: Russian <fs-uae-ru@fengestad.no>\n"
@@ -25,12 +25,26 @@ msgstr ""
 msgid "Auto"
 msgstr ""
 
+msgid "Auto-Fire is Off"
+msgstr ""
+
+msgid "Auto-Fire is On"
+msgstr ""
+
+#, c-format
+msgid "Auto-fire disabled for port %d"
+msgstr ""
+
+#, c-format
+msgid "Auto-fire enabled for port %d"
+msgstr ""
+
 #. / TRANSLATORS: Empty or nothing
 #, c-format
 msgid "CD%d: Empty"
 msgstr ""
 
-msgid "CD32 Gamepad"
+msgid "CD32 Pad Mode"
 msgstr ""
 
 #. / TRANSLATORS: Empty or nothing
@@ -59,9 +73,6 @@ msgstr ""
 msgid "Hard Reset"
 msgstr ""
 
-msgid "Host Device"
-msgstr ""
-
 msgid "Input Options"
 msgstr ""
 
@@ -75,7 +86,7 @@ msgstr ""
 msgid "Insert Into DF%d"
 msgstr ""
 
-msgid "Joystick"
+msgid "Joystick Mode"
 msgstr ""
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
@@ -120,6 +131,9 @@ msgstr ""
 msgid "Mouse"
 msgstr ""
 
+msgid "Mouse Mode"
+msgstr ""
+
 #. / TRANSLATORS: This is a menu entry and must not be too long: If you struggle
 #. / to get in short enough, just translate "No Device" instead.
 msgid "No Amiga Device"
@@ -138,6 +152,9 @@ msgid "Parallel Joystick Ports"
 msgstr ""
 
 msgid "Pause"
+msgstr ""
+
+msgid "Port Settings"
 msgstr ""
 
 msgid "Removable Media"

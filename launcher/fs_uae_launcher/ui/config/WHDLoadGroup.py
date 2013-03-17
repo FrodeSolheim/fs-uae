@@ -3,12 +3,11 @@ from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-import webbrowser
 import fs_uae_launcher.fsui as fsui
 from ...Config import Config
 from ...I18N import _, ngettext
 from ...Settings import Settings
-from ..IconButton import IconButton
+from ..HelpButton import HelpButton
 
 class WHDLoadGroup(fsui.Group):
 
@@ -25,8 +24,8 @@ class WHDLoadGroup(fsui.Group):
         self.layout.add(hori_layout, fill=True, margin=10)
         hori_layout.add(self.text_field, expand=True)
 
-        self.help_button = IconButton(self, "help_16.png")
-        self.help_button.on_activate = self.on_help_button
+        self.help_button = HelpButton(self,
+                "http://fengestad.no/fs-uae/whdload-support")
         hori_layout.add(self.help_button, margin_left=10)
 
         self.initialize_from_config()
@@ -50,6 +49,3 @@ class WHDLoadGroup(fsui.Group):
 
     def on_text_change(self):
         Config.set("x_whdload_args", self.text_field.get_text())
-
-    def on_help_button(self):
-        webbrowser.open("http://fengestad.no/fs-uae/whdload-support")

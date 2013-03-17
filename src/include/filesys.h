@@ -8,6 +8,18 @@
 
 struct hardfilehandle;
 
+#define MAX_HDF_CACHE_BLOCKS 128
+struct hdf_cache
+{
+	bool valid;
+	uae_u8 *data;
+	uae_u64 block;
+	bool dirty;
+	int readcount;
+	int writecount;
+	time_t lastaccess;
+};
+
 struct hardfiledata {
     uae_u64 virtsize; // virtual size
     uae_u64 physsize; // physical size (dynamic disk)
@@ -51,6 +63,8 @@ struct hardfiledata {
 
     int drive_empty;
     TCHAR *emptyname;
+
+	struct hdf_cache bcache[MAX_HDF_CACHE_BLOCKS];
 };
 
 #define HFD_FLAGS_REALDRIVE 1
@@ -92,8 +106,6 @@ struct hd_hardfiledata {
 
 #define MAX_FILESYSTEM_UNITS 30
 
-#define USE_CDFS 2
-
 struct uaedev_mount_info;
 extern struct uaedev_mount_info options_mountinfo;
 
@@ -113,8 +125,9 @@ extern void hardfile_do_disk_change (struct uaedev_config_info *uci, int insert)
 
 void hdf_hd_close(struct hd_hardfiledata *hfd);
 int hdf_hd_open(struct hd_hardfiledata *hfd, const TCHAR *path, int blocksize, int readonly,
-		       const TCHAR *devname, int sectors, int surfaces, int reserved,
-		       int bootpri, const TCHAR *filesys);
+		       const TCHAR *devname, int cyls, int sectors, int surfaces, int reserved,
+		       int bootpri, const TCHAR *filesys,
+			   int pcyls, int pheads, int psectors);
 
 
 extern int vhd_create (const TCHAR *name, uae_u64 size, uae_u32);
@@ -128,3 +141,5 @@ extern int hdf_write_target (struct hardfiledata *hfd, void *buffer, uae_u64 off
 extern int hdf_resize_target (struct hardfiledata *hfd, uae_u64 newsize);
 extern void getchsgeometry (uae_u64 size, int *pcyl, int *phead, int *psectorspertrack);
 extern void getchsgeometry_hdf (struct hardfiledata *hfd, uae_u64 size, int *pcyl, int *phead, int *psectorspertrack);
+extern void getchspgeometry (uae_u64 total, int *pcyl, int *phead, int *psectorspertrack, bool idegeometry);
+

@@ -37,7 +37,7 @@ void fs_emu_dialog_show(fs_emu_dialog *dialog);
 void fs_emu_dialog_dismiss(fs_emu_dialog *dialog);
 
 // important: must acquire GUI lock before using this
-fs_emu_dialog *fs_emu_get_current_dialog();
+fs_emu_dialog *fs_emu_dialog_get_current();
 
 extern int g_fs_emu_dialog_mode;
 

@@ -20,8 +20,9 @@
 #define LIBFSML_ML_H_
 
 #include <fs/base.h>
-#include <fs/ml/opengl.h>
-#include <SDL.h>
+#include <stdint.h>
+
+//#include <fs/ml/opengl.h>
 
 void fs_ml_quit();
 int fs_ml_is_quitting();
@@ -30,7 +31,8 @@ extern int g_fs_ml_opengl_context_stamp;
 
 void fs_ml_toggle_fullscreen();
 
-typedef void (*fs_ml_simple_function)();
+typedef void (*fs_ml_void_function)();
+typedef int (*fs_ml_int_function)();
 
 typedef struct fs_ml_video_mode {
     int width;
@@ -72,22 +74,23 @@ int64_t fs_ml_get_vblank_time();
 int fs_ml_video_mode_get_current(fs_ml_video_mode *mode);
 int fs_ml_video_create_window(const char *title);
 
-void fs_ml_set_quit_function(fs_ml_simple_function function);
+void fs_ml_set_quit_function(fs_ml_void_function function);
 
-void fs_ml_video_set_update_function(fs_ml_simple_function function);
-void fs_ml_video_set_render_function(fs_ml_simple_function function);
-void fs_ml_video_set_post_render_function(fs_ml_simple_function function);
+void fs_ml_video_set_update_function(fs_ml_int_function function);
+void fs_ml_video_set_render_function(fs_ml_void_function function);
+void fs_ml_video_set_post_render_function(fs_ml_void_function function);
 
 //void fs_ml_signal_buffer_swap();
 //void fs_ml_lock_buffer_swap();
 //void fs_ml_unlock_buffer_swap();
 
-void fs_ml_frame_update_begin();
-void fs_ml_frame_update_end();
+void fs_ml_frame_update_begin(int frame);
+void fs_ml_frame_update_end(int frame);
 
+void fs_ml_video_screenshot(const char *path);
 int fs_ml_video_width();
 int fs_ml_video_height();
-void fs_ml_video_sync_enable();
+void fs_ml_video_sync_enable(int enable);
 void fs_ml_vblank_sync_enable();
 void fs_ml_set_video_fsaa(int fsaa);
 
@@ -102,61 +105,150 @@ int fs_ml_get_windowed_height();
 //void fs_ml_wait_vblank();
 void fs_ml_video_swap_buffers();
 
-/** Unused (do not remove) */
-#define FS_ML_NOEVENT SDL_NOEVENT
+int fs_ml_get_max_texture_size();
 
-/** Application loses/gains visibility */
-#define FS_ML_ACTIVEEVENT SDL_ACTIVEEVENT
+typedef enum {
+       FS_ML_NOEVENT = 0,
+       FS_ML_ACTIVEEVENT,
+       FS_ML_KEYDOWN,
+       FS_ML_KEYUP,
+       FS_ML_MOUSEMOTION,
+       FS_ML_MOUSEBUTTONDOWN,
+       FS_ML_MOUSEBUTTONUP,
+       FS_ML_JOYAXISMOTION,
+       FS_ML_JOYBALLMOTION,
+       FS_ML_JOYHATMOTION,
+       FS_ML_JOYBUTTONDOWN,
+       FS_ML_JOYBUTTONUP,
+       FS_ML_QUIT,
+       FS_ML_SYSWMEVENT,
+       FS_ML_EVENT_RESERVEDA,
+       FS_ML_EVENT_RESERVEDB,
+       FS_ML_VIDEORESIZE,
+       FS_ML_VIDEOEXPOSE,
+       FS_ML_EVENT_RESERVED2,
+       FS_ML_EVENT_RESERVED3,
+       FS_ML_EVENT_RESERVED4,
+       FS_ML_EVENT_RESERVED5,
+       FS_ML_EVENT_RESERVED6,
+       FS_ML_EVENT_RESERVED7,
+       FS_ML_USEREVENT = 24,
+       FS_ML_NUMEVENTS = 32
+} FS_ML_EventType;
 
-/** Keys pressed */
-#define FS_ML_KEYDOWN SDL_KEYDOWN
+typedef struct fs_ml_keysym {
+    uint16_t scancode;
+    uint16_t sym;
+    uint16_t unicode;
+    uint16_t mod;
+} fs_ml_keysym;
 
-/** Keys released */
-#define FS_ML_KEYUP SDL_KEYUP
+typedef struct fs_ml_ActiveEvent {
+    uint8_t type;
+    uint8_t gain;
+    uint8_t state;
+} fs_ml_ActiveEvent;
 
-/** Mouse moved */
-#define FS_ML_MOUSEMOTION SDL_MOUSEMOTION
+typedef struct fs_ml_KeyboardEvent {
+    uint8_t type;
+    uint8_t which;
+    uint8_t state;
+    fs_ml_keysym keysym;
+} fs_ml_KeyboardEvent;
 
-/** Mouse button pressed */
-#define FS_ML_MOUSEBUTTONDOWN SDL_MOUSEBUTTONDOWN
+typedef struct fs_ml_MouseMotionEvent {
+    uint8_t type;
+    uint8_t which;
+    uint8_t state;
+    uint16_t x, y;
+    int16_t xrel;
+    int16_t yrel;
+} fs_ml_MouseMotionEvent;
 
-/** Mouse button released */
-#define FS_ML_MOUSEBUTTONUP SDL_MOUSEBUTTONUP
+typedef struct fs_ml_MouseButtonEvent {
+    uint8_t type;
+    uint8_t which;
+    uint8_t button;
+    uint8_t state;
+    uint16_t x, y;
+} fs_ml_MouseButtonEvent;
 
-/** Joystick axis motion */
-#define FS_ML_JOYAXISMOTION SDL_JOYAXISMOTION
+typedef struct fs_ml_JoyAxisEvent {
+    uint8_t type;
+    uint8_t which;
+    uint8_t axis;
+    int16_t value;
+} fs_ml_JoyAxisEvent;
 
-/** Joystick trackball motion */
-#define FS_ML_JOYBALLMOTION SDL_JOYBALLMOTION
+typedef struct fs_ml_JoyBallEvent {
+    uint8_t type;
+    uint8_t which;
+    uint8_t ball;
+    int16_t xrel;
+    int16_t yrel;
+} fs_ml_JoyBallEvent;
 
-/** Joystick hat position change */
-#define FS_ML_JOYHATMOTION SDL_JOYHATMOTION
+typedef struct fs_ml_JoyHatEvent {
+    uint8_t type;
+    uint8_t which;
+    uint8_t hat;
+    uint8_t value;
+} fs_ml_JoyHatEvent;
 
-/** Joystick button pressed */
-#define FS_ML_JOYBUTTONDOWN SDL_JOYBUTTONDOWN
+typedef struct fs_ml_JoyButtonEvent {
+    uint8_t type;
+    uint8_t which;
+    uint8_t button;
+    uint8_t state;
+} fs_ml_JoyButtonEvent;
 
-/** Joystick button released */
-#define FS_ML_JOYBUTTONUP SDL_JOYBUTTONUP
+typedef struct fs_ml_ResizeEvent {
+    uint8_t type;
+    int w;
+    int h;
+} fs_ml_ResizeEvent;
 
-/** User-requested quit */
-#define FS_ML_QUIT SDL_QUIT
+typedef struct fs_ml_ExposeEvent {
+    uint8_t type;
+} fs_ml_ExposeEvent;
 
-/** System specific event */
-#define FS_ML_SYSWMEVENT SDL_SYSWMEVENT
+typedef struct fs_ml_QuitEvent {
+    uint8_t type;
+} fs_ml_QuitEvent;
 
-/** User resized video mode */
-#define FS_ML_VIDEORESIZE SDL_VIDEORESIZE
+typedef struct fs_ml_UserEvent {
+    uint8_t type;
+    int code;
+    void *data1;
+    void *data2;
+} fs_ml_UserEvent;
 
-/** Screen needs to be redrawn */
-#define FS_ML_VIDEOEXPOSE SDL_VIDEOEXPOSE
+struct fs_ml_SysWMmsg;
+typedef struct fs_ml_SysWMmsg fs_ml_SysWMmsg;
+typedef struct fs_ml_SysWMEvent {
+    uint8_t type;
+    fs_ml_SysWMmsg *msg;
+} fs_ml_SysWMEvent;
 
-/** Events SDL_USEREVENT through SDL_MAXEVENTS-1 are for your use */
-#define FS_ML_USEREVENT SDL_USEREVENT
+typedef union fs_ml_event {
+    uint8_t type;
+    fs_ml_ActiveEvent active;
+    fs_ml_KeyboardEvent key;
+    fs_ml_MouseMotionEvent motion;
+    fs_ml_MouseButtonEvent button;
+    fs_ml_JoyAxisEvent jaxis;
+    fs_ml_JoyBallEvent jball;
+    fs_ml_JoyHatEvent jhat;
+    fs_ml_JoyButtonEvent jbutton;
+    fs_ml_ResizeEvent resize;
+    fs_ml_ExposeEvent expose;
+    fs_ml_QuitEvent quit;
+    fs_ml_UserEvent user;
+    fs_ml_SysWMEvent syswm;
+} fs_ml_event;
 
-typedef SDL_Event fs_ml_event;
 fs_ml_event* fs_ml_alloc_event();
 void fs_ml_free_event(fs_ml_event* event);
-int fs_ml_get_event(fs_ml_event* event);
 int fs_ml_post_event(fs_ml_event* event);
 
 typedef int (*fs_ml_input_function)(fs_ml_event* event);
@@ -191,6 +283,12 @@ fs_ml_input_device *fs_ml_get_input_devices(int* count);
 #define FS_ML_HAT_RIGHTDOWN       (FS_ML_HAT_RIGHT | FS_ML_HAT_DOWN)
 #define FS_ML_HAT_LEFTUP          (FS_ML_HAT_LEFT | FS_ML_HAT_UP)
 #define FS_ML_HAT_LEFTDOWN        (FS_ML_HAT_LEFT | FS_ML_HAT_DOWN)
+
+#define FS_ML_BUTTON_LEFT      1
+#define FS_ML_BUTTON_MIDDLE    2
+#define FS_ML_BUTTON_RIGHT     3
+#define FS_ML_BUTTON_WHEELUP   4
+#define FS_ML_BUTTON_WHEELDOWN 5
 
 typedef enum {
     FS_ML_KEY_UNKNOWN        = 0,

@@ -4,6 +4,7 @@
 #include <stdlib.h>
 
 #include <fs/base.h>
+#include <fs/filesys.h>
 #include <fs/init.h>
 #include <fs/list.h>
 #include <fs/thread.h>
@@ -23,7 +24,7 @@ FS_INIT_FUNCTION(module) {
             getenv("FS_DEBUG_EVENTS")[0] == '1';
     if (g_log_events) {
         g_mutex = fs_mutex_create();
-        g_event_file = fopen("events.dat", "wb");
+        g_event_file = fs_fopen("events.dat", "wb");
         if (g_event_file == NULL) {
             printf("error opening events.dat for writing\n");
             g_log_events = 0;

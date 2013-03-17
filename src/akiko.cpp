@@ -15,7 +15,7 @@
 #include "sysdeps.h"
 
 #include "options.h"
-#include "memory.h"
+#include "uae/memory.h"
 #include "events.h"
 #include "savestate.h"
 #include "blkdev.h"
@@ -541,7 +541,7 @@ static void subfunc (uae_u8 *data, int cnt)
 		memset (subcodebufferinuse, 0,sizeof (subcodebufferinuse));
 		subcodebufferoffsetw = subcodebufferoffset = 0;
 		uae_sem_post (&sub_sem);
-		write_log (_T("CD32: subcode buffer overflow 1\n"));
+		//write_log (_T("CD32: subcode buffer overflow 1\n"));
 		return;
 	}
 	int offset = subcodebufferoffsetw;
@@ -567,7 +567,8 @@ static int statusfunc (int status)
 	if (status == -1)
 		return 0;
 	if (status == -2)
-		return 150;
+		return 10;
+#if 1
 	if (cdrom_audiostatus != status) {
 		if (status == AUDIO_STATUS_IN_PROGRESS) {
 			cdrom_playing = 1;
@@ -578,6 +579,7 @@ static int statusfunc (int status)
 		}
 	}
 	cdrom_audiostatus = status;
+#endif
 	return 0;
 }
 
@@ -806,7 +808,7 @@ static void cdrom_return_data (void)
 		return;
 
 	#if AKIKO_DEBUG_IO_CMD
-		write_log (_T("OUT IDX=0x%02X-0x%02X LEN=%d:"), cdcomrxinx, cdcomrxcmp, cdrom_receive_length);
+		write_log (_T("OUT IDX=0x%02X-0x%02X LEN=%d,%08x:"), cdcomrxinx, cdcomrxcmp, cdrom_receive_length, cmd_buf);
 	#endif
 
 	if (cdrom_receive_offset < 0) {
@@ -835,7 +837,7 @@ static void cdrom_return_data (void)
 	if (cdcomrxinx == cdcomrxcmp) {
 		set_status (CDINTERRUPT_RXDMADONE);
 #if AKIKO_DEBUG_IO_CMD
-		write_log (L"RXDMADONE %d/%d\n", cdrom_receive_offset, cdrom_receive_length);
+		write_log (_T("RXDMADONE %d/%d\n"), cdrom_receive_offset, cdrom_receive_length);
 #endif
 	}
 
@@ -1012,12 +1014,12 @@ static int cdrom_command_multi (void)
 		write_log (_T("PLAY FROM %06X (%d) to %06X (%d) SCAN=%d\n"),
 			seekpos, msf2lsn (seekpos), endpos, msf2lsn (endpos), scan);
 #endif
+		//cdrom_result_buffer[1] |= CDS_PLAYING;
 		cdrom_playing = 1;
 		if (!cd_play_audio (seekpos, endpos, 0)) {
 			// play didn't start, report it in next status packet
 			cdrom_audiotimeout = -3;
 		}
-		cdrom_result_buffer[1] |= CDS_PLAYING;
 	} else {
 #if AKIKO_DEBUG_IO_CMD
 		write_log (_T("SEEKTO %06X\n"),seekpos);
@@ -1268,7 +1270,7 @@ static void akiko_handler (bool framesync)
 		cdrom_audiotimeout--;
 	if (cdrom_audiotimeout == 1) { // play start
 		cdrom_playing = 1;
-		;//cdrom_start_return_data (cdrom_playend_notify (0));
+		//cdrom_start_return_data (cdrom_playend_notify (0));
 		cdrom_audiotimeout = 0;
 	}
 	if (cdrom_audiotimeout == -1) { // play finished (or disk end)
@@ -1418,10 +1420,17 @@ static void *akiko_thread (void *null)
 				mediachanged = 1;
 				cdaudiostop_do ();
 			} else if (media != lastmediastate) {
-				write_log (_T("CD32: media changed = %d\n"), media);
-				lastmediastate = cdrom_disk = media;
-				mediachanged = 1;
-				cdaudiostop_do ();
+				if (!media && lastmediastate > 1) {
+					// ignore missing media if statefile restored with cd present
+					if (lastmediastate == 2)
+						write_log (_T("CD32: CD missing but statefile was stored with CD inserted: faking media present\n"));
+					lastmediastate = 3;
+				} else {
+					write_log (_T("CD32: media changed = %d\n"), media);
+					lastmediastate = cdrom_disk = media;
+					mediachanged = 1;
+					cdaudiostop_do ();
+				}
 			}
 		}
 
@@ -1856,6 +1865,7 @@ int akiko_init (void)
 		init_comm_pipe (&requests, 100, 1);
 		uae_start_thread (_T("akiko"), akiko_thread, 0, NULL);
 	}
+	gui_flicker_led (LED_HD, 0, -1);
 	akiko_inited = true;
 	return 1;
 }
@@ -1975,7 +1985,7 @@ uae_u8 *restore_akiko (uae_u8 *src)
 		cdrom_paused = 1;
 	if (v & 4)
 		cdrom_disk = 1;
-	lastmediastate = cdrom_disk;
+	lastmediastate = cdrom_disk ? 2 : 0;
 
 	last_play_pos = msf2lsn (restore_u32 ());
 	last_play_end = msf2lsn (restore_u32 ());

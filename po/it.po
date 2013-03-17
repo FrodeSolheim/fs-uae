@@ -1,5 +1,5 @@
 # Italian translations for fs-uae package.
-# Copyright (C) 2012 Frode Solheim
+# Copyright (C) 2012 Frode Solheim and translators.
 # This file is distributed under the same license as the fs-uae package.
 # Frode Solheim <fs-uae@fengestad.no>, 2012.
 #
@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2012-07-27 17:47+0200\n"
-"PO-Revision-Date: 2012-05-08 11:14+0100\n"
+"POT-Creation-Date: 2013-03-13 22:00+0100\n"
+"PO-Revision-Date: 2013-03-15 11:41+0100\n"
 "Last-Translator: Speedvicio <speedvicio@hotmail.com>\n"
 "Language-Team: Italian\n"
 "Language: it\n"
@@ -16,6 +16,10 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 1.5.4\n"
+
+msgid "Activated debugger"
+msgstr "Attiva debugger"
 
 msgid "Amiga Control"
 msgstr "Controllo Amiga"
@@ -24,13 +28,34 @@ msgstr "Controllo Amiga"
 msgid "Auto"
 msgstr "Auto"
 
+msgid "Auto-Fire is Off"
+msgstr "Auto-Fire Spento"
+
+msgid "Auto-Fire is On"
+msgstr "Auto-Fire Acceso"
+
+#, c-format
+msgid "Auto-fire disabled for port %d"
+msgstr "Auto-fire disabilitato  su porta %d"
+
+#, c-format
+msgid "Auto-fire enabled for port %d"
+msgstr "Auto-fire abilitato su porta %d"
+
 #. / TRANSLATORS: Empty or nothing
 #, c-format
 msgid "CD%d: Empty"
 msgstr "CD%d: Vuoto"
 
-msgid "CD32 Gamepad"
-msgstr "CD32 Gamepad"
+msgid "CD32 Pad Mode"
+msgstr "Modalità Pad CD32"
+
+#. / TRANSLATORS: This is a menu entry and must not be too long
+msgid "Custom Joystick Port"
+msgstr "Porta Joystick Personalizzata"
+
+msgid "Custom Mode"
+msgstr "Modalità Personalizzata"
 
 #. / TRANSLATORS: Empty or nothing
 #, c-format
@@ -53,13 +78,14 @@ msgstr "Controllo Emulatore"
 msgid "Full Frame"
 msgstr "Fotogramma Completo"
 
+#, c-format
+msgid "HD not found: %s"
+msgstr "HD non rilevabile: %s"
+
 #. / TRANSLATORS: Hard reset is a computer reboot with an emulated power
 #. / cycle
 msgid "Hard Reset"
 msgstr "Forza Riavvio"
-
-msgid "Host Device"
-msgstr "Dispositivo Ospite"
 
 msgid "Input Options"
 msgstr "Opzioni Ingresso"
@@ -74,8 +100,11 @@ msgstr "Inserisci In CD%d"
 msgid "Insert Into DF%d"
 msgstr "Inserisci In DF%d"
 
-msgid "Joystick"
-msgstr "Joystick"
+msgid "Invalid number of CD-ROM drives specified"
+msgstr "Numero di drives CD-ROM specificati non validi"
+
+msgid "Joystick Mode"
+msgstr "Modalità Joystick"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
@@ -104,6 +133,9 @@ msgstr "Porta Joystick 2"
 msgid "Joystick Port 3"
 msgstr "Porta Joystick 3"
 
+msgid "Joystick Port 4"
+msgstr "Porta Joystick 4"
+
 msgid "Joystick Ports"
 msgstr "Porte Joystick"
 
@@ -119,6 +151,9 @@ msgstr "Altro..."
 msgid "Mouse"
 msgstr "Mouse"
 
+msgid "Mouse Mode"
+msgstr "Modalità Mouse"
+
 #. / TRANSLATORS: This is a menu entry and must not be too long: If you struggle
 #. / to get in short enough, just translate "No Device" instead.
 msgid "No Amiga Device"
@@ -132,12 +167,41 @@ msgstr "Nessun Dispositivo"
 msgid "No configuration file was found"
 msgstr "File di Configurazione Assente"
 
+#, c-format
+msgid "Option \"%s\" is not enabled"
+msgstr "Optione \"%s\" non è abilitata"
+
+msgid "Option chip_memory must be a multiple of 512"
+msgstr "Opzione chip_memory deve essere un multiplo di 512"
+
+msgid "Option fast_memory must be a multiple of 1024"
+msgstr "Opzione fast_memory deve essere un multiplo di 1024"
+
+msgid "Option slow_memory must be a multiple of 256"
+msgstr "Opzione slow_memory deve essere un multiplo di 256"
+
+msgid "Option uaegfx.card needs a CPU with 32-bit addressing"
+msgstr "Opzione uaegfx.card  necessita di una CPU  con indirizzamento a 32-bit"
+
+msgid "Option zorro_iii_memory must be a multiple of 1024"
+msgstr "Opzione zorro_iii_memory deve essere un multiplo di 1024"
+
+msgid "Options zorro_iii_memory needs a CPU with 32-bit addressing"
+msgstr "Opzioni zorro_iii_memory necessitano una CPU con indirizzamento a 32-bit"
+
 #. / TRANSLATORS: This is a menu entry and must not be too long
 msgid "Parallel Joystick Ports"
 msgstr "Porte Parallele Joystick"
 
 msgid "Pause"
 msgstr "Pausa"
+
+#, c-format
+msgid "Port 0: %s"
+msgstr "Porta 0: %s"
+
+msgid "Port Settings"
+msgstr "Settaggi Porte"
 
 msgid "Removable Media"
 msgstr "Supporti Rimovibili"
@@ -159,6 +223,12 @@ msgstr "Salva Stati"
 msgid "Soft Reset"
 msgstr "Riavvia"
 
+msgid "Warp mode disabled"
+msgstr "Modalità distorta disabilitata"
+
+msgid "Warp mode enabled"
+msgstr "Modalità distorta abilitata"
+
 msgid "Zoom is disabled in RTG mode"
 msgstr "Ingrandimento disabilitato in modalità RTG"
 
@@ -169,3 +239,12 @@ msgstr "Ingrandimento: %s"
 #, c-format
 msgid "Zoom: %s + Border"
 msgstr "Ingrandimento: %s + Bordo"
+
+#~ msgid "CD32 Gamepad"
+#~ msgstr "CD32 Gamepad"
+
+#~ msgid "Host Device"
+#~ msgstr "Dispositivo Ospite"
+
+#~ msgid "Joystick"
+#~ msgstr "Joystick"

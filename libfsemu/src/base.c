@@ -19,6 +19,7 @@
 #include <fs/log.h>
 #include <fs/base.h>
 #include <fs/filesys.h>
+#include <fs/string.h>
 
 #if defined(WINDOWS)
 
@@ -36,13 +37,76 @@
 
 #endif
 
+#ifdef USE_GLIB
 // FIXME g_atomic_int_get / g_atomic_int_set
 #include <glib.h>
+#endif
 
 // some function adapted from glib
 
+const char *fs_get_user_config_dir(void) {
+#if defined(MACOSX)
+    static char *path = NULL;
+    if (path == NULL) {
+        path = g_build_filename(g_get_home_dir(), "Library", "Preferences",
+                NULL);
+    }
+    return path;
+#elif defined(USE_GLIB)
+    return g_get_user_config_dir();
+#else
+    // FIXME
+    return "";
+#endif
+}
+
+const char *fs_get_user_data_dir(void) {
+#ifdef USE_GLIB
+    return g_get_user_data_dir();
+#else
+    // FIXME
+    return "";
+#endif
+#if 0
+  gchar *data_dir;
+
+  G_LOCK (g_utils_global);
+
+  if (!g_user_data_dir)
+    {
+#ifdef G_OS_WIN32
+      data_dir = get_special_folder (CSIDL_LOCAL_APPDATA);
+#else
+      data_dir = (gchar *) g_getenv ("XDG_DATA_HOME");
+
+      if (data_dir && data_dir[0])
+        data_dir = g_strdup (data_dir);
+#endif
+      if (!data_dir || !data_dir[0])
+    {
+      g_get_any_init ();
+
+      if (g_home_dir)
+        data_dir = g_build_filename (g_home_dir, ".local",
+                     "share", NULL);
+      else
+        data_dir = g_build_filename (g_tmp_dir, g_user_name, ".local",
+                     "share", NULL);
+    }
+
+      g_user_data_dir = data_dir;
+    }
+  else
+    data_dir = g_user_data_dir;
+
+  G_UNLOCK (g_utils_global);
+
+  return data_dir;
+#endif
+}
+
 char *fs_get_data_file(const char *relative) {
-    //printf("fs_get_data_file_path %s\n", relative);
+    //printf("fs_get_data_file<%s>\n", relative);
     static int initialized = 0;
     static char executable_dir[PATH_MAX];
     if (!initialized) {
@@ -64,7 +128,7 @@ char *fs_get_data_file(const char *relative) {
 #ifdef MACOSX
     char buffer[FS_PATH_MAX];
     fs_get_application_exe_dir(buffer, FS_PATH_MAX);
-    gchar *test;
+    char *test;
     path = g_build_filename(buffer, "..", "Resources", relative, NULL);
     if (fs_path_exists(path)) {
         return path;
@@ -72,6 +136,7 @@ char *fs_get_data_file(const char *relative) {
     free(path);
 #endif
 
+#ifdef USE_GLIB
     const char *user_dir = g_get_user_data_dir();
     path = fs_path_join(user_dir, relative, NULL);
     if (fs_path_exists(path)) {
@@ -88,15 +153,26 @@ char *fs_get_data_file(const char *relative) {
         free(path);
         dirs++;
     }
+#endif
+
     return NULL;
 }
 
 char *fs_get_program_data_file(const char *relative) {
-    char *relative2 = fs_path_join(g_get_prgname(), relative, NULL);
+    char *relative2 = fs_path_join(fs_get_prgname(), relative, NULL);
     char *result = fs_get_data_file(relative2);
     free(relative2);
     return result;
 }
+
+/*
+void fs_time_val_add(fs_time_val *tv, int usec) {
+    int64_t utime = ((int64_t) tv->tv_sec) * 1000000 + tv->tv_usec;
+    utime += usec;
+    tv->tv_sec = utime / 1000000;
+    tv->tv_usec = utime % 1000000;
+}
+*/
 
 void fs_get_current_time(fs_time_val *result) {
 #ifndef WINDOWS
@@ -342,6 +418,34 @@ void fs_set_argv(int argc, char* argv[]) {
     g_argv = argv;
 }
 
+char *find_program_in_path(const char *prog) {
+    if (prog[0] == '/') {
+        // absolute path
+        return fs_strdup(prog);
+    }
+    const char* env_path = getenv("PATH");
+    if (env_path == NULL) {
+        return NULL;
+    }
+    char *result = NULL;
+    char **dirs = fs_strsplit(env_path, ":", 0);
+    char **dir = dirs;
+    while(*dir) {
+        //printf("dir %s\n", *dir);
+        if (*dir) {
+            char *abs = fs_path_join(*dir, prog, NULL);
+            if (fs_path_is_file(abs)) {
+                result = abs;
+                break;
+            }
+            free(abs);
+        }
+        dir++;
+    }
+    fs_strfreev(dirs);
+    return result;
+}
+
 int fs_get_application_exe_path(char *buffer, int size) {
     fs_log("fs_get_application_exe_path\n");
     // Mac OS X: _NSGetExecutablePath() (man 3 dyld)
@@ -352,8 +456,15 @@ int fs_get_application_exe_path(char *buffer, int size) {
     // Windows: GetModuleFileName() with hModule = NULL
 #if defined(WINDOWS)
     // FIXME: SHOULD HANDLE UTF8 <--> MBCS..
-    size = GetModuleFileName(NULL, buffer, size);
-    //return utf8(path_buffer);
+    wchar_t * temp_buf = malloc(sizeof(wchar_t) * PATH_MAX);
+    int len = GetModuleFileNameW(NULL, temp_buf, PATH_MAX);
+
+    int result = WideCharToMultiByte(CP_UTF8, 0, temp_buf, len,
+            buffer, size, NULL, NULL);
+    free(temp_buf);
+    if (result == 0) {
+        return 0;
+    }
     return 1;
 #elif defined(MACOSX)
     //fs_log("fs_get_application_exe_path for Mac OS X\n");
@@ -372,19 +483,20 @@ int fs_get_application_exe_path(char *buffer, int size) {
         buffer[0] = '\0';
         return 0;
     }
-    gchar* result = g_find_program_in_path(g_argv[0]);
+
+    char* result = find_program_in_path(g_argv[0]);
     if (result == NULL) {
         buffer[0] = '\0';
         return 0;
     }
     //fs_log("argv[0]: %s result: %s\n", g_argv[0], result);
     if (result[0] != '/') {
-        gchar* old_result = result;
-        gchar* current_dir = g_get_current_dir();
-        result = g_build_filename(current_dir, old_result, NULL);
+        char* old_result = result;
+        char* current_dir = fs_get_current_dir();
+        result = fs_path_join(current_dir, old_result, NULL);
         //fs_log("new result: %s\n", result);
-        g_free(old_result);
-        g_free(current_dir);
+        free(old_result);
+        free(current_dir);
     }
 
     if (strlen(result) > size - 1) {
@@ -394,7 +506,7 @@ int fs_get_application_exe_path(char *buffer, int size) {
 
     // we have already checked that the buffer is big enough
     strcpy(buffer, result);
-    g_free(result);
+    free(result);
     return 1;
 #endif
     //fs_log("WARNING: fs_get_application_exe_path failed\n");
@@ -424,4 +536,41 @@ void *fs_malloc0(size_t n_bytes) {
         memset(data, 0, n_bytes);
     }
     return data;
+}
+
+#ifndef USE_GLIB
+static char *g_prgname = "unnamed-program";
+static char *g_application_name = "Unnamed Program";
+#endif
+
+const char *fs_get_application_name(void) {
+#ifdef USE_GLIB
+    return g_get_application_name();
+#else
+    return g_application_name;
+#endif
+}
+
+void fs_set_application_name(const char *application_name) {
+#ifdef USE_GLIB
+    g_set_application_name(application_name);
+#else
+    g_application_name = fs_strdup(application_name);
+#endif
+}
+
+const char *fs_get_prgname(void) {
+#ifdef USE_GLIB
+    return g_get_prgname();
+#else
+    return g_prgname;
+#endif
+}
+
+void fs_set_prgname(const char *prgname) {
+#ifdef USE_GLIB
+    g_set_prgname(prgname);
+#else
+    g_prgname = fs_strdup(prgname);
+#endif
 }

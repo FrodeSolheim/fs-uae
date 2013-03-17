@@ -16,14 +16,21 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
  */
 
-#include <fs/fs.h>
-#include <fs/glee.h>
-#include <fs/glu.h>
-#include <fs/log.h>
+#ifdef USE_OPENGL
+
 #include <stdio.h>
 #include <stdlib.h>
-#include <glib.h>
+#include <math.h>
+
+#include <fs/fs.h>
+#include <fs/log.h>
+
 #include <fs/ml/opengl.h>
+#include <fs/glu.h>
+
+#if defined(USE_GLES) && !defined(FAKE_GLES)
+#define glOrtho glOrthof
+#endif
 
 //#define TRACE
 
@@ -134,6 +141,9 @@ void fs_gl_bind_texture(int texture) {
 }
 
 void fs_gl_unpack_row_length(int length) {
+#ifdef USE_GLES
+    // not available on GLES
+#else
     if (g_unpack_row_length == length) {
         return;
     }
@@ -143,6 +153,7 @@ void fs_gl_unpack_row_length(int length) {
     glPixelStorei(GL_UNPACK_ROW_LENGTH, length);
     CHECK_GL_ERROR();
     g_unpack_row_length = length;
+#endif
 }
 
 void fs_gl_viewport(int x, int y, int w, int h) {
@@ -190,11 +201,11 @@ void fs_gl_ortho() {
         return;
     }
 #ifdef TRACE
-    printf("gluOrtho2D -1.0 1.0 -1.0 1.0\n");
+    printf("glOrtho -1.0 1.0 -1.0 1.0\n");
 #endif
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluOrtho2D(-1.0, 1.0, -1.0, 1.0);
+    glOrtho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
     glMatrixMode(GL_MODELVIEW);
     CHECK_GL_ERROR();
     //glLoadIdentity();
@@ -206,11 +217,11 @@ void fs_gl_ortho_hd() {
         return;
     }
 #ifdef TRACE
-    printf("gluOrtho2D 0.0 1920.0 0.0 1080.0\n");
+    printf("glOrtho 0.0 1920.0 0.0 1080.0\n");
 #endif
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluOrtho2D(0.0, 1920.0, 0.0, 1080.0);
+    glOrtho(0.0, 1920.0, 0.0, 1080.0, -1.0, 1.0);
     glMatrixMode(GL_MODELVIEW);
     CHECK_GL_ERROR();
     //glLoadIdentity();
@@ -227,9 +238,25 @@ void fs_gl_perspective() {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     // FIXME: ASPECT
-    gluPerspective(45.0, 16.0 / 9.0, 0.1, 100.0);
+    double fov_y = 45.0;
+    double aspect_ratio = 16.0 / 9.0;
+    double front = 0.1;
+    double back = 100.0;
+
+#ifdef USE_GLES
+    const double DEG2RAD = 3.14159265 / 180;
+    double tangent = tan(fov_y/2 * DEG2RAD);   // tangent of half fovY
+    double height = front * tangent;           // half height of near plane
+    double width = height * aspect_ratio;      // half width of near plane
+    // params: left, right, bottom, top, front, back
+    glFrustumf(-width, width, -height, height, front, back);
+#else
+    gluPerspective(fov_y, aspect_ratio, front, back);
+#endif
     glMatrixMode(GL_MODELVIEW);
     CHECK_GL_ERROR();
     //glLoadIdentity();
     g_projection = 3;
 }
+
+#endif // USE_OPENGL

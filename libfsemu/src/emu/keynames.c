@@ -1,4 +1,4 @@
-const gchar* g_fs_emu_key_names[] = {
+const char* g_fs_emu_key_names[] = {
 "",
 "",
 "",

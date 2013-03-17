@@ -40,7 +40,7 @@
 
 #include "options.h"
 #include "threaddep/thread.h"
-#include "memory.h"
+#include "uae/memory.h"
 #include "custom.h"
 #include "events.h"
 #include "newcpu.h"
@@ -823,6 +823,7 @@ static int doskip (void)
 
 void picasso_trigger_vblank (void)
 {
+    //if (!ABI_interrupt || !uaegfx_base || !interrupt_enabled || !currprefs.rtg_hardwareinterrupt)
     if (!ABI_interrupt || !uaegfx_base || !interrupt_enabled || currprefs.win32_rtgvblankrate < -1)
         return;
     put_long (uaegfx_base + CARD_IRQPTR, ABI_interrupt + PSSO_BoardInfo_SoftInterrupt);
@@ -874,9 +875,10 @@ static void picasso_handle_vsync2 (void)
 
     framecnt++;
     mouseupdate ();
-
+    //printf("picasso_handle_vsync2 %d\n", thisisvsync);
     if (thisisvsync) {
         rendered = rtg_render ();
+        frame_drawn ();
     }
     if (setupcursor_needed)
         setupcursor ();
@@ -905,7 +907,8 @@ void picasso_handle_vsync (void)
     }
 
     int vsync = isvsync_rtg ();
-    //printf("isvsync_rtg = %d\n", vsync);
+    //printf("isvsync_rtg = %d currprefs.win32_rtgvblankrate = %d\n",
+    //        vsync, currprefs.win32_rtgvblankrate);
     if (vsync < 0) {
         p96hsync = 0;
         picasso_handle_vsync2 ();
@@ -2541,7 +2544,7 @@ void picasso96_alloc (TrapContext *ctx)
     picasso96_alloc2 (ctx);
 }
 
-static uaecptr inituaegfxfuncs (uaecptr start, uaecptr ABI);
+static void inituaegfxfuncs (uaecptr start, uaecptr ABI);
 static void inituaegfx (uaecptr ABI)
 {
     uae_u32 flags;
@@ -3723,12 +3726,10 @@ static uae_u32 REGPARAM2 picasso_SetDisplay (TrapContext *ctx)
 
 void init_hz_p96 (void)
 {
-    currprefs.win32_rtgvblankrate = 50;
-
-    if (    1    || currprefs.win32_rtgvblankrate < 0 || isvsync_rtg ())  {
-        write_log("FIXME: setting p96vblank to 50.0\n");
-        p96vblank = 50.0;
-#if 0
+#if 1
+    if (0) {
+#else
+    if (currprefs.win32_rtgvblankrate < 0 || isvsync_rtg ())  {
         double rate = getcurrentvblankrate ();
         if (rate < 0)
             p96vblank = vblank_hz;
@@ -4467,7 +4468,7 @@ static bool flushpixels (void)
         break;
     }
 
-    if (!currprefs.gfx_api && (currprefs.leds_on_screen & STATUSLINE_RTG)) {
+    if (currprefs.leds_on_screen & STATUSLINE_RTG) {
         if (dst == NULL) {
             dst = gfx_lock_picasso (false, false);
             if (dst)
@@ -4702,13 +4703,13 @@ static uae_u32 REGPARAM2 picasso_SetMemoryMode(TrapContext *ctx)
     if (ABI) \
     put_long (ABI + func, start);
 
-static uaecptr inituaegfxfuncs (uaecptr start, uaecptr ABI)
+static void inituaegfxfuncs (uaecptr start, uaecptr ABI)
 {
     uaecptr old = here ();
     uaecptr ptr;
 
     if (uaegfx_old)
-        return 0;
+        return;
     org (start);
 
     dw (RTS);
@@ -4862,32 +4863,31 @@ static uaecptr inituaegfxfuncs (uaecptr start, uaecptr ABI)
 
     write_log (_T("uaegfx.card magic code: %08X-%08X ABI=%08X\n"), start, here (), ABI);
 
+    //if (ABI && currprefs.rtg_hardwareinterrupt) {
     if (ABI && currprefs.win32_rtgvblankrate >= -1) {
         printf("initvblankABI ...%d\n", ABI);
         initvblankABI (uaegfx_base, ABI);
     }
-
-    ptr = here ();
-    org (old);
-    return ptr;
 }
 
 void picasso_reset (void)
 {
-    uaegfx_base = 0;
-    uaegfx_old = 0;
-    uaegfx_active = 0;
-    interrupt_enabled = 0;
-    reserved_gfxmem = 0;
-    resetpalette();
+    if (savestate_state != STATE_RESTORE) {
+        uaegfx_base = 0;
+        uaegfx_old = 0;
+        uaegfx_active = 0;
+        interrupt_enabled = 0;
+        reserved_gfxmem = 0;
+        resetpalette ();
+        InitPicasso96 ();
+    }
 }
 
-void uaegfx_install_code (void)
+void uaegfx_install_code (uaecptr start)
 {
-    //printf("\n\n\nuaegfx_install_code\n\n\n");
-    uaecptr start = here ();
     uaegfx_rom = start;
-    org (inituaegfxfuncs (start, 0));
+    org (start);
+    inituaegfxfuncs (start, 0);
 }
 
 #define UAEGFX_VERSION 3
@@ -4973,9 +4973,9 @@ static uaecptr uaegfx_card_install (TrapContext *ctx, uae_u32 extrasize)
     put_long (uaegfx_base + CARD_RESLIST, uaegfx_base + CARD_SIZEOF);
     put_long (uaegfx_base + CARD_RESLISTSIZE, extrasize);
 
-    changed_prefs.win32_rtgvblankrate = 50;
-    currprefs.win32_rtgvblankrate = 50;
-    printf("%d\n", currprefs.win32_rtgvblankrate);
+    //changed_prefs.win32_rtgvblankrate = 50;
+    //currprefs.win32_rtgvblankrate = 50;
+    //printf("%d\n", currprefs.win32_rtgvblankrate);
 
     if (currprefs.win32_rtgvblankrate >= -1)
         initvblankirq (ctx, uaegfx_base);
@@ -5077,6 +5077,13 @@ uae_u8 *restore_p96 (uae_u8 *src)
     boardinfo = restore_u32 ();
     for (i = 0; i < 4; i++)
         cursorrgb[i] = restore_u32 ();
+    if (flags & 64) {
+        for (i = 0; i < 256; i++) {
+            picasso96_state.CLUT[i].Red = restore_u8 ();
+            picasso96_state.CLUT[i].Green = restore_u8 ();
+            picasso96_state.CLUT[i].Blue = restore_u8 ();
+        }
+    }
     picasso96_state.HostAddress = NULL;
     picasso_SetPanningInit();
     picasso96_state.Extent = picasso96_state.Address + picasso96_state.BytesPerRow * picasso96_state.VirtualHeight;
@@ -5096,7 +5103,7 @@ uae_u8 *save_p96 (int *len, uae_u8 *dstptr)
         dstbak = dst = xmalloc (uae_u8, 1000);
     save_u32 (2);
     save_u32 ((picasso_on ? 1 : 0) | (set_gc_called ? 2 : 0) | (set_panning_called ? 4 : 0) |
-        (hwsprite ? 8 : 0) | (cursorvisible ? 16 : 0) | (interrupt_enabled ? 32 : 0));
+        (hwsprite ? 8 : 0) | (cursorvisible ? 16 : 0) | (interrupt_enabled ? 32 : 0) | 64);
     save_u32 (currprefs.rtgmem_size);
     save_u32 (picasso96_state.Address);
     save_u32 (picasso96_state.RGBFormat);
@@ -5115,6 +5122,11 @@ uae_u8 *save_p96 (int *len, uae_u8 *dstptr)
     save_u32 (boardinfo);
     for (i = 0; i < 4; i++)
         save_u32 (cursorrgb[i]);
+    for (i = 0; i < 256; i++) {
+        save_u8 (picasso96_state.CLUT[i].Red);
+        save_u8 (picasso96_state.CLUT[i].Green);
+        save_u8 (picasso96_state.CLUT[i].Blue);
+    }
     *len = dst - dstbak;
     return dstbak;
 }

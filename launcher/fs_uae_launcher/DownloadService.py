@@ -76,7 +76,7 @@ class DownloadService:
 
     @classmethod
     def sha1_to_url(self, sha1, name):
-        url = "http://fengestad.no/s/{0}/{1}/{2}".format(sha1[:2], sha1, name)
+        url = "http://fengestad.no/s/sha1/{0}/{1}".format(sha1, name)
         print(url)
         return url
 

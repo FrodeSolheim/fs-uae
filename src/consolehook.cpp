@@ -4,7 +4,7 @@
 #include "sysdeps.h"
 
 #include "options.h"
-#include "memory.h"
+#include "uae/memory.h"
 #include "execlib.h"
 #include "disk.h"
 #include "rommgr.h"
@@ -49,7 +49,7 @@ void consolehook_config (struct uae_prefs *p)
 	//p->win32_automount_drives = 2;
 	//p->win32_automount_cddrives = 2;
 
-	add_filesys_config (p, -1, _T("DH0"), _T("CLIBOOT"), _T("."), 1, 0, 0, 0, 0, 15, NULL, 0, 0);
+	add_filesys_config (p, -1, _T("DH0"), _T("CLIBOOT"), _T("."), 1, 0, 0, 0, 0, 0, 15, NULL, 0, 0, 0, 0, 0);
 }
 
 static void *console_thread (void *v)

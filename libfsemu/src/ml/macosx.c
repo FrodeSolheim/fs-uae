@@ -49,7 +49,7 @@ int fs_ml_video_mode_get_current(fs_ml_video_mode *mode) {
     mode->bpp = 0;
     mode->flags = 0;
 
-#if __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ > 1060
+#if __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ >= 1060
     // CGDisplayCurrentMode is deprecated in Mac OS X 10.6, so we use
     // the new API here
     CGDirectDisplayID currentDisplay = CGDisplayPrimaryDisplay(
@@ -63,20 +63,13 @@ int fs_ml_video_mode_get_current(fs_ml_video_mode *mode) {
 #else
     CFNumberRef number;
     long refresh, width, height;
-
-    CFDictionaryRef currentMode = CGDisplayCurrentMode (kCGDirectMainDisplay);
-
-    number = CFDictionaryGetValue (currentMode, kCGDisplayWidth);
-    CFNumberGetValue (number, kCFNumberLongType, &width);
-
-    number = CFDictionaryGetValue (currentMode, kCGDisplayHeight);
-    CFNumberGetValue (number, kCFNumberLongType, &height);
-
-    number = CFDictionaryGetValue (currentMode, kCGDisplayRefreshRate);
-    CFNumberGetValue (number, kCFNumberLongType, &refresh);
-
-    CFRelease(currentMode);
-
+    CFDictionaryRef currentMode = CGDisplayCurrentMode(kCGDirectMainDisplay);
+    number = CFDictionaryGetValue(currentMode, kCGDisplayWidth);
+    CFNumberGetValue(number, kCFNumberLongType, &width);
+    number = CFDictionaryGetValue(currentMode, kCGDisplayHeight);
+    CFNumberGetValue(number, kCFNumberLongType, &height);
+    number = CFDictionaryGetValue(currentMode, kCGDisplayRefreshRate);
+    CFNumberGetValue(number, kCFNumberLongType, &refresh);
     mode->width = width;
     mode->height = height;
     mode->fps = refresh;

@@ -55,7 +55,10 @@ static int get_fs_usage_fake (const TCHAR *path, const TCHAR *disk,
 }
 #endif
 #ifdef WINDOWS
+#ifdef FSUAE
+#else
 #include "od-win32/posixemu.h"
+#endif
 #include <windows.h>
 int get_fs_usage (const TCHAR *path, const TCHAR *disk, struct fs_usage *fsp)
 {
@@ -115,6 +118,10 @@ int statfs ();
 # include <sys/mount.h>
 #endif
 
+#if HAVE_SYS_VFS_H
+# include <sys/vfs.h>
+#endif
+
 #if HAVE_SYS_FS_S5PARAM_H	/* Fujitsu UXP/V */
 # include <sys/fs/s5param.h>
 #endif
@@ -127,19 +134,12 @@ int statfs ();
 # include <fcntl.h>
 #endif
 
-#ifdef FREEBSD
-#include <sys/param.h>
-#include <sys/mount.h>
-#else
 #if HAVE_SYS_STATFS_H
 # include <sys/statfs.h>
 #endif
+
 #if HAVE_DUSTAT_H		/* AIX PS/2 */
 # include <sys/dustat.h>
-#endif
-#if HAVE_SYS_VFS_H
-# include <sys/vfs.h>
-#endif
 #endif
 
 #if HAVE_SYS_STATVFS_H		/* SVR4 */
@@ -184,7 +184,7 @@ int get_fs_usage (const TCHAR *path, const TCHAR *disk, struct fs_usage *fsp)
 #ifdef FSUAE
 	// FIXME: if net play only
 	return get_fs_usage_fake(path, disk, fsp);
-#endif
+#else
 #ifdef STAT_STATFS3_OSF1
 # define CONVERT_BLOCKS(B) adjust_blocks ((B), fsd.f_fsize, 512)
 
@@ -328,6 +328,7 @@ int get_fs_usage (const TCHAR *path, const TCHAR *disk, struct fs_usage *fsp)
 #endif /* not STAT_STATFS2_FS_DATA && not STAT_READ_FILSYS */
 
 	return 0;
+#endif // FSUAE
 }
 #endif
 

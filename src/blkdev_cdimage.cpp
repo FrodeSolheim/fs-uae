@@ -24,7 +24,7 @@
 #include "scsidev.h"
 #include "mp3decoder.h"
 #include "cda_play.h"
-#include "memory.h"
+#include "uae/memory.h"
 #ifdef RETROPLATFORM
 #include "rp.h"
 #endif
@@ -211,7 +211,7 @@ static uae_u8 *flac_get_data (struct cdtoc *t)
 	return t->data;
 }
 
-static void sub_to_interleaved (const uae_u8 *s, uae_u8 *d)
+void sub_to_interleaved (const uae_u8 *s, uae_u8 *d)
 {
 	for (int i = 0; i < 8 * 12; i ++) {
 		int dmask = 0x80;
@@ -224,7 +224,7 @@ static void sub_to_interleaved (const uae_u8 *s, uae_u8 *d)
 		d++;
 	}
 }
-static void sub_to_deinterleaved (const uae_u8 *s, uae_u8 *d)
+void sub_to_deinterleaved (const uae_u8 *s, uae_u8 *d)
 {
 	for (int i = 0; i < 8 * 12; i ++) {
 		int dmask = 0x80;
@@ -675,7 +675,9 @@ static int command_rawread (int unitnum, uae_u8 *data, int sector, int size, int
 	struct cdunit *cdu = unitisopen (unitnum);
 	if (!cdu)
 		return 0;
+	int asector = sector;
 	struct cdtoc *t = findtoc (cdu, &sector);
+	int ssize = t->size + t->skipsize;
 
 	if (!t || t->handle == NULL)
 		goto end;
@@ -686,44 +688,51 @@ static int command_rawread (int unitnum, uae_u8 *data, int sector, int size, int
 			// 2048 -> 2352
 			while (size-- > 0) {
 				memset (data, 0, 16);
-				zfile_fseek (t->handle, t->offset + (uae_u64)sector * t->size, SEEK_SET);
+				zfile_fseek (t->handle, t->offset + (uae_u64)sector * ssize, SEEK_SET);
 				zfile_fread (data + 16, t->size, 1, t->handle);
 				encode_l2 (data, sector + 150);
 				sector++;
+				asector++;
 				data += sectorsize;
+				ret += sectorsize;
 			}
 		} else if (sectorsize == 2048 && t->size == 2352) {
 			// 2352 -> 2048
 			while (size-- > 0) {
 				uae_u8 b = 0;
-				zfile_fseek (t->handle, t->offset + (uae_u64)sector * t->size + 15, SEEK_SET);
+				zfile_fseek (t->handle, t->offset + (uae_u64)sector * ssize + 15, SEEK_SET);
 				zfile_fread (&b, 1, 1, t->handle);
 				if (b == 2) // MODE2?
-					zfile_fseek (t->handle, t->offset + (uae_u64)sector * t->size + 24, SEEK_SET);
+					zfile_fseek (t->handle, t->offset + (uae_u64)sector * ssize + 24, SEEK_SET);
 				zfile_fread (data, sectorsize, 1, t->handle);
 				sector++;
+				asector++;
 				data += sectorsize;
+				ret += sectorsize;
 			}
 		} else if (sectorsize == 2336 && t->size == 2352) {
 			// 2352 -> 2336
 			while (size-- > 0) {
 				uae_u8 b = 0;
-				zfile_fseek (t->handle, t->offset + (uae_u64)sector * t->size + 15, SEEK_SET);
+				zfile_fseek (t->handle, t->offset + (uae_u64)sector * ssize + 15, SEEK_SET);
 				zfile_fread (&b, 1, 1, t->handle);
 				if (b != 2 && b != 0) // MODE0 or MODE2 only allowed
 					return 0; 
 				zfile_fread (data, sectorsize, 1, t->handle);
 				sector++;
+				asector++;
 				data += sectorsize;
+				ret += sectorsize;
 			}
 		} else if (sectorsize == t->size) {
 			// no change
-			zfile_fseek (t->handle, t->offset + (uae_u64)sector * t->size, SEEK_SET);
+			zfile_fseek (t->handle, t->offset + (uae_u64)sector * ssize, SEEK_SET);
 			zfile_fread (data, sectorsize, size, t->handle);
 			sector += size;
+			asector += size;
+			ret = size;
 		}
-		cdu->cd_last_pos = sector;
-		ret = sectorsize * size;
+		cdu->cd_last_pos = asector;
 
 	} else {
 
@@ -750,7 +759,7 @@ static int command_rawread (int unitnum, uae_u8 *data, int sector, int size, int
 				goto end;
 			}
 			for (int i = 0; i < size; i++) {
-				zfile_fseek (t->handle, t->offset + (uae_u64)sector * t->size, SEEK_SET);
+				zfile_fseek (t->handle, t->offset + (uae_u64)sector * ssize, SEEK_SET);
 				zfile_fread (data, t->size, 1, t->handle);
 				uae_u8 *p = data + t->size;
 				if (subs) {
@@ -785,24 +794,25 @@ static int command_read (int unitnum, uae_u8 *data, int sector, int size)
 		return 0;
 
 	struct cdtoc *t = findtoc (cdu, &sector);
+	int ssize = t->size + t->skipsize;
 
 	if (!t || t->handle == NULL)
 		return 0;
 	cdda_stop (cdu);
 	if (t->size == 2048) {
-		zfile_fseek (t->handle, t->offset + (uae_u64)sector * t->size, SEEK_SET);
+		zfile_fseek (t->handle, t->offset + (uae_u64)sector * ssize, SEEK_SET);
 		zfile_fread (data, size, 2048, t->handle);
 		sector += size;
 	} else {
 		while (size-- > 0) {
 			if (t->size == 2352) {
 				uae_u8 b = 0;
-				zfile_fseek (t->handle, t->offset + (uae_u64)sector * t->size + 15, SEEK_SET);
+				zfile_fseek (t->handle, t->offset + (uae_u64)sector * ssize + 15, SEEK_SET);
 				zfile_fread (&b, 1, 1, t->handle);
 				if (b == 2) // MODE2?
-					zfile_fseek (t->handle, t->offset + (uae_u64)sector * t->size + 24, SEEK_SET);
+					zfile_fseek (t->handle, t->offset + (uae_u64)sector * ssize + 24, SEEK_SET);
 			} else {
-				zfile_fseek (t->handle, t->offset + (uae_u64)sector * t->size + 16, SEEK_SET);
+				zfile_fseek (t->handle, t->offset + (uae_u64)sector * ssize + 16, SEEK_SET);
 			}
 			zfile_fread (data, 1, 2048, t->handle);
 			data += 2048;
@@ -831,6 +841,7 @@ static int command_toc (int unitnum, struct cd_toc_head *th)
 	th->last_track = cdu->tracks;
 	th->points = cdu->tracks + 3;
 	th->tracks = cdu->tracks;
+	th->firstaddress = 0;
 	th->lastaddress = cdu->toc[cdu->tracks].address;
 
 	toc->adr = 1;
@@ -1044,6 +1055,9 @@ static int parsemds (struct cdunit *cdu, struct zfile *zmds, const TCHAR *img)
 			t->offset = tb->start_offset;
 			t->size = tb->sector_size;
 
+			if (point >= 100)
+				continue;
+
 			if (footer) {
 				TCHAR *fname = NULL;
 				if (footer->widechar_filename == 0)
@@ -1072,10 +1086,9 @@ static int parsemds (struct cdunit *cdu, struct zfile *zmds, const TCHAR *img)
 				t->subhandle = zfile_dup (t->handle);
 				t->skipsize = SUB_CHANNEL_SIZE;
 				t->size -= SUB_CHANNEL_SIZE;
-				if ((t->ctrl & 0x0c) != 4)
-					t->enctype = AUDENC_PCM;
 			}
-
+			if ((t->ctrl & 0x0c) != 4)
+				t->enctype = AUDENC_PCM;
 		}
 	}
 
@@ -1549,7 +1562,7 @@ static int ismedia (int unitnum, int quick)
 	return cdu->tracks > 0 ? 1 : 0;
 }
 
-static struct device_info *info_device (int unitnum, struct device_info *di, int quick)
+static struct device_info *info_device (int unitnum, struct device_info *di, int quick, int session)
 {
 	struct cdunit *cdu = &cdunits[unitnum];
 	memset (di, 0, sizeof (struct device_info));

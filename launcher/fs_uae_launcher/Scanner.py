@@ -15,6 +15,12 @@ from .Settings import Settings
 from .Signal import Signal
 from .I18N import _, ngettext
 
+from .fsgs.GameDatabase import GameDatabase
+from .fsgs.GameDatabaseClient import GameDatabaseClient
+from .OverlayDatabase import OverlayDatabase
+from .fsgs.GameDatabaseSynchronizer import GameDatabaseSynchronizer
+from .GameRatingSynchronizer import GameRatingSynchronizer
+
 class Scanner:
     #listeners = []
 
@@ -29,6 +35,7 @@ class Scanner:
     running = False
     stop_flag = False
     status = ("", "")
+    error = ""
 
     @classmethod
     def stop_check(cls):
@@ -38,7 +45,8 @@ class Scanner:
     def scan_thread(cls):
         try:
             cls._scan_thread()
-        except Exception:
+        except Exception, e:
+            cls.error = unicode(e)
             traceback.print_exc()
 
         def on_done():
@@ -57,30 +65,54 @@ class Scanner:
 
     @classmethod
     def _scan_thread(cls):
-        scanner = FileScanner(cls.paths, cls.scan_for_roms, cls.scan_for_files,
-                cls.scan_for_configs, on_status=cls.on_status,
-                stop_check=cls.stop_check)
-        scanner.scan()
-        if cls.stop_check():
-            return
-        if cls.scan_for_configs:
+        database = Database()
+
+        if cls.update_game_database:
+            game_database = GameDatabase.get_instance()
+            game_database_client = GameDatabaseClient(game_database)
+            synchronizer = GameDatabaseSynchronizer(game_database_client,
+                    on_status=cls.on_status, stop_check=cls.stop_check)
+            synchronizer.username = Settings.get("database_username")
+            synchronizer.password = Settings.get("database_password")
+            synchronizer.synchronize()
+
+            synchronizer = GameRatingSynchronizer(database,
+                    on_status=cls.on_status, stop_check=cls.stop_check)
+            synchronizer.username = Settings.get("database_username")
+            synchronizer.password = Settings.get("database_password")
+            synchronizer.synchronize()
+        else:
+            game_database = None
+
+        if cls.scan_for_roms or cls.scan_for_files or cls.scan_for_configs:
+            scanner = FileScanner(cls.paths, cls.scan_for_roms,
+                    cls.scan_for_files, cls.scan_for_configs,
+                    on_status=cls.on_status, stop_check=cls.stop_check)
+            scanner.scan()
+            if cls.stop_check():
+                return
+
+        if cls.scan_for_configs or cls.update_game_database:
             scanner = ConfigurationScanner(cls.paths, on_status=cls.on_status,
                     stop_check=cls.stop_check)
-            scanner.scan()
+            scanner.scan(database, game_database)
 
     @classmethod
-    def start(cls, paths, scan_for_roms, scan_for_files, scan_for_configs):
+    def start(cls, paths, scan_for_roms, scan_for_files, scan_for_configs,
+            update_game_database=False):
         print("Scanner.start")
         if cls.running:
             print("scan already in progress")
             return
         cls.paths = paths[:]
         cls.running = True
+        cls.error = ""
         cls.stop_flag = False
         cls.status = ("", "")
         cls.scan_for_roms = scan_for_roms
         cls.scan_for_files = scan_for_files
         cls.scan_for_configs = scan_for_configs
+        cls.update_game_database = update_game_database
         threading.Thread(target=cls.scan_thread).start()
 
     @classmethod

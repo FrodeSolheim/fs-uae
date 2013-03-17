@@ -20,6 +20,7 @@ class Panel(wx.Panel):
         self.Bind(wx.EVT_PAINT, self.__paint_event)
         self.Bind(wx.EVT_ERASE_BACKGROUND, self.__erase_background_event)
         self.Bind(wx.EVT_LEFT_DOWN, self.__left_down_event)
+        self.Bind(wx.EVT_LEFT_DCLICK, self.__left_dclick_event)
         self.Bind(wx.EVT_LEFT_UP, self.__left_up_event)
         self.Bind(wx.EVT_WINDOW_DESTROY, self.__destroy_event)
         self.Bind(wx.EVT_ENTER_WINDOW, self.__enter_window_event)
@@ -54,12 +55,23 @@ class Panel(wx.Panel):
         pass
 
     def __left_down_event(self, event):
+        #self.CaptureMouse()
+        self.on_left_down()
+
+    def on_left_dclick(self):
+        pass
+
+    def __left_dclick_event(self, event):
+        if self.on_left_dclick():
+            return
         self.on_left_down()
 
     def on_left_up(self):
         pass
 
     def __left_up_event(self, event):
+        #if self.HasCapture():
+        #    self.ReleaseMouse()
         self.on_left_up()
 
     def create_dc(self):

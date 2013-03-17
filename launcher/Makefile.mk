@@ -7,11 +7,15 @@ share/locale/%/LC_MESSAGES/fs-uae-launcher.mo: po/%.po
 	msgfmt --verbose $< -o $@
 
 catalogs = \
+	share/locale/cs/LC_MESSAGES/fs-uae-launcher.mo \
 	share/locale/de/LC_MESSAGES/fs-uae-launcher.mo \
+	share/locale/es/LC_MESSAGES/fs-uae-launcher.mo \
+	share/locale/fi/LC_MESSAGES/fs-uae-launcher.mo \
 	share/locale/fr/LC_MESSAGES/fs-uae-launcher.mo \
 	share/locale/it/LC_MESSAGES/fs-uae-launcher.mo \
 	share/locale/nb/LC_MESSAGES/fs-uae-launcher.mo \
 	share/locale/pl/LC_MESSAGES/fs-uae-launcher.mo \
+	share/locale/pt/LC_MESSAGES/fs-uae-launcher.mo \
 	share/locale/sr/LC_MESSAGES/fs-uae-launcher.mo \
 
 mo: $(catalogs)

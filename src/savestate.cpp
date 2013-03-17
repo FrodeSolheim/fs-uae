@@ -50,7 +50,7 @@
 #include "sysdeps.h"
 
 #include "options.h"
-#include "memory.h"
+#include "uae/memory.h"
 #include "zfile.h"
 #include "ar.h"
 #include "autoconf.h"
@@ -411,7 +411,9 @@ static uae_u8 *restore_chunk (struct zfile *f, TCHAR *name, size_t *len, size_t 
 		&& _tcscmp (name, _T("ZCRM")) != 0
 		&& _tcscmp (name, _T("PRAM")) != 0
 		&& _tcscmp (name, _T("A3K1")) != 0
-		&& _tcscmp (name, _T("A3K2")) != 0)
+		&& _tcscmp (name, _T("A3K2")) != 0
+		&& _tcscmp (name, _T("BORO")) != 0
+	)
 	{
 		/* extra bytes at the end needed to handle old statefiles that now have new fields */
 		mem = xcalloc (uae_u8, *totallen + 100);
@@ -516,6 +518,7 @@ void restore_state (const TCHAR *filename)
 	savestate_file = f;
 	restore_header (chunk);
 	xfree (chunk);
+	restore_cia_start ();
 	changed_prefs.bogomem_size = 0;
 	changed_prefs.chipmem_size = 0;
 	changed_prefs.fastmem_size = 0;
@@ -1011,7 +1014,7 @@ static int save_state_internal (struct zfile *f, const TCHAR *description, int c
 	/* move this if you want to use CONF or LOG hunks when restoring state */
 	zfile_fwrite (endhunk, 1, 8, f);
 
-	dst = save_configuration (&len);
+	dst = save_configuration (&len, false);
 	if (dst) {
 		save_chunk (f, dst, len, _T("CONF"), comp);
 		xfree(dst);
@@ -1080,7 +1083,11 @@ void savestate_quick (int slot, int save)
 {
 	int i, len = _tcslen (savestate_fname);
 	i = len - 1;
+#ifdef FSUAE
+	while (i >= 0 && savestate_fname[i] != ' ')
+#else
 	while (i >= 0 && savestate_fname[i] != '_')
+#endif
 		i--;
 	if (i < len - 6 || i <= 0) { /* "_?.uss" */
 		i = len - 1;
@@ -1093,7 +1100,11 @@ void savestate_quick (int slot, int save)
 	}
 	_tcscpy (savestate_fname + i, _T(".uss"));
 	if (slot > 0)
+#ifdef FSUAE
+		_stprintf (savestate_fname + i, _T(" %d.uss"), slot);
+#else
 		_stprintf (savestate_fname + i, _T("_%d.uss"), slot);
+#endif
 	if (save) {
 		write_log (_T("saving '%s'\n"), savestate_fname);
 		savestate_docompress = 1;
@@ -1284,7 +1295,7 @@ void savestate_rewind (void)
 	p += 4;
 	if (p != p2) {
 		gui_message (_T("reload failure, address mismatch %p != %p"), p, p2);
-		uae_reset (0);
+		uae_reset (0, 0);
 		return;
 	}
 	inprec_setposition (st->inprecoffset, pos);

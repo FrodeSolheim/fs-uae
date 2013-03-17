@@ -6,6 +6,8 @@ from __future__ import unicode_literals
 import os
 import sys
 import uuid
+import time
+import subprocess
 import fs_uae_launcher.fsui as fsui
 import fs_uae_launcher.fs as fs
 from ..Amiga import Amiga
@@ -20,26 +22,30 @@ from ..Database import Database
 from ..GameHandler import GameHandler
 from ..I18N import _, ngettext
 from ..Version import Version
-from .ScreenshotsPanel import ScreenshotsPanel
-from .GameInfoPanel import GameInfoPanel
-from .TabPanel import TabPanel
-from .TabButton import TabButton
-from .BottomPanel import BottomPanel
+from .AboutDialog import AboutDialog
 from .Book import Book
-from .MainPanel import MainPanel
-from .FloppiesPanel import FloppiesPanel
+from .BottomPanel import BottomPanel
 from .CDPanel import CDPanel
+from .ConfigurationsPanel import ConfigurationsPanel
+from .Constants import Constants
+from .DiskFileCreationDialog import DiskFileCreationDialog
+from .GameInfoPanel import GameInfoPanel
+from .FloppiesPanel import FloppiesPanel
 from .HardDrivesPanel import HardDrivesPanel
 from .HardwarePanel import HardwarePanel
 from .InfoPanel import InfoPanel
 from .InputPanel import InputPanel
-#from .CustomPanel import CustomPanel
-from .ConfigurationsPanel import ConfigurationsPanel
+from .MainPanel import MainPanel
 from .NetplayPanel import NetplayPanel
-from .SetupPanel import SetupPanel
-from .Constants import Constants
+from .ScanDialog import ScanDialog
+from .ScreenshotsPanel import ScreenshotsPanel
+from .SetupDialog import SetupDialog
 from .Skin import Skin
+from .TabButton import TabButton
+from .TabPanel import TabPanel
 from .WindowWithTabs import WindowWithTabs
+
+USE_MAIN_MENU = 1
 
 class MainWindow(WindowWithTabs):
 
@@ -62,13 +68,13 @@ class MainWindow(WindowWithTabs):
                 content=False)
         # left content
         if fsui.get_screen_size()[0] > 1024:
-            self.create_column(1, min_width=514)
+            self.create_column(1, min_width=518)
         else:
             self.create_column(1, min_width=400)
 
         # right content
-        right_width = Constants.SCREEN_SIZE[0] * 2 + 20 + 10 + 10
-        extra_screen_width = Constants.SCREEN_SIZE[0] + 20
+        right_width = Constants.SCREEN_SIZE[0] * 2 + 21 + 10 + 10
+        extra_screen_width = Constants.SCREEN_SIZE[0] + 21
         need_width = 1280
         if self.is_editor_enabled():
             need_width += extra_screen_width
@@ -94,6 +100,13 @@ class MainWindow(WindowWithTabs):
                 margin_right=20)
 
         self.realize_tabs()
+        self.menu = self.create_menu()
+        if fsui.System.macosx:
+            import wx
+            self.tools_menu = self.create_menu()
+            menu_bar = wx.MenuBar()
+            menu_bar.Append(self.tools_menu._menu, _("Tools"))
+            self.SetMenuBar(menu_bar)
 
         was_maximized = Settings.get("maximized") == "1"
         self.set_size(self.layout.get_min_size())
@@ -102,6 +115,18 @@ class MainWindow(WindowWithTabs):
         if was_maximized:
             self.maximize()
 
+        Signal.add_listener("scan_done", self)
+
+    def on_destroy(self):
+        print("MainWindow.destroy")
+        Signal.remove_listener("scan_done", self)
+        IRC.stop()
+        Signal.broadcast("quit")
+
+    def on_scan_done_signal(self):
+        print("MainWindow.on_scan_done_signal")
+        Config.update_kickstart()
+
     def on_resize(self):
         print("on_resize, size =", self.get_size(), self.is_maximized())
         if self.is_maximized():
@@ -109,11 +134,6 @@ class MainWindow(WindowWithTabs):
         else:
             Settings.set("maximized", "0")
         fsui.Window.on_resize(self)
-
-    def on_destroy(self):
-        print("MainWindow.destroy")
-        IRC.stop()
-        Signal.broadcast("quit")
 
     def is_editor_enabled(self):
         return "--editor" in sys.argv
@@ -166,7 +186,18 @@ class MainWindow(WindowWithTabs):
 
     def add_column_content(self, column):
         default_page_index = 0
+        default_tab_index_offset = 0
         if column == 1:
+            if USE_MAIN_MENU:
+                icon = fsui.Image("fs_uae_launcher:res/main_menu.png")
+                self.menu_button = self.add_tab_button(None, icon,
+                        _("Main Menu"), menu_function=self.open_main_menu,
+                        left_padding=5, right_padding=5)
+                default_tab_index_offset = 1
+                #self.add_tab_spacer(60)
+            else:
+                self.add_tab_spacer(10)
+
             self.add_page(column, MainPanel, "tab_main", _("Config"),
                     _("Main Configuration Options"))
             self.add_page(column, InputPanel, "tab_input", _("Input"),
@@ -180,11 +211,17 @@ class MainWindow(WindowWithTabs):
             self.add_page(column, HardwarePanel, "tab_hardware",
                     _("Hardware"), _("Hardware Options"))
 
-            icon = fsui.Image("fs_uae_launcher:res/tab_custom.png")
-            self.add_tab_button(self.on_custom_button, icon, _("Custom"),
-                    _("Edit Custom Options"))
-
-            self.add_tab_spacer(60)
+            if USE_MAIN_MENU:
+                #self.add_tab_spacer(20)
+                if fsui.System.macosx:
+                    self.add_tab_spacer(64)
+                else:
+                    self.add_tab_spacer(80)
+            else:
+                icon = fsui.Image("fs_uae_launcher:res/tab_custom.png")
+                self.add_tab_button(self.on_custom_button, icon, _("Custom"),
+                        _("Edit Custom Options"))
+                self.add_tab_spacer(60)
 
         elif column == 2:
             self.new_tab_group()
@@ -195,31 +232,59 @@ class MainWindow(WindowWithTabs):
                 page_index += 1
                 self.add_page(column, NetplayPanel, "tab_netplay",
                         _("Net Play"))
-            page_index += 1
-            page = self.add_page(column, SetupPanel, "tab_setup",
-                    _("Kickstart Setup"))
-            if page.should_be_automatically_opened():
-                default_page_index = page_index
 
             if fsui.System.macosx:
-                self.add_tab_separator()
+                #self.add_tab_separator()
+                self.add_tab_spacer(64)
+                pass
             else:
-                self.add_tab_spacer(10)
+                self.add_tab_spacer(100)
                 self.add_tab_panel(InfoPanel)
                 self.add_tab_spacer(10)
 
-            icon = fsui.Image("fs_uae_launcher:res/tab_scan.png")
-            self.add_tab_button(self.on_scan_button, icon, _("Scan"),
-                    _("Open Scan Dialog"))
-            icon = fsui.Image("fs_uae_launcher:res/tab_settings.png")
-            self.add_tab_button(self.on_settings_button, icon, _("Settings"))
+            if not USE_MAIN_MENU:
+                icon = fsui.Image("fs_uae_launcher:res/tab_scan.png")
+                self.add_tab_button(self.on_scan_button, icon, _("Scan"),
+                        _("Open Scan Dialog"))
+                icon = fsui.Image("fs_uae_launcher:res/tab_settings.png")
+                self.add_tab_button(self.on_settings_button, icon,
+                        _("Settings"))
 
             if fsui.System.macosx:
-                self.add_tab_panel(InfoPanel, min_width=300)
+                self.add_tab_panel(InfoPanel, min_width=400)
 
         # column - 1 is the group id of the tab group
-        self.select_tab(default_page_index, column - 1)
+        self.select_tab(default_page_index + default_tab_index_offset,
+                column - 1)
         self.books[column].set_page(default_page_index)
+
+    def create_menu(self):
+        menu = fsui.Menu()
+        text = _("Scan for Files")
+        menu.add_item(_("Scan Files and Configurations"),
+                self.on_scan_button)
+        if Settings.get("database_feature") == "1":
+            menu.add_item(_("Refresh Game Database"),
+                    self.on_game_database_refresh)
+        menu.add_separator()
+        #menu.add_item(_("Custom Options & Settings"),
+        menu.add_item(_("Custom Configuration"),
+                self.on_custom_button)
+        menu.add_separator()
+        menu.add_item(_("ADF & HDF Creator"), self.on_adf_and_hdf_creator)
+        menu.add_item(_("Gamepad/Joystick Setup"),
+                self.on_joystick_configuration)
+        menu.add_separator()
+        menu.add_item(_("Import Kickstarts"), self.on_import_kickstarts)
+        menu.add_item(_("Amiga Forever Import"),
+                self.on_import_kickstarts)
+        menu.add_separator()
+        menu.add_preferences_item(_("Preferences"),
+                self.on_settings_button)
+        menu.add_separator()
+        menu.add_about_item(_("About {name}").format(
+                name="FS-UAE Launcher"), self.on_about)
+        return menu
 
     def add_page(self, column, content_class, icon_name, title, tooltip=""):
         book = self.books[column]
@@ -235,6 +300,18 @@ class MainWindow(WindowWithTabs):
         from .config.ConfigDialog import ConfigDialog
         ConfigDialog.run(self.get_window(), ConfigDialog.CUSTOM_OPTIONS)
 
+    def open_main_menu(self):
+        if fsui.System.windows:
+            if time.time() - getattr(self, "main_menu_close_time", 0) < 0.2:
+                return
+        if fsui.System.macosx:
+            self.popup_menu(self.menu, (0, -2))
+        else:
+            self.menu_button.popup_menu(self.menu,
+                    (0, self.menu_button.size[1] - 2))
+        if fsui.System.windows:
+            self.main_menu_close_time = time.time()
+
     def on_scan_button(self):
         from .ScanDialog import ScanDialog
         dialog = ScanDialog(self.get_window())
@@ -244,3 +321,29 @@ class MainWindow(WindowWithTabs):
     def on_settings_button(self):
         from .settings.SettingsDialog import SettingsDialog
         SettingsDialog.run(self)
+
+    def on_about(self):
+        dialog = AboutDialog(self.get_window())
+        dialog.show_modal()
+        dialog.destroy()
+
+    def on_import_kickstarts(self):
+        dialog = SetupDialog(self.get_window())
+        dialog.show_modal()
+        dialog.destroy()
+
+    def on_game_database_refresh(self):
+        dialog = ScanDialog.refresh_game_database(self.get_window())
+        dialog.show_modal()
+        dialog.destroy()
+
+    def on_joystick_configuration(self):
+        args = [sys.executable] + sys.argv[:]
+        args.append("--joystick-config")
+        print("start gamepad config, args =", args)
+        subprocess.Popen(args, close_fds=True)
+
+    def on_adf_and_hdf_creator(self):
+        dialog = DiskFileCreationDialog(self.get_window())
+        dialog.show_modal()
+        dialog.destroy()

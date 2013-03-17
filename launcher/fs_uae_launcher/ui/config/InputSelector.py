@@ -4,74 +4,95 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import os
+import webbrowser
 import fs_uae_launcher.fsui as fsui
 from ...Config import Config
 from ...DeviceManager import DeviceManager
 from ...I18N import _, ngettext
 from ...Signal import Signal
-
-joystick_mode_values = ["nothing", "mouse", "joystick", "cd32 gamepad"]
-joystick_mode_titles = [_("Nothing"), _("Mouse"), _("Joystick"),
-        _("CD32 Pad")]
-
-joystick_values = ["", "none", "mouse", "keyboard"]
-joystick_values_initialized = False
+from ..IconButton import IconButton
+from ..HelpButton import HelpButton
 
 class InputSelector(fsui.Group):
 
     def __init__(self, parent, port):
-        global joystick_values_initialized
+        #global joystick_values_initialized
         self.port = port
         self.device_option_key = "joystick_port_{0}".format(port)
         self.mode_option_key = "joystick_port_{0}_mode".format(port)
+        self.autofire_mode_option_key = "joystick_port_{0}_autofire".format(
+                port)
 
         fsui.Group.__init__(self, parent)
         self.layout = fsui.HorizontalLayout()
 
-        self.mode_choice = fsui.Choice(self, joystick_mode_titles)
-        #if port == 0:
-        #    self.mode_choice.set_index(1)
-        #elif port == 1:
-        #    self.mode_choice.set_index(2)
+        self.joystick_mode_values = ["nothing", "mouse", "joystick",
+                "cd32 gamepad"]
+        self.joystick_mode_titles = [_("Nothing"), _("Mouse"), _("Joystick"),
+                _("CD32 Pad")]
+
+        self.mode_choice = fsui.Choice(self, self.joystick_mode_titles)
         self.layout.add(self.mode_choice)
-
         self.layout.add_spacer(10)
+        #else:
+        #    self.mode_choice = None
+        if port >= 4:
+            self.mode_choice.disable()
 
+        #devices = ["", _("No Host Device"), _("Mouse"),
+        #        _("Cursor Keys and Right Ctrl/Alt")]
+        #for i, name in enumerate(DeviceManager.get_joystick_names()):
+        #    devices.append(name)
+        #    if not self.joystick_values_initialized:
+        #        self.joystick_values.append(DeviceManager.device_ids[i])
+        #self.joystick_values_initialized = True
+
+        self.device_choice = fsui.ComboBox(self, [""], read_only=True)
+        self.rebuild_device_list()
+        self.device_choice.set_index(0)
+        #print(self.device_choice.get_index())
+        self.layout.add(self.device_choice, expand=True)
+
+        if port < 4:
+            self.autofire_button = IconButton(self, "autofire_off_16.png")
+            self.autofire_button.on_activate = self.on_autofire_button
+            self.layout.add(self.autofire_button, margin_left=10)
+        else:
+            self.autofire_button = None
+
+            self.help_button = HelpButton(self,
+                    "http://fengestad.no/fs-uae/custom-joystick-port")
+            self.layout.add(self.help_button, margin_left=10)
+
+        self.initialize_from_config()
+        self.set_config_handlers()
+
+    def rebuild_device_list(self):
+        #self.device_choice.set_items([""])
+        #self.device_choice.set_text("")
+        self.joystick_values = ["", "none", "mouse", "keyboard"]
         devices = ["", _("No Host Device"), _("Mouse"),
                 _("Cursor Keys and Right Ctrl/Alt")]
         for i, name in enumerate(DeviceManager.get_joystick_names()):
             devices.append(name)
-            if not joystick_values_initialized:
-                joystick_values.append(DeviceManager.device_ids[i])
-        joystick_values_initialized = True
-
-        self.device_choice = fsui.ComboBox(self, devices, read_only=True)
-        #if port == 0:
-        #    self.device_choice.set_index(1)
-        #elif port == 1:
-        #    if len(devices) > 3:
-        #        self.device_choice.set_index(3)
-        #    else:
-        #        self.device_choice.set_index(2)
-
-        self.layout.add(self.device_choice, expand=True)
-
-        #Config.add_listener(self)
-
-        self.initialize_from_config()
-        self.set_config_handlers()
+            self.joystick_values.append(DeviceManager.device_ids[i])
+        self.device_choice.set_items(devices)
 
     def initialize_from_config(self):
         self.on_config(self.device_option_key,
                 Config.get(self.device_option_key))
         self.on_config(self.mode_option_key,
                 Config.get(self.mode_option_key))
+        self.on_config(self.autofire_mode_option_key,
+                Config.get(self.autofire_mode_option_key))
 
     def set_config_handlers(self):
-        self.mode_choice.on_change = self.on_mode_change
+        if self.mode_choice is not None:
+            self.mode_choice.on_change = self.on_mode_change
         self.device_choice.on_change = self.on_device_change
         Config.add_listener(self)
         Signal.add_listener("settings_updated", self)
+        Signal.add_listener("device_list_updated", self)
 
     def on_destroy(self):
         print("on_destroy")
@@ -79,9 +100,10 @@ class InputSelector(fsui.Group):
         Signal.remove_listener("settings_updated", self)
 
     def on_mode_change(self):
-        index = self.mode_choice.get_index()
-        value = joystick_mode_values[index]
-        self.set_value_or_default(value)
+        if self.mode_choice is not None:
+            index = self.mode_choice.get_index()
+            value = self.joystick_mode_values[index]
+            self.set_value_or_default(value)
 
     def set_value_or_default(self, value):
         if self.port == 0:
@@ -103,7 +125,7 @@ class InputSelector(fsui.Group):
     def on_device_change(self):
         index = self.device_choice.get_index()
 
-        value = joystick_values[index]
+        value = self.joystick_values[index]
         for port in range(4):
             if self.port == port:
                 continue
@@ -111,6 +133,12 @@ class InputSelector(fsui.Group):
             if Config.get(key) == value:
                 Config.set(key, "")
         Config.set(self.device_option_key, value)
+
+    def on_autofire_button(self):
+        if Config.get(self.autofire_mode_option_key) == "1":
+            Config.set(self.autofire_mode_option_key, "")
+        else:
+            Config.set(self.autofire_mode_option_key, "1")
 
     def get_calculated_mode(self, port):
         value = Config.get("joystick_port_{0}_mode".format(port))
@@ -132,44 +160,67 @@ class InputSelector(fsui.Group):
 
         if key == self.mode_option_key or key == "amiga_model":
             value = self.get_calculated_mode(self.port)
-            for i, config in enumerate(joystick_mode_values):
+            for i, config in enumerate(self.joystick_mode_values):
                 if config == value:
-                    self.mode_choice.set_index(i)
+                    if self.mode_choice is not None:
+                        self.mode_choice.set_index(i)
+                        if self.port >= 4:
+                            self.device_choice.enable(i != 0)
                     break
             else:
                 print("FIXME: could not set mode")
         elif key == self.device_option_key or key == "amiga_model":
-            #print(joystick_values)
+            #print(self.joystick_values)
             value_lower = value.lower()
-            for i, name in enumerate(joystick_values):
+            for i, name in enumerate(self.joystick_values):
                 if value_lower == name.lower():
                     self.device_choice.set_index(i)
                     break
+        elif key == self.autofire_mode_option_key:
+            if self.autofire_button is not None:
+                if value == "1":
+                    self.autofire_button.set_tooltip(_("Auto-Fire is On"))
+                    self.autofire_button.set_icon_name("autofire_on_16.png")
+                else:
+                    self.autofire_button.set_tooltip(_("Auto-Fire is Off"))
+                    self.autofire_button.set_icon_name("autofire_off_16.png")
+
         # this is intended to catch all config changes for all ports (both
         # mode and device) to update the defaults
         if key.startswith("joystick_port_") or key == "amiga_model":
             self.update_default_device()
 
+    def on_device_list_updated_signal(self):
+        #print(self.device_choice.get_index())
+        had_default = (self.device_choice.get_index() == 0)
+        self.rebuild_device_list()
+        self.update_default_device(had_default=had_default)
+
     def on_settings_updated_signal(self):
         self.update_default_device()
 
-    def update_default_device(self):
-            config = {}
-            for port in range(4):
-                key = "joystick_port_{0}".format(port)
-                if self.port == port:
-                    config[key] = ""
-                else:
-                    config[key] = Config.get(key)
-                key = "joystick_port_{0}_mode".format(port)
-                config[key] = self.get_calculated_mode(port)
-            device = DeviceManager.get_device_for_port(config, self.port)
-            default_description = _("Default ({0})").format(device.name)
+    def update_default_device(self, had_default=None):
+        config = {}
+        for port in range(4):
+            key = "joystick_port_{0}".format(port)
+            if self.port == port:
+                config[key] = ""
+            else:
+                config[key] = Config.get(key)
+            key = "joystick_port_{0}_mode".format(port)
+            config[key] = self.get_calculated_mode(port)
+        device = DeviceManager.get_device_for_port(config, self.port)
+        default_description = _("Default ({0})").format(device.name)
+        #print("default_description = ", default_description)
 
+        if had_default is None:
             had_default = (self.device_choice.get_index() == 0)
-            #print("had default", had_default, self.device_choice.get_index())
-            self.device_choice.set_item_text(0, default_description)
-            if had_default:
-                #print("set text for", self.port, default_description)
-                self.device_choice.set_text(default_description)
-                self.device_choice.set_index(0)
+        #print("had default", had_default, self.device_choice.get_index())
+        self.device_choice.set_item_text(0, default_description)
+        #print("had_default", had_default)
+        if had_default:
+            #print("set text for", self.port, default_description)
+            #self.device_choice.set_index(1)
+            self.device_choice.set_text(default_description)
+            self.device_choice.set_index(0)
+        #print(self.device_choice.get_index())

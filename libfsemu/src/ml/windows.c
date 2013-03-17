@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stddef.h>
 #include <glib.h>
+#include <SDL.h>
 #include <SDL_syswm.h>
 
 #include <fs/log.h>
@@ -41,6 +42,13 @@ void fs_ml_configure_window() {
     }
     if (hIconBig != 0) {
         SendMessage(info.window, WM_SETICON, ICON_BIG, (LPARAM) hIconBig);
+    }
+}
+
+void fs_ml_prevent_power_saving(void) {
+    fs_log("SetThreadExecutionState(ES_CONTINUOUS | ES_DISPLAY_REQUIRED)\n");
+    if (!SetThreadExecutionState(ES_CONTINUOUS | ES_DISPLAY_REQUIRED)) {
+        fs_log("SetThreadExecutionState failed\n");
     }
 }
 

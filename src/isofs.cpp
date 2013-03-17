@@ -2,7 +2,7 @@
 /*
 * UAE - The Un*x Amiga Emulator
 *
-* Linux isofs/UAE filesystem wrapperr
+* Linux isofs/UAE filesystem wrapper
 *
 * Copyright 2012 Toni Wilen
 *
@@ -14,7 +14,7 @@
 #include "options.h"
 #include "blkdev.h"
 #include "isofs_api.h"
-#include "fsdb.h"
+#include "zfile.h"
 
 #include "isofs.h"
 
@@ -418,7 +418,6 @@ static int iso_ltime(char *p)
 
 	return make_date(year - 1970, month, day, hour, minute, second, 0);
 }
-
 
 static int isofs_read_level3_size(struct inode *inode)
 {
@@ -1501,10 +1500,17 @@ static TCHAR *get_joliet_filename(struct iso_directory_record * de, struct inode
 	utf8 = ISOFS_SB(inode->i_sb)->s_utf8;
 	//nls = ISOFS_SB(inode->i_sb)->s_nls_iocharset;
 
-	len = de->name_len[0] / 2;
 	if (utf8) {
-		;
+		/* probably never used */
+		len = de->name_len[0];
+		uae_char *o = xmalloc (uae_char, len + 1);
+		for (int i = 0; i < len; i++)
+			o[i] = de->name[i];
+		o[len] = 0;
+		out = utf8u (o);
+		xfree (o);
 	} else {
+		len = de->name_len[0] / 2;
 		out = xmalloc (TCHAR, len + 1);
 		for (int i = 0; i < len; i++)
 			out[i] = isonum_722 (de->name + i * 2);
@@ -1513,7 +1519,7 @@ static TCHAR *get_joliet_filename(struct iso_directory_record * de, struct inode
 
 	if ((len > 2) && (out[len-2] == ';') && (out[len-1] == '1')) {
 		len -= 2;
-		out[len + 1] = 0;
+		out[len] = 0;
 	}
 
 	/*
@@ -1521,8 +1527,8 @@ static TCHAR *get_joliet_filename(struct iso_directory_record * de, struct inode
 	 * so neither do we
 	 */
 	while (len >= 2 && (out[len-1] == '.')) {
-		out[len] = 0;
 		len--;
+		out[len] = 0;
 	}
 
 	return out;
@@ -1696,6 +1702,12 @@ static int isofs_fill_super(struct super_block *s, void *data, int silent, uae_u
 	sbi->s_high_sierra = 0; /* default is iso9660 */
 
 	vol_desc_start = 0;
+#if 0
+	struct device_info di;
+	if (sys_command_info (s->unitnum, &di, true)) {
+		vol_desc_start = di.toc.firstaddress;
+	}
+#endif
 
 	for (iso_blknum = vol_desc_start+16; iso_blknum < vol_desc_start+100; iso_blknum++) {
 		struct hs_volume_descriptor *hdp;
@@ -1739,8 +1751,8 @@ static int isofs_fill_super(struct super_block *s, void *data, int silent, uae_u
 					}
 					goto root_found;
 				} else {
-				/* Unknown supplementary volume descriptor */
-				sec = NULL;
+					/* Unknown supplementary volume descriptor */
+					sec = NULL;
 				}
 			}
 		} else {
@@ -2159,7 +2171,7 @@ static struct inode *isofs_find_entry(struct inode *dir, char *tmpname, TCHAR *t
 		match = 0;
 		if (dlen > 0 && (!sbi->s_hide || (!(de->flags[-sbi->s_high_sierra] & 1))) && (sbi->s_showassoc || (!(de->flags[-sbi->s_high_sierra] & 4)))) {
 			if (jname)
-				match = _tcsicmp(jname, nameu);
+				match = _tcsicmp(jname, nameu) == 0;
 			else
 				match = isofs_cmp(name, dpnt, dlen) == 0;
 		}
@@ -2421,6 +2433,7 @@ bool isofs_mediainfo(void *sbp, struct isofs_info *ii)
 	if (!sb)
 		return true;
 	struct isofs_sb_info *sbi = ISOFS_SB(sb);
+	ii->blocksize = 2048;
 	if (sys_command_ismedia (sb->unitnum, true)) {
 		struct device_info di;
 		uae_u32 totalblocks = 0;
@@ -2432,7 +2445,6 @@ bool isofs_mediainfo(void *sbp, struct isofs_info *ii)
 			_tcscpy (ii->devname, di.label);
 		}
 		ii->unknown_media = sb->unknown_media;
-		ii->blocksize = 2048;
 		if (sb->root) {
 			_tcscpy (ii->volumename, sb->root->name);
 			ii->blocks = sbi->s_max_size;
@@ -2494,21 +2506,20 @@ void isofss_fill_file_attrs(void *sbp, uae_u64 parent, int *dir, int *flags, TCH
 		*comment = my_strdup(inode->i_comment);
 }
 
-void isofs_stat(void *sbp, uae_u64 uniq, struct _stat64 *statbuf)
+bool isofs_stat(void *sbp, uae_u64 uniq, struct mystat *statbuf)
 {
 	struct super_block *sb = (struct super_block*)sbp;
 	struct inode *inode = find_inode(sb, uniq);
 
 	if (!inode)
-		return;
-
-	statbuf->st_mode = FILEFLAG_READ;
-	statbuf->st_mtime = inode->i_mtime.tv_sec;
-	if (XS_ISDIR(inode->i_mode)) {
-		statbuf->st_mode |= FILEFLAG_DIR;
-	} else {
-		statbuf->st_size = inode->i_size;
+		return false;
+	
+	statbuf->mtime.tv_sec = inode->i_mtime.tv_sec;
+	statbuf->mtime.tv_usec = 0;
+	if (!XS_ISDIR(inode->i_mode)) {
+		statbuf->size = inode->i_size;
 	}
+	return true;
 }
 
 bool isofs_exists(void *sbp, uae_u64 parent, const TCHAR *name, uae_u64 *uniq)
@@ -2537,6 +2548,8 @@ void isofs_dispose_inode(void *sbp, uae_u64 uniq)
 	struct inode *inode;
 	struct inode *old = NULL, *prev = NULL;
 
+	if (!sb)
+		return;
 	inode = sb->inodes;
 	while (inode) {
 		if (inode->i_ino == uniq) {

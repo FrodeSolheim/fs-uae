@@ -1,6 +1,8 @@
 #ifndef FS_THREAD_H_
 #define FS_THREAD_H_
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -18,10 +20,20 @@ void fs_thread_destroy(fs_thread *thread);
 struct fs_mutex;
 typedef struct fs_mutex fs_mutex;
 
-fs_mutex *fs_mutex_create();
+fs_mutex *fs_mutex_create(void);
 void fs_mutex_destroy(fs_mutex *mutex);
 int fs_mutex_lock(fs_mutex *mutex);
 int fs_mutex_unlock(fs_mutex *mutex);
+
+struct fs_condition;
+typedef struct fs_condition fs_condition;
+
+fs_condition *fs_condition_create(void);
+void fs_condition_destroy(fs_condition *condition);
+int fs_condition_signal(fs_condition *condition);
+int fs_condition_wait(fs_condition *condition, fs_mutex *mutex);
+int fs_condition_timed_wait(fs_condition *condition, fs_mutex *mutex,
+        int64_t real_time);
 
 struct fs_semaphore;
 typedef struct fs_semaphore fs_semaphore;

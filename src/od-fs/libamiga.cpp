@@ -3,18 +3,20 @@
 
 #include "uae.h"
 #include "autoconf.h"
-#include <string.h>
-#include <glib.h>
-#include <string.h>
-#include <glib/gstdio.h>
 
-#include "memory.h"
+#include <string.h>
+#include <string.h>
+#include <fs/filesys.h>
+#include <fs/string.h>
+
+#include "uae/memory.h"
 #include "options.h"
 #include "keyboard.h"
 #include "inputdevice.h"
 #include "disk.h"
 #include "gui.h"
 #include "events.h"
+#include "luascript.h"
 
 int uae_get_memory_checksum();
 
@@ -24,7 +26,7 @@ log_function g_amiga_gui_message_function = NULL;
 amiga_led_function g_amiga_led_function = NULL;
 amiga_media_function g_amiga_media_function = NULL;
 
-int g_amiga_netplay_mode = 0;
+int g_uae_deterministic_mode = 0;
 int g_amiga_paused = 0;
 char *g_libamiga_save_image_path = NULL;
 
@@ -35,33 +37,130 @@ FILE* g_fs_uae_sync_debug_file = NULL;
 int g_amiga_video_format = AMIGA_VIDEO_FORMAT_RGBA;
 int g_amiga_video_bpp = 4;
 
+static char *g_floppy_sounds_dir;
+
 int g_fs_uae_writable_disk_images = 0;
-/*
- * This is called from the main UAE thread to inform
- * the GUI that a floppy disk has been inserted or ejected.
- */
+
+// This is called from the main UAE thread to inform the GUI that a floppy
+// disk has been inserted or ejected.
+
 void gui_filename (int num, const char *name) {
-    STUB("num=%d name=\"%s\"", num, name);
     if (g_amiga_media_function) {
         g_amiga_media_function(num, name);
     }
 }
 
-void gui_led (int led, int on) {
-    //STUB("led %d on %d", led, on);
-    if (led == LED_DF0) led = 0;
-    else if (led == LED_DF1) led = 1;
-    else if (led == LED_DF2) led = 2;
-    else if (led == LED_DF2) led = 3;
-    else {
-        return;
+static void gui_flicker_led2 (int led, int unitnum, int status) {
+    static int resetcounter[LED_MAX];
+    static uae_s8 gui_data_hd, gui_data_cd, gui_data_md;
+    uae_s8 old;
+    uae_s8 *p;
+
+    if (led == LED_HD)
+            p = &gui_data_hd;
+    else if (led == LED_CD)
+            p = &gui_data_cd;
+    else if (led == LED_MD)
+            p = &gui_data_md;
+    else
+            return;
+    old = *p;
+    if (status < 0) {
+            if (old < 0) {
+                    *p = 0;
+                    gui_led (led, 0);
+            }
+            return;
     }
-    if (g_amiga_led_function) {
-        g_amiga_led_function(led, on);
+    if (status == 0 && old < 0) {
+           resetcounter[led] = 0;
+            return;
+    }
+    if (status == 0) {
+            resetcounter[led]--;
+            if (resetcounter[led] > 0)
+                    return;
+    }
+    *p = status;
+    resetcounter[led] = 6;
+    if (old != *p)
+            gui_led (led, *p);
+}
+
+void gui_flicker_led (int led, int unitnum, int status) {
+    if (led < 0) {
+        gui_flicker_led2 (LED_HD, 0, 0);
+        gui_flicker_led2 (LED_CD, 0, 0);
+        gui_flicker_led2 (LED_MD, 0, 0);
+    }
+    else {
+        gui_flicker_led2 (led, unitnum, status);
+    }
+}
+
+void gui_led (int led, int state) {
+    //STUB("led %d state %d", led, state);
+    int out_led = -1;
+    int out_state = state;
+
+    if (led == LED_DF0) out_led = 0;
+    else if (led == LED_DF1) out_led = 1;
+    else if (led == LED_DF2) out_led = 2;
+    else if (led == LED_DF3) out_led = 3;
+    else if (led == LED_POWER) {
+        //printf("POWER %d b %d\n", state, gui_data.powerled_brightness);
+        out_led = 8;
+    }
+    else if (led == LED_HD) out_led = 9;
+    else if (led == LED_CD) {
+        out_led = 10;
+        if (state == 0) {
+            out_state = 0;
+        }
+        else if (state == 4) {
+            out_state = 2;
+        }
+        else {
+            out_state = 1;
+        }
+    }
+    else if (led == LED_MD) out_led = 11;
+
+    if (led >= LED_DF0 && led <= LED_DF3) {
+        if (gui_data.drive_writing[led - 1]) {
+            out_state = 2;
+        }
+    }
+
+    if (g_amiga_led_function && out_led > -1) {
+        g_amiga_led_function(out_led, out_state);
     }
 }
 
 extern "C" {
+
+void amiga_init_lua(void (*lock)(void), void (*unlock)(void)) {
+#ifdef WITH_LUA
+    uae_lua_init(lock, unlock);
+#endif
+}
+
+void amiga_init_lua_state(lua_State *L) {
+#ifdef WITH_LUA
+    uae_lua_init_state(L);
+#endif
+}
+
+void amiga_set_floppy_sounds_dir(const char *path) {
+    int len = strlen(path);
+    if (path[len - 1] == '/') {
+        g_floppy_sounds_dir = fs_strdup(path);
+    }
+    else {
+        // must have directory separator at the end
+        g_floppy_sounds_dir = fs_strconcat(path, "/", NULL);
+    }
+}
 
 void amiga_set_led_function(amiga_led_function function) {
     g_amiga_led_function = function;
@@ -76,9 +175,9 @@ void amiga_floppy_set_writable_images(int writable) {
 }
 
 int amiga_init() {
-    printf("libamiga (based on %s) initialized\n",
+    printf("libamiga (based on emulation core from %s) initialized\n",
             get_libamiga_base_version());
-    write_log("libamiga (based on %s) initialized\n",
+    write_log("libamiga (based on emulation core from %s) initialized\n",
             get_libamiga_base_version());
 
     // because frame_time_t is sometimes cast to int, we make sure to
@@ -142,9 +241,9 @@ void amiga_map_cd_drives(int enable) {
     changed_prefs.win32_automount_cddrives = (enable != 0);
 }
 
-void amiga_enable_netplay_mode() {
+void amiga_set_deterministic_mode() {
     write_log("libamiga enabling net play mode\n");
-    g_amiga_netplay_mode = 1;
+    g_uae_deterministic_mode = 1;
 }
 
 void amiga_write_uae_config(const char *path) {
@@ -194,7 +293,7 @@ void amiga_set_paths(const char **rom_paths, const char **floppy_paths,
 
 int amiga_set_synchronization_log_file(const char *path) {
 #ifdef DEBUG_SYNC
-    FILE *f = g_fopen(path, "wb");
+    FILE *f = fs_fopen(path, "wb");
     if (f) {
         write_log("sync debug log to %s\n", path);
         g_fs_uae_sync_debug_file = f;
@@ -219,7 +318,7 @@ int amiga_quickstart(int quickstart_model, int quickstart_config,
 
 void amiga_set_save_image_dir(const char *path) {
     write_log("amiga_set_save_image_dir %s\n", path);
-    g_libamiga_save_image_path = g_strdup(path);
+    g_libamiga_save_image_path = fs_strdup(path);
 }
 
 int amiga_get_rand_checksum() {
@@ -240,7 +339,7 @@ void amiga_main() {
     keyboard_settrans();
     int argc = 1;
     char *argv[4] = {
-            "fs-uae",
+            strdup("fs-uae"),
             NULL,
     };
     real_main(argc, argv);
@@ -266,9 +365,11 @@ int amiga_enable_serial_port(const char *serial_name) {
         changed_prefs.use_serial = 1;
         currprefs.use_serial = 1;
     }
+    /*
     else {
         write_log("serial: using dummy serial port\n");
     }
+    */
     //config_changed = 1;
     return 1;
 }
@@ -297,7 +398,7 @@ int amiga_pause(int pause) {
 }
 
 int amiga_reset(int hard) {
-    uae_reset(hard);
+    uae_reset(hard, 1);
     return hard;
 }
 
@@ -340,12 +441,15 @@ int amiga_floppy_get_drive_type(int index) {
 }
 
 int amiga_get_num_cdrom_drives() {
+    // FIXME: this is a bit of a hack, if CD devices / SCSI system
+    // has not been enabled, it seems type is 0 in all slots, which
+    // is why we return 0 at the end of the function.
     for (int i = 0; i < MAX_TOTAL_SCSI_DEVICES; i++) {
-        if (currprefs.cdslots[i].inuse == 0) {
+        if (currprefs.cdslots[i].type != 0) {
             return i;
         }
     }
-    return MAX_TOTAL_SCSI_DEVICES;
+    return 0;
 }
 
 int amiga_get_num_floppy_drives() {
@@ -499,9 +603,9 @@ int amiga_set_hardware_option(const char *option, const char *value) {
 }
 
 int amiga_set_int_option(const char *option, int value) {
-    gchar *str_value = g_strdup_printf("%d", value);
+    char *str_value = fs_strdup_printf("%d", value);
     int result = amiga_set_option(option, str_value);
-    g_free(str_value);
+    free(str_value);
     return result;
 }
 
@@ -556,18 +660,20 @@ void gui_disk_image_change (int unitnum, const TCHAR *name, bool writeprotected)
 
 bool get_plugin_path (TCHAR *out, int size, const TCHAR *path) {
     static char* plugin_path_none = NULL;
-    static char* plugin_path_floppysounds = NULL;
 
-    write_log("\n-----------------> STUB: get_plugin_path, size: %d, path: %s\n", size, path);
     if (strcmp(path, "floppysounds") == 0) {
-        if (!plugin_path_floppysounds) {
-            plugin_path_floppysounds = strdup("floppysounds/");
+        if (g_floppy_sounds_dir) {
+            strncpy(out, g_floppy_sounds_dir, size);
         }
-        strncpy(out, plugin_path_floppysounds, size);
+        else {
+            strncpy(out, "floppy_sounds", size);
+        }
         // make sure out is null-terminated in any case
         out[size - 1] = '\0';
     }
     else {
+        write_log("\n-----------------> STUB: get_plugin_path, "
+                "size: %d, path: %s\n", size, path);
         out[0] = '\0';
     }
     return TRUE;

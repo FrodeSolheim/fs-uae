@@ -101,25 +101,24 @@ class ImageLoader:
             os.makedirs(cache_dir)
         cache_file = os.path.join(cache_dir, sha1 + cache_ext)
         if os.path.exists(cache_file):
-            return cache_file
+            # an old bug made it possible for 0-byte files to exist, so
+            # we check for that here..
+            if os.path.getsize(cache_file) > 0:
+                return cache_file
 
         try:
             server = os.environ["FS_GAME_DATABASE_SERVER"]
         except KeyError:
             server = "fengestad.no"
 
+        url = "http://fengestad.no/games/image/{0}{1}".format(
+                sha1, size_arg)
+        r = urllib2.urlopen(url)
+        data = r.read()
+
         with open(cache_file, "wb") as f:
-            url = "http://fengestad.no/games/image/{0}{1}".format(
-                    sha1, size_arg)
-            r = urllib2.urlopen(url)
-            #print(r)
-            data = r.read()
-            #h = hashlib.sha1()
-            #h.update(data)
-            #if h.hexdigest() == sha1:
             f.write(data)
-            return cache_file
-        return ""
+        return cache_file
 
     def _fill_request(self, request):
         if request.path is None:

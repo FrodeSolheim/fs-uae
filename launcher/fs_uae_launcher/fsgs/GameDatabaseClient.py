@@ -98,7 +98,8 @@ class GameDatabaseClient:
                     (game_id, key, value, user, status))
 
         if update_games and status == 1 and key in ["game_name", "sort_key",
-                "variant_name", "x_name", "parent_uuid", "file_list"]:
+                "variant_name", "x_name", "parent_uuid", "file_list",
+                "_status"]:
             self.update_game(game_id)
 
     def get_final_game_values(self, game_id, recursive=True):
@@ -113,6 +114,10 @@ class GameDatabaseClient:
                 name, value = row
                 if not value:
                     continue
+                if name[0] == '_':
+                    # non-inheritable variables
+                    if game_id != original_game_id:
+                        continue
                 if name == "parent_uuid":
                     parent_uuid = value
                 if name == "file_list" and game_id != original_game_id:
@@ -165,6 +170,10 @@ class GameDatabaseClient:
         sort_key = values.get("sort_key", "")
         variant = values.get("variant_name", "")
         x_name = values.get("x_name", "")
+        try:
+            status = int(values.get("_status", "0"))
+        except:
+            status = 0
         parent_uuid = values.get("parent_uuid", "")
         parent = None
         if parent_uuid:
@@ -191,9 +200,10 @@ class GameDatabaseClient:
         search = name.lower()
         cursor.execute(self.database.query("UPDATE game SET game = %s, "
                 "variant = %s, name = %s, search = %s, platform = %s, "
-                "files = %s, parent = %s, sort_key = %s WHERE id = %s"),
+                "files = %s, parent = %s, sort_key = %s, status = %s "
+                "WHERE id = %s"),
                 (game, variant, name, search, platform, files, parent,
-                sort_key, game_id))
+                sort_key, status, game_id))
 
         cursor.execute(self.database.query("SELECT id FROM game WHERE "
                 "parent = %s"), (game_id,))

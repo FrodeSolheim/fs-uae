@@ -160,7 +160,8 @@ class Config:
 
     @classmethod
     def get(cls, key):
-        return cls.config.setdefault(key, "")
+        #return cls.config.setdefault(key, "")
+        return cls.config.get(key, "")
 
     @classmethod
     def add_listener(cls, listener):

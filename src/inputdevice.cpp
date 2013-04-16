@@ -2271,6 +2271,26 @@ static int inputdelay;
 
 void inputdevice_read (void)
 {
+#ifdef FSUAE
+#if 0
+	static int lastframe = 0;
+	if (lastframe != vsync_counter) {
+		if (vsync_counter == 900) {
+			handle_input_event(33, 1, 1, 0, 1, 0);
+		}
+		else if (vsync_counter == 911) {
+			handle_input_event(33, 0, 1, 0, 1, 0);
+		}
+		else if (vsync_counter == 4929) {
+			handle_input_event(205, 1, 1, 0, 1, 0);
+		}
+		else if (vsync_counter == 4936) {
+			handle_input_event(205, 0, 1, 0, 1, 0);
+		}
+		lastframe = vsync_counter;
+	}
+#endif
+#endif
 	do {
 		handle_msgpump ();
 		idev[IDTYPE_MOUSE].read ();
@@ -2517,6 +2537,11 @@ void inputdevice_release_all_keys (void)
 
 void inputdevice_add_inputcode (int code, int state)
 {
+#ifdef FSUAE
+    if (inputdevice_logging) {
+        write_log("        inputcode %d state %d\n", code, state);
+    }
+#endif
 	inputcode_pending = code;
 	inputcode_pending_state = state;
 }
@@ -2862,6 +2887,13 @@ static uae_u64 isqual (int evt)
 
 static int handle_input_event (int nr, int state, int max, int autofire, bool canstopplayback, bool playbackevent)
 {
+#ifdef FSUAE
+    if (inputdevice_logging) {
+        write_log("        nr %d state %d max %d autofire %d "
+                "canstopplayback %d playbackevent %d\n",
+                nr, state, max, autofire, canstopplayback, playbackevent);
+    }
+#endif
 	struct inputevent *ie;
 	int joy;
 	bool isaks = false;

@@ -1,614 +1,785 @@
 # Turkish translations for fs-uae-launcher package.
-# Copyright (C) 2012 Frode Solheim
+# Copyright (C) 2013 Frode Solheim
 # This file is distributed under the same license as the fs-uae-launcher package.
-# Frode Solheim <fs-uae@fengestad.no>, 2012.
+# Frode Solheim <fs-uae@fengestad.no>, 2013.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae-launcher\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2012-11-28 11:12+0100\n"
-"PO-Revision-Date: 2012-11-28 11:16+0100\n"
-"Last-Translator: Frode Solheim <fs-uae@fengestad.no>\n"
+"POT-Creation-Date: 2013-03-20 22:26+0100\n"
+"PO-Revision-Date: 2013-04-07 19:25+0200\n"
+"Last-Translator: Eser Güven <thedecypher@hotmail.com>\n"
 "Language-Team: Turkish\n"
 "Language: tr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 1.5.5\n"
 
 msgid "16-bit"
-msgstr ""
+msgstr "16-bit"
 
 msgid "32-bit BGRA"
-msgstr ""
+msgstr "32-bit BGRA"
 
 msgid "32-bit RGBA"
-msgstr ""
+msgstr "32-bit RGBA"
 
 msgid "640x400 + Border"
-msgstr ""
+msgstr "640x400 + Kenar"
 
 msgid "640x480 + Border"
-msgstr ""
+msgstr "640x480 + Kenar"
 
 msgid "640x512 + Border"
-msgstr ""
+msgstr "640x512 + Kenar"
+
+msgid "ADF & HDF Creator"
+msgstr "ADF & HDF Yaratıcı"
+
+msgid "ADF - Extended Floppy Disk Image (MFM)"
+msgstr "ADF - Genişletilmiş Disket İmajı (MFM)"
+
+msgid "ADF - Standard Floppy Disk Image"
+msgstr "ADF - Standart Disket İmajı"
 
 msgid "Abort"
-msgstr ""
+msgstr "İptal Et"
+
+msgid "About {name}"
+msgstr "{name} hakkında"
 
 msgid "Accurate"
-msgstr ""
+msgstr "İsabetli"
 
 msgid "Add Directory to Search Path"
-msgstr ""
+msgstr "Arama Adresine Klasör Ekle"
 
 msgid "Add Files to List"
-msgstr ""
+msgstr "Listeye Dosya Ekle"
 
 msgid "Add Multiple CD-ROMs at Once"
-msgstr ""
+msgstr "Tek Seferde Birden Çok CD-ROM Ekle"
 
 msgid "Add Multiple Floppies at Once"
-msgstr ""
+msgstr "Tek Seferde Birden Çok Disket Ekle"
 
 msgid "Additional Options"
-msgstr ""
+msgstr "Ek Seçenekler"
+
+msgid "Amiga Forever Import"
+msgstr "Amiga Forever'dan Aktar"
 
 msgid "Amiga Forever import task started"
-msgstr ""
+msgstr "Amiga Forever'dan aktarma işlemi başladı"
 
 msgid "Amiga Model"
-msgstr ""
+msgstr "Amiga Modeli"
 
 msgid "Audio Settings"
-msgstr ""
+msgstr "Ses Ayarları"
 
 msgid "Auto"
-msgstr ""
+msgstr "Otomatik"
 
 msgid "Auto + Border"
-msgstr ""
+msgstr "Otomatik + Kenar"
+
+msgid "Auto-Fire is Off"
+msgstr "Otomatik Ateş Kapalı"
+
+msgid "Auto-Fire is On"
+msgstr "Otomatik Ateş Açık"
 
 msgid "Available Kickstart Versions"
-msgstr ""
+msgstr "Mevcut Kickstart Versiyonları"
 
 msgid "Browse"
-msgstr ""
+msgstr "Gözat"
 
 msgid "Browse for File"
-msgstr ""
+msgstr "Dosya için Gözat"
 
 msgid "Browse for Folder"
-msgstr ""
+msgstr "Klasör için Gözat"
 
 msgid "Built-in TCP/IP Stack"
-msgstr ""
+msgstr "Dahili TCP/IP Yığını"
 
 msgid "Built-in TCP/IP Stack (bsdsocket.library)"
-msgstr ""
+msgstr "Dahili TCP/IP Yığını (bsdsocket.library)"
 
 msgid "CD-ROM Drive"
-msgstr ""
+msgstr "CD-ROM Sürücü"
 
 msgid "CD-ROM Drives"
-msgstr ""
+msgstr "CD-ROM Sürücüleri"
 
 msgid "CD-ROMs"
-msgstr ""
+msgstr "CD-ROM'lar"
 
 msgid "CD32 Pad"
-msgstr ""
+msgstr "CD32 Pad"
 
 msgid "Cancel"
-msgstr ""
+msgstr "Vazgeç"
 
 msgid "Chip RAM"
-msgstr ""
+msgstr "Çip RAM"
 
 msgid "Choose CD-ROM Image"
-msgstr ""
+msgstr "CD-ROM İmajını Seçin"
 
 msgid "Choose Extended ROM"
-msgstr ""
+msgstr "Genişletilmiş ROM'u Seçin"
 
 msgid "Choose Floppy Image"
-msgstr ""
+msgstr "Disket İmajını Seçin"
 
 msgid "Choose Hard Drive"
-msgstr ""
+msgstr "Hard Diski Seçin"
 
 msgid "Choose Kickstart ROM"
-msgstr ""
+msgstr "Kickstart ROM'unu Seçin"
 
 msgid "Cleaning up..."
-msgstr ""
+msgstr "Temizleniyor..."
 
 msgid "Clear List"
-msgstr ""
+msgstr "Listeyi Temizle"
 
 msgid "Click 'Scan' button if you want to re-scan"
-msgstr ""
+msgstr "Tekrar taramak istiyorsanız 'Tara' düğmesine tıklayın"
 
 msgid "Click 'Scan' button to start scan"
-msgstr ""
+msgstr "Taramayı başlatmak için 'Tara' düğmesine tıklayın"
 
 msgid "Click here to download"
-msgstr ""
+msgstr "İndirmek için buraya tıklayın"
+
+msgid "Click here to import kickstarts"
+msgstr "Kickstart yüklemek için buraya tıklayın"
 
 msgid "Close"
-msgstr ""
+msgstr "Kapat"
 
 msgid "Committing data..."
-msgstr ""
+msgstr "Veri işleniyor..."
 
 msgid "Config"
-msgstr ""
+msgstr "Konfig"
 
 msgid "Configuration"
-msgstr ""
+msgstr "Konfigürasyon"
 
 msgid "Configuration Browser"
-msgstr ""
+msgstr "Konfigürasyon Gezgini"
+
+msgid "Configuration Warning"
+msgstr "Konfigürasyon Uyarısı"
 
 msgid "Configurations"
-msgstr ""
+msgstr "Konfigürasyonlar"
 
 msgid "Configure Joystick Buttons"
-msgstr ""
+msgstr "Joystick Düğmelerini Ayarla"
+
+msgid "Connect"
+msgstr "Bağlan"
 
 msgid ""
 "Copy {0}\n"
 "to {1}"
 msgstr ""
+"{0}'ı\n"
+"{1}'e kopyala"
+
+msgid "Could not open file for writing"
+msgstr "Dosyayı yazmak için açamıyorum"
+
+msgid "Create"
+msgstr "Yarat"
 
 msgid "Cursor Keys and Right Ctrl/Alt"
-msgstr ""
+msgstr "İmleç Tuşları ve Sağ Ctrl/Alt"
 
 msgid "Custom"
-msgstr ""
+msgstr "Özel"
+
+msgid "Custom Configuration"
+msgstr "Özel Konfigürasyon"
 
 msgid "Custom IRC server address"
-msgstr ""
+msgstr "Özel IRC sunucu adresi"
+
+msgid "Custom Joystick Port"
+msgstr "Özel Joystick Portu"
 
 msgid "Custom Options"
-msgstr ""
+msgstr "Özel Seçenekler"
 
 msgid "Custom Settings"
-msgstr ""
+msgstr "Özel Ayarlar"
 
 msgid "Default"
-msgstr ""
+msgstr "Varsayılan"
 
 msgid "Default ({0})"
-msgstr ""
+msgstr "Varsayılan ({0})"
+
+msgid "Destination Directory:"
+msgstr "Hedef Klasör:"
+
+msgid "Disconnect"
+msgstr "Bağlantıyı Kes"
+
+msgid "Disk Image Name:"
+msgstr "Disk İmaj İsmi:"
+
+msgid "Disk image created"
+msgstr "Disk imajı yaratıldı"
+
+msgid "Download failed (attempt {0}) - retrying in {0} seconds"
+msgstr "İndirme başarısız (deneme {0}) - {0} saniye içinde tekrar denenecek"
 
 msgid "Downloading {0}..."
-msgstr ""
+msgstr "İndiriliyor {0}..."
 
 msgid "Edit Custom Options"
-msgstr ""
+msgstr "Özel Seçenekleri Düzenle"
 
 msgid "Eject"
-msgstr ""
+msgstr "Çıkar"
 
 msgid "Enable experimental net play GUI (requires restart)"
-msgstr ""
+msgstr "Deneysel net oyunu arayüzünü aktifleştir (yeniden başlatmanız gerekir)"
 
 msgid "Enable online database support (requires restart)"
-msgstr ""
+msgstr "Online veritabanı desteğini aktifleştir (yeniden başlatmanız gerekir)"
+
+msgid "Error moving file into place"
+msgstr "Dosyayı taşırken hata oluştu"
+
+msgid "Error writing disk image"
+msgstr "Disk imajını yazarken hata oluştu"
 
 msgid "Expansions"
-msgstr ""
+msgstr "Genişlemeler"
 
 msgid "Experimental Features"
-msgstr ""
+msgstr "Deneysel Özellikler"
 
 msgid "Extended ROM:"
-msgstr ""
+msgstr "Genişletilmiş ROM:"
 
 msgid "FS-UAE Launcher Settings"
-msgstr ""
+msgstr "FS-UAE Çalıştırıcı Ayarları"
 
 msgid "Fast RAM"
-msgstr ""
+msgstr "Hızlı RAM"
 
 msgid "Fetching database entries ({0})"
-msgstr ""
+msgstr "Veritabanı girdileri alınıyor ({0})"
+
+msgid "Fetching game ratings ({0})"
+msgstr "Oyunun puanları alınıyor ({0})"
+
+msgid "Fetching user game ratings ({0})"
+msgstr "Oyunun kullanıcı puanları alınıyor ({0})"
+
+msgid "File already exists"
+msgstr "Dosya zaten mevcut"
 
 msgid "Filters"
-msgstr ""
+msgstr "Filtreler"
 
 msgid "Filters & Scaling"
-msgstr ""
+msgstr "Filtreler ve Büyütme"
 
 msgid "Filters:"
-msgstr ""
+msgstr "Filtreler:"
 
 msgid "Floppies"
-msgstr ""
+msgstr "Disketler"
 
 msgid "Floppy Drives"
-msgstr ""
+msgstr "Disket Sürücüler"
 
 msgid "Floppy drive volume"
-msgstr ""
+msgstr "Disket sürücü sesi"
 
 msgid "Force Full Vsync"
-msgstr ""
+msgstr "Tam VSync Kullan"
 
 msgid "Full Frame"
-msgstr ""
+msgstr "Tam Pencere"
 
 msgid "Full-scene anti-aliasing (FSAA)"
-msgstr ""
+msgstr "Tam ekran anti-aliasing (FSAA)"
 
 msgid "Fullscreen"
-msgstr ""
+msgstr "Tam Ekran"
 
 msgid "Game Database"
-msgstr ""
+msgstr "Oyun Veritabanı"
 
 msgid "Game Database Settings"
-msgstr ""
+msgstr "Oyun Veritabanı Ayarları"
 
 msgid "Game database password"
-msgstr ""
+msgstr "Oyun veritabanı şifresi"
 
 msgid "Game database user name"
-msgstr ""
+msgstr "Oyun veritabanı kullanıcı ismi"
+
+msgid "Gamepad/Joystick Setup"
+msgstr "Gamepad/Joystick Ayarı"
 
 msgid "Games and Configurations"
-msgstr ""
+msgstr "Oyunlar ve Konfigürasyonlar"
 
 msgid "Grab mouse and keyboard input when FS-UAE starts"
-msgstr ""
+msgstr "FS-UAE başladığında fare ve klavye girişini kap"
 
 msgid "Grab mouse and keyboard input when clicking on FS-UAE window"
-msgstr ""
+msgstr "FS-UAE penceresine tıklandığında fare ve klavye girişini kap"
+
+msgid "HDF - Partitionable Hard Drive Image (RDB)"
+msgstr "HDF - Bölünebilir Hard Disk İmajı (RDB)"
+
+msgid "HDF - Single Partition Hard Disk File"
+msgstr "HDF - Tek Parça Hard Disk Dosyası"
 
 msgid "Hard Drives"
-msgstr ""
+msgstr "Hard Diskler"
 
 msgid "Hardware"
-msgstr ""
+msgstr "Donanım"
 
 msgid "Hardware Options"
-msgstr ""
+msgstr "Donanım Ayarları"
 
 msgid "IRC nickname"
-msgstr ""
+msgstr "IRC takma ismi"
 
 msgid "If you own Amiga Forever, select the drive/folder and click \"{0}\""
 msgstr ""
+"Eğer Amiga Forever sahibiyseniz, sürücü/klasör seçin ve  \"{0}\"ye tıklayın"
 
 msgid "Import"
-msgstr ""
+msgstr "Yükle"
 
 msgid "Import From Amiga Forever CD/DVD"
-msgstr ""
+msgstr "Amiga Forever CD/DVD'sinden Yükle"
+
+msgid "Import Kickstarts"
+msgstr "Kickstart Yükle"
 
 msgid "Import Kickstarts and ROMs"
-msgstr ""
+msgstr "Kickstart ve ROM Yükle"
 
 msgid "Import task is done"
-msgstr ""
+msgstr "Yükleme işlemi tamamlandı"
 
 msgid "Include built-in configurations"
-msgstr ""
+msgstr "Dahili konfigürasyonları ekle"
 
 msgid "Input"
-msgstr ""
+msgstr "Giriş"
 
 msgid "Input Options"
-msgstr ""
+msgstr "Giriş Seçenekleri"
 
 msgid "Input Settings"
-msgstr ""
+msgstr "Giriş Ayarları"
 
 msgid "Internal"
-msgstr ""
+msgstr "Dahili"
+
+msgid "Invalid size specified"
+msgstr "Geçersiz boyut seçildi"
 
 msgid "Joystick"
-msgstr ""
+msgstr "Joystick"
 
 msgid "Joystick Configuration"
-msgstr ""
+msgstr "Joystick Konfigürasyonu"
 
 msgid "Joystick Ports"
-msgstr ""
+msgstr "Joystick Portları"
 
 msgid "Joystick Settings"
-msgstr ""
+msgstr "Joystick Ayarları"
 
 msgid "Keep aspect ratio when scaling (do not stretch)"
-msgstr ""
+msgstr "Büyütme sırasında en boy oranını koru (kenarı uzatma)"
 
 msgid "Keyboard Settings"
-msgstr ""
+msgstr "Klavye Ayarları"
 
 msgid "Kickstart ROM"
-msgstr ""
+msgstr "Kickstart ROM'u"
 
-msgid "Kickstart Setup"
-msgstr ""
+msgid "Kickstart ROMs are missing"
+msgstr "Kickstart ROM'ları eksik"
 
 msgid "Kickstart import task started"
-msgstr ""
+msgstr "Kickstart yükleme işlemi başladı"
 
 msgid "Launching FS-UAE"
-msgstr ""
+msgstr "FS-UAE Başlatılıyor"
 
 msgid "Least Accurate"
-msgstr ""
+msgstr "En Az İsabetli"
 
 msgid "Less Accurate"
-msgstr ""
+msgstr "Az İsabetli"
 
 msgid "List of Folders to Index"
-msgstr ""
+msgstr "İndekslenecek Klasörler Listesi"
 
 msgid "Low latency vsync (when using full vsync)"
-msgstr ""
+msgstr "Düşük gecikmeli vsync (tam vsync kullanırken)"
+
+msgid "MB"
+msgstr "MB"
 
 msgid "Main Configuration Options"
-msgstr ""
+msgstr "Ana Konfigürasyon Ayarları"
+
+msgid "Main Menu"
+msgstr "Ana Menü"
 
 msgid "Media Swap List"
-msgstr ""
+msgstr "Medya Değişim Listesi"
 
 msgid "Memory"
-msgstr ""
+msgstr "Hafıza"
 
 msgid "Mouse"
-msgstr ""
+msgstr "Fare"
+
+msgid "Mouse & Joystick Ports"
+msgstr "Fare & Joystick Portları"
 
 msgid "Mouse Settings"
-msgstr ""
+msgstr "Fare Ayarları"
 
 msgid "Mouse speed (%)"
-msgstr ""
+msgstr "Fare hızı (%)"
 
 msgid "Net Play"
-msgstr ""
+msgstr "Net Oyunu"
 
 msgid "Net Play Settings"
-msgstr ""
+msgstr "Net Oyunu Ayarları"
 
 msgid "Net play tag (max 3 characters)"
-msgstr ""
+msgstr "Net oyunu etiketi (max 3 karakter)"
 
 msgid "New Configuration"
-msgstr ""
+msgstr "Yeni Konfigürasyon"
+
+msgid "New Disk Image"
+msgstr "Yeni Disk İmajı"
+
+msgid "Nick:"
+msgstr "Takma isim:"
 
 msgid "No Device"
-msgstr ""
+msgstr "Cihaz Yok"
 
 msgid "No Host Device"
-msgstr ""
+msgstr "Sunucu Cihaz Yok"
 
 msgid "No Joysticks"
-msgstr ""
+msgstr "Joystick Yok"
 
 msgid "No extended kickstart found for this model. Try 'scan' function."
 msgstr ""
+"Bu model için genişletilmiş kickstart bulunamadı. 'Tara' işlevini deneyin."
 
 msgid "No joysticks are currently connected"
-msgstr ""
+msgstr "Şu an bir Joystick takılı değil"
 
 msgid "No kickstart found for this model. "
-msgstr ""
+msgstr "Bu model için hiçbir kickstart bulunamadı"
 
 msgid "No scan in progress"
-msgstr ""
+msgstr "Devam eden tarama yok"
 
 msgid "Nothing"
-msgstr ""
+msgstr "Hiçbir şey"
 
 msgid "OK"
-msgstr ""
+msgstr "Tamam"
 
 msgid "Off"
-msgstr ""
+msgstr "Kapalı"
 
 msgid "On"
-msgstr ""
+msgstr "Açık"
+
+msgid "Open Game Database Entry"
+msgstr "Oyun Veritabanı Girdisini Aç"
+
+msgid "Open Hall of Light Entry"
+msgstr "Hall of Light Girdisini Aç"
+
+msgid "Open LemonAmiga Entry"
+msgstr "LemonAmiga Girdisini Aç"
+
+msgid "Open MobyGames Entry"
+msgstr "MobyGames Girdisini Aç"
 
 msgid "Open Scan Dialog"
-msgstr ""
+msgstr "Tarama Diyaloğunu Aç"
 
 msgid "Open Tool to Configure Button Mapping"
-msgstr ""
+msgstr "Düğme Atamalarını Ayarlama Aracını Aç"
+
+msgid "Open Wikipedia Entry"
+msgstr "Wikipedia Girdisini Aç"
 
 msgid "OpenGL Settings"
-msgstr ""
+msgstr "OpenGL Ayarları"
+
+msgid "Override Installed Memory"
+msgstr "Kurulu Hafızanın Üzerine Yaz"
 
 msgid "Parallel Port Joysticks"
-msgstr ""
+msgstr "Paralel Port Joystickleri"
 
 msgid "Picasso96 Support"
-msgstr ""
+msgstr "Picasso96 Desteği"
 
 msgid "Picasso96 Support (uaegfx.card)"
-msgstr ""
+msgstr "Picasso96 Desteği (uaegfx.card)"
 
 msgid "Please wait..."
-msgstr ""
+msgstr "Lütfen bekleyin..."
+
+msgid "Preferences"
+msgstr "Tercihler"
 
 msgid "Preferred Joystick"
-msgstr ""
+msgstr "Tercih edilen Joystick"
 
 msgid "Preferred device for secondary joystick:"
-msgstr ""
+msgstr "İkinci joystick için tercih edilen cihaz:"
 
 msgid "Preparing WHDLoad..."
-msgstr ""
+msgstr "WHDLoad hazırlanıyor..."
 
 msgid "Preparing floppy images..."
-msgstr ""
+msgstr "Disket imajları hazırlanıyor..."
 
 msgid "Preparing hard drives..."
-msgstr ""
+msgstr "Hard diskler hazırlanıyor..."
 
 msgid "Preparing..."
-msgstr ""
+msgstr "Hazırlanıyor..."
 
 msgid "Purging old entries..."
-msgstr ""
+msgstr "Eski girdiler temizleniyor..."
+
+msgid "Refresh Game Database"
+msgstr "Oyun Veritabanını Yenile"
 
 msgid "Refresh game configurations from database"
-msgstr ""
+msgstr "Veritabanından oyun konfigürasyonlarını yenile"
+
+msgid "Refresh list of connected joystick devices"
+msgstr "Takılı joystick cihazlarının listesini yenile"
 
 msgid "Remove Directory from Search Path"
-msgstr ""
+msgstr "Arama Adresinden Klasörü Sil"
 
 msgid "Remove Selected Files"
-msgstr ""
+msgstr "Seçili Dosyaları Kaldır"
 
 msgid "Render scan lines"
-msgstr ""
+msgstr "Tarama çizgilerini göster"
 
 msgid "Render scan lines in RTG graphics mode"
-msgstr ""
+msgstr "RTG grafik modunda tarama çizgilerini göster"
 
 msgid "Resetting database..."
-msgstr ""
+msgstr "Veritabanı sıfırlanıyor..."
 
 msgid "Restoring changes..."
-msgstr ""
+msgstr "Değişiklikler geri alınıyor..."
+
+msgid "Retrying last operation (attempt {0})"
+msgstr "Son işlem tekrar deneniyor (deneme {0})"
 
 msgid "Save Configuration"
-msgstr ""
+msgstr "Konfigürasyonu Kaydet"
 
 msgid "Saving changes..."
-msgstr ""
+msgstr "Değişiklikler kaydediliyor..."
 
 msgid "Scaling Options"
-msgstr ""
+msgstr "Büyütme Seçenekleri"
 
 msgid "Scan"
-msgstr ""
+msgstr "Tara"
 
 msgid "Scan & Indexing"
-msgstr ""
+msgstr "Tarama & İndeksleme"
+
+msgid "Scan Files and Configurations"
+msgstr "Dosya ve Konfigürasyonları Tara"
 
 msgid "Scan complete"
-msgstr ""
+msgstr "Tarama tamamlandı"
 
 msgid "Scan error"
-msgstr ""
+msgstr "Tarama hatası"
+
+msgid "Scan for Files"
+msgstr "Dosyaları tara"
 
 msgid "Scan for Kickstarts, Files and Configurations"
-msgstr ""
+msgstr "Kickstart, Dosya ve Konfigürasyonlar İçin Tara"
 
 msgid "Scanning .fs-uae files..."
-msgstr ""
+msgstr ".fs-uae dosyaları taranıyor..."
 
 msgid "Scanning built-in entries..."
-msgstr ""
+msgstr "Dahili girdiler taranıyor..."
 
 msgid "Scanning configurations"
-msgstr ""
+msgstr "Konfigürasyonlar taranıyor"
 
 msgid "Scanning configurations ({count} scanned)"
-msgstr ""
+msgstr "Konfigürasyonlar taranıyor ({count} tarandı)"
 
 msgid "Scanning database entries..."
-msgstr ""
+msgstr "Veritabanı girdileri taranıyor..."
 
 msgid "Scanning files"
-msgstr ""
+msgstr "Dosyalar taranıyor"
 
 msgid "Scanning files ({count} scanned)"
-msgstr ""
+msgstr "Dosyalar taranıyor ({count} tarandı)"
 
 msgid "Scanning game database entries..."
-msgstr ""
+msgstr "Oyun veritabanı girdileri taranıyor..."
 
-msgid "Select Directory to Import From"
-msgstr ""
+msgid "Select Destination Directory"
+msgstr "Hedef Klasörü Seçin"
 
 msgid "Select Multiple CD-ROMs"
-msgstr ""
+msgstr "Birden Çok CD-ROM Seçin"
 
 msgid "Select Multiple Files..."
-msgstr ""
+msgstr "Birden Çok Dosya Seçin..."
 
 msgid "Select Multiple Floppies"
-msgstr ""
+msgstr "Birden Çok Disket Seçin"
+
+msgid "Select Source Directory"
+msgstr "Kaynak Klasörü Seçin"
 
 msgid "Select a folder containing Amiga kickstart files and click \"{0}\""
 msgstr ""
+"İçinde Amiga kickstart dosyalarının bulunduğu klasörü seçin ve \"{0}\"'e "
+"tıklayın"
 
 msgid "Settings"
-msgstr ""
+msgstr "Ayarlar"
 
 msgid "Show kickstart setup page on startup when all ROMs are missing"
-msgstr ""
+msgstr "Tüm ROM'lar eksikse başlangıçta kickstart ayar sayfasını göster"
+
+msgid "Size:"
+msgstr "Boyut:"
 
 msgid "Slow RAM"
-msgstr ""
+msgstr "Yavaş RAM"
+
+msgid "Specified directory does not exist"
+msgstr "Belirtilen klasör mevcut değil"
 
 msgid "Start"
-msgstr ""
+msgstr "Başlat"
 
 msgid "Start FS-UAE in fullscreen mode"
-msgstr ""
+msgstr "FS-UAE'yi tam ekran modunda başlat"
 
 msgid "Starting FS-UAE..."
-msgstr ""
+msgstr "FS-UAE başlatılıyor..."
 
 msgid "Starting scan"
-msgstr ""
+msgstr "Tarama başlatılıyor"
 
 msgid "Swap left and right CTRL keys"
-msgstr ""
+msgstr "Sol ve sağ CTRL tuşlarının yerini değiştir"
 
 msgid "Sync to Vblank"
-msgstr ""
+msgstr "VBlank'a senkronla"
 
 msgid "Synchronizing database..."
-msgstr ""
+msgstr "Veritabanı senkronlanıyor..."
+
+msgid "Synchronizing personal ratings..."
+msgstr "Kişisel puanlar senkronlanıyor..."
 
 msgid "Texture filter"
-msgstr ""
+msgstr "Doku filtresi"
+
+msgid "Toggle Between Windowed and Full-Screen Mode"
+msgstr "Pencere ve Tam-Ekran Modu Arasında Geçiş Yap"
+
+msgid "Tools"
+msgstr "Araçlar"
 
 msgid "Ungrab mouse and keyboard on middle mouse click"
-msgstr ""
+msgstr "Orta fare düğmesine tıklandığında fare ve klavyeyi serbest bırak"
 
-msgid "Update ({version}) is available"
-msgstr ""
+msgid "Update available ({version})"
+msgstr "Güncelleme mevcut ({version})"
 
 msgid "Updating database"
-msgstr ""
+msgstr "Veritabanı güncelleniyor"
 
 msgid "Updating game entries:"
-msgstr ""
+msgstr "Oyun girdileri güncelleniyor:"
+
+msgid "Use RDB disk images for size >= {0}"
+msgstr ">= {0} boyutu için RDB disk imajları kullan"
 
 msgid "Video Settings"
-msgstr ""
+msgstr "Video Ayarları"
 
 msgid "Video buffer format and color depth"
-msgstr ""
+msgstr "Video arabellek formatı ve renk derinliği"
 
 msgid "Video synchronization"
-msgstr ""
+msgstr "Video senkronizasyonu"
 
 msgid "Video synchronization method"
-msgstr ""
+msgstr "Video senkronizasyon formatı"
 
 msgid "Video texture format (on the GPU)"
-msgstr ""
+msgstr "Video doku formatı (GPU üzerinde)"
 
 msgid "WHDLoad Arguments"
-msgstr ""
+msgstr "WHDLoad Argümanları"
 
 msgid "You should have kickstart files for each Amiga model you want to use:"
 msgstr ""
+"Kullanmak istediğiniz her Amiga modeli için kickstart dosyasına sahip "
+"olmalısınız:"
 
 msgid "Zoom Amiga display (crop)"
-msgstr ""
+msgstr "Amiga görüntüsüne zum yap (kenarlardan kes)"
 
 msgid "Zorro III RAM"
-msgstr ""
+msgstr "Zorro III RAM"
+
+msgid "{amiga_model} with < 2 MB chip memory"
+msgstr "< 2 MB çip belleğe sahip {amiga_model} "

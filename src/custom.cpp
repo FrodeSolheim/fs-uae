@@ -73,6 +73,10 @@
 
 #define SPRBORDER 0
 
+#ifdef FSUAE
+int g_frame_debug_logging = 0;
+#endif
+
 STATIC_INLINE bool nocustom (void)
 {
 	if (picasso_on && currprefs.picasso96_nocustom)
@@ -5935,6 +5939,12 @@ static void vsync_handler_pre (void)
 // emulated hardware vsync
 static void vsync_handler_post (void)
 {
+#ifdef FSUAE
+    if (g_frame_debug_logging) {
+        write_log("%6d  vsync_handler_post  %08x\n", vsync_counter,
+                uae_get_memory_checksum());
+    }
+#endif
 	static frame_time_t prevtime;
 
 	//write_log (_T("%d %d %d\n"), vsynctimebase, read_processor_time () - vsyncmintime, read_processor_time () - prevtime);

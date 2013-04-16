@@ -21,6 +21,7 @@
 
 static int fs_uae_argc;
 static char **fs_uae_argv;
+static int g_warn_about_missing_config_file = 0;
 
 #define LOG_LINE "---------------------------------------------------------" \
         "-------------------\n"
@@ -154,9 +155,15 @@ void fs_uae_process_input_event(int action, int state) {
     }
 }
 
-int event_handler_loop(void) {
+static int g_fs_uae_frame = 0;
 
-    fs_emu_lua_run_handler("on_fs_uae_read_input");
+static int input_handler_loop(void) {
+    static int last_frame = -1;
+    if (g_fs_uae_frame != last_frame) {
+        // only run this for the first input handler loop per frame
+        fs_emu_lua_run_handler("on_fs_uae_read_input");
+        last_frame = g_fs_uae_frame;
+    }
 
     int action;
     //int reconfigure_input = 0;
@@ -191,9 +198,11 @@ static void pause_throttle() {
     fs_emu_msleep(5);
 }
 
-static int g_fs_uae_frame = 0;
-
-void event_handler(void) {
+void event_handler(int input) {
+    if (input) {
+        input_handler_loop();
+        return;
+    }
     //static int busy = 0;
     //static int idle = 0;
     //static int64_t last_time = 0;
@@ -224,7 +233,6 @@ void event_handler(void) {
         amiga_quit();
         return;
     }
-    event_handler_loop();
     while (fs_emu_is_paused()) {
         /*
         if (!event_handler_loop()) {
@@ -331,6 +339,13 @@ static void on_init() {
     fs_uae_configure_hard_drives();
     fs_uae_configure_input();
     fs_uae_configure_directories();
+
+    if (fs_config_get_int("save_state_compression") == 0) {
+        amiga_set_save_state_compression(0);
+    }
+    else {
+        amiga_set_save_state_compression(1);
+    }
 
     /*
     if (fs_emu_get_video_sync()) {
@@ -456,7 +471,7 @@ static int load_config_file() {
         }
         else {
             fs_log("No configuration file was found");
-            fs_emu_warning(_("No configuration file was found"));
+            g_warn_about_missing_config_file = 1;
         }
     }
 
@@ -480,11 +495,17 @@ static void main_function() {
     fs_log("amiga_main returned\n");
 }
 
+#ifdef WINDOWS
+// FIXME: move to fs_putenv
+int _putenv(const char *envstring);
+#endif
+
 void init_i18n() {
     if (fs_config_get_boolean("localization") == 0) {
         fs_log("localization was forced off\n");
         return;
     }
+
     char *locale = setlocale(LC_MESSAGES, "");
     if (locale) {
         fs_log("locale is set to %s\n", locale);
@@ -492,6 +513,19 @@ void init_i18n() {
     else {
         fs_log("failed to set current locale\n");
     }
+
+    const char *language = fs_config_get_const_string("language");
+    if (language) {
+        fs_log("setting LANGUAGE=%s\n", language);
+        char *env_str = fs_strdup_printf("LANGUAGE=%s", language);
+#ifdef WINDOWS
+        _putenv(env_str);
+#else
+        putenv(env_str);
+#endif
+        // don't free env_str, it's put directly in the environment
+    }
+
 #ifndef ANDROID
     textdomain("fs-uae");
     char *path = fs_get_data_file("fs-uae/share-dir");
@@ -548,6 +582,37 @@ void list_joysticks() {
     printf("# listing joysticks done\n");
 }
 
+extern int disk_debug_logging;
+extern int g_frame_debug_logging;
+extern int g_fsdb_debug;
+extern int g_random_debug_logging;
+extern int inputdevice_logging;
+
+static void configure_logging(const char *logstr) {
+    if (!logstr) {
+        fs_log("configure logging: none\n");
+        return;
+    }
+    fs_log("configure logging: %s\n", logstr);
+    int all = strstr(logstr, "all") != 0;
+    int uae_all = all || strstr(logstr, "uae") != 0;
+    if (uae_all || strstr(logstr, "uae_disk")) {
+        disk_debug_logging = 2;
+    }
+    if (uae_all || strstr(logstr, "uae_rand")) {
+        g_random_debug_logging = 2;
+    }
+    if (uae_all || strstr(logstr, "uae_input")) {
+        inputdevice_logging = 0xffff;
+    }
+    if (uae_all || strstr(logstr, "uae_fs")) {
+        g_fsdb_debug = 1;
+    }
+    if (uae_all || strstr(logstr, "uae_frame")) {
+        g_frame_debug_logging = 1;
+    }
+}
+
 static const char *overlay_names[] = {
     "df0_led",
     "df1_led",
@@ -574,11 +639,12 @@ static const char *overlay_names[] = {
 "PURPOSE. See the README for more copyright info, and the source code for\n" \
 "a full list of contributors\n\n"
 
+FILE *g_state_log_file = NULL;
+
 int main(int argc, char* argv[]) {
     int result;
     fs_uae_argc = argc;
     fs_uae_argv = argv;
-
     fs_set_argv(argc, argv);
 
     char **arg;
@@ -629,8 +695,6 @@ int main(int argc, char* argv[]) {
     fs_log(LOG_LINE);
     fs_log("\n");
 
-    init_i18n();
-
     fs_emu_init_overlays(overlay_names);
     fs_emu_init();
 
@@ -640,12 +704,19 @@ int main(int argc, char* argv[]) {
     // file
     //fs_config_parse_options(argc - 1, argv + 1);
 
+    init_i18n();
+
+    if (g_warn_about_missing_config_file) {
+        fs_emu_warning(_("No configuration file was found"));
+    }
+
     fs_log("\n");
     fs_log(LOG_LINE);
     fs_log("fs-uae init\n");
     fs_log(LOG_LINE);
     fs_log("\n");
 
+    configure_logging(fs_config_get_const_string("log"));
     fs_emu_set_state_check_function(amiga_get_state_checksum);
     fs_emu_set_rand_check_function(amiga_get_rand_checksum);
 
@@ -728,8 +799,6 @@ int main(int argc, char* argv[]) {
 
     amiga_set_audio_callback(audio_callback_function);
     amiga_set_cd_audio_callback(audio_callback_function);
-
-    //amiga_set_cd_audio_callback(audio_callback_function);
     amiga_set_event_function(event_handler);
     amiga_set_led_function(led_function);
     amiga_set_media_function(media_function);

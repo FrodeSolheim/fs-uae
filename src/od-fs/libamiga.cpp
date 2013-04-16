@@ -18,7 +18,7 @@
 #include "events.h"
 #include "luascript.h"
 
-int uae_get_memory_checksum();
+#include "uae/fs.h"
 
 void keyboard_settrans (void);
 libamiga_callbacks g_libamiga_callbacks = {};
@@ -29,6 +29,8 @@ amiga_media_function g_amiga_media_function = NULL;
 int g_uae_deterministic_mode = 0;
 int g_amiga_paused = 0;
 char *g_libamiga_save_image_path = NULL;
+
+int g_amiga_savestate_docompress = 1;
 
 #ifdef DEBUG_SYNC
 FILE* g_fs_uae_sync_debug_file = NULL;
@@ -138,6 +140,10 @@ void gui_led (int led, int state) {
 }
 
 extern "C" {
+
+void amiga_set_save_state_compression(int compress) {
+    g_amiga_savestate_docompress = compress ? 1 : 0;
+}
 
 void amiga_init_lua(void (*lock)(void), void (*unlock)(void)) {
 #ifdef WITH_LUA

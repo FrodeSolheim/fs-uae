@@ -365,6 +365,10 @@ gensrc/cpuemu_31.cpp: gensrc/cpuemu_0.cpp
 
 endif
 
+# Using GCC optimization level O0 instead of O2 for cpuemu*, since a bug
+# was found caused by the optimizer (where basically (1 ^ 0) & (1 ^ 0) was
+# evaluated to 0). This fixes Tower of Babel (IPF).
+
 obj/gensrc-cpuemu%.o: gensrc/cpuemu%.cpp
 	$(cxx) $(cppflags) $(cxxflags) -O0 -c $< -o $@
 
@@ -429,7 +433,8 @@ catalogs = \
 	share/locale/nb/LC_MESSAGES/fs-uae.mo \
 	share/locale/pl/LC_MESSAGES/fs-uae.mo \
 	share/locale/pt/LC_MESSAGES/fs-uae.mo \
-	share/locale/sr/LC_MESSAGES/fs-uae.mo
+	share/locale/sr/LC_MESSAGES/fs-uae.mo \
+	share/locale/tr/LC_MESSAGES/fs-uae.mo
 
 mo: $(catalogs)
 

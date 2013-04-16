@@ -249,4 +249,10 @@ class Amiga:
             ],
             "ext_roms": [
             ],
+            "defaults": {
+                "chip_memory": "0",
+                "slow_memory": "0",
+                "fast_memory": "0",
+                "zorro_iii_memory": "0",
+            }
         }

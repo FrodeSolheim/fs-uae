@@ -1,4 +1,26 @@
-Version 2.1.35:
+Version 2.3.0:
+
+* Show on-screen warning if OpenAL device cannot be opened, log OpenAL
+  error code.
+* New option save_state_compression can be used to disable save state
+  compression.
+* New option "log" which can be used to enable misc types of debug logging.
+* Queued input events are processed in hsync handler.
+* Use CD32 + FMV quickstart for CD32 model, update cd.device in cartridge
+  ROM fixes problem with Pirates Gold intro.
+* Removed a couple of left-over / unnecesary log statements.
+* New translations: tr [Decypher].
+* (Launcher) Fixed bug when specifying window_width / window_height in
+  custom settings.
+* (Launcher) Warn when using A1200 model with < 2 MB chip RAM.
+* (Launcher) Fixed a bug where 0-byte screenshot / covers files could be
+  stored if a network error occurs while downloading.
+* (Launcher) Better support for A3000 and A4000 with the game database.
+* (Launcher) Support hiding variants from the database based on _status.
+* (Launcher) Cycle-exact can be disabled from database if abs. necessary.
+* (Launcher) New translations: tr [Decypher].
+
+Version 2.1.35 / 2.2.0:
 
 * Updated translations: nb.
 * (Launcher) Support db_version from online game database, show warning if

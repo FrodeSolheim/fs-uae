@@ -63,8 +63,8 @@ class CustomSettingsPage(fsui.Panel):
             parts = line.split("=", 1)
             if len(parts) == 2:
                 key = parts[0].strip()
-                if key in Settings.default_settings:
-                    continue
+                #if key in Settings.default_settings:
+                #    continue
                 value = parts[1].strip()
                 Settings.set(key, value)
 

@@ -9,6 +9,7 @@ from ..Amiga import Amiga
 from ..Database import Database
 from ..I18N import _, ngettext
 #from ..Settings import Settings
+from ..Config import Config
 from ..Signal import Signal
 from .SetupDialog import SetupDialog
 from .Skin import Skin
@@ -31,23 +32,27 @@ class InfoPanel(base_class):
         self.padding_top = padding_top
         self.padding_bottom = padding_bottom
 
-        self.update_available = False
+        self.chip_memory_warning = None
         self.kickstarts_missing = False
+        self.update_available = False
 
         self.update_available_icon = fsui.Image("fs_uae_launcher:res/"
                 "update_available_32.png")
-        self.kickstarts_missing_icon = fsui.Image("fs_uae_launcher:res/"
+        self.warning_icon = fsui.Image("fs_uae_launcher:res/"
                 "warning_32.png")
+        self.kickstarts_missing_icon = self.warning_icon
 
         self.check_kickstarts()
         #Config.add_listener(self)
         #Settings.add_listener(self)
         Signal.add_listener("update_available", self)
         Signal.add_listener("scan_done", self)
+        Signal.add_listener("config", self)
 
     def on_destroy(self):
         #Config.remove_listener(self)
         #Settings.remove_listener(self)
+        Signal.remove_listener("config", self)
         Signal.remove_listener("scan_done", self)
         Signal.remove_listener("update_available", self)
 
@@ -57,11 +62,33 @@ class InfoPanel(base_class):
 #    def on_setting(self, key, value):
 #        pass
 
+    def on_config(self, key, value):
+        #print("InfoPanel.on_config", key, value)
+        if key in ["amiga_model", "chip_memory"]:
+            amiga_model = Config.get("amiga_model")
+            try:
+                chip_memory = int(Config.get("chip_memory"))
+            except:
+                chip_memory = ""
+            if chip_memory and chip_memory < 2048 and \
+                    amiga_model in ["A1200", "A1200/020", "A4000/040"]:
+                new_chip_memory_warning = [_("Configuration Warning"),
+                        _("{amiga_model} with < 2 MB chip memory"
+                        "".format(amiga_model=amiga_model))]
+            else:
+                new_chip_memory_warning = None
+            if new_chip_memory_warning != self.chip_memory_warning:
+                self.chip_memory_warning = new_chip_memory_warning
+                self.refresh()
+
     def on_scan_done_signal(self):
         print("InfoPanel.on_scan_done_signal")
         self.check_kickstarts()
 
     def check_kickstarts(self):
+        # FIXME: instead of this check, check if x_kickstart_sha1 is set
+        # properly when amiga_model / x_kickstart_sha1 changes, so you''
+        # only get a warning for the Amiga model in question.
         ok = True
         database = Database.get_instance()
         amiga = Amiga.get_model_config("A500")
@@ -93,7 +120,10 @@ class InfoPanel(base_class):
         if not self.toolbar_mode:
             TabPanel.draw_background(self, dc)
 
-        if self.kickstarts_missing:
+        if self.chip_memory_warning:
+            self.draw_notification(dc, self.warning_icon,
+                    *self.chip_memory_warning)
+        elif self.kickstarts_missing:
             self.draw_kickstarts_missing_notification(dc)
         elif self.update_available:
             self.draw_update_available_notification(dc)

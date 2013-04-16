@@ -61,7 +61,7 @@ this package; if not, write to the Free Software Foundation, Inc.,
 The following people have translated FS-UAE Launcher into several languages: 
 Cédric "Foul" Monféfoul (French), nexusle (German), Speedvicio (Italian),
 grimi (Polish), Milanchez (Serbian), albconde (Spanish), Treco (Portuguese),
-GoingDown (Finish), spajdr (Czech).
+GoingDown (Finish), spajdr (Czech), Decypher (Turkisk).
 
 A big thanks to everyone who have tested the software and provided valuable
 feedback! Especially the encouraging members of the English Amiga Board, and

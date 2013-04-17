@@ -728,10 +728,20 @@ int DISK_validate_filename (struct uae_prefs *p, const TCHAR *fname, int leave_o
 
 static void updatemfmpos (drive *drv)
 {
+#ifdef FSUAE
+    if (disk_debug_logging) {
+        write_log(_T("drv->mfmpos = %d (updatemfmpos start)\n"), drv->mfmpos);
+    }
+#endif
 	if (drv->prevtracklen)
 		drv->mfmpos = drv->mfmpos * (drv->tracklen * 1000 / drv->prevtracklen) / 1000;
 	drv->mfmpos %= drv->tracklen;
 	drv->prevtracklen = drv->tracklen;
+#ifdef FSUAE
+    if (disk_debug_logging) {
+        write_log(_T("drv->mfmpos = %d (updatemfmpos stop)\n"), drv->mfmpos);
+    }
+#endif
 }
 
 static void track_reset (drive *drv)
@@ -1216,6 +1226,11 @@ static int drive_insert (drive * drv, struct uae_prefs *p, int dnum, const TCHAR
 	drv->mfmpos = uaerand ();
 	drv->mfmpos |= (uaerand () << 16);
 	drv->mfmpos %= drv->tracklen;
+#ifdef FSUAE
+    if (disk_debug_logging) {
+        write_log(_T("drv->mfmpos = %d\n"), drv->mfmpos);
+    }
+#endif
 	drv->prevtracklen = 0;
 #ifdef DRIVESOUND
 	driveclick_insert (drv - floppy, 0);
@@ -3308,6 +3323,11 @@ static void DISK_start (void)
 			/* Ugh.  A nasty hack.  Assume ADF_EXT1 tracks are always read
 			from the start.  */
 			if (ti->type == TRACK_RAW1) {
+#ifdef FSUAE
+                if (disk_debug_logging) {
+                    write_log("setting drv->mfmpos = 0...\n");
+                }
+#endif
 				drv->mfmpos = 0;
 				bitoffset = 0;
 			}
@@ -3556,6 +3576,11 @@ void DSKLEN (uae_u16 v, int hpos)
 					pos %= drv->tracklen;
 				}
 				drv->mfmpos = pos;
+#ifdef FSUAE
+                if (disk_debug_logging) {
+                    write_log("drv->mfmpos = %d (2)\n", drv->mfmpos);
+                }
+#endif
 				INTREQ (0x8000 | 0x1000);
 				done = 1;
 
@@ -3572,6 +3597,11 @@ void DSKLEN (uae_u16 v, int hpos)
 					pos %= drv->tracklen;
 				}
 				drv->mfmpos = pos;
+#ifdef FSUAE
+                if (disk_debug_logging) {
+                    write_log("drv->mfmpos = %d (3)\n", drv->mfmpos);
+                }
+#endif
 				drive_write_data (drv);
 				done = 1;
 			}

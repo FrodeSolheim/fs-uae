@@ -7,6 +7,8 @@
 #ifdef WINDOWS
 // struct timeval is defined here...
 #include <Winsock2.h>
+#else
+#include <sys/time.h>
 #endif
 #include <time.h>
 

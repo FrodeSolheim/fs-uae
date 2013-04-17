@@ -167,7 +167,7 @@ void handle_events (void) {
     count++;
 #endif
     if (g_libamiga_callbacks.event) {
-        g_libamiga_callbacks.event();
+        g_libamiga_callbacks.event(0);
     }
 
     //frame_wait_for_filesys();
@@ -366,6 +366,9 @@ void gui_gameport_button_change (int port, int button, int onoff) {
 #endif
 
 int handle_msgpump (void) {
+    if (g_libamiga_callbacks.event) {
+        g_libamiga_callbacks.event(1);
+    }
 #ifdef WINDOWS
     // this message queue is used to dispatch messages for bsdsocket emulation
     // on Windows. Socket functions are run asynchronously with results posted

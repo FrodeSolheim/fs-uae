@@ -17,6 +17,7 @@ catalogs = \
 	share/locale/pl/LC_MESSAGES/fs-uae-launcher.mo \
 	share/locale/pt/LC_MESSAGES/fs-uae-launcher.mo \
 	share/locale/sr/LC_MESSAGES/fs-uae-launcher.mo \
+	share/locale/tr/LC_MESSAGES/fs-uae-launcher.mo
 
 mo: $(catalogs)
 

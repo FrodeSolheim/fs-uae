@@ -313,7 +313,9 @@ class LaunchHandler:
             os.makedirs(dir_path)
 
         amiga_model = self.config.get("amiga_model", "A500")
-        if amiga_model.startswith("A1200") or amiga_model.startswith("A4000"):
+        if amiga_model.startswith("A1200") or \
+                amiga_model.startswith("A4000") or \
+                amiga_model.startswith("A3000"):
             workbench = "Minimal Workbench v3.1"
         elif amiga_model == "A600":
             workbench = "Minimal Workbench v2.05"

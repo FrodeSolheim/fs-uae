@@ -64,6 +64,10 @@
 #include "inputrecord.h"
 #include "disk.h"
 
+#ifdef FSUAE
+#include "uae/fs.h"
+#endif
+
 int savestate_state = 0;
 static int savestate_first_capture;
 
@@ -1107,7 +1111,11 @@ void savestate_quick (int slot, int save)
 #endif
 	if (save) {
 		write_log (_T("saving '%s'\n"), savestate_fname);
+#ifdef FSUAE
+		savestate_docompress = g_amiga_savestate_docompress;
+#else
 		savestate_docompress = 1;
+#endif
 		save_state (savestate_fname, _T(""));
 	} else {
 		if (!zfile_exists (savestate_fname)) {

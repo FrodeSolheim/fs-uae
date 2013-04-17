@@ -147,6 +147,7 @@ class ValueConfigLoader:
             self.config["x_cdrom_image_{0}_sha1".format(i)] = sha1
 
     def load_option(self, key, value):
+        model = self.options.get("amiga_model", "")
         if key in ["variant_viewport", "viewport"]:
             if "=" in value:
                 parts = value.split(",")
@@ -173,7 +174,6 @@ class ValueConfigLoader:
         elif key == "whdload_version":
             self.options["x_whdload_version"] = value
         elif key == "kickstart":
-            model = self.options.get("amiga_model", "")
             if value == "1.2":
                 self.options["amiga_model"] = "A1000"
             elif value == "2.0":
@@ -182,12 +182,13 @@ class ValueConfigLoader:
                 else:
                     self.options["amiga_model"] = "A600"
             elif value == "2.0+":
-                if model in ["A500+", "A600", "A1200", "A1200/020"]:
+                if model in ["A500+", "A600", "A1200", "A1200/020",
+                        "A3000", "A4000/040"]:
                     pass
                 else:
                     self.options["amiga_model"] = "A600"
             elif value in ["3.0+", "3.1", "3.1+"]:
-                if model in ["A1200", "A1200/020"]:
+                if model in ["A1200", "A1200/020", "A3000", "A4000/040"]:
                     pass
                 else:
                     self.options["amiga_model"] = "A1200"
@@ -198,12 +199,21 @@ class ValueConfigLoader:
                 pass
         elif key == "chipset":
             if value == "ECS":
-                self.options["amiga_model"] = "A600"
+                if model in ["A500+", "A600", "A3000"]:
+                    pass
+                else:
+                    self.options["amiga_model"] = "A600"
             elif value == "AGA":
-                self.options["amiga_model"] = "A1200"
+                if model in ["A1200", "A1200/020", "A4000/040"]:
+                    pass
+                else:
+                    self.options["amiga_model"] = "A1200"
         elif key == "cpu":
             if value == "68020+" or value == "68020":
-                self.options["amiga_model"] = "A1200"
+                if model in ["A1200", "A1200/020", "A3000", "A4000/040"]:
+                    pass
+                else:
+                    self.options["amiga_model"] = "A1200"
         elif key == "fast_memory":
             ivalue = int(value)
             if ivalue > 8192:
@@ -236,7 +246,7 @@ class ValueConfigLoader:
                 "joystick_port_2_mode", "joystick_port_3_mode",
                 "joystick_port_4_mode"]:
             self. load_joystick_port_x_mode_option(key, value)
-        elif key in ["amiga_model",
+        elif key in ["amiga_model", "accuracy", 
                 "floppy_drive_count", "slow_memory", "front_sha1",
                 "screen1_sha1", "screen2_sha1", "screen3_sha1",
                 "screen4_sha1", "screen5_sha1", "title_sha1",

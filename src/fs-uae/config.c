@@ -66,6 +66,7 @@ void fs_uae_init_configs() {
     c->name = "Amiga CD32";
     //c->quickstart = "CD32,,";
     c->quickstart_model = 8;
+    c->quickstart_config = 1;
 #ifdef NEW_ACCURACY_SYSTEM
     c->fast_on_accuracy_level = -999;
 #else

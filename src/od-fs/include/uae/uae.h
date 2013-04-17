@@ -47,6 +47,8 @@ int amiga_cpu_set_speed(int speed);
 
 void amiga_set_deterministic_mode();
 
+void amiga_set_save_state_compression(int compress);
+
 int amiga_enable_serial_port(const char *serial_name);
 
 void amiga_set_save_image_dir(const char *path);
@@ -111,7 +113,7 @@ typedef struct _RenderData {
     int bpp;
 } RenderData;
 
-typedef void (*event_function)(void);
+typedef void (*event_function)(int);
 typedef void (*init_function)(void);
 typedef void (*render_function)(RenderData *rd);
 typedef void (*display_function)();

@@ -1,0 +1,241 @@
+# Turkish translations for fs-uae package.
+# Copyright (C) 2013 Frode Solheim
+# This file is distributed under the same license as the fs-uae package.
+# Frode Solheim <fs-uae@fengestad.no>, 2013.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: fs-uae\n"
+"Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
+"POT-Creation-Date: 2013-03-20 22:26+0100\n"
+"PO-Revision-Date: 2013-04-07 19:24+0200\n"
+"Last-Translator: Eser Güven <thedecypher@hotmail.com>\n"
+"Language-Team: Turkish\n"
+"Language: tr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 1.5.5\n"
+
+msgid "Activated debugger"
+msgstr "Hata ayıklama aktifleştirildi"
+
+msgid "Amiga Control"
+msgstr "Amiga Kontrolü"
+
+#. / TRANSLATORS: In context "Zoom: Auto"
+msgid "Auto"
+msgstr "Otomatik"
+
+msgid "Auto-Fire is Off"
+msgstr "Otomatik-Ateş Kapalı"
+
+msgid "Auto-Fire is On"
+msgstr "Otomatik-Ateş Açık"
+
+#, c-format
+msgid "Auto-fire disabled for port %d"
+msgstr "Otomatik ateş %d portu için devre dışı"
+
+#, c-format
+msgid "Auto-fire enabled for port %d"
+msgstr "Otomatik ateş %d portu için aktif"
+
+#. / TRANSLATORS: Empty or nothing
+#, c-format
+msgid "CD%d: Empty"
+msgstr "CD%d: Boş"
+
+msgid "CD32 Pad Mode"
+msgstr "CD32 Pad Modu"
+
+#. / TRANSLATORS: This is a menu entry and must not be too long
+msgid "Custom Joystick Port"
+msgstr "Özel Joystick Portu"
+
+msgid "Custom Mode"
+msgstr "Özel Mod"
+
+#. / TRANSLATORS: Empty or nothing
+#, c-format
+msgid "DF%d: Empty"
+msgstr "DF%d: Boş"
+
+msgid "Disabled"
+msgstr "Devre dışı"
+
+msgid "Eject"
+msgstr "Çıkar"
+
+msgid "Empty"
+msgstr "Boş"
+
+msgid "Emulator Control"
+msgstr "Emülatör Kontrolü"
+
+#. / TRANSLATORS: In context "Zoom: Full Frame"
+msgid "Full Frame"
+msgstr "Tam Ekran"
+
+#, c-format
+msgid "HD not found: %s"
+msgstr "HD bulunamadı: %s"
+
+#. / TRANSLATORS: Hard reset is a computer reboot with an emulated power
+#. / cycle
+msgid "Hard Reset"
+msgstr "Hard Reset İşlemi"
+
+msgid "Input Options"
+msgstr "Giriş Seçenekleri"
+
+#. / TRANSLATORS: This is a menu entry and must not be too long
+#, c-format
+msgid "Insert Into CD%d"
+msgstr "CD%d Sürücüsüne Takın"
+
+#. / TRANSLATORS: This is a menu entry and must not be too long
+#, c-format
+msgid "Insert Into DF%d"
+msgstr "DF%d Sürücüsüne Takın"
+
+msgid "Invalid number of CD-ROM drives specified"
+msgstr "Belirtilen CD-ROM sürücüsü sayısı geçersiz"
+
+msgid "Joystick Mode"
+msgstr "Joystick Modu"
+
+#. / TRANSLATORS: This is a menu entry and must not be too long
+#, c-format
+msgid "Joystick Port %d"
+msgstr "Joystick Portu %d"
+
+#. / TRANSLATORS: This is a menu entry and must not be too long
+#, c-format
+msgid "Joystick Port %d Device"
+msgstr "Joystick Portu %d Cihazı"
+
+#. / TRANSLATORS: This is a menu entry and must not be too long
+#, c-format
+msgid "Joystick Port %d Mode"
+msgstr "Joystick Portu %d Modu"
+
+msgid "Joystick Port 0"
+msgstr "Joystick Portu 0"
+
+msgid "Joystick Port 1"
+msgstr "Joystick Portu 1"
+
+msgid "Joystick Port 2"
+msgstr "Joystick Portu 2"
+
+msgid "Joystick Port 3"
+msgstr "Joystick Portu 3"
+
+msgid "Joystick Port 4"
+msgstr "Joystick Portu 4"
+
+msgid "Joystick Ports"
+msgstr "Joystick Portları"
+
+msgid "Keyboard"
+msgstr "Klavye"
+
+msgid "Load"
+msgstr "Yükle"
+
+msgid "More..."
+msgstr "Fazlası..."
+
+msgid "Mouse"
+msgstr "Fare"
+
+msgid "Mouse Mode"
+msgstr "Fare Modu"
+
+#. / TRANSLATORS: This is a menu entry and must not be too long: If you struggle
+#. / to get in short enough, just translate "No Device" instead.
+msgid "No Amiga Device"
+msgstr "Cihaz Yok"
+
+#. / TRANSLATORS: This is a menu entry and must not be too long: If you struggle
+#. / to get in short enough, just translate "No Device" instead.
+msgid "No Host Device"
+msgstr "Cihaz Yok"
+
+msgid "No configuration file was found"
+msgstr "Konfigürasyon dosyası bulunamadı"
+
+#, c-format
+msgid "Option \"%s\" is not enabled"
+msgstr "\"%s\" ayarı seçili değil"
+
+msgid "Option chip_memory must be a multiple of 512"
+msgstr "chip_memory ayarı 512'nin katı olmalıdır"
+
+msgid "Option fast_memory must be a multiple of 1024"
+msgstr "fast_memory ayarı 1024'ün katı olmalıdır"
+
+msgid "Option slow_memory must be a multiple of 256"
+msgstr "slow_memory ayarı 256'nın katı olmalıdır"
+
+msgid "Option uaegfx.card needs a CPU with 32-bit addressing"
+msgstr "uaegfx.card ayarı 32-bit adreslemeli bir CPU gerektirir"
+
+msgid "Option zorro_iii_memory must be a multiple of 1024"
+msgstr "zorro_iii_memory ayarı 1024'ün katı olmalıdır"
+
+msgid "Options zorro_iii_memory needs a CPU with 32-bit addressing"
+msgstr "zorro_iii_memory ayarı 32-bit adreslemeli bir CPU gerektirir"
+
+#. / TRANSLATORS: This is a menu entry and must not be too long
+msgid "Parallel Joystick Ports"
+msgstr "Paralel Joystick Portları"
+
+msgid "Pause"
+msgstr "Durdur"
+
+#, c-format
+msgid "Port 0: %s"
+msgstr "Port 0: %s"
+
+msgid "Port Settings"
+msgstr "Port Ayarları"
+
+msgid "Removable Media"
+msgstr "Çıkarılabilir Medya"
+
+#. / TRANSLATORS: Reset Amiga as in reboot the computer
+msgid "Reset Amiga"
+msgstr "Amigayı Resetle"
+
+msgid "Resume"
+msgstr "Devam Et"
+
+msgid "Save"
+msgstr "Kaydet"
+
+msgid "Save States"
+msgstr "Kayıt Dosyaları"
+
+#. / TRANSLATORS: Soft reset reboots the computer without a power cycle
+msgid "Soft Reset"
+msgstr "Soft Reset İşlemi"
+
+msgid "Warp mode disabled"
+msgstr "Hız modu devre dışı"
+
+msgid "Warp mode enabled"
+msgstr "Hız modu aktif"
+
+msgid "Zoom is disabled in RTG mode"
+msgstr "RTG modunda zum yapma özelliği kapalıdır"
+
+#, c-format
+msgid "Zoom: %s"
+msgstr "Zum yap: %s"
+
+#, c-format
+msgid "Zoom: %s + Border"
+msgstr "Zum yap: %s + Kenar Çizgisi"

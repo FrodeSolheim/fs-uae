@@ -428,7 +428,7 @@ msgid "Launching FS-UAE"
 msgstr "Starte FS-UAE"
 
 msgid "Least Accurate"
-msgstr "Nahezu genau"
+msgstr "Am wenigsten genau"
 
 msgid "Less Accurate"
 msgstr "Weniger genau"

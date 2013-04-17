@@ -9,7 +9,7 @@ import threading
 
 class GameDatabase:
 
-    VERSION = 3
+    VERSION = 4
 
     thread_local = threading.local()
     database_path = None
@@ -160,4 +160,9 @@ class GameDatabase:
         """)
         self._cursor.execute("""
             UPDATE game SET sort_key = lower(name);
+        """)
+
+    def update_database_to_version_4(self):
+        self._cursor.execute("""
+            ALTER TABLE game ADD COLUMN status INTEGER NOT NULL DEFAULT 0;
         """)

@@ -73,8 +73,8 @@ class Settings:
         "video_sync": "",
         "video_sync_method": "",
         "zoom": "",
-        "window_width": "",
-        "window_height": "",
+        #"window_width": "",
+        #"window_height": "",
     }
 
     settings = default_settings.copy()
@@ -86,7 +86,8 @@ class Settings:
 
     @classmethod
     def get(cls, key):
-        return cls.settings.setdefault(key, "")
+        #return cls.settings.setdefault(key, "")
+        return cls.settings.get(key, "")
 
     @classmethod
     def add_listener(cls, listener):

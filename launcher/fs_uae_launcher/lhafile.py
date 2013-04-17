@@ -258,7 +258,7 @@ class Lhafile:
             minute = ((ord(modify_time[1]) << 8 | ord(modify_time[0])) >> 5) & 0x2F
             second = (ord(modify_time[0]) & 0x1F) * 2
 
-            print(os_level, year, month, day, hour, minute, second)
+            #print(os_level, year, month, day, hour, minute, second)
             try:
                 date_time = datetime.datetime(year, month, day, hour, minute, second)
             except Exception:

@@ -15,6 +15,7 @@ from .Amiga import Amiga
 from .Config import Config
 from .ConfigurationScanner import ConfigurationScanner
 from .Database import Database
+from .I18N import initialize_locale
 from .Paths import Paths
 from .ROMManager import ROMManager
 from .Settings import Settings
@@ -54,6 +55,10 @@ class FSUAELauncher(fsui.Application):
 
         self.parse_arguments()
         self.load_settings()
+
+        language = Settings.get("language")
+        initialize_locale(language)
+
         self.config_startup_scan()
         self.kickstart_startup_scan()
         database = Database.get_instance()

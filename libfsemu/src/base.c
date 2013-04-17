@@ -447,7 +447,7 @@ char *find_program_in_path(const char *prog) {
 }
 
 int fs_get_application_exe_path(char *buffer, int size) {
-    fs_log("fs_get_application_exe_path\n");
+    //fs_log("fs_get_application_exe_path\n");
     // Mac OS X: _NSGetExecutablePath() (man 3 dyld)
     // Linux: readlink /proc/self/exe
     // Solaris: getexecname()

@@ -441,7 +441,18 @@ static void openal_audio_init() {
 
     }
     else {
-        fs_log("WARNING: could not open OpenAL device\n");
+        fs_log("alcOpenDevice returned NULL\n");
+        fs_emu_warning("OpenAL: Could not open audio device device\n");
+        ALenum error_code = alGetError();
+        fs_log("OpenAL error code: %d\n", error_code);
+        if (alGetString(error_code)) {
+            fs_log("(%s)\n", alGetString(error_code));
+        }
+    }
+
+    log_openal_info();
+    if (!g_device) {
+        return;
     }
 
 #if 0
@@ -474,11 +485,9 @@ static void openal_audio_init() {
         fs_log("openal: made context current\n");
     }
     else {
-        fs_log("ERROR: no OpenAL context\n");
+        fs_emu_warning("OpenAL: no context created\n");
         //check_al_error("alcCreateContext");
     }
-
-    log_openal_info();
 
     int stereo_sources;
     alcGetIntegerv(g_device, ALC_STEREO_SOURCES, 1, &stereo_sources);

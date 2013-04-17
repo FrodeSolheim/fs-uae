@@ -104,8 +104,8 @@ class ConfigurationScanner:
         game_cursor.execute("SELECT a.uuid, a.game, a.variant, a.name, "
                 "a.platform, value, b.uuid, b.game, b.sort_key "
                 "FROM game a LEFT JOIN game b ON a.parent = b.id, value "
-                "WHERE a.id = value.game AND status = 1 AND "
-                "value.name = 'file_list'")
+                "WHERE a.id = value.game AND value.status = 1 AND "
+                "value.name = 'file_list' AND a.status > -90")
         for row in game_cursor:
             if self.stop_check():
                 return

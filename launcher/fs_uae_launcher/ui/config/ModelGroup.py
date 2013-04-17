@@ -15,11 +15,6 @@ from .ConfigDialog import ConfigDialog
 from .ConfigCheckBox import ConfigCheckBox
 
 
-ACCURACY_LEVELS = [
-        _("Accurate"),
-        _("Less Accurate"),
-        _("Least Accurate")]
-
 class ModelGroup(fsui.Group):
 
     # FIXME: remove with_more_button=True
@@ -32,7 +27,10 @@ class ModelGroup(fsui.Group):
         model_titles = [x["title"] for x in Amiga.models]
         self.model_choice = fsui.Choice(self, model_titles)
 
-        self.accuracy_choice = fsui.Choice(self, ACCURACY_LEVELS)
+        self.accuracy_choice = fsui.Choice(self, [
+                _("Accurate"),
+                _("Less Accurate"),
+                _("Least Accurate")])
         #self.ntsc_checkbox = fsui.CheckBox(self, "NTSC")
         self.ntsc_checkbox = ConfigCheckBox(self, "NTSC", "ntsc_mode")
 

@@ -1,4 +1,16 @@
-Version 2.3.0 / 2.2.1:
+Version 2.2.2:
+
+* With video_sync = auto, allow some slack when deciding to enable full
+  sync or not (accept host refresh rate 49 instead of just 50, ..).
+* New option: assume_refresh_rate (int) to manually specify host refresh
+  rate when refresh rate detection fails. This option in combination with
+  video_sync = auto effectively replaces video_sync = full.
+* video_sync = full is now an alias for video_sync = auto.
+* Fixed bug causing FS-UAE to hang when pausing with video_sync = off.
+* New model CD32/FMV (includes FMV ROM), CD32 model reverted to original.
+* Fixed compatibility issues in scanline GLSL shaders.
+
+Version 2.2.1:
 
 * Show on-screen warning if OpenAL device cannot be opened, log OpenAL
   error code.

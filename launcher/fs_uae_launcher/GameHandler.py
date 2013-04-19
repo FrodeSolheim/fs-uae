@@ -15,7 +15,7 @@ class GameHandler:
     @staticmethod
     def current():
         model = Config.get("amiga_model")
-        if model == "CD32":
+        if model.startswith("CD32"):
             platform = "CD32"
         elif model == "CDTV":
             platform = "CDTV"

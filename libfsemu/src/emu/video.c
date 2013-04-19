@@ -116,8 +116,9 @@ void fs_emu_set_video_frame_rate(int frame_rate) {
         fs_log("g_fs_emu_video_allow_full_sync = %d\n",
                 g_fs_emu_video_allow_full_sync);
         if (g_fs_emu_video_allow_full_sync) {
-            if (frame_rate && frame_rate == g_fs_emu_video_frame_rate_host) {
-                fs_log("frame rate (%d) equals screen refresh (%d)\n",
+            if (frame_rate && (frame_rate == g_fs_emu_video_frame_rate_host ||
+                    frame_rate == g_fs_emu_video_frame_rate_host + 1)) {
+                fs_log("frame rate (%d) close enough to screen refresh (%d)\n",
                         frame_rate, g_fs_emu_video_frame_rate_host);
                 fs_ml_video_sync_enable(1);
             }

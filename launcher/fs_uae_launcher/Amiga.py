@@ -187,7 +187,19 @@ class Amiga:
         }, {
             "title": "Amiga CD32",
             #"title": "CD32",
-            "cd_based": True,
+            "cd_based": "CD32",
+            "kickstarts": CD32_KICKSTARTS,
+            "ext_roms": CD32_EXT_ROMS,
+            "defaults": {
+                "chip_memory": "2048",
+                "slow_memory": "0",
+                "fast_memory": "0",
+                "zorro_iii_memory": "0",
+            }
+        }, {
+            "title": "Amiga CD32 + FMV ROM",
+            #"title": "CD32",
+            "cd_based": "CD32",
             "kickstarts": CD32_KICKSTARTS,
             "ext_roms": CD32_EXT_ROMS,
             "defaults": {
@@ -199,7 +211,7 @@ class Amiga:
         }, {
             "title": "Commodore CDTV",
             #"title": "CDTV",
-            "cd_based": True,
+            "cd_based": "CDTV",
             "kickstarts": CDTV_KICKSTARTS,
             "ext_roms": CDTV_EXT_ROMS,
             "defaults": {
@@ -221,6 +233,7 @@ class Amiga:
         "A3000",
         "A4000/040",
         "CD32",
+        "CD32/FMV",
         "CDTV",
     ]
 

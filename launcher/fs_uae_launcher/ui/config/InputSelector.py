@@ -110,7 +110,7 @@ class InputSelector(fsui.Group):
             if value == "mouse":
                 value = ""
         elif self.port == 1:
-            if Config.get("amiga_model") == "CD32":
+            if Config.get("amiga_model").startswith("CD32"):
                 default = "cd32 gamepad"
             else:
                 default = "joystick"
@@ -146,7 +146,7 @@ class InputSelector(fsui.Group):
             if port == 0:
                 return "mouse"
             elif port == 1:
-                if Config.get("amiga_model") == "CD32":
+                if Config.get("amiga_model").startswith("CD32"):
                     return "cd32 gamepad"
                 else:
                     return "joystick"

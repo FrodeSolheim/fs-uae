@@ -30,7 +30,7 @@ class ConfigWriter:
         if not config["joystick_port_0_mode"]:
             config["joystick_port_0_mode"] = "mouse"
         if not config["joystick_port_1_mode"]:
-            if config["amiga_model"] == "CD32":
+            if config["amiga_model"].startswith("CD32"):
                 config["joystick_port_1_mode"] = "cd32 gamepad"
             else:
                 config["joystick_port_1_mode"] = "joystick"

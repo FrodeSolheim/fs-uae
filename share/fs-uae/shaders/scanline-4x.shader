@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
     Scanline 4x Shader
-	Copyright (C) 2011 hunterk
+    Copyright (C) 2011 hunterk
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -33,11 +33,11 @@ This shader works best at scale 4x or else the pixels don't match up correctly.
     void main(void) {   
       vec4 rgb = texture2D(rubyTexture, gl_TexCoord[0].xy);
       vec4 intens ;
-	  if (fract(gl_FragCoord.y * 0.25) > 0.5)
-		intens = vec4(0);
-		else
-		intens = smoothstep(0.2,0.8,rgb) + normalize(vec4(rgb.xyz, 1.0));
-		float level = (4.0-gl_TexCoord[0].z) * 0.19;
+      if (fract(gl_FragCoord.y * 0.25) > 0.5)
+        intens = vec4(0);
+        else
+        intens = smoothstep(0.2,0.8,rgb) + normalize(vec4(rgb.xyz, 1.0));
+        float level = (4.0-gl_TexCoord[0].z) * 0.19;
       gl_FragColor = intens * (0.5-level) + rgb * 1.1 ;
     }
   ]]></fragment>

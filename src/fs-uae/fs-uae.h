@@ -123,7 +123,8 @@ void fs_uae_set_uae_paths();
 
 #define CONFIG_A1000 10
 #define CONFIG_A3000 11
-#define CONFIG_LAST 12
+#define CONFIG_CD32_FMV 12
+#define CONFIG_LAST 13
 
 #define MODEL_A500 1
 #define MODEL_A1200 2

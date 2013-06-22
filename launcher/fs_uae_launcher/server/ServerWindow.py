@@ -3,7 +3,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 
 import traceback
-import fs_uae_launcher.fsui as fsui
+import fsui as fsui
 from ..Config import Config
 from ..Settings import Settings
 from ..I18N import _, ngettext

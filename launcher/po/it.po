@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae-launcher\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2013-03-13 22:40+0100\n"
-"PO-Revision-Date: 2013-03-15 11:44+0100\n"
+"POT-Creation-Date: 2013-04-19 19:06+0200\n"
+"PO-Revision-Date: 2013-04-20 18:05+0100\n"
 "Last-Translator: Speedvicio <speedvicio@hotmail.com>\n"
 "Language-Team: Italian\n"
 "Language: it\n"
@@ -104,6 +104,9 @@ msgstr "Ricerca File"
 msgid "Browse for Folder"
 msgstr "Ricerca Cartelle"
 
+msgid "Buffer swap only"
+msgstr "Scambia solo il buffer "
+
 msgid "Built-in TCP/IP Stack"
 msgstr "TCP/IP Stack Incorporato"
 
@@ -175,6 +178,9 @@ msgstr "Configurazione"
 
 msgid "Configuration Browser"
 msgstr "Configurazione Browser"
+
+msgid "Configuration Warning"
+msgstr "Avviso di Configuraziione"
 
 msgid "Configurations"
 msgstr "Configurazioni"
@@ -305,9 +311,6 @@ msgstr "Unità Floppy"
 
 msgid "Floppy drive volume"
 msgstr "Volume floppy drive"
-
-msgid "Force Full Vsync"
-msgstr "Forza Sincronia Verticale"
 
 msgid "Full Frame"
 msgstr "Fotogrammi Completi"
@@ -711,9 +714,6 @@ msgstr "Iniziando scansione"
 msgid "Swap left and right CTRL keys"
 msgstr "Inverti i tasti sinistra e destra CTRL"
 
-msgid "Sync to Vblank"
-msgstr "Sincronizza si Vblank"
-
 msgid "Synchronizing database..."
 msgstr "Sincronizza database..."
 
@@ -771,6 +771,9 @@ msgstr "Visualizza zoom Amiga (ritaglia)"
 msgid "Zorro III RAM"
 msgstr "Zorro III RAM"
 
+msgid "{amiga_model} with < 2 MB chip memory"
+msgstr "{amiga_model} con < 2 MB memoria chip"
+
 #~ msgid "Add Multiple CD Images at Once"
 #~ msgstr "Aggiungi Immagini CD Multiple al Volo"
 
@@ -809,6 +812,9 @@ msgstr "Zorro III RAM"
 
 #~ msgid "Floppies..."
 #~ msgstr "Floppies..."
+
+#~ msgid "Force Full Vsync"
+#~ msgstr "Forza Sincronia Verticale"
 
 #~ msgid "Game Files"
 #~ msgstr "Files Di Gioco"
@@ -875,6 +881,9 @@ msgstr "Zorro III RAM"
 
 #~ msgid "Swap List"
 #~ msgstr "Scambia Lista"
+
+#~ msgid "Sync to Vblank"
+#~ msgstr "Sincronizza si Vblank"
 
 #~ msgid "Update ({version}) is available"
 #~ msgstr "Aggiornamento ({version}) disponibile"

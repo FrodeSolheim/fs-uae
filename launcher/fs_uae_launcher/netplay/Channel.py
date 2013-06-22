@@ -25,7 +25,7 @@ class Channel:
         self.voices = set()
 
     def get_text(self):
-        return u"\n".join(self.lines) + u"\n"
+        return "\n".join(self.lines) + "\n"
 
     def is_op(self, nick=None):
         if nick is None:
@@ -37,10 +37,10 @@ class Channel:
             # default color does not work properly on Mac
             color = IRCColor.MESSAGE
         # remove special character (action)
-        message = message.replace(u"\u0001", "")
+        message = message.replace("\u0001", "")
         # remove special character (bold font)
-        message = message.replace(u"\u0002", "")
-        line = message + u"\n"
+        message = message.replace("\u0002", "")
+        line = message + "\n"
         self.lines.append(line)
         self.colors.append(color)
         IRCBroadcaster.broadcast("message", {"channel": self.name,
@@ -67,19 +67,19 @@ class Channel:
         return sorted(nicks)
 
     def action(self, message):
-        message = u"\u0001ACTION {0}\u0001".format(message)
+        message = "\u0001ACTION {0}\u0001".format(message)
         self.privmsg(message)
 
     def privmsg(self, message, notice=False, echo=True):
-        if echo and not message.startswith(u"__"):
+        if echo and not message.startswith("__"):
             if notice:
-                text = u"-{0}- {1}".format(IRC.my_nick, message)
-            elif message.startswith(u"[*] "):
-                text = u"* {0} {1}".format(IRC.my_nick, message[4:])
-            elif message.startswith(u"\u0001ACTION"):
-                text = u"* {0} {1}".format(IRC.my_nick, message[8:-1])
+                text = "-{0}- {1}".format(IRC.my_nick, message)
+            elif message.startswith("[*] "):
+                text = "* {0} {1}".format(IRC.my_nick, message[4:])
+            elif message.startswith("\u0001ACTION"):
+                text = "* {0} {1}".format(IRC.my_nick, message[8:-1])
             else:
-                text = u"<{0}> {1}".format(IRC.my_nick, message)
+                text = "<{0}> {1}".format(IRC.my_nick, message)
             self.message(text, IRCColor.MY_MESSAGE)
         if notice:
             IRC.notice(self.name, message)
@@ -117,26 +117,26 @@ class Channel:
         IRCBroadcaster.broadcast("parted", {"channel": self.name})
 
     def on_privmsg(self, nick, message, notice=False):
-        if message.startswith(u"__"):
+        if message.startswith("__"):
             pass
         else:
             color = IRCColor.MESSAGE
             if notice:
-                text = u"-{0}- {1}".format(nick, message)
+                text = "-{0}- {1}".format(nick, message)
                 color = IRCColor.NOTICE
-            elif message.startswith(u"[*] "):
-                text = u"* {0} {1}".format(nick, message[4:])
-            elif message.startswith(u"\u0001ACTION"):
-                text = u"* {0} {1}".format(nick, message[8:-1])
+            elif message.startswith("[*] "):
+                text = "* {0} {1}".format(nick, message[4:])
+            elif message.startswith("\u0001ACTION"):
+                text = "* {0} {1}".format(nick, message[8:-1])
             else:
-                text = u"<{0}> {1}".format(nick, message)
+                text = "<{0}> {1}".format(nick, message)
             self.message(text, color)
 
     def on_notice(self, nick, message):
         return self.on_privmsg(nick, message, notice=True)
 
     def on_currenttopic(self, topic):
-        self.message(u"{0}".format(topic), IRCColor.TOPIC)
+        self.message("{0}".format(topic), IRCColor.TOPIC)
 
     def on_join(self, nick):
         if IRC.me(nick):
@@ -157,13 +157,13 @@ class Channel:
         IRCBroadcaster.broadcast("nick_list", {"channel": self.name})
 
     def on_kick(self, kicker, kickee, reason):
-        self.message(u"* {0} kicked {1} ({2})".format(
+        self.message("* {0} kicked {1} ({2})".format(
                 kicker, kickee, reason), IRCColor.KICK)
         if IRC.me(kickee):
             self.handle_leave_channel()
 
     def on_topic(self, who, topic):
-        self.message(u"* {0} changed topic to:\n{1} ".format(who, topic),
+        self.message("* {0} changed topic to:\n{1} ".format(who, topic),
                 IRCColor.TOPIC)
 
     def on_mode(self, who, args):
@@ -192,7 +192,7 @@ class Channel:
             color = IRCColor.POS_MODE
         else:
             color = IRCColor.NEG_MODE
-        self.message(u"* {0} sets mode {1}".format(who, u" ".join(args)),
+        self.message("* {0} sets mode {1}".format(who, " ".join(args)),
                 color)
         IRCBroadcaster.broadcast("nick_list", {"channel": self.name})
 

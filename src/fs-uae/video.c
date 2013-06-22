@@ -201,10 +201,12 @@ static int modify_coordinates(int *cx, int *cy, int *cw, int *ch) {
         *cx = 74; *cy = 36; *cw = 640; *ch = 512; changed = 1;
     }
     */
+    /*
     else if (*cx == 6 && *cy == 36 && *cw == 724 && *ch == 512) {
         fs_log("* workbench screen with too much border?\n");
         *cx = 74; *cy = 36; *cw = 640; *ch = 512; changed = 1;
     }
+    */
     else if (*cx == 6 && *cy == 6 && *cw == 724 && *ch == 566) {
         fs_log("* workbench screen with overscan incorrectly placed?\n");
         *cx = 2; *cy = 6; *cw = 724; *ch = 566; changed = 1;

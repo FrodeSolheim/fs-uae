@@ -4,8 +4,8 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import os
-import fs_uae_launcher.fsui as fsui
-from ...Amiga import Amiga
+import fsui as fsui
+from fsgs.amiga.Amiga import Amiga
 from ...Config import Config
 from ...I18N import _, ngettext
 from ...Settings import Settings

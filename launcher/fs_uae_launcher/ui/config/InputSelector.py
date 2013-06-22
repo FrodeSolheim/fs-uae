@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 
 import os
 import webbrowser
-import fs_uae_launcher.fsui as fsui
+import fsui as fsui
 from ...Config import Config
 from ...DeviceManager import DeviceManager
 from ...I18N import _, ngettext
@@ -54,14 +54,14 @@ class InputSelector(fsui.Group):
         self.layout.add(self.device_choice, expand=True)
 
         if port < 4:
-            self.autofire_button = IconButton(self, "autofire_off_16.png")
+            self.autofire_button = IconButton(self, "16/lightning_off.png")
             self.autofire_button.on_activate = self.on_autofire_button
             self.layout.add(self.autofire_button, margin_left=10)
         else:
             self.autofire_button = None
 
-            self.help_button = HelpButton(self,
-                    "http://fengestad.no/fs-uae/custom-joystick-port")
+            self.help_button = HelpButton(
+                self, "http://fengestad.no/fs-uae/custom-joystick-port")
             self.layout.add(self.help_button, margin_left=10)
 
         self.initialize_from_config()
@@ -98,6 +98,7 @@ class InputSelector(fsui.Group):
         print("on_destroy")
         Config.remove_listener(self)
         Signal.remove_listener("settings_updated", self)
+        Signal.remove_listener("device_list_updated", self)
 
     def on_mode_change(self):
         if self.mode_choice is not None:
@@ -110,7 +111,7 @@ class InputSelector(fsui.Group):
             if value == "mouse":
                 value = ""
         elif self.port == 1:
-            if Config.get("amiga_model") == "CD32":
+            if Config.get("amiga_model").startswith("CD32"):
                 default = "cd32 gamepad"
             else:
                 default = "joystick"
@@ -141,17 +142,7 @@ class InputSelector(fsui.Group):
             Config.set(self.autofire_mode_option_key, "1")
 
     def get_calculated_mode(self, port):
-        value = Config.get("joystick_port_{0}_mode".format(port))
-        if not value:
-            if port == 0:
-                return "mouse"
-            elif port == 1:
-                if Config.get("amiga_model") == "CD32":
-                    return "cd32 gamepad"
-                else:
-                    return "joystick"
-            return "nothing"
-        return value
+        return DeviceManager.get_calculated_port_mode(Config, port)
 
     def on_config(self, key, value):
         if key == "amiga_model":
@@ -180,10 +171,10 @@ class InputSelector(fsui.Group):
             if self.autofire_button is not None:
                 if value == "1":
                     self.autofire_button.set_tooltip(_("Auto-Fire is On"))
-                    self.autofire_button.set_icon_name("autofire_on_16.png")
+                    self.autofire_button.set_icon_name("16/lightning_red.png")
                 else:
                     self.autofire_button.set_tooltip(_("Auto-Fire is Off"))
-                    self.autofire_button.set_icon_name("autofire_off_16.png")
+                    self.autofire_button.set_icon_name("16/lightning_off.png")
 
         # this is intended to catch all config changes for all ports (both
         # mode and device) to update the defaults

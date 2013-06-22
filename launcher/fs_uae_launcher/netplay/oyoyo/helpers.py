@@ -17,6 +17,7 @@
 
 """ contains helper functions for common irc commands """
 
+import fs_uae_launcher.six as six
 import random
 
 def msg(cli, user, msg):
@@ -80,7 +81,7 @@ def _addNumerics():
             cli.send(cmd_num, *args)
         return f
     m = sys.modules[__name__]
-    for num, name in ircevents.numeric_events.iteritems():
+    for num, name in six.iteritems(ircevents.numeric_events):
         setattr(m, name, numericcmd(num, name))
 
 _addNumerics()

@@ -7,7 +7,7 @@ import time
 import socket
 import threading
 import traceback
-import fs_uae_launcher.fsui as fsui
+from fsbc.Application import call_after
 from ..Config import Config
 from ..Signal import Signal
 
@@ -45,7 +45,7 @@ class ConnectionTester():
 
     def set_host(self, host, last_error):
         if last_error:
-            last_error = u"attempt {1} {0}".format(
+            last_error = "attempt {1} {0}".format(
                     last_error, self.connection_attempt)
         values = [("__netplay_host", host),
                 ("__netplay_host_last_error", last_error)]
@@ -54,7 +54,7 @@ class ConnectionTester():
             values.append(("__netplay_ready", "0"))
         def function():
             Config.set_multiple(values)
-        fsui.call_after(function)
+        call_after(function)
 
     def _thread_main(self):
         last_host_info = None
@@ -70,7 +70,7 @@ class ConnectionTester():
                 try:
                     result, error = self.test_connection(host_info)
                     self.set_host(result, error)
-                except Exception, e:
+                except Exception as e:
                     traceback.print_exc()
                     # FIXME: handle problem...
                     self.set_host("", repr(e))
@@ -99,7 +99,7 @@ class ConnectionTester():
                         break
                     else:
                         last_error = "Wrong PING response"
-                except Exception, e:
+                except Exception as e:
                     last_error = repr(e)
                     print(last_error)
             finally:

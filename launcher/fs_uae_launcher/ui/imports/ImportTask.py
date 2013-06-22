@@ -7,12 +7,12 @@ import os
 import shutil
 import threading
 import traceback
-import fs_uae_launcher.fsui as fsui
-from ...Database import Database
+import fsui as fsui
 from ...I18N import _, ngettext
-from ...ROMManager import ROMManager
-from ...Settings import Settings
+from fsgs.amiga.ROMManager import ROMManager
+from ...FSUAEDirectories import FSUAEDirectories
 from ...Signal import Signal
+from fsgs.FileDatabase import FileDatabase
 
 class ImportTask(threading.Thread):
 
@@ -35,7 +35,7 @@ class ImportTask(threading.Thread):
         print("ImportTask.run")
         try:
             self.run_task()
-        except Exception, e:
+        except Exception as e:
             self.log("")
             self.log(repr(e))
             traceback.print_exc()
@@ -62,15 +62,13 @@ class ImportTask(threading.Thread):
             self.import_roms()
         elif self.type == 1:
             self.import_amiga_forever()
-        database = Database()
-        ROMManager.patch_standard_roms(database)
 
     def import_roms(self):
-        self.copy_roms(self.path, Settings.get_kickstarts_dir())
+        self.copy_roms(self.path, FSUAEDirectories.get_kickstarts_dir())
 
     def import_amiga_forever(self):
         self.copy_roms(os.path.join(self.path, "Amiga Files", "Shared",
-                "rom"), Settings.get_kickstarts_dir())
+                "rom"), FSUAEDirectories.get_kickstarts_dir())
 
     def copy_file(self, src, dst):
         with self.log_lock:
@@ -101,6 +99,7 @@ class ImportTask(threading.Thread):
             src_file = os.path.join(src, file_name)
             dst_file = os.path.join(dst, file_name)
             self.copy_file(src_file, dst_file)
-            database = Database()
+
+            database = FileDatabase.get_instance()
             ROMManager.add_rom_to_database(dst_file, database, self.log)
             database.commit()

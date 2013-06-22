@@ -7,13 +7,15 @@ import re
 import traceback
 import subprocess
 from .Config import Config
-from .FSUAE import FSUAE
+from fsgs.amiga.FSUAE import FSUAE
 from .I18N import _
 from .Settings import Settings
 from .Signal import Signal
 
+
 def create_cmp_id(id):
     return id.lower().replace(" ", "")
+
 
 class Device:
 
@@ -23,6 +25,7 @@ class Device:
         self.type = type
         self.port = None
         self.cmp_id = create_cmp_id(id)
+
 
 class DeviceManager:
 
@@ -146,6 +149,20 @@ class DeviceManager:
         return cls.get_preferred_joysticks()
 
     @classmethod
+    def get_calculated_port_mode(cls, config, port):
+        value = config.get("joystick_port_{0}_mode".format(port))
+        if not value:
+            if port == 0:
+                return "mouse"
+            elif port == 1:
+                if config.get("amiga_model").startswith("CD32"):
+                    return "cd32 gamepad"
+                else:
+                    return "joystick"
+            return "nothing"
+        return value
+
+    @classmethod
     def get_devices_for_ports(cls, config):
         cls.init()
         ports = [cls.devices[0] for x in range(5)]
@@ -162,8 +179,11 @@ class DeviceManager:
         #for device in cls.devices:
         #    print(device.port, device.id)
         #print("-")
+
         def autofill(port, type):
             mode = config.get("joystick_port_{0}_mode".format(port))
+            if not mode:
+                mode = cls.get_calculated_port_mode(config, port)
             value = config.get("joystick_port_{0}".format(port))
             if value:
                 # specific device chosen

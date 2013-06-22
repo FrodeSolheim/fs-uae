@@ -205,5 +205,5 @@ protocol_events = [
     "pong",
 ]
 
-all_events = generated_events + protocol_events + numeric_events.values()
+all_events = generated_events + protocol_events + list(numeric_events.values())
 

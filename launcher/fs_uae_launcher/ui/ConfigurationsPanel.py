@@ -3,18 +3,15 @@ from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-import os
-import traceback
-import fs_uae_launcher.fsui as fsui
-from ..Config import Config
-from ..I18N import _, ngettext
+import fsui as fsui
+from ..I18N import _
 from ..Settings import Settings
 from .ConfigurationsBrowser import ConfigurationsBrowser
-from .Constants import Constants
 from .IconButton import IconButton
 from .ScanDialog import ScanDialog
 from .Skin import Skin
 from .VariantsBrowser import VariantsBrowser
+
 
 class ConfigurationsPanel(fsui.Panel):
 
@@ -31,20 +28,24 @@ class ConfigurationsPanel(fsui.Panel):
 
         hor_layout.add_spacer(0, expand=True)
 
-        self.filters_label = fsui.Label(self, _("Filters:"))
-        hor_layout.add(self.filters_label,
-                margin=10, margin_top=0, margin_bottom=0)
+        _("Filters:")
+        #self.filters_label = fsui.Label(self, _("Filters:"))
+        #hor_layout.add(
+        #    self.filters_label, margin=10, margin_top=0, margin_bottom=0)
 
         self.text_field = fsui.TextField(self, Settings.get("config_search"))
         self.text_field.on_change = self.on_search_change
         if VariantsBrowser.use_horizontal_layout():
             # window is big enough to use fixed size
-            self.text_field.set_min_width(210)
-            hor_layout.add(self.text_field, expand=False,
-                    margin=10, margin_top=0, margin_bottom=0)
+            #self.text_field.set_min_width(210)
+            self.text_field.set_min_width(229)
+            hor_layout.add(
+                self.text_field, expand=False, margin=10, margin_top=0,
+                margin_bottom=0)
         else:
-            hor_layout.add(self.text_field, expand=True,
-                    margin=10, margin_top=0, margin_bottom=0)
+            hor_layout.add(
+                self.text_field, expand=True, margin=10, margin_top=0,
+                margin_bottom=0)
 
         #self.favorite_button = IconButton(self, "favorite_button.png")
         #self.favorite_button.set_tooltip(
@@ -65,33 +66,34 @@ class ConfigurationsPanel(fsui.Panel):
         if Settings.get("database_feature") == "1":
             self.refresh_button = IconButton(self, "refresh_button.png")
             self.refresh_button.set_tooltip(
-                    _("Refresh game configurations from database"))
+                _("Refresh game configurations from database"))
             self.refresh_button.on_activate = self.on_refresh_button
-            hor_layout.add(self.refresh_button,
-                   margin=10, margin_top=0, margin_bottom=0)
+            hor_layout.add(
+                self.refresh_button, margin=10, margin_top=0, margin_bottom=0)
+
+        self.configurations_browser = ConfigurationsBrowser(self)
 
         if VariantsBrowser.use_horizontal_layout():
             hori_layout = fsui.HorizontalLayout()
             self.layout.add(hori_layout, fill=True, expand=True, margin=10)
-
-        self.configurations_browser = ConfigurationsBrowser(self)
-        if VariantsBrowser.use_horizontal_layout():
             hori_layout.add(self.configurations_browser, fill=True, expand=2)
         else:
-            self.layout.add(self.configurations_browser, fill=True, expand=3,
-                    margin=10)
+            hori_layout = None
+            self.layout.add(
+                self.configurations_browser, fill=True, expand=3, margin=10)
 
         if Settings.get("database_feature") == "1":
             self.variants_browser = VariantsBrowser(self)
             if VariantsBrowser.use_horizontal_layout():
-                hori_layout.add(self.variants_browser, fill=True, expand=1,
-                        margin_left=18)
+                hori_layout.add(
+                    self.variants_browser, fill=True, expand=1, margin_left=18)
                 #self.variants_browser.set_min_width(Constants.SCREEN_SIZE[0])
-                self.variants_browser.set_min_width(72)
-                #self.variants_browser.set_min_width(0)
+                #elf.variants_browser.set_min_width(72)
+                self.variants_browser.set_min_width(100)
             else:
-                self.layout.add(self.variants_browser, fill=True, expand=1,
-                        margin=10, margin_top=20)
+                self.layout.add(
+                    self.variants_browser, fill=True, expand=1, margin=10,
+                    margin_top=20)
         else:
             self.variants_browser = None
 
@@ -105,8 +107,7 @@ class ConfigurationsPanel(fsui.Panel):
         if key == "parent_uuid":
             if self.variants_browser is not None:
                 if VariantsBrowser.use_horizontal_layout():
-                    show = bool(value)
-                    self.variants_browser.show(show)
+                    self.variants_browser.show_or_hide(bool(value))
                     self.layout.update()
                 else:
                     # always show variants list

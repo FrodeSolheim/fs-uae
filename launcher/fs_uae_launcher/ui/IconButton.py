@@ -3,14 +3,18 @@ from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-import fs_uae_launcher.fsui as fsui
+from fsui import ImageButton, Image
 
-class IconButton(fsui.ImageButton):
+
+class IconButton(ImageButton):
+
+    BUTTON_WIDTH = 40
+
     def __init__(self, parent, name):
-        image = fsui.Image("fs_uae_launcher:res/" + name)
-        fsui.ImageButton.__init__(self, parent, image)
-        self.set_min_width(40)
+        image = Image("fs_uae_launcher:res/" + name)
+        ImageButton.__init__(self, parent, image)
+        self.set_min_width(self.BUTTON_WIDTH)
 
     def set_icon_name(self, name):
-        image = fsui.Image("fs_uae_launcher:res/" + name)
+        image = Image("fs_uae_launcher:res/" + name)
         self.set_image(image)

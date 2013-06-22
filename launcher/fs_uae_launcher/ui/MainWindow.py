@@ -3,33 +3,25 @@ from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-import os
 import sys
-import uuid
 import time
 import subprocess
-import fs_uae_launcher.fsui as fsui
-import fs_uae_launcher.fs as fs
-from ..Amiga import Amiga
+from fs_uae_launcher.ui.bottombar.GameInfoPanel import GameInfoPanel
+from fs_uae_launcher.ui.bottombar.BottomPanel import BottomPanel
+from fs_uae_launcher.ui.bottombar.ScreenshotsPanel import ScreenshotsPanel
+from fs_uae_launcher.ui.bottombar.LaunchGroup import LaunchGroup
+import fsui as fsui
 from ..Config import Config
 from ..Signal import Signal
 from ..Settings import Settings
-from ..netplay.IRC import IRC
-#from .FSUAE import FSUAE
-#from .ConfigWriter import ConfigWriter
-from ..netplay.Netplay import Netplay
-from ..Database import Database
-from ..GameHandler import GameHandler
-from ..I18N import _, ngettext
+from ..I18N import _
 from ..Version import Version
 from .AboutDialog import AboutDialog
 from .Book import Book
-from .BottomPanel import BottomPanel
 from .CDPanel import CDPanel
 from .ConfigurationsPanel import ConfigurationsPanel
 from .Constants import Constants
 from .DiskFileCreationDialog import DiskFileCreationDialog
-from .GameInfoPanel import GameInfoPanel
 from .FloppiesPanel import FloppiesPanel
 from .HardDrivesPanel import HardDrivesPanel
 from .HardwarePanel import HardwarePanel
@@ -38,14 +30,13 @@ from .InputPanel import InputPanel
 from .MainPanel import MainPanel
 from .NetplayPanel import NetplayPanel
 from .ScanDialog import ScanDialog
-from .ScreenshotsPanel import ScreenshotsPanel
 from .SetupDialog import SetupDialog
 from .Skin import Skin
-from .TabButton import TabButton
-from .TabPanel import TabPanel
+from .statusbar.StatusBar import StatusBar
 from .WindowWithTabs import WindowWithTabs
 
 USE_MAIN_MENU = 1
+
 
 class MainWindow(WindowWithTabs):
 
@@ -108,6 +99,9 @@ class MainWindow(WindowWithTabs):
             menu_bar.Append(self.tools_menu._menu, _("Tools"))
             self.SetMenuBar(menu_bar)
 
+        self.status_bar = StatusBar(self)
+        self.layout.add(self.status_bar, fill=True)
+
         was_maximized = Settings.get("maximized") == "1"
         self.set_size(self.layout.get_min_size())
 
@@ -120,8 +114,6 @@ class MainWindow(WindowWithTabs):
     def on_destroy(self):
         print("MainWindow.destroy")
         Signal.remove_listener("scan_done", self)
-        IRC.stop()
-        Signal.broadcast("quit")
 
     def on_scan_done_signal(self):
         print("MainWindow.on_scan_done_signal")
@@ -179,7 +171,6 @@ class MainWindow(WindowWithTabs):
                 bottom_panel.set_min_height(Skin.get_bottom_panel_height())
                 layout.add(bottom_panel, fill=True, margin_right=right_margin)
         elif column == 1:
-            from .LaunchGroup import LaunchGroup
             group = LaunchGroup(self)
             layout.add(group, fill=True, margin=10, margin_top=0)
             layout.add_spacer(0, 10)
@@ -191,7 +182,7 @@ class MainWindow(WindowWithTabs):
             if USE_MAIN_MENU:
                 icon = fsui.Image("fs_uae_launcher:res/main_menu.png")
                 self.menu_button = self.add_tab_button(None, icon,
-                        _("Main Menu"), menu_function=self.open_main_menu,
+                        _("Main Men"), menu_function=self.open_main_menu,
                         left_padding=5, right_padding=5)
                 default_tab_index_offset = 1
                 #self.add_tab_spacer(60)
@@ -213,7 +204,7 @@ class MainWindow(WindowWithTabs):
 
             if USE_MAIN_MENU:
                 #self.add_tab_spacer(20)
-                if fsui.System.macosx:
+                if Skin.use_unified_toolbar():
                     self.add_tab_spacer(64)
                 else:
                     self.add_tab_spacer(80)
@@ -233,7 +224,7 @@ class MainWindow(WindowWithTabs):
                 self.add_page(column, NetplayPanel, "tab_netplay",
                         _("Net Play"))
 
-            if fsui.System.macosx:
+            if Skin.use_unified_toolbar():
                 #self.add_tab_separator()
                 self.add_tab_spacer(64)
                 pass
@@ -250,7 +241,7 @@ class MainWindow(WindowWithTabs):
                 self.add_tab_button(self.on_settings_button, icon,
                         _("Settings"))
 
-            if fsui.System.macosx:
+            if Skin.use_unified_toolbar():
                 self.add_tab_panel(InfoPanel, min_width=400)
 
         # column - 1 is the group id of the tab group
@@ -289,11 +280,15 @@ class MainWindow(WindowWithTabs):
     def add_page(self, column, content_class, icon_name, title, tooltip=""):
         book = self.books[column]
         instance = content_class(book)
+        if content_class == MainPanel:
+            self.main_panel = instance
         book.add_page(instance)
         icon = fsui.Image("fs_uae_launcher:res/{0}.png".format(icon_name))
+
         def function():
             book.set_page(instance)
         self.add_tab(function, icon, title, tooltip)
+
         return instance
 
     def on_custom_button(self):
@@ -304,7 +299,7 @@ class MainWindow(WindowWithTabs):
         if fsui.System.windows:
             if time.time() - getattr(self, "main_menu_close_time", 0) < 0.2:
                 return
-        if fsui.System.macosx:
+        if Skin.use_unified_toolbar():
             self.popup_menu(self.menu, (0, -2))
         else:
             self.menu_button.popup_menu(self.menu,

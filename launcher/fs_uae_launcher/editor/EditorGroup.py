@@ -4,7 +4,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import os
-import fs_uae_launcher.fsui as fsui
+import fsui as fsui
 from ..Config import Config
 from ..Settings import Settings
 from .XMLControl import XMLControl

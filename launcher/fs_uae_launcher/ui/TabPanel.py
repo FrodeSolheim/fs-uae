@@ -3,7 +3,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-import fs_uae_launcher.fsui as fsui
+import fsui as fsui
 from .Constants import Constants
 from .Skin import Skin
 
@@ -86,7 +86,8 @@ class TabPanel(fsui.Panel):
         w = widget.size[0]
         h = widget.size[1] - 2
         if fsui.System.macosx:
-            dc.draw_line(0, 0, w, 0, fsui.Color(198, 198, 198))
+            #dc.draw_line(0, 0, w, 0, fsui.Color(198, 198, 198))
+            dc.draw_line(0, 0, w, 0, fsui.Color(188, 188, 188))
             y += 1
             h -= 1
 
@@ -111,7 +112,7 @@ class TabPanel(fsui.Panel):
                 color_2 = fsui.Color(0xef, 0xef, 0xef)
             else:
                 color_1 = fsui.Color(0xa7, 0xa7, 0xa7)
-                color_2 = fsui.Color(0xcf, 0xcf, 0xcf)
+                color_2 = fsui.Color(0xc0, 0xc0, 0xc0)
         elif color_1 is not None:
             if selected:
                 color_2 = color_1
@@ -132,6 +133,10 @@ class TabPanel(fsui.Panel):
                 color_2 = fsui.Color(0x00, 0x00, 0x00, 0x20)
         dc.draw_vertical_gradient(x, y, w, h,
                 color_1, color_2)
+
+        if fsui.System.macosx and not selected and not hover:
+            dc.draw_line(x, y + h - 1, x + w, y + h - 1,
+                         fsui.Color(0xa8, 0xa8, 0xa8))
 
     @classmethod
     def draw_selected_tab(cls, widget, dc):

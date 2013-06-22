@@ -5,7 +5,8 @@ from __future__ import unicode_literals
 
 import os
 import traceback
-import fs_uae_launcher.fsui as fsui
+import fsui as fsui
+from ...FSUAEDirectories import FSUAEDirectories
 from ...I18N import _, ngettext
 from ...Settings import Settings
 from ..IconButton import IconButton
@@ -75,9 +76,9 @@ class ScanPathsGroup(fsui.Group):
 
     @classmethod
     def get_search_path(cls):
-        paths = Settings.get_default_search_path()
+        paths = FSUAEDirectories.get_default_search_path()
         search_path = Settings.get("search_path")
-        for p in search_path.split(u";"):
+        for p in search_path.split(";"):
             p = p.strip()
             if not p:
                 continue
@@ -90,20 +91,12 @@ class ScanPathsGroup(fsui.Group):
                     paths.append(p)
         return paths
 
-    def on_change(self):
-        value = "1" if self.scan_roms.is_checked() else "0"
-        Settings.set("scan_roms", value)
-        value = "1" if self.scan_files.is_checked() else "0"
-        Settings.set("scan_files", value)
-        value = "1" if self.scan_configs.is_checked() else "0"
-        Settings.set("scan_configs", value)
-
     def on_add_button(self):
         paths = self.get_search_path()
         #search_path = Settings.get("search_path")
 
         search_path = Settings.get("search_path")
-        search_path = [x.strip() for x in search_path.split(u";") if x.strip()]
+        search_path = [x.strip() for x in search_path.split(";") if x.strip()]
 
         dialog = fsui.DirDialog(self.get_window())
         if dialog.show_modal():
@@ -118,10 +111,10 @@ class ScanPathsGroup(fsui.Group):
                         # already added
                         break
             else:
-                default_paths = Settings.get_default_search_path()
+                default_paths = FSUAEDirectories.get_default_search_path()
                 if path not in default_paths:
                     search_path.append(path)
-            Settings.set("search_path", u";".join(search_path))
+            Settings.set("search_path", ";".join(search_path))
         dialog.destroy()
 
     def on_remove_button(self):
@@ -129,7 +122,7 @@ class ScanPathsGroup(fsui.Group):
         #search_path = self.get_search_path()
 
         search_path = Settings.get("search_path")
-        search_path = [x.strip() for x in search_path.split(u";") if x.strip()]
+        search_path = [x.strip() for x in search_path.split(";") if x.strip()]
 
         for i in range(len(search_path)):
             if search_path[i].startswith("-"):
@@ -140,7 +133,7 @@ class ScanPathsGroup(fsui.Group):
                 if search_path[i] == path:
                     search_path.remove(search_path[i])
                     break
-        default_paths = Settings.get_default_search_path()
+        default_paths = FSUAEDirectories.get_default_search_path()
         if path in default_paths:
-            search_path.append(u"-" + path)
-        Settings.set("search_path", u";".join(search_path))
+            search_path.append("-" + path)
+        Settings.set("search_path", ";".join(search_path))

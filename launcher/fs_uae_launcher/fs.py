@@ -8,7 +8,9 @@ import re
 import sys
 import functools
 import subprocess
-import ConfigParser
+
+import fs_uae_launcher.six as six
+from fs_uae_launcher.six.moves import configparser
 
 windows = sys.platform == 'win32'
 linux = sys.platform.startswith('linux')
@@ -74,12 +76,12 @@ EXCEPTION = "EXCEPTION"
 
 @cache
 def config_file():
-    cp = ConfigParser.ConfigParser()
-    path = os.path.join(get_app_config_dir(), get_app_id() + u".cfg")
+    cp = configparser.ConfigParser()
+    path = os.path.join(get_app_config_dir(), get_app_id() + ".cfg")
     print("config file:", path)
     try:
         cp.read([path])
-    except Exception, e:
+    except Exception as e:
         print(repr(e))
     return cp
 
@@ -122,7 +124,7 @@ def config_string(key, default=None):
     try:
         value = cp.get(section, option, raw = True)
         return unicode(value , 'utf-8')
-    except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+    except (configparser.NoSectionError, configparser.NoOptionError):
         return default
     except Exception:
         return default
@@ -230,14 +232,33 @@ def cause(exc, cause):
 
 
 def encode_path(path):
+    if six.PY3:
+        return path
     return path.encode(sys.getfilesystemencoding())
 
 
 def unicode_path(path):
+    if six.PY3:
+        return path
     if isinstance(path, unicode):
         return path
     return path.decode(sys.getfilesystemencoding())
 
+def from_utf8_str(object):
+    if six.PY3:
+        if isinstance(object, bytes):
+            return object.decode("UTF-8")
+        return str(object)
+    else:
+        if isinstance(object, unicode):
+            return object
+        return object.decode("UTF-8")
+
+def to_utf8_str(object):
+    if six.PY3:
+        return object
+    else:
+        return object.encode("UTF-8")
 
 def utf8(object):
     return unicode_safe(object, 'utf-8').encode('utf-8')
@@ -260,7 +281,7 @@ def unicode_safe(object, encoding = 'ASCII'):
         return unicode(str(object), encoding, 'replace')
     except Exception:
         #logger.exception("Error in pyapp.unicode_safe")
-        return u"String returned from unicode_safe (problem logged)"
+        return "String returned from unicode_safe (problem logged)"
 
 
 def normalize_path(path):
@@ -361,8 +382,9 @@ class Version (object):
     def cmp_value(self):
         return (self.val, self.mod or 'o', int (self.release or 0))
 
-    def __cmp__(self, other):
-        return cmp(self.cmp_value(), other.cmp_value())
+    def __lt__(self, other):
+        #return cmp(self.cmp_value(), other.cmp_value())
+        return self.cmp_value() < other.cmp_value()
 
     def __str__ (self):
         return self.string
@@ -373,21 +395,23 @@ def split_version(version_string):
             "([a-z][a-z0-9]*)?(?:_([0-9]+))?$")
     m = pattern.match(version_string)
     if m is None:
-        raise ValueError(version_string + u" is not a valid version number")
+        raise ValueError(version_string + " is not a valid version number")
     return m.groups()
 
 def compare_versions(a, b):
+    print(type(a))
+    print(type(b))
     if isinstance(a, Version):
         pass
-    elif isinstance(a, basestring):
+    elif isinstance(a, six.string_types):
         a = Version(a)
     else:
         raise TypeError("Not a valid version string or object")
     if isinstance(b, Version):
         pass
-    elif isinstance(b, basestring):
+    elif isinstance(b, six.string_types):
         b = Version(b)
     else:
         raise TypeError("Not a valid version string or object")
-    return cmp(a, b)
-
+    # cmp is gone in Python 3
+    return (a > b) - (a < b)

@@ -4,8 +4,8 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import os
-import fs_uae_launcher.fsui as fsui
-from ..Amiga import Amiga
+import fsui as fsui
+from fsgs.amiga.Amiga import Amiga
 from ..Config import Config
 from ..CDManager import CDManager
 from ..FloppyManager import FloppyManager
@@ -36,7 +36,7 @@ class RemovableMediaGroup(FloppiesGroup):
             self.update_media_type()
 
     def update_media_type(self):
-        self.set_cd_mode(Amiga.is_cd_based())
+        self.set_cd_mode(Amiga.is_cd_based(Config))
 
     def set_cd_mode(self, cd_mode):
         if self.cd_mode == cd_mode:

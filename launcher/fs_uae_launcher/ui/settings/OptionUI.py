@@ -3,7 +3,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-import fs_uae_launcher.fsui as fsui
+import fsui as fsui
 from ...I18N import _, ngettext
 from ...Settings import Settings
 from ...Signal import Signal
@@ -70,14 +70,14 @@ class OptionUI:
                 spin_ctrl.disable()
             def on_checkbox():
                 if check_box.is_checked():
-                    spin_ctrl.SetValue(int(option["default"]))
+                    spin_ctrl.set_value(int(option["default"]))
                     spin_ctrl.disable()
                     Settings.set(name, "")
                 else:
                     spin_ctrl.enable()
             check_box.on_change = on_checkbox
             def on_spin():
-                value = spin_ctrl.GetValue()
+                value = spin_ctrl.get_value()
                 value = max(option["min"], min(option["max"], value))
                 Settings.set(name, str(value))
             spin_ctrl.on_change = on_spin

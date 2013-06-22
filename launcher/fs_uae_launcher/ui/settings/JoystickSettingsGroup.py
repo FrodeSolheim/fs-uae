@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 import os
 import sys
 import subprocess
-import fs_uae_launcher.fsui as fsui
+import fsui as fsui
 from ...I18N import _, ngettext
 
 class JoystickSettingsGroup(fsui.Group):

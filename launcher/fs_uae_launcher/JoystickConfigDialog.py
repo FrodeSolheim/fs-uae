@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 import os
 import sys
 from cStringIO import StringIO
-import fs_uae_launcher.fsui as fsui
+import fsui as fsui
 import wx
 import pygame
 
@@ -24,7 +24,7 @@ if windows:
     from win32com.shell import shell, shellcon
     import win32api
 
-from .Settings import Settings
+from .FSUAEDirectories import FSUAEDirectories
 from .I18N import _, ngettext
 
 joysticks = []
@@ -74,7 +74,7 @@ def save_config():
             config.append("{0} = {1}".format(panel.event, button[3]))
 
     file_name = get_joystick_id() + ".conf"
-    dest = Settings.get_controllers_dir()
+    dest = FSUAEDirectories.get_controllers_dir()
     if not os.path.exists(dest):
         os.makedirs(dest)
     dest = os.path.join(dest, file_name)

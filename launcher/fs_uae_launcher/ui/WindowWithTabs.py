@@ -3,12 +3,13 @@ from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-import fs_uae_launcher.fsui as fsui
+import fsui as fsui
 from ..I18N import _, ngettext
 from .TabPanel import TabPanel
 from .TabButton import TabButton
 from .Constants import Constants
 from .Skin import Skin
+
 
 class WindowWithTabs(fsui.Window):
 
@@ -16,7 +17,7 @@ class WindowWithTabs(fsui.Window):
         fsui.Window.__init__(self, parent, title)
         Skin.set_background_color(self)
 
-        if fsui.System.macosx:
+        if Skin.use_unified_toolbar():
             import wx
             self.toolbar = self.CreateToolBar(wx.TB_HORIZONTAL | wx.NO_BORDER
                     | wx.TB_FLAT)

@@ -15,6 +15,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+import fs_uae_launcher.six as six
 import logging
 import socket
 import sys
@@ -139,7 +140,10 @@ class IRCClient:
         try:
             logging.info('connecting to %s:%s' % (self.host, self.port))
             self.socket.connect(("%s" % self.host, self.port))
-            if not self.blocking:
+            if self.blocking:
+                # this also overrides default timeout
+                self.socket.setblocking(1)
+            else:
                 self.socket.setblocking(0)
 
             helpers.nick(self, self.nick)
@@ -152,7 +156,7 @@ class IRCClient:
             while not self._end:
                 try:
                     buffer += self.socket.recv(1024)
-                except socket.error, e:
+                except socket.error as e:
                     try:  # a little dance of compatibility to get the errno
                         errno = e.errno
                     except AttributeError:
@@ -224,13 +228,13 @@ class IRCApp:
         while self.running:
             found_one_alive = False
 
-            for client, clientdesc in self._clients.iteritems():
+            for client, clientdesc in six.iteritems(self._clients):
                 if clientdesc.con is None:
                     clientdesc.con = client.connect()
 
                 try:
                     clientdesc.con.next()
-                except Exception, e:
+                except Exception as e:
                     logging.error('client error %s' % e)
                     logging.error(traceback.format_exc())
                     if clientdesc.autoreconnect:

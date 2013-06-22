@@ -3,11 +3,11 @@ from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-import fs_uae_launcher.fsui as fsui
+import fsui as fsui
 from ...Config import Config
 from ...Warnings import Warnings
 from ...Database import Database
-from ...Amiga import Amiga
+from fsgs.amiga.Amiga import Amiga
 from ...FloppyManager import FloppyManager
 from ...CDManager import CDManager
 from ...I18N import _, ngettext
@@ -74,7 +74,7 @@ class ModelGroup(fsui.Group):
         model = Amiga.models_config[index]
         Config.set("amiga_model", model)
         Config.update_kickstart()
-        if Amiga.is_cd_based():
+        if Amiga.is_cd_based(Config):
             FloppyManager.clear_all()
         else:
             CDManager.clear_all()

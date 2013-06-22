@@ -66,6 +66,19 @@ void fs_uae_init_configs() {
     c->name = "Amiga CD32";
     //c->quickstart = "CD32,,";
     c->quickstart_model = 8;
+    c->quickstart_config = 0;
+#ifdef NEW_ACCURACY_SYSTEM
+    c->fast_on_accuracy_level = -999;
+#else
+    c->fast_on_accuracy_level = 0;
+#endif
+
+    c = g_fs_uae_amiga_configs + CONFIG_CD32_FMV;
+    c->id = "CD32/FMV";
+    c->model = MODEL_CD32;
+    c->name = "Amiga CD32 + FMV ROM";
+    //c->quickstart = "CD32,,";
+    c->quickstart_model = 8;
     c->quickstart_config = 1;
 #ifdef NEW_ACCURACY_SYSTEM
     c->fast_on_accuracy_level = -999;

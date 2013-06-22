@@ -4,20 +4,27 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import uuid
-import urllib2
-import urlparse
+try:
+    from urllib.request import urlopen, URLError
+except ImportError:
+    from urllib2 import urlopen, URLError
+try:
+    from urllib.parse import parse_qs
+except ImportError:
+    from urlparse import parse_qs
+
 import random
+from fsgs import fsgs
 from .IRC import IRC
 from .Channel import Channel
 from .IRCColor import IRCColor
 from .IRCBroadcaster import IRCBroadcaster
 from .ConnectionTester import ConnectionTester
-from ..Amiga import Amiga
+from fsgs.amiga.Amiga import Amiga
 from ..Config import Config
 from ..Database import Database
 from ..builtin_configs import find_downloadable_file
 from ..server.Server import Server
-from ..server.ServerWindow import ServerWindow
 
 class Netplay:
 
@@ -78,7 +85,7 @@ class Netplay:
         if not cls.game_channel:
             cls.game_info("cannot start - no game channel")
         cls.start_sequence = str(uuid.uuid4())
-        message = u"__prestart {0} {1}".format(cls.start_sequence,
+        message = "__prestart {0} {1}".format(cls.start_sequence,
                 cls.get_config_hash())
         IRC.channel(cls.game_channel).privmsg(message)
         # in case one wants to try a single-player game for testing
@@ -100,11 +107,11 @@ class Netplay:
                 return
         want_players = int(Config.get("__netplay_players") or "0")
         if player_count != want_players:
-            cls.game_warning(u"cannot start game, wanted {0} players, "
+            cls.game_warning("cannot start game, wanted {0} players, "
                     "has {1}".format(want_players, player_count))
             return
         cls.game_info("sending game start command to all clients!")
-        message = u"__start {0} {1}".format(cls.start_sequence,
+        message = "__start {0} {1}".format(cls.start_sequence,
                 cls.get_config_hash())
         IRC.channel(cls.game_channel).privmsg(message)
         cls.do_start_game()
@@ -117,8 +124,8 @@ class Netplay:
         # we now reset __netplay_addresses so that the ConnectionTester
         # does not connect to the game in progress
         Config.set("__netplay_addresses", "")
-        from ..LaunchHandler import LaunchHandler
-        LaunchHandler.start_local_game()
+        from ..FSUAELauncher import FSUAELauncher
+        FSUAELauncher.start_local_game()
 
         # game done, resetting config as the same game server cannot be
         # used again
@@ -162,24 +169,24 @@ class Netplay:
     @classmethod
     def on_config(cls, key, value):
         if key == "__netplay_host_last_error":
-            cls.game_warning(u"problem connecting to game server: " + value)
+            cls.game_warning("problem connecting to game server: " + value)
         elif key == "__netplay_host":
             if value:
-                cls.game_info(u"successfully connected to net play host: "
+                cls.game_info("successfully connected to net play host: "
                         + value)
         if not IRC.running:
             return
         if not cls.game_channel:
             return
         if key in Config.sync_keys_set:
-            message = u"__config {0} {1}".format(key, value)
+            message = "__config {0} {1}".format(key, value)
             IRC.channel(cls.game_channel).privmsg(message)
 
     @classmethod
     def game_message(cls, message, color=None):
         if not cls.game_channel:
-            IRC.warning(u"game message received (but not "
-                    u"currently in a game channel): " + message)
+            IRC.warning("game message received (but not "
+                    "currently in a game channel): " + message)
             return
         IRC.channel(cls.game_channel).message(message, color)
         if cls.game_channel != IRC.active_channel:
@@ -275,7 +282,7 @@ class Netplay:
         else:
             try:
                 function(args[1:])
-            except Exception, e:
+            except Exception as e:
                 cls.game_warning(repr(e))
             return True
 
@@ -303,7 +310,7 @@ class Netplay:
             return
         for arg in args:
             cls.print_check_request(IRC.my_nick, arg, Config.get(arg))
-            message = u"__check {0} {1}".format(arg, Config.get(arg))
+            message = "__check {0} {1}".format(arg, Config.get(arg))
             IRC.channel(cls.game_channel).privmsg(message)
 
     @classmethod
@@ -321,12 +328,12 @@ class Netplay:
         #    cls.game_info("requesting verification of {0} = {1}".format(arg,
         #            Config.get(arg)))
         cls.print_verify_request(IRC.my_nick)
-        IRC.channel(cls.game_channel).privmsg(u"__beginverify")
+        IRC.channel(cls.game_channel).privmsg("__beginverify")
         for key in Config.checksum_keys:
             value = Config.get(key)
-            message = u"__verify {0} {1}".format(key, value)
+            message = "__verify {0} {1}".format(key, value)
             IRC.channel(cls.game_channel).privmsg(message)
-        IRC.channel(cls.game_channel).privmsg(u"__endverify")
+        IRC.channel(cls.game_channel).privmsg("__endverify")
 
     @classmethod
     def command_sendconfig(cls, args):
@@ -347,7 +354,7 @@ class Netplay:
         # sending keys in preferred key order
         for key in Config.sync_keys_list:
             value = Config.get(key)
-            message = u"__config {0} {1}".format(key, value)
+            message = "__config {0} {1}".format(key, value)
             channel.privmsg(message)
 
     @classmethod
@@ -416,17 +423,17 @@ class Netplay:
             IRC.warning("startgame: you need to be an operator")
             return
 
-        url = u"http://{0}:{1}/game/create?players={2}&password={3}".format(
+        url = "http://{0}:{1}/game/create?players={2}&password={3}".format(
                 host, port, players, password)
         try:
-            f = urllib2.urlopen(url)
+            f = urlopen(url)
             result = f.read()
-        except urllib2.URLError, e:
-            channel.warning(u"problem starting game server: {0}".format(
+        except URLError as e:
+            channel.warning("problem starting game server: {0}".format(
                     repr(e)))
         else:
             print(result)
-            result_dict = urlparse.parse_qs(result)
+            result_dict = parse_qs(result)
             game_id = result_dict["id"][0]
             game_password = result_dict["password"][0]
             game_port = result_dict["port"][0]
@@ -435,9 +442,9 @@ class Netplay:
                     ("__netplay_password", game_password),
                     ("__netplay_players", str(players)),
                     ("__netplay_port", game_port),
-                    ("__netplay_host", u""),
+                    ("__netplay_host", ""),
                     ("__netplay_addresses", game_addresses)])
-            channel.info(u"started game id: {0} password: {1} "
+            channel.info("started game id: {0} password: {1} "
                     "server: {2} port: {3}".format(
                     game_id, game_password, game_addresses, game_port))
 
@@ -459,6 +466,8 @@ class Netplay:
 
         server = Server(port, players, password)
         server.start()
+
+        from ..server.ServerWindow import ServerWindow
         window = ServerWindow(None, server)
         window.Show()
 
@@ -467,9 +476,9 @@ class Netplay:
                 ("__netplay_password", password),
                 ("__netplay_players", str(players)),
                 ("__netplay_port", str(port)),
-                ("__netplay_host", u""),
+                ("__netplay_host", ""),
                 ("__netplay_addresses", host)])
-        channel.info(u"started game id: {0} password: {1} "
+        channel.info("started game id: {0} password: {1} "
                 "server: {2} port: {3}".format(
                 game_id, password, host, port))
 
@@ -498,9 +507,9 @@ class Netplay:
                 ("__netplay_password", password),
                 ("__netplay_players", str(players)),
                 ("__netplay_port", str(port)),
-                ("__netplay_host", u""),
+                ("__netplay_host", ""),
                 ("__netplay_addresses", addresses)])
-        channel.info(u"started game id: {0} password: {1} "
+        channel.info("started game id: {0} password: {1} "
                 "server: {2} port: {3}".format(
                 game_id, password, addresses, port))
 
@@ -527,15 +536,15 @@ class Netplay:
         channel = IRC.channel(cls.game_channel)
 
         #if Netplay.game_channel != self.name:
-        #    self.warning(self, u"ignored command in "
+        #    self.warning(self, "ignored command in "
         #            "non-active game: {0}".format(command), IRCColor.WARNING)
         #    return
-        words = message.split(u" ")
+        words = message.split(" ")
         command = words[0]
-        arg = u" ".join(words[1:])
+        arg = " ".join(words[1:])
         if command == "__config":
             if channel.is_op(nick):
-                args = arg.split(u" ", 1)
+                args = arg.split(" ", 1)
                 key = args[0]
                 value = ""
                 if len(args) > 1:
@@ -543,7 +552,7 @@ class Netplay:
                 cls.set_config(key.strip(), value.strip())
         elif command == "__prestart":
             if channel.is_op(nick):
-                seq, config_hash = arg.split(u" ")
+                seq, config_hash = arg.split(" ")
                 my_config_hash = cls.get_config_hash()
                 if my_config_hash != config_hash:
                     channel.privmsg("not the same config hash")
@@ -555,14 +564,14 @@ class Netplay:
                 channel.privmsg("__ackstart {0} {1}".format(seq,
                     my_config_hash))
         elif command == "__ackstart":
-            start_sequence, config_hash = arg.split(u" ")
+            start_sequence, config_hash = arg.split(" ")
             cls.player(nick).set("start_sequence", start_sequence)
             cls.player(nick).set("config_hash", config_hash)
             cls.on_ackstart()
             # FIXME: check start sequence?
         elif command == "__start":
             if channel.is_op(nick):
-                start_sequence, config_hash = arg.split(u" ")
+                start_sequence, config_hash = arg.split(" ")
                 my_config_hash = Netplay.get_config_hash()
                 if my_config_hash != config_hash:
                     channel.action("could not start game "
@@ -575,45 +584,45 @@ class Netplay:
                 Netplay.reset_config()
         elif command == "__check":
             if channel.is_op(nick):
-                args = arg.split(u" ")
+                args = arg.split(" ")
                 key = args[0]
-                value = u" ".join(args[1:])
+                value = " ".join(args[1:])
                 my_value = Config.get(key)
                 cls.print_check_request(nick, key, value)
                 cls.print_check_response(IRC.my_nick, key, my_value, value)
-                channel.privmsg(u"__ackcheck {0} {1}".format(key, my_value))
+                channel.privmsg("__ackcheck {0} {1}".format(key, my_value))
         elif command == "__beginverify":
             if channel.is_op(nick):
                 cls.print_verify_request(nick)
         elif command == "__verify":
             if channel.is_op(nick):
-                args = arg.split(u" ")
+                args = arg.split(" ")
                 key = args[0]
-                value = u" ".join(args[1:])
+                value = " ".join(args[1:])
                 if Config.get(key) != value:
                     cls.print_verify_response(IRC.my_nick, key,
                             Config.get(key))
-                    channel.privmsg(u"__ackverify {0} {1}".format(key,
+                    channel.privmsg("__ackverify {0} {1}".format(key,
                         Config.get(key)))
         elif command == "__endverify":
             pass
         elif command == "__ackcheck":
-            args = arg.split(u" ")
+            args = arg.split(" ")
             key = args[0]
-            value = u" ".join(args[1:])
+            value = " ".join(args[1:])
             my_value = Config.get(key)
             cls.print_check_response(nick, key, value, my_value)
         elif command == "__ackverify":
-            args = arg.split(u" ", 1)
-            cls.print_verify_response(nick, args[0], u" ".join(args[1:]))
+            args = arg.split(" ", 1)
+            cls.print_verify_response(nick, args[0], " ".join(args[1:]))
         else:
-            channel.warning(u"unknown command received: {0}".format(
+            channel.warning("unknown command received: {0}".format(
                     command))
 
     @classmethod
     def print_check_request(cls, nick, key, value):
         IRC.channel(cls.game_channel).info(
-                u"* {0} requested check of {1} ({2})".format(
+                "* {0} requested check of {1} ({2})".format(
                 nick, key, value))
 
     @classmethod
@@ -623,17 +632,17 @@ class Netplay:
         else:
             color = IRCColor.WARNING
         IRC.channel(cls.game_channel).message(
-                u"{0} = {1} ({2})".format(key, value, nick), color)
+                "{0} = {1} ({2})".format(key, value, nick), color)
 
     @classmethod
     def print_verify_request(cls, nick):
         IRC.channel(cls.game_channel).info(
-                u"* {0} requested automatic config verification".format(nick))
+                "* {0} requested automatic config verification".format(nick))
 
     @classmethod
     def print_verify_response(cls, nick, key, value):
         IRC.channel(cls.game_channel).warning(
-                u"{0} = {1} ({2})".format(key, value, nick))
+                "{0} = {1} ({2})".format(key, value, nick))
 
     @classmethod
     def set_config(cls, key, value):
@@ -660,14 +669,15 @@ class Netplay:
                             ("x_kickstart_file", "internal"),
                             (key, value)])
             else:
-                path = Database.get_instance().find_file(sha1=value)
+                #path = Database.get_instance().find_file(sha1=value)
+                path = fsgs.file.find_by_sha1(sha1=value)
                 if path:
                     Config.set_multiple([
                             ("kickstart_file", path),
                             ("x_kickstart_file", path),
                             (key, value)])
                 else:
-                    channel.action(u"could not find kickstart for {0}".format(
+                    channel.action("could not find kickstart for {0}".format(
                             repr(value)))
         elif key == "x_kickstart_ext_file_sha1":
             if not value:
@@ -683,7 +693,7 @@ class Netplay:
                         ("x_kickstart_ext_file", path),
                         (key, value)])
             else:
-                channel.action(u"could not find (ext) kickstart "
+                channel.action("could not find (ext) kickstart "
                         "for {0}".format(repr(value)))
 
     @classmethod
@@ -696,14 +706,15 @@ class Netplay:
         if value.startswith("http://") or value.startswith("https://"):
             path = value
         else:
-            path = Database.get_instance().find_file(sha1=value)
-        if not path:
-            path = find_downloadable_file(value)
+            #path = Database.get_instance().find_file(sha1=value)
+            path = fsgs.file.find_by_sha1(sha1=value)
+        #if not path:
+        #    path = find_downloadable_file(value)
         if path:
             Config.set_multiple([(set_key, path), (key, value)])
         else:
             Config.set_multiple([(set_key, ""), (key, "")])
-            channel.action(u"could not find {1} for "
+            channel.action("could not find {1} for "
                     "for {0}".format(value, set_key))
 
     file_config = {

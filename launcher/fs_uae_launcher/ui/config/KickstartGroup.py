@@ -5,11 +5,11 @@ from __future__ import unicode_literals
 
 import os
 import traceback
-import fs_uae_launcher.fsui as fsui
+import fsui as fsui
 from ...Config import Config
 from ...ChecksumTool import ChecksumTool
 from ...I18N import _, ngettext
-from ...Settings import Settings
+from ...FSUAEDirectories import FSUAEDirectories
 from ..IconButton import IconButton
 from ..LauncherFileDialog import LauncherFileDialog
 
@@ -102,7 +102,7 @@ class KickstartGroup(fsui.Group):
         Config.update_kickstart()
 
     def on_browse_button(self, extended=False):
-        default_dir = Settings.get_kickstarts_dir()
+        default_dir = FSUAEDirectories.get_kickstarts_dir()
         if extended:
             title = _("Choose Extended ROM")
             key = "kickstart_ext_file"

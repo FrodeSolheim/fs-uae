@@ -1,4 +1,61 @@
-Version 2.3.0:
+Version 2.3.3:
+* (Launcher) Show joy_emu_conflict from oagd.net in statusbar if applicable.
+* (Launcher) More QT port improvements, almost full-featured now.
+* (Game Center) Fixed possible bug in font rendering code.
+
+Version 2.3.2:
+* (Launcher) Fixed bug when loading files from archive in a folder named #.
+* (Launcher) Fixed bug when automatically looking up Amiga Forever roms [2.3.1]
+* (Launcher) QT port improvements.
+* (Launcher) Misc bugfixes and minor improvements.
+
+Version 2.3.1:
+
+* On windows, read file name (as program parameter) with MBCS encoding
+  (CP_ACP) so paths with non-ASCII characters are handled correctly.
+* Windows executables are digitally signed by "Frode Solheim".
+* New portable zip file distribution for Windows, "plus" zip file removed,
+  and emulator-only zip exists still with _emulator.zip name.
+* Logs dir is moved into Cache/Logs/, log file renamed to Emulator.log.txt.
+* Always write shader log, in case there's GLSL warnings, etc.
+* (Launcher) New status bar with info about num players, languages,
+  web links, copy protection and warnings.
+* (Launcher) Game variants (from oagd.net) you don't have are also
+  displayed, but greyed out.
+* (Launcher) Buttons to rate game variants on oagd.net directly from UI.
+* (Launcher) Implemented cancel in launch FS-UAE progress dialog.
+* (Launcher) Only add Cloanto "Amiga Files" to search path if directory
+  exists (Windows).
+* (Launcher) Fix slash direction in default search directory on Windows so
+  it does not look weird.
+* (Launcher) More space-efficient screenshot and cover sizes/formats.
+* (Launcher) Internal code rewrite (in progress) to support code sharing
+  with Game Center.
+* (Launcher) Only have start menu icon for FS-UAE Launcher by default.
+* (Launcher) Support new option x_hdinst_args.
+* (Launcher) Better support for portable directory, launcher settings can
+  be saved in portable dir.
+* (Launcher) Non-Cache launcher data files moved to FS-UAE/Data.
+* (Launcher) Download cache dir moved to FS-UAE/Cache/Downloads.
+* (Launcher) Initial support for auto-downloadable games from oagd.net.
+* (Launcher) Initial support for auto-downloadable games from 3rd-party sites.
+* (Launcher) Initial support for manually downloadable games.
+* (Launcher) Moved local file index into its own database file.
+* (Launcher) Extract empty directories as well when extracting archives.
+* (Launcher) Fixed bug when specifying window_width / window_height in
+  custom settings.
+* (Launcher) Partial support for Python 3.x.
+* (Launcher) Partial support for using the Launcher with QT toolkit.
+* (Launcher) Moved file database into its own separate database, also made
+  the file rows more space efficient, and the checksum index smaller.
+* (Launcher) Removed support for old XML game database.
+* (Launcher) Ignore file extension case when checking floppy list from
+  online database.
+* (Launcher) Handle some potentially invalid configs from online database
+  more gracefully.
+* (Launcher) Updated translations: it [speedvicio].
+
+Version 2.3.0
 
 * Show on-screen warning if OpenAL device cannot be opened, log OpenAL
   error code.
@@ -9,15 +66,24 @@ Version 2.3.0:
 * Use CD32 + FMV quickstart for CD32 model, update cd.device in cartridge
   ROM fixes problem with Pirates Gold intro.
 * Removed a couple of left-over / unnecesary log statements.
+* Support language option to override GUI language.
 * New translations: tr [Decypher].
-* (Launcher) Fixed bug when specifying window_width / window_height in
-  custom settings.
+* With video_sync = auto, allow some slack when deciding to enable full
+  sync or not (accept host refresh rate 49 instead of just 50, ..).
+* New option: assume_refresh_rate (int) to manually specify host refresh
+  rate when refresh rate detection fails. This option in combination with
+  video_sync = auto effectively replaces video_sync = full.
+* video_sync = full is now an alias for video_sync = auto.
+* Fixed bug causing FS-UAE to hang when pausing with video_sync = off.
+* New model CD32/FMV (includes FMV ROM), CD32 model reverted to original.
+* Fixed compatibility issues in scanline GLSL shaders.
 * (Launcher) Warn when using A1200 model with < 2 MB chip RAM.
 * (Launcher) Fixed a bug where 0-byte screenshot / covers files could be
   stored if a network error occurs while downloading.
 * (Launcher) Better support for A3000 and A4000 with the game database.
 * (Launcher) Support hiding variants from the database based on _status.
 * (Launcher) Cycle-exact can be disabled from database if abs. necessary.
+* (Launcher) Support language option to override GUI language.
 * (Launcher) New translations: tr [Decypher].
 
 Version 2.1.35 / 2.2.0:

@@ -4,12 +4,12 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import webbrowser
-import fs_uae_launcher.fsui as fsui
+import fsui as fsui
 from .IconButton import IconButton
 
 class HelpButton(IconButton):
     def __init__(self, parent, url):
-        IconButton.__init__(self, parent, "help_16.png")
+        IconButton.__init__(self, parent, "16/information.png")
         self.url = url
 
     def on_activate(self):

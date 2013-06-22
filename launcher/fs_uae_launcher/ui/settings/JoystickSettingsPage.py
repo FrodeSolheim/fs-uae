@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 import os
 import sys
 import subprocess
-import fs_uae_launcher.fsui as fsui
+import fsui as fsui
 from ...Config import Config
 from ...I18N import _, ngettext
 from ...Settings import Settings

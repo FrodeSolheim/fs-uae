@@ -4,7 +4,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import time
-import fs_uae_launcher.fsui as fsui
+import fsui as fsui
 from ..Config import Config
 from ..Database import Database
 from ..Scanner import Scanner
@@ -19,10 +19,10 @@ class ScanDialog(fsui.Dialog):
     @classmethod
     def refresh_game_database(cls, window):
         return cls(window, minimal=True, interactive=False,
-                scan_files=False, scan_roms=False, scan_configs=False)
+                scan_for_files=False)
 
     def __init__(self, parent, minimal=False, interactive=True,
-            scan_roms=True, scan_files=True, scan_configs=True):
+            scan_for_files=True):
         fsui.Dialog.__init__(self, parent, _("Scan"))
         self.layout = fsui.VerticalLayout()
         self.layout.padding_left = 10
@@ -33,9 +33,7 @@ class ScanDialog(fsui.Dialog):
         self.layout.add_spacer(640, 0)
 
         self.interactive = interactive
-        self.scan_roms = scan_roms
-        self.scan_files = scan_files
-        self.scan_configs = scan_configs
+        self.scan_for_files = scan_for_files
         if Settings.get("database_feature") == "1":
             self.update_game_database = True
         else:
@@ -148,7 +146,7 @@ class ScanDialog(fsui.Dialog):
         self.set_scan_status(status[1])
 
     #def on_rom_found(self, path, sha1):
-    #    self.text.append_text(u"found {0}\n".format(path))
+    #    self.text.append_text("found {0}\n".format(path))
 
     def on_scan_button(self):
         self.start_scan()
@@ -161,17 +159,12 @@ class ScanDialog(fsui.Dialog):
         self.set_scan_status(_("Please wait..."))
         paths = ScanPathsGroup.get_search_path()
 
-        #Settings.set("scan_configs", "1")
-        #Settings.set("scan_files", "1")
-        #Settings.set("scan_roms", "1")
-
         self.close_button.disable()
         self.stop_button.enable()
-        #Scanner.start(paths, Settings.get("scan_roms") == "1",
-        #        Settings.get("scan_files") == "1",
-        #        Settings.get("scan_configs") == "1")
-        Scanner.start(paths, self.scan_roms, self.scan_files,
-                self.scan_configs, self.update_game_database)
+
+        Scanner.start(paths, scan_for_files=self.scan_for_files,
+                update_game_database=self.update_game_database,
+                purge_other_dirs=True)
 
     def on_close_button(self):
         self.end_modal(False)

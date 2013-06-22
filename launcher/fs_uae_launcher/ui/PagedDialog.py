@@ -3,7 +3,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-import fs_uae_launcher.fsui as fsui
+import fsui as fsui
 from ..I18N import _, ngettext
 
 class PagedDialog(fsui.Dialog):
@@ -80,4 +80,6 @@ class PagedDialog(fsui.Dialog):
         self.page_container.layout.add(page, fill=True, expand=True)
         self.current_page = page
         page.show()
+        #print("calling self.layout.update")
+        self.page_container.layout.update()
         self.layout.update()

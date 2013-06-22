@@ -4,15 +4,16 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import os
-import fs_uae_launcher.fsui as fsui
-from ..Amiga import Amiga
+from fsgs import fsgs
+import fsui as fsui
+from fsgs.amiga.Amiga import Amiga
 from ..CDManager import CDManager
 from ..ChecksumTool import ChecksumTool
 from ..Config import Config
 from ..FloppyManager import FloppyManager
 from ..I18N import _, ngettext
-from ..Paths import Paths
-from ..Settings import Settings
+from fsgs.Paths import Paths
+from ..FSUAEDirectories import FSUAEDirectories
 from .IconButton import IconButton
 from .LauncherFileDialog import LauncherFileDialog
 
@@ -40,6 +41,7 @@ class MediaListGroup(fsui.Group):
         self.layout.add(hori_layout, expand=True, fill=True)
 
         self.list_view = fsui.ListView(self)
+        self.list_view.on_activate_item = self.on_activate_item
         if self.cd_mode:
             self.list_view.set_default_icon(fsui.Image(
                     "fs_uae_launcher:res/cdrom_16.png"))
@@ -76,6 +78,14 @@ class MediaListGroup(fsui.Group):
     def on_config(self, key, value):
         if key.startswith(self.file_key_prefix):
             self.update_list()
+
+    def on_activate_item(self, item):
+        path = Config.get(self.file_key.format(item))
+        sha1 = Config.get(self.sha1_key.format(item))
+        if self.cd_mode:
+            pass
+        else:
+            fsgs.amiga.insert_floppy_in_free_drive(path, sha1=sha1)
 
     def create_list(self):
         items = []
@@ -117,7 +127,7 @@ class MediaListGroup(fsui.Group):
     def on_add_button(self):
         existing_items = self.create_list()
 
-        default_dir = Settings.get_floppies_dir()
+        default_dir = FSUAEDirectories.get_floppies_dir()
         if self.cd_mode:
             dialog = LauncherFileDialog(self.get_window(),
                     _("Select Multiple CD-ROMs"), "cd", multiple=True)

@@ -3,7 +3,9 @@ from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
+
 class Constants:
+
     TAB_WIDTH = 64
     TAB_HEIGHT = 64
 

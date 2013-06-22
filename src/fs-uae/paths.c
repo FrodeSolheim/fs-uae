@@ -327,7 +327,7 @@ const char *fs_uae_controllers_dir() {
 const char *fs_uae_logs_dir() {
     static const char *path = NULL;
     if (path == NULL) {
-        path = create_default_dir("Logs", "logs_dir", NULL,
+        path = create_default_dir("Cache/Logs", "logs_dir", NULL,
                 "logs-dir");
     }
     return path;

@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 
 import os
 import traceback
-import fs_uae_launcher.fsui as fsui
+import fsui as fsui
 from ..Settings import Settings
 from ..I18N import _, ngettext
 

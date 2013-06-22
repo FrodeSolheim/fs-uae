@@ -5,8 +5,8 @@ from __future__ import unicode_literals
 
 import os
 import traceback
-import fs_uae_launcher.fsui as fsui
-from ..Amiga import Amiga
+import fsui as fsui
+from fsgs.amiga.Amiga import Amiga
 from ..Config import Config
 from ..Database import Database
 from ..Settings import Settings
@@ -19,7 +19,7 @@ class SetupPanel(fsui.Panel):
 
     def __init__(self, parent):
         fsui.Panel.__init__(self, parent)
-        Skin.set_background_color(self)
+        #Skin.set_background_color(self)
         self.layout = fsui.VerticalLayout()
 
         self.scan_kickstart_group = ScanKickstartGroup(self)

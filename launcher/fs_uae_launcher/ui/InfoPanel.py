@@ -3,10 +3,11 @@ from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-import fs_uae_launcher.fsui as fsui
-from ..Amiga import Amiga
+import webbrowser
+from fsgs import fsgs
+import fsui as fsui
+from fsgs.amiga.Amiga import Amiga
 #from ..Config import Config
-from ..Database import Database
 from ..I18N import _, ngettext
 #from ..Settings import Settings
 from ..Config import Config
@@ -15,10 +16,11 @@ from .SetupDialog import SetupDialog
 from .Skin import Skin
 from .TabPanel import TabPanel
 
-if fsui.System.macosx:
+if Skin.use_unified_toolbar():
     base_class = fsui.Control
 else:
     base_class= fsui.Panel
+
 
 class InfoPanel(base_class):
 
@@ -35,11 +37,18 @@ class InfoPanel(base_class):
         self.chip_memory_warning = None
         self.kickstarts_missing = False
         self.update_available = False
+        self.config_error = ""
+        self.missing_files = ""
+        #self.download_page = ""
+        #self.download_file = ""
+        self.downloadable = ""
 
         self.update_available_icon = fsui.Image("fs_uae_launcher:res/"
                 "update_available_32.png")
         self.warning_icon = fsui.Image("fs_uae_launcher:res/"
                 "warning_32.png")
+        self.download_icon = fsui.Image("fs_uae_launcher:res/"
+                "download_32.png")
         self.kickstarts_missing_icon = self.warning_icon
 
         self.check_kickstarts()
@@ -48,6 +57,9 @@ class InfoPanel(base_class):
         Signal.add_listener("update_available", self)
         Signal.add_listener("scan_done", self)
         Signal.add_listener("config", self)
+        
+        for key in ["x_missing_files", "x_downloadable"]:
+            self.on_config(key, Config.get(key))
 
     def on_destroy(self):
         #Config.remove_listener(self)
@@ -80,6 +92,23 @@ class InfoPanel(base_class):
             if new_chip_memory_warning != self.chip_memory_warning:
                 self.chip_memory_warning = new_chip_memory_warning
                 self.refresh()
+        elif key == "__error":
+            if value:
+                self.config_error = value.split("\n", 1)
+                if len(self.config_error) == 1:
+                    self.config_error.append("")
+            else:
+                self.config_error = None
+            self.refresh()
+        elif key == "x_missing_files":
+            self.missing_files = value
+            self.refresh()
+        elif key == "x_downloadable":
+            self.downloadable = value
+            self.refresh()
+        #elif key == "x_download_file":
+        #    self.download_file = value
+        #    self.refresh()
 
     def on_scan_done_signal(self):
         print("InfoPanel.on_scan_done_signal")
@@ -90,10 +119,10 @@ class InfoPanel(base_class):
         # properly when amiga_model / x_kickstart_sha1 changes, so you''
         # only get a warning for the Amiga model in question.
         ok = True
-        database = Database.get_instance()
+
         amiga = Amiga.get_model_config("A500")
         for sha1 in amiga["kickstarts"]:
-            if database.find_file(sha1=sha1):
+            if fsgs.file.find_by_sha1(sha1):
                 ok = False
                 break
         self.kickstarts_missing = ok
@@ -107,12 +136,15 @@ class InfoPanel(base_class):
         self.refresh()
 
     def on_left_up(self):
-        if self.kickstarts_missing:
+        if self.missing_files:
+            #if self.download_page and not self.download_file:
+            if self.downloadable.startswith("http"):
+                webbrowser.open(self.downloadable)
+        elif self.kickstarts_missing:
             dialog = SetupDialog(self.get_window())
             dialog.show_modal()
             dialog.destroy()
         elif self.update_available:
-            import webbrowser
             webbrowser.open(self.update_web_url)
 
     def on_paint(self):
@@ -120,7 +152,21 @@ class InfoPanel(base_class):
         if not self.toolbar_mode:
             TabPanel.draw_background(self, dc)
 
-        if self.chip_memory_warning:
+        #print(self.missing_files, "file", self.download_file,
+        #      "page", self.download_page)
+        if self.missing_files and not self.downloadable == "1":
+            if self.downloadable.startswith("http"):
+                self.draw_notification(dc, self.download_icon,
+                        _("This game must be downloaded"),
+                        _("Click here to download"))
+            else:
+                self.draw_notification(dc, self.warning_icon,
+                        _("Some required files are missing"),
+                        _("The game may not start properly"))
+        elif self.config_error:
+            self.draw_notification(dc, self.warning_icon,
+                    *self.config_error)
+        elif self.chip_memory_warning:
             self.draw_notification(dc, self.warning_icon,
                     *self.chip_memory_warning)
         elif self.kickstarts_missing:
@@ -145,7 +191,7 @@ class InfoPanel(base_class):
 
         y = self.padding_top + (available_height - icon.size[1]) // 2
 
-        if fsui.System.macosx:
+        if Skin.use_unified_toolbar():
             rtl = False
         else:
             rtl = True

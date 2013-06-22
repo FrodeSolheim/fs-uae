@@ -7,13 +7,10 @@ bindist: pubfiles
 	make distdir
 	cd $(dist_dir)/windows && make
 	mkdir -p dist/$(series)/$(version)
-	mv $(dist_dir)/windows/fs-uae-$(version)-windows.zip dist/$(series)/$(version)/
-
-	cd $(dist_dir)/windows && make launcher
-	cd $(dist_dir)/windows && make bindist-plus
-	mv $(dist_dir)/windows/fs-uae-plus-$(version)-windows.zip dist/$(series)/$(version)/
-
-	cd $(dist_dir)/windows && make setup
-	mv $(dist_dir)/windows/fs-uae-$(version)-setup.exe dist/$(series)/$(version)/
+	mv $(dist_dir)/windows/fs-uae-emulator_$(version)_windows.zip dist/$(series)/$(version)/
+	# mv $(dist_dir)/windows/fs-uae-launcher_$(version)_windows.zip dist/$(series)/$(version)/
+	# mv $(dist_dir)/windows/fs-uae-game-center_$(version)_windows.zip dist/$(series)/$(version)/
+	mv $(dist_dir)/windows/fs-uae-suite_$(version)_windows_portable.zip dist/$(series)/$(version)/
+	mv $(dist_dir)/windows/fs-uae-suite_$(version)_windows_setup.exe dist/$(series)/$(version)/
 
 include targets.mk

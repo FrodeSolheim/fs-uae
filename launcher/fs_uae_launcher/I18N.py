@@ -8,13 +8,13 @@ import sys
 import locale
 import gettext
 
-#if (fs_config_get_boolean("localization") == 0) {
-#    fs_log("localization was forced off\n");
-#    return;
-#}
+try:
+    getcwd = os.getcwdu
+except AttributeError:
+    getcwd = os.getcwd
 
 translations = gettext.NullTranslations()
-#language = ""
+
 
 def initialize_locale(language=""):
     global translations
@@ -41,13 +41,13 @@ def initialize_locale(language=""):
             wx.LANGUAGE_FINNISH: "fi",
             wx.LANGUAGE_FRENCH: "fr",
             wx.LANGUAGE_GERMAN: "de",
-            wx.LANGUAGE_HUNGARIAN: "hu",
+            wx.LANGUAGE_HUNGARIAN: "h",
             wx.LANGUAGE_ITALIAN: "it",
             wx.LANGUAGE_NORWEGIAN_NYNORSK: "nn",
             wx.LANGUAGE_NORWEGIAN_BOKMAL: "nb",
             wx.LANGUAGE_POLISH: "pl",
             wx.LANGUAGE_PORTUGUESE: "pt",
-            wx.LANGUAGE_RUSSIAN: "ru",
+            wx.LANGUAGE_RUSSIAN: "r",
             wx.LANGUAGE_SERBIAN: "sr",
             wx.LANGUAGE_SPANISH: "es",
             wx.LANGUAGE_SWEDISH: "sv",
@@ -59,9 +59,9 @@ def initialize_locale(language=""):
             print("no mapping for wx locale value")
         print("mac locale", loc)
     
-    dirs = [os.path.join(os.getcwdu(), "launcher", "share"),
-            os.path.join(os.getcwdu(), "share"),
-            os.getcwdu(), "/usr/local/share", "/usr/share"]
+    dirs = [os.path.join(getcwd(), "launcher", "share"),
+            os.path.join(getcwd(), "share"),
+            getcwd(), "/usr/local/share", "/usr/share"]
     
     locale_base = None
     for dir in dirs:
@@ -84,13 +84,19 @@ def initialize_locale(language=""):
     print("path to mo file:", mo_path)
     
     translations = gettext.translation("fs-uae-launcher", locale_base, [loc],
-            fallback=True)
-    print(translations)
-    #_ = translations.ugettext
-    #ngettext = translations.ungettext
+                                       fallback=True)
+    print("translations object:", translations)
+
 
 def _(msg):
-    return translations.ugettext(msg)
+    try:
+        return translations.ugettext(msg)
+    except AttributeError:
+        return translations.gettext(msg)
+
 
 def ngettext(n, msg1, msg2):
-    return translations.ungettext(n, msg1, msg2)
+    try:
+        return translations.ungettext(n, msg1, msg2)
+    except AttributeError:
+        return translations.ngettext(n, msg1, msg2)

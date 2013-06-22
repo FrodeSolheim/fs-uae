@@ -450,10 +450,15 @@ distdir-launcher-base:
 	mkdir -p $(dist_dir_launcher)
 
 	cp -a launcher/fs_uae_launcher $(dist_dir_launcher)/
+	cp -a launcher/fengestad $(dist_dir_launcher)/
+	cp -a launcher/fsbc $(dist_dir_launcher)/
+	cp -a launcher/fsgs $(dist_dir_launcher)/
+	cp -a launcher/fsui $(dist_dir_launcher)/
 	find $(dist_dir_launcher) -name "*.pyc" -delete
 	cp -a launcher/README $(dist_dir_launcher)/
 	cp -a launcher/COPYING $(dist_dir_launcher)/
 	cp -a launcher/fs-uae-launcher.py $(dist_dir_launcher)/
+	cp -a launcher/fs-uae-game-center.py $(dist_dir_launcher)/
 	cp -a launcher/Makefile.mk $(dist_dir_launcher)/
 	cp -a launcher/setup.py $(dist_dir_launcher)/
 	cp -a launcher/setup_py2exe.py $(dist_dir_launcher)/
@@ -469,10 +474,11 @@ distdir-launcher-base:
 
 	mkdir -p $(dist_dir_launcher)/scripts
 	cp -a launcher/scripts/fs-uae-launcher $(dist_dir_launcher)/scripts/
+	cp -a launcher/scripts/fs-uae-game-center $(dist_dir_launcher)/scripts/
 	cp -a launcher/fs-uae-launcher.spec $(dist_dir_launcher)
 
 	cp -a launcher/share $(dist_dir_launcher)/
-	find $(dist_dir_launcher)/share -name *.mo -delete
+	find $(dist_dir_launcher)/share -name "*.mo" -delete
 	mkdir $(dist_dir_launcher)/po/
 	cp -a launcher/po/*.po $(dist_dir_launcher)/po/
 	cp -a launcher/po/update.py $(dist_dir_launcher)/po/
@@ -499,7 +505,7 @@ distdir-base: distdir-launcher-base
 	rm -Rf $(dist_dir)/src/jit2
 	rm -f $(dist_dir)/src/akiko2.cpp
 	rm -f $(dist_dir)/src/custom2.cpp
-	find $(dist_dir)/share -name *.mo -delete
+	find $(dist_dir)/share -name "*.mo" -delete
 	mkdir -p $(dist_dir)/gensrc
 	cp -a gensrc/*.cpp gensrc/*.h $(dist_dir)/gensrc
 
@@ -517,7 +523,7 @@ distdir-base: distdir-launcher-base
 	#mkdir -p $(dist_dir)/libfs-capsimage
 	#cp -a ../libfs-capsimage/Makefile $(dist_dir)/libfs-capsimage
 	#cp -a ../libfs-capsimage/CAPSImage $(dist_dir)/libfs-capsimage
-	#find $(dist_dir)/libfs-capsimage -name *.o -delete
+	#find $(dist_dir)/libfs-capsimage -name "*.o" -delete
 	#rm -f $(dist_dir)/libfs-capsimage/CAPSImage/config.h
 	#rm -f $(dist_dir)/libfs-capsimage/CAPSImage/config.log
 	#rm -f $(dist_dir)/libfs-capsimage/CAPSImage/config.cache
@@ -540,6 +546,8 @@ distdir-base: distdir-launcher-base
 
 	mkdir -p $(dist_dir)/windows
 	cp -a windows/Makefile $(dist_dir)/windows/
+	cp -a windows/launcher-proxy.exe $(dist_dir)/windows/
+	cp -a windows/game-center-proxy.exe $(dist_dir)/windows/
 	cp -a windows/replace_icon.py $(dist_dir)/windows/
 	cp -a windows/fs-uae-setup.iss $(dist_dir)/windows/
 
@@ -609,7 +617,7 @@ distdir-base: distdir-launcher-base
 	cp icon/fs-uae-launcher.icns $(dist_dir)/icon/
 	cp icon/fs-uae-config.icns $(dist_dir)/icon/
 	
-	find $(dist_dir) -name *~ -delete
+	find $(dist_dir) -name "*~" -delete
 
 distdir: distdir-base
 	cd $(dist_dir) && python util/update-version.py

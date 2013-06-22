@@ -7,7 +7,7 @@ import os
 import xml.etree.ElementTree
 from xml.etree.cElementTree import ElementTree, Element, SubElement
 from xml.etree.cElementTree import fromstring, tostring
-import fs_uae_launcher.fsui as fsui
+import fsui as fsui
 from ..Config import Config
 from ..Settings import Settings
 from ..I18N import _, ngettext

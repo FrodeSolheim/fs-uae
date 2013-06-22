@@ -5,7 +5,8 @@ from __future__ import unicode_literals
 
 import sys
 import threading
-import fs_uae_launcher.fsui as fsui
+#import fsui as fsui
+from fsbc.Application import call_after
 from ..Settings import Settings
 from .oyoyo.client import IRCClient
 from .oyoyo import helpers
@@ -89,10 +90,10 @@ class IRC:
     def irc_thread(cls):
         try:
             cls.irc_main()
-        except Exception, e:
+        except Exception as e:
             def func():
                 cls.warning(repr(e))
-            fsui.call_after(func)
+            call_after(func)
             import traceback
             traceback.print_exc()
         cls.running = False
@@ -115,9 +116,9 @@ class IRC:
     @classmethod
     def irc_main(cls):
         def func():
-            cls.message(u"connecting to {0}...".format(
+            cls.message("connecting to {0}...".format(
                     cls.get_irc_server_host()))
-        fsui.call_after(func)
+        call_after(func)
 
         cls.client = IRCClient(CommandHandler,
                 host=cls.get_irc_server_host(),
@@ -135,8 +136,8 @@ class IRC:
     @classmethod
     def connect_callback(cls, client):
         def func():
-            cls.message(u"connected to {0}".format(cls.get_irc_server_host()))
-        fsui.call_after(func)
+            cls.message("connected to {0}".format(cls.get_irc_server_host()))
+        call_after(func)
 
     @classmethod
     def post_message(cls, command, args):
@@ -159,11 +160,11 @@ class IRC:
             try:
                 method = getattr(cls, name)
             except AttributeError:
-                cls.info(u" ".join([command] + args))
+                cls.info(" ".join([command] + args))
                 pass
             else:
                 method(*args)
-        fsui.call_after(func)
+        call_after(func)
 
     @classmethod
     def privmsg(cls, destination, message):
@@ -171,7 +172,7 @@ class IRC:
 
     @classmethod
     def notice(cls, destination, message):
-        cls.client.send(u"notice {0} :{1}".format(destination, message))
+        cls.client.send("notice {0} :{1}".format(destination, message))
 
     @classmethod
     def generate_nick(cls, reset=False):
@@ -202,14 +203,14 @@ class IRC:
     @classmethod
     def handle_command_string(cls, message):
         message = message[1:]
-        parts = message.split(u" ")
+        parts = message.split(" ")
         command = parts[0].lower()
         args = parts[1:]
         name = "command_" + command
         try:
             method = getattr(cls, name)
         except AttributeError:
-            cls.warning(command + u": unknown command")
+            cls.warning(command + ": unknown command")
             return False
         else:
             method(args)
@@ -218,28 +219,28 @@ class IRC:
     @classmethod
     def command_raw(cls, args):
         if len(args) >= 1:
-            cls.client.send(u" ".join(args))
+            cls.client.send(" ".join(args))
         else:
             cls.warning("usage: /raw <raw irc message>")
 
     @classmethod
     def command_whois(cls, args):
         if len(args) >= 1:
-            cls.client.send(u"whois {0}".format(u" ".join(args)))
+            cls.client.send("whois {0}".format(" ".join(args)))
         else:
             cls.warning("usage: /whois <nick>")
 
     @classmethod
     def command_away(cls, args):
         if len(args) == 0:
-            cls.client.send(u"away")
+            cls.client.send("away")
         else:
-            cls.client.send(u"away {0}".format((u" ").join(args)))
+            cls.client.send("away {0}".format((" ").join(args)))
 
     @classmethod
     def command_back(cls, args):
         if len(args) == 0:
-            cls.client.send(u"away")
+            cls.client.send("away")
         else:
             cls.warning("usage: /back")
 
@@ -247,11 +248,11 @@ class IRC:
     def command_msg(cls, args):
         if len(args) >= 2:
             channel = args[0]
-            message = u" ".join(args[1:])
+            message = " ".join(args[1:])
             #cls.channel(channel).privmsg(message)
             #cls.channel(channel).message("<{0}> {1}".format(cls.my_nick,
             #        message), IRCColor.MY_MESSAGE)
-            cls.client.send(u"privmsg {0} :{1}".format(channel,
+            cls.client.send("privmsg {0} :{1}".format(channel,
                     message))
         else:
             cls.warning("usage: /msg <nick|channel> <message>")
@@ -260,9 +261,9 @@ class IRC:
     def command_notice(cls, args):
         if len(args) >= 2:
             channel = args[0]
-            message = u" ".join(args[1:])
+            message = " ".join(args[1:])
             #cls.channel(channel).notice(message)
-            cls.client.send(u"notice {0} :{1}".format(channel,
+            cls.client.send("notice {0} :{1}".format(channel,
                     message))
         else:
             cls.warning("usage: /notice <nick|channel> <message>")
@@ -270,14 +271,14 @@ class IRC:
     @classmethod
     def command_oper(cls, args):
         if len(args) == 2:
-            cls.client.send(u"oper {0} {1}".format(args[0], args[1]))
+            cls.client.send("oper {0} {1}".format(args[0], args[1]))
         else:
             cls.warning("usage: /oper <user> <password>")
 
     @classmethod
     def command_slap(cls, args):
         if len(args) == 1:
-            message = u"slaps {0} around a bit with a large trout".format(
+            message = "slaps {0} around a bit with a large trout".format(
                     args[0])
             cls.channel(cls.active_channel).action(message)
         else:
@@ -286,7 +287,7 @@ class IRC:
     @classmethod
     def command_me(cls, args):
         if len(args) > 0:
-            message = u" ".join(args)
+            message = " ".join(args)
             cls.channel(cls.active_channel).action(message)
         else:
             cls.warning("usage: /me <message>")
@@ -296,7 +297,7 @@ class IRC:
     @classmethod
     def command_mode(cls, args):
         if len(args) >= 2:
-            cls.client.send(u"mode {0}".format(u" ".join(args)))
+            cls.client.send("mode {0}".format(" ".join(args)))
         else:
             cls.warning("usage: /mode <channel|nick> <parameters...>")
 
@@ -306,13 +307,13 @@ class IRC:
             cls.warning("cannot kick - not in a channel")
             return
         if len(args) >= 1:
-            cls.kick(cls.active_channel, args[0], u" ".join(args[1:]))
+            cls.kick(cls.active_channel, args[0], " ".join(args[1:]))
         else:
             cls.warning("usage: /kick <nick> [<message>]")
 
     @classmethod
     def kick(cls, channel, nick, message="kicked"):
-        cls.client.send("KICK", channel, nick, u":{0}".format(message))
+        cls.client.send("KICK", channel, nick, ":{0}".format(message))
 
     @classmethod
     def command_join(cls, args):
@@ -360,7 +361,7 @@ class IRC:
 
         password = Settings.get_irc_nickserv_pass()
         if password:
-            cls.privmsg("nickserv", u"identify {0}".format(password))
+            cls.privmsg("nickserv", "identify {0}".format(password))
 
         #cls.join("#support")
         cls.join("#lobby")
@@ -432,7 +433,7 @@ class IRC:
 
     @classmethod
     def irc_cannotsendtochan(cls, server, who, channel, message):
-        cls.channel(channel).warning(u"cannot send to channel: " + message)
+        cls.channel(channel).warning("cannot send to channel: " + message)
 
     @classmethod
     def irc_topic(cls, who, channel, topic):
@@ -444,7 +445,7 @@ class IRC:
             cls.channel(destination).on_mode(IRC.filter_nick(who), args)
         else:
             cls.message("{0} set mode {1} {2}".format(
-                    who, destination, u" ".join(args)))
+                    who, destination, " ".join(args)))
 
     @classmethod
     def irc_quit(cls, who, reason):

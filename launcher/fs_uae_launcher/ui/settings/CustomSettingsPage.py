@@ -4,7 +4,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import hashlib
-import fs_uae_launcher.fsui as fsui
+import fsui as fsui
 from ...Config import Config
 from ...I18N import _, ngettext
 from ...Settings import Settings
@@ -56,7 +56,7 @@ class CustomSettingsPage(fsui.Panel):
             if key not in Settings.default_settings:
                 del Settings.settings[key]
 
-        for line in text.split(u"\n"):
+        for line in text.split("\n"):
             line = line.strip()
             if line.startswith("# You can write key = value pairs here"):
                 continue
@@ -75,18 +75,18 @@ class CustomSettingsPage(fsui.Panel):
             if key in Settings.default_settings:
                 continue
             #    #print("(settings) ignoring key", key)
-            #    text += u"# key {0} will be ignored\n".format(key)
+            #    text += "# key {0} will be ignored\n".format(key)
             #if key in Config.config_keys:
             #    print("(settings) ignoring key", key)
             #    continue
             if key in Config.config_keys:
                 #print("(settings) ignoring key", key)
-                text += u"\n# {0} is ignored here " \
-                        u"(use config dialog instead)\n".format(key)
+                text += "\n# {0} is ignored here " \
+                        "(use config dialog instead)\n".format(key)
             value = Settings.settings[key]
-            text += u"{0} = {1}\n".format(key, value)
+            text += "{0} = {1}\n".format(key, value)
             if key in Config.config_keys:
-                text += u"\n"
+                text += "\n"
         return text
 
 DEFAULT_TEXT = """# Custom Settings

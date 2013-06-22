@@ -568,10 +568,16 @@ static int update_texture() {
         upload_h = buffer->height;
     }
 
-    if (g_fs_emu_scanlines &&
+    int filter = 0;
+    if (0) {
+        filter = 1;
+    }
+    else if (g_fs_emu_scanlines &&
             (buffer->flags & FS_EMU_NO_SCANLINES_FLAG) == 0) {
-        //printf("w %d h %d new frame? %d\n", buffer->width, buffer->height,
-        //        is_new_frame);
+        filter = 2;
+    }
+
+    if (filter) {
         if (is_new_frame) {
             if (g_scanline_buffer_width != buffer->width ||
                     g_scanline_buffer_height != buffer->height) {
@@ -582,9 +588,16 @@ static int update_texture() {
                 g_scanline_buffer_width = buffer->width;
                 g_scanline_buffer_height = buffer->height;
             }
-            fs_emu_render_scanlines(g_scanline_buffer, buffer,
-                    upload_x, upload_y, upload_w, upload_h,
-                    g_fs_emu_scanlines_dark, g_fs_emu_scanlines_light);
+            if (filter == 2) {
+                fs_emu_scanline_filter(g_scanline_buffer, buffer,
+                        upload_x, upload_y, upload_w, upload_h,
+                        g_fs_emu_scanlines_dark, g_fs_emu_scanlines_light);
+            }
+            else {
+                fs_emu_2xcolor_filter(g_scanline_buffer, buffer,
+                        upload_x, upload_y, upload_w, upload_h,
+                        g_fs_emu_scanlines_dark, g_fs_emu_scanlines_light);                
+            }
         }
         if (g_scanline_buffer) {
             frame = g_scanline_buffer;

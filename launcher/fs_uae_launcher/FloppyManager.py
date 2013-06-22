@@ -4,14 +4,15 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import os
-import fs_uae_launcher.fsui as fsui
+from fsgs import fsgs
+import fsui as fsui
 from .ui.LauncherFileDialog import LauncherFileDialog
-from .Amiga import Amiga
-from .Archive import Archive
+from fsgs.amiga.Amiga import Amiga
+from fsgs.Archive import Archive
 from .Config import Config
 from .I18N import _, ngettext
-from .Paths import Paths
-from .Settings import Settings
+from fsgs.Paths import Paths
+from .FSUAEDirectories import FSUAEDirectories
 
 class FloppyManager:
 
@@ -23,10 +24,11 @@ class FloppyManager:
 
     @classmethod
     def eject(cls, drive):
-        values = []
-        values.append(("floppy_drive_{0}".format(drive), ""))
-        values.append(("x_floppy_drive_{0}_sha1".format(drive), ""))
-        Config.set_multiple(values)
+        #values = []
+        #values.append(("floppy_drive_{0}".format(drive), ""))
+        #values.append(("x_floppy_drive_{0}_sha1".format(drive), ""))
+        #Config.set_multiple(values)
+        fsgs.amiga.eject_floppy(drive)
 
     @classmethod
     def clear_floppy_list(cls):
@@ -38,7 +40,7 @@ class FloppyManager:
 
     @classmethod
     def multiselect(cls, parent=None):
-        default_dir = Settings.get_floppies_dir()
+        default_dir = FSUAEDirectories.get_floppies_dir()
         dialog = LauncherFileDialog(parent, _("Select Multiple Floppies"),
                 "floppy", multiple=True)
         if not dialog.show():

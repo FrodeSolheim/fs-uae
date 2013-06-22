@@ -3,6 +3,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
+import fs_uae_launcher.six as six
 import urllib
 import xml.etree.ElementTree
 from xml.etree.cElementTree import ElementTree, Element, SubElement, tostring
@@ -26,15 +27,8 @@ def sha1_to_url(sha1):
             sha1[:2], sha1, urllib.quote(downloadable[sha1].encode("UTF-8")))
 
 def builtin_configs():
-    #result = []
-    #for name in modules:
-    #    m = __import__("fs_uae_launcher.builtin_configs." + name)
-    #    for name, data in getattr(m).iteritems:
-    #        result.append((name, data))
-
     for config_dict in configurations:
         yield create_xml_from_config_dict(config_dict)
-    #return result
 
 def create_xml_from_config_dict(config_dict):
     root = Element("config")
@@ -51,7 +45,7 @@ def create_xml_from_config_dict(config_dict):
     game_platform_node.text = config_dict["platform"]
 
     options_node = SubElement(root, "options")
-    for key, value in config_dict.iteritems():
+    for key, value in six.iteritems(config_dict):
         if key in ["game_name", "platform", "config_name", "uuid", "parent"]:
             continue
         if key.startswith("file_"):
@@ -74,7 +68,7 @@ def create_xml_from_config_dict(config_dict):
         file_url_node = SubElement(file_node, "url")
         file_url_node.text = url
 
-    name = u"{0} ({1}, {2})".format(config_dict["game_name"],
+    name = "{0} ({1}, {2})".format(config_dict["game_name"],
             config_dict["platform"], config_dict["config_name"])
     print(tostring(root))
     return name, tostring(root)

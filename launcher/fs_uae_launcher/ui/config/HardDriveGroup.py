@@ -5,12 +5,12 @@ from __future__ import unicode_literals
 
 import os
 import traceback
-import fs_uae_launcher.fsui as fsui
-from ...Archive import Archive
+import fsui as fsui
+from fsgs.Archive import Archive
 from ...Config import Config
 from ...ChecksumTool import ChecksumTool
+from ...FSUAEDirectories import FSUAEDirectories
 from ...I18N import _, ngettext
-from ...Settings import Settings
 from ..IconButton import IconButton
 from ..LauncherFileDialog import LauncherFileDialog
 
@@ -86,7 +86,7 @@ class HardDriveGroup(fsui.Group):
         self.browse(dir_mode=False)
 
     def browse(self, dir_mode):
-        default_dir = Settings.get_hard_drives_dir()
+        default_dir = FSUAEDirectories.get_hard_drives_dir()
         #if dir_mode:
         #    dialog = fsui.DirDialog(self.get_window(), _("Choose Hard Drive"),
         #            directory=default_dir)

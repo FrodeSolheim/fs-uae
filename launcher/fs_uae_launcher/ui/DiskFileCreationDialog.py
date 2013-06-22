@@ -8,9 +8,10 @@ import zlib
 import shutil
 import traceback
 import pkg_resources
-import fs_uae_launcher.fsui as fsui
-from ..I18N import _, ngettext
-from ..Settings import Settings
+import fsui as fsui
+from ..I18N import _
+from ..FSUAEDirectories import FSUAEDirectories
+
 
 class DiskFileCreationDialog(fsui.Dialog):
 
@@ -26,7 +27,7 @@ class DiskFileCreationDialog(fsui.Dialog):
         self.list_view.set_min_width(600)
         self.list_view.set_min_height(130)
         self.list_view.set_default_icon(fsui.Image(
-                "fs_uae_launcher:res/file_16.png"))
+            "fs_uae_launcher:res/file_16.png"))
         self.layout.add(self.list_view, expand=True, fill=True, margin=10)
 
         self.list_view.set_items([
@@ -34,7 +35,7 @@ class DiskFileCreationDialog(fsui.Dialog):
             _("ADF - Extended Floppy Disk Image (MFM)"),
             _("HDF - Single Partition Hard Disk File"),
             _("HDF - Partitionable Hard Drive Image (RDB)"),
-            ])
+        ])
         self.list_view.on_select_item = self.on_select_item
 
         text = _("Disk Image Name:")
@@ -43,8 +44,8 @@ class DiskFileCreationDialog(fsui.Dialog):
 
         hori_layout = fsui.HorizontalLayout()
         self.layout.add(hori_layout, fill=True, margin=10)
-        self.name_field = fsui.TextField(self, _("New Disk Image"),
-                read_only=False)
+        self.name_field = fsui.TextField(
+            self, _("New Disk Image"), read_only=False)
         hori_layout.add(self.name_field, expand=True)
         text = _("Size:")
         label = fsui.Label(self, text)
@@ -92,9 +93,9 @@ class DiskFileCreationDialog(fsui.Dialog):
 
     def on_select_item(self, index):
         if index < 2:
-            self.set_path(Settings.get_floppies_dir())
+            self.set_path(FSUAEDirectories.get_floppies_dir())
         else:
-            self.set_path(Settings.get_hard_drives_dir())
+            self.set_path(FSUAEDirectories.get_hard_drives_dir())
         if index == 0:
             size = "0.86"
         elif index == 1:
@@ -103,6 +104,8 @@ class DiskFileCreationDialog(fsui.Dialog):
             size = "256"
         elif index == 3:
             size = "1024"
+        else:
+            raise Exception("Unexpected index " + repr(index))
         self.size_field.set_text(size)
         self.size_field.enable(index >= 2)
 
@@ -111,8 +114,8 @@ class DiskFileCreationDialog(fsui.Dialog):
         self.dir_field.set_text(path)
 
     def on_browse_button(self):
-        dialog = fsui.DirDialog(self.get_window(),
-                _("Select Destination Directory"))
+        dialog = fsui.DirDialog(
+            self.get_window(),_("Select Destination Directory"))
         if dialog.show_modal():
             self.set_path(dialog.get_path())
         dialog.destroy()
@@ -123,7 +126,7 @@ class DiskFileCreationDialog(fsui.Dialog):
     def on_create_button(self):
         try:
             self.create_disk_file()
-        except Exception, e:
+        except Exception as e:
             traceback.print_exc()
             self.show_error(repr(e))
 
@@ -143,7 +146,7 @@ class DiskFileCreationDialog(fsui.Dialog):
         name = self.name_field.get_text().strip()
         ext = ".adf" if disk_type < 2 else ".hdf"
         if not name.lower().endswith(ext):
-            name = name + ext
+            name += ext
         path = os.path.join(path, name)
 
         if disk_type == 0:
@@ -159,8 +162,8 @@ class DiskFileCreationDialog(fsui.Dialog):
                 size = size * 1024 * 1024
         if disk_type == 2:
             if size >= 512 * 1024 * 1024:
-                return self.show_error(_("Use RDB disk images for "
-                        "size >= {0}".format(512)))
+                return self.show_error(
+                    _("Use RDB disk images for size >= {0}".format(512)))
 
         if os.path.exists(path):
             return self.show_error(_("File already exists"))
@@ -175,14 +178,14 @@ class DiskFileCreationDialog(fsui.Dialog):
 
         try:
             if disk_type == 0:
-                self.create_adf(f, size)
+                self.create_adf(f)
             elif disk_type == 1:
-                self.create_extended_adf(f, size)
+                self.create_extended_adf(f)
             elif disk_type == 2:
                 self.create_hdf(f, size)
             elif disk_type == 3:
                 self.create_rdb(f, size)
-        except Exception, e:
+        except Exception:
             traceback.print_exc()
             try:
                 f.close()
@@ -203,20 +206,20 @@ class DiskFileCreationDialog(fsui.Dialog):
                 return self.show_error(_("Error moving file into place"))
         self.show_success(_("Disk image created") + ": " + name)
 
-    def create_adf(self, f, size):
-        s = pkg_resources.resource_stream(str("fs_uae_launcher"),
-                str("res/adf.dat"))
+    def create_adf(self, f):
+        s = pkg_resources.resource_stream(
+            str("fs_uae_launcher"), str("res/adf.dat"))
         data = s.read()
         data = zlib.decompress(data)
         f.write(data)
 
-    def create_extended_adf(self, f, size):
+    def create_extended_adf(self, f):
         # Workbench 3.1 does not like the adf_extended file, created by
         # WinUAE (must check why)
         #s = pkg_resources.resource_stream(str("fs_uae_launcher"),
         #        str("res/adf_extended.dat"))
-        s = pkg_resources.resource_stream(str("fs_uae_launcher"),
-                str("res/adf_save_disk.dat"))
+        s = pkg_resources.resource_stream(
+            str("fs_uae_launcher"), str("res/adf_save_disk.dat"))
         data = s.read()
         data = zlib.decompress(data)
         f.write(data)

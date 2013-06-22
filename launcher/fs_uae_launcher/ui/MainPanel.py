@@ -3,7 +3,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-import fs_uae_launcher.fsui as fsui
+import fsui as fsui
 from .RemovableMediaGroup import RemovableMediaGroup
 from .config.InputGroup import InputGroup
 from .config.ModelGroup import ModelGroup

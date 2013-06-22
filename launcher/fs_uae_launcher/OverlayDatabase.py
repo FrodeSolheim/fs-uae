@@ -3,10 +3,9 @@ from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-import os
-import sqlite3
 import threading
-from .fsgs.GameDatabase import GameDatabase
+from fsgs.GameDatabase import GameDatabase
+
 
 class OverlayDatabase(GameDatabase):
 

@@ -3,19 +3,20 @@ from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-import os
+import fs_uae_launcher.six as six
+import os 
 import hashlib
 import traceback
-import ConfigParser
-from .Amiga import Amiga
-from .Database import Database
+from fs_uae_launcher.six.moves import configparser
+from fsgs import fsgs
+from fsgs.amiga.Amiga import Amiga
+from fsgs.amiga.ValueConfigLoader import ValueConfigLoader
+from .FSUAEDirectories import FSUAEDirectories
 from .Settings import Settings
 from .Signal import Signal
 from .Util import expand_path
-from .ValueConfigLoader import ValueConfigLoader
 from .Version import Version
 from .Warnings import Warnings
-from .XMLConfigLoader import XMLConfigLoader
 
 # the order of the following keys is significant (for some keys).
 # multiple options should be set in this order since some options will
@@ -72,6 +73,7 @@ cfg = [
     ("__netplay_ready",       "0"),
     ("__netplay_state_dir_name",  "",     "checksum", "sync"),
     ("__version",             Version.VERSION),
+    ("__error",               ""),
     ("x_game_uuid",           ""),
     ("x_game_xml_path",       ""),
     ("title",                 "",                             "custom"),
@@ -82,12 +84,30 @@ cfg = [
     ("developer",             ""),
     ("publisher",             ""),
     ("languages",             ""),
+    ("players",               ""),
+    ("protection",            ""),
     ("hol_url",               ""),
     ("wikipedia_url",         ""),
     ("database_url",          ""),
     ("lemon_url",             ""),
     ("mobygames_url",         ""),
+    ("amigamemo_url",         ""),
+    ("whdload_url",           ""),
+    ("mobygames_url",         ""),
+    ("longplay_url",          ""),
     ("__variant_rating",      ""),
+    ("variant_rating",        ""),
+    ("variant_uuid",          ""),
+    
+    ("x_downloadable",        ""),
+    ("x_download_file",       ""),
+    ("x_download_page",       ""),
+    ("x_download_terms",      ""),
+
+    ("x_missing_files",       ""),
+    ("x_game_notice",         ""),
+    ("x_variant_notice",      ""),
+    ("x_joy_emu_conflict",    ""),
 
     ("screen1_sha1",          ""),
     ("screen2_sha1",          ""),
@@ -96,7 +116,6 @@ cfg = [
     ("screen5_sha1",          ""),
     ("front_sha1",            ""),
     ("title_sha1",            ""),
-
 ]
 
 for i in range(Amiga.MAX_FLOPPY_DRIVES):
@@ -159,9 +178,9 @@ class Config:
         return cls.config.copy()
 
     @classmethod
-    def get(cls, key):
+    def get(cls, key, default=""):
         #return cls.config.setdefault(key, "")
-        return cls.config.get(key, "")
+        return cls.config.get(key, default)
 
     @classmethod
     def add_listener(cls, listener):
@@ -176,9 +195,9 @@ class Config:
     @classmethod
     def set(cls, key, value):
         #if cls.get(key) == value:
-        #    print(u"set {0} to {1} (no change)".format(key, value))
+        #    print("set {0} to {1} (no change)".format(key, value))
         #    return
-        #print(u"set {0} to {1}".format(key, value))
+        #print("set {0} to {1}".format(key, value))
         #cls.config[key] = value
         #for listener in cls.config_listeners:
         #    listener.on_config(key, value)
@@ -195,19 +214,23 @@ class Config:
         item_keys = [x[0] for x in items]
 
         changed_keys = set()
+
         def add_changed_key(key):
             try:
                 priority = cls.key_order.index(key)
             except ValueError:
                 priority = 1000
             changed_keys.add((priority, key))
+
         def change(key, value):
             #print("change", key, value)
+            if key == "joystick_port_1_mode":
+                pass
             if old_config.get(key, "") == value:
                 if value:
-                    print(u"set {0} to {1} (no change)".format(key, value))
+                    print("set {0} to {1} (no change)".format(key, value))
                 return
-            print(u"set {0} to {1}".format(key, value))
+            print("set {0} to {1}".format(key, value))
             add_changed_key(key)
             cls.config[key] = value
 
@@ -240,7 +263,7 @@ class Config:
     @classmethod
     def update_from_config_dict(cls, config_dict):
         changes = []
-        for key, value in config_dict.iteritems():
+        for key, value in six.iteritems(config_dict):
             if key in cls.config:
                 if cls.config[key] != value:
                     changes.append((key, value))
@@ -250,7 +273,7 @@ class Config:
 
     @classmethod
     def sync_items(cls):
-        for key, value in cls.config.iteritems():
+        for key, value in six.iteritems(cls.config):
             if key in cls.sync_keys_set:
                 yield key, value
 
@@ -283,7 +306,7 @@ class Config:
         else:
             checksums = Amiga.get_model_config(model)["kickstarts"]
             for checksum in checksums:
-                path = Database.get_instance().find_file(sha1=checksum)
+                path = fsgs.file.find_by_sha1(checksum)
                 if path:
                     config_dict["x_kickstart_file"] = path
                     config_dict["x_kickstart_file_sha1"] = checksum
@@ -304,7 +327,7 @@ class Config:
                 config_dict["x_kickstart_ext_file_sha1"] = ""
             else:
                 for checksum in checksums:
-                    path = Database.get_instance().find_file(sha1=checksum)
+                    path = fsgs.file.find_by_sha1(checksum)
                     if path:
                         config_dict["x_kickstart_ext_file"] = path
                         config_dict["x_kickstart_ext_file_sha1"] = checksum
@@ -332,7 +355,6 @@ class Config:
     def load_default_config(cls):
         print("load_default_config")
         cls.load({})
-        #from .Settings import Settings
         # FIXME: remove use of config_base
         Settings.set("config_base", "")
         Settings.set("config_name", "Unnamed Configuration")
@@ -341,28 +363,24 @@ class Config:
 
     @classmethod
     def load(cls, config):
-        from .Settings import Settings
         update_config = {}
-        for key, value in cls.default_config.iteritems():
+        for key, value in six.iteritems(cls.default_config):
             update_config[key] = value
-        for key in cls.config.keys():
+        for key in list(cls.config.keys()):
             if key not in cls.default_config:
                 # this is not a recognized key, so we remove it
                 del cls.config[key]
 
-        for key, value in config.iteritems():
+        for key, value in six.iteritems(config):
             # if this is a settings key, change settings instead
             if key in Settings.initialize_from_config:
                 Settings.set(key, value)
             else:
                 update_config[key] = value
 
-        #for key, value in update_config.iteritems():
-        #    #cls.config[key] = value
-        #    cls.set(key, value)
         cls.update_kickstart_in_config_dict(update_config)
         cls.fix_loaded_config(update_config)
-        cls.set_multiple(update_config.iteritems())
+        cls.set_multiple(six.iteritems(update_config))
         Settings.set("config_changed", "0")
 
         #cls.update_kickstart()
@@ -491,36 +509,36 @@ class Config:
         for i in range(Amiga.MAX_FLOPPY_DRIVES):
             fix_file_checksum("x_floppy_drive_{0}_sha1".format(i),
                     "floppy_drive_{0}".format(i),
-                    Settings.get_floppies_dir())
+                    FSUAEDirectories.get_floppies_dir())
         for i in range(Amiga.MAX_FLOPPY_IMAGES):
             fix_file_checksum("x_floppy_image_{0}_sha1".format(i),
                     "floppy_image_{0}".format(i),
-                    Settings.get_floppies_dir())
+                    FSUAEDirectories.get_floppies_dir())
         for i in range(Amiga.MAX_CDROM_DRIVES):
             fix_file_checksum("x_cdrom_drive_{0}_sha1".format(i),
                     "cdrom_drive_{0}".format(i),
-                    Settings.get_cdroms_dir())
+                    FSUAEDirectories.get_cdroms_dir())
         for i in range(Amiga.MAX_CDROM_IMAGES):
             fix_file_checksum("x_cdrom_image_{0}_sha1".format(i),
                     "cdrom_image_{0}".format(i),
-                    Settings.get_cdroms_dir())
+                    FSUAEDirectories.get_cdroms_dir())
         for i in range(Amiga.MAX_HARD_DRIVES):
             fix_file_checksum("x_hard_drive_{0}_sha1".format(i),
                     "hard_drive_{0}".format(i),
-                    Settings.get_hard_drives_dir())
+                    FSUAEDirectories.get_hard_drives_dir())
 
         # FIXME: need to handle checksums for Cloanto here
         fix_file_checksum("x_kickstart_file_sha1", "x_kickstart_file",
-                Settings.get_kickstarts_dir(), is_rom=True)
+                FSUAEDirectories.get_kickstarts_dir(), is_rom=True)
         fix_file_checksum("x_kickstart_ext_file_sha1", "x_kickstart_ext_file",
-                Settings.get_kickstarts_dir(), is_rom=True)
+                FSUAEDirectories.get_kickstarts_dir(), is_rom=True)
 
 
     @classmethod
     def load_file(cls, path):
         try:
             cls._load_file(path, "")
-        except Exception, e:
+        except Exception:
             # FIXME: errors should be logged / displayed
             cls.load_default_config()
             traceback.print_exc()
@@ -530,7 +548,7 @@ class Config:
         print("Config.load_data")
         try:
             cls._load_file("", data)
-        except Exception, e:
+        except Exception:
             # FIXME: errors should be logged / displayed
             cls.load_default_config()
             traceback.print_exc()
@@ -560,37 +578,36 @@ class Config:
                 print("config file does not exist")
         if data:
             config_xml_path = ""
-            loader = XMLConfigLoader()
-            loader.load_data(data)
-            config = loader.get_config()
-        elif path.endswith(".xml"):
-            config_xml_path = path
-            loader = XMLConfigLoader()
-            loader.load_file(path)
-            config = loader.get_config()
+            #loader = XMLConfigLoader()
+            #loader.load_data(data)
+            #config = loader.get_config()
+        #elif path.endswith(".xml"):
+        #    config_xml_path = path
+        #    loader = XMLConfigLoader()
+        #    loader.load_file(path)
+        #    config = loader.get_config()
         else:
             config_xml_path = ""
-            cp = ConfigParser.ConfigParser()
+            cp = configparser.ConfigParser()
             try:
                 cp.read([path])
-            except Exception, e:
+            except Exception as e:
                 print(repr(e))
                 return
             config = {}
             try:
                 keys = cp.options("config")
-            except ConfigParser.NoSectionError:
+            except configparser.NoSectionError:
                 keys = []
             for key in keys:
                 config[key] = cp.get("config", key)
             try:
                 keys = cp.options("fs-uae")
-            except ConfigParser.NoSectionError:
+            except configparser.NoSectionError:
                 keys = []
             for key in keys:
                 config[key] = cp.get("fs-uae", key)
 
-        from .Settings import Settings
         Settings.set("config_path", path)
 
         cls.load(config)
@@ -601,8 +618,8 @@ class Config:
         else:
             config_name, ext = os.path.splitext(os.path.basename(path))
 
-        if u"(" in config_name:
-            config_base = config_name.split(u"(")[0].strip()
+        if "(" in config_name:
+            config_base = config_name.split("(")[0].strip()
         else:
             config_base = config_name
         #game = name
@@ -622,9 +639,9 @@ class Config:
         value_config_loader = ValueConfigLoader(uuid=uuid)
         value_config_loader.load_values(values)
         config = value_config_loader.get_config()
-        #config["x_config_uuid"] = uuid
+        # print("config is", config)
+        # config["x_config_uuid"] = uuid
 
-        from .Settings import Settings
         Settings.set("config_path", "")
 
         cls.load(config)
@@ -635,8 +652,8 @@ class Config:
         #else:
         #    config_name, ext = os.path.splitext(os.path.basename(path))
 
-        if u"(" in config_name:
-            config_base = config_name.split(u"(")[0].strip()
+        if "(" in config_name:
+            config_base = config_name.split("(")[0].strip()
         else:
             config_base = config_name
         #game = name

@@ -4,13 +4,14 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import hashlib
-import fs_uae_launcher.fsui as fsui
-from .Archive import Archive
-from .ROMManager import ROMManager
+#import fsui as fsui
+from fsgs.Archive import Archive
+from fsgs.amiga.ROMManager import ROMManager
+
 
 class ChecksumTool():
 
-    def __init__(self, parent):
+    def __init__(self, parent=None):
         self.parent = parent
         #fsui.Window.__init__(self, parent, "Checksumming")
         #self.layout = fsui.VerticalLayout()

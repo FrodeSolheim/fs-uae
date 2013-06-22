@@ -5,16 +5,22 @@ from __future__ import unicode_literals
 
 import os
 import time
-import hashlib
 import weakref
-import urllib2
+
+try:
+    from urllib.request import urlopen
+except ImportError:
+    from urllib2 import urlopen
+
 import threading
 import traceback
-import fs_uae_launcher.fsui as fsui
-from ..Settings import Settings
+import fsui as fsui
+from ..FSUAEDirectories import FSUAEDirectories
 from ..Signal import Signal
+from .Constants import Constants
 
 SENTINEL = "3e31297d-2ae9-4014-9247-2495d40e5382"
+
 
 class ImageLoader:
 
@@ -52,15 +58,14 @@ class ImageLoader:
         request.image = None
         request.size = size
         request.on_load = on_load
-        #for key, value in kwargs.iteritems:
-        #    setattr(request.data, key, value)
+
         request.args = kwargs
         with self.requests_lock:
             self.requests.append(weakref.ref(request))
         return request
 
     def _image_loader_thread(self):
-    	while not self.stop_flag:
+        while not self.stop_flag:
             #self.condition.wait()
 
             request = None
@@ -83,19 +88,28 @@ class ImageLoader:
 
     def get_cache_path_for_sha1(self, request, sha1):
         #print("get_cache_path_for_sha1", sha1)
-        if request.args.get("is_cover", False):
-            size_arg = "?size={0}".format(256)
-            cache_ext = "_{0}".format(256)
+        cover = request.args.get("is_cover", False)
+        if cover:
+            #size_arg = "?size={0}".format(256)
+            #cache_ext = "_{0}".format(256)
+            #size_arg = "?size={0}".format(128)
+            #cache_ext = "_{0}".format(128)
+            size_arg = "?w={0}&h={1}&t=lbcover".format(Constants.COVER_SIZE[0],
+                    Constants.COVER_SIZE[1])
+            cache_ext = "{0}x{1}_lbcover.png".format(Constants.COVER_SIZE[0],
+                    Constants.COVER_SIZE[1])
         elif request.size:
-            size_arg = "?w={0}&h={1}".format(request.size[0],
-                    request.size[1])
-            cache_ext = "_{0}x{1}".format(request.size[0],
-                    request.size[1])
+            #size_arg = "?w={0}&h={1}".format(request.size[0],
+            #        request.size[1])
+            #cache_ext = "_{0}x{1}".format(request.size[0],
+            #        request.size[1])
+            size_arg = "?s=1x"
+            cache_ext = "_1x.png"
         else:
             size_arg = ""
             cache_ext = ""
 
-        cache_dir = os.path.join(Settings.get_cache_dir(),
+        cache_dir = os.path.join(FSUAEDirectories.get_cache_dir(),
                 "Images", sha1[:3])
         if not os.path.exists(cache_dir):
             os.makedirs(cache_dir)
@@ -109,11 +123,11 @@ class ImageLoader:
         try:
             server = os.environ["FS_GAME_DATABASE_SERVER"]
         except KeyError:
-            server = "fengestad.no"
+            server = "oagd.net"
 
-        url = "http://fengestad.no/games/image/{0}{1}".format(
-                sha1, size_arg)
-        r = urllib2.urlopen(url)
+        url = "http://{0}/image/{1}{2}".format(server, sha1, size_arg)
+        print(url)
+        r = urlopen(url)
         data = r.read()
 
         with open(cache_file, "wb") as f:
@@ -124,6 +138,8 @@ class ImageLoader:
         if request.path is None:
             return
         path = ""
+        cover = request.args.get("is_cover", False)
+        
         if request.path.startswith("sha1:"):
             path = self.get_cache_path_for_sha1(request, request.path[5:])
             double_size = False
@@ -142,21 +158,27 @@ class ImageLoader:
             if image.size == dest_size:
                 request.image = image
                 return
-            try:
-                ratio = image.size[0] / image.size[1]
-            except Exception:
-                ratio = 1.0
-            if ratio > 0.85 and ratio < 1.20:
-                min_length = min(request.size)
-                dest_size = (min_length, min_length)
-
+            
+            if cover:
+                try:
+                    ratio = image.size[0] / image.size[1]
+                except Exception:
+                    ratio = 1.0
+                if 0.85 < ratio < 1.20:
+                    min_length = min(request.size)
+                    dest_size = (min_length, min_length)
+                double_size = False
+            else:
+                double_size = True
+                
             if double_size and image.size[0] < 400:
                 image.resize((image.size[0] * 2,
                         image.size[1] * 2),
                         fsui.Image.NEAREST)
+            #image.resize((dest_size[0] * 2, dest_size[1] * 2))
             image.resize(dest_size)
-            #print(image)
             request.image = image
+
 
 class ImageLoadRequest:
 

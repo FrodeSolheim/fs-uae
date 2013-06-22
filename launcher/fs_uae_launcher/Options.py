@@ -189,10 +189,9 @@ options = {
     "description": N_("Video synchronization"),
     "type": "choice",
     "values": [
-        ("off", N_("Off")),
         ("auto", N_("Auto")),
-        ("vblank", N_("Sync to Vblank")),
-        ("full", N_("Force Full Vsync")),
+        ("vblank", N_("Buffer swap only")),
+        ("off", N_("Off")),
     ]
 },
 

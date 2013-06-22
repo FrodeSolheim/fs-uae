@@ -3,14 +3,12 @@ from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-import os
-import fs_uae_launcher.fsui as fsui
-from ..Config import Config
+import fsui as fsui
 from ..CDManager import CDManager
 from ..FloppyManager import FloppyManager
-from ..Settings import Settings
-from ..I18N import _, ngettext
+from ..I18N import _
 from .FloppySelector import FloppySelector
+
 
 class FloppiesGroup(fsui.Group):
 
@@ -31,14 +29,14 @@ class FloppiesGroup(fsui.Group):
         hori_layout.add(self.label, margin=10)
         hori_layout.add_spacer(0, expand=True)
 
-        self.multi_select_button = fsui.Button(self,
-                _("Select Multiple Files..."))
+        self.multi_select_button = fsui.Button(
+            self, _("Select Multiple Files..."))
         if self.cd_mode:
             self.multi_select_button.set_tooltip(
-                    _("Add Multiple CD-ROMs at Once"))
+                _("Add Multiple CD-ROMs at Once"))
         else:
             self.multi_select_button.set_tooltip(
-                    _("Add Multiple Floppies at Once"))
+                _("Add Multiple Floppies at Once"))
         self.multi_select_button.on_activate = self.on_multi_select_button
 
         hori_layout.add(self.multi_select_button, margin_right=10)

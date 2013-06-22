@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 
 import xml.etree.ElementTree
 from xml.etree.cElementTree import ElementTree
-import fs_uae_launcher.fsui as fsui
+import fsui as fsui
 #from ..Database import Database
 from ..I18N import _, ngettext
 from .GameListView import GameListView

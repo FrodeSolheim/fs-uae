@@ -105,7 +105,7 @@ class CommandHandler(object):
 
         try:
             f(*args)
-        except Exception, e:
+        except Exception as e:
             logging.error('command raised %s' % e)
             logging.error(traceback.format_exc())
             raise CommandError(command)
@@ -151,7 +151,7 @@ class DefaultBotCommandHandler(CommandHandler):
         else:
             try:
                 f = self.get(arg)
-            except CommandError, e:
+            except CommandError as e:
                 helpers.msg(self.client, dest, str(e))
                 return
 
@@ -198,7 +198,7 @@ class BotCommandHandler(DefaultCommandHandler):
 
         try:
             self.command_handler.run(command, prefix, dest, *arg)
-        except CommandError, e:
+        except CommandError as e:
             helpers.msg(self.client, dest, str(e))
         return True
 

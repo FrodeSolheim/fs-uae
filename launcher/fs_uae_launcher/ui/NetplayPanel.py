@@ -3,7 +3,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-import fs_uae_launcher.fsui as fsui
+import fsui as fsui
 from ..Settings import Settings
 from ..I18N import _, ngettext
 from ..netplay.IRC import IRC
@@ -123,7 +123,7 @@ class NetplayPanel(fsui.Panel):
 
     def update_channel_list(self):
         items = sorted(IRC.channels.keys())
-        #items[0] = u"IRC ({0})".format(Settings.get_irc_server())
+        #items[0] = "IRC ({0})".format(Settings.get_irc_server())
         #items[0] = Settings.get_irc_server()
         self.channel_list.set_items(items)
 

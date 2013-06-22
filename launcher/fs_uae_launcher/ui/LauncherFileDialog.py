@@ -4,10 +4,10 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import os
-import fs_uae_launcher.fsui as fsui
+import fsui as fsui
+from ..FSUAEDirectories import FSUAEDirectories
 from ..Settings import Settings
-from ..I18N import _, ngettext
-from .Skin import Skin
+
 
 class LauncherFileDialog(fsui.FileDialog):
 
@@ -36,18 +36,19 @@ class LauncherFileDialog(fsui.FileDialog):
                 directory = value
         if not directory:
             directory = self.get_default_directory(type)
-        fsui.FileDialog.__init__(self, parent, title, directory,
-                dir_mode=dir_mode, multiple=multiple)
+        fsui.FileDialog.__init__(
+            self, parent, title, directory, dir_mode=dir_mode,
+            multiple=multiple)
 
     def get_default_directory(self, type):
         if type == "floppy":
-            return Settings.get_floppies_dir()
+            return FSUAEDirectories.get_floppies_dir()
         elif type == "cd":
-            return Settings.get_cdroms_dir()
+            return FSUAEDirectories.get_cdroms_dir()
         elif type == "hd":
-            return Settings.get_hard_drives_dir()
+            return FSUAEDirectories.get_hard_drives_dir()
         elif type == "rom":
-            return Settings.get_kickstarts_dir()
+            return FSUAEDirectories.get_kickstarts_dir()
         raise Exception("unknown file dialog type")
 
     def show_modal(self):

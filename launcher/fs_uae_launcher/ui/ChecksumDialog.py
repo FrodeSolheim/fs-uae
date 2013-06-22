@@ -4,16 +4,17 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import hashlib
-import fs_uae_launcher.fsui as fsui
-from ..I18N import _, ngettext
+import fsui as fsui
+from ..I18N import _
+
 
 class ChecksumDialog(fsui.Window):
 
     def __init__(self, parent, path):
-        fsui.Window.__init__(self, parent, "Checksumming")
+        fsui.Window.__init__(self, parent, _("Checksumming"))
         self.layout = fsui.VerticalLayout()
 
-        label = fsui.HeadingLabel(self, "Checksumming file...")
+        label = fsui.HeadingLabel(self, _("Checksumming file..."))
         self.layout.add(label, fill=True)
         self.layout.add_spacer(6)
         #self.center_on_parent()

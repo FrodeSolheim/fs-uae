@@ -178,7 +178,7 @@ static void on_text(GMarkupParseContext *context, const gchar *text,
     g_free(value);
 }
 
-static void log_shader_error(int shader) {
+static void log_shader_log(int shader) {
     GLint info_length = 0;
     glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &info_length);
     if (info_length > 0) {
@@ -245,16 +245,15 @@ static void handle_element(parse_data *data, const char *element,
         GLint compile_status;
         glGetShaderiv(shader, GL_COMPILE_STATUS, &compile_status);
         CHECK_GL_ERROR();
+        log_shader_log(shader);
         if (compile_status == GL_FALSE) {
             fs_emu_warning("failed to compile vertex shader");
-            log_shader_error(shader);
             data->error = 1;
             return;
         }
         else {
             fs_log("compiled vertex shader successfully\n");
         }
-
         data->shader->current_shaders = fs_list_append(
                 data->shader->current_shaders,
                 FS_UINT_TO_POINTER(shader));
@@ -368,9 +367,9 @@ static void handle_element(parse_data *data, const char *element,
     GLint compile_status;
     glGetShaderiv(shader, GL_COMPILE_STATUS, &compile_status);
     CHECK_GL_ERROR();
+    log_shader_log(shader);
     if (compile_status == GL_FALSE) {
         fs_emu_warning("failed to compile fragment shader");
-        log_shader_error(shader);
         data->error = 1;
         return;
     }

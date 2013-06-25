@@ -641,6 +641,61 @@ static const char *overlay_names[] = {
 
 FILE *g_state_log_file = NULL;
 
+#ifdef WINDOWS
+
+char *mbcs_to_utf8(const char *str) {
+    int size = -1;
+    DWORD flags = MB_ERR_INVALID_CHARS;
+
+    int chars = MultiByteToWideChar(CP_ACP, flags, str, size, NULL, 0);
+    if (chars == 0) {
+        fs_log("error convering to wide string\n");
+        return NULL;
+    }
+    wchar_t* wstr = (wchar_t*) (malloc(sizeof(wchar_t) * (chars + 1)));
+    chars = MultiByteToWideChar(CP_ACP, flags, str, size, wstr, chars + 1);
+    if (chars == 0) {
+        fs_log("error convering to wide string\n");
+        free(wstr);
+        return NULL;
+    }
+
+    flags = 0;
+    int bytes = WideCharToMultiByte(
+            CP_UTF8,                   // UINT CodePage,
+            flags,                     // DWORD dwFlags,
+            wstr,                      // LPCWSTR lpWideCharStr,
+            size,                      // int cchWideChar,
+            NULL,                      // LPSTR lpMultiByteStr,
+            0,                         // int cbMultiByte,
+            NULL,                      // LPCSTR lpDefaultChar,
+            NULL);                     // LPBOOL lpUsedDefaultChar
+    if (bytes == 0) {
+        fs_log("error convering to utf-8\n");
+        free(wstr);
+        return NULL;
+    }
+    char* buffer = (char*) (malloc(bytes + 1));
+    bytes = WideCharToMultiByte(
+            CP_UTF8,                   // UINT CodePage,
+            flags,                     // DWORD dwFlags,
+            wstr,                      // LPCWSTR lpWideCharStr,
+            size,                      // int cchWideChar,
+            buffer,                    // LPSTR lpMultiByteStr,
+            bytes + 1,                 // int cbMultiByte,
+            NULL,                      // LPCSTR lpDefaultChar,
+            NULL);                     // LPBOOL lpUsedDefaultChar
+    if (bytes == 0) {
+        fs_log("error convering to utf-8\n");
+        free(wstr);
+        free(buffer);
+        return NULL;
+    }
+    return buffer;
+}
+
+#endif
+
 int main(int argc, char* argv[]) {
     int result;
     fs_uae_argc = argc;
@@ -678,9 +733,19 @@ int main(int argc, char* argv[]) {
     arg = argv + 1;
     if (g_fs_uae_config_file_path == NULL) {
         while (arg && *arg) {
-            if (fs_path_exists(*arg)) {
-                g_fs_uae_config_file_path = fs_strdup(*arg);
+#ifdef WINDOWS
+            char *test_path = mbcs_to_utf8(*arg);
+#else
+            const gchar *test_path = *arg;
+#endif
+            if (test_path && fs_path_exists(test_path)) {
+                g_fs_uae_config_file_path = fs_strdup(test_path);
             }
+#ifdef WINDOWS
+            if (test_path) {
+                g_free(test_path);
+            }
+#endif
             arg++;
         }
     }

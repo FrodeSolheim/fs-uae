@@ -181,19 +181,19 @@ class Settings:
     @classmethod
     def get_default_search_path(cls):
         paths = []
-        paths.append(cls.get_base_dir())
-        #paths.append(os.path.join(fs.get_home_dir(),
-        #        "Games", "Amiga"))
-        #paths.append(os.path.join(fs.get_home_dir(),
-        #        "Games", "CD32"))
-        #paths.append(os.path.join(fs.get_home_dir(),
-        #        "Games", "CDTV"))
+        path = cls.get_base_dir()
+        if fs.windows:
+            path = path.replace("/", "\\")
+        paths.append(path)
 
         if fs.windows:
             from win32com.shell import shell, shellcon
             path = shell.SHGetFolderPath(0, shellcon.CSIDL_COMMON_DOCUMENTS, 0, 0)
+            path = fs.unicode_path(path)
             path = os.path.join(path, "Amiga Files")
-            paths.append(path)
+            if os.path.exists(path):
+                print("\n\n\n", path, "exists!!\n\n\n")
+                paths.append(path)
         return paths
 
     @classmethod

@@ -1,3 +1,14 @@
+Version 2.2.3:
+
+* On windows, read file name (as program parameter) with MBCS encoding
+  (CP_ACP) so paths with non-ASCII characters are handled correctly.
+* Windows executables are digitally signed by "Frode Solheim".
+* (Launcher) Only add Cloanto "Amiga Files" to search path if directory
+  exists (Windows).
+* (Launcher) Fix slash direction in default search directory on Windows so
+  it does not look weird.
+* (Launcher) Updated translations: it [speedvicio].
+
 Version 2.2.2:
 
 * With video_sync = auto, allow some slack when deciding to enable full

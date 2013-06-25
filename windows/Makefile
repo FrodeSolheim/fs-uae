@@ -29,6 +29,7 @@ program:
 	cp -a ../share fs-uae-$(version)-windows
 	strip fs-uae-$(version)-windows/*.exe
 	strip fs-uae-$(version)-windows/*.dll
+	python /c/signtool.py fs-uae-$(version)-windows/*.exe
 
 launcher:
 	make -C ../launcher -f Makefile.mk
@@ -39,6 +40,7 @@ launcher:
 	cp -a ../launcher/share fs-uae-$(version)-windows/launcher/
 	mv fs-uae-$(version)-windows/launcher/fs-uae-launcher.exe "fs-uae-$(version)-windows/launcher/FS-UAE Launcher.exe"
 	python replace_icon.py "fs-uae-$(version)-windows/launcher/FS-UAE Launcher.exe" ../icon/fs-uae-launcher.ico
+	python /c/signtool.py "fs-uae-$(version)-windows/launcher/FS-UAE Launcher.exe"
 	cp -a /mingw/Microsoft.VC90.CRT fs-uae-$(version)-windows/launcher/
 
 bindist-plus:
@@ -46,3 +48,4 @@ bindist-plus:
 
 setup:
 	iscc fs-uae-setup.iss
+	python /c/signtool.py fs-uae-$(version)-setup.exe

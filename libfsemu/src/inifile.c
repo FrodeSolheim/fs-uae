@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 #include <fs/hashtable.h>
+#include <fs/filesys.h>
 
 struct fs_ini_file {
     fs_hash_table *groups;
@@ -352,7 +353,7 @@ static int ini_parse(const char* filename,
     FILE* file;
     int error;
 
-    file = fopen(filename, "r");
+    file = fs_fopen(filename, "r");
     if (!file)
         return -1;
     error = ini_parse_file(file, handler, user);

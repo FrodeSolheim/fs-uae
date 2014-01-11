@@ -1685,6 +1685,41 @@ static void render_glow(double opacity) {
     CHECK_GL_ERROR();
     //printf("--- render glow done ---\n");
 }
+void render_fade_overlay(double alpha) {
+    // draw fading effect
+    fs_gl_viewport(0, 0, fs_ml_video_width(), fs_ml_video_height());
+    fs_gl_ortho_hd();
+    fs_gl_blending(1);
+    fs_gl_texturing(0);
+    fs_gl_color4f(g_fs_emu_theme.fade_color[0] * alpha,
+            g_fs_emu_theme.fade_color[1] * alpha,
+            g_fs_emu_theme.fade_color[2] * alpha, alpha);
+
+#ifdef USE_GLES
+    GLfloat vert[] = {
+        0, 0,
+        1920, 0,
+        1920, 1080,
+        0, 1080
+    };
+
+    glEnableClientState(GL_VERTEX_ARRAY);
+
+    glVertexPointer(2, GL_FLOAT, 0, vert);
+    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+    glDisableClientState(GL_VERTEX_ARRAY);
+#else
+    glBegin(GL_QUADS);
+    glVertex2f(0, 0);
+    glVertex2f(1920, 0);
+    glVertex2f(1920, 1080);
+    glVertex2f(0, 1080);
+    glEnd();
+#endif
+
+    CHECK_GL_ERROR();
+}
 
 /**
  * This function is called at the end of the frame rendering function
@@ -1717,39 +1752,7 @@ static void handle_quit_sequence() {
         fade = 1.0;
     }
 
-    // draw fading effect
-    fs_gl_viewport(0, 0, fs_ml_video_width(), fs_ml_video_height());
-    fs_gl_ortho_hd();
-    fs_gl_blending(1);
-    fs_gl_texturing(0);
-    fs_gl_color4f(g_fs_emu_theme.fade_color[0] * fade,
-            g_fs_emu_theme.fade_color[1] * fade,
-            g_fs_emu_theme.fade_color[2] * fade, fade);
-
-#ifdef USE_GLES
-    GLfloat vert[] = {
-        0, 0,
-        1920, 0,
-        1920, 1080,
-        0, 1080
-    };
-    
-    glEnableClientState(GL_VERTEX_ARRAY);
-    
-    glVertexPointer(2, GL_FLOAT, 0, vert);
-    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-    
-    glDisableClientState(GL_VERTEX_ARRAY);
-#else        
-    glBegin(GL_QUADS);
-    glVertex2f(0, 0);
-    glVertex2f(1920, 0);
-    glVertex2f(1920, 1080);
-    glVertex2f(0, 1080);
-    glEnd();
-#endif
-    
-    CHECK_GL_ERROR();
+    render_fade_overlay(fade);
 }
 
 int fs_emu_video_update_function() {
@@ -2208,6 +2211,28 @@ void fs_emu_video_render_function() {
 
     if (fs_emu_is_quitting()) {
         handle_quit_sequence();
+    }
+
+    static int64_t start_time = -1;
+    if (start_time == -1) {
+        start_time = fs_emu_monotonic_time();
+    }
+    static int fade_time = FS_CONFIG_NONE;
+    if (fade_time == FS_CONFIG_NONE) {
+        fade_time = fs_config_get_int_clamped("fade_in_duration", 0, 10000);
+        if (fade_time == FS_CONFIG_NONE) {
+            fade_time = 750;
+        }
+        fade_time = fade_time * 1000;
+    }
+
+    int64_t dt = fs_emu_monotonic_time() - start_time;
+    if (dt < fade_time) {
+        float fade = 1.0 - (1.0 * dt) / fade_time;
+        if (fade < 0.0) {
+            fade = 0.0;
+        }
+        render_fade_overlay(fade);
     }
 
     fs_emu_video_render_mutex_unlock();

@@ -599,6 +599,7 @@ void map_custom_gamepad_actions(int joy, const char *name,
 static void map_custom_joystick_actions() {
     fs_log("map_custom_joystick_actions\n");
     fs_ml_input_device device;
+    int joystick_index = 0;
     for (int i = 0; i < FS_ML_INPUT_DEVICES_MAX; i++) {
         if (!fs_ml_input_device_get(i, &device)) {
             continue;
@@ -608,18 +609,24 @@ static void map_custom_joystick_actions() {
         }
         char *name, *config_name;
         fs_log("map_custom_joystick_actions for %s\n", device.name);
+
         name = fs_ascii_strdown(device.name, -1);
         config_name = joystick_config_name(name, 1);
+        free(name);
         map_custom_joystick_actions_2(i, config_name, device.axes,
                 device.hats, device.buttons);
         map_custom_gamepad_actions(i, config_name, &device);
         free(config_name);
-        free(name);
-        name = fs_strdup_printf("joystick_%d", i);
-        map_custom_joystick_actions_2(i, name, device.axes, device.hats,
-                device.buttons);
-        map_custom_gamepad_actions(i, name, &device);
-        free(name);
+
+        if (device.type == FS_ML_JOYSTICK) {
+            config_name = fs_strdup_printf("joystick_%d", joystick_index);
+            fs_log("%s\n", config_name);
+            map_custom_joystick_actions_2(i, config_name, device.axes,
+                    device.hats, device.buttons);
+            map_custom_gamepad_actions(i, config_name, &device);
+            free(config_name);
+            joystick_index += 1;
+        }
     }
 }
 

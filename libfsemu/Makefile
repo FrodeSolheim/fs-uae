@@ -145,7 +145,8 @@ else ifeq ($(os), macosx)
 	else ifneq ($(findstring Power,$(uname_m)),)
 	arch = ppc
 	else
-	arch = x86_64
+	# arch = x86_64
+	arch = i386
 	endif
 	cflags += -arch $(arch)
 	cxxflags += -arch $(arch)
@@ -227,12 +228,6 @@ out/$(shared): $(objects)
 fs-test:
 	make -C test
 
-clean:
-	rm -f obj/*.o
-	rm -f out/*.a
-	rm -f out/*.so*
-	#make -C test clean
-
 prefix := /usr
 
 install:
@@ -245,3 +240,12 @@ install:
 	mkdir -p $(DESTDIR)$(prefix)/lib/pkgconfig/
 	cp -a *.pc $(DESTDIR)$(prefix)/lib/pkgconfig/
 
+clean:
+	rm -f obj/*.o
+	rm -f out/*.a
+	rm -f out/*.so*
+	#make -C test clean
+
+clean-dist:
+
+distclean: clean clean-dist

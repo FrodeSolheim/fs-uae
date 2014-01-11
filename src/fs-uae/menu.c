@@ -180,8 +180,8 @@ static void update_main_menu(fs_emu_menu *menu) {
     else {
         fs_emu_menu_item_set_title(item, _("Pause"));
     }
-    update_input_item(menu->items[INPUT_ITEM_INDEX], 0);
-    update_input_item(menu->items[INPUT_ITEM_INDEX + 1], 1);
+    update_input_item(menu->items[INPUT_ITEM_INDEX], 1);
+    update_input_item(menu->items[INPUT_ITEM_INDEX + 1], 0);
     int media_item_first_index = MEDIA_ITEM_INDEX;
 
     int drive, type;
@@ -883,7 +883,15 @@ static int input_menu_function(fs_emu_menu_item *menu_item,
     item = fs_emu_menu_item_new();
     fs_emu_menu_append_item(menu, item);
     /// TRANSLATORS: This is a menu entry and must not be too long
-    str = fs_strdup_printf(_("Joystick Port %d"), port);
+    if (port == 0) {
+        str = fs_strdup_printf(_("Mouse Port"));
+    }
+    else if (port == 1) {
+        str = fs_strdup_printf(_("Joystick Port"));
+    }
+    else {
+        str = fs_strdup_printf(_("Joystick Port %d"), port);
+    }
     fs_emu_menu_item_set_title(item, str);
     free(str);
     fs_emu_menu_item_set_type(item, FS_EMU_MENU_ITEM_TYPE_HEADING);
@@ -923,10 +931,11 @@ void add_input_item(fs_emu_menu *menu, int index) {
     item = fs_emu_menu_item_new();
     fs_emu_menu_append_item(menu, item);
     if (index == 0) {
-        fs_emu_menu_item_set_title(item, _("Joystick Port 0"));
+        fs_emu_menu_item_set_title(item, _("Mouse Port"));
     }
     else if (index == 1) {
-        fs_emu_menu_item_set_title(item, _("Joystick Port 1"));
+
+        fs_emu_menu_item_set_title(item, _("Joystick Port"));
     }
     else if (index == 2) {
         fs_emu_menu_item_set_title(item, _("Joystick Port 2"));
@@ -946,11 +955,11 @@ void add_input_item(fs_emu_menu *menu, int index) {
 }
 
 static void update_input_options_menu(fs_emu_menu *menu) {
-    update_input_item(menu->items[1], 0);
-    update_input_item(menu->items[2], 1);
-    update_input_item(menu->items[4], 2);
-    update_input_item(menu->items[5], 3);
-    update_input_item(menu->items[7], 4);
+    update_input_item(menu->items[1], 1);
+    update_input_item(menu->items[3], 0);
+    update_input_item(menu->items[5], 2);
+    update_input_item(menu->items[6], 3);
+    update_input_item(menu->items[8], 4);
 }
 
 static int input_options_menu_function(fs_emu_menu_item *menu_item,
@@ -963,11 +972,17 @@ static int input_options_menu_function(fs_emu_menu_item *menu_item,
 
     item = fs_emu_menu_item_new();
     fs_emu_menu_append_item(menu, item);
-    fs_emu_menu_item_set_title(item, _("Joystick Ports"));
+    fs_emu_menu_item_set_title(item, _("Joystick Port"));
+    fs_emu_menu_item_set_type(item, FS_EMU_MENU_ITEM_TYPE_HEADING);
+
+    add_input_item(menu, 1);
+
+    item = fs_emu_menu_item_new();
+    fs_emu_menu_append_item(menu, item);
+    fs_emu_menu_item_set_title(item, _("Mouse Port"));
     fs_emu_menu_item_set_type(item, FS_EMU_MENU_ITEM_TYPE_HEADING);
 
     add_input_item(menu, 0);
-    add_input_item(menu, 1);
 
     item = fs_emu_menu_item_new();
     fs_emu_menu_append_item(menu, item);
@@ -1041,8 +1056,8 @@ void fs_uae_configure_menu() {
     fs_emu_menu_item_set_title(item, _("Input Options"));
     fs_emu_menu_item_set_type(item, FS_EMU_MENU_ITEM_TYPE_HEADING);
 
-    add_input_item(menu, 0);
     add_input_item(menu, 1);
+    add_input_item(menu, 0);
 
     item = fs_emu_menu_item_new();
     fs_emu_menu_append_item(menu, item);

@@ -138,7 +138,8 @@ else ifeq ($(os), macosx)
   else ifneq ($(findstring Power,$(uname_m)),)
     arch = ppc
   else
-    arch = x86_64
+    # arch = x86_64
+    arch = i386
   endif
   cflags += -arch $(arch)
   cxxflags += -arch $(arch)
@@ -611,14 +612,6 @@ install:
 	install -d $(DESTDIR)$(docdir)
 	cp README COPYING example.conf $(DESTDIR)$(docdir)
 
-clean:
-	$(make) -C $(libfsemu_dir) clean
-	rm -f gensrc/build68k gensrc/genblitter gensrc/gencpu gensrc/genlinetoscr
-	rm -f obj/*.o obj/*.a out/fs-uae* fs-uae fs-uae.exe
-	rm -Rf build dist fs-uae-[0-9]* fs-uae_*
-
-distclean: clean
-
 debsrc: dist
 	# test -f $(build_dir)/fs-uae_$(version).orig.tar.gz || cp $(build_dir)/fs-uae-$(version).tar.gz $(build_dir)/fs-uae_$(version).orig.tar.gz
 	mv $(build_dir)/fs-uae-$(version).tar.gz $(build_dir)/fs-uae_$(version).orig.tar.gz
@@ -648,3 +641,13 @@ debseries := unstable
 debversion := $(shell date +"%s")
 
 include targets.mk
+
+clean-dist:
+	rm -Rf build dist fs-uae-[0-9]* fs-uae_*
+
+clean:
+	$(make) -C $(libfsemu_dir) clean
+	rm -f gensrc/build68k gensrc/genblitter gensrc/gencpu gensrc/genlinetoscr
+	rm -f obj/*.o obj/*.a fs-uae fs-uae.exe
+
+distclean: clean clean-dist

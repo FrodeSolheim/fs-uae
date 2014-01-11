@@ -112,7 +112,7 @@ class IconFile:
             for n in e._names_[:-1]:
                 setattr(e, n, getattr (entry, n))
             e.nID = i
-            i = i + 1
+            i += 1
             data = data + e.tostring()
         return data
 
@@ -123,7 +123,7 @@ def CopyIcons_FromIco (dstpath, srcpath, replace = 0):
     import win32api #, win32con
     hdst = win32api.BeginUpdateResource (dstpath, replace)
     data = f.grp_icon_dir()
-    data = data + f.grp_icondir_entries()
+    data += f.grp_icondir_entries()
     win32api.UpdateResource (hdst, RT_GROUP_ICON, 1, data)
     print "I: Writing RT_GROUP_ICON resource with %d bytes" % len (data)
     i = 1
@@ -131,7 +131,7 @@ def CopyIcons_FromIco (dstpath, srcpath, replace = 0):
         #print data
         win32api.UpdateResource (hdst, RT_ICON, i, data)
         print "I: Writing RT_ICON resource with %d bytes" % len (data)
-        i = i + 1
+        i += 1
     win32api.EndUpdateResource (hdst, 0)
 
 def CopyIcons (dstpath, srcpath):

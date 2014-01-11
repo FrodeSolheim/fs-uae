@@ -1,3 +1,18 @@
+Version 2.3.6:
+
+* Joystick indices (for use with custom input mapping) were skewed due to
+  the new mouse devices (fixed).
+* Swapped display order of mouse and joystick ports, call them
+  "Joystick Port" and "Mouse Port" instead of Joystick Port 0/1.
+* Fade in when starting FS-UAE, looks better when using themes since the 
+  graphics won't just suddently pop out.
+* (Launcher) Search-as-you type has returned.
+* (Launcher) Show homepage_url, thelegacy_url in links menu.
+* (Launcher) Swapped display order of mouse and joystick ports.
+* (Launcher) Spin controls did not work properly on OS X.
+* (Launcher) Handle importing kickstarts from the kickstarts dir gracefully.
+* (Game Center) Don't create ~/Documents (unless needed) and ~/Games.
+
 Version 2.3.5:
 
 * Can open block devices as HDF files on OpenBSD [Edd Barrett / vext01].

@@ -1,3 +1,33 @@
+Version 2.3.8:
+
+* New option "volume" to specify initial audio volume.
+* (Launcher) New OAGD.net login and logout dialog.
+* (Launcher) New login system (store authentication tokens instead of
+  username and password).
+* (Launcher) Drop-down list for choosing game list (from OAGD.net).
+* (Launcher) Support for synchronizing game lists from OAGD.net.
+* (Launcher) Initial support for OAGD.net locker (only available to a few
+  select users right now).
+* (Launcher) If local files are missing, files will be downloaded on demand
+  from the user's OAGD.net locker, if present there.
+* (Launcher) More compact (OAGD) game database, faster synchronization.
+* (Launcher) Nicer database refresh dialog, stop button works now.
+* (Launcher) Fixed bugs in HDF Creator appearing after split from ADF Creator.
+* (Launcher) Language preferences page now actually works.
+* (Launcher) New language detection code for OS X, not dependent on wx.
+* (Launcher) Fixed bugs preventing info panel from showing some warnings.
+* (Launcher) Settings file moved into FS-UAE/Data, shared with Game Center.
+* (Launcher) Several other minor UI updates, bug fixes, and restructured code.
+* (Launcher) WHDLoad runner installs the file C:OSEmu.400.
+* (Launcher) Load QT stylesheet (if found) from
+  FS-UAE/Plugins/<name>/fs-uae-launcher-theme/stylesheet.qss
+* (Launcher) Added icons to settings dialog, removed close button.
+* (Launcher) QT port now displays application / window icon again.
+* (Launcher) Moved "Custom Settings" to Preferences -> Advanced Settings.
+* (Launcher) Remember last used preferences page.
+* (Launcher) Added preference control for new audio volume option.
+* (Game Center) Now reads and applies (most) FS-UAE Launcher settings.
+
 Version 2.3.7:
 
 * New utility program: fs-uae-device-helper (used by FS-UAE Launcher).
@@ -6,7 +36,8 @@ Version 2.3.7:
 * (Launcher) Program startup and focus issue should be fixed on OS X.
 * (Launcher) Added language preference page.
 * (Launcher) ADF & HDF Creator split into two, and they are now non-modal.
-* (Launcher) Joystick config tool shows existing config when opening.
+* (Launcher) Joystick config tool shows existing config when opening (only
+  when the user has already configured it, bundled config is not shown yet).
 * (Launcher) Joystick device for mapping is selected in joystick prefs.
 * (Launcher) Completed porting to QT (using pyside bindings for Python).
 * (Launcher) Old wxPython GUI layer still exists (--wx) but not 100% updated.
@@ -14,7 +45,7 @@ Version 2.3.7:
 * (Launcher) Fixed bug when choosing a zip with select multiple floppies.
 * (Launcher) Search-as-you type could in some case return multiple entries
   for the same game.
-* (Launcher) Updated don't checksum BSd device nodes code [vext01].
+* (Launcher) Updated don't checksum BSD device nodes code [vext01].
 
 Version 2.3.6:
 

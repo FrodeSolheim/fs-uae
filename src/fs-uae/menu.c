@@ -358,7 +358,7 @@ static int save_states_menu_function(fs_emu_menu_item *unused,
 
     item = fs_emu_menu_item_new();
     fs_emu_menu_append_item(menu, item);
-    fs_emu_menu_item_set_title(item, _("Save States"));
+    fs_emu_menu_item_set_title(item, _("Savestates"));
     fs_emu_menu_item_set_type(item, FS_EMU_MENU_ITEM_TYPE_HEADING);
 
     for (int i = 0; i < NUM_SAVE_SLOTS; i++) {
@@ -1023,7 +1023,7 @@ void fs_uae_configure_menu() {
 
     item = fs_emu_menu_item_new();
     fs_emu_menu_append_item(menu, item);
-    fs_emu_menu_item_set_title(item, _("Save States"));
+    fs_emu_menu_item_set_title(item, _("Savestates"));
     fs_emu_menu_item_set_activate_function(item, save_states_menu_function);
     if (fs_config_get_boolean("save_states") == 0) {
         fs_emu_menu_item_set_enabled(item, 0);

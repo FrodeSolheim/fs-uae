@@ -433,6 +433,11 @@ static void log_openal_info() {
 static void openal_audio_init() {
     fs_log("openal_audio_init\n");
 
+    int volume = fs_config_get_int_clamped("volume", 0, 100);
+    if (volume != FS_CONFIG_NONE) {
+        fs_emu_audio_set_volume(volume);
+    }
+
     // select the "preferred device"
     g_device = alcOpenDevice(NULL);
     if (g_device) {

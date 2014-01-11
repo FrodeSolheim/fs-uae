@@ -82,4 +82,5 @@ if True:
             fix_libs("FS-UAE.app/Contents/Frameworks/" + name)
         fix_libs("FS-UAE.app/Contents/Frameworks/libfs-capsimage.dylib")
         fix_libs("FS-UAE.app/Contents/MacOS/fs-uae")
+        fix_libs("FS-UAE.app/Contents/Utils/fs-uae-device-helper")
 #        os.chdir(org_dir)

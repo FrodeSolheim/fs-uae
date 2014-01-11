@@ -380,6 +380,7 @@ void fs_uae_record_frame(int frame) {
             invalidate_recording();
             return;
         }
+/*
         printf("- %08x\n", (amiga_get_state_checksum() & 0x00ffffff));
         if ((value & 0x00ffffff) != (amiga_get_state_checksum() & 0x00ffffff)) {
             printf("X %08x\n", (value & 0x00ffffff));
@@ -388,6 +389,7 @@ void fs_uae_record_frame(int frame) {
             invalidate_recording();
             return;
         }
+*/
         next_value();
 
     }

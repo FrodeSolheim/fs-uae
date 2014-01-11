@@ -1,5 +1,5 @@
 Name:           fs-uae
-Version:        2.3.7dev
+Version:        2.3.8dev
 Release:        1%{?dist}
 
 Summary:        Amiga emulator with on-screen GUI and online play support
@@ -78,6 +78,7 @@ make %{?_smp_mflags}
 %files -f %{name}.lang
 %defattr(0644,root,root,0755)
 %attr(0755,root,root) %{_bindir}/fs-uae
+%attr(0755,root,root) %{_bindir}/fs-uae-device-helper
 %{_datadir}/fs-uae/
 %{_defaultdocdir}/fs-uae/
 %{_datadir}/applications/fs-uae.desktop

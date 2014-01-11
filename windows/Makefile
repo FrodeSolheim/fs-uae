@@ -33,7 +33,8 @@ progdir:
 	cp /mingw/bin/libiconv*.dll $(emulator_dir)
 	cp /mingw/bin/SDL.dll $(emulator_dir)
 	cp /mingw/bin/OpenAL32.dll $(emulator_dir)
-	cp -a ../fs-uae.exe $(emulator_dir)/fs-uae.exe
+	cp -a ../fs-uae.exe $(emulator_dir)/
+	cp -a ../fs-uae-device-helper.exe $(emulator_dir)/
 	cp -a ../../CAPSImg.dll $(emulator_dir) || cp -a ../CAPSImg.dll $(emulator_dir)
 	cp -a ../share $(emulator_dir)/share
 	cp -a ../licenses $(emulator_dir)/licenses

@@ -99,6 +99,8 @@ int fs_ml_get_fullscreen_height();
 int fs_ml_get_windowed_width();
 int fs_ml_get_windowed_height();
 
+char *fs_ml_input_unique_device_name(char *name);
+
 //int fs_ml_main_iteration();
 // FIXME: REMOVE?
 //void fs_ml_swap_buffers();

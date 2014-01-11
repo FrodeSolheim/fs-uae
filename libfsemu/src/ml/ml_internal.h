@@ -45,7 +45,6 @@ void fs_ml_init_raw_input();
 void fs_ml_configure_window();
 void fs_ml_render_iteration();
 
-char *fs_ml_input_unique_device_name(char *name);
 extern fs_ml_input_device *g_fs_ml_input_devices;
 extern int g_fs_ml_input_device_count;
 extern int g_fs_ml_first_keyboard_index;

@@ -8,7 +8,7 @@ else
     libfsemu_dir := "libfsemu"
 endif
 
-all: fs-uae mo
+all: fs-uae fs-uae-device-helper mo
 
 cppflags = -DFSEMU -DFSUAE -D_FILE_OFFSET_BITS=64
 
@@ -162,6 +162,8 @@ endif
 ifneq ($(os), android)
 	cppflags += -DUSE_SDL -DUSE_GLIB -DWITH_LUA
 endif
+
+device_helper_objects = obj/fs-uae-device-helper.o
 
 objects = \
 obj/fs-uae-config.o \
@@ -438,8 +440,13 @@ catalogs = \
 mo: $(catalogs)
 
 fs-uae: libfsemu-target obj/uae.a $(objects)
-	rm -f out/fs-uae
+	rm -f fs-uae
 	$(cxx) $(ldflags) $(objects) obj/uae.a $(libs) -o fs-uae
+
+fs-uae-device-helper: libfsemu-target $(device_helper_objects)
+	rm -f fs-uae-device-helper
+	$(cxx) $(ldflags) $(device_helper_objects) $(libs) -o fs-uae-device-helper
+
 
 build_dir := "."
 dist_name = fs-uae-$(version)
@@ -606,6 +613,7 @@ dist: distdir po-dist
 install:
 	install -d $(DESTDIR)$(prefix)/bin
 	install fs-uae $(DESTDIR)$(prefix)/bin/fs-uae
+	install fs-uae-device-helper $(DESTDIR)$(prefix)/bin/fs-uae-device-helper
 	install -d $(DESTDIR)$(prefix)/share
 	cp -R share/* $(DESTDIR)$(prefix)/share
 

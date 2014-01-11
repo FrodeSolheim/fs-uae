@@ -21,7 +21,9 @@ bundle:
 	mkdir -p fs-uae_$(version)_macosx/FS-UAE.app/Contents/MacOS
 	mkdir -p fs-uae_$(version)_macosx/FS-UAE.app/Contents/Resources
 	cp -pPR template/* fs-uae_$(version)_macosx/FS-UAE.app/
-	cp ../fs-uae fs-uae_$(version)_macosx/FS-UAE.app/Contents/MacOS
+	cp ../fs-uae fs-uae_$(version)_macosx/FS-UAE.app/Contents/MacOS/
+	mkdir fs-uae_$(version)_macosx/FS-UAE.app/Contents/Utils
+	cp ../fs-uae-device-helper fs-uae_$(version)_macosx/FS-UAE.app/Contents/Utils/
 	cp ../../libfs-capsimage.dylib fs-uae_$(version)_macosx/FS-UAE.app/Contents/Frameworks || cp ../libfs-capsimage.dylib fs-uae_$(version)_macosx/FS-UAE.app/Contents/Frameworks
 	cp -pPR ../share/* fs-uae_$(version)_macosx/FS-UAE.app/Contents/Resources
 	strip fs-uae_$(version)_macosx/FS-UAE.app/Contents/MacOS/*

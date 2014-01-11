@@ -1,3 +1,21 @@
+Version 2.3.7:
+
+* New utility program: fs-uae-device-helper (used by FS-UAE Launcher).
+* (Launcher) pygame is no longer an dependency, joystick event detection for
+  mapping purposes is done via fs-uae-device-helper.
+* (Launcher) Program startup and focus issue should be fixed on OS X.
+* (Launcher) Added language preference page.
+* (Launcher) ADF & HDF Creator split into two, and they are now non-modal.
+* (Launcher) Joystick config tool shows existing config when opening.
+* (Launcher) Joystick device for mapping is selected in joystick prefs.
+* (Launcher) Completed porting to QT (using pyside bindings for Python).
+* (Launcher) Old wxPython GUI layer still exists (--wx) but not 100% updated.
+* (Launcher) Input Settings prefs page split into mouse and keyboard.
+* (Launcher) Fixed bug when choosing a zip with select multiple floppies.
+* (Launcher) Search-as-you type could in some case return multiple entries
+  for the same game.
+* (Launcher) Updated don't checksum BSd device nodes code [vext01].
+
 Version 2.3.6:
 
 * Joystick indices (for use with custom input mapping) were skewed due to

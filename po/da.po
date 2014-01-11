@@ -1,17 +1,17 @@
-# German translations for fs-uae package.
-# Copyright (C) 2012 Frode Solheim
+# Danish translations for fs-uae package.
+# Copyright (C) 2012 Frode Solheim and translators.
 # This file is distributed under the same license as the fs-uae package.
-# Frode Solheim <fs-uae@fengestad.no>, 2012.
+# Frode Solheim <frode@fs-uae.net>, 2013.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2013-02-24 22:16+0100\n"
-"PO-Revision-Date: 2013-10-28 09:20+0100\n"
-"Last-Translator: Jens Weichert <nexusle@me.com>\n"
-"Language-Team: German\n"
-"Language: de\n"
+"POT-Creation-Date: 2013-10-26 16:16+0200\n"
+"PO-Revision-Date: 2013-10-26 16:38+0100\n"
+"Last-Translator: Carsten Jensen <tomse@tomse.dk>\n"
+"Language-Team: Danish\n"
+"Language: da\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -19,218 +19,214 @@ msgstr ""
 "X-Generator: Poedit 1.5.7\n"
 
 msgid "Activated debugger"
-msgstr "Debugger aktiviert"
+msgstr "Aktiveret debugger"
 
 msgid "Amiga Control"
-msgstr "Amiga Kontrollen"
+msgstr "Amiga styring"
 
 #. / TRANSLATORS: In context "Zoom: Auto"
 msgid "Auto"
 msgstr "Auto"
 
 msgid "Auto-Fire is Off"
-msgstr "Dauerfeuer ist ausgeschaltet"
+msgstr "Auto-Fire er deaktiveret"
 
 msgid "Auto-Fire is On"
-msgstr "Dauerfeuer ist eingeschaltet"
+msgstr "Auto-Fire er aktiveret"
 
 #, c-format
 msgid "Auto-fire disabled for port %d"
-msgstr "Dauerfeuer ausgeschaltet für Port %d"
+msgstr "Auto-Fire er deaktiveret for port %d"
 
 #, c-format
 msgid "Auto-fire enabled for port %d"
-msgstr "Dauerfeuer eingeschaltet für Port %d"
+msgstr "Auto-Fire er deaktiveret for port %d"
 
 #. / TRANSLATORS: Empty or nothing
 #, c-format
 msgid "CD%d: Empty"
-msgstr "CD%d: Leer"
+msgstr "CD%d: Tom"
 
 msgid "CD32 Pad Mode"
-msgstr "CD32-Gamepad-Modus"
+msgstr "CD32 Pad tilstand"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 msgid "Custom Joystick Port"
-msgstr "Benutzerdef. Joystickport"
+msgstr "Speciel Joystick port"
 
 msgid "Custom Mode"
-msgstr "Benutzerdef. Modus"
+msgstr "Speciel tilstand"
 
 #. / TRANSLATORS: Empty or nothing
 #, c-format
 msgid "DF%d: Empty"
-msgstr "DF%d: Leer"
+msgstr "DF%d: Tom"
 
 msgid "Disabled"
-msgstr "Deaktiviert"
+msgstr "Deaktiveres"
 
 msgid "Eject"
-msgstr "Auswerfen"
+msgstr "Skub ud"
 
 msgid "Empty"
-msgstr "Leer"
+msgstr "Tom"
 
 msgid "Emulator Control"
-msgstr "Emulator Kontrollen"
+msgstr "Emulator styret"
 
 #. / TRANSLATORS: In context "Zoom: Full Frame"
 msgid "Full Frame"
-msgstr "Volles Frame"
+msgstr "Fuld Frame"
 
 #, c-format
 msgid "HD not found: %s"
-msgstr "HD nicht gefunden: %s"
+msgstr "HD ikke fundet: %s"
 
 #. / TRANSLATORS: Hard reset is a computer reboot with an emulated power
 #. / cycle
 msgid "Hard Reset"
-msgstr "Kaltstart"
+msgstr "Hård reset"
 
 msgid "Input Options"
-msgstr "Eingabeoptionen"
+msgstr "Input indstillinger"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Insert Into CD%d"
-msgstr "In CD%d: einlegen"
+msgstr "Isæt i CD%d"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Insert Into DF%d"
-msgstr "In DF%d: einlegen"
+msgstr "Isæt i DF%d"
 
 msgid "Invalid number of CD-ROM drives specified"
-msgstr "Ungültige Anzahl von CDROM-Laufwerken spezifiziert"
+msgstr "Antallet af specificerede CD-ROM drev er invalid"
 
 msgid "Joystick Mode"
-msgstr "Joystick-Modus"
+msgstr "Joystick tilstand"
 
-#. / TRANSLATORS: This is a menu entry and must not be too long
+msgid "Joystick Port"
+msgstr "Joystick port"
+
 #, c-format
 msgid "Joystick Port %d"
-msgstr "Joystickport %d"
+msgstr "Joystick port %d"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Joystick Port %d Device"
-msgstr "Gerät Joystickport %d"
+msgstr "Joystick port %d enhed"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Joystick Port %d Mode"
-msgstr "Modus Joystickport %d"
-
-msgid "Joystick Port 0"
-msgstr "Joystickport 0"
-
-msgid "Joystick Port 1"
-msgstr "Joystickport 1"
+msgstr "Joystick Port %d tilstand"
 
 msgid "Joystick Port 2"
-msgstr "Joystickport 2"
+msgstr "Joystick port 2"
 
 msgid "Joystick Port 3"
-msgstr "Joystickport 3"
+msgstr "Joystick port 3"
 
 msgid "Joystick Port 4"
-msgstr "Joystickport 4"
-
-msgid "Joystick Ports"
-msgstr "Joystickports"
+msgstr "Joystick port 4"
 
 msgid "Keyboard"
 msgstr "Tastatur"
 
 msgid "Load"
-msgstr "Laden"
+msgstr "Indlæs"
 
 msgid "More..."
-msgstr "Mehr..."
+msgstr "Mere..."
 
 msgid "Mouse"
-msgstr "Maus"
+msgstr "Mus"
 
 msgid "Mouse Mode"
-msgstr "Maus-Modus"
+msgstr "Muse tilstand"
+
+msgid "Mouse Port"
+msgstr "Muse port"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long: If you struggle
 #. / to get in short enough, just translate "No Device" instead.
 msgid "No Amiga Device"
-msgstr "Kein Amigagerät"
+msgstr "Ingen Amiga enheder"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long: If you struggle
 #. / to get in short enough, just translate "No Device" instead.
 msgid "No Host Device"
-msgstr "Kein Hostgerät"
+msgstr "Ingen værts enheder"
 
 msgid "No configuration file was found"
-msgstr "Konfigurationsdatei nicht gefunden"
+msgstr "Ingen konfigurations file var fundet"
 
 #, c-format
 msgid "Option \"%s\" is not enabled"
-msgstr "Option \"%s\" ist nicht aktiviert"
+msgstr "Indstilling \"%s\" er ikke aktiveret"
 
 msgid "Option chip_memory must be a multiple of 512"
-msgstr "Die Option chip_memory muss ein Vielfaches von 512 sein"
+msgstr "Indstilling chip_memory skal været et multiplicum af 512"
 
 msgid "Option fast_memory must be a multiple of 1024"
-msgstr "Die Option fast_memory muss ein Vielfaches von 1024 sein"
+msgstr "Indstilling fast_memory skal været et multiplicum af 1024"
 
 msgid "Option slow_memory must be a multiple of 256"
-msgstr "Die Option slow_memory muss ein Vielfaches von 256 sein"
+msgstr "Indstilling slow_memory skal været et multiplicum af 256"
 
 msgid "Option uaegfx.card needs a CPU with 32-bit addressing"
-msgstr "Option uaegfx_card benötigt eine CPU mit 32bit-Adressierung"
+msgstr "Indstilling uagfx.card kræver en CPU med 32-bits adressering"
 
 msgid "Option zorro_iii_memory must be a multiple of 1024"
-msgstr "Die Option zorro_iii_memory muss ein Vielfaches von 1024 sein"
+msgstr "Indstilling zorro_iii_memory skal været et multiplicum af 1024"
 
 msgid "Options zorro_iii_memory needs a CPU with 32-bit addressing"
-msgstr "Die Option zorro_iii_memory benötigt eine CPU mit 32bit-Adressierung"
+msgstr "Indstilling zorro_iii_memory kræver en CPU med 32-bits adressering"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 msgid "Parallel Joystick Ports"
-msgstr "Par. Joystick Anschl."
+msgstr "Parallel Joystick porte"
 
 msgid "Pause"
 msgstr "Pause"
 
 #, c-format
 msgid "Port 0: %s"
-msgstr "Anschluß 0: %s"
+msgstr "Port 0: %s"
 
 msgid "Port Settings"
-msgstr "Anschluß-Einstellungen"
+msgstr "Port indstillinger"
 
 msgid "Removable Media"
-msgstr "Wechseldatenträger"
+msgstr "Flytbart medie"
 
 #. / TRANSLATORS: Reset Amiga as in reboot the computer
 msgid "Reset Amiga"
-msgstr "Amiga neu starten"
+msgstr "Reset Amiga"
 
 msgid "Resume"
-msgstr "Wiederaufnehmen"
+msgstr "Genoptag"
 
 msgid "Save"
-msgstr "Sichern"
+msgstr "Gem"
 
-msgid "Save States"
-msgstr "Speicherstände"
+msgid "Savestates"
+msgstr "Gemmestadier"
 
 #. / TRANSLATORS: Soft reset reboots the computer without a power cycle
 msgid "Soft Reset"
-msgstr "Warmstart"
+msgstr "Blød reset"
 
 msgid "Warp mode disabled"
-msgstr "Warp-Modus deaktiviert"
+msgstr "Warp tilstand deaktiveret"
 
 msgid "Warp mode enabled"
-msgstr "Warp-Modus aktiviert"
+msgstr "Warp tilstand aktiveret"
 
 msgid "Zoom is disabled in RTG mode"
-msgstr "Zoom ist im RTG Modus abgeschaltet "
+msgstr "Zoom er deaktiveret i RTG tilstand"
 
 #, c-format
 msgid "Zoom: %s"
@@ -238,13 +234,4 @@ msgstr "Zoom: %s"
 
 #, c-format
 msgid "Zoom: %s + Border"
-msgstr "Zoom: %s + Rand"
-
-#~ msgid "CD32 Gamepad"
-#~ msgstr "CD32 Gamepad"
-
-#~ msgid "Host Device"
-#~ msgstr "Hostgerät"
-
-#~ msgid "Joystick"
-#~ msgstr "Joystick"
+msgstr "Zoom: %s + skærmkant"

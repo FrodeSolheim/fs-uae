@@ -1,3 +1,32 @@
+Version 2.3.9:
+
+* Add build support for kFreeBSD [glaubitz].
+* Add generic maccess.h defines for "other" architectures [glaubitz].
+* Better code to disable the JIT compiler on non-i386 architectures [glaubitz].
+* Added contrib/sinc-integral.py to source distribution (Debian compliance).
+* Removed catweasel code from source distribution (Debian compliance).
+* Also check for $executable_path/../../Config.fs-uae on OS X.
+* Gracefully handle it when xrandr executable is not found.
+* New translations: da [tomse].
+* Updated translations: de [TCD].
+* (Launcher) Fixed a rendering issue with the tab panel.
+* (Launcher) Fixed rendering of local config/variant name in config list.
+* (Launcher) CD32 FMV ROM is properly used again when CD32/FMV model is used.
+* (Launcher) Allow server to reset local game database when necessary.
+* (Launcher) Fixed bug when last letter in search term is n.
+* (Launcher) Set explicit min width for ADF/HDF creator size field.
+* (Launcher) Allow (Qt) list items to be activated with enter.
+* (Launcher) OAGD.net Locker Uploader implemented.
+* (Launcher) Fixed bug with indexing files in archives somewhere within
+  a directory called #.
+* (Launcher) SetPatch can be extracted on demand from disk in locker.
+* (Launcher) Minor GUI tweaks and improvements here and there.
+* (Launcher) More code restructuring for sharing between launcher and gc.
+* (Launcher) New translations: da [tomse].
+* (Launcher) Updated translations: de [TCD], it [Speedvicio], nb.
+* (Game Center) Search-as-you type (just start typing to activate search).
+* (Game Center) Only show db configs (local ones don't work now anyway).
+
 Version 2.3.8:
 
 * New option "volume" to specify initial audio volume.

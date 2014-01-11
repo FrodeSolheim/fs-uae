@@ -1,6 +1,6 @@
-fs-uae (2.3.8dev-0) unstable; urgency=low
+fs-uae (2.3.9dev-0) unstable; urgency=low
 
-  * Updated to upstream version 2.3.8dev
+  * Updated to upstream version 2.3.9dev
 
  -- Frode Solheim <fs-uae@fengestad.no>  Sat, 11 Feb 2011 12:41:00 +0100
 

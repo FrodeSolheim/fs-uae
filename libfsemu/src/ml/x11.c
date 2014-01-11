@@ -170,6 +170,9 @@ int fs_ml_video_mode_get_current(fs_ml_video_mode *mode) {
     int increasing_by_one = 1;
 
     FILE *f = popen("/usr/bin/env xrandr", "r");
+    if (f == NULL) {
+        return 1;
+    }
     int state = START;
     char buf[24];
     int bp = 0; // buffer position

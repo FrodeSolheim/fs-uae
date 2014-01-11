@@ -56,7 +56,11 @@
 #ifdef RETROPLATFORM
 #include "rp.h"
 #endif
+#ifdef FSUAE
+// SDL is not used directly here by FS-UAE
+#else
 #ifdef USE_SDL
+#endif
 #include "SDL.h"
 #endif
 
@@ -919,8 +923,12 @@ void virtualdevice_init (void)
 static int real_main2 (int argc, TCHAR **argv)
 {
 
+#ifdef FSUAE
+    // SDL is initialized by libfsemu
+#else
 #ifdef USE_SDL
 	SDL_Init (SDL_INIT_TIMER | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK | SDL_INIT_NOPARACHUTE);
+#endif
 #endif
 	config_changed = 1;
 	if (restart_config[0]) {

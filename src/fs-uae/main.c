@@ -471,6 +471,19 @@ static int load_config_file() {
             free(path);
         }
     }
+#ifdef MACOSX
+    if (g_fs_uae_config_file_path == NULL) {
+        char *path = fs_path_join(fs_uae_exe_dir(), "..", "..",
+                "Config.fs-uae", NULL);
+        fs_log(msg, path);
+        if (fs_path_exists(path)) {
+            g_fs_uae_config_file_path = path;
+        }
+        else {
+            free(path);
+        }
+    }
+#endif
     if (g_fs_uae_config_file_path == NULL) {
         fs_log(msg, "Config.fs-uae");
         if (fs_path_exists("Config.fs-uae")) {

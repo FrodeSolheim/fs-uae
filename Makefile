@@ -146,6 +146,9 @@ else ifeq ($(os), macosx)
   ldflags += -arch $(arch) -headerpad_max_install_names
   cppflags += -DMACOSX
   libs += -framework OpenGL -framework Carbon -framework OpenAL -framework IOKit
+else ifeq ($(os), kfreebsd)
+  cppflags += -DFREEBSD
+  libs += -lGL -lGLU -lopenal -ldl -lX11
 else ifeq ($(os), freebsd)
   cppflags += -DFREEBSD
   libs += -lGL -lGLU -lopenal -lX11 -lcompat
@@ -426,6 +429,7 @@ share/locale/%/LC_MESSAGES/fs-uae.mo: po/%.po
 
 catalogs = \
 	share/locale/cs/LC_MESSAGES/fs-uae.mo \
+	share/locale/da/LC_MESSAGES/fs-uae.mo \
 	share/locale/de/LC_MESSAGES/fs-uae.mo \
 	share/locale/es/LC_MESSAGES/fs-uae.mo \
 	share/locale/fi/LC_MESSAGES/fs-uae.mo \
@@ -466,7 +470,7 @@ distdir-base:
 	cp -a common.mk targets.mk $(dist_dir)
 	# windows.mk macosx.mk debian.mk
 	cp -a Makefile fs-uae.spec example.conf $(dist_dir)
-	cp -a src share licenses $(dist_dir)
+	cp -a src contrib share licenses $(dist_dir)
 	rm -Rf $(dist_dir)/src/od-win32
 	rm -Rf $(dist_dir)/src/prowizard
 	rm -Rf $(dist_dir)/src/archivers/lha
@@ -475,6 +479,9 @@ distdir-base:
 	rm -Rf $(dist_dir)/src/jit2
 	rm -f $(dist_dir)/src/akiko2.cpp
 	rm -f $(dist_dir)/src/custom2.cpp
+	rm -f $(dist_dir)/src/core.cw4.cpp
+	rm -f $(dist_dir)/src/catweasel.cpp
+
 	find $(dist_dir)/share -name "*.mo" -delete
 	mkdir -p $(dist_dir)/gensrc
 	cp -a gensrc/*.cpp gensrc/*.h $(dist_dir)/gensrc
@@ -656,6 +663,6 @@ clean-dist:
 clean:
 	$(make) -C $(libfsemu_dir) clean
 	rm -f gensrc/build68k gensrc/genblitter gensrc/gencpu gensrc/genlinetoscr
-	rm -f obj/*.o obj/*.a fs-uae fs-uae.exe
+	rm -f obj/*.o obj/*.a fs-uae fs-uae.exe fs-uae-device-helper fs-uae-device-helper.exe
 
 distclean: clean clean-dist

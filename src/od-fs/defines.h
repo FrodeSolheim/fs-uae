@@ -98,11 +98,8 @@ extern FILE *g_fs_uae_sync_debug_file;
 #define FPU_UAE
 #define GFXFILTER
 
-#if defined(__x86_64__) || defined(__ppc__) || defined(__ARMEL__)
-// no JIT for these architectures
-#elif defined(OPENBSD)
-// no sys/ucontext.h header
-#else
+//enable JIT on i386 only except OpenBSD and FREEBSD
+#if defined(__i386__) && !defined(OPENBSD) && !defined(FREEBSD)
 #define JIT
 #define JIT_DEBUG
 #endif

@@ -1,33 +1,35 @@
 include ../common.mk
 version = $(strip $(shell cat ../VERSION))
+game_center_app = fs-uae-game-center_$(version)_macosx/FS-UAE Game Center.app
+game_center_resources = $(game_center_app)/Contents/Resources
 
-all: bindist bindist-launcher bindist-gamecenter bindist-portable bindist-bundles
+all: bindist bindist-launcher bindist-game-center bindist-portable bindist-bundles
 
 clean:
 	rm -Rf ../macosx/fs-uae*
 
 bindist: bundle
-	cd fs-uae-emulator_$(version)_macosx && GZIP=-9 tar zcfv ../fs-uae-emulator_$(version)_macosx.tar.gz *
+	cd fs-uae_$(version)_macosx && GZIP=-9 tar zcfv ../fs-uae_$(version)_macosx.tar.gz *
 
 bundle:
 	make -C ..
-	rm -Rf fs-uae-emulator_$(version)_macosx
-	mkdir -p fs-uae-emulator_$(version)_macosx
-	mkdir -p fs-uae-emulator_$(version)_macosx/FS-UAE.app/Contents/Frameworks
-	mkdir -p fs-uae-emulator_$(version)_macosx/FS-UAE.app/Contents/MacOS
-	mkdir -p fs-uae-emulator_$(version)_macosx/FS-UAE.app/Contents/Resources
-	cp -pPR template/* fs-uae-emulator_$(version)_macosx/FS-UAE.app/
-	cp ../fs-uae fs-uae-emulator_$(version)_macosx/FS-UAE.app/Contents/MacOS
-	cp ../../libfs-capsimage.dylib fs-uae-emulator_$(version)_macosx/FS-UAE.app/Contents/Frameworks || cp ../libfs-capsimage.dylib fs-uae-emulator_$(version)_macosx/FS-UAE.app/Contents/Frameworks
-	cp -pPR ../share/* fs-uae-emulator_$(version)_macosx/FS-UAE.app/Contents/Resources
-	strip fs-uae-emulator_$(version)_macosx/FS-UAE.app/Contents/MacOS/*
-	#strip fs-uae-emulator_$(version)_macosx/FS-UAE.app/Contents/Frameworks/*
-	cp ../icon/fs-uae.icns fs-uae-emulator_$(version)_macosx/FS-UAE.app/Contents/Resources/
-	cp ../icon/fs-uae-config.icns fs-uae-emulator_$(version)_macosx/FS-UAE.app/Contents/Resources/
-	cp -pPR ../licenses fs-uae-emulator_$(version)_macosx/FS-UAE.app/Contents/Resources/
-	cp ../COPYING fs-uae-emulator_$(version)_macosx/FS-UAE.app/Contents/Resources/
-	cp ../README fs-uae-emulator_$(version)_macosx/FS-UAE.app/Contents/Resources/
-	cd fs-uae-emulator_$(version)_macosx && python2.7 ../fix-app.py
+	rm -Rf fs-uae_$(version)_macosx
+	mkdir -p fs-uae_$(version)_macosx
+	mkdir -p fs-uae_$(version)_macosx/FS-UAE.app/Contents/Frameworks
+	mkdir -p fs-uae_$(version)_macosx/FS-UAE.app/Contents/MacOS
+	mkdir -p fs-uae_$(version)_macosx/FS-UAE.app/Contents/Resources
+	cp -pPR template/* fs-uae_$(version)_macosx/FS-UAE.app/
+	cp ../fs-uae fs-uae_$(version)_macosx/FS-UAE.app/Contents/MacOS
+	cp ../../libfs-capsimage.dylib fs-uae_$(version)_macosx/FS-UAE.app/Contents/Frameworks || cp ../libfs-capsimage.dylib fs-uae_$(version)_macosx/FS-UAE.app/Contents/Frameworks
+	cp -pPR ../share/* fs-uae_$(version)_macosx/FS-UAE.app/Contents/Resources
+	strip fs-uae_$(version)_macosx/FS-UAE.app/Contents/MacOS/*
+	#strip fs-uae_$(version)_macosx/FS-UAE.app/Contents/Frameworks/*
+	cp ../icon/fs-uae.icns fs-uae_$(version)_macosx/FS-UAE.app/Contents/Resources/
+	cp ../icon/fs-uae-config.icns fs-uae_$(version)_macosx/FS-UAE.app/Contents/Resources/
+	cp -pPR ../licenses fs-uae_$(version)_macosx/FS-UAE.app/Contents/Resources/
+	cp ../COPYING fs-uae_$(version)_macosx/FS-UAE.app/Contents/Resources/
+	cp ../README fs-uae_$(version)_macosx/FS-UAE.app/Contents/Resources/
+	cd fs-uae_$(version)_macosx && python2.7 ../fix-app.py
 
 launcher:
 	make -C ../launcher -f Makefile.mk
@@ -37,27 +39,27 @@ launcher:
 	mv ../launcher/dist/"FS-UAE Launcher.app" fs-uae-launcher_$(version)_macosx/
 	cp -pPR ../launcher/share fs-uae-launcher_$(version)_macosx/"FS-UAE Launcher.app"/Contents/Resources/
 
-	cp -pPR fs-uae-emulator_$(version)_macosx/FS-UAE.app fs-uae-launcher_$(version)_macosx/"FS-UAE Launcher.app"/Contents/Resources/
+	cp -pPR fs-uae_$(version)_macosx/FS-UAE.app fs-uae-launcher_$(version)_macosx/"FS-UAE Launcher.app"/Contents/Resources/
 
 bindist-launcher: launcher
 	cd fs-uae-launcher_$(version)_macosx && GZIP=-9 tar zcfv ../fs-uae-launcher_$(version)_macosx.tar.gz *
 
-gamecenter:
+game-center:
 	make -C ../launcher -f Makefile.mk
 	rm -Rf fs-uae-game-center_$(version)_macosx	
 	mkdir -p fs-uae-game-center_$(version)_macosx
 	cd ../launcher && python2.7 setup_py2app.py --game-center py2app --iconfile ../icon/fs-uae-launcher.icns
-	mv ../launcher/dist/"FS-UAE Game Center.app" fs-uae-game-center_$(version)_macosx/
+	mv ../launcher/dist/"FS-UAE Game Center.app" "$(game_center_app)"
 
-	cp -pPR ../launcher/share fs-uae-game-center_$(version)_macosx/"FS-UAE Game Center.app"/Contents/Resources/
-	mkdir -p fs-uae-game-center_$(version)_macosx/"FS-UAE Game Center.app"/Contents/Resources/share/fs-uae-game-center/fengestad.input
-	cp -pPR ../launcher/fengestad/input/res fs-uae-game-center_$(version)_macosx/"FS-UAE Game Center.app"/Contents/Resources/share/fs-uae-game-center/fengestad.input
-	mkdir -p fs-uae-game-center_$(version)_macosx/"FS-UAE Game Center.app"/Contents/Resources/share/fs-uae-game-center/fengestad.gamecenter
-	cp -pPR ../launcher/fengestad/gamecenter/res fs-uae-game-center_$(version)_macosx/"FS-UAE Game Center.app"/Contents/Resources/share/fs-uae-game-center/fengestad.gamecenter
+	cp -pPR ../launcher/share "$(game_center_resources)"/
+	mkdir -p "$(game_center_resources)"/share/fs-uae-game-center/fengestad.input
+	cp -pPR ../launcher/fengestad/input/res "$(game_center_resources)"/share/fs-uae-game-center/fengestad.input
+	mkdir -p "$(game_center_resources)"/share/fs-uae-game-center/fengestad.gamecenter
+	cp -pPR ../launcher/fengestad/gamecenter/res "$(game_center_resources)"/share/fs-uae-game-center/fengestad.gamecenter
 
-	cp -pPR fs-uae-emulator_$(version)_macosx/FS-UAE.app fs-uae-game-center_$(version)_macosx/"FS-UAE Game Center.app"/Contents/Resources/
+	cp -pPR fs-uae_$(version)_macosx/FS-UAE.app "$(game_center_resources)"/
 
-bindist-gamecenter: gamecenter
+bindist-game-center: game-center
 	cd fs-uae-game-center_$(version)_macosx && GZIP=-9 tar zcfv ../fs-uae-game-center_$(version)_macosx.tar.gz *
 
 portable:
@@ -76,20 +78,20 @@ portable:
 	mkdir fs-uae-suite_$(version)_macosx_portable/Themes
 	mkdir fs-uae-suite_$(version)_macosx_portable/"Save States"
 	cp -pPR fs-uae-launcher_$(version)_macosx/"FS-UAE Launcher.app" fs-uae-suite_$(version)_macosx_portable/
-	cp -pPR fs-uae-game-center_$(version)_macosx/"FS-UAE Game Center.app" fs-uae-suite_$(version)_macosx_portable/
+	cp -pPR "$(game_center_app)" fs-uae-suite_$(version)_macosx_portable/
 	#mkdir fs-uae-suite_$(version)_macosx_portable/Programs
 	#mkdir fs-uae-suite_$(version)_macosx_portable/Programs/"Mac OS X"
-	#cp -pPR fs-uae-emulator_$(version)_macosx/FS-UAE.app fs-uae-suite_$(version)_macosx_portable/Programs/"Mac OS X"
+	#cp -pPR fs-uae_$(version)_macosx/FS-UAE.app fs-uae-suite_$(version)_macosx_portable/Programs/"Mac OS X"
 
 bindist-portable: portable
 	cd fs-uae-suite_$(version)_macosx_portable && GZIP=-9 tar zcfv ../fs-uae-suite_$(version)_macosx_portable.tar.gz *
 
 bundles:
-	rm -Rf fs-uae-suite_$(version)_macosx_bundles
-	mkdir fs-uae-suite_$(version)_macosx_bundles
-	cp -pPR fs-uae-launcher_$(version)_macosx/"FS-UAE Launcher.app" fs-uae-suite_$(version)_macosx_bundles/
-	cp -pPR fs-uae-game-center_$(version)_macosx/"FS-UAE Game Center.app" fs-uae-suite_$(version)_macosx_bundles/
-	#cp -pPR fs-uae-emulator_$(version)_macosx/"FS-UAE.app" fs-uae-emulator_$(version)_macosx_bundles/"FS-UAE Launcher.app"/Contents/Resources/
+	rm -Rf fs-uae-suite_$(version)_macosx
+	mkdir fs-uae-suite_$(version)_macosx
+	cp -pPR fs-uae-launcher_$(version)_macosx/"FS-UAE Launcher.app" fs-uae-suite_$(version)_macosx/
+	cp -pPR "$(game_center_app)" fs-uae-suite_$(version)_macosx/
+	#cp -pPR fs-uae_$(version)_macosx/"FS-UAE.app" fs-uae_$(version)_macosx/"FS-UAE Launcher.app"/Contents/Resources/
 
 bindist-bundles: bundles
-	cd fs-uae-suite_$(version)_macosx_bundles && GZIP=-9 tar zcfv ../fs-uae-suite_$(version)_macosx_bundles.tar.gz *
+	cd fs-uae-suite_$(version)_macosx && GZIP=-9 tar zcfv ../fs-uae-suite_$(version)_macosx.tar.gz *

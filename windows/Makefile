@@ -73,7 +73,11 @@ gamecenter:
 
 	cp -a ../launcher/share $(gamecenter_dir)/Share
 	mkdir -p $(gamecenter_dir)/share/fs-uae-game-center/fengestad.input
-	cp -pPR ../launcher/fengestad/input/res $(gamecenter_dir)/share/fs-uae-game-center/fengestad.input
+	cp -pPR ../launcher/fengestad/input/res $(gamecenter_dir)/share/fs-uae-game-center/fengestad.input/
+	mkdir -p $(gamecenter_dir)/share/fs-uae-game-center/fs_uae_launcher
+	# don't really need all files, just adf save disk and possible some other, these resources
+	# should be moved to another package anyway
+	cp -pPR ../launcher/fs_uae_launcher/res $(gamecenter_dir)/share/fs-uae-game-center/fs_uae_launcher/
 	mkdir -p $(gamecenter_dir)/share/fs-uae-game-center/fengestad.gamecenter
 	cp -pPR ../launcher/fengestad/gamecenter/res $(gamecenter_dir)/share/fs-uae-game-center/fengestad.gamecenter
 

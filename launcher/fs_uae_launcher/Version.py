@@ -1,3 +1,3 @@
 class Version:
-    VERSION = "9.8.7"
-    SERIES = "unknown"
+    VERSION = "2.3.3"
+    SERIES = "devel"

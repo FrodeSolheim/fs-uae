@@ -92,7 +92,7 @@ class MainWindow(WindowWithTabs):
 
         self.realize_tabs()
         self.menu = self.create_menu()
-        if fsui.System.macosx:
+        if fsui.System.macosx and fsui.toolkit == 'wx':
             import wx
             self.tools_menu = self.create_menu()
             menu_bar = wx.MenuBar()

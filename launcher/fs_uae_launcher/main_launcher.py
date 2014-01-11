@@ -14,7 +14,7 @@ def main():
     setup_common()
 
     if "--joystick-config" in sys.argv:
-        setup_logging("Joystick Config.log.txt")
+        setup_logging("joystick-configuration.log.txt")
         print("importing pygame")
         import pygame
         print("initializing pygame")
@@ -24,11 +24,11 @@ def main():
         return joystick_config_main()
 
     if "--server" in sys.argv:
-        setup_logging("Net Play Server.log.txt")
+        setup_logging("fs-uae-net-play-server.log.txt")
         from fs_uae_launcher.server.game import run_server
         return run_server()
 
-    setup_logging("Launcher.log.txt")
+    setup_logging("fs-uae-launcher.log.txt")
 
     from .Version import Version
     print("FS-UAE Launcher {0}".format(Version.VERSION))

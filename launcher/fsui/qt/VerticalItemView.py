@@ -31,6 +31,10 @@ class Model(QAbstractListModel):
         #print("data for", index, "role", role)
         if role == Qt.SizeHintRole:
             return QSize(26, 26)
+        elif role == Qt.DecorationRole:
+            icon = self.parent().get_item_icon(row)
+            if icon:
+                return icon.qpixmap
         elif role == Qt.DisplayRole:
             #from PySide.QtCore import QString
             #return QString("test")
@@ -56,6 +60,9 @@ class VerticalItemView(QListView, Widget):
         model_index = self.selectionModel().selectedIndexes()[0]
         self.on_select_item(model_index.row())
 
+    def get_item_icon(self, index):
+        return None
+
     def get_item_text(self, index):
         return ""
 
@@ -78,8 +85,10 @@ class VerticalItemView(QListView, Widget):
     #        self.model.appendRow(item)
 
     def set_index(self, index):
-        print(self.rootIndex)
-        #idx = QModelIndex.createIndex(index)
+        if index is None:
+            index = -1        
+        # print(self.rootIndex)
+        # idx = QModelIndex.createIndex(index)
         idx = self.model.index(index, 0)
         self.setCurrentIndex(idx)
 

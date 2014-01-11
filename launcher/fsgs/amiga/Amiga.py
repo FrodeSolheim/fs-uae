@@ -251,8 +251,9 @@ class Amiga:
 
     @classmethod
     def get_model_config(cls, model):
+        model = model.lower()
         for i in range(len(cls.models_config)):
-            if cls.models_config[i] == model:
+            if cls.models_config[i].lower() == model:
                 return cls.models[i]
         return {
             "title": "Dummy",

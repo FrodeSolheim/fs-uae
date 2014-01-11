@@ -112,6 +112,7 @@ class VariantsBrowser(fsui.VerticalItemView):
             return self.missing_color
 
     def get_item_icon(self, index):
+        # return self._get_item_extra_icons(index)[0] or self.missing_icon
         name = self.items[index]["name"]
         have = self.items[index]["have"]
         if not have:
@@ -178,6 +179,8 @@ class VariantsBrowser(fsui.VerticalItemView):
         self.update()
         #self.set_items(self.items)
         #self.set_item_count(len(self.items))
+
+        self.select_item(None)
 
         for i, item in enumerate(self.items):
             if item["personal_rating"] == 5:

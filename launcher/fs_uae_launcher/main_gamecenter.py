@@ -12,7 +12,7 @@ from .main_common import setup_logging, setup_common
 def main():
     setup_common()
 
-    setup_logging("Game Center.log.txt")
+    setup_logging("fs-uae-game-center.log.txt")
 
     from .Version import Version
     print("FS-UAE Game Center {0}".format(Version.VERSION))

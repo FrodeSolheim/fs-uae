@@ -399,6 +399,12 @@ static void on_init() {
     free(uae_file);
 
     uae_file = fs_path_join(fs_uae_logs_dir(), "Debug.uae", NULL);
+    if (fs_path_exists(uae_file)) {
+        fs_unlink(uae_file);
+    }
+    free(uae_file);
+
+    uae_file = fs_path_join(fs_uae_logs_dir(), "debug.uae", NULL);
     amiga_write_uae_config(uae_file);
     free(uae_file);
 
@@ -833,6 +839,12 @@ int main(int argc, char* argv[]) {
         free(log_file);
 
         log_file = fs_path_join(logs_dir, "Emulator.log.txt", NULL);
+        if (fs_path_exists(log_file)) {
+            fs_unlink(log_file);
+        }
+        free(log_file);
+
+        log_file = fs_path_join(logs_dir, "fs-uae.log.txt", NULL);
         fs_config_set_log_file(log_file);
         free(log_file);
     }

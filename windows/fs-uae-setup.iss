@@ -1,11 +1,11 @@
 [Setup]
 AppName=FS-UAE
-AppVersion=9.8.7
-AppVerName=FS-UAE & FS-UAE Launcher 9.8.7
+AppVersion=2.3.3
+AppVerName=FS-UAE & FS-UAE Launcher 2.3.3
 DefaultDirName={localappdata}\FS-UAE
 DefaultGroupName=FS-UAE
 UninstallDisplayIcon={app}\Emulator\FS-UAE.exe
-OutputBaseFilename=fs-uae-suite_9.8.7_windows_setup
+OutputBaseFilename=fs-uae-suite_2.3.3_windows_setup
 OutputDir=.
 PrivilegesRequired=lowest
 ShowLanguageDialog=no
@@ -16,9 +16,9 @@ DisableStartupPrompt=yes
 DisableProgramGroupPage=yes
 
 [Files]
-Source: "fs-uae-emulator_9.8.7_windows\*"; DestDir: "{app}\Emulator\"; Flags: recursesubdirs ignoreversion;
-Source: "fs-uae-launcher_9.8.7_windows\*"; DestDir: "{app}\Launcher\"; Flags: recursesubdirs ignoreversion;
-Source: "fs-uae-game-center_9.8.7_windows\*"; DestDir: "{app}\Game Center\"; Flags: recursesubdirs ignoreversion;
+Source: "fs-uae-emulator_2.3.3_windows\*"; DestDir: "{app}\Emulator\"; Flags: recursesubdirs ignoreversion;
+Source: "fs-uae-launcher_2.3.3_windows\*"; DestDir: "{app}\Launcher\"; Flags: recursesubdirs ignoreversion;
+Source: "fs-uae-game-center_2.3.3_windows\*"; DestDir: "{app}\Game Center\"; Flags: recursesubdirs ignoreversion;
 
 [installDelete]
 Type: filesandordirs; Name: "{app}\Emulator"

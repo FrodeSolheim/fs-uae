@@ -88,6 +88,8 @@ class GameInfoPanel(BottomPanel):
         self.developer = ""
         self.companies = ""
 
+        self.image_path = ""
+
         vert_layout.add_spacer(0, expand=True)
 
         #self.variant_panel = fsui.Panel(self)
@@ -180,13 +182,20 @@ class GameInfoPanel(BottomPanel):
         #self.refresh()
 
         path = handler.get_cover_path()
+        if path == self.image_path:
+            return
+        self.image_path = path
+
         loader = ImageLoader.get()
 
         def on_load(request):
+            if request.path != self.image_path:
+                return
             if request.image:
                 self.image = request.image
             else:
                 self.image = self.default_image
+            self.image_path = request.path
             self.refresh()
 
         self.requests = loader.load_image(

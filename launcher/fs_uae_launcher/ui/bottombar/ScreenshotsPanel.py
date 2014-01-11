@@ -38,6 +38,7 @@ class ScreenshotsPanel(BottomPanel):
                 "fs_uae_launcher:res/screenshot_overlay.png")
 
         self.images = [self.default_image for x in range(6)]
+        self.image_paths = ["" for x in range(6)]
         self.requests = [None for x in range(6)]
 
         self.x_offset = 0
@@ -59,9 +60,16 @@ class ScreenshotsPanel(BottomPanel):
         handler = GamePaths.current()
         for i in range(6):
             path = handler.get_screenshot_path(i)
+            if path == self.image_paths[i]:
+                continue
+            self.image_paths[i] = path
+
             loader = ImageLoader.get()
+
             def on_load(request):
                 #print("on_load, request.image =", request.image)
+                if request.path != self.image_paths[request.args["index"]]:
+                    return
                 if request.image:
                     self.images[request.args["index"]] = request.image
                 else:

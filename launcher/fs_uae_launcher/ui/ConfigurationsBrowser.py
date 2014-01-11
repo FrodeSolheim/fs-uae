@@ -74,7 +74,10 @@ class ConfigurationsBrowser(fsui.VerticalItemView):
             extra = extra.strip(" ]") + " \u00b7 "
         else:
             extra = ""
-        return "{0}\n{1}{2}".format(name, extra, platform)
+        if fsui.toolkit == 'wx':
+            return "{0}\n{1}{2}".format(name, extra, platform)
+        else:
+            return "{0} \u00b7 {1}{2}".format(name, extra, platform)
 
     def get_item_search_text(self, index):
         #return self.items[index][3]

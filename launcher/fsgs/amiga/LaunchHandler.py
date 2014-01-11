@@ -111,18 +111,29 @@ class LaunchHandler:
 
     def prepare_roms(self):
         print("LaunchHandler.prepare_roms")
+        amiga_model = self.config.get("amiga_model", "A500")
+        model_config = Amiga.get_model_config(amiga_model)
+
         roms = []
-        roms.append(("kickstart_file", self.config.get("kickstart_file")))
+        roms.append(("kickstart_file", self.config.get("kickstart_file"),
+            model_config["kickstarts"]))
         if self.config.get("kickstart_ext_file"):
             # not all Amigas have extended ROMs
             roms.append(("kickstart_ext_file",
-                    self.config.get("kickstart_ext_file")))
-        for config_key, src in roms:
+                self.config.get("kickstart_ext_file"),
+                model_config["ext_roms"]))
+
+        for config_key, src, default_roms in roms:
             if not src:
+                for sha1 in default_roms:
+                    rom_src = self.fsgs.file.find_by_sha1(sha1)
+                    if rom_src:
+                        src = rom_src
+                        break
+            elif src == "internal":
                 continue
-            if src == "internal":
-                continue
-            src = Paths.expand_path(src)
+            else:
+                src = Paths.expand_path(src)
 
             archive = Archive(src)
             if not archive.exists(src):
@@ -225,7 +236,7 @@ class LaunchHandler:
         #s = pkg_resources.resource_stream(str("fs_uae_launcher"),
         #        str("res/adf_save_disk.dat"))
         # FIXME: remove dependency on fs_uae_launcher package
-        s = Resources("fs_uae_launcher", "res").stream("adf_save_disk.dat")
+        s = Resources("fsgs.amiga", "data").stream("adf_save_disk.dat")
 
         data = s.read()
         data = zlib.decompress(data)

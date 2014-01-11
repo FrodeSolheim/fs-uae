@@ -21,7 +21,7 @@ if app == "FS-UAE Game Center":
 
     setup(
     name = "FS-UAE Game Center",
-    version = "9.8.7",
+    version = "2.3.3",
     author = "Frode Solheim",
     author_email = "fs-uae@fengestad.no",
     app = APP,
@@ -48,7 +48,7 @@ else:
 
     setup(
     name = "FS-UAE Launcher",
-    version = "9.8.7",
+    version = "2.3.3",
     author = "Frode Solheim",
     author_email = "fs-uae@fengestad.no",
     app = APP,

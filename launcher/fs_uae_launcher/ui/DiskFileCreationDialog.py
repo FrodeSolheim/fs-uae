@@ -219,7 +219,7 @@ class DiskFileCreationDialog(fsui.Dialog):
         #s = pkg_resources.resource_stream(str("fs_uae_launcher"),
         #        str("res/adf_extended.dat"))
         s = pkg_resources.resource_stream(
-            str("fs_uae_launcher"), str("res/adf_save_disk.dat"))
+            str("fsgs.amiga"), str("data/adf_save_disk.dat"))
         data = s.read()
         data = zlib.decompress(data)
         f.write(data)

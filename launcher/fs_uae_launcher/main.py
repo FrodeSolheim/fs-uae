@@ -223,7 +223,7 @@ def _main():
     socket.setdefaulttimeout(30.0)
     
     if "--joystick-config" in sys.argv:
-        setup_logging("Joystick Config.log.txt")
+        setup_logging("Joystick Configuration.log.txt")
         print("importing pygame")
         import pygame
         print("initializing pygame")
@@ -233,7 +233,7 @@ def _main():
         return joystick_config_main()
 
     if "--game-center" in sys.argv:
-        setup_logging("Game Center.log.txt")
+        setup_logging("fs-uae-game-center.log.txt")
         try:
             import fengestad.gamecenter.main
             fengestad.gamecenter.main.main()

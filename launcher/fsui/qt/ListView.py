@@ -36,6 +36,8 @@ class ListView(Widget):
             self._model.appendRow(item)
 
     def set_index(self, index):
+        if index is None:
+            index = -1
         # print(self._widget.rootIndex)
         # idx = QModelIndex.createIndex(index)
         idx = self._model.index(index, 0)

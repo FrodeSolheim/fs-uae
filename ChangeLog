@@ -1,6 +1,9 @@
 Version 2.3.3:
+* (Launcher) Don't reload images when changing variants (and same images
+  should be displayed for the new variant).
 * (Launcher) Show joy_emu_conflict from oagd.net in statusbar if applicable.
 * (Launcher) More QT port improvements, almost full-featured now.
+* (Game Center) Locate correct kickstart ROMs via file database.
 * (Game Center) Fixed possible bug in font rendering code.
 
 Version 2.3.2:

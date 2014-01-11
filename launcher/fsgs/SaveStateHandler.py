@@ -10,6 +10,8 @@ from fs_uae_launcher.Config import Config
 from fs_uae_launcher.FSUAEDirectories import FSUAEDirectories
 
 from fs_uae_launcher.netplay.Netplay import Netplay
+from .GameNameUtil import GameNameUtil
+
 
 class SaveStateHandler:
 
@@ -54,6 +56,10 @@ class SaveStateHandler:
                 netplay_game = Config.get("__netplay_game")
                 if netplay_game:
                     config_name = "Net Play ({0})".format(netplay_game)
+
+        # convert the config name to a name which can be represented on
+        # the file system (really all/most filesystems).
+        config_name = GameNameUtil.create_fs_name(config_name)
 
         letter = self.get_letter(config_name)
         if not letter:

@@ -71,10 +71,10 @@ class Color(QColor, BaseColor):
         raise IndexError("Invalid color component")
 
     def to_hsv(self):
-        return HSVColor.from_rgb(self.Red(), self.Green(), self.Blue())
+        return HSVColor.from_rgb(self.red(), self.green(), self.blue())
 
     def to_hsl(self):
-        return HSLColor.from_rgb(self.Red(), self.Green(), self.Blue())
+        return HSLColor.from_rgb(self.red(), self.green(), self.blue())
 
     def lighten(self, amount=0.05):
         c = self.to_hsl().lighten(amount).to_rgb()
@@ -205,7 +205,7 @@ class HSVColor(BaseColor):
         self.v = v
 """
 
-"""
+
 class HSLColor(BaseColor):
 
     def __init__(self):
@@ -290,4 +290,3 @@ class HSLColor(BaseColor):
         self.h = h
         self.s = s
         self.l = l
-"""

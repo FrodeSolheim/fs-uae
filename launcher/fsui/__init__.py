@@ -13,9 +13,11 @@ from .common.spacer import Spacer
 if "--qt" in sys.argv:
     use_qt = True
     use_wx = False
+    toolkit = 'qt'
 else:
     use_wx = True
     use_qt = False
+    toolkit = 'wx'
 
 if use_qt:
     from .qt import *

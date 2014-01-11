@@ -1,3 +1,8 @@
+build
+dist
+/fs-uae
+/fs-uae-device-helper
+
 *.ppa.upload
 *.pyc
 *.o
@@ -7,7 +12,9 @@
 /*.changes
 /libcapsimage
 libcapsimage.dylib
-/fs-uae-*
+libfs-capsimage.dylib
+/fs-uae-[0-9]*
+/fs-uae_[0-9]*
 *.tar.gz
 /*.cfg
 /*.conf
@@ -35,8 +42,7 @@ log
 /*.raw
 /*.nvr
 /state
-/dist
-windows/fs-uae*
+windows/fs-uae*_windows*
 macosx/fs-uae*
 /*.deb
 /desktop/
@@ -45,7 +51,7 @@ macosx/fs-uae*
 /Frameworks/
 /SDL-*
 /*.out.*
-
+xxx*
 src/od-win32/lib
 libuae/od-win32/lib
 winuae/od-win32/lib
@@ -79,7 +85,6 @@ core
 /config.sub
 .deps
 .dirstamp
-/fs-uae
 
 /Makefile.ac
 /Makefile.ac.in

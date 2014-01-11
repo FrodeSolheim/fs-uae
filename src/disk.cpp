@@ -2697,6 +2697,9 @@ int disk_empty (int num)
 
 static TCHAR *tobin (uae_u8 v)
 {
+// FIXME:  I: A function overflows or underflows an array access. This could be a real error,
+// but occasionaly this condition is also misdetected due to loop unrolling or strange pointer
+// handling. So this is warning only, please review.
 	int i;
 	static TCHAR buf[10];
 	for( i = 7; i >= 0; i--)

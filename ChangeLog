@@ -1,3 +1,12 @@
+Version 2.3.11:
+
+* When deleting a directory from a dir HD, remove Thumbs_DB and .DS_Store
+  files first if they exist.
+* (Launcher) Changed where fs-uae-device-helper is stored in FS-UAE.app so
+  it is picked up by the fix-libs script.
+* (Launcher) Removed refresh game database from left "main menu".
+* (Launcher) Fixed a problem with lhafile caused by Python 3-compat changes.
+
 Version 2.3.10:
 
 * Initial support for SDL2 (make sdl=2), does not yet take full adv. of it.

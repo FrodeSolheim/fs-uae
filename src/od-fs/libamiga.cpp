@@ -69,6 +69,7 @@ int amiga_set_min_first_line(int line, int ntsc) {
     else {
         g_uae_min_first_line_pal = line;
     }
+    return 0;
 }
 
 int amiga_get_vsync_counter() {

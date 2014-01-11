@@ -376,10 +376,19 @@ int my_truncate(const TCHAR *name, uae_u64 len) {
     return result;
 }
 
+static void remove_extra_file(const char *path, const char *name) {
+    char *p = fs_path_join(path, name, NULL);
+    fs_unlink(p);
+    free(p);
+}
+
 int my_rmdir(const TCHAR *path) {
     if (g_fsdb_debug) {
         write_log("my_rmdir %s\n", path);
     }
+    remove_extra_file(path, "Thumbs.db");
+    remove_extra_file(path, ".DS_Store");
+
     errno = 0;
     int result = fs_rmdir(path);
     my_errno = errno;

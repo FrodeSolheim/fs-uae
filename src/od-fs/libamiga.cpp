@@ -547,6 +547,13 @@ int amiga_set_option(const char *option, const char *value) {
     return amiga_parse_option(option, value, 0);
 }
 
+int amiga_set_option_and_free(const char *option, char *value,
+        amiga_free_function free_function) {
+    int result = amiga_set_option(option, value);
+    free_function(value);
+    return result;
+}
+
 int amiga_set_hardware_option(const char *option, const char *value) {
     return amiga_parse_option(option, value, CONFIG_TYPE_HARDWARE);
 }

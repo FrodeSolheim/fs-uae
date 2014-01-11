@@ -87,6 +87,19 @@ int g_fs_uae_last_input_event_state = 0;
 int g_fs_uae_state_number = 0;
 
 void fs_uae_process_input_event(int line, int action, int state, int playback) {
+    static int first_time = 1;
+    if (first_time == 1) {
+        first_time = 0;
+        int load_state_number = fs_config_get_int("load_state");
+        if (load_state_number >= 1 && load_state_number <= 9) {
+            // FIXME: improvement, check if state file exists and show
+            // GUI warning if not...
+            fs_log("trying to load state number: %d\n", load_state_number);
+            amiga_send_input_event(
+                INPUTEVENT_SPC_STATERESTORE1 - 1 + load_state_number, 1);
+        }
+    }
+
 #if 0
     g_fs_uae_last_input_event = input_event;
     g_fs_uae_last_input_event_state = state;

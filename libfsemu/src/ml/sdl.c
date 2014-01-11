@@ -891,6 +891,17 @@ static int event_loop() {
             new_event->type = FS_ML_MOUSEBUTTONDOWN;
             new_event->button.device = g_fs_ml_first_mouse_index;
             new_event->button.button = event.button.button;
+#ifdef MACOSX
+            if (new_event->button.button == 1) {
+                int mod = SDL_GetModState();
+                if (mod & KMOD_ALT) {
+                    new_event->button.button = 2;
+                }
+                else if (mod & KMOD_CTRL) {
+                    new_event->button.button = 3;
+                }
+            }
+#endif
             new_event->button.state = event.button.state;
         }
         else if (event.type == SDL_MOUSEBUTTONUP) {
@@ -898,6 +909,17 @@ static int event_loop() {
             new_event->type = FS_ML_MOUSEBUTTONUP;
             new_event->button.device = g_fs_ml_first_mouse_index;
             new_event->button.button = event.button.button;
+#ifdef MACOSX
+            if (new_event->button.button == 1) {
+                int mod = SDL_GetModState();
+                if (mod & KMOD_ALT) {
+                    new_event->button.button = 2;
+                }
+                else if (mod & KMOD_CTRL) {
+                    new_event->button.button = 3;
+                }
+            }
+#endif
             new_event->button.state = event.button.state;
         }
 #ifdef USE_SDL2
@@ -938,31 +960,34 @@ int fs_ml_main_loop() {
     }
 
     if (g_fs_emu_video_fullscreen) {
-        fs_log("trying to move cursor to bottom right\n");
-        // we want to improve the transitioning from FS-UAE back to
-        // e.g. FS-UAE Game Center - avoid blinking cursor - so we try
-        // to move it to the bottom right of the screen. This probably
-        // requires that the cursor is not grabbed (SDL often keeps the
-        // cursor in the center of the screen, then).
-        Uint8 data[] = "\0";
+        if (SDL_getenv("FSGS_SEAMLESS") &&
+                SDL_getenv("FSGS_SEAMLESS")[0] == '1') {
+            fs_log("trying to move cursor to bottom right\n");
+            // we want to improve the transitioning from FS-UAE back to
+            // e.g. FS-UAE Game Center - avoid blinking cursor - so we try
+            // to move it to the bottom right of the screen. This probably
+            // requires that the cursor is not grabbed (SDL often keeps the
+            // cursor in the center of the screen, then).
+            Uint8 data[] = "\0";
 #ifdef USE_SDL2
-        SDL_SetWindowGrab(g_fs_ml_window, SDL_FALSE);
+            SDL_SetWindowGrab(g_fs_ml_window, SDL_FALSE);
 #else
-        SDL_WM_GrabInput(SDL_GRAB_OFF);
+            SDL_WM_GrabInput(SDL_GRAB_OFF);
 #endif
-        SDL_Cursor *cursor = SDL_CreateCursor(data, data, 8, 1, 0, 0);
-        SDL_SetCursor(cursor);
-        SDL_ShowCursor(SDL_ENABLE);
-        // SDL_PumpEvents();
-        // fs_ml_usleep(2 * 1000 * 1000);
+            SDL_Cursor *cursor = SDL_CreateCursor(data, data, 8, 1, 0, 0);
+            SDL_SetCursor(cursor);
+            SDL_ShowCursor(SDL_ENABLE);
+            // SDL_PumpEvents();
+            // fs_ml_usleep(2 * 1000 * 1000);
 #ifdef USE_SDL2
-        SDL_WarpMouseInWindow(g_fs_ml_window,
-                              fs_ml_get_fullscreen_width() - 1,
-                              fs_ml_get_fullscreen_height() - 1);
+            SDL_WarpMouseInWindow(g_fs_ml_window,
+                                  fs_ml_get_fullscreen_width() - 1,
+                                  fs_ml_get_fullscreen_height() - 1);
 #else
-        SDL_WarpMouse(fs_ml_get_fullscreen_width() - 1,
-                      fs_ml_get_fullscreen_height() - 1);
+            SDL_WarpMouse(fs_ml_get_fullscreen_width() - 1,
+                          fs_ml_get_fullscreen_height() - 1);
 #endif
+        }
     }
     return 0;
 }

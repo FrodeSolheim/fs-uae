@@ -1,3 +1,19 @@
+Version 2.3.12:
+
+* On OS X, simulate middle click (alt) and right click (ctrl).
+* Don't move mouse to right bottom on exit without requested with environment
+  variable FSGS_SEAMLESS=1.
+* New option load_state = 1..9.
+* New option stereo_separation (0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100).
+* (Launcher) Added GUI control for stereo_separation.
+* (Launcher) Database change, a refresh is needed for the game database.
+* (Launcher) Convert from UTF-8 str to unicode when loading and vice versa
+  when saving config.
+* (Arcade) Game filters: platform, letter and shuffle.
+* (Arcade) Further re-branding to FS-UAE Arcade.
+* (Arcade) Don't display wraparound items if items would be repeat on screen.
+* (Arcade) Can start with --platform argument (--amiga, --cd32 etc)
+
 Version 2.3.11:
 
 * When deleting a directory from a dir HD, remove Thumbs_DB and .DS_Store

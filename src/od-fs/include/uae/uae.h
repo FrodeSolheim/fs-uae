@@ -166,6 +166,9 @@ int amiga_set_audio_buffer_size(int size);
 int amiga_set_audio_frequency(int frequency);
 
 int amiga_set_option(const char *option, const char *value);
+typedef void (*amiga_free_function)(void* data);
+int amiga_set_option_and_free(const char *option, char *value,
+    amiga_free_function free_function);
 int amiga_set_hardware_option(const char *option, const char *value);
 int amiga_set_int_option(const char *option, int value);
 

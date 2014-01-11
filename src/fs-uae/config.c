@@ -488,7 +488,14 @@ void fs_uae_configure_amiga_hardware() {
         amiga_set_option("dongle", fs_config_get_const_string("dongle_type"));
     }
 
-    amiga_set_option("sound_stereo_separation", "10");
+    int stereo_separation = fs_config_get_int_clamped(
+        "stereo_separation", 0, 100);
+    if (stereo_separation == FS_CONFIG_NONE) {
+        stereo_separation = 100;
+    }
+    stereo_separation = stereo_separation / 10;
+    amiga_set_option_and_free("sound_stereo_separation",
+        fs_strdup_printf("%d", stereo_separation), free);
     if (c->enhanced_audio_filter) {
         amiga_set_option("sound_filter_type", "enhanced");
     }

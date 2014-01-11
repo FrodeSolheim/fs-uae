@@ -1,1 +1,1 @@
-const char *g_fs_uae_version = "2.3.4";
+const char *g_fs_uae_version = "2.3.5dev";

@@ -574,12 +574,6 @@ distdir-base:
 
 distdir: distdir-base
 	cd $(dist_dir) && python util/update-version.py
-	# python util/update-version.py $(dist_dir_launcher)/fs-uae-launcher.spec
-	# python util/update-version.py $(dist_dir_launcher)/setup.py
-	# python util/update-version.py \
-	#	$(dist_dir_launcher)/fs_uae_launcher/Version.py \
-	# 	--update-series
-	# python util/update-version.py $(dist_dir_launcher)/debian/changelog
 
 distcheck: distdir
 	cd $(dist_dir) && $(make)

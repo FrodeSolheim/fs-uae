@@ -1,3 +1,19 @@
+Version 2.3.5:
+
+* Can open block devices as HDF files on OpenBSD [Edd Barrett / vext01].
+* Full stereo separation by default (was 70%).
+* Use "enhanced" audio filter when Amiga model is A1200 or A4000.
+* Fixed bug where the new FPS led status would overwrite floppy drive leds.
+* (Launcher) Fixed a bug where new A500 configs could refuse to start
+  because "kickstart was not found" (2.3.4).
+* (Launcher) Better support for .7z (where available), but very inefficient,
+  works best for having a few ADFs in each .7z archive, not WHDLoad archives.
+* (Launcher) Can start WHDLoad slaves from archives where the slave is in
+  the root directory and not in a sub-directory.
+* (Game Center) Create a log file in a similar manner as FS-UAE Launcher.
+* (Game Center) Added python-opengl, python-numpy as Debian dependencies.
+* (Game Center) Was missing from suite installer for Windows (fixed).
+
 Version 2.3.4:
 
 * Support for multiple mice using ManyMouse library by Ryan C. Gordon.
@@ -9,7 +25,8 @@ Version 2.3.4:
   transitioning to a full-screen launcher looks nicer).
 * (Launcher) Support multiple mice.
 * (Launcher) Preference to show downloadable games or not.
-* (Launcher) Don't try to to checksum OS X/*BSD device nodes [vext01].
+* (Launcher) Don't try to checksum OS X/*BSD device nodes
+  [Edd Barrett / vext01].
 * (Launcher) Fixed bug when closing the config dialog.
 * (Launcher) Support 7z archives when the 7z program is found on PATH.
 * (Launcher) Joystick config tool works with devices having axes with

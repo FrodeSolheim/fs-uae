@@ -14,9 +14,10 @@ enum {
     FS_EMU_VSYNC_LED_OVERLAY,
     FS_EMU_FPS_LED_OVERLAY,
     FS_EMU_AUDIO_LED_OVERLAY,
-    FS_EMU_FIRST_CUSTOM_OVERLAY,
     FS_EMU_FPS_D0_OVERLAY,
     FS_EMU_FPS_D1_OVERLAY,
+    // the following name must be last in this list!
+    FS_EMU_FIRST_CUSTOM_OVERLAY,
 };
 
 #define FS_EMU_ANCHOR_RIGHT_BIT 1

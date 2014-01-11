@@ -45,6 +45,7 @@ typedef struct amiga_config {
     int fast_on_accuracy_level;
     int no_accuracy_adjustment;
     const char *warning;
+    int enhanced_audio_filter;
 } amiga_config;
 
 void fs_uae_init_configs();

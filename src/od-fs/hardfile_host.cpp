@@ -19,6 +19,14 @@
 #include <sys/disk.h>
 #endif
 
+#ifdef OPENBSD
+#include <sys/types.h>
+#include <sys/disklabel.h>
+#include <sys/dkio.h>
+#include <sys/ioctl.h>
+#include <fcntl.h>
+#endif
+
 #define hfd_log write_log
 static int g_debug = 0;
 
@@ -291,8 +299,9 @@ int hdf_open_target (struct hardfiledata *hfd, const char *pname)
         if (h != INVALID_HANDLE_VALUE) {
             // determine size of hdf file
             int ret;
-            off_t low;
-#ifdef MACOSX
+            off_t low = -1;
+
+#if defined(MACOSX) || defined(OPENBSD)
             // check type of file
             struct stat st;
             ret = stat(name,&st);
@@ -300,11 +309,12 @@ int hdf_open_target (struct hardfiledata *hfd, const char *pname)
                 write_log("osx: can't stat '%s'\n", name);
                 goto end;
             }
-            // block devices need special handling on osx
+            // block devices need special handling on BSD and OSX
             if (S_ISBLK(st.st_mode) || S_ISCHR(st.st_mode)) {
+                int fh = fileno(h);
+#if defined(MACOSX)
                 uint32_t block_size;
                 uint64_t block_count;
-                int fh = fileno(h);
                 // get number of blocks
                 ret = ioctl(fh, DKIOCGETBLOCKCOUNT, &block_count);
                 if (ret) {
@@ -322,19 +332,30 @@ int hdf_open_target (struct hardfiledata *hfd, const char *pname)
                 write_log("osx: found raw device: block_size=%u "
                         "block_count=%llu\n", block_size, block_count);
                 low = block_size * block_count;
-            }
-            else {
+#elif defined(OPENBSD)
+                struct disklabel label;
+                if (ioctl(fh, DIOCGDINFO, &label) < 0) {
+                    write_log("openbsd: can't get disklabel of '%s' (%d)\n", name, fh);
+                    goto end;
+                }
+                write_log("openbsd: bytes per sector: %u\n", label.d_secsize);
+                write_log("openbsd: sectors per unit: %u\n", label.d_secperunit);
+                low = label.d_secsize * label.d_secperunit;
+                write_log("openbsd: total bytes: %llu\n", low);
 #endif
-            // regular file size: seek to end and ftell
-            ret = uae_fseeko64 (h, 0, SEEK_END);
-            if (ret)
-                goto end;
-            low = uae_ftello64 (h);
-            if (low == -1)
-                goto end;
-#ifdef MACOSX
             }
-#endif
+#endif // OPENBSD || MACOSX
+
+            if (low == -1) {
+                // assuming regular file; seek to end and ftell
+                ret = uae_fseeko64 (h, 0, SEEK_END);
+                if (ret)
+                    goto end;
+                low = uae_ftello64 (h);
+                if (low == -1)
+                    goto end;
+            }
+
             low &= ~(hfd->blocksize - 1);
             hfd->physsize = hfd->virtsize = low;
             if (g_debug) {

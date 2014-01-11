@@ -97,6 +97,7 @@ void fs_uae_init_configs() {
 #else
     c->fast_on_accuracy_level = 0;
 #endif
+    c->enhanced_audio_filter = 1;
 
     c = g_fs_uae_amiga_configs + CONFIG_A1200_020;
     c->id = "A1200/020";
@@ -109,6 +110,7 @@ void fs_uae_init_configs() {
 #else
     c->fast_on_accuracy_level = 0;
 #endif
+    c->enhanced_audio_filter = 1;
     c->cpu_model = "68020";
     c->cpu_32bit_addressing = 1;
     c->allow_z3_memory = 1;
@@ -147,6 +149,7 @@ void fs_uae_init_configs() {
     c->fast_on_accuracy_level = 1;
     c->no_accuracy_adjustment = 1;
     c->allow_z3_memory = 1;
+    c->enhanced_audio_filter = 1;
 
     c = g_fs_uae_amiga_configs + CONFIG_A3000;
     c->id = "A3000";
@@ -483,6 +486,11 @@ void fs_uae_configure_amiga_hardware() {
 
     if (fs_config_get_const_string("dongle_type")) {
         amiga_set_option("dongle", fs_config_get_const_string("dongle_type"));
+    }
+
+    amiga_set_option("sound_stereo_separation", "10");
+    if (c->enhanced_audio_filter) {
+        amiga_set_option("sound_filter_type", "enhanced");
     }
 
     /*

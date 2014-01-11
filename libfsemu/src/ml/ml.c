@@ -206,6 +206,9 @@ int fs_ml_handle_keyboard_shortcut(fs_ml_event *event) {
     else if (key == FS_ML_KEY_TAB && alt_mod) {
         if (state) {
             fs_log("ALT+Tab key press detected\n");
+#ifdef USE_SDL2
+
+#else
 #ifdef WINDOWS
             // input grab will be released be deactivation
                         // event in this case
@@ -216,11 +219,12 @@ int fs_ml_handle_keyboard_shortcut(fs_ml_event *event) {
                 g_fs_ml_had_input_grab = 1;
             }
             if (g_fs_emu_video_fullscreen == 1 &&
-                    g_fs_emu_video_fullscreen_window == 0) {
+                    g_fs_emu_video_fullscreen_mode == 0) {
                 fs_log("- switching to window mode\n");
                 g_fs_ml_was_fullscreen = 1;
                 fs_ml_toggle_fullscreen();
             }
+#endif
 #endif
         }
         return 1;

@@ -10,6 +10,7 @@ Homepage: http://fs-uae.net/
 
 Package: fs-uae
 Architecture: any
+Multi-Arch: foreign
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Cross-platform Amiga emulator based on UAE/WinUAE
  FS-UAE is a cross-platform Amiga emulator based on updated emulation code

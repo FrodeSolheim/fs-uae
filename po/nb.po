@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2013-03-17 18:50+0100\n"
-"PO-Revision-Date: 2013-03-17 18:54+0100\n"
+"POT-Creation-Date: 2013-11-14 19:40+0100\n"
+"PO-Revision-Date: 2013-11-14 19:44+0100\n"
 "Last-Translator: Frode Solheim <frode-code@fengestad.no>\n"
 "Language-Team: Norwegian Bokmal\n"
 "Language: nb\n"
@@ -16,6 +16,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 1.5.4\n"
 
 msgid "Activated debugger"
 msgstr "Debugger er aktivert"
@@ -105,7 +106,9 @@ msgstr "Ugyldig antall CD-ROM-stasjoner spesifisert"
 msgid "Joystick Mode"
 msgstr "Joystick-modus"
 
-#. / TRANSLATORS: This is a menu entry and must not be too long
+msgid "Joystick Port"
+msgstr "Joystick-inngang"
+
 #, c-format
 msgid "Joystick Port %d"
 msgstr "Joystick-port %d"
@@ -120,12 +123,6 @@ msgstr "Enhet i port %d"
 msgid "Joystick Port %d Mode"
 msgstr "Modus for port %d"
 
-msgid "Joystick Port 0"
-msgstr "Joystick-port 0"
-
-msgid "Joystick Port 1"
-msgstr "Joystick-port 1"
-
 msgid "Joystick Port 2"
 msgstr "Joystick-port 2"
 
@@ -134,9 +131,6 @@ msgstr "Joystick-port 3"
 
 msgid "Joystick Port 4"
 msgstr "Joystick-port 4"
-
-msgid "Joystick Ports"
-msgstr "Joystick-porter"
 
 msgid "Keyboard"
 msgstr "Tastatur"
@@ -152,6 +146,9 @@ msgstr "Mus"
 
 msgid "Mouse Mode"
 msgstr "Mus-modus"
+
+msgid "Mouse Port"
+msgstr "Mus-inngang"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long: If you struggle
 #. / to get in short enough, just translate "No Device" instead.
@@ -215,7 +212,7 @@ msgstr "Fortsett"
 msgid "Save"
 msgstr "Lagre"
 
-msgid "Save States"
+msgid "Savestates"
 msgstr "Lagrede tilstander"
 
 #. / TRANSLATORS: Soft reset reboots the computer without a power cycle
@@ -247,3 +244,15 @@ msgstr "Zoom: %s + ramme"
 
 #~ msgid "Joystick"
 #~ msgstr "Joystick"
+
+#~ msgid "Joystick Port 0"
+#~ msgstr "Joystick-port 0"
+
+#~ msgid "Joystick Port 1"
+#~ msgstr "Joystick-port 1"
+
+#~ msgid "Joystick Ports"
+#~ msgstr "Joystick-porter"
+
+#~ msgid "Save States"
+#~ msgstr "Lagrede tilstander"

@@ -1,3 +1,4 @@
+#define _GNU_SOURCE 1
 #ifdef WINDOWS
 #include <Windows.h>
 #else

@@ -1,3 +1,4 @@
+#define _GNU_SOURCE 1
 #include <stdlib.h>
 #include <string.h>
 #include <uae/uae.h>

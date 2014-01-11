@@ -1482,6 +1482,13 @@ static int input_function(fs_ml_event *event) {
             return 1;
         }
     }
+    else if (event->type == FS_ML_TEXTINPUT) {
+        printf("text: %s\n", event->text.text);
+        if (fs_emu_hud_in_chat_mode() && !fs_emu_menu_or_dialog_is_active()) {
+            fs_emu_hud_handle_chat_input(event);
+            return 1;
+        }
+    }
     /*
     else if (event->type == FS_ML_KEYUP) {
 

@@ -8,8 +8,8 @@ extern char *g_fs_emu_video_vsync_mode_arg;
 
 extern int g_fs_emu_video_debug;
 extern int g_fs_emu_video_fullscreen;
-extern int g_fs_emu_video_fullscreen_window;
-extern char *g_fs_emu_video_fullscreen_mode;
+extern int g_fs_emu_video_fullscreen_mode;
+extern char *g_fs_emu_video_fullscreen_mode_string;
 extern int g_fs_emu_video_vsync;
 extern int g_fs_emu_video_crop_mode;
 extern int g_fs_ml_opengl_context_stamp;

@@ -191,6 +191,13 @@ static void process_keyboard_input(LPRAWINPUT raw_input) {
         if (character > 128) {
             character = 0;
         }
+        if (state == 1) {
+            fs_ml_event *event = fs_ml_alloc_event();
+            event->type = FS_ML_TEXTINPUT;
+            event->text.text[0] = character;
+            event->text.text[1] = '\0';
+            fs_ml_post_event(event);
+        }
     }
 
     if (state == 0) {
@@ -202,7 +209,7 @@ static void process_keyboard_input(LPRAWINPUT raw_input) {
             event->key.keysym.sym = key_code;
 
             event->key.keysym.mod = g_mod;
-            event->key.keysym.unicode = character;
+            //event->key.keysym.unicode = character;
             event->key.state = 0;
             fs_ml_post_event(event);
         }
@@ -217,7 +224,7 @@ static void process_keyboard_input(LPRAWINPUT raw_input) {
             event->key.keysym.sym = key_code;
 
             event->key.keysym.mod = g_mod;
-            event->key.keysym.unicode = character;
+            //event->key.keysym.unicode = character;
             event->key.state = 1;
             //fs_log("code: %d\n", event->key.code);
             fs_ml_post_event(event);

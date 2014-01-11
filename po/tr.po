@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2013-03-20 22:26+0100\n"
-"PO-Revision-Date: 2013-04-07 19:24+0200\n"
+"POT-Creation-Date: 2013-11-15 18:49+0100\n"
+"PO-Revision-Date: 2013-11-16 23:16+0200\n"
 "Last-Translator: Eser Güven <thedecypher@hotmail.com>\n"
 "Language-Team: Turkish\n"
 "Language: tr\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 1.5.5\n"
+"X-Generator: Poedit 1.5.7\n"
 
 msgid "Activated debugger"
 msgstr "Hata ayıklama aktifleştirildi"
@@ -106,7 +106,9 @@ msgstr "Belirtilen CD-ROM sürücüsü sayısı geçersiz"
 msgid "Joystick Mode"
 msgstr "Joystick Modu"
 
-#. / TRANSLATORS: This is a menu entry and must not be too long
+msgid "Joystick Port"
+msgstr "Joystick Portu"
+
 #, c-format
 msgid "Joystick Port %d"
 msgstr "Joystick Portu %d"
@@ -121,12 +123,6 @@ msgstr "Joystick Portu %d Cihazı"
 msgid "Joystick Port %d Mode"
 msgstr "Joystick Portu %d Modu"
 
-msgid "Joystick Port 0"
-msgstr "Joystick Portu 0"
-
-msgid "Joystick Port 1"
-msgstr "Joystick Portu 1"
-
 msgid "Joystick Port 2"
 msgstr "Joystick Portu 2"
 
@@ -135,9 +131,6 @@ msgstr "Joystick Portu 3"
 
 msgid "Joystick Port 4"
 msgstr "Joystick Portu 4"
-
-msgid "Joystick Ports"
-msgstr "Joystick Portları"
 
 msgid "Keyboard"
 msgstr "Klavye"
@@ -153,6 +146,9 @@ msgstr "Fare"
 
 msgid "Mouse Mode"
 msgstr "Fare Modu"
+
+msgid "Mouse Port"
+msgstr "Fare Portu"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long: If you struggle
 #. / to get in short enough, just translate "No Device" instead.
@@ -216,7 +212,7 @@ msgstr "Devam Et"
 msgid "Save"
 msgstr "Kaydet"
 
-msgid "Save States"
+msgid "Savestates"
 msgstr "Kayıt Dosyaları"
 
 #. / TRANSLATORS: Soft reset reboots the computer without a power cycle
@@ -239,3 +235,15 @@ msgstr "Zum yap: %s"
 #, c-format
 msgid "Zoom: %s + Border"
 msgstr "Zum yap: %s + Kenar Çizgisi"
+
+#~ msgid "Joystick Port 0"
+#~ msgstr "Joystick Portu 0"
+
+#~ msgid "Joystick Port 1"
+#~ msgstr "Joystick Portu 1"
+
+#~ msgid "Joystick Ports"
+#~ msgstr "Joystick Portları"
+
+#~ msgid "Save States"
+#~ msgstr "Kayıt Dosyaları"

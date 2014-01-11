@@ -67,6 +67,8 @@ char *fs_ml_input_unique_device_name(char *name) {
 void fs_ml_input_init() {
     FS_ML_INIT_ONCE;
 
+    SDL_Init(SDL_INIT_JOYSTICK);
+
     fs_log("fs_ml_input_init\n");
 
     g_input_queue = fs_queue_new();
@@ -97,14 +99,22 @@ void fs_ml_input_init() {
     g_fs_ml_first_joystick_index = g_fs_ml_input_device_count;
 
     int num_joysticks = SDL_NumJoysticks();
+    fs_log("num joystick devices: %d\n", num_joysticks);
+    if (SDL_WasInit(SDL_INIT_JOYSTICK) == 0) {
+        fs_log("WARNING: Joystick module not initialized\n");
+    }
     for (int i = 0; i < num_joysticks; i++) {
         if (k == FS_ML_INPUT_DEVICES_MAX) {
-            fs_log("WARNING: reached max num devices");
+            fs_log("WARNING: reached max num devices\n");
             break;
         }
         SDL_Joystick *joystick = SDL_JoystickOpen(i);
 
+#ifdef USE_SDL2
+        char* name = fs_ascii_strup(SDL_JoystickName(joystick), -1);
+#else
         char* name = fs_ascii_strup(SDL_JoystickName(i), -1);
+#endif
         name = fs_strstrip(name);
         if (name[0] == '\0') {
             free(name);

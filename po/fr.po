@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: FS-UAE\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2013-03-13 22:00+0100\n"
-"PO-Revision-Date: 2013-03-14 11:55+0100\n"
+"POT-Creation-Date: 2013-11-20 19:32+0100\n"
+"PO-Revision-Date: 2013-11-21 21:35+0100\n"
 "Last-Translator: Foul <foulweb@gmail.com>\n"
 "Language-Team: Foul <fs-uae-fr@fengestad.no>\n"
 "Language: fr\n"
@@ -16,8 +16,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Poedit-Language: French\n"
-"X-Poedit-Country: FRANCE\n"
+"X-Generator: Poedit 1.5.4\n"
 
 msgid "Activated debugger"
 msgstr "Débogueur activé"
@@ -107,7 +106,9 @@ msgstr "Nombre de lecteurs CD-ROM spécifié invalide"
 msgid "Joystick Mode"
 msgstr "Mode Joystick"
 
-#. / TRANSLATORS: This is a menu entry and must not be too long
+msgid "Joystick Port"
+msgstr "Port Joystick"
+
 #, c-format
 msgid "Joystick Port %d"
 msgstr "Port Joystick %d"
@@ -122,12 +123,6 @@ msgstr "Périph. Port Joystick %d"
 msgid "Joystick Port %d Mode"
 msgstr "Mode Port Joystick %d"
 
-msgid "Joystick Port 0"
-msgstr "Ports Joystick 0"
-
-msgid "Joystick Port 1"
-msgstr "Ports Joystick 1"
-
 msgid "Joystick Port 2"
 msgstr "Ports Joystick 2"
 
@@ -136,9 +131,6 @@ msgstr "Ports Joystick 3"
 
 msgid "Joystick Port 4"
 msgstr "Joystick Port 4"
-
-msgid "Joystick Ports"
-msgstr "Ports Joystick"
 
 msgid "Keyboard"
 msgstr "Clavier"
@@ -154,6 +146,9 @@ msgstr "Souris"
 
 msgid "Mouse Mode"
 msgstr "Mode Souris"
+
+msgid "Mouse Port"
+msgstr "Port  Souris"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long: If you struggle
 #. / to get in short enough, just translate "No Device" instead.
@@ -217,8 +212,8 @@ msgstr "Reprendre"
 msgid "Save"
 msgstr "Sauvegarder"
 
-msgid "Save States"
-msgstr "Sauvegarder l’État"
+msgid "Savestates"
+msgstr "États des Sauvegardes"
 
 #. / TRANSLATORS: Soft reset reboots the computer without a power cycle
 msgid "Soft Reset"
@@ -249,3 +244,15 @@ msgstr "Zoom: %s + Bordure"
 
 #~ msgid "Joystick"
 #~ msgstr "Joystick"
+
+#~ msgid "Joystick Port 0"
+#~ msgstr "Ports Joystick 0"
+
+#~ msgid "Joystick Port 1"
+#~ msgstr "Ports Joystick 1"
+
+#~ msgid "Joystick Ports"
+#~ msgstr "Ports Joystick"
+
+#~ msgid "Save States"
+#~ msgstr "Sauvegarder l’État"

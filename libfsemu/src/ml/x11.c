@@ -1,3 +1,4 @@
+#define _GNU_SOURCE 1
 #ifdef USE_X11
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,6 +11,11 @@
 #include <fs/string.h>
 #include <fs/filesys.h>
 #include "ml_internal.h"
+
+#ifdef USE_SDL2
+#include <SDL.h>
+extern SDL_Window* g_fs_ml_window;
+#endif
 
 #include <SDL_syswm.h>
 // FIXME: REMOVE / replace with fs functions
@@ -28,7 +34,7 @@ static void set_window_icon() {
 
     unsigned long *icon_data = (unsigned long *) malloc(max_size);
     unsigned long *op = icon_data;
-    int card_count = 0;
+    int card_count  = 0;
 
     int sizes[] = {128, 64, 48, 32, 16, 0};
     for(int *size = sizes; *size; size++) {
@@ -74,13 +80,23 @@ static void set_window_icon() {
 }
 
 void fs_ml_configure_window() {
-
     SDL_SysWMinfo info;
     SDL_VERSION(&info.version); // this is important!
+#ifdef USE_SDL2
+    if (!SDL_GetWindowWMInfo(g_fs_ml_window, &info)) {
+        fs_log("error getting window information\n");
+        return;
+    }
+    g_display = info.info.x11.display;
+    g_window = info.info.x11.window;
+#else
     if (!SDL_GetWMInfo(&info)) {
         fs_log("error getting window information\n");
         return;
     }
+    g_display = info.info.x11.display;
+    g_window = info.info.x11.wmwindow;
+#endif
 
     // Set the PID related to the window for the given hostname, if possible
     //   if (data->pid > 0) {
@@ -88,8 +104,6 @@ void fs_ml_configure_window() {
     //       XChangeProperty(display, w, _NET_WM_PID, XA_CARDINAL, 32, PropModeReplace,
     //                        (unsigned char *)&data->pid, 1);
 
-    g_display = info.info.x11.display;
-    g_window = info.info.x11.wmwindow;
     Atom UTF8_STRING = XInternAtom(g_display, "UTF8_STRING", False);
 
     fs_log("requesting dark window manager theme\n");
@@ -155,8 +169,8 @@ void fs_ml_usleep(int usec) {
     usleep(usec);
 }
 
-void fs_ml_set_fullscreen_extra() {
-}
+//void fs_ml_set_fullscreen_extra() {
+//}
 
 int fs_ml_video_mode_get_current(fs_ml_video_mode *mode) {
     mode->width = 0;

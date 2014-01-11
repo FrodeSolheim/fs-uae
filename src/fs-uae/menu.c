@@ -750,6 +750,12 @@ static int input_host_menu_function(fs_emu_menu_item *menu_item,
         item = fs_emu_menu_item_new();
         fs_emu_menu_append_item(menu, item);
         const char* s = device.name;
+        if (strcmp(s, "KEYBOARD") == 0) {
+            s = _("Keyboard");
+        }
+        else if (strcmp(s, "MOUSE") == 0) {
+            s = _("Mouse");
+        }
         fs_emu_menu_item_set_title(item, s);
         fs_emu_menu_item_set_idata(item, (port << 8) | i);
         fs_emu_menu_item_set_activate_function(item, input_device_function);

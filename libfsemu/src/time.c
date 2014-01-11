@@ -1,4 +1,4 @@
-
+#define _GNU_SOURCE 1
 #include <fs/base.h>
 #include <fs/init.h>
 #include <fs/log.h>

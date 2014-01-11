@@ -1,3 +1,4 @@
+#define _GNU_SOURCE 1
 #ifdef WINDOWS
 #define WINVER 0x0502
 #endif

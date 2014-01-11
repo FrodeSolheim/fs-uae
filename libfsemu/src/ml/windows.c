@@ -92,8 +92,8 @@ void fs_ml_usleep(int usec) {
     SDL_Delay(usec / 1000);
 }
 
-void fs_ml_set_fullscreen_extra() {
-}
+//void fs_ml_set_fullscreen_extra() {
+//}
 
 int fs_ml_video_mode_get_current(fs_ml_video_mode *mode) {
     DEVMODE devmode;

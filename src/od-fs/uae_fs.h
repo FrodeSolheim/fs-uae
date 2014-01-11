@@ -28,6 +28,9 @@ extern int g_amiga_video_format;
 extern int g_amiga_video_bpp;
 extern int g_amiga_rtg_modes[];
 
+extern int g_uae_min_first_line_pal;
+extern int g_uae_min_first_line_ntsc;
+
 void od_fs_update_leds(void);
 
 #endif // LIBAMIGA_INTERNAL_H_

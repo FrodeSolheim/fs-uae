@@ -1,3 +1,4 @@
+#define _GNU_SOURCE 1
 #ifdef WINDOWS
 //#define WIN32_LEAN_AND_MEAN
 #include <windows.h>

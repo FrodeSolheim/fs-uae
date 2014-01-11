@@ -19,7 +19,7 @@ endif
 # libfsemu_dir = libfsemu
 libfsemu-target:
 	$(make) -C $(libfsemu_dir) debug=$(debug) devel=$(devel) \
-		optimize=$(optimize) android=$(android)
+		optimize=$(optimize) android=$(android) sdl=$(sdl)
 
 #ifeq ($(wildcard libfs-capsimage), libfs-capsimage)
 #libfs-capsimage_dir = libfs-capsimage
@@ -47,17 +47,31 @@ libs = -L$(libfsemu_dir)/out -lfsemu -lpng -lz
 else
 use_glib := 1
 use_freetype := 1
+sdl := 1
+
+ifeq ($(os), macosx)
+	sdl = 2
+endif
+
+ifeq ($(sdl), 2)
+	sdl_config = sdl2-config
+	use_sdl = USE_SDL2
+else
+	sdl_config = sdl-config
+	use_sdl = USE_SDL
+endif
+
 common_flags = -Isrc/od-fs -Isrc/od-fs/include \
 		-Isrc/include -Igensrc -Isrc \
 		`pkg-config --cflags glib-2.0 gthread-2.0 libpng` \
 		-I$(libfsemu_dir)/include \
 		-I$(libfsemu_dir)/src/lua \
-		`sdl-config --cflags`
+		`$(sdl_config) --cflags`
 cflags = $(common_flags) -std=c99 $(CFLAGS)
 #cxxflags = $(common_flags) -fpermissive $(CXXFLAGS)
 cxxflags = $(common_flags) $(CXXFLAGS)
 ldflags = $(LDFLAGS)
-libs = -L$(libfsemu_dir)/out -lfsemu `sdl-config --libs` \
+libs = -L$(libfsemu_dir)/out -lfsemu `$(sdl_config) --libs` \
 		`pkg-config --libs libpng` -lz
 
 ifeq ($(devel), 1)
@@ -138,8 +152,8 @@ else ifeq ($(os), macosx)
   else ifneq ($(findstring Power,$(uname_m)),)
     arch = ppc
   else
-    # arch = x86_64
-    arch = i386
+    arch = x86_64
+    # arch = i386
   endif
   cflags += -arch $(arch)
   cxxflags += -arch $(arch)
@@ -163,7 +177,7 @@ else
 endif
 
 ifneq ($(os), android)
-	cppflags += -DUSE_SDL -DUSE_GLIB -DWITH_LUA
+	cppflags += -D$(use_sdl) -DUSE_GLIB -DWITH_LUA
 endif
 
 device_helper_objects = obj/fs-uae-device-helper.o
@@ -507,7 +521,7 @@ distdir-base:
 
 	mkdir -p $(dist_dir)/macosx
 	cp -a macosx/Makefile $(dist_dir)/macosx/
-	cp -a macosx/fix-app.py $(dist_dir)/macosx/
+	cp -a macosx/fs-make-standalone-app.py $(dist_dir)/macosx/
 	cp -a macosx/template $(dist_dir)/macosx/
 
 	mkdir -p $(dist_dir)/windows

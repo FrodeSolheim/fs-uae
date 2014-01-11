@@ -3,6 +3,10 @@
 #include <stdio.h>
 #include <stddef.h>
 
+#ifdef USE_SDL2
+#define USE_SDL
+#endif
+
 #ifdef USE_SDL
 #include <SDL.h>
 #endif
@@ -215,9 +219,15 @@ static void render_frame() {
     }
 }
 
+#ifdef USE_SDL2
+extern SDL_Window* g_fs_ml_window;
+#endif
+
 static void swap_opengl_buffers() {
     //int64_t t1 = fs_get_monotonic_time();
-#ifdef USE_SDL
+#if defined(USE_SDL2)
+    SDL_GL_SwapWindow(g_fs_ml_window);
+#elif defined(USE_SDL)
     SDL_GL_SwapBuffers();
 #else
     printf("ERROR: no swap\n");

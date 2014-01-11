@@ -3,6 +3,10 @@
 #ifdef USE_OPENGL
 #include <fs/ml/opengl.h>
 
+#ifdef USE_SDL2
+#define USE_SDL
+#endif
+
 #ifdef USE_SDL
 #include <SDL.h>
 #include <SDL_opengl.h>

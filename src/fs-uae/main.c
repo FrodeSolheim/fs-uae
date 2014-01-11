@@ -1,9 +1,10 @@
+#define _GNU_SOURCE 1
 #include <uae/uae.h>
 
 #ifdef USE_SDL
 // we must include SDL first before emu.h, so libfsemu's #definition of main
 // is the current one (on Windows) when main is encountered further down
-#include <SDL/SDL.h>
+#include <SDL.h>
 #endif
 
 #include <fs/base.h>
@@ -14,6 +15,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <locale.h>
 #include "fs-uae.h"
 #include "recording.h"
@@ -379,6 +381,13 @@ static void on_init() {
     }
     else {
         amiga_set_save_state_compression(1);
+    }
+
+    if (fs_config_get_int("min_first_line_pal") != FS_CONFIG_NONE) {
+        amiga_set_min_first_line(fs_config_get_int("min_first_line_pal"), 0);
+    }
+    if (fs_config_get_int("min_first_line_ntsc") != FS_CONFIG_NONE) {
+        amiga_set_min_first_line(fs_config_get_int("min_first_line_ntsc"), 1);
     }
 
     /*

@@ -1,3 +1,4 @@
+#define _GNU_SOURCE 1
 /*
  * Support for the X11 XInput extension.
  *
@@ -7,7 +8,6 @@
  */
 
 #include "manymouse.h"
-
 /* Try to use this on everything but Windows and Mac OS by default... */
 #ifndef SUPPORT_XINPUT2
 #if ( (defined(_WIN32) || defined(__CYGWIN__)) )

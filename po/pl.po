@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2013-02-25 21:55+0100\n"
-"PO-Revision-Date: 2013-02-26 19:01+0100\n"
+"POT-Creation-Date: 2013-11-13 22:14+0100\n"
+"PO-Revision-Date: 2013-11-13 22:52+0100\n"
 "Last-Translator: grimi <grimi at poczta dot fm>\n"
 "Language-Team: Polish\n"
 "Language: pl\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
 "|| n%100>=20) ? 1 : 2);\n"
-"X-Generator: Poedit 1.5.4\n"
+"X-Generator: Poedit 1.5.7\n"
 
 msgid "Activated debugger"
 msgstr "Debuger aktywny"
@@ -107,7 +107,9 @@ msgstr "Nieprawidłowo określona ilość napędów CD-ROM"
 msgid "Joystick Mode"
 msgstr "Tryb joysticka"
 
-#. / TRANSLATORS: This is a menu entry and must not be too long
+msgid "Joystick Port"
+msgstr "Port joysticka"
+
 #, c-format
 msgid "Joystick Port %d"
 msgstr "Port joysticka %d"
@@ -122,12 +124,6 @@ msgstr "Port joysticka %d - sprzęt"
 msgid "Joystick Port %d Mode"
 msgstr "Port joysticka %d - tryb"
 
-msgid "Joystick Port 0"
-msgstr "Joystick - port 0"
-
-msgid "Joystick Port 1"
-msgstr "Joystick - port 1"
-
 msgid "Joystick Port 2"
 msgstr "Joystick - port 2"
 
@@ -136,9 +132,6 @@ msgstr "Joystick - port 3"
 
 msgid "Joystick Port 4"
 msgstr "Joystick - port 4"
-
-msgid "Joystick Ports"
-msgstr "Porty joysticków"
 
 msgid "Keyboard"
 msgstr "Klawiatura"
@@ -154,6 +147,9 @@ msgstr "Mysz"
 
 msgid "Mouse Mode"
 msgstr "Tryb myszy"
+
+msgid "Mouse Port"
+msgstr "Port myszy"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long: If you struggle
 #. / to get in short enough, just translate "No Device" instead.
@@ -217,7 +213,7 @@ msgstr "Wznów"
 msgid "Save"
 msgstr "Zapisz"
 
-msgid "Save States"
+msgid "Savestates"
 msgstr "Zapis stanów gry"
 
 #. / TRANSLATORS: Soft reset reboots the computer without a power cycle
@@ -249,3 +245,15 @@ msgstr "Rozmiar: %s + ramka"
 
 #~ msgid "Joystick"
 #~ msgstr "Joystick"
+
+#~ msgid "Joystick Port 0"
+#~ msgstr "Joystick - port 0"
+
+#~ msgid "Joystick Port 1"
+#~ msgstr "Joystick - port 1"
+
+#~ msgid "Joystick Ports"
+#~ msgstr "Porty joysticków"
+
+#~ msgid "Save States"
+#~ msgstr "Zapis stanów gry"

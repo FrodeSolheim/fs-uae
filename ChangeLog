@@ -1,3 +1,32 @@
+Version 2.3.10:
+
+* Initial support for SDL2 (make sdl=2), does not yet take full adv. of it.
+* Enable SDL2 by default on OS X.
+* New options window_x, window_y and keyboard_input_grab (SDL2 only).
+* New options min_first_line_ntsc, min_first_line_pal.
+* Windows distributions/packaging updated.
+* fs-uae deb package marked as Multi-Arch: foreign, fs-uae:i386 can then be
+  installed on amd64 without breaking fs-uae-launcher dependency.
+* Updated translations: pl [grimi], fi [Goingdown], tr [Decypher],
+  fr [Foul], nb.
+* (Launcher) Fixed dialog centering on OS X.
+* (Launcher) Center main window on desktop when opening.
+* (Launcher) Marked some texts for translation.
+* (Launcher) Use native file/directory dialogs (in most places).
+* (Launcher) Fixed a bug where game info panel wasn't always refreshed.
+* (Launcher) Code update for compatibility with Python 3.
+* (Launcher) Support for PyQT5 in addition to Pyside.
+* (Launcher) Experimental net play UI is available again.
+* (Launcher) Ensure floppy file name is visible when floppy field changes.
+* (Launcher) Support for hd_requirements = workbench (with online database).
+* (Launcher) Game database now in Cache/Games.sqlite.
+* (Launcher) Database now in Data/Database.sqlite.
+* (Launcher) Updated translations: pl [grimi], fi [Goingdown],
+  it [Speedvicio], tr [Decypher], fr [Foul], nb.
+* (Game Center) Renaming to FS-UAE Arcade (not complete).
+* (Game Center) Merged with Launcher distr on some platforms (Windows).
+* (Game Center) Fix joystick selection on input selection screen.
+
 Version 2.3.9:
 
 * Add build support for kFreeBSD [glaubitz].

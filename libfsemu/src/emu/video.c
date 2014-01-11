@@ -36,8 +36,8 @@ fs_emu_zoom_function g_toogle_zoom_function = NULL;
 
 int g_fs_emu_video_debug = 0;
 int g_fs_emu_video_fullscreen = 0;
-char *g_fs_emu_video_fullscreen_mode = NULL;
-int g_fs_emu_video_fullscreen_window = -1;
+char *g_fs_emu_video_fullscreen_mode_string = NULL;
+int g_fs_emu_video_fullscreen_mode = -1;
 int g_fs_emu_video_crop_mode = 1;
 int g_fs_emu_screenshot = 0;
 

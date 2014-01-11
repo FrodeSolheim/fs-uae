@@ -166,34 +166,49 @@ static void process_command(const char* text) {
 
 int fs_emu_hud_handle_chat_input(fs_emu_event *event) {
     fs_mutex_lock(g_console_mutex);
-    int key_code = event->key.keysym.sym;
-    if (key_code == FS_ML_KEY_RETURN) {
-        fs_mutex_unlock(g_console_mutex);
-        process_command(g_fs_emu_chat_string);
-        fs_mutex_lock(g_console_mutex);
-        g_fs_emu_chat_string_pos = 0;
-        g_fs_emu_chat_string[g_fs_emu_chat_string_pos] = 0;
-    }
-    else if (key_code == FS_ML_KEY_ESCAPE) {
-        g_fs_emu_chat_mode = 0;
-        g_fs_emu_hud_mode = 0;
-        g_fs_emu_chat_string_pos = 0;
-        g_fs_emu_chat_string[g_fs_emu_chat_string_pos] = 0;
-    }
-    else if (key_code == FS_ML_KEY_TAB) {
-        g_fs_emu_chat_mode = 0;
-        g_fs_emu_hud_mode = 0;
-        // hide all messages when dismissing the hud
-        //g_last_line_time = 0;
-    }
-    else if (key_code == FS_ML_KEY_BACKSPACE) {
-        if (g_fs_emu_chat_string_pos > 0) {
-            g_fs_emu_chat_string_pos--;
+    if (event->type == FS_ML_KEYDOWN) {
+        int key_code = event->key.keysym.sym;
+        if (key_code == FS_ML_KEY_RETURN) {
+            fs_mutex_unlock(g_console_mutex);
+            process_command(g_fs_emu_chat_string);
+            fs_mutex_lock(g_console_mutex);
+            g_fs_emu_chat_string_pos = 0;
             g_fs_emu_chat_string[g_fs_emu_chat_string_pos] = 0;
         }
+        else if (key_code == FS_ML_KEY_ESCAPE) {
+            g_fs_emu_chat_mode = 0;
+            g_fs_emu_hud_mode = 0;
+            g_fs_emu_chat_string_pos = 0;
+            g_fs_emu_chat_string[g_fs_emu_chat_string_pos] = 0;
+        }
+        else if (key_code == FS_ML_KEY_TAB) {
+            g_fs_emu_chat_mode = 0;
+            g_fs_emu_hud_mode = 0;
+            // hide all messages when dismissing the hud
+            //g_last_line_time = 0;
+        }
+        else if (key_code == FS_ML_KEY_BACKSPACE) {
+            if (g_fs_emu_chat_string_pos > 0) {
+                g_fs_emu_chat_string_pos--;
+                g_fs_emu_chat_string[g_fs_emu_chat_string_pos] = 0;
+            }
+        }
     }
-    else {
+    if (event->type == FS_ML_TEXTINPUT) {
+        if (g_fs_emu_chat_string_pos < FS_EMU_MAX_CHAT_STRING_SIZE - 1 &&
+                event->text.text[0] >= 32 &&
+                event->text.text[0] < 128) {
+            g_fs_emu_chat_string[g_fs_emu_chat_string_pos] = \
+                event->text.text[0];
+            g_fs_emu_chat_string_pos++;
+            g_fs_emu_chat_string[g_fs_emu_chat_string_pos] = '\0';
+        }
+    }
+#ifdef USE_SDL2
+        //printf("FIXME: no hud text input with SDL 2 yet");
+#else
         //printf("%d\n", event->key.keysym.unicode);
+        /*
         if (g_fs_emu_chat_string_pos < FS_EMU_MAX_CHAT_STRING_SIZE - 1 &&
                 event->key.keysym.unicode >= 32 &&
                 event->key.keysym.unicode < 128) {
@@ -202,7 +217,9 @@ int fs_emu_hud_handle_chat_input(fs_emu_event *event) {
             g_fs_emu_chat_string_pos++;
             g_fs_emu_chat_string[g_fs_emu_chat_string_pos] = '\0';
         }
-    }
+        */
+#endif
+    //}
     //fs_log("chat: %s\n", g_fs_emu_chat_string);
     fs_mutex_unlock(g_console_mutex);
     return 1;

@@ -128,7 +128,7 @@ typedef enum {
        FS_ML_EVENT_RESERVEDB,
        FS_ML_VIDEORESIZE,
        FS_ML_VIDEOEXPOSE,
-       FS_ML_EVENT_RESERVED2,
+       FS_ML_TEXTINPUT,
        FS_ML_EVENT_RESERVED3,
        FS_ML_EVENT_RESERVED4,
        FS_ML_EVENT_RESERVED5,
@@ -141,7 +141,7 @@ typedef enum {
 typedef struct fs_ml_keysym {
     uint16_t scancode;
     uint16_t sym;
-    uint16_t unicode;
+    // uint16_t unicode;
     uint16_t mod;
 } fs_ml_keysym;
 
@@ -232,6 +232,14 @@ typedef struct fs_ml_SysWMEvent {
     fs_ml_SysWMmsg *msg;
 } fs_ml_SysWMEvent;
 
+
+#define TEXTINPUTEVENT_TEXT_SIZE (32)
+
+typedef struct fs_ml_TextInputEvent {
+    uint8_t type;
+    char text[TEXTINPUTEVENT_TEXT_SIZE];
+} fs_ml_TextInputEvent;
+
 typedef union fs_ml_event {
     uint8_t type;
     fs_ml_ActiveEvent active;
@@ -247,6 +255,7 @@ typedef union fs_ml_event {
     fs_ml_QuitEvent quit;
     fs_ml_UserEvent user;
     fs_ml_SysWMEvent syswm;
+    fs_ml_TextInputEvent text;
 } fs_ml_event;
 
 fs_ml_event* fs_ml_alloc_event();

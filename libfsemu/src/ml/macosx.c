@@ -37,10 +37,10 @@ void fs_ml_usleep(int usec) {
     usleep(usec);
 }
 
-void fs_ml_set_fullscreen_extra() {
-    // Using LSUIPresentationMode instead
-    //SetSystemUIMode(kUIModeAllHidden, kUIOptionAutoShowMenuBar);
-}
+//void fs_ml_set_fullscreen_extra() {
+//    // Using LSUIPresentationMode instead
+//    //SetSystemUIMode(kUIModeAllHidden, kUIOptionAutoShowMenuBar);
+//}
 
 int fs_ml_video_mode_get_current(fs_ml_video_mode *mode) {
     mode->width = 0;

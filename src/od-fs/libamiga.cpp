@@ -59,6 +59,18 @@ uae_callback_function *uae_on_update_leds = NULL;
 
 extern "C" {
 
+int amiga_set_min_first_line(int line, int ntsc) {
+    if (line < 0 || line > 100) {
+        return 1;
+    }
+    if (ntsc) {
+        g_uae_min_first_line_ntsc = line;
+    }
+    else {
+        g_uae_min_first_line_pal = line;
+    }
+}
+
 int amiga_get_vsync_counter() {
     return g_uae_vsync_counter;
 }

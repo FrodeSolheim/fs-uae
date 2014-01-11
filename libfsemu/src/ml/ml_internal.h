@@ -36,7 +36,7 @@ void fs_ml_mouse_init(void);
 //void fs_ml_calibrate_clock();
 
 void fs_ml_prevent_power_saving(void);
-void fs_ml_set_fullscreen_extra();
+//void fs_ml_set_fullscreen_extra();
 
 #ifdef WINDOWS
 void fs_ml_init_raw_input();

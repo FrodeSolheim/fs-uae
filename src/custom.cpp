@@ -150,6 +150,9 @@ static int vsynctimeperline;
 static int jitcount = 0;
 static int frameskiptime;
 
+int g_uae_min_first_line_pal = VBLANK_ENDLINE_PAL;
+int g_uae_min_first_line_ntsc = VBLANK_ENDLINE_NTSC;
+
 #define LOF_TOGGLES_NEEDED 4
 #define NLACE_CNT_NEEDED 50
 static int lof_togglecnt_lace, lof_togglecnt_nlace, lof_previous, nlace_cnt;
@@ -3085,7 +3088,7 @@ void init_hz (bool fullinit)
 	if (!isntsc) {
 		maxvpos = MAXVPOS_PAL;
 		maxhpos = MAXHPOS_PAL;
-		minfirstline = VBLANK_ENDLINE_PAL;
+		minfirstline = g_uae_min_first_line_pal;
 		vblank_hz = VBLANK_HZ_PAL;
 		sprite_vblank_endline = VBLANK_SPRITE_PAL;
 		equ_vblank_endline = EQU_ENDLINE_PAL;
@@ -3093,7 +3096,7 @@ void init_hz (bool fullinit)
 	} else {
 		maxvpos = MAXVPOS_NTSC;
 		maxhpos = MAXHPOS_NTSC;
-		minfirstline = VBLANK_ENDLINE_NTSC;
+		minfirstline = g_uae_min_first_line_ntsc;
 		vblank_hz = VBLANK_HZ_NTSC;
 		sprite_vblank_endline = VBLANK_SPRITE_NTSC;
 		equ_vblank_endline = EQU_ENDLINE_NTSC;

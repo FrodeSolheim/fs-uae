@@ -33,7 +33,7 @@ bundle:
 	cp -pPR ../licenses fs-uae_$(version)_macosx/FS-UAE.app/Contents/Resources/
 	cp ../COPYING fs-uae_$(version)_macosx/FS-UAE.app/Contents/Resources/
 	cp ../README fs-uae_$(version)_macosx/FS-UAE.app/Contents/Resources/
-	cd fs-uae_$(version)_macosx && python2.7 ../fix-app.py
+	cd fs-uae_$(version)_macosx && python ../fs-make-standalone-app.py FS-UAE.app
 
 launcher:
 	make -C ../launcher -f Makefile.mk

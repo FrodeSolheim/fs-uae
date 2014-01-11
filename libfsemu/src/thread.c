@@ -5,6 +5,10 @@
 #include <glib.h>
 #endif
 
+#ifdef USE_SDL2
+#define USE_SDL
+#endif
+
 #ifdef USE_SDL
 #include <SDL.h>
 #include <SDL_thread.h>

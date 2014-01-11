@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <fs/log.h>
 #include <fs/string.h>
 #include <fs/thread.h>
@@ -30,7 +31,7 @@ static void *manymouse_thread(void* data) {
         const char *driver = ManyMouse_DriverName();
 
         char *name = fs_strdup(device);
-        if (name[0] == 0 || strcasecmp(name, "mouse") == 0) {
+        if (name[0] == 0 || fs_ascii_strcasecmp(name, "mouse") == 0) {
             free(name);
             name = fs_strdup("Unnamed Mouse");
         }

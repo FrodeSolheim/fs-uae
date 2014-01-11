@@ -32,7 +32,7 @@
 #define glOrtho glOrthof
 #endif
 
-//#define TRACE
+// #define TRACE
 
 static int g_texturing_enabled = -1;
 static int g_blending_enabled = -1;

@@ -35,9 +35,18 @@ endif
 arch :=
 debug := 0
 noflags := 0
+sdl := 1
+
+ifeq ($(sdl), 2)
+	sdl_config = sdl2-config
+	use_sdl = USE_SDL2
+else
+	sdl_config = sdl-config
+	use_sdl = USE_SDL
+endif
 
 cppflags = $(CXXFLAGS)
-cflags = -std=c99 -Iinclude -Isrc/lua `sdl-config --cflags` \
+cflags = -std=c99 -Iinclude -Isrc/lua `$(sdl_config) --cflags` \
 		`pkg-config --cflags glib-2.0 gthread-2.0 libpng` \
 		`pkg-config --cflags freetype2` \
 		$(CFLAGS) -D_FILE_OFFSET_BITS=64
@@ -120,7 +129,7 @@ endif
 
 ifeq ($(os), windows)
 	cppflags += -DWINDOWS -DWIN32
-	cppflags += -DUSE_SDL
+	cppflags += -D$(use_sdl)
 	cppflags += -DUSE_PNG
 	cppflags += -DUSE_GLIB
 	cppflags += -DUSE_SDL_VIDEO
@@ -145,15 +154,15 @@ else ifeq ($(os), macosx)
 	else ifneq ($(findstring Power,$(uname_m)),)
 	arch = ppc
 	else
-	# arch = x86_64
-	arch = i386
+	arch = x86_64
+	# arch = i386
 	endif
 	cflags += -arch $(arch)
 	cxxflags += -arch $(arch)
 	ldflags += -arch $(arch)
 	cppflags += -DMACOSX
 	cppflags += -I/System/Library/Frameworks/OpenAL.framework/Headers
-	cppflags += -DUSE_SDL
+	cppflags += -D$(use_sdl)
 	cppflags += -DUSE_PNG
 	cppflags += -DUSE_GLIB
 	cppflags += -DUSE_SDL_VIDEO
@@ -171,7 +180,7 @@ else
 	else ifeq ($(os), openbsd)
 		cppflags += -DOPENBSD
 	endif
-	cppflags += -DUSE_SDL
+	cppflags += -D$(use_sdl)
 	cppflags += -DUSE_PNG
 	cppflags += -DUSE_GLIB
 	cppflags += -DUSE_X11

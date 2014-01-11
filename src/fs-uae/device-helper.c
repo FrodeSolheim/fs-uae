@@ -1,10 +1,14 @@
 #include <stdio.h>
 #include <string.h>
 
+#ifdef USE_SDL2
+#define USE_SDL
+#endif
+
 #ifdef USE_SDL
 // we must include SDL first before emu.h, so libfsemu's #definition of main
 // is the current one (on Windows) when main is encountered further down
-#include <SDL/SDL.h>
+#include <SDL.h>
 #endif
 
 #include <fs/emu.h>
@@ -79,11 +83,19 @@ void list_joysticks() {
     printf("# SDL_NumJoysticks(): %d\n", SDL_NumJoysticks());
     for(int i = 0; i < SDL_NumJoysticks(); i++) {
         SDL_Joystick *joystick = SDL_JoystickOpen(i);
+#ifdef USE_SDL2
+        if (SDL_JoystickName(joystick)[0] == '\0') {
+#else
         if (SDL_JoystickName(i)[0] == '\0') {
+#endif
             printf("J: Unnamed\n");
         }
         else {
+#ifdef USE_SDL2
+            printf("J: %s\n", SDL_JoystickName(joystick));
+#else
             printf("J: %s\n", SDL_JoystickName(i));
+#endif
         }
         printf("   Buttons: %d Hats: %d Axes: %d Balls: %d\n",
             SDL_JoystickNumButtons(joystick),
@@ -172,8 +184,11 @@ int main(int argc, char* argv[]) {
     int num_joysticks = SDL_NumJoysticks();
     for (int i = 0; i < num_joysticks; i++) {
         SDL_Joystick *joystick = SDL_JoystickOpen(i);
-
+#ifdef USE_SDL2
+        char* name = fs_ascii_strup(SDL_JoystickName(joystick), -1);
+#else
         char* name = fs_ascii_strup(SDL_JoystickName(i), -1);
+#endif
         name = fs_strstrip(name);
         if (name[0] == '\0') {
             free(name);

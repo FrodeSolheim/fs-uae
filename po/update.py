@@ -56,8 +56,8 @@ for file in os.listdir("po"):
 
 os.system("find share -name fs-uae.mo -delete")
 
-print("\n\nlauncher:")
-os.system("cd launcher && python po/update.py")
+#print("\n\nlauncher:")
+#os.system("cd launcher && python po/update.py")
 #os.chdir("launcher")
 #os.system("python po/update.py")
 

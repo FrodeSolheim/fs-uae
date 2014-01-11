@@ -369,6 +369,16 @@ static void update_leds(int64_t t) {
     fs_emu_set_overlay_state(FS_EMU_VSYNC_LED_OVERLAY, vsync_led_state);
     fs_emu_set_overlay_state(FS_EMU_FPS_LED_OVERLAY, fps_led_state);
     fs_emu_set_overlay_state(FS_EMU_AUDIO_LED_OVERLAY, audio_led_state);
+
+    // adding 0.1 so 49.9 is rounded up to 50
+    int emu_fps = fs_emu_get_average_emu_fps() + 0.1;
+    int digit;
+    digit = emu_fps / 10;
+    if (digit == 0) digit = 10;
+    fs_emu_set_overlay_state(FS_EMU_FPS_D1_OVERLAY, digit);
+    digit = emu_fps % 10;
+    if (digit == 0) digit = 10;
+    fs_emu_set_overlay_state(FS_EMU_FPS_D0_OVERLAY, digit);
 }
 
 void fs_emu_video_after_update() {

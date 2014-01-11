@@ -134,16 +134,16 @@ void fs_uae_read_override_actions_for_port(int port) {
     }
 }
 
-static void map_mouse(int port) {
+static void map_mouse(const char *device_name, int port) {
     fs_log("mapping mouse to port %d\n", port);
     if (port == 0) {
-        fs_emu_configure_mouse(INPUTEVENT_MOUSE1_HORIZ,
+        fs_emu_configure_mouse(device_name, INPUTEVENT_MOUSE1_HORIZ,
                 INPUTEVENT_MOUSE1_VERT, INPUTEVENT_JOY1_FIRE_BUTTON,
                 INPUTEVENT_JOY1_3RD_BUTTON, INPUTEVENT_JOY1_2ND_BUTTON,
                 INPUTEVENT_MOUSE1_WHEEL);
     }
     else if (port == 1) {
-        fs_emu_configure_mouse(INPUTEVENT_MOUSE2_HORIZ,
+        fs_emu_configure_mouse(device_name, INPUTEVENT_MOUSE2_HORIZ,
                 INPUTEVENT_MOUSE2_VERT, INPUTEVENT_JOY2_FIRE_BUTTON,
                 INPUTEVENT_JOY2_3RD_BUTTON, INPUTEVENT_JOY2_2ND_BUTTON,
                 0);
@@ -351,14 +351,15 @@ void fs_uae_reconfigure_input_ports_host() {
         }
         else if (port->mode == AMIGA_JOYPORT_MOUSE) {
             fs_log("* amiga mouse\n");
-            if (strcmp(port->device, "MOUSE") == 0) {
-                fs_log("* using host mouse\n");
-                map_mouse(i);
+            // if (strcmp(port->device, "MOUSE") == 0) {
+                // fs_log("* using host mouse\n");
+                fs_log("* using device %s\n", port->device);
+                map_mouse(port->device, i);
                 mouse_mapped_to_port = i;
-            }
-            else {
-                fs_log("* not mapping host device to amiga mouse\n");
-            }
+            // }
+            // else {
+            //     fs_log("* not mapping host device to amiga mouse\n");
+            // }
         }
         else if (port->mode == AMIGA_JOYPORT_DJOY) {
             fs_log("* amiga joystick\n");
@@ -396,7 +397,7 @@ void fs_uae_reconfigure_input_ports_host() {
             // there is a device in port 0, but mouse is not use in either
             // port
             fs_log("additionally mapping mouse buttons to port 0\n");
-            fs_emu_configure_mouse(0, 0, INPUTEVENT_JOY1_FIRE_BUTTON,
+            fs_emu_configure_mouse("MOUSE", 0, 0, INPUTEVENT_JOY1_FIRE_BUTTON,
                     0, INPUTEVENT_JOY1_2ND_BUTTON, 0);
         }
     }
@@ -406,8 +407,8 @@ void fs_uae_reconfigure_input_ports_host() {
 
         if (mouse_mapped_to_port == -1) {
             // FIXME: device "9" is a bit of a hack here, should promote
-            fs_emu_configure_mouse(0, 0, INPUTEVENT_AMIGA_JOYPORT_0_DEVICE_9,
-                    0, 0, 0);
+            fs_emu_configure_mouse("MOUSE",
+                    0, 0, INPUTEVENT_AMIGA_JOYPORT_0_DEVICE_9, 0, 0, 0);
         }
 
         int count;

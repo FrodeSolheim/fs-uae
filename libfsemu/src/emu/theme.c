@@ -19,18 +19,6 @@ struct fs_emu_theme g_fs_emu_theme = {};
 
 #include "emu_lua.h"
 
-static int l_fs_emu_log(lua_State *L) {
-    int n = lua_gettop(L);
-    if (n != 1 || lua_isstring(L, 1)) {
-        lua_pushstring(L, "incorrect argument");
-        lua_error(L);
-    }
-
-    const char *s = luaL_checkstring(L, 1);
-    fs_emu_log("%s\n", s);
-    return 0;
-}
-
 void fs_emu_theme_init_lua(void) {
     fs_log("fs_emu_theme_init_lua\n");
 
@@ -146,6 +134,11 @@ static void load_defaults() {
     g_fs_emu_theme.width = 1920;
     g_fs_emu_theme.height = 1080;
 
+    g_fs_emu_theme.display_x = 0;
+    g_fs_emu_theme.display_y = 0;
+    g_fs_emu_theme.display_w = g_fs_emu_theme.width;
+    g_fs_emu_theme.display_h = g_fs_emu_theme.height;
+
     g_fs_emu_theme.floor_height = 361;
 
     set_color(g_fs_emu_theme.floor_color_1, 20.0 / 255.0, 22.0 / 255.0,
@@ -175,6 +168,9 @@ static void load_theme() {
 
     char *cv;
     int iv;
+    const char *csval;
+    char *name;
+    int val;
 
     iv = fs_config_get_int("theme_width");
     if (iv != FS_CONFIG_NONE && iv > 0) {
@@ -183,6 +179,17 @@ static void load_theme() {
     iv = fs_config_get_int("theme_height");
     if (iv != FS_CONFIG_NONE && iv > 0) {
         g_fs_emu_theme.height = iv;
+    }
+
+    csval = fs_config_get_const_string("theme_display_rect");
+    if (csval) {
+        int x = -1, y = -1, w = -1, h = -1;
+        if (sscanf(csval, "%d,%d,%d,%d", &x, &y, &w, &h) == 4) {
+            g_fs_emu_theme.display_x = x;
+            g_fs_emu_theme.display_y = y;
+            g_fs_emu_theme.display_w = w;
+            g_fs_emu_theme.display_h = h;
+        }
     }
 
     set_color_from_string(g_fs_emu_theme.floor_color_1,
@@ -211,9 +218,6 @@ static void load_theme() {
             fs_config_get_const_string("theme_item_color"));
 
     for (int i = 0; i < FS_EMU_MAX_OVERLAYS; i++) {
-        char *name;
-        int val;
-
         // the first options read here are old compatibility options
 
         name = fs_strdup_printf("theme_custom_%d_x",
@@ -242,7 +246,7 @@ static void load_theme() {
 
         name = fs_strdup_printf("theme_%s_pos",
                 g_fs_emu_theme.overlays[i].name);
-        const char *csval = fs_config_get_const_string(name);
+        csval = fs_config_get_const_string(name);
         free(name);
         if (csval) {
             int x, y;
@@ -252,6 +256,15 @@ static void load_theme() {
                 g_fs_emu_theme.overlays[i].y = (double) y /
                         g_fs_emu_theme.height;
             }
+        }
+
+        name = fs_strdup_printf("theme_%s_prefix",
+                g_fs_emu_theme.overlays[i].name);
+        cv = fs_config_get_string(name);
+        free(name);
+        if (cv) {
+            // free(g_fs_emu_theme.overlays[i].name);
+            g_fs_emu_theme.overlays[i].name = cv;
         }
     }
 
@@ -275,6 +288,8 @@ void fs_emu_theme_init() {
     o[FS_EMU_AUDIO_LED_OVERLAY].name = fs_strdup("audio_led");
     o[FS_EMU_FPS_LED_OVERLAY].name = fs_strdup("fps_led");
     o[FS_EMU_VSYNC_LED_OVERLAY].name = fs_strdup("vsync_led");
+    o[FS_EMU_FPS_D0_OVERLAY].name = fs_strdup("fps_d0");
+    o[FS_EMU_FPS_D1_OVERLAY].name = fs_strdup("fps_d1");
 
     const char *theme = fs_config_get_const_string("theme");
     if (theme) {

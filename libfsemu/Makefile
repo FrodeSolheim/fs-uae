@@ -51,13 +51,21 @@ objects = obj/emu_emu.o obj/emu_video.o obj/emu_audio_openal.o \
 		obj/emu_video_options.o obj/emu_audio_dummy.o \
 		obj/emu_emu_lua.o \
 		\
-		obj/ml_ml.o obj/ml_windows.o obj/ml_render.o \
+		obj/ml_ml.o obj/ml_clock.o obj/ml_windows.o obj/ml_render.o \
 		obj/ml_sdl.o obj/ml_rawinput.o obj/ml_macosx.o obj/ml_x11.o \
+		obj/ml_config.o obj/ml_video.o obj/ml_opengl.o \
+		obj/ml_video.o obj/ml_video_mode.o obj/ml_video_sync.o \
+		obj/ml_input.o obj/ml_mouse.o obj/ml_keyboard.o \
+		\
+		obj/mm_linux_evdev.o obj/mm_macosx_hidmanager.o \
+		obj/mm_macosx_hidutilities.o obj/mm_manymouse.o \
+		obj/mm_windows_wminput.o obj/mm_x11_xinput2.o \
 		\
 		obj/base.o obj/log.o obj/config.o obj/image.o obj/ref.o \
 		obj/glee.o obj/opengl.o obj/thread.o obj/string.o obj/filesys.o \
 		obj/unicode.o obj/init.o obj/random.o obj/list.o obj/eventlog.o \
 		obj/queue.o obj/hashtable.o obj/inifile.o obj/time.o \
+		\
 		obj/lua_lapi.o \
 		obj/lua_lauxlib.o \
 		obj/lua_lbaselib.o \
@@ -196,6 +204,9 @@ obj/emu_%.o: src/emu/%.c
 	$(cc) $(cppflags) $(cflags) -c $< -o $@
 
 obj/ml_%.o: src/ml/%.c
+	$(cc) $(cppflags) $(cflags) -c $< -o $@
+
+obj/mm_%.o: src/ml/manymouse/%.c
 	$(cc) $(cppflags) $(cflags) -c $< -o $@
 
 obj/lua_%.o: src/lua/%.c

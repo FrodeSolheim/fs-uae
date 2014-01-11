@@ -2,7 +2,7 @@
 #include "sysdeps.h"
 
 #include "cda_play.h"
-#include "libamiga_internal.h"
+#include "uae_fs.h"
 
 static int (*g_audio_callback)(int type, int16_t *buffer, int size) = NULL;
 

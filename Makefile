@@ -1,6 +1,12 @@
 include common.mk
-version = $(strip $(shell cat VERSION))
-series = $(strip $(shell cat SERIES))
+version := $(strip $(shell cat VERSION))
+series := $(strip $(shell cat SERIES))
+
+ifeq ($(wildcard libfsemu),)
+    libfsemu_dir := "../libfsemu"
+else
+    libfsemu_dir := "libfsemu"
+endif
 
 all: fs-uae mo
 
@@ -10,20 +16,10 @@ ifeq ($(debug), 1)
 cppflags += -DDEBUG
 endif
 
-#ifeq ($(wildcard libfsemu), libfsemu)
-#libfsemu_dir = libfsemu
-#libfsemu/out/libfsemu.a:
-#	make -C libfsemu arch=$(arch)
-#libfsemu-target: libfsemu/out/libfsemu.a
-#else
-#libfsemu_dir = ../libfsemu
-#libfsemu-target:
-#endif
-
-libfsemu_dir = libfsemu
+# libfsemu_dir = libfsemu
 libfsemu-target:
-	$(make) -C libfsemu debug=$(debug) devel=$(devel) optimize=$(optimize) \
-			android=$(android)
+	$(make) -C $(libfsemu_dir) debug=$(debug) devel=$(devel) \
+		optimize=$(optimize) android=$(android)
 
 #ifeq ($(wildcard libfs-capsimage), libfs-capsimage)
 #libfs-capsimage_dir = libfs-capsimage
@@ -148,7 +144,7 @@ else ifeq ($(os), macosx)
   cxxflags += -arch $(arch)
   ldflags += -arch $(arch) -headerpad_max_install_names
   cppflags += -DMACOSX
-  libs += -framework OpenGL -framework Carbon -framework OpenAL
+  libs += -framework OpenGL -framework Carbon -framework OpenAL -framework IOKit
 else ifeq ($(os), freebsd)
   cppflags += -DFREEBSD
   libs += -lGL -lGLU -lopenal -lX11 -lcompat
@@ -176,6 +172,7 @@ obj/fs-uae-main.o \
 obj/fs-uae-menu.o \
 obj/fs-uae-mouse.o \
 obj/fs-uae-paths.o \
+obj/fs-uae-recording.o \
 obj/fs-uae-uae_config.o \
 obj/fs-uae-version.o \
 obj/fs-uae-video.o
@@ -291,6 +288,7 @@ obj/od-fs-driveclick.o \
 obj/od-fs-filesys_host.o \
 obj/od-fs-fsdb_host.o \
 obj/od-fs-hardfile_host.o \
+obj/od-fs-gui.o \
 obj/od-fs-input.o \
 obj/od-fs-inputdevice.o \
 obj/od-fs-keymap.o \
@@ -442,51 +440,15 @@ fs-uae: libfsemu-target obj/uae.a $(objects)
 	rm -f out/fs-uae
 	$(cxx) $(ldflags) $(objects) obj/uae.a $(libs) -o fs-uae
 
-dist_dir := fs-uae-$(version)
-dist_dir_launcher := fs-uae-launcher-$(version)
+build_dir := "."
+dist_name = fs-uae-$(version)
+dist_dir := $(build_dir)/$(dist_name)
+# dist_file := $(build_dir)/$(dist_name).tar.gz
 
-distdir-launcher-base:
-	rm -Rf $(dist_dir_launcher)/*
-	mkdir -p $(dist_dir_launcher)
-
-	cp -a launcher/fs_uae_launcher $(dist_dir_launcher)/
-	cp -a launcher/fengestad $(dist_dir_launcher)/
-	cp -a launcher/fsbc $(dist_dir_launcher)/
-	cp -a launcher/fsgs $(dist_dir_launcher)/
-	cp -a launcher/fsui $(dist_dir_launcher)/
-	find $(dist_dir_launcher) -name "*.pyc" -delete
-	cp -a launcher/README $(dist_dir_launcher)/
-	cp -a launcher/COPYING $(dist_dir_launcher)/
-	cp -a launcher/fs-uae-launcher.py $(dist_dir_launcher)/
-	cp -a launcher/fs-uae-game-center.py $(dist_dir_launcher)/
-	cp -a launcher/Makefile.mk $(dist_dir_launcher)/
-	cp -a launcher/setup.py $(dist_dir_launcher)/
-	cp -a launcher/setup_py2exe.py $(dist_dir_launcher)/
-	cp -a launcher/setup_py2app.py $(dist_dir_launcher)/
-
-	mkdir -p $(dist_dir_launcher)/debian
-	cp -a launcher/debian/changelog $(dist_dir_launcher)/debian/
-	cp -a launcher/debian/compat $(dist_dir_launcher)/debian/
-	cp -a launcher/debian/control $(dist_dir_launcher)/debian/
-	cp -a launcher/debian/copyright $(dist_dir_launcher)/debian/
-	cp -a launcher/debian/rules $(dist_dir_launcher)/debian/
-	cp -a launcher/debian/source $(dist_dir_launcher)/debian/
-
-	mkdir -p $(dist_dir_launcher)/scripts
-	cp -a launcher/scripts/fs-uae-launcher $(dist_dir_launcher)/scripts/
-	cp -a launcher/scripts/fs-uae-game-center $(dist_dir_launcher)/scripts/
-	cp -a launcher/fs-uae-launcher.spec $(dist_dir_launcher)
-
-	cp -a launcher/share $(dist_dir_launcher)/
-	find $(dist_dir_launcher)/share -name "*.mo" -delete
-	mkdir $(dist_dir_launcher)/po/
-	cp -a launcher/po/*.po $(dist_dir_launcher)/po/
-	cp -a launcher/po/update.py $(dist_dir_launcher)/po/
-
-distdir-base: distdir-launcher-base
+distdir-base:
 	rm -Rf $(dist_dir)/*
 	mkdir -p $(dist_dir)
-	cp -a $(dist_dir_launcher) $(dist_dir)/launcher
+	# cp -a $(dist_dir_launcher) $(dist_dir)/launcher
 
 	mkdir -p $(dist_dir)/obj
 	touch $(dist_dir)/obj/.dummy
@@ -520,17 +482,6 @@ distdir-base: distdir-launcher-base
 	mkdir -p $(dist_dir)/libfsemu/out
 	touch $(dist_dir)/libfsemu/out/.dummy
 
-	#mkdir -p $(dist_dir)/libfs-capsimage
-	#cp -a ../libfs-capsimage/Makefile $(dist_dir)/libfs-capsimage
-	#cp -a ../libfs-capsimage/CAPSImage $(dist_dir)/libfs-capsimage
-	#find $(dist_dir)/libfs-capsimage -name "*.o" -delete
-	#rm -f $(dist_dir)/libfs-capsimage/CAPSImage/config.h
-	#rm -f $(dist_dir)/libfs-capsimage/CAPSImage/config.log
-	#rm -f $(dist_dir)/libfs-capsimage/CAPSImage/config.cache
-	#rm -f $(dist_dir)/libfs-capsimage/CAPSImage/config.status
-	#cp -a ../libfs-capsimage/*.txt $(dist_dir)/libfs-capsimage
-	#mkdir -p $(dist_dir)/libfs-capsimage/out
-
 	mkdir -p $(dist_dir)/po
 	cp -a po/*.po $(dist_dir)/po/
 	cp -a po/update.py $(dist_dir)/po/update.py
@@ -546,10 +497,12 @@ distdir-base: distdir-launcher-base
 
 	mkdir -p $(dist_dir)/windows
 	cp -a windows/Makefile $(dist_dir)/windows/
-	cp -a windows/launcher-proxy.exe $(dist_dir)/windows/
-	cp -a windows/game-center-proxy.exe $(dist_dir)/windows/
+	# cp -a windows/launcher-proxy.exe $(dist_dir)/windows/
+	# cp -a windows/game-center-proxy.exe $(dist_dir)/windows/
 	cp -a windows/replace_icon.py $(dist_dir)/windows/
-	cp -a windows/fs-uae-setup.iss $(dist_dir)/windows/
+	cp -a windows/fs-uae.iss $(dist_dir)/windows/
+	# cp -a windows/launcher.iss $(dist_dir)/windows/
+	# cp -a windows/game-center.iss $(dist_dir)/windows/
 
 	mkdir -p $(dist_dir)/debian
 	cp -a debian/changelog $(dist_dir)/debian/
@@ -559,27 +512,27 @@ distdir-base: distdir-launcher-base
 	cp -a debian/rules $(dist_dir)/debian/
 	cp -a debian/source $(dist_dir)/debian/
 
-	mkdir -p $(dist_dir)/server
-	cp -a server/fs_uae_netplay_server $(dist_dir)/server/
-	find $(dist_dir)/server -name "*.pyc" -delete
-	cp -a server/COPYING $(dist_dir)/server/
-	cp -a server/README $(dist_dir)/server/
-	cp -a server/setup.py $(dist_dir)/server/
+	# mkdir -p $(dist_dir)/server
+	# cp -a server/fs_uae_netplay_server $(dist_dir)/server/
+	# find $(dist_dir)/server -name "*.pyc" -delete
+	# cp -a server/COPYING $(dist_dir)/server/
+	# cp -a server/README $(dist_dir)/server/
+	# cp -a server/setup.py $(dist_dir)/server/
 
-	mkdir -p $(dist_dir)/server/debian
-	cp -a server/debian/changelog $(dist_dir)/server/debian/
-	cp -a server/debian/compat $(dist_dir)/server/debian/
-	cp -a server/debian/control $(dist_dir)/server/debian/
-	cp -a server/debian/copyright $(dist_dir)/server/debian/
-	cp -a server/debian/rules $(dist_dir)/server/debian/
-	cp -a server/debian/preinst $(dist_dir)/server/debian/
-	cp -a server/debian/source $(dist_dir)/server/debian/
-	cp -a server/debian/*.init $(dist_dir)/server/debian/
-	cp -a server/debian/*.default $(dist_dir)/server/debian/
+	# mkdir -p $(dist_dir)/server/debian
+	# cp -a server/debian/changelog $(dist_dir)/server/debian/
+	# cp -a server/debian/compat $(dist_dir)/server/debian/
+	# cp -a server/debian/control $(dist_dir)/server/debian/
+	# cp -a server/debian/copyright $(dist_dir)/server/debian/
+	# cp -a server/debian/rules $(dist_dir)/server/debian/
+	# cp -a server/debian/preinst $(dist_dir)/server/debian/
+	# cp -a server/debian/source $(dist_dir)/server/debian/
+	# cp -a server/debian/*.init $(dist_dir)/server/debian/
+	# cp -a server/debian/*.default $(dist_dir)/server/debian/
 
-	mkdir -p $(dist_dir)/server/scripts
-	cp -a server/scripts/fs-uae-netplay-server $(dist_dir)/server/scripts/
-	cp -a server/scripts/fs-uae-game-server $(dist_dir)/server/scripts/
+	# mkdir -p $(dist_dir)/server/scripts
+	# cp -a server/scripts/fs-uae-netplay-server $(dist_dir)/server/scripts/
+	# cp -a server/scripts/fs-uae-game-server $(dist_dir)/server/scripts/
 
 	#mkdir -p $(dist_dir)/launcher
 	#cp -a launcher/fs_uae_launcher $(dist_dir)/launcher/
@@ -621,12 +574,12 @@ distdir-base: distdir-launcher-base
 
 distdir: distdir-base
 	cd $(dist_dir) && python util/update-version.py
-	python util/update-version.py $(dist_dir_launcher)/fs-uae-launcher.spec
-	python util/update-version.py $(dist_dir_launcher)/setup.py
-	python util/update-version.py \
-		$(dist_dir_launcher)/fs_uae_launcher/Version.py \
-		--update-series
-	python util/update-version.py $(dist_dir_launcher)/debian/changelog
+	# python util/update-version.py $(dist_dir_launcher)/fs-uae-launcher.spec
+	# python util/update-version.py $(dist_dir_launcher)/setup.py
+	# python util/update-version.py \
+	#	$(dist_dir_launcher)/fs_uae_launcher/Version.py \
+	# 	--update-series
+	# python util/update-version.py $(dist_dir_launcher)/debian/changelog
 
 distcheck: distdir
 	cd $(dist_dir) && $(make)
@@ -634,24 +587,26 @@ distcheck: distdir
 po-dist:
 	mkdir -p dist/$(series)/po/fs-uae
 	cp po/*.po dist/$(series)/po/fs-uae/
-	mkdir -p dist/$(series)/po/fs-uae-launcher
-	cp launcher/po/*.po dist/$(series)/po/fs-uae-launcher/
 
-dist: distdir pubfiles-source po-dist
-	find $(dist_dir_launcher) -exec touch \{\} \;
+	# mkdir -p dist/$(series)/po/fs-uae-launcher
+	# cp launcher/po/*.po dist/$(series)/po/fs-uae-launcher/
+
+#dist: distdir pubfiles-source po-dist
+dist: distdir po-dist
+	# find $(dist_dir_launcher) -exec touch \{\} \;
 	find $(dist_dir) -exec touch \{\} \;
 
-	tar zcfv fs-uae-launcher-$(version).tar.gz $(dist_dir_launcher)
-	tar zcfv fs-uae-$(version).tar.gz $(dist_dir)
-	mkdir -p dist/$(series)/$(version)
-	mv fs-uae-$(version).tar.gz dist/$(series)/$(version)/
-	mv fs-uae-launcher-$(version).tar.gz dist/$(series)/$(version)/
-	mkdir -p dist/files/
-	cp doc/Default.fs-uae dist/files/
-	cp server/fs_uae_netplay_server/game.py \
-		dist/files/fs-uae-netplay-server.py
-	cp server/fs_uae_netplay_server/game.py \
-		dist/$(series)/$(version)/fs-uae-game-server-$(version).py
+	# tar zcfv fs-uae-launcher-$(version).tar.gz $(dist_dir_launcher)
+	cd "$(build_dir)" && tar zcfv $(dist_name).tar.gz $(dist_name)
+	# mkdir -p dist/$(series)/$(version)
+	# mv fs-uae-$(version).tar.gz dist/$(series)/$(version)/
+	# mv fs-uae-launcher-$(version).tar.gz dist/$(series)/$(version)/
+	# mkdir -p dist/files/
+	# cp doc/Default.fs-uae dist/files/
+	# cp server/fs_uae_netplay_server/game.py \
+	# 	dist/files/fs-uae-netplay-server.py
+	# cp server/fs_uae_netplay_server/game.py \
+	# 	dist/$(series)/$(version)/fs-uae-game-server-$(version).py
 
 install:
 	install -d $(DESTDIR)$(prefix)/bin
@@ -663,13 +618,39 @@ install:
 	cp README COPYING example.conf $(DESTDIR)$(docdir)
 
 clean:
+	$(make) -C $(libfsemu_dir) clean
 	rm -f gensrc/build68k gensrc/genblitter gensrc/gencpu gensrc/genlinetoscr
-	rm -f obj/*.o obj/*.a
-	rm -f out/fs-uae*
-	rm -f fs-uae
-	rm -f fs-uae.exe
-	$(make) -C libfsemu clean
+	rm -f obj/*.o obj/*.a out/fs-uae* fs-uae fs-uae.exe
+	rm -Rf build dist fs-uae-[0-9]* fs-uae_*
 
 distclean: clean
+
+debsrc: dist
+	# test -f $(build_dir)/fs-uae_$(version).orig.tar.gz || cp $(build_dir)/fs-uae-$(version).tar.gz $(build_dir)/fs-uae_$(version).orig.tar.gz
+	mv $(build_dir)/fs-uae-$(version).tar.gz $(build_dir)/fs-uae_$(version).orig.tar.gz
+
+	sed -i "s/-0[)] unstable;/-$(debversion)) $(debseries);/g" $(dist_dir)/debian/changelog
+	cd $(dist_dir) && dpkg-buildpackage -S -us -uc
+
+deb: debsrc
+	# cd $(dist_dir) && fakeroot debian/rules binary
+	# mkdir -p dist/$(series)/$(version)
+	# mv build/fs-uae_$(version)-*deb dist/$(series)/$(version)/
+	cd $(dist_dir) && dpkg-buildpackage -us -uc
+
+windows-dist: distdir
+	cd $(dist_dir)/windows && make
+	mv $(dist_dir)/fs-uae_*windows* .
+	rm -Rf $(dist_dir)
+
+macosx-dist: distdir
+	cd $(dist_dir)/macosx && make
+	mv $(dist_dir)/fs-uae_*macosx* .
+	rm -Rf $(dist_dir)
+
+dist_dir_launcher := fs-uae-launcher-$(version)
+
+debseries := unstable
+debversion := $(shell date +"%s")
 
 include targets.mk

@@ -495,6 +495,7 @@ static void restore_header (uae_u8 *src)
 
 void restore_state (const TCHAR *filename)
 {
+	printf("restore_state from %s\n", filename);
 	struct zfile *f;
 	uae_u8 *chunk,*end;
 	TCHAR name[5];
@@ -728,6 +729,7 @@ void savestate_restore_finish (void)
 {
 	if (!isrestore ())
 		return;
+	printf("savestate_restore_finish\n");
 	zfile_fclose (savestate_file);
 	savestate_file = 0;
 	restore_cpu_finish ();
@@ -749,6 +751,9 @@ void savestate_restore_finish (void)
 	savestate_state = 0;
 	init_hz_full ();
 	audio_activate ();
+#ifdef FSUAE
+    uae_callback(uae_on_restore_state_finished, savestate_fname);
+#endif
 }
 
 /* 1=compressed,2=not compressed,3=ram dump,4=audio dump */
@@ -1037,6 +1042,7 @@ static int save_state_internal (struct zfile *f, const TCHAR *description, int c
 
 int save_state (const TCHAR *filename, const TCHAR *description)
 {
+	printf("save_state %s\n", filename);
 	struct zfile *f;
 	int comp = savestate_docompress;
 
@@ -1080,11 +1086,15 @@ int save_state (const TCHAR *filename, const TCHAR *description)
 		write_log (_T("Save of '%s' complete\n"), filename);
 	zfile_fclose (f);
 	savestate_state = 0;
+#ifdef FSUAE
+    uae_callback(uae_on_save_state_finished, filename);
+#endif	
 	return v;
 }
 
 void savestate_quick (int slot, int save)
 {
+	printf("savestate_quick slot=%d save=%d\n", slot, save);
 	int i, len = _tcslen (savestate_fname);
 	i = len - 1;
 #ifdef FSUAE

@@ -44,6 +44,11 @@ extern void set_picasso_hack_rate (int hz);
 extern int bogusframe;
 extern unsigned long int hsync_counter, vsync_counter;
 
+#ifdef FSUAE
+extern int g_uae_vsync_counter;
+// extern int g_uae_hsync_counter;
+#endif
+
 extern uae_u16 dmacon;
 extern uae_u16 intena, intreq, intreqr;
 

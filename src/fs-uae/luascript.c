@@ -27,8 +27,9 @@ static int l_fs_uae_set_input_event(lua_State *L) {
 static int l_fs_uae_send_input_event(lua_State *L) {
     int input_event = luaL_checkint(L, -2);
     int state = luaL_checkint(L, -1);
-
+/*
     fs_uae_process_input_event(input_event, state);
+*/
     return 0;
 }
 

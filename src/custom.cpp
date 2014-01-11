@@ -346,6 +346,11 @@ unsigned long hsync_counter = 0, vsync_counter = 0;
 unsigned long int idletime;
 int bogusframe;
 
+#ifdef FSUAE
+int g_uae_vsync_counter = 0;
+//int g_uae_hsync_counter = 0;
+#endif
+
 /* Recording of custom chip register changes.  */
 static int current_change_set;
 static struct sprite_entry sprite_entries[2][MAX_SPR_PIXELS / 16];
@@ -5940,10 +5945,22 @@ static void vsync_handler_pre (void)
 static void vsync_handler_post (void)
 {
 #ifdef FSUAE
+#if 0
     if (g_frame_debug_logging) {
         write_log("%6d  vsync_handler_post  %08x\n", vsync_counter,
                 uae_get_memory_checksum());
     }
+
+    char *buffer = strdup("/Users/frode/states/0000000000.uss");
+    sprintf(buffer, "/Users/frode/states/%d.uss", g_uae_vsync_counter);
+    if (savestate_state == 0) {
+	    save_state (buffer, _T(""));
+	}
+	else {
+		unlink(buffer);
+	}
+    free(buffer);
+#endif
 #endif
 	static frame_time_t prevtime;
 
@@ -6297,6 +6314,9 @@ static void hsync_handler_pre (bool onvsync)
 	if (onvsync) {
 		vpos = 0;
 		vsync_counter++;
+#ifdef FSUAE
+	g_uae_vsync_counter++;
+#endif
 	}
 	set_hpos ();
 #if 0

@@ -68,7 +68,7 @@
 
 
 #ifdef FSUAE
-#include "libamiga_internal.h"
+#include "uae_fs.h"
 
 // FIXME: justing setting static value here -FS
 #define CURSORMAXWIDTH 128

@@ -158,7 +158,7 @@ typedef struct fs_ml_KeyboardEvent {
 
 typedef struct fs_ml_MouseMotionEvent {
     uint8_t type;
-    uint8_t which;
+    uint8_t device;
     uint8_t state;
     uint16_t x, y;
     int16_t xrel;
@@ -167,7 +167,7 @@ typedef struct fs_ml_MouseMotionEvent {
 
 typedef struct fs_ml_MouseButtonEvent {
     uint8_t type;
-    uint8_t which;
+    uint8_t device;
     uint8_t button;
     uint8_t state;
     uint16_t x, y;
@@ -259,8 +259,13 @@ int fs_ml_has_input_grab();
 
 #define FS_ML_INPUT_DEVICES_MAX 64
 
+#define FS_ML_KEYBOARD 0
+#define FS_ML_MOUSE 1
+#define FS_ML_JOYSTICK 2
+
 typedef struct fs_ml_input_device {
     int index;
+    int type;
     char *name;
     char *alias;
     int buttons;

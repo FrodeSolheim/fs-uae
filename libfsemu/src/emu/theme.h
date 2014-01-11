@@ -3,8 +3,8 @@
 
 #include "texture.h"
 
-#define FS_EMU_MAX_OVERLAYS 32
-#define FS_EMU_MAX_OVERLAY_STATES 5
+#define FS_EMU_MAX_OVERLAYS 64
+#define FS_EMU_MAX_OVERLAY_STATES 11
 
 enum {
     FS_EMU_TOP_LEFT_OVERLAY,
@@ -15,6 +15,8 @@ enum {
     FS_EMU_FPS_LED_OVERLAY,
     FS_EMU_AUDIO_LED_OVERLAY,
     FS_EMU_FIRST_CUSTOM_OVERLAY,
+    FS_EMU_FPS_D0_OVERLAY,
+    FS_EMU_FPS_D1_OVERLAY,
 };
 
 #define FS_EMU_ANCHOR_RIGHT_BIT 1
@@ -50,8 +52,11 @@ struct fs_emu_theme {
     float fade_color[4];
     float heading_color[4];
     float item_color[4];
-
     fs_emu_theme_overlay overlays[FS_EMU_MAX_OVERLAYS];
+    int display_x;
+    int display_y;
+    int display_w;
+    int display_h;
 };
 
 void fs_emu_theme_init();

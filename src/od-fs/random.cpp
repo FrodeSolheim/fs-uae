@@ -79,12 +79,12 @@ uint32_t rand_int(rand_context *rand) {
 // set seed from netplay server - currently using fixed seed
 
 static uae_u32 randseed;
-static int oldhcounter;
+static int old_seed;
 int g_random_debug_logging = 0;
 static rand_context g_rand_context;
 
 uae_u32 uaesrand (uae_u32 seed) {
-	oldhcounter = -1;
+	old_seed = 0;
 	randseed = seed;
 	//randseed = 0x12345678;
     if (g_random_debug_logging) {
@@ -94,9 +94,10 @@ uae_u32 uaesrand (uae_u32 seed) {
 }
 
 uae_u32 uaerand (void) {
-	if (oldhcounter != hsync_counter) {
-		rand_set_seed (&g_rand_context, hsync_counter ^ randseed);
-		oldhcounter = hsync_counter;
+    int new_seed = g_uae_vsync_counter + vpos;
+	if (old_seed != new_seed) {
+		rand_set_seed (&g_rand_context, new_seed ^ randseed);
+		old_seed = new_seed;
 	}
 	uae_u32 r = rand_int (&g_rand_context);
     if (g_random_debug_logging) {

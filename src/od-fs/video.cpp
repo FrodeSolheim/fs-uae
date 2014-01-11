@@ -225,6 +225,8 @@ bool render_screen (bool immediate) {
     //printf("flush_screen (%d -> %d) %d %d %d %d\n", first_line, last_line,
     //        cx, cy, cw, ch);
 
+    od_fs_update_leds();
+
     if (currprefs.turbo_emulation) {
         g_renderdata.refresh_rate = -1;
     }

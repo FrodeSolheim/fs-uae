@@ -51,16 +51,17 @@ keyboard is MAX_DEVICES - 1
 static int g_debug_input = 0;
 
 #define MAX_DEVICES 64
-#define KEYBOARD 63
+#define KEYBOARD 0
+#define MOUSE 1
 #define SLOTS 512
 
-#define MOUSE 59
 
 static fs_hash_table *configure_input_device(const char *name,
         const char *platform);
 
-// FIXME: cleanup here, KEYBOARD occupies more than one "device" at the end,
-// actually 8 now
+// KEYBOARD occupies 8 "devices" (7 extra) at the beginning, to account
+// for all key combinations
+#define RESERVED_DEVICES 7
 
 static int key_index(int key, int mod, int offset) {
     int slots_offset = offset;
@@ -75,13 +76,14 @@ static int key_index(int key, int mod, int offset) {
     }
     int key_index = 0;
     if (key >= 0) {
-        key_index = (MAX_DEVICES - 8 + slots_offset) * SLOTS + key;
+        // key_index = (MAX_DEVICES - 8 + slots_offset) * SLOTS + key;
+        key_index = slots_offset * SLOTS + key;
     }
     //printf("key index is %d\n", key);
     return key_index;
 }
 
-static int mouse_index(int horiz, int vert, int button) {
+static int mouse_index(int device_index, int horiz, int vert, int button) {
     int index = 0;
     if (horiz) {
         index = 1;
@@ -98,7 +100,8 @@ static int mouse_index(int horiz, int vert, int button) {
     else if (button == FS_ML_BUTTON_RIGHT) {
         index = 5;
     }
-    return MOUSE * SLOTS + index;
+    //return (MOUSE + mouse) * SLOTS + index;
+    return (RESERVED_DEVICES + device_index) * SLOTS + index;
 }
 
 #define INPUT_ACTION_TABLE_SIZE_BYTES (MAX_DEVICES * SLOTS * sizeof(int))
@@ -142,16 +145,42 @@ void fs_emu_set_keyboard_translation(fs_emu_key_translation *keymap) {
     }
 }
 
-void fs_emu_configure_mouse(int horiz, int vert, int left, int middle,
-        int right, int wheel_axis) {
-    fs_log("fs_emu_configure_mouse\n");
-    g_input_action_table[mouse_index(1, 0, 0)] = horiz;
-    g_input_action_table[mouse_index(0, 1, 0)] = vert;
-    g_input_action_table[mouse_index(0, 0, FS_ML_BUTTON_LEFT)] = left;
-    g_input_action_table[mouse_index(0, 0, FS_ML_BUTTON_MIDDLE)] = middle;
-    g_input_action_table[mouse_index(0, 0, FS_ML_BUTTON_RIGHT)] = right;
-    g_input_action_table[mouse_index(0, 0, FS_ML_BUTTON_WHEELUP)] = wheel_axis;
-    g_input_action_table[mouse_index(0, 0, FS_ML_BUTTON_WHEELDOWN)] = wheel_axis;
+void fs_emu_configure_mouse(const char* name, int horiz, int vert, int left,
+        int middle, int right, int wheel_axis) {
+    fs_log("fs_emu_configure_mouse (device: %s)\n", name);
+
+    fs_ml_input_device device;
+    for (int i = 0; i < FS_ML_INPUT_DEVICES_MAX; i++) {
+        if (!fs_ml_input_device_get(i, &device)) {
+            continue;
+        }
+        if (device.name == NULL || (
+                (fs_ascii_strcasecmp(device.name, name) != 0) &&
+                (fs_ascii_strcasecmp(device.alias, name) != 0))) {
+            fs_log("did not match device #%d (%s)\n", i, device.name);
+            continue;
+        }
+        fs_log("matched device #%d\n", i);
+        // if (out_name) {
+        //     strncpy(out_name, device.name, out_name_len);
+        // }
+
+        g_input_action_table[mouse_index(
+                device.index, 1, 0, 0)] = horiz;
+        g_input_action_table[mouse_index(
+                device.index, 0, 1, 0)] = vert;
+        g_input_action_table[mouse_index(
+                device.index, 0, 0, FS_ML_BUTTON_LEFT)] = left;
+        g_input_action_table[mouse_index(
+                device.index, 0, 0, FS_ML_BUTTON_MIDDLE)] = middle;
+        g_input_action_table[mouse_index(
+                device.index, 0, 0, FS_ML_BUTTON_RIGHT)] = right;
+        g_input_action_table[mouse_index(
+                device.index, 0, 0, FS_ML_BUTTON_WHEELUP)] = wheel_axis;
+        g_input_action_table[mouse_index(
+                device.index, 0, 0,FS_ML_BUTTON_WHEELDOWN)] = wheel_axis;
+        break;
+    }
 }
 
 typedef struct input_config_item {
@@ -357,7 +386,7 @@ static int button_index(int key, int joystick, int axis, int hat, int button,
     //int index = (joystick + 1) * SLOTS;
 
     // first valid index is 1
-    int index = joystick * SLOTS + 1;
+    int index = (RESERVED_DEVICES + joystick) * SLOTS + 1;
     if (axis >= 0) {
         index += axis * 2;
         if (value == 1) {
@@ -374,7 +403,7 @@ static int button_index(int key, int joystick, int axis, int hat, int button,
     }
     else {
         // no match
-        index = joystick * SLOTS;
+        index = (RESERVED_DEVICES + joystick) * SLOTS;
     }
     return index;
 }
@@ -1392,8 +1421,10 @@ static int input_function(fs_ml_event *event) {
             g_ignore_next_motion = 0;
             return 1;
         }
-        //fs_log("motion %d %d %d %d\n", event->motion.x, event->motion.xrel,
-        //        event->motion.y, event->motion.yrel);
+        // if (event->motion.device > 1) {
+        //     printf("motion (device %d) %d %d\n", event->motion.device,
+        //             event->motion.xrel, event->motion.yrel);
+        // }
 
         if (fs_emu_has_input_grab() == FALSE) {
             fs_emu_show_pointer_msec(FS_EMU_MOUSE_DEFAULT_DURATION);
@@ -1401,8 +1432,9 @@ static int input_function(fs_ml_event *event) {
 
         if (event->motion.xrel) {
             //printf("xrel %d x %d\n", event->motion.xrel, event->motion.x);
-            int input_event = g_input_action_table[mouse_index(1, 0, 0)];
-            //printf("x input_event %d\n", input_event);
+            int input_event = g_input_action_table[mouse_index(
+                    event->motion.device, 1, 0, 0)];
+            // printf("x input_event %d\n", input_event);
             int movement = event->motion.xrel;
             adjust_mouse_movement(0, 0, &movement);
 
@@ -1414,7 +1446,8 @@ static int input_function(fs_ml_event *event) {
             }
         }
         if (event->motion.yrel) {
-            int input_event = g_input_action_table[mouse_index(0, 1, 0)];
+            int input_event = g_input_action_table[mouse_index(
+                    event->motion.device, 0, 1, 0)];
             int movement = event->motion.yrel;
             adjust_mouse_movement(0, 1, &movement);
             if (input_event > 0) {
@@ -1456,8 +1489,11 @@ static int input_function(fs_ml_event *event) {
     */
     else if (event->type == FS_ML_MOUSEBUTTONDOWN ||
             event->type == FS_ML_MOUSEBUTTONUP) {
-        if (event->type == FS_ML_MOUSEBUTTONDOWN) {
-            //printf("mouse button down\n");
+        if (event->type == FS_ML_MOUSEBUTTONDOWN
+                && event->button.device == 1) {
+            // we only check this for device 1 (system mouse), since otherwise
+            // we would process double events due to specific mouse input
+            // events too (ManyMouse). FIXME: don't hardcode device index..
             if (fs_emu_has_input_grab()) {
                 if (event->button.button == FS_ML_BUTTON_MIDDLE) {
                     if (g_middle_click_ungrab) {
@@ -1480,10 +1516,10 @@ static int input_function(fs_ml_event *event) {
             state = state * -1;
         }
         int input_event = g_input_action_table[mouse_index(
-                0, 0, event->button.button)];
-        //printf("mouse button %d, %d\n", event->button.button, state);
-        //printf("button input_event %d\n", input_event);
+                event->button.device, 0, 0, event->button.button)];
+        // printf("mouse button %d, %d\n", event->button.button, state);
         if (input_event > 0) {
+            // printf("button input_event %d state %d\n", input_event, state);
             input_event = input_event | (state << 16);
             input_event = input_event & 0x00ffffff;
             fs_emu_queue_input_event(input_event);

@@ -8,3 +8,4 @@ Terminal=false
 Type=Application
 Icon=fs-uae
 Categories=System;Emulator;
+NoDisplay=true

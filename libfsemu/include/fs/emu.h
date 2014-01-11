@@ -198,8 +198,8 @@ int fs_emu_configure_joystick(const char *name, const char *type,
         fs_emu_input_mapping *mapping, int usage,
         char *out_name, int out_name_len);
 
-void fs_emu_configure_mouse(int horiz, int vert, int left, int middle,
-        int right, int wheel_axis);
+void fs_emu_configure_mouse(const char *name, int horiz, int vert, int left,
+        int middle, int right, int wheel_axis);
 
 
 typedef int (*fs_emu_checksum_function)(void);

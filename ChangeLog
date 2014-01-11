@@ -1,4 +1,29 @@
+Version 2.3.4:
+
+* Support for multiple mice using ManyMouse library by Ryan C. Gordon.
+* New theme bundled: led-bars-edge.
+* Support for some theme digit overlays (cylinder numbers, fps).
+* Initial code for input recording.
+* Fixed a bug when looking up executable path on Unix-like systems.
+* When quitting from fullscreen mode, move cursor to bottom right (so
+  transitioning to a full-screen launcher looks nicer).
+* (Launcher) Support multiple mice.
+* (Launcher) Preference to show downloadable games or not.
+* (Launcher) Don't try to to checksum OS X/*BSD device nodes [vext01].
+* (Launcher) Fixed bug when closing the config dialog.
+* (Launcher) Support 7z archives when the 7z program is found on PATH.
+* (Launcher) Joystick config tool works with devices having axes with
+  negative or positive rest values.
+* (Launcher) Don't display "Amiga" in game list, only other platform names.
+* (Launcher) More restructuring and smaller changes (no changelog...)
+* (Game Center) Only show locally available games.
+* (Game Center) Only preselect the highest rated variant from local variants.
+* (Game Center) Nicer transition to FS-UAE (remove/reduce cursor flickering).
+* (Game Center) Use LSUIPresentationMode 4 for bundled FS-UAE for seamless
+  transition to FS-UAE on OS X.
+
 Version 2.3.3:
+
 * (Launcher) Don't reload images when changing variants (and same images
   should be displayed for the new variant).
 * (Launcher) Show joy_emu_conflict from oagd.net in statusbar if applicable.
@@ -7,6 +32,7 @@ Version 2.3.3:
 * (Game Center) Fixed possible bug in font rendering code.
 
 Version 2.3.2:
+
 * (Launcher) Fixed bug when loading files from archive in a folder named #.
 * (Launcher) Fixed bug when automatically looking up Amiga Forever roms [2.3.1]
 * (Launcher) QT port improvements.

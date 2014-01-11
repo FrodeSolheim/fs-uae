@@ -3,6 +3,7 @@
 
 #include "options.h"
 #include "inputdevice.h"
+#include "custom.h"
 
 #if 0
 int sdl_key_to_dik (int keycode);
@@ -166,8 +167,9 @@ void handle_events (void) {
     write_sync_log(" -- event handler for frame -- frame=%d\n", count);
     count++;
 #endif
+
     if (g_libamiga_callbacks.event) {
-        g_libamiga_callbacks.event(0);
+        g_libamiga_callbacks.event(-1);
     }
 
     //frame_wait_for_filesys();
@@ -367,7 +369,8 @@ void gui_gameport_button_change (int port, int button, int onoff) {
 
 int handle_msgpump (void) {
     if (g_libamiga_callbacks.event) {
-        g_libamiga_callbacks.event(1);
+        // g_libamiga_callbacks.event(hsync_counter);
+        g_libamiga_callbacks.event(vpos);
     }
 #ifdef WINDOWS
     // this message queue is used to dispatch messages for bsdsocket emulation

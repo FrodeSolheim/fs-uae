@@ -128,7 +128,6 @@ char *fs_get_data_file(const char *relative) {
 #ifdef MACOSX
     char buffer[FS_PATH_MAX];
     fs_get_application_exe_dir(buffer, FS_PATH_MAX);
-    char *test;
     path = g_build_filename(buffer, "..", "Resources", relative, NULL);
     if (fs_path_exists(path)) {
         return path;
@@ -419,10 +418,15 @@ void fs_set_argv(int argc, char* argv[]) {
 }
 
 char *find_program_in_path(const char *prog) {
-    if (prog[0] == '/') {
-        // absolute path
-        return fs_strdup(prog);
+    const char* c = prog;
+    while(*c) {
+        if (*c++ == '/') {
+            // path contains / - not started via PATH, it's either
+            // already an absolute path - or a relative path.
+            return fs_strdup(prog);
+        }
     }
+
     const char* env_path = getenv("PATH");
     if (env_path == NULL) {
         return NULL;
@@ -484,11 +488,14 @@ int fs_get_application_exe_path(char *buffer, int size) {
         return 0;
     }
 
-    char* result = find_program_in_path(g_argv[0]);
+
+    char* result;
+    result = find_program_in_path(g_argv[0]);
     if (result == NULL) {
         buffer[0] = '\0';
         return 0;
     }
+
     //fs_log("argv[0]: %s result: %s\n", g_argv[0], result);
     if (result[0] != '/') {
         char* old_result = result;

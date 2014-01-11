@@ -664,6 +664,7 @@ static int input_device_function(fs_emu_menu_item *menu_item,
         fs_log("[menu] port %d set device to \"%s\"\n", port, "");
         set_input_port(port, "", 0);
     }
+#if 0
     else if (index == 254) {
         fs_log("[menu] port %d set device to \"%s\"\n", port, "MOUSE");
         set_input_port(port, "MOUSE", 1);
@@ -672,6 +673,7 @@ static int input_device_function(fs_emu_menu_item *menu_item,
         fs_log("[menu] port %d set device to \"%s\"\n", port, "KEYBOARD");
         set_input_port(port, "KEYBOARD", 1);
     }
+#endif
     else {
         fs_emu_input_device device;
         if (!fs_ml_input_device_get(index, &device)) {
@@ -709,6 +711,7 @@ static int input_host_menu_function(fs_emu_menu_item *menu_item,
         menu->index = 1;
     }
 
+#if 0
     item = fs_emu_menu_item_new();
     fs_emu_menu_append_item(menu, item);
     fs_emu_menu_item_set_title(item, _("Mouse"));
@@ -727,18 +730,22 @@ static int input_host_menu_function(fs_emu_menu_item *menu_item,
             "KEYBOARD") == 0) {
         menu->index = 3;
     }
+#endif
 
     fs_emu_input_device device;
     for (int i = 0; i < FS_ML_INPUT_DEVICES_MAX; i++) {
         if (!fs_ml_input_device_get(i, &device)) {
             continue;
         }
+        /*
         if (strcmp(device.name, "KEYBOARD") == 0) {
             continue;
         }
+        */
         if (strcmp(g_fs_uae_input_ports[port].device,
                 device.name) == 0) {
-            menu->index = 4 + i;
+            // menu->index = 4 + i;
+            menu->index = 2 + i;
         }
         item = fs_emu_menu_item_new();
         fs_emu_menu_append_item(menu, item);

@@ -16,6 +16,7 @@
 #include <string.h>
 #include <locale.h>
 #include "fs-uae.h"
+#include "recording.h"
 
 //static char *g_default_rom_dir = ".";
 
@@ -83,7 +84,7 @@ int g_fs_uae_last_input_event = 0;
 int g_fs_uae_last_input_event_state = 0;
 int g_fs_uae_state_number = 0;
 
-void fs_uae_process_input_event(int action, int state) {
+void fs_uae_process_input_event(int line, int action, int state, int playback) {
 #if 0
     g_fs_uae_last_input_event = input_event;
     g_fs_uae_last_input_event_state = state;
@@ -91,6 +92,13 @@ void fs_uae_process_input_event(int action, int state) {
     // handler can modify input event
     amiga_send_input_event(g_fs_uae_last_input_event,
             g_fs_uae_last_input_event_state);
+#endif
+
+#if 0
+    if (action == INPUTEVENT_KEY_RETURN) {
+        printf("FIXME: ignoring RETURN event for now\n");
+        return;
+    }
 #endif
 
     if (action >= INPUTEVENT_AMIGA_JOYPORT_MODE_0_NONE &&
@@ -122,6 +130,11 @@ void fs_uae_process_input_event(int action, int state) {
         // this event must be passed on to the Amiga core
     }
 
+    int record_event = 1;
+    if (playback) {
+        record_event = 0;
+    }
+
     int load_state = 0;
     int save_state = 0;
     if (action >= INPUTEVENT_SPC_STATESAVE1 &&
@@ -139,12 +152,19 @@ void fs_uae_process_input_event(int action, int state) {
     if (load_state) {
         fs_log("run handler on_fs_uae_load_state\n");
         fs_emu_lua_run_handler("on_fs_uae_load_state");
+        record_event = 0;
     }
     else if (save_state) {
         fs_log("run handler on_fs_uae_save_state\n");
         fs_emu_lua_run_handler("on_fs_uae_save_state");
+        record_event = 0;
+    }
+
+    if (record_event) {
+        fs_uae_record_input_event(line, action, state);
     }
     amiga_send_input_event(action, state);
+
     if (load_state) {
         fs_log("run handler on_fs_uae_load_state_done\n");
         fs_emu_lua_run_handler("on_fs_uae_load_state_done");
@@ -155,9 +175,9 @@ void fs_uae_process_input_event(int action, int state) {
     }
 }
 
-static int g_fs_uae_frame = 0;
+int g_fs_uae_frame = 0;
 
-static int input_handler_loop(void) {
+static int input_handler_loop(int line) {
     static int last_frame = -1;
     if (g_fs_uae_frame != last_frame) {
         // only run this for the first input handler loop per frame
@@ -182,10 +202,15 @@ static int input_handler_loop(void) {
         // handler can modify input event
         //action = g_fs_uae_last_input_event;
         //state = g_fs_uae_last_input_event_state;
-        fs_uae_process_input_event(g_fs_uae_last_input_event,
-                g_fs_uae_last_input_event_state);
-
+        fs_uae_process_input_event(line, g_fs_uae_last_input_event,
+                g_fs_uae_last_input_event_state, 0);
     }
+
+    int event, state;
+    while (fs_uae_get_recorded_input_event(g_fs_uae_frame, line, &event, &state)) {
+        fs_uae_process_input_event(line, event, state, 1);
+    }
+
     return 1;
 }
 
@@ -198,16 +223,25 @@ static void pause_throttle() {
     fs_emu_msleep(5);
 }
 
-void event_handler(int input) {
-    if (input) {
-        input_handler_loop();
+void event_handler(int line) {
+    // printf("%d\n", line);
+    if (line >= 0) {
+        input_handler_loop(line);
         return;
     }
     //static int busy = 0;
     //static int idle = 0;
     //static int64_t last_time = 0;
     g_fs_uae_frame = g_fs_uae_frame + 1;
+
+#if 0
+    if (g_fs_uae_frame != amiga_get_vsync_counter()) {
+        printf("g_fs_uae_frame %d amiga_get_vsync_count %d\n", g_fs_uae_frame, amiga_get_vsync_counter());
+    }
+#endif
     //printf("event_handler frame=%d\n", frame);
+
+    fs_uae_record_frame(g_fs_uae_frame);
 
     /*
     int64_t t = fs_emu_monotonic_time();
@@ -505,6 +539,7 @@ static void log_to_libfsemu(const char *message) {
 static void main_function() {
     amiga_main();
     fs_log("amiga_main returned\n");
+    fs_uae_write_recorded_session();
 }
 
 #ifdef WINDOWS
@@ -566,13 +601,46 @@ static void led_function(int led, int state) {
     fs_emu_set_custom_overlay_state(led, state);
 }
 
+static void on_update_leds(void *data) {
+    amiga_led_data *leds = (amiga_led_data *) data;
+    for (int i = 0; i < 4; i++) {
+        int led = 12; // df0_d1
+        led = led + i * 2;
+        fs_emu_set_custom_overlay_state(led + 0, leds->df_t1[i]);
+        fs_emu_set_custom_overlay_state(led + 1, leds->df_t0[i]);
+    }
+}
+
+
 static void media_function(int drive, const char *path) {
     // media insertion status is custom overlay 4..7
     fs_emu_set_custom_overlay_state(4 + drive, path && path[0]);
 }
 
+int ManyMouse_Init(void);
+void ManyMouse_Quit(void);
+const char *ManyMouse_DeviceName(unsigned int index);
+
 void list_joysticks() {
     printf("# FS-UAE VERSION %s\n", g_fs_uae_version);
+    printf("# listing keyboards\n");
+    printf("K: Keyboard\n");
+    printf("# listing mice\n");
+    printf("M: Mouse\n");
+    int count = ManyMouse_Init();
+    if (count >= 0) {
+        for (int i = 0; i < count; i++) {
+            const char *name = ManyMouse_DeviceName(i);
+            if (name[0] == 0 || strcasecmp(name, "mouse") == 0) {
+                printf("M: Unnamed Mouse\n");
+            }
+            else {
+                printf("M: %s\n", ManyMouse_DeviceName(i));
+            }
+        }
+        ManyMouse_Quit();
+    }
+
     printf("# listing joysticks\n");
 #ifdef USE_SDL
     if (SDL_Init(SDL_INIT_JOYSTICK ) < 0) {
@@ -582,10 +650,10 @@ void list_joysticks() {
     printf("# SDL_NumJoysticks(): %d\n", SDL_NumJoysticks());
     for(int i = 0; i < SDL_NumJoysticks(); i++) {
         if (SDL_JoystickName(i)[0] == '\0') {
-            printf("Unnamed\n");
+            printf("J: Unnamed\n");
         }
         else {
-            printf("%s\n", SDL_JoystickName(i));
+            printf("J: %s\n", SDL_JoystickName(i));
         }
     }
 #else
@@ -626,18 +694,27 @@ static void configure_logging(const char *logstr) {
 }
 
 static const char *overlay_names[] = {
-    "df0_led",
-    "df1_led",
-    "df2_led",
-    "df3_led",
-    "df0_disk",
-    "df1_disk",
-    "df2_disk",
-    "df3_disk",
-    "power_led",
-    "hd_led",
-    "cd_led",
-    "md_led",
+    "df0_led",     // 0
+    "df1_led",     // 1
+    "df2_led",     // 2
+    "df3_led",     // 3
+    "df0_disk",    // 4
+    "df1_disk",    // 5
+    "df2_disk",    // 6
+    "df3_disk",    // 7
+    "power_led",   // 8
+    "hd_led",      // 9
+    "cd_led",      // 10
+    "md_led",      // 11
+
+    "df0_d1",      // 12
+    "df0_d0",
+    "df1_d1",
+    "df1_d0",
+    "df2_d1",
+    "df2_d0",
+    "df3_d1",
+    "df3_d0",
     NULL,
 };
 
@@ -718,6 +795,10 @@ int main(int argc, char* argv[]) {
     arg = argv + 1;
     while (arg && *arg) {
         if (strcmp(*arg, "--list-joysticks") == 0) {
+            list_joysticks();
+            exit(0);
+        }
+        else if (strcmp(*arg, "--list-devices") == 0) {
             list_joysticks();
             exit(0);
         }
@@ -855,8 +936,30 @@ int main(int argc, char* argv[]) {
 
     //fs_uae_init_input();
     fs_emu_init_2(FS_EMU_INIT_EVERYTHING);
+
+    // we initialize the recording module either it is used or not, so it
+    // can delete state-specific recordings (if necessary) when states are
+    // saved
+    fs_uae_init_recording();
+
+    int deterministic_mode = 0;
+    const char* record_file = fs_config_get_const_string("record");
+    if (record_file) {
+        fs_log("record file specified: %s, forcing deterministic mode\n",
+            record_file);
+        deterministic_mode = 1;
+        fs_uae_enable_recording(record_file);
+    }
+    else {
+        fs_log("not running in record mode\n");
+    }
+
     if (fs_emu_netplay_enabled() ||
             fs_config_get_boolean("deterministic") == 1) {
+        deterministic_mode = 1;
+    }
+
+    if (deterministic_mode) {
         amiga_set_deterministic_mode();
     }
 
@@ -889,7 +992,10 @@ int main(int argc, char* argv[]) {
     amiga_set_audio_callback(audio_callback_function);
     amiga_set_cd_audio_callback(audio_callback_function);
     amiga_set_event_function(event_handler);
+
     amiga_set_led_function(led_function);
+    amiga_on_update_leds(on_update_leds);
+
     amiga_set_media_function(media_function);
     amiga_set_init_function(on_init);
 

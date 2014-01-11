@@ -2272,6 +2272,7 @@ static int inputdelay;
 void inputdevice_read (void)
 {
 #ifdef FSUAE
+	handle_msgpump ();
 #if 0
 	static int lastframe = 0;
 	if (lastframe != vsync_counter) {
@@ -2290,13 +2291,14 @@ void inputdevice_read (void)
 		lastframe = vsync_counter;
 	}
 #endif
-#endif
+#else
 	do {
 		handle_msgpump ();
 		idev[IDTYPE_MOUSE].read ();
 		idev[IDTYPE_JOYSTICK].read ();
 		idev[IDTYPE_KEYBOARD].read ();
 	} while (handle_msgpump ());
+#endif
 }
 
 static int handle_custom_event (const TCHAR *custom)
@@ -2380,6 +2382,19 @@ void inputdevice_hsync (void)
 			handle_msgpump ();
 	}
 	if (!input_record && !input_play) {
+#ifdef FSUAE
+	//if (vpos == 0) {
+		// we do this so inputdevice_read is called predictably, this is
+		// important when using the recording feature, where input must be
+		// read / played back on same vpos as when it was recorded.
+	//	cnt = 0;
+	//}
+		if ((vpos & 63) == 63 ) {
+			inputdevice_read ();
+		}
+		// also effectively disable inputdelay here, don't seem to be essential,
+		// and it easier (for deterministic behavior) to leave it out.
+#else
 		if ((++cnt & 63) == 63 ) {
 			inputdevice_read ();
 		} else if (inputdelay > 0) {
@@ -2387,6 +2402,7 @@ void inputdevice_hsync (void)
 			if (inputdelay == 0)
 				inputdevice_read ();
 		}
+#endif
 	}
 }
 

@@ -465,4 +465,4 @@
 /* #undef volatile */
 
 #include "defines.h"
-#include "libamiga_internal.h"
+#include "uae_fs.h"

@@ -597,46 +597,59 @@ static int event_loop() {
         else if (event.type == SDL_JOYBUTTONDOWN) {
             new_event = fs_ml_alloc_event();
             new_event->type = FS_ML_JOYBUTTONDOWN;
-            new_event->jbutton.which = event.jbutton.which;
+            new_event->jbutton.which = g_fs_ml_first_joystick_index + \
+                    event.jbutton.which;
             new_event->jbutton.button = event.jbutton.button;
             new_event->jbutton.state = event.jbutton.state;
         }
         else if (event.type == SDL_JOYBUTTONUP) {
             new_event = fs_ml_alloc_event();
             new_event->type = FS_ML_JOYBUTTONUP;
-            new_event->jbutton.which = event.jbutton.which;
+            new_event->jbutton.which = g_fs_ml_first_joystick_index + \
+                    event.jbutton.which;
             new_event->jbutton.button = event.jbutton.button;
             new_event->jbutton.state = event.jbutton.state;
         }
         else if (event.type == SDL_JOYAXISMOTION) {
             new_event = fs_ml_alloc_event();
             new_event->type = FS_ML_JOYAXISMOTION;
-            new_event->jaxis.which = event.jaxis.which;
+            new_event->jaxis.which = g_fs_ml_first_joystick_index + \
+                    event.jaxis.which;
             new_event->jaxis.axis = event.jaxis.axis;
             new_event->jaxis.value = event.jaxis.value;
         }
         else if (event.type == SDL_JOYHATMOTION) {
             new_event = fs_ml_alloc_event();
             new_event->type = FS_ML_JOYHATMOTION;
-            new_event->jhat.which = event.jhat.which;
+            new_event->jhat.which = g_fs_ml_first_joystick_index + \
+                    event.jhat.which;
             new_event->jhat.hat = event.jhat.hat;
             new_event->jhat.value = event.jhat.value;
         }
         else if (event.type == SDL_MOUSEMOTION) {
             new_event = fs_ml_alloc_event();
             new_event->type = FS_ML_MOUSEMOTION;
+            new_event->motion.device = g_fs_ml_first_mouse_index;
             new_event->motion.xrel = event.motion.xrel;
             new_event->motion.yrel = event.motion.yrel;
+
+            if (g_debug_keys) {
+                fs_log("SDL mouse event x: %4d y: %4d xrel: %4d yrel: %4d\n", 
+                    event.motion.x, event.motion.y,
+                    event.motion.xrel, event.motion.yrel);
+            }
         }
         else if (event.type == SDL_MOUSEBUTTONDOWN) {
             new_event = fs_ml_alloc_event();
             new_event->type = FS_ML_MOUSEBUTTONDOWN;
+            new_event->button.device = g_fs_ml_first_mouse_index;
             new_event->button.button = event.button.button;
             new_event->button.state = event.button.state;
         }
         else if (event.type == SDL_MOUSEBUTTONUP) {
             new_event = fs_ml_alloc_event();
             new_event->type = FS_ML_MOUSEBUTTONUP;
+            new_event->button.device = g_fs_ml_first_mouse_index;
             new_event->button.button = event.button.button;
             new_event->button.state = event.button.state;
         }
@@ -657,10 +670,31 @@ int fs_ml_main_loop() {
         process_video_events();
         fs_ml_render_iteration();
     }
+
+    if (g_fs_emu_video_fullscreen) {
+        fs_log("trying to move cursor to bottom right\n");
+        // we want to improve the transitioning from FS-UAE back to
+        // e.g. FS-UAE Game Center - avoid blinking cursor - so we try
+        // to move it to the bottom right of the screen. This probably
+        // requires that the cursor is not grabbed (SDL often keeps the
+        // cursor in the center of the screen, then).
+        Uint8 data[] = "\0";
+        SDL_WM_GrabInput(SDL_GRAB_OFF);
+        SDL_Cursor *cursor = SDL_CreateCursor(data, data, 8, 1, 0, 0);
+        SDL_SetCursor(cursor);
+        SDL_ShowCursor(SDL_ENABLE);
+        // SDL_PumpEvents();
+        // fs_ml_usleep(2 * 1000 * 1000);
+        SDL_WarpMouse(fs_ml_get_fullscreen_width() - 1,
+                fs_ml_get_fullscreen_height() - 1);
+        // fs_ml_usleep(2 * 1000 * 1000);
+    }
     return 0;
 }
 
 void fs_ml_video_init() {
+    FS_ML_INIT_ONCE;
+
     fs_log("creating condition\n");
     g_video_cond = fs_condition_create();
     fs_log("creating mutex\n");
@@ -673,82 +707,6 @@ void fs_ml_video_init() {
             getenv("FS_DEBUG_INPUT")[0] == '1';
 
     fs_ml_render_init();
-}
-
-void fs_ml_input_init() {
-    fs_emu_log("fs_ml_input_init\n");
-    fs_ml_initialize_keymap();
-    /*
-    // reset all input mappings
-    for (int i = 0; i < (FS_ML_MAX_DEVICES * FS_ML_SLOTS); i++) {
-        g_input_action_table[i] = 0;
-        g_menu_action_table[i] = 0;
-    }
-    */
-    //g_fs_ml_input_devices[FS_ML_KEYBOARD].name = fs_strdup("KEYBOARD");
-    //g_fs_ml_input_devices[FS_ML_KEYBOARD].alias = fs_strdup("");
-
-    fs_hash_table *device_counts = fs_hash_table_new_full(fs_str_hash,
-            fs_str_equal, free, NULL);
-
-    int num_joysticks = SDL_NumJoysticks();
-    for (int i = 0; i < num_joysticks; i++) {
-        if (i == FS_ML_MAX_JOYSTICKS) {
-            fs_emu_log("WARNING: reached max num joysticks");
-            break;
-        }
-        SDL_Joystick *joystick = SDL_JoystickOpen(i);
-        char* name = fs_ascii_strup(SDL_JoystickName(i), -1);
-        name = fs_strstrip(name);
-        if (name[0] == '\0') {
-            free(name);
-            name = fs_ascii_strup("Unnamed", -1);
-        }
-        int count = FS_POINTER_TO_INT(fs_hash_table_lookup(
-                device_counts, name));
-        count++;
-        // hash table now owns name pointer
-        fs_hash_table_replace(device_counts, fs_strdup(name),
-                FS_INT_TO_POINTER(count));
-        if (count > 1) {
-            char *result = fs_strdup_printf("%s #%d", name, count);
-            free(name);
-            name = result;
-        }
-        g_fs_ml_input_devices[i].index = i;
-        g_fs_ml_input_devices[i].name = name;
-        //g_input_devices[i].alias = fs_strdup_printf("JOYSTICK #%d", i);
-        if (i == 0) {
-            g_fs_ml_input_devices[i].alias = fs_strdup("JOYSTICK");
-        }
-        else {
-            g_fs_ml_input_devices[i].alias = fs_strdup_printf("JOYSTICK #%d",
-                    i + 1);
-        }
-        g_fs_ml_input_devices[i].hats = SDL_JoystickNumHats(joystick);
-        g_fs_ml_input_devices[i].buttons = SDL_JoystickNumButtons(joystick);
-        g_fs_ml_input_devices[i].axes = SDL_JoystickNumAxes(joystick);
-        g_fs_ml_input_devices[i].balls = SDL_JoystickNumBalls(joystick);
-        /*
-        for (int j = 0; j < MAX_STATES; j++) {
-            g_input_devices[i].actions[j] = 0;
-        }
-        */
-        fs_emu_log("device #%02d found: %s\n", i + 1, name);
-        fs_emu_log("- %d buttons %d hats %d axes %d balls\n",
-                g_fs_ml_input_devices[i].buttons,
-                g_fs_ml_input_devices[i].hats,
-                g_fs_ml_input_devices[i].axes,
-                g_fs_ml_input_devices[i].balls);
-    }
-
-    g_fs_ml_input_devices[num_joysticks].name = fs_strdup("KEYBOARD");
-    g_fs_ml_input_devices[num_joysticks].alias = fs_strdup("");
-
-    g_fs_ml_input_device_count = num_joysticks + 1;
-    fs_hash_table_destroy(device_counts);
-
-    fs_ml_initialize_keymap();
 }
 
 #endif

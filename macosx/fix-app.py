@@ -71,13 +71,15 @@ def fix_libs(path):
 #    fix_libs(os.path.join(get_bundle_dir(), "Contents", "MacOS", "fs-uae"))
 
 
-for dir_name in os.listdir("."):
-    org_dir = os.getcwd()
-    if os.path.isdir(dir_name) and dir_name.startswith("fs-uae-"):
-        os.chdir(dir_name)
+# for dir_name in os.listdir("."):
+#     org_dir = os.getcwd()
+#     print(dir_name)
+#     if os.path.isdir(dir_name) and dir_name.startswith("fs-uae_"):
+#         os.chdir(dir_name)
+if True:
         copy_libs()
         for name in libraries:
-            fix_libs("fs-uae.app/Contents/Frameworks/" + name)
-        fix_libs("fs-uae.app/Contents/Frameworks/libfs-capsimage.dylib")
-        fix_libs("fs-uae.app/Contents/MacOS/fs-uae")
-        os.chdir(org_dir)
+            fix_libs("FS-UAE.app/Contents/Frameworks/" + name)
+        fix_libs("FS-UAE.app/Contents/Frameworks/libfs-capsimage.dylib")
+        fix_libs("FS-UAE.app/Contents/MacOS/fs-uae")
+#        os.chdir(org_dir)

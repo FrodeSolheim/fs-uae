@@ -24,10 +24,6 @@
 
 #include "ml_internal.h"
 
-static fs_queue *g_input_queue = NULL;
-static fs_mutex *g_input_mutex = NULL;
-static fs_ml_input_function g_input_function = NULL;
-
 int g_fs_ml_benchmarking = 0;
 
 int g_fs_ml_video_width = 0;
@@ -164,50 +160,6 @@ void fs_ml_video_set_render_function(fs_ml_void_function function) {
 
 void fs_ml_video_set_post_render_function(fs_ml_void_function function) {
     g_fs_ml_video_post_render_function = function;
-}
-
-fs_ml_event* fs_ml_alloc_event() {
-    return malloc(sizeof(fs_ml_event));
-}
-
-void fs_ml_input_event_free(fs_ml_event *event) {
-    free(event);
-}
-
-void fs_ml_set_input_function(fs_ml_input_function function) {
-    g_input_function = function;
-}
-
-int fs_ml_post_event(fs_ml_event* event) {
-    if (event->type == FS_ML_KEYDOWN || event->type == FS_ML_KEYUP) {
-        if (fs_ml_handle_keyboard_shortcut(event)) {
-            return 1;
-        }
-    }
-    if (g_input_function) {
-        g_input_function(event);
-    }
-    /*
-    fs_mutex_lock(g_input_mutex);
-    fs_queue_push_tail(g_input_queue, event);
-    fs_mutex_unlock(g_input_mutex);
-    */
-    return 1;
-}
-
-static void init_input() {
-    fs_log("init_input\n");
-    g_input_queue = fs_queue_new();
-    g_input_mutex = fs_mutex_create();
-
-    fs_log("calling fs_ml_video_init\n");
-    fs_ml_video_init();
-
-    int size = sizeof(fs_ml_input_device) * FS_ML_INPUT_DEVICES_MAX;
-    // allocate zeroed memory
-    g_fs_ml_input_devices = fs_malloc0(size);
-    fs_log("calling fs_ml_input_init\n");
-    fs_ml_input_init();
 }
 
 int fs_ml_handle_keyboard_shortcut(fs_ml_event *event) {
@@ -359,7 +311,8 @@ void fs_ml_init_2() {
     fs_log("assuming refresh rate: %d (%d usec per frame)\n",
             g_fs_ml_target_refresh_rate, g_fs_ml_target_frame_time);
 
-    init_input();
+    fs_ml_input_init();
+
     g_fs_ml_video_screenshot_mutex = fs_mutex_create();
 }
 

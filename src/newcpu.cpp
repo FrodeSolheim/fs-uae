@@ -860,6 +860,14 @@ bool is_cpu_tracer (void)
 }
 bool set_cpu_tracer (bool state)
 {
+#ifdef FSUAE
+#if 0
+	if (state) {
+		printf("WARNING: ignoring call to set_cpu_tracer(%d)\n", state);
+	}
+	return false;
+#endif
+#endif
 	if (cpu_tracer < 0)
 		return false;
 	int old = cpu_tracer;
@@ -2537,6 +2545,11 @@ void REGPARAM2 Exception (int nr)
 {
 	regs.exception = nr;
 	if (cpu_tracer) {
+#ifdef FSUAE
+#if 0
+			printf("set cputrace.state = nr %d\n", nr);
+#endif
+#endif
 		cputrace.state = nr;
 	}
 
@@ -3543,6 +3556,11 @@ STATIC_INLINE int do_specialties (int cycles)
 			cputrace.stopped = regs.stopped;
 			cputrace.intmask = regs.intmask;
 			cputrace.sr = regs.sr;
+#ifdef FSUAE
+#if 0
+			printf("set cputrace.state (3) = 1\n");
+#endif
+#endif
 			cputrace.state = 1;
 			cputrace.pc = m68k_getpc ();
 			cputrace.memoryoffset = 0;
@@ -3823,6 +3841,11 @@ static void m68k_run_1_ce (void)
 			cputrace.isp = r->isp;
 			cputrace.intmask = r->intmask;
 			cputrace.stopped = r->stopped;
+#ifdef FSUAE
+#if 0
+			printf("set cputrace.state = 1\n");
+#endif
+#endif
 			cputrace.state = 1;
 			cputrace.pc = m68k_getpc ();
 			cputrace.startcycles = get_cycles ();
@@ -4193,6 +4216,11 @@ static void m68k_run_2ce (void)
 			cputrace.isp = r->isp;
 			cputrace.intmask = r->intmask;
 			cputrace.stopped = r->stopped;
+#ifdef FSUAE
+#if 0
+			printf("set cputrace.state (2) = 1\n");
+#endif
+#endif
 			cputrace.state = 1;
 			cputrace.pc = m68k_getpc ();
 

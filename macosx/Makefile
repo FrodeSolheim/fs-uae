@@ -3,13 +3,15 @@ version = $(strip $(shell cat ../VERSION))
 game_center_app = fs-uae-game-center_$(version)_macosx/FS-UAE Game Center.app
 game_center_resources = $(game_center_app)/Contents/Resources
 
-all: bindist bindist-launcher bindist-game-center bindist-portable bindist-bundles
+# all: bindist bindist-launcher bindist-game-center bindist-portable bindist-bundles
+
+all: bindist
 
 clean:
 	rm -Rf ../macosx/fs-uae*
 
 bindist: bundle
-	cd fs-uae_$(version)_macosx && GZIP=-9 tar zcfv ../fs-uae_$(version)_macosx.tar.gz *
+	cd fs-uae_$(version)_macosx && GZIP=-9 tar zcfv ../../fs-uae_$(version)_macosx.tar.gz *
 
 bundle:
 	make -C ..

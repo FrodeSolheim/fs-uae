@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: fs-uae\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
 "POT-Creation-Date: 2013-11-13 22:14+0100\n"
-"PO-Revision-Date: 2013-11-13 22:52+0100\n"
+"PO-Revision-Date: 2013-12-10 08:10+0100\n"
 "Last-Translator: grimi <grimi at poczta dot fm>\n"
 "Language-Team: Polish\n"
 "Language: pl\n"
@@ -53,10 +53,10 @@ msgstr "Tryb pada CD32"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 msgid "Custom Joystick Port"
-msgstr "Własny port joysticka"
+msgstr "Niestd. port joysticka"
 
 msgid "Custom Mode"
-msgstr "Tryb własny"
+msgstr "Tryb niestandardowy"
 
 #. / TRANSLATORS: Empty or nothing
 #, c-format

@@ -1,3 +1,20 @@
+Version 2.3.13:
+
+* Video sync is disabled by default.
+* Updated translations: pl [grimi].
+* (Launcher) New video synchronization settings page, reorg. video settings.
+* (Launcher) New dialog for manual game downloads with scan function to make
+  manual downloads more streamlined.
+* (Launcher) Re-enabled support for manually downloadable games.
+* (Launcher) Re-enabled support for automatically downloadable games.
+* (Launcher) Support downloading and displaying terms for auto-downloadable
+  game files.
+* (Launcher) Changed icons for downloadable games.
+* (Launcher) fullscreen_mode was erroneously specified as fullscreen, should
+  be empty string. Also, fullscreen_mode will now show in advanced settings
+  if overriden.
+* (Launcher) Updated translations: pl [grimi], fi [Goingdown].
+
 Version 2.3.12:
 
 * On OS X, simulate middle click (alt) and right click (ctrl).
@@ -12,7 +29,7 @@ Version 2.3.12:
 * (Arcade) Game filters: platform, letter and shuffle.
 * (Arcade) Further re-branding to FS-UAE Arcade.
 * (Arcade) Don't display wraparound items if items would be repeat on screen.
-* (Arcade) Can start with --platform argument (--amiga, --cd32 etc)
+* (Arcade) Can start with --platform argument (--amiga, --cd32 etc).
 
 Version 2.3.11:
 

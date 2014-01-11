@@ -24,12 +24,17 @@ def fix_binary(path, frameworks_dir):
         line = line.strip()
         if not line:
             continue
-        if not line.startswith("/opt/local/lib/"):
+        #if not line.startswith("/opt/local/lib/"):
+	if line.startswith("/usr/lib") or line.startswith("/System"):
             old = line.split(' ')[0]
             # print("ignoring", old)
             continue
+        if line.startswith("@executable_path"):
+            continue
 
         old = line.split(' ')[0]
+        if "Contents" in old:
+            continue
         print(old)
         old_dir, name = os.path.split(old)
         new = old.replace(old, '@executable_path/../Frameworks/' + name)
@@ -37,6 +42,7 @@ def fix_binary(path, frameworks_dir):
         if not os.path.exists(dst):
             print("copying", old)
             shutil.copy(old, dst)
+            os.chmod(dst, 0644)
             changes += 1
         if os.path.basename(path) == os.path.basename(old):
             args = ["install_name_tool", "-id", new, path]

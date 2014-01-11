@@ -87,7 +87,11 @@ void fs_emu_video_init_options(void) {
         free(sync_mode_str);
     }
     else {
-        fs_log("not specified: using automatic video sync mode\n");
+        //fs_log("not specified: using automatic video sync mode\n");
+
+        fs_log("not specified: no video sync\n");
+        g_fs_emu_video_sync_to_vblank = 0;
+        g_fs_emu_video_allow_full_sync = 0;
     }
 
 /*

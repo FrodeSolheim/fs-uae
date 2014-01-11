@@ -332,6 +332,28 @@ void fs_uae_load_rom_files(const char *path) {
         fs_log("error opening dir\n");
     }
 
+    // we include the rom key when generating the cache name for the
+    // kickstart cache file, so the cache will be regenerated if rom.key
+    // is replaced or removed/added.
+    char *key_path = fs_path_join(path, "rom.key", NULL);
+    GChecksum *rom_checksum = g_checksum_new(G_CHECKSUM_MD5);
+    FILE *f = fs_fopen(key_path, "rb");
+    if (f != NULL) {
+        int64_t key_size = fs_path_get_size(key_path);
+        if (key_size > 0 && key_size < 1024 * 1024) {
+            char *key_data = malloc(key_size);
+            if (fread(key_data, key_size, 1, f) != 1) {
+                free(key_data);
+            }
+            else {
+                fs_log("read rom key file, size = %d\n", key_size);
+                g_checksum_update(rom_checksum, key_data, key_size);
+            }
+        }
+        fclose(f);
+    }
+    free(key_path);
+
     amiga_add_key_dir(path);
     const char *name = fs_dir_read_name(dir);
     while (name) {
@@ -339,12 +361,28 @@ void fs_uae_load_rom_files(const char *path) {
         if (fs_str_has_suffix(lname, ".rom")) {
             fs_log("found file \"%s\"\n", name);
             char *full_path = fs_path_join(path, name, NULL);
-            amiga_add_rom_file(full_path);
+            //GChecksum *checksum = g_checksum_new(G_CHECKSUM_MD5);
+            GChecksum *checksum = g_checksum_copy(rom_checksum);
+            g_checksum_update(checksum, full_path, strlen(full_path));
+            const gchar *cache_name = g_checksum_get_string(checksum);
+            char* cache_path = fs_path_join(
+                fs_uae_kickstarts_cache_dir(), cache_name, NULL);
+            amiga_add_rom_file(full_path, cache_path);
+            // check if amiga_add_rom_file needs to own full_path
+            //free(full_path);
+            if (cache_path != NULL) {
+                free(cache_path);
+            }
+            g_checksum_free(checksum);
         }
         free(lname);
         name = fs_dir_read_name(dir);
     }
     fs_dir_close(dir);
+
+    if (rom_checksum != NULL) {
+        g_checksum_free(rom_checksum);
+    }
     //exit(1);
 }
 
@@ -423,7 +461,8 @@ static void on_init() {
     // not produce sound, but this just confuses libfsemu which expects
     // continuous output
     //amiga_set_option("sound_auto", "false");
-    //amiga_set_audio_frequency(fs_emu_get_audio_frequency());
+
+    amiga_set_audio_frequency(fs_emu_get_audio_frequency());
 
     //amiga_set_audio_frequency(22050);
 
@@ -433,7 +472,7 @@ static void on_init() {
 
     // FIXME: check the actual frequency libuae/libamiga outputs, seems
     // to output at 44100 Hz even though currprefs.freq says 48000.
-    //fs_emu_set_audio_buffer_frequency(0, fs_emu_get_audio_frequency());
+    // fs_emu_set_audio_buffer_frequency(0, fs_emu_get_audio_frequency());
 
     //amiga_set_option("gfx_gamma", "40");
 
@@ -579,7 +618,7 @@ static void main_function() {
 
 #ifdef WINDOWS
 // FIXME: move to fs_putenv
-int _putenv(const char *envstring);
+// int _putenv(const char *envstring);
 #endif
 
 void init_i18n() {
@@ -1013,6 +1052,7 @@ int main(int argc, char* argv[]) {
     fs_emu_audio_stream_options options;
     options.struct_size = sizeof(fs_emu_audio_stream_options);
     fs_emu_init_audio_stream_options(&options);
+    options.frequency = fs_emu_get_audio_frequency();
     fs_emu_init_audio_stream(0, &options);
     amiga_set_audio_buffer_size(options.buffer_size);
 

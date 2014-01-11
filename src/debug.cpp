@@ -143,7 +143,7 @@ static TCHAR help[] = {
 	_T("  v <vpos> [<hpos>]     Show DMA data (accurate only in cycle-exact mode).\n")
 	_T("                        v [-1 to -4] = enable visual DMA debugger.\n")
 	_T("  ?<value>              Hex ($ and 0x)/Bin (%)/Dec (!) converter.\n")
-#ifdef _WIN32
+#if defined(_WIN32) && defined(WINUAE)
 	_T("  x                     Close debugger.\n")
 	_T("  xx                    Switch between console and GUI debugger.\n")
 	_T("  mg <address>          Memory dump starting at <address> in GUI.\n")
@@ -3481,7 +3481,7 @@ static BOOL debug_line (TCHAR *input)
 				} else if (*inptr == 't') {
 					next_char (&inptr);
 					debugtest_set (&inptr);
-#ifdef _WIN32
+#if defined(_WIN32) && defined(WINUAE)
 				} else if (*inptr == 'g') {
 					extern void update_disassembly (uae_u32);
 					next_char (&inptr);
@@ -3650,7 +3650,7 @@ static BOOL debug_line (TCHAR *input)
 			{
 				uae_u32 maddr;
 				int lines;
-#ifdef _WIN32
+#if defined(_WIN32) && defined(WINUAE)
 				if (*inptr == 'g') {
 					extern void update_memdump (uae_u32);
 					next_char (&inptr);

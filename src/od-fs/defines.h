@@ -98,12 +98,6 @@ extern FILE *g_fs_uae_sync_debug_file;
 #define FPU_UAE
 #define GFXFILTER
 
-//enable JIT on i386 only except OpenBSD and FREEBSD
-#if defined(__i386__) && !defined(OPENBSD) && !defined(FREEBSD)
-#define JIT
-#define JIT_DEBUG
-#endif
-
 #define MMU
 #define MMUEMU /* Aranym 68040 MMU */
 //#define MULTIDISPLAY 1
@@ -116,7 +110,6 @@ extern FILE *g_fs_uae_sync_debug_file;
 #define SCSIEMU
 #define SERIAL_PORT
 #define SUPPORT_THREADS
-#define UNALIGNED_PROFITABLE
 #define UAESERIAL
 #define UAE_FILESYS_THREADS
 //#define UAE_FILESYS_ASYNCHRONOUS
@@ -149,7 +142,9 @@ extern FILE *g_fs_uae_sync_debug_file;
 // FIXME: OK?
 #define _stat64 stat
 
+#ifndef INVALID_SOCKET
 #define INVALID_SOCKET -1
+#endif
 #ifdef WINDOWS
 typedef unsigned int SOCKET;
 #else
@@ -236,10 +231,10 @@ typedef int BOOL;
 #define UAESCSI_NEROASPI 4
 #define UAESCSI_FROGASPI 5
 
-//#ifndef WINDOWS
+#ifndef WINDOWS
 // just setting DRIVE_CDROM to something here..
 #define DRIVE_CDROM 0
-//#endif
+#endif
 
 #include "uae_util.h"
 #include <stddef.h>
@@ -247,15 +242,6 @@ typedef int BOOL;
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
 
-#if defined(__ppc__) || defined(__ARMEL__)
-// REGPARAM are used in JIT code, so for PPC (which does not have JIT) this
-// can be set to nothing
-#define REGPARAM
-#else
-#define REGPARAM __attribute__((regparm(3)))
-#endif
-#define REGPARAM2 REGPARAM
-#define REGPARAM3
+#include "uae/jitconfig.h"
 
 #endif // EXTRA_DEFINES_H
-

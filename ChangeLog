@@ -1,3 +1,26 @@
+Version 2.3.14:
+
+* JIT should work on Windows too now.
+* New options: audio_frequency, audio_buffer_target_size.
+* Default frequency is now 48000 Hz (will try 44100 Hz if 48000 Hz fails).
+* Default audio buffer size is now 40ms (slightly lower than before).
+* Deprecated the old audio_buffer_target_bytes option (it is now instead
+  calculated from audio_buffer_target_size).
+* Speed up startup by caching information about kickstart ROMs.
+* Skip initializating stuff in inputdevice.cpp which are not used by FS-UAE,
+  speeds up startup - report if it seems to have bad side-effects...
+* Split Savestates into two main menu entries (Load State, Save State).
+* Removed superfluous More... entries.
+* Include #define GLXContextID XID in glee.h to work with recent Mesa.
+* (Launcher) Respect writable_floppy_images option in cases where the
+  floppy drive options directly refer to local paths (don't copy disk
+  images to temp directory).
+* (Launcher) Defragment databases function (Settings -> Maintenance).
+* (Launcher) Use QT to open all URLs, for consistent behavior.
+* (Launcher) Will now try to find and use either of PySide, PyQt5 or PyQt4.
+* (Launcher) Added GUI controls to tweak audio freqency and also audio target
+  buffer size (in ms). The latter can be used to reduce audio latency.
+
 Version 2.3.13:
 
 * Video sync is disabled by default.

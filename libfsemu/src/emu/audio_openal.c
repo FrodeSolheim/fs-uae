@@ -1,5 +1,6 @@
 #ifdef USE_OPENAL
 
+#include <fs/emu.h>
 #include <stdio.h>
 #ifdef MACOSX
 #include <al.h>
@@ -9,7 +10,6 @@
 #include <AL/alc.h>
 #endif
 #include <fs/base.h>
-#include <fs/emu.h>
 #include <fs/queue.h>
 #include <fs/thread.h>
 #include "libfsemu.h"
@@ -140,7 +140,13 @@ static void pid_controller_step(int stream, int time_ms) {
 
     s->pitch = g_default_audio_pitch - output;
     s->pitch = MAX(0.5, MIN(2.0, s->pitch));
-
+#if 0
+    //s->pitch = 1.0;
+    static int count = 0;
+    if (++count % 100 == 0) {
+        printf("pitch: %0.2f\n", s->pitch);
+    }
+#endif
     alSourcef(s->source, AL_PITCH, (ALfloat) s->pitch);
     check_al_error("alSourcef (AL_PITCH)");
 }
@@ -244,6 +250,7 @@ int fs_emu_queue_audio_buffer(int stream, int16_t* data, int size) {
     check_al_error("alGetSourcei (AL_SOURCE_STATE)");
     if (state != AL_PLAYING) {
         g_fs_emu_audio_buffer_underrun_time = fs_get_monotonic_time();
+        g_fs_emu_audio_buffer_underruns += 1;
         // we have had a buffer underrun - we now wait until we have queued
         // some buffers
         //if (buffers_queued < s->min_buffers) {
@@ -460,6 +467,35 @@ static void openal_audio_init() {
         return;
     }
 
+    int frequencies[] = { 48000, 44100 };
+    if (fs_config_get_int("audio_frequency") != FS_CONFIG_NONE) {
+        frequencies[0] = fs_config_get_int("audio_frequency");
+    }
+
+    for (int i = 0; i < 3; i++) {
+        int frequency = frequencies[i];
+        fs_log("openal: trying frequency %d\n", frequency);
+        ALCint attributes[] = {
+            ALC_MONO_SOURCES, 0,
+            ALC_STEREO_SOURCES, 2,
+            ALC_FREQUENCY, frequency,
+            0 };
+#if 0
+        if (frequency == 0) {
+            // this will zero out ALC_FREQUENCY, so this index will be
+            // interpreted as end-of-attributes and OpenAL will choose
+            // frequency itself.
+            attributes[4] = 0;
+        }
+#endif
+
+        g_context = alcCreateContext(g_device, attributes);
+        if (g_context) {
+            g_audio_out_frequency = frequency;
+            break;
+        }
+    }
+
 #if 0
     // FIXME: enable later
     ALCint attributes[3] = { ALC_FREQUENCY,  48000, 0 };
@@ -474,7 +510,7 @@ static void openal_audio_init() {
         fs_log("openal: trying without frequency specified\n");
    }
 #endif
-
+#if 0
     ALCint attributes[] = { ALC_MONO_SOURCES, 0,
             ALC_STEREO_SOURCES, 2, 0 };
 
@@ -482,7 +518,7 @@ static void openal_audio_init() {
         g_context = alcCreateContext(g_device, attributes);
         g_audio_out_frequency = 44100;
     }
-
+#endif
     if (g_context) {
         fs_log("openal: created context\n");
         alcMakeContextCurrent(g_context);
@@ -564,12 +600,21 @@ void fs_emu_init_audio_stream(int stream,
 
     // FIXME: configure elsewhere
     if (stream == 0) {
-        int abtb = fs_config_get_int_clamped("audio_buffer_target_bytes",
-                512, 16 * 1024);
-        if (abtb == FS_CONFIG_NONE) {
-            abtb = 8 * 1024;
+        int abt = fs_config_get_int_clamped("audio_buffer_target_size",
+                1, 100);
+        if (abt == FS_CONFIG_NONE) {
+            abt = fs_config_get_int_clamped("audio_buffer_target_bytes",
+                    512, 16 * 1024);
+            if (abt == FS_CONFIG_NONE) {
+                abt = 40;
+            }
         }
-        s->fill_target = abtb;
+        if (abt <= 100) {
+            fs_log("audio buffer target size (ms) = %d\n", abt);
+            abt = abt / 1000.0 * (options->frequency * 2 * 2);
+            fs_log("audio buffer target size (bytes) = %d\n", abt);
+        }
+        s->fill_target = abt;
     }
     else {
         s->fill_target = 0;

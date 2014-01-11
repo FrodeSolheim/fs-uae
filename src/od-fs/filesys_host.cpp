@@ -1,3 +1,4 @@
+#include <fs/fs.h>
 #include "sysconfig.h"
 #include "sysdeps.h"
 
@@ -5,7 +6,6 @@
 #include "uae_host.h"
 #include "filesys.h"
 #include "zfile.h"
-#include <fs/fs.h>
 #include <fs/unicode.h>
 #include <unistd.h>
 #ifdef WINDOWS

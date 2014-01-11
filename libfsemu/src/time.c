@@ -77,8 +77,9 @@ struct tm *fs_gmtime_r(const time_t *timep, struct tm *result) {
 }
 
 #ifdef WINDOWS
-int _putenv(const char *envstring);
-void _tzset(void);
+// was needed for mingw, not needed for mingw-w32
+//int _putenv(const char *envstring);
+//void _tzset(void);
 #endif
 
 time_t fs_timegm(struct tm *tm) {

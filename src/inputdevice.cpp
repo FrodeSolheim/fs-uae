@@ -560,6 +560,9 @@ static const TCHAR *kbtypes[] = { _T("amiga"), _T("pc"), NULL };
 
 void write_inputdevice_config (struct uae_prefs *p, struct zfile *f)
 {
+#ifdef FSUAE
+    return;
+#endif
 	int i, id;
 
 	cfgfile_write (f, _T("input.config"), _T("%d"), p->input_selected_setting == GAMEPORT_INPUT_SETTINGS ? 0 : p->input_selected_setting + 1);
@@ -2917,7 +2920,7 @@ static int handle_input_event (int nr, int state, int max, int autofire, bool ca
 	if (nr <= 0 || nr == INPUTEVENT_SPC_CUSTOM_EVENT)
 		return 0;
 
-#ifdef _WIN32
+#if defined(_WIN32) && defined(WINUAE)
 	// ignore norrmal GUI event if forced gui key is in use
 	if (currprefs.win32_guikey >= 0 && nr == INPUTEVENT_SPC_ENTERGUI)
 		return 0;
@@ -5226,7 +5229,11 @@ void inputdevice_devicechange (struct uae_prefs *prefs)
 // set default prefs to all input configuration settings
 void inputdevice_default_prefs (struct uae_prefs *p)
 {
+#ifdef FSUAE
+
+#else
 	inputdevice_init ();
+#endif
 
 	p->input_selected_setting = GAMEPORT_INPUT_SETTINGS;
 	p->input_joymouse_multiplier = 100;
@@ -5239,7 +5246,11 @@ void inputdevice_default_prefs (struct uae_prefs *p)
 	p->input_autofire_linecnt = 600;
 	p->input_keyboard_type = 0;
 	keyboard_default = keyboard_default_table[p->input_keyboard_type];
+#ifdef FSUAE
+
+#else
 	inputdevice_default_kb_all (p);
+#endif
 }
 
 // set default keyboard and keyboard>joystick layouts
@@ -6804,3 +6815,98 @@ void clear_inputstate (void)
 		vertclear[i] = 1;
 	}
 }
+#ifdef FSUAE
+
+int amiga_handle_input_event (int nr, int state, int max,
+        int autofire, bool canstopplayback, bool playbackevent) {
+    return handle_input_event(nr, state, max, autofire, canstopplayback,
+            playbackevent);
+}
+
+#if 0
+void amiga_configure_port_from_input_event(int input_event) {
+    iscd32(input_event);
+    isparport(input_event);
+    ismouse(input_event);
+    isanalog(input_event);
+    isdigitalbutton(input_event);
+}
+#endif
+
+extern "C" {
+
+#if 0
+int amiga_get_joystick_port_mode(int port) {
+    return currprefs.jports[port].mode;
+}
+#endif
+
+void amiga_set_joystick_port_mode(int port, int mode) {
+    write_log("***** amiga_set_joystick_port_mode port=%d mode=%d\n", port,
+            mode);
+    int *ip = NULL;
+    //parport_joystick_enabled = 0;
+    if (port == 0 || port == 1) {
+        mouse_port[port] = 0;
+        cd32_pad_enabled[port] = 0;
+        for (int j = 0; j < 2; j++) {
+            digital_port[port][j] = 0;
+            analog_port[port][j] = 0;
+            joydirpot[port][j] = 128 / (312 * 100
+                    / currprefs.input_analog_joystick_mult)
+                    + (128 * currprefs.input_analog_joystick_mult / 100)
+                    + currprefs.input_analog_joystick_offset;
+        }
+    }
+
+    if (port == 0) {
+        if (mode == AMIGA_JOYPORT_MOUSE) {
+            ip = ip_mouse1;
+        }
+        else if (mode == AMIGA_JOYPORT_CD32JOY) {
+            ip = ip_joycd321;
+        }
+        else {
+            ip = ip_joy1;
+        }
+    }
+    else if (port == 1) {
+        if (mode == AMIGA_JOYPORT_MOUSE) {
+            ip = ip_mouse2;
+        }
+        else if (mode == AMIGA_JOYPORT_CD32JOY) {
+            ip = ip_joycd322;
+        }
+        else {
+            ip = ip_joy2;
+        }
+    }
+    else if (port == 2) {
+        if (mode == AMIGA_JOYPORT_DJOY) {
+            ip = ip_parjoy1;
+        }
+    }
+    else if (port == 3) {
+        if (mode == AMIGA_JOYPORT_DJOY) {
+            ip = ip_parjoy2;
+        }
+    }
+
+    if (ip) {
+        while (*ip != -1) {
+            iscd32(*ip);
+            isparport(*ip);
+            ismouse(*ip);
+            isanalog(*ip);
+            isdigitalbutton(*ip);
+            ip++;
+        }
+    }
+    //changed_prefs.jports[port].mode = mode;
+    //config_changed = 1;
+    //inputdevice_updateconfig(&currprefs);
+}
+
+}
+
+#endif

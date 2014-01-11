@@ -16,11 +16,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
  */
 
+#include <fs/emu.h>
 #include "hud.h"
 
 #include <string.h>
 #include <stdlib.h>
-#include <fs/emu.h>
 #include <fs/config.h>
 #include <fs/thread.h>
 #include <fs/queue.h>

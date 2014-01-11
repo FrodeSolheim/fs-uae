@@ -53,12 +53,10 @@
 #endif
 
 #ifdef FSUAE
-
-// __try and __except is a MS exception to C/C++. What are the consequence
+// __try and __except is a MS extension to C/C++. What are the consequence
 // of ignoring these constructs in the code below?
 #define __try
 #define __except(x)
-
 #endif
 
 int rawsockets = 0;

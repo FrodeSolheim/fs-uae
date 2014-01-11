@@ -65,6 +65,9 @@
     #define GLX_GLXEXT_PROTOTYPES
     #include <GL/gl.h>
     #include <GL/glx.h>
+    // it seems recent versions of MESA does not have GLXContextID defined
+    //typedef XID GLXContextID;
+    #define GLXContextID XID
 #endif
 
 #ifndef APIENTRY

@@ -57,7 +57,7 @@ static bool canjit (void)
 }
 static bool needmman (void)
 {
-#ifdef _WIN32	
+#if defined(_WIN32) && defined(WINUAE)
 	return true;
 #endif
 	if (canjit ())

@@ -1,12 +1,12 @@
+#include <fs/filesys.h>
 #include "sysconfig.h"
 #include "sysdeps.h"
 #include <fs/string.h>
-#include <fs/filesys.h>
 #include "include/driveclick.h"
 
 static void *g_driveclick_data[DS_END];
 static int g_driveclick_size[DS_END];
-static char *g_driveclick_path = "";
+static const char *g_driveclick_path = "";
 //static char *g_driveclick_name = NULL;
 
 extern "C" {

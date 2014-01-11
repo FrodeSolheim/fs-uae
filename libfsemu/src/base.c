@@ -1,4 +1,5 @@
 #define _GNU_SOURCE 1
+#include <fs/filesys.h>
 #ifdef WINDOWS
 //#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -19,7 +20,6 @@
 #include <stdio.h>
 #include <fs/log.h>
 #include <fs/base.h>
-#include <fs/filesys.h>
 #include <fs/string.h>
 
 #if defined(WINDOWS)

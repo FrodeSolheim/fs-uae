@@ -106,7 +106,7 @@ int isdatatrack (struct cd_toc_head *th, int block)
 
 static int cdscsidevicetype[MAX_TOTAL_SCSI_DEVICES];
 
-#ifdef _WIN32
+#if defined(_WIN32) && defined(WINUAE)
 
 #include "od-win32/win32.h"
 
@@ -124,14 +124,14 @@ extern struct device_functions devicefunc_cdimage;
 static struct device_functions *devicetable[] = {
 	NULL,
 	&devicefunc_cdimage,
-#ifdef _WIN32
+#if defined(_WIN32) && defined(WINUAE)
 	&devicefunc_win32_ioctl,
 #elif defined(LINUX)
 	&devicefunc_scsi_linux_ioctl,
 #else
         NULL,
 #endif
-#ifdef _WIN32
+#if defined(_WIN32) && defined(WINUAE)
 	&devicefunc_win32_spti,
 #else
         NULL,

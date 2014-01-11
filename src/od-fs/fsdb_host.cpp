@@ -9,6 +9,10 @@
  * Copyright 2012 Frode Solheim
  */
 
+#include <fs/fs.h>
+#include <fs/filesys.h>
+#include <fs/time.h>
+
 #include "sysconfig.h"
 #include "sysdeps.h"
 #include "options.h"
@@ -16,10 +20,6 @@
 
 #include "fsdb.h"
 #include "zfile.h"
-
-#include <fs/fs.h>
-#include <fs/filesys.h>
-#include <fs/time.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>

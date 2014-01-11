@@ -205,7 +205,7 @@ int amiga_send_input_event(int input_event, int state);
 void amiga_write_config(const char *path);
 
 void amiga_add_key_dir(const char *path);
-int amiga_add_rom_file(const char *path);
+int amiga_add_rom_file(const char *path, const char *cache_path);
 
 void amiga_set_paths(const char **rom_paths, const char **floppy_paths,
         const char **cd_paths, const char **hd_paths);

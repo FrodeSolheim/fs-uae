@@ -1,12 +1,12 @@
 Name:           fs-uae
-Version:        2.3.13dev
+Version:        2.3.14dev
 Release:        1%{?dist}
 
 Summary:        Amiga emulator with on-screen GUI and online play support
 License:        GPL-2.0+
 Group:          System/Emulators/Other
-Url:            http://fengestad.no/fs-uae/
-Source0:        http://fengestad.no/fs-uae/files/%{version}/fs-uae-%{version}.tar.gz
+Url:            http://fs-uae.net/
+Source0:        http://fs-uae.net/devel/%{version}/fs-uae-%{version}.tar.gz
 %if 0%{?suse_version}
 BuildRequires:  fdupes
 %endif

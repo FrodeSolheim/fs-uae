@@ -264,7 +264,7 @@ void fullpath (TCHAR *path, int size) {
 
 TCHAR start_path_data[MAX_DPATH];
 
-void fetch_path (TCHAR *name, TCHAR *out, int size) {
+void fetch_path (const TCHAR *name, TCHAR *out, int size) {
         int size2 = size;
     //printf("fetch_path %s\n", name);
     //_tcscpy (start_path_data, "./");

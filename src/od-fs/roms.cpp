@@ -1,3 +1,5 @@
+#include <fs/filesys.h>
+
 #include "sysconfig.h"
 #include "sysdeps.h"
 
@@ -28,11 +30,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <fs/filesys.h>
-
 void amiga_patch_rom(uae_u8 *buf, size_t size);
 
-static struct romdata *scan_single_rom_2 (struct zfile *f)
+static struct romdata *scan_single_rom_2 (struct zfile *f, uae_u32 *crc32)
 {
     uae_u8 buffer[20] = { 0 };
     uae_u8 *rombuf;
@@ -79,20 +79,21 @@ static struct romdata *scan_single_rom_2 (struct zfile *f)
             rd = getromdatabydata (rombuf, size);
         }
     }
+    *crc32 = get_crc32 (rombuf, size);
     if (!rd) {
         write_log (_T("!: Name='%s':%d\nCRC32=%08X SHA1=%s\n"),
-            zfile_getname (f), size, get_crc32 (rombuf, size), get_sha1_txt (rombuf, size));
+            zfile_getname (f), size, *crc32, get_sha1_txt (rombuf, size));
     } else {
         TCHAR tmp[MAX_DPATH];
         getromname (rd, tmp);
         write_log (_T("*: %s:%d = %s\nCRC32=%08X SHA1=%s\n"),
-            zfile_getname (f), size, tmp, get_crc32 (rombuf, size), get_sha1_txt (rombuf, size));
+            zfile_getname (f), size, tmp, *crc32, get_sha1_txt (rombuf, size));
     }
     xfree (rombuf);
     return rd;
 }
 
-static struct romdata *scan_single_rom (const TCHAR *path)
+static struct romdata *scan_single_rom (const TCHAR *path, uae_u32 *crc32)
 {
     struct zfile *z;
     TCHAR tmp[MAX_DPATH];
@@ -108,8 +109,10 @@ static struct romdata *scan_single_rom (const TCHAR *path)
     z = zfile_fopen (path, _T("rb"), ZFD_NORMAL);
     if (!z)
         return 0;
-    return scan_single_rom_2 (z);
+    return scan_single_rom_2 (z, crc32);
 }
+
+#include <fs/filesys.h>
 
 extern "C" {
 
@@ -119,10 +122,50 @@ void amiga_add_key_dir(const char *path) {
     free(p);
 }
 
-int amiga_add_rom_file(const char *path) {
+int amiga_add_rom_file(const char *path, const char *cache_path) {
     write_log("amiga_add_rom_file %s\n", path);
-    struct romdata *rd = scan_single_rom(path);
+    struct romdata *rd = NULL;
+    struct fs_stat rom_stat;
+
+    if (cache_path != NULL) {
+        if (fs_stat(path, &rom_stat) != 0) {
+            write_log("- could not stat rom file\n");
+            return 2;
+        }
+        struct fs_stat cache_stat;
+        if (fs_stat(cache_path, &cache_stat) == 0) {
+            if (rom_stat.mtime == cache_stat.mtime) {
+                // we should have cached ROM information...
+                unsigned char buf[4];
+                FILE *f = fs_fopen(cache_path, "rb");
+                int read_count = 0;
+                if (f != NULL) {
+                    read_count = fread(buf, 4, 1, f);
+                    fclose(f);
+                }
+                if (read_count == 1) {
+                    write_log("- found cached crc32\n");
+                    uae_u32 crc32 = buf[0] << 24 | buf[1] << 16 |
+                                    buf[2] << 8 | buf[3];
+                    rd = getromdatabycrc(crc32);
+                    if (rd) {
+                        write_log("- rom added via cached entry\n");
+                        romlist_add(path, rd);
+                        return 0;
+                    }
+                    // we do not need / want to write cache information
+                    // to this file since we have updated information
+                    // cache_path = NULL;
+                    return 1;
+                }
+            }
+        }
+    }
+
+    uae_u32 crc32 = 0;
+    rd = scan_single_rom(path, &crc32);
     if (rd) {
+        crc32 = rd->crc32;
         //write_log("rom data at %p\n", rd);
         //write_log("adding to rom list (id: %d)\n", rd->id);
         //if (rd->name) {
@@ -132,10 +175,36 @@ int amiga_add_rom_file(const char *path) {
         // FIXME: Should rd be freed here?
     }
     else {
-        write_log("not a known rom file\n");
+        write_log("- not a known rom file\n");
+        // FIXME: should set crc32 here also, so this ROM won't be
+        // rescanned again and again
     }
-    write_log("done\n");
+    if (crc32 && cache_path != NULL) {
+        write_log("- crc32 cache file: %s\n", cache_path);
+        FILE *f = fs_fopen(cache_path, "wb");
+        if (f != NULL) {
+            write_log("- writing crc32 to ROM cache file\n");
+            unsigned char buf[4];
+            buf[0] = (crc32 >> 24) & 0xff;
+            buf[1] = (crc32 >> 16) & 0xff;
+            buf[2] = (crc32 >> 8) & 0xff;
+            buf[3] = (crc32) & 0xff;
+            if (fwrite(buf, 4, 1, f) == 1) {
+                fclose(f);
+                struct timeval tv;
+                tv.tv_sec = rom_stat.mtime;
+                tv.tv_usec = 0;
+                //write_log("- setting file time\n");
+                fs_set_file_time(cache_path, &tv);
+            }
+            else {
+                fclose(f);
+            }
+        }
+    }
+
+    write_log("- done\n");
     return 0;
 }
 
-}
+} // extern C

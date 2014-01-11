@@ -1,3 +1,4 @@
+#include <fs/emu.h>
 #include "audio.h"
 
 int64_t g_fs_emu_audio_buffer_underrun_time = 0;

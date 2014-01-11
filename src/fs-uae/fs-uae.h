@@ -73,6 +73,8 @@ const char *fs_uae_controllers_dir();
 const char *fs_uae_logs_dir();
 const char *fs_uae_exe_dir();
 const char *fs_uae_themes_dir();
+const char *fs_uae_cache_dir();
+const char *fs_uae_kickstarts_cache_dir();
 
 #define FS_UAE_CONFIG_TYPE_JOYSTICK "amiga"
 #define FS_UAE_CONFIG_TYPE_MOUSE "amiga_mouse"

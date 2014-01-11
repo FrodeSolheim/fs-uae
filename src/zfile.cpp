@@ -1703,7 +1703,7 @@ static struct zfile *zfile_fopen_2 (const TCHAR *name, const TCHAR *mode, int ma
 	return l;
 }
 
-#ifdef _WIN32
+#if defined(_WIN32) && defined(WINUAE)
 #include "win32.h"
 
 #define AF _T("%AMIGAFOREVERDATA%")
@@ -1789,7 +1789,7 @@ static struct zfile *zfile_fopen_x (const TCHAR *name, const TCHAR *mode, int ma
 	return l;
 }
 
-#ifdef _WIN32
+#if defined(_WIN32) && defined(WINUAE)
 static int isinternetfile (const TCHAR *name)
 {
 	if (!_tcsnicmp (name, _T("http://"), 7) || !_tcsnicmp (name, _T("https://"), 8))
@@ -1895,7 +1895,7 @@ static struct zfile *zfile_fopenx2 (const TCHAR *name, const TCHAR *mode, int ma
 	struct zfile *f;
 	TCHAR tmp[MAX_DPATH];
 
-#ifdef _WIN32
+#if defined(_WIN32) && defined(WINUAE)
 	if (isinternetfile (name))
 		return zfile_fopen_internet (name, mode, mask);
 #endif

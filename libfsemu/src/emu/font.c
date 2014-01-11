@@ -1,3 +1,4 @@
+#include <fs/emu.h>
 #include "font.h"
 
 #include <stdlib.h>

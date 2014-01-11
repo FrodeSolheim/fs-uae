@@ -1,7 +1,7 @@
 #if !defined(USE_OPENAL)
 
-#include <stdint.h>
 #include <fs/emu.h>
+#include <stdint.h>
 
 void fs_emu_init_audio_stream(int stream,
         fs_emu_audio_stream_options *options) {

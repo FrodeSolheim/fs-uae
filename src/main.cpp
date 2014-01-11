@@ -815,13 +815,20 @@ void do_start_program (void)
 	inputdevice_updateconfig (&changed_prefs, &currprefs);
 	if (quit_program >= 0)
 		quit_program = UAE_RESET;
+#ifdef FSUAE
+
+#else
 #if (defined (_WIN32) || defined (_WIN64)) && !defined (NO_WIN32_EXCEPTION_HANDLER)
 	extern int EvalException (LPEXCEPTION_POINTERS blah, int n_except);
 	__try
 #endif
+#endif
 	{
 		m68k_go (1);
 	}
+#ifdef FSUAE
+
+#else
 #if (defined (_WIN32) || defined (_WIN64)) && !defined (NO_WIN32_EXCEPTION_HANDLER)
 #ifdef JIT
 	__except (EvalException (GetExceptionInformation (), GetExceptionCode ()))
@@ -831,6 +838,7 @@ void do_start_program (void)
 	{
 		// EvalException does the good stuff...
 	}
+#endif
 #endif
 }
 

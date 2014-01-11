@@ -1,5 +1,8 @@
 #ifdef USE_SDL_VIDEO
 
+// FIXME: make libfsml independent of libfsemu
+#include "../emu/video.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stddef.h>
@@ -30,9 +33,6 @@
 
 //#include "fs/emu.h"
 #include "ml_internal.h"
-
-// FIXME: make libfsml independent of libfsemu
-#include "../emu/video.h"
 
 static fs_queue *g_video_event_queue = NULL;
 static fs_mutex *g_video_event_mutex = NULL;

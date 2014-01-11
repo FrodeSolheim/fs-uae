@@ -1,3 +1,7 @@
+// FIXME: make libfsml independent of libfsmeu
+#include "../emu/util.h"
+#include "../emu/video.h"
+
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -24,9 +28,6 @@
 #include "ml_internal.h"
 
 #include <fs/thread.h>
-// FIXME: make libfsml independent of libfsmeu
-#include "../emu/util.h"
-#include "../emu/video.h"
 
 static int g_vblank_count = 0;
 static int64_t g_measured_vblank_time = 0;

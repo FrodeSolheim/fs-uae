@@ -1,3 +1,4 @@
+#include <fs/emu.h>
 #include "xml_shader.h"
 
 #ifdef WITH_XML_SHADER

@@ -389,12 +389,12 @@ void fs_emu_audio_pause_stream(int stream);
 void fs_emu_audio_resume_stream(int stream);
 int fs_emu_queue_audio_buffer(int stream, int16_t* buffer, int size);
 int fs_emu_check_audio_buffer_done(int stream, int buffer);
+int fs_emu_get_audio_frequency();
 
 #if 0
 // start deprecated
 void fs_emu_enable_audio_stream(int stream);
 void fs_emu_disable_audio_stream(int stream);
-int fs_emu_get_audio_frequency();
 int fs_emu_get_audio_buffer_size();
 void fs_emu_audio_sample(int stream, int16_t left, int16_t right);
 void fs_emu_set_max_audio_buffers(int buffers);
@@ -496,10 +496,15 @@ void fs_emu_release_gui_lock();
 // main function support for windows
 
 #ifdef WINDOWS
-#include <Windows.h>
+#include <winsock2.h>
+#include <windows.h>
 extern int __argc;
 extern char** __argv;
+
 #undef main
+// prevent later imports of SDL to overwrite main
+#define _SDL_main_h
+
 extern int g_fs_ml_ncmdshow;
 extern HINSTANCE g_fs_ml_hinstance;
 int _fs_emu_windows_main(int argc, char* argv[]);

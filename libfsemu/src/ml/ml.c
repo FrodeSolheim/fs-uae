@@ -1,5 +1,7 @@
+// FIXME: REMOVE
+#include "../emu/video.h"
 #ifdef WINDOWS
-#define _WIN32_WINNT 0x0501
+//#define _WIN32_WINNT 0x0501
 #include <Windows.h>
 #endif
 #include <stdio.h>
@@ -7,6 +9,7 @@
 #include <string.h>
 
 #include <fs/base.h>
+#include <fs/string.h>
 #include <fs/log.h>
 #include <fs/ml.h>
 #include <fs/queue.h>
@@ -18,9 +21,6 @@
 #include <sys/time.h>
 #include <sys/resource.h>
 #endif
-
-// FIXME: REMOVE
-#include "../emu/video.h"
 
 #include "ml_internal.h"
 

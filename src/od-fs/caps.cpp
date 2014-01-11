@@ -108,7 +108,7 @@ int caps_init (void)
     static int init = 0, noticed = 0;
     int i;
     HMODULE h;
-    TCHAR *dllname = "CAPSImg.dll";
+    const TCHAR *dllname = "CAPSImg.dll";
 
     if (init)
         return 1;

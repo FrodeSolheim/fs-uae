@@ -1,6 +1,15 @@
 #ifndef LIBAMIGA_WINUAE_COMPAT_H_
 #define LIBAMIGA_WINUAE_COMPAT_H_
 
+#ifdef WINDOWS
+// including windef.h now to get RECT and DWORD defined (and not collide with
+// later includes of windows.h
+#include "windef.h"
+#include "windows.h"
+//#undef _WIN32
+//#undef WIN32
+#endif
+
 // use custom versions of these functions for platform-specific behaviour
 
 #define _tfopen uae_fopen
@@ -62,14 +71,6 @@ extern int _daylight;
 // needed by e.g drawing.cpp
 
 #define NOINLINE
-
-#ifdef WINDOWS
-// including windef.h now to get RECT and DWORD defined (and not collide with
-// later includes of windows.h
-#include "windef.h"
-#undef _WIN32
-#undef WIN32
-#endif
 
 #ifndef WINDOWS
 

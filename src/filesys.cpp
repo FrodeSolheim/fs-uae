@@ -7032,7 +7032,7 @@ void filesys_install_code (void)
 	filesys_initcode = a + dlg (b) + bootrom_header - 4;
 }
 
-#ifdef _WIN32
+#if defined(_WIN32) && defined(WINUAE)
 #include "od-win32/win32_filesys.cpp"
 #endif
 

@@ -1,3 +1,4 @@
+#include <fs/emu.h>
 #include "render.h"
 
 #include <stdio.h>

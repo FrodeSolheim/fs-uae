@@ -1,3 +1,4 @@
+#include <fs/emu.h>
 #include "theme.h"
 
 #include <fs/config.h>

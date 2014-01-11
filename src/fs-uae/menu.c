@@ -15,8 +15,8 @@
 /// to get in short enough, just translate "No Device" instead.
 #define NO_AMIGA_DEVICE _("No Amiga Device")
 #define PAUSE_ITEM_INDEX 1
-#define INPUT_ITEM_INDEX 8
-#define MEDIA_ITEM_INDEX 12
+#define INPUT_ITEM_INDEX 7
+#define MEDIA_ITEM_INDEX 11
 
 static int pause_function(fs_emu_menu_item *item, void **data) {
     fs_emu_log("pause_function\n");
@@ -349,6 +349,36 @@ static int save_state_menu_function(fs_emu_menu_item *menu_item,
     return FS_EMU_MENU_RESULT_MENU;
 }
 
+static int load_states_menu_function(fs_emu_menu_item *unused,
+        void **result_data) {
+    fs_emu_log("load_states_menu_function\n");
+    fs_emu_menu_item *item;
+    fs_emu_menu *menu = fs_emu_menu_new();
+    fs_emu_menu_set_update_function(menu, update_save_states_menu);
+
+    item = fs_emu_menu_item_new();
+    fs_emu_menu_append_item(menu, item);
+    fs_emu_menu_item_set_title(item, _("Load State"));
+    fs_emu_menu_item_set_type(item, FS_EMU_MENU_ITEM_TYPE_HEADING);
+
+    for (int i = 0; i < NUM_SAVE_SLOTS; i++) {
+        item = fs_emu_menu_item_new();
+        fs_emu_menu_append_item(menu, item);
+        fs_emu_menu_item_set_idata(item, i);
+        fs_emu_menu_item_set_enabled(item, check_save_state(i) != NULL);
+        fs_emu_menu_item_set_activate_function(item,
+                //save_state_menu_function);
+                load_function);
+    }
+
+    // focus on the last used slot
+    menu->index = g_last_save_slot + 1;
+
+    //create_save_state_menu(menu, 1);
+    *result_data = menu;
+    return FS_EMU_MENU_RESULT_MENU;
+}
+
 static int save_states_menu_function(fs_emu_menu_item *unused,
         void **result_data) {
     fs_emu_log("save_states_menu_function\n");
@@ -358,7 +388,7 @@ static int save_states_menu_function(fs_emu_menu_item *unused,
 
     item = fs_emu_menu_item_new();
     fs_emu_menu_append_item(menu, item);
-    fs_emu_menu_item_set_title(item, _("Savestates"));
+    fs_emu_menu_item_set_title(item, _("Save State"));
     fs_emu_menu_item_set_type(item, FS_EMU_MENU_ITEM_TYPE_HEADING);
 
     for (int i = 0; i < NUM_SAVE_SLOTS; i++) {
@@ -366,7 +396,8 @@ static int save_states_menu_function(fs_emu_menu_item *unused,
         fs_emu_menu_append_item(menu, item);
         fs_emu_menu_item_set_idata(item, i);
         fs_emu_menu_item_set_activate_function(item,
-                save_state_menu_function);
+                //save_state_menu_function);
+                save_function);
     }
 
     // focus on the last used slot
@@ -1029,18 +1060,26 @@ void fs_uae_configure_menu() {
 
     item = fs_emu_menu_item_new();
     fs_emu_menu_append_item(menu, item);
-    fs_emu_menu_item_set_title(item, _("Savestates"));
-    fs_emu_menu_item_set_activate_function(item, save_states_menu_function);
+    fs_emu_menu_item_set_title(item, _("Load State"));
+    fs_emu_menu_item_set_activate_function(item, load_states_menu_function);
     if (fs_config_get_boolean("save_states") == 0) {
         fs_emu_menu_item_set_enabled(item, 0);
     }
 
     item = fs_emu_menu_item_new();
     fs_emu_menu_append_item(menu, item);
+    fs_emu_menu_item_set_title(item, _("Save State"));
+    fs_emu_menu_item_set_activate_function(item, save_states_menu_function);
+    if (fs_config_get_boolean("save_states") == 0) {
+        fs_emu_menu_item_set_enabled(item, 0);
+    }
+/*
+    item = fs_emu_menu_item_new();
+    fs_emu_menu_append_item(menu, item);
     fs_emu_menu_item_set_title(item, _("More..."));
     fs_emu_menu_item_set_type(item, FS_EMU_MENU_ITEM_TYPE_MENU);
     fs_emu_menu_item_set_enabled(item, 0);
-
+*/
     item = fs_emu_menu_item_new();
     fs_emu_menu_append_item(menu, item);
     fs_emu_menu_item_set_title(item, _("Amiga Control"));
@@ -1050,13 +1089,13 @@ void fs_uae_configure_menu() {
     fs_emu_menu_append_item(menu, item);
     fs_emu_menu_item_set_title(item, _("Reset Amiga"));
     fs_emu_menu_item_set_activate_function(item, reset_menu_function);
-
+/*
     item = fs_emu_menu_item_new();
     fs_emu_menu_append_item(menu, item);
     fs_emu_menu_item_set_title(item, _("More..."));
     fs_emu_menu_item_set_type(item, FS_EMU_MENU_ITEM_TYPE_MENU);
     fs_emu_menu_item_set_enabled(item, 0);
-
+*/
     item = fs_emu_menu_item_new();
     fs_emu_menu_append_item(menu, item);
     fs_emu_menu_item_set_title(item, _("Input Options"));

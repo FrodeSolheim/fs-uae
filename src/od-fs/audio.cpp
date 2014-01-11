@@ -22,13 +22,12 @@ int amiga_set_audio_frequency(int frequency) {
     char freq[13];
     snprintf(freq, 13, "%d", frequency);
     amiga_set_option("sound_frequency", freq);
-    /*
+
     write_log("amiga_set_audio_frequency: %d\n", frequency);
     g_audio_frequency = frequency;
-    changed_prefs.sound_freq = frequency;
-    write_log("changed_prefs: %p\n", &changed_prefs);
-    config_changed = 1;
-    */
+    //changed_prefs.sound_freq = frequency;
+    //write_log("changed_prefs: %p\n", &changed_prefs);
+    //config_changed = 1;
     return 1;
 }
 

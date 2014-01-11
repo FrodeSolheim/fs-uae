@@ -1,5 +1,6 @@
 #ifdef USE_SDL
 
+#include <fs/emu.h>
 #include "audio.h"
 
 static void sdl_audio_init() {

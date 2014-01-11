@@ -136,7 +136,8 @@ ifeq ($(os), android)
   libs += -lGLESv1_CM
 else ifeq ($(os), windows)
   cppflags += -DWINDOWS
-  cxxflags += -U_WIN32 -UWIN32
+  #cxxflags += -U_WIN32 -UWIN32
+  cxxflags += -D_WIN32 -DWIN32
   libs += -lOpenGL32 -lGLU32 -lgdi32 -lWinmm -lOpenAL32 -lWs2_32 -lWininet
 
   ifeq ($(devel), 1)
@@ -255,6 +256,7 @@ obj/gfxutil.o \
 obj/hardfile.o \
 obj/hrtmon.rom.o \
 obj/identify.o \
+obj/inputdevice.o \
 obj/inputrecord.o \
 obj/isofs.o \
 obj/keybuf.o \
@@ -310,7 +312,6 @@ obj/od-fs-fsdb_host.o \
 obj/od-fs-hardfile_host.o \
 obj/od-fs-gui.o \
 obj/od-fs-input.o \
-obj/od-fs-inputdevice.o \
 obj/od-fs-keymap.o \
 obj/od-fs-libamiga.o \
 obj/od-fs-logging.o \

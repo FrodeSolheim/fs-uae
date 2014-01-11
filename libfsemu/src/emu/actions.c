@@ -16,10 +16,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
  */
 
+#include <fs/emu.h>
 #include "actions.h"
 
 #include <stdlib.h>
-#include <fs/emu.h>
 #include <fs/random.h>
 
 #include "video.h"

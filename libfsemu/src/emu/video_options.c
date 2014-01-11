@@ -1,3 +1,4 @@
+#include <fs/emu.h>
 #include <stdlib.h>
 #include <string.h>
 

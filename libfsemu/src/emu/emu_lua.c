@@ -1,7 +1,7 @@
 #ifdef WITH_LUA
 
-#include "emu_lua.h"
 #include <fs/emu.h>
+#include "emu_lua.h"
 #include <fs/log.h>
 #include <fs/thread.h>
 #include <lualib.h>

@@ -1,3 +1,4 @@
+#include <fs/emu.h>
 #include "menu.h"
 
 #include <stdlib.h>

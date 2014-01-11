@@ -1,3 +1,4 @@
+#include <fs/filesys.h>
 #include "sysconfig.h"
 #include "sysdeps.h"
 
@@ -6,7 +7,6 @@
 
 #include <string.h>
 #include <string.h>
-#include <fs/filesys.h>
 #include <fs/string.h>
 
 #include "uae/memory.h"

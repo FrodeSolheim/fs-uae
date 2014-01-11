@@ -1,6 +1,8 @@
 #define _GNU_SOURCE 1
+#include <fs/filesys.h>
+
 #ifdef WINDOWS
-#include <Windows.h>
+#include <windows.h>
 #else
 #include <sys/types.h>
 #include <utime.h>
@@ -12,7 +14,6 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <fs/base.h>
-#include <fs/filesys.h>
 #include <fs/string.h>
 
 #ifdef USE_GLIB

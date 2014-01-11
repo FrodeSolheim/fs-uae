@@ -136,8 +136,8 @@ ifeq ($(os), android)
   libs += -lGLESv1_CM
 else ifeq ($(os), windows)
   cppflags += -DWINDOWS
-  #cxxflags += -U_WIN32 -UWIN32
-  cxxflags += -D_WIN32 -DWIN32
+  cxxflags += -U_WIN32 -UWIN32
+  #cxxflags += -D_WIN32 -DWIN32
   libs += -lOpenGL32 -lGLU32 -lgdi32 -lWinmm -lOpenAL32 -lWs2_32 -lWininet
 
   ifeq ($(devel), 1)

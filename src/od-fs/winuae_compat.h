@@ -6,8 +6,8 @@
 // later includes of windows.h
 #include "windef.h"
 #include "windows.h"
-//#undef _WIN32
-//#undef WIN32
+#undef _WIN32
+#undef WIN32
 #endif
 
 // use custom versions of these functions for platform-specific behaviour

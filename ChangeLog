@@ -1,3 +1,9 @@
+Version 2.3.15:
+
+* Reverted to previous MinGW compiler (Windows).
+* (Launcher) Fixed a bug loading online database games with cpu specification.
+* (Arcade) Fixed Windows shortcut for FS-UAE Arcade.
+
 Version 2.3.14:
 
 * JIT should work on Windows too now.

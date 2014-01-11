@@ -48,8 +48,8 @@ extern uae_u8 *natmem_offset, *natmem_offset_end;
 #define REG_PAR2 ESI_INDEX
 #else
 #ifdef FSUAE
-// using __fastcall / __attribute__((fastcall)) on non-Windows as well
-#define REG_PAR1 ECX_INDEX
+// XXX using __fastcall / __attribute__((fastcall)) on non-Windows as well
+#define REG_PAR1 EAX_INDEX
 #define REG_PAR2 EDX_INDEX
 #else
 #define REG_PAR1 EAX_INDEX

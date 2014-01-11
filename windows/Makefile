@@ -21,19 +21,31 @@ progdir:
 	mkdir $(emulator_dir)
 
 	make -C ..
-	cp /fs/bin/zlib1.dll $(emulator_dir)
-	cp /fs/bin/libglib-2.0-0.dll $(emulator_dir)
-	cp /fs/bin/libgthread-2.0-0.dll $(emulator_dir)
-	#cp /fs/bin/intl.dll $(emulator_dir)
-	cp /fs/bin/libpng*.dll $(emulator_dir)
-	cp /fs/bin/*freetype*.dll $(emulator_dir)
 	cp /mingw/bin/libgcc_s_*.dll $(emulator_dir)
 	cp /mingw/bin/libstdc++*.dll $(emulator_dir)
-	cp /mingw/bin/libwinpthread*.dll $(emulator_dir)
-	cp /fs/bin/libintl*.dll $(emulator_dir)
-	cp /fs/bin/libiconv*.dll $(emulator_dir)
-	cp /fs/bin/SDL.dll $(emulator_dir)
-	cp /fs/bin/OpenAL32.dll $(emulator_dir)
+
+	cp /mingw/bin/intl.dll $(emulator_dir)
+	cp /mingw/bin/libpng*.dll $(emulator_dir)
+	cp /mingw/bin/*freetype*.dll $(emulator_dir)
+	cp /mingw/bin/zlib1.dll $(emulator_dir)
+	cp /mingw/bin/libglib-2.0-0.dll $(emulator_dir)
+	cp /mingw/bin/libgthread-2.0-0.dll $(emulator_dir)
+	cp /mingw/bin/libintl*.dll $(emulator_dir)
+	cp /mingw/bin/libiconv*.dll $(emulator_dir)
+	cp /mingw/bin/SDL.dll $(emulator_dir)
+	cp /mingw/bin/OpenAL32.dll $(emulator_dir)
+
+	#cp /mingw/bin/libwinpthread*.dll $(emulator_dir)
+	#cp /fs/bin/libpng*.dll $(emulator_dir)
+	#cp /fs/bin/*freetype*.dll $(emulator_dir)
+	#cp /fs/bin/zlib1.dll $(emulator_dir)
+	#cp /fs/bin/libglib-2.0-0.dll $(emulator_dir)
+	#cp /fs/bin/libgthread-2.0-0.dll $(emulator_dir)
+	#cp /fs/bin/libintl*.dll $(emulator_dir)
+	#cp /fs/bin/libiconv*.dll $(emulator_dir)
+	#cp /fs/bin/SDL.dll $(emulator_dir)
+	#cp /fs/bin/OpenAL32.dll $(emulator_dir)
+
 	cp -a ../fs-uae.exe $(emulator_dir)/
 	cp -a ../fs-uae-device-helper.exe $(emulator_dir)/
 	cp -a ../../CAPSImg.dll $(emulator_dir) || cp -a ../CAPSImg.dll $(emulator_dir)

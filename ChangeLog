@@ -1,3 +1,11 @@
+Version 2.3.16:
+
+* (Launcher) Always include Configurations directory in file scan regardless
+  of scan dirs.
+* (Launcher) Make file picker code compatible with both PySide and PyQT4.
+* (Launcher) Added support for WHDLoad 17.2, set as default WHDLoad version.
+* (Arcade) Fixed bug preventing games from launching.
+
 Version 2.3.15:
 
 * Reverted to previous MinGW compiler (Windows).

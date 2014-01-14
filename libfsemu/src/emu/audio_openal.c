@@ -442,7 +442,12 @@ static void openal_audio_init() {
 
     int volume = fs_config_get_int_clamped("volume", 0, 100);
     if (volume != FS_CONFIG_NONE) {
-        fs_emu_audio_set_volume(volume);
+        if (volume == 0) {
+            fs_emu_audio_set_mute(1);
+        }
+        else {
+            fs_emu_audio_set_volume(volume);
+        }
     }
 
     // select the "preferred device"
@@ -580,6 +585,7 @@ void fs_emu_init_audio_stream(int stream,
             s->frequency, s->num_buffers, s->buffer_size);
     s->mutex = fs_mutex_create();
     s->queue = fs_queue_new();
+    s->source_volume_current = 1.0;
     alGenSources(1, &s->source);
 
     //alSourcei (s->source, AL_SOURCE_RELATIVE, AL_TRUE);

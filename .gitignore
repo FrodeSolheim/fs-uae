@@ -2,7 +2,7 @@ build
 dist
 /fs-uae
 /fs-uae-device-helper
-
+/gen
 *.ppa.upload
 *.pyc
 *.o

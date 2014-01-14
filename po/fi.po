@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2013-11-13 22:14+0100\n"
-"PO-Revision-Date: 2013-11-14 15:35+0200\n"
+"POT-Creation-Date: 2014-01-14 19:04+0100\n"
+"PO-Revision-Date: 2014-01-14 21:23+0200\n"
 "Last-Translator: Mika Vaisanen <mjvaisane@gmail.com>\n"
 "Language-Team: Finnish\n"
 "Language: fi\n"
@@ -139,6 +139,9 @@ msgstr "Näppäimistö"
 msgid "Load"
 msgstr "Lataa"
 
+msgid "Load State"
+msgstr "Lataa tila"
+
 msgid "More..."
 msgstr "Lisää..."
 
@@ -220,8 +223,8 @@ msgstr "Jatka"
 msgid "Save"
 msgstr "Tallenna"
 
-msgid "Savestates"
-msgstr "Tilatallennukset"
+msgid "Save State"
+msgstr "Tallenna tila"
 
 # olisiko "Nopea resetointi" parempi?
 #. / TRANSLATORS: Soft reset reboots the computer without a power cycle
@@ -256,3 +259,6 @@ msgstr "Zoomaus: %s + Kehys"
 
 #~ msgid "Save States"
 #~ msgstr "Tallennetut tilat"
+
+#~ msgid "Savestates"
+#~ msgstr "Tilatallennukset"

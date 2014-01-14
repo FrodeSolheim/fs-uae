@@ -1,10 +1,13 @@
 Version 2.3.17:
 
 * Fix initial mute when option volume is set to 0.
+* Updated translations: fi [Goingdown], pl [grimi].
 * (Launcher) Option download_file from DB does not have to be an archive.
 * (Launcher) Fixed bug when doubleclicking on an URI in the floppy list.
 * (Launcher) Fixed bug with selecting multiple files [2.3.16].
 * (Launcher) Fixed trailing colon in translatiion of option description.
+* (Launcher) Updated translations: fi [Goingdown], pl [grimi].
+
 
 Version 2.3.16:
 

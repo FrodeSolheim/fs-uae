@@ -1,5 +1,6 @@
 Version 2.3.17:
 
+* Remove old log file paths so they'll not be mistaken for current logs.
 * Fix initial mute when option volume is set to 0.
 * Updated translations: fi [Goingdown], pl [grimi], fr [Foul].
 * (Launcher) Option download_file from DB does not have to be an archive.

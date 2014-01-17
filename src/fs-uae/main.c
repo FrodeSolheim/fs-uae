@@ -767,6 +767,32 @@ static void configure_logging(const char *logstr) {
     }
 }
 
+static void cleanup_old_file(const char *path) {
+    char *p = fs_uae_expand_path(path);
+    if (fs_path_exists(p)) {
+        if (fs_path_is_dir(p)) {
+            fs_log("trying to remove old directory %s\n", p);
+            fs_rmdir(p);
+        }
+        else {
+            fs_log("trying to remove old file %s\n", p);
+            fs_unlink(p);
+        }
+    }
+    free(p);
+}
+
+static void cleanup_old_files() {
+    // Logs are now stored in $BASE/Cache/Logs by default
+    cleanup_old_file("$BASE/Logs/FS-UAE.log");
+    cleanup_old_file("$BASE/Logs/FS-UAE.log.txt");
+    cleanup_old_file("$BASE/Logs/DebugConfig.uae");
+    cleanup_old_file("$BASE/Logs/Launcher.log.txt");
+    cleanup_old_file("$BASE/Logs/Synchronization.log");
+    // try to remove the dir - if it now is empty
+    cleanup_old_file("$BASE/Logs");
+}
+
 static const char *overlay_names[] = {
     "df0_led",     // 0
     "df1_led",     // 1
@@ -1118,5 +1144,6 @@ int main(int argc, char* argv[]) {
                 fs_uae_state_dir());
     }
     fs_log("end of main function\n");
+    cleanup_old_files();
     return 0;
 }

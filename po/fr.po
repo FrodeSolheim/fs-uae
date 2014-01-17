@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: FS-UAE\n"
 "Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2013-11-20 19:32+0100\n"
-"PO-Revision-Date: 2013-11-21 21:35+0100\n"
+"POT-Creation-Date: 2014-01-14 23:15+0100\n"
+"PO-Revision-Date: 2014-01-15 19:38+0100\n"
 "Last-Translator: Foul <foulweb@gmail.com>\n"
 "Language-Team: Foul <fs-uae-fr@fengestad.no>\n"
 "Language: fr\n"
@@ -138,6 +138,9 @@ msgstr "Clavier"
 msgid "Load"
 msgstr "Charger"
 
+msgid "Load State"
+msgstr "Charger l'État"
+
 msgid "More..."
 msgstr "Plus..."
 
@@ -212,8 +215,8 @@ msgstr "Reprendre"
 msgid "Save"
 msgstr "Sauvegarder"
 
-msgid "Savestates"
-msgstr "États des Sauvegardes"
+msgid "Save State"
+msgstr "Sauvegarder l’État"
 
 #. / TRANSLATORS: Soft reset reboots the computer without a power cycle
 msgid "Soft Reset"
@@ -256,3 +259,6 @@ msgstr "Zoom: %s + Bordure"
 
 #~ msgid "Save States"
 #~ msgstr "Sauvegarder l’État"
+
+#~ msgid "Savestates"
+#~ msgstr "États des Sauvegardes"

@@ -1,3 +1,7 @@
+Version 2.3.18:
+
+* (Launcher) Replaced fengestad.no/fs-uae URLs with fs-uae.net ones.
+
 Version 2.3.17:
 
 * Remove old log file paths so they'll not be mistaken for current logs.

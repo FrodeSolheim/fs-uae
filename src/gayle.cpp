@@ -651,8 +651,8 @@ static void ide_set_multiple_mode (struct ide_hdf *ide)
 }
 static void ide_set_features (struct ide_hdf *ide)
 {
-	int type = ide->regs.ide_nsector >> 3;
-	int mode = ide->regs.ide_nsector & 7;
+	int UNUSED(type) = ide->regs.ide_nsector >> 3;
+	int UNUSED(mode) = ide->regs.ide_nsector & 7;
 
 	write_log (_T("IDE%d set features %02X (%02X)\n"), ide->num, ide->regs.ide_feat, ide->regs.ide_nsector);
 	ide_fail (ide);
@@ -841,7 +841,7 @@ static void do_packet_command (struct ide_hdf *ide)
 	if (IDE_LOG > 0) {
 		uae_u8 *c = ide->scsi->cmd;
 		write_log (_T("ATASCSI %02x.%02x.%02x.%02x.%02x.%02x.%02x.%02x.%02x.%02x.%02x.%02x\n"),
-			c[0], c[1], c[2], c[3], c[4], c[5], c[6], c[7], c[8], c[9], c[10], c[11], c[12]);
+			c[0], c[1], c[2], c[3], c[4], c[5], c[6], c[7], c[8], c[9], c[10], c[11]);
 	}
 	ide->direction = 0;
 	scsi_emulate_analyze (ide->scsi);
@@ -1091,7 +1091,6 @@ static void ide_do_command (struct ide_hdf *ide, uae_u8 cmd)
 static uae_u16 ide_get_data (struct ide_hdf *ide)
 {
 	bool irq = false;
-	bool last = false;
 	uae_u16 v;
 
 	if (IDE_LOG > 4)
@@ -1182,7 +1181,6 @@ static void ide_put_data (struct ide_hdf *ide, uae_u16 v)
 static int get_gayle_ide_reg (uaecptr addr, struct ide_hdf **ide)
 {
 	int ide2;
-	uaecptr a = addr;
 	addr &= 0xffff;
 	*ide = NULL;
 	if (addr >= GAYLE_IRQ_4000 && addr <= GAYLE_IRQ_4000 + 1 && currprefs.cs_ide == IDE_A4000)
@@ -1365,7 +1363,6 @@ static uae_u32 gayle_read2 (uaecptr addr)
 {
 	struct ide_hdf *ide = NULL;
 	int ide_reg;
-	uae_u8 v = 0;
 
 	addr &= 0xffff;
 	if ((IDE_LOG > 3 && (addr != 0x2000 && addr != 0x2001 && addr != 0x3020 && addr != 0x3021 && addr != GAYLE_IRQ_1200)) || IDE_LOG > 5)
@@ -1934,11 +1931,9 @@ static struct ide_hdf *add_ide_unit (int ch, struct uaedev_config_info *ci)
 }
 
 static int pcmcia_common_size, pcmcia_attrs_size;
-static int pcmcia_common_mask;
 static uae_u8 *pcmcia_common;
 static uae_u8 *pcmcia_attrs;
 static int pcmcia_write_min, pcmcia_write_max;
-static int pcmcia_oddevenflip;
 static uae_u16 pcmcia_idedata;
 
 static int get_pcmcmia_ide_reg (uaecptr addr, int width, struct ide_hdf **ide)
@@ -2085,7 +2080,7 @@ static void initscideattr (int readonly)
 {
 	uae_u8 *rp;
 	uae_u8 *p = pcmcia_attrs;
-	struct hardfiledata *hfd = &pcmcia_sram->hfd;
+	struct hardfiledata *UNUSED(hfd) = &pcmcia_sram->hfd;
 
 	/* Mostly just copied from real CF cards.. */
 
@@ -2337,7 +2332,7 @@ static int initpcmcia (const TCHAR *path, int readonly, int type, int reset)
 		if (!pcmcia_sram->hfd.drive_empty) {
 			pcmcia_common_size = pcmcia_sram->hfd.virtsize;
 			if (pcmcia_sram->hfd.virtsize > 4 * 1024 * 1024) {
-				write_log (_T("PCMCIA SRAM: too large device, %d bytes\n"), pcmcia_sram->hfd.virtsize);
+				write_log (_T("PCMCIA SRAM: too large device, %llu bytes\n"), pcmcia_sram->hfd.virtsize);
 				pcmcia_common_size = 4 * 1024 * 1024;
 			}
 			pcmcia_common = xcalloc (uae_u8, pcmcia_common_size);
@@ -2598,11 +2593,6 @@ void gayle_map_pcmcia (void)
 		if (currprefs.chipmem_size <= 4 * 1024 * 1024 && getz2endaddr () <= 4 * 1024 * 1024)
 			map_banks_cond (&gayle_common_bank, PCMCIA_COMMON_START >> 16, PCMCIA_COMMON_SIZE >> 16, 0);
 	}
-}
-
-static int rl (uae_u8 *p)
-{
-	return (p[0] << 24) | (p[1] << 16) | (p[2] << 8) | (p[3]);
 }
 
 void gayle_free_units (void)

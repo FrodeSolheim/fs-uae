@@ -487,6 +487,15 @@ obj/inputdevice.o: src/inputdevice.cpp
 	mkdir -p `dirname $@`
 	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -Wno-error=logical-op-parentheses -c $< -o $@
 
+obj/inputrecord.o: src/inputrecord.cpp
+	mkdir -p `dirname $@`
+	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -Wno-error=unused-variable -Wno-error=format -c $< -o $@
+
+obj/isofs.o: src/isofs.cpp
+	mkdir -p `dirname $@`
+	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -Wno-error=tautological-constant-out-of-range-compare -Wno-error=format -Wno-error=tautological-compare -c $< -o $@
+
+
 obj/%.o: src/%.cpp
 	mkdir -p `dirname $@`
 	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -c $< -o $@

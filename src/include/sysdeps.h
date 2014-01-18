@@ -309,6 +309,9 @@ extern void to_upper (TCHAR *s, int len);
 
 #if defined _WIN32
 
+#ifdef FSUAE
+#error _WIN32 should not be defined here
+#endif
 #if defined __WATCOMC__
 
 #define O_NDELAY 0

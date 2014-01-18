@@ -46,7 +46,7 @@ else
 endif
 
 cppflags = $(CXXFLAGS)
-cflags = -std=c99 -Iinclude -Isrc/lua `$(sdl_config) --cflags` \
+cflags = -std=gnu99 -Iinclude -Isrc/lua `$(sdl_config) --cflags` \
 		`pkg-config --cflags glib-2.0 gthread-2.0 libpng` \
 		`pkg-config --cflags freetype2` \
 		$(CFLAGS) -D_FILE_OFFSET_BITS=64

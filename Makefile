@@ -10,7 +10,8 @@ endif
 
 all: fs-uae fs-uae-device-helper mo
 
-cppflags = -DFSEMU -DFSUAE -D_FILE_OFFSET_BITS=64 $(CPPFLAGS)
+#cppflags = -DFSEMU -DFSUAE -D_FILE_OFFSET_BITS=64 $(CPPFLAGS)
+cppflags = -DFSEMU=1 -DFSUAE=1 -D_FILE_OFFSET_BITS=64
 
 strict := 0
 ifeq ($(strict), 1)
@@ -45,7 +46,7 @@ cxxflags = $(warnings) $(errors) -Isrc/od-fs -Isrc/od-fs/include \
 		-I$(libfsemu_dir)/include \
 		-Wno-write-strings -fpermissive
 
-cflags = -std=c99 $(cxxflags)
+cflags = -std=gnu99 $(cxxflags)
 ldflags =
 libs = -L$(libfsemu_dir)/out -lfsemu -lpng -lz
 
@@ -72,7 +73,7 @@ common_flags = -Isrc/od-fs -Isrc/od-fs/include \
 		-I$(libfsemu_dir)/include \
 		-I$(libfsemu_dir)/src/lua \
 		`$(sdl_config) --cflags`
-cflags = $(common_flags) -std=c99 $(CFLAGS)
+cflags = $(common_flags) -std=gnu99 $(CFLAGS)
 #cxxflags = $(common_flags) -fpermissive $(CXXFLAGS)
 cxxflags = $(common_flags) $(CXXFLAGS)
 ldflags = $(LDFLAGS)
@@ -141,8 +142,8 @@ ifeq ($(os), android)
   cxxflags += 
   libs += -lGLESv1_CM
 else ifeq ($(os), windows)
-  cppflags += -DWINDOWS
-  cxxflags += -U_WIN32 -UWIN32
+  cppflags +=-DWINDOWS=1
+  #cxxflags += -U_WIN32 -UWIN32
   #cxxflags += -D_WIN32 -DWIN32
   libs += -lOpenGL32 -lGLU32 -lgdi32 -lWinmm -lOpenAL32 -lWs2_32 -lWininet
 
@@ -165,27 +166,27 @@ else ifeq ($(os), macosx)
   cflags += -arch $(arch)
   cxxflags += -arch $(arch)
   ldflags += -arch $(arch) -headerpad_max_install_names
-  cppflags += -DMACOSX -I/System/Library/Frameworks/OpenAL.framework/Headers
+  cppflags += -DMACOSX=1 -I/System/Library/Frameworks/OpenAL.framework/Headers
   libs += -framework OpenGL -framework Carbon -framework OpenAL -framework IOKit
 else ifeq ($(os), kfreebsd)
-  cppflags += -DFREEBSD
+  cppflags += -DFREEBSD=1
   libs += -lGL -lGLU -lopenal -ldl -lX11
 else ifeq ($(os), freebsd)
-  cppflags += -DFREEBSD
+  cppflags += -DFREEBSD=1
   libs += -lGL -lGLU -lopenal -lX11 -lcompat
 else ifeq ($(os), openbsd)
-  cppflags += -DOPENBSD
+  cppflags += -DOPENBSD=1
   libs += -lGL -lGLU -lopenal -lX11 -lcompat
 else
-  cppflags += -DLINUX
+  cppflags += -DLINUX=1
   ldflags += -Wa,--execstack
   libs += -lGL -lGLU -lopenal -ldl -lX11
   #generate = 0
 endif
 
 ifneq ($(os), android)
-	cppflags += -D$(use_sdl) -DUSE_GLIB
-	#-DWITH_LUA
+	cppflags += -D$(use_sdl) -DUSE_GLIB=1
+	#-DWITH_LUA=1
 endif
 
 device_helper_objects = obj/fs-uae/device-helper.o

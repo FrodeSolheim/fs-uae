@@ -167,6 +167,14 @@ typedef unsigned short USHORT;
 #include "winuae_compat.h"
 #endif
 
+// Some WinUAE-derived code which must not be used is guarded by _WIN32
+// defines. The code is fixed so compiling without _WIN32 defined works
+// when compiling FS-UAE for Windows. FS-UAE code use the WINDOWS define
+// instead to avoid collision with WinUAE.
+
+#undef _WIN32
+#undef WIN32
+
 #include "../include/sysdeps.h"
 
 // make use of enums compatible with C++: in C++ you cannot assign an

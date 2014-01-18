@@ -9,14 +9,6 @@
 #include "windef.h"
 #include "windows.h"
 
-// Some WinUAE-derived code which must not be used is guarded by _WIN32
-// defines. The code is fixed so compiling without _WIN32 defined works
-// when compiling FS-UAE for Windows. FS-UAE code use the WINDOWS define
-// instead to avoid collision with WinUAE.
-
-#undef _WIN32
-#undef WIN32
-
 #endif
 
 // Use custom versions of these functions for platform-specific behaviour,

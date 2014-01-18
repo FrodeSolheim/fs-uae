@@ -112,7 +112,7 @@ int caps_init (void)
     if (init)
         return 1;
 
-#if WINDOWS
+#ifdef WINDOWS
     const TCHAR *dllname = "CAPSImg.dll";
     h = LoadLibrary (dllname);
     if (!h) {

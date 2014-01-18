@@ -26,10 +26,13 @@
 #ifndef COMPEMU_H
 #define COMPEMU_H
 
+#ifdef FSUAE // NL
+// FIXME: Check why WinUAE does not need these defines in this file
 #if SIZEOF_VOID_P == 8
 typedef uae_u64 uintptr;
 #else
 typedef uae_u32 uintptr;
+#endif
 #endif
 
 #ifdef JIT

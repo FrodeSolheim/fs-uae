@@ -17,7 +17,11 @@
 /* #undef AC_APPLE_UNIVERSAL_BUILD */
 
 /* CPU is 64bit */
-/* #undef CPU_64_BIT */
+#if defined(__x86_64__)
+#define CPU_64_BIT 1
+#else
+#undef CPU_64_BIT
+#endif
 
 /* we want ecs_denise */
 /* #undef ECS_DENISE */

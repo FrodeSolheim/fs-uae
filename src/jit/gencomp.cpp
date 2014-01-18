@@ -16,7 +16,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-#ifdef FSUAE
+#ifdef FSUAE // NL
 char *ua (const char *s) {
 	return strdup(s);
 }

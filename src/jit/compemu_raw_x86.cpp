@@ -1,10 +1,13 @@
 /* This should eventually end up in machdep/, but for now, x86 is the
 only target, and it's easier this way... */
-#ifdef FSUAE
+
+#ifdef FSUAE // NL
+extern uae_u8 *natmem_offset, *natmem_offset_end;
+
 #ifdef WINDOWS
 #define _WIN32
 #endif
-extern uae_u8 *natmem_offset, *natmem_offset_end;
+
 #endif
 
 /*************************************************************************
@@ -1706,7 +1709,7 @@ static uae_u8 *veccode;
 
 #ifdef _WIN32
 
-#if defined(__x86_64__)
+#if defined(CPU_64_BIT)
 #define ctxPC (pContext->Rip)
 #else
 #define ctxPC (pContext->Eip)
@@ -1819,7 +1822,7 @@ int EvalException (LPEXCEPTION_POINTERS blah, int n_except)
 #endif
 
 		switch(r) {
-#if defined(__x86_64__)
+#if defined(CPU_64_BIT)
 		case 0: pr=&(pContext->Rax); break;
 		case 1: pr=&(pContext->Rcx); break;
 		case 2: pr=&(pContext->Rdx); break;
@@ -2524,8 +2527,10 @@ static void raw_init_cpu(void)
 		align_jumps = x86_alignments[c->x86_processor].align_jump;
 	}
 	{ 
+		TCHAR *s = au (c->x86_vendor_id);
 		write_log (_T("CPUID level=%d, Family=%d, Model=%d, Mask=%d, Vendor=%s [%d]\n"),
-			c->cpuid_level, c->x86, c->x86_model, c->x86_mask, c->x86_vendor_id, c->x86_vendor);
+			c->cpuid_level, c->x86, c->x86_model, c->x86_mask, s, c->x86_vendor);
+		xfree (s);
 	}
 }
 

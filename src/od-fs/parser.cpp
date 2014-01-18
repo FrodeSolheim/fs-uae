@@ -22,6 +22,7 @@
 #include "newcpu.h"
 #include "traps.h"
 #include "ahidsound.h"
+#include "picasso96_host.h"
 #include "threaddep/thread.h"
 #include "serial.h"
 #include "savestate.h"
@@ -148,12 +149,25 @@ void initparallel (void) {
 #endif
 }
 
+extern int flashscreen;
+
+void doflashscreen (void)
+{
+#if 0
+	flashscreen = 10;
+	init_colors ();
+	picasso_refresh ();
+	reset_drawing ();
+	flush_screen (gfxvidinfo.outbuffer, 0, 0);
+#endif
+}
+
 void hsyncstuff (void)
 	//only generate Interrupts when
 	//writebuffer is complete flushed
 	//check state of lwin rwin
 {
-	static int keycheck = 0;
+	//static int keycheck = 0;
 
 #if 0 // DISABLED -- OLD AHI VERSION?
 #ifdef AHI
@@ -367,7 +381,10 @@ void writeser (int c)
     }
     
     char b = (char)c;
-    write(ser_fd, &b, 1);
+    if (write(ser_fd, &b, 1) != 1) {
+        write_log("WARNING: writeser - 1 byte was not written (errno %d)\n",
+                  errno);
+    }
 }
 
 void getserstat (int *pstatus)

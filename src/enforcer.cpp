@@ -19,7 +19,20 @@
 #include "xwin.h"
 #include "enforcer.h"
 
-#if defined(AHI)
+#ifdef AHI
+
+#ifdef __x86_64__
+STATIC_INLINE uae_u32 pointer_to_u32(void *p) {
+    if ((uae_u64) (p) > ((uae_u64) 0xffffffff)) {
+        write_log(_T("WARNING: POINTER_TO_U32 - %p > UINT32_MAX\n"), p);
+    }
+    return (uae_u32) ((uae_u64) p);
+}
+#define POINTER_TO_U32(x) (pointer_to_u32(x))
+#define UAECPTR_TO_U32(x) (pointer_to_u32((void *)(x)))
+#else
+#define POINTER_TO_U32(x) ((uae_u32)(x))
+#endif
 
 #if defined(JIT)
 #define special_mem_r special_mem |= S_READ
@@ -405,12 +418,12 @@ static void enforcer_display_hit (const TCHAR *addressmode, uae_u32 pc, uaecptr 
 	}
 
 	if (!native_task_name)
-		native_task_name = _T("Unknown");
+		native_task_name = _tcsdup(_T("Unknown"));
 	_stprintf (enforcer_buf_ptr, _T("Name: \"%s\"\n\n"), native_task_name);
 	enforcer_buf_ptr += _tcslen (enforcer_buf_ptr);
 
 	console_out (enforcer_buf);
-	write_log (enforcer_buf);
+	write_log ("%s", enforcer_buf);
 	sleep_millis (5);
 	doflashscreen ();
 
@@ -429,9 +442,7 @@ uae_u32 REGPARAM2 chipmem_lget2 (uaecptr addr)
 
 	if (ISILLEGAL_LONG (addr))
 	{
-#ifdef LOSEPRECISION
-		enforcer_display_hit (_T("LONG READ from"),(uae_u32)(regs.pc_p - NMEM_OFFSET),addr);
-#endif
+		enforcer_display_hit (_T("LONG READ from"),POINTER_TO_U32(regs.pc_p - NMEM_OFFSET),addr);
 		if (enforcermode & 1)
 			set_special (SPCFLAG_TRAP);
 	}
@@ -448,9 +459,7 @@ uae_u32 REGPARAM2 chipmem_wget2(uaecptr addr)
 
 	if (ISILLEGAL_WORD (addr))
 	{
-#ifdef LOSEPRECISION
-		enforcer_display_hit (_T("WORD READ from"),(uae_u32)(regs.pc_p - NMEM_OFFSET),addr);
-#endif
+		enforcer_display_hit (_T("WORD READ from"),POINTER_TO_U32(regs.pc_p - NMEM_OFFSET),addr);
 		if (enforcermode & 1)
 			set_special (SPCFLAG_TRAP);
 	}
@@ -464,9 +473,7 @@ uae_u32 REGPARAM2 chipmem_bget2 (uaecptr addr)
 
 	if (ISILLEGAL_BYTE (addr))
 	{
-#ifdef LOSEPRECISION
-		enforcer_display_hit (_T("BYTE READ from"),(uae_u32)(regs.pc_p - NMEM_OFFSET),addr);
-#endif
+		enforcer_display_hit (_T("BYTE READ from"),POINTER_TO_U32(regs.pc_p - NMEM_OFFSET),addr);
 		if (enforcermode & 1)
 			set_special (SPCFLAG_TRAP);
 	}
@@ -484,9 +491,7 @@ void REGPARAM2 chipmem_lput2 (uaecptr addr, uae_u32 l)
 
 	if (ISILLEGAL_LONG (addr))
 	{
-#ifdef LOSEPRECISION
-		enforcer_display_hit (_T("LONG WRITE to"),(uae_u32)(regs.pc_p - NMEM_OFFSET),addr);
-#endif
+		enforcer_display_hit (_T("LONG WRITE to"),POINTER_TO_U32(regs.pc_p - NMEM_OFFSET),addr);
 		if (enforcermode & 1)
 			if (addr != 0x100)
 				set_special (SPCFLAG_TRAP);
@@ -506,9 +511,7 @@ void REGPARAM2 chipmem_wput2 (uaecptr addr, uae_u32 w)
 
 	if (ISILLEGAL_WORD (addr))
 	{
-#ifdef LOSEPRECISION
-		enforcer_display_hit (_T("WORD WRITE to"),(uae_u32)(regs.pc_p - NMEM_OFFSET),addr);
-#endif
+		enforcer_display_hit (_T("WORD WRITE to"),POINTER_TO_U32(regs.pc_p - NMEM_OFFSET),addr);
 		if (enforcermode & 1)
 			set_special (SPCFLAG_TRAP);
 	}
@@ -524,9 +527,7 @@ void REGPARAM2 chipmem_bput2 (uaecptr addr, uae_u32 b)
 
 	if (ISILLEGAL_BYTE (addr))
 	{
-#ifdef LOSEPRECISION
-		enforcer_display_hit (_T("BYTE WRITE to"),(uae_u32)(regs.pc_p - NMEM_OFFSET),addr);
-#endif
+		enforcer_display_hit (_T("BYTE WRITE to"),POINTER_TO_U32(regs.pc_p - NMEM_OFFSET),addr);
 		if (enforcermode & 1)
 			set_special (SPCFLAG_TRAP);
 	}
@@ -551,10 +552,8 @@ uae_u8 * REGPARAM2 chipmem_xlate2 (uaecptr addr)
 
 uae_u32 REGPARAM2 dummy_lget2 (uaecptr addr)
 {
-#ifdef LOSEPRECISION
 	special_mem_r;
-	enforcer_display_hit (_T("LONG READ from"),(uae_u32)(regs.pc_p - NMEM_OFFSET), addr);
-#endif
+	enforcer_display_hit (_T("LONG READ from"),POINTER_TO_U32(regs.pc_p - NMEM_OFFSET), addr);
 	if (enforcermode & 1) {
 		set_special (SPCFLAG_TRAP);
 		return 0;
@@ -574,14 +573,12 @@ uae_u32 REGPARAM2 dummy_wget2 (uaecptr addr)
 	if (addr >= 0x00F10000 && addr <= 0x00F7FFFF) {
 		if (!warned_JIT_0xF10000) {
 			warned_JIT_0xF10000 = 1;
-			enforcer_display_hit (_T("LONG READ from"),(uae_u32)(regs.pc_p - NMEM_OFFSET),addr);
+			enforcer_display_hit (_T("LONG READ from"),POINTER_TO_U32(regs.pc_p - NMEM_OFFSET),addr);
 		}
 		return 0;
 	}
 #endif
-#ifdef LOSEPRECISION
-	enforcer_display_hit (_T("WORD READ from"),(uae_u32)(regs.pc_p - NMEM_OFFSET),addr);
-#endif
+	enforcer_display_hit (_T("WORD READ from"),POINTER_TO_U32(regs.pc_p - NMEM_OFFSET),addr);
 	if (enforcermode & 1) {
 		set_special (SPCFLAG_TRAP);
 		return 0;
@@ -591,10 +588,8 @@ uae_u32 REGPARAM2 dummy_wget2 (uaecptr addr)
 
 uae_u32	REGPARAM2 dummy_bget2 (uaecptr addr)
 {
-#ifdef LOSEPRECISION
 	special_mem_r;
-	enforcer_display_hit (_T("BYTE READ from"),(uae_u32)(regs.pc_p - NMEM_OFFSET),addr);
-#endif
+	enforcer_display_hit (_T("BYTE READ from"),POINTER_TO_U32(regs.pc_p - NMEM_OFFSET),addr);
 	if (enforcermode & 1) {
 		set_special (SPCFLAG_TRAP);
 		return 0;
@@ -604,10 +599,8 @@ uae_u32	REGPARAM2 dummy_bget2 (uaecptr addr)
 
 void REGPARAM2 dummy_lput2 (uaecptr addr, uae_u32 l)
 {
-#ifdef LOSEPRECISION
 	special_mem_w;
-	enforcer_display_hit (_T("LONG WRITE to"),(uae_u32)(regs.pc_p - NMEM_OFFSET),addr);
-#endif
+	enforcer_display_hit (_T("LONG WRITE to"),POINTER_TO_U32(regs.pc_p - NMEM_OFFSET),addr);
 	if (enforcermode & 1) {
 		set_special (SPCFLAG_TRAP);
 		return;
@@ -616,10 +609,8 @@ void REGPARAM2 dummy_lput2 (uaecptr addr, uae_u32 l)
 
 void REGPARAM2 dummy_wput2 (uaecptr addr, uae_u32 w)
 {
-#ifdef LOSEPRECISION
 	special_mem_w;
-	enforcer_display_hit (_T("WORD WRITE to"),(uae_u32)(regs.pc_p - NMEM_OFFSET),addr);
-#endif
+	enforcer_display_hit (_T("WORD WRITE to"),POINTER_TO_U32(regs.pc_p - NMEM_OFFSET),addr);
 	if (enforcermode & 1) {
 		set_special (SPCFLAG_TRAP);
 		return;
@@ -628,10 +619,8 @@ void REGPARAM2 dummy_wput2 (uaecptr addr, uae_u32 w)
 
 void REGPARAM2 dummy_bput2 (uaecptr addr, uae_u32 b)
 {
-#ifdef LOSEPRECISION
 	special_mem_w;
-	enforcer_display_hit (_T("BYTE WRITE to"),(uae_u32)(regs.pc_p - NMEM_OFFSET),addr);
-#endif
+	enforcer_display_hit (_T("BYTE WRITE to"),POINTER_TO_U32(regs.pc_p - NMEM_OFFSET),addr);
 	if (enforcermode & 1) {
 		set_special (SPCFLAG_TRAP);
 		return;
@@ -640,10 +629,8 @@ void REGPARAM2 dummy_bput2 (uaecptr addr, uae_u32 b)
 
 int REGPARAM2 dummy_check2 (uaecptr addr, uae_u32 size)
 {
-#ifdef LOSEPRECISION
 	special_mem_r;
-	enforcer_display_hit (_T("CHECK from "),(uae_u32)(regs.pc_p - NMEM_OFFSET),addr);
-#endif
+	enforcer_display_hit (_T("CHECK from "),POINTER_TO_U32(regs.pc_p - NMEM_OFFSET),addr);
 	return 0;
 }
 
@@ -719,4 +706,4 @@ int enforcer_disable (void)
 	return 1;
 }
 
-#endif
+#endif // AHI

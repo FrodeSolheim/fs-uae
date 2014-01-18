@@ -447,6 +447,10 @@ obj/a2091.o: src/a2091.cpp
 	mkdir -p `dirname $@`
 	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -Wno-error=sometimes-uninitialized -c $< -o $@
 
+obj/bsdsocket.o: src/bsdsocket.cpp
+	mkdir -p `dirname $@`
+	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -Wno-error=unneeded-internal-declaration -c $< -o $@
+
 obj/cdtv.o: src/cdtv.cpp
 	mkdir -p `dirname $@`
 	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -Wno-error=tautological-compare -c $< -o $@

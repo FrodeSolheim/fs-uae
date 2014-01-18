@@ -30,6 +30,17 @@
 #endif
 #endif
 
+#ifdef FSUAE //NL
+/*
+FIXME: there is something strange here:
+For example, there is:
+                        if (ulTmp < number_sys_error) {
+                            tagcopy (currtag, currval, tagptr, &iotextptrs[ulTmp]);
+Bit iotextptrs are never initialized. Instead, there this this initalization using the same number_sys_error variable:
+    for (i = 0; i < (int) (number_sys_error); i++)
+        errnotextptrs[i] = addstr (&tmp1, errortexts[i]);
+*/
+#endif
 #ifdef BSDSOCKET
 
 int log_bsd;
@@ -1622,7 +1633,7 @@ static uae_u32 REGPARAM2 bsdsocklib_init (TrapContext *context)
 	for (i = number_sys_error; i--;)
 		tmp1 += _tcslen (errortexts[i]) + 1;
 	for (i = number_host_error; i--;)
-		tmp1 += _tcslen (io_errlist[i]) + 1;
+		tmp1 += _tcslen (herrortexts[i]) + 1;
 	for (i = number_sana2io_error; i--;)
 		tmp1 += _tcslen (sana2io_errlist[i]) + 1;
 	for (i = number_sana2wire_error; i--;)

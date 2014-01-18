@@ -142,7 +142,7 @@ static const TCHAR *collmode[] = { _T("none"), _T("sprites"), _T("playfields"), 
 static const TCHAR *compmode[] = { _T("direct"), _T("indirect"), _T("indirectKS"), _T("afterPic"), 0 };
 static const TCHAR *flushmode[] = { _T("soft"), _T("hard"), 0 };
 static const TCHAR *kbleds[] = { _T("none"), _T("POWER"), _T("DF0"), _T("DF1"), _T("DF2"), _T("DF3"), _T("HD"), _T("CD"), 0 };
-static const TCHAR *onscreenleds[] = { _T("false"), _T("true"), _T("rtg"), _T("both"), 0 };
+static const TCHAR *UNUSED(onscreenleds[]) = { _T("false"), _T("true"), _T("rtg"), _T("both"), 0 };
 static const TCHAR *soundfiltermode1[] = { _T("off"), _T("emulated"), _T("on"), 0 };
 static const TCHAR *soundfiltermode2[] = { _T("standard"), _T("enhanced"), 0 };
 static const TCHAR *lorestype1[] = { _T("lores"), _T("hires"), _T("superhires"), 0 };
@@ -157,7 +157,7 @@ static const TCHAR *cartsmode[] = { _T("none"), _T("hrtmon"), 0 };
 static const TCHAR *idemode[] = { _T("none"), _T("a600/a1200"), _T("a4000"), 0 };
 static const TCHAR *rtctype[] = { _T("none"), _T("MSM6242B"), _T("RP5C01A"), _T("MSM6242B_A2000"), 0 };
 static const TCHAR *ciaatodmode[] = { _T("vblank"), _T("50hz"), _T("60hz"), 0 };
-static const TCHAR *ksmirrortype[] = { _T("none"), _T("e0"), _T("a8+e0"), 0 };
+static const TCHAR *UNUSED(ksmirrortype[]) = { _T("none"), _T("e0"), _T("a8+e0"), 0 };
 static const TCHAR *cscompa[] = {
 	_T("-"), _T("Generic"), _T("CDTV"), _T("CD32"), _T("A500"), _T("A500+"), _T("A600"),
 	_T("A1000"), _T("A1200"), _T("A2000"), _T("A3000"), _T("A3000T"), _T("A4000"), _T("A4000T"), 0
@@ -680,7 +680,7 @@ static void write_filesys_config (struct uae_prefs *p, struct zfile *f)
 {
 	int i;
 	TCHAR tmp[MAX_DPATH], tmp2[MAX_DPATH], tmp3[MAX_DPATH];
-	TCHAR *hdcontrollers[] = { _T("uae"),
+	const TCHAR *hdcontrollers[] = { _T("uae"),
 		_T("ide0"), _T("ide1"), _T("ide2"), _T("ide3"),
 		_T("scsi0"), _T("scsi1"), _T("scsi2"), _T("scsi3"), _T("scsi4"), _T("scsi5"), _T("scsi6"),
 		_T("scsram"), _T("scide") }; /* scsram = smart card sram = pcmcia sram card */
@@ -688,7 +688,8 @@ static void write_filesys_config (struct uae_prefs *p, struct zfile *f)
 	for (i = 0; i < p->mountitems; i++) {
 		struct uaedev_config_data *uci = &p->mountconfig[i];
 		struct uaedev_config_info *ci = &uci->ci;
-		TCHAR *str1, *str2, *str1b, *str2b;
+		TCHAR *str1, *str1b, *str2b;
+		const TCHAR *str2;
 		int bp = ci->bootpri;
 
 		str2 = _T("");
@@ -1430,7 +1431,6 @@ int cfgfile_yesno (const TCHAR *option, const TCHAR *value, const TCHAR *name, b
 
 int cfgfile_doubleval (const TCHAR *option, const TCHAR *value, const TCHAR *name, double *location)
 {
-	int base = 10;
 	TCHAR *endptr;
 	if (name != NULL && _tcscmp (option, name) != 0)
 		return 0;
@@ -1440,7 +1440,6 @@ int cfgfile_doubleval (const TCHAR *option, const TCHAR *value, const TCHAR *nam
 
 int cfgfile_floatval (const TCHAR *option, const TCHAR *value, const TCHAR *name, float *location)
 {
-	int base = 10;
 	TCHAR *endptr;
 	if (name != NULL && _tcscmp (option, name) != 0)
 		return 0;
@@ -1728,7 +1727,6 @@ static int cfgfile_parse_host (struct uae_prefs *p, TCHAR *option, TCHAR *value)
 					TCHAR *next2 = _tcschr (next, ':');
 					if (next2)
 						*next2++ = 0;
-					int tmpval = 0;
 					if (!_tcsicmp (next, _T("delay"))) {
 						p->cdslots[i].delayed = true;
 						next = next2;
@@ -3170,7 +3168,6 @@ static int cfgfile_parse_hardware (struct uae_prefs *p, const TCHAR *option, TCH
 {
 	int tmpval, dummyint, i;
 	bool tmpbool, dummybool;
-	TCHAR *section = 0;
 	TCHAR tmpbuf[CONFIG_BLEN];
 
 	if (cfgfile_yesno (option, value, _T("cpu_cycle_exact"), &p->cpu_cycle_exact)
@@ -3763,7 +3760,6 @@ static void subst (TCHAR *p, TCHAR *f, int n)
 static int getconfigstoreline (const TCHAR *option, TCHAR *value)
 {
 	TCHAR tmp[CONFIG_BLEN * 2], tmp2[CONFIG_BLEN * 2];
-	int idx = 0;
 
 	if (!configstore)
 		return 0;
@@ -4589,13 +4585,12 @@ end:
 	return err;
 }
 
-uae_u32 cfgfile_modify (uae_u32 index, TCHAR *parms, uae_u32 size, TCHAR *out, uae_u32 outsize)
+uae_u32 cfgfile_modify (uae_u32 index, const TCHAR *parms, uae_u32 size, TCHAR *out, uae_u32 outsize)
 {
 	TCHAR *p;
 	TCHAR *argc[UAELIB_MAX_PARSE];
 	int argv, i;
 	uae_u32 err;
-	TCHAR zero = 0;
 	static TCHAR *configsearch;
 
 #ifdef FSUAE
@@ -4809,6 +4804,7 @@ uae_u8 *save_configuration (int *len, bool fullconfig)
 	return dstbak;
 }
 
+#ifdef UAE_MINI
 static void default_prefs_mini (struct uae_prefs *p, int type)
 {
 	_tcscpy (p->description, _T("UAE default A500 configuration"));
@@ -4821,6 +4817,7 @@ static void default_prefs_mini (struct uae_prefs *p, int type)
 	p->chipmem_size = 0x00080000;
 	p->bogomem_size = 0x00080000;
 }
+#endif
 
 #include "sounddep/sound.h"
 

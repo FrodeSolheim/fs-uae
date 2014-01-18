@@ -10,8 +10,6 @@
 #define TD_RIGHT 1
 #define TD_BOTTOM 2
 
-static int td_pos = (TD_RIGHT|TD_BOTTOM);
-
 #define TD_NUM_WIDTH 7
 #define TD_NUM_HEIGHT 7
 

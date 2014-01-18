@@ -16,6 +16,8 @@
 * Some code to put status information on the screen.
 */
 
+static int td_pos = (TD_RIGHT|TD_BOTTOM);
+
 void statusline_getpos (int *x, int *y, int width, int height)
 {
 	if (currprefs.osd_pos.x >= 20000) {

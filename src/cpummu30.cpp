@@ -1744,10 +1744,10 @@ uae_u32 mmu030_get_atc_generic(uaecptr addr, int l, uae_u32 fc, int size, int fl
  * stored in the ATC entries. If a matching entry is found it sets
  * the history bit and returns the cache index of the entry. */
 int mmu030_logical_is_in_atc(uaecptr addr, uae_u32 fc, bool write) {
-    uaecptr physical_addr = 0;
+    uaecptr UNUSED(physical_addr) = 0;
     uaecptr logical_addr = 0;
     uae_u32 addr_mask = mmu030.translation.page.imask;
-    uae_u32 page_index = addr & mmu030.translation.page.mask;
+    uae_u32 UNUSED(page_index) = addr & mmu030.translation.page.mask;
 	uae_u32 maddr = addr & addr_mask;
     int offset = (maddr >> mmu030.translation.page.size) & 0x1f;
 

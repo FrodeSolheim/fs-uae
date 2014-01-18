@@ -36,6 +36,7 @@ STATIC_INLINE int isinrom (void)
 	return (munge24 (m68k_getpc ()) & 0xFFF80000) == 0xF80000 && !currprefs.mmu_model;
 }
 
+#if USE_LONG_DOUBLE
 static uae_u32 xhex_pi[]    ={0x2168c235, 0xc90fdaa2, 0x4000};
 uae_u32 xhex_exp_1[] ={0xa2bb4a9a, 0xadf85458, 0x4000};
 static uae_u32 xhex_l2_e[]  ={0x5c17f0bc, 0xb8aa3b29, 0x3fff};
@@ -54,7 +55,6 @@ uae_u32 xhex_1e2048[]={0xc53d5de5, 0x9e8b3b5d, 0x5a92};
 uae_u32 xhex_1e4096[]={0x8a20979b, 0xc4605202, 0x7525};
 static uae_u32 xhex_inf[]   ={0x00000000, 0x00000000, 0x7fff};
 static uae_u32 xhex_nan[]   ={0xffffffff, 0xffffffff, 0x7fff};
-#if USE_LONG_DOUBLE
 static long double *fp_pi     = (long double *)xhex_pi;
 static long double *fp_exp_1  = (long double *)xhex_exp_1;
 static long double *fp_l2_e   = (long double *)xhex_l2_e;
@@ -71,7 +71,7 @@ static long double *fp_1e512  = (long double *)xhex_1e512;
 static long double *fp_1e1024 = (long double *)xhex_1e1024;
 static long double *fp_1e2048 = (long double *)xhex_1e2048;
 static long double *fp_1e4096 = (long double *)xhex_1e4096;
-static long double *fp_inf    = (long double *)xhex_inf;
+static long double *UNUSED(fp_inf)    = (long double *)xhex_inf;
 static long double *fp_nan    = (long double *)xhex_nan;
 #else
 static uae_u32 dhex_pi[]    ={0x54442D18, 0x400921FB};
@@ -104,7 +104,7 @@ static double *fp_1e512  = (double *)dhex_inf;
 static double *fp_1e1024 = (double *)dhex_inf;
 static double *fp_1e2048 = (double *)dhex_inf;
 static double *fp_1e4096 = (double *)dhex_inf;
-static double *fp_inf    = (double *)dhex_inf;
+static double *UNUSED(fp_inf)    = (double *)dhex_inf;
 static double *fp_nan    = (double *)dhex_nan;
 #endif
 double fp_1e8 = 1.0e8;
@@ -148,7 +148,7 @@ static uae_u16 x87_cw_tab[] = {
 	0x137f, 0x1f7f, 0x177f, 0x1b7f	/* undefined */
 };
 #if USE_X86_FPUCW
-	uae_u16 x87_cw = x87_cw_tab[(m68k_cw >> 4) & 0xf];
+	uae_u16 UNUSED(x87_cw) = x87_cw_tab[(m68k_cw >> 4) & 0xf];
 
 #if defined(X86_MSVC_ASSEMBLY)
 	__asm {
@@ -156,6 +156,8 @@ static uae_u16 x87_cw_tab[] = {
 	}
 #elif defined(X86_ASSEMBLY)
 	__asm__ ("fldcw %0" : : "m" (*&x87_cw));
+#elif defined(FSUAE)
+    printf("FIXME: warning fldcw not set\n");
 #endif
 #endif
 #endif
@@ -167,7 +169,7 @@ typedef uae_s64 tointtype;
 typedef uae_s32 tointtype;
 #endif
 
-static void fpu_format_error (void)
+static void UNUSED_FUNCTION(fpu_format_error) (void)
 {
 	uaecptr newpc;
 	regs.t0 = regs.t1 = 0;
@@ -1297,7 +1299,7 @@ void fpuop_save (uae_u32 opcode)
 
 void fpuop_restore (uae_u32 opcode)
 {
-	int fpu_version = get_fpu_version ();
+	int UNUSED(fpu_version) = get_fpu_version ();
 	uaecptr pc = m68k_getpc () - 2;
 	uae_u32 ad;
 	uae_u32 d;
@@ -1320,7 +1322,7 @@ void fpuop_restore (uae_u32 opcode)
 		return;
 	regs.fpiar = pc;
 
-	uae_u32 pad = ad;
+	uae_u32 UNUSED(pad) = ad;
 	if (incr < 0) {
 		ad -= 4;
 		d = x_cp_get_long (ad);
@@ -1543,7 +1545,7 @@ static void fpuop_arithmetic2 (uae_u32 opcode, uae_u16 extra)
 	int reg, v;
 	fptype src;
 	uaecptr pc = m68k_getpc () - 4;
-	uaecptr ad = 0;
+	uaecptr UNUSED(ad) = 0;
 
 #if DEBUG_FPP
 	if (!isinrom ())

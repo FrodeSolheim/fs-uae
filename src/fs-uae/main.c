@@ -278,9 +278,16 @@ void event_handler(int line) {
     }
 
     if (fs_emu_is_quitting()) {
-        fs_log("calling amiga_quit\n");
-        amiga_quit();
-        return;
+        if (fs_emu_is_paused()) {
+        	fs_emu_pause(0);
+        }
+        static int quit_called = 0;
+        if (quit_called == 0) {
+            fs_log("calling amiga_quit\n");
+            amiga_quit();
+            quit_called = 1;
+        }
+        //return;
     }
     while (fs_emu_is_paused()) {
         /*

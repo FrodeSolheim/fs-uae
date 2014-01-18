@@ -55,7 +55,8 @@ struct gui_info
     uae_s8 hd;					/* harddrive */
     uae_s8 cd;					/* CD */
 	uae_s8 md;					/* CD32 or CDTV internal storage */
-    int fps, idle;
+    bool cpu_halted;
+	int fps, idle;
 	int fps_color;
     int sndbuf, sndbuf_status;
     TCHAR df[4][256];			/* inserted image */
@@ -78,6 +79,7 @@ typedef enum {
     NUMSG_MODRIP_NOTFOUND, NUMSG_MODRIP_FINISHED, NUMSG_MODRIP_SAVE,
     NUMSG_KS68EC020, NUMSG_KS68020, NUMSG_KS68030,
     NUMSG_ROMNEED, NUMSG_EXPROMNEED, NUMSG_NOZLIB, NUMSG_STATEHD,
-    NUMSG_NOCAPS, NUMSG_OLDCAPS, NUMSG_KICKREP, NUMSG_KICKREPNO
+    NUMSG_NOCAPS, NUMSG_OLDCAPS, NUMSG_KICKREP, NUMSG_KICKREPNO,
+	NUMSG_KS68030PLUS
 } notify_user_msg;
 

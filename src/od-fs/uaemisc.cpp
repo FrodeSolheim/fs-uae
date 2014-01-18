@@ -303,7 +303,10 @@ void fetch_saveimagepath (TCHAR *out, int size, int dir) {
 void fetch_configurationpath (TCHAR *out, int size) {
     fetch_path("ConfigurationPath", out, size);
 }
-
+void fetch_luapath (TCHAR *out, int size)
+{
+	fetch_path (_T("LuaPath"), out, size);
+}
 void fetch_screenshotpath (TCHAR *out, int size) {
     fetch_path("ScreenshotPath", out, size);
 }
@@ -320,6 +323,10 @@ void fetch_inputfilepath (TCHAR *out, int size) {
 
 void fetch_datapath (TCHAR *out, int size) {
         fetch_path (NULL, out, size);
+}
+void fetch_rompath (TCHAR *out, int size)
+{
+	fetch_path (_T("KickstartPath"), out, size);
 }
 
 void to_lower (TCHAR *s, int len) {

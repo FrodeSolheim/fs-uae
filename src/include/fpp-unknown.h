@@ -8,6 +8,8 @@
   * Copyright 1996 Herman ten Brugge
   */
 
+#include <math.h>
+
 #ifndef HAVE_to_single
 STATIC_INLINE double to_single (uae_u32 value)
 {

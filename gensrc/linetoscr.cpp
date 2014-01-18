@@ -8,12 +8,13 @@ static int NOINLINE linetoscr_16 (int spix, int dpix, int dpix_end)
 {
     uae_u16 *buf = (uae_u16 *) xlinebuffer;
 
-    if (dp_for_drawing->ham_seen) {
+    if (bplham) {
         int rem;
         if (((long)&buf[dpix]) & 2) {
             uae_u32 spix_val;
             uae_u32 dpix_val;
-            dpix_val = xcolors[ham_linebuf[spix]];
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
             spix++;
             buf[dpix++] = dpix_val;
         }
@@ -27,10 +28,12 @@ static int NOINLINE linetoscr_16 (int spix, int dpix, int dpix_end)
             uae_u32 dpix_val;
             uae_u32 out_val;
         
-            dpix_val = xcolors[ham_linebuf[spix]];
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
             spix++;
             out_val = dpix_val;
-            dpix_val = xcolors[ham_linebuf[spix]];
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
             spix++;
             out_val = (out_val & 0xFFFF) | (dpix_val << 16);
             *((uae_u32 *)&buf[dpix]) = out_val;
@@ -39,7 +42,8 @@ static int NOINLINE linetoscr_16 (int spix, int dpix, int dpix_end)
         if (rem) {
             uae_u32 spix_val;
             uae_u32 dpix_val;
-            dpix_val = xcolors[ham_linebuf[spix]];
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
             spix++;
             buf[dpix++] = dpix_val;
         }
@@ -182,13 +186,14 @@ static int NOINLINE linetoscr_16_stretch1 (int spix, int dpix, int dpix_end)
 {
     uae_u16 *buf = (uae_u16 *) xlinebuffer;
 
-    if (dp_for_drawing->ham_seen) {
+    if (bplham) {
         while (dpix < dpix_end) {
             uae_u32 spix_val;
             uae_u32 dpix_val;
             uae_u32 out_val;
         
-            dpix_val = xcolors[ham_linebuf[spix]];
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
             spix++;
             out_val = dpix_val;
             *((uae_u32 *)&buf[dpix]) = out_val;
@@ -246,13 +251,14 @@ static int NOINLINE linetoscr_16_stretch2 (int spix, int dpix, int dpix_end)
 {
     uae_u16 *buf = (uae_u16 *) xlinebuffer;
 
-    if (dp_for_drawing->ham_seen) {
+    if (bplham) {
         while (dpix < dpix_end) {
             uae_u32 spix_val;
             uae_u32 dpix_val;
             uae_u32 out_val;
         
-            dpix_val = xcolors[ham_linebuf[spix]];
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
             spix++;
             out_val = dpix_val;
             *((uae_u32 *)&buf[dpix]) = out_val;
@@ -318,12 +324,13 @@ static int NOINLINE linetoscr_16_shrink1 (int spix, int dpix, int dpix_end)
 {
     uae_u16 *buf = (uae_u16 *) xlinebuffer;
 
-    if (dp_for_drawing->ham_seen) {
+    if (bplham) {
         int rem;
         if (((long)&buf[dpix]) & 2) {
             uae_u32 spix_val;
             uae_u32 dpix_val;
-            dpix_val = xcolors[ham_linebuf[spix]];
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
             spix += 2;
             buf[dpix++] = dpix_val;
         }
@@ -337,10 +344,12 @@ static int NOINLINE linetoscr_16_shrink1 (int spix, int dpix, int dpix_end)
             uae_u32 dpix_val;
             uae_u32 out_val;
         
-            dpix_val = xcolors[ham_linebuf[spix]];
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
             spix += 2;
             out_val = dpix_val;
-            dpix_val = xcolors[ham_linebuf[spix]];
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
             spix += 2;
             out_val = (out_val & 0xFFFF) | (dpix_val << 16);
             *((uae_u32 *)&buf[dpix]) = out_val;
@@ -349,7 +358,8 @@ static int NOINLINE linetoscr_16_shrink1 (int spix, int dpix, int dpix_end)
         if (rem) {
             uae_u32 spix_val;
             uae_u32 dpix_val;
-            dpix_val = xcolors[ham_linebuf[spix]];
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
             spix += 2;
             buf[dpix++] = dpix_val;
         }
@@ -492,17 +502,19 @@ static int NOINLINE linetoscr_16_shrink1f (int spix, int dpix, int dpix_end)
 {
     uae_u16 *buf = (uae_u16 *) xlinebuffer;
 
-    if (dp_for_drawing->ham_seen) {
+    if (bplham) {
         int rem;
         if (((long)&buf[dpix]) & 2) {
             uae_u32 spix_val;
             uae_u32 dpix_val;
-            dpix_val = xcolors[ham_linebuf[spix]];
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
             {
             uae_u32 tmp_val;
             spix++;
             tmp_val = dpix_val;
-            dpix_val = xcolors[ham_linebuf[spix]];
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
             dpix_val = merge_2pixel16 (dpix_val, tmp_val);
             spix++;
             }
@@ -518,22 +530,26 @@ static int NOINLINE linetoscr_16_shrink1f (int spix, int dpix, int dpix_end)
             uae_u32 dpix_val;
             uae_u32 out_val;
         
-            dpix_val = xcolors[ham_linebuf[spix]];
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
             {
             uae_u32 tmp_val;
             spix++;
             tmp_val = dpix_val;
-            dpix_val = xcolors[ham_linebuf[spix]];
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
             dpix_val = merge_2pixel16 (dpix_val, tmp_val);
             spix++;
             }
             out_val = dpix_val;
-            dpix_val = xcolors[ham_linebuf[spix]];
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
             {
             uae_u32 tmp_val;
             spix++;
             tmp_val = dpix_val;
-            dpix_val = xcolors[ham_linebuf[spix]];
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
             dpix_val = merge_2pixel16 (dpix_val, tmp_val);
             spix++;
             }
@@ -544,12 +560,14 @@ static int NOINLINE linetoscr_16_shrink1f (int spix, int dpix, int dpix_end)
         if (rem) {
             uae_u32 spix_val;
             uae_u32 dpix_val;
-            dpix_val = xcolors[ham_linebuf[spix]];
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
             {
             uae_u32 tmp_val;
             spix++;
             tmp_val = dpix_val;
-            dpix_val = xcolors[ham_linebuf[spix]];
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
             dpix_val = merge_2pixel16 (dpix_val, tmp_val);
             spix++;
             }
@@ -802,12 +820,13 @@ static int NOINLINE linetoscr_16_shrink2 (int spix, int dpix, int dpix_end)
 {
     uae_u16 *buf = (uae_u16 *) xlinebuffer;
 
-    if (dp_for_drawing->ham_seen) {
+    if (bplham) {
         int rem;
         if (((long)&buf[dpix]) & 2) {
             uae_u32 spix_val;
             uae_u32 dpix_val;
-            dpix_val = xcolors[ham_linebuf[spix]];
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
             spix += 4;
             buf[dpix++] = dpix_val;
         }
@@ -821,10 +840,12 @@ static int NOINLINE linetoscr_16_shrink2 (int spix, int dpix, int dpix_end)
             uae_u32 dpix_val;
             uae_u32 out_val;
         
-            dpix_val = xcolors[ham_linebuf[spix]];
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
             spix += 4;
             out_val = dpix_val;
-            dpix_val = xcolors[ham_linebuf[spix]];
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
             spix += 4;
             out_val = (out_val & 0xFFFF) | (dpix_val << 16);
             *((uae_u32 *)&buf[dpix]) = out_val;
@@ -833,7 +854,8 @@ static int NOINLINE linetoscr_16_shrink2 (int spix, int dpix, int dpix_end)
         if (rem) {
             uae_u32 spix_val;
             uae_u32 dpix_val;
-            dpix_val = xcolors[ham_linebuf[spix]];
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
             spix += 4;
             buf[dpix++] = dpix_val;
         }
@@ -976,23 +998,27 @@ static int NOINLINE linetoscr_16_shrink2f (int spix, int dpix, int dpix_end)
 {
     uae_u16 *buf = (uae_u16 *) xlinebuffer;
 
-    if (dp_for_drawing->ham_seen) {
+    if (bplham) {
         int rem;
         if (((long)&buf[dpix]) & 2) {
             uae_u32 spix_val;
             uae_u32 dpix_val;
-            dpix_val = xcolors[ham_linebuf[spix]];
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
             {
             uae_u32 tmp_val, tmp_val2, tmp_val3;
             spix++;
             tmp_val = dpix_val;
-            dpix_val = xcolors[ham_linebuf[spix]];
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
             spix++;
             tmp_val2 = dpix_val;
-            dpix_val = xcolors[ham_linebuf[spix]];
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
             spix++;
             tmp_val3 = dpix_val;
-            dpix_val = xcolors[ham_linebuf[spix]];
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
             tmp_val = merge_2pixel16 (tmp_val, tmp_val2);
             tmp_val2 = merge_2pixel16 (tmp_val3, dpix_val);
             dpix_val = merge_2pixel16 (tmp_val, tmp_val2);
@@ -1010,36 +1036,44 @@ static int NOINLINE linetoscr_16_shrink2f (int spix, int dpix, int dpix_end)
             uae_u32 dpix_val;
             uae_u32 out_val;
         
-            dpix_val = xcolors[ham_linebuf[spix]];
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
             {
             uae_u32 tmp_val, tmp_val2, tmp_val3;
             spix++;
             tmp_val = dpix_val;
-            dpix_val = xcolors[ham_linebuf[spix]];
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
             spix++;
             tmp_val2 = dpix_val;
-            dpix_val = xcolors[ham_linebuf[spix]];
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
             spix++;
             tmp_val3 = dpix_val;
-            dpix_val = xcolors[ham_linebuf[spix]];
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
             tmp_val = merge_2pixel16 (tmp_val, tmp_val2);
             tmp_val2 = merge_2pixel16 (tmp_val3, dpix_val);
             dpix_val = merge_2pixel16 (tmp_val, tmp_val2);
             spix++;
             }
             out_val = dpix_val;
-            dpix_val = xcolors[ham_linebuf[spix]];
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
             {
             uae_u32 tmp_val, tmp_val2, tmp_val3;
             spix++;
             tmp_val = dpix_val;
-            dpix_val = xcolors[ham_linebuf[spix]];
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
             spix++;
             tmp_val2 = dpix_val;
-            dpix_val = xcolors[ham_linebuf[spix]];
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
             spix++;
             tmp_val3 = dpix_val;
-            dpix_val = xcolors[ham_linebuf[spix]];
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
             tmp_val = merge_2pixel16 (tmp_val, tmp_val2);
             tmp_val2 = merge_2pixel16 (tmp_val3, dpix_val);
             dpix_val = merge_2pixel16 (tmp_val, tmp_val2);
@@ -1052,18 +1086,22 @@ static int NOINLINE linetoscr_16_shrink2f (int spix, int dpix, int dpix_end)
         if (rem) {
             uae_u32 spix_val;
             uae_u32 dpix_val;
-            dpix_val = xcolors[ham_linebuf[spix]];
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
             {
             uae_u32 tmp_val, tmp_val2, tmp_val3;
             spix++;
             tmp_val = dpix_val;
-            dpix_val = xcolors[ham_linebuf[spix]];
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
             spix++;
             tmp_val2 = dpix_val;
-            dpix_val = xcolors[ham_linebuf[spix]];
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
             spix++;
             tmp_val3 = dpix_val;
-            dpix_val = xcolors[ham_linebuf[spix]];
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
             tmp_val = merge_2pixel16 (tmp_val, tmp_val2);
             tmp_val2 = merge_2pixel16 (tmp_val3, dpix_val);
             dpix_val = merge_2pixel16 (tmp_val, tmp_val2);
@@ -1463,15 +1501,16 @@ static int NOINLINE linetoscr_16_spr (int spix, int dpix, int dpix_end)
     uae_u16 *buf = (uae_u16 *) xlinebuffer;
     uae_u8 sprcol;
 
-    if (dp_for_drawing->ham_seen) {
+    if (bplham) {
         while (dpix < dpix_end) {
             uae_u32 sprpix_val;
             uae_u32 spix_val;
             uae_u32 dpix_val;
             uae_u32 out_val;
         
-            dpix_val = xcolors[ham_linebuf[spix]];
-            sprpix_val = dpix_val;
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
+            sprpix_val = pixdata.apixels[spix];
             spix++;
             out_val = dpix_val;
             if (spritepixels[dpix].data) {
@@ -1560,15 +1599,16 @@ static int NOINLINE linetoscr_16_stretch1_spr (int spix, int dpix, int dpix_end)
     uae_u16 *buf = (uae_u16 *) xlinebuffer;
     uae_u8 sprcol;
 
-    if (dp_for_drawing->ham_seen) {
+    if (bplham) {
         while (dpix < dpix_end) {
             uae_u32 sprpix_val;
             uae_u32 spix_val;
             uae_u32 dpix_val;
             uae_u32 out_val;
         
-            dpix_val = xcolors[ham_linebuf[spix]];
-            sprpix_val = dpix_val;
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
+            sprpix_val = pixdata.apixels[spix];
             spix++;
             out_val = dpix_val;
             if (spritepixels[dpix].data) {
@@ -1661,15 +1701,16 @@ static int NOINLINE linetoscr_16_stretch2_spr (int spix, int dpix, int dpix_end)
     uae_u16 *buf = (uae_u16 *) xlinebuffer;
     uae_u8 sprcol;
 
-    if (dp_for_drawing->ham_seen) {
+    if (bplham) {
         while (dpix < dpix_end) {
             uae_u32 sprpix_val;
             uae_u32 spix_val;
             uae_u32 dpix_val;
             uae_u32 out_val;
         
-            dpix_val = xcolors[ham_linebuf[spix]];
-            sprpix_val = dpix_val;
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
+            sprpix_val = pixdata.apixels[spix];
             spix++;
             out_val = dpix_val;
             if (spritepixels[dpix].data) {
@@ -1770,15 +1811,16 @@ static int NOINLINE linetoscr_16_shrink1_spr (int spix, int dpix, int dpix_end)
     uae_u16 *buf = (uae_u16 *) xlinebuffer;
     uae_u8 sprcol;
 
-    if (dp_for_drawing->ham_seen) {
+    if (bplham) {
         while (dpix < dpix_end) {
             uae_u32 sprpix_val;
             uae_u32 spix_val;
             uae_u32 dpix_val;
             uae_u32 out_val;
         
-            dpix_val = xcolors[ham_linebuf[spix]];
-            sprpix_val = dpix_val;
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
+            sprpix_val = pixdata.apixels[spix];
             spix += 2;
             out_val = dpix_val;
             if (spritepixels[dpix].data) {
@@ -1867,21 +1909,23 @@ static int NOINLINE linetoscr_16_shrink1f_spr (int spix, int dpix, int dpix_end)
     uae_u16 *buf = (uae_u16 *) xlinebuffer;
     uae_u8 sprcol;
 
-    if (dp_for_drawing->ham_seen) {
+    if (bplham) {
         while (dpix < dpix_end) {
             uae_u32 sprpix_val;
             uae_u32 spix_val;
             uae_u32 dpix_val;
             uae_u32 out_val;
         
-            dpix_val = xcolors[ham_linebuf[spix]];
-            sprpix_val = dpix_val;
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
+            sprpix_val = pixdata.apixels[spix];
             {
             uae_u32 tmp_val;
             spix++;
             tmp_val = dpix_val;
-            dpix_val = xcolors[ham_linebuf[spix]];
-            sprpix_val = dpix_val;
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
+            sprpix_val = pixdata.apixels[spix];
             dpix_val = merge_2pixel16 (dpix_val, tmp_val);
             spix++;
             }
@@ -2002,15 +2046,16 @@ static int NOINLINE linetoscr_16_shrink2_spr (int spix, int dpix, int dpix_end)
     uae_u16 *buf = (uae_u16 *) xlinebuffer;
     uae_u8 sprcol;
 
-    if (dp_for_drawing->ham_seen) {
+    if (bplham) {
         while (dpix < dpix_end) {
             uae_u32 sprpix_val;
             uae_u32 spix_val;
             uae_u32 dpix_val;
             uae_u32 out_val;
         
-            dpix_val = xcolors[ham_linebuf[spix]];
-            sprpix_val = dpix_val;
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
+            sprpix_val = pixdata.apixels[spix];
             spix += 4;
             out_val = dpix_val;
             if (spritepixels[dpix].data) {
@@ -2099,29 +2144,33 @@ static int NOINLINE linetoscr_16_shrink2f_spr (int spix, int dpix, int dpix_end)
     uae_u16 *buf = (uae_u16 *) xlinebuffer;
     uae_u8 sprcol;
 
-    if (dp_for_drawing->ham_seen) {
+    if (bplham) {
         while (dpix < dpix_end) {
             uae_u32 sprpix_val;
             uae_u32 spix_val;
             uae_u32 dpix_val;
             uae_u32 out_val;
         
-            dpix_val = xcolors[ham_linebuf[spix]];
-            sprpix_val = dpix_val;
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
+            sprpix_val = pixdata.apixels[spix];
             {
             uae_u32 tmp_val, tmp_val2, tmp_val3;
             spix++;
             tmp_val = dpix_val;
-            dpix_val = xcolors[ham_linebuf[spix]];
-            sprpix_val = dpix_val;
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
+            sprpix_val = pixdata.apixels[spix];
             spix++;
             tmp_val2 = dpix_val;
-            dpix_val = xcolors[ham_linebuf[spix]];
-            sprpix_val = dpix_val;
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
+            sprpix_val = pixdata.apixels[spix];
             spix++;
             tmp_val3 = dpix_val;
-            dpix_val = xcolors[ham_linebuf[spix]];
-            sprpix_val = dpix_val;
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
+            sprpix_val = pixdata.apixels[spix];
             tmp_val = merge_2pixel16 (tmp_val, tmp_val2);
             tmp_val2 = merge_2pixel16 (tmp_val3, dpix_val);
             dpix_val = merge_2pixel16 (tmp_val, tmp_val2);
@@ -2287,13 +2336,14 @@ static int NOINLINE linetoscr_16_aga (int spix, int dpix, int dpix_end)
     uae_u16 *buf = (uae_u16 *) xlinebuffer;
     uae_u8 xor_val = bplxor;
 
-    if (dp_for_drawing->ham_seen) {
+    if (bplham) {
         int rem;
         if (((long)&buf[dpix]) & 2) {
             uae_u32 spix_val;
             uae_u32 dpix_val;
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             spix++;
             buf[dpix++] = dpix_val;
         }
@@ -2308,11 +2358,13 @@ static int NOINLINE linetoscr_16_aga (int spix, int dpix, int dpix_end)
             uae_u32 out_val;
         
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             spix++;
             out_val = dpix_val;
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             spix++;
             out_val = (out_val & 0xFFFF) | (dpix_val << 16);
             *((uae_u32 *)&buf[dpix]) = out_val;
@@ -2322,7 +2374,8 @@ static int NOINLINE linetoscr_16_aga (int spix, int dpix, int dpix_end)
             uae_u32 spix_val;
             uae_u32 dpix_val;
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             spix++;
             buf[dpix++] = dpix_val;
         }
@@ -2497,14 +2550,15 @@ static int NOINLINE linetoscr_16_stretch1_aga (int spix, int dpix, int dpix_end)
     uae_u16 *buf = (uae_u16 *) xlinebuffer;
     uae_u8 xor_val = bplxor;
 
-    if (dp_for_drawing->ham_seen) {
+    if (bplham) {
         while (dpix < dpix_end) {
             uae_u32 spix_val;
             uae_u32 dpix_val;
             uae_u32 out_val;
         
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             spix++;
             out_val = dpix_val;
             *((uae_u32 *)&buf[dpix]) = out_val;
@@ -2573,14 +2627,15 @@ static int NOINLINE linetoscr_16_stretch2_aga (int spix, int dpix, int dpix_end)
     uae_u16 *buf = (uae_u16 *) xlinebuffer;
     uae_u8 xor_val = bplxor;
 
-    if (dp_for_drawing->ham_seen) {
+    if (bplham) {
         while (dpix < dpix_end) {
             uae_u32 spix_val;
             uae_u32 dpix_val;
             uae_u32 out_val;
         
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             spix++;
             out_val = dpix_val;
             *((uae_u32 *)&buf[dpix]) = out_val;
@@ -2657,13 +2712,14 @@ static int NOINLINE linetoscr_16_shrink1_aga (int spix, int dpix, int dpix_end)
     uae_u16 *buf = (uae_u16 *) xlinebuffer;
     uae_u8 xor_val = bplxor;
 
-    if (dp_for_drawing->ham_seen) {
+    if (bplham) {
         int rem;
         if (((long)&buf[dpix]) & 2) {
             uae_u32 spix_val;
             uae_u32 dpix_val;
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             spix += 2;
             buf[dpix++] = dpix_val;
         }
@@ -2678,11 +2734,13 @@ static int NOINLINE linetoscr_16_shrink1_aga (int spix, int dpix, int dpix_end)
             uae_u32 out_val;
         
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             spix += 2;
             out_val = dpix_val;
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             spix += 2;
             out_val = (out_val & 0xFFFF) | (dpix_val << 16);
             *((uae_u32 *)&buf[dpix]) = out_val;
@@ -2692,7 +2750,8 @@ static int NOINLINE linetoscr_16_shrink1_aga (int spix, int dpix, int dpix_end)
             uae_u32 spix_val;
             uae_u32 dpix_val;
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             spix += 2;
             buf[dpix++] = dpix_val;
         }
@@ -2867,19 +2926,21 @@ static int NOINLINE linetoscr_16_shrink1f_aga (int spix, int dpix, int dpix_end)
     uae_u16 *buf = (uae_u16 *) xlinebuffer;
     uae_u8 xor_val = bplxor;
 
-    if (dp_for_drawing->ham_seen) {
+    if (bplham) {
         int rem;
         if (((long)&buf[dpix]) & 2) {
             uae_u32 spix_val;
             uae_u32 dpix_val;
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             {
             uae_u32 tmp_val;
             spix++;
             tmp_val = dpix_val;
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             dpix_val = merge_2pixel16 (dpix_val, tmp_val);
             spix++;
             }
@@ -2896,25 +2957,29 @@ static int NOINLINE linetoscr_16_shrink1f_aga (int spix, int dpix, int dpix_end)
             uae_u32 out_val;
         
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             {
             uae_u32 tmp_val;
             spix++;
             tmp_val = dpix_val;
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             dpix_val = merge_2pixel16 (dpix_val, tmp_val);
             spix++;
             }
             out_val = dpix_val;
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             {
             uae_u32 tmp_val;
             spix++;
             tmp_val = dpix_val;
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             dpix_val = merge_2pixel16 (dpix_val, tmp_val);
             spix++;
             }
@@ -2926,13 +2991,15 @@ static int NOINLINE linetoscr_16_shrink1f_aga (int spix, int dpix, int dpix_end)
             uae_u32 spix_val;
             uae_u32 dpix_val;
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             {
             uae_u32 tmp_val;
             spix++;
             tmp_val = dpix_val;
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             dpix_val = merge_2pixel16 (dpix_val, tmp_val);
             spix++;
             }
@@ -3245,13 +3312,14 @@ static int NOINLINE linetoscr_16_shrink2_aga (int spix, int dpix, int dpix_end)
     uae_u16 *buf = (uae_u16 *) xlinebuffer;
     uae_u8 xor_val = bplxor;
 
-    if (dp_for_drawing->ham_seen) {
+    if (bplham) {
         int rem;
         if (((long)&buf[dpix]) & 2) {
             uae_u32 spix_val;
             uae_u32 dpix_val;
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             spix += 4;
             buf[dpix++] = dpix_val;
         }
@@ -3266,11 +3334,13 @@ static int NOINLINE linetoscr_16_shrink2_aga (int spix, int dpix, int dpix_end)
             uae_u32 out_val;
         
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             spix += 4;
             out_val = dpix_val;
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             spix += 4;
             out_val = (out_val & 0xFFFF) | (dpix_val << 16);
             *((uae_u32 *)&buf[dpix]) = out_val;
@@ -3280,7 +3350,8 @@ static int NOINLINE linetoscr_16_shrink2_aga (int spix, int dpix, int dpix_end)
             uae_u32 spix_val;
             uae_u32 dpix_val;
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             spix += 4;
             buf[dpix++] = dpix_val;
         }
@@ -3455,27 +3526,31 @@ static int NOINLINE linetoscr_16_shrink2f_aga (int spix, int dpix, int dpix_end)
     uae_u16 *buf = (uae_u16 *) xlinebuffer;
     uae_u8 xor_val = bplxor;
 
-    if (dp_for_drawing->ham_seen) {
+    if (bplham) {
         int rem;
         if (((long)&buf[dpix]) & 2) {
             uae_u32 spix_val;
             uae_u32 dpix_val;
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             {
             uae_u32 tmp_val, tmp_val2, tmp_val3;
             spix++;
             tmp_val = dpix_val;
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             spix++;
             tmp_val2 = dpix_val;
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             spix++;
             tmp_val3 = dpix_val;
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             tmp_val = merge_2pixel16 (tmp_val, tmp_val2);
             tmp_val2 = merge_2pixel16 (tmp_val3, dpix_val);
             dpix_val = merge_2pixel16 (tmp_val, tmp_val2);
@@ -3494,21 +3569,25 @@ static int NOINLINE linetoscr_16_shrink2f_aga (int spix, int dpix, int dpix_end)
             uae_u32 out_val;
         
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             {
             uae_u32 tmp_val, tmp_val2, tmp_val3;
             spix++;
             tmp_val = dpix_val;
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             spix++;
             tmp_val2 = dpix_val;
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             spix++;
             tmp_val3 = dpix_val;
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             tmp_val = merge_2pixel16 (tmp_val, tmp_val2);
             tmp_val2 = merge_2pixel16 (tmp_val3, dpix_val);
             dpix_val = merge_2pixel16 (tmp_val, tmp_val2);
@@ -3516,21 +3595,25 @@ static int NOINLINE linetoscr_16_shrink2f_aga (int spix, int dpix, int dpix_end)
             }
             out_val = dpix_val;
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             {
             uae_u32 tmp_val, tmp_val2, tmp_val3;
             spix++;
             tmp_val = dpix_val;
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             spix++;
             tmp_val2 = dpix_val;
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             spix++;
             tmp_val3 = dpix_val;
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             tmp_val = merge_2pixel16 (tmp_val, tmp_val2);
             tmp_val2 = merge_2pixel16 (tmp_val3, dpix_val);
             dpix_val = merge_2pixel16 (tmp_val, tmp_val2);
@@ -3544,21 +3627,25 @@ static int NOINLINE linetoscr_16_shrink2f_aga (int spix, int dpix, int dpix_end)
             uae_u32 spix_val;
             uae_u32 dpix_val;
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             {
             uae_u32 tmp_val, tmp_val2, tmp_val3;
             spix++;
             tmp_val = dpix_val;
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             spix++;
             tmp_val2 = dpix_val;
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             spix++;
             tmp_val3 = dpix_val;
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             tmp_val = merge_2pixel16 (tmp_val, tmp_val2);
             tmp_val2 = merge_2pixel16 (tmp_val3, dpix_val);
             dpix_val = merge_2pixel16 (tmp_val, tmp_val2);
@@ -4074,7 +4161,7 @@ static int NOINLINE linetoscr_16_aga_spr (int spix, int dpix, int dpix_end)
     uae_u8 sprcol;
     uae_u8 xor_val = bplxor;
 
-    if (dp_for_drawing->ham_seen) {
+    if (bplham) {
         while (dpix < dpix_end) {
             uae_u32 sprpix_val;
             uae_u32 spix_val;
@@ -4083,8 +4170,8 @@ static int NOINLINE linetoscr_16_aga_spr (int spix, int dpix, int dpix_end)
         
             sprpix_val = pixdata.apixels[spix];
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
-            sprpix_val = dpix_val;
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             spix++;
             out_val = dpix_val;
             if (spritepixels[dpix].data) {
@@ -4176,7 +4263,7 @@ static int NOINLINE linetoscr_16_stretch1_aga_spr (int spix, int dpix, int dpix_
     uae_u8 sprcol;
     uae_u8 xor_val = bplxor;
 
-    if (dp_for_drawing->ham_seen) {
+    if (bplham) {
         while (dpix < dpix_end) {
             uae_u32 sprpix_val;
             uae_u32 spix_val;
@@ -4185,8 +4272,8 @@ static int NOINLINE linetoscr_16_stretch1_aga_spr (int spix, int dpix, int dpix_
         
             sprpix_val = pixdata.apixels[spix];
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
-            sprpix_val = dpix_val;
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             spix++;
             out_val = dpix_val;
             {
@@ -4318,7 +4405,7 @@ static int NOINLINE linetoscr_16_stretch2_aga_spr (int spix, int dpix, int dpix_
     uae_u8 sprcol;
     uae_u8 xor_val = bplxor;
 
-    if (dp_for_drawing->ham_seen) {
+    if (bplham) {
         while (dpix < dpix_end) {
             uae_u32 sprpix_val;
             uae_u32 spix_val;
@@ -4327,8 +4414,8 @@ static int NOINLINE linetoscr_16_stretch2_aga_spr (int spix, int dpix, int dpix_
         
             sprpix_val = pixdata.apixels[spix];
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
-            sprpix_val = dpix_val;
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             spix++;
             out_val = dpix_val;
             {
@@ -4516,7 +4603,7 @@ static int NOINLINE linetoscr_16_shrink1_aga_spr (int spix, int dpix, int dpix_e
     uae_u8 sprcol;
     uae_u8 xor_val = bplxor;
 
-    if (dp_for_drawing->ham_seen) {
+    if (bplham) {
         while (dpix < dpix_end) {
             uae_u32 sprpix_val;
             uae_u32 spix_val;
@@ -4525,8 +4612,8 @@ static int NOINLINE linetoscr_16_shrink1_aga_spr (int spix, int dpix, int dpix_e
         
             sprpix_val = pixdata.apixels[spix];
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
-            sprpix_val = dpix_val;
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             spix += 2;
             out_val = dpix_val;
             if (spritepixels[dpix].data) {
@@ -4618,7 +4705,7 @@ static int NOINLINE linetoscr_16_shrink1f_aga_spr (int spix, int dpix, int dpix_
     uae_u8 sprcol;
     uae_u8 xor_val = bplxor;
 
-    if (dp_for_drawing->ham_seen) {
+    if (bplham) {
         while (dpix < dpix_end) {
             uae_u32 sprpix_val;
             uae_u32 spix_val;
@@ -4627,16 +4714,16 @@ static int NOINLINE linetoscr_16_shrink1f_aga_spr (int spix, int dpix, int dpix_
         
             sprpix_val = pixdata.apixels[spix];
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
-            sprpix_val = dpix_val;
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             {
             uae_u32 tmp_val;
             spix++;
             tmp_val = dpix_val;
             sprpix_val = pixdata.apixels[spix];
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
-            sprpix_val = dpix_val;
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             dpix_val = merge_2pixel16 (dpix_val, tmp_val);
             spix++;
             }
@@ -4767,7 +4854,7 @@ static int NOINLINE linetoscr_16_shrink2_aga_spr (int spix, int dpix, int dpix_e
     uae_u8 sprcol;
     uae_u8 xor_val = bplxor;
 
-    if (dp_for_drawing->ham_seen) {
+    if (bplham) {
         while (dpix < dpix_end) {
             uae_u32 sprpix_val;
             uae_u32 spix_val;
@@ -4776,8 +4863,8 @@ static int NOINLINE linetoscr_16_shrink2_aga_spr (int spix, int dpix, int dpix_e
         
             sprpix_val = pixdata.apixels[spix];
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
-            sprpix_val = dpix_val;
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             spix += 4;
             out_val = dpix_val;
             if (spritepixels[dpix].data) {
@@ -4869,7 +4956,7 @@ static int NOINLINE linetoscr_16_shrink2f_aga_spr (int spix, int dpix, int dpix_
     uae_u8 sprcol;
     uae_u8 xor_val = bplxor;
 
-    if (dp_for_drawing->ham_seen) {
+    if (bplham) {
         while (dpix < dpix_end) {
             uae_u32 sprpix_val;
             uae_u32 spix_val;
@@ -4878,28 +4965,28 @@ static int NOINLINE linetoscr_16_shrink2f_aga_spr (int spix, int dpix, int dpix_
         
             sprpix_val = pixdata.apixels[spix];
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
-            sprpix_val = dpix_val;
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             {
             uae_u32 tmp_val, tmp_val2, tmp_val3;
             spix++;
             tmp_val = dpix_val;
             sprpix_val = pixdata.apixels[spix];
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
-            sprpix_val = dpix_val;
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             spix++;
             tmp_val2 = dpix_val;
             sprpix_val = pixdata.apixels[spix];
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
-            sprpix_val = dpix_val;
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             spix++;
             tmp_val3 = dpix_val;
             sprpix_val = pixdata.apixels[spix];
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
-            sprpix_val = dpix_val;
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             tmp_val = merge_2pixel16 (tmp_val, tmp_val2);
             tmp_val2 = merge_2pixel16 (tmp_val3, dpix_val);
             dpix_val = merge_2pixel16 (tmp_val, tmp_val2);
@@ -5085,13 +5172,14 @@ static int NOINLINE linetoscr_32 (int spix, int dpix, int dpix_end)
 {
     uae_u32 *buf = (uae_u32 *) xlinebuffer;
 
-    if (dp_for_drawing->ham_seen) {
+    if (bplham) {
         while (dpix < dpix_end) {
             uae_u32 spix_val;
             uae_u32 dpix_val;
             uae_u32 out_val;
         
-            dpix_val = xcolors[ham_linebuf[spix]];
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
             spix++;
             out_val = dpix_val;
             buf[dpix++] = out_val;
@@ -5145,13 +5233,14 @@ static int NOINLINE linetoscr_32_stretch1 (int spix, int dpix, int dpix_end)
 {
     uae_u32 *buf = (uae_u32 *) xlinebuffer;
 
-    if (dp_for_drawing->ham_seen) {
+    if (bplham) {
         while (dpix < dpix_end) {
             uae_u32 spix_val;
             uae_u32 dpix_val;
             uae_u32 out_val;
         
-            dpix_val = xcolors[ham_linebuf[spix]];
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
             spix++;
             out_val = dpix_val;
             buf[dpix++] = out_val;
@@ -5209,13 +5298,14 @@ static int NOINLINE linetoscr_32_stretch2 (int spix, int dpix, int dpix_end)
 {
     uae_u32 *buf = (uae_u32 *) xlinebuffer;
 
-    if (dp_for_drawing->ham_seen) {
+    if (bplham) {
         while (dpix < dpix_end) {
             uae_u32 spix_val;
             uae_u32 dpix_val;
             uae_u32 out_val;
         
-            dpix_val = xcolors[ham_linebuf[spix]];
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
             spix++;
             out_val = dpix_val;
             buf[dpix++] = out_val;
@@ -5281,13 +5371,14 @@ static int NOINLINE linetoscr_32_shrink1 (int spix, int dpix, int dpix_end)
 {
     uae_u32 *buf = (uae_u32 *) xlinebuffer;
 
-    if (dp_for_drawing->ham_seen) {
+    if (bplham) {
         while (dpix < dpix_end) {
             uae_u32 spix_val;
             uae_u32 dpix_val;
             uae_u32 out_val;
         
-            dpix_val = xcolors[ham_linebuf[spix]];
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
             spix += 2;
             out_val = dpix_val;
             buf[dpix++] = out_val;
@@ -5341,18 +5432,20 @@ static int NOINLINE linetoscr_32_shrink1f (int spix, int dpix, int dpix_end)
 {
     uae_u32 *buf = (uae_u32 *) xlinebuffer;
 
-    if (dp_for_drawing->ham_seen) {
+    if (bplham) {
         while (dpix < dpix_end) {
             uae_u32 spix_val;
             uae_u32 dpix_val;
             uae_u32 out_val;
         
-            dpix_val = xcolors[ham_linebuf[spix]];
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
             {
             uae_u32 tmp_val;
             spix++;
             tmp_val = dpix_val;
-            dpix_val = xcolors[ham_linebuf[spix]];
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
             dpix_val = merge_2pixel32 (dpix_val, tmp_val);
             spix++;
             }
@@ -5435,13 +5528,14 @@ static int NOINLINE linetoscr_32_shrink2 (int spix, int dpix, int dpix_end)
 {
     uae_u32 *buf = (uae_u32 *) xlinebuffer;
 
-    if (dp_for_drawing->ham_seen) {
+    if (bplham) {
         while (dpix < dpix_end) {
             uae_u32 spix_val;
             uae_u32 dpix_val;
             uae_u32 out_val;
         
-            dpix_val = xcolors[ham_linebuf[spix]];
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
             spix += 4;
             out_val = dpix_val;
             buf[dpix++] = out_val;
@@ -5495,24 +5589,28 @@ static int NOINLINE linetoscr_32_shrink2f (int spix, int dpix, int dpix_end)
 {
     uae_u32 *buf = (uae_u32 *) xlinebuffer;
 
-    if (dp_for_drawing->ham_seen) {
+    if (bplham) {
         while (dpix < dpix_end) {
             uae_u32 spix_val;
             uae_u32 dpix_val;
             uae_u32 out_val;
         
-            dpix_val = xcolors[ham_linebuf[spix]];
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
             {
             uae_u32 tmp_val, tmp_val2, tmp_val3;
             spix++;
             tmp_val = dpix_val;
-            dpix_val = xcolors[ham_linebuf[spix]];
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
             spix++;
             tmp_val2 = dpix_val;
-            dpix_val = xcolors[ham_linebuf[spix]];
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
             spix++;
             tmp_val3 = dpix_val;
-            dpix_val = xcolors[ham_linebuf[spix]];
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
             tmp_val = merge_2pixel32 (tmp_val, tmp_val2);
             tmp_val2 = merge_2pixel32 (tmp_val3, dpix_val);
             dpix_val = merge_2pixel32 (tmp_val, tmp_val2);
@@ -5634,15 +5732,16 @@ static int NOINLINE linetoscr_32_spr (int spix, int dpix, int dpix_end)
     uae_u32 *buf = (uae_u32 *) xlinebuffer;
     uae_u8 sprcol;
 
-    if (dp_for_drawing->ham_seen) {
+    if (bplham) {
         while (dpix < dpix_end) {
             uae_u32 sprpix_val;
             uae_u32 spix_val;
             uae_u32 dpix_val;
             uae_u32 out_val;
         
-            dpix_val = xcolors[ham_linebuf[spix]];
-            sprpix_val = dpix_val;
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
+            sprpix_val = pixdata.apixels[spix];
             spix++;
             out_val = dpix_val;
             if (spritepixels[dpix].data) {
@@ -5731,15 +5830,16 @@ static int NOINLINE linetoscr_32_stretch1_spr (int spix, int dpix, int dpix_end)
     uae_u32 *buf = (uae_u32 *) xlinebuffer;
     uae_u8 sprcol;
 
-    if (dp_for_drawing->ham_seen) {
+    if (bplham) {
         while (dpix < dpix_end) {
             uae_u32 sprpix_val;
             uae_u32 spix_val;
             uae_u32 dpix_val;
             uae_u32 out_val;
         
-            dpix_val = xcolors[ham_linebuf[spix]];
-            sprpix_val = dpix_val;
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
+            sprpix_val = pixdata.apixels[spix];
             spix++;
             out_val = dpix_val;
             if (spritepixels[dpix].data) {
@@ -5832,15 +5932,16 @@ static int NOINLINE linetoscr_32_stretch2_spr (int spix, int dpix, int dpix_end)
     uae_u32 *buf = (uae_u32 *) xlinebuffer;
     uae_u8 sprcol;
 
-    if (dp_for_drawing->ham_seen) {
+    if (bplham) {
         while (dpix < dpix_end) {
             uae_u32 sprpix_val;
             uae_u32 spix_val;
             uae_u32 dpix_val;
             uae_u32 out_val;
         
-            dpix_val = xcolors[ham_linebuf[spix]];
-            sprpix_val = dpix_val;
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
+            sprpix_val = pixdata.apixels[spix];
             spix++;
             out_val = dpix_val;
             if (spritepixels[dpix].data) {
@@ -5941,15 +6042,16 @@ static int NOINLINE linetoscr_32_shrink1_spr (int spix, int dpix, int dpix_end)
     uae_u32 *buf = (uae_u32 *) xlinebuffer;
     uae_u8 sprcol;
 
-    if (dp_for_drawing->ham_seen) {
+    if (bplham) {
         while (dpix < dpix_end) {
             uae_u32 sprpix_val;
             uae_u32 spix_val;
             uae_u32 dpix_val;
             uae_u32 out_val;
         
-            dpix_val = xcolors[ham_linebuf[spix]];
-            sprpix_val = dpix_val;
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
+            sprpix_val = pixdata.apixels[spix];
             spix += 2;
             out_val = dpix_val;
             if (spritepixels[dpix].data) {
@@ -6038,21 +6140,23 @@ static int NOINLINE linetoscr_32_shrink1f_spr (int spix, int dpix, int dpix_end)
     uae_u32 *buf = (uae_u32 *) xlinebuffer;
     uae_u8 sprcol;
 
-    if (dp_for_drawing->ham_seen) {
+    if (bplham) {
         while (dpix < dpix_end) {
             uae_u32 sprpix_val;
             uae_u32 spix_val;
             uae_u32 dpix_val;
             uae_u32 out_val;
         
-            dpix_val = xcolors[ham_linebuf[spix]];
-            sprpix_val = dpix_val;
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
+            sprpix_val = pixdata.apixels[spix];
             {
             uae_u32 tmp_val;
             spix++;
             tmp_val = dpix_val;
-            dpix_val = xcolors[ham_linebuf[spix]];
-            sprpix_val = dpix_val;
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
+            sprpix_val = pixdata.apixels[spix];
             dpix_val = merge_2pixel32 (dpix_val, tmp_val);
             spix++;
             }
@@ -6173,15 +6277,16 @@ static int NOINLINE linetoscr_32_shrink2_spr (int spix, int dpix, int dpix_end)
     uae_u32 *buf = (uae_u32 *) xlinebuffer;
     uae_u8 sprcol;
 
-    if (dp_for_drawing->ham_seen) {
+    if (bplham) {
         while (dpix < dpix_end) {
             uae_u32 sprpix_val;
             uae_u32 spix_val;
             uae_u32 dpix_val;
             uae_u32 out_val;
         
-            dpix_val = xcolors[ham_linebuf[spix]];
-            sprpix_val = dpix_val;
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
+            sprpix_val = pixdata.apixels[spix];
             spix += 4;
             out_val = dpix_val;
             if (spritepixels[dpix].data) {
@@ -6270,29 +6375,33 @@ static int NOINLINE linetoscr_32_shrink2f_spr (int spix, int dpix, int dpix_end)
     uae_u32 *buf = (uae_u32 *) xlinebuffer;
     uae_u8 sprcol;
 
-    if (dp_for_drawing->ham_seen) {
+    if (bplham) {
         while (dpix < dpix_end) {
             uae_u32 sprpix_val;
             uae_u32 spix_val;
             uae_u32 dpix_val;
             uae_u32 out_val;
         
-            dpix_val = xcolors[ham_linebuf[spix]];
-            sprpix_val = dpix_val;
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
+            sprpix_val = pixdata.apixels[spix];
             {
             uae_u32 tmp_val, tmp_val2, tmp_val3;
             spix++;
             tmp_val = dpix_val;
-            dpix_val = xcolors[ham_linebuf[spix]];
-            sprpix_val = dpix_val;
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
+            sprpix_val = pixdata.apixels[spix];
             spix++;
             tmp_val2 = dpix_val;
-            dpix_val = xcolors[ham_linebuf[spix]];
-            sprpix_val = dpix_val;
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
+            sprpix_val = pixdata.apixels[spix];
             spix++;
             tmp_val3 = dpix_val;
-            dpix_val = xcolors[ham_linebuf[spix]];
-            sprpix_val = dpix_val;
+            spix_val = ham_linebuf[spix];
+            dpix_val = xcolors[spix_val];
+            sprpix_val = pixdata.apixels[spix];
             tmp_val = merge_2pixel32 (tmp_val, tmp_val2);
             tmp_val2 = merge_2pixel32 (tmp_val3, dpix_val);
             dpix_val = merge_2pixel32 (tmp_val, tmp_val2);
@@ -6458,14 +6567,15 @@ static int NOINLINE linetoscr_32_aga (int spix, int dpix, int dpix_end)
     uae_u32 *buf = (uae_u32 *) xlinebuffer;
     uae_u8 xor_val = bplxor;
 
-    if (dp_for_drawing->ham_seen) {
+    if (bplham) {
         while (dpix < dpix_end) {
             uae_u32 spix_val;
             uae_u32 dpix_val;
             uae_u32 out_val;
         
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             spix++;
             out_val = dpix_val;
             buf[dpix++] = out_val;
@@ -6530,14 +6640,15 @@ static int NOINLINE linetoscr_32_stretch1_aga (int spix, int dpix, int dpix_end)
     uae_u32 *buf = (uae_u32 *) xlinebuffer;
     uae_u8 xor_val = bplxor;
 
-    if (dp_for_drawing->ham_seen) {
+    if (bplham) {
         while (dpix < dpix_end) {
             uae_u32 spix_val;
             uae_u32 dpix_val;
             uae_u32 out_val;
         
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             spix++;
             out_val = dpix_val;
             buf[dpix++] = out_val;
@@ -6606,14 +6717,15 @@ static int NOINLINE linetoscr_32_stretch2_aga (int spix, int dpix, int dpix_end)
     uae_u32 *buf = (uae_u32 *) xlinebuffer;
     uae_u8 xor_val = bplxor;
 
-    if (dp_for_drawing->ham_seen) {
+    if (bplham) {
         while (dpix < dpix_end) {
             uae_u32 spix_val;
             uae_u32 dpix_val;
             uae_u32 out_val;
         
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             spix++;
             out_val = dpix_val;
             buf[dpix++] = out_val;
@@ -6690,14 +6802,15 @@ static int NOINLINE linetoscr_32_shrink1_aga (int spix, int dpix, int dpix_end)
     uae_u32 *buf = (uae_u32 *) xlinebuffer;
     uae_u8 xor_val = bplxor;
 
-    if (dp_for_drawing->ham_seen) {
+    if (bplham) {
         while (dpix < dpix_end) {
             uae_u32 spix_val;
             uae_u32 dpix_val;
             uae_u32 out_val;
         
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             spix += 2;
             out_val = dpix_val;
             buf[dpix++] = out_val;
@@ -6762,20 +6875,22 @@ static int NOINLINE linetoscr_32_shrink1f_aga (int spix, int dpix, int dpix_end)
     uae_u32 *buf = (uae_u32 *) xlinebuffer;
     uae_u8 xor_val = bplxor;
 
-    if (dp_for_drawing->ham_seen) {
+    if (bplham) {
         while (dpix < dpix_end) {
             uae_u32 spix_val;
             uae_u32 dpix_val;
             uae_u32 out_val;
         
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             {
             uae_u32 tmp_val;
             spix++;
             tmp_val = dpix_val;
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             dpix_val = merge_2pixel32 (dpix_val, tmp_val);
             spix++;
             }
@@ -6876,14 +6991,15 @@ static int NOINLINE linetoscr_32_shrink2_aga (int spix, int dpix, int dpix_end)
     uae_u32 *buf = (uae_u32 *) xlinebuffer;
     uae_u8 xor_val = bplxor;
 
-    if (dp_for_drawing->ham_seen) {
+    if (bplham) {
         while (dpix < dpix_end) {
             uae_u32 spix_val;
             uae_u32 dpix_val;
             uae_u32 out_val;
         
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             spix += 4;
             out_val = dpix_val;
             buf[dpix++] = out_val;
@@ -6948,28 +7064,32 @@ static int NOINLINE linetoscr_32_shrink2f_aga (int spix, int dpix, int dpix_end)
     uae_u32 *buf = (uae_u32 *) xlinebuffer;
     uae_u8 xor_val = bplxor;
 
-    if (dp_for_drawing->ham_seen) {
+    if (bplham) {
         while (dpix < dpix_end) {
             uae_u32 spix_val;
             uae_u32 dpix_val;
             uae_u32 out_val;
         
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             {
             uae_u32 tmp_val, tmp_val2, tmp_val3;
             spix++;
             tmp_val = dpix_val;
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             spix++;
             tmp_val2 = dpix_val;
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             spix++;
             tmp_val3 = dpix_val;
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             tmp_val = merge_2pixel32 (tmp_val, tmp_val2);
             tmp_val2 = merge_2pixel32 (tmp_val3, dpix_val);
             dpix_val = merge_2pixel32 (tmp_val, tmp_val2);
@@ -7123,7 +7243,7 @@ static int NOINLINE linetoscr_32_aga_spr (int spix, int dpix, int dpix_end)
     uae_u8 sprcol;
     uae_u8 xor_val = bplxor;
 
-    if (dp_for_drawing->ham_seen) {
+    if (bplham) {
         while (dpix < dpix_end) {
             uae_u32 sprpix_val;
             uae_u32 spix_val;
@@ -7132,8 +7252,8 @@ static int NOINLINE linetoscr_32_aga_spr (int spix, int dpix, int dpix_end)
         
             sprpix_val = pixdata.apixels[spix];
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
-            sprpix_val = dpix_val;
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             spix++;
             out_val = dpix_val;
             if (spritepixels[dpix].data) {
@@ -7225,7 +7345,7 @@ static int NOINLINE linetoscr_32_stretch1_aga_spr (int spix, int dpix, int dpix_
     uae_u8 sprcol;
     uae_u8 xor_val = bplxor;
 
-    if (dp_for_drawing->ham_seen) {
+    if (bplham) {
         while (dpix < dpix_end) {
             uae_u32 sprpix_val;
             uae_u32 spix_val;
@@ -7234,8 +7354,8 @@ static int NOINLINE linetoscr_32_stretch1_aga_spr (int spix, int dpix, int dpix_
         
             sprpix_val = pixdata.apixels[spix];
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
-            sprpix_val = dpix_val;
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             spix++;
             out_val = dpix_val;
             {
@@ -7367,7 +7487,7 @@ static int NOINLINE linetoscr_32_stretch2_aga_spr (int spix, int dpix, int dpix_
     uae_u8 sprcol;
     uae_u8 xor_val = bplxor;
 
-    if (dp_for_drawing->ham_seen) {
+    if (bplham) {
         while (dpix < dpix_end) {
             uae_u32 sprpix_val;
             uae_u32 spix_val;
@@ -7376,8 +7496,8 @@ static int NOINLINE linetoscr_32_stretch2_aga_spr (int spix, int dpix, int dpix_
         
             sprpix_val = pixdata.apixels[spix];
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
-            sprpix_val = dpix_val;
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             spix++;
             out_val = dpix_val;
             {
@@ -7565,7 +7685,7 @@ static int NOINLINE linetoscr_32_shrink1_aga_spr (int spix, int dpix, int dpix_e
     uae_u8 sprcol;
     uae_u8 xor_val = bplxor;
 
-    if (dp_for_drawing->ham_seen) {
+    if (bplham) {
         while (dpix < dpix_end) {
             uae_u32 sprpix_val;
             uae_u32 spix_val;
@@ -7574,8 +7694,8 @@ static int NOINLINE linetoscr_32_shrink1_aga_spr (int spix, int dpix, int dpix_e
         
             sprpix_val = pixdata.apixels[spix];
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
-            sprpix_val = dpix_val;
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             spix += 2;
             out_val = dpix_val;
             if (spritepixels[dpix].data) {
@@ -7667,7 +7787,7 @@ static int NOINLINE linetoscr_32_shrink1f_aga_spr (int spix, int dpix, int dpix_
     uae_u8 sprcol;
     uae_u8 xor_val = bplxor;
 
-    if (dp_for_drawing->ham_seen) {
+    if (bplham) {
         while (dpix < dpix_end) {
             uae_u32 sprpix_val;
             uae_u32 spix_val;
@@ -7676,16 +7796,16 @@ static int NOINLINE linetoscr_32_shrink1f_aga_spr (int spix, int dpix, int dpix_
         
             sprpix_val = pixdata.apixels[spix];
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
-            sprpix_val = dpix_val;
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             {
             uae_u32 tmp_val;
             spix++;
             tmp_val = dpix_val;
             sprpix_val = pixdata.apixels[spix];
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
-            sprpix_val = dpix_val;
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             dpix_val = merge_2pixel32 (dpix_val, tmp_val);
             spix++;
             }
@@ -7816,7 +7936,7 @@ static int NOINLINE linetoscr_32_shrink2_aga_spr (int spix, int dpix, int dpix_e
     uae_u8 sprcol;
     uae_u8 xor_val = bplxor;
 
-    if (dp_for_drawing->ham_seen) {
+    if (bplham) {
         while (dpix < dpix_end) {
             uae_u32 sprpix_val;
             uae_u32 spix_val;
@@ -7825,8 +7945,8 @@ static int NOINLINE linetoscr_32_shrink2_aga_spr (int spix, int dpix, int dpix_e
         
             sprpix_val = pixdata.apixels[spix];
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
-            sprpix_val = dpix_val;
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             spix += 4;
             out_val = dpix_val;
             if (spritepixels[dpix].data) {
@@ -7918,7 +8038,7 @@ static int NOINLINE linetoscr_32_shrink2f_aga_spr (int spix, int dpix, int dpix_
     uae_u8 sprcol;
     uae_u8 xor_val = bplxor;
 
-    if (dp_for_drawing->ham_seen) {
+    if (bplham) {
         while (dpix < dpix_end) {
             uae_u32 sprpix_val;
             uae_u32 spix_val;
@@ -7927,28 +8047,28 @@ static int NOINLINE linetoscr_32_shrink2f_aga_spr (int spix, int dpix, int dpix_
         
             sprpix_val = pixdata.apixels[spix];
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
-            sprpix_val = dpix_val;
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             {
             uae_u32 tmp_val, tmp_val2, tmp_val3;
             spix++;
             tmp_val = dpix_val;
             sprpix_val = pixdata.apixels[spix];
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
-            sprpix_val = dpix_val;
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             spix++;
             tmp_val2 = dpix_val;
             sprpix_val = pixdata.apixels[spix];
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
-            sprpix_val = dpix_val;
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             spix++;
             tmp_val3 = dpix_val;
             sprpix_val = pixdata.apixels[spix];
             spix_val = pixdata.apixels[spix] ^ xor_val;
-            dpix_val = CONVERT_RGB (ham_linebuf[spix]);
-            sprpix_val = dpix_val;
+            spix_val = ham_linebuf[spix];
+            dpix_val = CONVERT_RGB (spix_val);
             tmp_val = merge_2pixel32 (tmp_val, tmp_val2);
             tmp_val2 = merge_2pixel32 (tmp_val3, dpix_val);
             dpix_val = merge_2pixel32 (tmp_val, tmp_val2);

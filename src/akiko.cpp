@@ -807,25 +807,25 @@ static void cdrom_return_data (void)
 	if (cdcomrxinx == cdcomrxcmp)
 		return;
 
-	#if AKIKO_DEBUG_IO_CMD
-		write_log (_T("OUT IDX=0x%02X-0x%02X LEN=%d,%08x:"), cdcomrxinx, cdcomrxcmp, cdrom_receive_length, cmd_buf);
-	#endif
+#if AKIKO_DEBUG_IO
+	write_log (_T("OUT IDX=0x%02X-0x%02X LEN=%d,%08x:"), cdcomrxinx, cdcomrxcmp, cdrom_receive_length, cmd_buf);
+#endif
 
 	if (cdrom_receive_offset < 0) {
 		checksum = 0xff;
 		for (i = 0; i < cdrom_receive_length; i++) {
 			checksum -= cdrom_result_buffer[i];
-	#if AKIKO_DEBUG_IO_CMD
+#if AKIKO_DEBUG_IO
 			write_log (_T("%02X "), cdrom_result_buffer[i]);
-	#endif
+#endif
 		}
-#if AKIKO_DEBUG_IO_CMD
+#if AKIKO_DEBUG_IO
 		write_log (_T("(%02X)\n"), checksum);
 #endif
 		cdrom_result_buffer[cdrom_receive_length++] = checksum;
 		cdrom_receive_offset = 0;
 	} else {
-#if AKIKO_DEBUG_IO_CMD
+#if AKIKO_DEBUG_IO
 		write_log (_T("\n"));
 #endif
 	}
@@ -836,7 +836,7 @@ static void cdrom_return_data (void)
 	}
 	if (cdcomrxinx == cdcomrxcmp) {
 		set_status (CDINTERRUPT_RXDMADONE);
-#if AKIKO_DEBUG_IO_CMD
+#if AKIKO_DEBUG_IO
 		write_log (_T("RXDMADONE %d/%d\n"), cdrom_receive_offset, cdrom_receive_length);
 #endif
 	}
@@ -1292,7 +1292,7 @@ static void akiko_handler (bool framesync)
 	}
 
 	/* one toc entry / frame */
-	if (cdrom_toc_counter >= 0 && !cdrom_command_active) {
+	if (cdrom_toc_counter >= 0 && !cdrom_command_active && framesync) {
 		if (cdrom_start_return_data (-1)) {
 			cdrom_start_return_data (cdrom_return_toc_entry ());
 		}
@@ -1376,7 +1376,6 @@ static void *akiko_thread (void *null)
 	uae_u8 *tmp1;
 	uae_u8 *tmp2;
 	int tmp3;
-	int offset;
 	int sector;
 
 	while (akiko_thread_running || comm_pipe_has_data (&requests)) {
@@ -1442,19 +1441,30 @@ static void *akiko_thread (void *null)
 		}
 		if (cdrom_data_end > 0 && sector >= 0 &&
 			(sector_buffer_sector_1 < 0 || sector < sector_buffer_sector_1 || sector >= sector_buffer_sector_1 + SECTOR_BUFFER_SIZE * 2 / 3 || i != SECTOR_BUFFER_SIZE)) {
+				int blocks;
 				memset (sector_buffer_info_2, 0, SECTOR_BUFFER_SIZE);
 #if AKIKO_DEBUG_IO_CMD
 				write_log (_T("filling buffer sector=%d (max=%d)\n"), sector, cdrom_data_end);
 #endif
 				sector_buffer_sector_2 = sector;
-				offset = 0;
-				while (offset < SECTOR_BUFFER_SIZE) {
-					int ok = 0;
-					if (sector < cdrom_data_end)
-						ok = sys_command_cd_rawread (unitnum, sector_buffer_2 + offset * 2352, sector, 1, 2352);
-					sector_buffer_info_2[offset] = ok ? 3 : 0;
-					offset++;
-					sector++;
+				if (sector + SECTOR_BUFFER_SIZE >= cdrom_data_end)
+					blocks = cdrom_data_end - sector;
+				else
+					blocks = SECTOR_BUFFER_SIZE;
+				int ok = sys_command_cd_rawread (unitnum, sector_buffer_2, sector, blocks, 2352);
+				if (!ok) {
+					int offset = 0;
+					while (offset < SECTOR_BUFFER_SIZE) {
+						int ok = 0;
+						if (sector < cdrom_data_end)
+							ok = sys_command_cd_rawread (unitnum, sector_buffer_2 + offset * 2352, sector, 1, 2352);
+						sector_buffer_info_2[offset] = ok ? 3 : 0;
+						offset++;
+						sector++;
+					}
+				} else {
+					for (int i = 0; i < SECTOR_BUFFER_SIZE; i++)
+						sector_buffer_info_2[i] = i < blocks ? 3 : 0;
 				}
 				tmp1 = sector_buffer_info_1;
 				sector_buffer_info_1 = sector_buffer_info_2;
@@ -1787,6 +1797,28 @@ addrbank akiko_bank = {
 	dummy_lgeti, dummy_wgeti, ABFLAG_IO
 };
 
+static const uae_u8 patchdata[]={0x0c,0x82,0x00,0x00,0x03,0xe8,0x64,0x00,0x00,0x46};
+static void patchrom (void)
+{
+    int i;
+	if (currprefs.cpu_model > 68020 || currprefs.cachesize || currprefs.m68k_speed != 0) {
+		uae_u8 *p = extendedkickmem_bank.baseaddr;
+		for (i = 0; i < 524288 - sizeof (patchdata); i++) {
+			if (!memcmp (p + i, patchdata, sizeof(patchdata))) {
+				protect_roms (false);
+				p[i + 6] = 0x4e;
+				p[i + 7] = 0x71;
+				p[i + 8] = 0x4e;
+				p[i + 9] = 0x71;
+				protect_roms (true);
+				write_log (_T("extended rom delay loop patched at 0x%p\n"), i + 6 + 0xe00000);
+				return;
+			}
+		}
+		write_log (_T("couldn't patch extended rom\n"));
+	}
+}
+
 static void akiko_cdrom_free (void)
 {
 	sys_cddev_close ();
@@ -1825,14 +1857,13 @@ void akiko_reset (void)
 		cdaudiostop ();
 		akiko_thread_running = 0;
 		while(akiko_thread_running == 0)
-			Sleep (10);
+			sleep_millis (10);
 		akiko_thread_running = 0;
 	}
 	akiko_cdrom_free ();
 	mediacheckcounter = 0;
 	akiko_inited = false;
 }
-
 
 void akiko_free (void)
 {
@@ -1860,6 +1891,7 @@ int akiko_init (void)
 		cdrom_playing = cdrom_paused = 0;
 		cdrom_data_offset = -1;
 	}
+	patchrom ();
 	if (!akiko_thread_running) {
 		akiko_thread_running = 1;
 		init_comm_pipe (&requests, 100, 1);

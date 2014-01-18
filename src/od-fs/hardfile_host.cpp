@@ -11,6 +11,7 @@
 #include "sysconfig.h"
 #include "sysdeps.h"
 
+#include "options.h"
 #include "filesys.h"
 #include "zfile.h"
 
@@ -240,8 +241,8 @@ int hdf_open_target (struct hardfiledata *hfd, const char *pname)
             if (udi->nomedia)
                 hfd->drive_empty = -1;
             if (udi->readonly)
-                hfd->readonly = 1;
-            h = uae_fopen (udi->device_path, hfd->readonly ? "rb" : "r+b");
+                hfd->ci.readonly = 1;
+            h = uae_fopen (udi->device_path, hfd->ci.readonly ? "rb" : "r+b");
             hfd->handle->h = h;
             if (h == INVALID_HANDLE_VALUE)
                 goto end;
@@ -250,12 +251,12 @@ int hdf_open_target (struct hardfiledata *hfd, const char *pname)
             _tcsncpy (hfd->product_rev, udi->product_rev, 4);
             hfd->offset = udi->offset;
             hfd->physsize = hfd->virtsize = udi->size;
-            hfd->blocksize = udi->bytespersector;
+            hfd->ci.blocksize = udi->bytespersector;
             if (hfd->offset == 0 && !hfd->drive_empty) {
-                int sf = safetycheck (hfd->handle->h, udi->device_path, 0, hfd->cache, hfd->blocksize);
+                int sf = safetycheck (hfd->handle->h, udi->device_path, 0, hfd->cache, hfd->ci.blocksize);
                 if (sf > 0)
                     goto end;
-                if (sf == 0 && !hfd->readonly && harddrive_dangerous != 0x1234dead) {
+                if (sf == 0 && !hfd->ci.readonly && harddrive_dangerous != 0x1234dead) {
                     write_log ("'%s' forced read-only, safetycheck enabled\n", udi->device_path);
                     hfd->dangerous = 1;
                     // clear GENERIC_WRITE
@@ -283,7 +284,7 @@ int hdf_open_target (struct hardfiledata *hfd, const char *pname)
                     zmode = 1;
             }
         }
-        h = uae_fopen (name, hfd->readonly ? "rb" : "r+b");
+        h = uae_fopen (name, hfd->ci.readonly ? "rb" : "r+b");
         if (h == INVALID_HANDLE_VALUE)
             goto end;
         hfd->handle->h = h;
@@ -357,7 +358,7 @@ int hdf_open_target (struct hardfiledata *hfd, const char *pname)
                     goto end;
             }
 
-            low &= ~(hfd->blocksize - 1);
+            low &= ~(hfd->ci.blocksize - 1);
             hfd->physsize = hfd->virtsize = low;
             if (g_debug) {
                 write_log("set physsize = virtsize = %lld (low)\n",
@@ -368,7 +369,7 @@ int hdf_open_target (struct hardfiledata *hfd, const char *pname)
                 write_log ("HDF '%s' re-opened in zfile-mode\n", name);
                 fclose (h);
                 hfd->handle->h = INVALID_HANDLE_VALUE;
-                hfd->handle->zf = zfile_fopen(name, hfd->readonly ? "rb" : "r+b", ZFD_NORMAL);
+                hfd->handle->zf = zfile_fopen(name, hfd->ci.readonly ? "rb" : "r+b", ZFD_NORMAL);
                 hfd->handle->zfile = 1;
                 if (!h)
                     goto end;
@@ -455,9 +456,9 @@ static int hdf_seek (struct hardfiledata *hfd, uae_u64 offset)
         abort ();
     }
     offset += hfd->offset;
-    if (offset & (hfd->blocksize - 1)) {
+    if (offset & (hfd->ci.blocksize - 1)) {
         gui_message ("hd: poscheck failed, offset=0x%llx not aligned to blocksize=%d! (0x%llx & 0x%04.4x = 0x%04.4x)\n",
-            offset, hfd->blocksize, offset, hfd->blocksize, offset & (hfd->blocksize - 1));
+            offset, hfd->ci.blocksize, offset, hfd->ci.blocksize, offset & (hfd->ci.blocksize - 1));
         abort ();
     }
     if (hfd->handle_valid == HDF_HANDLE_LINUX) {
@@ -499,8 +500,8 @@ static void poscheck (struct hardfiledata *hfd, int len)
         gui_message ("hd: poscheck failed, offset out of bounds! (0x%llx >= 0x%llx, LEN=%d)", pos, hfd->offset + hfd->physsize, len);
         abort ();
     }
-    if (pos & (hfd->blocksize - 1)) {
-        gui_message ("hd: poscheck failed, offset not aligned to blocksize! (0x%llx & 0x%04.4x = 0x%04.4x\n", pos, hfd->blocksize, pos & hfd->blocksize);
+    if (pos & (hfd->ci.blocksize - 1)) {
+        gui_message ("hd: poscheck failed, offset not aligned to blocksize! (0x%llx & 0x%04.4x = 0x%04.4x\n", pos, hfd->ci.blocksize, pos & hfd->ci.blocksize);
         abort ();
     }
 }
@@ -612,7 +613,7 @@ static int hdf_write_2 (struct hardfiledata *hfd, void *buffer, uae_u64 offset, 
 {
     size_t outlen = 0;
 
-    if (hfd->readonly) {
+    if (hfd->ci.readonly) {
         if (g_debug) {
             write_log("hfd->readonly\n");
         }

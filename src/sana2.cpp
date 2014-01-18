@@ -223,7 +223,7 @@ struct priv_s2devstruct {
 	int tmp;
 };
 
-static struct netdriverdata *td;
+static struct netdriverdata *td[MAX_TOTAL_NET_DEVICES + 1];
 static struct s2devstruct devst[MAX_TOTAL_NET_DEVICES];
 static struct priv_s2devstruct pdevst[MAX_OPEN_DEVICES];
 static uae_u32 nscmd_cmd;
@@ -286,7 +286,7 @@ static uae_u32 REGPARAM2 dev_close_2 (TrapContext *context)
 			CallLib (context, get_long (4), -0xD2); /* FreeMem */
 			pdev->tempbuf = 0;
 		}
-		uaenet_close (dev->sysdata);
+		ethernet_close (pdev->td, dev->sysdata);
 		xfree (dev->sysdata);
 		dev->sysdata = NULL;
 		write_comm_pipe_u32 (&dev->requests, 0, 1);
@@ -335,7 +335,7 @@ static int initint (TrapContext *ctx)
 	put_long (p + 10, ROM_netdev_resid);
 	put_long (p + 18, tmp1);
 	m68k_areg (regs, 1) = p;
-	m68k_dreg (regs, 0) = 13; /* EXTER */
+	m68k_dreg (regs, 0) = 3; /* PORTS */
 	dw (0x4a80); /* TST.L D0 */
 	dw (0x4e75); /* RTS */
 	CallLib (ctx, get_long (4), -168); /* AddIntServer */
@@ -377,7 +377,7 @@ static uae_u32 REGPARAM2 dev_open_2 (TrapContext *context)
 	pdev->unit = unit;
 	pdev->flags = flags;
 	pdev->inuse = 1;
-	pdev->td = td ? &td[unit] : NULL;
+	pdev->td = td ? td[unit] : NULL;
 	pdev->promiscuous = (flags & SANA2OPF_PROM) ? 1 : 0;
 
 	if (pdev->td == NULL || pdev->td->active == 0)
@@ -385,8 +385,8 @@ static uae_u32 REGPARAM2 dev_open_2 (TrapContext *context)
 
 	if (dev->opencnt == 0) {
 		dev->unit = unit;
-		dev->sysdata = xcalloc (uae_u8, uaenet_getdatalenght ());
-		if (!uaenet_open (dev->sysdata, pdev->td, dev, uaenet_gotdata, uaenet_getdata, pdev->promiscuous)) {
+		dev->sysdata = xcalloc (uae_u8, ethernet_getdatalenght (pdev->td));
+		if (!ethernet_open (pdev->td, dev->sysdata, dev, uaenet_gotdata, uaenet_getdata, pdev->promiscuous)) {
 			xfree (dev->sysdata);
 			dev->sysdata = NULL;
 			return openfail (ioreq, IOERR_OPENFAIL);
@@ -450,7 +450,7 @@ static uae_u32 REGPARAM2 dev_open_2 (TrapContext *context)
 		pdev->tempbuf = CallLib (context, get_long (4), -0xC6); /* AllocMem */
 		if (!pdev->tempbuf) {
 			if (dev->opencnt == 0) {
-				uaenet_close (dev->sysdata);
+				ethernet_close (pdev->td, dev->sysdata);
 				xfree (dev->sysdata);
 				dev->sysdata = NULL;
 			}
@@ -1357,7 +1357,7 @@ static void *dev_thread (void *devs)
 			rem_async_packet (dev, request);
 		} else {
 			add_async_request (dev, request);
-			uaenet_trigger (dev->sysdata);
+			ethernet_trigger (dev->sysdata);
 		}
 		uae_sem_post (&change_sem);
 	}
@@ -1435,6 +1435,7 @@ static uae_u32 REGPARAM2 uaenet_int_handler (TrapContext *ctx)
 								if (handleread (ctx, pdev, request, p->data, p->len, command)) {
 									if (log_net)
 										write_log (_T("-> %p Accepted, CMD_READ, REQ=%08X LEN=%d\n"), p, request, p->len);
+									ar->ready = 1;
 									write_comm_pipe_u32 (&dev->requests, request, 1);
 									dev->packetsreceived++;
 									gotit = 1;
@@ -1460,6 +1461,7 @@ static uae_u32 REGPARAM2 uaenet_int_handler (TrapContext *ctx)
 								if (log_net)
 									write_log (_T("-> %p Accepted, S2_READORPHAN, REQ=%08X LEN=%d\n"), p, request, p->len);
 								handleread (ctx, pdev, request, p->data, p->len, command);
+								ar->ready = 1;
 								write_comm_pipe_u32 (&dev->requests, request, 1);
 								dev->packetsreceived++;
 								dev->unknowntypesreceived++;
@@ -1515,6 +1517,7 @@ static uae_u32 REGPARAM2 uaenet_int_handler (TrapContext *ctx)
 					dev->online_micro = get_long (pdev->tempbuf + 4);
 					checkevents (dev, S2EVENT_ONLINE, 0);
 					dev->online = 1;
+					ar->ready = 1;
 					write_comm_pipe_u32 (&dev->requests, request, 1);
 					uaenet_vsync_requested--;
 				} else if (command == CMD_FLUSH) {
@@ -1522,6 +1525,7 @@ static uae_u32 REGPARAM2 uaenet_int_handler (TrapContext *ctx)
 					if (dev->ar->next == NULL) {
 						if (log_net)
 							write_log (_T("CMD_FLUSH replied %08x\n"), request);
+						ar->ready = 1;
 						write_comm_pipe_u32 (&dev->requests, request, 1);
 						uaenet_vsync_requested--;
 					} else {
@@ -1615,8 +1619,8 @@ void netdev_install (void)
 	if (log_net)
 		write_log (_T("netdev_install(): 0x%x\n"), here ());
 
-	uaenet_enumerate_free (td);
-	uaenet_enumerate (&td, NULL);
+	ethernet_enumerate_free ();
+	ethernet_enumerate (td, NULL);
 
 	ROM_netdev_resname = ds (getdevname());
 	ROM_netdev_resid = ds (_T("UAE net.device 0.2"));

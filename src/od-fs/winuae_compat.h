@@ -51,6 +51,7 @@
 #define _totlower tolower
 #define _tcstok strtok
 #define _tstoi atoi
+#define _tstoi64 atoll
 #define _vsntprintf vsnprintf
 #define _vsnprintf vsnprintf
 #define _tprintf printf

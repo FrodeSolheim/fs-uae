@@ -53,6 +53,9 @@
 #include "dongle.h"
 #include "sampler.h"
 #include "consolehook.h"
+#include "gayle.h"
+#include "gfxboard.h"
+#include "luascript.h"
 #ifdef RETROPLATFORM
 #include "rp.h"
 #endif
@@ -113,7 +116,7 @@ uae_u32 uaerandgetseed (void)
 void my_trim (TCHAR *s)
 {
 	int len;
-	while (_tcscspn (s, _T("\t \r\n")) == 0)
+	while (_tcslen (s) > 0 && _tcscspn (s, _T("\t \r\n")) == 0)
 		memmove (s, s + 1, (_tcslen (s + 1) + 1) * sizeof (TCHAR));
 	len = _tcslen (s);
 	while (len > 0 && _tcscspn (s + len - 1, _T("\t \r\n")) == 0)
@@ -153,14 +156,24 @@ void discard_prefs (struct uae_prefs *p, int type)
 
 static void fixup_prefs_dim2 (struct wh *wh)
 {
-	if (wh->width < 160)
+	if (wh->special)
+		return;
+	if (wh->width < 160) {
+		error_log (_T("Width (%d) must be at least 128."), wh->width);
 		wh->width = 160;
-	if (wh->height < 128)
+	}
+	if (wh->height < 128) {
+		error_log (_T("Height (%d) must be at least 128."), wh->height);
 		wh->height = 128;
-	if (wh->width > 3072)
-		wh->width = 3072;
-	if (wh->height > 2048)
-		wh->height = 2048;
+	}
+	if (wh->width > max_uae_width) {
+		error_log (_T("Width (%d) max is %d."), wh->width, max_uae_width);
+		wh->width = max_uae_width;
+	}
+	if (wh->height > max_uae_height) {
+		error_log (_T("Height (%d) max is %d."), wh->height, max_uae_height);
+		wh->height = max_uae_height;
+	}
 }
 
 void fixup_prefs_dimensions (struct uae_prefs *prefs)
@@ -173,6 +186,7 @@ void fixup_prefs_dimensions (struct uae_prefs *prefs)
 	for (int i = 0; i < 2; i++) {
 		struct apmode *ap = &prefs->gfx_apmode[i];
 		ap->gfx_vflip = 0;
+		ap->gfx_strobo = false;
 		if (ap->gfx_vsync) {
 			if (ap->gfx_vsyncmode) {
 				// low latency vsync: no flip only if no-buffer
@@ -180,11 +194,14 @@ void fixup_prefs_dimensions (struct uae_prefs *prefs)
 					ap->gfx_vflip = 1;
 				if (!i && ap->gfx_backbuffers == 2)
 					ap->gfx_vflip = 1;
+				ap->gfx_strobo = prefs->lightboost_strobo;
 			} else {
 				// legacy vsync: always wait for flip
 				ap->gfx_vflip = -1;
 				if (prefs->gfx_api && ap->gfx_backbuffers < 1)
 					ap->gfx_backbuffers = 1;
+				if (ap->gfx_vflip)
+					ap->gfx_strobo = prefs->lightboost_strobo;;
 			}
 		} else {
 			// no vsync: wait if triple bufferirng
@@ -193,61 +210,87 @@ void fixup_prefs_dimensions (struct uae_prefs *prefs)
 		}
 	}
 
-	if (prefs->gfx_filter == 0 && ((prefs->gfx_filter_autoscale && !prefs->gfx_api) || (prefs->gfx_apmode[0].gfx_vsyncmode)))
+	if (prefs->gfx_filter == 0 && ((prefs->gfx_filter_autoscale && !prefs->gfx_api) || (prefs->gfx_apmode[0].gfx_vsyncmode))) {
 		prefs->gfx_filter = 1;
-	if (prefs->gfx_filter == 0 && prefs->monitoremu)
+	}
+	if (prefs->gfx_filter == 0 && prefs->monitoremu) {
+		error_log (_T("A2024 and Graffiti require at least null filter enabled."));
 		prefs->gfx_filter = 1;
+	}
 }
 
 void fixup_cpu (struct uae_prefs *p)
 {
 	if (p->cpu_frequency == 1000000)
 		p->cpu_frequency = 0;
+
+	if (p->cpu_model >= 68030 && p->address_space_24) {
+		error_log (_T("24-bit address space is not supported in 68030/040/060 configurations."));
+		p->address_space_24 = 0;
+	}
+	if (p->cpu_model < 68020 && p->fpu_model && (p->cpu_compatible || p->cpu_cycle_exact)) {
+		error_log (_T("FPU is not supported in 68000/010 configurations."));
+		p->fpu_model = 0;
+	}
+
 	switch (p->cpu_model)
 	{
 	case 68000:
 		p->address_space_24 = 1;
-		if (p->cpu_compatible || p->cpu_cycle_exact)
-			p->fpu_model = 0;
 		break;
 	case 68010:
 		p->address_space_24 = 1;
-		if (p->cpu_compatible || p->cpu_cycle_exact)
-			p->fpu_model = 0;
 		break;
 	case 68020:
 		break;
 	case 68030:
-		p->address_space_24 = 0;
 		break;
 	case 68040:
-		p->address_space_24 = 0;
 		if (p->fpu_model)
 			p->fpu_model = 68040;
 		break;
 	case 68060:
-		p->address_space_24 = 0;
 		if (p->fpu_model)
 			p->fpu_model = 68060;
 		break;
 	}
 
-	if (p->cpu_model != 68040)
-		p->mmu_model = 0;
+	if (p->cpu_model >= 68040 && p->cachesize && p->cpu_compatible)
+		p->cpu_compatible = false;
 
-	if (p->cachesize && p->cpu_cycle_exact)
+	if (p->cpu_model >= 68040 && p->cpu_cycle_exact) {
+		p->cpu_cycle_exact = 0;
+		error_log (_T("68040/060 cycle-exact is not supported."));
+	}
+
+	if ((p->cpu_model < 68030 || p->cachesize) && p->mmu_model) {
+		error_log (_T("MMU emulation requires 68030/040/060 and it is not JIT compatible."));
+		p->mmu_model = 0;
+	}
+
+	if (p->cachesize && p->cpu_cycle_exact) {
+		error_log (_T("JIT and cycle-exact can't be enabled simultaneously."));
 		p->cachesize = 0;
+	}
+	if (p->cachesize && (p->fpu_no_unimplemented || p->int_no_unimplemented)) {
+		error_log (_T("JIT is not compatible with unimplemented CPU/FPU instruction emulation."));
+		p->fpu_no_unimplemented = p->int_no_unimplemented = false;
+	}
 
 	if (p->cpu_cycle_exact && p->m68k_speed < 0)
 		p->m68k_speed = 0;
 
-	if (p->immediate_blits && p->blitter_cycle_exact)
+	if (p->immediate_blits && p->blitter_cycle_exact) {
+		error_log (_T("Cycle-exact and immediate blitter can't be enabled simultaneously.\n"));
 		p->immediate_blits = false;
-	if (p->immediate_blits && p->waiting_blits)
+	}
+	if (p->immediate_blits && p->waiting_blits) {
+		error_log (_T("Immediate blitter and waiting blits can't be enabled simultaneously.\n"));
 		p->waiting_blits = 0;
+	}
+	if (p->cpu_cycle_exact)
+		p->cpu_compatible = true;
 }
-
-
 
 void fixup_prefs (struct uae_prefs *p)
 {
@@ -260,95 +303,117 @@ void fixup_prefs (struct uae_prefs *p)
 		|| p->chipmem_size < 0x20000
 		|| p->chipmem_size > 0x800000)
 	{
-		write_log (_T("Unsupported chipmem size %x!\n"), p->chipmem_size);
+		error_log (_T("Unsupported chipmem size %d (0x%x)."), p->chipmem_size, p->chipmem_size);
 		p->chipmem_size = 0x200000;
 		err = 1;
 	}
 	if ((p->fastmem_size & (p->fastmem_size - 1)) != 0
 		|| (p->fastmem_size != 0 && (p->fastmem_size < 0x100000 || p->fastmem_size > 0x800000)))
-	{
-		write_log (_T("Unsupported fastmem size %x!\n"), p->fastmem_size);
+{
+		error_log (_T("Unsupported fastmem size %d (0x%x)."), p->fastmem_size, p->fastmem_size);
+		p->fastmem_size = 0;
 		err = 1;
 	}
-	if ((p->rtgmem_size & (p->rtgmem_size - 1)) != 0
-		|| (p->rtgmem_size != 0 && (p->rtgmem_size < 0x100000 || p->rtgmem_size > max_z3fastmem)))
-	{
-		write_log (_T("Unsupported graphics card memory size %x (%x)!\n"), p->rtgmem_size, max_z3fastmem);
+	if (p->rtgmem_size > max_z3fastmem && p->rtgmem_type == GFXBOARD_UAE_Z3) {
+		error_log (_T("Graphics card memory size %d (0x%x) larger than maximum reserved %d (0x%x)."), p->rtgmem_size, p->rtgmem_size, max_z3fastmem, max_z3fastmem);
+		p->rtgmem_size = max_z3fastmem;
+		err = 1;
+	}
+	if ((p->rtgmem_size & (p->rtgmem_size - 1)) != 0 || (p->rtgmem_size != 0 && (p->rtgmem_size < 0x100000))) {
+		error_log (_T("Unsupported graphics card memory size %d (0x%x)."), p->rtgmem_size, p->rtgmem_size);
 		if (p->rtgmem_size > max_z3fastmem)
 			p->rtgmem_size = max_z3fastmem;
 		else
 			p->rtgmem_size = 0;
 		err = 1;
 	}
+	
+	if (p->z3fastmem_size > max_z3fastmem) {
+		error_log (_T("Zorro III fastmem size %d (0x%x) larger than max reserved %d (0x%x)."), p->z3fastmem_size, p->z3fastmem_size, max_z3fastmem, max_z3fastmem);
+		p->z3fastmem_size = max_z3fastmem;
+		err = 1;
+	}
+	if ((p->z3fastmem_size & (p->z3fastmem_size - 1)) != 0 || (p->z3fastmem_size != 0 && p->z3fastmem_size < 0x100000))
+	{
+		error_log (_T("Unsupported Zorro III fastmem size %d (0x%x)."), p->z3fastmem_size, p->z3fastmem_size);
+		p->z3fastmem_size = 0;
+		err = 1;
+	}
 
-	if ((p->z3fastmem_size & (p->z3fastmem_size - 1)) != 0
-		|| (p->z3fastmem_size != 0 && (p->z3fastmem_size < 0x100000 || p->z3fastmem_size > max_z3fastmem)))
-	{
-		write_log (_T("Unsupported Zorro III fastmem size %x (%x)!\n"), p->z3fastmem_size, max_z3fastmem);
-		if (p->z3fastmem_size > max_z3fastmem)
-			p->z3fastmem_size = max_z3fastmem;
-		else
-			p->z3fastmem_size = 0;
+	if (p->z3fastmem2_size > max_z3fastmem) {
+		error_log (_T("Zorro III fastmem2 size %d (0x%x) larger than max reserved %d (0x%x)."), p->z3fastmem2_size, p->z3fastmem2_size, max_z3fastmem, max_z3fastmem);
+		p->z3fastmem2_size = max_z3fastmem;
 		err = 1;
 	}
-	if ((p->z3fastmem2_size & (p->z3fastmem2_size - 1)) != 0
-		|| (p->z3fastmem2_size != 0 && (p->z3fastmem2_size < 0x100000 || p->z3fastmem2_size > max_z3fastmem)))
+	if ((p->z3fastmem2_size & (p->z3fastmem2_size - 1)) != 0 || (p->z3fastmem2_size != 0 && p->z3fastmem2_size < 0x100000))
 	{
-		write_log (_T("Unsupported Zorro III fastmem size %x (%x)!\n"), p->z3fastmem2_size, max_z3fastmem);
-		if (p->z3fastmem2_size > max_z3fastmem)
-			p->z3fastmem2_size = max_z3fastmem;
-		else
-			p->z3fastmem2_size = 0;
+		error_log (_T("Unsupported Zorro III fastmem2 size %x (%x)."), p->z3fastmem2_size, p->z3fastmem2_size);
+		p->z3fastmem2_size = 0;
 		err = 1;
 	}
+
 	p->z3fastmem_start &= ~0xffff;
 	if (p->z3fastmem_start < 0x1000000)
 		p->z3fastmem_start = 0x1000000;
-	if ((p->z3chipmem_size & (p->z3chipmem_size - 1)) != 0
-		|| (p->z3chipmem_size != 0 && (p->z3chipmem_size < 0x100000 || p->z3chipmem_size > max_z3fastmem)))
+
+	if (p->z3chipmem_size > max_z3fastmem) {
+		error_log (_T("Zorro III fake chipmem size %d (0x%x) larger than max reserved %d (0x%x)."), p->z3chipmem_size, p->z3chipmem_size, max_z3fastmem, max_z3fastmem);
+		p->z3chipmem_size = max_z3fastmem;
+		err = 1;
+	}
+	if ((p->z3chipmem_size & (p->z3chipmem_size - 1)) != 0 || (p->z3chipmem_size != 0 && p->z3chipmem_size < 0x100000))
 	{
-		write_log (_T("Unsupported Zorro III fake chipmem size %x (%x)!\n"), p->z3chipmem_size, max_z3fastmem);
-		if (p->z3chipmem_size > max_z3fastmem)
-			p->z3chipmem_size = max_z3fastmem;
-		else
-			p->z3chipmem_size = 0;
+		error_log (_T("Unsupported Zorro III fake chipmem size %d (0x%x)."), p->z3chipmem_size, p->z3chipmem_size);
+		p->z3chipmem_size = 0;
 		err = 1;
 	}
 
 	if (p->address_space_24 && (p->z3fastmem_size != 0 || p->z3fastmem2_size != 0 || p->z3chipmem_size != 0)) {
 		p->z3fastmem_size = p->z3fastmem2_size = p->z3chipmem_size = 0;
-		write_log (_T("Can't use a graphics card or 32-bit memory when using a 24 bit\naddress space.\n"));
+		error_log (_T("Can't use a Z3 graphics card or 32-bit memory when using a 24 bit address space."));
 	}
+
 	if (p->bogomem_size != 0 && p->bogomem_size != 0x80000 && p->bogomem_size != 0x100000 && p->bogomem_size != 0x180000 && p->bogomem_size != 0x1c0000) {
+		error_log (_T("Unsupported bogomem size %d (0x%x)"), p->bogomem_size, p->bogomem_size);
 		p->bogomem_size = 0;
-		write_log (_T("Unsupported bogomem size!\n"));
 		err = 1;
 	}
+
 	if (p->bogomem_size > 0x180000 && (p->cs_fatgaryrev >= 0 || p->cs_ide || p->cs_ramseyrev >= 0)) {
 		p->bogomem_size = 0x180000;
-		write_log (_T("Possible Gayle bogomem conflict fixed\n"));
+		error_log (_T("Possible Gayle bogomem conflict fixed."));
 	}
 	if (p->chipmem_size > 0x200000 && p->fastmem_size != 0) {
-		write_log (_T("You can't use fastmem and more than 2MB chip at the same time!\n"));
+		error_log (_T("You can't use fastmem and more than 2MB chip at the same time."));
 		p->fastmem_size = 0;
 		err = 1;
 	}
 	if (p->mbresmem_low_size > 0x04000000 || (p->mbresmem_low_size & 0xfffff)) {
 		p->mbresmem_low_size = 0;
-		write_log (_T("Unsupported A3000 MB RAM size\n"));
+		error_log (_T("Unsupported A3000 MB RAM size"));
 	}
-	if (p->mbresmem_high_size > 0x04000000 || (p->mbresmem_high_size & 0xfffff)) {
+	if (p->mbresmem_high_size > 0x08000000 || (p->mbresmem_high_size & 0xfffff)) {
 		p->mbresmem_high_size = 0;
-		write_log (_T("Unsupported Motherboard RAM size\n"));
+		error_log (_T("Unsupported Motherboard RAM size."));
 	}
 
-	if (p->address_space_24 && p->rtgmem_size)
-		p->rtgmem_type = 0;
-	if (!p->rtgmem_type && (p->chipmem_size > 2 * 1024 * 1024 || getz2size (p) > 8 * 1024 * 1024 || getz2size (p) < 0)) {
+	if (p->rtgmem_type >= GFXBOARD_HARDWARE) {
+		if (p->rtgmem_size < gfxboard_get_vram_min (p->rtgmem_type))
+			p->rtgmem_size = gfxboard_get_vram_min (p->rtgmem_type);
+		if (p->address_space_24 && gfxboard_is_z3 (p->rtgmem_type)) {
+			p->rtgmem_type = GFXBOARD_UAE_Z2;
+			p->rtgmem_size = 0;
+			error_log (_T("Z3 RTG and 24-bit address space are not compatible."));
+		}
+	}
+	if (p->address_space_24 && p->rtgmem_size && p->rtgmem_type == GFXBOARD_UAE_Z3) {
+		error_log (_T("Z3 RTG and 24bit address space are not compatible."));
+		p->rtgmem_type = GFXBOARD_UAE_Z2;
+	}
+	if (p->rtgmem_type == GFXBOARD_UAE_Z2 && (p->chipmem_size > 2 * 1024 * 1024 || getz2size (p) > 8 * 1024 * 1024 || getz2size (p) < 0)) {
 		p->rtgmem_size = 0;
-		write_log (_T("Too large Z2 RTG memory size\n"));
+		error_log (_T("Too large Z2 RTG memory size."));
 	}
-
 
 #if 0
 	if (p->m68k_speed < -1 || p->m68k_speed > 20) {
@@ -359,47 +424,48 @@ void fixup_prefs (struct uae_prefs *p)
 #endif
 
 	if (p->produce_sound < 0 || p->produce_sound > 3) {
-		write_log (_T("Bad value for -S parameter: enable value must be within 0..3\n"));
+		error_log (_T("Bad value for -S parameter: enable value must be within 0..3."));
 		p->produce_sound = 0;
 		err = 1;
 	}
 	if (p->comptrustbyte < 0 || p->comptrustbyte > 3) {
-		write_log (_T("Bad value for comptrustbyte parameter: value must be within 0..2\n"));
+		error_log (_T("Bad value for comptrustbyte parameter: value must be within 0..2."));
 		p->comptrustbyte = 1;
 		err = 1;
 	}
 	if (p->comptrustword < 0 || p->comptrustword > 3) {
-		write_log (_T("Bad value for comptrustword parameter: value must be within 0..2\n"));
+		error_log (_T("Bad value for comptrustword parameter: value must be within 0..2."));
 		p->comptrustword = 1;
 		err = 1;
 	}
 	if (p->comptrustlong < 0 || p->comptrustlong > 3) {
-		write_log (_T("Bad value for comptrustlong parameter: value must be within 0..2\n"));
+		error_log (_T("Bad value for comptrustlong parameter: value must be within 0..2."));
 		p->comptrustlong = 1;
 		err = 1;
 	}
 	if (p->comptrustnaddr < 0 || p->comptrustnaddr > 3) {
-		write_log (_T("Bad value for comptrustnaddr parameter: value must be within 0..2\n"));
+		error_log (_T("Bad value for comptrustnaddr parameter: value must be within 0..2."));
 		p->comptrustnaddr = 1;
 		err = 1;
 	}
 	if (p->cachesize < 0 || p->cachesize > 16384) {
-		write_log (_T("Bad value for cachesize parameter: value must be within 0..16384\n"));
+		error_log (_T("Bad value for cachesize parameter: value must be within 0..16384."));
 		p->cachesize = 0;
 		err = 1;
 	}
-	if (p->z3fastmem_size > 0 && (p->address_space_24 || p->cpu_model < 68020)) {
-		write_log (_T("Z3 fast memory can't be used with a 68000/68010 emulation. It\n")
-			_T("requires a 68020 emulation. Turning off Z3 fast memory.\n"));
+	if ((p->z3fastmem_size || p->z3fastmem2_size || p->z3chipmem_size) && (p->address_space_24 || p->cpu_model < 68020)) {
+		error_log (_T("Z3 fast memory can't be used with a 68000/68010 emulation. Turning off Z3 fast memory."));
 		p->z3fastmem_size = 0;
+		p->z3fastmem2_size = 0;
+		p->z3chipmem_size = 0;
 		err = 1;
 	}
-	if (p->rtgmem_size > 0 && p->rtgmem_type && (p->cpu_model < 68020 || p->address_space_24)) {
-		write_log (_T("RTG can't be used with a 68000/68010 or 68EC020 emulation. It\n")
-			_T("requires a 68020 emulation. Turning off RTG.\n"));
+	if (p->rtgmem_size > 0 && p->rtgmem_type == GFXBOARD_UAE_Z3 && (p->cpu_model < 68020 || p->address_space_24)) {
+		error_log (_T("UAEGFX RTG can't be used with a 68000/68010 or 68EC020 emulation. Turning off RTG."));
 		p->rtgmem_size = 0;
 		err = 1;
 	}
+
 #if !defined (BSDSOCKET)
 	if (p->socket_emu) {
 		write_log (_T("Compile-time option of BSDSOCKET_SUPPORTED was not enabled.  You can't use bsd-socket emulation.\n"));
@@ -409,22 +475,24 @@ void fixup_prefs (struct uae_prefs *p)
 #endif
 
 	if (p->nr_floppies < 0 || p->nr_floppies > 4) {
-		write_log (_T("Invalid number of floppies.  Using 4.\n"));
-		p->nr_floppies = 4;
+		error_log (_T("Invalid number of floppies.  Using 2."));
+		p->nr_floppies = 2;
 		p->floppyslots[0].dfxtype = 0;
 		p->floppyslots[1].dfxtype = 0;
-		p->floppyslots[2].dfxtype = 0;
-		p->floppyslots[3].dfxtype = 0;
+		p->floppyslots[2].dfxtype = -1;
+		p->floppyslots[3].dfxtype = -1;
 		err = 1;
 	}
 	if (p->floppy_speed > 0 && p->floppy_speed < 10) {
+		error_log (_T("Invalid floppy speed."));
 		p->floppy_speed = 100;
 	}
 	if (p->input_mouse_speed < 1 || p->input_mouse_speed > 1000) {
+		error_log (_T("Invalid mouse speed."));
 		p->input_mouse_speed = 100;
 	}
 	if (p->collision_level < 0 || p->collision_level > 3) {
-		write_log (_T("Invalid collision support level.  Using 1.\n"));
+		error_log (_T("Invalid collision support level.  Using 1."));
 		p->collision_level = 1;
 		err = 1;
 	}
@@ -450,9 +518,10 @@ void fixup_prefs (struct uae_prefs *p)
 	/* Can't fit genlock and A2024 or Graffiti at the same time,
 	 * also Graffiti uses genlock audio bit as an enable signal
 	 */
-	if (p->genlock && p->monitoremu)
+	if (p->genlock && p->monitoremu) {
+		error_log (_T("Genlock and A2024 or Graffiti can't be active simultaneously."));
 		p->genlock = false;
-
+	}
 
 	fixup_prefs_dimensions (p);
 
@@ -467,11 +536,11 @@ void fixup_prefs (struct uae_prefs *p)
 	p->cpu_compatible = 1;
 	p->address_space_24 = 1;
 #endif
-#if !defined (CPUEMU_11) && !defined (CPUEMU_12)
+#if !defined (CPUEMU_11) && !defined (CPUEMU_13)
 	p->cpu_compatible = 0;
 	p->address_space_24 = 0;
 #endif
-#if !defined (CPUEMU_12)
+#if !defined (CPUEMU_13)
 	p->cpu_cycle_exact = p->blitter_cycle_exact = 0;
 #endif
 #ifndef AGA
@@ -497,17 +566,27 @@ void fixup_prefs (struct uae_prefs *p)
 #if !defined (UAESERIAL)
 	p->uaeserial = 0;
 #endif
-#if defined (CPUEMU_12)
+#if defined (CPUEMU_13)
 	if (p->cpu_cycle_exact) {
-		p->gfx_framerate = 1;
-		p->cachesize = 0;
-		p->m68k_speed = 0;
+		if (p->gfx_framerate > 1) {
+			error_log (_T("Cycle-exact requires disabled frameskip."));
+			p->gfx_framerate = 1;
+		}
+		if (p->cachesize) {
+			error_log (_T("Cycle-exact and JIT can't be active simultaneously."));
+			p->cachesize = 0;
+		}
+		if (p->m68k_speed) {
+			error_log (_T("Adjustable CPU speed is not available in cycle-exact mode."));
+			p->m68k_speed = 0;
+		}
 	}
 #endif
 	if (p->maprom && !p->address_space_24)
 		p->maprom = 0x0f000000;
-	if ((p->maprom & 0xff000000) && p->address_space_24)
+	if (((p->maprom & 0xff000000) && p->address_space_24) || p->mbresmem_high_size == 0x08000000) {
 		p->maprom = 0x00e00000;
+	}
 	if (p->tod_hack && p->cs_ciaatod == 0)
 		p->cs_ciaatod = p->ntscmode ? 2 : 1;
 
@@ -541,6 +620,7 @@ void uae_reset (int hardreset, int keyboardreset)
 
 void uae_quit (void)
 {
+	printf("uae_quit\n");
 	deactivate_debugger ();
 	if (quit_program != -UAE_QUIT)
 		quit_program = -UAE_QUIT;
@@ -550,6 +630,7 @@ void uae_quit (void)
 /* 0 = normal, 1 = nogui, -1 = disable nogui */
 void uae_restart (int opengui, const TCHAR *cfgfile)
 {
+	printf("uae_restart\n");
 	uae_quit ();
 	restart_program = opengui > 0 ? 1 : (opengui == 0 ? 2 : 3);
 	restart_config[0] = 0;
@@ -815,6 +896,9 @@ void do_start_program (void)
 	inputdevice_updateconfig (&changed_prefs, &currprefs);
 	if (quit_program >= 0)
 		quit_program = UAE_RESET;
+#ifdef WITH_LUA
+	uae_lua_loadall ();
+#endif
 #ifdef FSUAE
 
 #else
@@ -876,7 +960,11 @@ void do_leave_program (void)
 #ifdef BSDSOCKET
 	bsdlib_reset ();
 #endif
+	gayle_free ();
 	device_func_reset ();
+#ifdef WITH_LUA
+	uae_lua_free ();
+#endif
 	savestate_free ();
 	memory_cleanup ();
 	free_shm ();
@@ -937,8 +1025,9 @@ static int real_main2 (int argc, TCHAR **argv)
 #ifdef USE_SDL
 	SDL_Init (SDL_INIT_TIMER | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK | SDL_INIT_NOPARACHUTE);
 #endif
+<<<<<<< HEAD
 #endif
-	config_changed = 1;
+	set_config_changed ();
 	if (restart_config[0]) {
 		default_prefs (&currprefs, 0);
 		fixup_prefs (&currprefs);
@@ -987,7 +1076,7 @@ static int real_main2 (int argc, TCHAR **argv)
 	if (! no_gui) {
 		int err = gui_init ();
 		currprefs = changed_prefs;
-		config_changed = 1;
+		set_config_changed ();
 		if (err == -1) {
 			write_log (_T("Failed to initialize the GUI\n"));
 			return -1;
@@ -999,13 +1088,16 @@ static int real_main2 (int argc, TCHAR **argv)
 	memset (&gui_data, 0, sizeof gui_data);
 	gui_data.cd = -1;
 	gui_data.hd = -1;
+	gui_data.md = -1;
 	logging_init (); /* Yes, we call this twice - the first case handles when the user has loaded
 						 a config using the cmd-line.  This case handles loads through the GUI. */
 
 #ifdef NATMEM_OFFSET
 	init_shm ();
 #endif
-
+#ifdef WITH_LUA
+	uae_lua_init ();
+#endif
 #ifdef PICASSO96
 	picasso_reset ();
 #endif

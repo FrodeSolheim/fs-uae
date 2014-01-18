@@ -11,6 +11,17 @@ typedef enum { DRV_NONE = -1, DRV_35_DD = 0, DRV_35_HD, DRV_525_SD, DRV_35_DD_ES
 #define HISTORY_FLOPPY 0
 #define HISTORY_CD 1
 
+struct diskinfo
+{
+	uae_u8 bootblock[1024];
+	bool bb_crc_valid;
+	uae_u32 crc32;
+	bool hd;
+	bool unreadable;
+	int bootblocktype;
+	TCHAR diskname[110];
+};
+
 extern void DISK_init (void);
 extern void DISK_free (void);
 extern void DISK_select (uae_u8 data);
@@ -19,7 +30,8 @@ extern uae_u8 DISK_status (void);
 extern void disk_eject (int num);
 extern int disk_empty (int num);
 extern void disk_insert (int num, const TCHAR *name);
-extern void disk_insert_force (int num, const TCHAR *name, bool writeprotected);
+extern void disk_insert (int num, const TCHAR *name, bool forcedwriteprotect);
+extern void disk_insert_force (int num, const TCHAR *name, bool forcedwriteprotect);
 extern void DISK_vsync (void);
 extern int DISK_validate_filename (struct uae_prefs *p, const TCHAR *fname, int leave_open, bool *wrprot, uae_u32 *crc32, struct zfile **zf);
 extern void DISK_handler (uae_u32);
@@ -33,7 +45,7 @@ extern bool disk_creatediskfile (const TCHAR *name, int type, drive_type adftype
 extern void dumpdisk (void);
 extern int DISK_history_add (const TCHAR *name, int idx, int type, int donotcheck);
 extern TCHAR *DISK_history_get (int idx, int type);
-int DISK_examine_image (struct uae_prefs *p, int num, uae_u32 *crc32);
+int DISK_examine_image (struct uae_prefs *p, int num, struct diskinfo *di);
 extern TCHAR *DISK_get_saveimagepath (const TCHAR *name);
 extern void DISK_reinsert (int num);
 extern int disk_prevnext (int drive, int dir);

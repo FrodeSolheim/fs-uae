@@ -178,7 +178,8 @@ else
 endif
 
 ifneq ($(os), android)
-	cppflags += -D$(use_sdl) -DUSE_GLIB -DWITH_LUA
+	cppflags += -D$(use_sdl) -DUSE_GLIB
+	#-DWITH_LUA
 endif
 
 device_helper_objects = obj/fs-uae-device-helper.o
@@ -208,11 +209,13 @@ obj/gensrc-blittable.o \
 obj/gensrc-cpudefs.o \
 obj/gensrc-cpuemu_0.o \
 obj/gensrc-cpuemu_11.o \
-obj/gensrc-cpuemu_12.o \
+obj/gensrc-cpuemu_13.o \
 obj/gensrc-cpuemu_20.o \
 obj/gensrc-cpuemu_21.o \
 obj/gensrc-cpuemu_22.o \
 obj/gensrc-cpuemu_31.o \
+obj/gensrc-cpuemu_32.o \
+obj/gensrc-cpuemu_33.o \
 obj/gensrc-cpustbl.o \
 obj/a2091.o \
 obj/akiko.o \
@@ -234,6 +237,7 @@ obj/cia.o \
 obj/cfgfile.o \
 obj/consolehook.o \
 obj/cpummu.o \
+obj/cpummu30.o \
 obj/crc32.o \
 obj/custom.o \
 obj/debug.o \
@@ -243,7 +247,6 @@ obj/dongle.o \
 obj/drawing.o \
 obj/driveclick.o \
 obj/enforcer.o \
-obj/ersatz.o \
 obj/events.o \
 obj/expansion.o \
 obj/fdi2raw.o \
@@ -252,6 +255,7 @@ obj/fpp.o \
 obj/fsdb.o \
 obj/fsusage.o \
 obj/gayle.o \
+obj/gfxboard.o \
 obj/gfxutil.o \
 obj/hardfile.o \
 obj/hrtmon.rom.o \
@@ -272,6 +276,7 @@ obj/rommgr.o \
 obj/savestate.o \
 obj/scsi.o \
 obj/scsiemul.o \
+obj/scsitape.o \
 obj/specialmonitors.o \
 obj/statusline.o \
 obj/traps.o \
@@ -285,7 +290,6 @@ obj/jit-compemu.o \
 obj/jit-compemu_fpp.o \
 obj/jit-compemu_support.o \
 obj/jit-compstbl.o \
-obj/zip-archiver-unzip.o \
 obj/dms-archiver-crc_csum.o \
 obj/dms-archiver-getbits.o \
 obj/dms-archiver-maketbl.o \
@@ -297,6 +301,7 @@ obj/dms-archiver-u_init.o \
 obj/dms-archiver-u_medium.o \
 obj/dms-archiver-u_quick.o \
 obj/dms-archiver-u_rle.o \
+obj/zip-archiver-unzip.o \
 obj/od-fs-audio.o \
 obj/od-fs-bsdsocket_host.o \
 obj/od-fs-blkdev-linux.o \
@@ -328,7 +333,20 @@ obj/od-fs-threading.o \
 obj/od-fs-uae_host.o \
 obj/od-fs-uaemisc.o \
 obj/od-fs-version.o \
-obj/od-fs-video.o
+obj/od-fs-video.o \
+obj/qemuvga-cirrus_vga.o \
+obj/qemuvga-qemuuaeglue.o \
+obj/qemuvga-vga.o
+
+#obj/chd-archiver-astring.o
+#obj/chd-archiver-chdcdrom.o
+#obj/chd-archiver-chdcodec.o
+#obj/chd-archiver-chd.o
+#obj/chd-archiver-flac.o
+#obj/chd-archiver-hashing.o
+#obj/chd-archiver-huffman.o
+#obj/chd-archiver-md5.o
+#obj/chd-archiver-sha1.o
 
 ifeq ($(generate), 1)
 
@@ -362,7 +380,7 @@ gensrc/blitfunc.h: gensrc/genblitter
 gensrc/blittable.cpp: gensrc/genblitter gensrc/blitfunc.h
 	gensrc/genblitter t > gensrc/blittable.cpp
 
-gensrc/build68k:
+gensrc/build68k: src/build68k.cpp
 	$(cxx) $(cppflags) $(cxxflags) src/build68k.cpp src/writelog.cpp -o gensrc/build68k
 
 gensrc/cpudefs.cpp: gensrc/build68k src/table68k
@@ -377,10 +395,12 @@ gensrc/cpustbl.cpp: gensrc/cpuemu_0.cpp
 gensrc/cputbl.h: gensrc/cpuemu_0.cpp
 
 gensrc/cpuemu_11.cpp: gensrc/cpuemu_0.cpp
-gensrc/cpuemu_12.cpp: gensrc/cpuemu_0.cpp
+gensrc/cpuemu_13.cpp: gensrc/cpuemu_0.cpp
 gensrc/cpuemu_20.cpp: gensrc/cpuemu_0.cpp
 gensrc/cpuemu_21.cpp: gensrc/cpuemu_0.cpp
 gensrc/cpuemu_31.cpp: gensrc/cpuemu_0.cpp
+gensrc/cpuemu_32.cpp: gensrc/cpuemu_0.cpp
+gensrc/cpuemu_33.cpp: gensrc/cpuemu_0.cpp
 
 endif
 
@@ -395,6 +415,12 @@ obj/gensrc-%.o: gensrc/%.cpp
 	$(cxx) $(cppflags) $(cxxflags) -c $< -o $@
 
 obj/%.o: src/%.cpp
+	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -c $< -o $@
+
+obj/chd-archiver-%.o: src/archivers/chd/%.cpp
+	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -c $< -o $@
+
+obj/qemuvga-%.o: src/qemuvga/%.cpp
 	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -c $< -o $@
 
 obj/zip-archiver-%.o: src/archivers/zip/%.cpp

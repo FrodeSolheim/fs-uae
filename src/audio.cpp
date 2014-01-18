@@ -33,6 +33,8 @@
 #include "debug.h"
 #ifdef AVIOUTPUT
 #include "avioutput.h"
+#else
+int avioutput_enabled = 0;
 #endif
 #ifdef AHI
 #include "traps.h"
@@ -1101,12 +1103,11 @@ static void audio_event_reset (void)
 	doublesample = 0;
 }
 
-static void audio_deactivate (void)
+void audio_deactivate (void)
 {
-	if (!currprefs.sound_auto)
-		return;
 	gui_data.sndbuf_status = 3;
 	gui_data.sndbuf = 0;
+	audio_work_to_do = 0;
 	pause_sound_buffer ();
 	clear_sound_buffers ();
 	audio_event_reset ();
@@ -1683,7 +1684,7 @@ void set_audio (void)
 		schedule_audio ();
 		events_schedule ();
 	}
-	config_changed = 1;
+	set_config_changed ();
 }
 
 void update_audio (void)
@@ -1792,7 +1793,7 @@ void audio_hsync (void)
 {
 	if (!isaudio ())
 		return;
-	if (audio_work_to_do > 0 && currprefs.sound_auto) {
+	if (audio_work_to_do > 0 && currprefs.sound_auto && !avioutput_enabled) {
 		audio_work_to_do--;
 		if (audio_work_to_do == 0)
 			audio_deactivate ();

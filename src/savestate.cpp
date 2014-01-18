@@ -518,8 +518,8 @@ void restore_state (const TCHAR *filename)
 		write_log (_T("%s is not an AmigaStateFile\n"), filename);
 		goto error;
 	}
-	write_log (_T("STATERESTORE:\n"));
-	config_changed = 1;
+	write_log (_T("STATERESTORE: '%s'\n"), filename);
+	set_config_changed ();
 	savestate_file = f;
 	restore_header (chunk);
 	xfree (chunk);
@@ -682,8 +682,14 @@ void restore_state (const TCHAR *filename)
 		else if (!_tcscmp (name, _T("CDTV")))
 			end = restore_cdtv (chunk);
 		else if (!_tcscmp (name, _T("DMAC")))
-			end = restore_dmac (chunk);
+			end = restore_cdtv_dmac (chunk);
 #endif
+		else if (!_tcscmp (name, _T("DMC2")))
+			end = restore_scsi_dmac (chunk);
+		else if (!_tcscmp (name, _T("SCSI")))
+			end = restore_scsi_device (chunk);
+		else if (!_tcscmp (name, _T("SCSD")))
+			end = restore_scsidev (chunk);
 		else if (!_tcscmp (name, _T("GAYL")))
 			end = restore_gayle (chunk);
 		else if (!_tcscmp (name, _T("IDE ")))
@@ -968,11 +974,23 @@ static int save_state_internal (struct zfile *f, const TCHAR *description, int c
 	dst = save_cdtv (&len, NULL);
 	save_chunk (f, dst, len, _T("CDTV"), 0);
 	xfree (dst);
-	dst = save_dmac (&len, NULL);
+	dst = save_cdtv_dmac (&len, NULL);
 	save_chunk (f, dst, len, _T("DMAC"), 0);
 	xfree (dst);
 #endif
-
+	dst = save_scsi_dmac (&len, NULL);
+	save_chunk (f, dst, len, _T("DMC2"), 0);
+	xfree (dst);
+	for (i = 0; i < 8; i++) {
+		dst = save_scsi_device (i, &len, NULL);
+		save_chunk (f, dst, len, _T("SCSI"), 0);
+		xfree (dst);
+	}
+	for (i = 0; i < MAX_TOTAL_SCSI_DEVICES; i++) {
+		dst = save_scsidev (i, &len, NULL);
+		save_chunk (f, dst, len, _T("SCSD"), 0);
+		xfree (dst);
+	}
 #ifdef ACTION_REPLAY
 	dst = save_action_replay (&len, NULL);
 	save_chunk (f, dst, len, _T("ACTR"), comp);
@@ -1275,7 +1293,7 @@ void savestate_rewind (void)
 		p = restore_p96 (p);
 #endif
 	len = restore_u32_func (&p);
-	memcpy (chipmemory, p, currprefs.chipmem_size > len ? len : currprefs.chipmem_size);
+	memcpy (chipmem_bank.baseaddr, p, currprefs.chipmem_size > len ? len : currprefs.chipmem_size);
 	p += len;
 	len = restore_u32_func (&p);
 	memcpy (save_bram (&dummy), p, currprefs.bogomem_size > len ? len : currprefs.bogomem_size);
@@ -1302,8 +1320,10 @@ void savestate_rewind (void)
 	if (restore_u32_func (&p))
 		p = restore_cdtv (p);
 	if (restore_u32_func (&p))
-		p = restore_dmac (p);
+		p = restore_cdtv_dmac (p);
 #endif
+	if (restore_u32_func (&p))
+		p = restore_scsi_dmac (p);
 	if (restore_u32_func (&p))
 		p = restore_gayle (p);
 	for (i = 0; i < 4; i++) {
@@ -1640,12 +1660,22 @@ retry2:
 	p3 = p;
 	save_u32_func (&p, 0);
 	tlen += 4;
-	if (save_dmac (&len, p)) {
+	if (save_cdtv_dmac (&len, p)) {
 		save_u32_func (&p3, 1);
 		tlen += len;
 		p += len;
 	}
 #endif
+	if (bufcheck (st, p, 0))
+		goto retry;
+	p3 = p;
+	save_u32_func (&p, 0);
+	tlen += 4;
+	if (save_scsi_dmac (&len, p)) {
+		save_u32_func (&p3, 1);
+		tlen += len;
+		p += len;
+	}
 	if (bufcheck (st, p, 0))
 		goto retry;
 	p3 = p;

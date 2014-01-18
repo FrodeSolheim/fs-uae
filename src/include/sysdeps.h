@@ -200,6 +200,8 @@ typedef uint32_t uae_u32;
 // 32 and 64-bit.
 typedef signed long long uae_s64;
 typedef unsigned long long  uae_u64;
+#define VAL64(a) (a ## LL)
+#define UVAL64(a) (a ## uLL)
 
 // FIXME: check exactly what this is used for
 typedef uae_u32 uaecptr;
@@ -229,7 +231,6 @@ typedef uae_u32 uaecptr;
 
 #undef uae_s64
 #undef uae_u64
-
 #if SIZEOF_LONG_LONG == 8
 #define uae_s64 long long
 #define uae_u64 unsigned long long
@@ -467,8 +468,10 @@ extern void mallocemu_free (void *ptr);
 
 #if __GNUC__ - 1 > 1 || __GNUC_MINOR__ - 1 > 6
 extern void write_log (const TCHAR *, ...) __attribute__ ((format (printf, 1, 2)));
+extern void write_log (char *, ...) __attribute__ ((format (printf, 1, 2)));
 #else
 extern void write_log (const TCHAR *, ...);
+extern void write_log (const char *, ...);
 #endif
 extern void write_dlog (const TCHAR *, ...);
 

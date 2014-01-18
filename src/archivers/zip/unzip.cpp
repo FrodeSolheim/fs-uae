@@ -4,10 +4,6 @@
    Read unzip.h for more info
 */
 
-#ifdef WINUAE
-#define ZLIB_WINAPI
-#endif
-
 #include "sysconfig.h"
 #include "sysdeps.h"
 

@@ -34,13 +34,24 @@ int amiga_set_audio_frequency(int frequency) {
 extern int maxhpos, maxhpos_short;
 extern int maxvpos, maxvpos_nom;
 extern float sample_evtime, scaled_sample_evtime;
-//extern float sampler_evtime;
+// extern float sampler_evtime;
 
 float scaled_sample_evtime_orig;
 int obtainedfreq;
 
 int have_sound = 0;
+float sound_sync_multiplier = 1.0;
 
+void update_sound (double clk)
+{
+	if (!have_sound)
+		return;
+	scaled_sample_evtime_orig = clk * CYCLE_UNIT * sound_sync_multiplier / obtainedfreq;
+	scaled_sample_evtime = scaled_sample_evtime_orig;
+	// sampler_evtime = clk * CYCLE_UNIT * sound_sync_multiplier;
+}
+
+#if 0
 void update_sound (double freq, int longframe, int linetoggle) {
     static int lastfreq;
     double lines = 0;
@@ -70,6 +81,7 @@ void update_sound (double freq, int longframe, int linetoggle) {
     sampler_evtime = hpos * lines * freq * CYCLE_UNIT;
 #endif
 }
+#endif
 
 /*
  * UAE - The Un*x Amiga Emulator
@@ -165,7 +177,7 @@ static int open_sound (void) {
 
     have_sound = 1;
     sound_available = 1;
-    update_sound (fake_vblank_hz, 1, currprefs.ntscmode);
+    //update_sound (fake_vblank_hz, 1, currprefs.ntscmode);
     //paula_sndbufsize = spec.samples * 2 * spec.channels;
     //paula_sndbufsize = fs_emu_get_audio_buffer_size();
     paula_sndbufsize = g_audio_buffer_size;

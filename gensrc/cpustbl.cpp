@@ -7,7 +7,6 @@
 #include "newcpu.h"
 #include "cpu_prefetch.h"
 #include "cputbl.h"
-#include "cpummu.h"
 #define CPUFUNC(x) x##_ff
 #define SET_CFLG_ALWAYS(x) SET_CFLG(x)
 #define SET_NFLG_ALWAYS(x) SET_NFLG(x)
@@ -261,7 +260,6 @@ const struct cputbl CPUFUNC(op_smalltbl_0)[] = {
 { CPUFUNC(op_0839_0), 2105 }, /* BTST */
 { CPUFUNC(op_083a_0), 2106 }, /* BTST */
 { CPUFUNC(op_083b_0), 2107 }, /* BTST */
-{ CPUFUNC(op_083c_0), 2108 }, /* BTST */
 { CPUFUNC(op_0840_0), 2112 }, /* BCHG */
 { CPUFUNC(op_0850_0), 2128 }, /* BCHG */
 { CPUFUNC(op_0858_0), 2136 }, /* BCHG */
@@ -1050,7 +1048,6 @@ const struct cputbl CPUFUNC(op_smalltbl_0)[] = {
 #ifndef CPUEMU_68000_ONLY
 { CPUFUNC(op_4a3b_0), 19003 }, /* TST */
 #endif
-{ CPUFUNC(op_4a3c_0), 19004 }, /* TST */
 { CPUFUNC(op_4a40_0), 19008 }, /* TST */
 #ifndef CPUEMU_68000_ONLY
 { CPUFUNC(op_4a48_0), 19016 }, /* TST */
@@ -1068,7 +1065,6 @@ const struct cputbl CPUFUNC(op_smalltbl_0)[] = {
 #ifndef CPUEMU_68000_ONLY
 { CPUFUNC(op_4a7b_0), 19067 }, /* TST */
 #endif
-{ CPUFUNC(op_4a7c_0), 19068 }, /* TST */
 { CPUFUNC(op_4a80_0), 19072 }, /* TST */
 #ifndef CPUEMU_68000_ONLY
 { CPUFUNC(op_4a88_0), 19080 }, /* TST */
@@ -1086,7 +1082,6 @@ const struct cputbl CPUFUNC(op_smalltbl_0)[] = {
 #ifndef CPUEMU_68000_ONLY
 { CPUFUNC(op_4abb_0), 19131 }, /* TST */
 #endif
-{ CPUFUNC(op_4abc_0), 19132 }, /* TST */
 { CPUFUNC(op_4ac0_0), 19136 }, /* TAS */
 { CPUFUNC(op_4ad0_0), 19152 }, /* TAS */
 { CPUFUNC(op_4ad8_0), 19160 }, /* TAS */
@@ -2520,16 +2515,16 @@ const struct cputbl CPUFUNC(op_smalltbl_0)[] = {
 { CPUFUNC(op_f518_0), 62744 }, /* PFLUSHA */
 #endif
 #ifndef CPUEMU_68000_ONLY
-{ CPUFUNC(op_f548_0), 62792 }, /* PTESTR */
+{ CPUFUNC(op_f548_0), 62792 }, /* PTESTW */
 #endif
 #ifndef CPUEMU_68000_ONLY
-{ CPUFUNC(op_f568_0), 62824 }, /* PTESTW */
+{ CPUFUNC(op_f568_0), 62824 }, /* PTESTR */
 #endif
 #ifndef CPUEMU_68000_ONLY
-{ CPUFUNC(op_f588_0), 62856 }, /* PLPAR */
+{ CPUFUNC(op_f588_0), 62856 }, /* PLPAW */
 #endif
 #ifndef CPUEMU_68000_ONLY
-{ CPUFUNC(op_f5c8_0), 62920 }, /* PLPAW */
+{ CPUFUNC(op_f5c8_0), 62920 }, /* PLPAR */
 #endif
 #ifndef CPUEMU_68000_ONLY
 { CPUFUNC(op_f600_0), 62976 }, /* MOVE16 */
@@ -2738,7 +2733,6 @@ const struct cputbl CPUFUNC(op_smalltbl_1)[] = {
 { CPUFUNC(op_0839_0), 2105 }, /* BTST */
 { CPUFUNC(op_083a_0), 2106 }, /* BTST */
 { CPUFUNC(op_083b_0), 2107 }, /* BTST */
-{ CPUFUNC(op_083c_0), 2108 }, /* BTST */
 { CPUFUNC(op_0840_0), 2112 }, /* BCHG */
 { CPUFUNC(op_0850_0), 2128 }, /* BCHG */
 { CPUFUNC(op_0858_0), 2136 }, /* BCHG */
@@ -3379,7 +3373,6 @@ const struct cputbl CPUFUNC(op_smalltbl_1)[] = {
 { CPUFUNC(op_4a39_0), 19001 }, /* TST */
 { CPUFUNC(op_4a3a_0), 19002 }, /* TST */
 { CPUFUNC(op_4a3b_0), 19003 }, /* TST */
-{ CPUFUNC(op_4a3c_0), 19004 }, /* TST */
 { CPUFUNC(op_4a40_0), 19008 }, /* TST */
 { CPUFUNC(op_4a48_0), 19016 }, /* TST */
 { CPUFUNC(op_4a50_0), 19024 }, /* TST */
@@ -3391,7 +3384,6 @@ const struct cputbl CPUFUNC(op_smalltbl_1)[] = {
 { CPUFUNC(op_4a79_0), 19065 }, /* TST */
 { CPUFUNC(op_4a7a_0), 19066 }, /* TST */
 { CPUFUNC(op_4a7b_0), 19067 }, /* TST */
-{ CPUFUNC(op_4a7c_0), 19068 }, /* TST */
 { CPUFUNC(op_4a80_0), 19072 }, /* TST */
 { CPUFUNC(op_4a88_0), 19080 }, /* TST */
 { CPUFUNC(op_4a90_0), 19088 }, /* TST */
@@ -3403,7 +3395,6 @@ const struct cputbl CPUFUNC(op_smalltbl_1)[] = {
 { CPUFUNC(op_4ab9_0), 19129 }, /* TST */
 { CPUFUNC(op_4aba_0), 19130 }, /* TST */
 { CPUFUNC(op_4abb_0), 19131 }, /* TST */
-{ CPUFUNC(op_4abc_0), 19132 }, /* TST */
 { CPUFUNC(op_4ac0_0), 19136 }, /* TAS */
 { CPUFUNC(op_4ad0_0), 19152 }, /* TAS */
 { CPUFUNC(op_4ad8_0), 19160 }, /* TAS */
@@ -4426,8 +4417,8 @@ const struct cputbl CPUFUNC(op_smalltbl_1)[] = {
 { CPUFUNC(op_f508_0), 62728 }, /* PFLUSH */
 { CPUFUNC(op_f510_0), 62736 }, /* PFLUSHAN */
 { CPUFUNC(op_f518_0), 62744 }, /* PFLUSHA */
-{ CPUFUNC(op_f548_0), 62792 }, /* PTESTR */
-{ CPUFUNC(op_f568_0), 62824 }, /* PTESTW */
+{ CPUFUNC(op_f548_0), 62792 }, /* PTESTW */
+{ CPUFUNC(op_f568_0), 62824 }, /* PTESTR */
 { CPUFUNC(op_f600_0), 62976 }, /* MOVE16 */
 { CPUFUNC(op_f608_0), 62984 }, /* MOVE16 */
 { CPUFUNC(op_f610_0), 62992 }, /* MOVE16 */
@@ -4622,7 +4613,6 @@ const struct cputbl CPUFUNC(op_smalltbl_2)[] = {
 { CPUFUNC(op_0839_0), 2105 }, /* BTST */
 { CPUFUNC(op_083a_0), 2106 }, /* BTST */
 { CPUFUNC(op_083b_0), 2107 }, /* BTST */
-{ CPUFUNC(op_083c_0), 2108 }, /* BTST */
 { CPUFUNC(op_0840_0), 2112 }, /* BCHG */
 { CPUFUNC(op_0850_0), 2128 }, /* BCHG */
 { CPUFUNC(op_0858_0), 2136 }, /* BCHG */
@@ -5263,7 +5253,6 @@ const struct cputbl CPUFUNC(op_smalltbl_2)[] = {
 { CPUFUNC(op_4a39_0), 19001 }, /* TST */
 { CPUFUNC(op_4a3a_0), 19002 }, /* TST */
 { CPUFUNC(op_4a3b_0), 19003 }, /* TST */
-{ CPUFUNC(op_4a3c_0), 19004 }, /* TST */
 { CPUFUNC(op_4a40_0), 19008 }, /* TST */
 { CPUFUNC(op_4a48_0), 19016 }, /* TST */
 { CPUFUNC(op_4a50_0), 19024 }, /* TST */
@@ -5275,7 +5264,6 @@ const struct cputbl CPUFUNC(op_smalltbl_2)[] = {
 { CPUFUNC(op_4a79_0), 19065 }, /* TST */
 { CPUFUNC(op_4a7a_0), 19066 }, /* TST */
 { CPUFUNC(op_4a7b_0), 19067 }, /* TST */
-{ CPUFUNC(op_4a7c_0), 19068 }, /* TST */
 { CPUFUNC(op_4a80_0), 19072 }, /* TST */
 { CPUFUNC(op_4a88_0), 19080 }, /* TST */
 { CPUFUNC(op_4a90_0), 19088 }, /* TST */
@@ -5287,7 +5275,6 @@ const struct cputbl CPUFUNC(op_smalltbl_2)[] = {
 { CPUFUNC(op_4ab9_0), 19129 }, /* TST */
 { CPUFUNC(op_4aba_0), 19130 }, /* TST */
 { CPUFUNC(op_4abb_0), 19131 }, /* TST */
-{ CPUFUNC(op_4abc_0), 19132 }, /* TST */
 { CPUFUNC(op_4ac0_0), 19136 }, /* TAS */
 { CPUFUNC(op_4ad0_0), 19152 }, /* TAS */
 { CPUFUNC(op_4ad8_0), 19160 }, /* TAS */
@@ -6475,7 +6462,6 @@ const struct cputbl CPUFUNC(op_smalltbl_3)[] = {
 { CPUFUNC(op_0839_0), 2105 }, /* BTST */
 { CPUFUNC(op_083a_0), 2106 }, /* BTST */
 { CPUFUNC(op_083b_0), 2107 }, /* BTST */
-{ CPUFUNC(op_083c_0), 2108 }, /* BTST */
 { CPUFUNC(op_0840_0), 2112 }, /* BCHG */
 { CPUFUNC(op_0850_0), 2128 }, /* BCHG */
 { CPUFUNC(op_0858_0), 2136 }, /* BCHG */
@@ -7116,7 +7102,6 @@ const struct cputbl CPUFUNC(op_smalltbl_3)[] = {
 { CPUFUNC(op_4a39_0), 19001 }, /* TST */
 { CPUFUNC(op_4a3a_0), 19002 }, /* TST */
 { CPUFUNC(op_4a3b_0), 19003 }, /* TST */
-{ CPUFUNC(op_4a3c_0), 19004 }, /* TST */
 { CPUFUNC(op_4a40_0), 19008 }, /* TST */
 { CPUFUNC(op_4a48_0), 19016 }, /* TST */
 { CPUFUNC(op_4a50_0), 19024 }, /* TST */
@@ -7128,7 +7113,6 @@ const struct cputbl CPUFUNC(op_smalltbl_3)[] = {
 { CPUFUNC(op_4a79_0), 19065 }, /* TST */
 { CPUFUNC(op_4a7a_0), 19066 }, /* TST */
 { CPUFUNC(op_4a7b_0), 19067 }, /* TST */
-{ CPUFUNC(op_4a7c_0), 19068 }, /* TST */
 { CPUFUNC(op_4a80_0), 19072 }, /* TST */
 { CPUFUNC(op_4a88_0), 19080 }, /* TST */
 { CPUFUNC(op_4a90_0), 19088 }, /* TST */
@@ -7140,7 +7124,6 @@ const struct cputbl CPUFUNC(op_smalltbl_3)[] = {
 { CPUFUNC(op_4ab9_0), 19129 }, /* TST */
 { CPUFUNC(op_4aba_0), 19130 }, /* TST */
 { CPUFUNC(op_4abb_0), 19131 }, /* TST */
-{ CPUFUNC(op_4abc_0), 19132 }, /* TST */
 { CPUFUNC(op_4ac0_0), 19136 }, /* TAS */
 { CPUFUNC(op_4ad0_0), 19152 }, /* TAS */
 { CPUFUNC(op_4ad8_0), 19160 }, /* TAS */
@@ -8289,7 +8272,6 @@ const struct cputbl CPUFUNC(op_smalltbl_4)[] = {
 { CPUFUNC(op_0839_0), 2105 }, /* BTST */
 { CPUFUNC(op_083a_0), 2106 }, /* BTST */
 { CPUFUNC(op_083b_4), 2107 }, /* BTST */
-{ CPUFUNC(op_083c_0), 2108 }, /* BTST */
 { CPUFUNC(op_0840_0), 2112 }, /* BCHG */
 { CPUFUNC(op_0850_0), 2128 }, /* BCHG */
 { CPUFUNC(op_0858_0), 2136 }, /* BCHG */
@@ -8866,7 +8848,6 @@ const struct cputbl CPUFUNC(op_smalltbl_4)[] = {
 { CPUFUNC(op_4a30_4), 18992 }, /* TST */
 { CPUFUNC(op_4a38_0), 19000 }, /* TST */
 { CPUFUNC(op_4a39_0), 19001 }, /* TST */
-{ CPUFUNC(op_4a3c_0), 19004 }, /* TST */
 { CPUFUNC(op_4a40_0), 19008 }, /* TST */
 { CPUFUNC(op_4a50_0), 19024 }, /* TST */
 { CPUFUNC(op_4a58_0), 19032 }, /* TST */
@@ -8875,7 +8856,6 @@ const struct cputbl CPUFUNC(op_smalltbl_4)[] = {
 { CPUFUNC(op_4a70_4), 19056 }, /* TST */
 { CPUFUNC(op_4a78_0), 19064 }, /* TST */
 { CPUFUNC(op_4a79_0), 19065 }, /* TST */
-{ CPUFUNC(op_4a7c_0), 19068 }, /* TST */
 { CPUFUNC(op_4a80_0), 19072 }, /* TST */
 { CPUFUNC(op_4a90_0), 19088 }, /* TST */
 { CPUFUNC(op_4a98_0), 19096 }, /* TST */
@@ -8884,7 +8864,6 @@ const struct cputbl CPUFUNC(op_smalltbl_4)[] = {
 { CPUFUNC(op_4ab0_4), 19120 }, /* TST */
 { CPUFUNC(op_4ab8_0), 19128 }, /* TST */
 { CPUFUNC(op_4ab9_0), 19129 }, /* TST */
-{ CPUFUNC(op_4abc_0), 19132 }, /* TST */
 { CPUFUNC(op_4ac0_4), 19136 }, /* TAS */
 { CPUFUNC(op_4ad0_4), 19152 }, /* TAS */
 { CPUFUNC(op_4ad8_4), 19160 }, /* TAS */
@@ -9863,7 +9842,6 @@ const struct cputbl CPUFUNC(op_smalltbl_5)[] = {
 { CPUFUNC(op_0839_0), 2105 }, /* BTST */
 { CPUFUNC(op_083a_0), 2106 }, /* BTST */
 { CPUFUNC(op_083b_4), 2107 }, /* BTST */
-{ CPUFUNC(op_083c_0), 2108 }, /* BTST */
 { CPUFUNC(op_0840_0), 2112 }, /* BCHG */
 { CPUFUNC(op_0850_0), 2128 }, /* BCHG */
 { CPUFUNC(op_0858_0), 2136 }, /* BCHG */
@@ -10298,30 +10276,30 @@ const struct cputbl CPUFUNC(op_smalltbl_5)[] = {
 { CPUFUNC(op_41f9_0), 16889 }, /* LEA */
 { CPUFUNC(op_41fa_0), 16890 }, /* LEA */
 { CPUFUNC(op_41fb_4), 16891 }, /* LEA */
-{ CPUFUNC(op_4200_0), 16896 }, /* CLR */
-{ CPUFUNC(op_4210_0), 16912 }, /* CLR */
-{ CPUFUNC(op_4218_0), 16920 }, /* CLR */
-{ CPUFUNC(op_4220_0), 16928 }, /* CLR */
-{ CPUFUNC(op_4228_0), 16936 }, /* CLR */
-{ CPUFUNC(op_4230_4), 16944 }, /* CLR */
-{ CPUFUNC(op_4238_0), 16952 }, /* CLR */
-{ CPUFUNC(op_4239_0), 16953 }, /* CLR */
-{ CPUFUNC(op_4240_0), 16960 }, /* CLR */
-{ CPUFUNC(op_4250_0), 16976 }, /* CLR */
-{ CPUFUNC(op_4258_0), 16984 }, /* CLR */
-{ CPUFUNC(op_4260_0), 16992 }, /* CLR */
-{ CPUFUNC(op_4268_0), 17000 }, /* CLR */
-{ CPUFUNC(op_4270_4), 17008 }, /* CLR */
-{ CPUFUNC(op_4278_0), 17016 }, /* CLR */
-{ CPUFUNC(op_4279_0), 17017 }, /* CLR */
-{ CPUFUNC(op_4280_0), 17024 }, /* CLR */
-{ CPUFUNC(op_4290_0), 17040 }, /* CLR */
-{ CPUFUNC(op_4298_0), 17048 }, /* CLR */
-{ CPUFUNC(op_42a0_0), 17056 }, /* CLR */
-{ CPUFUNC(op_42a8_0), 17064 }, /* CLR */
-{ CPUFUNC(op_42b0_4), 17072 }, /* CLR */
-{ CPUFUNC(op_42b8_0), 17080 }, /* CLR */
-{ CPUFUNC(op_42b9_0), 17081 }, /* CLR */
+{ CPUFUNC(op_4200_5), 16896 }, /* CLR */
+{ CPUFUNC(op_4210_5), 16912 }, /* CLR */
+{ CPUFUNC(op_4218_5), 16920 }, /* CLR */
+{ CPUFUNC(op_4220_5), 16928 }, /* CLR */
+{ CPUFUNC(op_4228_5), 16936 }, /* CLR */
+{ CPUFUNC(op_4230_5), 16944 }, /* CLR */
+{ CPUFUNC(op_4238_5), 16952 }, /* CLR */
+{ CPUFUNC(op_4239_5), 16953 }, /* CLR */
+{ CPUFUNC(op_4240_5), 16960 }, /* CLR */
+{ CPUFUNC(op_4250_5), 16976 }, /* CLR */
+{ CPUFUNC(op_4258_5), 16984 }, /* CLR */
+{ CPUFUNC(op_4260_5), 16992 }, /* CLR */
+{ CPUFUNC(op_4268_5), 17000 }, /* CLR */
+{ CPUFUNC(op_4270_5), 17008 }, /* CLR */
+{ CPUFUNC(op_4278_5), 17016 }, /* CLR */
+{ CPUFUNC(op_4279_5), 17017 }, /* CLR */
+{ CPUFUNC(op_4280_5), 17024 }, /* CLR */
+{ CPUFUNC(op_4290_5), 17040 }, /* CLR */
+{ CPUFUNC(op_4298_5), 17048 }, /* CLR */
+{ CPUFUNC(op_42a0_5), 17056 }, /* CLR */
+{ CPUFUNC(op_42a8_5), 17064 }, /* CLR */
+{ CPUFUNC(op_42b0_5), 17072 }, /* CLR */
+{ CPUFUNC(op_42b8_5), 17080 }, /* CLR */
+{ CPUFUNC(op_42b9_5), 17081 }, /* CLR */
 { CPUFUNC(op_4400_0), 17408 }, /* NEG */
 { CPUFUNC(op_4410_0), 17424 }, /* NEG */
 { CPUFUNC(op_4418_0), 17432 }, /* NEG */
@@ -10430,7 +10408,6 @@ const struct cputbl CPUFUNC(op_smalltbl_5)[] = {
 { CPUFUNC(op_4a30_4), 18992 }, /* TST */
 { CPUFUNC(op_4a38_0), 19000 }, /* TST */
 { CPUFUNC(op_4a39_0), 19001 }, /* TST */
-{ CPUFUNC(op_4a3c_0), 19004 }, /* TST */
 { CPUFUNC(op_4a40_0), 19008 }, /* TST */
 { CPUFUNC(op_4a50_0), 19024 }, /* TST */
 { CPUFUNC(op_4a58_0), 19032 }, /* TST */
@@ -10439,7 +10416,6 @@ const struct cputbl CPUFUNC(op_smalltbl_5)[] = {
 { CPUFUNC(op_4a70_4), 19056 }, /* TST */
 { CPUFUNC(op_4a78_0), 19064 }, /* TST */
 { CPUFUNC(op_4a79_0), 19065 }, /* TST */
-{ CPUFUNC(op_4a7c_0), 19068 }, /* TST */
 { CPUFUNC(op_4a80_0), 19072 }, /* TST */
 { CPUFUNC(op_4a90_0), 19088 }, /* TST */
 { CPUFUNC(op_4a98_0), 19096 }, /* TST */
@@ -10448,7 +10424,6 @@ const struct cputbl CPUFUNC(op_smalltbl_5)[] = {
 { CPUFUNC(op_4ab0_4), 19120 }, /* TST */
 { CPUFUNC(op_4ab8_0), 19128 }, /* TST */
 { CPUFUNC(op_4ab9_0), 19129 }, /* TST */
-{ CPUFUNC(op_4abc_0), 19132 }, /* TST */
 { CPUFUNC(op_4ac0_4), 19136 }, /* TAS */
 { CPUFUNC(op_4ad0_4), 19152 }, /* TAS */
 { CPUFUNC(op_4ad8_4), 19160 }, /* TAS */
@@ -10526,15 +10501,15 @@ const struct cputbl CPUFUNC(op_smalltbl_5)[] = {
 { CPUFUNC(op_50b0_4), 20656 }, /* ADD */
 { CPUFUNC(op_50b8_0), 20664 }, /* ADD */
 { CPUFUNC(op_50b9_0), 20665 }, /* ADD */
-{ CPUFUNC(op_50c0_0), 20672 }, /* Scc */
+{ CPUFUNC(op_50c0_5), 20672 }, /* Scc */
 { CPUFUNC(op_50c8_0), 20680 }, /* DBcc */
-{ CPUFUNC(op_50d0_0), 20688 }, /* Scc */
-{ CPUFUNC(op_50d8_0), 20696 }, /* Scc */
-{ CPUFUNC(op_50e0_0), 20704 }, /* Scc */
-{ CPUFUNC(op_50e8_0), 20712 }, /* Scc */
-{ CPUFUNC(op_50f0_4), 20720 }, /* Scc */
-{ CPUFUNC(op_50f8_0), 20728 }, /* Scc */
-{ CPUFUNC(op_50f9_0), 20729 }, /* Scc */
+{ CPUFUNC(op_50d0_5), 20688 }, /* Scc */
+{ CPUFUNC(op_50d8_5), 20696 }, /* Scc */
+{ CPUFUNC(op_50e0_5), 20704 }, /* Scc */
+{ CPUFUNC(op_50e8_5), 20712 }, /* Scc */
+{ CPUFUNC(op_50f0_5), 20720 }, /* Scc */
+{ CPUFUNC(op_50f8_5), 20728 }, /* Scc */
+{ CPUFUNC(op_50f9_5), 20729 }, /* Scc */
 { CPUFUNC(op_5100_0), 20736 }, /* SUB */
 { CPUFUNC(op_5110_0), 20752 }, /* SUB */
 { CPUFUNC(op_5118_0), 20760 }, /* SUB */
@@ -10561,141 +10536,141 @@ const struct cputbl CPUFUNC(op_smalltbl_5)[] = {
 { CPUFUNC(op_51b0_4), 20912 }, /* SUB */
 { CPUFUNC(op_51b8_0), 20920 }, /* SUB */
 { CPUFUNC(op_51b9_0), 20921 }, /* SUB */
-{ CPUFUNC(op_51c0_0), 20928 }, /* Scc */
+{ CPUFUNC(op_51c0_5), 20928 }, /* Scc */
 { CPUFUNC(op_51c8_0), 20936 }, /* DBcc */
-{ CPUFUNC(op_51d0_0), 20944 }, /* Scc */
-{ CPUFUNC(op_51d8_0), 20952 }, /* Scc */
-{ CPUFUNC(op_51e0_0), 20960 }, /* Scc */
-{ CPUFUNC(op_51e8_0), 20968 }, /* Scc */
-{ CPUFUNC(op_51f0_4), 20976 }, /* Scc */
-{ CPUFUNC(op_51f8_0), 20984 }, /* Scc */
-{ CPUFUNC(op_51f9_0), 20985 }, /* Scc */
-{ CPUFUNC(op_52c0_0), 21184 }, /* Scc */
+{ CPUFUNC(op_51d0_5), 20944 }, /* Scc */
+{ CPUFUNC(op_51d8_5), 20952 }, /* Scc */
+{ CPUFUNC(op_51e0_5), 20960 }, /* Scc */
+{ CPUFUNC(op_51e8_5), 20968 }, /* Scc */
+{ CPUFUNC(op_51f0_5), 20976 }, /* Scc */
+{ CPUFUNC(op_51f8_5), 20984 }, /* Scc */
+{ CPUFUNC(op_51f9_5), 20985 }, /* Scc */
+{ CPUFUNC(op_52c0_5), 21184 }, /* Scc */
 { CPUFUNC(op_52c8_0), 21192 }, /* DBcc */
-{ CPUFUNC(op_52d0_0), 21200 }, /* Scc */
-{ CPUFUNC(op_52d8_0), 21208 }, /* Scc */
-{ CPUFUNC(op_52e0_0), 21216 }, /* Scc */
-{ CPUFUNC(op_52e8_0), 21224 }, /* Scc */
-{ CPUFUNC(op_52f0_4), 21232 }, /* Scc */
-{ CPUFUNC(op_52f8_0), 21240 }, /* Scc */
-{ CPUFUNC(op_52f9_0), 21241 }, /* Scc */
-{ CPUFUNC(op_53c0_0), 21440 }, /* Scc */
+{ CPUFUNC(op_52d0_5), 21200 }, /* Scc */
+{ CPUFUNC(op_52d8_5), 21208 }, /* Scc */
+{ CPUFUNC(op_52e0_5), 21216 }, /* Scc */
+{ CPUFUNC(op_52e8_5), 21224 }, /* Scc */
+{ CPUFUNC(op_52f0_5), 21232 }, /* Scc */
+{ CPUFUNC(op_52f8_5), 21240 }, /* Scc */
+{ CPUFUNC(op_52f9_5), 21241 }, /* Scc */
+{ CPUFUNC(op_53c0_5), 21440 }, /* Scc */
 { CPUFUNC(op_53c8_0), 21448 }, /* DBcc */
-{ CPUFUNC(op_53d0_0), 21456 }, /* Scc */
-{ CPUFUNC(op_53d8_0), 21464 }, /* Scc */
-{ CPUFUNC(op_53e0_0), 21472 }, /* Scc */
-{ CPUFUNC(op_53e8_0), 21480 }, /* Scc */
-{ CPUFUNC(op_53f0_4), 21488 }, /* Scc */
-{ CPUFUNC(op_53f8_0), 21496 }, /* Scc */
-{ CPUFUNC(op_53f9_0), 21497 }, /* Scc */
-{ CPUFUNC(op_54c0_0), 21696 }, /* Scc */
+{ CPUFUNC(op_53d0_5), 21456 }, /* Scc */
+{ CPUFUNC(op_53d8_5), 21464 }, /* Scc */
+{ CPUFUNC(op_53e0_5), 21472 }, /* Scc */
+{ CPUFUNC(op_53e8_5), 21480 }, /* Scc */
+{ CPUFUNC(op_53f0_5), 21488 }, /* Scc */
+{ CPUFUNC(op_53f8_5), 21496 }, /* Scc */
+{ CPUFUNC(op_53f9_5), 21497 }, /* Scc */
+{ CPUFUNC(op_54c0_5), 21696 }, /* Scc */
 { CPUFUNC(op_54c8_0), 21704 }, /* DBcc */
-{ CPUFUNC(op_54d0_0), 21712 }, /* Scc */
-{ CPUFUNC(op_54d8_0), 21720 }, /* Scc */
-{ CPUFUNC(op_54e0_0), 21728 }, /* Scc */
-{ CPUFUNC(op_54e8_0), 21736 }, /* Scc */
-{ CPUFUNC(op_54f0_4), 21744 }, /* Scc */
-{ CPUFUNC(op_54f8_0), 21752 }, /* Scc */
-{ CPUFUNC(op_54f9_0), 21753 }, /* Scc */
-{ CPUFUNC(op_55c0_0), 21952 }, /* Scc */
+{ CPUFUNC(op_54d0_5), 21712 }, /* Scc */
+{ CPUFUNC(op_54d8_5), 21720 }, /* Scc */
+{ CPUFUNC(op_54e0_5), 21728 }, /* Scc */
+{ CPUFUNC(op_54e8_5), 21736 }, /* Scc */
+{ CPUFUNC(op_54f0_5), 21744 }, /* Scc */
+{ CPUFUNC(op_54f8_5), 21752 }, /* Scc */
+{ CPUFUNC(op_54f9_5), 21753 }, /* Scc */
+{ CPUFUNC(op_55c0_5), 21952 }, /* Scc */
 { CPUFUNC(op_55c8_0), 21960 }, /* DBcc */
-{ CPUFUNC(op_55d0_0), 21968 }, /* Scc */
-{ CPUFUNC(op_55d8_0), 21976 }, /* Scc */
-{ CPUFUNC(op_55e0_0), 21984 }, /* Scc */
-{ CPUFUNC(op_55e8_0), 21992 }, /* Scc */
-{ CPUFUNC(op_55f0_4), 22000 }, /* Scc */
-{ CPUFUNC(op_55f8_0), 22008 }, /* Scc */
-{ CPUFUNC(op_55f9_0), 22009 }, /* Scc */
-{ CPUFUNC(op_56c0_0), 22208 }, /* Scc */
+{ CPUFUNC(op_55d0_5), 21968 }, /* Scc */
+{ CPUFUNC(op_55d8_5), 21976 }, /* Scc */
+{ CPUFUNC(op_55e0_5), 21984 }, /* Scc */
+{ CPUFUNC(op_55e8_5), 21992 }, /* Scc */
+{ CPUFUNC(op_55f0_5), 22000 }, /* Scc */
+{ CPUFUNC(op_55f8_5), 22008 }, /* Scc */
+{ CPUFUNC(op_55f9_5), 22009 }, /* Scc */
+{ CPUFUNC(op_56c0_5), 22208 }, /* Scc */
 { CPUFUNC(op_56c8_0), 22216 }, /* DBcc */
-{ CPUFUNC(op_56d0_0), 22224 }, /* Scc */
-{ CPUFUNC(op_56d8_0), 22232 }, /* Scc */
-{ CPUFUNC(op_56e0_0), 22240 }, /* Scc */
-{ CPUFUNC(op_56e8_0), 22248 }, /* Scc */
-{ CPUFUNC(op_56f0_4), 22256 }, /* Scc */
-{ CPUFUNC(op_56f8_0), 22264 }, /* Scc */
-{ CPUFUNC(op_56f9_0), 22265 }, /* Scc */
-{ CPUFUNC(op_57c0_0), 22464 }, /* Scc */
+{ CPUFUNC(op_56d0_5), 22224 }, /* Scc */
+{ CPUFUNC(op_56d8_5), 22232 }, /* Scc */
+{ CPUFUNC(op_56e0_5), 22240 }, /* Scc */
+{ CPUFUNC(op_56e8_5), 22248 }, /* Scc */
+{ CPUFUNC(op_56f0_5), 22256 }, /* Scc */
+{ CPUFUNC(op_56f8_5), 22264 }, /* Scc */
+{ CPUFUNC(op_56f9_5), 22265 }, /* Scc */
+{ CPUFUNC(op_57c0_5), 22464 }, /* Scc */
 { CPUFUNC(op_57c8_0), 22472 }, /* DBcc */
-{ CPUFUNC(op_57d0_0), 22480 }, /* Scc */
-{ CPUFUNC(op_57d8_0), 22488 }, /* Scc */
-{ CPUFUNC(op_57e0_0), 22496 }, /* Scc */
-{ CPUFUNC(op_57e8_0), 22504 }, /* Scc */
-{ CPUFUNC(op_57f0_4), 22512 }, /* Scc */
-{ CPUFUNC(op_57f8_0), 22520 }, /* Scc */
-{ CPUFUNC(op_57f9_0), 22521 }, /* Scc */
-{ CPUFUNC(op_58c0_0), 22720 }, /* Scc */
+{ CPUFUNC(op_57d0_5), 22480 }, /* Scc */
+{ CPUFUNC(op_57d8_5), 22488 }, /* Scc */
+{ CPUFUNC(op_57e0_5), 22496 }, /* Scc */
+{ CPUFUNC(op_57e8_5), 22504 }, /* Scc */
+{ CPUFUNC(op_57f0_5), 22512 }, /* Scc */
+{ CPUFUNC(op_57f8_5), 22520 }, /* Scc */
+{ CPUFUNC(op_57f9_5), 22521 }, /* Scc */
+{ CPUFUNC(op_58c0_5), 22720 }, /* Scc */
 { CPUFUNC(op_58c8_0), 22728 }, /* DBcc */
-{ CPUFUNC(op_58d0_0), 22736 }, /* Scc */
-{ CPUFUNC(op_58d8_0), 22744 }, /* Scc */
-{ CPUFUNC(op_58e0_0), 22752 }, /* Scc */
-{ CPUFUNC(op_58e8_0), 22760 }, /* Scc */
-{ CPUFUNC(op_58f0_4), 22768 }, /* Scc */
-{ CPUFUNC(op_58f8_0), 22776 }, /* Scc */
-{ CPUFUNC(op_58f9_0), 22777 }, /* Scc */
-{ CPUFUNC(op_59c0_0), 22976 }, /* Scc */
+{ CPUFUNC(op_58d0_5), 22736 }, /* Scc */
+{ CPUFUNC(op_58d8_5), 22744 }, /* Scc */
+{ CPUFUNC(op_58e0_5), 22752 }, /* Scc */
+{ CPUFUNC(op_58e8_5), 22760 }, /* Scc */
+{ CPUFUNC(op_58f0_5), 22768 }, /* Scc */
+{ CPUFUNC(op_58f8_5), 22776 }, /* Scc */
+{ CPUFUNC(op_58f9_5), 22777 }, /* Scc */
+{ CPUFUNC(op_59c0_5), 22976 }, /* Scc */
 { CPUFUNC(op_59c8_0), 22984 }, /* DBcc */
-{ CPUFUNC(op_59d0_0), 22992 }, /* Scc */
-{ CPUFUNC(op_59d8_0), 23000 }, /* Scc */
-{ CPUFUNC(op_59e0_0), 23008 }, /* Scc */
-{ CPUFUNC(op_59e8_0), 23016 }, /* Scc */
-{ CPUFUNC(op_59f0_4), 23024 }, /* Scc */
-{ CPUFUNC(op_59f8_0), 23032 }, /* Scc */
-{ CPUFUNC(op_59f9_0), 23033 }, /* Scc */
-{ CPUFUNC(op_5ac0_0), 23232 }, /* Scc */
+{ CPUFUNC(op_59d0_5), 22992 }, /* Scc */
+{ CPUFUNC(op_59d8_5), 23000 }, /* Scc */
+{ CPUFUNC(op_59e0_5), 23008 }, /* Scc */
+{ CPUFUNC(op_59e8_5), 23016 }, /* Scc */
+{ CPUFUNC(op_59f0_5), 23024 }, /* Scc */
+{ CPUFUNC(op_59f8_5), 23032 }, /* Scc */
+{ CPUFUNC(op_59f9_5), 23033 }, /* Scc */
+{ CPUFUNC(op_5ac0_5), 23232 }, /* Scc */
 { CPUFUNC(op_5ac8_0), 23240 }, /* DBcc */
-{ CPUFUNC(op_5ad0_0), 23248 }, /* Scc */
-{ CPUFUNC(op_5ad8_0), 23256 }, /* Scc */
-{ CPUFUNC(op_5ae0_0), 23264 }, /* Scc */
-{ CPUFUNC(op_5ae8_0), 23272 }, /* Scc */
-{ CPUFUNC(op_5af0_4), 23280 }, /* Scc */
-{ CPUFUNC(op_5af8_0), 23288 }, /* Scc */
-{ CPUFUNC(op_5af9_0), 23289 }, /* Scc */
-{ CPUFUNC(op_5bc0_0), 23488 }, /* Scc */
+{ CPUFUNC(op_5ad0_5), 23248 }, /* Scc */
+{ CPUFUNC(op_5ad8_5), 23256 }, /* Scc */
+{ CPUFUNC(op_5ae0_5), 23264 }, /* Scc */
+{ CPUFUNC(op_5ae8_5), 23272 }, /* Scc */
+{ CPUFUNC(op_5af0_5), 23280 }, /* Scc */
+{ CPUFUNC(op_5af8_5), 23288 }, /* Scc */
+{ CPUFUNC(op_5af9_5), 23289 }, /* Scc */
+{ CPUFUNC(op_5bc0_5), 23488 }, /* Scc */
 { CPUFUNC(op_5bc8_0), 23496 }, /* DBcc */
-{ CPUFUNC(op_5bd0_0), 23504 }, /* Scc */
-{ CPUFUNC(op_5bd8_0), 23512 }, /* Scc */
-{ CPUFUNC(op_5be0_0), 23520 }, /* Scc */
-{ CPUFUNC(op_5be8_0), 23528 }, /* Scc */
-{ CPUFUNC(op_5bf0_4), 23536 }, /* Scc */
-{ CPUFUNC(op_5bf8_0), 23544 }, /* Scc */
-{ CPUFUNC(op_5bf9_0), 23545 }, /* Scc */
-{ CPUFUNC(op_5cc0_0), 23744 }, /* Scc */
+{ CPUFUNC(op_5bd0_5), 23504 }, /* Scc */
+{ CPUFUNC(op_5bd8_5), 23512 }, /* Scc */
+{ CPUFUNC(op_5be0_5), 23520 }, /* Scc */
+{ CPUFUNC(op_5be8_5), 23528 }, /* Scc */
+{ CPUFUNC(op_5bf0_5), 23536 }, /* Scc */
+{ CPUFUNC(op_5bf8_5), 23544 }, /* Scc */
+{ CPUFUNC(op_5bf9_5), 23545 }, /* Scc */
+{ CPUFUNC(op_5cc0_5), 23744 }, /* Scc */
 { CPUFUNC(op_5cc8_0), 23752 }, /* DBcc */
-{ CPUFUNC(op_5cd0_0), 23760 }, /* Scc */
-{ CPUFUNC(op_5cd8_0), 23768 }, /* Scc */
-{ CPUFUNC(op_5ce0_0), 23776 }, /* Scc */
-{ CPUFUNC(op_5ce8_0), 23784 }, /* Scc */
-{ CPUFUNC(op_5cf0_4), 23792 }, /* Scc */
-{ CPUFUNC(op_5cf8_0), 23800 }, /* Scc */
-{ CPUFUNC(op_5cf9_0), 23801 }, /* Scc */
-{ CPUFUNC(op_5dc0_0), 24000 }, /* Scc */
+{ CPUFUNC(op_5cd0_5), 23760 }, /* Scc */
+{ CPUFUNC(op_5cd8_5), 23768 }, /* Scc */
+{ CPUFUNC(op_5ce0_5), 23776 }, /* Scc */
+{ CPUFUNC(op_5ce8_5), 23784 }, /* Scc */
+{ CPUFUNC(op_5cf0_5), 23792 }, /* Scc */
+{ CPUFUNC(op_5cf8_5), 23800 }, /* Scc */
+{ CPUFUNC(op_5cf9_5), 23801 }, /* Scc */
+{ CPUFUNC(op_5dc0_5), 24000 }, /* Scc */
 { CPUFUNC(op_5dc8_0), 24008 }, /* DBcc */
-{ CPUFUNC(op_5dd0_0), 24016 }, /* Scc */
-{ CPUFUNC(op_5dd8_0), 24024 }, /* Scc */
-{ CPUFUNC(op_5de0_0), 24032 }, /* Scc */
-{ CPUFUNC(op_5de8_0), 24040 }, /* Scc */
-{ CPUFUNC(op_5df0_4), 24048 }, /* Scc */
-{ CPUFUNC(op_5df8_0), 24056 }, /* Scc */
-{ CPUFUNC(op_5df9_0), 24057 }, /* Scc */
-{ CPUFUNC(op_5ec0_0), 24256 }, /* Scc */
+{ CPUFUNC(op_5dd0_5), 24016 }, /* Scc */
+{ CPUFUNC(op_5dd8_5), 24024 }, /* Scc */
+{ CPUFUNC(op_5de0_5), 24032 }, /* Scc */
+{ CPUFUNC(op_5de8_5), 24040 }, /* Scc */
+{ CPUFUNC(op_5df0_5), 24048 }, /* Scc */
+{ CPUFUNC(op_5df8_5), 24056 }, /* Scc */
+{ CPUFUNC(op_5df9_5), 24057 }, /* Scc */
+{ CPUFUNC(op_5ec0_5), 24256 }, /* Scc */
 { CPUFUNC(op_5ec8_0), 24264 }, /* DBcc */
-{ CPUFUNC(op_5ed0_0), 24272 }, /* Scc */
-{ CPUFUNC(op_5ed8_0), 24280 }, /* Scc */
-{ CPUFUNC(op_5ee0_0), 24288 }, /* Scc */
-{ CPUFUNC(op_5ee8_0), 24296 }, /* Scc */
-{ CPUFUNC(op_5ef0_4), 24304 }, /* Scc */
-{ CPUFUNC(op_5ef8_0), 24312 }, /* Scc */
-{ CPUFUNC(op_5ef9_0), 24313 }, /* Scc */
-{ CPUFUNC(op_5fc0_0), 24512 }, /* Scc */
+{ CPUFUNC(op_5ed0_5), 24272 }, /* Scc */
+{ CPUFUNC(op_5ed8_5), 24280 }, /* Scc */
+{ CPUFUNC(op_5ee0_5), 24288 }, /* Scc */
+{ CPUFUNC(op_5ee8_5), 24296 }, /* Scc */
+{ CPUFUNC(op_5ef0_5), 24304 }, /* Scc */
+{ CPUFUNC(op_5ef8_5), 24312 }, /* Scc */
+{ CPUFUNC(op_5ef9_5), 24313 }, /* Scc */
+{ CPUFUNC(op_5fc0_5), 24512 }, /* Scc */
 { CPUFUNC(op_5fc8_0), 24520 }, /* DBcc */
-{ CPUFUNC(op_5fd0_0), 24528 }, /* Scc */
-{ CPUFUNC(op_5fd8_0), 24536 }, /* Scc */
-{ CPUFUNC(op_5fe0_0), 24544 }, /* Scc */
-{ CPUFUNC(op_5fe8_0), 24552 }, /* Scc */
-{ CPUFUNC(op_5ff0_4), 24560 }, /* Scc */
-{ CPUFUNC(op_5ff8_0), 24568 }, /* Scc */
-{ CPUFUNC(op_5ff9_0), 24569 }, /* Scc */
+{ CPUFUNC(op_5fd0_5), 24528 }, /* Scc */
+{ CPUFUNC(op_5fd8_5), 24536 }, /* Scc */
+{ CPUFUNC(op_5fe0_5), 24544 }, /* Scc */
+{ CPUFUNC(op_5fe8_5), 24552 }, /* Scc */
+{ CPUFUNC(op_5ff0_5), 24560 }, /* Scc */
+{ CPUFUNC(op_5ff8_5), 24568 }, /* Scc */
+{ CPUFUNC(op_5ff9_5), 24569 }, /* Scc */
 { CPUFUNC(op_6000_0), 24576 }, /* Bcc */
 { CPUFUNC(op_6001_0), 24577 }, /* Bcc */
 { CPUFUNC(op_60ff_4), 24831 }, /* Bcc */
@@ -11425,7 +11400,6 @@ const struct cputbl CPUFUNC(op_smalltbl_11)[] = {
 { CPUFUNC(op_0839_11), 2105 }, /* BTST */
 { CPUFUNC(op_083a_11), 2106 }, /* BTST */
 { CPUFUNC(op_083b_11), 2107 }, /* BTST */
-{ CPUFUNC(op_083c_11), 2108 }, /* BTST */
 { CPUFUNC(op_0840_11), 2112 }, /* BCHG */
 { CPUFUNC(op_0850_11), 2128 }, /* BCHG */
 { CPUFUNC(op_0858_11), 2136 }, /* BCHG */
@@ -11884,6 +11858,30 @@ const struct cputbl CPUFUNC(op_smalltbl_11)[] = {
 { CPUFUNC(op_42b0_11), 17072 }, /* CLR */
 { CPUFUNC(op_42b8_11), 17080 }, /* CLR */
 { CPUFUNC(op_42b9_11), 17081 }, /* CLR */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_42c0_11), 17088 }, /* MVSR2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_42d0_11), 17104 }, /* MVSR2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_42d8_11), 17112 }, /* MVSR2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_42e0_11), 17120 }, /* MVSR2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_42e8_11), 17128 }, /* MVSR2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_42f0_11), 17136 }, /* MVSR2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_42f8_11), 17144 }, /* MVSR2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_42f9_11), 17145 }, /* MVSR2 */
+#endif
 { CPUFUNC(op_4400_11), 17408 }, /* NEG */
 { CPUFUNC(op_4410_11), 17424 }, /* NEG */
 { CPUFUNC(op_4418_11), 17432 }, /* NEG */
@@ -11992,7 +11990,6 @@ const struct cputbl CPUFUNC(op_smalltbl_11)[] = {
 { CPUFUNC(op_4a30_11), 18992 }, /* TST */
 { CPUFUNC(op_4a38_11), 19000 }, /* TST */
 { CPUFUNC(op_4a39_11), 19001 }, /* TST */
-{ CPUFUNC(op_4a3c_11), 19004 }, /* TST */
 { CPUFUNC(op_4a40_11), 19008 }, /* TST */
 { CPUFUNC(op_4a50_11), 19024 }, /* TST */
 { CPUFUNC(op_4a58_11), 19032 }, /* TST */
@@ -12001,7 +11998,6 @@ const struct cputbl CPUFUNC(op_smalltbl_11)[] = {
 { CPUFUNC(op_4a70_11), 19056 }, /* TST */
 { CPUFUNC(op_4a78_11), 19064 }, /* TST */
 { CPUFUNC(op_4a79_11), 19065 }, /* TST */
-{ CPUFUNC(op_4a7c_11), 19068 }, /* TST */
 { CPUFUNC(op_4a80_11), 19072 }, /* TST */
 { CPUFUNC(op_4a90_11), 19088 }, /* TST */
 { CPUFUNC(op_4a98_11), 19096 }, /* TST */
@@ -12010,7 +12006,6 @@ const struct cputbl CPUFUNC(op_smalltbl_11)[] = {
 { CPUFUNC(op_4ab0_11), 19120 }, /* TST */
 { CPUFUNC(op_4ab8_11), 19128 }, /* TST */
 { CPUFUNC(op_4ab9_11), 19129 }, /* TST */
-{ CPUFUNC(op_4abc_11), 19132 }, /* TST */
 { CPUFUNC(op_4ac0_11), 19136 }, /* TAS */
 { CPUFUNC(op_4ad0_11), 19152 }, /* TAS */
 { CPUFUNC(op_4ad8_11), 19160 }, /* TAS */
@@ -12048,6 +12043,12 @@ const struct cputbl CPUFUNC(op_smalltbl_11)[] = {
 { CPUFUNC(op_4e75_11), 20085 }, /* RTS */
 { CPUFUNC(op_4e76_11), 20086 }, /* TRAPV */
 { CPUFUNC(op_4e77_11), 20087 }, /* RTR */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4e7a_11), 20090 }, /* MOVEC2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4e7b_11), 20091 }, /* MOVE2C */
+#endif
 { CPUFUNC(op_4e90_11), 20112 }, /* JSR */
 { CPUFUNC(op_4ea8_11), 20136 }, /* JSR */
 { CPUFUNC(op_4eb0_11), 20144 }, /* JSR */
@@ -12830,1568 +12831,4706 @@ const struct cputbl CPUFUNC(op_smalltbl_11)[] = {
 { CPUFUNC(op_e7f9_11), 59385 }, /* ROLW */
 { 0, 0 }};
 #endif /* CPUEMU_11 */
-#ifdef CPUEMU_12
 const struct cputbl CPUFUNC(op_smalltbl_12)[] = {
-{ (cpuop_func*)CPUFUNC(op_0000_12), 0 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_0010_12), 16 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_0018_12), 24 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_0020_12), 32 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_0028_12), 40 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_0030_12), 48 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_0038_12), 56 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_0039_12), 57 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_003c_12), 60 }, /* ORSR */
-{ (cpuop_func*)CPUFUNC(op_0040_12), 64 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_0050_12), 80 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_0058_12), 88 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_0060_12), 96 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_0068_12), 104 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_0070_12), 112 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_0078_12), 120 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_0079_12), 121 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_007c_12), 124 }, /* ORSR */
-{ (cpuop_func*)CPUFUNC(op_0080_12), 128 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_0090_12), 144 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_0098_12), 152 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_00a0_12), 160 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_00a8_12), 168 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_00b0_12), 176 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_00b8_12), 184 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_00b9_12), 185 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_0100_12), 256 }, /* BTST */
-{ (cpuop_func*)CPUFUNC(op_0108_12), 264 }, /* MVPMR */
-{ (cpuop_func*)CPUFUNC(op_0110_12), 272 }, /* BTST */
-{ (cpuop_func*)CPUFUNC(op_0118_12), 280 }, /* BTST */
-{ (cpuop_func*)CPUFUNC(op_0120_12), 288 }, /* BTST */
-{ (cpuop_func*)CPUFUNC(op_0128_12), 296 }, /* BTST */
-{ (cpuop_func*)CPUFUNC(op_0130_12), 304 }, /* BTST */
-{ (cpuop_func*)CPUFUNC(op_0138_12), 312 }, /* BTST */
-{ (cpuop_func*)CPUFUNC(op_0139_12), 313 }, /* BTST */
-{ (cpuop_func*)CPUFUNC(op_013a_12), 314 }, /* BTST */
-{ (cpuop_func*)CPUFUNC(op_013b_12), 315 }, /* BTST */
-{ (cpuop_func*)CPUFUNC(op_013c_12), 316 }, /* BTST */
-{ (cpuop_func*)CPUFUNC(op_0140_12), 320 }, /* BCHG */
-{ (cpuop_func*)CPUFUNC(op_0148_12), 328 }, /* MVPMR */
-{ (cpuop_func*)CPUFUNC(op_0150_12), 336 }, /* BCHG */
-{ (cpuop_func*)CPUFUNC(op_0158_12), 344 }, /* BCHG */
-{ (cpuop_func*)CPUFUNC(op_0160_12), 352 }, /* BCHG */
-{ (cpuop_func*)CPUFUNC(op_0168_12), 360 }, /* BCHG */
-{ (cpuop_func*)CPUFUNC(op_0170_12), 368 }, /* BCHG */
-{ (cpuop_func*)CPUFUNC(op_0178_12), 376 }, /* BCHG */
-{ (cpuop_func*)CPUFUNC(op_0179_12), 377 }, /* BCHG */
-{ (cpuop_func*)CPUFUNC(op_017a_12), 378 }, /* BCHG */
-{ (cpuop_func*)CPUFUNC(op_017b_12), 379 }, /* BCHG */
-{ (cpuop_func*)CPUFUNC(op_0180_12), 384 }, /* BCLR */
-{ (cpuop_func*)CPUFUNC(op_0188_12), 392 }, /* MVPRM */
-{ (cpuop_func*)CPUFUNC(op_0190_12), 400 }, /* BCLR */
-{ (cpuop_func*)CPUFUNC(op_0198_12), 408 }, /* BCLR */
-{ (cpuop_func*)CPUFUNC(op_01a0_12), 416 }, /* BCLR */
-{ (cpuop_func*)CPUFUNC(op_01a8_12), 424 }, /* BCLR */
-{ (cpuop_func*)CPUFUNC(op_01b0_12), 432 }, /* BCLR */
-{ (cpuop_func*)CPUFUNC(op_01b8_12), 440 }, /* BCLR */
-{ (cpuop_func*)CPUFUNC(op_01b9_12), 441 }, /* BCLR */
-{ (cpuop_func*)CPUFUNC(op_01ba_12), 442 }, /* BCLR */
-{ (cpuop_func*)CPUFUNC(op_01bb_12), 443 }, /* BCLR */
-{ (cpuop_func*)CPUFUNC(op_01c0_12), 448 }, /* BSET */
-{ (cpuop_func*)CPUFUNC(op_01c8_12), 456 }, /* MVPRM */
-{ (cpuop_func*)CPUFUNC(op_01d0_12), 464 }, /* BSET */
-{ (cpuop_func*)CPUFUNC(op_01d8_12), 472 }, /* BSET */
-{ (cpuop_func*)CPUFUNC(op_01e0_12), 480 }, /* BSET */
-{ (cpuop_func*)CPUFUNC(op_01e8_12), 488 }, /* BSET */
-{ (cpuop_func*)CPUFUNC(op_01f0_12), 496 }, /* BSET */
-{ (cpuop_func*)CPUFUNC(op_01f8_12), 504 }, /* BSET */
-{ (cpuop_func*)CPUFUNC(op_01f9_12), 505 }, /* BSET */
-{ (cpuop_func*)CPUFUNC(op_01fa_12), 506 }, /* BSET */
-{ (cpuop_func*)CPUFUNC(op_01fb_12), 507 }, /* BSET */
-{ (cpuop_func*)CPUFUNC(op_0200_12), 512 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_0210_12), 528 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_0218_12), 536 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_0220_12), 544 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_0228_12), 552 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_0230_12), 560 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_0238_12), 568 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_0239_12), 569 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_023c_12), 572 }, /* ANDSR */
-{ (cpuop_func*)CPUFUNC(op_0240_12), 576 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_0250_12), 592 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_0258_12), 600 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_0260_12), 608 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_0268_12), 616 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_0270_12), 624 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_0278_12), 632 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_0279_12), 633 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_027c_12), 636 }, /* ANDSR */
-{ (cpuop_func*)CPUFUNC(op_0280_12), 640 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_0290_12), 656 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_0298_12), 664 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_02a0_12), 672 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_02a8_12), 680 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_02b0_12), 688 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_02b8_12), 696 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_02b9_12), 697 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_0400_12), 1024 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_0410_12), 1040 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_0418_12), 1048 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_0420_12), 1056 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_0428_12), 1064 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_0430_12), 1072 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_0438_12), 1080 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_0439_12), 1081 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_0440_12), 1088 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_0450_12), 1104 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_0458_12), 1112 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_0460_12), 1120 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_0468_12), 1128 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_0470_12), 1136 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_0478_12), 1144 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_0479_12), 1145 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_0480_12), 1152 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_0490_12), 1168 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_0498_12), 1176 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_04a0_12), 1184 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_04a8_12), 1192 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_04b0_12), 1200 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_04b8_12), 1208 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_04b9_12), 1209 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_0600_12), 1536 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_0610_12), 1552 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_0618_12), 1560 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_0620_12), 1568 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_0628_12), 1576 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_0630_12), 1584 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_0638_12), 1592 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_0639_12), 1593 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_0640_12), 1600 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_0650_12), 1616 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_0658_12), 1624 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_0660_12), 1632 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_0668_12), 1640 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_0670_12), 1648 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_0678_12), 1656 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_0679_12), 1657 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_0680_12), 1664 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_0690_12), 1680 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_0698_12), 1688 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_06a0_12), 1696 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_06a8_12), 1704 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_06b0_12), 1712 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_06b8_12), 1720 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_06b9_12), 1721 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_0800_12), 2048 }, /* BTST */
-{ (cpuop_func*)CPUFUNC(op_0810_12), 2064 }, /* BTST */
-{ (cpuop_func*)CPUFUNC(op_0818_12), 2072 }, /* BTST */
-{ (cpuop_func*)CPUFUNC(op_0820_12), 2080 }, /* BTST */
-{ (cpuop_func*)CPUFUNC(op_0828_12), 2088 }, /* BTST */
-{ (cpuop_func*)CPUFUNC(op_0830_12), 2096 }, /* BTST */
-{ (cpuop_func*)CPUFUNC(op_0838_12), 2104 }, /* BTST */
-{ (cpuop_func*)CPUFUNC(op_0839_12), 2105 }, /* BTST */
-{ (cpuop_func*)CPUFUNC(op_083a_12), 2106 }, /* BTST */
-{ (cpuop_func*)CPUFUNC(op_083b_12), 2107 }, /* BTST */
-{ (cpuop_func*)CPUFUNC(op_083c_12), 2108 }, /* BTST */
-{ (cpuop_func*)CPUFUNC(op_0840_12), 2112 }, /* BCHG */
-{ (cpuop_func*)CPUFUNC(op_0850_12), 2128 }, /* BCHG */
-{ (cpuop_func*)CPUFUNC(op_0858_12), 2136 }, /* BCHG */
-{ (cpuop_func*)CPUFUNC(op_0860_12), 2144 }, /* BCHG */
-{ (cpuop_func*)CPUFUNC(op_0868_12), 2152 }, /* BCHG */
-{ (cpuop_func*)CPUFUNC(op_0870_12), 2160 }, /* BCHG */
-{ (cpuop_func*)CPUFUNC(op_0878_12), 2168 }, /* BCHG */
-{ (cpuop_func*)CPUFUNC(op_0879_12), 2169 }, /* BCHG */
-{ (cpuop_func*)CPUFUNC(op_087a_12), 2170 }, /* BCHG */
-{ (cpuop_func*)CPUFUNC(op_087b_12), 2171 }, /* BCHG */
-{ (cpuop_func*)CPUFUNC(op_0880_12), 2176 }, /* BCLR */
-{ (cpuop_func*)CPUFUNC(op_0890_12), 2192 }, /* BCLR */
-{ (cpuop_func*)CPUFUNC(op_0898_12), 2200 }, /* BCLR */
-{ (cpuop_func*)CPUFUNC(op_08a0_12), 2208 }, /* BCLR */
-{ (cpuop_func*)CPUFUNC(op_08a8_12), 2216 }, /* BCLR */
-{ (cpuop_func*)CPUFUNC(op_08b0_12), 2224 }, /* BCLR */
-{ (cpuop_func*)CPUFUNC(op_08b8_12), 2232 }, /* BCLR */
-{ (cpuop_func*)CPUFUNC(op_08b9_12), 2233 }, /* BCLR */
-{ (cpuop_func*)CPUFUNC(op_08ba_12), 2234 }, /* BCLR */
-{ (cpuop_func*)CPUFUNC(op_08bb_12), 2235 }, /* BCLR */
-{ (cpuop_func*)CPUFUNC(op_08c0_12), 2240 }, /* BSET */
-{ (cpuop_func*)CPUFUNC(op_08d0_12), 2256 }, /* BSET */
-{ (cpuop_func*)CPUFUNC(op_08d8_12), 2264 }, /* BSET */
-{ (cpuop_func*)CPUFUNC(op_08e0_12), 2272 }, /* BSET */
-{ (cpuop_func*)CPUFUNC(op_08e8_12), 2280 }, /* BSET */
-{ (cpuop_func*)CPUFUNC(op_08f0_12), 2288 }, /* BSET */
-{ (cpuop_func*)CPUFUNC(op_08f8_12), 2296 }, /* BSET */
-{ (cpuop_func*)CPUFUNC(op_08f9_12), 2297 }, /* BSET */
-{ (cpuop_func*)CPUFUNC(op_08fa_12), 2298 }, /* BSET */
-{ (cpuop_func*)CPUFUNC(op_08fb_12), 2299 }, /* BSET */
-{ (cpuop_func*)CPUFUNC(op_0a00_12), 2560 }, /* EOR */
-{ (cpuop_func*)CPUFUNC(op_0a10_12), 2576 }, /* EOR */
-{ (cpuop_func*)CPUFUNC(op_0a18_12), 2584 }, /* EOR */
-{ (cpuop_func*)CPUFUNC(op_0a20_12), 2592 }, /* EOR */
-{ (cpuop_func*)CPUFUNC(op_0a28_12), 2600 }, /* EOR */
-{ (cpuop_func*)CPUFUNC(op_0a30_12), 2608 }, /* EOR */
-{ (cpuop_func*)CPUFUNC(op_0a38_12), 2616 }, /* EOR */
-{ (cpuop_func*)CPUFUNC(op_0a39_12), 2617 }, /* EOR */
-{ (cpuop_func*)CPUFUNC(op_0a3c_12), 2620 }, /* EORSR */
-{ (cpuop_func*)CPUFUNC(op_0a40_12), 2624 }, /* EOR */
-{ (cpuop_func*)CPUFUNC(op_0a50_12), 2640 }, /* EOR */
-{ (cpuop_func*)CPUFUNC(op_0a58_12), 2648 }, /* EOR */
-{ (cpuop_func*)CPUFUNC(op_0a60_12), 2656 }, /* EOR */
-{ (cpuop_func*)CPUFUNC(op_0a68_12), 2664 }, /* EOR */
-{ (cpuop_func*)CPUFUNC(op_0a70_12), 2672 }, /* EOR */
-{ (cpuop_func*)CPUFUNC(op_0a78_12), 2680 }, /* EOR */
-{ (cpuop_func*)CPUFUNC(op_0a79_12), 2681 }, /* EOR */
-{ (cpuop_func*)CPUFUNC(op_0a7c_12), 2684 }, /* EORSR */
-{ (cpuop_func*)CPUFUNC(op_0a80_12), 2688 }, /* EOR */
-{ (cpuop_func*)CPUFUNC(op_0a90_12), 2704 }, /* EOR */
-{ (cpuop_func*)CPUFUNC(op_0a98_12), 2712 }, /* EOR */
-{ (cpuop_func*)CPUFUNC(op_0aa0_12), 2720 }, /* EOR */
-{ (cpuop_func*)CPUFUNC(op_0aa8_12), 2728 }, /* EOR */
-{ (cpuop_func*)CPUFUNC(op_0ab0_12), 2736 }, /* EOR */
-{ (cpuop_func*)CPUFUNC(op_0ab8_12), 2744 }, /* EOR */
-{ (cpuop_func*)CPUFUNC(op_0ab9_12), 2745 }, /* EOR */
-{ (cpuop_func*)CPUFUNC(op_0c00_12), 3072 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_0c10_12), 3088 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_0c18_12), 3096 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_0c20_12), 3104 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_0c28_12), 3112 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_0c30_12), 3120 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_0c38_12), 3128 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_0c39_12), 3129 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_0c40_12), 3136 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_0c50_12), 3152 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_0c58_12), 3160 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_0c60_12), 3168 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_0c68_12), 3176 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_0c70_12), 3184 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_0c78_12), 3192 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_0c79_12), 3193 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_0c80_12), 3200 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_0c90_12), 3216 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_0c98_12), 3224 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_0ca0_12), 3232 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_0ca8_12), 3240 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_0cb0_12), 3248 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_0cb8_12), 3256 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_0cb9_12), 3257 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_1000_12), 4096 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_1010_12), 4112 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_1018_12), 4120 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_1020_12), 4128 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_1028_12), 4136 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_1030_12), 4144 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_1038_12), 4152 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_1039_12), 4153 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_103a_12), 4154 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_103b_12), 4155 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_103c_12), 4156 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_1080_12), 4224 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_1090_12), 4240 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_1098_12), 4248 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_10a0_12), 4256 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_10a8_12), 4264 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_10b0_12), 4272 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_10b8_12), 4280 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_10b9_12), 4281 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_10ba_12), 4282 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_10bb_12), 4283 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_10bc_12), 4284 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_10c0_12), 4288 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_10d0_12), 4304 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_10d8_12), 4312 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_10e0_12), 4320 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_10e8_12), 4328 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_10f0_12), 4336 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_10f8_12), 4344 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_10f9_12), 4345 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_10fa_12), 4346 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_10fb_12), 4347 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_10fc_12), 4348 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_1100_12), 4352 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_1110_12), 4368 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_1118_12), 4376 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_1120_12), 4384 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_1128_12), 4392 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_1130_12), 4400 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_1138_12), 4408 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_1139_12), 4409 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_113a_12), 4410 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_113b_12), 4411 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_113c_12), 4412 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_1140_12), 4416 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_1150_12), 4432 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_1158_12), 4440 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_1160_12), 4448 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_1168_12), 4456 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_1170_12), 4464 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_1178_12), 4472 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_1179_12), 4473 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_117a_12), 4474 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_117b_12), 4475 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_117c_12), 4476 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_1180_12), 4480 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_1190_12), 4496 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_1198_12), 4504 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_11a0_12), 4512 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_11a8_12), 4520 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_11b0_12), 4528 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_11b8_12), 4536 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_11b9_12), 4537 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_11ba_12), 4538 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_11bb_12), 4539 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_11bc_12), 4540 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_11c0_12), 4544 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_11d0_12), 4560 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_11d8_12), 4568 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_11e0_12), 4576 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_11e8_12), 4584 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_11f0_12), 4592 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_11f8_12), 4600 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_11f9_12), 4601 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_11fa_12), 4602 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_11fb_12), 4603 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_11fc_12), 4604 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_13c0_12), 5056 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_13d0_12), 5072 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_13d8_12), 5080 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_13e0_12), 5088 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_13e8_12), 5096 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_13f0_12), 5104 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_13f8_12), 5112 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_13f9_12), 5113 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_13fa_12), 5114 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_13fb_12), 5115 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_13fc_12), 5116 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_2000_12), 8192 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_2008_12), 8200 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_2010_12), 8208 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_2018_12), 8216 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_2020_12), 8224 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_2028_12), 8232 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_2030_12), 8240 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_2038_12), 8248 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_2039_12), 8249 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_203a_12), 8250 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_203b_12), 8251 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_203c_12), 8252 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_2040_12), 8256 }, /* MOVEA */
-{ (cpuop_func*)CPUFUNC(op_2048_12), 8264 }, /* MOVEA */
-{ (cpuop_func*)CPUFUNC(op_2050_12), 8272 }, /* MOVEA */
-{ (cpuop_func*)CPUFUNC(op_2058_12), 8280 }, /* MOVEA */
-{ (cpuop_func*)CPUFUNC(op_2060_12), 8288 }, /* MOVEA */
-{ (cpuop_func*)CPUFUNC(op_2068_12), 8296 }, /* MOVEA */
-{ (cpuop_func*)CPUFUNC(op_2070_12), 8304 }, /* MOVEA */
-{ (cpuop_func*)CPUFUNC(op_2078_12), 8312 }, /* MOVEA */
-{ (cpuop_func*)CPUFUNC(op_2079_12), 8313 }, /* MOVEA */
-{ (cpuop_func*)CPUFUNC(op_207a_12), 8314 }, /* MOVEA */
-{ (cpuop_func*)CPUFUNC(op_207b_12), 8315 }, /* MOVEA */
-{ (cpuop_func*)CPUFUNC(op_207c_12), 8316 }, /* MOVEA */
-{ (cpuop_func*)CPUFUNC(op_2080_12), 8320 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_2088_12), 8328 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_2090_12), 8336 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_2098_12), 8344 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_20a0_12), 8352 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_20a8_12), 8360 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_20b0_12), 8368 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_20b8_12), 8376 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_20b9_12), 8377 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_20ba_12), 8378 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_20bb_12), 8379 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_20bc_12), 8380 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_20c0_12), 8384 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_20c8_12), 8392 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_20d0_12), 8400 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_20d8_12), 8408 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_20e0_12), 8416 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_20e8_12), 8424 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_20f0_12), 8432 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_20f8_12), 8440 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_20f9_12), 8441 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_20fa_12), 8442 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_20fb_12), 8443 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_20fc_12), 8444 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_2100_12), 8448 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_2108_12), 8456 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_2110_12), 8464 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_2118_12), 8472 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_2120_12), 8480 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_2128_12), 8488 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_2130_12), 8496 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_2138_12), 8504 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_2139_12), 8505 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_213a_12), 8506 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_213b_12), 8507 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_213c_12), 8508 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_2140_12), 8512 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_2148_12), 8520 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_2150_12), 8528 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_2158_12), 8536 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_2160_12), 8544 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_2168_12), 8552 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_2170_12), 8560 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_2178_12), 8568 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_2179_12), 8569 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_217a_12), 8570 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_217b_12), 8571 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_217c_12), 8572 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_2180_12), 8576 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_2188_12), 8584 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_2190_12), 8592 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_2198_12), 8600 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_21a0_12), 8608 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_21a8_12), 8616 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_21b0_12), 8624 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_21b8_12), 8632 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_21b9_12), 8633 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_21ba_12), 8634 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_21bb_12), 8635 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_21bc_12), 8636 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_21c0_12), 8640 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_21c8_12), 8648 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_21d0_12), 8656 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_21d8_12), 8664 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_21e0_12), 8672 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_21e8_12), 8680 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_21f0_12), 8688 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_21f8_12), 8696 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_21f9_12), 8697 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_21fa_12), 8698 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_21fb_12), 8699 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_21fc_12), 8700 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_23c0_12), 9152 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_23c8_12), 9160 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_23d0_12), 9168 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_23d8_12), 9176 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_23e0_12), 9184 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_23e8_12), 9192 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_23f0_12), 9200 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_23f8_12), 9208 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_23f9_12), 9209 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_23fa_12), 9210 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_23fb_12), 9211 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_23fc_12), 9212 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_3000_12), 12288 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_3008_12), 12296 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_3010_12), 12304 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_3018_12), 12312 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_3020_12), 12320 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_3028_12), 12328 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_3030_12), 12336 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_3038_12), 12344 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_3039_12), 12345 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_303a_12), 12346 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_303b_12), 12347 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_303c_12), 12348 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_3040_12), 12352 }, /* MOVEA */
-{ (cpuop_func*)CPUFUNC(op_3048_12), 12360 }, /* MOVEA */
-{ (cpuop_func*)CPUFUNC(op_3050_12), 12368 }, /* MOVEA */
-{ (cpuop_func*)CPUFUNC(op_3058_12), 12376 }, /* MOVEA */
-{ (cpuop_func*)CPUFUNC(op_3060_12), 12384 }, /* MOVEA */
-{ (cpuop_func*)CPUFUNC(op_3068_12), 12392 }, /* MOVEA */
-{ (cpuop_func*)CPUFUNC(op_3070_12), 12400 }, /* MOVEA */
-{ (cpuop_func*)CPUFUNC(op_3078_12), 12408 }, /* MOVEA */
-{ (cpuop_func*)CPUFUNC(op_3079_12), 12409 }, /* MOVEA */
-{ (cpuop_func*)CPUFUNC(op_307a_12), 12410 }, /* MOVEA */
-{ (cpuop_func*)CPUFUNC(op_307b_12), 12411 }, /* MOVEA */
-{ (cpuop_func*)CPUFUNC(op_307c_12), 12412 }, /* MOVEA */
-{ (cpuop_func*)CPUFUNC(op_3080_12), 12416 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_3088_12), 12424 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_3090_12), 12432 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_3098_12), 12440 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_30a0_12), 12448 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_30a8_12), 12456 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_30b0_12), 12464 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_30b8_12), 12472 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_30b9_12), 12473 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_30ba_12), 12474 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_30bb_12), 12475 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_30bc_12), 12476 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_30c0_12), 12480 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_30c8_12), 12488 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_30d0_12), 12496 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_30d8_12), 12504 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_30e0_12), 12512 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_30e8_12), 12520 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_30f0_12), 12528 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_30f8_12), 12536 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_30f9_12), 12537 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_30fa_12), 12538 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_30fb_12), 12539 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_30fc_12), 12540 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_3100_12), 12544 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_3108_12), 12552 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_3110_12), 12560 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_3118_12), 12568 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_3120_12), 12576 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_3128_12), 12584 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_3130_12), 12592 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_3138_12), 12600 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_3139_12), 12601 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_313a_12), 12602 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_313b_12), 12603 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_313c_12), 12604 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_3140_12), 12608 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_3148_12), 12616 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_3150_12), 12624 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_3158_12), 12632 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_3160_12), 12640 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_3168_12), 12648 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_3170_12), 12656 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_3178_12), 12664 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_3179_12), 12665 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_317a_12), 12666 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_317b_12), 12667 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_317c_12), 12668 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_3180_12), 12672 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_3188_12), 12680 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_3190_12), 12688 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_3198_12), 12696 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_31a0_12), 12704 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_31a8_12), 12712 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_31b0_12), 12720 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_31b8_12), 12728 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_31b9_12), 12729 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_31ba_12), 12730 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_31bb_12), 12731 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_31bc_12), 12732 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_31c0_12), 12736 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_31c8_12), 12744 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_31d0_12), 12752 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_31d8_12), 12760 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_31e0_12), 12768 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_31e8_12), 12776 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_31f0_12), 12784 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_31f8_12), 12792 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_31f9_12), 12793 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_31fa_12), 12794 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_31fb_12), 12795 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_31fc_12), 12796 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_33c0_12), 13248 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_33c8_12), 13256 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_33d0_12), 13264 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_33d8_12), 13272 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_33e0_12), 13280 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_33e8_12), 13288 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_33f0_12), 13296 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_33f8_12), 13304 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_33f9_12), 13305 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_33fa_12), 13306 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_33fb_12), 13307 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_33fc_12), 13308 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_4000_12), 16384 }, /* NEGX */
-{ (cpuop_func*)CPUFUNC(op_4010_12), 16400 }, /* NEGX */
-{ (cpuop_func*)CPUFUNC(op_4018_12), 16408 }, /* NEGX */
-{ (cpuop_func*)CPUFUNC(op_4020_12), 16416 }, /* NEGX */
-{ (cpuop_func*)CPUFUNC(op_4028_12), 16424 }, /* NEGX */
-{ (cpuop_func*)CPUFUNC(op_4030_12), 16432 }, /* NEGX */
-{ (cpuop_func*)CPUFUNC(op_4038_12), 16440 }, /* NEGX */
-{ (cpuop_func*)CPUFUNC(op_4039_12), 16441 }, /* NEGX */
-{ (cpuop_func*)CPUFUNC(op_4040_12), 16448 }, /* NEGX */
-{ (cpuop_func*)CPUFUNC(op_4050_12), 16464 }, /* NEGX */
-{ (cpuop_func*)CPUFUNC(op_4058_12), 16472 }, /* NEGX */
-{ (cpuop_func*)CPUFUNC(op_4060_12), 16480 }, /* NEGX */
-{ (cpuop_func*)CPUFUNC(op_4068_12), 16488 }, /* NEGX */
-{ (cpuop_func*)CPUFUNC(op_4070_12), 16496 }, /* NEGX */
-{ (cpuop_func*)CPUFUNC(op_4078_12), 16504 }, /* NEGX */
-{ (cpuop_func*)CPUFUNC(op_4079_12), 16505 }, /* NEGX */
-{ (cpuop_func*)CPUFUNC(op_4080_12), 16512 }, /* NEGX */
-{ (cpuop_func*)CPUFUNC(op_4090_12), 16528 }, /* NEGX */
-{ (cpuop_func*)CPUFUNC(op_4098_12), 16536 }, /* NEGX */
-{ (cpuop_func*)CPUFUNC(op_40a0_12), 16544 }, /* NEGX */
-{ (cpuop_func*)CPUFUNC(op_40a8_12), 16552 }, /* NEGX */
-{ (cpuop_func*)CPUFUNC(op_40b0_12), 16560 }, /* NEGX */
-{ (cpuop_func*)CPUFUNC(op_40b8_12), 16568 }, /* NEGX */
-{ (cpuop_func*)CPUFUNC(op_40b9_12), 16569 }, /* NEGX */
-{ (cpuop_func*)CPUFUNC(op_40c0_12), 16576 }, /* MVSR2 */
-{ (cpuop_func*)CPUFUNC(op_40d0_12), 16592 }, /* MVSR2 */
-{ (cpuop_func*)CPUFUNC(op_40d8_12), 16600 }, /* MVSR2 */
-{ (cpuop_func*)CPUFUNC(op_40e0_12), 16608 }, /* MVSR2 */
-{ (cpuop_func*)CPUFUNC(op_40e8_12), 16616 }, /* MVSR2 */
-{ (cpuop_func*)CPUFUNC(op_40f0_12), 16624 }, /* MVSR2 */
-{ (cpuop_func*)CPUFUNC(op_40f8_12), 16632 }, /* MVSR2 */
-{ (cpuop_func*)CPUFUNC(op_40f9_12), 16633 }, /* MVSR2 */
-{ (cpuop_func*)CPUFUNC(op_4180_12), 16768 }, /* CHK */
-{ (cpuop_func*)CPUFUNC(op_4190_12), 16784 }, /* CHK */
-{ (cpuop_func*)CPUFUNC(op_4198_12), 16792 }, /* CHK */
-{ (cpuop_func*)CPUFUNC(op_41a0_12), 16800 }, /* CHK */
-{ (cpuop_func*)CPUFUNC(op_41a8_12), 16808 }, /* CHK */
-{ (cpuop_func*)CPUFUNC(op_41b0_12), 16816 }, /* CHK */
-{ (cpuop_func*)CPUFUNC(op_41b8_12), 16824 }, /* CHK */
-{ (cpuop_func*)CPUFUNC(op_41b9_12), 16825 }, /* CHK */
-{ (cpuop_func*)CPUFUNC(op_41ba_12), 16826 }, /* CHK */
-{ (cpuop_func*)CPUFUNC(op_41bb_12), 16827 }, /* CHK */
-{ (cpuop_func*)CPUFUNC(op_41bc_12), 16828 }, /* CHK */
-{ (cpuop_func*)CPUFUNC(op_41d0_12), 16848 }, /* LEA */
-{ (cpuop_func*)CPUFUNC(op_41e8_12), 16872 }, /* LEA */
-{ (cpuop_func*)CPUFUNC(op_41f0_12), 16880 }, /* LEA */
-{ (cpuop_func*)CPUFUNC(op_41f8_12), 16888 }, /* LEA */
-{ (cpuop_func*)CPUFUNC(op_41f9_12), 16889 }, /* LEA */
-{ (cpuop_func*)CPUFUNC(op_41fa_12), 16890 }, /* LEA */
-{ (cpuop_func*)CPUFUNC(op_41fb_12), 16891 }, /* LEA */
-{ (cpuop_func*)CPUFUNC(op_4200_12), 16896 }, /* CLR */
-{ (cpuop_func*)CPUFUNC(op_4210_12), 16912 }, /* CLR */
-{ (cpuop_func*)CPUFUNC(op_4218_12), 16920 }, /* CLR */
-{ (cpuop_func*)CPUFUNC(op_4220_12), 16928 }, /* CLR */
-{ (cpuop_func*)CPUFUNC(op_4228_12), 16936 }, /* CLR */
-{ (cpuop_func*)CPUFUNC(op_4230_12), 16944 }, /* CLR */
-{ (cpuop_func*)CPUFUNC(op_4238_12), 16952 }, /* CLR */
-{ (cpuop_func*)CPUFUNC(op_4239_12), 16953 }, /* CLR */
-{ (cpuop_func*)CPUFUNC(op_4240_12), 16960 }, /* CLR */
-{ (cpuop_func*)CPUFUNC(op_4250_12), 16976 }, /* CLR */
-{ (cpuop_func*)CPUFUNC(op_4258_12), 16984 }, /* CLR */
-{ (cpuop_func*)CPUFUNC(op_4260_12), 16992 }, /* CLR */
-{ (cpuop_func*)CPUFUNC(op_4268_12), 17000 }, /* CLR */
-{ (cpuop_func*)CPUFUNC(op_4270_12), 17008 }, /* CLR */
-{ (cpuop_func*)CPUFUNC(op_4278_12), 17016 }, /* CLR */
-{ (cpuop_func*)CPUFUNC(op_4279_12), 17017 }, /* CLR */
-{ (cpuop_func*)CPUFUNC(op_4280_12), 17024 }, /* CLR */
-{ (cpuop_func*)CPUFUNC(op_4290_12), 17040 }, /* CLR */
-{ (cpuop_func*)CPUFUNC(op_4298_12), 17048 }, /* CLR */
-{ (cpuop_func*)CPUFUNC(op_42a0_12), 17056 }, /* CLR */
-{ (cpuop_func*)CPUFUNC(op_42a8_12), 17064 }, /* CLR */
-{ (cpuop_func*)CPUFUNC(op_42b0_12), 17072 }, /* CLR */
-{ (cpuop_func*)CPUFUNC(op_42b8_12), 17080 }, /* CLR */
-{ (cpuop_func*)CPUFUNC(op_42b9_12), 17081 }, /* CLR */
-{ (cpuop_func*)CPUFUNC(op_4400_12), 17408 }, /* NEG */
-{ (cpuop_func*)CPUFUNC(op_4410_12), 17424 }, /* NEG */
-{ (cpuop_func*)CPUFUNC(op_4418_12), 17432 }, /* NEG */
-{ (cpuop_func*)CPUFUNC(op_4420_12), 17440 }, /* NEG */
-{ (cpuop_func*)CPUFUNC(op_4428_12), 17448 }, /* NEG */
-{ (cpuop_func*)CPUFUNC(op_4430_12), 17456 }, /* NEG */
-{ (cpuop_func*)CPUFUNC(op_4438_12), 17464 }, /* NEG */
-{ (cpuop_func*)CPUFUNC(op_4439_12), 17465 }, /* NEG */
-{ (cpuop_func*)CPUFUNC(op_4440_12), 17472 }, /* NEG */
-{ (cpuop_func*)CPUFUNC(op_4450_12), 17488 }, /* NEG */
-{ (cpuop_func*)CPUFUNC(op_4458_12), 17496 }, /* NEG */
-{ (cpuop_func*)CPUFUNC(op_4460_12), 17504 }, /* NEG */
-{ (cpuop_func*)CPUFUNC(op_4468_12), 17512 }, /* NEG */
-{ (cpuop_func*)CPUFUNC(op_4470_12), 17520 }, /* NEG */
-{ (cpuop_func*)CPUFUNC(op_4478_12), 17528 }, /* NEG */
-{ (cpuop_func*)CPUFUNC(op_4479_12), 17529 }, /* NEG */
-{ (cpuop_func*)CPUFUNC(op_4480_12), 17536 }, /* NEG */
-{ (cpuop_func*)CPUFUNC(op_4490_12), 17552 }, /* NEG */
-{ (cpuop_func*)CPUFUNC(op_4498_12), 17560 }, /* NEG */
-{ (cpuop_func*)CPUFUNC(op_44a0_12), 17568 }, /* NEG */
-{ (cpuop_func*)CPUFUNC(op_44a8_12), 17576 }, /* NEG */
-{ (cpuop_func*)CPUFUNC(op_44b0_12), 17584 }, /* NEG */
-{ (cpuop_func*)CPUFUNC(op_44b8_12), 17592 }, /* NEG */
-{ (cpuop_func*)CPUFUNC(op_44b9_12), 17593 }, /* NEG */
-{ (cpuop_func*)CPUFUNC(op_44c0_12), 17600 }, /* MV2SR */
-{ (cpuop_func*)CPUFUNC(op_44d0_12), 17616 }, /* MV2SR */
-{ (cpuop_func*)CPUFUNC(op_44d8_12), 17624 }, /* MV2SR */
-{ (cpuop_func*)CPUFUNC(op_44e0_12), 17632 }, /* MV2SR */
-{ (cpuop_func*)CPUFUNC(op_44e8_12), 17640 }, /* MV2SR */
-{ (cpuop_func*)CPUFUNC(op_44f0_12), 17648 }, /* MV2SR */
-{ (cpuop_func*)CPUFUNC(op_44f8_12), 17656 }, /* MV2SR */
-{ (cpuop_func*)CPUFUNC(op_44f9_12), 17657 }, /* MV2SR */
-{ (cpuop_func*)CPUFUNC(op_44fa_12), 17658 }, /* MV2SR */
-{ (cpuop_func*)CPUFUNC(op_44fb_12), 17659 }, /* MV2SR */
-{ (cpuop_func*)CPUFUNC(op_44fc_12), 17660 }, /* MV2SR */
-{ (cpuop_func*)CPUFUNC(op_4600_12), 17920 }, /* NOT */
-{ (cpuop_func*)CPUFUNC(op_4610_12), 17936 }, /* NOT */
-{ (cpuop_func*)CPUFUNC(op_4618_12), 17944 }, /* NOT */
-{ (cpuop_func*)CPUFUNC(op_4620_12), 17952 }, /* NOT */
-{ (cpuop_func*)CPUFUNC(op_4628_12), 17960 }, /* NOT */
-{ (cpuop_func*)CPUFUNC(op_4630_12), 17968 }, /* NOT */
-{ (cpuop_func*)CPUFUNC(op_4638_12), 17976 }, /* NOT */
-{ (cpuop_func*)CPUFUNC(op_4639_12), 17977 }, /* NOT */
-{ (cpuop_func*)CPUFUNC(op_4640_12), 17984 }, /* NOT */
-{ (cpuop_func*)CPUFUNC(op_4650_12), 18000 }, /* NOT */
-{ (cpuop_func*)CPUFUNC(op_4658_12), 18008 }, /* NOT */
-{ (cpuop_func*)CPUFUNC(op_4660_12), 18016 }, /* NOT */
-{ (cpuop_func*)CPUFUNC(op_4668_12), 18024 }, /* NOT */
-{ (cpuop_func*)CPUFUNC(op_4670_12), 18032 }, /* NOT */
-{ (cpuop_func*)CPUFUNC(op_4678_12), 18040 }, /* NOT */
-{ (cpuop_func*)CPUFUNC(op_4679_12), 18041 }, /* NOT */
-{ (cpuop_func*)CPUFUNC(op_4680_12), 18048 }, /* NOT */
-{ (cpuop_func*)CPUFUNC(op_4690_12), 18064 }, /* NOT */
-{ (cpuop_func*)CPUFUNC(op_4698_12), 18072 }, /* NOT */
-{ (cpuop_func*)CPUFUNC(op_46a0_12), 18080 }, /* NOT */
-{ (cpuop_func*)CPUFUNC(op_46a8_12), 18088 }, /* NOT */
-{ (cpuop_func*)CPUFUNC(op_46b0_12), 18096 }, /* NOT */
-{ (cpuop_func*)CPUFUNC(op_46b8_12), 18104 }, /* NOT */
-{ (cpuop_func*)CPUFUNC(op_46b9_12), 18105 }, /* NOT */
-{ (cpuop_func*)CPUFUNC(op_46c0_12), 18112 }, /* MV2SR */
-{ (cpuop_func*)CPUFUNC(op_46d0_12), 18128 }, /* MV2SR */
-{ (cpuop_func*)CPUFUNC(op_46d8_12), 18136 }, /* MV2SR */
-{ (cpuop_func*)CPUFUNC(op_46e0_12), 18144 }, /* MV2SR */
-{ (cpuop_func*)CPUFUNC(op_46e8_12), 18152 }, /* MV2SR */
-{ (cpuop_func*)CPUFUNC(op_46f0_12), 18160 }, /* MV2SR */
-{ (cpuop_func*)CPUFUNC(op_46f8_12), 18168 }, /* MV2SR */
-{ (cpuop_func*)CPUFUNC(op_46f9_12), 18169 }, /* MV2SR */
-{ (cpuop_func*)CPUFUNC(op_46fa_12), 18170 }, /* MV2SR */
-{ (cpuop_func*)CPUFUNC(op_46fb_12), 18171 }, /* MV2SR */
-{ (cpuop_func*)CPUFUNC(op_46fc_12), 18172 }, /* MV2SR */
-{ (cpuop_func*)CPUFUNC(op_4800_12), 18432 }, /* NBCD */
-{ (cpuop_func*)CPUFUNC(op_4810_12), 18448 }, /* NBCD */
-{ (cpuop_func*)CPUFUNC(op_4818_12), 18456 }, /* NBCD */
-{ (cpuop_func*)CPUFUNC(op_4820_12), 18464 }, /* NBCD */
-{ (cpuop_func*)CPUFUNC(op_4828_12), 18472 }, /* NBCD */
-{ (cpuop_func*)CPUFUNC(op_4830_12), 18480 }, /* NBCD */
-{ (cpuop_func*)CPUFUNC(op_4838_12), 18488 }, /* NBCD */
-{ (cpuop_func*)CPUFUNC(op_4839_12), 18489 }, /* NBCD */
-{ (cpuop_func*)CPUFUNC(op_4840_12), 18496 }, /* SWAP */
-{ (cpuop_func*)CPUFUNC(op_4850_12), 18512 }, /* PEA */
-{ (cpuop_func*)CPUFUNC(op_4868_12), 18536 }, /* PEA */
-{ (cpuop_func*)CPUFUNC(op_4870_12), 18544 }, /* PEA */
-{ (cpuop_func*)CPUFUNC(op_4878_12), 18552 }, /* PEA */
-{ (cpuop_func*)CPUFUNC(op_4879_12), 18553 }, /* PEA */
-{ (cpuop_func*)CPUFUNC(op_487a_12), 18554 }, /* PEA */
-{ (cpuop_func*)CPUFUNC(op_487b_12), 18555 }, /* PEA */
-{ (cpuop_func*)CPUFUNC(op_4880_12), 18560 }, /* EXT */
-{ (cpuop_func*)CPUFUNC(op_4890_12), 18576 }, /* MVMLE */
-{ (cpuop_func*)CPUFUNC(op_48a0_12), 18592 }, /* MVMLE */
-{ (cpuop_func*)CPUFUNC(op_48a8_12), 18600 }, /* MVMLE */
-{ (cpuop_func*)CPUFUNC(op_48b0_12), 18608 }, /* MVMLE */
-{ (cpuop_func*)CPUFUNC(op_48b8_12), 18616 }, /* MVMLE */
-{ (cpuop_func*)CPUFUNC(op_48b9_12), 18617 }, /* MVMLE */
-{ (cpuop_func*)CPUFUNC(op_48c0_12), 18624 }, /* EXT */
-{ (cpuop_func*)CPUFUNC(op_48d0_12), 18640 }, /* MVMLE */
-{ (cpuop_func*)CPUFUNC(op_48e0_12), 18656 }, /* MVMLE */
-{ (cpuop_func*)CPUFUNC(op_48e8_12), 18664 }, /* MVMLE */
-{ (cpuop_func*)CPUFUNC(op_48f0_12), 18672 }, /* MVMLE */
-{ (cpuop_func*)CPUFUNC(op_48f8_12), 18680 }, /* MVMLE */
-{ (cpuop_func*)CPUFUNC(op_48f9_12), 18681 }, /* MVMLE */
-{ (cpuop_func*)CPUFUNC(op_4a00_12), 18944 }, /* TST */
-{ (cpuop_func*)CPUFUNC(op_4a10_12), 18960 }, /* TST */
-{ (cpuop_func*)CPUFUNC(op_4a18_12), 18968 }, /* TST */
-{ (cpuop_func*)CPUFUNC(op_4a20_12), 18976 }, /* TST */
-{ (cpuop_func*)CPUFUNC(op_4a28_12), 18984 }, /* TST */
-{ (cpuop_func*)CPUFUNC(op_4a30_12), 18992 }, /* TST */
-{ (cpuop_func*)CPUFUNC(op_4a38_12), 19000 }, /* TST */
-{ (cpuop_func*)CPUFUNC(op_4a39_12), 19001 }, /* TST */
-{ (cpuop_func*)CPUFUNC(op_4a3c_12), 19004 }, /* TST */
-{ (cpuop_func*)CPUFUNC(op_4a40_12), 19008 }, /* TST */
-{ (cpuop_func*)CPUFUNC(op_4a50_12), 19024 }, /* TST */
-{ (cpuop_func*)CPUFUNC(op_4a58_12), 19032 }, /* TST */
-{ (cpuop_func*)CPUFUNC(op_4a60_12), 19040 }, /* TST */
-{ (cpuop_func*)CPUFUNC(op_4a68_12), 19048 }, /* TST */
-{ (cpuop_func*)CPUFUNC(op_4a70_12), 19056 }, /* TST */
-{ (cpuop_func*)CPUFUNC(op_4a78_12), 19064 }, /* TST */
-{ (cpuop_func*)CPUFUNC(op_4a79_12), 19065 }, /* TST */
-{ (cpuop_func*)CPUFUNC(op_4a7c_12), 19068 }, /* TST */
-{ (cpuop_func*)CPUFUNC(op_4a80_12), 19072 }, /* TST */
-{ (cpuop_func*)CPUFUNC(op_4a90_12), 19088 }, /* TST */
-{ (cpuop_func*)CPUFUNC(op_4a98_12), 19096 }, /* TST */
-{ (cpuop_func*)CPUFUNC(op_4aa0_12), 19104 }, /* TST */
-{ (cpuop_func*)CPUFUNC(op_4aa8_12), 19112 }, /* TST */
-{ (cpuop_func*)CPUFUNC(op_4ab0_12), 19120 }, /* TST */
-{ (cpuop_func*)CPUFUNC(op_4ab8_12), 19128 }, /* TST */
-{ (cpuop_func*)CPUFUNC(op_4ab9_12), 19129 }, /* TST */
-{ (cpuop_func*)CPUFUNC(op_4abc_12), 19132 }, /* TST */
-{ (cpuop_func*)CPUFUNC(op_4ac0_12), 19136 }, /* TAS */
-{ (cpuop_func*)CPUFUNC(op_4ad0_12), 19152 }, /* TAS */
-{ (cpuop_func*)CPUFUNC(op_4ad8_12), 19160 }, /* TAS */
-{ (cpuop_func*)CPUFUNC(op_4ae0_12), 19168 }, /* TAS */
-{ (cpuop_func*)CPUFUNC(op_4ae8_12), 19176 }, /* TAS */
-{ (cpuop_func*)CPUFUNC(op_4af0_12), 19184 }, /* TAS */
-{ (cpuop_func*)CPUFUNC(op_4af8_12), 19192 }, /* TAS */
-{ (cpuop_func*)CPUFUNC(op_4af9_12), 19193 }, /* TAS */
-{ (cpuop_func*)CPUFUNC(op_4c90_12), 19600 }, /* MVMEL */
-{ (cpuop_func*)CPUFUNC(op_4c98_12), 19608 }, /* MVMEL */
-{ (cpuop_func*)CPUFUNC(op_4ca8_12), 19624 }, /* MVMEL */
-{ (cpuop_func*)CPUFUNC(op_4cb0_12), 19632 }, /* MVMEL */
-{ (cpuop_func*)CPUFUNC(op_4cb8_12), 19640 }, /* MVMEL */
-{ (cpuop_func*)CPUFUNC(op_4cb9_12), 19641 }, /* MVMEL */
-{ (cpuop_func*)CPUFUNC(op_4cba_12), 19642 }, /* MVMEL */
-{ (cpuop_func*)CPUFUNC(op_4cbb_12), 19643 }, /* MVMEL */
-{ (cpuop_func*)CPUFUNC(op_4cd0_12), 19664 }, /* MVMEL */
-{ (cpuop_func*)CPUFUNC(op_4cd8_12), 19672 }, /* MVMEL */
-{ (cpuop_func*)CPUFUNC(op_4ce8_12), 19688 }, /* MVMEL */
-{ (cpuop_func*)CPUFUNC(op_4cf0_12), 19696 }, /* MVMEL */
-{ (cpuop_func*)CPUFUNC(op_4cf8_12), 19704 }, /* MVMEL */
-{ (cpuop_func*)CPUFUNC(op_4cf9_12), 19705 }, /* MVMEL */
-{ (cpuop_func*)CPUFUNC(op_4cfa_12), 19706 }, /* MVMEL */
-{ (cpuop_func*)CPUFUNC(op_4cfb_12), 19707 }, /* MVMEL */
-{ (cpuop_func*)CPUFUNC(op_4e40_12), 20032 }, /* TRAP */
-{ (cpuop_func*)CPUFUNC(op_4e50_12), 20048 }, /* LINK */
-{ (cpuop_func*)CPUFUNC(op_4e58_12), 20056 }, /* UNLK */
-{ (cpuop_func*)CPUFUNC(op_4e60_12), 20064 }, /* MVR2USP */
-{ (cpuop_func*)CPUFUNC(op_4e68_12), 20072 }, /* MVUSP2R */
-{ (cpuop_func*)CPUFUNC(op_4e70_12), 20080 }, /* RESET */
-{ (cpuop_func*)CPUFUNC(op_4e71_12), 20081 }, /* NOP */
-{ (cpuop_func*)CPUFUNC(op_4e72_12), 20082 }, /* STOP */
-{ (cpuop_func*)CPUFUNC(op_4e73_12), 20083 }, /* RTE */
-{ (cpuop_func*)CPUFUNC(op_4e74_12), 20084 }, /* RTD */
-{ (cpuop_func*)CPUFUNC(op_4e75_12), 20085 }, /* RTS */
-{ (cpuop_func*)CPUFUNC(op_4e76_12), 20086 }, /* TRAPV */
-{ (cpuop_func*)CPUFUNC(op_4e77_12), 20087 }, /* RTR */
-{ (cpuop_func*)CPUFUNC(op_4e90_12), 20112 }, /* JSR */
-{ (cpuop_func*)CPUFUNC(op_4ea8_12), 20136 }, /* JSR */
-{ (cpuop_func*)CPUFUNC(op_4eb0_12), 20144 }, /* JSR */
-{ (cpuop_func*)CPUFUNC(op_4eb8_12), 20152 }, /* JSR */
-{ (cpuop_func*)CPUFUNC(op_4eb9_12), 20153 }, /* JSR */
-{ (cpuop_func*)CPUFUNC(op_4eba_12), 20154 }, /* JSR */
-{ (cpuop_func*)CPUFUNC(op_4ebb_12), 20155 }, /* JSR */
-{ (cpuop_func*)CPUFUNC(op_4ed0_12), 20176 }, /* JMP */
-{ (cpuop_func*)CPUFUNC(op_4ee8_12), 20200 }, /* JMP */
-{ (cpuop_func*)CPUFUNC(op_4ef0_12), 20208 }, /* JMP */
-{ (cpuop_func*)CPUFUNC(op_4ef8_12), 20216 }, /* JMP */
-{ (cpuop_func*)CPUFUNC(op_4ef9_12), 20217 }, /* JMP */
-{ (cpuop_func*)CPUFUNC(op_4efa_12), 20218 }, /* JMP */
-{ (cpuop_func*)CPUFUNC(op_4efb_12), 20219 }, /* JMP */
-{ (cpuop_func*)CPUFUNC(op_5000_12), 20480 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_5010_12), 20496 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_5018_12), 20504 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_5020_12), 20512 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_5028_12), 20520 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_5030_12), 20528 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_5038_12), 20536 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_5039_12), 20537 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_5040_12), 20544 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_5048_12), 20552 }, /* ADDA */
-{ (cpuop_func*)CPUFUNC(op_5050_12), 20560 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_5058_12), 20568 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_5060_12), 20576 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_5068_12), 20584 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_5070_12), 20592 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_5078_12), 20600 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_5079_12), 20601 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_5080_12), 20608 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_5088_12), 20616 }, /* ADDA */
-{ (cpuop_func*)CPUFUNC(op_5090_12), 20624 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_5098_12), 20632 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_50a0_12), 20640 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_50a8_12), 20648 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_50b0_12), 20656 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_50b8_12), 20664 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_50b9_12), 20665 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_50c0_12), 20672 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_50c8_12), 20680 }, /* DBcc */
-{ (cpuop_func*)CPUFUNC(op_50d0_12), 20688 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_50d8_12), 20696 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_50e0_12), 20704 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_50e8_12), 20712 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_50f0_12), 20720 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_50f8_12), 20728 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_50f9_12), 20729 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_5100_12), 20736 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_5110_12), 20752 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_5118_12), 20760 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_5120_12), 20768 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_5128_12), 20776 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_5130_12), 20784 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_5138_12), 20792 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_5139_12), 20793 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_5140_12), 20800 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_5148_12), 20808 }, /* SUBA */
-{ (cpuop_func*)CPUFUNC(op_5150_12), 20816 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_5158_12), 20824 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_5160_12), 20832 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_5168_12), 20840 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_5170_12), 20848 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_5178_12), 20856 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_5179_12), 20857 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_5180_12), 20864 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_5188_12), 20872 }, /* SUBA */
-{ (cpuop_func*)CPUFUNC(op_5190_12), 20880 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_5198_12), 20888 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_51a0_12), 20896 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_51a8_12), 20904 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_51b0_12), 20912 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_51b8_12), 20920 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_51b9_12), 20921 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_51c0_12), 20928 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_51c8_12), 20936 }, /* DBcc */
-{ (cpuop_func*)CPUFUNC(op_51d0_12), 20944 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_51d8_12), 20952 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_51e0_12), 20960 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_51e8_12), 20968 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_51f0_12), 20976 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_51f8_12), 20984 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_51f9_12), 20985 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_52c0_12), 21184 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_52c8_12), 21192 }, /* DBcc */
-{ (cpuop_func*)CPUFUNC(op_52d0_12), 21200 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_52d8_12), 21208 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_52e0_12), 21216 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_52e8_12), 21224 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_52f0_12), 21232 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_52f8_12), 21240 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_52f9_12), 21241 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_53c0_12), 21440 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_53c8_12), 21448 }, /* DBcc */
-{ (cpuop_func*)CPUFUNC(op_53d0_12), 21456 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_53d8_12), 21464 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_53e0_12), 21472 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_53e8_12), 21480 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_53f0_12), 21488 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_53f8_12), 21496 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_53f9_12), 21497 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_54c0_12), 21696 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_54c8_12), 21704 }, /* DBcc */
-{ (cpuop_func*)CPUFUNC(op_54d0_12), 21712 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_54d8_12), 21720 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_54e0_12), 21728 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_54e8_12), 21736 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_54f0_12), 21744 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_54f8_12), 21752 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_54f9_12), 21753 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_55c0_12), 21952 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_55c8_12), 21960 }, /* DBcc */
-{ (cpuop_func*)CPUFUNC(op_55d0_12), 21968 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_55d8_12), 21976 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_55e0_12), 21984 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_55e8_12), 21992 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_55f0_12), 22000 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_55f8_12), 22008 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_55f9_12), 22009 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_56c0_12), 22208 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_56c8_12), 22216 }, /* DBcc */
-{ (cpuop_func*)CPUFUNC(op_56d0_12), 22224 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_56d8_12), 22232 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_56e0_12), 22240 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_56e8_12), 22248 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_56f0_12), 22256 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_56f8_12), 22264 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_56f9_12), 22265 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_57c0_12), 22464 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_57c8_12), 22472 }, /* DBcc */
-{ (cpuop_func*)CPUFUNC(op_57d0_12), 22480 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_57d8_12), 22488 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_57e0_12), 22496 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_57e8_12), 22504 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_57f0_12), 22512 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_57f8_12), 22520 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_57f9_12), 22521 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_58c0_12), 22720 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_58c8_12), 22728 }, /* DBcc */
-{ (cpuop_func*)CPUFUNC(op_58d0_12), 22736 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_58d8_12), 22744 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_58e0_12), 22752 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_58e8_12), 22760 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_58f0_12), 22768 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_58f8_12), 22776 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_58f9_12), 22777 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_59c0_12), 22976 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_59c8_12), 22984 }, /* DBcc */
-{ (cpuop_func*)CPUFUNC(op_59d0_12), 22992 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_59d8_12), 23000 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_59e0_12), 23008 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_59e8_12), 23016 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_59f0_12), 23024 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_59f8_12), 23032 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_59f9_12), 23033 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_5ac0_12), 23232 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_5ac8_12), 23240 }, /* DBcc */
-{ (cpuop_func*)CPUFUNC(op_5ad0_12), 23248 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_5ad8_12), 23256 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_5ae0_12), 23264 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_5ae8_12), 23272 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_5af0_12), 23280 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_5af8_12), 23288 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_5af9_12), 23289 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_5bc0_12), 23488 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_5bc8_12), 23496 }, /* DBcc */
-{ (cpuop_func*)CPUFUNC(op_5bd0_12), 23504 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_5bd8_12), 23512 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_5be0_12), 23520 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_5be8_12), 23528 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_5bf0_12), 23536 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_5bf8_12), 23544 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_5bf9_12), 23545 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_5cc0_12), 23744 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_5cc8_12), 23752 }, /* DBcc */
-{ (cpuop_func*)CPUFUNC(op_5cd0_12), 23760 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_5cd8_12), 23768 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_5ce0_12), 23776 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_5ce8_12), 23784 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_5cf0_12), 23792 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_5cf8_12), 23800 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_5cf9_12), 23801 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_5dc0_12), 24000 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_5dc8_12), 24008 }, /* DBcc */
-{ (cpuop_func*)CPUFUNC(op_5dd0_12), 24016 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_5dd8_12), 24024 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_5de0_12), 24032 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_5de8_12), 24040 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_5df0_12), 24048 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_5df8_12), 24056 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_5df9_12), 24057 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_5ec0_12), 24256 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_5ec8_12), 24264 }, /* DBcc */
-{ (cpuop_func*)CPUFUNC(op_5ed0_12), 24272 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_5ed8_12), 24280 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_5ee0_12), 24288 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_5ee8_12), 24296 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_5ef0_12), 24304 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_5ef8_12), 24312 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_5ef9_12), 24313 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_5fc0_12), 24512 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_5fc8_12), 24520 }, /* DBcc */
-{ (cpuop_func*)CPUFUNC(op_5fd0_12), 24528 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_5fd8_12), 24536 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_5fe0_12), 24544 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_5fe8_12), 24552 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_5ff0_12), 24560 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_5ff8_12), 24568 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_5ff9_12), 24569 }, /* Scc */
-{ (cpuop_func*)CPUFUNC(op_6000_12), 24576 }, /* Bcc */
-{ (cpuop_func*)CPUFUNC(op_6001_12), 24577 }, /* Bcc */
-{ (cpuop_func*)CPUFUNC(op_60ff_12), 24831 }, /* Bcc */
-{ (cpuop_func*)CPUFUNC(op_6100_12), 24832 }, /* BSR */
-{ (cpuop_func*)CPUFUNC(op_6101_12), 24833 }, /* BSR */
-{ (cpuop_func*)CPUFUNC(op_61ff_12), 25087 }, /* BSR */
-{ (cpuop_func*)CPUFUNC(op_6200_12), 25088 }, /* Bcc */
-{ (cpuop_func*)CPUFUNC(op_6201_12), 25089 }, /* Bcc */
-{ (cpuop_func*)CPUFUNC(op_62ff_12), 25343 }, /* Bcc */
-{ (cpuop_func*)CPUFUNC(op_6300_12), 25344 }, /* Bcc */
-{ (cpuop_func*)CPUFUNC(op_6301_12), 25345 }, /* Bcc */
-{ (cpuop_func*)CPUFUNC(op_63ff_12), 25599 }, /* Bcc */
-{ (cpuop_func*)CPUFUNC(op_6400_12), 25600 }, /* Bcc */
-{ (cpuop_func*)CPUFUNC(op_6401_12), 25601 }, /* Bcc */
-{ (cpuop_func*)CPUFUNC(op_64ff_12), 25855 }, /* Bcc */
-{ (cpuop_func*)CPUFUNC(op_6500_12), 25856 }, /* Bcc */
-{ (cpuop_func*)CPUFUNC(op_6501_12), 25857 }, /* Bcc */
-{ (cpuop_func*)CPUFUNC(op_65ff_12), 26111 }, /* Bcc */
-{ (cpuop_func*)CPUFUNC(op_6600_12), 26112 }, /* Bcc */
-{ (cpuop_func*)CPUFUNC(op_6601_12), 26113 }, /* Bcc */
-{ (cpuop_func*)CPUFUNC(op_66ff_12), 26367 }, /* Bcc */
-{ (cpuop_func*)CPUFUNC(op_6700_12), 26368 }, /* Bcc */
-{ (cpuop_func*)CPUFUNC(op_6701_12), 26369 }, /* Bcc */
-{ (cpuop_func*)CPUFUNC(op_67ff_12), 26623 }, /* Bcc */
-{ (cpuop_func*)CPUFUNC(op_6800_12), 26624 }, /* Bcc */
-{ (cpuop_func*)CPUFUNC(op_6801_12), 26625 }, /* Bcc */
-{ (cpuop_func*)CPUFUNC(op_68ff_12), 26879 }, /* Bcc */
-{ (cpuop_func*)CPUFUNC(op_6900_12), 26880 }, /* Bcc */
-{ (cpuop_func*)CPUFUNC(op_6901_12), 26881 }, /* Bcc */
-{ (cpuop_func*)CPUFUNC(op_69ff_12), 27135 }, /* Bcc */
-{ (cpuop_func*)CPUFUNC(op_6a00_12), 27136 }, /* Bcc */
-{ (cpuop_func*)CPUFUNC(op_6a01_12), 27137 }, /* Bcc */
-{ (cpuop_func*)CPUFUNC(op_6aff_12), 27391 }, /* Bcc */
-{ (cpuop_func*)CPUFUNC(op_6b00_12), 27392 }, /* Bcc */
-{ (cpuop_func*)CPUFUNC(op_6b01_12), 27393 }, /* Bcc */
-{ (cpuop_func*)CPUFUNC(op_6bff_12), 27647 }, /* Bcc */
-{ (cpuop_func*)CPUFUNC(op_6c00_12), 27648 }, /* Bcc */
-{ (cpuop_func*)CPUFUNC(op_6c01_12), 27649 }, /* Bcc */
-{ (cpuop_func*)CPUFUNC(op_6cff_12), 27903 }, /* Bcc */
-{ (cpuop_func*)CPUFUNC(op_6d00_12), 27904 }, /* Bcc */
-{ (cpuop_func*)CPUFUNC(op_6d01_12), 27905 }, /* Bcc */
-{ (cpuop_func*)CPUFUNC(op_6dff_12), 28159 }, /* Bcc */
-{ (cpuop_func*)CPUFUNC(op_6e00_12), 28160 }, /* Bcc */
-{ (cpuop_func*)CPUFUNC(op_6e01_12), 28161 }, /* Bcc */
-{ (cpuop_func*)CPUFUNC(op_6eff_12), 28415 }, /* Bcc */
-{ (cpuop_func*)CPUFUNC(op_6f00_12), 28416 }, /* Bcc */
-{ (cpuop_func*)CPUFUNC(op_6f01_12), 28417 }, /* Bcc */
-{ (cpuop_func*)CPUFUNC(op_6fff_12), 28671 }, /* Bcc */
-{ (cpuop_func*)CPUFUNC(op_7000_12), 28672 }, /* MOVE */
-{ (cpuop_func*)CPUFUNC(op_8000_12), 32768 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_8010_12), 32784 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_8018_12), 32792 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_8020_12), 32800 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_8028_12), 32808 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_8030_12), 32816 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_8038_12), 32824 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_8039_12), 32825 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_803a_12), 32826 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_803b_12), 32827 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_803c_12), 32828 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_8040_12), 32832 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_8050_12), 32848 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_8058_12), 32856 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_8060_12), 32864 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_8068_12), 32872 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_8070_12), 32880 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_8078_12), 32888 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_8079_12), 32889 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_807a_12), 32890 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_807b_12), 32891 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_807c_12), 32892 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_8080_12), 32896 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_8090_12), 32912 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_8098_12), 32920 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_80a0_12), 32928 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_80a8_12), 32936 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_80b0_12), 32944 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_80b8_12), 32952 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_80b9_12), 32953 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_80ba_12), 32954 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_80bb_12), 32955 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_80bc_12), 32956 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_80c0_12), 32960 }, /* DIVU */
-{ (cpuop_func*)CPUFUNC(op_80d0_12), 32976 }, /* DIVU */
-{ (cpuop_func*)CPUFUNC(op_80d8_12), 32984 }, /* DIVU */
-{ (cpuop_func*)CPUFUNC(op_80e0_12), 32992 }, /* DIVU */
-{ (cpuop_func*)CPUFUNC(op_80e8_12), 33000 }, /* DIVU */
-{ (cpuop_func*)CPUFUNC(op_80f0_12), 33008 }, /* DIVU */
-{ (cpuop_func*)CPUFUNC(op_80f8_12), 33016 }, /* DIVU */
-{ (cpuop_func*)CPUFUNC(op_80f9_12), 33017 }, /* DIVU */
-{ (cpuop_func*)CPUFUNC(op_80fa_12), 33018 }, /* DIVU */
-{ (cpuop_func*)CPUFUNC(op_80fb_12), 33019 }, /* DIVU */
-{ (cpuop_func*)CPUFUNC(op_80fc_12), 33020 }, /* DIVU */
-{ (cpuop_func*)CPUFUNC(op_8100_12), 33024 }, /* SBCD */
-{ (cpuop_func*)CPUFUNC(op_8108_12), 33032 }, /* SBCD */
-{ (cpuop_func*)CPUFUNC(op_8110_12), 33040 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_8118_12), 33048 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_8120_12), 33056 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_8128_12), 33064 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_8130_12), 33072 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_8138_12), 33080 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_8139_12), 33081 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_8150_12), 33104 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_8158_12), 33112 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_8160_12), 33120 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_8168_12), 33128 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_8170_12), 33136 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_8178_12), 33144 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_8179_12), 33145 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_8190_12), 33168 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_8198_12), 33176 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_81a0_12), 33184 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_81a8_12), 33192 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_81b0_12), 33200 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_81b8_12), 33208 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_81b9_12), 33209 }, /* OR */
-{ (cpuop_func*)CPUFUNC(op_81c0_12), 33216 }, /* DIVS */
-{ (cpuop_func*)CPUFUNC(op_81d0_12), 33232 }, /* DIVS */
-{ (cpuop_func*)CPUFUNC(op_81d8_12), 33240 }, /* DIVS */
-{ (cpuop_func*)CPUFUNC(op_81e0_12), 33248 }, /* DIVS */
-{ (cpuop_func*)CPUFUNC(op_81e8_12), 33256 }, /* DIVS */
-{ (cpuop_func*)CPUFUNC(op_81f0_12), 33264 }, /* DIVS */
-{ (cpuop_func*)CPUFUNC(op_81f8_12), 33272 }, /* DIVS */
-{ (cpuop_func*)CPUFUNC(op_81f9_12), 33273 }, /* DIVS */
-{ (cpuop_func*)CPUFUNC(op_81fa_12), 33274 }, /* DIVS */
-{ (cpuop_func*)CPUFUNC(op_81fb_12), 33275 }, /* DIVS */
-{ (cpuop_func*)CPUFUNC(op_81fc_12), 33276 }, /* DIVS */
-{ (cpuop_func*)CPUFUNC(op_9000_12), 36864 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_9010_12), 36880 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_9018_12), 36888 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_9020_12), 36896 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_9028_12), 36904 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_9030_12), 36912 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_9038_12), 36920 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_9039_12), 36921 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_903a_12), 36922 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_903b_12), 36923 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_903c_12), 36924 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_9040_12), 36928 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_9048_12), 36936 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_9050_12), 36944 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_9058_12), 36952 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_9060_12), 36960 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_9068_12), 36968 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_9070_12), 36976 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_9078_12), 36984 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_9079_12), 36985 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_907a_12), 36986 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_907b_12), 36987 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_907c_12), 36988 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_9080_12), 36992 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_9088_12), 37000 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_9090_12), 37008 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_9098_12), 37016 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_90a0_12), 37024 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_90a8_12), 37032 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_90b0_12), 37040 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_90b8_12), 37048 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_90b9_12), 37049 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_90ba_12), 37050 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_90bb_12), 37051 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_90bc_12), 37052 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_90c0_12), 37056 }, /* SUBA */
-{ (cpuop_func*)CPUFUNC(op_90c8_12), 37064 }, /* SUBA */
-{ (cpuop_func*)CPUFUNC(op_90d0_12), 37072 }, /* SUBA */
-{ (cpuop_func*)CPUFUNC(op_90d8_12), 37080 }, /* SUBA */
-{ (cpuop_func*)CPUFUNC(op_90e0_12), 37088 }, /* SUBA */
-{ (cpuop_func*)CPUFUNC(op_90e8_12), 37096 }, /* SUBA */
-{ (cpuop_func*)CPUFUNC(op_90f0_12), 37104 }, /* SUBA */
-{ (cpuop_func*)CPUFUNC(op_90f8_12), 37112 }, /* SUBA */
-{ (cpuop_func*)CPUFUNC(op_90f9_12), 37113 }, /* SUBA */
-{ (cpuop_func*)CPUFUNC(op_90fa_12), 37114 }, /* SUBA */
-{ (cpuop_func*)CPUFUNC(op_90fb_12), 37115 }, /* SUBA */
-{ (cpuop_func*)CPUFUNC(op_90fc_12), 37116 }, /* SUBA */
-{ (cpuop_func*)CPUFUNC(op_9100_12), 37120 }, /* SUBX */
-{ (cpuop_func*)CPUFUNC(op_9108_12), 37128 }, /* SUBX */
-{ (cpuop_func*)CPUFUNC(op_9110_12), 37136 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_9118_12), 37144 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_9120_12), 37152 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_9128_12), 37160 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_9130_12), 37168 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_9138_12), 37176 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_9139_12), 37177 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_9140_12), 37184 }, /* SUBX */
-{ (cpuop_func*)CPUFUNC(op_9148_12), 37192 }, /* SUBX */
-{ (cpuop_func*)CPUFUNC(op_9150_12), 37200 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_9158_12), 37208 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_9160_12), 37216 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_9168_12), 37224 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_9170_12), 37232 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_9178_12), 37240 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_9179_12), 37241 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_9180_12), 37248 }, /* SUBX */
-{ (cpuop_func*)CPUFUNC(op_9188_12), 37256 }, /* SUBX */
-{ (cpuop_func*)CPUFUNC(op_9190_12), 37264 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_9198_12), 37272 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_91a0_12), 37280 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_91a8_12), 37288 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_91b0_12), 37296 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_91b8_12), 37304 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_91b9_12), 37305 }, /* SUB */
-{ (cpuop_func*)CPUFUNC(op_91c0_12), 37312 }, /* SUBA */
-{ (cpuop_func*)CPUFUNC(op_91c8_12), 37320 }, /* SUBA */
-{ (cpuop_func*)CPUFUNC(op_91d0_12), 37328 }, /* SUBA */
-{ (cpuop_func*)CPUFUNC(op_91d8_12), 37336 }, /* SUBA */
-{ (cpuop_func*)CPUFUNC(op_91e0_12), 37344 }, /* SUBA */
-{ (cpuop_func*)CPUFUNC(op_91e8_12), 37352 }, /* SUBA */
-{ (cpuop_func*)CPUFUNC(op_91f0_12), 37360 }, /* SUBA */
-{ (cpuop_func*)CPUFUNC(op_91f8_12), 37368 }, /* SUBA */
-{ (cpuop_func*)CPUFUNC(op_91f9_12), 37369 }, /* SUBA */
-{ (cpuop_func*)CPUFUNC(op_91fa_12), 37370 }, /* SUBA */
-{ (cpuop_func*)CPUFUNC(op_91fb_12), 37371 }, /* SUBA */
-{ (cpuop_func*)CPUFUNC(op_91fc_12), 37372 }, /* SUBA */
-{ (cpuop_func*)CPUFUNC(op_b000_12), 45056 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_b010_12), 45072 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_b018_12), 45080 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_b020_12), 45088 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_b028_12), 45096 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_b030_12), 45104 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_b038_12), 45112 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_b039_12), 45113 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_b03a_12), 45114 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_b03b_12), 45115 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_b03c_12), 45116 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_b040_12), 45120 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_b048_12), 45128 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_b050_12), 45136 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_b058_12), 45144 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_b060_12), 45152 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_b068_12), 45160 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_b070_12), 45168 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_b078_12), 45176 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_b079_12), 45177 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_b07a_12), 45178 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_b07b_12), 45179 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_b07c_12), 45180 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_b080_12), 45184 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_b088_12), 45192 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_b090_12), 45200 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_b098_12), 45208 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_b0a0_12), 45216 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_b0a8_12), 45224 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_b0b0_12), 45232 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_b0b8_12), 45240 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_b0b9_12), 45241 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_b0ba_12), 45242 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_b0bb_12), 45243 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_b0bc_12), 45244 }, /* CMP */
-{ (cpuop_func*)CPUFUNC(op_b0c0_12), 45248 }, /* CMPA */
-{ (cpuop_func*)CPUFUNC(op_b0c8_12), 45256 }, /* CMPA */
-{ (cpuop_func*)CPUFUNC(op_b0d0_12), 45264 }, /* CMPA */
-{ (cpuop_func*)CPUFUNC(op_b0d8_12), 45272 }, /* CMPA */
-{ (cpuop_func*)CPUFUNC(op_b0e0_12), 45280 }, /* CMPA */
-{ (cpuop_func*)CPUFUNC(op_b0e8_12), 45288 }, /* CMPA */
-{ (cpuop_func*)CPUFUNC(op_b0f0_12), 45296 }, /* CMPA */
-{ (cpuop_func*)CPUFUNC(op_b0f8_12), 45304 }, /* CMPA */
-{ (cpuop_func*)CPUFUNC(op_b0f9_12), 45305 }, /* CMPA */
-{ (cpuop_func*)CPUFUNC(op_b0fa_12), 45306 }, /* CMPA */
-{ (cpuop_func*)CPUFUNC(op_b0fb_12), 45307 }, /* CMPA */
-{ (cpuop_func*)CPUFUNC(op_b0fc_12), 45308 }, /* CMPA */
-{ (cpuop_func*)CPUFUNC(op_b100_12), 45312 }, /* EOR */
-{ (cpuop_func*)CPUFUNC(op_b108_12), 45320 }, /* CMPM */
-{ (cpuop_func*)CPUFUNC(op_b110_12), 45328 }, /* EOR */
-{ (cpuop_func*)CPUFUNC(op_b118_12), 45336 }, /* EOR */
-{ (cpuop_func*)CPUFUNC(op_b120_12), 45344 }, /* EOR */
-{ (cpuop_func*)CPUFUNC(op_b128_12), 45352 }, /* EOR */
-{ (cpuop_func*)CPUFUNC(op_b130_12), 45360 }, /* EOR */
-{ (cpuop_func*)CPUFUNC(op_b138_12), 45368 }, /* EOR */
-{ (cpuop_func*)CPUFUNC(op_b139_12), 45369 }, /* EOR */
-{ (cpuop_func*)CPUFUNC(op_b140_12), 45376 }, /* EOR */
-{ (cpuop_func*)CPUFUNC(op_b148_12), 45384 }, /* CMPM */
-{ (cpuop_func*)CPUFUNC(op_b150_12), 45392 }, /* EOR */
-{ (cpuop_func*)CPUFUNC(op_b158_12), 45400 }, /* EOR */
-{ (cpuop_func*)CPUFUNC(op_b160_12), 45408 }, /* EOR */
-{ (cpuop_func*)CPUFUNC(op_b168_12), 45416 }, /* EOR */
-{ (cpuop_func*)CPUFUNC(op_b170_12), 45424 }, /* EOR */
-{ (cpuop_func*)CPUFUNC(op_b178_12), 45432 }, /* EOR */
-{ (cpuop_func*)CPUFUNC(op_b179_12), 45433 }, /* EOR */
-{ (cpuop_func*)CPUFUNC(op_b180_12), 45440 }, /* EOR */
-{ (cpuop_func*)CPUFUNC(op_b188_12), 45448 }, /* CMPM */
-{ (cpuop_func*)CPUFUNC(op_b190_12), 45456 }, /* EOR */
-{ (cpuop_func*)CPUFUNC(op_b198_12), 45464 }, /* EOR */
-{ (cpuop_func*)CPUFUNC(op_b1a0_12), 45472 }, /* EOR */
-{ (cpuop_func*)CPUFUNC(op_b1a8_12), 45480 }, /* EOR */
-{ (cpuop_func*)CPUFUNC(op_b1b0_12), 45488 }, /* EOR */
-{ (cpuop_func*)CPUFUNC(op_b1b8_12), 45496 }, /* EOR */
-{ (cpuop_func*)CPUFUNC(op_b1b9_12), 45497 }, /* EOR */
-{ (cpuop_func*)CPUFUNC(op_b1c0_12), 45504 }, /* CMPA */
-{ (cpuop_func*)CPUFUNC(op_b1c8_12), 45512 }, /* CMPA */
-{ (cpuop_func*)CPUFUNC(op_b1d0_12), 45520 }, /* CMPA */
-{ (cpuop_func*)CPUFUNC(op_b1d8_12), 45528 }, /* CMPA */
-{ (cpuop_func*)CPUFUNC(op_b1e0_12), 45536 }, /* CMPA */
-{ (cpuop_func*)CPUFUNC(op_b1e8_12), 45544 }, /* CMPA */
-{ (cpuop_func*)CPUFUNC(op_b1f0_12), 45552 }, /* CMPA */
-{ (cpuop_func*)CPUFUNC(op_b1f8_12), 45560 }, /* CMPA */
-{ (cpuop_func*)CPUFUNC(op_b1f9_12), 45561 }, /* CMPA */
-{ (cpuop_func*)CPUFUNC(op_b1fa_12), 45562 }, /* CMPA */
-{ (cpuop_func*)CPUFUNC(op_b1fb_12), 45563 }, /* CMPA */
-{ (cpuop_func*)CPUFUNC(op_b1fc_12), 45564 }, /* CMPA */
-{ (cpuop_func*)CPUFUNC(op_c000_12), 49152 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_c010_12), 49168 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_c018_12), 49176 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_c020_12), 49184 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_c028_12), 49192 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_c030_12), 49200 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_c038_12), 49208 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_c039_12), 49209 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_c03a_12), 49210 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_c03b_12), 49211 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_c03c_12), 49212 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_c040_12), 49216 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_c050_12), 49232 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_c058_12), 49240 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_c060_12), 49248 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_c068_12), 49256 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_c070_12), 49264 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_c078_12), 49272 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_c079_12), 49273 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_c07a_12), 49274 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_c07b_12), 49275 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_c07c_12), 49276 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_c080_12), 49280 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_c090_12), 49296 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_c098_12), 49304 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_c0a0_12), 49312 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_c0a8_12), 49320 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_c0b0_12), 49328 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_c0b8_12), 49336 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_c0b9_12), 49337 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_c0ba_12), 49338 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_c0bb_12), 49339 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_c0bc_12), 49340 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_c0c0_12), 49344 }, /* MULU */
-{ (cpuop_func*)CPUFUNC(op_c0d0_12), 49360 }, /* MULU */
-{ (cpuop_func*)CPUFUNC(op_c0d8_12), 49368 }, /* MULU */
-{ (cpuop_func*)CPUFUNC(op_c0e0_12), 49376 }, /* MULU */
-{ (cpuop_func*)CPUFUNC(op_c0e8_12), 49384 }, /* MULU */
-{ (cpuop_func*)CPUFUNC(op_c0f0_12), 49392 }, /* MULU */
-{ (cpuop_func*)CPUFUNC(op_c0f8_12), 49400 }, /* MULU */
-{ (cpuop_func*)CPUFUNC(op_c0f9_12), 49401 }, /* MULU */
-{ (cpuop_func*)CPUFUNC(op_c0fa_12), 49402 }, /* MULU */
-{ (cpuop_func*)CPUFUNC(op_c0fb_12), 49403 }, /* MULU */
-{ (cpuop_func*)CPUFUNC(op_c0fc_12), 49404 }, /* MULU */
-{ (cpuop_func*)CPUFUNC(op_c100_12), 49408 }, /* ABCD */
-{ (cpuop_func*)CPUFUNC(op_c108_12), 49416 }, /* ABCD */
-{ (cpuop_func*)CPUFUNC(op_c110_12), 49424 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_c118_12), 49432 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_c120_12), 49440 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_c128_12), 49448 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_c130_12), 49456 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_c138_12), 49464 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_c139_12), 49465 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_c140_12), 49472 }, /* EXG */
-{ (cpuop_func*)CPUFUNC(op_c148_12), 49480 }, /* EXG */
-{ (cpuop_func*)CPUFUNC(op_c150_12), 49488 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_c158_12), 49496 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_c160_12), 49504 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_c168_12), 49512 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_c170_12), 49520 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_c178_12), 49528 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_c179_12), 49529 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_c188_12), 49544 }, /* EXG */
-{ (cpuop_func*)CPUFUNC(op_c190_12), 49552 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_c198_12), 49560 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_c1a0_12), 49568 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_c1a8_12), 49576 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_c1b0_12), 49584 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_c1b8_12), 49592 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_c1b9_12), 49593 }, /* AND */
-{ (cpuop_func*)CPUFUNC(op_c1c0_12), 49600 }, /* MULS */
-{ (cpuop_func*)CPUFUNC(op_c1d0_12), 49616 }, /* MULS */
-{ (cpuop_func*)CPUFUNC(op_c1d8_12), 49624 }, /* MULS */
-{ (cpuop_func*)CPUFUNC(op_c1e0_12), 49632 }, /* MULS */
-{ (cpuop_func*)CPUFUNC(op_c1e8_12), 49640 }, /* MULS */
-{ (cpuop_func*)CPUFUNC(op_c1f0_12), 49648 }, /* MULS */
-{ (cpuop_func*)CPUFUNC(op_c1f8_12), 49656 }, /* MULS */
-{ (cpuop_func*)CPUFUNC(op_c1f9_12), 49657 }, /* MULS */
-{ (cpuop_func*)CPUFUNC(op_c1fa_12), 49658 }, /* MULS */
-{ (cpuop_func*)CPUFUNC(op_c1fb_12), 49659 }, /* MULS */
-{ (cpuop_func*)CPUFUNC(op_c1fc_12), 49660 }, /* MULS */
-{ (cpuop_func*)CPUFUNC(op_d000_12), 53248 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_d010_12), 53264 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_d018_12), 53272 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_d020_12), 53280 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_d028_12), 53288 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_d030_12), 53296 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_d038_12), 53304 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_d039_12), 53305 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_d03a_12), 53306 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_d03b_12), 53307 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_d03c_12), 53308 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_d040_12), 53312 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_d048_12), 53320 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_d050_12), 53328 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_d058_12), 53336 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_d060_12), 53344 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_d068_12), 53352 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_d070_12), 53360 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_d078_12), 53368 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_d079_12), 53369 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_d07a_12), 53370 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_d07b_12), 53371 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_d07c_12), 53372 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_d080_12), 53376 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_d088_12), 53384 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_d090_12), 53392 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_d098_12), 53400 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_d0a0_12), 53408 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_d0a8_12), 53416 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_d0b0_12), 53424 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_d0b8_12), 53432 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_d0b9_12), 53433 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_d0ba_12), 53434 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_d0bb_12), 53435 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_d0bc_12), 53436 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_d0c0_12), 53440 }, /* ADDA */
-{ (cpuop_func*)CPUFUNC(op_d0c8_12), 53448 }, /* ADDA */
-{ (cpuop_func*)CPUFUNC(op_d0d0_12), 53456 }, /* ADDA */
-{ (cpuop_func*)CPUFUNC(op_d0d8_12), 53464 }, /* ADDA */
-{ (cpuop_func*)CPUFUNC(op_d0e0_12), 53472 }, /* ADDA */
-{ (cpuop_func*)CPUFUNC(op_d0e8_12), 53480 }, /* ADDA */
-{ (cpuop_func*)CPUFUNC(op_d0f0_12), 53488 }, /* ADDA */
-{ (cpuop_func*)CPUFUNC(op_d0f8_12), 53496 }, /* ADDA */
-{ (cpuop_func*)CPUFUNC(op_d0f9_12), 53497 }, /* ADDA */
-{ (cpuop_func*)CPUFUNC(op_d0fa_12), 53498 }, /* ADDA */
-{ (cpuop_func*)CPUFUNC(op_d0fb_12), 53499 }, /* ADDA */
-{ (cpuop_func*)CPUFUNC(op_d0fc_12), 53500 }, /* ADDA */
-{ (cpuop_func*)CPUFUNC(op_d100_12), 53504 }, /* ADDX */
-{ (cpuop_func*)CPUFUNC(op_d108_12), 53512 }, /* ADDX */
-{ (cpuop_func*)CPUFUNC(op_d110_12), 53520 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_d118_12), 53528 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_d120_12), 53536 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_d128_12), 53544 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_d130_12), 53552 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_d138_12), 53560 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_d139_12), 53561 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_d140_12), 53568 }, /* ADDX */
-{ (cpuop_func*)CPUFUNC(op_d148_12), 53576 }, /* ADDX */
-{ (cpuop_func*)CPUFUNC(op_d150_12), 53584 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_d158_12), 53592 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_d160_12), 53600 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_d168_12), 53608 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_d170_12), 53616 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_d178_12), 53624 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_d179_12), 53625 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_d180_12), 53632 }, /* ADDX */
-{ (cpuop_func*)CPUFUNC(op_d188_12), 53640 }, /* ADDX */
-{ (cpuop_func*)CPUFUNC(op_d190_12), 53648 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_d198_12), 53656 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_d1a0_12), 53664 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_d1a8_12), 53672 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_d1b0_12), 53680 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_d1b8_12), 53688 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_d1b9_12), 53689 }, /* ADD */
-{ (cpuop_func*)CPUFUNC(op_d1c0_12), 53696 }, /* ADDA */
-{ (cpuop_func*)CPUFUNC(op_d1c8_12), 53704 }, /* ADDA */
-{ (cpuop_func*)CPUFUNC(op_d1d0_12), 53712 }, /* ADDA */
-{ (cpuop_func*)CPUFUNC(op_d1d8_12), 53720 }, /* ADDA */
-{ (cpuop_func*)CPUFUNC(op_d1e0_12), 53728 }, /* ADDA */
-{ (cpuop_func*)CPUFUNC(op_d1e8_12), 53736 }, /* ADDA */
-{ (cpuop_func*)CPUFUNC(op_d1f0_12), 53744 }, /* ADDA */
-{ (cpuop_func*)CPUFUNC(op_d1f8_12), 53752 }, /* ADDA */
-{ (cpuop_func*)CPUFUNC(op_d1f9_12), 53753 }, /* ADDA */
-{ (cpuop_func*)CPUFUNC(op_d1fa_12), 53754 }, /* ADDA */
-{ (cpuop_func*)CPUFUNC(op_d1fb_12), 53755 }, /* ADDA */
-{ (cpuop_func*)CPUFUNC(op_d1fc_12), 53756 }, /* ADDA */
-{ (cpuop_func*)CPUFUNC(op_e000_12), 57344 }, /* ASR */
-{ (cpuop_func*)CPUFUNC(op_e008_12), 57352 }, /* LSR */
-{ (cpuop_func*)CPUFUNC(op_e010_12), 57360 }, /* ROXR */
-{ (cpuop_func*)CPUFUNC(op_e018_12), 57368 }, /* ROR */
-{ (cpuop_func*)CPUFUNC(op_e020_12), 57376 }, /* ASR */
-{ (cpuop_func*)CPUFUNC(op_e028_12), 57384 }, /* LSR */
-{ (cpuop_func*)CPUFUNC(op_e030_12), 57392 }, /* ROXR */
-{ (cpuop_func*)CPUFUNC(op_e038_12), 57400 }, /* ROR */
-{ (cpuop_func*)CPUFUNC(op_e040_12), 57408 }, /* ASR */
-{ (cpuop_func*)CPUFUNC(op_e048_12), 57416 }, /* LSR */
-{ (cpuop_func*)CPUFUNC(op_e050_12), 57424 }, /* ROXR */
-{ (cpuop_func*)CPUFUNC(op_e058_12), 57432 }, /* ROR */
-{ (cpuop_func*)CPUFUNC(op_e060_12), 57440 }, /* ASR */
-{ (cpuop_func*)CPUFUNC(op_e068_12), 57448 }, /* LSR */
-{ (cpuop_func*)CPUFUNC(op_e070_12), 57456 }, /* ROXR */
-{ (cpuop_func*)CPUFUNC(op_e078_12), 57464 }, /* ROR */
-{ (cpuop_func*)CPUFUNC(op_e080_12), 57472 }, /* ASR */
-{ (cpuop_func*)CPUFUNC(op_e088_12), 57480 }, /* LSR */
-{ (cpuop_func*)CPUFUNC(op_e090_12), 57488 }, /* ROXR */
-{ (cpuop_func*)CPUFUNC(op_e098_12), 57496 }, /* ROR */
-{ (cpuop_func*)CPUFUNC(op_e0a0_12), 57504 }, /* ASR */
-{ (cpuop_func*)CPUFUNC(op_e0a8_12), 57512 }, /* LSR */
-{ (cpuop_func*)CPUFUNC(op_e0b0_12), 57520 }, /* ROXR */
-{ (cpuop_func*)CPUFUNC(op_e0b8_12), 57528 }, /* ROR */
-{ (cpuop_func*)CPUFUNC(op_e0d0_12), 57552 }, /* ASRW */
-{ (cpuop_func*)CPUFUNC(op_e0d8_12), 57560 }, /* ASRW */
-{ (cpuop_func*)CPUFUNC(op_e0e0_12), 57568 }, /* ASRW */
-{ (cpuop_func*)CPUFUNC(op_e0e8_12), 57576 }, /* ASRW */
-{ (cpuop_func*)CPUFUNC(op_e0f0_12), 57584 }, /* ASRW */
-{ (cpuop_func*)CPUFUNC(op_e0f8_12), 57592 }, /* ASRW */
-{ (cpuop_func*)CPUFUNC(op_e0f9_12), 57593 }, /* ASRW */
-{ (cpuop_func*)CPUFUNC(op_e100_12), 57600 }, /* ASL */
-{ (cpuop_func*)CPUFUNC(op_e108_12), 57608 }, /* LSL */
-{ (cpuop_func*)CPUFUNC(op_e110_12), 57616 }, /* ROXL */
-{ (cpuop_func*)CPUFUNC(op_e118_12), 57624 }, /* ROL */
-{ (cpuop_func*)CPUFUNC(op_e120_12), 57632 }, /* ASL */
-{ (cpuop_func*)CPUFUNC(op_e128_12), 57640 }, /* LSL */
-{ (cpuop_func*)CPUFUNC(op_e130_12), 57648 }, /* ROXL */
-{ (cpuop_func*)CPUFUNC(op_e138_12), 57656 }, /* ROL */
-{ (cpuop_func*)CPUFUNC(op_e140_12), 57664 }, /* ASL */
-{ (cpuop_func*)CPUFUNC(op_e148_12), 57672 }, /* LSL */
-{ (cpuop_func*)CPUFUNC(op_e150_12), 57680 }, /* ROXL */
-{ (cpuop_func*)CPUFUNC(op_e158_12), 57688 }, /* ROL */
-{ (cpuop_func*)CPUFUNC(op_e160_12), 57696 }, /* ASL */
-{ (cpuop_func*)CPUFUNC(op_e168_12), 57704 }, /* LSL */
-{ (cpuop_func*)CPUFUNC(op_e170_12), 57712 }, /* ROXL */
-{ (cpuop_func*)CPUFUNC(op_e178_12), 57720 }, /* ROL */
-{ (cpuop_func*)CPUFUNC(op_e180_12), 57728 }, /* ASL */
-{ (cpuop_func*)CPUFUNC(op_e188_12), 57736 }, /* LSL */
-{ (cpuop_func*)CPUFUNC(op_e190_12), 57744 }, /* ROXL */
-{ (cpuop_func*)CPUFUNC(op_e198_12), 57752 }, /* ROL */
-{ (cpuop_func*)CPUFUNC(op_e1a0_12), 57760 }, /* ASL */
-{ (cpuop_func*)CPUFUNC(op_e1a8_12), 57768 }, /* LSL */
-{ (cpuop_func*)CPUFUNC(op_e1b0_12), 57776 }, /* ROXL */
-{ (cpuop_func*)CPUFUNC(op_e1b8_12), 57784 }, /* ROL */
-{ (cpuop_func*)CPUFUNC(op_e1d0_12), 57808 }, /* ASLW */
-{ (cpuop_func*)CPUFUNC(op_e1d8_12), 57816 }, /* ASLW */
-{ (cpuop_func*)CPUFUNC(op_e1e0_12), 57824 }, /* ASLW */
-{ (cpuop_func*)CPUFUNC(op_e1e8_12), 57832 }, /* ASLW */
-{ (cpuop_func*)CPUFUNC(op_e1f0_12), 57840 }, /* ASLW */
-{ (cpuop_func*)CPUFUNC(op_e1f8_12), 57848 }, /* ASLW */
-{ (cpuop_func*)CPUFUNC(op_e1f9_12), 57849 }, /* ASLW */
-{ (cpuop_func*)CPUFUNC(op_e2d0_12), 58064 }, /* LSRW */
-{ (cpuop_func*)CPUFUNC(op_e2d8_12), 58072 }, /* LSRW */
-{ (cpuop_func*)CPUFUNC(op_e2e0_12), 58080 }, /* LSRW */
-{ (cpuop_func*)CPUFUNC(op_e2e8_12), 58088 }, /* LSRW */
-{ (cpuop_func*)CPUFUNC(op_e2f0_12), 58096 }, /* LSRW */
-{ (cpuop_func*)CPUFUNC(op_e2f8_12), 58104 }, /* LSRW */
-{ (cpuop_func*)CPUFUNC(op_e2f9_12), 58105 }, /* LSRW */
-{ (cpuop_func*)CPUFUNC(op_e3d0_12), 58320 }, /* LSLW */
-{ (cpuop_func*)CPUFUNC(op_e3d8_12), 58328 }, /* LSLW */
-{ (cpuop_func*)CPUFUNC(op_e3e0_12), 58336 }, /* LSLW */
-{ (cpuop_func*)CPUFUNC(op_e3e8_12), 58344 }, /* LSLW */
-{ (cpuop_func*)CPUFUNC(op_e3f0_12), 58352 }, /* LSLW */
-{ (cpuop_func*)CPUFUNC(op_e3f8_12), 58360 }, /* LSLW */
-{ (cpuop_func*)CPUFUNC(op_e3f9_12), 58361 }, /* LSLW */
-{ (cpuop_func*)CPUFUNC(op_e4d0_12), 58576 }, /* ROXRW */
-{ (cpuop_func*)CPUFUNC(op_e4d8_12), 58584 }, /* ROXRW */
-{ (cpuop_func*)CPUFUNC(op_e4e0_12), 58592 }, /* ROXRW */
-{ (cpuop_func*)CPUFUNC(op_e4e8_12), 58600 }, /* ROXRW */
-{ (cpuop_func*)CPUFUNC(op_e4f0_12), 58608 }, /* ROXRW */
-{ (cpuop_func*)CPUFUNC(op_e4f8_12), 58616 }, /* ROXRW */
-{ (cpuop_func*)CPUFUNC(op_e4f9_12), 58617 }, /* ROXRW */
-{ (cpuop_func*)CPUFUNC(op_e5d0_12), 58832 }, /* ROXLW */
-{ (cpuop_func*)CPUFUNC(op_e5d8_12), 58840 }, /* ROXLW */
-{ (cpuop_func*)CPUFUNC(op_e5e0_12), 58848 }, /* ROXLW */
-{ (cpuop_func*)CPUFUNC(op_e5e8_12), 58856 }, /* ROXLW */
-{ (cpuop_func*)CPUFUNC(op_e5f0_12), 58864 }, /* ROXLW */
-{ (cpuop_func*)CPUFUNC(op_e5f8_12), 58872 }, /* ROXLW */
-{ (cpuop_func*)CPUFUNC(op_e5f9_12), 58873 }, /* ROXLW */
-{ (cpuop_func*)CPUFUNC(op_e6d0_12), 59088 }, /* RORW */
-{ (cpuop_func*)CPUFUNC(op_e6d8_12), 59096 }, /* RORW */
-{ (cpuop_func*)CPUFUNC(op_e6e0_12), 59104 }, /* RORW */
-{ (cpuop_func*)CPUFUNC(op_e6e8_12), 59112 }, /* RORW */
-{ (cpuop_func*)CPUFUNC(op_e6f0_12), 59120 }, /* RORW */
-{ (cpuop_func*)CPUFUNC(op_e6f8_12), 59128 }, /* RORW */
-{ (cpuop_func*)CPUFUNC(op_e6f9_12), 59129 }, /* RORW */
-{ (cpuop_func*)CPUFUNC(op_e7d0_12), 59344 }, /* ROLW */
-{ (cpuop_func*)CPUFUNC(op_e7d8_12), 59352 }, /* ROLW */
-{ (cpuop_func*)CPUFUNC(op_e7e0_12), 59360 }, /* ROLW */
-{ (cpuop_func*)CPUFUNC(op_e7e8_12), 59368 }, /* ROLW */
-{ (cpuop_func*)CPUFUNC(op_e7f0_12), 59376 }, /* ROLW */
-{ (cpuop_func*)CPUFUNC(op_e7f8_12), 59384 }, /* ROLW */
-{ (cpuop_func*)CPUFUNC(op_e7f9_12), 59385 }, /* ROLW */
+{ CPUFUNC(op_0000_11), 0 }, /* OR */
+{ CPUFUNC(op_0010_11), 16 }, /* OR */
+{ CPUFUNC(op_0018_11), 24 }, /* OR */
+{ CPUFUNC(op_0020_11), 32 }, /* OR */
+{ CPUFUNC(op_0028_11), 40 }, /* OR */
+{ CPUFUNC(op_0030_11), 48 }, /* OR */
+{ CPUFUNC(op_0038_11), 56 }, /* OR */
+{ CPUFUNC(op_0039_11), 57 }, /* OR */
+{ CPUFUNC(op_003c_11), 60 }, /* ORSR */
+{ CPUFUNC(op_0040_11), 64 }, /* OR */
+{ CPUFUNC(op_0050_11), 80 }, /* OR */
+{ CPUFUNC(op_0058_11), 88 }, /* OR */
+{ CPUFUNC(op_0060_11), 96 }, /* OR */
+{ CPUFUNC(op_0068_11), 104 }, /* OR */
+{ CPUFUNC(op_0070_11), 112 }, /* OR */
+{ CPUFUNC(op_0078_11), 120 }, /* OR */
+{ CPUFUNC(op_0079_11), 121 }, /* OR */
+{ CPUFUNC(op_007c_11), 124 }, /* ORSR */
+{ CPUFUNC(op_0080_11), 128 }, /* OR */
+{ CPUFUNC(op_0090_11), 144 }, /* OR */
+{ CPUFUNC(op_0098_11), 152 }, /* OR */
+{ CPUFUNC(op_00a0_11), 160 }, /* OR */
+{ CPUFUNC(op_00a8_11), 168 }, /* OR */
+{ CPUFUNC(op_00b0_11), 176 }, /* OR */
+{ CPUFUNC(op_00b8_11), 184 }, /* OR */
+{ CPUFUNC(op_00b9_11), 185 }, /* OR */
+{ CPUFUNC(op_0100_11), 256 }, /* BTST */
+{ CPUFUNC(op_0108_11), 264 }, /* MVPMR */
+{ CPUFUNC(op_0110_11), 272 }, /* BTST */
+{ CPUFUNC(op_0118_11), 280 }, /* BTST */
+{ CPUFUNC(op_0120_11), 288 }, /* BTST */
+{ CPUFUNC(op_0128_11), 296 }, /* BTST */
+{ CPUFUNC(op_0130_11), 304 }, /* BTST */
+{ CPUFUNC(op_0138_11), 312 }, /* BTST */
+{ CPUFUNC(op_0139_11), 313 }, /* BTST */
+{ CPUFUNC(op_013a_11), 314 }, /* BTST */
+{ CPUFUNC(op_013b_11), 315 }, /* BTST */
+{ CPUFUNC(op_013c_11), 316 }, /* BTST */
+{ CPUFUNC(op_0140_11), 320 }, /* BCHG */
+{ CPUFUNC(op_0148_11), 328 }, /* MVPMR */
+{ CPUFUNC(op_0150_11), 336 }, /* BCHG */
+{ CPUFUNC(op_0158_11), 344 }, /* BCHG */
+{ CPUFUNC(op_0160_11), 352 }, /* BCHG */
+{ CPUFUNC(op_0168_11), 360 }, /* BCHG */
+{ CPUFUNC(op_0170_11), 368 }, /* BCHG */
+{ CPUFUNC(op_0178_11), 376 }, /* BCHG */
+{ CPUFUNC(op_0179_11), 377 }, /* BCHG */
+{ CPUFUNC(op_017a_11), 378 }, /* BCHG */
+{ CPUFUNC(op_017b_11), 379 }, /* BCHG */
+{ CPUFUNC(op_0180_11), 384 }, /* BCLR */
+{ CPUFUNC(op_0188_11), 392 }, /* MVPRM */
+{ CPUFUNC(op_0190_11), 400 }, /* BCLR */
+{ CPUFUNC(op_0198_11), 408 }, /* BCLR */
+{ CPUFUNC(op_01a0_11), 416 }, /* BCLR */
+{ CPUFUNC(op_01a8_11), 424 }, /* BCLR */
+{ CPUFUNC(op_01b0_11), 432 }, /* BCLR */
+{ CPUFUNC(op_01b8_11), 440 }, /* BCLR */
+{ CPUFUNC(op_01b9_11), 441 }, /* BCLR */
+{ CPUFUNC(op_01ba_11), 442 }, /* BCLR */
+{ CPUFUNC(op_01bb_11), 443 }, /* BCLR */
+{ CPUFUNC(op_01c0_11), 448 }, /* BSET */
+{ CPUFUNC(op_01c8_11), 456 }, /* MVPRM */
+{ CPUFUNC(op_01d0_11), 464 }, /* BSET */
+{ CPUFUNC(op_01d8_11), 472 }, /* BSET */
+{ CPUFUNC(op_01e0_11), 480 }, /* BSET */
+{ CPUFUNC(op_01e8_11), 488 }, /* BSET */
+{ CPUFUNC(op_01f0_11), 496 }, /* BSET */
+{ CPUFUNC(op_01f8_11), 504 }, /* BSET */
+{ CPUFUNC(op_01f9_11), 505 }, /* BSET */
+{ CPUFUNC(op_01fa_11), 506 }, /* BSET */
+{ CPUFUNC(op_01fb_11), 507 }, /* BSET */
+{ CPUFUNC(op_0200_11), 512 }, /* AND */
+{ CPUFUNC(op_0210_11), 528 }, /* AND */
+{ CPUFUNC(op_0218_11), 536 }, /* AND */
+{ CPUFUNC(op_0220_11), 544 }, /* AND */
+{ CPUFUNC(op_0228_11), 552 }, /* AND */
+{ CPUFUNC(op_0230_11), 560 }, /* AND */
+{ CPUFUNC(op_0238_11), 568 }, /* AND */
+{ CPUFUNC(op_0239_11), 569 }, /* AND */
+{ CPUFUNC(op_023c_11), 572 }, /* ANDSR */
+{ CPUFUNC(op_0240_11), 576 }, /* AND */
+{ CPUFUNC(op_0250_11), 592 }, /* AND */
+{ CPUFUNC(op_0258_11), 600 }, /* AND */
+{ CPUFUNC(op_0260_11), 608 }, /* AND */
+{ CPUFUNC(op_0268_11), 616 }, /* AND */
+{ CPUFUNC(op_0270_11), 624 }, /* AND */
+{ CPUFUNC(op_0278_11), 632 }, /* AND */
+{ CPUFUNC(op_0279_11), 633 }, /* AND */
+{ CPUFUNC(op_027c_11), 636 }, /* ANDSR */
+{ CPUFUNC(op_0280_11), 640 }, /* AND */
+{ CPUFUNC(op_0290_11), 656 }, /* AND */
+{ CPUFUNC(op_0298_11), 664 }, /* AND */
+{ CPUFUNC(op_02a0_11), 672 }, /* AND */
+{ CPUFUNC(op_02a8_11), 680 }, /* AND */
+{ CPUFUNC(op_02b0_11), 688 }, /* AND */
+{ CPUFUNC(op_02b8_11), 696 }, /* AND */
+{ CPUFUNC(op_02b9_11), 697 }, /* AND */
+{ CPUFUNC(op_0400_11), 1024 }, /* SUB */
+{ CPUFUNC(op_0410_11), 1040 }, /* SUB */
+{ CPUFUNC(op_0418_11), 1048 }, /* SUB */
+{ CPUFUNC(op_0420_11), 1056 }, /* SUB */
+{ CPUFUNC(op_0428_11), 1064 }, /* SUB */
+{ CPUFUNC(op_0430_11), 1072 }, /* SUB */
+{ CPUFUNC(op_0438_11), 1080 }, /* SUB */
+{ CPUFUNC(op_0439_11), 1081 }, /* SUB */
+{ CPUFUNC(op_0440_11), 1088 }, /* SUB */
+{ CPUFUNC(op_0450_11), 1104 }, /* SUB */
+{ CPUFUNC(op_0458_11), 1112 }, /* SUB */
+{ CPUFUNC(op_0460_11), 1120 }, /* SUB */
+{ CPUFUNC(op_0468_11), 1128 }, /* SUB */
+{ CPUFUNC(op_0470_11), 1136 }, /* SUB */
+{ CPUFUNC(op_0478_11), 1144 }, /* SUB */
+{ CPUFUNC(op_0479_11), 1145 }, /* SUB */
+{ CPUFUNC(op_0480_11), 1152 }, /* SUB */
+{ CPUFUNC(op_0490_11), 1168 }, /* SUB */
+{ CPUFUNC(op_0498_11), 1176 }, /* SUB */
+{ CPUFUNC(op_04a0_11), 1184 }, /* SUB */
+{ CPUFUNC(op_04a8_11), 1192 }, /* SUB */
+{ CPUFUNC(op_04b0_11), 1200 }, /* SUB */
+{ CPUFUNC(op_04b8_11), 1208 }, /* SUB */
+{ CPUFUNC(op_04b9_11), 1209 }, /* SUB */
+{ CPUFUNC(op_0600_11), 1536 }, /* ADD */
+{ CPUFUNC(op_0610_11), 1552 }, /* ADD */
+{ CPUFUNC(op_0618_11), 1560 }, /* ADD */
+{ CPUFUNC(op_0620_11), 1568 }, /* ADD */
+{ CPUFUNC(op_0628_11), 1576 }, /* ADD */
+{ CPUFUNC(op_0630_11), 1584 }, /* ADD */
+{ CPUFUNC(op_0638_11), 1592 }, /* ADD */
+{ CPUFUNC(op_0639_11), 1593 }, /* ADD */
+{ CPUFUNC(op_0640_11), 1600 }, /* ADD */
+{ CPUFUNC(op_0650_11), 1616 }, /* ADD */
+{ CPUFUNC(op_0658_11), 1624 }, /* ADD */
+{ CPUFUNC(op_0660_11), 1632 }, /* ADD */
+{ CPUFUNC(op_0668_11), 1640 }, /* ADD */
+{ CPUFUNC(op_0670_11), 1648 }, /* ADD */
+{ CPUFUNC(op_0678_11), 1656 }, /* ADD */
+{ CPUFUNC(op_0679_11), 1657 }, /* ADD */
+{ CPUFUNC(op_0680_11), 1664 }, /* ADD */
+{ CPUFUNC(op_0690_11), 1680 }, /* ADD */
+{ CPUFUNC(op_0698_11), 1688 }, /* ADD */
+{ CPUFUNC(op_06a0_11), 1696 }, /* ADD */
+{ CPUFUNC(op_06a8_11), 1704 }, /* ADD */
+{ CPUFUNC(op_06b0_11), 1712 }, /* ADD */
+{ CPUFUNC(op_06b8_11), 1720 }, /* ADD */
+{ CPUFUNC(op_06b9_11), 1721 }, /* ADD */
+{ CPUFUNC(op_0800_11), 2048 }, /* BTST */
+{ CPUFUNC(op_0810_11), 2064 }, /* BTST */
+{ CPUFUNC(op_0818_11), 2072 }, /* BTST */
+{ CPUFUNC(op_0820_11), 2080 }, /* BTST */
+{ CPUFUNC(op_0828_11), 2088 }, /* BTST */
+{ CPUFUNC(op_0830_11), 2096 }, /* BTST */
+{ CPUFUNC(op_0838_11), 2104 }, /* BTST */
+{ CPUFUNC(op_0839_11), 2105 }, /* BTST */
+{ CPUFUNC(op_083a_11), 2106 }, /* BTST */
+{ CPUFUNC(op_083b_11), 2107 }, /* BTST */
+{ CPUFUNC(op_0840_11), 2112 }, /* BCHG */
+{ CPUFUNC(op_0850_11), 2128 }, /* BCHG */
+{ CPUFUNC(op_0858_11), 2136 }, /* BCHG */
+{ CPUFUNC(op_0860_11), 2144 }, /* BCHG */
+{ CPUFUNC(op_0868_11), 2152 }, /* BCHG */
+{ CPUFUNC(op_0870_11), 2160 }, /* BCHG */
+{ CPUFUNC(op_0878_11), 2168 }, /* BCHG */
+{ CPUFUNC(op_0879_11), 2169 }, /* BCHG */
+{ CPUFUNC(op_087a_11), 2170 }, /* BCHG */
+{ CPUFUNC(op_087b_11), 2171 }, /* BCHG */
+{ CPUFUNC(op_0880_11), 2176 }, /* BCLR */
+{ CPUFUNC(op_0890_11), 2192 }, /* BCLR */
+{ CPUFUNC(op_0898_11), 2200 }, /* BCLR */
+{ CPUFUNC(op_08a0_11), 2208 }, /* BCLR */
+{ CPUFUNC(op_08a8_11), 2216 }, /* BCLR */
+{ CPUFUNC(op_08b0_11), 2224 }, /* BCLR */
+{ CPUFUNC(op_08b8_11), 2232 }, /* BCLR */
+{ CPUFUNC(op_08b9_11), 2233 }, /* BCLR */
+{ CPUFUNC(op_08ba_11), 2234 }, /* BCLR */
+{ CPUFUNC(op_08bb_11), 2235 }, /* BCLR */
+{ CPUFUNC(op_08c0_11), 2240 }, /* BSET */
+{ CPUFUNC(op_08d0_11), 2256 }, /* BSET */
+{ CPUFUNC(op_08d8_11), 2264 }, /* BSET */
+{ CPUFUNC(op_08e0_11), 2272 }, /* BSET */
+{ CPUFUNC(op_08e8_11), 2280 }, /* BSET */
+{ CPUFUNC(op_08f0_11), 2288 }, /* BSET */
+{ CPUFUNC(op_08f8_11), 2296 }, /* BSET */
+{ CPUFUNC(op_08f9_11), 2297 }, /* BSET */
+{ CPUFUNC(op_08fa_11), 2298 }, /* BSET */
+{ CPUFUNC(op_08fb_11), 2299 }, /* BSET */
+{ CPUFUNC(op_0a00_11), 2560 }, /* EOR */
+{ CPUFUNC(op_0a10_11), 2576 }, /* EOR */
+{ CPUFUNC(op_0a18_11), 2584 }, /* EOR */
+{ CPUFUNC(op_0a20_11), 2592 }, /* EOR */
+{ CPUFUNC(op_0a28_11), 2600 }, /* EOR */
+{ CPUFUNC(op_0a30_11), 2608 }, /* EOR */
+{ CPUFUNC(op_0a38_11), 2616 }, /* EOR */
+{ CPUFUNC(op_0a39_11), 2617 }, /* EOR */
+{ CPUFUNC(op_0a3c_11), 2620 }, /* EORSR */
+{ CPUFUNC(op_0a40_11), 2624 }, /* EOR */
+{ CPUFUNC(op_0a50_11), 2640 }, /* EOR */
+{ CPUFUNC(op_0a58_11), 2648 }, /* EOR */
+{ CPUFUNC(op_0a60_11), 2656 }, /* EOR */
+{ CPUFUNC(op_0a68_11), 2664 }, /* EOR */
+{ CPUFUNC(op_0a70_11), 2672 }, /* EOR */
+{ CPUFUNC(op_0a78_11), 2680 }, /* EOR */
+{ CPUFUNC(op_0a79_11), 2681 }, /* EOR */
+{ CPUFUNC(op_0a7c_11), 2684 }, /* EORSR */
+{ CPUFUNC(op_0a80_11), 2688 }, /* EOR */
+{ CPUFUNC(op_0a90_11), 2704 }, /* EOR */
+{ CPUFUNC(op_0a98_11), 2712 }, /* EOR */
+{ CPUFUNC(op_0aa0_11), 2720 }, /* EOR */
+{ CPUFUNC(op_0aa8_11), 2728 }, /* EOR */
+{ CPUFUNC(op_0ab0_11), 2736 }, /* EOR */
+{ CPUFUNC(op_0ab8_11), 2744 }, /* EOR */
+{ CPUFUNC(op_0ab9_11), 2745 }, /* EOR */
+{ CPUFUNC(op_0c00_11), 3072 }, /* CMP */
+{ CPUFUNC(op_0c10_11), 3088 }, /* CMP */
+{ CPUFUNC(op_0c18_11), 3096 }, /* CMP */
+{ CPUFUNC(op_0c20_11), 3104 }, /* CMP */
+{ CPUFUNC(op_0c28_11), 3112 }, /* CMP */
+{ CPUFUNC(op_0c30_11), 3120 }, /* CMP */
+{ CPUFUNC(op_0c38_11), 3128 }, /* CMP */
+{ CPUFUNC(op_0c39_11), 3129 }, /* CMP */
+{ CPUFUNC(op_0c40_11), 3136 }, /* CMP */
+{ CPUFUNC(op_0c50_11), 3152 }, /* CMP */
+{ CPUFUNC(op_0c58_11), 3160 }, /* CMP */
+{ CPUFUNC(op_0c60_11), 3168 }, /* CMP */
+{ CPUFUNC(op_0c68_11), 3176 }, /* CMP */
+{ CPUFUNC(op_0c70_11), 3184 }, /* CMP */
+{ CPUFUNC(op_0c78_11), 3192 }, /* CMP */
+{ CPUFUNC(op_0c79_11), 3193 }, /* CMP */
+{ CPUFUNC(op_0c80_11), 3200 }, /* CMP */
+{ CPUFUNC(op_0c90_11), 3216 }, /* CMP */
+{ CPUFUNC(op_0c98_11), 3224 }, /* CMP */
+{ CPUFUNC(op_0ca0_11), 3232 }, /* CMP */
+{ CPUFUNC(op_0ca8_11), 3240 }, /* CMP */
+{ CPUFUNC(op_0cb0_11), 3248 }, /* CMP */
+{ CPUFUNC(op_0cb8_11), 3256 }, /* CMP */
+{ CPUFUNC(op_0cb9_11), 3257 }, /* CMP */
+{ CPUFUNC(op_1000_11), 4096 }, /* MOVE */
+{ CPUFUNC(op_1010_11), 4112 }, /* MOVE */
+{ CPUFUNC(op_1018_11), 4120 }, /* MOVE */
+{ CPUFUNC(op_1020_11), 4128 }, /* MOVE */
+{ CPUFUNC(op_1028_11), 4136 }, /* MOVE */
+{ CPUFUNC(op_1030_11), 4144 }, /* MOVE */
+{ CPUFUNC(op_1038_11), 4152 }, /* MOVE */
+{ CPUFUNC(op_1039_11), 4153 }, /* MOVE */
+{ CPUFUNC(op_103a_11), 4154 }, /* MOVE */
+{ CPUFUNC(op_103b_11), 4155 }, /* MOVE */
+{ CPUFUNC(op_103c_11), 4156 }, /* MOVE */
+{ CPUFUNC(op_1080_11), 4224 }, /* MOVE */
+{ CPUFUNC(op_1090_11), 4240 }, /* MOVE */
+{ CPUFUNC(op_1098_11), 4248 }, /* MOVE */
+{ CPUFUNC(op_10a0_11), 4256 }, /* MOVE */
+{ CPUFUNC(op_10a8_11), 4264 }, /* MOVE */
+{ CPUFUNC(op_10b0_11), 4272 }, /* MOVE */
+{ CPUFUNC(op_10b8_11), 4280 }, /* MOVE */
+{ CPUFUNC(op_10b9_11), 4281 }, /* MOVE */
+{ CPUFUNC(op_10ba_11), 4282 }, /* MOVE */
+{ CPUFUNC(op_10bb_11), 4283 }, /* MOVE */
+{ CPUFUNC(op_10bc_11), 4284 }, /* MOVE */
+{ CPUFUNC(op_10c0_11), 4288 }, /* MOVE */
+{ CPUFUNC(op_10d0_11), 4304 }, /* MOVE */
+{ CPUFUNC(op_10d8_11), 4312 }, /* MOVE */
+{ CPUFUNC(op_10e0_11), 4320 }, /* MOVE */
+{ CPUFUNC(op_10e8_11), 4328 }, /* MOVE */
+{ CPUFUNC(op_10f0_11), 4336 }, /* MOVE */
+{ CPUFUNC(op_10f8_11), 4344 }, /* MOVE */
+{ CPUFUNC(op_10f9_11), 4345 }, /* MOVE */
+{ CPUFUNC(op_10fa_11), 4346 }, /* MOVE */
+{ CPUFUNC(op_10fb_11), 4347 }, /* MOVE */
+{ CPUFUNC(op_10fc_11), 4348 }, /* MOVE */
+{ CPUFUNC(op_1100_11), 4352 }, /* MOVE */
+{ CPUFUNC(op_1110_11), 4368 }, /* MOVE */
+{ CPUFUNC(op_1118_11), 4376 }, /* MOVE */
+{ CPUFUNC(op_1120_11), 4384 }, /* MOVE */
+{ CPUFUNC(op_1128_11), 4392 }, /* MOVE */
+{ CPUFUNC(op_1130_11), 4400 }, /* MOVE */
+{ CPUFUNC(op_1138_11), 4408 }, /* MOVE */
+{ CPUFUNC(op_1139_11), 4409 }, /* MOVE */
+{ CPUFUNC(op_113a_11), 4410 }, /* MOVE */
+{ CPUFUNC(op_113b_11), 4411 }, /* MOVE */
+{ CPUFUNC(op_113c_11), 4412 }, /* MOVE */
+{ CPUFUNC(op_1140_11), 4416 }, /* MOVE */
+{ CPUFUNC(op_1150_11), 4432 }, /* MOVE */
+{ CPUFUNC(op_1158_11), 4440 }, /* MOVE */
+{ CPUFUNC(op_1160_11), 4448 }, /* MOVE */
+{ CPUFUNC(op_1168_11), 4456 }, /* MOVE */
+{ CPUFUNC(op_1170_11), 4464 }, /* MOVE */
+{ CPUFUNC(op_1178_11), 4472 }, /* MOVE */
+{ CPUFUNC(op_1179_11), 4473 }, /* MOVE */
+{ CPUFUNC(op_117a_11), 4474 }, /* MOVE */
+{ CPUFUNC(op_117b_11), 4475 }, /* MOVE */
+{ CPUFUNC(op_117c_11), 4476 }, /* MOVE */
+{ CPUFUNC(op_1180_11), 4480 }, /* MOVE */
+{ CPUFUNC(op_1190_11), 4496 }, /* MOVE */
+{ CPUFUNC(op_1198_11), 4504 }, /* MOVE */
+{ CPUFUNC(op_11a0_11), 4512 }, /* MOVE */
+{ CPUFUNC(op_11a8_11), 4520 }, /* MOVE */
+{ CPUFUNC(op_11b0_11), 4528 }, /* MOVE */
+{ CPUFUNC(op_11b8_11), 4536 }, /* MOVE */
+{ CPUFUNC(op_11b9_11), 4537 }, /* MOVE */
+{ CPUFUNC(op_11ba_11), 4538 }, /* MOVE */
+{ CPUFUNC(op_11bb_11), 4539 }, /* MOVE */
+{ CPUFUNC(op_11bc_11), 4540 }, /* MOVE */
+{ CPUFUNC(op_11c0_11), 4544 }, /* MOVE */
+{ CPUFUNC(op_11d0_11), 4560 }, /* MOVE */
+{ CPUFUNC(op_11d8_11), 4568 }, /* MOVE */
+{ CPUFUNC(op_11e0_11), 4576 }, /* MOVE */
+{ CPUFUNC(op_11e8_11), 4584 }, /* MOVE */
+{ CPUFUNC(op_11f0_11), 4592 }, /* MOVE */
+{ CPUFUNC(op_11f8_11), 4600 }, /* MOVE */
+{ CPUFUNC(op_11f9_11), 4601 }, /* MOVE */
+{ CPUFUNC(op_11fa_11), 4602 }, /* MOVE */
+{ CPUFUNC(op_11fb_11), 4603 }, /* MOVE */
+{ CPUFUNC(op_11fc_11), 4604 }, /* MOVE */
+{ CPUFUNC(op_13c0_11), 5056 }, /* MOVE */
+{ CPUFUNC(op_13d0_11), 5072 }, /* MOVE */
+{ CPUFUNC(op_13d8_11), 5080 }, /* MOVE */
+{ CPUFUNC(op_13e0_11), 5088 }, /* MOVE */
+{ CPUFUNC(op_13e8_11), 5096 }, /* MOVE */
+{ CPUFUNC(op_13f0_11), 5104 }, /* MOVE */
+{ CPUFUNC(op_13f8_11), 5112 }, /* MOVE */
+{ CPUFUNC(op_13f9_11), 5113 }, /* MOVE */
+{ CPUFUNC(op_13fa_11), 5114 }, /* MOVE */
+{ CPUFUNC(op_13fb_11), 5115 }, /* MOVE */
+{ CPUFUNC(op_13fc_11), 5116 }, /* MOVE */
+{ CPUFUNC(op_2000_11), 8192 }, /* MOVE */
+{ CPUFUNC(op_2008_11), 8200 }, /* MOVE */
+{ CPUFUNC(op_2010_11), 8208 }, /* MOVE */
+{ CPUFUNC(op_2018_11), 8216 }, /* MOVE */
+{ CPUFUNC(op_2020_11), 8224 }, /* MOVE */
+{ CPUFUNC(op_2028_11), 8232 }, /* MOVE */
+{ CPUFUNC(op_2030_11), 8240 }, /* MOVE */
+{ CPUFUNC(op_2038_11), 8248 }, /* MOVE */
+{ CPUFUNC(op_2039_11), 8249 }, /* MOVE */
+{ CPUFUNC(op_203a_11), 8250 }, /* MOVE */
+{ CPUFUNC(op_203b_11), 8251 }, /* MOVE */
+{ CPUFUNC(op_203c_11), 8252 }, /* MOVE */
+{ CPUFUNC(op_2040_11), 8256 }, /* MOVEA */
+{ CPUFUNC(op_2048_11), 8264 }, /* MOVEA */
+{ CPUFUNC(op_2050_11), 8272 }, /* MOVEA */
+{ CPUFUNC(op_2058_11), 8280 }, /* MOVEA */
+{ CPUFUNC(op_2060_11), 8288 }, /* MOVEA */
+{ CPUFUNC(op_2068_11), 8296 }, /* MOVEA */
+{ CPUFUNC(op_2070_11), 8304 }, /* MOVEA */
+{ CPUFUNC(op_2078_11), 8312 }, /* MOVEA */
+{ CPUFUNC(op_2079_11), 8313 }, /* MOVEA */
+{ CPUFUNC(op_207a_11), 8314 }, /* MOVEA */
+{ CPUFUNC(op_207b_11), 8315 }, /* MOVEA */
+{ CPUFUNC(op_207c_11), 8316 }, /* MOVEA */
+{ CPUFUNC(op_2080_11), 8320 }, /* MOVE */
+{ CPUFUNC(op_2088_11), 8328 }, /* MOVE */
+{ CPUFUNC(op_2090_11), 8336 }, /* MOVE */
+{ CPUFUNC(op_2098_11), 8344 }, /* MOVE */
+{ CPUFUNC(op_20a0_11), 8352 }, /* MOVE */
+{ CPUFUNC(op_20a8_11), 8360 }, /* MOVE */
+{ CPUFUNC(op_20b0_11), 8368 }, /* MOVE */
+{ CPUFUNC(op_20b8_11), 8376 }, /* MOVE */
+{ CPUFUNC(op_20b9_11), 8377 }, /* MOVE */
+{ CPUFUNC(op_20ba_11), 8378 }, /* MOVE */
+{ CPUFUNC(op_20bb_11), 8379 }, /* MOVE */
+{ CPUFUNC(op_20bc_11), 8380 }, /* MOVE */
+{ CPUFUNC(op_20c0_11), 8384 }, /* MOVE */
+{ CPUFUNC(op_20c8_11), 8392 }, /* MOVE */
+{ CPUFUNC(op_20d0_11), 8400 }, /* MOVE */
+{ CPUFUNC(op_20d8_11), 8408 }, /* MOVE */
+{ CPUFUNC(op_20e0_11), 8416 }, /* MOVE */
+{ CPUFUNC(op_20e8_11), 8424 }, /* MOVE */
+{ CPUFUNC(op_20f0_11), 8432 }, /* MOVE */
+{ CPUFUNC(op_20f8_11), 8440 }, /* MOVE */
+{ CPUFUNC(op_20f9_11), 8441 }, /* MOVE */
+{ CPUFUNC(op_20fa_11), 8442 }, /* MOVE */
+{ CPUFUNC(op_20fb_11), 8443 }, /* MOVE */
+{ CPUFUNC(op_20fc_11), 8444 }, /* MOVE */
+{ CPUFUNC(op_2100_11), 8448 }, /* MOVE */
+{ CPUFUNC(op_2108_11), 8456 }, /* MOVE */
+{ CPUFUNC(op_2110_11), 8464 }, /* MOVE */
+{ CPUFUNC(op_2118_11), 8472 }, /* MOVE */
+{ CPUFUNC(op_2120_11), 8480 }, /* MOVE */
+{ CPUFUNC(op_2128_11), 8488 }, /* MOVE */
+{ CPUFUNC(op_2130_11), 8496 }, /* MOVE */
+{ CPUFUNC(op_2138_11), 8504 }, /* MOVE */
+{ CPUFUNC(op_2139_11), 8505 }, /* MOVE */
+{ CPUFUNC(op_213a_11), 8506 }, /* MOVE */
+{ CPUFUNC(op_213b_11), 8507 }, /* MOVE */
+{ CPUFUNC(op_213c_11), 8508 }, /* MOVE */
+{ CPUFUNC(op_2140_11), 8512 }, /* MOVE */
+{ CPUFUNC(op_2148_11), 8520 }, /* MOVE */
+{ CPUFUNC(op_2150_11), 8528 }, /* MOVE */
+{ CPUFUNC(op_2158_11), 8536 }, /* MOVE */
+{ CPUFUNC(op_2160_11), 8544 }, /* MOVE */
+{ CPUFUNC(op_2168_11), 8552 }, /* MOVE */
+{ CPUFUNC(op_2170_11), 8560 }, /* MOVE */
+{ CPUFUNC(op_2178_11), 8568 }, /* MOVE */
+{ CPUFUNC(op_2179_11), 8569 }, /* MOVE */
+{ CPUFUNC(op_217a_11), 8570 }, /* MOVE */
+{ CPUFUNC(op_217b_11), 8571 }, /* MOVE */
+{ CPUFUNC(op_217c_11), 8572 }, /* MOVE */
+{ CPUFUNC(op_2180_11), 8576 }, /* MOVE */
+{ CPUFUNC(op_2188_11), 8584 }, /* MOVE */
+{ CPUFUNC(op_2190_11), 8592 }, /* MOVE */
+{ CPUFUNC(op_2198_11), 8600 }, /* MOVE */
+{ CPUFUNC(op_21a0_11), 8608 }, /* MOVE */
+{ CPUFUNC(op_21a8_11), 8616 }, /* MOVE */
+{ CPUFUNC(op_21b0_11), 8624 }, /* MOVE */
+{ CPUFUNC(op_21b8_11), 8632 }, /* MOVE */
+{ CPUFUNC(op_21b9_11), 8633 }, /* MOVE */
+{ CPUFUNC(op_21ba_11), 8634 }, /* MOVE */
+{ CPUFUNC(op_21bb_11), 8635 }, /* MOVE */
+{ CPUFUNC(op_21bc_11), 8636 }, /* MOVE */
+{ CPUFUNC(op_21c0_11), 8640 }, /* MOVE */
+{ CPUFUNC(op_21c8_11), 8648 }, /* MOVE */
+{ CPUFUNC(op_21d0_11), 8656 }, /* MOVE */
+{ CPUFUNC(op_21d8_11), 8664 }, /* MOVE */
+{ CPUFUNC(op_21e0_11), 8672 }, /* MOVE */
+{ CPUFUNC(op_21e8_11), 8680 }, /* MOVE */
+{ CPUFUNC(op_21f0_11), 8688 }, /* MOVE */
+{ CPUFUNC(op_21f8_11), 8696 }, /* MOVE */
+{ CPUFUNC(op_21f9_11), 8697 }, /* MOVE */
+{ CPUFUNC(op_21fa_11), 8698 }, /* MOVE */
+{ CPUFUNC(op_21fb_11), 8699 }, /* MOVE */
+{ CPUFUNC(op_21fc_11), 8700 }, /* MOVE */
+{ CPUFUNC(op_23c0_11), 9152 }, /* MOVE */
+{ CPUFUNC(op_23c8_11), 9160 }, /* MOVE */
+{ CPUFUNC(op_23d0_11), 9168 }, /* MOVE */
+{ CPUFUNC(op_23d8_11), 9176 }, /* MOVE */
+{ CPUFUNC(op_23e0_11), 9184 }, /* MOVE */
+{ CPUFUNC(op_23e8_11), 9192 }, /* MOVE */
+{ CPUFUNC(op_23f0_11), 9200 }, /* MOVE */
+{ CPUFUNC(op_23f8_11), 9208 }, /* MOVE */
+{ CPUFUNC(op_23f9_11), 9209 }, /* MOVE */
+{ CPUFUNC(op_23fa_11), 9210 }, /* MOVE */
+{ CPUFUNC(op_23fb_11), 9211 }, /* MOVE */
+{ CPUFUNC(op_23fc_11), 9212 }, /* MOVE */
+{ CPUFUNC(op_3000_11), 12288 }, /* MOVE */
+{ CPUFUNC(op_3008_11), 12296 }, /* MOVE */
+{ CPUFUNC(op_3010_11), 12304 }, /* MOVE */
+{ CPUFUNC(op_3018_11), 12312 }, /* MOVE */
+{ CPUFUNC(op_3020_11), 12320 }, /* MOVE */
+{ CPUFUNC(op_3028_11), 12328 }, /* MOVE */
+{ CPUFUNC(op_3030_11), 12336 }, /* MOVE */
+{ CPUFUNC(op_3038_11), 12344 }, /* MOVE */
+{ CPUFUNC(op_3039_11), 12345 }, /* MOVE */
+{ CPUFUNC(op_303a_11), 12346 }, /* MOVE */
+{ CPUFUNC(op_303b_11), 12347 }, /* MOVE */
+{ CPUFUNC(op_303c_11), 12348 }, /* MOVE */
+{ CPUFUNC(op_3040_11), 12352 }, /* MOVEA */
+{ CPUFUNC(op_3048_11), 12360 }, /* MOVEA */
+{ CPUFUNC(op_3050_11), 12368 }, /* MOVEA */
+{ CPUFUNC(op_3058_11), 12376 }, /* MOVEA */
+{ CPUFUNC(op_3060_11), 12384 }, /* MOVEA */
+{ CPUFUNC(op_3068_11), 12392 }, /* MOVEA */
+{ CPUFUNC(op_3070_11), 12400 }, /* MOVEA */
+{ CPUFUNC(op_3078_11), 12408 }, /* MOVEA */
+{ CPUFUNC(op_3079_11), 12409 }, /* MOVEA */
+{ CPUFUNC(op_307a_11), 12410 }, /* MOVEA */
+{ CPUFUNC(op_307b_11), 12411 }, /* MOVEA */
+{ CPUFUNC(op_307c_11), 12412 }, /* MOVEA */
+{ CPUFUNC(op_3080_11), 12416 }, /* MOVE */
+{ CPUFUNC(op_3088_11), 12424 }, /* MOVE */
+{ CPUFUNC(op_3090_11), 12432 }, /* MOVE */
+{ CPUFUNC(op_3098_11), 12440 }, /* MOVE */
+{ CPUFUNC(op_30a0_11), 12448 }, /* MOVE */
+{ CPUFUNC(op_30a8_11), 12456 }, /* MOVE */
+{ CPUFUNC(op_30b0_11), 12464 }, /* MOVE */
+{ CPUFUNC(op_30b8_11), 12472 }, /* MOVE */
+{ CPUFUNC(op_30b9_11), 12473 }, /* MOVE */
+{ CPUFUNC(op_30ba_11), 12474 }, /* MOVE */
+{ CPUFUNC(op_30bb_11), 12475 }, /* MOVE */
+{ CPUFUNC(op_30bc_11), 12476 }, /* MOVE */
+{ CPUFUNC(op_30c0_11), 12480 }, /* MOVE */
+{ CPUFUNC(op_30c8_11), 12488 }, /* MOVE */
+{ CPUFUNC(op_30d0_11), 12496 }, /* MOVE */
+{ CPUFUNC(op_30d8_11), 12504 }, /* MOVE */
+{ CPUFUNC(op_30e0_11), 12512 }, /* MOVE */
+{ CPUFUNC(op_30e8_11), 12520 }, /* MOVE */
+{ CPUFUNC(op_30f0_11), 12528 }, /* MOVE */
+{ CPUFUNC(op_30f8_11), 12536 }, /* MOVE */
+{ CPUFUNC(op_30f9_11), 12537 }, /* MOVE */
+{ CPUFUNC(op_30fa_11), 12538 }, /* MOVE */
+{ CPUFUNC(op_30fb_11), 12539 }, /* MOVE */
+{ CPUFUNC(op_30fc_11), 12540 }, /* MOVE */
+{ CPUFUNC(op_3100_11), 12544 }, /* MOVE */
+{ CPUFUNC(op_3108_11), 12552 }, /* MOVE */
+{ CPUFUNC(op_3110_11), 12560 }, /* MOVE */
+{ CPUFUNC(op_3118_11), 12568 }, /* MOVE */
+{ CPUFUNC(op_3120_11), 12576 }, /* MOVE */
+{ CPUFUNC(op_3128_11), 12584 }, /* MOVE */
+{ CPUFUNC(op_3130_11), 12592 }, /* MOVE */
+{ CPUFUNC(op_3138_11), 12600 }, /* MOVE */
+{ CPUFUNC(op_3139_11), 12601 }, /* MOVE */
+{ CPUFUNC(op_313a_11), 12602 }, /* MOVE */
+{ CPUFUNC(op_313b_11), 12603 }, /* MOVE */
+{ CPUFUNC(op_313c_11), 12604 }, /* MOVE */
+{ CPUFUNC(op_3140_11), 12608 }, /* MOVE */
+{ CPUFUNC(op_3148_11), 12616 }, /* MOVE */
+{ CPUFUNC(op_3150_11), 12624 }, /* MOVE */
+{ CPUFUNC(op_3158_11), 12632 }, /* MOVE */
+{ CPUFUNC(op_3160_11), 12640 }, /* MOVE */
+{ CPUFUNC(op_3168_11), 12648 }, /* MOVE */
+{ CPUFUNC(op_3170_11), 12656 }, /* MOVE */
+{ CPUFUNC(op_3178_11), 12664 }, /* MOVE */
+{ CPUFUNC(op_3179_11), 12665 }, /* MOVE */
+{ CPUFUNC(op_317a_11), 12666 }, /* MOVE */
+{ CPUFUNC(op_317b_11), 12667 }, /* MOVE */
+{ CPUFUNC(op_317c_11), 12668 }, /* MOVE */
+{ CPUFUNC(op_3180_11), 12672 }, /* MOVE */
+{ CPUFUNC(op_3188_11), 12680 }, /* MOVE */
+{ CPUFUNC(op_3190_11), 12688 }, /* MOVE */
+{ CPUFUNC(op_3198_11), 12696 }, /* MOVE */
+{ CPUFUNC(op_31a0_11), 12704 }, /* MOVE */
+{ CPUFUNC(op_31a8_11), 12712 }, /* MOVE */
+{ CPUFUNC(op_31b0_11), 12720 }, /* MOVE */
+{ CPUFUNC(op_31b8_11), 12728 }, /* MOVE */
+{ CPUFUNC(op_31b9_11), 12729 }, /* MOVE */
+{ CPUFUNC(op_31ba_11), 12730 }, /* MOVE */
+{ CPUFUNC(op_31bb_11), 12731 }, /* MOVE */
+{ CPUFUNC(op_31bc_11), 12732 }, /* MOVE */
+{ CPUFUNC(op_31c0_11), 12736 }, /* MOVE */
+{ CPUFUNC(op_31c8_11), 12744 }, /* MOVE */
+{ CPUFUNC(op_31d0_11), 12752 }, /* MOVE */
+{ CPUFUNC(op_31d8_11), 12760 }, /* MOVE */
+{ CPUFUNC(op_31e0_11), 12768 }, /* MOVE */
+{ CPUFUNC(op_31e8_11), 12776 }, /* MOVE */
+{ CPUFUNC(op_31f0_11), 12784 }, /* MOVE */
+{ CPUFUNC(op_31f8_11), 12792 }, /* MOVE */
+{ CPUFUNC(op_31f9_11), 12793 }, /* MOVE */
+{ CPUFUNC(op_31fa_11), 12794 }, /* MOVE */
+{ CPUFUNC(op_31fb_11), 12795 }, /* MOVE */
+{ CPUFUNC(op_31fc_11), 12796 }, /* MOVE */
+{ CPUFUNC(op_33c0_11), 13248 }, /* MOVE */
+{ CPUFUNC(op_33c8_11), 13256 }, /* MOVE */
+{ CPUFUNC(op_33d0_11), 13264 }, /* MOVE */
+{ CPUFUNC(op_33d8_11), 13272 }, /* MOVE */
+{ CPUFUNC(op_33e0_11), 13280 }, /* MOVE */
+{ CPUFUNC(op_33e8_11), 13288 }, /* MOVE */
+{ CPUFUNC(op_33f0_11), 13296 }, /* MOVE */
+{ CPUFUNC(op_33f8_11), 13304 }, /* MOVE */
+{ CPUFUNC(op_33f9_11), 13305 }, /* MOVE */
+{ CPUFUNC(op_33fa_11), 13306 }, /* MOVE */
+{ CPUFUNC(op_33fb_11), 13307 }, /* MOVE */
+{ CPUFUNC(op_33fc_11), 13308 }, /* MOVE */
+{ CPUFUNC(op_4000_11), 16384 }, /* NEGX */
+{ CPUFUNC(op_4010_11), 16400 }, /* NEGX */
+{ CPUFUNC(op_4018_11), 16408 }, /* NEGX */
+{ CPUFUNC(op_4020_11), 16416 }, /* NEGX */
+{ CPUFUNC(op_4028_11), 16424 }, /* NEGX */
+{ CPUFUNC(op_4030_11), 16432 }, /* NEGX */
+{ CPUFUNC(op_4038_11), 16440 }, /* NEGX */
+{ CPUFUNC(op_4039_11), 16441 }, /* NEGX */
+{ CPUFUNC(op_4040_11), 16448 }, /* NEGX */
+{ CPUFUNC(op_4050_11), 16464 }, /* NEGX */
+{ CPUFUNC(op_4058_11), 16472 }, /* NEGX */
+{ CPUFUNC(op_4060_11), 16480 }, /* NEGX */
+{ CPUFUNC(op_4068_11), 16488 }, /* NEGX */
+{ CPUFUNC(op_4070_11), 16496 }, /* NEGX */
+{ CPUFUNC(op_4078_11), 16504 }, /* NEGX */
+{ CPUFUNC(op_4079_11), 16505 }, /* NEGX */
+{ CPUFUNC(op_4080_11), 16512 }, /* NEGX */
+{ CPUFUNC(op_4090_11), 16528 }, /* NEGX */
+{ CPUFUNC(op_4098_11), 16536 }, /* NEGX */
+{ CPUFUNC(op_40a0_11), 16544 }, /* NEGX */
+{ CPUFUNC(op_40a8_11), 16552 }, /* NEGX */
+{ CPUFUNC(op_40b0_11), 16560 }, /* NEGX */
+{ CPUFUNC(op_40b8_11), 16568 }, /* NEGX */
+{ CPUFUNC(op_40b9_11), 16569 }, /* NEGX */
+{ CPUFUNC(op_40c0_12), 16576 }, /* MVSR2 */
+{ CPUFUNC(op_40d0_12), 16592 }, /* MVSR2 */
+{ CPUFUNC(op_40d8_12), 16600 }, /* MVSR2 */
+{ CPUFUNC(op_40e0_12), 16608 }, /* MVSR2 */
+{ CPUFUNC(op_40e8_12), 16616 }, /* MVSR2 */
+{ CPUFUNC(op_40f0_12), 16624 }, /* MVSR2 */
+{ CPUFUNC(op_40f8_12), 16632 }, /* MVSR2 */
+{ CPUFUNC(op_40f9_12), 16633 }, /* MVSR2 */
+{ CPUFUNC(op_4180_11), 16768 }, /* CHK */
+{ CPUFUNC(op_4190_11), 16784 }, /* CHK */
+{ CPUFUNC(op_4198_11), 16792 }, /* CHK */
+{ CPUFUNC(op_41a0_11), 16800 }, /* CHK */
+{ CPUFUNC(op_41a8_11), 16808 }, /* CHK */
+{ CPUFUNC(op_41b0_11), 16816 }, /* CHK */
+{ CPUFUNC(op_41b8_11), 16824 }, /* CHK */
+{ CPUFUNC(op_41b9_11), 16825 }, /* CHK */
+{ CPUFUNC(op_41ba_11), 16826 }, /* CHK */
+{ CPUFUNC(op_41bb_11), 16827 }, /* CHK */
+{ CPUFUNC(op_41bc_11), 16828 }, /* CHK */
+{ CPUFUNC(op_41d0_11), 16848 }, /* LEA */
+{ CPUFUNC(op_41e8_11), 16872 }, /* LEA */
+{ CPUFUNC(op_41f0_11), 16880 }, /* LEA */
+{ CPUFUNC(op_41f8_11), 16888 }, /* LEA */
+{ CPUFUNC(op_41f9_11), 16889 }, /* LEA */
+{ CPUFUNC(op_41fa_11), 16890 }, /* LEA */
+{ CPUFUNC(op_41fb_11), 16891 }, /* LEA */
+{ CPUFUNC(op_4200_12), 16896 }, /* CLR */
+{ CPUFUNC(op_4210_12), 16912 }, /* CLR */
+{ CPUFUNC(op_4218_12), 16920 }, /* CLR */
+{ CPUFUNC(op_4220_12), 16928 }, /* CLR */
+{ CPUFUNC(op_4228_12), 16936 }, /* CLR */
+{ CPUFUNC(op_4230_12), 16944 }, /* CLR */
+{ CPUFUNC(op_4238_12), 16952 }, /* CLR */
+{ CPUFUNC(op_4239_12), 16953 }, /* CLR */
+{ CPUFUNC(op_4240_12), 16960 }, /* CLR */
+{ CPUFUNC(op_4250_12), 16976 }, /* CLR */
+{ CPUFUNC(op_4258_12), 16984 }, /* CLR */
+{ CPUFUNC(op_4260_12), 16992 }, /* CLR */
+{ CPUFUNC(op_4268_12), 17000 }, /* CLR */
+{ CPUFUNC(op_4270_12), 17008 }, /* CLR */
+{ CPUFUNC(op_4278_12), 17016 }, /* CLR */
+{ CPUFUNC(op_4279_12), 17017 }, /* CLR */
+{ CPUFUNC(op_4280_12), 17024 }, /* CLR */
+{ CPUFUNC(op_4290_12), 17040 }, /* CLR */
+{ CPUFUNC(op_4298_12), 17048 }, /* CLR */
+{ CPUFUNC(op_42a0_12), 17056 }, /* CLR */
+{ CPUFUNC(op_42a8_12), 17064 }, /* CLR */
+{ CPUFUNC(op_42b0_12), 17072 }, /* CLR */
+{ CPUFUNC(op_42b8_12), 17080 }, /* CLR */
+{ CPUFUNC(op_42b9_12), 17081 }, /* CLR */
+{ CPUFUNC(op_4400_11), 17408 }, /* NEG */
+{ CPUFUNC(op_4410_11), 17424 }, /* NEG */
+{ CPUFUNC(op_4418_11), 17432 }, /* NEG */
+{ CPUFUNC(op_4420_11), 17440 }, /* NEG */
+{ CPUFUNC(op_4428_11), 17448 }, /* NEG */
+{ CPUFUNC(op_4430_11), 17456 }, /* NEG */
+{ CPUFUNC(op_4438_11), 17464 }, /* NEG */
+{ CPUFUNC(op_4439_11), 17465 }, /* NEG */
+{ CPUFUNC(op_4440_11), 17472 }, /* NEG */
+{ CPUFUNC(op_4450_11), 17488 }, /* NEG */
+{ CPUFUNC(op_4458_11), 17496 }, /* NEG */
+{ CPUFUNC(op_4460_11), 17504 }, /* NEG */
+{ CPUFUNC(op_4468_11), 17512 }, /* NEG */
+{ CPUFUNC(op_4470_11), 17520 }, /* NEG */
+{ CPUFUNC(op_4478_11), 17528 }, /* NEG */
+{ CPUFUNC(op_4479_11), 17529 }, /* NEG */
+{ CPUFUNC(op_4480_11), 17536 }, /* NEG */
+{ CPUFUNC(op_4490_11), 17552 }, /* NEG */
+{ CPUFUNC(op_4498_11), 17560 }, /* NEG */
+{ CPUFUNC(op_44a0_11), 17568 }, /* NEG */
+{ CPUFUNC(op_44a8_11), 17576 }, /* NEG */
+{ CPUFUNC(op_44b0_11), 17584 }, /* NEG */
+{ CPUFUNC(op_44b8_11), 17592 }, /* NEG */
+{ CPUFUNC(op_44b9_11), 17593 }, /* NEG */
+{ CPUFUNC(op_44c0_11), 17600 }, /* MV2SR */
+{ CPUFUNC(op_44d0_11), 17616 }, /* MV2SR */
+{ CPUFUNC(op_44d8_11), 17624 }, /* MV2SR */
+{ CPUFUNC(op_44e0_11), 17632 }, /* MV2SR */
+{ CPUFUNC(op_44e8_11), 17640 }, /* MV2SR */
+{ CPUFUNC(op_44f0_11), 17648 }, /* MV2SR */
+{ CPUFUNC(op_44f8_11), 17656 }, /* MV2SR */
+{ CPUFUNC(op_44f9_11), 17657 }, /* MV2SR */
+{ CPUFUNC(op_44fa_11), 17658 }, /* MV2SR */
+{ CPUFUNC(op_44fb_11), 17659 }, /* MV2SR */
+{ CPUFUNC(op_44fc_11), 17660 }, /* MV2SR */
+{ CPUFUNC(op_4600_11), 17920 }, /* NOT */
+{ CPUFUNC(op_4610_11), 17936 }, /* NOT */
+{ CPUFUNC(op_4618_11), 17944 }, /* NOT */
+{ CPUFUNC(op_4620_11), 17952 }, /* NOT */
+{ CPUFUNC(op_4628_11), 17960 }, /* NOT */
+{ CPUFUNC(op_4630_11), 17968 }, /* NOT */
+{ CPUFUNC(op_4638_11), 17976 }, /* NOT */
+{ CPUFUNC(op_4639_11), 17977 }, /* NOT */
+{ CPUFUNC(op_4640_11), 17984 }, /* NOT */
+{ CPUFUNC(op_4650_11), 18000 }, /* NOT */
+{ CPUFUNC(op_4658_11), 18008 }, /* NOT */
+{ CPUFUNC(op_4660_11), 18016 }, /* NOT */
+{ CPUFUNC(op_4668_11), 18024 }, /* NOT */
+{ CPUFUNC(op_4670_11), 18032 }, /* NOT */
+{ CPUFUNC(op_4678_11), 18040 }, /* NOT */
+{ CPUFUNC(op_4679_11), 18041 }, /* NOT */
+{ CPUFUNC(op_4680_11), 18048 }, /* NOT */
+{ CPUFUNC(op_4690_11), 18064 }, /* NOT */
+{ CPUFUNC(op_4698_11), 18072 }, /* NOT */
+{ CPUFUNC(op_46a0_11), 18080 }, /* NOT */
+{ CPUFUNC(op_46a8_11), 18088 }, /* NOT */
+{ CPUFUNC(op_46b0_11), 18096 }, /* NOT */
+{ CPUFUNC(op_46b8_11), 18104 }, /* NOT */
+{ CPUFUNC(op_46b9_11), 18105 }, /* NOT */
+{ CPUFUNC(op_46c0_11), 18112 }, /* MV2SR */
+{ CPUFUNC(op_46d0_11), 18128 }, /* MV2SR */
+{ CPUFUNC(op_46d8_11), 18136 }, /* MV2SR */
+{ CPUFUNC(op_46e0_11), 18144 }, /* MV2SR */
+{ CPUFUNC(op_46e8_11), 18152 }, /* MV2SR */
+{ CPUFUNC(op_46f0_11), 18160 }, /* MV2SR */
+{ CPUFUNC(op_46f8_11), 18168 }, /* MV2SR */
+{ CPUFUNC(op_46f9_11), 18169 }, /* MV2SR */
+{ CPUFUNC(op_46fa_11), 18170 }, /* MV2SR */
+{ CPUFUNC(op_46fb_11), 18171 }, /* MV2SR */
+{ CPUFUNC(op_46fc_11), 18172 }, /* MV2SR */
+{ CPUFUNC(op_4800_11), 18432 }, /* NBCD */
+{ CPUFUNC(op_4810_11), 18448 }, /* NBCD */
+{ CPUFUNC(op_4818_11), 18456 }, /* NBCD */
+{ CPUFUNC(op_4820_11), 18464 }, /* NBCD */
+{ CPUFUNC(op_4828_11), 18472 }, /* NBCD */
+{ CPUFUNC(op_4830_11), 18480 }, /* NBCD */
+{ CPUFUNC(op_4838_11), 18488 }, /* NBCD */
+{ CPUFUNC(op_4839_11), 18489 }, /* NBCD */
+{ CPUFUNC(op_4840_11), 18496 }, /* SWAP */
+{ CPUFUNC(op_4850_11), 18512 }, /* PEA */
+{ CPUFUNC(op_4868_11), 18536 }, /* PEA */
+{ CPUFUNC(op_4870_11), 18544 }, /* PEA */
+{ CPUFUNC(op_4878_11), 18552 }, /* PEA */
+{ CPUFUNC(op_4879_11), 18553 }, /* PEA */
+{ CPUFUNC(op_487a_11), 18554 }, /* PEA */
+{ CPUFUNC(op_487b_11), 18555 }, /* PEA */
+{ CPUFUNC(op_4880_11), 18560 }, /* EXT */
+{ CPUFUNC(op_4890_11), 18576 }, /* MVMLE */
+{ CPUFUNC(op_48a0_11), 18592 }, /* MVMLE */
+{ CPUFUNC(op_48a8_11), 18600 }, /* MVMLE */
+{ CPUFUNC(op_48b0_11), 18608 }, /* MVMLE */
+{ CPUFUNC(op_48b8_11), 18616 }, /* MVMLE */
+{ CPUFUNC(op_48b9_11), 18617 }, /* MVMLE */
+{ CPUFUNC(op_48c0_11), 18624 }, /* EXT */
+{ CPUFUNC(op_48d0_11), 18640 }, /* MVMLE */
+{ CPUFUNC(op_48e0_11), 18656 }, /* MVMLE */
+{ CPUFUNC(op_48e8_11), 18664 }, /* MVMLE */
+{ CPUFUNC(op_48f0_11), 18672 }, /* MVMLE */
+{ CPUFUNC(op_48f8_11), 18680 }, /* MVMLE */
+{ CPUFUNC(op_48f9_11), 18681 }, /* MVMLE */
+{ CPUFUNC(op_4a00_11), 18944 }, /* TST */
+{ CPUFUNC(op_4a10_11), 18960 }, /* TST */
+{ CPUFUNC(op_4a18_11), 18968 }, /* TST */
+{ CPUFUNC(op_4a20_11), 18976 }, /* TST */
+{ CPUFUNC(op_4a28_11), 18984 }, /* TST */
+{ CPUFUNC(op_4a30_11), 18992 }, /* TST */
+{ CPUFUNC(op_4a38_11), 19000 }, /* TST */
+{ CPUFUNC(op_4a39_11), 19001 }, /* TST */
+{ CPUFUNC(op_4a40_11), 19008 }, /* TST */
+{ CPUFUNC(op_4a50_11), 19024 }, /* TST */
+{ CPUFUNC(op_4a58_11), 19032 }, /* TST */
+{ CPUFUNC(op_4a60_11), 19040 }, /* TST */
+{ CPUFUNC(op_4a68_11), 19048 }, /* TST */
+{ CPUFUNC(op_4a70_11), 19056 }, /* TST */
+{ CPUFUNC(op_4a78_11), 19064 }, /* TST */
+{ CPUFUNC(op_4a79_11), 19065 }, /* TST */
+{ CPUFUNC(op_4a80_11), 19072 }, /* TST */
+{ CPUFUNC(op_4a90_11), 19088 }, /* TST */
+{ CPUFUNC(op_4a98_11), 19096 }, /* TST */
+{ CPUFUNC(op_4aa0_11), 19104 }, /* TST */
+{ CPUFUNC(op_4aa8_11), 19112 }, /* TST */
+{ CPUFUNC(op_4ab0_11), 19120 }, /* TST */
+{ CPUFUNC(op_4ab8_11), 19128 }, /* TST */
+{ CPUFUNC(op_4ab9_11), 19129 }, /* TST */
+{ CPUFUNC(op_4ac0_11), 19136 }, /* TAS */
+{ CPUFUNC(op_4ad0_11), 19152 }, /* TAS */
+{ CPUFUNC(op_4ad8_11), 19160 }, /* TAS */
+{ CPUFUNC(op_4ae0_11), 19168 }, /* TAS */
+{ CPUFUNC(op_4ae8_11), 19176 }, /* TAS */
+{ CPUFUNC(op_4af0_11), 19184 }, /* TAS */
+{ CPUFUNC(op_4af8_11), 19192 }, /* TAS */
+{ CPUFUNC(op_4af9_11), 19193 }, /* TAS */
+{ CPUFUNC(op_4c90_11), 19600 }, /* MVMEL */
+{ CPUFUNC(op_4c98_11), 19608 }, /* MVMEL */
+{ CPUFUNC(op_4ca8_11), 19624 }, /* MVMEL */
+{ CPUFUNC(op_4cb0_11), 19632 }, /* MVMEL */
+{ CPUFUNC(op_4cb8_11), 19640 }, /* MVMEL */
+{ CPUFUNC(op_4cb9_11), 19641 }, /* MVMEL */
+{ CPUFUNC(op_4cba_11), 19642 }, /* MVMEL */
+{ CPUFUNC(op_4cbb_11), 19643 }, /* MVMEL */
+{ CPUFUNC(op_4cd0_11), 19664 }, /* MVMEL */
+{ CPUFUNC(op_4cd8_11), 19672 }, /* MVMEL */
+{ CPUFUNC(op_4ce8_11), 19688 }, /* MVMEL */
+{ CPUFUNC(op_4cf0_11), 19696 }, /* MVMEL */
+{ CPUFUNC(op_4cf8_11), 19704 }, /* MVMEL */
+{ CPUFUNC(op_4cf9_11), 19705 }, /* MVMEL */
+{ CPUFUNC(op_4cfa_11), 19706 }, /* MVMEL */
+{ CPUFUNC(op_4cfb_11), 19707 }, /* MVMEL */
+{ CPUFUNC(op_4e40_11), 20032 }, /* TRAP */
+{ CPUFUNC(op_4e50_11), 20048 }, /* LINK */
+{ CPUFUNC(op_4e58_11), 20056 }, /* UNLK */
+{ CPUFUNC(op_4e60_11), 20064 }, /* MVR2USP */
+{ CPUFUNC(op_4e68_11), 20072 }, /* MVUSP2R */
+{ CPUFUNC(op_4e70_11), 20080 }, /* RESET */
+{ CPUFUNC(op_4e71_11), 20081 }, /* NOP */
+{ CPUFUNC(op_4e72_11), 20082 }, /* STOP */
+{ CPUFUNC(op_4e73_12), 20083 }, /* RTE */
+{ CPUFUNC(op_4e74_11), 20084 }, /* RTD */
+{ CPUFUNC(op_4e75_11), 20085 }, /* RTS */
+{ CPUFUNC(op_4e76_11), 20086 }, /* TRAPV */
+{ CPUFUNC(op_4e77_11), 20087 }, /* RTR */
+{ CPUFUNC(op_4e90_11), 20112 }, /* JSR */
+{ CPUFUNC(op_4ea8_11), 20136 }, /* JSR */
+{ CPUFUNC(op_4eb0_11), 20144 }, /* JSR */
+{ CPUFUNC(op_4eb8_11), 20152 }, /* JSR */
+{ CPUFUNC(op_4eb9_11), 20153 }, /* JSR */
+{ CPUFUNC(op_4eba_11), 20154 }, /* JSR */
+{ CPUFUNC(op_4ebb_11), 20155 }, /* JSR */
+{ CPUFUNC(op_4ed0_11), 20176 }, /* JMP */
+{ CPUFUNC(op_4ee8_11), 20200 }, /* JMP */
+{ CPUFUNC(op_4ef0_11), 20208 }, /* JMP */
+{ CPUFUNC(op_4ef8_11), 20216 }, /* JMP */
+{ CPUFUNC(op_4ef9_11), 20217 }, /* JMP */
+{ CPUFUNC(op_4efa_11), 20218 }, /* JMP */
+{ CPUFUNC(op_4efb_11), 20219 }, /* JMP */
+{ CPUFUNC(op_5000_11), 20480 }, /* ADD */
+{ CPUFUNC(op_5010_11), 20496 }, /* ADD */
+{ CPUFUNC(op_5018_11), 20504 }, /* ADD */
+{ CPUFUNC(op_5020_11), 20512 }, /* ADD */
+{ CPUFUNC(op_5028_11), 20520 }, /* ADD */
+{ CPUFUNC(op_5030_11), 20528 }, /* ADD */
+{ CPUFUNC(op_5038_11), 20536 }, /* ADD */
+{ CPUFUNC(op_5039_11), 20537 }, /* ADD */
+{ CPUFUNC(op_5040_11), 20544 }, /* ADD */
+{ CPUFUNC(op_5048_11), 20552 }, /* ADDA */
+{ CPUFUNC(op_5050_11), 20560 }, /* ADD */
+{ CPUFUNC(op_5058_11), 20568 }, /* ADD */
+{ CPUFUNC(op_5060_11), 20576 }, /* ADD */
+{ CPUFUNC(op_5068_11), 20584 }, /* ADD */
+{ CPUFUNC(op_5070_11), 20592 }, /* ADD */
+{ CPUFUNC(op_5078_11), 20600 }, /* ADD */
+{ CPUFUNC(op_5079_11), 20601 }, /* ADD */
+{ CPUFUNC(op_5080_11), 20608 }, /* ADD */
+{ CPUFUNC(op_5088_11), 20616 }, /* ADDA */
+{ CPUFUNC(op_5090_11), 20624 }, /* ADD */
+{ CPUFUNC(op_5098_11), 20632 }, /* ADD */
+{ CPUFUNC(op_50a0_11), 20640 }, /* ADD */
+{ CPUFUNC(op_50a8_11), 20648 }, /* ADD */
+{ CPUFUNC(op_50b0_11), 20656 }, /* ADD */
+{ CPUFUNC(op_50b8_11), 20664 }, /* ADD */
+{ CPUFUNC(op_50b9_11), 20665 }, /* ADD */
+{ CPUFUNC(op_50c0_12), 20672 }, /* Scc */
+{ CPUFUNC(op_50c8_11), 20680 }, /* DBcc */
+{ CPUFUNC(op_50d0_12), 20688 }, /* Scc */
+{ CPUFUNC(op_50d8_12), 20696 }, /* Scc */
+{ CPUFUNC(op_50e0_12), 20704 }, /* Scc */
+{ CPUFUNC(op_50e8_12), 20712 }, /* Scc */
+{ CPUFUNC(op_50f0_12), 20720 }, /* Scc */
+{ CPUFUNC(op_50f8_12), 20728 }, /* Scc */
+{ CPUFUNC(op_50f9_12), 20729 }, /* Scc */
+{ CPUFUNC(op_5100_11), 20736 }, /* SUB */
+{ CPUFUNC(op_5110_11), 20752 }, /* SUB */
+{ CPUFUNC(op_5118_11), 20760 }, /* SUB */
+{ CPUFUNC(op_5120_11), 20768 }, /* SUB */
+{ CPUFUNC(op_5128_11), 20776 }, /* SUB */
+{ CPUFUNC(op_5130_11), 20784 }, /* SUB */
+{ CPUFUNC(op_5138_11), 20792 }, /* SUB */
+{ CPUFUNC(op_5139_11), 20793 }, /* SUB */
+{ CPUFUNC(op_5140_11), 20800 }, /* SUB */
+{ CPUFUNC(op_5148_11), 20808 }, /* SUBA */
+{ CPUFUNC(op_5150_11), 20816 }, /* SUB */
+{ CPUFUNC(op_5158_11), 20824 }, /* SUB */
+{ CPUFUNC(op_5160_11), 20832 }, /* SUB */
+{ CPUFUNC(op_5168_11), 20840 }, /* SUB */
+{ CPUFUNC(op_5170_11), 20848 }, /* SUB */
+{ CPUFUNC(op_5178_11), 20856 }, /* SUB */
+{ CPUFUNC(op_5179_11), 20857 }, /* SUB */
+{ CPUFUNC(op_5180_11), 20864 }, /* SUB */
+{ CPUFUNC(op_5188_11), 20872 }, /* SUBA */
+{ CPUFUNC(op_5190_11), 20880 }, /* SUB */
+{ CPUFUNC(op_5198_11), 20888 }, /* SUB */
+{ CPUFUNC(op_51a0_11), 20896 }, /* SUB */
+{ CPUFUNC(op_51a8_11), 20904 }, /* SUB */
+{ CPUFUNC(op_51b0_11), 20912 }, /* SUB */
+{ CPUFUNC(op_51b8_11), 20920 }, /* SUB */
+{ CPUFUNC(op_51b9_11), 20921 }, /* SUB */
+{ CPUFUNC(op_51c0_12), 20928 }, /* Scc */
+{ CPUFUNC(op_51c8_11), 20936 }, /* DBcc */
+{ CPUFUNC(op_51d0_12), 20944 }, /* Scc */
+{ CPUFUNC(op_51d8_12), 20952 }, /* Scc */
+{ CPUFUNC(op_51e0_12), 20960 }, /* Scc */
+{ CPUFUNC(op_51e8_12), 20968 }, /* Scc */
+{ CPUFUNC(op_51f0_12), 20976 }, /* Scc */
+{ CPUFUNC(op_51f8_12), 20984 }, /* Scc */
+{ CPUFUNC(op_51f9_12), 20985 }, /* Scc */
+{ CPUFUNC(op_52c0_12), 21184 }, /* Scc */
+{ CPUFUNC(op_52c8_11), 21192 }, /* DBcc */
+{ CPUFUNC(op_52d0_12), 21200 }, /* Scc */
+{ CPUFUNC(op_52d8_12), 21208 }, /* Scc */
+{ CPUFUNC(op_52e0_12), 21216 }, /* Scc */
+{ CPUFUNC(op_52e8_12), 21224 }, /* Scc */
+{ CPUFUNC(op_52f0_12), 21232 }, /* Scc */
+{ CPUFUNC(op_52f8_12), 21240 }, /* Scc */
+{ CPUFUNC(op_52f9_12), 21241 }, /* Scc */
+{ CPUFUNC(op_53c0_12), 21440 }, /* Scc */
+{ CPUFUNC(op_53c8_11), 21448 }, /* DBcc */
+{ CPUFUNC(op_53d0_12), 21456 }, /* Scc */
+{ CPUFUNC(op_53d8_12), 21464 }, /* Scc */
+{ CPUFUNC(op_53e0_12), 21472 }, /* Scc */
+{ CPUFUNC(op_53e8_12), 21480 }, /* Scc */
+{ CPUFUNC(op_53f0_12), 21488 }, /* Scc */
+{ CPUFUNC(op_53f8_12), 21496 }, /* Scc */
+{ CPUFUNC(op_53f9_12), 21497 }, /* Scc */
+{ CPUFUNC(op_54c0_12), 21696 }, /* Scc */
+{ CPUFUNC(op_54c8_11), 21704 }, /* DBcc */
+{ CPUFUNC(op_54d0_12), 21712 }, /* Scc */
+{ CPUFUNC(op_54d8_12), 21720 }, /* Scc */
+{ CPUFUNC(op_54e0_12), 21728 }, /* Scc */
+{ CPUFUNC(op_54e8_12), 21736 }, /* Scc */
+{ CPUFUNC(op_54f0_12), 21744 }, /* Scc */
+{ CPUFUNC(op_54f8_12), 21752 }, /* Scc */
+{ CPUFUNC(op_54f9_12), 21753 }, /* Scc */
+{ CPUFUNC(op_55c0_12), 21952 }, /* Scc */
+{ CPUFUNC(op_55c8_11), 21960 }, /* DBcc */
+{ CPUFUNC(op_55d0_12), 21968 }, /* Scc */
+{ CPUFUNC(op_55d8_12), 21976 }, /* Scc */
+{ CPUFUNC(op_55e0_12), 21984 }, /* Scc */
+{ CPUFUNC(op_55e8_12), 21992 }, /* Scc */
+{ CPUFUNC(op_55f0_12), 22000 }, /* Scc */
+{ CPUFUNC(op_55f8_12), 22008 }, /* Scc */
+{ CPUFUNC(op_55f9_12), 22009 }, /* Scc */
+{ CPUFUNC(op_56c0_12), 22208 }, /* Scc */
+{ CPUFUNC(op_56c8_11), 22216 }, /* DBcc */
+{ CPUFUNC(op_56d0_12), 22224 }, /* Scc */
+{ CPUFUNC(op_56d8_12), 22232 }, /* Scc */
+{ CPUFUNC(op_56e0_12), 22240 }, /* Scc */
+{ CPUFUNC(op_56e8_12), 22248 }, /* Scc */
+{ CPUFUNC(op_56f0_12), 22256 }, /* Scc */
+{ CPUFUNC(op_56f8_12), 22264 }, /* Scc */
+{ CPUFUNC(op_56f9_12), 22265 }, /* Scc */
+{ CPUFUNC(op_57c0_12), 22464 }, /* Scc */
+{ CPUFUNC(op_57c8_11), 22472 }, /* DBcc */
+{ CPUFUNC(op_57d0_12), 22480 }, /* Scc */
+{ CPUFUNC(op_57d8_12), 22488 }, /* Scc */
+{ CPUFUNC(op_57e0_12), 22496 }, /* Scc */
+{ CPUFUNC(op_57e8_12), 22504 }, /* Scc */
+{ CPUFUNC(op_57f0_12), 22512 }, /* Scc */
+{ CPUFUNC(op_57f8_12), 22520 }, /* Scc */
+{ CPUFUNC(op_57f9_12), 22521 }, /* Scc */
+{ CPUFUNC(op_58c0_12), 22720 }, /* Scc */
+{ CPUFUNC(op_58c8_11), 22728 }, /* DBcc */
+{ CPUFUNC(op_58d0_12), 22736 }, /* Scc */
+{ CPUFUNC(op_58d8_12), 22744 }, /* Scc */
+{ CPUFUNC(op_58e0_12), 22752 }, /* Scc */
+{ CPUFUNC(op_58e8_12), 22760 }, /* Scc */
+{ CPUFUNC(op_58f0_12), 22768 }, /* Scc */
+{ CPUFUNC(op_58f8_12), 22776 }, /* Scc */
+{ CPUFUNC(op_58f9_12), 22777 }, /* Scc */
+{ CPUFUNC(op_59c0_12), 22976 }, /* Scc */
+{ CPUFUNC(op_59c8_11), 22984 }, /* DBcc */
+{ CPUFUNC(op_59d0_12), 22992 }, /* Scc */
+{ CPUFUNC(op_59d8_12), 23000 }, /* Scc */
+{ CPUFUNC(op_59e0_12), 23008 }, /* Scc */
+{ CPUFUNC(op_59e8_12), 23016 }, /* Scc */
+{ CPUFUNC(op_59f0_12), 23024 }, /* Scc */
+{ CPUFUNC(op_59f8_12), 23032 }, /* Scc */
+{ CPUFUNC(op_59f9_12), 23033 }, /* Scc */
+{ CPUFUNC(op_5ac0_12), 23232 }, /* Scc */
+{ CPUFUNC(op_5ac8_11), 23240 }, /* DBcc */
+{ CPUFUNC(op_5ad0_12), 23248 }, /* Scc */
+{ CPUFUNC(op_5ad8_12), 23256 }, /* Scc */
+{ CPUFUNC(op_5ae0_12), 23264 }, /* Scc */
+{ CPUFUNC(op_5ae8_12), 23272 }, /* Scc */
+{ CPUFUNC(op_5af0_12), 23280 }, /* Scc */
+{ CPUFUNC(op_5af8_12), 23288 }, /* Scc */
+{ CPUFUNC(op_5af9_12), 23289 }, /* Scc */
+{ CPUFUNC(op_5bc0_12), 23488 }, /* Scc */
+{ CPUFUNC(op_5bc8_11), 23496 }, /* DBcc */
+{ CPUFUNC(op_5bd0_12), 23504 }, /* Scc */
+{ CPUFUNC(op_5bd8_12), 23512 }, /* Scc */
+{ CPUFUNC(op_5be0_12), 23520 }, /* Scc */
+{ CPUFUNC(op_5be8_12), 23528 }, /* Scc */
+{ CPUFUNC(op_5bf0_12), 23536 }, /* Scc */
+{ CPUFUNC(op_5bf8_12), 23544 }, /* Scc */
+{ CPUFUNC(op_5bf9_12), 23545 }, /* Scc */
+{ CPUFUNC(op_5cc0_12), 23744 }, /* Scc */
+{ CPUFUNC(op_5cc8_11), 23752 }, /* DBcc */
+{ CPUFUNC(op_5cd0_12), 23760 }, /* Scc */
+{ CPUFUNC(op_5cd8_12), 23768 }, /* Scc */
+{ CPUFUNC(op_5ce0_12), 23776 }, /* Scc */
+{ CPUFUNC(op_5ce8_12), 23784 }, /* Scc */
+{ CPUFUNC(op_5cf0_12), 23792 }, /* Scc */
+{ CPUFUNC(op_5cf8_12), 23800 }, /* Scc */
+{ CPUFUNC(op_5cf9_12), 23801 }, /* Scc */
+{ CPUFUNC(op_5dc0_12), 24000 }, /* Scc */
+{ CPUFUNC(op_5dc8_11), 24008 }, /* DBcc */
+{ CPUFUNC(op_5dd0_12), 24016 }, /* Scc */
+{ CPUFUNC(op_5dd8_12), 24024 }, /* Scc */
+{ CPUFUNC(op_5de0_12), 24032 }, /* Scc */
+{ CPUFUNC(op_5de8_12), 24040 }, /* Scc */
+{ CPUFUNC(op_5df0_12), 24048 }, /* Scc */
+{ CPUFUNC(op_5df8_12), 24056 }, /* Scc */
+{ CPUFUNC(op_5df9_12), 24057 }, /* Scc */
+{ CPUFUNC(op_5ec0_12), 24256 }, /* Scc */
+{ CPUFUNC(op_5ec8_11), 24264 }, /* DBcc */
+{ CPUFUNC(op_5ed0_12), 24272 }, /* Scc */
+{ CPUFUNC(op_5ed8_12), 24280 }, /* Scc */
+{ CPUFUNC(op_5ee0_12), 24288 }, /* Scc */
+{ CPUFUNC(op_5ee8_12), 24296 }, /* Scc */
+{ CPUFUNC(op_5ef0_12), 24304 }, /* Scc */
+{ CPUFUNC(op_5ef8_12), 24312 }, /* Scc */
+{ CPUFUNC(op_5ef9_12), 24313 }, /* Scc */
+{ CPUFUNC(op_5fc0_12), 24512 }, /* Scc */
+{ CPUFUNC(op_5fc8_11), 24520 }, /* DBcc */
+{ CPUFUNC(op_5fd0_12), 24528 }, /* Scc */
+{ CPUFUNC(op_5fd8_12), 24536 }, /* Scc */
+{ CPUFUNC(op_5fe0_12), 24544 }, /* Scc */
+{ CPUFUNC(op_5fe8_12), 24552 }, /* Scc */
+{ CPUFUNC(op_5ff0_12), 24560 }, /* Scc */
+{ CPUFUNC(op_5ff8_12), 24568 }, /* Scc */
+{ CPUFUNC(op_5ff9_12), 24569 }, /* Scc */
+{ CPUFUNC(op_6000_11), 24576 }, /* Bcc */
+{ CPUFUNC(op_6001_11), 24577 }, /* Bcc */
+{ CPUFUNC(op_60ff_11), 24831 }, /* Bcc */
+{ CPUFUNC(op_6100_11), 24832 }, /* BSR */
+{ CPUFUNC(op_6101_11), 24833 }, /* BSR */
+{ CPUFUNC(op_61ff_11), 25087 }, /* BSR */
+{ CPUFUNC(op_6200_11), 25088 }, /* Bcc */
+{ CPUFUNC(op_6201_11), 25089 }, /* Bcc */
+{ CPUFUNC(op_62ff_11), 25343 }, /* Bcc */
+{ CPUFUNC(op_6300_11), 25344 }, /* Bcc */
+{ CPUFUNC(op_6301_11), 25345 }, /* Bcc */
+{ CPUFUNC(op_63ff_11), 25599 }, /* Bcc */
+{ CPUFUNC(op_6400_11), 25600 }, /* Bcc */
+{ CPUFUNC(op_6401_11), 25601 }, /* Bcc */
+{ CPUFUNC(op_64ff_11), 25855 }, /* Bcc */
+{ CPUFUNC(op_6500_11), 25856 }, /* Bcc */
+{ CPUFUNC(op_6501_11), 25857 }, /* Bcc */
+{ CPUFUNC(op_65ff_11), 26111 }, /* Bcc */
+{ CPUFUNC(op_6600_11), 26112 }, /* Bcc */
+{ CPUFUNC(op_6601_11), 26113 }, /* Bcc */
+{ CPUFUNC(op_66ff_11), 26367 }, /* Bcc */
+{ CPUFUNC(op_6700_11), 26368 }, /* Bcc */
+{ CPUFUNC(op_6701_11), 26369 }, /* Bcc */
+{ CPUFUNC(op_67ff_11), 26623 }, /* Bcc */
+{ CPUFUNC(op_6800_11), 26624 }, /* Bcc */
+{ CPUFUNC(op_6801_11), 26625 }, /* Bcc */
+{ CPUFUNC(op_68ff_11), 26879 }, /* Bcc */
+{ CPUFUNC(op_6900_11), 26880 }, /* Bcc */
+{ CPUFUNC(op_6901_11), 26881 }, /* Bcc */
+{ CPUFUNC(op_69ff_11), 27135 }, /* Bcc */
+{ CPUFUNC(op_6a00_11), 27136 }, /* Bcc */
+{ CPUFUNC(op_6a01_11), 27137 }, /* Bcc */
+{ CPUFUNC(op_6aff_11), 27391 }, /* Bcc */
+{ CPUFUNC(op_6b00_11), 27392 }, /* Bcc */
+{ CPUFUNC(op_6b01_11), 27393 }, /* Bcc */
+{ CPUFUNC(op_6bff_11), 27647 }, /* Bcc */
+{ CPUFUNC(op_6c00_11), 27648 }, /* Bcc */
+{ CPUFUNC(op_6c01_11), 27649 }, /* Bcc */
+{ CPUFUNC(op_6cff_11), 27903 }, /* Bcc */
+{ CPUFUNC(op_6d00_11), 27904 }, /* Bcc */
+{ CPUFUNC(op_6d01_11), 27905 }, /* Bcc */
+{ CPUFUNC(op_6dff_11), 28159 }, /* Bcc */
+{ CPUFUNC(op_6e00_11), 28160 }, /* Bcc */
+{ CPUFUNC(op_6e01_11), 28161 }, /* Bcc */
+{ CPUFUNC(op_6eff_11), 28415 }, /* Bcc */
+{ CPUFUNC(op_6f00_11), 28416 }, /* Bcc */
+{ CPUFUNC(op_6f01_11), 28417 }, /* Bcc */
+{ CPUFUNC(op_6fff_11), 28671 }, /* Bcc */
+{ CPUFUNC(op_7000_11), 28672 }, /* MOVE */
+{ CPUFUNC(op_8000_11), 32768 }, /* OR */
+{ CPUFUNC(op_8010_11), 32784 }, /* OR */
+{ CPUFUNC(op_8018_11), 32792 }, /* OR */
+{ CPUFUNC(op_8020_11), 32800 }, /* OR */
+{ CPUFUNC(op_8028_11), 32808 }, /* OR */
+{ CPUFUNC(op_8030_11), 32816 }, /* OR */
+{ CPUFUNC(op_8038_11), 32824 }, /* OR */
+{ CPUFUNC(op_8039_11), 32825 }, /* OR */
+{ CPUFUNC(op_803a_11), 32826 }, /* OR */
+{ CPUFUNC(op_803b_11), 32827 }, /* OR */
+{ CPUFUNC(op_803c_11), 32828 }, /* OR */
+{ CPUFUNC(op_8040_11), 32832 }, /* OR */
+{ CPUFUNC(op_8050_11), 32848 }, /* OR */
+{ CPUFUNC(op_8058_11), 32856 }, /* OR */
+{ CPUFUNC(op_8060_11), 32864 }, /* OR */
+{ CPUFUNC(op_8068_11), 32872 }, /* OR */
+{ CPUFUNC(op_8070_11), 32880 }, /* OR */
+{ CPUFUNC(op_8078_11), 32888 }, /* OR */
+{ CPUFUNC(op_8079_11), 32889 }, /* OR */
+{ CPUFUNC(op_807a_11), 32890 }, /* OR */
+{ CPUFUNC(op_807b_11), 32891 }, /* OR */
+{ CPUFUNC(op_807c_11), 32892 }, /* OR */
+{ CPUFUNC(op_8080_11), 32896 }, /* OR */
+{ CPUFUNC(op_8090_11), 32912 }, /* OR */
+{ CPUFUNC(op_8098_11), 32920 }, /* OR */
+{ CPUFUNC(op_80a0_11), 32928 }, /* OR */
+{ CPUFUNC(op_80a8_11), 32936 }, /* OR */
+{ CPUFUNC(op_80b0_11), 32944 }, /* OR */
+{ CPUFUNC(op_80b8_11), 32952 }, /* OR */
+{ CPUFUNC(op_80b9_11), 32953 }, /* OR */
+{ CPUFUNC(op_80ba_11), 32954 }, /* OR */
+{ CPUFUNC(op_80bb_11), 32955 }, /* OR */
+{ CPUFUNC(op_80bc_11), 32956 }, /* OR */
+{ CPUFUNC(op_80c0_11), 32960 }, /* DIVU */
+{ CPUFUNC(op_80d0_11), 32976 }, /* DIVU */
+{ CPUFUNC(op_80d8_11), 32984 }, /* DIVU */
+{ CPUFUNC(op_80e0_11), 32992 }, /* DIVU */
+{ CPUFUNC(op_80e8_11), 33000 }, /* DIVU */
+{ CPUFUNC(op_80f0_11), 33008 }, /* DIVU */
+{ CPUFUNC(op_80f8_11), 33016 }, /* DIVU */
+{ CPUFUNC(op_80f9_11), 33017 }, /* DIVU */
+{ CPUFUNC(op_80fa_11), 33018 }, /* DIVU */
+{ CPUFUNC(op_80fb_11), 33019 }, /* DIVU */
+{ CPUFUNC(op_80fc_11), 33020 }, /* DIVU */
+{ CPUFUNC(op_8100_11), 33024 }, /* SBCD */
+{ CPUFUNC(op_8108_11), 33032 }, /* SBCD */
+{ CPUFUNC(op_8110_11), 33040 }, /* OR */
+{ CPUFUNC(op_8118_11), 33048 }, /* OR */
+{ CPUFUNC(op_8120_11), 33056 }, /* OR */
+{ CPUFUNC(op_8128_11), 33064 }, /* OR */
+{ CPUFUNC(op_8130_11), 33072 }, /* OR */
+{ CPUFUNC(op_8138_11), 33080 }, /* OR */
+{ CPUFUNC(op_8139_11), 33081 }, /* OR */
+{ CPUFUNC(op_8150_11), 33104 }, /* OR */
+{ CPUFUNC(op_8158_11), 33112 }, /* OR */
+{ CPUFUNC(op_8160_11), 33120 }, /* OR */
+{ CPUFUNC(op_8168_11), 33128 }, /* OR */
+{ CPUFUNC(op_8170_11), 33136 }, /* OR */
+{ CPUFUNC(op_8178_11), 33144 }, /* OR */
+{ CPUFUNC(op_8179_11), 33145 }, /* OR */
+{ CPUFUNC(op_8190_11), 33168 }, /* OR */
+{ CPUFUNC(op_8198_11), 33176 }, /* OR */
+{ CPUFUNC(op_81a0_11), 33184 }, /* OR */
+{ CPUFUNC(op_81a8_11), 33192 }, /* OR */
+{ CPUFUNC(op_81b0_11), 33200 }, /* OR */
+{ CPUFUNC(op_81b8_11), 33208 }, /* OR */
+{ CPUFUNC(op_81b9_11), 33209 }, /* OR */
+{ CPUFUNC(op_81c0_11), 33216 }, /* DIVS */
+{ CPUFUNC(op_81d0_11), 33232 }, /* DIVS */
+{ CPUFUNC(op_81d8_11), 33240 }, /* DIVS */
+{ CPUFUNC(op_81e0_11), 33248 }, /* DIVS */
+{ CPUFUNC(op_81e8_11), 33256 }, /* DIVS */
+{ CPUFUNC(op_81f0_11), 33264 }, /* DIVS */
+{ CPUFUNC(op_81f8_11), 33272 }, /* DIVS */
+{ CPUFUNC(op_81f9_11), 33273 }, /* DIVS */
+{ CPUFUNC(op_81fa_11), 33274 }, /* DIVS */
+{ CPUFUNC(op_81fb_11), 33275 }, /* DIVS */
+{ CPUFUNC(op_81fc_11), 33276 }, /* DIVS */
+{ CPUFUNC(op_9000_11), 36864 }, /* SUB */
+{ CPUFUNC(op_9010_11), 36880 }, /* SUB */
+{ CPUFUNC(op_9018_11), 36888 }, /* SUB */
+{ CPUFUNC(op_9020_11), 36896 }, /* SUB */
+{ CPUFUNC(op_9028_11), 36904 }, /* SUB */
+{ CPUFUNC(op_9030_11), 36912 }, /* SUB */
+{ CPUFUNC(op_9038_11), 36920 }, /* SUB */
+{ CPUFUNC(op_9039_11), 36921 }, /* SUB */
+{ CPUFUNC(op_903a_11), 36922 }, /* SUB */
+{ CPUFUNC(op_903b_11), 36923 }, /* SUB */
+{ CPUFUNC(op_903c_11), 36924 }, /* SUB */
+{ CPUFUNC(op_9040_11), 36928 }, /* SUB */
+{ CPUFUNC(op_9048_11), 36936 }, /* SUB */
+{ CPUFUNC(op_9050_11), 36944 }, /* SUB */
+{ CPUFUNC(op_9058_11), 36952 }, /* SUB */
+{ CPUFUNC(op_9060_11), 36960 }, /* SUB */
+{ CPUFUNC(op_9068_11), 36968 }, /* SUB */
+{ CPUFUNC(op_9070_11), 36976 }, /* SUB */
+{ CPUFUNC(op_9078_11), 36984 }, /* SUB */
+{ CPUFUNC(op_9079_11), 36985 }, /* SUB */
+{ CPUFUNC(op_907a_11), 36986 }, /* SUB */
+{ CPUFUNC(op_907b_11), 36987 }, /* SUB */
+{ CPUFUNC(op_907c_11), 36988 }, /* SUB */
+{ CPUFUNC(op_9080_11), 36992 }, /* SUB */
+{ CPUFUNC(op_9088_11), 37000 }, /* SUB */
+{ CPUFUNC(op_9090_11), 37008 }, /* SUB */
+{ CPUFUNC(op_9098_11), 37016 }, /* SUB */
+{ CPUFUNC(op_90a0_11), 37024 }, /* SUB */
+{ CPUFUNC(op_90a8_11), 37032 }, /* SUB */
+{ CPUFUNC(op_90b0_11), 37040 }, /* SUB */
+{ CPUFUNC(op_90b8_11), 37048 }, /* SUB */
+{ CPUFUNC(op_90b9_11), 37049 }, /* SUB */
+{ CPUFUNC(op_90ba_11), 37050 }, /* SUB */
+{ CPUFUNC(op_90bb_11), 37051 }, /* SUB */
+{ CPUFUNC(op_90bc_11), 37052 }, /* SUB */
+{ CPUFUNC(op_90c0_11), 37056 }, /* SUBA */
+{ CPUFUNC(op_90c8_11), 37064 }, /* SUBA */
+{ CPUFUNC(op_90d0_11), 37072 }, /* SUBA */
+{ CPUFUNC(op_90d8_11), 37080 }, /* SUBA */
+{ CPUFUNC(op_90e0_11), 37088 }, /* SUBA */
+{ CPUFUNC(op_90e8_11), 37096 }, /* SUBA */
+{ CPUFUNC(op_90f0_11), 37104 }, /* SUBA */
+{ CPUFUNC(op_90f8_11), 37112 }, /* SUBA */
+{ CPUFUNC(op_90f9_11), 37113 }, /* SUBA */
+{ CPUFUNC(op_90fa_11), 37114 }, /* SUBA */
+{ CPUFUNC(op_90fb_11), 37115 }, /* SUBA */
+{ CPUFUNC(op_90fc_11), 37116 }, /* SUBA */
+{ CPUFUNC(op_9100_11), 37120 }, /* SUBX */
+{ CPUFUNC(op_9108_11), 37128 }, /* SUBX */
+{ CPUFUNC(op_9110_11), 37136 }, /* SUB */
+{ CPUFUNC(op_9118_11), 37144 }, /* SUB */
+{ CPUFUNC(op_9120_11), 37152 }, /* SUB */
+{ CPUFUNC(op_9128_11), 37160 }, /* SUB */
+{ CPUFUNC(op_9130_11), 37168 }, /* SUB */
+{ CPUFUNC(op_9138_11), 37176 }, /* SUB */
+{ CPUFUNC(op_9139_11), 37177 }, /* SUB */
+{ CPUFUNC(op_9140_11), 37184 }, /* SUBX */
+{ CPUFUNC(op_9148_11), 37192 }, /* SUBX */
+{ CPUFUNC(op_9150_11), 37200 }, /* SUB */
+{ CPUFUNC(op_9158_11), 37208 }, /* SUB */
+{ CPUFUNC(op_9160_11), 37216 }, /* SUB */
+{ CPUFUNC(op_9168_11), 37224 }, /* SUB */
+{ CPUFUNC(op_9170_11), 37232 }, /* SUB */
+{ CPUFUNC(op_9178_11), 37240 }, /* SUB */
+{ CPUFUNC(op_9179_11), 37241 }, /* SUB */
+{ CPUFUNC(op_9180_11), 37248 }, /* SUBX */
+{ CPUFUNC(op_9188_11), 37256 }, /* SUBX */
+{ CPUFUNC(op_9190_11), 37264 }, /* SUB */
+{ CPUFUNC(op_9198_11), 37272 }, /* SUB */
+{ CPUFUNC(op_91a0_11), 37280 }, /* SUB */
+{ CPUFUNC(op_91a8_11), 37288 }, /* SUB */
+{ CPUFUNC(op_91b0_11), 37296 }, /* SUB */
+{ CPUFUNC(op_91b8_11), 37304 }, /* SUB */
+{ CPUFUNC(op_91b9_11), 37305 }, /* SUB */
+{ CPUFUNC(op_91c0_11), 37312 }, /* SUBA */
+{ CPUFUNC(op_91c8_11), 37320 }, /* SUBA */
+{ CPUFUNC(op_91d0_11), 37328 }, /* SUBA */
+{ CPUFUNC(op_91d8_11), 37336 }, /* SUBA */
+{ CPUFUNC(op_91e0_11), 37344 }, /* SUBA */
+{ CPUFUNC(op_91e8_11), 37352 }, /* SUBA */
+{ CPUFUNC(op_91f0_11), 37360 }, /* SUBA */
+{ CPUFUNC(op_91f8_11), 37368 }, /* SUBA */
+{ CPUFUNC(op_91f9_11), 37369 }, /* SUBA */
+{ CPUFUNC(op_91fa_11), 37370 }, /* SUBA */
+{ CPUFUNC(op_91fb_11), 37371 }, /* SUBA */
+{ CPUFUNC(op_91fc_11), 37372 }, /* SUBA */
+{ CPUFUNC(op_b000_11), 45056 }, /* CMP */
+{ CPUFUNC(op_b010_11), 45072 }, /* CMP */
+{ CPUFUNC(op_b018_11), 45080 }, /* CMP */
+{ CPUFUNC(op_b020_11), 45088 }, /* CMP */
+{ CPUFUNC(op_b028_11), 45096 }, /* CMP */
+{ CPUFUNC(op_b030_11), 45104 }, /* CMP */
+{ CPUFUNC(op_b038_11), 45112 }, /* CMP */
+{ CPUFUNC(op_b039_11), 45113 }, /* CMP */
+{ CPUFUNC(op_b03a_11), 45114 }, /* CMP */
+{ CPUFUNC(op_b03b_11), 45115 }, /* CMP */
+{ CPUFUNC(op_b03c_11), 45116 }, /* CMP */
+{ CPUFUNC(op_b040_11), 45120 }, /* CMP */
+{ CPUFUNC(op_b048_11), 45128 }, /* CMP */
+{ CPUFUNC(op_b050_11), 45136 }, /* CMP */
+{ CPUFUNC(op_b058_11), 45144 }, /* CMP */
+{ CPUFUNC(op_b060_11), 45152 }, /* CMP */
+{ CPUFUNC(op_b068_11), 45160 }, /* CMP */
+{ CPUFUNC(op_b070_11), 45168 }, /* CMP */
+{ CPUFUNC(op_b078_11), 45176 }, /* CMP */
+{ CPUFUNC(op_b079_11), 45177 }, /* CMP */
+{ CPUFUNC(op_b07a_11), 45178 }, /* CMP */
+{ CPUFUNC(op_b07b_11), 45179 }, /* CMP */
+{ CPUFUNC(op_b07c_11), 45180 }, /* CMP */
+{ CPUFUNC(op_b080_11), 45184 }, /* CMP */
+{ CPUFUNC(op_b088_11), 45192 }, /* CMP */
+{ CPUFUNC(op_b090_11), 45200 }, /* CMP */
+{ CPUFUNC(op_b098_11), 45208 }, /* CMP */
+{ CPUFUNC(op_b0a0_11), 45216 }, /* CMP */
+{ CPUFUNC(op_b0a8_11), 45224 }, /* CMP */
+{ CPUFUNC(op_b0b0_11), 45232 }, /* CMP */
+{ CPUFUNC(op_b0b8_11), 45240 }, /* CMP */
+{ CPUFUNC(op_b0b9_11), 45241 }, /* CMP */
+{ CPUFUNC(op_b0ba_11), 45242 }, /* CMP */
+{ CPUFUNC(op_b0bb_11), 45243 }, /* CMP */
+{ CPUFUNC(op_b0bc_11), 45244 }, /* CMP */
+{ CPUFUNC(op_b0c0_11), 45248 }, /* CMPA */
+{ CPUFUNC(op_b0c8_11), 45256 }, /* CMPA */
+{ CPUFUNC(op_b0d0_11), 45264 }, /* CMPA */
+{ CPUFUNC(op_b0d8_11), 45272 }, /* CMPA */
+{ CPUFUNC(op_b0e0_11), 45280 }, /* CMPA */
+{ CPUFUNC(op_b0e8_11), 45288 }, /* CMPA */
+{ CPUFUNC(op_b0f0_11), 45296 }, /* CMPA */
+{ CPUFUNC(op_b0f8_11), 45304 }, /* CMPA */
+{ CPUFUNC(op_b0f9_11), 45305 }, /* CMPA */
+{ CPUFUNC(op_b0fa_11), 45306 }, /* CMPA */
+{ CPUFUNC(op_b0fb_11), 45307 }, /* CMPA */
+{ CPUFUNC(op_b0fc_11), 45308 }, /* CMPA */
+{ CPUFUNC(op_b100_11), 45312 }, /* EOR */
+{ CPUFUNC(op_b108_11), 45320 }, /* CMPM */
+{ CPUFUNC(op_b110_11), 45328 }, /* EOR */
+{ CPUFUNC(op_b118_11), 45336 }, /* EOR */
+{ CPUFUNC(op_b120_11), 45344 }, /* EOR */
+{ CPUFUNC(op_b128_11), 45352 }, /* EOR */
+{ CPUFUNC(op_b130_11), 45360 }, /* EOR */
+{ CPUFUNC(op_b138_11), 45368 }, /* EOR */
+{ CPUFUNC(op_b139_11), 45369 }, /* EOR */
+{ CPUFUNC(op_b140_11), 45376 }, /* EOR */
+{ CPUFUNC(op_b148_11), 45384 }, /* CMPM */
+{ CPUFUNC(op_b150_11), 45392 }, /* EOR */
+{ CPUFUNC(op_b158_11), 45400 }, /* EOR */
+{ CPUFUNC(op_b160_11), 45408 }, /* EOR */
+{ CPUFUNC(op_b168_11), 45416 }, /* EOR */
+{ CPUFUNC(op_b170_11), 45424 }, /* EOR */
+{ CPUFUNC(op_b178_11), 45432 }, /* EOR */
+{ CPUFUNC(op_b179_11), 45433 }, /* EOR */
+{ CPUFUNC(op_b180_11), 45440 }, /* EOR */
+{ CPUFUNC(op_b188_11), 45448 }, /* CMPM */
+{ CPUFUNC(op_b190_11), 45456 }, /* EOR */
+{ CPUFUNC(op_b198_11), 45464 }, /* EOR */
+{ CPUFUNC(op_b1a0_11), 45472 }, /* EOR */
+{ CPUFUNC(op_b1a8_11), 45480 }, /* EOR */
+{ CPUFUNC(op_b1b0_11), 45488 }, /* EOR */
+{ CPUFUNC(op_b1b8_11), 45496 }, /* EOR */
+{ CPUFUNC(op_b1b9_11), 45497 }, /* EOR */
+{ CPUFUNC(op_b1c0_11), 45504 }, /* CMPA */
+{ CPUFUNC(op_b1c8_11), 45512 }, /* CMPA */
+{ CPUFUNC(op_b1d0_11), 45520 }, /* CMPA */
+{ CPUFUNC(op_b1d8_11), 45528 }, /* CMPA */
+{ CPUFUNC(op_b1e0_11), 45536 }, /* CMPA */
+{ CPUFUNC(op_b1e8_11), 45544 }, /* CMPA */
+{ CPUFUNC(op_b1f0_11), 45552 }, /* CMPA */
+{ CPUFUNC(op_b1f8_11), 45560 }, /* CMPA */
+{ CPUFUNC(op_b1f9_11), 45561 }, /* CMPA */
+{ CPUFUNC(op_b1fa_11), 45562 }, /* CMPA */
+{ CPUFUNC(op_b1fb_11), 45563 }, /* CMPA */
+{ CPUFUNC(op_b1fc_11), 45564 }, /* CMPA */
+{ CPUFUNC(op_c000_11), 49152 }, /* AND */
+{ CPUFUNC(op_c010_11), 49168 }, /* AND */
+{ CPUFUNC(op_c018_11), 49176 }, /* AND */
+{ CPUFUNC(op_c020_11), 49184 }, /* AND */
+{ CPUFUNC(op_c028_11), 49192 }, /* AND */
+{ CPUFUNC(op_c030_11), 49200 }, /* AND */
+{ CPUFUNC(op_c038_11), 49208 }, /* AND */
+{ CPUFUNC(op_c039_11), 49209 }, /* AND */
+{ CPUFUNC(op_c03a_11), 49210 }, /* AND */
+{ CPUFUNC(op_c03b_11), 49211 }, /* AND */
+{ CPUFUNC(op_c03c_11), 49212 }, /* AND */
+{ CPUFUNC(op_c040_11), 49216 }, /* AND */
+{ CPUFUNC(op_c050_11), 49232 }, /* AND */
+{ CPUFUNC(op_c058_11), 49240 }, /* AND */
+{ CPUFUNC(op_c060_11), 49248 }, /* AND */
+{ CPUFUNC(op_c068_11), 49256 }, /* AND */
+{ CPUFUNC(op_c070_11), 49264 }, /* AND */
+{ CPUFUNC(op_c078_11), 49272 }, /* AND */
+{ CPUFUNC(op_c079_11), 49273 }, /* AND */
+{ CPUFUNC(op_c07a_11), 49274 }, /* AND */
+{ CPUFUNC(op_c07b_11), 49275 }, /* AND */
+{ CPUFUNC(op_c07c_11), 49276 }, /* AND */
+{ CPUFUNC(op_c080_11), 49280 }, /* AND */
+{ CPUFUNC(op_c090_11), 49296 }, /* AND */
+{ CPUFUNC(op_c098_11), 49304 }, /* AND */
+{ CPUFUNC(op_c0a0_11), 49312 }, /* AND */
+{ CPUFUNC(op_c0a8_11), 49320 }, /* AND */
+{ CPUFUNC(op_c0b0_11), 49328 }, /* AND */
+{ CPUFUNC(op_c0b8_11), 49336 }, /* AND */
+{ CPUFUNC(op_c0b9_11), 49337 }, /* AND */
+{ CPUFUNC(op_c0ba_11), 49338 }, /* AND */
+{ CPUFUNC(op_c0bb_11), 49339 }, /* AND */
+{ CPUFUNC(op_c0bc_11), 49340 }, /* AND */
+{ CPUFUNC(op_c0c0_11), 49344 }, /* MULU */
+{ CPUFUNC(op_c0d0_11), 49360 }, /* MULU */
+{ CPUFUNC(op_c0d8_11), 49368 }, /* MULU */
+{ CPUFUNC(op_c0e0_11), 49376 }, /* MULU */
+{ CPUFUNC(op_c0e8_11), 49384 }, /* MULU */
+{ CPUFUNC(op_c0f0_11), 49392 }, /* MULU */
+{ CPUFUNC(op_c0f8_11), 49400 }, /* MULU */
+{ CPUFUNC(op_c0f9_11), 49401 }, /* MULU */
+{ CPUFUNC(op_c0fa_11), 49402 }, /* MULU */
+{ CPUFUNC(op_c0fb_11), 49403 }, /* MULU */
+{ CPUFUNC(op_c0fc_11), 49404 }, /* MULU */
+{ CPUFUNC(op_c100_11), 49408 }, /* ABCD */
+{ CPUFUNC(op_c108_11), 49416 }, /* ABCD */
+{ CPUFUNC(op_c110_11), 49424 }, /* AND */
+{ CPUFUNC(op_c118_11), 49432 }, /* AND */
+{ CPUFUNC(op_c120_11), 49440 }, /* AND */
+{ CPUFUNC(op_c128_11), 49448 }, /* AND */
+{ CPUFUNC(op_c130_11), 49456 }, /* AND */
+{ CPUFUNC(op_c138_11), 49464 }, /* AND */
+{ CPUFUNC(op_c139_11), 49465 }, /* AND */
+{ CPUFUNC(op_c140_11), 49472 }, /* EXG */
+{ CPUFUNC(op_c148_11), 49480 }, /* EXG */
+{ CPUFUNC(op_c150_11), 49488 }, /* AND */
+{ CPUFUNC(op_c158_11), 49496 }, /* AND */
+{ CPUFUNC(op_c160_11), 49504 }, /* AND */
+{ CPUFUNC(op_c168_11), 49512 }, /* AND */
+{ CPUFUNC(op_c170_11), 49520 }, /* AND */
+{ CPUFUNC(op_c178_11), 49528 }, /* AND */
+{ CPUFUNC(op_c179_11), 49529 }, /* AND */
+{ CPUFUNC(op_c188_11), 49544 }, /* EXG */
+{ CPUFUNC(op_c190_11), 49552 }, /* AND */
+{ CPUFUNC(op_c198_11), 49560 }, /* AND */
+{ CPUFUNC(op_c1a0_11), 49568 }, /* AND */
+{ CPUFUNC(op_c1a8_11), 49576 }, /* AND */
+{ CPUFUNC(op_c1b0_11), 49584 }, /* AND */
+{ CPUFUNC(op_c1b8_11), 49592 }, /* AND */
+{ CPUFUNC(op_c1b9_11), 49593 }, /* AND */
+{ CPUFUNC(op_c1c0_11), 49600 }, /* MULS */
+{ CPUFUNC(op_c1d0_11), 49616 }, /* MULS */
+{ CPUFUNC(op_c1d8_11), 49624 }, /* MULS */
+{ CPUFUNC(op_c1e0_11), 49632 }, /* MULS */
+{ CPUFUNC(op_c1e8_11), 49640 }, /* MULS */
+{ CPUFUNC(op_c1f0_11), 49648 }, /* MULS */
+{ CPUFUNC(op_c1f8_11), 49656 }, /* MULS */
+{ CPUFUNC(op_c1f9_11), 49657 }, /* MULS */
+{ CPUFUNC(op_c1fa_11), 49658 }, /* MULS */
+{ CPUFUNC(op_c1fb_11), 49659 }, /* MULS */
+{ CPUFUNC(op_c1fc_11), 49660 }, /* MULS */
+{ CPUFUNC(op_d000_11), 53248 }, /* ADD */
+{ CPUFUNC(op_d010_11), 53264 }, /* ADD */
+{ CPUFUNC(op_d018_11), 53272 }, /* ADD */
+{ CPUFUNC(op_d020_11), 53280 }, /* ADD */
+{ CPUFUNC(op_d028_11), 53288 }, /* ADD */
+{ CPUFUNC(op_d030_11), 53296 }, /* ADD */
+{ CPUFUNC(op_d038_11), 53304 }, /* ADD */
+{ CPUFUNC(op_d039_11), 53305 }, /* ADD */
+{ CPUFUNC(op_d03a_11), 53306 }, /* ADD */
+{ CPUFUNC(op_d03b_11), 53307 }, /* ADD */
+{ CPUFUNC(op_d03c_11), 53308 }, /* ADD */
+{ CPUFUNC(op_d040_11), 53312 }, /* ADD */
+{ CPUFUNC(op_d048_11), 53320 }, /* ADD */
+{ CPUFUNC(op_d050_11), 53328 }, /* ADD */
+{ CPUFUNC(op_d058_11), 53336 }, /* ADD */
+{ CPUFUNC(op_d060_11), 53344 }, /* ADD */
+{ CPUFUNC(op_d068_11), 53352 }, /* ADD */
+{ CPUFUNC(op_d070_11), 53360 }, /* ADD */
+{ CPUFUNC(op_d078_11), 53368 }, /* ADD */
+{ CPUFUNC(op_d079_11), 53369 }, /* ADD */
+{ CPUFUNC(op_d07a_11), 53370 }, /* ADD */
+{ CPUFUNC(op_d07b_11), 53371 }, /* ADD */
+{ CPUFUNC(op_d07c_11), 53372 }, /* ADD */
+{ CPUFUNC(op_d080_11), 53376 }, /* ADD */
+{ CPUFUNC(op_d088_11), 53384 }, /* ADD */
+{ CPUFUNC(op_d090_11), 53392 }, /* ADD */
+{ CPUFUNC(op_d098_11), 53400 }, /* ADD */
+{ CPUFUNC(op_d0a0_11), 53408 }, /* ADD */
+{ CPUFUNC(op_d0a8_11), 53416 }, /* ADD */
+{ CPUFUNC(op_d0b0_11), 53424 }, /* ADD */
+{ CPUFUNC(op_d0b8_11), 53432 }, /* ADD */
+{ CPUFUNC(op_d0b9_11), 53433 }, /* ADD */
+{ CPUFUNC(op_d0ba_11), 53434 }, /* ADD */
+{ CPUFUNC(op_d0bb_11), 53435 }, /* ADD */
+{ CPUFUNC(op_d0bc_11), 53436 }, /* ADD */
+{ CPUFUNC(op_d0c0_11), 53440 }, /* ADDA */
+{ CPUFUNC(op_d0c8_11), 53448 }, /* ADDA */
+{ CPUFUNC(op_d0d0_11), 53456 }, /* ADDA */
+{ CPUFUNC(op_d0d8_11), 53464 }, /* ADDA */
+{ CPUFUNC(op_d0e0_11), 53472 }, /* ADDA */
+{ CPUFUNC(op_d0e8_11), 53480 }, /* ADDA */
+{ CPUFUNC(op_d0f0_11), 53488 }, /* ADDA */
+{ CPUFUNC(op_d0f8_11), 53496 }, /* ADDA */
+{ CPUFUNC(op_d0f9_11), 53497 }, /* ADDA */
+{ CPUFUNC(op_d0fa_11), 53498 }, /* ADDA */
+{ CPUFUNC(op_d0fb_11), 53499 }, /* ADDA */
+{ CPUFUNC(op_d0fc_11), 53500 }, /* ADDA */
+{ CPUFUNC(op_d100_11), 53504 }, /* ADDX */
+{ CPUFUNC(op_d108_11), 53512 }, /* ADDX */
+{ CPUFUNC(op_d110_11), 53520 }, /* ADD */
+{ CPUFUNC(op_d118_11), 53528 }, /* ADD */
+{ CPUFUNC(op_d120_11), 53536 }, /* ADD */
+{ CPUFUNC(op_d128_11), 53544 }, /* ADD */
+{ CPUFUNC(op_d130_11), 53552 }, /* ADD */
+{ CPUFUNC(op_d138_11), 53560 }, /* ADD */
+{ CPUFUNC(op_d139_11), 53561 }, /* ADD */
+{ CPUFUNC(op_d140_11), 53568 }, /* ADDX */
+{ CPUFUNC(op_d148_11), 53576 }, /* ADDX */
+{ CPUFUNC(op_d150_11), 53584 }, /* ADD */
+{ CPUFUNC(op_d158_11), 53592 }, /* ADD */
+{ CPUFUNC(op_d160_11), 53600 }, /* ADD */
+{ CPUFUNC(op_d168_11), 53608 }, /* ADD */
+{ CPUFUNC(op_d170_11), 53616 }, /* ADD */
+{ CPUFUNC(op_d178_11), 53624 }, /* ADD */
+{ CPUFUNC(op_d179_11), 53625 }, /* ADD */
+{ CPUFUNC(op_d180_11), 53632 }, /* ADDX */
+{ CPUFUNC(op_d188_11), 53640 }, /* ADDX */
+{ CPUFUNC(op_d190_11), 53648 }, /* ADD */
+{ CPUFUNC(op_d198_11), 53656 }, /* ADD */
+{ CPUFUNC(op_d1a0_11), 53664 }, /* ADD */
+{ CPUFUNC(op_d1a8_11), 53672 }, /* ADD */
+{ CPUFUNC(op_d1b0_11), 53680 }, /* ADD */
+{ CPUFUNC(op_d1b8_11), 53688 }, /* ADD */
+{ CPUFUNC(op_d1b9_11), 53689 }, /* ADD */
+{ CPUFUNC(op_d1c0_11), 53696 }, /* ADDA */
+{ CPUFUNC(op_d1c8_11), 53704 }, /* ADDA */
+{ CPUFUNC(op_d1d0_11), 53712 }, /* ADDA */
+{ CPUFUNC(op_d1d8_11), 53720 }, /* ADDA */
+{ CPUFUNC(op_d1e0_11), 53728 }, /* ADDA */
+{ CPUFUNC(op_d1e8_11), 53736 }, /* ADDA */
+{ CPUFUNC(op_d1f0_11), 53744 }, /* ADDA */
+{ CPUFUNC(op_d1f8_11), 53752 }, /* ADDA */
+{ CPUFUNC(op_d1f9_11), 53753 }, /* ADDA */
+{ CPUFUNC(op_d1fa_11), 53754 }, /* ADDA */
+{ CPUFUNC(op_d1fb_11), 53755 }, /* ADDA */
+{ CPUFUNC(op_d1fc_11), 53756 }, /* ADDA */
+{ CPUFUNC(op_e000_11), 57344 }, /* ASR */
+{ CPUFUNC(op_e008_11), 57352 }, /* LSR */
+{ CPUFUNC(op_e010_11), 57360 }, /* ROXR */
+{ CPUFUNC(op_e018_11), 57368 }, /* ROR */
+{ CPUFUNC(op_e020_11), 57376 }, /* ASR */
+{ CPUFUNC(op_e028_11), 57384 }, /* LSR */
+{ CPUFUNC(op_e030_11), 57392 }, /* ROXR */
+{ CPUFUNC(op_e038_11), 57400 }, /* ROR */
+{ CPUFUNC(op_e040_11), 57408 }, /* ASR */
+{ CPUFUNC(op_e048_11), 57416 }, /* LSR */
+{ CPUFUNC(op_e050_11), 57424 }, /* ROXR */
+{ CPUFUNC(op_e058_11), 57432 }, /* ROR */
+{ CPUFUNC(op_e060_11), 57440 }, /* ASR */
+{ CPUFUNC(op_e068_11), 57448 }, /* LSR */
+{ CPUFUNC(op_e070_11), 57456 }, /* ROXR */
+{ CPUFUNC(op_e078_11), 57464 }, /* ROR */
+{ CPUFUNC(op_e080_11), 57472 }, /* ASR */
+{ CPUFUNC(op_e088_11), 57480 }, /* LSR */
+{ CPUFUNC(op_e090_11), 57488 }, /* ROXR */
+{ CPUFUNC(op_e098_11), 57496 }, /* ROR */
+{ CPUFUNC(op_e0a0_11), 57504 }, /* ASR */
+{ CPUFUNC(op_e0a8_11), 57512 }, /* LSR */
+{ CPUFUNC(op_e0b0_11), 57520 }, /* ROXR */
+{ CPUFUNC(op_e0b8_11), 57528 }, /* ROR */
+{ CPUFUNC(op_e0d0_11), 57552 }, /* ASRW */
+{ CPUFUNC(op_e0d8_11), 57560 }, /* ASRW */
+{ CPUFUNC(op_e0e0_11), 57568 }, /* ASRW */
+{ CPUFUNC(op_e0e8_11), 57576 }, /* ASRW */
+{ CPUFUNC(op_e0f0_11), 57584 }, /* ASRW */
+{ CPUFUNC(op_e0f8_11), 57592 }, /* ASRW */
+{ CPUFUNC(op_e0f9_11), 57593 }, /* ASRW */
+{ CPUFUNC(op_e100_11), 57600 }, /* ASL */
+{ CPUFUNC(op_e108_11), 57608 }, /* LSL */
+{ CPUFUNC(op_e110_11), 57616 }, /* ROXL */
+{ CPUFUNC(op_e118_11), 57624 }, /* ROL */
+{ CPUFUNC(op_e120_11), 57632 }, /* ASL */
+{ CPUFUNC(op_e128_11), 57640 }, /* LSL */
+{ CPUFUNC(op_e130_11), 57648 }, /* ROXL */
+{ CPUFUNC(op_e138_11), 57656 }, /* ROL */
+{ CPUFUNC(op_e140_11), 57664 }, /* ASL */
+{ CPUFUNC(op_e148_11), 57672 }, /* LSL */
+{ CPUFUNC(op_e150_11), 57680 }, /* ROXL */
+{ CPUFUNC(op_e158_11), 57688 }, /* ROL */
+{ CPUFUNC(op_e160_11), 57696 }, /* ASL */
+{ CPUFUNC(op_e168_11), 57704 }, /* LSL */
+{ CPUFUNC(op_e170_11), 57712 }, /* ROXL */
+{ CPUFUNC(op_e178_11), 57720 }, /* ROL */
+{ CPUFUNC(op_e180_11), 57728 }, /* ASL */
+{ CPUFUNC(op_e188_11), 57736 }, /* LSL */
+{ CPUFUNC(op_e190_11), 57744 }, /* ROXL */
+{ CPUFUNC(op_e198_11), 57752 }, /* ROL */
+{ CPUFUNC(op_e1a0_11), 57760 }, /* ASL */
+{ CPUFUNC(op_e1a8_11), 57768 }, /* LSL */
+{ CPUFUNC(op_e1b0_11), 57776 }, /* ROXL */
+{ CPUFUNC(op_e1b8_11), 57784 }, /* ROL */
+{ CPUFUNC(op_e1d0_11), 57808 }, /* ASLW */
+{ CPUFUNC(op_e1d8_11), 57816 }, /* ASLW */
+{ CPUFUNC(op_e1e0_11), 57824 }, /* ASLW */
+{ CPUFUNC(op_e1e8_11), 57832 }, /* ASLW */
+{ CPUFUNC(op_e1f0_11), 57840 }, /* ASLW */
+{ CPUFUNC(op_e1f8_11), 57848 }, /* ASLW */
+{ CPUFUNC(op_e1f9_11), 57849 }, /* ASLW */
+{ CPUFUNC(op_e2d0_11), 58064 }, /* LSRW */
+{ CPUFUNC(op_e2d8_11), 58072 }, /* LSRW */
+{ CPUFUNC(op_e2e0_11), 58080 }, /* LSRW */
+{ CPUFUNC(op_e2e8_11), 58088 }, /* LSRW */
+{ CPUFUNC(op_e2f0_11), 58096 }, /* LSRW */
+{ CPUFUNC(op_e2f8_11), 58104 }, /* LSRW */
+{ CPUFUNC(op_e2f9_11), 58105 }, /* LSRW */
+{ CPUFUNC(op_e3d0_11), 58320 }, /* LSLW */
+{ CPUFUNC(op_e3d8_11), 58328 }, /* LSLW */
+{ CPUFUNC(op_e3e0_11), 58336 }, /* LSLW */
+{ CPUFUNC(op_e3e8_11), 58344 }, /* LSLW */
+{ CPUFUNC(op_e3f0_11), 58352 }, /* LSLW */
+{ CPUFUNC(op_e3f8_11), 58360 }, /* LSLW */
+{ CPUFUNC(op_e3f9_11), 58361 }, /* LSLW */
+{ CPUFUNC(op_e4d0_11), 58576 }, /* ROXRW */
+{ CPUFUNC(op_e4d8_11), 58584 }, /* ROXRW */
+{ CPUFUNC(op_e4e0_11), 58592 }, /* ROXRW */
+{ CPUFUNC(op_e4e8_11), 58600 }, /* ROXRW */
+{ CPUFUNC(op_e4f0_11), 58608 }, /* ROXRW */
+{ CPUFUNC(op_e4f8_11), 58616 }, /* ROXRW */
+{ CPUFUNC(op_e4f9_11), 58617 }, /* ROXRW */
+{ CPUFUNC(op_e5d0_11), 58832 }, /* ROXLW */
+{ CPUFUNC(op_e5d8_11), 58840 }, /* ROXLW */
+{ CPUFUNC(op_e5e0_11), 58848 }, /* ROXLW */
+{ CPUFUNC(op_e5e8_11), 58856 }, /* ROXLW */
+{ CPUFUNC(op_e5f0_11), 58864 }, /* ROXLW */
+{ CPUFUNC(op_e5f8_11), 58872 }, /* ROXLW */
+{ CPUFUNC(op_e5f9_11), 58873 }, /* ROXLW */
+{ CPUFUNC(op_e6d0_11), 59088 }, /* RORW */
+{ CPUFUNC(op_e6d8_11), 59096 }, /* RORW */
+{ CPUFUNC(op_e6e0_11), 59104 }, /* RORW */
+{ CPUFUNC(op_e6e8_11), 59112 }, /* RORW */
+{ CPUFUNC(op_e6f0_11), 59120 }, /* RORW */
+{ CPUFUNC(op_e6f8_11), 59128 }, /* RORW */
+{ CPUFUNC(op_e6f9_11), 59129 }, /* RORW */
+{ CPUFUNC(op_e7d0_11), 59344 }, /* ROLW */
+{ CPUFUNC(op_e7d8_11), 59352 }, /* ROLW */
+{ CPUFUNC(op_e7e0_11), 59360 }, /* ROLW */
+{ CPUFUNC(op_e7e8_11), 59368 }, /* ROLW */
+{ CPUFUNC(op_e7f0_11), 59376 }, /* ROLW */
+{ CPUFUNC(op_e7f8_11), 59384 }, /* ROLW */
+{ CPUFUNC(op_e7f9_11), 59385 }, /* ROLW */
 { 0, 0 }};
-#endif /* CPUEMU_12 */
+#ifdef CPUEMU_13
+const struct cputbl CPUFUNC(op_smalltbl_13)[] = {
+{ (cpuop_func*)CPUFUNC(op_0000_13), 0 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_0010_13), 16 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_0018_13), 24 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_0020_13), 32 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_0028_13), 40 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_0030_13), 48 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_0038_13), 56 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_0039_13), 57 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_003c_13), 60 }, /* ORSR */
+{ (cpuop_func*)CPUFUNC(op_0040_13), 64 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_0050_13), 80 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_0058_13), 88 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_0060_13), 96 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_0068_13), 104 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_0070_13), 112 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_0078_13), 120 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_0079_13), 121 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_007c_13), 124 }, /* ORSR */
+{ (cpuop_func*)CPUFUNC(op_0080_13), 128 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_0090_13), 144 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_0098_13), 152 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_00a0_13), 160 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_00a8_13), 168 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_00b0_13), 176 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_00b8_13), 184 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_00b9_13), 185 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_0100_13), 256 }, /* BTST */
+{ (cpuop_func*)CPUFUNC(op_0108_13), 264 }, /* MVPMR */
+{ (cpuop_func*)CPUFUNC(op_0110_13), 272 }, /* BTST */
+{ (cpuop_func*)CPUFUNC(op_0118_13), 280 }, /* BTST */
+{ (cpuop_func*)CPUFUNC(op_0120_13), 288 }, /* BTST */
+{ (cpuop_func*)CPUFUNC(op_0128_13), 296 }, /* BTST */
+{ (cpuop_func*)CPUFUNC(op_0130_13), 304 }, /* BTST */
+{ (cpuop_func*)CPUFUNC(op_0138_13), 312 }, /* BTST */
+{ (cpuop_func*)CPUFUNC(op_0139_13), 313 }, /* BTST */
+{ (cpuop_func*)CPUFUNC(op_013a_13), 314 }, /* BTST */
+{ (cpuop_func*)CPUFUNC(op_013b_13), 315 }, /* BTST */
+{ (cpuop_func*)CPUFUNC(op_013c_13), 316 }, /* BTST */
+{ (cpuop_func*)CPUFUNC(op_0140_13), 320 }, /* BCHG */
+{ (cpuop_func*)CPUFUNC(op_0148_13), 328 }, /* MVPMR */
+{ (cpuop_func*)CPUFUNC(op_0150_13), 336 }, /* BCHG */
+{ (cpuop_func*)CPUFUNC(op_0158_13), 344 }, /* BCHG */
+{ (cpuop_func*)CPUFUNC(op_0160_13), 352 }, /* BCHG */
+{ (cpuop_func*)CPUFUNC(op_0168_13), 360 }, /* BCHG */
+{ (cpuop_func*)CPUFUNC(op_0170_13), 368 }, /* BCHG */
+{ (cpuop_func*)CPUFUNC(op_0178_13), 376 }, /* BCHG */
+{ (cpuop_func*)CPUFUNC(op_0179_13), 377 }, /* BCHG */
+{ (cpuop_func*)CPUFUNC(op_017a_13), 378 }, /* BCHG */
+{ (cpuop_func*)CPUFUNC(op_017b_13), 379 }, /* BCHG */
+{ (cpuop_func*)CPUFUNC(op_0180_13), 384 }, /* BCLR */
+{ (cpuop_func*)CPUFUNC(op_0188_13), 392 }, /* MVPRM */
+{ (cpuop_func*)CPUFUNC(op_0190_13), 400 }, /* BCLR */
+{ (cpuop_func*)CPUFUNC(op_0198_13), 408 }, /* BCLR */
+{ (cpuop_func*)CPUFUNC(op_01a0_13), 416 }, /* BCLR */
+{ (cpuop_func*)CPUFUNC(op_01a8_13), 424 }, /* BCLR */
+{ (cpuop_func*)CPUFUNC(op_01b0_13), 432 }, /* BCLR */
+{ (cpuop_func*)CPUFUNC(op_01b8_13), 440 }, /* BCLR */
+{ (cpuop_func*)CPUFUNC(op_01b9_13), 441 }, /* BCLR */
+{ (cpuop_func*)CPUFUNC(op_01ba_13), 442 }, /* BCLR */
+{ (cpuop_func*)CPUFUNC(op_01bb_13), 443 }, /* BCLR */
+{ (cpuop_func*)CPUFUNC(op_01c0_13), 448 }, /* BSET */
+{ (cpuop_func*)CPUFUNC(op_01c8_13), 456 }, /* MVPRM */
+{ (cpuop_func*)CPUFUNC(op_01d0_13), 464 }, /* BSET */
+{ (cpuop_func*)CPUFUNC(op_01d8_13), 472 }, /* BSET */
+{ (cpuop_func*)CPUFUNC(op_01e0_13), 480 }, /* BSET */
+{ (cpuop_func*)CPUFUNC(op_01e8_13), 488 }, /* BSET */
+{ (cpuop_func*)CPUFUNC(op_01f0_13), 496 }, /* BSET */
+{ (cpuop_func*)CPUFUNC(op_01f8_13), 504 }, /* BSET */
+{ (cpuop_func*)CPUFUNC(op_01f9_13), 505 }, /* BSET */
+{ (cpuop_func*)CPUFUNC(op_01fa_13), 506 }, /* BSET */
+{ (cpuop_func*)CPUFUNC(op_01fb_13), 507 }, /* BSET */
+{ (cpuop_func*)CPUFUNC(op_0200_13), 512 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_0210_13), 528 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_0218_13), 536 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_0220_13), 544 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_0228_13), 552 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_0230_13), 560 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_0238_13), 568 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_0239_13), 569 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_023c_13), 572 }, /* ANDSR */
+{ (cpuop_func*)CPUFUNC(op_0240_13), 576 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_0250_13), 592 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_0258_13), 600 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_0260_13), 608 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_0268_13), 616 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_0270_13), 624 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_0278_13), 632 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_0279_13), 633 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_027c_13), 636 }, /* ANDSR */
+{ (cpuop_func*)CPUFUNC(op_0280_13), 640 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_0290_13), 656 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_0298_13), 664 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_02a0_13), 672 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_02a8_13), 680 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_02b0_13), 688 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_02b8_13), 696 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_02b9_13), 697 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_0400_13), 1024 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_0410_13), 1040 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_0418_13), 1048 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_0420_13), 1056 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_0428_13), 1064 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_0430_13), 1072 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_0438_13), 1080 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_0439_13), 1081 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_0440_13), 1088 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_0450_13), 1104 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_0458_13), 1112 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_0460_13), 1120 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_0468_13), 1128 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_0470_13), 1136 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_0478_13), 1144 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_0479_13), 1145 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_0480_13), 1152 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_0490_13), 1168 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_0498_13), 1176 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_04a0_13), 1184 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_04a8_13), 1192 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_04b0_13), 1200 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_04b8_13), 1208 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_04b9_13), 1209 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_0600_13), 1536 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_0610_13), 1552 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_0618_13), 1560 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_0620_13), 1568 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_0628_13), 1576 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_0630_13), 1584 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_0638_13), 1592 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_0639_13), 1593 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_0640_13), 1600 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_0650_13), 1616 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_0658_13), 1624 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_0660_13), 1632 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_0668_13), 1640 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_0670_13), 1648 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_0678_13), 1656 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_0679_13), 1657 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_0680_13), 1664 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_0690_13), 1680 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_0698_13), 1688 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_06a0_13), 1696 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_06a8_13), 1704 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_06b0_13), 1712 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_06b8_13), 1720 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_06b9_13), 1721 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_0800_13), 2048 }, /* BTST */
+{ (cpuop_func*)CPUFUNC(op_0810_13), 2064 }, /* BTST */
+{ (cpuop_func*)CPUFUNC(op_0818_13), 2072 }, /* BTST */
+{ (cpuop_func*)CPUFUNC(op_0820_13), 2080 }, /* BTST */
+{ (cpuop_func*)CPUFUNC(op_0828_13), 2088 }, /* BTST */
+{ (cpuop_func*)CPUFUNC(op_0830_13), 2096 }, /* BTST */
+{ (cpuop_func*)CPUFUNC(op_0838_13), 2104 }, /* BTST */
+{ (cpuop_func*)CPUFUNC(op_0839_13), 2105 }, /* BTST */
+{ (cpuop_func*)CPUFUNC(op_083a_13), 2106 }, /* BTST */
+{ (cpuop_func*)CPUFUNC(op_083b_13), 2107 }, /* BTST */
+{ (cpuop_func*)CPUFUNC(op_0840_13), 2112 }, /* BCHG */
+{ (cpuop_func*)CPUFUNC(op_0850_13), 2128 }, /* BCHG */
+{ (cpuop_func*)CPUFUNC(op_0858_13), 2136 }, /* BCHG */
+{ (cpuop_func*)CPUFUNC(op_0860_13), 2144 }, /* BCHG */
+{ (cpuop_func*)CPUFUNC(op_0868_13), 2152 }, /* BCHG */
+{ (cpuop_func*)CPUFUNC(op_0870_13), 2160 }, /* BCHG */
+{ (cpuop_func*)CPUFUNC(op_0878_13), 2168 }, /* BCHG */
+{ (cpuop_func*)CPUFUNC(op_0879_13), 2169 }, /* BCHG */
+{ (cpuop_func*)CPUFUNC(op_087a_13), 2170 }, /* BCHG */
+{ (cpuop_func*)CPUFUNC(op_087b_13), 2171 }, /* BCHG */
+{ (cpuop_func*)CPUFUNC(op_0880_13), 2176 }, /* BCLR */
+{ (cpuop_func*)CPUFUNC(op_0890_13), 2192 }, /* BCLR */
+{ (cpuop_func*)CPUFUNC(op_0898_13), 2200 }, /* BCLR */
+{ (cpuop_func*)CPUFUNC(op_08a0_13), 2208 }, /* BCLR */
+{ (cpuop_func*)CPUFUNC(op_08a8_13), 2216 }, /* BCLR */
+{ (cpuop_func*)CPUFUNC(op_08b0_13), 2224 }, /* BCLR */
+{ (cpuop_func*)CPUFUNC(op_08b8_13), 2232 }, /* BCLR */
+{ (cpuop_func*)CPUFUNC(op_08b9_13), 2233 }, /* BCLR */
+{ (cpuop_func*)CPUFUNC(op_08ba_13), 2234 }, /* BCLR */
+{ (cpuop_func*)CPUFUNC(op_08bb_13), 2235 }, /* BCLR */
+{ (cpuop_func*)CPUFUNC(op_08c0_13), 2240 }, /* BSET */
+{ (cpuop_func*)CPUFUNC(op_08d0_13), 2256 }, /* BSET */
+{ (cpuop_func*)CPUFUNC(op_08d8_13), 2264 }, /* BSET */
+{ (cpuop_func*)CPUFUNC(op_08e0_13), 2272 }, /* BSET */
+{ (cpuop_func*)CPUFUNC(op_08e8_13), 2280 }, /* BSET */
+{ (cpuop_func*)CPUFUNC(op_08f0_13), 2288 }, /* BSET */
+{ (cpuop_func*)CPUFUNC(op_08f8_13), 2296 }, /* BSET */
+{ (cpuop_func*)CPUFUNC(op_08f9_13), 2297 }, /* BSET */
+{ (cpuop_func*)CPUFUNC(op_08fa_13), 2298 }, /* BSET */
+{ (cpuop_func*)CPUFUNC(op_08fb_13), 2299 }, /* BSET */
+{ (cpuop_func*)CPUFUNC(op_0a00_13), 2560 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_0a10_13), 2576 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_0a18_13), 2584 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_0a20_13), 2592 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_0a28_13), 2600 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_0a30_13), 2608 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_0a38_13), 2616 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_0a39_13), 2617 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_0a3c_13), 2620 }, /* EORSR */
+{ (cpuop_func*)CPUFUNC(op_0a40_13), 2624 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_0a50_13), 2640 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_0a58_13), 2648 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_0a60_13), 2656 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_0a68_13), 2664 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_0a70_13), 2672 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_0a78_13), 2680 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_0a79_13), 2681 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_0a7c_13), 2684 }, /* EORSR */
+{ (cpuop_func*)CPUFUNC(op_0a80_13), 2688 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_0a90_13), 2704 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_0a98_13), 2712 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_0aa0_13), 2720 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_0aa8_13), 2728 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_0ab0_13), 2736 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_0ab8_13), 2744 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_0ab9_13), 2745 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_0c00_13), 3072 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_0c10_13), 3088 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_0c18_13), 3096 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_0c20_13), 3104 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_0c28_13), 3112 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_0c30_13), 3120 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_0c38_13), 3128 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_0c39_13), 3129 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_0c40_13), 3136 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_0c50_13), 3152 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_0c58_13), 3160 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_0c60_13), 3168 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_0c68_13), 3176 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_0c70_13), 3184 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_0c78_13), 3192 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_0c79_13), 3193 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_0c80_13), 3200 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_0c90_13), 3216 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_0c98_13), 3224 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_0ca0_13), 3232 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_0ca8_13), 3240 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_0cb0_13), 3248 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_0cb8_13), 3256 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_0cb9_13), 3257 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_1000_13), 4096 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1010_13), 4112 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1018_13), 4120 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1020_13), 4128 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1028_13), 4136 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1030_13), 4144 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1038_13), 4152 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1039_13), 4153 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_103a_13), 4154 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_103b_13), 4155 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_103c_13), 4156 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1080_13), 4224 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1090_13), 4240 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1098_13), 4248 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_10a0_13), 4256 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_10a8_13), 4264 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_10b0_13), 4272 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_10b8_13), 4280 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_10b9_13), 4281 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_10ba_13), 4282 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_10bb_13), 4283 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_10bc_13), 4284 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_10c0_13), 4288 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_10d0_13), 4304 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_10d8_13), 4312 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_10e0_13), 4320 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_10e8_13), 4328 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_10f0_13), 4336 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_10f8_13), 4344 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_10f9_13), 4345 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_10fa_13), 4346 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_10fb_13), 4347 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_10fc_13), 4348 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1100_13), 4352 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1110_13), 4368 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1118_13), 4376 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1120_13), 4384 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1128_13), 4392 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1130_13), 4400 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1138_13), 4408 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1139_13), 4409 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_113a_13), 4410 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_113b_13), 4411 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_113c_13), 4412 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1140_13), 4416 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1150_13), 4432 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1158_13), 4440 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1160_13), 4448 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1168_13), 4456 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1170_13), 4464 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1178_13), 4472 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1179_13), 4473 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_117a_13), 4474 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_117b_13), 4475 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_117c_13), 4476 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1180_13), 4480 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1190_13), 4496 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1198_13), 4504 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_11a0_13), 4512 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_11a8_13), 4520 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_11b0_13), 4528 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_11b8_13), 4536 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_11b9_13), 4537 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_11ba_13), 4538 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_11bb_13), 4539 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_11bc_13), 4540 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_11c0_13), 4544 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_11d0_13), 4560 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_11d8_13), 4568 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_11e0_13), 4576 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_11e8_13), 4584 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_11f0_13), 4592 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_11f8_13), 4600 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_11f9_13), 4601 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_11fa_13), 4602 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_11fb_13), 4603 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_11fc_13), 4604 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_13c0_13), 5056 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_13d0_13), 5072 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_13d8_13), 5080 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_13e0_13), 5088 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_13e8_13), 5096 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_13f0_13), 5104 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_13f8_13), 5112 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_13f9_13), 5113 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_13fa_13), 5114 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_13fb_13), 5115 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_13fc_13), 5116 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2000_13), 8192 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2008_13), 8200 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2010_13), 8208 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2018_13), 8216 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2020_13), 8224 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2028_13), 8232 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2030_13), 8240 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2038_13), 8248 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2039_13), 8249 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_203a_13), 8250 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_203b_13), 8251 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_203c_13), 8252 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2040_13), 8256 }, /* MOVEA */
+{ (cpuop_func*)CPUFUNC(op_2048_13), 8264 }, /* MOVEA */
+{ (cpuop_func*)CPUFUNC(op_2050_13), 8272 }, /* MOVEA */
+{ (cpuop_func*)CPUFUNC(op_2058_13), 8280 }, /* MOVEA */
+{ (cpuop_func*)CPUFUNC(op_2060_13), 8288 }, /* MOVEA */
+{ (cpuop_func*)CPUFUNC(op_2068_13), 8296 }, /* MOVEA */
+{ (cpuop_func*)CPUFUNC(op_2070_13), 8304 }, /* MOVEA */
+{ (cpuop_func*)CPUFUNC(op_2078_13), 8312 }, /* MOVEA */
+{ (cpuop_func*)CPUFUNC(op_2079_13), 8313 }, /* MOVEA */
+{ (cpuop_func*)CPUFUNC(op_207a_13), 8314 }, /* MOVEA */
+{ (cpuop_func*)CPUFUNC(op_207b_13), 8315 }, /* MOVEA */
+{ (cpuop_func*)CPUFUNC(op_207c_13), 8316 }, /* MOVEA */
+{ (cpuop_func*)CPUFUNC(op_2080_13), 8320 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2088_13), 8328 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2090_13), 8336 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2098_13), 8344 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_20a0_13), 8352 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_20a8_13), 8360 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_20b0_13), 8368 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_20b8_13), 8376 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_20b9_13), 8377 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_20ba_13), 8378 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_20bb_13), 8379 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_20bc_13), 8380 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_20c0_13), 8384 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_20c8_13), 8392 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_20d0_13), 8400 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_20d8_13), 8408 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_20e0_13), 8416 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_20e8_13), 8424 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_20f0_13), 8432 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_20f8_13), 8440 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_20f9_13), 8441 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_20fa_13), 8442 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_20fb_13), 8443 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_20fc_13), 8444 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2100_13), 8448 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2108_13), 8456 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2110_13), 8464 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2118_13), 8472 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2120_13), 8480 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2128_13), 8488 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2130_13), 8496 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2138_13), 8504 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2139_13), 8505 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_213a_13), 8506 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_213b_13), 8507 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_213c_13), 8508 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2140_13), 8512 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2148_13), 8520 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2150_13), 8528 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2158_13), 8536 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2160_13), 8544 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2168_13), 8552 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2170_13), 8560 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2178_13), 8568 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2179_13), 8569 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_217a_13), 8570 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_217b_13), 8571 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_217c_13), 8572 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2180_13), 8576 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2188_13), 8584 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2190_13), 8592 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2198_13), 8600 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_21a0_13), 8608 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_21a8_13), 8616 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_21b0_13), 8624 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_21b8_13), 8632 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_21b9_13), 8633 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_21ba_13), 8634 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_21bb_13), 8635 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_21bc_13), 8636 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_21c0_13), 8640 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_21c8_13), 8648 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_21d0_13), 8656 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_21d8_13), 8664 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_21e0_13), 8672 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_21e8_13), 8680 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_21f0_13), 8688 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_21f8_13), 8696 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_21f9_13), 8697 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_21fa_13), 8698 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_21fb_13), 8699 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_21fc_13), 8700 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_23c0_13), 9152 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_23c8_13), 9160 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_23d0_13), 9168 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_23d8_13), 9176 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_23e0_13), 9184 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_23e8_13), 9192 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_23f0_13), 9200 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_23f8_13), 9208 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_23f9_13), 9209 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_23fa_13), 9210 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_23fb_13), 9211 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_23fc_13), 9212 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3000_13), 12288 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3008_13), 12296 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3010_13), 12304 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3018_13), 12312 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3020_13), 12320 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3028_13), 12328 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3030_13), 12336 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3038_13), 12344 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3039_13), 12345 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_303a_13), 12346 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_303b_13), 12347 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_303c_13), 12348 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3040_13), 12352 }, /* MOVEA */
+{ (cpuop_func*)CPUFUNC(op_3048_13), 12360 }, /* MOVEA */
+{ (cpuop_func*)CPUFUNC(op_3050_13), 12368 }, /* MOVEA */
+{ (cpuop_func*)CPUFUNC(op_3058_13), 12376 }, /* MOVEA */
+{ (cpuop_func*)CPUFUNC(op_3060_13), 12384 }, /* MOVEA */
+{ (cpuop_func*)CPUFUNC(op_3068_13), 12392 }, /* MOVEA */
+{ (cpuop_func*)CPUFUNC(op_3070_13), 12400 }, /* MOVEA */
+{ (cpuop_func*)CPUFUNC(op_3078_13), 12408 }, /* MOVEA */
+{ (cpuop_func*)CPUFUNC(op_3079_13), 12409 }, /* MOVEA */
+{ (cpuop_func*)CPUFUNC(op_307a_13), 12410 }, /* MOVEA */
+{ (cpuop_func*)CPUFUNC(op_307b_13), 12411 }, /* MOVEA */
+{ (cpuop_func*)CPUFUNC(op_307c_13), 12412 }, /* MOVEA */
+{ (cpuop_func*)CPUFUNC(op_3080_13), 12416 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3088_13), 12424 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3090_13), 12432 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3098_13), 12440 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_30a0_13), 12448 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_30a8_13), 12456 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_30b0_13), 12464 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_30b8_13), 12472 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_30b9_13), 12473 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_30ba_13), 12474 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_30bb_13), 12475 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_30bc_13), 12476 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_30c0_13), 12480 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_30c8_13), 12488 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_30d0_13), 12496 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_30d8_13), 12504 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_30e0_13), 12512 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_30e8_13), 12520 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_30f0_13), 12528 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_30f8_13), 12536 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_30f9_13), 12537 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_30fa_13), 12538 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_30fb_13), 12539 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_30fc_13), 12540 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3100_13), 12544 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3108_13), 12552 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3110_13), 12560 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3118_13), 12568 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3120_13), 12576 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3128_13), 12584 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3130_13), 12592 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3138_13), 12600 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3139_13), 12601 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_313a_13), 12602 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_313b_13), 12603 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_313c_13), 12604 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3140_13), 12608 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3148_13), 12616 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3150_13), 12624 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3158_13), 12632 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3160_13), 12640 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3168_13), 12648 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3170_13), 12656 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3178_13), 12664 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3179_13), 12665 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_317a_13), 12666 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_317b_13), 12667 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_317c_13), 12668 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3180_13), 12672 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3188_13), 12680 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3190_13), 12688 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3198_13), 12696 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_31a0_13), 12704 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_31a8_13), 12712 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_31b0_13), 12720 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_31b8_13), 12728 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_31b9_13), 12729 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_31ba_13), 12730 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_31bb_13), 12731 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_31bc_13), 12732 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_31c0_13), 12736 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_31c8_13), 12744 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_31d0_13), 12752 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_31d8_13), 12760 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_31e0_13), 12768 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_31e8_13), 12776 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_31f0_13), 12784 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_31f8_13), 12792 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_31f9_13), 12793 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_31fa_13), 12794 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_31fb_13), 12795 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_31fc_13), 12796 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_33c0_13), 13248 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_33c8_13), 13256 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_33d0_13), 13264 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_33d8_13), 13272 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_33e0_13), 13280 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_33e8_13), 13288 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_33f0_13), 13296 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_33f8_13), 13304 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_33f9_13), 13305 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_33fa_13), 13306 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_33fb_13), 13307 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_33fc_13), 13308 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_4000_13), 16384 }, /* NEGX */
+{ (cpuop_func*)CPUFUNC(op_4010_13), 16400 }, /* NEGX */
+{ (cpuop_func*)CPUFUNC(op_4018_13), 16408 }, /* NEGX */
+{ (cpuop_func*)CPUFUNC(op_4020_13), 16416 }, /* NEGX */
+{ (cpuop_func*)CPUFUNC(op_4028_13), 16424 }, /* NEGX */
+{ (cpuop_func*)CPUFUNC(op_4030_13), 16432 }, /* NEGX */
+{ (cpuop_func*)CPUFUNC(op_4038_13), 16440 }, /* NEGX */
+{ (cpuop_func*)CPUFUNC(op_4039_13), 16441 }, /* NEGX */
+{ (cpuop_func*)CPUFUNC(op_4040_13), 16448 }, /* NEGX */
+{ (cpuop_func*)CPUFUNC(op_4050_13), 16464 }, /* NEGX */
+{ (cpuop_func*)CPUFUNC(op_4058_13), 16472 }, /* NEGX */
+{ (cpuop_func*)CPUFUNC(op_4060_13), 16480 }, /* NEGX */
+{ (cpuop_func*)CPUFUNC(op_4068_13), 16488 }, /* NEGX */
+{ (cpuop_func*)CPUFUNC(op_4070_13), 16496 }, /* NEGX */
+{ (cpuop_func*)CPUFUNC(op_4078_13), 16504 }, /* NEGX */
+{ (cpuop_func*)CPUFUNC(op_4079_13), 16505 }, /* NEGX */
+{ (cpuop_func*)CPUFUNC(op_4080_13), 16512 }, /* NEGX */
+{ (cpuop_func*)CPUFUNC(op_4090_13), 16528 }, /* NEGX */
+{ (cpuop_func*)CPUFUNC(op_4098_13), 16536 }, /* NEGX */
+{ (cpuop_func*)CPUFUNC(op_40a0_13), 16544 }, /* NEGX */
+{ (cpuop_func*)CPUFUNC(op_40a8_13), 16552 }, /* NEGX */
+{ (cpuop_func*)CPUFUNC(op_40b0_13), 16560 }, /* NEGX */
+{ (cpuop_func*)CPUFUNC(op_40b8_13), 16568 }, /* NEGX */
+{ (cpuop_func*)CPUFUNC(op_40b9_13), 16569 }, /* NEGX */
+{ (cpuop_func*)CPUFUNC(op_40c0_13), 16576 }, /* MVSR2 */
+{ (cpuop_func*)CPUFUNC(op_40d0_13), 16592 }, /* MVSR2 */
+{ (cpuop_func*)CPUFUNC(op_40d8_13), 16600 }, /* MVSR2 */
+{ (cpuop_func*)CPUFUNC(op_40e0_13), 16608 }, /* MVSR2 */
+{ (cpuop_func*)CPUFUNC(op_40e8_13), 16616 }, /* MVSR2 */
+{ (cpuop_func*)CPUFUNC(op_40f0_13), 16624 }, /* MVSR2 */
+{ (cpuop_func*)CPUFUNC(op_40f8_13), 16632 }, /* MVSR2 */
+{ (cpuop_func*)CPUFUNC(op_40f9_13), 16633 }, /* MVSR2 */
+{ (cpuop_func*)CPUFUNC(op_4180_13), 16768 }, /* CHK */
+{ (cpuop_func*)CPUFUNC(op_4190_13), 16784 }, /* CHK */
+{ (cpuop_func*)CPUFUNC(op_4198_13), 16792 }, /* CHK */
+{ (cpuop_func*)CPUFUNC(op_41a0_13), 16800 }, /* CHK */
+{ (cpuop_func*)CPUFUNC(op_41a8_13), 16808 }, /* CHK */
+{ (cpuop_func*)CPUFUNC(op_41b0_13), 16816 }, /* CHK */
+{ (cpuop_func*)CPUFUNC(op_41b8_13), 16824 }, /* CHK */
+{ (cpuop_func*)CPUFUNC(op_41b9_13), 16825 }, /* CHK */
+{ (cpuop_func*)CPUFUNC(op_41ba_13), 16826 }, /* CHK */
+{ (cpuop_func*)CPUFUNC(op_41bb_13), 16827 }, /* CHK */
+{ (cpuop_func*)CPUFUNC(op_41bc_13), 16828 }, /* CHK */
+{ (cpuop_func*)CPUFUNC(op_41d0_13), 16848 }, /* LEA */
+{ (cpuop_func*)CPUFUNC(op_41e8_13), 16872 }, /* LEA */
+{ (cpuop_func*)CPUFUNC(op_41f0_13), 16880 }, /* LEA */
+{ (cpuop_func*)CPUFUNC(op_41f8_13), 16888 }, /* LEA */
+{ (cpuop_func*)CPUFUNC(op_41f9_13), 16889 }, /* LEA */
+{ (cpuop_func*)CPUFUNC(op_41fa_13), 16890 }, /* LEA */
+{ (cpuop_func*)CPUFUNC(op_41fb_13), 16891 }, /* LEA */
+{ (cpuop_func*)CPUFUNC(op_4200_13), 16896 }, /* CLR */
+{ (cpuop_func*)CPUFUNC(op_4210_13), 16912 }, /* CLR */
+{ (cpuop_func*)CPUFUNC(op_4218_13), 16920 }, /* CLR */
+{ (cpuop_func*)CPUFUNC(op_4220_13), 16928 }, /* CLR */
+{ (cpuop_func*)CPUFUNC(op_4228_13), 16936 }, /* CLR */
+{ (cpuop_func*)CPUFUNC(op_4230_13), 16944 }, /* CLR */
+{ (cpuop_func*)CPUFUNC(op_4238_13), 16952 }, /* CLR */
+{ (cpuop_func*)CPUFUNC(op_4239_13), 16953 }, /* CLR */
+{ (cpuop_func*)CPUFUNC(op_4240_13), 16960 }, /* CLR */
+{ (cpuop_func*)CPUFUNC(op_4250_13), 16976 }, /* CLR */
+{ (cpuop_func*)CPUFUNC(op_4258_13), 16984 }, /* CLR */
+{ (cpuop_func*)CPUFUNC(op_4260_13), 16992 }, /* CLR */
+{ (cpuop_func*)CPUFUNC(op_4268_13), 17000 }, /* CLR */
+{ (cpuop_func*)CPUFUNC(op_4270_13), 17008 }, /* CLR */
+{ (cpuop_func*)CPUFUNC(op_4278_13), 17016 }, /* CLR */
+{ (cpuop_func*)CPUFUNC(op_4279_13), 17017 }, /* CLR */
+{ (cpuop_func*)CPUFUNC(op_4280_13), 17024 }, /* CLR */
+{ (cpuop_func*)CPUFUNC(op_4290_13), 17040 }, /* CLR */
+{ (cpuop_func*)CPUFUNC(op_4298_13), 17048 }, /* CLR */
+{ (cpuop_func*)CPUFUNC(op_42a0_13), 17056 }, /* CLR */
+{ (cpuop_func*)CPUFUNC(op_42a8_13), 17064 }, /* CLR */
+{ (cpuop_func*)CPUFUNC(op_42b0_13), 17072 }, /* CLR */
+{ (cpuop_func*)CPUFUNC(op_42b8_13), 17080 }, /* CLR */
+{ (cpuop_func*)CPUFUNC(op_42b9_13), 17081 }, /* CLR */
+#ifndef CPUEMU_68000_ONLY
+{ (cpuop_func*)CPUFUNC(op_42c0_13), 17088 }, /* MVSR2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ (cpuop_func*)CPUFUNC(op_42d0_13), 17104 }, /* MVSR2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ (cpuop_func*)CPUFUNC(op_42d8_13), 17112 }, /* MVSR2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ (cpuop_func*)CPUFUNC(op_42e0_13), 17120 }, /* MVSR2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ (cpuop_func*)CPUFUNC(op_42e8_13), 17128 }, /* MVSR2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ (cpuop_func*)CPUFUNC(op_42f0_13), 17136 }, /* MVSR2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ (cpuop_func*)CPUFUNC(op_42f8_13), 17144 }, /* MVSR2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ (cpuop_func*)CPUFUNC(op_42f9_13), 17145 }, /* MVSR2 */
+#endif
+{ (cpuop_func*)CPUFUNC(op_4400_13), 17408 }, /* NEG */
+{ (cpuop_func*)CPUFUNC(op_4410_13), 17424 }, /* NEG */
+{ (cpuop_func*)CPUFUNC(op_4418_13), 17432 }, /* NEG */
+{ (cpuop_func*)CPUFUNC(op_4420_13), 17440 }, /* NEG */
+{ (cpuop_func*)CPUFUNC(op_4428_13), 17448 }, /* NEG */
+{ (cpuop_func*)CPUFUNC(op_4430_13), 17456 }, /* NEG */
+{ (cpuop_func*)CPUFUNC(op_4438_13), 17464 }, /* NEG */
+{ (cpuop_func*)CPUFUNC(op_4439_13), 17465 }, /* NEG */
+{ (cpuop_func*)CPUFUNC(op_4440_13), 17472 }, /* NEG */
+{ (cpuop_func*)CPUFUNC(op_4450_13), 17488 }, /* NEG */
+{ (cpuop_func*)CPUFUNC(op_4458_13), 17496 }, /* NEG */
+{ (cpuop_func*)CPUFUNC(op_4460_13), 17504 }, /* NEG */
+{ (cpuop_func*)CPUFUNC(op_4468_13), 17512 }, /* NEG */
+{ (cpuop_func*)CPUFUNC(op_4470_13), 17520 }, /* NEG */
+{ (cpuop_func*)CPUFUNC(op_4478_13), 17528 }, /* NEG */
+{ (cpuop_func*)CPUFUNC(op_4479_13), 17529 }, /* NEG */
+{ (cpuop_func*)CPUFUNC(op_4480_13), 17536 }, /* NEG */
+{ (cpuop_func*)CPUFUNC(op_4490_13), 17552 }, /* NEG */
+{ (cpuop_func*)CPUFUNC(op_4498_13), 17560 }, /* NEG */
+{ (cpuop_func*)CPUFUNC(op_44a0_13), 17568 }, /* NEG */
+{ (cpuop_func*)CPUFUNC(op_44a8_13), 17576 }, /* NEG */
+{ (cpuop_func*)CPUFUNC(op_44b0_13), 17584 }, /* NEG */
+{ (cpuop_func*)CPUFUNC(op_44b8_13), 17592 }, /* NEG */
+{ (cpuop_func*)CPUFUNC(op_44b9_13), 17593 }, /* NEG */
+{ (cpuop_func*)CPUFUNC(op_44c0_13), 17600 }, /* MV2SR */
+{ (cpuop_func*)CPUFUNC(op_44d0_13), 17616 }, /* MV2SR */
+{ (cpuop_func*)CPUFUNC(op_44d8_13), 17624 }, /* MV2SR */
+{ (cpuop_func*)CPUFUNC(op_44e0_13), 17632 }, /* MV2SR */
+{ (cpuop_func*)CPUFUNC(op_44e8_13), 17640 }, /* MV2SR */
+{ (cpuop_func*)CPUFUNC(op_44f0_13), 17648 }, /* MV2SR */
+{ (cpuop_func*)CPUFUNC(op_44f8_13), 17656 }, /* MV2SR */
+{ (cpuop_func*)CPUFUNC(op_44f9_13), 17657 }, /* MV2SR */
+{ (cpuop_func*)CPUFUNC(op_44fa_13), 17658 }, /* MV2SR */
+{ (cpuop_func*)CPUFUNC(op_44fb_13), 17659 }, /* MV2SR */
+{ (cpuop_func*)CPUFUNC(op_44fc_13), 17660 }, /* MV2SR */
+{ (cpuop_func*)CPUFUNC(op_4600_13), 17920 }, /* NOT */
+{ (cpuop_func*)CPUFUNC(op_4610_13), 17936 }, /* NOT */
+{ (cpuop_func*)CPUFUNC(op_4618_13), 17944 }, /* NOT */
+{ (cpuop_func*)CPUFUNC(op_4620_13), 17952 }, /* NOT */
+{ (cpuop_func*)CPUFUNC(op_4628_13), 17960 }, /* NOT */
+{ (cpuop_func*)CPUFUNC(op_4630_13), 17968 }, /* NOT */
+{ (cpuop_func*)CPUFUNC(op_4638_13), 17976 }, /* NOT */
+{ (cpuop_func*)CPUFUNC(op_4639_13), 17977 }, /* NOT */
+{ (cpuop_func*)CPUFUNC(op_4640_13), 17984 }, /* NOT */
+{ (cpuop_func*)CPUFUNC(op_4650_13), 18000 }, /* NOT */
+{ (cpuop_func*)CPUFUNC(op_4658_13), 18008 }, /* NOT */
+{ (cpuop_func*)CPUFUNC(op_4660_13), 18016 }, /* NOT */
+{ (cpuop_func*)CPUFUNC(op_4668_13), 18024 }, /* NOT */
+{ (cpuop_func*)CPUFUNC(op_4670_13), 18032 }, /* NOT */
+{ (cpuop_func*)CPUFUNC(op_4678_13), 18040 }, /* NOT */
+{ (cpuop_func*)CPUFUNC(op_4679_13), 18041 }, /* NOT */
+{ (cpuop_func*)CPUFUNC(op_4680_13), 18048 }, /* NOT */
+{ (cpuop_func*)CPUFUNC(op_4690_13), 18064 }, /* NOT */
+{ (cpuop_func*)CPUFUNC(op_4698_13), 18072 }, /* NOT */
+{ (cpuop_func*)CPUFUNC(op_46a0_13), 18080 }, /* NOT */
+{ (cpuop_func*)CPUFUNC(op_46a8_13), 18088 }, /* NOT */
+{ (cpuop_func*)CPUFUNC(op_46b0_13), 18096 }, /* NOT */
+{ (cpuop_func*)CPUFUNC(op_46b8_13), 18104 }, /* NOT */
+{ (cpuop_func*)CPUFUNC(op_46b9_13), 18105 }, /* NOT */
+{ (cpuop_func*)CPUFUNC(op_46c0_13), 18112 }, /* MV2SR */
+{ (cpuop_func*)CPUFUNC(op_46d0_13), 18128 }, /* MV2SR */
+{ (cpuop_func*)CPUFUNC(op_46d8_13), 18136 }, /* MV2SR */
+{ (cpuop_func*)CPUFUNC(op_46e0_13), 18144 }, /* MV2SR */
+{ (cpuop_func*)CPUFUNC(op_46e8_13), 18152 }, /* MV2SR */
+{ (cpuop_func*)CPUFUNC(op_46f0_13), 18160 }, /* MV2SR */
+{ (cpuop_func*)CPUFUNC(op_46f8_13), 18168 }, /* MV2SR */
+{ (cpuop_func*)CPUFUNC(op_46f9_13), 18169 }, /* MV2SR */
+{ (cpuop_func*)CPUFUNC(op_46fa_13), 18170 }, /* MV2SR */
+{ (cpuop_func*)CPUFUNC(op_46fb_13), 18171 }, /* MV2SR */
+{ (cpuop_func*)CPUFUNC(op_46fc_13), 18172 }, /* MV2SR */
+{ (cpuop_func*)CPUFUNC(op_4800_13), 18432 }, /* NBCD */
+{ (cpuop_func*)CPUFUNC(op_4810_13), 18448 }, /* NBCD */
+{ (cpuop_func*)CPUFUNC(op_4818_13), 18456 }, /* NBCD */
+{ (cpuop_func*)CPUFUNC(op_4820_13), 18464 }, /* NBCD */
+{ (cpuop_func*)CPUFUNC(op_4828_13), 18472 }, /* NBCD */
+{ (cpuop_func*)CPUFUNC(op_4830_13), 18480 }, /* NBCD */
+{ (cpuop_func*)CPUFUNC(op_4838_13), 18488 }, /* NBCD */
+{ (cpuop_func*)CPUFUNC(op_4839_13), 18489 }, /* NBCD */
+{ (cpuop_func*)CPUFUNC(op_4840_13), 18496 }, /* SWAP */
+{ (cpuop_func*)CPUFUNC(op_4850_13), 18512 }, /* PEA */
+{ (cpuop_func*)CPUFUNC(op_4868_13), 18536 }, /* PEA */
+{ (cpuop_func*)CPUFUNC(op_4870_13), 18544 }, /* PEA */
+{ (cpuop_func*)CPUFUNC(op_4878_13), 18552 }, /* PEA */
+{ (cpuop_func*)CPUFUNC(op_4879_13), 18553 }, /* PEA */
+{ (cpuop_func*)CPUFUNC(op_487a_13), 18554 }, /* PEA */
+{ (cpuop_func*)CPUFUNC(op_487b_13), 18555 }, /* PEA */
+{ (cpuop_func*)CPUFUNC(op_4880_13), 18560 }, /* EXT */
+{ (cpuop_func*)CPUFUNC(op_4890_13), 18576 }, /* MVMLE */
+{ (cpuop_func*)CPUFUNC(op_48a0_13), 18592 }, /* MVMLE */
+{ (cpuop_func*)CPUFUNC(op_48a8_13), 18600 }, /* MVMLE */
+{ (cpuop_func*)CPUFUNC(op_48b0_13), 18608 }, /* MVMLE */
+{ (cpuop_func*)CPUFUNC(op_48b8_13), 18616 }, /* MVMLE */
+{ (cpuop_func*)CPUFUNC(op_48b9_13), 18617 }, /* MVMLE */
+{ (cpuop_func*)CPUFUNC(op_48c0_13), 18624 }, /* EXT */
+{ (cpuop_func*)CPUFUNC(op_48d0_13), 18640 }, /* MVMLE */
+{ (cpuop_func*)CPUFUNC(op_48e0_13), 18656 }, /* MVMLE */
+{ (cpuop_func*)CPUFUNC(op_48e8_13), 18664 }, /* MVMLE */
+{ (cpuop_func*)CPUFUNC(op_48f0_13), 18672 }, /* MVMLE */
+{ (cpuop_func*)CPUFUNC(op_48f8_13), 18680 }, /* MVMLE */
+{ (cpuop_func*)CPUFUNC(op_48f9_13), 18681 }, /* MVMLE */
+{ (cpuop_func*)CPUFUNC(op_4a00_13), 18944 }, /* TST */
+{ (cpuop_func*)CPUFUNC(op_4a10_13), 18960 }, /* TST */
+{ (cpuop_func*)CPUFUNC(op_4a18_13), 18968 }, /* TST */
+{ (cpuop_func*)CPUFUNC(op_4a20_13), 18976 }, /* TST */
+{ (cpuop_func*)CPUFUNC(op_4a28_13), 18984 }, /* TST */
+{ (cpuop_func*)CPUFUNC(op_4a30_13), 18992 }, /* TST */
+{ (cpuop_func*)CPUFUNC(op_4a38_13), 19000 }, /* TST */
+{ (cpuop_func*)CPUFUNC(op_4a39_13), 19001 }, /* TST */
+{ (cpuop_func*)CPUFUNC(op_4a40_13), 19008 }, /* TST */
+{ (cpuop_func*)CPUFUNC(op_4a50_13), 19024 }, /* TST */
+{ (cpuop_func*)CPUFUNC(op_4a58_13), 19032 }, /* TST */
+{ (cpuop_func*)CPUFUNC(op_4a60_13), 19040 }, /* TST */
+{ (cpuop_func*)CPUFUNC(op_4a68_13), 19048 }, /* TST */
+{ (cpuop_func*)CPUFUNC(op_4a70_13), 19056 }, /* TST */
+{ (cpuop_func*)CPUFUNC(op_4a78_13), 19064 }, /* TST */
+{ (cpuop_func*)CPUFUNC(op_4a79_13), 19065 }, /* TST */
+{ (cpuop_func*)CPUFUNC(op_4a80_13), 19072 }, /* TST */
+{ (cpuop_func*)CPUFUNC(op_4a90_13), 19088 }, /* TST */
+{ (cpuop_func*)CPUFUNC(op_4a98_13), 19096 }, /* TST */
+{ (cpuop_func*)CPUFUNC(op_4aa0_13), 19104 }, /* TST */
+{ (cpuop_func*)CPUFUNC(op_4aa8_13), 19112 }, /* TST */
+{ (cpuop_func*)CPUFUNC(op_4ab0_13), 19120 }, /* TST */
+{ (cpuop_func*)CPUFUNC(op_4ab8_13), 19128 }, /* TST */
+{ (cpuop_func*)CPUFUNC(op_4ab9_13), 19129 }, /* TST */
+{ (cpuop_func*)CPUFUNC(op_4ac0_13), 19136 }, /* TAS */
+{ (cpuop_func*)CPUFUNC(op_4ad0_13), 19152 }, /* TAS */
+{ (cpuop_func*)CPUFUNC(op_4ad8_13), 19160 }, /* TAS */
+{ (cpuop_func*)CPUFUNC(op_4ae0_13), 19168 }, /* TAS */
+{ (cpuop_func*)CPUFUNC(op_4ae8_13), 19176 }, /* TAS */
+{ (cpuop_func*)CPUFUNC(op_4af0_13), 19184 }, /* TAS */
+{ (cpuop_func*)CPUFUNC(op_4af8_13), 19192 }, /* TAS */
+{ (cpuop_func*)CPUFUNC(op_4af9_13), 19193 }, /* TAS */
+{ (cpuop_func*)CPUFUNC(op_4c90_13), 19600 }, /* MVMEL */
+{ (cpuop_func*)CPUFUNC(op_4c98_13), 19608 }, /* MVMEL */
+{ (cpuop_func*)CPUFUNC(op_4ca8_13), 19624 }, /* MVMEL */
+{ (cpuop_func*)CPUFUNC(op_4cb0_13), 19632 }, /* MVMEL */
+{ (cpuop_func*)CPUFUNC(op_4cb8_13), 19640 }, /* MVMEL */
+{ (cpuop_func*)CPUFUNC(op_4cb9_13), 19641 }, /* MVMEL */
+{ (cpuop_func*)CPUFUNC(op_4cba_13), 19642 }, /* MVMEL */
+{ (cpuop_func*)CPUFUNC(op_4cbb_13), 19643 }, /* MVMEL */
+{ (cpuop_func*)CPUFUNC(op_4cd0_13), 19664 }, /* MVMEL */
+{ (cpuop_func*)CPUFUNC(op_4cd8_13), 19672 }, /* MVMEL */
+{ (cpuop_func*)CPUFUNC(op_4ce8_13), 19688 }, /* MVMEL */
+{ (cpuop_func*)CPUFUNC(op_4cf0_13), 19696 }, /* MVMEL */
+{ (cpuop_func*)CPUFUNC(op_4cf8_13), 19704 }, /* MVMEL */
+{ (cpuop_func*)CPUFUNC(op_4cf9_13), 19705 }, /* MVMEL */
+{ (cpuop_func*)CPUFUNC(op_4cfa_13), 19706 }, /* MVMEL */
+{ (cpuop_func*)CPUFUNC(op_4cfb_13), 19707 }, /* MVMEL */
+{ (cpuop_func*)CPUFUNC(op_4e40_13), 20032 }, /* TRAP */
+{ (cpuop_func*)CPUFUNC(op_4e50_13), 20048 }, /* LINK */
+{ (cpuop_func*)CPUFUNC(op_4e58_13), 20056 }, /* UNLK */
+{ (cpuop_func*)CPUFUNC(op_4e60_13), 20064 }, /* MVR2USP */
+{ (cpuop_func*)CPUFUNC(op_4e68_13), 20072 }, /* MVUSP2R */
+{ (cpuop_func*)CPUFUNC(op_4e70_13), 20080 }, /* RESET */
+{ (cpuop_func*)CPUFUNC(op_4e71_13), 20081 }, /* NOP */
+{ (cpuop_func*)CPUFUNC(op_4e72_13), 20082 }, /* STOP */
+{ (cpuop_func*)CPUFUNC(op_4e73_13), 20083 }, /* RTE */
+{ (cpuop_func*)CPUFUNC(op_4e74_13), 20084 }, /* RTD */
+{ (cpuop_func*)CPUFUNC(op_4e75_13), 20085 }, /* RTS */
+{ (cpuop_func*)CPUFUNC(op_4e76_13), 20086 }, /* TRAPV */
+{ (cpuop_func*)CPUFUNC(op_4e77_13), 20087 }, /* RTR */
+#ifndef CPUEMU_68000_ONLY
+{ (cpuop_func*)CPUFUNC(op_4e7a_13), 20090 }, /* MOVEC2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ (cpuop_func*)CPUFUNC(op_4e7b_13), 20091 }, /* MOVE2C */
+#endif
+{ (cpuop_func*)CPUFUNC(op_4e90_13), 20112 }, /* JSR */
+{ (cpuop_func*)CPUFUNC(op_4ea8_13), 20136 }, /* JSR */
+{ (cpuop_func*)CPUFUNC(op_4eb0_13), 20144 }, /* JSR */
+{ (cpuop_func*)CPUFUNC(op_4eb8_13), 20152 }, /* JSR */
+{ (cpuop_func*)CPUFUNC(op_4eb9_13), 20153 }, /* JSR */
+{ (cpuop_func*)CPUFUNC(op_4eba_13), 20154 }, /* JSR */
+{ (cpuop_func*)CPUFUNC(op_4ebb_13), 20155 }, /* JSR */
+{ (cpuop_func*)CPUFUNC(op_4ed0_13), 20176 }, /* JMP */
+{ (cpuop_func*)CPUFUNC(op_4ee8_13), 20200 }, /* JMP */
+{ (cpuop_func*)CPUFUNC(op_4ef0_13), 20208 }, /* JMP */
+{ (cpuop_func*)CPUFUNC(op_4ef8_13), 20216 }, /* JMP */
+{ (cpuop_func*)CPUFUNC(op_4ef9_13), 20217 }, /* JMP */
+{ (cpuop_func*)CPUFUNC(op_4efa_13), 20218 }, /* JMP */
+{ (cpuop_func*)CPUFUNC(op_4efb_13), 20219 }, /* JMP */
+{ (cpuop_func*)CPUFUNC(op_5000_13), 20480 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_5010_13), 20496 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_5018_13), 20504 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_5020_13), 20512 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_5028_13), 20520 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_5030_13), 20528 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_5038_13), 20536 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_5039_13), 20537 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_5040_13), 20544 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_5048_13), 20552 }, /* ADDA */
+{ (cpuop_func*)CPUFUNC(op_5050_13), 20560 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_5058_13), 20568 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_5060_13), 20576 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_5068_13), 20584 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_5070_13), 20592 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_5078_13), 20600 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_5079_13), 20601 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_5080_13), 20608 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_5088_13), 20616 }, /* ADDA */
+{ (cpuop_func*)CPUFUNC(op_5090_13), 20624 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_5098_13), 20632 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_50a0_13), 20640 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_50a8_13), 20648 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_50b0_13), 20656 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_50b8_13), 20664 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_50b9_13), 20665 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_50c0_13), 20672 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_50c8_13), 20680 }, /* DBcc */
+{ (cpuop_func*)CPUFUNC(op_50d0_13), 20688 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_50d8_13), 20696 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_50e0_13), 20704 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_50e8_13), 20712 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_50f0_13), 20720 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_50f8_13), 20728 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_50f9_13), 20729 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5100_13), 20736 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_5110_13), 20752 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_5118_13), 20760 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_5120_13), 20768 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_5128_13), 20776 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_5130_13), 20784 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_5138_13), 20792 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_5139_13), 20793 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_5140_13), 20800 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_5148_13), 20808 }, /* SUBA */
+{ (cpuop_func*)CPUFUNC(op_5150_13), 20816 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_5158_13), 20824 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_5160_13), 20832 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_5168_13), 20840 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_5170_13), 20848 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_5178_13), 20856 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_5179_13), 20857 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_5180_13), 20864 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_5188_13), 20872 }, /* SUBA */
+{ (cpuop_func*)CPUFUNC(op_5190_13), 20880 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_5198_13), 20888 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_51a0_13), 20896 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_51a8_13), 20904 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_51b0_13), 20912 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_51b8_13), 20920 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_51b9_13), 20921 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_51c0_13), 20928 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_51c8_13), 20936 }, /* DBcc */
+{ (cpuop_func*)CPUFUNC(op_51d0_13), 20944 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_51d8_13), 20952 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_51e0_13), 20960 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_51e8_13), 20968 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_51f0_13), 20976 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_51f8_13), 20984 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_51f9_13), 20985 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_52c0_13), 21184 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_52c8_13), 21192 }, /* DBcc */
+{ (cpuop_func*)CPUFUNC(op_52d0_13), 21200 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_52d8_13), 21208 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_52e0_13), 21216 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_52e8_13), 21224 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_52f0_13), 21232 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_52f8_13), 21240 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_52f9_13), 21241 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_53c0_13), 21440 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_53c8_13), 21448 }, /* DBcc */
+{ (cpuop_func*)CPUFUNC(op_53d0_13), 21456 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_53d8_13), 21464 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_53e0_13), 21472 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_53e8_13), 21480 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_53f0_13), 21488 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_53f8_13), 21496 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_53f9_13), 21497 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_54c0_13), 21696 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_54c8_13), 21704 }, /* DBcc */
+{ (cpuop_func*)CPUFUNC(op_54d0_13), 21712 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_54d8_13), 21720 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_54e0_13), 21728 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_54e8_13), 21736 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_54f0_13), 21744 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_54f8_13), 21752 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_54f9_13), 21753 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_55c0_13), 21952 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_55c8_13), 21960 }, /* DBcc */
+{ (cpuop_func*)CPUFUNC(op_55d0_13), 21968 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_55d8_13), 21976 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_55e0_13), 21984 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_55e8_13), 21992 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_55f0_13), 22000 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_55f8_13), 22008 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_55f9_13), 22009 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_56c0_13), 22208 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_56c8_13), 22216 }, /* DBcc */
+{ (cpuop_func*)CPUFUNC(op_56d0_13), 22224 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_56d8_13), 22232 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_56e0_13), 22240 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_56e8_13), 22248 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_56f0_13), 22256 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_56f8_13), 22264 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_56f9_13), 22265 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_57c0_13), 22464 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_57c8_13), 22472 }, /* DBcc */
+{ (cpuop_func*)CPUFUNC(op_57d0_13), 22480 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_57d8_13), 22488 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_57e0_13), 22496 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_57e8_13), 22504 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_57f0_13), 22512 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_57f8_13), 22520 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_57f9_13), 22521 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_58c0_13), 22720 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_58c8_13), 22728 }, /* DBcc */
+{ (cpuop_func*)CPUFUNC(op_58d0_13), 22736 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_58d8_13), 22744 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_58e0_13), 22752 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_58e8_13), 22760 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_58f0_13), 22768 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_58f8_13), 22776 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_58f9_13), 22777 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_59c0_13), 22976 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_59c8_13), 22984 }, /* DBcc */
+{ (cpuop_func*)CPUFUNC(op_59d0_13), 22992 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_59d8_13), 23000 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_59e0_13), 23008 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_59e8_13), 23016 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_59f0_13), 23024 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_59f8_13), 23032 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_59f9_13), 23033 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5ac0_13), 23232 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5ac8_13), 23240 }, /* DBcc */
+{ (cpuop_func*)CPUFUNC(op_5ad0_13), 23248 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5ad8_13), 23256 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5ae0_13), 23264 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5ae8_13), 23272 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5af0_13), 23280 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5af8_13), 23288 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5af9_13), 23289 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5bc0_13), 23488 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5bc8_13), 23496 }, /* DBcc */
+{ (cpuop_func*)CPUFUNC(op_5bd0_13), 23504 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5bd8_13), 23512 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5be0_13), 23520 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5be8_13), 23528 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5bf0_13), 23536 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5bf8_13), 23544 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5bf9_13), 23545 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5cc0_13), 23744 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5cc8_13), 23752 }, /* DBcc */
+{ (cpuop_func*)CPUFUNC(op_5cd0_13), 23760 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5cd8_13), 23768 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5ce0_13), 23776 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5ce8_13), 23784 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5cf0_13), 23792 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5cf8_13), 23800 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5cf9_13), 23801 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5dc0_13), 24000 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5dc8_13), 24008 }, /* DBcc */
+{ (cpuop_func*)CPUFUNC(op_5dd0_13), 24016 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5dd8_13), 24024 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5de0_13), 24032 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5de8_13), 24040 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5df0_13), 24048 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5df8_13), 24056 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5df9_13), 24057 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5ec0_13), 24256 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5ec8_13), 24264 }, /* DBcc */
+{ (cpuop_func*)CPUFUNC(op_5ed0_13), 24272 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5ed8_13), 24280 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5ee0_13), 24288 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5ee8_13), 24296 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5ef0_13), 24304 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5ef8_13), 24312 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5ef9_13), 24313 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5fc0_13), 24512 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5fc8_13), 24520 }, /* DBcc */
+{ (cpuop_func*)CPUFUNC(op_5fd0_13), 24528 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5fd8_13), 24536 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5fe0_13), 24544 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5fe8_13), 24552 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5ff0_13), 24560 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5ff8_13), 24568 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5ff9_13), 24569 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_6000_13), 24576 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6001_13), 24577 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_60ff_13), 24831 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6100_13), 24832 }, /* BSR */
+{ (cpuop_func*)CPUFUNC(op_6101_13), 24833 }, /* BSR */
+{ (cpuop_func*)CPUFUNC(op_61ff_13), 25087 }, /* BSR */
+{ (cpuop_func*)CPUFUNC(op_6200_13), 25088 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6201_13), 25089 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_62ff_13), 25343 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6300_13), 25344 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6301_13), 25345 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_63ff_13), 25599 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6400_13), 25600 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6401_13), 25601 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_64ff_13), 25855 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6500_13), 25856 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6501_13), 25857 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_65ff_13), 26111 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6600_13), 26112 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6601_13), 26113 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_66ff_13), 26367 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6700_13), 26368 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6701_13), 26369 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_67ff_13), 26623 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6800_13), 26624 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6801_13), 26625 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_68ff_13), 26879 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6900_13), 26880 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6901_13), 26881 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_69ff_13), 27135 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6a00_13), 27136 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6a01_13), 27137 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6aff_13), 27391 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6b00_13), 27392 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6b01_13), 27393 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6bff_13), 27647 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6c00_13), 27648 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6c01_13), 27649 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6cff_13), 27903 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6d00_13), 27904 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6d01_13), 27905 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6dff_13), 28159 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6e00_13), 28160 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6e01_13), 28161 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6eff_13), 28415 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6f00_13), 28416 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6f01_13), 28417 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6fff_13), 28671 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_7000_13), 28672 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_8000_13), 32768 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8010_13), 32784 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8018_13), 32792 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8020_13), 32800 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8028_13), 32808 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8030_13), 32816 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8038_13), 32824 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8039_13), 32825 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_803a_13), 32826 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_803b_13), 32827 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_803c_13), 32828 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8040_13), 32832 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8050_13), 32848 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8058_13), 32856 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8060_13), 32864 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8068_13), 32872 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8070_13), 32880 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8078_13), 32888 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8079_13), 32889 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_807a_13), 32890 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_807b_13), 32891 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_807c_13), 32892 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8080_13), 32896 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8090_13), 32912 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8098_13), 32920 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_80a0_13), 32928 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_80a8_13), 32936 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_80b0_13), 32944 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_80b8_13), 32952 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_80b9_13), 32953 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_80ba_13), 32954 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_80bb_13), 32955 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_80bc_13), 32956 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_80c0_13), 32960 }, /* DIVU */
+{ (cpuop_func*)CPUFUNC(op_80d0_13), 32976 }, /* DIVU */
+{ (cpuop_func*)CPUFUNC(op_80d8_13), 32984 }, /* DIVU */
+{ (cpuop_func*)CPUFUNC(op_80e0_13), 32992 }, /* DIVU */
+{ (cpuop_func*)CPUFUNC(op_80e8_13), 33000 }, /* DIVU */
+{ (cpuop_func*)CPUFUNC(op_80f0_13), 33008 }, /* DIVU */
+{ (cpuop_func*)CPUFUNC(op_80f8_13), 33016 }, /* DIVU */
+{ (cpuop_func*)CPUFUNC(op_80f9_13), 33017 }, /* DIVU */
+{ (cpuop_func*)CPUFUNC(op_80fa_13), 33018 }, /* DIVU */
+{ (cpuop_func*)CPUFUNC(op_80fb_13), 33019 }, /* DIVU */
+{ (cpuop_func*)CPUFUNC(op_80fc_13), 33020 }, /* DIVU */
+{ (cpuop_func*)CPUFUNC(op_8100_13), 33024 }, /* SBCD */
+{ (cpuop_func*)CPUFUNC(op_8108_13), 33032 }, /* SBCD */
+{ (cpuop_func*)CPUFUNC(op_8110_13), 33040 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8118_13), 33048 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8120_13), 33056 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8128_13), 33064 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8130_13), 33072 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8138_13), 33080 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8139_13), 33081 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8150_13), 33104 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8158_13), 33112 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8160_13), 33120 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8168_13), 33128 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8170_13), 33136 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8178_13), 33144 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8179_13), 33145 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8190_13), 33168 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8198_13), 33176 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_81a0_13), 33184 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_81a8_13), 33192 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_81b0_13), 33200 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_81b8_13), 33208 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_81b9_13), 33209 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_81c0_13), 33216 }, /* DIVS */
+{ (cpuop_func*)CPUFUNC(op_81d0_13), 33232 }, /* DIVS */
+{ (cpuop_func*)CPUFUNC(op_81d8_13), 33240 }, /* DIVS */
+{ (cpuop_func*)CPUFUNC(op_81e0_13), 33248 }, /* DIVS */
+{ (cpuop_func*)CPUFUNC(op_81e8_13), 33256 }, /* DIVS */
+{ (cpuop_func*)CPUFUNC(op_81f0_13), 33264 }, /* DIVS */
+{ (cpuop_func*)CPUFUNC(op_81f8_13), 33272 }, /* DIVS */
+{ (cpuop_func*)CPUFUNC(op_81f9_13), 33273 }, /* DIVS */
+{ (cpuop_func*)CPUFUNC(op_81fa_13), 33274 }, /* DIVS */
+{ (cpuop_func*)CPUFUNC(op_81fb_13), 33275 }, /* DIVS */
+{ (cpuop_func*)CPUFUNC(op_81fc_13), 33276 }, /* DIVS */
+{ (cpuop_func*)CPUFUNC(op_9000_13), 36864 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9010_13), 36880 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9018_13), 36888 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9020_13), 36896 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9028_13), 36904 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9030_13), 36912 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9038_13), 36920 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9039_13), 36921 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_903a_13), 36922 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_903b_13), 36923 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_903c_13), 36924 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9040_13), 36928 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9048_13), 36936 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9050_13), 36944 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9058_13), 36952 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9060_13), 36960 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9068_13), 36968 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9070_13), 36976 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9078_13), 36984 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9079_13), 36985 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_907a_13), 36986 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_907b_13), 36987 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_907c_13), 36988 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9080_13), 36992 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9088_13), 37000 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9090_13), 37008 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9098_13), 37016 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_90a0_13), 37024 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_90a8_13), 37032 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_90b0_13), 37040 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_90b8_13), 37048 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_90b9_13), 37049 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_90ba_13), 37050 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_90bb_13), 37051 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_90bc_13), 37052 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_90c0_13), 37056 }, /* SUBA */
+{ (cpuop_func*)CPUFUNC(op_90c8_13), 37064 }, /* SUBA */
+{ (cpuop_func*)CPUFUNC(op_90d0_13), 37072 }, /* SUBA */
+{ (cpuop_func*)CPUFUNC(op_90d8_13), 37080 }, /* SUBA */
+{ (cpuop_func*)CPUFUNC(op_90e0_13), 37088 }, /* SUBA */
+{ (cpuop_func*)CPUFUNC(op_90e8_13), 37096 }, /* SUBA */
+{ (cpuop_func*)CPUFUNC(op_90f0_13), 37104 }, /* SUBA */
+{ (cpuop_func*)CPUFUNC(op_90f8_13), 37112 }, /* SUBA */
+{ (cpuop_func*)CPUFUNC(op_90f9_13), 37113 }, /* SUBA */
+{ (cpuop_func*)CPUFUNC(op_90fa_13), 37114 }, /* SUBA */
+{ (cpuop_func*)CPUFUNC(op_90fb_13), 37115 }, /* SUBA */
+{ (cpuop_func*)CPUFUNC(op_90fc_13), 37116 }, /* SUBA */
+{ (cpuop_func*)CPUFUNC(op_9100_13), 37120 }, /* SUBX */
+{ (cpuop_func*)CPUFUNC(op_9108_13), 37128 }, /* SUBX */
+{ (cpuop_func*)CPUFUNC(op_9110_13), 37136 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9118_13), 37144 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9120_13), 37152 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9128_13), 37160 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9130_13), 37168 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9138_13), 37176 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9139_13), 37177 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9140_13), 37184 }, /* SUBX */
+{ (cpuop_func*)CPUFUNC(op_9148_13), 37192 }, /* SUBX */
+{ (cpuop_func*)CPUFUNC(op_9150_13), 37200 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9158_13), 37208 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9160_13), 37216 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9168_13), 37224 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9170_13), 37232 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9178_13), 37240 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9179_13), 37241 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9180_13), 37248 }, /* SUBX */
+{ (cpuop_func*)CPUFUNC(op_9188_13), 37256 }, /* SUBX */
+{ (cpuop_func*)CPUFUNC(op_9190_13), 37264 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9198_13), 37272 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_91a0_13), 37280 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_91a8_13), 37288 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_91b0_13), 37296 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_91b8_13), 37304 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_91b9_13), 37305 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_91c0_13), 37312 }, /* SUBA */
+{ (cpuop_func*)CPUFUNC(op_91c8_13), 37320 }, /* SUBA */
+{ (cpuop_func*)CPUFUNC(op_91d0_13), 37328 }, /* SUBA */
+{ (cpuop_func*)CPUFUNC(op_91d8_13), 37336 }, /* SUBA */
+{ (cpuop_func*)CPUFUNC(op_91e0_13), 37344 }, /* SUBA */
+{ (cpuop_func*)CPUFUNC(op_91e8_13), 37352 }, /* SUBA */
+{ (cpuop_func*)CPUFUNC(op_91f0_13), 37360 }, /* SUBA */
+{ (cpuop_func*)CPUFUNC(op_91f8_13), 37368 }, /* SUBA */
+{ (cpuop_func*)CPUFUNC(op_91f9_13), 37369 }, /* SUBA */
+{ (cpuop_func*)CPUFUNC(op_91fa_13), 37370 }, /* SUBA */
+{ (cpuop_func*)CPUFUNC(op_91fb_13), 37371 }, /* SUBA */
+{ (cpuop_func*)CPUFUNC(op_91fc_13), 37372 }, /* SUBA */
+{ (cpuop_func*)CPUFUNC(op_b000_13), 45056 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b010_13), 45072 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b018_13), 45080 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b020_13), 45088 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b028_13), 45096 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b030_13), 45104 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b038_13), 45112 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b039_13), 45113 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b03a_13), 45114 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b03b_13), 45115 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b03c_13), 45116 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b040_13), 45120 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b048_13), 45128 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b050_13), 45136 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b058_13), 45144 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b060_13), 45152 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b068_13), 45160 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b070_13), 45168 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b078_13), 45176 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b079_13), 45177 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b07a_13), 45178 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b07b_13), 45179 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b07c_13), 45180 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b080_13), 45184 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b088_13), 45192 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b090_13), 45200 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b098_13), 45208 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b0a0_13), 45216 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b0a8_13), 45224 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b0b0_13), 45232 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b0b8_13), 45240 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b0b9_13), 45241 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b0ba_13), 45242 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b0bb_13), 45243 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b0bc_13), 45244 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b0c0_13), 45248 }, /* CMPA */
+{ (cpuop_func*)CPUFUNC(op_b0c8_13), 45256 }, /* CMPA */
+{ (cpuop_func*)CPUFUNC(op_b0d0_13), 45264 }, /* CMPA */
+{ (cpuop_func*)CPUFUNC(op_b0d8_13), 45272 }, /* CMPA */
+{ (cpuop_func*)CPUFUNC(op_b0e0_13), 45280 }, /* CMPA */
+{ (cpuop_func*)CPUFUNC(op_b0e8_13), 45288 }, /* CMPA */
+{ (cpuop_func*)CPUFUNC(op_b0f0_13), 45296 }, /* CMPA */
+{ (cpuop_func*)CPUFUNC(op_b0f8_13), 45304 }, /* CMPA */
+{ (cpuop_func*)CPUFUNC(op_b0f9_13), 45305 }, /* CMPA */
+{ (cpuop_func*)CPUFUNC(op_b0fa_13), 45306 }, /* CMPA */
+{ (cpuop_func*)CPUFUNC(op_b0fb_13), 45307 }, /* CMPA */
+{ (cpuop_func*)CPUFUNC(op_b0fc_13), 45308 }, /* CMPA */
+{ (cpuop_func*)CPUFUNC(op_b100_13), 45312 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_b108_13), 45320 }, /* CMPM */
+{ (cpuop_func*)CPUFUNC(op_b110_13), 45328 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_b118_13), 45336 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_b120_13), 45344 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_b128_13), 45352 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_b130_13), 45360 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_b138_13), 45368 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_b139_13), 45369 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_b140_13), 45376 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_b148_13), 45384 }, /* CMPM */
+{ (cpuop_func*)CPUFUNC(op_b150_13), 45392 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_b158_13), 45400 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_b160_13), 45408 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_b168_13), 45416 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_b170_13), 45424 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_b178_13), 45432 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_b179_13), 45433 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_b180_13), 45440 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_b188_13), 45448 }, /* CMPM */
+{ (cpuop_func*)CPUFUNC(op_b190_13), 45456 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_b198_13), 45464 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_b1a0_13), 45472 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_b1a8_13), 45480 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_b1b0_13), 45488 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_b1b8_13), 45496 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_b1b9_13), 45497 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_b1c0_13), 45504 }, /* CMPA */
+{ (cpuop_func*)CPUFUNC(op_b1c8_13), 45512 }, /* CMPA */
+{ (cpuop_func*)CPUFUNC(op_b1d0_13), 45520 }, /* CMPA */
+{ (cpuop_func*)CPUFUNC(op_b1d8_13), 45528 }, /* CMPA */
+{ (cpuop_func*)CPUFUNC(op_b1e0_13), 45536 }, /* CMPA */
+{ (cpuop_func*)CPUFUNC(op_b1e8_13), 45544 }, /* CMPA */
+{ (cpuop_func*)CPUFUNC(op_b1f0_13), 45552 }, /* CMPA */
+{ (cpuop_func*)CPUFUNC(op_b1f8_13), 45560 }, /* CMPA */
+{ (cpuop_func*)CPUFUNC(op_b1f9_13), 45561 }, /* CMPA */
+{ (cpuop_func*)CPUFUNC(op_b1fa_13), 45562 }, /* CMPA */
+{ (cpuop_func*)CPUFUNC(op_b1fb_13), 45563 }, /* CMPA */
+{ (cpuop_func*)CPUFUNC(op_b1fc_13), 45564 }, /* CMPA */
+{ (cpuop_func*)CPUFUNC(op_c000_13), 49152 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c010_13), 49168 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c018_13), 49176 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c020_13), 49184 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c028_13), 49192 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c030_13), 49200 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c038_13), 49208 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c039_13), 49209 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c03a_13), 49210 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c03b_13), 49211 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c03c_13), 49212 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c040_13), 49216 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c050_13), 49232 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c058_13), 49240 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c060_13), 49248 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c068_13), 49256 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c070_13), 49264 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c078_13), 49272 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c079_13), 49273 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c07a_13), 49274 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c07b_13), 49275 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c07c_13), 49276 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c080_13), 49280 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c090_13), 49296 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c098_13), 49304 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c0a0_13), 49312 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c0a8_13), 49320 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c0b0_13), 49328 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c0b8_13), 49336 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c0b9_13), 49337 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c0ba_13), 49338 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c0bb_13), 49339 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c0bc_13), 49340 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c0c0_13), 49344 }, /* MULU */
+{ (cpuop_func*)CPUFUNC(op_c0d0_13), 49360 }, /* MULU */
+{ (cpuop_func*)CPUFUNC(op_c0d8_13), 49368 }, /* MULU */
+{ (cpuop_func*)CPUFUNC(op_c0e0_13), 49376 }, /* MULU */
+{ (cpuop_func*)CPUFUNC(op_c0e8_13), 49384 }, /* MULU */
+{ (cpuop_func*)CPUFUNC(op_c0f0_13), 49392 }, /* MULU */
+{ (cpuop_func*)CPUFUNC(op_c0f8_13), 49400 }, /* MULU */
+{ (cpuop_func*)CPUFUNC(op_c0f9_13), 49401 }, /* MULU */
+{ (cpuop_func*)CPUFUNC(op_c0fa_13), 49402 }, /* MULU */
+{ (cpuop_func*)CPUFUNC(op_c0fb_13), 49403 }, /* MULU */
+{ (cpuop_func*)CPUFUNC(op_c0fc_13), 49404 }, /* MULU */
+{ (cpuop_func*)CPUFUNC(op_c100_13), 49408 }, /* ABCD */
+{ (cpuop_func*)CPUFUNC(op_c108_13), 49416 }, /* ABCD */
+{ (cpuop_func*)CPUFUNC(op_c110_13), 49424 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c118_13), 49432 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c120_13), 49440 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c128_13), 49448 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c130_13), 49456 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c138_13), 49464 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c139_13), 49465 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c140_13), 49472 }, /* EXG */
+{ (cpuop_func*)CPUFUNC(op_c148_13), 49480 }, /* EXG */
+{ (cpuop_func*)CPUFUNC(op_c150_13), 49488 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c158_13), 49496 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c160_13), 49504 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c168_13), 49512 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c170_13), 49520 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c178_13), 49528 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c179_13), 49529 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c188_13), 49544 }, /* EXG */
+{ (cpuop_func*)CPUFUNC(op_c190_13), 49552 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c198_13), 49560 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c1a0_13), 49568 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c1a8_13), 49576 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c1b0_13), 49584 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c1b8_13), 49592 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c1b9_13), 49593 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c1c0_13), 49600 }, /* MULS */
+{ (cpuop_func*)CPUFUNC(op_c1d0_13), 49616 }, /* MULS */
+{ (cpuop_func*)CPUFUNC(op_c1d8_13), 49624 }, /* MULS */
+{ (cpuop_func*)CPUFUNC(op_c1e0_13), 49632 }, /* MULS */
+{ (cpuop_func*)CPUFUNC(op_c1e8_13), 49640 }, /* MULS */
+{ (cpuop_func*)CPUFUNC(op_c1f0_13), 49648 }, /* MULS */
+{ (cpuop_func*)CPUFUNC(op_c1f8_13), 49656 }, /* MULS */
+{ (cpuop_func*)CPUFUNC(op_c1f9_13), 49657 }, /* MULS */
+{ (cpuop_func*)CPUFUNC(op_c1fa_13), 49658 }, /* MULS */
+{ (cpuop_func*)CPUFUNC(op_c1fb_13), 49659 }, /* MULS */
+{ (cpuop_func*)CPUFUNC(op_c1fc_13), 49660 }, /* MULS */
+{ (cpuop_func*)CPUFUNC(op_d000_13), 53248 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d010_13), 53264 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d018_13), 53272 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d020_13), 53280 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d028_13), 53288 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d030_13), 53296 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d038_13), 53304 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d039_13), 53305 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d03a_13), 53306 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d03b_13), 53307 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d03c_13), 53308 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d040_13), 53312 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d048_13), 53320 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d050_13), 53328 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d058_13), 53336 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d060_13), 53344 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d068_13), 53352 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d070_13), 53360 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d078_13), 53368 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d079_13), 53369 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d07a_13), 53370 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d07b_13), 53371 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d07c_13), 53372 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d080_13), 53376 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d088_13), 53384 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d090_13), 53392 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d098_13), 53400 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d0a0_13), 53408 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d0a8_13), 53416 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d0b0_13), 53424 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d0b8_13), 53432 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d0b9_13), 53433 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d0ba_13), 53434 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d0bb_13), 53435 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d0bc_13), 53436 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d0c0_13), 53440 }, /* ADDA */
+{ (cpuop_func*)CPUFUNC(op_d0c8_13), 53448 }, /* ADDA */
+{ (cpuop_func*)CPUFUNC(op_d0d0_13), 53456 }, /* ADDA */
+{ (cpuop_func*)CPUFUNC(op_d0d8_13), 53464 }, /* ADDA */
+{ (cpuop_func*)CPUFUNC(op_d0e0_13), 53472 }, /* ADDA */
+{ (cpuop_func*)CPUFUNC(op_d0e8_13), 53480 }, /* ADDA */
+{ (cpuop_func*)CPUFUNC(op_d0f0_13), 53488 }, /* ADDA */
+{ (cpuop_func*)CPUFUNC(op_d0f8_13), 53496 }, /* ADDA */
+{ (cpuop_func*)CPUFUNC(op_d0f9_13), 53497 }, /* ADDA */
+{ (cpuop_func*)CPUFUNC(op_d0fa_13), 53498 }, /* ADDA */
+{ (cpuop_func*)CPUFUNC(op_d0fb_13), 53499 }, /* ADDA */
+{ (cpuop_func*)CPUFUNC(op_d0fc_13), 53500 }, /* ADDA */
+{ (cpuop_func*)CPUFUNC(op_d100_13), 53504 }, /* ADDX */
+{ (cpuop_func*)CPUFUNC(op_d108_13), 53512 }, /* ADDX */
+{ (cpuop_func*)CPUFUNC(op_d110_13), 53520 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d118_13), 53528 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d120_13), 53536 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d128_13), 53544 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d130_13), 53552 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d138_13), 53560 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d139_13), 53561 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d140_13), 53568 }, /* ADDX */
+{ (cpuop_func*)CPUFUNC(op_d148_13), 53576 }, /* ADDX */
+{ (cpuop_func*)CPUFUNC(op_d150_13), 53584 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d158_13), 53592 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d160_13), 53600 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d168_13), 53608 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d170_13), 53616 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d178_13), 53624 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d179_13), 53625 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d180_13), 53632 }, /* ADDX */
+{ (cpuop_func*)CPUFUNC(op_d188_13), 53640 }, /* ADDX */
+{ (cpuop_func*)CPUFUNC(op_d190_13), 53648 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d198_13), 53656 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d1a0_13), 53664 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d1a8_13), 53672 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d1b0_13), 53680 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d1b8_13), 53688 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d1b9_13), 53689 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d1c0_13), 53696 }, /* ADDA */
+{ (cpuop_func*)CPUFUNC(op_d1c8_13), 53704 }, /* ADDA */
+{ (cpuop_func*)CPUFUNC(op_d1d0_13), 53712 }, /* ADDA */
+{ (cpuop_func*)CPUFUNC(op_d1d8_13), 53720 }, /* ADDA */
+{ (cpuop_func*)CPUFUNC(op_d1e0_13), 53728 }, /* ADDA */
+{ (cpuop_func*)CPUFUNC(op_d1e8_13), 53736 }, /* ADDA */
+{ (cpuop_func*)CPUFUNC(op_d1f0_13), 53744 }, /* ADDA */
+{ (cpuop_func*)CPUFUNC(op_d1f8_13), 53752 }, /* ADDA */
+{ (cpuop_func*)CPUFUNC(op_d1f9_13), 53753 }, /* ADDA */
+{ (cpuop_func*)CPUFUNC(op_d1fa_13), 53754 }, /* ADDA */
+{ (cpuop_func*)CPUFUNC(op_d1fb_13), 53755 }, /* ADDA */
+{ (cpuop_func*)CPUFUNC(op_d1fc_13), 53756 }, /* ADDA */
+{ (cpuop_func*)CPUFUNC(op_e000_13), 57344 }, /* ASR */
+{ (cpuop_func*)CPUFUNC(op_e008_13), 57352 }, /* LSR */
+{ (cpuop_func*)CPUFUNC(op_e010_13), 57360 }, /* ROXR */
+{ (cpuop_func*)CPUFUNC(op_e018_13), 57368 }, /* ROR */
+{ (cpuop_func*)CPUFUNC(op_e020_13), 57376 }, /* ASR */
+{ (cpuop_func*)CPUFUNC(op_e028_13), 57384 }, /* LSR */
+{ (cpuop_func*)CPUFUNC(op_e030_13), 57392 }, /* ROXR */
+{ (cpuop_func*)CPUFUNC(op_e038_13), 57400 }, /* ROR */
+{ (cpuop_func*)CPUFUNC(op_e040_13), 57408 }, /* ASR */
+{ (cpuop_func*)CPUFUNC(op_e048_13), 57416 }, /* LSR */
+{ (cpuop_func*)CPUFUNC(op_e050_13), 57424 }, /* ROXR */
+{ (cpuop_func*)CPUFUNC(op_e058_13), 57432 }, /* ROR */
+{ (cpuop_func*)CPUFUNC(op_e060_13), 57440 }, /* ASR */
+{ (cpuop_func*)CPUFUNC(op_e068_13), 57448 }, /* LSR */
+{ (cpuop_func*)CPUFUNC(op_e070_13), 57456 }, /* ROXR */
+{ (cpuop_func*)CPUFUNC(op_e078_13), 57464 }, /* ROR */
+{ (cpuop_func*)CPUFUNC(op_e080_13), 57472 }, /* ASR */
+{ (cpuop_func*)CPUFUNC(op_e088_13), 57480 }, /* LSR */
+{ (cpuop_func*)CPUFUNC(op_e090_13), 57488 }, /* ROXR */
+{ (cpuop_func*)CPUFUNC(op_e098_13), 57496 }, /* ROR */
+{ (cpuop_func*)CPUFUNC(op_e0a0_13), 57504 }, /* ASR */
+{ (cpuop_func*)CPUFUNC(op_e0a8_13), 57512 }, /* LSR */
+{ (cpuop_func*)CPUFUNC(op_e0b0_13), 57520 }, /* ROXR */
+{ (cpuop_func*)CPUFUNC(op_e0b8_13), 57528 }, /* ROR */
+{ (cpuop_func*)CPUFUNC(op_e0d0_13), 57552 }, /* ASRW */
+{ (cpuop_func*)CPUFUNC(op_e0d8_13), 57560 }, /* ASRW */
+{ (cpuop_func*)CPUFUNC(op_e0e0_13), 57568 }, /* ASRW */
+{ (cpuop_func*)CPUFUNC(op_e0e8_13), 57576 }, /* ASRW */
+{ (cpuop_func*)CPUFUNC(op_e0f0_13), 57584 }, /* ASRW */
+{ (cpuop_func*)CPUFUNC(op_e0f8_13), 57592 }, /* ASRW */
+{ (cpuop_func*)CPUFUNC(op_e0f9_13), 57593 }, /* ASRW */
+{ (cpuop_func*)CPUFUNC(op_e100_13), 57600 }, /* ASL */
+{ (cpuop_func*)CPUFUNC(op_e108_13), 57608 }, /* LSL */
+{ (cpuop_func*)CPUFUNC(op_e110_13), 57616 }, /* ROXL */
+{ (cpuop_func*)CPUFUNC(op_e118_13), 57624 }, /* ROL */
+{ (cpuop_func*)CPUFUNC(op_e120_13), 57632 }, /* ASL */
+{ (cpuop_func*)CPUFUNC(op_e128_13), 57640 }, /* LSL */
+{ (cpuop_func*)CPUFUNC(op_e130_13), 57648 }, /* ROXL */
+{ (cpuop_func*)CPUFUNC(op_e138_13), 57656 }, /* ROL */
+{ (cpuop_func*)CPUFUNC(op_e140_13), 57664 }, /* ASL */
+{ (cpuop_func*)CPUFUNC(op_e148_13), 57672 }, /* LSL */
+{ (cpuop_func*)CPUFUNC(op_e150_13), 57680 }, /* ROXL */
+{ (cpuop_func*)CPUFUNC(op_e158_13), 57688 }, /* ROL */
+{ (cpuop_func*)CPUFUNC(op_e160_13), 57696 }, /* ASL */
+{ (cpuop_func*)CPUFUNC(op_e168_13), 57704 }, /* LSL */
+{ (cpuop_func*)CPUFUNC(op_e170_13), 57712 }, /* ROXL */
+{ (cpuop_func*)CPUFUNC(op_e178_13), 57720 }, /* ROL */
+{ (cpuop_func*)CPUFUNC(op_e180_13), 57728 }, /* ASL */
+{ (cpuop_func*)CPUFUNC(op_e188_13), 57736 }, /* LSL */
+{ (cpuop_func*)CPUFUNC(op_e190_13), 57744 }, /* ROXL */
+{ (cpuop_func*)CPUFUNC(op_e198_13), 57752 }, /* ROL */
+{ (cpuop_func*)CPUFUNC(op_e1a0_13), 57760 }, /* ASL */
+{ (cpuop_func*)CPUFUNC(op_e1a8_13), 57768 }, /* LSL */
+{ (cpuop_func*)CPUFUNC(op_e1b0_13), 57776 }, /* ROXL */
+{ (cpuop_func*)CPUFUNC(op_e1b8_13), 57784 }, /* ROL */
+{ (cpuop_func*)CPUFUNC(op_e1d0_13), 57808 }, /* ASLW */
+{ (cpuop_func*)CPUFUNC(op_e1d8_13), 57816 }, /* ASLW */
+{ (cpuop_func*)CPUFUNC(op_e1e0_13), 57824 }, /* ASLW */
+{ (cpuop_func*)CPUFUNC(op_e1e8_13), 57832 }, /* ASLW */
+{ (cpuop_func*)CPUFUNC(op_e1f0_13), 57840 }, /* ASLW */
+{ (cpuop_func*)CPUFUNC(op_e1f8_13), 57848 }, /* ASLW */
+{ (cpuop_func*)CPUFUNC(op_e1f9_13), 57849 }, /* ASLW */
+{ (cpuop_func*)CPUFUNC(op_e2d0_13), 58064 }, /* LSRW */
+{ (cpuop_func*)CPUFUNC(op_e2d8_13), 58072 }, /* LSRW */
+{ (cpuop_func*)CPUFUNC(op_e2e0_13), 58080 }, /* LSRW */
+{ (cpuop_func*)CPUFUNC(op_e2e8_13), 58088 }, /* LSRW */
+{ (cpuop_func*)CPUFUNC(op_e2f0_13), 58096 }, /* LSRW */
+{ (cpuop_func*)CPUFUNC(op_e2f8_13), 58104 }, /* LSRW */
+{ (cpuop_func*)CPUFUNC(op_e2f9_13), 58105 }, /* LSRW */
+{ (cpuop_func*)CPUFUNC(op_e3d0_13), 58320 }, /* LSLW */
+{ (cpuop_func*)CPUFUNC(op_e3d8_13), 58328 }, /* LSLW */
+{ (cpuop_func*)CPUFUNC(op_e3e0_13), 58336 }, /* LSLW */
+{ (cpuop_func*)CPUFUNC(op_e3e8_13), 58344 }, /* LSLW */
+{ (cpuop_func*)CPUFUNC(op_e3f0_13), 58352 }, /* LSLW */
+{ (cpuop_func*)CPUFUNC(op_e3f8_13), 58360 }, /* LSLW */
+{ (cpuop_func*)CPUFUNC(op_e3f9_13), 58361 }, /* LSLW */
+{ (cpuop_func*)CPUFUNC(op_e4d0_13), 58576 }, /* ROXRW */
+{ (cpuop_func*)CPUFUNC(op_e4d8_13), 58584 }, /* ROXRW */
+{ (cpuop_func*)CPUFUNC(op_e4e0_13), 58592 }, /* ROXRW */
+{ (cpuop_func*)CPUFUNC(op_e4e8_13), 58600 }, /* ROXRW */
+{ (cpuop_func*)CPUFUNC(op_e4f0_13), 58608 }, /* ROXRW */
+{ (cpuop_func*)CPUFUNC(op_e4f8_13), 58616 }, /* ROXRW */
+{ (cpuop_func*)CPUFUNC(op_e4f9_13), 58617 }, /* ROXRW */
+{ (cpuop_func*)CPUFUNC(op_e5d0_13), 58832 }, /* ROXLW */
+{ (cpuop_func*)CPUFUNC(op_e5d8_13), 58840 }, /* ROXLW */
+{ (cpuop_func*)CPUFUNC(op_e5e0_13), 58848 }, /* ROXLW */
+{ (cpuop_func*)CPUFUNC(op_e5e8_13), 58856 }, /* ROXLW */
+{ (cpuop_func*)CPUFUNC(op_e5f0_13), 58864 }, /* ROXLW */
+{ (cpuop_func*)CPUFUNC(op_e5f8_13), 58872 }, /* ROXLW */
+{ (cpuop_func*)CPUFUNC(op_e5f9_13), 58873 }, /* ROXLW */
+{ (cpuop_func*)CPUFUNC(op_e6d0_13), 59088 }, /* RORW */
+{ (cpuop_func*)CPUFUNC(op_e6d8_13), 59096 }, /* RORW */
+{ (cpuop_func*)CPUFUNC(op_e6e0_13), 59104 }, /* RORW */
+{ (cpuop_func*)CPUFUNC(op_e6e8_13), 59112 }, /* RORW */
+{ (cpuop_func*)CPUFUNC(op_e6f0_13), 59120 }, /* RORW */
+{ (cpuop_func*)CPUFUNC(op_e6f8_13), 59128 }, /* RORW */
+{ (cpuop_func*)CPUFUNC(op_e6f9_13), 59129 }, /* RORW */
+{ (cpuop_func*)CPUFUNC(op_e7d0_13), 59344 }, /* ROLW */
+{ (cpuop_func*)CPUFUNC(op_e7d8_13), 59352 }, /* ROLW */
+{ (cpuop_func*)CPUFUNC(op_e7e0_13), 59360 }, /* ROLW */
+{ (cpuop_func*)CPUFUNC(op_e7e8_13), 59368 }, /* ROLW */
+{ (cpuop_func*)CPUFUNC(op_e7f0_13), 59376 }, /* ROLW */
+{ (cpuop_func*)CPUFUNC(op_e7f8_13), 59384 }, /* ROLW */
+{ (cpuop_func*)CPUFUNC(op_e7f9_13), 59385 }, /* ROLW */
+{ 0, 0 }};
+#endif /* CPUEMU_13 */
+const struct cputbl CPUFUNC(op_smalltbl_14)[] = {
+{ (cpuop_func*)CPUFUNC(op_0000_13), 0 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_0010_13), 16 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_0018_13), 24 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_0020_13), 32 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_0028_13), 40 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_0030_13), 48 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_0038_13), 56 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_0039_13), 57 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_003c_13), 60 }, /* ORSR */
+{ (cpuop_func*)CPUFUNC(op_0040_13), 64 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_0050_13), 80 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_0058_13), 88 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_0060_13), 96 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_0068_13), 104 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_0070_13), 112 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_0078_13), 120 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_0079_13), 121 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_007c_13), 124 }, /* ORSR */
+{ (cpuop_func*)CPUFUNC(op_0080_13), 128 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_0090_13), 144 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_0098_13), 152 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_00a0_13), 160 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_00a8_13), 168 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_00b0_13), 176 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_00b8_13), 184 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_00b9_13), 185 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_0100_13), 256 }, /* BTST */
+{ (cpuop_func*)CPUFUNC(op_0108_13), 264 }, /* MVPMR */
+{ (cpuop_func*)CPUFUNC(op_0110_13), 272 }, /* BTST */
+{ (cpuop_func*)CPUFUNC(op_0118_13), 280 }, /* BTST */
+{ (cpuop_func*)CPUFUNC(op_0120_13), 288 }, /* BTST */
+{ (cpuop_func*)CPUFUNC(op_0128_13), 296 }, /* BTST */
+{ (cpuop_func*)CPUFUNC(op_0130_13), 304 }, /* BTST */
+{ (cpuop_func*)CPUFUNC(op_0138_13), 312 }, /* BTST */
+{ (cpuop_func*)CPUFUNC(op_0139_13), 313 }, /* BTST */
+{ (cpuop_func*)CPUFUNC(op_013a_13), 314 }, /* BTST */
+{ (cpuop_func*)CPUFUNC(op_013b_13), 315 }, /* BTST */
+{ (cpuop_func*)CPUFUNC(op_013c_13), 316 }, /* BTST */
+{ (cpuop_func*)CPUFUNC(op_0140_13), 320 }, /* BCHG */
+{ (cpuop_func*)CPUFUNC(op_0148_13), 328 }, /* MVPMR */
+{ (cpuop_func*)CPUFUNC(op_0150_13), 336 }, /* BCHG */
+{ (cpuop_func*)CPUFUNC(op_0158_13), 344 }, /* BCHG */
+{ (cpuop_func*)CPUFUNC(op_0160_13), 352 }, /* BCHG */
+{ (cpuop_func*)CPUFUNC(op_0168_13), 360 }, /* BCHG */
+{ (cpuop_func*)CPUFUNC(op_0170_13), 368 }, /* BCHG */
+{ (cpuop_func*)CPUFUNC(op_0178_13), 376 }, /* BCHG */
+{ (cpuop_func*)CPUFUNC(op_0179_13), 377 }, /* BCHG */
+{ (cpuop_func*)CPUFUNC(op_017a_13), 378 }, /* BCHG */
+{ (cpuop_func*)CPUFUNC(op_017b_13), 379 }, /* BCHG */
+{ (cpuop_func*)CPUFUNC(op_0180_13), 384 }, /* BCLR */
+{ (cpuop_func*)CPUFUNC(op_0188_13), 392 }, /* MVPRM */
+{ (cpuop_func*)CPUFUNC(op_0190_13), 400 }, /* BCLR */
+{ (cpuop_func*)CPUFUNC(op_0198_13), 408 }, /* BCLR */
+{ (cpuop_func*)CPUFUNC(op_01a0_13), 416 }, /* BCLR */
+{ (cpuop_func*)CPUFUNC(op_01a8_13), 424 }, /* BCLR */
+{ (cpuop_func*)CPUFUNC(op_01b0_13), 432 }, /* BCLR */
+{ (cpuop_func*)CPUFUNC(op_01b8_13), 440 }, /* BCLR */
+{ (cpuop_func*)CPUFUNC(op_01b9_13), 441 }, /* BCLR */
+{ (cpuop_func*)CPUFUNC(op_01ba_13), 442 }, /* BCLR */
+{ (cpuop_func*)CPUFUNC(op_01bb_13), 443 }, /* BCLR */
+{ (cpuop_func*)CPUFUNC(op_01c0_13), 448 }, /* BSET */
+{ (cpuop_func*)CPUFUNC(op_01c8_13), 456 }, /* MVPRM */
+{ (cpuop_func*)CPUFUNC(op_01d0_13), 464 }, /* BSET */
+{ (cpuop_func*)CPUFUNC(op_01d8_13), 472 }, /* BSET */
+{ (cpuop_func*)CPUFUNC(op_01e0_13), 480 }, /* BSET */
+{ (cpuop_func*)CPUFUNC(op_01e8_13), 488 }, /* BSET */
+{ (cpuop_func*)CPUFUNC(op_01f0_13), 496 }, /* BSET */
+{ (cpuop_func*)CPUFUNC(op_01f8_13), 504 }, /* BSET */
+{ (cpuop_func*)CPUFUNC(op_01f9_13), 505 }, /* BSET */
+{ (cpuop_func*)CPUFUNC(op_01fa_13), 506 }, /* BSET */
+{ (cpuop_func*)CPUFUNC(op_01fb_13), 507 }, /* BSET */
+{ (cpuop_func*)CPUFUNC(op_0200_13), 512 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_0210_13), 528 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_0218_13), 536 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_0220_13), 544 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_0228_13), 552 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_0230_13), 560 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_0238_13), 568 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_0239_13), 569 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_023c_13), 572 }, /* ANDSR */
+{ (cpuop_func*)CPUFUNC(op_0240_13), 576 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_0250_13), 592 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_0258_13), 600 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_0260_13), 608 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_0268_13), 616 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_0270_13), 624 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_0278_13), 632 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_0279_13), 633 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_027c_13), 636 }, /* ANDSR */
+{ (cpuop_func*)CPUFUNC(op_0280_13), 640 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_0290_13), 656 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_0298_13), 664 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_02a0_13), 672 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_02a8_13), 680 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_02b0_13), 688 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_02b8_13), 696 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_02b9_13), 697 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_0400_13), 1024 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_0410_13), 1040 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_0418_13), 1048 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_0420_13), 1056 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_0428_13), 1064 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_0430_13), 1072 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_0438_13), 1080 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_0439_13), 1081 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_0440_13), 1088 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_0450_13), 1104 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_0458_13), 1112 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_0460_13), 1120 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_0468_13), 1128 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_0470_13), 1136 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_0478_13), 1144 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_0479_13), 1145 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_0480_13), 1152 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_0490_13), 1168 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_0498_13), 1176 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_04a0_13), 1184 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_04a8_13), 1192 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_04b0_13), 1200 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_04b8_13), 1208 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_04b9_13), 1209 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_0600_13), 1536 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_0610_13), 1552 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_0618_13), 1560 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_0620_13), 1568 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_0628_13), 1576 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_0630_13), 1584 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_0638_13), 1592 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_0639_13), 1593 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_0640_13), 1600 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_0650_13), 1616 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_0658_13), 1624 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_0660_13), 1632 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_0668_13), 1640 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_0670_13), 1648 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_0678_13), 1656 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_0679_13), 1657 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_0680_13), 1664 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_0690_13), 1680 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_0698_13), 1688 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_06a0_13), 1696 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_06a8_13), 1704 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_06b0_13), 1712 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_06b8_13), 1720 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_06b9_13), 1721 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_0800_13), 2048 }, /* BTST */
+{ (cpuop_func*)CPUFUNC(op_0810_13), 2064 }, /* BTST */
+{ (cpuop_func*)CPUFUNC(op_0818_13), 2072 }, /* BTST */
+{ (cpuop_func*)CPUFUNC(op_0820_13), 2080 }, /* BTST */
+{ (cpuop_func*)CPUFUNC(op_0828_13), 2088 }, /* BTST */
+{ (cpuop_func*)CPUFUNC(op_0830_13), 2096 }, /* BTST */
+{ (cpuop_func*)CPUFUNC(op_0838_13), 2104 }, /* BTST */
+{ (cpuop_func*)CPUFUNC(op_0839_13), 2105 }, /* BTST */
+{ (cpuop_func*)CPUFUNC(op_083a_13), 2106 }, /* BTST */
+{ (cpuop_func*)CPUFUNC(op_083b_13), 2107 }, /* BTST */
+{ (cpuop_func*)CPUFUNC(op_0840_13), 2112 }, /* BCHG */
+{ (cpuop_func*)CPUFUNC(op_0850_13), 2128 }, /* BCHG */
+{ (cpuop_func*)CPUFUNC(op_0858_13), 2136 }, /* BCHG */
+{ (cpuop_func*)CPUFUNC(op_0860_13), 2144 }, /* BCHG */
+{ (cpuop_func*)CPUFUNC(op_0868_13), 2152 }, /* BCHG */
+{ (cpuop_func*)CPUFUNC(op_0870_13), 2160 }, /* BCHG */
+{ (cpuop_func*)CPUFUNC(op_0878_13), 2168 }, /* BCHG */
+{ (cpuop_func*)CPUFUNC(op_0879_13), 2169 }, /* BCHG */
+{ (cpuop_func*)CPUFUNC(op_087a_13), 2170 }, /* BCHG */
+{ (cpuop_func*)CPUFUNC(op_087b_13), 2171 }, /* BCHG */
+{ (cpuop_func*)CPUFUNC(op_0880_13), 2176 }, /* BCLR */
+{ (cpuop_func*)CPUFUNC(op_0890_13), 2192 }, /* BCLR */
+{ (cpuop_func*)CPUFUNC(op_0898_13), 2200 }, /* BCLR */
+{ (cpuop_func*)CPUFUNC(op_08a0_13), 2208 }, /* BCLR */
+{ (cpuop_func*)CPUFUNC(op_08a8_13), 2216 }, /* BCLR */
+{ (cpuop_func*)CPUFUNC(op_08b0_13), 2224 }, /* BCLR */
+{ (cpuop_func*)CPUFUNC(op_08b8_13), 2232 }, /* BCLR */
+{ (cpuop_func*)CPUFUNC(op_08b9_13), 2233 }, /* BCLR */
+{ (cpuop_func*)CPUFUNC(op_08ba_13), 2234 }, /* BCLR */
+{ (cpuop_func*)CPUFUNC(op_08bb_13), 2235 }, /* BCLR */
+{ (cpuop_func*)CPUFUNC(op_08c0_13), 2240 }, /* BSET */
+{ (cpuop_func*)CPUFUNC(op_08d0_13), 2256 }, /* BSET */
+{ (cpuop_func*)CPUFUNC(op_08d8_13), 2264 }, /* BSET */
+{ (cpuop_func*)CPUFUNC(op_08e0_13), 2272 }, /* BSET */
+{ (cpuop_func*)CPUFUNC(op_08e8_13), 2280 }, /* BSET */
+{ (cpuop_func*)CPUFUNC(op_08f0_13), 2288 }, /* BSET */
+{ (cpuop_func*)CPUFUNC(op_08f8_13), 2296 }, /* BSET */
+{ (cpuop_func*)CPUFUNC(op_08f9_13), 2297 }, /* BSET */
+{ (cpuop_func*)CPUFUNC(op_08fa_13), 2298 }, /* BSET */
+{ (cpuop_func*)CPUFUNC(op_08fb_13), 2299 }, /* BSET */
+{ (cpuop_func*)CPUFUNC(op_0a00_13), 2560 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_0a10_13), 2576 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_0a18_13), 2584 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_0a20_13), 2592 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_0a28_13), 2600 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_0a30_13), 2608 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_0a38_13), 2616 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_0a39_13), 2617 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_0a3c_13), 2620 }, /* EORSR */
+{ (cpuop_func*)CPUFUNC(op_0a40_13), 2624 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_0a50_13), 2640 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_0a58_13), 2648 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_0a60_13), 2656 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_0a68_13), 2664 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_0a70_13), 2672 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_0a78_13), 2680 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_0a79_13), 2681 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_0a7c_13), 2684 }, /* EORSR */
+{ (cpuop_func*)CPUFUNC(op_0a80_13), 2688 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_0a90_13), 2704 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_0a98_13), 2712 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_0aa0_13), 2720 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_0aa8_13), 2728 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_0ab0_13), 2736 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_0ab8_13), 2744 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_0ab9_13), 2745 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_0c00_13), 3072 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_0c10_13), 3088 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_0c18_13), 3096 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_0c20_13), 3104 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_0c28_13), 3112 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_0c30_13), 3120 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_0c38_13), 3128 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_0c39_13), 3129 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_0c40_13), 3136 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_0c50_13), 3152 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_0c58_13), 3160 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_0c60_13), 3168 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_0c68_13), 3176 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_0c70_13), 3184 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_0c78_13), 3192 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_0c79_13), 3193 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_0c80_13), 3200 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_0c90_13), 3216 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_0c98_13), 3224 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_0ca0_13), 3232 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_0ca8_13), 3240 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_0cb0_13), 3248 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_0cb8_13), 3256 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_0cb9_13), 3257 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_1000_13), 4096 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1010_13), 4112 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1018_13), 4120 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1020_13), 4128 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1028_13), 4136 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1030_13), 4144 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1038_13), 4152 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1039_13), 4153 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_103a_13), 4154 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_103b_13), 4155 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_103c_13), 4156 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1080_13), 4224 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1090_13), 4240 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1098_13), 4248 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_10a0_13), 4256 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_10a8_13), 4264 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_10b0_13), 4272 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_10b8_13), 4280 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_10b9_13), 4281 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_10ba_13), 4282 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_10bb_13), 4283 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_10bc_13), 4284 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_10c0_13), 4288 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_10d0_13), 4304 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_10d8_13), 4312 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_10e0_13), 4320 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_10e8_13), 4328 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_10f0_13), 4336 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_10f8_13), 4344 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_10f9_13), 4345 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_10fa_13), 4346 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_10fb_13), 4347 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_10fc_13), 4348 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1100_13), 4352 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1110_13), 4368 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1118_13), 4376 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1120_13), 4384 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1128_13), 4392 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1130_13), 4400 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1138_13), 4408 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1139_13), 4409 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_113a_13), 4410 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_113b_13), 4411 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_113c_13), 4412 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1140_13), 4416 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1150_13), 4432 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1158_13), 4440 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1160_13), 4448 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1168_13), 4456 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1170_13), 4464 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1178_13), 4472 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1179_13), 4473 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_117a_13), 4474 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_117b_13), 4475 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_117c_13), 4476 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1180_13), 4480 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1190_13), 4496 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_1198_13), 4504 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_11a0_13), 4512 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_11a8_13), 4520 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_11b0_13), 4528 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_11b8_13), 4536 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_11b9_13), 4537 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_11ba_13), 4538 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_11bb_13), 4539 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_11bc_13), 4540 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_11c0_13), 4544 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_11d0_13), 4560 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_11d8_13), 4568 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_11e0_13), 4576 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_11e8_13), 4584 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_11f0_13), 4592 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_11f8_13), 4600 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_11f9_13), 4601 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_11fa_13), 4602 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_11fb_13), 4603 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_11fc_13), 4604 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_13c0_13), 5056 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_13d0_13), 5072 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_13d8_13), 5080 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_13e0_13), 5088 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_13e8_13), 5096 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_13f0_13), 5104 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_13f8_13), 5112 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_13f9_13), 5113 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_13fa_13), 5114 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_13fb_13), 5115 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_13fc_13), 5116 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2000_13), 8192 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2008_13), 8200 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2010_13), 8208 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2018_13), 8216 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2020_13), 8224 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2028_13), 8232 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2030_13), 8240 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2038_13), 8248 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2039_13), 8249 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_203a_13), 8250 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_203b_13), 8251 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_203c_13), 8252 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2040_13), 8256 }, /* MOVEA */
+{ (cpuop_func*)CPUFUNC(op_2048_13), 8264 }, /* MOVEA */
+{ (cpuop_func*)CPUFUNC(op_2050_13), 8272 }, /* MOVEA */
+{ (cpuop_func*)CPUFUNC(op_2058_13), 8280 }, /* MOVEA */
+{ (cpuop_func*)CPUFUNC(op_2060_13), 8288 }, /* MOVEA */
+{ (cpuop_func*)CPUFUNC(op_2068_13), 8296 }, /* MOVEA */
+{ (cpuop_func*)CPUFUNC(op_2070_13), 8304 }, /* MOVEA */
+{ (cpuop_func*)CPUFUNC(op_2078_13), 8312 }, /* MOVEA */
+{ (cpuop_func*)CPUFUNC(op_2079_13), 8313 }, /* MOVEA */
+{ (cpuop_func*)CPUFUNC(op_207a_13), 8314 }, /* MOVEA */
+{ (cpuop_func*)CPUFUNC(op_207b_13), 8315 }, /* MOVEA */
+{ (cpuop_func*)CPUFUNC(op_207c_13), 8316 }, /* MOVEA */
+{ (cpuop_func*)CPUFUNC(op_2080_13), 8320 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2088_13), 8328 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2090_13), 8336 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2098_13), 8344 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_20a0_13), 8352 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_20a8_13), 8360 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_20b0_13), 8368 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_20b8_13), 8376 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_20b9_13), 8377 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_20ba_13), 8378 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_20bb_13), 8379 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_20bc_13), 8380 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_20c0_13), 8384 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_20c8_13), 8392 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_20d0_13), 8400 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_20d8_13), 8408 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_20e0_13), 8416 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_20e8_13), 8424 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_20f0_13), 8432 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_20f8_13), 8440 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_20f9_13), 8441 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_20fa_13), 8442 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_20fb_13), 8443 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_20fc_13), 8444 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2100_13), 8448 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2108_13), 8456 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2110_13), 8464 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2118_13), 8472 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2120_13), 8480 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2128_13), 8488 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2130_13), 8496 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2138_13), 8504 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2139_13), 8505 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_213a_13), 8506 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_213b_13), 8507 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_213c_13), 8508 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2140_13), 8512 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2148_13), 8520 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2150_13), 8528 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2158_13), 8536 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2160_13), 8544 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2168_13), 8552 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2170_13), 8560 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2178_13), 8568 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2179_13), 8569 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_217a_13), 8570 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_217b_13), 8571 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_217c_13), 8572 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2180_13), 8576 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2188_13), 8584 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2190_13), 8592 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_2198_13), 8600 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_21a0_13), 8608 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_21a8_13), 8616 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_21b0_13), 8624 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_21b8_13), 8632 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_21b9_13), 8633 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_21ba_13), 8634 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_21bb_13), 8635 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_21bc_13), 8636 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_21c0_13), 8640 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_21c8_13), 8648 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_21d0_13), 8656 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_21d8_13), 8664 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_21e0_13), 8672 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_21e8_13), 8680 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_21f0_13), 8688 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_21f8_13), 8696 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_21f9_13), 8697 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_21fa_13), 8698 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_21fb_13), 8699 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_21fc_13), 8700 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_23c0_13), 9152 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_23c8_13), 9160 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_23d0_13), 9168 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_23d8_13), 9176 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_23e0_13), 9184 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_23e8_13), 9192 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_23f0_13), 9200 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_23f8_13), 9208 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_23f9_13), 9209 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_23fa_13), 9210 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_23fb_13), 9211 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_23fc_13), 9212 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3000_13), 12288 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3008_13), 12296 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3010_13), 12304 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3018_13), 12312 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3020_13), 12320 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3028_13), 12328 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3030_13), 12336 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3038_13), 12344 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3039_13), 12345 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_303a_13), 12346 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_303b_13), 12347 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_303c_13), 12348 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3040_13), 12352 }, /* MOVEA */
+{ (cpuop_func*)CPUFUNC(op_3048_13), 12360 }, /* MOVEA */
+{ (cpuop_func*)CPUFUNC(op_3050_13), 12368 }, /* MOVEA */
+{ (cpuop_func*)CPUFUNC(op_3058_13), 12376 }, /* MOVEA */
+{ (cpuop_func*)CPUFUNC(op_3060_13), 12384 }, /* MOVEA */
+{ (cpuop_func*)CPUFUNC(op_3068_13), 12392 }, /* MOVEA */
+{ (cpuop_func*)CPUFUNC(op_3070_13), 12400 }, /* MOVEA */
+{ (cpuop_func*)CPUFUNC(op_3078_13), 12408 }, /* MOVEA */
+{ (cpuop_func*)CPUFUNC(op_3079_13), 12409 }, /* MOVEA */
+{ (cpuop_func*)CPUFUNC(op_307a_13), 12410 }, /* MOVEA */
+{ (cpuop_func*)CPUFUNC(op_307b_13), 12411 }, /* MOVEA */
+{ (cpuop_func*)CPUFUNC(op_307c_13), 12412 }, /* MOVEA */
+{ (cpuop_func*)CPUFUNC(op_3080_13), 12416 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3088_13), 12424 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3090_13), 12432 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3098_13), 12440 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_30a0_13), 12448 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_30a8_13), 12456 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_30b0_13), 12464 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_30b8_13), 12472 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_30b9_13), 12473 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_30ba_13), 12474 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_30bb_13), 12475 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_30bc_13), 12476 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_30c0_13), 12480 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_30c8_13), 12488 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_30d0_13), 12496 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_30d8_13), 12504 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_30e0_13), 12512 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_30e8_13), 12520 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_30f0_13), 12528 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_30f8_13), 12536 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_30f9_13), 12537 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_30fa_13), 12538 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_30fb_13), 12539 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_30fc_13), 12540 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3100_13), 12544 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3108_13), 12552 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3110_13), 12560 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3118_13), 12568 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3120_13), 12576 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3128_13), 12584 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3130_13), 12592 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3138_13), 12600 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3139_13), 12601 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_313a_13), 12602 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_313b_13), 12603 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_313c_13), 12604 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3140_13), 12608 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3148_13), 12616 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3150_13), 12624 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3158_13), 12632 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3160_13), 12640 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3168_13), 12648 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3170_13), 12656 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3178_13), 12664 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3179_13), 12665 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_317a_13), 12666 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_317b_13), 12667 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_317c_13), 12668 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3180_13), 12672 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3188_13), 12680 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3190_13), 12688 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_3198_13), 12696 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_31a0_13), 12704 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_31a8_13), 12712 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_31b0_13), 12720 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_31b8_13), 12728 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_31b9_13), 12729 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_31ba_13), 12730 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_31bb_13), 12731 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_31bc_13), 12732 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_31c0_13), 12736 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_31c8_13), 12744 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_31d0_13), 12752 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_31d8_13), 12760 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_31e0_13), 12768 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_31e8_13), 12776 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_31f0_13), 12784 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_31f8_13), 12792 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_31f9_13), 12793 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_31fa_13), 12794 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_31fb_13), 12795 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_31fc_13), 12796 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_33c0_13), 13248 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_33c8_13), 13256 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_33d0_13), 13264 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_33d8_13), 13272 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_33e0_13), 13280 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_33e8_13), 13288 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_33f0_13), 13296 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_33f8_13), 13304 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_33f9_13), 13305 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_33fa_13), 13306 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_33fb_13), 13307 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_33fc_13), 13308 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_4000_13), 16384 }, /* NEGX */
+{ (cpuop_func*)CPUFUNC(op_4010_13), 16400 }, /* NEGX */
+{ (cpuop_func*)CPUFUNC(op_4018_13), 16408 }, /* NEGX */
+{ (cpuop_func*)CPUFUNC(op_4020_13), 16416 }, /* NEGX */
+{ (cpuop_func*)CPUFUNC(op_4028_13), 16424 }, /* NEGX */
+{ (cpuop_func*)CPUFUNC(op_4030_13), 16432 }, /* NEGX */
+{ (cpuop_func*)CPUFUNC(op_4038_13), 16440 }, /* NEGX */
+{ (cpuop_func*)CPUFUNC(op_4039_13), 16441 }, /* NEGX */
+{ (cpuop_func*)CPUFUNC(op_4040_13), 16448 }, /* NEGX */
+{ (cpuop_func*)CPUFUNC(op_4050_13), 16464 }, /* NEGX */
+{ (cpuop_func*)CPUFUNC(op_4058_13), 16472 }, /* NEGX */
+{ (cpuop_func*)CPUFUNC(op_4060_13), 16480 }, /* NEGX */
+{ (cpuop_func*)CPUFUNC(op_4068_13), 16488 }, /* NEGX */
+{ (cpuop_func*)CPUFUNC(op_4070_13), 16496 }, /* NEGX */
+{ (cpuop_func*)CPUFUNC(op_4078_13), 16504 }, /* NEGX */
+{ (cpuop_func*)CPUFUNC(op_4079_13), 16505 }, /* NEGX */
+{ (cpuop_func*)CPUFUNC(op_4080_13), 16512 }, /* NEGX */
+{ (cpuop_func*)CPUFUNC(op_4090_13), 16528 }, /* NEGX */
+{ (cpuop_func*)CPUFUNC(op_4098_13), 16536 }, /* NEGX */
+{ (cpuop_func*)CPUFUNC(op_40a0_13), 16544 }, /* NEGX */
+{ (cpuop_func*)CPUFUNC(op_40a8_13), 16552 }, /* NEGX */
+{ (cpuop_func*)CPUFUNC(op_40b0_13), 16560 }, /* NEGX */
+{ (cpuop_func*)CPUFUNC(op_40b8_13), 16568 }, /* NEGX */
+{ (cpuop_func*)CPUFUNC(op_40b9_13), 16569 }, /* NEGX */
+{ (cpuop_func*)CPUFUNC(op_40c0_14), 16576 }, /* MVSR2 */
+{ (cpuop_func*)CPUFUNC(op_40d0_14), 16592 }, /* MVSR2 */
+{ (cpuop_func*)CPUFUNC(op_40d8_14), 16600 }, /* MVSR2 */
+{ (cpuop_func*)CPUFUNC(op_40e0_14), 16608 }, /* MVSR2 */
+{ (cpuop_func*)CPUFUNC(op_40e8_14), 16616 }, /* MVSR2 */
+{ (cpuop_func*)CPUFUNC(op_40f0_14), 16624 }, /* MVSR2 */
+{ (cpuop_func*)CPUFUNC(op_40f8_14), 16632 }, /* MVSR2 */
+{ (cpuop_func*)CPUFUNC(op_40f9_14), 16633 }, /* MVSR2 */
+{ (cpuop_func*)CPUFUNC(op_4180_13), 16768 }, /* CHK */
+{ (cpuop_func*)CPUFUNC(op_4190_13), 16784 }, /* CHK */
+{ (cpuop_func*)CPUFUNC(op_4198_13), 16792 }, /* CHK */
+{ (cpuop_func*)CPUFUNC(op_41a0_13), 16800 }, /* CHK */
+{ (cpuop_func*)CPUFUNC(op_41a8_13), 16808 }, /* CHK */
+{ (cpuop_func*)CPUFUNC(op_41b0_13), 16816 }, /* CHK */
+{ (cpuop_func*)CPUFUNC(op_41b8_13), 16824 }, /* CHK */
+{ (cpuop_func*)CPUFUNC(op_41b9_13), 16825 }, /* CHK */
+{ (cpuop_func*)CPUFUNC(op_41ba_13), 16826 }, /* CHK */
+{ (cpuop_func*)CPUFUNC(op_41bb_13), 16827 }, /* CHK */
+{ (cpuop_func*)CPUFUNC(op_41bc_13), 16828 }, /* CHK */
+{ (cpuop_func*)CPUFUNC(op_41d0_13), 16848 }, /* LEA */
+{ (cpuop_func*)CPUFUNC(op_41e8_13), 16872 }, /* LEA */
+{ (cpuop_func*)CPUFUNC(op_41f0_13), 16880 }, /* LEA */
+{ (cpuop_func*)CPUFUNC(op_41f8_13), 16888 }, /* LEA */
+{ (cpuop_func*)CPUFUNC(op_41f9_13), 16889 }, /* LEA */
+{ (cpuop_func*)CPUFUNC(op_41fa_13), 16890 }, /* LEA */
+{ (cpuop_func*)CPUFUNC(op_41fb_13), 16891 }, /* LEA */
+{ (cpuop_func*)CPUFUNC(op_4200_14), 16896 }, /* CLR */
+{ (cpuop_func*)CPUFUNC(op_4210_14), 16912 }, /* CLR */
+{ (cpuop_func*)CPUFUNC(op_4218_14), 16920 }, /* CLR */
+{ (cpuop_func*)CPUFUNC(op_4220_14), 16928 }, /* CLR */
+{ (cpuop_func*)CPUFUNC(op_4228_14), 16936 }, /* CLR */
+{ (cpuop_func*)CPUFUNC(op_4230_14), 16944 }, /* CLR */
+{ (cpuop_func*)CPUFUNC(op_4238_14), 16952 }, /* CLR */
+{ (cpuop_func*)CPUFUNC(op_4239_14), 16953 }, /* CLR */
+{ (cpuop_func*)CPUFUNC(op_4240_14), 16960 }, /* CLR */
+{ (cpuop_func*)CPUFUNC(op_4250_14), 16976 }, /* CLR */
+{ (cpuop_func*)CPUFUNC(op_4258_14), 16984 }, /* CLR */
+{ (cpuop_func*)CPUFUNC(op_4260_14), 16992 }, /* CLR */
+{ (cpuop_func*)CPUFUNC(op_4268_14), 17000 }, /* CLR */
+{ (cpuop_func*)CPUFUNC(op_4270_14), 17008 }, /* CLR */
+{ (cpuop_func*)CPUFUNC(op_4278_14), 17016 }, /* CLR */
+{ (cpuop_func*)CPUFUNC(op_4279_14), 17017 }, /* CLR */
+{ (cpuop_func*)CPUFUNC(op_4280_14), 17024 }, /* CLR */
+{ (cpuop_func*)CPUFUNC(op_4290_14), 17040 }, /* CLR */
+{ (cpuop_func*)CPUFUNC(op_4298_14), 17048 }, /* CLR */
+{ (cpuop_func*)CPUFUNC(op_42a0_14), 17056 }, /* CLR */
+{ (cpuop_func*)CPUFUNC(op_42a8_14), 17064 }, /* CLR */
+{ (cpuop_func*)CPUFUNC(op_42b0_14), 17072 }, /* CLR */
+{ (cpuop_func*)CPUFUNC(op_42b8_14), 17080 }, /* CLR */
+{ (cpuop_func*)CPUFUNC(op_42b9_14), 17081 }, /* CLR */
+{ (cpuop_func*)CPUFUNC(op_4400_13), 17408 }, /* NEG */
+{ (cpuop_func*)CPUFUNC(op_4410_13), 17424 }, /* NEG */
+{ (cpuop_func*)CPUFUNC(op_4418_13), 17432 }, /* NEG */
+{ (cpuop_func*)CPUFUNC(op_4420_13), 17440 }, /* NEG */
+{ (cpuop_func*)CPUFUNC(op_4428_13), 17448 }, /* NEG */
+{ (cpuop_func*)CPUFUNC(op_4430_13), 17456 }, /* NEG */
+{ (cpuop_func*)CPUFUNC(op_4438_13), 17464 }, /* NEG */
+{ (cpuop_func*)CPUFUNC(op_4439_13), 17465 }, /* NEG */
+{ (cpuop_func*)CPUFUNC(op_4440_13), 17472 }, /* NEG */
+{ (cpuop_func*)CPUFUNC(op_4450_13), 17488 }, /* NEG */
+{ (cpuop_func*)CPUFUNC(op_4458_13), 17496 }, /* NEG */
+{ (cpuop_func*)CPUFUNC(op_4460_13), 17504 }, /* NEG */
+{ (cpuop_func*)CPUFUNC(op_4468_13), 17512 }, /* NEG */
+{ (cpuop_func*)CPUFUNC(op_4470_13), 17520 }, /* NEG */
+{ (cpuop_func*)CPUFUNC(op_4478_13), 17528 }, /* NEG */
+{ (cpuop_func*)CPUFUNC(op_4479_13), 17529 }, /* NEG */
+{ (cpuop_func*)CPUFUNC(op_4480_13), 17536 }, /* NEG */
+{ (cpuop_func*)CPUFUNC(op_4490_13), 17552 }, /* NEG */
+{ (cpuop_func*)CPUFUNC(op_4498_13), 17560 }, /* NEG */
+{ (cpuop_func*)CPUFUNC(op_44a0_13), 17568 }, /* NEG */
+{ (cpuop_func*)CPUFUNC(op_44a8_13), 17576 }, /* NEG */
+{ (cpuop_func*)CPUFUNC(op_44b0_13), 17584 }, /* NEG */
+{ (cpuop_func*)CPUFUNC(op_44b8_13), 17592 }, /* NEG */
+{ (cpuop_func*)CPUFUNC(op_44b9_13), 17593 }, /* NEG */
+{ (cpuop_func*)CPUFUNC(op_44c0_13), 17600 }, /* MV2SR */
+{ (cpuop_func*)CPUFUNC(op_44d0_13), 17616 }, /* MV2SR */
+{ (cpuop_func*)CPUFUNC(op_44d8_13), 17624 }, /* MV2SR */
+{ (cpuop_func*)CPUFUNC(op_44e0_13), 17632 }, /* MV2SR */
+{ (cpuop_func*)CPUFUNC(op_44e8_13), 17640 }, /* MV2SR */
+{ (cpuop_func*)CPUFUNC(op_44f0_13), 17648 }, /* MV2SR */
+{ (cpuop_func*)CPUFUNC(op_44f8_13), 17656 }, /* MV2SR */
+{ (cpuop_func*)CPUFUNC(op_44f9_13), 17657 }, /* MV2SR */
+{ (cpuop_func*)CPUFUNC(op_44fa_13), 17658 }, /* MV2SR */
+{ (cpuop_func*)CPUFUNC(op_44fb_13), 17659 }, /* MV2SR */
+{ (cpuop_func*)CPUFUNC(op_44fc_13), 17660 }, /* MV2SR */
+{ (cpuop_func*)CPUFUNC(op_4600_13), 17920 }, /* NOT */
+{ (cpuop_func*)CPUFUNC(op_4610_13), 17936 }, /* NOT */
+{ (cpuop_func*)CPUFUNC(op_4618_13), 17944 }, /* NOT */
+{ (cpuop_func*)CPUFUNC(op_4620_13), 17952 }, /* NOT */
+{ (cpuop_func*)CPUFUNC(op_4628_13), 17960 }, /* NOT */
+{ (cpuop_func*)CPUFUNC(op_4630_13), 17968 }, /* NOT */
+{ (cpuop_func*)CPUFUNC(op_4638_13), 17976 }, /* NOT */
+{ (cpuop_func*)CPUFUNC(op_4639_13), 17977 }, /* NOT */
+{ (cpuop_func*)CPUFUNC(op_4640_13), 17984 }, /* NOT */
+{ (cpuop_func*)CPUFUNC(op_4650_13), 18000 }, /* NOT */
+{ (cpuop_func*)CPUFUNC(op_4658_13), 18008 }, /* NOT */
+{ (cpuop_func*)CPUFUNC(op_4660_13), 18016 }, /* NOT */
+{ (cpuop_func*)CPUFUNC(op_4668_13), 18024 }, /* NOT */
+{ (cpuop_func*)CPUFUNC(op_4670_13), 18032 }, /* NOT */
+{ (cpuop_func*)CPUFUNC(op_4678_13), 18040 }, /* NOT */
+{ (cpuop_func*)CPUFUNC(op_4679_13), 18041 }, /* NOT */
+{ (cpuop_func*)CPUFUNC(op_4680_13), 18048 }, /* NOT */
+{ (cpuop_func*)CPUFUNC(op_4690_13), 18064 }, /* NOT */
+{ (cpuop_func*)CPUFUNC(op_4698_13), 18072 }, /* NOT */
+{ (cpuop_func*)CPUFUNC(op_46a0_13), 18080 }, /* NOT */
+{ (cpuop_func*)CPUFUNC(op_46a8_13), 18088 }, /* NOT */
+{ (cpuop_func*)CPUFUNC(op_46b0_13), 18096 }, /* NOT */
+{ (cpuop_func*)CPUFUNC(op_46b8_13), 18104 }, /* NOT */
+{ (cpuop_func*)CPUFUNC(op_46b9_13), 18105 }, /* NOT */
+{ (cpuop_func*)CPUFUNC(op_46c0_13), 18112 }, /* MV2SR */
+{ (cpuop_func*)CPUFUNC(op_46d0_13), 18128 }, /* MV2SR */
+{ (cpuop_func*)CPUFUNC(op_46d8_13), 18136 }, /* MV2SR */
+{ (cpuop_func*)CPUFUNC(op_46e0_13), 18144 }, /* MV2SR */
+{ (cpuop_func*)CPUFUNC(op_46e8_13), 18152 }, /* MV2SR */
+{ (cpuop_func*)CPUFUNC(op_46f0_13), 18160 }, /* MV2SR */
+{ (cpuop_func*)CPUFUNC(op_46f8_13), 18168 }, /* MV2SR */
+{ (cpuop_func*)CPUFUNC(op_46f9_13), 18169 }, /* MV2SR */
+{ (cpuop_func*)CPUFUNC(op_46fa_13), 18170 }, /* MV2SR */
+{ (cpuop_func*)CPUFUNC(op_46fb_13), 18171 }, /* MV2SR */
+{ (cpuop_func*)CPUFUNC(op_46fc_13), 18172 }, /* MV2SR */
+{ (cpuop_func*)CPUFUNC(op_4800_13), 18432 }, /* NBCD */
+{ (cpuop_func*)CPUFUNC(op_4810_13), 18448 }, /* NBCD */
+{ (cpuop_func*)CPUFUNC(op_4818_13), 18456 }, /* NBCD */
+{ (cpuop_func*)CPUFUNC(op_4820_13), 18464 }, /* NBCD */
+{ (cpuop_func*)CPUFUNC(op_4828_13), 18472 }, /* NBCD */
+{ (cpuop_func*)CPUFUNC(op_4830_13), 18480 }, /* NBCD */
+{ (cpuop_func*)CPUFUNC(op_4838_13), 18488 }, /* NBCD */
+{ (cpuop_func*)CPUFUNC(op_4839_13), 18489 }, /* NBCD */
+{ (cpuop_func*)CPUFUNC(op_4840_13), 18496 }, /* SWAP */
+{ (cpuop_func*)CPUFUNC(op_4850_13), 18512 }, /* PEA */
+{ (cpuop_func*)CPUFUNC(op_4868_13), 18536 }, /* PEA */
+{ (cpuop_func*)CPUFUNC(op_4870_13), 18544 }, /* PEA */
+{ (cpuop_func*)CPUFUNC(op_4878_13), 18552 }, /* PEA */
+{ (cpuop_func*)CPUFUNC(op_4879_13), 18553 }, /* PEA */
+{ (cpuop_func*)CPUFUNC(op_487a_13), 18554 }, /* PEA */
+{ (cpuop_func*)CPUFUNC(op_487b_13), 18555 }, /* PEA */
+{ (cpuop_func*)CPUFUNC(op_4880_13), 18560 }, /* EXT */
+{ (cpuop_func*)CPUFUNC(op_4890_13), 18576 }, /* MVMLE */
+{ (cpuop_func*)CPUFUNC(op_48a0_13), 18592 }, /* MVMLE */
+{ (cpuop_func*)CPUFUNC(op_48a8_13), 18600 }, /* MVMLE */
+{ (cpuop_func*)CPUFUNC(op_48b0_13), 18608 }, /* MVMLE */
+{ (cpuop_func*)CPUFUNC(op_48b8_13), 18616 }, /* MVMLE */
+{ (cpuop_func*)CPUFUNC(op_48b9_13), 18617 }, /* MVMLE */
+{ (cpuop_func*)CPUFUNC(op_48c0_13), 18624 }, /* EXT */
+{ (cpuop_func*)CPUFUNC(op_48d0_13), 18640 }, /* MVMLE */
+{ (cpuop_func*)CPUFUNC(op_48e0_13), 18656 }, /* MVMLE */
+{ (cpuop_func*)CPUFUNC(op_48e8_13), 18664 }, /* MVMLE */
+{ (cpuop_func*)CPUFUNC(op_48f0_13), 18672 }, /* MVMLE */
+{ (cpuop_func*)CPUFUNC(op_48f8_13), 18680 }, /* MVMLE */
+{ (cpuop_func*)CPUFUNC(op_48f9_13), 18681 }, /* MVMLE */
+{ (cpuop_func*)CPUFUNC(op_4a00_13), 18944 }, /* TST */
+{ (cpuop_func*)CPUFUNC(op_4a10_13), 18960 }, /* TST */
+{ (cpuop_func*)CPUFUNC(op_4a18_13), 18968 }, /* TST */
+{ (cpuop_func*)CPUFUNC(op_4a20_13), 18976 }, /* TST */
+{ (cpuop_func*)CPUFUNC(op_4a28_13), 18984 }, /* TST */
+{ (cpuop_func*)CPUFUNC(op_4a30_13), 18992 }, /* TST */
+{ (cpuop_func*)CPUFUNC(op_4a38_13), 19000 }, /* TST */
+{ (cpuop_func*)CPUFUNC(op_4a39_13), 19001 }, /* TST */
+{ (cpuop_func*)CPUFUNC(op_4a40_13), 19008 }, /* TST */
+{ (cpuop_func*)CPUFUNC(op_4a50_13), 19024 }, /* TST */
+{ (cpuop_func*)CPUFUNC(op_4a58_13), 19032 }, /* TST */
+{ (cpuop_func*)CPUFUNC(op_4a60_13), 19040 }, /* TST */
+{ (cpuop_func*)CPUFUNC(op_4a68_13), 19048 }, /* TST */
+{ (cpuop_func*)CPUFUNC(op_4a70_13), 19056 }, /* TST */
+{ (cpuop_func*)CPUFUNC(op_4a78_13), 19064 }, /* TST */
+{ (cpuop_func*)CPUFUNC(op_4a79_13), 19065 }, /* TST */
+{ (cpuop_func*)CPUFUNC(op_4a80_13), 19072 }, /* TST */
+{ (cpuop_func*)CPUFUNC(op_4a90_13), 19088 }, /* TST */
+{ (cpuop_func*)CPUFUNC(op_4a98_13), 19096 }, /* TST */
+{ (cpuop_func*)CPUFUNC(op_4aa0_13), 19104 }, /* TST */
+{ (cpuop_func*)CPUFUNC(op_4aa8_13), 19112 }, /* TST */
+{ (cpuop_func*)CPUFUNC(op_4ab0_13), 19120 }, /* TST */
+{ (cpuop_func*)CPUFUNC(op_4ab8_13), 19128 }, /* TST */
+{ (cpuop_func*)CPUFUNC(op_4ab9_13), 19129 }, /* TST */
+{ (cpuop_func*)CPUFUNC(op_4ac0_13), 19136 }, /* TAS */
+{ (cpuop_func*)CPUFUNC(op_4ad0_13), 19152 }, /* TAS */
+{ (cpuop_func*)CPUFUNC(op_4ad8_13), 19160 }, /* TAS */
+{ (cpuop_func*)CPUFUNC(op_4ae0_13), 19168 }, /* TAS */
+{ (cpuop_func*)CPUFUNC(op_4ae8_13), 19176 }, /* TAS */
+{ (cpuop_func*)CPUFUNC(op_4af0_13), 19184 }, /* TAS */
+{ (cpuop_func*)CPUFUNC(op_4af8_13), 19192 }, /* TAS */
+{ (cpuop_func*)CPUFUNC(op_4af9_13), 19193 }, /* TAS */
+{ (cpuop_func*)CPUFUNC(op_4c90_13), 19600 }, /* MVMEL */
+{ (cpuop_func*)CPUFUNC(op_4c98_13), 19608 }, /* MVMEL */
+{ (cpuop_func*)CPUFUNC(op_4ca8_13), 19624 }, /* MVMEL */
+{ (cpuop_func*)CPUFUNC(op_4cb0_13), 19632 }, /* MVMEL */
+{ (cpuop_func*)CPUFUNC(op_4cb8_13), 19640 }, /* MVMEL */
+{ (cpuop_func*)CPUFUNC(op_4cb9_13), 19641 }, /* MVMEL */
+{ (cpuop_func*)CPUFUNC(op_4cba_13), 19642 }, /* MVMEL */
+{ (cpuop_func*)CPUFUNC(op_4cbb_13), 19643 }, /* MVMEL */
+{ (cpuop_func*)CPUFUNC(op_4cd0_13), 19664 }, /* MVMEL */
+{ (cpuop_func*)CPUFUNC(op_4cd8_13), 19672 }, /* MVMEL */
+{ (cpuop_func*)CPUFUNC(op_4ce8_13), 19688 }, /* MVMEL */
+{ (cpuop_func*)CPUFUNC(op_4cf0_13), 19696 }, /* MVMEL */
+{ (cpuop_func*)CPUFUNC(op_4cf8_13), 19704 }, /* MVMEL */
+{ (cpuop_func*)CPUFUNC(op_4cf9_13), 19705 }, /* MVMEL */
+{ (cpuop_func*)CPUFUNC(op_4cfa_13), 19706 }, /* MVMEL */
+{ (cpuop_func*)CPUFUNC(op_4cfb_13), 19707 }, /* MVMEL */
+{ (cpuop_func*)CPUFUNC(op_4e40_13), 20032 }, /* TRAP */
+{ (cpuop_func*)CPUFUNC(op_4e50_13), 20048 }, /* LINK */
+{ (cpuop_func*)CPUFUNC(op_4e58_13), 20056 }, /* UNLK */
+{ (cpuop_func*)CPUFUNC(op_4e60_13), 20064 }, /* MVR2USP */
+{ (cpuop_func*)CPUFUNC(op_4e68_13), 20072 }, /* MVUSP2R */
+{ (cpuop_func*)CPUFUNC(op_4e70_13), 20080 }, /* RESET */
+{ (cpuop_func*)CPUFUNC(op_4e71_13), 20081 }, /* NOP */
+{ (cpuop_func*)CPUFUNC(op_4e72_13), 20082 }, /* STOP */
+{ (cpuop_func*)CPUFUNC(op_4e73_14), 20083 }, /* RTE */
+{ (cpuop_func*)CPUFUNC(op_4e74_13), 20084 }, /* RTD */
+{ (cpuop_func*)CPUFUNC(op_4e75_13), 20085 }, /* RTS */
+{ (cpuop_func*)CPUFUNC(op_4e76_13), 20086 }, /* TRAPV */
+{ (cpuop_func*)CPUFUNC(op_4e77_13), 20087 }, /* RTR */
+{ (cpuop_func*)CPUFUNC(op_4e90_13), 20112 }, /* JSR */
+{ (cpuop_func*)CPUFUNC(op_4ea8_13), 20136 }, /* JSR */
+{ (cpuop_func*)CPUFUNC(op_4eb0_13), 20144 }, /* JSR */
+{ (cpuop_func*)CPUFUNC(op_4eb8_13), 20152 }, /* JSR */
+{ (cpuop_func*)CPUFUNC(op_4eb9_13), 20153 }, /* JSR */
+{ (cpuop_func*)CPUFUNC(op_4eba_13), 20154 }, /* JSR */
+{ (cpuop_func*)CPUFUNC(op_4ebb_13), 20155 }, /* JSR */
+{ (cpuop_func*)CPUFUNC(op_4ed0_13), 20176 }, /* JMP */
+{ (cpuop_func*)CPUFUNC(op_4ee8_13), 20200 }, /* JMP */
+{ (cpuop_func*)CPUFUNC(op_4ef0_13), 20208 }, /* JMP */
+{ (cpuop_func*)CPUFUNC(op_4ef8_13), 20216 }, /* JMP */
+{ (cpuop_func*)CPUFUNC(op_4ef9_13), 20217 }, /* JMP */
+{ (cpuop_func*)CPUFUNC(op_4efa_13), 20218 }, /* JMP */
+{ (cpuop_func*)CPUFUNC(op_4efb_13), 20219 }, /* JMP */
+{ (cpuop_func*)CPUFUNC(op_5000_13), 20480 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_5010_13), 20496 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_5018_13), 20504 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_5020_13), 20512 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_5028_13), 20520 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_5030_13), 20528 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_5038_13), 20536 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_5039_13), 20537 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_5040_13), 20544 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_5048_13), 20552 }, /* ADDA */
+{ (cpuop_func*)CPUFUNC(op_5050_13), 20560 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_5058_13), 20568 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_5060_13), 20576 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_5068_13), 20584 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_5070_13), 20592 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_5078_13), 20600 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_5079_13), 20601 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_5080_13), 20608 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_5088_13), 20616 }, /* ADDA */
+{ (cpuop_func*)CPUFUNC(op_5090_13), 20624 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_5098_13), 20632 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_50a0_13), 20640 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_50a8_13), 20648 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_50b0_13), 20656 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_50b8_13), 20664 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_50b9_13), 20665 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_50c0_14), 20672 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_50c8_13), 20680 }, /* DBcc */
+{ (cpuop_func*)CPUFUNC(op_50d0_14), 20688 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_50d8_14), 20696 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_50e0_14), 20704 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_50e8_14), 20712 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_50f0_14), 20720 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_50f8_14), 20728 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_50f9_14), 20729 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5100_13), 20736 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_5110_13), 20752 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_5118_13), 20760 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_5120_13), 20768 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_5128_13), 20776 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_5130_13), 20784 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_5138_13), 20792 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_5139_13), 20793 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_5140_13), 20800 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_5148_13), 20808 }, /* SUBA */
+{ (cpuop_func*)CPUFUNC(op_5150_13), 20816 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_5158_13), 20824 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_5160_13), 20832 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_5168_13), 20840 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_5170_13), 20848 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_5178_13), 20856 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_5179_13), 20857 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_5180_13), 20864 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_5188_13), 20872 }, /* SUBA */
+{ (cpuop_func*)CPUFUNC(op_5190_13), 20880 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_5198_13), 20888 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_51a0_13), 20896 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_51a8_13), 20904 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_51b0_13), 20912 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_51b8_13), 20920 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_51b9_13), 20921 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_51c0_14), 20928 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_51c8_13), 20936 }, /* DBcc */
+{ (cpuop_func*)CPUFUNC(op_51d0_14), 20944 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_51d8_14), 20952 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_51e0_14), 20960 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_51e8_14), 20968 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_51f0_14), 20976 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_51f8_14), 20984 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_51f9_14), 20985 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_52c0_14), 21184 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_52c8_13), 21192 }, /* DBcc */
+{ (cpuop_func*)CPUFUNC(op_52d0_14), 21200 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_52d8_14), 21208 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_52e0_14), 21216 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_52e8_14), 21224 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_52f0_14), 21232 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_52f8_14), 21240 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_52f9_14), 21241 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_53c0_14), 21440 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_53c8_13), 21448 }, /* DBcc */
+{ (cpuop_func*)CPUFUNC(op_53d0_14), 21456 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_53d8_14), 21464 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_53e0_14), 21472 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_53e8_14), 21480 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_53f0_14), 21488 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_53f8_14), 21496 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_53f9_14), 21497 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_54c0_14), 21696 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_54c8_13), 21704 }, /* DBcc */
+{ (cpuop_func*)CPUFUNC(op_54d0_14), 21712 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_54d8_14), 21720 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_54e0_14), 21728 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_54e8_14), 21736 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_54f0_14), 21744 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_54f8_14), 21752 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_54f9_14), 21753 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_55c0_14), 21952 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_55c8_13), 21960 }, /* DBcc */
+{ (cpuop_func*)CPUFUNC(op_55d0_14), 21968 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_55d8_14), 21976 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_55e0_14), 21984 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_55e8_14), 21992 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_55f0_14), 22000 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_55f8_14), 22008 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_55f9_14), 22009 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_56c0_14), 22208 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_56c8_13), 22216 }, /* DBcc */
+{ (cpuop_func*)CPUFUNC(op_56d0_14), 22224 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_56d8_14), 22232 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_56e0_14), 22240 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_56e8_14), 22248 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_56f0_14), 22256 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_56f8_14), 22264 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_56f9_14), 22265 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_57c0_14), 22464 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_57c8_13), 22472 }, /* DBcc */
+{ (cpuop_func*)CPUFUNC(op_57d0_14), 22480 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_57d8_14), 22488 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_57e0_14), 22496 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_57e8_14), 22504 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_57f0_14), 22512 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_57f8_14), 22520 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_57f9_14), 22521 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_58c0_14), 22720 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_58c8_13), 22728 }, /* DBcc */
+{ (cpuop_func*)CPUFUNC(op_58d0_14), 22736 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_58d8_14), 22744 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_58e0_14), 22752 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_58e8_14), 22760 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_58f0_14), 22768 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_58f8_14), 22776 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_58f9_14), 22777 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_59c0_14), 22976 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_59c8_13), 22984 }, /* DBcc */
+{ (cpuop_func*)CPUFUNC(op_59d0_14), 22992 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_59d8_14), 23000 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_59e0_14), 23008 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_59e8_14), 23016 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_59f0_14), 23024 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_59f8_14), 23032 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_59f9_14), 23033 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5ac0_14), 23232 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5ac8_13), 23240 }, /* DBcc */
+{ (cpuop_func*)CPUFUNC(op_5ad0_14), 23248 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5ad8_14), 23256 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5ae0_14), 23264 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5ae8_14), 23272 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5af0_14), 23280 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5af8_14), 23288 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5af9_14), 23289 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5bc0_14), 23488 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5bc8_13), 23496 }, /* DBcc */
+{ (cpuop_func*)CPUFUNC(op_5bd0_14), 23504 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5bd8_14), 23512 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5be0_14), 23520 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5be8_14), 23528 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5bf0_14), 23536 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5bf8_14), 23544 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5bf9_14), 23545 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5cc0_14), 23744 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5cc8_13), 23752 }, /* DBcc */
+{ (cpuop_func*)CPUFUNC(op_5cd0_14), 23760 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5cd8_14), 23768 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5ce0_14), 23776 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5ce8_14), 23784 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5cf0_14), 23792 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5cf8_14), 23800 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5cf9_14), 23801 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5dc0_14), 24000 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5dc8_13), 24008 }, /* DBcc */
+{ (cpuop_func*)CPUFUNC(op_5dd0_14), 24016 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5dd8_14), 24024 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5de0_14), 24032 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5de8_14), 24040 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5df0_14), 24048 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5df8_14), 24056 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5df9_14), 24057 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5ec0_14), 24256 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5ec8_13), 24264 }, /* DBcc */
+{ (cpuop_func*)CPUFUNC(op_5ed0_14), 24272 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5ed8_14), 24280 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5ee0_14), 24288 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5ee8_14), 24296 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5ef0_14), 24304 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5ef8_14), 24312 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5ef9_14), 24313 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5fc0_14), 24512 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5fc8_13), 24520 }, /* DBcc */
+{ (cpuop_func*)CPUFUNC(op_5fd0_14), 24528 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5fd8_14), 24536 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5fe0_14), 24544 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5fe8_14), 24552 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5ff0_14), 24560 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5ff8_14), 24568 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_5ff9_14), 24569 }, /* Scc */
+{ (cpuop_func*)CPUFUNC(op_6000_13), 24576 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6001_13), 24577 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_60ff_13), 24831 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6100_13), 24832 }, /* BSR */
+{ (cpuop_func*)CPUFUNC(op_6101_13), 24833 }, /* BSR */
+{ (cpuop_func*)CPUFUNC(op_61ff_13), 25087 }, /* BSR */
+{ (cpuop_func*)CPUFUNC(op_6200_13), 25088 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6201_13), 25089 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_62ff_13), 25343 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6300_13), 25344 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6301_13), 25345 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_63ff_13), 25599 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6400_13), 25600 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6401_13), 25601 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_64ff_13), 25855 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6500_13), 25856 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6501_13), 25857 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_65ff_13), 26111 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6600_13), 26112 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6601_13), 26113 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_66ff_13), 26367 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6700_13), 26368 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6701_13), 26369 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_67ff_13), 26623 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6800_13), 26624 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6801_13), 26625 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_68ff_13), 26879 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6900_13), 26880 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6901_13), 26881 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_69ff_13), 27135 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6a00_13), 27136 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6a01_13), 27137 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6aff_13), 27391 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6b00_13), 27392 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6b01_13), 27393 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6bff_13), 27647 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6c00_13), 27648 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6c01_13), 27649 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6cff_13), 27903 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6d00_13), 27904 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6d01_13), 27905 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6dff_13), 28159 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6e00_13), 28160 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6e01_13), 28161 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6eff_13), 28415 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6f00_13), 28416 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6f01_13), 28417 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_6fff_13), 28671 }, /* Bcc */
+{ (cpuop_func*)CPUFUNC(op_7000_13), 28672 }, /* MOVE */
+{ (cpuop_func*)CPUFUNC(op_8000_13), 32768 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8010_13), 32784 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8018_13), 32792 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8020_13), 32800 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8028_13), 32808 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8030_13), 32816 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8038_13), 32824 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8039_13), 32825 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_803a_13), 32826 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_803b_13), 32827 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_803c_13), 32828 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8040_13), 32832 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8050_13), 32848 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8058_13), 32856 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8060_13), 32864 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8068_13), 32872 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8070_13), 32880 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8078_13), 32888 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8079_13), 32889 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_807a_13), 32890 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_807b_13), 32891 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_807c_13), 32892 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8080_13), 32896 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8090_13), 32912 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8098_13), 32920 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_80a0_13), 32928 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_80a8_13), 32936 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_80b0_13), 32944 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_80b8_13), 32952 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_80b9_13), 32953 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_80ba_13), 32954 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_80bb_13), 32955 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_80bc_13), 32956 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_80c0_13), 32960 }, /* DIVU */
+{ (cpuop_func*)CPUFUNC(op_80d0_13), 32976 }, /* DIVU */
+{ (cpuop_func*)CPUFUNC(op_80d8_13), 32984 }, /* DIVU */
+{ (cpuop_func*)CPUFUNC(op_80e0_13), 32992 }, /* DIVU */
+{ (cpuop_func*)CPUFUNC(op_80e8_13), 33000 }, /* DIVU */
+{ (cpuop_func*)CPUFUNC(op_80f0_13), 33008 }, /* DIVU */
+{ (cpuop_func*)CPUFUNC(op_80f8_13), 33016 }, /* DIVU */
+{ (cpuop_func*)CPUFUNC(op_80f9_13), 33017 }, /* DIVU */
+{ (cpuop_func*)CPUFUNC(op_80fa_13), 33018 }, /* DIVU */
+{ (cpuop_func*)CPUFUNC(op_80fb_13), 33019 }, /* DIVU */
+{ (cpuop_func*)CPUFUNC(op_80fc_13), 33020 }, /* DIVU */
+{ (cpuop_func*)CPUFUNC(op_8100_13), 33024 }, /* SBCD */
+{ (cpuop_func*)CPUFUNC(op_8108_13), 33032 }, /* SBCD */
+{ (cpuop_func*)CPUFUNC(op_8110_13), 33040 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8118_13), 33048 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8120_13), 33056 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8128_13), 33064 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8130_13), 33072 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8138_13), 33080 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8139_13), 33081 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8150_13), 33104 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8158_13), 33112 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8160_13), 33120 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8168_13), 33128 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8170_13), 33136 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8178_13), 33144 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8179_13), 33145 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8190_13), 33168 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_8198_13), 33176 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_81a0_13), 33184 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_81a8_13), 33192 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_81b0_13), 33200 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_81b8_13), 33208 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_81b9_13), 33209 }, /* OR */
+{ (cpuop_func*)CPUFUNC(op_81c0_13), 33216 }, /* DIVS */
+{ (cpuop_func*)CPUFUNC(op_81d0_13), 33232 }, /* DIVS */
+{ (cpuop_func*)CPUFUNC(op_81d8_13), 33240 }, /* DIVS */
+{ (cpuop_func*)CPUFUNC(op_81e0_13), 33248 }, /* DIVS */
+{ (cpuop_func*)CPUFUNC(op_81e8_13), 33256 }, /* DIVS */
+{ (cpuop_func*)CPUFUNC(op_81f0_13), 33264 }, /* DIVS */
+{ (cpuop_func*)CPUFUNC(op_81f8_13), 33272 }, /* DIVS */
+{ (cpuop_func*)CPUFUNC(op_81f9_13), 33273 }, /* DIVS */
+{ (cpuop_func*)CPUFUNC(op_81fa_13), 33274 }, /* DIVS */
+{ (cpuop_func*)CPUFUNC(op_81fb_13), 33275 }, /* DIVS */
+{ (cpuop_func*)CPUFUNC(op_81fc_13), 33276 }, /* DIVS */
+{ (cpuop_func*)CPUFUNC(op_9000_13), 36864 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9010_13), 36880 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9018_13), 36888 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9020_13), 36896 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9028_13), 36904 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9030_13), 36912 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9038_13), 36920 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9039_13), 36921 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_903a_13), 36922 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_903b_13), 36923 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_903c_13), 36924 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9040_13), 36928 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9048_13), 36936 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9050_13), 36944 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9058_13), 36952 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9060_13), 36960 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9068_13), 36968 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9070_13), 36976 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9078_13), 36984 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9079_13), 36985 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_907a_13), 36986 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_907b_13), 36987 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_907c_13), 36988 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9080_13), 36992 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9088_13), 37000 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9090_13), 37008 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9098_13), 37016 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_90a0_13), 37024 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_90a8_13), 37032 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_90b0_13), 37040 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_90b8_13), 37048 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_90b9_13), 37049 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_90ba_13), 37050 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_90bb_13), 37051 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_90bc_13), 37052 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_90c0_13), 37056 }, /* SUBA */
+{ (cpuop_func*)CPUFUNC(op_90c8_13), 37064 }, /* SUBA */
+{ (cpuop_func*)CPUFUNC(op_90d0_13), 37072 }, /* SUBA */
+{ (cpuop_func*)CPUFUNC(op_90d8_13), 37080 }, /* SUBA */
+{ (cpuop_func*)CPUFUNC(op_90e0_13), 37088 }, /* SUBA */
+{ (cpuop_func*)CPUFUNC(op_90e8_13), 37096 }, /* SUBA */
+{ (cpuop_func*)CPUFUNC(op_90f0_13), 37104 }, /* SUBA */
+{ (cpuop_func*)CPUFUNC(op_90f8_13), 37112 }, /* SUBA */
+{ (cpuop_func*)CPUFUNC(op_90f9_13), 37113 }, /* SUBA */
+{ (cpuop_func*)CPUFUNC(op_90fa_13), 37114 }, /* SUBA */
+{ (cpuop_func*)CPUFUNC(op_90fb_13), 37115 }, /* SUBA */
+{ (cpuop_func*)CPUFUNC(op_90fc_13), 37116 }, /* SUBA */
+{ (cpuop_func*)CPUFUNC(op_9100_13), 37120 }, /* SUBX */
+{ (cpuop_func*)CPUFUNC(op_9108_13), 37128 }, /* SUBX */
+{ (cpuop_func*)CPUFUNC(op_9110_13), 37136 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9118_13), 37144 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9120_13), 37152 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9128_13), 37160 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9130_13), 37168 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9138_13), 37176 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9139_13), 37177 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9140_13), 37184 }, /* SUBX */
+{ (cpuop_func*)CPUFUNC(op_9148_13), 37192 }, /* SUBX */
+{ (cpuop_func*)CPUFUNC(op_9150_13), 37200 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9158_13), 37208 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9160_13), 37216 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9168_13), 37224 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9170_13), 37232 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9178_13), 37240 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9179_13), 37241 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9180_13), 37248 }, /* SUBX */
+{ (cpuop_func*)CPUFUNC(op_9188_13), 37256 }, /* SUBX */
+{ (cpuop_func*)CPUFUNC(op_9190_13), 37264 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_9198_13), 37272 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_91a0_13), 37280 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_91a8_13), 37288 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_91b0_13), 37296 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_91b8_13), 37304 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_91b9_13), 37305 }, /* SUB */
+{ (cpuop_func*)CPUFUNC(op_91c0_13), 37312 }, /* SUBA */
+{ (cpuop_func*)CPUFUNC(op_91c8_13), 37320 }, /* SUBA */
+{ (cpuop_func*)CPUFUNC(op_91d0_13), 37328 }, /* SUBA */
+{ (cpuop_func*)CPUFUNC(op_91d8_13), 37336 }, /* SUBA */
+{ (cpuop_func*)CPUFUNC(op_91e0_13), 37344 }, /* SUBA */
+{ (cpuop_func*)CPUFUNC(op_91e8_13), 37352 }, /* SUBA */
+{ (cpuop_func*)CPUFUNC(op_91f0_13), 37360 }, /* SUBA */
+{ (cpuop_func*)CPUFUNC(op_91f8_13), 37368 }, /* SUBA */
+{ (cpuop_func*)CPUFUNC(op_91f9_13), 37369 }, /* SUBA */
+{ (cpuop_func*)CPUFUNC(op_91fa_13), 37370 }, /* SUBA */
+{ (cpuop_func*)CPUFUNC(op_91fb_13), 37371 }, /* SUBA */
+{ (cpuop_func*)CPUFUNC(op_91fc_13), 37372 }, /* SUBA */
+{ (cpuop_func*)CPUFUNC(op_b000_13), 45056 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b010_13), 45072 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b018_13), 45080 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b020_13), 45088 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b028_13), 45096 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b030_13), 45104 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b038_13), 45112 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b039_13), 45113 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b03a_13), 45114 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b03b_13), 45115 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b03c_13), 45116 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b040_13), 45120 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b048_13), 45128 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b050_13), 45136 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b058_13), 45144 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b060_13), 45152 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b068_13), 45160 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b070_13), 45168 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b078_13), 45176 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b079_13), 45177 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b07a_13), 45178 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b07b_13), 45179 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b07c_13), 45180 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b080_13), 45184 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b088_13), 45192 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b090_13), 45200 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b098_13), 45208 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b0a0_13), 45216 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b0a8_13), 45224 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b0b0_13), 45232 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b0b8_13), 45240 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b0b9_13), 45241 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b0ba_13), 45242 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b0bb_13), 45243 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b0bc_13), 45244 }, /* CMP */
+{ (cpuop_func*)CPUFUNC(op_b0c0_13), 45248 }, /* CMPA */
+{ (cpuop_func*)CPUFUNC(op_b0c8_13), 45256 }, /* CMPA */
+{ (cpuop_func*)CPUFUNC(op_b0d0_13), 45264 }, /* CMPA */
+{ (cpuop_func*)CPUFUNC(op_b0d8_13), 45272 }, /* CMPA */
+{ (cpuop_func*)CPUFUNC(op_b0e0_13), 45280 }, /* CMPA */
+{ (cpuop_func*)CPUFUNC(op_b0e8_13), 45288 }, /* CMPA */
+{ (cpuop_func*)CPUFUNC(op_b0f0_13), 45296 }, /* CMPA */
+{ (cpuop_func*)CPUFUNC(op_b0f8_13), 45304 }, /* CMPA */
+{ (cpuop_func*)CPUFUNC(op_b0f9_13), 45305 }, /* CMPA */
+{ (cpuop_func*)CPUFUNC(op_b0fa_13), 45306 }, /* CMPA */
+{ (cpuop_func*)CPUFUNC(op_b0fb_13), 45307 }, /* CMPA */
+{ (cpuop_func*)CPUFUNC(op_b0fc_13), 45308 }, /* CMPA */
+{ (cpuop_func*)CPUFUNC(op_b100_13), 45312 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_b108_13), 45320 }, /* CMPM */
+{ (cpuop_func*)CPUFUNC(op_b110_13), 45328 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_b118_13), 45336 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_b120_13), 45344 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_b128_13), 45352 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_b130_13), 45360 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_b138_13), 45368 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_b139_13), 45369 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_b140_13), 45376 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_b148_13), 45384 }, /* CMPM */
+{ (cpuop_func*)CPUFUNC(op_b150_13), 45392 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_b158_13), 45400 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_b160_13), 45408 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_b168_13), 45416 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_b170_13), 45424 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_b178_13), 45432 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_b179_13), 45433 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_b180_13), 45440 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_b188_13), 45448 }, /* CMPM */
+{ (cpuop_func*)CPUFUNC(op_b190_13), 45456 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_b198_13), 45464 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_b1a0_13), 45472 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_b1a8_13), 45480 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_b1b0_13), 45488 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_b1b8_13), 45496 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_b1b9_13), 45497 }, /* EOR */
+{ (cpuop_func*)CPUFUNC(op_b1c0_13), 45504 }, /* CMPA */
+{ (cpuop_func*)CPUFUNC(op_b1c8_13), 45512 }, /* CMPA */
+{ (cpuop_func*)CPUFUNC(op_b1d0_13), 45520 }, /* CMPA */
+{ (cpuop_func*)CPUFUNC(op_b1d8_13), 45528 }, /* CMPA */
+{ (cpuop_func*)CPUFUNC(op_b1e0_13), 45536 }, /* CMPA */
+{ (cpuop_func*)CPUFUNC(op_b1e8_13), 45544 }, /* CMPA */
+{ (cpuop_func*)CPUFUNC(op_b1f0_13), 45552 }, /* CMPA */
+{ (cpuop_func*)CPUFUNC(op_b1f8_13), 45560 }, /* CMPA */
+{ (cpuop_func*)CPUFUNC(op_b1f9_13), 45561 }, /* CMPA */
+{ (cpuop_func*)CPUFUNC(op_b1fa_13), 45562 }, /* CMPA */
+{ (cpuop_func*)CPUFUNC(op_b1fb_13), 45563 }, /* CMPA */
+{ (cpuop_func*)CPUFUNC(op_b1fc_13), 45564 }, /* CMPA */
+{ (cpuop_func*)CPUFUNC(op_c000_13), 49152 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c010_13), 49168 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c018_13), 49176 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c020_13), 49184 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c028_13), 49192 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c030_13), 49200 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c038_13), 49208 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c039_13), 49209 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c03a_13), 49210 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c03b_13), 49211 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c03c_13), 49212 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c040_13), 49216 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c050_13), 49232 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c058_13), 49240 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c060_13), 49248 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c068_13), 49256 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c070_13), 49264 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c078_13), 49272 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c079_13), 49273 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c07a_13), 49274 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c07b_13), 49275 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c07c_13), 49276 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c080_13), 49280 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c090_13), 49296 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c098_13), 49304 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c0a0_13), 49312 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c0a8_13), 49320 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c0b0_13), 49328 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c0b8_13), 49336 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c0b9_13), 49337 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c0ba_13), 49338 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c0bb_13), 49339 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c0bc_13), 49340 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c0c0_13), 49344 }, /* MULU */
+{ (cpuop_func*)CPUFUNC(op_c0d0_13), 49360 }, /* MULU */
+{ (cpuop_func*)CPUFUNC(op_c0d8_13), 49368 }, /* MULU */
+{ (cpuop_func*)CPUFUNC(op_c0e0_13), 49376 }, /* MULU */
+{ (cpuop_func*)CPUFUNC(op_c0e8_13), 49384 }, /* MULU */
+{ (cpuop_func*)CPUFUNC(op_c0f0_13), 49392 }, /* MULU */
+{ (cpuop_func*)CPUFUNC(op_c0f8_13), 49400 }, /* MULU */
+{ (cpuop_func*)CPUFUNC(op_c0f9_13), 49401 }, /* MULU */
+{ (cpuop_func*)CPUFUNC(op_c0fa_13), 49402 }, /* MULU */
+{ (cpuop_func*)CPUFUNC(op_c0fb_13), 49403 }, /* MULU */
+{ (cpuop_func*)CPUFUNC(op_c0fc_13), 49404 }, /* MULU */
+{ (cpuop_func*)CPUFUNC(op_c100_13), 49408 }, /* ABCD */
+{ (cpuop_func*)CPUFUNC(op_c108_13), 49416 }, /* ABCD */
+{ (cpuop_func*)CPUFUNC(op_c110_13), 49424 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c118_13), 49432 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c120_13), 49440 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c128_13), 49448 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c130_13), 49456 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c138_13), 49464 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c139_13), 49465 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c140_13), 49472 }, /* EXG */
+{ (cpuop_func*)CPUFUNC(op_c148_13), 49480 }, /* EXG */
+{ (cpuop_func*)CPUFUNC(op_c150_13), 49488 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c158_13), 49496 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c160_13), 49504 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c168_13), 49512 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c170_13), 49520 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c178_13), 49528 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c179_13), 49529 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c188_13), 49544 }, /* EXG */
+{ (cpuop_func*)CPUFUNC(op_c190_13), 49552 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c198_13), 49560 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c1a0_13), 49568 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c1a8_13), 49576 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c1b0_13), 49584 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c1b8_13), 49592 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c1b9_13), 49593 }, /* AND */
+{ (cpuop_func*)CPUFUNC(op_c1c0_13), 49600 }, /* MULS */
+{ (cpuop_func*)CPUFUNC(op_c1d0_13), 49616 }, /* MULS */
+{ (cpuop_func*)CPUFUNC(op_c1d8_13), 49624 }, /* MULS */
+{ (cpuop_func*)CPUFUNC(op_c1e0_13), 49632 }, /* MULS */
+{ (cpuop_func*)CPUFUNC(op_c1e8_13), 49640 }, /* MULS */
+{ (cpuop_func*)CPUFUNC(op_c1f0_13), 49648 }, /* MULS */
+{ (cpuop_func*)CPUFUNC(op_c1f8_13), 49656 }, /* MULS */
+{ (cpuop_func*)CPUFUNC(op_c1f9_13), 49657 }, /* MULS */
+{ (cpuop_func*)CPUFUNC(op_c1fa_13), 49658 }, /* MULS */
+{ (cpuop_func*)CPUFUNC(op_c1fb_13), 49659 }, /* MULS */
+{ (cpuop_func*)CPUFUNC(op_c1fc_13), 49660 }, /* MULS */
+{ (cpuop_func*)CPUFUNC(op_d000_13), 53248 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d010_13), 53264 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d018_13), 53272 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d020_13), 53280 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d028_13), 53288 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d030_13), 53296 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d038_13), 53304 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d039_13), 53305 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d03a_13), 53306 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d03b_13), 53307 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d03c_13), 53308 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d040_13), 53312 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d048_13), 53320 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d050_13), 53328 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d058_13), 53336 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d060_13), 53344 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d068_13), 53352 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d070_13), 53360 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d078_13), 53368 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d079_13), 53369 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d07a_13), 53370 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d07b_13), 53371 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d07c_13), 53372 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d080_13), 53376 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d088_13), 53384 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d090_13), 53392 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d098_13), 53400 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d0a0_13), 53408 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d0a8_13), 53416 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d0b0_13), 53424 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d0b8_13), 53432 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d0b9_13), 53433 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d0ba_13), 53434 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d0bb_13), 53435 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d0bc_13), 53436 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d0c0_13), 53440 }, /* ADDA */
+{ (cpuop_func*)CPUFUNC(op_d0c8_13), 53448 }, /* ADDA */
+{ (cpuop_func*)CPUFUNC(op_d0d0_13), 53456 }, /* ADDA */
+{ (cpuop_func*)CPUFUNC(op_d0d8_13), 53464 }, /* ADDA */
+{ (cpuop_func*)CPUFUNC(op_d0e0_13), 53472 }, /* ADDA */
+{ (cpuop_func*)CPUFUNC(op_d0e8_13), 53480 }, /* ADDA */
+{ (cpuop_func*)CPUFUNC(op_d0f0_13), 53488 }, /* ADDA */
+{ (cpuop_func*)CPUFUNC(op_d0f8_13), 53496 }, /* ADDA */
+{ (cpuop_func*)CPUFUNC(op_d0f9_13), 53497 }, /* ADDA */
+{ (cpuop_func*)CPUFUNC(op_d0fa_13), 53498 }, /* ADDA */
+{ (cpuop_func*)CPUFUNC(op_d0fb_13), 53499 }, /* ADDA */
+{ (cpuop_func*)CPUFUNC(op_d0fc_13), 53500 }, /* ADDA */
+{ (cpuop_func*)CPUFUNC(op_d100_13), 53504 }, /* ADDX */
+{ (cpuop_func*)CPUFUNC(op_d108_13), 53512 }, /* ADDX */
+{ (cpuop_func*)CPUFUNC(op_d110_13), 53520 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d118_13), 53528 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d120_13), 53536 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d128_13), 53544 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d130_13), 53552 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d138_13), 53560 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d139_13), 53561 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d140_13), 53568 }, /* ADDX */
+{ (cpuop_func*)CPUFUNC(op_d148_13), 53576 }, /* ADDX */
+{ (cpuop_func*)CPUFUNC(op_d150_13), 53584 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d158_13), 53592 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d160_13), 53600 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d168_13), 53608 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d170_13), 53616 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d178_13), 53624 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d179_13), 53625 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d180_13), 53632 }, /* ADDX */
+{ (cpuop_func*)CPUFUNC(op_d188_13), 53640 }, /* ADDX */
+{ (cpuop_func*)CPUFUNC(op_d190_13), 53648 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d198_13), 53656 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d1a0_13), 53664 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d1a8_13), 53672 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d1b0_13), 53680 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d1b8_13), 53688 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d1b9_13), 53689 }, /* ADD */
+{ (cpuop_func*)CPUFUNC(op_d1c0_13), 53696 }, /* ADDA */
+{ (cpuop_func*)CPUFUNC(op_d1c8_13), 53704 }, /* ADDA */
+{ (cpuop_func*)CPUFUNC(op_d1d0_13), 53712 }, /* ADDA */
+{ (cpuop_func*)CPUFUNC(op_d1d8_13), 53720 }, /* ADDA */
+{ (cpuop_func*)CPUFUNC(op_d1e0_13), 53728 }, /* ADDA */
+{ (cpuop_func*)CPUFUNC(op_d1e8_13), 53736 }, /* ADDA */
+{ (cpuop_func*)CPUFUNC(op_d1f0_13), 53744 }, /* ADDA */
+{ (cpuop_func*)CPUFUNC(op_d1f8_13), 53752 }, /* ADDA */
+{ (cpuop_func*)CPUFUNC(op_d1f9_13), 53753 }, /* ADDA */
+{ (cpuop_func*)CPUFUNC(op_d1fa_13), 53754 }, /* ADDA */
+{ (cpuop_func*)CPUFUNC(op_d1fb_13), 53755 }, /* ADDA */
+{ (cpuop_func*)CPUFUNC(op_d1fc_13), 53756 }, /* ADDA */
+{ (cpuop_func*)CPUFUNC(op_e000_13), 57344 }, /* ASR */
+{ (cpuop_func*)CPUFUNC(op_e008_13), 57352 }, /* LSR */
+{ (cpuop_func*)CPUFUNC(op_e010_13), 57360 }, /* ROXR */
+{ (cpuop_func*)CPUFUNC(op_e018_13), 57368 }, /* ROR */
+{ (cpuop_func*)CPUFUNC(op_e020_13), 57376 }, /* ASR */
+{ (cpuop_func*)CPUFUNC(op_e028_13), 57384 }, /* LSR */
+{ (cpuop_func*)CPUFUNC(op_e030_13), 57392 }, /* ROXR */
+{ (cpuop_func*)CPUFUNC(op_e038_13), 57400 }, /* ROR */
+{ (cpuop_func*)CPUFUNC(op_e040_13), 57408 }, /* ASR */
+{ (cpuop_func*)CPUFUNC(op_e048_13), 57416 }, /* LSR */
+{ (cpuop_func*)CPUFUNC(op_e050_13), 57424 }, /* ROXR */
+{ (cpuop_func*)CPUFUNC(op_e058_13), 57432 }, /* ROR */
+{ (cpuop_func*)CPUFUNC(op_e060_13), 57440 }, /* ASR */
+{ (cpuop_func*)CPUFUNC(op_e068_13), 57448 }, /* LSR */
+{ (cpuop_func*)CPUFUNC(op_e070_13), 57456 }, /* ROXR */
+{ (cpuop_func*)CPUFUNC(op_e078_13), 57464 }, /* ROR */
+{ (cpuop_func*)CPUFUNC(op_e080_13), 57472 }, /* ASR */
+{ (cpuop_func*)CPUFUNC(op_e088_13), 57480 }, /* LSR */
+{ (cpuop_func*)CPUFUNC(op_e090_13), 57488 }, /* ROXR */
+{ (cpuop_func*)CPUFUNC(op_e098_13), 57496 }, /* ROR */
+{ (cpuop_func*)CPUFUNC(op_e0a0_13), 57504 }, /* ASR */
+{ (cpuop_func*)CPUFUNC(op_e0a8_13), 57512 }, /* LSR */
+{ (cpuop_func*)CPUFUNC(op_e0b0_13), 57520 }, /* ROXR */
+{ (cpuop_func*)CPUFUNC(op_e0b8_13), 57528 }, /* ROR */
+{ (cpuop_func*)CPUFUNC(op_e0d0_13), 57552 }, /* ASRW */
+{ (cpuop_func*)CPUFUNC(op_e0d8_13), 57560 }, /* ASRW */
+{ (cpuop_func*)CPUFUNC(op_e0e0_13), 57568 }, /* ASRW */
+{ (cpuop_func*)CPUFUNC(op_e0e8_13), 57576 }, /* ASRW */
+{ (cpuop_func*)CPUFUNC(op_e0f0_13), 57584 }, /* ASRW */
+{ (cpuop_func*)CPUFUNC(op_e0f8_13), 57592 }, /* ASRW */
+{ (cpuop_func*)CPUFUNC(op_e0f9_13), 57593 }, /* ASRW */
+{ (cpuop_func*)CPUFUNC(op_e100_13), 57600 }, /* ASL */
+{ (cpuop_func*)CPUFUNC(op_e108_13), 57608 }, /* LSL */
+{ (cpuop_func*)CPUFUNC(op_e110_13), 57616 }, /* ROXL */
+{ (cpuop_func*)CPUFUNC(op_e118_13), 57624 }, /* ROL */
+{ (cpuop_func*)CPUFUNC(op_e120_13), 57632 }, /* ASL */
+{ (cpuop_func*)CPUFUNC(op_e128_13), 57640 }, /* LSL */
+{ (cpuop_func*)CPUFUNC(op_e130_13), 57648 }, /* ROXL */
+{ (cpuop_func*)CPUFUNC(op_e138_13), 57656 }, /* ROL */
+{ (cpuop_func*)CPUFUNC(op_e140_13), 57664 }, /* ASL */
+{ (cpuop_func*)CPUFUNC(op_e148_13), 57672 }, /* LSL */
+{ (cpuop_func*)CPUFUNC(op_e150_13), 57680 }, /* ROXL */
+{ (cpuop_func*)CPUFUNC(op_e158_13), 57688 }, /* ROL */
+{ (cpuop_func*)CPUFUNC(op_e160_13), 57696 }, /* ASL */
+{ (cpuop_func*)CPUFUNC(op_e168_13), 57704 }, /* LSL */
+{ (cpuop_func*)CPUFUNC(op_e170_13), 57712 }, /* ROXL */
+{ (cpuop_func*)CPUFUNC(op_e178_13), 57720 }, /* ROL */
+{ (cpuop_func*)CPUFUNC(op_e180_13), 57728 }, /* ASL */
+{ (cpuop_func*)CPUFUNC(op_e188_13), 57736 }, /* LSL */
+{ (cpuop_func*)CPUFUNC(op_e190_13), 57744 }, /* ROXL */
+{ (cpuop_func*)CPUFUNC(op_e198_13), 57752 }, /* ROL */
+{ (cpuop_func*)CPUFUNC(op_e1a0_13), 57760 }, /* ASL */
+{ (cpuop_func*)CPUFUNC(op_e1a8_13), 57768 }, /* LSL */
+{ (cpuop_func*)CPUFUNC(op_e1b0_13), 57776 }, /* ROXL */
+{ (cpuop_func*)CPUFUNC(op_e1b8_13), 57784 }, /* ROL */
+{ (cpuop_func*)CPUFUNC(op_e1d0_13), 57808 }, /* ASLW */
+{ (cpuop_func*)CPUFUNC(op_e1d8_13), 57816 }, /* ASLW */
+{ (cpuop_func*)CPUFUNC(op_e1e0_13), 57824 }, /* ASLW */
+{ (cpuop_func*)CPUFUNC(op_e1e8_13), 57832 }, /* ASLW */
+{ (cpuop_func*)CPUFUNC(op_e1f0_13), 57840 }, /* ASLW */
+{ (cpuop_func*)CPUFUNC(op_e1f8_13), 57848 }, /* ASLW */
+{ (cpuop_func*)CPUFUNC(op_e1f9_13), 57849 }, /* ASLW */
+{ (cpuop_func*)CPUFUNC(op_e2d0_13), 58064 }, /* LSRW */
+{ (cpuop_func*)CPUFUNC(op_e2d8_13), 58072 }, /* LSRW */
+{ (cpuop_func*)CPUFUNC(op_e2e0_13), 58080 }, /* LSRW */
+{ (cpuop_func*)CPUFUNC(op_e2e8_13), 58088 }, /* LSRW */
+{ (cpuop_func*)CPUFUNC(op_e2f0_13), 58096 }, /* LSRW */
+{ (cpuop_func*)CPUFUNC(op_e2f8_13), 58104 }, /* LSRW */
+{ (cpuop_func*)CPUFUNC(op_e2f9_13), 58105 }, /* LSRW */
+{ (cpuop_func*)CPUFUNC(op_e3d0_13), 58320 }, /* LSLW */
+{ (cpuop_func*)CPUFUNC(op_e3d8_13), 58328 }, /* LSLW */
+{ (cpuop_func*)CPUFUNC(op_e3e0_13), 58336 }, /* LSLW */
+{ (cpuop_func*)CPUFUNC(op_e3e8_13), 58344 }, /* LSLW */
+{ (cpuop_func*)CPUFUNC(op_e3f0_13), 58352 }, /* LSLW */
+{ (cpuop_func*)CPUFUNC(op_e3f8_13), 58360 }, /* LSLW */
+{ (cpuop_func*)CPUFUNC(op_e3f9_13), 58361 }, /* LSLW */
+{ (cpuop_func*)CPUFUNC(op_e4d0_13), 58576 }, /* ROXRW */
+{ (cpuop_func*)CPUFUNC(op_e4d8_13), 58584 }, /* ROXRW */
+{ (cpuop_func*)CPUFUNC(op_e4e0_13), 58592 }, /* ROXRW */
+{ (cpuop_func*)CPUFUNC(op_e4e8_13), 58600 }, /* ROXRW */
+{ (cpuop_func*)CPUFUNC(op_e4f0_13), 58608 }, /* ROXRW */
+{ (cpuop_func*)CPUFUNC(op_e4f8_13), 58616 }, /* ROXRW */
+{ (cpuop_func*)CPUFUNC(op_e4f9_13), 58617 }, /* ROXRW */
+{ (cpuop_func*)CPUFUNC(op_e5d0_13), 58832 }, /* ROXLW */
+{ (cpuop_func*)CPUFUNC(op_e5d8_13), 58840 }, /* ROXLW */
+{ (cpuop_func*)CPUFUNC(op_e5e0_13), 58848 }, /* ROXLW */
+{ (cpuop_func*)CPUFUNC(op_e5e8_13), 58856 }, /* ROXLW */
+{ (cpuop_func*)CPUFUNC(op_e5f0_13), 58864 }, /* ROXLW */
+{ (cpuop_func*)CPUFUNC(op_e5f8_13), 58872 }, /* ROXLW */
+{ (cpuop_func*)CPUFUNC(op_e5f9_13), 58873 }, /* ROXLW */
+{ (cpuop_func*)CPUFUNC(op_e6d0_13), 59088 }, /* RORW */
+{ (cpuop_func*)CPUFUNC(op_e6d8_13), 59096 }, /* RORW */
+{ (cpuop_func*)CPUFUNC(op_e6e0_13), 59104 }, /* RORW */
+{ (cpuop_func*)CPUFUNC(op_e6e8_13), 59112 }, /* RORW */
+{ (cpuop_func*)CPUFUNC(op_e6f0_13), 59120 }, /* RORW */
+{ (cpuop_func*)CPUFUNC(op_e6f8_13), 59128 }, /* RORW */
+{ (cpuop_func*)CPUFUNC(op_e6f9_13), 59129 }, /* RORW */
+{ (cpuop_func*)CPUFUNC(op_e7d0_13), 59344 }, /* ROLW */
+{ (cpuop_func*)CPUFUNC(op_e7d8_13), 59352 }, /* ROLW */
+{ (cpuop_func*)CPUFUNC(op_e7e0_13), 59360 }, /* ROLW */
+{ (cpuop_func*)CPUFUNC(op_e7e8_13), 59368 }, /* ROLW */
+{ (cpuop_func*)CPUFUNC(op_e7f0_13), 59376 }, /* ROLW */
+{ (cpuop_func*)CPUFUNC(op_e7f8_13), 59384 }, /* ROLW */
+{ (cpuop_func*)CPUFUNC(op_e7f9_13), 59385 }, /* ROLW */
+{ 0, 0 }};
 #ifdef CPUEMU_20
 #ifndef CPUEMU_68000_ONLY
 const struct cputbl CPUFUNC(op_smalltbl_20)[] = {
@@ -14640,7 +17779,6 @@ const struct cputbl CPUFUNC(op_smalltbl_20)[] = {
 { CPUFUNC(op_0839_20), 2105 }, /* BTST */
 { CPUFUNC(op_083a_20), 2106 }, /* BTST */
 { CPUFUNC(op_083b_20), 2107 }, /* BTST */
-{ CPUFUNC(op_083c_20), 2108 }, /* BTST */
 { CPUFUNC(op_0840_20), 2112 }, /* BCHG */
 { CPUFUNC(op_0850_20), 2128 }, /* BCHG */
 { CPUFUNC(op_0858_20), 2136 }, /* BCHG */
@@ -15429,7 +18567,6 @@ const struct cputbl CPUFUNC(op_smalltbl_20)[] = {
 #ifndef CPUEMU_68000_ONLY
 { CPUFUNC(op_4a3b_20), 19003 }, /* TST */
 #endif
-{ CPUFUNC(op_4a3c_20), 19004 }, /* TST */
 { CPUFUNC(op_4a40_20), 19008 }, /* TST */
 #ifndef CPUEMU_68000_ONLY
 { CPUFUNC(op_4a48_20), 19016 }, /* TST */
@@ -15447,7 +18584,6 @@ const struct cputbl CPUFUNC(op_smalltbl_20)[] = {
 #ifndef CPUEMU_68000_ONLY
 { CPUFUNC(op_4a7b_20), 19067 }, /* TST */
 #endif
-{ CPUFUNC(op_4a7c_20), 19068 }, /* TST */
 { CPUFUNC(op_4a80_20), 19072 }, /* TST */
 #ifndef CPUEMU_68000_ONLY
 { CPUFUNC(op_4a88_20), 19080 }, /* TST */
@@ -15465,7 +18601,6 @@ const struct cputbl CPUFUNC(op_smalltbl_20)[] = {
 #ifndef CPUEMU_68000_ONLY
 { CPUFUNC(op_4abb_20), 19131 }, /* TST */
 #endif
-{ CPUFUNC(op_4abc_20), 19132 }, /* TST */
 { CPUFUNC(op_4ac0_20), 19136 }, /* TAS */
 { CPUFUNC(op_4ad0_20), 19152 }, /* TAS */
 { CPUFUNC(op_4ad8_20), 19160 }, /* TAS */
@@ -17050,7 +20185,6 @@ const struct cputbl CPUFUNC(op_smalltbl_21)[] = {
 { (cpuop_func*)CPUFUNC(op_0839_21), 2105 }, /* BTST */
 { (cpuop_func*)CPUFUNC(op_083a_21), 2106 }, /* BTST */
 { (cpuop_func*)CPUFUNC(op_083b_21), 2107 }, /* BTST */
-{ (cpuop_func*)CPUFUNC(op_083c_21), 2108 }, /* BTST */
 { (cpuop_func*)CPUFUNC(op_0840_21), 2112 }, /* BCHG */
 { (cpuop_func*)CPUFUNC(op_0850_21), 2128 }, /* BCHG */
 { (cpuop_func*)CPUFUNC(op_0858_21), 2136 }, /* BCHG */
@@ -17839,7 +20973,6 @@ const struct cputbl CPUFUNC(op_smalltbl_21)[] = {
 #ifndef CPUEMU_68000_ONLY
 { (cpuop_func*)CPUFUNC(op_4a3b_21), 19003 }, /* TST */
 #endif
-{ (cpuop_func*)CPUFUNC(op_4a3c_21), 19004 }, /* TST */
 { (cpuop_func*)CPUFUNC(op_4a40_21), 19008 }, /* TST */
 #ifndef CPUEMU_68000_ONLY
 { (cpuop_func*)CPUFUNC(op_4a48_21), 19016 }, /* TST */
@@ -17857,7 +20990,6 @@ const struct cputbl CPUFUNC(op_smalltbl_21)[] = {
 #ifndef CPUEMU_68000_ONLY
 { (cpuop_func*)CPUFUNC(op_4a7b_21), 19067 }, /* TST */
 #endif
-{ (cpuop_func*)CPUFUNC(op_4a7c_21), 19068 }, /* TST */
 { (cpuop_func*)CPUFUNC(op_4a80_21), 19072 }, /* TST */
 #ifndef CPUEMU_68000_ONLY
 { (cpuop_func*)CPUFUNC(op_4a88_21), 19080 }, /* TST */
@@ -17875,7 +21007,6 @@ const struct cputbl CPUFUNC(op_smalltbl_21)[] = {
 #ifndef CPUEMU_68000_ONLY
 { (cpuop_func*)CPUFUNC(op_4abb_21), 19131 }, /* TST */
 #endif
-{ (cpuop_func*)CPUFUNC(op_4abc_21), 19132 }, /* TST */
 { (cpuop_func*)CPUFUNC(op_4ac0_21), 19136 }, /* TAS */
 { (cpuop_func*)CPUFUNC(op_4ad0_21), 19152 }, /* TAS */
 { (cpuop_func*)CPUFUNC(op_4ad8_21), 19160 }, /* TAS */
@@ -19460,7 +22591,6 @@ const struct cputbl CPUFUNC(op_smalltbl_22)[] = {
 { (cpuop_func*)CPUFUNC(op_0839_22), 2105 }, /* BTST */
 { (cpuop_func*)CPUFUNC(op_083a_22), 2106 }, /* BTST */
 { (cpuop_func*)CPUFUNC(op_083b_22), 2107 }, /* BTST */
-{ (cpuop_func*)CPUFUNC(op_083c_22), 2108 }, /* BTST */
 { (cpuop_func*)CPUFUNC(op_0840_22), 2112 }, /* BCHG */
 { (cpuop_func*)CPUFUNC(op_0850_22), 2128 }, /* BCHG */
 { (cpuop_func*)CPUFUNC(op_0858_22), 2136 }, /* BCHG */
@@ -20249,7 +23379,6 @@ const struct cputbl CPUFUNC(op_smalltbl_22)[] = {
 #ifndef CPUEMU_68000_ONLY
 { (cpuop_func*)CPUFUNC(op_4a3b_22), 19003 }, /* TST */
 #endif
-{ (cpuop_func*)CPUFUNC(op_4a3c_22), 19004 }, /* TST */
 { (cpuop_func*)CPUFUNC(op_4a40_22), 19008 }, /* TST */
 #ifndef CPUEMU_68000_ONLY
 { (cpuop_func*)CPUFUNC(op_4a48_22), 19016 }, /* TST */
@@ -20267,7 +23396,6 @@ const struct cputbl CPUFUNC(op_smalltbl_22)[] = {
 #ifndef CPUEMU_68000_ONLY
 { (cpuop_func*)CPUFUNC(op_4a7b_22), 19067 }, /* TST */
 #endif
-{ (cpuop_func*)CPUFUNC(op_4a7c_22), 19068 }, /* TST */
 { (cpuop_func*)CPUFUNC(op_4a80_22), 19072 }, /* TST */
 #ifndef CPUEMU_68000_ONLY
 { (cpuop_func*)CPUFUNC(op_4a88_22), 19080 }, /* TST */
@@ -20285,7 +23413,6 @@ const struct cputbl CPUFUNC(op_smalltbl_22)[] = {
 #ifndef CPUEMU_68000_ONLY
 { (cpuop_func*)CPUFUNC(op_4abb_22), 19131 }, /* TST */
 #endif
-{ (cpuop_func*)CPUFUNC(op_4abc_22), 19132 }, /* TST */
 { (cpuop_func*)CPUFUNC(op_4ac0_22), 19136 }, /* TAS */
 { (cpuop_func*)CPUFUNC(op_4ad0_22), 19152 }, /* TAS */
 { (cpuop_func*)CPUFUNC(op_4ad8_22), 19160 }, /* TAS */
@@ -21719,16 +24846,16 @@ const struct cputbl CPUFUNC(op_smalltbl_22)[] = {
 { (cpuop_func*)CPUFUNC(op_f518_22), 62744 }, /* PFLUSHA */
 #endif
 #ifndef CPUEMU_68000_ONLY
-{ (cpuop_func*)CPUFUNC(op_f548_22), 62792 }, /* PTESTR */
+{ (cpuop_func*)CPUFUNC(op_f548_22), 62792 }, /* PTESTW */
 #endif
 #ifndef CPUEMU_68000_ONLY
-{ (cpuop_func*)CPUFUNC(op_f568_22), 62824 }, /* PTESTW */
+{ (cpuop_func*)CPUFUNC(op_f568_22), 62824 }, /* PTESTR */
 #endif
 #ifndef CPUEMU_68000_ONLY
-{ (cpuop_func*)CPUFUNC(op_f588_22), 62856 }, /* PLPAR */
+{ (cpuop_func*)CPUFUNC(op_f588_22), 62856 }, /* PLPAW */
 #endif
 #ifndef CPUEMU_68000_ONLY
-{ (cpuop_func*)CPUFUNC(op_f5c8_22), 62920 }, /* PLPAW */
+{ (cpuop_func*)CPUFUNC(op_f5c8_22), 62920 }, /* PLPAR */
 #endif
 #ifndef CPUEMU_68000_ONLY
 { (cpuop_func*)CPUFUNC(op_f600_22), 62976 }, /* MOVE16 */
@@ -21938,7 +25065,6 @@ const struct cputbl CPUFUNC(op_smalltbl_23)[] = {
 { (cpuop_func*)CPUFUNC(op_0839_22), 2105 }, /* BTST */
 { (cpuop_func*)CPUFUNC(op_083a_22), 2106 }, /* BTST */
 { (cpuop_func*)CPUFUNC(op_083b_22), 2107 }, /* BTST */
-{ (cpuop_func*)CPUFUNC(op_083c_22), 2108 }, /* BTST */
 { (cpuop_func*)CPUFUNC(op_0840_22), 2112 }, /* BCHG */
 { (cpuop_func*)CPUFUNC(op_0850_22), 2128 }, /* BCHG */
 { (cpuop_func*)CPUFUNC(op_0858_22), 2136 }, /* BCHG */
@@ -22579,7 +25705,6 @@ const struct cputbl CPUFUNC(op_smalltbl_23)[] = {
 { (cpuop_func*)CPUFUNC(op_4a39_22), 19001 }, /* TST */
 { (cpuop_func*)CPUFUNC(op_4a3a_22), 19002 }, /* TST */
 { (cpuop_func*)CPUFUNC(op_4a3b_22), 19003 }, /* TST */
-{ (cpuop_func*)CPUFUNC(op_4a3c_22), 19004 }, /* TST */
 { (cpuop_func*)CPUFUNC(op_4a40_22), 19008 }, /* TST */
 { (cpuop_func*)CPUFUNC(op_4a48_22), 19016 }, /* TST */
 { (cpuop_func*)CPUFUNC(op_4a50_22), 19024 }, /* TST */
@@ -22591,7 +25716,6 @@ const struct cputbl CPUFUNC(op_smalltbl_23)[] = {
 { (cpuop_func*)CPUFUNC(op_4a79_22), 19065 }, /* TST */
 { (cpuop_func*)CPUFUNC(op_4a7a_22), 19066 }, /* TST */
 { (cpuop_func*)CPUFUNC(op_4a7b_22), 19067 }, /* TST */
-{ (cpuop_func*)CPUFUNC(op_4a7c_22), 19068 }, /* TST */
 { (cpuop_func*)CPUFUNC(op_4a80_22), 19072 }, /* TST */
 { (cpuop_func*)CPUFUNC(op_4a88_22), 19080 }, /* TST */
 { (cpuop_func*)CPUFUNC(op_4a90_22), 19088 }, /* TST */
@@ -22603,7 +25727,6 @@ const struct cputbl CPUFUNC(op_smalltbl_23)[] = {
 { (cpuop_func*)CPUFUNC(op_4ab9_22), 19129 }, /* TST */
 { (cpuop_func*)CPUFUNC(op_4aba_22), 19130 }, /* TST */
 { (cpuop_func*)CPUFUNC(op_4abb_22), 19131 }, /* TST */
-{ (cpuop_func*)CPUFUNC(op_4abc_22), 19132 }, /* TST */
 { (cpuop_func*)CPUFUNC(op_4ac0_22), 19136 }, /* TAS */
 { (cpuop_func*)CPUFUNC(op_4ad0_22), 19152 }, /* TAS */
 { (cpuop_func*)CPUFUNC(op_4ad8_22), 19160 }, /* TAS */
@@ -23626,8 +26749,8 @@ const struct cputbl CPUFUNC(op_smalltbl_23)[] = {
 { (cpuop_func*)CPUFUNC(op_f508_22), 62728 }, /* PFLUSH */
 { (cpuop_func*)CPUFUNC(op_f510_22), 62736 }, /* PFLUSHAN */
 { (cpuop_func*)CPUFUNC(op_f518_22), 62744 }, /* PFLUSHA */
-{ (cpuop_func*)CPUFUNC(op_f548_22), 62792 }, /* PTESTR */
-{ (cpuop_func*)CPUFUNC(op_f568_22), 62824 }, /* PTESTW */
+{ (cpuop_func*)CPUFUNC(op_f548_22), 62792 }, /* PTESTW */
+{ (cpuop_func*)CPUFUNC(op_f568_22), 62824 }, /* PTESTR */
 { (cpuop_func*)CPUFUNC(op_f600_22), 62976 }, /* MOVE16 */
 { (cpuop_func*)CPUFUNC(op_f608_22), 62984 }, /* MOVE16 */
 { (cpuop_func*)CPUFUNC(op_f610_22), 62992 }, /* MOVE16 */
@@ -23822,7 +26945,6 @@ const struct cputbl CPUFUNC(op_smalltbl_24)[] = {
 { (cpuop_func*)CPUFUNC(op_0839_22), 2105 }, /* BTST */
 { (cpuop_func*)CPUFUNC(op_083a_22), 2106 }, /* BTST */
 { (cpuop_func*)CPUFUNC(op_083b_22), 2107 }, /* BTST */
-{ (cpuop_func*)CPUFUNC(op_083c_22), 2108 }, /* BTST */
 { (cpuop_func*)CPUFUNC(op_0840_22), 2112 }, /* BCHG */
 { (cpuop_func*)CPUFUNC(op_0850_22), 2128 }, /* BCHG */
 { (cpuop_func*)CPUFUNC(op_0858_22), 2136 }, /* BCHG */
@@ -24463,7 +27585,6 @@ const struct cputbl CPUFUNC(op_smalltbl_24)[] = {
 { (cpuop_func*)CPUFUNC(op_4a39_22), 19001 }, /* TST */
 { (cpuop_func*)CPUFUNC(op_4a3a_22), 19002 }, /* TST */
 { (cpuop_func*)CPUFUNC(op_4a3b_22), 19003 }, /* TST */
-{ (cpuop_func*)CPUFUNC(op_4a3c_22), 19004 }, /* TST */
 { (cpuop_func*)CPUFUNC(op_4a40_22), 19008 }, /* TST */
 { (cpuop_func*)CPUFUNC(op_4a48_22), 19016 }, /* TST */
 { (cpuop_func*)CPUFUNC(op_4a50_22), 19024 }, /* TST */
@@ -24475,7 +27596,6 @@ const struct cputbl CPUFUNC(op_smalltbl_24)[] = {
 { (cpuop_func*)CPUFUNC(op_4a79_22), 19065 }, /* TST */
 { (cpuop_func*)CPUFUNC(op_4a7a_22), 19066 }, /* TST */
 { (cpuop_func*)CPUFUNC(op_4a7b_22), 19067 }, /* TST */
-{ (cpuop_func*)CPUFUNC(op_4a7c_22), 19068 }, /* TST */
 { (cpuop_func*)CPUFUNC(op_4a80_22), 19072 }, /* TST */
 { (cpuop_func*)CPUFUNC(op_4a88_22), 19080 }, /* TST */
 { (cpuop_func*)CPUFUNC(op_4a90_22), 19088 }, /* TST */
@@ -24487,7 +27607,6 @@ const struct cputbl CPUFUNC(op_smalltbl_24)[] = {
 { (cpuop_func*)CPUFUNC(op_4ab9_22), 19129 }, /* TST */
 { (cpuop_func*)CPUFUNC(op_4aba_22), 19130 }, /* TST */
 { (cpuop_func*)CPUFUNC(op_4abb_22), 19131 }, /* TST */
-{ (cpuop_func*)CPUFUNC(op_4abc_22), 19132 }, /* TST */
 { (cpuop_func*)CPUFUNC(op_4ac0_22), 19136 }, /* TAS */
 { (cpuop_func*)CPUFUNC(op_4ad0_22), 19152 }, /* TAS */
 { (cpuop_func*)CPUFUNC(op_4ad8_22), 19160 }, /* TAS */
@@ -25736,7 +28855,6 @@ const struct cputbl CPUFUNC(op_smalltbl_31)[] = {
 { CPUFUNC(op_0839_31), 2105 }, /* BTST */
 { CPUFUNC(op_083a_31), 2106 }, /* BTST */
 { CPUFUNC(op_083b_31), 2107 }, /* BTST */
-{ CPUFUNC(op_083c_31), 2108 }, /* BTST */
 { CPUFUNC(op_0840_31), 2112 }, /* BCHG */
 { CPUFUNC(op_0850_31), 2128 }, /* BCHG */
 { CPUFUNC(op_0858_31), 2136 }, /* BCHG */
@@ -26525,7 +29643,6 @@ const struct cputbl CPUFUNC(op_smalltbl_31)[] = {
 #ifndef CPUEMU_68000_ONLY
 { CPUFUNC(op_4a3b_31), 19003 }, /* TST */
 #endif
-{ CPUFUNC(op_4a3c_31), 19004 }, /* TST */
 { CPUFUNC(op_4a40_31), 19008 }, /* TST */
 #ifndef CPUEMU_68000_ONLY
 { CPUFUNC(op_4a48_31), 19016 }, /* TST */
@@ -26543,7 +29660,6 @@ const struct cputbl CPUFUNC(op_smalltbl_31)[] = {
 #ifndef CPUEMU_68000_ONLY
 { CPUFUNC(op_4a7b_31), 19067 }, /* TST */
 #endif
-{ CPUFUNC(op_4a7c_31), 19068 }, /* TST */
 { CPUFUNC(op_4a80_31), 19072 }, /* TST */
 #ifndef CPUEMU_68000_ONLY
 { CPUFUNC(op_4a88_31), 19080 }, /* TST */
@@ -26561,7 +29677,6 @@ const struct cputbl CPUFUNC(op_smalltbl_31)[] = {
 #ifndef CPUEMU_68000_ONLY
 { CPUFUNC(op_4abb_31), 19131 }, /* TST */
 #endif
-{ CPUFUNC(op_4abc_31), 19132 }, /* TST */
 { CPUFUNC(op_4ac0_31), 19136 }, /* TAS */
 { CPUFUNC(op_4ad0_31), 19152 }, /* TAS */
 { CPUFUNC(op_4ad8_31), 19160 }, /* TAS */
@@ -27995,10 +31110,10 @@ const struct cputbl CPUFUNC(op_smalltbl_31)[] = {
 { CPUFUNC(op_f518_31), 62744 }, /* PFLUSHA */
 #endif
 #ifndef CPUEMU_68000_ONLY
-{ CPUFUNC(op_f548_31), 62792 }, /* PTESTR */
+{ CPUFUNC(op_f548_31), 62792 }, /* PTESTW */
 #endif
 #ifndef CPUEMU_68000_ONLY
-{ CPUFUNC(op_f568_31), 62824 }, /* PTESTW */
+{ CPUFUNC(op_f568_31), 62824 }, /* PTESTR */
 #endif
 #ifndef CPUEMU_68000_ONLY
 { CPUFUNC(op_f600_31), 62976 }, /* MOVE16 */
@@ -28018,3 +31133,4971 @@ const struct cputbl CPUFUNC(op_smalltbl_31)[] = {
 { 0, 0 }};
 #endif /* CPUEMU_68000_ONLY */
 #endif /* CPUEMU_31 */
+#ifdef CPUEMU_32
+#ifndef CPUEMU_68000_ONLY
+const struct cputbl CPUFUNC(op_smalltbl_32)[] = {
+{ CPUFUNC(op_0000_32), 0 }, /* OR */
+{ CPUFUNC(op_0010_32), 16 }, /* OR */
+{ CPUFUNC(op_0018_32), 24 }, /* OR */
+{ CPUFUNC(op_0020_32), 32 }, /* OR */
+{ CPUFUNC(op_0028_32), 40 }, /* OR */
+{ CPUFUNC(op_0030_32), 48 }, /* OR */
+{ CPUFUNC(op_0038_32), 56 }, /* OR */
+{ CPUFUNC(op_0039_32), 57 }, /* OR */
+{ CPUFUNC(op_003c_32), 60 }, /* ORSR */
+{ CPUFUNC(op_0040_32), 64 }, /* OR */
+{ CPUFUNC(op_0050_32), 80 }, /* OR */
+{ CPUFUNC(op_0058_32), 88 }, /* OR */
+{ CPUFUNC(op_0060_32), 96 }, /* OR */
+{ CPUFUNC(op_0068_32), 104 }, /* OR */
+{ CPUFUNC(op_0070_32), 112 }, /* OR */
+{ CPUFUNC(op_0078_32), 120 }, /* OR */
+{ CPUFUNC(op_0079_32), 121 }, /* OR */
+{ CPUFUNC(op_007c_32), 124 }, /* ORSR */
+{ CPUFUNC(op_0080_32), 128 }, /* OR */
+{ CPUFUNC(op_0090_32), 144 }, /* OR */
+{ CPUFUNC(op_0098_32), 152 }, /* OR */
+{ CPUFUNC(op_00a0_32), 160 }, /* OR */
+{ CPUFUNC(op_00a8_32), 168 }, /* OR */
+{ CPUFUNC(op_00b0_32), 176 }, /* OR */
+{ CPUFUNC(op_00b8_32), 184 }, /* OR */
+{ CPUFUNC(op_00b9_32), 185 }, /* OR */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_00d0_32), 208 }, /* CHK2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_00e8_32), 232 }, /* CHK2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_00f0_32), 240 }, /* CHK2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_00f8_32), 248 }, /* CHK2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_00f9_32), 249 }, /* CHK2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_00fa_32), 250 }, /* CHK2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_00fb_32), 251 }, /* CHK2 */
+#endif
+{ CPUFUNC(op_0100_32), 256 }, /* BTST */
+{ CPUFUNC(op_0108_32), 264 }, /* MVPMR */
+{ CPUFUNC(op_0110_32), 272 }, /* BTST */
+{ CPUFUNC(op_0118_32), 280 }, /* BTST */
+{ CPUFUNC(op_0120_32), 288 }, /* BTST */
+{ CPUFUNC(op_0128_32), 296 }, /* BTST */
+{ CPUFUNC(op_0130_32), 304 }, /* BTST */
+{ CPUFUNC(op_0138_32), 312 }, /* BTST */
+{ CPUFUNC(op_0139_32), 313 }, /* BTST */
+{ CPUFUNC(op_013a_32), 314 }, /* BTST */
+{ CPUFUNC(op_013b_32), 315 }, /* BTST */
+{ CPUFUNC(op_013c_32), 316 }, /* BTST */
+{ CPUFUNC(op_0140_32), 320 }, /* BCHG */
+{ CPUFUNC(op_0148_32), 328 }, /* MVPMR */
+{ CPUFUNC(op_0150_32), 336 }, /* BCHG */
+{ CPUFUNC(op_0158_32), 344 }, /* BCHG */
+{ CPUFUNC(op_0160_32), 352 }, /* BCHG */
+{ CPUFUNC(op_0168_32), 360 }, /* BCHG */
+{ CPUFUNC(op_0170_32), 368 }, /* BCHG */
+{ CPUFUNC(op_0178_32), 376 }, /* BCHG */
+{ CPUFUNC(op_0179_32), 377 }, /* BCHG */
+{ CPUFUNC(op_017a_32), 378 }, /* BCHG */
+{ CPUFUNC(op_017b_32), 379 }, /* BCHG */
+{ CPUFUNC(op_0180_32), 384 }, /* BCLR */
+{ CPUFUNC(op_0188_32), 392 }, /* MVPRM */
+{ CPUFUNC(op_0190_32), 400 }, /* BCLR */
+{ CPUFUNC(op_0198_32), 408 }, /* BCLR */
+{ CPUFUNC(op_01a0_32), 416 }, /* BCLR */
+{ CPUFUNC(op_01a8_32), 424 }, /* BCLR */
+{ CPUFUNC(op_01b0_32), 432 }, /* BCLR */
+{ CPUFUNC(op_01b8_32), 440 }, /* BCLR */
+{ CPUFUNC(op_01b9_32), 441 }, /* BCLR */
+{ CPUFUNC(op_01ba_32), 442 }, /* BCLR */
+{ CPUFUNC(op_01bb_32), 443 }, /* BCLR */
+{ CPUFUNC(op_01c0_32), 448 }, /* BSET */
+{ CPUFUNC(op_01c8_32), 456 }, /* MVPRM */
+{ CPUFUNC(op_01d0_32), 464 }, /* BSET */
+{ CPUFUNC(op_01d8_32), 472 }, /* BSET */
+{ CPUFUNC(op_01e0_32), 480 }, /* BSET */
+{ CPUFUNC(op_01e8_32), 488 }, /* BSET */
+{ CPUFUNC(op_01f0_32), 496 }, /* BSET */
+{ CPUFUNC(op_01f8_32), 504 }, /* BSET */
+{ CPUFUNC(op_01f9_32), 505 }, /* BSET */
+{ CPUFUNC(op_01fa_32), 506 }, /* BSET */
+{ CPUFUNC(op_01fb_32), 507 }, /* BSET */
+{ CPUFUNC(op_0200_32), 512 }, /* AND */
+{ CPUFUNC(op_0210_32), 528 }, /* AND */
+{ CPUFUNC(op_0218_32), 536 }, /* AND */
+{ CPUFUNC(op_0220_32), 544 }, /* AND */
+{ CPUFUNC(op_0228_32), 552 }, /* AND */
+{ CPUFUNC(op_0230_32), 560 }, /* AND */
+{ CPUFUNC(op_0238_32), 568 }, /* AND */
+{ CPUFUNC(op_0239_32), 569 }, /* AND */
+{ CPUFUNC(op_023c_32), 572 }, /* ANDSR */
+{ CPUFUNC(op_0240_32), 576 }, /* AND */
+{ CPUFUNC(op_0250_32), 592 }, /* AND */
+{ CPUFUNC(op_0258_32), 600 }, /* AND */
+{ CPUFUNC(op_0260_32), 608 }, /* AND */
+{ CPUFUNC(op_0268_32), 616 }, /* AND */
+{ CPUFUNC(op_0270_32), 624 }, /* AND */
+{ CPUFUNC(op_0278_32), 632 }, /* AND */
+{ CPUFUNC(op_0279_32), 633 }, /* AND */
+{ CPUFUNC(op_027c_32), 636 }, /* ANDSR */
+{ CPUFUNC(op_0280_32), 640 }, /* AND */
+{ CPUFUNC(op_0290_32), 656 }, /* AND */
+{ CPUFUNC(op_0298_32), 664 }, /* AND */
+{ CPUFUNC(op_02a0_32), 672 }, /* AND */
+{ CPUFUNC(op_02a8_32), 680 }, /* AND */
+{ CPUFUNC(op_02b0_32), 688 }, /* AND */
+{ CPUFUNC(op_02b8_32), 696 }, /* AND */
+{ CPUFUNC(op_02b9_32), 697 }, /* AND */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_02d0_32), 720 }, /* CHK2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_02e8_32), 744 }, /* CHK2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_02f0_32), 752 }, /* CHK2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_02f8_32), 760 }, /* CHK2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_02f9_32), 761 }, /* CHK2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_02fa_32), 762 }, /* CHK2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_02fb_32), 763 }, /* CHK2 */
+#endif
+{ CPUFUNC(op_0400_32), 1024 }, /* SUB */
+{ CPUFUNC(op_0410_32), 1040 }, /* SUB */
+{ CPUFUNC(op_0418_32), 1048 }, /* SUB */
+{ CPUFUNC(op_0420_32), 1056 }, /* SUB */
+{ CPUFUNC(op_0428_32), 1064 }, /* SUB */
+{ CPUFUNC(op_0430_32), 1072 }, /* SUB */
+{ CPUFUNC(op_0438_32), 1080 }, /* SUB */
+{ CPUFUNC(op_0439_32), 1081 }, /* SUB */
+{ CPUFUNC(op_0440_32), 1088 }, /* SUB */
+{ CPUFUNC(op_0450_32), 1104 }, /* SUB */
+{ CPUFUNC(op_0458_32), 1112 }, /* SUB */
+{ CPUFUNC(op_0460_32), 1120 }, /* SUB */
+{ CPUFUNC(op_0468_32), 1128 }, /* SUB */
+{ CPUFUNC(op_0470_32), 1136 }, /* SUB */
+{ CPUFUNC(op_0478_32), 1144 }, /* SUB */
+{ CPUFUNC(op_0479_32), 1145 }, /* SUB */
+{ CPUFUNC(op_0480_32), 1152 }, /* SUB */
+{ CPUFUNC(op_0490_32), 1168 }, /* SUB */
+{ CPUFUNC(op_0498_32), 1176 }, /* SUB */
+{ CPUFUNC(op_04a0_32), 1184 }, /* SUB */
+{ CPUFUNC(op_04a8_32), 1192 }, /* SUB */
+{ CPUFUNC(op_04b0_32), 1200 }, /* SUB */
+{ CPUFUNC(op_04b8_32), 1208 }, /* SUB */
+{ CPUFUNC(op_04b9_32), 1209 }, /* SUB */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_04d0_32), 1232 }, /* CHK2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_04e8_32), 1256 }, /* CHK2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_04f0_32), 1264 }, /* CHK2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_04f8_32), 1272 }, /* CHK2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_04f9_32), 1273 }, /* CHK2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_04fa_32), 1274 }, /* CHK2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_04fb_32), 1275 }, /* CHK2 */
+#endif
+{ CPUFUNC(op_0600_32), 1536 }, /* ADD */
+{ CPUFUNC(op_0610_32), 1552 }, /* ADD */
+{ CPUFUNC(op_0618_32), 1560 }, /* ADD */
+{ CPUFUNC(op_0620_32), 1568 }, /* ADD */
+{ CPUFUNC(op_0628_32), 1576 }, /* ADD */
+{ CPUFUNC(op_0630_32), 1584 }, /* ADD */
+{ CPUFUNC(op_0638_32), 1592 }, /* ADD */
+{ CPUFUNC(op_0639_32), 1593 }, /* ADD */
+{ CPUFUNC(op_0640_32), 1600 }, /* ADD */
+{ CPUFUNC(op_0650_32), 1616 }, /* ADD */
+{ CPUFUNC(op_0658_32), 1624 }, /* ADD */
+{ CPUFUNC(op_0660_32), 1632 }, /* ADD */
+{ CPUFUNC(op_0668_32), 1640 }, /* ADD */
+{ CPUFUNC(op_0670_32), 1648 }, /* ADD */
+{ CPUFUNC(op_0678_32), 1656 }, /* ADD */
+{ CPUFUNC(op_0679_32), 1657 }, /* ADD */
+{ CPUFUNC(op_0680_32), 1664 }, /* ADD */
+{ CPUFUNC(op_0690_32), 1680 }, /* ADD */
+{ CPUFUNC(op_0698_32), 1688 }, /* ADD */
+{ CPUFUNC(op_06a0_32), 1696 }, /* ADD */
+{ CPUFUNC(op_06a8_32), 1704 }, /* ADD */
+{ CPUFUNC(op_06b0_32), 1712 }, /* ADD */
+{ CPUFUNC(op_06b8_32), 1720 }, /* ADD */
+{ CPUFUNC(op_06b9_32), 1721 }, /* ADD */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_06c0_32), 1728 }, /* RTM */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_06c8_32), 1736 }, /* RTM */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_06d0_32), 1744 }, /* CALLM */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_06e8_32), 1768 }, /* CALLM */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_06f0_32), 1776 }, /* CALLM */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_06f8_32), 1784 }, /* CALLM */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_06f9_32), 1785 }, /* CALLM */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_06fa_32), 1786 }, /* CALLM */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_06fb_32), 1787 }, /* CALLM */
+#endif
+{ CPUFUNC(op_0800_32), 2048 }, /* BTST */
+{ CPUFUNC(op_0810_32), 2064 }, /* BTST */
+{ CPUFUNC(op_0818_32), 2072 }, /* BTST */
+{ CPUFUNC(op_0820_32), 2080 }, /* BTST */
+{ CPUFUNC(op_0828_32), 2088 }, /* BTST */
+{ CPUFUNC(op_0830_32), 2096 }, /* BTST */
+{ CPUFUNC(op_0838_32), 2104 }, /* BTST */
+{ CPUFUNC(op_0839_32), 2105 }, /* BTST */
+{ CPUFUNC(op_083a_32), 2106 }, /* BTST */
+{ CPUFUNC(op_083b_32), 2107 }, /* BTST */
+{ CPUFUNC(op_0840_32), 2112 }, /* BCHG */
+{ CPUFUNC(op_0850_32), 2128 }, /* BCHG */
+{ CPUFUNC(op_0858_32), 2136 }, /* BCHG */
+{ CPUFUNC(op_0860_32), 2144 }, /* BCHG */
+{ CPUFUNC(op_0868_32), 2152 }, /* BCHG */
+{ CPUFUNC(op_0870_32), 2160 }, /* BCHG */
+{ CPUFUNC(op_0878_32), 2168 }, /* BCHG */
+{ CPUFUNC(op_0879_32), 2169 }, /* BCHG */
+{ CPUFUNC(op_087a_32), 2170 }, /* BCHG */
+{ CPUFUNC(op_087b_32), 2171 }, /* BCHG */
+{ CPUFUNC(op_0880_32), 2176 }, /* BCLR */
+{ CPUFUNC(op_0890_32), 2192 }, /* BCLR */
+{ CPUFUNC(op_0898_32), 2200 }, /* BCLR */
+{ CPUFUNC(op_08a0_32), 2208 }, /* BCLR */
+{ CPUFUNC(op_08a8_32), 2216 }, /* BCLR */
+{ CPUFUNC(op_08b0_32), 2224 }, /* BCLR */
+{ CPUFUNC(op_08b8_32), 2232 }, /* BCLR */
+{ CPUFUNC(op_08b9_32), 2233 }, /* BCLR */
+{ CPUFUNC(op_08ba_32), 2234 }, /* BCLR */
+{ CPUFUNC(op_08bb_32), 2235 }, /* BCLR */
+{ CPUFUNC(op_08c0_32), 2240 }, /* BSET */
+{ CPUFUNC(op_08d0_32), 2256 }, /* BSET */
+{ CPUFUNC(op_08d8_32), 2264 }, /* BSET */
+{ CPUFUNC(op_08e0_32), 2272 }, /* BSET */
+{ CPUFUNC(op_08e8_32), 2280 }, /* BSET */
+{ CPUFUNC(op_08f0_32), 2288 }, /* BSET */
+{ CPUFUNC(op_08f8_32), 2296 }, /* BSET */
+{ CPUFUNC(op_08f9_32), 2297 }, /* BSET */
+{ CPUFUNC(op_08fa_32), 2298 }, /* BSET */
+{ CPUFUNC(op_08fb_32), 2299 }, /* BSET */
+{ CPUFUNC(op_0a00_32), 2560 }, /* EOR */
+{ CPUFUNC(op_0a10_32), 2576 }, /* EOR */
+{ CPUFUNC(op_0a18_32), 2584 }, /* EOR */
+{ CPUFUNC(op_0a20_32), 2592 }, /* EOR */
+{ CPUFUNC(op_0a28_32), 2600 }, /* EOR */
+{ CPUFUNC(op_0a30_32), 2608 }, /* EOR */
+{ CPUFUNC(op_0a38_32), 2616 }, /* EOR */
+{ CPUFUNC(op_0a39_32), 2617 }, /* EOR */
+{ CPUFUNC(op_0a3c_32), 2620 }, /* EORSR */
+{ CPUFUNC(op_0a40_32), 2624 }, /* EOR */
+{ CPUFUNC(op_0a50_32), 2640 }, /* EOR */
+{ CPUFUNC(op_0a58_32), 2648 }, /* EOR */
+{ CPUFUNC(op_0a60_32), 2656 }, /* EOR */
+{ CPUFUNC(op_0a68_32), 2664 }, /* EOR */
+{ CPUFUNC(op_0a70_32), 2672 }, /* EOR */
+{ CPUFUNC(op_0a78_32), 2680 }, /* EOR */
+{ CPUFUNC(op_0a79_32), 2681 }, /* EOR */
+{ CPUFUNC(op_0a7c_32), 2684 }, /* EORSR */
+{ CPUFUNC(op_0a80_32), 2688 }, /* EOR */
+{ CPUFUNC(op_0a90_32), 2704 }, /* EOR */
+{ CPUFUNC(op_0a98_32), 2712 }, /* EOR */
+{ CPUFUNC(op_0aa0_32), 2720 }, /* EOR */
+{ CPUFUNC(op_0aa8_32), 2728 }, /* EOR */
+{ CPUFUNC(op_0ab0_32), 2736 }, /* EOR */
+{ CPUFUNC(op_0ab8_32), 2744 }, /* EOR */
+{ CPUFUNC(op_0ab9_32), 2745 }, /* EOR */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0ad0_32), 2768 }, /* CAS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0ad8_32), 2776 }, /* CAS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0ae0_32), 2784 }, /* CAS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0ae8_32), 2792 }, /* CAS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0af0_32), 2800 }, /* CAS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0af8_32), 2808 }, /* CAS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0af9_32), 2809 }, /* CAS */
+#endif
+{ CPUFUNC(op_0c00_32), 3072 }, /* CMP */
+{ CPUFUNC(op_0c10_32), 3088 }, /* CMP */
+{ CPUFUNC(op_0c18_32), 3096 }, /* CMP */
+{ CPUFUNC(op_0c20_32), 3104 }, /* CMP */
+{ CPUFUNC(op_0c28_32), 3112 }, /* CMP */
+{ CPUFUNC(op_0c30_32), 3120 }, /* CMP */
+{ CPUFUNC(op_0c38_32), 3128 }, /* CMP */
+{ CPUFUNC(op_0c39_32), 3129 }, /* CMP */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0c3a_32), 3130 }, /* CMP */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0c3b_32), 3131 }, /* CMP */
+#endif
+{ CPUFUNC(op_0c40_32), 3136 }, /* CMP */
+{ CPUFUNC(op_0c50_32), 3152 }, /* CMP */
+{ CPUFUNC(op_0c58_32), 3160 }, /* CMP */
+{ CPUFUNC(op_0c60_32), 3168 }, /* CMP */
+{ CPUFUNC(op_0c68_32), 3176 }, /* CMP */
+{ CPUFUNC(op_0c70_32), 3184 }, /* CMP */
+{ CPUFUNC(op_0c78_32), 3192 }, /* CMP */
+{ CPUFUNC(op_0c79_32), 3193 }, /* CMP */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0c7a_32), 3194 }, /* CMP */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0c7b_32), 3195 }, /* CMP */
+#endif
+{ CPUFUNC(op_0c80_32), 3200 }, /* CMP */
+{ CPUFUNC(op_0c90_32), 3216 }, /* CMP */
+{ CPUFUNC(op_0c98_32), 3224 }, /* CMP */
+{ CPUFUNC(op_0ca0_32), 3232 }, /* CMP */
+{ CPUFUNC(op_0ca8_32), 3240 }, /* CMP */
+{ CPUFUNC(op_0cb0_32), 3248 }, /* CMP */
+{ CPUFUNC(op_0cb8_32), 3256 }, /* CMP */
+{ CPUFUNC(op_0cb9_32), 3257 }, /* CMP */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0cba_32), 3258 }, /* CMP */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0cbb_32), 3259 }, /* CMP */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0cd0_32), 3280 }, /* CAS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0cd8_32), 3288 }, /* CAS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0ce0_32), 3296 }, /* CAS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0ce8_32), 3304 }, /* CAS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0cf0_32), 3312 }, /* CAS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0cf8_32), 3320 }, /* CAS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0cf9_32), 3321 }, /* CAS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0cfc_32), 3324 }, /* CAS2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0e10_32), 3600 }, /* MOVES */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0e18_32), 3608 }, /* MOVES */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0e20_32), 3616 }, /* MOVES */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0e28_32), 3624 }, /* MOVES */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0e30_32), 3632 }, /* MOVES */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0e38_32), 3640 }, /* MOVES */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0e39_32), 3641 }, /* MOVES */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0e50_32), 3664 }, /* MOVES */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0e58_32), 3672 }, /* MOVES */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0e60_32), 3680 }, /* MOVES */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0e68_32), 3688 }, /* MOVES */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0e70_32), 3696 }, /* MOVES */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0e78_32), 3704 }, /* MOVES */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0e79_32), 3705 }, /* MOVES */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0e90_32), 3728 }, /* MOVES */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0e98_32), 3736 }, /* MOVES */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0ea0_32), 3744 }, /* MOVES */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0ea8_32), 3752 }, /* MOVES */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0eb0_32), 3760 }, /* MOVES */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0eb8_32), 3768 }, /* MOVES */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0eb9_32), 3769 }, /* MOVES */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0ed0_32), 3792 }, /* CAS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0ed8_32), 3800 }, /* CAS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0ee0_32), 3808 }, /* CAS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0ee8_32), 3816 }, /* CAS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0ef0_32), 3824 }, /* CAS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0ef8_32), 3832 }, /* CAS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0ef9_32), 3833 }, /* CAS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0efc_32), 3836 }, /* CAS2 */
+#endif
+{ CPUFUNC(op_1000_32), 4096 }, /* MOVE */
+{ CPUFUNC(op_1010_32), 4112 }, /* MOVE */
+{ CPUFUNC(op_1018_32), 4120 }, /* MOVE */
+{ CPUFUNC(op_1020_32), 4128 }, /* MOVE */
+{ CPUFUNC(op_1028_32), 4136 }, /* MOVE */
+{ CPUFUNC(op_1030_32), 4144 }, /* MOVE */
+{ CPUFUNC(op_1038_32), 4152 }, /* MOVE */
+{ CPUFUNC(op_1039_32), 4153 }, /* MOVE */
+{ CPUFUNC(op_103a_32), 4154 }, /* MOVE */
+{ CPUFUNC(op_103b_32), 4155 }, /* MOVE */
+{ CPUFUNC(op_103c_32), 4156 }, /* MOVE */
+{ CPUFUNC(op_1080_32), 4224 }, /* MOVE */
+{ CPUFUNC(op_1090_32), 4240 }, /* MOVE */
+{ CPUFUNC(op_1098_32), 4248 }, /* MOVE */
+{ CPUFUNC(op_10a0_32), 4256 }, /* MOVE */
+{ CPUFUNC(op_10a8_32), 4264 }, /* MOVE */
+{ CPUFUNC(op_10b0_32), 4272 }, /* MOVE */
+{ CPUFUNC(op_10b8_32), 4280 }, /* MOVE */
+{ CPUFUNC(op_10b9_32), 4281 }, /* MOVE */
+{ CPUFUNC(op_10ba_32), 4282 }, /* MOVE */
+{ CPUFUNC(op_10bb_32), 4283 }, /* MOVE */
+{ CPUFUNC(op_10bc_32), 4284 }, /* MOVE */
+{ CPUFUNC(op_10c0_32), 4288 }, /* MOVE */
+{ CPUFUNC(op_10d0_32), 4304 }, /* MOVE */
+{ CPUFUNC(op_10d8_32), 4312 }, /* MOVE */
+{ CPUFUNC(op_10e0_32), 4320 }, /* MOVE */
+{ CPUFUNC(op_10e8_32), 4328 }, /* MOVE */
+{ CPUFUNC(op_10f0_32), 4336 }, /* MOVE */
+{ CPUFUNC(op_10f8_32), 4344 }, /* MOVE */
+{ CPUFUNC(op_10f9_32), 4345 }, /* MOVE */
+{ CPUFUNC(op_10fa_32), 4346 }, /* MOVE */
+{ CPUFUNC(op_10fb_32), 4347 }, /* MOVE */
+{ CPUFUNC(op_10fc_32), 4348 }, /* MOVE */
+{ CPUFUNC(op_1100_32), 4352 }, /* MOVE */
+{ CPUFUNC(op_1110_32), 4368 }, /* MOVE */
+{ CPUFUNC(op_1118_32), 4376 }, /* MOVE */
+{ CPUFUNC(op_1120_32), 4384 }, /* MOVE */
+{ CPUFUNC(op_1128_32), 4392 }, /* MOVE */
+{ CPUFUNC(op_1130_32), 4400 }, /* MOVE */
+{ CPUFUNC(op_1138_32), 4408 }, /* MOVE */
+{ CPUFUNC(op_1139_32), 4409 }, /* MOVE */
+{ CPUFUNC(op_113a_32), 4410 }, /* MOVE */
+{ CPUFUNC(op_113b_32), 4411 }, /* MOVE */
+{ CPUFUNC(op_113c_32), 4412 }, /* MOVE */
+{ CPUFUNC(op_1140_32), 4416 }, /* MOVE */
+{ CPUFUNC(op_1150_32), 4432 }, /* MOVE */
+{ CPUFUNC(op_1158_32), 4440 }, /* MOVE */
+{ CPUFUNC(op_1160_32), 4448 }, /* MOVE */
+{ CPUFUNC(op_1168_32), 4456 }, /* MOVE */
+{ CPUFUNC(op_1170_32), 4464 }, /* MOVE */
+{ CPUFUNC(op_1178_32), 4472 }, /* MOVE */
+{ CPUFUNC(op_1179_32), 4473 }, /* MOVE */
+{ CPUFUNC(op_117a_32), 4474 }, /* MOVE */
+{ CPUFUNC(op_117b_32), 4475 }, /* MOVE */
+{ CPUFUNC(op_117c_32), 4476 }, /* MOVE */
+{ CPUFUNC(op_1180_32), 4480 }, /* MOVE */
+{ CPUFUNC(op_1190_32), 4496 }, /* MOVE */
+{ CPUFUNC(op_1198_32), 4504 }, /* MOVE */
+{ CPUFUNC(op_11a0_32), 4512 }, /* MOVE */
+{ CPUFUNC(op_11a8_32), 4520 }, /* MOVE */
+{ CPUFUNC(op_11b0_32), 4528 }, /* MOVE */
+{ CPUFUNC(op_11b8_32), 4536 }, /* MOVE */
+{ CPUFUNC(op_11b9_32), 4537 }, /* MOVE */
+{ CPUFUNC(op_11ba_32), 4538 }, /* MOVE */
+{ CPUFUNC(op_11bb_32), 4539 }, /* MOVE */
+{ CPUFUNC(op_11bc_32), 4540 }, /* MOVE */
+{ CPUFUNC(op_11c0_32), 4544 }, /* MOVE */
+{ CPUFUNC(op_11d0_32), 4560 }, /* MOVE */
+{ CPUFUNC(op_11d8_32), 4568 }, /* MOVE */
+{ CPUFUNC(op_11e0_32), 4576 }, /* MOVE */
+{ CPUFUNC(op_11e8_32), 4584 }, /* MOVE */
+{ CPUFUNC(op_11f0_32), 4592 }, /* MOVE */
+{ CPUFUNC(op_11f8_32), 4600 }, /* MOVE */
+{ CPUFUNC(op_11f9_32), 4601 }, /* MOVE */
+{ CPUFUNC(op_11fa_32), 4602 }, /* MOVE */
+{ CPUFUNC(op_11fb_32), 4603 }, /* MOVE */
+{ CPUFUNC(op_11fc_32), 4604 }, /* MOVE */
+{ CPUFUNC(op_13c0_32), 5056 }, /* MOVE */
+{ CPUFUNC(op_13d0_32), 5072 }, /* MOVE */
+{ CPUFUNC(op_13d8_32), 5080 }, /* MOVE */
+{ CPUFUNC(op_13e0_32), 5088 }, /* MOVE */
+{ CPUFUNC(op_13e8_32), 5096 }, /* MOVE */
+{ CPUFUNC(op_13f0_32), 5104 }, /* MOVE */
+{ CPUFUNC(op_13f8_32), 5112 }, /* MOVE */
+{ CPUFUNC(op_13f9_32), 5113 }, /* MOVE */
+{ CPUFUNC(op_13fa_32), 5114 }, /* MOVE */
+{ CPUFUNC(op_13fb_32), 5115 }, /* MOVE */
+{ CPUFUNC(op_13fc_32), 5116 }, /* MOVE */
+{ CPUFUNC(op_2000_32), 8192 }, /* MOVE */
+{ CPUFUNC(op_2008_32), 8200 }, /* MOVE */
+{ CPUFUNC(op_2010_32), 8208 }, /* MOVE */
+{ CPUFUNC(op_2018_32), 8216 }, /* MOVE */
+{ CPUFUNC(op_2020_32), 8224 }, /* MOVE */
+{ CPUFUNC(op_2028_32), 8232 }, /* MOVE */
+{ CPUFUNC(op_2030_32), 8240 }, /* MOVE */
+{ CPUFUNC(op_2038_32), 8248 }, /* MOVE */
+{ CPUFUNC(op_2039_32), 8249 }, /* MOVE */
+{ CPUFUNC(op_203a_32), 8250 }, /* MOVE */
+{ CPUFUNC(op_203b_32), 8251 }, /* MOVE */
+{ CPUFUNC(op_203c_32), 8252 }, /* MOVE */
+{ CPUFUNC(op_2040_32), 8256 }, /* MOVEA */
+{ CPUFUNC(op_2048_32), 8264 }, /* MOVEA */
+{ CPUFUNC(op_2050_32), 8272 }, /* MOVEA */
+{ CPUFUNC(op_2058_32), 8280 }, /* MOVEA */
+{ CPUFUNC(op_2060_32), 8288 }, /* MOVEA */
+{ CPUFUNC(op_2068_32), 8296 }, /* MOVEA */
+{ CPUFUNC(op_2070_32), 8304 }, /* MOVEA */
+{ CPUFUNC(op_2078_32), 8312 }, /* MOVEA */
+{ CPUFUNC(op_2079_32), 8313 }, /* MOVEA */
+{ CPUFUNC(op_207a_32), 8314 }, /* MOVEA */
+{ CPUFUNC(op_207b_32), 8315 }, /* MOVEA */
+{ CPUFUNC(op_207c_32), 8316 }, /* MOVEA */
+{ CPUFUNC(op_2080_32), 8320 }, /* MOVE */
+{ CPUFUNC(op_2088_32), 8328 }, /* MOVE */
+{ CPUFUNC(op_2090_32), 8336 }, /* MOVE */
+{ CPUFUNC(op_2098_32), 8344 }, /* MOVE */
+{ CPUFUNC(op_20a0_32), 8352 }, /* MOVE */
+{ CPUFUNC(op_20a8_32), 8360 }, /* MOVE */
+{ CPUFUNC(op_20b0_32), 8368 }, /* MOVE */
+{ CPUFUNC(op_20b8_32), 8376 }, /* MOVE */
+{ CPUFUNC(op_20b9_32), 8377 }, /* MOVE */
+{ CPUFUNC(op_20ba_32), 8378 }, /* MOVE */
+{ CPUFUNC(op_20bb_32), 8379 }, /* MOVE */
+{ CPUFUNC(op_20bc_32), 8380 }, /* MOVE */
+{ CPUFUNC(op_20c0_32), 8384 }, /* MOVE */
+{ CPUFUNC(op_20c8_32), 8392 }, /* MOVE */
+{ CPUFUNC(op_20d0_32), 8400 }, /* MOVE */
+{ CPUFUNC(op_20d8_32), 8408 }, /* MOVE */
+{ CPUFUNC(op_20e0_32), 8416 }, /* MOVE */
+{ CPUFUNC(op_20e8_32), 8424 }, /* MOVE */
+{ CPUFUNC(op_20f0_32), 8432 }, /* MOVE */
+{ CPUFUNC(op_20f8_32), 8440 }, /* MOVE */
+{ CPUFUNC(op_20f9_32), 8441 }, /* MOVE */
+{ CPUFUNC(op_20fa_32), 8442 }, /* MOVE */
+{ CPUFUNC(op_20fb_32), 8443 }, /* MOVE */
+{ CPUFUNC(op_20fc_32), 8444 }, /* MOVE */
+{ CPUFUNC(op_2100_32), 8448 }, /* MOVE */
+{ CPUFUNC(op_2108_32), 8456 }, /* MOVE */
+{ CPUFUNC(op_2110_32), 8464 }, /* MOVE */
+{ CPUFUNC(op_2118_32), 8472 }, /* MOVE */
+{ CPUFUNC(op_2120_32), 8480 }, /* MOVE */
+{ CPUFUNC(op_2128_32), 8488 }, /* MOVE */
+{ CPUFUNC(op_2130_32), 8496 }, /* MOVE */
+{ CPUFUNC(op_2138_32), 8504 }, /* MOVE */
+{ CPUFUNC(op_2139_32), 8505 }, /* MOVE */
+{ CPUFUNC(op_213a_32), 8506 }, /* MOVE */
+{ CPUFUNC(op_213b_32), 8507 }, /* MOVE */
+{ CPUFUNC(op_213c_32), 8508 }, /* MOVE */
+{ CPUFUNC(op_2140_32), 8512 }, /* MOVE */
+{ CPUFUNC(op_2148_32), 8520 }, /* MOVE */
+{ CPUFUNC(op_2150_32), 8528 }, /* MOVE */
+{ CPUFUNC(op_2158_32), 8536 }, /* MOVE */
+{ CPUFUNC(op_2160_32), 8544 }, /* MOVE */
+{ CPUFUNC(op_2168_32), 8552 }, /* MOVE */
+{ CPUFUNC(op_2170_32), 8560 }, /* MOVE */
+{ CPUFUNC(op_2178_32), 8568 }, /* MOVE */
+{ CPUFUNC(op_2179_32), 8569 }, /* MOVE */
+{ CPUFUNC(op_217a_32), 8570 }, /* MOVE */
+{ CPUFUNC(op_217b_32), 8571 }, /* MOVE */
+{ CPUFUNC(op_217c_32), 8572 }, /* MOVE */
+{ CPUFUNC(op_2180_32), 8576 }, /* MOVE */
+{ CPUFUNC(op_2188_32), 8584 }, /* MOVE */
+{ CPUFUNC(op_2190_32), 8592 }, /* MOVE */
+{ CPUFUNC(op_2198_32), 8600 }, /* MOVE */
+{ CPUFUNC(op_21a0_32), 8608 }, /* MOVE */
+{ CPUFUNC(op_21a8_32), 8616 }, /* MOVE */
+{ CPUFUNC(op_21b0_32), 8624 }, /* MOVE */
+{ CPUFUNC(op_21b8_32), 8632 }, /* MOVE */
+{ CPUFUNC(op_21b9_32), 8633 }, /* MOVE */
+{ CPUFUNC(op_21ba_32), 8634 }, /* MOVE */
+{ CPUFUNC(op_21bb_32), 8635 }, /* MOVE */
+{ CPUFUNC(op_21bc_32), 8636 }, /* MOVE */
+{ CPUFUNC(op_21c0_32), 8640 }, /* MOVE */
+{ CPUFUNC(op_21c8_32), 8648 }, /* MOVE */
+{ CPUFUNC(op_21d0_32), 8656 }, /* MOVE */
+{ CPUFUNC(op_21d8_32), 8664 }, /* MOVE */
+{ CPUFUNC(op_21e0_32), 8672 }, /* MOVE */
+{ CPUFUNC(op_21e8_32), 8680 }, /* MOVE */
+{ CPUFUNC(op_21f0_32), 8688 }, /* MOVE */
+{ CPUFUNC(op_21f8_32), 8696 }, /* MOVE */
+{ CPUFUNC(op_21f9_32), 8697 }, /* MOVE */
+{ CPUFUNC(op_21fa_32), 8698 }, /* MOVE */
+{ CPUFUNC(op_21fb_32), 8699 }, /* MOVE */
+{ CPUFUNC(op_21fc_32), 8700 }, /* MOVE */
+{ CPUFUNC(op_23c0_32), 9152 }, /* MOVE */
+{ CPUFUNC(op_23c8_32), 9160 }, /* MOVE */
+{ CPUFUNC(op_23d0_32), 9168 }, /* MOVE */
+{ CPUFUNC(op_23d8_32), 9176 }, /* MOVE */
+{ CPUFUNC(op_23e0_32), 9184 }, /* MOVE */
+{ CPUFUNC(op_23e8_32), 9192 }, /* MOVE */
+{ CPUFUNC(op_23f0_32), 9200 }, /* MOVE */
+{ CPUFUNC(op_23f8_32), 9208 }, /* MOVE */
+{ CPUFUNC(op_23f9_32), 9209 }, /* MOVE */
+{ CPUFUNC(op_23fa_32), 9210 }, /* MOVE */
+{ CPUFUNC(op_23fb_32), 9211 }, /* MOVE */
+{ CPUFUNC(op_23fc_32), 9212 }, /* MOVE */
+{ CPUFUNC(op_3000_32), 12288 }, /* MOVE */
+{ CPUFUNC(op_3008_32), 12296 }, /* MOVE */
+{ CPUFUNC(op_3010_32), 12304 }, /* MOVE */
+{ CPUFUNC(op_3018_32), 12312 }, /* MOVE */
+{ CPUFUNC(op_3020_32), 12320 }, /* MOVE */
+{ CPUFUNC(op_3028_32), 12328 }, /* MOVE */
+{ CPUFUNC(op_3030_32), 12336 }, /* MOVE */
+{ CPUFUNC(op_3038_32), 12344 }, /* MOVE */
+{ CPUFUNC(op_3039_32), 12345 }, /* MOVE */
+{ CPUFUNC(op_303a_32), 12346 }, /* MOVE */
+{ CPUFUNC(op_303b_32), 12347 }, /* MOVE */
+{ CPUFUNC(op_303c_32), 12348 }, /* MOVE */
+{ CPUFUNC(op_3040_32), 12352 }, /* MOVEA */
+{ CPUFUNC(op_3048_32), 12360 }, /* MOVEA */
+{ CPUFUNC(op_3050_32), 12368 }, /* MOVEA */
+{ CPUFUNC(op_3058_32), 12376 }, /* MOVEA */
+{ CPUFUNC(op_3060_32), 12384 }, /* MOVEA */
+{ CPUFUNC(op_3068_32), 12392 }, /* MOVEA */
+{ CPUFUNC(op_3070_32), 12400 }, /* MOVEA */
+{ CPUFUNC(op_3078_32), 12408 }, /* MOVEA */
+{ CPUFUNC(op_3079_32), 12409 }, /* MOVEA */
+{ CPUFUNC(op_307a_32), 12410 }, /* MOVEA */
+{ CPUFUNC(op_307b_32), 12411 }, /* MOVEA */
+{ CPUFUNC(op_307c_32), 12412 }, /* MOVEA */
+{ CPUFUNC(op_3080_32), 12416 }, /* MOVE */
+{ CPUFUNC(op_3088_32), 12424 }, /* MOVE */
+{ CPUFUNC(op_3090_32), 12432 }, /* MOVE */
+{ CPUFUNC(op_3098_32), 12440 }, /* MOVE */
+{ CPUFUNC(op_30a0_32), 12448 }, /* MOVE */
+{ CPUFUNC(op_30a8_32), 12456 }, /* MOVE */
+{ CPUFUNC(op_30b0_32), 12464 }, /* MOVE */
+{ CPUFUNC(op_30b8_32), 12472 }, /* MOVE */
+{ CPUFUNC(op_30b9_32), 12473 }, /* MOVE */
+{ CPUFUNC(op_30ba_32), 12474 }, /* MOVE */
+{ CPUFUNC(op_30bb_32), 12475 }, /* MOVE */
+{ CPUFUNC(op_30bc_32), 12476 }, /* MOVE */
+{ CPUFUNC(op_30c0_32), 12480 }, /* MOVE */
+{ CPUFUNC(op_30c8_32), 12488 }, /* MOVE */
+{ CPUFUNC(op_30d0_32), 12496 }, /* MOVE */
+{ CPUFUNC(op_30d8_32), 12504 }, /* MOVE */
+{ CPUFUNC(op_30e0_32), 12512 }, /* MOVE */
+{ CPUFUNC(op_30e8_32), 12520 }, /* MOVE */
+{ CPUFUNC(op_30f0_32), 12528 }, /* MOVE */
+{ CPUFUNC(op_30f8_32), 12536 }, /* MOVE */
+{ CPUFUNC(op_30f9_32), 12537 }, /* MOVE */
+{ CPUFUNC(op_30fa_32), 12538 }, /* MOVE */
+{ CPUFUNC(op_30fb_32), 12539 }, /* MOVE */
+{ CPUFUNC(op_30fc_32), 12540 }, /* MOVE */
+{ CPUFUNC(op_3100_32), 12544 }, /* MOVE */
+{ CPUFUNC(op_3108_32), 12552 }, /* MOVE */
+{ CPUFUNC(op_3110_32), 12560 }, /* MOVE */
+{ CPUFUNC(op_3118_32), 12568 }, /* MOVE */
+{ CPUFUNC(op_3120_32), 12576 }, /* MOVE */
+{ CPUFUNC(op_3128_32), 12584 }, /* MOVE */
+{ CPUFUNC(op_3130_32), 12592 }, /* MOVE */
+{ CPUFUNC(op_3138_32), 12600 }, /* MOVE */
+{ CPUFUNC(op_3139_32), 12601 }, /* MOVE */
+{ CPUFUNC(op_313a_32), 12602 }, /* MOVE */
+{ CPUFUNC(op_313b_32), 12603 }, /* MOVE */
+{ CPUFUNC(op_313c_32), 12604 }, /* MOVE */
+{ CPUFUNC(op_3140_32), 12608 }, /* MOVE */
+{ CPUFUNC(op_3148_32), 12616 }, /* MOVE */
+{ CPUFUNC(op_3150_32), 12624 }, /* MOVE */
+{ CPUFUNC(op_3158_32), 12632 }, /* MOVE */
+{ CPUFUNC(op_3160_32), 12640 }, /* MOVE */
+{ CPUFUNC(op_3168_32), 12648 }, /* MOVE */
+{ CPUFUNC(op_3170_32), 12656 }, /* MOVE */
+{ CPUFUNC(op_3178_32), 12664 }, /* MOVE */
+{ CPUFUNC(op_3179_32), 12665 }, /* MOVE */
+{ CPUFUNC(op_317a_32), 12666 }, /* MOVE */
+{ CPUFUNC(op_317b_32), 12667 }, /* MOVE */
+{ CPUFUNC(op_317c_32), 12668 }, /* MOVE */
+{ CPUFUNC(op_3180_32), 12672 }, /* MOVE */
+{ CPUFUNC(op_3188_32), 12680 }, /* MOVE */
+{ CPUFUNC(op_3190_32), 12688 }, /* MOVE */
+{ CPUFUNC(op_3198_32), 12696 }, /* MOVE */
+{ CPUFUNC(op_31a0_32), 12704 }, /* MOVE */
+{ CPUFUNC(op_31a8_32), 12712 }, /* MOVE */
+{ CPUFUNC(op_31b0_32), 12720 }, /* MOVE */
+{ CPUFUNC(op_31b8_32), 12728 }, /* MOVE */
+{ CPUFUNC(op_31b9_32), 12729 }, /* MOVE */
+{ CPUFUNC(op_31ba_32), 12730 }, /* MOVE */
+{ CPUFUNC(op_31bb_32), 12731 }, /* MOVE */
+{ CPUFUNC(op_31bc_32), 12732 }, /* MOVE */
+{ CPUFUNC(op_31c0_32), 12736 }, /* MOVE */
+{ CPUFUNC(op_31c8_32), 12744 }, /* MOVE */
+{ CPUFUNC(op_31d0_32), 12752 }, /* MOVE */
+{ CPUFUNC(op_31d8_32), 12760 }, /* MOVE */
+{ CPUFUNC(op_31e0_32), 12768 }, /* MOVE */
+{ CPUFUNC(op_31e8_32), 12776 }, /* MOVE */
+{ CPUFUNC(op_31f0_32), 12784 }, /* MOVE */
+{ CPUFUNC(op_31f8_32), 12792 }, /* MOVE */
+{ CPUFUNC(op_31f9_32), 12793 }, /* MOVE */
+{ CPUFUNC(op_31fa_32), 12794 }, /* MOVE */
+{ CPUFUNC(op_31fb_32), 12795 }, /* MOVE */
+{ CPUFUNC(op_31fc_32), 12796 }, /* MOVE */
+{ CPUFUNC(op_33c0_32), 13248 }, /* MOVE */
+{ CPUFUNC(op_33c8_32), 13256 }, /* MOVE */
+{ CPUFUNC(op_33d0_32), 13264 }, /* MOVE */
+{ CPUFUNC(op_33d8_32), 13272 }, /* MOVE */
+{ CPUFUNC(op_33e0_32), 13280 }, /* MOVE */
+{ CPUFUNC(op_33e8_32), 13288 }, /* MOVE */
+{ CPUFUNC(op_33f0_32), 13296 }, /* MOVE */
+{ CPUFUNC(op_33f8_32), 13304 }, /* MOVE */
+{ CPUFUNC(op_33f9_32), 13305 }, /* MOVE */
+{ CPUFUNC(op_33fa_32), 13306 }, /* MOVE */
+{ CPUFUNC(op_33fb_32), 13307 }, /* MOVE */
+{ CPUFUNC(op_33fc_32), 13308 }, /* MOVE */
+{ CPUFUNC(op_4000_32), 16384 }, /* NEGX */
+{ CPUFUNC(op_4010_32), 16400 }, /* NEGX */
+{ CPUFUNC(op_4018_32), 16408 }, /* NEGX */
+{ CPUFUNC(op_4020_32), 16416 }, /* NEGX */
+{ CPUFUNC(op_4028_32), 16424 }, /* NEGX */
+{ CPUFUNC(op_4030_32), 16432 }, /* NEGX */
+{ CPUFUNC(op_4038_32), 16440 }, /* NEGX */
+{ CPUFUNC(op_4039_32), 16441 }, /* NEGX */
+{ CPUFUNC(op_4040_32), 16448 }, /* NEGX */
+{ CPUFUNC(op_4050_32), 16464 }, /* NEGX */
+{ CPUFUNC(op_4058_32), 16472 }, /* NEGX */
+{ CPUFUNC(op_4060_32), 16480 }, /* NEGX */
+{ CPUFUNC(op_4068_32), 16488 }, /* NEGX */
+{ CPUFUNC(op_4070_32), 16496 }, /* NEGX */
+{ CPUFUNC(op_4078_32), 16504 }, /* NEGX */
+{ CPUFUNC(op_4079_32), 16505 }, /* NEGX */
+{ CPUFUNC(op_4080_32), 16512 }, /* NEGX */
+{ CPUFUNC(op_4090_32), 16528 }, /* NEGX */
+{ CPUFUNC(op_4098_32), 16536 }, /* NEGX */
+{ CPUFUNC(op_40a0_32), 16544 }, /* NEGX */
+{ CPUFUNC(op_40a8_32), 16552 }, /* NEGX */
+{ CPUFUNC(op_40b0_32), 16560 }, /* NEGX */
+{ CPUFUNC(op_40b8_32), 16568 }, /* NEGX */
+{ CPUFUNC(op_40b9_32), 16569 }, /* NEGX */
+{ CPUFUNC(op_40c0_32), 16576 }, /* MVSR2 */
+{ CPUFUNC(op_40d0_32), 16592 }, /* MVSR2 */
+{ CPUFUNC(op_40d8_32), 16600 }, /* MVSR2 */
+{ CPUFUNC(op_40e0_32), 16608 }, /* MVSR2 */
+{ CPUFUNC(op_40e8_32), 16616 }, /* MVSR2 */
+{ CPUFUNC(op_40f0_32), 16624 }, /* MVSR2 */
+{ CPUFUNC(op_40f8_32), 16632 }, /* MVSR2 */
+{ CPUFUNC(op_40f9_32), 16633 }, /* MVSR2 */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4100_32), 16640 }, /* CHK */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4110_32), 16656 }, /* CHK */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4118_32), 16664 }, /* CHK */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4120_32), 16672 }, /* CHK */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4128_32), 16680 }, /* CHK */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4130_32), 16688 }, /* CHK */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4138_32), 16696 }, /* CHK */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4139_32), 16697 }, /* CHK */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_413a_32), 16698 }, /* CHK */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_413b_32), 16699 }, /* CHK */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_413c_32), 16700 }, /* CHK */
+#endif
+{ CPUFUNC(op_4180_32), 16768 }, /* CHK */
+{ CPUFUNC(op_4190_32), 16784 }, /* CHK */
+{ CPUFUNC(op_4198_32), 16792 }, /* CHK */
+{ CPUFUNC(op_41a0_32), 16800 }, /* CHK */
+{ CPUFUNC(op_41a8_32), 16808 }, /* CHK */
+{ CPUFUNC(op_41b0_32), 16816 }, /* CHK */
+{ CPUFUNC(op_41b8_32), 16824 }, /* CHK */
+{ CPUFUNC(op_41b9_32), 16825 }, /* CHK */
+{ CPUFUNC(op_41ba_32), 16826 }, /* CHK */
+{ CPUFUNC(op_41bb_32), 16827 }, /* CHK */
+{ CPUFUNC(op_41bc_32), 16828 }, /* CHK */
+{ CPUFUNC(op_41d0_32), 16848 }, /* LEA */
+{ CPUFUNC(op_41e8_32), 16872 }, /* LEA */
+{ CPUFUNC(op_41f0_32), 16880 }, /* LEA */
+{ CPUFUNC(op_41f8_32), 16888 }, /* LEA */
+{ CPUFUNC(op_41f9_32), 16889 }, /* LEA */
+{ CPUFUNC(op_41fa_32), 16890 }, /* LEA */
+{ CPUFUNC(op_41fb_32), 16891 }, /* LEA */
+{ CPUFUNC(op_4200_32), 16896 }, /* CLR */
+{ CPUFUNC(op_4210_32), 16912 }, /* CLR */
+{ CPUFUNC(op_4218_32), 16920 }, /* CLR */
+{ CPUFUNC(op_4220_32), 16928 }, /* CLR */
+{ CPUFUNC(op_4228_32), 16936 }, /* CLR */
+{ CPUFUNC(op_4230_32), 16944 }, /* CLR */
+{ CPUFUNC(op_4238_32), 16952 }, /* CLR */
+{ CPUFUNC(op_4239_32), 16953 }, /* CLR */
+{ CPUFUNC(op_4240_32), 16960 }, /* CLR */
+{ CPUFUNC(op_4250_32), 16976 }, /* CLR */
+{ CPUFUNC(op_4258_32), 16984 }, /* CLR */
+{ CPUFUNC(op_4260_32), 16992 }, /* CLR */
+{ CPUFUNC(op_4268_32), 17000 }, /* CLR */
+{ CPUFUNC(op_4270_32), 17008 }, /* CLR */
+{ CPUFUNC(op_4278_32), 17016 }, /* CLR */
+{ CPUFUNC(op_4279_32), 17017 }, /* CLR */
+{ CPUFUNC(op_4280_32), 17024 }, /* CLR */
+{ CPUFUNC(op_4290_32), 17040 }, /* CLR */
+{ CPUFUNC(op_4298_32), 17048 }, /* CLR */
+{ CPUFUNC(op_42a0_32), 17056 }, /* CLR */
+{ CPUFUNC(op_42a8_32), 17064 }, /* CLR */
+{ CPUFUNC(op_42b0_32), 17072 }, /* CLR */
+{ CPUFUNC(op_42b8_32), 17080 }, /* CLR */
+{ CPUFUNC(op_42b9_32), 17081 }, /* CLR */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_42c0_32), 17088 }, /* MVSR2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_42d0_32), 17104 }, /* MVSR2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_42d8_32), 17112 }, /* MVSR2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_42e0_32), 17120 }, /* MVSR2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_42e8_32), 17128 }, /* MVSR2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_42f0_32), 17136 }, /* MVSR2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_42f8_32), 17144 }, /* MVSR2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_42f9_32), 17145 }, /* MVSR2 */
+#endif
+{ CPUFUNC(op_4400_32), 17408 }, /* NEG */
+{ CPUFUNC(op_4410_32), 17424 }, /* NEG */
+{ CPUFUNC(op_4418_32), 17432 }, /* NEG */
+{ CPUFUNC(op_4420_32), 17440 }, /* NEG */
+{ CPUFUNC(op_4428_32), 17448 }, /* NEG */
+{ CPUFUNC(op_4430_32), 17456 }, /* NEG */
+{ CPUFUNC(op_4438_32), 17464 }, /* NEG */
+{ CPUFUNC(op_4439_32), 17465 }, /* NEG */
+{ CPUFUNC(op_4440_32), 17472 }, /* NEG */
+{ CPUFUNC(op_4450_32), 17488 }, /* NEG */
+{ CPUFUNC(op_4458_32), 17496 }, /* NEG */
+{ CPUFUNC(op_4460_32), 17504 }, /* NEG */
+{ CPUFUNC(op_4468_32), 17512 }, /* NEG */
+{ CPUFUNC(op_4470_32), 17520 }, /* NEG */
+{ CPUFUNC(op_4478_32), 17528 }, /* NEG */
+{ CPUFUNC(op_4479_32), 17529 }, /* NEG */
+{ CPUFUNC(op_4480_32), 17536 }, /* NEG */
+{ CPUFUNC(op_4490_32), 17552 }, /* NEG */
+{ CPUFUNC(op_4498_32), 17560 }, /* NEG */
+{ CPUFUNC(op_44a0_32), 17568 }, /* NEG */
+{ CPUFUNC(op_44a8_32), 17576 }, /* NEG */
+{ CPUFUNC(op_44b0_32), 17584 }, /* NEG */
+{ CPUFUNC(op_44b8_32), 17592 }, /* NEG */
+{ CPUFUNC(op_44b9_32), 17593 }, /* NEG */
+{ CPUFUNC(op_44c0_32), 17600 }, /* MV2SR */
+{ CPUFUNC(op_44d0_32), 17616 }, /* MV2SR */
+{ CPUFUNC(op_44d8_32), 17624 }, /* MV2SR */
+{ CPUFUNC(op_44e0_32), 17632 }, /* MV2SR */
+{ CPUFUNC(op_44e8_32), 17640 }, /* MV2SR */
+{ CPUFUNC(op_44f0_32), 17648 }, /* MV2SR */
+{ CPUFUNC(op_44f8_32), 17656 }, /* MV2SR */
+{ CPUFUNC(op_44f9_32), 17657 }, /* MV2SR */
+{ CPUFUNC(op_44fa_32), 17658 }, /* MV2SR */
+{ CPUFUNC(op_44fb_32), 17659 }, /* MV2SR */
+{ CPUFUNC(op_44fc_32), 17660 }, /* MV2SR */
+{ CPUFUNC(op_4600_32), 17920 }, /* NOT */
+{ CPUFUNC(op_4610_32), 17936 }, /* NOT */
+{ CPUFUNC(op_4618_32), 17944 }, /* NOT */
+{ CPUFUNC(op_4620_32), 17952 }, /* NOT */
+{ CPUFUNC(op_4628_32), 17960 }, /* NOT */
+{ CPUFUNC(op_4630_32), 17968 }, /* NOT */
+{ CPUFUNC(op_4638_32), 17976 }, /* NOT */
+{ CPUFUNC(op_4639_32), 17977 }, /* NOT */
+{ CPUFUNC(op_4640_32), 17984 }, /* NOT */
+{ CPUFUNC(op_4650_32), 18000 }, /* NOT */
+{ CPUFUNC(op_4658_32), 18008 }, /* NOT */
+{ CPUFUNC(op_4660_32), 18016 }, /* NOT */
+{ CPUFUNC(op_4668_32), 18024 }, /* NOT */
+{ CPUFUNC(op_4670_32), 18032 }, /* NOT */
+{ CPUFUNC(op_4678_32), 18040 }, /* NOT */
+{ CPUFUNC(op_4679_32), 18041 }, /* NOT */
+{ CPUFUNC(op_4680_32), 18048 }, /* NOT */
+{ CPUFUNC(op_4690_32), 18064 }, /* NOT */
+{ CPUFUNC(op_4698_32), 18072 }, /* NOT */
+{ CPUFUNC(op_46a0_32), 18080 }, /* NOT */
+{ CPUFUNC(op_46a8_32), 18088 }, /* NOT */
+{ CPUFUNC(op_46b0_32), 18096 }, /* NOT */
+{ CPUFUNC(op_46b8_32), 18104 }, /* NOT */
+{ CPUFUNC(op_46b9_32), 18105 }, /* NOT */
+{ CPUFUNC(op_46c0_32), 18112 }, /* MV2SR */
+{ CPUFUNC(op_46d0_32), 18128 }, /* MV2SR */
+{ CPUFUNC(op_46d8_32), 18136 }, /* MV2SR */
+{ CPUFUNC(op_46e0_32), 18144 }, /* MV2SR */
+{ CPUFUNC(op_46e8_32), 18152 }, /* MV2SR */
+{ CPUFUNC(op_46f0_32), 18160 }, /* MV2SR */
+{ CPUFUNC(op_46f8_32), 18168 }, /* MV2SR */
+{ CPUFUNC(op_46f9_32), 18169 }, /* MV2SR */
+{ CPUFUNC(op_46fa_32), 18170 }, /* MV2SR */
+{ CPUFUNC(op_46fb_32), 18171 }, /* MV2SR */
+{ CPUFUNC(op_46fc_32), 18172 }, /* MV2SR */
+{ CPUFUNC(op_4800_32), 18432 }, /* NBCD */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4808_32), 18440 }, /* LINK */
+#endif
+{ CPUFUNC(op_4810_32), 18448 }, /* NBCD */
+{ CPUFUNC(op_4818_32), 18456 }, /* NBCD */
+{ CPUFUNC(op_4820_32), 18464 }, /* NBCD */
+{ CPUFUNC(op_4828_32), 18472 }, /* NBCD */
+{ CPUFUNC(op_4830_32), 18480 }, /* NBCD */
+{ CPUFUNC(op_4838_32), 18488 }, /* NBCD */
+{ CPUFUNC(op_4839_32), 18489 }, /* NBCD */
+{ CPUFUNC(op_4840_32), 18496 }, /* SWAP */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4848_32), 18504 }, /* BKPT */
+#endif
+{ CPUFUNC(op_4850_32), 18512 }, /* PEA */
+{ CPUFUNC(op_4868_32), 18536 }, /* PEA */
+{ CPUFUNC(op_4870_32), 18544 }, /* PEA */
+{ CPUFUNC(op_4878_32), 18552 }, /* PEA */
+{ CPUFUNC(op_4879_32), 18553 }, /* PEA */
+{ CPUFUNC(op_487a_32), 18554 }, /* PEA */
+{ CPUFUNC(op_487b_32), 18555 }, /* PEA */
+{ CPUFUNC(op_4880_32), 18560 }, /* EXT */
+{ CPUFUNC(op_4890_32), 18576 }, /* MVMLE */
+{ CPUFUNC(op_48a0_32), 18592 }, /* MVMLE */
+{ CPUFUNC(op_48a8_32), 18600 }, /* MVMLE */
+{ CPUFUNC(op_48b0_32), 18608 }, /* MVMLE */
+{ CPUFUNC(op_48b8_32), 18616 }, /* MVMLE */
+{ CPUFUNC(op_48b9_32), 18617 }, /* MVMLE */
+{ CPUFUNC(op_48c0_32), 18624 }, /* EXT */
+{ CPUFUNC(op_48d0_32), 18640 }, /* MVMLE */
+{ CPUFUNC(op_48e0_32), 18656 }, /* MVMLE */
+{ CPUFUNC(op_48e8_32), 18664 }, /* MVMLE */
+{ CPUFUNC(op_48f0_32), 18672 }, /* MVMLE */
+{ CPUFUNC(op_48f8_32), 18680 }, /* MVMLE */
+{ CPUFUNC(op_48f9_32), 18681 }, /* MVMLE */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_49c0_32), 18880 }, /* EXT */
+#endif
+{ CPUFUNC(op_4a00_32), 18944 }, /* TST */
+{ CPUFUNC(op_4a10_32), 18960 }, /* TST */
+{ CPUFUNC(op_4a18_32), 18968 }, /* TST */
+{ CPUFUNC(op_4a20_32), 18976 }, /* TST */
+{ CPUFUNC(op_4a28_32), 18984 }, /* TST */
+{ CPUFUNC(op_4a30_32), 18992 }, /* TST */
+{ CPUFUNC(op_4a38_32), 19000 }, /* TST */
+{ CPUFUNC(op_4a39_32), 19001 }, /* TST */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4a3a_32), 19002 }, /* TST */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4a3b_32), 19003 }, /* TST */
+#endif
+{ CPUFUNC(op_4a40_32), 19008 }, /* TST */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4a48_32), 19016 }, /* TST */
+#endif
+{ CPUFUNC(op_4a50_32), 19024 }, /* TST */
+{ CPUFUNC(op_4a58_32), 19032 }, /* TST */
+{ CPUFUNC(op_4a60_32), 19040 }, /* TST */
+{ CPUFUNC(op_4a68_32), 19048 }, /* TST */
+{ CPUFUNC(op_4a70_32), 19056 }, /* TST */
+{ CPUFUNC(op_4a78_32), 19064 }, /* TST */
+{ CPUFUNC(op_4a79_32), 19065 }, /* TST */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4a7a_32), 19066 }, /* TST */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4a7b_32), 19067 }, /* TST */
+#endif
+{ CPUFUNC(op_4a80_32), 19072 }, /* TST */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4a88_32), 19080 }, /* TST */
+#endif
+{ CPUFUNC(op_4a90_32), 19088 }, /* TST */
+{ CPUFUNC(op_4a98_32), 19096 }, /* TST */
+{ CPUFUNC(op_4aa0_32), 19104 }, /* TST */
+{ CPUFUNC(op_4aa8_32), 19112 }, /* TST */
+{ CPUFUNC(op_4ab0_32), 19120 }, /* TST */
+{ CPUFUNC(op_4ab8_32), 19128 }, /* TST */
+{ CPUFUNC(op_4ab9_32), 19129 }, /* TST */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4aba_32), 19130 }, /* TST */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4abb_32), 19131 }, /* TST */
+#endif
+{ CPUFUNC(op_4ac0_32), 19136 }, /* TAS */
+{ CPUFUNC(op_4ad0_32), 19152 }, /* TAS */
+{ CPUFUNC(op_4ad8_32), 19160 }, /* TAS */
+{ CPUFUNC(op_4ae0_32), 19168 }, /* TAS */
+{ CPUFUNC(op_4ae8_32), 19176 }, /* TAS */
+{ CPUFUNC(op_4af0_32), 19184 }, /* TAS */
+{ CPUFUNC(op_4af8_32), 19192 }, /* TAS */
+{ CPUFUNC(op_4af9_32), 19193 }, /* TAS */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4c00_32), 19456 }, /* MULL */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4c10_32), 19472 }, /* MULL */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4c18_32), 19480 }, /* MULL */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4c20_32), 19488 }, /* MULL */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4c28_32), 19496 }, /* MULL */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4c30_32), 19504 }, /* MULL */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4c38_32), 19512 }, /* MULL */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4c39_32), 19513 }, /* MULL */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4c3a_32), 19514 }, /* MULL */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4c3b_32), 19515 }, /* MULL */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4c3c_32), 19516 }, /* MULL */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4c40_32), 19520 }, /* DIVL */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4c50_32), 19536 }, /* DIVL */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4c58_32), 19544 }, /* DIVL */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4c60_32), 19552 }, /* DIVL */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4c68_32), 19560 }, /* DIVL */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4c70_32), 19568 }, /* DIVL */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4c78_32), 19576 }, /* DIVL */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4c79_32), 19577 }, /* DIVL */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4c7a_32), 19578 }, /* DIVL */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4c7b_32), 19579 }, /* DIVL */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4c7c_32), 19580 }, /* DIVL */
+#endif
+{ CPUFUNC(op_4c90_32), 19600 }, /* MVMEL */
+{ CPUFUNC(op_4c98_32), 19608 }, /* MVMEL */
+{ CPUFUNC(op_4ca8_32), 19624 }, /* MVMEL */
+{ CPUFUNC(op_4cb0_32), 19632 }, /* MVMEL */
+{ CPUFUNC(op_4cb8_32), 19640 }, /* MVMEL */
+{ CPUFUNC(op_4cb9_32), 19641 }, /* MVMEL */
+{ CPUFUNC(op_4cba_32), 19642 }, /* MVMEL */
+{ CPUFUNC(op_4cbb_32), 19643 }, /* MVMEL */
+{ CPUFUNC(op_4cd0_32), 19664 }, /* MVMEL */
+{ CPUFUNC(op_4cd8_32), 19672 }, /* MVMEL */
+{ CPUFUNC(op_4ce8_32), 19688 }, /* MVMEL */
+{ CPUFUNC(op_4cf0_32), 19696 }, /* MVMEL */
+{ CPUFUNC(op_4cf8_32), 19704 }, /* MVMEL */
+{ CPUFUNC(op_4cf9_32), 19705 }, /* MVMEL */
+{ CPUFUNC(op_4cfa_32), 19706 }, /* MVMEL */
+{ CPUFUNC(op_4cfb_32), 19707 }, /* MVMEL */
+{ CPUFUNC(op_4e40_32), 20032 }, /* TRAP */
+{ CPUFUNC(op_4e50_32), 20048 }, /* LINK */
+{ CPUFUNC(op_4e58_32), 20056 }, /* UNLK */
+{ CPUFUNC(op_4e60_32), 20064 }, /* MVR2USP */
+{ CPUFUNC(op_4e68_32), 20072 }, /* MVUSP2R */
+{ CPUFUNC(op_4e70_32), 20080 }, /* RESET */
+{ CPUFUNC(op_4e71_32), 20081 }, /* NOP */
+{ CPUFUNC(op_4e72_32), 20082 }, /* STOP */
+{ CPUFUNC(op_4e73_32), 20083 }, /* RTE */
+{ CPUFUNC(op_4e74_32), 20084 }, /* RTD */
+{ CPUFUNC(op_4e75_32), 20085 }, /* RTS */
+{ CPUFUNC(op_4e76_32), 20086 }, /* TRAPV */
+{ CPUFUNC(op_4e77_32), 20087 }, /* RTR */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4e7a_32), 20090 }, /* MOVEC2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4e7b_32), 20091 }, /* MOVE2C */
+#endif
+{ CPUFUNC(op_4e90_32), 20112 }, /* JSR */
+{ CPUFUNC(op_4ea8_32), 20136 }, /* JSR */
+{ CPUFUNC(op_4eb0_32), 20144 }, /* JSR */
+{ CPUFUNC(op_4eb8_32), 20152 }, /* JSR */
+{ CPUFUNC(op_4eb9_32), 20153 }, /* JSR */
+{ CPUFUNC(op_4eba_32), 20154 }, /* JSR */
+{ CPUFUNC(op_4ebb_32), 20155 }, /* JSR */
+{ CPUFUNC(op_4ed0_32), 20176 }, /* JMP */
+{ CPUFUNC(op_4ee8_32), 20200 }, /* JMP */
+{ CPUFUNC(op_4ef0_32), 20208 }, /* JMP */
+{ CPUFUNC(op_4ef8_32), 20216 }, /* JMP */
+{ CPUFUNC(op_4ef9_32), 20217 }, /* JMP */
+{ CPUFUNC(op_4efa_32), 20218 }, /* JMP */
+{ CPUFUNC(op_4efb_32), 20219 }, /* JMP */
+{ CPUFUNC(op_5000_32), 20480 }, /* ADD */
+{ CPUFUNC(op_5010_32), 20496 }, /* ADD */
+{ CPUFUNC(op_5018_32), 20504 }, /* ADD */
+{ CPUFUNC(op_5020_32), 20512 }, /* ADD */
+{ CPUFUNC(op_5028_32), 20520 }, /* ADD */
+{ CPUFUNC(op_5030_32), 20528 }, /* ADD */
+{ CPUFUNC(op_5038_32), 20536 }, /* ADD */
+{ CPUFUNC(op_5039_32), 20537 }, /* ADD */
+{ CPUFUNC(op_5040_32), 20544 }, /* ADD */
+{ CPUFUNC(op_5048_32), 20552 }, /* ADDA */
+{ CPUFUNC(op_5050_32), 20560 }, /* ADD */
+{ CPUFUNC(op_5058_32), 20568 }, /* ADD */
+{ CPUFUNC(op_5060_32), 20576 }, /* ADD */
+{ CPUFUNC(op_5068_32), 20584 }, /* ADD */
+{ CPUFUNC(op_5070_32), 20592 }, /* ADD */
+{ CPUFUNC(op_5078_32), 20600 }, /* ADD */
+{ CPUFUNC(op_5079_32), 20601 }, /* ADD */
+{ CPUFUNC(op_5080_32), 20608 }, /* ADD */
+{ CPUFUNC(op_5088_32), 20616 }, /* ADDA */
+{ CPUFUNC(op_5090_32), 20624 }, /* ADD */
+{ CPUFUNC(op_5098_32), 20632 }, /* ADD */
+{ CPUFUNC(op_50a0_32), 20640 }, /* ADD */
+{ CPUFUNC(op_50a8_32), 20648 }, /* ADD */
+{ CPUFUNC(op_50b0_32), 20656 }, /* ADD */
+{ CPUFUNC(op_50b8_32), 20664 }, /* ADD */
+{ CPUFUNC(op_50b9_32), 20665 }, /* ADD */
+{ CPUFUNC(op_50c0_32), 20672 }, /* Scc */
+{ CPUFUNC(op_50c8_32), 20680 }, /* DBcc */
+{ CPUFUNC(op_50d0_32), 20688 }, /* Scc */
+{ CPUFUNC(op_50d8_32), 20696 }, /* Scc */
+{ CPUFUNC(op_50e0_32), 20704 }, /* Scc */
+{ CPUFUNC(op_50e8_32), 20712 }, /* Scc */
+{ CPUFUNC(op_50f0_32), 20720 }, /* Scc */
+{ CPUFUNC(op_50f8_32), 20728 }, /* Scc */
+{ CPUFUNC(op_50f9_32), 20729 }, /* Scc */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_50fa_32), 20730 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_50fb_32), 20731 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_50fc_32), 20732 }, /* TRAPcc */
+#endif
+{ CPUFUNC(op_5100_32), 20736 }, /* SUB */
+{ CPUFUNC(op_5110_32), 20752 }, /* SUB */
+{ CPUFUNC(op_5118_32), 20760 }, /* SUB */
+{ CPUFUNC(op_5120_32), 20768 }, /* SUB */
+{ CPUFUNC(op_5128_32), 20776 }, /* SUB */
+{ CPUFUNC(op_5130_32), 20784 }, /* SUB */
+{ CPUFUNC(op_5138_32), 20792 }, /* SUB */
+{ CPUFUNC(op_5139_32), 20793 }, /* SUB */
+{ CPUFUNC(op_5140_32), 20800 }, /* SUB */
+{ CPUFUNC(op_5148_32), 20808 }, /* SUBA */
+{ CPUFUNC(op_5150_32), 20816 }, /* SUB */
+{ CPUFUNC(op_5158_32), 20824 }, /* SUB */
+{ CPUFUNC(op_5160_32), 20832 }, /* SUB */
+{ CPUFUNC(op_5168_32), 20840 }, /* SUB */
+{ CPUFUNC(op_5170_32), 20848 }, /* SUB */
+{ CPUFUNC(op_5178_32), 20856 }, /* SUB */
+{ CPUFUNC(op_5179_32), 20857 }, /* SUB */
+{ CPUFUNC(op_5180_32), 20864 }, /* SUB */
+{ CPUFUNC(op_5188_32), 20872 }, /* SUBA */
+{ CPUFUNC(op_5190_32), 20880 }, /* SUB */
+{ CPUFUNC(op_5198_32), 20888 }, /* SUB */
+{ CPUFUNC(op_51a0_32), 20896 }, /* SUB */
+{ CPUFUNC(op_51a8_32), 20904 }, /* SUB */
+{ CPUFUNC(op_51b0_32), 20912 }, /* SUB */
+{ CPUFUNC(op_51b8_32), 20920 }, /* SUB */
+{ CPUFUNC(op_51b9_32), 20921 }, /* SUB */
+{ CPUFUNC(op_51c0_32), 20928 }, /* Scc */
+{ CPUFUNC(op_51c8_32), 20936 }, /* DBcc */
+{ CPUFUNC(op_51d0_32), 20944 }, /* Scc */
+{ CPUFUNC(op_51d8_32), 20952 }, /* Scc */
+{ CPUFUNC(op_51e0_32), 20960 }, /* Scc */
+{ CPUFUNC(op_51e8_32), 20968 }, /* Scc */
+{ CPUFUNC(op_51f0_32), 20976 }, /* Scc */
+{ CPUFUNC(op_51f8_32), 20984 }, /* Scc */
+{ CPUFUNC(op_51f9_32), 20985 }, /* Scc */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_51fa_32), 20986 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_51fb_32), 20987 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_51fc_32), 20988 }, /* TRAPcc */
+#endif
+{ CPUFUNC(op_52c0_32), 21184 }, /* Scc */
+{ CPUFUNC(op_52c8_32), 21192 }, /* DBcc */
+{ CPUFUNC(op_52d0_32), 21200 }, /* Scc */
+{ CPUFUNC(op_52d8_32), 21208 }, /* Scc */
+{ CPUFUNC(op_52e0_32), 21216 }, /* Scc */
+{ CPUFUNC(op_52e8_32), 21224 }, /* Scc */
+{ CPUFUNC(op_52f0_32), 21232 }, /* Scc */
+{ CPUFUNC(op_52f8_32), 21240 }, /* Scc */
+{ CPUFUNC(op_52f9_32), 21241 }, /* Scc */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_52fa_32), 21242 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_52fb_32), 21243 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_52fc_32), 21244 }, /* TRAPcc */
+#endif
+{ CPUFUNC(op_53c0_32), 21440 }, /* Scc */
+{ CPUFUNC(op_53c8_32), 21448 }, /* DBcc */
+{ CPUFUNC(op_53d0_32), 21456 }, /* Scc */
+{ CPUFUNC(op_53d8_32), 21464 }, /* Scc */
+{ CPUFUNC(op_53e0_32), 21472 }, /* Scc */
+{ CPUFUNC(op_53e8_32), 21480 }, /* Scc */
+{ CPUFUNC(op_53f0_32), 21488 }, /* Scc */
+{ CPUFUNC(op_53f8_32), 21496 }, /* Scc */
+{ CPUFUNC(op_53f9_32), 21497 }, /* Scc */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_53fa_32), 21498 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_53fb_32), 21499 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_53fc_32), 21500 }, /* TRAPcc */
+#endif
+{ CPUFUNC(op_54c0_32), 21696 }, /* Scc */
+{ CPUFUNC(op_54c8_32), 21704 }, /* DBcc */
+{ CPUFUNC(op_54d0_32), 21712 }, /* Scc */
+{ CPUFUNC(op_54d8_32), 21720 }, /* Scc */
+{ CPUFUNC(op_54e0_32), 21728 }, /* Scc */
+{ CPUFUNC(op_54e8_32), 21736 }, /* Scc */
+{ CPUFUNC(op_54f0_32), 21744 }, /* Scc */
+{ CPUFUNC(op_54f8_32), 21752 }, /* Scc */
+{ CPUFUNC(op_54f9_32), 21753 }, /* Scc */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_54fa_32), 21754 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_54fb_32), 21755 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_54fc_32), 21756 }, /* TRAPcc */
+#endif
+{ CPUFUNC(op_55c0_32), 21952 }, /* Scc */
+{ CPUFUNC(op_55c8_32), 21960 }, /* DBcc */
+{ CPUFUNC(op_55d0_32), 21968 }, /* Scc */
+{ CPUFUNC(op_55d8_32), 21976 }, /* Scc */
+{ CPUFUNC(op_55e0_32), 21984 }, /* Scc */
+{ CPUFUNC(op_55e8_32), 21992 }, /* Scc */
+{ CPUFUNC(op_55f0_32), 22000 }, /* Scc */
+{ CPUFUNC(op_55f8_32), 22008 }, /* Scc */
+{ CPUFUNC(op_55f9_32), 22009 }, /* Scc */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_55fa_32), 22010 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_55fb_32), 22011 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_55fc_32), 22012 }, /* TRAPcc */
+#endif
+{ CPUFUNC(op_56c0_32), 22208 }, /* Scc */
+{ CPUFUNC(op_56c8_32), 22216 }, /* DBcc */
+{ CPUFUNC(op_56d0_32), 22224 }, /* Scc */
+{ CPUFUNC(op_56d8_32), 22232 }, /* Scc */
+{ CPUFUNC(op_56e0_32), 22240 }, /* Scc */
+{ CPUFUNC(op_56e8_32), 22248 }, /* Scc */
+{ CPUFUNC(op_56f0_32), 22256 }, /* Scc */
+{ CPUFUNC(op_56f8_32), 22264 }, /* Scc */
+{ CPUFUNC(op_56f9_32), 22265 }, /* Scc */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_56fa_32), 22266 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_56fb_32), 22267 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_56fc_32), 22268 }, /* TRAPcc */
+#endif
+{ CPUFUNC(op_57c0_32), 22464 }, /* Scc */
+{ CPUFUNC(op_57c8_32), 22472 }, /* DBcc */
+{ CPUFUNC(op_57d0_32), 22480 }, /* Scc */
+{ CPUFUNC(op_57d8_32), 22488 }, /* Scc */
+{ CPUFUNC(op_57e0_32), 22496 }, /* Scc */
+{ CPUFUNC(op_57e8_32), 22504 }, /* Scc */
+{ CPUFUNC(op_57f0_32), 22512 }, /* Scc */
+{ CPUFUNC(op_57f8_32), 22520 }, /* Scc */
+{ CPUFUNC(op_57f9_32), 22521 }, /* Scc */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_57fa_32), 22522 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_57fb_32), 22523 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_57fc_32), 22524 }, /* TRAPcc */
+#endif
+{ CPUFUNC(op_58c0_32), 22720 }, /* Scc */
+{ CPUFUNC(op_58c8_32), 22728 }, /* DBcc */
+{ CPUFUNC(op_58d0_32), 22736 }, /* Scc */
+{ CPUFUNC(op_58d8_32), 22744 }, /* Scc */
+{ CPUFUNC(op_58e0_32), 22752 }, /* Scc */
+{ CPUFUNC(op_58e8_32), 22760 }, /* Scc */
+{ CPUFUNC(op_58f0_32), 22768 }, /* Scc */
+{ CPUFUNC(op_58f8_32), 22776 }, /* Scc */
+{ CPUFUNC(op_58f9_32), 22777 }, /* Scc */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_58fa_32), 22778 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_58fb_32), 22779 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_58fc_32), 22780 }, /* TRAPcc */
+#endif
+{ CPUFUNC(op_59c0_32), 22976 }, /* Scc */
+{ CPUFUNC(op_59c8_32), 22984 }, /* DBcc */
+{ CPUFUNC(op_59d0_32), 22992 }, /* Scc */
+{ CPUFUNC(op_59d8_32), 23000 }, /* Scc */
+{ CPUFUNC(op_59e0_32), 23008 }, /* Scc */
+{ CPUFUNC(op_59e8_32), 23016 }, /* Scc */
+{ CPUFUNC(op_59f0_32), 23024 }, /* Scc */
+{ CPUFUNC(op_59f8_32), 23032 }, /* Scc */
+{ CPUFUNC(op_59f9_32), 23033 }, /* Scc */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_59fa_32), 23034 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_59fb_32), 23035 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_59fc_32), 23036 }, /* TRAPcc */
+#endif
+{ CPUFUNC(op_5ac0_32), 23232 }, /* Scc */
+{ CPUFUNC(op_5ac8_32), 23240 }, /* DBcc */
+{ CPUFUNC(op_5ad0_32), 23248 }, /* Scc */
+{ CPUFUNC(op_5ad8_32), 23256 }, /* Scc */
+{ CPUFUNC(op_5ae0_32), 23264 }, /* Scc */
+{ CPUFUNC(op_5ae8_32), 23272 }, /* Scc */
+{ CPUFUNC(op_5af0_32), 23280 }, /* Scc */
+{ CPUFUNC(op_5af8_32), 23288 }, /* Scc */
+{ CPUFUNC(op_5af9_32), 23289 }, /* Scc */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_5afa_32), 23290 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_5afb_32), 23291 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_5afc_32), 23292 }, /* TRAPcc */
+#endif
+{ CPUFUNC(op_5bc0_32), 23488 }, /* Scc */
+{ CPUFUNC(op_5bc8_32), 23496 }, /* DBcc */
+{ CPUFUNC(op_5bd0_32), 23504 }, /* Scc */
+{ CPUFUNC(op_5bd8_32), 23512 }, /* Scc */
+{ CPUFUNC(op_5be0_32), 23520 }, /* Scc */
+{ CPUFUNC(op_5be8_32), 23528 }, /* Scc */
+{ CPUFUNC(op_5bf0_32), 23536 }, /* Scc */
+{ CPUFUNC(op_5bf8_32), 23544 }, /* Scc */
+{ CPUFUNC(op_5bf9_32), 23545 }, /* Scc */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_5bfa_32), 23546 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_5bfb_32), 23547 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_5bfc_32), 23548 }, /* TRAPcc */
+#endif
+{ CPUFUNC(op_5cc0_32), 23744 }, /* Scc */
+{ CPUFUNC(op_5cc8_32), 23752 }, /* DBcc */
+{ CPUFUNC(op_5cd0_32), 23760 }, /* Scc */
+{ CPUFUNC(op_5cd8_32), 23768 }, /* Scc */
+{ CPUFUNC(op_5ce0_32), 23776 }, /* Scc */
+{ CPUFUNC(op_5ce8_32), 23784 }, /* Scc */
+{ CPUFUNC(op_5cf0_32), 23792 }, /* Scc */
+{ CPUFUNC(op_5cf8_32), 23800 }, /* Scc */
+{ CPUFUNC(op_5cf9_32), 23801 }, /* Scc */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_5cfa_32), 23802 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_5cfb_32), 23803 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_5cfc_32), 23804 }, /* TRAPcc */
+#endif
+{ CPUFUNC(op_5dc0_32), 24000 }, /* Scc */
+{ CPUFUNC(op_5dc8_32), 24008 }, /* DBcc */
+{ CPUFUNC(op_5dd0_32), 24016 }, /* Scc */
+{ CPUFUNC(op_5dd8_32), 24024 }, /* Scc */
+{ CPUFUNC(op_5de0_32), 24032 }, /* Scc */
+{ CPUFUNC(op_5de8_32), 24040 }, /* Scc */
+{ CPUFUNC(op_5df0_32), 24048 }, /* Scc */
+{ CPUFUNC(op_5df8_32), 24056 }, /* Scc */
+{ CPUFUNC(op_5df9_32), 24057 }, /* Scc */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_5dfa_32), 24058 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_5dfb_32), 24059 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_5dfc_32), 24060 }, /* TRAPcc */
+#endif
+{ CPUFUNC(op_5ec0_32), 24256 }, /* Scc */
+{ CPUFUNC(op_5ec8_32), 24264 }, /* DBcc */
+{ CPUFUNC(op_5ed0_32), 24272 }, /* Scc */
+{ CPUFUNC(op_5ed8_32), 24280 }, /* Scc */
+{ CPUFUNC(op_5ee0_32), 24288 }, /* Scc */
+{ CPUFUNC(op_5ee8_32), 24296 }, /* Scc */
+{ CPUFUNC(op_5ef0_32), 24304 }, /* Scc */
+{ CPUFUNC(op_5ef8_32), 24312 }, /* Scc */
+{ CPUFUNC(op_5ef9_32), 24313 }, /* Scc */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_5efa_32), 24314 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_5efb_32), 24315 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_5efc_32), 24316 }, /* TRAPcc */
+#endif
+{ CPUFUNC(op_5fc0_32), 24512 }, /* Scc */
+{ CPUFUNC(op_5fc8_32), 24520 }, /* DBcc */
+{ CPUFUNC(op_5fd0_32), 24528 }, /* Scc */
+{ CPUFUNC(op_5fd8_32), 24536 }, /* Scc */
+{ CPUFUNC(op_5fe0_32), 24544 }, /* Scc */
+{ CPUFUNC(op_5fe8_32), 24552 }, /* Scc */
+{ CPUFUNC(op_5ff0_32), 24560 }, /* Scc */
+{ CPUFUNC(op_5ff8_32), 24568 }, /* Scc */
+{ CPUFUNC(op_5ff9_32), 24569 }, /* Scc */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_5ffa_32), 24570 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_5ffb_32), 24571 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_5ffc_32), 24572 }, /* TRAPcc */
+#endif
+{ CPUFUNC(op_6000_32), 24576 }, /* Bcc */
+{ CPUFUNC(op_6001_32), 24577 }, /* Bcc */
+{ CPUFUNC(op_60ff_32), 24831 }, /* Bcc */
+{ CPUFUNC(op_6100_32), 24832 }, /* BSR */
+{ CPUFUNC(op_6101_32), 24833 }, /* BSR */
+{ CPUFUNC(op_61ff_32), 25087 }, /* BSR */
+{ CPUFUNC(op_6200_32), 25088 }, /* Bcc */
+{ CPUFUNC(op_6201_32), 25089 }, /* Bcc */
+{ CPUFUNC(op_62ff_32), 25343 }, /* Bcc */
+{ CPUFUNC(op_6300_32), 25344 }, /* Bcc */
+{ CPUFUNC(op_6301_32), 25345 }, /* Bcc */
+{ CPUFUNC(op_63ff_32), 25599 }, /* Bcc */
+{ CPUFUNC(op_6400_32), 25600 }, /* Bcc */
+{ CPUFUNC(op_6401_32), 25601 }, /* Bcc */
+{ CPUFUNC(op_64ff_32), 25855 }, /* Bcc */
+{ CPUFUNC(op_6500_32), 25856 }, /* Bcc */
+{ CPUFUNC(op_6501_32), 25857 }, /* Bcc */
+{ CPUFUNC(op_65ff_32), 26111 }, /* Bcc */
+{ CPUFUNC(op_6600_32), 26112 }, /* Bcc */
+{ CPUFUNC(op_6601_32), 26113 }, /* Bcc */
+{ CPUFUNC(op_66ff_32), 26367 }, /* Bcc */
+{ CPUFUNC(op_6700_32), 26368 }, /* Bcc */
+{ CPUFUNC(op_6701_32), 26369 }, /* Bcc */
+{ CPUFUNC(op_67ff_32), 26623 }, /* Bcc */
+{ CPUFUNC(op_6800_32), 26624 }, /* Bcc */
+{ CPUFUNC(op_6801_32), 26625 }, /* Bcc */
+{ CPUFUNC(op_68ff_32), 26879 }, /* Bcc */
+{ CPUFUNC(op_6900_32), 26880 }, /* Bcc */
+{ CPUFUNC(op_6901_32), 26881 }, /* Bcc */
+{ CPUFUNC(op_69ff_32), 27135 }, /* Bcc */
+{ CPUFUNC(op_6a00_32), 27136 }, /* Bcc */
+{ CPUFUNC(op_6a01_32), 27137 }, /* Bcc */
+{ CPUFUNC(op_6aff_32), 27391 }, /* Bcc */
+{ CPUFUNC(op_6b00_32), 27392 }, /* Bcc */
+{ CPUFUNC(op_6b01_32), 27393 }, /* Bcc */
+{ CPUFUNC(op_6bff_32), 27647 }, /* Bcc */
+{ CPUFUNC(op_6c00_32), 27648 }, /* Bcc */
+{ CPUFUNC(op_6c01_32), 27649 }, /* Bcc */
+{ CPUFUNC(op_6cff_32), 27903 }, /* Bcc */
+{ CPUFUNC(op_6d00_32), 27904 }, /* Bcc */
+{ CPUFUNC(op_6d01_32), 27905 }, /* Bcc */
+{ CPUFUNC(op_6dff_32), 28159 }, /* Bcc */
+{ CPUFUNC(op_6e00_32), 28160 }, /* Bcc */
+{ CPUFUNC(op_6e01_32), 28161 }, /* Bcc */
+{ CPUFUNC(op_6eff_32), 28415 }, /* Bcc */
+{ CPUFUNC(op_6f00_32), 28416 }, /* Bcc */
+{ CPUFUNC(op_6f01_32), 28417 }, /* Bcc */
+{ CPUFUNC(op_6fff_32), 28671 }, /* Bcc */
+{ CPUFUNC(op_7000_32), 28672 }, /* MOVE */
+{ CPUFUNC(op_8000_32), 32768 }, /* OR */
+{ CPUFUNC(op_8010_32), 32784 }, /* OR */
+{ CPUFUNC(op_8018_32), 32792 }, /* OR */
+{ CPUFUNC(op_8020_32), 32800 }, /* OR */
+{ CPUFUNC(op_8028_32), 32808 }, /* OR */
+{ CPUFUNC(op_8030_32), 32816 }, /* OR */
+{ CPUFUNC(op_8038_32), 32824 }, /* OR */
+{ CPUFUNC(op_8039_32), 32825 }, /* OR */
+{ CPUFUNC(op_803a_32), 32826 }, /* OR */
+{ CPUFUNC(op_803b_32), 32827 }, /* OR */
+{ CPUFUNC(op_803c_32), 32828 }, /* OR */
+{ CPUFUNC(op_8040_32), 32832 }, /* OR */
+{ CPUFUNC(op_8050_32), 32848 }, /* OR */
+{ CPUFUNC(op_8058_32), 32856 }, /* OR */
+{ CPUFUNC(op_8060_32), 32864 }, /* OR */
+{ CPUFUNC(op_8068_32), 32872 }, /* OR */
+{ CPUFUNC(op_8070_32), 32880 }, /* OR */
+{ CPUFUNC(op_8078_32), 32888 }, /* OR */
+{ CPUFUNC(op_8079_32), 32889 }, /* OR */
+{ CPUFUNC(op_807a_32), 32890 }, /* OR */
+{ CPUFUNC(op_807b_32), 32891 }, /* OR */
+{ CPUFUNC(op_807c_32), 32892 }, /* OR */
+{ CPUFUNC(op_8080_32), 32896 }, /* OR */
+{ CPUFUNC(op_8090_32), 32912 }, /* OR */
+{ CPUFUNC(op_8098_32), 32920 }, /* OR */
+{ CPUFUNC(op_80a0_32), 32928 }, /* OR */
+{ CPUFUNC(op_80a8_32), 32936 }, /* OR */
+{ CPUFUNC(op_80b0_32), 32944 }, /* OR */
+{ CPUFUNC(op_80b8_32), 32952 }, /* OR */
+{ CPUFUNC(op_80b9_32), 32953 }, /* OR */
+{ CPUFUNC(op_80ba_32), 32954 }, /* OR */
+{ CPUFUNC(op_80bb_32), 32955 }, /* OR */
+{ CPUFUNC(op_80bc_32), 32956 }, /* OR */
+{ CPUFUNC(op_80c0_32), 32960 }, /* DIVU */
+{ CPUFUNC(op_80d0_32), 32976 }, /* DIVU */
+{ CPUFUNC(op_80d8_32), 32984 }, /* DIVU */
+{ CPUFUNC(op_80e0_32), 32992 }, /* DIVU */
+{ CPUFUNC(op_80e8_32), 33000 }, /* DIVU */
+{ CPUFUNC(op_80f0_32), 33008 }, /* DIVU */
+{ CPUFUNC(op_80f8_32), 33016 }, /* DIVU */
+{ CPUFUNC(op_80f9_32), 33017 }, /* DIVU */
+{ CPUFUNC(op_80fa_32), 33018 }, /* DIVU */
+{ CPUFUNC(op_80fb_32), 33019 }, /* DIVU */
+{ CPUFUNC(op_80fc_32), 33020 }, /* DIVU */
+{ CPUFUNC(op_8100_32), 33024 }, /* SBCD */
+{ CPUFUNC(op_8108_32), 33032 }, /* SBCD */
+{ CPUFUNC(op_8110_32), 33040 }, /* OR */
+{ CPUFUNC(op_8118_32), 33048 }, /* OR */
+{ CPUFUNC(op_8120_32), 33056 }, /* OR */
+{ CPUFUNC(op_8128_32), 33064 }, /* OR */
+{ CPUFUNC(op_8130_32), 33072 }, /* OR */
+{ CPUFUNC(op_8138_32), 33080 }, /* OR */
+{ CPUFUNC(op_8139_32), 33081 }, /* OR */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_8140_32), 33088 }, /* PACK */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_8148_32), 33096 }, /* PACK */
+#endif
+{ CPUFUNC(op_8150_32), 33104 }, /* OR */
+{ CPUFUNC(op_8158_32), 33112 }, /* OR */
+{ CPUFUNC(op_8160_32), 33120 }, /* OR */
+{ CPUFUNC(op_8168_32), 33128 }, /* OR */
+{ CPUFUNC(op_8170_32), 33136 }, /* OR */
+{ CPUFUNC(op_8178_32), 33144 }, /* OR */
+{ CPUFUNC(op_8179_32), 33145 }, /* OR */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_8180_32), 33152 }, /* UNPK */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_8188_32), 33160 }, /* UNPK */
+#endif
+{ CPUFUNC(op_8190_32), 33168 }, /* OR */
+{ CPUFUNC(op_8198_32), 33176 }, /* OR */
+{ CPUFUNC(op_81a0_32), 33184 }, /* OR */
+{ CPUFUNC(op_81a8_32), 33192 }, /* OR */
+{ CPUFUNC(op_81b0_32), 33200 }, /* OR */
+{ CPUFUNC(op_81b8_32), 33208 }, /* OR */
+{ CPUFUNC(op_81b9_32), 33209 }, /* OR */
+{ CPUFUNC(op_81c0_32), 33216 }, /* DIVS */
+{ CPUFUNC(op_81d0_32), 33232 }, /* DIVS */
+{ CPUFUNC(op_81d8_32), 33240 }, /* DIVS */
+{ CPUFUNC(op_81e0_32), 33248 }, /* DIVS */
+{ CPUFUNC(op_81e8_32), 33256 }, /* DIVS */
+{ CPUFUNC(op_81f0_32), 33264 }, /* DIVS */
+{ CPUFUNC(op_81f8_32), 33272 }, /* DIVS */
+{ CPUFUNC(op_81f9_32), 33273 }, /* DIVS */
+{ CPUFUNC(op_81fa_32), 33274 }, /* DIVS */
+{ CPUFUNC(op_81fb_32), 33275 }, /* DIVS */
+{ CPUFUNC(op_81fc_32), 33276 }, /* DIVS */
+{ CPUFUNC(op_9000_32), 36864 }, /* SUB */
+{ CPUFUNC(op_9010_32), 36880 }, /* SUB */
+{ CPUFUNC(op_9018_32), 36888 }, /* SUB */
+{ CPUFUNC(op_9020_32), 36896 }, /* SUB */
+{ CPUFUNC(op_9028_32), 36904 }, /* SUB */
+{ CPUFUNC(op_9030_32), 36912 }, /* SUB */
+{ CPUFUNC(op_9038_32), 36920 }, /* SUB */
+{ CPUFUNC(op_9039_32), 36921 }, /* SUB */
+{ CPUFUNC(op_903a_32), 36922 }, /* SUB */
+{ CPUFUNC(op_903b_32), 36923 }, /* SUB */
+{ CPUFUNC(op_903c_32), 36924 }, /* SUB */
+{ CPUFUNC(op_9040_32), 36928 }, /* SUB */
+{ CPUFUNC(op_9048_32), 36936 }, /* SUB */
+{ CPUFUNC(op_9050_32), 36944 }, /* SUB */
+{ CPUFUNC(op_9058_32), 36952 }, /* SUB */
+{ CPUFUNC(op_9060_32), 36960 }, /* SUB */
+{ CPUFUNC(op_9068_32), 36968 }, /* SUB */
+{ CPUFUNC(op_9070_32), 36976 }, /* SUB */
+{ CPUFUNC(op_9078_32), 36984 }, /* SUB */
+{ CPUFUNC(op_9079_32), 36985 }, /* SUB */
+{ CPUFUNC(op_907a_32), 36986 }, /* SUB */
+{ CPUFUNC(op_907b_32), 36987 }, /* SUB */
+{ CPUFUNC(op_907c_32), 36988 }, /* SUB */
+{ CPUFUNC(op_9080_32), 36992 }, /* SUB */
+{ CPUFUNC(op_9088_32), 37000 }, /* SUB */
+{ CPUFUNC(op_9090_32), 37008 }, /* SUB */
+{ CPUFUNC(op_9098_32), 37016 }, /* SUB */
+{ CPUFUNC(op_90a0_32), 37024 }, /* SUB */
+{ CPUFUNC(op_90a8_32), 37032 }, /* SUB */
+{ CPUFUNC(op_90b0_32), 37040 }, /* SUB */
+{ CPUFUNC(op_90b8_32), 37048 }, /* SUB */
+{ CPUFUNC(op_90b9_32), 37049 }, /* SUB */
+{ CPUFUNC(op_90ba_32), 37050 }, /* SUB */
+{ CPUFUNC(op_90bb_32), 37051 }, /* SUB */
+{ CPUFUNC(op_90bc_32), 37052 }, /* SUB */
+{ CPUFUNC(op_90c0_32), 37056 }, /* SUBA */
+{ CPUFUNC(op_90c8_32), 37064 }, /* SUBA */
+{ CPUFUNC(op_90d0_32), 37072 }, /* SUBA */
+{ CPUFUNC(op_90d8_32), 37080 }, /* SUBA */
+{ CPUFUNC(op_90e0_32), 37088 }, /* SUBA */
+{ CPUFUNC(op_90e8_32), 37096 }, /* SUBA */
+{ CPUFUNC(op_90f0_32), 37104 }, /* SUBA */
+{ CPUFUNC(op_90f8_32), 37112 }, /* SUBA */
+{ CPUFUNC(op_90f9_32), 37113 }, /* SUBA */
+{ CPUFUNC(op_90fa_32), 37114 }, /* SUBA */
+{ CPUFUNC(op_90fb_32), 37115 }, /* SUBA */
+{ CPUFUNC(op_90fc_32), 37116 }, /* SUBA */
+{ CPUFUNC(op_9100_32), 37120 }, /* SUBX */
+{ CPUFUNC(op_9108_32), 37128 }, /* SUBX */
+{ CPUFUNC(op_9110_32), 37136 }, /* SUB */
+{ CPUFUNC(op_9118_32), 37144 }, /* SUB */
+{ CPUFUNC(op_9120_32), 37152 }, /* SUB */
+{ CPUFUNC(op_9128_32), 37160 }, /* SUB */
+{ CPUFUNC(op_9130_32), 37168 }, /* SUB */
+{ CPUFUNC(op_9138_32), 37176 }, /* SUB */
+{ CPUFUNC(op_9139_32), 37177 }, /* SUB */
+{ CPUFUNC(op_9140_32), 37184 }, /* SUBX */
+{ CPUFUNC(op_9148_32), 37192 }, /* SUBX */
+{ CPUFUNC(op_9150_32), 37200 }, /* SUB */
+{ CPUFUNC(op_9158_32), 37208 }, /* SUB */
+{ CPUFUNC(op_9160_32), 37216 }, /* SUB */
+{ CPUFUNC(op_9168_32), 37224 }, /* SUB */
+{ CPUFUNC(op_9170_32), 37232 }, /* SUB */
+{ CPUFUNC(op_9178_32), 37240 }, /* SUB */
+{ CPUFUNC(op_9179_32), 37241 }, /* SUB */
+{ CPUFUNC(op_9180_32), 37248 }, /* SUBX */
+{ CPUFUNC(op_9188_32), 37256 }, /* SUBX */
+{ CPUFUNC(op_9190_32), 37264 }, /* SUB */
+{ CPUFUNC(op_9198_32), 37272 }, /* SUB */
+{ CPUFUNC(op_91a0_32), 37280 }, /* SUB */
+{ CPUFUNC(op_91a8_32), 37288 }, /* SUB */
+{ CPUFUNC(op_91b0_32), 37296 }, /* SUB */
+{ CPUFUNC(op_91b8_32), 37304 }, /* SUB */
+{ CPUFUNC(op_91b9_32), 37305 }, /* SUB */
+{ CPUFUNC(op_91c0_32), 37312 }, /* SUBA */
+{ CPUFUNC(op_91c8_32), 37320 }, /* SUBA */
+{ CPUFUNC(op_91d0_32), 37328 }, /* SUBA */
+{ CPUFUNC(op_91d8_32), 37336 }, /* SUBA */
+{ CPUFUNC(op_91e0_32), 37344 }, /* SUBA */
+{ CPUFUNC(op_91e8_32), 37352 }, /* SUBA */
+{ CPUFUNC(op_91f0_32), 37360 }, /* SUBA */
+{ CPUFUNC(op_91f8_32), 37368 }, /* SUBA */
+{ CPUFUNC(op_91f9_32), 37369 }, /* SUBA */
+{ CPUFUNC(op_91fa_32), 37370 }, /* SUBA */
+{ CPUFUNC(op_91fb_32), 37371 }, /* SUBA */
+{ CPUFUNC(op_91fc_32), 37372 }, /* SUBA */
+{ CPUFUNC(op_b000_32), 45056 }, /* CMP */
+{ CPUFUNC(op_b010_32), 45072 }, /* CMP */
+{ CPUFUNC(op_b018_32), 45080 }, /* CMP */
+{ CPUFUNC(op_b020_32), 45088 }, /* CMP */
+{ CPUFUNC(op_b028_32), 45096 }, /* CMP */
+{ CPUFUNC(op_b030_32), 45104 }, /* CMP */
+{ CPUFUNC(op_b038_32), 45112 }, /* CMP */
+{ CPUFUNC(op_b039_32), 45113 }, /* CMP */
+{ CPUFUNC(op_b03a_32), 45114 }, /* CMP */
+{ CPUFUNC(op_b03b_32), 45115 }, /* CMP */
+{ CPUFUNC(op_b03c_32), 45116 }, /* CMP */
+{ CPUFUNC(op_b040_32), 45120 }, /* CMP */
+{ CPUFUNC(op_b048_32), 45128 }, /* CMP */
+{ CPUFUNC(op_b050_32), 45136 }, /* CMP */
+{ CPUFUNC(op_b058_32), 45144 }, /* CMP */
+{ CPUFUNC(op_b060_32), 45152 }, /* CMP */
+{ CPUFUNC(op_b068_32), 45160 }, /* CMP */
+{ CPUFUNC(op_b070_32), 45168 }, /* CMP */
+{ CPUFUNC(op_b078_32), 45176 }, /* CMP */
+{ CPUFUNC(op_b079_32), 45177 }, /* CMP */
+{ CPUFUNC(op_b07a_32), 45178 }, /* CMP */
+{ CPUFUNC(op_b07b_32), 45179 }, /* CMP */
+{ CPUFUNC(op_b07c_32), 45180 }, /* CMP */
+{ CPUFUNC(op_b080_32), 45184 }, /* CMP */
+{ CPUFUNC(op_b088_32), 45192 }, /* CMP */
+{ CPUFUNC(op_b090_32), 45200 }, /* CMP */
+{ CPUFUNC(op_b098_32), 45208 }, /* CMP */
+{ CPUFUNC(op_b0a0_32), 45216 }, /* CMP */
+{ CPUFUNC(op_b0a8_32), 45224 }, /* CMP */
+{ CPUFUNC(op_b0b0_32), 45232 }, /* CMP */
+{ CPUFUNC(op_b0b8_32), 45240 }, /* CMP */
+{ CPUFUNC(op_b0b9_32), 45241 }, /* CMP */
+{ CPUFUNC(op_b0ba_32), 45242 }, /* CMP */
+{ CPUFUNC(op_b0bb_32), 45243 }, /* CMP */
+{ CPUFUNC(op_b0bc_32), 45244 }, /* CMP */
+{ CPUFUNC(op_b0c0_32), 45248 }, /* CMPA */
+{ CPUFUNC(op_b0c8_32), 45256 }, /* CMPA */
+{ CPUFUNC(op_b0d0_32), 45264 }, /* CMPA */
+{ CPUFUNC(op_b0d8_32), 45272 }, /* CMPA */
+{ CPUFUNC(op_b0e0_32), 45280 }, /* CMPA */
+{ CPUFUNC(op_b0e8_32), 45288 }, /* CMPA */
+{ CPUFUNC(op_b0f0_32), 45296 }, /* CMPA */
+{ CPUFUNC(op_b0f8_32), 45304 }, /* CMPA */
+{ CPUFUNC(op_b0f9_32), 45305 }, /* CMPA */
+{ CPUFUNC(op_b0fa_32), 45306 }, /* CMPA */
+{ CPUFUNC(op_b0fb_32), 45307 }, /* CMPA */
+{ CPUFUNC(op_b0fc_32), 45308 }, /* CMPA */
+{ CPUFUNC(op_b100_32), 45312 }, /* EOR */
+{ CPUFUNC(op_b108_32), 45320 }, /* CMPM */
+{ CPUFUNC(op_b110_32), 45328 }, /* EOR */
+{ CPUFUNC(op_b118_32), 45336 }, /* EOR */
+{ CPUFUNC(op_b120_32), 45344 }, /* EOR */
+{ CPUFUNC(op_b128_32), 45352 }, /* EOR */
+{ CPUFUNC(op_b130_32), 45360 }, /* EOR */
+{ CPUFUNC(op_b138_32), 45368 }, /* EOR */
+{ CPUFUNC(op_b139_32), 45369 }, /* EOR */
+{ CPUFUNC(op_b140_32), 45376 }, /* EOR */
+{ CPUFUNC(op_b148_32), 45384 }, /* CMPM */
+{ CPUFUNC(op_b150_32), 45392 }, /* EOR */
+{ CPUFUNC(op_b158_32), 45400 }, /* EOR */
+{ CPUFUNC(op_b160_32), 45408 }, /* EOR */
+{ CPUFUNC(op_b168_32), 45416 }, /* EOR */
+{ CPUFUNC(op_b170_32), 45424 }, /* EOR */
+{ CPUFUNC(op_b178_32), 45432 }, /* EOR */
+{ CPUFUNC(op_b179_32), 45433 }, /* EOR */
+{ CPUFUNC(op_b180_32), 45440 }, /* EOR */
+{ CPUFUNC(op_b188_32), 45448 }, /* CMPM */
+{ CPUFUNC(op_b190_32), 45456 }, /* EOR */
+{ CPUFUNC(op_b198_32), 45464 }, /* EOR */
+{ CPUFUNC(op_b1a0_32), 45472 }, /* EOR */
+{ CPUFUNC(op_b1a8_32), 45480 }, /* EOR */
+{ CPUFUNC(op_b1b0_32), 45488 }, /* EOR */
+{ CPUFUNC(op_b1b8_32), 45496 }, /* EOR */
+{ CPUFUNC(op_b1b9_32), 45497 }, /* EOR */
+{ CPUFUNC(op_b1c0_32), 45504 }, /* CMPA */
+{ CPUFUNC(op_b1c8_32), 45512 }, /* CMPA */
+{ CPUFUNC(op_b1d0_32), 45520 }, /* CMPA */
+{ CPUFUNC(op_b1d8_32), 45528 }, /* CMPA */
+{ CPUFUNC(op_b1e0_32), 45536 }, /* CMPA */
+{ CPUFUNC(op_b1e8_32), 45544 }, /* CMPA */
+{ CPUFUNC(op_b1f0_32), 45552 }, /* CMPA */
+{ CPUFUNC(op_b1f8_32), 45560 }, /* CMPA */
+{ CPUFUNC(op_b1f9_32), 45561 }, /* CMPA */
+{ CPUFUNC(op_b1fa_32), 45562 }, /* CMPA */
+{ CPUFUNC(op_b1fb_32), 45563 }, /* CMPA */
+{ CPUFUNC(op_b1fc_32), 45564 }, /* CMPA */
+{ CPUFUNC(op_c000_32), 49152 }, /* AND */
+{ CPUFUNC(op_c010_32), 49168 }, /* AND */
+{ CPUFUNC(op_c018_32), 49176 }, /* AND */
+{ CPUFUNC(op_c020_32), 49184 }, /* AND */
+{ CPUFUNC(op_c028_32), 49192 }, /* AND */
+{ CPUFUNC(op_c030_32), 49200 }, /* AND */
+{ CPUFUNC(op_c038_32), 49208 }, /* AND */
+{ CPUFUNC(op_c039_32), 49209 }, /* AND */
+{ CPUFUNC(op_c03a_32), 49210 }, /* AND */
+{ CPUFUNC(op_c03b_32), 49211 }, /* AND */
+{ CPUFUNC(op_c03c_32), 49212 }, /* AND */
+{ CPUFUNC(op_c040_32), 49216 }, /* AND */
+{ CPUFUNC(op_c050_32), 49232 }, /* AND */
+{ CPUFUNC(op_c058_32), 49240 }, /* AND */
+{ CPUFUNC(op_c060_32), 49248 }, /* AND */
+{ CPUFUNC(op_c068_32), 49256 }, /* AND */
+{ CPUFUNC(op_c070_32), 49264 }, /* AND */
+{ CPUFUNC(op_c078_32), 49272 }, /* AND */
+{ CPUFUNC(op_c079_32), 49273 }, /* AND */
+{ CPUFUNC(op_c07a_32), 49274 }, /* AND */
+{ CPUFUNC(op_c07b_32), 49275 }, /* AND */
+{ CPUFUNC(op_c07c_32), 49276 }, /* AND */
+{ CPUFUNC(op_c080_32), 49280 }, /* AND */
+{ CPUFUNC(op_c090_32), 49296 }, /* AND */
+{ CPUFUNC(op_c098_32), 49304 }, /* AND */
+{ CPUFUNC(op_c0a0_32), 49312 }, /* AND */
+{ CPUFUNC(op_c0a8_32), 49320 }, /* AND */
+{ CPUFUNC(op_c0b0_32), 49328 }, /* AND */
+{ CPUFUNC(op_c0b8_32), 49336 }, /* AND */
+{ CPUFUNC(op_c0b9_32), 49337 }, /* AND */
+{ CPUFUNC(op_c0ba_32), 49338 }, /* AND */
+{ CPUFUNC(op_c0bb_32), 49339 }, /* AND */
+{ CPUFUNC(op_c0bc_32), 49340 }, /* AND */
+{ CPUFUNC(op_c0c0_32), 49344 }, /* MULU */
+{ CPUFUNC(op_c0d0_32), 49360 }, /* MULU */
+{ CPUFUNC(op_c0d8_32), 49368 }, /* MULU */
+{ CPUFUNC(op_c0e0_32), 49376 }, /* MULU */
+{ CPUFUNC(op_c0e8_32), 49384 }, /* MULU */
+{ CPUFUNC(op_c0f0_32), 49392 }, /* MULU */
+{ CPUFUNC(op_c0f8_32), 49400 }, /* MULU */
+{ CPUFUNC(op_c0f9_32), 49401 }, /* MULU */
+{ CPUFUNC(op_c0fa_32), 49402 }, /* MULU */
+{ CPUFUNC(op_c0fb_32), 49403 }, /* MULU */
+{ CPUFUNC(op_c0fc_32), 49404 }, /* MULU */
+{ CPUFUNC(op_c100_32), 49408 }, /* ABCD */
+{ CPUFUNC(op_c108_32), 49416 }, /* ABCD */
+{ CPUFUNC(op_c110_32), 49424 }, /* AND */
+{ CPUFUNC(op_c118_32), 49432 }, /* AND */
+{ CPUFUNC(op_c120_32), 49440 }, /* AND */
+{ CPUFUNC(op_c128_32), 49448 }, /* AND */
+{ CPUFUNC(op_c130_32), 49456 }, /* AND */
+{ CPUFUNC(op_c138_32), 49464 }, /* AND */
+{ CPUFUNC(op_c139_32), 49465 }, /* AND */
+{ CPUFUNC(op_c140_32), 49472 }, /* EXG */
+{ CPUFUNC(op_c148_32), 49480 }, /* EXG */
+{ CPUFUNC(op_c150_32), 49488 }, /* AND */
+{ CPUFUNC(op_c158_32), 49496 }, /* AND */
+{ CPUFUNC(op_c160_32), 49504 }, /* AND */
+{ CPUFUNC(op_c168_32), 49512 }, /* AND */
+{ CPUFUNC(op_c170_32), 49520 }, /* AND */
+{ CPUFUNC(op_c178_32), 49528 }, /* AND */
+{ CPUFUNC(op_c179_32), 49529 }, /* AND */
+{ CPUFUNC(op_c188_32), 49544 }, /* EXG */
+{ CPUFUNC(op_c190_32), 49552 }, /* AND */
+{ CPUFUNC(op_c198_32), 49560 }, /* AND */
+{ CPUFUNC(op_c1a0_32), 49568 }, /* AND */
+{ CPUFUNC(op_c1a8_32), 49576 }, /* AND */
+{ CPUFUNC(op_c1b0_32), 49584 }, /* AND */
+{ CPUFUNC(op_c1b8_32), 49592 }, /* AND */
+{ CPUFUNC(op_c1b9_32), 49593 }, /* AND */
+{ CPUFUNC(op_c1c0_32), 49600 }, /* MULS */
+{ CPUFUNC(op_c1d0_32), 49616 }, /* MULS */
+{ CPUFUNC(op_c1d8_32), 49624 }, /* MULS */
+{ CPUFUNC(op_c1e0_32), 49632 }, /* MULS */
+{ CPUFUNC(op_c1e8_32), 49640 }, /* MULS */
+{ CPUFUNC(op_c1f0_32), 49648 }, /* MULS */
+{ CPUFUNC(op_c1f8_32), 49656 }, /* MULS */
+{ CPUFUNC(op_c1f9_32), 49657 }, /* MULS */
+{ CPUFUNC(op_c1fa_32), 49658 }, /* MULS */
+{ CPUFUNC(op_c1fb_32), 49659 }, /* MULS */
+{ CPUFUNC(op_c1fc_32), 49660 }, /* MULS */
+{ CPUFUNC(op_d000_32), 53248 }, /* ADD */
+{ CPUFUNC(op_d010_32), 53264 }, /* ADD */
+{ CPUFUNC(op_d018_32), 53272 }, /* ADD */
+{ CPUFUNC(op_d020_32), 53280 }, /* ADD */
+{ CPUFUNC(op_d028_32), 53288 }, /* ADD */
+{ CPUFUNC(op_d030_32), 53296 }, /* ADD */
+{ CPUFUNC(op_d038_32), 53304 }, /* ADD */
+{ CPUFUNC(op_d039_32), 53305 }, /* ADD */
+{ CPUFUNC(op_d03a_32), 53306 }, /* ADD */
+{ CPUFUNC(op_d03b_32), 53307 }, /* ADD */
+{ CPUFUNC(op_d03c_32), 53308 }, /* ADD */
+{ CPUFUNC(op_d040_32), 53312 }, /* ADD */
+{ CPUFUNC(op_d048_32), 53320 }, /* ADD */
+{ CPUFUNC(op_d050_32), 53328 }, /* ADD */
+{ CPUFUNC(op_d058_32), 53336 }, /* ADD */
+{ CPUFUNC(op_d060_32), 53344 }, /* ADD */
+{ CPUFUNC(op_d068_32), 53352 }, /* ADD */
+{ CPUFUNC(op_d070_32), 53360 }, /* ADD */
+{ CPUFUNC(op_d078_32), 53368 }, /* ADD */
+{ CPUFUNC(op_d079_32), 53369 }, /* ADD */
+{ CPUFUNC(op_d07a_32), 53370 }, /* ADD */
+{ CPUFUNC(op_d07b_32), 53371 }, /* ADD */
+{ CPUFUNC(op_d07c_32), 53372 }, /* ADD */
+{ CPUFUNC(op_d080_32), 53376 }, /* ADD */
+{ CPUFUNC(op_d088_32), 53384 }, /* ADD */
+{ CPUFUNC(op_d090_32), 53392 }, /* ADD */
+{ CPUFUNC(op_d098_32), 53400 }, /* ADD */
+{ CPUFUNC(op_d0a0_32), 53408 }, /* ADD */
+{ CPUFUNC(op_d0a8_32), 53416 }, /* ADD */
+{ CPUFUNC(op_d0b0_32), 53424 }, /* ADD */
+{ CPUFUNC(op_d0b8_32), 53432 }, /* ADD */
+{ CPUFUNC(op_d0b9_32), 53433 }, /* ADD */
+{ CPUFUNC(op_d0ba_32), 53434 }, /* ADD */
+{ CPUFUNC(op_d0bb_32), 53435 }, /* ADD */
+{ CPUFUNC(op_d0bc_32), 53436 }, /* ADD */
+{ CPUFUNC(op_d0c0_32), 53440 }, /* ADDA */
+{ CPUFUNC(op_d0c8_32), 53448 }, /* ADDA */
+{ CPUFUNC(op_d0d0_32), 53456 }, /* ADDA */
+{ CPUFUNC(op_d0d8_32), 53464 }, /* ADDA */
+{ CPUFUNC(op_d0e0_32), 53472 }, /* ADDA */
+{ CPUFUNC(op_d0e8_32), 53480 }, /* ADDA */
+{ CPUFUNC(op_d0f0_32), 53488 }, /* ADDA */
+{ CPUFUNC(op_d0f8_32), 53496 }, /* ADDA */
+{ CPUFUNC(op_d0f9_32), 53497 }, /* ADDA */
+{ CPUFUNC(op_d0fa_32), 53498 }, /* ADDA */
+{ CPUFUNC(op_d0fb_32), 53499 }, /* ADDA */
+{ CPUFUNC(op_d0fc_32), 53500 }, /* ADDA */
+{ CPUFUNC(op_d100_32), 53504 }, /* ADDX */
+{ CPUFUNC(op_d108_32), 53512 }, /* ADDX */
+{ CPUFUNC(op_d110_32), 53520 }, /* ADD */
+{ CPUFUNC(op_d118_32), 53528 }, /* ADD */
+{ CPUFUNC(op_d120_32), 53536 }, /* ADD */
+{ CPUFUNC(op_d128_32), 53544 }, /* ADD */
+{ CPUFUNC(op_d130_32), 53552 }, /* ADD */
+{ CPUFUNC(op_d138_32), 53560 }, /* ADD */
+{ CPUFUNC(op_d139_32), 53561 }, /* ADD */
+{ CPUFUNC(op_d140_32), 53568 }, /* ADDX */
+{ CPUFUNC(op_d148_32), 53576 }, /* ADDX */
+{ CPUFUNC(op_d150_32), 53584 }, /* ADD */
+{ CPUFUNC(op_d158_32), 53592 }, /* ADD */
+{ CPUFUNC(op_d160_32), 53600 }, /* ADD */
+{ CPUFUNC(op_d168_32), 53608 }, /* ADD */
+{ CPUFUNC(op_d170_32), 53616 }, /* ADD */
+{ CPUFUNC(op_d178_32), 53624 }, /* ADD */
+{ CPUFUNC(op_d179_32), 53625 }, /* ADD */
+{ CPUFUNC(op_d180_32), 53632 }, /* ADDX */
+{ CPUFUNC(op_d188_32), 53640 }, /* ADDX */
+{ CPUFUNC(op_d190_32), 53648 }, /* ADD */
+{ CPUFUNC(op_d198_32), 53656 }, /* ADD */
+{ CPUFUNC(op_d1a0_32), 53664 }, /* ADD */
+{ CPUFUNC(op_d1a8_32), 53672 }, /* ADD */
+{ CPUFUNC(op_d1b0_32), 53680 }, /* ADD */
+{ CPUFUNC(op_d1b8_32), 53688 }, /* ADD */
+{ CPUFUNC(op_d1b9_32), 53689 }, /* ADD */
+{ CPUFUNC(op_d1c0_32), 53696 }, /* ADDA */
+{ CPUFUNC(op_d1c8_32), 53704 }, /* ADDA */
+{ CPUFUNC(op_d1d0_32), 53712 }, /* ADDA */
+{ CPUFUNC(op_d1d8_32), 53720 }, /* ADDA */
+{ CPUFUNC(op_d1e0_32), 53728 }, /* ADDA */
+{ CPUFUNC(op_d1e8_32), 53736 }, /* ADDA */
+{ CPUFUNC(op_d1f0_32), 53744 }, /* ADDA */
+{ CPUFUNC(op_d1f8_32), 53752 }, /* ADDA */
+{ CPUFUNC(op_d1f9_32), 53753 }, /* ADDA */
+{ CPUFUNC(op_d1fa_32), 53754 }, /* ADDA */
+{ CPUFUNC(op_d1fb_32), 53755 }, /* ADDA */
+{ CPUFUNC(op_d1fc_32), 53756 }, /* ADDA */
+{ CPUFUNC(op_e000_32), 57344 }, /* ASR */
+{ CPUFUNC(op_e008_32), 57352 }, /* LSR */
+{ CPUFUNC(op_e010_32), 57360 }, /* ROXR */
+{ CPUFUNC(op_e018_32), 57368 }, /* ROR */
+{ CPUFUNC(op_e020_32), 57376 }, /* ASR */
+{ CPUFUNC(op_e028_32), 57384 }, /* LSR */
+{ CPUFUNC(op_e030_32), 57392 }, /* ROXR */
+{ CPUFUNC(op_e038_32), 57400 }, /* ROR */
+{ CPUFUNC(op_e040_32), 57408 }, /* ASR */
+{ CPUFUNC(op_e048_32), 57416 }, /* LSR */
+{ CPUFUNC(op_e050_32), 57424 }, /* ROXR */
+{ CPUFUNC(op_e058_32), 57432 }, /* ROR */
+{ CPUFUNC(op_e060_32), 57440 }, /* ASR */
+{ CPUFUNC(op_e068_32), 57448 }, /* LSR */
+{ CPUFUNC(op_e070_32), 57456 }, /* ROXR */
+{ CPUFUNC(op_e078_32), 57464 }, /* ROR */
+{ CPUFUNC(op_e080_32), 57472 }, /* ASR */
+{ CPUFUNC(op_e088_32), 57480 }, /* LSR */
+{ CPUFUNC(op_e090_32), 57488 }, /* ROXR */
+{ CPUFUNC(op_e098_32), 57496 }, /* ROR */
+{ CPUFUNC(op_e0a0_32), 57504 }, /* ASR */
+{ CPUFUNC(op_e0a8_32), 57512 }, /* LSR */
+{ CPUFUNC(op_e0b0_32), 57520 }, /* ROXR */
+{ CPUFUNC(op_e0b8_32), 57528 }, /* ROR */
+{ CPUFUNC(op_e0d0_32), 57552 }, /* ASRW */
+{ CPUFUNC(op_e0d8_32), 57560 }, /* ASRW */
+{ CPUFUNC(op_e0e0_32), 57568 }, /* ASRW */
+{ CPUFUNC(op_e0e8_32), 57576 }, /* ASRW */
+{ CPUFUNC(op_e0f0_32), 57584 }, /* ASRW */
+{ CPUFUNC(op_e0f8_32), 57592 }, /* ASRW */
+{ CPUFUNC(op_e0f9_32), 57593 }, /* ASRW */
+{ CPUFUNC(op_e100_32), 57600 }, /* ASL */
+{ CPUFUNC(op_e108_32), 57608 }, /* LSL */
+{ CPUFUNC(op_e110_32), 57616 }, /* ROXL */
+{ CPUFUNC(op_e118_32), 57624 }, /* ROL */
+{ CPUFUNC(op_e120_32), 57632 }, /* ASL */
+{ CPUFUNC(op_e128_32), 57640 }, /* LSL */
+{ CPUFUNC(op_e130_32), 57648 }, /* ROXL */
+{ CPUFUNC(op_e138_32), 57656 }, /* ROL */
+{ CPUFUNC(op_e140_32), 57664 }, /* ASL */
+{ CPUFUNC(op_e148_32), 57672 }, /* LSL */
+{ CPUFUNC(op_e150_32), 57680 }, /* ROXL */
+{ CPUFUNC(op_e158_32), 57688 }, /* ROL */
+{ CPUFUNC(op_e160_32), 57696 }, /* ASL */
+{ CPUFUNC(op_e168_32), 57704 }, /* LSL */
+{ CPUFUNC(op_e170_32), 57712 }, /* ROXL */
+{ CPUFUNC(op_e178_32), 57720 }, /* ROL */
+{ CPUFUNC(op_e180_32), 57728 }, /* ASL */
+{ CPUFUNC(op_e188_32), 57736 }, /* LSL */
+{ CPUFUNC(op_e190_32), 57744 }, /* ROXL */
+{ CPUFUNC(op_e198_32), 57752 }, /* ROL */
+{ CPUFUNC(op_e1a0_32), 57760 }, /* ASL */
+{ CPUFUNC(op_e1a8_32), 57768 }, /* LSL */
+{ CPUFUNC(op_e1b0_32), 57776 }, /* ROXL */
+{ CPUFUNC(op_e1b8_32), 57784 }, /* ROL */
+{ CPUFUNC(op_e1d0_32), 57808 }, /* ASLW */
+{ CPUFUNC(op_e1d8_32), 57816 }, /* ASLW */
+{ CPUFUNC(op_e1e0_32), 57824 }, /* ASLW */
+{ CPUFUNC(op_e1e8_32), 57832 }, /* ASLW */
+{ CPUFUNC(op_e1f0_32), 57840 }, /* ASLW */
+{ CPUFUNC(op_e1f8_32), 57848 }, /* ASLW */
+{ CPUFUNC(op_e1f9_32), 57849 }, /* ASLW */
+{ CPUFUNC(op_e2d0_32), 58064 }, /* LSRW */
+{ CPUFUNC(op_e2d8_32), 58072 }, /* LSRW */
+{ CPUFUNC(op_e2e0_32), 58080 }, /* LSRW */
+{ CPUFUNC(op_e2e8_32), 58088 }, /* LSRW */
+{ CPUFUNC(op_e2f0_32), 58096 }, /* LSRW */
+{ CPUFUNC(op_e2f8_32), 58104 }, /* LSRW */
+{ CPUFUNC(op_e2f9_32), 58105 }, /* LSRW */
+{ CPUFUNC(op_e3d0_32), 58320 }, /* LSLW */
+{ CPUFUNC(op_e3d8_32), 58328 }, /* LSLW */
+{ CPUFUNC(op_e3e0_32), 58336 }, /* LSLW */
+{ CPUFUNC(op_e3e8_32), 58344 }, /* LSLW */
+{ CPUFUNC(op_e3f0_32), 58352 }, /* LSLW */
+{ CPUFUNC(op_e3f8_32), 58360 }, /* LSLW */
+{ CPUFUNC(op_e3f9_32), 58361 }, /* LSLW */
+{ CPUFUNC(op_e4d0_32), 58576 }, /* ROXRW */
+{ CPUFUNC(op_e4d8_32), 58584 }, /* ROXRW */
+{ CPUFUNC(op_e4e0_32), 58592 }, /* ROXRW */
+{ CPUFUNC(op_e4e8_32), 58600 }, /* ROXRW */
+{ CPUFUNC(op_e4f0_32), 58608 }, /* ROXRW */
+{ CPUFUNC(op_e4f8_32), 58616 }, /* ROXRW */
+{ CPUFUNC(op_e4f9_32), 58617 }, /* ROXRW */
+{ CPUFUNC(op_e5d0_32), 58832 }, /* ROXLW */
+{ CPUFUNC(op_e5d8_32), 58840 }, /* ROXLW */
+{ CPUFUNC(op_e5e0_32), 58848 }, /* ROXLW */
+{ CPUFUNC(op_e5e8_32), 58856 }, /* ROXLW */
+{ CPUFUNC(op_e5f0_32), 58864 }, /* ROXLW */
+{ CPUFUNC(op_e5f8_32), 58872 }, /* ROXLW */
+{ CPUFUNC(op_e5f9_32), 58873 }, /* ROXLW */
+{ CPUFUNC(op_e6d0_32), 59088 }, /* RORW */
+{ CPUFUNC(op_e6d8_32), 59096 }, /* RORW */
+{ CPUFUNC(op_e6e0_32), 59104 }, /* RORW */
+{ CPUFUNC(op_e6e8_32), 59112 }, /* RORW */
+{ CPUFUNC(op_e6f0_32), 59120 }, /* RORW */
+{ CPUFUNC(op_e6f8_32), 59128 }, /* RORW */
+{ CPUFUNC(op_e6f9_32), 59129 }, /* RORW */
+{ CPUFUNC(op_e7d0_32), 59344 }, /* ROLW */
+{ CPUFUNC(op_e7d8_32), 59352 }, /* ROLW */
+{ CPUFUNC(op_e7e0_32), 59360 }, /* ROLW */
+{ CPUFUNC(op_e7e8_32), 59368 }, /* ROLW */
+{ CPUFUNC(op_e7f0_32), 59376 }, /* ROLW */
+{ CPUFUNC(op_e7f8_32), 59384 }, /* ROLW */
+{ CPUFUNC(op_e7f9_32), 59385 }, /* ROLW */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_e8c0_32), 59584 }, /* BFTST */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_e8d0_32), 59600 }, /* BFTST */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_e8e8_32), 59624 }, /* BFTST */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_e8f0_32), 59632 }, /* BFTST */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_e8f8_32), 59640 }, /* BFTST */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_e8f9_32), 59641 }, /* BFTST */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_e8fa_32), 59642 }, /* BFTST */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_e8fb_32), 59643 }, /* BFTST */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_e9c0_32), 59840 }, /* BFEXTU */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_e9d0_32), 59856 }, /* BFEXTU */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_e9e8_32), 59880 }, /* BFEXTU */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_e9f0_32), 59888 }, /* BFEXTU */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_e9f8_32), 59896 }, /* BFEXTU */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_e9f9_32), 59897 }, /* BFEXTU */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_e9fa_32), 59898 }, /* BFEXTU */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_e9fb_32), 59899 }, /* BFEXTU */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_eac0_32), 60096 }, /* BFCHG */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_ead0_32), 60112 }, /* BFCHG */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_eae8_32), 60136 }, /* BFCHG */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_eaf0_32), 60144 }, /* BFCHG */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_eaf8_32), 60152 }, /* BFCHG */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_eaf9_32), 60153 }, /* BFCHG */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_ebc0_32), 60352 }, /* BFEXTS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_ebd0_32), 60368 }, /* BFEXTS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_ebe8_32), 60392 }, /* BFEXTS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_ebf0_32), 60400 }, /* BFEXTS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_ebf8_32), 60408 }, /* BFEXTS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_ebf9_32), 60409 }, /* BFEXTS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_ebfa_32), 60410 }, /* BFEXTS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_ebfb_32), 60411 }, /* BFEXTS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_ecc0_32), 60608 }, /* BFCLR */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_ecd0_32), 60624 }, /* BFCLR */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_ece8_32), 60648 }, /* BFCLR */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_ecf0_32), 60656 }, /* BFCLR */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_ecf8_32), 60664 }, /* BFCLR */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_ecf9_32), 60665 }, /* BFCLR */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_edc0_32), 60864 }, /* BFFFO */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_edd0_32), 60880 }, /* BFFFO */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_ede8_32), 60904 }, /* BFFFO */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_edf0_32), 60912 }, /* BFFFO */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_edf8_32), 60920 }, /* BFFFO */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_edf9_32), 60921 }, /* BFFFO */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_edfa_32), 60922 }, /* BFFFO */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_edfb_32), 60923 }, /* BFFFO */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_eec0_32), 61120 }, /* BFSET */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_eed0_32), 61136 }, /* BFSET */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_eee8_32), 61160 }, /* BFSET */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_eef0_32), 61168 }, /* BFSET */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_eef8_32), 61176 }, /* BFSET */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_eef9_32), 61177 }, /* BFSET */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_efc0_32), 61376 }, /* BFINS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_efd0_32), 61392 }, /* BFINS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_efe8_32), 61416 }, /* BFINS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_eff0_32), 61424 }, /* BFINS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_eff8_32), 61432 }, /* BFINS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_eff9_32), 61433 }, /* BFINS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f000_32), 61440 }, /* MMUOP030 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f008_32), 61448 }, /* MMUOP030 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f010_32), 61456 }, /* MMUOP030 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f018_32), 61464 }, /* MMUOP030 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f020_32), 61472 }, /* MMUOP030 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f028_32), 61480 }, /* MMUOP030 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f030_32), 61488 }, /* MMUOP030 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f038_32), 61496 }, /* MMUOP030 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f039_32), 61497 }, /* MMUOP030 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f200_32), 61952 }, /* FPP */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f208_32), 61960 }, /* FPP */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f210_32), 61968 }, /* FPP */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f218_32), 61976 }, /* FPP */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f220_32), 61984 }, /* FPP */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f228_32), 61992 }, /* FPP */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f230_32), 62000 }, /* FPP */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f238_32), 62008 }, /* FPP */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f239_32), 62009 }, /* FPP */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f23a_32), 62010 }, /* FPP */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f23b_32), 62011 }, /* FPP */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f23c_32), 62012 }, /* FPP */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f240_32), 62016 }, /* FScc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f248_32), 62024 }, /* FDBcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f250_32), 62032 }, /* FScc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f258_32), 62040 }, /* FScc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f260_32), 62048 }, /* FScc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f268_32), 62056 }, /* FScc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f270_32), 62064 }, /* FScc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f278_32), 62072 }, /* FScc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f279_32), 62073 }, /* FScc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f27a_32), 62074 }, /* FTRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f27b_32), 62075 }, /* FTRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f27c_32), 62076 }, /* FTRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f280_32), 62080 }, /* FBcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f2c0_32), 62144 }, /* FBcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f310_32), 62224 }, /* FSAVE */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f320_32), 62240 }, /* FSAVE */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f328_32), 62248 }, /* FSAVE */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f330_32), 62256 }, /* FSAVE */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f338_32), 62264 }, /* FSAVE */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f339_32), 62265 }, /* FSAVE */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f350_32), 62288 }, /* FRESTORE */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f358_32), 62296 }, /* FRESTORE */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f368_32), 62312 }, /* FRESTORE */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f370_32), 62320 }, /* FRESTORE */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f378_32), 62328 }, /* FRESTORE */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f379_32), 62329 }, /* FRESTORE */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f37a_32), 62330 }, /* FRESTORE */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f37b_32), 62331 }, /* FRESTORE */
+#endif
+{ 0, 0 }};
+#endif /* CPUEMU_68000_ONLY */
+#endif /* CPUEMU_32 */
+#ifdef CPUEMU_33
+#ifndef CPUEMU_68000_ONLY
+const struct cputbl CPUFUNC(op_smalltbl_33)[] = {
+{ CPUFUNC(op_0000_33), 0 }, /* OR */
+{ CPUFUNC(op_0010_33), 16 }, /* OR */
+{ CPUFUNC(op_0018_33), 24 }, /* OR */
+{ CPUFUNC(op_0020_33), 32 }, /* OR */
+{ CPUFUNC(op_0028_33), 40 }, /* OR */
+{ CPUFUNC(op_0030_33), 48 }, /* OR */
+{ CPUFUNC(op_0038_33), 56 }, /* OR */
+{ CPUFUNC(op_0039_33), 57 }, /* OR */
+{ CPUFUNC(op_003c_33), 60 }, /* ORSR */
+{ CPUFUNC(op_0040_33), 64 }, /* OR */
+{ CPUFUNC(op_0050_33), 80 }, /* OR */
+{ CPUFUNC(op_0058_33), 88 }, /* OR */
+{ CPUFUNC(op_0060_33), 96 }, /* OR */
+{ CPUFUNC(op_0068_33), 104 }, /* OR */
+{ CPUFUNC(op_0070_33), 112 }, /* OR */
+{ CPUFUNC(op_0078_33), 120 }, /* OR */
+{ CPUFUNC(op_0079_33), 121 }, /* OR */
+{ CPUFUNC(op_007c_33), 124 }, /* ORSR */
+{ CPUFUNC(op_0080_33), 128 }, /* OR */
+{ CPUFUNC(op_0090_33), 144 }, /* OR */
+{ CPUFUNC(op_0098_33), 152 }, /* OR */
+{ CPUFUNC(op_00a0_33), 160 }, /* OR */
+{ CPUFUNC(op_00a8_33), 168 }, /* OR */
+{ CPUFUNC(op_00b0_33), 176 }, /* OR */
+{ CPUFUNC(op_00b8_33), 184 }, /* OR */
+{ CPUFUNC(op_00b9_33), 185 }, /* OR */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_00d0_33), 208 }, /* CHK2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_00e8_33), 232 }, /* CHK2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_00f0_33), 240 }, /* CHK2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_00f8_33), 248 }, /* CHK2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_00f9_33), 249 }, /* CHK2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_00fa_33), 250 }, /* CHK2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_00fb_33), 251 }, /* CHK2 */
+#endif
+{ CPUFUNC(op_0100_33), 256 }, /* BTST */
+{ CPUFUNC(op_0108_33), 264 }, /* MVPMR */
+{ CPUFUNC(op_0110_33), 272 }, /* BTST */
+{ CPUFUNC(op_0118_33), 280 }, /* BTST */
+{ CPUFUNC(op_0120_33), 288 }, /* BTST */
+{ CPUFUNC(op_0128_33), 296 }, /* BTST */
+{ CPUFUNC(op_0130_33), 304 }, /* BTST */
+{ CPUFUNC(op_0138_33), 312 }, /* BTST */
+{ CPUFUNC(op_0139_33), 313 }, /* BTST */
+{ CPUFUNC(op_013a_33), 314 }, /* BTST */
+{ CPUFUNC(op_013b_33), 315 }, /* BTST */
+{ CPUFUNC(op_013c_33), 316 }, /* BTST */
+{ CPUFUNC(op_0140_33), 320 }, /* BCHG */
+{ CPUFUNC(op_0148_33), 328 }, /* MVPMR */
+{ CPUFUNC(op_0150_33), 336 }, /* BCHG */
+{ CPUFUNC(op_0158_33), 344 }, /* BCHG */
+{ CPUFUNC(op_0160_33), 352 }, /* BCHG */
+{ CPUFUNC(op_0168_33), 360 }, /* BCHG */
+{ CPUFUNC(op_0170_33), 368 }, /* BCHG */
+{ CPUFUNC(op_0178_33), 376 }, /* BCHG */
+{ CPUFUNC(op_0179_33), 377 }, /* BCHG */
+{ CPUFUNC(op_017a_33), 378 }, /* BCHG */
+{ CPUFUNC(op_017b_33), 379 }, /* BCHG */
+{ CPUFUNC(op_0180_33), 384 }, /* BCLR */
+{ CPUFUNC(op_0188_33), 392 }, /* MVPRM */
+{ CPUFUNC(op_0190_33), 400 }, /* BCLR */
+{ CPUFUNC(op_0198_33), 408 }, /* BCLR */
+{ CPUFUNC(op_01a0_33), 416 }, /* BCLR */
+{ CPUFUNC(op_01a8_33), 424 }, /* BCLR */
+{ CPUFUNC(op_01b0_33), 432 }, /* BCLR */
+{ CPUFUNC(op_01b8_33), 440 }, /* BCLR */
+{ CPUFUNC(op_01b9_33), 441 }, /* BCLR */
+{ CPUFUNC(op_01ba_33), 442 }, /* BCLR */
+{ CPUFUNC(op_01bb_33), 443 }, /* BCLR */
+{ CPUFUNC(op_01c0_33), 448 }, /* BSET */
+{ CPUFUNC(op_01c8_33), 456 }, /* MVPRM */
+{ CPUFUNC(op_01d0_33), 464 }, /* BSET */
+{ CPUFUNC(op_01d8_33), 472 }, /* BSET */
+{ CPUFUNC(op_01e0_33), 480 }, /* BSET */
+{ CPUFUNC(op_01e8_33), 488 }, /* BSET */
+{ CPUFUNC(op_01f0_33), 496 }, /* BSET */
+{ CPUFUNC(op_01f8_33), 504 }, /* BSET */
+{ CPUFUNC(op_01f9_33), 505 }, /* BSET */
+{ CPUFUNC(op_01fa_33), 506 }, /* BSET */
+{ CPUFUNC(op_01fb_33), 507 }, /* BSET */
+{ CPUFUNC(op_0200_33), 512 }, /* AND */
+{ CPUFUNC(op_0210_33), 528 }, /* AND */
+{ CPUFUNC(op_0218_33), 536 }, /* AND */
+{ CPUFUNC(op_0220_33), 544 }, /* AND */
+{ CPUFUNC(op_0228_33), 552 }, /* AND */
+{ CPUFUNC(op_0230_33), 560 }, /* AND */
+{ CPUFUNC(op_0238_33), 568 }, /* AND */
+{ CPUFUNC(op_0239_33), 569 }, /* AND */
+{ CPUFUNC(op_023c_33), 572 }, /* ANDSR */
+{ CPUFUNC(op_0240_33), 576 }, /* AND */
+{ CPUFUNC(op_0250_33), 592 }, /* AND */
+{ CPUFUNC(op_0258_33), 600 }, /* AND */
+{ CPUFUNC(op_0260_33), 608 }, /* AND */
+{ CPUFUNC(op_0268_33), 616 }, /* AND */
+{ CPUFUNC(op_0270_33), 624 }, /* AND */
+{ CPUFUNC(op_0278_33), 632 }, /* AND */
+{ CPUFUNC(op_0279_33), 633 }, /* AND */
+{ CPUFUNC(op_027c_33), 636 }, /* ANDSR */
+{ CPUFUNC(op_0280_33), 640 }, /* AND */
+{ CPUFUNC(op_0290_33), 656 }, /* AND */
+{ CPUFUNC(op_0298_33), 664 }, /* AND */
+{ CPUFUNC(op_02a0_33), 672 }, /* AND */
+{ CPUFUNC(op_02a8_33), 680 }, /* AND */
+{ CPUFUNC(op_02b0_33), 688 }, /* AND */
+{ CPUFUNC(op_02b8_33), 696 }, /* AND */
+{ CPUFUNC(op_02b9_33), 697 }, /* AND */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_02d0_33), 720 }, /* CHK2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_02e8_33), 744 }, /* CHK2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_02f0_33), 752 }, /* CHK2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_02f8_33), 760 }, /* CHK2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_02f9_33), 761 }, /* CHK2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_02fa_33), 762 }, /* CHK2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_02fb_33), 763 }, /* CHK2 */
+#endif
+{ CPUFUNC(op_0400_33), 1024 }, /* SUB */
+{ CPUFUNC(op_0410_33), 1040 }, /* SUB */
+{ CPUFUNC(op_0418_33), 1048 }, /* SUB */
+{ CPUFUNC(op_0420_33), 1056 }, /* SUB */
+{ CPUFUNC(op_0428_33), 1064 }, /* SUB */
+{ CPUFUNC(op_0430_33), 1072 }, /* SUB */
+{ CPUFUNC(op_0438_33), 1080 }, /* SUB */
+{ CPUFUNC(op_0439_33), 1081 }, /* SUB */
+{ CPUFUNC(op_0440_33), 1088 }, /* SUB */
+{ CPUFUNC(op_0450_33), 1104 }, /* SUB */
+{ CPUFUNC(op_0458_33), 1112 }, /* SUB */
+{ CPUFUNC(op_0460_33), 1120 }, /* SUB */
+{ CPUFUNC(op_0468_33), 1128 }, /* SUB */
+{ CPUFUNC(op_0470_33), 1136 }, /* SUB */
+{ CPUFUNC(op_0478_33), 1144 }, /* SUB */
+{ CPUFUNC(op_0479_33), 1145 }, /* SUB */
+{ CPUFUNC(op_0480_33), 1152 }, /* SUB */
+{ CPUFUNC(op_0490_33), 1168 }, /* SUB */
+{ CPUFUNC(op_0498_33), 1176 }, /* SUB */
+{ CPUFUNC(op_04a0_33), 1184 }, /* SUB */
+{ CPUFUNC(op_04a8_33), 1192 }, /* SUB */
+{ CPUFUNC(op_04b0_33), 1200 }, /* SUB */
+{ CPUFUNC(op_04b8_33), 1208 }, /* SUB */
+{ CPUFUNC(op_04b9_33), 1209 }, /* SUB */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_04d0_33), 1232 }, /* CHK2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_04e8_33), 1256 }, /* CHK2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_04f0_33), 1264 }, /* CHK2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_04f8_33), 1272 }, /* CHK2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_04f9_33), 1273 }, /* CHK2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_04fa_33), 1274 }, /* CHK2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_04fb_33), 1275 }, /* CHK2 */
+#endif
+{ CPUFUNC(op_0600_33), 1536 }, /* ADD */
+{ CPUFUNC(op_0610_33), 1552 }, /* ADD */
+{ CPUFUNC(op_0618_33), 1560 }, /* ADD */
+{ CPUFUNC(op_0620_33), 1568 }, /* ADD */
+{ CPUFUNC(op_0628_33), 1576 }, /* ADD */
+{ CPUFUNC(op_0630_33), 1584 }, /* ADD */
+{ CPUFUNC(op_0638_33), 1592 }, /* ADD */
+{ CPUFUNC(op_0639_33), 1593 }, /* ADD */
+{ CPUFUNC(op_0640_33), 1600 }, /* ADD */
+{ CPUFUNC(op_0650_33), 1616 }, /* ADD */
+{ CPUFUNC(op_0658_33), 1624 }, /* ADD */
+{ CPUFUNC(op_0660_33), 1632 }, /* ADD */
+{ CPUFUNC(op_0668_33), 1640 }, /* ADD */
+{ CPUFUNC(op_0670_33), 1648 }, /* ADD */
+{ CPUFUNC(op_0678_33), 1656 }, /* ADD */
+{ CPUFUNC(op_0679_33), 1657 }, /* ADD */
+{ CPUFUNC(op_0680_33), 1664 }, /* ADD */
+{ CPUFUNC(op_0690_33), 1680 }, /* ADD */
+{ CPUFUNC(op_0698_33), 1688 }, /* ADD */
+{ CPUFUNC(op_06a0_33), 1696 }, /* ADD */
+{ CPUFUNC(op_06a8_33), 1704 }, /* ADD */
+{ CPUFUNC(op_06b0_33), 1712 }, /* ADD */
+{ CPUFUNC(op_06b8_33), 1720 }, /* ADD */
+{ CPUFUNC(op_06b9_33), 1721 }, /* ADD */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_06c0_33), 1728 }, /* RTM */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_06c8_33), 1736 }, /* RTM */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_06d0_33), 1744 }, /* CALLM */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_06e8_33), 1768 }, /* CALLM */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_06f0_33), 1776 }, /* CALLM */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_06f8_33), 1784 }, /* CALLM */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_06f9_33), 1785 }, /* CALLM */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_06fa_33), 1786 }, /* CALLM */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_06fb_33), 1787 }, /* CALLM */
+#endif
+{ CPUFUNC(op_0800_33), 2048 }, /* BTST */
+{ CPUFUNC(op_0810_33), 2064 }, /* BTST */
+{ CPUFUNC(op_0818_33), 2072 }, /* BTST */
+{ CPUFUNC(op_0820_33), 2080 }, /* BTST */
+{ CPUFUNC(op_0828_33), 2088 }, /* BTST */
+{ CPUFUNC(op_0830_33), 2096 }, /* BTST */
+{ CPUFUNC(op_0838_33), 2104 }, /* BTST */
+{ CPUFUNC(op_0839_33), 2105 }, /* BTST */
+{ CPUFUNC(op_083a_33), 2106 }, /* BTST */
+{ CPUFUNC(op_083b_33), 2107 }, /* BTST */
+{ CPUFUNC(op_0840_33), 2112 }, /* BCHG */
+{ CPUFUNC(op_0850_33), 2128 }, /* BCHG */
+{ CPUFUNC(op_0858_33), 2136 }, /* BCHG */
+{ CPUFUNC(op_0860_33), 2144 }, /* BCHG */
+{ CPUFUNC(op_0868_33), 2152 }, /* BCHG */
+{ CPUFUNC(op_0870_33), 2160 }, /* BCHG */
+{ CPUFUNC(op_0878_33), 2168 }, /* BCHG */
+{ CPUFUNC(op_0879_33), 2169 }, /* BCHG */
+{ CPUFUNC(op_087a_33), 2170 }, /* BCHG */
+{ CPUFUNC(op_087b_33), 2171 }, /* BCHG */
+{ CPUFUNC(op_0880_33), 2176 }, /* BCLR */
+{ CPUFUNC(op_0890_33), 2192 }, /* BCLR */
+{ CPUFUNC(op_0898_33), 2200 }, /* BCLR */
+{ CPUFUNC(op_08a0_33), 2208 }, /* BCLR */
+{ CPUFUNC(op_08a8_33), 2216 }, /* BCLR */
+{ CPUFUNC(op_08b0_33), 2224 }, /* BCLR */
+{ CPUFUNC(op_08b8_33), 2232 }, /* BCLR */
+{ CPUFUNC(op_08b9_33), 2233 }, /* BCLR */
+{ CPUFUNC(op_08ba_33), 2234 }, /* BCLR */
+{ CPUFUNC(op_08bb_33), 2235 }, /* BCLR */
+{ CPUFUNC(op_08c0_33), 2240 }, /* BSET */
+{ CPUFUNC(op_08d0_33), 2256 }, /* BSET */
+{ CPUFUNC(op_08d8_33), 2264 }, /* BSET */
+{ CPUFUNC(op_08e0_33), 2272 }, /* BSET */
+{ CPUFUNC(op_08e8_33), 2280 }, /* BSET */
+{ CPUFUNC(op_08f0_33), 2288 }, /* BSET */
+{ CPUFUNC(op_08f8_33), 2296 }, /* BSET */
+{ CPUFUNC(op_08f9_33), 2297 }, /* BSET */
+{ CPUFUNC(op_08fa_33), 2298 }, /* BSET */
+{ CPUFUNC(op_08fb_33), 2299 }, /* BSET */
+{ CPUFUNC(op_0a00_33), 2560 }, /* EOR */
+{ CPUFUNC(op_0a10_33), 2576 }, /* EOR */
+{ CPUFUNC(op_0a18_33), 2584 }, /* EOR */
+{ CPUFUNC(op_0a20_33), 2592 }, /* EOR */
+{ CPUFUNC(op_0a28_33), 2600 }, /* EOR */
+{ CPUFUNC(op_0a30_33), 2608 }, /* EOR */
+{ CPUFUNC(op_0a38_33), 2616 }, /* EOR */
+{ CPUFUNC(op_0a39_33), 2617 }, /* EOR */
+{ CPUFUNC(op_0a3c_33), 2620 }, /* EORSR */
+{ CPUFUNC(op_0a40_33), 2624 }, /* EOR */
+{ CPUFUNC(op_0a50_33), 2640 }, /* EOR */
+{ CPUFUNC(op_0a58_33), 2648 }, /* EOR */
+{ CPUFUNC(op_0a60_33), 2656 }, /* EOR */
+{ CPUFUNC(op_0a68_33), 2664 }, /* EOR */
+{ CPUFUNC(op_0a70_33), 2672 }, /* EOR */
+{ CPUFUNC(op_0a78_33), 2680 }, /* EOR */
+{ CPUFUNC(op_0a79_33), 2681 }, /* EOR */
+{ CPUFUNC(op_0a7c_33), 2684 }, /* EORSR */
+{ CPUFUNC(op_0a80_33), 2688 }, /* EOR */
+{ CPUFUNC(op_0a90_33), 2704 }, /* EOR */
+{ CPUFUNC(op_0a98_33), 2712 }, /* EOR */
+{ CPUFUNC(op_0aa0_33), 2720 }, /* EOR */
+{ CPUFUNC(op_0aa8_33), 2728 }, /* EOR */
+{ CPUFUNC(op_0ab0_33), 2736 }, /* EOR */
+{ CPUFUNC(op_0ab8_33), 2744 }, /* EOR */
+{ CPUFUNC(op_0ab9_33), 2745 }, /* EOR */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0ad0_33), 2768 }, /* CAS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0ad8_33), 2776 }, /* CAS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0ae0_33), 2784 }, /* CAS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0ae8_33), 2792 }, /* CAS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0af0_33), 2800 }, /* CAS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0af8_33), 2808 }, /* CAS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0af9_33), 2809 }, /* CAS */
+#endif
+{ CPUFUNC(op_0c00_33), 3072 }, /* CMP */
+{ CPUFUNC(op_0c10_33), 3088 }, /* CMP */
+{ CPUFUNC(op_0c18_33), 3096 }, /* CMP */
+{ CPUFUNC(op_0c20_33), 3104 }, /* CMP */
+{ CPUFUNC(op_0c28_33), 3112 }, /* CMP */
+{ CPUFUNC(op_0c30_33), 3120 }, /* CMP */
+{ CPUFUNC(op_0c38_33), 3128 }, /* CMP */
+{ CPUFUNC(op_0c39_33), 3129 }, /* CMP */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0c3a_33), 3130 }, /* CMP */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0c3b_33), 3131 }, /* CMP */
+#endif
+{ CPUFUNC(op_0c40_33), 3136 }, /* CMP */
+{ CPUFUNC(op_0c50_33), 3152 }, /* CMP */
+{ CPUFUNC(op_0c58_33), 3160 }, /* CMP */
+{ CPUFUNC(op_0c60_33), 3168 }, /* CMP */
+{ CPUFUNC(op_0c68_33), 3176 }, /* CMP */
+{ CPUFUNC(op_0c70_33), 3184 }, /* CMP */
+{ CPUFUNC(op_0c78_33), 3192 }, /* CMP */
+{ CPUFUNC(op_0c79_33), 3193 }, /* CMP */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0c7a_33), 3194 }, /* CMP */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0c7b_33), 3195 }, /* CMP */
+#endif
+{ CPUFUNC(op_0c80_33), 3200 }, /* CMP */
+{ CPUFUNC(op_0c90_33), 3216 }, /* CMP */
+{ CPUFUNC(op_0c98_33), 3224 }, /* CMP */
+{ CPUFUNC(op_0ca0_33), 3232 }, /* CMP */
+{ CPUFUNC(op_0ca8_33), 3240 }, /* CMP */
+{ CPUFUNC(op_0cb0_33), 3248 }, /* CMP */
+{ CPUFUNC(op_0cb8_33), 3256 }, /* CMP */
+{ CPUFUNC(op_0cb9_33), 3257 }, /* CMP */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0cba_33), 3258 }, /* CMP */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0cbb_33), 3259 }, /* CMP */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0cd0_33), 3280 }, /* CAS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0cd8_33), 3288 }, /* CAS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0ce0_33), 3296 }, /* CAS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0ce8_33), 3304 }, /* CAS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0cf0_33), 3312 }, /* CAS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0cf8_33), 3320 }, /* CAS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0cf9_33), 3321 }, /* CAS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0cfc_33), 3324 }, /* CAS2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0e10_33), 3600 }, /* MOVES */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0e18_33), 3608 }, /* MOVES */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0e20_33), 3616 }, /* MOVES */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0e28_33), 3624 }, /* MOVES */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0e30_33), 3632 }, /* MOVES */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0e38_33), 3640 }, /* MOVES */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0e39_33), 3641 }, /* MOVES */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0e50_33), 3664 }, /* MOVES */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0e58_33), 3672 }, /* MOVES */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0e60_33), 3680 }, /* MOVES */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0e68_33), 3688 }, /* MOVES */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0e70_33), 3696 }, /* MOVES */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0e78_33), 3704 }, /* MOVES */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0e79_33), 3705 }, /* MOVES */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0e90_33), 3728 }, /* MOVES */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0e98_33), 3736 }, /* MOVES */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0ea0_33), 3744 }, /* MOVES */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0ea8_33), 3752 }, /* MOVES */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0eb0_33), 3760 }, /* MOVES */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0eb8_33), 3768 }, /* MOVES */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0eb9_33), 3769 }, /* MOVES */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0ed0_33), 3792 }, /* CAS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0ed8_33), 3800 }, /* CAS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0ee0_33), 3808 }, /* CAS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0ee8_33), 3816 }, /* CAS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0ef0_33), 3824 }, /* CAS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0ef8_33), 3832 }, /* CAS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0ef9_33), 3833 }, /* CAS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_0efc_33), 3836 }, /* CAS2 */
+#endif
+{ CPUFUNC(op_1000_33), 4096 }, /* MOVE */
+{ CPUFUNC(op_1010_33), 4112 }, /* MOVE */
+{ CPUFUNC(op_1018_33), 4120 }, /* MOVE */
+{ CPUFUNC(op_1020_33), 4128 }, /* MOVE */
+{ CPUFUNC(op_1028_33), 4136 }, /* MOVE */
+{ CPUFUNC(op_1030_33), 4144 }, /* MOVE */
+{ CPUFUNC(op_1038_33), 4152 }, /* MOVE */
+{ CPUFUNC(op_1039_33), 4153 }, /* MOVE */
+{ CPUFUNC(op_103a_33), 4154 }, /* MOVE */
+{ CPUFUNC(op_103b_33), 4155 }, /* MOVE */
+{ CPUFUNC(op_103c_33), 4156 }, /* MOVE */
+{ CPUFUNC(op_1080_33), 4224 }, /* MOVE */
+{ CPUFUNC(op_1090_33), 4240 }, /* MOVE */
+{ CPUFUNC(op_1098_33), 4248 }, /* MOVE */
+{ CPUFUNC(op_10a0_33), 4256 }, /* MOVE */
+{ CPUFUNC(op_10a8_33), 4264 }, /* MOVE */
+{ CPUFUNC(op_10b0_33), 4272 }, /* MOVE */
+{ CPUFUNC(op_10b8_33), 4280 }, /* MOVE */
+{ CPUFUNC(op_10b9_33), 4281 }, /* MOVE */
+{ CPUFUNC(op_10ba_33), 4282 }, /* MOVE */
+{ CPUFUNC(op_10bb_33), 4283 }, /* MOVE */
+{ CPUFUNC(op_10bc_33), 4284 }, /* MOVE */
+{ CPUFUNC(op_10c0_33), 4288 }, /* MOVE */
+{ CPUFUNC(op_10d0_33), 4304 }, /* MOVE */
+{ CPUFUNC(op_10d8_33), 4312 }, /* MOVE */
+{ CPUFUNC(op_10e0_33), 4320 }, /* MOVE */
+{ CPUFUNC(op_10e8_33), 4328 }, /* MOVE */
+{ CPUFUNC(op_10f0_33), 4336 }, /* MOVE */
+{ CPUFUNC(op_10f8_33), 4344 }, /* MOVE */
+{ CPUFUNC(op_10f9_33), 4345 }, /* MOVE */
+{ CPUFUNC(op_10fa_33), 4346 }, /* MOVE */
+{ CPUFUNC(op_10fb_33), 4347 }, /* MOVE */
+{ CPUFUNC(op_10fc_33), 4348 }, /* MOVE */
+{ CPUFUNC(op_1100_33), 4352 }, /* MOVE */
+{ CPUFUNC(op_1110_33), 4368 }, /* MOVE */
+{ CPUFUNC(op_1118_33), 4376 }, /* MOVE */
+{ CPUFUNC(op_1120_33), 4384 }, /* MOVE */
+{ CPUFUNC(op_1128_33), 4392 }, /* MOVE */
+{ CPUFUNC(op_1130_33), 4400 }, /* MOVE */
+{ CPUFUNC(op_1138_33), 4408 }, /* MOVE */
+{ CPUFUNC(op_1139_33), 4409 }, /* MOVE */
+{ CPUFUNC(op_113a_33), 4410 }, /* MOVE */
+{ CPUFUNC(op_113b_33), 4411 }, /* MOVE */
+{ CPUFUNC(op_113c_33), 4412 }, /* MOVE */
+{ CPUFUNC(op_1140_33), 4416 }, /* MOVE */
+{ CPUFUNC(op_1150_33), 4432 }, /* MOVE */
+{ CPUFUNC(op_1158_33), 4440 }, /* MOVE */
+{ CPUFUNC(op_1160_33), 4448 }, /* MOVE */
+{ CPUFUNC(op_1168_33), 4456 }, /* MOVE */
+{ CPUFUNC(op_1170_33), 4464 }, /* MOVE */
+{ CPUFUNC(op_1178_33), 4472 }, /* MOVE */
+{ CPUFUNC(op_1179_33), 4473 }, /* MOVE */
+{ CPUFUNC(op_117a_33), 4474 }, /* MOVE */
+{ CPUFUNC(op_117b_33), 4475 }, /* MOVE */
+{ CPUFUNC(op_117c_33), 4476 }, /* MOVE */
+{ CPUFUNC(op_1180_33), 4480 }, /* MOVE */
+{ CPUFUNC(op_1190_33), 4496 }, /* MOVE */
+{ CPUFUNC(op_1198_33), 4504 }, /* MOVE */
+{ CPUFUNC(op_11a0_33), 4512 }, /* MOVE */
+{ CPUFUNC(op_11a8_33), 4520 }, /* MOVE */
+{ CPUFUNC(op_11b0_33), 4528 }, /* MOVE */
+{ CPUFUNC(op_11b8_33), 4536 }, /* MOVE */
+{ CPUFUNC(op_11b9_33), 4537 }, /* MOVE */
+{ CPUFUNC(op_11ba_33), 4538 }, /* MOVE */
+{ CPUFUNC(op_11bb_33), 4539 }, /* MOVE */
+{ CPUFUNC(op_11bc_33), 4540 }, /* MOVE */
+{ CPUFUNC(op_11c0_33), 4544 }, /* MOVE */
+{ CPUFUNC(op_11d0_33), 4560 }, /* MOVE */
+{ CPUFUNC(op_11d8_33), 4568 }, /* MOVE */
+{ CPUFUNC(op_11e0_33), 4576 }, /* MOVE */
+{ CPUFUNC(op_11e8_33), 4584 }, /* MOVE */
+{ CPUFUNC(op_11f0_33), 4592 }, /* MOVE */
+{ CPUFUNC(op_11f8_33), 4600 }, /* MOVE */
+{ CPUFUNC(op_11f9_33), 4601 }, /* MOVE */
+{ CPUFUNC(op_11fa_33), 4602 }, /* MOVE */
+{ CPUFUNC(op_11fb_33), 4603 }, /* MOVE */
+{ CPUFUNC(op_11fc_33), 4604 }, /* MOVE */
+{ CPUFUNC(op_13c0_33), 5056 }, /* MOVE */
+{ CPUFUNC(op_13d0_33), 5072 }, /* MOVE */
+{ CPUFUNC(op_13d8_33), 5080 }, /* MOVE */
+{ CPUFUNC(op_13e0_33), 5088 }, /* MOVE */
+{ CPUFUNC(op_13e8_33), 5096 }, /* MOVE */
+{ CPUFUNC(op_13f0_33), 5104 }, /* MOVE */
+{ CPUFUNC(op_13f8_33), 5112 }, /* MOVE */
+{ CPUFUNC(op_13f9_33), 5113 }, /* MOVE */
+{ CPUFUNC(op_13fa_33), 5114 }, /* MOVE */
+{ CPUFUNC(op_13fb_33), 5115 }, /* MOVE */
+{ CPUFUNC(op_13fc_33), 5116 }, /* MOVE */
+{ CPUFUNC(op_2000_33), 8192 }, /* MOVE */
+{ CPUFUNC(op_2008_33), 8200 }, /* MOVE */
+{ CPUFUNC(op_2010_33), 8208 }, /* MOVE */
+{ CPUFUNC(op_2018_33), 8216 }, /* MOVE */
+{ CPUFUNC(op_2020_33), 8224 }, /* MOVE */
+{ CPUFUNC(op_2028_33), 8232 }, /* MOVE */
+{ CPUFUNC(op_2030_33), 8240 }, /* MOVE */
+{ CPUFUNC(op_2038_33), 8248 }, /* MOVE */
+{ CPUFUNC(op_2039_33), 8249 }, /* MOVE */
+{ CPUFUNC(op_203a_33), 8250 }, /* MOVE */
+{ CPUFUNC(op_203b_33), 8251 }, /* MOVE */
+{ CPUFUNC(op_203c_33), 8252 }, /* MOVE */
+{ CPUFUNC(op_2040_33), 8256 }, /* MOVEA */
+{ CPUFUNC(op_2048_33), 8264 }, /* MOVEA */
+{ CPUFUNC(op_2050_33), 8272 }, /* MOVEA */
+{ CPUFUNC(op_2058_33), 8280 }, /* MOVEA */
+{ CPUFUNC(op_2060_33), 8288 }, /* MOVEA */
+{ CPUFUNC(op_2068_33), 8296 }, /* MOVEA */
+{ CPUFUNC(op_2070_33), 8304 }, /* MOVEA */
+{ CPUFUNC(op_2078_33), 8312 }, /* MOVEA */
+{ CPUFUNC(op_2079_33), 8313 }, /* MOVEA */
+{ CPUFUNC(op_207a_33), 8314 }, /* MOVEA */
+{ CPUFUNC(op_207b_33), 8315 }, /* MOVEA */
+{ CPUFUNC(op_207c_33), 8316 }, /* MOVEA */
+{ CPUFUNC(op_2080_33), 8320 }, /* MOVE */
+{ CPUFUNC(op_2088_33), 8328 }, /* MOVE */
+{ CPUFUNC(op_2090_33), 8336 }, /* MOVE */
+{ CPUFUNC(op_2098_33), 8344 }, /* MOVE */
+{ CPUFUNC(op_20a0_33), 8352 }, /* MOVE */
+{ CPUFUNC(op_20a8_33), 8360 }, /* MOVE */
+{ CPUFUNC(op_20b0_33), 8368 }, /* MOVE */
+{ CPUFUNC(op_20b8_33), 8376 }, /* MOVE */
+{ CPUFUNC(op_20b9_33), 8377 }, /* MOVE */
+{ CPUFUNC(op_20ba_33), 8378 }, /* MOVE */
+{ CPUFUNC(op_20bb_33), 8379 }, /* MOVE */
+{ CPUFUNC(op_20bc_33), 8380 }, /* MOVE */
+{ CPUFUNC(op_20c0_33), 8384 }, /* MOVE */
+{ CPUFUNC(op_20c8_33), 8392 }, /* MOVE */
+{ CPUFUNC(op_20d0_33), 8400 }, /* MOVE */
+{ CPUFUNC(op_20d8_33), 8408 }, /* MOVE */
+{ CPUFUNC(op_20e0_33), 8416 }, /* MOVE */
+{ CPUFUNC(op_20e8_33), 8424 }, /* MOVE */
+{ CPUFUNC(op_20f0_33), 8432 }, /* MOVE */
+{ CPUFUNC(op_20f8_33), 8440 }, /* MOVE */
+{ CPUFUNC(op_20f9_33), 8441 }, /* MOVE */
+{ CPUFUNC(op_20fa_33), 8442 }, /* MOVE */
+{ CPUFUNC(op_20fb_33), 8443 }, /* MOVE */
+{ CPUFUNC(op_20fc_33), 8444 }, /* MOVE */
+{ CPUFUNC(op_2100_33), 8448 }, /* MOVE */
+{ CPUFUNC(op_2108_33), 8456 }, /* MOVE */
+{ CPUFUNC(op_2110_33), 8464 }, /* MOVE */
+{ CPUFUNC(op_2118_33), 8472 }, /* MOVE */
+{ CPUFUNC(op_2120_33), 8480 }, /* MOVE */
+{ CPUFUNC(op_2128_33), 8488 }, /* MOVE */
+{ CPUFUNC(op_2130_33), 8496 }, /* MOVE */
+{ CPUFUNC(op_2138_33), 8504 }, /* MOVE */
+{ CPUFUNC(op_2139_33), 8505 }, /* MOVE */
+{ CPUFUNC(op_213a_33), 8506 }, /* MOVE */
+{ CPUFUNC(op_213b_33), 8507 }, /* MOVE */
+{ CPUFUNC(op_213c_33), 8508 }, /* MOVE */
+{ CPUFUNC(op_2140_33), 8512 }, /* MOVE */
+{ CPUFUNC(op_2148_33), 8520 }, /* MOVE */
+{ CPUFUNC(op_2150_33), 8528 }, /* MOVE */
+{ CPUFUNC(op_2158_33), 8536 }, /* MOVE */
+{ CPUFUNC(op_2160_33), 8544 }, /* MOVE */
+{ CPUFUNC(op_2168_33), 8552 }, /* MOVE */
+{ CPUFUNC(op_2170_33), 8560 }, /* MOVE */
+{ CPUFUNC(op_2178_33), 8568 }, /* MOVE */
+{ CPUFUNC(op_2179_33), 8569 }, /* MOVE */
+{ CPUFUNC(op_217a_33), 8570 }, /* MOVE */
+{ CPUFUNC(op_217b_33), 8571 }, /* MOVE */
+{ CPUFUNC(op_217c_33), 8572 }, /* MOVE */
+{ CPUFUNC(op_2180_33), 8576 }, /* MOVE */
+{ CPUFUNC(op_2188_33), 8584 }, /* MOVE */
+{ CPUFUNC(op_2190_33), 8592 }, /* MOVE */
+{ CPUFUNC(op_2198_33), 8600 }, /* MOVE */
+{ CPUFUNC(op_21a0_33), 8608 }, /* MOVE */
+{ CPUFUNC(op_21a8_33), 8616 }, /* MOVE */
+{ CPUFUNC(op_21b0_33), 8624 }, /* MOVE */
+{ CPUFUNC(op_21b8_33), 8632 }, /* MOVE */
+{ CPUFUNC(op_21b9_33), 8633 }, /* MOVE */
+{ CPUFUNC(op_21ba_33), 8634 }, /* MOVE */
+{ CPUFUNC(op_21bb_33), 8635 }, /* MOVE */
+{ CPUFUNC(op_21bc_33), 8636 }, /* MOVE */
+{ CPUFUNC(op_21c0_33), 8640 }, /* MOVE */
+{ CPUFUNC(op_21c8_33), 8648 }, /* MOVE */
+{ CPUFUNC(op_21d0_33), 8656 }, /* MOVE */
+{ CPUFUNC(op_21d8_33), 8664 }, /* MOVE */
+{ CPUFUNC(op_21e0_33), 8672 }, /* MOVE */
+{ CPUFUNC(op_21e8_33), 8680 }, /* MOVE */
+{ CPUFUNC(op_21f0_33), 8688 }, /* MOVE */
+{ CPUFUNC(op_21f8_33), 8696 }, /* MOVE */
+{ CPUFUNC(op_21f9_33), 8697 }, /* MOVE */
+{ CPUFUNC(op_21fa_33), 8698 }, /* MOVE */
+{ CPUFUNC(op_21fb_33), 8699 }, /* MOVE */
+{ CPUFUNC(op_21fc_33), 8700 }, /* MOVE */
+{ CPUFUNC(op_23c0_33), 9152 }, /* MOVE */
+{ CPUFUNC(op_23c8_33), 9160 }, /* MOVE */
+{ CPUFUNC(op_23d0_33), 9168 }, /* MOVE */
+{ CPUFUNC(op_23d8_33), 9176 }, /* MOVE */
+{ CPUFUNC(op_23e0_33), 9184 }, /* MOVE */
+{ CPUFUNC(op_23e8_33), 9192 }, /* MOVE */
+{ CPUFUNC(op_23f0_33), 9200 }, /* MOVE */
+{ CPUFUNC(op_23f8_33), 9208 }, /* MOVE */
+{ CPUFUNC(op_23f9_33), 9209 }, /* MOVE */
+{ CPUFUNC(op_23fa_33), 9210 }, /* MOVE */
+{ CPUFUNC(op_23fb_33), 9211 }, /* MOVE */
+{ CPUFUNC(op_23fc_33), 9212 }, /* MOVE */
+{ CPUFUNC(op_3000_33), 12288 }, /* MOVE */
+{ CPUFUNC(op_3008_33), 12296 }, /* MOVE */
+{ CPUFUNC(op_3010_33), 12304 }, /* MOVE */
+{ CPUFUNC(op_3018_33), 12312 }, /* MOVE */
+{ CPUFUNC(op_3020_33), 12320 }, /* MOVE */
+{ CPUFUNC(op_3028_33), 12328 }, /* MOVE */
+{ CPUFUNC(op_3030_33), 12336 }, /* MOVE */
+{ CPUFUNC(op_3038_33), 12344 }, /* MOVE */
+{ CPUFUNC(op_3039_33), 12345 }, /* MOVE */
+{ CPUFUNC(op_303a_33), 12346 }, /* MOVE */
+{ CPUFUNC(op_303b_33), 12347 }, /* MOVE */
+{ CPUFUNC(op_303c_33), 12348 }, /* MOVE */
+{ CPUFUNC(op_3040_33), 12352 }, /* MOVEA */
+{ CPUFUNC(op_3048_33), 12360 }, /* MOVEA */
+{ CPUFUNC(op_3050_33), 12368 }, /* MOVEA */
+{ CPUFUNC(op_3058_33), 12376 }, /* MOVEA */
+{ CPUFUNC(op_3060_33), 12384 }, /* MOVEA */
+{ CPUFUNC(op_3068_33), 12392 }, /* MOVEA */
+{ CPUFUNC(op_3070_33), 12400 }, /* MOVEA */
+{ CPUFUNC(op_3078_33), 12408 }, /* MOVEA */
+{ CPUFUNC(op_3079_33), 12409 }, /* MOVEA */
+{ CPUFUNC(op_307a_33), 12410 }, /* MOVEA */
+{ CPUFUNC(op_307b_33), 12411 }, /* MOVEA */
+{ CPUFUNC(op_307c_33), 12412 }, /* MOVEA */
+{ CPUFUNC(op_3080_33), 12416 }, /* MOVE */
+{ CPUFUNC(op_3088_33), 12424 }, /* MOVE */
+{ CPUFUNC(op_3090_33), 12432 }, /* MOVE */
+{ CPUFUNC(op_3098_33), 12440 }, /* MOVE */
+{ CPUFUNC(op_30a0_33), 12448 }, /* MOVE */
+{ CPUFUNC(op_30a8_33), 12456 }, /* MOVE */
+{ CPUFUNC(op_30b0_33), 12464 }, /* MOVE */
+{ CPUFUNC(op_30b8_33), 12472 }, /* MOVE */
+{ CPUFUNC(op_30b9_33), 12473 }, /* MOVE */
+{ CPUFUNC(op_30ba_33), 12474 }, /* MOVE */
+{ CPUFUNC(op_30bb_33), 12475 }, /* MOVE */
+{ CPUFUNC(op_30bc_33), 12476 }, /* MOVE */
+{ CPUFUNC(op_30c0_33), 12480 }, /* MOVE */
+{ CPUFUNC(op_30c8_33), 12488 }, /* MOVE */
+{ CPUFUNC(op_30d0_33), 12496 }, /* MOVE */
+{ CPUFUNC(op_30d8_33), 12504 }, /* MOVE */
+{ CPUFUNC(op_30e0_33), 12512 }, /* MOVE */
+{ CPUFUNC(op_30e8_33), 12520 }, /* MOVE */
+{ CPUFUNC(op_30f0_33), 12528 }, /* MOVE */
+{ CPUFUNC(op_30f8_33), 12536 }, /* MOVE */
+{ CPUFUNC(op_30f9_33), 12537 }, /* MOVE */
+{ CPUFUNC(op_30fa_33), 12538 }, /* MOVE */
+{ CPUFUNC(op_30fb_33), 12539 }, /* MOVE */
+{ CPUFUNC(op_30fc_33), 12540 }, /* MOVE */
+{ CPUFUNC(op_3100_33), 12544 }, /* MOVE */
+{ CPUFUNC(op_3108_33), 12552 }, /* MOVE */
+{ CPUFUNC(op_3110_33), 12560 }, /* MOVE */
+{ CPUFUNC(op_3118_33), 12568 }, /* MOVE */
+{ CPUFUNC(op_3120_33), 12576 }, /* MOVE */
+{ CPUFUNC(op_3128_33), 12584 }, /* MOVE */
+{ CPUFUNC(op_3130_33), 12592 }, /* MOVE */
+{ CPUFUNC(op_3138_33), 12600 }, /* MOVE */
+{ CPUFUNC(op_3139_33), 12601 }, /* MOVE */
+{ CPUFUNC(op_313a_33), 12602 }, /* MOVE */
+{ CPUFUNC(op_313b_33), 12603 }, /* MOVE */
+{ CPUFUNC(op_313c_33), 12604 }, /* MOVE */
+{ CPUFUNC(op_3140_33), 12608 }, /* MOVE */
+{ CPUFUNC(op_3148_33), 12616 }, /* MOVE */
+{ CPUFUNC(op_3150_33), 12624 }, /* MOVE */
+{ CPUFUNC(op_3158_33), 12632 }, /* MOVE */
+{ CPUFUNC(op_3160_33), 12640 }, /* MOVE */
+{ CPUFUNC(op_3168_33), 12648 }, /* MOVE */
+{ CPUFUNC(op_3170_33), 12656 }, /* MOVE */
+{ CPUFUNC(op_3178_33), 12664 }, /* MOVE */
+{ CPUFUNC(op_3179_33), 12665 }, /* MOVE */
+{ CPUFUNC(op_317a_33), 12666 }, /* MOVE */
+{ CPUFUNC(op_317b_33), 12667 }, /* MOVE */
+{ CPUFUNC(op_317c_33), 12668 }, /* MOVE */
+{ CPUFUNC(op_3180_33), 12672 }, /* MOVE */
+{ CPUFUNC(op_3188_33), 12680 }, /* MOVE */
+{ CPUFUNC(op_3190_33), 12688 }, /* MOVE */
+{ CPUFUNC(op_3198_33), 12696 }, /* MOVE */
+{ CPUFUNC(op_31a0_33), 12704 }, /* MOVE */
+{ CPUFUNC(op_31a8_33), 12712 }, /* MOVE */
+{ CPUFUNC(op_31b0_33), 12720 }, /* MOVE */
+{ CPUFUNC(op_31b8_33), 12728 }, /* MOVE */
+{ CPUFUNC(op_31b9_33), 12729 }, /* MOVE */
+{ CPUFUNC(op_31ba_33), 12730 }, /* MOVE */
+{ CPUFUNC(op_31bb_33), 12731 }, /* MOVE */
+{ CPUFUNC(op_31bc_33), 12732 }, /* MOVE */
+{ CPUFUNC(op_31c0_33), 12736 }, /* MOVE */
+{ CPUFUNC(op_31c8_33), 12744 }, /* MOVE */
+{ CPUFUNC(op_31d0_33), 12752 }, /* MOVE */
+{ CPUFUNC(op_31d8_33), 12760 }, /* MOVE */
+{ CPUFUNC(op_31e0_33), 12768 }, /* MOVE */
+{ CPUFUNC(op_31e8_33), 12776 }, /* MOVE */
+{ CPUFUNC(op_31f0_33), 12784 }, /* MOVE */
+{ CPUFUNC(op_31f8_33), 12792 }, /* MOVE */
+{ CPUFUNC(op_31f9_33), 12793 }, /* MOVE */
+{ CPUFUNC(op_31fa_33), 12794 }, /* MOVE */
+{ CPUFUNC(op_31fb_33), 12795 }, /* MOVE */
+{ CPUFUNC(op_31fc_33), 12796 }, /* MOVE */
+{ CPUFUNC(op_33c0_33), 13248 }, /* MOVE */
+{ CPUFUNC(op_33c8_33), 13256 }, /* MOVE */
+{ CPUFUNC(op_33d0_33), 13264 }, /* MOVE */
+{ CPUFUNC(op_33d8_33), 13272 }, /* MOVE */
+{ CPUFUNC(op_33e0_33), 13280 }, /* MOVE */
+{ CPUFUNC(op_33e8_33), 13288 }, /* MOVE */
+{ CPUFUNC(op_33f0_33), 13296 }, /* MOVE */
+{ CPUFUNC(op_33f8_33), 13304 }, /* MOVE */
+{ CPUFUNC(op_33f9_33), 13305 }, /* MOVE */
+{ CPUFUNC(op_33fa_33), 13306 }, /* MOVE */
+{ CPUFUNC(op_33fb_33), 13307 }, /* MOVE */
+{ CPUFUNC(op_33fc_33), 13308 }, /* MOVE */
+{ CPUFUNC(op_4000_33), 16384 }, /* NEGX */
+{ CPUFUNC(op_4010_33), 16400 }, /* NEGX */
+{ CPUFUNC(op_4018_33), 16408 }, /* NEGX */
+{ CPUFUNC(op_4020_33), 16416 }, /* NEGX */
+{ CPUFUNC(op_4028_33), 16424 }, /* NEGX */
+{ CPUFUNC(op_4030_33), 16432 }, /* NEGX */
+{ CPUFUNC(op_4038_33), 16440 }, /* NEGX */
+{ CPUFUNC(op_4039_33), 16441 }, /* NEGX */
+{ CPUFUNC(op_4040_33), 16448 }, /* NEGX */
+{ CPUFUNC(op_4050_33), 16464 }, /* NEGX */
+{ CPUFUNC(op_4058_33), 16472 }, /* NEGX */
+{ CPUFUNC(op_4060_33), 16480 }, /* NEGX */
+{ CPUFUNC(op_4068_33), 16488 }, /* NEGX */
+{ CPUFUNC(op_4070_33), 16496 }, /* NEGX */
+{ CPUFUNC(op_4078_33), 16504 }, /* NEGX */
+{ CPUFUNC(op_4079_33), 16505 }, /* NEGX */
+{ CPUFUNC(op_4080_33), 16512 }, /* NEGX */
+{ CPUFUNC(op_4090_33), 16528 }, /* NEGX */
+{ CPUFUNC(op_4098_33), 16536 }, /* NEGX */
+{ CPUFUNC(op_40a0_33), 16544 }, /* NEGX */
+{ CPUFUNC(op_40a8_33), 16552 }, /* NEGX */
+{ CPUFUNC(op_40b0_33), 16560 }, /* NEGX */
+{ CPUFUNC(op_40b8_33), 16568 }, /* NEGX */
+{ CPUFUNC(op_40b9_33), 16569 }, /* NEGX */
+{ CPUFUNC(op_40c0_33), 16576 }, /* MVSR2 */
+{ CPUFUNC(op_40d0_33), 16592 }, /* MVSR2 */
+{ CPUFUNC(op_40d8_33), 16600 }, /* MVSR2 */
+{ CPUFUNC(op_40e0_33), 16608 }, /* MVSR2 */
+{ CPUFUNC(op_40e8_33), 16616 }, /* MVSR2 */
+{ CPUFUNC(op_40f0_33), 16624 }, /* MVSR2 */
+{ CPUFUNC(op_40f8_33), 16632 }, /* MVSR2 */
+{ CPUFUNC(op_40f9_33), 16633 }, /* MVSR2 */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4100_33), 16640 }, /* CHK */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4110_33), 16656 }, /* CHK */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4118_33), 16664 }, /* CHK */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4120_33), 16672 }, /* CHK */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4128_33), 16680 }, /* CHK */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4130_33), 16688 }, /* CHK */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4138_33), 16696 }, /* CHK */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4139_33), 16697 }, /* CHK */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_413a_33), 16698 }, /* CHK */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_413b_33), 16699 }, /* CHK */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_413c_33), 16700 }, /* CHK */
+#endif
+{ CPUFUNC(op_4180_33), 16768 }, /* CHK */
+{ CPUFUNC(op_4190_33), 16784 }, /* CHK */
+{ CPUFUNC(op_4198_33), 16792 }, /* CHK */
+{ CPUFUNC(op_41a0_33), 16800 }, /* CHK */
+{ CPUFUNC(op_41a8_33), 16808 }, /* CHK */
+{ CPUFUNC(op_41b0_33), 16816 }, /* CHK */
+{ CPUFUNC(op_41b8_33), 16824 }, /* CHK */
+{ CPUFUNC(op_41b9_33), 16825 }, /* CHK */
+{ CPUFUNC(op_41ba_33), 16826 }, /* CHK */
+{ CPUFUNC(op_41bb_33), 16827 }, /* CHK */
+{ CPUFUNC(op_41bc_33), 16828 }, /* CHK */
+{ CPUFUNC(op_41d0_33), 16848 }, /* LEA */
+{ CPUFUNC(op_41e8_33), 16872 }, /* LEA */
+{ CPUFUNC(op_41f0_33), 16880 }, /* LEA */
+{ CPUFUNC(op_41f8_33), 16888 }, /* LEA */
+{ CPUFUNC(op_41f9_33), 16889 }, /* LEA */
+{ CPUFUNC(op_41fa_33), 16890 }, /* LEA */
+{ CPUFUNC(op_41fb_33), 16891 }, /* LEA */
+{ CPUFUNC(op_4200_33), 16896 }, /* CLR */
+{ CPUFUNC(op_4210_33), 16912 }, /* CLR */
+{ CPUFUNC(op_4218_33), 16920 }, /* CLR */
+{ CPUFUNC(op_4220_33), 16928 }, /* CLR */
+{ CPUFUNC(op_4228_33), 16936 }, /* CLR */
+{ CPUFUNC(op_4230_33), 16944 }, /* CLR */
+{ CPUFUNC(op_4238_33), 16952 }, /* CLR */
+{ CPUFUNC(op_4239_33), 16953 }, /* CLR */
+{ CPUFUNC(op_4240_33), 16960 }, /* CLR */
+{ CPUFUNC(op_4250_33), 16976 }, /* CLR */
+{ CPUFUNC(op_4258_33), 16984 }, /* CLR */
+{ CPUFUNC(op_4260_33), 16992 }, /* CLR */
+{ CPUFUNC(op_4268_33), 17000 }, /* CLR */
+{ CPUFUNC(op_4270_33), 17008 }, /* CLR */
+{ CPUFUNC(op_4278_33), 17016 }, /* CLR */
+{ CPUFUNC(op_4279_33), 17017 }, /* CLR */
+{ CPUFUNC(op_4280_33), 17024 }, /* CLR */
+{ CPUFUNC(op_4290_33), 17040 }, /* CLR */
+{ CPUFUNC(op_4298_33), 17048 }, /* CLR */
+{ CPUFUNC(op_42a0_33), 17056 }, /* CLR */
+{ CPUFUNC(op_42a8_33), 17064 }, /* CLR */
+{ CPUFUNC(op_42b0_33), 17072 }, /* CLR */
+{ CPUFUNC(op_42b8_33), 17080 }, /* CLR */
+{ CPUFUNC(op_42b9_33), 17081 }, /* CLR */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_42c0_33), 17088 }, /* MVSR2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_42d0_33), 17104 }, /* MVSR2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_42d8_33), 17112 }, /* MVSR2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_42e0_33), 17120 }, /* MVSR2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_42e8_33), 17128 }, /* MVSR2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_42f0_33), 17136 }, /* MVSR2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_42f8_33), 17144 }, /* MVSR2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_42f9_33), 17145 }, /* MVSR2 */
+#endif
+{ CPUFUNC(op_4400_33), 17408 }, /* NEG */
+{ CPUFUNC(op_4410_33), 17424 }, /* NEG */
+{ CPUFUNC(op_4418_33), 17432 }, /* NEG */
+{ CPUFUNC(op_4420_33), 17440 }, /* NEG */
+{ CPUFUNC(op_4428_33), 17448 }, /* NEG */
+{ CPUFUNC(op_4430_33), 17456 }, /* NEG */
+{ CPUFUNC(op_4438_33), 17464 }, /* NEG */
+{ CPUFUNC(op_4439_33), 17465 }, /* NEG */
+{ CPUFUNC(op_4440_33), 17472 }, /* NEG */
+{ CPUFUNC(op_4450_33), 17488 }, /* NEG */
+{ CPUFUNC(op_4458_33), 17496 }, /* NEG */
+{ CPUFUNC(op_4460_33), 17504 }, /* NEG */
+{ CPUFUNC(op_4468_33), 17512 }, /* NEG */
+{ CPUFUNC(op_4470_33), 17520 }, /* NEG */
+{ CPUFUNC(op_4478_33), 17528 }, /* NEG */
+{ CPUFUNC(op_4479_33), 17529 }, /* NEG */
+{ CPUFUNC(op_4480_33), 17536 }, /* NEG */
+{ CPUFUNC(op_4490_33), 17552 }, /* NEG */
+{ CPUFUNC(op_4498_33), 17560 }, /* NEG */
+{ CPUFUNC(op_44a0_33), 17568 }, /* NEG */
+{ CPUFUNC(op_44a8_33), 17576 }, /* NEG */
+{ CPUFUNC(op_44b0_33), 17584 }, /* NEG */
+{ CPUFUNC(op_44b8_33), 17592 }, /* NEG */
+{ CPUFUNC(op_44b9_33), 17593 }, /* NEG */
+{ CPUFUNC(op_44c0_33), 17600 }, /* MV2SR */
+{ CPUFUNC(op_44d0_33), 17616 }, /* MV2SR */
+{ CPUFUNC(op_44d8_33), 17624 }, /* MV2SR */
+{ CPUFUNC(op_44e0_33), 17632 }, /* MV2SR */
+{ CPUFUNC(op_44e8_33), 17640 }, /* MV2SR */
+{ CPUFUNC(op_44f0_33), 17648 }, /* MV2SR */
+{ CPUFUNC(op_44f8_33), 17656 }, /* MV2SR */
+{ CPUFUNC(op_44f9_33), 17657 }, /* MV2SR */
+{ CPUFUNC(op_44fa_33), 17658 }, /* MV2SR */
+{ CPUFUNC(op_44fb_33), 17659 }, /* MV2SR */
+{ CPUFUNC(op_44fc_33), 17660 }, /* MV2SR */
+{ CPUFUNC(op_4600_33), 17920 }, /* NOT */
+{ CPUFUNC(op_4610_33), 17936 }, /* NOT */
+{ CPUFUNC(op_4618_33), 17944 }, /* NOT */
+{ CPUFUNC(op_4620_33), 17952 }, /* NOT */
+{ CPUFUNC(op_4628_33), 17960 }, /* NOT */
+{ CPUFUNC(op_4630_33), 17968 }, /* NOT */
+{ CPUFUNC(op_4638_33), 17976 }, /* NOT */
+{ CPUFUNC(op_4639_33), 17977 }, /* NOT */
+{ CPUFUNC(op_4640_33), 17984 }, /* NOT */
+{ CPUFUNC(op_4650_33), 18000 }, /* NOT */
+{ CPUFUNC(op_4658_33), 18008 }, /* NOT */
+{ CPUFUNC(op_4660_33), 18016 }, /* NOT */
+{ CPUFUNC(op_4668_33), 18024 }, /* NOT */
+{ CPUFUNC(op_4670_33), 18032 }, /* NOT */
+{ CPUFUNC(op_4678_33), 18040 }, /* NOT */
+{ CPUFUNC(op_4679_33), 18041 }, /* NOT */
+{ CPUFUNC(op_4680_33), 18048 }, /* NOT */
+{ CPUFUNC(op_4690_33), 18064 }, /* NOT */
+{ CPUFUNC(op_4698_33), 18072 }, /* NOT */
+{ CPUFUNC(op_46a0_33), 18080 }, /* NOT */
+{ CPUFUNC(op_46a8_33), 18088 }, /* NOT */
+{ CPUFUNC(op_46b0_33), 18096 }, /* NOT */
+{ CPUFUNC(op_46b8_33), 18104 }, /* NOT */
+{ CPUFUNC(op_46b9_33), 18105 }, /* NOT */
+{ CPUFUNC(op_46c0_33), 18112 }, /* MV2SR */
+{ CPUFUNC(op_46d0_33), 18128 }, /* MV2SR */
+{ CPUFUNC(op_46d8_33), 18136 }, /* MV2SR */
+{ CPUFUNC(op_46e0_33), 18144 }, /* MV2SR */
+{ CPUFUNC(op_46e8_33), 18152 }, /* MV2SR */
+{ CPUFUNC(op_46f0_33), 18160 }, /* MV2SR */
+{ CPUFUNC(op_46f8_33), 18168 }, /* MV2SR */
+{ CPUFUNC(op_46f9_33), 18169 }, /* MV2SR */
+{ CPUFUNC(op_46fa_33), 18170 }, /* MV2SR */
+{ CPUFUNC(op_46fb_33), 18171 }, /* MV2SR */
+{ CPUFUNC(op_46fc_33), 18172 }, /* MV2SR */
+{ CPUFUNC(op_4800_33), 18432 }, /* NBCD */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4808_33), 18440 }, /* LINK */
+#endif
+{ CPUFUNC(op_4810_33), 18448 }, /* NBCD */
+{ CPUFUNC(op_4818_33), 18456 }, /* NBCD */
+{ CPUFUNC(op_4820_33), 18464 }, /* NBCD */
+{ CPUFUNC(op_4828_33), 18472 }, /* NBCD */
+{ CPUFUNC(op_4830_33), 18480 }, /* NBCD */
+{ CPUFUNC(op_4838_33), 18488 }, /* NBCD */
+{ CPUFUNC(op_4839_33), 18489 }, /* NBCD */
+{ CPUFUNC(op_4840_33), 18496 }, /* SWAP */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4848_33), 18504 }, /* BKPT */
+#endif
+{ CPUFUNC(op_4850_33), 18512 }, /* PEA */
+{ CPUFUNC(op_4868_33), 18536 }, /* PEA */
+{ CPUFUNC(op_4870_33), 18544 }, /* PEA */
+{ CPUFUNC(op_4878_33), 18552 }, /* PEA */
+{ CPUFUNC(op_4879_33), 18553 }, /* PEA */
+{ CPUFUNC(op_487a_33), 18554 }, /* PEA */
+{ CPUFUNC(op_487b_33), 18555 }, /* PEA */
+{ CPUFUNC(op_4880_33), 18560 }, /* EXT */
+{ CPUFUNC(op_4890_33), 18576 }, /* MVMLE */
+{ CPUFUNC(op_48a0_33), 18592 }, /* MVMLE */
+{ CPUFUNC(op_48a8_33), 18600 }, /* MVMLE */
+{ CPUFUNC(op_48b0_33), 18608 }, /* MVMLE */
+{ CPUFUNC(op_48b8_33), 18616 }, /* MVMLE */
+{ CPUFUNC(op_48b9_33), 18617 }, /* MVMLE */
+{ CPUFUNC(op_48c0_33), 18624 }, /* EXT */
+{ CPUFUNC(op_48d0_33), 18640 }, /* MVMLE */
+{ CPUFUNC(op_48e0_33), 18656 }, /* MVMLE */
+{ CPUFUNC(op_48e8_33), 18664 }, /* MVMLE */
+{ CPUFUNC(op_48f0_33), 18672 }, /* MVMLE */
+{ CPUFUNC(op_48f8_33), 18680 }, /* MVMLE */
+{ CPUFUNC(op_48f9_33), 18681 }, /* MVMLE */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_49c0_33), 18880 }, /* EXT */
+#endif
+{ CPUFUNC(op_4a00_33), 18944 }, /* TST */
+{ CPUFUNC(op_4a10_33), 18960 }, /* TST */
+{ CPUFUNC(op_4a18_33), 18968 }, /* TST */
+{ CPUFUNC(op_4a20_33), 18976 }, /* TST */
+{ CPUFUNC(op_4a28_33), 18984 }, /* TST */
+{ CPUFUNC(op_4a30_33), 18992 }, /* TST */
+{ CPUFUNC(op_4a38_33), 19000 }, /* TST */
+{ CPUFUNC(op_4a39_33), 19001 }, /* TST */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4a3a_33), 19002 }, /* TST */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4a3b_33), 19003 }, /* TST */
+#endif
+{ CPUFUNC(op_4a40_33), 19008 }, /* TST */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4a48_33), 19016 }, /* TST */
+#endif
+{ CPUFUNC(op_4a50_33), 19024 }, /* TST */
+{ CPUFUNC(op_4a58_33), 19032 }, /* TST */
+{ CPUFUNC(op_4a60_33), 19040 }, /* TST */
+{ CPUFUNC(op_4a68_33), 19048 }, /* TST */
+{ CPUFUNC(op_4a70_33), 19056 }, /* TST */
+{ CPUFUNC(op_4a78_33), 19064 }, /* TST */
+{ CPUFUNC(op_4a79_33), 19065 }, /* TST */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4a7a_33), 19066 }, /* TST */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4a7b_33), 19067 }, /* TST */
+#endif
+{ CPUFUNC(op_4a80_33), 19072 }, /* TST */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4a88_33), 19080 }, /* TST */
+#endif
+{ CPUFUNC(op_4a90_33), 19088 }, /* TST */
+{ CPUFUNC(op_4a98_33), 19096 }, /* TST */
+{ CPUFUNC(op_4aa0_33), 19104 }, /* TST */
+{ CPUFUNC(op_4aa8_33), 19112 }, /* TST */
+{ CPUFUNC(op_4ab0_33), 19120 }, /* TST */
+{ CPUFUNC(op_4ab8_33), 19128 }, /* TST */
+{ CPUFUNC(op_4ab9_33), 19129 }, /* TST */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4aba_33), 19130 }, /* TST */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4abb_33), 19131 }, /* TST */
+#endif
+{ CPUFUNC(op_4ac0_33), 19136 }, /* TAS */
+{ CPUFUNC(op_4ad0_33), 19152 }, /* TAS */
+{ CPUFUNC(op_4ad8_33), 19160 }, /* TAS */
+{ CPUFUNC(op_4ae0_33), 19168 }, /* TAS */
+{ CPUFUNC(op_4ae8_33), 19176 }, /* TAS */
+{ CPUFUNC(op_4af0_33), 19184 }, /* TAS */
+{ CPUFUNC(op_4af8_33), 19192 }, /* TAS */
+{ CPUFUNC(op_4af9_33), 19193 }, /* TAS */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4c00_33), 19456 }, /* MULL */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4c10_33), 19472 }, /* MULL */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4c18_33), 19480 }, /* MULL */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4c20_33), 19488 }, /* MULL */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4c28_33), 19496 }, /* MULL */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4c30_33), 19504 }, /* MULL */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4c38_33), 19512 }, /* MULL */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4c39_33), 19513 }, /* MULL */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4c3a_33), 19514 }, /* MULL */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4c3b_33), 19515 }, /* MULL */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4c3c_33), 19516 }, /* MULL */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4c40_33), 19520 }, /* DIVL */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4c50_33), 19536 }, /* DIVL */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4c58_33), 19544 }, /* DIVL */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4c60_33), 19552 }, /* DIVL */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4c68_33), 19560 }, /* DIVL */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4c70_33), 19568 }, /* DIVL */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4c78_33), 19576 }, /* DIVL */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4c79_33), 19577 }, /* DIVL */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4c7a_33), 19578 }, /* DIVL */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4c7b_33), 19579 }, /* DIVL */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4c7c_33), 19580 }, /* DIVL */
+#endif
+{ CPUFUNC(op_4c90_33), 19600 }, /* MVMEL */
+{ CPUFUNC(op_4c98_33), 19608 }, /* MVMEL */
+{ CPUFUNC(op_4ca8_33), 19624 }, /* MVMEL */
+{ CPUFUNC(op_4cb0_33), 19632 }, /* MVMEL */
+{ CPUFUNC(op_4cb8_33), 19640 }, /* MVMEL */
+{ CPUFUNC(op_4cb9_33), 19641 }, /* MVMEL */
+{ CPUFUNC(op_4cba_33), 19642 }, /* MVMEL */
+{ CPUFUNC(op_4cbb_33), 19643 }, /* MVMEL */
+{ CPUFUNC(op_4cd0_33), 19664 }, /* MVMEL */
+{ CPUFUNC(op_4cd8_33), 19672 }, /* MVMEL */
+{ CPUFUNC(op_4ce8_33), 19688 }, /* MVMEL */
+{ CPUFUNC(op_4cf0_33), 19696 }, /* MVMEL */
+{ CPUFUNC(op_4cf8_33), 19704 }, /* MVMEL */
+{ CPUFUNC(op_4cf9_33), 19705 }, /* MVMEL */
+{ CPUFUNC(op_4cfa_33), 19706 }, /* MVMEL */
+{ CPUFUNC(op_4cfb_33), 19707 }, /* MVMEL */
+{ CPUFUNC(op_4e40_33), 20032 }, /* TRAP */
+{ CPUFUNC(op_4e50_33), 20048 }, /* LINK */
+{ CPUFUNC(op_4e58_33), 20056 }, /* UNLK */
+{ CPUFUNC(op_4e60_33), 20064 }, /* MVR2USP */
+{ CPUFUNC(op_4e68_33), 20072 }, /* MVUSP2R */
+{ CPUFUNC(op_4e70_33), 20080 }, /* RESET */
+{ CPUFUNC(op_4e71_33), 20081 }, /* NOP */
+{ CPUFUNC(op_4e72_33), 20082 }, /* STOP */
+{ CPUFUNC(op_4e73_33), 20083 }, /* RTE */
+{ CPUFUNC(op_4e74_33), 20084 }, /* RTD */
+{ CPUFUNC(op_4e75_33), 20085 }, /* RTS */
+{ CPUFUNC(op_4e76_33), 20086 }, /* TRAPV */
+{ CPUFUNC(op_4e77_33), 20087 }, /* RTR */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4e7a_33), 20090 }, /* MOVEC2 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_4e7b_33), 20091 }, /* MOVE2C */
+#endif
+{ CPUFUNC(op_4e90_33), 20112 }, /* JSR */
+{ CPUFUNC(op_4ea8_33), 20136 }, /* JSR */
+{ CPUFUNC(op_4eb0_33), 20144 }, /* JSR */
+{ CPUFUNC(op_4eb8_33), 20152 }, /* JSR */
+{ CPUFUNC(op_4eb9_33), 20153 }, /* JSR */
+{ CPUFUNC(op_4eba_33), 20154 }, /* JSR */
+{ CPUFUNC(op_4ebb_33), 20155 }, /* JSR */
+{ CPUFUNC(op_4ed0_33), 20176 }, /* JMP */
+{ CPUFUNC(op_4ee8_33), 20200 }, /* JMP */
+{ CPUFUNC(op_4ef0_33), 20208 }, /* JMP */
+{ CPUFUNC(op_4ef8_33), 20216 }, /* JMP */
+{ CPUFUNC(op_4ef9_33), 20217 }, /* JMP */
+{ CPUFUNC(op_4efa_33), 20218 }, /* JMP */
+{ CPUFUNC(op_4efb_33), 20219 }, /* JMP */
+{ CPUFUNC(op_5000_33), 20480 }, /* ADD */
+{ CPUFUNC(op_5010_33), 20496 }, /* ADD */
+{ CPUFUNC(op_5018_33), 20504 }, /* ADD */
+{ CPUFUNC(op_5020_33), 20512 }, /* ADD */
+{ CPUFUNC(op_5028_33), 20520 }, /* ADD */
+{ CPUFUNC(op_5030_33), 20528 }, /* ADD */
+{ CPUFUNC(op_5038_33), 20536 }, /* ADD */
+{ CPUFUNC(op_5039_33), 20537 }, /* ADD */
+{ CPUFUNC(op_5040_33), 20544 }, /* ADD */
+{ CPUFUNC(op_5048_33), 20552 }, /* ADDA */
+{ CPUFUNC(op_5050_33), 20560 }, /* ADD */
+{ CPUFUNC(op_5058_33), 20568 }, /* ADD */
+{ CPUFUNC(op_5060_33), 20576 }, /* ADD */
+{ CPUFUNC(op_5068_33), 20584 }, /* ADD */
+{ CPUFUNC(op_5070_33), 20592 }, /* ADD */
+{ CPUFUNC(op_5078_33), 20600 }, /* ADD */
+{ CPUFUNC(op_5079_33), 20601 }, /* ADD */
+{ CPUFUNC(op_5080_33), 20608 }, /* ADD */
+{ CPUFUNC(op_5088_33), 20616 }, /* ADDA */
+{ CPUFUNC(op_5090_33), 20624 }, /* ADD */
+{ CPUFUNC(op_5098_33), 20632 }, /* ADD */
+{ CPUFUNC(op_50a0_33), 20640 }, /* ADD */
+{ CPUFUNC(op_50a8_33), 20648 }, /* ADD */
+{ CPUFUNC(op_50b0_33), 20656 }, /* ADD */
+{ CPUFUNC(op_50b8_33), 20664 }, /* ADD */
+{ CPUFUNC(op_50b9_33), 20665 }, /* ADD */
+{ CPUFUNC(op_50c0_33), 20672 }, /* Scc */
+{ CPUFUNC(op_50c8_33), 20680 }, /* DBcc */
+{ CPUFUNC(op_50d0_33), 20688 }, /* Scc */
+{ CPUFUNC(op_50d8_33), 20696 }, /* Scc */
+{ CPUFUNC(op_50e0_33), 20704 }, /* Scc */
+{ CPUFUNC(op_50e8_33), 20712 }, /* Scc */
+{ CPUFUNC(op_50f0_33), 20720 }, /* Scc */
+{ CPUFUNC(op_50f8_33), 20728 }, /* Scc */
+{ CPUFUNC(op_50f9_33), 20729 }, /* Scc */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_50fa_33), 20730 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_50fb_33), 20731 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_50fc_33), 20732 }, /* TRAPcc */
+#endif
+{ CPUFUNC(op_5100_33), 20736 }, /* SUB */
+{ CPUFUNC(op_5110_33), 20752 }, /* SUB */
+{ CPUFUNC(op_5118_33), 20760 }, /* SUB */
+{ CPUFUNC(op_5120_33), 20768 }, /* SUB */
+{ CPUFUNC(op_5128_33), 20776 }, /* SUB */
+{ CPUFUNC(op_5130_33), 20784 }, /* SUB */
+{ CPUFUNC(op_5138_33), 20792 }, /* SUB */
+{ CPUFUNC(op_5139_33), 20793 }, /* SUB */
+{ CPUFUNC(op_5140_33), 20800 }, /* SUB */
+{ CPUFUNC(op_5148_33), 20808 }, /* SUBA */
+{ CPUFUNC(op_5150_33), 20816 }, /* SUB */
+{ CPUFUNC(op_5158_33), 20824 }, /* SUB */
+{ CPUFUNC(op_5160_33), 20832 }, /* SUB */
+{ CPUFUNC(op_5168_33), 20840 }, /* SUB */
+{ CPUFUNC(op_5170_33), 20848 }, /* SUB */
+{ CPUFUNC(op_5178_33), 20856 }, /* SUB */
+{ CPUFUNC(op_5179_33), 20857 }, /* SUB */
+{ CPUFUNC(op_5180_33), 20864 }, /* SUB */
+{ CPUFUNC(op_5188_33), 20872 }, /* SUBA */
+{ CPUFUNC(op_5190_33), 20880 }, /* SUB */
+{ CPUFUNC(op_5198_33), 20888 }, /* SUB */
+{ CPUFUNC(op_51a0_33), 20896 }, /* SUB */
+{ CPUFUNC(op_51a8_33), 20904 }, /* SUB */
+{ CPUFUNC(op_51b0_33), 20912 }, /* SUB */
+{ CPUFUNC(op_51b8_33), 20920 }, /* SUB */
+{ CPUFUNC(op_51b9_33), 20921 }, /* SUB */
+{ CPUFUNC(op_51c0_33), 20928 }, /* Scc */
+{ CPUFUNC(op_51c8_33), 20936 }, /* DBcc */
+{ CPUFUNC(op_51d0_33), 20944 }, /* Scc */
+{ CPUFUNC(op_51d8_33), 20952 }, /* Scc */
+{ CPUFUNC(op_51e0_33), 20960 }, /* Scc */
+{ CPUFUNC(op_51e8_33), 20968 }, /* Scc */
+{ CPUFUNC(op_51f0_33), 20976 }, /* Scc */
+{ CPUFUNC(op_51f8_33), 20984 }, /* Scc */
+{ CPUFUNC(op_51f9_33), 20985 }, /* Scc */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_51fa_33), 20986 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_51fb_33), 20987 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_51fc_33), 20988 }, /* TRAPcc */
+#endif
+{ CPUFUNC(op_52c0_33), 21184 }, /* Scc */
+{ CPUFUNC(op_52c8_33), 21192 }, /* DBcc */
+{ CPUFUNC(op_52d0_33), 21200 }, /* Scc */
+{ CPUFUNC(op_52d8_33), 21208 }, /* Scc */
+{ CPUFUNC(op_52e0_33), 21216 }, /* Scc */
+{ CPUFUNC(op_52e8_33), 21224 }, /* Scc */
+{ CPUFUNC(op_52f0_33), 21232 }, /* Scc */
+{ CPUFUNC(op_52f8_33), 21240 }, /* Scc */
+{ CPUFUNC(op_52f9_33), 21241 }, /* Scc */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_52fa_33), 21242 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_52fb_33), 21243 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_52fc_33), 21244 }, /* TRAPcc */
+#endif
+{ CPUFUNC(op_53c0_33), 21440 }, /* Scc */
+{ CPUFUNC(op_53c8_33), 21448 }, /* DBcc */
+{ CPUFUNC(op_53d0_33), 21456 }, /* Scc */
+{ CPUFUNC(op_53d8_33), 21464 }, /* Scc */
+{ CPUFUNC(op_53e0_33), 21472 }, /* Scc */
+{ CPUFUNC(op_53e8_33), 21480 }, /* Scc */
+{ CPUFUNC(op_53f0_33), 21488 }, /* Scc */
+{ CPUFUNC(op_53f8_33), 21496 }, /* Scc */
+{ CPUFUNC(op_53f9_33), 21497 }, /* Scc */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_53fa_33), 21498 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_53fb_33), 21499 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_53fc_33), 21500 }, /* TRAPcc */
+#endif
+{ CPUFUNC(op_54c0_33), 21696 }, /* Scc */
+{ CPUFUNC(op_54c8_33), 21704 }, /* DBcc */
+{ CPUFUNC(op_54d0_33), 21712 }, /* Scc */
+{ CPUFUNC(op_54d8_33), 21720 }, /* Scc */
+{ CPUFUNC(op_54e0_33), 21728 }, /* Scc */
+{ CPUFUNC(op_54e8_33), 21736 }, /* Scc */
+{ CPUFUNC(op_54f0_33), 21744 }, /* Scc */
+{ CPUFUNC(op_54f8_33), 21752 }, /* Scc */
+{ CPUFUNC(op_54f9_33), 21753 }, /* Scc */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_54fa_33), 21754 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_54fb_33), 21755 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_54fc_33), 21756 }, /* TRAPcc */
+#endif
+{ CPUFUNC(op_55c0_33), 21952 }, /* Scc */
+{ CPUFUNC(op_55c8_33), 21960 }, /* DBcc */
+{ CPUFUNC(op_55d0_33), 21968 }, /* Scc */
+{ CPUFUNC(op_55d8_33), 21976 }, /* Scc */
+{ CPUFUNC(op_55e0_33), 21984 }, /* Scc */
+{ CPUFUNC(op_55e8_33), 21992 }, /* Scc */
+{ CPUFUNC(op_55f0_33), 22000 }, /* Scc */
+{ CPUFUNC(op_55f8_33), 22008 }, /* Scc */
+{ CPUFUNC(op_55f9_33), 22009 }, /* Scc */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_55fa_33), 22010 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_55fb_33), 22011 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_55fc_33), 22012 }, /* TRAPcc */
+#endif
+{ CPUFUNC(op_56c0_33), 22208 }, /* Scc */
+{ CPUFUNC(op_56c8_33), 22216 }, /* DBcc */
+{ CPUFUNC(op_56d0_33), 22224 }, /* Scc */
+{ CPUFUNC(op_56d8_33), 22232 }, /* Scc */
+{ CPUFUNC(op_56e0_33), 22240 }, /* Scc */
+{ CPUFUNC(op_56e8_33), 22248 }, /* Scc */
+{ CPUFUNC(op_56f0_33), 22256 }, /* Scc */
+{ CPUFUNC(op_56f8_33), 22264 }, /* Scc */
+{ CPUFUNC(op_56f9_33), 22265 }, /* Scc */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_56fa_33), 22266 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_56fb_33), 22267 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_56fc_33), 22268 }, /* TRAPcc */
+#endif
+{ CPUFUNC(op_57c0_33), 22464 }, /* Scc */
+{ CPUFUNC(op_57c8_33), 22472 }, /* DBcc */
+{ CPUFUNC(op_57d0_33), 22480 }, /* Scc */
+{ CPUFUNC(op_57d8_33), 22488 }, /* Scc */
+{ CPUFUNC(op_57e0_33), 22496 }, /* Scc */
+{ CPUFUNC(op_57e8_33), 22504 }, /* Scc */
+{ CPUFUNC(op_57f0_33), 22512 }, /* Scc */
+{ CPUFUNC(op_57f8_33), 22520 }, /* Scc */
+{ CPUFUNC(op_57f9_33), 22521 }, /* Scc */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_57fa_33), 22522 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_57fb_33), 22523 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_57fc_33), 22524 }, /* TRAPcc */
+#endif
+{ CPUFUNC(op_58c0_33), 22720 }, /* Scc */
+{ CPUFUNC(op_58c8_33), 22728 }, /* DBcc */
+{ CPUFUNC(op_58d0_33), 22736 }, /* Scc */
+{ CPUFUNC(op_58d8_33), 22744 }, /* Scc */
+{ CPUFUNC(op_58e0_33), 22752 }, /* Scc */
+{ CPUFUNC(op_58e8_33), 22760 }, /* Scc */
+{ CPUFUNC(op_58f0_33), 22768 }, /* Scc */
+{ CPUFUNC(op_58f8_33), 22776 }, /* Scc */
+{ CPUFUNC(op_58f9_33), 22777 }, /* Scc */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_58fa_33), 22778 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_58fb_33), 22779 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_58fc_33), 22780 }, /* TRAPcc */
+#endif
+{ CPUFUNC(op_59c0_33), 22976 }, /* Scc */
+{ CPUFUNC(op_59c8_33), 22984 }, /* DBcc */
+{ CPUFUNC(op_59d0_33), 22992 }, /* Scc */
+{ CPUFUNC(op_59d8_33), 23000 }, /* Scc */
+{ CPUFUNC(op_59e0_33), 23008 }, /* Scc */
+{ CPUFUNC(op_59e8_33), 23016 }, /* Scc */
+{ CPUFUNC(op_59f0_33), 23024 }, /* Scc */
+{ CPUFUNC(op_59f8_33), 23032 }, /* Scc */
+{ CPUFUNC(op_59f9_33), 23033 }, /* Scc */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_59fa_33), 23034 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_59fb_33), 23035 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_59fc_33), 23036 }, /* TRAPcc */
+#endif
+{ CPUFUNC(op_5ac0_33), 23232 }, /* Scc */
+{ CPUFUNC(op_5ac8_33), 23240 }, /* DBcc */
+{ CPUFUNC(op_5ad0_33), 23248 }, /* Scc */
+{ CPUFUNC(op_5ad8_33), 23256 }, /* Scc */
+{ CPUFUNC(op_5ae0_33), 23264 }, /* Scc */
+{ CPUFUNC(op_5ae8_33), 23272 }, /* Scc */
+{ CPUFUNC(op_5af0_33), 23280 }, /* Scc */
+{ CPUFUNC(op_5af8_33), 23288 }, /* Scc */
+{ CPUFUNC(op_5af9_33), 23289 }, /* Scc */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_5afa_33), 23290 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_5afb_33), 23291 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_5afc_33), 23292 }, /* TRAPcc */
+#endif
+{ CPUFUNC(op_5bc0_33), 23488 }, /* Scc */
+{ CPUFUNC(op_5bc8_33), 23496 }, /* DBcc */
+{ CPUFUNC(op_5bd0_33), 23504 }, /* Scc */
+{ CPUFUNC(op_5bd8_33), 23512 }, /* Scc */
+{ CPUFUNC(op_5be0_33), 23520 }, /* Scc */
+{ CPUFUNC(op_5be8_33), 23528 }, /* Scc */
+{ CPUFUNC(op_5bf0_33), 23536 }, /* Scc */
+{ CPUFUNC(op_5bf8_33), 23544 }, /* Scc */
+{ CPUFUNC(op_5bf9_33), 23545 }, /* Scc */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_5bfa_33), 23546 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_5bfb_33), 23547 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_5bfc_33), 23548 }, /* TRAPcc */
+#endif
+{ CPUFUNC(op_5cc0_33), 23744 }, /* Scc */
+{ CPUFUNC(op_5cc8_33), 23752 }, /* DBcc */
+{ CPUFUNC(op_5cd0_33), 23760 }, /* Scc */
+{ CPUFUNC(op_5cd8_33), 23768 }, /* Scc */
+{ CPUFUNC(op_5ce0_33), 23776 }, /* Scc */
+{ CPUFUNC(op_5ce8_33), 23784 }, /* Scc */
+{ CPUFUNC(op_5cf0_33), 23792 }, /* Scc */
+{ CPUFUNC(op_5cf8_33), 23800 }, /* Scc */
+{ CPUFUNC(op_5cf9_33), 23801 }, /* Scc */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_5cfa_33), 23802 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_5cfb_33), 23803 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_5cfc_33), 23804 }, /* TRAPcc */
+#endif
+{ CPUFUNC(op_5dc0_33), 24000 }, /* Scc */
+{ CPUFUNC(op_5dc8_33), 24008 }, /* DBcc */
+{ CPUFUNC(op_5dd0_33), 24016 }, /* Scc */
+{ CPUFUNC(op_5dd8_33), 24024 }, /* Scc */
+{ CPUFUNC(op_5de0_33), 24032 }, /* Scc */
+{ CPUFUNC(op_5de8_33), 24040 }, /* Scc */
+{ CPUFUNC(op_5df0_33), 24048 }, /* Scc */
+{ CPUFUNC(op_5df8_33), 24056 }, /* Scc */
+{ CPUFUNC(op_5df9_33), 24057 }, /* Scc */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_5dfa_33), 24058 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_5dfb_33), 24059 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_5dfc_33), 24060 }, /* TRAPcc */
+#endif
+{ CPUFUNC(op_5ec0_33), 24256 }, /* Scc */
+{ CPUFUNC(op_5ec8_33), 24264 }, /* DBcc */
+{ CPUFUNC(op_5ed0_33), 24272 }, /* Scc */
+{ CPUFUNC(op_5ed8_33), 24280 }, /* Scc */
+{ CPUFUNC(op_5ee0_33), 24288 }, /* Scc */
+{ CPUFUNC(op_5ee8_33), 24296 }, /* Scc */
+{ CPUFUNC(op_5ef0_33), 24304 }, /* Scc */
+{ CPUFUNC(op_5ef8_33), 24312 }, /* Scc */
+{ CPUFUNC(op_5ef9_33), 24313 }, /* Scc */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_5efa_33), 24314 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_5efb_33), 24315 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_5efc_33), 24316 }, /* TRAPcc */
+#endif
+{ CPUFUNC(op_5fc0_33), 24512 }, /* Scc */
+{ CPUFUNC(op_5fc8_33), 24520 }, /* DBcc */
+{ CPUFUNC(op_5fd0_33), 24528 }, /* Scc */
+{ CPUFUNC(op_5fd8_33), 24536 }, /* Scc */
+{ CPUFUNC(op_5fe0_33), 24544 }, /* Scc */
+{ CPUFUNC(op_5fe8_33), 24552 }, /* Scc */
+{ CPUFUNC(op_5ff0_33), 24560 }, /* Scc */
+{ CPUFUNC(op_5ff8_33), 24568 }, /* Scc */
+{ CPUFUNC(op_5ff9_33), 24569 }, /* Scc */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_5ffa_33), 24570 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_5ffb_33), 24571 }, /* TRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_5ffc_33), 24572 }, /* TRAPcc */
+#endif
+{ CPUFUNC(op_6000_33), 24576 }, /* Bcc */
+{ CPUFUNC(op_6001_33), 24577 }, /* Bcc */
+{ CPUFUNC(op_60ff_33), 24831 }, /* Bcc */
+{ CPUFUNC(op_6100_33), 24832 }, /* BSR */
+{ CPUFUNC(op_6101_33), 24833 }, /* BSR */
+{ CPUFUNC(op_61ff_33), 25087 }, /* BSR */
+{ CPUFUNC(op_6200_33), 25088 }, /* Bcc */
+{ CPUFUNC(op_6201_33), 25089 }, /* Bcc */
+{ CPUFUNC(op_62ff_33), 25343 }, /* Bcc */
+{ CPUFUNC(op_6300_33), 25344 }, /* Bcc */
+{ CPUFUNC(op_6301_33), 25345 }, /* Bcc */
+{ CPUFUNC(op_63ff_33), 25599 }, /* Bcc */
+{ CPUFUNC(op_6400_33), 25600 }, /* Bcc */
+{ CPUFUNC(op_6401_33), 25601 }, /* Bcc */
+{ CPUFUNC(op_64ff_33), 25855 }, /* Bcc */
+{ CPUFUNC(op_6500_33), 25856 }, /* Bcc */
+{ CPUFUNC(op_6501_33), 25857 }, /* Bcc */
+{ CPUFUNC(op_65ff_33), 26111 }, /* Bcc */
+{ CPUFUNC(op_6600_33), 26112 }, /* Bcc */
+{ CPUFUNC(op_6601_33), 26113 }, /* Bcc */
+{ CPUFUNC(op_66ff_33), 26367 }, /* Bcc */
+{ CPUFUNC(op_6700_33), 26368 }, /* Bcc */
+{ CPUFUNC(op_6701_33), 26369 }, /* Bcc */
+{ CPUFUNC(op_67ff_33), 26623 }, /* Bcc */
+{ CPUFUNC(op_6800_33), 26624 }, /* Bcc */
+{ CPUFUNC(op_6801_33), 26625 }, /* Bcc */
+{ CPUFUNC(op_68ff_33), 26879 }, /* Bcc */
+{ CPUFUNC(op_6900_33), 26880 }, /* Bcc */
+{ CPUFUNC(op_6901_33), 26881 }, /* Bcc */
+{ CPUFUNC(op_69ff_33), 27135 }, /* Bcc */
+{ CPUFUNC(op_6a00_33), 27136 }, /* Bcc */
+{ CPUFUNC(op_6a01_33), 27137 }, /* Bcc */
+{ CPUFUNC(op_6aff_33), 27391 }, /* Bcc */
+{ CPUFUNC(op_6b00_33), 27392 }, /* Bcc */
+{ CPUFUNC(op_6b01_33), 27393 }, /* Bcc */
+{ CPUFUNC(op_6bff_33), 27647 }, /* Bcc */
+{ CPUFUNC(op_6c00_33), 27648 }, /* Bcc */
+{ CPUFUNC(op_6c01_33), 27649 }, /* Bcc */
+{ CPUFUNC(op_6cff_33), 27903 }, /* Bcc */
+{ CPUFUNC(op_6d00_33), 27904 }, /* Bcc */
+{ CPUFUNC(op_6d01_33), 27905 }, /* Bcc */
+{ CPUFUNC(op_6dff_33), 28159 }, /* Bcc */
+{ CPUFUNC(op_6e00_33), 28160 }, /* Bcc */
+{ CPUFUNC(op_6e01_33), 28161 }, /* Bcc */
+{ CPUFUNC(op_6eff_33), 28415 }, /* Bcc */
+{ CPUFUNC(op_6f00_33), 28416 }, /* Bcc */
+{ CPUFUNC(op_6f01_33), 28417 }, /* Bcc */
+{ CPUFUNC(op_6fff_33), 28671 }, /* Bcc */
+{ CPUFUNC(op_7000_33), 28672 }, /* MOVE */
+{ CPUFUNC(op_8000_33), 32768 }, /* OR */
+{ CPUFUNC(op_8010_33), 32784 }, /* OR */
+{ CPUFUNC(op_8018_33), 32792 }, /* OR */
+{ CPUFUNC(op_8020_33), 32800 }, /* OR */
+{ CPUFUNC(op_8028_33), 32808 }, /* OR */
+{ CPUFUNC(op_8030_33), 32816 }, /* OR */
+{ CPUFUNC(op_8038_33), 32824 }, /* OR */
+{ CPUFUNC(op_8039_33), 32825 }, /* OR */
+{ CPUFUNC(op_803a_33), 32826 }, /* OR */
+{ CPUFUNC(op_803b_33), 32827 }, /* OR */
+{ CPUFUNC(op_803c_33), 32828 }, /* OR */
+{ CPUFUNC(op_8040_33), 32832 }, /* OR */
+{ CPUFUNC(op_8050_33), 32848 }, /* OR */
+{ CPUFUNC(op_8058_33), 32856 }, /* OR */
+{ CPUFUNC(op_8060_33), 32864 }, /* OR */
+{ CPUFUNC(op_8068_33), 32872 }, /* OR */
+{ CPUFUNC(op_8070_33), 32880 }, /* OR */
+{ CPUFUNC(op_8078_33), 32888 }, /* OR */
+{ CPUFUNC(op_8079_33), 32889 }, /* OR */
+{ CPUFUNC(op_807a_33), 32890 }, /* OR */
+{ CPUFUNC(op_807b_33), 32891 }, /* OR */
+{ CPUFUNC(op_807c_33), 32892 }, /* OR */
+{ CPUFUNC(op_8080_33), 32896 }, /* OR */
+{ CPUFUNC(op_8090_33), 32912 }, /* OR */
+{ CPUFUNC(op_8098_33), 32920 }, /* OR */
+{ CPUFUNC(op_80a0_33), 32928 }, /* OR */
+{ CPUFUNC(op_80a8_33), 32936 }, /* OR */
+{ CPUFUNC(op_80b0_33), 32944 }, /* OR */
+{ CPUFUNC(op_80b8_33), 32952 }, /* OR */
+{ CPUFUNC(op_80b9_33), 32953 }, /* OR */
+{ CPUFUNC(op_80ba_33), 32954 }, /* OR */
+{ CPUFUNC(op_80bb_33), 32955 }, /* OR */
+{ CPUFUNC(op_80bc_33), 32956 }, /* OR */
+{ CPUFUNC(op_80c0_33), 32960 }, /* DIVU */
+{ CPUFUNC(op_80d0_33), 32976 }, /* DIVU */
+{ CPUFUNC(op_80d8_33), 32984 }, /* DIVU */
+{ CPUFUNC(op_80e0_33), 32992 }, /* DIVU */
+{ CPUFUNC(op_80e8_33), 33000 }, /* DIVU */
+{ CPUFUNC(op_80f0_33), 33008 }, /* DIVU */
+{ CPUFUNC(op_80f8_33), 33016 }, /* DIVU */
+{ CPUFUNC(op_80f9_33), 33017 }, /* DIVU */
+{ CPUFUNC(op_80fa_33), 33018 }, /* DIVU */
+{ CPUFUNC(op_80fb_33), 33019 }, /* DIVU */
+{ CPUFUNC(op_80fc_33), 33020 }, /* DIVU */
+{ CPUFUNC(op_8100_33), 33024 }, /* SBCD */
+{ CPUFUNC(op_8108_33), 33032 }, /* SBCD */
+{ CPUFUNC(op_8110_33), 33040 }, /* OR */
+{ CPUFUNC(op_8118_33), 33048 }, /* OR */
+{ CPUFUNC(op_8120_33), 33056 }, /* OR */
+{ CPUFUNC(op_8128_33), 33064 }, /* OR */
+{ CPUFUNC(op_8130_33), 33072 }, /* OR */
+{ CPUFUNC(op_8138_33), 33080 }, /* OR */
+{ CPUFUNC(op_8139_33), 33081 }, /* OR */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_8140_33), 33088 }, /* PACK */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_8148_33), 33096 }, /* PACK */
+#endif
+{ CPUFUNC(op_8150_33), 33104 }, /* OR */
+{ CPUFUNC(op_8158_33), 33112 }, /* OR */
+{ CPUFUNC(op_8160_33), 33120 }, /* OR */
+{ CPUFUNC(op_8168_33), 33128 }, /* OR */
+{ CPUFUNC(op_8170_33), 33136 }, /* OR */
+{ CPUFUNC(op_8178_33), 33144 }, /* OR */
+{ CPUFUNC(op_8179_33), 33145 }, /* OR */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_8180_33), 33152 }, /* UNPK */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_8188_33), 33160 }, /* UNPK */
+#endif
+{ CPUFUNC(op_8190_33), 33168 }, /* OR */
+{ CPUFUNC(op_8198_33), 33176 }, /* OR */
+{ CPUFUNC(op_81a0_33), 33184 }, /* OR */
+{ CPUFUNC(op_81a8_33), 33192 }, /* OR */
+{ CPUFUNC(op_81b0_33), 33200 }, /* OR */
+{ CPUFUNC(op_81b8_33), 33208 }, /* OR */
+{ CPUFUNC(op_81b9_33), 33209 }, /* OR */
+{ CPUFUNC(op_81c0_33), 33216 }, /* DIVS */
+{ CPUFUNC(op_81d0_33), 33232 }, /* DIVS */
+{ CPUFUNC(op_81d8_33), 33240 }, /* DIVS */
+{ CPUFUNC(op_81e0_33), 33248 }, /* DIVS */
+{ CPUFUNC(op_81e8_33), 33256 }, /* DIVS */
+{ CPUFUNC(op_81f0_33), 33264 }, /* DIVS */
+{ CPUFUNC(op_81f8_33), 33272 }, /* DIVS */
+{ CPUFUNC(op_81f9_33), 33273 }, /* DIVS */
+{ CPUFUNC(op_81fa_33), 33274 }, /* DIVS */
+{ CPUFUNC(op_81fb_33), 33275 }, /* DIVS */
+{ CPUFUNC(op_81fc_33), 33276 }, /* DIVS */
+{ CPUFUNC(op_9000_33), 36864 }, /* SUB */
+{ CPUFUNC(op_9010_33), 36880 }, /* SUB */
+{ CPUFUNC(op_9018_33), 36888 }, /* SUB */
+{ CPUFUNC(op_9020_33), 36896 }, /* SUB */
+{ CPUFUNC(op_9028_33), 36904 }, /* SUB */
+{ CPUFUNC(op_9030_33), 36912 }, /* SUB */
+{ CPUFUNC(op_9038_33), 36920 }, /* SUB */
+{ CPUFUNC(op_9039_33), 36921 }, /* SUB */
+{ CPUFUNC(op_903a_33), 36922 }, /* SUB */
+{ CPUFUNC(op_903b_33), 36923 }, /* SUB */
+{ CPUFUNC(op_903c_33), 36924 }, /* SUB */
+{ CPUFUNC(op_9040_33), 36928 }, /* SUB */
+{ CPUFUNC(op_9048_33), 36936 }, /* SUB */
+{ CPUFUNC(op_9050_33), 36944 }, /* SUB */
+{ CPUFUNC(op_9058_33), 36952 }, /* SUB */
+{ CPUFUNC(op_9060_33), 36960 }, /* SUB */
+{ CPUFUNC(op_9068_33), 36968 }, /* SUB */
+{ CPUFUNC(op_9070_33), 36976 }, /* SUB */
+{ CPUFUNC(op_9078_33), 36984 }, /* SUB */
+{ CPUFUNC(op_9079_33), 36985 }, /* SUB */
+{ CPUFUNC(op_907a_33), 36986 }, /* SUB */
+{ CPUFUNC(op_907b_33), 36987 }, /* SUB */
+{ CPUFUNC(op_907c_33), 36988 }, /* SUB */
+{ CPUFUNC(op_9080_33), 36992 }, /* SUB */
+{ CPUFUNC(op_9088_33), 37000 }, /* SUB */
+{ CPUFUNC(op_9090_33), 37008 }, /* SUB */
+{ CPUFUNC(op_9098_33), 37016 }, /* SUB */
+{ CPUFUNC(op_90a0_33), 37024 }, /* SUB */
+{ CPUFUNC(op_90a8_33), 37032 }, /* SUB */
+{ CPUFUNC(op_90b0_33), 37040 }, /* SUB */
+{ CPUFUNC(op_90b8_33), 37048 }, /* SUB */
+{ CPUFUNC(op_90b9_33), 37049 }, /* SUB */
+{ CPUFUNC(op_90ba_33), 37050 }, /* SUB */
+{ CPUFUNC(op_90bb_33), 37051 }, /* SUB */
+{ CPUFUNC(op_90bc_33), 37052 }, /* SUB */
+{ CPUFUNC(op_90c0_33), 37056 }, /* SUBA */
+{ CPUFUNC(op_90c8_33), 37064 }, /* SUBA */
+{ CPUFUNC(op_90d0_33), 37072 }, /* SUBA */
+{ CPUFUNC(op_90d8_33), 37080 }, /* SUBA */
+{ CPUFUNC(op_90e0_33), 37088 }, /* SUBA */
+{ CPUFUNC(op_90e8_33), 37096 }, /* SUBA */
+{ CPUFUNC(op_90f0_33), 37104 }, /* SUBA */
+{ CPUFUNC(op_90f8_33), 37112 }, /* SUBA */
+{ CPUFUNC(op_90f9_33), 37113 }, /* SUBA */
+{ CPUFUNC(op_90fa_33), 37114 }, /* SUBA */
+{ CPUFUNC(op_90fb_33), 37115 }, /* SUBA */
+{ CPUFUNC(op_90fc_33), 37116 }, /* SUBA */
+{ CPUFUNC(op_9100_33), 37120 }, /* SUBX */
+{ CPUFUNC(op_9108_33), 37128 }, /* SUBX */
+{ CPUFUNC(op_9110_33), 37136 }, /* SUB */
+{ CPUFUNC(op_9118_33), 37144 }, /* SUB */
+{ CPUFUNC(op_9120_33), 37152 }, /* SUB */
+{ CPUFUNC(op_9128_33), 37160 }, /* SUB */
+{ CPUFUNC(op_9130_33), 37168 }, /* SUB */
+{ CPUFUNC(op_9138_33), 37176 }, /* SUB */
+{ CPUFUNC(op_9139_33), 37177 }, /* SUB */
+{ CPUFUNC(op_9140_33), 37184 }, /* SUBX */
+{ CPUFUNC(op_9148_33), 37192 }, /* SUBX */
+{ CPUFUNC(op_9150_33), 37200 }, /* SUB */
+{ CPUFUNC(op_9158_33), 37208 }, /* SUB */
+{ CPUFUNC(op_9160_33), 37216 }, /* SUB */
+{ CPUFUNC(op_9168_33), 37224 }, /* SUB */
+{ CPUFUNC(op_9170_33), 37232 }, /* SUB */
+{ CPUFUNC(op_9178_33), 37240 }, /* SUB */
+{ CPUFUNC(op_9179_33), 37241 }, /* SUB */
+{ CPUFUNC(op_9180_33), 37248 }, /* SUBX */
+{ CPUFUNC(op_9188_33), 37256 }, /* SUBX */
+{ CPUFUNC(op_9190_33), 37264 }, /* SUB */
+{ CPUFUNC(op_9198_33), 37272 }, /* SUB */
+{ CPUFUNC(op_91a0_33), 37280 }, /* SUB */
+{ CPUFUNC(op_91a8_33), 37288 }, /* SUB */
+{ CPUFUNC(op_91b0_33), 37296 }, /* SUB */
+{ CPUFUNC(op_91b8_33), 37304 }, /* SUB */
+{ CPUFUNC(op_91b9_33), 37305 }, /* SUB */
+{ CPUFUNC(op_91c0_33), 37312 }, /* SUBA */
+{ CPUFUNC(op_91c8_33), 37320 }, /* SUBA */
+{ CPUFUNC(op_91d0_33), 37328 }, /* SUBA */
+{ CPUFUNC(op_91d8_33), 37336 }, /* SUBA */
+{ CPUFUNC(op_91e0_33), 37344 }, /* SUBA */
+{ CPUFUNC(op_91e8_33), 37352 }, /* SUBA */
+{ CPUFUNC(op_91f0_33), 37360 }, /* SUBA */
+{ CPUFUNC(op_91f8_33), 37368 }, /* SUBA */
+{ CPUFUNC(op_91f9_33), 37369 }, /* SUBA */
+{ CPUFUNC(op_91fa_33), 37370 }, /* SUBA */
+{ CPUFUNC(op_91fb_33), 37371 }, /* SUBA */
+{ CPUFUNC(op_91fc_33), 37372 }, /* SUBA */
+{ CPUFUNC(op_b000_33), 45056 }, /* CMP */
+{ CPUFUNC(op_b010_33), 45072 }, /* CMP */
+{ CPUFUNC(op_b018_33), 45080 }, /* CMP */
+{ CPUFUNC(op_b020_33), 45088 }, /* CMP */
+{ CPUFUNC(op_b028_33), 45096 }, /* CMP */
+{ CPUFUNC(op_b030_33), 45104 }, /* CMP */
+{ CPUFUNC(op_b038_33), 45112 }, /* CMP */
+{ CPUFUNC(op_b039_33), 45113 }, /* CMP */
+{ CPUFUNC(op_b03a_33), 45114 }, /* CMP */
+{ CPUFUNC(op_b03b_33), 45115 }, /* CMP */
+{ CPUFUNC(op_b03c_33), 45116 }, /* CMP */
+{ CPUFUNC(op_b040_33), 45120 }, /* CMP */
+{ CPUFUNC(op_b048_33), 45128 }, /* CMP */
+{ CPUFUNC(op_b050_33), 45136 }, /* CMP */
+{ CPUFUNC(op_b058_33), 45144 }, /* CMP */
+{ CPUFUNC(op_b060_33), 45152 }, /* CMP */
+{ CPUFUNC(op_b068_33), 45160 }, /* CMP */
+{ CPUFUNC(op_b070_33), 45168 }, /* CMP */
+{ CPUFUNC(op_b078_33), 45176 }, /* CMP */
+{ CPUFUNC(op_b079_33), 45177 }, /* CMP */
+{ CPUFUNC(op_b07a_33), 45178 }, /* CMP */
+{ CPUFUNC(op_b07b_33), 45179 }, /* CMP */
+{ CPUFUNC(op_b07c_33), 45180 }, /* CMP */
+{ CPUFUNC(op_b080_33), 45184 }, /* CMP */
+{ CPUFUNC(op_b088_33), 45192 }, /* CMP */
+{ CPUFUNC(op_b090_33), 45200 }, /* CMP */
+{ CPUFUNC(op_b098_33), 45208 }, /* CMP */
+{ CPUFUNC(op_b0a0_33), 45216 }, /* CMP */
+{ CPUFUNC(op_b0a8_33), 45224 }, /* CMP */
+{ CPUFUNC(op_b0b0_33), 45232 }, /* CMP */
+{ CPUFUNC(op_b0b8_33), 45240 }, /* CMP */
+{ CPUFUNC(op_b0b9_33), 45241 }, /* CMP */
+{ CPUFUNC(op_b0ba_33), 45242 }, /* CMP */
+{ CPUFUNC(op_b0bb_33), 45243 }, /* CMP */
+{ CPUFUNC(op_b0bc_33), 45244 }, /* CMP */
+{ CPUFUNC(op_b0c0_33), 45248 }, /* CMPA */
+{ CPUFUNC(op_b0c8_33), 45256 }, /* CMPA */
+{ CPUFUNC(op_b0d0_33), 45264 }, /* CMPA */
+{ CPUFUNC(op_b0d8_33), 45272 }, /* CMPA */
+{ CPUFUNC(op_b0e0_33), 45280 }, /* CMPA */
+{ CPUFUNC(op_b0e8_33), 45288 }, /* CMPA */
+{ CPUFUNC(op_b0f0_33), 45296 }, /* CMPA */
+{ CPUFUNC(op_b0f8_33), 45304 }, /* CMPA */
+{ CPUFUNC(op_b0f9_33), 45305 }, /* CMPA */
+{ CPUFUNC(op_b0fa_33), 45306 }, /* CMPA */
+{ CPUFUNC(op_b0fb_33), 45307 }, /* CMPA */
+{ CPUFUNC(op_b0fc_33), 45308 }, /* CMPA */
+{ CPUFUNC(op_b100_33), 45312 }, /* EOR */
+{ CPUFUNC(op_b108_33), 45320 }, /* CMPM */
+{ CPUFUNC(op_b110_33), 45328 }, /* EOR */
+{ CPUFUNC(op_b118_33), 45336 }, /* EOR */
+{ CPUFUNC(op_b120_33), 45344 }, /* EOR */
+{ CPUFUNC(op_b128_33), 45352 }, /* EOR */
+{ CPUFUNC(op_b130_33), 45360 }, /* EOR */
+{ CPUFUNC(op_b138_33), 45368 }, /* EOR */
+{ CPUFUNC(op_b139_33), 45369 }, /* EOR */
+{ CPUFUNC(op_b140_33), 45376 }, /* EOR */
+{ CPUFUNC(op_b148_33), 45384 }, /* CMPM */
+{ CPUFUNC(op_b150_33), 45392 }, /* EOR */
+{ CPUFUNC(op_b158_33), 45400 }, /* EOR */
+{ CPUFUNC(op_b160_33), 45408 }, /* EOR */
+{ CPUFUNC(op_b168_33), 45416 }, /* EOR */
+{ CPUFUNC(op_b170_33), 45424 }, /* EOR */
+{ CPUFUNC(op_b178_33), 45432 }, /* EOR */
+{ CPUFUNC(op_b179_33), 45433 }, /* EOR */
+{ CPUFUNC(op_b180_33), 45440 }, /* EOR */
+{ CPUFUNC(op_b188_33), 45448 }, /* CMPM */
+{ CPUFUNC(op_b190_33), 45456 }, /* EOR */
+{ CPUFUNC(op_b198_33), 45464 }, /* EOR */
+{ CPUFUNC(op_b1a0_33), 45472 }, /* EOR */
+{ CPUFUNC(op_b1a8_33), 45480 }, /* EOR */
+{ CPUFUNC(op_b1b0_33), 45488 }, /* EOR */
+{ CPUFUNC(op_b1b8_33), 45496 }, /* EOR */
+{ CPUFUNC(op_b1b9_33), 45497 }, /* EOR */
+{ CPUFUNC(op_b1c0_33), 45504 }, /* CMPA */
+{ CPUFUNC(op_b1c8_33), 45512 }, /* CMPA */
+{ CPUFUNC(op_b1d0_33), 45520 }, /* CMPA */
+{ CPUFUNC(op_b1d8_33), 45528 }, /* CMPA */
+{ CPUFUNC(op_b1e0_33), 45536 }, /* CMPA */
+{ CPUFUNC(op_b1e8_33), 45544 }, /* CMPA */
+{ CPUFUNC(op_b1f0_33), 45552 }, /* CMPA */
+{ CPUFUNC(op_b1f8_33), 45560 }, /* CMPA */
+{ CPUFUNC(op_b1f9_33), 45561 }, /* CMPA */
+{ CPUFUNC(op_b1fa_33), 45562 }, /* CMPA */
+{ CPUFUNC(op_b1fb_33), 45563 }, /* CMPA */
+{ CPUFUNC(op_b1fc_33), 45564 }, /* CMPA */
+{ CPUFUNC(op_c000_33), 49152 }, /* AND */
+{ CPUFUNC(op_c010_33), 49168 }, /* AND */
+{ CPUFUNC(op_c018_33), 49176 }, /* AND */
+{ CPUFUNC(op_c020_33), 49184 }, /* AND */
+{ CPUFUNC(op_c028_33), 49192 }, /* AND */
+{ CPUFUNC(op_c030_33), 49200 }, /* AND */
+{ CPUFUNC(op_c038_33), 49208 }, /* AND */
+{ CPUFUNC(op_c039_33), 49209 }, /* AND */
+{ CPUFUNC(op_c03a_33), 49210 }, /* AND */
+{ CPUFUNC(op_c03b_33), 49211 }, /* AND */
+{ CPUFUNC(op_c03c_33), 49212 }, /* AND */
+{ CPUFUNC(op_c040_33), 49216 }, /* AND */
+{ CPUFUNC(op_c050_33), 49232 }, /* AND */
+{ CPUFUNC(op_c058_33), 49240 }, /* AND */
+{ CPUFUNC(op_c060_33), 49248 }, /* AND */
+{ CPUFUNC(op_c068_33), 49256 }, /* AND */
+{ CPUFUNC(op_c070_33), 49264 }, /* AND */
+{ CPUFUNC(op_c078_33), 49272 }, /* AND */
+{ CPUFUNC(op_c079_33), 49273 }, /* AND */
+{ CPUFUNC(op_c07a_33), 49274 }, /* AND */
+{ CPUFUNC(op_c07b_33), 49275 }, /* AND */
+{ CPUFUNC(op_c07c_33), 49276 }, /* AND */
+{ CPUFUNC(op_c080_33), 49280 }, /* AND */
+{ CPUFUNC(op_c090_33), 49296 }, /* AND */
+{ CPUFUNC(op_c098_33), 49304 }, /* AND */
+{ CPUFUNC(op_c0a0_33), 49312 }, /* AND */
+{ CPUFUNC(op_c0a8_33), 49320 }, /* AND */
+{ CPUFUNC(op_c0b0_33), 49328 }, /* AND */
+{ CPUFUNC(op_c0b8_33), 49336 }, /* AND */
+{ CPUFUNC(op_c0b9_33), 49337 }, /* AND */
+{ CPUFUNC(op_c0ba_33), 49338 }, /* AND */
+{ CPUFUNC(op_c0bb_33), 49339 }, /* AND */
+{ CPUFUNC(op_c0bc_33), 49340 }, /* AND */
+{ CPUFUNC(op_c0c0_33), 49344 }, /* MULU */
+{ CPUFUNC(op_c0d0_33), 49360 }, /* MULU */
+{ CPUFUNC(op_c0d8_33), 49368 }, /* MULU */
+{ CPUFUNC(op_c0e0_33), 49376 }, /* MULU */
+{ CPUFUNC(op_c0e8_33), 49384 }, /* MULU */
+{ CPUFUNC(op_c0f0_33), 49392 }, /* MULU */
+{ CPUFUNC(op_c0f8_33), 49400 }, /* MULU */
+{ CPUFUNC(op_c0f9_33), 49401 }, /* MULU */
+{ CPUFUNC(op_c0fa_33), 49402 }, /* MULU */
+{ CPUFUNC(op_c0fb_33), 49403 }, /* MULU */
+{ CPUFUNC(op_c0fc_33), 49404 }, /* MULU */
+{ CPUFUNC(op_c100_33), 49408 }, /* ABCD */
+{ CPUFUNC(op_c108_33), 49416 }, /* ABCD */
+{ CPUFUNC(op_c110_33), 49424 }, /* AND */
+{ CPUFUNC(op_c118_33), 49432 }, /* AND */
+{ CPUFUNC(op_c120_33), 49440 }, /* AND */
+{ CPUFUNC(op_c128_33), 49448 }, /* AND */
+{ CPUFUNC(op_c130_33), 49456 }, /* AND */
+{ CPUFUNC(op_c138_33), 49464 }, /* AND */
+{ CPUFUNC(op_c139_33), 49465 }, /* AND */
+{ CPUFUNC(op_c140_33), 49472 }, /* EXG */
+{ CPUFUNC(op_c148_33), 49480 }, /* EXG */
+{ CPUFUNC(op_c150_33), 49488 }, /* AND */
+{ CPUFUNC(op_c158_33), 49496 }, /* AND */
+{ CPUFUNC(op_c160_33), 49504 }, /* AND */
+{ CPUFUNC(op_c168_33), 49512 }, /* AND */
+{ CPUFUNC(op_c170_33), 49520 }, /* AND */
+{ CPUFUNC(op_c178_33), 49528 }, /* AND */
+{ CPUFUNC(op_c179_33), 49529 }, /* AND */
+{ CPUFUNC(op_c188_33), 49544 }, /* EXG */
+{ CPUFUNC(op_c190_33), 49552 }, /* AND */
+{ CPUFUNC(op_c198_33), 49560 }, /* AND */
+{ CPUFUNC(op_c1a0_33), 49568 }, /* AND */
+{ CPUFUNC(op_c1a8_33), 49576 }, /* AND */
+{ CPUFUNC(op_c1b0_33), 49584 }, /* AND */
+{ CPUFUNC(op_c1b8_33), 49592 }, /* AND */
+{ CPUFUNC(op_c1b9_33), 49593 }, /* AND */
+{ CPUFUNC(op_c1c0_33), 49600 }, /* MULS */
+{ CPUFUNC(op_c1d0_33), 49616 }, /* MULS */
+{ CPUFUNC(op_c1d8_33), 49624 }, /* MULS */
+{ CPUFUNC(op_c1e0_33), 49632 }, /* MULS */
+{ CPUFUNC(op_c1e8_33), 49640 }, /* MULS */
+{ CPUFUNC(op_c1f0_33), 49648 }, /* MULS */
+{ CPUFUNC(op_c1f8_33), 49656 }, /* MULS */
+{ CPUFUNC(op_c1f9_33), 49657 }, /* MULS */
+{ CPUFUNC(op_c1fa_33), 49658 }, /* MULS */
+{ CPUFUNC(op_c1fb_33), 49659 }, /* MULS */
+{ CPUFUNC(op_c1fc_33), 49660 }, /* MULS */
+{ CPUFUNC(op_d000_33), 53248 }, /* ADD */
+{ CPUFUNC(op_d010_33), 53264 }, /* ADD */
+{ CPUFUNC(op_d018_33), 53272 }, /* ADD */
+{ CPUFUNC(op_d020_33), 53280 }, /* ADD */
+{ CPUFUNC(op_d028_33), 53288 }, /* ADD */
+{ CPUFUNC(op_d030_33), 53296 }, /* ADD */
+{ CPUFUNC(op_d038_33), 53304 }, /* ADD */
+{ CPUFUNC(op_d039_33), 53305 }, /* ADD */
+{ CPUFUNC(op_d03a_33), 53306 }, /* ADD */
+{ CPUFUNC(op_d03b_33), 53307 }, /* ADD */
+{ CPUFUNC(op_d03c_33), 53308 }, /* ADD */
+{ CPUFUNC(op_d040_33), 53312 }, /* ADD */
+{ CPUFUNC(op_d048_33), 53320 }, /* ADD */
+{ CPUFUNC(op_d050_33), 53328 }, /* ADD */
+{ CPUFUNC(op_d058_33), 53336 }, /* ADD */
+{ CPUFUNC(op_d060_33), 53344 }, /* ADD */
+{ CPUFUNC(op_d068_33), 53352 }, /* ADD */
+{ CPUFUNC(op_d070_33), 53360 }, /* ADD */
+{ CPUFUNC(op_d078_33), 53368 }, /* ADD */
+{ CPUFUNC(op_d079_33), 53369 }, /* ADD */
+{ CPUFUNC(op_d07a_33), 53370 }, /* ADD */
+{ CPUFUNC(op_d07b_33), 53371 }, /* ADD */
+{ CPUFUNC(op_d07c_33), 53372 }, /* ADD */
+{ CPUFUNC(op_d080_33), 53376 }, /* ADD */
+{ CPUFUNC(op_d088_33), 53384 }, /* ADD */
+{ CPUFUNC(op_d090_33), 53392 }, /* ADD */
+{ CPUFUNC(op_d098_33), 53400 }, /* ADD */
+{ CPUFUNC(op_d0a0_33), 53408 }, /* ADD */
+{ CPUFUNC(op_d0a8_33), 53416 }, /* ADD */
+{ CPUFUNC(op_d0b0_33), 53424 }, /* ADD */
+{ CPUFUNC(op_d0b8_33), 53432 }, /* ADD */
+{ CPUFUNC(op_d0b9_33), 53433 }, /* ADD */
+{ CPUFUNC(op_d0ba_33), 53434 }, /* ADD */
+{ CPUFUNC(op_d0bb_33), 53435 }, /* ADD */
+{ CPUFUNC(op_d0bc_33), 53436 }, /* ADD */
+{ CPUFUNC(op_d0c0_33), 53440 }, /* ADDA */
+{ CPUFUNC(op_d0c8_33), 53448 }, /* ADDA */
+{ CPUFUNC(op_d0d0_33), 53456 }, /* ADDA */
+{ CPUFUNC(op_d0d8_33), 53464 }, /* ADDA */
+{ CPUFUNC(op_d0e0_33), 53472 }, /* ADDA */
+{ CPUFUNC(op_d0e8_33), 53480 }, /* ADDA */
+{ CPUFUNC(op_d0f0_33), 53488 }, /* ADDA */
+{ CPUFUNC(op_d0f8_33), 53496 }, /* ADDA */
+{ CPUFUNC(op_d0f9_33), 53497 }, /* ADDA */
+{ CPUFUNC(op_d0fa_33), 53498 }, /* ADDA */
+{ CPUFUNC(op_d0fb_33), 53499 }, /* ADDA */
+{ CPUFUNC(op_d0fc_33), 53500 }, /* ADDA */
+{ CPUFUNC(op_d100_33), 53504 }, /* ADDX */
+{ CPUFUNC(op_d108_33), 53512 }, /* ADDX */
+{ CPUFUNC(op_d110_33), 53520 }, /* ADD */
+{ CPUFUNC(op_d118_33), 53528 }, /* ADD */
+{ CPUFUNC(op_d120_33), 53536 }, /* ADD */
+{ CPUFUNC(op_d128_33), 53544 }, /* ADD */
+{ CPUFUNC(op_d130_33), 53552 }, /* ADD */
+{ CPUFUNC(op_d138_33), 53560 }, /* ADD */
+{ CPUFUNC(op_d139_33), 53561 }, /* ADD */
+{ CPUFUNC(op_d140_33), 53568 }, /* ADDX */
+{ CPUFUNC(op_d148_33), 53576 }, /* ADDX */
+{ CPUFUNC(op_d150_33), 53584 }, /* ADD */
+{ CPUFUNC(op_d158_33), 53592 }, /* ADD */
+{ CPUFUNC(op_d160_33), 53600 }, /* ADD */
+{ CPUFUNC(op_d168_33), 53608 }, /* ADD */
+{ CPUFUNC(op_d170_33), 53616 }, /* ADD */
+{ CPUFUNC(op_d178_33), 53624 }, /* ADD */
+{ CPUFUNC(op_d179_33), 53625 }, /* ADD */
+{ CPUFUNC(op_d180_33), 53632 }, /* ADDX */
+{ CPUFUNC(op_d188_33), 53640 }, /* ADDX */
+{ CPUFUNC(op_d190_33), 53648 }, /* ADD */
+{ CPUFUNC(op_d198_33), 53656 }, /* ADD */
+{ CPUFUNC(op_d1a0_33), 53664 }, /* ADD */
+{ CPUFUNC(op_d1a8_33), 53672 }, /* ADD */
+{ CPUFUNC(op_d1b0_33), 53680 }, /* ADD */
+{ CPUFUNC(op_d1b8_33), 53688 }, /* ADD */
+{ CPUFUNC(op_d1b9_33), 53689 }, /* ADD */
+{ CPUFUNC(op_d1c0_33), 53696 }, /* ADDA */
+{ CPUFUNC(op_d1c8_33), 53704 }, /* ADDA */
+{ CPUFUNC(op_d1d0_33), 53712 }, /* ADDA */
+{ CPUFUNC(op_d1d8_33), 53720 }, /* ADDA */
+{ CPUFUNC(op_d1e0_33), 53728 }, /* ADDA */
+{ CPUFUNC(op_d1e8_33), 53736 }, /* ADDA */
+{ CPUFUNC(op_d1f0_33), 53744 }, /* ADDA */
+{ CPUFUNC(op_d1f8_33), 53752 }, /* ADDA */
+{ CPUFUNC(op_d1f9_33), 53753 }, /* ADDA */
+{ CPUFUNC(op_d1fa_33), 53754 }, /* ADDA */
+{ CPUFUNC(op_d1fb_33), 53755 }, /* ADDA */
+{ CPUFUNC(op_d1fc_33), 53756 }, /* ADDA */
+{ CPUFUNC(op_e000_33), 57344 }, /* ASR */
+{ CPUFUNC(op_e008_33), 57352 }, /* LSR */
+{ CPUFUNC(op_e010_33), 57360 }, /* ROXR */
+{ CPUFUNC(op_e018_33), 57368 }, /* ROR */
+{ CPUFUNC(op_e020_33), 57376 }, /* ASR */
+{ CPUFUNC(op_e028_33), 57384 }, /* LSR */
+{ CPUFUNC(op_e030_33), 57392 }, /* ROXR */
+{ CPUFUNC(op_e038_33), 57400 }, /* ROR */
+{ CPUFUNC(op_e040_33), 57408 }, /* ASR */
+{ CPUFUNC(op_e048_33), 57416 }, /* LSR */
+{ CPUFUNC(op_e050_33), 57424 }, /* ROXR */
+{ CPUFUNC(op_e058_33), 57432 }, /* ROR */
+{ CPUFUNC(op_e060_33), 57440 }, /* ASR */
+{ CPUFUNC(op_e068_33), 57448 }, /* LSR */
+{ CPUFUNC(op_e070_33), 57456 }, /* ROXR */
+{ CPUFUNC(op_e078_33), 57464 }, /* ROR */
+{ CPUFUNC(op_e080_33), 57472 }, /* ASR */
+{ CPUFUNC(op_e088_33), 57480 }, /* LSR */
+{ CPUFUNC(op_e090_33), 57488 }, /* ROXR */
+{ CPUFUNC(op_e098_33), 57496 }, /* ROR */
+{ CPUFUNC(op_e0a0_33), 57504 }, /* ASR */
+{ CPUFUNC(op_e0a8_33), 57512 }, /* LSR */
+{ CPUFUNC(op_e0b0_33), 57520 }, /* ROXR */
+{ CPUFUNC(op_e0b8_33), 57528 }, /* ROR */
+{ CPUFUNC(op_e0d0_33), 57552 }, /* ASRW */
+{ CPUFUNC(op_e0d8_33), 57560 }, /* ASRW */
+{ CPUFUNC(op_e0e0_33), 57568 }, /* ASRW */
+{ CPUFUNC(op_e0e8_33), 57576 }, /* ASRW */
+{ CPUFUNC(op_e0f0_33), 57584 }, /* ASRW */
+{ CPUFUNC(op_e0f8_33), 57592 }, /* ASRW */
+{ CPUFUNC(op_e0f9_33), 57593 }, /* ASRW */
+{ CPUFUNC(op_e100_33), 57600 }, /* ASL */
+{ CPUFUNC(op_e108_33), 57608 }, /* LSL */
+{ CPUFUNC(op_e110_33), 57616 }, /* ROXL */
+{ CPUFUNC(op_e118_33), 57624 }, /* ROL */
+{ CPUFUNC(op_e120_33), 57632 }, /* ASL */
+{ CPUFUNC(op_e128_33), 57640 }, /* LSL */
+{ CPUFUNC(op_e130_33), 57648 }, /* ROXL */
+{ CPUFUNC(op_e138_33), 57656 }, /* ROL */
+{ CPUFUNC(op_e140_33), 57664 }, /* ASL */
+{ CPUFUNC(op_e148_33), 57672 }, /* LSL */
+{ CPUFUNC(op_e150_33), 57680 }, /* ROXL */
+{ CPUFUNC(op_e158_33), 57688 }, /* ROL */
+{ CPUFUNC(op_e160_33), 57696 }, /* ASL */
+{ CPUFUNC(op_e168_33), 57704 }, /* LSL */
+{ CPUFUNC(op_e170_33), 57712 }, /* ROXL */
+{ CPUFUNC(op_e178_33), 57720 }, /* ROL */
+{ CPUFUNC(op_e180_33), 57728 }, /* ASL */
+{ CPUFUNC(op_e188_33), 57736 }, /* LSL */
+{ CPUFUNC(op_e190_33), 57744 }, /* ROXL */
+{ CPUFUNC(op_e198_33), 57752 }, /* ROL */
+{ CPUFUNC(op_e1a0_33), 57760 }, /* ASL */
+{ CPUFUNC(op_e1a8_33), 57768 }, /* LSL */
+{ CPUFUNC(op_e1b0_33), 57776 }, /* ROXL */
+{ CPUFUNC(op_e1b8_33), 57784 }, /* ROL */
+{ CPUFUNC(op_e1d0_33), 57808 }, /* ASLW */
+{ CPUFUNC(op_e1d8_33), 57816 }, /* ASLW */
+{ CPUFUNC(op_e1e0_33), 57824 }, /* ASLW */
+{ CPUFUNC(op_e1e8_33), 57832 }, /* ASLW */
+{ CPUFUNC(op_e1f0_33), 57840 }, /* ASLW */
+{ CPUFUNC(op_e1f8_33), 57848 }, /* ASLW */
+{ CPUFUNC(op_e1f9_33), 57849 }, /* ASLW */
+{ CPUFUNC(op_e2d0_33), 58064 }, /* LSRW */
+{ CPUFUNC(op_e2d8_33), 58072 }, /* LSRW */
+{ CPUFUNC(op_e2e0_33), 58080 }, /* LSRW */
+{ CPUFUNC(op_e2e8_33), 58088 }, /* LSRW */
+{ CPUFUNC(op_e2f0_33), 58096 }, /* LSRW */
+{ CPUFUNC(op_e2f8_33), 58104 }, /* LSRW */
+{ CPUFUNC(op_e2f9_33), 58105 }, /* LSRW */
+{ CPUFUNC(op_e3d0_33), 58320 }, /* LSLW */
+{ CPUFUNC(op_e3d8_33), 58328 }, /* LSLW */
+{ CPUFUNC(op_e3e0_33), 58336 }, /* LSLW */
+{ CPUFUNC(op_e3e8_33), 58344 }, /* LSLW */
+{ CPUFUNC(op_e3f0_33), 58352 }, /* LSLW */
+{ CPUFUNC(op_e3f8_33), 58360 }, /* LSLW */
+{ CPUFUNC(op_e3f9_33), 58361 }, /* LSLW */
+{ CPUFUNC(op_e4d0_33), 58576 }, /* ROXRW */
+{ CPUFUNC(op_e4d8_33), 58584 }, /* ROXRW */
+{ CPUFUNC(op_e4e0_33), 58592 }, /* ROXRW */
+{ CPUFUNC(op_e4e8_33), 58600 }, /* ROXRW */
+{ CPUFUNC(op_e4f0_33), 58608 }, /* ROXRW */
+{ CPUFUNC(op_e4f8_33), 58616 }, /* ROXRW */
+{ CPUFUNC(op_e4f9_33), 58617 }, /* ROXRW */
+{ CPUFUNC(op_e5d0_33), 58832 }, /* ROXLW */
+{ CPUFUNC(op_e5d8_33), 58840 }, /* ROXLW */
+{ CPUFUNC(op_e5e0_33), 58848 }, /* ROXLW */
+{ CPUFUNC(op_e5e8_33), 58856 }, /* ROXLW */
+{ CPUFUNC(op_e5f0_33), 58864 }, /* ROXLW */
+{ CPUFUNC(op_e5f8_33), 58872 }, /* ROXLW */
+{ CPUFUNC(op_e5f9_33), 58873 }, /* ROXLW */
+{ CPUFUNC(op_e6d0_33), 59088 }, /* RORW */
+{ CPUFUNC(op_e6d8_33), 59096 }, /* RORW */
+{ CPUFUNC(op_e6e0_33), 59104 }, /* RORW */
+{ CPUFUNC(op_e6e8_33), 59112 }, /* RORW */
+{ CPUFUNC(op_e6f0_33), 59120 }, /* RORW */
+{ CPUFUNC(op_e6f8_33), 59128 }, /* RORW */
+{ CPUFUNC(op_e6f9_33), 59129 }, /* RORW */
+{ CPUFUNC(op_e7d0_33), 59344 }, /* ROLW */
+{ CPUFUNC(op_e7d8_33), 59352 }, /* ROLW */
+{ CPUFUNC(op_e7e0_33), 59360 }, /* ROLW */
+{ CPUFUNC(op_e7e8_33), 59368 }, /* ROLW */
+{ CPUFUNC(op_e7f0_33), 59376 }, /* ROLW */
+{ CPUFUNC(op_e7f8_33), 59384 }, /* ROLW */
+{ CPUFUNC(op_e7f9_33), 59385 }, /* ROLW */
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_e8c0_33), 59584 }, /* BFTST */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_e8d0_33), 59600 }, /* BFTST */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_e8e8_33), 59624 }, /* BFTST */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_e8f0_33), 59632 }, /* BFTST */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_e8f8_33), 59640 }, /* BFTST */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_e8f9_33), 59641 }, /* BFTST */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_e8fa_33), 59642 }, /* BFTST */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_e8fb_33), 59643 }, /* BFTST */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_e9c0_33), 59840 }, /* BFEXTU */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_e9d0_33), 59856 }, /* BFEXTU */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_e9e8_33), 59880 }, /* BFEXTU */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_e9f0_33), 59888 }, /* BFEXTU */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_e9f8_33), 59896 }, /* BFEXTU */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_e9f9_33), 59897 }, /* BFEXTU */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_e9fa_33), 59898 }, /* BFEXTU */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_e9fb_33), 59899 }, /* BFEXTU */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_eac0_33), 60096 }, /* BFCHG */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_ead0_33), 60112 }, /* BFCHG */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_eae8_33), 60136 }, /* BFCHG */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_eaf0_33), 60144 }, /* BFCHG */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_eaf8_33), 60152 }, /* BFCHG */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_eaf9_33), 60153 }, /* BFCHG */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_ebc0_33), 60352 }, /* BFEXTS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_ebd0_33), 60368 }, /* BFEXTS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_ebe8_33), 60392 }, /* BFEXTS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_ebf0_33), 60400 }, /* BFEXTS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_ebf8_33), 60408 }, /* BFEXTS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_ebf9_33), 60409 }, /* BFEXTS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_ebfa_33), 60410 }, /* BFEXTS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_ebfb_33), 60411 }, /* BFEXTS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_ecc0_33), 60608 }, /* BFCLR */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_ecd0_33), 60624 }, /* BFCLR */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_ece8_33), 60648 }, /* BFCLR */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_ecf0_33), 60656 }, /* BFCLR */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_ecf8_33), 60664 }, /* BFCLR */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_ecf9_33), 60665 }, /* BFCLR */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_edc0_33), 60864 }, /* BFFFO */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_edd0_33), 60880 }, /* BFFFO */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_ede8_33), 60904 }, /* BFFFO */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_edf0_33), 60912 }, /* BFFFO */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_edf8_33), 60920 }, /* BFFFO */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_edf9_33), 60921 }, /* BFFFO */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_edfa_33), 60922 }, /* BFFFO */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_edfb_33), 60923 }, /* BFFFO */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_eec0_33), 61120 }, /* BFSET */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_eed0_33), 61136 }, /* BFSET */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_eee8_33), 61160 }, /* BFSET */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_eef0_33), 61168 }, /* BFSET */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_eef8_33), 61176 }, /* BFSET */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_eef9_33), 61177 }, /* BFSET */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_efc0_33), 61376 }, /* BFINS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_efd0_33), 61392 }, /* BFINS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_efe8_33), 61416 }, /* BFINS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_eff0_33), 61424 }, /* BFINS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_eff8_33), 61432 }, /* BFINS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_eff9_33), 61433 }, /* BFINS */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f000_33), 61440 }, /* MMUOP030 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f008_33), 61448 }, /* MMUOP030 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f010_33), 61456 }, /* MMUOP030 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f018_33), 61464 }, /* MMUOP030 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f020_33), 61472 }, /* MMUOP030 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f028_33), 61480 }, /* MMUOP030 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f030_33), 61488 }, /* MMUOP030 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f038_33), 61496 }, /* MMUOP030 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f039_33), 61497 }, /* MMUOP030 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f200_33), 61952 }, /* FPP */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f208_33), 61960 }, /* FPP */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f210_33), 61968 }, /* FPP */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f218_33), 61976 }, /* FPP */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f220_33), 61984 }, /* FPP */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f228_33), 61992 }, /* FPP */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f230_33), 62000 }, /* FPP */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f238_33), 62008 }, /* FPP */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f239_33), 62009 }, /* FPP */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f23a_33), 62010 }, /* FPP */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f23b_33), 62011 }, /* FPP */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f23c_33), 62012 }, /* FPP */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f240_33), 62016 }, /* FScc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f248_33), 62024 }, /* FDBcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f250_33), 62032 }, /* FScc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f258_33), 62040 }, /* FScc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f260_33), 62048 }, /* FScc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f268_33), 62056 }, /* FScc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f270_33), 62064 }, /* FScc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f278_33), 62072 }, /* FScc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f279_33), 62073 }, /* FScc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f27a_33), 62074 }, /* FTRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f27b_33), 62075 }, /* FTRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f27c_33), 62076 }, /* FTRAPcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f280_33), 62080 }, /* FBcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f2c0_33), 62144 }, /* FBcc */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f310_33), 62224 }, /* FSAVE */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f320_33), 62240 }, /* FSAVE */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f328_33), 62248 }, /* FSAVE */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f330_33), 62256 }, /* FSAVE */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f338_33), 62264 }, /* FSAVE */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f339_33), 62265 }, /* FSAVE */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f350_33), 62288 }, /* FRESTORE */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f358_33), 62296 }, /* FRESTORE */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f368_33), 62312 }, /* FRESTORE */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f370_33), 62320 }, /* FRESTORE */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f378_33), 62328 }, /* FRESTORE */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f379_33), 62329 }, /* FRESTORE */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f37a_33), 62330 }, /* FRESTORE */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f37b_33), 62331 }, /* FRESTORE */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f408_33), 62472 }, /* CINVL */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f410_33), 62480 }, /* CINVP */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f418_33), 62488 }, /* CINVA */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f419_33), 62489 }, /* CINVA */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f41a_33), 62490 }, /* CINVA */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f41b_33), 62491 }, /* CINVA */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f41c_33), 62492 }, /* CINVA */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f41d_33), 62493 }, /* CINVA */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f41e_33), 62494 }, /* CINVA */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f41f_33), 62495 }, /* CINVA */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f428_33), 62504 }, /* CPUSHL */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f430_33), 62512 }, /* CPUSHP */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f438_33), 62520 }, /* CPUSHA */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f439_33), 62521 }, /* CPUSHA */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f43a_33), 62522 }, /* CPUSHA */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f43b_33), 62523 }, /* CPUSHA */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f43c_33), 62524 }, /* CPUSHA */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f43d_33), 62525 }, /* CPUSHA */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f43e_33), 62526 }, /* CPUSHA */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f43f_33), 62527 }, /* CPUSHA */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f500_33), 62720 }, /* PFLUSHN */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f508_33), 62728 }, /* PFLUSH */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f510_33), 62736 }, /* PFLUSHAN */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f518_33), 62744 }, /* PFLUSHA */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f548_33), 62792 }, /* PTESTW */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f568_33), 62824 }, /* PTESTR */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f588_33), 62856 }, /* PLPAW */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f5c8_33), 62920 }, /* PLPAR */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f600_33), 62976 }, /* MOVE16 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f608_33), 62984 }, /* MOVE16 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f610_33), 62992 }, /* MOVE16 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f618_33), 63000 }, /* MOVE16 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f620_33), 63008 }, /* MOVE16 */
+#endif
+#ifndef CPUEMU_68000_ONLY
+{ CPUFUNC(op_f800_33), 63488 }, /* LPSTOP */
+#endif
+{ 0, 0 }};
+#endif /* CPUEMU_68000_ONLY */
+#endif /* CPUEMU_33 */

@@ -7,11 +7,6 @@
 *     2002-2007 Toni Wilen
 */
 
-#ifdef FSUAE
-// don't define ZLIB_WINAPI
-#else
-#define ZLIB_WINAPI
-#endif
 #define RECURSIVE_ARCHIVES 1
 //#define ZFILE_DEBUG
 
@@ -293,7 +288,7 @@ int zfile_gettype (struct zfile *z)
 			return ZFILE_NVR;
 		if (strcasecmp (ext, _T("uae")) == 0)
 			return ZFILE_CONFIGURATION;
-		if (strcasecmp (ext, _T("cue")) == 0 || strcasecmp (ext, _T("iso")) == 0 || strcasecmp (ext, _T("ccd")) == 0 || strcasecmp (ext, _T("mds")) == 0)
+		if (strcasecmp (ext, _T("cue")) == 0 || strcasecmp (ext, _T("iso")) == 0 || strcasecmp (ext, _T("ccd")) == 0 || strcasecmp (ext, _T("mds")) == 0 || strcasecmp (ext, _T("chd")) == 0)
 			return ZFILE_CDIMAGE;
 	}
 	memset (buf, 0, sizeof (buf));
@@ -1150,8 +1145,9 @@ static struct zfile *xz (struct zfile *z, int *retcode)
 	if (!iscrc)
 		CrcGenerateTable ();
 	iscrc = true;
-	if (XzUnpacker_Create (&cx, &allocImp) != SZ_OK)
-		return NULL;
+//	if (XzUnpacker_Create (&cx, &allocImp) != SZ_OK)
+//		return NULL;
+	XzUnpacker_Construct (&cx, &allocImp);
 	int outwritten = 0;
 	int towrite = 0;
 	bool first = true;
@@ -3297,6 +3293,16 @@ int zfile_readdir_archive (struct zdirectory *zd, TCHAR *out)
 {
 	return zfile_readdir_archive (zd, out, false);
 }
+
+struct zfile *zfile_readdir_archive_open (struct zdirectory *zd, const TCHAR *mode)
+{
+	TCHAR path[MAX_DPATH];
+	if (!zfile_readdir_archive (zd, path, true))
+		return NULL;
+	return zfile_fopen (path, mode, ZFD_ARCHIVE | ZFD_NORECURSE);
+}
+
+
 void zfile_resetdir_archive (struct zdirectory *zd)
 {
 	zd->offset = 0;

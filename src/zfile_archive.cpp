@@ -42,7 +42,6 @@ static time_t fromdostime (uae_u32 dd)
 	tm.tm_mon  = ((dd >> 21) & 0x0f) - 1;
 	tm.tm_mday = (dd >> 16) & 0x1f;
 	t = mktime (&tm);
-	_tzset ();
 	t -= _timezone;
 	return t;
 }
@@ -174,6 +173,10 @@ struct zfile *archive_access_select (struct znode *parent, struct zfile *zf, uns
 				int ft = 0;
 				if (mask & ZFD_CD) {
 					if (ext && !_tcsicmp (ext, _T(".iso"))) {
+						whf = 2;
+						ft = ZFILE_CDIMAGE;
+					}
+					if (ext && !_tcsicmp (ext, _T(".chd"))) {
 						whf = 2;
 						ft = ZFILE_CDIMAGE;
 					}
@@ -2169,7 +2172,9 @@ struct zfile *archive_getzfile (struct znode *zn, unsigned int id, int flags)
 		zf = archive_access_tar (zn);
 		break;
 	}
-	if (zf)
+	if (zf) {
 		zf->archiveid = id;
+		zfile_fseek (zf, 0, SEEK_SET);
+	}
 	return zf;
 }

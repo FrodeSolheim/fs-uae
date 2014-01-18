@@ -441,9 +441,9 @@ obj/gen/%.o: gen/%.cpp
 	mkdir -p `dirname $@`
 	$(cxx) $(cppflags) $(cxxflags) -c $< -o $@
 
-obj/jit/compemu_support.o: src/jit/compemu_support.cpp
-	mkdir -p `dirname $@`
-	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -fpermissive -c $< -o $@
+#obj/jit/compemu_support.o: src/jit/compemu_support.cpp
+#	mkdir -p `dirname $@`
+#	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -fpermissive -c $< -o $@
 
 #obj/bsdsocket.o: src/bsdsocket.cpp
 #	mkdir -p `dirname $@`

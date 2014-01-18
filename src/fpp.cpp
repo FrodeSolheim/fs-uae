@@ -36,11 +36,10 @@ STATIC_INLINE int isinrom (void)
 	return (munge24 (m68k_getpc ()) & 0xFFF80000) == 0xF80000 && !currprefs.mmu_model;
 }
 
-#if USE_LONG_DOUBLE
-static uae_u32 xhex_pi[]    ={0x2168c235, 0xc90fdaa2, 0x4000};
+static uae_u32 UNUSED(xhex_pi[])    ={0x2168c235, 0xc90fdaa2, 0x4000};
 uae_u32 xhex_exp_1[] ={0xa2bb4a9a, 0xadf85458, 0x4000};
-static uae_u32 xhex_l2_e[]  ={0x5c17f0bc, 0xb8aa3b29, 0x3fff};
-static uae_u32 xhex_ln_2[]  ={0xd1cf79ac, 0xb17217f7, 0x3ffe};
+static uae_u32 UNUSED(xhex_l2_e[])  ={0x5c17f0bc, 0xb8aa3b29, 0x3fff};
+static uae_u32 UNUSED(xhex_ln_2[])  ={0xd1cf79ac, 0xb17217f7, 0x3ffe};
 uae_u32 xhex_ln_10[] ={0xaaa8ac17, 0x935d8ddd, 0x4000};
 uae_u32 xhex_l10_2[] ={0xfbcff798, 0x9a209a84, 0x3ffd};
 uae_u32 xhex_l10_e[] ={0x37287195, 0xde5bd8a9, 0x3ffd};
@@ -53,8 +52,9 @@ uae_u32 xhex_1e512[] ={0xa60e91c7, 0xe319a0ae, 0x46a3};
 uae_u32 xhex_1e1024[]={0x81750c17, 0xc9767586, 0x4d48};
 uae_u32 xhex_1e2048[]={0xc53d5de5, 0x9e8b3b5d, 0x5a92};
 uae_u32 xhex_1e4096[]={0x8a20979b, 0xc4605202, 0x7525};
-static uae_u32 xhex_inf[]   ={0x00000000, 0x00000000, 0x7fff};
-static uae_u32 xhex_nan[]   ={0xffffffff, 0xffffffff, 0x7fff};
+static uae_u32 UNUSED(xhex_inf[])   ={0x00000000, 0x00000000, 0x7fff};
+static uae_u32 UNUSED(xhex_nan[])   ={0xffffffff, 0xffffffff, 0x7fff};
+#if USE_LONG_DOUBLE
 static long double *fp_pi     = (long double *)xhex_pi;
 static long double *fp_exp_1  = (long double *)xhex_exp_1;
 static long double *fp_l2_e   = (long double *)xhex_l2_e;

@@ -373,7 +373,7 @@ gen/gencpu: gen/cpudefs.cpp obj/gencpu.o obj/readcpu.o obj/missing.o \
 	$(cxx) $(cppflags) $(cxxflags) obj/gencpu.o obj/readcpu.o obj/missing.o \
 	gen/cpudefs.cpp -o gen/gencpu
 
-gen/genlinetoscr:
+gen/genlinetoscr: src/genlinetoscr.cpp
 	mkdir -p `dirname $@`
 	$(cxx) $(cppflags) $(cxxflags) src/genlinetoscr.cpp \
 	 -o gen/genlinetoscr

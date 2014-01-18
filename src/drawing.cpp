@@ -274,7 +274,7 @@ static void xlinecheck (unsigned int start, unsigned int end)
 	}
 }
 #else
-#define xlinecheck
+#define xlinecheck(start, end)
 #endif
 
 static void clearbuffer (struct vidbuffer *dst)
@@ -2106,8 +2106,6 @@ STATIC_INLINE void do_flush_screen (struct vidbuffer *vb, int start, int stop)
 * form. */
 static void pfield_expand_dp_bplcon (void)
 {
-	static int b2;
-
 	bplres = dp_for_drawing->bplres;
 	bplplanecnt = dp_for_drawing->nr_planes;
 	bplham = dp_for_drawing->ham_seen;
@@ -2295,7 +2293,7 @@ enum double_how {
 
 static void pfield_draw_line (struct vidbuffer *vb, int lineno, int gfx_ypos, int follow_ypos)
 {
-	static int warned = 0;
+	static int UNUSED(warned) = 0;
 	int border = 0;
 	int do_double = 0;
 	enum double_how dh;

@@ -116,7 +116,11 @@ void outlnf (const char *s, ...)
 
 static void out_linetoscr_decl (DEPTH_T bpp, HMODE_T hmode, int aga, int spr)
 {
+#ifdef FSUAE
+	outlnf ("static int NOINLINE __attribute__((__unused__)) linetoscr_%s%s%s%s (int spix, int dpix, int dpix_end)",
+#else
 	outlnf ("static int NOINLINE linetoscr_%s%s%s%s (int spix, int dpix, int dpix_end)",
+#endif
 		get_depth_str (bpp),
 		get_hmode_str (hmode), aga ? "_aga" : "", spr ? "_spr" : "");
 }

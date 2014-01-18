@@ -1,3 +1,16 @@
+Version 2.5.0:
+
+* Added flush_log boolean option to flush log output after each log line.
+* New UAE Native Interface (via built-in uaenative.library).
+* Enforcer / AHI interface is added (but with a dummy AHI backend).
+* Support for old WinUAE-style native calls.
+* UAE core code updated from WinUAE 2.7.0.
+* Code cleanup in UAE code to reduce the number of compiler warnings.
+* Removed some unused source files from the source archive.
+* Auto-generated source files are now auto-generated when compiling on all
+  platforms, and not cached in the source archives any longer.
+* Fixes to allow FS-UAE to be compiled with the lastest MinGW version.
+
 Version 2.3.18:
 
 * (Launcher) Replaced fengestad.no/fs-uae URLs with fs-uae.net ones.
@@ -12,7 +25,6 @@ Version 2.3.17:
 * (Launcher) Fixed bug with selecting multiple files [2.3.16].
 * (Launcher) Fixed trailing colon in translatiion of option description.
 * (Launcher) Updated translations: fi [Goingdown], pl [grimi], fr [Foul].
-
 
 Version 2.3.16:
 

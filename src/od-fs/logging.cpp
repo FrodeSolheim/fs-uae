@@ -52,7 +52,7 @@ void jit_abort (const TCHAR *format,...) {
     free(buffer);
 
     static int happened;
-    int count;
+    //int count;
     if (!happened)
         gui_message (_T("JIT: Serious error:\n%s"), buffer);
     happened = 1;

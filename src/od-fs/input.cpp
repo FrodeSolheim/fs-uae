@@ -58,7 +58,6 @@ int amiga_send_input_event(int input_event, int state) {
 //#endif
 
     //printf("amiga_send_input_event %d %d\n", input_event, state);
-    int isabs = 0;
 
     if (input_event > INPUTEVENT_PRIVATE_START) {
         return handle_custom_action(input_event, state);
@@ -543,8 +542,8 @@ struct inputdevice_functions inputdevicefunc_joystick = {
 int input_get_default_joystick (struct uae_input_device *uid, int num, int port, int af, int mode, bool gp)
 {
     int h,v;
-    unsigned int j;
-    struct didata *did;
+    //unsigned int j;
+    //struct didata *did;
     //SDL_Joystick *joy;
     //joy = joys[i].joy;
 

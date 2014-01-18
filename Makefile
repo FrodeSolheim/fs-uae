@@ -519,6 +519,26 @@ obj/%.o: src/%.cpp
 	mkdir -p `dirname $@`
 	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -c $< -o $@
 
+obj/od-fs/ahidsound.o: src/od-fs/ahidsound.cpp
+	mkdir -p `dirname $@`
+	$(cxx) $(cppflags) $(cxxflags) -Wno-error -c $< -o $@
+
+obj/od-fs/clipboard.o: src/od-fs/clipboard.cpp
+	mkdir -p `dirname $@`
+	$(cxx) $(cppflags) $(cxxflags) -Wno-unused-variable -c $< -o $@
+
+obj/od-fs/mman.o: src/od-fs/mman.cpp
+	mkdir -p `dirname $@`
+	$(cxx) $(cppflags) $(cxxflags) -Wno-error -c $< -o $@
+
+obj/od-fs/picasso96.o: src/od-fs/picasso96.cpp
+	mkdir -p `dirname $@`
+	$(cxx) $(cppflags) $(cxxflags) -Wno-error -c $< -o $@
+
+obj/od-fs/video.o: src/od-fs/video.cpp
+	mkdir -p `dirname $@`
+	$(cxx) $(cppflags) $(cxxflags) -Wno-error=unused-variable -Wno-error=unused-function -c $< -o $@
+
 obj/od-fs/%.o: src/od-fs/%.cpp
 	mkdir -p `dirname $@`
 	$(cxx) $(cppflags) $(cxxflags) -c $< -o $@

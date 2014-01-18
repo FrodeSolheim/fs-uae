@@ -40,7 +40,6 @@ bool my_chmod (const TCHAR *name, uae_u32 mode) {
 
 bool my_stat (const TCHAR *name, struct mystat *ms) {
     struct fs_stat sonuc;
-    int ret = 0;
     if (fs_stat(name, &sonuc) == -1) {
         write_log("my_stat: stat on file %s failed\n", name);
         return false;
@@ -179,7 +178,6 @@ int my_existsdir(const char *name) {
 
 uae_s64 my_fsize(struct my_openfile_s* mos) {
     struct fs_stat sonuc;
-    int ret = 0;
     if (fs_fstat(mos->fd, &sonuc) == -1) {
         write_log("my_fsize: fstat on file %s failed\n", mos->path);
         return -1;

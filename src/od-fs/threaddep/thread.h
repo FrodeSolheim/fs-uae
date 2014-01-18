@@ -34,7 +34,8 @@ static inline int uae_sem_trywait(uae_sem_t *sem) {
 
 #include "commpipe.h"
 
-#define BAD_THREAD NULL
+//#define BAD_THREAD NULL
+#define BAD_THREAD 0
 
 #define uae_set_thread_priority(thread_id, pri)
 

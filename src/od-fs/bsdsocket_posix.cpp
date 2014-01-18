@@ -595,7 +595,7 @@ static void copyHostent (const struct hostent *hostent, SB)
  */
 static void copyProtoent (TrapContext *context, SB, const struct protoent *p)
 {
-    size_t size = 16;
+    int size = 16;
     int numaliases = 0;
     int i;
     uae_u32 aptr;
@@ -754,14 +754,13 @@ uae_u32 bsdthr_Accept_2 (SB)
 uae_u32 bsdthr_Recv_2 (SB)
 {
     int foo;
-    int l, i;
     if (sb->from == 0) {
         foo = recv (sb->s, sb->buf, sb->len, sb->flags /*| MSG_NOSIGNAL*/);
         DEBUG_LOG ("recv2, recv returns %d, errno is %d\n", foo, errno);
     } else {
         struct sockaddr_in addr;
         socklen_t l = sizeof (struct sockaddr_in);
-        i = get_long (sb->fromlen);
+        int i = get_long (sb->fromlen);
         copysockaddr_a2n (&addr, sb->from, i);
         foo = recvfrom (sb->s, sb->buf, sb->len, sb->flags | MSG_NOSIGNAL, (struct sockaddr *)&addr, &l);
         DEBUG_LOG ("recv2, recvfrom returns %d, errno is %d\n", foo, errno);
@@ -1326,7 +1325,7 @@ void host_getservbynameport (TrapContext *context, SB, uae_u32 name, uae_u32 pro
     struct servent *s = (type) ?
     getservbyport (name, (char *)get_real_address (proto)) :
     getservbyname ((char *)get_real_address (name), (char *)get_real_address (proto));
-    size_t size = 20;
+    int size = 20;
     int numaliases = 0;
     uae_u32 aptr;
     int i;

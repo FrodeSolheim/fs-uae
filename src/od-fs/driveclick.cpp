@@ -4,8 +4,6 @@
 #include <fs/string.h>
 #include "include/driveclick.h"
 
-static void *g_driveclick_data[DS_END];
-static int g_driveclick_size[DS_END];
 static const char *g_driveclick_path = "";
 //static char *g_driveclick_name = NULL;
 

@@ -22,7 +22,6 @@ static int clipboard_change;
 static void *clipboard_delayed_data;
 static int clipboard_delayed_size;
 
-
 void amiga_clipboard_die (void)
 {
     signaling = 0;
@@ -52,7 +51,6 @@ uaecptr amiga_clipboard_proc_start (void)
 
 void amiga_clipboard_got_data (uaecptr data, uae_u32 size, uae_u32 actual)
 {
-    uae_u8 *addr;
     if (!initialized) {
         write_log ("clipboard: got_data() before initialized!?\n");
         return;

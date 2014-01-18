@@ -168,9 +168,11 @@ static int *kbmaps[] = { kb_np, kb_ck, kb_se, kb_cd32_np, kb_cd32_ck, kb_cd32_se
 */
 #endif
 
+// FIXME: check if this is needed at all
+
 static struct uae_input_device_kbr_default keytrans_amiga[] = {
-    { INPUTEVENT_KEY_CAPS_LOCK, INPUTEVENT_KEY_CAPS_LOCK, ID_FLAG_TOGGLE },
-    { -1, 0 }
+    { INPUTEVENT_KEY_CAPS_LOCK, { { INPUTEVENT_KEY_CAPS_LOCK, ID_FLAG_TOGGLE } } },
+    { -1, { { 0 } } }
 };
 
 static struct uae_input_device_kbr_default *keytrans[] = {
@@ -189,5 +191,6 @@ static int *kbmaps[] = { kb_none, kb_none, kb_none, kb_none, kb_none,
  */
 void keyboard_settrans (void) {
     write_log("KB: keyboard_settrans\n");
+    // FIXME: can this be dropped?
     inputdevice_setkeytranslation (keytrans, kbmaps);
 }

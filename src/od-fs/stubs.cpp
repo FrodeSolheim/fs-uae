@@ -90,8 +90,8 @@ void sampler_vsync (void) {
 }
 
 #include "include/zfile.h"
+
 // --- win32gui.cpp ---
-static int qs_override;
 
 int target_cfgfile_load (struct uae_prefs *p, const TCHAR *filename, int type, int isdefault)
 {

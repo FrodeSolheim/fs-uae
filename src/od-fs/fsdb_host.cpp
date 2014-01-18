@@ -321,7 +321,6 @@ int fsdb_get_file_info(const char *nname, fsdb_file_info *info) {
 
     int read_perm = 0;
     int read_time = 0;
-    int read_comment = 0;
 
     char *meta_file = fs_strconcat(nname, ".uaem", NULL);
 
@@ -357,7 +356,7 @@ int fsdb_get_file_info(const char *nname, fsdb_file_info *info) {
     }
 
     if ((end - p) >= 3) {
-        if (p[0] == 0xef && p[1] == 0xbb && p[2] == 0xbf) {
+        if ((uint8_t) p[0] == 0xef && (uint8_t) p[1] == 0xbb && (uint8_t) p[2] == 0xbf) {
             p += 3;
         }
     }

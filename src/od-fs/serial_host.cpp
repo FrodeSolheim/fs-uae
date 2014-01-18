@@ -55,7 +55,7 @@ static int allowed_baudrates[] =
 void SERPER (uae_u16 w)
 {
 	int baud = 0, i, per;
-	static int warned;
+	static int UNUSED(warned);
 
 	if (serper == w)  /* don't set baudrate if it's already ok */
 		return;
@@ -500,10 +500,12 @@ uae_u8 serial_writestatus (uae_u8 newstate, uae_u8 dir)
 	return oldserbits;
 }
 
+#ifdef SERIAL_ENET
 static int enet_is (TCHAR *name)
 {
 	return !_tcsnicmp (name, _T("ENET:"), 5);
 }
+#endif
 
 void serial_open (void)
 {

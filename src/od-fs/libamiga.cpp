@@ -618,7 +618,7 @@ void gui_disk_image_change (int unitnum, const TCHAR *name, bool writeprotected)
 }
 
 bool get_plugin_path (TCHAR *out, int size, const TCHAR *path) {
-    static char* plugin_path_none = NULL;
+    // static char* plugin_path_none = NULL;
 
     if (strcmp(path, "floppysounds") == 0) {
         if (g_floppy_sounds_dir) {

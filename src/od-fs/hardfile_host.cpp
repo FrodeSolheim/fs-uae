@@ -38,8 +38,6 @@ static int g_debug = 0;
 #define DEBUG_LOG(...) do ; while(0)
 #endif
 
-static int usefloppydrives = 0;
-
 struct hardfilehandle
 {
     int zfile;
@@ -235,7 +233,6 @@ int hdf_open_target (struct hardfiledata *hfd, const char *pname)
         hdf_init_target ();
         i = isharddrive (name);
         if (i >= 0) {
-            long r;
             udi = &uae_drives[i];
             hfd->flags = HFD_FLAGS_REALDRIVE;
             if (udi->nomedia)
@@ -704,10 +701,6 @@ static int num_drives;
 
 static int hdf_init2 (int force)
 {
-    int index = 0, index2 = 0, drive;
-    uae_u8 *buffer;
-    int errormode;
-    int dwDriveMask;
     static int done;
 
     if (done && !force)

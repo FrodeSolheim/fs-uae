@@ -55,6 +55,7 @@
 #include "blkdev.h"
 #include "isofs_api.h"
 #include "scsi.h"
+#include "uaenative.h"
 #ifdef RETROPLATFORM
 #include "rp.h"
 #endif
@@ -6413,6 +6414,9 @@ static uae_u32 REGPARAM2 filesys_diagentry (TrapContext *context)
 	resaddr = uaeres_startup (resaddr);
 #ifdef BSDSOCKET
 	resaddr = bsdlib_startup (resaddr);
+#endif
+#ifdef WITH_UAENATIVE
+	resaddr = uaenative_startup (resaddr);
 #endif
 #ifdef SCSIEMU
 	resaddr = scsidev_startup (resaddr);

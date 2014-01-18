@@ -36,6 +36,13 @@
 #include "enforcer.h"
 #include "ahidsound.h"
 #include "picasso96_host.h"
+#include "uaenative.h"
+
+#ifdef FSUAE
+#ifdef WINDOWS
+#define _WIN32
+#endif
+#endif
 
 static long samples, playchannel, intcount;
 static int record_enabled;
@@ -56,76 +63,33 @@ static int amigablksize;
 
 static DWORD sound_flushes2 = 0;
 
-//extern HWND hAmigaWnd;
+#ifdef _WIN32
+extern HWND hAmigaWnd;
+#ifdef FSUAE
+HWND hAmigaWnd;
+#endif
+#endif
 
 struct winuae	//this struct is put in a6 if you call
 	//execute native function
 {
-	//HWND amigawnd;    //adress of amiga Window Windows Handle
+#ifdef _WIN32
+	HWND amigawnd;    //adress of amiga Window Windows Handle
+#else
+    void *amigawnd; // dummy
+#endif
 	unsigned int changenum;   //number to detect screen close/open
-	unsigned int z3offset;    //the offset to add to acsess Z3 mem from Dll side
+	void *z3offset;    //the offset to add to acsess Z3 mem from Dll side
 };
 static struct winuae uaevar;
-static struct winuae *a6;
 
-#if defined(X86_MSVC_ASSEMBLY)
-
-#define CREATE_NATIVE_FUNC_PTR2 uae_u32 (*native_func)(uae_u32, uae_u32, uae_u32, uae_u32, uae_u32, uae_u32, uae_u32,\
-	uae_u32, uae_u32, uae_u32, uae_u32, uae_u32, uae_u32,uae_u32,uae_u32)
-#define SET_NATIVE_FUNC2(x) native_func = (uae_u32 (*)(uae_u32, uae_u32, uae_u32, uae_u32, uae_u32, uae_u32, uae_u32, uae_u32, uae_u32, uae_u32, uae_u32, uae_u32, uae_u32,uae_u32,uae_u32))(x)
-#define CALL_NATIVE_FUNC2(d1,d2,d3,d4,d5,d6,d7,a1,a2,a3,a4,a5,a6,a7) if(native_func) return native_func(d1,d2,d3,d4,d5,d6,d7,a1,a2,a3,a4,a5,a6,a7,regs_)
-
-static uae_u32 REGPARAM2 emulib_ExecuteNativeCode2 (TrapContext *context)
-{
-	unsigned int espstore;
-	uae_u8* object_UAM = (uae_u8*) m68k_areg (regs, 0);
-	uae_u32 d1 = m68k_dreg (regs, 1);
-	uae_u32 d2 = m68k_dreg (regs, 2);
-	uae_u32 d3 = m68k_dreg (regs, 3);
-	uae_u32 d4 = m68k_dreg (regs, 4);
-	uae_u32 d5 = m68k_dreg (regs, 5);
-	uae_u32 d6 = m68k_dreg (regs, 6);
-	uae_u32 d7 = m68k_dreg (regs, 7);
-	uae_u32 a1 = m68k_areg (regs, 1);
-	uae_u32 a2 = m68k_areg (regs, 2);
-	uae_u32 a3 = m68k_areg (regs, 3);
-	uae_u32 a4 = m68k_areg (regs, 4);
-	uae_u32 a5 = m68k_areg (regs, 5);
-	uae_u32 a7 = m68k_areg (regs, 7);
-	uae_u32 regs_ = (uae_u32)&regs;
-	CREATE_NATIVE_FUNC_PTR2;
-	uaevar.z3offset = (uae_u32)(get_real_address (0x10000000) - 0x10000000);
-	uaevar.amigawnd = hAmigaWnd;
-	a6 = &uaevar;
-	if (object_UAM)  {
-		SET_NATIVE_FUNC2 (object_UAM);
-		__asm
-		{   mov espstore,esp
-			push regs_
-			push a7
-			push a6
-			push a5
-			push a4
-			push a3
-			push a2
-			push a1
-			push d7
-			push d6
-			push d5
-			push d4
-			push d3
-			push d2
-			push d1
-			call native_func
-			mov esp,espstore
-		}
-		//CALL_NATIVE_FUNC2( d1, d2,d3, d4, d5, d6, d7, a1, a2, a3, a4 , a5 , a6 , a7);
-	} else {
-		return 0;
-	}
-}
-
+void *uaenative_get_uaevar(void) {
+#ifdef _WIN32
+    uaevar.amigawnd = hAmigaWnd;
 #endif
+    uaevar.z3offset = get_real_address (0x10000000) - 0x10000000;
+    return &uaevar;
+}
 
 void ahi_close_sound (void)
 {
@@ -447,6 +411,7 @@ uae_u32 REGPARAM2 ahi_demux (TrapContext *context)
 	// d0=200 ahitweak		 d1=offset for dsound position pointer
 
 	int opcode = m68k_dreg (regs, 0);
+	printf("AHI demux opcode %d\n", opcode);
 
 	switch (opcode)
 	{
@@ -635,103 +600,17 @@ uae_u32 REGPARAM2 ahi_demux (TrapContext *context)
 		flushprinter ();
 		return 0;
 
-#if defined(X86_MSVC_ASSEMBLY)
+	case 100:
+		return uaenative_open_library (context, UNI_FLAG_COMPAT);
 
-	case 100: // open dll
-		{
-			if (!currprefs.native_code)
-				return 0;
-			TCHAR *dlldir = TEXT ("winuae_dll");
-			TCHAR *dllname;
-			uaecptr dllptr;
-			HMODULE h = NULL;
-			TCHAR dpath[MAX_DPATH];
-			TCHAR newdllpath[MAX_DPATH];
-			int ok = 0;
-			TCHAR *filepart;
+	case 101:
+		return uaenative_get_function (context, UNI_FLAG_COMPAT);
 
-			dllptr = m68k_areg (regs, 0);
-			dllname = au ((uae_char*)get_real_address (dllptr));
-			dpath[0] = 0;
-			GetFullPathName (dllname, sizeof dpath / sizeof (TCHAR), dpath, &filepart);
-			if (_tcslen (dpath) > _tcslen (start_path_data) && !_tcsncmp (dpath, start_path_data, _tcslen (start_path_data))) {
-				/* path really is relative to winuae directory */
-				ok = 1;
-				_tcscpy (newdllpath, dpath + _tcslen (start_path_data));
-				if (!_tcsncmp (newdllpath, dlldir, _tcslen (dlldir))) /* remove "winuae_dll" */
-					_tcscpy (newdllpath, dpath + _tcslen (start_path_data) + 1 + _tcslen (dlldir));
-				_stprintf (dpath, _T("%s%s%s"), start_path_data, WIN32_PLUGINDIR, newdllpath);
-				h = LoadLibrary (dpath);
-				if (h == NULL)
-					write_log (_T("native open: '%s' = %d\n"), dpath, GetLastError ());
-				if (h == NULL) {
-					_stprintf (dpath, _T("%s%s\\%s"), start_path_data, dlldir, newdllpath);
-					h = LoadLibrary (dllname);
-					if (h == NULL)
-						write_log (_T("fallback native open: '%s' = %d\n"), dpath, GetLastError ());
-				}
-			} else {
-				write_log (_T("native open outside of installation dir '%s'!\n"), dpath);
-			}
-			xfree (dllname);
-#if 0
-			if (h == NULL) {
-				h = LoadLibrary (filepart);
-				write_log (_T("native file open: '%s' = %p\n"), filepart, h);
-				if (h == NULL) {
-					_stprintf (dpath, "%s%s%s", start_path_data, WIN32_PLUGINDIR, filepart);
-					h = LoadLibrary (dpath);
-					write_log (_T("native path open: '%s' = %p\n"), dpath, h);
-				}
-			}
-#endif
-			syncdivisor = (3580000.0 * CYCLE_UNIT) / (double)syncbase;
-			return (uae_u32)h;
-		}
+	case 102:
+        return uaenative_call_function(context, UNI_FLAG_COMPAT);
 
-	case 101:	//get dll label
-		{
-			if (currprefs.native_code) {
-				HMODULE m;
-				uaecptr funcaddr;
-				char *funcname;
-				m = (HMODULE) m68k_dreg (regs, 1);
-				funcaddr = m68k_areg (regs, 0);
-				funcname = (char*)get_real_address (funcaddr);
-				return (uae_u32) GetProcAddress (m, funcname);
-			}
-			return 0;
-		}
-
-	case 102:	//execute native code
-		{
-			uae_u32 ret = 0;
-			if (currprefs.native_code) {
-				unsigned long rate1;
-				double v;
-				rate1 = read_processor_time ();
-				ret = emulib_ExecuteNativeCode2 (context);
-				rate1 = read_processor_time () - rate1;
-				v = syncdivisor * rate1;
-				if (v > 0) {
-					if (v > 1000000 * CYCLE_UNIT)
-						v = 1000000 * CYCLE_UNIT;
-					do_extra_cycles ((unsigned long)(syncdivisor * rate1)); //compensate the time stay in native func
-				}
-			}
-			return ret;
-		}
-
-	case 103:	//close dll
-		{
-			if (currprefs.native_code) {
-				HMODULE libaddr;
-				libaddr = (HMODULE) m68k_dreg (regs, 1);
-				FreeLibrary (libaddr);
-			}
-			return 0;
-		}
-#endif
+	case 103:
+		return uaenative_close_library (context, UNI_FLAG_COMPAT);
 
 	case 104:        //screenlost
 		{

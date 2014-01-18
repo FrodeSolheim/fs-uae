@@ -1606,6 +1606,9 @@ static uae_u32 REGPARAM2 UNUSED_FUNCTION(bsdsocklib_null) (TrapContext *context)
 
 static uae_u32 REGPARAM2 bsdsocklib_init (TrapContext *context)
 {
+#ifdef FSUAE
+    write_log("bsdsock - bsdsocklib_init context = %p\n", context);
+#endif
 	uae_u32 tmp1;
 	int i;
 
@@ -1751,6 +1754,10 @@ static uae_u32 res_name, res_id, res_init;
 
 uaecptr bsdlib_startup (uaecptr resaddr)
 {
+#ifdef FSUAE
+    write_log("bsdsock - bsdlib_startup\n");
+#endif
+
 	if (res_name == 0 || !currprefs.socket_emu)
 		return resaddr;
 	put_word (resaddr + 0x0, 0x4AFC);
@@ -1767,6 +1774,9 @@ uaecptr bsdlib_startup (uaecptr resaddr)
 
 void bsdlib_install (void)
 {
+#ifdef FSUAE
+    write_log("bsdsock - bsdlib_install\n");
+#endif
 	int i;
 
 	if (!sockdata) {

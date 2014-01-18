@@ -288,6 +288,7 @@ obj/statusline.o \
 obj/traps.o \
 obj/uaeexe.o \
 obj/uaelib.o \
+obj/uaenative.o \
 obj/uaeresource.o \
 obj/uaeserial.o \
 obj/zfile.o \
@@ -331,6 +332,7 @@ obj/od-fs/logging.o \
 obj/od-fs/mman.o \
 obj/od-fs/parser.o \
 obj/od-fs/random.o \
+obj/od-fs/paths.o \
 obj/od-fs/roms.o \
 obj/od-fs/picasso96.o \
 obj/od-fs/serial_host.o \

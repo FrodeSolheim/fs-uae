@@ -1,5 +1,7 @@
 // FIXME: consider using autotools for this
 
+#define PACKAGE_STRING "FS-UAE 9.8.7"
+
 #if defined(WINDOWS)
 #elif defined(ANDROID)
 #elif defined(MACOSX) && __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ < 1060

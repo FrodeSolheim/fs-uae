@@ -66,6 +66,7 @@
 #define _tstoi64 atoll
 #define _vsntprintf vsnprintf
 #define _vsnprintf vsnprintf
+#define _sntprintf snprintf
 #define _tprintf printf
 
 //#define _timezone timezone

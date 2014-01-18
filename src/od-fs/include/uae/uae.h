@@ -209,6 +209,7 @@ int amiga_add_rom_file(const char *path, const char *cache_path);
 
 void amiga_set_paths(const char **rom_paths, const char **floppy_paths,
         const char **cd_paths, const char **hd_paths);
+void amiga_set_native_library_dirs(const char **library_dirs);
 
 #ifdef __cplusplus
 } // extern "C"

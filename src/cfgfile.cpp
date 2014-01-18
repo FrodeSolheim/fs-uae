@@ -697,11 +697,11 @@ static void write_filesys_config (struct uae_prefs *p, struct zfile *f)
 			TCHAR *ptr;
 			// separate harddrive names
 			str1 = my_strdup (ci->rootdir);
-			ptr = _tcschr (str1 + 1, ':');
+			ptr = (TCHAR *) _tcschr (str1 + 1, ':');
 			if (ptr) {
 				*ptr++ = 0;
 				str2 = ptr;
-				ptr = _tcschr (str2, ',');
+				ptr = (TCHAR *) _tcschr (str2, ',');
 				if (ptr)
 					*ptr = 0;
 			}

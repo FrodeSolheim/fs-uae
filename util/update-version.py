@@ -39,4 +39,5 @@ else:
     update_version("fs-uae.spec")
     update_version("debian/changelog")
     update_version("src/fs-uae/version.c")
+    update_version("src/od-fs/config.h")
     update_version("macosx/template/Contents/Info.plist", strict=True)

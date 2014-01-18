@@ -1729,7 +1729,10 @@ uae_u8 *mapped_malloc (size_t s, const TCHAR *file)
 
 static void init_mem_banks (void)
 {
-	int i;
+	// this needs to be unsigned, otherwise i << 16 will suddenly become
+	// negative when i > 32768, which then causes negative bank index when
+	// uaecptr is 64-bit
+	uae_u32 i;
 
 	for (i = 0; i < MEMORY_BANKS; i++)
 		put_mem_bank (i << 16, &dummy_bank, 0);

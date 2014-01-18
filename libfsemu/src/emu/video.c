@@ -64,8 +64,8 @@ int64_t g_fs_emu_video_mode_change_time = 0;
 // when holding this lock
 static fs_mutex *g_video_render_mutex;
 
-int g_fs_emu_video_sync_to_vblank = 1;
-int g_fs_emu_video_allow_full_sync = 1;
+int g_fs_emu_video_sync_to_vblank = 0;
+int g_fs_emu_video_allow_full_sync = 0;
 int g_fs_emu_video_frame_rate_host = 0;
 
 // this is the target frame rate for the video (emulator output)

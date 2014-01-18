@@ -1,5 +1,6 @@
 Version 2.5.0:
 
+* Allow short-hand --video-sync(=1/0) option
 * Use floating point control register, output compiler warning when not.
 * Added flush_log boolean option to flush log output after each log line.
 * New UAE Native Interface (via built-in uaenative.library).

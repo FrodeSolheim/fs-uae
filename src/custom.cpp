@@ -122,7 +122,7 @@ uae_u16 customhack_get (struct customhack *ch, int hpos)
 
 uae_u16 last_custom_value1;
 
-static unsigned int n_consecutive_skipped = 0;
+static unsigned int UNUSED(n_consecutive_skipped) = 0;
 static unsigned int total_skipped = 0;
 
 STATIC_INLINE void sync_copper (int hpos);
@@ -156,7 +156,7 @@ static int jitcount = 0;
 static int frameskiptime;
 static bool genlockhtoggle;
 static bool genlockvtoggle;
-static bool graphicsbuffer_retry;
+static bool UNUSED(graphicsbuffer_retry);
 
 int g_uae_min_first_line_pal = VBLANK_ENDLINE_PAL;
 int g_uae_min_first_line_ntsc = VBLANK_ENDLINE_NTSC;
@@ -188,7 +188,7 @@ static uae_u8 color_regs_aga_genlock[256];
 
 static int REGPARAM3 custom_wput_1 (int, uaecptr, uae_u32, int) REGPARAM;
 
-static uae_u16 cregs[256];
+static uae_u16 UNUSED(cregs[256]);
 
 uae_u16 intena, intreq;
 uae_u16 dmacon;
@@ -218,7 +218,7 @@ uae_u16 beamcon0, new_beamcon0;
 uae_u16 vtotal = MAXVPOS_PAL, htotal = MAXHPOS_PAL;
 static int maxvpos_stored, maxhpos_stored;
 static uae_u16 hsstop, hbstrt, hbstop, vsstop, vbstrt, vbstop, hsstrt, vsstrt, hcenter;
-static int ciavsyncmode;
+static int UNUSED(ciavsyncmode);
 static int diw_hstrt, diw_hstop;
 static int diw_hcounter;
 
@@ -254,7 +254,7 @@ static uae_u16 sprdata[MAX_SPRITES][4], sprdatb[MAX_SPRITES][4];
 #else
 static uae_u16 sprdata[MAX_SPRITES][1], sprdatb[MAX_SPRITES][1];
 #endif
-static int sprite_last_drawn_at[MAX_SPRITES];
+static int UNUSED(sprite_last_drawn_at[MAX_SPRITES]);
 static int last_sprite_point, nr_armed;
 static int sprite_width, sprres;
 int sprite_buffer_res;
@@ -295,7 +295,7 @@ enum diw_states
 static int plffirstline, plflastline;
 int plffirstline_total, plflastline_total;
 static int autoscale_bordercolors;
-static int plfstrt_start, plfstrt, plfstop;
+static int UNUSED(plfstrt_start), plfstrt, plfstop;
 static int sprite_minx, sprite_maxx;
 static int first_bpl_vpos;
 static int last_ddf_pix_hpos;
@@ -353,7 +353,7 @@ struct copper {
 
 static struct copper cop_state;
 static int copper_enabled_thisline;
-static int cop_min_waittime;
+static int UNUSED(cop_min_waittime);
 
 /*
 * Statistics
@@ -825,7 +825,7 @@ static int cycle_diagram_total_cycles[3][3][9];
 static int *curr_diagram;
 static const int cycle_sequences[3 * 8] = { 2,1,2,1,2,1,2,1, 4,2,3,1,4,2,3,1, 8,4,6,2,7,3,5,1 };
 
-static void debug_cycle_diagram (void)
+static void UNUSED_FUNCTION(debug_cycle_diagram) (void)
 {
 	int fm, res, planes, cycle, v;
 	TCHAR aa;
@@ -927,7 +927,7 @@ static uae_u32 fetched_aga1[MAX_PLANES];
 #endif
 
 /* Expansions from bplcon0/bplcon1.  */
-static int toscr_res, toscr_nr_planes, toscr_nr_planes2, toscr_nr_planes_agnus, fetchwidth;
+static int toscr_res, toscr_nr_planes, toscr_nr_planes2, toscr_nr_planes_agnus, UNUSED(fetchwidth);
 static int toscr_delay1, toscr_delay2;
 
 /* The number of bits left from the last fetched words.
@@ -1283,7 +1283,11 @@ STATIC_INLINE void fetch (int nr, int fm, int hpos)
 		if (plf_state == plf_passed_stop2 && fetch_cycle >= (fetch_cycle & ~fetchunit_mask) + fetch_modulo_cycle) {
 			add_modulo (hpos, nr);
 
+#ifdef FSUAE
+			if (currprefs.cs_hacks & 2)
+#else
 			if ((currprefs.cs_hacks & 2) || 0)
+#endif
 				do_right_ddf_hack (nr, hpos);
 		}
 	} else {
@@ -2773,7 +2777,6 @@ static void decide_sprites (int hpos)
 	/* apparantly writes to custom registers happen in the 3/4th of cycle
 	* and sprite xpos comparator sees it immediately */
 	int point = hpos * 2 - 4;
-	int width = sprite_width;
 	int sscanmask = 0x100 << sprite_buffer_res;
 	int gotdata = 0;
 
@@ -3296,8 +3299,8 @@ void compute_framesync (void)
 	gfxvidinfo.drawbuffer.inyoffset = -1;
 
 	if (beamcon0 & 0x80) {
-		int res = GET_RES_AGNUS (bplcon0);
-		int vres = islace ? 1 : 0;
+		int UNUSED(res) = GET_RES_AGNUS (bplcon0);
+		int UNUSED(vres) = islace ? 1 : 0;
 		int res2, vres2;
 			
 		res2 = currprefs.gfx_resolution;
@@ -4716,11 +4719,11 @@ STATIC_INLINE void SPRxCTLPOS (int num)
 
 STATIC_INLINE void SPRxCTL_1 (uae_u16 v, int num, int hpos)
 {
-	struct sprite *s = &spr[num];
 	sprctl[num] = v;
 	spr_arm (num, 0);
 	SPRxCTLPOS (num);
 #if SPRITE_DEBUG > 0
+	struct sprite *s = &spr[num];
 	if (vpos >= SPRITE_DEBUG_MINY && vpos <= SPRITE_DEBUG_MAXY && (SPRITE_DEBUG & (1 << num))) {
 		write_log (_T("%d:%d:SPR%dCTL %04X P=%06X VSTRT=%d VSTOP=%d HSTRT=%d D=%d A=%d CP=%x PC=%x\n"),
 			vpos, hpos, num, v, s->pt, s->vstart, s->vstop, s->xpos, spr[num].dmastate, spr[num].armed, cop_state.ip, M68K_GETPC);
@@ -4730,10 +4733,10 @@ STATIC_INLINE void SPRxCTL_1 (uae_u16 v, int num, int hpos)
 }
 STATIC_INLINE void SPRxPOS_1 (uae_u16 v, int num, int hpos)
 {
-	struct sprite *s = &spr[num];
 	sprpos[num] = v;
 	SPRxCTLPOS (num);
 #if SPRITE_DEBUG > 0
+	struct sprite *s = &spr[num];
 	if (vpos >= SPRITE_DEBUG_MINY && vpos <= SPRITE_DEBUG_MAXY && (SPRITE_DEBUG & (1 << num))) {
 		write_log (_T("%d:%d:SPR%dPOS %04X P=%06X VSTRT=%d VSTOP=%d HSTRT=%d D=%d A=%d CP=%x PC=%x\n"),
 			vpos, hpos, num, v, s->pt, s->vstart, s->vstop, s->xpos, spr[num].dmastate, spr[num].armed, cop_state.ip, M68K_GETPC);
@@ -5064,7 +5067,7 @@ static int customdelay[]= {
 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 };
 
-static void copper_write (uae_u32 v)
+static void UNUSED_FUNCTION(copper_write) (uae_u32 v)
 {
 	custom_wput_copper (current_hpos (), v >> 16, v & 0xffff, 0);
 }
@@ -5794,8 +5797,6 @@ void init_hardware_for_drawing_frame (void)
 	next_sprite_forced = 1;
 }
 
-static void do_savestate(void);
-
 static int rpt_vsync (int adjust)
 {
 	frame_time_t curr_time = read_processor_time ();
@@ -5865,7 +5866,7 @@ static int mavg (struct mavg_data *md, int newval, int size)
 extern int log_vsync, debug_vsync_min_delay, debug_vsync_forced_delay;
 
 #ifdef FSUAE
-static bool framewait_2(void)
+static bool UNUSED_FUNCTION(framewait_2) (void)
 #else
 static bool framewait (void)
 #endif
@@ -6255,8 +6256,6 @@ static bool framewait (void) {
 }
 #endif
 
-static frame_time_t frametime2;
-
 #define FPSCOUNTER_MAVG_SIZE 10
 static struct mavg_data fps_mavg, idle_mavg;
 
@@ -6528,7 +6527,7 @@ static void vsync_handler_post (void)
 	vsync_cycles = get_cycles ();
 }
 
-static void copper_check (int n)
+static void UNUSED_FUNCTION(copper_check) (int n)
 {
 	if (cop_state.state == COP_wait) {
 		int vp = vpos & (((cop_state.saved_i2 >> 8) & 0x7F) | 0x80);
@@ -6750,7 +6749,7 @@ static void set_hpos (void)
 // this finishes current line
 static void hsync_handler_pre (bool onvsync)
 {
-	int hpos = current_hpos ();
+	int UNUSED(hpos) = current_hpos ();
 
 	if (!nocustom ()) {
 		sync_copper_with_cpu (maxhpos, 0);
@@ -7220,7 +7219,6 @@ void custom_prepare (void)
 void custom_reset (bool hardreset, bool keyboardreset)
 {
 	int i;
-	int zero = 0;
 
 	target_reset ();
 	reset_all_systems ();
@@ -7394,7 +7392,7 @@ void custom_reset (bool hardreset, bool keyboardreset)
 		write_log (_T("CPU=%d Chipset=%s %s\n"),
 			currprefs.cpu_model,
 			(currprefs.chipset_mask & CSMASK_AGA) ? _T("AGA") :
-			(currprefs.chipset_mask & CSMASK_ECS_AGNUS | CSMASK_ECS_DENISE) == (CSMASK_ECS_AGNUS | CSMASK_ECS_DENISE) ? _T("Full ECS") :
+			(currprefs.chipset_mask & (CSMASK_ECS_AGNUS | CSMASK_ECS_DENISE)) == (CSMASK_ECS_AGNUS | CSMASK_ECS_DENISE) ? _T("Full ECS") :
 			(currprefs.chipset_mask & CSMASK_ECS_DENISE) ? _T("ECS Denise") :
 			(currprefs.chipset_mask & CSMASK_ECS_AGNUS) ? _T("ECS") :
 			_T("OCS"), currprefs.ntscmode ? _T("NTSC") : _T("PAL"));
@@ -7923,7 +7921,7 @@ static void REGPARAM2 custom_wput (uaecptr addr, uae_u32 value)
 
 static void REGPARAM2 custom_bput (uaecptr addr, uae_u32 value)
 {
-	static int warned;
+
 	uae_u16 rval;
 
 	if (currprefs.chipset_mask & CSMASK_AGA) {

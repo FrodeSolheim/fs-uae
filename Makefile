@@ -515,10 +515,6 @@ obj/zfile_archive.o: src/zfile_archive.cpp
 	mkdir -p `dirname $@`
 	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -Wno-error=tautological-compare -c $< -o $@
 
-obj/%.o: src/%.cpp
-	mkdir -p `dirname $@`
-	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -c $< -o $@
-
 obj/od-fs/ahidsound.o: src/od-fs/ahidsound.cpp
 	mkdir -p `dirname $@`
 	$(cxx) $(cppflags) $(cxxflags) -Wno-error -c $< -o $@
@@ -539,6 +535,10 @@ obj/od-fs/video.o: src/od-fs/video.cpp
 	mkdir -p `dirname $@`
 	$(cxx) $(cppflags) $(cxxflags) -Wno-error=unused-variable -Wno-error=unused-function -c $< -o $@
 
+obj/qemuvga/%.o: src/qemuvga/%.cpp
+	mkdir -p `dirname $@`
+	$(cxx) $(cppflags) $(cxxflags) -Wno-error=missing-braces -c $< -o $@
+
 obj/od-fs/%.o: src/od-fs/%.cpp
 	mkdir -p `dirname $@`
 	$(cxx) $(cppflags) $(cxxflags) -c $< -o $@
@@ -550,6 +550,10 @@ obj/fs-uae.res: src/fs-uae/fs-uae.rc
 obj/fs-uae/%.o: src/fs-uae/%.c
 	mkdir -p `dirname $@`
 	$(cc) $(cppflags) $(cflags) -c $< -o $@
+
+obj/%.o: src/%.cpp
+	mkdir -p `dirname $@`
+	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -c $< -o $@
 
 #ifeq ($(os), windows)
 #out/CAPSImg.dll:

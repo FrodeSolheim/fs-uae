@@ -21,9 +21,11 @@
 #include "autoconf.h"
 #include "newcpu.h"
 #include "traps.h"
+#include "ahidsound.h"
 #include "threaddep/thread.h"
 #include "serial.h"
 #include "savestate.h"
+#include "ahidsound_new.h"
 #include "xwin.h"
 #include "drawing.h"
 
@@ -131,15 +133,72 @@ static int writepending;
 */
 
 void initparallel (void) {
-#if 0
+    write_log("initparallel uae_boot_rom = %d\n", uae_boot_rom);
+#ifdef AHI
     if (uae_boot_rom) {
+#if 0
         uaecptr a = here (); //this install the ahisound
         org (rtarea_base + 0xFFC0);
         calltrap (deftrapres (ahi_demux, 0, _T("ahi_winuae")));
         dw (RTS);
         org (a);
+#endif
         init_ahi_v2 ();
     }
+#endif
+}
+
+void hsyncstuff (void)
+	//only generate Interrupts when
+	//writebuffer is complete flushed
+	//check state of lwin rwin
+{
+	static int keycheck = 0;
+
+#if 0 // DISABLED -- OLD AHI VERSION?
+#ifdef AHI
+	{ //begin ahi_sound
+		static int count;
+		if (ahi_on) {
+			count++;
+			//15625/count freebuffer check
+			if(count > ahi_pollrate) {
+				ahi_updatesound (1);
+				count = 0;
+			}
+		}
+	} //end ahi_sound
+#endif
+#endif
+
+#if 0 // DISABLED FOR NOW
+#ifdef PARALLEL_PORT
+	keycheck++;
+	if(keycheck >= 1000)
+	{
+		if (prtopen)
+			flushprtbuf ();
+		{
+			if (flashscreen > 0) {
+				flashscreen--;
+				if (flashscreen == 0) {
+					init_colors ();
+					reset_drawing ();
+					picasso_refresh ();
+					flush_screen (gfxvidinfo.outbuffer, 0, 0);
+				}
+			}
+		}
+		keycheck = 0;
+	}
+	if (currprefs.parallel_autoflush_time && !currprefs.parallel_postscript_detection) {
+		parflush++;
+		if (parflush / ((currprefs.ntscmode ? MAXVPOS_NTSC : MAXVPOS_PAL) * MAXHPOS_PAL / maxhpos) >= currprefs.parallel_autoflush_time * 50) {
+			flushprinter ();
+			parflush = 0;
+		}
+	}
+#endif
 #endif
 }
 

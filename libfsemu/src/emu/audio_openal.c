@@ -2,13 +2,7 @@
 
 #include <fs/emu.h>
 #include <stdio.h>
-#ifdef MACOSX
-#include <al.h>
-#include <alc.h>
-#else
-#include <AL/al.h>
-#include <AL/alc.h>
-#endif
+#include <fs/emu/openal.h>
 #include <fs/base.h>
 #include <fs/queue.h>
 #include <fs/thread.h>

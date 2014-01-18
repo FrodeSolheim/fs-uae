@@ -70,7 +70,7 @@ extern FILE *g_fs_uae_sync_debug_file;
 #define A2091
 #define ACTION_REPLAY
 #define AGA
-//#define AHI
+#define AHI
 #define ARCADIA
 #define AUTOCONFIG
 

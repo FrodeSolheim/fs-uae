@@ -303,6 +303,7 @@ obj/archivers/dms/u_medium.o \
 obj/archivers/dms/u_quick.o \
 obj/archivers/dms/u_rle.o \
 obj/archivers/zip/unzip.o \
+obj/od-fs/ahidsound.o \
 obj/od-fs/audio.o \
 obj/od-fs/bsdsocket_host.o \
 obj/od-fs/blkdev-linux.o \

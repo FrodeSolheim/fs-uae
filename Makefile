@@ -467,6 +467,11 @@ obj/custom.o: src/custom.cpp
 	mkdir -p `dirname $@`
 	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -Wno-error=tautological-compare -c $< -o $@
 
+obj/debug.o: src/debug.cpp
+	mkdir -p `dirname $@`
+	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -Wno-error=constant-logical-operand -c $< -o $@
+
+
 obj/%.o: src/%.cpp
 	mkdir -p `dirname $@`
 	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -c $< -o $@

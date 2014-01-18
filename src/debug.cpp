@@ -342,7 +342,7 @@ static int more_params (TCHAR **c)
 }
 
 static uae_u32 readint (TCHAR **c);
-static uae_u32 readbin (TCHAR **c);
+static uae_u32 UNUSED_FUNCTION(readbin) (TCHAR **c);
 static uae_u32 readhex (TCHAR **c);
 
 static int readregx (TCHAR **c, uae_u32 *valp)
@@ -591,7 +591,7 @@ static uae_u32 readhex (TCHAR **c)
 	int size;
 	return readnum (c, &size, '$');
 }
-static uae_u32 readbin (TCHAR **c)
+static uae_u32 UNUSED_FUNCTION(readbin) (TCHAR **c)
 {
 	int size;
 	return readnum (c, &size, '%');
@@ -637,7 +637,6 @@ static void converter (TCHAR **c)
 {
 	uae_u32 v = readint (c);
 	TCHAR s[100];
-	TCHAR *p = s;
 	int i;
 
 	for (i = 0; i < 32; i++)
@@ -760,7 +759,6 @@ static uaecptr nextaddr2 (uaecptr addr, int *next)
 static uaecptr nextaddr (uaecptr addr, uaecptr last, uaecptr *end)
 {
 	static uaecptr old;
-	uaecptr paddr = addr;
 	int next = last;
 	if (last && 0) {
 		if (addr >= last)
@@ -800,7 +798,7 @@ uaecptr dumpmem2 (uaecptr addr, TCHAR *out, int osize)
 
 	if (osize <= (9 + cols * 5 + 1 + 2 * cols))
 		return addr;
-	_stprintf (out, _T("%08lX "), addr);
+	_stprintf (out, _T("%08X "), addr);
 	for (i = 0; i < cols; i++) {
 		uae_u8 b1, b2;
 		b1 = b2 = 0;
@@ -1166,7 +1164,7 @@ static void decode_dma_record (int hpos, int vpos, int toggle, bool logfile)
 		for (i = 0; i < cols && h < maxh; i++, h++, dr++) {
 			int cl = i * col, cl2;
 			int r = dr->reg;
-			TCHAR *sr;
+			const TCHAR *sr;
 
 			sr = _T("    ");
 			if (dr->type == DMARECORD_COPPER)
@@ -1370,7 +1368,6 @@ static void decode_copper_insn (FILE* file, uae_u16 mword1, uae_u16 mword2, unsi
 
 static uaecptr decode_copperlist (FILE* file, uaecptr address, int nolines)
 {
-	uae_u32 insn;
 	while (nolines-- > 0) {
 		decode_copper_insn (file, chipmem_wget_indirect (address), chipmem_wget_indirect (address + 2), address);
 		address += 4;
@@ -2133,7 +2130,7 @@ static int memwatch_func (uaecptr addr, int rwi, int size, uae_u32 *valp)
 					mask <<= shift;
 				}
 				*valp = (sval & mask) | ((*valp) & ~mask);
-				write_log (_T("%p %p %08x %08x %d\n"), addr, m->addr, *valp, mask, shift);
+				write_log (_T("%08x %08x %08x %08x %d\n"), addr, m->addr, *valp, mask, shift);
 				return 1;
 			}
 			return 0;
@@ -2546,7 +2543,7 @@ int debug_bankchange (int mode)
 	return -1;
 }
 
-static TCHAR *getsizechar (int size)
+static const TCHAR *getsizechar (int size)
 {
 	if (size == 4)
 		return _T(".l");
@@ -2927,7 +2924,7 @@ static uaecptr get_base (const uae_char *name, int offset)
 	if (!b || !b->check (v, 400) || b->flags != ABFLAG_RAM)
 		return 0;
 	v += offset;
-	while (v = get_long_debug (v)) {
+	while ((v = get_long_debug (v))) {
 		uae_u32 v2;
 		uae_u8 *p;
 		b = &get_mem_bank (v);
@@ -2960,7 +2957,6 @@ static void show_exec_lists (TCHAR *t)
 	uaecptr execbase = get_long_debug (4);
 	uaecptr list = 0, node;
 	TCHAR c = t[0];
-	TCHAR c2 = t[1];
 
 	if (c == 'o' || c == 'O') { // doslist
 		uaecptr dosbase = get_base ("dos.library", 378);
@@ -3765,7 +3761,7 @@ static void m68k_modify (TCHAR **inptr)
 {
 	uae_u32 v;
 	TCHAR parm[10];
-	TCHAR c1, c2;
+	unsigned char c1, c2;
 	int i;
 
 	if (!next_string (inptr, parm, sizeof (parm) / sizeof (TCHAR), 1))
@@ -4200,7 +4196,7 @@ static void debug_1 (void)
 
 static void addhistory (void)
 {
-	uae_u32 pc = m68k_getpc ();
+	uae_u32 UNUSED(pc) = m68k_getpc ();
 	//    if (!notinrom())
 	//	return;
 	history[lasthist] = regs;
@@ -4281,7 +4277,7 @@ void debug (void)
 							seglist = BPTR2APTR(get_long_debug (activetask + 128));
 							seglist = BPTR2APTR(get_long_debug (seglist + 12));
 						}
-						if (activetask == processptr || (processname && (!stricmp (name, processname) || (command && command[0] && !strnicmp (command + 1, processname, command[0]) && processname[command[0]] == 0)))) {
+						if (activetask == processptr || (processname && (!stricmp (name, processname) || (command && command[0] && !strnicmp (command + 1, processname, command[0]) && processname[((unsigned char *)command)[0]] == 0)))) {
 							while (seglist) {
 								uae_u32 size = get_long_debug (seglist - 4) - 4;
 								if (pc >= (seglist + 4) && pc < (seglist + size)) {
@@ -4613,6 +4609,8 @@ static int mmu_hit (uaecptr addr, int size, int rwi, uae_u32 *v)
 	return 0;
 }
 
+#ifdef JIT
+
 static void mmu_free_node(struct mmunode *mn)
 {
 	if (!mn)
@@ -4636,6 +4634,8 @@ static void mmu_free(void)
 	mmubanks = NULL;
 }
 
+#endif
+
 static int getmmubank(struct mmudata *snptr, uaecptr p)
 {
 	snptr->flags = get_long_debug (p);
@@ -4654,8 +4654,8 @@ int mmu_init(int mode, uaecptr parm, uaecptr parm2)
 	int size;
 	struct mmudata *snptr;
 	struct mmunode *mn;
-	static int wasjit;
 #ifdef JIT
+	static int wasjit;
 	if (currprefs.cachesize) {
 		wasjit = currprefs.cachesize;
 		changed_prefs.cachesize = 0;

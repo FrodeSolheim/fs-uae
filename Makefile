@@ -471,6 +471,9 @@ obj/debug.o: src/debug.cpp
 	mkdir -p `dirname $@`
 	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -Wno-error=constant-logical-operand -c $< -o $@
 
+obj/disk.o: src/disk.cpp
+	mkdir -p `dirname $@`
+	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -Wno-error=switch -Wno-error=tautological-constant-out-of-range-compare -c $< -o $@
 
 obj/%.o: src/%.cpp
 	mkdir -p `dirname $@`

@@ -113,7 +113,7 @@ static uae_u32 dskpt;
 static bool fifo_filled;
 static uae_u16 fifo[3];
 static int fifo_inuse[3];
-static int dma_enable, bitoffset, syncoffset;
+static int dma_enable, bitoffset, UNUSED(syncoffset);
 static uae_u16 word, dsksync;
 static unsigned long dsksync_cycles;
 #define WORDSYNC_TIME 11
@@ -316,9 +316,9 @@ static void createbootblock (uae_u8 *sector, int bootable)
 static void createrootblock (uae_u8 *sector, const TCHAR *disk_name)
 {
 	char *dn = ua (disk_name);
-	char *dn2 = dn;
-	if (strlen (dn2) >= 30)
-		dn2[30] = 0;
+	if (strlen (dn) >= 30)
+		dn[30] = 0;
+	const char *dn2 = dn;
 	if (dn2[0] == 0)
 		dn2 = "empty";
 	memset (sector, 0, FS_FLOPPY_BLOCKSIZE);
@@ -389,7 +389,7 @@ static int createfileheaderblock (struct zfile *z,uae_u8 *sector, int parent, co
 	int datablock = getblock (bitmap, prevblock);
 	int datasec = 1;
 	int extensions;
-	int extensionblock, extensioncounter, headerextension = 1;
+	int extensionblock, extensioncounter, UNUSED(headerextension) = 1;
 	int size;
 
 	zfile_fseek (src, 0, SEEK_END);
@@ -493,10 +493,10 @@ static int createimagefromexe (struct zfile *src, struct zfile *dst)
 	int blocks, extensionblocks;
 	int totalblocks;
 	int fblock1, dblock1;
-	char *fname1 = "runme.exe";
-	TCHAR *fname1b = _T("runme.adf");
-	char *fname2 = "startup-sequence";
-	char *dirname1 = "s";
+	const char *fname1 = "runme.exe";
+	const TCHAR *fname1b = _T("runme.adf");
+	const char *fname2 = "startup-sequence";
+	const char *dirname1 = "s";
 	struct zfile *ss;
 	int prevblock;
 
@@ -565,7 +565,7 @@ static int get_floppy_speed2 (drive *drv)
 	return m;
 }
 
-static TCHAR *drive_id_name(drive *drv)
+static const TCHAR *UNUSED_FUNCTION(drive_id_name)(drive *drv)
 {
 	switch(drv->drive_id)
 	{
@@ -1106,7 +1106,7 @@ static int drive_insert (drive * drv, struct uae_prefs *p, int dnum, const TCHAR
 		drv->filetype = ADF_IPF;
 #endif
 #ifdef FDI2RAW
-	} else if (drv->fdi = fdi2raw_header (drv->diskfile)) {
+	} else if ((drv->fdi = fdi2raw_header (drv->diskfile))) {
 
 		drv->wrprot = true;
 		drv->num_tracks = fdi2raw_get_last_track (drv->fdi);
@@ -1339,8 +1339,8 @@ static void drive_step (drive * drv, int step_direction)
 		drv->dskchange = 0;
 	if (drv->steplimit && get_cycles() - drv->steplimitcycle < MIN_STEPLIMIT_CYCLE) {
 		if (disk_debug_logging > 1)
-			write_log (_T(" step ignored drive %d, %d"),
-			drv - floppy, (get_cycles() - drv->steplimitcycle) / CYCLE_UNIT);
+			write_log (_T(" step ignored drive %d, %lu"),
+			(int) (drv - floppy), (get_cycles() - drv->steplimitcycle) / CYCLE_UNIT);
 		return;
 	}
 	/* A1200's floppy drive needs at least 30 raster lines between steps
@@ -1955,7 +1955,7 @@ static int decode_buffer (uae_u16 *mbuf, int cyl, int drvsec, int ddhd, int file
 
 		trackoffs = (id & 0xff00) >> 8;
 		if (trackoffs + 1 > drvsec) {
-			write_log (_T("Disk decode: weird sector number %d (%08X, %d)\n"), trackoffs, id, mbuf - mstart);
+			write_log (_T("Disk decode: weird sector number %d (%08X, %d)\n"), trackoffs, id, (int) (mbuf - mstart));
 			if (filetype == ADF_EXT2)
 				return 2;
 			continue;
@@ -2354,7 +2354,7 @@ static void drive_eject (drive * drv)
 	drv->crc32 = 0;
 	drive_settype_id (drv); /* Back to 35 DD */
 	if (disk_debug_logging > 0)
-		write_log (_T("eject drive %d\n"), drv - &floppy[0]);
+		write_log (_T("eject drive %d\n"), (int) (drv - &floppy[0]));
 	inprec_recorddiskchange (drv - floppy, NULL, false);
 }
 
@@ -2512,7 +2512,7 @@ int disk_getwriteprotect (struct uae_prefs *p, const TCHAR *name)
 static void diskfile_readonly (const TCHAR *name, bool readonly)
 {
 	struct mystat st;
-	int mode, oldmode;
+	int UNUSED(mode), UNUSED(oldmode);
 
 	if (!my_stat (name, &st))
 		return;
@@ -2713,7 +2713,6 @@ static void DISK_check_change (void)
 	if (currprefs.floppy_speed != changed_prefs.floppy_speed)
 		currprefs.floppy_speed = changed_prefs.floppy_speed;
 	for (int i = 0; i < MAX_FLOPPY_DRIVES; i++) {
-		drive *drv = floppy + i;
 		if (currprefs.floppyslots[i].dfxtype != changed_prefs.floppyslots[i].dfxtype) {
 			currprefs.floppyslots[i].dfxtype = changed_prefs.floppyslots[i].dfxtype;
 			reset_drive (i);
@@ -2813,7 +2812,7 @@ void DISK_select (uae_u8 data)
 	}
 
 	if (disk_debug_logging > 1) {
-		write_log (_T(" %d%d%d%d% "), (selected & 1) ? 0 : 1, (selected & 2) ? 0 : 1, (selected & 4) ? 0 : 1, (selected & 8) ? 0 : 1);
+		write_log (_T(" %d%d%d%d "), (selected & 1) ? 0 : 1, (selected & 2) ? 0 : 1, (selected & 4) ? 0 : 1, (selected & 8) ? 0 : 1);
 		if ((prev_data & 0x80) != (data & 0x80))
 			write_log (_T(" dskmotor %d "), (data & 0x80) ? 1 : 0);
 		if ((prev_data & 0x02) != (data & 0x02))
@@ -2986,7 +2985,7 @@ static void disk_dmafinished (void)
 	dskdmaen = DSKDMA_OFF;
 	dsklength = 0;
 	if (disk_debug_logging > 0) {
-		int dr, mfmpos = -1;
+		int dr;
 		write_log (_T("disk dma finished %08X MFMpos="), dskpt);
 		for (dr = 0; dr < MAX_FLOPPY_DRIVES; dr++)
 			write_log (_T("%d%s"), floppy[dr].mfmpos, dr < MAX_FLOPPY_DRIVES - 1 ? _T(",") : _T(""));
@@ -3018,7 +3017,7 @@ void DISK_handler (uae_u32 data)
 {
 	int flag = data & 255;
 	int disk_sync_cycle = data >> 8;
-	int hpos = current_hpos ();
+	int UNUSED(hpos) = current_hpos ();
 
 	event2_remevent (ev2_disk);
 	DISK_update (disk_sync_cycle);
@@ -3237,8 +3236,6 @@ static int doreaddma (void)
 
 static void disk_doupdate_read_nothing (int floppybits)
 {
-	int j = 0, k = 1, l = 0;
-
 	while (floppybits >= get_floppy_speed ()) {
 		word <<= 1;
 		doreaddma ();
@@ -3254,8 +3251,6 @@ static void disk_doupdate_read_nothing (int floppybits)
 
 static void disk_doupdate_read (drive * drv, int floppybits)
 {
-	int j = 0, k = 1, l = 0;
-
 	/*
 	uae_u16 *mfmbuf = drv->bigmfmbuf;
 	dsksync = 0x4444;
@@ -3430,7 +3425,6 @@ void DISK_update (int tohpos)
 {
 	int dr;
 	int cycles;
-	int startcycle = disk_hpos;
 
 	if (disk_hpos < 0) {
 		disk_hpos = - disk_hpos;
@@ -3674,7 +3668,7 @@ void DSKLEN (uae_u16 v, int hpos)
 		if (!done && noselected) {
 			while (dsklength-- > 0) {
 				if (dskdmaen == DSKDMA_WRITE) {
-					uae_u16 w = chipmem_wget_indirect (dskpt);
+					uae_u16 UNUSED(w) = chipmem_wget_indirect (dskpt);
 #ifdef AMAX
 					if (currprefs.amaxromfile[0])
 						amax_diskwrite (w);

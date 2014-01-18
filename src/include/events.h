@@ -94,7 +94,7 @@ STATIC_INLINE void do_extra_cycles (unsigned long cycles_to_add)
 	pissoff -= cycles_to_add;
 }
 
-STATIC_INLINE unsigned long int get_cycles (void)
+STATIC_INLINE unsigned long get_cycles (void)
 {
 	return currcycle;
 }

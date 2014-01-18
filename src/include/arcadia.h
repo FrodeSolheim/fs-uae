@@ -12,7 +12,7 @@ extern struct romdata *scan_arcadia_rom (TCHAR*, int);
 
 struct arcadiarom {
     int romid;
-    TCHAR *name, *rom;
+    const TCHAR *name, *rom;
     int type, extra;
     int b7, b6, b5, b4, b3, b2, b1, b0;
 };

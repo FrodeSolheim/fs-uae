@@ -188,9 +188,9 @@ static uae_u32 dmac_dawr;
 static uae_u32 dmac_acr;
 static uae_u32 dmac_wtc;
 static int dmac_dma;
-static volatile uae_u8 sasr, scmd, auxstatus;
+static volatile uae_u8 sasr, UNUSED(scmd), auxstatus;
 static volatile int wd_used;
-static volatile int wd_phase, wd_next_phase, wd_busy, wd_data_avail;
+static volatile int wd_phase, UNUSED(wd_next_phase), wd_busy, wd_data_avail;
 static volatile bool wd_selected;
 static volatile int wd_dataoffset;
 static volatile uae_u8 wd_data[32];
@@ -316,7 +316,7 @@ static void set_status (uae_u8 status, int delay)
 	scsidelay_irq[queue_index] = delay == 0 ? 1 : (delay <= 2 ? 2 : delay);
 }
 
-static void set_status (uae_u8 status)
+static void UNUSED_FUNCTION(set_status) (uae_u8 status)
 {
 	set_status (status, 0);
 }
@@ -350,6 +350,7 @@ static bool canwddma (void)
 	return mode == 4 || mode == 1;
 }
 
+#if WD33C93_DEBUG > 0
 static TCHAR *scsitostring (void)
 {
 	static TCHAR buf[200];
@@ -368,6 +369,7 @@ static TCHAR *scsitostring (void)
 	}
 	return buf;
 }
+#endif
 
 static void dmacheck (void)
 {
@@ -393,7 +395,9 @@ static bool do_dma (void)
 	if (scsi->direction == 0) {
 		write_log (_T("%s DMA but no data!?\n"), WD33C93);
 	} else if (scsi->direction < 0) {
+#if WD33C93_DEBUG > 0
 		uaecptr odmac_acr = dmac_acr;
+#endif
 		for (;;) {
 			uae_u8 v;
 			int status = scsi_receive_data (scsi, &v);
@@ -411,7 +415,9 @@ static bool do_dma (void)
 #endif
 		return true;
 	} else if (scsi->direction > 0) {
+#if WD33C93_DEBUG > 0
 		uaecptr odmac_acr = dmac_acr;
+#endif
 		for (;;) {
 			int status;
 			uae_u8 v = get_byte (dmac_acr);
@@ -853,6 +859,11 @@ void scsi_hsync (void)
 			v = wd_do_transfer_in ();
 		else if (scsi->direction > 0)
 			v = wd_do_transfer_out ();
+		else {
+			write_log("WARNING scsi->direction == 0\n");
+			write_log("code not originally handled, setting v = false\n");
+			v = false;
+		}
 		if (v) {
 			scsi->direction = 0;
 			wd_data_avail = 0;
@@ -1596,7 +1607,7 @@ static void *scsi_thread (void *null)
 			break;
 		int cmd = v & 0x7f;
 		int msg = (v >> 8) & 0xff;
-		int unit = (v >> 24) & 0xff;
+		int UNUSED(unit) = (v >> 24) & 0xff;
 		//write_log (_T("scsi_thread got msg=%d cmd=%d\n"), msg, cmd);
 		if (msg == 0) {
 			if (WD33C93_DEBUG > 0)

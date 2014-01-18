@@ -70,7 +70,7 @@ static struct arcadiarom roms[]	= {
 };
 
 static uae_u8 *arbmemory, *arbbmemory;
-static int boot_read;
+static int UNUSED(boot_read);
 
 #define	arb_start 0x800000
 #define	arb_mask 0x1fffff

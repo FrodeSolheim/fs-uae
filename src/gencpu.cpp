@@ -124,7 +124,7 @@ static void term (const char *err)
 static void read_counts (void)
 {
 	FILE *file;
-	unsigned long opcode, count, total;
+	unsigned int opcode, count, total;
 	char name[20];
 	int nr = 0;
 	memset (counts, 0, 65536 * sizeof *counts);
@@ -132,8 +132,8 @@ static void read_counts (void)
 	count = 0;
 	file = fopen ("frequent.68k", "r");
 	if (file) {
-		fscanf (file, "Total: %lu\n", &total);
-		while (fscanf (file, "%lx: %lu %s\n", &opcode, &count, name) == 3) {
+		fscanf (file, "Total: %u\n", &total);
+		while (fscanf (file, "%x: %u %s\n", &opcode, &count, name) == 3) {
 			opcode_next_clev[nr] = 5;
 			opcode_last_postfix[nr] = -1;
 			opcode_map[nr++] = opcode;
@@ -2715,7 +2715,7 @@ static void resetvars (void)
 
 }
 
-static void gen_opcode (unsigned long int opcode)
+static void gen_opcode (unsigned int opcode)
 {
 	struct instr *curi = table68k + opcode;
 
@@ -5101,7 +5101,7 @@ static void generate_one_opcode (int rp, const char *extra)
 {
 	int idx;
 	uae_u16 smsk, dmsk;
-	long int opcode = opcode_map[rp];
+	unsigned int opcode = opcode_map[rp];
 	int i68000 = table68k[opcode].clev > 0;
 
 	if (table68k[opcode].mnemo == i_ILLG
@@ -5126,14 +5126,14 @@ static void generate_one_opcode (int rp, const char *extra)
 		xfree (name);
 		return;
 	}
-	fprintf (headerfile, "extern %s op_%04lx_%d%s_nf;\n",
+	fprintf (headerfile, "extern %s op_%04x_%d%s_nf;\n",
 		(using_ce || using_ce020) ? "cpuop_func_ce" : "cpuop_func", opcode, postfix, extra);
-	fprintf (headerfile, "extern %s op_%04lx_%d%s_ff;\n",
+	fprintf (headerfile, "extern %s op_%04x_%d%s_ff;\n",
 		(using_ce || using_ce020) ? "cpuop_func_ce" : "cpuop_func", opcode, postfix, extra);
 	printf ("/* %s */\n", outopcode (opcode));
 	if (i68000)
 		printf("#ifndef CPUEMU_68000_ONLY\n");
-	printf ("%s REGPARAM2 CPUFUNC(op_%04lx_%d%s)(uae_u32 opcode)\n{\n", (using_ce || using_ce020) ? "void" : "uae_u32", opcode, postfix, extra);
+	printf ("%s REGPARAM2 CPUFUNC(op_%04x_%d%s)(uae_u32 opcode)\n{\n", (using_ce || using_ce020) ? "void" : "uae_u32", opcode, postfix, extra);
 
 	switch (table68k[opcode].stype) {
 	case 0: smsk = 7; break;

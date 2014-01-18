@@ -1,3 +1,6 @@
+#ifndef _UAE_OD_FS_SYSCONFIG_H_
+#define _UAE_OD_FS_SYSCONFIG_H_
+
 // FIXME: this file was created by configure for PUAE and has been
 // manually altered with reasonable values.
 // New macros that are explicitly used in code are added to config.h for
@@ -466,3 +469,5 @@
 
 #include "defines.h"
 #include "uae_fs.h"
+
+#endif // _UAE_OD_FS_SYSCONFIG_H_

@@ -1,22 +1,34 @@
-#ifndef LIBAMIGA_WINUAE_COMPAT_H_
-#define LIBAMIGA_WINUAE_COMPAT_H_
+#ifndef _UAE_OD_FS_WINUAE_COMPAT_H_
+#define _UAE_OD_FS_WINUAE_COMPAT_H_
 
 #ifdef WINDOWS
-// including windef.h now to get RECT and DWORD defined (and not collide with
+
+// Include windef.h now to get RECT and DWORD defined (and not collide with
 // later includes of windows.h
+
 #include "windef.h"
 #include "windows.h"
+
+// Some WinUAE-derived code which must not be used is guarded by _WIN32
+// defines. The code is fixed so compiling without _WIN32 defined works
+// when compiling FS-UAE for Windows. FS-UAE code use the WINDOWS define
+// instead to avoid collision with WinUAE.
+
 #undef _WIN32
 #undef WIN32
+
 #endif
 
-// use custom versions of these functions for platform-specific behaviour
+// Use custom versions of these functions for platform-specific behaviour,
+// for example uae_fopen may perform charset conversion before opening the
+// file.
 
 #define _tfopen uae_fopen
 #define _ftelli64 uae_ftello64
 #define _fseeki64 uae_fseeko64
 
-// convert windows libc names to standard libc function names
+// convert windows libc names to standard libc function names, and also
+// use char functions instead of wchar string functions.
 
 #define _stprintf sprintf
 #define _wunlink unlink
@@ -100,8 +112,6 @@ typedef struct tagRECT {
 //#endif
 #endif
 
-// needed by e.g. include/commpipe.h
-
 #define STATIC_INLINE static inline
 
-#endif // LIBAMIGA_WINUAE_COMPAT_H_
+#endif // _UAE_OD_FS_WINUAE_COMPAT_H_

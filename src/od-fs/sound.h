@@ -1,3 +1,6 @@
+#ifndef _UAE_OD_FS_SOUND_H_
+#define _UAE_OD_FS_SOUND_H_
+
 //extern int init_sound (void);
 //extern void close_sound (void);
 //extern int setup_sound (void);
@@ -13,3 +16,4 @@ extern void sound_volume (int);
 //extern void set_volume (int, int);
 extern void master_sound_volume (int);
 
+#endif // _UAE_OD_FS_SOUND_H_

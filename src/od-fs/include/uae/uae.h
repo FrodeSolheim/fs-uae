@@ -214,7 +214,10 @@ void amiga_set_paths(const char **rom_paths, const char **floppy_paths,
 } // extern "C"
 #endif
 
-#ifndef LIBAMIGA_INTERNAL_H_
+#ifndef _UAE_OD_FS_UAE_FS_H_
+
+// This section must only be included by external code and cannot be used
+// by od-fs code.
 
 #define DEFEVENT(A, B, C, D, E, F) INPUTEVENT_ ## A,
 enum inputevents {

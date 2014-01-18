@@ -1,5 +1,5 @@
-#ifndef LIBAMIGA_INTERNAL_H_
-#define LIBAMIGA_INTERNAL_H_
+#ifndef _UAE_OD_FS_UAE_FS_H_
+#define _UAE_OD_FS_UAE_FS_H_
 
 #include "uae/uae.h"
 #include "../od-fs/callbacks.h"
@@ -33,4 +33,4 @@ extern int g_uae_min_first_line_ntsc;
 
 void od_fs_update_leds(void);
 
-#endif // LIBAMIGA_INTERNAL_H_
+#endif // _UAE_OD_FS_UAE_FS_H_

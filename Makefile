@@ -308,7 +308,8 @@ obj/archivers/dms/u_medium.o \
 obj/archivers/dms/u_quick.o \
 obj/archivers/dms/u_rle.o \
 obj/archivers/zip/unzip.o \
-obj/od-fs/ahidsound.o \
+obj/od-fs/ahi_v2.o \
+obj/od-fs/ahi_winuae.o \
 obj/od-fs/audio.o \
 obj/od-fs/bsdsocket_host.o \
 obj/od-fs/blkdev-linux.o \
@@ -507,9 +508,13 @@ obj/zfile_archive.o: src/zfile_archive.cpp
 	mkdir -p `dirname $@`
 	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -Wno-error=tautological-compare -c $< -o $@
 
-obj/od-fs/ahidsound.o: src/od-fs/ahidsound.cpp
+obj/od-fs/ahi_v2.o: src/od-fs/ahi_v2.cpp
 	mkdir -p `dirname $@`
 	$(cxx) $(cppflags) $(cxxflags) -Wno-error -c $< -o $@
+
+obj/od-fs/ahi_winuae.o: src/od-fs/ahi_winuae.cpp
+	mkdir -p `dirname $@`
+	$(cxx) $(cppflags) $(cxxflags) -Wno-error=unused-variable -c $< -o $@
 
 obj/od-fs/clipboard.o: src/od-fs/clipboard.cpp
 	mkdir -p `dirname $@`

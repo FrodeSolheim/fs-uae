@@ -137,13 +137,12 @@ void initparallel (void) {
     write_log("initparallel uae_boot_rom = %d\n", uae_boot_rom);
 #ifdef AHI
     if (uae_boot_rom) {
-#if 0
+        write_log("installing ahi_winuae\n");
         uaecptr a = here (); //this install the ahisound
         org (rtarea_base + 0xFFC0);
         calltrap (deftrapres (ahi_demux, 0, _T("ahi_winuae")));
         dw (RTS);
         org (a);
-#endif
         init_ahi_v2 ();
     }
 #endif
@@ -239,6 +238,10 @@ int parallel_direct_write_data (uae_u8 v, uae_u8 dir) {
 
 int parallel_direct_read_data (uae_u8 *v) {
     return 0;
+}
+
+void flushprinter (void) {
+    STUB("");
 }
 
 // ----- Paula serial emulation host calls -----

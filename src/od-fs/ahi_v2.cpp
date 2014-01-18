@@ -6,6 +6,9 @@
 * Copyright 2008 Toni Wilen
 */
 
+// Amiga-side driver does not exist, ahi_v2 never completed
+// http://eab.abime.net/showthread.php?t=71953
+
 #include "sysconfig.h"
 
 #if defined(AHI)
@@ -1937,7 +1940,7 @@ static uae_u32 REGPARAM2 ahi_demux (TrapContext *ctx)
 
 void init_ahi_v2 (void)
 {
-    write_log("init_ahi_v2\n");
+    write_log("installing ahi_avi\n");
 	uaecptr a = here ();
 	org (rtarea_base + 0xFFC8);
 	calltrap (deftrapres (ahi_demux, 0, _T("ahi_v2")));
@@ -1949,11 +1952,6 @@ void free_ahi_v2 (void)
 {
 	ds_free_record (&dsahi[0]);
 	ds_free (&dsahi[0]);
-}
-
-void ahi_close_sound (void)
-{
-    STUB("");
 }
 
 #endif

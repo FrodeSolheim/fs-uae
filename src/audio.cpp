@@ -33,8 +33,6 @@
 #include "debug.h"
 #ifdef AVIOUTPUT
 #include "avioutput.h"
-#else
-int avioutput_enabled = 0;
 #endif
 #ifdef AHI
 #include "traps.h"
@@ -53,6 +51,10 @@ int avioutput_enabled = 0;
 
 #define PERIOD_MIN 4
 #define PERIOD_MIN_NONCE 60
+
+#ifndef AVIOUTPUT
+static const int avioutput_enabled = 0;
+#endif
 
 int audio_channel_mask = 15;
 

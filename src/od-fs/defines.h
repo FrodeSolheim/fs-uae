@@ -117,6 +117,10 @@ extern FILE *g_fs_uae_sync_debug_file;
 //#define UAE_FILESYS_ASYNCHRONOUS
 //#define USE_SDL
 
+#ifdef LINUX
+#define WITH_SCSI_IOCTL
+#endif
+
 #define XARCADE
 #define GNU_SOURCE 1
 

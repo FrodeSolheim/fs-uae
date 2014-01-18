@@ -134,36 +134,22 @@ int isdatatrack (struct cd_toc_head *th, int block)
 
 static int cdscsidevicetype[MAX_TOTAL_SCSI_DEVICES];
 
-#ifdef _WIN32
-#include "od-win32/win32.h"
-extern struct device_functions devicefunc_win32_spti;
-extern struct device_functions devicefunc_win32_ioctl;
-#endif
-
-#ifdef LINUX
-extern struct device_functions devicefunc_scsi_linux_ioctl;
-#endif
-
-extern struct device_functions devicefunc_cdimage;
-
 static struct device_functions *devicetable[] = {
 	NULL,
 	&devicefunc_cdimage,
-#if defined(_WIN32)
-	&devicefunc_win32_ioctl,
-#elif defined(LINUX)
-	&devicefunc_scsi_linux_ioctl,
+#ifdef WITH_SCSI_IOCTL
+	&devicefunc_scsi_ioctl,
 #else
         NULL,
 #endif
-#ifdef _WIN32
-	&devicefunc_win32_spti,
+#ifdef WITH_SCSI_SPTI
+	&devicefunc_scsi_spti,
 #else
         NULL,
 #endif
-	NULL
 };
-static int driver_installed[6];
+#define NUM_DEVICE_TABLE_ENTRIES 4
+static int driver_installed[NUM_DEVICE_TABLE_ENTRIES];
 
 static void install_driver (int flags)
 {
@@ -209,7 +195,7 @@ static void install_driver (int flags)
 		}
 	}
 
-	for (int j = 1; devicetable[j]; j++) {
+	for (int j = 1; j < NUM_DEVICE_TABLE_ENTRIES; j++) {
 		if (!driver_installed[j]) {
 			for (int i = 0; i < MAX_TOTAL_SCSI_DEVICES; i++) {
 				struct blkdevstate *st = &state[i];
@@ -1299,7 +1285,7 @@ int scsi_cd_emulate (int unitnum, uae_u8 *cmdbuf, int scsi_cmd_len,
 	// media changed and not inquiry
 	if (st->mediawaschanged && cmd != 0x12) {
 		if (log_scsiemu) {
-			write_log (_T("SCSIEMU: MEDIUM MAY HAVE CHANGED STATE\n"));
+			write_log (_T("SCSIEMU %d: MEDIUM MAY HAVE CHANGED STATE\n"), unitnum);
 		}
 		lr = -1;
 		status = 2; /* CHECK CONDITION */
@@ -1555,7 +1541,7 @@ int scsi_cd_emulate (int unitnum, uae_u8 *cmdbuf, int scsi_cmd_len,
 				goto nodisk;
 			stopplay (unitnum);
 			offset = ((cmdbuf[1] & 31) << 16) | (cmdbuf[2] << 8) | cmdbuf[3];
-			struct cd_toc *UNUSED() = gettoc (&di.toc, offset);
+			struct cd_toc *UNUSED(t) = gettoc (&di.toc, offset);
 			v = scsi_read_cd_data (unitnum, scsi_data, offset, 0, &di, &scsi_len);
 			if (v == -1)
 				goto outofbounds;

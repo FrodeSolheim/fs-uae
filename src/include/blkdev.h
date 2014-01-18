@@ -212,3 +212,7 @@ extern void blkdev_entergui (void);
 extern void blkdev_exitgui (void);
 
 bool filesys_do_disk_change (int, bool);
+
+extern struct device_functions devicefunc_scsi_ioctl;
+extern struct device_functions devicefunc_scsi_spti;
+extern struct device_functions devicefunc_cdimage;

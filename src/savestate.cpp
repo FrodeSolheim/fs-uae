@@ -716,8 +716,8 @@ void restore_state (const TCHAR *filename)
 			write_log (_T("Chunk '%s', size %d bytes was not accepted!\n"),
 			name, len);
 		else if (totallen != end - chunk)
-			write_log (_T("Chunk '%s' total size %d bytes but read %d bytes!\n"),
-			name, totallen, (int) (end - chunk));
+			write_log (_T("Chunk '%s' total size %d bytes but read %ld bytes!\n"),
+			name, totallen, end - chunk);
 		xfree (chunk);
 	}
 	target_addtorecent (filename, 0);
@@ -1717,10 +1717,10 @@ retry2:
 			staterecords_first -= staterecords_max;
 	}
 
-	write_log (_T("state capture %d (%010ld/%03ld,%ld/%d) (%d bytes, alloc %d)\n"),
+	write_log (_T("state capture %d (%010ld/%03ld,%ld/%d) (%ld bytes, alloc %d)\n"),
 		replaycounter, hsync_counter, vsync_counter,
 		hsync_counter % current_maxvpos (), current_maxvpos (),
-		(int) (st->end - st->data), statefile_alloc);
+		st->end - st->data, statefile_alloc);
 
 	if (firstcapture) {
 		savestate_memorysave ();

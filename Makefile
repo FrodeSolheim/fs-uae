@@ -443,6 +443,10 @@ obj/gen/%.o: gen/%.cpp
 
 ifeq ($(strict), 1)
 
+obj/a2091.o: src/a2091.cpp
+	mkdir -p `dirname $@`
+	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -Wno-error=sometimes-uninitialized -c $< -o $@
+
 obj/cdtv.o: src/cdtv.cpp
 	mkdir -p `dirname $@`
 	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -Wno-error=tautological-compare -c $< -o $@

@@ -782,7 +782,7 @@ struct device_functions devicefunc_scsi_linux_raw = {
     0,             /* scsiemu_func scsiemu; */
 };
 
-struct device_functions devicefunc_scsi_linux_ioctl = {
+struct device_functions devicefunc_scsi_ioctl = {
     _T("IOCTL"),
     open_bus, /* open_bus_func     openbus; */
     close_bus, /* close_bus_func    closebus; */

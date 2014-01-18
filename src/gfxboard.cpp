@@ -16,8 +16,10 @@
 #define MEMDEBUGTEST 0x280000
 #define PICASSOIV_DEBUG_IO 0
 
+#if MEMLOGR
 static bool memlogr = false;
 static bool memlogw = false;
+#endif
 
 #define BYTESWAP_WORD -1
 #define BYTESWAP_LONG 1
@@ -83,7 +85,7 @@ extern addrbank gfxboard_bank_nbsmemory;
 
 struct gfxboard
 {
-	TCHAR *name;
+	const TCHAR *name;
 	int manufacturer;
 	int model_memory;
 	int model_registers;
@@ -184,11 +186,11 @@ static bool monswitch;
 static bool oldswitch;
 static int fullrefresh;
 static bool modechanged;
-static uae_u8 *gfxboard_surface, *vram_address, *fakesurface_surface;
+static uae_u8 *gfxboard_surface, *UNUSED(vram_address), *fakesurface_surface;
 static bool gfxboard_vblank;
 static bool gfxboard_intena;
 static bool vram_enabled, vram_offset_enabled;
-static bool vram_byteswap;
+static bool UNUSED(vram_byteswap);
 static hwaddr vram_offset[2];
 static uae_u8 cirrus_pci[0x44];
 static uae_u8 p4_pci[0x44];
@@ -294,7 +296,7 @@ void qemu_console_resize(QemuConsole *con, int width, int height)
 {
 }
 
-static uae_u8 pal64 (uae_u8 v)
+static uae_u8 UNUSED_FUNCTION(pal64) (uae_u8 v)
 {
 	v = (v << 2) | ((v >> 2) & 3);
 	return v;

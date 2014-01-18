@@ -479,6 +479,10 @@ obj/filesys.o: src/filesys.cpp
 	mkdir -p `dirname $@`
 	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -Wno-error=switch -Wno-error=tautological-compare -c $< -o $@
 
+obj/hardfile.o: src/hardfile.cpp
+	mkdir -p `dirname $@`
+	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -Wno-error=switch -Wno-error=unused-label -c $< -o $@
+
 obj/%.o: src/%.cpp
 	mkdir -p `dirname $@`
 	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -c $< -o $@

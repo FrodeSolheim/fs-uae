@@ -3568,7 +3568,7 @@ int cfgfile_parse_option (struct uae_prefs *p, const TCHAR *option, TCHAR *value
 			return 1;
 	}
 	if (type == 0 || (type & CONFIG_TYPE_HOST)) {
-	    // cfgfile_parse_host may modify the option (convert to lowercase).
+		// cfgfile_parse_host may modify the option (convert to lowercase).
 		TCHAR* writable_option = my_strdup(option);
 		if (cfgfile_parse_host (p, writable_option, value)) {
 			free(writable_option);
@@ -4598,9 +4598,10 @@ uae_u32 cfgfile_modify (uae_u32 index, const TCHAR *parms, uae_u32 size, TCHAR *
 	uae_u32 err;
 	static TCHAR *configsearch;
 
-#ifdef FSUAE
+#ifdef FSUAE // NL
 	write_log("*** cfgfile_modify *** %s\n", parms);
 #endif
+
 	*out = 0;
 	err = 0;
 	argv = 0;
@@ -5417,7 +5418,7 @@ static int bip_a1000 (struct uae_prefs *p, int config, int compa, int romcheck)
 #ifdef FSUAE
 	roms[0] = 5;
 #else
-    roms[0] = 24;
+	roms[0] = 24;
 #endif
 	roms[1] = -1;
 	p->chipset_mask = 0;
@@ -5755,11 +5756,12 @@ int built_in_chipset_prefs (struct uae_prefs *p)
 	if (!p->cs_compatible)
 		return 1;
 
-#ifdef FSUAE
+#ifdef FSUAE // NL
 	write_log("\n");
 	write_log("built_in_chipset_prefs\n");
 	write_log("\n");
 #endif
+
 	p->cs_a1000ram = 0;
 	p->cs_cd32c2p = p->cs_cd32cd = p->cs_cd32nvram = 0;
 	p->cs_cdtvcd = p->cs_cdtvram = p->cs_cdtvscsi = 0;

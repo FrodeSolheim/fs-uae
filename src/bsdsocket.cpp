@@ -24,6 +24,12 @@
 #include "threaddep/thread.h"
 #include "native2amiga.h"
 
+#ifdef FSUAE // NL
+#ifdef WINDOWS
+#define _WIN32
+#endif
+#endif
+
 #ifdef BSDSOCKET
 
 int log_bsd;
@@ -372,7 +378,7 @@ static struct socketbase *alloc_socketbase (TrapContext *context)
 		sb->signal = CallLib (context, sb->sysbase, -0x14A); /* AllocSignal */
 
 		if (sb->signal == -1) {
-			write_log (_T("bsdsocket: ERROR: Couldn't allocate signal for task 0x%8xx.\n"), sb->ownertask);
+			write_log (_T("bsdsocket: ERROR: Couldn't allocate signal for task 0x%08x.\n"), sb->ownertask);
 			free (sb);
 			return NULL;
 		}
@@ -910,7 +916,7 @@ static uae_u32 REGPARAM2 bsdsocklib_SetErrnoPtr (TrapContext *context)
 	struct socketbase *sb = get_socketbase (context);
 	uae_u32 errnoptr = m68k_areg (regs, 0), size = m68k_dreg (regs, 0);
 
-	BSDTRACE ((_T("SetErrnoPtr(0x%x,%d) -> "), errnoptr, size));
+	BSDTRACE ((_T("SetErrnoPtr(0x%08x,%d) -> "), errnoptr, size));
 
 	if (size == 1 || size == 2 || size == 4) {
 		sb->errnoptr = errnoptr;
@@ -1550,7 +1556,7 @@ done:
 
 static uae_u32 REGPARAM2 bsdsocklib_GetSocketEvents (TrapContext *context)
 {
-#ifdef WINDOWS
+#ifdef _WIN32
 	struct socketbase *sb = get_socketbase (context);
 	int i;
 	int flags;

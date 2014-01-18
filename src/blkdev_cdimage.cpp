@@ -33,7 +33,8 @@
 #ifdef FSUAE
 #else
 #define FLAC__NO_DLL
-#endif
+#endif // NL
+
 #include "FLAC/stream_decoder.h"
 
 #ifdef WITH_CHD

@@ -59,11 +59,14 @@
 #ifdef RETROPLATFORM
 #include "rp.h"
 #endif
-#ifdef FSUAE
-// SDL is not used directly here by FS-UAE
-#else
+
+#ifdef FSUAE // NL
+// SDL is not used directly here by FS-UAE, but USE_SDL is still defined when
+// compiling FS-UAE so we explicitly undef it here.
+#undef USE_SDL
+#endif // NL
+
 #ifdef USE_SDL
-#endif
 #include "SDL.h"
 #endif
 
@@ -620,7 +623,9 @@ void uae_reset (int hardreset, int keyboardreset)
 
 void uae_quit (void)
 {
-	printf("uae_quit\n");
+#ifdef FSUAE
+	write_log("uae_quit\n");
+#endif
 	deactivate_debugger ();
 	if (quit_program != -UAE_QUIT)
 		quit_program = -UAE_QUIT;
@@ -630,7 +635,9 @@ void uae_quit (void)
 /* 0 = normal, 1 = nogui, -1 = disable nogui */
 void uae_restart (int opengui, const TCHAR *cfgfile)
 {
-	printf("uae_restart\n");
+#ifdef FSUAE
+	write_log("uae_restart\n");
+#endif
 	uae_quit ();
 	restart_program = opengui > 0 ? 1 : (opengui == 0 ? 2 : 3);
 	restart_config[0] = 0;
@@ -951,6 +958,9 @@ void do_leave_program (void)
 #endif
 	if (! no_gui)
 		gui_exit ();
+#ifdef USE_SDL
+	SDL_Quit ();
+#endif
 #ifdef AUTOCONFIG
 	expansion_cleanup ();
 #endif
@@ -1019,13 +1029,8 @@ void virtualdevice_init (void)
 static int real_main2 (int argc, TCHAR **argv)
 {
 
-#ifdef FSUAE
-    // SDL is initialized by libfsemu
-#else
 #ifdef USE_SDL
 	SDL_Init (SDL_INIT_TIMER | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK | SDL_INIT_NOPARACHUTE);
-#endif
-<<<<<<< HEAD
 #endif
 	set_config_changed ();
 	if (restart_config[0]) {

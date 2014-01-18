@@ -11,12 +11,20 @@
 
 #ifdef WITH_LUA
 
+#ifdef FSUAE // NL
 extern "C" {
-#include <lauxlib.h>
-}
+#endif
 
+#include <lauxlib.h>
+
+#ifdef FSUAE // NL
+}
+#endif
+
+#ifdef FSUAE
 //void uae_lua_init(void (*lock)(void), void (*unlock)(void));
-void uae_lua_init();
+#endif
+void uae_lua_init(void);
 void uae_lua_load(const TCHAR *filename);
 void uae_lua_loadall(void);
 void uae_lua_free(void);

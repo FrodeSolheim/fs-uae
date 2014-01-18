@@ -24,7 +24,7 @@
 
 #include "readcpu.h"
 
-#ifdef FSUAE
+#ifdef FSUAE // NL
 char *ua (const char *s) {
 	return strdup(s);
 }

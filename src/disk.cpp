@@ -2189,7 +2189,7 @@ static int drive_write_ext2 (uae_u16 *bigmfmbuf, struct zfile *diskfile, trackid
 	return 1;
 }
 
-#ifdef FSUAE
+#ifdef FSUAE // NL
 extern int g_fs_uae_writable_disk_images;
 #endif
 
@@ -2758,14 +2758,9 @@ int disk_empty (int num)
 
 static TCHAR *tobin (uae_u8 v)
 {
-// FIXME:  I: A function overflows or underflows an array access. This could be a real error,
-// but occasionaly this condition is also misdetected due to loop unrolling or strange pointer
-// handling. So this is warning only, please review.
-	int i;
-	static TCHAR buf[10];
-	for( i = 7; i >= 0; i--)
+	static TCHAR buf[9];
+	for (int i = 7; i >= 0; i--)
 		buf[7 - i] = v & (1 << i) ? '1' : '0';
-	buf[i] = 0;
 	return buf;
 }
 

@@ -861,14 +861,12 @@ static int cdrom_command_led (void)
 	return 0;
 }
 
-#if 0
-static int cdrom_command_idle_status (void)
+static int UNUSED_FUNCTION(cdrom_command_idle_status) (void)
 {
 	cdrom_result_buffer[0] = 0x0a;
 	cdrom_result_buffer[1] = 0x70;
 	return 2;
 }
-#endif
 
 static int cdrom_command_media_status (void)
 {

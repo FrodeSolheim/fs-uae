@@ -59,6 +59,10 @@
 #include "rp.h"
 #endif
 
+#ifdef FSUAE // NL
+#undef _WIN32
+#endif
+
 #define TRACING_ENABLED 1
 int log_filesys = 0;
 
@@ -81,8 +85,6 @@ int log_filesys = 0;
 #ifdef FSUAE
 static int g_packet_delay = 0;
 #endif
-
-#define UNIT_LED(unit) ((unit)->ui.unit_type == UNIT_CDFS ? LED_CD : LED_HD)
 
 #define UNIT_LED(unit) ((unit)->ui.unit_type == UNIT_CDFS ? LED_CD : LED_HD)
 
@@ -5812,7 +5814,7 @@ static void action_change_file_size64 (Unit *unit, dpacket packet)
 {
 	Key *k, *k1;
 	uae_s64 offset = GET_PCK64_ARG2 (packet);
-	int mode = GET_PCK64_ARG3 (packet);
+	int mode = (uae_s32)GET_PCK64_ARG3 (packet);
 	int whence = SEEK_CUR;
 
 	PUT_PCK64_RES0 (packet, DP64_INIT);
@@ -7491,7 +7493,7 @@ void filesys_vsync (void)
 		heartbeat_task &= ~1;
 	}
 
-#ifdef FSUAE
+#ifdef FSUAE // NL
 	g_hsync_line = 0;
 #endif
 }
@@ -7635,7 +7637,7 @@ void filesys_install_code (void)
 	filesys_initcode = a + dlg (b) + bootrom_header - 4;
 }
 
-#if defined(_WIN32) && defined(WINUAE)
+#ifdef _WIN32
 #include "od-win32/win32_filesys.cpp"
 #endif
 

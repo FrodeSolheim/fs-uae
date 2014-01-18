@@ -40,6 +40,10 @@
 #include "cpummu030.h"
 #include "ar.h"
 
+#ifdef FSUAE // NL
+#undef _WIN32
+#endif
+
 int debugger_active;
 static uaecptr skipaddr_start, skipaddr_end;
 static int skipaddr_doskip;
@@ -148,7 +152,7 @@ static TCHAR help[] = {
 	_T("  v <vpos> [<hpos>]     Show DMA data (accurate only in cycle-exact mode).\n")
 	_T("                        v [-1 to -4] = enable visual DMA debugger.\n")
 	_T("  ?<value>              Hex ($ and 0x)/Bin (%)/Dec (!) converter.\n")
-#if defined(_WIN32) && defined(WINUAE)
+#ifdef _WIN32
 	_T("  x                     Close debugger.\n")
 	_T("  xx                    Switch between console and GUI debugger.\n")
 	_T("  mg <address>          Memory dump starting at <address> in GUI.\n")
@@ -3889,7 +3893,7 @@ static BOOL debug_line (TCHAR *input)
 				} else if (*inptr == 't') {
 					next_char (&inptr);
 					debugtest_set (&inptr);
-#if defined(_WIN32) && defined(WINUAE)
+#ifdef _WIN32
 				} else if (*inptr == 'g') {
 					extern void update_disassembly (uae_u32);
 					next_char (&inptr);
@@ -4060,7 +4064,7 @@ static BOOL debug_line (TCHAR *input)
 			{
 				uae_u32 maddr;
 				int lines;
-#if defined(_WIN32) && defined(WINUAE)
+#ifdef _WIN32
 				if (*inptr == 'g') {
 					extern void update_memdump (uae_u32);
 					next_char (&inptr);

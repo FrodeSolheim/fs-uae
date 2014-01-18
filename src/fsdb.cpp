@@ -21,6 +21,10 @@
 #include "scsidev.h"
 #include "fsdb.h"
 
+#ifdef FSUAE // NL
+#undef _WIN32
+#endif
+
 /* The on-disk format is as follows:
 * Offset 0, 1 byte, valid
 * Offset 1, 4 bytes, mode
@@ -44,7 +48,7 @@ TCHAR *nname_begin (TCHAR *nname)
 	return nname;
 }
 
-#if !defined(_WIN32) || !defined(WINUAE)
+#ifndef _WIN32
 /* Find the name REL in directory DIRNAME.  If we find a file that
 * has exactly the same name, return REL.  If we find a file that
 * has the same name when compared case-insensitively, return a

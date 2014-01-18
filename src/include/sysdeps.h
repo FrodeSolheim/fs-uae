@@ -231,6 +231,7 @@ typedef uae_u32 uaecptr;
 
 #undef uae_s64
 #undef uae_u64
+
 #if SIZEOF_LONG_LONG == 8
 #define uae_s64 long long
 #define uae_u64 unsigned long long
@@ -467,11 +468,14 @@ extern void mallocemu_free (void *ptr);
 #endif
 
 #if __GNUC__ - 1 > 1 || __GNUC_MINOR__ - 1 > 6
-//extern void write_log (const TCHAR *, ...) __attribute__ ((format (printf, 1, 2)));
-void write_log (const char *, ...) __attribute__ ((format (printf, 1, 2)));
+#ifdef FSUAE
 #else
-//extern void write_log (const TCHAR *, ...);
-void write_log (const char *, ...);
+extern void write_log (const TCHAR *, ...) __attribute__ ((format (printf, 1, 2)));
+#endif
+extern void write_log (const char *, ...) __attribute__ ((format (printf, 1, 2)));
+#else
+extern void write_log (const TCHAR *, ...);
+extern void write_log (const char *, ...);
 #endif
 extern void write_dlog (const TCHAR *, ...);
 
@@ -585,4 +589,3 @@ extern void xfree (const void*);
 #endif
 
 #define DBLEQU(f, i) (abs ((f) - (i)) < 0.000001)
-

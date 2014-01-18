@@ -28,6 +28,10 @@
 #include "archivers/dms/pfile.h"
 #include "archivers/wrp/warp.h"
 
+#ifdef FSUAE // NL
+#undef _WIN32
+#endif
+
 static struct zfile *zlist = 0;
 
 const TCHAR *uae_archive_extensions[] = { _T("zip"), _T("rar"), _T("7z"), _T("lha"), _T("lzh"), _T("lzx"), _T("tar"), NULL };
@@ -1699,7 +1703,7 @@ static struct zfile *zfile_fopen_2 (const TCHAR *name, const TCHAR *mode, int ma
 	return l;
 }
 
-#if defined(_WIN32) && defined(WINUAE)
+#ifdef _WIN32
 #include "win32.h"
 
 #define AF _T("%AMIGAFOREVERDATA%")
@@ -1785,7 +1789,7 @@ static struct zfile *zfile_fopen_x (const TCHAR *name, const TCHAR *mode, int ma
 	return l;
 }
 
-#if defined(_WIN32) && defined(WINUAE)
+#ifdef _WIN32
 static int isinternetfile (const TCHAR *name)
 {
 	if (!_tcsnicmp (name, _T("http://"), 7) || !_tcsnicmp (name, _T("https://"), 8))
@@ -1891,7 +1895,7 @@ static struct zfile *zfile_fopenx2 (const TCHAR *name, const TCHAR *mode, int ma
 	struct zfile *f;
 	TCHAR tmp[MAX_DPATH];
 
-#if defined(_WIN32) && defined(WINUAE)
+#ifdef _WIN32
 	if (isinternetfile (name))
 		return zfile_fopen_internet (name, mode, mask);
 #endif

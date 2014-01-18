@@ -3234,10 +3234,11 @@ int main(int argc, char *argv[])
      * I don't dare to touch the 68k version.  */
 
 #ifdef FSUAE
-    headerfile = fopen ("gen/comptbl.h", "wb");
+	headerfile = fopen ("gen/comptbl.h", "wb");
 #else
     headerfile = fopen ("jit/comptbl.h", "wb");
 #endif
+
 	fprintf (headerfile, "" \
 		"#ifdef NOFLAGS_SUPPORT\n" \
 		"/* 68040 */\n" \
@@ -3249,7 +3250,7 @@ int main(int argc, char *argv[])
 	
 #ifdef FSUAE
 	stblfile = fopen ("gen/compstbl.cpp", "wb");
-    freopen ("gen/compemu.cpp", "wb", stdout);
+	freopen ("gen/compemu.cpp", "wb", stdout);
 #else
 	stblfile = fopen ("jit/compstbl.cpp", "wb");
     freopen ("jit/compemu.cpp", "wb", stdout);

@@ -5431,25 +5431,25 @@ void sm68k_disasm (TCHAR *instrname, TCHAR *instrcode, uaecptr addr, uaecptr *ne
 }
 
 struct cpum2c m2cregs[] = {
-	{0, _T("SFC")},
-	{1, _T("DFC")},
-	{2, _T("CACR")},
-	{3, _T("TC")},
-	{4, _T("ITT0")},
-	{5, _T("ITT1")},
-	{6, _T("DTT0")},
-	{7, _T("DTT1")},
-	{8, _T("BUSC")},
-	{0x800, _T("USP")},
-	{0x801, _T("VBR")},
-	{0x802, _T("CAAR")},
-	{0x803, _T("MSP")},
-	{0x804, _T("ISP")},
-	{0x805, _T("MMUS")},
-	{0x806, _T("URP")},
-	{0x807, _T("SRP")},
-	{0x808, _T("PCR")},
-    {-1, NULL}
+	{ 0, _T("SFC") },
+	{ 1, _T("DFC") },
+	{ 2, _T("CACR") },
+	{ 3, _T("TC") },
+	{ 4, _T("ITT0") },
+	{ 5, _T("ITT1") },
+	{ 6, _T("DTT0") },
+	{ 7, _T("DTT1") },
+	{ 8, _T("BUSC") },
+	{ 0x800, _T("USP") },
+	{ 0x801, _T("VBR") },
+	{ 0x802, _T("CAAR") },
+	{ 0x803, _T("MSP") },
+	{ 0x804, _T("ISP") },
+	{ 0x805, _T("MMUS") },
+	{ 0x806, _T("URP") },
+	{ 0x807, _T("SRP") },
+	{ 0x808, _T("PCR") },
+    { -1, NULL }
 };
 
 void val_move2c2 (int regno, uae_u32 val)

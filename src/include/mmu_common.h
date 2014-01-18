@@ -11,7 +11,7 @@
 #define likely(x) x
 #endif
 
-#ifdef FSUAE
+#ifdef FSUAE // NL
 #define unlikely(x) x
 #define likely(x) x
 #endif

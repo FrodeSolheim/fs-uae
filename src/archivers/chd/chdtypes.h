@@ -3,7 +3,7 @@
 #ifndef UAE_CHD
 #define UAE_CHD
 
-#ifdef FSUAE
+#ifdef FSUAE // NL
 #include <stdint.h>
 #define INT8 int8_t
 #define INT16 int16_t

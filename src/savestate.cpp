@@ -64,7 +64,7 @@
 #include "inputrecord.h"
 #include "disk.h"
 
-#ifdef FSUAE
+#ifdef FSUAE // NL
 #include "uae/fs.h"
 #endif
 
@@ -494,7 +494,9 @@ static void restore_header (uae_u8 *src)
 
 void restore_state (const TCHAR *filename)
 {
+#ifdef FSUAE
 	printf("restore_state from %s\n", filename);
+#endif
 	struct zfile *f;
 	uae_u8 *chunk,*end;
 	TCHAR name[5];
@@ -734,7 +736,9 @@ void savestate_restore_finish (void)
 {
 	if (!isrestore ())
 		return;
+#ifdef FSUAE
 	printf("savestate_restore_finish\n");
+#endif
 	zfile_fclose (savestate_file);
 	savestate_file = 0;
 	restore_cpu_finish ();
@@ -1111,7 +1115,9 @@ int save_state (const TCHAR *filename, const TCHAR *description)
 
 void savestate_quick (int slot, int save)
 {
+#ifdef FSUAE
 	printf("savestate_quick slot=%d save=%d\n", slot, save);
+#endif
 	int i, len = _tcslen (savestate_fname);
 	i = len - 1;
 #ifdef FSUAE

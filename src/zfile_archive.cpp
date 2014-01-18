@@ -9,9 +9,12 @@
 #include "sysconfig.h"
 #include "sysdeps.h"
 
-#if defined(_WIN32) && defined(WINUAE)
+#ifdef FSUAE
+#else
+#ifdef _WIN32
 #include <windows.h>
 #include "win32.h"
+#endif
 #endif
 
 #include "options.h"
@@ -21,6 +24,10 @@
 #include "crc32.h"
 #include "zarchive.h"
 #include "disk.h"
+
+#ifdef FSUAE // NL
+#undef _WIN32
+#endif
 
 #include <zlib.h>
 
@@ -677,7 +684,7 @@ static int canrar (void)
 
 	if (israr == 0) {
 		israr = -1;
-#if defined(_WIN32) && defined(WINUAE)
+#ifdef _WIN32
 		{
 			HMODULE rarlib;
 
@@ -849,7 +856,7 @@ static aapGetFileInfo aaGetFileInfo;
 static aapExtract aaExtract;
 static aapCloseArchive aaCloseArchive;
 
-#if defined(_WIN32) && defined(WINUAE)
+#ifdef _WIN32
 static HMODULE arcacc_mod;
 
 static void arcacc_free (void)

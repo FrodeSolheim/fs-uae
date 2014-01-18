@@ -74,7 +74,7 @@
 
 #define SPRBORDER 0
 
-#ifdef FSUAE
+#ifdef FSUAE // NL
 int g_frame_debug_logging = 0;
 #endif
 
@@ -158,8 +158,10 @@ static bool genlockhtoggle;
 static bool genlockvtoggle;
 static bool UNUSED(graphicsbuffer_retry);
 
+#ifdef FSUAE // NL
 int g_uae_min_first_line_pal = VBLANK_ENDLINE_PAL;
 int g_uae_min_first_line_ntsc = VBLANK_ENDLINE_NTSC;
+#endif
 
 #define LOF_TOGGLES_NEEDED 3
 //#define NLACE_CNT_NEEDED 50
@@ -363,7 +365,7 @@ unsigned long hsync_counter = 0, vsync_counter = 0;
 unsigned long int idletime;
 int bogusframe;
 
-#ifdef FSUAE
+#ifdef FSUAE // NL
 int g_uae_vsync_counter = 0;
 //int g_uae_hsync_counter = 0;
 #endif
@@ -3412,7 +3414,11 @@ void init_hz (bool fullinit)
 	if (!isntsc) {
 		maxvpos = MAXVPOS_PAL;
 		maxhpos = MAXHPOS_PAL;
+#ifdef FSUAE
 		minfirstline = g_uae_min_first_line_pal;
+#else
+		minfirstline = VBLANK_ENDLINE_PAL;
+#endif
 		vblank_hz_nom = vblank_hz = VBLANK_HZ_PAL;
 		sprite_vblank_endline = VBLANK_SPRITE_PAL;
 		equ_vblank_endline = EQU_ENDLINE_PAL;
@@ -3423,7 +3429,11 @@ void init_hz (bool fullinit)
 	} else {
 		maxvpos = MAXVPOS_NTSC;
 		maxhpos = MAXHPOS_NTSC;
+#ifdef FSUAE
 		minfirstline = g_uae_min_first_line_ntsc;
+#else
+		minfirstline = VBLANK_ENDLINE_NTSC;
+#endif
 		vblank_hz_nom = vblank_hz = VBLANK_HZ_NTSC;
 		sprite_vblank_endline = VBLANK_SPRITE_NTSC;
 		equ_vblank_endline = EQU_ENDLINE_NTSC;
@@ -5865,7 +5875,7 @@ static int mavg (struct mavg_data *md, int newval, int size)
 
 extern int log_vsync, debug_vsync_min_delay, debug_vsync_forced_delay;
 
-#ifdef FSUAE
+#ifdef FSUAE // NL
 static bool UNUSED_FUNCTION(framewait_2) (void)
 #else
 static bool framewait (void)
@@ -6189,7 +6199,7 @@ static bool framewait (void)
 	return status != 0;
 }
 
-#ifdef FSUAE
+#ifdef FSUAE // NL
 
 static bool framewait (void) {
     //printf("fw\n");
@@ -7921,7 +7931,6 @@ static void REGPARAM2 custom_wput (uaecptr addr, uae_u32 value)
 
 static void REGPARAM2 custom_bput (uaecptr addr, uae_u32 value)
 {
-
 	uae_u16 rval;
 
 	if (currprefs.chipset_mask & CSMASK_AGA) {

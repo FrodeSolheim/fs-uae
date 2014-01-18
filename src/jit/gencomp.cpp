@@ -16,6 +16,12 @@
 #include <stdio.h>
 #include <stdarg.h>
 
+#ifdef FSUAE
+char *ua (const char *s) {
+	return strdup(s);
+}
+#endif
+
 #define BOOL_TYPE "int"
 #define failure global_failure=1
 #define FAILURE global_failure=1
@@ -3204,9 +3210,16 @@ generate_func (int noflags)
 
 }
 
-int
-main (int argc, char **argv)
+#if defined(FSUAE) && defined (WINDOWS)
+#include "windows.h"
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
+int argc = __argc;
+char** argv = __argv;
+#else
+int main(int argc, char *argv[])
+{
+#endif
     read_table68k ();
     do_merges ();
 
@@ -3220,8 +3233,11 @@ main (int argc, char **argv)
      * cputbl.h that way), but cpuopti can't cope.  That could be fixed, but
      * I don't dare to touch the 68k version.  */
 
+#ifdef FSUAE
+    headerfile = fopen ("gen/comptbl.h", "wb");
+#else
     headerfile = fopen ("jit/comptbl.h", "wb");
-
+#endif
 	fprintf (headerfile, "" \
 		"#ifdef NOFLAGS_SUPPORT\n" \
 		"/* 68040 */\n" \
@@ -3231,8 +3247,13 @@ main (int argc, char **argv)
 		"extern const struct comptbl op_smalltbl_0_comp_ff[];\n" \
 		"");
 	
+#ifdef FSUAE
+	stblfile = fopen ("gen/compstbl.cpp", "wb");
+    freopen ("gen/compemu.cpp", "wb", stdout);
+#else
 	stblfile = fopen ("jit/compstbl.cpp", "wb");
     freopen ("jit/compemu.cpp", "wb", stdout);
+#endif
 
     generate_includes (stdout, 1);
     generate_includes (stblfile, 1);

@@ -21,13 +21,14 @@
 #include "sysconfig.h"
 #include "sysdeps.h"
 #include <ctype.h>
+
+#include "readcpu.h"
+
 #ifdef FSUAE
 char *ua (const char *s) {
 	return strdup(s);
 }
 #endif
-
-#include "readcpu.h"
 
 #define BOOL_TYPE "int"
 /* Define the minimal 680x0 where NV flags are not affected by xBCD instructions.  */
@@ -5392,8 +5393,16 @@ static void generate_cpu (int id, int mode)
 	postfix2 = -1;
 }
 
-int main (int argc, char **argv)
+#if defined(FSUAE) && defined (WINDOWS)
+#include "windows.h"
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
+int argc = __argc;
+char** argv = __argv;
+#else
+int main(int argc, char *argv[])
+{
+#endif
 	int i;
 
 	read_table68k ();

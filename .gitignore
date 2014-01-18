@@ -26,8 +26,9 @@ libfs-capsimage.dylib
 *.sav
 *.sdf
 *.log
-obj/*
-out/*
+/obj
+/out
+/gen
 build68k
 genblitter
 gencpu

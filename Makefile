@@ -36,7 +36,7 @@ use_glib := 0
 warnings = 
 errors = -Werror=implicit-function-declaration -Werror=return-type
 cxxflags = $(warnings) $(errors) -Isrc/od-fs -Isrc/od-fs/include \
-		-Isrc/include -Igensrc -Isrc \
+		-Isrc/include -Igen -Isrc \
 		-I$(libfsemu_dir)/include \
 		-Wno-write-strings -fpermissive
 
@@ -62,7 +62,7 @@ else
 endif
 
 common_flags = -Isrc/od-fs -Isrc/od-fs/include \
-		-Isrc/include -Igensrc -Isrc \
+		-Isrc/include -Igen -Isrc/jit -Isrc \
 		`pkg-config --cflags glib-2.0 gthread-2.0 libpng` \
 		-I$(libfsemu_dir)/include \
 		-I$(libfsemu_dir)/src/lua \
@@ -128,7 +128,8 @@ endif
 #uae_warn += -fpermissive -Wno-unused-function -Wno-format
 #uae_warn +=  -Wmissing-braces -Wall -Wno-sign-compare
 uae_warn = -Wall -Wno-sign-compare
-generate = 0
+#generate = 0
+generate = 1
 
 ifeq ($(os), android)
   cppflags += -DANDROID
@@ -174,7 +175,7 @@ else
   cppflags += -DLINUX
   ldflags += -Wa,--execstack
   libs += -lGL -lGLU -lopenal -ldl -lX11
-  generate = 0
+  #generate = 0
 endif
 
 ifneq ($(os), android)
@@ -182,41 +183,41 @@ ifneq ($(os), android)
 	#-DWITH_LUA
 endif
 
-device_helper_objects = obj/fs-uae-device-helper.o
+device_helper_objects = obj/fs-uae/device-helper.o
 
 objects = \
-obj/fs-uae-config.o \
-obj/fs-uae-input.o \
-obj/fs-uae-joystick.o \
-obj/fs-uae-keyboard.o \
-obj/fs-uae-luascript.o \
-obj/fs-uae-main.o \
-obj/fs-uae-menu.o \
-obj/fs-uae-mouse.o \
-obj/fs-uae-paths.o \
-obj/fs-uae-recording.o \
-obj/fs-uae-uae_config.o \
-obj/fs-uae-version.o \
-obj/fs-uae-video.o
+obj/fs-uae/config.o \
+obj/fs-uae/input.o \
+obj/fs-uae/joystick.o \
+obj/fs-uae/keyboard.o \
+obj/fs-uae/luascript.o \
+obj/fs-uae/main.o \
+obj/fs-uae/menu.o \
+obj/fs-uae/mouse.o \
+obj/fs-uae/paths.o \
+obj/fs-uae/recording.o \
+obj/fs-uae/uae_config.o \
+obj/fs-uae/version.o \
+obj/fs-uae/video.o
 
 ifeq ($(os), windows)
 objects += obj/fs-uae.res
 endif
 
 uae_objects = \
-obj/gensrc-blitfunc.o \
-obj/gensrc-blittable.o \
-obj/gensrc-cpudefs.o \
-obj/gensrc-cpuemu_0.o \
-obj/gensrc-cpuemu_11.o \
-obj/gensrc-cpuemu_13.o \
-obj/gensrc-cpuemu_20.o \
-obj/gensrc-cpuemu_21.o \
-obj/gensrc-cpuemu_22.o \
-obj/gensrc-cpuemu_31.o \
-obj/gensrc-cpuemu_32.o \
-obj/gensrc-cpuemu_33.o \
-obj/gensrc-cpustbl.o \
+obj/gen/blitfunc.o \
+obj/gen/blittable.o \
+obj/gen/cpudefs.o \
+obj/gen/cpuemu_0.o \
+obj/gen/cpuemu_11.o \
+obj/gen/cpuemu_13.o \
+obj/gen/cpuemu_20.o \
+obj/gen/cpuemu_21.o \
+obj/gen/cpuemu_22.o \
+obj/gen/cpuemu_31.o \
+obj/gen/cpuemu_32.o \
+obj/gen/cpuemu_33.o \
+obj/gen/cpustbl.o \
 obj/a2091.o \
 obj/akiko.o \
 obj/amax.o \
@@ -286,57 +287,57 @@ obj/uaeresource.o \
 obj/uaeserial.o \
 obj/zfile.o \
 obj/zfile_archive.o \
-obj/jit-compemu.o \
-obj/jit-compemu_fpp.o \
-obj/jit-compemu_support.o \
-obj/jit-compstbl.o \
-obj/dms-archiver-crc_csum.o \
-obj/dms-archiver-getbits.o \
-obj/dms-archiver-maketbl.o \
-obj/dms-archiver-pfile.o \
-obj/dms-archiver-tables.o \
-obj/dms-archiver-u_deep.o \
-obj/dms-archiver-u_heavy.o \
-obj/dms-archiver-u_init.o \
-obj/dms-archiver-u_medium.o \
-obj/dms-archiver-u_quick.o \
-obj/dms-archiver-u_rle.o \
-obj/zip-archiver-unzip.o \
-obj/od-fs-audio.o \
-obj/od-fs-bsdsocket_host.o \
-obj/od-fs-blkdev-linux.o \
-obj/od-fs-caps.o \
-obj/od-fs-cda_play.o \
-obj/od-fs-charset.o \
-obj/od-fs-clock.o \
-obj/od-fs-cdimage_stubs.o \
-obj/od-fs-clipboard.o \
-obj/od-fs-driveclick.o \
-obj/od-fs-filesys_host.o \
-obj/od-fs-fsdb_host.o \
-obj/od-fs-hardfile_host.o \
-obj/od-fs-gui.o \
-obj/od-fs-input.o \
-obj/od-fs-keymap.o \
-obj/od-fs-libamiga.o \
-obj/od-fs-logging.o \
-obj/od-fs-mman.o \
-obj/od-fs-parser.o \
-obj/od-fs-random.o \
-obj/od-fs-roms.o \
-obj/od-fs-picasso96.o \
-obj/od-fs-serial_host.o \
-obj/od-fs-stubs.o \
-obj/od-fs-support.o \
-obj/od-fs-util.o \
-obj/od-fs-threading.o \
-obj/od-fs-uae_host.o \
-obj/od-fs-uaemisc.o \
-obj/od-fs-version.o \
-obj/od-fs-video.o \
-obj/qemuvga-cirrus_vga.o \
-obj/qemuvga-qemuuaeglue.o \
-obj/qemuvga-vga.o
+obj/gen/compemu.o \
+obj/jit/compemu_fpp.o \
+obj/jit/compemu_support.o \
+obj/gen/compstbl.o \
+obj/archivers/dms/crc_csum.o \
+obj/archivers/dms/getbits.o \
+obj/archivers/dms/maketbl.o \
+obj/archivers/dms/pfile.o \
+obj/archivers/dms/tables.o \
+obj/archivers/dms/u_deep.o \
+obj/archivers/dms/u_heavy.o \
+obj/archivers/dms/u_init.o \
+obj/archivers/dms/u_medium.o \
+obj/archivers/dms/u_quick.o \
+obj/archivers/dms/u_rle.o \
+obj/archivers/zip/unzip.o \
+obj/od-fs/audio.o \
+obj/od-fs/bsdsocket_host.o \
+obj/od-fs/blkdev-linux.o \
+obj/od-fs/caps.o \
+obj/od-fs/cda_play.o \
+obj/od-fs/charset.o \
+obj/od-fs/clock.o \
+obj/od-fs/cdimage_stubs.o \
+obj/od-fs/clipboard.o \
+obj/od-fs/driveclick.o \
+obj/od-fs/filesys_host.o \
+obj/od-fs/fsdb_host.o \
+obj/od-fs/hardfile_host.o \
+obj/od-fs/gui.o \
+obj/od-fs/input.o \
+obj/od-fs/keymap.o \
+obj/od-fs/libamiga.o \
+obj/od-fs/logging.o \
+obj/od-fs/mman.o \
+obj/od-fs/parser.o \
+obj/od-fs/random.o \
+obj/od-fs/roms.o \
+obj/od-fs/picasso96.o \
+obj/od-fs/serial_host.o \
+obj/od-fs/stubs.o \
+obj/od-fs/support.o \
+obj/od-fs/util.o \
+obj/od-fs/threading.o \
+obj/od-fs/uae_host.o \
+obj/od-fs/uaemisc.o \
+obj/od-fs/version.o \
+obj/od-fs/video.o \
+obj/qemuvga/cirrus_vga.o \
+obj/qemuvga/qemuuaeglue.o \
+obj/qemuvga/vga.o
 
 #obj/chd-archiver-astring.o
 #obj/chd-archiver-chdcdrom.o
@@ -348,59 +349,77 @@ obj/qemuvga-vga.o
 #obj/chd-archiver-md5.o
 #obj/chd-archiver-sha1.o
 
+uae_deps = \
+gen/blit.h \
+gen/comptbl.h \
+gen/linetoscr.cpp
+
 ifeq ($(generate), 1)
 
-gensrc/genblitter: obj/genblitter.o obj/blitops.o obj/writelog.o
+gen/genblitter: obj/genblitter.o obj/blitops.o obj/writelog.o
+	mkdir -p `dirname $@`
 	$(cxx) $(cppflags) $(cxxflags) obj/genblitter.o obj/blitops.o \
-			obj/writelog.o -o gensrc/genblitter
+	obj/writelog.o -o gen/genblitter
 
-gensrc/gencpu: gensrc/cpudefs.cpp obj/gencpu.o obj/readcpu.o obj/missing.o \
-		gensrc/cpudefs.cpp
+gen/gencpu: gen/cpudefs.cpp obj/gencpu.o obj/readcpu.o obj/missing.o \
+		gen/cpudefs.cpp
+	mkdir -p `dirname $@`
 	$(cxx) $(cppflags) $(cxxflags) obj/gencpu.o obj/readcpu.o obj/missing.o \
-			gensrc/cpudefs.cpp -o gensrc/gencpu
+	gen/cpudefs.cpp -o gen/gencpu
 
-gensrc/genlinetoscr:
-	$(cxx) $(cppflags) $(cxxflags) src/genlinetoscr.cpp -o gensrc/genlinetoscr
+gen/genlinetoscr:
+	mkdir -p `dirname $@`
+	$(cxx) $(cppflags) $(cxxflags) src/genlinetoscr.cpp \
+	 -o gen/genlinetoscr
 
-gensrc/gencomp: src/jit/gencomp.cpp obj/readcpu.o obj/gen-cpudefs.o obj/missing.o obj/writelog.o
-	$(cxx) $(cppflags) $(cxxflags) src/jit/gencomp.cpp obj/readcpu.o obj/gen-cpudefs.o obj/missing.o obj/writelog.o -o gensrc/gencomp
+gen/gencomp: src/jit/gencomp.cpp obj/readcpu.o obj/gen/cpudefs.o obj/missing.o
+	mkdir -p `dirname $@`
+	$(cxx) $(cppflags) $(cxxflags) src/jit/gencomp.cpp obj/readcpu.o \
+	obj/gen/cpudefs.o obj/missing.o -o gen/gencomp
 
-gensrc/linetoscr.cpp: gensrc/genlinetoscr
-	gensrc/genlinetoscr > gensrc/linetoscr.cpp
+gen/linetoscr.cpp: gen/genlinetoscr
+	gen/genlinetoscr > gen/linetoscr.cpp
 
-gensrc/blit.h: gensrc/genblitter
-	gensrc/genblitter i > gensrc/blit.h
+gen/blit.h: gen/genblitter
+	gen/genblitter i > gen/blit.h
 
-gensrc/blitfunc.cpp: gensrc/genblitter gensrc/blitfunc.h
-	gensrc/genblitter f > gensrc/blitfunc.cpp
+gen/blitfunc.cpp: gen/genblitter gen/blitfunc.h
+	gen/genblitter f > gen/blitfunc.cpp
 
-gensrc/blitfunc.h: gensrc/genblitter
-	gensrc/genblitter h > gensrc/blitfunc.h
+gen/blitfunc.h: gen/genblitter
+	gen/genblitter h > gen/blitfunc.h
 
-gensrc/blittable.cpp: gensrc/genblitter gensrc/blitfunc.h
-	gensrc/genblitter t > gensrc/blittable.cpp
+gen/blittable.cpp: gen/genblitter gen/blitfunc.h
+	gen/genblitter t > gen/blittable.cpp
 
-gensrc/build68k: src/build68k.cpp
-	$(cxx) $(cppflags) $(cxxflags) src/build68k.cpp src/writelog.cpp -o gensrc/build68k
+gen/comptbl.h: gen/compemu.cpp
+gen/compstbl.cpp: gen/compemu.cpp
 
-gensrc/cpudefs.cpp: gensrc/build68k src/table68k
-	./gensrc/build68k < src/table68k > gensrc/cpudefs.cpp
-	#python util/fix_tchar.py gensrc/cpudefs.cpp
+gen/compemu.cpp: gen/gencomp
+	mkdir -p `dirname $@`
+	gen/gencomp
 
-gensrc/cpuemu_0.cpp: gensrc/gencpu
-	cd gensrc && ./gencpu --optimized-flags
+gen/build68k: src/build68k.cpp
+	mkdir -p `dirname $@`
+	$(cxx) $(cppflags) $(cxxflags) src/build68k.cpp src/writelog.cpp -o gen/build68k
 
-gensrc/cpustbl.cpp: gensrc/cpuemu_0.cpp
+gen/cpudefs.cpp: gen/build68k src/table68k
+	./gen/build68k < src/table68k > gen/cpudefs.cpp
+	#python util/fix_tchar.py gen/cpudefs.cpp
 
-gensrc/cputbl.h: gensrc/cpuemu_0.cpp
+gen/cpustbl.cpp: gen/cpuemu_0.cpp
+gen/cputbl.h: gen/cpuemu_0.cpp
+gen/cpuemu_11.cpp: gen/cpuemu_0.cpp
+gen/cpuemu_13.cpp: gen/cpuemu_0.cpp
+gen/cpuemu_20.cpp: gen/cpuemu_0.cpp
+gen/cpuemu_21.cpp: gen/cpuemu_0.cpp
+gen/cpuemu_22.cpp: gen/cpuemu_0.cpp
+gen/cpuemu_31.cpp: gen/cpuemu_0.cpp
+gen/cpuemu_32.cpp: gen/cpuemu_0.cpp
+gen/cpuemu_33.cpp: gen/cpuemu_0.cpp
 
-gensrc/cpuemu_11.cpp: gensrc/cpuemu_0.cpp
-gensrc/cpuemu_13.cpp: gensrc/cpuemu_0.cpp
-gensrc/cpuemu_20.cpp: gensrc/cpuemu_0.cpp
-gensrc/cpuemu_21.cpp: gensrc/cpuemu_0.cpp
-gensrc/cpuemu_31.cpp: gensrc/cpuemu_0.cpp
-gensrc/cpuemu_32.cpp: gensrc/cpuemu_0.cpp
-gensrc/cpuemu_33.cpp: gensrc/cpuemu_0.cpp
+gen/cpuemu_0.cpp: gen/gencpu
+	cd gen && ./gencpu --optimized-flags
 
 endif
 
@@ -408,52 +427,46 @@ endif
 # was found caused by the optimizer (where basically (1 ^ 0) & (1 ^ 0) was
 # evaluated to 0). This fixes Tower of Babel (IPF).
 
-obj/gensrc-cpuemu%.o: gensrc/cpuemu%.cpp
+obj/gen/cpuemu%.o: gen/cpuemu%.cpp
+	mkdir -p `dirname $@`
 	$(cxx) $(cppflags) $(cxxflags) -O0 -c $< -o $@
 
-obj/gensrc-%.o: gensrc/%.cpp
+obj/gen/%.o: gen/%.cpp
+	mkdir -p `dirname $@`
 	$(cxx) $(cppflags) $(cxxflags) -c $< -o $@
 
-obj/%.o: src/%.cpp
-	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -c $< -o $@
-
-obj/chd-archiver-%.o: src/archivers/chd/%.cpp
-	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -c $< -o $@
-
-obj/qemuvga-%.o: src/qemuvga/%.cpp
-	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -c $< -o $@
-
-obj/zip-archiver-%.o: src/archivers/zip/%.cpp
-	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -c $< -o $@
-
-obj/dms-archiver-%.o: src/archivers/dms/%.cpp
-	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -c $< -o $@
-
-obj/jit-%.o: src/jit/%.cpp
-	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -c $< -o $@
-
-obj/jit-compemu_support.o: src/jit/compemu_support.cpp
+obj/jit/compemu_support.o: src/jit/compemu_support.cpp
+	mkdir -p `dirname $@`
 	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -fpermissive -c $< -o $@
 
 obj/bsdsocket.o: src/bsdsocket.cpp
+	mkdir -p `dirname $@`
 	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -fpermissive -c $< -o $@
 
-obj/od-fs-%.o: src/od-fs/%.cpp
+#obj/uae.a: gen/blit.h gen/linetoscr.cpp $(uae_objects)
+#	mkdir -p `dirname $@`
+#ifeq ($(os), macosx)
+#	rm -f $@
+#endif
+#	$(ar) cru $@ $(uae_objects)
+#ifeq ($(os), macosx)
+#	ranlib $@
+#endif
+
+obj/%.o: src/%.cpp
+	mkdir -p `dirname $@`
+	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -c $< -o $@
+
+obj/od-fs/%.o: src/od-fs/%.cpp
+	mkdir -p `dirname $@`
 	$(cxx) $(cppflags) $(cxxflags) -c $< -o $@
 
-obj/uae.a: gensrc/blit.h gensrc/linetoscr.cpp $(uae_objects)
-ifeq ($(os), macosx)
-	rm -f $@
-endif
-	$(ar) cru $@ $(uae_objects)
-ifeq ($(os), macosx)
-	ranlib $@
-endif
-
 obj/fs-uae.res: src/fs-uae/fs-uae.rc
+	mkdir -p `dirname $@`
 	windres $< -O coff -o $@
 
-obj/fs-uae-%.o: src/fs-uae/%.c
+obj/fs-uae/%.o: src/fs-uae/%.c
+	mkdir -p `dirname $@`
 	$(cc) $(cppflags) $(cflags) -c $< -o $@
 
 #ifeq ($(os), windows)
@@ -484,14 +497,13 @@ catalogs = \
 
 mo: $(catalogs)
 
-fs-uae: libfsemu-target obj/uae.a $(objects)
+fs-uae: libfsemu-target $(uae_deps) $(uae_objects) $(objects)
 	rm -f fs-uae
-	$(cxx) $(ldflags) $(objects) obj/uae.a $(libs) -o fs-uae
+	$(cxx) $(ldflags) $(objects) $(uae_objects) $(libs) -o fs-uae
 
 fs-uae-device-helper: libfsemu-target $(device_helper_objects)
 	rm -f fs-uae-device-helper
 	$(cxx) $(ldflags) $(device_helper_objects) $(libs) -o fs-uae-device-helper
-
 
 build_dir := "."
 dist_name = fs-uae-$(version)
@@ -524,8 +536,8 @@ distdir-base:
 	rm -f $(dist_dir)/src/catweasel.cpp
 
 	find $(dist_dir)/share -name "*.mo" -delete
-	mkdir -p $(dist_dir)/gensrc
-	cp -a gensrc/*.cpp gensrc/*.h $(dist_dir)/gensrc
+	#mkdir -p $(dist_dir)/gensrc
+	#cp -a gensrc/*.cpp gensrc/*.h $(dist_dir)/gensrc
 
 	mkdir -p $(dist_dir)/libfsemu
 	cp -a $(libfsemu_dir)/COPYING $(dist_dir)/libfsemu
@@ -703,7 +715,8 @@ clean-dist:
 
 clean:
 	$(make) -C $(libfsemu_dir) clean
-	rm -f gensrc/build68k gensrc/genblitter gensrc/gencpu gensrc/genlinetoscr
-	rm -f obj/*.o obj/*.a fs-uae fs-uae.exe fs-uae-device-helper fs-uae-device-helper.exe
+	rm -Rf gen obj
+	rm -f fs-uae fs-uae.exe
+	rm -f fs-uae-device-helper fs-uae-device-helper.exe
 
 distclean: clean clean-dist

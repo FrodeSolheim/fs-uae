@@ -5,9 +5,9 @@
  *
  * Copyright 1995,1996 Bernd Schmidt
  */
-#ifdef FSUAE
-#define UAE_CONSOLE
-#endif
+
+#include "sysconfig.h"
+#include "sysdeps.h"
 
 #include <stdlib.h>
 #include <tchar.h>
@@ -16,15 +16,8 @@
 
 #define TCHAR char
 
-#include "sysconfig.h"
-#include "sysdeps.h"
-
-
 #include "readcpu.h"
-#ifdef FSUAE
-#define write_log_standard printf
-#endif
- 
+
 static FILE *tablef;
 static int nextch = 0;
 
@@ -63,8 +56,16 @@ static int nextchtohex(void)
     }
 }
 
-int main(int argc, char **argv)
+#if defined(FSUAE) && defined (WINDOWS)
+#include "windows.h"
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
+int argc = __argc;
+char** argv = __argv;
+#else
+int main(int argc, char *argv[])
+{
+#endif
     int no_insns = 0;
 
     printf ("#include \"sysconfig.h\"\n");

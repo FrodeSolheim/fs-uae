@@ -1,5 +1,6 @@
 Version 2.5.0:
 
+* Use floating point control register, output compiler warning when not.
 * Added flush_log boolean option to flush log output after each log line.
 * New UAE Native Interface (via built-in uaenative.library).
 * Enforcer / AHI interface is added (but with a dummy AHI backend).

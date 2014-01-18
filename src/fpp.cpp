@@ -148,23 +148,17 @@ static uae_u16 x87_cw_tab[] = {
 	0x137f, 0x1f7f, 0x177f, 0x1b7f	/* undefined */
 };
 #if USE_X86_FPUCW
-	uae_u16 UNUSED(x87_cw) = x87_cw_tab[(m68k_cw >> 4) & 0xf];
+	uae_u16 x87_cw = x87_cw_tab[(m68k_cw >> 4) & 0xf];
 
 #if defined(X86_MSVC_ASSEMBLY)
 	__asm {
 		fldcw word ptr x87_cw
 	}
-#elif defined(X86_ASSEMBLY)
+#elif defined(__GNUC__) && (defined(__i386__) || defined(__x86_64__))
 	__asm__ ("fldcw %0" : : "m" (*&x87_cw));
-#endif
-
-#ifdef FSUAE // NL
-#if defined(X86_MSVC_ASSEMBLY)
-#elif defined(X86_ASSEMBLY)
 #else
-    printf("FIXME: warning fldcw not set\n");
+    #warning floating point control not specified
 #endif
-#endif // NL
 
 #endif
 #endif

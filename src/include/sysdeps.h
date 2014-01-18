@@ -467,11 +467,11 @@ extern void mallocemu_free (void *ptr);
 #endif
 
 #if __GNUC__ - 1 > 1 || __GNUC_MINOR__ - 1 > 6
-extern void write_log (const TCHAR *, ...) __attribute__ ((format (printf, 1, 2)));
-extern void write_log (char *, ...) __attribute__ ((format (printf, 1, 2)));
+//extern void write_log (const TCHAR *, ...) __attribute__ ((format (printf, 1, 2)));
+void write_log (const char *, ...) __attribute__ ((format (printf, 1, 2)));
 #else
-extern void write_log (const TCHAR *, ...);
-extern void write_log (const char *, ...);
+//extern void write_log (const TCHAR *, ...);
+void write_log (const char *, ...);
 #endif
 extern void write_dlog (const TCHAR *, ...);
 

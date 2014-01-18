@@ -12,6 +12,11 @@ all: fs-uae fs-uae-device-helper mo
 
 cppflags = -DFSEMU -DFSUAE -D_FILE_OFFSET_BITS=64 $(CPPFLAGS)
 
+strict := 0
+ifeq ($(strict), 1)
+cppflags += -Werror
+endif
+
 ifeq ($(debug), 1)
 cppflags += -DDEBUG
 endif
@@ -440,9 +445,9 @@ obj/jit/compemu_support.o: src/jit/compemu_support.cpp
 	mkdir -p `dirname $@`
 	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -fpermissive -c $< -o $@
 
-obj/bsdsocket.o: src/bsdsocket.cpp
-	mkdir -p `dirname $@`
-	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -fpermissive -c $< -o $@
+#obj/bsdsocket.o: src/bsdsocket.cpp
+#	mkdir -p `dirname $@`
+#	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -fpermissive -c $< -o $@
 
 #obj/uae.a: gen/blit.h gen/linetoscr.cpp $(uae_objects)
 #	mkdir -p `dirname $@`
@@ -453,6 +458,10 @@ obj/bsdsocket.o: src/bsdsocket.cpp
 #ifeq ($(os), macosx)
 #	ranlib $@
 #endif
+
+obj/cdtv.o: src/cdtv.cpp
+	mkdir -p `dirname $@`
+	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -Wno-error=tautological-compare -c $< -o $@
 
 obj/%.o: src/%.cpp
 	mkdir -p `dirname $@`

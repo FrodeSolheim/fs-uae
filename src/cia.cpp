@@ -1868,7 +1868,6 @@ static void write_battclock (void)
 		return;
 	struct zfile *f = zfile_fopen (currprefs.rtcfile, _T("wb"));
 	if (f) {
-		uae_u8 zero[13] = { 0 };
 		struct tm *ct;
 #ifdef FSUAE
 		ct = uae_get_amiga_time();
@@ -1940,7 +1939,10 @@ static uae_u32 REGPARAM2 clock_wget (uaecptr addr)
 
 static uae_u32 REGPARAM2 clock_bget (uaecptr addr)
 {
+#ifdef FSUAE
+#else
 	time_t t;
+#endif
 	struct tm *ct;
 	uae_u8 v = 0;
 

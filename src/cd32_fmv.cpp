@@ -69,7 +69,7 @@ static uaecptr fmv_start = 0x00200000;
 static int fmv_size = 1048576;
 
 static uae_u16 l64111regs[32];
-static uae_u16 l64111intmask1, l64111intmask2, l64111intstatus1, l64111intstatus2;
+static uae_u16 l64111intmask1, l64111intmask2, l64111intstatus1, UNUSED(l64111intstatus2);
 static uae_u16 io_reg;
 
 static int isdebug (uaecptr addr)
@@ -384,7 +384,7 @@ void cd32_fmv_init (uaecptr start)
 	struct romdata *rd;
 	struct zfile *z;
 
-	write_log (_T("CD32 FMV mapped @$%lx\n"), start);
+	write_log (_T("CD32 FMV mapped @$%x\n"), start);
 	if (start != fmv_start)
 		return;
 	if (!rl)

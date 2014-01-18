@@ -617,7 +617,7 @@ static void check_changes (int unitnum)
 		changed = true;
 
 	if (changed) {
-		bool wasimage = currprefs.cdslots[unitnum].name[0] != 0;
+		bool UNUSED(wasimage) = currprefs.cdslots[unitnum].name[0] != 0;
 		if (st->sema)
 			gotsem = getsem (unitnum, true);
 		st->cdimagefileinuse = changed_prefs.cdslots[unitnum].inuse;
@@ -766,7 +766,7 @@ void sys_command_cd_stop (int unitnum)
 	if (!getsem (unitnum))
 		return;
 	if (state[unitnum].device_func->stop == NULL) {
-		int as = audiostatus (unitnum);
+		int UNUSED(as) = audiostatus (unitnum);
 		uae_u8 cmd[6] = {0x4e,0,0,0,0,0};
 		do_scsi (unitnum, cmd, sizeof cmd);
 	} else {
@@ -1158,7 +1158,7 @@ static void wl (uae_u8 *p, int v)
 	p[2] = v >> 8;
 	p[3] = v;
 }
-static void ww (uae_u8 *p, int v)
+static void UNUSED_FUNCTION(ww) (uae_u8 *p, int v)
 {
 	p[0] = v >> 8;
 	p[1] = v;
@@ -1293,7 +1293,7 @@ int scsi_cd_emulate (int unitnum, uae_u8 *cmdbuf, int scsi_cmd_len,
 	sys_command_info (unitnum, &di, 1);
 
 	if (log_scsiemu) {
-		write_log (_T("SCSIEMU %d: %02X.%02X.%02X.%02X.%02X.%02X.%02X.%02X.%02X.%02X.%02X.%02X CMDLEN=%d DATA=%08X LEN=%d\n"), unitnum,
+		write_log (_T("SCSIEMU %d: %02X.%02X.%02X.%02X.%02X.%02X.%02X.%02X.%02X.%02X.%02X.%02X CMDLEN=%d DATA=%p LEN=%d\n"), unitnum,
 			cmdbuf[0], cmdbuf[1], cmdbuf[2], cmdbuf[3], cmdbuf[4], cmdbuf[5], cmdbuf[6], 
 			cmdbuf[7], cmdbuf[8], cmdbuf[9], cmdbuf[10], cmdbuf[11],
 			scsi_cmd_len, scsi_data, dlen);
@@ -1302,7 +1302,7 @@ int scsi_cd_emulate (int unitnum, uae_u8 *cmdbuf, int scsi_cmd_len,
 	// media changed and not inquiry
 	if (st->mediawaschanged && cmd != 0x12) {
 		if (log_scsiemu) {
-			write_log (_T("SCSIEMU %d: MEDIUM MAY HAVE CHANGED STATE\n"));
+			write_log (_T("SCSIEMU: MEDIUM MAY HAVE CHANGED STATE\n"));
 		}
 		lr = -1;
 		status = 2; /* CHECK CONDITION */
@@ -1558,7 +1558,7 @@ int scsi_cd_emulate (int unitnum, uae_u8 *cmdbuf, int scsi_cmd_len,
 				goto nodisk;
 			stopplay (unitnum);
 			offset = ((cmdbuf[1] & 31) << 16) | (cmdbuf[2] << 8) | cmdbuf[3];
-			struct cd_toc *t = gettoc (&di.toc, offset);
+			struct cd_toc *UNUSED() = gettoc (&di.toc, offset);
 			v = scsi_read_cd_data (unitnum, scsi_data, offset, 0, &di, &scsi_len);
 			if (v == -1)
 				goto outofbounds;
@@ -1595,7 +1595,7 @@ int scsi_cd_emulate (int unitnum, uae_u8 *cmdbuf, int scsi_cmd_len,
 				goto nodisk;
 			stopplay (unitnum);
 			offset = rl (cmdbuf + 2);
-			struct cd_toc *t = gettoc (&di.toc, offset);
+			struct cd_toc *UNUSED(t) = gettoc (&di.toc, offset);
 			v = scsi_read_cd_data (unitnum, scsi_data, offset, 0, &di, &scsi_len);
 			if (v == -1)
 				goto outofbounds;
@@ -1773,7 +1773,7 @@ int scsi_cd_emulate (int unitnum, uae_u8 *cmdbuf, int scsi_cmd_len,
 			int msf = cmdbuf[1] & 2;
 			int subq = cmdbuf[2] & 0x40;
 			int format = cmdbuf[3];
-			int track = cmdbuf[6];
+			int UNUSED(track) = cmdbuf[6];
 			int len = rw (cmdbuf + 7);
 			uae_u8 buf[SUBQ_SIZE] = { 0 };
 
@@ -2057,7 +2057,7 @@ static int execscsicmd_direct (int unitnum, int type, struct amigascsi *as)
 {
 	int io_error = 0;
 	uae_u8 *scsi_datap, *scsi_datap_org;
-	uae_u32 scsi_cmd_len_orig = as->cmd_len;
+	uae_u32 UNUSED(scsi_cmd_len_orig) = as->cmd_len;
 	uae_u8 cmd[16] = { 0 };
 	uae_u8 replydata[256] = { 0 };
 	int datalen = as->len;

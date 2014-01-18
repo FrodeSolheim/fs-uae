@@ -221,7 +221,7 @@ static void flac_get_size (struct cdtoc *t)
 	FLAC__StreamDecoder *decoder = FLAC__stream_decoder_new ();
 	if (decoder) {
 		FLAC__stream_decoder_set_md5_checking (decoder, false);
-		int init_status = FLAC__stream_decoder_init_stream (decoder,
+		int UNUSED(init_status) = FLAC__stream_decoder_init_stream (decoder,
 			&file_read_callback, &file_seek_callback, &file_tell_callback,
 			&file_len_callback, &file_eof_callback,
 			&flac_write_callback, &flac_metadata_callback, &flac_error_callback, t);
@@ -236,7 +236,7 @@ static uae_u8 *flac_get_data (struct cdtoc *t)
 	FLAC__StreamDecoder *decoder = FLAC__stream_decoder_new ();
 	if (decoder) {
 		FLAC__stream_decoder_set_md5_checking (decoder, false);
-		int init_status = FLAC__stream_decoder_init_stream (decoder,
+		int UNUSED(init_status) = FLAC__stream_decoder_init_stream (decoder,
 			&file_read_callback, &file_seek_callback, &file_tell_callback,
 			&file_len_callback, &file_eof_callback,
 			&flac_write_callback, &flac_metadata_callback, &flac_error_callback, t);
@@ -409,7 +409,6 @@ static void *cdda_play_func (void *v)
 {
 	int cdda_pos;
 	int num_sectors = CDDA_BUFFERS;
-	int quit = 0;
 	int bufnum;
 	int bufon[2];
 	int oldplay;
@@ -775,7 +774,7 @@ static int command_rawread (int unitnum, uae_u8 *data, int sector, int size, int
 		return 0;
 	int asector = sector;
 	struct cdtoc *t = findtoc (cdu, &sector);
-	int ssize = t->size + t->skipsize;
+	int UNUSED(ssize) = t->size + t->skipsize;
 
 	if (!t)
 		goto end;
@@ -833,11 +832,11 @@ static int command_rawread (int unitnum, uae_u8 *data, int sector, int size, int
 
 		uae_u8 sectortype = extra >> 16;
 		uae_u8 cmd9 = extra >> 8;
-		int sync = (cmd9 >> 7) & 1;
-		int headercodes = (cmd9 >> 5) & 3;
-		int userdata = (cmd9 >> 4) & 1;
-		int edcecc = (cmd9 >> 3) & 1;
-		int errorfield = (cmd9 >> 1) & 3;
+		int UNUSED(sync) = (cmd9 >> 7) & 1;
+		int UNUSED(headercodes) = (cmd9 >> 5) & 3;
+		int UNUSED(userdata) = (cmd9 >> 4) & 1;
+		int UNUSED(edcecc) = (cmd9 >> 3) & 1;
+		int UNUSED(errorfield) = (cmd9 >> 1) & 3;
 		uae_u8 subs = extra & 7;
 		if (subs != 0 && subs != 1 && subs != 2 && subs != 4) {
 			ret = -1;
@@ -1134,7 +1133,7 @@ static int parsemds (struct cdunit *cdu, struct zfile *zmds, const TCHAR *img)
 			tracknum = point - 1;
 		if (tracknum >= 0) {
 			MDS_Footer *footer = tb->footer_offset == 0 ? NULL : (MDS_Footer*)(mds + tb->footer_offset);
-			MDS_TrackExtraBlock *teb = tb->extra_offset == 0 ? NULL : (MDS_TrackExtraBlock*)(mds + tb->extra_offset);
+			MDS_TrackExtraBlock *UNUSED(teb) = tb->extra_offset == 0 ? NULL : (MDS_TrackExtraBlock*)(mds + tb->extra_offset);
 			t = &cdu->toc[tracknum];
 			t->adr = tb->adr_ctl >> 4;
 			t->ctrl = tb->adr_ctl & 15;
@@ -1569,7 +1568,7 @@ static int parsecue (struct cdunit *cdu, struct zfile *zcue, const TCHAR *img)
 			pregap += tn;
 			lastpregap = tn;
 		} else if (!_tcsnicmp (p, _T("POSTGAP"), 7)) {
-			struct cdtoc *t = &cdu->toc[tracknum - 1];
+			struct cdtoc *UNUSED(t) = &cdu->toc[tracknum - 1];
 			TCHAR *tt;
 			int tn;
 			p += 7;

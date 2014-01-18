@@ -79,7 +79,7 @@ struct device_info {
 	TCHAR vendorid[10];
 	TCHAR productid[18];
 	TCHAR revision[6];
-	TCHAR *backend;
+	const TCHAR *backend;
 	struct cd_toc_head toc;
 };
 

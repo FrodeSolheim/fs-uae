@@ -507,6 +507,14 @@ obj/scsiemul.o: src/scsiemul.cpp
 	mkdir -p `dirname $@`
 	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -Wno-error=unused-variable -c $< -o $@
 
+obj/zfile.o: src/zfile.cpp
+	mkdir -p `dirname $@`
+	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -Wno-error=logical-op-parentheses -Wno-error=tautological-compare -c $< -o $@
+
+obj/zfile_archive.o: src/zfile_archive.cpp
+	mkdir -p `dirname $@`
+	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -Wno-error=tautological-compare -c $< -o $@
+
 obj/%.o: src/%.cpp
 	mkdir -p `dirname $@`
 	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -c $< -o $@

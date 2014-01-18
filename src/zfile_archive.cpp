@@ -26,7 +26,7 @@
 
 #define unpack_log write_log
 #undef unpack_log
-#define unpack_log
+#define unpack_log(fmt, ...)
 
 
 static time_t fromdostime (uae_u32 dd)
@@ -412,7 +412,7 @@ static struct zfile *archive_do_zip (struct znode *zn, struct zfile *z, int flag
 	unzFile uz;
 	int i;
 	TCHAR tmp[MAX_DPATH];
-	TCHAR *name = z ? z->archiveparent->name : zn->volume->root.fullname;
+	TCHAR *UNUSED(name) = z ? z->archiveparent->name : zn->volume->root.fullname;
 	char *s;
 
 	uz = unzOpen (z ? z->archiveparent : zn->volume->archive);
@@ -1168,7 +1168,8 @@ static uae_u32 gwx (uae_u8 *p)
 static const int secs_per_day = 24 * 60 * 60;
 static const int diff = (8 * 365 + 2) * (24 * 60 * 60);
 static const int diff2 = (-8 * 365 - 2) * (24 * 60 * 60);
-static time_t put_time (long days, long mins, long ticks)
+
+static time_t UNUSED_FUNCTION(put_time) (long days, long mins, long ticks)
 {
 	time_t t;
 
@@ -1263,7 +1264,6 @@ static void recursesfs (struct znode *zn, int root, TCHAR *name, int sfs2)
 	struct zvolume *zv = zn->volume;
 	struct adfhandle *adf = (struct adfhandle*)zv->handle;
 	TCHAR name2[MAX_DPATH];
-	int bs = adf->blocksize;
 	int block;
 	uae_u8 *p, *s;
 	struct zarchive_info zai;
@@ -1505,7 +1505,7 @@ static int sfsfindblock (struct adfhandle *adf, int btree, int theblock, struct 
 		if (isleaf) {
 			uae_u32 key = glx (p);
 			uae_u32 next = glx (p + 4);
-			uae_u32 prev = glx (p + 8);
+			uae_u32 UNUSED(prev) = glx (p + 8);
 			uae_u32 blocks;
 			if (sfs2)
 				blocks = glx (p + 12);
@@ -1524,7 +1524,7 @@ static int sfsfindblock (struct adfhandle *adf, int btree, int theblock, struct 
 				return next;
 			}
 		} else {
-			uae_u32 key = glx (p);
+			uae_u32 UNUSED(key) = glx (p);
 			uae_u32 data = glx (p + 4);
 			int newblock = sfsfindblock (adf, data, theblock, sfsb, sfsblockcnt, sfsmaxblockcnt, sfs2);
 			if (newblock)
@@ -1742,7 +1742,7 @@ struct zvolume *archive_directory_rdb (struct zfile *z)
 	zfile_fseek (z, 0, SEEK_SET);
 	p = buf;
 	zfile_fread (buf, 1, 512, z);
-	zai.name = _T("rdb_dump.dat");
+	zai.name = my_strdup(_T("rdb_dump.dat"));
 	bs = rl (p + 16);
 	zai.size = rl (p + 140) * bs;
 	zai.comment = NULL;
@@ -1908,7 +1908,7 @@ static int getcluster (struct zfile *z, int cluster, int fatstart, int fatbits)
 	return fat;
 }
 
-static void fatdirectory (struct zfile *z, struct zvolume *zv, TCHAR *name, int startblock, int entries, int sectorspercluster, int fatstart, int dataregion, int fatbits)
+static void fatdirectory (struct zfile *z, struct zvolume *zv, const TCHAR *name, int startblock, int entries, int sectorspercluster, int fatstart, int dataregion, int fatbits)
 {
 	struct zarchive_info zai;
 	struct znode *znnew;

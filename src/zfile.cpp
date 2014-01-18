@@ -68,7 +68,7 @@ static struct zcache *cache_get (const TCHAR *name)
 	return NULL;
 }
 
-static void zcache_flush (void)
+static void UNUSED_FUNCTION(zcache_flush) (void)
 {
 }
 
@@ -108,7 +108,7 @@ static void zcache_free (struct zcache *zc)
 		pl->next = nxt;
 }
 
-static void zcache_close (void)
+static void UNUSED_FUNCTION(zcache_close) (void)
 {
 	struct zcache *zc = zcachedata;
 	while (zc) {
@@ -239,7 +239,7 @@ void zfile_fclose (struct zfile *f)
 		pl->next = nxt;
 }
 
-static void removeext (TCHAR *s, TCHAR *ext)
+static void removeext (TCHAR *s, const TCHAR *ext)
 {
 	if (_tcslen (s) < _tcslen (ext))
 		return;
@@ -259,7 +259,7 @@ static bool checkwrite (struct zfile *zf, int *retcode)
 
 
 static uae_u8 exeheader[]={ 0x00,0x00,0x03,0xf3,0x00,0x00,0x00,0x00 };
-static TCHAR *diskimages[] = { _T("adf"), _T("adz"), _T("ipf"), _T("fdi"), _T("dms"), _T("wrp"), _T("dsq"), 0 };
+static const TCHAR *diskimages[] = { _T("adf"), _T("adz"), _T("ipf"), _T("fdi"), _T("dms"), _T("wrp"), _T("dsq"), 0 };
 
 int zfile_gettype (struct zfile *z)
 {
@@ -1316,7 +1316,9 @@ static const TCHAR *archive_extensions[] = {
 	NULL
 };
 static const TCHAR *plugins_7z[] = { _T("7z"), _T("rar"), _T("zip"), _T("lha"), _T("lzh"), _T("lzx"), _T("adf"), _T("dsq"), _T("hdf"), _T("tar"), NULL };
+#if defined(ARCHIVEACCESS)
 static const uae_char *plugins_7z_x[] = { "7z", "Rar!", "MK", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
+#endif
 static const int plugins_7z_t[] = {
 	ArchiveFormat7Zip, ArchiveFormatRAR, ArchiveFormatZIP, ArchiveFormatLHA, ArchiveFormatLHA, ArchiveFormatLZX,
 	ArchiveFormatADF, ArchiveFormatADF, ArchiveFormatADF, ArchiveFormatTAR
@@ -1331,7 +1333,6 @@ int iszip (struct zfile *z, int mask)
 	TCHAR *name = z->name;
 	TCHAR *ext = _tcsrchr (name, '.');
 	uae_u8 header[32];
-	int i;
 
 	if (!ext)
 		return 0;
@@ -1414,7 +1415,6 @@ struct zfile *zuncompress (struct znode *parent, struct zfile *z, int dodefault,
 	TCHAR *name = z->name;
 	TCHAR *ext = NULL;
 	uae_u8 header[32];
-	int i;
 
 	if (retcode)
 		*retcode = 0;
@@ -2540,7 +2540,8 @@ static struct znode *znode_alloc_child (struct znode *parent, const TCHAR *name)
 	zn->parent = parent;
 	return zn;
 }
-static struct znode *znode_alloc_sibling (struct znode *sibling, const TCHAR *name)
+
+static struct znode *UNUSED_FUNCTION(znode_alloc_sibling) (struct znode *sibling, const TCHAR *name)
 {
 	struct znode *zn = znode_alloc (sibling->parent, name);
 
@@ -2987,7 +2988,7 @@ struct znode *zvolume_adddir_abs (struct zvolume *zv, struct zarchive_info *zai)
 
 struct znode *zvolume_addfile_abs (struct zvolume *zv, struct zarchive_info *zai)
 {
-	struct znode *zn, *zn2;
+	struct znode *zn = NULL, *zn2;
 	int i;
 	TCHAR *path = my_strdup (zai->name);
 	TCHAR *p, *p2;
@@ -3103,7 +3104,7 @@ struct zvolume *zfile_fopen_archive (const TCHAR *filename)
 struct zvolume *zfile_fopen_archive_root (const TCHAR *filename, int flags)
 {
 	TCHAR path[MAX_DPATH], *p1, *p2, *lastp;
-	struct zvolume *zv = NULL;
+	struct zvolume *UNUSED(zv) = NULL;
 	//int last = 0;
 	int num, i;
 
@@ -3255,7 +3256,7 @@ int zfile_readdir_archive (struct zdirectory *zd, TCHAR *out, bool fullpath)
 		return 0;
 	if (zd->filenames == NULL) {
 		struct znode *n = zd->first;
-		int cnt = 0, len = 0;
+		int cnt = 0;
 		while (n) {
 			cnt++;
 			n = n->sibling;

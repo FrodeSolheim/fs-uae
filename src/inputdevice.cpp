@@ -126,7 +126,7 @@ static int joymodes[MAX_JPORTS];
 static int *joyinputs[MAX_JPORTS];
 
 static int input_acquired;
-static int testmode, testmode_read, testmode_toggle;
+static int testmode;
 struct teststore
 {
 	int testmode_type;
@@ -287,7 +287,7 @@ static void copyjport (const struct uae_prefs *src, struct uae_prefs *dst, int n
 	dst->jports[num].autofire = src->jports[num].autofire;
 }
 
-static void out_config (struct zfile *f, int id, int num, const TCHAR *s1, const TCHAR *s2)
+static void UNUSED_FUNCTION(out_config) (struct zfile *f, int id, int num, const TCHAR *s1, const TCHAR *s2)
 {
 	TCHAR tmp[MAX_DPATH];
 	_stprintf (tmp, _T("input.%d.%s%d"), id, s1, num);
@@ -356,10 +356,10 @@ static bool write_slot (TCHAR *p, struct uae_input_device *uid, int i, int j)
 	}
 	uae_u64 flags = uid->flags[i][j];
 	if (uid->custom[i][j] && _tcslen (uid->custom[i][j]) > 0) {
-		_stprintf (p, _T("'%s'.%d"), uid->custom[i][j], flags & ID_FLAG_SAVE_MASK_CONFIG);
+		_stprintf (p, _T("'%s'.%lld"), uid->custom[i][j], flags & ID_FLAG_SAVE_MASK_CONFIG);
 		ok = true;
 	} else if (uid->eventid[i][j] > 0) {
-		_stprintf (p, _T("%s.%d"), events[uid->eventid[i][j]].confname, flags & ID_FLAG_SAVE_MASK_CONFIG);
+		_stprintf (p, _T("%s.%lld"), events[uid->eventid[i][j]].confname, flags & ID_FLAG_SAVE_MASK_CONFIG);
 		ok = true;
 	} else {
 		_tcscpy (p, _T("NULL"));
@@ -1090,7 +1090,7 @@ static uaecptr get_base (const uae_char *name)
 	if (!b || !b->check (v, 400) || b->flags != ABFLAG_RAM)
 		return 0;
 	v += 378; // liblist
-	while (v = get_long (v)) {
+	while ((v = get_long (v))) {
 		uae_u32 v2;
 		uae_u8 *p;
 		b = &get_mem_bank (v);
@@ -1129,7 +1129,7 @@ static uaecptr get_intuitionbase (void)
 	magicmouse_ibase = get_base ("intuition.library");
 	return magicmouse_ibase;
 }
-static uaecptr get_gfxbase (void)
+static uaecptr UNUSED_FUNCTION(get_gfxbase) (void)
 {
 	if (magicmouse_gfxbase == 0xffffffff)
 		return 0;
@@ -2458,7 +2458,10 @@ static int handle_custom_event (const TCHAR *custom)
 
 void inputdevice_hsync (void)
 {
+#ifdef FSUAE
+#else
 	static int cnt;
+#endif
 	cap_check ();
 
 #ifdef CATWEASEL
@@ -3533,7 +3536,7 @@ static int switchdevice (struct uae_input_device *id, int num, bool buttonmode)
 		//write_log (_T("GAMEPORTS MODE\n"));
 		if ((num == 0 || num == 1) && currprefs.jports[newport].id != JPORT_CUSTOM) {
 			//write_log (_T("Port supported\n"));
-			int om = jsem_ismouse (num, &currprefs);
+			int UNUSED(om) = jsem_ismouse (num, &currprefs);
 			int om1 = jsem_ismouse (0, &currprefs);
 			int om2 = jsem_ismouse (1, &currprefs);
 			if ((om1 >= 0 || om2 >= 0) && ismouse) {
@@ -3741,11 +3744,9 @@ static bool process_custom_event (struct uae_input_device *id, int offset, int s
 	flags = id->flags[offset][slotoffset];
 	qual = flags & ID_FLAG_QUALIFIER_MASK;
 	custom = id->custom[offset][slotoffset];
-	int af = flags & ID_FLAG_AUTOFIRE_MASK;
- 
+
 	for (idx = 1; idx < 4; idx++) {
 		uae_u64 flags2 = id->flags[offset][slotoffset + idx];
-		TCHAR *custom2 = id->custom[offset][slotoffset + idx];
 
 		// all slots must have same qualifier
 		if ((flags2 & ID_FLAG_QUALIFIER_MASK) != qual)
@@ -3858,7 +3859,7 @@ static void setbuttonstateall (struct uae_input_device *id, struct uae_input_dev
 		int sub = sublevdir[buttonstate == 0 ? 1 : 0][i];
 		uae_u64 *flagsp = &id->flags[ID_BUTTON_OFFSET + button][sub];
 		int evt = id->eventid[ID_BUTTON_OFFSET + button][sub];
-		TCHAR *custom = id->custom[ID_BUTTON_OFFSET + button][sub];
+		TCHAR *UNUSED(custom) = id->custom[ID_BUTTON_OFFSET + button][sub];
 		uae_u64 flags = flagsp[0];
 		int autofire = (flags & ID_FLAG_AUTOFIRE) ? 1 : 0;
 		int toggle = (flags & ID_FLAG_TOGGLE) ? 1 : 0;
@@ -4362,7 +4363,6 @@ static void checkcompakb (int *kb, int *srcmap)
 		struct uae_input_device *uid = &keyboards[0];
 		while (kb[j] >= 0) {
 			int id = kb[j];
-			int evt0 = 0, evt1 = 0;
 			k = 0;
 			while (keyboard_default[k].scancode >= 0) {
 				if (keyboard_default[k].scancode == kb[j]) {
@@ -4845,7 +4845,6 @@ static void compatibility_copy (struct uae_prefs *prefs, bool gameports)
 	}
 
 	for (i = 0; i < 2; i++) {
-		int af = prefs->jports[i].autofire;
 		if (prefs->jports[i].id >= 0 && joymodes[i] <= 0) {
 			int mode = prefs->jports[i].mode;
 			if (jsem_ismouse (i, prefs) >= 0) {
@@ -4916,7 +4915,6 @@ static void compatibility_copy (struct uae_prefs *prefs, bool gameports)
 
 	for (i = 2; i < MAX_JPORTS; i++) {
 		if (prefs->jports[i].id >= 0 && joymodes[i] <= 0) {
-			int mode = prefs->jports[i].mode;
 			if (jsem_isjoy (i, prefs) >= 0) {
 				joymodes[i] = JSEM_MODE_JOYSTICK;
 				joyinputs[i] = i == 3 ? ip_parjoy2 : ip_parjoy1;
@@ -5100,7 +5098,6 @@ static void compatibility_copy (struct uae_prefs *prefs, bool gameports)
 	for (i = 2; i < MAX_JPORTS; i++) {
 		int af = prefs->jports[i].autofire;
 		if (prefs->jports[i].id >= 0) {
-			int *kb = NULL;
 			joy = jsem_isjoy (i, prefs);
 			if (joy >= 0) {
 				if (gameports)
@@ -5516,8 +5513,6 @@ void inputdevice_setkeytranslation (struct uae_input_device_kbr_default **trans,
 // return true if keyboard/scancode pair is mapped
 int inputdevice_iskeymapped (int keyboard, int scancode)
 {
-	struct uae_input_device *na = &keyboards[keyboard];
-
 	if (!keyboards || scancode < 0)
 		return 0;
 	return scancodeused[keyboard][scancode];
@@ -5769,11 +5764,11 @@ static int get_int_num (void)
 }
 static TCHAR *get_int_friendlyname (int num)
 {
-	return _T("Internal events");
+	return my_strdup(_T("Internal events"));
 }
 static TCHAR *get_int_uniquename (int num)
 {
-	return _T("INTERNALEVENTS1");
+	return my_strdup(_T("INTERNALEVENTS1"));
 }
 static int get_int_widget_num (int num)
 {
@@ -5952,7 +5947,7 @@ static int put_event_data (const struct inputdevice_functions *id, int devnum, i
 
 static int is_event_used (const struct inputdevice_functions *id, int devnum, int isnum, int isevent)
 {
-	struct uae_input_device *uid = get_uid (id, devnum);
+	struct uae_input_device *UNUSED(uid) = get_uid (id, devnum);
 	int num, evt, sub;
 
 	for (num = 0; num < id->get_widget_num (devnum); num++) {

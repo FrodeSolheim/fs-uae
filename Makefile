@@ -495,6 +495,9 @@ obj/isofs.o: src/isofs.cpp
 	mkdir -p `dirname $@`
 	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -Wno-error=tautological-constant-out-of-range-compare -Wno-error=format -Wno-error=tautological-compare -c $< -o $@
 
+obj/memory.o: src/memory.cpp
+	mkdir -p `dirname $@`
+	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -Wno-error=constant-logical-operand -Wno-error=tautological-compare -c $< -o $@
 
 obj/%.o: src/%.cpp
 	mkdir -p `dirname $@`

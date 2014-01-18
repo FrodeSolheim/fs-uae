@@ -3547,7 +3547,7 @@ static void calcformula (struct uae_prefs *prefs, TCHAR *in)
 	}
 }
 
-int cfgfile_parse_option (struct uae_prefs *p, TCHAR *option, TCHAR *value, int type)
+int cfgfile_parse_option (struct uae_prefs *p, const TCHAR *option, TCHAR *value, int type)
 {
 	calcformula (p, value);
 
@@ -3568,8 +3568,13 @@ int cfgfile_parse_option (struct uae_prefs *p, TCHAR *option, TCHAR *value, int 
 			return 1;
 	}
 	if (type == 0 || (type & CONFIG_TYPE_HOST)) {
-		if (cfgfile_parse_host (p, option, value))
+	    // cfgfile_parse_host may modify the option (convert to lowercase).
+		TCHAR* writable_option = my_strdup(option);
+		if (cfgfile_parse_host (p, writable_option, value)) {
+			free(writable_option);
 			return 1;
+		}
+		free(writable_option);
 	}
 	if (type > 0 && (type & (CONFIG_TYPE_HARDWARE | CONFIG_TYPE_HOST)) != (CONFIG_TYPE_HARDWARE | CONFIG_TYPE_HOST))
 		return 1;

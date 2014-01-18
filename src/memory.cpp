@@ -77,7 +77,7 @@ static void nocanbang (void)
 uae_u8 ce_banktype[65536];
 uae_u8 ce_cachable[65536];
 
-static size_t bootrom_filepos, chip_filepos, bogo_filepos, rom_filepos, a3000lmem_filepos, a3000hmem_filepos;
+static size_t bootrom_filepos, chip_filepos, bogo_filepos, a3000lmem_filepos, a3000hmem_filepos;
 
 /* Set if we notice during initialization that settings changed,
 and we must clear all memory to prevent bogus contents from confusing
@@ -559,7 +559,7 @@ static uae_u32 REGPARAM2 chipmem_dummy_lget (uaecptr addr)
 	return (chipmem_dummy () << 16) | chipmem_dummy ();
 }
 
-static uae_u32 REGPARAM2 chipmem_agnus_lget (uaecptr addr)
+static uae_u32 REGPARAM2 UNUSED_FUNCTION(chipmem_agnus_lget) (uaecptr addr)
 {
 	uae_u32 *m;
 
@@ -598,7 +598,7 @@ static uae_u32 REGPARAM2 chipmem_agnus_bget (uaecptr addr)
 	return chipmem_bank.baseaddr[addr];
 }
 
-static void REGPARAM2 chipmem_agnus_lput (uaecptr addr, uae_u32 l)
+static void REGPARAM2 UNUSED_FUNCTION(chipmem_agnus_lput) (uaecptr addr, uae_u32 l)
 {
 #ifdef FSUAE
 #ifdef DEBUG_MEM
@@ -1166,7 +1166,8 @@ void a3000_fakekick (int map)
 	protect_roms (true);
 }
 
-static uae_char *kickstring = "exec.library";
+static const uae_char *kickstring = "exec.library";
+
 static int read_kickstart (struct zfile *f, uae_u8 *mem, int size, int dochecksum, int noalias)
 {
 	uae_char buffer[20];
@@ -1337,7 +1338,7 @@ static int patch_shapeshifter (uae_u8 *kickmemory)
 static int patch_residents (uae_u8 *kickmemory, int size)
 {
 	int i, j, patched = 0;
-	uae_char *residents[] = { "NCR scsi.device", 0 };
+	const uae_char *residents[] = { "NCR scsi.device", 0 };
 	// "scsi.device", "carddisk.device", "card.resource" };
 	uaecptr base = size == ROM_SIZE_512 ? 0xf80000 : 0xfc0000;
 
@@ -1423,7 +1424,6 @@ static int load_kickstart (void)
 {
 	struct zfile *f;
 	TCHAR tmprom[MAX_DPATH], tmprom2[MAX_DPATH];
-	int patched = 0;
 
 	cloanto_rom = 0;
 	if (!_tcscmp (currprefs.romfile, _T(":AROS")))
@@ -1476,7 +1476,8 @@ static int load_kickstart (void)
 			zfile_fseek (f, 8, SEEK_SET);
 		}
 		if (filesize >= ROM_SIZE_512 * 2) {
-			struct romdata *rd = getromdatabyzfile(f);
+			// FIXME: is the intention here to find kspos via romdata?
+			struct romdata *UNUSED(rd) = getromdatabyzfile(f);
 			zfile_fseek (f, kspos, SEEK_SET);
 		}
 		if (filesize >= ROM_SIZE_512 * 4) {
@@ -1578,7 +1579,7 @@ static shmpiece *find_shmpiece (uae_u8 *base, bool safe)
 	if (!x) {
 		if (safe || bogomem_aliasing)
 			return 0;
-		write_log (_T("NATMEM: Failure to find mapping at %08X, %p\n"), base - NATMEM_OFFSET, base);
+		write_log (_T("NATMEM: Failure to find mapping at %08X, %p\n"), (unsigned int) (base - NATMEM_OFFSET), base);
 		nocanbang ();
 		return 0;
 	}
@@ -2459,7 +2460,6 @@ static void map_banks2 (addrbank *bank, int start, int size, int realsize, int q
 {
 	int bnr, old;
 	unsigned long int hioffs = 0, endhioffs = 0x100;
-	addrbank *orgbank = bank;
 	uae_u32 realstart = start;
 
 	if (!quick)

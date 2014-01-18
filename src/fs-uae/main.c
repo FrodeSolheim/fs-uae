@@ -57,7 +57,7 @@ void select_port_0_device(int data) {
     }
     else {
         int count = 0;
-        int new_mode = new_mode = AMIGA_JOYPORT_DJOY;
+        int new_mode = AMIGA_JOYPORT_DJOY;
         if (g_fs_uae_amiga_model == MODEL_CD32) {
             new_mode = AMIGA_JOYPORT_CD32JOY;
         }

@@ -301,9 +301,8 @@ static void update_save_state_item(fs_emu_menu_item* item, int slot,
 }
 
 static void update_save_states_menu(fs_emu_menu *menu) {
-    fs_emu_menu_item *item;
     for (int i = 0; i < NUM_SAVE_SLOTS; i++) {
-        item = menu->items[1 + i];
+        fs_emu_menu_item *item = menu->items[1 + i];
         update_save_state_item(item, i, 1);
     }
 }

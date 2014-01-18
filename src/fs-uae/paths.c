@@ -107,7 +107,9 @@ static char* read_custom_path(const char *key) {
 
         char *buffer = (char *) malloc(PATH_MAX + 1);
         int read_bytes = fread(buffer, 1, PATH_MAX, f);
-        if (!feof(f)) {
+        int eof = feof(f);
+        fclose(f);
+        if (!eof) {
             fs_log("- did not get EOF\n");
             free(buffer);
             return NULL;

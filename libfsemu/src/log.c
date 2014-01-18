@@ -4,6 +4,7 @@
 
 #include <fs/base.h>
 #include <fs/log.h>
+#include <fs/config.h>
 #include <fs/filesys.h>
 #include <fs/string.h>
 #include <fs/thread.h>
@@ -19,6 +20,7 @@ static FILE *g_log_file = NULL;
 static char *g_initial_log_file = NULL;
 static int g_initialized = 0;
 static fs_mutex *g_mutex = NULL;
+static int g_flush_log = 0;
 
 static void initialize() {
     if (g_initialized) {
@@ -71,7 +73,18 @@ void fs_config_set_log_file(const char *path) {
             fclose(f);
         }
     }
+
+    // All options should have been read, so we can no check log options
+
+    if (fs_config_get_boolean("flush_log") == 1) {
+        g_flush_log = 1;
+    }
+
     fs_mutex_unlock(g_mutex);
+
+    if (g_flush_log) {
+        fs_log_string("flush_log: will flush log after each log line\n");
+    }
 }
 
 void fs_log_string(const char *str) {
@@ -84,6 +97,9 @@ void fs_log_string(const char *str) {
     }
     if (g_log_file) {
         fprintf(g_log_file, "%s", str);
+    }
+    if (g_flush_log) {
+        fflush(g_log_file);
     }
     fs_mutex_unlock(g_mutex);
 }

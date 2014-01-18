@@ -6,9 +6,9 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae\n"
-"Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2013-03-13 22:00+0100\n"
-"PO-Revision-Date: 2013-03-15 11:41+0100\n"
+"Report-Msgid-Bugs-To: frode@fs-uae.net\n"
+"POT-Creation-Date: 2014-01-18 10:47+0100\n"
+"PO-Revision-Date: 2014-01-18 12:41+0100\n"
 "Last-Translator: Speedvicio <speedvicio@hotmail.com>\n"
 "Language-Team: Italian\n"
 "Language: it\n"
@@ -106,7 +106,9 @@ msgstr "Numero di drives CD-ROM specificati non validi"
 msgid "Joystick Mode"
 msgstr "Modalità Joystick"
 
-#. / TRANSLATORS: This is a menu entry and must not be too long
+msgid "Joystick Port"
+msgstr "Porta Joystick"
+
 #, c-format
 msgid "Joystick Port %d"
 msgstr "Porta Joystick %d"
@@ -121,12 +123,6 @@ msgstr "Porta Joystick %d Dispositivo"
 msgid "Joystick Port %d Mode"
 msgstr "Porta Joystick %d Modalità"
 
-msgid "Joystick Port 0"
-msgstr "Porta Joystick 0"
-
-msgid "Joystick Port 1"
-msgstr "Porta Joystick 1"
-
 msgid "Joystick Port 2"
 msgstr "Porta Joystick 2"
 
@@ -136,14 +132,14 @@ msgstr "Porta Joystick 3"
 msgid "Joystick Port 4"
 msgstr "Porta Joystick 4"
 
-msgid "Joystick Ports"
-msgstr "Porte Joystick"
-
 msgid "Keyboard"
 msgstr "Tastiera"
 
 msgid "Load"
 msgstr "Carica"
+
+msgid "Load State"
+msgstr "Carica Stato"
 
 msgid "More..."
 msgstr "Altro..."
@@ -153,6 +149,9 @@ msgstr "Mouse"
 
 msgid "Mouse Mode"
 msgstr "Modalità Mouse"
+
+msgid "Mouse Port"
+msgstr "Porta Mouse"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long: If you struggle
 #. / to get in short enough, just translate "No Device" instead.
@@ -216,8 +215,8 @@ msgstr "Ripristina"
 msgid "Save"
 msgstr "Salva"
 
-msgid "Save States"
-msgstr "Salva Stati"
+msgid "Save State"
+msgstr "Salva "
 
 #. / TRANSLATORS: Soft reset reboots the computer without a power cycle
 msgid "Soft Reset"
@@ -248,3 +247,15 @@ msgstr "Ingrandimento: %s + Bordo"
 
 #~ msgid "Joystick"
 #~ msgstr "Joystick"
+
+#~ msgid "Joystick Port 0"
+#~ msgstr "Porta Joystick 0"
+
+#~ msgid "Joystick Port 1"
+#~ msgstr "Porta Joystick 1"
+
+#~ msgid "Joystick Ports"
+#~ msgstr "Porte Joystick"
+
+#~ msgid "Save States"
+#~ msgstr "Salva Stati"

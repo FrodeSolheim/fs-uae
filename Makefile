@@ -441,23 +441,7 @@ obj/gen/%.o: gen/%.cpp
 	mkdir -p `dirname $@`
 	$(cxx) $(cppflags) $(cxxflags) -c $< -o $@
 
-#obj/jit/compemu_support.o: src/jit/compemu_support.cpp
-#	mkdir -p `dirname $@`
-#	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -fpermissive -c $< -o $@
-
-#obj/bsdsocket.o: src/bsdsocket.cpp
-#	mkdir -p `dirname $@`
-#	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -fpermissive -c $< -o $@
-
-#obj/uae.a: gen/blit.h gen/linetoscr.cpp $(uae_objects)
-#	mkdir -p `dirname $@`
-#ifeq ($(os), macosx)
-#	rm -f $@
-#endif
-#	$(ar) cru $@ $(uae_objects)
-#ifeq ($(os), macosx)
-#	ranlib $@
-#endif
+ifeq ($(strict), 1)
 
 obj/cdtv.o: src/cdtv.cpp
 	mkdir -p `dirname $@`
@@ -539,9 +523,11 @@ obj/qemuvga/%.o: src/qemuvga/%.cpp
 	mkdir -p `dirname $@`
 	$(cxx) $(cppflags) $(cxxflags) -Wno-error=missing-braces -c $< -o $@
 
-obj/od-fs/%.o: src/od-fs/%.cpp
+endif
+
+obj/%.o: src/%.cpp
 	mkdir -p `dirname $@`
-	$(cxx) $(cppflags) $(cxxflags) -c $< -o $@
+	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -c $< -o $@
 
 obj/fs-uae.res: src/fs-uae/fs-uae.rc
 	mkdir -p `dirname $@`
@@ -550,18 +536,6 @@ obj/fs-uae.res: src/fs-uae/fs-uae.rc
 obj/fs-uae/%.o: src/fs-uae/%.c
 	mkdir -p `dirname $@`
 	$(cc) $(cppflags) $(cflags) -c $< -o $@
-
-obj/%.o: src/%.cpp
-	mkdir -p `dirname $@`
-	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -c $< -o $@
-
-#ifeq ($(os), windows)
-#out/CAPSImg.dll:
-#	cp $(libfs-capsimage_dir)/out/CAPSImg.dll out/
-#run_deps: out/CAPSImg.dll
-#else
-#run_deps:
-#endif
 
 share/locale/%/LC_MESSAGES/fs-uae.mo: po/%.po
 	mkdir -p share/locale/$*/LC_MESSAGES
@@ -665,52 +639,6 @@ distdir-base:
 	cp -a debian/copyright $(dist_dir)/debian/
 	cp -a debian/rules $(dist_dir)/debian/
 	cp -a debian/source $(dist_dir)/debian/
-
-	# mkdir -p $(dist_dir)/server
-	# cp -a server/fs_uae_netplay_server $(dist_dir)/server/
-	# find $(dist_dir)/server -name "*.pyc" -delete
-	# cp -a server/COPYING $(dist_dir)/server/
-	# cp -a server/README $(dist_dir)/server/
-	# cp -a server/setup.py $(dist_dir)/server/
-
-	# mkdir -p $(dist_dir)/server/debian
-	# cp -a server/debian/changelog $(dist_dir)/server/debian/
-	# cp -a server/debian/compat $(dist_dir)/server/debian/
-	# cp -a server/debian/control $(dist_dir)/server/debian/
-	# cp -a server/debian/copyright $(dist_dir)/server/debian/
-	# cp -a server/debian/rules $(dist_dir)/server/debian/
-	# cp -a server/debian/preinst $(dist_dir)/server/debian/
-	# cp -a server/debian/source $(dist_dir)/server/debian/
-	# cp -a server/debian/*.init $(dist_dir)/server/debian/
-	# cp -a server/debian/*.default $(dist_dir)/server/debian/
-
-	# mkdir -p $(dist_dir)/server/scripts
-	# cp -a server/scripts/fs-uae-netplay-server $(dist_dir)/server/scripts/
-	# cp -a server/scripts/fs-uae-game-server $(dist_dir)/server/scripts/
-
-	#mkdir -p $(dist_dir)/launcher
-	#cp -a launcher/fs_uae_launcher $(dist_dir)/launcher/
-	#find $(dist_dir)/launcher -name "*.pyc" -delete
-	#cp -a launcher/README $(dist_dir)/launcher/
-	#cp -a launcher/COPYING $(dist_dir)/launcher/
-	#cp -a launcher/fs-uae-launcher.py $(dist_dir)/launcher/
-	#cp -a launcher/Makefile.mk $(dist_dir)/launcher/
-	#cp -a launcher/setup.py $(dist_dir)/launcher/
-	#cp -a launcher/setup_py2exe.py $(dist_dir)/launcher/
-	#cp -a launcher/setup_py2app.py $(dist_dir)/launcher/
-
-	#mkdir -p $(dist_dir)/launcher/debian
-	#cp -a launcher/debian/changelog $(dist_dir)/launcher/debian/
-	#cp -a launcher/debian/compat $(dist_dir)/launcher/debian/
-	#cp -a launcher/debian/control $(dist_dir)/launcher/debian/
-	#cp -a launcher/debian/copyright $(dist_dir)/launcher/debian/
-	#cp -a launcher/debian/rules $(dist_dir)/launcher/debian/
-	#cp -a launcher/debian/source $(dist_dir)/launcher/debian/
-
-	#mkdir -p $(dist_dir)/launcher/scripts
-	#cp -a launcher/scripts/fs-uae-launcher $(dist_dir)/launcher/scripts/
-	#cp -a launcher/fs-uae-launcher.spec $(dist_dir)/launcher/
-	#cp -a launcher/share $(dist_dir)/launcher/
 
 	mkdir -p $(dist_dir)/util
 	#cp -a util/fix_64_bit.py $(dist_dir)/util/

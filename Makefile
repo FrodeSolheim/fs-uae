@@ -160,7 +160,7 @@ else ifeq ($(os), macosx)
   cflags += -arch $(arch)
   cxxflags += -arch $(arch)
   ldflags += -arch $(arch) -headerpad_max_install_names
-  cppflags += -DMACOSX
+  cppflags += -DMACOSX -I/System/Library/Frameworks/OpenAL.framework/Headers
   libs += -framework OpenGL -framework Carbon -framework OpenAL -framework IOKit
 else ifeq ($(os), kfreebsd)
   cppflags += -DFREEBSD

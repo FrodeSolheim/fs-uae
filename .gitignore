@@ -1,5 +1,6 @@
 build
 dist
+/a
 /fs-uae
 /fs-uae-device-helper
 /gen
@@ -46,6 +47,7 @@ log
 windows/fs-uae*_windows*
 macosx/fs-uae*
 /*.deb
+*.zip
 /desktop/
 /test/
 /amiga/

@@ -21,7 +21,7 @@
 
 #ifdef AHI
 
-#ifdef __x86_64__
+#if SIZEOF_VOID_P == 8
 STATIC_INLINE uae_u32 pointer_to_u32(void *p) {
     if ((uae_u64) (p) > ((uae_u64) 0xffffffff)) {
         write_log(_T("WARNING: POINTER_TO_U32 - %p > UINT32_MAX\n"), p);
@@ -29,7 +29,7 @@ STATIC_INLINE uae_u32 pointer_to_u32(void *p) {
     return (uae_u32) ((uae_u64) p);
 }
 #define POINTER_TO_U32(x) (pointer_to_u32(x))
-#define UAECPTR_TO_U32(x) (pointer_to_u32((void *)(x)))
+//#define UAECPTR_TO_U32(x) (pointer_to_u32((void *)(x)))
 #else
 #define POINTER_TO_U32(x) ((uae_u32)(x))
 #endif

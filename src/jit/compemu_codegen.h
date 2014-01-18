@@ -26,7 +26,7 @@
 #ifndef COMPEMU_H
 #define COMPEMU_H
 
-#ifdef __x86_64__
+#if SIZEOF_VOID_P == 8
 typedef uae_u64 uintptr;
 #else
 typedef uae_u32 uintptr;

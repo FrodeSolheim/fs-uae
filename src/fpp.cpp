@@ -156,9 +156,16 @@ static uae_u16 x87_cw_tab[] = {
 	}
 #elif defined(X86_ASSEMBLY)
 	__asm__ ("fldcw %0" : : "m" (*&x87_cw));
-#elif defined(FSUAE)
+#endif
+
+#ifdef FSUAE // NL
+#if defined(X86_MSVC_ASSEMBLY)
+#elif defined(X86_ASSEMBLY)
+#else
     printf("FIXME: warning fldcw not set\n");
 #endif
+#endif // NL
+
 #endif
 #endif
 }

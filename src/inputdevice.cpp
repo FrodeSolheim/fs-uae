@@ -52,6 +52,10 @@
 #include "dongle.h"
 #include "cdtv.h"
 
+#ifdef FSUAE // NL
+#undef _WIN32
+#endif
+
 // 01 = host events
 // 02 = joystick
 // 04 = cia buttons
@@ -3065,7 +3069,7 @@ static int handle_input_event (int nr, int state, int max, int autofire, bool ca
 	if (nr <= 0 || nr == INPUTEVENT_SPC_CUSTOM_EVENT)
 		return 0;
 
-#if defined(_WIN32) && defined(WINUAE)
+#ifdef _WIN32
 	// ignore normal GUI event if forced gui key is in use
 	if (currprefs.win32_guikey >= 0 && nr == INPUTEVENT_SPC_ENTERGUI)
 		return 0;

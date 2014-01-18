@@ -14,7 +14,7 @@
 #ifndef MEMORY_H
 #define MEMORY_H
 
-#ifdef FSUAE
+#ifdef FSUAE // NL
 #define STATIC_INLINE static inline
 #endif
 

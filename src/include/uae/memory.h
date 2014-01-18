@@ -441,6 +441,6 @@ extern void memcpyah (uae_u8 *dst, uaecptr src, int size);
 extern uae_s32 getz2size (struct uae_prefs *p);
 extern ULONG getz2endaddr (void);
 
-#ifdef FSUAE
+#ifdef FSUAE // NL
 int uae_get_memory_checksum();
 #endif

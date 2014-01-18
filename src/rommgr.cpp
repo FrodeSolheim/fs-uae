@@ -891,7 +891,6 @@ struct romdata *getromdatabydata (uae_u8 *rom, int size)
 		}
 	}
 	xfree (tmpbuf);
-	//exit(1);
 	return ret;
 }
 
@@ -1107,7 +1106,6 @@ static int read_rom_file (uae_u8 *buf, const struct romdata *rd)
 #ifdef FSUAE
 	amiga_patch_rom(buf, rd->size);
 #endif
-
 	zfile_fclose (zf);
 	return 1;
 }

@@ -13,7 +13,7 @@
 
 #ifdef FSUAE // NL
 extern "C" {
-#endif
+#endif // NL
 
 #include <lauxlib.h>
 

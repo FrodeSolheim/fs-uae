@@ -3725,7 +3725,12 @@ static void
 	put_long (info + 116, fsdb_can ? aino->amigaos_mode : fsdb_mode_supported (aino));
 	put_long (info + 124, statbuf.size > MAXFILESIZE32 ? MAXFILESIZE32 : (uae_u32)statbuf.size);
 #ifdef HAVE_ST_BLOCKS
+#ifdef FSUAE
+	// FIXME: check this
 	put_long (info + 128, statbuf.blocks);
+#else
+	put_long (info + 128, statbuf.st_blocks);
+#endif
 #else
 	blocksize = (unit->volflags & MYVOLUMEINFO_CDFS) ? 2048 : 512;
 	put_long (info + 128, (statbuf.size + blocksize - 1) / blocksize);
@@ -4762,7 +4767,7 @@ static void updatedirtime (a_inode *a1, int now)
 			return;
 		my_utime (a1->parent->nname, &statbuf.mtime);
 	} else {
-	    my_utime (a1->parent->nname, NULL);
+		my_utime (a1->parent->nname, NULL);
 	}
 }
 
@@ -7439,7 +7444,8 @@ static uae_u32 REGPARAM2 mousehack_done (TrapContext *context)
 	}
 	return 1;
 }
-#ifdef FSUAE
+
+#ifdef FSUAE // NL
 static int g_hsync_line = 0;
 #endif
 
@@ -7498,8 +7504,9 @@ void filesys_vsync (void)
 #endif
 }
 
-#ifdef FSUAE
+#ifdef FSUAE // NL
 #ifdef UAE_FILESYS_THREADS
+
 static void run_filesys_iterations(int max_count) {
     UnitInfo *ui;
     int count = 0;
@@ -7551,8 +7558,9 @@ void filesys_hsync() {
     }
     counter++;
 }
-#endif
-#endif
+
+#endif // UAE_FILESYS_THREADS
+#endif // FSUAE
 
 void filesys_install (void)
 {

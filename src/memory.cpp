@@ -34,9 +34,14 @@
 #include "debug.h"
 #include "gfxboard.h"
 
-#ifdef FSUAE
+#ifdef FSUAE // NL
+#undef _WIN32
+#endif
+
+#ifdef FSUAE // NL
 extern uae_u8 *natmem_offset, *natmem_offset_end;
 #endif
+
 bool canbang;
 int candirect = -1;
 static bool rom_write_enabled;
@@ -61,7 +66,10 @@ static bool needmman (void)
 {
 	if (!currprefs.jit_direct_compatible_memory)
 		return false;
-#if defined(_WIN32) && defined(WINUAE)
+#ifdef _WIN32
+#ifdef FSUAE
+    // FIXME: check if FS-UAE should return true here for Windows as well
+#endif
 	return true;
 #endif
 	if (canjit ())
@@ -1476,7 +1484,9 @@ static int load_kickstart (void)
 			zfile_fseek (f, 8, SEEK_SET);
 		}
 		if (filesize >= ROM_SIZE_512 * 2) {
+#ifdef FSUAE
 			// FIXME: is the intention here to find kspos via romdata?
+#endif
 			struct romdata *UNUSED(rd) = getromdatabyzfile(f);
 			zfile_fseek (f, kspos, SEEK_SET);
 		}
@@ -1579,7 +1589,7 @@ static shmpiece *find_shmpiece (uae_u8 *base, bool safe)
 	if (!x) {
 		if (safe || bogomem_aliasing)
 			return 0;
-		write_log (_T("NATMEM: Failure to find mapping at %08X, %p\n"), (unsigned int) (base - NATMEM_OFFSET), base);
+		write_log (_T("NATMEM: Failure to find mapping at %08lx, %p\n"), base - NATMEM_OFFSET, base);
 		nocanbang ();
 		return 0;
 	}
@@ -1730,12 +1740,8 @@ uae_u8 *mapped_malloc (size_t s, const TCHAR *file)
 
 static void init_mem_banks (void)
 {
-	// this needs to be unsigned, otherwise i << 16 will suddenly become
-	// negative when i > 32768, which then causes negative bank index when
-	// uaecptr is 64-bit
-	uae_u32 i;
-
-	for (i = 0; i < MEMORY_BANKS; i++)
+	// unsigned so i << 16 won't overflow to negative when i >= 32768
+	for (unsigned int i = 0; i < MEMORY_BANKS; i++)
 		put_mem_bank (i << 16, &dummy_bank, 0);
 #ifdef NATMEM_OFFSET
 	delete_shmmaps (0, 0xFFFF0000);

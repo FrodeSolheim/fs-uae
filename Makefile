@@ -475,6 +475,10 @@ obj/disk.o: src/disk.cpp
 	mkdir -p `dirname $@`
 	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -Wno-error=switch -Wno-error=tautological-constant-out-of-range-compare -c $< -o $@
 
+obj/filesys.o: src/filesys.cpp
+	mkdir -p `dirname $@`
+	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -Wno-error=switch -Wno-error=tautological-compare -c $< -o $@
+
 obj/%.o: src/%.cpp
 	mkdir -p `dirname $@`
 	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -c $< -o $@

@@ -10,7 +10,7 @@ endif
 
 all: fs-uae fs-uae-device-helper mo
 
-cppflags = -DFSEMU -DFSUAE -D_FILE_OFFSET_BITS=64
+cppflags = -DFSEMU -DFSUAE -D_FILE_OFFSET_BITS=64 $(CPPFLAGS)
 
 ifeq ($(debug), 1)
 cppflags += -DDEBUG

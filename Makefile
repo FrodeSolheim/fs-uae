@@ -499,6 +499,14 @@ obj/memory.o: src/memory.cpp
 	mkdir -p `dirname $@`
 	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -Wno-error=constant-logical-operand -Wno-error=tautological-compare -c $< -o $@
 
+obj/rommgr.o: src/rommgr.cpp
+	mkdir -p `dirname $@`
+	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -Wno-error=missing-braces -Wno-error=deprecated-writable-strings -c $< -o $@
+
+obj/scsiemul.o: src/scsiemul.cpp
+	mkdir -p `dirname $@`
+	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -Wno-error=unused-variable -c $< -o $@
+
 obj/%.o: src/%.cpp
 	mkdir -p `dirname $@`
 	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -c $< -o $@

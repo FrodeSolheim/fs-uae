@@ -91,12 +91,6 @@ struct romdata *getromdatabypath (const TCHAR *path)
 
 #define NEXT_ROM_ID 75
 
-static struct romheader romheaders[] = {
-	{ _T("Freezer Cartridges"), 1 },
-	{ _T("Arcadia Games"), 2 },
-	{ NULL, 0 }
-};
-
 #define ALTROM(id,grp,num,size,flags,crc32,a,b,c,d,e) \
 { _T("X"), 0, 0, 0, 0, 0, size, id, 0, 0, flags, (grp << 16) | num, 0, NULL, crc32, a, b, c, d, e },
 #define ALTROMPN(id,grp,num,size,flags,pn,crc32,a,b,c,d,e) \
@@ -379,10 +373,12 @@ static void romlist_cleanup (void)
 		}
 		i++;
 	}
+#if 0
 	for (i = 0; i < romlist_cnt; i++) {
 		struct romlist *rll = &rl[i];
-		//write_log (_T("%s (%s)\n"), rll->rd->name, rll->path);
+		write_log (_T("%s (%s)\n"), rll->rd->name, rll->path);
 	}
+#endif
 }
 
 struct romlist **getromlistbyident (int ver, int rev, int subver, int subrev, const TCHAR *model, int romflags, bool all)
@@ -391,7 +387,6 @@ struct romlist **getromlistbyident (int ver, int rev, int subver, int subrev, co
 	struct romdata *rd;
 	struct romlist **rdout, *rltmp;
 	void *buf;
-	static struct romlist rlstatic;
 
 	for (i = 0; roms[i].name; i++);
 	if (all)
@@ -1000,7 +995,7 @@ static void byteswap (uae_u8 *buf, int size)
 		buf[i + 1] = t;
 	}
 }
-static void wordbyteswap (uae_u8 *buf, int size)
+static void UNUSED_FUNCTION(wordbyteswap) (uae_u8 *buf, int size)
 {
 	int i;
 	for (i = 0; i < size; i += 4) {

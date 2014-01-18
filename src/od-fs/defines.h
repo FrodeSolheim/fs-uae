@@ -248,12 +248,14 @@ typedef int BOOL;
 
 #ifdef __GNUC__
 #define UNUSED(x) UNUSED_ ## x __attribute__((__unused__))
+#define NORETURN __attribute__((__noreturn__))
 #else
 #define UNUSED(x) UNUSED_ ## x
 #endif
 
 #ifdef __GNUC__
 #define UNUSED_FUNCTION(x) __attribute__((__unused__)) UNUSED_ ## x
+#define NORETURN __attribute__((__noreturn__))
 #else
 #define UNUSED_FUNCTION(x) UNUSED_ ## x
 #endif

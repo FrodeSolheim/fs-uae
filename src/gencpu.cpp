@@ -99,7 +99,7 @@ static const char *dstblrmw, *dstwlrmw, *dstllrmw;
 static const char *srcbrmw, *srcwrmw, *srclrmw;
 static const char *dstbrmw, *dstwrmw, *dstlrmw;
 static const char *prefetch_long, *prefetch_word;
-static const char *srcli, *srcwi, *srcbi, *nextl, *nextw, *nextb;
+static const char *srcli, *srcwi, *srcbi, *nextl, *nextw, *UNUSED(nextb);
 static const char *srcld, *dstld;
 static const char *srcwd, *dstwd;
 static const char *do_cycles, *disp000, *disp020;
@@ -110,12 +110,12 @@ static const char *do_cycles, *disp000, *disp020;
 #define fetchmode_ciea 4
 #define fetchmode_jea 5
 
-static void term (void)
+NORETURN static void term (void)
 {
 	printf("Abort!\n");
 	abort ();
 }
-static void term (const char *err)
+NORETURN static void term (const char *err)
 {
 	printf ("%s\n", err);
 	term ();
@@ -181,11 +181,11 @@ static void fpulimit (void)
 	limit_braces = n_braces;
 	n_braces = 0;
 }
-static void cpulimit (void)
+
+static void UNUSED_FUNCTION(cpulimit) (void)
 {
 	printf ("#ifndef CPUEMU_68000_ONLY\n");
 }
-
 
 static void addcycles_ce020 (int cycles, const char *s)
 {
@@ -195,7 +195,7 @@ static void addcycles_ce020 (int cycles, const char *s)
 		if (s == NULL)
 			printf ("\t%s (%d);\n", do_cycles, cycles);
 		else
-			printf ("\t%s (%d); /* %d */\n", do_cycles, cycles, s);
+			printf ("\t%s (%d); /* %s */\n", do_cycles, cycles, s);
 	}
 	count_cycles += cycles;
 	count_cycles_ce020 += cycles;
@@ -466,7 +466,11 @@ static const char *gen_nextiword (int flags)
 	} else {
 		if (using_prefetch) {
 			if (flags & GF_NOREFILL) {
+#ifdef FSUAE
+				sprintf (buffer, "regs.irc");
+#else
 				sprintf (buffer, "regs.irc", r);
+#endif
 			} else {
 				sprintf (buffer, "%s (%d)", prefetch_word, r + 2);
 				count_read++;
@@ -500,7 +504,11 @@ static const char *gen_nextibyte (int flags)
 		insn_n_cycles += 4;
 		if (using_prefetch) {
 			if (flags & GF_NOREFILL) {
+#ifdef FSUAE
+				sprintf (buffer, "(uae_u8)regs.irc");
+#else
 				sprintf (buffer, "(uae_u8)regs.irc", r);
+#endif
 			} else {
 				sprintf (buffer, "(uae_u8)%s (%d)", prefetch_word, r + 2);
 				insn_n_cycles += 4;
@@ -766,7 +774,7 @@ static void addopcycles_ce20 (int h, int t, int c, int subhead)
 				printf ("\tif (regs.ce020memcycles > %d * cpucycleunit)\n", h);
 				printf ("\t\tregs.ce020memcycles = %d * cpucycleunit;\n", h);
 			} else {
-				printf ("\tregs.ce020memcycles = 0;\n", h);
+				printf ("\tregs.ce020memcycles = 0;\n");
 			}
 		}
 	}
@@ -875,7 +883,7 @@ static void addcycles_ea_ce020 (const char *ea, int h, int t, int c, int oph)
 		printf ("\tif (regs.ce020memcycles > %d * cpucycleunit)\n", h);
 		printf ("\t\tregs.ce020memcycles = %d * cpucycleunit;\n", h);
 	} else {
-		printf ("\tregs.ce020memcycles = 0;\n", h);
+		printf ("\tregs.ce020memcycles = 0;\n");
 	}
 
 	if (1 && c > 0) {
@@ -2226,6 +2234,11 @@ static void genflags_normal (flagtypes type, wordsizes size, const char *value, 
 	switch (type) {
 	case flag_logical_noclobber:
 	case flag_logical:
+#ifdef FSUAE
+    // FIXME: Compiled warning about flag_z not being handled, hopefully
+    // was not meant to be handled, adding it here to silence warning.
+	case flag_z:
+#endif
 	case flag_zn:
 		break;
 

@@ -80,6 +80,7 @@ struct inputevent {
 #define ID_FLAG_GAMEPORTSCUSTOM1 4
 #define ID_FLAG_GAMEPORTSCUSTOM2 8
 #define ID_FLAG_INVERTTOGGLE 16
+#define ID_FLAG_INVERT 32
 
 #define ID_FLAG_GAMEPORTSCUSTOM_MASK (ID_FLAG_GAMEPORTSCUSTOM1 | ID_FLAG_GAMEPORTSCUSTOM2)
 #define ID_FLAG_AUTOFIRE_MASK (ID_FLAG_TOGGLE | ID_FLAG_INVERTTOGGLE | ID_FLAG_AUTOFIRE)
@@ -114,6 +115,7 @@ struct inputevent {
 #define IDEV_MAPPED_INVERTTOGGLE 8
 #define IDEV_MAPPED_GAMEPORTSCUSTOM1 16
 #define IDEV_MAPPED_GAMEPORTSCUSTOM2 32
+#define IDEV_MAPPED_INVERT 64
 #define IDEV_MAPPED_QUALIFIER1          0x000000100000000ULL
 #define IDEV_MAPPED_QUALIFIER2          0x000000400000000ULL
 #define IDEV_MAPPED_QUALIFIER3          0x000001000000000ULL
@@ -133,6 +135,8 @@ struct inputevent {
 #define ID_BUTTON_TOTAL 32
 #define ID_AXIS_OFFSET 32
 #define ID_AXIS_TOTAL 32
+
+#define MAX_COMPA_INPUTLIST 30
 
 extern int inputdevice_iterate (int devnum, int num, TCHAR *name, int *af);
 extern bool inputdevice_set_gameports_mapping (struct uae_prefs *prefs, int devnum, int num, int evtnum, uae_u64 flags, int port);
@@ -154,7 +158,7 @@ extern int inputdevice_get_device_total (int type);
 extern int inputdevice_get_widget_num (int devnum);
 extern int inputdevice_get_widget_type (int devnum, int num, TCHAR *name);
 
-extern int input_get_default_mouse (struct uae_input_device *uid, int num, int port, int af, bool gp);
+extern int input_get_default_mouse (struct uae_input_device *uid, int num, int port, int af, bool gp, bool wheel);
 extern int input_get_default_lightpen (struct uae_input_device *uid, int num, int port, int af, bool gp);
 extern int input_get_default_joystick (struct uae_input_device *uid, int num, int port, int af, int mode, bool gp);
 extern int input_get_default_joystick_analog (struct uae_input_device *uid, int num, int port, int af, bool gp);
@@ -208,12 +212,12 @@ extern void inputdevice_do_keyboard (int code, int state);
 extern int inputdevice_iskeymapped (int keyboard, int scancode);
 extern int inputdevice_synccapslock (int, int*);
 extern void inputdevice_testrecord (int type, int num, int wtype, int wnum, int state, int max);
-extern int inputdevice_get_compatibility_input (struct uae_prefs*, int, int*, int**, int**);
+extern int inputdevice_get_compatibility_input (struct uae_prefs*, int index, int *typelist, int *inputlist, const int **at);
 extern struct inputevent *inputdevice_get_eventinfo (int evt);
 extern bool inputdevice_get_eventname (const struct inputevent *ie, TCHAR *out);
-extern void inputdevice_compa_prepare_custom (struct uae_prefs *prefs, int index, int mode);
+extern void inputdevice_compa_prepare_custom (struct uae_prefs *prefs, int index, int mode, bool removeold);
 extern void inputdevice_compa_clear (struct uae_prefs *prefs, int index);
-extern int intputdevice_compa_get_eventtype (int evt, int **axistable);
+extern int intputdevice_compa_get_eventtype (int evt, const int **axistable);
 extern void inputdevice_sparecopy (struct uae_input_device *uid, int num, int sub);
 
 extern uae_u16 potgo_value;
@@ -234,8 +238,11 @@ extern void inputdevice_reset (void);
 extern void write_inputdevice_config (struct uae_prefs *p, struct zfile *f);
 extern void read_inputdevice_config (struct uae_prefs *p, const TCHAR *option, TCHAR *value);
 extern void reset_inputdevice_config (struct uae_prefs *pr);
+extern void store_inputdevice_config (struct uae_prefs *pr);
+extern void restore_inputdevice_config (struct uae_prefs *p, int portnum);
 extern int inputdevice_joyport_config (struct uae_prefs *p, const TCHAR *value, int portnum, int mode, int type);
 extern int inputdevice_getjoyportdevice (int port, int val);
+extern void inputdevice_validate_jports (struct uae_prefs *p, int changedport);
 
 extern void inputdevice_init (void);
 extern void inputdevice_close (void);
@@ -263,13 +270,14 @@ extern uae_u64 input_getqualifiers (void);
 extern void setsystime (void);
 
 #define JSEM_MODE_DEFAULT 0
-#define JSEM_MODE_MOUSE 1
-#define JSEM_MODE_JOYSTICK 2
-#define JSEM_MODE_GAMEPAD 3
-#define JSEM_MODE_JOYSTICK_ANALOG 4
-#define JSEM_MODE_MOUSE_CDTV 5
-#define JSEM_MODE_JOYSTICK_CD32 6
-#define JSEM_MODE_LIGHTPEN 7
+#define JSEM_MODE_WHEELMOUSE 1
+#define JSEM_MODE_MOUSE 2
+#define JSEM_MODE_JOYSTICK 3
+#define JSEM_MODE_GAMEPAD 4
+#define JSEM_MODE_JOYSTICK_ANALOG 5
+#define JSEM_MODE_MOUSE_CDTV 6
+#define JSEM_MODE_JOYSTICK_CD32 7
+#define JSEM_MODE_LIGHTPEN 8
 
 #define JSEM_KBDLAYOUT 0
 #define JSEM_JOYS 100

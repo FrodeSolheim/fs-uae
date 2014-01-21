@@ -92,17 +92,19 @@ void amiga_set_save_state_compression(int compress) {
     g_amiga_savestate_docompress = compress ? 1 : 0;
 }
 
-void amiga_init_lua(void (*lock)(void), void (*unlock)(void)) {
 #ifdef WITH_LUA
-    uae_lua_init(lock, unlock);
-#endif
+
+void amiga_init_lua(void (*lock)(void), void (*unlock)(void)) {
+    //uae_lua_init(lock, unlock);
+    write_log("WARNING: not sending lock function to uae_lua_init\n");
+    uae_lua_init();
 }
 
 void amiga_init_lua_state(lua_State *L) {
-#ifdef WITH_LUA
     uae_lua_init_state(L);
-#endif
 }
+
+#endif
 
 void amiga_set_floppy_sounds_dir(const char *path) {
     int len = strlen(path);
@@ -566,6 +568,7 @@ int amiga_set_int_option(const char *option, int value) {
 }
 
 int amiga_quit() {
+	printf("amiga_quit\n");
     uae_quit();
     return 1;
 }
@@ -615,7 +618,7 @@ void gui_disk_image_change (int unitnum, const TCHAR *name, bool writeprotected)
 }
 
 bool get_plugin_path (TCHAR *out, int size, const TCHAR *path) {
-    static char* plugin_path_none = NULL;
+    // static char* plugin_path_none = NULL;
 
     if (strcmp(path, "floppysounds") == 0) {
         if (g_floppy_sounds_dir) {

@@ -31,7 +31,7 @@ Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
 BLOCKS FROMSIZE-byte blocks, rounding away from zero.
 TOSIZE must be positive.  Return -1 if FROMSIZE is not positive.  */
 
-static long adjust_blocks (long blocks, int fromsize, int tosize)
+static long UNUSED_FUNCTION(adjust_blocks) (long blocks, int fromsize, int tosize)
 {
 	if (tosize <= 0)
 		abort ();

@@ -106,7 +106,6 @@ extern int check_for_cache_miss(void);
 
 
 extern uae_u32 needed_flags;
-//extern cacheline cache_tags[];
 extern uae_u8* comp_pc_p;
 extern void* pushall_call_handler;
 
@@ -233,7 +232,6 @@ typedef struct {
     n_smallstatus  nat[N_REGS];
 } smallstate;
 
-//extern bigstate live;
 extern int touchcnt;
 
 

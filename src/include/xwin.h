@@ -20,11 +20,12 @@ extern uae_u32 p96_rgbx16[65536];
 extern int graphics_setup (void);
 extern int graphics_init (bool);
 extern void graphics_leave (void);
-extern void handle_events (void);
+extern bool handle_events (void);
 extern int handle_msgpump (void);
 extern void setup_brkhandler (void);
 extern int isfullscreen (void);
 extern void toggle_fullscreen (int);
+extern bool toggle_rtg (int);
 extern void toggle_mousegrab (void);
 extern void desktop_coords (int *dw, int *dh, int *x, int *y, int *w, int *h);
 extern bool vsync_switchmode (int);
@@ -45,7 +46,7 @@ extern void flush_block (struct vidbuffer*, int, int);
 extern void flush_screen (struct vidbuffer*, int, int);
 extern void flush_clear_screen (struct vidbuffer*);
 extern bool render_screen (bool);
-extern void show_screen (void);
+extern void show_screen (int);
 extern bool show_screen_maybe (bool);
 
 extern int lockscr (struct vidbuffer*, bool);
@@ -131,6 +132,7 @@ struct vidbuffer
 };
 
 extern bool isnativevidbuf (void);
+extern int max_uae_width, max_uae_height;
 
 struct vidbuf_description
 {

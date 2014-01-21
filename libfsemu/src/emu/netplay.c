@@ -1,8 +1,8 @@
-#include <fs/emu.h>
-#define _GNU_SOURCE 1
 #ifdef WINDOWS
 #define WINVER 0x0502
 #endif
+#include <fs/emu.h>
+#define _GNU_SOURCE 1
 #include "netplay.h"
 
 char *g_fs_emu_netplay_server = 0;

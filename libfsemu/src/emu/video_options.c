@@ -58,28 +58,36 @@ void fs_emu_video_init_options(void) {
 
     sync_mode_str = fs_config_get_string("video_sync");
     if (!sync_mode_str) {
-        // compatibility key
+        // compatibility key, FIXME: remove when FS-UAE translates compat
+        // option names when loading config.
         sync_mode_str = fs_config_get_string("sync");
     }
     if (sync_mode_str) {
         if (fs_ascii_strcasecmp(sync_mode_str, "auto") == 0) {
-
+            g_fs_emu_video_sync_to_vblank = 1;
+            g_fs_emu_video_allow_full_sync = 1;
+        }
+        else if (fs_ascii_strcasecmp(sync_mode_str, "1") == 0) {
+            // shortcut option, nice from command line (e.g. --video-sync)
+            g_fs_emu_video_sync_to_vblank = 1;
+            g_fs_emu_video_allow_full_sync = 1;
         }
         else if (fs_ascii_strcasecmp(sync_mode_str, "full") == 0) {
-            //auto_sync_mode = 0;
-            //sync_to_vblank = 1;
-            //sync_with_emu = 1;
+            // old compatibility option
+            g_fs_emu_video_sync_to_vblank = 1;
+            g_fs_emu_video_allow_full_sync = 1;
         }
-        else if (fs_ascii_strcasecmp(sync_mode_str, "off") == 0) {
-            //auto_sync_mode = 0;
+        else if (fs_ascii_strcasecmp(sync_mode_str, "0") == 0) {
+            // shortcut option, nice from command line (e.g. --no-video-sync)
             g_fs_emu_video_sync_to_vblank = 0;
             g_fs_emu_video_allow_full_sync = 0;
         }
+        else if (fs_ascii_strcasecmp(sync_mode_str, "off") == 0) {
+            //g_fs_emu_video_sync_to_vblank = 0;
+            //g_fs_emu_video_allow_full_sync = 0;
+        }
         else if (fs_ascii_strcasecmp(sync_mode_str, "vblank") == 0) {
-            //auto_sync_mode = 0;
-            //sync_to_vblank = 1;
-
-            g_fs_emu_video_allow_full_sync = 0;
+            g_fs_emu_video_sync_to_vblank = 1;
         }
         else {
             fs_log("WARNING: invalid value for video-sync: %s\n",
@@ -91,8 +99,8 @@ void fs_emu_video_init_options(void) {
         //fs_log("not specified: using automatic video sync mode\n");
 
         fs_log("not specified: no video sync\n");
-        g_fs_emu_video_sync_to_vblank = 0;
-        g_fs_emu_video_allow_full_sync = 0;
+        //g_fs_emu_video_sync_to_vblank = 0;
+        //g_fs_emu_video_allow_full_sync = 0;
     }
 
 /*

@@ -498,8 +498,8 @@ void fs_emu_release_gui_lock();
 #ifdef WINDOWS
 #include <winsock2.h>
 #include <windows.h>
-extern int __argc;
-extern char** __argv;
+extern int _argc;
+extern char** _argv;
 
 #undef main
 // prevent later imports of SDL to overwrite main
@@ -511,7 +511,7 @@ int _fs_emu_windows_main(int argc, char* argv[]);
 #define main(a, b) WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) { \
     g_fs_ml_hinstance = hInstance; \
     g_fs_ml_ncmdshow = nCmdShow; \
-    return _fs_emu_windows_main(__argc, __argv); \
+    return _fs_emu_windows_main(_argc, _argv); \
 } \
 int _fs_emu_windows_main(int argc, char* argv[])
 #endif

@@ -2,6 +2,10 @@
 
 extern addrbank dmaca2091_bank;
 
+extern void init_scsi (void);
+extern void scsi_dmac_start_dma (void);
+extern void scsi_dmac_stop_dma (void);
+
 extern void a2091_init (void);
 extern void a2091_free (void);
 extern void a2091_reset (void);
@@ -22,17 +26,12 @@ extern uae_u8 wdregs[32];
 extern struct scsi_data *scsis[8];
 
 #define WD33C93 _T("WD33C93")
-#define SCSIID (scsis[wdregs[WD_DESTINATION_ID] & 7])
 
-extern int a2091_add_scsi_unit (int ch, const TCHAR *path, int blocksize, int readonly,
-		       const TCHAR *devname, int sectors, int surfaces, int reserved,
-		       int bootpri, const TCHAR *filesys);
-extern int a3000_add_scsi_unit (int ch, const TCHAR *path, int blocksize, int readonly,
-		       const TCHAR *devname, int sectors, int surfaces, int reserved,
-		       int bootpri, const TCHAR *filesys);
+extern int a2091_add_scsi_unit (int ch, struct uaedev_config_info *ci);
+extern int a3000_add_scsi_unit (int ch, struct uaedev_config_info *ci);
 
-extern int addscsi (int ch, const TCHAR *path, int blocksize, int readonly,
-		       const TCHAR *devname, int sectors, int surfaces, int reserved,
-		       int bootpri, const TCHAR *filesys, int scsi_level);
+extern int add_scsi_hd (int ch, struct hd_hardfiledata *hfd, struct uaedev_config_info *ci, int scsi_level);
+extern int add_scsi_cd (int ch, int unitnum);
+extern int add_scsi_tape (int ch, const TCHAR *tape_directory, bool readonly);
 
 #endif

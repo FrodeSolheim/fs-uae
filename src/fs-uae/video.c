@@ -501,9 +501,7 @@ static void render_screen(RenderData* rd) {
             luch = uch;
         }
     }
-    float tx0, ty0, tx1, ty1; //source buffer coords
-
-
+    // float tx0, ty0, tx1, ty1; //source buffer coords
 
     fs_emu_rect crop;
     crop.x = 0;
@@ -565,14 +563,14 @@ static void *grow_buffer(int width, int height) {
 #define TURBO_FRAME_RATE 10000
 
 static void display_screen() {
-
+#if 0
     static int64_t last_time = 0;
     int64_t t = fs_emu_monotonic_time();
     if (last_time > 0) {
         int dt = (t - last_time) / 1000;
         //printf("%d\n", dt);
     }
-
+#endif
     fs_emu_video_buffer_set_current(g_buffer);
     if (g_last_refresh_rate == -1) {
         if (fs_emu_get_video_frame_rate() != TURBO_FRAME_RATE) {
@@ -591,8 +589,9 @@ static void display_screen() {
     //printf("new render buffer: %p\n", g_buffer->data);
     amiga_set_render_buffer(g_buffer->data, g_buffer->size,
             !g_remember_last_screen, grow_buffer);
-
+#if 0
     last_time = fs_emu_monotonic_time();
+#endif
 }
 
 static void toggle_zoom(int flags) {

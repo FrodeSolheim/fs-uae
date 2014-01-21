@@ -57,7 +57,7 @@ void select_port_0_device(int data) {
     }
     else {
         int count = 0;
-        int new_mode = new_mode = AMIGA_JOYPORT_DJOY;
+        int new_mode = AMIGA_JOYPORT_DJOY;
         if (g_fs_uae_amiga_model == MODEL_CD32) {
             new_mode = AMIGA_JOYPORT_CD32JOY;
         }
@@ -278,9 +278,16 @@ void event_handler(int line) {
     }
 
     if (fs_emu_is_quitting()) {
-        fs_log("calling amiga_quit\n");
-        amiga_quit();
-        return;
+        if (fs_emu_is_paused()) {
+        	fs_emu_pause(0);
+        }
+        static int quit_called = 0;
+        if (quit_called == 0) {
+            fs_log("calling amiga_quit\n");
+            amiga_quit();
+            quit_called = 1;
+        }
+        //return;
     }
     while (fs_emu_is_paused()) {
         /*
@@ -341,7 +348,7 @@ void fs_uae_load_rom_files(const char *path) {
     if (f != NULL) {
         int64_t key_size = fs_path_get_size(key_path);
         if (key_size > 0 && key_size < 1024 * 1024) {
-            char *key_data = malloc(key_size);
+            guchar *key_data = malloc(key_size);
             if (fread(key_data, key_size, 1, f) != 1) {
                 free(key_data);
             }
@@ -363,7 +370,8 @@ void fs_uae_load_rom_files(const char *path) {
             char *full_path = fs_path_join(path, name, NULL);
             //GChecksum *checksum = g_checksum_new(G_CHECKSUM_MD5);
             GChecksum *checksum = g_checksum_copy(rom_checksum);
-            g_checksum_update(checksum, full_path, strlen(full_path));
+            g_checksum_update(
+                checksum, (guchar *) full_path, strlen(full_path));
             const gchar *cache_name = g_checksum_get_string(checksum);
             char* cache_path = fs_path_join(
                 fs_uae_kickstarts_cache_dir(), cache_name, NULL);

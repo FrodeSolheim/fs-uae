@@ -108,12 +108,12 @@ int caps_init (void)
     static int init = 0, noticed = 0;
     int i;
     HMODULE h;
-    const TCHAR *dllname = "CAPSImg.dll";
 
     if (init)
         return 1;
-    //h = WIN32_LoadLibrary (dllname);
-#if WINDOWS
+
+#ifdef WINDOWS
+    const TCHAR *dllname = "CAPSImg.dll";
     h = LoadLibrary (dllname);
     if (!h) {
         write_log("LoadLibrary (\"CAPSImg.dll\") failed\n");
@@ -188,7 +188,7 @@ int caps_loadimage (struct zfile *zf, int drv, int *num_tracks)
     struct CapsImageInfo ci;
     int len, ret;
     uae_u8 *buf;
-    TCHAR s1[100];
+    //TCHAR s1[100];
     struct CapsDateTimeExt *cdt;
 
     if (!caps_init ())

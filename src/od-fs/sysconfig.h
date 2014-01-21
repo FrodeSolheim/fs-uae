@@ -1,3 +1,6 @@
+#ifndef _UAE_OD_FS_SYSCONFIG_H_
+#define _UAE_OD_FS_SYSCONFIG_H_
+
 // FIXME: this file was created by configure for PUAE and has been
 // manually altered with reasonable values.
 // New macros that are explicitly used in code are added to config.h for
@@ -14,7 +17,11 @@
 /* #undef AC_APPLE_UNIVERSAL_BUILD */
 
 /* CPU is 64bit */
-/* #undef CPU_64_BIT */
+#if defined(__x86_64__)
+#define CPU_64_BIT 1
+#else
+#undef CPU_64_BIT
+#endif
 
 /* we want ecs_denise */
 /* #undef ECS_DENISE */
@@ -466,3 +473,5 @@
 
 #include "defines.h"
 #include "uae_fs.h"
+
+#endif // _UAE_OD_FS_SYSCONFIG_H_

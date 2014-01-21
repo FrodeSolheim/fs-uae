@@ -90,8 +90,8 @@ void sampler_vsync (void) {
 }
 
 #include "include/zfile.h"
+
 // --- win32gui.cpp ---
-static int qs_override;
 
 int target_cfgfile_load (struct uae_prefs *p, const TCHAR *filename, int type, int isdefault)
 {
@@ -126,14 +126,18 @@ bool vsync_switchmode (int hz) {
     return 0;
 }
 
+#ifndef AHI
 void ahi_hsync (void) {
     VERBOSE_STUB("");
 }
+#endif
 
+#ifndef AHI
 int enforcer_disable(void) {
     STUB("");
     return 1;
 }
+#endif
 
 void refreshtitle (void) {
     STUB("");

@@ -64,7 +64,7 @@
 #include "inputrecord.h"
 #include "disk.h"
 
-#ifdef FSUAE
+#ifdef FSUAE // NL
 #include "uae/fs.h"
 #endif
 
@@ -258,7 +258,6 @@ TCHAR *restore_path_func (uae_u8 **dstp, int type)
 {
 	TCHAR *newpath;
 	TCHAR *s;
-	TCHAR *out = NULL;
 	TCHAR tmp[MAX_DPATH], tmp2[MAX_DPATH];
 
 	s = restore_string_func (dstp);
@@ -303,13 +302,13 @@ TCHAR *restore_path_func (uae_u8 **dstp, int type)
 
 /* read and write IFF-style hunks */
 
-static void save_chunk (struct zfile *f, uae_u8 *chunk, size_t len, TCHAR *name, int compress)
+static void save_chunk (struct zfile *f, uae_u8 *chunk, unsigned int len, const TCHAR *name, int compress)
 {
 	uae_u8 tmp[8], *dst;
 	uae_u8 zero[4]= { 0, 0, 0, 0 };
 	uae_u32 flags;
-	size_t pos;
-	size_t chunklen, len2;
+	unsigned int pos;
+	unsigned int chunklen, len2;
 	char *s;
 
 	if (!chunk)
@@ -366,10 +365,10 @@ static void save_chunk (struct zfile *f, uae_u8 *chunk, size_t len, TCHAR *name,
 	if (len2)
 		zfile_fwrite (zero, 1, len2, f);
 
-	write_log (_T("Chunk '%s' chunk size %d (%d)\n"), name, chunklen, len);
+	write_log (_T("Chunk '%s' chunk size %u (%u)\n"), name, chunklen, len);
 }
 
-static uae_u8 *restore_chunk (struct zfile *f, TCHAR *name, size_t *len, size_t *totallen, size_t *filepos)
+static uae_u8 *restore_chunk (struct zfile *f, TCHAR *name, unsigned int *len, unsigned int *totallen, size_t *filepos)
 {
 	uae_u8 tmp[6], dummy[4], *mem, *src;
 	uae_u32 flags;
@@ -495,11 +494,13 @@ static void restore_header (uae_u8 *src)
 
 void restore_state (const TCHAR *filename)
 {
+#ifdef FSUAE
 	printf("restore_state from %s\n", filename);
+#endif
 	struct zfile *f;
 	uae_u8 *chunk,*end;
 	TCHAR name[5];
-	size_t len, totallen;
+	unsigned int len, totallen;
 	size_t filepos, filesize;
 	int z3num;
 
@@ -518,8 +519,8 @@ void restore_state (const TCHAR *filename)
 		write_log (_T("%s is not an AmigaStateFile\n"), filename);
 		goto error;
 	}
-	write_log (_T("STATERESTORE:\n"));
-	config_changed = 1;
+	write_log (_T("STATERESTORE: '%s'\n"), filename);
+	set_config_changed ();
 	savestate_file = f;
 	restore_header (chunk);
 	xfree (chunk);
@@ -535,7 +536,7 @@ void restore_state (const TCHAR *filename)
 	for (;;) {
 		name[0] = 0;
 		chunk = end = restore_chunk (f, name, &len, &totallen, &filepos);
-		write_log (_T("Chunk '%s' size %d (%d)\n"), name, len, totallen);
+		write_log (_T("Chunk '%s' size %u (%u)\n"), name, len, totallen);
 		if (!_tcscmp (name, _T("END "))) {
 #ifdef _DEBUG
 			if (filesize > filepos + 8)
@@ -682,8 +683,14 @@ void restore_state (const TCHAR *filename)
 		else if (!_tcscmp (name, _T("CDTV")))
 			end = restore_cdtv (chunk);
 		else if (!_tcscmp (name, _T("DMAC")))
-			end = restore_dmac (chunk);
+			end = restore_cdtv_dmac (chunk);
 #endif
+		else if (!_tcscmp (name, _T("DMC2")))
+			end = restore_scsi_dmac (chunk);
+		else if (!_tcscmp (name, _T("SCSI")))
+			end = restore_scsi_device (chunk);
+		else if (!_tcscmp (name, _T("SCSD")))
+			end = restore_scsidev (chunk);
 		else if (!_tcscmp (name, _T("GAYL")))
 			end = restore_gayle (chunk);
 		else if (!_tcscmp (name, _T("IDE ")))
@@ -709,7 +716,7 @@ void restore_state (const TCHAR *filename)
 			write_log (_T("Chunk '%s', size %d bytes was not accepted!\n"),
 			name, len);
 		else if (totallen != end - chunk)
-			write_log (_T("Chunk '%s' total size %d bytes but read %d bytes!\n"),
+			write_log (_T("Chunk '%s' total size %d bytes but read %ld bytes!\n"),
 			name, totallen, end - chunk);
 		xfree (chunk);
 	}
@@ -729,7 +736,9 @@ void savestate_restore_finish (void)
 {
 	if (!isrestore ())
 		return;
+#ifdef FSUAE
 	printf("savestate_restore_finish\n");
+#endif
 	zfile_fclose (savestate_file);
 	savestate_file = 0;
 	restore_cpu_finish ();
@@ -968,11 +977,23 @@ static int save_state_internal (struct zfile *f, const TCHAR *description, int c
 	dst = save_cdtv (&len, NULL);
 	save_chunk (f, dst, len, _T("CDTV"), 0);
 	xfree (dst);
-	dst = save_dmac (&len, NULL);
+	dst = save_cdtv_dmac (&len, NULL);
 	save_chunk (f, dst, len, _T("DMAC"), 0);
 	xfree (dst);
 #endif
-
+	dst = save_scsi_dmac (&len, NULL);
+	save_chunk (f, dst, len, _T("DMC2"), 0);
+	xfree (dst);
+	for (i = 0; i < 8; i++) {
+		dst = save_scsi_device (i, &len, NULL);
+		save_chunk (f, dst, len, _T("SCSI"), 0);
+		xfree (dst);
+	}
+	for (i = 0; i < MAX_TOTAL_SCSI_DEVICES; i++) {
+		dst = save_scsidev (i, &len, NULL);
+		save_chunk (f, dst, len, _T("SCSD"), 0);
+		xfree (dst);
+	}
 #ifdef ACTION_REPLAY
 	dst = save_action_replay (&len, NULL);
 	save_chunk (f, dst, len, _T("ACTR"), comp);
@@ -1094,7 +1115,9 @@ int save_state (const TCHAR *filename, const TCHAR *description)
 
 void savestate_quick (int slot, int save)
 {
+#ifdef FSUAE
 	printf("savestate_quick slot=%d save=%d\n", slot, save);
+#endif
 	int i, len = _tcslen (savestate_fname);
 	i = len - 1;
 #ifdef FSUAE
@@ -1179,7 +1202,7 @@ int savestate_dorewind (int pos)
 		pos = replaycounter - 1;
 	if (canrewind (pos)) {
 		savestate_state = STATE_DOREWIND;
-		write_log (_T("dorewind %d (%010d/%03d) -> %d\n"), replaycounter - 1, hsync_counter, vsync_counter, pos);
+		write_log (_T("dorewind %d (%010ld/%03ld) -> %d\n"), replaycounter - 1, hsync_counter, vsync_counter, pos);
 		return 1;
 	}
 	return 0;
@@ -1275,7 +1298,7 @@ void savestate_rewind (void)
 		p = restore_p96 (p);
 #endif
 	len = restore_u32_func (&p);
-	memcpy (chipmemory, p, currprefs.chipmem_size > len ? len : currprefs.chipmem_size);
+	memcpy (chipmem_bank.baseaddr, p, currprefs.chipmem_size > len ? len : currprefs.chipmem_size);
 	p += len;
 	len = restore_u32_func (&p);
 	memcpy (save_bram (&dummy), p, currprefs.bogomem_size > len ? len : currprefs.bogomem_size);
@@ -1302,8 +1325,10 @@ void savestate_rewind (void)
 	if (restore_u32_func (&p))
 		p = restore_cdtv (p);
 	if (restore_u32_func (&p))
-		p = restore_dmac (p);
+		p = restore_cdtv_dmac (p);
 #endif
+	if (restore_u32_func (&p))
+		p = restore_scsi_dmac (p);
 	if (restore_u32_func (&p))
 		p = restore_gayle (p);
 	for (i = 0; i < 4; i++) {
@@ -1317,7 +1342,7 @@ void savestate_rewind (void)
 		return;
 	}
 	inprec_setposition (st->inprecoffset, pos);
-	write_log (_T("state %d restored.  (%010d/%03d)\n"), pos, hsync_counter, vsync_counter);
+	write_log (_T("state %d restored.  (%010ld/%03ld)\n"), pos, hsync_counter, vsync_counter);
 	if (rewind) {
 		replaycounter--;
 		if (replaycounter < 0)
@@ -1640,12 +1665,22 @@ retry2:
 	p3 = p;
 	save_u32_func (&p, 0);
 	tlen += 4;
-	if (save_dmac (&len, p)) {
+	if (save_cdtv_dmac (&len, p)) {
 		save_u32_func (&p3, 1);
 		tlen += len;
 		p += len;
 	}
 #endif
+	if (bufcheck (st, p, 0))
+		goto retry;
+	p3 = p;
+	save_u32_func (&p, 0);
+	tlen += 4;
+	if (save_scsi_dmac (&len, p)) {
+		save_u32_func (&p3, 1);
+		tlen += len;
+		p += len;
+	}
 	if (bufcheck (st, p, 0))
 		goto retry;
 	p3 = p;
@@ -1682,7 +1717,7 @@ retry2:
 			staterecords_first -= staterecords_max;
 	}
 
-	write_log (_T("state capture %d (%010d/%03d,%d/%d) (%d bytes, alloc %d)\n"),
+	write_log (_T("state capture %d (%010ld/%03ld,%ld/%d) (%ld bytes, alloc %d)\n"),
 		replaycounter, hsync_counter, vsync_counter,
 		hsync_counter % current_maxvpos (), current_maxvpos (),
 		st->end - st->data, statefile_alloc);

@@ -6,18 +6,12 @@
   * Copyright 1995,1996 Bernd Schmidt
   * Copyright 1996 Alessandro Bissacco
   */
-#ifdef FSUAE
-#define UAE_CONSOLE
-#endif
 
 #include "sysconfig.h"
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "genblitter.h"
-#ifdef FSUAE
-#define write_log_standard printf
-#endif
 
 /* Here is the minterm table used in blitter function generation */
 
@@ -273,8 +267,16 @@ static void generate_header(void)
     }
 }
 
-int main(int argc, char **argv)
+#if defined(FSUAE) && defined (WINDOWS)
+#include "windows.h"
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
+int argc = _argc;
+char** argv = _argv;
+#else
+int main(int argc, char *argv[])
+{
+#endif
     char mode = 'i';
 
     if (argc == 2) mode = *argv[1];

@@ -6,6 +6,9 @@
   * Copyright 2003-2005 Richard Drummond
   */
 
+#ifndef _UAE_OD_FS_SLEEP_H_
+#define _UAE_OD_FS_SLEEP_H_
+
 #ifdef __BEOS__
 # include <be/kernel/OS.h>
 #else
@@ -19,20 +22,8 @@
 # endif
 #endif
 
-#define ONE_THOUSAND    1000
+#define ONE_THOUSAND 1000
 #define ONE_MILLION (1000 * 1000)
-
-/* The following would offer no advantage since we always call use_msleep() with
- * a constant and all arithmetic can be done at compile time. */
-#if 0
-/* This may seem a little odd, but using a nice, round binary factor will speed
- * up the arithmetic for only a 2% error (5% for nanosleep). Our target sleep
- * routines are not tha accurate - and even if they were, we don't need more
- * accuracy.
- */
-#define ONE_THOUSAND    1024
-#define ONE_MILLION (1024 * 1024)
-#endif
 
 /*
  * void msleep (int ms)
@@ -83,3 +74,5 @@
 #endif
 #endif
 void sleep_test (void);
+
+#endif // _UAE_OD_FS_SLEEP_H_

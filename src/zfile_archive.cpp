@@ -9,9 +9,12 @@
 #include "sysconfig.h"
 #include "sysdeps.h"
 
-#if defined(_WIN32) && defined(WINUAE)
+#ifdef FSUAE
+#else
+#ifdef _WIN32
 #include <windows.h>
 #include "win32.h"
+#endif
 #endif
 
 #include "options.h"
@@ -22,11 +25,15 @@
 #include "zarchive.h"
 #include "disk.h"
 
+#ifdef FSUAE // NL
+#undef _WIN32
+#endif
+
 #include <zlib.h>
 
 #define unpack_log write_log
 #undef unpack_log
-#define unpack_log
+#define unpack_log(fmt, ...)
 
 
 static time_t fromdostime (uae_u32 dd)
@@ -42,7 +49,6 @@ static time_t fromdostime (uae_u32 dd)
 	tm.tm_mon  = ((dd >> 21) & 0x0f) - 1;
 	tm.tm_mday = (dd >> 16) & 0x1f;
 	t = mktime (&tm);
-	_tzset ();
 	t -= _timezone;
 	return t;
 }
@@ -174,6 +180,10 @@ struct zfile *archive_access_select (struct znode *parent, struct zfile *zf, uns
 				int ft = 0;
 				if (mask & ZFD_CD) {
 					if (ext && !_tcsicmp (ext, _T(".iso"))) {
+						whf = 2;
+						ft = ZFILE_CDIMAGE;
+					}
+					if (ext && !_tcsicmp (ext, _T(".chd"))) {
 						whf = 2;
 						ft = ZFILE_CDIMAGE;
 					}
@@ -409,7 +419,7 @@ static struct zfile *archive_do_zip (struct znode *zn, struct zfile *z, int flag
 	unzFile uz;
 	int i;
 	TCHAR tmp[MAX_DPATH];
-	TCHAR *name = z ? z->archiveparent->name : zn->volume->root.fullname;
+	TCHAR *UNUSED(name) = z ? z->archiveparent->name : zn->volume->root.fullname;
 	char *s;
 
 	uz = unzOpen (z ? z->archiveparent : zn->volume->archive);
@@ -674,7 +684,7 @@ static int canrar (void)
 
 	if (israr == 0) {
 		israr = -1;
-#if defined(_WIN32) && defined(WINUAE)
+#ifdef _WIN32
 		{
 			HMODULE rarlib;
 
@@ -846,7 +856,7 @@ static aapGetFileInfo aaGetFileInfo;
 static aapExtract aaExtract;
 static aapCloseArchive aaCloseArchive;
 
-#if defined(_WIN32) && defined(WINUAE)
+#ifdef _WIN32
 static HMODULE arcacc_mod;
 
 static void arcacc_free (void)
@@ -1165,7 +1175,8 @@ static uae_u32 gwx (uae_u8 *p)
 static const int secs_per_day = 24 * 60 * 60;
 static const int diff = (8 * 365 + 2) * (24 * 60 * 60);
 static const int diff2 = (-8 * 365 - 2) * (24 * 60 * 60);
-static time_t put_time (long days, long mins, long ticks)
+
+static time_t UNUSED_FUNCTION(put_time) (long days, long mins, long ticks)
 {
 	time_t t;
 
@@ -1260,7 +1271,6 @@ static void recursesfs (struct znode *zn, int root, TCHAR *name, int sfs2)
 	struct zvolume *zv = zn->volume;
 	struct adfhandle *adf = (struct adfhandle*)zv->handle;
 	TCHAR name2[MAX_DPATH];
-	int bs = adf->blocksize;
 	int block;
 	uae_u8 *p, *s;
 	struct zarchive_info zai;
@@ -1502,7 +1512,7 @@ static int sfsfindblock (struct adfhandle *adf, int btree, int theblock, struct 
 		if (isleaf) {
 			uae_u32 key = glx (p);
 			uae_u32 next = glx (p + 4);
-			uae_u32 prev = glx (p + 8);
+			uae_u32 UNUSED(prev) = glx (p + 8);
 			uae_u32 blocks;
 			if (sfs2)
 				blocks = glx (p + 12);
@@ -1521,7 +1531,7 @@ static int sfsfindblock (struct adfhandle *adf, int btree, int theblock, struct 
 				return next;
 			}
 		} else {
-			uae_u32 key = glx (p);
+			uae_u32 UNUSED(key) = glx (p);
 			uae_u32 data = glx (p + 4);
 			int newblock = sfsfindblock (adf, data, theblock, sfsb, sfsblockcnt, sfsmaxblockcnt, sfs2);
 			if (newblock)
@@ -1739,7 +1749,7 @@ struct zvolume *archive_directory_rdb (struct zfile *z)
 	zfile_fseek (z, 0, SEEK_SET);
 	p = buf;
 	zfile_fread (buf, 1, 512, z);
-	zai.name = _T("rdb_dump.dat");
+	zai.name = my_strdup(_T("rdb_dump.dat"));
 	bs = rl (p + 16);
 	zai.size = rl (p + 140) * bs;
 	zai.comment = NULL;
@@ -1905,7 +1915,7 @@ static int getcluster (struct zfile *z, int cluster, int fatstart, int fatbits)
 	return fat;
 }
 
-static void fatdirectory (struct zfile *z, struct zvolume *zv, TCHAR *name, int startblock, int entries, int sectorspercluster, int fatstart, int dataregion, int fatbits)
+static void fatdirectory (struct zfile *z, struct zvolume *zv, const TCHAR *name, int startblock, int entries, int sectorspercluster, int fatstart, int dataregion, int fatbits)
 {
 	struct zarchive_info zai;
 	struct znode *znnew;
@@ -2169,7 +2179,9 @@ struct zfile *archive_getzfile (struct znode *zn, unsigned int id, int flags)
 		zf = archive_access_tar (zn);
 		break;
 	}
-	if (zf)
+	if (zf) {
 		zf->archiveid = id;
+		zfile_fseek (zf, 0, SEEK_SET);
+	}
 	return zf;
 }

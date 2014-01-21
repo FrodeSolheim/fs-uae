@@ -7,8 +7,8 @@
 #define MAX_LEN 1024
 
 static void parse_option(char *key, char *value) {
-    static int first = 1;
     if (key[0] == 'u' && key[1] == 'a' && key[2] == 'e' && key[3] == '_') {
+        static int first = 1;
         if (first) {
             fs_log("WARNING: custom uae_* options used! Your warranty is "
                     "now void! ;)\n");

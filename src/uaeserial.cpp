@@ -135,12 +135,12 @@ static uae_u32 nscmd_cmd;
 static struct devstruct devst[MAX_TOTAL_DEVICES];
 static uae_sem_t change_sem, async_sem;
 
-static TCHAR *getdevname (void)
+static const TCHAR *getdevname (void)
 {
 	return _T("uaeserial.device");
 }
 
-static void io_log (TCHAR *msg, uaecptr request)
+static void io_log (const TCHAR *msg, uaecptr request)
 {
 	if (log_uaeserial)
 		write_log (_T("%s: %08X %d %08X %d %d io_actual=%d io_error=%d\n"),
@@ -264,7 +264,7 @@ static uae_u32 REGPARAM2 dev_open (TrapContext *context)
 {
 	uaecptr ioreq = m68k_areg (regs, 1);
 	uae_u32 unit = m68k_dreg (regs, 0);
-	uae_u32 flags = m68k_dreg (regs, 1);
+	uae_u32 UNUSED(flags) = m68k_dreg (regs, 1);
 	struct devstruct *dev;
 	int i, err;
 
@@ -317,7 +317,6 @@ static uae_u32 REGPARAM2 dev_expunge (TrapContext *context)
 static struct asyncreq *get_async_request (struct devstruct *dev, uaecptr request, int ready)
 {
 	struct asyncreq *ar;
-	int ret = 0;
 
 	uae_sem_wait (&async_sem);
 	ar = dev->ar;
@@ -408,7 +407,6 @@ void uaeser_signal (void *vdev, int sigmask)
 {
 	struct devstruct *dev = (struct devstruct*)vdev;
 	struct asyncreq *ar;
-	int i = 0;
 
 	uae_sem_wait (&async_sem);
 	ar = dev->ar;
@@ -496,9 +494,9 @@ static int dev_do_io (struct devstruct *dev, uaecptr request, int quick)
 {
 	uae_u32 command;
 	uae_u32 io_data = get_long (request + 40); // 0x28
-	uae_u32 io_length = get_long (request + 36); // 0x24
+	uae_u32 UNUSED(io_length) = get_long (request + 36); // 0x24
 	uae_u32 io_actual = get_long (request + 32); // 0x20
-	uae_u32 io_offset = get_long (request + 44); // 0x2c
+	uae_u32 UNUSED(io_offset) = get_long (request + 44); // 0x2c
 	uae_u32 io_error = 0;
 	uae_u16 io_status;
 	int async = 0;

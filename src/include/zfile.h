@@ -6,6 +6,9 @@
   * (c) 1996 Samuel Devulder
   */
 
+#ifndef _UAE_ZFILE_H_
+#define _UAE_ZFILE_H_
+
 struct zfile;
 struct zvolume;
 struct zdirectory;
@@ -122,6 +125,7 @@ extern struct zdirectory *zfile_opendir_archive (const TCHAR *path, int flags);
 extern void zfile_closedir_archive (struct zdirectory *);
 extern int zfile_readdir_archive (struct zdirectory *, TCHAR*);
 extern int zfile_readdir_archive (struct zdirectory *, TCHAR*, bool fullpath);
+extern struct zfile *zfile_readdir_archive_open (struct zdirectory *zd, const TCHAR *mode);
 extern void zfile_resetdir_archive (struct zdirectory *);
 extern int zfile_fill_file_attrs_archive (const TCHAR *path, int *isdir, int *flags, TCHAR **comment);
 extern uae_s64 zfile_lseek_archive (struct zfile *d, uae_s64 offset, int whence);
@@ -146,3 +150,5 @@ struct mystat
 };
 extern void timeval_to_amiga (struct mytimeval *tv, int* days, int* mins, int* ticks);
 extern void amiga_to_timeval (struct mytimeval *tv, int days, int mins, int ticks);
+
+#endif // _UAE_ZFILE_H_

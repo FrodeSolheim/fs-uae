@@ -14,6 +14,9 @@
 #include "picasso96_host.h"
 #endif
 
+int max_uae_width = 3072;
+int max_uae_height = 2048;
+
 volatile bool vblank_found_chipset;
 volatile bool vblank_found_rtg;
 
@@ -244,7 +247,37 @@ bool render_screen (bool immediate) {
     return 1;
 }
 
-void show_screen (void) {
+bool toggle_rtg (int mode) {
+	STUB("mode=%d", mode);
+#if 0
+        if (mode == 0) {
+                if (!picasso_on)
+                        return false;
+        } else if (mode > 0) {
+                if (picasso_on)
+                        return false;
+        }
+        if (currprefs.rtgmem_type >= GFXBOARD_HARDWARE) {
+                return gfxboard_toggle (mode);
+        } else {
+                // can always switch from RTG to custom
+                if (picasso_requested_on && picasso_on) {
+                        picasso_requested_on = false;
+                        return true;
+                }
+                if (picasso_on)
+                        return false;
+                // can only switch from custom to RTG if there is some mode act$
+                if (picasso_is_active ()) {
+                        picasso_requested_on = true;
+                        return true;
+                }
+        }
+#endif
+        return false;
+}
+
+void show_screen (int mode) {
     //write_log("show_screen\n\n");
     if (g_libamiga_callbacks.display) {
         g_libamiga_callbacks.display();
@@ -259,7 +292,7 @@ bool show_screen_maybe (bool show) {
     struct apmode *ap = picasso_on ? &currprefs.gfx_apmode[1] : &currprefs.gfx_apmode[0];
     if (!ap->gfx_vflip || ap->gfx_vsyncmode == 0 || !ap->gfx_vsync) {
         if (show)
-            show_screen ();
+            show_screen (0);
         return false;
     }
     return false;
@@ -545,7 +578,7 @@ int picasso_palette (void) {
 
 #endif
 
-void getgfxoffset (int *dxp, int *dyp, int *mxp, int *myp) {
+void getgfxoffset (float *dxp, float *dyp, float *mxp, float *myp) {
     //FIXME: WHAT DOES THIS DO?
     *dxp = 0;
     *dyp = 0;

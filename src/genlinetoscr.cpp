@@ -116,7 +116,11 @@ void outlnf (const char *s, ...)
 
 static void out_linetoscr_decl (DEPTH_T bpp, HMODE_T hmode, int aga, int spr)
 {
+#ifdef FSUAE
+	outlnf ("static int NOINLINE __attribute__((__unused__)) linetoscr_%s%s%s%s (int spix, int dpix, int dpix_end)",
+#else
 	outlnf ("static int NOINLINE linetoscr_%s%s%s%s (int spix, int dpix, int dpix_end)",
+#endif
 		get_depth_str (bpp),
 		get_hmode_str (hmode), aga ? "_aga" : "", spr ? "_spr" : "");
 }
@@ -137,13 +141,13 @@ static void out_linetoscr_do_srcpix (DEPTH_T bpp, HMODE_T hmode, int aga, CMODE_
 static void out_linetoscr_do_dstpix (DEPTH_T bpp, HMODE_T hmode, int aga, CMODE_T cmode, int spr)
 {
 	if (aga && cmode == CMODE_HAM) {
-		outln (	    "    dpix_val = CONVERT_RGB (ham_linebuf[spix]);");
-		if (spr)
-			outln ( "    sprpix_val = dpix_val;");
+		outln (	    "    spix_val = ham_linebuf[spix];");
+		outln (	    "    dpix_val = CONVERT_RGB (spix_val);");
 	} else if (cmode == CMODE_HAM) {
-		outln (		"    dpix_val = xcolors[ham_linebuf[spix]];");
+		outln (		"    spix_val = ham_linebuf[spix];");
+		outln ( "    dpix_val = xcolors[spix_val];");
 		if (spr)
-			outln ( "    sprpix_val = dpix_val;");
+			outln ( "    sprpix_val = pixdata.apixels[spix];");
 	} else if (aga && cmode == CMODE_DUALPF) {
 		outln (     "    {");
 		outln (		"        uae_u8 val = lookup[spix_val];");
@@ -442,7 +446,7 @@ static void out_linetoscr (DEPTH_T bpp, HMODE_T hmode, int aga, int spr)
 		outln (	"    uae_u8 xor_val = bplxor;");
 	outln  (	"");
 
-	outln  (	"    if (dp_for_drawing->ham_seen) {");
+	outln  (	"    if (bplham) {");
 	out_linetoscr_mode (bpp, hmode, aga, spr, CMODE_HAM);
 	outln  (	"    } else if (bpldualpf) {");
 	out_linetoscr_mode (bpp, hmode, aga, spr, CMODE_DUALPF);
@@ -460,8 +464,16 @@ static void out_linetoscr (DEPTH_T bpp, HMODE_T hmode, int aga, int spr)
 	outln  (	"");
 }
 
-int main (int argc, char *argv[])
+#if defined(FSUAE) && defined (WINDOWS)
+#include "windows.h"
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
+int argc = __argc;
+char** argv = __argv;
+#else
+int main(int argc, char *argv[])
+{
+#endif
 	DEPTH_T bpp;
 	int aga, spr;
 	HMODE_T hmode;

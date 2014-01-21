@@ -64,12 +64,12 @@
 
 static int fmv_mask;
 static uae_u8 *rom;
-static int rom_size = 262144;
+static int fmv_rom_size = 262144;
 static uaecptr fmv_start = 0x00200000;
 static int fmv_size = 1048576;
 
 static uae_u16 l64111regs[32];
-static uae_u16 l64111intmask1, l64111intmask2, l64111intstatus1, l64111intstatus2;
+static uae_u16 l64111intmask1, l64111intmask2, l64111intstatus1, UNUSED(l64111intstatus2);
 static uae_u16 io_reg;
 
 static int isdebug (uaecptr addr)
@@ -328,7 +328,7 @@ static uae_u32 REGPARAM2 fmv_wgeti (uaecptr addr)
 	addr -= fmv_start & fmv_mask;
 	addr &= fmv_mask;
 	m = rom + addr;
-	if (addr < rom_size)
+	if (addr < fmv_rom_size)
 		return do_get_mem_word ((uae_u16 *)m);
 #ifdef FMV_DEBUG
 	write_log (_T("fmv_wgeti %08X %08X PC=%08X\n"), addr, v, M68K_GETPC);
@@ -346,7 +346,7 @@ static uae_u32 REGPARAM2 fmv_lgeti (uaecptr addr)
 	addr -= fmv_start & fmv_mask;
 	addr &= fmv_mask;
 	m = rom + addr;
-	if (addr < rom_size)
+	if (addr < fmv_rom_size)
 		return do_get_mem_long ((uae_u32 *)m);
 #ifdef FMV_DEBUG
 	write_log (_T("fmv_lgeti %08X %08X PC=%08X\n"), addr, v, M68K_GETPC);
@@ -379,12 +379,12 @@ static addrbank fmv_bank = {
 
 void cd32_fmv_init (uaecptr start)
 {
-	int ids[] = { 23, -1 };
+	int ids[] = { 23, 74, -1 };
 	struct romlist *rl = getromlistbyids (ids);
 	struct romdata *rd;
 	struct zfile *z;
 
-	write_log (_T("CD32 FMV mapped @$%lx\n"), start);
+	write_log (_T("CD32 FMV mapped @$%x\n"), start);
 	if (start != fmv_start)
 		return;
 	if (!rl)

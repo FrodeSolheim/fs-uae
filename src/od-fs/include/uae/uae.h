@@ -209,12 +209,16 @@ int amiga_add_rom_file(const char *path, const char *cache_path);
 
 void amiga_set_paths(const char **rom_paths, const char **floppy_paths,
         const char **cd_paths, const char **hd_paths);
+void amiga_set_native_library_dirs(const char **library_dirs);
 
 #ifdef __cplusplus
 } // extern "C"
 #endif
 
-#ifndef LIBAMIGA_INTERNAL_H_
+#ifndef _UAE_OD_FS_UAE_FS_H_
+
+// This section must only be included by external code and cannot be used
+// by od-fs code.
 
 #define DEFEVENT(A, B, C, D, E, F) INPUTEVENT_ ## A,
 enum inputevents {

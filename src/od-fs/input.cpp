@@ -58,7 +58,6 @@ int amiga_send_input_event(int input_event, int state) {
 //#endif
 
     //printf("amiga_send_input_event %d %d\n", input_event, state);
-    int isabs = 0;
 
     if (input_event > INPUTEVENT_PRIVATE_START) {
         return handle_custom_action(input_event, state);
@@ -136,7 +135,8 @@ void setid_af (struct uae_input_device *uid, int i, int slot, int sub, int port,
 /*
  * Default inputdevice config for SDL mouse
  */
-int input_get_default_mouse (struct uae_input_device *uid, int i, int port, int af, bool gp)
+int input_get_default_mouse (struct uae_input_device *uid, int i, int port, int af, bool gp, bool wheel)
+//int input_get_default_mouse (struct uae_input_device *uid, int i, int port, int af, bool gp)
 {
     write_log("input_get_default_mouse\n");
     /* SDL supports only one mouse */
@@ -306,13 +306,13 @@ static int get_kb_widget_num (int kb) {
 }
 
 static int get_kb_widget_first (int kb, int type) {
-    STUB("");
+    //STUB("");
     return 0;
 }
 
 static int get_kb_widget_type (int kb, int num, TCHAR *name, uae_u32 *code) {
     // FIXME: What is this?
-    *code = num;
+    //*code = num;
     return IDEV_WIDGET_KEY;
 }
 
@@ -542,8 +542,8 @@ struct inputdevice_functions inputdevicefunc_joystick = {
 int input_get_default_joystick (struct uae_input_device *uid, int num, int port, int af, int mode, bool gp)
 {
     int h,v;
-    unsigned int j;
-    struct didata *did;
+    //unsigned int j;
+    //struct didata *did;
     //SDL_Joystick *joy;
     //joy = joys[i].joy;
 

@@ -26,10 +26,13 @@
 #ifndef COMPEMU_H
 #define COMPEMU_H
 
-#ifdef __x86_64__
+#ifdef FSUAE // NL
+// FIXME: Check why WinUAE does not need these defines in this file
+#if SIZEOF_VOID_P == 8
 typedef uae_u64 uintptr;
 #else
 typedef uae_u32 uintptr;
+#endif
 #endif
 
 #ifdef JIT
@@ -166,7 +169,6 @@ extern void comp_fbcc_opp (uae_u32 opcode);
 extern void comp_fscc_opp (uae_u32 opcode, uae_u16 extra);
 
 extern uae_u32 needed_flags;
-//extern cacheline cache_tags[];
 extern uae_u8* comp_pc_p;
 extern void* pushall_call_handler;
 

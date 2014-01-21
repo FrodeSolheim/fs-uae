@@ -200,6 +200,8 @@ typedef uint32_t uae_u32;
 // 32 and 64-bit.
 typedef signed long long uae_s64;
 typedef unsigned long long  uae_u64;
+#define VAL64(a) (a ## LL)
+#define UVAL64(a) (a ## uLL)
 
 // FIXME: check exactly what this is used for
 typedef uae_u32 uaecptr;
@@ -307,6 +309,9 @@ extern void to_upper (TCHAR *s, int len);
 
 #if defined _WIN32
 
+#ifdef FSUAE
+#error _WIN32 should not be defined here
+#endif
 #if defined __WATCOMC__
 
 #define O_NDELAY 0
@@ -466,9 +471,14 @@ extern void mallocemu_free (void *ptr);
 #endif
 
 #if __GNUC__ - 1 > 1 || __GNUC_MINOR__ - 1 > 6
+#ifdef FSUAE
+#else
 extern void write_log (const TCHAR *, ...) __attribute__ ((format (printf, 1, 2)));
+#endif
+extern void write_log (const char *, ...) __attribute__ ((format (printf, 1, 2)));
 #else
 extern void write_log (const TCHAR *, ...);
+extern void write_log (const char *, ...);
 #endif
 extern void write_dlog (const TCHAR *, ...);
 
@@ -582,4 +592,3 @@ extern void xfree (const void*);
 #endif
 
 #define DBLEQU(f, i) (abs ((f) - (i)) < 0.000001)
-

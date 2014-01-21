@@ -4,6 +4,7 @@
 
 #include "fsdb.h"
 #include "uae_host.h"
+#include "options.h"
 #include "filesys.h"
 #include "zfile.h"
 #include <fs/unicode.h>
@@ -39,7 +40,6 @@ bool my_chmod (const TCHAR *name, uae_u32 mode) {
 
 bool my_stat (const TCHAR *name, struct mystat *ms) {
     struct fs_stat sonuc;
-    int ret = 0;
     if (fs_stat(name, &sonuc) == -1) {
         write_log("my_stat: stat on file %s failed\n", name);
         return false;
@@ -178,7 +178,6 @@ int my_existsdir(const char *name) {
 
 uae_s64 my_fsize(struct my_openfile_s* mos) {
     struct fs_stat sonuc;
-    int ret = 0;
     if (fs_fstat(mos->fd, &sonuc) == -1) {
         write_log("my_fsize: fstat on file %s failed\n", mos->path);
         return -1;
@@ -480,6 +479,19 @@ FILE *my_opentext(const TCHAR* name) {
     return fs_fopen(name, "rb");
 }
 
+bool my_createshortcut(const char *source, const char *target, const char *description) 
+{
+	STUB("");
+    return false;
+}
+
+
+bool my_resolvesoftlink(char *linkfile, int size)
+{
+	STUB("");
+	return false;
+}
+
 int host_errno_to_dos_errno(int err) {
     static int warned = 0;
 
@@ -511,6 +523,50 @@ int host_errno_to_dos_errno(int err) {
         }
         return ERROR_NOT_IMPLEMENTED;
     }
+}
+
+void my_canonicalize_path(const TCHAR *path, TCHAR *out, int size)
+{
+#if 0
+	TCHAR tmp[MAX_DPATH];
+	int v;
+	v = GetLongPathName (path, tmp, sizeof tmp / sizeof (TCHAR));
+	if (!v || v > sizeof tmp / sizeof (TCHAR)) {
+		_tcsncpy (out, path, size);
+		out[size - 1] = 0;
+		return;
+	}
+	PathCanonicalize(out, tmp);
+#endif
+	STUB("");
+	_tcsncpy (out, path, size);
+	out[size - 1] = 0;
+	return;
+}
+
+int my_issamevolume(const TCHAR *path1, const TCHAR *path2, TCHAR *path)
+{
+	TCHAR p1[MAX_DPATH];
+	TCHAR p2[MAX_DPATH];
+	int len, cnt;
+
+	my_canonicalize_path(path1, p1, sizeof p1 / sizeof (TCHAR));
+	my_canonicalize_path(path2, p2, sizeof p2 / sizeof (TCHAR));
+	len = _tcslen (p1);
+	if (len > _tcslen (p2))
+		len = _tcslen (p2);
+	if (_tcsnicmp (p1, p2, len))
+		return 0;
+	_tcscpy (path, p2 + len);
+	cnt = 0;
+	for (int i = 0; i < _tcslen (path); i++) {
+		if (path[i] == '\\' || path[i] == '/') {
+			path[i] = '/';
+			cnt++;
+		}
+	}
+	write_log (_T("'%s' (%s) matched with '%s' (%s), extra = '%s'\n"), path1, p1, path2, p2, path);
+	return cnt;
 }
 
 int dos_errno(void) {

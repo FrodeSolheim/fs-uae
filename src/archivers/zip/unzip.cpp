@@ -4,10 +4,6 @@
    Read unzip.h for more info
 */
 
-#ifdef WINUAE
-#define ZLIB_WINAPI
-#endif
-
 #include "sysconfig.h"
 #include "sysdeps.h"
 
@@ -966,7 +962,7 @@ extern int ZEXPORT unzReadCurrentFile  (unzFile file, voidp buf, unsigned int le
 		return UNZ_PARAMERROR;
 
 
-	if ((pfile_in_zip_read_info->read_buffer == NULL))
+	if (pfile_in_zip_read_info->read_buffer == NULL)
 		return UNZ_END_OF_LIST_OF_FILE;
 	if (len==0)
 		return 0;
@@ -1213,7 +1209,6 @@ extern int ZEXPORT unzCloseCurrentFile (unzFile file)
 */
 extern int ZEXPORT unzGetGlobalComment (unzFile file, char *szComment, uLong uSizeBuf)
 {
-	int err=UNZ_OK;
 	unz_s* s;
 	uLong uReadThis ;
 	if (file==NULL)

@@ -18,7 +18,7 @@
 #endif
 
 #define AMIGA_WIDTH_MAX (752 / 2)
-#define AMIGA_HEIGHT_MAX (574 / 2)
+#define AMIGA_HEIGHT_MAX (576 / 2)
 
 //#define NEWHSYNC
 
@@ -40,6 +40,7 @@ before it appears on-screen. (TW: display emulation now does this automatically)
 
 #define PIXEL_XPOS(HPOS) (((HPOS)*2 - DISPLAY_LEFT_SHIFT + DIW_DDF_OFFSET - 1) << lores_shift)
 
+#define min_diwlastword (0)
 #define max_diwlastword (PIXEL_XPOS(0x1d4 >> 1))
 
 extern int lores_factor, lores_shift, interlace_seen;
@@ -84,7 +85,7 @@ struct color_entry {
 	xcolnr acolors[256];
 	uae_u32 color_regs_aga[256];
 #endif
-	bool borderblank;
+	bool borderblank, bordersprite;
 };
 
 #ifdef AGA
@@ -176,10 +177,8 @@ struct color_change {
 /* 440 rather than 880, since sprites are always lores.  */
 #ifdef UAE_MINI
 #define MAX_PIXELS_PER_LINE 880
-#define MAX_VIDHEIGHT 800
 #else
 #define MAX_PIXELS_PER_LINE 1760
-#define MAX_VIDHEIGHT 2048
 #endif
 
 /* No divisors for MAX_PIXELS_PER_LINE; we support AGA and SHRES sprites */
@@ -232,6 +231,7 @@ struct decision {
 	bool ehb_seen;
 	bool ham_seen;
 	bool ham_at_start;
+	bool bordersprite_seen;
 };
 
 /* Anything related to changes in hw registers during the DDF for one
@@ -264,12 +264,14 @@ enum nln_how {
 	/* Interlace, doubled display, lower line.  */
 	nln_lower,
 	/* This line normal, next one black.  */
-	nln_nblack
+	nln_nblack,
+	nln_upper_black,
+	nln_lower_black
 };
 
 extern void hsync_record_line_state (int lineno, enum nln_how, int changed);
-extern void vsync_handle_redraw (int long_frame, int lof_changed, uae_u16, uae_u16);
-extern void vsync_handle_check (void);
+extern void vsync_handle_redraw (int long_field, int lof_changed, uae_u16, uae_u16);
+extern bool vsync_handle_check (void);
 extern void init_hardware_for_drawing_frame (void);
 extern void reset_drawing (void);
 extern void drawing_init (void);
@@ -277,10 +279,15 @@ extern bool notice_interlace_seen (bool);
 extern void notice_resolution_seen (int, bool);
 extern void frame_drawn (void);
 extern void redraw_frame (void);
+extern bool draw_frame (struct vidbuffer*);
 extern int get_custom_limits (int *pw, int *ph, int *pdx, int *pdy, int *prealh);
+extern void store_custom_limits (int w, int h, int dx, int dy);
 extern void set_custom_limits (int w, int h, int dx, int dy);
-extern void get_custom_topedge (int *x, int *y);
+extern void get_custom_topedge (int *x, int *y, bool max);
+extern void get_custom_raw_limits (int *pw, int *ph, int *pdx, int *pdy);
 extern void putpixel (uae_u8 *buf, int bpp, int x, xcolnr c8, int opaq);
+extern void allocvidbuffer (struct vidbuffer *buf, int width, int height, int depth);
+extern void freevidbuffer (struct vidbuffer *buf);
 
 /* Finally, stuff that shouldn't really be shared.  */
 
@@ -289,7 +296,6 @@ extern int thisframe_first_drawn_line, thisframe_last_drawn_line;
 #define IHF_SCROLLLOCK 0
 #define IHF_QUIT_PROGRAM 1
 #define IHF_PICASSO 2
-#define IHF_SOUNDADJUST 3
 
 extern int inhibit_frame;
 

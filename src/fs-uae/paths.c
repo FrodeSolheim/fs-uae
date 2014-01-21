@@ -107,7 +107,9 @@ static char* read_custom_path(const char *key) {
 
         char *buffer = (char *) malloc(PATH_MAX + 1);
         int read_bytes = fread(buffer, 1, PATH_MAX, f);
-        if (!feof(f)) {
+        int eof = feof(f);
+        fclose(f);
+        if (!eof) {
             fs_log("- did not get EOF\n");
             free(buffer);
             return NULL;
@@ -163,8 +165,8 @@ const char* fs_uae_base_dir() {
     return path;
 }
 
-static char *create_default_dir(const char *name, const char *key1,
-        const char *key2, const char *dashed_key) {
+static char *get_or_create_default_dir(const char *name, const char *key1,
+        const char *key2, const char *dashed_key, int create) {
     char *path = NULL;
 
     if (path == NULL && key1 != NULL) {
@@ -183,15 +185,28 @@ static char *create_default_dir(const char *name, const char *key1,
     path = fs_uae_resolve_path(expanded_path, FS_UAE_DIR_PATHS);
     free(expanded_path);
 
-    int result = fs_mkdir_with_parents(path, 0755);
-    if (result == -1) {
-        char *msg = fs_strdup_printf("Could not create %s directory", name);
-        fs_emu_warning(msg);
-        free(msg);
-        path = fs_strdup(fs_uae_base_dir());
+    if (create) {
+        int result = fs_mkdir_with_parents(path, 0755);
+        if (result == -1) {
+            char *msg = fs_strdup_printf("Could not create %s directory", name);
+            fs_emu_warning(msg);
+            free(msg);
+            free(path);
+            path = fs_strdup(fs_uae_base_dir());
+        }
     }
     fs_log("- using \"%s\" directory \"%s\"\n", name, path);
     return path;
+}
+
+static char *create_default_dir(const char *name, const char *key1,
+        const char *key2, const char *dashed_key) {
+    return get_or_create_default_dir(name, key1, key2, dashed_key, 1);
+}
+
+static char *get_default_dir(const char *name, const char *key1,
+        const char *key2, const char *dashed_key) {
+    return get_or_create_default_dir(name, key1, key2, dashed_key, 0);
 }
 
 const char *fs_uae_kickstarts_dir() {
@@ -361,6 +376,15 @@ const char *fs_uae_themes_dir() {
     if (path == NULL) {
         path = create_default_dir("Themes", "themes_dir", NULL,
                 "themes-dir");
+    }
+    return path;
+}
+
+const char *fs_uae_plugins_dir(void) {
+    static const char *path = NULL;
+    if (path == NULL) {
+        path = get_default_dir("Plugins", "plugins_dir", NULL,
+                "plugins-dir");
     }
     return path;
 }
@@ -560,6 +584,11 @@ void fs_uae_set_uae_paths() {
             g_paths[FS_UAE_FLOPPY_PATHS].path,
             g_paths[FS_UAE_CD_PATHS].path,
             g_paths[FS_UAE_HD_PATHS].path);
+
+    static const char *library_dirs[2];
+    library_dirs[0] = fs_uae_plugins_dir();
+    library_dirs[1] = NULL; // terminates the list
+    amiga_set_native_library_dirs(library_dirs);
 
     // find path for built-in drive sounds
     char *path = fs_get_program_data_file("floppy_sounds");

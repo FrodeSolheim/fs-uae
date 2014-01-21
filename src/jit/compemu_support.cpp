@@ -10,7 +10,11 @@
 
 #include "options.h"
 #include "events.h"
+#ifdef FSUAE
 #include "uae/memory.h"
+#else
+#include "include/memory.h"
+#endif
 #include "custom.h"
 #include "newcpu.h"
 #include "comptbl.h"
@@ -21,7 +25,11 @@
 
 // %%% BRIAN KING WAS HERE %%%
 extern bool canbang;
+#ifdef FSUAE
 //#include <sys/mman.h>
+#else
+#include <sys/mman.h>
+#endif
 extern void jit_abort(const TCHAR*,...);
 compop_func *compfunctbl[65536];
 compop_func *nfcompfunctbl[65536];
@@ -276,7 +284,11 @@ STATIC_INLINE void adjust_jmpdep(dependency* d, void* a)
 * Soft flush handling support functions                            *
 ********************************************************************/
 
+#ifdef FSUAE
 STATIC_INLINE void set_dhtu(blockinfo* bi, cpuop_func *dh)
+#else
+STATIC_INLINE void set_dhtu(blockinfo* bi, void* dh)
+#endif
 {
 	//write_log (_T("JIT: bi is %p\n"),bi);
 	if (dh!=bi->direct_handler_to_use) {
@@ -288,7 +300,11 @@ STATIC_INLINE void set_dhtu(blockinfo* bi, cpuop_func *dh)
 			//write_log (_T("JIT: x->prev_p is %p\n"),x->prev_p);
 
 			if (x->jmp_off) {
+#ifdef FSUAE
 				adjust_jmpdep(x, (void*) dh);
+#else
+				adjust_jmpdep(x,dh);
+#endif
 			}
 			x=x->next;
 		}
@@ -4891,11 +4907,10 @@ static void align_target(uae_u32 a)
 		*target++=0x90;
 }
 
-extern uae_u8* kickmemory;
 STATIC_INLINE int isinrom(uae_u32 addr)
 {
-	return (addr>=(uae_u32)kickmemory &&
-		addr<(uae_u32)kickmemory+8*65536);
+	return (addr>=(uae_u32)kickmem_bank.baseaddr &&
+		addr<(uae_u32)kickmem_bank.baseaddr+8*65536);
 }
 
 static void flush_all(void)
@@ -5045,7 +5060,8 @@ STATIC_INLINE void writemem(int address, int source, int offset, int size, int t
 
 void writebyte(int address, int source, int tmp)
 {
-	int  distrust;
+	int distrust = currprefs.comptrustbyte;
+#if 0
 	switch (currprefs.comptrustbyte) {
 	case 0: distrust=0; break;
 	case 1: distrust=1; break;
@@ -5053,7 +5069,7 @@ void writebyte(int address, int source, int tmp)
 	case 3: distrust=!have_done_picasso; break;
 	default: abort();
 	}
-
+#endif
 	if ((special_mem&S_WRITE) || distrust)
 		writemem_special(address,source,20,1,tmp);
 	else
@@ -5063,7 +5079,8 @@ void writebyte(int address, int source, int tmp)
 STATIC_INLINE void writeword_general(int address, int source, int tmp,
 	int clobber)
 {
-	int  distrust;
+	int distrust = currprefs.comptrustword;
+#if 0
 	switch (currprefs.comptrustword) {
 	case 0: distrust=0; break;
 	case 1: distrust=1; break;
@@ -5071,7 +5088,7 @@ STATIC_INLINE void writeword_general(int address, int source, int tmp,
 	case 3: distrust=!have_done_picasso; break;
 	default: abort();
 	}
-
+#endif
 	if ((special_mem&S_WRITE) || distrust)
 		writemem_special(address,source,16,2,tmp);
 	else
@@ -5091,7 +5108,8 @@ void writeword(int address, int source, int tmp)
 STATIC_INLINE void writelong_general(int address, int source, int tmp,
 	int clobber)
 {
-	int  distrust;
+	int  distrust = currprefs.comptrustlong;
+#if 0
 	switch (currprefs.comptrustlong) {
 	case 0: distrust=0; break;
 	case 1: distrust=1; break;
@@ -5099,7 +5117,7 @@ STATIC_INLINE void writelong_general(int address, int source, int tmp,
 	case 3: distrust=!have_done_picasso; break;
 	default: abort();
 	}
-
+#endif
 	if ((special_mem&S_WRITE) || distrust)
 		writemem_special(address,source,12,4,tmp);
 	else
@@ -5172,7 +5190,8 @@ STATIC_INLINE void readmem(int address, int dest, int offset, int size, int tmp)
 
 void readbyte(int address, int dest, int tmp)
 {
-	int  distrust;
+	int distrust = currprefs.comptrustbyte;
+#if 0
 	switch (currprefs.comptrustbyte) {
 	case 0: distrust=0; break;
 	case 1: distrust=1; break;
@@ -5180,7 +5199,7 @@ void readbyte(int address, int dest, int tmp)
 	case 3: distrust=!have_done_picasso; break;
 	default: abort();
 	}
-
+#endif
 	if ((special_mem&S_READ) || distrust)
 		readmem_special(address,dest,8,1,tmp);
 	else
@@ -5189,7 +5208,8 @@ void readbyte(int address, int dest, int tmp)
 
 void readword(int address, int dest, int tmp)
 {
-	int  distrust;
+	int distrust = currprefs.comptrustword;
+#if 0
 	switch (currprefs.comptrustword) {
 	case 0: distrust=0; break;
 	case 1: distrust=1; break;
@@ -5197,7 +5217,7 @@ void readword(int address, int dest, int tmp)
 	case 3: distrust=!have_done_picasso; break;
 	default: abort();
 	}
-
+#endif
 	if ((special_mem&S_READ) || distrust)
 		readmem_special(address,dest,4,2,tmp);
 	else
@@ -5206,7 +5226,8 @@ void readword(int address, int dest, int tmp)
 
 void readlong(int address, int dest, int tmp)
 {
-	int  distrust;
+	int distrust = currprefs.comptrustlong;
+#if 0
 	switch (currprefs.comptrustlong) {
 	case 0: distrust=0; break;
 	case 1: distrust=1; break;
@@ -5214,7 +5235,7 @@ void readlong(int address, int dest, int tmp)
 	case 3: distrust=!have_done_picasso; break;
 	default: abort();
 	}
-
+#endif
 	if ((special_mem&S_READ) || distrust)
 		readmem_special(address,dest,0,4,tmp);
 	else
@@ -5252,7 +5273,8 @@ STATIC_INLINE void get_n_addr_real(int address, int dest, int tmp)
 
 void get_n_addr(int address, int dest, int tmp)
 {
-	int  distrust;
+	int distrust = currprefs.comptrustnaddr;
+#if 0
 	switch (currprefs.comptrustnaddr) {
 	case 0: distrust=0; break;
 	case 1: distrust=1; break;
@@ -5260,7 +5282,7 @@ void get_n_addr(int address, int dest, int tmp)
 	case 3: distrust=!have_done_picasso; break;
 	default: abort();
 	}
-
+#endif
 	if (special_mem || distrust)
 		get_n_addr_old(address,dest,tmp);
 	else
@@ -5703,13 +5725,16 @@ void build_comp(void)
 #ifdef NATMEM_OFFSET
 	write_log (_T("JIT: Setting signal handler\n"));
 #ifndef _WIN32
+#ifdef FSUAE
 	struct sigaction sa;
 	sa.sa_handler = (void (*)(int)) vec;
  	sigemptyset(&sa.sa_mask);
 	sa.sa_flags = SA_RESTART;
 
 	sigaction(SIGSEGV, &sa, NULL);
-//	signal(SIGSEGV,vec);
+#else
+	signal(SIGSEGV,vec);
+#endif
 #endif
 #endif
 	write_log (_T("JIT: Building Compiler function table\n"));

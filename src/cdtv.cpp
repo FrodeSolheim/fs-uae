@@ -289,7 +289,7 @@ static void do_play (void)
 {
 	uae_u32 start = read_comm_pipe_u32_blocking (&requests);
 	uae_u32 end = read_comm_pipe_u32_blocking (&requests);
-	uae_u32 scan = read_comm_pipe_u32_blocking (&requests);
+	uae_u32 UNUSED(scan) = read_comm_pipe_u32_blocking (&requests);
 	subreset ();
 	sys_command_cd_pause (unitnum, 0);
 	sys_command_cd_volume (unitnum, (cd_volume_stored << 5) | (cd_volume_stored >> 5), (cd_volume_stored << 5) | (cd_volume_stored >> 5));
@@ -312,9 +312,9 @@ static void startplay (void)
 static int play_cdtrack (uae_u8 *p)
 {
 	int track_start = p[1];
-	int index_start = p[2];
+	int UNUSED(index_start) = p[2];
 	int track_end = p[3];
-	int index_end = p[4];
+	int UNUSED(index_end) = p[4];
 	int start_found, end_found;
 	uae_u32 start, end;
 	int j;
@@ -1049,6 +1049,16 @@ static void dmac_start_dma (void)
 {
 	if (!(dmac_cntr & CNTR_PDMD)) { // non-scsi dma
 		write_comm_pipe_u32 (&requests, 0x0100, 1);
+	} else {
+		scsi_dmac_start_dma ();
+	}
+}
+static void dmac_stop_dma (void)
+{
+	if (!(dmac_cntr & CNTR_PDMD)) { // non-scsi dma
+		;
+	} else {
+		scsi_dmac_stop_dma ();
 	}
 }
 
@@ -1203,7 +1213,9 @@ void CDTV_hsync_handler (void)
 
 static void do_stch (void)
 {
+#ifdef CDTV_DEBUG
 	static int stch_cnt;
+#endif
 
 	if ((tp_cr & 1) && !(tp_air & (1 << 2))) {
 		stch = 1;
@@ -1401,7 +1413,10 @@ static void dmac_bput2 (uaecptr addr, uae_u32 b)
 		break;
 	case 0xe2:
 	case 0xe3:
-		dmac_dma = 0;
+		if (dmac_dma) {
+			dmac_dma = 0;
+			dmac_stop_dma ();
+		}
 		dma_finished = 0;
 		break;
 	case 0xe4:
@@ -1656,11 +1671,9 @@ uae_u8 cdtv_battram_read (int addr)
 	return v;
 }
 
-int cdtv_add_scsi_unit(int ch, TCHAR *path, int blocksize, int readonly,
-	TCHAR *devname, int sectors, int surfaces, int reserved,
-	int bootpri, TCHAR *filesys)
+int cdtv_add_scsi_hd_unit (int ch, struct uaedev_config_info *ci)
 {
-	return addscsi (ch, path, blocksize, readonly, devname, sectors, surfaces, reserved, bootpri, filesys, 1);
+	return add_scsi_hd (ch, NULL, ci, 1);
 }
 
 void cdtv_free (void)
@@ -1681,7 +1694,6 @@ void cdtv_free (void)
 
 
 #ifdef ROMHACK2
-extern uae_u8 *extendedkickmemory, *cardmemory;
 static void romhack (void)
 {
 	struct zfile *z;
@@ -1762,6 +1774,8 @@ void cdtv_init (void)
 	cdtv_battram_reset ();
 	open_unit ();
 	gui_flicker_led (LED_CD, 0, -1);
+	if (currprefs.cs_cdtvscsi)
+		init_scsi ();
 }
 
 void cdtv_check_banks (void)
@@ -1772,7 +1786,7 @@ void cdtv_check_banks (void)
 
 #ifdef SAVESTATE
 
-uae_u8 *save_dmac (int *len, uae_u8 *dstptr)
+uae_u8 *save_cdtv_dmac (int *len, uae_u8 *dstptr)
 {
 	uae_u8 *dstbak, *dst;
 	
@@ -1798,7 +1812,7 @@ uae_u8 *save_dmac (int *len, uae_u8 *dstptr)
 
 }
 
-uae_u8 *restore_dmac (uae_u8 *src)
+uae_u8 *restore_cdtv_dmac (uae_u8 *src)
 {
 	restore_u32 ();
 	restore_u32 ();

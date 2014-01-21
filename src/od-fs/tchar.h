@@ -1,8 +1,9 @@
-#ifndef LIBAMIGA_TCHAR_H_
-#define LIBAMIGA_TCHAR_H_
+#ifndef _UAE_OD_FS_TCHAR_H_
+#define _UAE_OD_FS_TCHAR_H_
 
 // we include this very early, so later #defines of _w* functions is defined
-// _after_ wchar.h is processed
+// _after_ wchar.h is processed (because _w* string functions are #defined
+// to their char counterparts)
 
 #include <wchar.h>
 
@@ -10,7 +11,5 @@
 
 typedef char TCHAR;
 #define _T(x) x
-//typedef char WCHAR
-//#define WCHAR char
 
-#endif // LIBAMIGA_TCHAR_H_
+#endif // _UAE_OD_FS_TCHAR_H_

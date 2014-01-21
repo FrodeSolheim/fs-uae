@@ -265,7 +265,7 @@ void fullpath (TCHAR *path, int size) {
 TCHAR start_path_data[MAX_DPATH];
 
 void fetch_path (const TCHAR *name, TCHAR *out, int size) {
-        int size2 = size;
+    //int size2 = size;
     //printf("fetch_path %s\n", name);
     //_tcscpy (start_path_data, "./");
     _tcscpy (start_path_data, "");
@@ -303,7 +303,10 @@ void fetch_saveimagepath (TCHAR *out, int size, int dir) {
 void fetch_configurationpath (TCHAR *out, int size) {
     fetch_path("ConfigurationPath", out, size);
 }
-
+void fetch_luapath (TCHAR *out, int size)
+{
+	fetch_path (_T("LuaPath"), out, size);
+}
 void fetch_screenshotpath (TCHAR *out, int size) {
     fetch_path("ScreenshotPath", out, size);
 }
@@ -320,6 +323,10 @@ void fetch_inputfilepath (TCHAR *out, int size) {
 
 void fetch_datapath (TCHAR *out, int size) {
         fetch_path (NULL, out, size);
+}
+void fetch_rompath (TCHAR *out, int size)
+{
+	fetch_path (_T("KickstartPath"), out, size);
 }
 
 void to_lower (TCHAR *s, int len) {
@@ -343,6 +350,7 @@ TCHAR *target_expand_environment (const TCHAR *path) {
 volatile int uaenet_int_requested;
 volatile int uaenet_vsync_requested;
 
+#if 0
 #include <signal.h>
 #include "debug.h"
 #ifdef __cplusplus_disabled
@@ -359,7 +367,7 @@ static RETSIGTYPE sigbrkhandler (int foo)
     signal (SIGINT, sigbrkhandler);
 #endif
 }
-
+#endif
 
 void setup_brkhandler (void)
 {

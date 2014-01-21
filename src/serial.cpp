@@ -316,8 +316,12 @@ uae_u8 serial_readstatus(uae_u8 ignored)
 	int status = 0;
 
 #ifdef POSIX_SERIAL
+#ifdef FSUAE
 	if (ioctl (sd, TIOCMGET, &status) < 0)
 	    status = TIOCM_CAR | TIOCM_DSR | TIOCM_CTS;
+#else
+	ioctl (sd, TIOCMGET, &status);
+#endif
 
 	if (status & TIOCM_CAR) {
 		if (!carrier) {

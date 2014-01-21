@@ -70,7 +70,7 @@ extern FILE *g_fs_uae_sync_debug_file;
 #define A2091
 #define ACTION_REPLAY
 #define AGA
-//#define AHI
+#define AHI
 #define ARCADIA
 #define AUTOCONFIG
 
@@ -82,13 +82,15 @@ extern FILE *g_fs_uae_sync_debug_file;
 #define CDTV
 #define ECS_DENISE
 #define CAPS
-#define CPUEMU_0
-#define CPUEMU_11
-#define CPUEMU_12
-#define CPUEMU_20
-#define CPUEMU_21
-#define CPUEMU_22
-#define CPUEMU_31
+#define CPUEMU_0 /* generic 680x0 emulation */
+#define CPUEMU_11 /* 68000/68010 prefetch emulation */
+#define CPUEMU_13 /* 68000/68010 cycle-exact cpu&blitter */
+#define CPUEMU_20 /* 68020 prefetch */
+#define CPUEMU_21 /* 68020 "cycle-exact" + blitter */
+#define CPUEMU_22 /* 68030 (040/060) "cycle-exact" + blitter */
+#define CPUEMU_31 /* Aranym 68040 MMU */
+#define CPUEMU_32 /* Previous 68030 MMU */
+#define CPUEMU_33 /* 68060 MMU */
 //#define DEBUGGER
 #define DRIVESOUND
 //#define ENFORCER
@@ -114,6 +116,11 @@ extern FILE *g_fs_uae_sync_debug_file;
 #define UAE_FILESYS_THREADS
 //#define UAE_FILESYS_ASYNCHRONOUS
 //#define USE_SDL
+
+#ifdef LINUX
+#define WITH_SCSI_IOCTL
+#endif
+#define WITH_UAENATIVE
 
 #define XARCADE
 #define GNU_SOURCE 1
@@ -159,6 +166,14 @@ typedef unsigned short USHORT;
 // were we actually need access to some of the underlying function names
 #include "winuae_compat.h"
 #endif
+
+// Some WinUAE-derived code which must not be used is guarded by _WIN32
+// defines. The code is fixed so compiling without _WIN32 defined works
+// when compiling FS-UAE for Windows. FS-UAE code use the WINDOWS define
+// instead to avoid collision with WinUAE.
+
+#undef _WIN32
+#undef WIN32
 
 #include "../include/sysdeps.h"
 
@@ -243,5 +258,25 @@ typedef int BOOL;
 #include <inttypes.h>
 
 #include "uae/jitconfig.h"
+
+#ifdef __GNUC__
+#define UNUSED(x) UNUSED_ ## x __attribute__((__unused__))
+#else
+#define UNUSED(x) UNUSED_ ## x
+#endif
+
+#ifdef __GNUC__
+#define UNUSED_FUNCTION(x) __attribute__((__unused__)) UNUSED_ ## x
+#else
+#define UNUSED_FUNCTION(x) UNUSED_ ## x
+#endif
+
+#ifndef NORETURN
+#ifdef __GNUC__
+#define NORETURN __attribute__((__noreturn__))
+#else
+#define NORETURN
+#endif
+#endif
 
 #endif // EXTRA_DEFINES_H

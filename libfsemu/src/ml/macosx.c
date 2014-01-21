@@ -4,6 +4,7 @@
 #include <string.h>
 #include <mach/mach_time.h>
 #include <ApplicationServices/ApplicationServices.h>
+#include <CoreServices/CoreServices.h>
 #include <Carbon/Carbon.h>
 //#include <MacApplication.h>
 
@@ -35,6 +36,15 @@ int64_t fs_ml_monotonic_time() {
 
 void fs_ml_usleep(int usec) {
     usleep(usec);
+}
+
+void fs_ml_prevent_power_saving(void) {
+    static int counter = 0;
+    if (++counter == 50 * 30) {
+        // prevent screen saver about every 30 seconds
+        UpdateSystemActivity(OverallAct);
+        counter = 0;
+    }
 }
 
 //void fs_ml_set_fullscreen_extra() {

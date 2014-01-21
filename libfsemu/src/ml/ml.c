@@ -293,10 +293,6 @@ void fs_ml_init() {
         fs_log("could not set real time priority, errno = %d\n", errno);
     }
 #endif
-
-#ifdef WINDOWS
-    fs_ml_prevent_power_saving();
-#endif
 }
 
 void fs_ml_init_2() {

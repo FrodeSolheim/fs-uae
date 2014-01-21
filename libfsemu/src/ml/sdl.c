@@ -956,6 +956,10 @@ int fs_ml_main_loop() {
     while (g_fs_ml_running) {
         event_loop();
         process_video_events();
+
+#if defined(WINDOWS) || defined (MACOSX)
+        fs_ml_prevent_power_saving();
+#endif
         fs_ml_render_iteration();
     }
 

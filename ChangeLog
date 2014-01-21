@@ -1,3 +1,13 @@
+Version 2.3.99beta2:
+
+* Inhibit screen saver / power saving when running FS-UAE on OS X.
+* (Launcher) Adult filter for game database, enabled by default.
+* (Launcher) Use search term tag:adult to show adult games.
+* (Launcher) New option database_show_adult to show adult games by default.
+* (Launcher) Can search for quoted words to require exact word match.
+* (Launcher) Fixed some translated strings used incorrectly.
+* (Launcher) Updated translations: pl [grimi].
+
 Version 2.3.99beta1:
 
 * Updated translations: it [Speedvicio].

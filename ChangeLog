@@ -6,7 +6,10 @@ Version 2.3.99beta2:
 * (Launcher) New option database_show_adult to show adult games by default.
 * (Launcher) Can search for quoted words to require exact word match.
 * (Launcher) Fixed some translated strings used incorrectly.
-* (Launcher) Updated translations: pl [grimi].
+* (Launcher) Updated translations: pl [grimi], fi [Goingdown],
+  it [Speedvicio].
+* (Arcade) On Linux, only set FS-UAE fullscreen mode to window if is not
+  specifically set to anything (allows fullscreen_mode = fullscreen).
 
 Version 2.3.99beta1:
 

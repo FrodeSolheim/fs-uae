@@ -1,5 +1,6 @@
-Version 2.5.0:
+Version 2.5.0dev:
 
+* FS-UAE can use 256 kB chip RAM (and also 128 if you *really* want to).
 * Inhibit screen saver / power saving when running FS-UAE on OS X.
 * Allow short-hand --video-sync(=1/0) option
 * Use floating point control register, output compiler warning when not.
@@ -13,18 +14,7 @@ Version 2.5.0:
 * Auto-generated source files are now auto-generated when compiling on all
   platforms, and not cached in the source archives any longer.
 * Fixes to allow FS-UAE to be compiled with the lastest MinGW version.
-* (Launcher) Adult filter for game database, enabled by default.
-* (Launcher) Use search term tag:adult to show adult games.
-* (Launcher) New option database_show_adult to show adult games by default.
-* (Launcher) Can search for quoted words to require exact word match.
-* (Launcher) Fixed some translated strings used incorrectly.
-* (Launcher) Updated translations: pl [grimi].
-
-Version 2.3.99beta1:
-
-* Updated translations: it [Speedvicio].
-* (Launcher) Replaced fengestad.no/fs-uae URLs with fs-uae.net ones.
-* (Launcher) Updated translations: it [Speedvicio].
+* Updated translations: it [Speedvicio]
 
 Version 2.3.17:
 

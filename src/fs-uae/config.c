@@ -308,7 +308,13 @@ static void configure_accuracy(amiga_config *c) {
 static void configure_memory(amiga_config *c) {
     int chip_memory = fs_config_get_int("chip_memory");
     if (chip_memory != FS_CONFIG_NONE) {
-        if (chip_memory % 512 == 0) {
+        if (chip_memory == 128) {
+            amiga_set_int_option("chipmem_size", -1);
+        }
+        else if (chip_memory == 256) {
+            amiga_set_int_option("chipmem_size", 0);
+        }
+        else if (chip_memory % 512 == 0) {
             amiga_set_int_option("chipmem_size", chip_memory / 512);
         }
         else {

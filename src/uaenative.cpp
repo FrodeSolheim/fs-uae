@@ -41,6 +41,17 @@ static double syncdivisor;
 
 #define SIGBIT 8 // SIGB_DOS
 
+// the function prototype for the callable native functions
+typedef uae_s32 UNICALL (*uae_uni_native_function)(struct uni *uni);
+
+// the function prototype for the callable native functions (old style)
+typedef uae_u32 UNICALL (*uae_uni_native_compat_function)(uae_u32, uae_u32,
+        uae_u32, uae_u32, uae_u32, uae_u32, uae_u32, uae_u32, uae_u32,
+        uae_u32, uae_u32, uae_u32, void *, uae_u32, void *);
+
+// the function prototype for the native library's uni_init function
+typedef void UNICALL (*uni_init_function)(struct uni *uni);
+
 struct library_data {
     void *dl_handle;
     uae_thread_id thread_id;
@@ -364,7 +375,7 @@ uae_u32 uaenative_get_function (TrapContext *context, int flags)
 
 #if defined(X86_MSVC_ASSEMBLY)
 
-static void do_call_function_compat_asm (struct uni *uni)
+static uae_u32 do_call_function_compat_asm (struct uni *uni)
 {
     unsigned int espstore;
     void *native_func = uni->native_function;
@@ -419,16 +430,16 @@ static void do_call_function (struct uni *uni) {
 
     if (uni->flags & UNI_FLAG_COMPAT) {
 #if defined(X86_MSVC_ASSEMBLY)
-        do_call_function_compat_asm(uni);
+        uni->result = (uae_s32) do_call_function_compat_asm(uni);
 #else
-        ((uae_uni_native_compat_function) uni->native_function) (
+        uni->result = ((uae_uni_native_compat_function) uni->native_function) (
                 uni->d1, uni->d2, uni->d3, uni->d4, uni->d5, uni->d6,
                 uni->d7, uni->a1, uni->a2, uni->a3, uni->a4, uni->a5,
                 uni->uaevar_compat, uni->a7, &regs);
 #endif
     }
     else {
-        ((uae_uni_native_function) uni->native_function) (uni);
+        uni->result = ((uae_uni_native_function) uni->native_function) (uni);
     }
 
     if ((flags & UNI_FLAG_ASYNCHRONOUS) == 0) {
@@ -565,7 +576,7 @@ uae_u32 uaenative_call_function (TrapContext *context, int flags)
         // synchronous mode, just call the function here and now
         do_call_function(&uni);
     }
-    return 0;
+    return uni.result;
 }
 
 uae_u32 uaenative_close_library(TrapContext *context, int flags)

@@ -621,10 +621,12 @@ uae_u32 REGPARAM2 ahi_demux (TrapContext *context)
 			return 1;
 		}
 
-#if defined(X86_MSVC_ASSEMBLY)
-
+#ifndef CPU_64_BIT
 	case 105:   //returns memory offset
 		return (uae_u32) get_real_address (0);
+#endif
+
+#if defined(X86_MSVC_ASSEMBLY)
 
 	case 106:   //byteswap 16bit vars
 		//a0 = start address

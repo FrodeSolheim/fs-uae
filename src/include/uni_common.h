@@ -47,9 +47,8 @@ typedef void * UNICALL (*uni_resolve_function)(uni_ulong ptr);
 
 struct uni {
     uni_long uni_version;
+    uni_long result;
     uni_long error;
-    //uni_long params[6];
-    //uni_long d0;
     uni_long d1;
     uni_long d2;
     uni_long d3;
@@ -57,13 +56,11 @@ struct uni {
     uni_long d5;
     uni_long d6;
     uni_long d7;
-    //uni_long a0;
     uni_long a1;
     uni_long a2;
     uni_long a3;
     uni_long a4;
     uni_long a5;
-    //uni_long a6;
     uni_long a7;
     uni_resolve_function resolve;
     uni_get_uae_string_function get_uae_string;

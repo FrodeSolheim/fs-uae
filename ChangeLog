@@ -14,7 +14,7 @@ Version 2.5.0dev:
 * Auto-generated source files are now auto-generated when compiling on all
   platforms, and not cached in the source archives any longer.
 * Fixes to allow FS-UAE to be compiled with the lastest MinGW version.
-* Updated translations: it [Speedvicio]
+* Updated translations: it [Speedvicio], es [albconde].
 
 Version 2.3.17:
 

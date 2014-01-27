@@ -1,9 +1,10 @@
 Version 2.3.99beta3:
 
 * FS-UAE can use 256 kB chip RAM (and also 128 if you *really* want to).
+* Updated translations: es [albconde].
 * (Launcher) Fixed multiple file selection when using PyQt.
 * (Launcher) Added 256 kB chip RAM to the chip memory selector.
-* (Launcher) Updated translations: de [jbl007].
+* (Launcher) Updated translations: de [jbl007], es [albconde].
 
 Version 2.3.99beta2:
 

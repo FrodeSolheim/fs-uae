@@ -1036,6 +1036,10 @@ void cfgfile_save_options (struct zfile *f, struct uae_prefs *p, int type)
 				_stprintf (tmp1, _T("joyportname%d"), i);
 				cfgfile_write (f, tmp1, jp->configname);
 			}
+			if (jp->nokeyboardoverride) {
+				_stprintf (tmp1, _T("joyport%dkeyboardoverride"), i);
+				cfgfile_write_bool (f, tmp1, !jp->nokeyboardoverride);
+			}
 		}
 	}
 	if (p->dongle) {
@@ -1079,7 +1083,7 @@ void cfgfile_save_options (struct zfile *f, struct uae_prefs *p, int type)
 	write_resolution (f, _T("gfx_width_fullscreen"), _T("gfx_height_fullscreen"), &p->gfx_size_fs);
 	cfgfile_write (f, _T("gfx_refreshrate"), _T("%d"), p->gfx_apmode[0].gfx_refreshrate);
 	cfgfile_dwrite (f, _T("gfx_refreshrate_rtg"), _T("%d"), p->gfx_apmode[1].gfx_refreshrate);
-	cfgfile_write_bool (f, _T("gfx_autoresolution"), p->gfx_autoresolution);
+	cfgfile_write (f, _T("gfx_autoresolution"), _T("%d"), p->gfx_autoresolution);
 	cfgfile_dwrite (f, _T("gfx_autoresolution_delay"), _T("%d"), p->gfx_autoresolution_delay);
 	cfgfile_dwrite (f, _T("gfx_autoresolution_min_vertical"), vertmode[p->gfx_autoresolution_minv + 1]);
 	cfgfile_dwrite (f, _T("gfx_autoresolution_min_horizontal"), horizmode[p->gfx_autoresolution_minh + 1]);
@@ -1399,7 +1403,7 @@ void cfgfile_save_options (struct zfile *f, struct uae_prefs *p, int type)
 	write_inputdevice_config (p, f);
 }
 
-int cfgfile_yesno (const TCHAR *option, const TCHAR *value, const TCHAR *name, int *location)
+int cfgfile_yesno (const TCHAR *option, const TCHAR *value, const TCHAR *name, int *location, bool numbercheck)
 {
 	if (name != NULL && _tcscmp (option, name) != 0)
 		return 0;
@@ -1408,7 +1412,7 @@ int cfgfile_yesno (const TCHAR *option, const TCHAR *value, const TCHAR *name, i
 		*location = 1;
 	else if (strcasecmp (value, _T("no")) == 0 || strcasecmp (value, _T("n")) == 0
 		|| strcasecmp (value, _T("false")) == 0 || strcasecmp (value, _T("f")) == 0
-		|| strcasecmp (value, _T("0")) == 0)
+		|| (numbercheck && strcasecmp (value, _T("0")) == 0))
 		*location = 0;
 	else {
 		write_log (_T("Option `%s' requires a value of either `yes' or `no' (was '%s').\n"), option, value);
@@ -1416,10 +1420,14 @@ int cfgfile_yesno (const TCHAR *option, const TCHAR *value, const TCHAR *name, i
 	}
 	return 1;
 }
-int cfgfile_yesno (const TCHAR *option, const TCHAR *value, const TCHAR *name, bool *location)
+int cfgfile_yesno (const TCHAR *option, const TCHAR *value, const TCHAR *name, int *location)
+{
+	return cfgfile_yesno (option, value, name, location, true);
+}
+int cfgfile_yesno (const TCHAR *option, const TCHAR *value, const TCHAR *name, bool *location, bool numbercheck)
 {
 	int val;
-	int ret = cfgfile_yesno (option, value, name, &val);
+	int ret = cfgfile_yesno (option, value, name, &val, numbercheck);
 	if (ret == 0)
 		return 0;
 	if (ret < 0)
@@ -1427,6 +1435,10 @@ int cfgfile_yesno (const TCHAR *option, const TCHAR *value, const TCHAR *name, b
 	else
 		*location = val != 0;
 	return 1;
+}
+int cfgfile_yesno (const TCHAR *option, const TCHAR *value, const TCHAR *name, bool *location)
+{
+	return cfgfile_yesno (option, value, name, location, true);
 }
 
 int cfgfile_doubleval (const TCHAR *option, const TCHAR *value, const TCHAR *name, double *location)
@@ -1664,7 +1676,7 @@ static void set_chipset_mask (struct uae_prefs *p, int val)
 
 static int cfgfile_parse_host (struct uae_prefs *p, TCHAR *option, TCHAR *value)
 {
-	int i;
+	int i, v;
 	bool vb;
 	TCHAR *section = 0;
 	TCHAR *tmpp;
@@ -1795,6 +1807,16 @@ static int cfgfile_parse_host (struct uae_prefs *p, TCHAR *option, TCHAR *value)
 		p->gfx_autoresolution_minh--;
 		return 1;
 	}
+	if (!_tcsicmp (option, _T("gfx_autoresolution"))) {
+		p->gfx_autoresolution = 0;
+		cfgfile_intval (option, value, _T("gfx_autoresolution"), &p->gfx_autoresolution, 1);
+		if (!p->gfx_autoresolution) {
+			v = cfgfile_yesno (option, value, _T("gfx_autoresolution"), &vb);
+			if (v > 0)
+				p->gfx_autoresolution = vb ? 10 : 0;
+		}
+		return 1;
+	}
 
 	if (cfgfile_intval (option, value, _T("sound_frequency"), &p->sound_freq, 1)
 		|| cfgfile_intval (option, value, _T("sound_max_buff"), &p->sound_maxbsiz, 1)
@@ -1814,7 +1836,6 @@ static int cfgfile_parse_host (struct uae_prefs *p, TCHAR *option, TCHAR *value)
 		|| cfgfile_intval (option, value, _T("gfx_left_windowed"), &p->gfx_size_win.y, 1)
 		|| cfgfile_intval (option, value, _T("gfx_refreshrate"), &p->gfx_apmode[APMODE_NATIVE].gfx_refreshrate, 1)
 		|| cfgfile_intval (option, value, _T("gfx_refreshrate_rtg"), &p->gfx_apmode[APMODE_RTG].gfx_refreshrate, 1)
-		|| cfgfile_yesno (option, value, _T("gfx_autoresolution"), &p->gfx_autoresolution)
 		|| cfgfile_intval (option, value, _T("gfx_autoresolution_delay"), &p->gfx_autoresolution_delay, 1)
 		|| cfgfile_intval (option, value, _T("gfx_backbuffers"), &p->gfx_apmode[APMODE_NATIVE].gfx_backbuffers, 1)
 		|| cfgfile_intval (option, value, _T("gfx_backbuffers_rtg"), &p->gfx_apmode[APMODE_RTG].gfx_backbuffers, 1)
@@ -2319,6 +2340,22 @@ static int cfgfile_parse_host (struct uae_prefs *p, TCHAR *option, TCHAR *value)
 		return 1;
 	if (cfgfile_strval (option, value, _T("joyport3autofire"), &p->jports[3].autofire, joyaf, 0))
 		return 1;
+	if (cfgfile_yesno (option, value, _T("joyport0keyboardoverride"), &vb)) {
+		p->jports[0].nokeyboardoverride = !vb;
+		return 1;
+	}
+	if (cfgfile_yesno (option, value, _T("joyport1keyboardoverride"), &vb)) {
+		p->jports[1].nokeyboardoverride = !vb;
+		return 1;
+	}
+	if (cfgfile_yesno (option, value, _T("joyport2keyboardoverride"), &vb)) {
+		p->jports[2].nokeyboardoverride = !vb;
+		return 1;
+	}
+	if (cfgfile_yesno (option, value, _T("joyport3keyboardoverride"), &vb)) {
+		p->jports[3].nokeyboardoverride = !vb;
+		return 1;
+	}
 
 	if (cfgfile_path (option, value, _T("statefile_quit"), p->quitstatefile, sizeof p->quitstatefile / sizeof (TCHAR)))
 		return 1;
@@ -5683,10 +5720,9 @@ static int bip_arcadia (struct uae_prefs *p, int config, int compa, int romcheck
 	roms[2] = -1;
 	if (!configure_rom (p, roms, romcheck))
 		return 0;
-	roms[0] = 49;
-	roms[1] = 50;
-	roms[2] = 51;
-	roms[3] = -1;
+	roms[0] = 51;
+	roms[1] = 49;
+	roms[2] = -1;
 	if (!configure_rom (p, roms, romcheck))
 		return 0;
 	rl = getarcadiaroms ();

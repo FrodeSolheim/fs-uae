@@ -130,6 +130,10 @@ void close_console (void) {
     STUB("");
 }
 
+extern void activate_console (void) {
+    STUB("");
+}
+
 bool console_isch (void)
 {
     STUB("");

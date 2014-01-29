@@ -1069,8 +1069,9 @@ void debug_draw_cycles (uae_u8 *buf, int bpp, int line, int width, int height, u
 	cc[DMARECORD_CPU] = lc(0x888888);
 	cc[DMARECORD_COPPER] = lc(0xeeee00);
 	cc[DMARECORD_AUDIO] = lc(0xff0000);
-	cc[DMARECORD_BLITTER] = lc(0x00ff00);
-	cc[DMARECORD_BLITTER_LINE] = lc(0x008800);
+	cc[DMARECORD_BLITTER] = lc(0x008888);
+	cc[DMARECORD_BLITTER_FILL] = lc(0x0088ff);
+	cc[DMARECORD_BLITTER_LINE] = lc(0x00ff00);
 	cc[DMARECORD_BITPLANE] = lc(0x0000ff);
 	cc[DMARECORD_SPRITE] = lc(0xff00ff);
 	cc[DMARECORD_DISK] = lc(0xffffff);
@@ -1081,7 +1082,7 @@ void debug_draw_cycles (uae_u8 *buf, int bpp, int line, int width, int height, u
 		xx = x * xplus + dx;
 		dr = &dma_record[t][y * NR_DMA_REC_HPOS + x];
 		if (dr->reg != 0xffff) {
-			c = cc[dr->type];	    
+			c = cc[dr->type];
 		}
 		if (dr->intlev > intlev)
 			intlev = dr->intlev;
@@ -1095,8 +1096,26 @@ void debug_draw_cycles (uae_u8 *buf, int bpp, int line, int width, int height, u
 	putpixel (buf, bpp, dx + 3, 0);
 }
 
+static struct memory_heatmap *heatmap;
+struct memory_heatmap
+{
+	uae_u16 cnt;
+	uae_u16 type;
+};
 
+static void memwatch_heatmap (uaecptr addr, int rwi, int size)
+{
+}
 
+static void record_dma_heatmap (uaecptr addr, int type)
+{
+	if (currprefs.address_space_24 || !heatmap)
+		return;
+	struct memory_heatmap *hp = &heatmap[addr / 2];
+	if (hp->type != type)
+		hp->cnt = 0;
+	hp->type = type;
+}
 
 void record_dma_event (int evt, int hpos, int vpos)
 {
@@ -1114,6 +1133,8 @@ struct dma_rec *record_dma (uae_u16 reg, uae_u16 dat, uae_u32 addr, int hpos, in
 {
 	struct dma_rec *dr;
 
+	if (!heatmap)
+		heatmap = xcalloc (struct memory_heatmap, 16 * 1024 * 1024 / 2);
 	if (!dma_record[0]) {
 		dma_record[0] = xmalloc (struct dma_rec, NR_DMA_REC_HPOS * NR_DMA_REC_VPOS);
 		dma_record[1] = xmalloc (struct dma_rec, NR_DMA_REC_HPOS * NR_DMA_REC_VPOS);
@@ -1122,6 +1143,9 @@ struct dma_rec *record_dma (uae_u16 reg, uae_u16 dat, uae_u32 addr, int hpos, in
 	}
 	if (hpos >= NR_DMA_REC_HPOS || vpos >= NR_DMA_REC_VPOS)
 		return NULL;
+
+	record_dma_heatmap (addr, type);
+
 	dr = &dma_record[dma_record_toggle][vpos * NR_DMA_REC_HPOS + hpos];
 	if (dr->reg != 0xffff) {
 		write_log (_T("DMA conflict: v=%d h=%d OREG=%04X NREG=%04X\n"), vpos, hpos, dr->reg, reg);
@@ -1212,7 +1236,7 @@ static void decode_dma_record (int hpos, int vpos, int toggle, bool logfile)
 			cl2 = cl;
 			if (dr->evt & DMA_EVENT_BLITNASTY)
 				l3[cl2++] = 'N';
-			if (dr->evt & DMA_EVENT_BLITFINISHED)
+			if (dr->evt & DMA_EVENT_BLITSTARTFINISH)
 				l3[cl2++] = 'B';
 			if (dr->evt & DMA_EVENT_BLITIRQ)
 				l3[cl2++] = 'b';
@@ -1723,6 +1747,7 @@ static addrbank **debug_mem_banks;
 static addrbank *debug_mem_area;
 struct memwatch_node mwnodes[MEMWATCH_TOTAL];
 static struct memwatch_node mwhit;
+static int addressspaceheatmap;
 
 static uae_u8 *illgdebug, *illghdebug;
 static int illgdebug_break;
@@ -2032,6 +2057,10 @@ static int memwatch_func (uaecptr addr, int rwi, int size, uae_u32 *valp)
 
 	if (illgdebug)
 		illg_debug_do (addr, rwi, size, val);
+
+	if (addressspaceheatmap)
+		memwatch_heatmap (addr, rwi, size);
+
 	addr = munge24 (addr);
 	if (smc_table && (rwi >= 2))
 		smc_detector (addr, rwi, size, valp);
@@ -2285,7 +2314,7 @@ static uae_u8 *REGPARAM2 debug_xlate (uaecptr addr)
 	return debug_mem_banks[munge24 (addr) >> 16]->xlateaddr (addr);
 }
 
-uae_u16 debug_wputpeekdma_chipset (uaecptr addr, uae_u32 v)
+uae_u16 debug_wputpeekdma_chipset (uaecptr addr, uae_u32 v, int reg)
 {
 	if (!memwatch_enabled)
 		return v;
@@ -2294,7 +2323,7 @@ uae_u16 debug_wputpeekdma_chipset (uaecptr addr, uae_u32 v)
 	memwatch_func (addr, 2, 2, &v);
 	return v;
 }
-uae_u16 debug_wputpeekdma_chipram (uaecptr addr, uae_u32 v)
+uae_u16 debug_wputpeekdma_chipram (uaecptr addr, uae_u32 v, int reg)
 {
 	if (!memwatch_enabled)
 		return v;
@@ -2305,7 +2334,7 @@ uae_u16 debug_wputpeekdma_chipram (uaecptr addr, uae_u32 v)
 	memwatch_func (addr & chipmem_bank.mask, 2, 2, &v);
 	return v;
 }
-uae_u16 debug_wgetpeekdma_chipram (uaecptr addr, uae_u32 v)
+uae_u16 debug_wgetpeekdma_chipram (uaecptr addr, uae_u32 v, int reg)
 {
 	uae_u32 vv = v;
 	if (!memwatch_enabled)
@@ -4019,7 +4048,7 @@ static BOOL debug_line (TCHAR *input)
 						if (badly) {
 							m68k_dumpstate (NULL);
 						} else {
-							console_out_f(_T("%d "), history[temp].s);
+							console_out_f(_T("%2d "), history[temp].intmask ? history[temp].intmask : (history[temp].s ? -1 : 0));
 							m68k_disasm (history[temp].pc, NULL, 1);
 						}
 						if (addr && history[temp].pc == addr)
@@ -4215,6 +4244,7 @@ static void addhistory (void)
 void debug (void)
 {
 	int i;
+	int wasactive;
 
 	if (savestate_state)
 		return;
@@ -4335,9 +4365,11 @@ void debug (void)
 		}
 	}
 
+	wasactive = ismouseactive ();
 	inputdevice_unacquire ();
 	pause_sound ();
 	setmouseactive (0);
+	activate_console ();
 	do_skip = 0;
 	skipaddr_start = 0xffffffff;
 	skipaddr_end = 0xffffffff;
@@ -4373,6 +4405,7 @@ void debug (void)
 	}
 	resume_sound ();
 	inputdevice_acquire (TRUE);
+	setmouseactive (wasactive ? 2 : 0);
 }
 
 const TCHAR *debuginfo (int mode)

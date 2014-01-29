@@ -188,6 +188,11 @@ void setmouseactive (int active) {
     STUB("");
 }
 
+extern bool ismouseactive (void) {
+    STUB("");
+    return 1;
+}
+
 static int get_mouse_num (void) {
     return 2;
 }

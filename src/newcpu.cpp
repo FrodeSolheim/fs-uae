@@ -2233,7 +2233,7 @@ static void exception_debug (int nr)
 
 Address/Bus Error:
 
-- 6 idle cycles
+- 8 idle cycles
 - write PC low word
 - write SR
 - write PC high word
@@ -2250,7 +2250,7 @@ Address/Bus Error:
 
 Division by Zero:
 
-- 6 idle cycles
+- 8 idle cycles
 - write PC low word
 - write SR
 - write PC high word
@@ -2262,7 +2262,7 @@ Division by Zero:
 
 Traps:
 
-- 2 idle cycles
+- 4 idle cycles
 - write PC low word
 - write SR
 - write PC high word
@@ -2274,6 +2274,7 @@ Traps:
 
 TrapV:
 
+(- normal prefetch done by TRAPV)
 - write PC low word
 - write SR
 - write PC high word
@@ -2285,7 +2286,7 @@ TrapV:
 
 CHK:
 
-- 6 idle cycles
+- 8 idle cycles
 - write PC low word
 - write SR
 - write PC high word
@@ -2296,8 +2297,11 @@ CHK:
 - prefetch
 
 Illegal Instruction:
+Privilege violation:
+Line A:
+Line F:
 
-- 2 idle cycles
+- 4 idle cycles
 - write PC low word
 - write SR
 - write PC high word
@@ -2330,13 +2334,16 @@ static void Exception_ce000 (int nr)
 	int start, interrupt;
 
 	start = 6;
-	if (nr == 7) // TRAPV
-		start = 0;
-	else if (nr >= 32 && nr < 32 + 16) // TRAP #x
-		start = 2;
-	else if (nr == 4 || nr == 8) // ILLG & PRIVIL VIOL
-		start = 2;
 	interrupt = nr >= 24 && nr < 24 + 8;
+	if (!interrupt) {
+		start = 8;
+		if (nr == 7) // TRAPV
+			start = 0;
+		else if (nr >= 32 && nr < 32 + 16) // TRAP #x
+			start = 4;
+		else if (nr == 4 || nr == 8 || nr == 10 || nr == 11) // ILLG, PRIV, LINEA, LINEF
+			start = 4;
+	}
 
 	if (start)
 		x_do_cycles (start * cpucycleunit);
@@ -2982,7 +2989,7 @@ int movec_illg (int regno)
 		return 1;
 	} else if (currprefs.cpu_model == 68040) {
 		if (regno == 0x802)
-			return 1; /* 68020 only */
+			return 1; /* 68020/030 only */
 		if (regno2 < 8) return 0;
 		return 1;
 	}
@@ -3033,7 +3040,7 @@ int m68k_move2c (int regno, uae_u32 *regp)
 
 		case 0x800: regs.usp = *regp; break;
 		case 0x801: regs.vbr = *regp; break;
-		case 0x802: regs.caar = *regp & 0xfc; break;
+		case 0x802: regs.caar = *regp; break;
 		case 0x803: regs.msp = *regp; if (regs.m == 1) m68k_areg (regs, 7) = regs.msp; break;
 		case 0x804: regs.isp = *regp; if (regs.m == 0) m68k_areg (regs, 7) = regs.isp; break;
 			/* 68040 only */
@@ -3499,9 +3506,11 @@ uae_u32 REGPARAM2 op_illg (uae_u32 opcode)
 		return 4;
 	}
 
-	if (opcode == 0x4E7B && inrom && get_long (0x10) == 0) {
-		notify_user (NUMSG_KS68020);
-		uae_restart (-1, NULL);
+	if (opcode == 0x4E7B && inrom) {
+		if (get_long (0x10) == 0) {
+			notify_user (NUMSG_KS68020);
+			uae_restart (-1, NULL);
+		}
 	}
 
 #ifdef AUTOCONFIG
@@ -5073,6 +5082,7 @@ void m68k_go (int may_quit)
 			cpu_halt (regs.halted);
 			continue;
 		}
+
 #if 0
 		if (mmu_enabled && !currprefs.cachesize) {
 			run_func = m68k_run_mmu;
@@ -6973,7 +6983,10 @@ void fill_prefetch_020 (void)
 	if (currprefs.cpu_cycle_exact)
 		do_cycles_ce020 (2);
 	regs.prefetch020[1] = regs.cacheholdingdata020;
-	regs.irc = get_word_020_prefetch (0);
+	if (currprefs.cpu_cycle_exact)
+		regs.irc = get_word_ce020_prefetch (0);
+	else
+		regs.irc = get_word_020_prefetch (0);
 }
 
 void fill_prefetch (void)

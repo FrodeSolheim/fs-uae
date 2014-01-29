@@ -496,11 +496,14 @@ void REGPARAM2 chipmem_wput (uaecptr addr, uae_u32 w)
 	m = (uae_u16 *)(chipmem_bank.baseaddr + addr);
 	do_put_mem_word (m, w);
 #if 0
-    if (addr == 0x120) {
+	if (addr == 4) {
+		write_log (_T("*"));
+#if 0
 		if (told)
 			tables[toldv] += hsync_counter - told;
 		told = hsync_counter;
 		toldv = w;
+#endif
 	}
 #endif
 }
@@ -1890,7 +1893,7 @@ static void allocate_memory (void)
 		mapped_free (custmem1_bank.baseaddr);
 		custmem1_bank.baseaddr = NULL;
 		custmem1_bank.allocated = currprefs.custom_memory_sizes[0];
-		custmem1_bank.mask = custmem1_bank.allocated - 1;
+		custmem1_bank.mask = -1;
 		custmem1_bank.start = currprefs.custom_memory_addrs[0];
 		if (custmem1_bank.allocated) {
 			custmem1_bank.baseaddr = mapped_malloc (custmem1_bank.allocated, _T("custmem1"));
@@ -1902,7 +1905,7 @@ static void allocate_memory (void)
 		mapped_free (custmem2_bank.baseaddr);
 		custmem2_bank.baseaddr = NULL;
 		custmem2_bank.allocated = currprefs.custom_memory_sizes[1];
-		custmem2_bank.mask = custmem2_bank.allocated - 1;
+		custmem2_bank.mask = -1;
 		custmem2_bank.start = currprefs.custom_memory_addrs[1];
 		if (custmem2_bank.allocated) {
 			custmem2_bank.baseaddr = mapped_malloc (custmem2_bank.allocated, _T("custmem2"));
@@ -1939,7 +1942,11 @@ static void fill_ce_banks (void)
 {
 	int i;
 
-	memset (ce_banktype, CE_MEMBANK_FAST32, sizeof ce_banktype);
+	if (currprefs.cpu_model <= 68010) {
+		memset (ce_banktype, CE_MEMBANK_FAST16, sizeof ce_banktype);
+	} else {
+		memset (ce_banktype, CE_MEMBANK_FAST32, sizeof ce_banktype);
+	}
 	// data cachable regions (2 = burst supported)
 	memset (ce_cachable, 0, sizeof ce_cachable);
 	memset (ce_cachable + (0x00200000 >> 16), 1 | 2, currprefs.fastmem_size >> 16);
@@ -1976,6 +1983,7 @@ static void fill_ce_banks (void)
 		for (i = (0xf80000 >> 16); i <= (0xff0000 >> 16); i++)
 			ce_banktype[i] = CE_MEMBANK_FAST16;
 	}
+
 	if (currprefs.address_space_24) {
 		for (i = 1; i < 256; i++)
 			memcpy (&ce_banktype[i * 256], &ce_banktype[0], 256);
@@ -2137,7 +2145,7 @@ void memory_reset (void)
 		kickmem_bank.mask = ROM_SIZE_512 - 1;
 		if (!load_kickstart ()) {
 			if (_tcslen (currprefs.romfile) > 0) {
-				write_log (_T("Failed to open '%s'\n"), currprefs.romfile);
+				error_log (_T("Failed to open '%s'\n"), currprefs.romfile);
 				notify_user (NUMSG_NOROM);
 			}
 			load_kickstart_replacement ();

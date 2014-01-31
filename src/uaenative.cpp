@@ -3,7 +3,8 @@
 *
 * UAE Native Interface (UNI) - uaenative.library
 *
-* Copyright 2013-2014 Frode Solheim
+* Copyright 2013-2014 Frode Solheim. Amiga-side library sample code
+* provided by Toni Wilen.
 *
 * TODO: Handling UAE reset and shutdown better. When resetting the Amiga,
 * all opened native libraries should be closed, and all async call threads
@@ -42,15 +43,15 @@ static double syncdivisor;
 #define SIGBIT 8 // SIGB_DOS
 
 // the function prototype for the callable native functions
-typedef uae_s32 UNICALL (*uae_uni_native_function)(struct uni *uni);
+typedef uae_s32 (UNICALL *uae_uni_native_function)(struct uni *uni);
 
 // the function prototype for the callable native functions (old style)
-typedef uae_u32 UNICALL (*uae_uni_native_compat_function)(uae_u32, uae_u32,
+typedef uae_u32 (UNICALL *uae_uni_native_compat_function)(uae_u32, uae_u32,
         uae_u32, uae_u32, uae_u32, uae_u32, uae_u32, uae_u32, uae_u32,
         uae_u32, uae_u32, uae_u32, void *, uae_u32, void *);
 
 // the function prototype for the native library's uni_init function
-typedef void UNICALL (*uni_init_function)(struct uni *uni);
+typedef int (UNICALL *uni_init_function)(void);
 
 struct library_data {
     void *dl_handle;
@@ -69,27 +70,6 @@ struct uni_handle {
 static uni_handle *g_handles = NULL;
 static int g_allocated_handles = 0;
 static int g_max_handle = -1;
-
-#define UNI_FILL_REG_PARAMS(x) \
-    (x).d1 = m68k_dreg (regs, 1); \
-    (x).d2 = m68k_dreg (regs, 2); \
-    (x).d3 = m68k_dreg (regs, 3); \
-    (x).d4 = m68k_dreg (regs, 4); \
-    (x).d5 = m68k_dreg (regs, 5); \
-    (x).d6 = m68k_dreg (regs, 6); \
-    (x).d7 = m68k_dreg (regs, 7); \
-    (x).a1 = m68k_areg (regs, 1); \
-    (x).a2 = m68k_areg (regs, 2); \
-    (x).a3 = m68k_areg (regs, 3); \
-    (x).a4 = m68k_areg (regs, 4); \
-    (x).a5 = m68k_areg (regs, 5); \
-    (x).a7 = m68k_areg (regs, 7)
-
-#define UNI_INIT_MEMBERS(x) \
-    (x).uni_version = UNI_VERSION; \
-    (x).resolve = uni_resolve; \
-    (x).get_uae_string = uni_get_uae_string; \
-    (x).error = 0;
 
 #if defined (_WIN32)
     #define OS_EXTENSION _T("-windows")
@@ -121,6 +101,11 @@ static int g_max_handle = -1;
     #define ARCH_EXTENSION _T("-unknown")
 #endif
 
+static int UNICALL uni_version(void)
+{
+    return UNI_VERSION;
+}
+
 static void * UNICALL uni_resolve(uae_u32 ptr)
 {
     void *result = get_real_address (ptr);
@@ -128,7 +113,7 @@ static void * UNICALL uni_resolve(uae_u32 ptr)
     return result;
 }
 
-static const char * UNICALL uni_get_uae_string(void)
+static const char * UNICALL uni_uae_version(void)
 {
     // A standard GNU macro with a string containing program name and
     // version, e.g. "WinUAE 2.7.0" or "FS-UAE 2.3.16dev".
@@ -185,28 +170,63 @@ static uae_u32 register_handle(library_data *library_data, void *function)
 static TCHAR *get_native_library_path (const TCHAR *library_name)
 {
     write_log (_T("uni: find_native_library %s\n"), library_name);
-    char path[PATH_MAX];
-    const char **library_dirs = uaenative_get_library_dirs ();
+    TCHAR path[PATH_MAX];
+    const TCHAR **library_dirs = uaenative_get_library_dirs ();
 
-    for (const char **dir = library_dirs; *dir != NULL; dir++) {
+    for (const TCHAR **dir = library_dirs; *dir != NULL; dir++) {
         // name must already have been checked to not contain anything
         // to allow access to parent directories.
         _sntprintf (path, PATH_MAX, _T("%s/%s%s"), *dir, library_name,
                 OS_EXTENSION ARCH_EXTENSION FILE_EXTENSION);
         write_log (_T("uni: checking %s\n"), path);
         if (my_existsfile (path)) {
-            return strdup (path);
+            return my_strdup (path);
         }
 #ifdef _WIN32
         // for compatibility with existing WinUAE native interface
         _sntprintf (path, PATH_MAX, _T("%s/%s.dll"), *dir, library_name);
         write_log (_T("uni: checking %s\n"), path);
         if (my_existsfile (path)) {
-            return strdup (path);
+            return my_strdup (path);
         }
 #endif
     }
     return NULL;
+}
+
+static void *dl_symbol(void *dl, const char *name)
+{
+    if (dl == NULL) {
+        return NULL;
+    }
+#ifdef _WIN32
+    return (void *) GetProcAddress ((HINSTANCE) dl, name);
+#else
+    return dlsym (dl, name);
+#endif
+}
+
+static void dl_close(void *dl)
+{
+#ifdef _WIN32
+    FreeLibrary ((HMODULE) dl);
+#else
+    dlclose (dl);
+#endif
+}
+
+static void set_library_globals(void *dl)
+{
+    void *address;
+
+    address = dl_symbol(dl, "uni_version");
+    if (address) *((uni_version_function *) address) = &uni_version;
+
+    address = dl_symbol(dl, "uni_resolve");
+    if (address) *((uni_resolve_function *) address) = &uni_resolve;
+
+    address = dl_symbol(dl, "uni_uae_version");
+    if (address) *((uni_uae_version_function *) address) = &uni_uae_version;
 }
 
 static uae_u32 open_library (const char *name, uae_u32 min_version)
@@ -230,39 +250,36 @@ static uae_u32 open_library (const char *name, uae_u32 min_version)
 
     write_log (_T("uni: found library at %s - opening\n"), path);
 #ifdef _WIN32
-    void *library_address = LoadLibrary (path);
+    void *dl = LoadLibrary (path);
 #else
-    void *library_address = dlopen (path, RTLD_NOW);
+    void *dl = dlopen (path, RTLD_NOW);
 #endif
     free(path);
-    if (library_address == NULL) {
+    if (dl == NULL) {
         write_log (_T("uni: error opening library errno %d\n"), errno);
         return UNI_ERROR_COULD_NOT_OPEN_LIBRARY;
     }
 
-#ifdef _WIN32
-    void *function_address = (void *) GetProcAddress (
-            (HINSTANCE) library_address, "uni_init");
-#else
-    void *function_address = dlsym (library_address, "uni_init");
-#endif
+    // FIXME: check min version
 
+    set_library_globals(dl);
+
+    void *function_address = dl_symbol(dl, "uni_init");
     if (function_address) {
-        struct uni uni;
-        UNI_INIT_MEMBERS(uni);
-        ((uni_init_function) function_address)(&uni);
-        if (uni.error) {
-            return uni.error;
+        int error = ((uni_init_function) function_address)();
+        if (error) {
+            dl_close(dl);
+            return error;
         }
     }
 
     struct library_data *library_data = (struct library_data *) malloc(
             sizeof(struct library_data));
     memset(library_data, 0, sizeof(struct library_data));
-    library_data->dl_handle = library_address;
+    library_data->dl_handle = dl;
 
     uae_u32 handle = register_handle (library_data, NULL);
-    write_log(_T("uni: opened library %08x (%p)\n"), handle, library_address);
+    write_log(_T("uni: opened library %08x (%p)\n"), handle, dl);
     return handle;
 }
 
@@ -310,20 +327,6 @@ static struct library_data *get_library_data_from_handle (uae_u32 handle)
     return g_handles[index].library;
 }
 
-static void *get_function_address (void *library_address, const char *name)
-{
-    if (library_address == NULL) {
-        return NULL;
-    }
-#ifdef _WIN32
-    void *function_address = (void *) GetProcAddress (
-        (HINSTANCE) library_address, name);
-#else
-    void *function_address = dlsym (library_address, name);
-#endif
-    return function_address;
-}
-
 static uae_u32 get_function_handle (uae_u32 handle, const char *name)
 {
     struct library_data *library_data = get_library_data_from_handle (handle);
@@ -332,8 +335,7 @@ static uae_u32 get_function_handle (uae_u32 handle, const char *name)
         return UNI_ERROR_INVALID_LIBRARY;
     }
 
-    void *function_address = get_function_address (library_data->dl_handle,
-                                                   name);
+    void *function_address = dl_symbol (library_data->dl_handle, name);
     if (!function_address) {
         write_log(_T("uni: get_function - function (%s) not found ")
                 _T("in library %d (%p)\n"), name, handle,
@@ -509,8 +511,7 @@ uae_u32 uaenative_call_function (TrapContext *context, int flags)
             return UNI_ERROR_INVALID_LIBRARY;
         }
 
-        uni.native_function = get_function_address (library_data->dl_handle,
-                                                     function);
+        uni.native_function = dl_symbol (library_data->dl_handle, function);
         if (uni.native_function == NULL) {
             write_log (_T("uni: get_function - function (%s) not found ")
                        _T("in library %d (%p)\n"), function, uni.library,
@@ -539,9 +540,22 @@ uae_u32 uaenative_call_function (TrapContext *context, int flags)
         flags &= ~UNI_FLAG_ASYNCHRONOUS;
     }
 
-    UNI_INIT_MEMBERS(uni);
-    UNI_FILL_REG_PARAMS(uni);
+    uni.d1 = m68k_dreg (regs, 1);
+    uni.d2 = m68k_dreg (regs, 2);
+    uni.d3 = m68k_dreg (regs, 3);
+    uni.d4 = m68k_dreg (regs, 4);
+    uni.d5 = m68k_dreg (regs, 5);
+    uni.d6 = m68k_dreg (regs, 6);
+    uni.d7 = m68k_dreg (regs, 7);
+    uni.a1 = m68k_areg (regs, 1);
+    uni.a2 = m68k_areg (regs, 2);
+    uni.a3 = m68k_areg (regs, 3);
+    uni.a4 = m68k_areg (regs, 4);
+    uni.a5 = m68k_areg (regs, 5);
+    uni.a7 = m68k_areg (regs, 7);
+
     uni.flags = flags;
+    uni.error = 0;
 
     if (flags & UNI_FLAG_ASYNCHRONOUS) {
         uaecptr sysbase = get_long (4);
@@ -598,11 +612,7 @@ uae_u32 uaenative_close_library(TrapContext *context, int flags)
         return UNI_ERROR_INVALID_LIBRARY;
     }
 
-#ifdef _WIN32
-    FreeLibrary ((HMODULE) library_data->dl_handle);
-#else
-    dlclose (library_data->dl_handle);
-#endif
+    dl_close (library_data->dl_handle);
 
     // We now "free" the library and function entries for this library. This
     // makes the entries available for re-use. The bad thing about this is

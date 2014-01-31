@@ -42,13 +42,11 @@ typedef unsigned short uni_ushort;
 typedef int            uni_long;
 typedef unsigned int   uni_ulong;
 
-typedef const uni_char * UNICALL (*uni_get_uae_string_function)(void);
-typedef void * UNICALL (*uni_resolve_function)(uni_ulong ptr);
+typedef int (UNICALL *uni_version_function)();
+typedef void * (UNICALL *uni_resolve_function)(uni_ulong ptr);
+typedef const uni_char * (UNICALL *uni_uae_version_function)(void);
 
 struct uni {
-    uni_long uni_version;
-    uni_long result;
-    uni_long error;
     uni_long d1;
     uni_long d2;
     uni_long d3;
@@ -62,23 +60,20 @@ struct uni {
     uni_long a4;
     uni_long a5;
     uni_long a7;
-    uni_resolve_function resolve;
-    uni_get_uae_string_function get_uae_string;
+
 #if UNI_VERSION >= 2
     // add new struct entries for version 2 here
 #endif
-#if UNI_VERSION >= 3
-    // add new struct entries for version 3 here
-#endif
-    // etc...
 
 #ifdef CPUEMU_0  // UAE
-	uni_ulong function;
-	uni_ulong library;
-	void *native_function;
-	void *uaevar_compat;
-	int flags;
-	uaecptr task;
+    uni_long result;
+    uni_long error;
+    uni_ulong function;
+    uni_ulong library;
+    void *native_function;
+    void *uaevar_compat;
+    int flags;
+    uaecptr task;
 #endif
 };
 

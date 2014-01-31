@@ -42,7 +42,7 @@ uaecptr uaenative_startup (uaecptr resaddr);
 /* This function must return a list of directories to look for native
  * libraries in. The returned list must be NULL-terminated, and must not
  * be de-allocated. */
-const char **uaenative_get_library_dirs(void);
+const TCHAR **uaenative_get_library_dirs(void);
 
 #endif // WITH_UAENATIVE
 

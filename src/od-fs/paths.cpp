@@ -14,7 +14,7 @@ void amiga_set_native_library_dirs(const char **library_dirs) {
 
 } // extern "C"
 
-const char **uaenative_get_library_dirs(void) {
+const TCHAR **uaenative_get_library_dirs(void) {
     if (g_amiga_native_library_dirs) {
         return g_amiga_native_library_dirs;
     }

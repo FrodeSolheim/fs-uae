@@ -860,13 +860,10 @@ void scsi_hsync (void)
 		else if (scsi->direction > 0)
 			v = wd_do_transfer_out ();
 #ifdef FSUAE
-#if 0
 		else {
-			write_log("WARNING scsi->direction == 0\n");
-			write_log("code not originally handled, setting v = false\n");
-			v = false;
+		    write_log("WARNING scsi->direction == 0\n");
+		    v = true;
 		}
-#endif
 #endif
 		if (v) {
 			scsi->direction = 0;

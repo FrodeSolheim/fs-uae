@@ -1213,15 +1213,12 @@ void CDTV_hsync_handler (void)
 
 static void do_stch (void)
 {
-#ifdef CDTV_DEBUG
-	static int stch_cnt;
-#endif
-
 	if ((tp_cr & 1) && !(tp_air & (1 << 2))) {
 		stch = 1;
 		activate_stch = 0;
 		tp_check_interrupts ();
 #ifdef CDTV_DEBUG
+		static int stch_cnt;
 		write_log (_T("STCH %d\n"), stch_cnt++);
 #endif
 	}

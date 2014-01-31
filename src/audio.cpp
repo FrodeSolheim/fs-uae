@@ -52,10 +52,6 @@
 #define PERIOD_MIN 4
 #define PERIOD_MIN_NONCE 60
 
-#ifndef AVIOUTPUT
-static const int avioutput_enabled = 0;
-#endif
-
 int audio_channel_mask = 15;
 
 STATIC_INLINE bool isaudio (void)
@@ -1795,7 +1791,11 @@ void audio_hsync (void)
 {
 	if (!isaudio ())
 		return;
-	if (audio_work_to_do > 0 && currprefs.sound_auto && !avioutput_enabled) {
+	if (audio_work_to_do > 0 && currprefs.sound_auto
+#ifdef AVIOUTPUT
+			&& !avioutput_enabled
+#endif
+			) {
 		audio_work_to_do--;
 		if (audio_work_to_do == 0)
 			audio_deactivate ();

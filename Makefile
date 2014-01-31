@@ -573,6 +573,8 @@ catalogs = \
 
 mo: $(catalogs)
 
+objects: $(uae_objects) $(objects)
+
 fs-uae: libfsemu-target $(uae_deps) $(uae_objects) $(objects)
 	rm -f fs-uae
 	$(cxx) $(ldflags) $(objects) $(uae_objects) $(libs) -o fs-uae

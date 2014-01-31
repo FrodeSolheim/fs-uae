@@ -2111,7 +2111,6 @@ uae_u8 *save_action_replay (int *len, uae_u8 *dstptr)
 
 uae_u8 *restore_action_replay (uae_u8 *src)
 {
-	uae_u32 crc32;
 	TCHAR *s;
 
 	action_replay_unload (1);
@@ -2119,7 +2118,7 @@ uae_u8 *restore_action_replay (uae_u8 *src)
 	armodel = restore_u8 ();
 	if (!armodel)
 		return src;
-	crc32 = restore_u32 ();
+	restore_u32 ();
 	s = restore_string ();
 	_tcsncpy (changed_prefs.cartfile, s, 255);
 	_tcscpy (currprefs.cartfile, changed_prefs.cartfile);

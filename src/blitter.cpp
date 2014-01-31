@@ -939,21 +939,36 @@ STATIC_INLINE uae_u16 blitter_doblit (void)
 
 STATIC_INLINE void blitter_doddma (int hpos)
 {
+#ifdef FSUAE
+#else
 	int wd;
+#endif
 	uae_u16 d;
 
+#ifdef FSUAE
+#else
 	wd = 0;
+#endif
 	if (blit_dmacount2 == 0) {
 		d = blitter_doblit ();
+#ifdef FSUAE
+#else
 		wd = -1;
+#endif
 	} else if (ddat2use) {
 		d = ddat2;
 		ddat2use = 0;
+#ifdef FSUAE
+#else
 		wd = 2;
+#endif
 	} else if (ddat1use) {
 		d = ddat1;
 		ddat1use = 0;
+#ifdef FSUAE
+#else
 		wd = 1;
+#endif
 	} else {
 		static int warn = 10;
 		if (warn > 0) {

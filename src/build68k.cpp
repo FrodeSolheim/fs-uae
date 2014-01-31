@@ -63,7 +63,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 int argc = __argc;
 char** argv = __argv;
 #else
-int main(int argc, char *argv[])
+int main(int argc, char **argv)
 {
 #endif
     int no_insns = 0;

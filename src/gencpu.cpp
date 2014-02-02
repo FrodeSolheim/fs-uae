@@ -522,6 +522,13 @@ static const char *gen_nextibyte (int flags)
 	return buffer;
 }
 
+static void makefromsr (void)
+{
+	printf ("\tMakeFromSR();\n");
+	if (using_ce || using_ce020)
+		printf ("\tregs.ipl_pin = intlev ();\n");
+}
+
 static void check_ipl (void)
 {
 	if (using_ce || using_ce020)
@@ -2813,7 +2820,7 @@ static void gen_opcode (unsigned int opcode)
 			fill_prefetch_next ();
 		}
 		printf ("\tregs.sr %c= src;\n", curi->mnemo == i_EORSR ? '^' : '|');
-		printf ("\tMakeFromSR ();\n");
+		makefromsr ();
 		break;
 	case i_ANDSR:
 		printf ("\tMakeSR ();\n");
@@ -2829,7 +2836,7 @@ static void gen_opcode (unsigned int opcode)
 			fill_prefetch_next ();
 		}
 		printf ("\tregs.sr &= src;\n");
-		printf ("\tMakeFromSR ();\n");
+		makefromsr ();
 		break;
 	case i_SUB:
 	{
@@ -3334,7 +3341,7 @@ static void gen_opcode (unsigned int opcode)
 			addcycles000 (6);
 			printf ("\tregs.sr = src;\n");
 		}
-		printf ("\tMakeFromSR ();\n");
+		makefromsr ();
 		if (cpu_level <= 1) {
 			// 68000 does 2xprefetch
 			sync_m68k_pc ();
@@ -3434,7 +3441,7 @@ static void gen_opcode (unsigned int opcode)
 			genamode (curi, curi->smode, "srcreg", curi->size, "src", 1, 0, 0);
 			printf ("\tregs.sr = src;\n");
 		}
-		printf ("\tMakeFromSR ();\n");
+		makefromsr ();
 		printf ("\tm68k_setstopped ();\n");
 		sync_m68k_pc ();
 		// STOP does not prefetch anything
@@ -3447,7 +3454,7 @@ static void gen_opcode (unsigned int opcode)
 		printf ("\tsr = %s (4);\n", srcwi);
 		printf ("\tif (!(sr & 0x8000)) { Exception (8); goto %s; }\n", endlabelstr);
 		printf ("\tregs.sr = sr;\n");
-		printf ("\tMakeFromSR ();\n");
+		makefromsr ();
 		printf ("\tm68k_setstopped();\n");
 		m68k_pc_offset += 4;
 		sync_m68k_pc ();
@@ -3460,7 +3467,7 @@ static void gen_opcode (unsigned int opcode)
 			genamode (NULL, Aipi, "7", sz_long, "pc", 1, 0, GF_NOREFILL);
 			printf ("\tregs.sr = sr;\n");
 			setpc ("pc");
-			printf ("\tMakeFromSR ();\n");
+			makefromsr ();
 		} else if (cpu_level == 1 && using_prefetch) {
 		    int old_brace_level = n_braces;
 			printf ("\tuae_u16 newsr; uae_u32 newpc;\n");
@@ -3477,7 +3484,8 @@ static void gen_opcode (unsigned int opcode)
 		    printf ("\t\telse { m68k_areg (regs, 7) += offset; Exception (14); goto %s; }\n", endlabelstr);
 		    printf ("\t\tregs.sr = newsr; MakeFromSR ();\n}\n");
 		    pop_braces (old_brace_level);
-		    printf ("\tregs.sr = newsr; MakeFromSR ();\n");
+		    printf ("\tregs.sr = newsr;\n");
+			makefromsr ();
 		    printf ("\tif (newpc & 1) {\n");
 		    printf ("\t\texception3i (0x%04X, newpc);\n", opcode);
 			printf ("\t\tgoto %s;\n", endlabelstr);
@@ -3519,9 +3527,12 @@ static void gen_opcode (unsigned int opcode)
 			    printf ("\t\telse if (frame == 0xb) { m68k_areg (regs, 7) += offset + 84; break; }\n");
 			}
 		    printf ("\t\telse { m68k_areg (regs, 7) += offset; Exception (14); goto %s; }\n", endlabelstr);
-		    printf ("\t\tregs.sr = newsr; MakeFromSR ();\n}\n");
+		    printf ("\t\tregs.sr = newsr;\n");
+			makefromsr ();
+			printf ("}\n");
 		    pop_braces (old_brace_level);
-		    printf ("\tregs.sr = newsr; MakeFromSR ();\n");
+		    printf ("\tregs.sr = newsr;\n");
+			makefromsr ();
 		    printf ("\tif (newpc & 1) {\n");
 		    printf ("\t\texception3i (0x%04X, newpc);\n", opcode);
 			printf ("\t\tgoto %s;\n", endlabelstr);
@@ -3639,7 +3650,7 @@ static void gen_opcode (unsigned int opcode)
 		printf ("\tregs.sr &= 0xFF00; sr &= 0xFF;\n");
 		printf ("\tregs.sr |= sr;\n");
 		setpc ("pc");
-		printf ("\tMakeFromSR ();\n");
+		makefromsr ();
 		printf ("\tif (m68k_getpc () & 1) {\n");
 		printf ("\t\tuaecptr faultpc = m68k_getpc ();\n");
 		setpc ("oldpc");
@@ -3814,9 +3825,9 @@ static void gen_opcode (unsigned int opcode)
 			curi->dmode, "dstreg", curi->size, "dst", 2, GF_AA);
 		//genamode (curi, curi->smode, "srcreg", curi->size, "src", 0, 0, GF_AA);
 		//genamode (curi, curi->dmode, "dstreg", curi->size, "dst", 2, 0, GF_AA);
-		fill_prefetch_next ();
 		if (curi->smode == Ad8r || curi->smode == PC8r)
 			addcycles000 (2);
+		fill_prefetch_next ();
 		genastore ("srca", curi->dmode, "dstreg", curi->size, "dst");
 		break;
 	case i_PEA:
@@ -4551,6 +4562,7 @@ static void gen_opcode (unsigned int opcode)
 			printf ("else");
 			start_brace ();
 			printf ("\n");
+			get_prefetch_020 ();
 			if (cpu_level >= 4) {
 				// apparently 68040/060 needs to always write at the end of RMW cycle
 				printf ("\t");

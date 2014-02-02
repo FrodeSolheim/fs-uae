@@ -1,4 +1,7 @@
 
+#ifndef BLKDEV_H
+#define BLKDEV_H
+
 #define DEVICE_SCSI_BUFSIZE (65536 - 1024)
 
 #define SCSI_UNIT_DISABLED -1
@@ -216,3 +219,5 @@ bool filesys_do_disk_change (int, bool);
 extern struct device_functions devicefunc_scsi_ioctl;
 extern struct device_functions devicefunc_scsi_spti;
 extern struct device_functions devicefunc_cdimage;
+
+#endif /* BLKDEV_H */

@@ -6,6 +6,9 @@
 * Copyright 1995 Bernd Schmidt
 */
 
+#ifndef MEMORY_H
+#define MEMORY_H
+
 extern void memory_reset (void);
 extern void a1000_reset (void);
 
@@ -444,3 +447,5 @@ extern ULONG getz2endaddr (void);
 #ifdef FSUAE // NL
 int uae_get_memory_checksum();
 #endif
+
+#endif /* MEMORY_H */

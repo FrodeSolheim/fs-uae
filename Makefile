@@ -346,6 +346,7 @@ obj/od-fs/uaemisc.o \
 obj/od-fs/version.o \
 obj/od-fs/video.o \
 obj/qemuvga/cirrus_vga.o \
+obj/qemuvga/lsi53c895a.o \
 obj/qemuvga/qemuuaeglue.o \
 obj/qemuvga/vga.o
 

@@ -104,6 +104,7 @@ extern FILE *g_fs_uae_sync_debug_file;
 #define MMUEMU /* Aranym 68040 MMU */
 //#define MULTIDISPLAY 1
 #define NATMEM_OFFSET natmem_offset
+#define NCR
 #define FULLMMU /* Aranym 68040 MMU */
 #define PARALLEL_PORT
 #define PICASSO96

@@ -1369,32 +1369,34 @@ int scsi_hd_emulate (struct hardfiledata *hfd, struct hd_hardfiledata *hdhfd, ua
 			goto outofbounds;
 		scsi_len = (uae_u32)cmd_writex (hfd, scsi_data, offset, len);
 		break;
-#if 0
-	case 0x2f: /* VERIFY */
+	case 0x2f: /* VERIFY (10) */
 		{
 			int bytchk = cmdbuf[1] & 2;
 			if (nodisk (hfd))
 				goto nodisk;
-			offset = rl (cmdbuf + 2);
-			offset *= hfd->ci.blocksize;
-			len = rl (cmdbuf + 7 - 2) & 0xffff;
-			len *= hfd->ci.blocksize;
-			if (checkbounds (hfd, offset, len)) {
-				uae_u8 *vb = xmalloc (hfd->ci.blocksize);
-				while (len > 0) {
-					int len = cmd_readx (hfd, vb, offset, hfd->ci.blocksize);
-					if (bytchk) {
-						if (memcmp (vb, scsi_data, hfd->ci.blocksize))
+			if (bytchk) {
+				offset = rl (cmdbuf + 2);
+				offset *= hfd->ci.blocksize;
+				len = rl (cmdbuf + 7 - 2) & 0xffff;
+				len *= hfd->ci.blocksize;
+				uae_u8 *vb = xmalloc (uae_u8, hfd->ci.blocksize);
+				if (checkbounds (hfd, offset, len)) {
+					while (len > 0) {
+						int readlen = cmd_readx (hfd, vb, offset, hfd->ci.blocksize);
+						if (readlen != hfd->ci.blocksize || memcmp (vb, scsi_data, hfd->ci.blocksize)) {
+							xfree (vb);
 							goto miscompare;
+						}
 						scsi_data += hfd->ci.blocksize;
+						offset += hfd->ci.blocksize;
+						len -= hfd->ci.blocksize;
 					}
-					offset += hfd->ci.blocksize;
 				}
 				xfree (vb);
 			}
+			scsi_len = 0;
 		}
 		break;
-#endif
 	case 0x35: /* SYNCRONIZE CACHE (10) */
 		if (nodisk (hfd))
 			goto nodisk;
@@ -1697,27 +1699,25 @@ static uae_u32 REGPARAM2 hardfile_open (TrapContext *context)
 	int unit = mangleunit (m68k_dreg (regs, 0));
 	struct hardfileprivdata *hfpd = &hardfpd[unit];
 	int err = IOERR_OPENFAIL;
-	int size = get_word (ioreq + 0x12);
 
-	/* boot device port size == 0!? KS 1.x size = 12??? */
-	if (size >= IOSTDREQ_SIZE || size == 0 || kickstart_version == 0xffff || kickstart_version < 39) {
-		/* Check unit number */
-		if (unit >= 0) {
-			struct hardfiledata *hfd = get_hardfile_data (unit);
-			if (hfd && (hfd->handle_valid || hfd->drive_empty) && start_thread (context, unit)) {
-				put_word (hfpd->base + 32, get_word (hfpd->base + 32) + 1);
-				put_long (ioreq + 24, unit); /* io_Unit */
-				put_byte (ioreq + 31, 0); /* io_Error */
-				put_byte (ioreq + 8, 7); /* ln_type = NT_REPLYMSG */
-				hf_log (_T("hardfile_open, unit %d (%d), OK\n"), unit, m68k_dreg (regs, 0));
-				return 0;
-			}
+	/* boot device port size == 0!? KS 1.x size = 12???
+	 * Ignore message size, too many programs do not set it correct
+	 * int size = get_word (ioreq + 0x12);
+	 */
+	/* Check unit number */
+	if (unit >= 0) {
+		struct hardfiledata *hfd = get_hardfile_data (unit);
+		if (hfd && (hfd->handle_valid || hfd->drive_empty) && start_thread (context, unit)) {
+			put_word (hfpd->base + 32, get_word (hfpd->base + 32) + 1);
+			put_long (ioreq + 24, unit); /* io_Unit */
+			put_byte (ioreq + 31, 0); /* io_Error */
+			put_byte (ioreq + 8, 7); /* ln_type = NT_REPLYMSG */
+			hf_log (_T("hardfile_open, unit %d (%d), OK\n"), unit, m68k_dreg (regs, 0));
+			return 0;
 		}
-		if (unit < 1000 || is_hardfile (unit) == FILESYS_VIRTUAL || is_hardfile (unit) == FILESYS_CD)
-			err = 50; /* HFERR_NoBoard */
-	} else {
-		err = IOERR_BADLENGTH;
 	}
+	if (unit < 1000 || is_hardfile (unit) == FILESYS_VIRTUAL || is_hardfile (unit) == FILESYS_CD)
+		err = 50; /* HFERR_NoBoard */
 	hf_log (_T("hardfile_open, unit %d (%d), ERR=%d\n"), unit, m68k_dreg (regs, 0), err);
 	put_long (ioreq + 20, (uae_u32)err);
 	put_byte (ioreq + 31, (uae_u8)err);

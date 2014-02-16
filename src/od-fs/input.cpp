@@ -135,7 +135,7 @@ void setid_af (struct uae_input_device *uid, int i, int slot, int sub, int port,
 /*
  * Default inputdevice config for SDL mouse
  */
-int input_get_default_mouse (struct uae_input_device *uid, int i, int port, int af, bool gp, bool wheel)
+int input_get_default_mouse (struct uae_input_device *uid, int i, int port, int af, bool gp, bool wheel, bool joymouseswap)
 //int input_get_default_mouse (struct uae_input_device *uid, int i, int port, int af, bool gp)
 {
     write_log("input_get_default_mouse\n");
@@ -352,11 +352,11 @@ int input_get_default_keyboard (int num) {
     return 0;
 }
 
-int input_get_default_joystick_analog (struct uae_input_device *uid, int num, int port, int af, bool gp) {
+int input_get_default_joystick_analog (struct uae_input_device *uid, int num, int port, int af, bool gp, bool joymouseswap) {
     return 0;
 }
 
-int input_get_default_lightpen (struct uae_input_device *uid, int i, int port, int af, bool gp) {
+int input_get_default_lightpen (struct uae_input_device *uid, int i, int port, int af, bool gp, bool joymouseswap) {
     return 0;
 }
 
@@ -544,7 +544,7 @@ struct inputdevice_functions inputdevicefunc_joystick = {
     get_joystick_flags
 };
 
-int input_get_default_joystick (struct uae_input_device *uid, int num, int port, int af, int mode, bool gp)
+int input_get_default_joystick (struct uae_input_device *uid, int num, int port, int af, int mode, bool gp, bool joymouseswap)
 {
     int h,v;
     //unsigned int j;

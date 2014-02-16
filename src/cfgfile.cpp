@@ -876,6 +876,7 @@ void cfgfile_save_options (struct zfile *f, struct uae_prefs *p, int type)
 
 	cfgfile_write_str (f, _T("use_gui"), guimode1[p->start_gui]);
 	cfgfile_write_bool (f, _T("use_debugger"), p->start_debugger);
+
 	cfgfile_write_rom (f, &p->path_rom, p->romfile, _T("kickstart_rom_file"));
 	cfgfile_write_rom (f, &p->path_rom, p->romextfile, _T("kickstart_ext_rom_file"));
 	if (p->romextfile2addr) {
@@ -886,6 +887,14 @@ void cfgfile_save_options (struct zfile *f, struct uae_prefs *p, int type)
 		cfgfile_dwrite_str (f, _T("kickstart_rom"), p->romident);
 	if (p->romextident[0])
 		cfgfile_write_str (f, _T("kickstart_ext_rom="), p->romextident);
+
+	cfgfile_write_rom (f, &p->path_rom, p->a2091romfile, _T("a2091_rom_file"));
+	cfgfile_write_rom (f, &p->path_rom, p->a4091romfile, _T("a4091_rom_file"));
+	if (p->a2091romident[0])
+		cfgfile_dwrite_str (f, _T("a2091_rom"), p->a2091romident);
+	if (p->a4091romident[0])
+		cfgfile_dwrite_str (f, _T("a4091_rom"), p->a4091romident);
+
 	cfgfile_write_path (f, &p->path_rom, _T("flash_file"), p->flashfile);
 	cfgfile_write_path (f, &p->path_rom, _T("cart_file"), p->cartfile);
 	cfgfile_write_path (f, &p->path_rom, _T("rtc_file"), p->rtcfile);
@@ -1304,8 +1313,8 @@ void cfgfile_save_options (struct zfile *f, struct uae_prefs *p, int type)
 	cfgfile_dwrite (f, _T("ramsey"), _T("%d"), p->cs_ramseyrev);
 	cfgfile_dwrite_bool (f, _T("pcmcia"), p->cs_pcmcia);
 	cfgfile_dwrite_bool (f, _T("scsi_cdtv"), p->cs_cdtvscsi);
-	cfgfile_dwrite_bool (f, _T("scsi_a2091"), p->cs_a2091);
-	cfgfile_dwrite_bool (f, _T("scsi_a4091"), p->cs_a4091);
+	cfgfile_dwrite_bool (f, _T("scsi_a2091"), p->a2091);
+	cfgfile_dwrite_bool (f, _T("scsi_a4091"), p->a4091);
 	cfgfile_dwrite_bool (f, _T("scsi_a3000"), p->cs_mbdmac == 1);
 	cfgfile_dwrite_bool (f, _T("scsi_a4000t"), p->cs_mbdmac == 2);
 	cfgfile_dwrite_bool (f, _T("bogomem_fast"), p->cs_slowmemisfast);
@@ -1331,10 +1340,13 @@ void cfgfile_save_options (struct zfile *f, struct uae_prefs *p, int type)
 	cfgfile_write_bool (f, _T("gfxcard_hardware_sprite"), p->rtg_hardwaresprite);
 	cfgfile_write (f, _T("chipmem_size"), _T("%d"), p->chipmem_size == 0x20000 ? -1 : (p->chipmem_size == 0x40000 ? 0 : p->chipmem_size / 0x80000));
 	cfgfile_dwrite (f, _T("megachipmem_size"), _T("%d"), p->z3chipmem_size / 0x100000);
-	if (p->custom_memory_sizes[0])
-		cfgfile_write (f, _T("addmem1"), _T("0x%x,0x%x"), p->custom_memory_addrs[0], p->custom_memory_sizes[0]);
-	if (p->custom_memory_sizes[1])
-		cfgfile_write (f, _T("addmem2"), _T("0x%x,0x%x"), p->custom_memory_addrs[1], p->custom_memory_sizes[1]);
+	// do not save aros rom special space
+	if (!(p->custom_memory_sizes[0] == 512 * 1024 && p->custom_memory_sizes[1] == 512 * 1024 && p->custom_memory_addrs[0] == 0xa80000 && p->custom_memory_addrs[1] == 0xb00000)) {
+		if (p->custom_memory_sizes[0])
+			cfgfile_write (f, _T("addmem1"), _T("0x%x,0x%x"), p->custom_memory_addrs[0], p->custom_memory_sizes[0]);
+		if (p->custom_memory_sizes[1])
+			cfgfile_write (f, _T("addmem2"), _T("0x%x,0x%x"), p->custom_memory_addrs[1], p->custom_memory_sizes[1]);
+	}
 
 	if (p->m68k_speed > 0) {
 		cfgfile_write (f, _T("finegrain_cpu_speed"), _T("%d"), p->m68k_speed);
@@ -1589,8 +1601,6 @@ int cfgfile_rom (const TCHAR *option, const TCHAR *value, const TCHAR *name, TCH
 	TCHAR id[MAX_DPATH];
 	if (!cfgfile_string (option, value, name, id, sizeof id / sizeof (TCHAR)))
 		return 0;
-	if (zfile_exists (location))
-		return 1;
 	TCHAR *p = _tcschr (id, ',');
 	if (p) {
 		TCHAR *endptr, tmp;
@@ -1600,8 +1610,15 @@ int cfgfile_rom (const TCHAR *option, const TCHAR *value, const TCHAR *name, TCH
 		uae_u32 crc32 = _tcstol (id, &endptr, 16) << 16;
 		id[4] = tmp;
 		crc32 |= _tcstol (id + 4, &endptr, 16);
-		struct romdata *rd = getromdatabycrc (crc32);
+		struct romdata *rd = getromdatabycrc (crc32, true);
 		if (rd) {
+			struct romdata *rd2 = getromdatabyid (rd->id);
+			if (rd->group == 0 && rd2 == rd) {
+				if (zfile_exists (location))
+					return 1;
+			}
+			if (rd->group && rd2)
+				rd = rd2;
 			struct romlist *rl = getromlistbyromdata (rd);
 			if (rl) {
 				write_log (_T("%s: %s -> %s\n"), name, location, rl->path);
@@ -3252,8 +3269,8 @@ static int cfgfile_parse_hardware (struct uae_prefs *p, const TCHAR *option, TCH
 		|| cfgfile_yesno (option, value, _T("a1000ram"), &p->cs_a1000ram)
 		|| cfgfile_yesno (option, value, _T("pcmcia"), &p->cs_pcmcia)
 		|| cfgfile_yesno (option, value, _T("scsi_cdtv"), &p->cs_cdtvscsi)
-		|| cfgfile_yesno (option, value, _T("scsi_a4091"), &p->cs_a4091)
-		|| cfgfile_yesno (option, value, _T("scsi_a2091"), &p->cs_a2091)
+		|| cfgfile_yesno (option, value, _T("scsi_a4091"), &p->a4091)
+		|| cfgfile_yesno (option, value, _T("scsi_a2091"), &p->a2091)
 		|| cfgfile_yesno (option, value, _T("cia_overlay"), &p->cs_ciaoverlay)
 		|| cfgfile_yesno (option, value, _T("bogomem_fast"), &p->cs_slowmemisfast)
 		|| cfgfile_yesno (option, value, _T("ksmirror_e0"), &p->cs_ksmirror_e0)
@@ -3352,8 +3369,12 @@ static int cfgfile_parse_hardware (struct uae_prefs *p, const TCHAR *option, TCH
 	if (cfgfile_path (option, value, _T("kickstart_rom_file"), p->romfile, sizeof p->romfile / sizeof (TCHAR), &p->path_rom)
 		|| cfgfile_path (option, value, _T("kickstart_ext_rom_file"), p->romextfile, sizeof p->romextfile / sizeof (TCHAR), &p->path_rom)
 		|| cfgfile_path (option, value, _T("kickstart_ext_rom_file2"), p->romextfile2, sizeof p->romextfile2 / sizeof (TCHAR), &p->path_rom)
+		|| cfgfile_path (option, value, _T("a2091_rom_file"), p->a2091romfile, sizeof p->a2091romfile / sizeof (TCHAR), &p->path_rom)
+		|| cfgfile_path (option, value, _T("a4091_rom_file"), p->a4091romfile, sizeof p->a4091romfile / sizeof (TCHAR), &p->path_rom)
 		|| cfgfile_rom (option, value, _T("kickstart_rom_file_id"), p->romfile, sizeof p->romfile / sizeof (TCHAR))
 		|| cfgfile_rom (option, value, _T("kickstart_ext_rom_file_id"), p->romextfile, sizeof p->romextfile / sizeof (TCHAR))
+		|| cfgfile_rom (option, value, _T("a2091_rom_file_id"), p->a2091romfile, sizeof p->a2091romfile / sizeof (TCHAR))
+		|| cfgfile_rom (option, value, _T("a4091_rom_file_id"), p->a4091romfile, sizeof p->a4091romfile / sizeof (TCHAR))
 		|| cfgfile_path (option, value, _T("amax_rom_file"), p->amaxromfile, sizeof p->amaxromfile / sizeof (TCHAR))
 		|| cfgfile_path (option, value, _T("flash_file"), p->flashfile, sizeof p->flashfile / sizeof (TCHAR), &p->path_rom)
 		|| cfgfile_path (option, value, _T("cart_file"), p->cartfile, sizeof p->cartfile / sizeof (TCHAR), &p->path_rom)
@@ -3382,6 +3403,14 @@ static int cfgfile_parse_hardware (struct uae_prefs *p, const TCHAR *option, TCH
 	}
 	if (cfgfile_string (option, value, _T("kickstart_ext_rom"), p->romextident, sizeof p->romextident / sizeof (TCHAR))) {
 		decode_rom_ident (p->romextfile, sizeof p->romextfile / sizeof (TCHAR), p->romextident, ROMTYPE_ALL_EXT);
+		return 1;
+	}
+	if (cfgfile_string (option, value, _T("a2091_rom"), p->a2091romident, sizeof p->a2091romident / sizeof (TCHAR))) {
+		decode_rom_ident (p->a2091romident, sizeof p->a2091romident / sizeof (TCHAR), p->a2091romident, ROMTYPE_A2091BOOT);
+		return 1;
+	}
+	if (cfgfile_string (option, value, _T("a4091_rom"), p->a4091romident, sizeof p->a4091romident / sizeof (TCHAR))) {
+		decode_rom_ident (p->a4091romident, sizeof p->a4091romident / sizeof (TCHAR), p->a4091romident, ROMTYPE_A4091BOOT);
 		return 1;
 	}
 	if (cfgfile_string (option, value, _T("cart"), p->cartident, sizeof p->cartident / sizeof (TCHAR))) {
@@ -3948,6 +3977,8 @@ static int cfgfile_load_2 (struct uae_prefs *p, const TCHAR *filename, bool real
 	subst (p->path_rom.path[0], p->romfile, sizeof p->romfile / sizeof (TCHAR));
 	subst (p->path_rom.path[0], p->romextfile, sizeof p->romextfile / sizeof (TCHAR));
 	subst (p->path_rom.path[0], p->romextfile2, sizeof p->romextfile2 / sizeof (TCHAR));
+	subst (p->path_rom.path[0], p->a2091romfile, sizeof p->a2091romfile / sizeof (TCHAR));
+	subst (p->path_rom.path[0], p->a4091romfile, sizeof p->a4091romfile / sizeof (TCHAR));
 
 	return 1;
 }
@@ -5016,8 +5047,8 @@ void default_prefs (struct uae_prefs *p, int type)
 	p->cs_agnusrev = -1;
 	p->cs_deniserev = -1;
 	p->cs_mbdmac = 0;
-	p->cs_a2091 = 0;
-	p->cs_a4091 = 0;
+	p->a2091 = 0;
+	p->a4091 = 0;
 	p->cs_cd32c2p = p->cs_cd32cd = p->cs_cd32nvram = false;
 	p->cs_cdtvcd = p->cs_cdtvram = false;
 	p->cs_cdtvcard = 0;
@@ -5266,8 +5297,8 @@ static void buildin_default_prefs (struct uae_prefs *p)
 	p->cs_agnusrev = -1;
 	p->cs_deniserev = -1;
 	p->cs_mbdmac = 0;
-	p->cs_a2091 = false;
-	p->cs_a4091 = false;
+	p->a2091 = false;
+	p->a4091 = false;
 	p->cs_cd32c2p = p->cs_cd32cd = p->cs_cd32nvram = false;
 	p->cs_cdtvcd = p->cs_cdtvram = p->cs_cdtvcard = false;
 	p->cs_ide = 0;
@@ -5282,6 +5313,8 @@ static void buildin_default_prefs (struct uae_prefs *p)
 
 	_tcscpy (p->romfile, _T(""));
 	_tcscpy (p->romextfile, _T(""));
+	_tcscpy (p->a2091romfile, _T(""));
+	_tcscpy (p->a4091romfile, _T(""));
 	_tcscpy (p->flashfile, _T(""));
 	_tcscpy (p->cartfile, _T(""));
 	_tcscpy (p->rtcfile, _T(""));
@@ -5801,7 +5834,6 @@ int built_in_chipset_prefs (struct uae_prefs *p)
 	p->cs_a1000ram = 0;
 	p->cs_cd32c2p = p->cs_cd32cd = p->cs_cd32nvram = 0;
 	p->cs_cdtvcd = p->cs_cdtvram = p->cs_cdtvscsi = 0;
-	p->cs_a2091 = p->cs_a4091 = 0;
 	p->cs_fatgaryrev = -1;
 	p->cs_ide = 0;
 	p->cs_ramseyrev = -1;

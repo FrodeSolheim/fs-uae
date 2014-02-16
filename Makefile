@@ -277,6 +277,7 @@ obj/memory.o \
 obj/missing.o \
 obj/native2amiga.o \
 obj/newcpu.o \
+obj/newcpu_common.o \
 obj/ncr_scsi.o \
 obj/readcpu.o \
 obj/rommgr.o \

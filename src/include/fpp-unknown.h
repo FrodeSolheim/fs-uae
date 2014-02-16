@@ -52,6 +52,10 @@ STATIC_INLINE uae_u32 from_single (double src)
 }
 #endif
 
+#ifdef FSUAE // NL
+// FIXME: compare with od-win32/md-fpp.cpp
+#endif
+
 #ifndef HAVE_to_exten
 STATIC_INLINE double to_exten(uae_u32 wrd1, uae_u32 wrd2, uae_u32 wrd3)
 {

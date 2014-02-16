@@ -15,7 +15,9 @@ extern int mmu030_opcode, mmu030_opcode_stageb;
 extern uae_u16 mmu030_state[3];
 extern uae_u32 mmu030_data_buffer;
 extern uae_u32 mmu030_disp_store[2];
+extern uae_u32 mmu030_fmovem_store[2];
 
+#define MMU030_STATEFLAG1_FMOVEM 0x2000
 #define MMU030_STATEFLAG1_MOVEM1 0x4000
 #define MMU030_STATEFLAG1_MOVEM2 0x8000
 #define MMU030_STATEFLAG1_DISP0 0x0001
@@ -29,6 +31,7 @@ struct mmu030_access
 extern struct mmu030_access mmu030_ad[MAX_MMU030_ACCESS];
 
 uae_u32 REGPARAM3 get_disp_ea_020_mmu030 (uae_u32 base, int idx) REGPARAM;
+void mmu030_page_fault(uaecptr addr, bool read, int flags, uae_u32 fc);
 
 void mmu_op30_pmove (uaecptr pc, uae_u32 opcode, uae_u16 next, uaecptr extra);
 void mmu_op30_ptest (uaecptr pc, uae_u32 opcode, uae_u16 next, uaecptr extra);
@@ -199,7 +202,7 @@ static ALWAYS_INLINE void dfc030_put_long(uaecptr addr, uae_u32 val)
 {
     uae_u32 fc = regs.dfc;
 #if MMUDEBUG > 2
-	write_log(_T("dfc030_put_long: FC = %i\n"),fc);
+	write_log(_T("dfc030_put_long: %08X = %08X FC = %i\n"), addr, val, fc);
 #endif
     if (unlikely(is_unaligned(addr, 4)))
 		mmu030_put_long_unaligned(addr, val, fc, 0);
@@ -211,7 +214,7 @@ static ALWAYS_INLINE void dfc030_put_word(uaecptr addr, uae_u16 val)
 {
     uae_u32 fc = regs.dfc;
 #if MMUDEBUG > 2
-	write_log(_T("dfc030_put_word: FC = %i\n"),fc);
+	write_log(_T("dfc030_put_word: %08X = %04X FC = %i\n"), addr, val, fc);
 #endif
 	if (unlikely(is_unaligned(addr, 2)))
 		mmu030_put_word_unaligned(addr, val, fc, 0);
@@ -223,7 +226,7 @@ static ALWAYS_INLINE void dfc030_put_byte(uaecptr addr, uae_u8 val)
 {
     uae_u32 fc = regs.dfc;
 #if MMUDEBUG > 2
-	write_log(_T("dfc030_put_byte: FC = %i\n"),fc);
+	write_log(_T("dfc030_put_byte: %08X = %02X FC = %i\n"), addr, val, fc);
 #endif
 	mmu030_put_byte(addr, val, fc);
 }

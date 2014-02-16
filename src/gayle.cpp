@@ -53,8 +53,9 @@ DD2000 to DDFFFF        A4000 IDE
 DE0000 to DEFFFF	64 KB Motherboard resources
 */
 
+/* A4000T NCR */
 #define NCR_OFFSET 0x40
-#define NCR_LONG_OFFSET 0x80
+#define NCR_ALT_OFFSET 0x80
 #define NCR_MASK 0x3f
 
 /* Gayle definitions from Linux drivers and preliminary Gayle datasheet */
@@ -1523,12 +1524,15 @@ addrbank gayle_bank = {
 	dummy_lgeti, dummy_wgeti, ABFLAG_IO
 };
 
-static bool isa4000t (uaecptr addr)
+static bool isa4000t (uaecptr *paddr)
 {
 	if (currprefs.cs_mbdmac != 2)
 		return false;
+	uaecptr addr = *paddr;
 	if ((addr & 0xffff) >= (GAYLE_BASE_4000 & 0xffff))
 		return false;
+	addr &= 0xff;
+	*paddr = addr;
 	return true;
 }
 
@@ -1540,19 +1544,22 @@ static uae_u32 REGPARAM2 gayle_lget (uaecptr addr)
 #ifdef JIT
 	special_mem |= S_READ;
 #endif
-	if (isa4000t (addr)) {
-		addr &= 0xff;
-		if (addr >= NCR_LONG_OFFSET) {
+#ifdef NCR
+	if (currprefs.cs_mbdmac == 2 && (addr & 0xffff) == 0x3000)
+		return 0xffffffff; // NCR DIP BANK
+	if (isa4000t (&addr)) {
+		if (addr >= NCR_ALT_OFFSET) {
 			addr &= NCR_MASK;
-			v = (ncr_io_bget (addr + 3) << 24) | (ncr_io_bget (addr + 2) << 16) |
-				(ncr_io_bget (addr + 1) << 8) | (ncr_io_bget (addr + 0));
+			v = (ncr_io_bget (addr + 3) << 0) | (ncr_io_bget (addr + 2) << 8) |
+				(ncr_io_bget (addr + 1) << 16) | (ncr_io_bget (addr + 0) << 24);
 		} else if (addr >= NCR_OFFSET) {
 			addr &= NCR_MASK;
-			v = (ncr_io_bget (addr + 0) << 24) | (ncr_io_bget (addr + 1) << 16) |
-				(ncr_io_bget (addr + 2) << 8) | (ncr_io_bget (addr + 3));
+			v = (ncr_io_bget (addr + 3) << 0) | (ncr_io_bget (addr + 2) << 8) |
+				(ncr_io_bget (addr + 1) << 16) | (ncr_io_bget (addr + 0) << 24);
 		}
 		return v;
 	}
+#endif
 	ide_reg = get_gayle_ide_reg (addr, &ide);
 	if (ide_reg == IDE_DATA) {
 		v = ide_get_data (ide) << 16;
@@ -1572,8 +1579,9 @@ static uae_u32 REGPARAM2 gayle_wget (uaecptr addr)
 	special_mem |= S_READ;
 #endif
 #ifdef NCR
-	if (isa4000t (addr)) {
-		addr &= 0xff;
+	if (currprefs.cs_mbdmac == 2 && (addr & (0xffff - 1)) == 0x3000)
+		return 0xffff; // NCR DIP BANK
+	if (isa4000t (&addr)) {
 		if (addr >= NCR_OFFSET) {
 			addr &= NCR_MASK;
 			v = (ncr_io_bget (addr) << 8) | ncr_io_bget (addr + 1);
@@ -1594,8 +1602,9 @@ static uae_u32 REGPARAM2 gayle_bget (uaecptr addr)
 	special_mem |= S_READ;
 #endif
 #ifdef NCR
-	if (isa4000t (addr)) {
-		addr &= 0xff;
+	if (currprefs.cs_mbdmac == 2 && (addr & (0xffff - 3)) == 0x3000)
+		return 0xff; // NCR DIP BANK
+	if (isa4000t (&addr)) {
 		if (addr >= NCR_OFFSET) {
 			addr &= NCR_MASK;
 			return ncr_io_bget (addr);
@@ -1613,9 +1622,8 @@ static void REGPARAM2 gayle_lput (uaecptr addr, uae_u32 value)
 #ifdef JIT
 	special_mem |= S_WRITE;
 #endif
-	if (isa4000t (addr)) {
-		addr &= 0xff;
-		if (addr >= NCR_LONG_OFFSET) {
+	if (isa4000t (&addr)) {
+		if (addr >= NCR_ALT_OFFSET) {
 			addr &= NCR_MASK;
 			ncr_io_bput (addr + 3, value >> 0);
 			ncr_io_bput (addr + 2, value >> 8);
@@ -1623,10 +1631,10 @@ static void REGPARAM2 gayle_lput (uaecptr addr, uae_u32 value)
 			ncr_io_bput (addr + 0, value >> 24);
 		} else if (addr >= NCR_OFFSET) {
 			addr &= NCR_MASK;
-			ncr_io_bput (addr + 0, value >> 24);
-			ncr_io_bput (addr + 1, value >> 16);
-			ncr_io_bput (addr + 2, value >> 8);
 			ncr_io_bput (addr + 3, value >> 0);
+			ncr_io_bput (addr + 2, value >> 8);
+			ncr_io_bput (addr + 1, value >> 16);
+			ncr_io_bput (addr + 0, value >> 24);
 		}
 		return;
 	}
@@ -1647,8 +1655,7 @@ static void REGPARAM2 gayle_wput (uaecptr addr, uae_u32 value)
 	special_mem |= S_WRITE;
 #endif
 #ifdef NCR
-	if (isa4000t (addr)) {
-		addr &= 0xff;
+	if (isa4000t (&addr)) {
 		if (addr >= NCR_OFFSET) {
 			addr &= NCR_MASK;
 			ncr_io_bput (addr, value >> 8);
@@ -1672,8 +1679,7 @@ static void REGPARAM2 gayle_bput (uaecptr addr, uae_u32 value)
 	special_mem |= S_WRITE;
 #endif
 #ifdef NCR
-	if (isa4000t (addr)) {
-		addr &= 0xff;
+	if (isa4000t (&addr)) {
 		if (addr >= NCR_OFFSET) {
 			addr &= NCR_MASK;
 			ncr_io_bput (addr, value);
@@ -1774,8 +1780,10 @@ static void REGPARAM2 gayle2_bput (uaecptr addr, uae_u32 value)
 }
 
 static uae_u8 ramsey_config;
-static int gary_coldboot, gary_toenb, gary_timeout;
+static int gary_coldboot;
+static int gary_timeout;
 static int garyidoffset;
+int gary_toenb;
 
 static void mbres_write (uaecptr addr, uae_u32 val, int size)
 {

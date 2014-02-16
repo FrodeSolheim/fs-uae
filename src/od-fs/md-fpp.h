@@ -10,6 +10,8 @@
   * Copyright 2007 Richard Drummond
   */
 
+#ifndef HAVE_to_single
+#define HAVE_to_single
 STATIC_INLINE double to_single (uae_u32 value)
 {
     union {
@@ -20,7 +22,10 @@ STATIC_INLINE double to_single (uae_u32 value)
     val.u = value;
     return val.f;
 }
+#endif
 
+#ifndef HAVE_from_single
+#define HAVE_from_single
 STATIC_INLINE uae_u32 from_single (double src)
 {
     union {
@@ -31,7 +36,10 @@ STATIC_INLINE uae_u32 from_single (double src)
     val.f = src;
     return val.u;
 }
+#endif
 
+#ifndef HAVE_to_double
+#define HAVE_to_double
 STATIC_INLINE double to_double (uae_u32 wrd1, uae_u32 wrd2)
 {
     union {
@@ -48,7 +56,10 @@ STATIC_INLINE double to_double (uae_u32 wrd1, uae_u32 wrd2)
 #endif
     return val.d;
 }
+#endif
 
+#ifndef HAVE_from_double
+#define HAVE_from_double
 STATIC_INLINE void from_double (double src, uae_u32 * wrd1, uae_u32 * wrd2)
 {
     union {
@@ -65,11 +76,28 @@ STATIC_INLINE void from_double (double src, uae_u32 * wrd1, uae_u32 * wrd2)
     *wrd2 = val.u[0];
 #endif
 }
-
-#define HAVE_from_double
-#define HAVE_to_double
-#define HAVE_from_single
-#define HAVE_to_single
+#endif
 
 /* Get the rest of the conversion functions defined.  */
 #include "fpp-unknown.h"
+
+STATIC_INLINE void to_exten(fpdata *fpd, uae_u32 wrd1, uae_u32 wrd2, uae_u32 wrd3)
+{
+    // FIXME: hack to compile with WinUAE 2.7.1b8, must review fpp code
+	fpd->fp = to_exten(wrd1, wrd2, wrd3);
+#ifdef USE_SOFT_LONG_DOUBLE
+    // FIXME
+#endif
+}
+
+STATIC_INLINE void from_exten(fpdata *fpd, uae_u32 * wrd1, uae_u32 * wrd2, uae_u32 * wrd3)
+{
+#ifdef USE_SOFT_LONG_DOUBLE
+	if (fpd->fpx) {
+	    // FIXME
+	} else
+#endif
+	{
+        return from_exten(fpd->fp, wrd1, wrd2, wrd3);
+	}
+}

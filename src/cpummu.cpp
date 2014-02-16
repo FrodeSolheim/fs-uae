@@ -256,7 +256,7 @@ static ALWAYS_INLINE int mmu_get_fc(bool super, bool data)
 	return (super ? 4 : 0) | (data ? 1 : 2);
 }
 
-static void mmu_bus_error(uaecptr addr, int fc, bool write, int size, bool rmw, uae_u32 status)
+void mmu_bus_error(uaecptr addr, int fc, bool write, int size, bool rmw, uae_u32 status)
 {
 	if (currprefs.mmu_model == 68040) {
 		uae_u16 ssw = 0;

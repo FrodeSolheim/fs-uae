@@ -8,7 +8,9 @@ const float GAMMA = 0.85;
 
 void main(void) {   
     vec4 rgb = texture2D(rubyTexture, gl_TexCoord[0].xy);
-    rgb.rgb = pow(rgb.rgb, 1.0 / GAMMA);
+    rgb.r = pow(rgb.r, 1.0 / GAMMA);
+    rgb.g = pow(rgb.g, 1.0 / GAMMA);
+    rgb.b = pow(rgb.b, 1.0 / GAMMA);
     gl_FragColor = rgb;
 }
 

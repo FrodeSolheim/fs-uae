@@ -6,9 +6,9 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae\n"
-"Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2013-10-26 16:16+0200\n"
-"PO-Revision-Date: 2013-10-26 16:38+0100\n"
+"Report-Msgid-Bugs-To: frode@fs-uae.net\n"
+"POT-Creation-Date: 2014-01-27 23:59+0100\n"
+"PO-Revision-Date: 2014-02-07 11:34+0100\n"
 "Last-Translator: Carsten Jensen <tomse@tomse.dk>\n"
 "Language-Team: Danish\n"
 "Language: da\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 1.5.7\n"
+"X-Generator: Poedit 1.6.3\n"
 
 msgid "Activated debugger"
 msgstr "Aktiveret debugger"
@@ -138,6 +138,9 @@ msgstr "Tastatur"
 msgid "Load"
 msgstr "Indlæs"
 
+msgid "Load State"
+msgstr "Indlæs tilstand"
+
 msgid "More..."
 msgstr "Mere..."
 
@@ -212,8 +215,8 @@ msgstr "Genoptag"
 msgid "Save"
 msgstr "Gem"
 
-msgid "Savestates"
-msgstr "Gemmestadier"
+msgid "Save State"
+msgstr "Gem tilstand"
 
 #. / TRANSLATORS: Soft reset reboots the computer without a power cycle
 msgid "Soft Reset"
@@ -235,3 +238,6 @@ msgstr "Zoom: %s"
 #, c-format
 msgid "Zoom: %s + Border"
 msgstr "Zoom: %s + skærmkant"
+
+#~ msgid "Savestates"
+#~ msgstr "Gemmestadier"

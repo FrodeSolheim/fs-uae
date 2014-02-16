@@ -34,10 +34,10 @@ void main(void) {
 
     for (int i = 0; i < 3; i++) {
         if (rgb3[i] > 0.5) {
-            rgb4[i] = 1.0 - 2 * (1.0 - rgb3[i]) * (1.0 - rgb3[i]);
+            rgb4[i] = 1.0 - 2.0 * (1.0 - rgb3[i]) * (1.0 - rgb3[i]);
         }
         else {
-            rgb4[i] = 2 * rgb3[i] * rgb3[i];
+            rgb4[i] = 2.0 * rgb3[i] * rgb3[i];
         }
         
         //rgb4[i] = pow(rgb4[i], 1.0 / 1.13);

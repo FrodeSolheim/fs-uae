@@ -6,9 +6,9 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae\n"
-"Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2013-11-14 19:40+0100\n"
-"PO-Revision-Date: 2013-11-14 19:44+0100\n"
+"Report-Msgid-Bugs-To: frode@fs-uae.net\n"
+"POT-Creation-Date: 2014-02-09 21:54+0100\n"
+"PO-Revision-Date: 2014-02-09 21:55+0100\n"
 "Last-Translator: Frode Solheim <frode-code@fengestad.no>\n"
 "Language-Team: Norwegian Bokmal\n"
 "Language: nb\n"
@@ -138,6 +138,9 @@ msgstr "Tastatur"
 msgid "Load"
 msgstr "Last inn"
 
+msgid "Load State"
+msgstr "Åpne tilstand"
+
 msgid "More..."
 msgstr "Mer..."
 
@@ -212,8 +215,8 @@ msgstr "Fortsett"
 msgid "Save"
 msgstr "Lagre"
 
-msgid "Savestates"
-msgstr "Lagrede tilstander"
+msgid "Save State"
+msgstr "Lagre tilstand"
 
 #. / TRANSLATORS: Soft reset reboots the computer without a power cycle
 msgid "Soft Reset"
@@ -255,4 +258,7 @@ msgstr "Zoom: %s + ramme"
 #~ msgstr "Joystick-porter"
 
 #~ msgid "Save States"
+#~ msgstr "Lagrede tilstander"
+
+#~ msgid "Savestates"
 #~ msgstr "Lagrede tilstander"

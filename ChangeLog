@@ -1,10 +1,25 @@
+Version 2.4.0 / 2.3.99rc2:
+
+* (Launcher) Windows portable version didn't store relative paths.
+* (Launcher) Properly locate A500 kickstart on first startup when it exists.
+
+Version 2.3.99rc1:
+
+* (Launcher) Don't refresh the online database when running the file scanner.
+* (Launcher) Game database changes for better forward compatibility.
+
 Version 2.3.99beta3:
 
 * FS-UAE can use 256 kB chip RAM (and also 128 if you *really* want to).
-* Updated translations: es [albconde].
+* Updated translations: es [albconde], da [tomse], nb.
 * (Launcher) Fixed multiple file selection when using PyQt.
 * (Launcher) Added 256 kB chip RAM to the chip memory selector.
-* (Launcher) Updated translations: de [jbl007], es [albconde].
+* (Launcher) Updated translations: de [jbl007], es [albconde],
+  it [Speedvicio], da [tomse], nb.
+* (Launcher) Fixed bug where the launcher tries to sync with online DB after
+  logging out from OAGD.net.
+* (Arcade) Fixed missing ext rom problem when starting CD32 games.
+* (Arcade) Fixed repeat problem when navigating with joystick hats.
 
 Version 2.3.99beta2:
 

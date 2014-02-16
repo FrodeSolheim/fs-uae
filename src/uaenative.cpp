@@ -395,7 +395,7 @@ static uae_u32 do_call_function_compat_asm (struct uni *uni)
     uae_u32 a5 = uni->a5;
     uae_u32 a7 = uni->a7;
     uae_u32 regs_ = (uae_u32)&regs;
-    a6 = uni->uaevar_compat;
+    void *a6 = uni->uaevar_compat;
 
     __asm
     {   mov espstore,esp
@@ -641,7 +641,7 @@ uae_u32 uaenative_close_library(TrapContext *context, int flags)
 
 // ----------------------------------------------------------------------------
 
-typedef uae_u32 REGPARAM2 (*uae_library_trap) (TrapContext *context);
+typedef uae_u32 (REGPARAM2 *uae_library_trap) (TrapContext *context);
 
 struct uae_library_trap_def {
     uae_library_trap function; // native function pointer for trap

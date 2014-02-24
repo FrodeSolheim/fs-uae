@@ -335,6 +335,9 @@ bool preinit_shm (void)
 #endif
     }
 #endif
+    printf("maxmem: %d\n", maxmem);
+    if (maxmem > max_allowed_mman)
+        max_allowed_mman = maxmem;
 
 #ifdef WINDOWS
     memstats.dwLength = sizeof(memstats);

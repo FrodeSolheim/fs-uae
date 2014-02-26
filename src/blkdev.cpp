@@ -196,6 +196,9 @@ static void install_driver (int flags)
 	}
 
 	for (int j = 1; j < NUM_DEVICE_TABLE_ENTRIES; j++) {
+		if (devicetable[j] == NULL) {
+		    continue;
+		}
 		if (!driver_installed[j]) {
 			for (int i = 0; i < MAX_TOTAL_SCSI_DEVICES; i++) {
 				struct blkdevstate *st = &state[i];

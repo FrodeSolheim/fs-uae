@@ -47,6 +47,7 @@ int disk_debug_track = -1;
 #include "caps/caps_win32.h"
 #endif
 #endif
+#include "supercard_pro.h"
 #include "crc32.h"
 #include "inputrecord.h"
 #include "amax.h"
@@ -152,7 +153,7 @@ typedef struct {
 #define DRIVE_ID_35HD  0xAAAAAAAA
 #define DRIVE_ID_525SD 0x55555555 /* 40 track 5.25 drive , kickstart does not recognize this */
 
-typedef enum { ADF_NONE = -1, ADF_NORMAL, ADF_EXT1, ADF_EXT2, ADF_FDI, ADF_IPF, ADF_CATWEASEL, ADF_PCDOS, ADF_KICK, ADF_SKICK } drive_filetype;
+typedef enum { ADF_NONE = -1, ADF_NORMAL, ADF_EXT1, ADF_EXT2, ADF_FDI, ADF_IPF, ADF_SUPERCARD_PRO, ADF_CATWEASEL, ADF_PCDOS, ADF_KICK, ADF_SKICK } drive_filetype;
 typedef struct {
 	struct zfile *diskfile;
 	struct zfile *writediskfile;
@@ -623,6 +624,9 @@ static void drive_image_free (drive *drv)
 #ifdef CAPS
 		caps_unloadimage (drv - floppy);
 #endif
+		break;
+	case ADF_SUPERCARD_PRO:
+		scp_close (drv - floppy);
 		break;
 	case ADF_FDI:
 #ifdef FDI2RAW
@@ -1113,6 +1117,21 @@ static int drive_insert (drive * drv, struct uae_prefs *p, int dnum, const TCHAR
 		drv->num_tracks = num_tracks;
 		drv->filetype = ADF_IPF;
 #endif
+	} else if (strncmp ((char*)buffer, "SCP", 3) == 0) {
+
+#ifdef FSUAE
+		// always saving data to overlay .sdf-files
+		drv->wrprot = false;
+#else
+		drv->wrprot = true;
+#endif
+		if (!scp_open (drv->diskfile, drv - floppy, &num_tracks)) {
+			zfile_fclose (drv->diskfile);
+			drv->diskfile = 0;
+			return 0;
+		}
+		drv->num_tracks = num_tracks;
+		drv->filetype = ADF_SUPERCARD_PRO;
 #ifdef FDI2RAW
 	} else if ((drv->fdi = fdi2raw_header (drv->diskfile))) {
 
@@ -1855,6 +1874,10 @@ static void drive_fill_bigbuf (drive * drv, int force)
 		caps_loadtrack (drv->bigmfmbuf, drv->tracktiming, drv - floppy, tr, &drv->tracklen, &drv->multi_revolution, &drv->skipoffset);
 #endif
 
+	} else if (drv->filetype == ADF_SUPERCARD_PRO) {
+
+		scp_loadtrack (drv->bigmfmbuf, drv->tracktiming, drv - floppy, tr, &drv->tracklen, &drv->multi_revolution, &drv->skipoffset);
+
 	} else if (drv->filetype == ADF_FDI) {
 
 #ifdef FDI2RAW
@@ -2373,6 +2396,8 @@ static void drive_write_data (drive * drv)
 #endif
 		return;
 	case ADF_IPF:
+		break;
+	case ADF_SUPERCARD_PRO:
 		break;
 	case ADF_PCDOS:
 #ifdef FSUAE
@@ -3051,6 +3076,9 @@ static void fetchnextrevolution (drive *drv)
 #ifdef CAPS
 		caps_loadrevolution (drv->bigmfmbuf, drv - floppy, drv->cyl * 2 + side, &drv->tracklen);
 #endif
+		break;
+	case ADF_SUPERCARD_PRO:
+		scp_loadrevolution (drv->bigmfmbuf, drv - floppy, drv->tracktiming, &drv->tracklen);
 		break;
 	case ADF_FDI:
 #ifdef FDI2RAW

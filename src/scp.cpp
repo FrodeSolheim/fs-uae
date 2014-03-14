@@ -1,4 +1,8 @@
 /*
+ * Support for reading .SCP (Supercard Pro) disk flux dumps.
+ * 
+ * By Keir Fraser in 2014.
+ *
  * This file is free and unencumbered software released into the public domain.
  * For more information, please refer to <http://unlicense.org/>
  */
@@ -6,7 +10,7 @@
 #include "sysconfig.h"
 #include "sysdeps.h"
 
-#include "supercard_pro.h"
+#include "scp.h"
 #include "zfile.h"
 #include "gui.h"
 #include "uae.h"

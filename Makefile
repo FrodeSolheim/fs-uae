@@ -282,6 +282,7 @@ obj/ncr_scsi.o \
 obj/readcpu.o \
 obj/rommgr.o \
 obj/savestate.o \
+obj/scp.o \
 obj/scsi.o \
 obj/scsiemul.o \
 obj/scsitape.o \
@@ -339,7 +340,6 @@ obj/od-fs/roms.o \
 obj/od-fs/picasso96.o \
 obj/od-fs/serial_host.o \
 obj/od-fs/stubs.o \
-obj/od-fs/supercard_pro.o \
 obj/od-fs/support.o \
 obj/od-fs/util.o \
 obj/od-fs/threading.o \

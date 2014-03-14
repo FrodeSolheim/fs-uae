@@ -98,6 +98,8 @@ int scp_open(struct zfile *zf, int drv, int *num_tracks)
     d->zf = zf;
     d->revs = min((int)header[5], MAX_REVS);
 
+    *num_tracks = header[7] + 1;
+
     return 1;
 }
 
@@ -121,7 +123,7 @@ int scp_loadtrack(
     unsigned int rev, trkoffset[MAX_REVS];
     uint32_t hdr_offset, tdh_offset;
 
-    *multirev = (d->revs != 1);
+    *multirev = 1;
     *gapoffset = -1;
 
     free(d->dat);
@@ -208,12 +210,8 @@ static int flux_next_bit(struct drive *d)
     int new_flux;
 
     while (d->flux < (d->clock/2)) {
-        if ((new_flux = scp_next_flux(d)) == -1) {
-            d->flux = 0;
-            d->clocked_zeros = 0;
-            d->clock = d->clock_centre;
+        if ((new_flux = scp_next_flux(d)) == -1)
             return -1;
-        }
         d->flux += new_flux;
         d->clocked_zeros = 0;
     }
@@ -257,23 +255,29 @@ void scp_loadrevolution(
     int *tracklength)
 {
     struct drive *d = &drive[drv];
-    unsigned int i;
+    uint64_t prev_latency;
+    uint32_t av_latency;
+    unsigned int i, j;
     int b;
 
-    d->latency = 0;
+    d->latency = prev_latency = 0;
     for (i = 0; (b = flux_next_bit(d)) != -1; i++) {
         if ((i & 15) == 0)
             mfmbuf[i>>4] = 0;
         if (b)
             mfmbuf[i>>4] |= 0x8000u >> (i&15);
         if ((i & 7) == 7) {
-            tracktiming[i>>3] = d->latency/16u;
-            d->latency = 0;
+            tracktiming[i>>3] = d->latency - prev_latency;
+            prev_latency = d->latency;
         }
     }
 
     if (i & 7)
-        tracktiming[i>>3] = d->latency/(unsigned int)(2*(i&7));
+        tracktiming[i>>3] = ((d->latency - prev_latency) * 8) / (i & 7);
+
+    av_latency = prev_latency / (i>>3);
+    for (j = 0; j < (i+7)>>3; j++)
+        tracktiming[j] = ((uint32_t)tracktiming[j] * 1000u) / av_latency;
 
     *tracklength = i;
 }

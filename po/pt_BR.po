@@ -1,22 +1,19 @@
-# Portuguese translations for fs-uae package.
-# Copyright (C) 2012 Frode Solheim and translators.
-# This file is distributed under the same license as the fs-uae package.
-# Frode Solheim <fs-uae@fengestad.no>, 2012.
-#
 msgid ""
-msgstr ""
-"Project-Id-Version: fs-uae\n"
-"Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2012-11-10 13:31+0100\n"
-"PO-Revision-Date: 2012-11-23 23:56-0000\n"
-"Last-Translator: Mário Mateus <fs-uae-pt@fengestad.no>\n"
-"Language-Team: Portuguese\n"
-"Language: pt\n"
+msgstr "Project-Id-Version: fs-uae\n"
+"Report-Msgid-Bugs-To: frode@fs-uae.net\n"
+"POT-Creation-Date: 2014-03-14 19:32+0100\n"
+"PO-Revision-Date: 2014-03-22 07:32-0400\n"
+"Last-Translator: FrodeSolheim <frode-crowdin@fsolheim.net>\n"
+"Language-Team: Portuguese, Brazilian\n"
+"Language: pt_BR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 1.5.4\n"
+"X-Generator: crowdin.net\n"
+
+msgid "Activated debugger"
+msgstr "Activated debugger"
 
 msgid "Amiga Control"
 msgstr "Controlo do Amiga"
@@ -47,6 +44,13 @@ msgstr "CD%d: Vazio"
 msgid "CD32 Pad Mode"
 msgstr "Modo Gamepad CD32"
 
+#. / TRANSLATORS: This is a menu entry and must not be too long
+msgid "Custom Joystick Port"
+msgstr "Custom Joystick Port"
+
+msgid "Custom Mode"
+msgstr "Custom Mode"
+
 #. / TRANSLATORS: Empty or nothing
 #, c-format
 msgid "DF%d: Empty"
@@ -68,6 +72,10 @@ msgstr "Controlo do Emulador"
 msgid "Full Frame"
 msgstr "Ecrã Completo"
 
+#, c-format
+msgid "HD not found: %s"
+msgstr "HD not found: %s"
+
 #. / TRANSLATORS: Hard reset is a computer reboot with an emulated power
 #. / cycle
 msgid "Hard Reset"
@@ -86,10 +94,15 @@ msgstr "Inserir em CD%d"
 msgid "Insert Into DF%d"
 msgstr "Inserir em DF%d"
 
+msgid "Invalid number of CD-ROM drives specified"
+msgstr "Invalid number of CD-ROM drives specified"
+
 msgid "Joystick Mode"
 msgstr "Modo joystick"
 
-#. / TRANSLATORS: This is a menu entry and must not be too long
+msgid "Joystick Port"
+msgstr "Joystick Port"
+
 #, c-format
 msgid "Joystick Port %d"
 msgstr "Joystick porta %d"
@@ -104,26 +117,23 @@ msgstr "Porta do dispositivo joystick %d"
 msgid "Joystick Port %d Mode"
 msgstr "Porta do joystick em modo %d"
 
-msgid "Joystick Port 0"
-msgstr "Joystick porta 0"
-
-msgid "Joystick Port 1"
-msgstr "Joystick porta 1"
-
 msgid "Joystick Port 2"
 msgstr "Joystick porta 2"
 
 msgid "Joystick Port 3"
 msgstr "Joystick porta 3"
 
-msgid "Joystick Ports"
-msgstr "Portas Joystick"
+msgid "Joystick Port 4"
+msgstr "Joystick Port 4"
 
 msgid "Keyboard"
 msgstr "Teclado"
 
 msgid "Load"
 msgstr "Abrir"
+
+msgid "Load State"
+msgstr "Load State"
 
 msgid "More..."
 msgstr "Mais..."
@@ -133,6 +143,9 @@ msgstr "Rato"
 
 msgid "Mouse Mode"
 msgstr "Modo Rato"
+
+msgid "Mouse Port"
+msgstr "Mouse Port"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long: If you struggle
 #. / to get in short enough, just translate "No Device" instead.
@@ -147,12 +160,38 @@ msgstr "Nenhum dispositivo Host"
 msgid "No configuration file was found"
 msgstr "Nenhum ficheiro de configuração encontrado"
 
+#, c-format
+msgid "Option \"%s\" is not enabled"
+msgstr "Option \"%s\" is not enabled"
+
+msgid "Option chip_memory must be a multiple of 512"
+msgstr "Option chip_memory must be a multiple of 512"
+
+msgid "Option fast_memory must be a multiple of 1024"
+msgstr "Option fast_memory must be a multiple of 1024"
+
+msgid "Option slow_memory must be a multiple of 256"
+msgstr "Option slow_memory must be a multiple of 256"
+
+msgid "Option uaegfx.card needs a CPU with 32-bit addressing"
+msgstr "Option uaegfx.card needs a CPU with 32-bit addressing"
+
+msgid "Option zorro_iii_memory must be a multiple of 1024"
+msgstr "Option zorro_iii_memory must be a multiple of 1024"
+
+msgid "Options zorro_iii_memory needs a CPU with 32-bit addressing"
+msgstr "Options zorro_iii_memory needs a CPU with 32-bit addressing"
+
 #. / TRANSLATORS: This is a menu entry and must not be too long
 msgid "Parallel Joystick Ports"
 msgstr "Joystick da porta paralela"
 
 msgid "Pause"
 msgstr "Pausar"
+
+#, c-format
+msgid "Port 0: %s"
+msgstr "Port 0: %s"
 
 msgid "Port Settings"
 msgstr "Opções da porta"
@@ -170,12 +209,18 @@ msgstr "Continuar"
 msgid "Save"
 msgstr "Guardar"
 
-msgid "Save States"
-msgstr "Guardar Estado"
+msgid "Save State"
+msgstr "Save State"
 
 #. / TRANSLATORS: Soft reset reboots the computer without a power cycle
 msgid "Soft Reset"
 msgstr "Reiniciar por Software"
+
+msgid "Warp mode disabled"
+msgstr "Warp mode disabled"
+
+msgid "Warp mode enabled"
+msgstr "Warp mode enabled"
 
 msgid "Zoom is disabled in RTG mode"
 msgstr "Zoom está desactivado no modo RTG"
@@ -187,3 +232,4 @@ msgstr "Zoom: %s"
 #, c-format
 msgid "Zoom: %s + Border"
 msgstr "Zoom: %s + Margem"
+

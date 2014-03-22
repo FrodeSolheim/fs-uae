@@ -1,21 +1,16 @@
-# Serbian translations for fs-uae package.
-# Copyright (C) 2012 Frode Solheim and translators.
-# This file is distributed under the same license as the fs-uae package.
-# Frode Solheim <fs-uae@fengestad.no>, 2012.
-#
 msgid ""
-msgstr ""
-"Project-Id-Version: fs-uae\n"
-"Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2013-03-15 21:48+0100\n"
-"PO-Revision-Date: 2013-03-17 08:56+0100\n"
-"Last-Translator: \n"
-"Language-Team: Serbian\n"
-"Language: sr\n"
+msgstr "Project-Id-Version: fs-uae\n"
+"Report-Msgid-Bugs-To: frode@fs-uae.net\n"
+"POT-Creation-Date: 2014-03-14 19:32+0100\n"
+"PO-Revision-Date: 2014-03-22 07:32-0400\n"
+"Last-Translator: FrodeSolheim <frode-crowdin@fsolheim.net>\n"
+"Language-Team: Serbian (Latin)\n"
+"Language: sr_CS\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Plural-Forms: nplurals=4; plural=(n==1 ? 3 : n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"X-Generator: crowdin.net\n"
 
 msgid "Activated debugger"
 msgstr "Debager je aktiviran"
@@ -105,7 +100,9 @@ msgstr "Naveden je neispravan broj CD-ROM ova"
 msgid "Joystick Mode"
 msgstr "Režim džojstika"
 
-#. / TRANSLATORS: This is a menu entry and must not be too long
+msgid "Joystick Port"
+msgstr "Džojstik port"
+
 #, c-format
 msgid "Joystick Port %d"
 msgstr "Džojstik port %d"
@@ -120,12 +117,6 @@ msgstr "Džojstik port %d uređaj"
 msgid "Joystick Port %d Mode"
 msgstr "Džojstik port %d mod"
 
-msgid "Joystick Port 0"
-msgstr "Džojstik port 0"
-
-msgid "Joystick Port 1"
-msgstr "Džojstik port 1"
-
 msgid "Joystick Port 2"
 msgstr "Džojstik port 2"
 
@@ -135,14 +126,14 @@ msgstr "Džojstik port 3"
 msgid "Joystick Port 4"
 msgstr "Džojstik port 4"
 
-msgid "Joystick Ports"
-msgstr "Džojstik portovi"
-
 msgid "Keyboard"
 msgstr "Tastatura"
 
 msgid "Load"
 msgstr "Učitavanje"
+
+msgid "Load State"
+msgstr "Učitavanje stanje"
 
 msgid "More..."
 msgstr "Još..."
@@ -152,6 +143,9 @@ msgstr "Miš"
 
 msgid "Mouse Mode"
 msgstr "Režim miša"
+
+msgid "Mouse Port"
+msgstr "Port miša"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long: If you struggle
 #. / to get in short enough, just translate "No Device" instead.
@@ -215,7 +209,7 @@ msgstr "Nastavak"
 msgid "Save"
 msgstr "Snimanje"
 
-msgid "Save States"
+msgid "Save State"
 msgstr "Snimanje stanja"
 
 #. / TRANSLATORS: Soft reset reboots the computer without a power cycle
@@ -239,11 +233,3 @@ msgstr "Uvećanje: %s"
 msgid "Zoom: %s + Border"
 msgstr "Uvećanje: %s + okvir"
 
-#~ msgid "CD32 Gamepad"
-#~ msgstr "CD32 Gamepad"
-
-#~ msgid "Host Device"
-#~ msgstr "Glavni / Host uređaj"
-
-#~ msgid "Joystick"
-#~ msgstr "Džojstik"

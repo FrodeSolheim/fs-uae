@@ -1,3 +1,11 @@
+Version 2.4.1:
+
+* (Launcher) Fixed a bug preventing hd_requirements = workbench from working.
+* (Launcher) Fixed a bug which is also a syntax error with Python < v2.7.
+* (Launcher) Fixed a potential startup problem when PATH has non-ASCII
+   characters.
+* (Arcade) Fixed a bug related to non-ASCII characters in joystick names.
+
 Version 2.4.0 / 2.3.99rc2:
 
 * (Launcher) Windows portable version didn't store relative paths.

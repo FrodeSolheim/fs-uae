@@ -1,5 +1,6 @@
 build
 dist
+/a
 /fs-uae
 /fs-uae-device-helper
 /gen
@@ -26,8 +27,9 @@ libfs-capsimage.dylib
 *.sav
 *.sdf
 *.log
-obj/*
-out/*
+/obj
+/out
+/gen
 build68k
 genblitter
 gencpu
@@ -45,6 +47,7 @@ log
 windows/fs-uae*_windows*
 macosx/fs-uae*
 /*.deb
+*.zip
 /desktop/
 /test/
 /amiga/

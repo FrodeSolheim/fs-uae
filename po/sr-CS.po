@@ -4,232 +4,232 @@ msgstr "Project-Id-Version: fs-uae\n"
 "POT-Creation-Date: 2014-03-14 19:32+0100\n"
 "PO-Revision-Date: 2014-03-22 07:32-0400\n"
 "Last-Translator: FrodeSolheim <frode-crowdin@fsolheim.net>\n"
-"Language-Team: Czech\n"
-"Language: cs_CZ\n"
+"Language-Team: Serbian (Latin)\n"
+"Language: sr_CS\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
+"Plural-Forms: nplurals=4; plural=(n==1 ? 3 : n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 "X-Generator: crowdin.net\n"
 
 msgid "Activated debugger"
-msgstr "Debugger aktivován"
+msgstr "Debager je aktiviran"
 
 msgid "Amiga Control"
-msgstr "Nastavení Amiga"
+msgstr "Amiga kontrole"
 
 #. / TRANSLATORS: In context "Zoom: Auto"
 msgid "Auto"
-msgstr "Automaticky"
+msgstr "Auto"
 
 msgid "Auto-Fire is Off"
-msgstr "Auto-fire je vypnut"
+msgstr "Automatsko pucanje ugašeno"
 
 msgid "Auto-Fire is On"
-msgstr "Auto-fire je zapnut"
+msgstr "Automatsko pucanje upaljeno"
 
 #, c-format
 msgid "Auto-fire disabled for port %d"
-msgstr "Auto-fire vypnut pro port %d"
+msgstr "Automatsko pucanje onemogućeno za port %d"
 
 #, c-format
 msgid "Auto-fire enabled for port %d"
-msgstr "Auto-fire zapnut pro port %d"
+msgstr "Automatsko pucanje omogućeno za port %d"
 
 #. / TRANSLATORS: Empty or nothing
 #, c-format
 msgid "CD%d: Empty"
-msgstr "CD%d:"
+msgstr "CD%d: prazan"
 
 msgid "CD32 Pad Mode"
-msgstr "Mód CD32 Padu"
+msgstr "CD32 pad mod"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 msgid "Custom Joystick Port"
-msgstr "Nastavení Joystick portu"
+msgstr "Prilagođeni port džojstika"
 
 msgid "Custom Mode"
-msgstr "Vlastní mód"
+msgstr "Prilagođeni način rada"
 
 #. / TRANSLATORS: Empty or nothing
 #, c-format
 msgid "DF%d: Empty"
-msgstr "DF%d: "
+msgstr "DF%d: Prazan"
 
 msgid "Disabled"
-msgstr "Vypnuto"
+msgstr "Onemogućeno"
 
 msgid "Eject"
-msgstr "Vysunout"
+msgstr "Izbacivanje"
 
 msgid "Empty"
-msgstr "Prázdné"
+msgstr "Prazno"
 
 msgid "Emulator Control"
-msgstr "Ovládání emulátoru"
+msgstr "Kontrole emulatora"
 
 #. / TRANSLATORS: In context "Zoom: Full Frame"
 msgid "Full Frame"
-msgstr "Plné snímkování"
+msgstr "Pun okvir"
 
 #, c-format
 msgid "HD not found: %s"
-msgstr "HD nenalezen: %s"
+msgstr "HD nije pronađen: %s"
 
 #. / TRANSLATORS: Hard reset is a computer reboot with an emulated power
 #. / cycle
 msgid "Hard Reset"
-msgstr "Tvrdý reset"
+msgstr "Hardverski restart"
 
 msgid "Input Options"
-msgstr "Volby vstupu"
+msgstr "Opcije ulaza"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Insert Into CD%d"
-msgstr "Vložit do CD%d"
+msgstr "Ubaciti u CD%d"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Insert Into DF%d"
-msgstr "Vložit do DF%d"
+msgstr "Ubaciti u DF%d"
 
 msgid "Invalid number of CD-ROM drives specified"
-msgstr "Uveden špatný počet CD-ROM mechanik"
+msgstr "Naveden je neispravan broj CD-ROM ova"
 
 msgid "Joystick Mode"
-msgstr "Mód Joysticku"
+msgstr "Režim džojstika"
 
 msgid "Joystick Port"
-msgstr "Joystick Port"
+msgstr "Džojstik port"
 
 #, c-format
 msgid "Joystick Port %d"
-msgstr "Joystick Port %d"
+msgstr "Džojstik port %d"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Joystick Port %d Device"
-msgstr "Joystick Port %d zařízení"
+msgstr "Džojstik port %d uređaj"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Joystick Port %d Mode"
-msgstr "Joystick Port %d mód"
+msgstr "Džojstik port %d mod"
 
 msgid "Joystick Port 2"
-msgstr "Joystick Port 2"
+msgstr "Džojstik port 2"
 
 msgid "Joystick Port 3"
-msgstr "Joystick Port 3"
+msgstr "Džojstik port 3"
 
 msgid "Joystick Port 4"
-msgstr "Joystick Port 4"
+msgstr "Džojstik port 4"
 
 msgid "Keyboard"
-msgstr "Klávesnice"
+msgstr "Tastatura"
 
 msgid "Load"
-msgstr "Načíst"
+msgstr "Učitavanje"
 
 msgid "Load State"
-msgstr "Load State"
+msgstr "Učitavanje stanje"
 
 msgid "More..."
-msgstr "Více..."
+msgstr "Još..."
 
 msgid "Mouse"
-msgstr "Myš"
+msgstr "Miš"
 
 msgid "Mouse Mode"
-msgstr "Mód myši"
+msgstr "Režim miša"
 
 msgid "Mouse Port"
-msgstr "Mouse Port"
+msgstr "Port miša"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long: If you struggle
 #. / to get in short enough, just translate "No Device" instead.
 msgid "No Amiga Device"
-msgstr "Žádné zařízení"
+msgstr "Nema uređaja"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long: If you struggle
 #. / to get in short enough, just translate "No Device" instead.
 msgid "No Host Device"
-msgstr "Žádné zařízení"
+msgstr "Nema host uređaja"
 
 msgid "No configuration file was found"
-msgstr "Konfigurační soubor nenalezen"
+msgstr "Konfiguracioni fajl nije pronađen"
 
 #, c-format
 msgid "Option \"%s\" is not enabled"
-msgstr "Nastavení \"%s\" nebylo povoleno"
+msgstr "Opcija \"%s\" nije omogućena"
 
 msgid "Option chip_memory must be a multiple of 512"
-msgstr "Nastavení chip_memory musí být násobek 512ti"
+msgstr "Opcija chip_memory mora biti umnožak broja 512"
 
 msgid "Option fast_memory must be a multiple of 1024"
-msgstr "Nastavení fast_memory musí být násobek 1024"
+msgstr "Opcija fast_memory mora biti umnožak broja 1024"
 
 msgid "Option slow_memory must be a multiple of 256"
-msgstr "Nastavení slow_memory musí být násobek 256ti"
+msgstr "Opcija slow_memory mora biti umnožak broja 256"
 
 msgid "Option uaegfx.card needs a CPU with 32-bit addressing"
-msgstr "Nastavení uaegfx.card vyžaduje CPU s 32-bit adresováním"
+msgstr "Opcija uaegfx.card zahteva procesor sa 32-bitnim adresiranjem"
 
 msgid "Option zorro_iii_memory must be a multiple of 1024"
-msgstr "Nastavení zorro_iii_memory musí být násobek 1024"
+msgstr "Opcija zorro_iii_memory mora biti umnožak broja 1024"
 
 msgid "Options zorro_iii_memory needs a CPU with 32-bit addressing"
-msgstr "Nastavení zorro_iii_memory vyžaduje CPU s 32-bit adresováním"
+msgstr "Opcije zorro_iii_memory zahtevaju procesor sa 32-bitnim adresiranjem"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 msgid "Parallel Joystick Ports"
-msgstr "Joystick paralelní porty"
+msgstr "Paralelni džojstik portovi"
 
 msgid "Pause"
-msgstr "Pozastavit"
+msgstr "Pauziranje"
 
 #, c-format
 msgid "Port 0: %s"
 msgstr "Port 0: %s"
 
 msgid "Port Settings"
-msgstr "Nastavení portu"
+msgstr "Podešenja porta"
 
 msgid "Removable Media"
-msgstr "Vyměnitelná média"
+msgstr "Prenosivi medijum"
 
 #. / TRANSLATORS: Reset Amiga as in reboot the computer
 msgid "Reset Amiga"
-msgstr "Reset Amiga"
+msgstr "Restart Amige"
 
 msgid "Resume"
-msgstr "Obnovit"
+msgstr "Nastavak"
 
 msgid "Save"
-msgstr "Uložit"
+msgstr "Snimanje"
 
 msgid "Save State"
-msgstr "Save State"
+msgstr "Snimanje stanja"
 
 #. / TRANSLATORS: Soft reset reboots the computer without a power cycle
 msgid "Soft Reset"
-msgstr "Soft Reset"
+msgstr "Softverski restart"
 
 msgid "Warp mode disabled"
-msgstr "Mód zrychlení vypnut"
+msgstr "Warp mod onemogućen"
 
 msgid "Warp mode enabled"
-msgstr "Mód zrychlení zapnut"
+msgstr "Warp mod omogućen"
 
 msgid "Zoom is disabled in RTG mode"
-msgstr "Přiblížení vypnuto v RTG módu"
+msgstr "Uvećanje je onemogućeno u RTG načinu rada"
 
 #, c-format
 msgid "Zoom: %s"
-msgstr "Přiblížení: %s"
+msgstr "Uvećanje: %s"
 
 #, c-format
 msgid "Zoom: %s + Border"
-msgstr "Přiblížení: %s + okraje"
+msgstr "Uvećanje: %s + okvir"
 

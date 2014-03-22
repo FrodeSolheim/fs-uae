@@ -75,6 +75,8 @@ void list_joysticks() {
     }
 
     printf("# listing joysticks\n");
+    // printf("J: Fake Test Joystick %c%c\n", 0xc2, 0xae);
+    // printf("   Buttons: 0 Hats: 0 Axes: 0 Balls: 0\n");
 #ifdef USE_SDL
     if (SDL_Init(SDL_INIT_JOYSTICK ) < 0) {
         printf("# SDL_Init(SDL_INIT_JOYSTICK ) < 0\n");

@@ -1,22 +1,16 @@
-# French translations for fs-uae package.
-# Copyright (C) 2012 Frode Solheim and translators.
-# This file is distributed under the same license as the fs-uae package.
-# Frode Solheim <fs-uae@fengestad.no>, 2012.
-#
 msgid ""
-msgstr ""
-"Project-Id-Version: FS-UAE\n"
-"Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2014-01-14 23:15+0100\n"
-"PO-Revision-Date: 2014-01-15 19:38+0100\n"
-"Last-Translator: Foul <foulweb@gmail.com>\n"
-"Language-Team: Foul <fs-uae-fr@fengestad.no>\n"
-"Language: fr\n"
+msgstr "Project-Id-Version: fs-uae\n"
+"Report-Msgid-Bugs-To: frode@fs-uae.net\n"
+"POT-Creation-Date: 2014-03-14 19:32+0100\n"
+"PO-Revision-Date: 2014-03-22 07:32-0400\n"
+"Last-Translator: FrodeSolheim <frode-crowdin@fsolheim.net>\n"
+"Language-Team: French\n"
+"Language: fr_FR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Poedit 1.5.4\n"
+"X-Generator: crowdin.net\n"
 
 msgid "Activated debugger"
 msgstr "Débogueur activé"
@@ -130,7 +124,7 @@ msgid "Joystick Port 3"
 msgstr "Ports Joystick 3"
 
 msgid "Joystick Port 4"
-msgstr "Joystick Port 4"
+msgstr "Port Joystick 4"
 
 msgid "Keyboard"
 msgstr "Clavier"
@@ -233,32 +227,9 @@ msgstr "Zoom désactivé en mode RTG"
 
 #, c-format
 msgid "Zoom: %s"
-msgstr "Zoom: %s"
+msgstr "Zoom : %s"
 
 #, c-format
 msgid "Zoom: %s + Border"
 msgstr "Zoom: %s + Bordure"
 
-#~ msgid "CD32 Gamepad"
-#~ msgstr "Gamepad CD32"
-
-#~ msgid "Host Device"
-#~ msgstr "Périphérique Hôte"
-
-#~ msgid "Joystick"
-#~ msgstr "Joystick"
-
-#~ msgid "Joystick Port 0"
-#~ msgstr "Ports Joystick 0"
-
-#~ msgid "Joystick Port 1"
-#~ msgstr "Ports Joystick 1"
-
-#~ msgid "Joystick Ports"
-#~ msgstr "Ports Joystick"
-
-#~ msgid "Save States"
-#~ msgstr "Sauvegarder l’État"
-
-#~ msgid "Savestates"
-#~ msgstr "États des Sauvegardes"

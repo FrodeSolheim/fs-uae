@@ -1,22 +1,16 @@
-# Norwegian Bokmal translations for fs-uae package.
-# Copyright (C) 2012 Frode Solheim and translators.
-# This file is distributed under the same license as the fs-uae package.
-# Frode Solheim <fs-uae@fengestad.no>, 2012.
-#
 msgid ""
-msgstr ""
-"Project-Id-Version: fs-uae\n"
+msgstr "Project-Id-Version: fs-uae\n"
 "Report-Msgid-Bugs-To: frode@fs-uae.net\n"
-"POT-Creation-Date: 2014-02-09 21:54+0100\n"
-"PO-Revision-Date: 2014-02-09 21:55+0100\n"
-"Last-Translator: Frode Solheim <frode-code@fengestad.no>\n"
+"POT-Creation-Date: 2014-03-14 19:32+0100\n"
+"PO-Revision-Date: 2014-03-22 07:32-0400\n"
+"Last-Translator: FrodeSolheim <frode-crowdin@fsolheim.net>\n"
 "Language-Team: Norwegian Bokmal\n"
-"Language: nb\n"
+"Language: nb_NO\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 1.5.4\n"
+"X-Generator: crowdin.net\n"
 
 msgid "Activated debugger"
 msgstr "Debugger er aktivert"
@@ -239,26 +233,3 @@ msgstr "Zoom: %s"
 msgid "Zoom: %s + Border"
 msgstr "Zoom: %s + ramme"
 
-#~ msgid "CD32 Gamepad"
-#~ msgstr "CD32-kontroll"
-
-#~ msgid "Host Device"
-#~ msgstr "Vertsenhet"
-
-#~ msgid "Joystick"
-#~ msgstr "Joystick"
-
-#~ msgid "Joystick Port 0"
-#~ msgstr "Joystick-port 0"
-
-#~ msgid "Joystick Port 1"
-#~ msgstr "Joystick-port 1"
-
-#~ msgid "Joystick Ports"
-#~ msgstr "Joystick-porter"
-
-#~ msgid "Save States"
-#~ msgstr "Lagrede tilstander"
-
-#~ msgid "Savestates"
-#~ msgstr "Lagrede tilstander"

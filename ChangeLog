@@ -1,5 +1,6 @@
 Version 2.5.0dev:
 
+* UAE core code updated from WinUAE 2.7.1b9.
 * FS-UAE can use 256 kB chip RAM (and also 128 if you *really* want to).
 * Inhibit screen saver / power saving when running FS-UAE on OS X.
 * Allow short-hand --video-sync(=1/0) option
@@ -8,7 +9,6 @@ Version 2.5.0dev:
 * New UAE Native Interface (via built-in uaenative.library).
 * Enforcer / AHI interface is added (but with a dummy AHI backend).
 * Support for old WinUAE-style native calls.
-* UAE core code updated from WinUAE 2.7.0.
 * Code cleanup in UAE code to reduce the number of compiler warnings.
 * Removed some unused source files from the source archive.
 * Auto-generated source files are now auto-generated when compiling on all

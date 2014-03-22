@@ -1,22 +1,16 @@
-# German translations for fs-uae package.
-# Copyright (C) 2012 Frode Solheim
-# This file is distributed under the same license as the fs-uae package.
-# Frode Solheim <fs-uae@fengestad.no>, 2012.
-#
 msgid ""
-msgstr ""
-"Project-Id-Version: fs-uae\n"
-"Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2013-02-24 22:16+0100\n"
-"PO-Revision-Date: 2013-10-28 09:20+0100\n"
-"Last-Translator: Jens Weichert <nexusle@me.com>\n"
+msgstr "Project-Id-Version: fs-uae\n"
+"Report-Msgid-Bugs-To: frode@fs-uae.net\n"
+"POT-Creation-Date: 2014-03-14 19:32+0100\n"
+"PO-Revision-Date: 2014-03-22 07:32-0400\n"
+"Last-Translator: FrodeSolheim <frode-crowdin@fsolheim.net>\n"
 "Language-Team: German\n"
-"Language: de\n"
+"Language: de_DE\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 1.5.7\n"
+"X-Generator: crowdin.net\n"
 
 msgid "Activated debugger"
 msgstr "Debugger aktiviert"
@@ -26,7 +20,7 @@ msgstr "Amiga Kontrollen"
 
 #. / TRANSLATORS: In context "Zoom: Auto"
 msgid "Auto"
-msgstr "Auto"
+msgstr "Automatisch"
 
 msgid "Auto-Fire is Off"
 msgstr "Dauerfeuer ist ausgeschaltet"
@@ -106,7 +100,9 @@ msgstr "Ungültige Anzahl von CDROM-Laufwerken spezifiziert"
 msgid "Joystick Mode"
 msgstr "Joystick-Modus"
 
-#. / TRANSLATORS: This is a menu entry and must not be too long
+msgid "Joystick Port"
+msgstr "Joystickport"
+
 #, c-format
 msgid "Joystick Port %d"
 msgstr "Joystickport %d"
@@ -121,12 +117,6 @@ msgstr "Gerät Joystickport %d"
 msgid "Joystick Port %d Mode"
 msgstr "Modus Joystickport %d"
 
-msgid "Joystick Port 0"
-msgstr "Joystickport 0"
-
-msgid "Joystick Port 1"
-msgstr "Joystickport 1"
-
 msgid "Joystick Port 2"
 msgstr "Joystickport 2"
 
@@ -136,14 +126,14 @@ msgstr "Joystickport 3"
 msgid "Joystick Port 4"
 msgstr "Joystickport 4"
 
-msgid "Joystick Ports"
-msgstr "Joystickports"
-
 msgid "Keyboard"
 msgstr "Tastatur"
 
 msgid "Load"
 msgstr "Laden"
+
+msgid "Load State"
+msgstr "Zustand laden"
 
 msgid "More..."
 msgstr "Mehr..."
@@ -153,6 +143,9 @@ msgstr "Maus"
 
 msgid "Mouse Mode"
 msgstr "Maus-Modus"
+
+msgid "Mouse Port"
+msgstr "Mausport"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long: If you struggle
 #. / to get in short enough, just translate "No Device" instead.
@@ -216,8 +209,8 @@ msgstr "Wiederaufnehmen"
 msgid "Save"
 msgstr "Sichern"
 
-msgid "Save States"
-msgstr "Speicherstände"
+msgid "Save State"
+msgstr "Zustand speichern"
 
 #. / TRANSLATORS: Soft reset reboots the computer without a power cycle
 msgid "Soft Reset"
@@ -240,11 +233,3 @@ msgstr "Zoom: %s"
 msgid "Zoom: %s + Border"
 msgstr "Zoom: %s + Rand"
 
-#~ msgid "CD32 Gamepad"
-#~ msgstr "CD32 Gamepad"
-
-#~ msgid "Host Device"
-#~ msgstr "Hostgerät"
-
-#~ msgid "Joystick"
-#~ msgstr "Joystick"

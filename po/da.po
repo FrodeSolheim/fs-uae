@@ -1,22 +1,16 @@
-# Danish translations for fs-uae package.
-# Copyright (C) 2012 Frode Solheim and translators.
-# This file is distributed under the same license as the fs-uae package.
-# Frode Solheim <frode@fs-uae.net>, 2013.
-#
 msgid ""
-msgstr ""
-"Project-Id-Version: fs-uae\n"
+msgstr "Project-Id-Version: fs-uae\n"
 "Report-Msgid-Bugs-To: frode@fs-uae.net\n"
-"POT-Creation-Date: 2014-01-27 23:59+0100\n"
-"PO-Revision-Date: 2014-02-07 11:34+0100\n"
-"Last-Translator: Carsten Jensen <tomse@tomse.dk>\n"
+"POT-Creation-Date: 2014-03-14 19:32+0100\n"
+"PO-Revision-Date: 2014-03-22 07:32-0400\n"
+"Last-Translator: FrodeSolheim <frode-crowdin@fsolheim.net>\n"
 "Language-Team: Danish\n"
-"Language: da\n"
+"Language: da_DK\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 1.6.3\n"
+"X-Generator: crowdin.net\n"
 
 msgid "Activated debugger"
 msgstr "Aktiveret debugger"
@@ -52,10 +46,10 @@ msgstr "CD32 Pad tilstand"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 msgid "Custom Joystick Port"
-msgstr "Speciel Joystick port"
+msgstr "Egendefineret Joystick port"
 
 msgid "Custom Mode"
-msgstr "Speciel tilstand"
+msgstr "Egendefineret tilstand"
 
 #. / TRANSLATORS: Empty or nothing
 #, c-format
@@ -239,5 +233,3 @@ msgstr "Zoom: %s"
 msgid "Zoom: %s + Border"
 msgstr "Zoom: %s + skærmkant"
 
-#~ msgid "Savestates"
-#~ msgstr "Gemmestadier"

@@ -1,23 +1,16 @@
-# Polish translations for fs-uae package.
-# Copyright (C) 2012 Frode Solheim and translators.
-# This file is distributed under the same license as the fs-uae package.
-# Frode Solheim <fs-uae@fengestad.no>, 2012.
-#
 msgid ""
-msgstr ""
-"Project-Id-Version: fs-uae\n"
-"Report-Msgid-Bugs-To: fs-uae@fengestad.no\n"
-"POT-Creation-Date: 2014-01-14 19:04+0100\n"
-"PO-Revision-Date: 2014-01-14 20:33+0100\n"
-"Last-Translator: grimi <grimi at poczta dot fm>\n"
+msgstr "Project-Id-Version: fs-uae\n"
+"Report-Msgid-Bugs-To: frode@fs-uae.net\n"
+"POT-Creation-Date: 2014-03-14 19:32+0100\n"
+"PO-Revision-Date: 2014-03-22 07:32-0400\n"
+"Last-Translator: FrodeSolheim <frode-crowdin@fsolheim.net>\n"
 "Language-Team: Polish\n"
-"Language: pl\n"
+"Language: pl_PL\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
-"|| n%100>=20) ? 1 : 2);\n"
-"X-Generator: Poedit 1.6.3\n"
+"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"X-Generator: crowdin.net\n"
 
 msgid "Activated debugger"
 msgstr "Debuger aktywny"
@@ -240,26 +233,3 @@ msgstr "Rozmiar: %s"
 msgid "Zoom: %s + Border"
 msgstr "Rozmiar: %s + ramka"
 
-#~ msgid "CD32 Gamepad"
-#~ msgstr "Pad CD32"
-
-#~ msgid "Host Device"
-#~ msgstr "Urządzenie główne"
-
-#~ msgid "Joystick"
-#~ msgstr "Joystick"
-
-#~ msgid "Joystick Port 0"
-#~ msgstr "Joystick - port 0"
-
-#~ msgid "Joystick Port 1"
-#~ msgstr "Joystick - port 1"
-
-#~ msgid "Joystick Ports"
-#~ msgstr "Porty joysticków"
-
-#~ msgid "Save States"
-#~ msgstr "Zapis stanów gry"
-
-#~ msgid "Savestates"
-#~ msgstr "Zapis stanów gry"

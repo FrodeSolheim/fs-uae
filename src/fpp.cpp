@@ -12,6 +12,7 @@
 
 #include <math.h>
 #include <float.h>
+#include <fenv.h>
 
 #include "sysconfig.h"
 #include "sysdeps.h"
@@ -35,6 +36,10 @@
 #ifdef X86_MSVC_ASSEMBLY
 #define X86_MSVC_ASSEMBLY_FPU
 #define NATIVE_FPUCW
+#endif
+
+#ifdef FSUAE // NL
+#warning NATIVE_FPUCW not enabled right now
 #endif
 
 #define DEBUG_FPP 0
@@ -614,7 +619,7 @@ static bool fpu_isinfinity (fptype fp)
 #ifdef _MSC_VER
 	return !_finite (fp);
 #elif defined(HAVE_ISINF)
-	return _isinf (fp);
+	return isinf (fp);
 #else
 	return false;
 #endif
@@ -662,7 +667,6 @@ uae_u32 get_fpsr (void)
 
 		if (fpu_isinfinity (regs.fp_result.fp))
 			answer |= 1 << 25;
-#endif
 	}
 	return answer;
 }

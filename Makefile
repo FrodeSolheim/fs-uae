@@ -282,6 +282,7 @@ obj/ncr_scsi.o \
 obj/readcpu.o \
 obj/rommgr.o \
 obj/savestate.o \
+obj/scp.o \
 obj/scsi.o \
 obj/scsiemul.o \
 obj/scsitape.o \

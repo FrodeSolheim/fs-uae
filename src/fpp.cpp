@@ -15,6 +15,10 @@
 #include "sysconfig.h"
 #include "sysdeps.h"
 
+#ifdef _MSC_VER
+#pragma fenv_access(on)
+#endif
+
 #include "options.h"
 #include "uae/memory.h"
 #include "custom.h"
@@ -113,12 +117,24 @@ static double *fp_nan    = (double *)dhex_nan;
 #endif
 double fp_1e8 = 1.0e8;
 float  fp_1e0 = 1, fp_1e1 = 10, fp_1e2 = 100, fp_1e4 = 10000;
+static bool fpu_mmu_fixup;
 
 #define FFLAG_Z	    0x4000
 #define FFLAG_N	    0x0100
 #define FFLAG_NAN   0x0400
 
-#define MAKE_FPSR(r)  (regs).fp_result.fp=(r)
+STATIC_INLINE void MAKE_FPSR (fptype *fp)
+{
+	int status = fetestexcept (FE_ALL_EXCEPT);
+	if (status)
+		regs.fp_result_status |= status;
+	regs.fp_result.fp = *fp;
+}
+
+STATIC_INLINE void CLEAR_STATUS (void)
+{
+	feclearexcept (FE_ALL_EXCEPT);
+}
 
 static void fpnan (fpdata *fpd)
 {
@@ -152,27 +168,17 @@ static __inline__ void native_set_fpucw (uae_u32 m68k_cw)
 #ifdef _WIN32
 	static int ex = 0;
 	// RN, RZ, RM, RP
-	static unsigned int fp87_round[4] = { _RC_NEAR, _RC_CHOP, _RC_DOWN, _RC_UP };
+	static const unsigned int fp87_round[4] = { _RC_NEAR, _RC_CHOP, _RC_DOWN, _RC_UP };
 	// Extend X, Single S, Double D, Undefined
-	static unsigned int fp87_prec[4] = { _PC_64 , _PC_24 , _PC_53, 0 };
+	static const unsigned int fp87_prec[4] = { _PC_64 , _PC_24 , _PC_53, 0 };
 	
-#if 0
-	if (m68k_cw & (0x0100 | 0x0200))
-		ex |= _EM_INEXACT;
-	if (m68k_cw & (0x0400))
-		ex |= _EM_ZERODIVIDE;
-	if (m68k_cw & (0x0800))
-		ex |= _EM_UNDERFLOW;
-	if (m68k_cw & (0x1000))
-		ex |= _EM_OVERFLOW;
-#endif
 #ifdef WIN64
 	_controlfp (ex | fp87_round[(m68k_cw >> 4) & 3], _MCW_RC);
 #else
 	_control87 (ex | fp87_round[(m68k_cw >> 4) & 3] | fp87_prec[(m68k_cw >> 6) & 3], _MCW_RC | _MCW_PC);
 #endif
 #else
-static uae_u16 x87_cw_tab[] = {
+static const uae_u16 x87_cw_tab[] = {
 	0x137f, 0x1f7f, 0x177f, 0x1b7f,	/* Extended */
 	0x107f, 0x1c7f, 0x147f, 0x187f,	/* Single */
 	0x127f, 0x1e7f, 0x167f, 0x1a7f,	/* Double */
@@ -231,6 +237,11 @@ static void UNUSED_FUNCTION(fpu_format_error) (void)
 #define FPU_EXP_UNIMP_DATATYPE_PACKED_PRE 2
 #define FPU_EXP_UNIMP_DATATYPE_PACKED_POST 3
 #define FPU_EXP_UNIMP_EA 4
+
+static void fpu_arithmetic_exception (uae_u16 opcode, uae_u16 extra, uae_u32 ea, uaecptr oldpc, int type, fpdata *src, int reg)
+{
+	// TODO
+}
 
 static void fpu_op_unimp (uae_u16 opcode, uae_u16 extra, uae_u32 ea, uaecptr oldpc, int type, fpdata *src, int reg)
 {
@@ -317,13 +328,6 @@ static void fpu_op_unimp (uae_u16 opcode, uae_u16 extra, uae_u32 ea, uaecptr old
 			x_put_long (m68k_areg (regs, 7), ea);
 			m68k_areg (regs, 7) -= 2;
 			x_put_word (m68k_areg (regs, 7), 0x2000 + vector * 4);
-		} else { // FPU_EXP_UNIMP_DATATYPE_POST
-			// PC = next instruction
-			vector = 55;
-			m68k_areg (regs, 7) -= 4;
-			x_put_long (m68k_areg (regs, 7), ea);
-			m68k_areg (regs, 7) -= 2;
-			x_put_word (m68k_areg (regs, 7), 0x3000 + vector * 4);
 		}
 	}
 	oldpc = newpc;
@@ -547,7 +551,6 @@ static void fpu_null (void)
 	regs.fpcr = 0;
 	regs.fpsr = 0;
 	regs.fpiar = 0;
-	regs.fpsr_highbyte = 0;
 	fpclear (&regs.fp_result);
 	for (int i = 0; i < 8; i++)
 		fpnan (&regs.fp[i]);
@@ -600,23 +603,40 @@ STATIC_INLINE tointtype toint (fptype src, fptype minval, fptype maxval)
 uae_u32 get_fpsr (void)
 {
 	uae_u32 answer = regs.fpsr & 0x00ffffff;
+
+	// exception status byte
+	if (regs.fp_result_status & FE_INEXACT)
+		answer |= 1 << 9;
+	if (regs.fp_result_status & FE_DIVBYZERO)
+		answer |= 1 << 10;
+	if (regs.fp_result_status & FE_UNDERFLOW)
+		answer |= 1 << 11;
+	if (regs.fp_result_status & FE_OVERFLOW)
+		answer |= 1 << 12;
+	if (regs.fp_result_status & FE_INVALID)
+		answer |= 1 << 13;
+
+	// accrued exception byte
+	answer |= (answer >> 6) & (0x80 | 0x40 | 0x20 | 0x10 | 0x08);
+
+	// condition code byte
 #ifdef HAVE_ISNAN
 	if (isnan (regs.fp_result.fp))
-		answer |= 0x01000000;
+		answer |= 1 << 24;
 	else
 #endif
 	{
 		if (regs.fp_result.fp == 0)
-			answer |= 0x04000000;
+			answer |= 1 << 26;
 		else if (regs.fp_result.fp < 0)
-			answer |= 0x08000000;
+			answer |= 1 << 27;
 
 #ifdef _MSC_VER
 		if (!_finite (regs.fp_result.fp))
-			answer |= 0x02000000;
+			answer |= 1 << 25;
 #elif HAVE_ISINF
 		if (isinf (regs.fp_result.fp))
-			answer |= 0x02000000;
+			answer |= 1 << 25;
 #endif
 	}
 	return answer;
@@ -625,10 +645,10 @@ uae_u32 get_fpsr (void)
 STATIC_INLINE void set_fpsr (uae_u32 x)
 {
 	regs.fpsr = x;
+	regs.fp_result_status = 0;
 
-	if (x & 0x01000000) {
+	if (x & 0x01000000)
 		fpset (&regs.fp_result, *fp_nan);
-	}
 	else if (x & 0x04000000)
 		fpset (&regs.fp_result, 0);
 	else if (x & 0x08000000)
@@ -678,7 +698,7 @@ static fptype to_pack (uae_u32 *wrd)
 	*cp++ = ((wrd[1] >> 8) & 0xf) + '0';
 	*cp++ = ((wrd[1] >> 4) & 0xf) + '0';
 	*cp++ = ((wrd[1] >> 0) & 0xf) + '0';
-	*cp++ = ((wrd[1] >> 28) & 0xf) + '0';
+	*cp++ = ((wrd[2] >> 28) & 0xf) + '0';
 	*cp++ = ((wrd[2] >> 24) & 0xf) + '0';
 	*cp++ = ((wrd[2] >> 20) & 0xf) + '0';
 	*cp++ = ((wrd[2] >> 16) & 0xf) + '0';
@@ -805,10 +825,20 @@ static int get_fp_value (uae_u32 opcode, uae_u16 extra, fpdata *src, uaecptr old
 			ad = m68k_areg (regs, reg);
 			break;
 		case 3:
+			if (currprefs.mmu_model) {
+				mmufixup[0].reg = reg;
+				mmufixup[0].value = m68k_areg (regs, reg);
+				fpu_mmu_fixup = true;
+			}
 			ad = m68k_areg (regs, reg);
 			m68k_areg (regs, reg) += reg == 7 ? sz2[size] : sz1[size];
 			break;
 		case 4:
+			if (currprefs.mmu_model) {
+				mmufixup[0].reg = reg;
+				mmufixup[0].value = m68k_areg (regs, reg);
+				fpu_mmu_fixup = true;
+			}
 			m68k_areg (regs, reg) -= reg == 7 ? sz2[size] : sz1[size];
 			ad = m68k_areg (regs, reg);
 			break;
@@ -984,10 +1014,20 @@ static int put_fp_value (fpdata *value, uae_u32 opcode, uae_u16 extra, uaecptr o
 			ad = m68k_areg (regs, reg);
 			break;
 		case 3:
+			if (currprefs.mmu_model) {
+				mmufixup[1].reg = reg;
+				mmufixup[1].value = m68k_areg (regs, reg);
+				fpu_mmu_fixup = true;
+			}
 			ad = m68k_areg (regs, reg);
 			m68k_areg (regs, reg) += reg == 7 ? sz2[size] : sz1[size];
 			break;
 		case 4:
+			if (currprefs.mmu_model) {
+				mmufixup[1].reg = reg;
+				mmufixup[1].value = m68k_areg (regs, reg);
+				fpu_mmu_fixup = true;
+			}
 			m68k_areg (regs, reg) -= reg == 7 ? sz2[size] : sz1[size];
 			ad = m68k_areg (regs, reg);
 			break;
@@ -1241,7 +1281,7 @@ void fpuop_dbcc (uae_u32 opcode, uae_u16 extra)
 	regs.fpiar = pc - 4;
 	maybe_idle_state ();
 	cc = fpp_cond (extra & 0x3f);
-	if (cc == -1) {
+	if (cc < 0) {
 		fpu_op_illg (opcode, extra, regs.fpiar);
 	} else if (!cc) {
 		int reg = opcode & 0x7;
@@ -1281,7 +1321,7 @@ void fpuop_scc (uae_u32 opcode, uae_u16 extra)
 	regs.fpiar = pc;
 	maybe_idle_state ();
 	cc = fpp_cond (extra & 0x3f);
-	if (cc == -1) {
+	if (cc < 0) {
 		fpu_op_illg (opcode, extra, regs.fpiar);
 	} else if ((opcode & 0x38) == 0) {
 		m68k_dreg (regs, opcode & 7) = (m68k_dreg (regs, opcode & 7) & ~0xff) | (cc ? 0xff : 0x00);
@@ -1305,7 +1345,7 @@ void fpuop_trapcc (uae_u32 opcode, uaecptr oldpc, uae_u16 extra)
 	regs.fpiar = oldpc;
 	maybe_idle_state ();
 	cc = fpp_cond (extra & 0x3f);
-	if (cc == -1) {
+	if (cc < 0) {
 		fpu_op_illg (opcode, extra, oldpc);
 	} else if (cc) {
 		Exception (7);
@@ -1327,7 +1367,7 @@ void fpuop_bcc (uae_u32 opcode, uaecptr oldpc, uae_u32 extra)
 	regs.fpiar = oldpc - 2;
 	maybe_idle_state ();
 	cc = fpp_cond (opcode & 0x3f);
-	if (cc == -1) {
+	if (cc < 0) {
 		fpu_op_illg (opcode, extra, oldpc - 2);
 	} else if (cc) {
 		if ((opcode & 0x40) == 0)
@@ -1778,7 +1818,8 @@ static void fpuop_arithmetic2 (uae_u32 opcode, uae_u16 extra)
 	fptype src;
 	fpdata srcd;
 	uaecptr pc = m68k_getpc () - 4;
-	uaecptr UNUSED(ad) = 0;
+	uaecptr ad = 0;
+	bool sgl;
 
 #if DEBUG_FPP
 	if (!isinrom ())
@@ -2006,6 +2047,7 @@ static void fpuop_arithmetic2 (uae_u32 opcode, uae_u16 extra)
 					return;
 				if (fault_if_unimplemented_680x0 (opcode, extra, ad, pc, &srcd, reg))
 					return;
+				CLEAR_STATUS ();
 				switch (extra & 0x7f)
 				{
 					case 0x00:
@@ -2078,7 +2120,7 @@ static void fpuop_arithmetic2 (uae_u32 opcode, uae_u16 extra)
 						fpu_noinst (opcode, pc);
 						return;
 				}
-				MAKE_FPSR (regs.fp[reg].fp);
+				MAKE_FPSR (&regs.fp[reg].fp);
 				return;
 			}
 
@@ -2100,6 +2142,8 @@ static void fpuop_arithmetic2 (uae_u32 opcode, uae_u16 extra)
 
 			regs.fpiar =  pc;
 
+			CLEAR_STATUS ();
+			sgl = false;
 			switch (extra & 0x7f)
 			{
 				case 0x00: /* FMOVE */
@@ -2107,8 +2151,6 @@ static void fpuop_arithmetic2 (uae_u32 opcode, uae_u16 extra)
 				case 0x44: /* Same for all other cases that have three choices */
 					regs.fp[reg].fp = src;        /* Brian King was here. */
 					/*<ea> to register needs FPSR updated. See Motorola 68K Manual. */
-					if ((extra & 0x44) == 0x40)
-						fround (reg);
 					break;
 				case 0x01: /* FINT */
 					/* need to take the current rounding mode into account */
@@ -2154,8 +2196,6 @@ static void fpuop_arithmetic2 (uae_u32 opcode, uae_u16 extra)
 				case 0x41: /* FSSQRT */
 				case 0x45: /* FDSQRT */
 					regs.fp[reg].fp = sqrt (src);
-					if ((extra & 0x44) == 0x40)
-						fround (reg);
 					break;
 				case 0x06: /* FLOGNP1 */
 					regs.fp[reg].fp = log (src + 1.0);
@@ -2173,11 +2213,7 @@ static void fpuop_arithmetic2 (uae_u32 opcode, uae_u16 extra)
 					regs.fp[reg].fp = asin (src);
 					break;
 				case 0x0d: /* FATANH */
-#if 1	/* The BeBox doesn't have atanh, and it isn't in the HPUX libm either */
-					regs.fp[reg].fp = 0.5 * log ((1 + src) / (1 - src));
-#else
 					regs.fp[reg].fp = atanh (src);
-#endif
 					break;
 				case 0x0e: /* FSIN */
 					regs.fp[reg].fp = sin (src);
@@ -2207,8 +2243,6 @@ static void fpuop_arithmetic2 (uae_u32 opcode, uae_u16 extra)
 				case 0x58: /* FSABS */
 				case 0x5c: /* FDABS */
 					regs.fp[reg].fp = src < 0 ? -src : src;
-					if ((extra & 0x44) == 0x40)
-						fround (reg);
 					break;
 				case 0x19: /* FCOSH */
 					regs.fp[reg].fp = cosh (src);
@@ -2217,8 +2251,6 @@ static void fpuop_arithmetic2 (uae_u32 opcode, uae_u16 extra)
 				case 0x5a: /* FSNEG */
 				case 0x5e: /* FDNEG */
 					regs.fp[reg].fp = -src;
-					if ((extra & 0x44) == 0x40)
-						fround (reg);
 					break;
 				case 0x1c: /* FACOS */
 					regs.fp[reg].fp = acos (src);
@@ -2251,8 +2283,6 @@ static void fpuop_arithmetic2 (uae_u32 opcode, uae_u16 extra)
 				case 0x60: /* FSDIV */
 				case 0x64: /* FDDIV */
 					regs.fp[reg].fp /= src;
-					if ((extra & 0x44) == 0x40)
-						fround (reg);
 					break;
 				case 0x21: /* FMOD */
 					{
@@ -2264,19 +2294,15 @@ static void fpuop_arithmetic2 (uae_u32 opcode, uae_u16 extra)
 				case 0x62: /* FSADD */
 				case 0x66: /* FDADD */
 					regs.fp[reg].fp += src;
-					if ((extra & 0x44) == 0x40)
-						fround (reg);
 					break;
 				case 0x23: /* FMUL */
 				case 0x63: /* FSMUL */
 				case 0x67: /* FDMUL */
 					regs.fp[reg].fp *= src;
-					if ((extra & 0x44) == 0x40)
-						fround (reg);
 					break;
 				case 0x24: /* FSGLDIV */
 					regs.fp[reg].fp /= src;
-					fround (reg);
+					sgl = true;
 					break;
 				case 0x25: /* FREM */
 					{
@@ -2295,14 +2321,12 @@ static void fpuop_arithmetic2 (uae_u32 opcode, uae_u16 extra)
 					break;
 				case 0x27: /* FSGLMUL */
 					regs.fp[reg].fp *= src;
-					fround (reg);
+					sgl = true;
 					break;
 				case 0x28: /* FSUB */
 				case 0x68: /* FSSUB */
 				case 0x6c: /* FDSUB */
 					regs.fp[reg].fp -= src;
-					if ((extra & 0x44) == 0x40)
-						fround (reg);
 					break;
 				case 0x30: /* FSINCOS */
 				case 0x31:
@@ -2319,18 +2343,21 @@ static void fpuop_arithmetic2 (uae_u32 opcode, uae_u16 extra)
 					{
 						fptype tmp = regs.fp[reg].fp - src;
 						regs.fpsr = 0;
-						MAKE_FPSR (tmp);
+						MAKE_FPSR (&tmp);
 					}
 					return;
 				case 0x3a: /* FTST */
 					regs.fpsr = 0;
-					MAKE_FPSR (src);
+					MAKE_FPSR (&src);
 					return;
 				default:
 					fpu_noinst (opcode, pc);
 					return;
 			}
-			MAKE_FPSR (regs.fp[reg].fp);
+			// round to float?
+			if (sgl || (extra & 0x44) == 0x40)
+				fround (reg);
+			MAKE_FPSR (&regs.fp[reg].fp);
 			return;
 		default:
 		break;
@@ -2340,23 +2367,31 @@ static void fpuop_arithmetic2 (uae_u32 opcode, uae_u16 extra)
 
 void fpuop_arithmetic (uae_u32 opcode, uae_u16 extra)
 {
-#if 0
-	if (opcode == 0xf210 && extra == 0x7c00) {
-//		activate_debugger();
-//		return;
-		write_log (_T("*"));
-	}
-#endif
-	regs.fpsr_highbyte = 0;
 	regs.fpu_state = 1;
 	regs.fp_exception = false;
+	fpu_mmu_fixup = false;
 	fpuop_arithmetic2 (opcode, extra);
-	if (regs.fpsr_highbyte) {
-		regs.fpsr &= 0xffff00ff;
-		regs.fpsr |= regs.fpsr_highbyte;
-		regs.fpsr |= regs.fpsr_highbyte << 8;
-		write_log (_T("FPU exception: %04x\n"), regs.fpsr);
+	if (fpu_mmu_fixup) {
+		mmufixup[0].reg = -1;
+		mmufixup[1].reg = -1;
 	}
+#if 0
+	// Any exception status bit and matching exception enable bits set?
+	if ((regs.fpcr >> 8) & (regs.fpsr >> 8)) {
+		uae_u32 mask = regs.fpcr >> 8;
+		int vector = 0;
+		for (int i = 7; i >= 0; i--) {
+			if (mask & (1 << i)) {
+				if (i > 0)
+					i--;
+				vector = i + 48;
+				break;
+			}
+		}
+		// logging only so far
+		write_log (_T("FPU exception: %08x %d!\n"), regs.fpsr, vector);
+	}
+#endif
 }
 
 void fpu_reset (void)
@@ -2366,11 +2401,6 @@ void fpu_reset (void)
 	fpset (&regs.fp_result, 1);
 	native_set_fpucw (regs.fpcr);
 	fpux_restore (NULL);
-}
-
-void fpp_setexcept (uae_u16 mask)
-{
-	regs.fpsr_highbyte |= mask >> 8;
 }
 
 uae_u8 *restore_fpu (uae_u8 *src)
@@ -2430,3 +2460,6 @@ uae_u8 *save_fpu (int *len, uae_u8 *dstptr)
 	return dstbak;
 }
 
+#ifdef _MSC_VER
+#pragma fenv_access(off)
+#endif

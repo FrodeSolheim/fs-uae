@@ -3378,11 +3378,10 @@ static void finish_decisions (void)
 	if (changed) {
 		thisline_changed = 1;
 		*dp = thisline_decision;
-//		if (vpos >= maxvpos)
-//			dp[1].plfleft = -2;
-	} else
+	} else {
 		/* The only one that may differ: */
 		dp->ctable = thisline_decision.ctable;
+	}
 
 	/* leave free space for possible extra color changes at the end of line */
 	next_color_change += (HBLANK_OFFSET + 1) / 2;
@@ -3774,6 +3773,10 @@ void compute_framesync (void)
 		gfxvidinfo.drawbuffer.outheight = gfxvidinfo.drawbuffer.height_allocated;
 
 	memset (line_decisions, 0, sizeof line_decisions);
+	memset (line_drawinfo, 0, sizeof line_drawinfo);
+	for (int i = 0; i < sizeof (line_decisions) / sizeof *line_decisions; i++) {
+		line_decisions[i].plfleft = -1;
+	}
 
 	compute_vsynctime ();
 
@@ -3902,7 +3905,7 @@ void init_hz (bool fullinit)
 		maxvpos_nom = maxvpos;
 		maxvpos_display = maxvpos;
 		equ_vblank_endline = -1;
-		doublescan = htotal <= 164 ? 1 : 0;
+		doublescan = htotal <= 164 && vtotal >= 350 ? 1 : 0;
 		programmedmode = true;
 		varsync_changed = true;
 		vpos_count = maxvpos_nom;
@@ -7717,20 +7720,28 @@ static void hsync_handler_post (bool onvsync)
 		nextline_how = nln_normal;
 		if (doflickerfix () && interlace_seen > 0) {
 			lineno *= 2;
-		} else if ((doublescan <= 0 || interlace_seen > 0) && currprefs.gfx_vresolution && currprefs.gfx_scanlines >= 2) {
+		} else if (!interlace_seen && doublescan <= 0 && currprefs.gfx_vresolution && currprefs.gfx_pscanlines > 1) {
 			lineno *= 2;
-			nextline_how = currprefs.gfx_vresolution > VRES_NONDOUBLE && (currprefs.gfx_scanlines & 1) == 0 ? nln_doubled : nln_nblack;
+			if (timeframes & 1) {
+				lineno++;
+				nextline_how = currprefs.gfx_pscanlines == 3 ? nln_lower_black_always : nln_lower_black;
+			} else {
+				nextline_how = currprefs.gfx_pscanlines == 3 ? nln_upper_black_always : nln_upper_black;
+			}
+		} else if ((doublescan <= 0 || interlace_seen > 0) && currprefs.gfx_vresolution && currprefs.gfx_iscanlines) {
+			lineno *= 2;
 			if (interlace_seen) {
 				if (!lof_current) {
 					lineno++;
-					nextline_how = nln_lower_black;
+					nextline_how = currprefs.gfx_iscanlines == 2 ? nln_lower_black_always : nln_lower_black;
 				} else {
-					nextline_how = nln_upper_black;
+					nextline_how = currprefs.gfx_iscanlines == 2 ? nln_upper_black_always : nln_upper_black;
 				}
+			} else {
+				nextline_how = currprefs.gfx_vresolution > VRES_NONDOUBLE && currprefs.gfx_pscanlines == 1 ? nln_nblack : nln_doubled;
 			}
 		} else if (currprefs.gfx_vresolution && (doublescan <= 0 || interlace_seen > 0)) {
 			lineno *= 2;
-			nextline_how = currprefs.gfx_vresolution > VRES_NONDOUBLE && currprefs.gfx_scanlines == 0 ? nln_doubled : nln_nblack;
 			if (interlace_seen) {
 				if (!lof_current) {
 					lineno++;
@@ -7738,6 +7749,8 @@ static void hsync_handler_post (bool onvsync)
 				} else {
 					nextline_how = nln_upper;
 				}
+			} else {
+				nextline_how = currprefs.gfx_vresolution > VRES_NONDOUBLE && currprefs.gfx_pscanlines == 1 ? nln_nblack : nln_doubled;
 			}
 		}
 		prev_lineno = next_lineno;
@@ -9294,11 +9307,11 @@ void check_prefs_changed_custom (void)
 			init_custom ();
 	}
 #ifdef GFXFILTER
-	currprefs.gfx_filter_horiz_zoom = changed_prefs.gfx_filter_horiz_zoom;
-	currprefs.gfx_filter_vert_zoom = changed_prefs.gfx_filter_vert_zoom;
-	currprefs.gfx_filter_horiz_offset = changed_prefs.gfx_filter_horiz_offset;
-	currprefs.gfx_filter_vert_offset = changed_prefs.gfx_filter_vert_offset;
-	currprefs.gfx_filter_scanlines = changed_prefs.gfx_filter_scanlines;
+	currprefs.gf[0].gfx_filter_horiz_zoom = changed_prefs.gf[0].gfx_filter_horiz_zoom;
+	currprefs.gf[0].gfx_filter_vert_zoom = changed_prefs.gf[0].gfx_filter_vert_zoom;
+	currprefs.gf[0].gfx_filter_horiz_offset = changed_prefs.gf[0].gfx_filter_horiz_offset;
+	currprefs.gf[0].gfx_filter_vert_offset = changed_prefs.gf[0].gfx_filter_vert_offset;
+	currprefs.gf[0].gfx_filter_scanlines = changed_prefs.gf[0].gfx_filter_scanlines;
 #endif
 }
 

@@ -1,3 +1,7 @@
+Version 2.5.1dev:
+
+* Fixed left trigger = toggle autofire.
+
 Version 2.5.0dev:
 
 * UAE core code updated from WinUAE 2.7.1b9.

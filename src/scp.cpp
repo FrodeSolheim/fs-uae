@@ -1,4 +1,5 @@
 /*
+ *
  * Support for reading .SCP (Supercard Pro) disk flux dumps.
  * 
  * By Keir Fraser in 2014.
@@ -16,7 +17,19 @@
 #include "uae.h"
 
 #include <stdint.h>
+
+#ifndef _MSC_VER
 #include <endian.h>
+#else
+static uint16_t be16toh(uint16_t v)
+{
+	return (v << 8) | (v >> 8);
+}
+static uint32_t le32toh(uint32_t v)
+{
+	return v;
+}
+#endif
 
 #define MAX_REVS 5
 
@@ -26,7 +39,7 @@ enum pll_mode {
     PLL_authentic /* Variable clock, do not snap phase to flux transition. */
 };
 
-static struct drive {
+struct scpdrive {
     struct zfile *zf;
 
     /* Current track number. */
@@ -53,7 +66,8 @@ static struct drive {
     int flux;                /* Nanoseconds to next flux reversal */
     int clock, clock_centre; /* Clock base value in nanoseconds */
     unsigned int clocked_zeros;
-} drive[4];
+};
+static struct scpdrive drive[4];
 
 #define CLOCK_CENTRE  2000   /* 2000ns = 2us */
 #define CLOCK_MAX_ADJ 10     /* +/- 10% adjustment */
@@ -62,66 +76,53 @@ static struct drive {
 
 #define SCK_NS_PER_TICK (25u)
 
-#define min(x,y) ({                             \
-    const typeof(x) _x = (x);                   \
-    const typeof(y) _y = (y);                   \
-    (void) (&_x == &_y);                        \
-    _x < _y ? _x : _y; })
-
-#define max(x,y) ({                             \
-    const typeof(x) _x = (x);                   \
-    const typeof(y) _y = (y);                   \
-    (void) (&_x == &_y);                        \
-    _x > _y ? _x : _y; })
-
 int scp_open(struct zfile *zf, int drv, int *num_tracks)
 {
-    struct drive *d = &drive[drv];
-    uint8_t header[0x10];
+    struct scpdrive *d = &drive[drv];
+	uint8_t header[0x10] = { 0 };
 
     scp_close(drv);
 
     zfile_fread(header, sizeof(header), 1, zf);
 
     if (memcmp(header, "SCP", 3) != 0) {
-        write_log("SCP file header missing\n");
-        return 0;
+        write_log(_T("SCP file header missing\n"));
+		return 0;
     }
 
     if (header[5] == 0) {
-        write_log("SCP file has invalid revolution count (%u)\n", header[5]);
+        write_log(_T("SCP file has invalid revolution count (%u)\n"), header[5]);
         return 0;
     }
 
     if (header[9] != 0 && header[9] != 16) {
-        write_log("SCP file has unsupported bit cell time width (%u)\n",
+        write_log(_T("SCP file has unsupported bit cell time width (%u)\n"),
                   header[9]);
         return 0;
     }
 
     d->zf = zf;
     d->revs = min((int)header[5], MAX_REVS);
-
-    *num_tracks = header[7] + 1;
+	*num_tracks = header[7] + 1;
 
     return 1;
 }
 
 void scp_close(int drv)
 {
-    struct drive *d = &drive[drv];
+    struct scpdrive *d = &drive[drv];
     if (!d->revs)
         return;
-    free(d->dat);
+    xfree(d->dat);
     memset(d, 0, sizeof(*d));
 }
 
 int scp_loadtrack(
     uae_u16 *mfmbuf, uae_u16 *tracktiming, int drv,
     int track, int *tracklength, int *multirev,
-    int *gapoffset)
+    int *gapoffset, int *nextrev, bool setrev)
 {
-    struct drive *d = &drive[drv];
+    struct scpdrive *d = &drive[drv];
     uint8_t trk_header[4];
     uint32_t longwords[3];
     unsigned int rev, trkoffset[MAX_REVS];
@@ -130,7 +131,7 @@ int scp_loadtrack(
     *multirev = 1;
     *gapoffset = -1;
 
-    free(d->dat);
+    xfree(d->dat);
     d->dat = NULL;
     d->datsz = 0;
     
@@ -157,7 +158,7 @@ int scp_loadtrack(
         d->datsz += d->index_off[rev];
     }
 
-    d->dat = (uint16_t *)malloc(d->datsz * sizeof(d->dat[0]));
+    d->dat = xmalloc(uint16_t, d->datsz * sizeof(d->dat[0]));
     d->datsz = 0;
 
     for (rev = 0 ; rev < d->revs ; rev++) {
@@ -182,7 +183,7 @@ int scp_loadtrack(
     return 1;
 }
 
-static int scp_next_flux(struct drive *d)
+static int scp_next_flux(struct scpdrive *d)
 {
     uint32_t val = 0, flux, t;
 
@@ -209,7 +210,7 @@ static int scp_next_flux(struct drive *d)
     return (int)flux;
 }
 
-static int flux_next_bit(struct drive *d)
+static int flux_next_bit(struct scpdrive *d)
 {
     int new_flux;
 
@@ -258,7 +259,7 @@ void scp_loadrevolution(
     uae_u16 *mfmbuf, int drv, uae_u16 *tracktiming,
     int *tracklength)
 {
-    struct drive *d = &drive[drv];
+    struct scpdrive *d = &drive[drv];
     uint64_t prev_latency;
     uint32_t av_latency;
     unsigned int i, j;

@@ -10,6 +10,11 @@
   * Copyright 2007 Richard Drummond
   */
 
+#define FPCR_ROUND_NEAR         0x00000000
+#define FPCR_ROUND_ZERO         0x00000010
+#define FPCR_ROUND_MINF         0x00000020
+#define FPCR_ROUND_PINF         0x00000030
+
 #ifndef HAVE_to_single
 #define HAVE_to_single
 STATIC_INLINE double to_single (uae_u32 value)

@@ -102,7 +102,7 @@ static const char *prefetch_long, *prefetch_word;
 static const char *srcli, *srcwi, *srcbi, *nextl, *nextw, *UNUSED(nextb);
 static const char *srcld, *dstld;
 static const char *srcwd, *dstwd;
-static const char *do_cycles, *disp000, *disp020;
+static const char *do_cycles, *disp000, *disp020, *getpc;
 
 #define fetchmode_fea 1
 #define fetchmode_cea 2
@@ -666,8 +666,8 @@ static void setpc (const char *format, ...)
 	_vsnprintf (buffer, 1000 - 1, format, parms);
 	va_end (parms);
 
-	if (using_mmu)
-		printf ("\tm68k_setpc_mmu (%s);\n", buffer);
+	if (using_mmu || using_prefetch || using_prefetch_020)
+		printf ("\tm68k_setpci (%s);\n", buffer);
 	else
 		printf ("\tm68k_setpc (%s);\n", buffer);
 }
@@ -681,7 +681,7 @@ static void incpc (const char *format, ...)
 	_vsnprintf (buffer, 1000 - 1, format, parms);
 	va_end (parms);
 
-	if (using_mmu)
+	if (using_mmu || using_prefetch || using_prefetch_020)
 		printf ("\tm68k_incpci (%s);\n", buffer);
 	else
 		printf ("\tm68k_incpc (%s);\n", buffer);
@@ -727,7 +727,7 @@ static void gen_set_fault_pc (void)
 	if (using_mmu != 68040)
 		return;
 	sync_m68k_pc ();
-	printf ("\tregs.instruction_pc = m68k_getpci ();\n");
+	printf ("\tregs.instruction_pc = %s;\n", getpc);
 	printf ("\tmmu_restart = false;\n");
 	m68k_pc_offset = 0;
 	clearmmufixup (0);
@@ -1309,7 +1309,7 @@ static void genamode2x (amodes mode, const char *reg, wordsizes size, const char
 	case PC16: // (d16,PC)
 		printf ("\tuaecptr %sa;\n", name);
 		add_mmu040_movem (movem);
-		printf ("\t%sa = m68k_getpc () + %d;\n", name, m68k_pc_offset);
+		printf ("\t%sa = %s + %d;\n", name, getpc, m68k_pc_offset);
 		printf ("\t%sa += (uae_s32)(uae_s16)%s;\n", name, gen_nextiword (flags));
 		break;
 	case Ad8r: // (d8,An,Xn)
@@ -1366,10 +1366,10 @@ static void genamode2x (amodes mode, const char *reg, wordsizes size, const char
 			start_brace ();
 			/* This would ordinarily be done in gen_nextiword, which we bypass.  */
 			insn_n_cycles += 4;
-			printf ("\ttmppc = m68k_getpc ();\n");
+			printf ("\ttmppc = %s;\n", getpc);
 			printf ("\t%sa = %s (tmppc, %d);\n", name, disp020, mmudisp020cnt++);
 		} else {
-			printf ("\ttmppc = m68k_getpc () + %d;\n", m68k_pc_offset);
+			printf ("\ttmppc = %s + %d;\n", getpc, m68k_pc_offset);
 			if (!(flags & GF_PC8R)) {
 				addcycles000 (2);
 				insn_n_cycles += 2;
@@ -2540,9 +2540,11 @@ static void resetvars (void)
 	dstblrmw = NULL;
 	dstwlrmw = NULL;
 	dstllrmw = NULL;
+	getpc = "m68k_getpc ()";
 
 	if (using_indirect) {
 		// tracer
+		getpc = "m68k_getpci ()";
 		if (!using_ce020 && !using_prefetch_020) {
 			prefetch_word = "get_word_ce000_prefetch";
 			srcli = "x_get_ilong";
@@ -2667,6 +2669,7 @@ static void resetvars (void)
 		srcwd = "get_word_mmu030";
 		dstld = "put_long_mmu030";
 		dstwd = "put_word_mmu030";
+		getpc = "m68k_getpci ()";
 	} else if (using_mmu == 68040) {
 		// 68040 MMU
 		disp020 = "x_get_disp_ea_020";
@@ -2689,6 +2692,7 @@ static void resetvars (void)
 		dstblrmw = "put_lrmw_byte_mmu040";
 		dstwlrmw = "put_lrmw_word_mmu040";
 		dstllrmw = "put_lrmw_long_mmu040";
+		getpc = "m68k_getpci ()";
 	} else if (using_mmu) {
 		// 68060 MMU
 		disp020 = "x_get_disp_ea_020";
@@ -2718,6 +2722,7 @@ static void resetvars (void)
 		dstbrmw = "put_rmw_byte_mmu060";
 		dstwrmw = "put_rmw_word_mmu060";
 		dstlrmw = "put_rmw_long_mmu060";
+		getpc = "m68k_getpci ()";
 	} else if (using_ce) {
 		// 68000 ce
 		prefetch_word = "get_word_ce000_prefetch";
@@ -2729,6 +2734,7 @@ static void resetvars (void)
 		srcb = "get_byte_ce000";
 		dstb = "put_byte_ce000";
 		do_cycles = "do_cycles_ce000";
+		getpc = "m68k_getpci ()";
 	} else if (using_prefetch) {
 		// 68000 prefetch
 		prefetch_word = "get_word_prefetch";
@@ -2740,6 +2746,7 @@ static void resetvars (void)
 		dstw = "put_word_prefetch";
 		srcb = "get_byte_prefetch";
 		dstb = "put_byte_prefetch";
+		getpc = "m68k_getpci ()";
 	} else {
 		// generic
 		prefetch_long = "get_ilong";
@@ -3638,21 +3645,24 @@ static void gen_opcode (unsigned int opcode)
 		break;
 	case i_RTS:
 		addop_ce020 (curi, 0);
-		printf ("\tuaecptr pc = m68k_getpc ();\n");
+		printf ("\tuaecptr pc = %s;\n", getpc);
 		if (using_ce020 == 1) {
 			add_head_cycs (1);
 			printf ("\tm68k_do_rts_ce020 ();\n");
 		} else if (using_ce020 == 2) {
 			add_head_cycs (1);
 			printf ("\tm68k_do_rts_ce030 ();\n");
-		} else if (using_ce)
+		} else if (using_ce) {
 			printf ("\tm68k_do_rts_ce ();\n");
-		else if (using_mmu)
+		} else if (using_mmu) {
 			printf ("\tm68k_do_rts_mmu%s ();\n", mmu_postfix);
-		else
+		} else if (using_prefetch || using_prefetch_020) {
+			printf ("\tm68k_do_rtsi ();\n");
+		} else {
 			printf ("\tm68k_do_rts ();\n");
-	    printf ("\tif (m68k_getpc () & 1) {\n");
-		printf ("\t\tuaecptr faultpc = m68k_getpc ();\n");
+		}
+	    printf ("\tif (%s & 1) {\n", getpc);
+		printf ("\t\tuaecptr faultpc = %s;\n", getpc);
 		setpc ("pc");
 		printf ("\t\texception3i (0x%04X, faultpc);\n", opcode);
 		printf ("\t\tgoto %s;\n", endlabelstr);
@@ -3672,7 +3682,7 @@ static void gen_opcode (unsigned int opcode)
 		need_endlabel = 1;
 		break;
 	case i_RTR:
-		printf ("\tuaecptr oldpc = m68k_getpc ();\n");
+		printf ("\tuaecptr oldpc = %s;\n", getpc);
 		printf ("\tMakeSR ();\n");
 		genamode (NULL, Aipi, "7", sz_word, "sr", 1, 0, 0);
 		genamode (NULL, Aipi, "7", sz_long, "pc", 1, 0, 0);
@@ -3680,8 +3690,8 @@ static void gen_opcode (unsigned int opcode)
 		printf ("\tregs.sr |= sr;\n");
 		setpc ("pc");
 		makefromsr ();
-		printf ("\tif (m68k_getpc () & 1) {\n");
-		printf ("\t\tuaecptr faultpc = m68k_getpc ();\n");
+		printf ("\tif (%s & 1) {\n", getpc);
+		printf ("\t\tuaecptr faultpc = %s;\n", getpc);
 		setpc ("oldpc");
 		printf ("\t\texception3i (0x%04X, faultpc);\n", opcode);
 		printf ("\t\tgoto %s;\n", endlabelstr);
@@ -3696,7 +3706,7 @@ static void gen_opcode (unsigned int opcode)
 		no_prefetch_ce020 = true;
 		genamode (curi, curi->smode, "srcreg", curi->size, "src", 0, 0, GF_AA|GF_NOREFILL);
 		start_brace ();
-		printf ("\tuaecptr oldpc = m68k_getpc () + %d;\n", m68k_pc_offset);
+		printf ("\tuaecptr oldpc = %s + %d;\n", getpc, m68k_pc_offset);
 		if (using_exception_3) {
 			printf ("\tif (srca & 1) {\n");
 			printf ("\t\texception3i (opcode, srca);\n");
@@ -3765,22 +3775,24 @@ static void gen_opcode (unsigned int opcode)
 		printf ("\ts = (uae_s32)src + 2;\n");
 		if (using_exception_3) {
 			printf ("\tif (src & 1) {\n");
-			printf ("\t\texception3b (opcode, m68k_getpc () + s, 0, 1, m68k_getpc () + s);\n");
+			printf ("\t\texception3b (opcode, %s + s, 0, 1, %s + s);\n", getpc, getpc);
 			printf ("\t\tgoto %s;\n", endlabelstr);
 			printf ("\t}\n");
 			need_endlabel = 1;
 		}
 		addcycles000 (2);
 		if (using_ce020 == 1) {
-			printf ("\tm68k_do_bsr_ce020 (m68k_getpc () + %d, s);\n", m68k_pc_offset);
+			printf ("\tm68k_do_bsr_ce020 (%s + %d, s);\n", getpc, m68k_pc_offset);
 		} else if (using_ce020 == 2) {
-			printf ("\tm68k_do_bsr_ce030 (m68k_getpc () + %d, s);\n", m68k_pc_offset);
+			printf ("\tm68k_do_bsr_ce030 (%s + %d, s);\n", getpc, m68k_pc_offset);
 		} else if (using_ce) {
-			printf ("\tm68k_do_bsr_ce (m68k_getpc () + %d, s);\n", m68k_pc_offset);
+			printf ("\tm68k_do_bsr_ce (%s + %d, s);\n", getpc, m68k_pc_offset);
 		} else if (using_mmu) {
-			printf ("\tm68k_do_bsr_mmu%s (m68k_getpc () + %d, s);\n", mmu_postfix, m68k_pc_offset);
+			printf ("\tm68k_do_bsr_mmu%s (%s + %d, s);\n", mmu_postfix, getpc, m68k_pc_offset);
+		} else if (using_prefetch || using_prefetch_020) {
+			printf ("\tm68k_do_bsri (%s + %d, s);\n", getpc, m68k_pc_offset);
 		} else {
-			printf ("\tm68k_do_bsr (m68k_getpc () + %d, s);\n", m68k_pc_offset);
+			printf ("\tm68k_do_bsr (%s + %d, s);\n", getpc, m68k_pc_offset);
 		}
 		count_write += 2;
 		m68k_pc_offset = 0;
@@ -3792,7 +3804,7 @@ static void gen_opcode (unsigned int opcode)
 			if (cpu_level < 2) {
 				addcycles000 (2);
 				printf ("\tif (cctrue (%d)) {\n", curi->cc);
-				printf ("\t\texception3i (opcode, m68k_getpc () + 1);\n");
+				printf ("\t\texception3i (opcode, %s + 1);\n", getpc);
 				printf ("\t\tgoto %s;\n", endlabelstr);
 				printf ("\t}\n");
 				sync_m68k_pc ();
@@ -3810,7 +3822,7 @@ static void gen_opcode (unsigned int opcode)
 		printf ("\tif (!cctrue (%d)) goto didnt_jump;\n", curi->cc);
 		if (using_exception_3) {
 			printf ("\tif (src & 1) {\n");
-			printf ("\t\texception3i (opcode, m68k_getpc () + 2 + (uae_s32)src);\n");
+			printf ("\t\texception3i (opcode, %s + 2 + (uae_s32)src);\n", getpc);
 			printf ("\t\tgoto %s;\n", endlabelstr);
 			printf ("\t}\n");
 			need_endlabel = 1;
@@ -3882,7 +3894,7 @@ static void gen_opcode (unsigned int opcode)
 			curi->dmode, "dstreg", curi->size, "offs", 1, GF_AA | GF_NOREFILL);
 		//genamode (curi, curi->smode, "srcreg", curi->size, "src", 1, 0, GF_AA | GF_NOREFILL);
 		//genamode (curi, curi->dmode, "dstreg", curi->size, "offs", 1, 0, GF_AA | GF_NOREFILL);
-		printf ("\tuaecptr oldpc = m68k_getpc ();\n");
+		printf ("\tuaecptr oldpc = %s;\n", getpc);
 		addcycles000 (2);
 		printf ("\tif (!cctrue (%d)) {\n", curi->cc);
 		incpc ("(uae_s32)offs + 2");
@@ -3894,7 +3906,7 @@ static void gen_opcode (unsigned int opcode)
 		printf ("\t\tif (src) {\n");
 		if (using_exception_3) {
 			printf ("\t\t\tif (offs & 1) {\n");
-			printf ("\t\t\t\texception3i (opcode, m68k_getpc () + 2 + (uae_s32)offs + 2);\n");
+			printf ("\t\t\t\texception3i (opcode, %s + 2 + (uae_s32)offs + 2);\n", getpc);
 			printf ("\t\t\t\tgoto %s;\n", endlabelstr);
 			printf ("\t\t\t}\n");
 			need_endlabel = 1;
@@ -4899,7 +4911,7 @@ static void gen_opcode (unsigned int opcode)
 		break;
 	case i_FTRAPcc:
 		fpulimit();
-		printf ("\tuaecptr oldpc = m68k_getpc ();\n");
+		printf ("\tuaecptr oldpc = %s;\n", getpc);
 		printf ("\tuae_u16 extra = %s;\n", gen_nextiword (0));
 		if (curi->smode != am_unknown && curi->smode != am_illg)
 			genamode (curi, curi->smode, "srcreg", curi->size, "dummy", 1, 0, 0);
@@ -4914,7 +4926,7 @@ static void gen_opcode (unsigned int opcode)
 		fpulimit();
 		sync_m68k_pc ();
 		start_brace ();
-		printf ("\tuaecptr pc = m68k_getpc ();\n");
+		printf ("\tuaecptr pc = %s;\n", getpc);
 		genamode (curi, curi->dmode, "srcreg", curi->size, "extra", 1, 0, 0);
 		sync_m68k_pc ();
 		printf ("\tfpuop_bcc (opcode, pc,extra);\n");
@@ -5018,7 +5030,7 @@ static void gen_opcode (unsigned int opcode)
 		printf ("\tmmu_op (opcode, 0);\n");
 		break;
 	case i_MMUOP030:
-		printf ("\tuaecptr pc = m68k_getpc ();\n");
+		printf ("\tuaecptr pc = %s;\n", getpc);
 		printf ("\tuae_u16 extra = %s (2);\n", prefetch_word);
 		m68k_pc_offset += 2;
 		sync_m68k_pc ();

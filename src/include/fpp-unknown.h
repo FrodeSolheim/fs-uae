@@ -12,6 +12,10 @@
 #include <math.h>
 #endif
 
+// FIXME: review and sync fpp code from od-win32/md-fpp.h,
+// consider merging fpp-unknown.h and od-fs/md-fpp.h, or even better,
+// be able to share md-fpp.h with od-win32.
+
 #ifndef HAVE_to_single
 STATIC_INLINE double to_single (uae_u32 value)
 {

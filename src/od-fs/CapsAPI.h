@@ -162,6 +162,16 @@ struct CapsDataInfo {
 
 typedef struct CapsDataInfo *PCAPSDATAINFO;
 
+// disk data information block
+struct CapsRevolutionInfo {
+    SDWORD next; // the revolution number used by the next track lock call
+    SDWORD last; // the revolution number used by the lack track lock call
+    SDWORD real; // the real revolution number used by the last track lock call
+    SDWORD max; // the maximum revolution available for the selected track, <0 unlimited/randomized, 0 empty
+};
+
+typedef struct CapsRevolutionInfo *PCAPSREVOLUTIONINFO;
+
 #pragma pack(pop)
 
 // CapsImageInfo.image type
@@ -220,9 +230,20 @@ enum {
 
 // CAPSGetInfo inftype
 enum {
-    cgiitNA=0,   // illegal
-    cgiitSector, // CapsSectorInfo
-    cgiitWeak    // CapsDataInfo, weak bits
+    cgiitNA=0,      // illegal
+    cgiitSector,    // CapsSectorInfo
+    cgiitWeak,      // CapsDataInfo, weak bits
+    cgiitRevolution // CapsRevolutionInfo
+};
+
+// recognized image types
+enum {
+    citError=0,  // error preventing the type identification
+    citUnknown,  // unknown image type
+    citIPF,      // IPF image
+    citCTRaw,    // CT Raw image
+    citKFStream, // KryoFlux stream files
+    citDraft     // Draft image
 };
 
 // image error status

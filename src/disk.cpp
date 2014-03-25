@@ -3827,8 +3827,8 @@ void DSKLEN (uae_u16 v, int hpos)
 		if (!done && noselected) {
 			while (dsklength-- > 0) {
 				if (dskdmaen == DSKDMA_WRITE) {
-					uae_u16 UNUSED(w) = chipmem_wget_indirect (dskpt);
 #ifdef AMAX
+					uae_u16 w = chipmem_wget_indirect (dskpt);
 					if (currprefs.amaxromfile[0])
 						amax_diskwrite (w);
 #endif

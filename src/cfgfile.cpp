@@ -1562,8 +1562,7 @@ int cfgfile_floatval (const TCHAR *option, const TCHAR *value, const TCHAR *name
 
 int cfgfile_floatval (const TCHAR *option, const TCHAR *value, const TCHAR *name, float *location)
 {
-#warning NULL looks misplaced
-	return cfgfile_floatval (option, NULL, value, name, location);
+	return cfgfile_floatval (option, value, name, NULL, location);
 }
 
 int cfgfile_intval (const TCHAR *option, const TCHAR *value, const TCHAR *name, const TCHAR *nameext, unsigned int *location, int scale)

@@ -1309,8 +1309,9 @@ static int handle_shortcut(fs_ml_event *event) {
                 fs_emu_pause(!fs_emu_is_paused());
             }
             else if (key_code == FS_ML_KEY_W) {
-                // FIXME: UAE-specific, must be moved out of libfsemu
-                fs_emu_queue_input_event(0x00010000 | 274);
+                // FIXME: UAE-specific hot key hack for warp function,
+                // must be moved out of libfsemu
+                fs_emu_queue_input_event(0x00010000 | 275);
             }
             else if (g_hotkey_function != NULL) {
                 g_hotkey_function(key_code, key_mod);

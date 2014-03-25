@@ -18,9 +18,7 @@
 
 #include <stdint.h>
 
-#ifndef _MSC_VER
-#include <endian.h>
-#else
+#ifdef WINDOWS
 static uint16_t be16toh(uint16_t v)
 {
 	return (v << 8) | (v >> 8);
@@ -29,6 +27,14 @@ static uint32_t le32toh(uint32_t v)
 {
 	return v;
 }
+#elif defined(MACOSX)
+#include <libkern/OSByteOrder.h>
+#define be16toh(x) OSSwapBigToHostInt16(x)
+#define le32toh(x) OSSwapLittleToHostInt32(x)
+#elif defined(LINUX)
+#include <endian.h>
+#else
+#include <sys/endian.h>
 #endif
 
 #define MAX_REVS 5

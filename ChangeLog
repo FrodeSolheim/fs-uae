@@ -1,5 +1,7 @@
 Version 2.5.1dev:
 
+* Merged code from WinUAE 2710b12.
+* Support for .scp floppy images [keirf].
 * Drive sound and CDDA fixes for big-endian platforms.
 * Fixed left trigger = toggle autofire.
 

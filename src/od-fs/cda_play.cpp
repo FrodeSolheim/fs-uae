@@ -111,7 +111,17 @@ bool cda_audio::play(int bufnum) {
     }
 
     if (g_audio_callback) {
-        buffer_ids[bufnum] = g_audio_callback(3, p, num_sectors * 2352);
+        int len = num_sectors * 2352;
+#ifdef __BIG_ENDIAN__
+        int8_t *d = (int8_t *) p;
+        int8_t temp = 0;
+        for (int i = 0; i < len; i += 2) {
+            temp = d[i + 1];
+            d[i + 1] = d[i];
+            d[i] = temp;
+        }
+#endif
+        buffer_ids[bufnum] = g_audio_callback(3, p, len);
     }
     else {
         buffer_ids[bufnum] = 0;

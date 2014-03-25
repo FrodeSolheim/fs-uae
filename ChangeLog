@@ -1,5 +1,6 @@
 Version 2.5.1dev:
 
+* Drive sound and CDDA fixes for big-endian platforms.
 * Fixed left trigger = toggle autofire.
 
 Version 2.5.0dev:

@@ -4,13 +4,14 @@
 
 #include <stdio.h>
 #include <fs/string.h>
+#include <glib.h>
 
 int log_scsi = 0;
 
 void write_log (const TCHAR *format, ...) {
     va_list args;
     va_start(args, format);
-    char *buffer = fs_strdup_vprintf(format, args);
+    char *buffer = g_strdup_vprintf(format, args);
     va_end(args);
     log_function function = g_libamiga_callbacks.log;
     if (function) {

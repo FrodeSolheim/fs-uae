@@ -53,11 +53,11 @@ libs = -L$(libfsemu_dir)/out -lfsemu -lpng -lz
 else
 use_glib := 1
 use_freetype := 1
-sdl := 1
+sdl := 2
 
-ifeq ($(os), macosx)
-	sdl = 2
-endif
+#ifeq ($(os), macosx)
+#	sdl = 2
+#endif
 
 ifeq ($(sdl), 2)
 	sdl_config = sdl2-config

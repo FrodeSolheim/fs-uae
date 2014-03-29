@@ -307,11 +307,11 @@ extern void to_upper (TCHAR *s, int len);
 #define DONT_HAVE_POSIX
 #endif
 
-#if defined _WIN32
+#if !defined(FS_UAE) && defined _WIN32
 
-#ifdef FSUAE
-#error _WIN32 should not be defined here
-#endif
+//#ifdef FSUAE
+//#error _WIN32 should not be defined here
+//#endif
 #if defined __WATCOMC__
 
 #define O_NDELAY 0
@@ -475,7 +475,11 @@ extern void mallocemu_free (void *ptr);
 #else
 extern void write_log (const TCHAR *, ...) __attribute__ ((format (printf, 1, 2)));
 #endif
+#if defined(FSUAE) && defined(__MINGW32__)
+extern void write_log (const char *, ...) __attribute__ ((format (gnu_printf, 1, 2)));
+#else
 extern void write_log (const char *, ...) __attribute__ ((format (printf, 1, 2)));
+#endif
 #else
 extern void write_log (const TCHAR *, ...);
 extern void write_log (const char *, ...);

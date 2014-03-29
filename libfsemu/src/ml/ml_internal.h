@@ -1,4 +1,4 @@
-#ifndef LIBFSML_ML_INTERNAL__H_
+#ifndef LIBFSML_ML_INTERNAL_H_
 #define LIBFSML_ML_INTERNAL_H_
 
 #include <fs/ml.h>
@@ -61,5 +61,11 @@ extern int g_fs_ml_benchmarking;
 
 extern int g_fs_ml_had_input_grab;
 extern int g_fs_ml_was_fullscreen;
+
+#ifdef USE_SDL2
+#include <SDL.h>
+extern SDL_Window *g_fs_ml_window;
+extern SDL_GLContext g_fs_ml_context;
+#endif
 
 #endif // LIBFSML_ML_INTERNAL_H_

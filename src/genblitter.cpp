@@ -267,16 +267,8 @@ static void generate_header(void)
     }
 }
 
-#if defined(FSUAE) && defined (WINDOWS)
-#include "windows.h"
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
-{
-int argc = _argc;
-char** argv = _argv;
-#else
 int main(int argc, char **argv)
 {
-#endif
     char mode = 'i';
 
     if (argc == 2) mode = *argv[1];

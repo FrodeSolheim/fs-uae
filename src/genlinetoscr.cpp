@@ -6,6 +6,8 @@
 * (c) 2006 Richard Drummond
 */
 
+#include "sysconfig.h"
+#include "sysdeps.h"
 #include <stdlib.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -482,16 +484,8 @@ static void out_linetoscr (DEPTH_T bpp, HMODE_T hmode, int aga, int spr)
 	outln  (	"");
 }
 
-#if defined(FSUAE) && defined (WINDOWS)
-#include "windows.h"
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
-{
-int argc = __argc;
-char** argv = __argv;
-#else
 int main(int argc, char *argv[])
 {
-#endif
 	DEPTH_T bpp;
 	int aga, spr;
 	HMODE_T hmode;

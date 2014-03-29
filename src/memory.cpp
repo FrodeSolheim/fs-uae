@@ -433,7 +433,7 @@ uae_u32 REGPARAM2 chipmem_lget (uaecptr addr)
 	m = (uae_u32 *)(chipmem_bank.baseaddr + addr);
 #ifdef FSUAE
 #ifdef DEBUG_MEM
-	printf("chipmem_lget %08x = %08x\n", addr, do_get_mem_long (m));
+	write_log("chipmem_lget %08x = %08x\n", addr, do_get_mem_long (m));
 #endif
 #endif
 	return do_get_mem_long (m);
@@ -448,7 +448,7 @@ static uae_u32 REGPARAM2 chipmem_wget (uaecptr addr)
 	v = do_get_mem_word (m);
 #ifdef FSUAE
 #ifdef DEBUG_MEM
-	printf("chipmem_wget %08x = %08x\n", addr, v);
+	write_log("chipmem_wget %08x = %08x\n", addr, v);
 #endif
 #endif
 	return v;
@@ -461,7 +461,7 @@ static uae_u32 REGPARAM2 chipmem_bget (uaecptr addr)
 	v = chipmem_bank.baseaddr[addr];
 #ifdef FSUAE
 #ifdef DEBUG_MEM
-	printf("chipmem_wget %08x = %08x\n", addr, v);
+	write_log("chipmem_wget %08x = %08x\n", addr, v);
 #endif
 #endif
 	return v;
@@ -471,7 +471,7 @@ void REGPARAM2 chipmem_lput (uaecptr addr, uae_u32 l)
 {
 #ifdef FSUAE
 #ifdef DEBUG_MEM
-	printf("chipmem_lput %08x %08x\n", addr, l);
+	write_log("chipmem_lput %08x %08x\n", addr, l);
 #endif
 #endif
 #ifdef FSUAE
@@ -495,7 +495,7 @@ void REGPARAM2 chipmem_wput (uaecptr addr, uae_u32 w)
 {
 #ifdef FSUAE
 #ifdef DEBUG_MEM
-	printf("chipmem_wput %08x %08x\n", addr, w);
+	write_log("chipmem_wput %08x %08x\n", addr, w);
 #endif
 #endif
 #ifdef FSUAE
@@ -525,7 +525,7 @@ void REGPARAM2 chipmem_bput (uaecptr addr, uae_u32 b)
 {
 #ifdef FSUAE
 #ifdef DEBUG_MEM
-	printf("chipmem_bput %08x %08x\n", addr, b);
+	write_log("chipmem_bput %08x %08x\n", addr, b);
 #endif
 #endif
 #ifdef FSUAE
@@ -591,7 +591,7 @@ static uae_u32 REGPARAM2 UNUSED_FUNCTION(chipmem_agnus_lget) (uaecptr addr)
 	m = (uae_u32 *)(chipmem_bank.baseaddr + addr);
 #ifdef FSUAE
 #ifdef DEBUG_MEM
-	printf("chipmem_agnus_lget %08x = %08x\n", addr, do_get_mem_long (m));
+	write_log("chipmem_agnus_lget %08x = %08x\n", addr, do_get_mem_long (m));
 #endif
 #endif
 	return do_get_mem_long (m);
@@ -605,7 +605,7 @@ uae_u32 REGPARAM2 chipmem_agnus_wget (uaecptr addr)
 	m = (uae_u16 *)(chipmem_bank.baseaddr + addr);
 #ifdef FSUAE
 #ifdef DEBUG_MEM
-	printf("chipmem_agnus_lget %08x = %08x\n", addr, do_get_mem_word (m));
+	write_log("chipmem_agnus_lget %08x = %08x\n", addr, do_get_mem_word (m));
 #endif
 #endif
 	return do_get_mem_word (m);
@@ -616,7 +616,7 @@ static uae_u32 REGPARAM2 chipmem_agnus_bget (uaecptr addr)
 	addr &= chipmem_full_mask;
 #ifdef FSUAE
 #ifdef DEBUG_MEM
-	printf("chipmem_agnus_lget %08x = %08x\n", addr, chipmem_bank.baseaddr[addr]);
+	write_log("chipmem_agnus_lget %08x = %08x\n", addr, chipmem_bank.baseaddr[addr]);
 #endif
 #endif
 	return chipmem_bank.baseaddr[addr];
@@ -626,7 +626,7 @@ static void REGPARAM2 UNUSED_FUNCTION(chipmem_agnus_lput) (uaecptr addr, uae_u32
 {
 #ifdef FSUAE
 #ifdef DEBUG_MEM
-	printf("chipmem_agnus_lput %08x %08x\n", addr, l);
+	write_log("chipmem_agnus_lput %08x %08x\n", addr, l);
 #endif
 #endif
 	uae_u32 *m;
@@ -642,7 +642,7 @@ void REGPARAM2 chipmem_agnus_wput (uaecptr addr, uae_u32 w)
 {
 #ifdef FSUAE
 #ifdef DEBUG_MEM
-	printf("chipmem_agnus_wput %08x %08x\n", addr, w);
+	write_log("chipmem_agnus_wput %08x %08x\n", addr, w);
 #endif
 #endif
 	uae_u16 *m;
@@ -658,7 +658,7 @@ static void REGPARAM2 chipmem_agnus_bput (uaecptr addr, uae_u32 b)
 {
 #ifdef FSUAE
 #ifdef DEBUG_MEM
-	printf("chipmem_agnus_bput %08x %08x\n", addr, b);
+	write_log("chipmem_agnus_bput %08x %08x\n", addr, b);
 #endif
 #endif
 	addr &= chipmem_full_mask;
@@ -2841,6 +2841,13 @@ int uae_get_memory_checksum() {
     size = bogomem_bank.allocated / 4;
     for (int i = 0; i < size; i++) {
     	checksum += *mem;
+        mem++;
+    }
+
+    mem = (uint32_t *) fastmem_bank.baseaddr;
+    size = fastmem_bank.allocated / 4;
+    for (int i = 0; i < size; i++) {
+        checksum += *mem;
         mem++;
     }
 

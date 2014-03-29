@@ -21,34 +21,36 @@ progdir:
 	mkdir $(emulator_dir)
 
 	make -C ..
-	cp /mingw/bin/libgcc_s_*.dll $(emulator_dir)
-	cp /mingw/bin/libstdc++*.dll $(emulator_dir)
+	#cp /mingw/bin/libgcc_s_*.dll $(emulator_dir)
+	#cp /mingw/bin/libstdc++*.dll $(emulator_dir)
+	#cp /mingw/bin/intl.dll $(emulator_dir)
+	#cp /mingw/bin/libpng*.dll $(emulator_dir)
+	#cp /mingw/bin/*freetype*.dll $(emulator_dir)
+	#cp /mingw/bin/zlib1.dll $(emulator_dir)
+	#cp /mingw/bin/libglib-2.0-0.dll $(emulator_dir)
+	#cp /mingw/bin/libgthread-2.0-0.dll $(emulator_dir)
+	#cp /mingw/bin/libintl*.dll $(emulator_dir)
+	#cp /mingw/bin/libiconv*.dll $(emulator_dir)
+	#cp /mingw/bin/SDL.dll $(emulator_dir)
+	#cp /mingw/bin/OpenAL32.dll $(emulator_dir)
 
-	cp /mingw/bin/intl.dll $(emulator_dir)
-	cp /mingw/bin/libpng*.dll $(emulator_dir)
-	cp /mingw/bin/*freetype*.dll $(emulator_dir)
-	cp /mingw/bin/zlib1.dll $(emulator_dir)
-	cp /mingw/bin/libglib-2.0-0.dll $(emulator_dir)
-	cp /mingw/bin/libgthread-2.0-0.dll $(emulator_dir)
-	cp /mingw/bin/libintl*.dll $(emulator_dir)
-	cp /mingw/bin/libiconv*.dll $(emulator_dir)
-	cp /mingw/bin/SDL.dll $(emulator_dir)
-	cp /mingw/bin/OpenAL32.dll $(emulator_dir)
-
-	#cp /mingw/bin/libwinpthread*.dll $(emulator_dir)
-	#cp /fs/bin/libpng*.dll $(emulator_dir)
-	#cp /fs/bin/*freetype*.dll $(emulator_dir)
-	#cp /fs/bin/zlib1.dll $(emulator_dir)
-	#cp /fs/bin/libglib-2.0-0.dll $(emulator_dir)
-	#cp /fs/bin/libgthread-2.0-0.dll $(emulator_dir)
-	#cp /fs/bin/libintl*.dll $(emulator_dir)
-	#cp /fs/bin/libiconv*.dll $(emulator_dir)
-	#cp /fs/bin/SDL.dll $(emulator_dir)
-	#cp /fs/bin/OpenAL32.dll $(emulator_dir)
+	cp /mingw32/bin/libgcc_s_*.dll $(emulator_dir)
+	cp /mingw32/bin/libstdc++*.dll $(emulator_dir)
+	cp /mingw32/bin/libwinpthread*.dll $(emulator_dir)
+	cp /opt/bin/libpng*.dll $(emulator_dir)
+	cp /opt/bin/*freetype*.dll $(emulator_dir)
+	cp /opt/bin/zlib1.dll $(emulator_dir)
+	cp /opt/bin/libglib-2.0-0.dll $(emulator_dir)
+	cp /opt/bin/libgthread-2.0-0.dll $(emulator_dir)
+	cp /opt/bin/libintl*.dll $(emulator_dir)
+	cp /opt/bin/libiconv*.dll $(emulator_dir)
+	#cp /opt/bin/SDL.dll $(emulator_dir)
+	cp /opt/bin/SDL2.dll $(emulator_dir)
+	cp /opt/bin/OpenAL32.dll $(emulator_dir)
 
 	cp -a ../fs-uae.exe $(emulator_dir)/
 	cp -a ../fs-uae-device-helper.exe $(emulator_dir)/
-	cp -a ../../CAPSImg.dll $(emulator_dir) || cp -a ../CAPSImg.dll $(emulator_dir)
+	cp -a ../../../libfs-capsimage/CAPSImg.dll $(emulator_dir) || cp -a ../../../../libfs-capsimage/CAPSImg.dll $(emulator_dir)
 	cp -a ../share $(emulator_dir)/share
 	cp -a ../licenses $(emulator_dir)/licenses
 	cp -a ../README $(emulator_dir)/README.txt
@@ -83,7 +85,7 @@ launcher:
 	mv $(launcher_dir)/fs-uae-launcher.exe $(launcher_dir)/"FS-UAE Launcher.exe"
 	python replace_icon.py $(launcher_dir)/"FS-UAE Launcher.exe" ../icon/fs-uae-launcher.ico
 	python /c/signtool.py $(launcher_dir)/"FS-UAE Launcher.exe"
-	cp -a /mingw/Microsoft.VC90.CRT $(launcher_dir)/
+	cp -a /c/Microsoft.VC90.CRT $(launcher_dir)/
 	cp -a $(emulator_dir) $(launcher_dir)/FS-UAE
 
 bindist-launcher: launcher

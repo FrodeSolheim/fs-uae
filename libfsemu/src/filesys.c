@@ -12,9 +12,11 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <string.h>
+#include <errno.h>
 #include <sys/stat.h>
 #include <fs/base.h>
 #include <fs/string.h>
+#include <fs/log.h>
 
 #ifdef USE_GLIB
 #include <glib.h>
@@ -34,6 +36,16 @@
 #define FS_DIR_SEPARATOR '/'
 #endif
 
+#endif
+
+#ifdef WINDOWS
+typedef struct _stati64 stat_type;
+#define wstat_function _wstati64
+#define fstat_function _fstati64
+#else
+typedef struct stat stat_type;
+#define stat_function stat
+#define fstat_function fstat
 #endif
 
 #ifdef WINDOWS
@@ -136,13 +148,52 @@ static void file_time_to_time_val(FILETIME *ft, struct timeval *tv) {
 
 // some code adapted from glib
 
+/*
+ * This function is copied from Glib because of an bug(?) in Mingw-w32 4.6.3
+ * which causes _wstat to not be defined as _wstati64 (while stat is defined
+ * as _stati64). This causes g_stat from glib to "fail" (garbage in stat
+ * buffer due to mistmatch of stat struct).
+ */
+int g_stat_reimpl (const gchar *filename, stat_type *buf) {
+#if defined (USE_GLIB) && defined(G_OS_WIN32)
+  wchar_t *wfilename = g_utf8_to_utf16 (filename, -1, NULL, NULL, NULL);
+  int retval;
+  int save_errno;
+  int len;
+
+  if (wfilename == NULL)
+    {
+      errno = EINVAL;
+      return -1;
+    }
+
+  len = wcslen (wfilename);
+  while (len > 0 && G_IS_DIR_SEPARATOR (wfilename[len-1]))
+    len--;
+  if (len > 0 &&
+      (!g_path_is_absolute (filename) || len > g_path_skip_root (filename) - filename))
+    wfilename[len] = '\0';
+
+  // use explicit stat function (see define further up) to work around bug
+  retval = wstat_function (wfilename, buf);
+  save_errno = errno;
+
+  g_free (wfilename);
+
+  errno = save_errno;
+  return retval;
+#else
+  return stat_function (filename, buf);
+#endif
+}
+
 int fs_stat(const char *path, struct fs_stat *buf) {
-    struct stat st;
+    stat_type st;
 #ifdef USE_GLIB
     // g_stat handles unicode file names on Windows
-    int result = g_stat(path, &st);
+    int result = g_stat_reimpl(path, &st);
 #else
-    int result = stat(path, &st);
+    int result = stat_function(path, &st);
 #endif
 
     if (result == 0) {
@@ -150,6 +201,7 @@ int fs_stat(const char *path, struct fs_stat *buf) {
         buf->mtime = st.st_mtime;
         buf->ctime = st.st_ctime;
         buf->size = st.st_size;
+        //fs_log("fs_stat size = %lld\n", buf->size);
         buf->mode = st.st_mode;
 
 #if defined(HAVE_STAT_TV_NSEC)
@@ -253,8 +305,8 @@ int64_t fs_path_get_size(const char *path) {
 }
 
 int fs_fstat(int fd, struct fs_stat *buf) {
-    struct stat st;
-    int result = fstat(fd, &st);
+    stat_type st;
+    int result = fstat_function(fd, &st);
     if (result == 0) {
         buf->atime = st.st_atime;
         buf->mtime = st.st_mtime;
@@ -517,7 +569,7 @@ int fs_path_exists(const char *path) {
 #ifdef USE_GLIB
     return g_file_test(path, G_FILE_TEST_EXISTS);
 #else
-    struct stat buf;
+    stat_type buf;
     if (stat(path, &buf) != 0) {
         return 0;
     }
@@ -529,7 +581,7 @@ int fs_path_is_file(const char *path) {
 #ifdef USE_GLIB
     return g_file_test(path, G_FILE_TEST_IS_REGULAR);
 #else
-    struct stat buf;
+    stat_type buf;
     if (stat(path, &buf) != 0) {
         return 0;
     }
@@ -541,7 +593,7 @@ int fs_path_is_dir(const char *path) {
 #ifdef USE_GLIB
     return g_file_test(path, G_FILE_TEST_IS_DIR);
 #else
-    struct stat buf;
+    stat_type buf;
     if (stat(path, &buf) != 0) {
         return 0;
     }

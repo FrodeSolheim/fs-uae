@@ -1,3 +1,9 @@
+Version 2.5.2dev:
+
+* SDL2 is now default on all platforms (make sdl=1 to override for now).
+* Fixes to make the windows version compile with SDL2.
+* Fixes for FS-UAE compilation with mingw-w32 4.6.3.
+
 Version 2.5.1dev:
 
 * Merged code from WinUAE 2710b12.
@@ -31,7 +37,7 @@ Version 2.3.17:
 * (Launcher) Option download_file from DB does not have to be an archive.
 * (Launcher) Fixed bug when doubleclicking on an URI in the floppy list.
 * (Launcher) Fixed bug with selecting multiple files [2.3.16].
-* (Launcher) Fixed trailing colon in translatiion of option description.
+* (Launcher) Fixed trailing colon in translation of option description.
 * (Launcher) Updated translations: fi [Goingdown], pl [grimi], fr [Foul].
 
 Version 2.3.16:

@@ -3740,6 +3740,9 @@ static void
 	xfree (x2);
 
 	put_long (info + 116, fsdb_can ? aino->amigaos_mode : fsdb_mode_supported (aino));
+	if (statbuf.size > MAXFILESIZE32) {
+		write_log("WARNING statbuf.size = %llu\n", statbuf.size);
+	}
 	put_long (info + 124, statbuf.size > MAXFILESIZE32 ? MAXFILESIZE32 : (uae_u32)statbuf.size);
 #ifdef HAVE_ST_BLOCKS
 #ifdef FSUAE
@@ -6063,7 +6066,11 @@ static int handle_packet (Unit *unit, dpacket pck, uae_u32 msg)
 	uae_s32 type = GET_PCK_TYPE (pck);
 	PUT_PCK_RES2 (pck, 0);
 
+#ifdef FSUAE
+	TRACE((_T("handle_packet packet=%d\n"), type));
+#else
 	TRACE((_T("unit=%p packet=%d\n"), unit, type));
+#endif
 	if (unit->inhibited && filesys_isvolume (unit)
 		&& type != ACTION_INHIBIT && type != ACTION_MORE_CACHE
 		&& type != ACTION_DISK_INFO) {

@@ -39,7 +39,7 @@
 #include "uaenative.h"
 
 #ifdef FSUAE
-#ifdef WINDOWS
+#if defined(WINDOWS) && !defined(_WIN32)
 #define _WIN32
 #endif
 #endif

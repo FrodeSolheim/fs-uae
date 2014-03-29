@@ -123,7 +123,7 @@ FILE *fsdb_open_meta_file_for_path(const char *path, const char *mode,
     }
     FILE *f = fs_fopen(meta_file, mode);
     if (g_fsdb_debug) {
-        write_log("FILE is %p\n", f);
+        write_log("- meta file opened? %d\n", f != NULL);
     }
     free(meta_file);
     return f;

@@ -1,5 +1,5 @@
 #ifndef FS_EVENTLOG_H_
-#define FS_EVENT_H_
+#define FS_EVENTLOG_H_
 
 #ifdef __cplusplus
 extern "C" {

@@ -44,6 +44,9 @@ bool my_stat (const TCHAR *name, struct mystat *ms) {
         write_log("my_stat: stat on file %s failed\n", name);
         return false;
     }
+    if (g_fsdb_debug) {
+        write_log("fs_stat returned size %lld\n", sonuc.size);
+    }
     ms->size = sonuc.size;
     // FIXME: read mode more accurately
     ms->mode = 0;
@@ -275,7 +278,8 @@ struct my_openfile_s *my_open(const TCHAR *name, int flags) {
 
 void my_close(struct my_openfile_s* mos) {
     if (g_fsdb_debug) {
-        write_log("my_close %d (%s)\n", mos->fd, mos->path);
+        //write_log("my_close %d (%s)\n", mos->fd, mos->path);
+        write_log("my_close (%s)\n", mos->path);
     }
     errno = 0;
     free(mos->path);
@@ -304,8 +308,9 @@ unsigned int my_read(struct my_openfile_s *mos, void *b, unsigned int size) {
     }
     my_errno = 0;
     if (g_fsdb_debug) {
-        write_log("my_read fd=%d buffer=%p size=%d => %zd\n", mos->fd, b,
-                size, bytes_read);
+        //write_log("my_read fd=%d buffer=%p size=%d => %zd\n", mos->fd, b,
+        //        size, bytes_read);
+        write_log("my_read size=%d => %zd\n", size, bytes_read);
     }
     return (unsigned int) bytes_read;
 }
@@ -461,12 +466,15 @@ int my_rename(const TCHAR *oldname, const TCHAR *newname) {
 
 uae_s64 my_lseek(struct my_openfile_s *mos, uae_s64 offset, int whence) {
     if (g_fsdb_debug) {
-        write_log("my_lseek %s\n", mos->path);
+        write_log("my_lseek %s %lld %d\n", mos->path, offset, whence);
     }
 
     errno = 0;
     off_t result = lseek(mos->fd, offset, whence);
     my_errno = errno;
+    if (g_fsdb_debug) {
+        write_log("lseek result %d\n", result);
+    }
     return result;
 }
 

@@ -31,7 +31,7 @@ static char g_is_modifier_key[FS_ML_KEY_LAST] = {};
 //static int16_t g_key_mapping[3 * NUM_VKEYS] = {};
 
 static HWND g_window = 0;
-static HGLRC g_hglrc = 0;
+//static HGLRC g_hglrc = 0;
 static HKL g_keyboard_layout = 0;
 
 static int g_debug_keys = 0;
@@ -536,11 +536,19 @@ void fs_ml_init_raw_input() {
 
     SDL_SysWMinfo info;
     SDL_VERSION(&info.version); // this is important!
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+    if (SDL_GetWindowWMInfo(g_fs_ml_window, &info)) {
+#else
     if (SDL_GetWMInfo(&info)) {
+#endif
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+        g_window = info.info.win.window;
+#else
         g_window = info.window;
-        g_hglrc = info.hglrc;
+#endif
+        //g_hglrc = info.hglrc;
     }
-
+ 
     g_wndproc = (WNDPROC) GetWindowLongPtr(g_window, GWLP_WNDPROC);
     SetWindowLongPtr(g_window, GWLP_WNDPROC, (LONG_PTR) WndProc);
     fs_log("old window proc: %p new window proc: %p\n", g_wndproc, WndProc);

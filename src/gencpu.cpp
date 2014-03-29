@@ -5519,16 +5519,8 @@ static void generate_cpu (int id, int mode)
 	postfix2 = -1;
 }
 
-#if defined(FSUAE) && defined (WINDOWS)
-#include "windows.h"
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
-{
-int argc = __argc;
-char** argv = __argv;
-#else
 int main(int argc, char *argv[])
 {
-#endif
 	int i;
 
 	read_table68k ();

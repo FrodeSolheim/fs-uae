@@ -22,7 +22,11 @@ void fs_ml_configure_window() {
 
     SDL_SysWMinfo info;
     SDL_VERSION(&info.version); // this is important!
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+    if (!SDL_GetWindowWMInfo(g_fs_ml_window, &info)) {
+#else
     if (!SDL_GetWMInfo(&info)) {
+#endif
         fs_log("error getting window information\n");
         return;
     }
@@ -38,10 +42,19 @@ void fs_ml_configure_window() {
         fs_log("hIconBig = %d\n", hIconBig);
     }
     if (hIconSmall != 0) {
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+        SendMessage(info.info.win.window, WM_SETICON, ICON_SMALL, (LPARAM) hIconSmall);
+#else
         SendMessage(info.window, WM_SETICON, ICON_SMALL, (LPARAM) hIconSmall);
+#endif
     }
     if (hIconBig != 0) {
+#if SDL_VERSION_ATLEAST(2, 0, 0) 
+        SendMessage(info.info.win.window, WM_SETICON, ICON_BIG, (LPARAM) hIconBig);
+#else
         SendMessage(info.window, WM_SETICON, ICON_BIG, (LPARAM) hIconBig);
+#endif
+
     }
 }
 

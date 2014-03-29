@@ -25,7 +25,7 @@
 #include "native2amiga.h"
 
 #ifdef FSUAE // NL
-#ifdef WINDOWS
+#if defined(WINDOWS) && !defined(_WIN32)
 #define _WIN32
 #endif
 #endif

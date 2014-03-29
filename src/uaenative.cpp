@@ -30,7 +30,7 @@
 #include "uaenative.h"
 #include "fsdb.h"
 
-#if defined(FSUAE) && defined(WINDOWS)
+#if defined(FSUAE) && defined(WINDOWS) && !defined(_WIN32)
 #define _WIN32
 #endif
 

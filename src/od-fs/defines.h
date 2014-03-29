@@ -174,8 +174,8 @@ typedef unsigned short USHORT;
 // when compiling FS-UAE for Windows. FS-UAE code use the WINDOWS define
 // instead to avoid collision with WinUAE.
 
-#undef _WIN32
-#undef WIN32
+//#undef _WIN32
+//#undef WIN32
 
 #include "../include/sysdeps.h"
 
@@ -279,6 +279,23 @@ typedef int BOOL;
 #else
 #define NORETURN
 #endif
+#endif
+
+#ifdef WINDOWS
+#ifdef __MINGW64_VERSION_MAJOR
+#define _argc __argc
+#define _argv __argv
+#endif
+extern int _argc;
+extern char** _argv;
+#undef main
+// prevent later imports of SDL to overwrite main
+#define _SDL_main_h
+int _uae_main(int argc, char* argv[]);
+#define main(a, b) WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) { \
+    return _uae_main(_argc, _argv); \
+} \
+int _uae_main(int argc, char* argv[])
 #endif
 
 #endif // EXTRA_DEFINES_H

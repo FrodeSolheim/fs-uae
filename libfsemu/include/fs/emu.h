@@ -498,6 +498,10 @@ void fs_emu_release_gui_lock();
 #ifdef WINDOWS
 #include <winsock2.h>
 #include <windows.h>
+#ifdef __MINGW64_VERSION_MAJOR
+#define _argc __argc
+#define _argv __argv
+#endif
 extern int _argc;
 extern char** _argv;
 

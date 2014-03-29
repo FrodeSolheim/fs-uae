@@ -197,7 +197,7 @@ int fs_emu_hud_handle_chat_input(fs_emu_event *event) {
     if (event->type == FS_ML_TEXTINPUT) {
         if (g_fs_emu_chat_string_pos < FS_EMU_MAX_CHAT_STRING_SIZE - 1 &&
                 event->text.text[0] >= 32 &&
-                event->text.text[0] < 128) {
+                ((unsigned char) event->text.text[0]) < 128) {
             g_fs_emu_chat_string[g_fs_emu_chat_string_pos] = \
                 event->text.text[0];
             g_fs_emu_chat_string_pos++;

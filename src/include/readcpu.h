@@ -46,7 +46,7 @@ struct mnemolookup {
 extern struct mnemolookup lookuptab[];
 
 ENUMDECL {
-    sz_byte, sz_word, sz_long
+    sz_byte, sz_word, sz_long, sz_single, sz_double, sz_extended, sz_packed
 } ENUMNAME (wordsizes);
 
 ENUMDECL {
@@ -96,6 +96,7 @@ extern struct instr {
     unsigned int cc:4;
     unsigned int plev:2;
     unsigned int size:2;
+	unsigned int unsized:1;
     unsigned int smode:5;
     unsigned int stype:3;
     unsigned int dmode:5;

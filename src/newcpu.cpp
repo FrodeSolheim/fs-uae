@@ -35,6 +35,7 @@
 #include "inputrecord.h"
 #include "inputdevice.h"
 #include "audio.h"
+#include "md-fpp.h"
 #ifdef JIT
 #include "jit/compemu.h"
 #include <signal.h>
@@ -58,6 +59,7 @@ static int last_instructionaccess_for_exception_3;
 int mmu_enabled, mmu_triggered;
 int cpu_cycles;
 static int baseclock;
+bool m68k_pc_indirect;
 
 int cpucycleunit;
 int cpu_tracer;
@@ -734,8 +736,8 @@ static void set_x_funcs (void)
 		} else if (currprefs.cpu_compatible) {
 			x_prefetch = get_word_prefetch;
 			x_get_ilong = NULL;
-			x_get_iword = get_iword;
-			x_get_ibyte = get_ibyte;
+			x_get_iword = get_iiword;
+			x_get_ibyte = get_iibyte;
 			x_next_iword = NULL;
 			x_next_ilong = NULL;
 			x_put_long = put_long;
@@ -749,11 +751,11 @@ static void set_x_funcs (void)
 			x_do_cycles_post = do_cycles_post;
 		} else {
 			x_prefetch = NULL;
-			x_get_ilong = get_ilong;
-			x_get_iword = get_iword;
-			x_get_ibyte = get_ibyte;
-			x_next_iword = next_iword;
-			x_next_ilong = next_ilong;
+			x_get_ilong = get_iilong;
+			x_get_iword = get_iiword;
+			x_get_ibyte = get_iibyte;
+			x_next_iword = next_iiword;
+			x_next_ilong = next_iilong;
 			x_put_long = put_long;
 			x_put_word = put_word;
 			x_put_byte = put_byte;
@@ -786,11 +788,11 @@ static void set_x_funcs (void)
 			} else {
 				// JIT or 68030+ does not have real prefetch only emulation
 				x_prefetch = NULL;
-				x_get_ilong = get_ilong;
-				x_get_iword = get_iword;
-				x_get_ibyte = get_ibyte;
-				x_next_iword = next_iword;
-				x_next_ilong = next_ilong;
+				x_get_ilong = get_dilong;
+				x_get_iword = get_diword;
+				x_get_ibyte = get_dibyte;
+				x_next_iword = next_diword;
+				x_next_ilong = next_dilong;
 				x_put_long = put_long;
 				x_put_word = put_word;
 				x_put_byte = put_byte;
@@ -803,11 +805,11 @@ static void set_x_funcs (void)
 			}
 		} else {
 			x_prefetch = NULL;
-			x_get_ilong = get_ilong;
-			x_get_iword = get_iword;
-			x_get_ibyte = get_ibyte;
-			x_next_iword = next_iword;
-			x_next_ilong = next_ilong;
+			x_get_ilong = get_dilong;
+			x_get_iword = get_diword;
+			x_get_ibyte = get_dibyte;
+			x_next_iword = next_diword;
+			x_next_ilong = next_dilong;
 			x_put_long = put_long;
 			x_put_word = put_word;
 			x_put_byte = put_byte;
@@ -1197,14 +1199,48 @@ static void build_cpufunctbl (void)
 	write_log (_T("Building CPU, %d opcodes (%d %d %d)\n"),
 		opcnt, lvl,
 		currprefs.cpu_cycle_exact ? -1 : currprefs.cpu_compatible ? 1 : 0, currprefs.address_space_24);
-	write_log (_T("CPU=%d, FPU=%d, MMU=%d, JIT%s=%d.\n"),
-		currprefs.cpu_model, currprefs.fpu_model,
-		currprefs.mmu_model,
-		currprefs.cachesize ? (currprefs.compfpu ? _T("=CPU/FPU") : _T("=CPU")) : _T(""),
-		currprefs.cachesize);
 #ifdef JIT
 	build_comp ();
 #endif
+
+	write_log(_T("CPU=%d, FPU=%d, MMU=%d, JIT%s=%d."),
+			  currprefs.cpu_model, currprefs.fpu_model,
+			  currprefs.mmu_model,
+			  currprefs.cachesize ? (currprefs.compfpu ? _T("=CPU/FPU") : _T("=CPU")) : _T(""),
+			  currprefs.cachesize);
+
+	regs.address_space_mask = 0xffffffff;
+	if (currprefs.cpu_compatible) {
+		if (currprefs.address_space_24 && currprefs.cpu_model >= 68030)
+			currprefs.address_space_24 = false;
+	}
+	if (currprefs.cpu_cycle_exact) {
+		if (currprefs.cpu_model == 68000)
+			write_log(_T(" prefetch and cycle-exact"));
+		else
+			write_log(_T(" ~cycle-exact"));
+	} else if (currprefs.cpu_compatible) {
+		if (currprefs.cpu_model <= 68020) {
+			write_log(_T(" prefetch"));
+		} else {
+			write_log(_T(" fake prefetch"));
+		}
+	}
+	if (currprefs.int_no_unimplemented && currprefs.cpu_model == 68060) {
+		write_log(_T(" no unimplemented integer instructions"));
+	}
+	if (currprefs.fpu_no_unimplemented && currprefs.fpu_model) {
+		write_log(_T(" no unimplemented floating point instructions"));
+	}
+	if (currprefs.address_space_24) {
+		regs.address_space_mask = 0x00ffffff;
+		write_log(_T(" 24-bit"));
+	}
+	write_log(_T("\n"));
+
+	m68k_pc_indirect = (currprefs.mmu_model || currprefs.cpu_compatible) && !currprefs.cachesize;
+	if (tbl == op_smalltbl_0_ff || tbl == op_smalltbl_1_ff || tbl == op_smalltbl_2_ff || tbl == op_smalltbl_3_ff || tbl == op_smalltbl_4_ff || tbl == op_smalltbl_5_ff)
+		m68k_pc_indirect = false;
 	set_cpu_caches (true);
 }
 
@@ -1270,14 +1306,13 @@ static void prefs_changed_cpu (void)
 	currprefs.blitter_cycle_exact = changed_prefs.blitter_cycle_exact;
 }
 
-void check_prefs_changed_cpu (void)
-{
-	bool changed = false;
 
-	if (!config_changed)
-		return;
+static int check_prefs_changed_cpu2(void)
+{
+	int changed = 0;
+
 #ifdef JIT
-	changed = check_prefs_changed_comp ();
+	changed = check_prefs_changed_comp() ? 1 : 0;
 #endif
 	if (changed
 		|| currprefs.cpu_model != changed_prefs.cpu_model
@@ -1287,47 +1322,46 @@ void check_prefs_changed_cpu (void)
 		|| currprefs.fpu_no_unimplemented != changed_prefs.fpu_no_unimplemented
 		|| currprefs.cpu_compatible != changed_prefs.cpu_compatible
 		|| currprefs.cpu_cycle_exact != changed_prefs.cpu_cycle_exact) {
-
-			prefs_changed_cpu ();
-			build_cpufunctbl ();
-			fill_prefetch ();
-			changed = true;
+			changed |= 1;
 	}
 	if (changed
 		|| currprefs.m68k_speed != changed_prefs.m68k_speed
 		|| currprefs.m68k_speed_throttle != changed_prefs.m68k_speed_throttle
 		|| currprefs.cpu_clock_multiplier != changed_prefs.cpu_clock_multiplier
 		|| currprefs.cpu_frequency != changed_prefs.cpu_frequency) {
-			currprefs.m68k_speed = changed_prefs.m68k_speed;
-			currprefs.m68k_speed_throttle = changed_prefs.m68k_speed_throttle;
-			update_68k_cycles ();
-			changed = true;
+			changed |= 2;
 	}
+	return changed;
+}
+
+
+void check_prefs_changed_cpu(void)
+{
+	if (!config_changed)
+		return;
 
 	if (currprefs.cpu_idle != changed_prefs.cpu_idle) {
 		currprefs.cpu_idle = changed_prefs.cpu_idle;
 	}
-	if (changed) {
-		set_special (SPCFLAG_BRK);
-		reset_frame_rate_hack ();
+	if (check_prefs_changed_cpu2()) {
+		set_special(SPCFLAG_MODE_CHANGE);
+		reset_frame_rate_hack();
 	}
-
 }
+
 
 void init_m68k (void)
 {
-	int i;
-
 	prefs_changed_cpu ();
 	update_68k_cycles ();
 
-	for (i = 0 ; i < 256 ; i++) {
+	for (int i = 0 ; i < 256 ; i++) {
 		int j;
 		for (j = 0 ; j < 8 ; j++) {
 			if (i & (1 << j)) break;
 		}
 		movem_index1[i] = j;
-		movem_index2[i] = 7-j;
+		movem_index2[i] = 7 - j;
 		movem_next[i] = i & (~(1 << j));
 	}
 
@@ -1347,37 +1381,6 @@ void init_m68k (void)
 		}
 	}
 #endif
-	write_log (_T("Building CPU table for configuration: %d"), currprefs.cpu_model);
-	regs.address_space_mask = 0xffffffff;
-	if (currprefs.cpu_compatible) {
-		if (currprefs.address_space_24 && currprefs.cpu_model >= 68030)
-			currprefs.address_space_24 = false;
-	}
-	if (currprefs.fpu_model > 0)
-		write_log (_T("/%d"), currprefs.fpu_model);
-	if (currprefs.cpu_cycle_exact) {
-		if (currprefs.cpu_model == 68000)
-			write_log (_T(" prefetch and cycle-exact"));
-		else
-			write_log (_T(" ~cycle-exact"));
-	} else if (currprefs.cpu_compatible) {
-		if (currprefs.cpu_model <= 68020) {
-			write_log (_T(" prefetch"));
-		} else {
-			write_log (_T(" fake prefetch"));
-		}
-	}
-	if (currprefs.int_no_unimplemented && currprefs.cpu_model == 68060) {
-		write_log (_T(" no unimplemented integer instructions"));
-	}
-	if (currprefs.fpu_no_unimplemented && currprefs.fpu_model) {
-		write_log (_T(" no unimplemented floating point instructions"));
-	}
-	if (currprefs.address_space_24) {
-		regs.address_space_mask = 0x00ffffff;
-		write_log (_T(" 24-bit"));
-	}
-	write_log (_T("\n"));
 
 	read_table68k ();
 	do_merges ();
@@ -1398,9 +1401,11 @@ struct regstruct regs, mmu_backup_regs;
 struct flag_struct regflags;
 static long int UNUSED(m68kpc_offset);
 
+#if 0
 #define get_ibyte_1(o) get_byte (regs.pc + (regs.pc_p - regs.pc_oldp) + (o) + 1)
 #define get_iword_1(o) get_word (regs.pc + (regs.pc_p - regs.pc_oldp) + (o))
 #define get_ilong_1(o) get_long (regs.pc + (regs.pc_p - regs.pc_oldp) + (o))
+#endif
 
 static uaecptr ShowEA (void *f, uaecptr pc, uae_u16 opcode, int reg, amodes mode, wordsizes size, TCHAR *buf, uae_u32 *eaddr, int safemode)
 {
@@ -1549,8 +1554,32 @@ static uaecptr ShowEA (void *f, uaecptr pc, uae_u16 opcode, int reg, amodes mode
 			pc += 2;
 			break;
 		case sz_long:
-			_stprintf (buffer, _T("#$%08lx"), (unsigned long)(get_ilong_debug (pc)));
+			_stprintf(buffer, _T("#$%08lx"), (unsigned long)(get_ilong_debug(pc)));
 			pc += 4;
+			break;
+		case sz_single:
+			_stprintf(buffer, _T("#%e"), to_single(get_ilong_debug(pc)));
+			pc += 4;
+			break;
+		case sz_double:
+			_stprintf(buffer, _T("#%e"), to_double(get_ilong_debug(pc), get_ilong_debug(pc + 4)));
+			pc += 8;
+			break;
+		case sz_extended:
+		{
+			fpdata fp;
+			to_exten(&fp, get_ilong_debug(pc), get_ilong_debug(pc + 4), get_ilong_debug(pc + 8));
+#if USE_LONG_DOUBLE
+			_stprintf(buffer, _T("#%Le"), fp.fp);
+#else
+			_stprintf(buffer, _T("#%e"), fp.fp);
+#endif
+			pc += 12;
+			break;
+		}
+		case sz_packed:
+			_stprintf(buffer, _T("#$%08lx%08lx%08lx"), (unsigned long)(get_ilong_debug(pc)), (unsigned long)(get_ilong_debug(pc + 4)), (unsigned long)(get_ilong_debug(pc + 8)));
+			pc += 12;
 			break;
 		default:
 			break;
@@ -2576,7 +2605,7 @@ void REGPARAM2 ExceptionL (int nr, uaecptr address)
 	ExceptionX (nr, address);
 }
 
-STATIC_INLINE void do_interrupt (int nr)
+static void do_interrupt (int nr)
 {
 	if (debug_dma)
 		record_dma_event (DMA_EVENT_CPUIRQ, current_hpos (), vpos);
@@ -2633,8 +2662,7 @@ static void m68k_reset (bool hardreset)
 #endif
 	v = get_long (4);
 	m68k_areg (regs, 7) = get_long (0);
-	m68k_setpc (v);
-	m68k_setpci (v);
+	m68k_setpc_normal(v);
 	regs.s = 1;
 	regs.m = 0;
 	regs.stopped = 0;
@@ -3070,9 +3098,13 @@ void doint (void)
 
 #define IDLETIME (currprefs.cpu_idle * sleep_resolution / 1000)
 
-STATIC_INLINE int do_specialties (int cycles)
+static int do_specialties (int cycles)
 {
-		regs.instruction_pc = m68k_getpc ();
+	if (regs.spcflags & SPCFLAG_MODE_CHANGE)
+		return 1;
+	
+	regs.instruction_pc = m68k_getpc();
+
 #ifdef ACTION_REPLAY
 #ifdef ACTION_REPLAY_HRTMON
 	if ((regs.spcflags & SPCFLAG_ACTION_REPLAY) && hrtmon_flag != ACTION_REPLAY_INACTIVE) {
@@ -3183,10 +3215,8 @@ STATIC_INLINE int do_specialties (int cycles)
 			}
 		}
 
-		if ((regs.spcflags & (SPCFLAG_BRK | SPCFLAG_MODE_CHANGE))) {
-			unset_special (SPCFLAG_BRK | SPCFLAG_MODE_CHANGE);
-			// SPCFLAG_BRK breaks STOP condition, need to prefetch
-			m68k_resumestopped ();
+		if (regs.spcflags & SPCFLAG_MODE_CHANGE) {
+			m68k_resumestopped();
 			return 1;
 		}
 
@@ -3238,8 +3268,14 @@ STATIC_INLINE int do_specialties (int cycles)
 		set_special (SPCFLAG_INT);
 	}
 
-	if ((regs.spcflags & (SPCFLAG_BRK | SPCFLAG_MODE_CHANGE)))
-		return 1;
+	if (regs.spcflags & SPCFLAG_BRK) {
+		unset_special(SPCFLAG_BRK);
+#ifdef DEBUGGER
+		if (debugging)
+			debug();
+#endif
+	}
+
 	return 0;
 }
 
@@ -3542,7 +3578,7 @@ void exec_nostats (void)
 
 	for (;;)
 	{
-		uae_u16 opcode = get_iword (0);
+		uae_u16 opcode = get_diword (0);
 		cpu_cycles = (*cpufunctbl[opcode])(opcode);
 		cpu_cycles = adjust_cycles (cpu_cycles);
 		do_cycles (cpu_cycles);
@@ -3576,7 +3612,7 @@ void execute_normal (void)
 		if (currprefs.cpu_compatible) {
 			opcode = get_word_020_prefetchf (regs.instruction_pc);
 		} else {
-			opcode = get_iword (0);
+			opcode = get_diword (0);
 		}
 
 		special_mem = DISTRUST_CONSISTENT_MEM;
@@ -4106,7 +4142,7 @@ static void m68k_run_2 (void)
 
 	for (;;) {
 		r->instruction_pc = m68k_getpc ();
-		uae_u16 opcode = get_iword (0);
+		uae_u16 opcode = get_diword (0);
 		count_instr (opcode);
 
 //		if (regs.s == 0 && regs.regs[15] < 0x10040000 && regs.regs[15] > 0x10000000)
@@ -4136,7 +4172,7 @@ static void m68k_run_2 (void)
 static void UNUSED_FUNCTION(m68k_run_mmu) (void)
 {
 	for (;;) {
-		uae_u16 opcode = get_iword (0);
+		uae_u16 opcode = get_iiword (0);
 		do_cycles (cpu_cycles);
 		mmu_backup_regs = regs;
 		cpu_cycles = (*cpufunctbl[opcode])(opcode);
@@ -4282,15 +4318,24 @@ void m68k_go (int may_quit)
 			}
 		}
 
-#if 0 /* what was the meaning of this? this breaks trace emulation if debugger is used */
-		if (regs.spcflags) {
-			uae_u32 of = regs.spcflags;
-			regs.spcflags &= ~(SPCFLAG_BRK | SPCFLAG_MODE_CHANGE);
-			do_specialties (0);
-			regs.spcflags |= of & (SPCFLAG_BRK | SPCFLAG_MODE_CHANGE);
+		if (regs.spcflags & SPCFLAG_MODE_CHANGE) {
+			int v = check_prefs_changed_cpu2();
+			if (v & 1) {
+				uaecptr pc = m68k_getpc();
+				prefs_changed_cpu();
+				build_cpufunctbl();
+				m68k_setpc_normal(pc);
+				fill_prefetch();
+			}
+			if (v & 2) {
+				fixup_cpu(&changed_prefs);
+				currprefs.m68k_speed = changed_prefs.m68k_speed;
+				currprefs.m68k_speed_throttle = changed_prefs.m68k_speed_throttle;
+				update_68k_cycles();
+			}
 		}
-#endif
-		set_x_funcs ();
+
+		set_x_funcs();
 		if (startup) {
 			custom_prepare ();
 			protect_roms (true);
@@ -4322,9 +4367,10 @@ void m68k_go (int may_quit)
 #if 0
 		}
 #endif
+		unset_special(SPCFLAG_MODE_CHANGE);
+		unset_special(SPCFLAG_BRK);
 		//activate_debugger();
-		run_func ();
-		unset_special (SPCFLAG_BRK | SPCFLAG_MODE_CHANGE);
+		run_func();
 	}
 	protect_roms (false);
 	in_m68k_go--;
@@ -4361,10 +4407,145 @@ static void m68k_verify (uaecptr addr, uaecptr *nextpc)
 #endif
 
 static const TCHAR *ccnames[] =
-{ _T("T "),_T("F "),_T("HI"),_T("LS"),_T("CC"),_T("CS"),_T("NE"),_T("EQ"),
-_T("VC"),_T("VS"),_T("PL"),_T("MI"),_T("GE"),_T("LT"),_T("GT"),_T("LE") };
+{
+	_T("T "),_T("F "),_T("HI"),_T("LS"),_T("CC"),_T("CS"),_T("NE"),_T("EQ"),
+	_T("VC"),_T("VS"),_T("PL"),_T("MI"),_T("GE"),_T("LT"),_T("GT"),_T("LE")
+};
+static const TCHAR *fpccnames[] =
+{
+	_T("F"),
+	_T("EQ"),
+	_T("OGT"),
+	_T("OGE"),
+	_T("OLT"),
+	_T("OLE"),
+	_T("OGL"),
+	_T("OR"),
+	_T("UN"),
+	_T("UEQ"),
+	_T("UGT"),
+	_T("UGE"),
+	_T("ULT"),
+	_T("ULE"),
+	_T("NE"),
+	_T("T"),
+	_T("SF"),
+	_T("SEQ"),
+	_T("GT"),
+	_T("GE"),
+	_T("LT"),
+	_T("LE"),
+	_T("GL"),
+	_T("GLE"),
+	_T("NGLE"),
+	_T("NGL"),
+	_T("NLE"),
+	_T("NLT"),
+	_T("NGE"),
+	_T("NGT"),
+	_T("SNE"),
+	_T("ST")
+};
+static const TCHAR *fpuopcodes[] =
+{
+	_T("FMOVE"),
+	_T("FINT"),
+	_T("FSINH"),
+	_T("FINTRZ"),
+	_T("FSQRT"),
+	NULL,
+	_T("FLOGNP1"),
+	NULL,
+	_T("FETOXM1"),
+	_T("FTANH"),
+	_T("FATAN"),
+	NULL,
+	_T("FASIN"),
+	_T("FATANH"),
+	_T("FSIN"),
+	_T("FTAN"),
+	_T("FETOX"),	// 0x10
+	_T("FTWOTOX"),
+	_T("FTENTOX"),
+	NULL,
+	_T("FLOGN"),
+	_T("FLOG10"),
+	_T("FLOG2"),
+	NULL,
+	_T("FABS"),
+	_T("FCOSH"),
+	_T("FNEG"),
+	NULL,
+	_T("FACOS"),
+	_T("FCOS"),
+	_T("FGETEXP"),
+	_T("FGETMAN"),
+	_T("FDIV"),		// 0x20
+	_T("FMOD"),
+	_T("FADD"),
+	_T("FMUL"),
+	_T("FSGLDIV"),
+	_T("FREM"),
+	_T("FSCALE"),
+	_T("FSGLMUL"),
+	_T("FSUB"),
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	_T("FSINCOS"),	// 0x30
+	_T("FSINCOS"),
+	_T("FSINCOS"),
+	_T("FSINCOS"),
+	_T("FSINCOS"),
+	_T("FSINCOS"),
+	_T("FSINCOS"),
+	_T("FSINCOS"),
+	_T("FCMP"),
+	NULL,
+	_T("FTST"),
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL
+};
 
-static void addmovemreg (TCHAR *out, int *prevreg, int *lastreg, int *first, int reg)
+static const TCHAR *movemregs[] =
+{
+	_T("D0"),
+	_T("D1"),
+	_T("D2"),
+	_T("D3"),
+	_T("D4"),
+	_T("D5"),
+	_T("D6"),
+	_T("D7"),
+	_T("A0"),
+	_T("A1"),
+	_T("A2"),
+	_T("A3"),
+	_T("A4"),
+	_T("A5"),
+	_T("A6"),
+	_T("A7"),
+	_T("FP0"),
+	_T("FP1"),
+	_T("FP2"),
+	_T("FP3"),
+	_T("FP4"),
+	_T("FP5"),
+	_T("FP6"),
+	_T("FP7"),
+	_T("FPCR"),
+	_T("FPSR"),
+	_T("FPIAR")
+};
+
+static void addmovemreg (TCHAR *out, int *prevreg, int *lastreg, int *first, int reg, int fpmode)
 {
 	TCHAR *p = out + _tcslen (out);
 	if (*prevreg < 0) {
@@ -4372,13 +4553,13 @@ static void addmovemreg (TCHAR *out, int *prevreg, int *lastreg, int *first, int
 		*lastreg = reg;
 		return;
 	}
-	if ((*prevreg) + 1 != reg || (reg & 8) != ((*prevreg & 8))) {
-		_stprintf (p, _T("%s%c%d"), (*first) ? _T("") : _T("/"), (*lastreg) < 8 ? 'D' : 'A', (*lastreg) & 7);
+	if (reg < 0 || fpmode == 2 || (*prevreg) + 1 != reg || (reg & 8) != ((*prevreg & 8))) {
+		_stprintf (p, _T("%s%s"), (*first) ? _T("") : _T("/"), movemregs[*lastreg]);
 		p = p + _tcslen (p);
 		if ((*lastreg) + 2 == reg) {
-			_stprintf (p, _T("/%c%d"), (*prevreg) < 8 ? 'D' : 'A', (*prevreg) & 7);
+			_stprintf (p, _T("/%s"), movemregs[*prevreg]);
 		} else if ((*lastreg) != (*prevreg)) {
-			_stprintf (p, _T("-%c%d"), (*prevreg) < 8 ? 'D' : 'A', (*prevreg) & 7);
+			_stprintf (p, _T("-%s"), movemregs[*prevreg]);
 		}
 		*lastreg = reg;
 		*first = 0;
@@ -4386,18 +4567,20 @@ static void addmovemreg (TCHAR *out, int *prevreg, int *lastreg, int *first, int
 	*prevreg = reg;
 }
 
-static void movemout (TCHAR *out, uae_u16 mask, int mode)
+static void movemout (TCHAR *out, uae_u16 mask, int mode, int fpmode)
 {
 	unsigned int dmask, amask;
 	int prevreg = -1, lastreg = -1, first = 1;
 
-	if (mode == Apdi) {
-		int i;
-		uae_u8 dmask2 = (mask >> 8) & 0xff;
-		uae_u8 amask2 = mask & 0xff;
+	if (mode == Apdi && !fpmode) {
+		uae_u8 dmask2;
+		uae_u8 amask2;
+		
+		amask2 = mask & 0xff;
+		dmask2 = (mask >> 8) & 0xff;
 		dmask = 0;
 		amask = 0;
-		for (i = 0; i < 8; i++) {
+		for (int i = 0; i < 8; i++) {
 			if (dmask2 & (1 << i))
 				dmask |= 1 << (7 - i);
 			if (amask2 & (1 << i))
@@ -4406,29 +4589,51 @@ static void movemout (TCHAR *out, uae_u16 mask, int mode)
 	} else {
 		dmask = mask & 0xff;
 		amask = (mask >> 8) & 0xff;
+		if (fpmode == 1 && mode != Apdi) {
+			uae_u8 dmask2 = dmask;
+			dmask = 0;
+			for (int i = 0; i < 8; i++) {
+				if (dmask2 & (1 << i))
+					dmask |= 1 << (7 - i);
+			}
+		}
 	}
-	while (dmask) { addmovemreg (out, &prevreg, &lastreg, &first, movem_index1[dmask]); dmask = movem_next[dmask]; }
-	while (amask) { addmovemreg (out, &prevreg, &lastreg, &first, movem_index1[amask] + 8); amask = movem_next[amask]; }
-	addmovemreg (out, &prevreg, &lastreg, &first, -1);
+	if (fpmode) {
+		while (dmask) { addmovemreg(out, &prevreg, &lastreg, &first, movem_index1[dmask] + (fpmode == 2 ? 24 : 16), fpmode); dmask = movem_next[dmask]; }
+	} else {
+		while (dmask) { addmovemreg (out, &prevreg, &lastreg, &first, movem_index1[dmask], fpmode); dmask = movem_next[dmask]; }
+		while (amask) { addmovemreg (out, &prevreg, &lastreg, &first, movem_index1[amask] + 8, fpmode); amask = movem_next[amask]; }
+	}
+	addmovemreg(out, &prevreg, &lastreg, &first, -1, fpmode);
 }
+
+static const TCHAR *fpsizes[] = {
+	_T("L"),
+	_T("S"),
+	_T("X"),
+	_T("P"),
+	_T("W"),
+	_T("D"),
+	_T("B"),
+	_T("P")
+};
+static const int fpsizeconv[] = {
+	sz_long,
+	sz_single,
+	sz_extended,
+	sz_packed,
+	sz_word,
+	sz_double,
+	sz_byte,
+	sz_packed
+};
 
 static void disasm_size (TCHAR *instrname, struct instr *dp)
 {
-#if 0
-	int i, size;
-	uae_u16 mnemo = dp->mnemo;
-
-	size = dp->size;
-	for (i = 0; i < 65536; i++) {
-		struct instr *in = &table68k[i];
-		if (in->mnemo == mnemo && in != dp) {
-			if (size != in->size)
-				break;
-		}
+	if (dp->unsized) {
+		_tcscat(instrname, _T(" "));
+		return;
 	}
-	if (i == 65536)
-		size = -1;
-#endif
 	switch (dp->size)
 	{
 	case sz_byte:
@@ -4441,7 +4646,7 @@ static void disasm_size (TCHAR *instrname, struct instr *dp)
 		_tcscat (instrname, _T(".L "));
 		break;
 	default:
-		_tcscat (instrname, _T("   "));
+		_tcscat (instrname, _T(" "));
 		break;
 	}
 }
@@ -4459,6 +4664,7 @@ void m68k_disasm_2 (TCHAR *buf, int bufsize, uaecptr pc, uaecptr *nextpc, int cn
 		TCHAR instrname[100], *ccpt;
 		int i;
 		uae_u32 opcode;
+		uae_u16 extra;
 		struct mnemolookup *lookup;
 		struct instr *dp;
 		int oldpc;
@@ -4468,6 +4674,7 @@ void m68k_disasm_2 (TCHAR *buf, int bufsize, uaecptr pc, uaecptr *nextpc, int cn
 		seaddr2 = deaddr2 = 0;
 		oldpc = pc;
 		opcode = get_word_debug (pc);
+		extra = get_word_debug (pc + 2);
 		if (cpufunctbl[opcode] == op_illg_1 || cpufunctbl[opcode] == op_unimpl_1) {
 			m68kpc_illg = pc + 2;
 			illegal = TRUE;
@@ -4492,12 +4699,15 @@ void m68k_disasm_2 (TCHAR *buf, int bufsize, uaecptr pc, uaecptr *nextpc, int cn
 			_tcscpy (instrname, lookup->name);
 		ccpt = _tcsstr (instrname, _T("cc"));
 		if (ccpt != 0) {
-			_tcsncpy (ccpt, ccnames[dp->cc], 2);
+			if ((opcode & 0xf000) == 0xf000)
+				_tcscpy (ccpt, fpccnames[extra & 0x1f]);
+			else
+				_tcsncpy (ccpt, ccnames[dp->cc], 2);
 		}
 		disasm_size (instrname, dp);
 
 		if (lookup->mnemo == i_MOVEC2 || lookup->mnemo == i_MOVE2C) {
-			uae_u16 imm = get_word_debug (pc);
+			uae_u16 imm = extra;
 			uae_u16 creg = imm & 0x0fff;
 			uae_u16 r = imm >> 12;
 			TCHAR regs[16];
@@ -4521,17 +4731,177 @@ void m68k_disasm_2 (TCHAR *buf, int bufsize, uaecptr pc, uaecptr *nextpc, int cn
 			}
 			pc += 2;
 		} else if (lookup->mnemo == i_MVMEL) {
-			uae_u16 mask = get_word_debug (pc);
+			uae_u16 mask = extra;
 			pc += 2;
 			pc = ShowEA (0, pc, opcode, dp->dreg, dp->dmode, dp->size, instrname, deaddr, safemode);
 			_tcscat (instrname, _T(","));
-			movemout (instrname, mask, dp->dmode);
+			movemout (instrname, mask, dp->dmode, 0);
 		} else if (lookup->mnemo == i_MVMLE) {
-			uae_u16 mask = get_word_debug (pc);
+			uae_u16 mask = extra;
 			pc += 2;
-			movemout (instrname, mask, dp->dmode);
-			_tcscat (instrname, _T(","));
-			pc = ShowEA (0, pc, opcode, dp->dreg, dp->dmode, dp->size, instrname, deaddr, safemode);
+			movemout(instrname, mask, dp->dmode, 0);
+			_tcscat(instrname, _T(","));
+			pc = ShowEA(0, pc, opcode, dp->dreg, dp->dmode, dp->size, instrname, deaddr, safemode);
+		} else if (lookup->mnemo == i_DIVL || lookup->mnemo == i_MULL) {
+			TCHAR *p;
+			pc = ShowEA(0, pc, opcode, dp->dreg, dp->dmode, dp->size, instrname, &seaddr2, safemode);
+			extra = get_word_debug(pc);
+			pc += 2;
+			p = instrname + _tcslen(instrname);
+			if (extra & 0x0400)
+				_stprintf(p, _T(",D%d:D%d"), extra & 7, (extra >> 12) & 7);
+			else
+				_stprintf(p, _T(",D%d"), (extra >> 12) & 7);
+		} else if (lookup->mnemo == i_MOVES) {
+			TCHAR *p;
+			pc += 2;
+			if (extra & 0x1000) {
+				pc = ShowEA(0, pc, opcode, dp->dreg, dp->dmode, dp->size, instrname, &seaddr2, safemode);
+				p = instrname + _tcslen(instrname);
+				_stprintf(p, _T(",%c%d"), (extra & 0x8000) ? 'A' : 'D', (extra >> 12) & 7);
+			} else {
+				p = instrname + _tcslen(instrname);
+				_stprintf(p, _T("%c%d,"), (extra & 0x8000) ? 'A' : 'D', (extra >> 12) & 7);
+				pc = ShowEA(0, pc, opcode, dp->dreg, dp->dmode, dp->size, instrname, &seaddr2, safemode);
+			}
+		} else if (lookup->mnemo == i_BFEXTS || lookup->mnemo == i_BFEXTU ||
+				   lookup->mnemo == i_BFCHG || lookup->mnemo == i_BFCLR ||
+				   lookup->mnemo == i_BFFFO || lookup->mnemo == i_BFINS ||
+				   lookup->mnemo == i_BFSET || lookup->mnemo == i_BFTST) {
+			TCHAR *p;
+			int reg = -1;
+
+			pc += 2;
+			p = instrname + _tcslen(instrname);
+			if (lookup->mnemo == i_BFEXTS || lookup->mnemo == i_BFEXTU || lookup->mnemo == i_BFFFO || lookup->mnemo == i_BFINS)
+				reg = (extra >> 12) & 7;
+			if (lookup->mnemo == i_BFINS)
+				_stprintf(p, _T("D%d,"), reg);
+			pc = ShowEA(0, pc, opcode, dp->dreg, dp->dmode, dp->size, instrname, &seaddr2, safemode);
+			_tcscat(instrname, _T(" {"));
+			p = instrname + _tcslen(instrname);
+			if (extra & 0x0800)
+				_stprintf(p, _T("D%d"), (extra >> 6) & 7);
+			else
+				_stprintf(p, _T("%d"), (extra >> 6) & 31);
+			_tcscat(instrname, _T(":"));
+			p = instrname + _tcslen(instrname);
+			if (extra & 0x0020)
+				_stprintf(p, _T("D%d"), extra & 7);
+			else
+				_stprintf(p, _T("%d"), extra  & 31);
+			_tcscat(instrname, _T("}"));
+			p = instrname + _tcslen(instrname);
+			if (lookup->mnemo == i_BFFFO || lookup->mnemo == i_BFEXTS || lookup->mnemo == i_BFEXTU)
+				_stprintf(p, _T(",D%d"), reg);
+		} else if (lookup->mnemo == i_CPUSHA || lookup->mnemo == i_CPUSHL || lookup->mnemo == i_CPUSHP) {
+			if ((opcode & 0xc0) == 0xc0)
+				_tcscat(instrname, _T("BC"));
+			else if (opcode & 0x80)
+				_tcscat(instrname, _T("IC"));
+			else if (opcode & 0x40)
+				_tcscat(instrname, _T("DC"));
+			else
+				_tcscat(instrname, _T("?"));
+			if (lookup->mnemo == i_CPUSHL || lookup->mnemo == i_CPUSHP) {
+				TCHAR *p = instrname + _tcslen(instrname);
+				_stprintf(p, _T(",(A%d)"), opcode & 7);
+			}
+		} else if (lookup->mnemo == i_FPP) {
+			TCHAR *p;
+			int ins = extra & 0x3f;
+			int size = (extra >> 10) & 7;
+
+			pc += 2;
+			if ((extra & 0xfc00) == 0x5c00) { // FMOVECR (=i_FPP with source specifier = 7)
+				fpdata fp;
+				if (fpu_get_constant(&fp, extra))
+#if USE_LONG_DOUBLE
+					_stprintf(instrname, _T("FMOVECR.X #%Le,FP%d"), fp.fp, (extra >> 7) & 7);
+#else
+					_stprintf(instrname, _T("FMOVECR.X #%e,FP%d"), fp.fp, (extra >> 7) & 7);
+#endif
+				else
+					_stprintf(instrname, _T("FMOVECR.X #?,FP%d"), (extra >> 7) & 7);
+			} else if ((extra & 0x8000) == 0x8000) { // FMOVEM
+				int dr = (extra >> 13) & 1;
+				int mode;
+				int dreg = (extra >> 4) & 7;
+				int regmask, fpmode;
+				
+				if (extra & 0x4000) {
+					mode = (extra >> 11) & 3;
+					regmask = extra & 0xff;  // FMOVEM FPx
+					fpmode = 1;
+					_tcscpy(instrname, _T("FMOVEM.X "));
+				} else {
+					mode = 0;
+					regmask = (extra >> 10) & 7;  // FMOVEM control
+					fpmode = 2;
+					_tcscpy(instrname, _T("FMOVEM.L "));
+					if (regmask == 1 || regmask == 2 || regmask == 4)
+						_tcscpy(instrname, _T("FMOVE.L "));
+				}
+				p = instrname + _tcslen(instrname);
+				if (dr) {
+					if (mode & 1)
+						_stprintf(instrname, _T("D%d"), dreg);
+					else
+						movemout(instrname, regmask, dp->dmode, fpmode);
+					_tcscat(instrname, _T(","));
+					pc = ShowEA(0, pc, opcode, dp->dreg, dp->dmode, dp->size, instrname, deaddr, safemode);
+				} else {
+					pc = ShowEA(0, pc, opcode, dp->dreg, dp->dmode, dp->size, instrname, deaddr, safemode);
+					_tcscat(instrname, _T(","));
+					p = instrname + _tcslen(instrname);
+					if (mode & 1)
+						_stprintf(p, _T("D%d"), dreg);
+					else
+						movemout(p, regmask, dp->dmode, fpmode);
+				}
+			} else {
+				if (fpuopcodes[ins])
+					_tcscpy(instrname, fpuopcodes[ins]);
+				else
+					_tcscpy(instrname, _T("F?"));
+
+				if ((extra & 0xe000) == 0x6000) { // FMOVE to memory
+					int kfactor = extra & 0x7f;
+					_tcscpy(instrname, _T("FMOVE."));
+					_tcscat(instrname, fpsizes[size]);
+					_tcscat(instrname, _T(" "));
+					p = instrname + _tcslen(instrname);
+					_stprintf(p, _T("FP%d,"), (extra >> 10) & 7);
+					pc = ShowEA(0, pc, opcode, dp->dreg, dp->dmode, fpsizeconv[size], instrname, &deaddr2, safemode);
+					p = instrname + _tcslen(instrname);
+					if (size == 7) {
+						_stprintf(p, _T(" {D%d}"), (kfactor >> 4));
+					} else if (kfactor) {
+						if (kfactor & 0x40)
+							kfactor |= ~0x3f;
+						_stprintf(p, _T(" {%d}"), kfactor);
+					}
+				} else {
+					if (extra & 0x4000) { // source is EA
+						_tcscat(instrname, _T("."));
+						_tcscat(instrname, fpsizes[size]);
+						_tcscat(instrname, _T(" "));
+						pc = ShowEA(0, pc, opcode, dp->dreg, dp->dmode, fpsizeconv[size], instrname, &seaddr2, safemode);
+					} else { // source is FPx
+						p = instrname + _tcslen(instrname);
+						_stprintf(p, _T(".X FP%d"), (extra >> 10) & 7);
+					}
+					p = instrname + _tcslen(instrname);
+					if ((extra & 0x4000) || (((extra >> 7) & 7) != ((extra >> 10) & 7)))
+						_stprintf(p, _T(",FP%d"), (extra >> 7) & 7);
+					if (ins >= 0x30 && ins < 0x38) { // FSINCOS
+						p = instrname + _tcslen(instrname);
+						_stprintf(p, _T(",FP%d"), extra & 7);
+					}
+				}
+			}
+		} else if ((opcode & 0xf000) == 0xa000) {
+			_tcscpy(instrname, _T("A-LINE"));
 		} else {
 			if (dp->suse) {
 				pc = ShowEA (0, pc, opcode, dp->sreg, dp->smode, dp->size, instrname, &seaddr2, safemode);
@@ -4543,7 +4913,7 @@ void m68k_disasm_2 (TCHAR *buf, int bufsize, uaecptr pc, uaecptr *nextpc, int cn
 			}
 		}
 
-		for (i = 0; i < (pc - oldpc) / 2; i++) {
+		for (i = 0; i < (pc - oldpc) / 2 && i < 5; i++) {
 			buf = buf_out (buf, &bufsize, _T("%04x "), get_word_debug (oldpc + i * 2));
 		}
 		while (i++ < 5)
@@ -4559,10 +4929,19 @@ void m68k_disasm_2 (TCHAR *buf, int bufsize, uaecptr pc, uaecptr *nextpc, int cn
 			uaecptr addr2 = deaddr2 ? deaddr2 : seaddr2;
 			if (deaddr)
 				*deaddr = pc;
-			if (cctrue (dp->cc))
-				buf = buf_out (buf, &bufsize, _T(" == $%08x (T)"), addr2);
-			else
-				buf = buf_out (buf, &bufsize, _T(" == $%08x (F)"), addr2);
+			if ((opcode & 0xf000) == 0xf000) {
+				if (fpp_cond(dp->cc)) {
+					buf = buf_out(buf, &bufsize, _T(" == $%08x (T)"), addr2);
+				} else {
+					buf = buf_out(buf, &bufsize, _T(" == $%08x (F)"), addr2);
+				}
+			} else {
+				if (cctrue (dp->cc)) {
+					buf = buf_out (buf, &bufsize, _T(" == $%08x (T)"), addr2);
+				} else {
+					buf = buf_out (buf, &bufsize, _T(" == $%08x (F)"), addr2);
+				}
+			}
 		} else if ((opcode & 0xff00) == 0x6100) { /* BSR */
 			if (deaddr)
 				*deaddr = pc;
@@ -5762,7 +6141,7 @@ STATIC_INLINE void update_cache030 (struct cache030 *c, uae_u32 val, uae_u32 tag
 	c->data[lws] = val;
 }
 
-STATIC_INLINE void fill_icache030 (uae_u32 addr)
+static void fill_icache030 (uae_u32 addr)
 {
 	int lws;
 	uae_u32 tag;

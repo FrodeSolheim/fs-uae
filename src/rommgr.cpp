@@ -92,7 +92,7 @@ struct romdata *getromdatabypath (const TCHAR *path)
 	return NULL;
 }
 
-#define NEXT_ROM_ID 88
+#define NEXT_ROM_ID 89
 
 #define ALTROM(id,grp,num,size,flags,crc32,a,b,c,d,e) \
 { _T("X"), 0, 0, 0, 0, 0, size, id, 0, 0, flags, (grp << 16) | num, 0, NULL, crc32, a, b, c, d, e },
@@ -314,6 +314,7 @@ static struct romdata roms[] = {
 	{ _T("Arcadia Ninja Mission"), 0, 0, 0, 0, _T("ARCADIA\0"), 0, 84, 0, 0, ROMTYPE_ARCADIAGAME, 0, 2 },
 	{ _T("Arcadia Sidewinder"), 0, 0, 0, 0, _T("ARCADIA\0"), 0, 85, 0, 0, ROMTYPE_ARCADIAGAME, 0, 2 },
 	{ _T("Arcadia Leader Board Golf v2.5"), 0, 0, 0, 0, _T("ARCADIA\0"), 0, 86, 0, 0, ROMTYPE_ARCADIAGAME, 0, 2 },
+	{ _T("Arcadia Aaargh"), 0, 0, 0, 0, _T("ARCADIA\0"), 0, 88, 0, 0, ROMTYPE_ARCADIAGAME, 0, 2 },
 
 	{ NULL }
 

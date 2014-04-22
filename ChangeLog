@@ -1,5 +1,6 @@
 Version 2.5.2dev:
 
+* Merged code from WinUAE 2800b18.
 * SDL2 is now default on all platforms (make sdl=1 to override for now).
 * Fixes to make the windows version compile with SDL2.
 * Fixes for FS-UAE compilation with mingw-w32 4.6.3.

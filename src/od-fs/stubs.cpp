@@ -4,6 +4,11 @@
 #include "options.h"
 #include "scsidev.h"
 
+void graphics_reset(void)
+{
+    LOG_STUB("");
+}
+
 void clipboard_vsync (void) {
 
 }

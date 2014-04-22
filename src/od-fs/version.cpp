@@ -1,3 +1,3 @@
 const char *get_libamiga_base_version() {
-    return "WinUAE 2710b12";
+    return "WinUAE 2800b17";
 }

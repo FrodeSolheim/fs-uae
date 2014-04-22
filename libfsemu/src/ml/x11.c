@@ -10,6 +10,7 @@
 #include <fs/image.h>
 #include <fs/string.h>
 #include <fs/filesys.h>
+#include <fs/config.h>
 #include "ml_internal.h"
 
 #ifdef USE_SDL2
@@ -79,6 +80,40 @@ static void set_window_icon() {
     free(icon_data);
 }
 
+static void set_above_state() {
+    printf("_NET_WM_STATE = _NET_WM_STATE_ABOVE\n");
+    Atom ATOM = XInternAtom(g_display, "ATOM", False);
+    Atom _NET_WM_STATE = XInternAtom(g_display, "_NET_WM_STATE", False);
+    Atom _NET_WM_STATE_ABOVE = XInternAtom(
+        g_display, "_NET_WM_STATE_ABOVE", False);
+    XChangeProperty(g_display, g_window, _NET_WM_STATE, ATOM, 32,
+            PropModeReplace, (unsigned char *) &_NET_WM_STATE_ABOVE, 1);
+
+    XEvent ev;
+    memset(&ev, 0, sizeof(ev));
+    ev.type = ClientMessage;
+    ev.xclient.type         = ClientMessage;
+    ev.xclient.message_type = XInternAtom(g_display, "_NET_WM_STATE", 0);
+    ev.xclient.display      = g_display;
+    ev.xclient.window       = g_window;
+    ev.xclient.format       = 32;
+    ev.xclient.data.l[0]    = 1; // set ? 1 : 0;
+
+    // *_STAYS_ON_TOP is probably KDE-specific
+    ev.xclient.data.l[1] = XInternAtom(
+        g_display, "_NET_WM_STATE_STAYS_ON_TOP", 0);
+    XLockDisplay(g_display);
+    XSendEvent(g_display, XDefaultRootWindow(g_display), 0,
+               SubstructureRedirectMask | SubstructureNotifyMask, &ev);
+
+    // to work with some non-KDE WMs we should use _NET_WM_STATE_ABOVE
+    ev.xclient.data.l[1] = XInternAtom(
+        g_display, "_NET_WM_STATE_ABOVE", 0);
+    XSendEvent(g_display, XDefaultRootWindow(g_display), 0,
+               SubstructureRedirectMask | SubstructureNotifyMask, &ev);
+    XUnlockDisplay(g_display);
+}
+
 void fs_ml_configure_window() {
     SDL_SysWMinfo info;
     SDL_VERSION(&info.version); // this is important!
@@ -112,6 +147,9 @@ void fs_ml_configure_window() {
             PropModeReplace, (const unsigned char *) "dark", 4);
 
     set_window_icon();
+    if (fs_config_get_int("always_on_top") == 1) {
+        set_above_state();
+    }
     /*
     set_window_icon(32);
     set_window_icon(48);

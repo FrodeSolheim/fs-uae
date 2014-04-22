@@ -3,6 +3,8 @@ Version 2.5.2dev:
 * SDL2 is now default on all platforms (make sdl=1 to override for now).
 * Fixes to make the windows version compile with SDL2.
 * Fixes for FS-UAE compilation with mingw-w32 4.6.3.
+* fs-uae-device-helper has a new --events mode which continuously prints
+  joystick events to stdout.
 
 Version 2.5.1dev:
 

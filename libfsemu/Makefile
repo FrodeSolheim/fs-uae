@@ -175,6 +175,9 @@ else ifeq ($(os), macosx)
 else
 	ifeq ($(os), linux)
 		cppflags += -DLINUX
+        # workaround for bug in libsdl2-dev / ubuntu
+        # https://bugs.launchpad.net/ubuntu/+source/libsdl2/+bug/1306629
+        cflags += -I/usr/include/mirclient -I/usr/include/mircommon
 	else ifeq ($(os), freebsd)
 		cppflags += -DFREEBSD
 	else ifeq ($(os), openbsd)

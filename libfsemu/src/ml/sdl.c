@@ -264,6 +264,8 @@ static void set_video_mode() {
         fs_log("setting (windowed) video mode %d %d\n", w, h);
     }
 
+    // SDL_SetHint(SDL_HINT_VIDEO_MAC_FULLSCREEN_SPACES, "0");
+
     g_fs_ml_video_width = w;
     g_fs_ml_video_height = h;
     fs_log("SDL_CreateWindow(x=%d, y=%d, w=%d, h=%d, flags=%d)\n",

@@ -112,25 +112,117 @@ void list_joysticks() {
     printf("# listing joysticks done\n");
 }
 
-void print_events(SDL_Joystick* joystick, const char* name) {
+void print_events() {
+#ifdef USE_SDL2
+    printf("# Printing events\n");
+
+    printf("# listing keyboards\n");
+    printf("{\"type\": \"keyboard-device-added\", \"device\": %d, "
+           "\"name\": \"%s\"}\n",
+           0, "Keyboard");
+
+    printf("# listing mice\n");
+    printf("{\"type\": \"mouse-device-added\", \"device\": %d, "
+           "\"name\": \"%s\"}\n",
+           0, "Mouse");
+    fflush(stdout);
+
+    int count = ManyMouse_Init();
+    if (count >= 0) {
+        for (int i = 0; i < count; i++) {
+            const char *name = ManyMouse_DeviceName(i);
+            if (name[0] == 0 || fs_ascii_strcasecmp(name, "mouse") == 0) {
+                printf("{\"type\": \"mouse-device-added\", \"device\": %d, "
+                       "\"name\": \"%s\"}\n",
+                       i + 1, "Unnamed Mouse");
+            }
+            else {
+                printf("{\"type\": \"mouse-device-added\", \"device\": %d, "
+                       "\"name\": \"%s\"}\n",
+                       i + 1, ManyMouse_DeviceName(i));
+            }
+            fflush(stdout);
+        }
+        ManyMouse_Quit();
+    }
+
+    if (SDL_Init(SDL_INIT_JOYSTICK | SDL_INIT_EVENTS) < 0) {
+        printf("# SDL_Init(SDL_INIT_JOYSTICK | SDL_INIT_EVENTS)) < 0\n");
+        return;
+    }
+
     SDL_Event event;
-    while (SDL_WaitEvent(&event)) {
+    int do_quit = 0;
+    while (do_quit == 0) {
+        SDL_WaitEvent(&event);
         switch (event.type) {
         case SDL_JOYBUTTONDOWN:
         case SDL_JOYBUTTONUP:
-            printf("%s button %d state %d\n",
-                name, event.jbutton.button, event.jbutton.state);
+            printf("{\"type\": \"%s\", \"device\": %d, "
+                   "\"button\": %d, \"state\": %d}\n",
+                   event.type == SDL_JOYBUTTONDOWN ? "joy-button-down" :
+                   "joy-button-up", event.jbutton.which, event.jbutton.button,
+                   event.jbutton.state);
             break;
         case SDL_JOYHATMOTION:
-            printf("%s hat %d state %d\n",
-                name, event.jhat.hat, event.jhat.value);
+            printf("{\"type\": \"joy-hat-motion\", \"device\": %d, "
+                   "\"hat\": %d, \"state\": %d}\n",
+                   event.jbutton.which, event.jhat.hat, event.jhat.value);
             break;
         case SDL_JOYAXISMOTION:
-            printf("%s axis %d state %d\n",
-                name, event.jaxis.axis, event.jaxis.value);
+#if 0
+            if (event.jaxis.value > -2000 && event.jaxis.value < 2000) {
+                break;
+            }
+#endif
+            printf("{\"type\": \"joy-axis-motion\", \"device\": %d, "
+                   "\"axis\": %d, \"state\": %d}\n",
+                   event.jbutton.which, event.jaxis.axis, event.jaxis.value);
+            break;
+        case SDL_JOYDEVICEADDED:
+            printf("# new joystick device added\n");
+            SDL_Joystick *joystick = SDL_JoystickOpen(event.jdevice.which);
+            const char *name = SDL_JoystickName(joystick);
+            if (name[0] == '\0') {
+                name = "Unnamed\n";
+            }
+            char *name2 = strdup(name);
+            char *c = name2;
+            while (*c) {
+                // simple hack, replacing a couple of chars to (easily)
+                // make the name valid json.
+                if (*c == '\"') {
+                    *c = '\'';
+                }
+                if (*c == '\\') {
+                    *c = '/';
+                }
+                c++;
+            }
+            printf("{\"type\": \"joy-device-added\", \"device\": %d, "
+                   "\"name\": \"%s\", \"buttons\": %d, \"axes\": %d, "
+                   "\"hats\": %d, \"balls\": %d}\n",
+                   event.jdevice.which, name2,
+                   SDL_JoystickNumButtons(joystick),
+                   SDL_JoystickNumAxes(joystick),
+                   SDL_JoystickNumHats(joystick),
+                   SDL_JoystickNumBalls(joystick));
+            free(name2);
+            break;
+        case SDL_JOYDEVICEREMOVED:
+            printf("# new joystick device removed\n");
+            printf("{\"type\": \"joy-device-removed\", \"device\": %d}\n",
+                   event.jdevice.which);
+            break;
+        case SDL_QUIT:
+            printf("# received quit signal\n");
+            do_quit = 1;
             break;
         }
+        fflush(stdout);
     }
+
+#endif
 }
 
 void print_state(SDL_Joystick* joystick, const char* name) {
@@ -164,13 +256,22 @@ int main(int argc, char* argv[]) {
 
     if (argc != 2) {
         printf("usages:\n");
-        printf("* fs-uae-device-helper list\n");
+        printf("* fs-uae-device-helper --list\n");
         printf("* fs-uae-device-helper <device-name>\n");
+        printf("* fs-uae-device-helper --events\n");
         return 1;
     }
 
+    if (strcmp(argv[1], "--list") == 0) {
+        list_joysticks();
+        return 0;
+    }
     if (strcmp(argv[1], "list") == 0) {
         list_joysticks();
+        return 0;
+    }
+    if (strcmp(argv[1], "--events") == 0) {
+        print_events();
         return 0;
     }
 

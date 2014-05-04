@@ -2,11 +2,9 @@ Source: fs-uae
 Section: otherosfs
 Priority: extra
 Maintainer: Frode Solheim <fs-uae@fengestad.no>
-Build-Depends: debhelper (>= 7.0.50~), libsdl1.2-dev, libglib2.0-dev, libopenal-dev, gettext, libfreetype6-dev, libxi-dev
+Build-Depends: debhelper (>= 7.0.50~), libsdl2-dev, libglib2.0-dev, libopenal-dev, gettext, libfreetype6-dev, libxi-dev
 Standards-Version: 3.8.4
 Homepage: http://fs-uae.net/
-#Vcs-Git: git://git.debian.org/collab-maint/fs-uae.git
-#Vcs-Browser: http://git.debian.org/?p=collab-maint/fs-uae.git;a=summary
 
 Package: fs-uae
 Architecture: any

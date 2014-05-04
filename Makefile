@@ -362,7 +362,7 @@ obj/qemuvga/vga.o
 #obj/chd-archiver-md5.o
 #obj/chd-archiver-sha1.o
 
-uae_deps = \
+gen_deps = \
 gen/blit.h \
 gen/comptbl.h \
 gen/linetoscr.cpp
@@ -544,7 +544,15 @@ obj/qemuvga/%.o: src/qemuvga/%.cpp
 
 endif
 
-obj/%.o: src/%.cpp
+obj/readcpu.o: src/readcpu.cpp
+	mkdir -p `dirname $@`
+	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -c $< -o $@
+
+obj/genblitter.o: src/genblitter.cpp
+	mkdir -p `dirname $@`
+	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -c $< -o $@
+
+obj/%.o: src/%.cpp gen/blit.h gen/comptbl.h gen/linetoscr.cpp
 	mkdir -p `dirname $@`
 	$(cxx) $(cppflags) $(cxxflags) $(uae_warn) -c $< -o $@
 
@@ -578,7 +586,9 @@ mo: $(catalogs)
 
 objects: $(uae_objects) $(objects)
 
-fs-uae: libfsemu-target $(uae_deps) $(uae_objects) $(objects)
+gen-deps-target: $(gen_deps)
+
+fs-uae: libfsemu-target gen-deps-target $(uae_objects) $(objects)
 	rm -f fs-uae
 	$(cxx) $(ldflags) $(objects) $(uae_objects) $(libs) -o fs-uae
 

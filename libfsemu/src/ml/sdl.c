@@ -247,6 +247,12 @@ static void set_video_mode() {
             // state
             w = g_window_width;
             h = g_window_height;
+
+            // x = 0;
+            // y = 0;
+            // w = g_fullscreen_width;
+            // h = g_fullscreen_height;
+
             flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
         }
         else {
@@ -559,7 +565,11 @@ int fs_ml_video_create_window(const char *title) {
     fs_emu_video_init_opengl();
 
 #ifdef WINDOWS
+#ifdef USE_SDL2
+    // we use only SDL functions with SDL2
+#else
     fs_ml_init_raw_input();
+#endif
 #else
 #ifdef USE_SDL2
     SDL_StartTextInput();

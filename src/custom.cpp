@@ -3552,7 +3552,7 @@ void compute_vsynctime (void)
 	}
 #endif
 	if (currprefs.produce_sound > 1) {
-		double svpos = maxvpos;
+		double svpos = maxvpos_nom;
 		double shpos = maxhpos_short;
 		if (islinetoggle ()) {
 			shpos += 0.5;
@@ -3563,7 +3563,7 @@ void compute_vsynctime (void)
 			svpos += 1.0;
 		}
 		double clk = svpos * shpos * fake_vblank_hz;
-		//write_log (_T("SNDRATE %.1f*%.1f*%.6f=%.6f\n"), svpos, shpos, fake_vblank_hz, clk);
+		write_log (_T("SNDRATE %.1f*%.1f*%.6f=%.6f\n"), svpos, shpos, fake_vblank_hz, clk);
 		update_sound (clk);
 	}
 }

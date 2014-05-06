@@ -1,5 +1,6 @@
 Version 2.5.3dev:
 
+* Merged code from WinUAE 2800.
 * Fixed a problem preventing mouse from working with SDL2 on Windows.
 
 Version 2.5.2dev:

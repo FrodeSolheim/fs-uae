@@ -483,7 +483,7 @@ int fs_get_application_exe_path(char *buffer, int size) {
         return 1;
     }
     else {
-        fs_log("_NSGetExecutablePath failed with result %d\n", result);
+        //fs_log("_NSGetExecutablePath failed with result %d\n", result);
         buffer[0] = '\0';
         return 0;
     }

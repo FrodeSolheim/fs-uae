@@ -152,6 +152,13 @@ AC_CHECK_FUNCS([utime])
 
 # Checks for libraries.
 
+AC_SUBST([CARBON_LIBS])
+AS_CASE([$target_os],
+[darwin*], [
+	AC_MSG_NOTICE([Using Carbon.framework])
+	CARBON_LIBS="-framework Carbon"
+])
+
 AC_CHECK_LIB([compat], [ftime])
 
 AC_CHECK_LIB([dl], [dlopen])
@@ -172,6 +179,13 @@ AS_CASE([$target_os],
 	[LUA_CFLAGS="-DLUA_USE_POSIX"]
 )
 
+AC_SUBST([IOKIT_LIBS])
+AS_CASE([$target_os],
+[darwin*], [
+	AC_MSG_NOTICE([Using IOKit.framework])
+	IOKIT_LIBS="-framework IOKit"
+])
+
 # Workaround for bug in libsdl2-dev / ubuntu, SDL headers
 # depend on mirclient/mircommon headers.
 # https://bugs.launchpad.net/ubuntu/+source/libsdl2/+bug/1306629
@@ -186,7 +200,7 @@ PKG_CHECK_MODULES([OPENAL], [openal], [
 ], [
 	AS_CASE([$target_os],
         [darwin*], [
-		AC_MSG_NOTICE([Using OS X-provided OpenAL framework])
+		AC_MSG_NOTICE([Using OpenAL.framework])
 		OPENAL_CFLAGS="-I/System/Library/Frameworks/OpenAL.framework/Headers"
 		OPENAL_LIBS="-framework OpenAL"
 
@@ -206,7 +220,7 @@ PKG_CHECK_MODULES([OPENGL], [gl glu], [
 ], [
 	AS_CASE([$target_os],
         [darwin*], [
-		AC_MSG_NOTICE([Using OS X-provided OpenGL framework])
+		AC_MSG_NOTICE([Using OpenGL.framework])
 		OPENGL_LIBS="-framework OpenGL"
 
 	],
@@ -252,15 +266,20 @@ AC_CHECK_LIB([Ws2_32], [main])
 
 # Operating system
 
-AS_CASE([$target_os],
-	[mingw*], [OS_CPPFLAGS="-DWINDOWS"],
-	[linux*], [OS_CPPFLAGS="-DLINUX"],
-	[darwin*], [OS_CPPFLAGS="-DMACOSX"],
-	[freebsd*], [OS_CPPFLAGS="-DFREEBSD"],
-	[openbsd*], [OS_CPPFLAGS="-DOPENBSD"],
-	[]
-)
 AC_SUBST([OS_CPPFLAGS])
+AS_CASE([$target_os],
+[mingw*], [OS_CPPFLAGS="-DWINDOWS"],
+[linux*], [OS_CPPFLAGS="-DLINUX"],
+[darwin*], [OS_CPPFLAGS="-DMACOSX"],
+[freebsd*], [OS_CPPFLAGS="-DFREEBSD"],
+[openbsd*], [OS_CPPFLAGS="-DOPENBSD"],
+[]
+)
+
+AC_SUBST([OS_LDFLAGS])
+AS_CASE([$target_os],
+[darwin*], [OS_LDFLAGS="-headerpad_max_install_names"]
+)
 
 
 # Check for POSIX support.

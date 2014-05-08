@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <fs/image.h>
 #include <fs/log.h>
 #include <fs/filesys.h>

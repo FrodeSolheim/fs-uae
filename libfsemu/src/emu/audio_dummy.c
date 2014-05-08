@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #if !defined(USE_OPENAL)
 
 #include <fs/emu.h>

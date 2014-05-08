@@ -1,3 +1,4 @@
+autom4te.cache
 build
 dist
 /a
@@ -79,6 +80,7 @@ core
 /config.h.in
 /config.status
 /configure
+/configure.scan
 /install-sh
 /missing
 /stamp-h1
@@ -88,6 +90,3 @@ core
 /config.sub
 .deps
 .dirstamp
-
-/Makefile.ac
-/Makefile.ac.in

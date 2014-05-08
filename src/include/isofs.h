@@ -2,9 +2,14 @@
 #ifndef _ISOFS_FS_H
 #define _ISOFS_FS_H
 
+#ifdef FSUAE
+// gid_t and uid_t is defined in config.h
+#else
 #ifdef WINDOWS
+// FIXME: move these to (sys)config.h instead?
 typedef int gid_t;
 typedef int uid_t;
+#endif
 #endif
 
 #define ISO_SYSTEM_ID_CDTV "CDTV"

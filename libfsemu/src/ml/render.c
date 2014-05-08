@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 // FIXME: make libfsml independent of libfsmeu
 #include "../emu/util.h"
 #include "../emu/video.h"

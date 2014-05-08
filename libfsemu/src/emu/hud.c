@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 /* libfsemu - a library with emulator support functions
  * Copyright (C) 2011 Frode Solheim <frode-code@fengestad.no>
  *

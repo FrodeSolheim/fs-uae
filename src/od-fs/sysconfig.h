@@ -7,8 +7,9 @@
 // now, to separate them from this messy file. Have to eventually consider
 // using autotools...
 
+#ifdef HAVE_CONFIG_H
 #include "config.h"
-
+#endif
 
 /* src/sysconfig.h.  Generated from sysconfig.h.in by configure.  */
 /* src/sysconfig.h.in.  Generated from configure.in by autoheader.  */
@@ -183,17 +184,6 @@
 
 /* Define to 1 if you have the `strstr' function. */
 #define HAVE_STRSTR 1
-
-/* Define to 1 if `st_blocks' is a member of `struct stat'. */
-//#ifndef WINDOWS
-//#define HAVE_STRUCT_STAT_ST_BLOCKS 1
-//#endif
-
-/* Define to 1 if your `struct stat' has `st_blocks'. Deprecated, use
-   `HAVE_STRUCT_STAT_ST_BLOCKS' instead. */
-//#ifndef WINDOWS
-//#define HAVE_ST_BLOCKS 1
-//#endif
 
 /* Define to 1 if you have the <sun/audioio.h> header file. */
 /* #undef HAVE_SUN_AUDIOIO_H */
@@ -413,10 +403,6 @@
 # define __EXTENSIONS__ 1
 #endif
 
-
-/* Version number of package */
-#define VERSION "2.3.1"
-
 /* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
    significant byte first (like Motorola and SPARC, unlike Intel). */
 #ifdef __BIG_ENDIAN__
@@ -429,47 +415,12 @@
 /* Number of bits in a file offset, on hosts where this is settable. */
 #define _FILE_OFFSET_BITS 64
 
-/* Define for large files, on AIX-style hosts. */
-/* #undef _LARGE_FILES */
-
-/* Define to 1 if on MINIX. */
-/* #undef _MINIX */
-
 /* Define to 2 if the system does not provide POSIX.1 features except with
    this defined. */
 /* #undef _POSIX_1_SOURCE */
 
 /* Define to 1 if you need to in order for `stat' and other things to work. */
 /* #undef _POSIX_SOURCE */
-
-/* Define to empty if `const' does not conform to ANSI C. */
-/* #undef const */
-
-/* Define to `__inline__' or `__inline' if that's what the C compiler
-   calls it, or to nothing if 'inline' is not supported under any name.  */
-#ifndef __cplusplus
-/* #undef inline */
-#endif
-
-/* Define to `int' if <sys/types.h> does not define. */
-/* #undef mode_t */
-
-/* Define to `long int' if <sys/types.h> does not define. */
-/* #undef off_t */
-
-/* Define to `unsigned int' if <sys/types.h> does not define. */
-/* #undef size_t */
-
-/* Substitute for socklen_t */
-/* #undef socklen_t */
-
-/* Define to unsigned long or unsigned long long if <stdint.h> and
-   <inttypes.h> don't define. */
-/* #undef uintmax_t */
-
-/* Define to empty if the keyword `volatile' does not work. Warning: valid
-   code using `volatile' can become incorrect without. Disable with care. */
-/* #undef volatile */
 
 #include "defines.h"
 #include "uae_fs.h"

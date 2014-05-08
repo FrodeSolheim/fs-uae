@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #define _GNU_SOURCE 1
 #include <fs/filesys.h>
 
@@ -203,6 +207,9 @@ int fs_stat(const char *path, struct fs_stat *buf) {
         buf->size = st.st_size;
         //fs_log("fs_stat size = %lld\n", buf->size);
         buf->mode = st.st_mode;
+#ifdef HAVE_STRUCT_STAT_ST_BLOCKS
+        buf->blocks = st.st_blocks;
+#endif
 
 #if defined(HAVE_STAT_TV_NSEC)
         buf->atime_nsec = st.st_atim.tv_nsec;
@@ -313,6 +320,9 @@ int fs_fstat(int fd, struct fs_stat *buf) {
         buf->ctime = st.st_ctime;
         buf->size = st.st_size;
         buf->mode = st.st_mode;
+#ifdef HAVE_STRUCT_STAT_ST_BLOCKS
+        buf->blocks = st.st_blocks;
+#endif
     }
     return result;
 }

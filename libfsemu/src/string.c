@@ -1,3 +1,6 @@
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 // some code adapted from glib
 
@@ -136,20 +139,17 @@ char *fs_strnfill(size_t length, char fill_char) {
 }
 
 char *fs_stpcpy(char *dest, const char *src) {
-#ifdef HAVE_STPCPY
-    g_return_val_if_fail (dest != NULL, NULL);
-    g_return_val_if_fail (src != NULL, NULL);
-    return stpcpy (dest, src);
-#else
-    register char *d = dest;
-    register const char *s = src;
-
     if (src == NULL) {
         return NULL;
     }
     if (dest == NULL) {
         return NULL;
     }
+#ifdef HAVE_STPCPY
+    return stpcpy (dest, src);
+#else
+    register char *d = dest;
+    register const char *s = src;
     do
         *d++ = *s;
     while (*s++ != '\0');

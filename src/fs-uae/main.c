@@ -1,4 +1,9 @@
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #define _GNU_SOURCE 1
+
 #include <uae/uae.h>
 
 #ifdef USE_SDL
@@ -704,7 +709,7 @@ void ManyMouse_Quit(void);
 const char *ManyMouse_DeviceName(unsigned int index);
 
 void list_joysticks() {
-    printf("# FS-UAE VERSION %s\n", g_fs_uae_version);
+    printf("# FS-UAE VERSION %s\n", PACKAGE_VERSION);
     printf("# listing keyboards\n");
     printf("K: Keyboard\n");
     printf("# listing mice\n");
@@ -921,8 +926,8 @@ int main(int argc, char* argv[]) {
 
     //result = parse_options(argc, argv);
 
-    printf(COPYRIGHT_NOTICE, g_fs_uae_version);
-    fs_log(COPYRIGHT_NOTICE, g_fs_uae_version);
+    printf(COPYRIGHT_NOTICE, PACKAGE_VERSION);
+    fs_log(COPYRIGHT_NOTICE, PACKAGE_VERSION);
 
     char *current_dir = fs_get_current_dir();
     fs_log("current directory is %s\n", current_dir);

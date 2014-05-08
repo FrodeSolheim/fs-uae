@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <fs/ml.h>
 uint32_t g_sdl2_keys[] = {
     0, 0, 0, 0,

@@ -25,6 +25,7 @@ struct fs_stat {
     int atime_nsec;
     int mtime_nsec;
     int ctime_nsec;
+    int64_t blocks;
 };
 
 int fs_set_file_time(const char *path, struct timeval *tv);

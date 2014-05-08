@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include "fs-uae.h"
 #include <fs/emu.h>
 #include <fs/log.h>

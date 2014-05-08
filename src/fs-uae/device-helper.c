@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdio.h>
 #include <string.h>
 
@@ -251,6 +255,12 @@ void print_state(SDL_Joystick* joystick, const char* name) {
         fflush(stdout);
     }
 }
+
+#ifdef WINDOWS
+// FIXME fix the main macro instead
+int g_fs_ml_ncmdshow;
+HINSTANCE g_fs_ml_hinstance;
+#endif
 
 int main(int argc, char* argv[]) {
 

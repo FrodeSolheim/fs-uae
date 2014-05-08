@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 /* libfsml - a media library for video and input
  * Copyright (C) 2011 Frode Solheim <frode-code@fengestad.no>
  *

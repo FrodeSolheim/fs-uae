@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <fs/ref.h>
 #include <fs/log.h>
 #include <stdio.h>

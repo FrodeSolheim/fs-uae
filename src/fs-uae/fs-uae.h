@@ -143,7 +143,6 @@ extern amiga_config g_fs_uae_amiga_configs[];
 extern int g_fs_uae_amiga_config;
 extern int g_fs_uae_amiga_model;
 extern int g_fs_uae_ntsc_mode;
-extern const char *g_fs_uae_version;
 //extern char *g_fs_uae_default_dir;
 extern int g_fs_uae_fastest_possible;
 extern char *g_fs_uae_config_file_path;

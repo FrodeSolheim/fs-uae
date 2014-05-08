@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #ifdef WINDOWS
 #define _WIN32_WINNT 0x0501
 #include <Windows.h>

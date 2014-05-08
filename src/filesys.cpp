@@ -3744,13 +3744,8 @@ static void
 		write_log("WARNING statbuf.size = %llu\n", statbuf.size);
 	}
 	put_long (info + 124, statbuf.size > MAXFILESIZE32 ? MAXFILESIZE32 : (uae_u32)statbuf.size);
-#ifdef HAVE_ST_BLOCKS
-#ifdef FSUAE
-	// FIXME: check this
-	put_long (info + 128, statbuf.blocks);
-#else
+#ifdef HAVE_STRUCT_STAT_ST_BLOCKS
 	put_long (info + 128, statbuf.st_blocks);
-#endif
 #else
 	blocksize = (unit->volflags & MYVOLUMEINFO_CDFS) ? 2048 : 512;
 	put_long (info + 128, (statbuf.size + blocksize - 1) / blocksize);

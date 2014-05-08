@@ -58,8 +58,8 @@ bool my_stat (const TCHAR *name, struct mystat *ms) {
     }
     ms->mtime.tv_sec = sonuc.mtime;
     ms->mtime.tv_usec = 0;
-#ifdef HAVE_ST_BLOCKS
-    //ms->blocks = sonuc.st_blocks;
+#ifdef HAVE_STRUCT_STAT_ST_BLOCKS
+    ms->st_blocks = sonuc.blocks;
 #endif
     return true;
 }

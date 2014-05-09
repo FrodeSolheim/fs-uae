@@ -1,4 +1,3 @@
-include ../common.mk
 version = $(strip $(shell cat ../VERSION))
 game_center_app = fs-uae-game-center_$(version)_macosx/FS-UAE Game Center.app
 game_center_resources = $(game_center_app)/Contents/Resources

@@ -1,18 +1,18 @@
 This work was packaged for Debian by:
 
-    Frode Solheim <fs-uae@fengestad.no> on Mon, 07 Nov 2011 23:26:15 +0100
+    Frode Solheim <frode@fs-uae.net> on Mon, 07 Nov 2011 23:26:15 +0100
 
 It was downloaded from:
 
-    http://www.fengestad.no/fs-uae/
+    http://fs-uae.net/
 
 Upstream Author(s):
 
-    Frode Solheim <fs-uae@fengestad.no>
+    Frode Solheim <frode@fs-uae.net>
 
 Copyright:
 
-    Copyright (C) 2010-2012 Frode Solheim <fs-uae@fengestad.no>
+    Copyright (C) 2010-2014 Frode Solheim <frode@fs-uae.net>
 
 License:
 
@@ -27,13 +27,12 @@ License:
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this package; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
-    02111-1307, USA.
+    along with this package; if not, write to the Free Software Foundation,
+    Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
 The Debian packaging is:
 
-    Copyright (C) 2011 Frode Solheim <fs-uae@fengestad.no>
+    Copyright (C) 2011-2014 Frode Solheim <frode@fs-uae.net>
 
 and is licensed under the GPL version 2,
 see "/usr/share/common-licenses/GPL-2".

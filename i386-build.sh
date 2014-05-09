@@ -20,9 +20,9 @@ echo "./i386-build.sh ./configure"
 echo "./i386-build.sh make clean all"
 echo ""
 echo "You must have docker[.io] installed and run ./i386-build.sh setup"
-echo "at least once. The build is done in the 'native' directory, so remember"
-echo "to run make clean to clear out the 64-bit objects first (and also"
-echo "when you go back to building 'natively' again)."
+echo "at least once. The build is done in the 'native' directory."
+echo "Remember to re-configure / make clean when switching between building"
+echo "i386 and native x86-64 binaries."
 echo ""
 exit
 fi

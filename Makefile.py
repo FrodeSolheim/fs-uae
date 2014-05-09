@@ -50,7 +50,7 @@ AM_LIBS += @ZLIB_LIBS@
 
 AM_LDFLAGS = @OS_LDFLAGS@
 
-all: fs-uae-device-helper fs-uae
+all: fs-uae-device-helper fs-uae mo
 
 gen/blit.h: gen/genblitter
     gen/genblitter i > gen/blit.h
@@ -426,6 +426,7 @@ gen_cpuemu_33_cpp_cflags = "-O0"
 
 src_blitter_cpp_deps = ["gen/blit.h"]
 src_drawing_cpp_deps = ["gen/linetoscr.cpp"]
+src_jit_compemu_support_cpp_deps = ["gen/comptbl.h"]
 
 
 def program(name, sources):
@@ -552,7 +553,26 @@ endif
 build_dir := "."
 dist_name = fs-uae-$(version)
 dist_dir := $(build_dir)/$(dist_name)
-# dist_file := $(build_dir)/$(dist_name).tar.gz
+
+share/locale/%/LC_MESSAGES/fs-uae.mo: po/%.po
+    mkdir -p share/locale/$*/LC_MESSAGES
+    msgfmt --verbose $< -o $@
+
+catalogs = \
+    share/locale/cs/LC_MESSAGES/fs-uae.mo \
+    share/locale/da/LC_MESSAGES/fs-uae.mo \
+    share/locale/de/LC_MESSAGES/fs-uae.mo \
+    share/locale/es/LC_MESSAGES/fs-uae.mo \
+    share/locale/fi/LC_MESSAGES/fs-uae.mo \
+    share/locale/fr/LC_MESSAGES/fs-uae.mo \
+    share/locale/it/LC_MESSAGES/fs-uae.mo \
+    share/locale/nb/LC_MESSAGES/fs-uae.mo \
+    share/locale/pl/LC_MESSAGES/fs-uae.mo \
+    share/locale/pt/LC_MESSAGES/fs-uae.mo \
+    share/locale/sr/LC_MESSAGES/fs-uae.mo \
+    share/locale/tr/LC_MESSAGES/fs-uae.mo
+
+mo: $(catalogs)
 
 distdir-base:
     rm -Rf $(dist_dir)/*
@@ -694,11 +714,13 @@ deb: debsrc
     cd $(dist_dir) && dpkg-buildpackage -us -uc
 
 windows-dist: distdir
+    cd $(dist_dir) && ./configure
     cd $(dist_dir)/windows && make
     mv $(dist_dir)/fs-uae_*windows* .
     rm -Rf $(dist_dir)
 
 macosx-dist: distdir
+    cd $(dist_dir) && ./configure
     cd $(dist_dir)/macosx && make
     mv $(dist_dir)/fs-uae_*macosx* .
     rm -Rf $(dist_dir)

@@ -4,6 +4,7 @@
 AC_PREREQ([2.67])
 AC_INIT([FS-UAE], [m4_esyscmd([cat VERSION | tr -d \\r\\n])],
 	[frode@fs-uae.net], [fs-uae], [http://fs-uae.net])
+AC_CONFIG_AUX_DIR([.])
 AC_CANONICAL_SYSTEM
 AC_CONFIG_SRCDIR([src/main.cpp])
 AM_INIT_AUTOMAKE

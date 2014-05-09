@@ -1,4 +1,3 @@
-include ../common.mk
 version = $(strip $(shell cat ../VERSION))
 emulator_dir = fs-uae_$(version)_windows
 launcher_dir = fs-uae-launcher_$(version)_windows

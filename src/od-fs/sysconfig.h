@@ -14,9 +14,6 @@
 /* src/sysconfig.h.  Generated from sysconfig.h.in by configure.  */
 /* src/sysconfig.h.in.  Generated from configure.in by autoheader.  */
 
-/* Define if building universal (internal helper macro) */
-/* #undef AC_APPLE_UNIVERSAL_BUILD */
-
 /* CPU is 64bit */
 #if defined(__x86_64__)
 #define CPU_64_BIT 1
@@ -24,60 +21,18 @@
 #undef CPU_64_BIT
 #endif
 
-/* we want ecs_denise */
-/* #undef ECS_DENISE */
-
-/* CPU supports 3DNOW */
-/* #undef HAVE_3DNOW */
-
-/* Define to 1 if you have the `alarm' function. */
-#define HAVE_ALARM 1
-
-/* Define to 1 if you have the 'bswap_16' function. */
-//#define HAVE_BSWAP_16 1
-
-/* Define to 1 if you have the 'bswap_32' function. */
-//#define HAVE_BSWAP_32 1
-
-/* Define to 1 if you have the <byteswap.h> header file. */
-//#define HAVE_BYTESWAP_H 1
-
-/* Define to 1 if you have the <caps/capsimage.h> header file. */
-#define HAVE_CAPS_CAPSIMAGE_H 1
-
-/* Define to 1 if you have the <curses.h> header file. */
-#define HAVE_CURSES_H 1
-
-/* Define to 1 if you have the <cybergraphx/cybergraphics.h> header file. */
-/* #undef HAVE_CYBERGRAPHX_CYBERGRAPHICS_H */
-
-/* Define to 1 if you have the <devices/ahi.h> header file. */
-/* #undef HAVE_DEVICES_AHI_H */
-
 /* Define to 1 if you have the <dirent.h> header file, and it defines `DIR'.
    */
 #define HAVE_DIRENT_H 1
 
-/* "Define to 1 if you have 'dlopen' function */
-#define HAVE_DLOPEN 1
-
 /* Define to 1 if you have the <dustat.h> header file. */
 /* #undef HAVE_DUSTAT_H */
-
-/* Define to 1 if you have the <fcntl.h> header file. */
-#define HAVE_FCNTL_H 1
 
 /* Define to 1 if you have the CAPS framework. */
 /* #undef HAVE_FRAMEWORK_CAPSIMAGE */
 
-/* Define to 1 if you have the `gettimeofday' function. */
-#define HAVE_GETTIMEOFDAY 1
-
 /* Define to 1 if you have the `gmtime_r' function. */
 #define HAVE_GMTIME_R 1
-
-/* Define to 1 if you have the <inttypes.h> header file. */
-#define HAVE_INTTYPES_H 1
 
 /* Define if <inttypes.h> exists, doesn't clash with <sys/types.h>, and
    declares uintmax_t. */
@@ -89,21 +44,6 @@
 /* Define to 1 if you have the `isnan' function. */
 #define HAVE_ISNAN 1
 
-/* Define to 1 if you have the <libraries/cybergraphics.h> header file. */
-/* #undef HAVE_LIBRARIES_CYBERGRAPHICS_H */
-
-/* Define to 1 if you have the `localtime_r' function. */
-#define HAVE_LOCALTIME_R 1
-
-/* Define to 1 if you have the <machine/joystick.h> header file. */
-/* #undef HAVE_MACHINE_JOYSTICK_H */
-
-/* Define to 1 if you have the <machine/soundcard.h> header file. */
-/* #undef HAVE_MACHINE_SOUNDCARD_H */
-
-/* Define to 1 if you have the <memory.h> header file. */
-#define HAVE_MEMORY_H 1
-
 /* CPU supports MMX */
 /* #undef HAVE_MMX */
 
@@ -111,9 +51,6 @@
 #ifndef WINDOWS
 #define HAVE_NANOSLEEP 1
 #endif
-
-/* Define to 1 if you have the <ncurses.h> header file. */
-#define HAVE_NCURSES_H 1
 
 /* Define to 1 if you have the <ndir.h> header file, and it defines `DIR'. */
 /* #undef HAVE_NDIR_H */
@@ -123,9 +60,6 @@
 
 /* Define to 1 if you have the `readdir_r' function. */
 #define HAVE_READDIR_R 1
-
-/* Define to 1 if you have the `select' function. */
-#define HAVE_SELECT 1
 
 /* Define to 1 if you have the `setitimer' function. */
 #define HAVE_SETITIMER 1
@@ -151,9 +85,6 @@
 /* Define to 1 if stdbool.h conforms to C99. */
 #define HAVE_STDBOOL_H 1
 
-/* Define to 1 if you have the <stdint.h> header file. */
-#define HAVE_STDINT_H 1
-
 /* Define if <stdint.h> exists, doesn't clash with <sys/types.h>, and declares
    uintmax_t. */
 #define HAVE_STDINT_H_WITH_UINTMAX 1
@@ -161,38 +92,14 @@
 /* Define to 1 if you have the <stdlib.h> header file. */
 #define HAVE_STDLIB_H 1
 
-/* Define to 1 if you have the `strcasecmp' function. */
-#define HAVE_STRCASECMP 1
-
 /* Define to 1 if you have the `strcmpi' function. */
 /* #undef HAVE_STRCMPI */
-
-/* Define to 1 if you have the `strdup' function. */
-#define HAVE_STRDUP 1
-
-/* Define to 1 if you have the `strerror' function. */
-#define HAVE_STRERROR 1
 
 /* Define to 1 if you have the `stricmp' function. */
 /* #undef HAVE_STRICMP */
 
-/* Define to 1 if you have the <strings.h> header file. */
-#define HAVE_STRINGS_H 1
-
-/* Define to 1 if you have the <string.h> header file. */
-#define HAVE_STRING_H 1
-
-/* Define to 1 if you have the `strstr' function. */
-#define HAVE_STRSTR 1
-
-/* Define to 1 if you have the <sun/audioio.h> header file. */
-/* #undef HAVE_SUN_AUDIOIO_H */
-
 /* Define to 1 if you have the `sync' function. */
 #define HAVE_SYNC 1
-
-/* Define to 1 if you have the <sys/audioio.h> header file. */
-/* #undef HAVE_SYS_AUDIOIO_H */
 
 /* Define to 1 if you have the <sys/dir.h> header file, and it defines `DIR'.
    */
@@ -210,15 +117,6 @@
 /* Define to 1 if you have the <sys/fs_types.h> header file. */
 /* #undef HAVE_SYS_FS_TYPES_H */
 
-/* Define to 1 if you have the <sys/ioctl.h> header file. */
-#define HAVE_SYS_IOCTL_H 1
-
-/* Define to 1 if you have the <sys/ipc.h> header file. */
-#define HAVE_SYS_IPC_H 1
-
-/* Define to 1 if you have the <sys/mman.h> header file. */
-#define HAVE_SYS_MMAN_H 1
-
 /* Define to 1 if you have the <sys/ndir.h> header file, and it defines `DIR'.
    */
 /* #undef HAVE_SYS_NDIR_H */
@@ -234,17 +132,8 @@
 #define HAVE_SYS_STATVFS_H 1
 #endif
 
-/* Define to 1 if you have the <sys/stat.h> header file. */
-#define HAVE_SYS_STAT_H 1
-
 /* Define to 1 if you have the <sys/termios.h> header file. */
 #define HAVE_SYS_TERMIOS_H 1
-
-/* Define to 1 if you have the <sys/time.h> header file. */
-#define HAVE_SYS_TIME_H 1
-
-/* Define to 1 if you have the <sys/types.h> header file. */
-#define HAVE_SYS_TYPES_H 1
 
 /* Define to 1 if you have the `timegm' function. */
 #define HAVE_TIMEGM 1
@@ -403,17 +292,8 @@
 # define __EXTENSIONS__ 1
 #endif
 
-/* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
-   significant byte first (like Motorola and SPARC, unlike Intel). */
-#ifdef __BIG_ENDIAN__
-#define WORDS_BIGENDIAN 1
-#endif
-
 /* Define to 1 if the X Window System is missing or not being used. */
 /* #undef X_DISPLAY_MISSING */
-
-/* Number of bits in a file offset, on hosts where this is settable. */
-#define _FILE_OFFSET_BITS 64
 
 /* Define to 2 if the system does not provide POSIX.1 features except with
    this defined. */

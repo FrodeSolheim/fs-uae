@@ -8,23 +8,28 @@
 #include <fs/string.h>
 
 int64_t uae_ftello64(FILE *stream) {
-#ifdef HAVE_FTELLO64
+#if defined(HAVE_FTELLO64)
     return ftello64(stream);
-#else
+#elif defined(HAVE_FSEEKO)
+    // HAVE_FSEEKO implies ftello exists too
     return ftello(stream);
+#else
+    #error No ftell* with 64-bit offset
 #endif
 }
 
 int uae_fseeko64(FILE *stream, int64_t offset, int whence) {
-#ifdef HAVE_FSEEKO64
+#if defined(HAVE_FSEEKO64)
     return fseeko64(stream, offset, whence);
-#else
+#elif defined(HAVE_FSEEKO)
     return fseeko(stream, offset, whence);
+#else
+    #error No fseek* with 64-bit offset
 #endif
 }
 
 char *uae_expand_path(const char *path) {
-    /*
+#if 0
     write_log("expand_path %s\n", path);
     gchar* lower = g_ascii_strdown(path, -1);
     int replace = 0;
@@ -44,7 +49,7 @@ char *uae_expand_path(const char *path) {
     else {
         return fs_strdup(path);
     }
-    */
+#endif
     return fs_strdup(path);
 }
 

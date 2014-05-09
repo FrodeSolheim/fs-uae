@@ -3,6 +3,7 @@
 #endif
 
 #include <fs/thread.h>
+#include <fs/base.h>
 #include <stdlib.h>
 
 #ifdef USE_GLIB
@@ -40,7 +41,7 @@ struct fs_mutex {
 #if defined(USE_PTHREADS)
     pthread_mutex_t mutex;
 #elif defined(USE_GLIB)
-    GMutex* mutex;
+    GMutex mutex;
 #elif defined(USE_SDL)
     SDL_mutex* mutex;
 #endif
@@ -50,7 +51,7 @@ struct fs_condition {
 #if defined(USE_PTHREADS)
     pthread_cond_t condition;
 #elif defined(USE_GLIB)
-    GCond* condition;
+    GCond condition;
 #elif defined(USE_SDL)
     SDL_cond* condition;
 #endif
@@ -71,7 +72,7 @@ fs_thread *fs_thread_create(fs_thread_function fn, void *data) {
     pthread_attr_setdetachstate(&thread->attr, PTHREAD_CREATE_JOINABLE);
     pthread_create(&thread->thread, &thread->attr, fn, data);
 #elif defined(USE_GLIB)
-    thread->thread = g_thread_create(fn, data, TRUE, NULL);
+    thread->thread = g_thread_new("fs-thread", fn, data);
 #endif
 
 /*
@@ -112,9 +113,8 @@ fs_mutex *fs_mutex_create() {
     fs_mutex *mutex = (fs_mutex *) malloc(sizeof(fs_mutex));
 #if defined(USE_PTHREADS)
     pthread_mutex_init(&mutex->mutex, NULL);
-//#elif defined(USE_GLIB)
 #elif defined(USE_GLIB)
-    mutex->mutex = g_mutex_new();
+    g_mutex_init(&mutex->mutex);
 #elif defined(USE_SDL)
     mutex->mutex = SDL_CreateMutex();
 #endif
@@ -125,7 +125,7 @@ void fs_mutex_destroy(fs_mutex *mutex) {
 #if defined(USE_PTHREADS)
     pthread_mutex_destroy(&mutex->mutex);
 #elif defined(USE_GLIB)
-    g_mutex_free(mutex->mutex);
+    g_mutex_clear(&mutex->mutex);
 #elif defined(USE_SDL)
     SDL_DestroyMutex(mutex->mutex);
 #endif
@@ -136,7 +136,7 @@ int fs_mutex_lock(fs_mutex *mutex) {
 #if defined(USE_PTHREADS)
     return pthread_mutex_lock(&mutex->mutex);
 #elif defined(USE_GLIB)
-    g_mutex_lock(mutex->mutex);
+    g_mutex_lock(&mutex->mutex);
     return 0;
 #elif defined(USE_SDL)
     return SDL_mutexP(mutex->mutex);
@@ -147,7 +147,7 @@ int fs_mutex_unlock(fs_mutex *mutex) {
 #if defined(USE_PTHREADS)
     return pthread_mutex_unlock(&mutex->mutex);
 #elif defined(USE_GLIB)
-    g_mutex_unlock(mutex->mutex);
+    g_mutex_unlock(&mutex->mutex);
     return 0;
 #elif defined(USE_SDL)
     return SDL_mutexV(mutex->mutex);
@@ -159,7 +159,7 @@ fs_condition *fs_condition_create(void) {
 #if defined(USE_PTHREADS)
     pthread_cond_init(&condition->condition, NULL);
 #elif defined(USE_GLIB)
-    condition->condition = g_cond_new();
+    g_cond_init(&condition->condition);
 #elif defined(USE_SDL)
     condition->condition = SDL_CreateCond();
 #endif
@@ -170,7 +170,7 @@ void fs_condition_destroy(fs_condition *condition) {
 #if defined(USE_PTHREADS)
     pthread_cond_destroy(&condition->condition);
 #elif defined(USE_GLIB)
-    g_cond_free(condition->condition);
+    g_cond_clear(&condition->condition);
 #elif defined(USE_SDL)
     SDL_DestroyCond(condition->condition);
 #endif
@@ -181,26 +181,36 @@ int fs_condition_wait (fs_condition *condition, fs_mutex *mutex) {
 #if defined(USE_PTHREADS)
     return pthread_cond_wait(&condition->condition, &mutex->mutex);
 #elif defined(USE_GLIB)
-    g_cond_wait(condition->condition, mutex->mutex);
+    g_cond_wait(&condition->condition, &mutex->mutex);
     return 0;
 #elif defined(USE_SDL)
     return SDL_CondWait(condition->condition, mutex->mutex);
 #endif
 }
 
-int fs_condition_timed_wait (fs_condition *condition, fs_mutex *mutex,
-        int64_t real_time) {
+int64_t fs_condition_get_wait_end_time(int period) {
+#if defined(USE_GLIB)
+    return fs_get_monotonic_time() + period;
+#else
+    return fs_get_current_time() + period;
+#endif
+}
+
+int fs_condition_wait_until(fs_condition *condition, fs_mutex *mutex,
+        int64_t end_time) {
 #if defined(USE_PTHREADS)
     struct timespec tv;
-    tv.tv_sec = real_time / 1000000;
-    tv.tv_nsec = (real_time % 1000000) * 1000;
+    tv.tv_sec = end_time / 1000000;
+    tv.tv_nsec = (end_time % 1000000) * 1000;
     return pthread_cond_timedwait(&condition->condition, &mutex->mutex, &tv);
 #elif defined(USE_GLIB)
-    GTimeVal tv;
-    tv.tv_sec = real_time / 1000000;
-    tv.tv_usec = real_time % 1000000;
-    gboolean result = g_cond_timed_wait(condition->condition, mutex->mutex,
-            &tv);
+    // GTimeVal tv;
+    // tv.tv_sec = end_time / 1000000;
+    // tv.tv_usec = end_time % 1000000;
+    // gboolean result = g_cond_timed_wait(
+    //         &condition->condition, &mutex->mutex, &tv);
+    gboolean result = g_cond_wait_until(
+             &condition->condition, &mutex->mutex, end_time);
     return !result;
 #elif defined(USE_SDL)
     // FIXME: no timed wait...
@@ -212,7 +222,7 @@ int fs_condition_signal(fs_condition *condition) {
 #if defined(USE_PTHREADS)
     return pthread_cond_signal(&condition->condition);
 #elif defined(USE_GLIB)
-    g_cond_signal(condition->condition);
+    g_cond_signal(&condition->condition);
     return 0;
 #elif defined(USE_SDL)
     return SDL_CondSignal(condition->condition);

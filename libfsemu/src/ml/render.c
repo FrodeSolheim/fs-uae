@@ -630,13 +630,14 @@ void fs_ml_render_iteration() {
         else {
             // wait max 33 ms to allow the user interface to work even if
             // the emu hangs
-            int64_t dest_time = fs_get_real_time() + 33 * 1000;
+            // int64_t dest_time = fs_get_real_time() + 33 * 1000;
+            int64_t end_time = fs_condition_get_wait_end_time(33 * 1000);
 
             fs_mutex_lock(g_frame_available_mutex);
             while (g_rendered_frame == g_available_frame) {
-                fs_condition_timed_wait(g_frame_available_cond,
-                        g_frame_available_mutex, dest_time);
-                if (fs_get_real_time() >= dest_time) {
+                fs_condition_wait_until(
+                    g_frame_available_cond, g_frame_available_mutex, end_time);
+                if (fs_condition_get_wait_end_time(0) >= end_time) {
                     break;
                 }
             }

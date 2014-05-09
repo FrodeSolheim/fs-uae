@@ -329,6 +329,11 @@ static void set_video_mode() {
     log_opengl_information();
 }
 
+#ifdef USE_SDL2
+// When using SDL 2, the OpenGL context does not need to be recreated when
+// resizing the window and/or toggling fullscreen.
+#else
+
 static void destroy_opengl_state() {
     fs_log("destroy_opengl_state\n");
     fs_gl_send_context_notification(FS_GL_CONTEXT_DESTROY);
@@ -339,6 +344,8 @@ static void recreate_opengl_state() {
     fs_gl_reset_client_state();
     fs_gl_send_context_notification(FS_GL_CONTEXT_CREATE);
 }
+
+#endif
 
 void fs_ml_toggle_fullscreen() {
     fs_log("fs_ml_toggle_fullscreen\n");

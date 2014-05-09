@@ -252,6 +252,7 @@ static int load_aux (lua_State *L, int status) {
   }
 }
 
+#ifdef LUA_UNSAFE
 
 static int luaB_loadfile (lua_State *L) {
   const char *fname = luaL_optstring(L, 1, NULL);
@@ -265,6 +266,7 @@ static int luaB_loadfile (lua_State *L) {
   return load_aux(L, status);
 }
 
+#endif
 
 /*
 ** {======================================================
@@ -329,11 +331,11 @@ static int luaB_load (lua_State *L) {
 
 /* }====================================================== */
 
+#ifdef LUA_UNSAFE
 
 static int dofilecont (lua_State *L) {
   return lua_gettop(L) - 1;
 }
-
 
 static int luaB_dofile (lua_State *L) {
   const char *fname = luaL_optstring(L, 1, NULL);
@@ -343,6 +345,7 @@ static int luaB_dofile (lua_State *L) {
   return dofilecont(L);
 }
 
+#endif
 
 static int luaB_assert (lua_State *L) {
   if (!lua_toboolean(L, 1))

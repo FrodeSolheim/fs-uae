@@ -303,6 +303,7 @@ static int ll_loadfunc (lua_State *L, const char *path, const char *sym) {
   }
 }
 
+#ifdef LUA_UNSAFE
 
 static int ll_loadlib (lua_State *L) {
   const char *path = luaL_checkstring(L, 1);
@@ -318,7 +319,7 @@ static int ll_loadlib (lua_State *L) {
   }
 }
 
-
+#endif
 
 /*
 ** {======================================================
@@ -368,6 +369,7 @@ static const char *searchpath (lua_State *L, const char *name,
   return NULL;  /* not found */
 }
 
+#ifdef LUA_UNSAFE
 
 static int ll_searchpath (lua_State *L) {
   const char *f = searchpath(L, luaL_checkstring(L, 1),
@@ -382,6 +384,7 @@ static int ll_searchpath (lua_State *L) {
   }
 }
 
+#endif
 
 static const char *findfile (lua_State *L, const char *name,
                                            const char *pname,
@@ -474,6 +477,7 @@ static int searcher_preload (lua_State *L) {
   return 1;
 }
 
+#ifdef LUA_UNSAFE
 
 static void findloader (lua_State *L, const char *name) {
   int i;
@@ -504,7 +508,6 @@ static void findloader (lua_State *L, const char *name) {
   }
 }
 
-
 static int ll_require (lua_State *L) {
   const char *name = luaL_checkstring(L, 1);
   lua_settop(L, 1);  /* _LOADED table will be at index 2 */
@@ -528,6 +531,8 @@ static int ll_require (lua_State *L) {
   }
   return 1;
 }
+
+#endif
 
 /* }====================================================== */
 

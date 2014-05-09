@@ -7,9 +7,14 @@
 
 #ifdef WINDOWS
 #include <windows.h>
-#else
+#endif
+#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
+#endif
+#ifdef HAVE_UTIME_H
 #include <utime.h>
+#endif
+#ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif
 
@@ -18,6 +23,7 @@
 #include <string.h>
 #include <errno.h>
 #include <sys/stat.h>
+
 #include <fs/base.h>
 #include <fs/string.h>
 #include <fs/log.h>
@@ -25,13 +31,11 @@
 #ifdef USE_GLIB
 #include <glib.h>
 #include <glib/gstdio.h>
-#else
-
+#else /* NOT USE_GLIB */
 #include <sys/types.h>
 #include <dirent.h>
 #include <errno.h>
 #include <libgen.h>
-
 #ifdef WINDOWS
 #define FS_IS_DIR_SEPARATOR(x) ((x) == '/' || (x) == '\\')
 #define FS_DIR_SEPARATOR '\\'
@@ -39,7 +43,6 @@
 #define FS_IS_DIR_SEPARATOR(x) ((x) == '/')
 #define FS_DIR_SEPARATOR '/'
 #endif
-
 #endif
 
 #ifdef WINDOWS
@@ -142,14 +145,6 @@ static void file_time_to_time_val(FILETIME *ft, struct timeval *tv) {
 
 #endif
 
-#if defined(WINDOWS)
-
-#elif defined(MACOSX)
-#define HAVE_STAT_TV_NSEC2
-#else
-#define HAVE_STAT_TV_NSEC
-#endif
-
 // some code adapted from glib
 
 /*
@@ -205,21 +200,21 @@ int fs_stat(const char *path, struct fs_stat *buf) {
         buf->mtime = st.st_mtime;
         buf->ctime = st.st_ctime;
         buf->size = st.st_size;
-        //fs_log("fs_stat size = %lld\n", buf->size);
         buf->mode = st.st_mode;
+
 #ifdef HAVE_STRUCT_STAT_ST_BLOCKS
         buf->blocks = st.st_blocks;
 #endif
 
-#if defined(HAVE_STAT_TV_NSEC)
+#if defined(HAVE_STRUCT_STAT_ST_MTIM_TV_NSEC)
         buf->atime_nsec = st.st_atim.tv_nsec;
         buf->mtime_nsec = st.st_mtim.tv_nsec;
         buf->ctime_nsec = st.st_ctim.tv_nsec;
-#elif defined(HAVE_STAT_TV_NSEC2)
+#elif defined(HAVE_STRUCT_STAT_ST_MTIMESPEC_TV_NSEC)
         buf->atime_nsec = st.st_atimespec.tv_nsec;
         buf->mtime_nsec = st.st_mtimespec.tv_nsec;
         buf->ctime_nsec = st.st_ctimespec.tv_nsec;
-#elif defined(HAVE_STAT_NSEC)
+#elif defined(HAVE_STRUCT_STAT_ST_MTIME_NSEC)
         buf->atime_nsec = st.st_atime_nsec;
         buf->mtime_nsec = st.st_mtime_nsec;
         buf->ctime_nsec = st.st_ctime_nsec;
@@ -258,7 +253,7 @@ int fs_stat(const char *path, struct fs_stat *buf) {
         }
         free(upath);
 #else
-#error no sub-second mtime
+    #error no sub-second mtime found in struct stat
 #endif
     }
     return result;

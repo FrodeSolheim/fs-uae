@@ -42,14 +42,14 @@ void fs_emu_scanline_filter(uint8_t* out, fs_emu_video_buffer *buffer,
                 continue;
             }
             for (int x = 0; x < cw; x++) {
-#ifdef __BIG_ENDIAN__
+#ifdef WORDS_BIGENDIAN
                 src ++;
                 dst ++;
 #endif
                 *dst++ = (*src++ * light_ia) / 256 + scanline_light;
                 *dst++ = (*src++ * light_ia) / 256 + scanline_light;
                 *dst++ = (*src++ * light_ia) / 256 + scanline_light;
-#ifndef __BIG_ENDIAN__
+#ifndef WORDS_BIGENDIAN
                 src ++;
                 dst ++;
 #endif
@@ -61,14 +61,14 @@ void fs_emu_scanline_filter(uint8_t* out, fs_emu_video_buffer *buffer,
                 continue;
             }
             for (int x = 0; x < cw; x++) {
-#ifdef __BIG_ENDIAN__
+#ifdef WORDS_BIGENDIAN
                 src ++;
                 dst ++;
 #endif
                 *dst++ = (*src++ * dark_ia) / 256;
                 *dst++ = (*src++ * dark_ia) / 256;
                 *dst++ = (*src++ * dark_ia) / 256;
-#ifndef __BIG_ENDIAN__
+#ifndef WORDS_BIGENDIAN
                 src ++;
                 dst ++;
 #endif
@@ -100,14 +100,14 @@ void fs_emu_2xcolor_filter(uint8_t* out, fs_emu_video_buffer *buffer,
         dst = dst_line;
         dst_line += stride;
         for (int x = 0; x < cw; x++) {
-#ifdef __BIG_ENDIAN__
+#ifdef WORDS_BIGENDIAN
             src ++;
             dst ++;
 #endif
             *dst++ = (*src++ << 1) & 0xff;
             *dst++ = (*src++ << 1) & 0xff;
             *dst++ = (*src++ << 1) & 0xff;
-#ifndef __BIG_ENDIAN__
+#ifndef WORDS_BIGENDIAN
             src ++;
             dst ++;
 #endif

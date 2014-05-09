@@ -48,7 +48,7 @@ void target_default_options (struct uae_prefs *p, int type) {
 
     p->win32_rtgvblankrate = 0;
 
-#ifdef __BIG_ENDIAN__
+#ifdef WORDS_BIGENDIAN
     p->picasso96_modeflags = 0x442;
 #else
     p->picasso96_modeflags = 0x212;

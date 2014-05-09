@@ -16,23 +16,15 @@
 #include <unistd.h>
 #endif
 
-#ifdef WINDOWS
-
-#else
-// FIXME: move to autoconf
-#define HAVE_LOCALTIME_R
-#define HAVE_GMTIME_R
-#endif
-
 static fs_mutex *g_mutex;
 
 struct tm *fs_localtime_r(const time_t *timep, struct tm *result) {
 #ifdef HAVE_LOCALTIME_R
     return localtime_r(timep, result);
 #else
-    // on Windows, localtime is thread-safe due to using
-    // thread-local storage, using mutexes for other
-    // platforms...
+    // on Windows, localtime is thread-safe due to using thread-local
+    // storage, using mutexes for other platforms (and hopefully no-one
+    // else calls localtime simultaneously...)
     if (g_mutex) {
         fs_mutex_lock(g_mutex);
     }
@@ -57,9 +49,9 @@ struct tm *fs_gmtime_r(const time_t *timep, struct tm *result) {
 #ifdef HAVE_GMTIME_R
     return gmtime_r(timep, result);
 #else
-    // on Windows, gmtime is thread-safe due to using
-    // thread-local storage, using mutexes for other
-    // platforms...
+    // on Windows, gmtime is thread-safe due to using thread-local
+    // storage, using mutexes for other platforms (and hopefully no-one
+    // else calls localtime simultaneously...)    if (g_mutex) {
     if (g_mutex) {
         fs_mutex_lock(g_mutex);
     }

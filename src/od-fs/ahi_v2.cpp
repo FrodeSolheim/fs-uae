@@ -36,7 +36,16 @@
 #include "sounddep/sound.h"
 #include "ahidsound_new.h"
 
-#include <fs/emu/openal.h>
+#ifdef HAVE_AL_AL_H
+#include <AL/al.h>
+#else
+#include <al.h>
+#endif
+#ifdef HAVE_AL_ALC_H
+#include <AL/alc.h>
+#else
+#include <alc.h>
+#endif
 
 // TODO: REMOVE THIS LATER
 #define MAX_SOUND_DEVICES 100

@@ -156,7 +156,7 @@ void get_buffer_format(int *gl_buffer_format, int *gl_buffer_type) {
     int format = fs_emu_get_video_format();
     if (format == FS_EMU_VIDEO_FORMAT_BGRA) {
         *gl_buffer_format = GL_BGRA;
-#ifdef __BIG_ENDIAN__
+#ifdef WORDS_BIGENDIAN
         *gl_buffer_type = GL_UNSIGNED_INT_8_8_8_8_REV;
 #else
         *gl_buffer_type = GL_UNSIGNED_BYTE;
@@ -164,7 +164,7 @@ void get_buffer_format(int *gl_buffer_format, int *gl_buffer_type) {
     }
     else if (format == FS_EMU_VIDEO_FORMAT_RGBA) {
         *gl_buffer_format = GL_RGBA;
-#ifdef __BIG_ENDIAN__
+#ifdef WORDS_BIGENDIAN
         *gl_buffer_type = GL_UNSIGNED_INT_8_8_8_8_REV;
 #else
         *gl_buffer_type = GL_UNSIGNED_BYTE;
@@ -172,7 +172,7 @@ void get_buffer_format(int *gl_buffer_format, int *gl_buffer_type) {
     }
     else if (format == FS_EMU_VIDEO_FORMAT_RGB) {
         *gl_buffer_format = GL_RGB;
-#ifdef __BIG_ENDIAN__
+#ifdef WORDS_BIGENDIAN
         *gl_buffer_type = GL_UNSIGNED_INT_8_8_8_8_REV;
 #else
         *gl_buffer_type = GL_UNSIGNED_BYTE;
@@ -341,7 +341,7 @@ static void save_screenshot(const char *path, int cx, int cy, int cw, int ch,
         uint8_t *op = out_data + y * cw * 3;
         if (frame_format == FS_EMU_VIDEO_FORMAT_BGRA) {
             for (int x = 0; x < row_len; x += frame_bpp) {
-#ifdef __BIG_ENDIAN__
+#ifdef WORDS_BIGENDIAN
                 *op++ = ip[x + 1];
                 *op++ = ip[x + 2];
                 *op++ = ip[x + 3];

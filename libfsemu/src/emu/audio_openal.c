@@ -6,10 +6,21 @@
 
 #include <fs/emu.h>
 #include <stdio.h>
-#include <fs/emu/openal.h>
 #include <fs/base.h>
 #include <fs/queue.h>
 #include <fs/thread.h>
+
+#ifdef HAVE_AL_AL_H
+#include <AL/al.h>
+#else
+#include <al.h>
+#endif
+#ifdef HAVE_AL_ALC_H
+#include <AL/alc.h>
+#else
+#include <alc.h>
+#endif
+
 #include "libfsemu.h"
 #include "audio.h"
 

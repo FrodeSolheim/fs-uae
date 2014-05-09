@@ -112,7 +112,7 @@ bool cda_audio::play(int bufnum) {
 
     if (g_audio_callback) {
         int len = num_sectors * 2352;
-#ifdef __BIG_ENDIAN__
+#ifdef WORDS_BIGENDIAN
         int8_t *d = (int8_t *) p;
         int8_t temp = 0;
         for (int i = 0; i < len; i += 2) {

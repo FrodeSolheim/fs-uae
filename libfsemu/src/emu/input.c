@@ -506,23 +506,9 @@ static char *joystick_long_config_name(const fs_ml_input_device *device) {
         result[strlen(result) - 1] = '\0';
     }
 
-#if defined(WINDOWS)
-    const char *platform = "windows";
-#elif defined(MACOSX)
-    const char *platform = "macosx";
-#elif defined(LINUX)
-    const char *platform = "linux";
-#elif defined(FREEBSD)
-    const char *platform = "freebsd";
-#elif defined(OPENBSD)
-    const char *platform = "openbsd";
-#else
-    const char *platform = "unknown";
-#endif
-
     char *result2 = fs_strdup_printf("%s_%d_%d_%d_%d_%s", result,
             device->buttons, device->axes, device->hats, device->balls,
-            platform);
+            OS_NAME);
     free(result);
     return result2;
 }

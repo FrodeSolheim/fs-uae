@@ -1,7 +1,11 @@
 Version 2.5.3dev:
 
 * Merged code from WinUAE 2800.
+* Debian compat set to 9, allow harding flags.
 * Migrated build system to autoconf (not automake).
+* Some source code clean to detect features / functions from autoconf.
+* Remove use of deprecated Glib function, require Glib >= 2.32.
+* Properly fixed build dependencies on auto-generated source code.
 * Fixed a problem preventing mouse from working with SDL2 on Windows.
 
 Version 2.5.2dev:

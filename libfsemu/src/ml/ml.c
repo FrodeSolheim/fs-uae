@@ -238,20 +238,7 @@ int fs_ml_handle_keyboard_shortcut(fs_ml_event *event) {
 }
 
 void fs_ml_init() {
-
-#if defined(WINDOWS)
-    fs_log("WINDOWS\n");
-#elif defined(MACOSX)
-    fs_log("MACOSX\n");
-#elif defined(LINUX)
-    fs_log("LINUX\n");
-#elif defined(FREEBSD)
-    fs_log("FREEBSD\n");
-#elif defined(OPENBSD)
-    fs_log("OPENBSD\n");
-#else
-    fs_log("UNKNOWN OS\n");
-#endif
+    fs_log("fs_ml_init (operating system: %s)\n", OS_NAME);
 
     g_fs_ml_video_render_function = NULL;
     g_fs_ml_video_post_render_function = NULL;

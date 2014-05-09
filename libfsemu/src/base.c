@@ -22,24 +22,12 @@
 #include <copyfile.h>
 #endif
 #include <stdio.h>
-#include <fs/log.h>
+// #include <fs/log.h>
 #include <fs/base.h>
 #include <fs/string.h>
 
-#if defined(WINDOWS)
-
-#elif defined(MACOSX)
-
-//#define HAVE_CLOCK_GETTIME
-//#define CLOCK_MONOTONIC
+#ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
-
-#else
-
-#define HAVE_CLOCK_GETTIME
-#define HAVE_CLOCK_MONOTONIC
-#include <sys/time.h>
-
 #endif
 
 #ifdef USE_GLIB
@@ -60,6 +48,7 @@ const char *fs_get_user_config_dir(void) {
 #elif defined(USE_GLIB)
     return g_get_user_config_dir();
 #else
+    #warning No implementation of fs_get_user_config_dir
     // FIXME
     return "";
 #endif
@@ -70,6 +59,7 @@ const char *fs_get_user_data_dir(void) {
     return g_get_user_data_dir();
 #else
     // FIXME
+    #warning No implementation of fs_get_user_data_dir
     return "";
 #endif
 #if 0
@@ -269,7 +259,7 @@ int64_t fs_get_monotonic_time(void) {
     /* librt clock_gettime() is our first choice */
     struct timespec ts;
 
-#ifdef HAVE_CLOCK_MONOTONIC
+#ifdef HAVE_DECL_CLOCK_MONOTONIC
     clock_gettime (CLOCK_MONOTONIC, &ts);
 #else
     clock_gettime (CLOCK_REALTIME, &ts);

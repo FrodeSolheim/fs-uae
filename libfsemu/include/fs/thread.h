@@ -32,7 +32,8 @@ fs_condition *fs_condition_create(void);
 void fs_condition_destroy(fs_condition *condition);
 int fs_condition_signal(fs_condition *condition);
 int fs_condition_wait(fs_condition *condition, fs_mutex *mutex);
-int fs_condition_timed_wait(fs_condition *condition, fs_mutex *mutex,
+int64_t fs_condition_get_wait_end_time(int period);
+int fs_condition_wait_until(fs_condition *condition, fs_mutex *mutex,
         int64_t real_time);
 
 struct fs_semaphore;

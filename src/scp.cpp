@@ -27,13 +27,13 @@ static uint32_t le32toh(uint32_t v)
 {
 	return v;
 }
-#elif defined(MACOSX)
+#elif defined(HAVE_LIBKERN_OSBYTEORDER_H)
 #include <libkern/OSByteOrder.h>
 #define be16toh(x) OSSwapBigToHostInt16(x)
 #define le32toh(x) OSSwapLittleToHostInt32(x)
-#elif defined(LINUX)
+#elif defined(HAVE_ENDIAN_H)
 #include <endian.h>
-#else
+#elif defined(HAVE_SYS_ENDIAN_H)
 #include <sys/endian.h>
 #endif
 

@@ -71,35 +71,26 @@ static uni_handle *g_handles = NULL;
 static int g_allocated_handles = 0;
 static int g_max_handle = -1;
 
-#if defined (_WIN32)
-    #define OS_EXTENSION _T("-windows")
-    #define FILE_EXTENSION _T(".dll")
-#elif defined (LINUX)
-    #define OS_EXTENSION _T("-linux")
-    #define FILE_EXTENSION _T(".so")
-#elif defined (MACOSX)
-    #define OS_EXTENSION _T("-macosx")
-    #define FILE_EXTENSION _T(".dylib")
-#elif defined (FREEBSD)
-    #define OS_EXTENSION _T("-freebsd")
-    #define FILE_EXTENSION _T(".so")
-#elif defined (OPENBSD)
-    #define OS_EXTENSION _T("-openbsd")
-    #define FILE_EXTENSION _T(".so")
-#else
-    #define OS_EXTENSION _T("-unknown")
-    #define FILE_EXTENSION _T(".unknown")
+#ifdef _WIN32
+#ifndef LT_MODULE_EXT
+#define LT_MODULE_EXT _T(".dll")
+#endif
+#ifndef OS_NAME
+#define OS_NAME _T("windows")
+#endif
 #endif
 
 #if defined(__x86_64__) || defined(_M_AMD64) || defined(_M_X64)
-    #define ARCH_EXTENSION _T("-x86-64")
+    #define ARCH_NAME _T("x86-64")
 #elif defined(__i386__) || defined (_M_IX86)
-    #define ARCH_EXTENSION _T("-x86")
+    #define ARCH_NAME _T("x86")
 #elif defined(__ppc__)
-    #define ARCH_EXTENSION _T("-ppc")
+    #define ARCH_NAME _T("ppc")
 #else
-    #define ARCH_EXTENSION _T("-unknown")
+    #define ARCH_NAME _T("unknown")
 #endif
+
+#define MODULE_SUFFIX (OS_NAME _T("-") ARCH_NAME LT_MODULE_EXT)
 
 static int UNICALL uni_version(void)
 {
@@ -176,8 +167,8 @@ static TCHAR *get_native_library_path (const TCHAR *library_name)
     for (const TCHAR **dir = library_dirs; *dir != NULL; dir++) {
         // name must already have been checked to not contain anything
         // to allow access to parent directories.
-        _sntprintf (path, PATH_MAX, _T("%s/%s%s"), *dir, library_name,
-                OS_EXTENSION ARCH_EXTENSION FILE_EXTENSION);
+        _sntprintf (path, PATH_MAX, _T("%s/%s-%s"), *dir, library_name,
+                    MODULE_SUFFIX);
         write_log (_T("uni: checking %s\n"), path);
         if (my_existsfile (path)) {
             return my_strdup (path);
@@ -715,7 +706,8 @@ void uae_library_install (struct uae_library *library)
 	dl (library->aptr_data_table);
 	dl (library->traps[0].aptr);
 
-    write_log (_T("%s installed\n"), library->name);
+    write_log (_T("%s installed (%s)\n"),
+               library->name, MODULE_SUFFIX);
 }
 
 uaecptr uae_library_startup (uaecptr res_addr, struct uae_library *library)

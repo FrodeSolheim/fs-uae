@@ -50,7 +50,7 @@ uae_s16 *decodewav (uae_u8 *s, int *lenp)
 			s += 4;
 			len = s[0] | (s[1] << 8) | (s[2] << 16) | (s[3] << 24);
 			dst = xmalloc (uae_s16, len / 2);
-#ifdef __BIG_ENDIAN__
+#ifdef WORDS_BIGENDIAN
 			int8_t *dst8 = (int8_t *) dst;
 			for (int i = 0; i < len; i += 2) {
 				dst8[i] = s[i + 1];

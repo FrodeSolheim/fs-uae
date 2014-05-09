@@ -425,10 +425,12 @@ int fs_emu_netplay_wait_for_frame(int frame) {
 
         //fs_get_current_time(&abs_time);
         //fs_time_val_add(&abs_time, 100 * 1000);
-        int64_t abs_time = fs_get_real_time() + 100 * 1000;
+        // int64_t abs_time = fs_get_real_time() + 100 * 1000;
+        int64_t end_time = fs_condition_get_wait_end_time(100 * 1000);
 
-        fs_condition_timed_wait(g_wait_for_frame_cond, g_wait_for_frame_mutex,
-                abs_time);
+        // FIXME: check for spurious wakeup
+        fs_condition_wait_until(
+            g_wait_for_frame_cond, g_wait_for_frame_mutex, end_time);
 
         if (fs_emu_is_quitting()) {
             fs_log("fs_emu_netplay_wait_for_frame: quitting\n");

@@ -122,7 +122,6 @@ extern FILE *g_fs_uae_sync_debug_file;
 #ifdef LINUX
 #define WITH_SCSI_IOCTL
 #endif
-#define WITH_UAENATIVE
 
 #define XARCADE
 #define GNU_SOURCE 1

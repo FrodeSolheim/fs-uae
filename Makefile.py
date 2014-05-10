@@ -575,23 +575,18 @@ catalogs = \
 mo: $(catalogs)
 
 distdir-base:
-    rm -Rf $(dist_dir)/*
+    rm -Rf $(dist_dir)
     mkdir -p $(dist_dir)
-    # cp -a $(dist_dir_launcher) $(dist_dir)/launcher
 
-    mkdir -p $(dist_dir)/obj
-    touch $(dist_dir)/obj/.dummy
-    mkdir -p $(dist_dir)/out
-    touch $(dist_dir)/out/.dummy
     cp -a INSTALL README COPYING NEWS AUTHORS $(dist_dir)
     cp -a VERSION SERIES ChangeLog $(dist_dir)
-    # windows.mk macosx.mk debian.mk
     cp -a fs-uae.spec $(dist_dir)
     cp -a example.conf $(dist_dir)
     cp -a configure.ac $(dist_dir)
     cp -a bootstrap.sh $(dist_dir)
     cp -a Makefile.py $(dist_dir)
     cp -a src contrib share licenses $(dist_dir)
+
     rm -Rf $(dist_dir)/src/od-win32
     rm -Rf $(dist_dir)/src/prowizard
     rm -Rf $(dist_dir)/src/archivers/lha
@@ -604,8 +599,6 @@ distdir-base:
     rm -f $(dist_dir)/src/catweasel.cpp
 
     find $(dist_dir)/share -name "*.mo" -delete
-    # mkdir -p $(dist_dir)/gensrc
-    # cp -a gensrc/*.cpp gensrc/*.h $(dist_dir)/gensrc
 
     mkdir -p $(dist_dir)/libfsemu
     cp -a $(libfsemu_dir)/COPYING $(dist_dir)/libfsemu
@@ -750,6 +743,12 @@ clean:
     rm -f fs-uae-device-helper fs-uae-device-helper.exe
 
 distclean: clean clean-dist
+    rm -f config.h
+    rm -f config.log
+    rm -f config.status
+    rm -f Makefile
+    rm -Rf share/locale/
+    rm -f stamp-h1
 """
 
 if __name__ == "__main__":

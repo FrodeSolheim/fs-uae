@@ -356,11 +356,79 @@ AS_CASE([$target_os],
 #])
 
 
-# Features
+# JIT support
 
-AC_DEFINE([WITH_NETPLAY], [1], [Define to 1 to enable net play])
-# AC_DEFINE([WITH_LUA], [1], [Define to 1 to enable LUA scripting])
-AC_DEFINE([WITH_XML_SHADER], [1], [Define to 1 to enable XML shaders])
+AC_ARG_ENABLE([jit], [
+    AS_HELP_STRING([--enable-jit],
+        [enable support for JIT compilation @<:@default=check@:>@])
+    ], [], [enable_jit=check])
+
+AS_IF([test "x$enable_jit" != xno], [
+    AC_TRY_COMPILE([
+    ], [
+        #ifndef __i386__
+        #error JIT is only supported on x86
+        #endif
+        #if defined(__OpenBSD__) || defined(__FreeBSD__)
+        #error no JIT on OpenBSD/FreeBSD right now
+        #endif
+    ], [
+        AC_DEFINE([JIT], [1], [Define to 1 to enable JIT compilation])
+    ], [
+        if test "x$enable_jit" != xcheck; then
+            AC_MSG_FAILURE(
+                [--enable-jit was given, but arch is not supported])
+        fi
+    ]) 
+], [])
+
+
+# Netplay feature.
+
+AC_ARG_ENABLE([netplay], [
+    AS_HELP_STRING([--disable-netplay],
+        [disable netplay support])
+    ], [], [enable_netplay=yes])
+
+AS_IF([test "x$enable_netplay" != xno], [
+    AC_DEFINE([WITH_NETPLAY], [1], [Define to 1 to enable net play])
+], [])
+
+
+# LUA scripting feature.
+
+AC_ARG_ENABLE([lua], [
+    AS_HELP_STRING([--enable-lua],
+        [enable Lua scripting support]
+    )], [], [enable_lua=no])
+
+AS_IF([test "x$enable_lua" != xno], [
+    AC_DEFINE([WITH_LUA], [1], [Define to 1 to enable LUA scripting])
+], [])
+
+
+# Optional uaenative.library support.
+
+AC_ARG_ENABLE([uaenative], [
+    AS_HELP_STRING([--disable-uaenative],
+        [disable UAE native library interface]
+    )], [], [enable_uaenative=yes])
+
+AS_IF([test "x$enable_uaenative" != xno], [
+    AC_DEFINE([WITH_UAENATIVE], [1], [Define to 1 to enable uaenative.library])
+], [])
+
+
+# XML shader feature.
+
+AC_ARG_ENABLE([xml-shader], [
+    AS_HELP_STRING([--disable-xml-shader],
+        [disable XML shader support]
+    )], [], [enable_xml_shader=yes])
+
+AS_IF([test "x$enable_xml_shader" != xno], [
+    AC_DEFINE([WITH_XML_SHADER], [1], [Define to 1 to enable XML shaders])
+], [])
 
 
 # Byte swapping

@@ -1,10 +1,7 @@
 #ifndef _UAE_JITCONFIG_H_
 #define _UAE_JITCONFIG_H_
 
-#if defined(__i386__) && !defined(OPENBSD) && !defined(FREEBSD)
-#define JIT
 // #define JIT_DEBUG
-#endif
 
 #if defined(__i386__)
 // set up correct REGPARAMS for JIT

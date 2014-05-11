@@ -2,7 +2,7 @@ msgid ""
 msgstr "Project-Id-Version: fs-uae\n"
 "Report-Msgid-Bugs-To: frode@fs-uae.net\n"
 "POT-Creation-Date: 2014-03-14 19:32+0100\n"
-"PO-Revision-Date: 2014-03-22 07:32-0400\n"
+"PO-Revision-Date: 2014-05-11 15:57-0400\n"
 "Last-Translator: FrodeSolheim <frode-crowdin@fsolheim.net>\n"
 "Language-Team: French\n"
 "Language: fr_FR\n"
@@ -46,7 +46,7 @@ msgstr "Mode Pad CD32"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 msgid "Custom Joystick Port"
-msgstr "Port Joystick personnalisé"
+msgstr "Port Joystick Personnalisé"
 
 msgid "Custom Mode"
 msgstr "Mode Personnalisé"
@@ -174,13 +174,13 @@ msgid "Option slow_memory must be a multiple of 256"
 msgstr "L'option mémoire_slow doit être un multiple de 256"
 
 msgid "Option uaegfx.card needs a CPU with 32-bit addressing"
-msgstr "L'option uaegfx.card a besoin d'un CPU avec adressage 32 bits"
+msgstr "L'option uaegfx.card requiert un CPU avec adressage 32 bits"
 
 msgid "Option zorro_iii_memory must be a multiple of 1024"
 msgstr "L'option mémoire_zorro_iii doit être un multiple de 1024"
 
 msgid "Options zorro_iii_memory needs a CPU with 32-bit addressing"
-msgstr "L'option mémoire_zorro_iii a besoin d'un CPU avec adressage 32 bits"
+msgstr "L'option mémoire_zorro_iii requiert un CPU avec adressage 32 bits"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 msgid "Parallel Joystick Ports"

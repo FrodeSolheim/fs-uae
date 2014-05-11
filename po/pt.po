@@ -2,7 +2,7 @@ msgid ""
 msgstr "Project-Id-Version: fs-uae\n"
 "Report-Msgid-Bugs-To: frode@fs-uae.net\n"
 "POT-Creation-Date: 2014-03-14 19:32+0100\n"
-"PO-Revision-Date: 2014-03-22 07:32-0400\n"
+"PO-Revision-Date: 2014-05-11 15:57-0400\n"
 "Last-Translator: FrodeSolheim <frode-crowdin@fsolheim.net>\n"
 "Language-Team: Portuguese\n"
 "Language: pt_PT\n"
@@ -20,7 +20,7 @@ msgstr "Controlo do Amiga"
 
 #. / TRANSLATORS: In context "Zoom: Auto"
 msgid "Auto"
-msgstr "Auto"
+msgstr ""
 
 msgid "Auto-Fire is Off"
 msgstr "Auto-Fire está Desligado"
@@ -101,7 +101,7 @@ msgid "Joystick Mode"
 msgstr "Modo joystick"
 
 msgid "Joystick Port"
-msgstr "Joystick Port"
+msgstr ""
 
 #, c-format
 msgid "Joystick Port %d"
@@ -133,7 +133,7 @@ msgid "Load"
 msgstr "Abrir"
 
 msgid "Load State"
-msgstr "Load State"
+msgstr ""
 
 msgid "More..."
 msgstr "Mais..."
@@ -145,7 +145,7 @@ msgid "Mouse Mode"
 msgstr "Modo Rato"
 
 msgid "Mouse Port"
-msgstr "Mouse Port"
+msgstr ""
 
 #. / TRANSLATORS: This is a menu entry and must not be too long: If you struggle
 #. / to get in short enough, just translate "No Device" instead.
@@ -210,7 +210,7 @@ msgid "Save"
 msgstr "Guardar"
 
 msgid "Save State"
-msgstr "Save State"
+msgstr ""
 
 #. / TRANSLATORS: Soft reset reboots the computer without a power cycle
 msgid "Soft Reset"
@@ -227,7 +227,7 @@ msgstr "Zoom está desactivado no modo RTG"
 
 #, c-format
 msgid "Zoom: %s"
-msgstr "Zoom: %s"
+msgstr ""
 
 #, c-format
 msgid "Zoom: %s + Border"

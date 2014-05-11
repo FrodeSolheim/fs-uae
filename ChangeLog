@@ -1,3 +1,9 @@
+Version 2.5.5dev:
+
+* Added missing @docdir@ substitution variable.
+* More build system updates / removed old cruft.
+* BSD make should now also work (in addition to GNU make).
+
 Version 2.5.4dev:
 
 * Some more autoconf / build updates.

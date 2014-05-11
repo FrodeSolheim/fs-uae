@@ -11,7 +11,16 @@ CXXFLAGS = @CXXFLAGS@
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
+@SET_MAKE@
+version = @PACKAGE_VERSION@
+series = @PACKAGE_SERIES@
+
+PACKAGE_TARNAME = @PACKAGE_TARNAME@
 prefix = @prefix@
+exec_prefix = @exec_prefix@
+bindir = @bindir@
+datarootdir = @datarootdir@
+docdir = @docdir@
 
 AM_CFLAGS =
 AM_CFLAGS += -I. -Isrc/od-fs -Isrc/od-fs/include
@@ -438,7 +447,7 @@ def program(name, sources):
         symbol = symbol.replace(".", "_")
         symbol = symbol.replace("-", "_")
         n, ext = os.path.splitext(source)
-        obj_name = "obj/{0}_{1}.o".format(
+        obj_name = ".obj/{0}_{1}.o".format(
             name.replace("/", "_").replace("-", "_"), n.replace("/", "_"))
         if ext in [".cpp", ".cc"]:
             compiler = "$(CXX)"
@@ -454,9 +463,8 @@ def program(name, sources):
             compiler += " " + extra_cflags
         deps.extend(globals().get(symbol + "_deps", []))
         targets[obj_name] = " ".join(deps), [
-            # "@echo -e \\\\n--- {0} ---".format(obj_name),
-            "@mkdir -p `dirname $@`",
-            "{0} -c $< -o $@".format(compiler),
+            "@mkdir -p {0}".format(os.path.dirname(obj_name)),
+            "{0} -c {1} -o {2}".format(compiler, source, obj_name),
         ]
         object_list.append(obj_name)
     linker_flags = " $(AM_LDFLAGS) $(LDFLAGS)"
@@ -465,11 +473,30 @@ def program(name, sources):
     objects_list_name = name.replace("/", "_").replace("-", "_") + "_objects"
     lists[objects_list_name] = sorted(object_list)
     targets[name] = "$({0})".format(objects_list_name), [
-        # "@echo -e \\\\n--- {0} ---".format(name),
-        "@mkdir -p `dirname $@`",
+        "mkdir -p {0}".format(os.path.dirname(name) or "."),
         "@rm -f {0}".format(name),
-        "{0} $({1}) {2} -o $@".format(linker, objects_list_name, linker_flags),
+        "{0} $({1}) {2} -o {3}".format(
+            linker, objects_list_name, linker_flags, name),
     ]
+
+
+def po_files():
+    object_list = []
+    for name in os.listdir("po"):
+        if not name.endswith(".po"):
+            continue
+        source = "po/{0}".format(name)
+        obj_name = "share/locale/{0}/LC_MESSAGES/fs-uae.mo".format(name[:-3])
+        deps = [source]
+        targets[obj_name] = " ".join(deps), [
+            # "@echo -e \\\\n--- {0} ---".format(obj_name),
+            "mkdir -p share/locale/{0}/LC_MESSAGES".format(name[:-3]),
+            "msgfmt --verbose {0} -o {1}".format(source, obj_name),
+        ]
+        object_list.append(obj_name)
+    objects_list_name = "mo_files"
+    lists[objects_list_name] = sorted(object_list)
+    targets["mo"] = "$({0})".format(objects_list_name), []
 
 
 def main():
@@ -484,6 +511,7 @@ def main():
     program("gen/gencomp", gencomp_sources)
     program("gen/gencpu", gencpu_sources)
     program("gen/genlinetoscr", genlinetoscr_sources)
+    po_files()
 
     with open("Makefile.in", "w") as f:
         f.write("# Makefile.  Generated from Makefile.in by configure.\n")
@@ -540,46 +568,17 @@ def main():
         print("\nALL OK\n")
 
 
-footer = """
-version := $(strip $(shell cat VERSION))
-series := $(strip $(shell cat SERIES))
-
-ifeq ($(wildcard libfsemu),)
-    libfsemu_dir := "../libfsemu"
-else
-    libfsemu_dir := "libfsemu"
-endif
-
-build_dir := "."
+footer = """\
 dist_name = fs-uae-$(version)
-dist_dir := $(build_dir)/$(dist_name)
-
-share/locale/%/LC_MESSAGES/fs-uae.mo: po/%.po
-    mkdir -p share/locale/$*/LC_MESSAGES
-    msgfmt --verbose $< -o $@
-
-catalogs = \
-    share/locale/cs/LC_MESSAGES/fs-uae.mo \
-    share/locale/da/LC_MESSAGES/fs-uae.mo \
-    share/locale/de/LC_MESSAGES/fs-uae.mo \
-    share/locale/es/LC_MESSAGES/fs-uae.mo \
-    share/locale/fi/LC_MESSAGES/fs-uae.mo \
-    share/locale/fr/LC_MESSAGES/fs-uae.mo \
-    share/locale/it/LC_MESSAGES/fs-uae.mo \
-    share/locale/nb/LC_MESSAGES/fs-uae.mo \
-    share/locale/pl/LC_MESSAGES/fs-uae.mo \
-    share/locale/pt/LC_MESSAGES/fs-uae.mo \
-    share/locale/sr/LC_MESSAGES/fs-uae.mo \
-    share/locale/tr/LC_MESSAGES/fs-uae.mo
-
-mo: $(catalogs)
+dist_dir := $(dist_name)
+libfsemu_dir := libfsemu
 
 distdir-base:
     rm -Rf $(dist_dir)
     mkdir -p $(dist_dir)
 
     cp -a INSTALL README COPYING NEWS AUTHORS $(dist_dir)
-    cp -a VERSION SERIES ChangeLog $(dist_dir)
+    cp -a ChangeLog $(dist_dir)
     cp -a fs-uae.spec $(dist_dir)
     cp -a example.conf $(dist_dir)
     cp -a configure.ac $(dist_dir)
@@ -615,18 +614,15 @@ distdir-base:
     cp -a doc/Default.fs-uae $(dist_dir)/doc/
 
     mkdir -p $(dist_dir)/macosx
-    cp -a macosx/Makefile $(dist_dir)/macosx/
-    cp -a macosx/fs-make-standalone-app.py $(dist_dir)/macosx/
-    cp -a macosx/template $(dist_dir)/macosx/
+    cp -p macosx/standalone.py $(dist_dir)/macosx/
+    cp -p macosx/Info.plist.in $(dist_dir)/macosx/
+    cp -p macosx/Makefile.in $(dist_dir)/macosx/
+    cp -p macosx/PkgInfo $(dist_dir)/macosx/
 
     mkdir -p $(dist_dir)/windows
-    cp -a windows/Makefile $(dist_dir)/windows/
-    # cp -a windows/launcher-proxy.exe $(dist_dir)/windows/
-    # cp -a windows/game-center-proxy.exe $(dist_dir)/windows/
-    cp -a windows/replace_icon.py $(dist_dir)/windows/
-    cp -a windows/fs-uae.iss $(dist_dir)/windows/
-    # cp -a windows/launcher.iss $(dist_dir)/windows/
-    # cp -a windows/game-center.iss $(dist_dir)/windows/
+    cp -p windows/Makefile.in $(dist_dir)/windows/
+    cp -p windows/replace_icon.py $(dist_dir)/windows/
+    cp -p windows/fs-uae.iss.in $(dist_dir)/windows/
 
     mkdir -p $(dist_dir)/debian
     cp -a debian/changelog $(dist_dir)/debian/
@@ -635,11 +631,6 @@ distdir-base:
     cp -a debian/copyright $(dist_dir)/debian/
     cp -a debian/rules $(dist_dir)/debian/
     cp -a debian/source $(dist_dir)/debian/
-
-    mkdir -p $(dist_dir)/util
-    #cp -a util/fix_64_bit.py $(dist_dir)/util/
-    #cd $(dist_dir) && python util/fix_64_bit.py
-    cp -a util/update-version.py $(dist_dir)/util/
 
     mkdir -p $(dist_dir)/icon
     cp icon/fs-uae.ico $(dist_dir)/icon/
@@ -653,102 +644,43 @@ distdir-base:
 distdir: distdir-base
     cd $(dist_dir) && ./bootstrap.sh
     cd $(dist_dir) && rm -Rf autom4te.cache
-    cd $(dist_dir) && python util/update-version.py
 
 distcheck: distdir
     cd $(dist_dir) && ./configure
-    cd $(dist_dir) && $(make)
+    cd $(dist_dir) && $(MAKE) all distclean
 
-po-dist:
-    mkdir -p dist/$(series)/po/fs-uae
-    cp po/*.po dist/$(series)/po/fs-uae/
-
-    # mkdir -p dist/$(series)/po/fs-uae-launcher
-    # cp launcher/po/*.po dist/$(series)/po/fs-uae-launcher/
-
-#dist: distdir pubfiles-source po-dist
-dist: distdir po-dist
-    # find $(dist_dir_launcher) -exec touch \{\} \;
+dist: distdir
     find $(dist_dir) -exec touch \{\} \;
-
-    # tar zcfv fs-uae-launcher-$(version).tar.gz $(dist_dir_launcher)
-    cd "$(build_dir)" && tar zcfv $(dist_name).tar.gz $(dist_name)
-    # mkdir -p dist/$(series)/$(version)
-    # mv fs-uae-$(version).tar.gz dist/$(series)/$(version)/
-    # mv fs-uae-launcher-$(version).tar.gz dist/$(series)/$(version)/
-    # mkdir -p dist/files/
-    # cp doc/Default.fs-uae dist/files/
-    # cp server/fs_uae_netplay_server/game.py \
-    # 	dist/files/fs-uae-netplay-server.py
-    # cp server/fs_uae_netplay_server/game.py \
-    # 	dist/$(series)/$(version)/fs-uae-game-server-$(version).py
+    tar zcfv $(dist_name).tar.gz $(dist_name)
 
 install:
-    install -d $(DESTDIR)$(prefix)/bin
-    install fs-uae $(DESTDIR)$(prefix)/bin/fs-uae
-    install fs-uae-device-helper $(DESTDIR)$(prefix)/bin/fs-uae-device-helper
-    install -d $(DESTDIR)$(prefix)/share
-    cp -R share/* $(DESTDIR)$(prefix)/share
-
+    install -d $(DESTDIR)$(bindir)
+    install fs-uae $(DESTDIR)$(bindir)/fs-uae
+    install fs-uae-device-helper $(DESTDIR)$(bindir)/fs-uae-device-helper
+    install -d $(DESTDIR)$(datarootdir)
+    cp -R share/* $(DESTDIR)$(datarootdir)
     install -d $(DESTDIR)$(docdir)
     cp README COPYING example.conf $(DESTDIR)$(docdir)
 
-debsrc: dist
-    # test -f $(build_dir)/fs-uae_$(version).orig.tar.gz || cp $(build_dir)/fs-uae-$(version).tar.gz $(build_dir)/fs-uae_$(version).orig.tar.gz
-    mv $(build_dir)/fs-uae-$(version).tar.gz $(build_dir)/fs-uae_$(version).orig.tar.gz
-
-    sed -i "s/-0[)] unstable;/-$(debversion)) $(debseries);/g" $(dist_dir)/debian/changelog
-    cd $(dist_dir) && dpkg-buildpackage -S -us -uc
-
-deb: debsrc
-    # cd $(dist_dir) && fakeroot debian/rules binary
-    # mkdir -p dist/$(series)/$(version)
-    # mv build/fs-uae_$(version)-*deb dist/$(series)/$(version)/
-    cd $(dist_dir) && dpkg-buildpackage -us -uc
-
-windows-dist: distdir
-    cd $(dist_dir) && ./configure
-    cd $(dist_dir)/windows && make
-    mv $(dist_dir)/fs-uae_*windows* .
-    rm -Rf $(dist_dir)
-
-macosx-dist: distdir
-    cd $(dist_dir) && ./configure
-    cd $(dist_dir)/macosx && make
-    mv $(dist_dir)/fs-uae_*macosx* .
-    rm -Rf $(dist_dir)
-
-dist_dir_launcher := fs-uae-launcher-$(version)
-
-debseries := unstable
-debversion := $(shell date +"%s")
-
-pubfiles:
-    mkdir -p dist
-
-pubfiles-source:
-    mkdir -p dist
-    cp -a ChangeLog example.conf dist/
-    cp -a fs-uae-$(version)/README dist/
-    chmod 0644 dist/README
-    chmod 0644 dist/ChangeLog
-    chmod 0644 dist/example.conf
-
-clean-dist:
-    rm -Rf build dist fs-uae-[0-9]* fs-uae_*
-
 clean:
-    rm -Rf gen obj
+    rm -Rf gen .obj
     rm -f fs-uae fs-uae.exe
     rm -f fs-uae-device-helper fs-uae-device-helper.exe
 
-distclean: clean clean-dist
+distclean: clean
+    rm -Rf build
     rm -f config.h
     rm -f config.log
     rm -f config.status
+    rm -Rf dist
+    rm -Rf fs-uae[-_][0-9]*
+    rm -f macosx/Info.plist
+    rm -f macosx/Makefile
     rm -f Makefile
     rm -Rf share/locale/
     rm -f stamp-h1
+    rm -f windows/fs-uae.iss
+    rm -f windows/Makefile
 """
 
 if __name__ == "__main__":

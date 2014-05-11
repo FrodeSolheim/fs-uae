@@ -29,6 +29,7 @@ libfs-capsimage.dylib
 *.sdf
 *.log
 /obj
+/.obj
 /out
 /gen
 build68k
@@ -71,7 +72,6 @@ libfsemu/obj
 libfsemu/out
 core
 /libs/
-
 /Makefile
 /Makefile.in
 /aclocal.m4
@@ -90,3 +90,12 @@ core
 /config.sub
 .deps
 .dirstamp
+/macosx/Info.plist
+/macosx/Makefile
+/SERIES
+/VERSION
+/windows/fs-uae.iss
+/windows/Makefile
+/confdefs.h
+/conftest.c
+/conftest.err

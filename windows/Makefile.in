@@ -1,4 +1,4 @@
-version = 2.5.5dev
+version = @PACKAGE_VERSION@
 emulator_dir = fs-uae_$(version)_windows
 
 all: progdir zipfile setup

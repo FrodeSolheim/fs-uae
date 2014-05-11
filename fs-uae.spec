@@ -1,28 +1,27 @@
-Name:           fs-uae
-Version:        9.8.7
-Release:        1%{?dist}
-
-Summary:        Amiga emulator with on-screen GUI and online play support
-License:        GPL-2.0+
-Group:          System/Emulators/Other
-Url:            http://fs-uae.net/
-Source0:        http://fs-uae.net/devel/%{version}/fs-uae-%{version}.tar.gz
+Name: fs-uae
+Version: 2.5.5dev
+Release: 1%{?dist}
+Summary: Amiga emulator with on-screen GUI and online play support
+License: GPL-2.0+
+Group: System/Emulators/Other
+Url: http://fs-uae.net/
+Source0: http://fs-uae.net/devel/%{version}/fs-uae-%{version}.tar.gz
 %if 0%{?suse_version}
-BuildRequires:  fdupes
+BuildRequires: fdupes
 %endif
-BuildRequires:  gcc-c++
-BuildRequires:  hicolor-icon-theme
-BuildRequires:  libpng-devel
-BuildRequires:  libXi-devel
-BuildRequires:  pkgconfig(gl)
-BuildRequires:  pkgconfig(glib-2.0)
-BuildRequires:  pkgconfig(glu)
-BuildRequires:  pkgconfig(gthread-2.0)
-BuildRequires:  pkgconfig(openal)
-BuildRequires:  pkgconfig(sdl2)
-BuildRequires:  pkgconfig(x11)
-BuildRequires:  pkgconfig(zlib)
-BuildRequires:  pkgconfig(freetype2)
+BuildRequires: gcc-c++
+BuildRequires: hicolor-icon-theme
+BuildRequires: libpng-devel
+BuildRequires: libXi-devel
+BuildRequires: pkgconfig(gl)
+BuildRequires: pkgconfig(glib-2.0)
+BuildRequires: pkgconfig(glu)
+BuildRequires: pkgconfig(gthread-2.0)
+BuildRequires: pkgconfig(openal)
+BuildRequires: pkgconfig(sdl2)
+BuildRequires: pkgconfig(x11)
+BuildRequires: pkgconfig(zlib)
+BuildRequires: pkgconfig(freetype2)
 
 %description
 FS-UAE is an Amiga emulator for Windows, Linux and Mac OS X

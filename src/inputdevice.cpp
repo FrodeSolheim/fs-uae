@@ -7435,35 +7435,15 @@ void clear_inputstate (void)
 		relativecount[i][0] = relativecount[i][1] = 0;
 	}
 }
-#ifdef FSUAE
 
-int amiga_handle_input_event (int nr, int state, int max,
-        int autofire, bool canstopplayback, bool playbackevent) {
-    return handle_input_event(nr, state, max, autofire, canstopplayback,
-            playbackevent);
-}
+#ifdef FSUAE // NL
 
-#if 0
-void amiga_configure_port_from_input_event(int input_event) {
-    iscd32(input_event);
-    isparport(input_event);
-    ismouse(input_event);
-    isanalog(input_event);
-    isdigitalbutton(input_event);
-}
-#endif
+#include <fs/i18n.h>
 
-extern "C" {
+static int g_requested_port_modes[4];
 
-#if 0
-int amiga_get_joystick_port_mode(int port) {
-    return currprefs.jports[port].mode;
-}
-#endif
-
-void amiga_set_joystick_port_mode(int port, int mode) {
-    write_log("***** amiga_set_joystick_port_mode port=%d mode=%d\n", port,
-            mode);
+void amiga_set_joystick_port_mode_2 (int port, int mode)
+{
     int *ip = NULL;
     //parport_joystick_enabled = 0;
     if (port == 0 || port == 1) {
@@ -7514,11 +7494,11 @@ void amiga_set_joystick_port_mode(int port, int mode) {
 
     if (ip) {
         while (*ip != -1) {
-            iscd32(*ip);
-            isparport(*ip);
-            ismouse(*ip);
-            isanalog(*ip);
-            isdigitalbutton(*ip);
+            iscd32 (*ip);
+            isparport (*ip);
+            ismouse (*ip);
+            isanalog (*ip);
+            isdigitalbutton (*ip);
             ip++;
         }
     }
@@ -7527,6 +7507,55 @@ void amiga_set_joystick_port_mode(int port, int mode) {
     //inputdevice_updateconfig(&currprefs);
 }
 
+extern "C" {
+
+void amiga_set_joystick_port_mode(int port, int mode)
+{
+    write_log ("amiga_set_joystick_port_mode port=%d mode=%d\n", port, mode);
+    g_requested_port_modes[port] = mode;
+    return amiga_set_joystick_port_mode_2 (port, mode);
 }
 
-#endif
+}
+
+int amiga_handle_input_event (int nr, int state, int max,
+        int autofire, bool canstopplayback, bool playbackevent)
+{
+    switch (nr) {
+    case INPUTEVENT_MOUSE1_HORIZ:
+    case INPUTEVENT_MOUSE1_VERT:
+        if (mouse_port[0] == 0) {
+            if (g_requested_port_modes[0] == AMIGA_JOYPORT_DJOY) {
+                // require a bit  than the minimum registered motion activity
+                // more to switch mode
+                if (state < -2 || state > 2) {
+                    gui_message ("%s", _("[ Port 0 ] Switched to mouse mode"));
+                    printf ("state %d\n", state);
+                    printf ("[auto] joyport 0 -> mouse mode\n");
+                    amiga_set_joystick_port_mode_2 (0, AMIGA_JOYPORT_MOUSE);
+                }
+            }
+        }
+        break;
+    case INPUTEVENT_JOY1_UP:
+    case INPUTEVENT_JOY1_DOWN:
+    case INPUTEVENT_JOY1_LEFT:
+    case INPUTEVENT_JOY1_RIGHT:
+        printf ("..1\n");
+        if (mouse_port[0] == 1) {
+            printf ("..2\n");
+            if (g_requested_port_modes[0] == AMIGA_JOYPORT_DJOY) {
+                printf ("..3\n");
+                gui_message ("%s", _("[ Port 0 ] Switched to joystick mode"));
+                printf ("[auto] joyport 0 -> joystick mode\n");
+                amiga_set_joystick_port_mode_2 (0, AMIGA_JOYPORT_DJOY);
+            }
+        }
+        break;
+    }
+
+    return handle_input_event (nr, state, max, autofire, canstopplayback,
+            playbackevent);
+}
+
+#endif // FS-UAE

@@ -425,6 +425,10 @@ char *fs_uae_decode_path(const char* path) {
 */
 }
 
+static void on_gui_message(const char* message) {
+    fs_emu_warning(message);
+}
+
 static void on_init() {
     fs_log("\n");
     fs_log(LOG_LINE);
@@ -439,6 +443,8 @@ static void on_init() {
     fs_uae_configure_hard_drives();
     fs_uae_configure_input();
     fs_uae_configure_directories();
+
+    amiga_set_gui_message_function(on_gui_message);
 
     if (fs_config_get_int("save_state_compression") == 0) {
         amiga_set_save_state_compression(0);

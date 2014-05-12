@@ -389,12 +389,13 @@ void fs_uae_reconfigure_input_ports_host() {
         }
     }
 
+    fs_uae_input_port *port0 = g_fs_uae_input_ports;
+
+#if 0
     int autoswitch = fs_config_get_boolean("joystick_port_0_autoswitch");
     if (autoswitch == FS_CONFIG_NONE) {
         autoswitch = 0;
     }
-
-    fs_uae_input_port *port0 = g_fs_uae_input_ports;
 
     if (!autoswitch) {
         if (mouse_mapped_to_port == -1 && port0->mode != AMIGA_JOYPORT_NONE) {
@@ -405,7 +406,14 @@ void fs_uae_reconfigure_input_ports_host() {
                     0, INPUTEVENT_JOY1_2ND_BUTTON, 0);
         }
     }
+#endif
 
+    if (mouse_mapped_to_port == -1 && port0->mode == AMIGA_JOYPORT_DJOY) {
+        fs_log("additionally mapping mouse to port 0\n");
+        map_mouse("mouse", 0);
+    }
+
+#if 0
     if (autoswitch && !fs_emu_netplay_enabled()) {
         // auto-select for other devices when not in netplay mode
 
@@ -441,6 +449,7 @@ void fs_uae_reconfigure_input_ports_host() {
             input_device++;
         };
     }
+#endif
 
     fs_emu_map_custom_actions();
 }

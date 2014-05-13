@@ -276,6 +276,12 @@ static void set_video_mode() {
 
     // SDL_SetHint(SDL_HINT_VIDEO_MAC_FULLSCREEN_SPACES, "0");
 
+#if 0
+    Uint8 data[] = "\0";
+    SDL_Cursor *cursor = SDL_CreateCursor(data, data, 8, 1, 0, 0);
+    SDL_SetCursor(cursor);
+#endif
+
     g_fs_ml_video_width = w;
     g_fs_ml_video_height = h;
     fs_log("SDL_CreateWindow(x=%d, y=%d, w=%d, h=%d, flags=%d)\n",
@@ -987,33 +993,34 @@ int fs_ml_main_loop() {
     }
 
     if (g_fs_emu_video_fullscreen) {
-        if (SDL_getenv("FSGS_SEAMLESS") &&
-                SDL_getenv("FSGS_SEAMLESS")[0] == '1') {
-            fs_log("trying to move cursor to bottom right\n");
+        if (SDL_getenv("FSGS_RETURN_CURSOR_TO") &&
+                SDL_getenv("FSGS_RETURN_CURSOR_TO")[0]) {
             // we want to improve the transitioning from FS-UAE back to
             // e.g. FS-UAE Game Center - avoid blinking cursor - so we try
-            // to move it to the bottom right of the screen. This probably
+            // to move it (to the bottom right of the screen). This probably
             // requires that the cursor is not grabbed (SDL often keeps the
             // cursor in the center of the screen, then).
-            Uint8 data[] = "\0";
+            int x = -1; int y = -1;
+            sscanf(SDL_getenv("FSGS_RETURN_CURSOR_TO"), "%d,%d", &x, &y);
+            if (x != -1 && y != -1) {
+                fs_log("trying to move mouse cursor to x=%d y=%d\n", x, y);
+                Uint8 data[] = "\0";
 #ifdef USE_SDL2
-            SDL_SetWindowGrab(g_fs_ml_window, SDL_FALSE);
+                SDL_SetWindowGrab(g_fs_ml_window, SDL_FALSE);
 #else
-            SDL_WM_GrabInput(SDL_GRAB_OFF);
+                SDL_WM_GrabInput(SDL_GRAB_OFF);
 #endif
-            SDL_Cursor *cursor = SDL_CreateCursor(data, data, 8, 1, 0, 0);
-            SDL_SetCursor(cursor);
-            SDL_ShowCursor(SDL_ENABLE);
-            // SDL_PumpEvents();
-            // fs_ml_usleep(2 * 1000 * 1000);
+                // setting invisible cursor so we won't see it when we
+                // enable the cursor in order to move it
+                SDL_Cursor *cursor = SDL_CreateCursor(data, data, 8, 1, 0, 0);
+                SDL_SetCursor(cursor);
+                SDL_ShowCursor(SDL_ENABLE);
 #ifdef USE_SDL2
-            SDL_WarpMouseInWindow(g_fs_ml_window,
-                                  fs_ml_get_fullscreen_width() - 1,
-                                  fs_ml_get_fullscreen_height() - 1);
+                SDL_WarpMouseInWindow(g_fs_ml_window, x, y);
 #else
-            SDL_WarpMouse(fs_ml_get_fullscreen_width() - 1,
-                          fs_ml_get_fullscreen_height() - 1);
+                SDL_WarpMouse(x, y);
 #endif
+            }
         }
     }
     return 0;

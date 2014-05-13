@@ -19,7 +19,7 @@ def fix_binary(path, frameworks_dir):
         if not line:
             continue
         if line.startswith("/usr/lib") or line.startswith("/System"):
-            old = line.split(" ")[0]
+            # old = line.split(" ")[0]
             continue
         if line.startswith("@executable_path"):
             continue
@@ -47,10 +47,10 @@ def fix_binary(path, frameworks_dir):
 
 def fix_iteration(app):
     binaries = []
-    macos_dir = os.path.join(app, "Contents", "MacOS")
+    mac_os_dir = os.path.join(app, "Contents", "MacOS")
     frameworks_dir = os.path.join(app, "Contents", "Frameworks")
-    for name in os.listdir(macos_dir):
-        binaries.append(os.path.join(macos_dir, name))
+    for name in os.listdir(mac_os_dir):
+        binaries.append(os.path.join(mac_os_dir, name))
     for name in os.listdir(frameworks_dir):
         binaries.append(os.path.join(frameworks_dir, name))
     changes = 0

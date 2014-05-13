@@ -155,6 +155,8 @@ void print_events() {
         return;
     }
 
+    int64_t startup = fs_get_monotonic_time();
+
     SDL_Event event;
     int do_quit = 0;
     while (do_quit == 0) {
@@ -174,6 +176,18 @@ void print_events() {
                    event.jbutton.which, event.jhat.hat, event.jhat.value);
             break;
         case SDL_JOYAXISMOTION:
+            if (startup > 0) {
+                if (fs_get_monotonic_time() - startup < 1000.0) {
+                    // at least on Linux, it has been observed that you get
+                    // a (full negative) axis motion event per axis on
+                    // startup.
+                    printf("# ignored startup axis event\n");
+                    break;
+                }
+                else {
+                    startup = 0;
+                }
+            }
 #if 0
             if (event.jaxis.value > -2000 && event.jaxis.value < 2000) {
                 break;

@@ -1,10 +1,15 @@
 Version 2.5.5dev:
 
-* Dual joystick/mouse mode for joystick port 0.
-* Show gui_message notifications from UAE code.
+* Dual joystick/mouse mode for joystick port 0, both a specific joystick
+  device and mouse is enabled at the same time (only when
+  joystick_port_0_mode = joystick and a joystick host device is selected).
+* Show on-screen gui_message notifications from UAE code.
 * Added missing @docdir@ substitution variable.
 * More build system updates / removed old cruft.
 * BSD make should now also work (in addition to GNU make).
+* Environment variable FSGS_RETURN_CURSOR_TO can be used to move the cursor
+  to a specific location when FS-UAE quits.
+* (Device Helper) Ignore full negative axis motion events on startup.
 
 Version 2.5.4dev:
 

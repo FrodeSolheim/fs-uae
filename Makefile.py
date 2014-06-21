@@ -23,6 +23,11 @@ datarootdir = @datarootdir@
 docdir = @docdir@
 
 AM_CFLAGS =
+# some code (e.g. op_4480_13 handling on NEG.L) relies on signed
+# integers overflowing (undefined behavior)
+AM_CFLAGS += -fno-strict-overflow
+AM_CFLAGS += -Wstrict-overflow
+
 AM_CFLAGS += -I. -Isrc/od-fs -Isrc/od-fs/include
 AM_CFLAGS += -Isrc/include -Igen -Isrc/jit -Isrc
 AM_CFLAGS += -Ilibfsemu/include -Ilibfsemu/src/lua
@@ -433,15 +438,16 @@ genlinetoscr_sources = [
 # Using GCC optimization level O0 instead of O2 for cpuemu*, since a bug
 # was found caused by the optimizer (where basically (1 ^ 0) & (1 ^ 0) was
 # evaluated to 0). This fixes Tower of Babel (IPF).
-gen_cpuemu_0_cpp_cflags = "-O0"
-gen_cpuemu_11_cpp_cflags = "-O0"
-gen_cpuemu_13_cpp_cflags = "-O0"
-gen_cpuemu_20_cpp_cflags = "-O0"
-gen_cpuemu_21_cpp_cflags = "-O0"
-gen_cpuemu_22_cpp_cflags = "-O0"
-gen_cpuemu_31_cpp_cflags = "-O0"
-gen_cpuemu_32_cpp_cflags = "-O0"
-gen_cpuemu_33_cpp_cflags = "-O0"
+# Edit - not a bug, code relies on undefined behavior w.r.t signed overflow.
+#gen_cpuemu_0_cpp_cflags = "-O0"
+#gen_cpuemu_11_cpp_cflags = "-O0"
+#gen_cpuemu_13_cpp_cflags = "-O0"
+#gen_cpuemu_20_cpp_cflags = "-O0"
+#gen_cpuemu_21_cpp_cflags = "-O0"
+#gen_cpuemu_22_cpp_cflags = "-O0"
+#gen_cpuemu_31_cpp_cflags = "-O0"
+#gen_cpuemu_32_cpp_cflags = "-O0"
+#gen_cpuemu_33_cpp_cflags = "-O0"
 
 
 src_blitter_cpp_deps = ["gen/blit.h"]

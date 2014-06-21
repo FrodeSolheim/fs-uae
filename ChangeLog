@@ -5,6 +5,9 @@ Version 2.5.6dev:
 * Fixed a bug (potential crash) in fs_get_application_exe_path on windows.
 * Initial support reading resources from fs-uae.dat (or embedded in the exe).
 * Build scripts for SteamOS / Steam runtime version.
+* Re-enable compiler optimizations for cpuemu, use -fno-strict-overflow
+  to work around the issue that current cpu emulation code assumes signed
+  integer overflow behavior.
 * Added speedlink_strike_2_gamepad_12_5_1_0_windows.conf [TCD].
 
 Version 2.5.5dev:

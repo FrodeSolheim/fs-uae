@@ -2285,9 +2285,8 @@ static void genflags_normal (flagtypes type, wordsizes size, const char *value, 
 	case flag_logical_noclobber:
 	case flag_logical:
 #ifdef FSUAE
-    // FIXME: Compiled warning about flag_z not being handled, hopefully
-    // was not meant to be handled, adding it here to silence warning.
 	case flag_z:
+		break;
 #endif
 	case flag_zn:
 		break;

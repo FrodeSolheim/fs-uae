@@ -12,7 +12,12 @@
 #include <SDL.h>
 #endif
 
+#ifdef MACOSX
+#include <SDL.h>
+#endif
+
 #include <fs/base.h>
+#include <fs/data.h>
 #include <fs/emu.h>
 #include <fs/i18n.h>
 #include <fs/string.h>
@@ -910,6 +915,13 @@ int main(int argc, char* argv[]) {
     fs_uae_argv = argv;
     fs_set_argv(argc, argv);
 
+#ifdef _WIN32
+    if (AttachConsole(-1) != 0) {
+        freopen("CON", "wb", stdout);
+        freopen("CON", "wb", stderr);
+    }
+#endif
+
     char **arg;
     arg = argv + 1;
     while (arg && *arg) {
@@ -925,9 +937,14 @@ int main(int argc, char* argv[]) {
     }
 
     fs_init();
+    int error = fs_data_init("fs-uae", "fs-uae.dat");
+    if (error) {
+        printf("WARNING: error (%d) loading fs-uae.dat\n", error);
+    }
 
     fs_set_prgname("fs-uae");
     fs_set_application_name("Amiga Emulator");
+
     amiga_set_log_function(log_to_libfsemu);
 
     //result = parse_options(argc, argv);
@@ -940,6 +957,22 @@ int main(int argc, char* argv[]) {
     free(current_dir);
 
     amiga_init();
+
+#ifdef MACOSX
+    SDL_Init(SDL_INIT_EVERYTHING);
+    SDL_PumpEvents();
+    SDL_Event event;
+    fs_log("OS X: Check for pending SDL_DROPFILE event\n");
+    while (SDL_PollEvent(&event)) {
+        fs_log("Got SDL event 0x%x\n", event.type);
+        if (event.type == SDL_DROPFILE) {
+            if (event.drop.file != NULL) {
+                g_fs_uae_config_file_path = strdup(event.drop.file);
+            }
+            SDL_free(event.drop.file);
+        }
+    }
+#endif
 
     // skip first entry
     arg = argv + 1;

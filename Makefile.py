@@ -2,7 +2,6 @@
 import os
 import sys
 
-
 header = """
 CC = @CC@
 CXX = @CXX@
@@ -11,6 +10,7 @@ CXXFLAGS = @CXXFLAGS@
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
+OBJCOPY = @OBJCOPY@
 @SET_MAKE@
 version = @PACKAGE_VERSION@
 series = @PACKAGE_SERIES@
@@ -59,7 +59,16 @@ AM_LIBS += @ZLIB_LIBS@
 
 AM_LDFLAGS = @OS_LDFLAGS@
 
-all: fs-uae-device-helper fs-uae mo
+all: fs-uae-device-helper fs-uae fs-uae.dat mo
+
+fs-uae.dat:
+    rm -f fs-uae.dat
+    zip -r -Z store fs-uae.dat share
+
+fs-uae-with-dat: fs-uae fs-uae.dat
+    cat fs-uae fs-uae.dat > fs-uae-with-dat
+    zip -A fs-uae-with-dat
+    chmod a+x fs-uae-with-dat
 
 gen/blit.h: gen/genblitter
     gen/genblitter i > gen/blit.h
@@ -122,6 +131,7 @@ build68k_sources = [
 fs_uae_sources = [
     "libfsemu/src/base.c",
     "libfsemu/src/config.c",
+    "libfsemu/src/data.c",
     "libfsemu/src/emu/actions.c",
     "libfsemu/src/emu/audio_common.c",
     "libfsemu/src/emu/audio_debug.c",
@@ -376,6 +386,7 @@ fs_uae_sources = [
 
 fs_uae_device_helper_sources = [
     "libfsemu/src/base.c",
+    "libfsemu/src/data.c",
     "libfsemu/src/filesys.c",
     "libfsemu/src/hashtable.c",
     "libfsemu/src/list.c",
@@ -463,8 +474,8 @@ def program(name, sources):
             compiler += " " + extra_cflags
         deps.extend(globals().get(symbol + "_deps", []))
         targets[obj_name] = " ".join(deps), [
-            "@mkdir -p {0}".format(os.path.dirname(obj_name)),
-            "{0} -c {1} -o {2}".format(compiler, source, obj_name),
+            "\t@mkdir -p {0}".format(os.path.dirname(obj_name)),
+            "\t{0} -c {1} -o {2}".format(compiler, source, obj_name),
         ]
         object_list.append(obj_name)
     linker_flags = " $(AM_LDFLAGS) $(LDFLAGS)"
@@ -473,10 +484,16 @@ def program(name, sources):
     objects_list_name = name.replace("/", "_").replace("-", "_") + "_objects"
     lists[objects_list_name] = sorted(object_list)
     targets[name] = "$({0})".format(objects_list_name), [
-        "mkdir -p {0}".format(os.path.dirname(name) or "."),
-        "@rm -f {0}".format(name),
-        "{0} $({1}) {2} -o {3}".format(
+        "\tmkdir -p {0}".format(os.path.dirname(name) or "."),
+        "\t@rm -f {0}".format(name),
+        "\t{0} $({1}) {2} -o {3}".format(
             linker, objects_list_name, linker_flags, name),
+        "ifneq (\"$(OBJCOPY)\",\"\")",
+        "\tobjcopy {0} {0}.dbg".format(name),
+        "\tobjcopy --add-gnu-debuglink={0}.dbg {0}".format(name),
+        "\tchmod a-x {0}.dbg".format(name),
+        "\tstrip -S {0}".format(name),
+        "endif",
     ]
 
 
@@ -489,14 +506,14 @@ def po_files():
         obj_name = "share/locale/{0}/LC_MESSAGES/fs-uae.mo".format(name[:-3])
         deps = [source]
         targets[obj_name] = " ".join(deps), [
-            # "@echo -e \\\\n--- {0} ---".format(obj_name),
-            "mkdir -p share/locale/{0}/LC_MESSAGES".format(name[:-3]),
-            "msgfmt --verbose {0} -o {1}".format(source, obj_name),
+            # "\t@echo -e \\\\n--- {0} ---".format(obj_name),
+            "\tmkdir -p share/locale/{0}/LC_MESSAGES".format(name[:-3]),
+            "\tmsgfmt --verbose {0} -o {1}".format(source, obj_name),
         ]
         object_list.append(obj_name)
     objects_list_name = "mo_files"
     lists[objects_list_name] = sorted(object_list)
-    targets["mo"] = "$({0})".format(objects_list_name), []
+    targets["mo"] = "\t$({0})".format(objects_list_name), []
 
 
 def main():
@@ -529,7 +546,7 @@ def main():
             dependencies, lines = targets[target]
             f.write("\n{0}: {1}\n".format(target, dependencies))
             for line in lines:
-                f.write("\t{0}\n".format(line))
+                f.write("{0}\n".format(line))
 
         f.write("\n")
         f.write(footer.replace("    ", "\t"))
@@ -613,6 +630,15 @@ distdir-base:
     mkdir -p $(dist_dir)/doc
     cp -a doc/Default.fs-uae $(dist_dir)/doc/
 
+    mkdir -p $(dist_dir)/build/linux-dist
+    cp -p build/linux-dist/build.py $(dist_dir)/build/linux-dist/
+    cp -p build/linux-dist/Makefile.in $(dist_dir)/build/linux-dist/
+    cp -p build/linux-dist/standalone.py $(dist_dir)/build/linux-dist/
+
+    mkdir -p $(dist_dir)/build/steamos-dist
+    cp -p build/steamos-dist/Makefile.in $(dist_dir)/build/steamos-dist/
+    cp -p build/steamos-dist/README $(dist_dir)/build/steamos-dist/
+
     mkdir -p $(dist_dir)/macosx
     cp -p macosx/standalone.py $(dist_dir)/macosx/
     cp -p macosx/Info.plist.in $(dist_dir)/macosx/
@@ -659,21 +685,26 @@ install:
     install fs-uae-device-helper $(DESTDIR)$(bindir)/fs-uae-device-helper
     install -d $(DESTDIR)$(datarootdir)
     cp -R share/* $(DESTDIR)$(datarootdir)
+    cp fs-uae.dat $(DESTDIR)$(datarootdir)/fs-uae/fs-uae.dat
     install -d $(DESTDIR)$(docdir)
     cp README COPYING example.conf $(DESTDIR)$(docdir)
 
 clean:
     rm -Rf gen .obj
-    rm -f fs-uae fs-uae.exe
-    rm -f fs-uae-device-helper fs-uae-device-helper.exe
+    rm -f fs-uae
+    rm -f fs-uae.dbg
+    rm -f fs-uae.exe
+    rm -f fs-uae-device-helper
+    rm -f fs-uae-device-helper.dbg
+    rm -f fs-uae-device-helper.exe
 
 distclean: clean
-    rm -Rf build
     rm -f config.h
     rm -f config.log
     rm -f config.status
     rm -Rf dist
     rm -Rf fs-uae[-_][0-9]*
+    rm -Rf fs-uae-dbg[-_][0-9]*
     rm -f macosx/Info.plist
     rm -f macosx/Makefile
     rm -f Makefile

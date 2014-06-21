@@ -33,6 +33,167 @@ fs_image* fs_image_new() {
     return image;
 }
 
+typedef struct {
+    const unsigned char *buffer;
+    png_uint_32 size;
+    png_uint_32 position;
+} read_state;
+
+static void read_data_memory(png_structp png_ptr, png_bytep data,
+                             png_uint_32 length) {
+    read_state *f = (read_state *) png_get_io_ptr(png_ptr);
+    if (length > (f->size - f->position)) {
+        png_error(png_ptr, "read error in read_data_memory (loadpng)");
+    }
+    memcpy(data, f->buffer + f->position, length);
+    f->position += length;
+}
+
+fs_image* fs_image_new_from_data(const void *buffer, int size) {
+    // printf("fs_image_new_from_data %p[%d]\n", buffer, size);
+#ifdef USE_PNG
+    int y;
+    int width, height;
+    png_byte color_type;
+    png_byte bit_depth;
+
+    png_structp png_ptr;
+    png_infop info_ptr;
+    //int number_of_passes;
+    png_bytep * row_pointers;
+    unsigned char header[8];
+
+    fs_image* image = fs_image_new();
+
+    if (size < 8) {
+        return NULL;
+    }
+
+    if (png_sig_cmp((void*) buffer, 0, 8)) {
+        fs_log("file %p[%d] is not recognized as a PNG file\n", buffer, size);
+        fs_unref(image);
+        //return image;
+        return NULL;
+    }
+
+    png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+    // FIXME: png_destroy_read_struct
+
+    if (!png_ptr) {
+        fs_log("png_create_read_struct failed\n");
+        //return image;
+        fs_unref(image);
+        return NULL;
+    }
+
+    info_ptr = png_create_info_struct(png_ptr);
+    if (!info_ptr) {
+        fs_log("png_create_info_struct failed\n");
+        //return image;
+        fs_unref(image);
+        return NULL;
+    }
+
+    // FIXME: ERROR HANDLING
+
+    read_state memory_reader_state;
+    memory_reader_state.buffer = ((unsigned char *) buffer) + 8;
+    memory_reader_state.size = size - 8;
+    memory_reader_state.position = 0;
+
+    png_set_read_fn(png_ptr, &memory_reader_state, (png_rw_ptr) read_data_memory);
+
+    // png_init_io(png_ptr, fp);
+
+    png_set_sig_bytes(png_ptr, 8);
+
+    png_read_info(png_ptr, info_ptr);
+
+    width = png_get_image_width(png_ptr, info_ptr);
+    height = png_get_image_height(png_ptr, info_ptr);
+    color_type = png_get_color_type(png_ptr, info_ptr);
+    bit_depth = png_get_bit_depth(png_ptr, info_ptr);
+
+    //number_of_passes = png_set_interlace_handling(png_ptr);
+    png_set_interlace_handling(png_ptr);
+
+    // Convert palette color to RGB
+    if (color_type == PNG_COLOR_TYPE_PALETTE) {
+        png_set_palette_to_rgb(png_ptr);
+    }
+
+    // Convert grayscale with less than 8 bpp to 8 bpp
+    //if (color_type == PNG_COLOR_TYPE_GRAY && bit_depth < 8) {
+    //    png_set_gray_1_2_4_to_8(png_ptr);
+    //}
+
+    // Add full alpha channel if there's transparency
+    if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS)) {
+        png_set_tRNS_to_alpha(png_ptr);
+    }
+
+    // If there's more than one pixel per byte, expand to 1 pixel / byte
+    if (bit_depth < 8) {
+        png_set_packing(png_ptr);
+    }
+
+    // expand rgb to rgba
+
+    if (color_type == PNG_COLOR_TYPE_RGB) {
+        png_set_filler(png_ptr, 0xff, PNG_FILLER_AFTER);
+    }
+
+    png_read_update_info(png_ptr, info_ptr);
+    bit_depth = png_get_bit_depth(png_ptr, info_ptr);
+    //fs_log("%d\n", bit_depth);
+    int channels = png_get_channels(png_ptr, info_ptr);
+    //fs_log("channels: %d\n", channels);
+
+    /* read file */
+    //if (setjmp(png_jmpbuf(png_ptr)))
+    //      abort_("[read_png_file] Error during read_image");
+
+    int format = FS_IMAGE_FORMAT_NONE;
+    switch (channels) {
+        case 4:
+            format = FS_IMAGE_FORMAT_RGBA;
+            break;
+        case 3:
+            format = FS_IMAGE_FORMAT_RGB;
+            break;
+        default:
+            fs_log("unsupported number of channels: %d\n", channels);
+            fs_unref(image);
+            return NULL;
+    }
+
+    unsigned char* data = malloc(width * height * channels);
+    row_pointers = (png_bytep*) malloc(sizeof(png_bytep) * height);
+    for (y = 0; y < height; y++) {
+        //row_pointers[y] = (png_byte*) malloc(png_get_rowbytes(png_ptr,info_ptr));
+        row_pointers[y] = data + width * y * channels;
+    }
+    //}
+    //else {
+    //    fs_log("LOAD PNG: unsupported bit depth: %d\n", bit_depth);
+    //    return NULL;
+    //}
+
+    png_read_image(png_ptr, row_pointers);
+
+    //fclose(fp);
+    //fs_log("png_read_image done\n");
+
+    image->format = format;
+    image->data = data;
+    image->width = width;
+    image->height = height;
+    return image;
+#else
+    return NULL;
+#endif
+}
+
 fs_image* fs_image_new_from_file(const char* file) {
 #ifdef USE_PNG
     int y;
@@ -67,6 +228,7 @@ fs_image* fs_image_new_from_file(const char* file) {
     }
 
     png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+    // FIXME: png_destroy_read_struct
 
     if (!png_ptr) {
         fs_log("png_create_read_struct failed\n");

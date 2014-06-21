@@ -1,4 +1,4 @@
-version = 2.5.5dev
+version = 2.5.6dev
 
 all: bindist
 
@@ -18,6 +18,7 @@ bundle:
 	mkdir -p fs-uae_$(version)_macosx/FS-UAE.app/Contents/
 	cp Info.plist PkgInfo fs-uae_$(version)_macosx/FS-UAE.app/Contents/
 	cp ../fs-uae fs-uae_$(version)_macosx/FS-UAE.app/Contents/MacOS/
+	cp ../fs-uae.dat fs-uae_$(version)_macosx/FS-UAE.app/Contents/MacOS/
 	cp ../fs-uae-device-helper fs-uae_$(version)_macosx/FS-UAE.app/Contents/MacOS/
 	cp ../../libfs-capsimage.dylib fs-uae_$(version)_macosx/FS-UAE.app/Contents/Frameworks || cp ../libfs-capsimage.dylib fs-uae_$(version)_macosx/FS-UAE.app/Contents/Frameworks
 	cp -pPR ../share/* fs-uae_$(version)_macosx/FS-UAE.app/Contents/Resources

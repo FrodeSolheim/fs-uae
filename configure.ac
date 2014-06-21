@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.67])
-AC_INIT([FS-UAE], [2.5.5dev],
+AC_INIT([FS-UAE], [2.5.6dev],
         [frode@fs-uae.net], [fs-uae], [http://fs-uae.net])
 AC_CONFIG_AUX_DIR([.])
 AC_CANONICAL_SYSTEM
@@ -31,7 +31,7 @@ AC_PROG_LN_S
 AC_PROG_MAKE_SET
 AC_PROG_RANLIB
 AM_PROG_CC_C_O
-
+AC_CHECK_TOOL(OBJCOPY, objcopy)
 
 # Misc system checks.
 
@@ -471,6 +471,8 @@ AC_TRY_LINK([
 # Write Makefile
 
 AC_CONFIG_FILES([
+    build/linux-dist/Makefile
+    build/steamos-dist/Makefile
     macosx/Info.plist
     macosx/Makefile
     Makefile

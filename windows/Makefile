@@ -1,4 +1,4 @@
-version = 2.5.5dev
+version = 2.5.6dev
 emulator_dir = fs-uae_$(version)_windows
 
 all: progdir zipfile setup
@@ -27,6 +27,7 @@ progdir:
 	cp /opt/bin/OpenAL32.dll $(emulator_dir)
 
 	cp -a ../fs-uae.exe $(emulator_dir)/
+	cp -a ../fs-uae.dat $(emulator_dir)/
 	cp -a ../fs-uae-device-helper.exe $(emulator_dir)/
 	cp -a ../../../libfs-capsimage/CAPSImg.dll $(emulator_dir) || cp -a ../../../../libfs-capsimage/CAPSImg.dll $(emulator_dir)
 	cp -a ../share $(emulator_dir)/share

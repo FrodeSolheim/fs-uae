@@ -21,6 +21,7 @@ void fs_set_prgname(const char *prgname);
 
 char *fs_get_data_file(const char *relative);
 char *fs_get_program_data_file(const char *relative);
+int fs_get_program_data(const char *relative, char **data, int *size);
 
 void fs_get_current_time(fs_time_val *result);
 void fs_time_val_add(fs_time_val *tv, int usec);

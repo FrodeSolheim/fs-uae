@@ -357,10 +357,10 @@ static void initialize() {
     fs_emu_log("initializing menu\n");
 
     char *path;
-    path = fs_emu_theme_get_resource("title_font.png");
+    path = fs_emu_theme_get_resource_path("title_font.png");
     g_font_title = fs_emu_font_new_from_file(path);
     free(path);
-    path = fs_emu_theme_get_resource("menu_font.png");
+    path = fs_emu_theme_get_resource_path("menu_font.png");
     g_font_menu = fs_emu_font_new_from_file(path);
     free(path);
 

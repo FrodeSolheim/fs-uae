@@ -12,6 +12,7 @@ def fix_binary(path, frameworks_dir):
         raise Exception("could not find " + repr(path))
     args = ["otool", "-L", path]
     p = subprocess.Popen(args, stdout=subprocess.PIPE)
+    # noinspection PyUnresolvedReferences
     data = p.stdout.read().decode("UTF-8")
     p.wait()
     for line in data.split("\n"):

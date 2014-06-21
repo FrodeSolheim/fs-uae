@@ -1,0 +1,2 @@
+#!/bin/sh
+./fs-uae-launcher --fs-uae-arcade "$@"

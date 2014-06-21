@@ -38,7 +38,7 @@
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>@PACKAGE_MAJOR@.@PACKAGE_MINOR@.@PACKAGE_REVISION@<</string>
+	<string>@PACKAGE_MAJOR@.@PACKAGE_MINOR@.@PACKAGE_REVISION@</string>
 	<key>LSHasLocalizedDisplayName</key>
 	<true/>
 	<key>LSMinimumSystemVersion</key>

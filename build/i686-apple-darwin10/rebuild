@@ -1,0 +1,5 @@
+#!/bin/sh -e
+./bootstrap.sh
+`dirname $0`/configure
+`dirname $0`/make clean
+`dirname $0`/make

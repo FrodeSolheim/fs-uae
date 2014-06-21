@@ -1,0 +1,7 @@
+export PREFIX="/usr/local/i686-apple-darwin10"
+export PATH="$PREFIX/bin:$PATH"
+export CPATH="$PREFIX/include"
+export LIBRARY_PATH="$PREFIX/lib"
+export CFLAGS="-arch i386 -mmacosx-version-min=10.6"
+export CXXFLAGS="-arch i386 -mmacosx-version-min=10.6"
+export LDFLAGS="-arch i386 -mmacosx-version-min=10.6"

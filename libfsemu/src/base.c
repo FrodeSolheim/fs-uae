@@ -24,6 +24,7 @@
 #include <stdio.h>
 // #include <fs/log.h>
 #include <fs/base.h>
+#include <fs/data.h>
 #include <fs/string.h>
 
 #ifdef HAVE_SYS_TIME_H
@@ -157,6 +158,13 @@ char *fs_get_program_data_file(const char *relative) {
     char *result = fs_get_data_file(relative2);
     free(relative2);
     return result;
+}
+
+int fs_get_program_data(const char *relative, char **data, int *size) {
+    char *name = fs_path_join("share", fs_get_prgname(), relative, NULL);
+    int error = fs_data_file_content(name, data, size);
+    free(name);
+    return error;
 }
 
 /*
@@ -454,16 +462,20 @@ int fs_get_application_exe_path(char *buffer, int size) {
     // BSD with procfs: readlink /proc/curproc/file
     // Windows: GetModuleFileName() with hModule = NULL
 #if defined(WINDOWS)
-    // FIXME: SHOULD HANDLE UTF8 <--> MBCS..
     wchar_t * temp_buf = malloc(sizeof(wchar_t) * PATH_MAX);
+    // len is the number of characters NOT including the terminating
+    // null character.
     int len = GetModuleFileNameW(NULL, temp_buf, PATH_MAX);
-
+    // specify size - 1 to reserve space for a null-terminating byte
     int result = WideCharToMultiByte(CP_UTF8, 0, temp_buf, len,
-            buffer, size, NULL, NULL);
+            buffer, size - 1, NULL, NULL);
     free(temp_buf);
     if (result == 0) {
         return 0;
     }
+    // since len does not include the null-terminator,
+    // WideCharToMultiByte does not null-terminate the buffer.
+    buffer[result] = '\0';
     return 1;
 #elif defined(MACOSX)
     //fs_log("fs_get_application_exe_path for Mac OS X\n");

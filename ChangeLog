@@ -1,3 +1,11 @@
+Version 2.5.6dev:
+
+* Starting FS-UAE.app with config file works again on OS X.
+* Fixed a bug (potential crash) in fs_get_application_exe_path on windows.
+* Initial support reading resources from fs-uae.dat (or embedded in the exe).
+* Build scripts for SteamOS / Steam runtime version.
+* Added speedlink_strike_2_gamepad_12_5_1_0_windows.conf [TCD].
+
 Version 2.5.5dev:
 
 * Dual joystick/mouse mode for joystick port 0, both a specific joystick

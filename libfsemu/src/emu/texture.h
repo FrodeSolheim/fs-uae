@@ -31,6 +31,7 @@ typedef struct _fs_emu_texture {
 } fs_emu_texture;
 
 fs_emu_texture *fs_emu_texture_new_from_file(const char *name);
+fs_emu_texture *fs_emu_texture_new_from_data(char *data, int size);
 void fs_emu_set_texture(fs_emu_texture* texture);
 void fs_emu_texture_render(fs_emu_texture *texture, int x, int y);
 void fs_emu_render_texture_with_size(fs_emu_texture *texture, int x, int y,

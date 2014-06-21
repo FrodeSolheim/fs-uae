@@ -7,6 +7,7 @@
 
 #include <fs/config.h>
 #include <fs/base.h>
+#include <fs/data.h>
 #include <fs/filesys.h>
 #include <fs/i18n.h>
 #include <fs/log.h>
@@ -52,7 +53,9 @@ void fs_emu_init_overlays(const char **overlay_names) {
     }
 }
 
-char *fs_emu_theme_get_resource(const char *name) {
+char *fs_emu_theme_get_resource_path(const char *name) {
+    printf("WARNING: fs_emu_theme_get_resource_path (%s) is deprecated\n",
+        name);
     if (fs_path_exists(name)) {
         return fs_strdup(name);
     }
@@ -77,6 +80,48 @@ char *fs_emu_theme_get_resource(const char *name) {
         return path;
     }
     return NULL;
+}
+
+int fs_emu_theme_get_resource_data(const char *name, char **data, int *size) {
+    // printf("fs_emu_theme_get_resource_data (%s)\n", name);
+    /*
+    if (fs_path_exists(name)) {
+        return fs_strdup(name);
+    }
+    */
+    char *path, *p;
+
+    p = fs_path_join(g_fs_emu_theme.path, name, NULL);
+    if (fs_path_exists(p)) {
+        FILE *f = fs_fopen(p, "rb");
+        free(p);
+        if (fseek(f, 0, SEEK_END) != 0) {
+            return 1;
+        }
+        *size = ftell(f);
+        if (*size < 1) {
+            return 2;
+        }
+        if (fseek(f, 0, SEEK_SET) != 0) {
+            return 1;
+        }
+        *data = malloc(*size);
+        if (fread(*data, *size, 1, f) != 1) {
+            return 3;
+        }
+        return 0;
+    }
+
+    p = fs_path_join(g_fs_emu_theme.name, name, NULL);
+    int error = fs_get_program_data(p, data, size);
+    free(p);
+    if (error == 0) {
+        return 0;
+    }
+
+    error = fs_get_program_data(name, data, size);
+    // printf("fs_get_program_data error %d\n", error);
+    return error;
 }
 
 static void set_color(float *c, float r, float g, float b, float a) {

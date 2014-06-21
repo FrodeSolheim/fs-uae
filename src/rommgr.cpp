@@ -394,7 +394,7 @@ static void romlist_cleanup (void)
 #if 0
 	for (i = 0; i < romlist_cnt; i++) {
 		struct romlist *rll = &rl[i];
-		write_log (_T("%s (%s)\n"), rll->rd->name, rll->path);
+		write_log (_T("%d: %08x %s (%s)\n"), rll->rd->id, rll->rd->group, rll->rd->name, rll->path);
 	}
 #endif
 }
@@ -1002,12 +1002,14 @@ void romwarning (const int *ids)
 	i = 0;
 	while (ids[i] >= 0) {
 		struct romdata *rd = getromdatabyid (ids[i]);
-		getromname (rd, tmp1);
-		_tcscat (tmp2, _T("- "));
-		_tcscat (tmp2, tmp1);
-		_tcscat (tmp2, _T("\n"));
-		if (rd->type & (ROMTYPE_A2091BOOT | ROMTYPE_A4091BOOT))
-			exp++;
+		if (!(rd->type & ROMTYPE_NONE)) {
+			getromname (rd, tmp1);
+			_tcscat (tmp2, _T("- "));
+			_tcscat (tmp2, tmp1);
+			_tcscat (tmp2, _T("\n"));
+			if (rd->type & (ROMTYPE_A2091BOOT | ROMTYPE_A4091BOOT))
+				exp++;
+		}
 		i++;
 	}
 	translate_message (exp ? NUMSG_EXPROMNEED : NUMSG_ROMNEED, tmp3);
@@ -1140,10 +1142,10 @@ static int read_rom_file (uae_u8 *buf, const struct romdata *rd)
 	return 1;
 }
 
-struct zfile *read_rom (struct romdata **prd)
+struct zfile *read_rom (struct romdata *prd)
 {
-	struct romdata *rd2 = *prd;
-	struct romdata *rd = *prd;
+	struct romdata *rd2 = prd;
+	struct romdata *rd = prd;
 	TCHAR *name;
 	int id = rd->id;
 	uae_u32 crc32;
@@ -1158,7 +1160,6 @@ struct zfile *read_rom (struct romdata **prd)
 			break;
 		rd2--;
 	}
-	*prd = rd2;
 	size = rd2->size;
 	crc32 = rd2->crc32;
 	name = rd->name;
@@ -1278,7 +1279,7 @@ struct zfile *read_rom_name (const TCHAR *filename)
 	for (i = 0; i < romlist_cnt; i++) {
 		if (!_tcsicmp (filename, rl[i].path)) {
 			struct romdata *rd = rl[i].rd;
-			f = read_rom (&rd);
+			f = read_rom (rd);
 			if (f)
 				return f;
 		}
@@ -1335,7 +1336,7 @@ struct zfile *read_rom_name_guess (const TCHAR *filename)
 			continue;
 		if (!_tcsicmp (name, n + j)) {
 			struct romdata *rd = rl[i].rd;
-			f = read_rom (&rd);
+			f = read_rom (rd);
 			if (f) {
 				write_log (_T("ROM %s not found, using %s\n"), filename, rl[i].path);
 				return f;

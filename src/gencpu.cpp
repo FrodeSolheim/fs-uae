@@ -50,6 +50,7 @@ static int count_read_ea, count_write_ea, count_cycles_ea;
 static const char *mmu_postfix;
 static int memory_cycle_cnt;
 static int did_prefetch;
+static int ipl_fetched;
 
 static int optimized_flags;
 
@@ -531,8 +532,11 @@ static void makefromsr (void)
 
 static void check_ipl (void)
 {
+	if (ipl_fetched)
+		return;
 	if (using_ce || using_ce020)
 		printf ("\tipl_fetch ();\n");
+	ipl_fetched = true;
 }
 
 static void irc2ir (bool dozero)
@@ -3497,6 +3501,7 @@ static void gen_opcode (unsigned int opcode)
 		fill_prefetch_full ();
 		break;
 	case i_RTE:
+		addop_ce020 (curi, 0);
 		next_level_000 ();
 		if (cpu_level == 0) {
 			genamode (NULL, Aipi, "7", sz_word, "sr", 1, 0, GF_NOREFILL);
@@ -3583,6 +3588,7 @@ static void gen_opcode (unsigned int opcode)
 		fill_prefetch_full ();
 		break;
 	case i_RTD:
+		addop_ce020 (curi, 0);
 		if (using_mmu) {
 			genamode (curi, curi->smode, "srcreg", curi->size, "offs", GENA_GETV_FETCH, GENA_MOVEM_DO_INC, 0);
 			genamode (NULL, Aipi, "7", sz_long, "pc", GENA_GETV_FETCH, GENA_MOVEM_DO_INC, 0);
@@ -5061,6 +5067,7 @@ static void gen_opcode (unsigned int opcode)
 		fill_prefetch_finish ();
 	sync_m68k_pc ();
 	did_prefetch = 0;
+	ipl_fetched = 0;
 }
 
 static void generate_includes (FILE * f, int id)

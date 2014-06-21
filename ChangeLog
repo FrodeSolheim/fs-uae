@@ -1,5 +1,6 @@
 Version 2.5.6dev:
 
+* Merged code from WinUAE 2810.
 * Starting FS-UAE.app with config file works again on OS X.
 * Fixed a bug (potential crash) in fs_get_application_exe_path on windows.
 * Initial support reading resources from fs-uae.dat (or embedded in the exe).

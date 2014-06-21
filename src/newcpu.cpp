@@ -60,6 +60,7 @@ int mmu_enabled, mmu_triggered;
 int cpu_cycles;
 static int baseclock;
 bool m68k_pc_indirect;
+static int cpu_prefs_changed_flag;
 
 int cpucycleunit;
 int cpu_tracer;
@@ -1322,16 +1323,16 @@ static int check_prefs_changed_cpu2(void)
 		|| currprefs.fpu_no_unimplemented != changed_prefs.fpu_no_unimplemented
 		|| currprefs.cpu_compatible != changed_prefs.cpu_compatible
 		|| currprefs.cpu_cycle_exact != changed_prefs.cpu_cycle_exact) {
-			changed |= 1;
+			cpu_prefs_changed_flag |= 1;
 	}
 	if (changed
 		|| currprefs.m68k_speed != changed_prefs.m68k_speed
 		|| currprefs.m68k_speed_throttle != changed_prefs.m68k_speed_throttle
 		|| currprefs.cpu_clock_multiplier != changed_prefs.cpu_clock_multiplier
 		|| currprefs.cpu_frequency != changed_prefs.cpu_frequency) {
-			changed |= 2;
+			cpu_prefs_changed_flag |= 2;
 	}
-	return changed;
+	return cpu_prefs_changed_flag;
 }
 
 
@@ -4215,6 +4216,7 @@ void m68k_go (int may_quit)
 
 	set_cpu_tracer (false);
 
+	cpu_prefs_changed_flag = 0;
 	in_m68k_go++;
 	for (;;) {
 		void (*run_func)(void);
@@ -4319,20 +4321,20 @@ void m68k_go (int may_quit)
 		}
 
 		if (regs.spcflags & SPCFLAG_MODE_CHANGE) {
-			int v = check_prefs_changed_cpu2();
-			if (v & 1) {
+			if (cpu_prefs_changed_flag & 1) {
 				uaecptr pc = m68k_getpc();
 				prefs_changed_cpu();
 				build_cpufunctbl();
 				m68k_setpc_normal(pc);
 				fill_prefetch();
 			}
-			if (v & 2) {
+			if (cpu_prefs_changed_flag & 2) {
 				fixup_cpu(&changed_prefs);
 				currprefs.m68k_speed = changed_prefs.m68k_speed;
 				currprefs.m68k_speed_throttle = changed_prefs.m68k_speed_throttle;
 				update_68k_cycles();
 			}
+			cpu_prefs_changed_flag = 0;
 		}
 
 		set_x_funcs();
@@ -5867,7 +5869,7 @@ uae_u32 get_word_ce020_prefetch (int o)
 		regs.db = regs.prefetch020[0] >> 16;
 	} else {
 		v = regs.prefetch020[0] >> 16;
-		regs.db = regs.prefetch020[0];
+		regs.db = regs.prefetch020[1] >> 16;
 	}
 	do_cycles_ce020 (2);
 	return v;

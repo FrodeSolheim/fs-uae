@@ -746,11 +746,12 @@ All of these are forced into the visible window (VISIBLE_LEFT_BORDER .. VISIBLE_
 PLAYFIELD_START and PLAYFIELD_END are in window coordinates.  */
 static int playfield_start, playfield_end;
 static int real_playfield_start, real_playfield_end;
+static int sprite_playfield_start;
 static int linetoscr_diw_start, linetoscr_diw_end;
 static int native_ddf_left, native_ddf_right;
 
 static int pixels_offset;
-static int src_pixel, ham_src_pixel;
+static int src_pixel;
 /* How many pixels in window coordinates which are to the left of the left border.  */
 static int unpainted;
 
@@ -825,8 +826,9 @@ static void pfield_init_linetoscr (bool border)
 	if (playfield_end > visible_right_border)
 		playfield_end = visible_right_border;
 
-	real_playfield_end = playfield_end;
 	real_playfield_start = playfield_start;
+	sprite_playfield_start = playfield_start;
+	real_playfield_end = playfield_end;
 
 	// Sprite hpos don't include DIW_DDF_OFFSET and can appear 1 lores pixel
 	// before first bitplane pixel appears.
@@ -844,6 +846,7 @@ static void pfield_init_linetoscr (bool border)
 				playfield_start = left;
 			}
 		} else {
+			sprite_playfield_start = 0;
 			if (playfield_end < linetoscr_diw_end && hblank_right_stop > playfield_end) {
 				playfield_end = linetoscr_diw_end;
 			}
@@ -878,7 +881,6 @@ static void pfield_init_linetoscr (bool border)
 #endif
 
 	unpainted = visible_left_border < playfield_start ? 0 : visible_left_border - playfield_start;
-	ham_src_pixel = MAX_PIXELS_PER_LINE + res_shift_from_window (playfield_start - native_ddf_left);
 	unpainted = res_shift_from_window (unpainted);
 
 	int first_x = sprite_first_x;
@@ -1093,7 +1095,7 @@ static void fill_line_border (void)
 }
 
 #define SPRITE_DEBUG 0
-STATIC_INLINE uae_u8 render_sprites (int pos, int dualpf, uae_u8 apixel, int aga)
+static uae_u8 render_sprites (int pos, int dualpf, uae_u8 apixel, int aga)
 {
 	struct spritepixelsbuf *spb = &spritepixels[pos];
 	unsigned int v = spb->data;
@@ -1106,7 +1108,8 @@ STATIC_INLINE uae_u8 render_sprites (int pos, int dualpf, uae_u8 apixel, int aga
 	maskshift = shift_lookup[apixel];
 	plfmask = (plf_sprite_mask >> maskshift) >> maskshift;
 	v &= ~plfmask;
-	if (v != 0 || SPRITE_DEBUG) {
+	/* Extra 1 sprite pixel at DDFSTRT is only possible if at least 1 plane is active */
+	if ((bplplanecnt > 0 || pos >= sprite_playfield_start) && (v != 0 || SPRITE_DEBUG)) {
 		unsigned int vlo, vhi, col;
 		unsigned int v1 = v & 255;
 		/* OFFS determines the sprite pair with the highest priority that has
@@ -1670,7 +1673,7 @@ static void init_ham_decoding (void)
 {
 	int unpainted_amiga = unpainted;
 
-	ham_decode_pixel = ham_src_pixel;
+	ham_decode_pixel = src_pixel;
 	ham_lastcolor = color_reg_get (&colors_for_drawing, 0);
 
 	if (!bplham) {
@@ -1782,6 +1785,17 @@ static void decode_ham (int pix, int stoppos, bool blank)
 			ham_linebuf[ham_decode_pixel++] = ham_lastcolor;
 		}
 	}
+}
+
+static void erase_ham_right_border(int pix, int stoppos, bool blank)
+{
+	if (stoppos < playfield_end)
+		return;
+	// erase right border in HAM modes or old HAM data may be visible
+	// if DDFSTOP < DIWSTOP (Uridium II title screen)
+	int todraw_amiga = res_shift_from_window (stoppos - pix);
+	while (todraw_amiga-- > 0)
+		ham_linebuf[ham_decode_pixel++] = 0;
 }
 
 static void gen_pfield_tables (void)
@@ -2192,7 +2206,7 @@ static void pfield_expand_dp_bplcon (void)
 	bplplanecnt = dp_for_drawing->nr_planes;
 	bplham = dp_for_drawing->ham_seen;
 	bplehb = dp_for_drawing->ehb_seen;
-	if ((currprefs.chipset_mask & CSMASK_AGA) && (dp_for_drawing->bplcon2 & 0x0200))
+	if ((currprefs.chipset_mask & CSMASK_ECS_DENISE) && (dp_for_drawing->bplcon2 & 0x0200))
 		bplehb = 0;
 	issprites = dip_for_drawing->nr_sprites > 0;
 #ifdef ECS_DENISE
@@ -2361,14 +2375,23 @@ static void do_color_changes (line_draw_func worker_border, line_draw_func worke
 		if (lastpos >= endpos)
 			break;
 	}
+#if 1
 	if (vp < visible_top_start || vp >= visible_bottom_stop) {
 		// outside of visible area
 		// Just overwrite with black. Above code needs to run because of custom registers,
 		// not worth the trouble for separate code path just for max 10 lines or so
 		(*worker_border) (visible_left_border, visible_left_border + gfxvidinfo.drawbuffer.inwidth, true);
 	}
-
+#endif
 }
+
+STATIC_INLINE bool is_color_changes(struct draw_info *di)
+{
+	int regno = curr_color_changes[di->first_color_change].regno;
+	int changes = di->nr_color_changes;
+	return changes > 1 || (changes == 1 && regno != 0xffff && regno != -1);
+}
+
 enum double_how {
 	dh_buf,
 	dh_line,
@@ -2380,6 +2403,7 @@ static void pfield_draw_line (struct vidbuffer *vb, int lineno, int gfx_ypos, in
 	static int UNUSED(warned) = 0;
 	int border = 0;
 	int do_double = 0;
+	bool have_color_changes;
 	enum double_how dh;
 
 	dp_for_drawing = line_decisions + lineno;
@@ -2432,10 +2456,12 @@ static void pfield_draw_line (struct vidbuffer *vb, int lineno, int gfx_ypos, in
 		break;
 	}
 
+	have_color_changes = is_color_changes(dip_for_drawing);
+
 	dh = dh_line;
 	xlinebuffer = gfxvidinfo.drawbuffer.linemem;
 	if (xlinebuffer == 0 && do_double
-		&& (border == 0 || dip_for_drawing->nr_color_changes > 0))
+		&& (border == 0 || have_color_changes))
 		xlinebuffer = gfxvidinfo.drawbuffer.emergmem, dh = dh_emerg;
 	if (xlinebuffer == 0)
 		xlinebuffer = row_map[gfx_ypos], dh = dh_buf;
@@ -2449,22 +2475,18 @@ static void pfield_draw_line (struct vidbuffer *vb, int lineno, int gfx_ypos, in
 
 		adjust_drawing_colors (dp_for_drawing->ctable, dp_for_drawing->ham_seen || bplehb || ecsshres);
 
-		/* The problem is that we must call decode_ham() BEFORE we do the
-		sprites. */
+		/* The problem is that we must call decode_ham() BEFORE we do the sprites. */
 		if (dp_for_drawing->ham_seen) {
+			int ohposblank = hposblank;
 			init_ham_decoding ();
-			if (dip_for_drawing->nr_color_changes == 0) {
-				/* The easy case: need to do HAM decoding only once for the
-				* full line. */
-				decode_ham (visible_left_border, visible_right_border, false);
-			} else /* Argh. */ {
-				int ohposblank = hposblank;
-				do_color_changes (dummy_worker, decode_ham, lineno);
-				hposblank = ohposblank;
-				// reset colors to state before above do_color_changes()
-				adjust_drawing_colors (dp_for_drawing->ctable, (dp_for_drawing->ham_seen || bplehb) ? -1 : 0);
+			do_color_changes (dummy_worker, decode_ham, lineno);
+			if (have_color_changes) {
+				// do_color_changes() did color changes, reset colors back to original state
+				adjust_drawing_colors (dp_for_drawing->ctable, -1);
 				pfield_expand_dp_bplcon ();
 			}
+			hposblank = ohposblank;
+			ham_decode_pixel = src_pixel;
 			bplham = dp_for_drawing->ham_at_start;
 		}
 
@@ -2522,7 +2544,7 @@ static void pfield_draw_line (struct vidbuffer *vb, int lineno, int gfx_ypos, in
 		}
 #endif
 
-		if (!dosprites && (dip_for_drawing->nr_color_changes == 0 || (dip_for_drawing->nr_color_changes == 1 && curr_color_changes[dip_for_drawing->first_color_change].regno == -1))) {
+		if (!dosprites && !have_color_changes) {
 			if (dp_for_drawing->plfleft < -1) {
 				// blanked border line
 				int tmp = hposblank;
@@ -2533,6 +2555,7 @@ static void pfield_draw_line (struct vidbuffer *vb, int lineno, int gfx_ypos, in
 				// normal border line
 				fill_line_border ();
 			}
+
 			do_flush_line (vb, gfx_ypos);
 			if (do_double) {
 				if (dh == dh_buf) {
@@ -2566,7 +2589,6 @@ static void pfield_draw_line (struct vidbuffer *vb, int lineno, int gfx_ypos, in
 
 		if (dh == dh_emerg)
 			memcpy (row_map[gfx_ypos], xlinebuffer + linetoscr_x_adjust_bytes, gfxvidinfo.drawbuffer.pixbytes * gfxvidinfo.drawbuffer.inwidth);
-
 		do_flush_line (vb, gfx_ypos);
 		if (do_double) {
 			if (dh == dh_emerg)

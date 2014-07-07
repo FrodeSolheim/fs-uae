@@ -44,8 +44,6 @@ accelerated graphics (OpenGL) to work. A game pad or joystick is
 recommended, but not required (FS-UAE can emulate a joystick
 using the cursor keys and right ctrl/alt keys).
 
-libfs-capsimage is needed for IPF floppy image support.
-
 %prep
 %setup -q
 

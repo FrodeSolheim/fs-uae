@@ -29,6 +29,7 @@
 #include <locale.h>
 #include "fs-uae.h"
 #include "recording.h"
+#include "plugins.h"
 
 //static char *g_default_rom_dir = ".";
 
@@ -1003,6 +1004,8 @@ int main(int argc, char* argv[]) {
     fs_log("libfsemu init\n");
     fs_log(LOG_LINE);
     fs_log("\n");
+
+    fs_uae_plugins_init();
 
     fs_emu_init_overlays(overlay_names);
     fs_emu_init();

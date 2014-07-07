@@ -10,7 +10,6 @@ Package: fs-uae
 Architecture: any
 Multi-Arch: foreign
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Recommends: libfs-capsimage4
 Description: Cross-platform Amiga emulator based on UAE/WinUAE
  FS-UAE is a cross-platform Amiga emulator based on updated emulation code
  from WinUAE. FS-UAE uses SDL for input, OpenAL for audio and OpenGL

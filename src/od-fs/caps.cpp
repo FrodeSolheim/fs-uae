@@ -12,51 +12,47 @@ typedef void* HMODULE;
 #define __cdecl
 
 #ifdef MACOSX
-#define CAPSLIB_NAME    "libfs-capsimage.dylib"
 #include <mach-o/dyld.h>
-#else
-#define CAPSLIB_NAME    "libfs-capsimage.so.4"
 #endif
+
+static char *g_caps_library_path;
+
+extern "C" {
+ 
+void amiga_set_caps_library_path(const char *path) {
+    if (g_caps_library_path) {
+        free(g_caps_library_path);
+        g_caps_library_path = NULL;
+    }
+    if (path == NULL) {
+        return;
+    }
+    g_caps_library_path = strdup(path);
+}
+
+const char* amiga_get_caps_library_path(void) {
+    return g_caps_library_path;
+}
+
+}
 
 void *GetProcAddress(void *handle, const char *symbol) {
     return dlsym(handle, symbol);
 }
 
-void *load_caps_library() {
-    void *handle = NULL;
-    write_log("load_capslib\n");
-#ifdef MACOSX
-    char *buffer = (char *) malloc(2048);
-    unsigned int usize = 2047;
-    int result = _NSGetExecutablePath(buffer, &usize);
-    if (result != 0) {
-        write_log("_NSGetExecutablePath failed with result %d\n", result);
-        free(buffer);
-        return 0;
+HMODULE load_caps_library() {
+    HMODULE handle = NULL;
+    write_log("load_caps_library\n");
+    if (g_caps_library_path == NULL) {
+        write_log("- no caps library path\n");
+        return NULL;
     }
-    buffer[2047] = '\0';
-    if (strlen(buffer) > 6) {
-        buffer[strlen(buffer) - 6] = '\0';
-    }
-    strcat(buffer, "../Frameworks/libfs-capsimage.dylib");
-    write_log("trying to load %s\n", buffer);
-    handle = dlopen(buffer, RTLD_LAZY);
-    free(buffer);
+    write_log("- trying to load %s\n", g_caps_library_path);
+#ifdef WINDOWS
+    handle = LoadLibrary (dllname);
 #else
-    /* This could be done more elegantly ;-) */
-    if (!handle) {
-        write_log("trying to load /usr/local/lib/fs-uae/libfs-capsimage.so\n");
-        handle = dlopen("/usr/local/lib/fs-uae/libfs-capsimage.so", RTLD_LAZY);
-    }
-    if (!handle) {
-        write_log("trying to load /usr/lib/fs-uae/libfs-capsimage.so\n");
-        handle = dlopen("/usr/lib/fs-uae/libfs-capsimage.so", RTLD_LAZY);
-    }
+    handle = dlopen(g_caps_library_path, RTLD_LAZY);
 #endif
-    if (!handle) {
-        write_log("trying to load " CAPSLIB_NAME "\n");
-        handle = dlopen(CAPSLIB_NAME, RTLD_LAZY);
-    }
     return handle;
 }
 
@@ -125,24 +121,6 @@ int caps_init (void)
     if (init)
         return 1;
 
-#ifdef WINDOWS
-    h = LoadLibrary (dllname);
-    if (!h) {
-        TCHAR tmp[MAX_DPATH];
-        if (SUCCEEDED (SHGetFolderPath (NULL, CSIDL_PROGRAM_FILES_COMMON, NULL, 0, tmp))) {
-            _tcscat (tmp, _T("\\Software Preservation Society\\"));
-            _tcscat (tmp, dllname);
-            h = LoadLibrary (tmp);
-            if (!h) {
-                if (noticed)
-                    return 0;
-                notify_user (NUMSG_NOCAPS);
-                noticed = 1;
-                return 0;
-            }
-        }
-    }
-#else
     h = load_caps_library();
     if (h == NULL) {
         if (noticed) {
@@ -152,7 +130,7 @@ int caps_init (void)
         noticed = 1;
         return 0;
     }
-#endif
+
     if (GetProcAddress (h, "CAPSLockImageMemory") == 0 || GetProcAddress (h, "CAPSGetVersionInfo") == 0) {
         if (noticed)
             return 0;

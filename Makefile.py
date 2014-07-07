@@ -293,6 +293,7 @@ fs_uae_sources = [
     "src/fs-uae/menu.c",
     "src/fs-uae/mouse.c",
     "src/fs-uae/paths.c",
+    "src/fs-uae/plugins.c",
     "src/fs-uae/recording.c",
     "src/fs-uae/uae_config.c",
     "src/fs-uae/video.c",

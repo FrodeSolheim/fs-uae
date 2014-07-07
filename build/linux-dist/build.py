@@ -80,8 +80,6 @@ s("mkdir {package_dir}")
 s("cp -a ../../fs-uae {package_dir}/fs-uae.bin")
 s("cp -a ../../fs-uae.dat {package_dir}/fs-uae.dat")
 s("cp -a ../../fs-uae-device-helper {package_dir}/fs-uae-device-helper.bin")
-#echo FIXME: libfs-capsimage.so.4
-# cp -a ../../../libfs-capsimage/CAPSImg.dll {package_dir} || cp -a ../../../../libfs-capsimage/CAPSImg.dll {package_dir}
 s("cp -a ../../share {package_dir}/share")
 s("cp -a ../../licenses {package_dir}/licenses")
 s("cp -a ../../README {package_dir}/fs-uae.txt")

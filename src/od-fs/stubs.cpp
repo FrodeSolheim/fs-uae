@@ -78,6 +78,12 @@ void target_addtorecent (const TCHAR *name, int t) {
 
 void notify_user (int msg) {
     STUB("msg=%d", msg);
+    gui_message (_T("notify_user msg #%d\n"), msg);
+}
+
+void notify_user_parms (int msg, const TCHAR *parms, ...) {
+    STUB("msg=%d parms=\"%s\"", msg, parms);
+    gui_message (_T("notify_user msg #%d\n"), msg);
 }
 
 uae_u8 sampler_getsample (int) {
@@ -115,10 +121,6 @@ int target_parse_option (struct uae_prefs *p, const TCHAR *option, const TCHAR *
 
 void target_startup_sequence (struct uae_prefs *p) {
     STUB("p=%p\n", p);
-}
-
-void notify_user_parms (int msg, const TCHAR *parms, ...) {
-    STUB("msg=%d parms=\"%s\"", msg, parms);
 }
 
 uae_u8 *target_load_keyfile (struct uae_prefs *p, const TCHAR *path, int *sizep, TCHAR *name) {

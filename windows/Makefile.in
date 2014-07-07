@@ -29,7 +29,6 @@ progdir:
 	cp -a ../fs-uae.exe $(emulator_dir)/
 	cp -a ../fs-uae.dat $(emulator_dir)/
 	cp -a ../fs-uae-device-helper.exe $(emulator_dir)/
-	cp -a ../../../libfs-capsimage/CAPSImg.dll $(emulator_dir) || cp -a ../../../../libfs-capsimage/CAPSImg.dll $(emulator_dir)
 	cp -a ../share $(emulator_dir)/share
 	cp -a ../licenses $(emulator_dir)/licenses
 	cp -a ../README $(emulator_dir)/README.txt

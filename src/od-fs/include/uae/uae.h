@@ -37,6 +37,9 @@ int amiga_set_synchronization_log_file(const char *path);
 int amiga_quickstart(int model, int config, int accuracy);
 //int amiga_main(int argc, char** argv);
 
+void amiga_set_caps_library_path(const char *path);
+const char* amiga_get_caps_library_path(void);
+
 // must call before amiga_main
 void amiga_set_video_format(int format);
 

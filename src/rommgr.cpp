@@ -325,7 +325,7 @@ void romlist_clear (void)
 	int i;
 	int mask = 0;
 	struct romdata *parent;
-	TCHAR *pn;
+	const TCHAR *pn;
 
 	xfree (rl);
 	rl = 0;
@@ -351,7 +351,7 @@ void romlist_clear (void)
 					_tcscat (newpn, _T("/"));
 				}
 				_tcscat (newpn, rd->partnumber);
-				xfree (parent->partnumber);
+				xfree ((char *) parent->partnumber);
 				parent->partnumber = newpn;
 			}
 		}
@@ -436,7 +436,7 @@ struct romlist **getromlistbyident (int ver, int rev, int subver, int subrev, co
 		if (!ok)
 			continue;
 		if (model && ok < 2) {
-			TCHAR *p = rd->model;
+			const TCHAR *p = rd->model;
 			ok = 0;
 			while (p && *p) {
 				if (!_tcscmp(rd->model, model)) {
@@ -483,7 +483,7 @@ struct romdata *getarcadiarombyname (const TCHAR *name)
 	int i;
 	for (i = 0; roms[i].name; i++) {
 		if (roms[i].group == 0 && (roms[i].type == ROMTYPE_ARCADIAGAME || roms[i].type == ROMTYPE_ARCADIAGAME)) {
-			TCHAR *p = roms[i].name;
+			const TCHAR *p = roms[i].name;
 			p = p + _tcslen (p) + 1;
 			if (_tcslen (name) >= _tcslen (p) + 4) {
 				const TCHAR *p2 = name + _tcslen (name) - _tcslen (p) - 4;
@@ -1146,7 +1146,7 @@ struct zfile *read_rom (struct romdata *prd)
 {
 	struct romdata *rd2 = prd;
 	struct romdata *rd = prd;
-	TCHAR *name;
+	const TCHAR *name;
 	int id = rd->id;
 	uae_u32 crc32;
 	int size;

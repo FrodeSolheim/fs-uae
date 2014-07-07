@@ -29,6 +29,7 @@
 #include <sys/time.h>
 #endif
 #include <string.h>
+#include <limits.h>
 
 #include "fsdb_host.h"
 
@@ -142,8 +143,8 @@ static char hex_chars[] = "0123456789abcdef";
 
 char *aname_to_nname(const char *aname, int ascii) {
     size_t len = strlen(aname);
-    int repl_1 = -1;
-    int repl_2 = -1;
+    unsigned int repl_1 = UINT_MAX;
+    unsigned int repl_2 = UINT_MAX;
 
     TCHAR a = aname[0];
     TCHAR b = (a == '\0' ? a : aname[1]);
@@ -168,9 +169,9 @@ char *aname_to_nname(const char *aname, int ascii) {
     }
 
     // spaces and periods at the end are a no-no in Windows
-    int i = len - 1;
-    if (aname[i] == '.' || aname[i] == ' ') {
-        repl_2 = i;
+    int ei = len - 1;
+    if (aname[ei] == '.' || aname[ei] == ' ') {
+        repl_2 = ei;
     }
 
     // allocating for worst-case scenario here (max replacements)
@@ -179,7 +180,7 @@ char *aname_to_nname(const char *aname, int ascii) {
 
     int repl, j;
     unsigned char x;
-    for (i = 0; i < (int) len; i++) {
+    for (unsigned int i = 0; i < len; i++) {
         x = (unsigned char) aname[i];
         repl = 0;
         if (i == repl_1) {

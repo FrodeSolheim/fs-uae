@@ -2633,7 +2633,7 @@ static const struct mw_acc memwatch_access_masks[] =
 	{ MW_MASK_SPR_5, _T("SPR5") },
 	{ MW_MASK_SPR_6, _T("SPR6") },
 	{ MW_MASK_SPR_7, _T("SPR7") },
-	NULL
+	{ 0, NULL },
 };
 
 static const TCHAR *getsizechar (int size)

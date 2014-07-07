@@ -606,7 +606,6 @@ static void configure_hard_drive_directory (int index, const char *path,
     }
     else {
         mount_name = fs_path_get_basename(path);
-        char *c = mount_name;
         int stop = 0;
         for(int i = 0; mount_name[i]; i++) {
             if (mount_name[i] == '(') {

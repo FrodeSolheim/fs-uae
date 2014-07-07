@@ -61,7 +61,6 @@ fs_image* fs_image_new_from_data(const void *buffer, int size) {
     png_infop info_ptr;
     //int number_of_passes;
     png_bytep * row_pointers;
-    unsigned char header[8];
 
     fs_image* image = fs_image_new();
 

@@ -23,10 +23,8 @@ datarootdir = @datarootdir@
 docdir = @docdir@
 
 AM_CFLAGS =
-# some code (e.g. op_4480_13 handling on NEG.L) relies on signed
-# integers overflowing (undefined behavior)
-AM_CFLAGS += -fno-strict-overflow
-AM_CFLAGS += -Wstrict-overflow
+#AM_CFLAGS += -fno-strict-overflow
+#AM_CFLAGS += -Wstrict-overflow
 
 AM_CFLAGS += -I. -Isrc/od-fs -Isrc/od-fs/include
 AM_CFLAGS += -Isrc/include -Igen -Isrc/jit -Isrc
@@ -125,6 +123,10 @@ gen/cputbl.h: gen/cpuemu_0.cpp
 gen/linetoscr.cpp: gen/genlinetoscr
     gen/genlinetoscr > gen/linetoscr.cpp
 """
+
+
+if "--strict" in sys.argv:
+    header += "\nAM_CFLAGS += -Wall -Werror\n"
 
 
 build68k_sources = [
@@ -317,7 +319,6 @@ fs_uae_sources = [
     "src/hrtmon.rom.cpp",
     "src/identify.cpp",
     "src/inputdevice.cpp",
-    "src/inputrecord.cpp",
     "src/isofs.cpp",
     "src/jit/compemu_fpp.cpp",
     "src/jit/compemu_support.cpp",
@@ -330,7 +331,7 @@ fs_uae_sources = [
     "src/ncr_scsi.cpp",
     "src/newcpu_common.cpp",
     "src/newcpu.cpp",
-    "src/od-fs/ahi_v2.cpp",
+#    "src/od-fs/ahi_v2.cpp",
     "src/od-fs/ahi_winuae.cpp",
     "src/od-fs/audio.cpp",
     "src/od-fs/blkdev-linux.cpp",
@@ -347,6 +348,7 @@ fs_uae_sources = [
     "src/od-fs/gui.cpp",
     "src/od-fs/hardfile_host.cpp",
     "src/od-fs/input.cpp",
+    "src/od-fs/inputrecord.cpp",
     "src/od-fs/keymap.cpp",
     "src/od-fs/libamiga.cpp",
     "src/od-fs/logging.cpp",
@@ -435,19 +437,85 @@ genlinetoscr_sources = [
 ]
 
 
-# Using GCC optimization level O0 instead of O2 for cpuemu*, since a bug
-# was found caused by the optimizer (where basically (1 ^ 0) & (1 ^ 0) was
-# evaluated to 0). This fixes Tower of Babel (IPF).
-# Edit - not a bug, code relies on undefined behavior w.r.t signed overflow.
-#gen_cpuemu_0_cpp_cflags = "-O0"
-#gen_cpuemu_11_cpp_cflags = "-O0"
-#gen_cpuemu_13_cpp_cflags = "-O0"
-#gen_cpuemu_20_cpp_cflags = "-O0"
-#gen_cpuemu_21_cpp_cflags = "-O0"
-#gen_cpuemu_22_cpp_cflags = "-O0"
-#gen_cpuemu_31_cpp_cflags = "-O0"
-#gen_cpuemu_32_cpp_cflags = "-O0"
-#gen_cpuemu_33_cpp_cflags = "-O0"
+# Some code (e.g. op_4480_13 handling on NEG.L) relies on signed
+# integers overflowing (undefined behavior). Without fno-strict-overflow,
+# Tower of Babel (IPF) will for example not load.
+
+cpuemu_flags = "-fno-strict-overflow"
+if "--strict" in sys.argv:
+    cpuemu_flags += " -Wno-unused-variable" \
+                    " -Wno-error" \
+                    " -Wno-sign-compare"
+
+
+gen_cpuemu_0_cpp_cflags = cpuemu_flags
+gen_cpuemu_11_cpp_cflags = cpuemu_flags
+gen_cpuemu_13_cpp_cflags = cpuemu_flags
+gen_cpuemu_20_cpp_cflags = cpuemu_flags
+gen_cpuemu_21_cpp_cflags = cpuemu_flags
+gen_cpuemu_22_cpp_cflags = cpuemu_flags
+gen_cpuemu_31_cpp_cflags = cpuemu_flags
+gen_cpuemu_32_cpp_cflags = cpuemu_flags
+gen_cpuemu_33_cpp_cflags = cpuemu_flags
+
+
+if "--strict" in sys.argv:
+    # exceptions to allow other modules to be compiled with -Werror
+    gen_blitfunc_cpp_cflags = "-Wno-unused-variable"
+    src_bsdsocket_cpp_cflags = "-Wno-unused-variable"
+    src_build68k_cpp_cflags = "-Wno-error"
+    src_jit_gencomp_cpp_cflags = "-Wno-error"
+    src_jit_gencomp_cpp_cflags += " -Wno-unused-function"
+    src_gencpu_cpp_cflags = "-Wno-error"
+    src_gencpu_cpp_cflags += " -Wno-unused-function"
+    src_a2091_cpp_cflags = "-Wno-sign-compare"
+    src_akiko_cpp_cflags = "-Wno-sign-compare -Wno-unused-function"
+    src_ar_cpp_cflags = "-Wno-sign-compare"
+    src_audio_cpp_cflags = "-Wno-sign-compare"
+    src_blitter_cpp_cflags = "-Wno-sign-compare"
+    src_blkdev_cpp_cflags = "-Wno-sign-compare -Wno-error"
+    src_blkdev_cdimage_cpp_cflags = "-Wno-sign-compare -Wno-error=unused-but-set-variable"
+    src_calc_cpp_cflags = "-Wno-sign-compare"
+    src_cd32_fmv_cpp_cflags = "-Wno-sign-compare"
+    src_cdtv_cpp_cflags = "-Wno-error"
+    src_cfgfile_cpp_cflags = "-Wno-sign-compare -Wno-error=parentheses -Wno-unused-variable -Wno-error=unused-but-set-variable"
+    src_cia_cpp_cflags = "-Wno-sign-compare"
+    src_consolehook_cpp_cflags = "-Wno-sign-compare"
+    src_cpummu_cpp_cflags = "-Wno-error"
+    src_custom_cpp_cflags = "-Wno-sign-compare -Wno-unused-variable -Wno-error -Wno-unused-function"
+    src_debug_cpp_cflags = "-Wno-sign-compare -Wno-error"
+    src_disk_cpp_cflags = "-Wno-error -Wno-unused-function -Wno-sign-compare -Wno-unused-variable"
+    src_drawing_cpp_cflags = "-Wno-unused-function -Wno-sign-compare -Wno-error"
+    src_fdi2raw_cpp_cflags = "-Wno-unused-function -Wno-sign-compare -Wno-error"
+    src_filesys_cpp_cflags = "-Wno-unused-variable -Wno-sign-compare -Wno-error"
+    src_fpp_cpp_cflags = "-Wno-error -Wno-unused-function"
+    src_gayle_cpp_cflags = "-Wno-sign-compare -Wno-error"
+    src_gfxboard_cpp_cflags = "-Wno-sign-compare -Wno-error"
+    src_hardfile_cpp_cflags = "-Wno-sign-compare"
+    src_inputdevice_cpp_cflags = "-Wno-sign-compare -Wno-error -Wno-unused-variable"
+    src_isofs_cpp_cflags = "-Wno-sign-compare -Wno-unused-function -Wno-error"
+    src_main_cpp_cflags = "-Wno-sign-compare -Wno-error"
+    src_memory_cpp_cflags = "-Wno-sign-compare -Wno-error"
+    src_ncr_scsi_cpp_cflags = "-Wno-unused-variable -Wno-unused-function"
+    src_newcpu_cpp_cflags = "-Wno-sign-compare -Wno-unused-variable -Wno-error"
+    src_od_fs_ahi_winuae_cpp_cflags = "-Wno-sign-compare -Wno-unused-variable -Wno-error -Wno-unused-function"
+    src_od_fs_hardfile_host_cpp_cflags = "-Wno-error"
+    src_od_fs_mman_cpp_cflags = "-Wno-unused-variable -Wno-error"
+    src_od_fs_picasso96_cpp_cflags = "-Wno-error=overflow -Wno-error -Wno-sign-compare -Wno-unused-variable -Wno-error=unused-but-set-variable -Wno-unused-function"
+    src_od_fs_video_cpp_cflags = "-Wno-unused-variable -Wno-error -Wno-unused-function"
+    src_qemuvga_cirrus_vga_cpp_cflags = "-Wno-sign-compare -Wno-unused-function -Wno-error"
+    src_qemuvga_lsi53c895a_cpp_cflags = "-Wno-sign-compare"
+    src_qemuvga_vga_cpp_cflags = "-Wno-sign-compare -Wno-unused-function -Wno-error"
+    src_rommgr_cpp_cflags = "-Wno-sign-compare -Wno-error"
+    src_savestate_cpp_cflags = "-Wno-sign-compare -Wno-error"
+    src_scsiemul_cpp_cflags = "-Wno-sign-compare -Wno-unused-variable"
+    src_specialmonitors_cpp_cflags = "-Wno-error"
+    src_statusline_cpp_cflags = "-Wno-error"
+    src_traps_cpp_cflags = "-Wno-sign-compare"
+    src_uaelib_cpp_cflags = "-Wno-sign-compare"
+    src_uaeserial_cpp_cflags = "-Wno-sign-compare"
+    src_zfile_cpp_cflags = "-Wno-sign-compare -Wno-unused-function -Wno-error"
+    src_zfile_archive_cpp_cflags = "-Wno-sign-compare -Wno-error"
 
 
 src_blitter_cpp_deps = ["gen/blit.h"]

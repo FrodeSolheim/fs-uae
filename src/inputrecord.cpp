@@ -27,7 +27,7 @@
 #include "fsdb.h"
 
 #if INPUTRECORD_DEBUG > 0
-#include "uae/memory.h"
+#include "memory.h"
 #include "newcpu.h"
 #endif
 
@@ -115,7 +115,7 @@ static bool inprec_rstart (uae_u8 type)
 	lastcycle = get_cycles ();
 	int mvp = current_maxvpos ();
 	if ((type != INPREC_DEBUG && type != INPREC_DEBUG2 && type != INPREC_CIADEBUG) || (0 && vsync_counter >= 49 && vsync_counter <= 51))
-		write_log (_T("INPREC: %010ld/%03d: %d (%ld/%d) %08x\n"), hsync_counter, current_hpos (), type, hsync_counter % mvp, mvp, lastcycle);
+		write_log (_T("INPREC: %010d/%03d: %d (%d/%d) %08x\n"), hsync_counter, current_hpos (), type, hsync_counter % mvp, mvp, lastcycle);
 	inprec_plast = inprec_p;
 	inprec_ru8 (type);
 	inprec_ru16 (0xffff);
@@ -258,7 +258,7 @@ static void inprec_pend (void)
 {
 	uae_u8 *p = inprec_p;
 	uae_u32 hc = hsync_counter;
-	uae_u32 UNUSED(hpos) = current_hpos ();
+	uae_u32 hpos = current_hpos ();
 
 	if (!input_play || !inprec_zf)
 		return;
@@ -269,7 +269,7 @@ static void inprec_pend (void)
 	inprec_plastptr = NULL;
 	for (;;) {
 		uae_u32 hc2 = (p[3] << 24) | (p[4] << 16) | (p[5] << 8) | p[6];
-		uae_u32 UNUSED(hpos2) = p[7];
+		uae_u32 hpos2 = p[7];
 		if (hc2 != hc)
 			break;
 		if ((p[0] & 0x80) == 0)
@@ -590,6 +590,7 @@ void inprec_recorddebug_cia (uae_u32 v1, uae_u32 v2, uae_u32 v3)
 void inprec_playdebug_cia (uae_u32 v1, uae_u32 v2, uae_u32 v3)
 {
 #if INPUTRECORD_DEBUG > 0
+	int err = 0;
 	if (inprec_pstart (INPREC_CIADEBUG)) {
 		uae_u32 vv1 = inprec_pu32 ();
 		uae_u32 vv2 = inprec_pu32 ();
@@ -778,7 +779,7 @@ void inprec_setposition (int offset, int replaycounter)
 	replaypos = replaycounter;
 	write_log (_T("INPREC: setpos=%d\n"), offset);
 	if (offset < header_end || offset > zfile_size (inprec_zf)) {
-		write_log (_T("INPREC: buffer corruption. offset=%d, size=%lld\n"), offset, zfile_size (inprec_zf));
+		write_log (_T("INPREC: buffer corruption. offset=%d, size=%d\n"), offset, zfile_size (inprec_zf));
 		gui_message (_T("INPREC error"));
 	}
 	zfile_fseek (inprec_zf, 0, SEEK_SET);

@@ -3713,7 +3713,7 @@ static void move_exkeys (Unit *unit, a_inode *from, a_inode *to)
 static bool get_statinfo(Unit *unit, a_inode *aino, struct mystat *statbuf)
 {
 	bool ok = true;
-	memset (statbuf, 0, sizeof statbuf);
+	memset (statbuf, 0, sizeof (*statbuf));
 	/* No error checks - this had better work. */
 	if (unit->volflags & MYVOLUMEINFO_ARCHIVE)
 		ok = zfile_stat_archive (aino->nname, statbuf) != 0;
@@ -3923,7 +3923,7 @@ static void record_check_waiting (Unit *unit)
 					prev->next = lr->next;
 				else
 					unit->waitingrecords = lr->next;
-				write_log (_T("queued record released '%s',%d,%d,%d,%d\n"), k->aino->nname, lr->pos, lr->len, lr->mode, lr->timeout);
+				write_log (_T("queued record released '%s',%llud,%llu,%d,%d\n"), k->aino->nname, lr->pos, lr->len, lr->mode, lr->timeout);
 				// mark packet as complete
 				put_long (lr->msg + 4, 0xffffffff);
 				xfree (lr);
@@ -4525,7 +4525,7 @@ static void action_examine_next (Unit *unit, dpacket packet, bool largefilesize)
 	ExamineKey *ek;
 	uae_u32 uniq;
 
-	TRACE((_T("ACTION_EXAMINE_NEXT(0x%lx,0x%lx,%d)\n"), lock, info, largefilesize));
+	TRACE((_T("ACTION_EXAMINE_NEXT(0x%x,0x%x,%d)\n"), lock, info, largefilesize));
 	gui_flicker_led (UNIT_LED(unit), unit->unit, 1);
 	DUMPLOCK(unit, lock);
 
@@ -5380,7 +5380,7 @@ static void
 	a_inode *aino = 0;
 	uaecptr info = GET_PCK_ARG2 (packet) << 2;
 
-	TRACE((_T("ACTION_EXAMINE_FH(0x%lx,0x%lx,%d)\n"),
+	TRACE((_T("ACTION_EXAMINE_FH(0x%x,0x%x,%d)\n"),
 		GET_PCK_ARG1 (packet), GET_PCK_ARG2 (packet), largefilesize ));
 
 	k = lookup_key (unit, GET_PCK_ARG1 (packet));
@@ -5975,7 +5975,7 @@ static void action_examine_object64(Unit *unit, dpacket packet)
 	uaecptr info = GET_PCK_ARG2 (packet) << 2;
 	a_inode *aino = 0;
 
-	TRACE((_T("ACTION_EXAMINE_OBJECT(0x%lx,0x%lx)\n"), lock, info));
+	TRACE((_T("ACTION_EXAMINE_OBJECT(0x%x,0x%x)\n"), lock, info));
 	DUMPLOCK(unit, lock);
 
 	if (lock != 0)
@@ -5994,7 +5994,7 @@ static void action_set_file_size64(Unit *unit, dpacket packet)
 {
 	Key *k, *k1;
 	uae_s64 offset = get_quadp(GET_PCK_ARG2 (packet));
-	long mode = (uae_s32)GET_PCK_ARG3 (packet);
+	int mode = (uae_s32)GET_PCK_ARG3 (packet);
 	int whence = SEEK_CUR;
 
 	if (mode > 0)
@@ -6002,7 +6002,7 @@ static void action_set_file_size64(Unit *unit, dpacket packet)
 	if (mode < 0)
 		whence = SEEK_SET;
 
-	TRACE((_T("ACTION_SET_FILE_SIZE64(0x%lx, %lld, 0x%x)\n"), GET_PCK_ARG1 (packet), offset, mode));
+	TRACE((_T("ACTION_SET_FILE_SIZE64(0x%x, %lld, 0x%x)\n"), GET_PCK_ARG1 (packet), offset, mode));
 
 	k = lookup_key (unit, GET_PCK_ARG1 (packet));
 	if (k == 0) {
@@ -6044,7 +6044,7 @@ static void action_seek64(Unit *unit, dpacket packet)
 {
 	Key *k = lookup_key(unit, GET_PCK_ARG1(packet));
 	uae_s64 pos = get_quadp(GET_PCK64_ARG2(packet));
-	long mode = GET_PCK_ARG3(packet);
+	int mode = GET_PCK_ARG3(packet);
 	long whence = SEEK_CUR;
 	uae_s64 res, cur;
 

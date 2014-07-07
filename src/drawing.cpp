@@ -140,7 +140,7 @@ struct color_entry colors_for_drawing;
 /* The size of these arrays is pretty arbitrary; it was chosen to be "more
 than enough".  The coordinates used for indexing into these arrays are
 almost, but not quite, Amiga coordinates (there's a constant offset).  */
-union {
+static union {
 	/* Let's try to align this thing. */
 	double uupzuq;
 	long int cruxmedo;

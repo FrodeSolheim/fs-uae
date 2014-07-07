@@ -35,10 +35,10 @@ struct romheader {
 };
 
 struct romdata {
-	TCHAR *name;
+	const TCHAR *name;
 	int ver, rev;
 	int subver, subrev;
-	TCHAR *model;
+	const TCHAR *model;
 	uae_u32 size;
 	int id;
 	int cpu;
@@ -46,10 +46,10 @@ struct romdata {
 	int type;
 	int group;
 	int title;
-	TCHAR *partnumber;
+	const TCHAR *partnumber;
 	uae_u32 crc32;
 	uae_u32 sha1[5];
-	TCHAR *configname;
+	const TCHAR *configname;
 };
 
 struct romlist {

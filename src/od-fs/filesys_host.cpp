@@ -45,7 +45,7 @@ bool my_stat (const TCHAR *name, struct mystat *ms) {
         return false;
     }
     if (g_fsdb_debug) {
-        write_log("fs_stat returned size %lld\n", sonuc.size);
+        write_log("fs_stat returned size %jd\n", sonuc.size);
     }
     ms->size = sonuc.size;
     // FIXME: read mode more accurately
@@ -473,7 +473,7 @@ uae_s64 my_lseek(struct my_openfile_s *mos, uae_s64 offset, int whence) {
     off_t result = lseek(mos->fd, offset, whence);
     my_errno = errno;
     if (g_fsdb_debug) {
-        write_log("lseek result %d\n", result);
+        write_log("lseek result %jd\n", result);
     }
     return result;
 }
@@ -556,7 +556,7 @@ int my_issamevolume(const TCHAR *path1, const TCHAR *path2, TCHAR *path)
 {
 	TCHAR p1[MAX_DPATH];
 	TCHAR p2[MAX_DPATH];
-	int len, cnt;
+	unsigned int len, cnt;
 
 	my_canonicalize_path(path1, p1, sizeof p1 / sizeof (TCHAR));
 	my_canonicalize_path(path2, p2, sizeof p2 / sizeof (TCHAR));
@@ -567,7 +567,7 @@ int my_issamevolume(const TCHAR *path1, const TCHAR *path2, TCHAR *path)
 		return 0;
 	_tcscpy (path, p2 + len);
 	cnt = 0;
-	for (int i = 0; i < _tcslen (path); i++) {
+	for (unsigned int i = 0; i < _tcslen (path); i++) {
 		if (path[i] == '\\' || path[i] == '/') {
 			path[i] = '/';
 			cnt++;

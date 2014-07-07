@@ -1469,7 +1469,9 @@ void audio_reset (void)
 
 #ifdef AHI
 	ahi_close_sound ();
+#ifdef AHI_V2
 	free_ahi_v2 ();
+#endif
 #endif
 	reset_sound ();
 	memset (sound_filter_state, 0, sizeof sound_filter_state);

@@ -84,19 +84,21 @@ struct zarchive_info
 	struct mytimeval tv;
 };
 
-#define ArchiveFormat7Zip '7z  '
-#define ArchiveFormatRAR 'rar '
-#define ArchiveFormatZIP 'zip '
-#define ArchiveFormatLHA 'lha '
-#define ArchiveFormatLZX 'lzx '
-#define ArchiveFormatPLAIN '----'
-#define ArchiveFormatDIR 'DIR '
-#define ArchiveFormatAA 'aa  ' // method only
-#define ArchiveFormatADF 'DOS '
-#define ArchiveFormatRDB 'RDSK'
-#define ArchiveFormatMBR 'MBR '
-#define ArchiveFormatFAT 'FAT '
-#define ArchiveFormatTAR 'tar '
+#define LE_CHR(a,b,c,d) (((a)<<24) | ((b)<<16) | ((c)<<8) | (d))
+
+#define ArchiveFormat7Zip  LE_CHR('7', 'z', ' ', ' ')
+#define ArchiveFormatRAR   LE_CHR('r', 'a', 'r', ' ')
+#define ArchiveFormatZIP   LE_CHR('z', 'i', 'p', ' ')
+#define ArchiveFormatLHA   LE_CHR('l', 'h', 'a', ' ')
+#define ArchiveFormatLZX   LE_CHR('l', 'z', 'x', ' ')
+#define ArchiveFormatPLAIN LE_CHR('-', '-', '-', '-')
+#define ArchiveFormatDIR   LE_CHR('D', 'I', 'R', ' ')
+#define ArchiveFormatAA    LE_CHR('a', 'a', ' ', ' ') // method only
+#define ArchiveFormatADF   LE_CHR('D', 'O', 'S', ' ')
+#define ArchiveFormatRDB   LE_CHR('R', 'D', 'S', 'K')
+#define ArchiveFormatMBR   LE_CHR('M', 'B', 'R', ' ')
+#define ArchiveFormatFAT   LE_CHR('F', 'A', 'T', ' ')
+#define ArchiveFormatTAR   LE_CHR('t', 'a', 'r', ' ')
 
 #define PEEK_BYTES 1024
 #define FILE_PEEK 1

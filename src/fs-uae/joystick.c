@@ -214,7 +214,7 @@ static void configure_joystick_port(int port, const char *value,
     }
     else {
         p->new_mode = auto_mode;
-        int result = fs_emu_configure_joystick(value, auto_type,
+        fs_emu_configure_joystick(value, auto_type,
                 g_joystick_mappings[port], 1,
                 p->device, MAX_DEVICE_NAME_LEN);
     }

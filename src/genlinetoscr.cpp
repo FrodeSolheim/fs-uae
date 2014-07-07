@@ -489,11 +489,10 @@ int main(int argc, char *argv[])
 	DEPTH_T bpp;
 	int aga, spr;
 	HMODE_T hmode;
-	unsigned int i;
 
 	do_bigendian = 0;
 
-	for (i = 1; i < argc; i++) {
+	for (int i = 1; i < argc; i++) {
 		if (argv[i][0] != '-')
 			continue;
 		if (argv[i][1] == 'b' && argv[i][2] == '\0')

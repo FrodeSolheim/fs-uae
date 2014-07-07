@@ -89,8 +89,7 @@ int fs_emu_theme_get_resource_data(const char *name, char **data, int *size) {
         return fs_strdup(name);
     }
     */
-    char *path, *p;
-
+    char *p;
     p = fs_path_join(g_fs_emu_theme.path, name, NULL);
     if (fs_path_exists(p)) {
         FILE *f = fs_fopen(p, "rb");

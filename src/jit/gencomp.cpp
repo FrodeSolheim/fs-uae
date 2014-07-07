@@ -99,7 +99,9 @@ read_counts (void)
     file = fopen ("frequent.68k", "r");
     if (file)
     {
-	fscanf (file, "Total: %lu\n", &total);
+        if (fscanf (file, "Total: %lu\n", &total) == 0) {
+                abort ();
+        }
 	while (fscanf (file, "%lx: %lu %s\n", &opcode, &count, name) == 3)
 	{
 	    opcode_next_clev[nr] = 5;
@@ -3250,7 +3252,9 @@ int main(int argc, char *argv[])
 	
 #ifdef FSUAE
 	stblfile = fopen ("gen/compstbl.cpp", "wb");
-	freopen ("gen/compemu.cpp", "wb", stdout);
+	if (freopen ("gen/compemu.cpp", "wb", stdout) == NULL) {
+		abort ();
+	}
 #else
 	stblfile = fopen ("jit/compstbl.cpp", "wb");
     freopen ("jit/compemu.cpp", "wb", stdout);

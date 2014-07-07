@@ -93,10 +93,13 @@ static void rdbdump (FILE *h, uae_u64 offset, uae_u8 *buf, int blocksize)
     if (!f)
         return;
     for (i = 0; i <= blocks; i++) {
-        long outlen;
         if (uae_fseeko64 (h, offset, SEEK_SET) != 0)
             break;
-        outlen = fread (buf, 1, blocksize, h);
+        int outlen = fread (buf, 1, blocksize, h);
+        if (outlen != blocksize) {
+            write_log("rdbdump: warning: read %d bytes (not blocksize %d)\n",
+                      outlen, blocksize);
+        }
         fwrite (buf, 1, blocksize, f);
         offset += blocksize;
     }
@@ -608,7 +611,7 @@ int hdf_read_target (struct hardfiledata *hfd, void *buffer, uae_u64 offset, int
 
 static int hdf_write_2 (struct hardfiledata *hfd, void *buffer, uae_u64 offset, int len)
 {
-    size_t outlen = 0;
+    int outlen = 0;
 
     if (hfd->ci.readonly) {
         if (g_debug) {
@@ -630,7 +633,7 @@ static int hdf_write_2 (struct hardfiledata *hfd, void *buffer, uae_u64 offset, 
         outlen = fwrite (hfd->cache, 1, len, hfd->handle->h);
         //fflush(hfd->handle->h);
         if (g_debug) {
-            write_log("wrote %zu bytes (wanted %d) at offset %llx\n", outlen,
+            write_log("wrote %u bytes (wanted %d) at offset %llx\n", outlen,
                     len, offset);
         }
         if (offset == 0) {

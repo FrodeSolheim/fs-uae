@@ -311,6 +311,7 @@ static void update_save_states_menu(fs_emu_menu *menu) {
     }
 }
 
+#if 0
 static int save_state_menu_function(fs_emu_menu_item *menu_item,
         void **result_data) {
 
@@ -351,6 +352,7 @@ static int save_state_menu_function(fs_emu_menu_item *menu_item,
     *result_data = menu;
     return FS_EMU_MENU_RESULT_MENU;
 }
+#endif
 
 static int load_states_menu_function(fs_emu_menu_item *unused,
         void **result_data) {

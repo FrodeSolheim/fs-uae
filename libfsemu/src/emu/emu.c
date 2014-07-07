@@ -65,7 +65,7 @@ void fs_emu_set_quit_function(fs_ml_void_function function) {
 }
 
 void *force_quit_thread(void *data) {
-    for (int i = i; i < 5; i++) {
+    for (int i = 0; i < 5; i++) {
         fs_ml_usleep(1000 * 1000);
     }
     return NULL;

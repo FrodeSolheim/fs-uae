@@ -140,6 +140,7 @@ static int GetLastError() {
     return errno;
 }
 
+#if 0
 #ifdef HAVE_POSIX_MEMALIGN
 // FIXME: Set HAVE_POSIX_MEMALIGN when available in config.h,
 // possibly via autoconf
@@ -154,6 +155,7 @@ static void *my_valloc(size_t size) {
     return NULL;
 }
 
+#endif
 #endif
 
 static int my_getpagesize (void) {
@@ -182,7 +184,7 @@ uae_u8 *natmem_offset, *natmem_offset_end;
 static uae_u8 *p96mem_offset;
 static int p96mem_size;
 static SYSTEM_INFO si;
-int maxmem;
+static uint32_t maxmem;
 uae_u32 natmem_size;
 
 static uae_u8 *virtualallocwithlock (LPVOID addr, SIZE_T size, DWORD allocationtype, DWORD protect)
@@ -377,7 +379,7 @@ bool preinit_shm (void)
         if (size64 > MAXZ3MEM32)
             size64 = MAXZ3MEM32;
     }
-	if (maxmem < 0) {
+        if (maxmem == 0) {
         size64 = MAXZ3MEM64;
 		if (!os_64bit) {
 			if (totalphys64 < 1536 * 1024 * 1024)
@@ -402,7 +404,7 @@ bool preinit_shm (void)
     if (natmem_size <= 768 * 1024 * 1024) {
         uae_u32 p = 0x78000000 - natmem_size;
         for (;;) {
-            natmem_offset = (uae_u8*)VirtualAlloc ((void*)p, natmem_size, MEM_RESERVE | (VAMODE == 1 ? MEM_WRITE_WATCH : 0), PAGE_READWRITE);
+            natmem_offset = (uae_u8*)VirtualAlloc ((void*)(intptr_t)p, natmem_size, MEM_RESERVE | (VAMODE == 1 ? MEM_WRITE_WATCH : 0), PAGE_READWRITE);
             if (natmem_offset)
                 break;
             p -= 128 * 1024 * 1024;
@@ -627,6 +629,8 @@ restart:
 }
 #endif
 
+#if VAMODE != 1
+
 static uae_u8 *va (uae_u32 offset, uae_u32 len, DWORD alloc, DWORD protect)
 {
     uae_u8 *addr;
@@ -642,17 +646,18 @@ static uae_u8 *va (uae_u32 offset, uae_u32 len, DWORD alloc, DWORD protect)
     return NULL;
 }
 
+#endif
+
 static int doinit_shm (void)
 {
     write_log("doinit_shm\n");
     uae_u32 size, totalsize, z3size, natmemsize;
 	uae_u32 startbarrier, rtgbarrier, z3chipbarrier, rtgextra;
     int rounds = 0;
-    ULONG z3rtgmem_size;
+    uae_u32 z3rtgmem_size;
 
     for (;;) {
         int lowround = 0;
-        uae_u8 *blah = NULL;
         if (rounds > 0)
             write_log (_T("NATMEM: retrying %d..\n"), rounds);
         rounds++;
@@ -681,7 +686,7 @@ static int doinit_shm (void)
             int change = lowmem ();
             if (!change)
                 return 0;
-            write_log (_T("NATMEM: %d, %dM > %dM = %dM\n"), ++lowround, totalsize >> 20, size64 >> 20, (totalsize - change) >> 20);
+            write_log (_T("NATMEM: %d, %dM > %lldM = %dM\n"), ++lowround, totalsize >> 20, size64 >> 20, (totalsize - change) >> 20);
             totalsize -= change;
         }
         if ((rounds > 1 && totalsize < 0x10000000) || rounds > 20) {
@@ -1081,7 +1086,7 @@ void *uae_shmat (int shmid, void *shmaddr, int shmflg)
                 size, size >> 10, GetLastError ());
         } else {
             shmids[shmid].attached = result;
-            write_log (_T("VA %08X - %08X %x (%dk) ok (%08X)%s\n"),
+            write_log (_T("VA %08tX - %08tX %x (%dk) ok (%p)%s\n"),
                 (uae_u8*)shmaddr - natmem_offset, (uae_u8*)shmaddr - natmem_offset + size,
                 size, size >> 10, shmaddr, p96special ? _T(" P96") : _T(""));
         }
@@ -1093,7 +1098,6 @@ void unprotect_maprom (void)
 {
     bool protect = false;
     for (int i = 0; i < MAX_SHMID; i++) {
-        DWORD old;
         struct shmid_ds *shm = &shmids[i];
         if (shm->mode != PAGE_READONLY)
             continue;
@@ -1103,6 +1107,7 @@ void unprotect_maprom (void)
             continue;
         shm->maprom = -1;
 #ifdef WINDOWS
+        DWORD old;
         if (!VirtualProtect (shm->attached, shm->rosize, protect ? PAGE_READONLY : PAGE_READWRITE, &old)) {
             write_log (_T("VP %08X - %08X %x (%dk) failed %d\n"),
                 (uae_u8*)shm->attached - natmem_offset, (uae_u8*)shm->attached - natmem_offset + shm->size,
@@ -1120,7 +1125,6 @@ void protect_roms (bool protect)
             return;
     }
     for (int i = 0; i < MAX_SHMID; i++) {
-        DWORD old;
         struct shmid_ds *shm = &shmids[i];
         if (shm->mode != PAGE_READONLY)
             continue;
@@ -1129,6 +1133,7 @@ void protect_roms (bool protect)
         if (shm->maprom < 0 && protect)
             continue;
 #ifdef WINDOWS
+        DWORD old;
         if (!VirtualProtect (shm->attached, shm->rosize, protect ? PAGE_READONLY : PAGE_READWRITE, &old)) {
             write_log (_T("VP %08X - %08X %x (%dk) failed %d\n"),
                 (uae_u8*)shm->attached - natmem_offset, (uae_u8*)shm->attached - natmem_offset + shm->size,
@@ -1148,7 +1153,7 @@ int uae_shmget (uae_key_t key, size_t size, int shmflg, const TCHAR *name)
     int result = -1;
 
     if((key == IPC_PRIVATE) || ((shmflg & IPC_CREAT) && (find_shmkey (key) == -1))) {
-        write_log (_T("shmget of size %d (%dk) for %s\n"), size, size >> 10, name);
+        write_log (_T("shmget of size %zd (%zdk) for %s\n"), size, size >> 10, name);
         if ((result = get_next_shmkey ()) != -1) {
             shmids[result].size = size;
             _tcscpy (shmids[result].name, name);

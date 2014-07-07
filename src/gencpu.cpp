@@ -133,7 +133,9 @@ static void read_counts (void)
 	count = 0;
 	file = fopen ("frequent.68k", "r");
 	if (file) {
-		fscanf (file, "Total: %u\n", &total);
+		if (fscanf (file, "Total: %u\n", &total) == 0) {
+			abort ();
+		}
 		while (fscanf (file, "%x: %u %s\n", &opcode, &count, name) == 3) {
 			opcode_next_clev[nr] = 5;
 			opcode_last_postfix[nr] = -1;
@@ -5423,7 +5425,9 @@ static void generate_cpu (int id, int mode)
 			fprintf (stblfile, "#ifdef CPUEMU_%d%s\n", postfix, extraup);
 		postfix2 = postfix;
 		sprintf (fname, "cpuemu_%d%s.cpp", postfix, extra);
-		freopen (fname, "wb", stdout);
+		if (freopen (fname, "wb", stdout) == NULL) {
+			abort ();
+		}
 		generate_includes (stdout, id);
 	}
 

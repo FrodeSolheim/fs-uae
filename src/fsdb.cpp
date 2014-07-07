@@ -303,6 +303,9 @@ static void write_aino (FILE *f, a_inode *aino)
 
 void fsdb_dir_writeback (a_inode *dir)
 {
+#ifdef FSUAE
+	// .uaem files are used instead of fsdb
+#else
 	FILE *f;
 	int changes_needed = 0;
 	int entries_needed = 0;
@@ -395,4 +398,5 @@ void fsdb_dir_writeback (a_inode *dir)
 	TRACE ((_T("end\n")));
 	fclose (f);
 	xfree (tmpbuf);
+#endif
 }

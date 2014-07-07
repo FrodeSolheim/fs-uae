@@ -346,7 +346,7 @@ int caps_loadrevolution (uae_u16 *mfmbuf, uae_u16 *tracktiming, int drv, int tra
     mfmcopy (mfmbuf, ci.trackbuf, len);
 #if CAPS_TRACKTIMING
     if (ci.timelen > 0 && tracktiming) {
-        for (int i = 0; i < ci.timelen; i++)
+        for (unsigned int i = 0; i < ci.timelen; i++)
             tracktiming[i] = (uae_u16) ci.timebuf[i];
     }
 #endif
@@ -420,7 +420,7 @@ int caps_loadtrack (uae_u16 *mfmbuf, uae_u16 *tracktiming, int drv, int track, i
 #endif
 #if CAPS_TRACKTIMING
     if (ci.timelen > 0 && tracktiming) {
-        for (int i = 0; i < ci.timelen; i++)
+        for (unsigned int i = 0; i < ci.timelen; i++)
             tracktiming[i] = (uae_u16) ci.timebuf[i];
     }
 #endif

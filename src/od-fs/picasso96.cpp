@@ -262,7 +262,7 @@ static struct PicassoResolution *newmodes;
 static int picasso_convert, host_mode;
 
 /* These are the maximum resolutions... They are filled in by GetSupportedResolutions() */
-/* have to fill this in, otherwise problems occur on the Amiga side P96 s/w which expects
+/* have to fill this in, otherwise problems occur on the Amiga side P96 s/w which expects */
 /* data here. */
 static struct ScreenResolution planar = { 320, 240 };
 static struct ScreenResolution chunky = { 640, 480 };
@@ -948,11 +948,9 @@ void picasso_handle_hsync (void)
     }
 }
 
-
 static int set_panning_called = 0;
 
-
-typedef enum {
+enum {
 
     /* DEST = RGBFB_B8G8R8A8,32 */
     RGBFB_A8R8G8B8_32 = 1,
@@ -1242,7 +1240,7 @@ void picasso_refresh (void)
 #define BLT_FUNC(s,d) *d = (*s) | (*d)
 #include "p96_blit.cpp"
 #define BLT_NAME BLIT_TRUE_32
-#define BLT_FUNC(s,d) *d = 0xffffffff
+#define BLT_FUNC(s,d) memset(d, 0xff, sizeof (*d))
 #include "p96_blit.cpp"
 #define BLT_NAME BLIT_SWAP_32
 #define BLT_FUNC(s,d) tmp = *d ; *d = *s; *s = tmp;
@@ -1293,7 +1291,7 @@ void picasso_refresh (void)
 #define BLT_FUNC(s,d) *d = (*s) | (*d)
 #include "p96_blit.cpp"
 #define BLT_NAME BLIT_TRUE_24
-#define BLT_FUNC(s,d) *d = 0xffffffff
+#define BLT_FUNC(s,d) memset(d, 0xff, sizeof (*d))
 #include "p96_blit.cpp"
 #define BLT_NAME BLIT_SWAP_24
 #define BLT_FUNC(s,d) tmp = *d ; *d = *s; *s = tmp;
@@ -1344,7 +1342,7 @@ void picasso_refresh (void)
 #define BLT_FUNC(s,d) *d = (*s) | (*d)
 #include "p96_blit.cpp"
 #define BLT_NAME BLIT_TRUE_16
-#define BLT_FUNC(s,d) *d = 0xffffffff
+#define BLT_FUNC(s,d) memset(d, 0xff, sizeof (*d))
 #include "p96_blit.cpp"
 #define BLT_NAME BLIT_SWAP_16
 #define BLT_FUNC(s,d) tmp = *d ; *d = *s; *s = tmp;
@@ -1395,7 +1393,7 @@ void picasso_refresh (void)
 #define BLT_FUNC(s,d) *d = (*s) | (*d)
 #include "p96_blit.cpp"
 #define BLT_NAME BLIT_TRUE_8
-#define BLT_FUNC(s,d) *d = 0xffffffff
+#define BLT_FUNC(s,d) memset(d, 0xff, sizeof (*d))
 #include "p96_blit.cpp"
 #define BLT_NAME BLIT_SWAP_8
 #define BLT_FUNC(s,d) tmp = *d ; *d = *s; *s = tmp;
@@ -3053,7 +3051,7 @@ static void do_xor8 (uae_u8 *p, int w, uae_u32 v)
         p++;
         w--;
     }
-    uae_u64 vv = v | (v << 32);
+    uae_u64 vv = v | ((uae_u64) v << 32);
     while (w >= 2 * 8) {
         *((uae_u64*)p) ^= vv;
         p += 8;
@@ -4451,7 +4449,7 @@ static bool flushpixels (void)
         pwidth, pheight);
 #endif
     if (!picasso_vidinfo.extra_mem || !gwwbuf || src_start >= src_end) {
-        printf("%d %d %d returning\n", picasso_vidinfo.extra_mem, gwwbuf, src_start >= src_end);
+        printf("%d %p %d returning\n", picasso_vidinfo.extra_mem, gwwbuf, src_start >= src_end);
         return false;
     }
 
@@ -4939,7 +4937,7 @@ static uaecptr uaegfx_card_install (TrapContext *ctx, uae_u32 extrasize)
     uaecptr exec = get_long (4);
 
     if (uaegfx_old || !gfxmem_bank.start)
-        return NULL;
+        return 0;
 
     uaegfx_resid = ds (_T("UAE Graphics Card 3.3"));
     uaegfx_vblankname = ds (_T("UAE Graphics Card VBLANK"));

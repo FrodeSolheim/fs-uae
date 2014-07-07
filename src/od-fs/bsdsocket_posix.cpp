@@ -1710,7 +1710,6 @@ void clearsockabort (SB)
 
     while ((num = read (sb->sockabort[0], &chr, sizeof(chr))) >= 0) {
         DEBUG_LOG ("Sockabort got %d bytes\n", num);
-        ;
     }
 }
 
@@ -1718,7 +1717,9 @@ void sockabort (SB)
 {
     int chr = 1;
     DEBUG_LOG ("Sock abort!!\n");
-    write (sb->sockabort[1], &chr, sizeof (chr));
+    if (write (sb->sockabort[1], &chr, sizeof (chr)) != sizeof (chr)) {
+        DEBUG_LOG ("sockabort - did not write %d bytes\n", sizeof (chr));
+    }
 }
 
 void locksigqueue (void)

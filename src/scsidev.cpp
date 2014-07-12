@@ -13,7 +13,7 @@
 #include "config.h"
 #include "threaddep/thread.h"
 #include "options.h"
-#include "uae/memory.h"
+#include "memory_uae.h"
 #include "custom.h"
 #include "newcpu.h"
 #include "disk.h"

@@ -16,7 +16,7 @@
 #include "sysconfig.h"
 #include "sysdeps.h"
 #include "options.h"
-#include "uae/memory.h"
+#include "memory_uae.h"
 
 #include "fsdb.h"
 #include "zfile.h"

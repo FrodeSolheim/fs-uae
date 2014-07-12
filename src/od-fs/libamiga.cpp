@@ -9,7 +9,7 @@
 #include <string.h>
 #include <fs/string.h>
 
-#include "uae/memory.h"
+#include "memory_uae.h"
 #include "options.h"
 #include "custom.h"
 #include "keyboard.h"

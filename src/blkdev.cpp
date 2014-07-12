@@ -10,7 +10,7 @@
 #include "sysconfig.h"
 #include "sysdeps.h"
 #include "options.h"
-#include "uae/memory.h"
+#include "memory_uae.h"
 
 #include "blkdev.h"
 #include "scsidev.h"

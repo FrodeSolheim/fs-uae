@@ -12,7 +12,7 @@
 #include "sysconfig.h"
 #include "sysdeps.h"
 #include "mman_host.h"
-#include "uae/memory.h"
+#include "memory_uae.h"
 #include "options.h"
 #include "autoconf.h"
 #include "gfxboard.h"

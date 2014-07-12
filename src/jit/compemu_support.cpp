@@ -11,7 +11,7 @@
 #include "options.h"
 #include "events.h"
 #ifdef FSUAE
-#include "uae/memory.h"
+#include "memory_uae.h"
 #else
 #include "include/memory.h"
 #endif

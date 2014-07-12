@@ -27,7 +27,7 @@
 #include <process.h>
 
 #include "options.h"
-#include "uae/memory.h"
+#include "memory_uae.h"
 #include "custom.h"
 #include "events.h"
 #include "newcpu.h"

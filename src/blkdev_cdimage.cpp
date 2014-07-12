@@ -122,7 +122,7 @@ static struct cdunit *unitisopen (int unitnum)
 }
 
 
-static struct cdtoc *findtoc (struct cdunit *cdu, int *sectorp)
+static struct cdtoc *findtoc (struct cdunit *cdu, int *sectorp, bool data)
 {
 	int i;
 	int sector;
@@ -139,7 +139,7 @@ static struct cdtoc *findtoc (struct cdunit *cdu, int *sectorp)
 			}
 			t--;
 			sector -= t->address - t->index1;
-			if (sector < t->pregap)
+			if (!data && sector < t->pregap)
 				return NULL; // pregap silence
 			*sectorp = sector;
 			return t;
@@ -445,10 +445,10 @@ static void *cdda_play_func (void *v)
 			cdda_pos = cdu->cdda_start;
 			oldplay = cdu->cdda_play;
 			sector = cdu->cd_last_pos = cdda_pos;
-			t = findtoc (cdu, &sector);
+			t = findtoc (cdu, &sector, false);
 			if (!t) {
 				sector = cdu->cd_last_pos = cdda_pos + 2 * 75;
-				t = findtoc (cdu, &sector);
+				t = findtoc (cdu, &sector, false);
 				if (!t) {
 					write_log (_T("IMAGE CDDA: illegal sector number %d\n"), cdu->cdda_start);
 					setstate (cdu, AUDIO_STATUS_PLAY_ERROR);
@@ -473,7 +473,7 @@ static void *cdda_play_func (void *v)
 				bool seenindex = false;
 				for (sector = cdda_pos - 200; sector < cdda_pos; sector++) {
 					int sec = sector;
-					t = findtoc (cdu, &sec);
+					t = findtoc (cdu, &sec, false);
 					if (t) {
 						uae_u8 subbuf[SUB_CHANNEL_SIZE];
 						getsub_deinterleaved (subbuf, cdu, t, sector);
@@ -503,13 +503,13 @@ static void *cdda_play_func (void *v)
 			setstate (cdu, AUDIO_STATUS_IN_PROGRESS);
 
 			sector = cdda_pos;
-			struct cdtoc *t1 = findtoc (cdu, &sector);
+			struct cdtoc *t1 = findtoc (cdu, &sector, false);
 			int tsector = cdda_pos + 2 * 75;
-			struct cdtoc *t2 = findtoc (cdu, &tsector);
+			struct cdtoc *t2 = findtoc (cdu, &tsector, false);
 			if (t1 != t2) {
 				for (sector = cdda_pos; sector < cdda_pos + 2 * 75; sector++) {
 					int sec = sector;
-					t = findtoc (cdu, &sec);
+					t = findtoc (cdu, &sec, false);
 					if (t == t2)
 						break;
 					silentframes++;
@@ -544,7 +544,7 @@ static void *cdda_play_func (void *v)
 
 				memset (subbuf, 0, SUB_CHANNEL_SIZE);
 
-				t = findtoc (cdu, &sector);
+				t = findtoc (cdu, &sector, false);
 				if (t) {
 					if (t->track != oldtrack) {
 						oldtrack = t->track;
@@ -790,15 +790,32 @@ static int command_rawread (int unitnum, uae_u8 *data, int sector, int size, int
 	if (!cdu)
 		return 0;
 	int asector = sector;
-	struct cdtoc *t = findtoc (cdu, &sector);
-	int UNUSED(ssize) = t->size + t->skipsize;
+	struct cdtoc *t = findtoc (cdu, &sector, true);
+	int ssize;
 
 	if (!t)
 		goto end;
 
+	ssize = t->size + t->skipsize;
 	cdda_stop (cdu);
 	if (sectorsize > 0) {
-		if (sectorsize == 2352 && t->size == 2048) {
+		if (sectorsize == 2352 && t->size == 2336) {
+			// 2336 -> 2352
+			while (size-- > 0) {
+				int address = asector + 150;
+				data[0] = 0x00;
+				memset(data + 1, 0xff, 11);
+				data[12] = tobcd((uae_u8)(address / (60 * 75)));
+				data[13] = tobcd((uae_u8)((address / 75) % 60));
+				data[14] = tobcd((uae_u8)(address % 75));
+				data[15] = 2; /* MODE2 */
+				do_read(cdu, t, data + 16, sector, 0, t->size);
+				sector++;
+				asector++;
+				data += sectorsize;
+				ret += sectorsize;
+			}
+		} else if (sectorsize == 2352 && t->size == 2048) {
 			// 2048 -> 2352
 			while (size-- > 0) {
 				memset (data, 0, 16);
@@ -902,7 +919,7 @@ static int command_read (int unitnum, uae_u8 *data, int sector, int numsectors)
 	struct cdunit *cdu = unitisopen (unitnum);
 	if (!cdu)
 		return 0;
-	struct cdtoc *t = findtoc (cdu, &sector);
+	struct cdtoc *t = findtoc (cdu, &sector, true);
 	if (!t)
 		return 0;
 	cdda_stop (cdu);

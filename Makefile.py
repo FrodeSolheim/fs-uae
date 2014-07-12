@@ -251,6 +251,7 @@ fs_uae_sources = [
     "src/archivers/dms/u_medium.cpp",
     "src/archivers/dms/u_quick.cpp",
     "src/archivers/dms/u_rle.cpp",
+    "src/archivers/mp2/kjmp2.cpp",
     "src/archivers/zip/unzip.cpp",
     "src/ar.cpp",
     "src/aros.rom.cpp",

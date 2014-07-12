@@ -91,7 +91,8 @@ PKG_CHECK_MODULES([OPENAL], [openal], [
 	AS_CASE([$target_os],
 	[darwin*], [
 		AC_MSG_NOTICE([Using OpenAL.framework])
-		OPENAL_CFLAGS="-I/System/Library/Frameworks/OpenAL.framework/Headers"
+		#OPENAL_CFLAGS="-I/System/Library/Frameworks/OpenAL.framework/Headers"
+		OPENAL_CFLAGS="-I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk/System/Library/Frameworks/OpenAL.framework/Headers"
 		OPENAL_LIBS="-framework OpenAL"
 
 	],

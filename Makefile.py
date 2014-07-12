@@ -31,6 +31,7 @@ AM_CFLAGS += -Isrc/include -Igen -Isrc/jit -Isrc
 AM_CFLAGS += -Ilibfsemu/include -Ilibfsemu/src/lua
 AM_CFLAGS += @FREETYPE_CFLAGS@
 AM_CFLAGS += @GLIB_CFLAGS@
+AM_CFLAGS += @LIBMPEG2_CFLAGS@
 AM_CFLAGS += @LUA_CFLAGS@
 AM_CFLAGS += @MIR_CFLAGS@
 AM_CFLAGS += @OPENAL_CFLAGS@
@@ -51,6 +52,7 @@ AM_LIBS += @CARBON_LIBS@
 AM_LIBS += @FREETYPE_LIBS@
 AM_LIBS += @GLIB_LIBS@
 AM_LIBS += @IOKIT_LIBS@
+AM_LIBS += @LIBMPEG2_LIBS@
 # AM_LIBS += @MIR_LIBS@
 AM_LIBS += @OPENAL_LIBS@
 AM_LIBS += @OPENGL_LIBS@
@@ -263,6 +265,7 @@ fs_uae_sources = [
     "src/bsdsocket.cpp",
     "src/calc.cpp",
     "src/cd32_fmv.cpp",
+    "src/cd32_fmv_genlock.cpp",
     "src/cdrom.cpp",
     "src/cdtv.cpp",
     "src/cfgfile.cpp",

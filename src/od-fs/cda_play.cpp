@@ -64,7 +64,8 @@ static void *audio_thread(void *cda_pointer) {
 }
 #endif
 
-cda_audio::cda_audio(int num_sectors) {
+cda_audio::cda_audio(int num_sectors, int sectorsize)
+{
     write_log("cda_audio::cda_audio(num_sectors=%d)\n", num_sectors);
 #if 0
     mStopThread = 0;
@@ -77,7 +78,8 @@ cda_audio::cda_audio(int num_sectors) {
     playing = false;
     volume[0] = volume[1] = 0;
 
-    bufsize = num_sectors * 2352;
+    bufsize = num_sectors * sectorsize;
+    this->sectorsize = sectorsize;
     for (int i = 0; i < 2; i++) {
         buffer_ids[i] = 0;
         buffers[i] = xcalloc (uae_u8, num_sectors * 4096);
@@ -105,7 +107,7 @@ bool cda_audio::play(int bufnum) {
     }
 
     uae_s16 *p = (uae_s16*)(buffers[bufnum]);
-    for (int i = 0; i < num_sectors * 2352 / 4; i++) {
+    for (int i = 0; i < num_sectors * sectorsize / 4; i++) {
         p[i * 2 + 0] = p[i * 2 + 0] * volume[0] / 32768;
         p[i * 2 + 1] = p[i * 2 + 1] * volume[1] / 32768;
     }
@@ -153,4 +155,14 @@ void cda_audio::wait(int bufnum) {
         Sleep (10);
     }
 #endif
+}
+
+bool cda_audio::isplaying(int bufnum)
+{
+	if (!active || !playing)
+		return false;
+	if (buffer_ids[bufnum] == 0) {
+		return false;
+	}
+	return g_audio_callback(3, NULL, buffer_ids[bufnum]);
 }

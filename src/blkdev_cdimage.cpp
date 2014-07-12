@@ -429,7 +429,7 @@ static void *cdda_play_func (void *v)
 	bufon[0] = bufon[1] = 0;
 	bufnum = 0;
 
-	cda_audio *cda = new cda_audio (num_sectors);
+	cda_audio *cda = new cda_audio (num_sectors, 2352);
 
 	while (cdu->cdda_play > 0) {
 

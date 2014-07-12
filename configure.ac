@@ -59,6 +59,8 @@ AC_CHECK_LIB([gdi32], [main])
 AC_DEFINE([USE_GLIB], [1], [Define to 1 to use GLib])
 PKG_CHECK_MODULES([GLIB], [glib-2.0 >= 2.32 gthread-2.0])
 
+PKG_CHECK_MODULES([LIBMPEG2], [libmpeg2 libmpeg2convert])
+
 # The built-in Lua has been sandboxed
 # AC_DEFINE([USE_LUA], [1], [Define to 1 to use LUA])
 AC_SUBST([LUA_CFLAGS])

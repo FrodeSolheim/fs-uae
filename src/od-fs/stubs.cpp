@@ -220,3 +220,9 @@ void machdep_default_options (struct uae_prefs *p) {
 void fpux_restore (int *v) {
     LOG_STUB("");
 }
+
+bool my_issamepath(const TCHAR *path1, const TCHAR *path2)
+{
+	LOG_STUB("");
+        return false;
+}

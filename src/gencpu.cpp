@@ -3546,6 +3546,7 @@ static void gen_opcode (unsigned int opcode)
 			printf ("\t\tint frame = format >> 12;\n");
 			printf ("\t\tint offset = 8;\n");
 			printf ("\t\tnewsr = sr; newpc = pc;\n");
+			addcycles_ce020 (6);
 		    printf ("\t\tif (frame == 0x0) { m68k_areg (regs, 7) += offset; break; }\n");
 		    printf ("\t\telse if (frame == 0x1) { m68k_areg (regs, 7) += offset; }\n");
 		    printf ("\t\telse if (frame == 0x2) { m68k_areg (regs, 7) += offset + 4; break; }\n");
@@ -3574,6 +3575,7 @@ static void gen_opcode (unsigned int opcode)
 			printf ("}\n");
 		    pop_braces (old_brace_level);
 		    printf ("\tregs.sr = newsr;\n");
+			addcycles_ce020 (4);
 			makefromsr ();
 		    printf ("\tif (newpc & 1) {\n");
 		    printf ("\t\texception3i (0x%04X, newpc);\n", opcode);

@@ -1,7 +1,7 @@
 Version 2.5.6dev:
 
 * Load libcapsimage from plugin instead of having it bundled.
-* Merged code from WinUAE 2810.
+* Updated core emulation code from WinUAE 2820b3.
 * Updated built-in AROS rom [WinUAE 2.8.1].
 * Starting FS-UAE.app with config file works again on OS X.
 * Fixed a bug (potential crash) in fs_get_application_exe_path on windows.

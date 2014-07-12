@@ -336,7 +336,7 @@ fs_uae_sources = [
     "src/ncr_scsi.cpp",
     "src/newcpu_common.cpp",
     "src/newcpu.cpp",
-#    "src/od-fs/ahi_v2.cpp",
+    "src/od-fs/ahidsound_new.cpp",
     "src/od-fs/ahi_winuae.cpp",
     "src/od-fs/audio.cpp",
     "src/od-fs/blkdev-linux.cpp",

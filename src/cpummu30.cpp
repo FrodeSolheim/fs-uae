@@ -1589,7 +1589,7 @@ void mmu030_put_long_atc(uaecptr addr, uae_u32 val, int l, uae_u32 fc) {
     uae_u32 page_index = addr & mmu030.translation.page.mask;
     uae_u32 addr_mask = mmu030.translation.page.imask;
     
-	uae_u32 physical_addr = mmu030.atc[l].physical.addr&addr_mask;
+    uae_u32 physical_addr = mmu030.atc[l].physical.addr&addr_mask;
 #if MMU030_ATC_DBG_MSG
     write_log(_T("ATC match(%i): page addr = %08X, index = %08X (lput %08X)\n"),
               l, physical_addr, page_index, val);

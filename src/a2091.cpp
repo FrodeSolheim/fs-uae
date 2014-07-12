@@ -333,7 +333,7 @@ static bool canwddma (struct wd_state *wd)
 }
 
 #if WD33C93_DEBUG > 0
-tatic TCHAR *scsitostring (struct wd_state *wd)
+static TCHAR *scsitostring (struct wd_state *wd)
 {
 	static TCHAR buf[200];
 	TCHAR *p;

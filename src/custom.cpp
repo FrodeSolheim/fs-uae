@@ -7618,12 +7618,10 @@ static void hsync_handler_pre (bool onvsync)
 	picasso_handle_hsync ();
 #endif
 #ifdef AHI
-#ifdef AHI_V2
 	{
 		void ahi_hsync (void);
 		ahi_hsync ();
 	}
-#endif
 #endif
 	DISK_hsync ();
 	if (currprefs.produce_sound)

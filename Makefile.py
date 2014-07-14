@@ -22,48 +22,6 @@ bindir = @bindir@
 datarootdir = @datarootdir@
 docdir = @docdir@
 
-AM_CFLAGS =
-#AM_CFLAGS += -fno-strict-overflow
-#AM_CFLAGS += -Wstrict-overflow
-
-AM_CFLAGS += -I. -Isrc/od-fs -Isrc/od-fs/include
-AM_CFLAGS += -Isrc/include -Igen -Isrc/jit -Isrc
-AM_CFLAGS += -Ilibfsemu/include -Ilibfsemu/src/lua
-AM_CFLAGS += @FREETYPE_CFLAGS@
-AM_CFLAGS += @GLIB_CFLAGS@
-AM_CFLAGS += @LIBMPEG2_CFLAGS@
-AM_CFLAGS += @LUA_CFLAGS@
-AM_CFLAGS += @MIR_CFLAGS@
-AM_CFLAGS += @OPENAL_CFLAGS@
-AM_CFLAGS += @OPENGL_CFLAGS@
-# AM_CFLAGS += @OS_CFLAGS@
-AM_CFLAGS += @PNG_CFLAGS@
-AM_CFLAGS += @SDL2_CFLAGS@
-# AM_CFLAGS += @X11_CFLAGS@
-AM_CFLAGS += @ZLIB_CFLAGS@
-
-AM_CXXFLAGS := $(AM_CFLAGS)
-AM_CFLAGS += -std=gnu99
-
-AM_CPPFLAGS = -DHAVE_CONFIG_H @OS_CPPFLAGS@ -DFSUAE -DFSEMU
-
-AM_LIBS =
-AM_LIBS += @CARBON_LIBS@
-AM_LIBS += @FREETYPE_LIBS@
-AM_LIBS += @GLIB_LIBS@
-AM_LIBS += @IOKIT_LIBS@
-AM_LIBS += @LIBMPEG2_LIBS@
-# AM_LIBS += @MIR_LIBS@
-AM_LIBS += @OPENAL_LIBS@
-AM_LIBS += @OPENGL_LIBS@
-# AM_LIBS += @OS_LIBS@
-AM_LIBS += @PNG_LIBS@
-AM_LIBS += @SDL2_LIBS@
-AM_LIBS += @X11_LIBS@
-AM_LIBS += @ZLIB_LIBS@
-
-AM_LDFLAGS = @OS_LDFLAGS@
-
 all: fs-uae-device-helper fs-uae fs-uae.dat mo
 
 fs-uae.dat:
@@ -74,6 +32,53 @@ fs-uae-with-dat: fs-uae fs-uae.dat
     cat fs-uae fs-uae.dat > fs-uae-with-dat
     zip -A fs-uae-with-dat
     chmod a+x fs-uae-with-dat
+"""
+
+flags_and_libs = """
+COMMON_FLAGS =
+COMMON_FLAGS += -fno-strict-overflow
+#COMMON_FLAGS += -Wstrict-overflow
+COMMON_FLAGS += -I. -Isrc/od-fs -Isrc/od-fs/include
+COMMON_FLAGS += -Isrc/include -Igen -Isrc/jit -Isrc
+COMMON_FLAGS += -Ilibfsemu/include -Ilibfsemu/src/lua
+COMMON_FLAGS += @FREETYPE_CFLAGS@
+COMMON_FLAGS += @GLIB_CFLAGS@
+COMMON_FLAGS += @LIBMPEG2_CFLAGS@
+COMMON_FLAGS += @LUA_CFLAGS@
+COMMON_FLAGS += @MIR_CFLAGS@
+COMMON_FLAGS += @OPENAL_CFLAGS@
+COMMON_FLAGS += @OPENGL_CFLAGS@
+# COMMON_FLAGS += @OS_CFLAGS@
+COMMON_FLAGS += @PNG_CFLAGS@
+COMMON_FLAGS += @SDL2_CFLAGS@
+# COMMON_FLAGS += @X11_CFLAGS@
+COMMON_FLAGS += @ZLIB_CFLAGS@
+
+AM_CFLAGS = -std=gnu99 $(COMMON_FLAGS)
+AM_CXXFLAGS = $(COMMON_FLAGS)
+AM_CPPFLAGS = -DHAVE_CONFIG_H @OS_CPPFLAGS@ -DFSUAE -DFSEMU
+
+LDADD =
+LIBS += @CARBON_LIBS@
+LIBS += @FREETYPE_LIBS@
+LIBS += @GLIB_LIBS@
+LIBS += @IOKIT_LIBS@
+LIBS += @LIBMPEG2_LIBS@
+# LIBS += @MIR_LIBS@
+LIBS += @OPENAL_LIBS@
+LIBS += @OPENGL_LIBS@
+# LIBS += @OS_LIBS@
+LIBS += @PNG_LIBS@
+LIBS += @SDL2_LIBS@
+LIBS += @X11_LIBS@
+LIBS += @ZLIB_LIBS@
+
+AM_LDFLAGS = @OS_LDFLAGS@
+"""
+
+gen_deps = """
+gen:
+    mkdir -p gen
 
 gen/blit.h: gen/genblitter
     gen/genblitter i > gen/blit.h
@@ -88,7 +93,6 @@ gen/blittable.cpp: gen/genblitter gen/blitfunc.h
     gen/genblitter t > gen/blittable.cpp
 
 gen/compemu.cpp: gen/gencomp
-    @mkdir -p `dirname $@`
     gen/gencomp
 
 gen/compstbl.cpp: gen/compemu.cpp
@@ -97,7 +101,6 @@ gen/comptbl.h: gen/compemu.cpp
 
 gen/cpudefs.cpp: gen/build68k src/table68k
     ./gen/build68k < src/table68k > gen/cpudefs.cpp
-    # python util/fix_tchar.py gen/cpudefs.cpp
 
 gen/cpuemu_0.cpp: gen/gencpu
     cd gen && ./gencpu --optimized-flags
@@ -357,7 +360,6 @@ fs_uae_sources = [
     "src/od-fs/keymap.cpp",
     "src/od-fs/libamiga.cpp",
     "src/od-fs/logging.cpp",
-    "src/od-fs/mman.cpp",
     "src/od-fs/parser.cpp",
     "src/od-fs/paths.cpp",
     "src/od-fs/picasso96.cpp",
@@ -372,6 +374,7 @@ fs_uae_sources = [
     "src/od-fs/util.cpp",
     "src/od-fs/version.cpp",
     "src/od-fs/video.cpp",
+    "src/od-win32/mman.cpp",
     "src/qemuvga/cirrus_vga.cpp",
     "src/qemuvga/lsi53c895a.cpp",
     "src/qemuvga/qemuuaeglue.cpp",
@@ -558,7 +561,7 @@ def program(name, sources):
         ]
         object_list.append(obj_name)
     linker_flags = " $(AM_LDFLAGS) $(LDFLAGS)"
-    linker_flags += " $(AM_LIBS) $(LIBS)"
+    linker_flags += " $(LIBS)"
 
     objects_list_name = name.replace("/", "_").replace("-", "_") + "_objects"
     lists[objects_list_name] = sorted(object_list)
@@ -608,11 +611,95 @@ def main():
     program("gen/gencpu", gencpu_sources)
     program("gen/genlinetoscr", genlinetoscr_sources)
     po_files()
+    if "Makefile.am" in sys.argv:
+        with open("Makefile.am", "w") as f:
+            makefile_am(f)
+    else:
+        makefile_in()
 
+
+def makefile_am(f):
+    f.write("""
+bin_PROGRAMS = \\
+    fs-uae \\
+    fs-uae-device-helper
+
+noinst_PROGRAMS = \\
+    gen/build68k gen/genblitter \\
+    gen/gencomp \\
+    gen/gencpu \\
+    gen/genlinetoscr
+""".replace("    ", "\t"))
+
+    f.write("""
+BUILT_SOURCES = \\
+    gen/blit.h \\
+    gen/blitfunc.cpp \\
+    gen/blitfunc.h \\
+    gen/blittable.cpp \\
+    gen/compemu.cpp \\
+    gen/compstbl.cpp \\
+    gen/comptbl.h \\
+    gen/cpudefs.cpp \\
+    gen/cpuemu_0.cpp \\
+    gen/cpuemu_11.cpp \\
+    gen/cpuemu_13.cpp \\
+    gen/cpuemu_20.cpp \\
+    gen/cpuemu_21.cpp \\
+    gen/cpuemu_22.cpp \\
+    gen/cpuemu_31.cpp \\
+    gen/cpuemu_32.cpp \\
+    gen/cpuemu_33.cpp \\
+    gen/cpustbl.cpp \\
+    gen/cputbl.h \\
+    gen/linetoscr.cpp
+""".replace("    ", "\t"))
+    f.write(gen_deps.replace("    ", "\t"))
+    f.write(flags_and_libs.replace("    ", "\t"))
+
+    f.write("\nfs_uae_SOURCES = ")
+    for source in fs_uae_sources:
+        f.write("\\\n\t{0}".format(source))
+    f.write("\n")
+
+    f.write("\nfs_uae_device_helper_SOURCES = ")
+    for source in fs_uae_device_helper_sources:
+        f.write("\\\n\t{0}".format(source))
+    f.write("\n")
+
+    f.write("\ngen_build68k_SOURCES = ")
+    for source in build68k_sources:
+        f.write("\\\n\t{0}".format(source))
+    f.write("\n")
+
+    f.write("\ngen_genblitter_SOURCES = ")
+    for source in genblitter_sources:
+        f.write("\\\n\t{0}".format(source))
+    f.write("\n")
+
+    f.write("\ngen_gencomp_SOURCES = ")
+    for source in gencomp_sources:
+        f.write("\\\n\t{0}".format(source))
+    f.write("\n")
+
+    f.write("\ngen_gencpu_SOURCES = ")
+    for source in gencpu_sources:
+        f.write("\\\n\t{0}".format(source))
+    f.write("\n")
+
+    f.write("\ngen_genlinetoscr_SOURCES = ")
+    for source in genlinetoscr_sources:
+        f.write("\\\n\t{0}".format(source))
+    f.write("\n")
+
+
+def makefile_in():
     with open("Makefile.in", "w") as f:
         f.write("# Makefile.  Generated from Makefile.in by configure.\n")
         f.write("# Makefile.in.  Generated by Makefile.py.\n")
         f.write(header.replace("    ", "\t"))
+        f.write(gen_deps.replace("    ", "\t"))
+        f.write(flags_and_libs.replace("    ", "\t"))
 
         for list in sorted(lists):
             members = lists[list]

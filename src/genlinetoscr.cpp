@@ -8,6 +8,7 @@
 
 #include "sysconfig.h"
 #include "sysdeps.h"
+
 #include <stdlib.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -484,7 +485,7 @@ static void out_linetoscr (DEPTH_T bpp, HMODE_T hmode, int aga, int spr)
 	outln  (	"");
 }
 
-int main(int argc, char *argv[])
+int main (int argc, char *argv[])
 {
 	DEPTH_T bpp;
 	int aga, spr;

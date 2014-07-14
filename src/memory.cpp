@@ -1621,7 +1621,7 @@ void mapped_free (uae_u8 *p)
 #else
 
 #ifdef FSUAE
-#include <mman_host.h>
+#include <mman_uae.h>
 #else
 #include <sys/ipc.h>
 #include <sys/shm.h>

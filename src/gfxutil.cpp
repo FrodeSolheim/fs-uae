@@ -14,12 +14,10 @@
 #include "xwin.h"
 #include "gfxfilter.h"
 
-#ifdef FSUAE
-#define gamma math_h_gamma
-#endif
 #include <math.h>
-#ifdef FSUAE
-#undef gamma
+
+#ifdef FSUAE // NL
+#define gamma gamma_table
 #endif
 
 double getvsyncrate (double hz, int *mult)

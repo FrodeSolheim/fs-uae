@@ -12,7 +12,9 @@ AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE([subdir-objects])
 
 AC_SUBST([PACKAGE_SERIES], [devel])
-AC_SUBST([UAE_BASE_VERSION], [WinUAE 2.8.0])
+
+AC_DEFINE_UNQUOTED([UAE_BASE_VERSION], ["WinUAE 2.8.2beta5"],
+[Which UAE core this version is based on.])
 
 PACKAGE_MAJOR=`echo ${PACKAGE_VERSION} | sed -e 's,\(\.*\)\..*\..*,\1,g'`
 PACKAGE_MINOR=`echo ${PACKAGE_VERSION} | sed -e 's,.*\.\(.*\)\..*,\1,g'`
@@ -177,7 +179,7 @@ AS_CASE([$target_os],
 	OS_NAME="macosx"
 	OS_CPPFLAGS="-DMACOSX"
 	LOADABLE_MODULE_EXT=".so"
-	OS_LDFLAGS="-headerpad_max_install_names"
+	OS_LDFLAGS="-headerpad_max_install_names -pagezero_size 0x2000"
 ],
 [freebsd*], [
 	OS_NAME="freebsd"
@@ -392,6 +394,28 @@ AS_IF([test "x$enable_jit" != xno], [
         fi
     ]) 
 ], [])
+
+
+# Udis86
+
+AC_ARG_ENABLE(
+    [udis86],
+    [
+        AS_HELP_STRING(
+            [--enable-udis86],
+            [enable support for JIT compilation @<:@default=no@:>@]
+        )
+    ],
+    [],
+    [enable_udis86=no]
+)
+AS_IF(
+    [test "x$enable_udis86" != xno],
+    [
+        AC_CHECK_LIB([udis86], [ud_init])
+    ],
+    []
+)
 
 
 # Netplay feature.

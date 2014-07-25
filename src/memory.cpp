@@ -34,6 +34,7 @@
 #include "gayle.h"
 #include "debug.h"
 #include "gfxboard.h"
+#include "cpuboard.h"
 
 #ifdef FSUAE // NL
 #undef _WIN32
@@ -51,6 +52,8 @@ static bool rom_write_enabled;
 int special_mem;
 #endif
 static int mem_hardreset;
+
+#define FLASHEMU 0
 
 static bool isdirectjit (void)
 {
@@ -191,7 +194,7 @@ static void dummylog (int rw, uaecptr addr, int size, uae_u32 val, int ins)
 }
 
 // 250ms delay
-static void gary_wait(uaecptr addr, int size)
+static void gary_wait(uaecptr addr, int size, bool write)
 {
 	static int cnt = 50;
 
@@ -202,7 +205,7 @@ static void gary_wait(uaecptr addr, int size)
 #endif
 
 	if (cnt > 0) {
-		write_log (_T("Gary timeout: %08x %d\n"), addr, size);
+		write_log (_T("Gary timeout: %08x %d %c PC=%08x\n"), addr, size, write ? 'W' : 'R', M68K_GETPC);
 		cnt--;
 	}
 }
@@ -226,9 +229,13 @@ static bool gary_nonrange(uaecptr addr)
 
 void dummy_put (uaecptr addr, int size, uae_u32 val)
 {
+#if FLASHEMU
+	if (addr >= 0xf00000 && addr < 0xf80000 && size < 2)
+		flash_write(addr, val);
+#endif
 	if (gary_nonrange(addr) || (size > 1 && gary_nonrange(addr + size - 1))) {
 		if (gary_timeout)
-			gary_wait (addr, size);
+			gary_wait (addr, size, true);
 		if (gary_toenb && currprefs.mmu_model)
 			exception2 (addr, true, size, regs.s ? 4 : 0);
 	}
@@ -238,9 +245,17 @@ uae_u32 dummy_get (uaecptr addr, int size, bool inst)
 {
 	uae_u32 v = NONEXISTINGDATA;
 
+#if FLASHEMU
+	if (addr >= 0xf00000 && addr < 0xf80000 && size < 2) {
+		if (addr < 0xf60000)
+			return flash_read(addr);
+		return 8;
+	}
+#endif
+
 	if (gary_nonrange(addr) || (size > 1 && gary_nonrange(addr + size - 1))) {
 		if (gary_timeout)
-			gary_wait (addr, size);
+			gary_wait (addr, size, false);
 		if (gary_toenb && currprefs.mmu_model)
 			exception2 (addr, false, size, (regs.s ? 4 : 0) | (inst ? 0 : 1));
 		return v;
@@ -1050,7 +1065,6 @@ uae_u8 *REGPARAM2 default_xlate (uaecptr a)
 #if defined(ENFORCER)
 			enforcer_disable ();
 #endif
-
 			if (be_cnt < 3) {
 				int i, j;
 				uaecptr a2 = a - 32;
@@ -1409,7 +1423,7 @@ static int patch_shapeshifter (uae_u8 *kickmemory)
 static int patch_residents (uae_u8 *kickmemory, int size)
 {
 	int i, j, patched = 0;
-	const uae_char *residents[] = { "NCR scsi.device", 0 };
+	const uae_char *residents[] = { "NCR scsi.device", NULL };
 	// "scsi.device", "carddisk.device", "card.resource" };
 	uaecptr base = size == ROM_SIZE_512 ? 0xf80000 : 0xfc0000;
 
@@ -2009,6 +2023,7 @@ static void allocate_memory (void)
 	bogo_filepos = 0;
 	a3000lmem_filepos = 0;
 	a3000hmem_filepos = 0;
+	cpuboard_init();
 }
 
 static void fill_ce_banks (void)
@@ -2154,6 +2169,7 @@ void memory_clear (void)
 	if (a3000hmem_bank.baseaddr)
 		memset (a3000hmem_bank.baseaddr, 0, a3000hmem_bank.allocated);
 	expansion_clear ();
+	cpuboard_clear();
 }
 
 void memory_reset (void)
@@ -2185,6 +2201,7 @@ void memory_reset (void)
 	currprefs.cs_ide = changed_prefs.cs_ide;
 	currprefs.cs_fatgaryrev = changed_prefs.cs_fatgaryrev;
 	currprefs.cs_ramseyrev = changed_prefs.cs_ramseyrev;
+	cpuboard_reset(mem_hardreset > 2);
 
 	gayleorfatgary = (currprefs.chipset_mask & CSMASK_AGA) || currprefs.cs_pcmcia || currprefs.cs_ide > 0 || currprefs.cs_mbdmac;
 
@@ -2339,10 +2356,12 @@ void memory_reset (void)
 	if (cardmem_bank.baseaddr)
 		map_banks (&cardmem_bank, cardmem_bank.start >> 16, cardmem_bank.allocated >> 16, 0);
 #endif
-
+	cpuboard_map();
 	map_banks (&kickmem_bank, 0xF8, 8, 0);
-	if (currprefs.maprom)
-		map_banks (&kickram_bank, currprefs.maprom >> 16, extendedkickmem2_bank.allocated ? 32 : (extendedkickmem_bank.allocated ? 16 : 8), 0);
+	if (currprefs.maprom) {
+		if (!cpuboard_maprom())
+			map_banks (&kickram_bank, currprefs.maprom >> 16, extendedkickmem2_bank.allocated ? 32 : (extendedkickmem_bank.allocated ? 16 : 8), 0);
+	}
 	/* map beta Kickstarts at 0x200000/0xC00000/0xF00000 */
 	if (kickmem_bank.baseaddr[0] == 0x11 && kickmem_bank.baseaddr[2] == 0x4e && kickmem_bank.baseaddr[3] == 0xf9 && kickmem_bank.baseaddr[4] == 0x00) {
 		uae_u32 addr = kickmem_bank.baseaddr[5];
@@ -2473,6 +2492,7 @@ void memory_init (void)
 	memset (kickmem_bank.baseaddr, 0, ROM_SIZE_512);
 	_tcscpy (currprefs.romfile, _T("<none>"));
 	currprefs.romextfile[0] = 0;
+	cpuboard_reset(0);
 
 #ifdef ACTION_REPLAY
 	action_replay_unload (0);
@@ -2511,6 +2531,7 @@ void memory_cleanup (void)
 	custmem1_bank.baseaddr = NULL;
 	custmem2_bank.baseaddr = NULL;
 
+	cpuboard_cleanup();
 #ifdef ACTION_REPLAY
 	action_replay_cleanup();
 #endif
@@ -2549,7 +2570,7 @@ static void map_banks2 (addrbank *bank, int start, int size, int realsize, int q
 	unsigned long int hioffs = 0, endhioffs = 0x100;
 	uae_u32 realstart = start;
 
-	if (!quick)
+	if (quick <= 0)
 		old = debug_bankchange (-1);
 	flush_icache (0, 3); /* Sure don't want to keep any old mappings around! */
 #ifdef NATMEM_OFFSET
@@ -2580,7 +2601,7 @@ static void map_banks2 (addrbank *bank, int start, int size, int realsize, int q
 			put_mem_bank (bnr << 16, bank, realstart << 16);
 			real_left--;
 		}
-		if (!quick)
+		if (quick <= 0)
 			debug_bankchange (old);
 		return;
 	}
@@ -2605,7 +2626,7 @@ static void map_banks2 (addrbank *bank, int start, int size, int realsize, int q
 			real_left--;
 		}
 	}
-	if (!quick)
+	if (quick <= 0)
 		debug_bankchange (old);
 	fill_ce_banks ();
 }
@@ -2618,7 +2639,10 @@ void map_banks_quick (addrbank *bank, int start, int size, int realsize)
 {
 	map_banks2 (bank, start, size, realsize, 1);
 }
-
+void map_banks_nojitdirect (addrbank *bank, int start, int size, int realsize)
+{
+	map_banks2 (bank, start, size, realsize, -1);
+}
 
 #ifdef SAVESTATE
 

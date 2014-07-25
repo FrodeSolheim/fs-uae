@@ -127,9 +127,9 @@ void amiga_floppy_set_writable_images(int writable) {
 
 int amiga_init() {
     printf("libamiga (based on emulation core from %s) initialized\n",
-            get_libamiga_base_version());
+            UAE_BASE_VERSION);
     write_log("libamiga (based on emulation core from %s) initialized\n",
-            get_libamiga_base_version());
+            UAE_BASE_VERSION);
 
     // because frame_time_t is sometimes cast to int, we make sure to
     // start from 0 wo it will work for "a while". Should be fixed

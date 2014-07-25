@@ -39,7 +39,6 @@ struct hardfiledata {
     TCHAR vendor_id[8 + 1];
     TCHAR product_id[16 + 1];
     TCHAR product_rev[4 + 1];
-    TCHAR device_name[256];
     /* geometry from possible RDSK block */
     int rdbcylinders;
     int rdbsectors;
@@ -99,13 +98,14 @@ struct hd_hardfiledata {
 #define HD_CONTROLLER_TYPE_SCSI_A3000 7
 #define HD_CONTROLLER_TYPE_SCSI_A4000T 8
 #define HD_CONTROLLER_TYPE_SCSI_CDTV 9
-#define HD_CONTROLLER_TYPE_PCMCIA_SRAM 10
-#define HD_CONTROLLER_TYPE_PCMCIA_IDE 11
+#define HD_CONTROLLER_TYPE_SCSI_CPUBOARD 10
+#define HD_CONTROLLER_TYPE_PCMCIA_SRAM 11
+#define HD_CONTROLLER_TYPE_PCMCIA_IDE 12
 
 #define HD_CONTROLLER_TYPE_IDE_FIRST 1
 #define HD_CONTROLLER_TYPE_IDE_LAST 1
 #define HD_CONTROLLER_TYPE_SCSI_FIRST 2
-#define HD_CONTROLLER_TYPE_SCSI_LAST 9
+#define HD_CONTROLLER_TYPE_SCSI_LAST 10
 
 #define FILESYS_VIRTUAL 0
 #define FILESYS_HARDFILE 1

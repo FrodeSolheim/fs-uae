@@ -274,11 +274,6 @@ void fixup_cpu (struct uae_prefs *p)
 	if (p->cpu_model >= 68040 && p->cachesize && p->cpu_compatible)
 		p->cpu_compatible = false;
 
-	if (p->cpu_model >= 68040 && p->cpu_cycle_exact) {
-		p->cpu_cycle_exact = 0;
-		error_log (_T("68040/060 cycle-exact is not supported."));
-	}
-
 	if ((p->cpu_model < 68030 || p->cachesize) && p->mmu_model) {
 		error_log (_T("MMU emulation requires 68030/040/060 and it is not JIT compatible."));
 		p->mmu_model = 0;
@@ -293,8 +288,10 @@ void fixup_cpu (struct uae_prefs *p)
 		p->fpu_no_unimplemented = p->int_no_unimplemented = false;
 	}
 
-	if (p->cpu_cycle_exact && p->m68k_speed < 0)
+#if 0
+	if (p->cpu_cycle_exact && p->m68k_speed < 0 && currprefs.cpu_model <= 68020)
 		p->m68k_speed = 0;
+#endif
 
 	if (p->immediate_blits && p->blitter_cycle_exact) {
 		error_log (_T("Cycle-exact and immediate blitter can't be enabled simultaneously.\n"));
@@ -306,6 +303,21 @@ void fixup_cpu (struct uae_prefs *p)
 	}
 	if (p->cpu_cycle_exact)
 		p->cpu_compatible = true;
+
+	if (p->cpuboard_type && !p->comptrustbyte) {
+		error_log(_T("JIT direct is not compatible with emulated accelerator boards."));
+		p->comptrustbyte = 1;
+		p->comptrustlong = 1;
+		p->comptrustlong = 1;
+		p->comptrustnaddr = 1;
+	}
+	if (!p->jit_direct_compatible_memory && !p->comptrustbyte) {
+		error_log(_T("JIT direct compatible memory option is disabled, disabling JIT direct."));
+		p->comptrustbyte = 1;
+		p->comptrustlong = 1;
+		p->comptrustlong = 1;
+		p->comptrustnaddr = 1;
+	}
 }
 
 void fixup_prefs (struct uae_prefs *p)
@@ -483,14 +495,6 @@ void fixup_prefs (struct uae_prefs *p)
 		p->cachesize = 0;
 		err = 1;
 	}
-	if (!p->jit_direct_compatible_memory && p->comptrustbyte) {
-		error_log(_T("JIT direct compatible memory option is disabled, disabling JIT direct."));
-		p->comptrustbyte = 0;
-		p->comptrustlong = 0;
-		p->comptrustlong = 0;
-		p->comptrustnaddr = 0;
-		err = 1;
-	}
 	if ((p->z3fastmem_size || p->z3fastmem2_size || p->z3chipmem_size) && (p->address_space_24 || p->cpu_model < 68020)) {
 		error_log (_T("Z3 fast memory can't be used with a 68000/68010 emulation. Turning off Z3 fast memory."));
 		p->z3fastmem_size = 0;
@@ -561,7 +565,7 @@ void fixup_prefs (struct uae_prefs *p)
 		p->genlock = false;
 	}
 	if (p->cs_hacks) {
-		error_log (_T("chipset_hacks is nonzero."));
+		error_log (_T("chipset_hacks is nonzero (0x%04x)."), p->cs_hacks);
 	}
 
 	fixup_prefs_dimensions (p);
@@ -617,10 +621,12 @@ void fixup_prefs (struct uae_prefs *p)
 			error_log (_T("Cycle-exact and JIT can't be active simultaneously."));
 			p->cachesize = 0;
 		}
+#if 0
 		if (p->m68k_speed) {
 			error_log (_T("Adjustable CPU speed is not available in cycle-exact mode."));
 			p->m68k_speed = 0;
 		}
+#endif
 	}
 #endif
 	if (p->maprom && !p->address_space_24)
@@ -990,7 +996,8 @@ void do_leave_program (void)
 	a3000scsi_free ();
 #endif
 #ifdef NCR
-	ncr_free ();
+	ncr710_free();
+	ncr_free();
 #endif
 #ifdef CD32
 	akiko_free ();
@@ -1069,6 +1076,10 @@ void virtualdevice_init (void)
 #endif
 #ifdef WITH_TABLETLIBRARY
 	tabletlib_install ();
+#endif
+#ifdef NCR
+	ncr710_init();
+	ncr_init();
 #endif
 }
 

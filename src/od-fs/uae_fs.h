@@ -20,7 +20,6 @@ extern int g_amiga_paused;
 
 int amiga_handle_input_event (int nr, int state, int max,
         int autofire, bool canstopplayback, bool playbackevent);
-const char *get_libamiga_base_version();
 
 void amiga_configure_port_from_input_event(int input_event);
 

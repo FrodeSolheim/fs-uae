@@ -38,7 +38,7 @@ flags_and_libs = """
 COMMON_FLAGS =
 COMMON_FLAGS += -fno-strict-overflow
 #COMMON_FLAGS += -Wstrict-overflow
-COMMON_FLAGS += -I. -Isrc/od-fs -Isrc/od-fs/include
+COMMON_FLAGS += -I. -Isrc/od-fs -Isrc/od-fs/include -Isrc/od-win32
 COMMON_FLAGS += -Isrc/include -Igen -Isrc/jit -Isrc
 COMMON_FLAGS += -Ilibfsemu/include -Ilibfsemu/src/lua
 COMMON_FLAGS += @FREETYPE_CFLAGS@
@@ -114,6 +114,8 @@ gen/cpuemu_20.cpp: gen/cpuemu_0.cpp
 gen/cpuemu_21.cpp: gen/cpuemu_0.cpp
 
 gen/cpuemu_22.cpp: gen/cpuemu_0.cpp
+
+gen/cpuemu_23.cpp: gen/cpuemu_0.cpp
 
 gen/cpuemu_31.cpp: gen/cpuemu_0.cpp
 
@@ -274,6 +276,7 @@ fs_uae_sources = [
     "src/cfgfile.cpp",
     "src/cia.cpp",
     "src/consolehook.cpp",
+    "src/cpuboard.cpp",
     "src/cpummu30.cpp",
     "src/cpummu.cpp",
     "src/crc32.cpp",
@@ -289,6 +292,7 @@ fs_uae_sources = [
     "src/expansion.cpp",
     "src/fdi2raw.cpp",
     "src/filesys.cpp",
+    "src/flashrom.cpp",
     "src/fpp.cpp",
     "src/fsdb.cpp",
     "src/fs-uae/config.c",
@@ -317,6 +321,7 @@ fs_uae_sources = [
     "gen/cpuemu_20.cpp",
     "gen/cpuemu_21.cpp",
     "gen/cpuemu_22.cpp",
+    "gen/cpuemu_23.cpp",
     "gen/cpuemu_31.cpp",
     "gen/cpuemu_32.cpp",
     "gen/cpuemu_33.cpp",
@@ -366,16 +371,17 @@ fs_uae_sources = [
     "src/od-fs/random.cpp",
     "src/od-fs/roms.cpp",
     "src/od-fs/serial_host.cpp",
+    "src/od-fs/statusline.cpp",
     "src/od-fs/stubs.cpp",
     "src/od-fs/support.cpp",
     "src/od-fs/threading.cpp",
     "src/od-fs/uae_host.cpp",
     "src/od-fs/uaemisc.cpp",
     "src/od-fs/util.cpp",
-    "src/od-fs/version.cpp",
     "src/od-fs/video.cpp",
     "src/od-win32/mman.cpp",
     "src/qemuvga/cirrus_vga.cpp",
+    "src/qemuvga/lsi53c710.cpp",
     "src/qemuvga/lsi53c895a.cpp",
     "src/qemuvga/qemuuaeglue.cpp",
     "src/qemuvga/vga.cpp",
@@ -462,6 +468,7 @@ gen_cpuemu_13_cpp_cflags = cpuemu_flags
 gen_cpuemu_20_cpp_cflags = cpuemu_flags
 gen_cpuemu_21_cpp_cflags = cpuemu_flags
 gen_cpuemu_22_cpp_cflags = cpuemu_flags
+gen_cpuemu_23_cpp_cflags = cpuemu_flags
 gen_cpuemu_31_cpp_cflags = cpuemu_flags
 gen_cpuemu_32_cpp_cflags = cpuemu_flags
 gen_cpuemu_33_cpp_cflags = cpuemu_flags
@@ -570,12 +577,12 @@ def program(name, sources):
         "\t@rm -f {0}".format(name),
         "\t{0} $({1}) {2} -o {3}".format(
             linker, objects_list_name, linker_flags, name),
-        "ifneq (\"$(OBJCOPY)\",\"\")",
-        "\tobjcopy {0} {0}.dbg".format(name),
-        "\tobjcopy --add-gnu-debuglink={0}.dbg {0}".format(name),
-        "\tchmod a-x {0}.dbg".format(name),
-        "\tstrip -S {0}".format(name),
-        "endif",
+        #"ifneq (\"$(OBJCOPY)\",\"\")",
+        #"\tobjcopy {0} {0}.dbg".format(name),
+        #"\tobjcopy --add-gnu-debuglink={0}.dbg {0}".format(name),
+        #"\tchmod a-x {0}.dbg".format(name),
+        #"\tstrip -S {0}".format(name),
+        #"endif",
     ]
 
 
@@ -647,6 +654,7 @@ BUILT_SOURCES = \\
     gen/cpuemu_20.cpp \\
     gen/cpuemu_21.cpp \\
     gen/cpuemu_22.cpp \\
+    gen/cpuemu_23.cpp \\
     gen/cpuemu_31.cpp \\
     gen/cpuemu_32.cpp \\
     gen/cpuemu_33.cpp \\

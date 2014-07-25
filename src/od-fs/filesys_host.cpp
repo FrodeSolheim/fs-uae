@@ -500,6 +500,19 @@ bool my_resolvesoftlink(char *linkfile, int size)
 	return false;
 }
 
+const TCHAR *my_getfilepart(const TCHAR *filename)
+{
+	const TCHAR *p;
+
+	p = _tcsrchr(filename, '\\');
+	if (p)
+		return p + 1;
+	p = _tcsrchr(filename, '/');
+	if (p)
+		return p + 1;
+	return p;
+}
+
 int host_errno_to_dos_errno(int err) {
     static int warned = 0;
 

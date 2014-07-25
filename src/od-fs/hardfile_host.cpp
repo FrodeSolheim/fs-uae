@@ -636,6 +636,7 @@ static int hdf_write_2 (struct hardfiledata *hfd, void *buffer, uae_u64 offset, 
             write_log("wrote %u bytes (wanted %d) at offset %llx\n", outlen,
                     len, offset);
         }
+        const TCHAR *name = hfd->emptyname == NULL ? _T("<unknown>") : hfd->emptyname;
         if (offset == 0) {
             long outlen2;
             uae_u8 *tmp;
@@ -646,7 +647,7 @@ static int hdf_write_2 (struct hardfiledata *hfd, void *buffer, uae_u64 offset, 
                 hdf_seek (hfd, offset);
                 outlen2 = fread (tmp, 1, tmplen, hfd->handle->h);
                 if (memcmp (hfd->cache, tmp, tmplen) != 0 || outlen != len)
-                    gui_message ("Harddrive\n%s\nblock zero write failed!", hfd->device_name);
+                    gui_message (_T("\"%s\"\n\nblock zero write failed!"), name);
                 xfree (tmp);
             }
         }

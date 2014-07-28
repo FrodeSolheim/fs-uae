@@ -32,8 +32,8 @@
 #endif
 #include "execio.h"
 
-extern void uaenet_gotdata (struct s2devstruct *dev, const uae_u8 *data, int len);
-extern int uaenet_getdata (struct s2devstruct *dev, uae_u8 *d, int *len);
+void uaenet_gotdata (struct s2devstruct *dev, const uae_u8 *data, int len);
+int uaenet_getdata (struct s2devstruct *dev, uae_u8 *d, int *len);
 
 #define SANA2NAME _T("uaenet.device")
 
@@ -156,7 +156,7 @@ static uaecptr ROM_netdev_resname = 0,
 	ROM_netdev_resid = 0,
 	ROM_netdev_init = 0;
 
-static TCHAR *getdevname (void)
+static const TCHAR *getdevname (void)
 {
 	return _T("uaenet.device");
 }

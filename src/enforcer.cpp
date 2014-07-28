@@ -405,12 +405,12 @@ static void enforcer_display_hit (const TCHAR *addressmode, uae_u32 pc, uaecptr 
 	}
 
 	if (!native_task_name)
-		native_task_name = _tcsdup(_T("Unknown"));
+		native_task_name = my_strdup(_T("Unknown"));
 	_stprintf (enforcer_buf_ptr, _T("Name: \"%s\"\n\n"), native_task_name);
 	enforcer_buf_ptr += _tcslen (enforcer_buf_ptr);
 
 	console_out (enforcer_buf);
-	write_log ("%s", enforcer_buf);
+	write_log (_T("%s"), enforcer_buf);
 	sleep_millis (5);
 	doflashscreen ();
 

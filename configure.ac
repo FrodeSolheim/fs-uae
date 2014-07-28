@@ -13,7 +13,7 @@ AM_INIT_AUTOMAKE([subdir-objects])
 
 AC_SUBST([PACKAGE_SERIES], [devel])
 
-AC_DEFINE_UNQUOTED([UAE_BASE_VERSION], ["WinUAE 2.8.2beta5"],
+AC_DEFINE_UNQUOTED([UAE_BASE_VERSION], ["WinUAE 2.8.2beta6"],
 [Which UAE core this version is based on.])
 
 PACKAGE_MAJOR=`echo ${PACKAGE_VERSION} | sed -e 's,\(\.*\)\..*\..*,\1,g'`
@@ -501,7 +501,8 @@ AC_TRY_LINK([
 # More feature macros. These are generally always defined, and compiling
 # without them may not work (without further changes to source code).
 
-AC_DEFINE([WITH_SLIRP], [1], [Define to 1 to use SLIRP])
+AC_DEFINE([NCR9X], [1], [Define to 1 to enable 53C9X SCSI])
+AC_DEFINE([WITH_SLIRP], [1], [Define to 1 to enable SLIRP])
 
 
 # Write Makefile

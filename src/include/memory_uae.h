@@ -261,14 +261,14 @@ static uae_u8 *REGPARAM2 name ## _xlate (uaecptr addr) \
 #endif
 
 #define DECLARE_MEMORY_FUNCTIONS(name) \
-static uae_u32 REGPARAM3 name ## _lget (uaecptr) REGPARAM; \
-static uae_u32 REGPARAM3 name ## _wget (uaecptr) REGPARAM; \
-static uae_u32 REGPARAM3 name ## _bget (uaecptr) REGPARAM; \
-static void REGPARAM3 name ## _lput (uaecptr, uae_u32) REGPARAM; \
-static void REGPARAM3 name ## _wput (uaecptr, uae_u32) REGPARAM; \
-static void REGPARAM3 name ## _bput (uaecptr, uae_u32) REGPARAM; \
-static int REGPARAM3 name ## _check (uaecptr addr, uae_u32 size) REGPARAM; \
-static uae_u8 *REGPARAM3 name ## _xlate (uaecptr addr) REGPARAM;
+ static uae_u32 REGPARAM3 name ## _lget (uaecptr) REGPARAM; \
+ static uae_u32 REGPARAM3 name ## _wget (uaecptr) REGPARAM; \
+ static uae_u32 REGPARAM3 name ## _bget (uaecptr) REGPARAM; \
+ static void REGPARAM3 name ## _lput (uaecptr, uae_u32) REGPARAM; \
+ static void REGPARAM3 name ## _wput (uaecptr, uae_u32) REGPARAM; \
+ static void REGPARAM3 name ## _bput (uaecptr, uae_u32) REGPARAM; \
+ static int REGPARAM3 name ## _check (uaecptr addr, uae_u32 size) REGPARAM; \
+ static uae_u8 *REGPARAM3 name ## _xlate (uaecptr addr) REGPARAM;
 
 #define MEMORY_FUNCTIONS(name) \
 MEMORY_LGET(name, 0); \
@@ -302,6 +302,7 @@ extern addrbank clock_bank;
 extern addrbank cia_bank;
 extern addrbank rtarea_bank;
 extern addrbank expamem_bank;
+extern addrbank expamem_null;
 extern addrbank fastmem_bank;
 extern addrbank fastmem_nojit_bank;
 extern addrbank fastmem2_bank;

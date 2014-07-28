@@ -56,6 +56,7 @@
 #include "a2065.h"
 #include "gfxboard.h"
 #include "ncr_scsi.h"
+#include "ncr9x_scsi.h"
 #include "blkdev.h"
 #include "sampler.h"
 #include "clipboard.h"
@@ -4648,6 +4649,9 @@ static void rethink_intreq (void)
 #ifdef NCR
 	ncr_rethink();
 #endif
+#ifdef NCR9X
+	ncr9x_rethink();
+#endif
 	cpuboard_rethink();
 	rethink_gayle ();
 }
@@ -6893,7 +6897,6 @@ static bool framewait (void)
 			}
 
 			frame_shown = true;
-
 		}
 		return status != 0;
 	}
@@ -7001,6 +7004,7 @@ static bool framewait (void)
 			vsynctimeperline = vstb / 3;
 		
 		frame_shown = true;
+
 	}
 	return status != 0;
 }
@@ -8154,6 +8158,9 @@ void custom_reset (bool hardreset, bool keyboardreset)
 #ifdef NCR
 	ncr710_reset();
 	ncr_reset();
+#endif
+#ifdef NCR9X
+	ncr9x_reset();
 #endif
 #ifdef JIT
 	compemu_reset ();

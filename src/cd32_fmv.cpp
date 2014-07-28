@@ -23,13 +23,19 @@
 
 #include "cda_play.h"
 #include "archivers/mp2/kjmp2.h"
+#ifdef FSUAE
+// FIXME: use libmpeg2 from ffmpeg:
+// https://github.com/tonioni/WinUAE/pull/17#issuecomment-50335355
 #ifdef __cplusplus
 extern "C" {
 #endif
+#endif
 #include "mpeg2.h"
 #include "mpeg2convert.h"
+#ifdef FSUAE
 #ifdef __cplusplus
 }
+#endif
 #endif
 
 #define FMV_DEBUG 0

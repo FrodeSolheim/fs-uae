@@ -2351,7 +2351,7 @@ static const struct SCSIBusInfo lsi_scsi_info = {
 
     .transfer_data = lsi_transfer_data,
     .complete = lsi_command_complete,
-    .cancel = lsi710_request_cancelled
+    .cancel = lsi_request_cancelled
 };
 
 static int lsi_scsi_init(PCIDevice *dev)

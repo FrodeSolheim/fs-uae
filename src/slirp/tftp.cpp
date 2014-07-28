@@ -22,8 +22,10 @@
  * THE SOFTWARE.
  */
 
-#include <slirp.h>
+#include "slirp.h"
+#ifdef _WIN32
 #include <io.h>
+#endif
 
 struct tftp_session {
     int in_use;
@@ -37,7 +39,7 @@ struct tftp_session {
 
 static struct tftp_session tftp_sessions[TFTP_SESSIONS_MAX];
 
-static const char *tftp_prefix;
+const char *tftp_prefix;
 
 static void tftp_session_update(struct tftp_session *spt)
 {

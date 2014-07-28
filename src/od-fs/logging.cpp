@@ -7,6 +7,7 @@
 #include <glib.h>
 
 int log_scsi = 0;
+int log_net = 0;
 
 void write_log (const TCHAR *format, ...) {
     va_list args;

@@ -350,10 +350,6 @@ TCHAR *target_expand_environment (const TCHAR *path) {
     return strdup(path);
 }
 
-// sana2.cpp
-volatile int uaenet_int_requested;
-volatile int uaenet_vsync_requested;
-
 #if 0
 #include <signal.h>
 #include "debug.h"

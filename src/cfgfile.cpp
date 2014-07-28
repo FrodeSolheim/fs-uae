@@ -11,6 +11,11 @@
 #include "sysdeps.h"
 
 #include <ctype.h>
+#ifdef _WIN32
+#include <winsock2.h>
+#else
+#include <arpa/inet.h>
+#endif
 
 #include "options.h"
 #include "uae.h"
@@ -2699,7 +2704,7 @@ static int cfgfile_parse_host (struct uae_prefs *p, TCHAR *option, TCHAR *value)
 			else if (!_tcsnicmp (tmpp, _T("t="), 2))
 				_tcsncpy (label, equals, sizeof label / sizeof (TCHAR) - 1);
 			else if (equals) {
-				if (_tcslen (cmd) + _tcslen (tmpp) + 2 < sizeof (cmd) / sizeof(TCHAR)) {
+				if (_tcslen (cmd) + _tcslen (tmpp) + 2 < sizeof (cmd) / sizeof (TCHAR)) {
 					_tcscat (cmd, tmpp);
 					_tcscat (cmd, _T("\n"));
 				}
@@ -2760,7 +2765,7 @@ static int cfgfile_parse_host (struct uae_prefs *p, TCHAR *option, TCHAR *value)
 	}
 
 #ifdef WITH_SLIRP
-	if (cfgfile_string (option, value, _T("slirp_ports"), tmpbuf, sizeof (tmpbuf) / sizeof TCHAR)) {
+	if (cfgfile_string (option, value, _T("slirp_ports"), tmpbuf, sizeof (tmpbuf) / sizeof (TCHAR))) {
 		TCHAR *tmpp2 = tmpbuf;
 		_tcscat (tmpbuf, _T(","));
 		for (;;) {
@@ -2780,7 +2785,7 @@ static int cfgfile_parse_host (struct uae_prefs *p, TCHAR *option, TCHAR *value)
 		}
 		return 1;
 	}
-	if (cfgfile_string (option, value, _T("slirp_redir"), tmpbuf, sizeof (tmpbuf) / sizeof TCHAR)) {
+	if (cfgfile_string (option, value, _T("slirp_redir"), tmpbuf, sizeof (tmpbuf) / sizeof(TCHAR))) {
 		TCHAR *tmpp2 = tmpbuf;
 		_tcscat (tmpbuf, _T(":"));
 		for (i = 0; i < MAX_SLIRP_REDIRS; i++) {

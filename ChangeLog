@@ -12,6 +12,7 @@ Version 2.5.6dev:
   integer overflow behavior.
 * Added speedlink_strike_2_gamepad_12_5_1_0_windows.conf [TCD].
 * Changes to support compilation on OS X 10.9.
+* Added slirp support (not tested yet).
 
 Version 2.5.5dev:
 

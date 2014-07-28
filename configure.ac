@@ -264,6 +264,8 @@ AC_CHECK_MEMBERS([struct stat.st_rdev])
 AC_CHECK_MEMBERS([struct stat.st_mtim.tv_nsec])
 AC_CHECK_MEMBERS([struct stat.st_mtimespec.tv_nsec])
 AC_CHECK_MEMBERS([struct stat.st_mtime_nsec])
+AC_CHECK_MEMBERS([struct in_addr.S_un])
+
 AC_CHECK_TYPES([ptrdiff_t])
 AC_STRUCT_ST_BLOCKS
 AC_TYPE_INT16_T
@@ -494,6 +496,12 @@ AC_TRY_LINK([
 ], [
 	AC_MSG_RESULT(no)
 ])
+
+
+# More feature macros. These are generally always defined, and compiling
+# without them may not work (without further changes to source code).
+
+AC_DEFINE([WITH_SLIRP], [1], [Define to 1 to use SLIRP])
 
 
 # Write Makefile

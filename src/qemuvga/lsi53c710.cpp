@@ -625,7 +625,7 @@ static void lsi_request_free(LSIState *s, lsi_request *p)
     g_free(p);
 }
 
-static void lsi_request_cancelled(SCSIRequest *req)
+void lsi710_request_cancelled(SCSIRequest *req)
 {
     LSIState *s = LSI53C895A(req->bus->qbus.parent);
     lsi_request *p = (lsi_request*)req->hba_private;
@@ -2351,7 +2351,7 @@ static const struct SCSIBusInfo lsi_scsi_info = {
 
     .transfer_data = lsi_transfer_data,
     .complete = lsi_command_complete,
-    .cancel = lsi_request_cancelled
+    .cancel = lsi710_request_cancelled
 };
 
 static int lsi_scsi_init(PCIDevice *dev)

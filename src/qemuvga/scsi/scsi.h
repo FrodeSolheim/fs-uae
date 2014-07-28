@@ -235,6 +235,7 @@ SCSIDevice *scsi_device_find(SCSIBus *bus, int channel, int target, int lun);
 /* scsi-generic.c. */
 extern const SCSIReqOps scsi710_generic_req_ops;
 
+void lsi_request_cancelled(SCSIRequest *req);
 void lsi_command_complete(SCSIRequest *req, uint32_t status, size_t resid);
 void lsi_transfer_data(SCSIRequest *req, uint32_t len);
 

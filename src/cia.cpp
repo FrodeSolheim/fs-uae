@@ -1327,12 +1327,10 @@ static void WriteCIAA (uae_u16 addr, uae_u8 val)
 		val &= 0x7f; /* bit 7 is unused */
 		if ((val & 1) && !(ciaacra & 1))
 			ciaastarta = CIASTARTCYCLESCRA;
-#if 0
-		if ((val & 0x40) != 0 (ciaacra & 0x40)) {
+		if ((val & 0x40) != (ciaacra & 0x40)) {
 			if (m68k_getpc() >= 0xf00000 && m68k_getpc() < 0xf80000)
 				check_keyboard();
 		}
-#endif
 		if ((val & 0x40) == 0 && (ciaacra & 0x40) != 0) {
 			/* todo: check if low to high or high to low only */
 			kblostsynccnt = 0;

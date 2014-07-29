@@ -274,8 +274,6 @@ static void set_video_mode() {
         fs_log("setting (windowed) video mode %d %d\n", w, h);
     }
 
-    // SDL_SetHint(SDL_HINT_VIDEO_MAC_FULLSCREEN_SPACES, "0");
-
 #if 0
     Uint8 data[] = "\0";
     SDL_Cursor *cursor = SDL_CreateCursor(data, data, 8, 1, 0, 0);

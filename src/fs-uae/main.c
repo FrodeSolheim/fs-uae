@@ -958,6 +958,15 @@ int main(int argc, char* argv[]) {
 
     amiga_init();
 
+#if 0
+	// FIXME: disabling fullscreen spaces must be done before
+	// SDL_INIT_VIDEO, but we need to check config to see if this should
+	// be done, and we initialize SDL early to check for config file
+	// (catch 22)...
+	// FIXME: check fullscreen_spaces option
+	SDL_SetHint(SDL_HINT_VIDEO_MAC_FULLSCREEN_SPACES, "0");
+#endif
+
 #ifdef MACOSX
     SDL_Init(SDL_INIT_EVERYTHING);
     SDL_PumpEvents();
@@ -1019,7 +1028,7 @@ int main(int argc, char* argv[]) {
     init_i18n();
 
     if (g_warn_about_missing_config_file) {
-        fs_emu_warning(_("No configuration file was found"));
+		fs_emu_warning(_("No configuration file was found\n"));
     }
 
     fs_log("\n");

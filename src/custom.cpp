@@ -7091,10 +7091,6 @@ void fpscounter_reset (void)
 
 static void fpscounter (bool frameok)
 {
-#ifdef FSUAE
-	// the following code can crash with 0div error when running in benchmark
-    // mode
-#else
 	frame_time_t now, last;
 
 	now = read_processor_time ();
@@ -7111,6 +7107,10 @@ static void fpscounter (bool frameok)
 	frametime += last;
 	timeframes++;
 
+#ifdef FSUAE
+	// the following code can crash with 0div error when running in benchmark
+	// mode
+#else
 	if ((timeframes & 7) == 0) {
 		double idle = 1000 - (idle_mavg.mavg == 0 ? 0.0 : (double)idle_mavg.mavg * 1000.0 / vsynctimebase);
 		int fps = fps_mavg.mavg == 0 ? 0 : syncbase * 10 / fps_mavg.mavg;

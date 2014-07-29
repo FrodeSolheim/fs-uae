@@ -1078,7 +1078,7 @@ uae_u32 get_fpsr (void)
 		if (fp_is_zero(&regs.fp_result))
 			answer |= 1 << 26;
 		if (fp_is_infinity (&regs.fp_result))
- 			answer |= 1 << 25;
+			answer |= 1 << 25;
 	}
 	if (fp_is_neg(&regs.fp_result))
 		answer |= 1 << 27;
@@ -1608,8 +1608,8 @@ static int put_fp_value (fpdata *value, uae_u32 opcode, uae_u16 extra, uaecptr o
 			break;
 		case 3:
 			if (currprefs.mmu_model) {
-				mmufixup[1].reg = reg;
-				mmufixup[1].value = m68k_areg (regs, reg);
+				mmufixup[0].reg = reg;
+				mmufixup[0].value = m68k_areg (regs, reg);
 				fpu_mmu_fixup = true;
 			}
 			ad = m68k_areg (regs, reg);
@@ -1617,8 +1617,8 @@ static int put_fp_value (fpdata *value, uae_u32 opcode, uae_u16 extra, uaecptr o
 			break;
 		case 4:
 			if (currprefs.mmu_model) {
-				mmufixup[1].reg = reg;
-				mmufixup[1].value = m68k_areg (regs, reg);
+				mmufixup[0].reg = reg;
+				mmufixup[0].value = m68k_areg (regs, reg);
 				fpu_mmu_fixup = true;
 			}
 			m68k_areg (regs, reg) -= reg == 7 ? sz2[size] : sz1[size];
@@ -3078,7 +3078,6 @@ void fpuop_arithmetic (uae_u32 opcode, uae_u16 extra)
 	fpuop_arithmetic2 (opcode, extra);
 	if (fpu_mmu_fixup) {
 		mmufixup[0].reg = -1;
-		mmufixup[1].reg = -1;
 	}
 #ifdef WITH_SOFTFLOAT
 	if (currprefs.fpu_softfloat) {

@@ -1343,13 +1343,13 @@ static int drive_insert (drive * drv, struct uae_prefs *p, int dnum, const TCHAR
 	drv->mfmpos = uaerand ();
 	drv->mfmpos |= (uaerand () << 16);
 	drv->mfmpos %= drv->tracklen;
+	drv->prevtracklen = 0;
 	if (!fake) {
 #ifdef FSUAE
 	if (disk_debug_logging) {
 		write_log(_T("drv->mfmpos = %d\n"), drv->mfmpos);
 	}
 #endif
-	drv->prevtracklen = 0;
 #ifdef DRIVESOUND
 		if (isfloppysound (drv))
 			driveclick_insert (drv - floppy, 0);
@@ -1359,7 +1359,7 @@ static int drive_insert (drive * drv, struct uae_prefs *p, int dnum, const TCHAR
 #ifdef FSUAE
 	write_log("drive_insert returning, drv->wrprot=%d\n", drv->wrprot);
 #endif
-    statusline_add_message(_T("DF%d: %s"), drv - floppy, my_getfilepart(fname));
+	statusline_add_message(_T("DF%d: %s"), drv - floppy, my_getfilepart(fname));
 	return 1;
 }
 
@@ -2842,7 +2842,7 @@ static void DISK_check_change (void)
 	if (currprefs.floppy_read_only != changed_prefs.floppy_read_only)
 		currprefs.floppy_read_only = changed_prefs.floppy_read_only;
 	for (int i = 0; i < MAX_FLOPPY_DRIVES; i++) {
- 		drive *drv = floppy + i;
+		drive *drv = floppy + i;
 		if (drv->dskeject) {
 			drive_eject(drv);
 			/* set dskchange_time, disk_insert() will be

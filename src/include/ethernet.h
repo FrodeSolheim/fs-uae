@@ -1,5 +1,5 @@
-#ifndef _UAE_ETHERNET_H_
-#define _UAE_ETHERNET_H_
+#ifndef UAE_ETHERNET_H
+#define UAE_ETHERNET_H
 
 #define UAENET_NONE 0
 #define UAENET_SLIRP 1
@@ -35,4 +35,4 @@ extern void ethernet_trigger (void*);
 extern bool slirp_start (void);
 extern void slirp_end (void);
 
-#endif // _UAE_ETHERNET_H_
+#endif // UAE_ETHERNET_H

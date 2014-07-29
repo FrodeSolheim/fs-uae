@@ -2960,12 +2960,12 @@ static void memory_map_dump_2 (int log)
 			}
 			_tcscat (txt, _T("\n"));
 			if (log)
-				write_log (_T("%s"),txt);
+				write_log (_T("%s"), txt);
 			else
 				console_out (txt);
 			if (tmp[0]) {
 				if (log)
-					write_log (_T("%s"),tmp);
+					write_log (_T("%s"), tmp);
 				else
 					console_out (tmp);
 			}

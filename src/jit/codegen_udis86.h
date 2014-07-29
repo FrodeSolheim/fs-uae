@@ -1,5 +1,5 @@
-#ifndef _UAE_CODEGEN_UDIS86_H_
-#define _UAE_CODEGEN_UDIS86_H_
+#ifndef UAE_CODEGEN_UDIS86_H
+#define UAE_CODEGEN_UDIS86_H
 
 #ifdef HAVE_LIBUDIS86
 
@@ -40,4 +40,4 @@
 
 #endif // HAVE_LIBUDIS68
 
-#endif // _UAE_CODEGEN_UDIS86_H_
+#endif // UAE_CODEGEN_UDIS86_H

@@ -1,5 +1,5 @@
-#ifndef _UAE_OD_FS_WINUAE_COMPAT_H_
-#define _UAE_OD_FS_WINUAE_COMPAT_H_
+#ifndef UAE_OD_FS_WINUAE_COMPAT_H
+#define UAE_OD_FS_WINUAE_COMPAT_H
 
 #ifdef WINDOWS
 
@@ -107,4 +107,4 @@ typedef struct tagRECT {
 
 #define STATIC_INLINE static inline
 
-#endif // _UAE_OD_FS_WINUAE_COMPAT_H_
+#endif // UAE_OD_FS_WINUAE_COMPAT_H

@@ -1787,7 +1787,7 @@ uae_u8 *save_cdtv (int *len, uae_u8 *dstptr)
 	save_u32 (last_play_pos);
 	save_u32 (last_play_end);
 	save_u64 (dma_wait);
-	for (unsigned int i = 0; i < sizeof (cdrom_command_input); i++)
+	for (int i = 0; i < sizeof (cdrom_command_input); i++)
 		save_u8 (cdrom_command_input[i]);
 	save_u8 (cdrom_command_cnt_in);
 	save_u16 (cdtv_sectorsize);
@@ -1838,7 +1838,7 @@ uae_u8 *restore_cdtv (uae_u8 *src)
 	last_play_pos = restore_u32 ();
 	last_play_end = restore_u32 ();
 	dma_wait = restore_u64 ();
-	for (unsigned int i = 0; i < sizeof (cdrom_command_input); i++)
+	for (int i = 0; i < sizeof (cdrom_command_input); i++)
 		cdrom_command_input[i] = restore_u8 ();
 	cdrom_command_cnt_in = restore_u8 ();
 	cdtv_sectorsize = restore_u16 ();

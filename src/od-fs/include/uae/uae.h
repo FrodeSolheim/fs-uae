@@ -218,7 +218,7 @@ void amiga_set_native_library_dirs(const char **library_dirs);
 } // extern "C"
 #endif
 
-#ifndef _UAE_OD_FS_UAE_FS_H_
+#ifndef UAE_OD_FS_UAE_FS_H
 
 // This section must only be included by external code and cannot be used
 // by od-fs code.

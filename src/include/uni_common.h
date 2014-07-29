@@ -6,8 +6,8 @@
 * Copyright 2013-2014 Frode Solheim
 */
 
-#ifndef _UAE_UNI_COMMON_H_
-#define _UAE_UNI_COMMON_H_
+#ifndef UAE_UNI_COMMON_H
+#define UAE_UNI_COMMON_H
 
 #define UNI_VERSION 1
 
@@ -82,4 +82,4 @@ struct uni {
 #endif
 };
 
-#endif // _UAE_UNI_COMMON_H_
+#endif // UAE_UNI_COMMON_H

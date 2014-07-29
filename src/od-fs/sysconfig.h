@@ -1,5 +1,5 @@
-#ifndef _UAE_OD_FS_SYSCONFIG_H_
-#define _UAE_OD_FS_SYSCONFIG_H_
+#ifndef UAE_OD_FS_SYSCONFIG_H
+#define UAE_OD_FS_SYSCONFIG_H
 
 // FIXME: this file was created by configure for PUAE and has been
 // manually altered with reasonable values.
@@ -305,4 +305,4 @@
 #include "defines.h"
 #include "uae_fs.h"
 
-#endif // _UAE_OD_FS_SYSCONFIG_H_
+#endif // UAE_OD_FS_SYSCONFIG_H

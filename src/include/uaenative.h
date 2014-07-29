@@ -6,8 +6,8 @@
 * Copyright 2013-2014 Frode Solheim
 */
 
-#ifndef _UAE_UAENATIVE_H_
-#define _UAE_UAENATIVE_H_
+#ifndef UAE_UAENATIVE_H
+#define UAE_UAENATIVE_H
 
 #ifdef WITH_UAENATIVE
 
@@ -46,4 +46,4 @@ const TCHAR **uaenative_get_library_dirs(void);
 
 #endif // WITH_UAENATIVE
 
-#endif // _UAE_UAENATIVE_H_
+#endif // UAE_UAENATIVE_H

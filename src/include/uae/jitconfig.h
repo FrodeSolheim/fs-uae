@@ -1,5 +1,5 @@
-#ifndef _UAE_JITCONFIG_H_
-#define _UAE_JITCONFIG_H_
+#ifndef UAE_JITCONFIG_H
+#define UAE_JITCONFIG_H
 
 // #define JIT_DEBUG
 
@@ -21,4 +21,4 @@
 #define REGPARAM3
 #endif
 
-#endif // _UAE_JITCONFIG_H_
+#endif // UAE_JITCONFIG_H

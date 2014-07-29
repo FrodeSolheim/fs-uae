@@ -6,8 +6,8 @@
   * Copyright 1997 Bernd Schmidt
   */
 
-#ifndef _UAE_OD_FS_TARGET_H_
-#define _UAE_OD_FS_TARGET_H_
+#ifndef UAE_OD_FS_TARGET_H
+#define UAE_OD_FS_TARGET_H
 
 #define TARGET_NAME "fsuae"
 
@@ -43,4 +43,4 @@ static inline int uae_deterministic_mode() {
 //void uae_line_update(int line, int updated);
 uint8_t *uae_get_render_buffer();
 
-#endif // _UAE_OD_FS_TARGET_H_
+#endif // UAE_OD_FS_TARGET_H

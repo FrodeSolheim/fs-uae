@@ -6,8 +6,8 @@
   * Copyright 2003-2005 Richard Drummond
   */
 
-#ifndef _UAE_OD_FS_SLEEP_H_
-#define _UAE_OD_FS_SLEEP_H_
+#ifndef UAE_OD_FS_SLEEP_H
+#define UAE_OD_FS_SLEEP_H
 
 #ifdef __BEOS__
 # include <be/kernel/OS.h>
@@ -75,4 +75,4 @@
 #endif
 void sleep_test (void);
 
-#endif // _UAE_OD_FS_SLEEP_H_
+#endif // UAE_OD_FS_SLEEP_H

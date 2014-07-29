@@ -1,5 +1,5 @@
-#ifndef _UAE_STATUSLINE_H_
-#define _UAE_STATUSLINE_H_
+#ifndef UAE_STATUSLINE_H
+#define UAE_STATUSLINE_H
 
 #define TD_PADX 4
 #define TD_PADY 2
@@ -43,4 +43,4 @@ extern void statusline_updated(void);
 extern bool has_statusline_updated(void);
 extern const TCHAR *statusline_fetch(void);
 
-#endif // _UAE_STATUSLINE_H_
+#endif // UAE_STATUSLINE_H

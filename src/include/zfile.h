@@ -6,8 +6,8 @@
   * (c) 1996 Samuel Devulder
   */
 
-#ifndef _UAE_ZFILE_H_
-#define _UAE_ZFILE_H_
+#ifndef UAE_ZFILE_H
+#define UAE_ZFILE_H
 
 struct zfile;
 struct zvolume;
@@ -154,4 +154,4 @@ struct mystat
 extern void timeval_to_amiga (struct mytimeval *tv, int* days, int* mins, int* ticks);
 extern void amiga_to_timeval (struct mytimeval *tv, int days, int mins, int ticks);
 
-#endif // _UAE_ZFILE_H_
+#endif // UAE_ZFILE_H

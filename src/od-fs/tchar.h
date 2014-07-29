@@ -1,5 +1,5 @@
-#ifndef _UAE_OD_FS_TCHAR_H_
-#define _UAE_OD_FS_TCHAR_H_
+#ifndef UAE_OD_FS_TCHAR_H
+#define UAE_OD_FS_TCHAR_H
 
 // we include this very early, so later #defines of _w* functions is defined
 // _after_ wchar.h is processed (because _w* string functions are #defined
@@ -12,4 +12,4 @@
 typedef char TCHAR;
 #define _T(x) x
 
-#endif // _UAE_OD_FS_TCHAR_H_
+#endif // UAE_OD_FS_TCHAR_H

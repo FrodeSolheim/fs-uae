@@ -13,6 +13,7 @@ Version 2.5.6dev:
 * Added speedlink_strike_2_gamepad_12_5_1_0_windows.conf [TCD].
 * Changes to support compilation on OS X 10.9.
 * Added slirp support (not tested yet).
+* Enabled A2065 (not tested yet).
 
 Version 2.5.5dev:
 

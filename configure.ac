@@ -501,6 +501,7 @@ AC_TRY_LINK([
 # More feature macros. These are generally always defined, and compiling
 # without them may not work (without further changes to source code).
 
+AC_DEFINE([A2065], [1], [Define to 1 to enable A2065 ethernet card])
 AC_DEFINE([NCR9X], [1], [Define to 1 to enable 53C9X SCSI])
 AC_DEFINE([WITH_SLIRP], [1], [Define to 1 to enable SLIRP])
 

@@ -243,6 +243,7 @@ fs_uae_sources = [
     "libfsemu/src/thread.c",
     "libfsemu/src/time.c",
     "libfsemu/src/unicode.c",
+    "src/a2065.cpp",
     "src/a2091.cpp",
     "src/akiko.cpp",
     "src/amax.cpp",

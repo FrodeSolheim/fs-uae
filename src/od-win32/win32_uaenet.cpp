@@ -27,6 +27,7 @@
 
 #include "sysdeps.h"
 #include "options.h"
+#include "sana2.h"
 
 #include "threaddep/thread.h"
 #include "win32_uaenet.h"
@@ -286,10 +287,6 @@ void uaenet_enumerate_free (void)
 	int i;
 
 	for (i = 0; i < MAX_TOTAL_NET_DEVICES; i++) {
-		xfree (tds[i].name);
-		xfree (tds[i].desc);
-		tds[i].name = NULL;
-		tds[i].desc = NULL;
 		tds[i].active = 0;
 	}
 }

@@ -509,7 +509,10 @@ AC_SUBST([$1], ['$2'])
 
 # AX_DEFINE_SUBST([A2065], [1], [Define to 1 to enable A2065 ethernet card])
 AX_DEFINE_SUBST([NCR9X], [1], [Define to 1 to enable 53C9X SCSI])
-# AX_DEFINE_SUBST([WITH_SLIRP], [1], [Define to 1 to enable SLIRP])
+
+# AC_DEFINE([WITH_SLIRP], [1], [Define to 1 to enable SLIRP])
+AM_CONDITIONAL([WITH_SLIRP], [test x$WITH_SLIRP = xtrue])
+
 # AX_DEFINE_SUBST([WITH_UAENET], [1], [Define to 1 to enable uaenet.device])
 
 

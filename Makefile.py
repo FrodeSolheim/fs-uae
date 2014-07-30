@@ -402,24 +402,24 @@ fs_uae_sources = [
     "src/scsi.cpp",
     "src/scsiemul.cpp",
     "src/scsitape.cpp",
-    "src/slirp/bootp.cpp",
-    "src/slirp/cksum.cpp",
-    "src/slirp/if.cpp",
-    "src/slirp/ip_icmp.cpp",
-    "src/slirp/ip_input.cpp",
-    "src/slirp/ip_output.cpp",
-    "src/slirp/mbuf.cpp",
-    "src/slirp/misc.cpp",
-    "src/slirp/sbuf.cpp",
-    "src/slirp/slirp.cpp",
-    "src/slirp/slirpdebug.cpp",
-    "src/slirp/socket.cpp",
-    "src/slirp/tcp_input.cpp",
-    "src/slirp/tcp_output.cpp",
-    "src/slirp/tcp_subr.cpp",
-    "src/slirp/tcp_timer.cpp",
-    "src/slirp/tftp.cpp",
-    "src/slirp/udp.cpp",
+    #"src/slirp/bootp.cpp",
+    #"src/slirp/cksum.cpp",
+    #"src/slirp/if.cpp",
+    #"src/slirp/ip_icmp.cpp",
+    #"src/slirp/ip_input.cpp",
+    #"src/slirp/ip_output.cpp",
+    #"src/slirp/mbuf.cpp",
+    #"src/slirp/misc.cpp",
+    #"src/slirp/sbuf.cpp",
+    #"src/slirp/slirp.cpp",
+    #"src/slirp/slirpdebug.cpp",
+    #"src/slirp/socket.cpp",
+    #"src/slirp/tcp_input.cpp",
+    #"src/slirp/tcp_output.cpp",
+    #"src/slirp/tcp_subr.cpp",
+    #"src/slirp/tcp_timer.cpp",
+    #"src/slirp/tftp.cpp",
+    #"src/slirp/udp.cpp",
     "src/specialmonitors.cpp",
     "src/statusline.cpp",
     "src/traps.cpp",
@@ -695,37 +695,37 @@ BUILT_SOURCES = \\
 
     f.write("\nfs_uae_SOURCES =")
     for source in fs_uae_sources:
-        f.write(" \\\n\t{0}".format(source))
+        f.write(" \\\n{0}".format(source))
     f.write("\n")
 
     f.write("\nfs_uae_device_helper_SOURCES =")
     for source in fs_uae_device_helper_sources:
-        f.write(" \\\n\t{0}".format(source))
+        f.write(" \\\n{0}".format(source))
     f.write("\n")
 
     f.write("\ngen_build68k_SOURCES =")
     for source in build68k_sources:
-        f.write(" \\\n\t{0}".format(source))
+        f.write(" \\\n{0}".format(source))
     f.write("\n")
 
     f.write("\ngen_genblitter_SOURCES =")
     for source in genblitter_sources:
-        f.write(" \\\n\t{0}".format(source))
+        f.write(" \\\n{0}".format(source))
     f.write("\n")
 
     f.write("\ngen_gencomp_SOURCES =")
     for source in gencomp_sources:
-        f.write(" \\\n\t{0}".format(source))
+        f.write(" \\\n{0}".format(source))
     f.write("\n")
 
     f.write("\ngen_gencpu_SOURCES =")
     for source in gencpu_sources:
-        f.write(" \\\n\t{0}".format(source))
+        f.write(" \\\n{0}".format(source))
     f.write("\n")
 
     f.write("\ngen_genlinetoscr_SOURCES =")
     for source in genlinetoscr_sources:
-        f.write(" \\\n\t{0}".format(source))
+        f.write(" \\\n{0}".format(source))
     f.write("\n")
 
 

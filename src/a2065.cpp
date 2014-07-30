@@ -10,6 +10,8 @@
 #include "sysconfig.h"
 #include "sysdeps.h"
 
+#ifdef A2056
+
 #include "options.h"
 #include "memory_uae.h"
 #include "custom.h"
@@ -969,3 +971,5 @@ addrbank *a2065_init (void)
 	configured = 0;
 	return a2065_config ();
 }
+
+#endif // A2065

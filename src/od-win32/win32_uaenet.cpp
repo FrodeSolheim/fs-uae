@@ -6,6 +6,8 @@
 * Copyright 2007 Toni Wilen
 */
 
+#include "sysconfig.h"
+
 #include "slirp/slirp.h"
 
 #ifdef FSUAE // NL
@@ -436,6 +438,8 @@ void uaenet_close_driver (struct netdriverdata *tc)
 
 #endif // NL
 
+#ifdef WITH_SLIRP
+
 static volatile int slirp_thread_active;
 static uae_thread_id slirp_tid;
 extern uae_sem_t slirp_sem2;
@@ -496,3 +500,5 @@ void slirp_end (void)
 	}
 	slirp_thread_active = 0;
 }
+
+#endif

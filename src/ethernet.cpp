@@ -1,6 +1,9 @@
+#include "sysconfig.h"
 
 #include "slirp/slirp.h"
 #include "slirp/libslirp.h"
+
+#ifdef WITH_SLIRP
 
 #ifdef _WIN32
 #include "win32_uaenet.h"
@@ -239,3 +242,16 @@ int ethernet_getdatalenght (struct netdriverdata *ndd)
 	}
 	return 0;
 }
+
+#else
+
+int slirp_can_output(void)
+{
+        return 0;
+}
+
+void slirp_output (const uint8 *pkt, int pkt_len)
+{
+}
+
+#endif // WITH_SLIRP

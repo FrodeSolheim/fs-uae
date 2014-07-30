@@ -32,6 +32,14 @@
 #endif
 #include "execio.h"
 
+// these variables are referenced by custom.cpp and newcpu.cpp also when
+// WITH_UAENET is not defined
+
+volatile int uaenet_int_requested = 0;
+volatile int uaenet_vsync_requested = 0;
+
+#ifdef WITH_UAENET
+
 void uaenet_gotdata (struct s2devstruct *dev, const uae_u8 *data, int len);
 int uaenet_getdata (struct s2devstruct *dev, uae_u8 *d, int *len);
 
@@ -146,8 +154,6 @@ struct s2packet {
 	int len;
 };
 
-volatile int uaenet_int_requested;
-volatile int uaenet_vsync_requested;
 static int uaenet_int_late;
 
 static uaecptr timerdevname;
@@ -1738,3 +1744,5 @@ void netdev_reset (void)
 		return;
 	dev_reset ();
 }
+
+#endif // WITH_UAENET

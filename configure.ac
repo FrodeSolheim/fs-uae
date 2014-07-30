@@ -315,6 +315,7 @@ AC_CHECK_FUNCS([gethostbyname])
 AC_CHECK_FUNCS([gethostname])
 AC_CHECK_FUNCS([getpagesize])
 AC_CHECK_FUNCS([gmtime_r])
+AC_CHECK_FUNCS([index])
 AC_CHECK_FUNCS([inet_ntoa])
 AC_CHECK_FUNCS([localeconv])
 AC_CHECK_FUNCS([localtime_r])
@@ -501,9 +502,15 @@ AC_TRY_LINK([
 # More feature macros. These are generally always defined, and compiling
 # without them may not work (without further changes to source code).
 
-AC_DEFINE([A2065], [1], [Define to 1 to enable A2065 ethernet card])
-AC_DEFINE([NCR9X], [1], [Define to 1 to enable 53C9X SCSI])
-AC_DEFINE([WITH_SLIRP], [1], [Define to 1 to enable SLIRP])
+AC_DEFUN([AX_DEFINE_SUBST], [
+AC_DEFINE([$1], [$2], [$3])
+AC_SUBST([$1], ['$2'])
+])
+
+# AX_DEFINE_SUBST([A2065], [1], [Define to 1 to enable A2065 ethernet card])
+AX_DEFINE_SUBST([NCR9X], [1], [Define to 1 to enable 53C9X SCSI])
+# AX_DEFINE_SUBST([WITH_SLIRP], [1], [Define to 1 to enable SLIRP])
+# AX_DEFINE_SUBST([WITH_UAENET], [1], [Define to 1 to enable uaenet.device])
 
 
 # Write Makefile

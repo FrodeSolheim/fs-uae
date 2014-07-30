@@ -54,9 +54,9 @@ COMMON_FLAGS += @SDL2_CFLAGS@
 # COMMON_FLAGS += @X11_CFLAGS@
 COMMON_FLAGS += @ZLIB_CFLAGS@
 
-ifeq ($(wall),1)
-    COMMON_FLAGS += -Wall
-endif
+#ifeq ($(wall),1)
+#    COMMON_FLAGS += -Wall
+#endif
 
 AM_CFLAGS = -std=gnu99 $(COMMON_FLAGS)
 AM_CXXFLAGS = $(COMMON_FLAGS)
@@ -693,39 +693,39 @@ BUILT_SOURCES = \\
     f.write(gen_deps.replace("    ", "\t"))
     f.write(flags_and_libs.replace("    ", "\t"))
 
-    f.write("\nfs_uae_SOURCES = ")
+    f.write("\nfs_uae_SOURCES =")
     for source in fs_uae_sources:
-        f.write("\\\n\t{0}".format(source))
+        f.write(" \\\n\t{0}".format(source))
     f.write("\n")
 
-    f.write("\nfs_uae_device_helper_SOURCES = ")
+    f.write("\nfs_uae_device_helper_SOURCES =")
     for source in fs_uae_device_helper_sources:
-        f.write("\\\n\t{0}".format(source))
+        f.write(" \\\n\t{0}".format(source))
     f.write("\n")
 
-    f.write("\ngen_build68k_SOURCES = ")
+    f.write("\ngen_build68k_SOURCES =")
     for source in build68k_sources:
-        f.write("\\\n\t{0}".format(source))
+        f.write(" \\\n\t{0}".format(source))
     f.write("\n")
 
-    f.write("\ngen_genblitter_SOURCES = ")
+    f.write("\ngen_genblitter_SOURCES =")
     for source in genblitter_sources:
-        f.write("\\\n\t{0}".format(source))
+        f.write(" \\\n\t{0}".format(source))
     f.write("\n")
 
-    f.write("\ngen_gencomp_SOURCES = ")
+    f.write("\ngen_gencomp_SOURCES =")
     for source in gencomp_sources:
-        f.write("\\\n\t{0}".format(source))
+        f.write(" \\\n\t{0}".format(source))
     f.write("\n")
 
-    f.write("\ngen_gencpu_SOURCES = ")
+    f.write("\ngen_gencpu_SOURCES =")
     for source in gencpu_sources:
-        f.write("\\\n\t{0}".format(source))
+        f.write(" \\\n\t{0}".format(source))
     f.write("\n")
 
-    f.write("\ngen_genlinetoscr_SOURCES = ")
+    f.write("\ngen_genlinetoscr_SOURCES =")
     for source in genlinetoscr_sources:
-        f.write("\\\n\t{0}".format(source))
+        f.write(" \\\n\t{0}".format(source))
     f.write("\n")
 
 

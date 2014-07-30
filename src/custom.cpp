@@ -7913,8 +7913,6 @@ static void hsync_handler_post (bool onvsync)
 	}
 
 	{
-		extern int volatile uaenet_int_requested;
-		extern int volatile uaenet_vsync_requested;
 		if (uaenet_int_requested || (uaenet_vsync_requested && vpos == 10)) {
 			INTREQ (0x8000 | 0x0008);
 		}

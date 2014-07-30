@@ -1141,7 +1141,6 @@ static int drive_insert (drive * drv, struct uae_prefs *p, int dnum, const TCHAR
 #endif
 #ifdef SCP
 	} else if (strncmp ((char*)buffer, "SCP", 3) == 0) {
-
 #ifdef FSUAE
 		// always saving data to overlay .sdf-files
 		drv->wrprot = false;
@@ -3878,8 +3877,8 @@ void DSKLEN (uae_u16 v, int hpos)
 		if (!done && noselected) {
 			while (dsklength-- > 0) {
 				if (dskdmaen == DSKDMA_WRITE) {
-#ifdef AMAX
 					uae_u16 w = chipmem_wget_indirect (dskpt);
+#ifdef AMAX
 					if (currprefs.amaxromfile[0])
 						amax_diskwrite (w);
 #endif

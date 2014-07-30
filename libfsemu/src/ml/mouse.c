@@ -13,6 +13,7 @@
 
 #include "manymouse/manymouse.h"
 
+static fs_thread *g_manymouse_thread = NULL;
 static int g_first_manymouse_index = 0;
 static volatile int g_manymouse_last_index = -1;
 
@@ -143,8 +144,8 @@ void fs_ml_mouse_init(void) {
     // everything (also enumeration in a worker thread) and wait for
     // enumeration to complete
 
-    fs_thread *t = fs_thread_create(manymouse_thread, NULL);
-    if (t == NULL) {
+    g_manymouse_thread = fs_thread_create(manymouse_thread, NULL);
+    if (g_manymouse_thread == NULL) {
         fs_log("ERROR: could not create ManyMouse thread\n");
         // ManyMouse_Quit();
     }

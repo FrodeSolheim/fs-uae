@@ -288,6 +288,7 @@ int fs_ml_video_mode_get_current(fs_ml_video_mode *mode) {
             state = START;
         }
     }
+    pclose(f);
 
     if (mode_count > 1 && increasing_by_one) {
         // nVIDIA xrandr hack detected

@@ -731,6 +731,8 @@ int fs_emu_netplay_connect() {
 #endif
     }
 
+    freeaddrinfo(result);
+
     if (g_socket == 0) {
         fs_log("ERROR: could not connect to server\n");
         return 0;

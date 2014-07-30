@@ -205,6 +205,7 @@ static void load_atlas_texture(fs_image *atlas_image,
     if (!ok) {
         fs_emu_warning("could not find space for \"%s\"\n", name);
         //printf("%d %d %d %d\n", cx * 8, cy * 8, cw * 8, ch * 8);
+        fs_unref(image);
         return;
     }
     // mark cells as used
@@ -538,6 +539,7 @@ fs_emu_texture *fs_emu_texture_new_from_file(const char *name) {
         path = fs_get_program_data_file(full_name);
         if (path == NULL) {
             fs_emu_warning("Could not find texture %s\n", full_name);
+            free(full_name);
             return NULL;
         }
     }

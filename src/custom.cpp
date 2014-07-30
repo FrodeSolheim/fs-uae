@@ -558,7 +558,10 @@ static void docols (struct color_entry *colentry)
 	int i;
 
 #ifdef AGA
-	if (currprefs.chipset_mask & CSMASK_AGA) {
+	// if (currprefs.chipset_mask & CSMASK_AGA) {
+	// color_reg_get checks aga_mode, so use that here too so
+	// static analyzers don't complain about out-of-bounds accesses
+	if (aga_mode) {
 		for (i = 0; i < 256; i++) {
 			int v = color_reg_get (colentry, i);
 			if (v < 0 || v > 16777215)

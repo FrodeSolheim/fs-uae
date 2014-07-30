@@ -292,6 +292,14 @@ static char *check_save_state(int slot) {
     return title;
 }
 
+static int check_save_state_exists(int slot) {
+    char *state_file = get_state_file(slot, "uss");
+    fs_emu_log("check %s\n", state_file);
+    int result = fs_path_exists(state_file);
+    free(state_file);
+    return result;
+}
+
 static void update_save_state_item(fs_emu_menu_item* item, int slot,
         int save) {
     char *title = check_save_state(slot);
@@ -370,7 +378,7 @@ static int load_states_menu_function(fs_emu_menu_item *unused,
         item = fs_emu_menu_item_new();
         fs_emu_menu_append_item(menu, item);
         fs_emu_menu_item_set_idata(item, i);
-        fs_emu_menu_item_set_enabled(item, check_save_state(i) != NULL);
+        fs_emu_menu_item_set_enabled(item, check_save_state_exists(i));
         fs_emu_menu_item_set_activate_function(item,
                 //save_state_menu_function);
                 load_function);

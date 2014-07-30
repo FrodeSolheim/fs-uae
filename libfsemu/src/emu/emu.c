@@ -46,6 +46,7 @@ int g_fs_emu_throttling = 1;
 int g_fs_emu_full_sync_allowed = 1;
 int g_fs_emu_emulation_thread_running = 0;
 int g_fs_emu_emulation_thread_stopped = 0;
+static fs_thread *g_emulation_thread = NULL;
 
 void fs_emu_disable_throttling() {
     g_fs_emu_throttling = 0;
@@ -445,8 +446,8 @@ int fs_emu_run(fs_emu_main_function function) {
     }
 #endif
 
-    fs_thread *thread = fs_thread_create(emulation_thread_entry, function);
-    if (thread == NULL) {
+    g_emulation_thread = fs_thread_create(emulation_thread_entry, function);
+    if (g_emulation_thread == NULL) {
         fs_emu_log("error starting video thread\n");
         // FIXME: ERROR MESSAGE HERE
         // FIXME: FATAL

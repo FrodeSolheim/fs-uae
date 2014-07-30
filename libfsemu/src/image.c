@@ -62,11 +62,11 @@ fs_image* fs_image_new_from_data(const void *buffer, int size) {
     //int number_of_passes;
     png_bytep * row_pointers;
 
-    fs_image* image = fs_image_new();
-
     if (size < 8) {
         return NULL;
     }
+
+    fs_image* image = fs_image_new();
 
     if (png_sig_cmp((void*) buffer, 0, 8)) {
         fs_log("file %p[%d] is not recognized as a PNG file\n", buffer, size);
@@ -217,11 +217,14 @@ fs_image* fs_image_new_from_file(const char* file) {
     }
     if (fread(header, 1, 8, fp) != 8) {
         fs_log("could not read 8 bytes from PNG file %s\n", file);
+        fs_unref(image);
+        fclose(fp);
         return NULL;
     }
     if (png_sig_cmp(header, 0, 8)) {
         fs_log("file %s is not recognized as a PNG file\n", file);
         fs_unref(image);
+        fclose(fp);
         //return image;
         return NULL;
     }
@@ -233,6 +236,7 @@ fs_image* fs_image_new_from_file(const char* file) {
         fs_log("png_create_read_struct failed\n");
         //return image;
         fs_unref(image);
+        fclose(fp);
         return NULL;
     }
 
@@ -241,6 +245,7 @@ fs_image* fs_image_new_from_file(const char* file) {
         fs_log("png_create_info_struct failed\n");
         //return image;
         fs_unref(image);
+        fclose(fp);
         return NULL;
     }
 
@@ -306,6 +311,7 @@ fs_image* fs_image_new_from_file(const char* file) {
         default:
             fs_log("unsupported number of channels: %d\n", channels);
             fs_unref(image);
+            fclose(fp);
             return NULL;
     }
 

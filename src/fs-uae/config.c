@@ -437,6 +437,7 @@ void fs_uae_configure_amiga_hardware() {
     if (path) {
         if (strcmp(path, "internal") == 0) {
             // do not load external kickstart
+            free(path);
         }
         else {
             path = fs_uae_expand_path_and_free(path);
@@ -684,7 +685,7 @@ static void configure_hard_drive_image (int index, const char *path,
         fclose(f);
     }
 
-    char *type = fs_strdup("hdf");
+    //char *type = fs_strdup("hdf");
     int sectors = 32;
     int surfaces = 1;
     int reserved = 2;
@@ -742,7 +743,7 @@ static void configure_hard_drive_image (int index, const char *path,
     free(hardfile2_value);
     free(hd_controller);
     free(file_system);
-    free(type);
+    //free(type);
 }
 
 void fs_uae_configure_hard_drives() {
@@ -765,6 +766,7 @@ void fs_uae_configure_hard_drives() {
                     path);
             fs_emu_warning(msg);
             free(msg);
+            free(path);
             continue;
         }
         key = fs_strdup_printf("hard_drive_%d_priority", i);
@@ -893,7 +895,7 @@ void fs_uae_configure_floppies() {
     int k = 0;
     while (count < 20) {
         char *config_key = fs_strdup_printf("floppy_image_%d", k);
-        const char *config_value = fs_config_get_string(config_key);
+        const char *config_value = fs_config_get_const_string(config_key);
         if (config_value) {
             char *option = fs_strdup_printf("diskimage%d", count);
             char *path = fs_uae_expand_path(config_value);

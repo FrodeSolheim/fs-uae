@@ -515,6 +515,7 @@ int fs_get_application_exe_path(char *buffer, int size) {
 
     if (strlen(result) > size - 1) {
         buffer[0] = '\0';
+        free(result);
         return 0;
     }
 

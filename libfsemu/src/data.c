@@ -111,6 +111,7 @@ int read_zip_entries (FILE *f) {
         name[name_len] = 0;
         pos += sizeof(central_file_header);
         if (fread(name, name_len, 1, f) != 1) {
+            free(name);
             return 9;
         }
         // printf("%s\n", name);

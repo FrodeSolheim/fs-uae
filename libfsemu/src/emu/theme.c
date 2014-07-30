@@ -95,19 +95,24 @@ int fs_emu_theme_get_resource_data(const char *name, char **data, int *size) {
         FILE *f = fs_fopen(p, "rb");
         free(p);
         if (fseek(f, 0, SEEK_END) != 0) {
+            fclose(f);
             return 1;
         }
         *size = ftell(f);
         if (*size < 1) {
+            fclose(f);
             return 2;
         }
         if (fseek(f, 0, SEEK_SET) != 0) {
+            fclose(f);
             return 1;
         }
         *data = malloc(*size);
         if (fread(*data, *size, 1, f) != 1) {
+            fclose(f);
             return 3;
         }
+        fclose(f);
         return 0;
     }
 

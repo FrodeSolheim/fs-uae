@@ -253,6 +253,7 @@ const char *fs_uae_save_states_dir() {
 
 const char *fs_uae_state_dir_path() {
     static const char *path = NULL;
+    char *free_state_dir_name = NULL;
     if (path == NULL) {
         fs_log("fs_uae_state_dir:\n");
         path = fs_config_get_const_string("state_dir");
@@ -276,7 +277,8 @@ const char *fs_uae_state_dir_path() {
                         break;
                     }
                 }
-                state_dir_name = fs_strdup(n);
+                free_state_dir_name = fs_strdup(n);
+                state_dir_name = free_state_dir_name;
                 free(n);
             }
             if (!state_dir_name || !state_dir_name[0]) {
@@ -285,6 +287,9 @@ const char *fs_uae_state_dir_path() {
             fs_log("save_dir_name not set, using %s\n", state_dir_name);
         }
         path = fs_path_join(base, state_dir_name, NULL);
+    }
+    if (free_state_dir_name) {
+        free(free_state_dir_name);
     }
     return path;
 }

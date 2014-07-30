@@ -481,12 +481,12 @@ static void openal_audio_init() {
         return;
     }
 
-    int frequencies[] = { 48000, 44100 };
+    int frequencies[] = { 48000, 44100, 0 };
     if (fs_config_get_int("audio_frequency") != FS_CONFIG_NONE) {
         frequencies[0] = fs_config_get_int("audio_frequency");
     }
 
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; frequencies[i]; i++) {
         int frequency = frequencies[i];
         fs_log("openal: trying frequency %d\n", frequency);
         ALCint attributes[] = {

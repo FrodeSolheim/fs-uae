@@ -48,7 +48,11 @@ void change_port_device_mode(int data) {
     if (port >= 0 && port < FS_UAE_NUM_INPUT_PORTS) {
         g_fs_uae_input_ports[port].mode = mode;
         g_fs_uae_input_ports[port].new_mode = mode;
-        amiga_set_joystick_port_mode(port, mode);
+        // The fifth port isn't an Amiga port, but rather a fake
+        // port used with custom input mapping only
+        if (port < 4) {
+            amiga_set_joystick_port_mode(port, mode);
+        }
         fs_uae_reconfigure_input_ports_host();
         fs_emu_menu_update_current();
     }

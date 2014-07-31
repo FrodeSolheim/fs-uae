@@ -11,14 +11,8 @@ else
 fi
 echo "Running autoheader"
 autoheader
-# Makefile.am is added just to silence warnings from automake, we only
-# want it to install missing files
-touch Makefile.am
-echo "Running automake --add-missing --copy"
+echo "Running automake"
 automake --add-missing --copy
-rm Makefile.am Makefile.in
 echo "Running autoconf"
 autoconf
-echo "Creating Makefile.in"
-python3 Makefile.py
 echo "Bootstrap done, you can now run ./configure"

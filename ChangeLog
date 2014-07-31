@@ -14,6 +14,7 @@ Version 2.5.6dev:
 * Changes to support compilation on OS X 10.9.
 * Added slirp support (not tested yet, not enabled by default).
 * Enabled A2065 (not tested yet, not enabled by default).
+* FS-UAE now uses automake in addition to autoconf.
 
 Version 2.5.5dev:
 

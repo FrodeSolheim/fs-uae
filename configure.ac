@@ -34,7 +34,9 @@ AC_PROG_LN_S
 AC_PROG_MAKE_SET
 AC_PROG_RANLIB
 AM_PROG_CC_C_O
-AC_CHECK_TOOL(OBJCOPY, objcopy)
+# AC_PATH_TOOL(OBJCOPY, objcopy)
+AC_PATH_PROG([MSGFMT], [msgfmt])
+AC_PATH_PROG([ZIP], [zip])
 
 # Misc system checks.
 
@@ -374,8 +376,7 @@ AS_CASE([$target_os],
 
 # JIT support
 
-AC_ARG_ENABLE([jit], [
-    AS_HELP_STRING([--enable-jit],
+AC_ARG_ENABLE([jit], [AS_HELP_STRING([--enable-jit],
         [enable support for JIT compilation @<:@default=check@:>@])
     ], [], [enable_jit=check])
 
@@ -403,12 +404,10 @@ AS_IF([test "x$enable_jit" != xno], [
 
 AC_ARG_ENABLE(
     [udis86],
-    [
-        AS_HELP_STRING(
+    [AS_HELP_STRING(
             [--enable-udis86],
             [enable support for JIT compilation @<:@default=no@:>@]
-        )
-    ],
+    )],
     [],
     [enable_udis86=no]
 )
@@ -419,55 +418,6 @@ AS_IF(
     ],
     []
 )
-
-
-# Netplay feature.
-
-AC_ARG_ENABLE([netplay], [
-    AS_HELP_STRING([--disable-netplay],
-        [disable netplay support])
-    ], [], [enable_netplay=yes])
-
-AS_IF([test "x$enable_netplay" != xno], [
-    AC_DEFINE([WITH_NETPLAY], [1], [Define to 1 to enable net play])
-], [])
-
-
-# LUA scripting feature.
-
-AC_ARG_ENABLE([lua], [
-    AS_HELP_STRING([--enable-lua],
-        [enable Lua scripting support]
-    )], [], [enable_lua=no])
-
-AS_IF([test "x$enable_lua" != xno], [
-    AC_DEFINE([WITH_LUA], [1], [Define to 1 to enable LUA scripting])
-], [])
-
-
-# Optional uaenative.library support.
-
-AC_ARG_ENABLE([uaenative], [
-    AS_HELP_STRING([--disable-uaenative],
-        [disable UAE native library interface]
-    )], [], [enable_uaenative=yes])
-
-AS_IF([test "x$enable_uaenative" != xno], [
-    AC_DEFINE([WITH_UAENATIVE], [1], [Define to 1 to enable uaenative.library])
-], [])
-
-
-# XML shader feature.
-
-AC_ARG_ENABLE([xml-shader], [
-    AS_HELP_STRING([--disable-xml-shader],
-        [disable XML shader support]
-    )], [], [enable_xml_shader=yes])
-
-AS_IF([test "x$enable_xml_shader" != xno], [
-    AC_DEFINE([WITH_XML_SHADER], [1], [Define to 1 to enable XML shaders])
-], [])
-
 
 # Byte swapping
 
@@ -499,21 +449,56 @@ AC_TRY_LINK([
 ])
 
 
-# More feature macros. These are generally always defined, and compiling
-# without them may not work (without further changes to source code).
+# More feature macros. Many of these are generally always enabled, and
+# compiling without them may not work (without further changes to
+# source code).
 
-AC_DEFUN([AX_DEFINE_SUBST], [
-AC_DEFINE([$1], [$2], [$3])
-AC_SUBST([$1], ['$2'])
+AC_DEFUN([OPT_FEATURE], [
+
+# AS_IF([test "x$5" = "xyes"], [
+#	AC_ARG_ENABLE([$3],
+#	[AS_HELP_STRING([--disable-$3], [$4])],
+#	[enable_$2=no],
+#	[enable_$2=yes])
+# ], [
+#	AC_ARG_ENABLE([$3],
+#	[AS_HELP_STRING([--enable-$3], [$4])],
+#	[enable_$2=yes],
+#	[enable_$2=no])
+# ])
+AC_ARG_ENABLE([$3],
+	[AS_HELP_STRING([--enable-$3], [$4 @<:@default=$5@:>@])],
+	[], [enable_$2=$5])
+AS_IF([test x$enable_$2 = xyes], [
+	AC_DEFINE([$1], [1], [Define to 1 to $4])
+])
+AM_CONDITIONAL([$1], [test x$enable_$2 = xyes])
 ])
 
-# AX_DEFINE_SUBST([A2065], [1], [Define to 1 to enable A2065 ethernet card])
-AX_DEFINE_SUBST([NCR9X], [1], [Define to 1 to enable 53C9X SCSI])
-
-# AC_DEFINE([WITH_SLIRP], [1], [Define to 1 to enable SLIRP])
-AM_CONDITIONAL([WITH_SLIRP], [test x$WITH_SLIRP = xtrue])
-
-# AX_DEFINE_SUBST([WITH_UAENET], [1], [Define to 1 to enable uaenet.device])
+OPT_FEATURE([A2065], [a2065], [a2065],
+	[enable A2065 ethernet card], [no])
+OPT_FEATURE([A2091], [a2091], [a2091],
+	[enable A590/A2091 SCSI], [yes])
+OPT_FEATURE([ACTION_REPLAY], [action_replay], [action-replay],
+	[enable Action Replay 1/2/3 support], [yes])
+OPT_FEATURE([A_DMS], [dms], [dms],
+	[enable DMS archive support], [yes])
+OPT_FEATURE([WITH_LUA], [lua], [lua],
+	[enable LUA scripting], [no])
+OPT_FEATURE([WITH_NETPLAY], [netplay], [netplay],
+	[enable netplay support], [yes])
+OPT_FEATURE([NCR9X], [ncr9x], [ncr9x],
+	[enable 53C9X SCSI], [yes])
+OPT_FEATURE([WITH_SLIRP], [slirp], [slirp],
+	[enable SLIRP (user mode NAT)], [no])
+OPT_FEATURE([WITH_UAENATIVE], [uaenative], [uaenative],
+	[enable uaenative.library], [yes])
+OPT_FEATURE([WITH_UAENET], [uaenet], [uaenet],
+	[enable uaenet.device], [no])
+OPT_FEATURE([WITH_XML_SHADER], [xml_shader], [xml-shader],
+	[enable XML shader support], [yes])
+OPT_FEATURE([A_ZIP], [zip], [zip],
+	[enable ZIP archive support], [yes])
 
 
 # Write Makefile

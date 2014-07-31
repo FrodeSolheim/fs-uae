@@ -64,11 +64,7 @@ extern FILE *g_fs_uae_sync_debug_file;
 
 #define DEBUGGER 1
 
-#define A_DMS
-#define A_ZIP
 //#define A2065
-#define A2091
-#define ACTION_REPLAY
 #define AGA
 #define AHI
 #define ARCADIA

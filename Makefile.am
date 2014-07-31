@@ -506,11 +506,8 @@ noinst_HEADERS = \
 	src/archivers/dms/u_medium.h \
 	src/archivers/dms/u_quick.h \
 	src/archivers/dms/u_rle.h \
-	src/archivers/lha/lha.h \
-	src/archivers/lha/lha_macro.h \
 	src/archivers/mp2/kjmp2.h \
 	src/archivers/wrp/warp.h \
-	src/archivers/xfd/xfdmaster.h \
 	src/archivers/zip/unzip.h \
 	src/fs-uae/fs-uae.h \
 	src/fs-uae/paths.h \
@@ -667,11 +664,6 @@ noinst_HEADERS = \
 	src/od-fs/uae_util.h \
 	src/od-fs/winuae_compat.h \
 	src/od-win32/md-fpp.h \
-	src/prowizard/include/extern.h \
-	src/prowizard/include/globals.h \
-	src/prowizard/include/ptktable.h \
-	src/prowizard/include/tuning.h \
-	src/prowizard/include/vars.h \
 	src/qemuvga/cirrus_vga_rop.h \
 	src/qemuvga/cirrus_vga_rop2.h \
 	src/qemuvga/cirrus_vga_template.h \

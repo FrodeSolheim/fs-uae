@@ -6029,7 +6029,7 @@ uae_u32 get_word_ce020_prefetch (int o)
 		v = regs.prefetch020[0] >> 16;
 		regs.db = regs.prefetch020[1] >> 16;
 	}
-	do_cycles_ce020 (2);
+	do_cycles_ce020_internal (2);
 	return v;
 }
 
@@ -6528,7 +6528,7 @@ uae_u32 get_word_ce030_prefetch (int o)
 	} else {
 		v = regs.prefetch020[0] >> 16;
 	}
-	do_cycles_ce020 (2);
+	do_cycles_ce020_internal (2);
 	return v;
 }
 
@@ -6915,11 +6915,11 @@ void fill_prefetch_030 (void)
 	pc &= ~3;
 	fill_icache030 (pc);
 	if (currprefs.cpu_cycle_exact)
-		do_cycles_ce020 (2);
+		do_cycles_ce020_internal(2);
 	regs.prefetch020[0] = regs.cacheholdingdata020;
 	fill_icache030 (pc + 4);
 	if (currprefs.cpu_cycle_exact)
-		do_cycles_ce020 (2);
+		do_cycles_ce020_internal(2);
 	regs.prefetch020[1] = regs.cacheholdingdata020;
 	regs.irc = get_word_ce030_prefetch (0);
 }
@@ -6931,11 +6931,11 @@ void fill_prefetch_020 (void)
 	pc &= ~3;
 	fill_icache020 (pc, fetch);
 	if (currprefs.cpu_cycle_exact)
-		do_cycles_ce020 (2);
+		do_cycles_ce020_internal(2);
 	regs.prefetch020[0] = regs.cacheholdingdata020;
 	fill_icache020 (pc + 4, fetch);
 	if (currprefs.cpu_cycle_exact)
-		do_cycles_ce020 (2);
+		do_cycles_ce020_internal(2);
 	regs.prefetch020[1] = regs.cacheholdingdata020;
 	if (currprefs.cpu_cycle_exact)
 		regs.irc = get_word_ce020_prefetch (0);

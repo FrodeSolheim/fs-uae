@@ -2421,11 +2421,8 @@ static void memwatch_reset (void)
 	}
 	for (int i = 0; membank_stores[i].addr; i++) {
 		struct membank_store *ms = &membank_stores[i];
-#ifdef FSUAE
-		printf("WARNING: Cannot free ms->newbank.name (const char*)\n");
-#else
-		xfree (ms->newbank.name);
-#endif
+		// name was allocated in memwatch_remap
+		xfree ((char *) ms->newbank.name);
 		memset (ms, 0, sizeof (struct membank_store));
 		ms->addr = NULL;
 	}
@@ -2473,6 +2470,7 @@ static void memwatch_remap (uaecptr addr)
 		newbank->xlateaddr = debug_xlate;
 		newbank->wgeti = mode ? mmu_wgeti : debug_wgeti;
 		newbank->lgeti = mode ? mmu_lgeti : debug_lgeti;
+		// name will be freed by memwatch_reset
 		newbank->name = my_strdup (tmp);
 		if (!newbank->mask)
 			newbank->mask = -1;

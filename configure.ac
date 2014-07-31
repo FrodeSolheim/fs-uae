@@ -13,7 +13,7 @@ AM_INIT_AUTOMAKE([subdir-objects])
 
 AC_SUBST([PACKAGE_SERIES], [devel])
 
-AC_DEFINE_UNQUOTED([UAE_BASE_VERSION], ["WinUAE 2.8.2 beta 7"],
+AC_DEFINE_UNQUOTED([UAE_BASE_VERSION], ["WinUAE 2.8.2 beta 8"],
 [Which UAE core this version is based on.])
 
 PACKAGE_MAJOR=`echo ${PACKAGE_VERSION} | sed -e 's,\(\.*\)\..*\..*,\1,g'`

@@ -2422,7 +2422,7 @@ static void memwatch_reset (void)
 	for (int i = 0; membank_stores[i].addr; i++) {
 		struct membank_store *ms = &membank_stores[i];
 		// name was allocated in memwatch_remap
-		xfree ((char *) ms->newbank.name);
+		xfree ((char*)ms->newbank.name);
 		memset (ms, 0, sizeof (struct membank_store));
 		ms->addr = NULL;
 	}

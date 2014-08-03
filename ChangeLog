@@ -15,6 +15,8 @@ Version 2.5.6dev:
 * Added slirp support (not tested yet, not enabled by default).
 * Enabled A2065 (not tested yet, not enabled by default).
 * FS-UAE now uses automake in addition to autoconf.
+* New requirement: libmpeg2 / libmpeg2convert for CD32 FMV support.
+* Some bugfixes based on static code analysis + code cleanup.
 
 Version 2.5.5dev:
 

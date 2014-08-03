@@ -5,6 +5,10 @@
 #include "config.h"
 #endif
 
+#ifndef __cplusplus
+#include <stdbool.h>
+#endif
+
 /* Define uae_ integer types. Prefer long long int for uae_x64 since we can
  * then use the %lld format specifier for both 32-bit and 64-bit instead of
  * the ugly PRIx64 macros. */

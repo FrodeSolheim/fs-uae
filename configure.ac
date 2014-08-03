@@ -7,10 +7,9 @@ AC_INIT([FS-UAE], [2.5.6dev],
 AC_CONFIG_AUX_DIR([.])
 AC_CANONICAL_SYSTEM
 AC_CONFIG_SRCDIR([src/main.cpp])
-AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS([config.h])
 # AC_CONFIG_MACRO_DIRS([m4])
-AM_INIT_AUTOMAKE([subdir-objects])
+AM_INIT_AUTOMAKE([tar-ustar subdir-objects])
 
 AC_SUBST([PACKAGE_SERIES], [devel])
 

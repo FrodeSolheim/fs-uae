@@ -38,6 +38,7 @@ static bool memlogw = false;
 #include "rommgr.h"
 #include "zfile.h"
 #include "gfxboard.h"
+#include "rommgr.h"
 
 #include "qemuvga/qemuuaeglue.h"
 #include "qemuvga/vga.h"
@@ -76,12 +77,6 @@ static bool memlogw = false;
 #define BOARD_MANUFACTURER_SPECTRUM 2193
 #define BOARD_MODEL_MEMORY_SPECTRUM 1
 #define BOARD_MODEL_REGISTERS_SPECTRUM 2
-
-extern addrbank gfxboard_bank_memory, gfxboard_bank_memory_nojit;
-extern addrbank gfxboard_bank_special;
-extern addrbank gfxboard_bank_wbsmemory;
-extern addrbank gfxboard_bank_lbsmemory;
-extern addrbank gfxboard_bank_nbsmemory;
 
 struct gfxboard
 {
@@ -189,11 +184,10 @@ static bool monswitch;
 static bool oldswitch;
 static int fullrefresh;
 static bool modechanged;
-static uae_u8 *gfxboard_surface, *UNUSED(vram_address), *fakesurface_surface;
+static uae_u8 *gfxboard_surface, *fakesurface_surface;
 static bool gfxboard_vblank;
 static bool gfxboard_intena;
 static bool vram_enabled, vram_offset_enabled;
-static bool UNUSED(vram_byteswap);
 static hwaddr vram_offset[2];
 static uae_u8 cirrus_pci[0x44];
 static uae_u8 p4_pci[0x44];
@@ -202,6 +196,65 @@ static uae_u32 vgaioregionptr, vgavramregionptr, vgabank0regionptr, vgabank1regi
 
 static const MemoryRegionOps *vgaio, *vgaram, *vgalowram, *vgammio;
 static MemoryRegion vgaioregion, vgavramregion;
+
+DECLARE_MEMORY_FUNCTIONS(gfxboard);
+DECLARE_MEMORY_FUNCTIONS_WITH_SUFFIX(gfxboard, mem);
+DECLARE_MEMORY_FUNCTIONS_WITH_SUFFIX(gfxboard, mem_nojit);
+DECLARE_MEMORY_FUNCTIONS_WITH_SUFFIX(gfxboard, bsmem);
+DECLARE_MEMORY_FUNCTIONS_WITH_SUFFIX(gfxboard, wbsmem);
+DECLARE_MEMORY_FUNCTIONS_WITH_SUFFIX(gfxboard, lbsmem);
+DECLARE_MEMORY_FUNCTIONS_WITH_SUFFIX(gfxboard, nbsmem);
+DECLARE_MEMORY_FUNCTIONS_WITH_SUFFIX(gfxboard, regs);
+DECLARE_MEMORY_FUNCTIONS_WITH_SUFFIX(gfxboards, regs);
+
+static addrbank gfxboard_bank_memory = {
+	gfxboard_lget_mem, gfxboard_wget_mem, gfxboard_bget_mem,
+	gfxboard_lput_mem, gfxboard_wput_mem, gfxboard_bput_mem,
+	gfxboard_xlate, gfxboard_check, NULL, NULL,
+	gfxboard_lget_mem, gfxboard_wget_mem, ABFLAG_RAM
+};
+
+static addrbank gfxboard_bank_memory_nojit = {
+	gfxboard_lget_mem_nojit, gfxboard_wget_mem_nojit, gfxboard_bget_mem_nojit,
+	gfxboard_lput_mem_nojit, gfxboard_wput_mem_nojit, gfxboard_bput_mem_nojit,
+	gfxboard_xlate, gfxboard_check, NULL, NULL,
+	gfxboard_lget_mem_nojit, gfxboard_wget_mem_nojit, ABFLAG_RAM
+};
+
+static addrbank gfxboard_bank_wbsmemory = {
+	gfxboard_lget_wbsmem, gfxboard_wget_wbsmem, gfxboard_bget_bsmem,
+	gfxboard_lput_wbsmem, gfxboard_wput_wbsmem, gfxboard_bput_bsmem,
+	gfxboard_xlate, gfxboard_check, NULL, NULL,
+	gfxboard_lget_wbsmem, gfxboard_wget_wbsmem, ABFLAG_RAM
+};
+
+static addrbank gfxboard_bank_lbsmemory = {
+	gfxboard_lget_lbsmem, gfxboard_wget_lbsmem, gfxboard_bget_bsmem,
+	gfxboard_lput_lbsmem, gfxboard_wput_lbsmem, gfxboard_bput_bsmem,
+	gfxboard_xlate, gfxboard_check, NULL, NULL,
+	gfxboard_lget_lbsmem, gfxboard_wget_lbsmem, ABFLAG_RAM
+};
+
+static addrbank gfxboard_bank_nbsmemory = {
+	gfxboard_lget_nbsmem, gfxboard_wget_nbsmem, gfxboard_bget_bsmem,
+	gfxboard_lput_nbsmem, gfxboard_wput_nbsmem, gfxboard_bput_bsmem,
+	gfxboard_xlate, gfxboard_check, NULL, _T("Picasso IV banked VRAM"),
+	gfxboard_lget_nbsmem, gfxboard_wget_nbsmem, ABFLAG_RAM
+};
+
+static addrbank gfxboard_bank_registers = {
+	gfxboard_lget_regs, gfxboard_wget_regs, gfxboard_bget_regs,
+	gfxboard_lput_regs, gfxboard_wput_regs, gfxboard_bput_regs,
+	default_xlate, default_check, NULL, NULL,
+	dummy_lgeti, dummy_wgeti, ABFLAG_IO | ABFLAG_SAFE
+};
+
+static addrbank gfxboard_bank_special = {
+	gfxboards_lget_regs, gfxboards_wget_regs, gfxboards_bget_regs,
+	gfxboards_lput_regs, gfxboards_wput_regs, gfxboards_bput_regs,
+	default_xlate, default_check, NULL, _T("Picasso IV MISC"),
+	dummy_lgeti, dummy_wgeti, ABFLAG_IO | ABFLAG_SAFE
+};
 
 static void init_board (void)
 {
@@ -299,11 +352,13 @@ void qemu_console_resize(QemuConsole *con, int width, int height)
 {
 }
 
-static uae_u8 UNUSED_FUNCTION(pal64) (uae_u8 v)
+#if 0
+static uae_u8 pal64 (uae_u8 v)
 {
 	v = (v << 2) | ((v >> 2) & 3);
 	return v;
 }
+#endif
 
 DisplaySurface* qemu_create_displaysurface_from(int width, int height, int bpp,
                                                 int linesize, uint8_t *data,
@@ -1537,46 +1592,6 @@ void gfxboard_reset (void)
 	}
 }
 
-addrbank gfxboard_bank_memory = {
-	gfxboard_lget_mem, gfxboard_wget_mem, gfxboard_bget_mem,
-	gfxboard_lput_mem, gfxboard_wput_mem, gfxboard_bput_mem,
-	gfxboard_xlate, gfxboard_check, NULL, NULL,
-	gfxboard_lget_mem, gfxboard_wget_mem, ABFLAG_RAM
-};
-addrbank gfxboard_bank_memory_nojit = {
-	gfxboard_lget_mem_nojit, gfxboard_wget_mem_nojit, gfxboard_bget_mem_nojit,
-	gfxboard_lput_mem_nojit, gfxboard_wput_mem_nojit, gfxboard_bput_mem_nojit,
-	gfxboard_xlate, gfxboard_check, NULL, NULL,
-	gfxboard_lget_mem_nojit, gfxboard_wget_mem_nojit, ABFLAG_RAM
-};
-
-addrbank gfxboard_bank_wbsmemory = {
-	gfxboard_lget_wbsmem, gfxboard_wget_wbsmem, gfxboard_bget_bsmem,
-	gfxboard_lput_wbsmem, gfxboard_wput_wbsmem, gfxboard_bput_bsmem,
-	gfxboard_xlate, gfxboard_check, NULL, NULL,
-	gfxboard_lget_wbsmem, gfxboard_wget_wbsmem, ABFLAG_RAM
-};
-addrbank gfxboard_bank_lbsmemory = {
-	gfxboard_lget_lbsmem, gfxboard_wget_lbsmem, gfxboard_bget_bsmem,
-	gfxboard_lput_lbsmem, gfxboard_wput_lbsmem, gfxboard_bput_bsmem,
-	gfxboard_xlate, gfxboard_check, NULL, NULL,
-	gfxboard_lget_lbsmem, gfxboard_wget_lbsmem, ABFLAG_RAM
-};
-addrbank gfxboard_bank_nbsmemory = {
-	gfxboard_lget_nbsmem, gfxboard_wget_nbsmem, gfxboard_bget_bsmem,
-	gfxboard_lput_nbsmem, gfxboard_wput_nbsmem, gfxboard_bput_bsmem,
-	gfxboard_xlate, gfxboard_check, NULL, _T("Picasso IV banked VRAM"),
-	gfxboard_lget_nbsmem, gfxboard_wget_nbsmem, ABFLAG_RAM
-};
-addrbank gfxboard_bank_registers = {
-	gfxboard_lget_regs, gfxboard_wget_regs, gfxboard_bget_regs,
-	gfxboard_lput_regs, gfxboard_wput_regs, gfxboard_bput_regs,
-	default_xlate, default_check, NULL, NULL,
-	dummy_lgeti, dummy_wgeti, ABFLAG_IO | ABFLAG_SAFE
-};
-
-
-
 static uae_u32 REGPARAM2 gfxboards_lget_regs (uaecptr addr)
 {
 	uae_u32 v = 0;
@@ -1917,12 +1932,7 @@ static void REGPARAM2 gfxboards_bput_regs (uaecptr addr, uae_u32 v)
 		picassoiv_bank = b;
 	}
 }
-addrbank gfxboard_bank_special = {
-	gfxboards_lget_regs, gfxboards_wget_regs, gfxboards_bget_regs,
-	gfxboards_lput_regs, gfxboards_wput_regs, gfxboards_bput_regs,
-	default_xlate, default_check, NULL, _T("Picasso IV MISC"),
-	dummy_lgeti, dummy_wgeti, ABFLAG_IO | ABFLAG_SAFE
-};
+
 bool gfxboard_is_z3 (int type)
 {
 	if (type == GFXBOARD_UAE_Z2)

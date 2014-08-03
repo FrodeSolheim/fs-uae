@@ -1,3 +1,10 @@
+#ifndef UAE_CPUBOARD_H
+#define UAE_CPUBOARD_H
+
+#ifdef FSUAE // NL
+#include "uae/types.h"
+#include "uae/memory.h"
+#endif
 
 extern addrbank *cpuboard_autoconfig_init(void);
 extern bool cpuboard_maprom(void);
@@ -27,4 +34,4 @@ extern uae_u8 *REGPARAM3 cyberstorm_scsi_ram_xlate(uaecptr addr) REGPARAM;
 #define BOARD_BLIZZARDPPC 10
 #define BOARD_WARPENGINE_A4000 11
 
-
+#endif // UAE_CPUBOARD_H

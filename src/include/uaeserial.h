@@ -6,6 +6,13 @@
   * (c) 2006 Toni Wilen
   */
 
+#ifndef UAE_UAESERIAL_H
+#define UAE_UAESERIAL_H
+
+#ifdef FSUAE // NL
+#include "uae/types.h"
+#endif
+
 uaecptr uaeserialdev_startup (uaecptr resaddr);
 void uaeserialdev_install (void);
 void uaeserialdev_reset (void);
@@ -20,3 +27,5 @@ struct uaeserialdata
     void *writeevent;
 #endif
 };
+
+#endif // UAE_UAESERIAL_H

@@ -9,6 +9,12 @@
 #ifndef UAE_ZFILE_H
 #define UAE_ZFILE_H
 
+#ifdef FSUAE // NL
+#include "uae/types.h"
+#include "zfile.h"
+#include <stddef.h>
+#endif
+
 struct zfile;
 struct zvolume;
 struct zdirectory;

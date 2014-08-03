@@ -1,8 +1,10 @@
-#ifndef __FDI2RAW_H
-#define __FDI2RAW_H
+#ifndef UAE_FDI2RAW_H
+#define UAE_FDI2RAW_H
 
-//#include "types.h"
-#include <stdio.h>
+#ifdef FSUAE // NL
+#include "uae/types.h"
+#endif
+
 typedef struct fdi FDI;
 
 #ifdef __cplusplus
@@ -25,4 +27,4 @@ extern int fdi2raw_get_write_protect (FDI *);
 }
 #endif
 
-#endif
+#endif // UAE_FDI2RAW_H

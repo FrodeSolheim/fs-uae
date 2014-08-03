@@ -1,3 +1,10 @@
+#ifndef UAE_NCR_SCSI_H
+#define UAE_NCR_SCSI_H
+
+#ifdef FSUAE // NL
+#include "uae/types.h"
+#include "uae/memory.h"
+#endif
 
 void ncr710_io_bput_a4000t(uaecptr, uae_u32);
 uae_u32 ncr710_io_bget_a4000t(uaecptr);
@@ -21,3 +28,5 @@ extern int warpengine_add_scsi_unit(int ch, struct uaedev_config_info *ci);
 extern int cyberstorm_add_scsi_unit(int ch, struct uaedev_config_info *ci);
 extern int blizzardppc_add_scsi_unit(int ch, struct uaedev_config_info *ci);
 extern int a4091_add_scsi_unit(int ch, struct uaedev_config_info *ci, int devnum);
+
+#endif // UAE_NCR_SCSI_H

@@ -6,6 +6,12 @@
   * Copyright 2004 James Bagg, Toni Wilen
   */
 
+#ifndef UAE_DRIVECLICK_H
+#define UAE_DRIVECLICK_H
+
+#ifdef FSUAE // NL
+#include "uae/types.h"
+#endif
 
 #define CLICK_TRACKS 84
 
@@ -49,3 +55,5 @@ extern void driveclick_fdrawcmd_seek (int, int);
 extern void driveclick_fdrawcmd_motor (int, int);
 extern void driveclick_fdrawcmd_vsync (void);
 extern int driveclick_pcdrivemask, driveclick_pcdrivenum;
+
+#endif // UAE_DRIVECLICK_H

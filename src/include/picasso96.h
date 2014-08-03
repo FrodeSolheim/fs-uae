@@ -1,3 +1,10 @@
+#ifndef UAE_PICASSO96_H
+#define UAE_PICASSO96_H
+
+#ifdef FSUAE // NL
+#include "uae/types.h"
+#endif
+
 #ifdef FSUAE
 
 #include "picasso96_host.h"
@@ -591,3 +598,5 @@ extern int p96refresh_active;
 
 #endif
 #endif
+
+#endif // UAE_PICASSO96_H

@@ -1,6 +1,10 @@
+#ifndef UAE_BLKDEV_H
+#define UAE_BLKDEV_H
 
-#ifndef BLKDEV_H
-#define BLKDEV_H
+#ifdef FSUAE // NL
+#include "uae/types.h"
+#include "uae/limits.h"
+#endif
 
 #define DEVICE_SCSI_BUFSIZE (65536 - 1024)
 
@@ -220,4 +224,4 @@ extern struct device_functions devicefunc_scsi_ioctl;
 extern struct device_functions devicefunc_scsi_spti;
 extern struct device_functions devicefunc_cdimage;
 
-#endif /* BLKDEV_H */
+#endif // UAE_BLKDEV_H

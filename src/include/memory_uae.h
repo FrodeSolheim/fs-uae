@@ -6,8 +6,15 @@
 * Copyright 1995 Bernd Schmidt
 */
 
-#ifndef MEMORY_H
-#define MEMORY_H
+#ifndef UAE_MEMORY_H
+#define UAE_MEMORY_H
+
+#ifdef FSUAE // NL
+#include "config.h"
+#include "uae/types.h"
+#include "uae/regparam.h"
+#include <stddef.h>
+#endif
 
 extern void memory_reset (void);
 extern void a1000_reset (void);
@@ -261,16 +268,28 @@ static uae_u8 *REGPARAM2 name ## _xlate (uaecptr addr) \
 #endif
 
 #define DECLARE_MEMORY_FUNCTIONS(name) \
- static uae_u32 REGPARAM3 name ## _lget (uaecptr) REGPARAM; \
- static uae_u32 REGPARAM3 name ## _lgeti (uaecptr) REGPARAM; \
- static uae_u32 REGPARAM3 name ## _wget (uaecptr) REGPARAM; \
- static uae_u32 REGPARAM3 name ## _wgeti (uaecptr) REGPARAM; \
- static uae_u32 REGPARAM3 name ## _bget (uaecptr) REGPARAM; \
- static void REGPARAM3 name ## _lput (uaecptr, uae_u32) REGPARAM; \
- static void REGPARAM3 name ## _wput (uaecptr, uae_u32) REGPARAM; \
- static void REGPARAM3 name ## _bput (uaecptr, uae_u32) REGPARAM; \
- static int REGPARAM3 name ## _check (uaecptr addr, uae_u32 size) REGPARAM; \
- static uae_u8 *REGPARAM3 name ## _xlate (uaecptr addr) REGPARAM;
+static uae_u32 REGPARAM3 NOWARN_UNUSED(name ## _lget) (uaecptr) REGPARAM; \
+static uae_u32 REGPARAM3 NOWARN_UNUSED(name ## _lgeti) (uaecptr) REGPARAM; \
+static uae_u32 REGPARAM3 NOWARN_UNUSED(name ## _wget) (uaecptr) REGPARAM; \
+static uae_u32 REGPARAM3 NOWARN_UNUSED(name ## _wgeti) (uaecptr) REGPARAM; \
+static uae_u32 REGPARAM3 NOWARN_UNUSED(name ## _bget) (uaecptr) REGPARAM; \
+static void REGPARAM3 NOWARN_UNUSED(name ## _lput) (uaecptr, uae_u32) REGPARAM; \
+static void REGPARAM3 NOWARN_UNUSED(name ## _wput) (uaecptr, uae_u32) REGPARAM; \
+static void REGPARAM3 NOWARN_UNUSED(name ## _bput) (uaecptr, uae_u32) REGPARAM; \
+static int REGPARAM3 NOWARN_UNUSED(name ## _check) (uaecptr addr, uae_u32 size) REGPARAM; \
+static uae_u8 *REGPARAM3 NOWARN_UNUSED(name ## _xlate) (uaecptr addr) REGPARAM;
+
+#define DECLARE_MEMORY_FUNCTIONS_WITH_SUFFIX(name, suffix) \
+static uae_u32 REGPARAM3 NOWARN_UNUSED(name ## _lget_ ## suffix) (uaecptr) REGPARAM; \
+static uae_u32 REGPARAM3 NOWARN_UNUSED(name ## _lgeti_ ## suffix) (uaecptr) REGPARAM; \
+static uae_u32 REGPARAM3 NOWARN_UNUSED(name ## _wget_ ## suffix) (uaecptr) REGPARAM; \
+static uae_u32 REGPARAM3 NOWARN_UNUSED(name ## _wgeti_ ## suffix) (uaecptr) REGPARAM; \
+static uae_u32 REGPARAM3 NOWARN_UNUSED(name ## _bget_ ## suffix) (uaecptr) REGPARAM; \
+static void REGPARAM3 NOWARN_UNUSED(name ## _lput_ ## suffix) (uaecptr, uae_u32) REGPARAM; \
+static void REGPARAM3 NOWARN_UNUSED(name ## _wput_ ## suffix) (uaecptr, uae_u32) REGPARAM; \
+static void REGPARAM3 NOWARN_UNUSED(name ## _bput_ ## suffix) (uaecptr, uae_u32) REGPARAM; \
+static int REGPARAM3 NOWARN_UNUSED(name ## _check_ ## suffix) (uaecptr addr, uae_u32 size) REGPARAM; \
+static uae_u8 *REGPARAM3 NOWARN_UNUSED(name ## _xlate_ ## suffix) (uaecptr addr) REGPARAM;
 
 #define MEMORY_FUNCTIONS(name) \
 MEMORY_LGET(name, 0); \
@@ -553,10 +572,10 @@ extern void memcpyah_safe (uae_u8 *dst, uaecptr src, int size);
 extern void memcpyah (uae_u8 *dst, uaecptr src, int size);
 
 extern uae_s32 getz2size (struct uae_prefs *p);
-extern ULONG getz2endaddr (void);
+uae_u32 getz2endaddr (void);
 
 #ifdef FSUAE // NL
 int uae_get_memory_checksum();
 #endif
 
-#endif /* MEMORY_H */
+#endif // UAE_MEMORY_H

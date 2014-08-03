@@ -6,6 +6,18 @@
 * Copyright 1995 Bernd Schmidt
 */
 
+#ifndef UAE_NEWCPU_H
+#define UAE_NEWCPU_H
+
+#ifdef FSUAE // NL
+#include "config.h"
+#include "uae/types.h"
+#include "uae/inline.h"
+#include "uae/regparam.h"
+#include "uae/memory.h"
+#include "uae/asm.h"
+#endif
+
 #include "readcpu.h"
 #include "machdep/m68k.h"
 #include "events.h"
@@ -595,3 +607,5 @@ extern struct cpum2c m2cregs[];
 extern bool is_cpu_tracer (void);
 extern bool set_cpu_tracer (bool force);
 extern bool can_cpu_tracer (void);
+
+#endif // UAE_NEWCPU_H

@@ -24,8 +24,14 @@
  */
 
 
-#ifndef CPUMMU_H
-#define CPUMMU_H
+#ifndef UAE_CPUMMU_H
+#define UAE_CPUMMU_H
+
+#ifdef FSUAE // NL
+#include "uae/types.h"
+#include "uae/inline.h"
+#include "newcpu.h"
+#endif
 
 #include "mmu_common.h"
 
@@ -920,4 +926,4 @@ extern void m68k_do_rts_mmu060 (void);
 extern void m68k_do_rte_mmu060 (uaecptr a7);
 extern void m68k_do_bsr_mmu060 (uaecptr oldpc, uae_s32 offset);
 
-#endif /* CPUMMU_H */
+#endif // UAE_CPUMMU_H

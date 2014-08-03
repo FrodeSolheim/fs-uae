@@ -6,6 +6,14 @@
   * (c) 1996 Ed Hanway
   */
 
+#ifndef UAE_AUTOCONF_H
+#define UAE_AUTOCONF_H
+
+#ifdef FSUAE // NL
+#include "uae/types.h"
+#include "uae/limits.h"
+#endif
+
 #define RTAREA_DEFAULT 0xf00000
 #define RTAREA_BACKUP  0xef0000
 #define RTAREA_BACKUP_2 0xdb0000
@@ -104,3 +112,5 @@ extern uaecptr expansion_startaddress(uaecptr addr, uae_u32 size);
 extern void uaegfx_install_code (uaecptr);
 
 extern uae_u32 emulib_target_getcpurate (uae_u32, uae_u32*);
+
+#endif // UAE_AUTOCONF_H

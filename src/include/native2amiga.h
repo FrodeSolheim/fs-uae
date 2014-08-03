@@ -10,6 +10,14 @@
   * and some of it needs thread support.
   */
 
+#ifndef UAE_NATIVE2AMIGA_H
+#define UAE_NATIVE2AMIGA_H
+
+#ifdef FSUAE
+#include "uae/types.h"
+#include "uae/inline.h"
+#include "autoconf.h"
+#endif
 #include "native2amiga_api.h"
 
 #include "traps.h"
@@ -52,3 +60,5 @@ STATIC_INLINE void do_uae_int_requested (void)
     uae_int_requested |= 1;
     set_uae_int_flag ();
 }
+
+#endif // UAE_NATIVE2AMIGA_H

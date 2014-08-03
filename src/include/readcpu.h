@@ -1,5 +1,10 @@
-#ifndef READCPU_H
-#define READCPU_H
+#ifndef UAE_READCPU_H
+#define UAE_READCPU_H
+
+#ifdef FSUAE // NL
+#include "uae/types.h"
+#include "uae/enum.h"
+#endif
 
 ENUMDECL {
   Dreg, Areg, Aind, Aipi, Apdi, Ad16, Ad8r,
@@ -114,4 +119,4 @@ extern void do_merges (void);
 extern int get_no_mismatches (void);
 extern int nr_cpuop_funcs;
 
-#endif /* READCPU_H */
+#endif // UAE_READCPU_H

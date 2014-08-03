@@ -10,7 +10,7 @@
 #include "sysconfig.h"
 #include "sysdeps.h"
 
-#ifdef A2056
+#ifdef A2065
 
 #include "options.h"
 #include "memory_uae.h"
@@ -112,6 +112,15 @@ static uae_u8 broadcast[6] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 #define RX_BUFF 0x0400
 #define RX_STP 0x0200
 #define RX_ENP 0x0100
+
+DECLARE_MEMORY_FUNCTIONS(a2065);
+
+static addrbank a2065_bank = {
+	a2065_lget, a2065_wget, a2065_bget,
+	a2065_lput, a2065_wput, a2065_bput,
+	default_xlate, default_check, NULL, _T("A2065 Z2 Ethernet"),
+	a2065_lgeti, a2065_wgeti, ABFLAG_IO
+};
 
 static uae_u16 gword2 (uae_u8 *p)
 {
@@ -829,15 +838,6 @@ static void REGPARAM2 a2065_lput (uaecptr addr, uae_u32 l)
 	a2065_wput (addr, l >> 16);
 	a2065_wput (addr + 2, l);
 }
-
-DECLARE_MEMORY_FUNCTIONS(a2065);
-
-static addrbank a2065_bank = {
-	a2065_lget, a2065_wget, a2065_bget,
-	a2065_lput, a2065_wput, a2065_bput,
-	default_xlate, default_check, NULL, _T("A2065 Z2 Ethernet"),
-	a2065_lgeti, a2065_wgeti, ABFLAG_IO
-};
 
 static void REGPARAM2 a2065_bput (uaecptr addr, uae_u32 b)
 {

@@ -17,6 +17,18 @@
 #define UNI_MIN_VERSION UNI_VERSION
 #endif
 
+#ifdef _WIN32
+#ifdef UNI_IMPORT
+#define UNIAPI __declspec(dllimport)
+#else
+#define UNIAPI __declspec(dllexport)
+#endif
+#define UNICALL __cdecl
+#else
+#define UNIAPI
+#define UNICALL
+#endif
+
 #define UNI_ERROR_NOT_ENABLED            0x70000001
 #define UNI_ERROR_INVALID_LIBRARY        0x70000002
 #define UNI_ERROR_INVALID_FUNCTION       0x70000002

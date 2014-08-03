@@ -1,4 +1,10 @@
+#ifndef UAE_NCR9X_SCSI_H
+#define UAE_NCR9X_SCSI_H
 
+#ifdef FSUAE // NL
+#include "uae/types.h"
+#include "uae/memory.h"
+#endif
 
 extern void ncr9x_init(void);
 extern void ncr9x_free(void);
@@ -26,3 +32,4 @@ extern uae_u32 cpuboard_ncr9x_scsi_get(uaecptr);
 #define CYBERSTORM_MK1_DMA_OFFSET 0xf800
 #define CYBERSTORM_MK1_JUMPER_OFFSET 0xfc02
 
+#endif // UAE_NCR9X_SCSI_H

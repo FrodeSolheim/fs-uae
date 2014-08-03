@@ -7,6 +7,15 @@
   *
   */
 
+#ifndef UAE_BSDSOCKET_H
+#define UAE_BSDSOCKET_H
+
+#ifdef FSUAE // NL
+#include "uae/types.h"
+#include "traps.h"
+#include "threaddep/thread.h"
+#endif
+
 #define BSD_TRACING_ENABLED 0
 
 extern int log_bsd;
@@ -206,3 +215,5 @@ extern uae_u32 callfdcallback (TrapContext *context, SB, uae_u32 fd, uae_u32 act
 extern uaecptr bsdlib_startup (uaecptr);
 extern void bsdlib_install (void);
 extern void bsdlib_reset (void);
+
+#endif // UAE_BSDSOCKET_H

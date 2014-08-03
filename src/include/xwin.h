@@ -6,6 +6,14 @@
   * Copyright 1995-1997 Bernd Schmidt
   */
 
+#ifndef UAE_XWIN_H
+#define UAE_XWIN_H
+
+#ifdef FSUAE
+#include "uae/types.h"
+#include "uae/asm.h"
+#include <string.h>
+#endif
 #include "machdep/rpt.h"
 
 typedef uae_u32 xcolnr;
@@ -161,3 +169,4 @@ extern struct vidbuf_description gfxvidinfo;
 extern struct bstring *video_mode_menu;
 extern void vidmode_menu_selected(int);
 
+#endif // UAE_XWIN_H

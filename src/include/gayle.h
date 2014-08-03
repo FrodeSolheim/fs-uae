@@ -1,3 +1,9 @@
+#ifndef UAE_GAYLE_H
+#define UAE_GAYLE_H
+
+#ifdef FSUAE // NL
+#include "uae/types.h"
+#endif
 
 extern void gayle_reset (int);
 extern void gayle_hsync (void);
@@ -16,3 +22,5 @@ extern int gary_timeout; // non-existing memory access = delay
 
 #define PCMCIA_COMMON_START 0x600000
 #define PCMCIA_COMMON_SIZE 0x400000
+
+#endif // UAE_GAYLE_H

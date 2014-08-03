@@ -11,18 +11,7 @@
 
 #ifdef WITH_UAENATIVE
 
-#if defined(_WIN32) || defined(WINDOWS)
-
-    #define UNIAPI __declspec(dllimport)
-    #define UNICALL __cdecl
-
-#else // _WIN32 not defined
-
-    #define UNIAPI
-    #define UNICALL
-
-#endif
-
+#define UNI_IMPORT
 #include "uni_common.h"
 
 #define UNI_FLAG_ASYNCHRONOUS 1

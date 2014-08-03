@@ -7,12 +7,17 @@
  * Copyright 2004-2007 Richard Drummond
  */
 
- /*
-  * Machine dependent structure for holding the 68k CCR flags
-  */
+#ifndef MACHDEP_M68K_H
+#define MACHDEP_M68K_H
+
+#include <stdlib.h>
+
+/*
+ * Machine dependent structure for holding the 68k CCR flags
+ */
 struct flag_struct {
-    unsigned int cznv;
-    unsigned int x;
+	unsigned int cznv;
+	unsigned int x;
 };
 
 extern struct flag_struct regflags;
@@ -95,3 +100,5 @@ STATIC_INLINE int cctrue (int cc)
 }
 
 #define USE_X86_FPUCW 1
+
+#endif // MACHDEP_M68K_H

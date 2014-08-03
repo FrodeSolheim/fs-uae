@@ -35,7 +35,6 @@ AM_CXXFLAGS =
 AM_CXXFLAGS += $(CMCFLAGS)
 
 AM_CPPFLAGS =
-AM_CPPFLAGS += -DHAVE_CONFIG_H
 AM_CPPFLAGS += @OS_CPPFLAGS@
 AM_CPPFLAGS += -DFSUAE
 
@@ -203,7 +202,9 @@ fs_uae_SOURCES = \
 	src/cdtv.cpp \
 	src/cfgfile.cpp \
 	src/cia.cpp \
+	src/cdummy.c \
 	src/consolehook.cpp \
+	src/cppdummy.cpp \
 	src/cpuboard.cpp \
 	src/cpummu30.cpp \
 	src/cpummu.cpp \
@@ -319,6 +320,28 @@ fs_uae_SOURCES = \
 	src/uaeserial.cpp \
 	src/zfile_archive.cpp \
 	src/zfile.cpp
+
+if WITH_SLIRP
+fs_uae_SOURCES += \
+	src/slirp/bootp.cpp \
+	src/slirp/cksum.cpp \
+	src/slirp/if.cpp \
+	src/slirp/ip_icmp.cpp \
+	src/slirp/ip_input.cpp \
+	src/slirp/ip_output.cpp \
+	src/slirp/mbuf.cpp \
+	src/slirp/misc.cpp \
+	src/slirp/sbuf.cpp \
+	src/slirp/slirp.cpp \
+	src/slirp/slirpdebug.cpp \
+	src/slirp/socket.cpp \
+	src/slirp/tcp_input.cpp \
+	src/slirp/tcp_output.cpp \
+	src/slirp/tcp_subr.cpp \
+	src/slirp/tcp_timer.cpp \
+	src/slirp/tftp.cpp \
+	src/slirp/udp.cpp
+endif
 
 nodist_fs_uae_SOURCES = \
 	gen/blitfunc.cpp \

@@ -9,6 +9,7 @@ AC_CANONICAL_SYSTEM
 AC_CONFIG_SRCDIR([src/main.cpp])
 AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS([config.h])
+AC_CONFIG_MACRO_DIRS([m4])
 AM_INIT_AUTOMAKE([subdir-objects])
 
 AC_SUBST([PACKAGE_SERIES], [devel])
@@ -259,6 +260,14 @@ AC_C_INLINE
 AC_C_RESTRICT
 AC_C_VOLATILE
 
+AX_GCC_FUNC_ATTRIBUTE(always_inline)
+AX_GCC_FUNC_ATTRIBUTE(fastcall)
+AX_GCC_FUNC_ATTRIBUTE(noinline)
+AX_GCC_FUNC_ATTRIBUTE(noreturn)
+AX_GCC_FUNC_ATTRIBUTE(regparm)
+AX_GCC_FUNC_ATTRIBUTE(unused)
+AX_GCC_VAR_ATTRIBUTE(unused)
+
 # FIXME: not found on the mingw box
 # AC_CHECK_HEADER_STDBOOL
 
@@ -283,7 +292,14 @@ AC_TYPE_UINT16_T
 AC_TYPE_UINT32_T
 AC_TYPE_UINT64_T
 AC_TYPE_UINT8_T
+AC_TYPE_LONG_LONG_INT
 
+AC_CHECK_SIZEOF(short)
+AC_CHECK_SIZEOF(long)
+AC_CHECK_SIZEOF(int)
+AC_CHECK_SIZEOF(void *)
+AC_CHECK_SIZEOF(long long)
+AC_CHECK_SIZEOF(long long int)
 
 # Checks for library functions.
 
@@ -341,6 +357,7 @@ AC_CHECK_FUNCS([strchr])
 AC_CHECK_FUNCS([strcspn])
 AC_CHECK_FUNCS([strdup])
 AC_CHECK_FUNCS([strerror])
+AC_CHECK_FUNCS([strlcpy])
 AC_CHECK_FUNCS([strncasecmp])
 AC_CHECK_FUNCS([strpbrk])
 AC_CHECK_FUNCS([strrchr])
@@ -481,8 +498,16 @@ OPT_FEATURE([A2091], [a2091], [a2091],
 	[enable A590/A2091 SCSI], [yes])
 OPT_FEATURE([ACTION_REPLAY], [action_replay], [action-replay],
 	[enable Action Replay 1/2/3 support], [yes])
-OPT_FEATURE([A_DMS], [dms], [dms],
-	[enable DMS archive support], [yes])
+OPT_FEATURE([CAPS], [caps], [caps],
+	[enable IPF support via libcapsimage], [yes])
+OPT_FEATURE([CD32], [cd32], [cd32],
+	[enable CD32 emulation], [yes])
+OPT_FEATURE([CDTV], [cdtv], [cdtv],
+	[enable CDTV emulation], [yes])
+OPT_FEATURE([DRIVESOUND], [drivesound], [drivesound],
+	[enable drive sound emulation], [yes])
+OPT_FEATURE([FPUEMU], [fpuemu], [fpuemu],
+	[enable FPU emulation], [yes])
 OPT_FEATURE([WITH_LUA], [lua], [lua],
 	[enable LUA scripting], [no])
 OPT_FEATURE([WITH_NETPLAY], [netplay], [netplay],
@@ -499,6 +524,9 @@ OPT_FEATURE([WITH_XML_SHADER], [xml_shader], [xml-shader],
 	[enable XML shader support], [yes])
 OPT_FEATURE([A_ZIP], [zip], [zip],
 	[enable ZIP archive support], [yes])
+
+
+AC_DEFINE([FPU_UAE], [1], [Define to 1])
 
 
 # Write Makefile

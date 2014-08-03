@@ -7,6 +7,14 @@
   * Copyright 1999 Bernd Schmidt
   */
 
+#ifndef UAE_FSDB_H
+#define UAE_FSDB_H
+
+#ifdef FSUAE // NL
+#include "uae/types.h"
+#include <stdio.h>
+#endif
+
 #ifndef FSDB_FILE
 #define FSDB_FILE _T("_UAEFSDB.___")
 #endif
@@ -189,3 +197,5 @@ void fsdb_get_file_time(a_inode *node, int *days, int *mins, int *ticks);
 int fsdb_set_file_time(a_inode *node, int days, int mins, int ticks);
 int host_errno_to_dos_errno(int err);
 #endif
+
+#endif // UAE_FSDB_H

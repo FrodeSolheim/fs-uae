@@ -6,6 +6,13 @@
   * (c) 1995 Bernd Schmidt
   */
 
+#ifndef UAE_DISK_H
+#define UAE_DISK_H
+
+#ifdef FSUAE // NL
+#include "uae/types.h"
+#endif
+
 typedef enum { DRV_NONE = -1, DRV_35_DD = 0, DRV_35_HD, DRV_525_SD, DRV_35_DD_ESCOM } drive_type;
 
 #define HISTORY_FLOPPY 0
@@ -76,3 +83,4 @@ extern int disk_debug_track;
 
 #define MAX_PREVIOUS_IMAGES 50
 
+#endif // UAE_DISK_H

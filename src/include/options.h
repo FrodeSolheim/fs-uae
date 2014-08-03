@@ -7,8 +7,13 @@
 * Copyright 1995-2001 Bernd Schmidt
 */
 
-#ifndef OPTIONS_H
-#define OPTIONS_H
+#ifndef UAE_OPTIONS_H
+#define UAE_OPTIONS_H
+
+#ifdef FSUAE // NL
+#include "uae/types.h"
+#include "uae/limits.h"
+#endif
 
 #define UAEMAJOR 2
 #define UAEMINOR 8
@@ -708,4 +713,4 @@ extern struct uae_prefs currprefs, changed_prefs;
 extern int machdep_init (void);
 extern void machdep_free (void);
 
-#endif /* OPTIONS_H */
+#endif // UAE_OPTIONS_H

@@ -1,6 +1,10 @@
 #ifndef UAE_ETHERNET_H
 #define UAE_ETHERNET_H
 
+#ifdef FSUAE // NL
+#include "uae/types.h"
+#endif
+
 #define UAENET_NONE 0
 #define UAENET_SLIRP 1
 #define UAENET_SLIRP_INBOUND 2

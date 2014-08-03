@@ -7,6 +7,13 @@
   * Copyright 1997 Christian Schmitt <schmitt@freiburg.linux.de>
   */
 
+#ifndef UAE_SERIAL_H
+#define UAE_SERIAL_H
+
+#ifdef FSUAE // NL
+#include "uae/types.h"
+#endif
+
 extern void serial_init (void);
 extern void serial_exit (void);
 extern void serial_dtr_off (void);
@@ -47,3 +54,5 @@ extern int enet_readseravail (void);
 extern int enet_readser (uae_u16 *buffer);
 extern int enet_open (TCHAR *name);
 extern void enet_close (void);
+
+#endif // UAE_SERIAL_H

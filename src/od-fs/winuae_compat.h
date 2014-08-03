@@ -22,44 +22,12 @@
 // convert windows libc names to standard libc function names, and also
 // use char functions instead of wchar string functions.
 
-#define _stprintf sprintf
-#define _wunlink unlink
-#define _tcscspn strcspn
-#define _tcscmp strcmp
-#define _tcsncmp strncmp
-#define _tcslen strlen
-#define _tcscpy strcpy
-#define _tcsncpy strncpy
-#define _tcsdup strdup
-#define _tcscat strcat
-#define _tcsncat strncat
-#define _tcsspn strspn
-#define _tcsicmp strcasecmp
-#define _tcsnicmp strncasecmp
+#include "uae/string.h"
+
 #define stricmp strcasecmp
 #define strnicmp strncasecmp
-#define _tcsrchr strrchr
-#define _tcschr strchr
-#define _istdigit isdigit
-#define _istspace isspace
-#define _istupper isupper
-#define _tcsstr strstr
-#define _tcsftime strftime
-#define _tcsftime strftime
-#define _tstol atol
-#define _tstof atof
-#define _tcstod strtod
-#define _tcstol strtol
-#define _strtoui64 strtoll
-#define _totupper toupper
-#define _totlower tolower
-#define _tcstok strtok
-#define _tstoi atoi
-#define _tstoi64 atoll
-#define _vsntprintf vsnprintf
-#define _vsnprintf vsnprintf
-#define _sntprintf snprintf
-#define _tprintf printf
+
+#define _wunlink unlink
 
 //#define _timezone timezone
 //#define _daylight daylight
@@ -76,7 +44,7 @@ extern int _daylight;
 
 // needed by e.g drawing.cpp
 
-#define NOINLINE
+// #define NOINLINE
 
 #ifndef WINDOWS
 
@@ -105,6 +73,6 @@ typedef struct tagRECT {
 //#endif
 #endif
 
-#define STATIC_INLINE static inline
+// #define STATIC_INLINE static inline
 
 #endif // UAE_OD_FS_WINUAE_COMPAT_H

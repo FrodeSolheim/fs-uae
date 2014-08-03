@@ -6,6 +6,13 @@
   * Copyright 2010 Toni Wilen
   */
 
+#ifndef UAE_INPUTRECORD_H
+#define UAE_INPUTRECORD_H
+
+#ifdef FSUAE // NL
+#include "uae/types.h"
+#endif
+
 extern int inputrecord_debug;
 
 //#define INPREC_JOYPORT 1
@@ -54,3 +61,5 @@ extern int inprec_getposition (void);
 extern void inprec_setposition (int offset, int replaycounter);
 extern bool inprec_realtime (void);
 extern void inprec_getstatus (TCHAR*);
+
+#endif // UAE_INPUTRECORD_H

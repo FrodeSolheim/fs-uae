@@ -15,7 +15,7 @@
 #define QMEMORY_H
 
 #ifdef FSUAE // NL
-#define STATIC_INLINE static inline
+#include "uae/inline.h"
 #endif
 
 #ifndef CONFIG_USER_ONLY

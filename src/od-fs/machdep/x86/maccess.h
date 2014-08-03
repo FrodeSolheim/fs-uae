@@ -6,6 +6,14 @@
   * Copyright 1996 Bernd Schmidt
   */
 
+#ifndef MACHDEP_X86_MACCESS_H
+#define MACHDEP_X86_MACCESS_H
+
+#ifdef FSUAE // NL
+#include "uae/types.h"
+#include "uae/inline.h"
+#endif
+
 STATIC_INLINE uae_u32 do_get_mem_long (uae_u32 *a)
 {
     uae_u32 retval;
@@ -148,3 +156,5 @@ STATIC_INLINE uae_u24 uae24_convert (uae_u32 v)
 {
     return *(uae_u24 *)&v;
 }
+
+#endif // MACHDEP_X86_MACCESS_H

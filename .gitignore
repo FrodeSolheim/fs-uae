@@ -21,6 +21,7 @@ libfs-capsimage.dylib
 /fs-uae-[0-9]*
 /fs-uae_[0-9]*
 /fs-uae-dbg-[0-9]*
+*.autosave
 *.tar.gz
 *.tar.xz
 /*.cfg

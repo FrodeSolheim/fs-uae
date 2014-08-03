@@ -1,3 +1,10 @@
+#ifndef UAE_AR_H
+#define UAE_AR_H
+
+#ifdef FSUAE // NL
+#include "uae/types.h"
+#include "uae/regparam.h"
+#endif
 
 /* disable HRTMon support by commenting this out */
 #define ACTION_REPLAY_HRTMON
@@ -67,3 +74,5 @@ extern uae_u32 hrtmem_start, hrtmem_size;
 extern uae_u8 ar_custom[2*256], ar_ciaa[16], ar_ciab[16];
 
 extern int hrtmon_lang;
+
+#endif // UAE_AR_H

@@ -205,32 +205,6 @@
 /* Define as the return type of signal handlers (`int' or `void'). */
 #define RETSIGTYPE void
 
-/* The size of `char', as computed by sizeof. */
-#define SIZEOF_CHAR 1
-
-/* The size of `int', as computed by sizeof. */
-#define SIZEOF_INT 4
-
-/* The size of `long', as computed by sizeof. */
-#define SIZEOF_LONG 4
-
-/* The size of `long long', as computed by sizeof. */
-#define SIZEOF_LONG_LONG 8
-
-/* The size of `short', as computed by sizeof. */
-#define SIZEOF_SHORT 2
-
-/* The size of `void *', as computed by sizeof. */
-
-#if __LP64__
-#define SIZEOF_VOID_P 8
-#else
-#define SIZEOF_VOID_P 4
-#endif
-
-/* The size of `__int64', as computed by sizeof. */
-#define SIZEOF___INT64 0
-
 /* Define if the block counts reported by statfs may be truncated to 2GB and
    the correct values may be stored in the f_spare array. (SunOS 4.1.2, 4.1.3,
    and 4.1.3_U1 are reported to have this problem. SunOS 4.1.1 seems not to be

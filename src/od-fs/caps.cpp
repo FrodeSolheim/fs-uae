@@ -3,13 +3,12 @@
 #include "sysconfig.h"
 #include "sysdeps.h"
 
-#ifndef WINDOWS
-
+#ifndef _WIN32
 #include <dlfcn.h>
-
 #define __int64 long long
 typedef void* HMODULE;
 #define __cdecl
+#endif
 
 #ifdef MACOSX
 #include <mach-o/dyld.h>
@@ -36,9 +35,13 @@ const char* amiga_get_caps_library_path(void) {
 
 }
 
+#ifndef _WIN32
+
 void *GetProcAddress(void *handle, const char *symbol) {
     return dlsym(handle, symbol);
 }
+
+#endif
 
 HMODULE load_caps_library() {
     HMODULE handle = NULL;
@@ -49,14 +52,12 @@ HMODULE load_caps_library() {
     }
     write_log("- trying to load %s\n", g_caps_library_path);
 #ifdef WINDOWS
-    handle = LoadLibrary (dllname);
+    handle = LoadLibrary (g_caps_library_path);
 #else
     handle = dlopen(g_caps_library_path, RTLD_LAZY);
 #endif
     return handle;
 }
-
-#endif
 
 #ifdef CAPS
 

@@ -9,7 +9,7 @@ AC_CANONICAL_SYSTEM
 AC_CONFIG_SRCDIR([src/main.cpp])
 AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_MACRO_DIRS([m4])
+# AC_CONFIG_MACRO_DIRS([m4])
 AM_INIT_AUTOMAKE([subdir-objects])
 
 AC_SUBST([PACKAGE_SERIES], [devel])
@@ -419,22 +419,22 @@ AS_IF([test "x$enable_jit" != xno], [
 
 # Udis86
 
-AC_ARG_ENABLE(
-    [udis86],
-    [AS_HELP_STRING(
-            [--enable-udis86],
-            [enable support for JIT compilation @<:@default=no@:>@]
-    )],
-    [],
-    [enable_udis86=no]
-)
-AS_IF(
-    [test "x$enable_udis86" != xno],
-    [
-        AC_CHECK_LIB([udis86], [ud_init])
-    ],
-    []
-)
+#AC_ARG_ENABLE(
+#    [udis86],
+#    [AS_HELP_STRING(
+#            [--enable-udis86],
+#            [enable support for JIT compilation @<:@default=no@:>@]
+#    )],
+#    [],
+#    [enable_udis86=no]
+#)
+#AS_IF(
+#    [test "x$enable_udis86" != xno],
+#    [
+#        AC_CHECK_LIB([udis86], [ud_init])
+#    ],
+#    []
+#)
 
 # Byte swapping
 

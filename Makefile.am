@@ -63,7 +63,8 @@ bin_PROGRAMS = \
 	fs-uae-device-helper
 
 noinst_PROGRAMS = \
-	gen/build68k gen/genblitter \
+	gen/build68k \
+	gen/genblitter \
 	gen/gencomp \
 	gen/gencpu \
 	gen/genlinetoscr
@@ -625,8 +626,17 @@ noinst_HEADERS = \
 	src/include/tabletlibrary.h \
 	src/include/traps.h \
 	src/include/uae.h \
-	src/include/uae/fs.h \
+	src/include/uae/types.h \
+	src/include/uae/string.h \
+	src/include/uae/regparam.h \
+	src/include/uae/memory.h \
 	src/include/uae/jitconfig.h \
+	src/include/uae/enum.h \
+	src/include/uae/fs.h \
+	src/include/uae/asm.h \
+	src/include/uae/inline.h \
+	src/include/uae/cycleunit.h \
+	src/include/uae/limits.h \
 	src/include/uaeexe.h \
 	src/include/uaeipc.h \
 	src/include/uaenative.h \
@@ -681,6 +691,7 @@ noinst_HEADERS = \
 	src/od-fs/sysconfig.h \
 	src/od-fs/target.h \
 	src/od-fs/tchar.h \
+	src/od-fs/threaddep/sem.h \
 	src/od-fs/threaddep/thread.h \
 	src/od-fs/uae_fs.h \
 	src/od-fs/uae_host.h \
@@ -733,6 +744,17 @@ EXTRA_DIST = \
 	fs-uae.spec \
 	libfsemu/src/emu/keynames.c \
 	libfsemu/src/ml/sdl2_keys.c \
+	licenses/fs-uae.txt \
+	licenses/glib.txt \
+	licenses/ipflib.txt \
+	licenses/libgcc.txt \
+	licenses/libintl.txt \
+	licenses/libpng.txt \
+	licenses/libstdc++.txt \
+	licenses/lua.txt \
+	licenses/zlib.txt \
+	macosx/fs-uae-config.icns \
+	macosx/fs-uae.icns \
 	macosx/PkgInfo \
 	macosx/standalone.py \
 	po \
@@ -748,31 +770,31 @@ EXTRA_DIST = \
 	share/applications \
 	share/fs-uae \
 	share/icons
-	
-gen/blit.h: gen/genblitter
-	gen/genblitter i > gen/blit.h
 
-gen/blitfunc.cpp: gen/genblitter gen/blitfunc.h
-	gen/genblitter f > gen/blitfunc.cpp
+gen/blit.h: gen/genblitter$(EXEEXT)
+	gen/genblitter$(EXEEXT) i > gen/blit.h
 
-gen/blitfunc.h: gen/genblitter
-	gen/genblitter h > gen/blitfunc.h
+gen/blitfunc.cpp: gen/genblitter$(EXEEXT) gen/blitfunc.h
+	gen/genblitter$(EXEEXT) f > gen/blitfunc.cpp
 
-gen/blittable.cpp: gen/genblitter gen/blitfunc.h
-	gen/genblitter t > gen/blittable.cpp
+gen/blitfunc.h: gen/genblitter$(EXEEXT)
+	gen/genblitter$(EXEEXT) h > gen/blitfunc.h
 
-gen/compemu.cpp: gen/gencomp
-	gen/gencomp
+gen/blittable.cpp: gen/genblitter$(EXEEXT) gen/blitfunc.h
+	gen/genblitter$(EXEEXT) t > gen/blittable.cpp
+
+gen/compemu.cpp: gen/gencomp$(EXEEXT)
+	gen/gencomp$(EXEEXT)
 
 gen/compstbl.cpp: gen/compemu.cpp
 
 gen/comptbl.h: gen/compemu.cpp
 
-gen/cpudefs.cpp: gen/build68k src/table68k
-	./gen/build68k < src/table68k > gen/cpudefs.cpp
+gen/cpudefs.cpp: gen/build68k$(EXEEXT) src/table68k
+	./gen/build68k$(EXEEXT) < src/table68k > gen/cpudefs.cpp
 
-gen/cpuemu_0.cpp: gen/gencpu
-	cd gen && ./gencpu --optimized-flags
+gen/cpuemu_0.cpp: gen/gencpu$(EXEEXT)
+	cd gen && ./gencpu$(EXEEXT) --optimized-flags
 
 gen/cpuemu_11.cpp: gen/cpuemu_0.cpp
 
@@ -796,8 +818,8 @@ gen/cpustbl.cpp: gen/cpuemu_0.cpp
 
 gen/cputbl.h: gen/cpuemu_0.cpp
 
-gen/linetoscr.cpp: gen/genlinetoscr
-	gen/genlinetoscr > gen/linetoscr.cpp
+gen/linetoscr.cpp: gen/genlinetoscr$(EXEEXT)
+	gen/genlinetoscr$(EXEEXT) > gen/linetoscr.cpp
 
 catalogs = \
 	share/locale/cs/LC_MESSAGES/fs-uae.mo \
@@ -817,63 +839,63 @@ catalogs = \
 	share/locale/tr/LC_MESSAGES/fs-uae.mo
 
 share/locale/cs/LC_MESSAGES/fs-uae.mo: po/cs.po
-	mkdir -p share/locale/$*/LC_MESSAGES
+	mkdir -p share/locale/cs/LC_MESSAGES
 	$(MSGFMT) --verbose $< -o $@
 
 share/locale/da/LC_MESSAGES/fs-uae.mo: po/da.po
-	mkdir -p share/locale/$*/LC_MESSAGES
+	mkdir -p share/locale/da/LC_MESSAGES
 	$(MSGFMT) --verbose $< -o $@
 
 share/locale/de/LC_MESSAGES/fs-uae.mo: po/de.po
-	mkdir -p share/locale/$*/LC_MESSAGES
+	mkdir -p share/locale/de/LC_MESSAGES
 	$(MSGFMT) --verbose $< -o $@
 
 share/locale/el/LC_MESSAGES/fs-uae.mo: po/el.po
-	mkdir -p share/locale/$*/LC_MESSAGES
+	mkdir -p share/locale/el/LC_MESSAGES
 	$(MSGFMT) --verbose $< -o $@
 
 share/locale/es/LC_MESSAGES/fs-uae.mo: po/es.po
-	mkdir -p share/locale/$*/LC_MESSAGES
+	mkdir -p share/locale/es/LC_MESSAGES
 	$(MSGFMT) --verbose $< -o $@
 
 share/locale/fi/LC_MESSAGES/fs-uae.mo: po/fi.po
-	mkdir -p share/locale/$*/LC_MESSAGES
+	mkdir -p share/locale/fi/LC_MESSAGES
 	$(MSGFMT) --verbose $< -o $@
 
 share/locale/fr/LC_MESSAGES/fs-uae.mo: po/fr.po
-	mkdir -p share/locale/$*/LC_MESSAGES
+	mkdir -p share/locale/fr/LC_MESSAGES
 	$(MSGFMT) --verbose $< -o $@
 
 share/locale/it/LC_MESSAGES/fs-uae.mo: po/it.po
-	mkdir -p share/locale/$*/LC_MESSAGES
+	mkdir -p share/locale/it/LC_MESSAGES
 	$(MSGFMT) --verbose $< -o $@
 
 share/locale/nb/LC_MESSAGES/fs-uae.mo: po/nb.po
-	mkdir -p share/locale/$*/LC_MESSAGES
+	mkdir -p share/locale/nb/LC_MESSAGES
 	$(MSGFMT) --verbose $< -o $@
 
 share/locale/pl/LC_MESSAGES/fs-uae.mo: po/pl.po
-	mkdir -p share/locale/$*/LC_MESSAGES
+	mkdir -p share/locale/pl/LC_MESSAGES
 	$(MSGFMT) --verbose $< -o $@
 
 share/locale/pt/LC_MESSAGES/fs-uae.mo: po/pt.po
-	mkdir -p share/locale/$*/LC_MESSAGES
+	mkdir -p share/locale/pt/LC_MESSAGES
 	$(MSGFMT) --verbose $< -o $@
 
 share/locale/pt_BR/LC_MESSAGES/fs-uae.mo: po/pt_BR.po
-	mkdir -p share/locale/$*/LC_MESSAGES
+	mkdir -p share/locale/pt_BR/LC_MESSAGES
 	$(MSGFMT) --verbose $< -o $@
 
 share/locale/sr/LC_MESSAGES/fs-uae.mo: po/sr.po
-	mkdir -p share/locale/$*/LC_MESSAGES
+	mkdir -p share/locale/sr/LC_MESSAGES
 	$(MSGFMT) --verbose $< -o $@
 
 share/locale/sv/LC_MESSAGES/fs-uae.mo: po/sv.po
-	mkdir -p share/locale/$*/LC_MESSAGES
+	mkdir -p share/locale/sv/LC_MESSAGES
 	$(MSGFMT) --verbose $< -o $@
 
 share/locale/tr/LC_MESSAGES/fs-uae.mo: po/tr.po
-	mkdir -p share/locale/$*/LC_MESSAGES
+	mkdir -p share/locale/tr/LC_MESSAGES
 	$(MSGFMT) --verbose $< -o $@
 
 mo: $(catalogs)

@@ -25,6 +25,8 @@ progdir:
 	cp /opt/bin/libiconv*.dll $(emulator_dir)
 	cp /opt/bin/SDL2.dll $(emulator_dir)
 	cp /opt/bin/OpenAL32.dll $(emulator_dir)
+	cp /opt/bin/libmpeg2-0.dll $(emulator_dir)
+	cp /opt/bin/libmpeg2convert-0.dll $(emulator_dir)
 
 	cp -a ../fs-uae.exe $(emulator_dir)/
 	cp -a ../fs-uae.dat $(emulator_dir)/

@@ -22,8 +22,8 @@ bundle:
 	cp ../fs-uae-device-helper fs-uae_$(version)_macosx/FS-UAE.app/Contents/MacOS/
 	cp -pPR ../share/* fs-uae_$(version)_macosx/FS-UAE.app/Contents/Resources
 	strip fs-uae_$(version)_macosx/FS-UAE.app/Contents/MacOS/*
-	cp ../icon/fs-uae.icns fs-uae_$(version)_macosx/FS-UAE.app/Contents/Resources/
-	cp ../icon/fs-uae-config.icns fs-uae_$(version)_macosx/FS-UAE.app/Contents/Resources/
+	cp fs-uae.icns fs-uae_$(version)_macosx/FS-UAE.app/Contents/Resources/
+	cp fs-uae-config.icns fs-uae_$(version)_macosx/FS-UAE.app/Contents/Resources/
 	cp -pPR ../licenses fs-uae_$(version)_macosx/FS-UAE.app/Contents/Resources/
 	cp ../COPYING fs-uae_$(version)_macosx/FS-UAE.app/Contents/Resources/
 	cp ../README fs-uae_$(version)_macosx/FS-UAE.app/Contents/Resources/

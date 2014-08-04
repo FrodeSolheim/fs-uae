@@ -1,3 +1,7 @@
+Version 2.6.7dev:
+
+* Fixed crash when playing videos with CD32 FMV (no display yet).
+
 Version 2.5.6dev:
 
 * Updated emulation core from WinUAE 2820b8.

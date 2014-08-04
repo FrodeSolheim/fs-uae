@@ -82,7 +82,7 @@ cda_audio::cda_audio(int num_sectors, int sectorsize)
     this->sectorsize = sectorsize;
     for (int i = 0; i < 2; i++) {
         buffer_ids[i] = 0;
-        buffers[i] = xcalloc (uae_u8, num_sectors * 4096);
+        buffers[i] = xcalloc (uae_u8, num_sectors * ((bufsize + 4095) & ~4095));
     }
     this->num_sectors = num_sectors;
     active = true;
@@ -113,7 +113,7 @@ bool cda_audio::play(int bufnum) {
     }
 
     if (g_audio_callback) {
-        int len = num_sectors * 2352;
+        int len = num_sectors * sectorsize;
 #ifdef WORDS_BIGENDIAN
         int8_t *d = (int8_t *) p;
         int8_t temp = 0;

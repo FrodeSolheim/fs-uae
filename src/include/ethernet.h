@@ -32,8 +32,6 @@ extern int ethernet_getdatalenght (struct netdriverdata *ndd);
 extern int ethernet_getbytespending (void*);
 extern int ethernet_open (struct netdriverdata *ndd, void*, void*, ethernet_gotfunc*, ethernet_getfunc*, int);
 extern void ethernet_close (struct netdriverdata *ndd, void*);
-extern void ethernet_gotdata (struct s2devstruct *dev, const uae_u8 *data, int len);
-extern int ethernet_getdata (struct s2devstruct *dev, uae_u8 *d, int *len);
 extern void ethernet_trigger (void*);
 
 extern bool slirp_start (void);

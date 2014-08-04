@@ -492,7 +492,7 @@ AM_CONDITIONAL([$1], [test x$enable_$2 = xyes])
 ])
 
 OPT_FEATURE([A2065], [a2065], [a2065],
-	[enable A2065 ethernet card], [no])
+	[enable A2065 ethernet card], [yes])
 OPT_FEATURE([A2091], [a2091], [a2091],
 	[enable A590/A2091 SCSI], [yes])
 OPT_FEATURE([ACTION_REPLAY], [action_replay], [action-replay],
@@ -514,11 +514,11 @@ OPT_FEATURE([WITH_NETPLAY], [netplay], [netplay],
 OPT_FEATURE([NCR9X], [ncr9x], [ncr9x],
 	[enable 53C9X SCSI], [yes])
 OPT_FEATURE([WITH_SLIRP], [slirp], [slirp],
-	[enable SLIRP (user mode NAT)], [no])
+	[enable SLIRP (user mode NAT)], [yes])
 OPT_FEATURE([WITH_UAENATIVE], [uaenative], [uaenative],
 	[enable uaenative.library], [yes])
-OPT_FEATURE([WITH_UAENET], [uaenet], [uaenet],
-	[enable uaenet.device], [no])
+OPT_FEATURE([SANA2], [uaenet], [uaenet],
+	[enable uaenet.device], [yes])
 OPT_FEATURE([WITH_UDIS86], [udis86], [udis86],
 	[enable UDIS86 x86/x86-64 disassembler], [yes])
 OPT_FEATURE([WITH_XML_SHADER], [xml_shader], [xml-shader],

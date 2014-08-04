@@ -6,14 +6,16 @@ int uae_start_thread_fast (void *(*f)(void *), void *arg,
         uae_thread_id *thread) {
     // FIXME: what is the supposed difference between uae_start_thread and
     // uae_start_thread_fast?
-    return uae_start_thread("(fast)", f, arg, thread);
+    return uae_start_thread(NULL, f, arg, thread);
 }
 
 int uae_start_thread (const char *name, uae_thread_function fn, void *arg,
         uae_thread_id *tid) {
     int result = 1;
-    write_log("uae_start_tread \"%s\" function at %p arg %p\n", name,
-            fn, arg);
+    if (name != NULL) {
+        write_log("uae_start_tread \"%s\" function at %p arg %p\n", name,
+                fn, arg);
+    }
 #if 0
     uae_thread_id thread_id = SDL_CreateThread(fn, arg);
 #endif

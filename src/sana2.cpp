@@ -33,12 +33,12 @@
 #include "execio.h"
 
 // these variables are referenced by custom.cpp and newcpu.cpp also when
-// WITH_UAENET is not defined
+// SANA2 is not defined
 
 volatile int uaenet_int_requested = 0;
 volatile int uaenet_vsync_requested = 0;
 
-#ifdef WITH_UAENET
+#ifdef SANA2
 
 void uaenet_gotdata (struct s2devstruct *dev, const uae_u8 *data, int len);
 int uaenet_getdata (struct s2devstruct *dev, uae_u8 *d, int *len);
@@ -1605,7 +1605,10 @@ uaecptr netdev_startup (uaecptr resaddr)
 {
 	if (!currprefs.sana2)
 		return resaddr;
+#ifdef FSUAE
+#else
 	if (log_net)
+#endif
 		write_log (_T("netdev_startup(0x%x)\n"), resaddr);
 	/* Build a struct Resident. This will set up and initialize
 	* the uaenet.device */
@@ -1629,7 +1632,10 @@ void netdev_install (void)
 
 	if (!currprefs.sana2)
 		return;
+#ifdef FSUAE
+#else
 	if (log_net)
+#endif
 		write_log (_T("netdev_install(): 0x%x\n"), here ());
 
 	ethernet_enumerate_free ();
@@ -1745,4 +1751,4 @@ void netdev_reset (void)
 	dev_reset ();
 }
 
-#endif // WITH_UAENET
+#endif // SANA2

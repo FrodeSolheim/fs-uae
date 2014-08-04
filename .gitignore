@@ -65,7 +65,6 @@ log
 /*.deb
 *.zip
 /desktop/
-/test/
 /amiga/
 /Frameworks/
 /fontconfig/

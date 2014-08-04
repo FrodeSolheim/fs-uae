@@ -14,8 +14,13 @@
   *
   * Copyright 1996, 1997 Bernd Schmidt
   */
+#ifdef __cplusplus
 #include <string>
 using namespace std;
+#else
+#include <string.h>
+#include <ctype.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>

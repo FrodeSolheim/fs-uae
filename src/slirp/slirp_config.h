@@ -51,6 +51,10 @@
  * You shouldn't need to touch any of these
  */
 
+#ifdef FSUAE
+
+#else
+
 /* Ignore this */
 #undef DUMMY_PPP
 
@@ -135,3 +139,5 @@
 
 /* Define if you have <sys/type32.h> */
 #undef HAVE_SYS_TYPES32_H
+
+#endif // FSUAE

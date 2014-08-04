@@ -519,6 +519,8 @@ OPT_FEATURE([WITH_UAENATIVE], [uaenative], [uaenative],
 	[enable uaenative.library], [yes])
 OPT_FEATURE([WITH_UAENET], [uaenet], [uaenet],
 	[enable uaenet.device], [no])
+OPT_FEATURE([WITH_UDIS86], [udis86], [udis86],
+	[enable UDIS86 x86/x86-64 disassembler], [yes])
 OPT_FEATURE([WITH_XML_SHADER], [xml_shader], [xml-shader],
 	[enable XML shader support], [yes])
 OPT_FEATURE([A_ZIP], [zip], [zip],

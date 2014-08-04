@@ -1,7 +1,7 @@
 #ifndef UAE_CODEGEN_UDIS86_H
 #define UAE_CODEGEN_UDIS86_H
 
-#ifdef HAVE_LIBUDIS86
+#ifdef WITH_UDIS86
 
 #define USE_UDIS86
 
@@ -38,6 +38,6 @@
 				#udis_func, (uintptr_t)udis_func, (uintptr_t)udis_end); \
 }
 
-#endif // HAVE_LIBUDIS68
+#endif // WITH_UDIS86
 
 #endif // UAE_CODEGEN_UDIS86_H

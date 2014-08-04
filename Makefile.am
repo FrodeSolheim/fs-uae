@@ -347,6 +347,17 @@ fs_uae_SOURCES += \
 	src/slirp/udp.cpp
 endif
 
+if WITH_UDIS86
+CMCFLAGS += -I$(s)/libudis86/include
+fs_uae_SOURCES += \
+	libudis86/src/decode.c \
+	libudis86/src/itab.c \
+	libudis86/src/syn-att.c \
+	libudis86/src/syn.c \
+	libudis86/src/syn-intel.c \
+	libudis86/src/udis86.c
+endif
+
 nodist_fs_uae_SOURCES = \
 	gen/blitfunc.cpp \
 	gen/blittable.cpp \
@@ -506,6 +517,13 @@ noinst_HEADERS = \
 	libfsemu/src/lua/lzio.h \
 	libfsemu/src/ml/manymouse/manymouse.h \
 	libfsemu/src/ml/ml_internal.h \
+	libudis86/src/decode.h \
+	libudis86/src/types.h \
+	libudis86/src/syn.h \
+	libudis86/src/itab.h \
+	libudis86/src/extern.h \
+	libudis86/src/udint.h \
+	libudis86/include/udis86.h \
 	src/archivers/chd/astring.h \
 	src/archivers/chd/bitstream.h \
 	src/archivers/chd/chd.h \
@@ -746,6 +764,7 @@ EXTRA_DIST = \
 	fs-uae.spec \
 	libfsemu/src/emu/keynames.c \
 	libfsemu/src/ml/sdl2_keys.c \
+	libudis86/README \
 	licenses/fs-uae.txt \
 	licenses/glib.txt \
 	licenses/ipflib.txt \

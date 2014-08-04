@@ -1,5 +1,6 @@
 Version 2.6.7dev:
 
+* Modified Makefile.am for out-of-tree builds.
 * Fixed crash when playing videos with CD32 FMV (no display yet).
 
 Version 2.5.6dev:

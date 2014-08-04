@@ -5,15 +5,15 @@ WARNINGS =
 CMCFLAGS =
 CMCFLAGS += -fno-strict-overflow
 #CMCFLAGS += -Wstrict-overflow
-CMCFLAGS += -Isrc/od-fs
-CMCFLAGS += -Isrc/od-fs/include
-CMCFLAGS += -Isrc/od-win32
-CMCFLAGS += -Isrc/include
-CMCFLAGS += -Igen
-CMCFLAGS += -Isrc/jit
-CMCFLAGS += -Isrc
-CMCFLAGS += -Ilibfsemu/include
-CMCFLAGS += -Ilibfsemu/src/lua
+CMCFLAGS += -I$(s)/src/od-fs
+CMCFLAGS += -I$(s)/src/od-fs/include
+CMCFLAGS += -I$(s)/src/od-win32
+CMCFLAGS += -I$(s)/src/include
+CMCFLAGS += -I$(b)/gen
+CMCFLAGS += -I$(s)/src/jit
+CMCFLAGS += -I$(s)/src
+CMCFLAGS += -I$(s)/libfsemu/include
+CMCFLAGS += -I$(s)/libfsemu/src/lua
 CMCFLAGS += @FREETYPE_CFLAGS@
 CMCFLAGS += @GLIB_CFLAGS@
 CMCFLAGS += @LIBMPEG2_CFLAGS@
@@ -57,6 +57,9 @@ AM_LDFLAGS += @OS_LDFLAGS@
 
 MSGFMT = @MSGFMT@
 ZIP = @ZIP@
+
+s = $(srcdir)
+b = $(builddir)
 
 bin_PROGRAMS = \
 	fs-uae \
@@ -737,7 +740,6 @@ EXTRA_DIST = \
 	debian/compat \
 	debian/control \
 	debian/copyright \
-	debian/docs \
 	debian/rules \
 	debian/source \
 	debian/source/format \
@@ -772,29 +774,29 @@ EXTRA_DIST = \
 	share/icons
 
 gen/blit.h: gen/genblitter$(EXEEXT)
-	gen/genblitter$(EXEEXT) i > gen/blit.h
+	$(b)/gen/genblitter$(EXEEXT) i > $(b)/gen/blit.h
 
 gen/blitfunc.cpp: gen/genblitter$(EXEEXT) gen/blitfunc.h
-	gen/genblitter$(EXEEXT) f > gen/blitfunc.cpp
+	$(b)/gen/genblitter$(EXEEXT) f > $(b)/gen/blitfunc.cpp
 
 gen/blitfunc.h: gen/genblitter$(EXEEXT)
-	gen/genblitter$(EXEEXT) h > gen/blitfunc.h
+	$(b)/gen/genblitter$(EXEEXT) h > $(b)/gen/blitfunc.h
 
 gen/blittable.cpp: gen/genblitter$(EXEEXT) gen/blitfunc.h
-	gen/genblitter$(EXEEXT) t > gen/blittable.cpp
+	$(b)/gen/genblitter$(EXEEXT) t > $(b)/gen/blittable.cpp
 
 gen/compemu.cpp: gen/gencomp$(EXEEXT)
-	gen/gencomp$(EXEEXT)
+	$(b)/gen/gencomp$(EXEEXT)
 
 gen/compstbl.cpp: gen/compemu.cpp
 
 gen/comptbl.h: gen/compemu.cpp
 
 gen/cpudefs.cpp: gen/build68k$(EXEEXT) src/table68k
-	./gen/build68k$(EXEEXT) < src/table68k > gen/cpudefs.cpp
+	$(b)/gen/build68k$(EXEEXT) < $(s)/src/table68k > $(b)/gen/cpudefs.cpp
 
 gen/cpuemu_0.cpp: gen/gencpu$(EXEEXT)
-	cd gen && ./gencpu$(EXEEXT) --optimized-flags
+	cd $(b)/gen && ./gencpu$(EXEEXT) --optimized-flags
 
 gen/cpuemu_11.cpp: gen/cpuemu_0.cpp
 
@@ -819,7 +821,7 @@ gen/cpustbl.cpp: gen/cpuemu_0.cpp
 gen/cputbl.h: gen/cpuemu_0.cpp
 
 gen/linetoscr.cpp: gen/genlinetoscr$(EXEEXT)
-	gen/genlinetoscr$(EXEEXT) > gen/linetoscr.cpp
+	$(b)/gen/genlinetoscr$(EXEEXT) > $(b)/gen/linetoscr.cpp
 
 catalogs = \
 	share/locale/cs/LC_MESSAGES/fs-uae.mo \
@@ -902,16 +904,17 @@ mo: $(catalogs)
 
 fs-uae.dat: $(catalogs)
 	rm -f fs-uae.dat
-	$(ZIP) -r -Z store fs-uae.dat share
+	cd $(s) && $(ZIP) -r -Z store $(abs_builddir)/fs-uae.dat share
+	cd $(b) && $(ZIP) -r -Z store $(abs_builddir)/fs-uae.dat share
 
 all-local: mo fs-uae.dat
 
 install-data-local: mo fs-uae.dat
 	mkdir -p $(DESTDIR)$(datadir)
-	cp -R share/applications $(DESTDIR)$(datadir)
-	cp -R share/fs-uae $(DESTDIR)$(datadir)
-	cp -R share/icons $(DESTDIR)$(datadir)
-	cp -R share/locale $(DESTDIR)$(datadir)
+	cp -R $(s)/share/applications $(DESTDIR)$(datadir)
+	cp -R $(s)/share/fs-uae $(DESTDIR)$(datadir)
+	cp -R $(s)/share/icons $(DESTDIR)$(datadir)
+	cp -R $(b)/share/locale $(DESTDIR)$(datadir)
 	cp fs-uae.dat $(DESTDIR)$(datadir)/fs-uae/fs-uae.dat
 
 uninstall-local:

@@ -436,7 +436,7 @@ void slirp_select_poll(fd_set *readfds, fd_set *writefds, fd_set *xfds)
 					continue;
 				} /* else */
 				ret = soread(so);
-				
+
 				/* Output it if we read something */
 				if (ret > 0)
 				   tcp_output(sototcpcb(so));

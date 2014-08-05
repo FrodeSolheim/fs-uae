@@ -445,7 +445,7 @@ void ip_slowtimo(void)
 {
 	struct qlink *l;
 	
-	DEBUG_CALL("ip_slowtimo");
+	//DEBUG_CALL("ip_slowtimo\n");
 	
 	l = (struct qlink *) ipq.ip_link.next;
 

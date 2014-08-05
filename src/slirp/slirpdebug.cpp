@@ -14,7 +14,7 @@ int dostats = 1;
 #else
 int dostats = 0;
 #endif
-int slirp_debug = 0;
+int slirp_debug = 0xffff;
 
 //extern char *strerror _P((int));
 

@@ -18,9 +18,11 @@ extern int slirp_debug;
 #define DBG_ERROR 0x4
 #define DEBUG_DEFAULT DBG_CALL|DBG_MISC|DBG_ERROR
 
+#define DEBUG 1
+
 #ifdef DEBUG
-#define DEBUG_CALL(x) if (slirp_debug & DBG_CALL) { write_log(x); }
-#define DEBUG_ARG(x, y) if (slirp_debug & DBG_CALL) { write_log(" "); write_log(x, y); write_log("\n"); }
+#define DEBUG_CALL(x) if (slirp_debug & DBG_CALL) { write_log(x "\n"); }
+#define DEBUG_ARG(x, y) if (slirp_debug & DBG_CALL) { write_log("  " x "\n", y);}
 #define DEBUG_ARGS(x) if (slirp_debug & DBG_CALL) { write_log x ;}
 #define DEBUG_MISC(x) if (slirp_debug & DBG_MISC) { write_log x ;}
 #define DEBUG_ERROR(x) if (slirp_debug & DBG_ERROR) {write_log x; }

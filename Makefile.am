@@ -326,6 +326,7 @@ fs_uae_SOURCES = \
 	src/zfile.cpp
 
 if WITH_SLIRP
+CMCFLAGS += -I$(s)/src/slirp/include
 fs_uae_SOURCES += \
 	src/slirp/bootp.cpp \
 	src/slirp/cksum.cpp \
@@ -929,12 +930,16 @@ fs-uae.dat: $(catalogs)
 all-local: mo fs-uae.dat
 
 install-data-local: mo fs-uae.dat
-	mkdir -p $(DESTDIR)$(datadir)
-	cp -R $(s)/share/applications $(DESTDIR)$(datadir)
-	cp -R $(s)/share/fs-uae $(DESTDIR)$(datadir)
-	cp -R $(s)/share/icons $(DESTDIR)$(datadir)
-	cp -R $(b)/share/locale $(DESTDIR)$(datadir)
-	cp fs-uae.dat $(DESTDIR)$(datadir)/fs-uae/fs-uae.dat
+	chmod -R u+w $(s)/share/
+	mkdir -p $(DESTDIR)$(datadir)/applications
+	cp -R $(s)/share/applications/* $(DESTDIR)$(datadir)/applications
+	mkdir -p $(DESTDIR)$(datadir)/fs-uae
+	cp -R $(s)/share/fs-uae/* $(DESTDIR)$(datadir)/fs-uae
+	mkdir -p $(DESTDIR)$(datadir)/icons
+	cp -R $(s)/share/icons/* $(DESTDIR)$(datadir)/icons
+	mkdir -p $(DESTDIR)$(datadir)/locale
+	cp -R $(b)/share/locale/* $(DESTDIR)$(datadir)/locale
+	cp fs-uae.dat $(DESTDIR)$(datadir)/fs-uae
 
 uninstall-local:
 	rm -f $(DESTDIR)$(datadir)/applications/fs-uae.desktop

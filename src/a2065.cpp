@@ -22,10 +22,10 @@
 #include "savestate.h"
 #include "autoconf.h"
 
-#define DUMPPACKET 0
+#define DUMPPACKET 1
 
 #define MEM_MIN 0x8100
-int log_a2065 = 0;
+int log_a2065 = 1;
 static int log_transmit = 1;
 static int log_receive = 1;
 int a2065_promiscuous = 0;
@@ -172,7 +172,7 @@ static void dumppacket (const TCHAR *n, uae_u8 *packet, int len)
 		_stprintf (buf + i * 3, _T(".%02X"), packet[i]);
 	}
 	write_log (_T("%s %d: "), n, len);
-	write_log (buf);
+	write_log (_T("%s"), buf);
 	write_log (_T("\n\n"));
 }
 #endif

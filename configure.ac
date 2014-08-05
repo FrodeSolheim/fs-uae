@@ -293,12 +293,12 @@ AC_TYPE_UINT64_T
 AC_TYPE_UINT8_T
 AC_TYPE_LONG_LONG_INT
 
-AC_CHECK_SIZEOF(short)
-AC_CHECK_SIZEOF(long)
 AC_CHECK_SIZEOF(int)
-AC_CHECK_SIZEOF(void *)
+AC_CHECK_SIZEOF(long)
 AC_CHECK_SIZEOF(long long)
 AC_CHECK_SIZEOF(long long int)
+AC_CHECK_SIZEOF(short)
+AC_CHECK_SIZEOF(void *)
 
 # Checks for library functions.
 

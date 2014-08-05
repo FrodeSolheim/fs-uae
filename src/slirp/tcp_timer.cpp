@@ -73,7 +73,7 @@ void tcp_slowtimo(void)
 	struct tcpcb *tp;
 	int i;
 
-	DEBUG_CALL("tcp_slowtimo");
+	//DEBUG_CALL("tcp_slowtimo\n");
 	
 	tcp_maxidle = TCPTV_KEEPCNT * tcp_keepintvl;
 	/*

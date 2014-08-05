@@ -50,6 +50,12 @@ typedef int ioctlsockopt_t;
 # include <stdint.h>
 #endif
 
+#ifdef __MINGW32__
+typedef uint8_t u_int8_t;
+typedef uint16_t u_int16_t;
+typedef uint32_t u_int32_t;
+#endif
+
 #ifdef NEED_TYPEDEFS
 typedef char int8_t;
 typedef unsigned char u_int8_t;
@@ -360,7 +366,7 @@ struct tcpcb *tcp_drop(struct tcpcb *tp, int err);
 #define MAX_MRU 16384
 #endif
 
-#ifndef _WIN32
+#if !defined(_WIN32) || defined(__MINGW32__)
 #define min(x,y) ((x) < (y) ? (x) : (y))
 #define max(x,y) ((x) > (y) ? (x) : (y))
 #endif

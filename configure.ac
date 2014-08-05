@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.67])
-AC_INIT([FS-UAE], [2.5.6dev],
+AC_INIT([FS-UAE], [2.5.7dev],
         [frode@fs-uae.net], [fs-uae], [http://fs-uae.net])
 AC_CONFIG_AUX_DIR([.])
 AC_CANONICAL_SYSTEM
@@ -63,6 +63,8 @@ AC_CHECK_LIB([gdi32], [main])
 
 AC_DEFINE([USE_GLIB], [1], [Define to 1 to use GLib])
 PKG_CHECK_MODULES([GLIB], [glib-2.0 >= 2.32 gthread-2.0])
+
+AC_CHECK_LIB([Iphlpapi], [main])
 
 PKG_CHECK_MODULES([LIBMPEG2], [libmpeg2 libmpeg2convert])
 

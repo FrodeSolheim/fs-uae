@@ -5,10 +5,14 @@
 #include "slirp/slirp.h"
 #include "slirp/libslirp.h"
 
+#ifdef FSUAE
+#include "ethernet.h"
+#else
 #ifdef _WIN32
 #include "win32_uaenet.h"
 #else
 #include "ethernet.h"
+#endif
 #endif
 #include "threaddep/thread.h"
 #include "options.h"

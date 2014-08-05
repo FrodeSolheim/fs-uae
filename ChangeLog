@@ -1,5 +1,6 @@
 Version 2.6.7dev:
 
+* Fix 68000 cycle exact mode (tbl == op_smalltbl_14_ff check was missing).
 * Fixed specifying base_dir via config file (broke in 2.5.6dev).
 * Re-enable slirp/a2065 by default, enable sana2 (does not seem to work yet).
 * Modified Makefile.am for out-of-tree builds.

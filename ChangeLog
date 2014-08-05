@@ -1,5 +1,6 @@
 Version 2.6.7dev:
 
+* Fixed specifying base_dir via config file (broke in 2.5.6dev).
 * Re-enable slirp/a2065 by default, enable sana2 (does not seem to work yet).
 * Modified Makefile.am for out-of-tree builds.
 * Fixed crash when playing videos with CD32 FMV (no display yet).

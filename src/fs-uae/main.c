@@ -1018,8 +1018,6 @@ int main(int argc, char* argv[]) {
     fs_log(LOG_LINE);
     fs_log("\n");
 
-    fs_uae_plugins_init();
-
     fs_emu_init_overlays(overlay_names);
     fs_emu_init();
 
@@ -1049,6 +1047,8 @@ int main(int argc, char* argv[]) {
     fs_uae_kickstarts_dir();
     fs_uae_configurations_dir();
     fs_uae_init_path_resolver();
+
+    fs_uae_plugins_init();
 
     // must be called early, before fs_emu_init -affects video output
     fs_uae_configure_amiga_model();

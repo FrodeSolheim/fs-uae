@@ -1,5 +1,5 @@
-SUBDIRS = libmpeg2 include libvo src test vc++
-DIST_SUBDIRS = doc $(SUBDIRS)
+SUBDIRS = libmpeg2 include
+DIST_SUBDIRS = doc libmpeg2 include libvo src test
 
 EXTRA_DIST = bootstrap CodingStyle \
     m4/cflags.m4 m4/inttypes.m4 m4/keywords.m4 m4/nonpic.m4

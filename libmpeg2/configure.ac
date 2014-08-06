@@ -6,7 +6,7 @@ AC_CONFIG_SRCDIR([src/mpeg2dec.c])
 AC_CONFIG_AUX_DIR(.auto)
 AC_CONFIG_FILES([Makefile include/Makefile test/Makefile
     doc/Makefile src/Makefile libmpeg2/Makefile libmpeg2/convert/Makefile
-    libvo/Makefile vc++/Makefile
+    libvo/Makefile
     libmpeg2/libmpeg2.pc libmpeg2/convert/libmpeg2convert.pc])
 AC_CONFIG_HEADERS([include/config.h])
 AC_CANONICAL_HOST
@@ -18,6 +18,8 @@ dnl Checks for compiler
 AC_PROG_CC
 AC_PROG_GCC_TRADITIONAL
 AM_PROG_AS
+
+AM_PROG_AR
 
 dnl Checks for headers. We do this before the CC-specific section because
 dnl autoconf generates tests for generic headers before the first header test.
@@ -56,6 +58,10 @@ elif test x"$GCC" = x"yes"; then
 
     dnl -fno-common
     TRY_CFLAGS="$OPT_CFLAGS -fno-common"
+    AC_TRY_CFLAGS([$TRY_CFLAGS $CFLAGS],[OPT_CFLAGS="$TRY_CFLAGS"])
+
+    dnl -std=gnu89
+    TRY_CFLAGS="$OPT_CFLAGS -std=gnu89"
     AC_TRY_CFLAGS([$TRY_CFLAGS $CFLAGS],[OPT_CFLAGS="$TRY_CFLAGS"])
 
     dnl arch-specific flags

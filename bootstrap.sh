@@ -1,4 +1,8 @@
 #!/bin/sh -e
+echo "Bootstrapping libmpeg2..."
+cd libmpeg2
+./bootstrap
+cd ..
 echo "Boostrapping fs-uae..."
 # version number is cached in autom4te.cache
 rm -Rf autom4te.cache

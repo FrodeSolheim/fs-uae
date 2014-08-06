@@ -66,7 +66,9 @@ PKG_CHECK_MODULES([GLIB], [glib-2.0 >= 2.32 gthread-2.0])
 
 AC_CHECK_LIB([Iphlpapi], [main])
 
-PKG_CHECK_MODULES([LIBMPEG2], [libmpeg2 libmpeg2convert])
+# Todo: make configurable
+# PKG_CHECK_MODULES([LIBMPEG2], [libmpeg2 libmpeg2convert])
+AM_CONDITIONAL([BUILTIN_LIBMPEG2], [true])
 
 # The built-in Lua has been sandboxed
 # AC_DEFINE([USE_LUA], [1], [Define to 1 to use LUA])
@@ -531,6 +533,7 @@ OPT_FEATURE([A_ZIP], [zip], [zip],
 
 AC_DEFINE([FPU_UAE], [1], [Define to 1])
 
+AC_CONFIG_SUBDIRS([libmpeg2])
 
 # Write Makefile
 

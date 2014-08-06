@@ -1,5 +1,7 @@
 # Makefile.am for FS-UAE
 
+SUBDIRS = libmpeg2
+
 WARNINGS =
 
 CMCFLAGS =
@@ -16,7 +18,6 @@ CMCFLAGS += -I$(s)/libfsemu/include
 CMCFLAGS += -I$(s)/libfsemu/src/lua
 CMCFLAGS += @FREETYPE_CFLAGS@
 CMCFLAGS += @GLIB_CFLAGS@
-CMCFLAGS += @LIBMPEG2_CFLAGS@
 CMCFLAGS += @LUA_CFLAGS@
 CMCFLAGS += @MIR_CFLAGS@
 CMCFLAGS += @OPENAL_CFLAGS@
@@ -42,7 +43,6 @@ LIBS += @CARBON_LIBS@
 LIBS += @FREETYPE_LIBS@
 LIBS += @GLIB_LIBS@
 LIBS += @IOKIT_LIBS@
-LIBS += @LIBMPEG2_LIBS@
 # LIBS += @MIR_LIBS@
 LIBS += @OPENAL_LIBS@
 LIBS += @OPENGL_LIBS@
@@ -71,6 +71,8 @@ noinst_PROGRAMS = \
 	gen/gencomp \
 	gen/gencpu \
 	gen/genlinetoscr
+
+fs_uae_LDADD =
 
 fs_uae_SOURCES = \
 	libfsemu/src/base.c \
@@ -357,6 +359,16 @@ fs_uae_SOURCES += \
 	libudis86/src/syn.c \
 	libudis86/src/syn-intel.c \
 	libudis86/src/udis86.c
+endif
+
+if BUILTIN_LIBMPEG2
+AM_CPPFLAGS += -I$(s)/libmpeg2/include
+fs_uae_LDADD += \
+	libmpeg2/libmpeg2/.libs/libmpeg2.a \
+	libmpeg2/libmpeg2/convert/.libs/libmpeg2convert.a
+else
+CMCFLAGS += @LIBMPEG2_CFLAGS@
+LIBS += @LIBMPEG2_LIBS@
 endif
 
 nodist_fs_uae_SOURCES = \

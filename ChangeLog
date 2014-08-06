@@ -1,5 +1,6 @@
 Version 2.5.8dev:
 
+* Bundle libmpeg2 with FS-UAE source (missing on many Linux distros).
 * Don't install uaenative.library unless requested.
 
 Version 2.5.7dev:

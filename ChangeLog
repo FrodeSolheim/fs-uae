@@ -1,4 +1,8 @@
-Version 2.6.7dev:
+Version 2.5.8dev:
+
+* Don't install uaenative.library unless requested.
+
+Version 2.5.7dev:
 
 * Fix 68000 cycle exact mode (tbl == op_smalltbl_14_ff check was missing).
 * Fixed specifying base_dir via config file (broke in 2.5.6dev).

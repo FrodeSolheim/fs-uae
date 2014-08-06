@@ -832,11 +832,17 @@ static struct uae_library uaenative_library = {
 
 void uaenative_install (void)
 {
+    if (!currprefs.native_code) {
+        return;
+    }
     uae_library_install (&uaenative_library);
 }
 
 uaecptr uaenative_startup (uaecptr res_addr)
 {
+    if (!currprefs.native_code) {
+        return res_addr;
+    }
     return uae_library_startup (res_addr, &uaenative_library);
 }
 

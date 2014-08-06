@@ -805,6 +805,29 @@ EXTRA_DIST = \
 	share/fs-uae \
 	share/icons
 
+CLEANFILES = \
+	gen/blitfunc.cpp \
+	gen/blitfunc.h \
+	gen/blit.h \
+	gen/blittable.cpp \
+	gen/compemu.cpp \
+	gen/compstbl.cpp \
+	gen/comptbl.h \
+	gen/cpudefs.cpp \
+	gen/cpuemu_0.cpp \
+	gen/cpuemu_11.cpp \
+	gen/cpuemu_13.cpp \
+	gen/cpuemu_20.cpp \
+	gen/cpuemu_21.cpp \
+	gen/cpuemu_22.cpp \
+	gen/cpuemu_23.cpp \
+	gen/cpuemu_31.cpp \
+	gen/cpuemu_32.cpp \
+	gen/cpuemu_33.cpp \
+	gen/cpustbl.cpp \
+	gen/cputbl.h \
+	gen/linetoscr.cpp
+
 gen/blit.h: gen/genblitter$(EXEEXT)
 	$(b)/gen/genblitter$(EXEEXT) i > $(b)/gen/blit.h
 

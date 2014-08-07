@@ -7,6 +7,10 @@
 extern "C" {
 #endif
 
+/* Sets uaem metadata write flags based on chars in flags. You only need
+ * to call this function to set non-default behavior. */
+void uae_set_uaem_write_flags_from_string(const char *flags);
+
 int amiga_get_vsync_counter();
 void amiga_set_vsync_counter(int vsync_counter);
 

@@ -1,5 +1,6 @@
 Version 2.5.8dev:
 
+* New option uaem_write_flags to control when .uaem files are created.
 * Support NewMouse-compatible mouse wheel events.
 * Bundle libmpeg2 with FS-UAE source (missing on many Linux distros).
 * Don't install uaenative.library unless requested.

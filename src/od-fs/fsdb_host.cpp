@@ -18,6 +18,9 @@
 #include "options.h"
 #include "memory_uae.h"
 
+#include "uae/uae.h"
+#include "uae/assert.h"
+
 #include "fsdb.h"
 #include "zfile.h"
 
@@ -33,6 +36,68 @@
 
 #include "fsdb_host.h"
 
+enum uaem_write_flags_t {
+    WF_NEVER = (1 << 0),
+    WF_ALWAYS = (1 << 1),
+    WF_EXISTS = (1 << 2),
+    WF_NOTE = (1 << 3),
+    WF_TIME = (1 << 4),
+    WF_HOLD = (1 << 5), // FIXME HOLD?
+    WF_SCRIPT = (1 << 6),
+    WF_PURE = (1 << 7),
+    WF_ARCHIVE = (1 << 8),
+    WF_READ = (1 << 9),
+    WF_WRITE = (1 << 10),
+    WF_EXECUTE = (1 << 11),
+    WF_DELETE = (1 << 12),
+};
+
+static char g_fsdb_file_path_buffer[PATH_MAX + 1] = { };
+static unsigned int g_uaem_flags = WF_ALWAYS;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#define PARSE_WF(flag, name) \
+    else if (*c == flag) { \
+        write_log("- " #name "n"); \
+        g_uaem_flags |= name; \
+    }
+
+void uae_set_uaem_write_flags_from_string(const char *flags) {
+    uae_assert (flags != NULL);
+    write_log("uaem_write_flags = %s\n", flags);
+    g_uaem_flags = 0;
+    for (const char *c = flags; *c; c++) {
+        if (*c == '0') {
+            /* usually used by itself to disable all flags (by not
+             * specifying any other) */
+        }
+        PARSE_WF('1', WF_ALWAYS)
+        PARSE_WF('n', WF_NOTE)
+        PARSE_WF('t', WF_TIME)
+        PARSE_WF('h', WF_HOLD)
+        PARSE_WF('s', WF_SCRIPT)
+        PARSE_WF('p', WF_PURE)
+        PARSE_WF('a', WF_ARCHIVE)
+        PARSE_WF('r', WF_READ)
+        PARSE_WF('w', WF_WRITE)
+        PARSE_WF('e', WF_EXECUTE)
+        PARSE_WF('d', WF_DELETE)
+        else if (*c == ' ') {
+            /* ignore space */
+        }
+        else {
+            write_log("- unknown flag '%c'\n", *c);
+        }
+    }
+}
+
+#ifdef __cplusplus
+}
+#endif
+
 void fsdb_lock() {
     // FIXME
 }
@@ -40,8 +105,6 @@ void fsdb_lock() {
 void fsdb_unlock() {
     // FIXME
 }
-
-static char g_fsdb_file_path_buffer[PATH_MAX + 1] = { };
 
 char *fsdb_file_path(const char* nname) {
     strncpy(g_fsdb_file_path_buffer, nname, PATH_MAX);
@@ -108,25 +171,14 @@ void fsdb_init_file_info(fsdb_file_info *info) {
     }
 }
 
-FILE *fsdb_open_meta_file_for_path(const char *path, const char *mode,
-        int always_open) {
-    char *meta_file = fs_strconcat(path, ".uaem", NULL);
+static FILE *fsdb_open_meta_file(const char *meta_file, const char *mode) {
     if (g_fsdb_debug) {
         write_log("opening meta file %s mode %s\n", meta_file, mode);
-    }
-    if (!always_open) {
-        if (!fs_path_exists(meta_file)) {
-            if (g_fsdb_debug) {
-                write_log("- didn't exist, don't force open\n");
-            }
-            return NULL;
-        }
     }
     FILE *f = fs_fopen(meta_file, mode);
     if (g_fsdb_debug) {
         write_log("- meta file opened? %d\n", f != NULL);
     }
-    free(meta_file);
     return f;
 }
 
@@ -303,7 +355,7 @@ int custom_fsdb_used_as_nname(a_inode *base, const TCHAR *nname) {
     return 1;
 }
 
-int fsdb_get_file_info(const char *nname, fsdb_file_info *info) {
+static int fsdb_get_file_info(const char *nname, fsdb_file_info *info) {
     int error = 0;
     if (g_fsdb_debug) {
         write_log("fsdb_get_file_info %s\n", nname);
@@ -325,13 +377,17 @@ int fsdb_get_file_info(const char *nname, fsdb_file_info *info) {
 
     char *meta_file = fs_strconcat(nname, ".uaem", NULL);
 
-    FILE *f = fsdb_open_meta_file_for_path(nname, "rb", 1);
+    FILE *f = fsdb_open_meta_file(meta_file, "rb");
     int file_size = 0;
     if (f == NULL) {
-        if (g_fsdb_debug) {
-            write_log("fsdb_get_file_info - could not open file\n");
+        if (fs_path_exists(meta_file)) {
+            error = host_errno_to_dos_errno(errno);
+            write_log("WARNING: fsdb_get_file_info - could not open "
+                      "meta file for reading\n");
         }
-        error = host_errno_to_dos_errno(errno);
+        else if (g_fsdb_debug) {
+            write_log("fsdb_get_file_info - no .uaem file\n");
+        }
     }
     else {
         fseek(f, 0, SEEK_END);
@@ -344,6 +400,7 @@ int fsdb_get_file_info(const char *nname, fsdb_file_info *info) {
     char *p = data;
     char *end = data + file_size;
     if (end - data > 0) {
+        /* file must be open, or (end - data) would be zero */
         int count = fread(data, 1, file_size, f);
         if (count != file_size) {
             write_log("WARNING: could not read permissions "
@@ -434,16 +491,18 @@ int fsdb_get_file_info(const char *nname, fsdb_file_info *info) {
     }
 
     if ((end - p) > 0) {
-        int len = end - p;
+        ptrdiff_t len = end - p;
         info->comment = (char*) malloc(len + 1);
         if (g_fsdb_debug) {
-            write_log("- malloced comment len %d (+1)\n", len);
+            write_log("- malloced comment len %lld (+1)\n", (long long) len);
         }
-        char *o = info->comment;
-        while (p < end && *p != '\r' && *p != '\n') {
-            *o++ = *p++;
+        if (info->comment) {
+            char *o = info->comment;
+            while (p < end && *p != '\r' && *p != '\n') {
+                *o++ = *p++;
+            }
+            *o = '\0';
         }
-        *o = '\0';
     }
 
     free(data);
@@ -506,81 +565,153 @@ int fsdb_set_file_info(const char *nname, fsdb_file_info *info) {
         error = ERROR_OBJECT_NOT_AROUND;
     }
 
-    int need_metadata_file = 1;
+    int need_metadata_file = 0;
+
     if (info->comment != NULL) {
         if (g_fsdb_debug) {
             write_log("- comment is not NULL: \"%s\"\n", info->comment);
         }
+        if ((g_uaem_flags & WF_NOTE)) {
+            need_metadata_file |= WF_NOTE;
+        }
     }
-    else if (info->mode != (A_FIBF_READ | A_FIBF_WRITE | A_FIBF_EXECUTE | \
+
+    if (info->mode != (A_FIBF_READ | A_FIBF_WRITE | A_FIBF_EXECUTE | \
             A_FIBF_DELETE)) {
         if (g_fsdb_debug) {
             write_log("- mode was %d\n", info->mode);
         }
+        /* check for bits set */
+        if ((g_uaem_flags & WF_HOLD) && (info->mode & A_FIBF_HIDDEN)) {
+            need_metadata_file |= WF_HOLD;
+        }
+        if ((g_uaem_flags & WF_SCRIPT) && (info->mode & A_FIBF_SCRIPT)) {
+            need_metadata_file |= WF_SCRIPT;
+        }
+        if ((g_uaem_flags & WF_PURE) && (info->mode & A_FIBF_PURE)) {
+            need_metadata_file |= WF_PURE;
+        }
+        if ((g_uaem_flags & WF_ARCHIVE) && (info->mode & A_FIBF_ARCHIVE)) {
+            need_metadata_file |= WF_ARCHIVE;
+        }
+        /* check for bits NOT set */
+        if ((g_uaem_flags & WF_READ) && !(info->mode & A_FIBF_READ)) {
+            need_metadata_file |= WF_READ;
+        }
+        if ((g_uaem_flags & WF_WRITE) && !(info->mode & A_FIBF_WRITE)) {
+            need_metadata_file |= WF_WRITE;
+        }
+        if ((g_uaem_flags & WF_EXECUTE) && !(info->mode & A_FIBF_EXECUTE)) {
+            need_metadata_file |= WF_EXECUTE;
+        }
+        if ((g_uaem_flags & WF_DELETE) && !(info->mode & A_FIBF_DELETE)) {
+            need_metadata_file |= WF_DELETE;
+        }
+    }
+
+    struct mytimeval mtv;
+    amiga_to_timeval(&mtv, info->days, info->mins, info->ticks);
+    mtv.tv_sec -= fs_get_local_time_offset(mtv.tv_sec);
+    if (g_fsdb_debug) {
+        write_log("- days %d mins %d ticks %d - %lld %d\n",
+                info->days, info->mins, info->ticks, mtv.tv_sec,
+                mtv.tv_usec);
+        write_log("- fs_get_local_time_offset %d\n",
+                fs_get_local_time_offset(mtv.tv_sec));
+    }
+
+    struct timeval tv;
+    tv.tv_sec = mtv.tv_sec;
+    tv.tv_usec = mtv.tv_usec;
+    if (fs_set_file_time(nname, &tv) != 0) {
+        if (g_fsdb_debug) {
+            write_log("- errno %d setting file mtime\n", errno);
+        }
+        error = errno;
     }
     else {
-        struct mytimeval mtv;
-        amiga_to_timeval(&mtv, info->days, info->mins, info->ticks);
-        mtv.tv_sec -= fs_get_local_time_offset(mtv.tv_sec);
         if (g_fsdb_debug) {
-            write_log("- days %d mins %d ticks %d - %lld %d\n",
-                    info->days, info->mins, info->ticks, mtv.tv_sec,
-                    mtv.tv_usec);
-            write_log("- fs_get_local_time_offset %d\n",
-                    fs_get_local_time_offset(mtv.tv_sec));
+            write_log("- checking if precision is good enough!\n");
         }
-
-        struct timeval tv;
-        tv.tv_sec = mtv.tv_sec;
-        tv.tv_usec = mtv.tv_usec;
-        if (fs_set_file_time(nname, &tv) != 0) {
-            if (g_fsdb_debug) {
-                write_log("- errno %d setting file mtime\n", errno);
-            }
-            error = errno;
-        }
-        else {
-            if (g_fsdb_debug) {
-                write_log("- checking if precision is good enough!\n");
-            }
-            struct fs_stat buf;
-            if (fs_stat(nname, &buf) == 0) {
-                write_log("- %d vs %d\n", (int) buf.mtime, (int) mtv.tv_sec);
-                write_log("- %d vs %d\n", (int) buf.mtime_nsec, (int) (mtv.tv_usec * 1000));
-                if (buf.mtime == mtv.tv_sec &&
-                        buf.mtime_nsec == mtv.tv_usec * 1000) {
-                    if (g_fsdb_debug) {
-                        write_log("- good enough!\n");
-                        need_metadata_file = 0;
-                    }
+        struct fs_stat buf;
+        if (fs_stat(nname, &buf) == 0) {
+            write_log("- %d vs %d\n", (int) buf.mtime, (int) mtv.tv_sec);
+            write_log("- %d vs %d\n", (int) buf.mtime_nsec, (int) (mtv.tv_usec * 1000));
+            if (buf.mtime == mtv.tv_sec &&
+                    buf.mtime_nsec == mtv.tv_usec * 1000) {
+                if (g_fsdb_debug) {
+                    write_log("- good enough!\n");
                 }
-                else {
-                    if (g_fsdb_debug) {
-                        write_log("- *not* good enough!\n");
+            }
+            else {
+                if (g_fsdb_debug) {
+                    write_log("- *not* good enough!\n");
+                    if ((g_uaem_flags & WF_TIME)) {
+                        need_metadata_file |= WF_TIME;
                     }
+
                 }
             }
         }
     }
 
-    // always write metadata file, for now...
-    need_metadata_file = 1;
+    if ((g_uaem_flags & WF_ALWAYS)) {
+        need_metadata_file |= WF_ALWAYS;
+    }
 
-    if (!error) {
-        f = fsdb_open_meta_file_for_path(nname, "wb", need_metadata_file);
+    char *meta_file = fs_strconcat(nname, ".uaem", NULL);
+    if (fs_path_exists(meta_file)) {
+        need_metadata_file |= WF_EXISTS;
+    }
+    if (!error && need_metadata_file) {
+        write_log("need_metadata_file %d", need_metadata_file);
+        if ((need_metadata_file & WF_ALWAYS)) {
+            write_log(" WF_ALWAYS");
+        }
+        if ((need_metadata_file & WF_EXISTS)) {
+            write_log(" WF_EXISTS");
+        }
+        if ((need_metadata_file & WF_NOTE)) {
+            write_log(" WF_NOTE");
+        }
+        if ((need_metadata_file & WF_TIME)) {
+            write_log(" WF_TIME");
+        }
+        if ((need_metadata_file & WF_HOLD)) {
+            write_log(" WF_HOLD");
+        }
+        if ((need_metadata_file & WF_SCRIPT)) {
+            write_log(" WF_SCRIPT");
+        }
+        if ((need_metadata_file & WF_PURE)) {
+            write_log(" WF_PURE");
+        }
+        if ((need_metadata_file & WF_ARCHIVE)) {
+            write_log(" WF_ARCHIVE");
+        }
+        if ((need_metadata_file & WF_READ)) {
+            write_log(" WF_READ");
+        }
+        if ((need_metadata_file & WF_WRITE)) {
+            write_log(" WF_WRITE");
+        }
+        if ((need_metadata_file & WF_EXECUTE)) {
+            write_log(" WF_EXECUTE");
+        }
+        if ((need_metadata_file & WF_DELETE)) {
+            write_log(" WF_DELETE");
+        }
+        write_log("\n");
+        f = fsdb_open_meta_file(meta_file, "wb");
         if (f == NULL) {
-            if (g_fsdb_debug) {
-                write_log("fsdb_set_file_info - could not open file\n");
-            }
             error = host_errno_to_dos_errno(errno);
+            write_log("WARNING: fsdb_set_file_info - could not open "
+                      "meta file for writing\n");
         }
     }
+    free(meta_file);
 
-    if (need_metadata_file == 0 && f == NULL) {
-        return 0;
-    }
-
-    if (!error) {
+    if (!error && f != NULL) {
         char astr[] = "--------";
         if (info->mode & A_FIBF_HIDDEN) astr[0] = 'h';
         if (info->mode & A_FIBF_SCRIPT) astr[1] = 's';
@@ -597,7 +728,7 @@ int fsdb_set_file_info(const char *nname, fsdb_file_info *info) {
         }
     }
 
-    if (!error) {
+    if (!error && f != NULL) {
         struct mytimeval mtv;
         amiga_to_timeval(&mtv, info->days, info->mins, info->ticks);
 
@@ -619,7 +750,7 @@ int fsdb_set_file_info(const char *nname, fsdb_file_info *info) {
         }
     }
 
-    if (!error) {
+    if (!error && f != NULL) {
         if (info->comment) {
             write_log("- writing comment %s\n", info->comment);
             int len = strlen(info->comment);
@@ -629,10 +760,9 @@ int fsdb_set_file_info(const char *nname, fsdb_file_info *info) {
         }
     }
 
-    if (!error) {
+    if (!error && f != NULL) {
         fprintf(f, "\n");
     }
-
     if (f != NULL) {
         fclose(f);
     }
@@ -774,6 +904,7 @@ static void find_nname_case(const char *dir_path, char **name) {
     char *cmp_name = fs_utf8_to_latin1(*name, -1);
     if (cmp_name == NULL) {
         write_log("WARNING: could not convert to latin1: %s", *name);
+        fs_dir_close(dir);
         return;
     }
     lower_latin1(cmp_name);

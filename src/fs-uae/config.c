@@ -749,6 +749,11 @@ static void configure_hard_drive_image (int index, const char *path,
 void fs_uae_configure_hard_drives() {
     fs_emu_log("fs_uae_configure_hard_drives\n");
 
+    const char *flags = fs_config_get_const_string("uaem_write_flags");
+    if (flags != NULL) {
+        uae_set_uaem_write_flags_from_string(flags);
+    }
+
     for (int i = 0; i < 10; i++) {
         char *key = fs_strdup_printf("hard_drive_%d", i);
         char *path = fs_config_get_string(key);
@@ -779,12 +784,12 @@ void fs_uae_configure_hard_drives() {
         char *device = fs_strdup_printf("DH%d", i);
 
         int read_only = 0;
-        int virtual = 0;
+        int virtual_hd = 0;
         if (fs_path_is_dir(path)) {
-            virtual = 1;
+            virtual_hd = 1;
         }
         else if (fs_str_has_suffix(path, ".zip")) {
-            virtual = 1;
+            virtual_hd = 1;
             //read_write = ro_string;
             read_only = 1;
         }
@@ -796,7 +801,7 @@ void fs_uae_configure_hard_drives() {
         }
         free(key);
 
-        if (virtual) {
+        if (virtual_hd) {
             configure_hard_drive_directory(i, path, device, read_only,
                     boot_priority);
         }

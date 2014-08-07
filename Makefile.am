@@ -660,6 +660,7 @@ noinst_HEADERS = \
 	src/include/tabletlibrary.h \
 	src/include/traps.h \
 	src/include/uae.h \
+	src/include/uae/assert.h \
 	src/include/uae/types.h \
 	src/include/uae/string.h \
 	src/include/uae/regparam.h \

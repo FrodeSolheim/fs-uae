@@ -148,7 +148,6 @@ AC_CHECK_GENERATE_INTTYPES([include])
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
-AC_C_ALWAYS_INLINE
 AC_C_RESTRICT
 AC_C_BUILTIN_EXPECT
 AC_C_BIGENDIAN

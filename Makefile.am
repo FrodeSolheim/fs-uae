@@ -65,6 +65,8 @@ bin_PROGRAMS = \
 	fs-uae \
 	fs-uae-device-helper
 
+dist_doc_DATA = README COPYING
+
 noinst_PROGRAMS = \
 	gen/build68k \
 	gen/genblitter \
@@ -965,7 +967,7 @@ fs-uae.dat: $(catalogs)
 
 all-local: mo fs-uae.dat
 
-install-data-local: mo fs-uae.dat
+install-data-hook: mo fs-uae.dat
 	chmod -R u+w $(s)/share/
 	mkdir -p $(DESTDIR)$(datadir)/applications
 	cp -R $(s)/share/applications/* $(DESTDIR)$(datadir)/applications

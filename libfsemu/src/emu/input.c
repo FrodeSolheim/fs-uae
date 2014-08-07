@@ -183,7 +183,7 @@ void fs_emu_configure_mouse(const char* name, int horiz, int vert, int left,
         g_input_action_table[mouse_index(
                 device.index, 0, 0, FS_ML_BUTTON_WHEELUP)] = wheel_axis;
         g_input_action_table[mouse_index(
-                device.index, 0, 0,FS_ML_BUTTON_WHEELDOWN)] = wheel_axis;
+                device.index, 0, 0, FS_ML_BUTTON_WHEELDOWN)] = wheel_axis;
         break;
     }
 }
@@ -1515,6 +1515,9 @@ static int input_function(fs_ml_event *event) {
         }
 
         int state = event->button.state;
+        if (g_debug_input) {
+            fs_log(" => mouse button %d, %d\n", event->button.button, state);
+        }
         if (event->button.button == FS_ML_BUTTON_WHEELUP) {
             state = state * 1;
         }
@@ -1523,9 +1526,11 @@ static int input_function(fs_ml_event *event) {
         }
         int input_event = g_input_action_table[mouse_index(
                 event->button.device, 0, 0, event->button.button)];
-        // printf("mouse button %d, %d\n", event->button.button, state);
         if (input_event > 0) {
-            // printf("button input_event %d state %d\n", input_event, state);
+            if (g_debug_input) {
+                fs_log(" => button input_event %d state %d\n",
+                       input_event, state);
+            }
             input_event = input_event | (state << 16);
             input_event = input_event & 0x00ffffff;
             fs_emu_queue_input_event(input_event);

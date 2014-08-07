@@ -1849,6 +1849,8 @@ static void mouseupdate (int pct, bool vsync)
 			}
 
 			v = getvelocity (i, 2, pct);
+			/* if v != 0, record mouse wheel key presses
+			 * according to the NewMouse standard */
 			if (v > 0)
 				record_key (0x7a << 1);
 			else if (v < 0)

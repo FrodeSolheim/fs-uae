@@ -15,6 +15,7 @@ int sdl_key_to_dik (int keycode);
 
 int tablet_log = 0;
 
+static int g_debug_input;
 static int g_joystick_port_autofire[4];
 
 void amiga_set_joystick_port_autofire(int port, int autofire) {
@@ -57,7 +58,9 @@ int amiga_send_input_event(int input_event, int state) {
     write_sync_log("apply action %d state=%d\n", input_event, state);
 //#endif
 
-    //printf("amiga_send_input_event %d %d\n", input_event, state);
+    if (g_debug_input) {
+        write_log("amiga_send_input_event %d %d\n", input_event, state);
+    }
 
     if (input_event > INPUTEVENT_PRIVATE_START) {
         return handle_custom_action(input_event, state);
@@ -270,7 +273,9 @@ struct inputdevice_functions inputdevicefunc_mouse = {
 
 
 static int init_kb (void) {
-    LOG_STUB("");
+    g_debug_input = getenv("FS_DEBUG_INPUT") && \
+            getenv("FS_DEBUG_INPUT")[0] == '1';
+
     return 1;
 }
 

@@ -60,7 +60,7 @@ static int g_fs_ml_automatic_input_grab = 1;
 static int g_fs_ml_keyboard_input_grab = 1;
 static int g_fsaa = 0;
 
-static int g_debug_keys = 0;
+static int g_debug_input = 0;
 static int g_f12_state, g_f11_state;
 
 static char *g_window_title;
@@ -707,7 +707,7 @@ static int event_loop() {
 #endif
         case SDL_KEYDOWN:
         case SDL_KEYUP:
-            if (g_debug_keys) {
+            if (g_debug_input) {
                 fs_log("SDL key sym %d mod %d scancode %d state %d\n",
                         event.key.keysym.sym, event.key.keysym.mod,
                         event.key.keysym.scancode, event.key.state);
@@ -716,7 +716,7 @@ static int event_loop() {
                 // ignore "ghost key" seen on OS X which without this
                 // specific check will cause the A key to be mysteriously
                 // pressed.
-                if (g_debug_keys) {
+                if (g_debug_input) {
                     fs_log("- ignored key with keysym 0 and scancode 0\n");
                 }
                 continue;
@@ -807,7 +807,7 @@ static int event_loop() {
             }
 #endif
             else if (key >= 0) {
-                if (g_debug_keys) {
+                if (g_debug_input) {
                     fs_log("- key code set to %d (was %d) based on "
                            "scancode %d\n", key, event.key.keysym.sym,
                            event.key.keysym.scancode);
@@ -907,7 +907,7 @@ static int event_loop() {
             new_event->motion.xrel = event.motion.xrel;
             new_event->motion.yrel = event.motion.yrel;
 
-            if (g_debug_keys) {
+            if (g_debug_input) {
                 fs_log("SDL mouse event x: %4d y: %4d xrel: %4d yrel: %4d\n", 
                     event.motion.x, event.motion.y,
                     event.motion.xrel, event.motion.yrel);
@@ -950,6 +950,29 @@ static int event_loop() {
             new_event->button.state = event.button.state;
         }
 #ifdef USE_SDL2
+        else if (event.type == SDL_MOUSEWHEEL) {
+            /*
+            if (event.wheel.which == SDL_TOUCH_MOUSEID) {
+
+            }
+            */
+            if (event.wheel.y) {
+                if (g_debug_input) {
+                    fs_log("SDL mouse event y-scroll: %4d\n",
+                        event.wheel.y);
+                }
+                new_event = fs_ml_alloc_event();
+                new_event->type = FS_ML_MOUSEBUTTONDOWN;
+                if (event.wheel.y > 0) {
+                    new_event->button.button = FS_ML_BUTTON_WHEELUP;
+                }
+                else {
+                    new_event->button.button = FS_ML_BUTTON_WHEELDOWN;
+                }
+                new_event->button.device = g_fs_ml_first_mouse_index;
+                new_event->button.state = 1;
+            }
+        }
         else if (event.type == SDL_TEXTINPUT) {
             new_event = fs_ml_alloc_event();
             new_event->type = FS_ML_TEXTINPUT;
@@ -1035,7 +1058,7 @@ void fs_ml_video_init() {
     g_video_event_queue = fs_queue_new();
     g_video_event_mutex = fs_mutex_create();
 
-    g_debug_keys = getenv("FS_DEBUG_INPUT") && \
+    g_debug_input = getenv("FS_DEBUG_INPUT") && \
             getenv("FS_DEBUG_INPUT")[0] == '1';
 
     fs_ml_render_init();

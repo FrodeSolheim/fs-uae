@@ -900,63 +900,63 @@ catalogs = \
 
 share/locale/cs/LC_MESSAGES/fs-uae.mo: po/cs.po
 	mkdir -p share/locale/cs/LC_MESSAGES
-	$(MSGFMT) --verbose $< -o $@
+	$(MSGFMT) --verbose po/cs.po -o $@
 
 share/locale/da/LC_MESSAGES/fs-uae.mo: po/da.po
 	mkdir -p share/locale/da/LC_MESSAGES
-	$(MSGFMT) --verbose $< -o $@
+	$(MSGFMT) --verbose po/da.po -o $@
 
 share/locale/de/LC_MESSAGES/fs-uae.mo: po/de.po
 	mkdir -p share/locale/de/LC_MESSAGES
-	$(MSGFMT) --verbose $< -o $@
+	$(MSGFMT) --verbose po/de.po -o $@
 
 share/locale/el/LC_MESSAGES/fs-uae.mo: po/el.po
 	mkdir -p share/locale/el/LC_MESSAGES
-	$(MSGFMT) --verbose $< -o $@
+	$(MSGFMT) --verbose po/el.po -o $@
 
 share/locale/es/LC_MESSAGES/fs-uae.mo: po/es.po
 	mkdir -p share/locale/es/LC_MESSAGES
-	$(MSGFMT) --verbose $< -o $@
+	$(MSGFMT) --verbose po/es.po -o $@
 
 share/locale/fi/LC_MESSAGES/fs-uae.mo: po/fi.po
 	mkdir -p share/locale/fi/LC_MESSAGES
-	$(MSGFMT) --verbose $< -o $@
+	$(MSGFMT) --verbose po/fi.po -o $@
 
 share/locale/fr/LC_MESSAGES/fs-uae.mo: po/fr.po
 	mkdir -p share/locale/fr/LC_MESSAGES
-	$(MSGFMT) --verbose $< -o $@
+	$(MSGFMT) --verbose po/fr.po -o $@
 
 share/locale/it/LC_MESSAGES/fs-uae.mo: po/it.po
 	mkdir -p share/locale/it/LC_MESSAGES
-	$(MSGFMT) --verbose $< -o $@
+	$(MSGFMT) --verbose po/it.po -o $@
 
 share/locale/nb/LC_MESSAGES/fs-uae.mo: po/nb.po
 	mkdir -p share/locale/nb/LC_MESSAGES
-	$(MSGFMT) --verbose $< -o $@
+	$(MSGFMT) --verbose po/nb.po -o $@
 
 share/locale/pl/LC_MESSAGES/fs-uae.mo: po/pl.po
 	mkdir -p share/locale/pl/LC_MESSAGES
-	$(MSGFMT) --verbose $< -o $@
+	$(MSGFMT) --verbose po/pl.po -o $@
 
 share/locale/pt/LC_MESSAGES/fs-uae.mo: po/pt.po
 	mkdir -p share/locale/pt/LC_MESSAGES
-	$(MSGFMT) --verbose $< -o $@
+	$(MSGFMT) --verbose po/pt.po -o $@
 
 share/locale/pt_BR/LC_MESSAGES/fs-uae.mo: po/pt_BR.po
 	mkdir -p share/locale/pt_BR/LC_MESSAGES
-	$(MSGFMT) --verbose $< -o $@
+	$(MSGFMT) --verbose po/pt_BR.po -o $@
 
 share/locale/sr/LC_MESSAGES/fs-uae.mo: po/sr.po
 	mkdir -p share/locale/sr/LC_MESSAGES
-	$(MSGFMT) --verbose $< -o $@
+	$(MSGFMT) --verbose po/sr.po -o $@
 
 share/locale/sv/LC_MESSAGES/fs-uae.mo: po/sv.po
 	mkdir -p share/locale/sv/LC_MESSAGES
-	$(MSGFMT) --verbose $< -o $@
+	$(MSGFMT) --verbose po/sv.po -o $@
 
 share/locale/tr/LC_MESSAGES/fs-uae.mo: po/tr.po
 	mkdir -p share/locale/tr/LC_MESSAGES
-	$(MSGFMT) --verbose $< -o $@
+	$(MSGFMT) --verbose po/tr.po -o $@
 
 mo: $(catalogs)
 

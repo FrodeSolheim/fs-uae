@@ -25,7 +25,7 @@
 #include "xwin.h"
 #include "identify.h"
 #include "audio.h"
-#include "sound.h"
+#include "sounddep/sound.h"
 #include "disk.h"
 #include "savestate.h"
 #include "autoconf.h"

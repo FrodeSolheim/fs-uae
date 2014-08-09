@@ -40,7 +40,7 @@
 #include "gui.h"
 #include "disk.h"
 #include "audio.h"
-#include "sound.h"
+#include "sounddep/sound.h"
 #include "savestate.h"
 #include "arcadia.h"
 #include "zfile.h"

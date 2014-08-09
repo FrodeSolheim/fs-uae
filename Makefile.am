@@ -757,7 +757,6 @@ noinst_HEADERS = \
 	src/od-fs/parser.h \
 	src/od-fs/picasso96_host.h \
 	src/od-fs/sleep.h \
-	src/od-fs/sound.h \
 	src/od-fs/sounddep/sound.h \
 	src/od-fs/sysconfig.h \
 	src/od-fs/target.h \

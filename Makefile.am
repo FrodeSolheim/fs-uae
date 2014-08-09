@@ -211,6 +211,118 @@ fs_uae_SOURCES = \
 	src/hardfile.cpp \
 	src/hrtmon.rom.cpp \
 	src/identify.cpp \
+	src/include/a2065.h \
+	src/include/a2091.h \
+	src/include/akiko.h \
+	src/include/amax.h \
+	src/include/ar.h \
+	src/include/arcadia.h \
+	src/include/audio.h \
+	src/include/autoconf.h \
+	src/include/blitter.h \
+	src/include/blkdev.h \
+	src/include/bsdsocket.h \
+	src/include/calc.h \
+	src/include/catweasel.h \
+	src/include/cd32_fmv.h \
+	src/include/cdtv.h \
+	src/include/cia.h \
+	src/include/clipboard.h \
+	src/include/commpipe.h \
+	src/include/consolehook.h \
+	src/include/cpu_prefetch.h \
+	src/include/cpuboard.h \
+	src/include/cpummu.h \
+	src/include/cpummu030.h \
+	src/include/crc32.h \
+	src/include/custom.h \
+	src/include/debug.h \
+	src/include/disk.h \
+	src/include/diskutil.h \
+	src/include/dongle.h \
+	src/include/drawing.h \
+	src/include/driveclick.h \
+	src/include/enforcer.h \
+	src/include/epsonprinter.h \
+	src/include/ersatz.h \
+	src/include/ethernet.h \
+	src/include/events.h \
+	src/include/execio.h \
+	src/include/execlib.h \
+	src/include/fdi2raw.h \
+	src/include/filesys.h \
+	src/include/flags_x86.h \
+	src/include/flashrom.h \
+	src/include/fpp-ieee-be.h \
+	src/include/fpp-unknown.h \
+	src/include/fsdb.h \
+	src/include/fsusage.h \
+	src/include/gayle.h \
+	src/include/genblitter.h \
+	src/include/gensound.h \
+	src/include/gfxboard.h \
+	src/include/gfxfilter.h \
+	src/include/gui.h \
+	src/include/identify.h \
+	src/include/inputdevice.h \
+	src/include/inputrecord.h \
+	src/include/isofs.h \
+	src/include/isofs_api.h \
+	src/include/keyboard.h \
+	src/include/keybuf.h \
+	src/include/luascript.h \
+	src/include/mackbd.h \
+	src/include/memory_uae.h \
+	src/include/mmu_common.h \
+	src/include/moduleripper.h \
+	src/include/native2amiga.h \
+	src/include/native2amiga_api.h \
+	src/include/ncr9x_scsi.h \
+	src/include/ncr_scsi.h \
+	src/include/newcpu.h \
+	src/include/options.h \
+	src/include/osemu.h \
+	src/include/packed.h \
+	src/include/parallel.h \
+	src/include/picasso96.h \
+	src/include/ppc.h \
+	src/include/readcpu.h \
+	src/include/rommgr.h \
+	src/include/rtgmodes.h \
+	src/include/sampler.h \
+	src/include/sana2.h \
+	src/include/savestate.h \
+	src/include/scp.h \
+	src/include/scsi.h \
+	src/include/scsidev.h \
+	src/include/serial.h \
+	src/include/statusline.h \
+	src/include/sysdeps.h \
+	src/include/tabletlibrary.h \
+	src/include/traps.h \
+	src/include/uae.h \
+	src/include/uae/assert.h \
+	src/include/uae/types.h \
+	src/include/uae/string.h \
+	src/include/uae/regparam.h \
+	src/include/uae/memory.h \
+	src/include/uae/jitconfig.h \
+	src/include/uae/enum.h \
+	src/include/uae/fs.h \
+	src/include/uae/asm.h \
+	src/include/uae/inline.h \
+	src/include/uae/cycleunit.h \
+	src/include/uae/limits.h \
+	src/include/uaeexe.h \
+	src/include/uaeipc.h \
+	src/include/uaenative.h \
+	src/include/uaeresource.h \
+	src/include/uaeserial.h \
+	src/include/uni_common.h \
+	src/include/unpacked.h \
+	src/include/xwin.h \
+	src/include/zarchive.h \
+	src/include/zfile.h \
 	src/inputdevice.cpp \
 	src/isofs.cpp \
 	src/jit/compemu_fpp.cpp \
@@ -325,17 +437,59 @@ endif
 if WITH_PPC
 AM_CPPFLAGS += -I$(s)/src/ppc/pearpc
 fs_uae_SOURCES += \
+	src/ppc/pearpc/cpu/common.h \
 	src/ppc/pearpc/cpu/cpu_generic/ppc_alu.cpp \
+	src/ppc/pearpc/cpu/cpu_generic/ppc_alu.h \
 	src/ppc/pearpc/cpu/cpu_generic/ppc_cpu.cpp \
+	src/ppc/pearpc/cpu/cpu_generic/ppc_cpu.h \
 	src/ppc/pearpc/cpu/cpu_generic/ppc_dec.cpp \
+	src/ppc/pearpc/cpu/cpu_generic/ppc_dec.h \
 	src/ppc/pearpc/cpu/cpu_generic/ppc_exc.cpp \
+	src/ppc/pearpc/cpu/cpu_generic/ppc_exc.h \
 	src/ppc/pearpc/cpu/cpu_generic/ppc_fpu.cpp \
+	src/ppc/pearpc/cpu/cpu_generic/ppc_fpu.h \
 	src/ppc/pearpc/cpu/cpu_generic/ppc_mmu.cpp \
+	src/ppc/pearpc/cpu/cpu_generic/ppc_mmu.h \
 	src/ppc/pearpc/cpu/cpu_generic/ppc_opc.cpp \
+	src/ppc/pearpc/cpu/cpu_generic/ppc_opc.h \
+	src/ppc/pearpc/cpu/cpu_generic/ppc_tools.h \
 	src/ppc/pearpc/cpu/cpu_generic/ppc_vec.cpp \
+	src/ppc/pearpc/cpu/cpu_generic/ppc_vec.h \
+	src/ppc/pearpc/cpu/cpu.h \
+	src/ppc/pearpc/cpu/debug.h \
+	src/ppc/pearpc/cpu/mem.h \
+	src/ppc/pearpc/debug/asm.h \
+	src/ppc/pearpc/debug/debugger.h \
+	src/ppc/pearpc/debug/debugparse.h \
+	src/ppc/pearpc/debug/debugtype.h \
+	src/ppc/pearpc/debug/lex.h \
+	src/ppc/pearpc/debug/parsehelper.h \
+	src/ppc/pearpc/debug/ppcdis.h \
+	src/ppc/pearpc/debug/ppcopc.h \
+	src/ppc/pearpc/debug/stdfuncs.h \
+	src/ppc/pearpc/debug/tracers.h \
+	src/ppc/pearpc/debug/x86dis.h \
+	src/ppc/pearpc/debug/x86opc.h \
+	src/ppc/pearpc/info.h \
+	src/ppc/pearpc/io/io.h \
+	src/ppc/pearpc/pearpc_config.h \
+	src/ppc/pearpc/system/arch/generic/sysendian.h \
+	src/ppc/pearpc/system/arch/generic/sysfeatures.h \
+	src/ppc/pearpc/system/arch/sysendian.h \
+	src/ppc/pearpc/system/arch/sysfeatures.h \
+	src/ppc/pearpc/system/arch/x86_64/sysendian.h \
+	src/ppc/pearpc/system/arch/x86_64/sysfeatures.h \
+	src/ppc/pearpc/system/arch/x86/sysendian.h \
+	src/ppc/pearpc/system/arch/x86/sysfeatures.h \
+	src/ppc/pearpc/system/systhread.h \
+	src/ppc/pearpc/system/types.h \
+	src/ppc/pearpc/tools/debug.h \
+	src/ppc/pearpc/tools/endianess.h \
+	src/ppc/pearpc/tools/snprintf.h \
 	src/ppc/pearpc/uaeglue.cpp \
 	src/ppc/ppc.cpp \
-	src/ppc/ppcd.cpp
+	src/ppc/ppcd.cpp \
+	src/ppc/ppcd.h
 endif
 
 if WITH_SLIRP
@@ -377,7 +531,7 @@ AM_CPPFLAGS += -I$(s)/lua/src
 fs_uae_SOURCES += \
 	libfsemu/src/emu/emu_lua.c \
 	src/fs-uae/luascript.c \
-	src/luascript.cpp \
+	src/luascript.cpp
 fs_uae_SOURCES += \
 	lua/src/lapi.c \
 	lua/src/lauxlib.c \
@@ -607,117 +761,6 @@ noinst_HEADERS = \
 	src/fs-uae/paths.h \
 	src/fs-uae/plugins.h \
 	src/fs-uae/recording.h \
-	src/include/a2065.h \
-	src/include/a2091.h \
-	src/include/akiko.h \
-	src/include/amax.h \
-	src/include/ar.h \
-	src/include/arcadia.h \
-	src/include/audio.h \
-	src/include/autoconf.h \
-	src/include/blitter.h \
-	src/include/blkdev.h \
-	src/include/bsdsocket.h \
-	src/include/calc.h \
-	src/include/catweasel.h \
-	src/include/cd32_fmv.h \
-	src/include/cdtv.h \
-	src/include/cia.h \
-	src/include/clipboard.h \
-	src/include/commpipe.h \
-	src/include/consolehook.h \
-	src/include/cpu_prefetch.h \
-	src/include/cpuboard.h \
-	src/include/cpummu.h \
-	src/include/cpummu030.h \
-	src/include/crc32.h \
-	src/include/custom.h \
-	src/include/debug.h \
-	src/include/disk.h \
-	src/include/diskutil.h \
-	src/include/dongle.h \
-	src/include/drawing.h \
-	src/include/driveclick.h \
-	src/include/enforcer.h \
-	src/include/epsonprinter.h \
-	src/include/ersatz.h \
-	src/include/ethernet.h \
-	src/include/events.h \
-	src/include/execio.h \
-	src/include/execlib.h \
-	src/include/fdi2raw.h \
-	src/include/filesys.h \
-	src/include/flags_x86.h \
-	src/include/flashrom.h \
-	src/include/fpp-ieee-be.h \
-	src/include/fpp-unknown.h \
-	src/include/fsdb.h \
-	src/include/fsusage.h \
-	src/include/gayle.h \
-	src/include/genblitter.h \
-	src/include/gensound.h \
-	src/include/gfxboard.h \
-	src/include/gfxfilter.h \
-	src/include/gui.h \
-	src/include/identify.h \
-	src/include/inputdevice.h \
-	src/include/inputrecord.h \
-	src/include/isofs.h \
-	src/include/isofs_api.h \
-	src/include/keyboard.h \
-	src/include/keybuf.h \
-	src/include/luascript.h \
-	src/include/mackbd.h \
-	src/include/memory_uae.h \
-	src/include/mmu_common.h \
-	src/include/moduleripper.h \
-	src/include/native2amiga.h \
-	src/include/native2amiga_api.h \
-	src/include/ncr9x_scsi.h \
-	src/include/ncr_scsi.h \
-	src/include/newcpu.h \
-	src/include/options.h \
-	src/include/osemu.h \
-	src/include/packed.h \
-	src/include/parallel.h \
-	src/include/picasso96.h \
-	src/include/readcpu.h \
-	src/include/rommgr.h \
-	src/include/rtgmodes.h \
-	src/include/sampler.h \
-	src/include/sana2.h \
-	src/include/savestate.h \
-	src/include/scp.h \
-	src/include/scsi.h \
-	src/include/scsidev.h \
-	src/include/serial.h \
-	src/include/statusline.h \
-	src/include/sysdeps.h \
-	src/include/tabletlibrary.h \
-	src/include/traps.h \
-	src/include/uae.h \
-	src/include/uae/assert.h \
-	src/include/uae/types.h \
-	src/include/uae/string.h \
-	src/include/uae/regparam.h \
-	src/include/uae/memory.h \
-	src/include/uae/jitconfig.h \
-	src/include/uae/enum.h \
-	src/include/uae/fs.h \
-	src/include/uae/asm.h \
-	src/include/uae/inline.h \
-	src/include/uae/cycleunit.h \
-	src/include/uae/limits.h \
-	src/include/uaeexe.h \
-	src/include/uaeipc.h \
-	src/include/uaenative.h \
-	src/include/uaeresource.h \
-	src/include/uaeserial.h \
-	src/include/uni_common.h \
-	src/include/unpacked.h \
-	src/include/xwin.h \
-	src/include/zarchive.h \
-	src/include/zfile.h \
 	src/jit/codegen_udis86.h \
 	src/jit/codegen_x86.h \
 	src/jit/compemu.h \
@@ -936,63 +979,63 @@ catalogs = \
 
 share/locale/cs/LC_MESSAGES/fs-uae.mo: po/cs.po
 	mkdir -p share/locale/cs/LC_MESSAGES
-	$(MSGFMT) --verbose po/cs.po -o $@
+	$(MSGFMT) --verbose $(s)/po/cs.po -o $@
 
 share/locale/da/LC_MESSAGES/fs-uae.mo: po/da.po
 	mkdir -p share/locale/da/LC_MESSAGES
-	$(MSGFMT) --verbose po/da.po -o $@
+	$(MSGFMT) --verbose $(s)/po/da.po -o $@
 
 share/locale/de/LC_MESSAGES/fs-uae.mo: po/de.po
 	mkdir -p share/locale/de/LC_MESSAGES
-	$(MSGFMT) --verbose po/de.po -o $@
+	$(MSGFMT) --verbose $(s)/po/de.po -o $@
 
 share/locale/el/LC_MESSAGES/fs-uae.mo: po/el.po
 	mkdir -p share/locale/el/LC_MESSAGES
-	$(MSGFMT) --verbose po/el.po -o $@
+	$(MSGFMT) --verbose $(s)/po/el.po -o $@
 
 share/locale/es/LC_MESSAGES/fs-uae.mo: po/es.po
 	mkdir -p share/locale/es/LC_MESSAGES
-	$(MSGFMT) --verbose po/es.po -o $@
+	$(MSGFMT) --verbose $(s)/po/es.po -o $@
 
 share/locale/fi/LC_MESSAGES/fs-uae.mo: po/fi.po
 	mkdir -p share/locale/fi/LC_MESSAGES
-	$(MSGFMT) --verbose po/fi.po -o $@
+	$(MSGFMT) --verbose $(s)/po/fi.po -o $@
 
 share/locale/fr/LC_MESSAGES/fs-uae.mo: po/fr.po
 	mkdir -p share/locale/fr/LC_MESSAGES
-	$(MSGFMT) --verbose po/fr.po -o $@
+	$(MSGFMT) --verbose $(s)/po/fr.po -o $@
 
 share/locale/it/LC_MESSAGES/fs-uae.mo: po/it.po
 	mkdir -p share/locale/it/LC_MESSAGES
-	$(MSGFMT) --verbose po/it.po -o $@
+	$(MSGFMT) --verbose $(s)/po/it.po -o $@
 
 share/locale/nb/LC_MESSAGES/fs-uae.mo: po/nb.po
 	mkdir -p share/locale/nb/LC_MESSAGES
-	$(MSGFMT) --verbose po/nb.po -o $@
+	$(MSGFMT) --verbose $(s)/po/nb.po -o $@
 
 share/locale/pl/LC_MESSAGES/fs-uae.mo: po/pl.po
 	mkdir -p share/locale/pl/LC_MESSAGES
-	$(MSGFMT) --verbose po/pl.po -o $@
+	$(MSGFMT) --verbose $(s)/po/pl.po -o $@
 
 share/locale/pt/LC_MESSAGES/fs-uae.mo: po/pt.po
 	mkdir -p share/locale/pt/LC_MESSAGES
-	$(MSGFMT) --verbose po/pt.po -o $@
+	$(MSGFMT) --verbose $(s)/po/pt.po -o $@
 
 share/locale/pt_BR/LC_MESSAGES/fs-uae.mo: po/pt_BR.po
 	mkdir -p share/locale/pt_BR/LC_MESSAGES
-	$(MSGFMT) --verbose po/pt_BR.po -o $@
+	$(MSGFMT) --verbose $(s)/po/pt_BR.po -o $@
 
 share/locale/sr/LC_MESSAGES/fs-uae.mo: po/sr.po
 	mkdir -p share/locale/sr/LC_MESSAGES
-	$(MSGFMT) --verbose po/sr.po -o $@
+	$(MSGFMT) --verbose $(s)/po/sr.po -o $@
 
 share/locale/sv/LC_MESSAGES/fs-uae.mo: po/sv.po
 	mkdir -p share/locale/sv/LC_MESSAGES
-	$(MSGFMT) --verbose po/sv.po -o $@
+	$(MSGFMT) --verbose $(s)/po/sv.po -o $@
 
 share/locale/tr/LC_MESSAGES/fs-uae.mo: po/tr.po
 	mkdir -p share/locale/tr/LC_MESSAGES
-	$(MSGFMT) --verbose po/tr.po -o $@
+	$(MSGFMT) --verbose $(s)/po/tr.po -o $@
 
 mo: $(catalogs)
 

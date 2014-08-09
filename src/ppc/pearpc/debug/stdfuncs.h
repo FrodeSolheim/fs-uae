@@ -1,8 +1,8 @@
-/*
- *	PearPC
- *	sysfeatures.h
+/* 
+ *	HT Editor
+ *	stdfuncs.h
  *
- *	Copyright (C) 1999-2004 Stefan Weyergraf
+ *	Copyright (C) 2003 Stefan Weyergraf
  *
  *	This program is free software; you can redistribute it and/or modify
  *	it under the terms of the GNU General Public License version 2 as
@@ -18,11 +18,22 @@
  *	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#ifndef __SYSTEM_ARCH_SYSFEATURES_H__
-#define __SYSTEM_ARCH_SYSFEATURES_H__
+#ifndef __STDFUNCS_H__
+#define __STDFUNCS_H__
 
-#include "pearpc_config.h"
+#include "debugger.h"
 
-#include SYSTEM_ARCH_SPECIFIC_FEATURES_DIR
+#define FUNCTION_MAX_DECL_PARAMS	8
 
-#endif
+typedef Function *(*FunctionCreator)();
+
+struct FunctionDesc {
+	const char *name;
+	int declparam_count;
+	EvalType declparam[FUNCTION_MAX_DECL_PARAMS];
+	FunctionCreator creator;
+};
+
+extern FunctionDesc gStdEvalFunctions[];
+
+#endif /* __STDFUNCS_H__ */

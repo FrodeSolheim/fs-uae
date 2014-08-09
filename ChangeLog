@@ -1,3 +1,8 @@
+Version 2.5.9dev:
+
+* Updated emulation core from WinUAE 2900b9.
+* Enabled experimental PearPC PPC emulation from WinUAE (not tested).
+
 Version 2.5.8dev:
 
 * New option uaem_write_flags to control when .uaem files are created.

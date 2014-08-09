@@ -517,6 +517,8 @@ OPT_FEATURE([WITH_NETPLAY], [netplay], [netplay],
 	[enable netplay support], [yes])
 OPT_FEATURE([NCR9X], [ncr9x], [ncr9x],
 	[enable 53C9X SCSI], [yes])
+OPT_FEATURE([WITH_PPC], [ppc], [ppc],
+	[enable PPC emulation], [yes])
 OPT_FEATURE([WITH_SLIRP], [slirp], [slirp],
 	[enable SLIRP (user mode NAT)], [yes])
 OPT_FEATURE([WITH_UAENATIVE], [uaenative], [uaenative],

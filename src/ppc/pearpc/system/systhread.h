@@ -23,8 +23,14 @@
 
 #include "types.h"
 
+#ifdef FSUAE
+#include <threaddep/sem.h>
+typedef uae_sem_t sys_mutex;
+typedef uae_sem_t sys_semaphore;
+#else
 typedef void * sys_mutex;
 typedef void * sys_semaphore;
+#endif
 typedef void * sys_thread;
 
 typedef void * (*sys_thread_function)(void *);

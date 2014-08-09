@@ -329,6 +329,22 @@ fs_uae_SOURCES = \
 	src/zfile_archive.cpp \
 	src/zfile.cpp
 
+if WITH_PPC
+AM_CPPFLAGS += -I$(s)/src/ppc/pearpc
+fs_uae_SOURCES += \
+	src/ppc/pearpc/cpu/cpu_generic/ppc_alu.cpp \
+	src/ppc/pearpc/cpu/cpu_generic/ppc_cpu.cpp \
+	src/ppc/pearpc/cpu/cpu_generic/ppc_dec.cpp \
+	src/ppc/pearpc/cpu/cpu_generic/ppc_exc.cpp \
+	src/ppc/pearpc/cpu/cpu_generic/ppc_fpu.cpp \
+	src/ppc/pearpc/cpu/cpu_generic/ppc_mmu.cpp \
+	src/ppc/pearpc/cpu/cpu_generic/ppc_opc.cpp \
+	src/ppc/pearpc/cpu/cpu_generic/ppc_vec.cpp \
+	src/ppc/pearpc/uaeglue.cpp \
+	src/ppc/ppc.cpp \
+	src/ppc/ppcd.cpp
+endif
+
 if WITH_SLIRP
 CMCFLAGS += -I$(s)/src/slirp/include
 fs_uae_SOURCES += \

@@ -22,9 +22,12 @@
 #ifndef __TYPES_H__
 #define __TYPES_H__
 
+#ifdef FSUAE
+#else
 #define HAVE_CONFIG_H
+#endif
 #ifdef HAVE_CONFIG_H
-#include "config.h"
+#include "pearpc_config.h"
 #endif
 
 #ifdef MIN
@@ -40,6 +43,20 @@
  *	compiler magic
  */
 
+#ifdef FSUAE
+typedef unsigned long long uint64;
+typedef signed long long sint64;
+typedef unsigned int uint32;
+typedef signed int sint32;
+typedef unsigned short uint16;
+typedef signed short sint16;
+typedef unsigned char uint8;
+typedef signed char sint8;
+typedef unsigned char byte;
+
+typedef unsigned int uint;
+#endif
+
 #ifdef __GNUC__
 
 	// FIXME: configure
@@ -53,7 +70,9 @@
 #	define PACKED		__attribute__((packed))
 #	define UNUSED		__attribute__((unused))
 #	define DEPRECATED	__attribute__((deprecated))
+#ifndef NORETURN
 #	define NORETURN		__attribute__((noreturn))
+#endif
 #	define ALIGN_STRUCT(n)	__attribute__((aligned(n)))
 #	define FORCE_INLINE	__attribute__((always_inline)) 
 

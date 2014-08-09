@@ -304,7 +304,12 @@ void ppc_crash(void)
 	ppc_cpu_stop();
 }
 
+#ifdef FSUAE
+#include <threaddep/sem.h>
+typedef uae_sem_t sys_mutex;
+#else
 typedef void * sys_mutex;
+#endif
 
 int	sys_lock_mutex(sys_mutex m)
 {

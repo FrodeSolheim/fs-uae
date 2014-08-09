@@ -85,6 +85,7 @@ extern FILE *g_fs_uae_sync_debug_file;
 #define CPUEMU_31 /* Aranym 68040 MMU */
 #define CPUEMU_32 /* Previous 68030 MMU */
 #define CPUEMU_33 /* 68060 MMU */
+#define CPUEMU_40
 //#define DEBUGGER
 //#define ENFORCER
 #define FDI2RAW

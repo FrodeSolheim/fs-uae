@@ -61,6 +61,7 @@
 #include "uaenative.h"
 #include "tabletlibrary.h"
 #include "cpuboard.h"
+#include "ppc.h"
 #ifdef RETROPLATFORM
 #include "rp.h"
 #endif
@@ -921,6 +922,9 @@ void reset_all_systems (void)
 	native2amiga_reset ();
 	dongle_reset ();
 	sampler_init ();
+#ifdef WITH_PPC
+	ppc_stop();
+#endif
 }
 
 /* Okay, this stuff looks strange, but it is here to encourage people who

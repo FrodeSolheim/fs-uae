@@ -39,6 +39,7 @@
 #include "cpummu.h"
 #include "cpummu030.h"
 #include "ar.h"
+#include "ppc/ppcd.h"
 
 #ifdef FSUAE // NL
 #undef _WIN32
@@ -4028,7 +4029,30 @@ static void m68k_modify (TCHAR **inptr)
 	}
 }
 
+static void ppc_disasm(uaecptr addr, uaecptr *nextpc, int cnt)
+{
+#ifdef WITH_PPC
+	PPCD_CB disa;
+
+	while(cnt-- > 0) {
+		uae_u32 instr = get_long_debug(addr);
+		disa.pc = addr;
+		disa.instr = instr;
+		PPCDisasm(&disa);
+		TCHAR *mnemo = au(disa.mnemonic);
+		TCHAR *ops = au(disa.operands);
+		console_out_f(_T("%08X  %08X  %-12s%-30s\n"), addr, instr, mnemo, ops);
+		xfree(ops);
+		xfree(mnemo);
+		addr += 4;
+	}
+	if (nextpc)
+		*nextpc = addr;
+#endif
+}
+
 static uaecptr nxdis, nxmem;
+static bool ppcmode;
 
 static BOOL debug_line (TCHAR *input)
 {
@@ -4122,6 +4146,13 @@ static BOOL debug_line (TCHAR *input)
 				} else {
 					uae_u32 daddr;
 					int count;
+					if (*inptr == 'p') {
+						ppcmode = true;
+						next_char(&inptr);
+					} else if(*inptr == 'o') {
+						ppcmode = false;
+						next_char(&inptr);
+					}
 					if (more_params (&inptr))
 						daddr = readhex (&inptr);
 					else
@@ -4130,7 +4161,11 @@ static BOOL debug_line (TCHAR *input)
 						count = readhex (&inptr);
 					else
 						count = 10;
-					m68k_disasm (daddr, &nxdis, count);
+					if (ppcmode) {
+						ppc_disasm(daddr, &nxdis, count);
+					} else {
+						m68k_disasm (daddr, &nxdis, count);
+					}
 				}
 			}
 			break;

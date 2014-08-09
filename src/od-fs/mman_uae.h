@@ -32,7 +32,7 @@ struct shmid_ds {
 };
 
 //int mprotect (void *addr, size_t len, int prot);
-void *uae_shmat (int shmid, void *shmaddr, int shmflg);
+void *uae_shmat (addrbank *ab, int shmid, void *shmaddr, int shmflg);
 int uae_shmdt (const void *shmaddr);
 int uae_shmget (uae_key_t key, size_t size, int shmflg, const TCHAR* name);
 int uae_shmctl (int shmid, int cmd, struct shmid_ds *buf);

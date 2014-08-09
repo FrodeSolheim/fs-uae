@@ -389,6 +389,7 @@ nodist_fs_uae_SOURCES = \
 	gen/cpuemu_31.cpp \
 	gen/cpuemu_32.cpp \
 	gen/cpuemu_33.cpp \
+	gen/cpuemu_40.cpp \
 	gen/cpustbl.cpp
 
 fs_uae_device_helper_SOURCES = \
@@ -454,6 +455,7 @@ BUILT_SOURCES = \
 	gen/cpuemu_31.cpp \
 	gen/cpuemu_32.cpp \
 	gen/cpuemu_33.cpp \
+	gen/cpuemu_40.cpp \
 	gen/cpustbl.cpp \
 	gen/cputbl.h \
 	gen/linetoscr.cpp
@@ -827,6 +829,7 @@ CLEANFILES = \
 	gen/cpuemu_31.cpp \
 	gen/cpuemu_32.cpp \
 	gen/cpuemu_33.cpp \
+	gen/cpuemu_40.cpp \
 	gen/cpustbl.cpp \
 	gen/cputbl.h \
 	gen/linetoscr.cpp
@@ -873,6 +876,8 @@ gen/cpuemu_31.cpp: gen/cpuemu_0.cpp
 gen/cpuemu_32.cpp: gen/cpuemu_0.cpp
 
 gen/cpuemu_33.cpp: gen/cpuemu_0.cpp
+
+gen/cpuemu_40.cpp: gen/cpuemu_0.cpp
 
 gen/cpustbl.cpp: gen/cpuemu_0.cpp
 

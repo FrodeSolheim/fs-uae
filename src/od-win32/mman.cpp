@@ -13,8 +13,12 @@
 
 #include "sysconfig.h"
 #include "sysdeps.h"
-#include "mman_uae.h"
 #include "memory_uae.h"
+#ifdef FSUAE
+#include "mman_uae.h"
+#else
+#include "sys/mman.h"
+#endif
 #include "options.h"
 #include "autoconf.h"
 #include "gfxboard.h"
@@ -655,24 +659,27 @@ void free_shm (void)
 	clear_shm ();
 }
 
-void mapped_free (uae_u8 *mem)
+void mapped_free (addrbank *ab)
 {
 	shmpiece *x = shm_start;
 
-	if (mem == NULL)
+	if (ab->baseaddr == NULL)
 		return;
 
-	if (!currprefs.jit_direct_compatible_memory && mem != rtgmem_mapped_memory) {
-		xfree(mem);
+	if (!currprefs.jit_direct_compatible_memory && ab->baseaddr != rtgmem_mapped_memory) {
+		if (!(ab->flags & ABFLAG_NOALLOC)) {
+			xfree(ab->baseaddr);
+			ab->baseaddr = NULL;
+		}
 		return;
 	}
 
-	if (mem == rtgmem_mapped_memory)
+	if (ab->baseaddr == rtgmem_mapped_memory)
 		rtgmem_mapped_memory = NULL;
 
-	if (mem == filesysory) {
+	if (ab->flags & ABFLAG_INDIRECT) {
 		while(x) {
-			if (mem == x->native_address) {
+			if (ab->baseaddr == x->native_address) {
 				int shmid = x->id;
 				shmids[shmid].key = -1;
 				shmids[shmid].name[0] = '\0';
@@ -680,26 +687,32 @@ void mapped_free (uae_u8 *mem)
 				shmids[shmid].attached = 0;
 				shmids[shmid].mode = 0;
 				shmids[shmid].natmembase = 0;
+				if (!(ab->flags & ABFLAG_NOALLOC)) {
+					xfree(ab->baseaddr);
+					ab->baseaddr = NULL;
+				}
 			}
 			x = x->next;
 		}
+		ab->baseaddr = NULL;
 		return;
 	}
 
 	while(x) {
-		if(mem == x->native_address)
+		if(ab->baseaddr == x->native_address)
 			uae_shmdt (x->native_address);
 		x = x->next;
 	}
 	x = shm_start;
 	while(x) {
 		struct shmid_ds blah;
-		if (mem == x->native_address) {
+		if (ab->baseaddr == x->native_address) {
 			if (uae_shmctl (x->id, IPC_STAT, &blah) == 0)
 				uae_shmctl (x->id, IPC_RMID, &blah);
 		}
 		x = x->next;
 	}
+	ab->baseaddr = NULL;
 }
 
 static uae_key_t get_next_shmkey (void)
@@ -734,7 +747,7 @@ int mprotect (void *addr, size_t len, int prot)
 	return result;
 }
 
-void *uae_shmat (int shmid, void *shmaddr, int shmflg)
+void *uae_shmat (addrbank *ab, int shmid, void *shmaddr, int shmflg)
 {
 	write_log("uae_shmat shmid %d shmaddr %p, shmflg %d natmem_offset = %p\n",
 			shmid, shmaddr, shmflg, natmem_offset);
@@ -748,6 +761,13 @@ void *uae_shmat (int shmid, void *shmaddr, int shmflg)
 
 	if (shmids[shmid].attached)
 		return shmids[shmid].attached;
+
+	if (ab->flags & ABFLAG_INDIRECT) {
+		result = xcalloc (uae_u8, size);
+		shmids[shmid].attached = result;
+		shmids[shmid].fake = true;
+		return result;
+	}
 
 	if ((uae_u8*)shmaddr < natmem_offset) {
 		if(!_tcscmp (shmids[shmid].name, _T("chip"))) {
@@ -862,6 +882,7 @@ void *uae_shmat (int shmid, void *shmaddr, int shmflg)
 			got = TRUE;
 			if (currprefs.bogomem_size <= 0x100000)
 				size += BARRIER;
+#if 0
 		} else if(!_tcscmp (shmids[shmid].name, _T("filesys"))) {
 			static uae_u8 *filesysptr;
 			if (filesysptr == NULL)
@@ -870,6 +891,7 @@ void *uae_shmat (int shmid, void *shmaddr, int shmflg)
 			shmids[shmid].attached = result;
 			shmids[shmid].fake = true;
 			return result;
+#endif
 		} else if(!_tcscmp (shmids[shmid].name, _T("custmem1"))) {
 			shmaddr=natmem_offset + currprefs.custom_memory_addrs[0];
 			got = TRUE;

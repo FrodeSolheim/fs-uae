@@ -11,7 +11,7 @@
 #include <fs/string.h>
 #include <fs/thread.h>
 
-#include "manymouse/manymouse.h"
+#include "manymouse.h"
 
 static fs_thread *g_manymouse_thread = NULL;
 static int g_first_manymouse_index = 0;

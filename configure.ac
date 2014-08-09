@@ -72,6 +72,8 @@ AM_CONDITIONAL([BUILTIN_GLEE], [true])
 # PKG_CHECK_MODULES([LIBMPEG2], [libmpeg2 libmpeg2convert])
 AM_CONDITIONAL([BUILTIN_LIBMPEG2], [true])
 
+AM_CONDITIONAL([BUILTIN_MANYMOUSE], [true])
+
 # The built-in Lua has been sandboxed
 # AC_DEFINE([USE_LUA], [1], [Define to 1 to use LUA])
 AC_SUBST([LUA_CFLAGS])

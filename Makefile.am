@@ -115,12 +115,6 @@ fs_uae_SOURCES = \
 	libfsemu/src/ml/input.c \
 	libfsemu/src/ml/keyboard.c \
 	libfsemu/src/ml/macosx.c \
-	libfsemu/src/ml/manymouse/linux_evdev.c \
-	libfsemu/src/ml/manymouse/macosx_hidmanager.c \
-	libfsemu/src/ml/manymouse/macosx_hidutilities.c \
-	libfsemu/src/ml/manymouse/manymouse.c \
-	libfsemu/src/ml/manymouse/windows_wminput.c \
-	libfsemu/src/ml/manymouse/x11_xinput2.c \
 	libfsemu/src/ml/ml.c \
 	libfsemu/src/ml/mouse.c \
 	libfsemu/src/ml/opengl.c \
@@ -292,10 +286,40 @@ fs_uae_SOURCES = \
 	src/zfile_archive.cpp \
 	src/zfile.cpp
 
+fs_uae_device_helper_SOURCES = \
+	libfsemu/src/base.c \
+	libfsemu/src/data.c \
+	libfsemu/src/filesys.c \
+	libfsemu/src/hashtable.c \
+	libfsemu/src/list.c \
+	libfsemu/src/ml/util.c \
+	libfsemu/src/string.c \
+	src/fs-uae/device-helper.c
+
 if BUILTIN_GLEE
 AM_CPPFLAGS += -I$(s)/glee
 fs_uae_SOURCES += \
 	glee/GLee.c
+endif
+
+if BUILTIN_MANYMOUSE
+AM_CPPFLAGS += -I$(s)/manymouse
+fs_uae_SOURCES += \
+	manymouse/linux_evdev.c \
+	manymouse/macosx_hidmanager.c \
+	manymouse/macosx_hidutilities.c \
+	manymouse/manymouse.c \
+	manymouse/manymouse.h \
+	manymouse/windows_wminput.c \
+	manymouse/x11_xinput2.c
+fs_uae_device_helper_SOURCES += \
+	manymouse/linux_evdev.c \
+	manymouse/macosx_hidmanager.c \
+	manymouse/macosx_hidutilities.c \
+	manymouse/manymouse.c \
+	manymouse/manymouse.h \
+	manymouse/windows_wminput.c \
+	manymouse/x11_xinput2.c
 endif
 
 if WITH_PPC
@@ -417,22 +441,6 @@ nodist_fs_uae_SOURCES = \
 	gen/cpuemu_33.cpp \
 	gen/cpuemu_40.cpp \
 	gen/cpustbl.cpp
-
-fs_uae_device_helper_SOURCES = \
-	libfsemu/src/base.c \
-	libfsemu/src/data.c \
-	libfsemu/src/filesys.c \
-	libfsemu/src/hashtable.c \
-	libfsemu/src/list.c \
-	libfsemu/src/ml/manymouse/linux_evdev.c \
-	libfsemu/src/ml/manymouse/macosx_hidmanager.c \
-	libfsemu/src/ml/manymouse/macosx_hidutilities.c \
-	libfsemu/src/ml/manymouse/manymouse.c \
-	libfsemu/src/ml/manymouse/windows_wminput.c \
-	libfsemu/src/ml/manymouse/x11_xinput2.c \
-	libfsemu/src/ml/util.c \
-	libfsemu/src/string.c \
-	src/fs-uae/device-helper.c
 
 gen_build68k_SOURCES = \
 	src/build68k.cpp \
@@ -557,7 +565,6 @@ noinst_HEADERS = \
 	lua/src/lundump.h \
 	lua/src/lvm.h \
 	lua/src/lzio.h \
-	libfsemu/src/ml/manymouse/manymouse.h \
 	libfsemu/src/ml/ml_internal.h \
 	libudis86/src/decode.h \
 	libudis86/src/types.h \

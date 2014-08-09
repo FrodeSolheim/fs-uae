@@ -15,7 +15,6 @@ CMCFLAGS += -I$(b)/gen
 CMCFLAGS += -I$(s)/src/jit
 CMCFLAGS += -I$(s)/src
 CMCFLAGS += -I$(s)/libfsemu/include
-CMCFLAGS += -I$(s)/libfsemu/src/lua
 CMCFLAGS += @FREETYPE_CFLAGS@
 CMCFLAGS += @GLIB_CFLAGS@
 CMCFLAGS += @LUA_CFLAGS@
@@ -89,7 +88,6 @@ fs_uae_SOURCES = \
 	libfsemu/src/emu/audio_sdl.c \
 	libfsemu/src/emu/dialog.c \
 	libfsemu/src/emu/emu.c \
-	libfsemu/src/emu/emu_lua.c \
 	libfsemu/src/emu/font.c \
 	libfsemu/src/emu/hud.c \
 	libfsemu/src/emu/input.c \
@@ -113,38 +111,6 @@ fs_uae_SOURCES = \
 	libfsemu/src/init.c \
 	libfsemu/src/list.c \
 	libfsemu/src/log.c \
-	libfsemu/src/lua/lapi.c \
-	libfsemu/src/lua/lauxlib.c \
-	libfsemu/src/lua/lbaselib.c \
-	libfsemu/src/lua/lbitlib.c \
-	libfsemu/src/lua/lcode.c \
-	libfsemu/src/lua/lcorolib.c \
-	libfsemu/src/lua/lctype.c \
-	libfsemu/src/lua/ldblib.c \
-	libfsemu/src/lua/ldebug.c \
-	libfsemu/src/lua/ldo.c \
-	libfsemu/src/lua/ldump.c \
-	libfsemu/src/lua/lfunc.c \
-	libfsemu/src/lua/lgc.c \
-	libfsemu/src/lua/linit.c \
-	libfsemu/src/lua/liolib.c \
-	libfsemu/src/lua/llex.c \
-	libfsemu/src/lua/lmathlib.c \
-	libfsemu/src/lua/lmem.c \
-	libfsemu/src/lua/loadlib.c \
-	libfsemu/src/lua/lobject.c \
-	libfsemu/src/lua/lopcodes.c \
-	libfsemu/src/lua/loslib.c \
-	libfsemu/src/lua/lparser.c \
-	libfsemu/src/lua/lstate.c \
-	libfsemu/src/lua/lstring.c \
-	libfsemu/src/lua/lstrlib.c \
-	libfsemu/src/lua/ltable.c \
-	libfsemu/src/lua/ltablib.c \
-	libfsemu/src/lua/ltm.c \
-	libfsemu/src/lua/lundump.c \
-	libfsemu/src/lua/lvm.c \
-	libfsemu/src/lua/lzio.c \
 	libfsemu/src/ml/clock.c \
 	libfsemu/src/ml/config.c \
 	libfsemu/src/ml/input.c \
@@ -237,7 +203,6 @@ fs_uae_SOURCES = \
 	src/fs-uae/input.c \
 	src/fs-uae/joystick.c \
 	src/fs-uae/keyboard.c \
-	src/fs-uae/luascript.c \
 	src/fs-uae/main.c \
 	src/fs-uae/menu.c \
 	src/fs-uae/mouse.c \
@@ -258,7 +223,6 @@ fs_uae_SOURCES = \
 	src/jit/compemu_fpp.cpp \
 	src/jit/compemu_support.cpp \
 	src/keybuf.cpp \
-	src/luascript.cpp \
 	src/main.cpp \
 	src/memory.cpp \
 	src/missing.cpp \
@@ -377,6 +341,47 @@ fs_uae_SOURCES += \
 	libudis86/src/syn.c \
 	libudis86/src/syn-intel.c \
 	libudis86/src/udis86.c
+endif
+
+if WITH_LUA
+AM_CPPFLAGS += -I$(s)/lua/src
+fs_uae_SOURCES += \
+	libfsemu/src/emu/emu_lua.c \
+	src/fs-uae/luascript.c \
+	src/luascript.cpp \
+fs_uae_SOURCES += \
+	lua/src/lapi.c \
+	lua/src/lauxlib.c \
+	lua/src/lbaselib.c \
+	lua/src/lbitlib.c \
+	lua/src/lcode.c \
+	lua/src/lcorolib.c \
+	lua/src/lctype.c \
+	lua/src/ldblib.c \
+	lua/src/ldebug.c \
+	lua/src/ldo.c \
+	lua/src/ldump.c \
+	lua/src/lfunc.c \
+	lua/src/lgc.c \
+	lua/src/linit.c \
+	lua/src/liolib.c \
+	lua/src/llex.c \
+	lua/src/lmathlib.c \
+	lua/src/lmem.c \
+	lua/src/loadlib.c \
+	lua/src/lobject.c \
+	lua/src/lopcodes.c \
+	lua/src/loslib.c \
+	lua/src/lparser.c \
+	lua/src/lstate.c \
+	lua/src/lstring.c \
+	lua/src/lstrlib.c \
+	lua/src/ltable.c \
+	lua/src/ltablib.c \
+	lua/src/ltm.c \
+	lua/src/lundump.c \
+	lua/src/lvm.c \
+	lua/src/lzio.c
 endif
 
 if BUILTIN_LIBMPEG2
@@ -524,30 +529,30 @@ noinst_HEADERS = \
 	libfsemu/src/emu/video.h \
 	libfsemu/src/emu/video_buffer.h \
 	libfsemu/src/emu/xml_shader.h \
-	libfsemu/src/lua/lapi.h \
-	libfsemu/src/lua/lauxlib.h \
-	libfsemu/src/lua/lcode.h \
-	libfsemu/src/lua/lctype.h \
-	libfsemu/src/lua/ldebug.h \
-	libfsemu/src/lua/ldo.h \
-	libfsemu/src/lua/lfunc.h \
-	libfsemu/src/lua/lgc.h \
-	libfsemu/src/lua/llex.h \
-	libfsemu/src/lua/llimits.h \
-	libfsemu/src/lua/lmem.h \
-	libfsemu/src/lua/lobject.h \
-	libfsemu/src/lua/lopcodes.h \
-	libfsemu/src/lua/lparser.h \
-	libfsemu/src/lua/lstate.h \
-	libfsemu/src/lua/lstring.h \
-	libfsemu/src/lua/ltable.h \
-	libfsemu/src/lua/ltm.h \
-	libfsemu/src/lua/lua.h \
-	libfsemu/src/lua/luaconf.h \
-	libfsemu/src/lua/lualib.h \
-	libfsemu/src/lua/lundump.h \
-	libfsemu/src/lua/lvm.h \
-	libfsemu/src/lua/lzio.h \
+	lua/src/lapi.h \
+	lua/src/lauxlib.h \
+	lua/src/lcode.h \
+	lua/src/lctype.h \
+	lua/src/ldebug.h \
+	lua/src/ldo.h \
+	lua/src/lfunc.h \
+	lua/src/lgc.h \
+	lua/src/llex.h \
+	lua/src/llimits.h \
+	lua/src/lmem.h \
+	lua/src/lobject.h \
+	lua/src/lopcodes.h \
+	lua/src/lparser.h \
+	lua/src/lstate.h \
+	lua/src/lstring.h \
+	lua/src/ltable.h \
+	lua/src/ltm.h \
+	lua/src/lua.h \
+	lua/src/luaconf.h \
+	lua/src/lualib.h \
+	lua/src/lundump.h \
+	lua/src/lvm.h \
+	lua/src/lzio.h \
 	libfsemu/src/ml/manymouse/manymouse.h \
 	libfsemu/src/ml/ml_internal.h \
 	libudis86/src/decode.h \

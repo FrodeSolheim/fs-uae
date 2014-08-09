@@ -193,7 +193,9 @@ void fs_emu_video_init_opengl() {
 #ifdef WITH_XML_SHADER
     fs_emu_xml_shader_init();
 #endif
+#ifdef WITH_LUA
     fs_emu_lua_run_handler("on_fs_emu_init_video");
+#endif
 }
 
 void fs_emu_toggle_fullscreen() {

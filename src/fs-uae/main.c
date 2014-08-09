@@ -180,13 +180,17 @@ void fs_uae_process_input_event(int line, int action, int state, int playback) {
     }
 
     if (load_state) {
+#ifdef WITH_LUA
         fs_log("run handler on_fs_uae_load_state\n");
         fs_emu_lua_run_handler("on_fs_uae_load_state");
+#endif
         record_event = 0;
     }
     else if (save_state) {
+#ifdef WITH_LUA
         fs_log("run handler on_fs_uae_save_state\n");
         fs_emu_lua_run_handler("on_fs_uae_save_state");
+#endif
         record_event = 0;
     }
 
@@ -196,12 +200,16 @@ void fs_uae_process_input_event(int line, int action, int state, int playback) {
     amiga_send_input_event(action, state);
 
     if (load_state) {
+#ifdef WITH_LUA
         fs_log("run handler on_fs_uae_load_state_done\n");
         fs_emu_lua_run_handler("on_fs_uae_load_state_done");
+#endif
     }
     else if (save_state) {
+#ifdef WITH_LUA
         fs_log("run handler on_fs_uae_save_state_done\n");
         fs_emu_lua_run_handler("on_fs_uae_save_state_done");
+#endif
     }
 }
 
@@ -211,7 +219,9 @@ static int input_handler_loop(int line) {
     static int last_frame = -1;
     if (g_fs_uae_frame != last_frame) {
         // only run this for the first input handler loop per frame
+#ifdef WITH_LUA
         fs_emu_lua_run_handler("on_fs_uae_read_input");
+#endif
         last_frame = g_fs_uae_frame;
     }
 
@@ -227,7 +237,9 @@ static int input_handler_loop(int line) {
 
         g_fs_uae_last_input_event = action;
         g_fs_uae_last_input_event_state = state;
+#ifdef WITH_LUA
         fs_emu_lua_run_handler("on_fs_uae_input_event");
+#endif
 
         // handler can modify input event
         //action = g_fs_uae_last_input_event;

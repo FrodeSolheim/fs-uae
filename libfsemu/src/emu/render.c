@@ -912,7 +912,9 @@ static void render_overlays(void) {
 }
 
 static void render_frame(double alpha, int perspective) {
+#ifdef WITH_LUA
     fs_emu_lua_run_handler("on_fs_emu_render_frame");
+#endif
 
 #ifdef WITH_LUA
 

@@ -181,9 +181,9 @@ void fs_emu_dialog_render() {
 
     int width = 1920 / 2;
     int height = 480; //1080 / 2;
-    float x1 = (1920 - width) / 2;
+    float x1 = (1920 - width) / 2.0;
     float x2 = x1 + width;
-    float y1 = (1080 - height) / 2;
+    float y1 = (1080 - height) / 2.0;
     float y2 = y1 + height;
 
 #ifdef USE_GLES

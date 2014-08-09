@@ -66,6 +66,16 @@ typedef struct local_file_header {
 #define ZIP_UINT16(x) ((uint16_t)(x))
 #endif
 
+#define ERROR_EOCDR_SEEK 3
+#define ERROR_EOCDR_READ 4
+#define ERROR_EOCDR_SIG 5
+#define ERROR_EOCDR_ENTRIES 6
+
+#define ERROR_CFH_SEEK 7
+#define ERROR_CFH_READ 8
+#define ERROR_CFH_SIG 9
+#define ERROR_CFH_NAME 10
+
 int read_zip_entries (FILE *f) {
     if (fseek(f, 0, SEEK_END) != 0) {
         // fseek to end of file failed
@@ -80,16 +90,19 @@ int read_zip_entries (FILE *f) {
 
     int pos = file_size - sizeof(end_of_central_directory_record);
     if (fseek(f, pos, SEEK_SET) != 0) {
-        return 3;
+        return ERROR_EOCDR_SEEK;
     }
 
     end_of_central_directory_record eocdr;
     if (fread(&eocdr, sizeof(end_of_central_directory_record), 1, f) != 1) {
-        return 4;
+        return ERROR_EOCDR_READ;
     }
     if (strncmp(eocdr.signature, "PK\x05\x06", 4) != 0) {
         // no signature found, not a zip file
-        return 5;
+        return ERROR_EOCDR_SIG;
+    }
+    if (eocdr.num_entries > 8192) {
+        return ERROR_EOCDR_ENTRIES;
     }
 
     pos = ZIP_UINT32(eocdr.central_directory_offset);
@@ -97,22 +110,22 @@ int read_zip_entries (FILE *f) {
     for (int i = 0; i < eocdr.num_entries; i++) {
         // printf("reading zip entry %d from position %d\n", i, pos);
         if (fseek(f, pos, SEEK_SET) != 0) {
-            return 6;
+            return ERROR_CFH_SEEK;
         }
         if (fread(&cfh, sizeof(central_file_header), 1, f) != 1) {
-            return 7;
+            return ERROR_CFH_READ;
         }
         if (strncmp(cfh.signature, "PK\x01\x02", 4) != 0) {
             // no signature found, not a central file header
-            return 8;
+            return ERROR_CFH_SIG;
         }
-        int name_len = ZIP_UINT16(cfh.file_name_length);
+        uint16_t name_len = ZIP_UINT16(cfh.file_name_length);
         char *name = malloc(name_len + 1);
         name[name_len] = 0;
         pos += sizeof(central_file_header);
         if (fread(name, name_len, 1, f) != 1) {
             free(name);
-            return 9;
+            return ERROR_CFH_NAME;
         }
         // printf("%s\n", name);
 

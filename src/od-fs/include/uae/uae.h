@@ -2,6 +2,7 @@
 #define LIBAMIGA_LIBAMIGA_H_
 
 #include <stdint.h>
+#include "uae/string.h"
 
 #ifdef __cplusplus
 extern "C" {

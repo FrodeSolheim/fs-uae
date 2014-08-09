@@ -13,9 +13,15 @@ struct fs_thread;
 typedef struct fs_thread fs_thread;
 
 typedef void *(*fs_thread_function)(void *);
-fs_thread *fs_thread_create(fs_thread_function fn, void *data);
+fs_thread *fs_thread_create(
+        const char *name, fs_thread_function fn, void *data);
+#if 0
+fs_thread *fs_thread_create_detached(
+        const char *name, fs_thread_function fn, void *data);
+#endif
 void *fs_thread_wait(fs_thread *thread);
-void fs_thread_destroy(fs_thread *thread);
+//void fs_thread_destroy(fs_thread *thread);
+void fs_thread_free(fs_thread *thread);
 
 struct fs_mutex;
 typedef struct fs_mutex fs_mutex;

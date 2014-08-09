@@ -78,9 +78,8 @@ void on_quit() {
     if (g_quit_function) {
         g_quit_function();
     }
-    if (fs_thread_create(force_quit_thread, NULL) == NULL) {
-        fs_log("WARNING: could not create force quit thread\n");
-    }
+    // FIXME: detached?
+    fs_thread_create("force-quit", force_quit_thread, NULL);
 }
 
 void fs_emu_quit() {
@@ -446,7 +445,8 @@ int fs_emu_run(fs_emu_main_function function) {
     }
 #endif
 
-    g_emulation_thread = fs_thread_create(emulation_thread_entry, function);
+    g_emulation_thread = fs_thread_create(
+                "emulation", emulation_thread_entry, function);
     if (g_emulation_thread == NULL) {
         fs_emu_log("error starting video thread\n");
         // FIXME: ERROR MESSAGE HERE
@@ -458,7 +458,7 @@ int fs_emu_run(fs_emu_main_function function) {
 
     if (g_fs_emu_benchmark_start_time) {
         int64_t t2 = fs_emu_monotonic_time();
-        double ttime = ((t2 - g_fs_emu_benchmark_start_time) / 1000000);
+        double ttime = ((t2 - g_fs_emu_benchmark_start_time) / 1000000.0);
         double sys_fps = g_fs_emu_total_sys_frames / ttime;
         double emu_fps = g_fs_emu_total_emu_frames / ttime;
         fs_log("average fps sys: %0.1f emu: %0.1f\n", sys_fps, emu_fps);

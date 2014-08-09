@@ -80,7 +80,8 @@ void select_port_0_device(int data) {
         if (data < count) {
             g_fs_uae_input_ports[port].mode = new_mode;
             g_fs_uae_input_ports[port].new_mode = new_mode;
-            strcpy(g_fs_uae_input_ports[port].device, devices[data].name);
+            uae_strlcpy(g_fs_uae_input_ports[port].device, devices[data].name,
+                        sizeof(g_fs_uae_input_ports[port].device));
             amiga_set_joystick_port_mode(port, new_mode);
             // FIXME: not a warning, rather a notification
             fs_emu_warning(_("Port 0: %s"), devices[data].name);
@@ -364,6 +365,7 @@ void fs_uae_load_rom_files(const char *path) {
     fs_dir *dir = fs_dir_open(path, 0);
     if (dir == NULL) {
         fs_log("error opening dir\n");
+        return;
     }
 
     // we include the rom key when generating the cache name for the

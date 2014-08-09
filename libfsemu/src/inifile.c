@@ -21,8 +21,7 @@ static void free_group(void *data) {
 }
 
 fs_ini_file* fs_ini_file_create() {
-    fs_ini_file *ini_file = malloc(sizeof(ini_file));
-    // FIXME: use full
+    fs_ini_file *ini_file = malloc(sizeof(fs_ini_file));
     ini_file->groups = fs_hash_table_new_full(fs_str_hash, fs_str_equal,
             free, free_group);
     return ini_file;

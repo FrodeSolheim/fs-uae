@@ -469,6 +469,8 @@ void fs_uae_set_state_base_name(const char *base_name) {
     g_fs_uae_state_base_name = fs_strdup(base_name);
 }
 
+#define ZERO_SUCCESS 0
+
 void fs_uae_configure_directories() {
     char *path;
 
@@ -481,7 +483,9 @@ void fs_uae_configure_directories() {
         free(dst_name);
         if (fs_path_exists(src)) {
             fs_log("renaming file %s to %s\n", src, dst);
-            fs_rename(src, dst);
+            if (fs_rename(src, dst) != ZERO_SUCCESS) {
+                fs_log("WARNING: renamed failed\n");
+            }
         }
         free(src);
         free(dst);

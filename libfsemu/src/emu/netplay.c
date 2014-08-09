@@ -459,16 +459,10 @@ int fs_emu_netplay_wait_for_frame(int frame) {
         dismiss_waiting_dialog();
     }
 
-    int always = 1;
-    int frame_mod = frame % 50;
-    if (always || frame_mod == 25) {
-        send_message(MESSAGE_RNDCHECK | (g_rand_checksum_function() &
-                0x00ffffff));
-    }
-    if (always || frame_mod == 0) {
-        send_message(MESSAGE_MEMCHECK | (g_state_checksum_function() &
-                0x00ffffff));
-    }
+    send_message(MESSAGE_RNDCHECK | (g_rand_checksum_function() &
+            0x00ffffff));
+    send_message(MESSAGE_MEMCHECK | (g_state_checksum_function() &
+            0x00ffffff));
     send_message(MESSAGE_FRAME_MASK | frame);
 
     // add all pending events for this frame to libfsemu's input queue
@@ -681,7 +675,7 @@ void *receive_thread(void * data) {
 }
 
 int fs_emu_netplay_connect() {
-    g_socket = socket(AF_INET, SOCK_STREAM, 0);
+    g_socket = 0;
 
     fs_log("look up address for %s...\n", g_fs_emu_netplay_server);
 
@@ -733,7 +727,7 @@ int fs_emu_netplay_connect() {
 
     freeaddrinfo(result);
 
-    if (g_socket == 0) {
+    if (g_socket <= 0) {
         fs_log("ERROR: could not connect to server\n");
         return 0;
     }
@@ -862,7 +856,8 @@ void *netplay_thread(void * data) {
     }
 
     // FIXME: use non-joinable thread?
-    g_receive_thread = fs_thread_create(receive_thread, NULL);
+    g_receive_thread = fs_thread_create(
+                "netplay-receive", receive_thread, NULL);
     if (g_receive_thread == NULL) {
         fs_log("ERROR: could not create receive thread\n");
     }
@@ -883,7 +878,7 @@ void fs_emu_netplay_start() {
 #endif
 
     // FIXME: use non-joinable thread?
-    g_netplay_thread = fs_thread_create(netplay_thread, NULL);
+    g_netplay_thread = fs_thread_create("netplay", netplay_thread, NULL);
     if (g_netplay_thread == NULL) {
         fs_emu_warning("ERROR: could not create netplay thread\n");
     }

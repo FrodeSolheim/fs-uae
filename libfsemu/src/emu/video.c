@@ -405,7 +405,7 @@ void fs_emu_video_after_update() {
     if (g_fs_emu_benchmark_start_time) {
         static int64_t last_report = 0;
         if (t - last_report > 5000000) {
-            double ttime = ((t - g_fs_emu_benchmark_start_time) / 1000000);
+            double ttime = ((t - g_fs_emu_benchmark_start_time) / 1000000.0);
             double sys_fps = g_fs_emu_total_sys_frames / ttime;
             double emu_fps = g_fs_emu_total_emu_frames / ttime;
             //fs_log("average fps sys: %0.1f emu: %0.1f\n", sys_fps, emu_fps);

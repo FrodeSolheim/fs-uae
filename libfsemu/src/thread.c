@@ -65,14 +65,15 @@ struct fs_semaphore {
 #endif
 };
 
-fs_thread *fs_thread_create(fs_thread_function fn, void *data) {
+fs_thread *fs_thread_create(
+        const char *name, fs_thread_function fn, void *data) {
     fs_thread *thread = (fs_thread *) malloc(sizeof(fs_thread));
 #if defined(USE_PTHREADS)
     pthread_attr_init(&thread->attr);
     pthread_attr_setdetachstate(&thread->attr, PTHREAD_CREATE_JOINABLE);
     pthread_create(&thread->thread, &thread->attr, fn, data);
 #elif defined(USE_GLIB)
-    thread->thread = g_thread_new("fs-thread", fn, data);
+    thread->thread = g_thread_new(name, fn, data);
 #endif
 
 /*
@@ -82,6 +83,22 @@ fs_thread *fs_thread_create(fs_thread_function fn, void *data) {
 */
     return thread;
 }
+
+#if 0
+fs_thread *fs_thread_create_detached(
+        const char *name, fs_thread_function fn, void *data) {
+    fs_thread *thread = (fs_thread *) malloc(sizeof(fs_thread));
+#if defined(USE_PTHREADS)
+    pthread_attr_init(&thread->attr);
+    pthread_attr_setdetachstate(&thread->attr, PTHREAD_CREATE_DETACHED);
+    pthread_create(&thread->thread, &thread->attr, fn, data);
+#elif defined(USE_GLIB)
+    //thread->thread = g_thread_new(name, fn, data);
+    thread->thread = g_thread_create(fn, data, FALSE, NULL);
+#endif
+    return thread;
+}
+#endif
 
 void *fs_thread_wait(fs_thread *thread) {
     void *result;
@@ -102,7 +119,16 @@ void *fs_thread_wait(fs_thread *thread) {
     return result;
 }
 
+/*
 void fs_thread_destroy(fs_thread *thread) {
+#ifdef USE_GLIB
+    //g_thread_unref(thread->thread);
+#endif
+    free(thread);
+}
+*/
+
+void fs_thread_free(fs_thread *thread) {
 #ifdef USE_GLIB
     //g_thread_unref(thread->thread);
 #endif

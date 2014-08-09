@@ -73,8 +73,8 @@ void fs_config_set_log_file(const char *path) {
                     read = fread(buffer, 1, 1024, f);
                 }
                 free(buffer);
+                fclose(f);
             }
-            fclose(f);
         }
     }
 

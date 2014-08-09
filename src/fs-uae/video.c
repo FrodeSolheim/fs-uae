@@ -109,7 +109,7 @@ int read_window_override(const char* s, int* pos) {
         if (!read_window_override_int(s, pos, &ssw)) return 0;
         if (!read_window_override_int(s, pos, &ssh)) return 0;
         while(s[*pos] == ' ') ++(*pos);
-        if (!s[(*pos)++] == ']') return 0;
+        if (s[(*pos)++] != ']') return 0;
     }
 
     if (!s[(*pos)++] == '=') return 0;

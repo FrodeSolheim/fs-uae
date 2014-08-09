@@ -175,7 +175,7 @@ void fs_ml_mouse_init(void) {
     // everything (also enumeration in a worker thread) and wait for
     // enumeration to complete
 
-    g_manymouse_thread = fs_thread_create(manymouse_thread, NULL);
+    g_manymouse_thread = fs_thread_create("manymouse", manymouse_thread, NULL);
     if (g_manymouse_thread == NULL) {
         fs_log("ERROR: could not create ManyMouse thread\n");
         // ManyMouse_Quit();

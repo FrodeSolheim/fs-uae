@@ -761,9 +761,8 @@ void fs_uae_configure_hard_drives() {
         if (path == NULL) {
             continue;
         }
-        if (path[0] == '\0') {
-            continue;
-        }
+        /* fs_config_get_string never returns an empty string, NULL is
+         * returned if value is empty or key does not exist. */
         path = fs_uae_expand_path_and_free(path);
         path = fs_uae_resolve_path_and_free(path, FS_UAE_HD_PATHS);
         if (!fs_path_exists(path)) {

@@ -22,7 +22,7 @@ typedef enum {
   FS_ASCII_XDIGIT = 1 << 10
 } fs_ascii_type;
 
-extern const uint16_t * const fs_ascii_table;
+extern const uint16_t fs_ascii_table[256];
 
 #define fs_ascii_isalnum(c) \
   ((fs_ascii_table[(unsigned char) (c)] & FS_ASCII_ALNUM) != 0)

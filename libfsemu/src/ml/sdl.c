@@ -842,7 +842,9 @@ static int event_loop() {
         //    printf("--- mousebutton down ---\n");
         }
         fs_ml_event *new_event = NULL;
+#if !defined(USE_SDL2)
         fs_ml_event *new_event_2 = NULL;
+#endif
         if (event.type == SDL_KEYDOWN) {
             new_event = fs_ml_alloc_event();
             new_event->type = FS_ML_KEYDOWN;
@@ -976,20 +978,19 @@ static int event_loop() {
         else if (event.type == SDL_TEXTINPUT) {
             new_event = fs_ml_alloc_event();
             new_event->type = FS_ML_TEXTINPUT;
-            int len = TEXTINPUTEVENT_TEXT_SIZE;
-            if (SDL_TEXTINPUTEVENT_TEXT_SIZE < len) {
-                len = SDL_TEXTINPUTEVENT_TEXT_SIZE;
-            }
-            memcpy(&(new_event->text.text), &(event.text.text), len);
+            memcpy(&(new_event->text.text), &(event.text.text),
+                   MIN(TEXTINPUTEVENT_TEXT_SIZE, SDL_TEXTINPUTEVENT_TEXT_SIZE));
             new_event->text.text[TEXTINPUTEVENT_TEXT_SIZE - 1] = 0;
         }
 #endif
         if (new_event) {
             fs_ml_post_event(new_event);
         }
+#if !defined(USE_SDL2)
         if (new_event_2) {
             fs_ml_post_event(new_event_2);
         }
+#endif
     }
     return result;
 }

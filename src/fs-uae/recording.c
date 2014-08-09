@@ -132,7 +132,7 @@ static void reset_recording() {
     g_recording_length = 0;
 
     g_chunk_pos = 0;
-    g_record_chunk = g_record_chunks->data;
+    g_record_chunk = NULL;
     g_playback_pos = 0;
     g_playback_list = g_record_chunks;
 
@@ -165,6 +165,8 @@ static int read_recording(const char *path, int end) {
             if (!feof(f)) {
                 fs_emu_warning("Error reading recording");
                 invalidate_recording();
+                free(buffer);
+                fclose(f);
                 return 0;
             }
         }
@@ -277,6 +279,7 @@ static void on_restore_state_finished(void *data) {
             // FIXME: disable recording so stuff won't break
             g_recording_enabled = 0;
         }
+        free(recording_path);
     }
     else {
         // do nothing

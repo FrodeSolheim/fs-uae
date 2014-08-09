@@ -878,33 +878,23 @@ int read_input_config(const char *config_name, fs_hash_table *config,
     }
 
     char **keys = fs_ini_file_get_keys(ini_file, section, NULL);
-    for (char **k = keys; *k; k++) {
-        char *key = *k;
-        value = fs_ini_file_get_string(ini_file, section, key);
-        if (value == NULL) {
-            continue;
-        }
-
-#if 0
-        // FIXME:
-        if value.startswith('('):
-            if not multiple:
-                continue
-            assert value.endswith(')')
-            value = value[1:-1]
-#endif
-
-        char *temp = fs_hash_table_lookup(config, value);
-        if (temp) {
-            fs_hash_table_insert(config, fs_strdup(key), fs_strdup(temp));
-            fs_hash_table_remove(config, value);
-        }
-        else {
-            fs_hash_table_insert(config, fs_strdup(key), fs_strdup(value));
-        }
-        free(value);
-    }
     if (keys) {
+        for (char **k = keys; *k; k++) {
+            char *key = *k;
+            value = fs_ini_file_get_string(ini_file, section, key);
+            if (value == NULL) {
+                continue;
+            }
+            char *temp = fs_hash_table_lookup(config, value);
+            if (temp) {
+                fs_hash_table_insert(config, fs_strdup(key), fs_strdup(temp));
+                fs_hash_table_remove(config, value);
+            }
+            else {
+                fs_hash_table_insert(config, fs_strdup(key), fs_strdup(value));
+            }
+            free(value);
+        }
         fs_strfreev(keys);
         keys = NULL;
     }
@@ -1339,41 +1329,6 @@ static int handle_shortcut(fs_ml_event *event) {
             }
             return 1;
         }
-    }
-    /*
-    else if (key_code == FS_ML_KEY_F11) {
-        if (state) {
-            if (key_mod & FS_ML_KEY_MOD_SHIFT) {
-                fs_emu_toggle_zoom(1);
-            }
-            else if (key_mod & FS_ML_KEY_MOD_ALT) {
-
-            }
-            else if (key_mod & FS_ML_KEY_MOD_CTRL) {
-
-            }
-            else {
-                fs_emu_toggle_zoom(0);
-            }
-        }
-    }
-    */
-    else if (key_code == FS_ML_KEY_F12) {
-        if (state) {
-            if (key_mod & FS_ML_KEY_MOD_CTRL) {
-
-            }
-            else if (key_mod & FS_ML_KEY_MOD_ALT) {
-
-            }
-            else if (key_mod & FS_ML_KEY_MOD_SHIFT) {
-                fs_emu_grab_input(!fs_emu_has_input_grab());
-            }
-            else {
-                fs_emu_menu_toggle();
-            }
-        }
-        return 1;
     }
     else if (key_code == FS_ML_KEY_PRINT) {
         if (state) {

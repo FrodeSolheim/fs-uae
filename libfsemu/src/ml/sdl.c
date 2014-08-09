@@ -25,7 +25,7 @@
 //#endif
 
 #include <fs/config.h>
-#include <fs/glee.h>
+#include <GLee.h>
 #include <fs/hashtable.h>
 #include <fs/ml.h>
 #include <fs/queue.h>

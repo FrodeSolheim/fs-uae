@@ -104,7 +104,6 @@ fs_uae_SOURCES = \
 	libfsemu/src/emu/xml_shader.c \
 	libfsemu/src/eventlog.c \
 	libfsemu/src/filesys.c \
-	libfsemu/src/glee.c \
 	libfsemu/src/hashtable.c \
 	libfsemu/src/image.c \
 	libfsemu/src/inifile.c \
@@ -292,6 +291,12 @@ fs_uae_SOURCES = \
 	src/uaeserial.cpp \
 	src/zfile_archive.cpp \
 	src/zfile.cpp
+
+if BUILTIN_GLEE
+AM_CPPFLAGS += -I$(s)/glee
+fs_uae_SOURCES += \
+	glee/GLee.c
+endif
 
 if WITH_PPC
 AM_CPPFLAGS += -I$(s)/src/ppc/pearpc
@@ -482,6 +487,7 @@ BUILT_SOURCES = \
 	gen/linetoscr.cpp
 
 noinst_HEADERS = \
+	glee/GLee.h \
 	libfsemu/include/fs/base.h \
 	libfsemu/include/fs/config.h \
 	libfsemu/include/fs/data.h \
@@ -492,7 +498,6 @@ noinst_HEADERS = \
 	libfsemu/include/fs/eventlog.h \
 	libfsemu/include/fs/filesys.h \
 	libfsemu/include/fs/fs.h \
-	libfsemu/include/fs/glee.h \
 	libfsemu/include/fs/glu.h \
 	libfsemu/include/fs/hashtable.h \
 	libfsemu/include/fs/i18n.h \
@@ -510,7 +515,6 @@ noinst_HEADERS = \
 	libfsemu/include/fs/thread.h \
 	libfsemu/include/fs/time.h \
 	libfsemu/include/fs/unicode.h \
-	libfsemu/src/GLee.h \
 	libfsemu/src/emu/actions.h \
 	libfsemu/src/emu/audio.h \
 	libfsemu/src/emu/dialog.h \

@@ -3160,6 +3160,7 @@ static void do_trace (void)
 	}
 }
 
+
 #ifdef WITH_PPC
 static void uae_ppc_poll_check(void)
 {
@@ -3170,8 +3171,67 @@ static void uae_ppc_poll_check(void)
 		return;
 	uae_ppc_poll_queue();
 	checkcnt = 128;
+	return;
 }
 #endif
+
+static bool haltloop(void)
+{
+#ifdef WITH_PPC
+	// m68k stopped? Move PPC emulator to main thread.
+	if (regs.halted < 0) {
+		uae_ppc_to_main_thread();
+	}
+#endif
+
+	while (regs.halted) {
+		if (regs.halted >= 0) {
+			static int prevvpos;
+			if (vpos == 0 && prevvpos) {
+				prevvpos = 0;
+				sleep_millis_main(8);
+			}
+			if (vpos)
+				prevvpos = 1;
+			x_do_cycles(8 * CYCLE_UNIT);
+		} else {
+			x_do_cycles(16 * CYCLE_UNIT);
+		}
+
+		if (regs.spcflags & SPCFLAG_COPPER)
+			do_copper();
+
+#ifdef WITH_PPC
+		if (regs.halted < 0)
+			uae_ppc_emulate();
+		else
+			uae_ppc_poll_check();
+		if (ppc_state) {
+			int intr = intlev();
+			ppc_interrupt(intr);
+		}
+#endif
+
+		if (regs.spcflags) {
+			if ((regs.spcflags & (SPCFLAG_BRK | SPCFLAG_MODE_CHANGE)))
+				return true;
+		}
+	}
+	return false;
+}
+
+#ifdef WITH_PPC
+static bool uae_ppc_poll_check_halt(void)
+{
+	uae_ppc_poll_check();
+	if (regs.halted) {
+		if (haltloop())
+			return true;
+	}
+	return false;
+}
+#endif
+
 
 // handle interrupt delay (few cycles)
 STATIC_INLINE bool time_for_interrupt (void)
@@ -3200,20 +3260,9 @@ static int do_specialties (int cycles)
 		return 1;
 	
 	if (regs.spcflags & SPCFLAG_CHECK) {
-		while (regs.halted) {
-			if (vpos == 0)
-				sleep_millis_main(8);
-			x_do_cycles(8 * CYCLE_UNIT);
-			if (regs.spcflags & SPCFLAG_COPPER)
-				do_copper();
-#ifdef WITH_PPC
-			if (ppc_state)
-				ppc_interrupt(intlev());
-#endif
-			if (regs.spcflags) {
-				if ((regs.spcflags & (SPCFLAG_BRK | SPCFLAG_MODE_CHANGE)))
-					return 1;
-			}
+		if (regs.halted) {
+			if (haltloop())
+				return 1;
 		}
 		if (m68k_reset_delay) {
 			int vsynccnt = 60;
@@ -3289,8 +3338,10 @@ static int do_specialties (int cycles)
 		if (regs.spcflags & SPCFLAG_COPPER)
 			do_copper ();
 #ifdef WITH_PPC
-		if (ppc_state)
-			uae_ppc_poll_check();
+		if (ppc_state)  {
+			if (uae_ppc_poll_check_halt())
+				return true;
+		}
 #endif
 	}
 
@@ -3364,7 +3415,7 @@ static int do_specialties (int cycles)
 
 #ifdef WITH_PPC
 		if (ppc_state)
-			uae_ppc_poll_check();
+			uae_ppc_poll_check_halt();
 #endif
 
 		if (!uae_int_requested && !uaenet_int_requested && currprefs.cpu_idle && currprefs.m68k_speed != 0 && (regs.spcflags & SPCFLAG_STOP)
@@ -3429,6 +3480,19 @@ static int do_specialties (int cycles)
 
 	return 0;
 }
+
+#ifdef WITH_PPC
+static void do_ppc(void)
+{
+	while (ppc_state && uae_ppc_poll_queue()) {
+		if (regs.spcflags) {
+			if (do_specialties(0)) {
+				return;
+			}
+		}
+	}
+}
+#endif
 
 //static uae_u32 pcs[1000];
 
@@ -3825,8 +3889,7 @@ static void m68k_run_jit (void)
 			set_special (SPCFLAG_INT);
 		}
 #ifdef WITH_PPC
-		if (ppc_state)
-			uae_ppc_poll_queue();
+		do_ppc();
 #endif
 		if (regs.spcflags) {
 			if (do_specialties (0)) {
@@ -3919,8 +3982,7 @@ retry:
 			cpu_cycles = adjust_cycles (cpu_cycles);
 
 #ifdef WITH_PPC
-			if (ppc_state)
-				uae_ppc_poll_queue();
+			do_ppc();
 #endif
 
 			if (regs.spcflags) {
@@ -3982,8 +4044,7 @@ retry:
 			cpu_cycles = adjust_cycles (cpu_cycles);
 
 #ifdef WITH_PPC
-			if (ppc_state)
-				uae_ppc_poll_queue();
+			do_ppc();
 #endif
 
 			if (regs.spcflags) {
@@ -4124,8 +4185,7 @@ static void m68k_run_3ce (void)
 		(*cpufunctbl[opcode])(opcode);
 
 #ifdef WITH_PPC
-		if (ppc_state)
-			uae_ppc_poll_queue();
+		do_ppc();
 #endif
 
 		if (r->spcflags) {
@@ -4161,8 +4221,7 @@ static void m68k_run_3p(void)
 		do_cycles(cycles);
 
 #ifdef WITH_PPC
-		if (ppc_state)
-			uae_ppc_poll_queue();
+		do_ppc();
 #endif
 
 		if (r->spcflags) {
@@ -4394,8 +4453,7 @@ static void m68k_run_2 (void)
 		cpu_cycles = adjust_cycles (cpu_cycles);
 
 #ifdef WITH_PPC
-		if (ppc_state)
-			uae_ppc_poll_queue();
+		do_ppc();
 #endif
 
 		if (r->spcflags) {
@@ -6443,7 +6501,7 @@ static void write_dcache030x (uaecptr addr, uae_u32 val, int size)
 	uae_u32 tag1, tag2;
 	int aligned = addr & 3;
 
-	if (1 || !(regs.cacr & 0x100)) // data cache disabled?
+	if (!(regs.cacr & 0x100)) // data cache disabled?
 		return;
 	if (!cancache030 (addr))
 		return;
@@ -6513,10 +6571,9 @@ uae_u32 read_dcache030 (uaecptr addr, int size)
 	int lws1, lws2;
 	uae_u32 tag1, tag2;
 	int aligned = addr & 3;
-	int UNUSED(len) = (1 << size) * 8;
 	uae_u32 v1, v2;
 
-	if (1 || !(regs.cacr & 0x100) || !cancache030 (addr)) { // data cache disabled?
+	if (!(regs.cacr & 0x100) || !cancache030 (addr)) { // data cache disabled?
 		if (currprefs.cpu_cycle_exact) {
 			if (size == 2)
 				return mem_access_delay_long_read_ce020 (addr);

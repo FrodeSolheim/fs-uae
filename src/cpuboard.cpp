@@ -1451,6 +1451,9 @@ static struct zfile *flashfile_open(const TCHAR *name)
 
 	fetch_rompath(path, sizeof path / sizeof(TCHAR));
 	_tcscat(path, name);
+#ifdef FSUAE
+	write_log("flashfile_open \"%s\"\n", path);
+#endif
 	f = zfile_fopen(path, _T("rb+"), ZFD_NONE);
 	if (!f)
 		f = zfile_fopen(path, _T("rb"), ZFD_NORMAL);
@@ -1471,6 +1474,10 @@ static struct zfile *board_rom_open(int *roms, const TCHAR *name)
 	}
 	return zf;
 }
+
+#ifdef FSUAE
+extern const char *g_fs_uae_cpuboard_flash_file;
+#endif
 
 addrbank *cpuboard_autoconfig_init(void)
 {
@@ -1530,6 +1537,16 @@ addrbank *cpuboard_autoconfig_init(void)
 	if (currprefs.cpuboard_type == BOARD_BLIZZARDPPC) {
 		romname = _T("blizzardppc.rom");
 	}
+
+#ifdef FSUAE
+	if (g_fs_uae_cpuboard_flash_file) {
+		autoconfig_rom = zfile_fopen(g_fs_uae_cpuboard_flash_file, _T("rb+"), ZFD_NONE);
+		if (!autoconfig_rom) {
+			autoconfig_rom = zfile_fopen(g_fs_uae_cpuboard_flash_file, _T("rb"), ZFD_NORMAL);
+		}
+		romname = NULL;
+	}
+#endif
 
 	if (romname != NULL) {
 		autoconfig_rom = flashfile_open(romname);

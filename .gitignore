@@ -20,6 +20,7 @@ dist
 /*.dsc
 /*.changes
 /libcapsimage
+/scan-build
 libcapsimage.dylib
 libfs-capsimage.dylib
 /fs-uae-[0-9]*

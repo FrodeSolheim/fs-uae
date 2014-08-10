@@ -115,6 +115,9 @@ int fs_emu_theme_get_resource_data(const char *name, char **data, int *size) {
         fclose(f);
         return 0;
     }
+    else {
+        free(p);
+    }
 
     p = fs_path_join(g_fs_emu_theme.name, name, NULL);
     int error = fs_get_program_data(p, data, size);

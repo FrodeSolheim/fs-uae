@@ -179,6 +179,7 @@ fs_image* fs_image_new_from_data(const void *buffer, int size) {
     //}
 
     png_read_image(png_ptr, row_pointers);
+    free(row_pointers);
 
     //fclose(fp);
     //fs_log("png_read_image done\n");

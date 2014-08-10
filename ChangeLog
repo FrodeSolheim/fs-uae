@@ -1,7 +1,11 @@
 Version 2.5.9dev:
 
+* New option cpuboard_flash_file (path to accelerator "ROM").
+* Bug fixes and source cleanup based on static analysis.
+* Code cleanup in some code modules.
+* Moved glee, manymouse, lua source to toplevel directories.
 * Updated emulation core from WinUAE 2900b9.
-* Enabled experimental PearPC PPC emulation from WinUAE (not tested).
+* Enabled experimental PearPC PPC emulation from WinUAE.
 
 Version 2.5.8dev:
 

@@ -9,6 +9,7 @@
 // re-define them below
 #include <tchar.h>
 #include <wchar.h>
+#include <stdlib.h>
 #endif
 
 #if defined(_WIN32) && defined(_UNICODE)

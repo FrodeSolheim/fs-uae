@@ -107,11 +107,6 @@ uae_u16 paula_sndbuffer[44100];
 uae_u16 *paula_sndbufpt;
 int paula_sndbufsize;
 
-//static struct sound_data sdpaula;
-//static struct sound_data *sdp = &sdpaula;
-
-static int in_callback, closing_sound;
-
 static void clearbuffer (void)
 {
     memset (paula_sndbuffer, 0, sizeof (paula_sndbuffer));
@@ -151,14 +146,15 @@ void finish_sound_buffer (void)
 /* Try to determine whether sound is available. */
 int setup_sound (void)
 {
-    return sound_available;
+    sound_available = 1;
+    return 1;
 }
 
 static int open_sound (void)
 {
-    if (!currprefs.produce_sound)
+    if (!currprefs.produce_sound) {
         return 0;
-
+    }
     config_changed = 1;
 
     clearbuffer();
@@ -175,10 +171,6 @@ static int open_sound (void)
 
     have_sound = 1;
     sound_available = 1;
-
-    //update_sound (fake_vblank_hz, 1, currprefs.ntscmode);
-    //paula_sndbufsize = spec.samples * 2 * spec.channels;
-    //paula_sndbufsize = fs_emu_get_audio_buffer_size();
     paula_sndbufsize = g_audio_buffer_size;
     paula_sndbufpt = paula_sndbuffer;
 #ifdef DRIVESOUND
@@ -199,16 +191,10 @@ void close_sound (void)
 
     // SDL_PauseAudio (1);
     clearbuffer();
-/*
-    if (in_callback) {
-        closing_sound = 1;
-        uae_sem_post (&data_available_sem);
-    }
-*/
     have_sound = 0;
 }
 
-int init_sound(void)
+int init_sound (void)
 {
     write_log("init_sound\n");
     gui_data.sndbuf_status = 3;
@@ -219,17 +205,15 @@ int init_sound(void)
         return 0;
     if (have_sound)
         return 1;
-
-    in_callback = 0;
-    closing_sound = 0;
-
-    open_sound();
-
-    // SDL_PauseAudio (0);
+    if (!open_sound ())
+        return 0;
+    //sdp->paused = 1;
 #ifdef DRIVESOUND
     driveclick_reset ();
 #endif
-    return have_sound;
+    //reset_sound ();
+    //resume_sound ();
+    return 1;
 }
 
 void pause_sound (void)

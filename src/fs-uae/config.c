@@ -374,22 +374,25 @@ static void configure_memory(amiga_config *c) {
     }
 }
 
-const char *g_fs_uae_cpuboard_flash_file = NULL;
-
 static void configure_cpuboard(void)
 {
-	const char *path = fs_config_get_string("cpuboard_flash_file");
-	if (path) {
-		// amiga_set_option("kickstart_rom_file", path);
-		// free(path);
-		if (fs_path_exists(path)) {
-			g_fs_uae_cpuboard_flash_file = path;
-		}
-		else {
-			fs_emu_log("cpuboard flash file not found: %s\n", path);
-			free(path);
-		}
-	}
+    char *path;
+
+    path = fs_config_get_string("cpuboard_flash_file");
+    if (path) {
+        path = fs_uae_expand_path_and_free(path);
+        path = fs_uae_resolve_path_and_free(path, FS_UAE_ROM_PATHS);
+        amiga_set_option("cpuboard_rom_file", path);
+        free(path);
+    }
+
+    path = fs_config_get_string("cpuboard_flash_ext_file");
+    if (path) {
+        path = fs_uae_expand_path_and_free(path);
+        path = fs_uae_resolve_path_and_free(path, FS_UAE_ROM_PATHS);
+        amiga_set_option("cpuboard_ext_rom_file", path);
+        free(path);
+    }
 }
 
 void fs_uae_configure_amiga_hardware() {

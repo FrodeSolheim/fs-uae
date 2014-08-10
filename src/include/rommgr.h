@@ -60,7 +60,7 @@ struct romdata {
 	uae_u32 crc32;
 	uae_u32 sha1[5];
 	const TCHAR *configname;
-	TCHAR *defaultfilename;
+	const TCHAR *defaultfilename;
 };
 
 struct romlist {

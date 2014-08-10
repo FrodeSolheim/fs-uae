@@ -1517,12 +1517,6 @@ static struct zfile *board_rom_open(int *roms, const TCHAR *name)
 	return zf;
 }
 
-#if 0
-#ifdef FSUAE // NL
-extern const char *g_fs_uae_cpuboard_flash_file;
-#endif
-#endif
-
 addrbank *cpuboard_autoconfig_init(void)
 {
 	struct zfile *autoconfig_rom = NULL;
@@ -1577,6 +1571,8 @@ addrbank *cpuboard_autoconfig_init(void)
 		return &expamem_null;
 	}
 
+#ifdef FSUAE
+#else
 	struct romlist *rl = getromlistbyids(roms);
 	if (!rl)
 		return &expamem_null;
@@ -1585,31 +1581,26 @@ addrbank *cpuboard_autoconfig_init(void)
 		autoconfig_rom = read_rom(rl->rd);
 	}
 
-#if 0
-#ifdef FSUAE // NL
-	if (g_fs_uae_cpuboard_flash_file) {
-		autoconfig_rom = zfile_fopen(g_fs_uae_cpuboard_flash_file, _T("rb+"), ZFD_NONE);
-		if (!autoconfig_rom) {
-			autoconfig_rom = zfile_fopen(g_fs_uae_cpuboard_flash_file, _T("rb"), ZFD_NORMAL);
-		}
-		romname = NULL;
-	}
-#endif
-#endif
-
 	if (isflashrom) {
+#endif
 		autoconfig_rom = flashfile_open(romname);
+#ifdef FSUAE
+#else
 		if (!autoconfig_rom) {
 			autoconfig_rom = flashfile_open(rl->path);
 			if (!autoconfig_rom)
 				autoconfig_rom = flashfile_open(defaultromname);
 		}
+#endif
 		if (!autoconfig_rom) {
 			romwarning(roms);
 			write_log(_T("Couldn't open CPU board rom '%s'\n"), defaultromname);
 			return &expamem_null;
 		}
+#ifdef FSUAE
+#else
 	}
+#endif
 
 	if (!autoconfig_rom && roms[0] != -1) {
 		romwarning(roms);

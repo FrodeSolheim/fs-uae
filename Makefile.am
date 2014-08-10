@@ -458,18 +458,6 @@ fs_uae_SOURCES += \
 	src/ppc/pearpc/cpu/cpu.h \
 	src/ppc/pearpc/cpu/debug.h \
 	src/ppc/pearpc/cpu/mem.h \
-	src/ppc/pearpc/debug/asm.h \
-	src/ppc/pearpc/debug/debugger.h \
-	src/ppc/pearpc/debug/debugparse.h \
-	src/ppc/pearpc/debug/debugtype.h \
-	src/ppc/pearpc/debug/lex.h \
-	src/ppc/pearpc/debug/parsehelper.h \
-	src/ppc/pearpc/debug/ppcdis.h \
-	src/ppc/pearpc/debug/ppcopc.h \
-	src/ppc/pearpc/debug/stdfuncs.h \
-	src/ppc/pearpc/debug/tracers.h \
-	src/ppc/pearpc/debug/x86dis.h \
-	src/ppc/pearpc/debug/x86opc.h \
 	src/ppc/pearpc/info.h \
 	src/ppc/pearpc/io/io.h \
 	src/ppc/pearpc/pearpc_config.h \
@@ -486,6 +474,7 @@ fs_uae_SOURCES += \
 	src/ppc/pearpc/tools/debug.h \
 	src/ppc/pearpc/tools/endianess.h \
 	src/ppc/pearpc/tools/snprintf.h \
+	src/ppc/pearpc/tracers.h \
 	src/ppc/pearpc/uaeglue.cpp \
 	src/ppc/ppc.cpp \
 	src/ppc/ppcd.cpp \

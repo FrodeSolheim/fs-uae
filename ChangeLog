@@ -1,3 +1,9 @@
+Version 2.5.10dev:
+
+* Updated emulation core from WinUAE 2900b10.
+* Fixed audio initialization (broke in 2.5.9dev).
+* New option cpuboard_flash_ext_file (not tested).
+
 Version 2.5.9dev:
 
 * New option cpuboard_flash_file (path to accelerator "ROM").

@@ -211,7 +211,7 @@ fs_rand_context *fs_rand_new(void) {
             errno = 0;
             dev_urandom = fopen("/dev/urandom", "rb");
         }
-        while G_UNLIKELY (errno == EINTR);
+        while (errno == EINTR);
 
         if (dev_urandom)
         {
@@ -223,7 +223,7 @@ fs_rand_context *fs_rand_new(void) {
                 errno = 0;
                 r = fread (seed, sizeof (seed), 1, dev_urandom);
             }
-            while G_UNLIKELY (errno == EINTR);
+            while (errno == EINTR);
 
             if (r != 1)
             dev_urandom_exists = FALSE;

@@ -1,6 +1,10 @@
 #ifndef UAE_STRING_H
 #define UAE_STRING_H
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include "uae/types.h"
 #include <string.h>
 

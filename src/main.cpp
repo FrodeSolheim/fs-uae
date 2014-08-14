@@ -269,6 +269,7 @@ void fixup_cpu (struct uae_prefs *p)
 		break;
 	}
 
+#ifdef WITH_CPUBOARD
 	// 1 = "automatic" PPC config
 	if (p->ppc_mode == 1) {
 		p->cpuboard_type = BOARD_CSPPC;
@@ -281,6 +282,7 @@ void fixup_cpu (struct uae_prefs *p)
 		if (p->cpuboardmem1_size < 8 * 1024 * 1024)
 			p->cpuboardmem1_size = 8 * 1024 * 1024;
 	}
+#endif
 
 	if (p->cpu_model < 68020 && p->cachesize) {
 		p->cachesize = 0;
@@ -345,8 +347,10 @@ void fixup_prefs (struct uae_prefs *p)
 	built_in_chipset_prefs (p);
 	fixup_cpu (p);
 
+#ifdef WITH_CPUBOARD
 	if (cpuboard_08000000(p))
 		p->mbresmem_high_size = p->cpuboardmem1_size;
+#endif
 
 	if (((p->chipmem_size & (p->chipmem_size - 1)) != 0 && p->chipmem_size != 0x180000)
 		|| p->chipmem_size < 0x20000

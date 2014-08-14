@@ -39,6 +39,7 @@ libfs-capsimage.dylib
 *.sav
 *.sdf
 *.log
+*.trs
 /obj
 /.obj
 /out
@@ -101,6 +102,7 @@ core
 /configure
 /configure.scan
 /install-sh
+/test-driver
 /missing
 /stamp-h1
 /compile

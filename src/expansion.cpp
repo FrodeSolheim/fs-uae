@@ -1498,6 +1498,7 @@ void expamem_reset (void)
 	if (need_uae_boot_rom () == 0)
 		do_mount = 0;
 
+#ifdef WITH_CPUBOARD
 	if (currprefs.cpuboard_type) {
 		// This may require first 128k slot.
 		card_flags[cardno] = 1;
@@ -1505,6 +1506,7 @@ void expamem_reset (void)
 		card_init[cardno] = cpuboard_autoconfig_init;
 		card_map[cardno++] = NULL;
 	}
+#endif
 
 	if (currprefs.fastmem_autoconfig) {
 		if (fastmem_bank.baseaddr != NULL && (fastmem_bank.allocated <= 262144 || currprefs.chipmem_size <= 2 * 1024 * 1024)) {
@@ -1611,13 +1613,14 @@ void expamem_reset (void)
 #endif
 
 	/* Z3 boards last */
+#ifdef WITH_CPUBOARD
 	if (currprefs.cpuboard_type == BOARD_WARPENGINE_A4000) {
 		card_flags[cardno] = 1;
 		card_name[cardno] = _T("Warp Engine");
 		card_init[cardno] = expamem_init_warpengine;
 		card_map[cardno++] = NULL;
 	}
-
+#endif
 	if (z3fastmem_bank.baseaddr != NULL) {
 		z3num = 0;
 		card_flags[cardno] = 2 | 1;

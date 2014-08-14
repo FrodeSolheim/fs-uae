@@ -3,7 +3,7 @@
 #endif
 
 #include <fs/ml.h>
-uint32_t g_sdl2_keys[] = {
+static uint32_t g_sdl2_keys[] = {
     0, 0, 0, 0,
     FS_ML_KEY_A, // 4 SDL_SCANCODE_A
     FS_ML_KEY_B, // 5 SDL_SCANCODE_B

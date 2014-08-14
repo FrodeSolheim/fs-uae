@@ -20,5 +20,8 @@ fs_emu_audio_driver g_fs_emu_audio_sdl_driver = {
     sdl_audio_init,
     sdl_audio_shutdown,
 };
+#else
+
+int libfsemu_audio_sdl_dummy;
 
 #endif // USE_SDL

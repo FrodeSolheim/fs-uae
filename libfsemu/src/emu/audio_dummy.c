@@ -60,4 +60,8 @@ void fs_emu_audio_render_debug_info(uint32_t *texture) {
 
 }
 
+#else
+
+int libfsemu_audio_dummy_dummy;
+
 #endif

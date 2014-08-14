@@ -778,5 +778,9 @@ void fs_ml_input_init() {
 
 #endif // WITH_VIDEO_WINDOWS
 
+#else
+
+int libfsemu_ml_windows_dummy;
+
 #endif // WINDOWS
 

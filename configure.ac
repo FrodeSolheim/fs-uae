@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.67])
-AC_INIT([FS-UAE], [2.5.10dev],
+AC_INIT([FS-UAE], [2.5.11dev],
         [frode@fs-uae.net], [fs-uae], [http://fs-uae.net])
 AC_CONFIG_AUX_DIR([.])
 AC_CANONICAL_SYSTEM
@@ -25,8 +25,8 @@ AC_SUBST(PACKAGE_REVISION)
 
 # Checks for programs.
 
-AC_PROG_CXX
 AC_PROG_CC
+AC_PROG_CXX
 AC_PROG_CPP
 AC_PROG_INSTALL
 # AC_PROG_LIBTOOL
@@ -37,6 +37,13 @@ AM_PROG_CC_C_O
 # AC_PATH_TOOL(OBJCOPY, objcopy)
 AC_PATH_PROG([MSGFMT], [msgfmt])
 AC_PATH_PROG([ZIP], [zip])
+
+# Compiler flags
+
+AX_CHECK_COMPILE_FLAG(-fno-strict-overflow,
+[f_no_strict_overflow=yes],
+[f_no_strict_overflow=no])
+AM_CONDITIONAL([F_NO_STRICT_OVERFLOW], [test x$f_no_strict_overflow = xyes])
 
 # Misc system checks.
 
@@ -511,6 +518,10 @@ OPT_FEATURE([CD32], [cd32], [cd32],
 	[enable CD32 emulation], [yes])
 OPT_FEATURE([CDTV], [cdtv], [cdtv],
 	[enable CDTV emulation], [yes])
+OPT_FEATURE([WITH_CPUBOARD], [cpuboard], [cpuboard],
+	[enable cpu board emulation], [yes])
+OPT_FEATURE([A_DMS], [dms], [dms],
+        [enable DMS support], [yes])
 OPT_FEATURE([DRIVESOUND], [drivesound], [drivesound],
 	[enable drive sound emulation], [yes])
 OPT_FEATURE([FPUEMU], [fpuemu], [fpuemu],
@@ -522,7 +533,7 @@ OPT_FEATURE([WITH_NETPLAY], [netplay], [netplay],
 OPT_FEATURE([NCR9X], [ncr9x], [ncr9x],
 	[enable 53C9X SCSI], [yes])
 OPT_FEATURE([WITH_PPC], [ppc], [ppc],
-	[enable PPC emulation], [yes])
+	[enable PPC (requires cpu board)], [yes])
 OPT_FEATURE([WITH_SLIRP], [slirp], [slirp],
 	[enable SLIRP (user mode NAT)], [yes])
 OPT_FEATURE([WITH_UAENATIVE], [uaenative], [uaenative],

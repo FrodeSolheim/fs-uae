@@ -1,6 +1,10 @@
 #ifndef UAE_INLINE_H
 #define UAE_INLINE_H
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 // FIXME: could be named funcattr.h or something, perhaps
 // FIXME: move regparams here?
 

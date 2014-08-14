@@ -28,6 +28,8 @@
 #include "uae.h"
 #include "ppc.h"
 
+#ifdef WITH_CPUBOARD
+
 #define CPUBOARD_IO_LOG 0
 #define CPUBOARD_IRQ_LOG 0
 
@@ -1712,3 +1714,5 @@ addrbank *cpuboard_autoconfig_init(void)
 		return &expamem_null;
 	return &blizzarde8_bank;
 }
+
+#endif // WITH_CPUBOARD

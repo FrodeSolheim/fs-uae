@@ -111,8 +111,10 @@ void ncr_rethink(void)
 		if (ncrs[i]->irq)
 			INTREQ(0x8000 | 0x0008);
 	}
+#ifdef WITH_CPUBOARD
 	if (ncr_cs.irq)
 		cyberstorm_irq(1);
+#endif
 }
 
 /* 720+ */
@@ -313,10 +315,12 @@ static uaecptr beswap(uaecptr addr)
 
 void ncr_io_bput(struct ncr_state *ncr, uaecptr addr, uae_u32 val)
 {
+#ifdef WITH_CPUBOARD
 	if (addr >= CYBERSTORM_SCSI_RAM_OFFSET && ncr->ramsize) {
 		cyberstorm_scsi_ram_put(addr, val);
 		return;
 	}
+#endif
 	addr &= IO_MASK;
 	lsi_mmio_write(ncr->devobject.lsistate, beswap(addr), val, 1);
 }
@@ -340,8 +344,10 @@ static void ncr_bput2 (struct ncr_state *ncr, uaecptr addr, uae_u32 val)
 
 uae_u32 ncr_io_bget(struct ncr_state *ncr, uaecptr addr)
 {
+#ifdef WITH_CPUBOARD
 	if (addr >= CYBERSTORM_SCSI_RAM_OFFSET && ncr->ramsize)
 		return cyberstorm_scsi_ram_get(addr);
+#endif
 	addr &= IO_MASK;
 	return lsi_mmio_read(ncr->devobject.lsistate, beswap(addr), 1);
 }
@@ -678,7 +684,7 @@ static addrbank ncr_bank_warpengine = {
 	default_xlate, default_check, NULL, NULL, _T("Warp Engine SCSI"),
 	dummy_lgeti, dummy_wgeti, ABFLAG_IO
 };
-
+#ifdef WITH_CPUBOARD
 addrbank ncr_bank_cyberstorm = {
 	cs_lget, cs_wget, cs_bget,
 	cs_lput, cs_wput, cs_bput,
@@ -692,7 +698,7 @@ addrbank ncr_bank_blizzardppc = {
 	default_xlate, default_check, NULL, NULL, _T("Blizzard PPC SCSI"),
 	dummy_lgeti, dummy_wgeti, ABFLAG_IO
 };
-
+#endif
 
 
 static void ew (struct ncr_state *ncr, int addr, uae_u8 value)
@@ -730,8 +736,10 @@ static void ncr_reset_board(struct ncr_state *ncr)
 	ncr->irq = false;
 	if (ncr->devobject.lsistate)
 		lsi_scsi_reset(&ncr->devobject, ncr);
+#ifdef WITH_CPUBOARD
 	ncr->bank = &ncr_bank_cyberstorm;
 	ncr->irq_func = cyberstorm_irq;
+#endif
 }
 
 static void ncr710_reset_board (struct ncr_state *ncr)
@@ -758,11 +766,13 @@ static void ncr710_reset_board (struct ncr_state *ncr)
 		ncr->name = _T("Warp Engine SCSI");
 		ncr->bank = &ncr_bank_warpengine;
 	}
+#ifdef WITH_CPUBOARD
 	if (ncr == &ncr_bppc) {
 		ncr->name = _T("Blizzard PPC SCSI");
 		ncr->bank = &ncr_bank_blizzardppc;
 		ncr->irq_func = blizzardppc_irq;
 	}
+#endif
 }
 
 static const uae_u8 warpengine_a4000_autoconfig[16] = {

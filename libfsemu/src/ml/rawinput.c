@@ -578,4 +578,8 @@ void fs_ml_init_raw_input() {
     g_keyboard_layout = GetKeyboardLayout(0);
 }
 
+#else
+
+int libfsemu_ml_rawinput_dummy;
+
 #endif

@@ -706,8 +706,6 @@ void fs_emu_queue_input_event(int input_event) {
 #endif
 }
 
-#include "keynames.c"
-
 fs_emu_input_device *fs_emu_get_input_devices(int* count) {
     return fs_ml_get_input_devices(count);
 }

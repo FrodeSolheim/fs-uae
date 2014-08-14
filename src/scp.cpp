@@ -15,27 +15,9 @@
 #include "zfile.h"
 #include "gui.h"
 #include "uae.h"
+#include "uae/endian.h"
 
 #include <stdint.h>
-
-#ifdef WINDOWS
-static uint16_t be16toh(uint16_t v)
-{
-	return (v << 8) | (v >> 8);
-}
-static uint32_t le32toh(uint32_t v)
-{
-	return v;
-}
-#elif defined(HAVE_LIBKERN_OSBYTEORDER_H)
-#include <libkern/OSByteOrder.h>
-#define be16toh(x) OSSwapBigToHostInt16(x)
-#define le32toh(x) OSSwapLittleToHostInt32(x)
-#elif defined(HAVE_ENDIAN_H)
-#include <endian.h>
-#elif defined(HAVE_SYS_ENDIAN_H)
-#include <sys/endian.h>
-#endif
 
 #define MAX_REVS 5
 

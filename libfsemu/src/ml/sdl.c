@@ -607,7 +607,7 @@ void fs_ml_clear_keyboard_modifier_state() {
 #endif
 
 #ifdef USE_SDL2
-#include "sdl2_keys.c"
+#include "sdl2_keys.h"
 // modifiers have values in SDL and SDL2, except META is renamed to GUI
 #define KMOD_LMETA KMOD_LGUI
 #define KMOD_RMETA KMOD_RGUI

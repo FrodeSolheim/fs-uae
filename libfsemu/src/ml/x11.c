@@ -445,4 +445,8 @@ int fs_ml_scancode_to_key(int scancode) {
     return g_key_map[scancode];
 }
 
+#else
+
+int libfsemu_x11_dummy;
+
 #endif // USE_X11

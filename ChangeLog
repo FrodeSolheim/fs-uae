@@ -1,3 +1,11 @@
+Version 2.5.11dev:
+
+* Big-endian support for loading of fs-uae.dat.
+* Remove message "no configuration file loaded".
+* Re-enable DMS support (missing for a couple of versions).
+* Can configure with --disable-cpuboard --disable-ppc.
+* Configure script checks if -fno-strict-overflow is recognized.
+
 Version 2.5.10dev:
 
 * Updated emulation core from WinUAE 2900b10.

@@ -1,6 +1,10 @@
 #ifndef UAE_REGPARAM_H
 #define UAE_REGPARAM_H
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #ifdef __i386__
 
 #ifdef _WIN32

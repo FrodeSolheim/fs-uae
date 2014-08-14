@@ -4656,7 +4656,9 @@ static void rethink_intreq (void)
 #ifdef NCR9X
 	ncr9x_rethink();
 #endif
+#ifdef WITH_CPUBOARD
 	cpuboard_rethink();
+#endif
 	rethink_gayle ();
 }
 
@@ -7186,7 +7188,9 @@ static void vsync_handler_pre (void)
 #ifdef CD32
 	cd32_fmv_vsync_handler();
 #endif
+#ifdef WITH_CPUBOARD
 	cpuboard_vsync();
+#endif
 	statusline_vsync();
 
 	if (!vsync_rendered) {

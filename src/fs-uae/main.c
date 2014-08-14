@@ -628,6 +628,7 @@ static int load_config_file() {
         g_fs_uae_config_dir_path = fs_path_get_dirname(
                 g_fs_uae_config_file_path);
     }
+#if 0
     else {
         if (fs_config_get_boolean("end_config") == 1) {
             // do not warn in case end_config was specified via argv
@@ -637,6 +638,7 @@ static int load_config_file() {
             g_warn_about_missing_config_file = 1;
         }
     }
+#endif
 
     char *path = fs_path_join(fs_uae_configurations_dir(),
             "Host.fs-uae", NULL);

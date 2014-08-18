@@ -493,33 +493,6 @@ void fs_emu_release_gui_lock();
 #include <fs/emu/dialog.h>
 #include <fs/emu/video.h>
 
-// main function support for windows
-
-#ifdef WINDOWS
-#include <winsock2.h>
-#include <windows.h>
-#ifdef __MINGW64_VERSION_MAJOR
-#define _argc __argc
-#define _argv __argv
-#endif
-extern int _argc;
-extern char** _argv;
-
-#undef main
-// prevent later imports of SDL to overwrite main
-#define _SDL_main_h
-
-extern int g_fs_ml_ncmdshow;
-extern HINSTANCE g_fs_ml_hinstance;
-int _fs_emu_windows_main(int argc, char* argv[]);
-#define main(a, b) WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) { \
-    g_fs_ml_hinstance = hInstance; \
-    g_fs_ml_ncmdshow = nCmdShow; \
-    return _fs_emu_windows_main(_argc, _argv); \
-} \
-int _fs_emu_windows_main(int argc, char* argv[])
-#endif
-
 #ifdef __cplusplus
 }
 #endif

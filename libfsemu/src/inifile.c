@@ -3,6 +3,7 @@
 #endif
 
 #include <fs/inifile.h>
+#include <fs/filesys.h>
 
 #include <stdlib.h>
 #include <fs/hashtable.h>
@@ -355,7 +356,7 @@ static int ini_parse(const char* filename,
     FILE* file;
     int error;
 
-    file = fopen(filename, "r");
+    file = fs_fopen(filename, "r");
     if (!file)
         return -1;
     error = ini_parse_file(file, handler, user);

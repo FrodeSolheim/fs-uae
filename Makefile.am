@@ -500,6 +500,7 @@ libfsemu_a_SOURCES = \
 	libfsemu/include/fs/init.h \
 	libfsemu/include/fs/list.h \
 	libfsemu/include/fs/log.h \
+	libfsemu/include/fs/main.h \
 	libfsemu/include/fs/ml.h \
 	libfsemu/include/fs/ml/opengl.h \
 	libfsemu/include/fs/queue.h \

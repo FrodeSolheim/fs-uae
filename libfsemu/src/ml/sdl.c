@@ -245,7 +245,7 @@ static void set_video_mode() {
             flags |= SDL_WINDOW_BORDERLESS;
         }
         else if (g_fs_emu_video_fullscreen_mode == FULLSCREEN_DESKTOP) {
-            fs_log("using fullscreen dektop mode\n");
+            fs_log("using fullscreen desktop mode\n");
             // the width and height will not be used for the fullscreen
             // desktop mode, only for the window when toggling fullscreen
             // state

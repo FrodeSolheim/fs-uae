@@ -310,9 +310,3 @@ void fs_ml_init_2() {
 double fs_ml_get_refresh_rate() {
     return g_fs_ml_target_refresh_rate;
 }
-
-#ifdef WINDOWS
-// parameters from WinMain
-int g_fs_ml_ncmdshow;
-HINSTANCE g_fs_ml_hinstance;
-#endif

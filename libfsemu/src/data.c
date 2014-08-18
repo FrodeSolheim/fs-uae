@@ -81,7 +81,6 @@ int read_zip_entries (FILE *f) {
     }
     int file_size = ftell(f);
 
-
     // we do not support zip file comments here (which are added at the end),
     // and assume that the file ends with the (fixed size) end of
     // central directory.
@@ -99,13 +98,13 @@ int read_zip_entries (FILE *f) {
         // no signature found, not a zip file
         return ERROR_EOCDR_SIG;
     }
-    if (eocdr.num_entries > 8192) {
+    if (le16toh(eocdr.num_entries) > 8192) {
         return ERROR_EOCDR_ENTRIES;
     }
 
     pos = le32toh(eocdr.central_directory_offset);
     central_file_header cfh;
-    for (int i = 0; i < eocdr.num_entries; i++) {
+    for (int i = 0; i < le16toh(eocdr.num_entries); i++) {
         // printf("reading zip entry %d from position %d\n", i, pos);
         if (fseek(f, pos, SEEK_SET) != 0) {
             return ERROR_CFH_SEEK;

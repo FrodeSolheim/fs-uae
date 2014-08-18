@@ -1,3 +1,10 @@
+Version 2.5.12dev:
+
+* FS-UAE on Windows now supports unicode command line arguments.
+* Fixed a bug on Windows preventing load of non-ASCII config file paths.
+* Another big-endian fix for loading fs-uae.dat.
+* Added xinput_controller_15_6_0_0_windows.conf [Kitty].
+
 Version 2.5.11dev:
 
 * Big-endian support for loading of fs-uae.dat.

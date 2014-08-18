@@ -1213,7 +1213,6 @@ void decide_blitter (int hpos)
 				break;
 			}
 
-			check_channel_mods (last_blitter_hpos, c);
 			blt_info.got_cycle = 1;
 			if (c == 4) {
 				blitter_doddma (last_blitter_hpos);
@@ -1233,6 +1232,8 @@ void decide_blitter (int hpos)
 					return;
 				}
 			}
+			// check this after end check because last D write won't cause any problems.
+			check_channel_mods (last_blitter_hpos, c);
 			break;
 		}
 

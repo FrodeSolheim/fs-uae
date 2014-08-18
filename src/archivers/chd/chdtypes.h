@@ -21,6 +21,8 @@
 #include "zfile.h"
 #endif
 
+#define NO_MEM_TRACKING
+
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
 #define DECL_NORETURN			__declspec(noreturn)
 #else
@@ -39,11 +41,7 @@
 #define ARRAY_LENGTH(x)		(sizeof(x) / sizeof(x[0]))
 
 #define CLIB_DECL __cdecl
-
-#ifdef FSUAE
-#else
-#define FLAC__NO_DLL
-#endif
+#define FLAC_API_EXPORTS
 
 /* Macros for normalizing data into big or little endian formats */
 #define FLIPENDIAN_INT16(x)	(((((UINT16) (x)) >> 8) | ((x) << 8)) & 0xffff)

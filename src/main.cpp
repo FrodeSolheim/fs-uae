@@ -235,6 +235,9 @@ void fixup_prefs_dimensions (struct uae_prefs *prefs)
 
 void fixup_cpu (struct uae_prefs *p)
 {
+#ifdef FSUAE
+	write_log("fixup_cpu\n");
+#endif
 	if (p->cpu_frequency == 1000000)
 		p->cpu_frequency = 0;
 

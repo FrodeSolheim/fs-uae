@@ -98,15 +98,7 @@ void uae_set_uaem_write_flags_from_string(const char *flags) {
 }
 #endif
 
-void fsdb_lock() {
-    // FIXME
-}
-
-void fsdb_unlock() {
-    // FIXME
-}
-
-char *fsdb_file_path(const char* nname) {
+static char *fsdb_file_path(const char* nname) {
     strncpy(g_fsdb_file_path_buffer, nname, PATH_MAX);
     return g_fsdb_file_path_buffer;
 }
@@ -125,7 +117,7 @@ int fsdb_name_invalid_dir(const TCHAR *n) {
     return 0;
 }
 
-uae_u32 filesys_parse_mask(uae_u32 mask) {
+static uae_u32 filesys_parse_mask(uae_u32 mask) {
     return mask ^ 0xf;
 }
 
@@ -193,7 +185,7 @@ static TCHAR evilchars[NUM_EVILCHARS] = { '%', '\\', '*', '?', '\"', '/', '|',
         '<', '>'};
 static char hex_chars[] = "0123456789abcdef";
 
-char *aname_to_nname(const char *aname, int ascii) {
+static char *aname_to_nname(const char *aname, int ascii) {
     size_t len = strlen(aname);
     unsigned int repl_1 = UINT_MAX;
     unsigned int repl_2 = UINT_MAX;
@@ -299,7 +291,13 @@ static unsigned char char_to_hex(unsigned char c) {
     return 0;
 }
 
-char *nname_to_aname(const char *nname, int noconvert) {
+int same_aname (const char *an1, const char *an2) {
+    // FIXME: latin 1 chars?
+    // FIXME: compare with latin1 table in charset/filesys_host/fsdb_host
+    return strcasecmp (an1, an2) == 0;
+}
+
+static char *nname_to_aname(const char *nname, int noconvert) {
     int len = strlen(nname);
     char *result = strdup(nname);
     unsigned char *p = (unsigned char *) result;

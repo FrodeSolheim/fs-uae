@@ -37,6 +37,7 @@
 #include "ahidsound.h"
 #include "picasso96_host.h"
 #include "uaenative.h"
+#include "uae/ahi.h"
 
 #ifdef FSUAE
 #if defined(WINDOWS) && !defined(_WIN32)

@@ -37,13 +37,13 @@ const char* amiga_get_caps_library_path(void) {
 
 #ifndef _WIN32
 
-void *GetProcAddress(void *handle, const char *symbol) {
+static void *GetProcAddress(void *handle, const char *symbol) {
     return dlsym(handle, symbol);
 }
 
 #endif
 
-HMODULE load_caps_library() {
+static HMODULE load_caps_library() {
     HMODULE handle = NULL;
     write_log("load_caps_library\n");
     if (g_caps_library_path == NULL) {
@@ -69,6 +69,7 @@ HMODULE load_caps_library() {
 #include "zfile.h"
 #include "gui.h"
 #include "uae.h"
+#include "uae/caps.h"
 
 #include "caps_types.h"
 #include "CapsAPI.h"

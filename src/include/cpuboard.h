@@ -26,6 +26,9 @@ extern uae_u32 cyberstorm_scsi_ram_get(uaecptr addr);
 extern int REGPARAM3 cyberstorm_scsi_ram_check(uaecptr addr, uae_u32 size) REGPARAM;
 extern uae_u8 *REGPARAM3 cyberstorm_scsi_ram_xlate(uaecptr addr) REGPARAM;
 
+void cyberstorm_irq(int level);
+void blizzardppc_irq(int level);
+
 #define BOARD_BLIZZARD_1230_IV 1
 #define BOARD_BLIZZARD_1230_IV_SCSI 2
 #define BOARD_BLIZZARD_1260 3

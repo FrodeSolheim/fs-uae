@@ -1,10 +1,10 @@
 #include "sysconfig.h"
 #include "sysdeps.h"
 
-#include <stdint.h>
-
-#include "options.h"
 #include "custom.h"
+#include "options.h"
+#include "uae.h"
+#include <stdint.h>
 
 /* Period parameters */
 #define N 624
@@ -26,7 +26,7 @@ struct rand_context {
 	unsigned int mti;
 };
 
-void rand_set_seed(rand_context *rand, uint32_t seed)
+static void rand_set_seed(rand_context *rand, uint32_t seed)
 {
 	if (rand == NULL) {
 		return;
@@ -40,7 +40,7 @@ void rand_set_seed(rand_context *rand, uint32_t seed)
 			+ rand->mti;
 }
 
-uint32_t rand_int(rand_context *rand)
+static uint32_t rand_int(rand_context *rand)
 {
 	uint32_t y;
 	static const uint32_t mag01[2] = { 0x0, MATRIX_A };

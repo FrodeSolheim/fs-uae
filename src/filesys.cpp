@@ -59,6 +59,8 @@
 #include "scsi.h"
 #include "uaenative.h"
 #include "tabletlibrary.h"
+#include "cia.h"
+#include "picasso96.h"
 #include "cpuboard.h"
 #ifdef RETROPLATFORM
 #include "rp.h"
@@ -754,9 +756,6 @@ int move_filesys_unitconfig (struct uae_prefs *p, int nr, int to)
 	memcpy (uci2, &tmpuci, sizeof (struct uaedev_config_data));
 	return 1;
 }
-
-
-void filesys_addexternals (void);
 
 static void allocuci (struct uae_prefs *p, int nr, int idx, int unitnum)
 {
@@ -1984,6 +1983,7 @@ int hardfile_media_change (struct hardfiledata *hfd, struct uaedev_config_info *
 	return 0;
 }
 
+#if 0
 int hardfile_remount (int nr)
 {
 	/* this does work but every media reinsert duplicates the device.. */
@@ -1995,7 +1995,7 @@ int hardfile_remount (int nr)
 #endif
 	return 1;
 }
-
+#endif
 
 bool filesys_do_disk_change (int cdunitnum, bool insert)
 {
@@ -6847,7 +6847,6 @@ static uae_u32 REGPARAM2 filesys_dev_bootfilesys (TrapContext *context)
 	return 0;
 }
 
-extern void picasso96_alloc (TrapContext*);
 static uae_u32 REGPARAM2 filesys_init_storeinfo (TrapContext *context)
 {
 	int ret = -1;
@@ -6917,7 +6916,7 @@ static uae_u32 rl (uae_u8 *p)
 	return (p[0] << 24) | (p[1] << 16) | (p[2] << 8) | (p[3]);
 }
 
-int rdb_checksum (const uae_char *id, uae_u8 *p, int block)
+static int rdb_checksum (const uae_char *id, uae_u8 *p, int block)
 {
 	uae_u32 sum = 0;
 	int i, blocksize;
@@ -7750,7 +7749,6 @@ static uae_u32 REGPARAM2 mousehack_done (TrapContext *context)
 static int g_hsync_line = 0;
 #endif
 
-extern void cia_heartbeat (void);
 void filesys_vsync (void)
 {
 	Unit *u;

@@ -4,29 +4,37 @@ SUBDIRS = libmpeg2
 
 WARNINGS =
 
-CMCFLAGS =
-CMCFLAGS += @FREETYPE_CFLAGS@
-CMCFLAGS += @GLIB_CFLAGS@
-CMCFLAGS += @LUA_CFLAGS@
-CMCFLAGS += @MIR_CFLAGS@
-CMCFLAGS += @OPENAL_CFLAGS@
-CMCFLAGS += @OPENGL_CFLAGS@
-# CMCFLAGS += @OS_CFLAGS@
-CMCFLAGS += @PNG_CFLAGS@
-CMCFLAGS += @SDL2_CFLAGS@
-# CMCFLAGS += @X11_CFLAGS@
-CMCFLAGS += @ZLIB_CFLAGS@
-CMCFLAGS += $(WARNINGS)
+CM_CFLAGS =
+CM_CFLAGS += @FREETYPE_CFLAGS@
+CM_CFLAGS += @GLIB_CFLAGS@
+CM_CFLAGS += @LUA_CFLAGS@
+CM_CFLAGS += @MIR_CFLAGS@
+CM_CFLAGS += @OPENAL_CFLAGS@
+CM_CFLAGS += @OPENGL_CFLAGS@
+# CM_CFLAGS += @OS_CFLAGS@
+CM_CFLAGS += @PNG_CFLAGS@
+CM_CFLAGS += @SDL2_CFLAGS@
+# CM_CFLAGS += @X11_CFLAGS@
+CM_CFLAGS += @ZLIB_CFLAGS@
+CM_CFLAGS += $(WARNINGS)
 
 if F_NO_STRICT_OVERFLOW
-CMCFLAGS += -fno-strict-overflow
+CM_CFLAGS += -fno-strict-overflow
 endif
 
+if W_MISSING_DECLARATIONS
+CM_CFLAGS += -Wmissing-declarations
+endif
+
+#if W_MISSING_FORMAT_ATTRIBUTE
+#CM_CFLAGS += -Wmissing-format-attribute
+#endif
+
 AM_CFLAGS =
-AM_CFLAGS += $(CMCFLAGS) -std=gnu99
+AM_CFLAGS += $(CM_CFLAGS) -std=gnu99
 
 AM_CXXFLAGS =
-AM_CXXFLAGS += $(CMCFLAGS)
+AM_CXXFLAGS += $(CM_CFLAGS)
 
 AM_CPPFLAGS =
 AM_CPPFLAGS += @OS_CPPFLAGS@
@@ -288,8 +296,10 @@ libuae_a_SOURCES = \
 	src/include/tabletlibrary.h \
 	src/include/traps.h \
 	src/include/uae.h \
+	src/include/uae/ahi.h \
 	src/include/uae/asm.h \
 	src/include/uae/assert.h \
+	src/include/uae/caps.h \
 	src/include/uae/cycleunit.h \
 	src/include/uae/endian.h \
 	src/include/uae/enum.h \
@@ -297,7 +307,9 @@ libuae_a_SOURCES = \
 	src/include/uae/inline.h \
 	src/include/uae/jitconfig.h \
 	src/include/uae/limits.h \
+	src/include/uae/logging.h \
 	src/include/uae/memory.h \
+	src/include/uae/parser.h \
 	src/include/uae/regparam.h \
 	src/include/uae/string.h \
 	src/include/uae/types.h \
@@ -322,7 +334,6 @@ libuae_a_SOURCES = \
 	src/keybuf.cpp \
 	src/main.cpp \
 	src/memory.cpp \
-	src/missing.cpp \
 	src/native2amiga.cpp \
 	src/ncr9x_scsi.cpp \
 	src/ncr_scsi.cpp \
@@ -347,7 +358,6 @@ libuae_a_SOURCES = \
 	src/od-fs/bsdsocket_host.cpp \
 	src/od-fs/callbacks.h \
 	src/od-fs/caps.cpp \
-	src/od-fs/caps.h \
 	src/od-fs/caps_types.h \
 	src/od-fs/cda_play.cpp \
 	src/od-fs/cda_play.h \
@@ -367,8 +377,8 @@ libuae_a_SOURCES = \
 	src/od-fs/include/uae/uae_inputevents_def.h \
 	src/od-fs/input.cpp \
 	src/od-fs/inputrecord.cpp \
-	src/od-fs/keymap.cpp \
-	src/od-fs/keymap.h \
+	src/od-fs/joystick.cpp \
+	src/od-fs/keyboard.cpp \
 	src/od-fs/libamiga.cpp \
 	src/od-fs/logging.cpp \
 	src/od-fs/machdep/arm/maccess.h \
@@ -380,9 +390,9 @@ libuae_a_SOURCES = \
 	src/od-fs/machdep/rpt.h \
 	src/od-fs/machdep/x86/maccess.h \
 	src/od-fs/mman_uae.h \
+	src/od-fs/mouse.cpp \
 	src/od-fs/mp3decoder.h \
 	src/od-fs/parser.cpp \
-	src/od-fs/parser.h \
 	src/od-fs/paths.cpp \
 	src/od-fs/picasso96.cpp \
 	src/od-fs/picasso96_host.h \
@@ -407,8 +417,11 @@ libuae_a_SOURCES = \
 	src/od-fs/util.cpp \
 	src/od-fs/video.cpp \
 	src/od-fs/winuae_compat.h \
+	src/od-win32/caps/caps_win32.h \
+	src/od-win32/debug_win32.h \
 	src/od-win32/md-fpp.h \
 	src/od-win32/mman.cpp \
+	src/od-win32/parser.h \
 	src/od-win32/win32_uaenet.cpp \
 	src/qemuvga/cirrus_vga.cpp \
 	src/qemuvga/cirrus_vga_rop.h \
@@ -806,7 +819,7 @@ fs_uae_LDADD += \
 	libmpeg2/libmpeg2/.libs/libmpeg2.a \
 	libmpeg2/libmpeg2/convert/.libs/libmpeg2convert.a
 else
-CMCFLAGS += @LIBMPEG2_CFLAGS@
+CM_CFLAGS += @LIBMPEG2_CFLAGS@
 LIBS += @LIBMPEG2_LIBS@
 endif
 

@@ -149,6 +149,9 @@ int amiga_init() {
     //syncbase = 10000;
 
     filesys_host_init();
+
+    romlist_init();
+
     return 1;
 }
 
@@ -287,7 +290,9 @@ int amiga_get_state_checksum() {
 //int amiga_main(int argc, char** argv) {
 void amiga_main() {
     write_log("amiga_main\n");
+
     keyboard_settrans();
+
     int argc = 1;
     char *argv[4] = {
             strdup("fs-uae"),
@@ -529,7 +534,7 @@ int amiga_cpu_set_speed(int speed) {
     return 1;
 }
 
-int amiga_parse_option(const char *option, const char *value, int type) {
+static int amiga_parse_option(const char *option, const char *value, int type) {
     // some strings are modified during parsing
     char *value2 = strdup(value);
     int result = cfgfile_parse_option(&currprefs, (char*) option,
@@ -538,7 +543,7 @@ int amiga_parse_option(const char *option, const char *value, int type) {
     write_log("set option \"%s\" to \"%s\" (result: %d)\n", option,
             value, result);
     if (result != 1) {
-        // FIXME: Log
+        gui_message("Option failed: %s = %s", option, value);
         amiga_log_warning("failed to set option \"%s\" to \"%s\" "
                 "(result: %d)\n", option, value, result);
     }

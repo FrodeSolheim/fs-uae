@@ -607,8 +607,6 @@ int hdf_dup (struct hardfiledata *dhfd, const struct hardfiledata *shfd)
 	return hdf_dup_target (dhfd, shfd);
 }
 
-extern int get_guid_target (uae_u8 *out);
-
 static uae_u64 vhd_read (struct hardfiledata *hfd, void *v, uae_u64 offset, uae_u64 len)
 {
 	uae_u64 read;

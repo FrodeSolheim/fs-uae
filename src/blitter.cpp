@@ -341,7 +341,6 @@ int blitter_channel_state (void)
 	return channel_state (blit_cyclecounter);
 }
 
-extern int is_bitplane_dma (int hpos);
 STATIC_INLINE int canblit (int hpos)
 {
 	if (!dmaen (DMA_BLITTER))

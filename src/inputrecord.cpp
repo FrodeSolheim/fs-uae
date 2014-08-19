@@ -56,8 +56,6 @@ static uae_u32 pcs2[16];
 extern void activate_debugger (void);
 static int warned;
 
-extern void refreshtitle (void);
-
 static void setlasthsync (void)
 {
 	if (lasthsync / current_maxvpos () != hsync_counter / current_maxvpos ()) {

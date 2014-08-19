@@ -23,8 +23,7 @@
 #include "cia.h"
 #include "serial.h"
 #include "enforcer.h"
-
-#include "od-fs/parser.h"
+#include "uae/parser.h"
 
 #define SERIALLOGGING 0
 #define SERIALDEBUG 0 /* 0, 1, 2 3 */
@@ -256,7 +255,6 @@ static void checksend (int mode)
 void serial_hsynchandler (void)
 {
 #ifdef AHI
-	extern void hsyncstuff(void);
 	hsyncstuff();
 #endif
 	if (serial_period_hsyncs == 0)

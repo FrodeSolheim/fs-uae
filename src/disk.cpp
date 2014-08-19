@@ -43,7 +43,7 @@ int disk_debug_track = -1;
 #include "driveclick.h"
 #ifdef CAPS
 #ifdef FSUAE
-#include "caps.h"
+#include "uae/caps.h"
 #else
 #include "caps/caps_win32.h"
 #endif

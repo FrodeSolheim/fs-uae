@@ -96,9 +96,6 @@ static struct ncr_state *ncra4091[] =
 	&ncr_a4091_2
 };
 
-extern void cyberstorm_irq(int);
-extern void blizzardppc_irq(int);
-
 static void set_irq2(int level)
 {
 	if (level)

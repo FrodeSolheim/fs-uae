@@ -797,7 +797,7 @@ void sample16ss_handler (void)
 /* This interpolator examines sample points when Paula switches the output
 * voltage and computes the average of Paula's output */
 
-void sample16ss_anti_handler (void)
+static void sample16ss_anti_handler (void)
 {
 	int data0, data1, data2, data3;
 	int datas[4];
@@ -832,7 +832,7 @@ static void sample16si_anti_handler (void)
 	check_sound_buffers ();
 }
 
-void sample16ss_sinc_handler (void)
+static void sample16ss_sinc_handler (void)
 {
 	int data0, data1, data2, data3;
 	int datas[4];

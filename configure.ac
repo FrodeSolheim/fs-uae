@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.67])
-AC_INIT([FS-UAE], [2.5.11dev2],
+AC_INIT([FS-UAE], [2.5.12dev],
         [frode@fs-uae.net], [fs-uae], [http://fs-uae.net])
 AC_CONFIG_AUX_DIR([.])
 AC_CANONICAL_SYSTEM
@@ -43,7 +43,20 @@ AC_PATH_PROG([ZIP], [zip])
 AX_CHECK_COMPILE_FLAG(-fno-strict-overflow,
 [f_no_strict_overflow=yes],
 [f_no_strict_overflow=no])
-AM_CONDITIONAL([F_NO_STRICT_OVERFLOW], [test x$f_no_strict_overflow = xyes])
+AM_CONDITIONAL([F_NO_STRICT_OVERFLOW],
+[test x$f_no_strict_overflow = xyes])
+
+AX_CHECK_COMPILE_FLAG(-Wmissing-declarations,
+[w_missing_declarations=yes],
+[w_missing_declarations=no])
+AM_CONDITIONAL([W_MISSING_DECLARATIONS],
+[test x$w_missing_declarations = xyes])
+
+AX_CHECK_COMPILE_FLAG(-Wmissing-format-attribute,
+[w_missing_format_attribute=yes],
+[w_missing_format_attribute=no])
+AM_CONDITIONAL([W_MISSING_FORMAT_ATTRIBUTE],
+[test x$w_missing_format_attribute = xyes])
 
 # Misc system checks.
 
@@ -276,10 +289,12 @@ AC_C_VOLATILE
 
 AX_GCC_FUNC_ATTRIBUTE(always_inline)
 AX_GCC_FUNC_ATTRIBUTE(fastcall)
+AX_GCC_FUNC_ATTRIBUTE(format)
 AX_GCC_FUNC_ATTRIBUTE(noinline)
 AX_GCC_FUNC_ATTRIBUTE(noreturn)
 AX_GCC_FUNC_ATTRIBUTE(regparm)
 AX_GCC_FUNC_ATTRIBUTE(unused)
+
 AX_GCC_VAR_ATTRIBUTE(unused)
 
 # FIXME: not found on the mingw box

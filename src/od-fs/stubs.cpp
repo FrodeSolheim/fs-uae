@@ -1,8 +1,20 @@
 #include "sysconfig.h"
 #include "sysdeps.h"
 
+#include "autoconf.h"
+#include "clipboard.h"
+#include "debug.h"
+#include "filesys.h"
+#include "fsdb.h"
+#include "gui.h"
+#include "newcpu.h"
 #include "options.h"
+#include "rommgr.h"
+#include "sampler.h"
+#include "savestate.h"
 #include "scsidev.h"
+#include "uae.h"
+#include "xwin.h"
 
 void graphics_reset(void)
 {
@@ -119,10 +131,6 @@ int target_parse_option (struct uae_prefs *p, const TCHAR *option, const TCHAR *
     return 0;
 }
 
-void target_startup_sequence (struct uae_prefs *p) {
-    STUB("p=%p\n", p);
-}
-
 uae_u8 *target_load_keyfile (struct uae_prefs *p, const TCHAR *path, int *sizep, TCHAR *name) {
     STUB("");
     return NULL;
@@ -154,7 +162,7 @@ void updatedisplayarea (void) {
     LOG_STUB("");
 }
 
-void filesys_addexternals() {
+void filesys_addexternals(void) {
     LOG_STUB("");
 }
 
@@ -200,6 +208,7 @@ int translate_message (int msg, TCHAR *out) {
     return 0;
 }
 
+#if 0
 void machdep_save_options (FILE *f, const struct uae_prefs *p) {
     LOG_STUB("");
 }
@@ -212,6 +221,7 @@ int machdep_parse_option (struct uae_prefs *p, const char *option, const char *v
 void machdep_default_options (struct uae_prefs *p) {
     STUB("");
 }
+#endif
 
 //void fpux_save (int *v) {
 //    STUB("");
@@ -223,6 +233,6 @@ void fpux_restore (int *v) {
 
 bool my_issamepath(const TCHAR *path1, const TCHAR *path2)
 {
-	LOG_STUB("");
+        LOG_STUB_MAX(3, "");
         return false;
 }

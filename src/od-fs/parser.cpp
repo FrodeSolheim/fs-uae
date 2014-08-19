@@ -25,6 +25,9 @@
 #include "picasso96_host.h"
 #include "threaddep/thread.h"
 #include "serial.h"
+#include "parser.h"
+#include "parallel.h"
+#include "cia.h"
 #include "savestate.h"
 #include "ahidsound_new.h"
 #include "xwin.h"
@@ -66,7 +69,7 @@ int uaeser_getdatalength (void)
     return sizeof (struct uaeserialdata);
 }
 
-void uaeser_initdata (void *vsd, void *user)
+static void uaeser_initdata (void *vsd, void *user)
 {
     STUB("");
 }

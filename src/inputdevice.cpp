@@ -1427,9 +1427,6 @@ void inputdevice_tablet_info (int maxx, int maxy, int maxz, int maxax, int maxay
 	inputdevice_update_tablet_params();
 }
 
-
-void getgfxoffset (float *dx, float *dy, float*, float*);
-
 static void inputdevice_mh_abs (int x, int y, uae_u32 buttonbits)
 {
 	uae_u8 *p;
@@ -1643,8 +1640,6 @@ static void mousehack_helper (uae_u32 buttonmask)
 static int mouseedge_x, mouseedge_y, mouseedge_time;
 #define MOUSEEDGE_RANGE 100
 #define MOUSEEDGE_TIME 2
-
-extern void setmouseactivexy (int,int,int);
 
 static int mouseedge (void)
 {

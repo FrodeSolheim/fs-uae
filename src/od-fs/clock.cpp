@@ -1,6 +1,7 @@
 #include "sysconfig.h"
 #include "sysdeps.h"
 
+#include "uae.h"
 #include <time.h>
 #include <fs/base.h>
 #include <fs/time.h>

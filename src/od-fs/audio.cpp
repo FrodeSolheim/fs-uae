@@ -4,6 +4,7 @@
 #include "include/uae.h"
 #include "include/options.h"
 #include "gensound.h"
+#include "audio.h"
 
 int have_sound = 0;
 

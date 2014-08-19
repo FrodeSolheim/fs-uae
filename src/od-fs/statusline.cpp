@@ -1,6 +1,9 @@
 #include "sysconfig.h"
 #include "sysdeps.h"
 
+#include "statusline.h"
+#include "uae.h"
+
 void statusline_updated(void) {
 
 }

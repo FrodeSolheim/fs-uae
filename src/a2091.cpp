@@ -2252,7 +2252,7 @@ int a2091_add_scsi_unit(int ch, struct uaedev_config_info *ci, int devnum)
 		return add_wd_scsi_hd(wd, ch, NULL, ci, 1);
 }
 
-void a2091_free_device (struct wd_state *wd)
+static void a2091_free_device (struct wd_state *wd)
 {
 	freenativescsi (wd);
 	xfree (wd->rom);

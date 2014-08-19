@@ -247,5 +247,6 @@ extern bool ispal (void);
 extern int current_maxvpos (void);
 extern struct chipset_refresh *get_chipset_refresh (void);
 extern void compute_framesync (void);
+int is_bitplane_dma (int hpos);
 
 #endif // UAE_CUSTOM_H

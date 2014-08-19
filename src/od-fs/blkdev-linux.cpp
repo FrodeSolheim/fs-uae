@@ -799,4 +799,8 @@ struct device_functions devicefunc_scsi_ioctl = {
     0,             /* scsiemu_func scsiemu; */
 };
 
+#else
+
+int uae_od_fs_blkdev_linux_dummy;
+
 #endif

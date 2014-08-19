@@ -883,7 +883,7 @@ end:
 
 #ifdef CAPS
 #ifdef FSUAE
-#include "caps.h"
+#include "uae/caps.h"
 #else
 #include "caps/caps_win32.h"
 #endif

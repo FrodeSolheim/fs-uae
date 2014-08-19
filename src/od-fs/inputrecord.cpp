@@ -1,6 +1,8 @@
 #include "sysconfig.h"
 #include "sysdeps.h"
 
+#include "inputrecord.h"
+
 int input_record = 0;
 int input_play = 0;
 int inputrecord_debug = 0;

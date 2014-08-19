@@ -191,7 +191,7 @@ static void trim (TCHAR *s)
 }
 */
 
-int isharddrive (const TCHAR *name)
+static int isharddrive (const TCHAR *name)
 {
     int i;
 

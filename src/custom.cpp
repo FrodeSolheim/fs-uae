@@ -93,7 +93,7 @@ STATIC_INLINE bool nocustom (void)
 	return false;
 }
 
-void uae_abort (const TCHAR *format,...)
+static void uae_abort (const TCHAR *format,...)
 {
 	static int nomore;
 	va_list parms;
@@ -3819,7 +3819,7 @@ void compute_framesync (void)
 }
 
 /* set PAL/NTSC or custom timing variables */
-void init_hz (bool fullinit)
+static void init_hz (bool fullinit)
 {
 	int isntsc, islace;
 	int odbl = doublescan, omaxvpos = maxvpos;
@@ -4042,10 +4042,11 @@ void init_hz (bool fullinit)
 		vpos_count_diff = maxvpos_nom;
 }
 
-void init_hz (void)
+static void init_hz (void)
 {
 	init_hz (false);
 }
+
 void init_hz_full (void)
 {
 	init_hz (true);
@@ -4722,7 +4723,7 @@ static void INTENA (uae_u16 v)
 #endif
 }
 
-void INTREQ_nodelay (uae_u16 v)
+static void INTREQ_nodelay (uae_u16 v)
 {
 	setclr (&intreq, v);
 	setclr (&intreq_internal, v);

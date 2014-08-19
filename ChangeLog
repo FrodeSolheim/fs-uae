@@ -1,5 +1,13 @@
+Version 2.5.13dev:
+
+* Add internal HRTMon rom to the rom list on startup.
+* Show GUI warning when some config incompatibilities are detected.
+* GUI warning when custom uae_ options fails or are not recognized.
+* Added more compiler warnings by default.
+
 Version 2.5.12dev:
 
+* Updated emulation core from WinUAE 2900b12.
 * FS-UAE on Windows now supports unicode command line arguments.
 * Fixed a bug on Windows preventing load of non-ASCII config file paths.
 * Another big-endian fix for loading fs-uae.dat.

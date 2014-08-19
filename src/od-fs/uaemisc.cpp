@@ -1,8 +1,15 @@
 #include "sysconfig.h"
 #include "sysdeps.h"
 
-#include "include/options.h"
+#include "autoconf.h"
+#include "clipboard.h"
+#include "fsdb.h"
+#include "options.h"
+#include "serial.h"
 #include "sleep.h"
+#include "uae.h"
+#include "xwin.h"
+#include "../od-win32/debug_win32.h"
 
 #ifndef PICASSO96
 // just to make ncr_scsi compile. it will not work, of course,
@@ -24,10 +31,9 @@ int uaelib_debug = 0;
 int sleep_resolution = 1000 / 1;
 int pissoff_value = 25000;
 
-extern int uaeser_getdatalength (void);
-int uaeser_getdatalenght (void) {
-    return uaeser_getdatalength();
-}
+//int uaeser_getdatalenght (void) {
+//    return uaeser_getdatalength();
+//}
 
 void target_default_options (struct uae_prefs *p, int type) {
     //write_log("STUB: target_default_options p=%p type=%d\n", p, type);
@@ -74,12 +80,6 @@ void sleep_millis (int ms) {
     // FIXME: check usage of this for CD32
     usleep(ms * 1000);
     //uae_msleep(ms);
-}
-
-int same_aname (const char *an1, const char *an2) {
-    // FIXME: latin 1 chars?
-    // FIXME: compare with latin1 table in charset/filesys_host/fsdb_host
-    return strcasecmp (an1, an2) == 0;
 }
 
 void console_out_f(const TCHAR *fmt, ...) {
@@ -268,7 +268,7 @@ void fullpath (TCHAR *path, int size) {
 
 TCHAR start_path_data[MAX_DPATH];
 
-void fetch_path (const TCHAR *name, TCHAR *out, int size) {
+static void fetch_path (const TCHAR *name, TCHAR *out, int size) {
     //int size2 = size;
     //printf("fetch_path %s\n", name);
     //_tcscpy (start_path_data, "./");

@@ -5,6 +5,11 @@
 #include "uae/types.h"
 #endif
 
+#include "traps.h"
+
+void picasso96_alloc (TrapContext* ctx);
+uae_u32 picasso_demux (uae_u32 arg, TrapContext *ctx);
+
 #ifdef FSUAE
 
 #include "picasso96_host.h"

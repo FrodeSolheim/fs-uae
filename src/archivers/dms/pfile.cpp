@@ -40,7 +40,7 @@ static int dolog = 0;
 
 static USHORT Process_Track(struct zfile *, struct zfile *, UCHAR *, UCHAR *, USHORT, USHORT, int, struct zfile **extra);
 static USHORT Unpack_Track(UCHAR *, UCHAR *, USHORT, USHORT, UCHAR, UCHAR, USHORT, USHORT, USHORT, int);
-static void UNUSED_FUNCTION(printbandiz)(UCHAR *, USHORT);
+static void printbandiz(UCHAR *, USHORT);
 
 static int passfound, passretries;
 
@@ -540,7 +540,7 @@ static USHORT Unpack_Track(UCHAR *b1, UCHAR *b2, USHORT pklen2, USHORT unpklen, 
 }
 
 
-static void UNUSED_FUNCTION(printbandiz)(UCHAR *m, USHORT len){
+static void printbandiz(UCHAR *m, USHORT len){
 	UCHAR *i,*j;
 
 	i=j=m;

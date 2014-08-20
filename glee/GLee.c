@@ -2,6 +2,10 @@
 #include "config.h"
 #endif
 
+#ifdef __GNUC__
+#pragma GCC diagnostic ignored "-Wmissing-declarations"
+#endif
+
 #if !defined(USE_GLES) || defined(FAKE_GLES)
 
 /***************************************************************************

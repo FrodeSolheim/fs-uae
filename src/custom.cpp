@@ -128,7 +128,7 @@ uae_u16 customhack_get (struct customhack *ch, int hpos)
 }
 #endif
 
-static unsigned int UNUSED(n_consecutive_skipped) = 0;
+static unsigned int n_consecutive_skipped = 0;
 static unsigned int total_skipped = 0;
 
 STATIC_INLINE void sync_copper (int hpos);
@@ -163,7 +163,7 @@ static int vsynctimeperline;
 static int frameskiptime;
 static bool genlockhtoggle;
 static bool genlockvtoggle;
-static bool UNUSED(graphicsbuffer_retry);
+static bool graphicsbuffer_retry;
 
 #ifdef FSUAE // NL
 int g_uae_min_first_line_pal = VBLANK_ENDLINE_PAL;
@@ -197,7 +197,7 @@ static uae_u8 color_regs_aga_genlock[256];
 
 static int REGPARAM3 custom_wput_1 (int, uaecptr, uae_u32, int) REGPARAM;
 
-static uae_u16 UNUSED(cregs[256]);
+static uae_u16 cregs[256];
 
 uae_u16 intena, intreq;
 uae_u16 dmacon;
@@ -231,7 +231,7 @@ static bool varsync_changed;
 uae_u16 vtotal = MAXVPOS_PAL, htotal = MAXHPOS_PAL;
 static int maxvpos_stored, maxhpos_stored;
 static uae_u16 hsstop, hbstrt, hbstop, vsstop, vbstrt, vbstop, hsstrt, vsstrt, hcenter;
-static int UNUSED(ciavsyncmode);
+static int ciavsyncmode;
 static int diw_hstrt, diw_hstop;
 static int diw_hcounter;
 
@@ -266,7 +266,7 @@ static uae_u16 sprdata[MAX_SPRITES][4], sprdatb[MAX_SPRITES][4];
 #else
 static uae_u16 sprdata[MAX_SPRITES][1], sprdatb[MAX_SPRITES][1];
 #endif
-static int UNUSED(sprite_last_drawn_at[MAX_SPRITES]);
+static int sprite_last_drawn_at[MAX_SPRITES];
 static int last_sprite_point, nr_armed;
 static int sprite_width, sprres;
 static int sprite_sprctlmask;
@@ -306,7 +306,7 @@ enum diw_states
 static int plffirstline, plflastline;
 int plffirstline_total, plflastline_total;
 static int autoscale_bordercolors;
-static int UNUSED(plfstrt_start), plfstrt, plfstop;
+static int plfstrt_start, plfstrt, plfstop;
 static int sprite_minx, sprite_maxx;
 static int first_bpl_vpos;
 static int last_ddf_pix_hpos;
@@ -368,7 +368,7 @@ struct copper {
 
 static struct copper cop_state;
 static int copper_enabled_thisline;
-static int UNUSED(cop_min_waittime);
+static int cop_min_waittime;
 
 /*
 * Statistics
@@ -855,7 +855,7 @@ static int cycle_diagram_total_cycles[3][3][9];
 static int *curr_diagram;
 static const int cycle_sequences[3 * 8] = { 2,1,2,1,2,1,2,1, 4,2,3,1,4,2,3,1, 8,4,6,2,7,3,5,1 };
 
-static void UNUSED_FUNCTION(debug_cycle_diagram) (void)
+static void debug_cycle_diagram (void)
 {
 	int fm, res, planes, cycle, v;
 	TCHAR aa;
@@ -3729,8 +3729,8 @@ void compute_framesync (void)
 	gfxvidinfo.drawbuffer.inyoffset = -1;
 
 	if (beamcon0 & 0x80) {
-		int UNUSED(res) = GET_RES_AGNUS (bplcon0);
-		int UNUSED(vres) = islace ? 1 : 0;
+		int res = GET_RES_AGNUS (bplcon0);
+		int vres = islace ? 1 : 0;
 		int res2, vres2;
 			
 		res2 = currprefs.gfx_resolution;
@@ -5825,7 +5825,7 @@ static int customdelay[]= {
 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 };
 
-static void UNUSED_FUNCTION(copper_write) (uae_u32 v)
+static void copper_write (uae_u32 v)
 {
 	custom_wput_copper (current_hpos (), v >> 16, v & 0xffff, 0);
 }
@@ -6693,7 +6693,7 @@ static int mavg (struct mavg_data *md, int newval, int size)
 extern int log_vsync, debug_vsync_min_delay, debug_vsync_forced_delay;
 
 #ifdef FSUAE // NL
-static bool UNUSED_FUNCTION(framewait_2) (void)
+static bool framewait_2 (void)
 #else
 static bool framewait (void)
 #endif
@@ -7364,7 +7364,7 @@ static void vsync_handler_post (void)
 	vsync_cycles = get_cycles ();
 }
 
-static void UNUSED_FUNCTION(copper_check) (int n)
+static void copper_check (int n)
 {
 	if (cop_state.state == COP_wait) {
 		int vp = vpos & (((cop_state.saved_i2 >> 8) & 0x7F) | 0x80);
@@ -7597,7 +7597,7 @@ static void set_hpos (void)
 // this finishes current line
 static void hsync_handler_pre (bool onvsync)
 {
-	int UNUSED(hpos) = current_hpos ();
+	int hpos = current_hpos ();
 
 	if (!nocustom ()) {
 		sync_copper_with_cpu (maxhpos, 0);

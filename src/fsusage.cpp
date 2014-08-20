@@ -31,7 +31,7 @@ Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
 BLOCKS FROMSIZE-byte blocks, rounding away from zero.
 TOSIZE must be positive.  Return -1 if FROMSIZE is not positive.  */
 
-static long UNUSED_FUNCTION(adjust_blocks) (long blocks, int fromsize, int tosize)
+static long adjust_blocks (long blocks, int fromsize, int tosize)
 {
 	if (tosize <= 0)
 		abort ();
@@ -151,7 +151,7 @@ int statvfs ();
 Return the actual number of bytes read, zero for EOF, or negative
 for an error.  */
 
-int safe_read (int desc, TCHAR *ptr, int len)
+static int safe_read (int desc, TCHAR *ptr, int len)
 {
 	int n_chars;
 

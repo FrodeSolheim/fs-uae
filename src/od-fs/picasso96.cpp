@@ -68,7 +68,7 @@
 
 
 #ifdef FSUAE
-#include "uae_fs.h"
+#include "uae/fs.h"
 
 // FIXME: justing setting static value here -FS
 #define CURSORMAXWIDTH 128

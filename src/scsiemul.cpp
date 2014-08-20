@@ -261,7 +261,7 @@ static uae_u32 REGPARAM2 diskdev_expunge (TrapContext *context)
 	return 0;
 }
 
-static int UNUSED_FUNCTION(is_async_request) (struct devstruct *dev, uaecptr request)
+static int is_async_request (struct devstruct *dev, uaecptr request)
 {
 	int i = 0;
 	while (i < MAX_ASYNC_REQUESTS) {
@@ -1036,7 +1036,7 @@ static uae_u32 REGPARAM2 dev_beginio (TrapContext *context)
 {
 	uae_u32 request = m68k_areg (regs, 1);
 	uae_u8 flags = get_byte (request + 30);
-	int UNUSED(command) = get_word (request + 28);
+	int command = get_word (request + 28);
 	struct priv_devstruct *pdev = getpdevstruct (request);
 	struct devstruct *dev;
 	int canquick;

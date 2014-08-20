@@ -22,6 +22,7 @@
 #include "fsdb.h"
 
 #ifdef FSUAE // NL
+#include "uae/fs.h"
 #undef _WIN32
 #endif
 

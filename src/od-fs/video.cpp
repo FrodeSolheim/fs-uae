@@ -8,6 +8,8 @@
 #include "drawing.h"
 #include "gfxfilter.h"
 #include "gui.h"
+#include "uae/fs.h"
+
 #include <limits.h>
 #include <stdlib.h>
 
@@ -37,7 +39,7 @@ uae_s32 tcrrgb[65536];
 //#define USE_BUFMEM
 //#define USE_LINEMEM
 
-struct MultiDisplay Displays[MAX_DISPLAYS] = {};
+struct MultiDisplay Displays[MAX_DISPLAYS + 1] = {};
 
 static int g_picasso_enabled = 0;
 static int g_picasso_width = 0;

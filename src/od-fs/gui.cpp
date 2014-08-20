@@ -3,6 +3,7 @@
 
 #include "uae.h"
 #include "gui.h"
+#include "uae/fs.h"
 
 amiga_led_function g_amiga_led_function = NULL;
 struct _uae_led_data g_uae_led_data = {};

@@ -152,7 +152,7 @@ void fs_emu_initialize_opengl() {
     fs_gl_add_context_notification(context_notification_handler, NULL);
 }
 
-void get_buffer_format(int *gl_buffer_format, int *gl_buffer_type) {
+static void get_buffer_format(int *gl_buffer_format, int *gl_buffer_type) {
     int format = fs_emu_get_video_format();
     if (format == FS_EMU_VIDEO_FORMAT_BGRA) {
         *gl_buffer_format = GL_BGRA;
@@ -1696,7 +1696,8 @@ static void render_glow(double opacity) {
     CHECK_GL_ERROR();
     //printf("--- render glow done ---\n");
 }
-void render_fade_overlay(double alpha) {
+
+static void render_fade_overlay(double alpha) {
     // draw fading effect
     fs_gl_viewport(0, 0, fs_ml_video_width(), fs_ml_video_height());
     fs_gl_ortho_hd();

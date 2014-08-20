@@ -603,7 +603,7 @@ static void check_changes (int unitnum)
 		changed = true;
 
 	if (changed) {
-		bool UNUSED(wasimage) = currprefs.cdslots[unitnum].name[0] != 0;
+		bool wasimage = currprefs.cdslots[unitnum].name[0] != 0;
 		if (st->sema)
 			gotsem = getsem (unitnum, true);
 		st->cdimagefileinuse = changed_prefs.cdslots[unitnum].inuse;
@@ -752,7 +752,7 @@ void sys_command_cd_stop (int unitnum)
 	if (!getsem (unitnum))
 		return;
 	if (state[unitnum].device_func->stop == NULL) {
-		int UNUSED(as) = audiostatus (unitnum);
+		int as = audiostatus (unitnum);
 		uae_u8 cmd[6] = {0x4e,0,0,0,0,0};
 		do_scsi (unitnum, cmd, sizeof cmd);
 	} else {
@@ -886,6 +886,7 @@ int sys_command_cd_read (int unitnum, uae_u8 *data, int block, int size)
 	freesem (unitnum);
 	return v;
 }
+
 int sys_command_cd_rawread (int unitnum, uae_u8 *data, int block, int size, int sectorsize)
 {
 	int v;
@@ -902,7 +903,8 @@ int sys_command_cd_rawread (int unitnum, uae_u8 *data, int block, int size, int 
 	freesem (unitnum);
 	return v;
 }
-int sys_command_cd_rawread (int unitnum, uae_u8 *data, int block, int size, int sectorsize, uae_u8 sectortype, uae_u8 scsicmd9, uae_u8 subs)
+
+static int sys_command_cd_rawread (int unitnum, uae_u8 *data, int block, int size, int sectorsize, uae_u8 sectortype, uae_u8 scsicmd9, uae_u8 subs)
 {
 	int v;
 	if (failunit (unitnum))
@@ -1144,7 +1146,7 @@ static void wl (uae_u8 *p, int v)
 	p[2] = v >> 8;
 	p[3] = v;
 }
-static void UNUSED_FUNCTION(ww) (uae_u8 *p, int v)
+static void ww (uae_u8 *p, int v)
 {
 	p[0] = v >> 8;
 	p[1] = v;
@@ -1544,7 +1546,7 @@ int scsi_cd_emulate (int unitnum, uae_u8 *cmdbuf, int scsi_cmd_len,
 				goto nodisk;
 			stopplay (unitnum);
 			offset = ((cmdbuf[1] & 31) << 16) | (cmdbuf[2] << 8) | cmdbuf[3];
-			struct cd_toc *UNUSED(t) = gettoc (&di.toc, offset);
+			struct cd_toc *t = gettoc (&di.toc, offset);
 			v = scsi_read_cd_data (unitnum, scsi_data, offset, 0, &di, &scsi_len);
 			if (v == -1)
 				goto outofbounds;
@@ -1581,7 +1583,7 @@ int scsi_cd_emulate (int unitnum, uae_u8 *cmdbuf, int scsi_cmd_len,
 				goto nodisk;
 			stopplay (unitnum);
 			offset = rl (cmdbuf + 2);
-			struct cd_toc *UNUSED(t) = gettoc (&di.toc, offset);
+			struct cd_toc *t = gettoc (&di.toc, offset);
 			v = scsi_read_cd_data (unitnum, scsi_data, offset, 0, &di, &scsi_len);
 			if (v == -1)
 				goto outofbounds;
@@ -1759,7 +1761,7 @@ int scsi_cd_emulate (int unitnum, uae_u8 *cmdbuf, int scsi_cmd_len,
 			int msf = cmdbuf[1] & 2;
 			int subq = cmdbuf[2] & 0x40;
 			int format = cmdbuf[3];
-			int UNUSED(track) = cmdbuf[6];
+			int track = cmdbuf[6];
 			int len = rw (cmdbuf + 7);
 			uae_u8 buf[SUBQ_SIZE] = { 0 };
 
@@ -2043,7 +2045,7 @@ static int execscsicmd_direct (int unitnum, int type, struct amigascsi *as)
 {
 	int io_error = 0;
 	uae_u8 *scsi_datap, *scsi_datap_org;
-	uae_u32 UNUSED(scsi_cmd_len_orig) = as->cmd_len;
+	uae_u32 scsi_cmd_len_orig = as->cmd_len;
 	uae_u8 cmd[16] = { 0 };
 	uae_u8 replydata[256] = { 0 };
 	int datalen = as->len;

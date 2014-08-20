@@ -4,6 +4,10 @@
 #include <stdarg.h>
 
 #include "system/systhread.h"
+#ifdef FSUAE
+#include "tools/debug.h"
+#include "tools/snprintf.h"
+#endif
 
 void write_log(const char *format, ...);
 
@@ -36,6 +40,9 @@ int ht_vsnprintf(char *str, size_t count, const char *fmt, va_list args)
 
 void ht_assert_failed(const char *file, int line, const char *assertion)
 {
+#ifdef FSUAE
+    //uae_abort("ht_assert_failed %s:%d %s\n", file, line, assertion);
+#endif
 }
 
 void prom_quiesce()

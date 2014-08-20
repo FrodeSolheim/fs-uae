@@ -198,7 +198,7 @@ typedef struct input_config_item {
     int value;
 } input_config_item;
 
-void free_input_config_item_list(input_config_item *items) {
+static void free_input_config_item_list(input_config_item *items) {
     for (input_config_item *item = items; item->config_key; item++) {
         free(item->config_key);
         free(item->config_value);
@@ -413,7 +413,7 @@ static int button_index(int key, int joystick, int axis, int hat, int button,
     return index;
 }
 
-void map_custom_joystick_action(int joy, const char *name,
+static void map_custom_joystick_action(int joy, const char *name,
         int axis, int hat, int button, int value, const char *n1,
         int n2, const char *n3) {
     char *config_key = fs_strdup_printf("%s%s%d%s", name, n1, n2, n3);
@@ -436,14 +436,14 @@ void map_custom_joystick_action(int joy, const char *name,
 // 0-based or 1-based configuuration
 #define CONFIG_OFFSET 0
 
-void map_custom_axis_actions(int joy, const char *name, int axis) {
+static void map_custom_axis_actions(int joy, const char *name, int axis) {
     map_custom_joystick_action(joy, name, axis, -1, -1, 0,
             "_axis_", axis + CONFIG_OFFSET, "_neg");
     map_custom_joystick_action(joy, name, axis, -1, -1, 1,
             "_axis_", axis + CONFIG_OFFSET, "_pos");
 }
 
-void map_custom_hat_actions(int joy, const char *name, int hat) {
+static void map_custom_hat_actions(int joy, const char *name, int hat) {
     map_custom_joystick_action(joy, name, -1, hat, -1, FS_ML_HAT_UP,
             "_hat_", hat + CONFIG_OFFSET, "_up");
     map_custom_joystick_action(joy, name, -1, hat, -1, FS_ML_HAT_DOWN,
@@ -454,12 +454,12 @@ void map_custom_hat_actions(int joy, const char *name, int hat) {
             "_hat_", hat + CONFIG_OFFSET, "_right");
 }
 
-void map_custom_button_actions(int joy, const char *name, int button) {
+static void map_custom_button_actions(int joy, const char *name, int button) {
     map_custom_joystick_action(joy, name, -1, -1, button, 0,
             "_button_", button + CONFIG_OFFSET, "");
 }
 
-void map_custom_joystick_actions_2(int joy, const char *name,
+static void map_custom_joystick_actions_2(int joy, const char *name,
         int axis_count, int hat_count, int button_count) {
     for (int i = 0; i < axis_count; i++) {
         map_custom_axis_actions(joy, name, i);
@@ -545,7 +545,7 @@ static char *joystick_config_name(const char* name, int with_number) {
     return result;
 }
 
-void map_custom_gamepad_actions(int joy, const char *name,
+static void map_custom_gamepad_actions(int joy, const char *name,
         fs_ml_input_device *device) {
     char* config_name = joystick_long_config_name(device);
     fs_log("config name \"%s\"\n", config_name);
@@ -822,7 +822,7 @@ static int map_joystick(int joystick, input_config_item *config,
 
 static fs_hash_table *g_input_config_paths = NULL;
 
-int read_input_config(const char *config_name, fs_hash_table *config,
+static int read_input_config(const char *config_name, fs_hash_table *config,
         const char *platform) {
     const char *path = fs_hash_table_lookup(g_input_config_paths, config_name);
     if (path == NULL) {
@@ -1133,7 +1133,7 @@ static fs_emu_input_mapping g_menu_mapping[] = {
     { NULL, ACTION_MENU_NONE },
 };
 
-void read_input_configs_from_dir(const char *dir_name) {
+static void read_input_configs_from_dir(const char *dir_name) {
     fs_log("reading input device configs from %s\n", dir_name);
     fs_dir *dir = fs_dir_open(dir_name, 0);
     if (dir == NULL) {

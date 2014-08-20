@@ -6,6 +6,7 @@
 #include "custom.h"
 #include "xwin.h"
 #include "gui.h"
+#include "uae/fs.h"
 
 int tablet_log = 0;
 

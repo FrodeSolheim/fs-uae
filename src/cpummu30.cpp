@@ -588,7 +588,7 @@ int mmu030_match_ttr_access(uaecptr addr, uae_u32 fc, bool write)
 }
 
 /* Locked Read-Modify-Write */
-int mmu030_match_lrmw_ttr_access(uaecptr addr, uae_u32 fc)
+static int mmu030_match_lrmw_ttr_access(uaecptr addr, uae_u32 fc)
 {
     int tt0, tt1;
 
@@ -1660,7 +1660,8 @@ uae_u32 mmu030_get_long_atc(uaecptr addr, int l, uae_u32 fc) {
 
     return phys_get_long(physical_addr);
 }
-uae_u32 mmu030_get_ilong_atc(uaecptr addr, int l, uae_u32 fc) {
+
+static uae_u32 mmu030_get_ilong_atc(uaecptr addr, int l, uae_u32 fc) {
 	uae_u32 page_index = addr & mmu030.translation.page.mask;
 	uae_u32 addr_mask = mmu030.translation.page.imask;
 
@@ -1698,7 +1699,7 @@ uae_u16 mmu030_get_word_atc(uaecptr addr, int l, uae_u32 fc) {
     return phys_get_word(physical_addr);
 }
 
-uae_u16 mmu030_get_iword_atc(uaecptr addr, int l, uae_u32 fc) {
+static uae_u16 mmu030_get_iword_atc(uaecptr addr, int l, uae_u32 fc) {
 	uae_u32 page_index = addr & mmu030.translation.page.mask;
 	uae_u32 addr_mask = mmu030.translation.page.imask;
 
@@ -1737,7 +1738,7 @@ uae_u8 mmu030_get_byte_atc(uaecptr addr, int l, uae_u32 fc) {
 }
 
 /* Generic versions of above */
-void mmu030_put_atc_generic(uaecptr addr, uae_u32 val, int l, uae_u32 fc, int size, int flags) {
+static void mmu030_put_atc_generic(uaecptr addr, uae_u32 val, int l, uae_u32 fc, int size, int flags) {
     uae_u32 page_index = addr & mmu030.translation.page.mask;
     uae_u32 addr_mask = mmu030.translation.page.imask;
     
@@ -1760,7 +1761,8 @@ void mmu030_put_atc_generic(uaecptr addr, uae_u32 val, int l, uae_u32 fc, int si
 	    phys_put_long(physical_addr, val);
 
 }
-uae_u32 mmu030_get_atc_generic(uaecptr addr, int l, uae_u32 fc, int size, int flags, bool checkwrite) {
+
+static uae_u32 mmu030_get_atc_generic(uaecptr addr, int l, uae_u32 fc, int size, int flags, bool checkwrite) {
     uae_u32 page_index = addr & mmu030.translation.page.mask;
     uae_u32 addr_mask = mmu030.translation.page.imask;
     
@@ -1987,9 +1989,8 @@ uae_u8 mmu030_get_byte(uaecptr addr, uae_u32 fc) {
     }
 }
 
-
 /* Not commonly used access function */
-void mmu030_put_generic(uaecptr addr, uae_u32 val, uae_u32 fc, int size, int accesssize, int flags) {
+static void mmu030_put_generic(uaecptr addr, uae_u32 val, uae_u32 fc, int size, int accesssize, int flags) {
     
 	//                                        addr,super,write
 	if ((!mmu030.enabled) || (mmu030_match_ttr_access(addr, fc, true)) || (fc==7)) {

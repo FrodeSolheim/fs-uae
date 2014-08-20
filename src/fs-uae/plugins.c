@@ -1,11 +1,14 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
+
 #include <fs/log.h>
-#include <glib.h>
-#include <string.h>
 #include <uae/uae.h>
 #include "paths.h"
+#include "plugins.h"
+
+#include <string.h>
+#include <glib.h>
 
 // FIXME: move to configure.ac / config.h
 #if defined(__x86_64__) || defined(_M_AMD64) || defined(_M_X64)

@@ -82,7 +82,7 @@ extern uae_u8 cycle_line[256];
 static long blit_firstline_cycles;
 static long blit_first_cycle;
 static int blit_last_cycle, blit_dmacount, blit_dmacount2;
-static int UNUSED(blit_linecycles), UNUSED(blit_extracycles), blit_nod;
+static int blit_linecycles, blit_extracycles, blit_nod;
 static const int *blit_diag;
 static int blit_frozen, blit_faulty;
 static int blit_final;

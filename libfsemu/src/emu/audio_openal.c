@@ -288,13 +288,17 @@ double fs_emu_audio_get_measured_avg_buffer_fill(int stream) {
     return s->fill_stat_buffer_avg;
 }
 
+#if 0
 void fs_emu_enable_audio_stream(int stream) {
     fs_log("enabling audio stream %d\n", stream);
 }
+#endif
 
+#if 0
 void fs_emu_disable_audio_stream(int stream) {
     fs_log("disabling audio stream %d\n", stream);
 }
+#endif
 
 void fs_emu_audio_set_volume(int volume) {
     g_volume = volume;
@@ -314,22 +318,27 @@ int fs_emu_audio_get_mute() {
     return g_mute || g_volume == 0;
 }
 
+#if 0
 void fs_emu_set_audio_buffer_frequency(int stream, int frequency) {
 
 }
+#endif
 
 int fs_emu_get_audio_frequency() {
     return g_audio_out_frequency;
 }
 
+#if 0
 int fs_emu_get_audio_buffer_size() {
     return g_sys_buffer_bytes;
 }
+#endif
 
+#if 0
 void fs_emu_audio_sample(int stream, int16_t left, int16_t right) {
 
 }
-
+#endif
 
 static void update_stats(int stream, int time_ms) {
     if (!g_fs_emu_audio_stream_playing[stream]) {

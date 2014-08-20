@@ -2,6 +2,7 @@
 #include "sysdeps.h"
 
 #include "options.h"
+#include "uae/fs.h"
 
 int machdep_init(void) {
     // We call libamiga_callbacks.init here because machdep_init is called

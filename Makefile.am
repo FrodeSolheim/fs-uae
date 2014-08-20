@@ -106,6 +106,7 @@ fs_uae_device_helper_SOURCES = \
 fs_uae_device_helper_LDADD =
 
 noinst_LIBRARIES += libuae.a
+AM_CPPFLAGS += -I$(s)/flac/include
 AM_CPPFLAGS += -I$(b)/gen
 AM_CPPFLAGS += -I$(s)/src
 AM_CPPFLAGS += -I$(s)/src/jit
@@ -113,6 +114,7 @@ AM_CPPFLAGS += -I$(s)/src/include
 AM_CPPFLAGS += -I$(s)/src/od-fs
 AM_CPPFLAGS += -I$(s)/src/od-fs/include
 AM_CPPFLAGS += -I$(s)/src/od-win32
+AM_CPPFLAGS += -I$(s)/src/od-win32/caps
 fs_uae_LDADD += libuae.a
 libuae_a_SOURCES = \
 	src/a2065.cpp \
@@ -300,6 +302,7 @@ libuae_a_SOURCES = \
 	src/include/uae/asm.h \
 	src/include/uae/assert.h \
 	src/include/uae/caps.h \
+	src/include/uae/cdrom.h \
 	src/include/uae/cycleunit.h \
 	src/include/uae/endian.h \
 	src/include/uae/enum.h \
@@ -339,16 +342,6 @@ libuae_a_SOURCES = \
 	src/ncr_scsi.cpp \
 	src/newcpu.cpp \
 	src/newcpu_common.cpp \
-	src/od-fs/CapsAPI.h \
-	src/od-fs/FLAC/all.h \
-	src/od-fs/FLAC/assert.h \
-	src/od-fs/FLAC/callback.h \
-	src/od-fs/FLAC/export.h \
-	src/od-fs/FLAC/format.h \
-	src/od-fs/FLAC/metadata.h \
-	src/od-fs/FLAC/ordinals.h \
-	src/od-fs/FLAC/stream_decoder.h \
-	src/od-fs/FLAC/stream_encoder.h \
 	src/od-fs/ahi_winuae.cpp \
 	src/od-fs/ahidsound.h \
 	src/od-fs/ahidsound_new.cpp \
@@ -357,8 +350,6 @@ libuae_a_SOURCES = \
 	src/od-fs/blkdev-linux.cpp \
 	src/od-fs/bsdsocket_host.cpp \
 	src/od-fs/callbacks.h \
-	src/od-fs/caps.cpp \
-	src/od-fs/caps_types.h \
 	src/od-fs/cda_play.cpp \
 	src/od-fs/cda_play.h \
 	src/od-fs/cdimage_stubs.cpp \
@@ -367,7 +358,6 @@ libuae_a_SOURCES = \
 	src/od-fs/clock.cpp \
 	src/od-fs/defines.h \
 	src/od-fs/driveclick.cpp \
-	src/od-fs/dxwrap.h \
 	src/od-fs/filesys_host.cpp \
 	src/od-fs/fsdb_host.cpp \
 	src/od-fs/fsdb_host.h \
@@ -409,16 +399,16 @@ libuae_a_SOURCES = \
 	src/od-fs/threaddep/sem.h \
 	src/od-fs/threaddep/thread.h \
 	src/od-fs/threading.cpp \
-	src/od-fs/uae_fs.h \
 	src/od-fs/uae_host.cpp \
-	src/od-fs/uae_host.h \
-	src/od-fs/uae_util.h \
 	src/od-fs/uaemisc.cpp \
-	src/od-fs/util.cpp \
 	src/od-fs/video.cpp \
 	src/od-fs/winuae_compat.h \
+	src/od-win32/caps/CapsAPI.h \
+	src/od-win32/caps/Comtype.h \
+	src/od-win32/caps/caps_win32.cpp \
 	src/od-win32/caps/caps_win32.h \
 	src/od-win32/debug_win32.h \
+	src/od-win32/dxwrap.h \
 	src/od-win32/md-fpp.h \
 	src/od-win32/mman.cpp \
 	src/od-win32/parser.h \
@@ -886,6 +876,15 @@ EXTRA_DIST = $(TESTS) $(EXTRA_TESTS) \
 	debian/rules \
 	debian/source \
 	debian/source/format \
+	flac/include/FLAC/all.h \
+	flac/include/FLAC/assert.h \
+	flac/include/FLAC/callback.h \
+	flac/include/FLAC/export.h \
+	flac/include/FLAC/format.h \
+	flac/include/FLAC/metadata.h \
+	flac/include/FLAC/ordinals.h \
+	flac/include/FLAC/stream_decoder.h \
+	flac/include/FLAC/stream_encoder.h \
 	fs-uae.spec \
 	libudis86/README \
 	licenses/fs-uae.txt \
@@ -907,7 +906,7 @@ EXTRA_DIST = $(TESTS) $(EXTRA_TESTS) \
 	src/jit/compemu_optimizer_x86.cpp \
 	src/jit/compemu_raw_x86.cpp \
 	src/od-fs/bsdsocket_posix.cpp \
-	src/od-fs/bsdsocket_win32.cpp \
+	src/od-win32/bsdsock.cpp \
 	src/p96_blit.cpp \
 	src/sinctable.cpp \
 	src/table68k \

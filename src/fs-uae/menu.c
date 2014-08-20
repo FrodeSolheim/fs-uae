@@ -975,7 +975,7 @@ static int input_menu_function(fs_emu_menu_item *menu_item,
     return FS_EMU_MENU_RESULT_MENU;
 }
 
-void add_input_item(fs_emu_menu *menu, int index) {
+static void add_input_item(fs_emu_menu *menu, int index) {
     fs_emu_menu_item *item;
 
     item = fs_emu_menu_item_new();

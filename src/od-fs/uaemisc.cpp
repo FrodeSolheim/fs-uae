@@ -9,6 +9,7 @@
 #include "sleep.h"
 #include "uae.h"
 #include "xwin.h"
+#include "uae/fs.h"
 #include "../od-win32/debug_win32.h"
 
 #ifndef PICASSO96

@@ -13,7 +13,7 @@
 #include <png.h>
 #endif
 
-void fs_image_destroy(void* ptr) {
+static void fs_image_destroy(void* ptr) {
     fs_log("fs_image_destroy\n");
     fs_image* image = ptr;
     if (image->data) {

@@ -58,7 +58,7 @@ int ManyMouse_Init(void);
 void ManyMouse_Quit(void);
 const char *ManyMouse_DeviceName(unsigned int index);
 
-void list_joysticks() {
+static void list_joysticks() {
     // printf("# FS-UAE VERSION %s\n", g_fs_uae_version);
     printf("# listing keyboards\n");
     printf("K: Keyboard\n");
@@ -116,7 +116,7 @@ void list_joysticks() {
     printf("# listing joysticks done\n");
 }
 
-void print_events() {
+static void print_events() {
 #ifdef USE_SDL2
     printf("# Printing events\n");
 
@@ -243,7 +243,7 @@ void print_events() {
 #endif
 }
 
-void print_state(SDL_Joystick* joystick, const char* name) {
+static void print_state(SDL_Joystick* joystick, const char* name) {
 
     int num_buttons = SDL_JoystickNumButtons(joystick);
     int num_hats = SDL_JoystickNumHats(joystick);

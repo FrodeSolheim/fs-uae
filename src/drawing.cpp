@@ -289,7 +289,7 @@ static void clearbuffer (struct vidbuffer *dst)
 	}
 }
 
-void reset_decision_table (void)
+static void reset_decision_table (void)
 {
 	for (int i = 0; i < sizeof linestate / sizeof *linestate; i++) {
 		linestate[i] = LINE_UNDECIDED;
@@ -2081,7 +2081,7 @@ void init_row_map (void)
 	oldpitch = gfxvidinfo.drawbuffer.rowbytes;
 }
 
-void init_aspect_maps (void)
+static void init_aspect_maps (void)
 {
 	int i, maxl, h;
 
@@ -2427,7 +2427,7 @@ enum double_how {
 
 static void pfield_draw_line (struct vidbuffer *vb, int lineno, int gfx_ypos, int follow_ypos)
 {
-	static int UNUSED(warned) = 0;
+	static int warned = 0;
 	int border = 0;
 	int do_double = 0;
 	bool have_color_changes;

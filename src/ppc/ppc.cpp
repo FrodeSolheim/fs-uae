@@ -11,7 +11,8 @@
 #include "custom.h"
 #include "uae.h"
 
-#include "cpu/cpu.h"
+#include "pearpc/cpu/cpu.h"
+#include "pearpc/io/io.h"
 
 #define PPC_SYNC_WRITE 0
 #define PPC_ACCESS_LOG 0
@@ -408,6 +409,7 @@ void uae_ppc_crash(void)
 
 #ifdef FSUAE
 #include <threaddep/sem.h>
+#include "system/systhread.h"
 typedef uae_sem_t sys_mutex;
 #else
 typedef void * sys_mutex;

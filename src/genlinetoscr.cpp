@@ -86,19 +86,19 @@ typedef enum
 static FILE *outfile;
 static unsigned int outfile_indent = 0;
 
-void set_outfile (FILE *f)
+static void set_outfile (FILE *f)
 {
 	outfile = f;
 }
 
-int set_indent (int indent)
+static int set_indent (int indent)
 {
 	int old_indent = outfile_indent;
 	outfile_indent = indent;
 	return old_indent;
 }
 
-void outln (const char *s)
+static void outln (const char *s)
 {
 	unsigned int i;
 	for (i = 0; i < outfile_indent; i++)
@@ -106,7 +106,7 @@ void outln (const char *s)
 	fprintf (outfile, "%s\n", s);
 }
 
-void outlnf (const char *s, ...)
+static void outlnf (const char *s, ...)
 {
 	va_list ap;
 	unsigned int i;

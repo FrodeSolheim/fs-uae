@@ -3,6 +3,8 @@
 #include "sysconfig.h"
 #include "sysdeps.h"
 
+#include "uae/fs.h"
+
 #include <stdio.h>
 #include <fs/filesys.h>
 #include <fs/string.h>

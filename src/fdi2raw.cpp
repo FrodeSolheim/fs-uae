@@ -70,7 +70,7 @@ static TCHAR *datalog (uae_u8 *src, int len)
 	return buf + offset2;
 }
 #else
-static const TCHAR *UNUSED_FUNCTION(datalog) (uae_u8 *src, int len) { return _T(""); }
+static const TCHAR *datalog (uae_u8 *src, int len) { return _T(""); }
 #endif
 
 #ifdef DEBUG
@@ -84,7 +84,7 @@ static const TCHAR *UNUSED_FUNCTION(datalog) (uae_u8 *src, int len) { return _T(
 #define outlog(fmt, ...)
 #endif
 
-static int UNUSED(fdi_allocated);
+static int fdi_allocated;
 #ifdef DEBUG
 static void fdi_free (void *p)
 {
@@ -333,7 +333,7 @@ static void zxx (FDI *fdi)
 	//	return -1;
 }
 /* unsupported track */
-static void UNUSED_FUNCTION(zyy) (FDI *fdi)
+static void zyy (FDI *fdi)
 {
 	outlog (_T("track %d: unsupported track type 0x%02X\n"), fdi->current_track, fdi->track_type);
 	//	return -1;
@@ -351,7 +351,7 @@ static void dxx (FDI *fdi)
 	fdi->err = 1;
 }
 /* unsupported sector described type */
-static void UNUSED_FUNCTION(dyy) (FDI *fdi)
+static void dyy (FDI *fdi)
 {
 	outlog (_T("\ntrack %d: unsupported sector described 0x%02X\n"), fdi->current_track, fdi->track_type);
 	fdi->err = 1;
@@ -609,7 +609,7 @@ static uae_u32 getmfmlong (uae_u8 * mbuf)
 	return ((getmfmword (mbuf) << 16) | getmfmword (mbuf + 2)) & MFMMASK;
 }
 
-static int UNUSED_FUNCTION(amiga_check_track) (FDI *fdi)
+static int amiga_check_track (FDI *fdi)
 {
 	int i, j, secwritten = 0;
 	int fwlen = fdi->out / 8;
@@ -2124,7 +2124,7 @@ int fdi2raw_loadrevolution (FDI *fdi, uae_u16 *mfmbuf, uae_u16 *tracktiming, int
 int fdi2raw_loadtrack (FDI *fdi, uae_u16 *mfmbuf, uae_u16 *tracktiming, int track, int *tracklength, int *indexoffsetp, int *multirev, int mfm)
 {
 	uae_u8 *p;
-	int outlen, i, UNUSED(indexoffset) = 0;
+	int outlen, i, indexoffset = 0;
 	struct fdi_cache *cache = &fdi->cache[track];
 
 	track ^= fdi->reversed_side;

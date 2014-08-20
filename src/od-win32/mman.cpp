@@ -23,6 +23,7 @@
 #include "autoconf.h"
 #include "gfxboard.h"
 #include "cpuboard.h"
+#include "newcpu.h"
 
 #ifdef FSUAE // NL
 
@@ -67,11 +68,11 @@ typedef struct {
 	int dwPageSize;
 } SYSTEM_INFO;
 
-void GetSystemInfo(SYSTEM_INFO *si) {
+static void GetSystemInfo(SYSTEM_INFO *si) {
 	si->dwPageSize = sysconf(_SC_PAGESIZE);
 }
 
-void *VirtualAlloc(void *lpAddress, size_t dwSize, int flAllocationType,
+static void *VirtualAlloc(void *lpAddress, size_t dwSize, int flAllocationType,
 		int flProtect) {
 	write_log("- VirtualAlloc %p %zu %d %d\n", lpAddress, dwSize,
 			flAllocationType, flProtect);
@@ -125,7 +126,7 @@ void *VirtualAlloc(void *lpAddress, size_t dwSize, int flAllocationType,
 	return memory;
 }
 
-bool VirtualFree(void *lpAddress, size_t dwSize, int dwFreeType) {
+static bool VirtualFree(void *lpAddress, size_t dwSize, int dwFreeType) {
 #if 0
 	int result = 0;
 	if (dwFreeType == MEM_DECOMMIT) {
@@ -210,6 +211,8 @@ static void virtualfreewithlock (LPVOID addr, SIZE_T size, DWORD freetype)
 	VirtualFree(addr, size, freetype);
 }
 
+#ifdef JIT
+
 void cache_free (uae_u8 *cache)
 {
 #ifdef WINDOWS
@@ -238,6 +241,8 @@ uae_u8 *cache_alloc (int size)
 	return (uae_u8 *) cache;
 #endif
 }
+
+#endif
 
 static uae_u32 lowmem (void)
 {

@@ -16,6 +16,13 @@
 
 #include "ppcd.h"
 
+#ifdef FSUAE // NL
+#ifdef __GNUC__
+#warning ignoring -Wwrite-strings warnings here
+#pragma GCC diagnostic ignored "-Wwrite-strings"
+#endif
+#endif
+
 #define POWERPC_32      // Use generic 32-bit model
 //efine POWERPC_64      // Use generic 64-bit model
 //efine GEKKO           // Use Gekko (32-bit ISA)

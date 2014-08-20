@@ -427,7 +427,7 @@ static void record_line_if_needed(int line) {
     g_last_recorded_line = line;
 }
 
-int filter_input_event(int event) {
+static int filter_input_event(int event) {
     printf("%d (%d, %d)\n", event, INPUTEVENT_SPC_STATESAVE1, INPUTEVENT_SPC_STATESAVE9);
     if (event >= INPUTEVENT_SPC_STATERESTORE1 && event <= INPUTEVENT_SPC_STATERESTORE9) {
         return 0;

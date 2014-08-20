@@ -1,6 +1,7 @@
 #include "sysconfig.h"
 #include "sysdeps.h"
 #include "uae.h"
+#include "uae/fs.h"
 
 #include <stdio.h>
 #include <fs/string.h>

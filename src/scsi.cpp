@@ -352,13 +352,13 @@ struct raw_scsi
 	struct raw_scsi_device *device[8];
 };
 
-struct raw_scsi *new_raw_scsi(void)
+static struct raw_scsi *new_raw_scsi(void)
 {
 	struct raw_scsi *rs = xcalloc(struct raw_scsi, 1);
 	return rs;
 }
 
-void free_raw_scsi(struct raw_scsi *rs)
+static void free_raw_scsi(struct raw_scsi *rs)
 {
 	if (!rs)
 		return;
@@ -367,14 +367,14 @@ void free_raw_scsi(struct raw_scsi *rs)
 	xfree(rs);
 }
 
-struct raw_scsi_device *new_raw_scsi_device(struct raw_scsi *rs, int id)
+static struct raw_scsi_device *new_raw_scsi_device(struct raw_scsi *rs, int id)
 {
 	rs->device[id] = xcalloc(struct raw_scsi_device, 1);
 	rs->device[id]->id = id;
 	return rs->device[id];
 }
 
-void free_raw_scsi_device(struct raw_scsi *rs, struct raw_scsi_device *dev)
+static void free_raw_scsi_device(struct raw_scsi *rs, struct raw_scsi_device *dev)
 {
 	if (!dev)
 		return;
@@ -382,12 +382,12 @@ void free_raw_scsi_device(struct raw_scsi *rs, struct raw_scsi_device *dev)
 	xfree(dev);
 }
 
-int raw_scsi_get_signal_phase(struct raw_scsi *rs, struct raw_scsi_device *dev)
+static int raw_scsi_get_signal_phase(struct raw_scsi *rs, struct raw_scsi_device *dev)
 {
 	return rs->signal_phase;
 }
 
-void raw_scsi_put_signal_phase(struct raw_scsi *rs, struct raw_scsi_device *dev, uae_u8 phase)
+static void raw_scsi_put_signal_phase(struct raw_scsi *rs, struct raw_scsi_device *dev, uae_u8 phase)
 {
 	if (rs->signal_phase == phase)
 		return;
@@ -402,11 +402,11 @@ void raw_scsi_put_signal_phase(struct raw_scsi *rs, struct raw_scsi_device *dev,
 	}
 }
 
-uae_u16 raw_scsi_get_data(struct raw_scsi *rs, struct raw_scsi_device *dev)
+static uae_u16 raw_scsi_get_data(struct raw_scsi *rs, struct raw_scsi_device *dev)
 {
 	return rs->data;
 }
 
-void raw_scsi_put_data(struct raw_scsi *rs, struct raw_scsi_device *dev, uae_u16 data)
+static void raw_scsi_put_data(struct raw_scsi *rs, struct raw_scsi_device *dev, uae_u16 data)
 {
 }

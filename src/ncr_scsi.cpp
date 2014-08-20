@@ -310,7 +310,7 @@ static uaecptr beswap(uaecptr addr)
 	return (addr & ~3) | (3 - (addr & 3));
 }
 
-void ncr_io_bput(struct ncr_state *ncr, uaecptr addr, uae_u32 val)
+static void ncr_io_bput(struct ncr_state *ncr, uaecptr addr, uae_u32 val)
 {
 #ifdef WITH_CPUBOARD
 	if (addr >= CYBERSTORM_SCSI_RAM_OFFSET && ncr->ramsize) {
@@ -321,7 +321,8 @@ void ncr_io_bput(struct ncr_state *ncr, uaecptr addr, uae_u32 val)
 	addr &= IO_MASK;
 	lsi_mmio_write(ncr->devobject.lsistate, beswap(addr), val, 1);
 }
-void ncr710_io_bput(struct ncr_state *ncr, uaecptr addr, uae_u32 val)
+
+static void ncr710_io_bput(struct ncr_state *ncr, uaecptr addr, uae_u32 val)
 {
 	addr &= IO_MASK;
 	lsi710_mmio_write(ncr->devobject.lsistate, beswap(addr), val, 1);
@@ -339,7 +340,7 @@ static void ncr_bput2 (struct ncr_state *ncr, uaecptr addr, uae_u32 val)
 		ncr710_io_bput(ncr, addr, val);
 }
 
-uae_u32 ncr_io_bget(struct ncr_state *ncr, uaecptr addr)
+static uae_u32 ncr_io_bget(struct ncr_state *ncr, uaecptr addr)
 {
 #ifdef WITH_CPUBOARD
 	if (addr >= CYBERSTORM_SCSI_RAM_OFFSET && ncr->ramsize)
@@ -348,7 +349,8 @@ uae_u32 ncr_io_bget(struct ncr_state *ncr, uaecptr addr)
 	addr &= IO_MASK;
 	return lsi_mmio_read(ncr->devobject.lsistate, beswap(addr), 1);
 }
-uae_u32 ncr710_io_bget(struct ncr_state *ncr, uaecptr addr)
+
+static uae_u32 ncr710_io_bget(struct ncr_state *ncr, uaecptr addr)
 {
 	addr &= IO_MASK;
 	return lsi710_mmio_read(ncr->devobject.lsistate, beswap(addr), 1);

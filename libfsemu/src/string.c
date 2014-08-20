@@ -126,7 +126,7 @@ char* fs_strndup(const char *str, size_t n) {
     return new_str;
 }
 
-char *fs_strnfill(size_t length, char fill_char) {
+static char *fs_strnfill(size_t length, char fill_char) {
     char *str;
 
     str = fs_new (char, length + 1);
@@ -136,7 +136,7 @@ char *fs_strnfill(size_t length, char fill_char) {
     return str;
 }
 
-char *fs_stpcpy(char *dest, const char *src) {
+static char *fs_stpcpy(char *dest, const char *src) {
     if (src == NULL) {
         return NULL;
     }

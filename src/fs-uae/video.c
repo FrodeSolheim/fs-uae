@@ -66,7 +66,7 @@ static int g_remember_last_screen = 0;
 static int g_use_rtg_scanlines = 0;
 static int g_last_seen_mode_rtg = 0;
 
-int read_window_override_int(const char* s, int* pos, int* out) {
+static int read_window_override_int(const char* s, int* pos, int* out) {
     char temp[4];
     int read = 0;
     while(s[*pos] == ' ') ++(*pos);
@@ -92,7 +92,7 @@ int read_window_override_int(const char* s, int* pos, int* out) {
     return 0;
 }
 
-int read_window_override(const char* s, int* pos) {
+static int read_window_override(const char* s, int* pos) {
     while(s[*pos] == ' ') ++(*pos);
     int sx, sy, sw, sh;
     int dx, dy, dw, dh;
@@ -147,7 +147,7 @@ int read_window_override(const char* s, int* pos) {
     return 1;
 }
 
-void init_window_overrides() {
+static void init_window_overrides() {
     const char *s = fs_config_get_const_string("viewport");
     if (s == NULL) {
         return;

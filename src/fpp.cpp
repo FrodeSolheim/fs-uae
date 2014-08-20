@@ -54,10 +54,10 @@ STATIC_INLINE int isinrom (void)
 	return (munge24 (m68k_getpc ()) & 0xFFF80000) == 0xF80000 && !currprefs.mmu_model;
 }
 
-static uae_u32 UNUSED(xhex_pi[])    ={0x2168c235, 0xc90fdaa2, 0x4000};
+static uae_u32 xhex_pi[]    ={0x2168c235, 0xc90fdaa2, 0x4000};
 uae_u32 xhex_exp_1[] ={0xa2bb4a9a, 0xadf85458, 0x4000};
-static uae_u32 UNUSED(xhex_l2_e[])  ={0x5c17f0bc, 0xb8aa3b29, 0x3fff};
-static uae_u32 UNUSED(xhex_ln_2[])  ={0xd1cf79ac, 0xb17217f7, 0x3ffe};
+static uae_u32 xhex_l2_e[]  ={0x5c17f0bc, 0xb8aa3b29, 0x3fff};
+static uae_u32 xhex_ln_2[]  ={0xd1cf79ac, 0xb17217f7, 0x3ffe};
 uae_u32 xhex_ln_10[] ={0xaaa8ac17, 0x935d8ddd, 0x4000};
 uae_u32 xhex_l10_2[] ={0xfbcff798, 0x9a209a84, 0x3ffd};
 uae_u32 xhex_l10_e[] ={0x37287195, 0xde5bd8a9, 0x3ffd};
@@ -70,7 +70,7 @@ uae_u32 xhex_1e512[] ={0xa60e91c7, 0xe319a0ae, 0x46a3};
 uae_u32 xhex_1e1024[]={0x81750c17, 0xc9767586, 0x4d48};
 uae_u32 xhex_1e2048[]={0xc53d5de5, 0x9e8b3b5d, 0x5a92};
 uae_u32 xhex_1e4096[]={0x8a20979b, 0xc4605202, 0x7525};
-static uae_u32 UNUSED(xhex_inf[])   ={0x00000000, 0x00000000, 0x7fff};
+static uae_u32 xhex_inf[]   ={0x00000000, 0x00000000, 0x7fff};
 static uae_u32 xhex_nan[]   ={0xffffffff, 0xffffffff, 0x7fff};
 static uae_u32 xhex_snan[]  ={0xffffffff, 0xbfffffff, 0x7fff};
 #if USE_LONG_DOUBLE
@@ -90,7 +90,7 @@ static long double *fp_1e512  = (long double *)xhex_1e512;
 static long double *fp_1e1024 = (long double *)xhex_1e1024;
 static long double *fp_1e2048 = (long double *)xhex_1e2048;
 static long double *fp_1e4096 = (long double *)xhex_1e4096;
-static long double *UNUSED(fp_inf)    = (long double *)xhex_inf;
+static long double *fp_inf    = (long double *)xhex_inf;
 static long double *fp_nan    = (long double *)xhex_nan;
 #else
 static uae_u32 dhex_pi[]    ={0x54442D18, 0x400921FB};
@@ -123,7 +123,7 @@ static double *fp_1e512  = (double *)dhex_inf;
 static double *fp_1e1024 = (double *)dhex_inf;
 static double *fp_1e2048 = (double *)dhex_inf;
 static double *fp_1e4096 = (double *)dhex_inf;
-static double *UNUSED(fp_inf)    = (double *)dhex_inf;
+static double *fp_inf    = (double *)dhex_inf;
 static double *fp_nan    = (double *)dhex_nan;
 #endif
 double fp_1e8 = 1.0e8;
@@ -583,7 +583,7 @@ static void native_set_fpucw (uae_u32 m68k_cw)
 
 typedef uae_s64 tointtype;
 
-static void UNUSED_FUNCTION(fpu_format_error) (void)
+static void fpu_format_error (void)
 {
 	uaecptr newpc;
 	regs.t0 = regs.t1 = 0;
@@ -1106,7 +1106,7 @@ STATIC_INLINE void set_fpsr (uae_u32 x)
 		fpset (&regs.fp_result, 1);
 }
 
-uae_u32 get_ftag (uae_u32 w1, uae_u32 w2, uae_u32 w3, int size)
+static uae_u32 get_ftag (uae_u32 w1, uae_u32 w2, uae_u32 w3, int size)
 {
 	int exp = (w1 >> 16) & 0x7fff;
 	
@@ -1186,7 +1186,7 @@ static void to_pack (fpdata *fpd, uae_u32 *wrd)
 		fpd->fp = d;
 }
 
-void from_pack (fpdata *src, uae_u32 *wrd, int kfactor)
+static void from_pack (fpdata *src, uae_u32 *wrd, int kfactor)
 {
 	int i, j, t;
 	int exp;
@@ -2220,7 +2220,7 @@ void fpuop_save (uae_u32 opcode)
 
 void fpuop_restore (uae_u32 opcode)
 {
-	int UNUSED(fpu_version) = get_fpu_version ();
+	int fpu_version = get_fpu_version ();
 	uaecptr pc = m68k_getpc () - 2;
 	uae_u32 ad;
 	uae_u32 d;
@@ -2244,7 +2244,7 @@ void fpuop_restore (uae_u32 opcode)
 		return;
 	regs.fpiar = pc;
 
-	uae_u32 UNUSED(pad) = ad;
+	uae_u32 pad = ad;
 	if (incr < 0) {
 		ad -= 4;
 		d = x_get_long (ad);

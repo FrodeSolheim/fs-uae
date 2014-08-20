@@ -1441,6 +1441,8 @@ bool cpuboard_08000000(struct uae_prefs *p)
 	return false;
 }
 
+#endif
+
 bool cpuboard_blizzardram(struct uae_prefs *p)
 {
 	switch (p->cpuboard_type)
@@ -1452,6 +1454,8 @@ bool cpuboard_blizzardram(struct uae_prefs *p)
 	}
 	return false;
 }
+
+#ifdef WITH_CPUBOARD
 
 static void fixserial(uae_u8 *rom, int size)
 {

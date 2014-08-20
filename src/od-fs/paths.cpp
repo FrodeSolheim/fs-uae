@@ -3,6 +3,7 @@
 
 #include "traps.h"
 #include "uaenative.h"
+#include "uae/fs.h"
 
 static const char **g_amiga_native_library_dirs;
 

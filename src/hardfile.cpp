@@ -1303,7 +1303,7 @@ int scsi_hd_emulate (struct hardfiledata *hfd, struct hd_hardfiledata *hdhfd, ua
 	case 0x1a: /* MODE SENSE(6) */
 		{
 			uae_u8 *p;
-			int UNUSED(pc) = cmdbuf[2] >> 6;
+			int pc = cmdbuf[2] >> 6;
 			int pcode = cmdbuf[2] & 0x3f;
 			int dbd = cmdbuf[1] & 8;
 			int alen = cmdbuf[4];
@@ -1567,7 +1567,7 @@ static int handle_scsi (uaecptr request, struct hardfiledata *hfd)
 	uae_u8 scsi_flags = get_byte (acmd + 20);
 	uaecptr scsi_sense = get_long (acmd + 22);
 	uae_u16 scsi_sense_len = get_word (acmd + 26);
-	uae_u8 UNUSED(cmd) = get_byte (scsi_cmd);
+	uae_u8 cmd = get_byte (scsi_cmd);
 	uae_u8 cmdbuf[256];
 	int status, ret = 0, reply_len, sense_len;
 	uae_u32 i;
@@ -2114,7 +2114,7 @@ static uae_u32 REGPARAM2 hardfile_beginio (TrapContext *context)
 {
 	uae_u32 request = m68k_areg (regs, 1);
 	uae_u8 flags = get_byte (request + 30);
-	int UNUSED(cmd) = get_word (request + 28);
+	int cmd = get_word (request + 28);
 	int unit = mangleunit (get_long (request + 24));
 	struct hardfiledata *hfd = get_hardfile_data (unit);
 	struct hardfileprivdata *hfpd = &hardfpd[unit];

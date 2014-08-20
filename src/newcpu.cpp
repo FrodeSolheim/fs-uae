@@ -39,6 +39,7 @@
 #include "statusline.h"
 #include "ppc.h"
 #include "cpuboard.h"
+#include "bsdsocket.h"
 #ifdef JIT
 #include "jit/compemu.h"
 #include <signal.h>
@@ -1849,7 +1850,7 @@ void REGPARAM2 MakeSR (void)
 		|  GET_CFLG ());
 }
 
-void SetSR (uae_u16 sr)
+static void SetSR (uae_u16 sr)
 {
 	regs.sr &= 0xff00;
 	regs.sr |= sr;
@@ -2893,7 +2894,7 @@ static void mmu_op30fake_pmove (uaecptr pc, uae_u32 opcode, uae_u16 next, uaecpt
 	int mode = (opcode >> 3) & 7;
 	int preg = (next >> 10) & 31;
 	int rw = (next >> 9) & 1;
-	int UNUSED(fd) = (next >> 8) & 1;
+	int fd = (next >> 8) & 1;
 	const TCHAR *reg = NULL;
 	uae_u32 otc = fake_tc_030;
 	int siz;
@@ -3013,7 +3014,7 @@ static void mmu_op30fake_ptest (uaecptr pc, uae_u32 opcode, uae_u16 next, uaecpt
 static void mmu_op30fake_pflush (uaecptr pc, uae_u32 opcode, uae_u16 next, uaecptr extra)
 {
 	int mode = (opcode >> 3) & 7;
-	int UNUSED(reg) = opcode & 7;
+	int reg = opcode & 7;
 	int flushmode = (next >> 10) & 7;
 	int fc = next & 31;
 	int mask = (next >> 5) & 3;
@@ -3360,8 +3361,6 @@ static int do_specialties (int cycles)
 			set_special (SPCFLAG_INT);
 		}
 		{
-			extern void bsdsock_fake_int_handler (void);
-			extern int volatile bsd_int_requested;
 			if (bsd_int_requested)
 				bsdsock_fake_int_handler ();
 		}
@@ -3427,7 +3426,7 @@ static int do_specialties (int cycles)
 			 * but only if we have free frametime left to prevent slowdown
 			 */
 			{
-				static int sleepcnt, lvpos, UNUSED(zerocnt);
+				static int sleepcnt, lvpos, zerocnt;
 				if (vpos != lvpos) {
 					lvpos = vpos;
 					frame_time_t rpt = read_processor_time ();
@@ -3908,7 +3907,7 @@ static void m68k_run_2 (void)
 
 #else
 
-static void UNUSED_FUNCTION(opcodedebug) (uae_u32 pc, uae_u16 opcode, bool full)
+static void opcodedebug (uae_u32 pc, uae_u16 opcode, bool full)
 {
 	struct mnemolookup *lookup;
 	struct instr *dp;
@@ -4469,7 +4468,7 @@ static void m68k_run_2 (void)
 }
 
 /* fake MMU 68k  */
-static void UNUSED_FUNCTION(m68k_run_mmu) (void)
+static void m68k_run_mmu (void)
 {
 	for (;;) {
 		uae_u16 opcode = get_iiword (0);

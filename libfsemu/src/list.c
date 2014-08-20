@@ -44,7 +44,7 @@ static inline fs_list* _fs_list_alloc0(void) {
     return fs_new0(fs_list, 1);
 }
 
-fs_list* fs_list_alloc(void) {
+static fs_list* fs_list_alloc(void) {
 #if 0
     return _fs_list_alloc0 ();
 #endif
@@ -70,7 +70,7 @@ void fs_list_free_1(fs_list *list) {
     free(list);
 }
 
-void fs_list_free_full(fs_list *list, fs_destroy_notify free_func) {
+static void fs_list_free_full(fs_list *list, fs_destroy_notify free_func) {
     fs_list_foreach(list, (fs_func) free_func, NULL);
     fs_list_free(list);
 }
@@ -114,7 +114,7 @@ fs_list *fs_list_prepend(fs_list *list, void *data) {
     return new_list;
 }
 
-fs_list *fs_list_insert(fs_list *list, void *data, int position) {
+static fs_list *fs_list_insert(fs_list *list, void *data, int position) {
     fs_list *new_list;
     fs_list *tmp_list;
 
@@ -180,7 +180,7 @@ fs_list *fs_list_insert_before(fs_list *list, fs_list *sibling, void * data) {
     }
 }
 
-fs_list *fs_list_concat(fs_list *list1, fs_list *list2) {
+static fs_list *fs_list_concat(fs_list *list1, fs_list *list2) {
     fs_list *tmp_list;
 
     if (list2) {
@@ -193,7 +193,7 @@ fs_list *fs_list_concat(fs_list *list1, fs_list *list2) {
     return list1;
 }
 
-fs_list *fs_list_remove(fs_list *list, const void * data) {
+static fs_list *fs_list_remove(fs_list *list, const void * data) {
     fs_list *tmp;
 
     tmp = list;
@@ -213,7 +213,7 @@ fs_list *fs_list_remove(fs_list *list, const void * data) {
     return list;
 }
 
-fs_list *fs_list_remove_all(fs_list *list, const void * data) {
+static fs_list *fs_list_remove_all(fs_list *list, const void * data) {
     fs_list *tmp = list;
 
     while (tmp) {
@@ -257,7 +257,7 @@ fs_list *fs_list_delete_link(fs_list *list, fs_list *link_) {
     return list;
 }
 
-fs_list *fs_list_copy(fs_list *list) {
+static fs_list *fs_list_copy(fs_list *list) {
     fs_list *new_list = NULL;
 
     if (list) {
@@ -302,21 +302,21 @@ fs_list *fs_list_nth(fs_list *list, unsigned int n) {
     return list;
 }
 
-fs_list *fs_list_nth_prev(fs_list *list, unsigned int n) {
+static fs_list *fs_list_nth_prev(fs_list *list, unsigned int n) {
     while ((n-- > 0) && list)
         list = list->prev;
 
     return list;
 }
 
-void * fs_list_nth_data(fs_list *list, unsigned int n) {
+static void * fs_list_nth_data(fs_list *list, unsigned int n) {
     while ((n-- > 0) && list)
         list = list->next;
 
     return list ? list->data : NULL;
 }
 
-fs_list *fs_list_find(fs_list *list, const void * data) {
+static fs_list *fs_list_find(fs_list *list, const void * data) {
     while (list) {
         if (list->data == data) break;
         list = list->next;
@@ -325,7 +325,7 @@ fs_list *fs_list_find(fs_list *list, const void * data) {
     return list;
 }
 
-fs_list *fs_list_find_custom(fs_list *list, const void * data,
+static fs_list *fs_list_find_custom(fs_list *list, const void * data,
         fs_compare_func func) {
     //g_return_val_if_fail(func != NULL, list);
     if (func == NULL) {
@@ -375,7 +375,7 @@ fs_list *fs_list_last(fs_list *list) {
     return list;
 }
 
-fs_list *fs_list_first(fs_list *list) {
+static fs_list *fs_list_first(fs_list *list) {
     if (list) {
         while (list->prev)
             list = list->prev;
@@ -384,7 +384,7 @@ fs_list *fs_list_first(fs_list *list) {
     return list;
 }
 
-unsigned int fs_list_length(fs_list *list) {
+static unsigned int fs_list_length(fs_list *list) {
     unsigned int length;
 
     length = 0;
@@ -449,11 +449,11 @@ static fs_list *fs_list_insert_sorted_real(fs_list *list, void * data,
     else return list;
 }
 
-fs_list *fs_list_insert_sorted(fs_list *list, void * data, fs_compare_func func) {
+static fs_list *fs_list_insert_sorted(fs_list *list, void * data, fs_compare_func func) {
     return fs_list_insert_sorted_real(list, data, (fs_func) func, NULL);
 }
 
-fs_list *fs_list_insert_sorted_with_data(fs_list *list, void * data,
+static fs_list *fs_list_insert_sorted_with_data(fs_list *list, void * data,
         fs_compare_data_func func, void * user_data) {
     return fs_list_insert_sorted_real(list, data, (fs_func) func, user_data);
 }
@@ -515,7 +515,7 @@ fs_list *fs_list_sort(fs_list *list, fs_compare_func compare_func) {
 
 }
 
-fs_list *fs_list_sort_with_data(fs_list *list,
+static fs_list *fs_list_sort_with_data(fs_list *list,
         fs_compare_data_func compare_func, void * user_data) {
     return fs_list_sort_real(list, (fs_func) compare_func, user_data);
 }

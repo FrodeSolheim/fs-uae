@@ -419,7 +419,7 @@ static struct zfile *archive_do_zip (struct znode *zn, struct zfile *z, int flag
 	unzFile uz;
 	int i;
 	TCHAR tmp[MAX_DPATH];
-	TCHAR *UNUSED(name) = z ? z->archiveparent->name : zn->volume->root.fullname;
+	TCHAR *name = z ? z->archiveparent->name : zn->volume->root.fullname;
 	char *s;
 
 	uz = unzOpen (z ? z->archiveparent : zn->volume->archive);
@@ -1176,7 +1176,7 @@ static const int secs_per_day = 24 * 60 * 60;
 static const int diff = (8 * 365 + 2) * (24 * 60 * 60);
 static const int diff2 = (-8 * 365 - 2) * (24 * 60 * 60);
 
-static time_t UNUSED_FUNCTION(put_time) (long days, long mins, long ticks)
+static time_t put_time (long days, long mins, long ticks)
 {
 	time_t t;
 
@@ -1512,7 +1512,7 @@ static int sfsfindblock (struct adfhandle *adf, int btree, int theblock, struct 
 		if (isleaf) {
 			uae_u32 key = glx (p);
 			uae_u32 next = glx (p + 4);
-			uae_u32 UNUSED(prev) = glx (p + 8);
+			uae_u32 prev = glx (p + 8);
 			uae_u32 blocks;
 			if (sfs2)
 				blocks = glx (p + 12);
@@ -1531,7 +1531,7 @@ static int sfsfindblock (struct adfhandle *adf, int btree, int theblock, struct 
 				return next;
 			}
 		} else {
-			uae_u32 UNUSED(key) = glx (p);
+			uae_u32 key = glx (p);
 			uae_u32 data = glx (p + 4);
 			int newblock = sfsfindblock (adf, data, theblock, sfsb, sfsblockcnt, sfsmaxblockcnt, sfs2);
 			if (newblock)

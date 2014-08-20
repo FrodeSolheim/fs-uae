@@ -22,7 +22,7 @@ fs_ml_event* fs_ml_alloc_event() {
     return malloc(sizeof(fs_ml_event));
 }
 
-void fs_ml_input_event_free(fs_ml_event *event) {
+static void fs_ml_input_event_free(fs_ml_event *event) {
     free(event);
 }
 

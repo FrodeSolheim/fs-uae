@@ -41,6 +41,10 @@
 #include "inputrecord.h"
 #include "autoconf.h"
 
+#ifdef FSUAE // NL
+#include "uae/fs.h"
+#endif
+
 #define CIAA_DEBUG_R 0
 #define CIAA_DEBUG_W 0
 #define CIAA_DEBUG_IRQ 0

@@ -1,9 +1,12 @@
 Version 2.5.13dev:
 
+* Added another fix for --disable-cpuboard.
 * Add internal HRTMon rom to the rom list on startup.
 * Show GUI warning when some config incompatibilities are detected.
 * GUI warning when custom uae_ options fails or are not recognized.
 * Added more compiler warnings by default.
+* More code cleanup, especially in src/od-fs.
+* Merged several modules which were similar between FS-UAE and WinUAE.
 
 Version 2.5.12dev:
 

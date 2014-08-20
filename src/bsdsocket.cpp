@@ -321,7 +321,6 @@ void addtosigqueue (SB, int events)
 	unlocksigqueue ();
 }
 
-
 void bsdsock_fake_int_handler(void)
 {
 	locksigqueue ();
@@ -500,7 +499,7 @@ static uae_u32 REGPARAM2 bsdsocklib_Expunge (TrapContext *context)
 	return 0;
 }
 
-static uae_u32 functable, datatable, UNUSED(inittable);
+static uae_u32 functable, datatable, inittable;
 
 static uae_u32 REGPARAM2 bsdsocklib_Open (TrapContext *context)
 {
@@ -1599,7 +1598,7 @@ static uae_u32 REGPARAM2 bsdsocklib_getdtablesize (TrapContext *context)
 	return get_socketbase (context)->dtablesize;
 }
 
-static uae_u32 REGPARAM2 UNUSED_FUNCTION(bsdsocklib_null) (TrapContext *context)
+static uae_u32 REGPARAM2 bsdsocklib_null (TrapContext *context)
 {
 	return 0;
 }

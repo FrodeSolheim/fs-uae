@@ -153,7 +153,7 @@ static void file_time_to_time_val(FILETIME *ft, struct timeval *tv) {
  * as _stati64). This causes g_stat from glib to "fail" (garbage in stat
  * buffer due to mistmatch of stat struct).
  */
-int g_stat_reimpl (const gchar *filename, stat_type *buf) {
+static int g_stat_reimpl (const gchar *filename, stat_type *buf) {
 #if defined (USE_GLIB) && defined(G_OS_WIN32)
   wchar_t *wfilename = g_utf8_to_utf16 (filename, -1, NULL, NULL, NULL);
   int retval;

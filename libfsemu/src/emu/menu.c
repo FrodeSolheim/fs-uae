@@ -55,7 +55,7 @@ int fs_emu_menu_is_active() {
     return g_fs_emu_menu_mode;
 }
 
-fs_emu_menu *fs_emu_menu_get_current() {
+static fs_emu_menu *fs_emu_menu_get_current() {
     return g_menu;
 }
 
@@ -254,7 +254,7 @@ void fs_emu_menu_set_current(fs_emu_menu *menu) {
     }
 }
 
-void fs_emu_menu_destroy(void* ptr) {
+static void fs_emu_menu_destroy(void* ptr) {
     fs_log("fs_emu_menu_destroy\n");
     fs_emu_menu* menu = ptr;
     for (int i = 0; i < menu->count; i++) {
@@ -270,7 +270,7 @@ fs_emu_menu *fs_emu_menu_new() {
     return menu;
 }
 
-void fs_emu_menu_item_destroy(void* ptr) {
+static void fs_emu_menu_item_destroy(void* ptr) {
     //fs_log("fs_emu_menu_item_destroy\n");
     fs_emu_menu_item* item = ptr;
     /*
@@ -302,7 +302,7 @@ fs_emu_menu_item *fs_emu_menu_item_at(fs_emu_menu *menu, int index) {
     return menu->items[index];
 }
 
-int fs_emu_menu_item_count(fs_emu_menu *menu) {
+static int fs_emu_menu_item_count(fs_emu_menu *menu) {
     //return (fs_emu_menu_item *) fs_list_length(menu->items);
     return menu->count;
 }

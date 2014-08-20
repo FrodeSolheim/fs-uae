@@ -496,7 +496,7 @@ int action_replay_flag = ACTION_REPLAY_INACTIVE;
 static int ar_rom_file_size;
 
 /* Use this for relocating AR? */
-static int UNUSED(ar_rom_location);
+static int ar_rom_location;
 /*static*/ int armodel;
 static uae_u8 artemp[4]; /* Space to store the 'real' level 7 interrupt */
 static uae_u8 armode;
@@ -549,12 +549,12 @@ STATIC_INLINE int ar3a (uaecptr addr, uae_u8 b, int writing)
 					wait_for_pc = longget (m68k_areg (regs, 7) + 2); /* Get (SP+2) */
 					set_special (SPCFLAG_ACTION_REPLAY);
 
-					uaecptr UNUSED(pc) = m68k_getpc ();
+					uaecptr pc = m68k_getpc ();
 					/*		    write_log_debug ("Action Replay marked as ACTION_REPLAY_WAIT_PC, PC=%p\n",pc);*/
 				}
 				else
 				{
-					uaecptr UNUSED(pc) = m68k_getpc ();
+					uaecptr pc = m68k_getpc ();
 					/*		    write_log_debug ("Action Replay marked as IDLE, PC=%p\n",pc);*/
 					action_replay_flag = ACTION_REPLAY_IDLE;
 				}
@@ -1325,7 +1325,7 @@ static uae_u8* get_checksum_location (void)
 
 /* Replaces the existing cart checksum with a correct one. */
 /* Useful if you want to patch the rom. */
-static void UNUSED_FUNCTION(action_replay_fixup_checksum) (uae_u32 new_checksum)
+static void action_replay_fixup_checksum (uae_u32 new_checksum)
 {
 	uae_u32* checksum = (uae_u32*)get_checksum_location();
 	if (checksum)

@@ -167,12 +167,12 @@ typedef int (*FLAC__IOCallback_Close) (FLAC__IOHandle handle);
  *  a data sorce is not seekable by setting the \a seek field to \c NULL.
  */
 typedef struct {
-    FLAC__IOCallback_Read read;
-    FLAC__IOCallback_Write write;
-    FLAC__IOCallback_Seek seek;
-    FLAC__IOCallback_Tell tell;
-    FLAC__IOCallback_Eof eof;
-    FLAC__IOCallback_Close close;
+	FLAC__IOCallback_Read read;
+	FLAC__IOCallback_Write write;
+	FLAC__IOCallback_Seek seek;
+	FLAC__IOCallback_Tell tell;
+	FLAC__IOCallback_Eof eof;
+	FLAC__IOCallback_Close close;
 } FLAC__IOCallbacks;
 
 /* \} */

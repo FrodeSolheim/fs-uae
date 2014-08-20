@@ -16,7 +16,6 @@
 
 #define init_audio uae_init_audio
 
-#include "uae_host.h"
 #include "uae/logging.h"
 
 // we are using our own main function, not the one from UAE...
@@ -219,25 +218,12 @@ extern int uae_start_thread_fast (void *(*f)(void *), void *arg,
 #define DRIVE_CDROM 0
 #endif
 
-#include "uae_util.h"
 #include <stddef.h>
 
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
 
 #include "uae/jitconfig.h"
-
-#ifdef __GNUC__
-#define UNUSED(x) UNUSED_ ## x __attribute__((__unused__))
-#else
-#define UNUSED(x) UNUSED_ ## x
-#endif
-
-#ifdef __GNUC__
-#define UNUSED_FUNCTION(x) __attribute__((__unused__)) UNUSED_ ## x
-#else
-#define UNUSED_FUNCTION(x) UNUSED_ ## x
-#endif
 
 #ifndef NORETURN
 #ifdef __GNUC__

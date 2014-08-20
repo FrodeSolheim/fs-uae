@@ -420,7 +420,7 @@ void fs_set_argv(int argc, char* argv[]) {
     g_argv = argv;
 }
 
-char *find_program_in_path(const char *prog) {
+static char *find_program_in_path(const char *prog) {
     const char* c = prog;
     while(*c) {
         if (*c++ == '/') {

@@ -69,7 +69,7 @@ void ppc_cpu_atomic_cancel_ext_exception()
 	sys_unlock_mutex(exception_mutex);
 }
 
-void ppc_cpu_atomic_raise_dec_exception()
+static void ppc_cpu_atomic_raise_dec_exception()
 {
 	sys_lock_mutex(exception_mutex);
 	gCPU.dec_exception = true;

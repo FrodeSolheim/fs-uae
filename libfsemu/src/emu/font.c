@@ -57,7 +57,7 @@ typedef struct _cache_item {
 static void sanity_check() {
 }
 
-void initialize_cache() {
+static void initialize_cache() {
     for (int i = 0; i < CACHE_SIZE; i++) {
         cache_item *item = malloc(sizeof(cache_item));
         item->font = NULL;
@@ -113,7 +113,7 @@ static void context_notification_handler(int notification, void *data) {
 
 #ifdef USE_FREETYPE
 
-void init_freetype(void) {
+static void init_freetype(void) {
     int error = FT_Init_FreeType(&library);
     if (error) {
         fs_emu_warning("Could not initialize freetype");
@@ -125,7 +125,7 @@ void init_freetype(void) {
 
 #endif
 
-void initialize() {
+static void initialize() {
     g_texture_width = 2048;
     g_texture_height = 2048;
     int max_texture_size = fs_ml_get_max_texture_size();
@@ -189,7 +189,7 @@ int fs_emu_font_render_with_outline(fs_emu_font *font, const char *text,
 }
 
 //gunichar2 fix_char(fs_emu_font *font, gunichar2 c) {
-int fix_char(fs_emu_font *font, int c) {
+static int fix_char(fs_emu_font *font, int c) {
     if (c == 0x2019) {
         // replace RIGHT SINGLE QUOTATION MARK with common apostrophe
         return '\'';

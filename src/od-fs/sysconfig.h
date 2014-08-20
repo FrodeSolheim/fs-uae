@@ -277,6 +277,5 @@
 /* #undef _POSIX_SOURCE */
 
 #include "defines.h"
-#include "uae_fs.h"
 
 #endif // UAE_OD_FS_SYSCONFIG_H

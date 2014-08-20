@@ -487,7 +487,7 @@ static void REGPARAM2 chipmem_bput_ce2 (uaecptr addr, uae_u32 b)
 
 #endif
 
-uae_u32 REGPARAM2 chipmem_lget (uaecptr addr)
+static uae_u32 REGPARAM2 chipmem_lget (uaecptr addr)
 {
 	uae_u32 *m;
 
@@ -605,24 +605,28 @@ static uae_u32 chipmem_dummy (void)
 	/* not really right but something random that has more ones than zeros.. */
 	return 0xffff & ~((1 << (uaerand () & 31)) | (1 << (uaerand () & 31)));
 }
-void REGPARAM2 chipmem_dummy_bput (uaecptr addr, uae_u32 b)
+
+static void REGPARAM2 chipmem_dummy_bput (uaecptr addr, uae_u32 b)
 {
 #ifdef JIT
 	special_mem |= S_WRITE;
 #endif
 }
-void REGPARAM2 chipmem_dummy_wput (uaecptr addr, uae_u32 b)
+
+static void REGPARAM2 chipmem_dummy_wput (uaecptr addr, uae_u32 b)
 {
 #ifdef JIT
 	special_mem |= S_WRITE;
 #endif
 }
-void REGPARAM2 chipmem_dummy_lput (uaecptr addr, uae_u32 b)
+
+static void REGPARAM2 chipmem_dummy_lput (uaecptr addr, uae_u32 b)
 {
 #ifdef JIT
 	special_mem |= S_WRITE;
 #endif
 }
+
 static uae_u32 REGPARAM2 chipmem_dummy_bget (uaecptr addr)
 {
 #ifdef JIT
@@ -645,7 +649,7 @@ static uae_u32 REGPARAM2 chipmem_dummy_lget (uaecptr addr)
 	return (chipmem_dummy () << 16) | chipmem_dummy ();
 }
 
-static uae_u32 REGPARAM2 UNUSED_FUNCTION(chipmem_agnus_lget) (uaecptr addr)
+static uae_u32 REGPARAM2 chipmem_agnus_lget (uaecptr addr)
 {
 	uae_u32 *m;
 
@@ -684,7 +688,7 @@ static uae_u32 REGPARAM2 chipmem_agnus_bget (uaecptr addr)
 	return chipmem_bank.baseaddr[addr];
 }
 
-static void REGPARAM2 UNUSED_FUNCTION(chipmem_agnus_lput) (uaecptr addr, uae_u32 l)
+static void REGPARAM2 chipmem_agnus_lput (uaecptr addr, uae_u32 l)
 {
 #ifdef FSUAE
 #ifdef DEBUG_MEM
@@ -1567,7 +1571,7 @@ static int load_kickstart (void)
 #ifdef FSUAE
 			// FIXME: is the intention here to find kspos via romdata?
 #endif
-			struct romdata *UNUSED(rd) = getromdatabyzfile(f);
+			struct romdata *rd = getromdatabyzfile(f);
 			zfile_fseek (f, kspos, SEEK_SET);
 		}
 		if (filesize >= ROM_SIZE_512 * 4) {

@@ -1,8 +1,11 @@
 #include <fs/filesys.h>
 #include "sysconfig.h"
 #include "sysdeps.h"
+
+#include "driveclick.h"
+#include "uae/fs.h"
+
 #include <fs/string.h>
-#include "include/driveclick.h"
 
 static const char *g_driveclick_path = "";
 //static char *g_driveclick_name = NULL;

@@ -655,8 +655,8 @@ static void ide_set_multiple_mode (struct ide_hdf *ide)
 }
 static void ide_set_features (struct ide_hdf *ide)
 {
-	int UNUSED(type) = ide->regs.ide_nsector >> 3;
-	int UNUSED(mode) = ide->regs.ide_nsector & 7;
+	int type = ide->regs.ide_nsector >> 3;
+	int mode = ide->regs.ide_nsector & 7;
 
 	write_log (_T("IDE%d set features %02X (%02X)\n"), ide->num, ide->regs.ide_feat, ide->regs.ide_nsector);
 	ide_fail (ide);
@@ -2142,7 +2142,7 @@ static void initscideattr (int readonly)
 {
 	uae_u8 *rp;
 	uae_u8 *p = pcmcia_attrs;
-	struct hardfiledata *UNUSED(hfd) = &pcmcia_sram->hfd;
+	struct hardfiledata *hfd = &pcmcia_sram->hfd;
 
 	/* Mostly just copied from real CF cards.. */
 

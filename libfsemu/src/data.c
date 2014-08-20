@@ -74,7 +74,7 @@ typedef struct local_file_header {
 #define ERROR_CFH_SIG 9
 #define ERROR_CFH_NAME 10
 
-int read_zip_entries (FILE *f) {
+static int read_zip_entries (FILE *f) {
     if (fseek(f, 0, SEEK_END) != 0) {
         // fseek to end of file failed
         return 2;

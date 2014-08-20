@@ -100,7 +100,7 @@ static const char *dstblrmw, *dstwlrmw, *dstllrmw;
 static const char *srcbrmw, *srcwrmw, *srclrmw;
 static const char *dstbrmw, *dstwrmw, *dstlrmw;
 static const char *prefetch_long, *prefetch_word;
-static const char *srcli, *srcwi, *srcbi, *nextl, *nextw, *UNUSED(nextb);
+static const char *srcli, *srcwi, *srcbi, *nextl, *nextw, *nextb;
 static const char *srcld, *dstld;
 static const char *srcwd, *dstwd;
 static const char *do_cycles, *disp000, *disp020, *getpc;
@@ -185,7 +185,7 @@ static void fpulimit (void)
 	n_braces = 0;
 }
 
-static void UNUSED_FUNCTION(cpulimit) (void)
+static void cpulimit (void)
 {
 	printf ("#ifndef CPUEMU_68000_ONLY\n");
 }
@@ -342,7 +342,7 @@ static void addcycles000 (int cycles)
 	count_cycles += cycles;
 }
 
-static void UNUSED_FUNCTION(addcycles000_2) (const char *s, int cycles)
+static void addcycles000_2 (const char *s, int cycles)
 {
 	if (!using_ce)
 		return;
@@ -642,7 +642,7 @@ static void fill_prefetch_0 (void)
 	insn_n_cycles += 4;
 }
 
-static void UNUSED_FUNCTION(dummy_prefetch) (void)
+static void dummy_prefetch (void)
 {
 	int o = m68k_pc_offset + 2;
 	if (!using_prefetch)
@@ -4805,7 +4805,7 @@ static void gen_opcode (unsigned int opcode)
 	case i_BFINS:
 		{
 			const char *getb, *putb;
-			int UNUSED(flags) = 0;
+			int flags = 0;
 
 			if (using_mmu == 68060 && (curi->mnemo == i_BFCHG || curi->mnemo == i_BFCLR ||  curi->mnemo == i_BFSET ||  curi->mnemo == i_BFINS)) {
 				getb = "mmu060_get_rmw_bitfield";

@@ -779,7 +779,7 @@ static void allocuci (struct uae_prefs *p, int nr, int idx)
 static void initialize_mountinfo (void)
 {
 	int nr;
-	UnitInfo *UNUSED(uip) = &mountinfo.ui[0];
+	UnitInfo *uip = &mountinfo.ui[0];
 
 	cd_unit_offset = MAX_FILESYSTEM_UNITS;
 
@@ -2916,11 +2916,11 @@ static uae_u32 REGPARAM2 startup_handler (TrapContext *context)
 	* our allocated volume structure is in A3, A5 is a pointer to
 	* our port. */
 	uaecptr rootnode = get_long (m68k_areg (regs, 2) + 34);
-	uaecptr UNUSED(dos_info) = get_long (rootnode + 24) << 2;
+	uaecptr dos_info = get_long (rootnode + 24) << 2;
 	uaecptr pkt = m68k_dreg (regs, 3);
-	uaecptr UNUSED(arg1) = get_long (pkt + dp_Arg1);
+	uaecptr arg1 = get_long (pkt + dp_Arg1);
 	uaecptr arg2 = get_long (pkt + dp_Arg2);
-	uaecptr UNUSED(arg3) = get_long (pkt + dp_Arg3);
+	uaecptr arg3 = get_long (pkt + dp_Arg3);
 	uaecptr devnode;
 	int nr;
 	Unit *unit;
@@ -3287,7 +3287,7 @@ static void notify_check (Unit *unit, a_inode *a)
 	Notify *n;
 	int hash = notifyhash (a->aname);
 	for (n = unit->notifyhash[hash]; n; n = n->next) {
-		uaecptr UNUSED(nr) = n->notifyrequest;
+		uaecptr nr = n->notifyrequest;
 		if (same_aname (n->partname, a->aname)) {
 			int err;
 			a_inode *a2 = find_aino (unit, 0, n->fullname, &err);
@@ -3298,7 +3298,7 @@ static void notify_check (Unit *unit, a_inode *a)
 	if (a->parent) {
 		hash = notifyhash (a->parent->aname);
 		for (n = unit->notifyhash[hash]; n; n = n->next) {
-			uaecptr UNUSED(nr) = n->notifyrequest;
+			uaecptr nr = n->notifyrequest;
 			if (same_aname (n->partname, a->parent->aname)) {
 				int err;
 				a_inode *a2 = find_aino (unit, 0, n->fullname, &err);
@@ -3356,7 +3356,7 @@ static void
 	n->fullname = name;
 	if (flags & NRF_NOTIFY_INITIAL) {
 		int err;
-		a_inode *UNUSED(a) = find_aino (unit, 0, n->fullname, &err);
+		a_inode *a = find_aino (unit, 0, n->fullname, &err);
 		if (err == 0)
 			notify_send (unit, n);
 	}
@@ -3539,7 +3539,7 @@ static void action_read_link (Unit *unit, dpacket packet)
 	uaecptr newname = GET_PCK_ARG3 (packet);
 	int size = GET_PCK_ARG4 (packet);
 	a_inode *a, *matched_aino;
-	Unit *u = NULL, *UNUSED(u2) = NULL, *matched_unit;
+	Unit *u = NULL, *u2 = NULL, *matched_unit;
 	int err, i, matched_len;
 	TCHAR tmp[MAX_DPATH];
 	TCHAR *namep, *extrapath;
@@ -3951,7 +3951,7 @@ static int action_lock_record (Unit *unit, dpacket packet, uae_u32 msg)
 	uae_u32 mode = GET_PCK_ARG4 (packet);
 	uae_u32 timeout = GET_PCK_ARG5 (packet);
 
-	bool UNUSED(exclusive) = mode == REC_EXCLUSIVE || mode == REC_EXCLUSIVE_IMMED;
+	bool exclusive = mode == REC_EXCLUSIVE || mode == REC_EXCLUSIVE_IMMED;
 
 #ifdef FSUAE
 	g_packet_delay = 2;
@@ -5218,7 +5218,7 @@ static void
 	* Above is wrong, it is always *_LOCK. TW. */
 	int mode = GET_PCK_ARG3 (packet);
 	unsigned long uniq;
-	a_inode *a = NULL, *UNUSED(olda) = NULL;
+	a_inode *a = NULL, *olda = NULL;
 	int err = 0;
 	TRACE((_T("ACTION_CHANGE_MODE(0x%x,%d,%d)\n"), object, type, mode));
 
@@ -6208,7 +6208,7 @@ static uae_u32 REGPARAM2 exter_int_helper (TrapContext *context)
 #ifdef UAE_FILESYS_THREADS
 		{
 			Unit *unit = find_unit (m68k_areg (regs, 5));
-			uaecptr UNUSED(msg) = m68k_areg (regs, 4);
+			uaecptr msg = m68k_areg (regs, 4);
 			unit->cmds_complete = unit->cmds_acked;
 			while (comm_pipe_has_data (unit->ui.back_pipe)) {
 				uaecptr locks, lockend;
@@ -6874,9 +6874,9 @@ static uae_u32 REGPARAM2 filesys_dev_remember (TrapContext *context)
 {
 	int no = m68k_dreg (regs, 6) & 0x7fffffff;
 	int unit_no = no & 65535;
-	int UNUSED(sub_no) = no >> 16;
+	int sub_no = no >> 16;
 	UnitInfo *uip = &mountinfo.ui[unit_no];
-	int UNUSED(iscd) = (m68k_dreg (regs, 6) & 0x80000000) != 0 || uip->unit_type == UNIT_CDFS;
+	int iscd = (m68k_dreg (regs, 6) & 0x80000000) != 0 || uip->unit_type == UNIT_CDFS;
 	int i;
 	uaecptr devicenode = m68k_areg (regs, 3);
 	uaecptr parmpacket = m68k_areg (regs, 1);
@@ -7584,7 +7584,7 @@ static uae_u32 REGPARAM2 filesys_dev_storeinfo (TrapContext *context)
 	put_long (parmpacket + PP_ADDTOFSRES, 0);
 	put_long (parmpacket + PP_FSSIZE, 0);
 	if (iscd) {
-		TCHAR *UNUSED(cdname) = NULL;
+		TCHAR *cdname = NULL;
 		uaecptr cdname_amiga;
 		int cd_unit_no = unit_no - cd_unit_offset;
 

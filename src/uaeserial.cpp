@@ -264,7 +264,7 @@ static uae_u32 REGPARAM2 dev_open (TrapContext *context)
 {
 	uaecptr ioreq = m68k_areg (regs, 1);
 	uae_u32 unit = m68k_dreg (regs, 0);
-	uae_u32 UNUSED(flags) = m68k_dreg (regs, 1);
+	uae_u32 flags = m68k_dreg (regs, 1);
 	struct devstruct *dev;
 	int i, err;
 
@@ -494,9 +494,9 @@ static int dev_do_io (struct devstruct *dev, uaecptr request, int quick)
 {
 	uae_u32 command;
 	uae_u32 io_data = get_long (request + 40); // 0x28
-	uae_u32 UNUSED(io_length) = get_long (request + 36); // 0x24
+	uae_u32 io_length = get_long (request + 36); // 0x24
 	uae_u32 io_actual = get_long (request + 32); // 0x20
-	uae_u32 UNUSED(io_offset) = get_long (request + 44); // 0x2c
+	uae_u32 io_offset = get_long (request + 44); // 0x2c
 	uae_u32 io_error = 0;
 	uae_u16 io_status;
 	int async = 0;

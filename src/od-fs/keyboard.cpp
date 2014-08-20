@@ -1,6 +1,7 @@
 #include "sysconfig.h"
 #include "sysdeps.h"
 
+#include "uae/fs.h"
 #include "inputdevice.h"
 #include "keyboard.h"
 #include "keybuf.h"

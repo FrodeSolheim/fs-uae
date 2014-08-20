@@ -37,7 +37,7 @@ fs_queue *fs_queue_new(void) {
     return fs_new0(fs_queue, 1);
 }
 
-void fs_queue_free(fs_queue *queue) {
+static void fs_queue_free(fs_queue *queue) {
     if (queue == NULL) {
         return;
     }
@@ -46,7 +46,7 @@ void fs_queue_free(fs_queue *queue) {
     free(queue);
 }
 
-void fs_queue_init(fs_queue *queue) {
+static void fs_queue_init(fs_queue *queue) {
     if (queue == NULL) {
         return;
     }
@@ -54,7 +54,7 @@ void fs_queue_init(fs_queue *queue) {
     queue->length = 0;
 }
 
-void fs_queue_clear(fs_queue *queue) {
+static void fs_queue_clear(fs_queue *queue) {
     if (queue == NULL) {
         return;
     }
@@ -62,7 +62,7 @@ void fs_queue_clear(fs_queue *queue) {
     fs_queue_init(queue);
 }
 
-int fs_queue_is_empty(fs_queue *queue) {
+static int fs_queue_is_empty(fs_queue *queue) {
     if (queue == NULL) {
         return 1;
     }
@@ -76,7 +76,7 @@ unsigned int fs_queue_get_length(fs_queue *queue) {
     return queue->length;
 }
 
-void fs_queue_reverse(fs_queue *queue) {
+static void fs_queue_reverse(fs_queue *queue) {
     if (queue == NULL) {
         return;
     }
@@ -84,7 +84,7 @@ void fs_queue_reverse(fs_queue *queue) {
     queue->head = fs_list_reverse(queue->head);
 }
 
-fs_queue *fs_queue_copy(fs_queue *queue) {
+static fs_queue *fs_queue_copy(fs_queue *queue) {
     fs_queue *result;
     fs_list *list;
     if (queue == NULL ) {
@@ -163,7 +163,7 @@ void fs_queue_push_head(fs_queue *queue, void * data) {
  * 
  * Since: 2.4
  **/
-void fs_queue_push_nth(fs_queue *queue, void * data, int n) {
+static void fs_queue_push_nth(fs_queue *queue, void * data, int n) {
     if (queue == NULL) {
         return;
     }
@@ -184,7 +184,7 @@ void fs_queue_push_nth(fs_queue *queue, void * data, int n) {
  *
  * Adds a new element at the head of the queue.
  **/
-void fs_queue_push_head_link(fs_queue *queue, fs_list *link) {
+static void fs_queue_push_head_link(fs_queue *queue, fs_list *link) {
     if (queue == NULL || link == NULL) {
         return;
     }
@@ -213,7 +213,7 @@ void fs_queue_push_tail(fs_queue *queue, void * data) {
     queue->length++;
 }
 
-void fs_queue_push_tail_link(fs_queue *queue, fs_list *link) {
+static void fs_queue_push_tail_link(fs_queue *queue, fs_list *link) {
     if (queue == NULL || link == NULL) {
         return;
     }
@@ -289,7 +289,7 @@ void *fs_queue_pop_head(fs_queue *queue) {
     return NULL ;
 }
 
-fs_list *fs_queue_pop_head_link(fs_queue *queue) {
+static fs_list *fs_queue_pop_head_link(fs_queue *queue) {
     if (queue == NULL) {
         return NULL;
     }
@@ -318,7 +318,7 @@ fs_list *fs_queue_peek_head_link(fs_queue *queue) {
     return queue->head;
 }
 
-fs_list *fs_queue_peek_tail_link(fs_queue *queue) {
+static fs_list *fs_queue_peek_tail_link(fs_queue *queue) {
     if (queue == NULL) {
         return NULL;
     }
@@ -348,7 +348,7 @@ void *fs_queue_pop_tail(fs_queue *queue) {
     return NULL ;
 }
 
-void *fs_queue_pop_nth(fs_queue *queue, unsigned int n) {
+static void *fs_queue_pop_nth(fs_queue *queue, unsigned int n) {
     fs_list *nth_link;
     void * result;
 
@@ -367,7 +367,7 @@ void *fs_queue_pop_nth(fs_queue *queue, unsigned int n) {
     return result;
 }
 
-fs_list *fs_queue_pop_tail_link(fs_queue *queue) {
+static fs_list *fs_queue_pop_tail_link(fs_queue *queue) {
     if (queue == NULL) {
         return NULL;
     }
@@ -389,7 +389,7 @@ fs_list *fs_queue_pop_tail_link(fs_queue *queue) {
     return NULL ;
 }
 
-fs_list* fs_queue_pop_nth_link(fs_queue *queue, unsigned int n) {
+static fs_list* fs_queue_pop_nth_link(fs_queue *queue, unsigned int n) {
     fs_list *link;
 
     if (queue == NULL) {
@@ -431,7 +431,7 @@ fs_list *fs_queue_peek_nth_link(fs_queue *queue, unsigned int n) {
     return link;
 }
 
-int fs_queue_link_index(fs_queue *queue, fs_list *link_) {
+static int fs_queue_link_index(fs_queue *queue, fs_list *link_) {
     if (queue == NULL) {
         return -1;
     }
@@ -472,7 +472,7 @@ void *fs_queue_peek_tail(fs_queue *queue) {
     return queue->tail ? queue->tail->data : NULL;
 }
 
-void *fs_queue_peek_nth(fs_queue *queue, unsigned int n) {
+static void *fs_queue_peek_nth(fs_queue *queue, unsigned int n) {
     fs_list *link;
 
     if (queue == NULL) {
@@ -487,7 +487,7 @@ void *fs_queue_peek_nth(fs_queue *queue, unsigned int n) {
     return NULL ;
 }
 
-int fs_queue_index(fs_queue *queue, const void * data) {
+static int fs_queue_index(fs_queue *queue, const void * data) {
     if (queue == NULL) {
         return -1;
     }
@@ -511,7 +511,7 @@ int fs_queue_remove(fs_queue *queue, const void * data) {
 }
 #endif
 
-unsigned int fs_queue_remove_all(fs_queue *queue, const void * data) {
+static unsigned int fs_queue_remove_all(fs_queue *queue, const void * data) {
     fs_list *list;
     unsigned int old_length;
 
@@ -542,7 +542,7 @@ void fs_queue_insert_before(fs_queue *queue, fs_list *sibling, void * data) {
     queue->length++;
 }
 
-void fs_queue_insert_after(fs_queue *queue, fs_list *sibling, void * data) {
+static void fs_queue_insert_after(fs_queue *queue, fs_list *sibling, void * data) {
     if (queue == NULL || sibling == NULL) {
         return;
     }

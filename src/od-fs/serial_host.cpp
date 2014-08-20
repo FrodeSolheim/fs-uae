@@ -54,7 +54,7 @@ static int allowed_baudrates[] =
 void SERPER (uae_u16 w)
 {
 	int baud = 0, i, per;
-	static int UNUSED(warned);
+	static int warned;
 
 	if (serper == w)  /* don't set baudrate if it's already ok */
 		return;

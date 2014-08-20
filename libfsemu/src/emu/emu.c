@@ -65,14 +65,14 @@ void fs_emu_set_quit_function(fs_ml_void_function function) {
     g_quit_function = function;
 }
 
-void *force_quit_thread(void *data) {
+static void *force_quit_thread(void *data) {
     for (int i = 0; i < 5; i++) {
         fs_ml_usleep(1000 * 1000);
     }
     return NULL;
 }
 
-void on_quit() {
+static void on_quit() {
     fs_log("libfsemu:on_quit\n");
     g_fs_emu_quit_time = fs_emu_monotonic_time();
     if (g_quit_function) {

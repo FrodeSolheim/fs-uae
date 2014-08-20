@@ -2,42 +2,48 @@
 #define __DXWRAP_H__
 
 #include "rtgmodes.h"
+#ifdef FSUAE
+#else
+#include <ddraw.h>
+#include <d3d9.h>
+#endif
 
 #define MAX_DISPLAYS 10
 
 extern int ddforceram;
 extern int useoverlay;
 
-#if 0
+#ifdef FSUAE
+#else
 struct ddstuff
 {
-    int ddinit;
-    int ddzeroguid;
-    GUID ddguid;
-    LPDIRECTDRAW7 maindd;
-    LPDIRECTDRAWCLIPPER dclip;
-    LPDIRECTDRAWSURFACE7 primary, secondary, flipping[2];
-    DDOVERLAYFX overlayfx;
-    DWORD overlayflags;
-    int fsmodeset, backbuffers;
-    int width, height, depth, freq;
-    int vblank_skip, vblank_skip_cnt;
-    int swidth, sheight;
-    DDSURFACEDESC2 native;
-    DDSURFACEDESC2 locksurface;
-    int lockcnt;
-    DWORD pitch;
-    HWND hwnd;
-    uae_u32 colorkey;
-    int islost, isoverlay;
+	int ddinit;
+	int ddzeroguid;
+	GUID ddguid;
+	LPDIRECTDRAW7 maindd;
+	LPDIRECTDRAWCLIPPER dclip;
+	LPDIRECTDRAWSURFACE7 primary, secondary, flipping[2];
+	DDOVERLAYFX overlayfx;
+	DWORD overlayflags;
+	int fsmodeset, backbuffers;
+	int width, height, depth, freq;
+	int vblank_skip, vblank_skip_cnt;
+	int swidth, sheight;
+	DDSURFACEDESC2 native;
+	DDSURFACEDESC2 locksurface;
+	int lockcnt;
+	DWORD pitch;
+	HWND hwnd;
+	uae_u32 colorkey;
+	int islost, isoverlay;
 
-    LPDIRECTDRAWSURFACE7 statussurface;
+	LPDIRECTDRAWSURFACE7 statussurface;
 };
 struct ddcaps
 {
-    int maxwidth, maxheight;
-    int cancolorkey;
-    int cannonlocalvidmem;
+	int maxwidth, maxheight;
+	int cancolorkey;
+	int cannonlocalvidmem;
 };
 extern struct ddstuff dxdata;
 extern struct ddcaps dxcaps;
@@ -45,45 +51,53 @@ extern struct ddcaps dxcaps;
 
 struct ScreenResolution
 {
-    uae_u32 width;  /* in pixels */
-    uae_u32 height; /* in pixels */
+	uae_u32 width;  /* in pixels */
+	uae_u32 height; /* in pixels */
 };
 
 #define MAX_PICASSO_MODES 300
 #define MAX_REFRESH_RATES 100
+
+#define REFRESH_RATE_RAW 1
+#define REFRESH_RATE_LACE 2
+
 struct PicassoResolution
 {
-    struct ScreenResolution res;
-    int depth;   /* depth in bytes-per-pixel */
-    int residx;
-    int refresh[MAX_REFRESH_RATES]; /* refresh-rates in Hz */
-    int refreshtype[MAX_REFRESH_RATES]; /* 0=normal,1=raw */
-    TCHAR name[25];
-    /* Bit mask of RGBFF_xxx values.  */
-    uae_u32 colormodes;
-    int rawmode;
-    bool lace;
+	struct ScreenResolution res;
+	int depth;   /* depth in bytes-per-pixel */
+	int residx;
+	int refresh[MAX_REFRESH_RATES]; /* refresh-rates in Hz */
+	int refreshtype[MAX_REFRESH_RATES]; /* 0=normal,1=raw,2=lace */
+	TCHAR name[25];
+	/* Bit mask of RGBFF_xxx values.  */
+	uae_u32 colormodes;
+	int rawmode;
+	bool lace; // all modes lace
 };
 
 struct MultiDisplay {
-    bool primary;
-    //GUID ddguid;
-    TCHAR *adaptername, *adapterid, *adapterkey;
-    TCHAR *monitorname, *monitorid;
-    TCHAR *fullname;
-    struct PicassoResolution *DisplayModes;
-    RECT rect;
+	bool primary;
+#ifdef FSUAE
+#else
+	GUID ddguid;
+#endif
+	TCHAR *adaptername, *adapterid, *adapterkey;
+	TCHAR *monitorname, *monitorid;
+	TCHAR *fullname;
+	struct PicassoResolution *DisplayModes;
+	RECT rect;
 };
-extern struct MultiDisplay Displays[MAX_DISPLAYS];
+extern struct MultiDisplay Displays[MAX_DISPLAYS + 1];
 
 typedef enum
 {
-    red_mask,
-    green_mask,
-    blue_mask
+	red_mask,
+	green_mask,
+	blue_mask
 } DirectDraw_Mask_e;
 
-#if 0
+#ifdef FSUAE
+#else
 extern const TCHAR *DXError (HRESULT hr);
 extern TCHAR *outGUID (const GUID *guid);
 
@@ -91,10 +105,9 @@ HRESULT DirectDraw_GetDisplayMode (void);
 void DirectDraw_Release(void);
 int DirectDraw_Start(void);
 void DirectDraw_get_GUIDs (void);
-void clearsurface(LPDIRECTDRAWSURFACE7 surf);
-int locksurface (LPDIRECTDRAWSURFACE7 surf, LPDDSURFACEDESC2 desc);
-void unlocksurface (LPDIRECTDRAWSURFACE7 surf);
-HRESULT restoresurface (LPDIRECTDRAWSURFACE7 surf);
+void DirectDraw_ClearSurface (LPDIRECTDRAWSURFACE7 surf);
+int DirectDraw_LockSurface (LPDIRECTDRAWSURFACE7 surf, LPDDSURFACEDESC2 desc);
+void DirectDraw_UnlockSurface (LPDIRECTDRAWSURFACE7 surf);
 LPDIRECTDRAWSURFACE7 allocsurface (int width, int height);
 LPDIRECTDRAWSURFACE7 allocsystemsurface (int width, int height);
 LPDIRECTDRAWSURFACE7 createsurface (uae_u8 *ptr, int pitch, int width, int height);
@@ -117,8 +130,8 @@ int DirectDraw_IsLocked (void);
 DWORD DirectDraw_GetPixelFormatBitMask (DirectDraw_Mask_e mask);
 RGBFTYPE DirectDraw_GetPixelFormat (void);
 DWORD DirectDraw_GetBytesPerPixel (void);
-HRESULT DirectDraw_GetDC(HDC *hdc);
-HRESULT DirectDraw_ReleaseDC(HDC hdc);
+HRESULT DirectDraw_GetDC (HDC *hdc);
+HRESULT DirectDraw_ReleaseDC (HDC hdc);
 int DirectDraw_GetVerticalBlankStatus (void);
 DWORD DirectDraw_CurrentRefreshRate (void);
 void DirectDraw_GetPrimaryPixelFormat (DDSURFACEDESC2 *desc);
@@ -128,8 +141,6 @@ int DirectDraw_BlitToPrimary (RECT *rect);
 int DirectDraw_BlitToPrimaryScale (RECT *dstrect, RECT *srcrect);
 int DirectDraw_Blit (LPDIRECTDRAWSURFACE7 dst, LPDIRECTDRAWSURFACE7 src);
 int DirectDraw_BlitRect (LPDIRECTDRAWSURFACE7 dst, RECT *dstrect, LPDIRECTDRAWSURFACE7 src, RECT *scrrect);
-int DirectDraw_BlitRectCK (LPDIRECTDRAWSURFACE7 dst, RECT *dstrect, LPDIRECTDRAWSURFACE7 src, RECT *scrrect);
-void DirectDraw_FillSurface (LPDIRECTDRAWSURFACE7 dst, RECT *rect, uae_u32 color);
 void DirectDraw_Fill (RECT *rect, uae_u32 color);
 void DirectDraw_FillPrimary (void);
 bool DD_getvblankpos (int *vpos);
@@ -145,4 +156,3 @@ int dx_islost (void);
 #define DDFORCED_SYSMEM 3
 
 #endif
-

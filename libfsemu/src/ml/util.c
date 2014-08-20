@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <fs/string.h>
 #include <fs/hashtable.h>
+#include <fs/ml.h>
 
 char *fs_ml_input_unique_device_name(char *name) {
     // fs_hash_table_destroy(device_counts);

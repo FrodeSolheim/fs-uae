@@ -14,6 +14,7 @@
 #include "options.h"
 #include "filesys.h"
 #include "zfile.h"
+#include "uae/fs.h"
 
 #ifdef MACOSX
 #include <sys/stat.h>

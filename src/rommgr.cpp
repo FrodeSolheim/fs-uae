@@ -1089,7 +1089,7 @@ static void byteswap (uae_u8 *buf, int size)
 		buf[i + 1] = t;
 	}
 }
-static void UNUSED_FUNCTION(wordbyteswap) (uae_u8 *buf, int size)
+static void wordbyteswap (uae_u8 *buf, int size)
 {
 	int i;
 	for (i = 0; i < size; i += 4) {

@@ -337,7 +337,7 @@ fs_hash_table_new_full(fs_hash_func hash_func, fs_equal_func key_equal_func,
     return hash_table;
 }
 
-void fs_hash_table_iter_init(fs_hash_table_iter *iter,
+static void fs_hash_table_iter_init(fs_hash_table_iter *iter,
         fs_hash_table *hash_table) {
     RealIter *ri = (RealIter *) iter;
 
@@ -351,7 +351,7 @@ void fs_hash_table_iter_init(fs_hash_table_iter *iter,
 #endif
 }
 
-int fs_hash_table_iter_next(fs_hash_table_iter *iter, void * *key,
+static int fs_hash_table_iter_next(fs_hash_table_iter *iter, void * *key,
         void * *value) {
     RealIter *ri = (RealIter *) iter;
     int position;
@@ -382,8 +382,7 @@ int fs_hash_table_iter_next(fs_hash_table_iter *iter, void * *key,
     return TRUE;
 }
 
-fs_hash_table *
-fs_hash_table_iter_get_hash_table(fs_hash_table_iter *iter) {
+static fs_hash_table *fs_hash_table_iter_get_hash_table(fs_hash_table_iter *iter) {
     g_return_val_if_fail(iter != NULL, NULL);
 
     return ((RealIter *) iter)->hash_table;
@@ -405,7 +404,7 @@ static void iter_remove_or_steal(RealIter *ri, int notify) {
 #endif
 }
 
-void fs_hash_table_iter_remove(fs_hash_table_iter *iter) {
+static void fs_hash_table_iter_remove(fs_hash_table_iter *iter) {
     iter_remove_or_steal((RealIter *) iter, TRUE);
 }
 
@@ -455,7 +454,7 @@ static void fs_hash_table_insert_node(fs_hash_table *hash_table,
     }
 }
 
-void fs_hash_table_iter_replace(fs_hash_table_iter *iter, void * value) {
+static void fs_hash_table_iter_replace(fs_hash_table_iter *iter, void * value) {
     RealIter *ri;
     unsigned int node_hash;
     void * key;
@@ -481,7 +480,7 @@ void fs_hash_table_iter_replace(fs_hash_table_iter *iter, void * value) {
 #endif
 }
 
-void fs_hash_table_iter_steal(fs_hash_table_iter *iter) {
+static void fs_hash_table_iter_steal(fs_hash_table_iter *iter) {
     iter_remove_or_steal((RealIter *) iter, FALSE);
 }
 
@@ -542,7 +541,7 @@ void *fs_hash_table_lookup(fs_hash_table *hash_table, const void *key) {
             hash_table->values[node_index] : NULL ;
 }
 
-int fs_hash_table_lookup_extended(fs_hash_table *hash_table,
+static int fs_hash_table_lookup_extended(fs_hash_table *hash_table,
         const void * lookup_key, void * *orig_key, void * *value) {
     unsigned int node_index;
     unsigned int node_hash;
@@ -610,7 +609,7 @@ int fs_hash_table_remove(fs_hash_table *hash_table, const void * key) {
     return fs_hash_table_remove_internal(hash_table, key, TRUE);
 }
 
-int fs_hash_table_steal(fs_hash_table *hash_table, const void * key) {
+static int fs_hash_table_steal(fs_hash_table *hash_table, const void * key) {
     return fs_hash_table_remove_internal(hash_table, key, FALSE);
 }
 
@@ -626,7 +625,7 @@ void fs_hash_table_remove_all(fs_hash_table *hash_table) {
     fs_hash_table_maybe_resize(hash_table);
 }
 
-void fs_hash_table_steal_all(fs_hash_table *hash_table) {
+static void fs_hash_table_steal_all(fs_hash_table *hash_table) {
     g_return_if_fail(hash_table != NULL);
 
 #ifndef G_DISABLE_ASSERT
@@ -672,7 +671,7 @@ static unsigned int fs_hash_table_foreach_remove_or_steal(
     return deleted;
 }
 
-unsigned int fs_hash_table_foreach_remove(fs_hash_table *hash_table,
+static unsigned int fs_hash_table_foreach_remove(fs_hash_table *hash_table,
         fs_hr_func func, void * user_data) {
     g_return_val_if_fail(hash_table != NULL, 0);
     g_return_val_if_fail(func != NULL, 0);
@@ -681,7 +680,7 @@ unsigned int fs_hash_table_foreach_remove(fs_hash_table *hash_table,
             TRUE);
 }
 
-unsigned int fs_hash_table_foreach_steal(fs_hash_table *hash_table,
+static unsigned int fs_hash_table_foreach_steal(fs_hash_table *hash_table,
         fs_hr_func func, void *user_data) {
     g_return_val_if_fail(hash_table != NULL, 0);
     g_return_val_if_fail(func != NULL, 0);
@@ -690,7 +689,7 @@ unsigned int fs_hash_table_foreach_steal(fs_hash_table *hash_table,
             FALSE);
 }
 
-void fs_hash_table_foreach(fs_hash_table *hash_table, fs_h_func func,
+static void fs_hash_table_foreach(fs_hash_table *hash_table, fs_h_func func,
         void *user_data) {
     int i;
 #ifndef G_DISABLE_ASSERT
@@ -718,7 +717,7 @@ void fs_hash_table_foreach(fs_hash_table *hash_table, fs_h_func func,
     }
 }
 
-void *fs_hash_table_find(fs_hash_table *hash_table, fs_hr_func predicate,
+static void *fs_hash_table_find(fs_hash_table *hash_table, fs_hr_func predicate,
         void * user_data) {
     int i;
 #ifndef G_DISABLE_ASSERT
@@ -775,7 +774,7 @@ fs_list *fs_hash_table_get_keys(fs_hash_table *hash_table) {
     return retval;
 }
 
-fs_list *fs_hash_table_get_values(fs_hash_table *hash_table) {
+static fs_list *fs_hash_table_get_values(fs_hash_table *hash_table) {
     int i;
     fs_list *retval;
 

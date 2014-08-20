@@ -53,10 +53,16 @@
 #endif
 
 #ifdef FSUAE
+
 // __try and __except is a MS extension to C/C++. What are the consequence
 // of ignoring these constructs in the code below?
+#undef __try
+#undef __except
 #define __try
 #define __except(x)
+
+#define hInst GetModuleHandle(NULL)
+
 #endif
 
 int rawsockets = 0;
@@ -136,8 +142,6 @@ extern HWND hAmigaWnd;
 #define ENDBLOCKING sb->ftable[sd - 1] &= ~SF_BLOCKINGINPROGRESS
 
 static LRESULT CALLBACK SocketWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
-
-//static int PASCAL WSAEventSelect(SOCKET,HANDLE,long);
 
 #define PREPARE_THREAD EnterCriticalSection(&bsd->SockThreadCS)
 #define TRIGGER_THREAD { SetEvent(bsd->hSockReq); WaitForSingleObject(bsd->hSockReqHandled, INFINITE); LeaveCriticalSection(&bsd->SockThreadCS); }
@@ -230,7 +234,7 @@ int init_socket_layer (void)
 				wc.lpfnWndProc = SocketWindowProc;
 				wc.cbClsExtra = 0;
 				wc.cbWndExtra = 0;
-				wc.hInstance = GetModuleHandle(NULL);
+				wc.hInstance = hInst;
 #ifdef FSUAE
 				wc.hIcon = NULL;
 				wc.hCursor = NULL;
@@ -314,7 +318,7 @@ void deinit_socket_layer(void)
 		bsd->hSockReqHandled = NULL;
 		DestroyWindow (bsd->hSockWnd);
 		bsd->hSockWnd = NULL;
-		UnregisterClass (_T("SocketFun"), GetModuleHandle(NULL));
+		UnregisterClass (_T("SocketFun"), hInst);
 	}
 	close_selectget_threads ();
 	WSACleanup();
@@ -422,7 +426,7 @@ void host_sbreset(void)
 	}
 }
 
-void sockmsg(unsigned int msg, WPARAM wParam, LPARAM lParam)
+static void sockmsg(unsigned int msg, WPARAM wParam, LPARAM lParam)
 {
 	SB;
 	unsigned int index;
@@ -544,7 +548,7 @@ void sockabort(SB)
 	unlocksigqueue();
 }
 
-void setWSAAsyncSelect(SB, uae_u32 sd, SOCKET s, long lEvent )
+static void setWSAAsyncSelect(SB, uae_u32 sd, SOCKET s, long lEvent )
 {
 	if (sb->mtable[sd - 1]) {
 		long wsbevents = 0;
@@ -2175,6 +2179,7 @@ static BOOL CheckOnline(SB)
 {
 	DWORD dwFlags;
 	BOOL bReturn = TRUE;
+
 #ifdef FSUAE
 	// We don't mess with the dialer in FS-UAE
 #else

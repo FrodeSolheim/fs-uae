@@ -934,7 +934,7 @@ int uaenet_getdata (struct s2devstruct *dev, uae_u8 *d, int *len)
 	return gotit;
 }
 
-void checkevents (struct s2devstruct *dev, int mask, int sem)
+static void checkevents (struct s2devstruct *dev, int mask, int sem)
 {
 	struct asyncreq *ar;
 

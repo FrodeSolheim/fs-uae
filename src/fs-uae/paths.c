@@ -12,6 +12,8 @@
 #include <fs/emu.h>
 #include "fs-uae.h"
 
+#include "paths.h"
+
 #define MAX_PATHS 8
 
 struct multipath {
@@ -20,7 +22,7 @@ struct multipath {
 
 static struct multipath g_paths[5] = {};
 
-const char* fs_uae_home_dir() {
+static const char* fs_uae_home_dir() {
     static const char* path = NULL;
     if (path == NULL) {
         path = fs_get_home_dir();
@@ -46,7 +48,7 @@ const char* fs_uae_exe_dir() {
     return path;
 }
 
-const char* fs_uae_app_dir() {
+static const char* fs_uae_app_dir() {
     static const char* path = NULL;
     if (path == NULL) {
         char *app_dir = (char*) malloc(MAX_PATH);
@@ -76,7 +78,7 @@ const char* fs_uae_app_dir() {
     return path;
 }
 
-const char* fs_uae_documents_dir() {
+static const char* fs_uae_documents_dir() {
     static const char* path = NULL;
     if (path == NULL) {
         path = fs_get_documents_dir();
@@ -129,7 +131,7 @@ static char* read_custom_path(const char *key) {
     return NULL;
 }
 
-const char* fs_uae_base_dir() {
+static const char* fs_uae_base_dir() {
     static const char* path = NULL;
     if (path) {
         return path;
@@ -242,7 +244,7 @@ const char *fs_uae_flash_memory_dir() {
 }
 */
 
-const char *fs_uae_save_states_dir() {
+static const char *fs_uae_save_states_dir() {
     static const char *path = NULL;
     if (path == NULL) {
         path = create_default_dir("Save States", "save_states_dir",
@@ -251,7 +253,7 @@ const char *fs_uae_save_states_dir() {
     return path;
 }
 
-const char *fs_uae_state_dir_path() {
+static const char *fs_uae_state_dir_path() {
     static const char *path = NULL;
     char *free_state_dir_name = NULL;
     if (path == NULL) {
@@ -465,7 +467,7 @@ const char *fs_uae_get_state_base_name() {
     return g_fs_uae_state_base_name;
 }
 
-void fs_uae_set_state_base_name(const char *base_name) {
+static void fs_uae_set_state_base_name(const char *base_name) {
     g_fs_uae_state_base_name = fs_strdup(base_name);
 }
 

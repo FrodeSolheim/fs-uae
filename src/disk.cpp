@@ -60,6 +60,10 @@ int disk_debug_track = -1;
 #include "fsdb.h"
 #include "statusline.h"
 
+#ifdef FSUAE // NL
+#include "uae/fs.h"
+#endif
+
 #undef CATWEASEL
 
 static int longwritemode = 0;
@@ -118,7 +122,7 @@ static uae_u32 dskpt;
 static bool fifo_filled;
 static uae_u16 fifo[3];
 static int fifo_inuse[3];
-static int dma_enable, bitoffset, UNUSED(syncoffset);
+static int dma_enable, bitoffset, syncoffset;
 static uae_u16 word, dsksync;
 static unsigned long dsksync_cycles;
 #define WORDSYNC_TIME 11
@@ -399,7 +403,7 @@ static int createfileheaderblock (struct zfile *z,uae_u8 *sector, int parent, co
 	int datablock = getblock (bitmap, prevblock);
 	int datasec = 1;
 	int extensions;
-	int extensionblock, extensioncounter, UNUSED(headerextension) = 1;
+	int extensionblock, extensioncounter, headerextension = 1;
 	int size;
 
 	zfile_fseek (src, 0, SEEK_END);
@@ -575,7 +579,7 @@ static int get_floppy_speed2 (drive *drv)
 	return m;
 }
 
-static const TCHAR *UNUSED_FUNCTION(drive_id_name)(drive *drv)
+static const TCHAR *drive_id_name(drive *drv)
 {
 	switch(drv->drive_id)
 	{
@@ -2626,7 +2630,7 @@ int disk_getwriteprotect (struct uae_prefs *p, const TCHAR *name)
 static void diskfile_readonly (const TCHAR *name, bool readonly)
 {
 	struct mystat st;
-	int UNUSED(mode), UNUSED(oldmode);
+	int mode, oldmode;
 
 	if (!my_stat (name, &st)) {
 		write_log (_T("failed to access '%s'\n"), name);
@@ -3155,7 +3159,7 @@ void DISK_handler (uae_u32 data)
 {
 	int flag = data & 255;
 	int disk_sync_cycle = data >> 8;
-	int UNUSED(hpos) = current_hpos ();
+	int hpos = current_hpos ();
 
 	event2_remevent (ev2_disk);
 	DISK_update (disk_sync_cycle);
@@ -4596,9 +4600,4 @@ int disk_prevnext (int drive, int dir)
 	disk_prevnext_name (img, dir);
 	_tcscpy (changed_prefs.floppyslots[drive].df, img);
 	return 1;
-}
-
-int getdebug(void)
-{
-	return floppy[0].mfmpos;
 }

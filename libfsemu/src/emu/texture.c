@@ -59,7 +59,7 @@ static texture_entry g_entries[] = {
     { 0, 0, 0, 0}, // TEXTURE_PAUSE
 };
 
-void fs_emu_draw_from_atlas(float dx, float dy, float dw, float dh,
+static void fs_emu_draw_from_atlas(float dx, float dy, float dw, float dh,
         int sx, int sy, int sw, int sh) {
     float tx = sx / 1024.0;
     float ty = sy / 1024.0;
@@ -309,7 +309,7 @@ static void initialize_atlas(fs_image *image) {
     //        image->width, image->height, 4);
 }
 
-void load_texture(fs_emu_texture *texture) {
+static void load_texture(fs_emu_texture *texture) {
     fs_image *image = texture->image;
     //printf("loading texture from image %p\n", image);
     if (!image) {

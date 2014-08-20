@@ -1826,7 +1826,7 @@ void restore_fram (int len, size_t filepos, int num)
 	}
 }
 
-void restore_fram2 (int len, size_t filepos)
+static void restore_fram2 (int len, size_t filepos)
 {
 	fast2_filepos = filepos;
 	changed_prefs.fastmem2_size = len;

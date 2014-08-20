@@ -29,6 +29,7 @@
 #include "archivers/wrp/warp.h"
 
 #ifdef FSUAE // NL
+#include "uae/fs.h"
 #undef _WIN32
 #endif
 
@@ -72,7 +73,7 @@ static struct zcache *cache_get (const TCHAR *name)
 	return NULL;
 }
 
-static void UNUSED_FUNCTION(zcache_flush) (void)
+static void zcache_flush (void)
 {
 }
 
@@ -112,7 +113,7 @@ static void zcache_free (struct zcache *zc)
 		pl->next = nxt;
 }
 
-static void UNUSED_FUNCTION(zcache_close) (void)
+static void zcache_close (void)
 {
 	struct zcache *zc = zcachedata;
 	while (zc) {
@@ -1343,7 +1344,7 @@ static const int plugins_7z_m[] = {
 	ZFD_ADF, ZFD_ADF, ZFD_ADF, ZFD_ARCHIVE
 };
 
-int iszip (struct zfile *z, int mask)
+static int iszip (struct zfile *z, int mask)
 {
 	TCHAR *name = z->name;
 	TCHAR *ext = _tcsrchr (name, '.');
@@ -2556,7 +2557,7 @@ static struct znode *znode_alloc_child (struct znode *parent, const TCHAR *name)
 	return zn;
 }
 
-static struct znode *UNUSED_FUNCTION(znode_alloc_sibling) (struct znode *sibling, const TCHAR *name)
+static struct znode *znode_alloc_sibling (struct znode *sibling, const TCHAR *name)
 {
 	struct znode *zn = znode_alloc (sibling->parent, name);
 
@@ -2633,14 +2634,17 @@ static struct zvolume *zvolume_alloc_2 (const TCHAR *name, struct zfile *z, unsi
 	}
 	return zv;
 }
+
 struct zvolume *zvolume_alloc (struct zfile *z, unsigned int id, void *handle, const TCHAR *volumename)
 {
 	return zvolume_alloc_2 (zfile_getname (z), z, id, handle, volumename);
 }
-struct zvolume *zvolume_alloc_nofile (const TCHAR *name, unsigned int id, void *handle, const TCHAR *volumename)
+
+static struct zvolume *zvolume_alloc_nofile (const TCHAR *name, unsigned int id, void *handle, const TCHAR *volumename)
 {
 	return zvolume_alloc_2 (name, NULL, id, handle, volumename);
 }
+
 struct zvolume *zvolume_alloc_empty (struct zvolume *prev, const TCHAR *name)
 {
 	struct zvolume *zv = zvolume_alloc_2(name, 0, 0, 0, NULL);
@@ -3033,7 +3037,7 @@ struct znode *zvolume_addfile_abs (struct zvolume *zv, struct zarchive_info *zai
 	return zn;
 }
 
-struct zvolume *zfile_fopen_directory (const TCHAR *dirname)
+static struct zvolume *zfile_fopen_directory (const TCHAR *dirname)
 {
 	struct zvolume *zv = NULL;
 	struct my_opendir_s *dir;
@@ -3119,7 +3123,7 @@ struct zvolume *zfile_fopen_archive (const TCHAR *filename)
 struct zvolume *zfile_fopen_archive_root (const TCHAR *filename, int flags)
 {
 	TCHAR path[MAX_DPATH], *p1, *p2, *lastp;
-	struct zvolume *UNUSED(zv) = NULL;
+	struct zvolume *zv = NULL;
 	//int last = 0;
 	int num, i;
 

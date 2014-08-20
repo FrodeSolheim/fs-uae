@@ -901,7 +901,7 @@ static int rock_check_overflow(struct rock_state *rs, int sig)
 /*
  * return length of name field; 0: not found, -1: to be ignored
  */
-int get_rock_ridge_filename(struct iso_directory_record *de,
+static int get_rock_ridge_filename(struct iso_directory_record *de,
 			    char *retname, struct inode *inode)
 {
 	struct rock_state rs;
@@ -1288,7 +1288,7 @@ eio:
 	goto out;
 }
 
-static char *UNUSED_FUNCTION(get_symlink_chunk)(char *rpnt, struct rock_ridge *rr, char *plimit)
+static char *get_symlink_chunk(char *rpnt, struct rock_ridge *rr, char *plimit)
 {
 	int slen;
 	int rootflag;
@@ -2192,7 +2192,7 @@ static struct inode *isofs_find_entry(struct inode *dir, char *tmpname, TCHAR *t
 }
 
 /* Acorn extensions written by Matthew Wilcox <willy@bofh.ai> 1998 */
-int get_acorn_filename(struct iso_directory_record *de, char *retname, struct inode *inode)
+static int get_acorn_filename(struct iso_directory_record *de, char *retname, struct inode *inode)
 {
 	int std;
 	unsigned char *chr;

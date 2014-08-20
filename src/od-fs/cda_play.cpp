@@ -2,7 +2,7 @@
 #include "sysdeps.h"
 
 #include "cda_play.h"
-#include "uae_fs.h"
+#include "uae/fs.h"
 
 static int (*g_audio_callback)(int type, int16_t *buffer, int size) = NULL;
 

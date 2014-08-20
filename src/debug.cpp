@@ -42,6 +42,7 @@
 #include "ppc/ppcd.h"
 
 #ifdef FSUAE // NL
+#include "uae/fs.h"
 #undef _WIN32
 #endif
 
@@ -269,7 +270,7 @@ uae_u32 get_ilong_debug (uaecptr addr)
 	}
 }
 
-int safe_addr (uaecptr addr, int size)
+static int safe_addr (uaecptr addr, int size)
 {
 	if (debug_mmu_mode) {
 		flagtype olds = regs.s;
@@ -348,7 +349,7 @@ static int more_params (TCHAR **c)
 }
 
 static uae_u32 readint (TCHAR **c);
-static uae_u32 UNUSED_FUNCTION(readbin) (TCHAR **c);
+static uae_u32 readbin (TCHAR **c);
 static uae_u32 readhex (TCHAR **c);
 
 static int readregx (TCHAR **c, uae_u32 *valp)
@@ -597,7 +598,7 @@ static uae_u32 readhex (TCHAR **c)
 	int size;
 	return readnum (c, &size, '$');
 }
-static uae_u32 UNUSED_FUNCTION(readbin) (TCHAR **c)
+static uae_u32 readbin (TCHAR **c)
 {
 	int size;
 	return readnum (c, &size, '%');
@@ -2361,7 +2362,7 @@ uae_u16 debug_wgetpeekdma_chipram (uaecptr addr, uae_u32 v, uae_u32 mask, int re
 	return vv;
 }
 
-void debug_putlpeek (uaecptr addr, uae_u32 v)
+static void debug_putlpeek (uaecptr addr, uae_u32 v)
 {
 	if (!memwatch_enabled)
 		return;
@@ -4454,7 +4455,7 @@ static void debug_1 (void)
 
 static void addhistory (void)
 {
-	uae_u32 UNUSED(pc) = m68k_getpc ();
+	uae_u32 pc = m68k_getpc ();
 	//    if (!notinrom())
 	//	return;
 	history[lasthist] = regs;

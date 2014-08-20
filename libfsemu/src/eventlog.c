@@ -49,7 +49,7 @@ static void flush_events() {
     g_event_count = 0;
 }
 
-void fs_eventlog_new_event(int64_t *event_time, int *event,
+static void fs_eventlog_new_event(int64_t *event_time, int *event,
         uint8_t event_type) {
     FS_INIT(module);
     if (!g_log_events) {
@@ -85,7 +85,7 @@ void fs_eventlog_new_event(int64_t *event_time, int *event,
     }
 }
 
-void fs_eventlog_update_event(int64_t event_time, int event,
+static void fs_eventlog_update_event(int64_t event_time, int event,
             int64_t t1, int64_t t2) {
     FS_INIT(module);
     if (!g_log_events) {

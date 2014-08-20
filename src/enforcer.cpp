@@ -419,7 +419,7 @@ end:
 	enforcer_hit = 0;
 }
 
-uae_u32 REGPARAM2 chipmem_lget2 (uaecptr addr)
+static uae_u32 REGPARAM2 chipmem_lget2 (uaecptr addr)
 {
 	uae_u32 *m;
 
@@ -436,7 +436,7 @@ uae_u32 REGPARAM2 chipmem_lget2 (uaecptr addr)
 	return do_get_mem_long (m);
 }
 
-uae_u32 REGPARAM2 chipmem_wget2(uaecptr addr)
+static uae_u32 REGPARAM2 chipmem_wget2(uaecptr addr)
 {
 	uae_u16 *m;
 
@@ -453,7 +453,7 @@ uae_u32 REGPARAM2 chipmem_wget2(uaecptr addr)
 	return do_get_mem_word (m);
 }
 
-uae_u32 REGPARAM2 chipmem_bget2 (uaecptr addr)
+static uae_u32 REGPARAM2 chipmem_bget2 (uaecptr addr)
 {
 	addr -= chipmem_start_addr & chipmem_bank.mask;
 	addr &= chipmem_bank.mask;
@@ -468,7 +468,7 @@ uae_u32 REGPARAM2 chipmem_bget2 (uaecptr addr)
 	return chipmem_bank.baseaddr[addr];
 }
 
-void REGPARAM2 chipmem_lput2 (uaecptr addr, uae_u32 l)
+static void REGPARAM2 chipmem_lput2 (uaecptr addr, uae_u32 l)
 {
 	uae_u32 *m;
 
@@ -488,7 +488,7 @@ void REGPARAM2 chipmem_lput2 (uaecptr addr, uae_u32 l)
 	do_put_mem_long (m, l);
 }
 
-void REGPARAM2 chipmem_wput2 (uaecptr addr, uae_u32 w)
+static void REGPARAM2 chipmem_wput2 (uaecptr addr, uae_u32 w)
 {
 	uae_u16 *m;
 
@@ -507,7 +507,7 @@ void REGPARAM2 chipmem_wput2 (uaecptr addr, uae_u32 w)
 	do_put_mem_word (m, w);
 }
 
-void REGPARAM2 chipmem_bput2 (uaecptr addr, uae_u32 b)
+static void REGPARAM2 chipmem_bput2 (uaecptr addr, uae_u32 b)
 {
 	addr -= chipmem_start_addr & chipmem_bank.mask;
 	addr &= chipmem_bank.mask;
@@ -523,21 +523,21 @@ void REGPARAM2 chipmem_bput2 (uaecptr addr, uae_u32 b)
 	chipmem_bank.baseaddr[addr] = b;
 }
 
-int REGPARAM2 chipmem_check2 (uaecptr addr, uae_u32 size)
+static int REGPARAM2 chipmem_check2 (uaecptr addr, uae_u32 size)
 {
 	addr -= chipmem_start_addr & chipmem_bank.mask;
 	addr &= chipmem_bank.mask;
 	return (addr + size) <= chipmem_bank.allocated;
 }
 
-uae_u8 * REGPARAM2 chipmem_xlate2 (uaecptr addr)
+static uae_u8 * REGPARAM2 chipmem_xlate2 (uaecptr addr)
 {
 	addr -= chipmem_start_addr & chipmem_bank.mask;
 	addr &= chipmem_bank.mask;
 	return chipmem_bank.baseaddr + addr;
 }
 
-uae_u32 REGPARAM2 dummy_lget2 (uaecptr addr)
+static uae_u32 REGPARAM2 dummy_lget2 (uaecptr addr)
 {
 	special_mem_r;
 	enforcer_display_hit (_T("LONG READ from"), m68k_getpc (), addr);
@@ -552,7 +552,7 @@ uae_u32 REGPARAM2 dummy_lget2 (uaecptr addr)
 static int warned_JIT_0xF10000 = 0;
 #endif
 
-uae_u32 REGPARAM2 dummy_wget2 (uaecptr addr)
+static uae_u32 REGPARAM2 dummy_wget2 (uaecptr addr)
 {
 	special_mem_r;
 
@@ -573,7 +573,7 @@ uae_u32 REGPARAM2 dummy_wget2 (uaecptr addr)
 	return 0xbadf;
 }
 
-uae_u32	REGPARAM2 dummy_bget2 (uaecptr addr)
+static uae_u32	REGPARAM2 dummy_bget2 (uaecptr addr)
 {
 	special_mem_r;
 	enforcer_display_hit (_T("BYTE READ from"), m68k_getpc (), addr);
@@ -584,7 +584,7 @@ uae_u32	REGPARAM2 dummy_bget2 (uaecptr addr)
 	return 0xbadedeef;
 }
 
-void REGPARAM2 dummy_lput2 (uaecptr addr, uae_u32 l)
+static void REGPARAM2 dummy_lput2 (uaecptr addr, uae_u32 l)
 {
 	special_mem_w;
 	enforcer_display_hit (_T("LONG WRITE to"), m68k_getpc (), addr);
@@ -594,7 +594,7 @@ void REGPARAM2 dummy_lput2 (uaecptr addr, uae_u32 l)
 	}
 }
 
-void REGPARAM2 dummy_wput2 (uaecptr addr, uae_u32 w)
+static void REGPARAM2 dummy_wput2 (uaecptr addr, uae_u32 w)
 {
 	special_mem_w;
 	enforcer_display_hit (_T("WORD WRITE to"), m68k_getpc (), addr);
@@ -604,7 +604,7 @@ void REGPARAM2 dummy_wput2 (uaecptr addr, uae_u32 w)
 	}
 }
 
-void REGPARAM2 dummy_bput2 (uaecptr addr, uae_u32 b)
+static void REGPARAM2 dummy_bput2 (uaecptr addr, uae_u32 b)
 {
 	special_mem_w;
 	enforcer_display_hit (_T("BYTE WRITE to"), m68k_getpc (), addr);
@@ -614,7 +614,7 @@ void REGPARAM2 dummy_bput2 (uaecptr addr, uae_u32 b)
 	}
 }
 
-int REGPARAM2 dummy_check2 (uaecptr addr, uae_u32 size)
+static int REGPARAM2 dummy_check2 (uaecptr addr, uae_u32 size)
 {
 	special_mem_r;
 	enforcer_display_hit (_T("CHECK from "), m68k_getpc (), addr);

@@ -3,7 +3,7 @@
 #include "sysdeps.h"
 
 #include "fsdb.h"
-#include "uae_host.h"
+#include "uae/fs.h"
 #include "options.h"
 #include "filesys.h"
 #include "zfile.h"

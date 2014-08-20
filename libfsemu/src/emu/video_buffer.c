@@ -10,6 +10,7 @@
 
 #include "libfsemu.h"
 #include "video.h"
+#include "video_buffer.h"
 
 static fs_mutex* g_video_buffers_mutex = NULL;
 static fs_emu_video_buffer g_video_buffers[3] = {};
@@ -113,7 +114,7 @@ int fs_emu_video_buffer_grow(fs_emu_video_buffer *buffer, int width,
     return 1;
 }
 
-void copy_buffer_data(fs_emu_video_buffer *new_buffer,
+static void copy_buffer_data(fs_emu_video_buffer *new_buffer,
         fs_emu_video_buffer *old_buffer) {
     if (!old_buffer) {
         return;

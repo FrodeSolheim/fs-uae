@@ -41,7 +41,7 @@ static int g_warn_about_missing_config_file = 0;
 #define LOG_LINE "---------------------------------------------------------" \
         "-------------------\n"
 
-void change_port_device_mode(int data) {
+static void change_port_device_mode(int data) {
     int modes = INPUTEVENT_AMIGA_JOYPORT_MODE_0_LAST -
             INPUTEVENT_AMIGA_JOYPORT_MODE_0_NONE + 1;
     int port = data / modes;
@@ -59,7 +59,7 @@ void change_port_device_mode(int data) {
     }
 }
 
-void select_port_0_device(int data) {
+static void select_port_0_device(int data) {
     printf("--> device index %d\n", data);
     int port = 0;
     if (data == 9) {
@@ -267,7 +267,7 @@ static void pause_throttle() {
     fs_emu_msleep(5);
 }
 
-void event_handler(int line) {
+static void event_handler(int line) {
     // printf("%d\n", line);
     if (line >= 0) {
         input_handler_loop(line);
@@ -554,7 +554,7 @@ static void on_init() {
     fs_log("\n");
 }
 
-void pause_function(int pause) {
+static void pause_function(int pause) {
     fs_log("pause_function %d\n", pause);
     //uae_pause(pause);
     amiga_pause(pause);
@@ -667,7 +667,7 @@ static void main_function() {
 // int _putenv(const char *envstring);
 #endif
 
-void init_i18n() {
+static void init_i18n() {
     if (fs_config_get_boolean("localization") == 0) {
         fs_log("localization was forced off\n");
         return;
@@ -741,7 +741,7 @@ int ManyMouse_Init(void);
 void ManyMouse_Quit(void);
 const char *ManyMouse_DeviceName(unsigned int index);
 
-void list_joysticks() {
+static void list_joysticks() {
     printf("# FS-UAE VERSION %s\n", PACKAGE_VERSION);
     printf("# listing keyboards\n");
     printf("K: Keyboard\n");

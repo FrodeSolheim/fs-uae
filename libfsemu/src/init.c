@@ -16,14 +16,14 @@ static fs_mutex *g_init_mutex;
 
 void fs_init() {
 #ifdef USE_GLIB
-
+#if 1
     GMemVTable vtable;
     memset(&vtable, 0, sizeof(GMemVTable));
     vtable.malloc = malloc;
     vtable.realloc = realloc;
     vtable.free = free;
     g_mem_set_vtable(&vtable);
-
+#endif
 #if !GLIB_CHECK_VERSION (2, 32, 0)
     // g_thread_init is deprecated since 2.32, and is only needed for older
     // versions of Glib (quite a bit older than 2.32, actually)

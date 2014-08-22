@@ -44,8 +44,9 @@
  */
 
 #ifdef FSUAE
-typedef unsigned long long uint64;
-typedef signed long long sint64;
+#include <stdint.h>
+typedef uint64_t uint64;
+typedef int64_t sint64;
 typedef unsigned int uint32;
 typedef signed int sint32;
 typedef unsigned short uint16;

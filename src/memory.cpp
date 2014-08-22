@@ -2011,9 +2011,7 @@ static void allocate_memory (void)
 	bogo_filepos = 0;
 	a3000lmem_filepos = 0;
 	a3000hmem_filepos = 0;
-#ifdef WITH_CPUBOARD
 	cpuboard_init();
-#endif
 }
 
 static void fill_ce_banks (void)
@@ -2159,9 +2157,7 @@ void memory_clear (void)
 	if (a3000hmem_bank.baseaddr)
 		memset (a3000hmem_bank.baseaddr, 0, a3000hmem_bank.allocated);
 	expansion_clear ();
-#ifdef WITH_CPUBOARD
 	cpuboard_clear();
-#endif
 }
 
 void memory_reset (void)
@@ -2193,9 +2189,7 @@ void memory_reset (void)
 	currprefs.cs_ide = changed_prefs.cs_ide;
 	currprefs.cs_fatgaryrev = changed_prefs.cs_fatgaryrev;
 	currprefs.cs_ramseyrev = changed_prefs.cs_ramseyrev;
-#ifdef WITH_CPUBOARD
 	cpuboard_reset(mem_hardreset > 2);
-#endif
 
 	gayleorfatgary = (currprefs.chipset_mask & CSMASK_AGA) || currprefs.cs_pcmcia || currprefs.cs_ide > 0 || currprefs.cs_mbdmac;
 
@@ -2349,14 +2343,10 @@ void memory_reset (void)
 	if (cardmem_bank.baseaddr)
 		map_banks (&cardmem_bank, cardmem_bank.start >> 16, cardmem_bank.allocated >> 16, 0);
 #endif
-#ifdef WITH_CPUBOARD
 	cpuboard_map();
-#endif
 	map_banks (&kickmem_bank, 0xF8, 8, 0);
 	if (currprefs.maprom) {
-#ifdef WITH_CPUBOARD
 		if (!cpuboard_maprom())
-#endif
 			map_banks (&kickram_bank, currprefs.maprom >> 16, extendedkickmem2_bank.allocated ? 32 : (extendedkickmem_bank.allocated ? 16 : 8), 0);
 	}
 	/* map beta Kickstarts at 0x200000/0xC00000/0xF00000 */
@@ -2490,9 +2480,7 @@ void memory_init (void)
 	memset (kickmem_bank.baseaddr, 0, ROM_SIZE_512);
 	_tcscpy (currprefs.romfile, _T("<none>"));
 	currprefs.romextfile[0] = 0;
-#ifdef WITH_CPUBOARD
 	cpuboard_reset(0);
-#endif
 
 #ifdef ACTION_REPLAY
 	action_replay_unload (0);
@@ -2531,9 +2519,7 @@ void memory_cleanup (void)
 	custmem1_bank.baseaddr = NULL;
 	custmem2_bank.baseaddr = NULL;
 
-#ifdef WITH_CPUBOARD
 	cpuboard_cleanup();
-#endif
 #ifdef ACTION_REPLAY
 	action_replay_cleanup();
 #endif

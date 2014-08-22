@@ -78,8 +78,6 @@ static void ppc_cpu_atomic_raise_dec_exception()
 }
 
 
-extern int ppc_cycle_count;
-
 static void ppc_do_dec(int val)
 {
 	if (gCPU.pdec == 0) {
@@ -96,15 +94,14 @@ static void ppc_do_dec(int val)
 	}
 }
 
-void uae_ppc_hsync_handler(void)
+uint64_t ppc_cpu_get_dec(void)
 {
-	if (ppc_state != PPC_STATE_SLEEP)
-		return;
-	if (gCPU.pdec == 0) {
-		uae_ppc_wakeup();
-	} else {
-		ppc_do_dec(ppc_cycle_count);
-	}
+	return gCPU.pdec;
+}
+
+void ppc_cpu_do_dec(int val)
+{
+	ppc_do_dec(val);
 }
 
 static uint ops = 0;

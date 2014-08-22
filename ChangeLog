@@ -1,6 +1,8 @@
 Version 2.5.13dev:
 
-* Added another fix for --disable-cpuboard.
+* Initial version of QEmu PPC CPU integration (not fully working yet).
+* Removed --disable-cpuboard option to configure (no longer needed).
+* Updated Picasso96 code, but old version is still used (needs more work).
 * Add internal HRTMon rom to the rom list on startup.
 * Show GUI warning when some config incompatibilities are detected.
 * GUI warning when custom uae_ options fails or are not recognized.

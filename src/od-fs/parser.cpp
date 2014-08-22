@@ -22,7 +22,7 @@
 #include "newcpu.h"
 #include "traps.h"
 #include "ahidsound.h"
-#include "picasso96_host.h"
+#include "picasso96.h"
 #include "threaddep/thread.h"
 #include "serial.h"
 #include "parser.h"

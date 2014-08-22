@@ -113,6 +113,7 @@ core
 .dirstamp
 /macosx/Info.plist
 /macosx/Makefile
+/qemu
 /SERIES
 /VERSION
 /windows/fs-uae.iss

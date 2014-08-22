@@ -876,7 +876,6 @@ static void initialize_mountinfo (void)
 				added = true;
 			}
 #endif
-#ifdef WITH_CPUBOARD
 		} else if (type == HD_CONTROLLER_TYPE_SCSI_CPUBOARD) {
 #ifdef NCR
 			if (currprefs.cpuboard_type == BOARD_WARPENGINE_A4000) {
@@ -896,7 +895,6 @@ static void initialize_mountinfo (void)
 					cpuboard_ncr9x_add_scsi_unit(unit, uci);
 					added = true;
 			}
-#endif
 #endif
 		} else if (type == HD_CONTROLLER_TYPE_SCSI_A4000T) {
 #ifdef NCR

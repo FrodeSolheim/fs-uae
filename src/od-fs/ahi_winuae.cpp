@@ -35,7 +35,7 @@
 #include "parser.h"
 #include "enforcer.h"
 #include "ahidsound.h"
-#include "picasso96_host.h"
+#include "picasso96.h"
 #include "uaenative.h"
 #include "uae/ahi.h"
 

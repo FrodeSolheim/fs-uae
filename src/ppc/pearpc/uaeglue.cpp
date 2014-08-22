@@ -45,7 +45,8 @@ void ht_assert_failed(const char *file, int line, const char *assertion)
 #endif
 }
 
+#if 0
 void prom_quiesce()
 {
 }
-
+#endif

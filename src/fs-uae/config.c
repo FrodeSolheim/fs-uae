@@ -287,6 +287,7 @@ static void configure_accuracy(amiga_config *c) {
             amiga_set_option("blitter_cycle_exact", "false");
         }
         if (blitter_accuracy <= -1) {
+            amiga_set_option("waiting_blits", "false");
             amiga_set_option("immediate_blits", "true");
         }
     }
@@ -440,6 +441,7 @@ void fs_uae_configure_amiga_hardware() {
         amiga_set_option("cpu_cycle_exact", "false");
 
         amiga_set_option("cpu_compatible", "false");
+        amiga_set_option("waiting_blits", "false");
         amiga_set_option("immediate_blits", "true");
 
 

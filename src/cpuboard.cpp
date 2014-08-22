@@ -28,8 +28,6 @@
 #include "uae.h"
 #include "ppc.h"
 
-#ifdef WITH_CPUBOARD
-
 #define CPUBOARD_IO_LOG 0
 #define CPUBOARD_IRQ_LOG 0
 
@@ -1441,8 +1439,6 @@ bool cpuboard_08000000(struct uae_prefs *p)
 	return false;
 }
 
-#endif
-
 bool cpuboard_blizzardram(struct uae_prefs *p)
 {
 	switch (p->cpuboard_type)
@@ -1454,8 +1450,6 @@ bool cpuboard_blizzardram(struct uae_prefs *p)
 	}
 	return false;
 }
-
-#ifdef WITH_CPUBOARD
 
 static void fixserial(uae_u8 *rom, int size)
 {
@@ -1751,5 +1745,3 @@ addrbank *cpuboard_autoconfig_init(void)
 		return &expamem_null;
 	return &blizzarde8_bank;
 }
-
-#endif // WITH_CPUBOARD

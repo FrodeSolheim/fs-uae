@@ -17,11 +17,7 @@
 
 #if defined(BSDSOCKET)
 
-#ifdef FSUAE
-// only using default values instead for FS-UAE
-#else
 #include "resource.h"
-#endif
 
 #include <stddef.h>
 #include <process.h>

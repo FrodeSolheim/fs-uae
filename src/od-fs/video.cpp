@@ -14,7 +14,7 @@
 #include <stdlib.h>
 
 #ifdef PICASSO96
-#include "picasso96_host.h"
+#include "picasso96.h"
 #endif
 
 int max_uae_width = 3072;

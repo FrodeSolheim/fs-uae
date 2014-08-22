@@ -363,8 +363,13 @@ libuae_a_SOURCES = \
 	src/od-fs/fsdb_host.h \
 	src/od-fs/gui.cpp \
 	src/od-fs/hardfile_host.cpp \
+	src/od-fs/include/direct3d.h \
+	src/od-fs/include/registry.h \
+	src/od-fs/include/resource.h \
 	src/od-fs/include/uae/uae.h \
 	src/od-fs/include/uae/uae_inputevents_def.h \
+	src/od-fs/include/win32gfx.h \
+	src/od-fs/include/win32gui.h \
 	src/od-fs/input.cpp \
 	src/od-fs/inputrecord.cpp \
 	src/od-fs/joystick.cpp \
@@ -385,7 +390,6 @@ libuae_a_SOURCES = \
 	src/od-fs/parser.cpp \
 	src/od-fs/paths.cpp \
 	src/od-fs/picasso96.cpp \
-	src/od-fs/picasso96_host.h \
 	src/od-fs/roms.cpp \
 	src/od-fs/serial_host.cpp \
 	src/od-fs/sleep.h \
@@ -412,7 +416,10 @@ libuae_a_SOURCES = \
 	src/od-win32/md-fpp.h \
 	src/od-win32/mman.cpp \
 	src/od-win32/parser.h \
+	src/od-win32/picasso96_win.h \
 	src/od-win32/win32_uaenet.cpp \
+	src/ppc/pixman-stubs.cpp \
+	src/ppc/ppc.cpp \
 	src/qemuvga/cirrus_vga.cpp \
 	src/qemuvga/cirrus_vga_rop.h \
 	src/qemuvga/cirrus_vga_rop2.h \
@@ -619,7 +626,7 @@ libmanymouse_a_SOURCES = \
 	manymouse/x11_xinput2.c
 endif
 
-if WITH_PPC
+if WITH_PEARPC_CPU
 noinst_LIBRARIES += libpearpc.a
 AM_CPPFLAGS += -I$(s)/src/ppc/pearpc
 fs_uae_LDADD += libpearpc.a
@@ -663,8 +670,16 @@ libpearpc_a_SOURCES = \
 	src/ppc/pearpc/tools/snprintf.h \
 	src/ppc/pearpc/tracers.h \
 	src/ppc/pearpc/uaeglue.cpp
+endif
+
+if WITH_QEMU_CPU
+fs_uae_LDADD += qemu/uae/libqemu.a
+LIBS += -lutil
+AM_CPPFLAGS += -I$(s)/qemu/uae
+endif
+
+if WITH_PPC
 fs_uae_SOURCES += \
-	src/ppc/ppc.cpp \
 	src/ppc/ppcd.cpp \
 	src/ppc/ppcd.h
 endif

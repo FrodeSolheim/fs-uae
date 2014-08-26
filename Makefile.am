@@ -30,6 +30,8 @@ endif
 #CM_CFLAGS += -Wmissing-format-attribute
 #endif
 
+CM_CFLAGS += -fvisibility=hidden
+
 AM_CFLAGS =
 AM_CFLAGS += $(CM_CFLAGS) -std=gnu99
 
@@ -38,7 +40,7 @@ AM_CXXFLAGS += $(CM_CFLAGS)
 
 AM_CPPFLAGS =
 AM_CPPFLAGS += @OS_CPPFLAGS@
-AM_CPPFLAGS += -DFSUAE
+AM_CPPFLAGS += -DUAE -DFSUAE
 
 LIBS += @CARBON_LIBS@
 LIBS += @FREETYPE_LIBS@
@@ -54,6 +56,7 @@ LIBS += @X11_LIBS@
 LIBS += @ZLIB_LIBS@
 
 AM_LDFLAGS =
+AM_LDFLAGS += -rdynamic
 AM_LDFLAGS += @OS_LDFLAGS@
 
 MSGFMT = @MSGFMT@
@@ -189,6 +192,7 @@ libuae_a_SOURCES = \
 	src/debug.cpp \
 	src/disk.cpp \
 	src/diskutil.cpp \
+	src/dlopen.cpp \
 	src/dongle.cpp \
 	src/drawing.cpp \
 	src/driveclick.cpp \
@@ -282,7 +286,6 @@ libuae_a_SOURCES = \
 	src/include/packed.h \
 	src/include/parallel.h \
 	src/include/picasso96.h \
-	src/include/ppc.h \
 	src/include/readcpu.h \
 	src/include/rommgr.h \
 	src/include/rtgmodes.h \
@@ -299,20 +302,25 @@ libuae_a_SOURCES = \
 	src/include/traps.h \
 	src/include/uae.h \
 	src/include/uae/ahi.h \
+	src/include/uae/api.h \
 	src/include/uae/asm.h \
 	src/include/uae/assert.h \
+	src/include/uae/attributes.h \
 	src/include/uae/caps.h \
 	src/include/uae/cdrom.h \
 	src/include/uae/cycleunit.h \
+	src/include/uae/dlopen.h \
 	src/include/uae/endian.h \
 	src/include/uae/enum.h \
 	src/include/uae/fs.h \
+	src/include/uae/funcattr.h \
 	src/include/uae/inline.h \
 	src/include/uae/jitconfig.h \
 	src/include/uae/limits.h \
 	src/include/uae/logging.h \
 	src/include/uae/memory.h \
 	src/include/uae/parser.h \
+	src/include/uae/ppc.h \
 	src/include/uae/regparam.h \
 	src/include/uae/string.h \
 	src/include/uae/types.h \
@@ -335,6 +343,7 @@ libuae_a_SOURCES = \
 	src/jit/compemu_fpp.cpp \
 	src/jit/compemu_support.cpp \
 	src/keybuf.cpp \
+	src/logging.cpp \
 	src/main.cpp \
 	src/memory.cpp \
 	src/native2amiga.cpp \
@@ -399,7 +408,6 @@ libuae_a_SOURCES = \
 	src/od-fs/support.cpp \
 	src/od-fs/sysconfig.h \
 	src/od-fs/target.h \
-	src/od-fs/tchar.h \
 	src/od-fs/threaddep/sem.h \
 	src/od-fs/threaddep/thread.h \
 	src/od-fs/threading.cpp \
@@ -673,9 +681,9 @@ libpearpc_a_SOURCES = \
 endif
 
 if WITH_QEMU_CPU
-fs_uae_LDADD += qemu/uae/libqemu.a
-LIBS += -lutil
-AM_CPPFLAGS += -I$(s)/qemu/uae
+# fs_uae_LDADD += qemu/uae/libqemu.a
+# LIBS += -lutil
+# AM_CPPFLAGS += -I$(s)/qemu/uae
 endif
 
 if WITH_PPC

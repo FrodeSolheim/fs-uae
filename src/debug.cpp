@@ -2898,6 +2898,8 @@ static uae_u8 *dump_xlate (uae_u32 addr)
 	return mem_banks[addr >> 16]->xlateaddr (addr);
 }
 
+extern uae_u8* natmem_offset;
+
 static void memory_map_dump_2 (int log)
 {
 	bool imold;
@@ -2927,10 +2929,23 @@ static void memory_map_dump_2 (int log)
 			k = j;
 			caddr = dump_xlate (k << 16);
 			mirrored = caddr ? 1 : 0;
+#ifdef FSUAE
+#if 0
+			if (caddr) {
+			    printf("-> bank at %08x mirrored at %08x (%p - %p)\n", (j << 16), (uint32_t)(caddr - NATMEM_OFFSET), caddr, NATMEM_OFFSET);
+			}
+#endif
+#endif
 			k++;
 			while (k < i && caddr) {
-				if (dump_xlate (k << 16) == caddr)
+				if (dump_xlate (k << 16) == caddr) {
+#ifdef FSUAE
+#if 0
+					printf("   bank at %08x mirrored at %08x\n", (j << 16), (k << 16));
+#endif
+#endif
 					mirrored++;
+				}
 				k++;
 			}
 			mirrored2 = mirrored;
@@ -2961,12 +2976,12 @@ static void memory_map_dump_2 (int log)
 			_tcscat (txt, _T("\n"));
 			if (log)
 				write_log (_T("%s"), txt);
-			else
+			//else
 				console_out (txt);
 			if (tmp[0]) {
 				if (log)
 					write_log (_T("%s"), tmp);
-				else
+				//else
 					console_out (tmp);
 			}
 			j = i;
@@ -3522,7 +3537,7 @@ static void savemem (TCHAR **cc)
 	if (!more_params (cc))
 		goto S_argh;
 	len2 = len = readhex (cc);
-	fp = _tfopen (name, _T("wb"));
+	fp = uae_tfopen (name, _T("wb"));
 	if (fp == NULL) {
 		console_out_f (_T("Couldn't open file '%s'\n"), name);
 		return;

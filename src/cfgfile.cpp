@@ -11,10 +11,13 @@
 #include "sysdeps.h"
 
 #include <ctype.h>
+
+#ifdef FSUAE // NL
 #ifdef _WIN32
 #include <winsock2.h>
 #else
 #include <arpa/inet.h>
+#endif
 #endif
 
 #include "options.h"
@@ -232,6 +235,13 @@ static const TCHAR *cpuboards[] = {
 	_T("CyberStormPPC"),
 	_T("BlizzardPPC"),
 	_T("WarpEngineA4000"),
+	NULL
+};
+static const TCHAR *ppc_implementations[] = {
+	_T("auto"),
+	_T("dummy"),
+	_T("pearpc"),
+	_T("qemu"),
 	NULL
 };
 static const TCHAR *waitblits[] = { _T("disabled"), _T("automatic"), _T("noidleonly"), _T("always"), 0 };
@@ -1474,6 +1484,7 @@ void cfgfile_save_options (struct zfile *f, struct uae_prefs *p, int type)
 	cfgfile_dwrite_str(f, _T("cpuboard_type"), cpuboards[p->cpuboard_type]);
 	cfgfile_dwrite(f, _T("cpuboardmem1_size"), _T("%d"), p->cpuboardmem1_size / 0x100000);
 	cfgfile_dwrite(f, _T("cpuboardmem2_size"), _T("%d"), p->cpuboardmem2_size / 0x100000);
+	cfgfile_dwrite_str(f, _T("ppc_implementation"), ppc_implementations[p->ppc_implementation]);
 	cfgfile_write(f, _T("gfxcard_size"), _T("%d"), p->rtgmem_size / 0x100000);
 	cfgfile_write_str(f, _T("gfxcard_type"), rtgtype[p->rtgmem_type]);
 	cfgfile_write_bool(f, _T("gfxcard_hardware_vblank"), p->rtg_hardwareinterrupt);
@@ -3656,6 +3667,7 @@ static int cfgfile_parse_hardware (struct uae_prefs *p, const TCHAR *option, TCH
 		|| cfgfile_intval (option, value, _T("gfxcard_size"), &p->rtgmem_size, 0x100000)
 		|| cfgfile_strval(option, value, _T("gfxcard_type"), &p->rtgmem_type, rtgtype, 0)
 		|| cfgfile_strval(option, value, _T("cpuboard_type"), &p->cpuboard_type, cpuboards, 0)
+		|| cfgfile_strval(option, value, _T("ppc_implementation"), &p->ppc_implementation, ppc_implementations, 0)
 		|| cfgfile_intval(option, value, _T("rtg_modes"), &p->picasso96_modeflags, 1)
 		|| cfgfile_intval (option, value, _T("floppy_speed"), &p->floppy_speed, 1)
 		|| cfgfile_intval (option, value, _T("floppy_write_length"), &p->floppy_write_length, 1)

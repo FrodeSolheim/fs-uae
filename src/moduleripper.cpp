@@ -98,7 +98,7 @@ FILE *moduleripper_fopen (const char *aname, const char *amode)
 	name = au (aname);
 	mode = au (amode);
 	_stprintf (tmp2, _T("%s%s"), tmp, name);
-	f = _tfopen (tmp2, mode);
+	f = uae_tfopen (tmp2, mode);
 	xfree (mode);
 	xfree (name);
 	return f;

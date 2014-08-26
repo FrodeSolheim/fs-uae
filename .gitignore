@@ -1,7 +1,6 @@
 base-dir
 autom4te.cache
 dist
-/a
 /fs-uae
 /fs-uae.dat
 /fs-uae-with-dat
@@ -114,6 +113,7 @@ core
 /macosx/Info.plist
 /macosx/Makefile
 /qemu
+/qemu-uae
 /SERIES
 /VERSION
 /windows/fs-uae.iss

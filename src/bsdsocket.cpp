@@ -175,7 +175,7 @@ uae_u32 callfdcallback (TrapContext *context, SB, uae_u32 fd, uae_u32 action)
 	return v;
 }
 
-BOOL checksd(TrapContext *context, SB, int sd)
+bool checksd(TrapContext *context, SB, int sd)
 {
 	int iCounter;
 	SOCKET s;
@@ -186,17 +186,17 @@ BOOL checksd(TrapContext *context, SB, int sd)
 			if (iCounter != sd) {
 				if (getsock(sb,iCounter) == s) {
 					releasesock(context, sb, sd);
-					return TRUE;
+					return true;
 				}
 			}
 		}
 		for (iCounter  = 0; iCounter < SOCKPOOLSIZE; iCounter++) {
 			if (s == sockdata->sockpoolsocks[iCounter])
-				return TRUE;
+				return true;
 		}
 	}
 	BSDTRACE((_T("checksd FALSE s 0x%x sd %d\n"),s,sd));
-	return FALSE;
+	return false;
 }
 
 void setsd(TrapContext *context, SB, int sd, SOCKET_TYPE s)

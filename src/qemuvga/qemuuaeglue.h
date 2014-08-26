@@ -13,7 +13,11 @@ extern void activate_debugger(void);
 //#define DEBUG_VGA_REG
 //#define DEBUG_VGA
 
+#ifdef FSUAE
+#include "uae/logging.h"
+#else
 extern void write_log (const char *, ...);
+#endif
 
 #ifndef glue
 #define xglue(x, y) x ## y

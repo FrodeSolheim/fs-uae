@@ -680,7 +680,7 @@ static void getfname (TCHAR *fname)
 	for (;;) {
 		FILE *fp;
 		_stprintf (fname, _T("%sPRINT_%03d.png"), tmp, number);
-		if ((fp = _tfopen (fname, _T("rb"))) == NULL)
+		if ((fp = uae_tfopen (fname, _T("rb"))) == NULL)
 			return;
 		number++;
 		fclose (fp);
@@ -797,7 +797,7 @@ static void *prt_thread (void *p)
 
 		getfname (fname);
 		/* Open the actual file */
-		fp=_tfopen(fname,_T("wb"));
+		fp = uae_tfopen(fname,_T("wb"));
 		if (!fp) 
 		{
 			write_log(_T("EPSONPRINTER: Can't open file %s for printer output\n"), fname);

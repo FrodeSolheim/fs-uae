@@ -16,7 +16,7 @@
 #include <stdlib.h>
 #endif
 
-#if defined(_WIN32) && defined(_UNICODE)
+#ifdef _WIN32
 // use the real _tcs* functions
 #else
 #define _istdigit isdigit

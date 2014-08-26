@@ -523,6 +523,7 @@ struct uae_prefs {
 	int cpuboard_type;
 	uae_u32 cpuboardmem1_size;
 	uae_u32 cpuboardmem2_size;
+	int ppc_implementation;
 	bool rtg_hardwareinterrupt;
 	bool rtg_hardwaresprite;
 	int rtgmem_type;

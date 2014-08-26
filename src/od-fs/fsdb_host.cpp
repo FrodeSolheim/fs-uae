@@ -61,7 +61,7 @@ extern "C" {
 
 #define PARSE_WF(flag, name) \
     else if (*c == flag) { \
-        write_log("- " #name "n"); \
+        write_log("- " #name "\n"); \
         g_uaem_flags |= name; \
     }
 

@@ -158,7 +158,7 @@ extern void sigsockettasks (void);
 extern void locksigqueue (void);
 extern void unlocksigqueue (void);
 
-extern BOOL checksd(TrapContext*, SB, int sd);
+extern bool checksd(TrapContext*, SB, int sd);
 extern void setsd(TrapContext*, SB, int , SOCKET_TYPE);
 extern int getsd (TrapContext*, SB, SOCKET_TYPE);
 extern SOCKET_TYPE getsock (SB, int);

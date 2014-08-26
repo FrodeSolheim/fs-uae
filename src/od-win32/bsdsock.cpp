@@ -1683,7 +1683,7 @@ int host_CloseSocket(TrapContext *context, SB, int sd)
 			sb->mtable[sd-1] = 0;
 		}
 
-		if (checksd(context, sb ,sd) == TRUE)
+		if (checksd(context, sb ,sd) == true)
 			return 0;
 
 		BEGINBLOCKING;

@@ -1622,7 +1622,7 @@ static struct zfile *zfile_fopen_nozip (const TCHAR *name, const TCHAR *mode)
 	l = zfile_create (NULL);
 	l->name = my_strdup (name);
 	l->mode = my_strdup (mode);
-	f = _tfopen (name, mode);
+	f = uae_tfopen (name, mode);
 	if (!f) {
 		zfile_fclose (l);
 		return 0;
@@ -1702,7 +1702,7 @@ static struct zfile *zfile_fopen_2 (const TCHAR *name, const TCHAR *mode, int ma
 			f = my_opentext (l->name);
 			l->textmode = 1;
 		} else {
-			f = _tfopen (l->name, mode);
+			f = uae_tfopen (l->name, mode);
 		}
 		if (!f) {
 			zfile_fclose (l);
@@ -1990,7 +1990,7 @@ struct zfile *zfile_dup (struct zfile *zf)
 			if (nzf)
 				return nzf;
 		}
-		FILE *ff = _tfopen (zf->name, zf->mode);
+		FILE *ff = uae_tfopen (zf->name, zf->mode);
 		if (!ff)
 			return NULL;
 		nzf = zfile_create (zf);

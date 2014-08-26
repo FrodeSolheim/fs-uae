@@ -9,27 +9,39 @@
 // FIXME: move regparams here?
 
 #if defined(HAVE_FUNC_ATTRIBUTE_ALWAYS_INLINE)
-#define STATIC_INLINE static __inline__ __attribute__ ((always_inline))
+#define UAE_STATIC_INLINE static __inline__ __attribute__ ((always_inline))
 #elif defined(_MSC_VER)
-#define STATIC_INLINE static __forceinline
+#define UAE_STATIC_INLINE static __forceinline
 #else
-#define STATIC_INLINE static inline
+#define UAE_STATIC_INLINE static inline
 #endif
 
 #if defined(HAVE_FUNC_ATTRIBUTE_NOINLINE)
-#define NOINLINE __attribute__ ((noinline))
+#define UAE_NOINLINE __attribute__ ((noinline))
 #elif defined(_MSC_VER)
-#define NOINLINE __declspec(noinline)
+#define UAE_NOINLINE __declspec(noinline)
 #else
-#define NOINLINE
+#define UAE_NOINLINE
 #endif
 
 #if defined(HAVE_FUNC_ATTRIBUTE_NORETURN)
-#define NORETURN __attribute__ ((noreturn))
+#define UAE_NORETURN __attribute__ ((noreturn))
 #elif defined(_MSC_VER)
-#define NORETURN __declspec(noreturn)
+#define UAE_NORETURN __declspec(noreturn)
 #else
-#define NORETURN
+#define UAE_NORETURN
+#endif
+
+#ifndef STATIC_INLINE
+#define STATIC_INLINE UAE_STATIC_INLINE
+#endif
+
+#ifndef NOINLINE
+#define NOINLINE UAE_NOINLINE
+#endif
+
+#ifndef NORETURN
+#define NORETURN UAE_NORETURN
 #endif
 
 #endif // UAE_INLINE_H

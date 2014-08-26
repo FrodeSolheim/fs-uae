@@ -86,7 +86,7 @@ static FILE *get_fsdb (a_inode *dir, const TCHAR *mode)
 	if (!dir->nname)
 		return NULL;
 	n = build_nname (dir->nname, FSDB_FILE);
-	f = _tfopen (n, mode);
+	f = uae_tfopen (n, mode);
 	xfree (n);
 	return f;
 }
@@ -132,7 +132,7 @@ void fsdb_clean_dir (a_inode *dir)
 	if (!dir->nname)
 		return;
 	n = build_nname (dir->nname, FSDB_FILE);
-	f = _tfopen (n, _T("r+b"));
+	f = uae_tfopen (n, _T("r+b"));
 	if (f == 0) {
 		xfree (n);
 		return;

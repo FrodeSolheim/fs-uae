@@ -12,10 +12,10 @@
 #endif
 
 // Use custom versions of these functions for platform-specific behaviour,
-// for example uae_fopen may perform charset conversion before opening the
+// for example uae_tfopen may perform charset conversion before opening the
 // file.
 
-#define _tfopen uae_fopen
+// #define _tfopen uae_tfopen
 #define _ftelli64 uae_ftello64
 #define _fseeki64 uae_fseeko64
 

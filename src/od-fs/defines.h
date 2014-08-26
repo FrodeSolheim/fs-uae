@@ -10,8 +10,7 @@
 #endif
 */
 
-#include "tchar.h"
-
+// #include "tchar.h"
 // rename init_audio to make init_audio available
 
 #define init_audio uae_init_audio
@@ -122,7 +121,7 @@ extern FILE *g_fs_uae_sync_debug_file;
 #define FSDB_DIR_SEPARATOR_S "/"
 
 // FIXME: OK?
-#define _stat64 stat
+//#define _stat64 stat
 
 #ifndef INVALID_SOCKET
 #define INVALID_SOCKET -1

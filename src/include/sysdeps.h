@@ -26,7 +26,11 @@ using namespace std;
 #include <errno.h>
 #include <assert.h>
 #include <limits.h>
+#ifdef FSUAE
+#include "uae/types.h"
+#else
 #include <tchar.h>
+#endif
 
 #ifndef __STDC__
 #ifndef _MSC_VER
@@ -193,7 +197,6 @@ typedef char uae_char;
 typedef struct { uae_u8 RGB[3]; } RGB;
 
 #ifdef FSUAE
-#include "uae/types.h"
 #define VAL64(a) (a ## LL)
 #define UVAL64(a) (a ## uLL)
 
@@ -465,19 +468,16 @@ extern void mallocemu_free (void *ptr);
 #define write_log write_log_standard
 #endif
 
-#if __GNUC__ - 1 > 1 || __GNUC_MINOR__ - 1 > 6
 #ifdef FSUAE
+#include "uae/logging.h"
 #else
+#if __GNUC__ - 1 > 1 || __GNUC_MINOR__ - 1 > 6
 extern void write_log (const TCHAR *, ...) __attribute__ ((format (printf, 1, 2)));
-#endif
-#if defined(FSUAE) && defined(__MINGW32__)
-extern void write_log (const char *, ...) __attribute__ ((format (gnu_printf, 1, 2)));
-#else
 extern void write_log (const char *, ...) __attribute__ ((format (printf, 1, 2)));
-#endif
 #else
 extern void write_log (const TCHAR *, ...);
 extern void write_log (const char *, ...);
+#endif
 #endif
 extern void write_dlog (const TCHAR *, ...);
 

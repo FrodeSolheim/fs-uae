@@ -55,7 +55,7 @@ char *uae_expand_path(const char *path) {
     return fs_strdup(path);
 }
 
-FILE *uae_fopen(const char *path, const char *mode) {
+FILE *uae_tfopen(const char *path, const char *mode) {
     char *p = uae_expand_path(path);
     FILE *f = fs_fopen(p, mode);
     free(p);

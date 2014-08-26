@@ -90,7 +90,7 @@ static void rdbdump (FILE *h, uae_u64 offset, uae_u8 *buf, int blocksize)
     if (blocks < 0 || blocks > 100000)
         return;
     _stprintf (name, "rdb_dump_%d.rdb", cnt);
-    f = uae_fopen (name, "wb");
+    f = uae_tfopen (name, "wb");
     if (!f)
         return;
     for (i = 0; i <= blocks; i++) {
@@ -243,7 +243,7 @@ int hdf_open_target (struct hardfiledata *hfd, const char *pname)
                 hfd->drive_empty = -1;
             if (udi->readonly)
                 hfd->ci.readonly = 1;
-            h = uae_fopen (udi->device_path, hfd->ci.readonly ? "rb" : "r+b");
+            h = uae_tfopen (udi->device_path, hfd->ci.readonly ? "rb" : "r+b");
             hfd->handle->h = h;
             if (h == INVALID_HANDLE_VALUE)
                 goto end;
@@ -262,7 +262,7 @@ int hdf_open_target (struct hardfiledata *hfd, const char *pname)
                     hfd->dangerous = 1;
                     // clear GENERIC_WRITE
                     fclose (h);
-                    h = uae_fopen (udi->device_path, "r+b");
+                    h = uae_tfopen (udi->device_path, "r+b");
                     hfd->handle->h = h;
                     if (h == INVALID_HANDLE_VALUE)
                         goto end;
@@ -285,7 +285,7 @@ int hdf_open_target (struct hardfiledata *hfd, const char *pname)
                     zmode = 1;
             }
         }
-        h = uae_fopen (name, hfd->ci.readonly ? "rb" : "r+b");
+        h = uae_tfopen (name, hfd->ci.readonly ? "rb" : "r+b");
         if (h == INVALID_HANDLE_VALUE)
             goto end;
         hfd->handle->h = h;

@@ -1,11 +1,9 @@
 #ifndef UAE_CD32_FMV_H
 #define UAE_CD32_FMV_H
 
-#ifdef FSUAE // NL
 #include "uae/types.h"
-#endif
 
-extern void cd32_fmv_init (uaecptr);
+extern addrbank *cd32_fmv_init (uaecptr);
 extern void cd32_fmv_reset(void);
 extern void cd32_fmv_free(void);
 extern void rethink_cd32fmv(void);
@@ -20,4 +18,4 @@ extern void cd32_fmv_set_sync(double svpos);
 
 extern int cd32_fmv_active;
 
-#endif // UAE_CD32_FMV_H
+#endif /* UAE_CD32_FMV_H */

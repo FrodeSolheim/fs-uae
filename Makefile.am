@@ -56,7 +56,7 @@ LIBS += @X11_LIBS@
 LIBS += @ZLIB_LIBS@
 
 AM_LDFLAGS =
-AM_LDFLAGS += -rdynamic
+# AM_LDFLAGS += -rdynamic
 AM_LDFLAGS += @OS_LDFLAGS@
 
 MSGFMT = @MSGFMT@
@@ -317,7 +317,7 @@ libuae_a_SOURCES = \
 	src/include/uae/inline.h \
 	src/include/uae/jitconfig.h \
 	src/include/uae/limits.h \
-	src/include/uae/logging.h \
+	src/include/uae/log.h \
 	src/include/uae/memory.h \
 	src/include/uae/parser.h \
 	src/include/uae/ppc.h \

@@ -30,6 +30,21 @@ void uae_error(const char *format, ...) UAE_PRINTF_FORMAT(1, 2);
 void uae_fatal(const char *format, ...) UAE_PRINTF_FORMAT(1, 2);
 #endif
 
+#define UAE_LOG_VA_ARGS(format, ap) \
+{ \
+	char buffer[1024]; \
+	vsnprintf(buffer, 1024, format, ap); \
+	uae_log("%s", buffer); \
+}
+
+#define UAE_LOG_VA_ARGS_FULL(format) \
+{ \
+	va_list ap; \
+	va_start(ap, format); \
+	UAE_LOG_VA_ARGS(format, ap); \
+	va_end(ap); \
+}
+
 /* Helpers to log use of stubbed functions */
 
 #define UAE_LOG_STUB(format, ...) \

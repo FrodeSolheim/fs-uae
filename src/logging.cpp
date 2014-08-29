@@ -1,14 +1,12 @@
-#include "uae/logging.h"
+#include "uae/log.h"
 #include <stdio.h>
 #include <stdarg.h>
 
 //UAEAPI void UAECALL uae_log(const char *format, ...)
 void UAECALL uae_log(const char *format, ...)
 {
-	char buffer[1000];
-	va_list ap;
-	va_start(ap, format);
-	vsnprintf(buffer, 1000, format, ap);
-	write_log("%s", buffer);
-	va_end(ap);
+	/* temp hack to be able to use UAE_LOG_VA_ARGS_FULL without
+	 * getting a circular dependency */
+#define uae_log write_log
+	UAE_LOG_VA_ARGS_FULL(format);
 }

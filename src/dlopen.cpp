@@ -44,7 +44,7 @@ void uae_dlclose(UAE_DLHANDLE handle)
 #endif
 }
 
-#include "uae/logging.h"
+#include "uae/log.h"
 
 void uae_patch_library_common(UAE_DLHANDLE handle)
 {

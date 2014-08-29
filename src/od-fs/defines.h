@@ -15,7 +15,7 @@
 
 #define init_audio uae_init_audio
 
-#include "uae/logging.h"
+#include "uae/log.h"
 
 // we are using our own main function, not the one from UAE...
 

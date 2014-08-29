@@ -14,7 +14,7 @@ extern void activate_debugger(void);
 //#define DEBUG_VGA
 
 #ifdef FSUAE
-#include "uae/logging.h"
+#include "uae/log.h"
 #else
 extern void write_log (const char *, ...);
 #endif

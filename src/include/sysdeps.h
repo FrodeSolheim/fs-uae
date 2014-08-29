@@ -469,7 +469,7 @@ extern void mallocemu_free (void *ptr);
 #endif
 
 #ifdef FSUAE
-#include "uae/logging.h"
+#include "uae/log.h"
 #else
 #if __GNUC__ - 1 > 1 || __GNUC_MINOR__ - 1 > 6
 extern void write_log (const TCHAR *, ...) __attribute__ ((format (printf, 1, 2)));

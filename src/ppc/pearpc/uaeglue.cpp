@@ -10,19 +10,14 @@
 #endif
 
 #ifdef FSUAE
-#include "uae/logging.h"
+#include "uae/log.h"
 #else
 extern void write_log (const char *, ...);
 #endif
 
-int ht_printf(const char *fmt,...)
+int ht_printf(const char *format,...)
 {
-	char buffer[1000];
-	va_list parms;
-	va_start(parms, fmt);
-	vsnprintf(buffer, 1000, fmt, parms);
-	write_log("%s", buffer);
-	va_end(parms);
+	UAE_LOG_VA_ARGS_FULL(format);
 	return 0;
 }
 int ht_fprintf(FILE *f, const char *fmt, ...)

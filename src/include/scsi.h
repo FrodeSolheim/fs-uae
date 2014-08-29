@@ -6,7 +6,7 @@
 #include "uae/limits.h"
 #endif
 
-#define SCSI_DATA_BUFFER_SIZE (512 * 512)
+#define SCSI_DEFAULT_DATA_BUFFER_SIZE (256 * 512)
 
 struct scsi_data_tape
 {
@@ -43,7 +43,8 @@ struct scsi_data
 	int blocksize;
 
     int offset;
-    uae_u8 buffer[SCSI_DATA_BUFFER_SIZE];
+    uae_u8 *buffer;
+	int buffer_size;
     struct hd_hardfiledata *hfd;
 	struct scsi_data_tape *tape;
     int device_type;
@@ -118,4 +119,30 @@ extern void tape_media_change (int unitnum, struct uaedev_config_info*);
 #define SCSI_STATUS_QUEUE_FULL             0x28
 #define SCSI_STATUS_ACA_ACTIVE             0x30
 
-#endif // UAE_SCSI_H
+#define SCSI_MEMORY_FUNCTIONS(x, y, z) \
+static void REGPARAM2 x ## _bput(uaecptr addr, uae_u32 b) \
+{ \
+	y ## _bput(& ## z, addr, b); \
+} \
+static void REGPARAM2 x ## _wput(uaecptr addr, uae_u32 b) \
+{ \
+	y ## _wput(& ## z, addr, b); \
+} \
+static void REGPARAM2 x ## _lput(uaecptr addr, uae_u32 b) \
+{ \
+	y ## _lput(& ## z, addr, b); \
+} \
+static uae_u32 REGPARAM2 x ## _bget(uaecptr addr) \
+{ \
+return y ## _bget(& ## z, addr); \
+} \
+static uae_u32 REGPARAM2 x ## _wget(uaecptr addr) \
+{ \
+return y ## _wget(& ## z, addr); \
+} \
+static uae_u32 REGPARAM2 x ## _lget(uaecptr addr) \
+{ \
+return y ## _lget(& ## z, addr); \
+}
+
+#endif /* UAE_SCSI_H */

@@ -40,5 +40,6 @@ void blizzardppc_irq(int level);
 #define BOARD_CSPPC 9
 #define BOARD_BLIZZARDPPC 10
 #define BOARD_WARPENGINE_A4000 11
+#define BOARD_TEKMAGIC 12
 
-#endif // UAE_CPUBOARD_H
+#endif /* UAE_CPUBOARD_H */

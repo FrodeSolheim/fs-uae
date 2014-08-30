@@ -288,7 +288,6 @@ struct romconfig
 struct boardromconfig
 {
 	struct romconfig roms[MAX_BOARD_ROMS];
-	bool enabled;
 };
 
 
@@ -720,6 +719,7 @@ extern int cfgfile_configuration_change (int);
 extern void fixup_prefs_dimensions (struct uae_prefs *prefs);
 extern void fixup_prefs (struct uae_prefs *prefs);
 extern void fixup_cpu (struct uae_prefs *prefs);
+extern bool cfgfile_board_enabled(struct boardromconfig *br);
 
 extern void check_prefs_changed_custom (void);
 extern void check_prefs_changed_cpu (void);

@@ -570,7 +570,7 @@ OPT_FEATURE([A_ZIP], [zip], [zip],
 OPT_FEATURE([WITH_PEARPC_CPU], [pearpc_cpu], [pearpc-cpu],
 	[use PearPC for PPC emulation], [yes])
 OPT_FEATURE([WITH_QEMU_CPU], [qemu_cpu], [qemu-cpu],
-	[use QEmu for PPC emulation], [no])
+	[use QEmu for PPC emulation], [yes])
 
 AC_DEFINE([FPU_UAE], [1], [Define to 1])
 

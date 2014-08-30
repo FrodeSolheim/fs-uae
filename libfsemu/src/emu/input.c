@@ -1222,6 +1222,15 @@ void fs_emu_set_hotkey_function(fs_emu_hotkey_function function) {
     g_hotkey_function = function;
 }
 
+void fsuae_ppc_pause(int pause);
+
+static void special_function()
+{
+    static int paused = 0;
+    fsuae_ppc_pause(!paused);
+    paused = !paused;
+}
+
 static int handle_shortcut(fs_ml_event *event) {
     //int sym = event->key.keysym.sym;
     int key_code = event->key.keysym.sym;
@@ -1285,6 +1294,9 @@ static int handle_shortcut(fs_ml_event *event) {
             }
             else if (key_code == FS_ML_KEY_P) {
                 fs_emu_pause(!fs_emu_is_paused());
+            }
+            else if (key_code == FS_ML_KEY_X) {
+                special_function();
             }
             else if (key_code == FS_ML_KEY_W) {
                 // FIXME: UAE-specific hot key hack for warp function,

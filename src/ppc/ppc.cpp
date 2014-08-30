@@ -47,12 +47,17 @@ static void PPCCALL dummy_ppc_cpu_free(void) { }
 static void PPCCALL dummy_ppc_cpu_stop(void) { }
 static void PPCCALL dummy_ppc_cpu_atomic_raise_ext_exception(void) { }
 static void PPCCALL dummy_ppc_cpu_atomic_cancel_ext_exception(void) { }
-static void PPCCALL dummy_ppc_cpu_map_memory(uint32_t addr, uint32_t size, void *memory, const char *name) { }
+static void PPCCALL dummy_ppc_cpu_map_memory(PPCMemoryRegion *regions, int count) { }
 static void PPCCALL dummy_ppc_cpu_set_pc(int cpu, uint32_t value) { }
 static void PPCCALL dummy_ppc_cpu_run_continuous(void) { }
 static void PPCCALL dummy_ppc_cpu_run_single(int count) { }
 static uint64_t PPCCALL dummy_ppc_cpu_get_dec(void) { return 0; }
 static void PPCCALL dummy_ppc_cpu_do_dec(int value) { }
+
+static void PPCCALL dummy_ppc_cpu_pause(int pause)
+{
+    UAE_LOG_STUB("pause=%d\n", pause);
+}
 
 /* Functions typedefs for PPC implementation */
 
@@ -61,12 +66,13 @@ typedef void (PPCCALL *ppc_cpu_free_function)(void);
 typedef void (PPCCALL *ppc_cpu_stop_function)(void);
 typedef void (PPCCALL *ppc_cpu_atomic_raise_ext_exception_function)(void);
 typedef void (PPCCALL *ppc_cpu_atomic_cancel_ext_exception_function)(void);
-typedef void (PPCCALL *ppc_cpu_map_memory_function)(uint32_t addr, uint32_t size, void *memory, const char *name);
+typedef void (PPCCALL *ppc_cpu_map_memory_function)(PPCMemoryRegion *regions, int count);
 typedef void (PPCCALL *ppc_cpu_set_pc_function)(int cpu, uint32_t value);
 typedef void (PPCCALL *ppc_cpu_run_continuous_function)(void);
 typedef void (PPCCALL *ppc_cpu_run_single_function)(int count);
 typedef uint64_t (PPCCALL *ppc_cpu_get_dec_function)(void);
 typedef void (PPCCALL *ppc_cpu_do_dec_function)(int value);
+typedef void (PPCCALL *ppc_cpu_pause_function)(int pause);
 
 /* Function pointers to active PPC implementation */
 
@@ -81,6 +87,7 @@ static ppc_cpu_run_continuous_function g_ppc_cpu_run_continuous;
 static ppc_cpu_run_single_function g_ppc_cpu_run_single;
 static ppc_cpu_get_dec_function g_ppc_cpu_get_dec;
 static ppc_cpu_do_dec_function g_ppc_cpu_do_dec;
+static ppc_cpu_pause_function g_ppc_cpu_pause;
 
 static void load_dummy_implementation()
 {
@@ -96,6 +103,7 @@ static void load_dummy_implementation()
 	g_ppc_cpu_run_single = dummy_ppc_cpu_run_single;
 	g_ppc_cpu_get_dec = dummy_ppc_cpu_get_dec;
 	g_ppc_cpu_do_dec = dummy_ppc_cpu_do_dec;
+	g_ppc_cpu_pause = dummy_ppc_cpu_pause;
 }
 
 #ifdef WITH_QEMU_CPU
@@ -153,6 +161,7 @@ static bool load_qemu_implementation()
 	g_ppc_cpu_run_single = (ppc_cpu_run_single_function) uae_dlsym(handle, "ppc_cpu_run_single");
 	g_ppc_cpu_get_dec = (ppc_cpu_get_dec_function) uae_dlsym(handle, "ppc_cpu_get_dec");
 	g_ppc_cpu_do_dec = (ppc_cpu_do_dec_function) uae_dlsym(handle, "ppc_cpu_do_dec");
+	g_ppc_cpu_pause = (ppc_cpu_pause_function) uae_dlsym(handle, "ppc_cpu_pause");
 
 #if 0
 	/* register callback functions */
@@ -183,6 +192,9 @@ static bool load_pearpc_implementation()
 	g_ppc_cpu_run_single = ppc_cpu_run_single;
 	g_ppc_cpu_get_dec = ppc_cpu_get_dec;
 	g_ppc_cpu_do_dec = ppc_cpu_do_dec;
+
+	g_ppc_cpu_pause = dummy_ppc_cpu_pause;
+
 	return true;
 }
 
@@ -191,16 +203,16 @@ static bool load_pearpc_implementation()
 static void load_ppc_implementation()
 {
 	int impl = currprefs.ppc_implementation;
-#ifdef WITH_PEARPC_CPU
-	if (impl == PPC_IMPLEMENTATION_AUTO || impl == PPC_IMPLEMENTATION_PEARPC) {
-		if (load_pearpc_implementation()) {
+#ifdef WITH_QEMU_CPU
+	if (impl == PPC_IMPLEMENTATION_AUTO || impl == PPC_IMPLEMENTATION_QEMU) {
+		if (load_qemu_implementation()) {
 			return;
 		}
 	}
 #endif
-#ifdef WITH_QEMU_CPU
-	if (impl == PPC_IMPLEMENTATION_AUTO || impl == PPC_IMPLEMENTATION_QEMU) {
-		if (load_qemu_implementation()) {
+#ifdef WITH_PEARPC_CPU
+	if (impl == PPC_IMPLEMENTATION_AUTO || impl == PPC_IMPLEMENTATION_PEARPC) {
+		if (load_pearpc_implementation()) {
 			return;
 		}
 	}
@@ -220,6 +232,7 @@ static void initialize()
 
 static void map_banks(void)
 {
+#if 0
 	/*
 	 * Use NULL to get callbacks to uae_ppc_io_mem_read/write. Use real
 	 * memory address for direct access to RAM banks (looks like this
@@ -243,6 +256,21 @@ static void map_banks(void)
 	g_ppc_cpu_map_memory(0x08000000,	 16 MB, NULL,				  "RAMSEY memory (high)");
 	g_ppc_cpu_map_memory(0xFFF00000,	512 KB, get_real_address(0xFFF00000), "CPUBoard MAPROM");
 #endif
+#endif
+
+	PPCMemoryRegion regions[UAE_MEMORY_REGIONS_MAX];
+
+	UaeMemoryMap map;
+	uae_memory_map(&map);
+	for (int i = 0; i < map.num_regions; i++) {
+		UaeMemoryRegion *r = &map.regions[i];
+		regions[i].start = r->start;
+		regions[i].size = r->size;
+		regions[i].name = r->name;
+		regions[i].alias = r->alias;
+		regions[i].memory = r->memory;
+	}
+	g_ppc_cpu_map_memory(regions, map.num_regions);
 }
 
 static void uae_ppc_cpu_reset(void)
@@ -595,7 +623,7 @@ bool uae_ppc_cpu_unlock(void)
 
 void uae_ppc_wakeup(void)
 {
-	TRACE(_T("uae_ppc_wakeup\n"));
+	// TRACE(_T("uae_ppc_wakeup\n"));
 	if (ppc_state == PPC_STATE_SLEEP)
 		ppc_state = PPC_STATE_ACTIVE;
 }
@@ -614,7 +642,7 @@ void uae_ppc_interrupt(bool active)
 // sleep until interrupt (or PPC stopped)
 void uae_ppc_doze(void)
 {
-	TRACE(_T("uae_ppc_doze\n"));
+	// TRACE(_T("uae_ppc_doze\n"));
 	if (!ppc_thread_running)
 		return;
 	ppc_state = PPC_STATE_SLEEP;
@@ -640,3 +668,19 @@ void uae_ppc_hsync_handler(void)
 		g_ppc_cpu_do_dec(ppc_cycle_count);
 	}
 }
+
+void uae_ppc_pause(int pause)
+{
+	if (g_ppc_cpu_pause) {
+		g_ppc_cpu_pause(pause);
+	}
+}
+
+#ifdef FSUAE // NL
+
+UAE_EXTERN_C void fsuae_ppc_pause(int pause)
+{
+	uae_ppc_pause(pause);
+}
+
+#endif

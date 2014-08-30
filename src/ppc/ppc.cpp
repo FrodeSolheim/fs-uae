@@ -299,7 +299,7 @@ void uae_ppc_to_main_thread(void)
 
 void uae_ppc_emulate(void)
 {
-	TRACE(_T("uae_ppc_emulate\n"));
+	// TRACE(_T("uae_ppc_emulate\n"));
 	if (ppc_state == PPC_STATE_ACTIVE || ppc_state == PPC_STATE_SLEEP)
 		g_ppc_cpu_run_single(10);
 }

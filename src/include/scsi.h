@@ -122,27 +122,27 @@ extern void tape_media_change (int unitnum, struct uaedev_config_info*);
 #define SCSI_MEMORY_FUNCTIONS(x, y, z) \
 static void REGPARAM2 x ## _bput(uaecptr addr, uae_u32 b) \
 { \
-	y ## _bput(& ## z, addr, b); \
+	y ## _bput(&z, addr, b); \
 } \
 static void REGPARAM2 x ## _wput(uaecptr addr, uae_u32 b) \
 { \
-	y ## _wput(& ## z, addr, b); \
+	y ## _wput(&z, addr, b); \
 } \
 static void REGPARAM2 x ## _lput(uaecptr addr, uae_u32 b) \
 { \
-	y ## _lput(& ## z, addr, b); \
+	y ## _lput(&z, addr, b); \
 } \
 static uae_u32 REGPARAM2 x ## _bget(uaecptr addr) \
 { \
-return y ## _bget(& ## z, addr); \
+return y ## _bget(&z, addr); \
 } \
 static uae_u32 REGPARAM2 x ## _wget(uaecptr addr) \
 { \
-return y ## _wget(& ## z, addr); \
+return y ## _wget(&z, addr); \
 } \
 static uae_u32 REGPARAM2 x ## _lget(uaecptr addr) \
 { \
-return y ## _lget(& ## z, addr); \
+return y ## _lget(&z, addr); \
 }
 
 #endif /* UAE_SCSI_H */

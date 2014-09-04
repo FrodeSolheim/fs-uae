@@ -87,22 +87,26 @@ static int open_device (int unitnum, const TCHAR *ident, int flags)
     int result = 0;
     struct scsidevdata *sdd = &drives[unitnum];
 
-    DEBUG_LOG ("SCSIDEV: unit = %d: open_device %s\n", unitnum, ident);
-
-    DEBUG_LOG ("SCSIDEV: unit = %d, name = %s, fd = %d\n", unitnum, ident, sdd->fd);
-
+    uae_log("SCSIDEV: unit = %d, name = %s, fd = %d\n", unitnum, ident, sdd->fd);
     if (sdd->fd == -1) {
         sdd->name = ident;
-        if ((sdd->fd = open (sdd->name, O_RDONLY|O_NONBLOCK)) >= 0) {
-            DEBUG_LOG ("SCSIDEV: Successfully opened drive %s\n", sdd->name);
+        struct stat sb;
+        if (stat(sdd->name, &sb) == -1) {
+            uae_log("SCSIDEV: could not stat %s\n", sdd->name);
+        }
+        else if (S_ISREG(sb.st_mode)) {
+            uae_log("SCSIDEV: path is not a device\n");
+        }
+        else if ((sdd->fd = open (sdd->name, O_RDONLY|O_NONBLOCK)) >= 0) {
+            uae_log("SCSIDEV: Successfully opened drive %s\n", sdd->name);
             sdd->isatapi = is_atapi_drive (unitnum);
             result = 1;
         } else {
-            DEBUG_LOG ("SCSIDEV: Failed to open drive %s: %d\n", sdd->name, errno);
+            uae_log("SCSIDEV: Failed to open drive %s: %d\n", sdd->name, errno);
         }
     } else {
         /* already open */
-        DEBUG_LOG ("SCSIDEV: unit %d is already opened as %s.\n", unitnum, sdd->name);
+        uae_log("SCSIDEV: unit %d is already opened as %s.\n", unitnum, sdd->name);
         result = 1;
     }
     return result;

@@ -370,7 +370,7 @@ static int get_standard_cd_unit2 (struct uae_prefs *p, cd_standard_unit csu)
 	int isaudio = 0;
 	if (p->cdslots[unitnum].name[0] || p->cdslots[unitnum].inuse) {
 		if (p->cdslots[unitnum].name[0]) {
-#ifdef FSUAE
+#ifdef FSUAE_XXX
             if (cdscsidevicetype[unitnum]) {
                 device_func_init (cdscsidevicetype[unitnum]);
                 if (!sys_command_open_internal (unitnum, p->cdslots[unitnum].name, csu)) {
@@ -2009,7 +2009,7 @@ outofbounds:
 		ls = 0x12;
 	break;
 toolarge:
-		write_log (_T("CDEMU: too large scsi data tranfer %d > %d\n"), len, dlen);
+		write_log (_T("CDEMU: too large scsi data transfer %d > %d\n"), len, dlen);
 		status = 2; /* CHECK CONDITION */
 		s[0] = 0x70;
 		s[2] = 2; /* NOT READY */

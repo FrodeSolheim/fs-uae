@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.67])
-AC_INIT([FS-UAE], [2.5.12dev],
+AC_INIT([FS-UAE], [2.5.13dev],
         [frode@fs-uae.net], [fs-uae], [http://fs-uae.net])
 AC_CONFIG_AUX_DIR([.])
 AC_CANONICAL_SYSTEM
@@ -552,7 +552,7 @@ OPT_FEATURE([WITH_NETPLAY], [netplay], [netplay],
 	[enable netplay support], [yes])
 REQ_FEATURE([NCR9X], [ncr9x], [ncr9x],
 	[enable 53C9X SCSI], [yes])
-OPT_FEATURE([WITH_PPC], [ppc], [ppc],
+REQ_FEATURE([WITH_PPC], [ppc], [ppc],
 	[enable PPC (requires cpu board)], [yes])
 OPT_FEATURE([WITH_SLIRP], [slirp], [slirp],
 	[enable SLIRP (user mode NAT)], [yes])

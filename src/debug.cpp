@@ -40,6 +40,7 @@
 #include "cpummu030.h"
 #include "ar.h"
 #include "ppc/ppcd.h"
+#include "uae/ppc.h"
 
 #ifdef FSUAE // NL
 #include "uae/fs.h"
@@ -2898,8 +2899,6 @@ static uae_u8 *dump_xlate (uae_u32 addr)
 	return mem_banks[addr >> 16]->xlateaddr (addr);
 }
 
-extern uae_u8* natmem_offset;
-
 #if 0
 #define UAE_MEMORY_REGIONS_MAX 64
 #define UAE_MEMORY_REGION_NAME_LENGTH 64
@@ -2923,7 +2922,7 @@ typedef struct UaeMemoryMap {
 } UaeMemoryMap;
 #endif
 
-void uae_memory_map(UaeMemoryMap *map)
+static void memory_map_dump_3(UaeMemoryMap *map, int log)
 {
 	bool imold;
 	int i, j, max;
@@ -2931,7 +2930,6 @@ void uae_memory_map(UaeMemoryMap *map)
 	TCHAR txt[256];
 
 	map->num_regions = 0;
-
 	imold = currprefs.illegal_mem;
 	currprefs.illegal_mem = false;
 	max = currprefs.address_space_24 ? 256 : 65536;
@@ -2983,7 +2981,7 @@ void uae_memory_map(UaeMemoryMap *map)
 				size_out /= 1024;
 				size_ext = 'M';
 			}
-#if 0
+#if 1
 			_stprintf (txt, _T("%08X %7d%c/%d = %7d%c %s"), j << 16, size_out, size_ext,
 				mirrored, mirrored ? size_out / mirrored : size_out, size_ext, name);
 #endif
@@ -3017,21 +3015,21 @@ void uae_memory_map(UaeMemoryMap *map)
 					r->alias = j << 16;
 					r->flags |= UAE_MEMORY_REGION_ALIAS | UAE_MEMORY_REGION_MIRROR;
 				}
-				snprintf(r->name, UAE_MEMORY_REGION_NAME_LENGTH, "%s", name);
-				snprintf(r->rom_name, UAE_MEMORY_REGION_NAME_LENGTH, "%s", tmp);
+				_sntprintf(r->name, UAE_MEMORY_REGION_NAME_LENGTH, _T("%s"), name);
+				_sntprintf(r->rom_name, UAE_MEMORY_REGION_NAME_LENGTH, _T("%s"), tmp);
 				map->num_regions += 1;
 			}
 
-#if 0
+#if 1
 			_tcscat (txt, _T("\n"));
-			if (log)
+			if (log == 1)
 				write_log (_T("%s"), txt);
-			//else
+			else if (log == 0)
 				console_out (txt);
 			if (tmp[0]) {
-				if (log)
+				if (log == 1)
 					write_log (_T("%s"), tmp);
-				//else
+				else if (log == 0)
 					console_out (tmp);
 			}
 #endif
@@ -3042,35 +3040,42 @@ void uae_memory_map(UaeMemoryMap *map)
 	currprefs.illegal_mem = imold;
 }
 
+void uae_memory_map(UaeMemoryMap *map)
+{
+	memory_map_dump_3(map, -1);
+}
+
 static void memory_map_dump_2 (int log)
 {
-	TCHAR txt[256];
 	UaeMemoryMap map;
-	uae_memory_map(&map);
+	memory_map_dump_3(&map, log);
+#if 0
 	for (int i = 0; i < map.num_regions; i++) {
+		TCHAR txt[256];
 		UaeMemoryRegion *r = &map.regions[i];
 		int size = r->size / 1024;
-		char size_ext = 'K';
+		TCHAR size_ext = 'K';
 		int mirrored = 1;
 		int size_out = 0;
-		_stprintf (txt, _T("%08X %7d%c/%d = %7d%c %s\n"), r->start, size, size_ext,
-		    r->flags & UAE_MEMORY_REGION_RAM, size, size_ext, r->name);
+		_stprintf (txt, _T("%08X %7u%c/%d = %7u%c %s\n"), r->start, size, size_ext,
+			r->flags & UAE_MEMORY_REGION_RAM, size, size_ext, r->name);
 		if (log)
 			write_log (_T("%s"), txt);
-		//else
+		else
 			console_out (txt);
 		if (r->rom_name[0]) {
 			if (log)
 				write_log (_T("%s"), r->rom_name);
-		//else
+			else
 				console_out (r->rom_name);
-	    }
+		}
 	}
+#endif
 }
 
 void memory_map_dump (void)
 {
-	memory_map_dump_2 (1);
+	memory_map_dump_2(1);
 }
 
 STATIC_INLINE uaecptr BPTR2APTR (uaecptr addr)
@@ -3324,7 +3329,7 @@ static void show_exec_lists (TCHAR *t)
 					get_word_debug(list + 16 + 4), get_byte_debug(list + 16 + 1),
 					get_long_debug(list + 16 + 6), rom_vector,
 					get_word_debug(list + 16 + 4), get_byte_debug(list + 16 + 1));
-				if (1 || (type & 0x10)) {
+				if ((type & 0x10)) {
 					uae_u8 diagarea[32];
 					uae_u16 nameoffset;
 					uaecptr rom = addr + rom_vector;
@@ -4077,7 +4082,7 @@ static void m68k_modify (TCHAR **inptr)
 {
 	uae_u32 v;
 	TCHAR parm[10];
-	unsigned char c1, c2;
+	TCHAR c1, c2;
 	int i;
 
 	if (!next_string (inptr, parm, sizeof (parm) / sizeof (TCHAR), 1))
@@ -4123,7 +4128,6 @@ static void m68k_modify (TCHAR **inptr)
 
 static void ppc_disasm(uaecptr addr, uaecptr *nextpc, int cnt)
 {
-#ifdef WITH_PPC
 	PPCD_CB disa;
 
 	while(cnt-- > 0) {
@@ -4140,7 +4144,6 @@ static void ppc_disasm(uaecptr addr, uaecptr *nextpc, int cnt)
 	}
 	if (nextpc)
 		*nextpc = addr;
-#endif
 }
 
 static uaecptr nxdis, nxmem;
@@ -4687,6 +4690,9 @@ void debug (void)
 	}
 
 	wasactive = ismouseactive ();
+#ifdef WITH_PPC
+	uae_ppc_pause(1);
+#endif
 	inputdevice_unacquire ();
 	pause_sound ();
 	setmouseactive (0);
@@ -4726,6 +4732,9 @@ void debug (void)
 	}
 	resume_sound ();
 	inputdevice_acquire (TRUE);
+#ifdef WITH_PPC
+	uae_ppc_pause(0);
+#endif
 	setmouseactive (wasactive ? 2 : 0);
 }
 

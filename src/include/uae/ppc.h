@@ -35,7 +35,7 @@ bool uae_ppc_poll_queue(void);
 void uae_ppc_interrupt(bool active);
 void uae_ppc_cpu_lock(void);
 bool uae_ppc_cpu_unlock(void);
-void uae_ppc_to_main_thread(void);
+bool uae_ppc_to_main_thread(void);
 void uae_ppc_emulate(void);
 void uae_ppc_reset(bool hardreset);
 void uae_ppc_hsync_handler(void);
@@ -86,7 +86,7 @@ typedef struct PPCMemoryRegion {
     uint32_t start;
     uint32_t size;
     void *memory;
-    const char *name;
+    char *name;
     uint32_t alias;
 } PPCMemoryRegion;
 

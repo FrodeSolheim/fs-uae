@@ -19,7 +19,7 @@
 #endif
 
 #define PPC_SYNC_WRITE 0
-#define PPC_ACCESS_LOG 2
+#define PPC_ACCESS_LOG 0
 
 #define TRACE(format, ...) write_log(_T("PPC: ---------------- ") format, ## __VA_ARGS__)
 
@@ -33,6 +33,7 @@ static volatile bool ppc_access;
 static volatile int ppc_cpu_lock_state;
 static bool ppc_main_thread;
 static bool ppc_init_done;
+static int ppc_implementation;
 
 #define CSPPC_PVR 0x00090204
 #define BLIZZPPC_PVR 0x00070101
@@ -206,6 +207,7 @@ static void load_ppc_implementation()
 #ifdef WITH_QEMU_CPU
 	if (impl == PPC_IMPLEMENTATION_AUTO || impl == PPC_IMPLEMENTATION_QEMU) {
 		if (load_qemu_implementation()) {
+			ppc_implementation = PPC_IMPLEMENTATION_QEMU;
 			return;
 		}
 	}
@@ -213,11 +215,13 @@ static void load_ppc_implementation()
 #ifdef WITH_PEARPC_CPU
 	if (impl == PPC_IMPLEMENTATION_AUTO || impl == PPC_IMPLEMENTATION_PEARPC) {
 		if (load_pearpc_implementation()) {
+			ppc_implementation = PPC_IMPLEMENTATION_PEARPC;
 			return;
 		}
 	}
 #endif
 	load_dummy_implementation();
+	ppc_implementation = 0;
 }
 
 static void initialize()
@@ -232,45 +236,29 @@ static void initialize()
 
 static void map_banks(void)
 {
-#if 0
 	/*
-	 * Use NULL to get callbacks to uae_ppc_io_mem_read/write. Use real
+	 * Use NULL for memory to get callbacks for read/write. Use real
 	 * memory address for direct access to RAM banks (looks like this
 	 * is needed by JIT, or at least more work is needed on QEmu Side
 	 * to allow all memory access to go via callbacks).
 	 */
 
-	// FIXME: hack, replace with automatic / dynamic mapping
-#if 1
-	g_ppc_cpu_map_memory(0x00000000, 2048 KB, NULL,				  "Chip memory");
-	g_ppc_cpu_map_memory(0x00BF0000,	 64 KB, NULL,			  "CIA");
-	g_ppc_cpu_map_memory(0x00F00000,	256 KB, get_real_address(0x00F00000), "CPUBoard F00000");
-	g_ppc_cpu_map_memory(0x00F50000,	192 KB, NULL,				  "CPUBoard IO");
-	g_ppc_cpu_map_memory(0x00DF0000,	 64 KB, NULL,				  "Custom chipset");
-	g_ppc_cpu_map_memory(0x08000000,	 16 MB, get_real_address(0x08000000), "RAMSEY memory (high)");
-	g_ppc_cpu_map_memory(0xFFF00000,	512 KB, get_real_address(0xFFF00000), "CPUBoard MAPROM");
-#else
-	g_ppc_cpu_map_memory(0x00BF0000,	 64 KB, NULL,				  "CIA");
-	g_ppc_cpu_map_memory(0x00F00000,	256 KB, NULL,				  "CPUBoard F00000");
-	g_ppc_cpu_map_memory(0x00F50000,	192 KB, NULL,				  "CPUBoard IO");
-	g_ppc_cpu_map_memory(0x08000000,	 16 MB, NULL,				  "RAMSEY memory (high)");
-	g_ppc_cpu_map_memory(0xFFF00000,	512 KB, get_real_address(0xFFF00000), "CPUBoard MAPROM");
-#endif
-#endif
-
 	PPCMemoryRegion regions[UAE_MEMORY_REGIONS_MAX];
-
 	UaeMemoryMap map;
 	uae_memory_map(&map);
+
 	for (int i = 0; i < map.num_regions; i++) {
 		UaeMemoryRegion *r = &map.regions[i];
 		regions[i].start = r->start;
 		regions[i].size = r->size;
-		regions[i].name = r->name;
+		regions[i].name = ua(r->name);
 		regions[i].alias = r->alias;
 		regions[i].memory = r->memory;
 	}
 	g_ppc_cpu_map_memory(regions, map.num_regions);
+	for (int i = 0; i < map.num_regions; i++) {
+		free(regions[i].name);
+	}
 }
 
 static void uae_ppc_cpu_reset(void)
@@ -308,9 +296,14 @@ static void *ppc_thread(void *v)
 	return NULL;
 }
 
-void uae_ppc_to_main_thread(void)
+bool uae_ppc_to_main_thread(void)
 {
 	TRACE(_T("uae_ppc_to_main_thread\n"));
+
+	// QEMU: not yet supported
+	if (ppc_implementation == PPC_IMPLEMENTATION_QEMU)
+		return false;
+
 	if (ppc_thread_running) {
 		write_log(_T("PPC: transferring PPC emulation to main thread.\n"));
 		uae_ppc_cpu_stop();
@@ -323,11 +316,12 @@ void uae_ppc_to_main_thread(void)
 	}
 	ppc_state = PPC_STATE_ACTIVE;
 	ppc_main_thread = true;
+	return true;
 }
 
 void uae_ppc_emulate(void)
 {
-	// TRACE(_T("uae_ppc_emulate\n"));
+	//TRACE(_T("uae_ppc_emulate\n"));
 	if (ppc_state == PPC_STATE_ACTIVE || ppc_state == PPC_STATE_SLEEP)
 		g_ppc_cpu_run_single(10);
 }
@@ -471,11 +465,6 @@ bool UAECALL uae_ppc_io_mem_read(uint32_t addr, uint32_t *data, int size)
 		*data = v;
 		return true;
 	}
-#if PPC_ACCESS_LOG > 0
-	if (!ppc_thread_running && !valid_address(addr, size)) {
-		write_log(_T("PPC io read %08x=%08x %d\n"), addr, v, size);
-	}
-#endif
 	switch (size)
 	{
 	case 4:
@@ -493,6 +482,11 @@ bool UAECALL uae_ppc_io_mem_read(uint32_t addr, uint32_t *data, int size)
 	}
 	*data = v;
 
+#if PPC_ACCESS_LOG > 0
+	if (!ppc_thread_running && !valid_address(addr, size)) {
+		write_log(_T("PPC io read %08x=%08x %d\n"), addr, v, size);
+	}
+#endif
 #if PPC_ACCESS_LOG > 2
 	write_log(_T("PPC mem read %08x=%08x %d\n"), addr, v, size);
 #endif
@@ -623,14 +617,14 @@ bool uae_ppc_cpu_unlock(void)
 
 void uae_ppc_wakeup(void)
 {
-	// TRACE(_T("uae_ppc_wakeup\n"));
+	//TRACE(_T("uae_ppc_wakeup\n"));
 	if (ppc_state == PPC_STATE_SLEEP)
 		ppc_state = PPC_STATE_ACTIVE;
 }
 
 void uae_ppc_interrupt(bool active)
 {
-	TRACE(_T("uae_ppc_interrupt\n"));
+	//TRACE(_T("uae_ppc_interrupt\n"));
 	if (active) {
 		g_ppc_cpu_atomic_raise_ext_exception();
 		uae_ppc_wakeup();
@@ -642,7 +636,7 @@ void uae_ppc_interrupt(bool active)
 // sleep until interrupt (or PPC stopped)
 void uae_ppc_doze(void)
 {
-	// TRACE(_T("uae_ppc_doze\n"));
+	TRACE(_T("uae_ppc_doze\n"));
 	if (!ppc_thread_running)
 		return;
 	ppc_state = PPC_STATE_SLEEP;
@@ -678,6 +672,7 @@ void uae_ppc_pause(int pause)
 
 #ifdef FSUAE // NL
 
+UAE_EXTERN_C void fsuae_ppc_pause(int pause);
 UAE_EXTERN_C void fsuae_ppc_pause(int pause)
 {
 	uae_ppc_pause(pause);

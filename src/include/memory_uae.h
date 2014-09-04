@@ -559,6 +559,8 @@ typedef struct shmpiece_reg {
 
 extern shmpiece *shm_start;
 
+extern uae_u8* natmem_offset;
+
 #endif
 
 extern bool mapped_malloc (addrbank*);
@@ -592,7 +594,7 @@ int uae_get_memory_checksum();
 
 typedef struct UaeMemoryRegion {
 	uaecptr start;
-	int size;
+	uae_u32 size;
 	TCHAR name[UAE_MEMORY_REGION_NAME_LENGTH];
 	TCHAR rom_name[UAE_MEMORY_REGION_NAME_LENGTH];
 	uaecptr alias;

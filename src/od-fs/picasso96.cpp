@@ -1,4 +1,4 @@
-#define NEW_PICASSO96 0
+#define NEW_PICASSO96 1
 
 #if NEW_PICASSO96
 

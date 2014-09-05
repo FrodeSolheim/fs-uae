@@ -693,6 +693,8 @@ void gfx_set_picasso_modeinfo (uae_u32 w, uae_u32 h, uae_u32 depth,
     grow_render_buffer(g_largest_width, g_largest_height);
 
     gfx_set_picasso_colors (rgbfmt);
+    picasso_vidinfo.width = g_picasso_width;
+    picasso_vidinfo.height = g_picasso_height;
 }
 
 uint8_t *uae_get_render_buffer() {

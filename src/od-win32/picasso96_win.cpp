@@ -58,10 +58,14 @@
 #include "rp.h"
 #endif
 #include "picasso96_win.h"
+#ifdef FSUAE
+#include "picasso96.h"
+#endif
 #include "win32gfx.h"
 #include "direct3d.h"
 #include "clipboard.h"
 #include "gfxboard.h"
+#include "gfxfilter.h"
 
 int debug_rtg_blitter = 3;
 
@@ -84,44 +88,25 @@ int default_freq = 50;
 
 static uae_u8 *gfx_lock_picasso2 (bool fullupdate)
 {
-#if 0
-	if (currprefs.gfx_api) {
-		int pitch;
-		uae_u8 *p = D3D_locktexture (&pitch, fullupdate);
-		picasso_vidinfo.rowbytes = pitch;
-		return p;
-	} else {
-		if (!DirectDraw_SurfaceLock ()) {
-			dx_check ();
-			return 0;
-		}
-		picasso_vidinfo.rowbytes = DirectDraw_GetSurfacePitch ();
-		return DirectDraw_GetSurfacePointer ();
-	}
-#endif
-
-	// FIXME:
-	//picasso_vidinfo.rowbytes = 1024 *	 4;
-	//gfxvidinfo.drawbuffer.rowbytes
-	//printf("returning %p\n", gfxvidinfo.drawbuffer.bufmem);
-	//return gfxvidinfo.
+	picasso_vidinfo.rowbytes = picasso_vidinfo.width * g_amiga_video_bpp;
 	uae_u8 *buffer = uae_get_render_buffer();
-	//printf("gfx_lock_picasso2 buffer=%p\n", buffer);
+	// printf("gfx_lock_picasso2 buffer=%p\n", buffer);
 	return buffer;
 }
 
 static int rtg_locked = 0;
 
-uae_u8 *gfx_lock_picasso (bool fullupdate, bool doclear) {
-	// FIXME: currently ignoring fullupdate (what does it do?)
-	if (rtg_locked) {
-		write_log (_T("rtg already locked!\n"));
-		abort ();
-	}
+uae_u8 *gfx_lock_picasso (bool fullupdate, bool doclear)
+{
+        // FIXME: currently ignoring fullupdate (what does it do?)
+        static uae_u8 *p;
+        if (rtg_locked) {
+                return p;
+        }
 #if 0
 	EnterCriticalSection (&screen_cs);
 #endif
-	uae_u8 *p = gfx_lock_picasso2 (fullupdate);
+	p = gfx_lock_picasso2 (fullupdate);
 	if (!p) {
 #if 0
 		LeaveCriticalSection (&screen_cs);
@@ -131,7 +116,6 @@ uae_u8 *gfx_lock_picasso (bool fullupdate, bool doclear) {
 		if (doclear) {
 			uae_u8 *p2 = p;
 			for (int h = 0; h < picasso_vidinfo.height; h++) {
-				// FIXME: is width, pixbytes and rowbytes correctly updated at this point?
 				memset (p2, 0, picasso_vidinfo.width * picasso_vidinfo.pixbytes);
 				p2 += picasso_vidinfo.rowbytes;
 			}
@@ -5074,7 +5058,7 @@ static uaecptr uaegfx_card_install (TrapContext *ctx, uae_u32 extrasize)
 	uaecptr exec = get_long (4);
 
 	if (uaegfx_old || !gfxmem_bank.start)
-		return NULL;
+		return 0;
 
 	uaegfx_resid = ds (_T("UAE Graphics Card 3.3"));
 	uaegfx_vblankname = ds (_T("UAE Graphics Card VBLANK"));

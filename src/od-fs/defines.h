@@ -89,8 +89,6 @@ extern FILE *g_fs_uae_sync_debug_file;
 #define NCR
 #define FULLMMU /* Aranym 68040 MMU */
 #define PARALLEL_PORT
-#define PICASSO96
-#define PICASSO96_SUPPORTED
 #define SAVESTATE
 #define SCP
 #define SCSIEMU

@@ -546,12 +546,16 @@ OPT_FEATURE([DRIVESOUND], [drivesound], [drivesound],
 	[enable drive sound emulation], [yes])
 REQ_FEATURE([FPUEMU], [fpuemu], [fpuemu],
 	[enable FPU emulation], [yes])
+OPT_FEATURE([GFXBOARD], [gfxboard], [gfxboard],
+	[enable GFX hardware boards], [yes])
 OPT_FEATURE([WITH_LUA], [lua], [lua],
 	[enable LUA scripting], [no])
 OPT_FEATURE([WITH_NETPLAY], [netplay], [netplay],
 	[enable netplay support], [yes])
 REQ_FEATURE([NCR9X], [ncr9x], [ncr9x],
 	[enable 53C9X SCSI], [yes])
+REQ_FEATURE([PICASSO96], [picasso96], [picasso96],
+	[enable Picasso 96 (uaegfx.card)], [yes])
 REQ_FEATURE([WITH_PPC], [ppc], [ppc],
 	[enable PPC (requires cpu board)], [yes])
 OPT_FEATURE([WITH_SLIRP], [slirp], [slirp],

@@ -8,6 +8,12 @@
 #ifndef __PICASSO96_H__
 #define __PICASSO96_H__
 
+#ifdef FSUAE // NL
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+#endif
+
 #ifdef PICASSO96
 
 #include "dxwrap.h"

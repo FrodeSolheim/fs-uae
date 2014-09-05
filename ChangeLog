@@ -1,6 +1,7 @@
 Version 2.5.14dev:
 
 * Fixed and activated more recent Picasso96 (uaegfx) code.
+* Enabled emulation of GFX hardware boards (Picassso IV, etc).
 * A bit more code cleanup and fixes to make code compatible with MSVC.
 * FIXME: PPC
 

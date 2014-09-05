@@ -253,39 +253,41 @@ static void map_banks(void)
 #ifdef F41000_HACK
 	UaeMemoryRegion * rf00000 = NULL;
 #endif
+	int k = 0;
 	for (int i = 0; i < map.num_regions; i++) {
 		UaeMemoryRegion *r = &map.regions[i];
-		regions[i].start = r->start;
-		regions[i].size = r->size;
-		regions[i].name = ua(r->name);
-		regions[i].alias = r->alias;
-		regions[i].memory = r->memory;
+		regions[k].start = r->start;
+		regions[k].size = r->size;
+		regions[k].name = ua(r->name);
+		regions[k].alias = r->alias;
+		regions[k].memory = r->memory;
 
 #ifdef F41000_HACK
 		if (r->start == 0xf00000) {
 			rf00000 = r;
 		}
 		else if (r->start == 0xf40000) {
-		    regions[i].size = 0x1000;
+		    regions[k].size = 0x1000;
 
-		    i = i + 1;
-		    regions[i].start = 0xf41000;
-		    regions[i].size = 0x2000;
-		    regions[i].name = ua(_T("NCR SCSI RAM"));
-		    regions[i].alias = 0;
-		    regions[i].memory = rf00000->memory + 0x41000;
+		    k += 1;
+		    regions[k].start = 0xf41000;
+		    regions[k].size = 0x2000;
+		    regions[k].name = ua(_T("NCR SCSI RAM"));
+		    regions[k].alias = 0;
+		    regions[k].memory = rf00000->memory + 0x41000;
 
-		    i = i + 1;
-		    regions[i].start = 0xf43000;
-		    regions[i].size = r->size - 0x3000;
-		    regions[i].name = ua(r->name);
-		    regions[i].alias = 0;
-		    regions[i].memory = NULL;
+		    k += 1;
+		    regions[k].start = 0xf43000;
+		    regions[k].size = r->size - 0x3000;
+		    regions[k].name = ua(r->name);
+		    regions[k].alias = 0;
+		    regions[k].memory = NULL;
 		}
 #endif
+		k += 1;
 	}
-	g_ppc_cpu_map_memory(regions, map.num_regions);
-	for (int i = 0; i < map.num_regions; i++) {
+	g_ppc_cpu_map_memory(regions, k);
+	for (int i = 0; i < k; i++) {
 		free(regions[i].name);
 	}
 }

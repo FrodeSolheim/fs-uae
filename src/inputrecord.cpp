@@ -25,6 +25,7 @@
 #include "uae.h"
 #include "disk.h"
 #include "fsdb.h"
+#include "xwin.h"
 
 #if INPUTRECORD_DEBUG > 0
 #include "memory.h"

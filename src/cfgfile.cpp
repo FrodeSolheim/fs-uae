@@ -29,7 +29,7 @@
 #include "inputdevice.h"
 #include "gfxfilter.h"
 #include "savestate.h"
-#include "memory_uae.h"
+#include "uae/memory.h"
 #include "rommgr.h"
 #include "gui.h"
 #include "newcpu.h"

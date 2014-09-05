@@ -27,7 +27,7 @@
 #include "memory.h"
 #include "events.h"
 #include "custom.h"
-#include "memory_uae.h"
+#include "uae/memory.h"
 #include "newcpu.h"
 #include "autoconf.h"
 #include "traps.h"

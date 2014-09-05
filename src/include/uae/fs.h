@@ -17,7 +17,6 @@ extern int g_amiga_savestate_docompress;
 #include <stdio.h>
 #include <stdint.h>
 
-FILE *uae_tfopen(const char *path, const char *mode);
 int64_t uae_ftello64(FILE *stream);
 int uae_fseeko64(FILE *stream, int64_t offset, int whence);
 

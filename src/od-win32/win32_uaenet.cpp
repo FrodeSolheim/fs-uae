@@ -488,7 +488,7 @@ static void *slirp_receive_func(void *arg)
 bool slirp_start (void)
 {
 	slirp_end ();
-	uae_start_thread ("slirp-receive", slirp_receive_func, NULL, &slirp_tid);
+	uae_start_thread(_T("slirp-receive"), slirp_receive_func, NULL, &slirp_tid);
 	return true;
 }
 void slirp_end (void)

@@ -13,12 +13,8 @@
 
 #include "sysconfig.h"
 #include "sysdeps.h"
-#include "memory_uae.h"
-#ifdef FSUAE
-#include "mman_uae.h"
-#else
-#include "sys/mman.h"
-#endif
+#include "uae/memory.h"
+#include "uae/mman.h"
 #include "options.h"
 #include "autoconf.h"
 #include "gfxboard.h"
@@ -190,7 +186,7 @@ uae_u32 max_z3fastmem;
 #define MAXZ3MEM32 0x7F000000
 #define MAXZ3MEM64 0xF0000000
 
-static struct shmid_ds shmids[MAX_SHMID];
+static struct uae_shmid_ds shmids[MAX_SHMID];
 uae_u8 *natmem_offset_allocated, *natmem_offset, *natmem_offset_end;
 static uae_u8 *p96mem_offset;
 static int p96mem_size;
@@ -297,7 +293,7 @@ static void clear_shm (void)
 {
 	shm_start = NULL;
 	for (int i = 0; i < MAX_SHMID; i++) {
-		memset (&shmids[i], 0, sizeof (struct shmid_ds));
+		memset (&shmids[i], 0, sizeof (struct uae_shmid_ds));
 		shmids[i].key = -1;
 	}
 }
@@ -462,7 +458,7 @@ static void resetmem (bool decommit)
 	if (!shm_start)
 		return;
 	for (i = 0; i < MAX_SHMID; i++) {
-		struct shmid_ds *s = &shmids[i];
+		struct uae_shmid_ds *s = &shmids[i];
 		int size = s->size;
 		uae_u8 *shmaddr;
 		uae_u8 *result;
@@ -715,7 +711,7 @@ void mapped_free (addrbank *ab)
 	}
 	x = shm_start;
 	while(x) {
-		struct shmid_ds blah;
+		struct uae_shmid_ds blah;
 		if (ab->baseaddr == x->native_address) {
 			if (uae_shmctl (x->id, IPC_STAT, &blah) == 0)
 				uae_shmctl (x->id, IPC_RMID, &blah);
@@ -748,21 +744,12 @@ STATIC_INLINE uae_key_t find_shmkey (uae_key_t key)
 	return result;
 }
 
-int mprotect (void *addr, size_t len, int prot)
-#ifdef PANDORA
-	__THROW
-#endif
-{
-	int result = 0;
-	return result;
-}
-
 void *uae_shmat (addrbank *ab, int shmid, void *shmaddr, int shmflg)
 {
 	write_log("uae_shmat shmid %d shmaddr %p, shmflg %d natmem_offset = %p\n",
 			shmid, shmaddr, shmflg, natmem_offset);
 	void *result = (void *)-1;
-	BOOL got = FALSE, readonly = FALSE, maprom = FALSE;
+	bool got = FALSE, readonly = FALSE, maprom = FALSE;
 	int p96special = FALSE;
 
 #ifdef NATMEM_OFFSET
@@ -983,7 +970,7 @@ void unprotect_maprom (void)
 {
 	bool protect = false;
 	for (int i = 0; i < MAX_SHMID; i++) {
-		struct shmid_ds *shm = &shmids[i];
+		struct uae_shmid_ds *shm = &shmids[i];
 		if (shm->mode != PAGE_READONLY)
 			continue;
 		if (!shm->attached || !shm->rosize)
@@ -1010,7 +997,7 @@ void protect_roms (bool protect)
 			return;
 	}
 	for (int i = 0; i < MAX_SHMID; i++) {
-		struct shmid_ds *shm = &shmids[i];
+		struct uae_shmid_ds *shm = &shmids[i];
 		if (shm->mode != PAGE_READONLY)
 			continue;
 		if (!shm->attached || !shm->rosize)
@@ -1049,7 +1036,7 @@ int uae_shmget (uae_key_t key, size_t size, int shmflg, const TCHAR *name)
 	return result;
 }
 
-int uae_shmctl (int shmid, int cmd, struct shmid_ds *buf)
+int uae_shmctl (int shmid, int cmd, struct uae_shmid_ds *buf)
 {
 	int result = -1;
 

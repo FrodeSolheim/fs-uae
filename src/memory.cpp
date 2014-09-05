@@ -13,7 +13,7 @@
 
 #include "options.h"
 #include "uae.h"
-#include "memory_uae.h"
+#include "uae/memory.h"
 #include "rommgr.h"
 #include "ersatz.h"
 #include "zfile.h"
@@ -1642,18 +1642,11 @@ void mapped_free (uae_u8 *p)
 
 #else
 
-#ifdef FSUAE
-#include <mman_uae.h>
+#include <uae/mman.h>
 #define shmat uae_shmat
 #define shmdt uae_shmdt
 #define shmctl uae_shmctl
 #define shmget uae_shmget
-#else
-#include <sys/ipc.h>
-#include <sys/shm.h>
-#include <unistd.h>
-#include <sys/mman.h>
-#endif
 
 shmpiece *shm_start;
 

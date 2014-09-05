@@ -13,6 +13,7 @@
 #include "options.h"
 #include "blkdev.h"
 #include "isofs_api.h"
+#include "uae/string.h"
 #include "zfile.h"
 
 #include "isofs.h"

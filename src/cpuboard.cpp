@@ -14,7 +14,7 @@
 #include "sysdeps.h"
 
 #include "options.h"
-#include "memory_uae.h"
+#include "uae/memory.h"
 #include "zfile.h"
 #include "rommgr.h"
 #include "autoconf.h"

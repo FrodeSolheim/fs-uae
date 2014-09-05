@@ -12,7 +12,7 @@
 
 #include "options.h"
 #include "uae.h"
-#include "memory_uae.h"
+#include "uae/memory.h"
 #include "custom.h"
 #include "newcpu.h"
 #include "filesys.h"
@@ -20,6 +20,7 @@
 #include "fsusage.h"
 #include "scsidev.h"
 #include "fsdb.h"
+#include "uae/io.h"
 
 #ifdef FSUAE // NL
 #include "uae/fs.h"

@@ -4,6 +4,7 @@
 #include "sysdeps.h"
 
 #include "uae/fs.h"
+#include "uae/io.h"
 
 #include <stdio.h>
 #include <fs/filesys.h>

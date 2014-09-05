@@ -78,9 +78,6 @@ typedef char TCHAR;
 #endif
 #endif
 
-#ifndef BOOL
-#define BOOL int
-#endif
 #ifndef FALSE
 #define FALSE 0
 #endif

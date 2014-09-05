@@ -47,6 +47,10 @@ void uae_fatal(const char *format, ...) UAE_PRINTF_FORMAT(1, 2);
 
 /* Helpers to log use of stubbed functions */
 
+#ifdef _MSC_VER
+#define __func__ __FUNCTION__
+#endif
+
 #define UAE_LOG_STUB(format, ...) \
 { \
 	uae_log(" -- stub -- %s " format "\n", __func__, ##__VA_ARGS__); \

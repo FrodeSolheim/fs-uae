@@ -33,6 +33,7 @@
 #include "win32.h"
 #include "parser.h"
 #include "threaddep/thread.h"
+#include "uae/io.h"
 
 #include <math.h>
 

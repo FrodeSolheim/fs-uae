@@ -16,7 +16,7 @@
 #include "sysconfig.h"
 #include "sysdeps.h"
 #include "options.h"
-#include "memory_uae.h"
+#include "uae/memory.h"
 
 #include "uae/uae.h"
 #include "uae/assert.h"

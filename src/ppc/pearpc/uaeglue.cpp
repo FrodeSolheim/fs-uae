@@ -9,11 +9,7 @@
 #include "tools/snprintf.h"
 #endif
 
-#ifdef FSUAE
 #include "uae/log.h"
-#else
-extern void write_log (const char *, ...);
-#endif
 
 int ht_printf(const char *format,...)
 {

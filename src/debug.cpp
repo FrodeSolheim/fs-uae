@@ -16,7 +16,7 @@
 
 #include "options.h"
 #include "uae.h"
-#include "memory_uae.h"
+#include "uae/memory.h"
 #include "custom.h"
 #include "newcpu.h"
 #include "cpu_prefetch.h"
@@ -40,6 +40,7 @@
 #include "cpummu030.h"
 #include "ar.h"
 #include "ppc/ppcd.h"
+#include "uae/io.h"
 #include "uae/ppc.h"
 
 #ifdef FSUAE // NL
@@ -4149,7 +4150,7 @@ static void ppc_disasm(uaecptr addr, uaecptr *nextpc, int cnt)
 static uaecptr nxdis, nxmem;
 static bool ppcmode;
 
-static BOOL debug_line (TCHAR *input)
+static bool debug_line (TCHAR *input)
 {
 	TCHAR cmd, *inptr;
 	uaecptr addr;

@@ -16,7 +16,7 @@
 
 #include "options.h"
 
-#include "memory_uae.h"
+#include "uae/memory.h"
 #include "custom.h"
 #include "newcpu.h"
 #include "filesys.h"

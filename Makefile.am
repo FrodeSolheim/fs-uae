@@ -273,7 +273,6 @@ libuae_a_SOURCES = \
 	src/include/keybuf.h \
 	src/include/luascript.h \
 	src/include/mackbd.h \
-	src/include/memory_uae.h \
 	src/include/mmu_common.h \
 	src/include/moduleripper.h \
 	src/include/native2amiga.h \
@@ -315,10 +314,12 @@ libuae_a_SOURCES = \
 	src/include/uae/fs.h \
 	src/include/uae/funcattr.h \
 	src/include/uae/inline.h \
+	src/include/uae/io.h \
 	src/include/uae/jitconfig.h \
 	src/include/uae/limits.h \
 	src/include/uae/log.h \
 	src/include/uae/memory.h \
+	src/include/uae/mman.h \
 	src/include/uae/parser.h \
 	src/include/uae/ppc.h \
 	src/include/uae/regparam.h \
@@ -393,7 +394,6 @@ libuae_a_SOURCES = \
 	src/od-fs/machdep/ppc/maccess.h \
 	src/od-fs/machdep/rpt.h \
 	src/od-fs/machdep/x86/maccess.h \
-	src/od-fs/mman_uae.h \
 	src/od-fs/mouse.cpp \
 	src/od-fs/mp3decoder.h \
 	src/od-fs/parser.cpp \

@@ -23,6 +23,7 @@
 #include "zarchive.h"
 #include "diskutil.h"
 #include "fdi2raw.h"
+#include "uae/io.h"
 
 #include "archivers/zip/unzip.h"
 #include "archivers/dms/pfile.h"
@@ -1413,7 +1414,7 @@ static int iszip (struct zfile *z, int mask)
 		}
 	}
 #if defined(ARCHIVEACCESS)
-	for (i = 0; plugins_7z_x[i]; i++) {
+	for (int i = 0; plugins_7z_x[i]; i++) {
 		if ((plugins_7z_m[i] & mask) && plugins_7z_x[i] && !strcasecmp (ext + 1, plugins_7z[i]) &&
 			!memcmp (header, plugins_7z_x[i], strlen (plugins_7z_x[i])))
 			return plugins_7z_t[i];
@@ -1493,7 +1494,7 @@ struct zfile *zuncompress (struct znode *parent, struct zfile *z, int dodefault,
 		}
 #if defined(ARCHIVEACCESS)
 		if (index == 0) {
-			for (i = 0; plugins_7z_x[i]; i++) {
+			for (int i = 0; plugins_7z_x[i]; i++) {
 				if ((plugins_7z_t[i] & mask) && strcasecmp (ext, plugins_7z[i]) == 0)
 					return archive_access_arcacc_select (z, plugins_7z_t[i], retcode);
 			}

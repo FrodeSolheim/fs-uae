@@ -13,7 +13,7 @@
 #ifdef A2065
 
 #include "options.h"
-#include "memory_uae.h"
+#include "uae/memory.h"
 #include "custom.h"
 #include "newcpu.h"
 #include "a2065.h"

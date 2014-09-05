@@ -16,7 +16,7 @@
 #include "options.h"
 #include "blkdev.h"
 #include "scsidev.h"
-#include "memory_uae.h"
+#include "uae/memory.h"
 #include "gui.h"
 
 #include <linux/cdrom.h>

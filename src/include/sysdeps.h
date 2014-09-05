@@ -604,5 +604,5 @@ extern void xfree (const void*);
 #ifdef HAVE_VAR_ATTRIBUTE_UNUSED
 #define NOWARN_UNUSED(x) __attribute__((unused)) x
 #else
-#define NOWARN_UNUSED(x)
+#define NOWARN_UNUSED(x) x
 #endif

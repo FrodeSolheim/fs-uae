@@ -15,6 +15,7 @@
 #include "filesys.h"
 #include "zfile.h"
 #include "uae/fs.h"
+#include "uae/io.h"
 
 #ifdef MACOSX
 #include <sys/stat.h>

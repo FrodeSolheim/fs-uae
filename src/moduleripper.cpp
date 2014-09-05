@@ -12,7 +12,8 @@
 #ifdef PROWIZARD
 
 #include "options.h"
-#include "memory_uae.h"
+#include "uae/io.h"
+#include "uae/memory.h"
 #include "moduleripper.h"
 #include "gui.h"
 #include "uae.h"

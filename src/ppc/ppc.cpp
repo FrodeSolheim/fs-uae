@@ -9,7 +9,7 @@
 #include "custom.h"
 #include "uae.h"
 #include "uae/dlopen.h"
-
+#include "uae/log.h"
 #include "uae/ppc.h"
 
 #ifdef WITH_PEARPC_CPU
@@ -234,6 +234,9 @@ static void initialize()
 	load_ppc_implementation();
 }
 
+/* hack for NCR SCSI RAM */
+#define F41000_HACK
+
 static void map_banks(void)
 {
 	/*
@@ -247,6 +250,9 @@ static void map_banks(void)
 	UaeMemoryMap map;
 	uae_memory_map(&map);
 
+#ifdef F41000_HACK
+	UaeMemoryRegion * rf00000 = NULL;
+#endif
 	for (int i = 0; i < map.num_regions; i++) {
 		UaeMemoryRegion *r = &map.regions[i];
 		regions[i].start = r->start;
@@ -254,6 +260,29 @@ static void map_banks(void)
 		regions[i].name = ua(r->name);
 		regions[i].alias = r->alias;
 		regions[i].memory = r->memory;
+
+#ifdef F41000_HACK
+		if (r->start == 0xf00000) {
+			rf00000 = r;
+		}
+		else if (r->start == 0xf40000) {
+		    regions[i].size = 0x1000;
+
+		    i = i + 1;
+		    regions[i].start = 0xf41000;
+		    regions[i].size = 0x2000;
+		    regions[i].name = ua(_T("NCR SCSI RAM"));
+		    regions[i].alias = 0;
+		    regions[i].memory = rf00000->memory + 0x41000;
+
+		    i = i + 1;
+		    regions[i].start = 0xf43000;
+		    regions[i].size = r->size - 0x3000;
+		    regions[i].name = ua(r->name);
+		    regions[i].alias = 0;
+		    regions[i].memory = NULL;
+		}
+#endif
 	}
 	g_ppc_cpu_map_memory(regions, map.num_regions);
 	for (int i = 0; i < map.num_regions; i++) {

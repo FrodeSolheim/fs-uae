@@ -7018,9 +7018,9 @@ static bool framewait (void)
 
 static bool framewait (void) {
     //printf("fw\n");
-    //if (currprefs.m68k_speed == -1) {
-    //    return framewait_2();
-    //}
+    if (currprefs.m68k_speed == -1) {
+        return framewait_2();
+    }
     //currprefs.cpu_idle = 150;
     //rtg_vsync ();
 

@@ -316,6 +316,7 @@ libuae_a_SOURCES = \
 	src/include/uae/inline.h \
 	src/include/uae/io.h \
 	src/include/uae/jitconfig.h \
+	src/include/uae/likely.h \
 	src/include/uae/limits.h \
 	src/include/uae/log.h \
 	src/include/uae/memory.h \
@@ -323,6 +324,7 @@ libuae_a_SOURCES = \
 	src/include/uae/parser.h \
 	src/include/uae/ppc.h \
 	src/include/uae/regparam.h \
+	src/include/uae/seh.h \
 	src/include/uae/string.h \
 	src/include/uae/types.h \
 	src/include/uaeexe.h \
@@ -398,7 +400,6 @@ libuae_a_SOURCES = \
 	src/od-fs/mp3decoder.h \
 	src/od-fs/parser.cpp \
 	src/od-fs/paths.cpp \
-	src/od-fs/picasso96.cpp \
 	src/od-fs/roms.cpp \
 	src/od-fs/serial_host.cpp \
 	src/od-fs/sleep.h \
@@ -424,6 +425,7 @@ libuae_a_SOURCES = \
 	src/od-win32/md-fpp.h \
 	src/od-win32/mman.cpp \
 	src/od-win32/parser.h \
+	src/od-win32/picasso96_win.cpp \
 	src/od-win32/picasso96_win.h \
 	src/od-win32/win32_uaenet.cpp \
 	src/ppc/pixman-stubs.cpp \

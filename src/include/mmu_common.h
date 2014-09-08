@@ -7,20 +7,11 @@
 #include "uae/memory.h"
 #include "newcpu.h"
 #endif
+#include "uae/likely.h"
 
 #define MMUDEBUG 0
 #define MMUINSDEBUG 0
 #define MMUDEBUGMISC 0
-
-#ifdef _MSC_VER
-#define unlikely(x) x
-#define likely(x) x
-#endif
-
-#ifdef FSUAE // NL
-#define unlikely(x) x
-#define likely(x) x
-#endif
 
 #ifdef __cplusplus
 struct m68k_exception {

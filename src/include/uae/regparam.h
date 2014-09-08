@@ -5,6 +5,11 @@
 #include "config.h"
 #endif
 
+#ifdef REGPARAM2
+/* temporary fix for REGPARAM2 being defined in sysdeps.h */
+#undef REGPARAM2
+#endif
+
 #ifdef __i386__
 
 #ifdef _WIN32

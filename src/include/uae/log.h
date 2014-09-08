@@ -79,7 +79,7 @@ void uae_fatal(const char *format, ...) UAE_PRINTF_FORMAT(1, 2);
 
 void write_log (const char *, ...) UAE_PRINTF_FORMAT(1, 2);
 #if SIZEOF_TCHAR != 1
-void write_log (const TCHAR *, ...) UAE_PRINTF_FORMAT(1, 2);
+void write_log (const TCHAR *, ...) UAE_WPRINTF_FORMAT(1, 2);
 #endif
 
 #endif

@@ -24,6 +24,7 @@
 
 #include "options.h"
 #include "uae/memory.h"
+#include "uae/seh.h"
 #include "custom.h"
 #include "events.h"
 #include "newcpu.h"
@@ -48,14 +49,10 @@
 #include "win32.h"
 #endif
 
-#ifdef FSUAE
+#ifdef FSUAE // NL
 
 // __try and __except is a MS extension to C/C++. What are the consequence
 // of ignoring these constructs in the code below?
-#undef __try
-#undef __except
-#define __try
-#define __except(x)
 
 #define hInst GetModuleHandle(NULL)
 

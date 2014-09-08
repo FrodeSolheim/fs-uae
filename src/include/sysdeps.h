@@ -301,7 +301,7 @@ extern void to_upper (TCHAR *s, int len);
 #define DONT_HAVE_POSIX
 #endif
 
-#if !defined(FS_UAE) && defined _WIN32
+#if !defined(FSUAE) && defined _WIN32
 
 //#ifdef FSUAE
 //#error _WIN32 should not be defined here
@@ -316,8 +316,12 @@ extern void to_upper (TCHAR *s, int len);
 
 #elif defined __MINGW32__
 
+#include <winsock.h>
+
 #define O_NDELAY 0
 #define mkdir(a,b) mkdir(a)
+
+#include "uae/regparam.h"
 
 #elif defined _MSC_VER
 

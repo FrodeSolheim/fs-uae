@@ -58,6 +58,10 @@ AX_CHECK_COMPILE_FLAG(-Wmissing-format-attribute,
 AM_CONDITIONAL([W_MISSING_FORMAT_ATTRIBUTE],
 [test x$w_missing_format_attribute = xyes])
 
+# Compiler features
+
+AX_C___BUILTIN_EXPECT
+
 # Misc system checks.
 
 AC_SYS_LARGEFILE

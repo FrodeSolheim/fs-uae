@@ -363,6 +363,7 @@ bool flash_write(void *fdv, uaecptr addr, uae_u8 v)
 		if (fd->rom[addr] != v)
 			fd->modified = 1;
 		fd->rom[addr] = v;
+		gui_flicker_led (LED_MD, 0, 2);
 		return true;
 	}
 
@@ -399,6 +400,7 @@ bool flash_write(void *fdv, uaecptr addr, uae_u8 v)
 #if FLASH_LOG
 		write_log(_T("flash chip erased\n"), addr);
 #endif
+		gui_flicker_led (LED_MD, 0, 2);
 		return true;
 	} else if (fd->state == 6 && v == 0x30) {
 		int saddr = addr & ~(fd->sectorsize - 1);
@@ -409,6 +411,7 @@ bool flash_write(void *fdv, uaecptr addr, uae_u8 v)
 #if FLASH_LOG
 		write_log(_T("flash sector %d erased (%08x)\n"), saddr / fd->sectorsize, addr);
 #endif
+		gui_flicker_led (LED_MD, 0, 2);
 		return true;
 	}
 
@@ -434,6 +437,7 @@ uae_u32 flash_read(void *fdv, uaecptr addr)
 			v = fd->devicecode;
 		if (a == 2)
 			v = 0x00;
+		gui_flicker_led (LED_MD, 0, 1);
 	} else if (fd->state >= 200) {
 		v = 0;
 		if (fd->state & 1)

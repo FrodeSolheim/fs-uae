@@ -31,6 +31,9 @@
 
 #ifdef _WIN32
 static volatile unsigned int ppc_spinlock, spinlock_cnt;
+#else
+#include <glib.h>
+static GMutex mutex;
 #endif
 
 void uae_ppc_spinlock_get(void)
@@ -50,6 +53,7 @@ void uae_ppc_spinlock_get(void)
 		}
 	}
 #else
+	g_mutex_lock(&mutex);
 #endif
 }
 void uae_ppc_spinlock_release(void)
@@ -59,6 +63,7 @@ void uae_ppc_spinlock_release(void)
 		write_log(_T("uae_ppc_spinlock_release %d!\n"), spinlock_cnt);
 	InterlockedExchange(&ppc_spinlock, 0);
 #else
+	g_mutex_unlock(&mutex);
 #endif
 }
 void uae_ppc_spinlock_reset(void)

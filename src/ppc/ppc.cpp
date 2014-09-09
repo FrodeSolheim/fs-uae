@@ -95,6 +95,7 @@ static int ppc_implementation;
 /* Dummy PPC implementation */
 
 static bool PPCCALL dummy_ppc_cpu_init(uint32_t pvr) { return false; }
+static bool PPCCALL dummy_ppc_cpu_init_with_model(const char *model) { return false; }
 static void PPCCALL dummy_ppc_cpu_free(void) { }
 static void PPCCALL dummy_ppc_cpu_stop(void) { }
 static void PPCCALL dummy_ppc_cpu_atomic_raise_ext_exception(void) { }
@@ -114,6 +115,7 @@ static void PPCCALL dummy_ppc_cpu_pause(int pause)
 /* Functions typedefs for PPC implementation */
 
 typedef bool (PPCCALL *ppc_cpu_init_function)(uint32_t pvr);
+typedef bool (PPCCALL *ppc_cpu_init_with_model_function)(const char *model);
 typedef void (PPCCALL *ppc_cpu_free_function)(void);
 typedef void (PPCCALL *ppc_cpu_stop_function)(void);
 typedef void (PPCCALL *ppc_cpu_atomic_raise_ext_exception_function)(void);
@@ -129,6 +131,7 @@ typedef void (PPCCALL *ppc_cpu_pause_function)(int pause);
 /* Function pointers to active PPC implementation */
 
 static ppc_cpu_init_function g_ppc_cpu_init;
+static ppc_cpu_init_with_model_function g_ppc_cpu_init_with_model;
 static ppc_cpu_free_function g_ppc_cpu_free;
 static ppc_cpu_stop_function g_ppc_cpu_stop;
 static ppc_cpu_atomic_raise_ext_exception_function g_ppc_cpu_atomic_raise_ext_exception;
@@ -145,6 +148,7 @@ static void load_dummy_implementation()
 {
 	write_log(_T("PPC: Loading dummy implementation\n"));
 	g_ppc_cpu_init = dummy_ppc_cpu_init;
+	g_ppc_cpu_init_with_model = dummy_ppc_cpu_init_with_model;
 	g_ppc_cpu_free = dummy_ppc_cpu_free;
 	g_ppc_cpu_stop = dummy_ppc_cpu_stop;
 	g_ppc_cpu_atomic_raise_ext_exception = dummy_ppc_cpu_atomic_raise_ext_exception;
@@ -196,13 +200,15 @@ static bool load_qemu_implementation()
 	UAE_DLHANDLE handle = uae_dlopen(_T("qemu-uae.dll"));
 #endif
 	if (!handle) {
-		write_log(_T("Error loading qemu-uae library\n"));
+		write_log(_T("PPC: Error loading qemu-uae library\n"));
 		return false;
 	}
 	write_log(_T("PPC: Loaded qemu-uae library at %p\n"), handle);
 
 	/* get function pointers */
+
 	g_ppc_cpu_init = (ppc_cpu_init_function) uae_dlsym(handle, "ppc_cpu_init");
+	g_ppc_cpu_init_with_model = (ppc_cpu_init_with_model_function) uae_dlsym(handle, "ppc_cpu_init_with_model");
 	g_ppc_cpu_free = (ppc_cpu_free_function) uae_dlsym(handle, "ppc_cpu_free");
 	g_ppc_cpu_stop = (ppc_cpu_stop_function) uae_dlsym(handle, "ppc_cpu_stop");
 	g_ppc_cpu_atomic_raise_ext_exception = (ppc_cpu_atomic_raise_ext_exception_function) uae_dlsym(handle, "ppc_cpu_atomic_raise_ext_exception");
@@ -232,6 +238,7 @@ static bool load_pearpc_implementation()
 {
 	write_log(_T("PPC: Loading PearPC implementation\n"));
 	g_ppc_cpu_init = ppc_cpu_init;
+	g_ppc_cpu_init_with_model = NULL;
 	g_ppc_cpu_free = ppc_cpu_free;
 	g_ppc_cpu_stop = ppc_cpu_stop;
 	g_ppc_cpu_atomic_raise_ext_exception = ppc_cpu_atomic_raise_ext_exception;
@@ -286,7 +293,7 @@ static void initialize()
 }
 
 /* hack for NCR SCSI RAM */
-#define F41000_HACK
+// #define F41000_HACK
 
 static void map_banks(void)
 {
@@ -343,14 +350,55 @@ static void map_banks(void)
 	}
 }
 
+static void cpu_init()
+{
+	const TCHAR *model;
+
+	/* Setting default CPU model based on accelerator board */
+	if (currprefs.cpuboard_type == BOARD_BLIZZARDPPC) {
+		model = _T("603ev");
+	} else {
+		model = _T("604e");
+	}
+
+        /* Override PPC CPU model. See qemu/target-ppc/cpu-models.c for
+         * a list of valid CPU model identifiers */
+#if 0
+	// FIXME: if ppc_model is overridden in currprefs, point to option
+	if (currprefs.ppc_model[0]) {
+		model = currprefs.ppc_model
+	}
+#endif
+
+	if (g_ppc_cpu_init_with_model) {
+		g_ppc_cpu_init_with_model(model);
+	} else {
+		uint32_t pvr = 0;
+		if (_tcsicmp(model, _T("603ev")) == 0) {
+			pvr = BLIZZPPC_PVR;
+		}
+		else if (_tcsicmp(model, _T("604e")) == 0) {
+			pvr = CSPPC_PVR;
+		}
+		else {
+			pvr = CSPPC_PVR;
+			write_log(_T("PPC: Unrecognized model \"%s\", using PVR 0x%08x\n"), model, pvr);
+		}
+		write_log(_T("PPC: Calling ppc_cpu_init with PVR 0x%08x\n"), pvr);
+		g_ppc_cpu_init(pvr);
+	}
+
+	/* Map memory and I/O banks (for QEmu PPC implementation) */
+	map_banks();
+}
+
 static void uae_ppc_cpu_reset(void)
 {
 	TRACE(_T("uae_ppc_cpu_reset\n"));
 	initialize();
 	if (!ppc_cpu_init_done) {
 		write_log(_T("PPC: Hard reset\n"));
-		g_ppc_cpu_init(currprefs.cpuboard_type == BOARD_BLIZZARDPPC ? BLIZZPPC_PVR : CSPPC_PVR);
-		map_banks();
+		cpu_init();
 		ppc_cpu_init_done = true;
 	}
 	write_log(_T("PPC: Init\n"));
@@ -640,7 +688,7 @@ void uae_ppc_interrupt(bool active)
 // sleep until interrupt (or PPC stopped)
 void uae_ppc_doze(void)
 {
-	TRACE(_T("uae_ppc_doze\n"));
+	//TRACE(_T("uae_ppc_doze\n"));
 	if (!ppc_thread_running)
 		return;
 	ppc_state = PPC_STATE_SLEEP;

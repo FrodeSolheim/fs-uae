@@ -588,8 +588,16 @@ static void check_changes (int unitnum)
 	bool changed = false;
 	bool gotsem = false;
 
-	if (st->device_func == NULL)
+	if (st->device_func == NULL) {
+#ifdef FSUAE
+#if 0
+		if (unitnum == 0) {
+			printf("st->device_func == NULL\n");
+		}
+#endif
+#endif
 		return;
+	}
 
 	if (st->delayed) {
 		st->delayed--;

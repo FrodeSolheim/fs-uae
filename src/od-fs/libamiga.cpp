@@ -11,6 +11,7 @@
 
 #include "uae/memory.h"
 #include "options.h"
+#include "blkdev.h"
 #include "custom.h"
 #include "keyboard.h"
 #include "inputdevice.h"
@@ -467,26 +468,48 @@ const char *amiga_cdrom_get_file(int index) {
     return currprefs.cdslots[index].name;
 }
 
-int amiga_cdrom_set_file(int drive, const char *file) {
-    write_log("insert CD (%s) into drive (%d)\n", file, drive);
-    int i;
-    // eject CD from other drive (if inserted)
-    for (i = 0; i < 4; i++) {
-        if (file[0] != '\0' && strcmp (currprefs.cdslots[i].name, file) == 0) {
-            changed_prefs.cdslots[i].name[0] = 0;
-            changed_prefs.cdslots[i].inuse = 0;
+void amiga_cdrom_eject(int drive)
+{
+    write_log("CD-ROM: eject drive %d\n", drive);
+#if 0
+    write_log("  (currprefs.cdslots[%d].name = %s)\n",
+              drive, currprefs.cdslots[drive].name);
+#endif
+
+    // changed_prefs.cdslots[drive].inuse = false;
+    changed_prefs.cdslots[drive].name[0] = '\0';
+    changed_prefs.cdslots[drive].type = SCSI_UNIT_DEFAULT;
+    config_changed = 1;
+}
+
+int amiga_cdrom_set_file(int drive, const char *file)
+{
+    write_log("CD-ROM: insert \"%s\" into drive %d\n", file, drive);
+#if 0
+    write_log("  (currprefs.cdslots[%d].name = %s)\n",
+              drive, currprefs.cdslots[drive].name);
+    write_log("  (changed_prefs.cdslots[%d].name = %s)\n",
+              drive, changed_prefs.cdslots[drive].name);
+#endif
+
+    /* Eject CD from current drive */
+    amiga_cdrom_eject(drive);
+
+    /* Insert new CD */
+    if (file[0] != '\0') {
+        uae_tcslcpy(changed_prefs.cdslots[drive].name, file, MAX_DPATH);
+        // changed_prefs.cdslots[drive].inuse = 1;
+
+        /* Ejecting CD from other drives if it is inserted there */
+        // FIXME: REPLACE 4 with constant
+        for (int i = 0; i < 4; i++) {
+            if (i != drive && strcmp (currprefs.cdslots[i].name, file) == 0) {
+                amiga_cdrom_eject(i);
+            }
         }
     }
-    // insert CD
-    // FIXME: IMPORTANT: CHECK length of file (prevent buffer overrun)
-    strcpy(changed_prefs.cdslots[drive].name, file);
-    if (file[0] == '\0') {
-        changed_prefs.cdslots[drive].inuse = 0;
-    }
-    else {
-        changed_prefs.cdslots[drive].inuse = 1;
-    }
     config_changed = 1;
+
     return 1;
 }
 

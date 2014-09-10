@@ -1,11 +1,12 @@
 Version 2.5.14dev:
 
+* Updates to Qemu PPC CPU integration.
+* Fixed problem when inserting, ejecting and then inserting a CD again.
 * Changes to how fastest-possible-mode works and interacts with
   frame rendering (solves some issues, might introduce new ones...)
 * Fixed and activated more recent Picasso96 (uaegfx) code.
 * Enabled emulation of GFX hardware boards (Picassso IV, etc).
 * A bit more code cleanup and fixes to make code compatible with MSVC.
-* FIXME: PPC
 
 Version 2.5.13dev:
 

@@ -65,7 +65,8 @@ struct uae_filter uaefilters[] = {
 #define SET_OR_CLEAR_FLAG(x, y, z) ((z) ? \
         SET_FLAG((x), (y)) : CLEAR_FLAG((x), (y)))
 
-static bool render_ok;
+static volatile bool render_ok, wait_render;
+
 volatile bool thread_vblank_found;
 // --- win32gfx.c
 int screen_is_picasso = 0;
@@ -146,7 +147,8 @@ bool target_graphics_buffer_update (void) {
     return 0;
 }
 
-bool render_screen (bool immediate) {
+static bool render_frame(bool immediate)
+{
 // FIXME: immediate is a new parameter
 
     //write_log("render_screen line: %d block %d screen %d\n",
@@ -250,7 +252,52 @@ bool render_screen (bool immediate) {
     return 1;
 }
 
-bool toggle_rtg (int mode) {
+static int minimized;
+static int monitor_off;
+
+static int dx_islost(void)
+{
+        return 0;
+}
+
+bool render_screen(bool immediate)
+{
+    bool v = false;
+    int cnt;
+
+    render_ok = false;
+    if (minimized || picasso_on || monitor_off || dx_islost ())
+            return render_ok;
+    cnt = 0;
+    while (wait_render) {
+            sleep_millis (1);
+            cnt++;
+            if (cnt > 500)
+                    return render_ok;
+    }
+#if 0
+    flushymin = 0;
+    flushymax = currentmode->amiga_height;
+    //EnterCriticalSection (&screen_cs);
+    if (currentmode->flags & DM_D3D) {
+            v = D3D_renderframe (immediate);
+#endif
+    v = render_frame(immediate);
+#if 0
+    } else if (currentmode->flags & DM_SWSCALE) {
+            S2X_render ();
+            v = true;
+    } else if (currentmode->flags & DM_DDRAW) {
+            v = true;
+    }
+#endif
+    render_ok = v;
+    //LeaveCriticalSection (&screen_cs);
+    return render_ok;
+}
+
+bool toggle_rtg (int mode)
+{
 	STUB("mode=%d", mode);
 #if 0
         if (mode == 0) {
@@ -280,32 +327,36 @@ bool toggle_rtg (int mode) {
         return false;
 }
 
-void show_screen (int mode) {
-    //write_log("show_screen\n\n");
+void show_screen (int mode)
+{
+#ifdef DEBUG_SHOW_SCREEN
+    printf("show_screen mode=%d\n\n", mode);
+#endif
     if (g_libamiga_callbacks.display) {
         g_libamiga_callbacks.display();
     }
 }
 
 bool show_screen_maybe (bool show) {
-    //printf("show_screen_maybe %d\n", show);
-    //show_screen ();
-    //return false;
+#ifdef DEBUG_SHOW_SCREEN
+    printf("show_screen_maybe %d (picasso_on=%d)\n", show, picasso_on);
+#endif
 
     struct apmode *ap = picasso_on ? &currprefs.gfx_apmode[1] : &currprefs.gfx_apmode[0];
     if (!ap->gfx_vflip || ap->gfx_vsyncmode == 0 || !ap->gfx_vsync) {
-        if (show)
+        if (show) {
+        //if (show && !picasso_on) {
             show_screen (0);
+        }
         return false;
     }
+#if 0
+	if (ap->gfx_vflip < 0) {
+		doflipevent ();
+		return true;
+	}
+#endif
     return false;
-    /*
-    if (ap->gfx_vflip < 0) {
-        doflipevent ();
-        return true;
-    }
-    return false;
-    */
 }
 
 double vblank_calibrate (double approx_vblank, bool waitonly) {
@@ -549,38 +600,6 @@ static int init_colors (void) {
     return 1;
 }
 
-#ifdef PICASSO96
-
-void gfx_set_picasso_colors (RGBFTYPE rgbfmt) {
-    write_log("gfx_set_picasso_colors %d\n", rgbfmt);
-
-    alloc_colors_picasso(g_red_bits, g_green_bits, g_blue_bits, g_red_shift,
-            g_green_shift, g_blue_shift, rgbfmt);
-}
-
-int picasso_palette (void) {
-    int i, changed;
-
-    changed = 0;
-    for (i = 0; i < 256; i++) {
-        int r = picasso96_state.CLUT[i].Red;
-        int g = picasso96_state.CLUT[i].Green;
-        int b = picasso96_state.CLUT[i].Blue;
-        uae_u32 v = (doMask256 (r, g_red_bits, g_red_shift)
-            | doMask256 (g, g_green_bits, g_green_shift)
-            | doMask256 (b, g_blue_bits, g_blue_shift))
-            | doMask256 (0xff, g_alpha_bits, g_alpha_shift);
-        if (v != picasso_vidinfo.clut[i]) {
-            //write_log (_T("%d:%08x\n"), i, v);
-            picasso_vidinfo.clut[i] = v;
-            changed = 1;
-        }
-    }
-    return changed;
-}
-
-#endif
-
 void getgfxoffset (float *dxp, float *dyp, float *mxp, float *myp) {
     //FIXME: WHAT DOES THIS DO?
     *dxp = 0;
@@ -667,34 +686,6 @@ void amiga_set_render_buffer(void *data, int size, int need_redraw,
     grow_render_buffer(g_largest_width, g_largest_height);
     init_row_map();
 #endif
-}
-
-void gfx_set_picasso_state (int on) {
-    write_log("gfx_set_picasso_state %d\n", on);
-    g_picasso_enabled = (on != 0);
-}
-
-void gfx_set_picasso_modeinfo (uae_u32 w, uae_u32 h, uae_u32 depth,
-        RGBFTYPE rgbfmt) {
-    write_log("gfx_set_picasso_modeinfo %d %d %d %d\n", w, h, depth, rgbfmt);
-    g_picasso_width = w;
-    g_picasso_height = h;
-    g_picasso_depth = depth;
-    g_picasso_format = rgbfmt;
-
-    // register largest width seen, so render buffers can be adjusted if
-    // necessary
-    if (g_picasso_width > g_largest_width) {
-        g_largest_width = g_picasso_width;
-    }
-    if (g_picasso_height > g_largest_height) {
-        g_largest_height = g_picasso_height;
-    }
-    grow_render_buffer(g_largest_width, g_largest_height);
-
-    gfx_set_picasso_colors (rgbfmt);
-    picasso_vidinfo.width = g_picasso_width;
-    picasso_vidinfo.height = g_picasso_height;
 }
 
 uint8_t *uae_get_render_buffer() {
@@ -840,3 +831,200 @@ void gui_fps (int fps, int idle, int color)
 int gui_update (void) {
     return 0;
 }
+
+void gfx_set_picasso_colors (RGBFTYPE rgbfmt)
+{
+    write_log("gfx_set_picasso_colors %d\n", rgbfmt);
+
+    alloc_colors_picasso(g_red_bits, g_green_bits, g_blue_bits, g_red_shift,
+            g_green_shift, g_blue_shift, rgbfmt);
+}
+
+int picasso_palette (void)
+{
+    int i, changed;
+
+    changed = 0;
+    for (i = 0; i < 256; i++) {
+        int r = picasso96_state.CLUT[i].Red;
+        int g = picasso96_state.CLUT[i].Green;
+        int b = picasso96_state.CLUT[i].Blue;
+        uae_u32 v = (doMask256 (r, g_red_bits, g_red_shift)
+            | doMask256 (g, g_green_bits, g_green_shift)
+            | doMask256 (b, g_blue_bits, g_blue_shift))
+            | doMask256 (0xff, g_alpha_bits, g_alpha_shift);
+        if (v != picasso_vidinfo.clut[i]) {
+            //write_log (_T("%d:%08x\n"), i, v);
+            picasso_vidinfo.clut[i] = v;
+            changed = 1;
+        }
+    }
+    return changed;
+}
+
+static bool rtg_locked;
+
+static uae_u8 *gfx_lock_picasso2 (bool fullupdate)
+{
+    picasso_vidinfo.rowbytes = picasso_vidinfo.width * g_amiga_video_bpp;
+    uae_u8 *buffer = uae_get_render_buffer();
+    // printf("gfx_lock_picasso2 buffer=%p\n", buffer);
+    return buffer;
+}
+
+uae_u8 *gfx_lock_picasso (bool fullupdate, bool doclear)
+{
+    // FIXME: currently ignoring fullupdate (what does it do?)
+    static uae_u8 *p;
+    if (rtg_locked) {
+            return p;
+    }
+#if 0
+    EnterCriticalSection (&screen_cs);
+#endif
+    p = gfx_lock_picasso2 (fullupdate);
+    if (!p) {
+#if 0
+            LeaveCriticalSection (&screen_cs);
+#endif
+    } else {
+        rtg_locked = true;
+        if (doclear) {
+            uae_u8 *p2 = p;
+            for (int h = 0; h < picasso_vidinfo.height; h++) {
+                memset (p2, 0, picasso_vidinfo.width * picasso_vidinfo.pixbytes);
+                p2 += picasso_vidinfo.rowbytes;
+            }
+        }
+    }
+    return p;
+}
+
+void gfx_unlock_picasso (bool dorender)
+{
+#ifdef DEBUG_SHOW_SCREEN
+    printf("gfx_unlock_picasso dorender=%d\n", dorender);
+#endif
+
+#if 0
+    if (!rtg_locked)
+            EnterCriticalSection (&screen_cs);
+#endif
+
+    rtg_locked = false;
+
+    if (dorender) {
+        //render_screen(1);
+        // FIXME: check what mode parameter is supposed to do
+        //show_screen(0);
+        if (render_frame(false)) {
+            show_screen_maybe(true);
+        }
+    }
+}
+
+#if 1
+
+void gfx_set_picasso_state (int on)
+{
+    write_log("gfx_set_picasso_state %d\n", on);
+    g_picasso_enabled = (on != 0);
+}
+
+#else
+
+void gfx_set_picasso_state (int on)
+{
+	printf("gfx_set_picasso_state %d\n", on);
+#if 0
+
+	//struct winuae_currentmode wc;
+	int mode;
+
+	if (screen_is_picasso == on)
+		return;
+	screen_is_picasso = on;
+	//rp_rtg_switch ();
+	//memcpy (&wc, currentmode, sizeof (wc));
+
+	//updatemodes ();
+	//update_gfxparams ();
+	//clearscreen ();
+	if (currprefs.gfx_apmode[0].gfx_fullscreen != currprefs.gfx_apmode[1].gfx_fullscreen || (currprefs.gfx_apmode[0].gfx_fullscreen == GFX_FULLSCREEN && currprefs.gfx_api)) {
+		mode = 1;
+	} else {
+		mode = modeswitchneeded (&wc);
+		if (!mode)
+			goto end;
+	}
+	if (mode < 0) {
+		open_windows (0);
+	} else {
+		open_screen (); // reopen everything
+	}
+	if (on && isvsync_rtg () < 0)
+		vblank_calibrate (0, false);
+end:
+#ifdef RETROPLATFORM
+	rp_set_hwnd (hAmigaWnd);
+#endif
+#endif
+}
+
+#endif
+
+#if 1
+
+void gfx_set_picasso_modeinfo (uae_u32 w, uae_u32 h, uae_u32 depth,
+        RGBFTYPE rgbfmt) {
+    write_log("gfx_set_picasso_modeinfo %d %d %d %d\n", w, h, depth, rgbfmt);
+    g_picasso_width = w;
+    g_picasso_height = h;
+    g_picasso_depth = depth;
+    g_picasso_format = rgbfmt;
+
+    // register largest width seen, so render buffers can be adjusted if
+    // necessary
+    if (g_picasso_width > g_largest_width) {
+        g_largest_width = g_picasso_width;
+    }
+    if (g_picasso_height > g_largest_height) {
+        g_largest_height = g_picasso_height;
+    }
+    grow_render_buffer(g_largest_width, g_largest_height);
+
+    gfx_set_picasso_colors (rgbfmt);
+
+    picasso_vidinfo.width = g_picasso_width;
+    picasso_vidinfo.height = g_picasso_height;
+}
+
+#else
+
+void gfx_set_picasso_modeinfo (uae_u32 w, uae_u32 h, uae_u32 depth, RGBFTYPE rgbfmt)
+{
+	printf("gfx_set_picasso_modeinfo %d %d %d %d\n", w, h, depth, rgbfmt);
+	exit(1);
+#if 0
+	int need;
+	if (!screen_is_picasso)
+		return;
+	clearscreen ();
+#endif
+	gfx_set_picasso_colors (rgbfmt);
+#if 0
+	updatemodes ();
+	need = modeswitchneeded (currentmode);
+	update_gfxparams ();
+	if (need > 0) {
+		open_screen ();
+	} else if (need < 0) {
+		open_windows (0);
+	}
+#endif
+#ifdef RETROPLATFORM
+	rp_set_hwnd (hAmigaWnd);
+#endif
+}
+
+#endif

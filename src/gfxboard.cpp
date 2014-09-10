@@ -415,6 +415,11 @@ void gfxboard_refresh (void)
 
 void gfxboard_vsync_handler (void)
 {
+#ifdef FSUAE
+#ifdef DEBUG_SHOW_SCREEN
+	printf("gfxboard_vsync_handler\n");
+#endif
+#endif
 	if (!configured_mem || !configured_regs)
 		return;
 

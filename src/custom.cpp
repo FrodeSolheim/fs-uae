@@ -6725,6 +6725,11 @@ static bool framewait (void)
 			t += (int)start - (int)vsync_time;
 
 		if (!frame_shown) {
+#ifdef FSUAE
+#ifdef DEBUG_SHOW_SCREEN
+			printf("vframewait_2 -> show_screen(1)\n");
+#endif
+#endif
 			show_screen (1);
 			if (currprefs.gfx_apmode[0].gfx_strobo)
 				show_screen (2);
@@ -6764,7 +6769,7 @@ static bool framewait (void)
 
 		int freetime;
 		extern int extraframewait;
-		
+
 		if (!vblank_hz_state)
 			return status != 0;
 
@@ -6998,6 +7003,11 @@ static bool framewait (void)
 		vsyncmintime = curr_time;
 		vsyncmaxtime = vsyncwaittime = curr_time + vstb;
 		if (frame_rendered) {
+#ifdef FSUAE
+#ifdef DEBUG_SHOW_SCREEN
+			printf("framewait_2 -> show_screen(0)\n");
+#endif
+#endif
 			show_screen (0);
 			t += read_processor_time () - curr_time;
 		}
@@ -7024,11 +7034,18 @@ static bool framewait (void) {
     //currprefs.cpu_idle = 150;
     //rtg_vsync ();
 
-    //if (!frame_rendered && !picasso_on)
-    if (!frame_rendered) {
+    if (!frame_rendered && !picasso_on) {
+    // if (!frame_rendered) {
         frame_rendered = render_screen (false);
     }
-    if (!frame_shown) {
+    //if (!frame_shown) {
+    // FIXME: hack: don't show frame if picasso is enabled
+    if (!frame_shown && !picasso_on) {
+#ifdef FSUAE
+#ifdef DEBUG_SHOW_SCREEN
+                        printf("framewait -> show_screen(0)\n");
+#endif
+#endif
         show_screen (0);
         frame_shown = true;
     }
@@ -7151,6 +7168,11 @@ static void vsync_handler_pre (void)
 		// we are paused, do all config checks but don't do any emulation
 		if (vsync_handle_check ()) {
 			redraw_frame ();
+#ifdef FSUAE
+#ifdef DEBUG_SHOW_SCREEN
+			printf("vsync_handler_pre -> render_screen + show_screen\n");
+#endif
+#endif
 			render_screen (true);
 			show_screen (0);
 		}
@@ -7203,9 +7225,19 @@ static void vsync_handler_pre (void)
 	
 	if (!picasso_on) {
 		if (!frame_rendered && vblank_hz_state) {
+#ifdef FSUAE
+#ifdef DEBUG_SHOW_SCREEN
+			printf("vsync_handler_pre -> render_screen\n");
+#endif
+#endif
 			frame_rendered = render_screen (false);
 		}
 		if (frame_rendered && !frame_shown) {
+#ifdef FSUAE
+#ifdef DEBUG_SHOW_SCREEN
+			printf("vsync_handler_pre -> show_screen_maybe\n");
+#endif
+#endif
 			frame_shown = show_screen_maybe (isvsync_chipset () >= 0);
 		}
 	}

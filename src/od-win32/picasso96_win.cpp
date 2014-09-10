@@ -86,122 +86,6 @@ int debug_rtg_blitter = 3;
 // FIXME: justing setting static value here -FS
 int default_freq = 50;
 
-static uae_u8 *gfx_lock_picasso2 (bool fullupdate)
-{
-	picasso_vidinfo.rowbytes = picasso_vidinfo.width * g_amiga_video_bpp;
-	uae_u8 *buffer = uae_get_render_buffer();
-	// printf("gfx_lock_picasso2 buffer=%p\n", buffer);
-	return buffer;
-}
-
-static int rtg_locked = 0;
-
-uae_u8 *gfx_lock_picasso (bool fullupdate, bool doclear)
-{
-        // FIXME: currently ignoring fullupdate (what does it do?)
-        static uae_u8 *p;
-        if (rtg_locked) {
-                return p;
-        }
-#if 0
-	EnterCriticalSection (&screen_cs);
-#endif
-	p = gfx_lock_picasso2 (fullupdate);
-	if (!p) {
-#if 0
-		LeaveCriticalSection (&screen_cs);
-#endif
-	} else {
-		rtg_locked = true;
-		if (doclear) {
-			uae_u8 *p2 = p;
-			for (int h = 0; h < picasso_vidinfo.height; h++) {
-				memset (p2, 0, picasso_vidinfo.width * picasso_vidinfo.pixbytes);
-				p2 += picasso_vidinfo.rowbytes;
-			}
-		}
-	}
-	return p;
-}
-
-void gfx_unlock_picasso (bool dorender) {
-#if 0
-	if (!rtg_locked)
-		EnterCriticalSection (&screen_cs);
-#endif
-	//printf("gfx_unlock_picasso\n");
-
-	rtg_locked = false;
-	//render_screen(1);
-	//show_screen();
-}
-
-#if 0
-void gfx_set_picasso_state (int on)
-{
-	printf("gfx_set_picasso_state %d\n", on);
-#if 0
-
-	//struct winuae_currentmode wc;
-	int mode;
-
-	if (screen_is_picasso == on)
-		return;
-	screen_is_picasso = on;
-	//rp_rtg_switch ();
-	//memcpy (&wc, currentmode, sizeof (wc));
-
-	//updatemodes ();
-	//update_gfxparams ();
-	//clearscreen ();
-	if (currprefs.gfx_apmode[0].gfx_fullscreen != currprefs.gfx_apmode[1].gfx_fullscreen || (currprefs.gfx_apmode[0].gfx_fullscreen == GFX_FULLSCREEN && currprefs.gfx_api)) {
-		mode = 1;
-	} else {
-		mode = modeswitchneeded (&wc);
-		if (!mode)
-			goto end;
-	}
-	if (mode < 0) {
-		open_windows (0);
-	} else {
-		open_screen (); // reopen everything
-	}
-	if (on && isvsync_rtg () < 0)
-		vblank_calibrate (0, false);
-end:
-#ifdef RETROPLATFORM
-	rp_set_hwnd (hAmigaWnd);
-#endif
-#endif
-}
-#endif
-#if 0
-void gfx_set_picasso_modeinfo (uae_u32 w, uae_u32 h, uae_u32 depth, RGBFTYPE rgbfmt)
-{
-	printf("gfx_set_picasso_modeinfo %d %d %d %d\n", w, h, depth, rgbfmt);
-	exit(1);
-#if 0
-	int need;
-	if (!screen_is_picasso)
-		return;
-	clearscreen ();
-#endif
-	gfx_set_picasso_colors (rgbfmt);
-#if 0
-	updatemodes ();
-	need = modeswitchneeded (currentmode);
-	update_gfxparams ();
-	if (need > 0) {
-		open_screen ();
-	} else if (need < 0) {
-		open_windows (0);
-	}
-#endif
-#ifdef RETROPLATFORM
-	rp_set_hwnd (hAmigaWnd);
-#endif
-}
-#endif
 #endif
 
 static int hwsprite = 0;
@@ -859,6 +743,11 @@ void picasso_trigger_vblank (void)
 
 static bool rtg_render (void)
 {
+#ifdef FSUAE
+#ifdef DEBUG_SHOW_SCREEN
+	printf("rtg_render\n");
+#endif
+#endif
 	bool flushed = false;
 	bool uaegfx = currprefs.rtgmem_type < GFXBOARD_HARDWARE;
 
@@ -869,12 +758,26 @@ static bool rtg_render (void)
 			flushed = picasso_flushpixels (gfxmem_bank.start + natmem_offset, picasso96_state.XYOffset - gfxmem_bank.start);
 		} else {
 			gfxboard_vsync_handler ();
+#ifdef FSUAE
+#ifdef DEBUG_SHOW_SCREEN
+			printf("flushed = true\n");
+#endif
+			// FIXME: hack to avoid double rendering due to
+			// both rtg_render and rtg_show directly or
+			// indirectly calling gfx_unlock_picasso (true)
+			flushed = true;
+#endif
 		}
 	}
 	return flushed;
 }
 static void rtg_show (void)
 {
+#ifdef FSUAE
+#ifdef DEBUG_SHOW_SCREEN
+	printf("rtg_show\n");
+#endif
+#endif
 	gfx_unlock_picasso (true);
 }
 static void rtg_clear (void)

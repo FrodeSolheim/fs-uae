@@ -40,6 +40,7 @@
 #include "dongle.h"
 #include "inputrecord.h"
 #include "autoconf.h"
+#include "uae/ppc.h"
 
 #ifdef FSUAE // NL
 #include "uae/fs.h"
@@ -1623,6 +1624,10 @@ static void cia_wait_pre (int cianummask)
 {
 	if (currprefs.cachesize)
 		return;
+#ifdef WITH_PPC
+	if (ppc_state)
+		return;
+#endif
 
 	if (currprefs.cpu_cycle_exact) {
 		cia_interrupt_disabled |= cianummask;
@@ -1652,6 +1657,10 @@ static void cia_wait_pre (int cianummask)
 
 static void cia_wait_post (int cianummask, uae_u32 value)
 {
+#ifdef WITH_PPC
+	if (ppc_state)
+		return;
+#endif
 	if (currprefs.cachesize) {
 		do_cycles (8 * CYCLE_UNIT /2);
 	} else {

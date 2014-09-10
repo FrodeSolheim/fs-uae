@@ -21,6 +21,12 @@ static int g_accuracy = 1;
 
 #define NEW_ACCURACY_SYSTEM
 
+static int next_uaehfi(void)
+{
+    static int hfi = 0;
+    return hfi++;
+}
+
 void fs_uae_init_configs() {
     amiga_config *c;
 
@@ -569,20 +575,20 @@ static void set_default_dirs_from_file_path(const char *path) {
 }
 */
 
-void fs_uae_configure_cdrom() {
-    /*
-    if (g_fs_uae_amiga_model != MODEL_CDTV && g_fs_uae_amiga_model != MODEL_CD32) {
-        return;
-    }
-    */
+void fs_uae_configure_cdrom(void)
+{
     fs_emu_log("configure_cdrom\n");
+
+    bool is_cdtv_cd32 = g_fs_uae_amiga_model == MODEL_CDTV ||
+                        g_fs_uae_amiga_model == MODEL_CD32;
     int auto_num_drives = 0;
     char *path = fs_config_get_string("cdrom_drive_0");
     if (path) {
         path = fs_uae_expand_path_and_free(path);
         path = fs_uae_resolve_path_and_free(path, FS_UAE_CD_PATHS);
         //set_default_dirs_from_file_path(path);
-        char* temp = fs_strconcat(path, ",image", NULL);
+        // FIXME: can possibly remove temp / ,image now
+        char *temp = fs_strconcat(path, ",image", NULL);
         amiga_set_option("cdimage0", temp);
         free(temp);
         free(path);
@@ -592,30 +598,46 @@ void fs_uae_configure_cdrom() {
     int num_drives = auto_num_drives;
     const char *value = fs_config_get_const_string("cdrom_drive_count");
     if (value) {
-        if (fs_ascii_strcasecmp(value, "auto") == 0) {
-            // auto
-        }
-        else {
+        if (fs_ascii_strcasecmp(value, "auto") != 0) {
             num_drives = atoi(value);
         }
     }
 
     if (num_drives == 0) {
         // do nothing
+        return;
     }
-    else if (num_drives == 1) {
-        if (g_fs_uae_amiga_model != MODEL_CDTV &&
-                g_fs_uae_amiga_model != MODEL_CD32) {
+    if (num_drives > 1) {
+        fs_emu_warning(_("Max 1 CD-ROM drive supported currently"));
+        return;
+    }
+
+    if (is_cdtv_cd32 == false) {
+        const char *controller = fs_config_get_const_string(
+                                 "cdrom_drive_0_controller");
+        // FIXME: "uae" or something else?
+        if (controller == NULL ||
+                fs_ascii_strcasecmp(controller, "uae") == 0) {
             amiga_set_option("scsi", "true");
-            amiga_map_cd_drives(1);
         }
-        if (auto_num_drives == 0) {
-            // set cdimage0 to force a CD-ROM drive
-            amiga_set_option("cdimage0", "");
+        else {
+            int hfi = next_uaehfi();
+            char *uaekey = g_strdup_printf("uaehf%d", hfi);
+            char *uaeval = g_strdup_printf("cd0,ro,:,0,0,0,2048,0,,%s",
+                                           controller);
+            amiga_set_option(uaekey, uaeval);
+            g_free(uaekey);
+            g_free(uaeval);
         }
+
+        /* Enables win32_automount_cddrives */
+        // FIXME: check when this is needed
+        amiga_map_cd_drives(1);
     }
-    else {
-        fs_emu_warning(_("Invalid number of CD-ROM drives specified"));
+
+    if (auto_num_drives == 0) {
+        // set cdimage0 to force a CD-ROM drive
+        amiga_set_option("cdimage0", "");
     }
 }
 

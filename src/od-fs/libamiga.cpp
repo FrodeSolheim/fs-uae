@@ -398,12 +398,10 @@ int amiga_floppy_get_drive_type(int index) {
 }
 
 int amiga_get_num_cdrom_drives() {
-    // FIXME: this is a bit of a hack, if CD devices / SCSI system
-    // has not been enabled, it seems type is 0 in all slots, which
-    // is why we return 0 at the end of the function.
+    // FIXME: a bit hackish, do some sanity check on this method
     for (int i = 0; i < MAX_TOTAL_SCSI_DEVICES; i++) {
-        if (currprefs.cdslots[i].type != 0) {
-            return i;
+        if (currprefs.cdslots[i].inuse != 0) {
+            return i + 1;
         }
     }
     return 0;

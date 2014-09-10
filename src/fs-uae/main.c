@@ -464,8 +464,8 @@ static void on_init() {
     //fs_uae_configure_amiga_model();
     fs_uae_configure_amiga_hardware();
     fs_uae_configure_floppies();
-    fs_uae_configure_cdrom();
     fs_uae_configure_hard_drives();
+    fs_uae_configure_cdrom();
     fs_uae_configure_input();
     fs_uae_configure_directories();
 

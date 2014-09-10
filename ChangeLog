@@ -1,6 +1,7 @@
 Version 2.5.14dev:
 
 * Updates to Qemu PPC CPU integration.
+* New option: cdrom_drive_0_controller (to specify for example ide1)
 * Fixed problem when inserting, ejecting and then inserting a CD again.
 * Changes to how fastest-possible-mode works and interacts with
   frame rendering (solves some issues, might introduce new ones...)

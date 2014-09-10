@@ -52,7 +52,7 @@ void fs_uae_init_configs();
 void fs_uae_configure_directories();
 void fs_uae_configure_floppies();
 void fs_uae_configure_hard_drives();
-void fs_uae_configure_cdrom();
+void fs_uae_configure_cdrom(void);
 void fs_uae_configure_amiga_hardware();
 void fs_uae_configure_amiga_model();
 void fs_uae_load_rom_files(const char *path);

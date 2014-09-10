@@ -91,6 +91,8 @@ int amiga_floppy_set_file(int index, const char *file);
 
 int amiga_get_num_cdrom_drives();
 int amiga_get_num_floppy_drives();
+
+void amiga_cdrom_eject(int drive);
 const char *amiga_cdrom_get_file(int index);
 int amiga_cdrom_set_file(int index, const char *file);
 

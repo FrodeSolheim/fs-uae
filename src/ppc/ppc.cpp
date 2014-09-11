@@ -14,6 +14,12 @@
 #include "uae/log.h"
 #include "uae/ppc.h"
 
+/* The qemu-uae major version must match this */
+#define QEMU_UAE_VERSION_MAJOR 1
+
+/* The qemu-uae minor version must be at least this */
+#define QEMU_UAE_VERSION_MINOR 2
+
 #define PPC_SYNC_WRITE 0
 #define PPC_ACCESS_LOG 0
 
@@ -26,7 +32,7 @@
 #include "pearpc/cpu/cpu_generic/ppc_cpu.h"
 #endif
 
-#define TRACE(format, ...) write_log(_T("PPC: ---------------- ") format, ## __VA_ARGS__)
+#define TRACE(format, ...) write_log(_T("PPC: ") format, ## __VA_ARGS__)
 
 
 #ifdef FSUAE
@@ -90,8 +96,6 @@ static int ppc_implementation;
 
 /* Dummy PPC implementation */
 
-static bool PPCCALL dummy_ppc_cpu_init(uint32_t pvr) { return false; }
-static bool PPCCALL dummy_ppc_cpu_init_with_model(const char *model) { return false; }
 static void PPCCALL dummy_ppc_cpu_free(void) { }
 static void PPCCALL dummy_ppc_cpu_stop(void) { }
 static void PPCCALL dummy_ppc_cpu_atomic_raise_ext_exception(void) { }
@@ -100,8 +104,15 @@ static void PPCCALL dummy_ppc_cpu_map_memory(PPCMemoryRegion *regions, int count
 static void PPCCALL dummy_ppc_cpu_set_pc(int cpu, uint32_t value) { }
 static void PPCCALL dummy_ppc_cpu_run_continuous(void) { }
 static void PPCCALL dummy_ppc_cpu_run_single(int count) { }
-static uint64_t PPCCALL dummy_ppc_cpu_get_dec(void) { return 0; }
-static void PPCCALL dummy_ppc_cpu_do_dec(int value) { }
+//static uint64_t PPCCALL dummy_ppc_cpu_get_dec(void) { return 0; }
+//static void PPCCALL dummy_ppc_cpu_do_dec(int value) { }
+
+static void PPCCALL dummy_ppc_cpu_version(int *major, int *minor, int *revision)
+{
+    *major = QEMU_UAE_VERSION_MAJOR;
+    *minor = QEMU_UAE_VERSION_MINOR;
+    *revision = 0;
+}
 
 static void PPCCALL dummy_ppc_cpu_pause(int pause)
 {
@@ -110,8 +121,9 @@ static void PPCCALL dummy_ppc_cpu_pause(int pause)
 
 /* Functions typedefs for PPC implementation */
 
-typedef bool (PPCCALL *ppc_cpu_init_function)(uint32_t pvr);
-typedef bool (PPCCALL *ppc_cpu_init_with_model_function)(const char *model);
+typedef void (PPCCALL *ppc_cpu_version_function)(int *major, int *minor, int *revision);
+typedef bool (PPCCALL *ppc_cpu_init_function)(const char *model);
+typedef bool (PPCCALL *ppc_cpu_init_pvr_function)(uint32_t pvr);
 typedef void (PPCCALL *ppc_cpu_free_function)(void);
 typedef void (PPCCALL *ppc_cpu_stop_function)(void);
 typedef void (PPCCALL *ppc_cpu_atomic_raise_ext_exception_function)(void);
@@ -123,42 +135,51 @@ typedef void (PPCCALL *ppc_cpu_run_single_function)(int count);
 typedef uint64_t (PPCCALL *ppc_cpu_get_dec_function)(void);
 typedef void (PPCCALL *ppc_cpu_do_dec_function)(int value);
 typedef void (PPCCALL *ppc_cpu_pause_function)(int pause);
+typedef bool (PPCCALL *ppc_cpu_check_state_function)(int state);
+typedef void (PPCCALL *ppc_cpu_set_state_function)(int state);
+typedef void (PPCCALL *ppc_cpu_reset_function)(void);
 
 /* Function pointers to active PPC implementation */
 
-static ppc_cpu_init_function g_ppc_cpu_init;
-static ppc_cpu_init_with_model_function g_ppc_cpu_init_with_model;
-static ppc_cpu_free_function g_ppc_cpu_free;
-static ppc_cpu_stop_function g_ppc_cpu_stop;
-static ppc_cpu_atomic_raise_ext_exception_function g_ppc_cpu_atomic_raise_ext_exception;
-static ppc_cpu_atomic_cancel_ext_exception_function g_ppc_cpu_atomic_cancel_ext_exception;
-static ppc_cpu_map_memory_function g_ppc_cpu_map_memory;
-static ppc_cpu_set_pc_function g_ppc_cpu_set_pc;
-static ppc_cpu_run_continuous_function g_ppc_cpu_run_continuous;
-static ppc_cpu_run_single_function g_ppc_cpu_run_single;
-static ppc_cpu_get_dec_function g_ppc_cpu_get_dec;
-static ppc_cpu_do_dec_function g_ppc_cpu_do_dec;
-static ppc_cpu_pause_function g_ppc_cpu_pause;
+static struct {
+        /* Common */
+        ppc_cpu_atomic_raise_ext_exception_function atomic_raise_ext_exception;
+        ppc_cpu_atomic_cancel_ext_exception_function atomic_cancel_ext_exception;
+        ppc_cpu_run_continuous_function run_continuous;
+
+        /* PearPC */
+        ppc_cpu_init_pvr_function init_pvr;
+        ppc_cpu_pause_function pause;
+        ppc_cpu_free_function free;
+        ppc_cpu_stop_function stop;
+        ppc_cpu_set_pc_function set_pc;
+        ppc_cpu_run_single_function run_single;
+        ppc_cpu_get_dec_function get_dec;
+        ppc_cpu_do_dec_function do_dec;
+
+        /* QEMU */
+        ppc_cpu_version_function version;
+        ppc_cpu_init_function init;
+        ppc_cpu_map_memory_function map_memory;
+        ppc_cpu_check_state_function check_state;
+        ppc_cpu_set_state_function set_state;
+        ppc_cpu_reset_function reset;
+} impl;
 
 static void load_dummy_implementation()
 {
 	write_log(_T("PPC: Loading dummy implementation\n"));
-	g_ppc_cpu_init = dummy_ppc_cpu_init;
-	g_ppc_cpu_init_with_model = dummy_ppc_cpu_init_with_model;
-	g_ppc_cpu_free = dummy_ppc_cpu_free;
-	g_ppc_cpu_stop = dummy_ppc_cpu_stop;
-	g_ppc_cpu_atomic_raise_ext_exception = dummy_ppc_cpu_atomic_raise_ext_exception;
-	g_ppc_cpu_atomic_cancel_ext_exception = dummy_ppc_cpu_atomic_cancel_ext_exception;
-	g_ppc_cpu_map_memory = dummy_ppc_cpu_map_memory;
-	g_ppc_cpu_set_pc = dummy_ppc_cpu_set_pc;
-	g_ppc_cpu_run_continuous = dummy_ppc_cpu_run_continuous;
-	g_ppc_cpu_run_single = dummy_ppc_cpu_run_single;
-	g_ppc_cpu_get_dec = dummy_ppc_cpu_get_dec;
-	g_ppc_cpu_do_dec = dummy_ppc_cpu_do_dec;
-	g_ppc_cpu_pause = dummy_ppc_cpu_pause;
+	memset(&impl, 0, sizeof(impl));
+	impl.free = dummy_ppc_cpu_free;
+	impl.stop = dummy_ppc_cpu_stop;
+	impl.atomic_raise_ext_exception = dummy_ppc_cpu_atomic_raise_ext_exception;
+	impl.atomic_cancel_ext_exception = dummy_ppc_cpu_atomic_cancel_ext_exception;
+	impl.map_memory = dummy_ppc_cpu_map_memory;
+	impl.set_pc = dummy_ppc_cpu_set_pc;
+	impl.run_continuous = dummy_ppc_cpu_run_continuous;
+	impl.run_single = dummy_ppc_cpu_run_single;
+	impl.pause = dummy_ppc_cpu_pause;
 }
-
-#ifdef WITH_QEMU_CPU
 
 static void uae_patch_library_ppc(UAE_DLHANDLE handle)
 {
@@ -183,7 +204,9 @@ static void uae_patch_library_ppc(UAE_DLHANDLE handle)
 
 static bool load_qemu_implementation()
 {
+#ifdef WITH_QEMU_CPU
 	write_log(_T("PPC: Loading QEmu implementation\n"));
+	memset(&impl, 0, sizeof(impl));
 
 	UAE_DLHANDLE handle = uae_dlopen_plugin(_T("qemu-uae"));
 	if (!handle) {
@@ -192,81 +215,104 @@ static bool load_qemu_implementation()
 	}
 	write_log(_T("PPC: Loaded qemu-uae library at %p\n"), handle);
 
-	/* get function pointers */
+	/* Retrieve function pointers from library */
 
-	g_ppc_cpu_init = (ppc_cpu_init_function) uae_dlsym(handle, "ppc_cpu_init");
-	g_ppc_cpu_init_with_model = (ppc_cpu_init_with_model_function) uae_dlsym(handle, "ppc_cpu_init_with_model");
-	g_ppc_cpu_free = (ppc_cpu_free_function) uae_dlsym(handle, "ppc_cpu_free");
-	g_ppc_cpu_stop = (ppc_cpu_stop_function) uae_dlsym(handle, "ppc_cpu_stop");
-	g_ppc_cpu_atomic_raise_ext_exception = (ppc_cpu_atomic_raise_ext_exception_function) uae_dlsym(handle, "ppc_cpu_atomic_raise_ext_exception");
-	g_ppc_cpu_atomic_cancel_ext_exception = (ppc_cpu_atomic_cancel_ext_exception_function) uae_dlsym(handle, "ppc_cpu_atomic_cancel_ext_exception");
-	g_ppc_cpu_map_memory = (ppc_cpu_map_memory_function) uae_dlsym(handle, "ppc_cpu_map_memory");
-	g_ppc_cpu_set_pc = (ppc_cpu_set_pc_function) uae_dlsym(handle, "ppc_cpu_set_pc");
-	g_ppc_cpu_run_continuous = (ppc_cpu_run_continuous_function) uae_dlsym(handle, "ppc_cpu_run_continuous");
-	g_ppc_cpu_run_single = (ppc_cpu_run_single_function) uae_dlsym(handle, "ppc_cpu_run_single");
-	g_ppc_cpu_get_dec = (ppc_cpu_get_dec_function) uae_dlsym(handle, "ppc_cpu_get_dec");
-	g_ppc_cpu_do_dec = (ppc_cpu_do_dec_function) uae_dlsym(handle, "ppc_cpu_do_dec");
-	g_ppc_cpu_pause = (ppc_cpu_pause_function) uae_dlsym(handle, "ppc_cpu_pause");
+	impl.version = (ppc_cpu_version_function) uae_dlsym(handle, "ppc_cpu_version");
+	//impl.init = (ppc_cpu_init_function) uae_dlsym(handle, "ppc_cpu_init");
+	impl.init = (ppc_cpu_init_function) uae_dlsym(handle, "ppc_cpu_init");
+	//impl.free = (ppc_cpu_free_function) uae_dlsym(handle, "ppc_cpu_free");
+	//impl.stop = (ppc_cpu_stop_function) uae_dlsym(handle, "ppc_cpu_stop");
+	impl.atomic_raise_ext_exception = (ppc_cpu_atomic_raise_ext_exception_function) uae_dlsym(handle, "ppc_cpu_atomic_raise_ext_exception");
+	impl.atomic_cancel_ext_exception = (ppc_cpu_atomic_cancel_ext_exception_function) uae_dlsym(handle, "ppc_cpu_atomic_cancel_ext_exception");
+	impl.map_memory = (ppc_cpu_map_memory_function) uae_dlsym(handle, "ppc_cpu_map_memory");
+	//impl.set_pc = (ppc_cpu_set_pc_function) uae_dlsym(handle, "ppc_cpu_set_pc");
+	impl.run_continuous = (ppc_cpu_run_continuous_function) uae_dlsym(handle, "ppc_cpu_run_continuous");
+	//impl.run_single = (ppc_cpu_run_single_function) uae_dlsym(handle, "ppc_cpu_run_single");
+	//impl.get_dec = (ppc_cpu_get_dec_function) uae_dlsym(handle, "ppc_cpu_get_dec");
+	//impl.do_dec = (ppc_cpu_do_dec_function) uae_dlsym(handle, "ppc_cpu_do_dec");
+	//impl.pause = (ppc_cpu_pause_function) uae_dlsym(handle, "ppc_cpu_pause");
+	impl.check_state = (ppc_cpu_check_state_function) uae_dlsym(handle, "ppc_cpu_check_state");
+	impl.set_state = (ppc_cpu_set_state_function) uae_dlsym(handle, "ppc_cpu_set_state");
+	impl.reset = (ppc_cpu_reset_function) uae_dlsym(handle, "ppc_cpu_reset");
 
-#if 0
-	/* register callback functions */
-#endif
+	/* Check major version (=) and minor version (>=) */
 
-        uae_dlopen_patch_common(handle);
+        int major = 0, minor = 0, revision = 0;
+        if (impl.version) {
+            impl.version(&major, &minor, &revision);
+        }
+        if (major != QEMU_UAE_VERSION_MAJOR) {
+                gui_message(_T("PPC: Wanted qemu-uae version %d.x (got %d.x)\n"),
+                            QEMU_UAE_VERSION_MAJOR, major);
+                return false;
+        }
+        if (minor < QEMU_UAE_VERSION_MINOR) {
+                gui_message(_T("PPC: Wanted qemu-uae version >= %d.%d (got %d.%d)\n"),
+                            QEMU_UAE_VERSION_MAJOR, QEMU_UAE_VERSION_MINOR,
+                            major, minor);
+                return false;
+        }
+
+        // FIXME: not needed, handled internally by uae_dlopen_plugin
+        // uae_dlopen_patch_common(handle);
+
         uae_patch_library_ppc(handle);
         return true;
-}
-
+#else
+        return false;
 #endif
-
-#ifdef WITH_PEARPC_CPU
+}
 
 static bool load_pearpc_implementation()
 {
+#ifdef WITH_PEARPC_CPU
 	write_log(_T("PPC: Loading PearPC implementation\n"));
-	g_ppc_cpu_init = ppc_cpu_init;
-	g_ppc_cpu_init_with_model = NULL;
-	g_ppc_cpu_free = ppc_cpu_free;
-	g_ppc_cpu_stop = ppc_cpu_stop;
-	g_ppc_cpu_atomic_raise_ext_exception = ppc_cpu_atomic_raise_ext_exception;
-	g_ppc_cpu_atomic_cancel_ext_exception = ppc_cpu_atomic_cancel_ext_exception;
+	memset(&impl, 0, sizeof(impl));
 
-	g_ppc_cpu_map_memory = dummy_ppc_cpu_map_memory;
-
-	g_ppc_cpu_set_pc = ppc_cpu_set_pc;
-	g_ppc_cpu_run_continuous = ppc_cpu_run_continuous;
-	g_ppc_cpu_run_single = ppc_cpu_run_single;
-	g_ppc_cpu_get_dec = ppc_cpu_get_dec;
-	g_ppc_cpu_do_dec = ppc_cpu_do_dec;
-
-	g_ppc_cpu_pause = dummy_ppc_cpu_pause;
+	impl.init_pvr = ppc_cpu_init;
+	impl.free = ppc_cpu_free;
+	impl.stop = ppc_cpu_stop;
+	impl.atomic_raise_ext_exception = ppc_cpu_atomic_raise_ext_exception;
+	impl.atomic_cancel_ext_exception = ppc_cpu_atomic_cancel_ext_exception;
+	impl.set_pc = ppc_cpu_set_pc;
+	impl.run_continuous = ppc_cpu_run_continuous;
+	impl.run_single = ppc_cpu_run_single;
+	impl.get_dec = ppc_cpu_get_dec;
+	impl.do_dec = ppc_cpu_do_dec;
 
 	return true;
-}
-
+#else
+	return false;
 #endif
+}
 
 static void load_ppc_implementation()
 {
 	int impl = currprefs.ppc_implementation;
-#ifdef WITH_QEMU_CPU
 	if (impl == PPC_IMPLEMENTATION_AUTO || impl == PPC_IMPLEMENTATION_QEMU) {
 		if (load_qemu_implementation()) {
 			ppc_implementation = PPC_IMPLEMENTATION_QEMU;
 			return;
 		}
 	}
-#endif
-#ifdef WITH_PEARPC_CPU
 	if (impl == PPC_IMPLEMENTATION_AUTO || impl == PPC_IMPLEMENTATION_PEARPC) {
 		if (load_pearpc_implementation()) {
 			ppc_implementation = PPC_IMPLEMENTATION_PEARPC;
 			return;
 		}
 	}
-#endif
 	load_dummy_implementation();
-	ppc_implementation = 0;
+	ppc_implementation = PPC_IMPLEMENTATION_DUMMY;
+}
+
+static bool using_qemu()
+{
+    return ppc_implementation == PPC_IMPLEMENTATION_QEMU;
+}
+
+static bool using_pearpc()
+{
+    return ppc_implementation == PPC_IMPLEMENTATION_PEARPC;
 }
 
 static void initialize()
@@ -276,11 +322,19 @@ static void initialize()
 		return;
 	}
 	initialized = true;
+
 	load_ppc_implementation();
+
+	/* Grab the lock for the first time. This lock will be released
+	 * by the UAE emulation thread when the PPC CPU can do I/O. */
+	uae_ppc_spinlock_get();
 }
 
 static void map_banks(void)
 {
+	if (impl.map_memory == NULL) {
+		return;
+	}
 	/*
 	 * Use NULL for memory to get callbacks for read/write. Use real
 	 * memory address for direct access to RAM banks (looks like this
@@ -300,9 +354,25 @@ static void map_banks(void)
 		regions[i].alias = r->alias;
 		regions[i].memory = r->memory;
 	}
-	g_ppc_cpu_map_memory(regions, map.num_regions);
+	impl.map_memory(regions, map.num_regions);
 	for (int i = 0; i < map.num_regions; i++) {
 		free(regions[i].name);
+	}
+}
+
+static void set_and_wait_for_state(int state, int unlock)
+{
+	if (using_qemu()) {
+		impl.set_state(state);
+		while (!impl.check_state(state)) {
+			if (unlock) {
+				uae_ppc_spinlock_release();
+			}
+			sleep_millis(1);
+			if (unlock) {
+				uae_ppc_spinlock_get();
+			}
+		}
 	}
 }
 
@@ -310,7 +380,7 @@ static void cpu_init()
 {
 	const TCHAR *model;
 
-	/* Setting default CPU model based on accelerator board */
+	/* Set default CPU model based on accelerator board */
 	if (currprefs.cpuboard_type == BOARD_BLIZZARDPPC) {
 		model = _T("603ev");
 	} else {
@@ -326,11 +396,11 @@ static void cpu_init()
 	}
 #endif
 
-	if (g_ppc_cpu_init_with_model) {
+	if (impl.init) {
 		char *models = ua(model);
-		g_ppc_cpu_init_with_model(models);
+		impl.init(models);
 		free(models);
-	} else {
+	} else if (impl.init_pvr) {
 		uint32_t pvr = 0;
 		if (_tcsicmp(model, _T("603ev")) == 0) {
 			pvr = BLIZZPPC_PVR;
@@ -343,7 +413,7 @@ static void cpu_init()
 			write_log(_T("PPC: Unrecognized model \"%s\", using PVR 0x%08x\n"), model, pvr);
 		}
 		write_log(_T("PPC: Calling ppc_cpu_init with PVR 0x%08x\n"), pvr);
-		g_ppc_cpu_init(pvr);
+		impl.init_pvr(pvr);
 	}
 
 	/* Map memory and I/O banks (for QEmu PPC implementation) */
@@ -354,14 +424,21 @@ static void uae_ppc_cpu_reset(void)
 {
 	TRACE(_T("uae_ppc_cpu_reset\n"));
 	initialize();
+
 	if (!ppc_cpu_init_done) {
 		write_log(_T("PPC: Hard reset\n"));
 		cpu_init();
 		ppc_cpu_init_done = true;
 	}
-	write_log(_T("PPC: Init\n"));
-	g_ppc_cpu_set_pc(0, 0xfff00100);
-	ppc_cycle_count = 2000;
+
+	if (using_qemu()) {
+		impl.reset();
+	} else if (using_pearpc()) {
+		write_log(_T("PPC: Init\n"));
+		impl.set_pc(0, 0xfff00100);
+		ppc_cycle_count = 2000;
+	}
+
 	ppc_state = PPC_STATE_ACTIVE;
 	ppc_cpu_lock_state = 0;
 }
@@ -369,11 +446,14 @@ static void uae_ppc_cpu_reset(void)
 static void *ppc_thread(void *v)
 {
 	uae_ppc_cpu_reset();
-	g_ppc_cpu_run_continuous();
-	if (ppc_state == PPC_STATE_ACTIVE || ppc_state == PPC_STATE_SLEEP)
-		ppc_state = PPC_STATE_STOP;
-	write_log(_T("ppc_cpu_run() exited.\n"));
-	ppc_thread_running = false;
+	impl.run_continuous();
+
+	if (using_pearpc()) {
+		if (ppc_state == PPC_STATE_ACTIVE || ppc_state == PPC_STATE_SLEEP)
+			ppc_state = PPC_STATE_STOP;
+		write_log(_T("ppc_cpu_run() exited.\n"));
+		ppc_thread_running = false;
+	}
 	return NULL;
 }
 
@@ -393,14 +473,11 @@ void uae_ppc_execute_quick(int linetype)
 
 void uae_ppc_emulate(void)
 {
-	if (ppc_implementation == PPC_IMPLEMENTATION_QEMU)
-		return;
-
-	ppc_interrupt(intlev());
-
-	//TRACE(_T("uae_ppc_emulate\n"));
-	if (ppc_state == PPC_STATE_ACTIVE || ppc_state == PPC_STATE_SLEEP)
-		g_ppc_cpu_run_single(10);
+	if (using_pearpc()) {
+		ppc_interrupt(intlev());
+		if (ppc_state == PPC_STATE_ACTIVE || ppc_state == PPC_STATE_SLEEP)
+			impl.run_single(10);
+	}
 }
 
 bool uae_ppc_direct_physical_memory_handle(uint32_t addr, uint8_t *&ptr)
@@ -556,39 +633,55 @@ bool UAECALL uae_ppc_io_mem_read64(uint32_t addr, uint64_t *data)
 
 void uae_ppc_cpu_stop(void)
 {
-	TRACE(_T("uae_ppc_cpu_stop\n"));
-	if (ppc_thread_running && ppc_state) {
-		write_log(_T("Stopping PPC.\n"));
-		uae_ppc_wakeup();
-		g_ppc_cpu_stop();
-		while (ppc_state != PPC_STATE_STOP && ppc_state != PPC_STATE_CRASH) {
-			uae_ppc_wakeup();
-			if (ppc_use_spinlock) {
-				uae_ppc_spinlock_release();
-				uae_ppc_spinlock_get();
-			}
-		}
+	TRACE(_T("uae_ppc_cpu_stop %d %d\n"), ppc_thread_running, ppc_state);
+
+	if (using_qemu()) {
+		write_log(_T("PPC: Stopping...\n"));
+		set_and_wait_for_state(PPC_CPU_STATE_PAUSED, 1);
 		ppc_state = PPC_STATE_STOP;
-		write_log(_T("PPC stopped.\n"));
+		write_log(_T("PPC: Stopped\n"));
+	}
+	else if (using_pearpc()) {
+		if (ppc_thread_running && ppc_state) {
+			write_log(_T("PPC: Stopping...\n"));
+			uae_ppc_wakeup();
+			impl.stop();
+			while (ppc_state != PPC_STATE_STOP && ppc_state != PPC_STATE_CRASH) {
+				uae_ppc_wakeup();
+				if (ppc_use_spinlock) {
+					uae_ppc_spinlock_release();
+					uae_ppc_spinlock_get();
+				}
+			}
+			ppc_state = PPC_STATE_STOP;
+			write_log(_T("PPC: Stopped\n"));
+		}
 	}
 }
 
 void uae_ppc_cpu_reboot(void)
 {
 	TRACE(_T("uae_ppc_cpu_reboot\n"));
+	initialize();
 
-	uae_ppc_spinlock_reset();
+	// uae_ppc_spinlock_reset();
+
 	ppc_io_pipe = false;
 	ppc_use_spinlock = true;
 
 	if (ppc_main_thread) {
 		uae_ppc_cpu_reset();
 	} else {
-		write_log(_T("Starting PPC thread.\n"));
 		if (!ppc_thread_running) {
+			write_log(_T("PPC: Starting PPC thread\n"));
 			ppc_thread_running = true;
 			ppc_main_thread = false;
 			uae_start_thread(_T("ppc"), ppc_thread, NULL, NULL);
+		}
+		else if (using_qemu()) {
+			write_log(_T("PPC: Thread already running, resetting\n"));
+			uae_ppc_cpu_reset();
+			set_and_wait_for_state(PPC_CPU_STATE_RUNNING, 1);
 		}
 	}
 }
@@ -596,12 +689,17 @@ void uae_ppc_cpu_reboot(void)
 void uae_ppc_reset(bool hardreset)
 {
 	TRACE(_T("uae_ppc_reset hardreset=%d\n"), hardreset);
-	uae_ppc_cpu_stop();
-	ppc_main_thread = false;
-	if (hardreset) {
-		if (ppc_init_done)
-			g_ppc_cpu_free();
-		ppc_init_done = false;
+	if (using_qemu()) {
+	    set_and_wait_for_state(PPC_CPU_STATE_PAUSED, 1);
+	}
+	else if (using_pearpc()) {
+		uae_ppc_cpu_stop();
+		ppc_main_thread = false;
+		if (hardreset) {
+			if (ppc_init_done)
+				impl.free();
+			ppc_init_done = false;
+		}
 	}
 }
 
@@ -627,19 +725,17 @@ bool uae_ppc_cpu_unlock(void)
 
 void uae_ppc_wakeup(void)
 {
-	//TRACE(_T("uae_ppc_wakeup\n"));
 	if (ppc_state == PPC_STATE_SLEEP)
 		ppc_state = PPC_STATE_ACTIVE;
 }
 
 void uae_ppc_interrupt(bool active)
 {
-	//TRACE(_T("uae_ppc_interrupt\n"));
 	if (active) {
-		g_ppc_cpu_atomic_raise_ext_exception();
+		impl.atomic_raise_ext_exception();
 		uae_ppc_wakeup();
 	} else {
-		g_ppc_cpu_atomic_cancel_ext_exception();
+		impl.atomic_cancel_ext_exception();
 	}
 }
 
@@ -659,25 +755,40 @@ void uae_ppc_crash(void)
 {
 	TRACE(_T("uae_ppc_crash\n"));
 	ppc_state = PPC_STATE_CRASH;
-	g_ppc_cpu_stop();
+	if (impl.stop) {
+		impl.stop();
+	}
 }
 
 void uae_ppc_hsync_handler(void)
 {
-	if (ppc_state != PPC_STATE_SLEEP)
-		return;
-	if (g_ppc_cpu_get_dec() == 0) {
-		uae_ppc_wakeup();
-	} else {
-		g_ppc_cpu_do_dec(ppc_cycle_count);
+	if (using_pearpc()) {
+		if (ppc_state != PPC_STATE_SLEEP)
+			return;
+		if (impl.get_dec() == 0) {
+			uae_ppc_wakeup();
+		} else {
+			impl.do_dec(ppc_cycle_count);
+		}
 	}
 }
 
 void uae_ppc_pause(int pause)
 {
-	if (g_ppc_cpu_pause) {
-		g_ppc_cpu_pause(pause);
+	// FIXME: assert(uae_is_emulation_thread())
+	if (using_qemu()) {
+		if (pause) {
+			set_and_wait_for_state(PPC_CPU_STATE_PAUSED, 1);
+		}
+		else {
+			set_and_wait_for_state(PPC_CPU_STATE_RUNNING, 1);
+		}
 	}
+#if 0
+	else if (impl.pause) {
+		impl.pause(pause);
+	}
+#endif
 }
 
 #ifdef FSUAE // NL
@@ -685,7 +796,16 @@ void uae_ppc_pause(int pause)
 UAE_EXTERN_C void fsuae_ppc_pause(int pause);
 UAE_EXTERN_C void fsuae_ppc_pause(int pause)
 {
-	uae_ppc_pause(pause);
+	/* We cannot call uae_ppc_pause except from the UAE thread due
+	 * to use of the spinlock */
+	if (using_qemu()) {
+		if (pause) {
+			set_and_wait_for_state(PPC_CPU_STATE_PAUSED, 0);
+		}
+		else {
+			set_and_wait_for_state(PPC_CPU_STATE_RUNNING, 0);
+		}
+	}
 }
 
 #endif

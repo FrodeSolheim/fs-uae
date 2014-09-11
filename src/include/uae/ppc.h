@@ -93,8 +93,9 @@ typedef struct PPCMemoryRegion {
     uint32_t alias;
 } PPCMemoryRegion;
 
-bool PPCCALL ppc_cpu_init(uint32_t pvr);
-bool PPCCALL ppc_cpu_init_with_model(const char *model);
+void PPCCALL ppc_cpu_version(int *major, int *minor, int *revision);
+bool PPCCALL ppc_cpu_init(const char *model);
+bool PPCCALL ppc_cpu_init_pvr(uint32_t pvr);
 void PPCCALL ppc_cpu_free(void);
 void PPCCALL ppc_cpu_stop(void);
 void PPCCALL ppc_cpu_atomic_raise_ext_exception(void);
@@ -106,6 +107,14 @@ void PPCCALL ppc_cpu_run_single(int count);
 uint64_t PPCCALL ppc_cpu_get_dec(void);
 void PPCCALL ppc_cpu_do_dec(int value);
 void PPCCALL ppc_cpu_pause(int pause);
+void PPCCALL ppc_cpu_reset(void);
+
+#define PPC_CPU_STATE_RUNNING 1
+#define PPC_CPU_STATE_PAUSED 2
+
+//int PPCCALL ppc_cpu_get_state();
+bool PPCCALL ppc_cpu_check_state(int state);
+void PPCCALL ppc_cpu_set_state(int state);
 
 /* Other PPC defines */
 

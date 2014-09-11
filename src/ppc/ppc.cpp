@@ -29,46 +29,42 @@
 #define TRACE(format, ...) write_log(_T("PPC: ---------------- ") format, ## __VA_ARGS__)
 
 
-#ifdef _WIN32
-static volatile unsigned int ppc_spinlock, spinlock_cnt;
-#else
+#ifdef FSUAE
 #include <glib.h>
 static GMutex mutex;
+#else
+static volatile unsigned int ppc_spinlock, spinlock_cnt;
 #endif
 
 void uae_ppc_spinlock_get(void)
 {
-#ifdef _WIN32
+#ifdef FSUAE
+	g_mutex_lock(&mutex);
+#else
 	int sp = spinlock_cnt;
 	if (sp != 0 && sp != 1)
 		write_log(_T("uae_ppc_spinlock_get invalid %d\n"),  sp);
 
-	while (true)
-	{
-		if(InterlockedCompareExchange(&ppc_spinlock, 1, 0) == 0) {
-			if (spinlock_cnt)
-				write_log(_T("uae_ppc_spinlock_get %d!\n"), spinlock_cnt);
-			spinlock_cnt = 1;
-			break;
-		}
-	}
-#else
-	g_mutex_lock(&mutex);
+	while (InterlockedExchange (&ppc_spinlock, 1));
+	if (spinlock_cnt)
+		write_log(_T("uae_ppc_spinlock_get %d!\n"), spinlock_cnt);
+	spinlock_cnt = 1;
 #endif
 }
 void uae_ppc_spinlock_release(void)
 {
-#ifdef _WIN32
+#ifdef FSUAE
+	g_mutex_unlock(&mutex);
+#else
 	if (--spinlock_cnt)
 		write_log(_T("uae_ppc_spinlock_release %d!\n"), spinlock_cnt);
 	InterlockedExchange(&ppc_spinlock, 0);
-#else
-	g_mutex_unlock(&mutex);
 #endif
 }
 void uae_ppc_spinlock_reset(void)
 {
-#ifdef _WIN32
+#ifdef FSUAE
+#else
 	spinlock_cnt = 0;
 #endif
 	uae_ppc_spinlock_get();
@@ -200,7 +196,7 @@ static bool load_qemu_implementation()
 	UAE_DLHANDLE handle = uae_dlopen(_T("qemu-uae.dll"));
 #endif
 	if (!handle) {
-		write_log(_T("PPC: Error loading qemu-uae library\n"));
+		gui_message(_T("PPC: Error loading qemu-uae library\n"));
 		return false;
 	}
 	write_log(_T("PPC: Loaded qemu-uae library at %p\n"), handle);
@@ -292,9 +288,6 @@ static void initialize()
 	load_ppc_implementation();
 }
 
-/* hack for NCR SCSI RAM */
-// #define F41000_HACK
-
 static void map_banks(void)
 {
 	/*
@@ -308,44 +301,16 @@ static void map_banks(void)
 	UaeMemoryMap map;
 	uae_memory_map(&map);
 
-#ifdef F41000_HACK
-	UaeMemoryRegion * rf00000 = NULL;
-#endif
-	int k = 0;
 	for (int i = 0; i < map.num_regions; i++) {
 		UaeMemoryRegion *r = &map.regions[i];
-		regions[k].start = r->start;
-		regions[k].size = r->size;
-		regions[k].name = ua(r->name);
-		regions[k].alias = r->alias;
-		regions[k].memory = r->memory;
-
-#ifdef F41000_HACK
-		if (r->start == 0xf00000) {
-			rf00000 = r;
-		}
-		else if (r->start == 0xf40000) {
-		    regions[k].size = 0x1000;
-
-		    k += 1;
-		    regions[k].start = 0xf41000;
-		    regions[k].size = 0x2000;
-		    regions[k].name = ua(_T("NCR SCSI RAM"));
-		    regions[k].alias = 0;
-		    regions[k].memory = rf00000->memory + 0x41000;
-
-		    k += 1;
-		    regions[k].start = 0xf43000;
-		    regions[k].size = r->size - 0x3000;
-		    regions[k].name = ua(r->name);
-		    regions[k].alias = 0;
-		    regions[k].memory = NULL;
-		}
-#endif
-		k += 1;
+		regions[i].start = r->start;
+		regions[i].size = r->size;
+		regions[i].name = ua(r->name);
+		regions[i].alias = r->alias;
+		regions[i].memory = r->memory;
 	}
-	g_ppc_cpu_map_memory(regions, k);
-	for (int i = 0; i < k; i++) {
+	g_ppc_cpu_map_memory(regions, map.num_regions);
+	for (int i = 0; i < map.num_regions; i++) {
 		free(regions[i].name);
 	}
 }
@@ -371,7 +336,9 @@ static void cpu_init()
 #endif
 
 	if (g_ppc_cpu_init_with_model) {
-		g_ppc_cpu_init_with_model(model);
+		char *models = ua(model);
+		g_ppc_cpu_init_with_model(models);
+		free(models);
 	} else {
 		uint32_t pvr = 0;
 		if (_tcsicmp(model, _T("603ev")) == 0) {

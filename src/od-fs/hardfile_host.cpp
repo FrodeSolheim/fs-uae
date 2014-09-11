@@ -702,8 +702,18 @@ int hdf_resize_target(struct hardfiledata *hfd, uae_u64 newsize)
         uae_log("hdf_resize_target: truncation not implemented\n");
         return 0;
     }
-    if (uae_fseeko64(hfd->handle->h, newsize, SEEK_SET) != 0) {
+    if (newsize == hfd->physsize) {
+        return 1;
+    }
+    /* Now, newsize must be larger than hfd->physsize, we seek to newsize - 1
+     * and write a single 0 byte to make the file exactly newsize bytes big. */
+    if (uae_fseeko64(hfd->handle->h, newsize - 1, SEEK_SET) != 0) {
         uae_log("hdf_resize_target: fseek failed errno %d\n", errno);
+        return 0;
+    }
+    if (fwrite("", 1, 1, hfd->handle->h) != 1) {
+        uae_log("hdf_resize_target: failed to write byte at position "
+                "%lld errno %d\n", newsize - 1, errno);
         return 0;
     }
     uae_log("hdf_resize_target: %lld -> %lld\n", hfd->physsize, newsize);

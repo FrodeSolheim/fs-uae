@@ -3015,7 +3015,7 @@ static void memory_map_dump_3(UaeMemoryMap *map, int log)
 					mirrored, mirrored ? size_out / mirrored : size_out, size_ext, name);
 #endif
 				tmp[0] = 0;
-				if (a1->flags == ABFLAG_ROM && mirrored) {
+				if ((a1->flags & ABFLAG_ROM) && mirrored) {
 					TCHAR *p = txt + _tcslen (txt);
 					uae_u32 crc = get_crc32 (a1->xlateaddr((j << 16) | bankoffset), (size * 1024) / mirrored);
 					struct romdata *rd = getromdatabycrc (crc);

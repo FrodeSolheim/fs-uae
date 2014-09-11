@@ -706,6 +706,7 @@ int hdf_resize_target(struct hardfiledata *hfd, uae_u64 newsize)
         uae_log("hdf_resize_target: fseek failed errno %d\n", errno);
         return 0;
     }
+    uae_log("hdf_resize_target: %lld -> %lld\n", hfd->physsize, newsize);
     hfd->physsize = newsize;
     return 1;
 }

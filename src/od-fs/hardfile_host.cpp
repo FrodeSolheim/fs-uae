@@ -16,6 +16,7 @@
 #include "zfile.h"
 #include "uae/fs.h"
 #include "uae/io.h"
+#include "uae/log.h"
 
 #ifdef MACOSX
 #include <sys/stat.h>
@@ -695,12 +696,18 @@ int hdf_write_target (struct hardfiledata *hfd, void *buffer, uae_u64 offset, in
     return got;
 }
 
-int hdf_resize_target (struct hardfiledata *hfd, uae_u64 newsize)
+int hdf_resize_target(struct hardfiledata *hfd, uae_u64 newsize)
 {
-    int err = 0;
-
-    write_log ("hdf_resize_target: SetEndOfFile() %d\n", err);
-    return 0;
+    if (newsize < hfd->physsize) {
+        uae_log("hdf_resize_target: truncation not implemented\n");
+        return 0;
+    }
+    if (uae_fseeko64(hfd->handle->h, newsize, SEEK_SET) != 0) {
+        uae_log("hdf_resize_target: fseek failed errno %d\n", errno);
+        return 0;
+    }
+    hfd->physsize = newsize;
+    return 1;
 }
 
 static int num_drives;

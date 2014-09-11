@@ -1,10 +1,12 @@
 Version 2.5.15dev:
 
+* Implemented support for growable VHD hard drive images.
 * Added proper error message when libcapsimage plugin is missing.
 * Use new dlopen plugin interface to load ppc and libcapsimage plugins.
 
 Version 2.5.14dev:
 
+* Updated emulation core from WinUAE 2900b15.
 * Updates to Qemu PPC CPU integration.
 * New option: cdrom_drive_0_controller (to specify for example ide1)
 * Fixed problem when inserting, ejecting and then inserting a CD again.

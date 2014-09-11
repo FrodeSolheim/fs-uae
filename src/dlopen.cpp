@@ -2,25 +2,31 @@
 #include "sysdeps.h"
 
 #include "uae/dlopen.h"
-#ifdef _WIN32
+#include "uae/log.h"
 
+#ifdef _WIN32
+#include "Windows.h"
 #else
 #include <dlfcn.h>
+#endif
+#ifdef WINUAE
+#include "od-win32/win32.h"
 #endif
 
 UAE_DLHANDLE uae_dlopen(const TCHAR *path)
 {
 	UAE_DLHANDLE result;
-#ifdef WINUAE
-	extern HMODULE WIN32_LoadLibrary(const TCHAR *name);
-	result = WIN32_LoadLibrary(path);
-#elif defined(_WIN32)
+	if (path == NULL or path[0] == _T('\0')) {
+		write_log(_T("DLOPEN: No path given\n"));
+		return NULL;
+	}
+#ifdef _WIN32
 	result = LoadLibrary(path);
 #else
 	result = dlopen(path, RTLD_NOW);
 	const char *error = dlerror();
 	if (error != NULL)  {
-		write_log("uae_dlopen failed: %s\n", error);
+		write_log("DLOPEN: %s\n", error);
 	}
 #endif
 	return result;
@@ -49,12 +55,58 @@ void uae_dlclose(UAE_DLHANDLE handle)
 #endif
 }
 
-#include "uae/log.h"
+#ifdef FSUAE
+#include "uae/uae.h"
+static amiga_plugin_lookup_function plugin_lookup;
+#endif
 
-void uae_patch_library_common(UAE_DLHANDLE handle)
+UAE_DLHANDLE uae_dlopen_plugin(const TCHAR *name)
 {
-	void *ptr;
+	const TCHAR *path = NULL;
+#ifdef FSUAE
+	TCHAR lib_name[MAX_DPATH] = {};
+	_tcscat(lib_name, _T("lib"));
+	_tcscat(lib_name, name);
+	if (plugin_lookup) {
+		path = plugin_lookup(lib_name);
+	}
+	if (path == NULL or path[0] == _T('\0')) {
+		write_log(_T("DLOPEN: Could not find plugin \"%s\"\n"), name);
+		return NULL;
+	}
+	UAE_DLHANDLE handle = uae_dlopen(path);
+#else
+	TCHAR path[MAX_DPATH] = {}
+	_tcscat(path, name);
+	_tcscat(path, _T(".dll"));
+	UAE_DLHANDLE handle = WIN32_LoadLibrary(path);
+#endif
+	if (handle) {
+		write_log(_T("DLOPEN: Loaded plugin %s\n"), path);
+		uae_dlopen_patch_common(handle);
+	}
+	return handle;
+}
 
+void uae_dlopen_patch_common(UAE_DLHANDLE handle)
+{
+	write_log(_T("DLOPEN: Patching common functions\n"));
+	void *ptr;
 	ptr = uae_dlsym(handle, "uae_log");
 	if (ptr) *((uae_log_function *) ptr) = &uae_log;
 }
+
+#ifdef FSUAE // NL
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void amiga_set_plugin_lookup_function(amiga_plugin_lookup_function function)
+{
+	plugin_lookup = function;
+}
+
+#ifdef __cplusplus
+}
+#endif
+#endif /* FSUAE */

@@ -42,9 +42,6 @@ int amiga_set_synchronization_log_file(const char *path);
 int amiga_quickstart(int model, int config, int accuracy);
 //int amiga_main(int argc, char** argv);
 
-void amiga_set_caps_library_path(const char *path);
-const char* amiga_get_caps_library_path(void);
-
 // must call before amiga_main
 void amiga_set_video_format(int format);
 
@@ -153,32 +150,43 @@ typedef struct _RenderData {
 } RenderData;
 
 typedef void (*event_function)(int);
-typedef void (*init_function)(void);
-typedef void (*render_function)(RenderData *rd);
-typedef void (*display_function)();
-typedef void (*log_function)(const char *msg);
-typedef void (*amiga_led_function)(int led, int on);
-typedef void (*amiga_media_function)(int drive, const char *path);
-
 void amiga_set_event_function(event_function function);
+
+typedef void (*init_function)(void);
 void amiga_set_init_function(init_function function);
+
+typedef void (*render_function)(RenderData *rd);
 void amiga_set_render_function(render_function function);
+
+typedef void (*display_function)();
 void amiga_set_display_function(display_function function);
+
+typedef void (*log_function)(const char *msg);
 void amiga_set_log_function(log_function function);
 void amiga_set_gui_message_function(log_function function);
+
+typedef void (*amiga_led_function)(int led, int on);
 void amiga_set_led_function(amiga_led_function function);
+
+typedef void (*amiga_media_function)(int drive, const char *path);
 void amiga_set_media_function(amiga_media_function function);
+
+typedef const char * (*amiga_plugin_lookup_function)(const char *name);
+void amiga_set_plugin_lookup_function(amiga_plugin_lookup_function function);
 
 typedef int (*audio_callback)(int type, int16_t *buffer, int size);
 int amiga_set_audio_callback(audio_callback func);
 int amiga_set_cd_audio_callback(audio_callback func);
+
 int amiga_set_audio_buffer_size(int size);
 int amiga_set_audio_frequency(int frequency);
 
 int amiga_set_option(const char *option, const char *value);
+
 typedef void (*amiga_free_function)(void* data);
 int amiga_set_option_and_free(const char *option, char *value,
     amiga_free_function free_function);
+
 int amiga_set_hardware_option(const char *option, const char *value);
 int amiga_set_int_option(const char *option, int value);
 

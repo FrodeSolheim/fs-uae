@@ -184,19 +184,10 @@ static void uae_patch_library_ppc(UAE_DLHANDLE handle)
 static bool load_qemu_implementation()
 {
 	write_log(_T("PPC: Loading QEmu implementation\n"));
-	// FIXME: replace with a callback to get the qemu path (so it can be
-	// implemented separately by WinUAE and FS-UAE.
-#ifdef FSUAE
-#ifdef _WIN32
-	UAE_DLHANDLE handle = uae_dlopen(_T("qemu-uae/qemu-uae.dll"));
-#else
-	UAE_DLHANDLE handle = uae_dlopen(_T("qemu-uae/qemu-uae.so"));
-#endif
-#else
-	UAE_DLHANDLE handle = uae_dlopen(_T("qemu-uae.dll"));
-#endif
+
+	UAE_DLHANDLE handle = uae_dlopen_plugin(_T("qemu-uae"));
 	if (!handle) {
-		gui_message(_T("PPC: Error loading qemu-uae library\n"));
+		gui_message(_T("PPC: Error loading qemu-uae plugin\n"));
 		return false;
 	}
 	write_log(_T("PPC: Loaded qemu-uae library at %p\n"), handle);
@@ -221,7 +212,7 @@ static bool load_qemu_implementation()
 	/* register callback functions */
 #endif
 
-        uae_patch_library_common(handle);
+        uae_dlopen_patch_common(handle);
         uae_patch_library_ppc(handle);
         return true;
 }

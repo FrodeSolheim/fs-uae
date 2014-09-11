@@ -88,16 +88,6 @@ void target_addtorecent (const TCHAR *name, int t) {
     STUB("name=\"%s\" t=%d", name, t);
 }
 
-void notify_user (int msg) {
-    STUB("msg=%d", msg);
-    gui_message (_T("notify_user msg #%d\n"), msg);
-}
-
-void notify_user_parms (int msg, const TCHAR *parms, ...) {
-    STUB("msg=%d parms=\"%s\"", msg, parms);
-    gui_message (_T("notify_user msg #%d\n"), msg);
-}
-
 uae_u8 sampler_getsample (int) {
     return 0;
 }

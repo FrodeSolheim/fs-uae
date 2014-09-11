@@ -1,6 +1,7 @@
 #include "sysconfig.h"
 #include "sysdeps.h"
 #include "uae.h"
+#include "gui.h"
 #include "uae/fs.h"
 
 #include <stdio.h>
@@ -10,7 +11,8 @@
 int log_scsi = 0;
 int log_net = 0;
 
-void write_log (const TCHAR *format, ...) {
+void write_log (const TCHAR *format, ...)
+{
     va_list args;
     va_start(args, format);
     char *buffer = g_strdup_vprintf(format, args);
@@ -25,7 +27,8 @@ void write_log (const TCHAR *format, ...) {
     free(buffer);
 }
 
-void gui_message (const char *format,...) {
+void gui_message (const char *format,...)
+{
     va_list args;
     va_start(args, format);
     char *buffer = fs_strdup_vprintf(format, args);
@@ -39,7 +42,23 @@ void gui_message (const char *format,...) {
     free(buffer);
 }
 
-void jit_abort (const TCHAR *format,...) {
+void notify_user (int msg)
+{
+    if (msg == NUMSG_NOCAPS) {
+                gui_message(_T("Missing libcapsimage plugin"));
+    }
+    else {
+        gui_message (_T("notify_user msg #%d\n"), msg);
+    }
+}
+
+void notify_user_parms (int msg, const TCHAR *parms, ...)
+{
+    gui_message (_T("notify_user msg #%d\n"), msg);
+}
+
+void jit_abort (const TCHAR *format,...)
+{
 
     va_list args;
     va_start(args, format);

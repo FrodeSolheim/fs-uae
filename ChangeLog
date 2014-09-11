@@ -1,3 +1,8 @@
+Version 2.5.15dev:
+
+* Added proper error message when libcapsimage plugin is missing.
+* Use new dlopen plugin interface to load ppc and libcapsimage plugins.
+
 Version 2.5.14dev:
 
 * Updates to Qemu PPC CPU integration.

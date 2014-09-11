@@ -21,7 +21,18 @@
     #define ARCH_NAME "unknown"
 #endif
 
-static void load_plugin_provides(const char *path, GKeyFile *key_file, const char *group_name) {
+static GHashTable *provides;
+
+static const char *lookup_plugin(const char *name)
+{
+    fs_log("PLUGIN: Looking up \"%s\"\n", name);
+    void *data = g_hash_table_lookup(provides, name);
+    return (const char *) data;
+}
+
+static void load_plugin_provides(const char *path, GKeyFile *key_file,
+                                 const char *group_name)
+{
     gchar **keys = g_key_file_get_keys(key_file, group_name, NULL, NULL);
     if (keys == NULL) {
         return;
@@ -31,17 +42,19 @@ static void load_plugin_provides(const char *path, GKeyFile *key_file, const cha
         if (value == NULL) {
             continue;
         }
-        if (strcmp(key, "libcapsimage") == 0) {
-            fs_log("Found libcapsimage provide -> %s\n", value);
-            gchar *p = g_build_filename(path, value, NULL);
-            amiga_set_caps_library_path(p);
+        gchar *p = g_build_filename(path, value, NULL);
+        if (g_file_test(p, G_FILE_TEST_EXISTS)) {
+            g_hash_table_insert(provides, g_strdup(key), p);
+        }
+        else {
             g_free(p);
         }
     }
     g_strfreev(keys);
 }
 
-static void load_plugin(const char *path, const char *ini_path) {
+static void load_plugin(const char *path, const char *ini_path)
+{
     fs_log("Loading %s\n", path);
     GKeyFile *key_file = g_key_file_new();
     if (!g_key_file_load_from_file(key_file, ini_path, G_KEY_FILE_NONE, NULL)) {
@@ -62,8 +75,12 @@ static void load_plugin(const char *path, const char *ini_path) {
     g_key_file_free(key_file);
 }
 
-void fs_uae_plugins_init() {
+void fs_uae_plugins_init()
+{
     fs_log("Initializing plugins\n");
+    provides = g_hash_table_new(g_str_hash, g_str_equal);
+    amiga_set_plugin_lookup_function(lookup_plugin);
+
     const char *plugins_dir = fs_uae_plugins_dir();
     GDir *dir = g_dir_open(plugins_dir, 0, NULL);
     if (!dir) {

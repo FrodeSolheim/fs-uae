@@ -1672,7 +1672,7 @@ void expamem_reset (void)
 		}
 		if (fastmem2_bank.baseaddr != NULL) {
 			fastmem2_bank.name = _T("Fast memory 2 (non-autoconfig)");
-			map_banks(&fastmem2_bank, (0x00200000 + fastmem2_bank.allocated) >> 16, fastmem2_bank.allocated >> 16, 0);
+			map_banks(&fastmem2_bank, (0x00200000 + fastmem_bank.allocated) >> 16, fastmem2_bank.allocated >> 16, 0);
 		}
 	}
 	// immediately after Z2Fast so that they can be emulated as A590/A2091 with fast ram.

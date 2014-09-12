@@ -1,5 +1,6 @@
 Version 2.5.15dev:
 
+* Allow 1 to be used as true/yes for boolean uae_* options.
 * Removed cpu_idle override, added new cpu_idle option (0 - 10).
 * Implemented support for growable VHD hard drive images.
 * Added proper error message when libcapsimage plugin is missing.

@@ -1592,7 +1592,8 @@ static int cfgfile_yesno (const TCHAR *option, const TCHAR *value, const TCHAR *
 	if (name != NULL && _tcscmp (option, name) != 0)
 		return 0;
 	if (strcasecmp (value, _T("yes")) == 0 || strcasecmp (value, _T("y")) == 0
-		|| strcasecmp (value, _T("true")) == 0 || strcasecmp (value, _T("t")) == 0)
+		|| strcasecmp (value, _T("true")) == 0 || strcasecmp (value, _T("t")) == 0
+		|| (numbercheck && strcasecmp (value, _T("1")) == 0))
 		*location = 1;
 	else if (strcasecmp (value, _T("no")) == 0 || strcasecmp (value, _T("n")) == 0
 		|| strcasecmp (value, _T("false")) == 0 || strcasecmp (value, _T("f")) == 0

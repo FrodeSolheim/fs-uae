@@ -10,6 +10,8 @@
 #include <fs/i18n.h>
 #include "fs-uae.h"
 
+#include "options.h"
+
 amiga_config g_fs_uae_amiga_configs[CONFIG_LAST + 1] = {};
 int g_fs_uae_amiga_config = 0;
 int g_fs_uae_ntsc_mode = 0;
@@ -449,13 +451,12 @@ void fs_uae_configure_amiga_hardware() {
         amiga_set_option("cpu_compatible", "false");
         amiga_set_option("waiting_blits", "false");
         amiga_set_option("immediate_blits", "true");
-
-
     }
 
-    //if (g_fs_uae_fastest_possible) {
-        amiga_set_cpu_idle(2);
-    //}
+    int cpu_idle = fs_config_get_int_clamped(OPTION_CPU_IDLE, 0, 10);
+    if (cpu_idle != FS_CONFIG_NONE) {
+        amiga_set_cpu_idle(cpu_idle);
+    }
 
     if (g_fs_uae_ntsc_mode) {
         // FIXME: ciiatod on some Amiga models?

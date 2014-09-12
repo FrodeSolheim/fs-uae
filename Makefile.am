@@ -92,6 +92,7 @@ fs_uae_SOURCES = \
 	src/fs-uae/main.c \
 	src/fs-uae/menu.c \
 	src/fs-uae/mouse.c \
+	src/fs-uae/options.h \
 	src/fs-uae/paths.c \
 	src/fs-uae/paths.h \
 	src/fs-uae/plugins.c \

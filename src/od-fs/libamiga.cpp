@@ -21,6 +21,8 @@
 #include "luascript.h"
 
 #include "uae/fs.h"
+#include <glib.h>
+#include "uae/log.h"
 
 void keyboard_settrans (void);
 libamiga_callbacks g_libamiga_callbacks = {};
@@ -331,8 +333,13 @@ int amiga_enable_serial_port(const char *serial_name) {
     return 1;
 }
 
-void amiga_set_cpu_idle(int idle) {
-    write_log("setting cpu_idle = %d\n", idle);
+void amiga_set_cpu_idle(int idle)
+{
+    idle = CLAMP(idle, 0, 10);
+    if (idle != 0) {
+        idle = (12 - idle) * 15;
+    }
+    uae_log("setting cpu_idle = %d\n", idle);
     changed_prefs.cpu_idle = idle;
     currprefs.cpu_idle = idle;
 }

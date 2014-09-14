@@ -388,7 +388,7 @@ static void bcx(int Disp, int L)
     if(Disp)
     {
         bd = DIS_UIMM & ~3;
-        if(bd & 0x8000) bd |= 0xffffffffffff0000;
+        if(bd & 0x8000) bd |= 0xffffffffffff0000LL;
         o->target = (AA ? 0 : DIS_PC) + bd;
     }
     else o->target = 0;
@@ -451,9 +451,9 @@ static void bx(void)
 {
     // Calculate displacement and target address
     u64 bd = Instr & 0x03fffffc;
-    if(bd & 0x02000000) bd |= 0xfffffffffc000000;
+    if(bd & 0x02000000) bd |= 0xfffffffffc000000LL;
     o->target = (AA ? 0 : DIS_PC) + bd;
- 
+
     o->iclass |= PPC_DISA_BRANCH;
     sprintf(o->mnemonic, "b%s", b_opt[AALK]);
     place_target(o->operands, 0);
@@ -1773,6 +1773,6 @@ char *PPCDisasmSimple(u64 pc, u32 instr)
     dis_out.instr = instr;
 
     PPCDisasm(&dis_out);
-    sprintf(output, "%08X  %08X  %-10s %s", pc, instr, dis_out.mnemonic, dis_out.operands);
+    sprintf(output, "%08llX  %08X  %-10s %s", pc, instr, dis_out.mnemonic, dis_out.operands);
     return output;
 }

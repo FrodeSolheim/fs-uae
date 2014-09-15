@@ -20,11 +20,13 @@
 #include "config.h"
 #endif
 
-#include <fs/emu.h>
 #include "dialog.h"
 
+#include <fs/emu.h>
+#include <fs/glib.h>
+
 #include <stdlib.h>
-#include <fs/list.h>
+
 #ifdef USE_OPENGL
 #include <fs/ml/opengl.h>
 #endif
@@ -33,7 +35,7 @@
 #include "menu.h"
 #include "render.h"
 
-static fs_list *g_dialog_stack = NULL;
+static GList *g_dialog_stack = NULL;
 int g_fs_emu_dialog_mode = 0;
 
 void fs_emu_dialog_init() {
@@ -42,35 +44,35 @@ void fs_emu_dialog_init() {
 
 fs_emu_dialog* fs_emu_dialog_create(const char *title,
         const char *affirmative, const char *negative) {
-    fs_emu_dialog* dialog = fs_malloc0(sizeof(fs_emu_dialog));
+    fs_emu_dialog* dialog = g_malloc0(sizeof(fs_emu_dialog));
     if (title) {
-        dialog->title = fs_strdup(title);
+        dialog->title = g_strdup(title);
     }
     if (affirmative) {
-        dialog->affirmative = fs_strdup(affirmative);
+        dialog->affirmative = g_strdup(affirmative);
     }
     if (negative) {
-        dialog->negative = fs_strdup(negative);
+        dialog->negative = g_strdup(negative);
     }
     return dialog;
 }
 
 void fs_emu_dialog_destroy(fs_emu_dialog *dialog) {
     if (dialog->title) {
-        free(dialog->title);
+        g_free(dialog->title);
     }
     if (dialog->affirmative) {
-        free(dialog->affirmative);
+        g_free(dialog->affirmative);
     }
     if (dialog->negative) {
-        free(dialog->negative);
+        g_free(dialog->negative);
     }
     for (int i = 0; i < DIALOG_MAX_LINES; i++) {
         if (dialog->lines[i]) {
-            free(dialog->lines[i]);
+            g_free(dialog->lines[i]);
         }
     }
-    free(dialog);
+    g_free(dialog);
 }
 
 void fs_emu_dialog_add_option(fs_emu_dialog *dialog, const char *option,
@@ -85,14 +87,14 @@ void fs_emu_dialog_set_line(fs_emu_dialog *dialog, int line,
         return;
     }
     if (dialog->lines[line]) {
-        free(dialog->lines[line]);
+        g_free(dialog->lines[line]);
     }
-    dialog->lines[line] = fs_strdup(text);
+    dialog->lines[line] = g_strdup(text);
 }
 
 void fs_emu_dialog_show(fs_emu_dialog *dialog) {
     fs_emu_assert_gui_lock();
-    g_dialog_stack = fs_list_append(g_dialog_stack, dialog);
+    g_dialog_stack = g_list_append(g_dialog_stack, dialog);
     g_fs_emu_dialog_mode = 1;
 }
 
@@ -102,10 +104,10 @@ int fs_emu_dialog_result(fs_emu_dialog *dialog) {
 
 void fs_emu_dialog_dismiss(fs_emu_dialog *dialog) {
     fs_emu_assert_gui_lock();
-    fs_list* link = g_dialog_stack;
+    GList* link = g_dialog_stack;
     while (link) {
         if (link->data == dialog) {
-            g_dialog_stack = fs_list_delete_link(g_dialog_stack, link);
+            g_dialog_stack = g_list_delete_link(g_dialog_stack, link);
             break;
         }
         link = link->next;
@@ -116,7 +118,7 @@ void fs_emu_dialog_dismiss(fs_emu_dialog *dialog) {
 fs_emu_dialog *fs_emu_dialog_get_current() {
     fs_emu_assert_gui_lock();
     fs_emu_dialog *dialog = NULL;
-    fs_list* link = g_dialog_stack;
+    GList* link = g_dialog_stack;
     while (link) {
         dialog = link->data;
         link = link->next;

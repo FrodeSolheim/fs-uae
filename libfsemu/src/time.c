@@ -6,7 +6,6 @@
 #include <fs/base.h>
 #include <fs/init.h>
 #include <fs/log.h>
-#include <fs/string.h>
 #include <fs/thread.h>
 #include <fs/time.h>
 
@@ -82,17 +81,17 @@ time_t fs_timegm(struct tm *tm) {
 #ifdef WINDOWS
     tz = getenv("TZ");
     if (tz) {
-        tz = fs_strdup_printf("TZ=%s", tz);
+        tz = g_strdup_printf("TZ=%s", tz);
     }
     else {
-        tz = fs_strdup("TZ=");
+        tz = g_strdup("TZ=");
     }
     _putenv("TZ=GMT");
     _tzset();
     ret = mktime(tm);
 
     _putenv(tz);
-    free(tz);
+    g_free(tz);
     _tzset();
 #else
     tz = getenv("TZ");
@@ -153,5 +152,4 @@ void fs_time_init(void) {
     fs_get_current_time(&tv);
     fs_log("time of day:       %d + (%d / 1000000)\n", tv.tv_sec, tv.tv_usec);
     fs_log("localtime offset:  %d\n", fs_get_local_time_offset(t));
-
 }

@@ -1,7 +1,6 @@
-#ifndef FS_TIME_H_
-#define FS_TIME_H_
+#ifndef FS_TIME_H
+#define FS_TIME_H
 
-#include <fs/defines.h>
 #include <time.h>
 
 #ifdef __cplusplus
@@ -18,4 +17,4 @@ int fs_get_local_time_offset(time_t time);
 }
 #endif
 
-#endif // FS_TIME_H_
+#endif /* FS_TIME_H */

@@ -1,5 +1,5 @@
 #include <uae/uae.h>
-#include <fs/config.h>
+#include <fs/conf.h>
 #include <fs/emu.h>
 #include <fs/i18n.h>
 #include <glib.h>

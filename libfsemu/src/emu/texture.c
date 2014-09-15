@@ -366,10 +366,10 @@ void fs_emu_initialize_textures() {
     image->width = 1024;
     image->height = 1024;
     image->format = FS_IMAGE_FORMAT_RGBA;
-    image->data = fs_malloc0(1024 * 1024 * 4);
+    image->data = g_malloc0(1024 * 1024 * 4);
     initialize_atlas(image);
 
-    g_atlas = fs_new(fs_emu_texture, 1);
+    g_atlas = g_new(fs_emu_texture, 1);
     g_atlas->width = image->width;
     g_atlas->height = image->height;
     g_atlas->image = image;
@@ -393,12 +393,12 @@ void fs_emu_initialize_textures() {
     for (int i = 0; i < FS_EMU_MAX_OVERLAYS; i++) {
         for (int j = 0; j < FS_EMU_MAX_OVERLAY_STATES; j++) {
             fs_emu_texture *tex = NULL;
-            char *name = fs_strdup_printf("custom_%d_%d.png",
+            char *name = g_strdup_printf("custom_%d_%d.png",
                     i - FS_EMU_FIRST_CUSTOM_OVERLAY, j);
             error = fs_emu_theme_get_resource_data(name, &data, &size);
             if (error && g_fs_emu_theme.overlays[i].name) {
                 free(name);
-                name = fs_strdup_printf("%s_%d.png",
+                name = g_strdup_printf("%s_%d.png",
                         g_fs_emu_theme.overlays[i].name, j);
                 error = fs_emu_theme_get_resource_data(name, &data, &size);
             }
@@ -408,12 +408,12 @@ void fs_emu_initialize_textures() {
                 g_fs_emu_theme.overlays[i].textures[j] = tex;
             }
             else if (j == 1) {
-                char *base_name = fs_strdup_printf("custom_%d.png",
+                char *base_name = g_strdup_printf("custom_%d.png",
                         i - FS_EMU_FIRST_CUSTOM_OVERLAY);
                 error = fs_emu_theme_get_resource_data(base_name, &data, &size);
                 if (error && g_fs_emu_theme.overlays[i].name) {
                     free(name);
-                    name = fs_strdup_printf("%s.png",
+                    name = g_strdup_printf("%s.png",
                             g_fs_emu_theme.overlays[i].name);
                     error = fs_emu_theme_get_resource_data(name, &data, &size);
                 }
@@ -505,7 +505,7 @@ static fs_emu_texture *texture_from_image(fs_image *image) {
         }
     }
 
-    fs_emu_texture *texture = fs_new(fs_emu_texture, 1);
+    fs_emu_texture *texture = g_new(fs_emu_texture, 1);
     texture->width = image->width;
     texture->height = image->height;
     texture->image = image;
@@ -531,27 +531,27 @@ fs_emu_texture *fs_emu_texture_new_from_file(const char *name) {
     char *full_name;
     char *path;
     if (fs_path_exists(name)) {
-        full_name = fs_strdup(name);
-        path = fs_strdup(name);
+        full_name = g_strdup(name);
+        path = g_strdup(name);
     }
     else {
-        full_name = fs_strconcat(name, ".png", NULL);
+        full_name = g_strconcat(name, ".png", NULL);
         path = fs_get_program_data_file(full_name);
         if (path == NULL) {
             fs_emu_warning("Could not find texture %s\n", full_name);
-            free(full_name);
+            g_free(full_name);
             return NULL;
         }
     }
     fs_image *image = fs_image_new_from_file(path);
     fs_emu_log("loading texture \"%s\"\n", path);
-    free(path);
+    g_free(path);
     if (image == NULL) {
         fs_emu_warning("Could not load texture from %s\n", full_name);
-        free(full_name);
+        g_free(full_name);
         return NULL;
     }
-    free(full_name);
+    g_free(full_name);
     return texture_from_image(image);
 }
 

@@ -1,10 +1,11 @@
 #ifndef LIBFSEMU_EMU_H_
 #define LIBFSEMU_EMU_H_
 
+#include <fs/malloc.h>
 #include <fs/fs.h>
 #include <fs/ref.h>
 #include <fs/log.h>
-#include <fs/config.h>
+#include <fs/conf.h>
 #include <fs/ml.h>
 
 #if 0

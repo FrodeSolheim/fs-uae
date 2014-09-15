@@ -7,7 +7,7 @@
 #include <fs/emu.h>
 #include <stdio.h>
 #include <fs/base.h>
-#include <fs/queue.h>
+#include <fs/glib.h>
 #include <fs/thread.h>
 
 #ifdef HAVE_AL_AL_H
@@ -62,7 +62,7 @@ typedef struct audio_stream {
     int num_buffers;
     int buffer_size;
     int frequency;
-    fs_queue *queue;
+    GQueue *queue;
     fs_mutex *mutex;
     int buffers_queued;
     int min_buffers;
@@ -178,7 +178,7 @@ static void unqueue_old_buffers(int stream) {
             fs_log("while trying to unqueue %d buffers\n");
         }
         for (int i = 0; i < old_buffers; i++) {
-            fs_queue_push_tail(s->queue, FS_UINT_TO_POINTER(buffers[i]));
+            g_queue_push_tail(s->queue, FS_UINT_TO_POINTER(buffers[i]));
         }
         s->buffers_queued -= old_buffers;
     }
@@ -207,7 +207,7 @@ int fs_emu_check_audio_buffer_done(int stream, int buffer) {
     audio_stream *s = g_streams[stream];
     // not extremely efficient
     fs_mutex_lock(s->mutex);
-    fs_list *link = fs_queue_peek_head_link(s->queue);
+    GList *link = g_queue_peek_head_link(s->queue);
     while (link) {
         if ((unsigned int) buffer == FS_POINTER_TO_UINT(link->data)) {
             fs_mutex_unlock(s->mutex);
@@ -230,7 +230,7 @@ int fs_emu_queue_audio_buffer(int stream, int16_t* data, int size) {
     ALuint buffer = 0;
     fs_mutex_lock(s->mutex);
     //while (1) {
-    buffer = FS_POINTER_TO_UINT(fs_queue_pop_head(s->queue));
+    buffer = FS_POINTER_TO_UINT(g_queue_pop_head(s->queue));
     if (!buffer) {
         fs_log("no audio buffer available - dropping data\n");
         fs_mutex_unlock(s->mutex);
@@ -594,7 +594,7 @@ void fs_emu_init_audio_stream_options(fs_emu_audio_stream_options *options) {
 void fs_emu_init_audio_stream(int stream,
         fs_emu_audio_stream_options *options) {
     fs_log("initializing audio stream %d\n", stream);
-    audio_stream *s = fs_malloc0(sizeof(audio_stream));
+    audio_stream *s = g_malloc0(sizeof(audio_stream));
     s->buffer_size = options->buffer_size;
     s->frequency = options->frequency;
     s->num_buffers = MAX_BUFFERS;
@@ -602,7 +602,7 @@ void fs_emu_init_audio_stream(int stream,
     fs_log("frequency: %d, buffers: %d buffer size: %d bytes\n",
             s->frequency, s->num_buffers, s->buffer_size);
     s->mutex = fs_mutex_create();
-    s->queue = fs_queue_new();
+    s->queue = g_queue_new();
     s->source_volume_current = 1.0;
     alGenSources(1, &s->source);
 
@@ -618,7 +618,7 @@ void fs_emu_init_audio_stream(int stream,
         ALuint buffer;
         alGenBuffers(1, &buffer);
         check_al_error("alGenBuffers");
-        fs_queue_push_tail(s->queue, FS_UINT_TO_POINTER(buffer));
+        g_queue_push_tail(s->queue, FS_UINT_TO_POINTER(buffer));
     }
     s->buffers_queued = 0;
 

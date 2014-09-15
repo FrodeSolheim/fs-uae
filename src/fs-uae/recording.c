@@ -6,10 +6,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <uae/uae.h>
-#include <fs/log.h>
-#include <fs/list.h>
-#include <fs/filesys.h>
 #include <fs/emu.h>
+#include <fs/log.h>
+#include <fs/glib.h>
+#include <fs/filesys.h>
 #include "recording.h"
 #include "fs-uae.h"
 
@@ -21,7 +21,7 @@ static int g_recording_enabled = 0;
 static int g_recording_invalid = 0;
 
 static int g_recording_modified = 0;
-static fs_list *g_record_chunks = NULL;
+static GList *g_record_chunks = NULL;
 static uint32_t *g_record_chunk = NULL;
 // position in number of 32-bit values, not bytes
 static int g_chunk_pos = 0;
@@ -31,7 +31,7 @@ static int g_recording_length = 0;
 static int g_playback_pos = 0;
 static int g_playback_frame = 0;
 static int g_playback_line = 0;
-static fs_list *g_playback_list = NULL;
+static GList *g_playback_list = NULL;
 static char *g_record_path = NULL;
 
 // FIXME: write endianness to record file, or simply require little-endian
@@ -49,7 +49,7 @@ static void invalidate_recording(void) {
 
 static void new_chunk() {
     g_record_chunk = (uint32_t *) malloc(CHUNK_BYTES);
-    g_record_chunks = fs_list_append(g_record_chunks, g_record_chunk);
+    g_record_chunks = g_list_append(g_record_chunks, g_record_chunk);
     g_chunk_pos = 0;
 }
 
@@ -87,7 +87,7 @@ static void next_value() {
 }
 
 static int write_recording(const char *path, int length) {
-    FILE *f = fs_fopen(path, "wb");
+    FILE *f = g_fopen(path, "wb");
     if (f == NULL) {
         fs_emu_warning("Could not open recording file for writing\n");
         return 0;
@@ -95,7 +95,7 @@ static int write_recording(const char *path, int length) {
     fs_log("- writing recording to %s\n", path);
     printf("- amiga vsync counter = %d\n", amiga_get_vsync_counter());
 
-    fs_list *item = g_record_chunks;
+    GList *item = g_record_chunks;
     int size_left = length;
     while (item) {
         char *chunk = item->data;
@@ -118,13 +118,13 @@ static int write_recording(const char *path, int length) {
 
 static void reset_recording() {
 
-    fs_list *item = g_record_chunks;
+    GList *item = g_record_chunks;
     while (item) {
         free(item->data);
         item = item->next;
     }
 
-    fs_list_free(g_record_chunks);
+    g_list_free(g_record_chunks);
     g_record_chunks = NULL;
 
     new_chunk();
@@ -150,14 +150,14 @@ static void reset_recording() {
 static int read_recording(const char *path, int end) {
     reset_recording();
 
-    FILE *f = fs_fopen(path, "rb");
+    FILE *f = g_fopen(path, "rb");
     if (f == NULL) {
         g_recording_invalid = 1;
         return 0;
     }
 
     printf("read recording from %s\n", path);
-    char *buffer = (char*) malloc(CHUNK_BYTES);
+    char *buffer = (char*) g_malloc(CHUNK_BYTES);
     while (1) {
         int read_count = fread(buffer, 4, CHUNK_SIZE, f);
         printf("- read count: %d\n", read_count);
@@ -182,7 +182,7 @@ static int read_recording(const char *path, int end) {
             break;
         }
     }
-    free(buffer);
+    g_free(buffer);
     fclose(f);
     printf("- recording length: %d\n", g_recording_length);
 
@@ -237,7 +237,7 @@ static char *get_state_recording_path(const char *p) {
     if (len > 4 && strcmp(temp + len - 4, ".uss") == 0) {
         temp[len - 4] = '\0';
     }
-    char *path = fs_strdup_printf("%s.fs-uae-recording", temp);
+    char *path = g_strdup_printf("%s.fs-uae-recording", temp);
     free(temp);
     return path;
 }
@@ -255,13 +255,13 @@ static void on_save_state_finished(void *data) {
         printf("checking if recording %s exists...\n", recording_path);
         if (fs_path_exists(recording_path)) {
             printf("- removing %s\n", recording_path);
-            fs_unlink(recording_path);
+            g_unlink(recording_path);
         }
         else {
             printf("- does not exist\n");
         }
     }
-    free(recording_path);
+    g_free(recording_path);
 }
 
 static void on_restore_state_finished(void *data) {
@@ -279,7 +279,7 @@ static void on_restore_state_finished(void *data) {
             // FIXME: disable recording so stuff won't break
             g_recording_enabled = 0;
         }
-        free(recording_path);
+        g_free(recording_path);
     }
     else {
         // do nothing
@@ -300,7 +300,7 @@ void fs_uae_enable_recording(const char *record_file) {
 
     if (!fs_path_exists(g_record_path)) {
         fs_log("record file \"%s\" does not yet exist\n");
-        FILE *f = fs_fopen(g_record_path, "wb");
+        FILE *f = g_fopen(g_record_path, "wb");
         if (f) {
             // ok, we could open the file for writing
             fclose(f);
@@ -456,12 +456,12 @@ void fs_uae_record_input_event(int line, int event, int state) {
 
     if (g_playback_pos < g_recording_length) {
         fs_emu_warning("Truncating recording");
-        fs_list *item = g_playback_list->next;
+        GList *item = g_playback_list->next;
         while (item) {
             free(item->data);
             item = item->next;
         }
-        fs_list_free(g_playback_list->next);
+        g_list_free(g_playback_list->next);
         g_playback_list->next = NULL;
         g_recording_length = g_playback_pos;
         fs_emu_warning("Recording mode enabled");

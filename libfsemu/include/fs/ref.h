@@ -1,5 +1,5 @@
-#ifndef FS_REF_H_
-#define FS_REF_H_
+#ifndef FS_REF_H
+#define FS_REF_H
 
 #define FS_REF_MAGIC 0x00c8a74d
 
@@ -13,4 +13,4 @@ void fs_ref_initialize(void *ptr, void (*destroy_function)(void *ptr));
 int fs_ref(void* ptr);
 int fs_unref(void* ptr);
 
-#endif // FS_REF_H_
+#endif /* FS_REF_H */

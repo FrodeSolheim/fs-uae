@@ -1,5 +1,5 @@
-#ifndef FS_INIFILE_H_
-#define FS_INIFILE_H_
+#ifndef FS_INIFILE_H
+#define FS_INIFILE_H
 
 struct fs_ini_file;
 typedef struct fs_ini_file fs_ini_file;
@@ -19,4 +19,4 @@ char *fs_ini_file_get_value(fs_ini_file *ini_file, const char *group_name,
 char *fs_ini_file_get_string(fs_ini_file *ini_file, const char *group_name,
         const char *key);
 
-#endif // FS_INIFILE_H_
+#endif /* FS_INIFILE_H */

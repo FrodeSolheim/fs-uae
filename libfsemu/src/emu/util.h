@@ -2,7 +2,7 @@
 #define LIBFSEMU_UTIL_H_
 
 #include <fs/emu.h>
-#include <fs/queue.h>
+#include <fs/glib.h>
 
 typedef struct fs_emu_stat_queue_ {
     int seq_no;
@@ -14,7 +14,7 @@ typedef struct fs_emu_stat_queue_ {
     int64_t total;
     //GList *list;
     //GList *last;
-    fs_queue* queue;
+    GQueue* queue;
 } fs_emu_stat_queue;
 
 void fs_emu_stat_queue_init(fs_emu_stat_queue* stat_queue, int count);

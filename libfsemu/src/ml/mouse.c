@@ -8,7 +8,6 @@
 #include <string.h>
 #include <strings.h>
 #include <fs/log.h>
-#include <fs/string.h>
 #include <fs/thread.h>
 
 #include "manymouse.h"
@@ -42,10 +41,10 @@ static void *manymouse_thread(void* data) {
         const char *device = ManyMouse_DeviceName(i);
         const char *driver = ManyMouse_DriverName();
 
-        char *name = fs_strdup(device);
-        if (name[0] == 0 || fs_ascii_strcasecmp(name, "mouse") == 0) {
-            free(name);
-            name = fs_strdup("Unnamed Mouse");
+        char *name = g_strdup(device);
+        if (name[0] == 0 || g_ascii_strcasecmp(name, "mouse") == 0) {
+            g_free(name);
+            name = g_strdup("Unnamed Mouse");
         }
         // fs_ml_input_unique_device_name either returns name, or frees it
         // and return another name, so name must be malloced and owned by
@@ -56,7 +55,7 @@ static void *manymouse_thread(void* data) {
         g_fs_ml_input_devices[k].type = FS_ML_MOUSE;
         g_fs_ml_input_devices[k].index = k;
         g_fs_ml_input_devices[k].name = name;
-        g_fs_ml_input_devices[k].alias = fs_strdup_printf("MOUSE #%d", i + 2);
+        g_fs_ml_input_devices[k].alias = g_strdup_printf("MOUSE #%d", i + 2);
         k += 1;
     }
 
@@ -165,8 +164,8 @@ void fs_ml_mouse_init(void) {
     fs_log("- adding system mouse\n");
     g_fs_ml_input_devices[k].type = FS_ML_MOUSE;
     g_fs_ml_input_devices[k].index = k;
-    g_fs_ml_input_devices[k].name = fs_strdup("MOUSE");
-    g_fs_ml_input_devices[k].alias = fs_strdup("MOUSE");
+    g_fs_ml_input_devices[k].name = g_strdup("MOUSE");
+    g_fs_ml_input_devices[k].alias = g_strdup("MOUSE");
     k += 1;
     g_fs_ml_input_device_count = k;
 

@@ -5,10 +5,7 @@
 
 #include "uae/fs.h"
 #include "uae/io.h"
-
-#include <stdio.h>
-#include <fs/filesys.h>
-#include <fs/string.h>
+#include "uae/glib.h"
 
 int64_t uae_ftello64(FILE *stream) {
 #if defined(HAVE_FTELLO64)
@@ -50,15 +47,15 @@ char *uae_expand_path(const char *path) {
         return g_build_filename(g_get_home_dir(), src, NULL);
     }
     else {
-        return fs_strdup(path);
+        return g_strdup(path);
     }
 #endif
-    return fs_strdup(path);
+    return g_strdup(path);
 }
 
 FILE *uae_tfopen(const char *path, const char *mode) {
     char *p = uae_expand_path(path);
-    FILE *f = fs_fopen(p, mode);
-    free(p);
+    FILE *f = g_fopen(p, mode);
+    g_free(p);
     return f;
 }

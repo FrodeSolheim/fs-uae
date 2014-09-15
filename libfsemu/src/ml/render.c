@@ -19,7 +19,7 @@
 #include <SDL.h>
 #endif
 
-#include <fs/config.h>
+#include <fs/conf.h>
 #include <fs/i18n.h>
 #include <fs/image.h>
 
@@ -141,17 +141,17 @@ static void save_screenshot_of_opengl_framebuffer(const char *path) {
 #endif
     char strbuf[20];
     strftime(strbuf, 20, "%Y-%m-%d-%H-%M", tm_p);
-    char *name = fs_strdup_printf("%s-%s-%03d.png",
+    char *name = g_strdup_printf("%s-%s-%03d.png",
             g_fs_ml_video_screenshots_prefix,
             strbuf, g_fs_ml_video_screenshot);
-    char *path = fs_path_join(g_fs_ml_video_screenshots_dir, name, NULL);
+    char *path = g_build_filename(g_fs_ml_video_screenshots_dir, name, NULL);
 #endif
     fs_log("writing screenshot to %s\n", path);
 
     int w = fs_ml_video_width();
     int h = fs_ml_video_height();
     fs_log("reading opengl frame buffer (%d x %d)\n", w, h);
-    void *out_data = malloc(w * h * 4);
+    void *out_data = g_malloc(w * h * 4);
 
     // when using GL_RGB, remeber to temporarily set GL_UNPACK_ALIGNMENT so
     // all rows will be contiguous (the OpenGL default is to align rows on
@@ -164,7 +164,7 @@ static void save_screenshot_of_opengl_framebuffer(const char *path) {
 
     // flip image vertically
     int stride = w * 4;
-    void *tmp = malloc(stride);
+    void *tmp = g_malloc(stride);
     void *line1 = out_data;
     void *line2 = out_data + stride * (h - 1);
     for (int i = 0; i < h / 2; i++) {
@@ -174,7 +174,7 @@ static void save_screenshot_of_opengl_framebuffer(const char *path) {
         line1 += stride;
         line2 -= stride;
     }
-    free(tmp);
+    g_free(tmp);
 
     int result = fs_image_save_data(path, out_data, w, h, 4);
     if (result) {
@@ -183,10 +183,10 @@ static void save_screenshot_of_opengl_framebuffer(const char *path) {
     else {
         fs_log("error saving screenshot\n");
     }
-    free(out_data);
+    g_free(out_data);
 #if 0
-    free(name);
-    free(path);
+    g_free(name);
+    g_free(path);
 #endif
 }
 
@@ -340,7 +340,7 @@ void * __GLeeGetProcAddress(const char *extname);
 static int g_sync_method = 0;
 
 static int check_sync_method(const char *a, const char *b) {
-    if (a && fs_ascii_strcasecmp(a, b) == 0) {
+    if (a && g_ascii_strcasecmp(a, b) == 0) {
         return 1;
     }
     return 0;
@@ -655,7 +655,7 @@ void fs_ml_render_iteration() {
         if (g_fs_ml_video_screenshot_path) {
             save_screenshot_of_opengl_framebuffer(
                     g_fs_ml_video_screenshot_path);
-            free(g_fs_ml_video_screenshot_path);
+            g_free(g_fs_ml_video_screenshot_path);
             g_fs_ml_video_screenshot_path = NULL;
         }
         fs_mutex_unlock(g_fs_ml_video_screenshot_mutex);

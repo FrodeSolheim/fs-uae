@@ -19,10 +19,11 @@
 #include <fs/base.h>
 #include <fs/data.h>
 #include <fs/emu.h>
+#include <fs/glib.h>
 #include <fs/main.h>
 #include <fs/i18n.h>
-#include <fs/string.h>
 #include <fs/thread.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -363,7 +364,7 @@ static int audio_callback_function(int type, int16_t *buffer, int size) {
 
 void fs_uae_load_rom_files(const char *path) {
     fs_log("fs_uae_load_rom_files %s\n", path);
-    fs_dir *dir = fs_dir_open(path, 0);
+    GDir *dir = g_dir_open(path, 0, NULL);
     if (dir == NULL) {
         fs_log("error opening dir\n");
         return;
@@ -372,9 +373,9 @@ void fs_uae_load_rom_files(const char *path) {
     // we include the rom key when generating the cache name for the
     // kickstart cache file, so the cache will be regenerated if rom.key
     // is replaced or removed/added.
-    char *key_path = fs_path_join(path, "rom.key", NULL);
+    char *key_path = g_build_filename(path, "rom.key", NULL);
     GChecksum *rom_checksum = g_checksum_new(G_CHECKSUM_MD5);
-    FILE *f = fs_fopen(key_path, "rb");
+    FILE *f = g_fopen(key_path, "rb");
     if (f != NULL) {
         int64_t key_size = fs_path_get_size(key_path);
         if (key_size > 0 && key_size < 1024 * 1024) {
@@ -389,21 +390,21 @@ void fs_uae_load_rom_files(const char *path) {
         }
         fclose(f);
     }
-    free(key_path);
+    g_free(key_path);
 
     amiga_add_key_dir(path);
-    const char *name = fs_dir_read_name(dir);
+    const char *name = g_dir_read_name(dir);
     while (name) {
-        char *lname = fs_utf8_strdown(name, -1);
-        if (fs_str_has_suffix(lname, ".rom")) {
+        char *lname = g_utf8_strdown(name, -1);
+        if (g_str_has_suffix(lname, ".rom")) {
             fs_log("found file \"%s\"\n", name);
-            char *full_path = fs_path_join(path, name, NULL);
+            char *full_path = g_build_filename(path, name, NULL);
             //GChecksum *checksum = g_checksum_new(G_CHECKSUM_MD5);
             GChecksum *checksum = g_checksum_copy(rom_checksum);
             g_checksum_update(
                 checksum, (guchar *) full_path, strlen(full_path));
             const gchar *cache_name = g_checksum_get_string(checksum);
-            char* cache_path = fs_path_join(
+            char* cache_path = g_build_filename(
                 fs_uae_kickstarts_cache_dir(), cache_name, NULL);
             amiga_add_rom_file(full_path, cache_path);
             // check if amiga_add_rom_file needs to own full_path
@@ -414,9 +415,9 @@ void fs_uae_load_rom_files(const char *path) {
             g_checksum_free(checksum);
         }
         free(lname);
-        name = fs_dir_read_name(dir);
+        name = g_dir_read_name(dir);
     }
-    fs_dir_close(dir);
+    g_dir_close(dir);
 
     if (rom_checksum != NULL) {
         g_checksum_free(rom_checksum);
@@ -427,7 +428,7 @@ void fs_uae_load_rom_files(const char *path) {
 char *fs_uae_encode_path(const char* path) {
     // FIXME: libamiga now always accepts UTF-8, so this function is
     // deprecated. Simply returning a duplicate now.
-    return fs_strdup(path);
+    return g_strdup(path);
 /*
 #ifdef WINDOWS
     return g_locale_from_utf8(path, -1, NULL, NULL, NULL);
@@ -440,7 +441,7 @@ char *fs_uae_encode_path(const char* path) {
 char *fs_uae_decode_path(const char* path) {
     // FIXME: libamiga now always accepts UTF-8, so this function is
     // deprecated. Simply returning a duplicate now.
-    return fs_strdup(path);
+    return g_strdup(path);
 /*
 #ifdef WINDOWS
     return g_locale_to_utf8(path, -1, NULL, NULL, NULL);
@@ -525,27 +526,27 @@ static void on_init() {
 
     char *uae_file;
 
-    uae_file = fs_path_join(fs_uae_logs_dir(), "LastConfig.uae", NULL);
+    uae_file = g_build_filename(fs_uae_logs_dir(), "LastConfig.uae", NULL);
     if (fs_path_exists(uae_file)) {
-        fs_unlink(uae_file);
+        g_unlink(uae_file);
     }
-    free(uae_file);
+    g_free(uae_file);
 
-    uae_file = fs_path_join(fs_uae_logs_dir(), "DebugConfig.uae", NULL);
+    uae_file = g_build_filename(fs_uae_logs_dir(), "DebugConfig.uae", NULL);
     if (fs_path_exists(uae_file)) {
-        fs_unlink(uae_file);
+        g_unlink(uae_file);
     }
-    free(uae_file);
+    g_free(uae_file);
 
-    uae_file = fs_path_join(fs_uae_logs_dir(), "Debug.uae", NULL);
+    uae_file = g_build_filename(fs_uae_logs_dir(), "Debug.uae", NULL);
     if (fs_path_exists(uae_file)) {
-        fs_unlink(uae_file);
+        g_unlink(uae_file);
     }
-    free(uae_file);
+    g_free(uae_file);
 
-    uae_file = fs_path_join(fs_uae_logs_dir(), "debug.uae", NULL);
+    uae_file = g_build_filename(fs_uae_logs_dir(), "debug.uae", NULL);
     amiga_write_uae_config(uae_file);
-    free(uae_file);
+    g_free(uae_file);
 
     fs_log("\n");
     fs_log(LOG_LINE);
@@ -566,7 +567,7 @@ static int load_config_file() {
 
     //g_fs_uae_config = g_key_file_new();
     if (g_fs_uae_config_file_path == NULL) {
-        char *path = fs_path_join(fs_uae_exe_dir(), "Config.fs-uae",
+        char *path = g_build_filename(fs_uae_exe_dir(), "Config.fs-uae",
                 NULL);
         fs_log(msg, path);
         if (fs_path_exists(path)) {
@@ -578,7 +579,7 @@ static int load_config_file() {
     }
 #ifdef MACOSX
     if (g_fs_uae_config_file_path == NULL) {
-        char *path = fs_path_join(fs_uae_exe_dir(), "..", "..",
+        char *path = g_build_filename(fs_uae_exe_dir(), "..", "..",
                 "Config.fs-uae", NULL);
         fs_log(msg, path);
         if (fs_path_exists(path)) {
@@ -602,7 +603,7 @@ static int load_config_file() {
         }
     }
     if (g_fs_uae_config_file_path == NULL) {
-        char *path = fs_path_join(fs_get_user_config_dir(),
+        char *path = g_build_filename(fs_get_user_config_dir(),
                 "fs-uae", "fs-uae.conf", NULL);
         fs_log(msg, path);
         if (fs_path_exists(path)) {
@@ -613,7 +614,7 @@ static int load_config_file() {
         }
     }
     if (g_fs_uae_config_file_path == NULL) {
-        char *path = fs_path_join(fs_uae_configurations_dir(),
+        char *path = g_build_filename(fs_uae_configurations_dir(),
                 "Default.fs-uae", NULL);
         fs_log(msg, path);
         if (fs_path_exists(path)) {
@@ -626,7 +627,7 @@ static int load_config_file() {
     if (g_fs_uae_config_file_path) {
         fs_log("loading config from %s\n", g_fs_uae_config_file_path);
         fs_config_read_file(g_fs_uae_config_file_path, 0);
-        g_fs_uae_config_dir_path = fs_path_get_dirname(
+        g_fs_uae_config_dir_path = g_path_get_dirname(
                 g_fs_uae_config_file_path);
     }
 #if 0
@@ -641,7 +642,7 @@ static int load_config_file() {
     }
 #endif
 
-    char *path = fs_path_join(fs_uae_configurations_dir(),
+    char *path = g_build_filename(fs_uae_configurations_dir(),
             "Host.fs-uae", NULL);
     fs_log(msg, path);
     if (fs_path_exists(path)) {
@@ -684,7 +685,7 @@ static void init_i18n() {
     const char *language = fs_config_get_const_string("language");
     if (language) {
         fs_log("setting LANGUAGE=%s\n", language);
-        char *env_str = fs_strdup_printf("LANGUAGE=%s", language);
+        char *env_str = g_strdup_printf("LANGUAGE=%s", language);
 #ifdef WINDOWS
         _putenv(env_str);
 #else
@@ -703,7 +704,7 @@ static void init_i18n() {
         if (len > 16) {
             path[len - 16] = '\0';
         }
-        char *locale_base = fs_path_join(path, "locale", NULL);
+        char *locale_base = g_build_filename(path, "locale", NULL);
         fs_log("using locale dir \"%s\"\n", locale_base);
         bindtextdomain("fs-uae", locale_base);
         free(locale_base);
@@ -818,11 +819,11 @@ static void cleanup_old_file(const char *path) {
     if (fs_path_exists(p)) {
         if (fs_path_is_dir(p)) {
             fs_log("trying to remove old directory %s\n", p);
-            fs_rmdir(p);
+            g_rmdir(p);
         }
         else {
             fs_log("trying to remove old file %s\n", p);
-            fs_unlink(p);
+            g_unlink(p);
         }
     }
     free(p);
@@ -911,9 +912,9 @@ int main(int argc, char* argv[]) {
     printf(COPYRIGHT_NOTICE, PACKAGE_VERSION);
     fs_log(COPYRIGHT_NOTICE, PACKAGE_VERSION);
 
-    char *current_dir = fs_get_current_dir();
+    char *current_dir = g_get_current_dir();
     fs_log("current directory is %s\n", current_dir);
-    free(current_dir);
+    g_free(current_dir);
 
     amiga_init();
 
@@ -948,7 +949,7 @@ int main(int argc, char* argv[]) {
         while (arg && *arg) {
             const gchar *test_path = *arg;
             if (test_path && fs_path_exists(test_path)) {
-                g_fs_uae_config_file_path = fs_strdup(test_path);
+                g_fs_uae_config_file_path = g_strdup(test_path);
             }
             arg++;
         }
@@ -1020,27 +1021,27 @@ int main(int argc, char* argv[]) {
     if (logs_dir) {
         char *log_file;
 
-        log_file = fs_path_join(logs_dir, "FS-UAE.log", NULL);
+        log_file = g_build_filename(logs_dir, "FS-UAE.log", NULL);
         if (fs_path_exists(log_file)) {
-            fs_unlink(log_file);
+            g_unlink(log_file);
         }
-        free(log_file);
+        g_free(log_file);
 
-        log_file = fs_path_join(logs_dir, "FS-UAE.log.txt", NULL);
+        log_file = g_build_filename(logs_dir, "FS-UAE.log.txt", NULL);
         if (fs_path_exists(log_file)) {
-            fs_unlink(log_file);
+            g_unlink(log_file);
         }
-        free(log_file);
+        g_free(log_file);
 
-        log_file = fs_path_join(logs_dir, "Emulator.log.txt", NULL);
+        log_file = g_build_filename(logs_dir, "Emulator.log.txt", NULL);
         if (fs_path_exists(log_file)) {
-            fs_unlink(log_file);
+            g_unlink(log_file);
         }
-        free(log_file);
+        g_free(log_file);
 
-        log_file = fs_path_join(logs_dir, "fs-uae.log.txt", NULL);
+        log_file = g_build_filename(logs_dir, "fs-uae.log.txt", NULL);
         fs_config_set_log_file(log_file);
-        free(log_file);
+        g_free(log_file);
     }
 
     fs_config_set_string_if_unset("themes_dir", fs_uae_themes_dir());
@@ -1078,7 +1079,7 @@ int main(int argc, char* argv[]) {
 
     if (logs_dir) {
         if (fs_emu_netplay_enabled()) {
-            char *sync_log_file = fs_path_join(logs_dir,
+            char *sync_log_file = g_build_filename(logs_dir,
                     "Synchronization.log", NULL);
             amiga_set_synchronization_log_file(sync_log_file);
             free(sync_log_file);
@@ -1148,7 +1149,7 @@ int main(int argc, char* argv[]) {
 
     fs_emu_run(main_function);
     fs_log("fs-uae shutting down, fs_emu_run returned\n");
-    if (fs_rmdir(fs_uae_state_dir()) == 0) {
+    if (g_rmdir(fs_uae_state_dir()) == 0) {
         fs_log("state dir %s was removed because it was empty\n",
                 fs_uae_state_dir());
     }

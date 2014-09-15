@@ -1,12 +1,22 @@
-#ifndef FS_GLU_H_
-#define FS_GLU_H_
+#ifndef FS_GLU_H
+#define FS_GLU_H
 
-#if defined(USE_GLES) && !defined(FAKE_GLES)
-// no GLU
-#elif defined(MACOSX)
-#include <OpenGL/glu.h>
-#else
-#include <GL/glu.h>
+#ifdef HAVE_CONFIG_H
+#include "config.h"
 #endif
 
-#endif // FS_GLU_H_
+#if defined(USE_GLES) && !defined(FAKE_GLES)
+
+// no GLU
+
+#elif defined(MACOSX)
+
+#include <OpenGL/glu.h>
+
+#else
+
+#include <GL/glu.h>
+
+#endif
+
+#endif /* FS_GLU_H */

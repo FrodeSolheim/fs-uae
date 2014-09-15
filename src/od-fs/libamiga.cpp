@@ -7,7 +7,6 @@
 
 #include <string.h>
 #include <string.h>
-#include <fs/string.h>
 
 #include "uae/memory.h"
 #include "options.h"
@@ -21,8 +20,8 @@
 #include "luascript.h"
 
 #include "uae/fs.h"
-#include <glib.h>
 #include "uae/log.h"
+#include "uae/glib.h"
 
 void keyboard_settrans (void);
 libamiga_callbacks g_libamiga_callbacks = {};
@@ -112,11 +111,11 @@ void amiga_init_lua_state(lua_State *L) {
 void amiga_set_floppy_sounds_dir(const char *path) {
     int len = strlen(path);
     if (path[len - 1] == '/') {
-        g_floppy_sounds_dir = fs_strdup(path);
+        g_floppy_sounds_dir = g_strdup(path);
     }
     else {
         // must have directory separator at the end
-        g_floppy_sounds_dir = fs_strconcat(path, "/", NULL);
+        g_floppy_sounds_dir = g_strconcat(path, "/", NULL);
     }
 }
 
@@ -250,7 +249,7 @@ void amiga_set_paths(const char **rom_paths, const char **floppy_paths,
 
 int amiga_set_synchronization_log_file(const char *path) {
 #ifdef DEBUG_SYNC
-    FILE *f = fs_fopen(path, "wb");
+    FILE *f = g_fopen(path, "wb");
     if (f) {
         write_log("sync debug log to %s\n", path);
         g_fs_uae_sync_debug_file = f;
@@ -275,7 +274,7 @@ int amiga_quickstart(int quickstart_model, int quickstart_config,
 
 void amiga_set_save_image_dir(const char *path) {
     write_log("amiga_set_save_image_dir %s\n", path);
-    g_libamiga_save_image_path = fs_strdup(path);
+    g_libamiga_save_image_path = g_strdup(path);
 }
 
 int amiga_get_rand_checksum() {
@@ -594,9 +593,9 @@ int amiga_set_hardware_option(const char *option, const char *value) {
 }
 
 int amiga_set_int_option(const char *option, int value) {
-    char *str_value = fs_strdup_printf("%d", value);
+    char *str_value = g_strdup_printf("%d", value);
     int result = amiga_set_option(option, str_value);
-    free(str_value);
+    g_free(str_value);
     return result;
 }
 

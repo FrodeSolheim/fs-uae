@@ -647,7 +647,7 @@ void fs_uae_init_video(void) {
         char *c = value;
         while (*c) {
             if (*c == '+') {
-                if (fs_ascii_strcasecmp(c + 1, "border") == 0) {
+                if (g_ascii_strcasecmp(c + 1, "border") == 0) {
                     g_zoom_border = 1;
                 }
                 *c = '\0';
@@ -659,11 +659,11 @@ void fs_uae_init_video(void) {
         int k = 0;
         while (z->name) {
             //printf(":%s:%s\n", z->name, value);
-            if (fs_ascii_strcasecmp(z->name, value) == 0) {
+            if (g_ascii_strcasecmp(z->name, value) == 0) {
                 g_zoom_mode = k;
                 break;
             }
-            else if (z->cname && fs_ascii_strcasecmp(z->cname, value) == 0) {
+            else if (z->cname && g_ascii_strcasecmp(z->cname, value) == 0) {
                 g_zoom_mode = k;
                 break;
             }
@@ -682,7 +682,7 @@ void fs_uae_init_video(void) {
         //if (sscanf(value, "%s,%d,%d,%d,%d", &name, &x, &y, &w, &h) == 5) {
         //    printf("---------\n");
         if (sscanf(cvalue, "%d,%d,%d,%d", &x, &y, &w, &h) == 4) {
-            z->name = fs_strdup("Theme");
+            z->name = g_strdup("Theme");
             z->x = x;
             z->y = y;
             z->w = w;

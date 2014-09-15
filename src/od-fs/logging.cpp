@@ -1,12 +1,12 @@
 #include "sysconfig.h"
 #include "sysdeps.h"
+
 #include "uae.h"
 #include "gui.h"
 #include "uae/fs.h"
+#include "uae/glib.h"
 
 #include <stdio.h>
-#include <fs/string.h>
-#include <glib.h>
 
 int log_scsi = 0;
 int log_net = 0;
@@ -31,7 +31,7 @@ void gui_message (const char *format,...)
 {
     va_list args;
     va_start(args, format);
-    char *buffer = fs_strdup_vprintf(format, args);
+    char *buffer = g_strdup_vprintf(format, args);
     va_end(args);
     if (g_amiga_gui_message_function) {
         g_amiga_gui_message_function(buffer);
@@ -39,7 +39,7 @@ void gui_message (const char *format,...)
     else {
         printf("%s", buffer);
     }
-    free(buffer);
+    g_free(buffer);
 }
 
 void notify_user (int msg)
@@ -62,7 +62,7 @@ void jit_abort (const TCHAR *format,...)
 
     va_list args;
     va_start(args, format);
-    char *buffer = fs_strdup_vprintf(format, args);
+    char *buffer = g_strdup_vprintf(format, args);
     va_end(args);
     log_function function = g_libamiga_callbacks.log;
     if (function) {
@@ -71,7 +71,7 @@ void jit_abort (const TCHAR *format,...)
     else {
         printf("%s", buffer);
     }
-    free(buffer);
+    g_free(buffer);
 
     static int happened;
     //int count;

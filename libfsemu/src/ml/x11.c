@@ -12,9 +12,8 @@
 #include <fs/ml.h>
 #include <fs/base.h>
 #include <fs/image.h>
-#include <fs/string.h>
 #include <fs/filesys.h>
-#include <fs/config.h>
+#include <fs/conf.h>
 #include "ml_internal.h"
 
 #ifdef USE_SDL2
@@ -37,16 +36,16 @@ static void set_window_icon() {
     // add space for width, height cardinals
     max_size += 2 * 5 * sizeof(unsigned long);
 
-    unsigned long *icon_data = (unsigned long *) malloc(max_size);
+    unsigned long *icon_data = (unsigned long *) g_malloc(max_size);
     unsigned long *op = icon_data;
     int card_count  = 0;
 
     int sizes[] = {128, 64, 48, 32, 16, 0};
     for(int *size = sizes; *size; size++) {
-        char *rel = fs_strdup_printf("icons/hicolor/%dx%d/apps/fs-uae.png",
+        char *rel = g_strdup_printf("icons/hicolor/%dx%d/apps/fs-uae.png",
                 *size, *size);
         char *path = fs_get_data_file(rel);
-        free(rel);
+        g_free(rel);
         if (!path) {
             fs_log("did not find icon for %dx%d\n", *size, *size);
             continue;
@@ -57,7 +56,7 @@ static void set_window_icon() {
             fs_log("could not load icon from %s\n", path);
             continue;
         }
-        free(path);
+        g_free(path);
 
         //printf("%d\n", image->width);
         int pixel_count = image->width * image->height;
@@ -84,7 +83,7 @@ static void set_window_icon() {
     Atom _NET_WM_ICON = XInternAtom(g_display, "_NET_WM_ICON", False);
     XChangeProperty(g_display, g_window, _NET_WM_ICON, XA_CARDINAL, 32,
             PropModeReplace, (unsigned char *) icon_data, card_count);
-    free(icon_data);
+    g_free(icon_data);
 }
 
 static void set_above_state() {

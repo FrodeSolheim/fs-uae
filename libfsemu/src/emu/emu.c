@@ -16,7 +16,6 @@
 #include <fs/emu.h>
 #include <fs/i18n.h>
 #include <fs/ml.h>
-#include <fs/string.h>
 #include <fs/thread.h>
 #include <fs/time.h>
 
@@ -94,7 +93,7 @@ int fs_emu_is_quitting() {
 void fs_emu_warning(const char *format, ...) {
     va_list ap;
     va_start(ap, format);
-    char *buffer = fs_strdup_vprintf(format, ap);
+    char *buffer = g_strdup_vprintf(format, ap);
     va_end(ap);
     int len = strlen(buffer);
     // strip trailing newline, of any
@@ -104,13 +103,13 @@ void fs_emu_warning(const char *format, ...) {
     fs_log("WARNING: %s\n", buffer);
     printf("WARNING: %s\n", buffer);
     fs_emu_hud_add_console_line(buffer, 0);
-    free(buffer);
+    g_free(buffer);
 }
 
 void fs_emu_deprecated(const char *format, ...) {
     va_list ap;
     va_start(ap, format);
-    char *buffer = fs_strdup_vprintf(format, ap);
+    char *buffer = g_strdup_vprintf(format, ap);
     va_end(ap);
     int len = strlen(buffer);
     // strip trailing newline, if any
@@ -119,7 +118,7 @@ void fs_emu_deprecated(const char *format, ...) {
     }
     fs_log("DEPRECATED: %s\n", buffer);
     fs_emu_hud_add_console_line(buffer, 0);
-    free(buffer);
+    g_free(buffer);
 }
 
 const char *fs_emu_get_title() {
@@ -131,7 +130,7 @@ void fs_emu_set_title(const char *title) {
     if (g_fs_emu_title) {
         free(g_fs_emu_title);
     }
-    g_fs_emu_title = fs_strdup(title);
+    g_fs_emu_title = g_strdup(title);
     fs_emu_video_render_mutex_unlock();
 }
 
@@ -144,7 +143,7 @@ void fs_emu_set_sub_title(const char *title) {
     if (g_fs_emu_sub_title) {
         free(g_fs_emu_sub_title);
     }
-    g_fs_emu_sub_title = fs_strdup(title);
+    g_fs_emu_sub_title = g_strdup(title);
     fs_emu_video_render_mutex_unlock();
 }
 
@@ -175,8 +174,6 @@ static void read_config() {
         g_fs_emu_sub_title = string_result;
     }
 }
-
-extern int g_fs_log_stdout;
 
 void fs_emu_fatal(const char *msg) {
     fs_emu_log("FATAL: %s\n", msg);
@@ -359,15 +356,15 @@ void fs_emu_init_2(int options) {
     if (options & FS_EMU_INIT_VIDEO) {
         char *title;
         if (fs_emu_get_title()) {
-            title = fs_strdup(fs_emu_get_title());
+            title = g_strdup(fs_emu_get_title());
         }
         else {
-            title = fs_strdup("Emulator");
+            title = g_strdup("Emulator");
         }
         if (fs_emu_get_sub_title()) {
             char *temp = title;
             // using 'MIDDLE DOT' (U+00B7) in UTF-8 format as separator
-            title = fs_strdup_printf("%s %c%c %s", temp, 0xC2, 0xB7,
+            title = g_strdup_printf("%s %c%c %s", temp, 0xC2, 0xB7,
                     fs_emu_get_sub_title());
             free(temp);
         }

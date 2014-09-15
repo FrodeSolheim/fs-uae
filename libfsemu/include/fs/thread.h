@@ -1,5 +1,5 @@
-#ifndef FS_THREAD_H_
-#define FS_THREAD_H_
+#ifndef FS_THREAD_H
+#define FS_THREAD_H
 
 #include <stdint.h>
 
@@ -55,4 +55,4 @@ int fs_semaphore_try_wait(fs_semaphore *semaphore);
 }
 #endif
 
-#endif // FS_THREAD_H_
+#endif /* FS_THREAD_H */

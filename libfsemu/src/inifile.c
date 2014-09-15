@@ -4,12 +4,10 @@
 
 #include <fs/inifile.h>
 #include <fs/filesys.h>
-
-#include <stdlib.h>
-#include <fs/hashtable.h>
+#include <fs/glib.h>
 
 struct fs_ini_file {
-    fs_hash_table *groups;
+    GHashTable *groups;
 };
 
 static int ini_parse(const char* filename,
@@ -18,25 +16,25 @@ static int ini_parse(const char* filename,
               void* user);
 
 static void free_group(void *data) {
-    fs_hash_table_destroy((fs_hash_table*) data);
+    g_hash_table_destroy((GHashTable*) data);
 }
 
 static fs_ini_file* fs_ini_file_create() {
-    fs_ini_file *ini_file = malloc(sizeof(fs_ini_file));
-    ini_file->groups = fs_hash_table_new_full(fs_str_hash, fs_str_equal,
-            free, free_group);
+    fs_ini_file *ini_file = g_malloc(sizeof(fs_ini_file));
+    ini_file->groups = g_hash_table_new_full(g_str_hash, g_str_equal,
+            g_free, free_group);
     return ini_file;
 }
 
 static int handler(void *user_data, const char *section, const char *name,
                    const char *value) {
     fs_ini_file *ini_file = (fs_ini_file*) user_data;
-    fs_hash_table *group = fs_hash_table_lookup(ini_file->groups, section);
+    GHashTable *group = g_hash_table_lookup(ini_file->groups, section);
     if (group == NULL) {
-        group = fs_hash_table_new_full(fs_str_hash, fs_str_equal, free, free);
-        fs_hash_table_insert(ini_file->groups, fs_strdup(section), group);
+        group = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
+        g_hash_table_insert(ini_file->groups, g_strdup(section), group);
     }
-    fs_hash_table_insert(group, fs_strdup(name), fs_strdup(value));
+    g_hash_table_insert(group, g_strdup(name), g_strdup(value));
     return 1;
 }
 
@@ -55,25 +53,25 @@ fs_ini_file* fs_ini_file_open(const char *path) {
 
 void fs_ini_file_destroy(fs_ini_file *ini_file) {
 
-    fs_hash_table_destroy(ini_file->groups);
-    free(ini_file);
+    g_hash_table_destroy(ini_file->groups);
+    g_free(ini_file);
 }
 
-static char **retrieve_keys(fs_hash_table *hash_table, int *length) {
-    int size = fs_hash_table_size(hash_table);
-    char **result = malloc(sizeof(char*) * (size + 1));
+static char **retrieve_keys(GHashTable *hash_table, int *length) {
+    int size = g_hash_table_size(hash_table);
+    char **result = g_malloc(sizeof(char*) * (size + 1));
     if (length != NULL) {
         *length = size;
     }
     result[size] = NULL;
-    fs_list *key_list = fs_hash_table_get_keys(hash_table);
-    fs_list *item = key_list;
+    GList *key_list = g_hash_table_get_keys(hash_table);
+    GList *item = key_list;
     int k = 0;
     while (item) {
-        result[k++] = fs_strdup(item->data);
+        result[k++] = g_strdup(item->data);
         item = item->next;
     }
-    fs_list_free(key_list);
+    g_list_free(key_list);
     return result;
 }
 
@@ -83,7 +81,7 @@ char **fs_ini_file_get_groups(fs_ini_file *ini_file, int *length) {
 
 char **fs_ini_file_get_keys(fs_ini_file *ini_file, const char *group_name,
         int *length) {
-    fs_hash_table *group = fs_hash_table_lookup(ini_file->groups, group_name);
+    GHashTable *group = g_hash_table_lookup(ini_file->groups, group_name);
     if (group == NULL) {
         return NULL;
     }
@@ -91,20 +89,20 @@ char **fs_ini_file_get_keys(fs_ini_file *ini_file, const char *group_name,
 }
 
 int fs_ini_file_has_group(fs_ini_file *ini_file, const char *group_name) {
-    return fs_hash_table_lookup(ini_file->groups, group_name) != NULL;
+    return g_hash_table_lookup(ini_file->groups, group_name) != NULL;
 }
 
 char *fs_ini_file_get_value(fs_ini_file *ini_file, const char *group_name,
         const char *key) {
-    fs_hash_table *group = fs_hash_table_lookup(ini_file->groups, group_name);
+    GHashTable *group = g_hash_table_lookup(ini_file->groups, group_name);
     if (group == NULL) {
         return NULL;
     }
-    char *value = fs_hash_table_lookup(group, key);
+    char *value = g_hash_table_lookup(group, key);
     if (value == NULL) {
         return NULL;
     }
-    return fs_strdup(value);
+    return g_strdup(value);
 }
 
 char *fs_ini_file_get_string(fs_ini_file *ini_file, const char *group_name,
@@ -270,7 +268,7 @@ static int ini_parse_file(FILE* file,
     int error = 0;
 
 #if !INI_USE_STACK
-    line = (char*)malloc(INI_MAX_LINE);
+    line = (char*) g_malloc(INI_MAX_LINE);
     if (!line) {
         return -2;
     }
@@ -342,7 +340,7 @@ static int ini_parse_file(FILE* file,
     }
 
 #if !INI_USE_STACK
-    free(line);
+    g_free(line);
 #endif
 
     return error;
@@ -356,7 +354,7 @@ static int ini_parse(const char* filename,
     FILE* file;
     int error;
 
-    file = fs_fopen(filename, "r");
+    file = g_fopen(filename, "r");
     if (!file)
         return -1;
     error = ini_parse_file(file, handler, user);

@@ -71,9 +71,9 @@ static int reset_menu_function(fs_emu_menu_item *menu_item,
 
 static char *get_floppy_label(const char* path) {
     if (!path || path[0] == '\0') {
-        return fs_strdup("");
+        return g_strdup("");
     }
-    char *name = fs_path_get_basename(path);
+    char *name = g_path_get_basename(path);
 #ifdef USE_GLIB
     GError *error = NULL;
     GRegex *re = g_regex_new(
@@ -97,7 +97,7 @@ static char *get_floppy_label(const char* path) {
     if (!result) {
         return name;
     }
-    free(name);
+    g_free(name);
     return result;
 #else
     return name;
@@ -204,7 +204,7 @@ static void update_main_menu(fs_emu_menu *menu) {
                 fs_emu_log("floppy in %d: %s\n", drive, path);
                 if (path == NULL || *path == 0) {
                     /// TRANSLATORS: Empty or nothing
-                    char *title = fs_strdup_printf(_("DF%d: Empty"), drive);
+                    char *title = g_strdup_printf(_("DF%d: Empty"), drive);
                     fs_emu_menu_item_set_title(item, title);
                     free(title);
                 }
@@ -221,7 +221,7 @@ static void update_main_menu(fs_emu_menu *menu) {
             fs_emu_log("CD in %d: %s\n", drive, path);
             if (path == NULL || *path == 0) {
                 /// TRANSLATORS: Empty or nothing
-                char *title = fs_strdup_printf(_("CD%d: Empty"), drive);
+                char *title = g_strdup_printf(_("CD%d: Empty"), drive);
                 fs_emu_menu_item_set_title(item, title);
                 free(title);
             }
@@ -263,7 +263,7 @@ static int save_function(fs_emu_menu_item *item, void **data) {
 }
 
 static char *get_state_file(int slot, const char *ext) {
-    char *path = fs_strdup_printf("%s %d.%s", fs_uae_get_state_base_name(),
+    char *path = g_strdup_printf("%s %d.%s", fs_uae_get_state_base_name(),
             slot + 1, ext);
     return path;
 }
@@ -285,10 +285,10 @@ static char *check_save_state(int slot) {
             //g_date_strftime(strbuf, 32, "");
             strftime(strbuf, 32, "%Y-%m-%d %H:%M:%S", &tm_struct);
             //title = fs_strdup_printf("%d", buf.mtime);
-            title = fs_strdup(strbuf);
+            title = g_strdup(strbuf);
         }
     }
-    free(state_file);
+    g_free(state_file);
     return title;
 }
 
@@ -444,7 +444,7 @@ static void insert_cdrom(int drive_index, int disk_index) {
     }
     fs_emu_log("menu: insert CD index %d into drive %d\n", disk_index,
             drive_index);
-    char *key = fs_strdup_printf("cdrom_image_%d", disk_index);
+    char *key = g_strdup_printf("cdrom_image_%d", disk_index);
     char* path = fs_config_get_string(key);
     free(key);
     if (path == NULL) {
@@ -519,7 +519,7 @@ static void update_cd_menu(fs_emu_menu *menu) {
     //fs_emu_menu_item_set_enabled(item, inserted_path[0] != '\0');
     for (int i = 0; i < menu->count - 2; i++) {
         item = menu->items[i + 2];
-        char *key = fs_strdup_printf("cdrom_image_%d", i);
+        char *key = g_strdup_printf("cdrom_image_%d", i);
         char* path = fs_config_get_string(key);
         free(key);
         if (path == NULL) {
@@ -555,7 +555,7 @@ static int media_menu_function(fs_emu_menu_item *menu_item,
         item = fs_emu_menu_item_new();
         fs_emu_menu_append_item(menu, item);
         /// TRANSLATORS: This is a menu entry and must not be too long
-        str = fs_strdup_printf(_("Insert Into DF%d"), drive);
+        str = g_strdup_printf(_("Insert Into DF%d"), drive);
         fs_emu_menu_item_set_title(item, str);
         free(str);
         fs_emu_menu_item_set_type(item, FS_EMU_MENU_ITEM_TYPE_HEADING);
@@ -597,9 +597,9 @@ static int media_menu_function(fs_emu_menu_item *menu_item,
         item = fs_emu_menu_item_new();
         fs_emu_menu_append_item(menu, item);
         /// TRANSLATORS: This is a menu entry and must not be too long
-        str = fs_strdup_printf(_("Insert Into CD%d"), drive);
+        str = g_strdup_printf(_("Insert Into CD%d"), drive);
         fs_emu_menu_item_set_title(item, str);
-        free(str);
+        g_free(str);
         fs_emu_menu_item_set_type(item, FS_EMU_MENU_ITEM_TYPE_HEADING);
 
         item = fs_emu_menu_item_new();
@@ -613,7 +613,7 @@ static int media_menu_function(fs_emu_menu_item *menu_item,
 
         for (int i = 0; ; i++) {
             // FIXME: GET FROM UAE OPTIONS...?
-            char *key = fs_strdup_printf("cdrom_image_%d", i);
+            char *key = g_strdup_printf("cdrom_image_%d", i);
             char *path = fs_config_get_string(key);
             free(key);
             if (path == NULL) {
@@ -741,9 +741,9 @@ static int input_host_menu_function(fs_emu_menu_item *menu_item,
     item = fs_emu_menu_item_new();
     fs_emu_menu_append_item(menu, item);
     /// TRANSLATORS: This is a menu entry and must not be too long
-    str = fs_strdup_printf(_("Joystick Port %d Device"), port);
+    str = g_strdup_printf(_("Joystick Port %d Device"), port);
     fs_emu_menu_item_set_title(item, str);
-    free(str);
+    g_free(str);
     fs_emu_menu_item_set_type(item, FS_EMU_MENU_ITEM_TYPE_HEADING);
 
     item = fs_emu_menu_item_new();
@@ -839,9 +839,9 @@ static int input_amiga_menu_function(fs_emu_menu_item *menu_item,
     item = fs_emu_menu_item_new();
     fs_emu_menu_append_item(menu, item);
     /// TRANSLATORS: This is a menu entry and must not be too long
-    str = fs_strdup_printf(_("Joystick Port %d Mode"), port);
+    str = g_strdup_printf(_("Joystick Port %d Mode"), port);
     fs_emu_menu_item_set_title(item, str);
-    free(str);
+    g_free(str);
     fs_emu_menu_item_set_type(item, FS_EMU_MENU_ITEM_TYPE_HEADING);
 
     int index = 0;
@@ -934,16 +934,16 @@ static int input_menu_function(fs_emu_menu_item *menu_item,
     fs_emu_menu_append_item(menu, item);
     /// TRANSLATORS: This is a menu entry and must not be too long
     if (port == 0) {
-        str = fs_strdup_printf(_("Mouse Port"));
+        str = g_strdup_printf(_("Mouse Port"));
     }
     else if (port == 1) {
-        str = fs_strdup_printf(_("Joystick Port"));
+        str = g_strdup_printf(_("Joystick Port"));
     }
     else {
-        str = fs_strdup_printf(_("Joystick Port %d"), port);
+        str = g_strdup_printf(_("Joystick Port %d"), port);
     }
     fs_emu_menu_item_set_title(item, str);
-    free(str);
+    g_free(str);
     fs_emu_menu_item_set_type(item, FS_EMU_MENU_ITEM_TYPE_HEADING);
 
     item = fs_emu_menu_item_new();

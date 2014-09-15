@@ -1,6 +1,7 @@
-#ifndef FS_BASE_H_
-#define FS_BASE_H_
+#ifndef FS_BASE_H
+#define FS_BASE_H
 
+#include <fs/malloc.h>
 #include <fs/defines.h>
 
 #ifdef __cplusplus
@@ -28,14 +29,6 @@ void fs_time_val_add(fs_time_val *tv, int usec);
 int64_t fs_get_real_time(void);
 int64_t fs_get_monotonic_time(void);
 
-#define fs_new(struct_type, n_structs) (struct_type *) \
-        malloc(sizeof(struct_type) * (n_structs))
-
-#define fs_new0(struct_type, n_structs) (struct_type *) \
-        fs_malloc0(sizeof(struct_type) * (n_structs))
-
-void *fs_malloc0(size_t n_bytes) FS_MALLOC /* G_GNUC_ALLOC_SIZE(1) */;
-
 void fs_set_argv(int argc, char* argv[]);
 int fs_get_application_exe_path(char *buffer, int size);
 int fs_get_application_exe_dir(char *buffer, int size);
@@ -48,4 +41,4 @@ const char *fs_get_user_data_dir(void);
 }
 #endif
 
-#endif // FS_BASE_H_
+#endif /* FS_BASE_H */

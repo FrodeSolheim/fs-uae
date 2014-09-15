@@ -33,7 +33,7 @@ int fs_emu_video_buffer_init(int width, int height, int bpp) {
         g_video_buffers[i].height = height;
         g_video_buffers[i].bpp = bpp;
         g_video_buffers[i].size = width * height * bpp;
-        g_video_buffers[i].data = fs_malloc0(g_video_buffers[i].size);
+        g_video_buffers[i].data = g_malloc0(g_video_buffers[i].size);
         //memset(g_video_buffers[i].data, 0, g_video_buffers[i].size);
         g_video_buffers[i].aspect = 1.0;
         //g_video_buffers[i].buffer_width = width;
@@ -110,7 +110,7 @@ int fs_emu_video_buffer_grow(fs_emu_video_buffer *buffer, int width,
             needed_size);
     free(buffer->data);
     buffer->size = needed_size;
-    buffer->data = fs_malloc0(buffer->size);
+    buffer->data = g_malloc0(buffer->size);
     return 1;
 }
 

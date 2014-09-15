@@ -5,13 +5,12 @@
 #include <fs/emu.h>
 #include "theme.h"
 
-#include <fs/config.h>
+#include <fs/conf.h>
 #include <fs/base.h>
 #include <fs/data.h>
 #include <fs/filesys.h>
 #include <fs/i18n.h>
 #include <fs/log.h>
-#include <fs/string.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -28,7 +27,7 @@ struct fs_emu_theme g_fs_emu_theme = {};
 void fs_emu_theme_init_lua(void) {
     fs_log("fs_emu_theme_init_lua\n");
 
-    char *path = fs_path_join(g_fs_emu_theme.path, "theme.lua", NULL);
+    char *path = g_build_filename(g_fs_emu_theme.path, "theme.lua", NULL);
     if (fs_path_exists(path)) {
         int result = luaL_dofile(fs_emu_lua_state, path);
         if (result != 0) {
@@ -46,7 +45,7 @@ void fs_emu_init_overlays(const char **overlay_names) {
     const char **name = overlay_names;
     while(*name) {
         if (k < FS_EMU_MAX_OVERLAYS) {
-            g_fs_emu_theme.overlays[k].name = fs_strdup(*name);
+            g_fs_emu_theme.overlays[k].name = g_strdup(*name);
         }
         k = k + 1;
         name++;
@@ -57,23 +56,23 @@ char *fs_emu_theme_get_resource_path(const char *name) {
     printf("WARNING: fs_emu_theme_get_resource_path (%s) is deprecated\n",
         name);
     if (fs_path_exists(name)) {
-        return fs_strdup(name);
+        return g_strdup(name);
     }
     char *path, *p;
 
-    p = fs_path_join(g_fs_emu_theme.path, name, NULL);
+    p = g_build_filename(g_fs_emu_theme.path, name, NULL);
     if (fs_path_exists(p)) {
         return p;
     }
     free(p);
 
-    p = fs_path_join(g_fs_emu_theme.name, name, NULL);
+    p = g_build_filename(g_fs_emu_theme.name, name, NULL);
     path = fs_get_program_data_file(p);
     free(p);
     if (path) {
         return path;
     }
-    //p = fs_path_join("default", name, NULL);
+    //p = g_build_filename("default", name, NULL);
     path = fs_get_program_data_file(name);
     //free(p);
     if (path) {
@@ -86,13 +85,13 @@ int fs_emu_theme_get_resource_data(const char *name, char **data, int *size) {
     // printf("fs_emu_theme_get_resource_data (%s)\n", name);
     /*
     if (fs_path_exists(name)) {
-        return fs_strdup(name);
+        return g_strdup(name);
     }
     */
     char *p;
-    p = fs_path_join(g_fs_emu_theme.path, name, NULL);
+    p = g_build_filename(g_fs_emu_theme.path, name, NULL);
     if (fs_path_exists(p)) {
-        FILE *f = fs_fopen(p, "rb");
+        FILE *f = g_fopen(p, "rb");
         free(p);
         if (fseek(f, 0, SEEK_END) != 0) {
             fclose(f);
@@ -119,7 +118,7 @@ int fs_emu_theme_get_resource_data(const char *name, char **data, int *size) {
         free(p);
     }
 
-    p = fs_path_join(g_fs_emu_theme.name, name, NULL);
+    p = g_build_filename(g_fs_emu_theme.name, name, NULL);
     int error = fs_get_program_data(p, data, size);
     free(p);
     if (error == 0) {
@@ -212,12 +211,12 @@ static void load_defaults() {
             1.0 * 0xcc / 0xff, 1.0);
     set_color(g_fs_emu_theme.item_color, 1.0, 1.0, 1.0, 1.0);
     set_color(g_fs_emu_theme.fade_color, 0.0, 0.0, 0.0, 1.0);
-    g_fs_emu_theme.overlay_image = fs_strdup("overlay.png");
+    g_fs_emu_theme.overlay_image = g_strdup("overlay.png");
 }
 
 static void load_theme() {
     fs_log("loading theme \"%s\"\n", g_fs_emu_theme.path);
-    char *p = fs_path_join(g_fs_emu_theme.path, "theme.conf", NULL);
+    char *p = g_build_filename(g_fs_emu_theme.path, "theme.conf", NULL);
     if (fs_path_exists(p)) {
         fs_config_read_file(p, 1);
     }
@@ -277,7 +276,7 @@ static void load_theme() {
     for (int i = 0; i < FS_EMU_MAX_OVERLAYS; i++) {
         // the first options read here are old compatibility options
 
-        name = fs_strdup_printf("theme_custom_%d_x",
+        name = g_strdup_printf("theme_custom_%d_x",
                 i - FS_EMU_FIRST_CUSTOM_OVERLAY);
         val = fs_config_get_int(name);
         free(name);
@@ -286,7 +285,7 @@ static void load_theme() {
             g_fs_emu_theme.overlays[i].x = (double) val /
                     g_fs_emu_theme.width;
         }
-        name = fs_strdup_printf("theme_custom_%d_y",
+        name = g_strdup_printf("theme_custom_%d_y",
                 i - FS_EMU_FIRST_CUSTOM_OVERLAY);
         val = fs_config_get_int(name);
         free(name);
@@ -301,7 +300,7 @@ static void load_theme() {
 
         // these are new theme / overlay options
 
-        name = fs_strdup_printf("theme_%s_pos",
+        name = g_strdup_printf("theme_%s_pos",
                 g_fs_emu_theme.overlays[i].name);
         csval = fs_config_get_const_string(name);
         free(name);
@@ -315,7 +314,7 @@ static void load_theme() {
             }
         }
 
-        name = fs_strdup_printf("theme_%s_prefix",
+        name = g_strdup_printf("theme_%s_prefix",
                 g_fs_emu_theme.overlays[i].name);
         cv = fs_config_get_string(name);
         free(name);
@@ -334,27 +333,27 @@ void fs_emu_theme_init() {
     fs_log("fs_emu_theme_init\n");
 
     fs_emu_theme_overlay* o = g_fs_emu_theme.overlays;
-    o[FS_EMU_TOP_LEFT_OVERLAY].name = fs_strdup("top_left_overlay");
-    o[FS_EMU_TOP_RIGHT_OVERLAY].name = fs_strdup("top_right_overlay");
+    o[FS_EMU_TOP_LEFT_OVERLAY].name = g_strdup("top_left_overlay");
+    o[FS_EMU_TOP_RIGHT_OVERLAY].name = g_strdup("top_right_overlay");
     o[FS_EMU_TOP_RIGHT_OVERLAY].anchor = FS_EMU_ANCHOR_TOP_RIGHT;
-    o[FS_EMU_BOTTOM_RIGHT_OVERLAY].name = fs_strdup("bottom_right_overlay");
+    o[FS_EMU_BOTTOM_RIGHT_OVERLAY].name = g_strdup("bottom_right_overlay");
     o[FS_EMU_BOTTOM_RIGHT_OVERLAY].anchor = FS_EMU_ANCHOR_BOTTOM_RIGHT;
-    o[FS_EMU_BOTTOM_LEFT_OVERLAY].name = fs_strdup("bottom_left_overlay");
+    o[FS_EMU_BOTTOM_LEFT_OVERLAY].name = g_strdup("bottom_left_overlay");
     o[FS_EMU_BOTTOM_LEFT_OVERLAY].anchor = FS_EMU_ANCHOR_BOTTOM_LEFT;
 
-    o[FS_EMU_AUDIO_LED_OVERLAY].name = fs_strdup("audio_led");
-    o[FS_EMU_FPS_LED_OVERLAY].name = fs_strdup("fps_led");
-    o[FS_EMU_VSYNC_LED_OVERLAY].name = fs_strdup("vsync_led");
-    o[FS_EMU_FPS_D0_OVERLAY].name = fs_strdup("fps_d0");
-    o[FS_EMU_FPS_D1_OVERLAY].name = fs_strdup("fps_d1");
+    o[FS_EMU_AUDIO_LED_OVERLAY].name = g_strdup("audio_led");
+    o[FS_EMU_FPS_LED_OVERLAY].name = g_strdup("fps_led");
+    o[FS_EMU_VSYNC_LED_OVERLAY].name = g_strdup("vsync_led");
+    o[FS_EMU_FPS_D0_OVERLAY].name = g_strdup("fps_d0");
+    o[FS_EMU_FPS_D1_OVERLAY].name = g_strdup("fps_d1");
 
     const char *theme = fs_config_get_const_string("theme");
     if (theme) {
-        g_fs_emu_theme.name = fs_strdup(theme);
+        g_fs_emu_theme.name = g_strdup(theme);
         // first try to find the theme in the user's theme dir
         const char *themes_dir = fs_config_get_const_string("themes_dir");
         if (themes_dir) {
-            g_fs_emu_theme.path = fs_path_join(themes_dir,
+            g_fs_emu_theme.path = g_build_filename(themes_dir,
                     g_fs_emu_theme.name, NULL);
             if (!fs_path_exists(g_fs_emu_theme.path)) {
                 free(g_fs_emu_theme.path);
@@ -364,7 +363,7 @@ void fs_emu_theme_init() {
         // or by direct path lookup
         if (!g_fs_emu_theme.path) {
             if (fs_path_exists(theme)) {
-                g_fs_emu_theme.path = fs_strdup(theme);
+                g_fs_emu_theme.path = g_strdup(theme);
             }
         }
         // then try to find a bundled / installed theme
@@ -379,12 +378,12 @@ void fs_emu_theme_init() {
             fs_emu_warning(_("Theme not found: %s"), g_fs_emu_theme.name);
             free(g_fs_emu_theme.name);
             // resources will not be found, but path should not be NULL...
-            g_fs_emu_theme.path = fs_strdup("");
+            g_fs_emu_theme.path = g_strdup("");
         }
     }
     else {
-        g_fs_emu_theme.name = fs_strdup("");
-        g_fs_emu_theme.path = fs_strdup("");
+        g_fs_emu_theme.name = g_strdup("");
+        g_fs_emu_theme.path = g_strdup("");
     }
 
     load_defaults();

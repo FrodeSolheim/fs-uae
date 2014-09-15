@@ -1,18 +1,22 @@
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <fs/fs.h>
 #include "sysconfig.h"
 #include "sysdeps.h"
 
 #include "fsdb.h"
 #include "uae/fs.h"
+#include "uae/glib.h"
 #include "options.h"
 #include "filesys.h"
 #include "zfile.h"
-#include <fs/unicode.h>
+#include <fs/util.h>
 #include <unistd.h>
 #ifdef WINDOWS
 #include <Windows.h>
 #endif
-
 #include "fsdb_host.h"
 
 int g_fsdb_debug = 0;
@@ -20,8 +24,8 @@ int g_fsdb_debug = 0;
 struct my_opendir_s {
     //GDir *dir;
     char *path;
-    fs_list *items;
-    fs_list *current;
+    GList *items;
+    GList *current;
 };
 
 struct my_openfile_s {
@@ -76,21 +80,21 @@ struct my_opendir_s *my_opendir(const TCHAR *name, const TCHAR *mask) {
     if (mask && strcmp(mask, "*.*") != 0) {
         write_log("WARNING: directory mask was not *.*");
     }
-    fs_dir *dir = fs_dir_open(name, 0);
+    GDir *dir = g_dir_open(name, 0, NULL);
     if (!dir) {
         my_errno = errno;
         write_log("my_opendir %s failed\n", name);
         return NULL;
     }
 
-    struct my_opendir_s *mod = xmalloc(struct my_opendir_s, 1);
+    struct my_opendir_s *mod = g_new(struct my_opendir_s, 1);
     //mod->dir = dir;
-    mod->path = fs_strdup(name);
+    mod->path = g_strdup(name);
     mod->items = NULL;
 
     const char *result;
     while (1) {
-        result = fs_dir_read_name(dir);
+        result = g_dir_read_name(dir);
         if (!result) {
             break;
         }
@@ -121,13 +125,13 @@ struct my_opendir_s *my_opendir(const TCHAR *name, const TCHAR *mask) {
                     "ISO-8859-1)\n", result);
             continue;
         }
-        free(cresult);
+        g_free(cresult);
 
-        mod->items = fs_list_append(mod->items, fs_strdup(result));
+        mod->items = g_list_append(mod->items, g_strdup(result));
     }
-    mod->items = fs_list_sort(mod->items, compare_strings);
+    mod->items = g_list_sort(mod->items, compare_strings);
     mod->current = mod->items;
-    fs_dir_close(dir);
+    g_dir_close(dir);
     return mod;
 }
 
@@ -141,14 +145,14 @@ void my_closedir(struct my_opendir_s* mod) {
     }
     my_errno = 0;
     if (mod) {
-        free(mod->path);
-        fs_list *item = mod->items;
+        g_free(mod->path);
+        GList *item = mod->items;
         while (item) {
-            free(item->data);
+            g_free(item->data);
             item = item->next;
         }
-        fs_list_free(mod->items);
-        xfree(mod);
+        g_list_free(mod->items);
+        g_free(mod);
     }
 }
 
@@ -234,7 +238,7 @@ struct my_openfile_s *my_open(const TCHAR *name, int flags) {
     char *path = uae_expand_path(name);
 
     int file_existed = fs_path_exists(path);
-    int file = fs_open(path, open_flags, 0644);
+    int file = g_open(path, open_flags, 0644);
     if (file == -1) {
         my_errno = errno;
         write_log("WARNING: my_open could not open (%s, %d)\n", name,
@@ -269,9 +273,9 @@ struct my_openfile_s *my_open(const TCHAR *name, int flags) {
     }
     free(path);
 
-    struct my_openfile_s *mos = xmalloc (struct my_openfile_s, 1);
+    struct my_openfile_s *mos = g_new(struct my_openfile_s, 1);
     mos->fd = file;
-    mos->path = fs_strdup(name);
+    mos->path = g_strdup(name);
     my_errno = 0;
     return mos;
 }
@@ -295,7 +299,7 @@ void my_close(struct my_openfile_s* mos) {
         write_log("Windows error code %lu\n", GetLastError());
 #endif
     }
-    xfree(mos);
+    g_free(mos);
 }
 
 unsigned int my_read(struct my_openfile_s *mos, void *b, unsigned int size) {
@@ -339,7 +343,7 @@ int my_mkdir(const TCHAR *path) {
     if (g_fsdb_debug) {
         write_log("my_mkdir %s\n", path);
     }
-    int error = fs_mkdir(path, 0755);
+    int error = g_mkdir(path, 0755);
     if (error) {
         my_errno = errno;
         return -1;
@@ -381,9 +385,9 @@ int my_truncate(const TCHAR *name, uae_u64 len) {
 }
 
 static void remove_extra_file(const char *path, const char *name) {
-    char *p = fs_path_join(path, name, NULL);
-    fs_unlink(p);
-    free(p);
+    char *p = g_build_filename(path, name, NULL);
+    g_unlink(p);
+    g_free(p);
 }
 
 int my_rmdir(const TCHAR *path) {
@@ -394,12 +398,12 @@ int my_rmdir(const TCHAR *path) {
     remove_extra_file(path, ".DS_Store");
 
     errno = 0;
-    int result = fs_rmdir(path);
+    int result = g_rmdir(path);
     my_errno = errno;
 
-    char *meta_name = fs_strconcat(path, ".uaem", NULL);
-    fs_unlink(meta_name);
-    free(meta_name);
+    char *meta_name = g_strconcat(path, ".uaem", NULL);
+    g_unlink(meta_name);
+    g_free(meta_name);
 
     return result;
 }
@@ -409,12 +413,12 @@ int my_unlink(const TCHAR *path) {
         write_log("my_unlink %s\n", path);
     }
     errno = 0;
-    int result = fs_unlink(path);
+    int result = g_unlink(path);
     my_errno = errno;
 
-    char *meta_name = fs_strconcat(path, ".uaem", NULL);
-    fs_unlink(meta_name);
-    free(meta_name);
+    char *meta_name = g_strconcat(path, ".uaem", NULL);
+    g_unlink(meta_name);
+    g_free(meta_name);
 
     return result;
 }
@@ -422,7 +426,7 @@ int my_unlink(const TCHAR *path) {
 static int rename_file(const char *oldname, const char *newname) {
     int result = 0;
     for (int i = 0; i < 10; i++) {
-        result = fs_rename(oldname, newname);
+        result = g_rename(oldname, newname);
         my_errno = errno;
         if (result == 0) {
             break;
@@ -447,9 +451,9 @@ int my_rename(const TCHAR *oldname, const TCHAR *newname) {
         return result;
     }
 
-    char *oldname2 = fs_strconcat(oldname, ".uaem", NULL);
+    char *oldname2 = g_strconcat(oldname, ".uaem", NULL);
     if (fs_path_exists(oldname2)) {
-        char *newname2 = fs_strconcat(newname, ".uaem", NULL);
+        char *newname2 = g_strconcat(newname, ".uaem", NULL);
         if (rename_file(oldname2, newname2) != 0) {
             // could not rename meta file, revert changes
             int saved_errno = my_errno;
@@ -457,9 +461,9 @@ int my_rename(const TCHAR *oldname, const TCHAR *newname) {
             my_errno = saved_errno;
             result = -1;
         }
-        free(newname2);
+        g_free(newname2);
     }
-    free(oldname2);
+    g_free(oldname2);
 
     return result;
 }
@@ -484,7 +488,7 @@ FILE *my_opentext(const TCHAR* name) {
     }
     // FIXME: WinUAE's version does some content checking related to unicode.
     // see fsdb_mywin32.cpp
-    return fs_fopen(name, "rb");
+    return g_fopen(name, "rb");
 }
 
 bool my_createshortcut(const char *source, const char *target, const char *description) 

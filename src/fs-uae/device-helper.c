@@ -16,7 +16,7 @@
 #endif
 
 #include <fs/emu.h>
-#include <fs/string.h>
+#include <fs/glib.h>
 
 #ifndef WINDOWS
 #undef main
@@ -34,7 +34,7 @@ static char *joystick_config_name(const char* name, int with_number) {
                 break;
             }
         }
-        char c = fs_ascii_tolower(*in);
+        char c = g_ascii_tolower(*in);
         if ((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9')) {
             if (other) {
                 *(out++) = '_';
@@ -48,7 +48,7 @@ static char *joystick_config_name(const char* name, int with_number) {
         in++;
     }
     *out = '\0';
-    if (fs_str_has_suffix(result, "_")) {
+    if (g_str_has_suffix(result, "_")) {
         result[strlen(result) - 1] = '\0';
     }
     return result;
@@ -68,7 +68,7 @@ static void list_joysticks() {
     if (count >= 0) {
         for (int i = 0; i < count; i++) {
             const char *name = ManyMouse_DeviceName(i);
-            if (name[0] == 0 || fs_ascii_strcasecmp(name, "mouse") == 0) {
+            if (name[0] == 0 || g_ascii_strcasecmp(name, "mouse") == 0) {
                 printf("M: Unnamed Mouse\n");
             }
             else {
@@ -135,7 +135,7 @@ static void print_events() {
     if (count >= 0) {
         for (int i = 0; i < count; i++) {
             const char *name = ManyMouse_DeviceName(i);
-            if (name[0] == 0 || fs_ascii_strcasecmp(name, "mouse") == 0) {
+            if (name[0] == 0 || g_ascii_strcasecmp(name, "mouse") == 0) {
                 printf("{\"type\": \"mouse-device-added\", \"device\": %d, "
                        "\"name\": \"%s\"}\n",
                        i + 1, "Unnamed Mouse");
@@ -312,14 +312,14 @@ int main(int argc, char* argv[]) {
     for (int i = 0; i < num_joysticks; i++) {
         SDL_Joystick *joystick = SDL_JoystickOpen(i);
 #ifdef USE_SDL2
-        char* name = fs_ascii_strup(SDL_JoystickName(joystick), -1);
+        char* name = g_ascii_strup(SDL_JoystickName(joystick), -1);
 #else
-        char* name = fs_ascii_strup(SDL_JoystickName(i), -1);
+        char* name = g_ascii_strup(SDL_JoystickName(i), -1);
 #endif
-        name = fs_strstrip(name);
+        name = g_strstrip(name);
         if (name[0] == '\0') {
             free(name);
-            name = fs_ascii_strup("Unnamed", -1);
+            name = g_ascii_strup("Unnamed", -1);
         }
 
         // fs_ml_input_unique_device_name either returns name, or frees it

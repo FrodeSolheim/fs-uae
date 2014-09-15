@@ -2,14 +2,14 @@
 #include "config.h"
 #endif
 
-#include <fs/emu.h>
 #include "font.h"
+
+#include <fs/emu.h>
+#include <fs/glib.h>
+#include <fs/i18n.h>
 
 #include <stdlib.h>
 #include <string.h>
-#include <fs/i18n.h>
-#include <fs/list.h>
-#include <fs/string.h>
 
 #ifdef USE_OPENGL
 #include <fs/ml/opengl.h>
@@ -32,7 +32,7 @@ static int g_texture_height = 2048;
 #define MASK 0x00ffffff
 
 static int g_initialized = 0;
-static fs_list* g_cache = NULL;
+static GList* g_cache = NULL;
 static int g_video_version = 0;
 static GLuint g_text_texture = 0;
 static uint8_t *g_buffer = NULL;
@@ -63,7 +63,7 @@ static void initialize_cache() {
         item->font = NULL;
         item->text = NULL;
         item->position = i;
-        g_cache = fs_list_append(g_cache, item);
+        g_cache = g_list_append(g_cache, item);
     }
     sanity_check();
     // FIXME: REMOVE
@@ -75,10 +75,10 @@ static void create_text_texture() {
     fs_gl_bind_texture(g_text_texture);
     // want to clear data to color (0, 0, 0, 0), probably a better
     // way to to this...
-    void *data = fs_malloc0(g_texture_width * g_texture_height * 4);
+    void *data = g_malloc0(g_texture_width * g_texture_height * 4);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, g_texture_width, g_texture_height,
             0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-    free(data);
+    g_free(data);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -95,14 +95,14 @@ static void context_notification_handler(int notification, void *data) {
         // FIXME: clear text cache..
         //printf("FIXME: clear text cache\n");
 
-        fs_list* list = g_cache;
+        GList* list = g_cache;
         while (list) {
             cache_item *item = (cache_item *) list->data;
             free(item->text);
             free(item);
             list = list->next;
         }
-        fs_list_free(g_cache);
+        g_list_free(g_cache);
         g_cache = NULL;
         initialize_cache();
     }
@@ -219,7 +219,7 @@ int fs_emu_font_render(fs_emu_font *font, const char *text, float x, float y,
     }
 
     // find cached text entry, if any
-    fs_list* list = g_cache;
+    GList* list = g_cache;
     while (list) {
         cache_item *item = (cache_item *) list->data;
         if (item->font == font && strcmp(item->text, text) == 0) {
@@ -229,7 +229,7 @@ int fs_emu_font_render(fs_emu_font *font, const char *text, float x, float y,
     }
     if (list) {
         cache_item *item = (cache_item *) list->data;
-        g_cache = fs_list_delete_link(g_cache, list);
+        g_cache = g_list_delete_link(g_cache, list);
         sanity_check();
         fs_gl_blending(1);
         fs_gl_texturing(1);
@@ -277,7 +277,7 @@ int fs_emu_font_render(fs_emu_font *font, const char *text, float x, float y,
         glEnd();
 #endif
 
-        g_cache = fs_list_prepend(g_cache, item);
+        g_cache = g_list_prepend(g_cache, item);
         sanity_check();
         return item->width;
     }
@@ -463,7 +463,7 @@ int fs_emu_font_render(fs_emu_font *font, const char *text, float x, float y,
     //free(utext);
     //free(base_text);
 
-    fs_list *last = fs_list_last(g_cache);
+    GList *last = g_list_last(g_cache);
     cache_item *last_item = (cache_item *) last->data;
     int position = last_item->position;
 
@@ -488,7 +488,7 @@ int fs_emu_font_render(fs_emu_font *font, const char *text, float x, float y,
 
     cache_item *item = malloc(sizeof(cache_item));
     item->font = font;
-    item->text = fs_strdup(text);
+    item->text = g_strdup(text);
     item->width = required_width;
     item->height = required_height;
     item->position = position;
@@ -499,7 +499,7 @@ int fs_emu_font_render(fs_emu_font *font, const char *text, float x, float y,
     item->y2 = (item->position * 32 + required_height) /
             (1.0 * g_texture_height);
     //item->texture = render_texture;
-    g_cache = fs_list_prepend(g_cache, item);
+    g_cache = g_list_prepend(g_cache, item);
     sanity_check();
 
     if (last_item->text) {
@@ -512,7 +512,7 @@ int fs_emu_font_render(fs_emu_font *font, const char *text, float x, float y,
     */
     free(last_item);
 
-    g_cache = fs_list_delete_link(g_cache, last);
+    g_cache = g_list_delete_link(g_cache, last);
     sanity_check();
 
     // now the text is in the cache, so call function again
@@ -558,7 +558,7 @@ static fs_image *load_font_from_file(const char *path) {
 
 fs_emu_font *fs_emu_font_new_from_file(const char *name) {
     fs_emu_log("load font %s\n", name);
-    fs_emu_font *font = fs_malloc0(sizeof(fs_emu_font));
+    fs_emu_font *font = g_malloc0(sizeof(fs_emu_font));
     font->image = load_font_from_file(name);
 
     if (font->image) {

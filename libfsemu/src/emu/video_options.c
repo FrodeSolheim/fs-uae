@@ -8,7 +8,6 @@
 
 #include <fs/emu.h>
 #include <fs/ml.h>
-#include <fs/string.h>
 
 #include "libfsemu.h"
 #include "video.h"
@@ -67,30 +66,30 @@ void fs_emu_video_init_options(void) {
         sync_mode_str = fs_config_get_string("sync");
     }
     if (sync_mode_str) {
-        if (fs_ascii_strcasecmp(sync_mode_str, "auto") == 0) {
+        if (g_ascii_strcasecmp(sync_mode_str, "auto") == 0) {
             g_fs_emu_video_sync_to_vblank = 1;
             g_fs_emu_video_allow_full_sync = 1;
         }
-        else if (fs_ascii_strcasecmp(sync_mode_str, "1") == 0) {
+        else if (g_ascii_strcasecmp(sync_mode_str, "1") == 0) {
             // shortcut option, nice from command line (e.g. --video-sync)
             g_fs_emu_video_sync_to_vblank = 1;
             g_fs_emu_video_allow_full_sync = 1;
         }
-        else if (fs_ascii_strcasecmp(sync_mode_str, "full") == 0) {
+        else if (g_ascii_strcasecmp(sync_mode_str, "full") == 0) {
             // old compatibility option
             g_fs_emu_video_sync_to_vblank = 1;
             g_fs_emu_video_allow_full_sync = 1;
         }
-        else if (fs_ascii_strcasecmp(sync_mode_str, "0") == 0) {
+        else if (g_ascii_strcasecmp(sync_mode_str, "0") == 0) {
             // shortcut option, nice from command line (e.g. --no-video-sync)
             g_fs_emu_video_sync_to_vblank = 0;
             g_fs_emu_video_allow_full_sync = 0;
         }
-        else if (fs_ascii_strcasecmp(sync_mode_str, "off") == 0) {
+        else if (g_ascii_strcasecmp(sync_mode_str, "off") == 0) {
             //g_fs_emu_video_sync_to_vblank = 0;
             //g_fs_emu_video_allow_full_sync = 0;
         }
-        else if (fs_ascii_strcasecmp(sync_mode_str, "vblank") == 0) {
+        else if (g_ascii_strcasecmp(sync_mode_str, "vblank") == 0) {
             g_fs_emu_video_sync_to_vblank = 1;
         }
         else {
@@ -192,28 +191,28 @@ void fs_emu_video_init_options(void) {
 
     const char *s = fs_config_get_const_string("video_format");
     if (s) {
-        if (fs_ascii_strcasecmp(s, "bgra") == 0) {
+        if (g_ascii_strcasecmp(s, "bgra") == 0) {
             fs_log("using video format BGRA\n");
             g_fs_emu_video_format = FS_EMU_VIDEO_FORMAT_BGRA;
             g_fs_emu_video_bpp = 4;
         }
-        else if (fs_ascii_strcasecmp(s, "rgba") == 0) {
+        else if (g_ascii_strcasecmp(s, "rgba") == 0) {
             fs_log("using video format RGBA\n");
             g_fs_emu_video_format = FS_EMU_VIDEO_FORMAT_RGBA;
             g_fs_emu_video_bpp = 4;
         }
-        else if (fs_ascii_strcasecmp(s, "rgb") == 0) {
+        else if (g_ascii_strcasecmp(s, "rgb") == 0) {
             fs_log("using video format RGB\n");
             g_fs_emu_video_format = FS_EMU_VIDEO_FORMAT_RGB;
             g_fs_emu_video_bpp = 3;
         }
-        else if (fs_ascii_strcasecmp(s, "rgb565") == 0) {
+        else if (g_ascii_strcasecmp(s, "rgb565") == 0) {
             fs_log("using video format RGB565\n");
             g_fs_emu_video_format = FS_EMU_VIDEO_FORMAT_R5G6B5;
             g_fs_emu_video_bpp = 2;
             g_fs_emu_texture_format = FS_EMU_TEXTURE_FORMAT_RGB5;
         }
-        else if (fs_ascii_strcasecmp(s, "rgba5551") == 0) {
+        else if (g_ascii_strcasecmp(s, "rgba5551") == 0) {
             fs_log("using video format RGBA5551\n");
             g_fs_emu_video_format = FS_EMU_VIDEO_FORMAT_R5G5B5A1;
             g_fs_emu_video_bpp = 2;
@@ -231,27 +230,27 @@ void fs_emu_video_init_options(void) {
 
     s = fs_config_get_const_string("texture_format");
     if (s) {
-        if (fs_ascii_strcasecmp(s, "rgb") == 0) {
+        if (g_ascii_strcasecmp(s, "rgb") == 0) {
             fs_log("using texture format RGB\n");
             g_fs_emu_texture_format = FS_EMU_TEXTURE_FORMAT_RGB;
         }
-        else if (fs_ascii_strcasecmp(s, "rgb8") == 0) {
+        else if (g_ascii_strcasecmp(s, "rgb8") == 0) {
             fs_log("using texture format RGB8\n");
             g_fs_emu_texture_format = FS_EMU_TEXTURE_FORMAT_RGB8;
         }
-        else if (fs_ascii_strcasecmp(s, "rgba") == 0) {
+        else if (g_ascii_strcasecmp(s, "rgba") == 0) {
             fs_log("using texture format RGBA\n");
             g_fs_emu_texture_format = FS_EMU_TEXTURE_FORMAT_RGBA;
         }
-        else if (fs_ascii_strcasecmp(s, "rgba8") == 0) {
+        else if (g_ascii_strcasecmp(s, "rgba8") == 0) {
             fs_log("using texture format RGBA8\n");
             g_fs_emu_texture_format = FS_EMU_TEXTURE_FORMAT_RGBA8;
         }
-        else if (fs_ascii_strcasecmp(s, "rgb5") == 0) {
+        else if (g_ascii_strcasecmp(s, "rgb5") == 0) {
             fs_log("using texture format RGB5\n");
             g_fs_emu_texture_format = FS_EMU_TEXTURE_FORMAT_RGB5;
         }
-        else if (fs_ascii_strcasecmp(s, "rgb5_a1") == 0) {
+        else if (g_ascii_strcasecmp(s, "rgb5_a1") == 0) {
             fs_log("using texture format RGB5_A1\n");
             g_fs_emu_texture_format = FS_EMU_TEXTURE_FORMAT_RGB5_A1;
         }

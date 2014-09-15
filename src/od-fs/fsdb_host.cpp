@@ -12,6 +12,7 @@
 #include <fs/fs.h>
 #include <fs/filesys.h>
 #include <fs/time.h>
+#include <fs/util.h>
 
 #include "sysconfig.h"
 #include "sysdeps.h"
@@ -20,6 +21,7 @@
 
 #include "uae/uae.h"
 #include "uae/assert.h"
+#include "uae/glib.h"
 
 #include "fsdb.h"
 #include "zfile.h"
@@ -167,7 +169,7 @@ static FILE *fsdb_open_meta_file(const char *meta_file, const char *mode) {
     if (g_fsdb_debug) {
         write_log("opening meta file %s mode %s\n", meta_file, mode);
     }
-    FILE *f = fs_fopen(meta_file, mode);
+    FILE *f = g_fopen(meta_file, mode);
     if (g_fsdb_debug) {
         write_log("- meta file opened? %d\n", f != NULL);
     }
@@ -373,7 +375,7 @@ static int fsdb_get_file_info(const char *nname, fsdb_file_info *info) {
     int read_perm = 0;
     int read_time = 0;
 
-    char *meta_file = fs_strconcat(nname, ".uaem", NULL);
+    char *meta_file = g_strconcat(nname, ".uaem", NULL);
 
     FILE *f = fsdb_open_meta_file(meta_file, "rb");
     int file_size = 0;
@@ -504,7 +506,7 @@ static int fsdb_get_file_info(const char *nname, fsdb_file_info *info) {
     }
 
     free(data);
-    free(meta_file);
+    g_free(meta_file);
 
     if (!read_perm) {
         if (g_fsdb_debug) {
@@ -657,7 +659,7 @@ int fsdb_set_file_info(const char *nname, fsdb_file_info *info) {
         need_metadata_file |= WF_ALWAYS;
     }
 
-    char *meta_file = fs_strconcat(nname, ".uaem", NULL);
+    char *meta_file = g_strconcat(nname, ".uaem", NULL);
     if (fs_path_exists(meta_file)) {
         need_metadata_file |= WF_EXISTS;
     }
@@ -890,7 +892,7 @@ static void find_nname_case(const char *dir_path, char **name) {
     if (g_fsdb_debug) {
         write_log("find case for %s in dir %s\n", *name, dir_path);
     }
-    fs_dir *dir = fs_dir_open(dir_path, 0);
+    GDir *dir = g_dir_open(dir_path, 0, NULL);
     if (dir == NULL) {
         write_log("open dir %s failed\n", *name);
         return;
@@ -902,14 +904,14 @@ static void find_nname_case(const char *dir_path, char **name) {
     char *cmp_name = fs_utf8_to_latin1(*name, -1);
     if (cmp_name == NULL) {
         write_log("WARNING: could not convert to latin1: %s", *name);
-        fs_dir_close(dir);
+        g_dir_close(dir);
         return;
     }
     lower_latin1(cmp_name);
 
     const char *result;
     while (1) {
-        result = fs_dir_read_name(dir);
+        result = g_dir_read_name(dir);
         if (!result) {
             break;
         }
@@ -929,16 +931,16 @@ static void find_nname_case(const char *dir_path, char **name) {
 
         if (strcmp(cmp_name, cmp_result) == 0) {
             // FIXME: memory leak, free name first?
-            *name = fs_strdup(result);
+            *name = g_strdup(result);
             if (g_fsdb_debug) {
                 write_log("              %s\n", *name);
             }
             break;
         }
-        free(cmp_result);
+        g_free(cmp_result);
     }
-    fs_dir_close(dir);
-    free(cmp_name);
+    g_dir_close(dir);
+    g_free(cmp_name);
 }
 
 char *fsdb_native_path(const char *root_dir, const char *amiga_path) {
@@ -947,8 +949,8 @@ char *fsdb_native_path(const char *root_dir, const char *amiga_path) {
     }
     // splitting / allocating strings is not the most efficient way to do it,
     // but the code gets very readable...
-    char *current_path = fs_strdup(root_dir);
-    char **parts = fs_strsplit(amiga_path, "/", 0);
+    char *current_path = g_strdup(root_dir);
+    char **parts = g_strsplit(amiga_path, "/", 0);
     char **part = parts;
     while (*part) {
         if (g_fsdb_debug) {
@@ -957,12 +959,12 @@ char *fsdb_native_path(const char *root_dir, const char *amiga_path) {
         char *nname = aname_to_nname(*part, 0);
         find_nname_case(current_path, &nname);
         char *free_me = current_path;
-        current_path = fs_path_join(current_path, nname, NULL);
-        free(free_me);
-        free(nname);
+        current_path = g_build_filename(current_path, nname, NULL);
+        g_free(free_me);
+        g_free(nname);
         part++;
     }
-    fs_strfreev(parts);
+    g_strfreev(parts);
     return current_path;
 }
 

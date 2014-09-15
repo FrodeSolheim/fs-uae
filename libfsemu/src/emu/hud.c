@@ -25,9 +25,9 @@
 
 #include <string.h>
 #include <stdlib.h>
-#include <fs/config.h>
+#include <fs/conf.h>
+#include <fs/glib.h>
 #include <fs/thread.h>
-#include <fs/queue.h>
 #include "libfsemu.h"
 #include "render.h"
 #include "menu.h"
@@ -55,12 +55,12 @@ typedef struct console_line {
     char *text;
 } console_line;
 
-static fs_queue *g_console_lines = NULL;
+static GQueue *g_console_lines = NULL;
 static fs_mutex *g_console_mutex = NULL;
 
 void fs_emu_hud_init(void) {
     g_console_mutex = fs_mutex_create();
-    g_console_lines = fs_queue_new();
+    g_console_lines = g_queue_new();
 }
 
 void fs_emu_hud_init_after_config(void) {
@@ -86,7 +86,7 @@ void fs_emu_hud_enable_chat_mode() {
 void fs_emu_notification(int type, const char *format, ...) {
     va_list ap;
     va_start(ap, format);
-    char *buffer = fs_strdup_vprintf(format, ap);
+    char *buffer = g_strdup_vprintf(format, ap);
     va_end(ap);
     int len = strlen(buffer);
     // strip trailing newline, if any
@@ -98,7 +98,7 @@ void fs_emu_notification(int type, const char *format, ...) {
     fs_mutex_lock(g_console_mutex);
 
     if (type != 0) {
-       console_line *line = fs_queue_peek_head(g_console_lines);
+       console_line *line = g_queue_peek_head(g_console_lines);
        if (line && line->type == type) {
            free(line->text);
            line->text = buffer;
@@ -118,30 +118,30 @@ void fs_emu_notification(int type, const char *format, ...) {
     line->show_until = line->time + g_notification_duration;
     g_last_line_time = MAX(line->show_until, line->show_until);
 
-    fs_queue_push_head(g_console_lines, line);
+    g_queue_push_head(g_console_lines, line);
     fs_mutex_unlock(g_console_mutex);
 }
 
 void fs_emu_hud_add_console_line(const char *text, int flags) {
     console_line *line = malloc(sizeof(console_line));
     line->type = 0;
-    line->text = fs_strdup(text);
+    line->text = g_strdup(text);
     line->time = fs_emu_monotonic_time();
     line->show_until = line->time + DEFAULT_DURATION;
     g_last_line_time = MAX(line->show_until, line->show_until);
 
     fs_mutex_lock(g_console_mutex);
-    fs_queue_push_head(g_console_lines, line);
+    g_queue_push_head(g_console_lines, line);
     fs_mutex_unlock(g_console_mutex);
 }
 
 void fs_emu_hud_add_chat_message(const char *text, const char *player) {
     char *line;
     if (text[0] == 1) {
-        line = fs_strdup_printf("* %s taunts: %s", player, text);
+        line = g_strdup_printf("* %s taunts: %s", player, text);
     }
     else {
-        line = fs_strdup_printf("<%s> %s", player, text);
+        line = g_strdup_printf("<%s> %s", player, text);
     }
     fs_emu_hud_add_console_line(line, 0);
     free(line);
@@ -232,7 +232,7 @@ int fs_emu_hud_handle_chat_input(fs_emu_event *event) {
 #define MAX_VISIBLE_LINES 12
 
 void fs_emu_hud_render_chat() {
-    fs_list *link;
+    GList *link;
     int k;
 
     //fs_emu_assert_gui_lock();
@@ -348,7 +348,7 @@ void fs_emu_hud_render_chat() {
     tx = 65;
     ty = 65;
 
-    link = fs_queue_peek_head_link(g_console_lines);
+    link = g_queue_peek_head_link(g_console_lines);
     k = 0;
     while (link) {
         console_line *line = (console_line *) link->data;

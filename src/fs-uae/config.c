@@ -225,7 +225,7 @@ void fs_uae_configure_amiga_model() {
     if (config_model) {
         int i = 0;
         for (amiga_config* c = g_fs_uae_amiga_configs; c->id; c++, i++) {
-            if (fs_ascii_strcasecmp(config_model, c->id) == 0) {
+            if (g_ascii_strcasecmp(config_model, c->id) == 0) {
                 fs_emu_log("config match for \"%s\"\n", c->id);
                 g_fs_uae_amiga_config = i;
                 break;
@@ -497,7 +497,7 @@ void fs_uae_configure_amiga_hardware() {
     const char *serial_port = fs_config_get_const_string("serial_port");
     if (!serial_port) {
     }
-    else if (fs_ascii_strcasecmp(serial_port, "none") == 0) {
+    else if (g_ascii_strcasecmp(serial_port, "none") == 0) {
     }
     else {
         amiga_enable_serial_port(fs_config_get_const_string("serial_port"));
@@ -526,7 +526,7 @@ void fs_uae_configure_amiga_hardware() {
     }
     stereo_separation = stereo_separation / 10;
     amiga_set_option_and_free("sound_stereo_separation",
-        fs_strdup_printf("%d", stereo_separation), free);
+        g_strdup_printf("%d", stereo_separation), free);
     if (c->enhanced_audio_filter) {
         amiga_set_option("sound_filter_type", "enhanced");
     }
@@ -581,17 +581,20 @@ void fs_uae_configure_cdrom(void)
         path = fs_uae_resolve_path_and_free(path, FS_UAE_CD_PATHS);
         //set_default_dirs_from_file_path(path);
         // FIXME: can possibly remove temp / ,image now
-        char *temp = fs_strconcat(path, ",image", NULL);
+        char *temp = g_strconcat(path, ",image", NULL);
         amiga_set_option("cdimage0", temp);
-        free(temp);
-        free(path);
+        g_free(temp);
+        g_free(path);
         auto_num_drives = 1;
     }
 
     int num_drives = auto_num_drives;
     const char *value = fs_config_get_const_string("cdrom_drive_count");
     if (value) {
-        if (fs_ascii_strcasecmp(value, "auto") != 0) {
+        if (g_ascii_strcasecmp(value, "auto") == 0) {
+            // auto
+        }
+        else {
             num_drives = atoi(value);
         }
     }
@@ -610,7 +613,7 @@ void fs_uae_configure_cdrom(void)
                                  "cdrom_drive_0_controller");
         // FIXME: "uae" or something else?
         if (controller == NULL ||
-                fs_ascii_strcasecmp(controller, "uae") == 0) {
+                g_ascii_strcasecmp(controller, "uae") == 0) {
             amiga_set_option("scsi", "true");
         }
         else {
@@ -636,17 +639,17 @@ void fs_uae_configure_cdrom(void)
 
 static void configure_hard_drive_directory (int index, const char *path,
         const char *device, int read_only, int boot_priority) {
-    char *type = fs_strdup("dir");
+    char *type = g_strdup("dir");
 
     char *mount_name;
-    char *label_option_name = fs_strdup_printf(
+    char *label_option_name = g_strdup_printf(
             "hard_drive_%d_label", index);
     char *label_option = fs_config_get_string(label_option_name);
     if (label_option) {
         mount_name = label_option;
     }
     else {
-        mount_name = fs_path_get_basename(path);
+        mount_name = g_path_get_basename(path);
         int stop = 0;
         for(int i = 0; mount_name[i]; i++) {
             if (mount_name[i] == '(') {
@@ -668,14 +671,14 @@ static void configure_hard_drive_directory (int index, const char *path,
     fs_emu_log("read only: %d\n", read_only);
     fs_emu_log("boot priority: %d\n", boot_priority);
 
-    char *filesystem2_value = fs_strdup_printf("%s,%s:%s:%s,%d",
+    char *filesystem2_value = g_strdup_printf("%s,%s:%s:%s,%d",
             read_only ? "ro" : "rw", device, mount_name, path,
             boot_priority);
     amiga_set_option("filesystem2", filesystem2_value);
 
-    free(filesystem2_value);
-    free(mount_name);
-    free(type);
+    g_free(filesystem2_value);
+    g_free(mount_name);
+    g_free(type);
 }
 
 static void configure_hard_drive_image (int index, const char *path,
@@ -683,15 +686,15 @@ static void configure_hard_drive_image (int index, const char *path,
     int rdb_mode = 0;
     char *key = NULL;
 
-    FILE *f = fs_fopen(path, "rb");
+    FILE *f = g_fopen(path, "rb");
     if (f == NULL) {
         fs_emu_log("WARNING: could not open %s\n", path);
     }
 
-    key = fs_strdup_printf("hard_drive_%d_type", index);
+    key = g_strdup_printf("hard_drive_%d_type", index);
     const char *hd_type = fs_config_get_const_string(key);
     free(key);
-    if (hd_type && fs_ascii_strcasecmp(hd_type, "rdb") == 0) {
+    if (hd_type && g_ascii_strcasecmp(hd_type, "rdb") == 0) {
         fs_emu_log("hard drive type explicitly set to rdb\n");
         rdb_mode = 1;
     }
@@ -737,27 +740,27 @@ static void configure_hard_drive_image (int index, const char *path,
         reserved = 0;
     }
 
-    key = fs_strdup_printf("hard_drive_%d_file_system", index);
+    key = g_strdup_printf("hard_drive_%d_file_system", index);
     char *file_system = fs_config_get_string(key);
     if (file_system == NULL) {
-        file_system = fs_strdup("");
+        file_system = g_strdup("");
     }
-    free(key);
+    g_free(key);
     file_system = fs_uae_expand_path_and_free(file_system);
     file_system = fs_uae_resolve_path_and_free(file_system,
             FS_UAE_HD_PATHS);
     if (file_system[0] && !fs_path_exists(file_system)) {
-        char *msg = fs_strdup_printf(
+        char *msg = g_strdup_printf(
                 "file system handler \"%s\" not found", file_system);
         fs_emu_warning(msg);
         free(msg);
         return;
     }
 
-    key = fs_strdup_printf("hard_drive_%d_controller", index);
+    key = g_strdup_printf("hard_drive_%d_controller", index);
     char *hd_controller = fs_config_get_string(key);
     if (hd_controller == NULL) {
-        hd_controller = fs_strdup("uae");
+        hd_controller = g_strdup("uae");
     }
     free(key);
 
@@ -773,7 +776,7 @@ static void configure_hard_drive_image (int index, const char *path,
     fs_emu_log("block size: %d\n", block_size);
     fs_emu_log("file system: %s\n", file_system);
 
-    char *hardfile2_value = fs_strdup_printf(
+    char *hardfile2_value = g_strdup_printf(
             "%s,%s:%s,%d,%d,%d,%d,%d,%s,%s",
             read_only ? "ro" : "rw", device, path,
             sectors, surfaces, reserved,
@@ -795,7 +798,7 @@ void fs_uae_configure_hard_drives() {
     }
 
     for (int i = 0; i < 10; i++) {
-        char *key = fs_strdup_printf("hard_drive_%d", i);
+        char *key = g_strdup_printf("hard_drive_%d", i);
         char *path = fs_config_get_string(key);
         free(key);
         if (path == NULL) {
@@ -806,39 +809,39 @@ void fs_uae_configure_hard_drives() {
         path = fs_uae_expand_path_and_free(path);
         path = fs_uae_resolve_path_and_free(path, FS_UAE_HD_PATHS);
         if (!fs_path_exists(path)) {
-            char *msg = fs_strdup_printf(_("HD not found: %s"),
+            char *msg = g_strdup_printf(_("HD not found: %s"),
                     path);
             fs_emu_warning(msg);
-            free(msg);
-            free(path);
+            g_free(msg);
+            g_free(path);
             continue;
         }
-        key = fs_strdup_printf("hard_drive_%d_priority", i);
+        key = g_strdup_printf("hard_drive_%d_priority", i);
         int boot_priority = fs_config_get_int(key);
         free(key);
         if (boot_priority == FS_CONFIG_NONE) {
             boot_priority = 0;
         }
 
-        char *device = fs_strdup_printf("DH%d", i);
+        char *device = g_strdup_printf("DH%d", i);
 
         int read_only = 0;
         int virtual_hd = 0;
         if (fs_path_is_dir(path)) {
             virtual_hd = 1;
         }
-        else if (fs_str_has_suffix(path, ".zip")) {
+        else if (g_str_has_suffix(path, ".zip")) {
             virtual_hd = 1;
             //read_write = ro_string;
             read_only = 1;
         }
 
-        key = fs_strdup_printf("hard_drive_%d_read_only", i);
+        key = g_strdup_printf("hard_drive_%d_read_only", i);
         if (fs_config_get_boolean(key) == 1) {
             //read_write = ro_string;
             read_only = 1;
         }
-        free(key);
+        g_free(key);
 
         if (virtual_hd) {
             configure_hard_drive_directory(i, path, device, read_only,
@@ -849,7 +852,7 @@ void fs_uae_configure_hard_drives() {
                     boot_priority);
         }
 
-        free(device);
+        g_free(device);
     }
 }
 
@@ -876,7 +879,7 @@ void fs_uae_configure_floppies() {
         char *path = fs_config_get_string(option_floppy_drive_x);
         fs_emu_log("value for option %s: %s\n", option_floppy_drive_x, path);
         if (!path) {
-            path = fs_strdup("");
+            path = g_strdup("");
         }
 
         if (path[0] != '\0') {
@@ -906,7 +909,7 @@ void fs_uae_configure_floppies() {
     int num_drives = auto_num_drives;
     value = fs_config_get_const_string("floppy_drive_count");
     if (value) {
-        if (fs_ascii_strcasecmp(value, "auto") == 0) {
+        if (g_ascii_strcasecmp(value, "auto") == 0) {
             // auto
         }
         else {
@@ -927,9 +930,9 @@ void fs_uae_configure_floppies() {
     if (volume != FS_CONFIG_NONE) {
         if (volume == 0) {
             for (int i = 0; i < 4; i++) {
-                char *key = fs_strdup_printf("floppy%dsound", i);
+                char *key = g_strdup_printf("floppy%dsound", i);
                 amiga_set_option(key, "0");
-                free(key);
+                g_free(key);
             }
         }
         amiga_set_int_option("floppy_volume", 100 - volume);
@@ -938,10 +941,10 @@ void fs_uae_configure_floppies() {
     int count = 0;
     int k = 0;
     while (count < 20) {
-        char *config_key = fs_strdup_printf("floppy_image_%d", k);
+        char *config_key = g_strdup_printf("floppy_image_%d", k);
         const char *config_value = fs_config_get_const_string(config_key);
         if (config_value) {
-            char *option = fs_strdup_printf("diskimage%d", count);
+            char *option = g_strdup_printf("diskimage%d", count);
             char *path = fs_uae_expand_path(config_value);
             path = fs_uae_resolve_path_and_free(path, FS_UAE_FLOPPY_PATHS);
             amiga_set_option(option, path);
@@ -958,7 +961,7 @@ void fs_uae_configure_floppies() {
     }
     while (count < 20) {
         // set remaining floppy list entries to the empty string
-        char *option = fs_strdup_printf("diskimage%d", count);
+        char *option = g_strdup_printf("diskimage%d", count);
         amiga_set_option(option, "");
         free(option);
         count++;

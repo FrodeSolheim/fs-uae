@@ -1,5 +1,9 @@
-#ifndef FS_FILESYS_H_
-#define FS_FILESYS_H_
+#ifndef FS_FILESYS_H
+#define FS_FILESYS_H
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <fs/defines.h>
 #include <stdio.h>
@@ -11,6 +15,8 @@
 #include <sys/time.h>
 #endif
 #include <time.h>
+
+#include <fs/util.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -36,6 +42,23 @@ int fs_fstat(int fd, struct fs_stat *buf);
 struct fs_dir;
 typedef struct fs_dir fs_dir;
 
+char *fs_path_get_dirname(const char *path) FS_MALLOC;
+char *fs_path_get_basename(const char *path) FS_MALLOC;
+
+const char *fs_get_home_dir(void);
+const char *fs_get_documents_dir(void);
+const char *fs_get_desktop_dir(void);
+
+int64_t fs_path_get_size(const char *path);
+
+#ifdef USE_GLIB
+
+#else
+
+char *fs_get_current_dir(void);
+int fs_path_is_absolute(const char *path);
+char *fs_path_join(const char *first_element, ...) FS_MALLOC FS_SENTINEL;
+
 fs_dir* fs_dir_open(const char *path, int flags);
 const char *fs_dir_read_name(fs_dir *dir);
 void fs_dir_close(fs_dir *dir);
@@ -50,24 +73,10 @@ int fs_rename(const char *old_path, const char *new_path);
 int fs_mkdir(const char *path, int mode);
 int fs_mkdir_with_parents(const char *path, int mode);
 
-char *fs_path_get_dirname(const char *path) FS_MALLOC;
-char *fs_path_get_basename(const char *path) FS_MALLOC;
-
-const char *fs_get_home_dir(void);
-const char *fs_get_documents_dir(void);
-const char *fs_get_desktop_dir(void);
-char *fs_get_current_dir(void);
-
-int fs_path_exists(const char *path);
-int fs_path_is_file(const char *path);
-int fs_path_is_dir(const char *path);
-int fs_path_is_absolute(const char *path);
-int64_t fs_path_get_size(const char *path);
-
-char *fs_path_join(const char *first_element, ...) FS_MALLOC FS_SENTINEL;
+#endif
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // FS_FILESYS_H_
+#endif /* FS_FILESYS_H */

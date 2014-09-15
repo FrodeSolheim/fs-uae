@@ -24,11 +24,10 @@
 //#include <glib.h>
 //#endif
 
-#include <fs/config.h>
+#include <fs/conf.h>
 #include <GLee.h>
-#include <fs/hashtable.h>
+#include <fs/glib.h>
 #include <fs/ml.h>
-#include <fs/queue.h>
 #include <fs/thread.h>
 
 #ifdef USE_OPENGL
@@ -38,7 +37,7 @@
 //#include "fs/emu.h"
 #include "ml_internal.h"
 
-static fs_queue *g_video_event_queue = NULL;
+static GQueue *g_video_event_queue = NULL;
 static fs_mutex *g_video_event_mutex = NULL;
 
 static fs_condition *g_video_cond = NULL;
@@ -107,15 +106,15 @@ int fs_ml_get_windowed_height() {
 
 static void post_video_event(int event) {
     fs_mutex_lock(g_video_event_mutex);
-    fs_queue_push_head(g_video_event_queue, FS_INT_TO_POINTER(event));
+    g_queue_push_head(g_video_event_queue, FS_INT_TO_POINTER(event));
     fs_mutex_unlock(g_video_event_mutex);
 }
 
 static void process_video_events() {
     fs_mutex_lock(g_video_event_mutex);
-    int count = fs_queue_get_length(g_video_event_queue);
+    int count = g_queue_get_length(g_video_event_queue);
     for (int i = 0; i < count; i++) {
-        int event = FS_POINTER_TO_INT(fs_queue_pop_tail(g_video_event_queue));
+        int event = FS_POINTER_TO_INT(g_queue_pop_tail(g_video_event_queue));
         if (event == FS_ML_VIDEO_EVENT_GRAB_INPUT) {
             fs_ml_grab_input(1, 1);
         }
@@ -189,7 +188,7 @@ static void log_opengl_information() {
     if (s) {
         fs_log("opengl renderer: %s\n", s);
         if (strstr(s, "GDI Generic") != NULL) {
-            software_renderer = fs_strdup(s);
+            software_renderer = g_strdup(s);
         }
     }
     s = (const char*) glGetString(GL_VERSION);
@@ -211,7 +210,7 @@ static void log_opengl_information() {
     if (software_renderer) {
         fs_emu_warning("No HW OpenGL driver (\"%s\")",
                 software_renderer);
-        free(software_renderer);
+        g_free(software_renderer);
     }
 }
 
@@ -388,7 +387,7 @@ void fs_ml_toggle_fullscreen() {
 
 int fs_ml_video_create_window(const char *title) {
     fs_log("fs_ml_video_create_window\n");
-    g_window_title = fs_strdup(title);
+    g_window_title = g_strdup(title);
 
     g_fs_ml_keyboard_input_grab = fs_config_get_boolean(
             "keyboard_input_grab");
@@ -445,16 +444,16 @@ int fs_ml_video_create_window(const char *title) {
         if (g_fs_emu_video_fullscreen_mode_string == NULL) {
             g_fs_emu_video_fullscreen_mode = -1;
         }
-        else if (fs_ascii_strcasecmp(g_fs_emu_video_fullscreen_mode_string,
+        else if (g_ascii_strcasecmp(g_fs_emu_video_fullscreen_mode_string,
                 "window") == 0) {
             g_fs_emu_video_fullscreen_mode = FULLSCREEN_WINDOW;
         }
-        else if (fs_ascii_strcasecmp(g_fs_emu_video_fullscreen_mode_string,
+        else if (g_ascii_strcasecmp(g_fs_emu_video_fullscreen_mode_string,
                 "fullscreen") == 0) {
             g_fs_emu_video_fullscreen_mode = FULLSCREEN_FULLSCREEN;
         }
 #ifdef USE_SDL2
-        else if (fs_ascii_strcasecmp(g_fs_emu_video_fullscreen_mode_string,
+        else if (g_ascii_strcasecmp(g_fs_emu_video_fullscreen_mode_string,
                 "desktop") == 0) {
             g_fs_emu_video_fullscreen_mode = FULLSCREEN_DESKTOP;
         }
@@ -1056,7 +1055,7 @@ void fs_ml_video_init() {
     fs_log("creating mutex\n");
     g_video_mutex = fs_mutex_create();
 
-    g_video_event_queue = fs_queue_new();
+    g_video_event_queue = g_queue_new();
     g_video_event_mutex = fs_mutex_create();
 
     g_debug_input = getenv("FS_DEBUG_INPUT") && \

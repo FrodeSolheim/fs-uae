@@ -25,7 +25,6 @@
 #include <sys/stat.h>
 
 #include <fs/base.h>
-#include <fs/string.h>
 #include <fs/log.h>
 
 #ifdef USE_GLIB
@@ -322,7 +321,162 @@ int fs_fstat(int fd, struct fs_stat *buf) {
     return result;
 }
 
-//#define USE_GLIB
+const char *fs_get_home_dir(void) {
+#ifdef USE_GLIB
+    return g_get_home_dir();
+#else
+    const char *result = getenv("HOME");
+    if (!result) {
+        result = "";
+    }
+    return result;
+#endif
+}
+
+const char *fs_get_documents_dir(void) {
+#ifdef USE_GLIB
+    return g_get_user_special_dir(G_USER_DIRECTORY_DOCUMENTS);
+#else
+    static const char *dir = NULL;
+    // FIXME: not MT safe
+    // FIXME: support XDG spec, Windows
+    if (dir == NULL) {
+        dir = g_build_filename(fs_get_home_dir(), "Documents", NULL);
+    }
+    return dir;
+#endif
+}
+
+const char *fs_get_desktop_dir(void) {
+#ifdef USE_GLIB
+    return g_get_user_special_dir(G_USER_DIRECTORY_DESKTOP);
+#else
+    static const char *dir = NULL;
+    // FIXME: not MT safe
+    // FIXME: support XDG spec, Windows
+    if (dir == NULL) {
+        dir = g_build_filename(fs_get_home_dir(), "Desktop", NULL);
+    }
+    return dir;
+#endif
+}
+
+#ifdef USE_GLIB
+
+#else
+
+char *fs_get_current_dir(void) {
+#ifdef USE_GLIB
+    return g_get_current_dir();
+#else
+    //return get_current_dir_name();
+    char *buf = malloc(PATH_MAX);
+    char *result = getcwd(buf, PATH_MAX);
+    if (result == NULL) {
+        free(buf);
+        return fs_strdup("");
+    }
+    return buf;
+#endif
+}
+
+int fs_path_is_absolute(const char *path) {
+#ifdef USE_GLIB
+    return g_path_is_absolute(path);
+#else
+#ifdef WINDOWS
+    // simple check, only checking that it starts with x:
+    return path[0] != '\0' && path[1] == ':';
+#else
+    return path && path[0] == '/';
+#endif
+#endif
+}
+
+#define MAX_JOINED_PATH 1024
+
+char *fs_path_join(const char *first_element, ...) {
+    // MAX_JOINED_PATH 1024 + 1 terminating null character + 1 to
+    // be able to skip some checks
+    char *result = malloc(MAX_JOINED_PATH + 1 + 1);
+    int index = 0;
+    result[index] = '\0';
+    va_list args;
+    va_start(args, first_element);
+
+    const char *next_element = first_element;
+    while (1) {
+        const char *element;
+        //const gchar *start;
+        //const gchar *end;
+
+        if (!next_element) {
+            break;
+        }
+        element = next_element;
+        next_element = va_arg(args, const char*);
+
+        if (element[0] == '\0') {
+            // skip blank component
+            continue;
+        }
+
+        if (index > 0 && (result[index - 1] != '/'
+#ifdef WINDOWS
+                && result[index - 1] != '\\'
+#endif
+            )) {
+#ifdef WINDOWS
+            result[index] = '\\';
+#else
+            result[index] = '/';
+#endif
+            ++index;
+        }
+
+        //printf("%p %s\n", element, element);
+        int len = strlen(element);
+        if (index + len > MAX_JOINED_PATH) {
+            strcpy(result, "ERROR_MAX_JOINED_PATH");
+            break;
+        }
+
+        strcpy(result + index, element);
+        index += len;
+    }
+
+    va_end(args);
+    //printf(">>>>%s<\n", result);
+    return result;
+
+#if 0
+    gchar *str;
+    va_list args;
+    va_start(args, first_element);
+#ifndef WINDOWS
+    str = g_build_path_va("/", first_element, &args, NULL);
+#else
+    str = g_build_pathname_va(first_element, &args, NULL);
+#endif
+    va_end(args);
+    return str;
+#endif
+}
+
+static const char *path_skip_root(const char *fn) {
+    const char *p = fn;
+#ifdef WINDOWS
+    if (p[0] != '\0' && p[1] == ':') {
+        p += 2;
+        while (*p == '/' || *p == '\\') {
+            ++p;
+        }
+    }
+#else
+    while (*p++ == '/') {}
+#endif
+    return p;
+}
 
 struct fs_dir {
 #ifdef USE_GLIB
@@ -338,7 +492,7 @@ fs_dir* fs_dir_open(const char *path, int flags) {
     if (!gdir) {
         return NULL;
     }
-    fs_dir *dir = fs_new(fs_dir, 1);
+    fs_dir *dir = g_new(fs_dir, 1);
     dir->gdir = gdir;
     return dir;
 #else
@@ -430,23 +584,6 @@ int fs_mkdir(const char *path, int mode) {
 #endif
 }
 
-#ifndef USE_GLIB
-static const char *path_skip_root(const char *fn) {
-    const char *p = fn;
-#ifdef WINDOWS
-    if (p[0] != '\0' && p[1] == ':') {
-        p += 2;
-        while (*p == '/' || *p == '\\') {
-            ++p;
-        }
-    }
-#else
-    while (*p++ == '/') {}
-#endif
-    return p;
-}
-#endif
-
 int fs_mkdir_with_parents(const char *pathname, int mode) {
 #ifdef USE_GLIB
     return g_mkdir_with_parents(pathname, mode);
@@ -515,176 +652,4 @@ char *fs_path_get_basename(const char *path) {
 #endif
 }
 
-const char *fs_get_home_dir(void) {
-#ifdef USE_GLIB
-    return g_get_home_dir();
-#else
-    const char *result = getenv("HOME");
-    if (!result) {
-        result = "";
-    }
-    return result;
 #endif
-}
-
-const char *fs_get_documents_dir(void) {
-#ifdef USE_GLIB
-    return g_get_user_special_dir(G_USER_DIRECTORY_DOCUMENTS);
-#else
-    static const char *dir = NULL;
-    // FIXME: not MT safe
-    // FIXME: support XDG spec, Windows
-    if (dir == NULL) {
-        dir = fs_path_join(fs_get_home_dir(), "Documents", NULL);
-    }
-    return dir;
-#endif
-}
-
-const char *fs_get_desktop_dir(void) {
-#ifdef USE_GLIB
-    return g_get_user_special_dir(G_USER_DIRECTORY_DESKTOP);
-#else
-    static const char *dir = NULL;
-    // FIXME: not MT safe
-    // FIXME: support XDG spec, Windows
-    if (dir == NULL) {
-        dir = fs_path_join(fs_get_home_dir(), "Desktop", NULL);
-    }
-    return dir;
-#endif
-}
-
-char *fs_get_current_dir(void) {
-#ifdef USE_GLIB
-    return g_get_current_dir();
-#else
-    //return get_current_dir_name();
-    char *buf = malloc(PATH_MAX);
-    char *result = getcwd(buf, PATH_MAX);
-    if (result == NULL) {
-        free(buf);
-        return fs_strdup("");
-    }
-    return buf;
-#endif
-}
-
-int fs_path_exists(const char *path) {
-#ifdef USE_GLIB
-    return g_file_test(path, G_FILE_TEST_EXISTS);
-#else
-    stat_type buf;
-    if (stat(path, &buf) != 0) {
-        return 0;
-    }
-    return 1;
-#endif
-}
-
-int fs_path_is_file(const char *path) {
-#ifdef USE_GLIB
-    return g_file_test(path, G_FILE_TEST_IS_REGULAR);
-#else
-    stat_type buf;
-    if (stat(path, &buf) != 0) {
-        return 0;
-    }
-    return S_ISREG(buf.st_mode);
-#endif
-}
-
-int fs_path_is_dir(const char *path) {
-#ifdef USE_GLIB
-    return g_file_test(path, G_FILE_TEST_IS_DIR);
-#else
-    stat_type buf;
-    if (stat(path, &buf) != 0) {
-        return 0;
-    }
-    return S_ISDIR(buf.st_mode);
-#endif
-}
-
-int fs_path_is_absolute(const char *path) {
-#ifdef USE_GLIB
-    return g_path_is_absolute(path);
-#else
-#ifdef WINDOWS
-    // simple check, only checking that it starts with x:
-    return path[0] != '\0' && path[1] == ':';
-#else
-    return path && path[0] == '/';
-#endif
-#endif
-}
-
-#define MAX_JOINED_PATH 1024
-
-char *fs_path_join(const char *first_element, ...) {
-    // MAX_JOINED_PATH 1024 + 1 terminating null character + 1 to
-    // be able to skip some checks
-    char *result = malloc(MAX_JOINED_PATH + 1 + 1);
-    int index = 0;
-    result[index] = '\0';
-    va_list args;
-    va_start(args, first_element);
-
-    const char *next_element = first_element;
-    while (1) {
-        const char *element;
-        //const gchar *start;
-        //const gchar *end;
-
-        if (!next_element) {
-            break;
-        }
-        element = next_element;
-        next_element = va_arg(args, const char*);
-
-        if (element[0] == '\0') {
-            // skip blank component
-            continue;
-        }
-
-        if (index > 0 && (result[index - 1] != '/'
-#ifdef WINDOWS
-                && result[index - 1] != '\\'
-#endif
-            )) {
-#ifdef WINDOWS
-            result[index] = '\\';
-#else
-            result[index] = '/';
-#endif
-            ++index;
-        }
-
-        //printf("%p %s\n", element, element);
-        int len = strlen(element);
-        if (index + len > MAX_JOINED_PATH) {
-            strcpy(result, "ERROR_MAX_JOINED_PATH");
-            break;
-        }
-
-        strcpy(result + index, element);
-        index += len;
-    }
-
-    va_end(args);
-    //printf(">>>>%s<\n", result);
-    return result;
-
-#if 0
-    gchar *str;
-    va_list args;
-    va_start(args, first_element);
-#ifndef WINDOWS
-    str = g_build_path_va("/", first_element, &args, NULL);
-#else
-    str = g_build_pathname_va(first_element, &args, NULL);
-#endif
-    va_end(args);
-    return str;
-#endif
-}

@@ -67,4 +67,4 @@ static inline uint32_t le32toh_impl(uint32_t v)
 
 #endif
 
-#endif // UAE_ENDIAN_H
+#endif /* UAE_ENDIAN_H */

@@ -8,8 +8,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <fs/string.h>
-
 #include "dialog.h"
 #include "font.h"
 #include "libfsemu.h"
@@ -27,7 +25,7 @@ static fs_emu_font *g_font_menu = NULL;
 
 static fs_emu_menu* g_menu = NULL;
 static fs_emu_menu* g_top_menu = NULL;
-static fs_list* g_menu_stack = NULL;
+static GList* g_menu_stack = NULL;
 static int g_top_menu_focus = 0;
 
 // FIXME: set to 0 later
@@ -96,9 +94,9 @@ static int on_aspect(fs_emu_menu_item* item, void **result_data) {
 static int go_back_in_menu_stack() {
     if (g_menu_stack != NULL) {
         fs_unref(g_menu);
-        fs_list* last = fs_list_last(g_menu_stack);
+        GList* last = g_list_last(g_menu_stack);
         g_menu = last->data;
-        g_menu_stack = fs_list_delete_link(g_menu_stack, last);
+        g_menu_stack = g_list_delete_link(g_menu_stack, last);
         if (g_menu->update) {
             g_menu->update(g_menu);
         }
@@ -215,7 +213,7 @@ void fs_emu_menu_function(int action, int state) {
                     //}
                 }
                 if (result & FS_EMU_MENU_RESULT_MENU) {
-                    g_menu_stack = fs_list_append(g_menu_stack, g_menu);
+                    g_menu_stack = g_list_append(g_menu_stack, g_menu);
                     g_menu = result_data;
                     if (g_menu->update) {
                         g_menu->update(g_menu);
@@ -298,12 +296,12 @@ void fs_emu_menu_append_item(fs_emu_menu *menu,
 }
 
 fs_emu_menu_item *fs_emu_menu_item_at(fs_emu_menu *menu, int index) {
-    //return (fs_emu_menu_item *) fs_list_nth_data(menu->items, index);
+    //return (fs_emu_menu_item *) g_list_nth_data(menu->items, index);
     return menu->items[index];
 }
 
 static int fs_emu_menu_item_count(fs_emu_menu *menu) {
-    //return (fs_emu_menu_item *) fs_list_length(menu->items);
+    //return (fs_emu_menu_item *) g_list_length(menu->items);
     return menu->count;
 }
 
@@ -319,7 +317,7 @@ void fs_emu_menu_item_set_title(fs_emu_menu_item *item, const char* title) {
     if (item->title) {
         free(item->title);
     }
-    item->title = fs_strdup(title);
+    item->title = g_strdup(title);
 }
 
 int fs_emu_menu_item_get_idata(fs_emu_menu_item *item) {

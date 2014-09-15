@@ -165,7 +165,7 @@ int fs_data_file_content(const char *name, char **data, int *size) {
         ++c;
     }
     gpointer ptr = g_hash_table_lookup(g_dat_table, name2);
-    free(name2);
+    g_free(name2);
     if (ptr == NULL) {
         // printf("did not find entry in dat file\n");
         return 3;
@@ -237,7 +237,7 @@ int fs_data_init(const char *app_name, const char *dat_name) {
 
     // check for embedded dat file
     printf("checking dat file: %s\n", exe_path);
-    g_dat_file = fs_fopen(exe_path, "rb");
+    g_dat_file = g_fopen(exe_path, "rb");
     int error = read_zip_entries(g_dat_file);
     if (error == 0) {
         return 0;
@@ -252,16 +252,16 @@ int fs_data_init(const char *app_name, const char *dat_name) {
     }
 
     // check if dat file is beside the executable
-    char *dat_path = fs_path_join(exe_path, dat_name, NULL);
+    char *dat_path = g_build_filename(exe_path, dat_name, NULL);
     printf("checking dat file: %s\n", dat_path);
-    g_dat_file = fs_fopen(dat_path, "rb");
+    g_dat_file = g_fopen(dat_path, "rb");
     free(dat_path);
 
     if (g_dat_file == NULL) {
-        char *dat_path = fs_path_join(
+        char *dat_path = g_build_filename(
             exe_path, "..", "share", app_name, dat_name, NULL);
         printf("checking dat file: %s\n", dat_path);
-        g_dat_file = fs_fopen(dat_path, "rb");
+        g_dat_file = g_fopen(dat_path, "rb");
         free(dat_path);
     }
 

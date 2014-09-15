@@ -19,7 +19,7 @@ static void parse_option(char *key, char *value) {
             fs_log("(not that there was any warranty before...)\n");
             first = 0;
         }
-        fs_strchomp(value);
+        g_strchomp(value);
         //amiga_set_hardware_option(key + 4, value);
         amiga_set_option(key + 4, value);
     }
@@ -75,27 +75,27 @@ static void read_custom_uae_options_from_file(FILE* f) {
 void fs_uae_read_custom_uae_options(int argc, char **argv) {
     fs_log("read_custom_uae_options\n");
     if (g_fs_uae_config_file_path) {
-        FILE *f = fs_fopen(g_fs_uae_config_file_path, "rb");
+        FILE *f = g_fopen(g_fs_uae_config_file_path, "rb");
         read_custom_uae_options_from_file(f);
         fclose(f);
     }
 
     for (int i = 0; i < argc; i++) {
         char *arg = argv[i];
-        if (!fs_str_has_prefix(arg, "--")) {
+        if (!g_str_has_prefix(arg, "--")) {
             continue;
         }
         char *key = arg + 2;
         char *value = strchr(arg, '=');
         if (value) {
-            char *k = fs_strndup(key, value - key);
-            fs_strdelimit (k, "-", '_');
-            char *v = fs_strdup(value + 1);
-            char *key_lower = fs_ascii_strdown(k, -1);
-            free(k);
+            char *k = g_strndup(key, value - key);
+            g_strdelimit (k, "-", '_');
+            char *v = g_strdup(value + 1);
+            char *key_lower = g_ascii_strdown(k, -1);
+            g_free(k);
             parse_option(key_lower, v);
-            free(key_lower);
-            free(v);
+            g_free(key_lower);
+            g_free(v);
         }
     }
 }

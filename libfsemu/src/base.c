@@ -25,7 +25,6 @@
 // #include <fs/log.h>
 #include <fs/base.h>
 #include <fs/data.h>
-#include <fs/string.h>
 
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
@@ -110,16 +109,16 @@ char *fs_get_data_file(const char *relative) {
         initialized = 1;
     }
     char *path;
-    path = fs_path_join(executable_dir, "share", relative, NULL);
+    path = g_build_filename(executable_dir, "share", relative, NULL);
     if (fs_path_exists(path)) {
         return path;
     }
-    free(path);
-    path = fs_path_join(executable_dir, "..", "share", relative, NULL);
+    g_free(path);
+    path = g_build_filename(executable_dir, "..", "share", relative, NULL);
     if (fs_path_exists(path)) {
         return path;
     }
-    free(path);
+    g_free(path);
 
 #ifdef MACOSX
     char buffer[FS_PATH_MAX];
@@ -128,24 +127,24 @@ char *fs_get_data_file(const char *relative) {
     if (fs_path_exists(path)) {
         return path;
     }
-    free(path);
+    g_free(path);
 #endif
 
 #ifdef USE_GLIB
     const char *user_dir = g_get_user_data_dir();
-    path = fs_path_join(user_dir, relative, NULL);
+    path = g_build_filename(user_dir, relative, NULL);
     if (fs_path_exists(path)) {
         return path;
     }
-    free(path);
+    g_free(path);
 
     const char * const *dirs = g_get_system_data_dirs();
     while(*dirs) {
-        path = fs_path_join(*dirs, relative, NULL);
+        path = g_build_filename(*dirs, relative, NULL);
         if (fs_path_exists(path)) {
             return path;
         }
-        free(path);
+        g_free(path);
         dirs++;
     }
 #endif
@@ -154,16 +153,16 @@ char *fs_get_data_file(const char *relative) {
 }
 
 char *fs_get_program_data_file(const char *relative) {
-    char *relative2 = fs_path_join(fs_get_prgname(), relative, NULL);
+    char *relative2 = g_build_filename(fs_get_prgname(), relative, NULL);
     char *result = fs_get_data_file(relative2);
-    free(relative2);
+    g_free(relative2);
     return result;
 }
 
 int fs_get_program_data(const char *relative, char **data, int *size) {
-    char *name = fs_path_join("share", fs_get_prgname(), relative, NULL);
+    char *name = g_build_filename("share", fs_get_prgname(), relative, NULL);
     int error = fs_data_file_content(name, data, size);
-    free(name);
+    g_free(name);
     return error;
 }
 
@@ -426,7 +425,7 @@ static char *find_program_in_path(const char *prog) {
         if (*c++ == '/') {
             // path contains / - not started via PATH, it's either
             // already an absolute path - or a relative path.
-            return fs_strdup(prog);
+            return g_strdup(prog);
         }
     }
 
@@ -435,21 +434,21 @@ static char *find_program_in_path(const char *prog) {
         return NULL;
     }
     char *result = NULL;
-    char **dirs = fs_strsplit(env_path, ":", 0);
+    char **dirs = g_strsplit(env_path, ":", 0);
     char **dir = dirs;
     while(*dir) {
         //printf("dir %s\n", *dir);
         if (*dir) {
-            char *abs = fs_path_join(*dir, prog, NULL);
+            char *abs = g_build_filename(*dir, prog, NULL);
             if (fs_path_is_file(abs)) {
                 result = abs;
                 break;
             }
-            free(abs);
+            g_free(abs);
         }
         dir++;
     }
-    fs_strfreev(dirs);
+    g_strfreev(dirs);
     return result;
 }
 
@@ -462,14 +461,14 @@ int fs_get_application_exe_path(char *buffer, int size) {
     // BSD with procfs: readlink /proc/curproc/file
     // Windows: GetModuleFileName() with hModule = NULL
 #if defined(WINDOWS)
-    wchar_t * temp_buf = malloc(sizeof(wchar_t) * PATH_MAX);
+    wchar_t * temp_buf = g_malloc(sizeof(wchar_t) * PATH_MAX);
     // len is the number of characters NOT including the terminating
     // null character.
     int len = GetModuleFileNameW(NULL, temp_buf, PATH_MAX);
     // specify size - 1 to reserve space for a null-terminating byte
     int result = WideCharToMultiByte(CP_UTF8, 0, temp_buf, len,
             buffer, size - 1, NULL, NULL);
-    free(temp_buf);
+    g_free(temp_buf);
     if (result == 0) {
         return 0;
     }
@@ -506,22 +505,22 @@ int fs_get_application_exe_path(char *buffer, int size) {
     //fs_log("argv[0]: %s result: %s\n", g_argv[0], result);
     if (result[0] != '/') {
         char* old_result = result;
-        char* current_dir = fs_get_current_dir();
-        result = fs_path_join(current_dir, old_result, NULL);
+        char* current_dir = g_get_current_dir();
+        result = g_build_filename(current_dir, old_result, NULL);
         //fs_log("new result: %s\n", result);
-        free(old_result);
-        free(current_dir);
+        g_free(old_result);
+        g_free(current_dir);
     }
 
     if (strlen(result) > size - 1) {
         buffer[0] = '\0';
-        free(result);
+        g_free(result);
         return 0;
     }
 
     // we have already checked that the buffer is big enough
     strcpy(buffer, result);
-    free(result);
+    g_free(result);
     return 1;
 #endif
     //fs_log("WARNING: fs_get_application_exe_path failed\n");
@@ -543,14 +542,6 @@ int fs_get_application_exe_dir(char *buffer, int size) {
         pos -= 1;
     }
     return 0;
-}
-
-void *fs_malloc0(size_t n_bytes) {
-    void *data = malloc(n_bytes);
-    if (data) {
-        memset(data, 0, n_bytes);
-    }
-    return data;
 }
 
 #ifndef USE_GLIB

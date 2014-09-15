@@ -5,8 +5,8 @@
 #include <fs/emu.h>
 #include <stdio.h>
 #include <string.h>
+#include <fs/glib.h>
 #include <fs/ml.h>
-#include <fs/queue.h>
 #include <fs/thread.h>
 
 #ifdef USE_OPENGL
@@ -80,7 +80,7 @@ static int g_video_frame_rate = 0;
 static double g_video_aspect_ratio = 1.0;
 
 //static int g_emu_video_struct_seq_no = 0;
-static fs_queue *g_emu_video_struct_queue = NULL;
+static GQueue *g_emu_video_struct_queue = NULL;
 static fs_mutex *g_emu_video_struct_mutex = NULL;
 
 void fs_emu_set_toggle_zoom_function(fs_emu_zoom_function function) {
@@ -173,7 +173,7 @@ void fs_emu_video_init() {
     fs_emu_video_init_options();
 
     g_video_render_mutex = fs_mutex_create();
-    g_emu_video_struct_queue = fs_queue_new();
+    g_emu_video_struct_queue = g_queue_new();
     g_emu_video_struct_mutex = fs_mutex_create();
 }
 

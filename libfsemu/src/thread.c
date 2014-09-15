@@ -67,7 +67,7 @@ struct fs_semaphore {
 
 fs_thread *fs_thread_create(
         const char *name, fs_thread_function fn, void *data) {
-    fs_thread *thread = (fs_thread *) malloc(sizeof(fs_thread));
+    fs_thread *thread = (fs_thread *) g_malloc(sizeof(fs_thread));
 #if defined(USE_PTHREADS)
     pthread_attr_init(&thread->attr);
     pthread_attr_setdetachstate(&thread->attr, PTHREAD_CREATE_JOINABLE);
@@ -89,7 +89,7 @@ fs_thread *fs_thread_create(
 #if 0
 fs_thread *fs_thread_create_detached(
         const char *name, fs_thread_function fn, void *data) {
-    fs_thread *thread = (fs_thread *) malloc(sizeof(fs_thread));
+    fs_thread *thread = (fs_thread *) g_malloc(sizeof(fs_thread));
 #if defined(USE_PTHREADS)
     pthread_attr_init(&thread->attr);
     pthread_attr_setdetachstate(&thread->attr, PTHREAD_CREATE_DETACHED);
@@ -130,16 +130,16 @@ void fs_thread_destroy(fs_thread *thread) {
 #ifdef USE_GLIB
     //g_thread_unref(thread->thread);
 #endif
-    free(thread);
+    g_free(thread);
 }
 */
 
 void fs_thread_free(fs_thread *thread) {
-    free(thread);
+    g_free(thread);
 }
 
 fs_mutex *fs_mutex_create() {
-    fs_mutex *mutex = (fs_mutex *) malloc(sizeof(fs_mutex));
+    fs_mutex *mutex = (fs_mutex *) g_malloc(sizeof(fs_mutex));
 #if defined(USE_PTHREADS)
     pthread_mutex_init(&mutex->mutex, NULL);
 #elif defined(USE_GLIB)
@@ -162,7 +162,7 @@ void fs_mutex_destroy(fs_mutex *mutex) {
 #else
 #error no thread support
 #endif
-    free(mutex);
+    g_free(mutex);
 }
 
 int fs_mutex_lock(fs_mutex *mutex) {
@@ -192,7 +192,7 @@ int fs_mutex_unlock(fs_mutex *mutex) {
 }
 
 fs_condition *fs_condition_create(void) {
-    fs_condition *condition = (fs_condition *) malloc(sizeof(fs_condition));
+    fs_condition *condition = (fs_condition *) g_malloc(sizeof(fs_condition));
 #if defined(USE_PTHREADS)
     pthread_cond_init(&condition->condition, NULL);
 #elif defined(USE_GLIB)
@@ -215,7 +215,7 @@ void fs_condition_destroy(fs_condition *condition) {
 #else
 #error no thread support
 #endif
-    free(condition);
+    g_free(condition);
 }
 
 int fs_condition_wait (fs_condition *condition, fs_mutex *mutex) {
@@ -277,7 +277,7 @@ int fs_condition_signal(fs_condition *condition) {
 }
 
 fs_semaphore *fs_semaphore_create(int value) {
-    fs_semaphore *semaphore = (fs_semaphore *) malloc(sizeof(fs_semaphore));
+    fs_semaphore *semaphore = (fs_semaphore *) g_malloc(sizeof(fs_semaphore));
 #if defined(USE_PSEM)
     sem_init(&semaphore->semaphore, 1, value);
 #elif defined(USE_SDL)
@@ -296,7 +296,7 @@ void fs_semaphore_destroy(fs_semaphore *semaphore) {
 #else
 #error no thread support
 #endif
-    free(semaphore);
+    g_free(semaphore);
 }
 
 int fs_semaphore_post(fs_semaphore *semaphore) {

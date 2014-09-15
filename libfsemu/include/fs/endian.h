@@ -67,4 +67,4 @@ static inline uint32_t le32toh_impl(uint32_t v)
 
 #endif
 
-#endif // FS_ENDIAN_H
+#endif /* FS_ENDIAN_H */

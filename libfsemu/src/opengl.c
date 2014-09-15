@@ -69,10 +69,10 @@ typedef struct context_notification {
     void *data;
 } context_notification;
 
-static fs_list *g_context_notifications = NULL;
+static GList *g_context_notifications = NULL;
 
 void fs_gl_send_context_notification(int notification) {
-    fs_list *link = g_context_notifications;
+    GList *link = g_context_notifications;
     while (link) {
         context_notification *cn = link->data;
         cn->function(notification, cn->data);
@@ -82,22 +82,22 @@ void fs_gl_send_context_notification(int notification) {
 
 void fs_gl_add_context_notification(fs_gl_context_notify_function function,
         void *data) {
-    context_notification *cn = fs_new(context_notification, 1);
+    context_notification *cn = g_new(context_notification, 1);
     cn->function = function;
     cn->data = data;
     // better to prepend than to append, since long-living texture
     // notifications will then end up at the end..
-    g_context_notifications = fs_list_prepend(g_context_notifications, cn);
+    g_context_notifications = g_list_prepend(g_context_notifications, cn);
 }
 
 void fs_gl_remove_context_notification(fs_gl_context_notify_function function,
         void *data) {
-    fs_list *link = g_context_notifications;
+    GList *link = g_context_notifications;
     while (link) {
         context_notification *cn = link->data;
         if (cn->function == function && cn->data == data) {
-            free(cn);
-            g_context_notifications = fs_list_delete_link(
+            g_free(cn);
+            g_context_notifications = g_list_delete_link(
                     g_context_notifications, link);
             return;
         }

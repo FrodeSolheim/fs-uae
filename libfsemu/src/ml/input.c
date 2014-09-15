@@ -5,12 +5,10 @@
 #include <SDL.h>
 #include <stdlib.h>
 #include <fs/log.h>
-#include <fs/string.h>
-#include <fs/queue.h>
-#include <fs/hashtable.h>
+#include <fs/glib.h>
 #include "ml_internal.h"
 
-static fs_queue *g_input_queue = NULL;
+static GQueue *g_input_queue = NULL;
 static fs_mutex *g_input_mutex = NULL;
 static fs_ml_input_function g_input_function = NULL;
 
@@ -19,11 +17,11 @@ int g_fs_ml_first_mouse_index = 0;
 int g_fs_ml_first_joystick_index = 0;
 
 fs_ml_event* fs_ml_alloc_event() {
-    return malloc(sizeof(fs_ml_event));
+    return g_malloc(sizeof(fs_ml_event));
 }
 
 static void fs_ml_input_event_free(fs_ml_event *event) {
-    free(event);
+    g_free(event);
 }
 
 void fs_ml_set_input_function(fs_ml_input_function function) {
@@ -54,7 +52,7 @@ void fs_ml_input_init() {
 
     fs_log("fs_ml_input_init\n");
 
-    g_input_queue = fs_queue_new();
+    g_input_queue = g_queue_new();
     g_input_mutex = fs_mutex_create();
 
     fs_log("calling fs_ml_video_init\n");
@@ -62,7 +60,7 @@ void fs_ml_input_init() {
 
     int size = sizeof(fs_ml_input_device) * FS_ML_INPUT_DEVICES_MAX;
     // allocate zeroed memory
-    g_fs_ml_input_devices = fs_malloc0(size);
+    g_fs_ml_input_devices = g_malloc0(size);
 
     fs_ml_initialize_keymap();
 
@@ -71,8 +69,8 @@ void fs_ml_input_init() {
 
     g_fs_ml_input_devices[k].type = FS_ML_KEYBOARD;
     g_fs_ml_input_devices[k].index = k;
-    g_fs_ml_input_devices[k].name = fs_strdup("KEYBOARD");
-    g_fs_ml_input_devices[k].alias = fs_strdup("KEYBOARD");
+    g_fs_ml_input_devices[k].name = g_strdup("KEYBOARD");
+    g_fs_ml_input_devices[k].alias = g_strdup("KEYBOARD");
     k += 1;
 
     g_fs_ml_input_device_count = k;
@@ -94,14 +92,14 @@ void fs_ml_input_init() {
         SDL_Joystick *joystick = SDL_JoystickOpen(i);
 
 #ifdef USE_SDL2
-        char* name = fs_ascii_strup(SDL_JoystickName(joystick), -1);
+        char* name = g_ascii_strup(SDL_JoystickName(joystick), -1);
 #else
-        char* name = fs_ascii_strup(SDL_JoystickName(i), -1);
+        char* name = g_ascii_strup(SDL_JoystickName(i), -1);
 #endif
-        name = fs_strstrip(name);
+        name = g_strstrip(name);
         if (name[0] == '\0') {
-            free(name);
-            name = fs_ascii_strup("Unnamed", -1);
+            g_free(name);
+            name = g_ascii_strup("Unnamed", -1);
         }
 
         // fs_ml_input_unique_device_name either returns name, or frees it
@@ -113,10 +111,10 @@ void fs_ml_input_init() {
         g_fs_ml_input_devices[k].index = k;
         g_fs_ml_input_devices[k].name = name;
         if (i == 0) {
-            g_fs_ml_input_devices[k].alias = fs_strdup("JOYSTICK");
+            g_fs_ml_input_devices[k].alias = g_strdup("JOYSTICK");
         }
         else {
-            g_fs_ml_input_devices[k].alias = fs_strdup_printf("JOYSTICK #%d",
+            g_fs_ml_input_devices[k].alias = g_strdup_printf("JOYSTICK #%d",
                     i + 1);
         }
 

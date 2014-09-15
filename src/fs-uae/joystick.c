@@ -123,7 +123,7 @@ void fs_uae_read_override_actions_for_port(int port) {
         else if (strcmp(name, "2") == 0) {
             name = "secondary";
         }
-        char *key = fs_strdup_printf("joystick_port_%d_%s", port, name);
+        char *key = g_strdup_printf("joystick_port_%d_%s", port, name);
         const char *value = fs_config_get_const_string(key);
         if (value == NULL) {
             continue;
@@ -169,14 +169,14 @@ static void configure_joystick_port(int port, const char *value,
         auto_mode = AMIGA_JOYPORT_CD32JOY;
     }
 
-    if (fs_ascii_strcasecmp(value, "nothing") == 0
-            || fs_ascii_strcasecmp(value, "none") == 0) {
+    if (g_ascii_strcasecmp(value, "nothing") == 0
+            || g_ascii_strcasecmp(value, "none") == 0) {
         fs_emu_log("nothing connected to port\n");
         strcpy(p->device, "");
         p->new_mode = AMIGA_JOYPORT_NONE;
 
     }
-    else if (fs_ascii_strcasecmp(value, "auto") == 0 && port < 2) {
+    else if (g_ascii_strcasecmp(value, "auto") == 0 && port < 2) {
         if (port == 0) {
             p->new_mode = AMIGA_JOYPORT_MOUSE;
             strcpy(p->device, "MOUSE");
@@ -194,22 +194,22 @@ static void configure_joystick_port(int port, const char *value,
             }
         }
     }
-    else if (fs_ascii_strcasecmp(value, "dummy mouse") == 0) {
+    else if (g_ascii_strcasecmp(value, "dummy mouse") == 0) {
         p->new_mode = AMIGA_JOYPORT_MOUSE;
     }
-    else if (fs_ascii_strcasecmp(value, "dummy joystick") == 0) {
+    else if (g_ascii_strcasecmp(value, "dummy joystick") == 0) {
         p->new_mode = AMIGA_JOYPORT_DJOY;
     }
-    else if (fs_ascii_strcasecmp(value, "mouse") == 0) {
+    else if (g_ascii_strcasecmp(value, "mouse") == 0) {
         strcpy(p->device, "MOUSE");
         p->new_mode = AMIGA_JOYPORT_MOUSE;
     }
     // deprecated
-    else if (fs_ascii_strcasecmp(value, "amiga_mouse") == 0) {
+    else if (g_ascii_strcasecmp(value, "amiga_mouse") == 0) {
         p->new_mode = AMIGA_JOYPORT_MOUSE;
     }
     // deprecated
-    else if (fs_ascii_strcasecmp(value, "amiga_joystick") == 0) {
+    else if (g_ascii_strcasecmp(value, "amiga_joystick") == 0) {
         p->new_mode = AMIGA_JOYPORT_DJOY;
     }
     else {
@@ -219,11 +219,11 @@ static void configure_joystick_port(int port, const char *value,
                 p->device, MAX_DEVICE_NAME_LEN);
     }
 
-    char *key = fs_strdup_printf("joystick_port_%d_mode", port);
+    char *key = g_strdup_printf("joystick_port_%d_mode", port);
     char *mode_string = fs_config_get_string(key);
     free(key);
     if (mode_string) {
-        char *mode_lower = fs_ascii_strdown(mode_string, -1);
+        char *mode_lower = g_ascii_strdown(mode_string, -1);
         free(mode_string);
         if (strcmp(mode_lower, "joystick") == 0) {
             p->new_mode = AMIGA_JOYPORT_DJOY;
@@ -252,7 +252,7 @@ static void configure_joystick_port(int port, const char *value,
 
     if (port < 4) {
         // port 4 is "custom joystick"
-        key = fs_strdup_printf("joystick_port_%d_autofire", port);
+        key = g_strdup_printf("joystick_port_%d_autofire", port);
         if (fs_config_get_boolean(key) == 1) {
             p->new_autofire_mode = 1;
             p->autofire_mode = 1;
@@ -279,38 +279,38 @@ void fs_uae_configure_input() {
     char *value;
     value = fs_config_get_string("joystick_port_0");
     if (value == NULL) {
-        value = fs_strdup("mouse");
+        value = g_strdup("mouse");
     }
     configure_joystick_port(0, value, "joyport0", "joy0");
-    free(value);
+    g_free(value);
 
     value = fs_config_get_string("joystick_port_1");
     if (value == NULL) {
-        value = fs_strdup("auto");
+        value = g_strdup("auto");
     }
     configure_joystick_port(1, value, "joyport1", "joy1");
-    free(value);
+    g_free(value);
 
     value = fs_config_get_string("joystick_port_2");
     if (value == NULL) {
-        value = fs_strdup("nothing");
+        value = g_strdup("nothing");
     }
     configure_joystick_port(2, value, "joyport2", "joy2");
-    free(value);
+    g_free(value);
 
     value = fs_config_get_string("joystick_port_3");
     if (value == NULL) {
-        value = fs_strdup("nothing");
+        value = g_strdup("nothing");
     }
     configure_joystick_port(3, value, "joyport3", "joy3");
-    free(value);
+    g_free(value);
 
     value = fs_config_get_string("joystick_port_4");
     if (value == NULL) {
-        value = fs_strdup("nothing");
+        value = g_strdup("nothing");
     }
     configure_joystick_port(4, value, "joyport4", "joy4");
-    free(value);
+    g_free(value);
 }
 
 void fs_uae_reconfigure_input_ports_amiga() {

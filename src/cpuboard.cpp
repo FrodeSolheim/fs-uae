@@ -1408,7 +1408,7 @@ void cpuboard_init(void)
 		mapped_malloc(&blizzardmaprom_bank);
 
 	} else if (is_csmk3()) {
-	
+
 		blizzardram_bank.start = CS_RAM_BASE;
 		blizzardram_bank.allocated = cpuboard_size;
 		blizzardram_bank.mask = blizzardram_bank.allocated - 1;

@@ -1,3 +1,6 @@
+#ifndef FS_UAE_FS_UAE_H
+#define FS_UAE_FS_UAE_H
+
 #include <fs/emu.h>
 
 #ifndef MAX_PATH
@@ -159,3 +162,5 @@ void fs_uae_init_lua_state(lua_State *L);
 #endif
 
 extern int g_fs_uae_frame;
+
+#endif /* FS_UAE_FS_UAE_H */

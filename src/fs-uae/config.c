@@ -11,6 +11,7 @@
 #include "fs-uae.h"
 
 #include "options.h"
+#include "config-graphics.h"
 
 amiga_config g_fs_uae_amiga_configs[CONFIG_LAST + 1] = {};
 int g_fs_uae_amiga_config = 0;
@@ -491,16 +492,7 @@ void fs_uae_configure_amiga_hardware() {
         amiga_set_option("bsdsocket_emu", "yes");
     }
 
-    int uaegfx_card = fs_config_get_boolean("uaegfx_card");
-    if (uaegfx_card == 1) {
-        if (!c->allow_z3_memory) {
-            fs_emu_warning(_("Option uaegfx.card needs a CPU with 32-bit "
-                    "addressing"));
-        }
-        else {
-            amiga_set_option("gfxcard_size", "32");
-        }
-    }
+    fs_uae_configure_graphics_card(c);
 
     const char *serial_port = fs_config_get_const_string("serial_port");
     if (!serial_port) {

@@ -85,6 +85,8 @@ BUILT_SOURCES = \
 
 fs_uae_SOURCES = \
 	src/fs-uae/config.c \
+	src/fs-uae/config-graphics.c \
+	src/fs-uae/config-graphics.h \
 	src/fs-uae/fs-uae.h \
 	src/fs-uae/input.c \
 	src/fs-uae/joystick.c \

@@ -2333,6 +2333,10 @@ void memory_reset (void)
 	}
 
 	if ((cloanto_rom || extendedkickmem_bank.allocated) && currprefs.maprom && currprefs.maprom < 0x01000000) {
+#ifdef FSUAE
+	    write_log("MAPROM: cloanto_rom=%d extendedkickmem_bank.allocated=%u\n", cloanto_rom, extendedkickmem_bank.allocated);
+	    write_log("MAPROM: Setting address 0x00a80000 (was 0x%08x)\n", currprefs.maprom);
+#endif
 		currprefs.maprom = changed_prefs.maprom = 0x00a80000;
 		if (extendedkickmem2_bank.allocated) // can't do if 2M ROM
 			currprefs.maprom = changed_prefs.maprom = 0;
@@ -2461,8 +2465,17 @@ void memory_reset (void)
 		map_banks (&rtarea_bank, rtarea_base >> 16, 1, 0);
 #endif
 
-	if ((cloanto_rom || currprefs.cs_ksmirror_e0) && (currprefs.maprom != 0xe00000) && !extendedkickmem_type)
+	if ((cloanto_rom || currprefs.cs_ksmirror_e0) && (currprefs.maprom != 0xe00000) && !extendedkickmem_type) {
+#ifdef FSUAE
+		if (currprefs.cs_ksmirror_e0) {
+			write_log("MAPROM: cs_ksmirror_e0 set - mirroring kickstart at 0x00e00000\n");
+		}
+		else if (cloanto_rom) {
+			write_log("MAPROM: cloanto_rom set - mirroring kickstart at 0x00e00000\n");
+		}
+#endif
 		map_banks (&kickmem_bank, 0xE0, 8, 0);
+	}
 	if (currprefs.cs_ksmirror_a8) {
 		if (extendedkickmem2_bank.allocated) {
 			map_banks (&extendedkickmem2_bank, 0xa8, 16, 0);

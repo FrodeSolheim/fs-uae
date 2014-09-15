@@ -656,9 +656,16 @@ void fixup_prefs (struct uae_prefs *p)
 #endif
 	}
 #endif
-	if (p->maprom && !p->address_space_24)
+	if (p->maprom && !p->address_space_24) {
+#ifdef FSUAE
+		write_log("MAPROM: Setting address 0x0f000000 (was 0x%08x)\n", p->maprom);
+#endif
 		p->maprom = 0x0f000000;
+	}
 	if (((p->maprom & 0xff000000) && p->address_space_24) || (p->maprom && p->mbresmem_high_size == 0x08000000)) {
+#ifdef FSUAE
+		write_log("MAPROM: Setting address 0x00e00000 (was 0x%08x)\n", p->maprom);
+#endif
 		p->maprom = 0x00e00000;
 	}
 	if (p->tod_hack && p->cs_ciaatod == 0)

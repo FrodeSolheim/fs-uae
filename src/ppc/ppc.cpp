@@ -20,7 +20,6 @@
 /* The qemu-uae minor version must be at least this */
 #define QEMU_UAE_VERSION_MINOR 2
 
-#define PPC_SYNC_WRITE 0
 #define PPC_ACCESS_LOG 0
 
 #define PPC_DEBUG_ADDR_FROM 0x000000
@@ -34,46 +33,47 @@
 
 #define TRACE(format, ...) write_log(_T("PPC: ") format, ## __VA_ARGS__)
 
+#ifdef WINUAE
+#define WIN32_SPINLOCK
+#endif
 
-#ifdef FSUAE
+#ifdef WIN32_SPINLOCK
+#define CRITICAL_SECTION_SPIN_COUNT 5000
+static CRITICAL_SECTION ppc_cs;
+static bool ppc_cs_initialized;
+#else
 #include <glib.h>
 static GMutex mutex;
-#else
-static volatile unsigned int ppc_spinlock, spinlock_cnt;
 #endif
 
 void uae_ppc_spinlock_get(void)
 {
-#ifdef FSUAE
-	g_mutex_lock(&mutex);
+#ifdef WIN32_SPINLOCK
+	EnterCriticalSection(&ppc_cs);
 #else
-	int sp = spinlock_cnt;
-	if (sp != 0 && sp != 1)
-		write_log(_T("uae_ppc_spinlock_get invalid %d\n"),  sp);
-
-	while (InterlockedExchange (&ppc_spinlock, 1));
-	if (spinlock_cnt)
-		write_log(_T("uae_ppc_spinlock_get %d!\n"), spinlock_cnt);
-	spinlock_cnt = 1;
+	g_mutex_lock(&mutex);
 #endif
 }
+
 void uae_ppc_spinlock_release(void)
 {
-#ifdef FSUAE
-	g_mutex_unlock(&mutex);
+#ifdef WIN32_SPINLOCK
+	LeaveCriticalSection(&ppc_cs);
 #else
-	if (--spinlock_cnt)
-		write_log(_T("uae_ppc_spinlock_release %d!\n"), spinlock_cnt);
-	InterlockedExchange(&ppc_spinlock, 0);
+	g_mutex_unlock(&mutex);
 #endif
 }
-void uae_ppc_spinlock_reset(void)
+
+static void uae_ppc_spinlock_create(void)
 {
-#ifdef FSUAE
+#ifdef WIN32_SPINLOCK
+	if (ppc_cs_initialized)
+		DeleteCriticalSection(&ppc_cs);
+	InitializeCriticalSectionAndSpinCount(&ppc_cs, CRITICAL_SECTION_SPIN_COUNT);
+	ppc_cs_initialized = true;
 #else
-	spinlock_cnt = 0;
+
 #endif
-	uae_ppc_spinlock_get();
 }
 
 volatile int ppc_state;
@@ -81,9 +81,6 @@ static volatile bool ppc_thread_running;
 int ppc_cycle_count;
 static volatile bool ppc_access;
 static volatile int ppc_cpu_lock_state;
-static bool ppc_main_thread;
-static bool ppc_io_pipe;
-static bool ppc_use_spinlock;
 static bool ppc_init_done;
 static bool ppc_cpu_init_done;
 static int ppc_implementation;
@@ -122,7 +119,7 @@ static void PPCCALL dummy_ppc_cpu_pause(int pause)
 /* Functions typedefs for PPC implementation */
 
 typedef void (PPCCALL *ppc_cpu_version_function)(int *major, int *minor, int *revision);
-typedef bool (PPCCALL *ppc_cpu_init_function)(const char *model);
+typedef bool (PPCCALL *ppc_cpu_init_function)(const char *model, uint32_t hid1);
 typedef bool (PPCCALL *ppc_cpu_init_pvr_function)(uint32_t pvr);
 typedef void (PPCCALL *ppc_cpu_free_function)(void);
 typedef void (PPCCALL *ppc_cpu_stop_function)(void);
@@ -142,28 +139,28 @@ typedef void (PPCCALL *ppc_cpu_reset_function)(void);
 /* Function pointers to active PPC implementation */
 
 static struct {
-        /* Common */
-        ppc_cpu_atomic_raise_ext_exception_function atomic_raise_ext_exception;
-        ppc_cpu_atomic_cancel_ext_exception_function atomic_cancel_ext_exception;
-        ppc_cpu_run_continuous_function run_continuous;
+	/* Common */
+	ppc_cpu_atomic_raise_ext_exception_function atomic_raise_ext_exception;
+	ppc_cpu_atomic_cancel_ext_exception_function atomic_cancel_ext_exception;
+	ppc_cpu_run_continuous_function run_continuous;
 
-        /* PearPC */
-        ppc_cpu_init_pvr_function init_pvr;
-        ppc_cpu_pause_function pause;
-        ppc_cpu_free_function free;
-        ppc_cpu_stop_function stop;
-        ppc_cpu_set_pc_function set_pc;
-        ppc_cpu_run_single_function run_single;
-        ppc_cpu_get_dec_function get_dec;
-        ppc_cpu_do_dec_function do_dec;
+	/* PearPC */
+	ppc_cpu_init_pvr_function init_pvr;
+	ppc_cpu_pause_function pause;
+	ppc_cpu_free_function free;
+	ppc_cpu_stop_function stop;
+	ppc_cpu_set_pc_function set_pc;
+	ppc_cpu_run_single_function run_single;
+	ppc_cpu_get_dec_function get_dec;
+	ppc_cpu_do_dec_function do_dec;
 
-        /* QEMU */
-        ppc_cpu_version_function version;
-        ppc_cpu_init_function init;
-        ppc_cpu_map_memory_function map_memory;
-        ppc_cpu_check_state_function check_state;
-        ppc_cpu_set_state_function set_state;
-        ppc_cpu_reset_function reset;
+	/* QEMU */
+	ppc_cpu_version_function version;
+	ppc_cpu_init_function init;
+	ppc_cpu_map_memory_function map_memory;
+	ppc_cpu_check_state_function check_state;
+	ppc_cpu_set_state_function set_state;
+	ppc_cpu_reset_function reset;
 } impl;
 
 static void load_dummy_implementation()
@@ -237,21 +234,21 @@ static bool load_qemu_implementation()
 
 	/* Check major version (=) and minor version (>=) */
 
-        int major = 0, minor = 0, revision = 0;
-        if (impl.version) {
-            impl.version(&major, &minor, &revision);
-        }
-        if (major != QEMU_UAE_VERSION_MAJOR) {
-                gui_message(_T("PPC: Wanted qemu-uae version %d.x (got %d.x)\n"),
-                            QEMU_UAE_VERSION_MAJOR, major);
-                return false;
-        }
-        if (minor < QEMU_UAE_VERSION_MINOR) {
-                gui_message(_T("PPC: Wanted qemu-uae version >= %d.%d (got %d.%d)\n"),
-                            QEMU_UAE_VERSION_MAJOR, QEMU_UAE_VERSION_MINOR,
-                            major, minor);
-                return false;
-        }
+	int major = 0, minor = 0, revision = 0;
+	if (impl.version) {
+		impl.version(&major, &minor, &revision);
+	}
+	if (major != QEMU_UAE_VERSION_MAJOR) {
+		gui_message(_T("PPC: Wanted qemu-uae version %d.x (got %d.x)\n"),
+			QEMU_UAE_VERSION_MAJOR, major);
+		return false;
+	}
+	if (minor < QEMU_UAE_VERSION_MINOR) {
+		gui_message(_T("PPC: Wanted qemu-uae version >= %d.%d (got %d.%d)\n"),
+			QEMU_UAE_VERSION_MAJOR, QEMU_UAE_VERSION_MINOR,
+			major, minor);
+		return false;
+	}
 
         // FIXME: not needed, handled internally by uae_dlopen_plugin
         // uae_dlopen_patch_common(handle);
@@ -279,7 +276,6 @@ static bool load_pearpc_implementation()
 	impl.run_single = ppc_cpu_run_single;
 	impl.get_dec = ppc_cpu_get_dec;
 	impl.do_dec = ppc_cpu_do_dec;
-
 	return true;
 #else
 	return false;
@@ -307,12 +303,12 @@ static void load_ppc_implementation()
 
 static bool using_qemu()
 {
-    return ppc_implementation == PPC_IMPLEMENTATION_QEMU;
+	return ppc_implementation == PPC_IMPLEMENTATION_QEMU;
 }
 
 static bool using_pearpc()
 {
-    return ppc_implementation == PPC_IMPLEMENTATION_PEARPC;
+	return ppc_implementation == PPC_IMPLEMENTATION_PEARPC;
 }
 
 static void initialize()
@@ -321,10 +317,12 @@ static void initialize()
 	if (initialized) {
 		return;
 	}
+
 	initialized = true;
 
 	load_ppc_implementation();
 
+	uae_ppc_spinlock_create();
 	/* Grab the lock for the first time. This lock will be released
 	 * by the UAE emulation thread when the PPC CPU can do I/O. */
 	uae_ppc_spinlock_get();
@@ -376,15 +374,32 @@ static void set_and_wait_for_state(int state, int unlock)
 	}
 }
 
-static void cpu_init()
+void ppc_map_banks(uae_u32 start, uae_u32 size, const TCHAR *name, void *addr, bool remove)
+{
+	if (ppc_state == PPC_STATE_INACTIVE)
+		return;
+	PPCMemoryRegion r;
+	r.start = start;
+	r.size = size;
+	r.name = ua(name);
+	r.alias = remove ? 0xffffffff : 0;
+	r.memory = addr;
+	impl.map_memory(&r, -1);
+	free((void*)r.name);
+}
+
+static void cpu_init(void)
 {
 	const TCHAR *model;
+	uint32_t hid1;
 
 	/* Set default CPU model based on accelerator board */
 	if (currprefs.cpuboard_type == BOARD_BLIZZARDPPC) {
 		model = _T("603ev");
+		hid1 = 0xc0000000; // 4x
 	} else {
 		model = _T("604e");
+		hid1 = 0xa0000000; // 4x
 	}
 
         /* Override PPC CPU model. See qemu/target-ppc/cpu-models.c for
@@ -398,7 +413,7 @@ static void cpu_init()
 
 	if (impl.init) {
 		char *models = ua(model);
-		impl.init(models);
+		impl.init(models, hid1);
 		free(models);
 	} else if (impl.init_pvr) {
 		uint32_t pvr = 0;
@@ -415,14 +430,12 @@ static void cpu_init()
 		write_log(_T("PPC: Calling ppc_cpu_init with PVR 0x%08x\n"), pvr);
 		impl.init_pvr(pvr);
 	}
-
-	/* Map memory and I/O banks (for QEmu PPC implementation) */
-	map_banks();
 }
 
 static void uae_ppc_cpu_reset(void)
 {
 	TRACE(_T("uae_ppc_cpu_reset\n"));
+
 	initialize();
 
 	if (!ppc_cpu_init_done) {
@@ -430,6 +443,9 @@ static void uae_ppc_cpu_reset(void)
 		cpu_init();
 		ppc_cpu_init_done = true;
 	}
+
+	/* Map memory and I/O banks (for QEmu PPC implementation) */
+	map_banks();
 
 	if (using_qemu()) {
 		impl.reset();
@@ -439,8 +455,8 @@ static void uae_ppc_cpu_reset(void)
 		ppc_cycle_count = 2000;
 	}
 
-	ppc_state = PPC_STATE_ACTIVE;
 	ppc_cpu_lock_state = 0;
+	ppc_state = PPC_STATE_ACTIVE;
 }
 
 static void *ppc_thread(void *v)
@@ -490,19 +506,17 @@ bool uae_ppc_direct_physical_memory_handle(uint32_t addr, uint8_t *&ptr)
 
 STATIC_INLINE bool spinlock_pre(uaecptr addr)
 {
-	if (ppc_use_spinlock) {
-		addrbank *ab = &get_mem_bank(addr);
-		if ((ab->flags & ABFLAG_THREADSAFE) == 0) {
-			uae_ppc_spinlock_get();
-			return true;
-		}
+	addrbank *ab = &get_mem_bank(addr);
+	if ((ab->flags & ABFLAG_THREADSAFE) == 0) {
+		uae_ppc_spinlock_get();
+		return true;
 	}
 	return false;
 }
 
 STATIC_INLINE void spinlock_post(bool locked)
 {
-	if (ppc_use_spinlock && locked)
+	if (locked)
 		uae_ppc_spinlock_release();
 }
 
@@ -513,7 +527,7 @@ bool UAECALL uae_ppc_io_mem_write(uint32_t addr, uint32_t data, int size)
 	while (ppc_thread_running && ppc_cpu_lock_state < 0 && ppc_state);
 
 #if PPC_ACCESS_LOG > 0
-	if (!ppc_io_pipe && !valid_address(addr, size)) {
+	if (!valid_address(addr, size)) {
 		if (addr >= PPC_DEBUG_ADDR_FROM && addr < PPC_DEBUG_ADDR_TO)
 			write_log(_T("PPC io write %08x = %08x %d\n"), addr, data, size);
 	}
@@ -532,13 +546,11 @@ bool UAECALL uae_ppc_io_mem_write(uint32_t addr, uint32_t data, int size)
 		put_byte(addr, data);
 		break;
 	}
-	if (ppc_use_spinlock) {
-		if (addr == 0xdff09c || addr == 0xdff09a) {
-			int lev = intlev();
-			ppc_interrupt(lev);
-		}
-		spinlock_post(locked);
+	if (addr == 0xdff09c || addr == 0xdff09a) {
+		int lev = intlev();
+		ppc_interrupt(lev);
 	}
+	spinlock_post(locked);
 
 #if PPC_ACCESS_LOG > 2
 	write_log(_T("PPC mem write %08x = %08x %d\n"), addr, data, size);
@@ -583,7 +595,7 @@ bool UAECALL uae_ppc_io_mem_read(uint32_t addr, uint32_t *data, int size)
 	spinlock_post(locked);
 
 #if PPC_ACCESS_LOG > 0
-	if (!ppc_io_pipe && !valid_address(addr, size)) {
+	if (!valid_address(addr, size)) {
 		if (addr >= PPC_DEBUG_ADDR_FROM && addr < PPC_DEBUG_ADDR_TO && addr != 0xdff006)
 			write_log(_T("PPC io read %08x=%08x %d\n"), addr, v, size);
 	}
@@ -633,56 +645,42 @@ bool UAECALL uae_ppc_io_mem_read64(uint32_t addr, uint64_t *data)
 
 void uae_ppc_cpu_stop(void)
 {
+	if (ppc_state == PPC_STATE_INACTIVE)
+		return;
 	TRACE(_T("uae_ppc_cpu_stop %d %d\n"), ppc_thread_running, ppc_state);
-
 	if (using_qemu()) {
 		write_log(_T("PPC: Stopping...\n"));
 		set_and_wait_for_state(PPC_CPU_STATE_PAUSED, 1);
-		ppc_state = PPC_STATE_STOP;
 		write_log(_T("PPC: Stopped\n"));
-	}
-	else if (using_pearpc()) {
+	} else if (using_pearpc()) {
 		if (ppc_thread_running && ppc_state) {
 			write_log(_T("PPC: Stopping...\n"));
-			uae_ppc_wakeup();
 			impl.stop();
 			while (ppc_state != PPC_STATE_STOP && ppc_state != PPC_STATE_CRASH) {
 				uae_ppc_wakeup();
-				if (ppc_use_spinlock) {
-					uae_ppc_spinlock_release();
-					uae_ppc_spinlock_get();
-				}
+				uae_ppc_spinlock_release();
+				uae_ppc_spinlock_get();
 			}
-			ppc_state = PPC_STATE_STOP;
 			write_log(_T("PPC: Stopped\n"));
 		}
 	}
+	ppc_state = PPC_STATE_INACTIVE;
 }
 
 void uae_ppc_cpu_reboot(void)
 {
 	TRACE(_T("uae_ppc_cpu_reboot\n"));
+
 	initialize();
 
-	// uae_ppc_spinlock_reset();
-
-	ppc_io_pipe = false;
-	ppc_use_spinlock = true;
-
-	if (ppc_main_thread) {
+	if (!ppc_thread_running) {
+		write_log(_T("Starting PPC thread.\n"));
+		ppc_thread_running = true;
+		uae_start_thread(_T("ppc"), ppc_thread, NULL, NULL);
+	} else if (using_qemu()) {
+		write_log(_T("PPC: Thread already running, resetting\n"));
 		uae_ppc_cpu_reset();
-	} else {
-		if (!ppc_thread_running) {
-			write_log(_T("PPC: Starting PPC thread\n"));
-			ppc_thread_running = true;
-			ppc_main_thread = false;
-			uae_start_thread(_T("ppc"), ppc_thread, NULL, NULL);
-		}
-		else if (using_qemu()) {
-			write_log(_T("PPC: Thread already running, resetting\n"));
-			uae_ppc_cpu_reset();
-			set_and_wait_for_state(PPC_CPU_STATE_RUNNING, 1);
-		}
+		set_and_wait_for_state(PPC_CPU_STATE_RUNNING, 1);
 	}
 }
 
@@ -691,16 +689,15 @@ void uae_ppc_reset(bool hardreset)
 	TRACE(_T("uae_ppc_reset hardreset=%d\n"), hardreset);
 	if (using_qemu()) {
 	    set_and_wait_for_state(PPC_CPU_STATE_PAUSED, 1);
-	}
-	else if (using_pearpc()) {
+	} else if (using_pearpc()) {
 		uae_ppc_cpu_stop();
-		ppc_main_thread = false;
 		if (hardreset) {
 			if (ppc_init_done)
 				impl.free();
 			ppc_init_done = false;
 		}
 	}
+	ppc_state = PPC_STATE_INACTIVE;
 }
 
 void uae_ppc_cpu_lock(void)
@@ -779,8 +776,7 @@ void uae_ppc_pause(int pause)
 	if (using_qemu()) {
 		if (pause) {
 			set_and_wait_for_state(PPC_CPU_STATE_PAUSED, 1);
-		}
-		else {
+		} else {
 			set_and_wait_for_state(PPC_CPU_STATE_RUNNING, 1);
 		}
 	}

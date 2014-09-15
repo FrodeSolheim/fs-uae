@@ -38,6 +38,7 @@ void uae_ppc_emulate(void);
 void uae_ppc_reset(bool hardreset);
 void uae_ppc_hsync_handler(void);
 void uae_ppc_wakeup(void);
+void ppc_map_banks(uae_u32, uae_u32, const TCHAR*, void*, bool);
 
 void uae_ppc_execute_quick(int linetype);
 void uae_ppc_spinlock_reset(void);
@@ -94,7 +95,7 @@ typedef struct PPCMemoryRegion {
 } PPCMemoryRegion;
 
 void PPCCALL ppc_cpu_version(int *major, int *minor, int *revision);
-bool PPCCALL ppc_cpu_init(const char *model);
+bool PPCCALL ppc_cpu_init(const char *model, uint32_t hid1);
 bool PPCCALL ppc_cpu_init_pvr(uint32_t pvr);
 void PPCCALL ppc_cpu_free(void);
 void PPCCALL ppc_cpu_stop(void);
@@ -123,9 +124,10 @@ void PPCCALL ppc_cpu_set_state(int state);
 #define PPC_IMPLEMENTATION_PEARPC 2
 #define PPC_IMPLEMENTATION_QEMU 3
 
-#define PPC_STATE_STOP 0
-#define PPC_STATE_ACTIVE 1
-#define PPC_STATE_SLEEP 2
-#define PPC_STATE_CRASH 3
+#define PPC_STATE_INACTIVE 0
+#define PPC_STATE_STOP 1
+#define PPC_STATE_ACTIVE 2
+#define PPC_STATE_SLEEP 3
+#define PPC_STATE_CRASH 4
 
 #endif /* UAE_PPC_H */

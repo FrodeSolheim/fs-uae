@@ -11,6 +11,7 @@
 #include "fs-uae.h"
 
 #include "options.h"
+#include "config-common.h"
 #include "config-graphics.h"
 
 amiga_config g_fs_uae_amiga_configs[CONFIG_LAST + 1] = {};
@@ -24,13 +25,8 @@ static int g_accuracy = 1;
 
 #define NEW_ACCURACY_SYSTEM
 
-static int next_uaehfi(void)
+void fs_uae_init_configs()
 {
-    static int hfi = 0;
-    return hfi++;
-}
-
-void fs_uae_init_configs() {
     amiga_config *c;
 
     c = g_fs_uae_amiga_configs + CONFIG_A1000;
@@ -174,7 +170,7 @@ void fs_uae_init_configs() {
     c->no_accuracy_adjustment = 1;
     c->allow_z3_memory = 1;
 
-    /*
+#if 0
     c = g_amiga_configs + CONFIG_A1200_030;
     c->id = "A1200/030";
     c->model = MODEL_A1200;
@@ -195,13 +191,14 @@ void fs_uae_init_configs() {
     c->allow_z3_memory = 1;
     c->z3mem_size = 64;
     c->fast = 1;
-    */
+#endif
 
     c = g_fs_uae_amiga_configs + CONFIG_LAST;
     c->id = NULL;
 };
 
-void fs_uae_configure_amiga_model() {
+void fs_uae_configure_amiga_model()
+{
     fs_emu_log("fs_uae_configure_amiga_model\n");
     fs_uae_init_configs();
     //amiga_set_option("kickstart_rom_file", "aa:AROS");
@@ -210,8 +207,7 @@ void fs_uae_configure_amiga_model() {
         fs_emu_log("enabling NTSC mode (60Hz)\n");
         g_fs_uae_ntsc_mode = 1;
         fs_emu_set_video_frame_rate(60);
-    }
-    else {
+    } else {
         fs_emu_log("using PAL mode (50Hz)\n");
         fs_emu_set_video_frame_rate(50);
     }
@@ -252,7 +248,7 @@ void fs_uae_configure_amiga_model() {
     }
     if (g_accuracy <= c->fast_on_accuracy_level) {
         fs_emu_log("this model / accuracy combination is a "
-                "\"fastest possibly\" mode\n");
+                   "\"fastest possibly\" mode\n");
         g_fs_uae_fastest_possible = 1;
     }
 
@@ -267,7 +263,8 @@ void fs_uae_configure_amiga_model() {
     }
 }
 
-static void configure_accuracy(amiga_config *c) {
+static void configure_accuracy(amiga_config *c)
+{
 #ifdef NEW_ACCURACY_SYSTEM
     int cpu_accuracy = fs_config_get_int("cpu_accuracy");
     if (cpu_accuracy == FS_CONFIG_NONE) {
@@ -277,7 +274,7 @@ static void configure_accuracy(amiga_config *c) {
         if (cpu_accuracy <= 0) {
             amiga_set_option("cpu_cycle_exact", "false");
             if (g_fs_uae_amiga_model == MODEL_A1200
-                    || g_fs_uae_amiga_model == MODEL_CD32) {
+                || g_fs_uae_amiga_model == MODEL_CD32) {
                 // FIXME: test this setting some more
                 //amiga_set_option("cpu_speed", "2");
                 amiga_set_option("cpu_speed", "0");
@@ -309,86 +306,76 @@ static void configure_accuracy(amiga_config *c) {
     if (audio_accuracy != FS_CONFIG_NONE) {
         if (audio_accuracy == 0) {
             amiga_set_option("sound_output", "normal");
-        }
-        else if (audio_accuracy <= -1) {
+        } else if (audio_accuracy <= -1) {
             amiga_set_option("sound_output", "interrupts");
         }
     }
 #endif
 }
 
-static void configure_memory(amiga_config *c) {
+static void configure_memory(amiga_config *c)
+{
     int chip_memory = fs_config_get_int("chip_memory");
     if (chip_memory != FS_CONFIG_NONE) {
         if (chip_memory == 128) {
             amiga_set_int_option("chipmem_size", -1);
-        }
-        else if (chip_memory == 256) {
+        } else if (chip_memory == 256) {
             amiga_set_int_option("chipmem_size", 0);
-        }
-        else if (chip_memory % 512 == 0) {
+        } else if (chip_memory % 512 == 0) {
             amiga_set_int_option("chipmem_size", chip_memory / 512);
-        }
-        else {
+        } else {
             fs_emu_warning(_("Option chip_memory must be a multiple of 512"));
             chip_memory = 0;
         }
-    }
-    else {
+    } else {
         chip_memory = 0;
     }
+
     int slow_memory = fs_config_get_int("slow_memory");
     if (slow_memory != FS_CONFIG_NONE) {
         if (slow_memory % 256 == 0) {
             amiga_set_int_option("bogomem_size", slow_memory / 256);
-        }
-        else {
+        } else {
             fs_emu_warning(_("Option slow_memory must be a multiple of 256"));
             slow_memory = 0;
         }
-    }
-    else {
+    } else {
         slow_memory = 0;
     }
+
     int fast_memory = fs_config_get_int("fast_memory");
     if (fast_memory != FS_CONFIG_NONE) {
         if (fast_memory % 1024 == 0) {
             amiga_set_int_option("fastmem_size", fast_memory / 1024);
-        }
-        else {
+        } else {
             fs_emu_warning(_("Option fast_memory must be a multiple of 1024"));
             fast_memory = 0;
         }
-    }
-    else {
+    } else {
         fast_memory = 0;
     }
+
     int z3_memory = fs_config_get_int("zorro_iii_memory");
     if (z3_memory != FS_CONFIG_NONE) {
         if (z3_memory && !c->allow_z3_memory) {
             fs_emu_warning(_("Options zorro_iii_memory needs a CPU "
-                    "with 32-bit addressing"));
+                             "with 32-bit addressing"));
             z3_memory = 0;
-        }
-        else if (z3_memory % 1024 == 0) {
+        } else if (z3_memory % 1024 == 0) {
             amiga_set_int_option("z3mem_size", z3_memory / 1024);
-        }
-        else {
+        } else {
             fs_emu_warning(_("Option zorro_iii_memory must be a multiple "
-                    "of 1024"));
+                             "of 1024"));
             z3_memory = 0;
         }
-    }
-    else {
+    } else {
         z3_memory = 0;
     }
 }
 
-static void configure_cpuboard(void)
+static void configure_cpuboard(amiga_config *c)
 {
-    char *path;
-
-    path = fs_config_get_string("cpuboard_flash_file");
+    char *path = fs_config_get_string("cpuboard_flash_file");
     if (path) {
         path = fs_uae_expand_path_and_free(path);
         path = fs_uae_resolve_path_and_free(path, FS_UAE_ROM_PATHS);
@@ -405,7 +392,32 @@ static void configure_cpuboard(void)
     }
 }
 
-void fs_uae_configure_amiga_hardware() {
+static void configure_roms(amiga_config *c)
+{
+    char *path = fs_config_get_string("kickstart_file");
+    if (path) {
+        if (strcmp(path, "internal") == 0) {
+            // do not load external kickstart
+            free(path);
+        } else {
+            path = fs_uae_expand_path_and_free(path);
+            path = fs_uae_resolve_path_and_free(path, FS_UAE_ROM_PATHS);
+            amiga_set_option("kickstart_rom_file", path);
+            free(path);
+
+            path = fs_config_get_string("kickstart_ext_file");
+            if (path) {
+                path = fs_uae_expand_path_and_free(path);
+                path = fs_uae_resolve_path_and_free(path, FS_UAE_ROM_PATHS);
+                amiga_set_option("kickstart_ext_rom_file", path);
+                free(path);
+            }
+        }
+    }
+}
+
+void fs_uae_configure_amiga_hardware()
+{
     amiga_config *c = g_fs_uae_amiga_configs + g_fs_uae_amiga_config;
     char *path;
 
@@ -464,46 +476,25 @@ void fs_uae_configure_amiga_hardware() {
         amiga_set_option("ntsc", "true");
     }
 
-    path = fs_config_get_string("kickstart_file");
-    if (path) {
-        if (strcmp(path, "internal") == 0) {
-            // do not load external kickstart
-            free(path);
-        }
-        else {
-            path = fs_uae_expand_path_and_free(path);
-            path = fs_uae_resolve_path_and_free(path, FS_UAE_ROM_PATHS);
-            amiga_set_option("kickstart_rom_file", path);
-            free(path);
-
-            path = fs_config_get_string("kickstart_ext_file");
-            if (path) {
-                path = fs_uae_expand_path_and_free(path);
-                path = fs_uae_resolve_path_and_free(path, FS_UAE_ROM_PATHS);
-                amiga_set_option("kickstart_ext_rom_file", path);
-                free(path);
-            }
-        }
-    }
-
+    configure_accuracy(c);
+    configure_roms(c);
     configure_memory(c);
-
-    if (fs_config_get_boolean("bsdsocket_library") == 1) {
-        amiga_set_option("bsdsocket_emu", "yes");
-    }
+    configure_cpuboard(c);
 
     fs_uae_configure_graphics_card(c);
 
     const char *serial_port = fs_config_get_const_string("serial_port");
-    if (!serial_port) {
-    }
-    else if (g_ascii_strcasecmp(serial_port, "none") == 0) {
-    }
-    else {
+    if (serial_port && g_ascii_strcasecmp(serial_port, "none") != 0) {
         amiga_enable_serial_port(fs_config_get_const_string("serial_port"));
     }
 
-    configure_accuracy(c);
+    if (fs_config_get_const_string("dongle_type")) {
+        amiga_set_option("dongle", fs_config_get_const_string("dongle_type"));
+    }
+
+    if (fs_config_get_boolean("bsdsocket_library") == 1) {
+        amiga_set_option("bsdsocket_emu", "yes");
+    }
 
     if (fs_config_get_boolean("line_doubling") == 0) {
         fs_log("disabling line doubling\n");
@@ -515,10 +506,6 @@ void fs_uae_configure_amiga_hardware() {
         amiga_set_option("gfx_lores", "true");
     }
 
-    if (fs_config_get_const_string("dongle_type")) {
-        amiga_set_option("dongle", fs_config_get_const_string("dongle_type"));
-    }
-
     int stereo_separation = fs_config_get_int_clamped(
         "stereo_separation", 0, 100);
     if (stereo_separation == FS_CONFIG_NONE) {
@@ -526,448 +513,8 @@ void fs_uae_configure_amiga_hardware() {
     }
     stereo_separation = stereo_separation / 10;
     amiga_set_option_and_free("sound_stereo_separation",
-        g_strdup_printf("%d", stereo_separation), free);
+                              g_strdup_printf("%d", stereo_separation), free);
     if (c->enhanced_audio_filter) {
         amiga_set_option("sound_filter_type", "enhanced");
-    }
-
-	configure_cpuboard();
-
-    /*
-    if (g_fs_uae_amiga_model == MODEL_A500) {
-        if (slow_memory || fast_memory || chip_memory > 512) {
-            fs_log("using A500 and memory expansions, "
-                    "enabling real-time clock");
-            amiga_set_option("rtc", "MSM6242B");
-        }
-    }
-    */
-
-    /*
-    char **keys = g_key_file_get_keys(g_fs_uae_config, "uae", NULL, NULL);
-    if (keys) {
-        for (char **key = keys; *key; key++) {
-            char *value = g_key_file_get_string(g_fs_uae_config, "uae",
-                    *key, NULL);
-            if (value != NULL) {
-                amiga_set_option(*key, value);
-                free(value);
-            }
-        }
-        g_strfreev(keys);
-    }
-    */
-}
-
-/*
-static void set_default_dirs_from_file_path(const char *path) {
-    fs_emu_log("set_default_dirs_from_file_path %s\n", path);
-    char *dir = g_path_get_dirname(path);
-    fs_emu_log("default dir = %s\n", dir);
-    g_fs_uae_default_dir = dir;
-}
-*/
-
-void fs_uae_configure_cdrom(void)
-{
-    fs_emu_log("configure_cdrom\n");
-
-    bool is_cdtv_cd32 = g_fs_uae_amiga_model == MODEL_CDTV ||
-                        g_fs_uae_amiga_model == MODEL_CD32;
-    int auto_num_drives = 0;
-    char *path = fs_config_get_string("cdrom_drive_0");
-    if (path) {
-        path = fs_uae_expand_path_and_free(path);
-        path = fs_uae_resolve_path_and_free(path, FS_UAE_CD_PATHS);
-        //set_default_dirs_from_file_path(path);
-        // FIXME: can possibly remove temp / ,image now
-        char *temp = g_strconcat(path, ",image", NULL);
-        amiga_set_option("cdimage0", temp);
-        g_free(temp);
-        g_free(path);
-        auto_num_drives = 1;
-    }
-
-    int num_drives = auto_num_drives;
-    const char *value = fs_config_get_const_string("cdrom_drive_count");
-    if (value) {
-        if (g_ascii_strcasecmp(value, "auto") == 0) {
-            // auto
-        }
-        else {
-            num_drives = atoi(value);
-        }
-    }
-
-    if (num_drives == 0) {
-        // do nothing
-        return;
-    }
-    if (num_drives > 1) {
-        fs_emu_warning(_("Max 1 CD-ROM drive supported currently"));
-        return;
-    }
-
-    if (is_cdtv_cd32 == false) {
-        const char *controller = fs_config_get_const_string(
-                                 "cdrom_drive_0_controller");
-        // FIXME: "uae" or something else?
-        if (controller == NULL ||
-                g_ascii_strcasecmp(controller, "uae") == 0) {
-            amiga_set_option("scsi", "true");
-        }
-        else {
-            int hfi = next_uaehfi();
-            char *uaekey = g_strdup_printf("uaehf%d", hfi);
-            char *uaeval = g_strdup_printf("cd0,ro,:,0,0,0,2048,0,,%s",
-                                           controller);
-            amiga_set_option(uaekey, uaeval);
-            g_free(uaekey);
-            g_free(uaeval);
-        }
-
-        /* Enables win32_automount_cddrives */
-        // FIXME: check when this is needed
-        amiga_map_cd_drives(1);
-    }
-
-    if (auto_num_drives == 0) {
-        // set cdimage0 to force a CD-ROM drive
-        amiga_set_option("cdimage0", "");
-    }
-}
-
-static void configure_hard_drive_directory (int index, const char *path,
-        const char *device, int read_only, int boot_priority) {
-    char *type = g_strdup("dir");
-
-    char *mount_name;
-    char *label_option_name = g_strdup_printf(
-            "hard_drive_%d_label", index);
-    char *label_option = fs_config_get_string(label_option_name);
-    if (label_option) {
-        mount_name = label_option;
-    }
-    else {
-        mount_name = g_path_get_basename(path);
-        int stop = 0;
-        for(int i = 0; mount_name[i]; i++) {
-            if (mount_name[i] == '(') {
-                stop = i;
-                break;
-            }
-        }
-        while (stop > 0 && mount_name[stop - 1] == ' ') {
-            stop--;
-        }
-        if (stop > 0) {
-            mount_name[stop] = '\0';
-        }
-    }
-
-    fs_emu_log("hard drive mount: %s\n", path);
-    fs_emu_log("device: %s\n", device);
-    fs_emu_log("mount name: %s\n", mount_name);
-    fs_emu_log("read only: %d\n", read_only);
-    fs_emu_log("boot priority: %d\n", boot_priority);
-
-    char *filesystem2_value = g_strdup_printf("%s,%s:%s:%s,%d",
-            read_only ? "ro" : "rw", device, mount_name, path,
-            boot_priority);
-    amiga_set_option("filesystem2", filesystem2_value);
-
-    g_free(filesystem2_value);
-    g_free(mount_name);
-    g_free(type);
-}
-
-static void configure_hard_drive_image (int index, const char *path,
-        const char *device, int read_only, int boot_priority) {
-    int rdb_mode = 0;
-    char *key = NULL;
-
-    FILE *f = g_fopen(path, "rb");
-    if (f == NULL) {
-        fs_emu_log("WARNING: could not open %s\n", path);
-    }
-
-    key = g_strdup_printf("hard_drive_%d_type", index);
-    const char *hd_type = fs_config_get_const_string(key);
-    free(key);
-    if (hd_type && g_ascii_strcasecmp(hd_type, "rdb") == 0) {
-        fs_emu_log("hard drive type explicitly set to rdb\n");
-        rdb_mode = 1;
-    }
-    /*
-    else if (enable_rdb_mode == 0) {
-        rdb_mode = 0;
-    }
-    */
-    else if (f != NULL) {
-        // autodetect rdb mode
-        char buffer[5];
-        int read = fread(buffer, 1, 4, f);
-        buffer[4] = '\0';
-        if (read == 4) {
-            if (strcmp(buffer, "RDSK") == 0) {
-                rdb_mode = 1;
-            }
-            else if (strcmp(buffer, "rdsk") == 0) {
-                // this is a unformatted disk file prepared by for example
-                // FS-UAE Launcher, using rdsk to indicate that the file
-                // is intended to be used as an RDB file
-                rdb_mode = 1;
-            }
-        }
-        else {
-            fs_emu_log("WARNING: error reading 4 bytes from HD "
-                    "file\n");
-        }
-    }
-    if (f != NULL) {
-        fclose(f);
-    }
-
-    //char *type = fs_strdup("hdf");
-    int sectors = 32;
-    int surfaces = 1;
-    int reserved = 2;
-    int block_size = 512;
-
-    if (rdb_mode) {
-        sectors = 0;
-        surfaces = 0;
-        reserved = 0;
-    }
-
-    key = g_strdup_printf("hard_drive_%d_file_system", index);
-    char *file_system = fs_config_get_string(key);
-    if (file_system == NULL) {
-        file_system = g_strdup("");
-    }
-    g_free(key);
-    file_system = fs_uae_expand_path_and_free(file_system);
-    file_system = fs_uae_resolve_path_and_free(file_system,
-            FS_UAE_HD_PATHS);
-    if (file_system[0] && !fs_path_exists(file_system)) {
-        char *msg = g_strdup_printf(
-                "file system handler \"%s\" not found", file_system);
-        fs_emu_warning(msg);
-        free(msg);
-        return;
-    }
-
-    key = g_strdup_printf("hard_drive_%d_controller", index);
-    char *hd_controller = fs_config_get_string(key);
-    if (hd_controller == NULL) {
-        hd_controller = g_strdup("uae");
-    }
-    free(key);
-
-    fs_emu_log("hard drive file: %s\n", path);
-    fs_emu_log("rdb mode: %d\n", rdb_mode);
-    fs_emu_log("device: %s\n", device);
-    fs_emu_log("read only: %d\n", read_only);
-    fs_emu_log("boot priority: %d\n", boot_priority);
-    fs_emu_log("surfaces: %d\n", surfaces);
-    fs_emu_log("reserved: %d\n", reserved);
-    fs_emu_log("hd controller: %s\n", hd_controller);
-    fs_emu_log("sectors: %d\n", sectors);
-    fs_emu_log("block size: %d\n", block_size);
-    fs_emu_log("file system: %s\n", file_system);
-
-    char *hardfile2_value = g_strdup_printf(
-            "%s,%s:%s,%d,%d,%d,%d,%d,%s,%s",
-            read_only ? "ro" : "rw", device, path,
-            sectors, surfaces, reserved,
-            block_size, boot_priority, file_system, hd_controller);
-    amiga_set_option("hardfile2", hardfile2_value);
-
-    free(hardfile2_value);
-    free(hd_controller);
-    free(file_system);
-    //free(type);
-}
-
-void fs_uae_configure_hard_drives() {
-    fs_emu_log("fs_uae_configure_hard_drives\n");
-
-    const char *flags = fs_config_get_const_string("uaem_write_flags");
-    if (flags != NULL) {
-        uae_set_uaem_write_flags_from_string(flags);
-    }
-
-    for (int i = 0; i < 10; i++) {
-        char *key = g_strdup_printf("hard_drive_%d", i);
-        char *path = fs_config_get_string(key);
-        free(key);
-        if (path == NULL) {
-            continue;
-        }
-        /* fs_config_get_string never returns an empty string, NULL is
-         * returned if value is empty or key does not exist. */
-        path = fs_uae_expand_path_and_free(path);
-        path = fs_uae_resolve_path_and_free(path, FS_UAE_HD_PATHS);
-        if (!fs_path_exists(path)) {
-            char *msg = g_strdup_printf(_("HD not found: %s"),
-                    path);
-            fs_emu_warning(msg);
-            g_free(msg);
-            g_free(path);
-            continue;
-        }
-        key = g_strdup_printf("hard_drive_%d_priority", i);
-        int boot_priority = fs_config_get_int(key);
-        free(key);
-        if (boot_priority == FS_CONFIG_NONE) {
-            boot_priority = 0;
-        }
-
-        char *device = g_strdup_printf("DH%d", i);
-
-        int read_only = 0;
-        int virtual_hd = 0;
-        if (fs_path_is_dir(path)) {
-            virtual_hd = 1;
-        }
-        else if (g_str_has_suffix(path, ".zip")) {
-            virtual_hd = 1;
-            //read_write = ro_string;
-            read_only = 1;
-        }
-
-        key = g_strdup_printf("hard_drive_%d_read_only", i);
-        if (fs_config_get_boolean(key) == 1) {
-            //read_write = ro_string;
-            read_only = 1;
-        }
-        g_free(key);
-
-        if (virtual_hd) {
-            configure_hard_drive_directory(i, path, device, read_only,
-                    boot_priority);
-        }
-        else {
-            configure_hard_drive_image(i, path, device, read_only,
-                    boot_priority);
-        }
-
-        g_free(device);
-    }
-}
-
-void fs_uae_configure_floppies() {
-    if (g_fs_uae_amiga_model == MODEL_CDTV || g_fs_uae_amiga_model == MODEL_CD32) {
-        return;
-    }
-    fs_emu_log("configure_floppies\n");
-    char option_floppy_drive_x[] = "floppy_drive_0";
-    char option_floppy_drive_x_sounds[] = "floppy_drive_0_sounds";
-    char option_floppyx[] = "floppy0";
-    char option_floppyxtype[] = "floppy0type";
-    char option_floppyxsound[] = "floppy0sound";
-    char option_floppyxsoundext[] = "floppy0soundext";
-    int auto_num_drives = 1;
-    for(int i = 0; i < 4; i++) {
-        option_floppy_drive_x[13] = '0' + i;
-        option_floppy_drive_x_sounds[13] = '0' + i;
-        option_floppyx[6] = '0' + i;
-        option_floppyxtype[6] = '0' + i;
-        option_floppyxsound[6] = '0' + i;
-        option_floppyxsoundext[6] = '0' + i;
-
-        char *path = fs_config_get_string(option_floppy_drive_x);
-        fs_emu_log("value for option %s: %s\n", option_floppy_drive_x, path);
-        if (!path) {
-            path = g_strdup("");
-        }
-
-        if (path[0] != '\0') {
-            path = fs_uae_expand_path_and_free(path);
-            path = fs_uae_resolve_path_and_free(path, FS_UAE_FLOPPY_PATHS);
-            auto_num_drives = i + 1;
-        }
-        amiga_set_option(option_floppyx, path);
-        amiga_set_option(option_floppyxtype, "0");
-        free(path);
-
-        const char *floppy_sounds = fs_config_get_const_string(
-                option_floppy_drive_x_sounds);
-        if (floppy_sounds) {
-            fs_log("custom floppy sounds for drive %d: %s\n", i,
-                    floppy_sounds);
-            amiga_set_option(option_floppyxsound, "-1");
-            amiga_set_option(option_floppyxsoundext, floppy_sounds);
-        }
-    }
-    const char *value;
-    value = fs_config_get_const_string("floppy_drive_speed");
-    if (value) {
-        amiga_set_option("floppy_speed", value);
-    }
-
-    int num_drives = auto_num_drives;
-    value = fs_config_get_const_string("floppy_drive_count");
-    if (value) {
-        if (g_ascii_strcasecmp(value, "auto") == 0) {
-            // auto
-        }
-        else {
-            num_drives = atoi(value);
-        }
-    }
-    amiga_set_int_option("nr_floppies", num_drives);
-
-    // set remaining floppy drive types to -1
-    for (int i = num_drives; i < 4; i++) {
-        option_floppyx[6] = '0' + i;
-        option_floppyxtype[6] = '0' + i;
-        amiga_set_option(option_floppyx, "");
-        amiga_set_option(option_floppyxtype, "-1");
-    }
-
-    int volume = fs_config_get_int_clamped("floppy_drive_volume", 0, 100);
-    if (volume != FS_CONFIG_NONE) {
-        if (volume == 0) {
-            for (int i = 0; i < 4; i++) {
-                char *key = g_strdup_printf("floppy%dsound", i);
-                amiga_set_option(key, "0");
-                g_free(key);
-            }
-        }
-        amiga_set_int_option("floppy_volume", 100 - volume);
-    }
-
-    int count = 0;
-    int k = 0;
-    while (count < 20) {
-        char *config_key = g_strdup_printf("floppy_image_%d", k);
-        const char *config_value = fs_config_get_const_string(config_key);
-        if (config_value) {
-            char *option = g_strdup_printf("diskimage%d", count);
-            char *path = fs_uae_expand_path(config_value);
-            path = fs_uae_resolve_path_and_free(path, FS_UAE_FLOPPY_PATHS);
-            amiga_set_option(option, path);
-            free(path);
-            free(option);
-            count++;
-        }
-        free(config_key);
-        if (k > 0 && !config_value) {
-            // allow to start at floppy_image_0 or floppy_image_1
-            break;
-        }
-        k++;
-    }
-    while (count < 20) {
-        // set remaining floppy list entries to the empty string
-        char *option = g_strdup_printf("diskimage%d", count);
-        amiga_set_option(option, "");
-        free(option);
-        count++;
-    }
-
-    if (fs_config_get_boolean("writable_floppy_images") == 1) {
-        amiga_floppy_set_writable_images(1);
     }
 }

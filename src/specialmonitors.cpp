@@ -7,6 +7,7 @@
 #include "options.h"
 #include "xwin.h"
 #include "custom.h"
+#include "uae/specialmonitors.h"
 
 static bool automatic;
 static int monitor;

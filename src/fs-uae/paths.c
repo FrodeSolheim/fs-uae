@@ -11,7 +11,7 @@
 #include <fs/base.h>
 #include <fs/emu.h>
 #include "fs-uae.h"
-
+#include "config-common.h"
 #include "paths.h"
 
 #define MAX_PATHS 8

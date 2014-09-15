@@ -10,6 +10,7 @@
 #include <fs/i18n.h>
 #include <fs/time.h>
 #include "fs-uae.h"
+#include "config-common.h"
 
 #define NUM_SAVE_SLOTS 9
 /// TRANSLATORS: This is a menu entry and must not be too long: If you struggle

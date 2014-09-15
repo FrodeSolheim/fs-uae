@@ -50,8 +50,7 @@ happening, all ports should restrict window widths to be multiples of 16 pixels.
 #include "inputdevice.h"
 #include "debug.h"
 #include "cd32_fmv.h"
-
-extern bool emulate_specialmonitors (struct vidbuffer*, struct vidbuffer*);
+#include "uae/specialmonitors.h"
 
 extern int sprite_buffer_res;
 int lores_factor, lores_shift;

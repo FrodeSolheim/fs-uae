@@ -82,8 +82,6 @@ cpuop_func *cpufunctbl[65536];
 
 struct mmufixup mmufixup[2];
 
-extern uae_u32 get_fpsr (void);
-
 #define COUNT_INSTRS 0
 #define MC68060_PCR   0x04300000
 #define MC68EC060_PCR 0x04310000
@@ -5376,7 +5374,7 @@ void m68k_dumpstate (uaecptr pc, uaecptr *nextpc)
 			if ((i & 3) == 3)
 				console_out_f (_T("\n"));
 		}
-		fpsr = get_fpsr ();
+		fpsr = fpp_get_fpsr ();
 		console_out_f (_T("FPSR: %04X FPCR: %08x FPIAR: %08x N=%d Z=%d I=%d NAN=%d\n"),
 			fpsr, regs.fpcr, regs.fpiar,
 			(fpsr & 0x8000000) != 0,

@@ -225,7 +225,9 @@ slirp_openpty(int *amaster, int *aslave)
 			} else {
 				line[5] = 't';
 				/* These will fail */
-				(void) chown(line, getuid(), 0);
+				if (chown(line, getuid(), 0) == -1) {
+					/* ignoring error */
+				}
 				(void) chmod(line, S_IRUSR|S_IWUSR|S_IWGRP);
 #ifdef HAVE_REVOKE
 				(void) revoke(line);
@@ -373,7 +375,7 @@ fork_exec(struct socket *so, char *ex, int do_pty)
 			  
 			  sprintf(buff, "Error: execvp of %s failed: %s\n", 
 				  argv[0], strerror(errno));
-			  write(2, buff, strlen(buff)+1);
+			  fprintf(stderr, "%s", buff);
 		  }
 		close(0); close(1); close(2); /* XXX */
 		exit(1);

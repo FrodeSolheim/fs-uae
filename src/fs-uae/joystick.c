@@ -8,6 +8,7 @@
 #include <uae/uae.h>
 #include <fs/emu.h>
 #include "fs-uae.h"
+#include "config-common.h"
 
 fs_uae_input_port g_fs_uae_input_ports[FS_UAE_NUM_INPUT_PORTS] = {};
 

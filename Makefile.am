@@ -85,6 +85,9 @@ BUILT_SOURCES = \
 
 fs_uae_SOURCES = \
 	src/fs-uae/config.c \
+	src/fs-uae/config-common.h \
+	src/fs-uae/config-drives.c \
+	src/fs-uae/config-drives.h \
 	src/fs-uae/config-graphics.c \
 	src/fs-uae/config-graphics.h \
 	src/fs-uae/fs-uae.h \
@@ -316,6 +319,7 @@ libuae_a_SOURCES = \
 	src/include/uae/enum.h \
 	src/include/uae/fs.h \
 	src/include/uae/funcattr.h \
+	src/include/uae/glib.h \
 	src/include/uae/inline.h \
 	src/include/uae/io.h \
 	src/include/uae/jitconfig.h \
@@ -328,6 +332,7 @@ libuae_a_SOURCES = \
 	src/include/uae/ppc.h \
 	src/include/uae/regparam.h \
 	src/include/uae/seh.h \
+	src/include/uae/specialmonitors.h \
 	src/include/uae/string.h \
 	src/include/uae/types.h \
 	src/include/uaeexe.h \
@@ -523,11 +528,13 @@ libfsemu_a_SOURCES = \
 	libfsemu/include/fs/init.h \
 	libfsemu/include/fs/log.h \
 	libfsemu/include/fs/main.h \
+	libfsemu/include/fs/malloc.h \
 	libfsemu/include/fs/ml.h \
 	libfsemu/include/fs/ml/opengl.h \
 	libfsemu/include/fs/ref.h \
 	libfsemu/include/fs/thread.h \
 	libfsemu/include/fs/time.h \
+	libfsemu/include/fs/util.h \
 	libfsemu/src/base.c \
 	libfsemu/src/conf.c \
 	libfsemu/src/data.c \

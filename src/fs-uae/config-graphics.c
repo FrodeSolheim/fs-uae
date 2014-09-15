@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <uae/uae.h>
 #include <fs/conf.h>
 #include <fs/emu.h>
@@ -39,8 +43,7 @@ static bool check_card(amiga_config *c, const char **card, int *memory,
     if (z == 1) {
         if (c->allow_z3_memory) {
             z = z3 ? 3 : 2;
-        }
-        else {
+        } else {
             z = z2 ? 2 : 3;
         }
     }
@@ -48,8 +51,7 @@ static bool check_card(amiga_config *c, const char **card, int *memory,
         /* Configure Zorro III card with up to 16 MB by default */
         *card = z3;
         *memory = MIN(16, m3);
-    }
-    else {
+    } else {
         /* Configure Zorro II card with up to 4 MB by default */
         *card = z2;
         *memory = MIN(4, m2);
@@ -57,11 +59,10 @@ static bool check_card(amiga_config *c, const char **card, int *memory,
     return true;
 }
 
-//#define CHECK_CARD(check, z2, z3) card = check_card(c, card, check, z2, z3);
 #define CHECK_CARD(check, z2, m2, z3, m3) \
-if (card && !found) { \
-    found = check_card(c, &card, &memory, check, z2, m2, z3, m3); \
-}
+    if (card && !found) { \
+        found = check_card(c, &card, &memory, check, z2, m2, z3, m3); \
+    }
 
 void fs_uae_configure_graphics_card(amiga_config *c)
 {
@@ -71,8 +72,7 @@ void fs_uae_configure_graphics_card(amiga_config *c)
 
     if (fs_config_get_const_string(OPTION_GRAPHICS_CARD)) {
         card = fs_config_get_const_string(OPTION_GRAPHICS_CARD);
-    }
-    else {
+    } else {
         int uaegfx_card = fs_config_get_boolean(OPTION_UAEGFX_CARD);
         if (uaegfx_card != FS_CONFIG_NONE) {
             fs_log("DEPRECATED: uaegfx_card is deprecated, use graphics_card "
@@ -81,8 +81,7 @@ void fs_uae_configure_graphics_card(amiga_config *c)
                 if (!c->allow_z3_memory) {
                     fs_emu_warning(_("Option uaegfx.card needs a CPU with "
                                      "32-bit addressing\n"));
-                }
-                else {
+                } else {
                     card = "uaegfx-z3";
                     memory = 32;
                     found = true;

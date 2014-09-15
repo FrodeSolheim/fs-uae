@@ -32,6 +32,7 @@
 #include "fs-uae.h"
 #include "recording.h"
 #include "plugins.h"
+#include "config-drives.h"
 
 //static char *g_default_rom_dir = ".";
 

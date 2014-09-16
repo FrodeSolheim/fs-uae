@@ -42,14 +42,37 @@ void gui_message (const char *format,...)
     g_free(buffer);
 }
 
-void notify_user (int msg)
+static const char *get_message(int msg)
 {
     if (msg == NUMSG_NOCAPS) {
-                gui_message(_T("Missing libcapsimage plugin"));
+        return "Missing libcapsimage plugin";
+    } else if (msg == NUMSG_ROMNEED) {
+        return "One of the following system ROMs is required: %s";
+    } else if (msg == NUMSG_EXPROMNEED) {
+        return "One of the following expansion boot ROMs is required: %s";
     }
-    else {
-        gui_message (_T("notify_user msg #%d\n"), msg);
+    return NULL;
+}
+
+void notify_user (int msg)
+{
+    const char *message = get_message(msg);
+    if (message) {
+        gui_message(message);
+    } else {
+        gui_message (_T("notify_user msg #%d"), msg);
     }
+}
+
+int translate_message (int msg, TCHAR *out)
+{
+    const char *message = get_message(msg);
+    if (message) {
+        snprintf(out, MAX_DPATH, "%s", message);
+    } else {
+        snprintf(out, MAX_DPATH, "translate_message #%d\n", msg);
+    }
+    return 1;
 }
 
 void notify_user_parms (int msg, const TCHAR *parms, ...)

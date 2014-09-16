@@ -2130,6 +2130,14 @@ addrbank *gfxboard_init_memory (void)
 		TCHAR path[MAX_DPATH];
 		fetch_rompath (path, sizeof path / sizeof (TCHAR));
 
+#ifdef FSUAE
+		if (currprefs.fs_graphics_card_rom_file) {
+			p4rom = read_rom_name(currprefs.fs_graphics_card_rom_file);
+			if (p4rom) {
+				rl = NULL;
+			}
+		}
+#endif
 		if (rl) {
 			p4rom = read_rom (rl->rd);
 		}

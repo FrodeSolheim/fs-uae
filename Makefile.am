@@ -26,6 +26,10 @@ if W_MISSING_DECLARATIONS
 CM_CFLAGS += -Wmissing-declarations
 endif
 
+if W_ADDRESS
+CM_CFLAGS += -Waddress
+endif
+
 #if W_MISSING_FORMAT_ATTRIBUTE
 #CM_CFLAGS += -Wmissing-format-attribute
 #endif
@@ -85,11 +89,17 @@ BUILT_SOURCES = \
 
 fs_uae_SOURCES = \
 	src/fs-uae/config.c \
+	src/fs-uae/config-accelerator.c \
+	src/fs-uae/config-accelerator.h \
 	src/fs-uae/config-common.h \
 	src/fs-uae/config-drives.c \
 	src/fs-uae/config-drives.h \
 	src/fs-uae/config-graphics.c \
 	src/fs-uae/config-graphics.h \
+	src/fs-uae/config-hardware.c \
+	src/fs-uae/config-hardware.h \
+	src/fs-uae/config-model.c \
+	src/fs-uae/config-model.h \
 	src/fs-uae/fs-uae.h \
 	src/fs-uae/input.c \
 	src/fs-uae/joystick.c \

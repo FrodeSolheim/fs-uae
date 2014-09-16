@@ -9,6 +9,8 @@
 #include <glib.h>
 #include "options.h"
 #include "config-graphics.h"
+#include "config-model.h"
+#include "fs-uae.h"
 
 static bool check_card(amiga_config *c, const char **card, int *memory,
                        const char *check, const char *z2, int m2,
@@ -90,6 +92,12 @@ void fs_uae_configure_graphics_card(amiga_config *c)
         }
     }
 
+    if (card == NULL) {
+        /* For example A4000/OS4 defaults to picasso-iv-z3 */
+        card = cfg->default_graphics_card;
+    }
+
+    CHECK_CARD("none", NULL, 0, NULL, 0)
     CHECK_CARD("uaegfx", "ZorroII", 8, "ZorroIII", 512)
     CHECK_CARD("picasso-ii", "PicassoII", 2, NULL, 0)
     CHECK_CARD("picasso-ii+", "PicassoII+", 2, NULL, 0)
@@ -99,8 +107,9 @@ void fs_uae_configure_graphics_card(amiga_config *c)
         fs_emu_warning("Unsupported graphics card: %s\n", card);
     }
 
-    if (fs_config_get_int(OPTION_GRAPHICS_MEMORY) != FS_CONFIG_NONE) {
-        memory = fs_config_get_int_clamped(OPTION_GRAPHICS_MEMORY, 0, 512);
+    if (fs_config_get_int(OPTION_GRAPHICS_CARD_MEMORY) != FS_CONFIG_NONE) {
+        memory = fs_config_get_int_clamped(OPTION_GRAPHICS_CARD_MEMORY,
+                                           0, 512);
         fs_log("CONFIG: Overriding graphics card memory: %d MB\n", memory);
     }
 
@@ -109,5 +118,13 @@ void fs_uae_configure_graphics_card(amiga_config *c)
             amiga_set_option("gfxcard_type", card);
             amiga_set_int_option("gfxcard_size", memory);
         }
+    }
+
+    char *path = fs_config_get_string(OPTION_GRAPHICS_CARD_ROM);
+    if (path) {
+        path = fs_uae_expand_path_and_free(path);
+        path = fs_uae_resolve_path_and_free(path, FS_UAE_ROM_PATHS);
+        amiga_set_option("fs_graphics_card_rom_file", path);
+        g_free(path);
     }
 }

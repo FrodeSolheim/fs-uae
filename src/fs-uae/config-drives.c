@@ -24,6 +24,51 @@ static bool is_cdtv_cd32(void)
            g_fs_uae_amiga_model == MODEL_CD32;
 }
 
+static const char *get_default_hd_controller(void)
+{
+    if (cfg->default_hd_controller) {
+        return cfg->default_hd_controller;
+    }
+    return "uae";
+}
+
+static const char *get_default_cd_controller(void)
+{
+    if (cfg->default_cd_controller) {
+        return cfg->default_cd_controller;
+    }
+    return "uae";
+}
+
+static char *resolve_controller(const char *controller)
+{
+    static GHashTable *in_use;
+    if (in_use == NULL) {
+        in_use = g_hash_table_new(g_str_hash, g_str_equal);
+    }
+
+    if (strcasecmp(controller, "ide") == 0) {
+        controller = "ide%d";
+    } else if (strcasecmp(controller, "scsi") == 0) {
+        controller = "scsi%d";
+    } else if (strcasecmp(controller, "scsi_cpuboard") == 0) {
+        controller = "scsi%d_cpuboard";
+    } else {
+        fs_log("resolve_controller: \"%s\" not known\n", controller);
+        //return g_strdup(controller);
+    }
+
+    for (int i = 0;; i++) {
+        char *uae_controller = g_strdup_printf(controller, i);
+        if (g_hash_table_lookup(in_use, uae_controller)) {
+            g_free(uae_controller);
+            continue;
+        }
+        g_hash_table_add(in_use, uae_controller);
+        return g_strdup(uae_controller);
+    }
+}
+
 void fs_uae_configure_cdrom(void)
 {
     fs_emu_log("configure_cdrom\n");
@@ -55,32 +100,36 @@ void fs_uae_configure_cdrom(void)
     if (num_drives == 0) {
         // do nothing
         return;
-    }
-    if (num_drives > 1) {
+    } else if (num_drives > 1) {
         fs_emu_warning(_("Max 1 CD-ROM drive supported currently"));
         return;
     }
 
-    if (!is_cdtv_cd32()) {
+    if (is_cdtv_cd32()) {
+        /* CDTV / CD32 models automatically get a CD-ROM drive */
+    } else {
         const char *controller = fs_config_get_const_string(
             "cdrom_drive_0_controller");
-        // FIXME: "uae" or something else?
-        if (controller == NULL ||
-            g_ascii_strcasecmp(controller, "uae") == 0) {
-            amiga_set_option("scsi", "true");
-        } else {
-            int hfi = next_uaehfi();
-            char *uaekey = g_strdup_printf("uaehf%d", hfi);
-            char *uaeval = g_strdup_printf("cd0,ro,:,0,0,0,2048,0,,%s",
-                                           controller);
-            amiga_set_option(uaekey, uaeval);
-            g_free(uaekey);
-            g_free(uaeval);
+        if (controller == NULL) {
+            controller = get_default_cd_controller();
         }
+        char *uae_controller = resolve_controller(controller);
 
-        /* Enables win32_automount_cddrives */
-        // FIXME: check when this is needed
-        amiga_map_cd_drives(1);
+        int hfi = next_uaehfi();
+        char *uaekey = g_strdup_printf("uaehf%d", hfi);
+        char *uaeval = g_strdup_printf("cd0,ro,:,0,0,0,2048,0,,%s",
+                                       uae_controller);
+        amiga_set_option(uaekey, uaeval);
+        g_free(uaekey);
+        g_free(uaeval);
+
+        if (g_ascii_strcasecmp(uae_controller, "uae") == 0) {
+            /* Setting scsi option enables uaescsi.device */
+            amiga_set_option("scsi", "true");
+            /* Enables win32_automount_cddrives */
+            amiga_map_cd_drives(1);
+        }
+        g_free(uae_controller);
     }
 
     if (auto_num_drives == 0) {
@@ -128,6 +177,13 @@ static void configure_hard_drive_directory(
         "%s,%s:%s:%s,%d", read_only ? "ro" : "rw", device, mount_name, path,
         boot_priority);
     amiga_set_option("filesystem2", filesystem2_value);
+
+    int hfi = next_uaehfi();
+    char *uaekey = g_strdup_printf("uaehf%d", hfi);
+    char *uaeval = g_strdup_printf("dir,%s", filesystem2_value);
+    amiga_set_option(uaekey, uaeval);
+    g_free(uaekey);
+    g_free(uaeval);
 
     g_free(filesystem2_value);
     g_free(mount_name);
@@ -203,19 +259,18 @@ static void configure_hard_drive_image(
     file_system = fs_uae_resolve_path_and_free(file_system,
                                                FS_UAE_HD_PATHS);
     if (file_system[0] && !fs_path_exists(file_system)) {
-        char *msg = g_strdup_printf(
-            "file system handler \"%s\" not found", file_system);
-        fs_emu_warning(msg);
-        free(msg);
+        fs_emu_warning("file system handler \"%s\" not found", file_system);
         return;
     }
 
     key = g_strdup_printf("hard_drive_%d_controller", index);
-    char *hd_controller = fs_config_get_string(key);
-    if (hd_controller == NULL) {
-        hd_controller = g_strdup("uae");
+    const char *controller = fs_config_get_const_string(key);
+    if (controller == NULL) {
+        controller = get_default_hd_controller();
     }
     free(key);
+
+    char *uae_controller = resolve_controller(controller);
 
     fs_emu_log("hard drive file: %s\n", path);
     fs_emu_log("rdb mode: %d\n", rdb_mode);
@@ -224,7 +279,7 @@ static void configure_hard_drive_image(
     fs_emu_log("boot priority: %d\n", boot_priority);
     fs_emu_log("surfaces: %d\n", surfaces);
     fs_emu_log("reserved: %d\n", reserved);
-    fs_emu_log("hd controller: %s\n", hd_controller);
+    fs_emu_log("hd controller: %s\n", uae_controller);
     fs_emu_log("sectors: %d\n", sectors);
     fs_emu_log("block size: %d\n", block_size);
     fs_emu_log("file system: %s\n", file_system);
@@ -232,11 +287,18 @@ static void configure_hard_drive_image(
     char *hardfile2_value = g_strdup_printf(
         "%s,%s:%s,%d,%d,%d,%d,%d,%s,%s", read_only ? "ro" : "rw", device, path,
         sectors, surfaces, reserved, block_size, boot_priority, file_system,
-        hd_controller);
+        uae_controller);
     amiga_set_option("hardfile2", hardfile2_value);
 
+    int hfi = next_uaehfi();
+    char *uaekey = g_strdup_printf("uaehf%d", hfi);
+    char *uaeval = g_strdup_printf("hdf,%s", hardfile2_value);
+    amiga_set_option(uaekey, uaeval);
+    g_free(uaekey);
+    g_free(uaeval);
+
     free(hardfile2_value);
-    free(hd_controller);
+    free(uae_controller);
     free(file_system);
     //free(type);
 }
@@ -262,9 +324,7 @@ void fs_uae_configure_hard_drives()
         path = fs_uae_expand_path_and_free(path);
         path = fs_uae_resolve_path_and_free(path, FS_UAE_HD_PATHS);
         if (!fs_path_exists(path)) {
-            char *msg = g_strdup_printf(_("HD not found: %s"), path);
-            fs_emu_warning(msg);
-            g_free(msg);
+            fs_emu_warning(_("HD not found: %s"), path);
             g_free(path);
             continue;
         }
@@ -308,11 +368,20 @@ void fs_uae_configure_hard_drives()
 
 void fs_uae_configure_floppies()
 {
-    if (is_cdtv_cd32) {
+    if (is_cdtv_cd32()) {
         // FIXME: instead, just set default number of floppy drives to 0
         return;
     }
     fs_emu_log("configure_floppies\n");
+
+    if (fs_config_get_int(OPTION_WORKBENCH) == 1) {
+        if (cfg->wb_disk) {
+            fs_config_set_string("floppy_drive_0", cfg->wb_disk);
+        } else {
+            fs_emu_warning("No default WB disk defined for this model");
+        }
+    }
+
     char option_floppy_drive_x[] = "floppy_drive_0";
     char option_floppy_drive_x_sounds[] = "floppy_drive_0_sounds";
     char option_floppyx[] = "floppy0";
@@ -337,6 +406,10 @@ void fs_uae_configure_floppies()
         if (path[0] != '\0') {
             path = fs_uae_expand_path_and_free(path);
             path = fs_uae_resolve_path_and_free(path, FS_UAE_FLOPPY_PATHS);
+            if (!g_file_test(path, G_FILE_TEST_EXISTS)) {
+                fs_emu_warning("Not found: %s", fs_config_get_const_string(
+                                   option_floppy_drive_x));
+            }
             auto_num_drives = i + 1;
         }
         amiga_set_option(option_floppyx, path);

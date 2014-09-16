@@ -329,9 +329,10 @@ void fetch_inputfilepath (TCHAR *out, int size) {
 void fetch_datapath (TCHAR *out, int size) {
         fetch_path (NULL, out, size);
 }
-void fetch_rompath (TCHAR *out, int size)
+
+void fetch_rompath(TCHAR *out, int size)
 {
-	fetch_path (_T("KickstartPath"), out, size);
+    uae_tcslcpy(out, currprefs.path_rom.path[1], size);
 }
 
 void to_lower (TCHAR *s, int len) {

@@ -644,6 +644,10 @@ struct uae_prefs {
 	TCHAR input_config_name[GAMEPORT_INPUT_SETTINGS][256];
 	int dongle;
 	int input_contact_bounce;
+
+#ifdef FSUAE // NL
+	TCHAR fs_graphics_card_rom_file[MAX_DPATH];
+#endif
 };
 
 extern int config_changed;

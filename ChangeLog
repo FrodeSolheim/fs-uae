@@ -1,5 +1,15 @@
 Version 2.5.15dev:
 
+* New model A4000/PPC (auto-enables CyberStorm PPC).
+* New model A4000/OS4 (CyberStorm PPC, Picasso IV, default to onboard SCSI).
+* New options graphics_card and graphics_card_memory (supercedes uaegfx_card).
+* New options accelerator_rom, graphics_rom.
+* New --workbench option useful for command line testing (automatically
+  inserts an appropriate wb disk in DF0).
+* Show GUI warning when floppy_drive_x files are not found.
+* Enabled A500/512K model (same as A500 but without slow RAM).
+* Enabled A4000 model (68030, 3.1 ROM, 2MB Chip + 8 MB Fast).
+* Added .bin extension to internal FS-UAE rom scanner.
 * More code cleanup / fixes, reduces compiler warnings.
 * Enabled floating point control.
 * Updated emulation core from WinUAE 2900b16.

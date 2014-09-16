@@ -52,6 +52,12 @@ AX_CHECK_COMPILE_FLAG(-Wmissing-declarations,
 AM_CONDITIONAL([W_MISSING_DECLARATIONS],
 [test x$w_missing_declarations = xyes])
 
+AX_CHECK_COMPILE_FLAG(-Waddress,
+[w_address=yes],
+[w_address=no])
+AM_CONDITIONAL([W_ADDRESS],
+[test x$w_address = xyes])
+
 AX_CHECK_COMPILE_FLAG(-Wmissing-format-attribute,
 [w_missing_format_attribute=yes],
 [w_missing_format_attribute=no])

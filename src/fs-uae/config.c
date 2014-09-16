@@ -11,191 +11,16 @@
 #include "fs-uae.h"
 
 #include "options.h"
+#include "config-accelerator.h"
 #include "config-common.h"
 #include "config-graphics.h"
+#include "config-hardware.h"
+#include "config-model.h"
 
-amiga_config g_fs_uae_amiga_configs[CONFIG_LAST + 1] = {};
-int g_fs_uae_amiga_config = 0;
-int g_fs_uae_ntsc_mode = 0;
-int g_fs_uae_amiga_model = 0;
 //char *g_fs_uae_default_dir = ".";
 
 int g_fs_uae_fastest_possible = 0;
 static int g_accuracy = 1;
-
-#define NEW_ACCURACY_SYSTEM
-
-void fs_uae_init_configs()
-{
-    amiga_config *c;
-
-    c = g_fs_uae_amiga_configs + CONFIG_A1000;
-    c->id = "A1000";
-    c->model = MODEL_A1000;
-    c->name = "Amiga 1000";
-    c->quickstart_model = 3;
-    c->quickstart_config = 0;
-    c->fast_on_accuracy_level = -999;
-
-    c = g_fs_uae_amiga_configs + CONFIG_A500;
-    c->id = "A500";
-    c->model = MODEL_A500;
-    c->name = "Amiga 500";
-    //c->quickstart = "A500,,";
-    c->quickstart_model = 0;
-    c->fast_on_accuracy_level = -999;
-
-    c = g_fs_uae_amiga_configs + CONFIG_A500P;
-    c->id = "A500+";
-    c->model = MODEL_A500P;
-    c->name = "Amiga 500+";
-    //c->quickstart = "A500+,,";
-    c->quickstart_model = 1;
-    c->fast_on_accuracy_level = -999;
-
-    c = g_fs_uae_amiga_configs + CONFIG_A600;
-    c->id = "A600";
-    c->model = MODEL_A600;
-    c->name = "Amiga 600";
-    //c->quickstart = "A600,,";
-    c->quickstart_model = 2;
-    c->fast_on_accuracy_level = -999;
-
-    c = g_fs_uae_amiga_configs + CONFIG_CDTV;
-    c->id = "CDTV";
-    c->model = MODEL_CDTV;
-    c->name = "Commodore CDTV";
-    //c->quickstart = "CDTV,,";
-    c->quickstart_model = 9;
-    c->fast_on_accuracy_level = -999;
-
-    c = g_fs_uae_amiga_configs + CONFIG_CD32;
-    c->id = "CD32";
-    c->model = MODEL_CD32;
-    c->name = "Amiga CD32";
-    //c->quickstart = "CD32,,";
-    c->quickstart_model = 8;
-    c->quickstart_config = 0;
-#ifdef NEW_ACCURACY_SYSTEM
-    c->fast_on_accuracy_level = -999;
-#else
-    c->fast_on_accuracy_level = 0;
-#endif
-
-    c = g_fs_uae_amiga_configs + CONFIG_CD32_FMV;
-    c->id = "CD32/FMV";
-    c->model = MODEL_CD32;
-    c->name = "Amiga CD32 + FMV ROM";
-    //c->quickstart = "CD32,,";
-    c->quickstart_model = 8;
-    c->quickstart_config = 1;
-#ifdef NEW_ACCURACY_SYSTEM
-    c->fast_on_accuracy_level = -999;
-#else
-    c->fast_on_accuracy_level = 0;
-#endif
-
-    c = g_fs_uae_amiga_configs + CONFIG_A1200;
-    c->id = "A1200";
-    c->model = MODEL_A1200;
-    c->name = "Amiga 1200";
-    //c->quickstart = "A1200,,";
-    c->quickstart_model = 4;
-#ifdef NEW_ACCURACY_SYSTEM
-    c->fast_on_accuracy_level = -999;
-#else
-    c->fast_on_accuracy_level = 0;
-#endif
-    c->enhanced_audio_filter = 1;
-
-    c = g_fs_uae_amiga_configs + CONFIG_A1200_020;
-    c->id = "A1200/020";
-    c->model = MODEL_A1200;
-    c->name = "Amiga 1200 (68020)";
-    //c->quickstart = "A1200,,";
-    c->quickstart_model = 4;
-#ifdef NEW_ACCURACY_SYSTEM
-    c->fast_on_accuracy_level = -999;
-#else
-    c->fast_on_accuracy_level = 0;
-#endif
-    c->enhanced_audio_filter = 1;
-    c->cpu_model = "68020";
-    c->cpu_32bit_addressing = 1;
-    c->allow_z3_memory = 1;
-    //c->z3mem_size = 64;
-
-    c = g_fs_uae_amiga_configs + CONFIG_SUPER;
-    c->id = "SUPER";
-    // FIXME:
-    c->model = MODEL_A1200;
-    c->name = "Amiga (Super)";
-    //c->quickstart = "A1200,,";
-    c->quickstart_model = 11;
-    c->fast_on_accuracy_level = 1;
-    c->no_accuracy_adjustment = 1;
-    //c->cpu_model = "68020";
-    //c->cpu_32bit_addressing = 1;
-    c->allow_z3_memory = 1;
-    //c->z3mem_size = 64;
-    c->warning = "SUPER is deprecated, use A4000/040 instead";
-
-    c = g_fs_uae_amiga_configs + CONFIG_A4000;
-    c->id = "A4000_DO_NOT_USE";
-    c->model = MODEL_A4000;
-    c->name = "Amiga 4000";
-    c->quickstart_model = 6;
-    c->fast_on_accuracy_level = 1;
-    c->no_accuracy_adjustment = 1;
-    c->allow_z3_memory = 1;
-
-    c = g_fs_uae_amiga_configs + CONFIG_A4000_040;
-    c->id = "A4000/040";
-    c->model = MODEL_A4000;
-    c->name = "Amiga 4000/040";
-    c->quickstart_model = 6;
-    c->quickstart_config = 1;
-    c->fast_on_accuracy_level = 1;
-    c->no_accuracy_adjustment = 1;
-    c->allow_z3_memory = 1;
-    c->enhanced_audio_filter = 1;
-
-    c = g_fs_uae_amiga_configs + CONFIG_A3000;
-    c->id = "A3000";
-    c->model = MODEL_A3000;
-    c->name = "Amiga 3000";
-    c->quickstart_model = 5;
-    c->quickstart_config = 2;
-    c->fast_on_accuracy_level = 1;
-    c->no_accuracy_adjustment = 1;
-    c->allow_z3_memory = 1;
-
-#if 0
-    c = g_amiga_configs + CONFIG_A1200_030;
-    c->id = "A1200/030";
-    c->model = MODEL_A1200;
-    c->name = "Amiga 1200 (68030)";
-    c->quickstart = "A1200,,";
-    c->cpu_model = "68030";
-    c->cpu_32bit_addressing = 1;
-    c->allow_z3_memory = 1;
-    c->z3mem_size = 64;
-
-    c = g_amiga_configs + CONFIG_A1200_040;
-    c->id = "A1200/040";
-    c->model = MODEL_A1200;
-    c->name = "Amiga 1200 (68040)";
-    c->quickstart = "A1200,,";
-    c->cpu_model = "68040";
-    c->cpu_32bit_addressing = 1;
-    c->allow_z3_memory = 1;
-    c->z3mem_size = 64;
-    c->fast = 1;
-#endif
-
-    c = g_fs_uae_amiga_configs + CONFIG_LAST;
-    c->id = NULL;
-};
 
 void fs_uae_configure_amiga_model()
 {
@@ -235,6 +60,7 @@ void fs_uae_configure_amiga_model()
     }
 
     amiga_config *c = g_fs_uae_amiga_configs + g_fs_uae_amiga_config;
+    g_fs_uae_config = c;
     g_fs_uae_amiga_model = c->model;
     g_accuracy = fs_config_get_int_clamped("accuracy", -2, 1);
 
@@ -373,25 +199,6 @@ static void configure_memory(amiga_config *c)
     }
 }
 
-static void configure_cpuboard(amiga_config *c)
-{
-    char *path = fs_config_get_string("cpuboard_flash_file");
-    if (path) {
-        path = fs_uae_expand_path_and_free(path);
-        path = fs_uae_resolve_path_and_free(path, FS_UAE_ROM_PATHS);
-        amiga_set_option("cpuboard_rom_file", path);
-        free(path);
-    }
-
-    path = fs_config_get_string("cpuboard_flash_ext_file");
-    if (path) {
-        path = fs_uae_expand_path_and_free(path);
-        path = fs_uae_resolve_path_and_free(path, FS_UAE_ROM_PATHS);
-        amiga_set_option("cpuboard_ext_rom_file", path);
-        free(path);
-    }
-}
-
 static void configure_roms(amiga_config *c)
 {
     char *path = fs_config_get_string("kickstart_file");
@@ -447,9 +254,15 @@ void fs_uae_configure_amiga_hardware()
     amiga_set_option("comp_trustlong", "indirect");
     amiga_set_option("comp_trustnaddr", "indirect");
 
-    if (c->cpu_model) {
-        amiga_set_option("cpu_model", c->cpu_model);
+    if (cfg->cpu_model) {
+        amiga_set_option("cpu_model", cfg->cpu_model);
+        if (strcmp(cfg->cpu_model, "68040") == 0) {
+            amiga_set_option("fpu_model", "68040");
+        } else if (strcmp(cfg->cpu_model, "68060") == 0) {
+            amiga_set_option("fpu_model", "68060");
+        }
     }
+
     if (c->z3mem_size) {
         amiga_set_int_option("z3mem_size", c->z3mem_size);
     }
@@ -467,8 +280,16 @@ void fs_uae_configure_amiga_hardware()
     }
 
     int cpu_idle = fs_config_get_int_clamped(OPTION_CPU_IDLE, 0, 10);
+    if (cpu_idle == FS_CONFIG_NONE) {
+        cpu_idle = cfg->cpu_idle;
+    }
     if (cpu_idle != FS_CONFIG_NONE) {
+        fs_log("Setting cpu_idle to %d\n", cpu_idle);
         amiga_set_cpu_idle(cpu_idle);
+    }
+
+    if (cfg->z3realmapping != FS_CONFIG_NONE) {
+        amiga_set_int_option("z3realmapping", cfg->z3realmapping);
     }
 
     if (g_fs_uae_ntsc_mode) {
@@ -479,8 +300,9 @@ void fs_uae_configure_amiga_hardware()
     configure_accuracy(c);
     configure_roms(c);
     configure_memory(c);
-    configure_cpuboard(c);
 
+    fs_uae_configure_hardware();
+    fs_uae_configure_accelerator();
     fs_uae_configure_graphics_card(c);
 
     const char *serial_port = fs_config_get_const_string("serial_port");

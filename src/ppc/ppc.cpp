@@ -15,10 +15,10 @@
 #include "uae/ppc.h"
 
 /* The qemu-uae major version must match this */
-#define QEMU_UAE_VERSION_MAJOR 1
+#define QEMU_UAE_VERSION_MAJOR 2
 
 /* The qemu-uae minor version must be at least this */
-#define QEMU_UAE_VERSION_MINOR 2
+#define QEMU_UAE_VERSION_MINOR 0
 
 #define PPC_ACCESS_LOG 0
 

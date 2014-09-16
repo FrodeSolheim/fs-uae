@@ -88,10 +88,8 @@ static const char* fs_uae_documents_dir() {
         }
         int result = g_mkdir_with_parents(path, 0755);
         if (result == -1) {
-            char *msg = g_strdup_printf("Documents directory does not "
-                                        "exist: %s", path);
-            fs_emu_warning(msg);
-            g_free(msg);
+            fs_emu_warning("Documents directory does not "
+                           "exist: %s", path);
             path = fs_uae_home_dir();
         }
         fs_log("- using documents directory \"%s\"\n", path);
@@ -161,10 +159,8 @@ static const char* fs_uae_base_dir() {
 
     int result = g_mkdir_with_parents(path, 0755);
     if (result == -1) {
-        char *msg = g_strdup_printf("Could not create base directory "
-                "at %s", path);
-        fs_emu_warning(msg);
-        g_free(msg);
+        fs_emu_warning("Could not create base directory "
+                       "at %s", path);
         path = fs_uae_documents_dir();
     }
     fs_log("- using base ($BASE / $FSUAE) directory \"%s\"\n", path);
@@ -194,9 +190,7 @@ static char *get_or_create_default_dir(const char *name, const char *key1,
     if (create) {
         int result = g_mkdir_with_parents(path, 0755);
         if (result == -1) {
-            char *msg = g_strdup_printf("Could not create %s directory", name);
-            fs_emu_warning(msg);
-            free(msg);
+            fs_emu_warning("Could not create %s directory", name);
             free(path);
             path = g_strdup(fs_uae_base_dir());
         }

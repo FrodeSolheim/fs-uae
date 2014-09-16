@@ -1643,8 +1643,6 @@ addrbank *cpuboard_autoconfig_init(void)
 		return &expamem_null;
 	}
 
-#ifdef FSUAE
-#else
 	struct romlist *rl = getromlistbyids(roms);
 	if (!rl) {
 		rd = getromdatabyids(roms);
@@ -1670,26 +1668,19 @@ addrbank *cpuboard_autoconfig_init(void)
 		if (!autoconfig_rom)
 			autoconfig_rom = read_rom(rl->rd);
 	} else if (isflashrom) {
-#endif
 		autoconfig_rom = flashfile_open(romname);
-#ifdef FSUAE
-#else
 		if (!autoconfig_rom) {
 			if (rl)
 				autoconfig_rom = flashfile_open(rl->path);
 			if (!autoconfig_rom)
 				autoconfig_rom = flashfile_open(defaultromname);
 		}
-#endif
 		if (!autoconfig_rom) {
 			romwarning(roms);
 			write_log(_T("Couldn't open CPU board rom '%s'\n"), defaultromname);
 			return &expamem_null;
 		}
-#ifdef FSUAE
-#else
 	}
-#endif
 
 	if (!autoconfig_rom && roms[0] != -1) {
 		romwarning(roms);

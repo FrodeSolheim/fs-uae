@@ -207,43 +207,47 @@ void amiga_write_uae_config(const char *path) {
     cfgfile_save(&currprefs, path, 0);
 }
 
+static void set_path(TCHAR *d1, TCHAR *d2, const TCHAR *s)
+{
+    /* Use PATH_MAX - 1 so we have space for any trailing slash */
+    uae_strlcpy(d1, s, PATH_MAX - 1);
+    int d1_len = strlen(d1);
+    if (d1[d1_len - 1] != '/') {
+        strcat(d1, "/");
+    }
+    uae_strlcpy(d2, d1, PATH_MAX);
+}
+
 void amiga_set_paths(const char **rom_paths, const char **floppy_paths,
-        const char **cd_paths, const char **hd_paths) {
+                     const char **cd_paths, const char **hd_paths)
+{
     for (int i = 0; i < MAX_PATHS; i++) {
         if (floppy_paths[i] == NULL || floppy_paths[i][0] == '\0') {
             break;
         }
-        strncpy(&(currprefs.path_floppy.path[i][0]),
-                floppy_paths[i], MAX_PATH - 1);
-        strncpy(&(changed_prefs.path_floppy.path[i][0]),
-                floppy_paths[i], MAX_PATH - 1);
+        set_path(currprefs.path_floppy.path[i],
+                 changed_prefs.path_floppy.path[i], floppy_paths[i]);
     }
     for (int i = 0; i < MAX_PATHS; i++) {
         if (cd_paths[i] == NULL || cd_paths[i][0] == '\0') {
             break;
         }
-        strncpy(&(currprefs.path_cd.path[i][0]),
-                cd_paths[i], MAX_PATH - 1);
-        strncpy(&(changed_prefs.path_cd.path[i][0]),
-                cd_paths[i], MAX_PATH - 1);
+        set_path(currprefs.path_cd.path[i],
+                 changed_prefs.path_cd.path[i], cd_paths[i]);
     }
     for (int i = 0; i < MAX_PATHS; i++) {
         if (hd_paths[i] == NULL || hd_paths[i][0] == '\0') {
             break;
         }
-        strncpy(&(currprefs.path_hardfile.path[i][0]),
-                hd_paths[i], MAX_PATH - 1);
-        strncpy(&(changed_prefs.path_hardfile.path[i][0]),
-                hd_paths[i], MAX_PATH - 1);
+        set_path(currprefs.path_hardfile.path[i],
+                 changed_prefs.path_hardfile.path[i], hd_paths[i]);
     }
     for (int i = 0; i < MAX_PATHS; i++) {
         if (rom_paths[i] == NULL || rom_paths[i][0] == '\0') {
             break;
         }
-        strncpy(&(currprefs.path_rom.path[i][0]),
-                rom_paths[i], MAX_PATH - 1);
-        strncpy(&(changed_prefs.path_rom.path[i][0]),
-                rom_paths[i], MAX_PATH - 1);
+        set_path(currprefs.path_rom.path[i],
+                 changed_prefs.path_rom.path[i], rom_paths[i]);
     }
 }
 

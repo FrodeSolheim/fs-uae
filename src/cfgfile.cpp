@@ -3953,6 +3953,15 @@ static int cfgfile_parse_hardware (struct uae_prefs *p, const TCHAR *option, TCH
 	if (cfgfile_parse_filesys (p, option, value))
 		return 1;
 
+#ifdef FSUAE // NL
+	if (cfgfile_path(option, value, _T("fs_graphics_card_rom_file"),
+					 p->fs_graphics_card_rom_file,
+					 sizeof(p->fs_graphics_card_rom_file) / sizeof(TCHAR),
+					 &p->path_rom)) {
+		return 1;
+	}
+#endif
+
 	return 0;
 }
 

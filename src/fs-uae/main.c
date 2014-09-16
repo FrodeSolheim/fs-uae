@@ -397,7 +397,8 @@ void fs_uae_load_rom_files(const char *path) {
     const char *name = g_dir_read_name(dir);
     while (name) {
         char *lname = g_utf8_strdown(name, -1);
-        if (g_str_has_suffix(lname, ".rom")) {
+        if (g_str_has_suffix(lname, ".rom")
+                || g_str_has_suffix(lname, ".bin")) {
             fs_log("found file \"%s\"\n", name);
             char *full_path = g_build_filename(path, name, NULL);
             //GChecksum *checksum = g_checksum_new(G_CHECKSUM_MD5);
@@ -430,30 +431,18 @@ char *fs_uae_encode_path(const char* path) {
     // FIXME: libamiga now always accepts UTF-8, so this function is
     // deprecated. Simply returning a duplicate now.
     return g_strdup(path);
-/*
-#ifdef WINDOWS
-    return g_locale_from_utf8(path, -1, NULL, NULL, NULL);
-#else
-    return fs_strdup(path);
-#endif
-*/
 }
 
 char *fs_uae_decode_path(const char* path) {
     // FIXME: libamiga now always accepts UTF-8, so this function is
     // deprecated. Simply returning a duplicate now.
     return g_strdup(path);
-/*
-#ifdef WINDOWS
-    return g_locale_to_utf8(path, -1, NULL, NULL, NULL);
-#else
-    return fs_strdup(path);
-#endif
-*/
 }
 
-static void on_gui_message(const char* message) {
-    fs_emu_warning(message);
+static void on_gui_message(const char* message)
+{
+    printf("MESSAGE: %s\n", message);
+    fs_emu_warning("%s", message);
 }
 
 static void on_init() {

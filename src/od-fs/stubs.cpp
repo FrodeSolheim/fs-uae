@@ -193,11 +193,6 @@ void flush_log(void) {
     STUB("");
 }
 
-int translate_message (int msg, TCHAR *out) {
-    STUB("");
-    return 0;
-}
-
 #if 0
 void machdep_save_options (FILE *f, const struct uae_prefs *p) {
     LOG_STUB("");

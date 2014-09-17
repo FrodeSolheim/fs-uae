@@ -15,7 +15,7 @@
 
 static struct {
 
-    int stdout;
+    int use_stdout;
     FILE *file;
     char *initial_path;
     int initialized;
@@ -51,7 +51,7 @@ static void initialize()
 
 void fs_log_enable_stdout()
 {
-    log.stdout = 1;
+    log.use_stdout = 1;
 }
 
 void fs_config_set_log_file(const char *path)
@@ -98,7 +98,7 @@ void fs_log_string(const char *str)
         initialize();
     }
     fs_mutex_lock(log.mutex);
-    if (log.stdout) {
+    if (log.use_stdout) {
         printf("%s", str);
         fflush(stdout);
     }

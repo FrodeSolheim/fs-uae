@@ -18,13 +18,13 @@ static bool check_card(amiga_config *c, const char **card, int *memory,
 {
     int z = 0;
     char check2[32];
-    if (strcasecmp(*card, check) == 0) {
+    if (fs_uae_values_matches(*card, check)) {
         /* Auto-select Zorro II / Zorro III */
         z = 1;
     }
     strcpy(check2, check);
     strcat(check2, "-z2");
-    if (strcasecmp(*card, check2) == 0) {
+    if (fs_uae_values_matches(*card, check2)) {
         z = 2;
         if (!z2) {
             return false;
@@ -32,7 +32,7 @@ static bool check_card(amiga_config *c, const char **card, int *memory,
     }
     strcpy(check2, check);
     strcat(check2, "-z3");
-    if (strcasecmp(*card, check2) == 0) {
+    if (fs_uae_values_matches(*card, check2)) {
         z = 3;
         if (!z3) {
             return false;
@@ -107,9 +107,9 @@ void fs_uae_configure_graphics_card(amiga_config *c)
         fs_emu_warning("Unsupported graphics card: %s\n", card);
     }
 
-    if (fs_config_get_int(OPTION_GRAPHICS_CARD_MEMORY) != FS_CONFIG_NONE) {
-        memory = fs_config_get_int_clamped(OPTION_GRAPHICS_CARD_MEMORY,
-                                           0, 512);
+    if (fs_config_get_const_string(OPTION_GRAPHICS_CARD_MEMORY)) {
+        memory = fs_uae_read_memory_option(OPTION_GRAPHICS_CARD_MEMORY);
+        memory /= 1024;
         fs_log("CONFIG: Overriding graphics card memory: %d MB\n", memory);
     }
 

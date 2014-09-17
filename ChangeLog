@@ -1,5 +1,10 @@
 Version 2.5.15dev:
 
+* FS-UAE memory options are more clever, and can take arguments as both
+  KB or MB (with recommended explicit K/M suffix). For example, for memory
+  options which are always in MB, 8M == 8192K == 8192 == 8.
+* Flexible value matching for choice-based FS-UAE configuration options
+  (i.e. cyberstorm-ppc == CyberStormPPC)
 * New model A4000/PPC (auto-enables CyberStorm PPC).
 * New model A4000/OS4 (CyberStorm PPC, Picasso IV, default to onboard SCSI).
 * New options graphics_card and graphics_card_memory (supercedes uaegfx_card).

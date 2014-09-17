@@ -7,8 +7,9 @@
 #include <fs/glib.h>
 #include "options.h"
 #include "fs-uae.h"
-#include "config-model.h"
 #include "config-accelerator.h"
+#include "config-common.h"
+#include "config-model.h"
 
 static void configure_accelerator_rom(void)
 {
@@ -41,14 +42,15 @@ void fs_uae_configure_accelerator(void)
     }
 
     if (card != NULL) {
-        if (strcasecmp(card, "cyberstorm-ppc") == 0) {
+        if (fs_uae_values_matches(card, "cyberstorm-ppc")) {
             card = "CyberstormPPC";
         }
     }
 
     if (fs_config_get_const_string(OPTION_ACCELERATOR_MEMORY)) {
-        // FIXME: use memory function
-        memory = fs_config_get_int(OPTION_ACCELERATOR_MEMORY);
+        memory = fs_uae_read_memory_option(OPTION_ACCELERATOR_MEMORY);
+        memory /= 1024;
+        fs_log("CONFIG: Overriding accelerator memory: %d MB\n", memory);
     }
 
     if (card != NULL) {

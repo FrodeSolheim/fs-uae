@@ -46,7 +46,7 @@ void fs_uae_configure_amiga_model()
     if (config_model) {
         int i = 0;
         for (amiga_config* c = g_fs_uae_amiga_configs; c->id; c++, i++) {
-            if (g_ascii_strcasecmp(config_model, c->id) == 0) {
+            if (fs_uae_values_matches(config_model, c->id)) {
                 fs_emu_log("config match for \"%s\"\n", c->id);
                 g_fs_uae_amiga_config = i;
                 break;
@@ -141,7 +141,7 @@ static void configure_accuracy(amiga_config *c)
 
 static void configure_memory(amiga_config *c)
 {
-    int chip_memory = fs_config_get_int("chip_memory");
+    int chip_memory = fs_uae_read_memory_option_small("chip_memory");
     if (chip_memory != FS_CONFIG_NONE) {
         if (chip_memory == 128) {
             amiga_set_int_option("chipmem_size", -1);
@@ -157,7 +157,7 @@ static void configure_memory(amiga_config *c)
         chip_memory = 0;
     }
 
-    int slow_memory = fs_config_get_int("slow_memory");
+    int slow_memory = fs_uae_read_memory_option_small("slow_memory");
     if (slow_memory != FS_CONFIG_NONE) {
         if (slow_memory % 256 == 0) {
             amiga_set_int_option("bogomem_size", slow_memory / 256);
@@ -169,7 +169,7 @@ static void configure_memory(amiga_config *c)
         slow_memory = 0;
     }
 
-    int fast_memory = fs_config_get_int("fast_memory");
+    int fast_memory = fs_uae_read_memory_option("fast_memory");
     if (fast_memory != FS_CONFIG_NONE) {
         if (fast_memory % 1024 == 0) {
             amiga_set_int_option("fastmem_size", fast_memory / 1024);
@@ -181,7 +181,7 @@ static void configure_memory(amiga_config *c)
         fast_memory = 0;
     }
 
-    int z3_memory = fs_config_get_int("zorro_iii_memory");
+    int z3_memory = fs_uae_read_memory_option("zorro_iii_memory");
     if (z3_memory != FS_CONFIG_NONE) {
         if (z3_memory && !c->allow_z3_memory) {
             fs_emu_warning(_("Options zorro_iii_memory needs a CPU "

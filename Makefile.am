@@ -91,6 +91,7 @@ fs_uae_SOURCES = \
 	src/fs-uae/config.c \
 	src/fs-uae/config-accelerator.c \
 	src/fs-uae/config-accelerator.h \
+	src/fs-uae/config-common.c \
 	src/fs-uae/config-common.h \
 	src/fs-uae/config-drives.c \
 	src/fs-uae/config-drives.h \

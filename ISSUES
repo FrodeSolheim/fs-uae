@@ -2,6 +2,8 @@
   the qemu-uae plugin (check in fs-uae.log.txt that it is loaded properly)
   if you're having problems.
 * AmigaOS 4.1 w/Picasso IV => sometimes weird frame rate (~36 FPS).
+* When starting FS-UAE from FS-UAE Launcher, accelerator flashs ROM writes
+  are not persistent because the launcher uses a new copy every time.
 * Booting CD32 with CD inserted works, but inserting later, or eject +
   re-insert does not seem to work right now.
 * Booting A1000 to kickstart screen does not work. Broke in FS-UAE 2.5.9dev /

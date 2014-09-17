@@ -8,7 +8,7 @@ Version 2.5.15dev:
 * New model A4000/PPC (auto-enables CyberStorm PPC).
 * New model A4000/OS4 (CyberStorm PPC, Picasso IV, default to onboard SCSI).
 * New options graphics_card and graphics_card_memory (supercedes uaegfx_card).
-* New options accelerator_rom, graphics_rom.
+* New options accelerator, accelerator_rom, graphics_card_rom.
 * New --workbench option useful for command line testing (automatically
   inserts an appropriate wb disk in DF0).
 * Show GUI warning when floppy_drive_x files are not found.

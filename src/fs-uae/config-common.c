@@ -12,7 +12,7 @@
 
 #define LEN_MAX 1024
 
-static int strip(char *dstr, const char *sstr)
+static void strip(char *dstr, const char *sstr)
 {
     char *d = dstr;
     int k = 0;

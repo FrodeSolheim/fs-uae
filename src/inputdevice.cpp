@@ -3759,7 +3759,7 @@ static int switchdevice (struct uae_input_device *id, int num, bool buttonmode)
 #if SWITCHDEBUG_DEBUG
 						write_log(_T("input panel mouse device '%s' disabled\n"), changed_prefs.mouse_settings[currprefs.input_selected_setting][devnum].name);
 #endif
-								}
+					}
 				}
 				for (int l = 0; l < idev[IDTYPE_MOUSE].get_num(); l++) {
 					if (changed_prefs.mouse_settings[currprefs.input_selected_setting][l].enabled) {
@@ -3775,8 +3775,8 @@ static int switchdevice (struct uae_input_device *id, int num, bool buttonmode)
 					// new mouse is supermouse, disable all other mouse devices
 					for (int l = 0; l < MAX_INPUT_DEVICES; l++) {
 						changed_prefs.mouse_settings[currprefs.input_selected_setting][l].enabled = false;
-										}
-									}
+					}
+				}
 
 				devnum = jsem_isjoy(newport, &currprefs);
 #if SWITCHDEBUG_DEBUG
@@ -5612,7 +5612,7 @@ static void resetinput (void)
 		mouse_delta[i][2] = 0;
 	}
 	lightpen_delta[0] = lightpen_delta[1] = 0;
-	lightpen_deltanoreset[0] = lightpen_deltanoreset[0] = 0;
+	lightpen_deltanoreset[0] = lightpen_deltanoreset[1] = 0;
 	memset (keybuf, 0, sizeof keybuf);
 	for (int i = 0; i < INPUT_QUEUE_SIZE; i++)
 		input_queue[i].linecnt = input_queue[i].nextlinecnt = -1;

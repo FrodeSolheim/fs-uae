@@ -442,6 +442,9 @@ extern void free_fastmemory (int);
 
 STATIC_INLINE uae_u32 get_long (uaecptr addr)
 {
+#if 0
+	printf("get_long %08x -> %08x\n", addr, longget(addr));
+#endif
 	return longget (addr);
 }
 STATIC_INLINE uae_u32 get_word (uaecptr addr)

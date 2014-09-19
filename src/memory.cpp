@@ -1332,6 +1332,23 @@ void a3000_fakekick (int map)
 
 static const uae_char *kickstring = "exec.library";
 
+#ifdef FSUAE // NL
+
+static void log_kickstart(uae_u8 *mem, int size)
+{
+	uae_u32 crc32 = get_crc32(mem, size);
+	struct romdata *rd = getromdatabycrc(crc32);
+	if (rd) {
+		char tmp[MAX_DPATH];
+		getromname(rd, tmp);
+		printf("KICKSTART: %s\n", tmp);
+	} else {
+		printf("KICKSTART: Unknown %08x (size %d)\n", crc32, size);
+	}
+}
+
+#endif
+
 static int read_kickstart (struct zfile *f, uae_u8 *mem, int size, int dochecksum, int noalias)
 {
 	uae_char buffer[20];
@@ -1381,7 +1398,6 @@ static int read_kickstart (struct zfile *f, uae_u8 *mem, int size, int dochecksu
 #endif
 	if (i < size - 20)
 		kickstart_fix_checksum (mem, size);
-
 	j = 1;
 	while (j < i)
 		j <<= 1;
@@ -1397,11 +1413,21 @@ static int read_kickstart (struct zfile *f, uae_u8 *mem, int size, int dochecksu
 	if (currprefs.cs_a1000ram) {
 		int off = 0;
 		a1000_bootrom = xcalloc (uae_u8, ROM_SIZE_256);
+		/* FIXME: This loop looks a bit suspicious. When the A1000 bootstrap
+		 * ROM is 64 KB, this loop looks like it repeats the ROM. Fair enough,
+		 * but with <, it will only fill it three times and leave the upper
+		 * 64 KB alone (will be zeroed by xcalloc). Is this intentional, or
+		 * should it be <= here? -Frode. */
 		while (off + i < ROM_SIZE_256) {
 			memcpy (a1000_bootrom + off, kickmem_bank.baseaddr, i);
 			off += i;
 		}
-		memset (kickmem_bank.baseaddr, 0, kickmem_bank.allocated);
+		/* Checking the ROM size here is a hack to get back to pre-WinUAE
+		 * 2.9.0beta9 behavior when using A1000 with a full kickstart image.
+		 * It should probably be fixed in another way, such as clearing
+		 * currprefs.cs_a1000ram when not using bootstrap ROM. */
+		if (i < ROM_SIZE_256)
+			memset (kickmem_bank.baseaddr, 0, kickmem_bank.allocated);
 		a1000_handle_kickstart (1);
 		dochecksum = 0;
 		i = ROM_SIZE_512;
@@ -1416,6 +1442,10 @@ static int read_kickstart (struct zfile *f, uae_u8 *mem, int size, int dochecksu
 		dochecksum = 0;
 	if (dochecksum)
 		kickstart_checksum (mem, size);
+#ifdef FSUAE
+	log_kickstart(mem, i);
+	log_kickstart(mem, 256 * 1024);
+#endif
 	return i;
 }
 

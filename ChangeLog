@@ -1,5 +1,6 @@
 Version 2.5.16dev:
 
+* Temporary fix for A1000 boot issue with full kickstart ROM.
 * Fixed patching of Cloanto A500/A4000 roms (broke in an earlier dev ver).
 
 Version 2.5.15dev:

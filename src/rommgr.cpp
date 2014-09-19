@@ -1312,6 +1312,9 @@ struct zfile *read_rom_name (const TCHAR *filename)
 	struct zfile *f;
 
 	for (i = 0; i < romlist_cnt; i++) {
+#ifdef FSUAE
+		// FIXME: implement my_issamepath
+#endif
 		if (my_issamepath(filename, rl[i].path)) {
 			struct romdata *rd = rl[i].rd;
 			f = read_rom (rd);
@@ -1335,6 +1338,9 @@ struct zfile *read_rom_name (const TCHAR *filename)
 			zfile_fread (buf, size, 1, f);
 			df = zfile_fopen_empty (f, _T("tmp.rom"), size);
 			decode_cloanto_rom_do (buf, size, size);
+#ifdef FSUAE
+			romlist_patch_rom(buf, size);
+#endif
 			zfile_fwrite (buf, size, 1, df);
 			zfile_fclose (f);
 			xfree (buf);

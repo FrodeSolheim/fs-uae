@@ -1626,6 +1626,9 @@ static int load_kickstart (void)
 		goto err;
 
 	if (f != NULL) {
+#ifdef FSUAE
+		printf("KICKSTART: %s\n", currprefs.romfile);
+#endif
 		int filesize, size, maxsize;
 		int kspos = ROM_SIZE_512;
 		int extpos = 0;

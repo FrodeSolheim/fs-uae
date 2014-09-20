@@ -1,5 +1,6 @@
 Version 2.5.16dev:
 
+* Fixed infinite loop when more than one HDF/CD was used with UAE controller.
 * Fix for A1000 boot issue with full kickstart ROM.
 * Fixed patching of Cloanto A500/A4000 roms (broke in an earlier dev ver).
 

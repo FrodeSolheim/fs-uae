@@ -55,7 +55,15 @@ static char *resolve_controller(const char *controller)
         controller = "scsi%d_cpuboard";
     } else {
         fs_log("resolve_controller: \"%s\" not known\n", controller);
-        //return g_strdup(controller);
+        if (g_hash_table_lookup(in_use, controller)) {
+            /* Only uae controllers can be used more than once */
+            if (strcasecmp(controller, "uae") != 0) {
+                fs_log("controller already used: %s\n", controller);
+            }
+        } else {
+            g_hash_table_add(in_use, g_strdup(controller));
+        }
+        return g_strdup(controller);
     }
 
     for (int i = 0;; i++) {

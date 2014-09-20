@@ -44,7 +44,7 @@ int fs_uae_read_memory_option(const char *name)
     if (!s) {
         return FS_CONFIG_NONE;
     }
-    fs_uae_memory_kb_from_string(s, 0);
+    return fs_uae_memory_kb_from_string(s, 0);
 }
 
 int fs_uae_read_memory_option_small(const char *name)
@@ -53,7 +53,7 @@ int fs_uae_read_memory_option_small(const char *name)
     if (!s) {
         return FS_CONFIG_NONE;
     }
-    fs_uae_memory_kb_from_string(s, 1);
+    return fs_uae_memory_kb_from_string(s, 1);
 }
 
 int fs_uae_memory_kb_from_string(const char *str, bool smallmem)

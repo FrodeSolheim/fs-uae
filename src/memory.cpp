@@ -1410,7 +1410,9 @@ static int read_kickstart (struct zfile *f, uae_u8 *mem, int size, int dochecksu
 		if (!decode_rom (mem, size, cr, i))
 			return 0;
 	}
-	if (currprefs.cs_a1000ram) {
+	/* When i >= ROM_SIZE_256, a full kickstart ROM is in use, and we
+	 * don't want the A1000 KS bootstrap-specific behavior in this case. */
+	if (currprefs.cs_a1000ram && i < ROM_SIZE_256) {
 		int off = 0;
 		a1000_bootrom = xcalloc (uae_u8, ROM_SIZE_256);
 		/* FIXME: This loop looks a bit suspicious. When the A1000 bootstrap
@@ -1422,12 +1424,7 @@ static int read_kickstart (struct zfile *f, uae_u8 *mem, int size, int dochecksu
 			memcpy (a1000_bootrom + off, kickmem_bank.baseaddr, i);
 			off += i;
 		}
-		/* Checking the ROM size here is a hack to get back to pre-WinUAE
-		 * 2.9.0beta9 behavior when using A1000 with a full kickstart image.
-		 * It should probably be fixed in another way, such as clearing
-		 * currprefs.cs_a1000ram when not using bootstrap ROM. */
-		if (i < ROM_SIZE_256)
-			memset (kickmem_bank.baseaddr, 0, kickmem_bank.allocated);
+		memset (kickmem_bank.baseaddr, 0, kickmem_bank.allocated);
 		a1000_handle_kickstart (1);
 		dochecksum = 0;
 		i = ROM_SIZE_512;
@@ -1444,7 +1441,6 @@ static int read_kickstart (struct zfile *f, uae_u8 *mem, int size, int dochecksu
 		kickstart_checksum (mem, size);
 #ifdef FSUAE
 	log_kickstart(mem, i);
-	log_kickstart(mem, 256 * 1024);
 #endif
 	return i;
 }

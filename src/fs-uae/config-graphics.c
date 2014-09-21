@@ -84,7 +84,7 @@ void fs_uae_configure_graphics_card(amiga_config *c)
                     fs_emu_warning(_("Option uaegfx.card needs a CPU with "
                                      "32-bit addressing\n"));
                 } else {
-                    card = "uaegfx-z3";
+                    card = "ZorroIII";
                     memory = 32;
                     found = true;
                 }

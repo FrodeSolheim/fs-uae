@@ -452,6 +452,8 @@ static void on_init() {
     fs_log(LOG_LINE);
     fs_log("\n");
 
+    amiga_set_gui_message_function(on_gui_message);
+
     //fs_uae_configure_amiga_model();
     fs_uae_configure_amiga_hardware();
     fs_uae_configure_floppies();
@@ -459,8 +461,6 @@ static void on_init() {
     fs_uae_configure_cdrom();
     fs_uae_configure_input();
     fs_uae_configure_directories();
-
-    amiga_set_gui_message_function(on_gui_message);
 
     if (fs_config_get_int("save_state_compression") == 0) {
         amiga_set_save_state_compression(0);

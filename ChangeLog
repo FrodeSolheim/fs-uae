@@ -1,5 +1,6 @@
 Version 2.5.16dev:
 
+* Make sure early configuration warning messages are displayed in GUI.
 * Fixed parsing of memory options.
 * Fixed infinite loop when more than one HDF/CD was used with UAE controller.
 * Fix for A1000 boot issue with full kickstart ROM.

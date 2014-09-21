@@ -323,8 +323,8 @@ void fixup_cpu (struct uae_prefs *p)
 	if (p->cpu_cycle_exact)
 		p->cpu_compatible = true;
 
-	if (p->cpuboard_type && !p->comptrustbyte) {
-		error_log(_T("JIT direct is not compatible with emulated accelerator boards."));
+	if (cpuboard_blizzardram(p) && !p->comptrustbyte) {
+		error_log(_T("JIT direct is not compatible with emulated Blizzard accelerator boards."));
 		p->comptrustbyte = 1;
 		p->comptrustlong = 1;
 		p->comptrustlong = 1;
@@ -662,7 +662,7 @@ void fixup_prefs (struct uae_prefs *p)
 #endif
 		p->maprom = 0x0f000000;
 	}
-	if (((p->maprom & 0xff000000) && p->address_space_24) || (p->maprom && p->mbresmem_high_size == 0x08000000)) {
+	if (((p->maprom & 0xff000000) && p->address_space_24) || (p->maprom && p->mbresmem_high_size >= 0x08000000)) {
 #ifdef FSUAE
 		write_log("MAPROM: Setting address 0x00e00000 (was 0x%08x)\n", p->maprom);
 #endif
@@ -914,7 +914,7 @@ void reset_all_systems (void)
 	init_eventtab ();
 
 #ifdef WITH_PPC
-	uae_ppc_reset(false);
+	uae_ppc_reset(is_hardreset());
 #endif
 #ifdef PICASSO96
 	picasso_reset ();

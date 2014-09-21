@@ -1,3 +1,7 @@
+Version 2.5.17dev:
+
+* Updated emulation core from WinUAE 2900b17.
+
 Version 2.5.16dev:
 
 * Fixed legacy uaegfx_card option.

@@ -382,7 +382,7 @@ void fs_uae_configure_floppies()
     }
     fs_emu_log("configure_floppies\n");
 
-    if (fs_config_get_int(OPTION_WORKBENCH) == 1) {
+    if (fs_config_get_int(OPTION_WORKBENCH_DISK) == 1) {
         if (cfg->wb_disk) {
             fs_config_set_string("floppy_drive_0", cfg->wb_disk);
         } else {

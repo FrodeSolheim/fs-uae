@@ -4,11 +4,12 @@
 #define OPTION_ACCELERATOR "accelerator"
 #define OPTION_ACCELERATOR_ROM "accelerator_rom"
 #define OPTION_ACCELERATOR_MEMORY "accelerator_memory"
+//#define OPTION_CURSOR_INTEGRATION "cursor_integration"
 #define OPTION_CPU_IDLE "cpu_idle"
 #define OPTION_GRAPHICS_CARD "graphics_card"
 #define OPTION_GRAPHICS_CARD_ROM "graphics_card_rom"
 #define OPTION_GRAPHICS_CARD_MEMORY "graphics_card_memory"
-#define OPTION_WORKBENCH "workbench"
+#define OPTION_WORKBENCH_DISK "workbench_disk"
 
 /* Deprecated options */
 

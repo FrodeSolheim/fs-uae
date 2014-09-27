@@ -18,13 +18,62 @@ GHashTable *g_hash_table = NULL;
 #define LOG_LINE "---------------------------------------------------------" \
         "-------------------\n"
 
-static void initialize() {
+static void initialize()
+{
     g_hash_table = g_hash_table_new_full(g_str_hash, g_str_equal,
                                          g_free, g_free);
     g_initialized = 1;
 }
 
-const char *fs_config_get_const_string(const char *key) {
+bool fs_config_exists(const char *key)
+{
+    return fs_config_get_const_string(key) != NULL;
+}
+
+bool fs_config_check_auto(const char *key, const char *value)
+{
+    const char *s = fs_config_get_const_string(key);
+    if (s == NULL) {
+        return true;
+    }
+    if (value && strcasecmp(s, value) == 0) {
+        return true;
+    }
+    return false;
+}
+
+bool fs_config_check_enabled(const char *key, const char *value)
+{
+    const char *s = fs_config_get_const_string(key);
+    if (s == NULL) {
+        return false;
+    }
+    if (value && strcasecmp(s, value) == 0) {
+        return true;
+    }
+    if (strcasecmp(s, "1") == 0) {
+        return true;
+    }
+    return false;
+}
+
+bool fs_config_check_disabled(const char *key, const char *value)
+{
+    const char *s = fs_config_get_const_string(key);
+    if (s == NULL) {
+        return false;
+    }
+    if (value && strcasecmp(s, value) == 0) {
+        return true;
+    }
+    if (strcasecmp(s, "0") == 0) {
+        return true;
+    }
+    return false;
+}
+
+const char *fs_config_get_const_string(const char *key)
+{
     if (!g_initialized) {
         initialize();
     }

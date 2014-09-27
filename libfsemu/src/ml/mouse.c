@@ -20,20 +20,21 @@ static int g_debug_input = 0;
 #define db_log(name, format, ...) \
     if (g_debug_ ## name) { \
         fs_log(format, ## __VA_ARGS__); \
-}
+    }
 
-static void *manymouse_thread(void* data) {
-    fs_log("ManyMouse: (c) 2005-2012 Ryan C. Gordon\n");
-    fs_log("ManyMouse: thread running\n");
+static void *manymouse_thread(void* data)
+{
+    fs_log("MANYMOUSE: (c) 2005-2012 Ryan C. Gordon\n");
+    fs_log("MANYMOUSE: Thread running\n");
 
     int k = g_fs_ml_input_device_count;
     g_first_manymouse_index = k;
     int mouse_count = ManyMouse_Init();
     if (mouse_count < 0) {
-        fs_log("ManyMouse: initialization failed (%d)\n", mouse_count);
+        fs_log("MANYMOUSE: Initialization failed (%d)\n", mouse_count);
     }
     else if (mouse_count == 0) {
-        fs_log("ManyMouse: no mice found\n");
+        fs_log("MANYMOUSE: no mice found\n");
         // no mice found, so we just quit using the library
     }
 
@@ -50,7 +51,7 @@ static void *manymouse_thread(void* data) {
         // and return another name, so name must be malloced and owned by
         // caller
         name = fs_ml_input_unique_device_name(name);
-        fs_log("- adding %s (%s)\n", name, driver);
+        fs_log("MANYMOUSE: Adding %s (%s)\n", name, driver);
 
         g_fs_ml_input_devices[k].type = FS_ML_MOUSE;
         g_fs_ml_input_devices[k].index = k;
@@ -88,6 +89,9 @@ static void *manymouse_thread(void* data) {
                     new_event->motion.xrel = 0;
                     new_event->motion.yrel = event.value;
                 }
+                new_event->motion.x = FS_ML_NO_ABSOLUTE_MOUSE_POS;
+                new_event->motion.y = FS_ML_NO_ABSOLUTE_MOUSE_POS;
+
                 fs_ml_post_event(new_event);
                 // ManyMouseEventType type;
                 // unsigned int device;
@@ -97,7 +101,7 @@ static void *manymouse_thread(void* data) {
                 // int maxval;
             }
             else if (event.type == MANYMOUSE_EVENT_BUTTON) {
-                db_log(input, "ManyMouse: EVENT_BUTTON "
+                db_log(input, "MANYMOUSE: EVENT_BUTTON "
                        "device %d item %d value %d\n",
                        event.device, event.item, event.value);
                 new_event = fs_ml_alloc_event();
@@ -124,7 +128,7 @@ static void *manymouse_thread(void* data) {
                 // printf("MANYMOUSE_EVENT_ABSMOTION\n");
             }
             else if (event.type == MANYMOUSE_EVENT_SCROLL) {
-                db_log(input, "ManyMouse: EVENT_SCROLL "
+                db_log(input, "MANYMOUSE: EVENT_SCROLL "
                        "device %d item %d value %d\n",
                        event.device, event.item, event.value);
                 new_event = fs_ml_alloc_event();
@@ -151,7 +155,8 @@ static void *manymouse_thread(void* data) {
     return NULL;
 }
 
-void fs_ml_mouse_init(void) {
+void fs_ml_mouse_init(void)
+{
     FS_ML_INIT_ONCE;
     fs_log("fs_ml_mouse_init\n");
 
@@ -176,7 +181,7 @@ void fs_ml_mouse_init(void) {
 
     g_manymouse_thread = fs_thread_create("manymouse", manymouse_thread, NULL);
     if (g_manymouse_thread == NULL) {
-        fs_log("ERROR: could not create ManyMouse thread\n");
+        fs_log("MANYMOUSE: Error - could not create ManyMouse thread\n");
         // ManyMouse_Quit();
     }
     else {
@@ -185,5 +190,4 @@ void fs_ml_mouse_init(void) {
         }
         g_fs_ml_input_device_count = g_manymouse_last_index;
     }
-
 }

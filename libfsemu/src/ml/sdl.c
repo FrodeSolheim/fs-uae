@@ -149,7 +149,9 @@ void fs_ml_grab_input(int grab, int immediate) {
 #else
         SDL_WM_GrabInput(grab ? SDL_GRAB_ON : SDL_GRAB_OFF);
 #endif
-        fs_ml_show_cursor(!grab, 1);
+        if (fs_ml_cursor_allowed()) {
+            fs_ml_show_cursor(!grab, 1);
+        }
     }
     else {
         post_video_event(grab ? FS_ML_VIDEO_EVENT_GRAB_INPUT :
@@ -522,7 +524,11 @@ int fs_ml_video_create_window(const char *title) {
     g_fs_ml_automatic_input_grab = fs_config_get_boolean(
             "automatic_input_grab");
     if (g_fs_ml_automatic_input_grab == FS_CONFIG_NONE) {
-        g_fs_ml_automatic_input_grab = 1;
+        if (fs_ml_mouse_integration()) {
+            g_fs_ml_automatic_input_grab = 0;
+        } else {
+            g_fs_ml_automatic_input_grab = 1;
+        }
     }
     fs_log("automatic input grab: %d\n", g_fs_ml_automatic_input_grab);
 
@@ -907,6 +913,10 @@ static int event_loop() {
             new_event->motion.device = g_fs_ml_first_mouse_index;
             new_event->motion.xrel = event.motion.xrel;
             new_event->motion.yrel = event.motion.yrel;
+            /* Absolute window coordinates */
+            new_event->motion.x = event.motion.x;
+            new_event->motion.y = event.motion.y;
+            //printf("ISREL %d\n", SDL_GetRelativeMouseMode());
 
             if (g_debug_input) {
                 fs_log("SDL mouse event x: %4d y: %4d xrel: %4d yrel: %4d\n", 

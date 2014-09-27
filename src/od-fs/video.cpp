@@ -604,14 +604,16 @@ static int init_colors (void)
     return 1;
 }
 
+#include <fs/emu/hacks.h>
+
 void getgfxoffset (float *dxp, float *dyp, float *mxp, float *myp)
 {
-    /* Looks like this is offset and scale factors used for magic mouse
-     * (in order to translate mouse coordinates to Amiga coordinates) */
-    *dxp = 0;
-    *dyp = 0;
-    *mxp = 0;
-    *myp = 0;
+    /* Offset and scale factors used for magic mouse (in order to translate
+     * mouse coordinates to Amiga coordinates) */
+    *dxp = fs_emu_video_offset_x;
+    *dyp = fs_emu_video_offset_y;
+    *mxp = fs_emu_video_scale_x;
+    *myp = fs_emu_video_scale_y;
 }
 
 void toggle_fullscreen (int mode)

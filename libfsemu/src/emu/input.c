@@ -3,6 +3,7 @@
 #endif
 
 #include <fs/emu.h>
+#include <fs/emu/options.h>
 #include "input.h"
 
 #include <stdio.h>
@@ -717,31 +718,53 @@ static void queue_input_event_with_state(int input_event, int state) {
     }
 }
 
-int g_pointer_visible = 1;
-int64_t g_pointer_visible_to = 0;
+static int g_cursor_visible = 1;
+static int64_t g_cursor_visible_to = 0;
 
-void fs_emu_show_pointer(int show) {
+#if 0
+static int g_cursor_mode = 1;
+static int g_mouse_integration = 0;
+#endif
+
+bool fs_emu_mouse_integration(void)
+{
+    //return g_mouse_integration;
+    return fs_ml_mouse_integration();
+}
+
+bool fs_emu_cursor_allowed(void)
+{
+    //return g_cursor_mode != 0;
+    return fs_ml_cursor_allowed();
+}
+
+void fs_emu_show_cursor(int show)
+{
     fs_ml_show_cursor(0, 0);
-    g_pointer_visible = (show != 0);
-    g_pointer_visible_to = 0;
+    g_cursor_visible = (show != 0);
+    g_cursor_visible_to = 0;
 }
 
-void fs_emu_show_pointer_msec(int duration) {
+void fs_emu_show_cursor_msec(int duration)
+{
     fs_ml_show_cursor(1, 0);
-    g_pointer_visible = 1;
-    g_pointer_visible_to = fs_emu_monotonic_time() + \
-            (int64_t) duration * 1000;
+    g_cursor_visible = 1;
+    g_cursor_visible_to = fs_emu_monotonic_time() + \
+                          (int64_t) duration * 1000;
 }
 
-int fs_emu_is_pointer_visible() {
-    return g_pointer_visible;
+int fs_emu_is_cursor_visible(void)
+{
+    return g_cursor_visible;
 }
 
-int64_t fs_emu_pointer_is_visible_to() {
-    return g_pointer_visible_to;
+int64_t fs_emu_cursor_is_visible_to(void)
+{
+    return g_cursor_visible_to;
 }
 
-int fs_emu_has_input_grab() {
+int fs_emu_has_input_grab()
+{
     return fs_ml_has_input_grab();
 }
 
@@ -751,11 +774,13 @@ void fs_emu_grab_input(int mode) {
     fs_log("grab input mode: %d\n", mode);
     if (mode) {
         fs_ml_grab_input(1, 0);
-        fs_emu_show_pointer(0);
+        fs_emu_show_cursor(0);
     }
     else {
         fs_ml_grab_input(0, 0);
-        fs_emu_show_pointer_msec(FS_EMU_MOUSE_DEFAULT_DURATION);
+        if (fs_emu_cursor_allowed()) {
+           fs_emu_show_cursor_msec(FS_EMU_MOUSE_DEFAULT_DURATION);
+        }
     }
     g_ignore_next_motion = 1;
 }
@@ -1377,6 +1402,11 @@ static void adjust_mouse_movement(int mouse, int axis, int *movement) {
     *movement = v;
 }
 
+#include <fs/emu/hacks.h>
+
+int fs_emu_mouse_absolute_x = 0;
+int fs_emu_mouse_absolute_y = 0;
+
 static int input_function(fs_ml_event *event) {
     if (event->type == FS_ML_MOUSEMOTION) {
         if (g_ignore_next_motion) {
@@ -1389,7 +1419,17 @@ static int input_function(fs_ml_event *event) {
         // }
 
         if (fs_emu_has_input_grab() == FALSE) {
-            fs_emu_show_pointer_msec(FS_EMU_MOUSE_DEFAULT_DURATION);
+            if (fs_emu_cursor_allowed()) {
+                fs_emu_show_cursor_msec(FS_EMU_MOUSE_DEFAULT_DURATION);
+            }
+        }
+
+        if (event->motion.x != FS_ML_NO_ABSOLUTE_MOUSE_POS &&
+                event->motion.y != FS_ML_NO_ABSOLUTE_MOUSE_POS) {
+            fs_emu_mouse_absolute_x = event->motion.x;
+            fs_emu_mouse_absolute_y = event->motion.y;
+            //printf("ABS: %d, %d\n",
+            //       fs_emu_mouse_absolute_x, fs_emu_mouse_absolute_y);
         }
 
         if (event->motion.xrel) {
@@ -1525,6 +1565,10 @@ void fs_emu_input_init() {
     }
 
     g_fs_emu_mouse_speed = fs_config_get_int("mouse_speed");
+    if (g_fs_emu_mouse_speed <= 0 || g_fs_emu_mouse_speed > 500) {
+        g_fs_emu_mouse_speed = 100;
+    }
+
     if (g_fs_emu_mouse_speed <= 0 || g_fs_emu_mouse_speed > 500) {
         g_fs_emu_mouse_speed = 100;
     }

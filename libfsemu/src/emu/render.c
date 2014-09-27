@@ -915,6 +915,13 @@ static void render_overlays(void) {
     }
 }
 
+#include <fs/emu/hacks.h>
+
+double fs_emu_video_scale_x = 0.0;
+double fs_emu_video_scale_y = 0.0;
+double fs_emu_video_offset_x = 1.0;
+double fs_emu_video_offset_y = 1.0;
+
 static void render_frame(double alpha, int perspective) {
 #ifdef WITH_LUA
     fs_emu_lua_run_handler("on_fs_emu_render_frame");
@@ -1062,6 +1069,12 @@ static void render_frame(double alpha, int perspective) {
     int offset_y = (screen_h - output_h) * (1.0 - g_align_y);
 
     //printf("w %d h %d x %d y %d\n", output_w, output_h, offset_x, offset_y);
+
+    fs_emu_video_scale_x = (double) input_w / output_w;
+    fs_emu_video_scale_y = (double) input_h / output_h;
+
+    fs_emu_video_offset_x = offset_x - g_crop.x / fs_emu_video_scale_x;
+    fs_emu_video_offset_y = offset_y - g_crop.y / fs_emu_video_scale_y;
 
     double s1 = 0.0;
     double t1 = 0.0;

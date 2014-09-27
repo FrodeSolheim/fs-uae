@@ -269,7 +269,9 @@ static void configure_joystick_port(int port, const char *value,
     }
 }
 
-void fs_uae_configure_input() {
+void fs_uae_configure_input()
+{
+    fs_uae_configure_mouse();
     fs_emu_log("configuring joystick ports:\n");
     amiga_set_option("joyport0", "none");
     amiga_set_option("joyport1", "none");

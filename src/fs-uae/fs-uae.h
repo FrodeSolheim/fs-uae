@@ -38,6 +38,7 @@ void fs_uae_init_configs();
 void fs_uae_configure_directories();
 void fs_uae_configure_amiga_hardware();
 void fs_uae_configure_amiga_model();
+void fs_uae_configure_mouse(void);
 void fs_uae_load_rom_files(const char *path);
 
 char *fs_uae_expand_path(const char *path);

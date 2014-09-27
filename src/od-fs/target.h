@@ -34,6 +34,8 @@ int filesys_get_max_frame_packages();
 //void frame_wait_for_filesys();
 //void filesys_handle_events();
 
+void uae_mousehack_helper(int x, int y);
+
 extern int g_uae_deterministic_mode;
 
 static inline int uae_deterministic_mode() {

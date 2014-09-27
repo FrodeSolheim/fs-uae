@@ -1134,7 +1134,7 @@ int main(int argc, char* argv[]) {
     fs_uae_init_video();
 
     //fs_uae_init_keyboard();
-    //fs_uae_init_mouse();
+    fs_uae_init_mouse();
     fs_uae_configure_menu();
 
     fs_emu_run(main_function);

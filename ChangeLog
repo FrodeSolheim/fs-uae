@@ -1,10 +1,15 @@
 Version 2.5.17dev:
 
+* Initial support for magic mouse / virtual mouse.
+* New option mouse_integration (boolean) (Setting it to 1 implies cursor=0,
+  automatic_input_grab=0).
+* New option cursor (boolean + auto).
 * Removed audio_buffer_target_bytes (use audio_buffer_target_size instead).
 * Changes to audio buffer fill logic.
 * Measure fps internally with floating point numbers.
 * Fixed cyberstormppc.rom lookup when using FS-UAE config file.
 * Fixed ISO-8859-1 <-> UTF-8 conversion (broke in 2.5.15dev).
+* Renamed testing option workbench -> workbenc_disk.
 * Updated emulation core from WinUAE 2900b17.
 
 Version 2.5.16dev:

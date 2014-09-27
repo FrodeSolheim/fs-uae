@@ -526,6 +526,8 @@ libfsemu_a_SOURCES = \
 	libfsemu/include/fs/defines.h \
 	libfsemu/include/fs/emu.h \
 	libfsemu/include/fs/emu/dialog.h \
+	libfsemu/include/fs/emu/hacks.h \
+	libfsemu/include/fs/emu/options.h \
 	libfsemu/include/fs/emu/video.h \
 	libfsemu/include/fs/endian.h \
 	libfsemu/include/fs/eventlog.h \

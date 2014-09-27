@@ -4,8 +4,10 @@
 
 #include <SDL.h>
 #include <stdlib.h>
+#include <fs/conf.h>
 #include <fs/log.h>
 #include <fs/glib.h>
+#include <fs/ml/options.h>
 #include "ml_internal.h"
 
 static GQueue *g_input_queue = NULL;
@@ -15,6 +17,19 @@ static fs_ml_input_function g_input_function = NULL;
 int g_fs_ml_first_keyboard_index = 0;
 int g_fs_ml_first_mouse_index = 0;
 int g_fs_ml_first_joystick_index = 0;
+
+static int g_cursor_mode = 1;
+static int g_mouse_integration = 0;
+
+bool fs_ml_mouse_integration(void)
+{
+    return g_mouse_integration;
+}
+
+bool fs_ml_cursor_allowed(void)
+{
+    return g_cursor_mode != 0;
+}
 
 fs_ml_event* fs_ml_alloc_event() {
     return g_malloc(sizeof(fs_ml_event));
@@ -51,6 +66,19 @@ void fs_ml_input_init() {
     SDL_Init(SDL_INIT_JOYSTICK);
 
     fs_log("fs_ml_input_init\n");
+
+    if (fs_config_get_boolean(OPTION_MOUSE_INTEGRATION) == 1) {
+        g_mouse_integration = 1;
+    }
+
+    g_cursor_mode = fs_config_get_boolean(OPTION_CURSOR);
+    if (fs_config_check_auto(OPTION_CURSOR, FS_CONFIG_AUTO)) {
+        if (fs_emu_mouse_integration()) {
+            g_cursor_mode = 0;
+        } else {
+            g_cursor_mode = -1;
+        }
+    }
 
     g_input_queue = g_queue_new();
     g_input_mutex = fs_mutex_create();

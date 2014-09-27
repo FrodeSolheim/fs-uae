@@ -43,6 +43,8 @@ static int handle_custom_action(int action, int state) {
     return 0;
 }
 
+#include <fs/emu/hacks.h>
+
 extern "C" {
 
 int amiga_send_input_event(int input_event, int state) {
@@ -65,10 +67,22 @@ int amiga_send_input_event(int input_event, int state) {
     }
     // FIXME: is max = 1 always appropriate?
     int max = 1;
+    bool magic_mouse = currprefs.input_magic_mouse;
+    if (uae_deterministic_mode()) {
+        magic_mouse = false;
+    }
 
     switch (input_event) {
     case INPUTEVENT_MOUSE1_HORIZ:
     case INPUTEVENT_MOUSE1_VERT:
+        //printf("magic mouse %d\n", currprefs.input_magic_mouse);
+        if (magic_mouse) {
+            //printf("magic mouse %d %d\n",
+            //       fs_emu_mouse_absolute_x, fs_emu_mouse_absolute_y);
+            uae_mousehack_helper(fs_emu_mouse_absolute_x,
+                                 fs_emu_mouse_absolute_y);
+            return 1;
+        }
     case INPUTEVENT_MOUSE1_WHEEL:
     case INPUTEVENT_MOUSE2_HORIZ:
     case INPUTEVENT_MOUSE2_VERT:

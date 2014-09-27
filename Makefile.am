@@ -544,6 +544,7 @@ libfsemu_a_SOURCES = \
 	libfsemu/include/fs/malloc.h \
 	libfsemu/include/fs/ml.h \
 	libfsemu/include/fs/ml/opengl.h \
+	libfsemu/include/fs/ml/options.h \
 	libfsemu/include/fs/ref.h \
 	libfsemu/include/fs/thread.h \
 	libfsemu/include/fs/time.h \

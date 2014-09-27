@@ -9,14 +9,15 @@
 #ifndef UAE_NEWCPU_H
 #define UAE_NEWCPU_H
 
-#ifdef FSUAE // NL
+#ifdef HAVE_CONFIG_H
 #include "config.h"
+#endif
+
 #include "uae/types.h"
 #include "uae/inline.h"
 #include "uae/regparam.h"
 #include "uae/memory.h"
 #include "uae/asm.h"
-#endif
 
 #include "readcpu.h"
 #include "machdep/m68k.h"

@@ -319,6 +319,15 @@ extern void to_upper (TCHAR *s, int len);
 #include <winsock.h>
 
 #define O_NDELAY 0
+
+#define FILEFLAG_DIR     0x1
+#define FILEFLAG_ARCHIVE 0x2
+#define FILEFLAG_WRITE   0x4
+#define FILEFLAG_READ    0x8
+#define FILEFLAG_EXECUTE 0x10
+#define FILEFLAG_SCRIPT  0x20
+#define FILEFLAG_PURE    0x40
+
 #define mkdir(a,b) mkdir(a)
 
 #include "uae/regparam.h"
@@ -476,7 +485,7 @@ extern void mallocemu_free (void *ptr);
 #include "uae/log.h"
 #else
 #if __GNUC__ - 1 > 1 || __GNUC_MINOR__ - 1 > 6
-extern void write_log (const TCHAR *, ...) __attribute__ ((format (printf, 1, 2)));
+extern void write_log (const TCHAR *, ...);
 extern void write_log (const char *, ...) __attribute__ ((format (printf, 1, 2)));
 #else
 extern void write_log (const TCHAR *, ...);

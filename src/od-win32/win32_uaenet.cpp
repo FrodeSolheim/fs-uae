@@ -9,7 +9,7 @@
 #include "sysconfig.h"
 
 #ifdef WITH_SLIRP
-#include "slirp/slirp.h"
+#include "../slirp/slirp.h"
 #endif
 
 #ifdef FSUAE // NL

@@ -12,17 +12,18 @@ int g_fs_uae_amiga_config = 0;
 int g_fs_uae_ntsc_mode = 0;
 int g_fs_uae_amiga_model = 0;
 
-static const char *wb_disk_1_3_3 = "Workbench v1.3.3 rev 34.34 (1990)"
-                                  "(Commodore)(A500-A2000)(Disk 1 of 2)"
-                                  "(Workbench).adf";
-static const char *wb_disk_2_0_4 = "Workbench v2.04 rev 37.67 (1991)(Commodore)"
+static const char *wb_disk_1_3_3 =
+        "Workbench v1.3.3 rev 34.34 (1990)(Commodore)(A500-A2000)"
+        "(Disk 1 of 2)(Workbench).adf";
+static const char *wb_disk_2_0_4 =
+        "Workbench v2.04 rev 37.67 (1991)(Commodore)"
         "(Disk 1 of 4)(Workbench).adf";
-// FIXME: [a]
-static const char *wb_disk_2_0_5 = "Workbench v2.05 rev 37.71 (1992)(Commodore)"
-          "(Disk 1 of 4)(Workbench)[a].adf";
-// FIXME: [a]
-static const char *wb_disk_3_1_0 = "Workbench v3.1 rev 40.42 (1994)(Commodore)(M10)"
-          "(Disk 2 of 6)(Workbench)[a].adf";
+static const char *wb_disk_2_0_5 =
+        "Workbench v2.05 rev 37.71 (1992)(Commodore)"
+        "(Disk 1 of 4)(Workbench).adf";
+static const char *wb_disk_3_1_0 =
+        "Workbench v3.1 rev 40.42 (1994)(Commodore)(M10)"
+        "(Disk 2 of 6)(Workbench)[!].adf";
 
 static void init_common(amiga_config *c, const char *id, const char *name,
                         int model, int quickstart, int quickstart_config)

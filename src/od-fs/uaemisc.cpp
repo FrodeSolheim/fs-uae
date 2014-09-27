@@ -332,7 +332,11 @@ void fetch_datapath (TCHAR *out, int size) {
 
 void fetch_rompath(TCHAR *out, int size)
 {
-    uae_tcslcpy(out, currprefs.path_rom.path[1], size);
+    int k = 0;
+    while (k < (MAX_PATHS - 1) && currprefs.path_rom.path[k + 1][0]) {
+        k += 1;
+    }
+    uae_tcslcpy(out, currprefs.path_rom.path[k], size);
 }
 
 void to_lower (TCHAR *s, int len) {

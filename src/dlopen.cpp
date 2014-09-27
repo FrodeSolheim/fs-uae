@@ -5,7 +5,7 @@
 #include "uae/log.h"
 
 #ifdef _WIN32
-#include "Windows.h"
+#include "windows.h"
 #else
 #include <dlfcn.h>
 #endif
@@ -62,8 +62,8 @@ static amiga_plugin_lookup_function plugin_lookup;
 
 UAE_DLHANDLE uae_dlopen_plugin(const TCHAR *name)
 {
-	const TCHAR *path = NULL;
 #ifdef FSUAE
+	const TCHAR *path = NULL;
 	TCHAR lib_name[MAX_DPATH] = {};
 	_tcscat(lib_name, _T("lib"));
 	_tcscat(lib_name, name);
@@ -76,7 +76,7 @@ UAE_DLHANDLE uae_dlopen_plugin(const TCHAR *name)
 	}
 	UAE_DLHANDLE handle = uae_dlopen(path);
 #else
-	TCHAR path[MAX_DPATH] = {}
+	TCHAR path[MAX_DPATH] = {};
 	_tcscat(path, name);
 	_tcscat(path, _T(".dll"));
 	UAE_DLHANDLE handle = WIN32_LoadLibrary(path);

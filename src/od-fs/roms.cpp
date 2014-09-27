@@ -32,12 +32,12 @@ void romlist_init (void)
 }
 
 #define AMIGA_OS_130_SHA1 \
-        "\xc3\x9b\xd9\x09\x4d\x4e\x5f\x4e\x28\xc1" \
-        "\x41\x1f\x30\x86\x95\x04\x06\x06\x2e\x87"
+	"\xc3\x9b\xd9\x09\x4d\x4e\x5f\x4e\x28\xc1" \
+	"\x41\x1f\x30\x86\x95\x04\x06\x06\x2e\x87"
 
 #define AMIGA_OS_310_SHA1 \
-        "\xc3\xc4\x81\x16\x08\x66\xe6\x0d\x08\x5e" \
-        "\x43\x6a\x24\xdb\x36\x17\xff\x60\xb5\xf9"
+	"\xc3\xc4\x81\x16\x08\x66\xe6\x0d\x08\x5e" \
+	"\x43\x6a\x24\xdb\x36\x17\xff\x60\xb5\xf9"
 
 void romlist_patch_rom (uae_u8 *buf, size_t size)
 {
@@ -78,11 +78,11 @@ void romlist_patch_rom (uae_u8 *buf, size_t size)
 		write_log ("\n");
 	}
 #if 0
-	struct romdata *rd = getromdatabydata(buf, size);
+	struct romdata *rd = getromdatabydata (buf, size);
 	if (rd) {
 		char tmp[MAX_DPATH];
-		getromname(rd, tmp);
-		printf("KICKSTART: %s\n", tmp);
+		getromname (rd, tmp);
+		printf ("KICKSTART: %s\n", tmp);
 	}
 #endif
 }

@@ -203,7 +203,7 @@ extern int input_get_default_keyboard (int num);
 #define DEFEVENT(A, B, C, D, E, F) INPUTEVENT_ ## A,
 enum inputevents {
 INPUTEVENT_ZERO,
-#include "inputevents.def"
+#include "../inputevents.def"
 INPUTEVENT_END
 };
 #undef DEFEVENT

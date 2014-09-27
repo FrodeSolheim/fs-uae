@@ -53,6 +53,12 @@
 #define cfgfile_warning_obsolete write_log
 #endif
 
+// FIXME: replace strcasecmp with _tcsicmp instead
+#if SIZEOF_TCHAR != 1
+#undef strcasecmp
+#define strcasecmp _tcsicmp
+#endif
+
 static int config_newfilesystem;
 static struct strlist *temp_lines;
 static struct strlist *error_lines;

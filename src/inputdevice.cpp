@@ -62,6 +62,12 @@
 #undef _WIN32
 #endif
 
+// FIXME: replace strcasecmp with _tcsicmp instead
+#if SIZEOF_TCHAR != 1
+#undef strcasecmp
+#define strcasecmp _tcsicmp
+#endif
+
 // 01 = host events
 // 02 = joystick
 // 04 = cia buttons

@@ -10,11 +10,7 @@
 
 #include "options.h"
 #include "events.h"
-#ifdef FSUAE
 #include "uae/memory.h"
-#else
-#include "include/memory.h"
-#endif
 #include "custom.h"
 #include "newcpu.h"
 #include "comptbl.h"
@@ -25,11 +21,7 @@
 
 // %%% BRIAN KING WAS HERE %%%
 extern bool canbang;
-#ifdef FSUAE
 //#include <sys/mman.h>
-#else
-#include <sys/mman.h>
-#endif
 extern void jit_abort(const TCHAR*,...);
 compop_func *compfunctbl[65536];
 compop_func *nfcompfunctbl[65536];

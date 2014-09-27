@@ -635,8 +635,10 @@ int fsdb_set_file_info(const char *nname, fsdb_file_info *info) {
         }
         struct fs_stat buf;
         if (fs_stat(nname, &buf) == 0) {
+#if 0
             write_log("- %d vs %d\n", (int) buf.mtime, (int) mtv.tv_sec);
             write_log("- %d vs %d\n", (int) buf.mtime_nsec, (int) (mtv.tv_usec * 1000));
+#endif
             if (buf.mtime == mtv.tv_sec &&
                     buf.mtime_nsec == mtv.tv_usec * 1000) {
                 if (g_fsdb_debug) {

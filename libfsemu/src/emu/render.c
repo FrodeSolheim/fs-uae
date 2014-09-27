@@ -2190,8 +2190,19 @@ void fs_emu_video_render_function() {
         free(str);
         */
 
-        str = g_strdup_printf("%0.1f",
-                fs_emu_audio_get_measured_avg_buffer_fill(0) / 1000.0);
+        static double avg_emu = 0.0;
+        static double avg_sys = 0.0;
+        static double avg_fill = 0.0;
+        static int avg_throttle = 0;
+        if (avg_throttle == 0) {
+            avg_emu = fs_emu_get_average_emu_fps();
+            avg_sys = fs_emu_get_average_sys_fps();
+            avg_fill = fs_emu_audio_get_measured_avg_buffer_fill(0);
+            avg_throttle = 10;
+        }
+        avg_throttle -= 1;
+
+        str = g_strdup_printf("%0.1f", avg_fill / 1000.0);
         fs_emu_font_render(menu_font, str, 1920 / 2 + 220, 3,
                 1.0, 1.0, 1.0, 1.0);
         free(str);
@@ -2201,7 +2212,7 @@ void fs_emu_video_render_function() {
         free(str);
 
         fs_emu_font_render(menu_font, "EMU", 20, 3, 1.0, 1.0, 1.0, 1.0);
-        str = g_strdup_printf("%0.1f", fs_emu_get_average_emu_fps());
+        str = g_strdup_printf("%0.2f", avg_emu);
         fs_emu_font_render(menu_font, str, 220, 3, 1.0, 1.0, 1.0, 1.0);
         free(str);
         str = g_strdup_printf("%d", g_fs_emu_lost_frames);
@@ -2212,7 +2223,7 @@ void fs_emu_video_render_function() {
         free(str);
 
         fs_emu_font_render(menu_font, "SYS", 20, 140, 1.0, 1.0, 1.0, 1.0);
-        str = g_strdup_printf("%0.1f", fs_emu_get_average_sys_fps());
+        str = g_strdup_printf("%0.2f", avg_sys);
         fs_emu_font_render(menu_font, str, 220, 140, 1.0, 1.0, 1.0, 1.0);
         free(str);
         str = g_strdup_printf("%d", g_fs_emu_lost_vblanks);

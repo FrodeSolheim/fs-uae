@@ -8,6 +8,7 @@
 #include <fs/glib.h>
 #include <fs/ml.h>
 #include <fs/thread.h>
+#include <math.h>
 
 #ifdef USE_OPENGL
 #include <fs/ml/opengl.h>
@@ -73,7 +74,7 @@ int g_fs_emu_video_allow_full_sync = 0;
 int g_fs_emu_video_frame_rate_host = 0;
 
 // this is the target frame rate for the video (emulator output)
-static int g_video_frame_rate = 0;
+static double g_video_frame_rate = 0;
 
 // this is the aspect ratio of the video frame from the emulator, defaults
 // to 1.0 (1:1 pixels)
@@ -97,12 +98,12 @@ void fs_emu_set_pixel_aspect_ratio(double ratio) {
     g_video_aspect_ratio = ratio;
 }
 
-int fs_emu_get_video_frame_rate() {
+double fs_emu_get_video_frame_rate() {
     return g_video_frame_rate;
 }
 
-void fs_emu_set_video_frame_rate(int frame_rate) {
-    static int last_frame_rate = 0;
+void fs_emu_set_video_frame_rate(double frame_rate) {
+    static double last_frame_rate = 0;
     static int last_frame_rate_host = 0;
     if (frame_rate == last_frame_rate
             && last_frame_rate_host == g_fs_emu_video_frame_rate_host) {
@@ -111,17 +112,20 @@ void fs_emu_set_video_frame_rate(int frame_rate) {
     last_frame_rate = frame_rate;
     last_frame_rate_host = g_fs_emu_video_frame_rate_host;
 
-    fs_log("fs_emu_set_video_frame_rate: %d\n", frame_rate);
+    int frame_rate_i = roundl(frame_rate);
+    fs_log("fs_emu_set_video_frame_rate: %0.2f (%d)\n",
+           frame_rate, frame_rate_i);
     g_video_frame_rate = frame_rate;
 
     fs_log("g_fs_emu_video_sync_to_vblank = %d\n",
             g_fs_emu_video_sync_to_vblank);
+
     if (g_fs_emu_video_sync_to_vblank) {
         fs_log("g_fs_emu_video_allow_full_sync = %d\n",
                 g_fs_emu_video_allow_full_sync);
         if (g_fs_emu_video_allow_full_sync) {
-            if (frame_rate && (frame_rate == g_fs_emu_video_frame_rate_host ||
-                    frame_rate == g_fs_emu_video_frame_rate_host + 1)) {
+            if (frame_rate && (frame_rate_i == g_fs_emu_video_frame_rate_host
+                    || frame_rate_i == g_fs_emu_video_frame_rate_host + 1)) {
                 fs_log("frame rate (%d) close enough to screen refresh (%d)\n",
                         frame_rate, g_fs_emu_video_frame_rate_host);
                 fs_ml_video_sync_enable(1);

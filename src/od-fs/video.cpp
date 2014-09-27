@@ -239,9 +239,11 @@ static bool render_frame(bool immediate)
         g_renderdata.refresh_rate = -1;
     }
     else {
-        g_renderdata.refresh_rate = (int) (currprefs.chipset_refreshrate + 0.5);
+        g_renderdata.refresh_rate = currprefs.chipset_refreshrate;
     }
-    //printf("%d\n", g_renderdata.refresh_rate);
+#if 0
+    printf("%0.2f\n", g_renderdata.refresh_rate);
+#endif
     if (g_libamiga_callbacks.render) {
         g_libamiga_callbacks.render(&g_renderdata);
     }
@@ -298,7 +300,7 @@ bool render_screen(bool immediate)
 
 bool toggle_rtg (int mode)
 {
-	STUB("mode=%d", mode);
+    UAE_LOG_STUB("mode=%d", mode);
 #if 0
         if (mode == 0) {
                 if (!picasso_on)
@@ -360,7 +362,7 @@ bool show_screen_maybe (bool show) {
 }
 
 double vblank_calibrate (double approx_vblank, bool waitonly) {
-    STUB("");
+    UAE_LOG_STUB("");
     return -1;
 }
 
@@ -378,7 +380,7 @@ static int vblankbaselace_chipset;
 int log_vsync = 0, debug_vsync_min_delay = 0, debug_vsync_forced_delay = 0;
 
 void vsync_busywait_start(void) {
-    STUB("");
+    UAE_LOG_STUB("");
     //changevblankthreadmode_fast (VBLANKTH_ACTIVE_START);
     vblank_prev_time = thread_vblank_time;
 }
@@ -393,7 +395,7 @@ bool vsync_isdone (void) {
 }
 
 int vsync_busywait_do (int *freetime, bool lace, bool oddeven) {
-    STUB("");
+    UAE_LOG_STUB("");
     return false;
 #if 0
     bool v;
@@ -565,17 +567,17 @@ frame_time_t vsync_busywait_end (int *flipdelay) {
     return read_processor_time();
 }
 
-double getcurrentvblankrate (void) {
-    STUB("");
+double getcurrentvblankrate (void)
+{
+    UAE_LOG_STUB("");
     if (remembered_vblank) {
         return remembered_vblank;
     }
-    write_log("STUB: getcurrentvblankrate\n");
-    STUB("");
     return 50;
 }
 
-static int uae_bits_in_mask (unsigned int mask) {
+static int uae_bits_in_mask (unsigned int mask)
+{
     int n = 0;
     while (mask) {
         n += mask & 1;
@@ -584,7 +586,8 @@ static int uae_bits_in_mask (unsigned int mask) {
     return n;
 }
 
-static int uae_mask_shift (unsigned int mask) {
+static int uae_mask_shift (unsigned int mask)
+{
     int n = 0;
     while (!(mask & 1)) {
         n++;
@@ -593,30 +596,36 @@ static int uae_mask_shift (unsigned int mask) {
     return n;
 }
 
-static int init_colors (void) {
+static int init_colors (void)
+{
     write_log("init_colors\n");
     alloc_colors64k(g_red_bits, g_green_bits, g_blue_bits, g_red_shift,
             g_green_shift, g_blue_shift, 0, 0, 0, 0);
     return 1;
 }
 
-void getgfxoffset (float *dxp, float *dyp, float *mxp, float *myp) {
-    //FIXME: WHAT DOES THIS DO?
+void getgfxoffset (float *dxp, float *dyp, float *mxp, float *myp)
+{
+    /* Looks like this is offset and scale factors used for magic mouse
+     * (in order to translate mouse coordinates to Amiga coordinates) */
     *dxp = 0;
     *dyp = 0;
     *mxp = 0;
     *myp = 0;
 }
 
-void toggle_fullscreen (int mode) {
+void toggle_fullscreen (int mode)
+{
 
 }
 
-int isfullscreen (void) {
+int isfullscreen (void)
+{
     return 0;
 }
 
-void flush_line (struct vidbuffer *buffer, int line_no) {
+void flush_line (struct vidbuffer *buffer, int line_no)
+{
     //printf("- flush_line %d\n", line_no);
 
     //scrlinebuf
@@ -633,26 +642,31 @@ void flush_line (struct vidbuffer *buffer, int line_no) {
     g_has_flushed_line = 1;
 }
 
-void flush_block (struct vidbuffer *buffer, int first_line, int last_line) {
+void flush_block (struct vidbuffer *buffer, int first_line, int last_line)
+{
     //printf("- flush_block %d %d\n", first_line, last_line);
     //g_screen_updated = 1;
     g_has_flushed_block = 1;
 }
 
-int lockscr(struct vidbuffer *buffer, bool fullupdate) {
+int lockscr(struct vidbuffer *buffer, bool fullupdate)
+{
     return gfxvidinfo.drawbuffer.lockscr(&gfxvidinfo, buffer);
 }
 
-void unlockscr(struct vidbuffer *buffer) {
+void unlockscr(struct vidbuffer *buffer)
+{
     gfxvidinfo.drawbuffer.unlockscr(&gfxvidinfo, buffer);
 }
 
-int graphics_setup() {
+int graphics_setup()
+{
     write_log("graphics_setup\n");
     return 1;
 }
 
-static void grow_render_buffer(int width, int height) {
+static void grow_render_buffer(int width, int height)
+{
     unsigned char *new_pixels = (unsigned char*) g_renderdata.grow(width, height);
     if (new_pixels != g_renderdata.pixels) {
         //printf("new %p old %p\n", new_pixels, g_renderdata.pixels);
@@ -665,7 +679,8 @@ static void grow_render_buffer(int width, int height) {
 }
 
 void amiga_set_render_buffer(void *data, int size, int need_redraw,
-        void *(*grow)(int width, int height)) {
+        void *(*grow)(int width, int height))
+{
     //printf("set render buffer %p\n", data);
     g_renderdata.grow = grow;
     g_renderdata.pixels = (unsigned char *) data;
@@ -688,7 +703,8 @@ void amiga_set_render_buffer(void *data, int size, int need_redraw,
 #endif
 }
 
-uint8_t *uae_get_render_buffer() {
+uint8_t *uae_get_render_buffer()
+{
     return g_renderdata.pixels;
 }
 
@@ -706,7 +722,8 @@ uint8_t *uae_get_render_buffer() {
 #define R5G5B5A1_MASK_B 0x003e
 #define R5G5B5A1_MASK_A 0x0001
 
-int graphics_init(bool mousecapture) {
+int graphics_init(bool mousecapture)
+{
     write_log("graphics_init\n");
 
     // FIXME: perhaps modify so custom_limits defaults to -1, -1, -1, -1
@@ -814,11 +831,13 @@ int graphics_init(bool mousecapture) {
     return 1;
 }
 
-void graphics_leave (void) {
+void graphics_leave (void)
+{
 
 }
 
-int check_prefs_changed_gfx (void) {
+int check_prefs_changed_gfx (void)
+{
     //write_log("check_prefs_changed_gfx\n");
     return 0;
 }
@@ -828,7 +847,8 @@ void gui_fps (int fps, int idle, int color)
     UAE_LOG_STUB_MAX(1, "");
 }
 
-int gui_update (void) {
+int gui_update (void)
+{
     return 0;
 }
 

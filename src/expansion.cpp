@@ -35,7 +35,7 @@
 #include "cpuboard.h"
 #include "uae/ppc.h"
 
-#define MAX_EXPANSION_BOARDS 11
+#define MAX_EXPANSION_BOARDS 32
 
 /* ********************************************************** */
 /* 00 / 02 */

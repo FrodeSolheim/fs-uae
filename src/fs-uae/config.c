@@ -29,12 +29,12 @@ void fs_uae_configure_amiga_model()
     //amiga_set_option("kickstart_rom_file", "aa:AROS");
 
     if (fs_config_get_boolean("ntsc_mode") == 1) {
-        fs_emu_log("enabling NTSC mode (60Hz)\n");
+        fs_emu_log("enabling NTSC mode (59.94Hz)\n");
         g_fs_uae_ntsc_mode = 1;
-        fs_emu_set_video_frame_rate(60);
+        fs_emu_set_video_frame_rate(59.94);
     } else {
         fs_emu_log("using PAL mode (50Hz)\n");
-        fs_emu_set_video_frame_rate(50);
+        fs_emu_set_video_frame_rate(50.0);
     }
 
     g_fs_uae_amiga_config = -1;

@@ -272,11 +272,11 @@ double fs_emu_audio_get_measured_output_frequency();
 
 // video interface
 
-int fs_emu_get_video_frame_rate();
+double fs_emu_get_video_frame_rate();
 /**
  * Specify the frame rate for emulated video (typically 50 or 60).
  */
-void fs_emu_set_video_frame_rate(int frame_rate);
+void fs_emu_set_video_frame_rate(double frame_rate);
 
 int fs_emu_video_get_aspect_correction();
 /**

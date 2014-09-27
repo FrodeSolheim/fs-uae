@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 #include <uae/uae.h>
 #include <fs/emu.h>
 #include <fs/i18n.h>
@@ -12,7 +13,7 @@
 //#define MAX_ZOOM_MODES 5
 static int g_zoom_mode = 0;
 static int g_zoom_border = 0;
-static int g_last_refresh_rate = 0;
+static double g_last_refresh_rate = 0;
 
 typedef struct zoom_mode {
     char *name;
@@ -566,7 +567,8 @@ static void *grow_buffer(int width, int height) {
 
 #define TURBO_FRAME_RATE 10000
 
-static void display_screen() {
+static void display_screen()
+{
 #if 0
     static int64_t last_time = 0;
     int64_t t = fs_emu_monotonic_time();
@@ -576,14 +578,13 @@ static void display_screen() {
     }
 #endif
     fs_emu_video_buffer_set_current(g_buffer);
-    if (g_last_refresh_rate == -1) {
-        if (fs_emu_get_video_frame_rate() != TURBO_FRAME_RATE) {
+    if (roundl(g_last_refresh_rate) == -1) {
+        if (roundl(fs_emu_get_video_frame_rate()) != TURBO_FRAME_RATE) {
             fs_emu_notification(45194412, _("Warp mode enabled"));
         }
         fs_emu_set_video_frame_rate(TURBO_FRAME_RATE);
-    }
-    else {
-        if (fs_emu_get_video_frame_rate() == TURBO_FRAME_RATE) {
+    } else {
+        if (roundl(fs_emu_get_video_frame_rate()) == TURBO_FRAME_RATE) {
             fs_emu_notification(45194412, _("Warp mode disabled"));
         }
         fs_emu_set_video_frame_rate(g_last_refresh_rate);

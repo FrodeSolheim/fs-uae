@@ -497,12 +497,12 @@ static int wait_for_frame_no_netplay() {
         last_time = fs_emu_monotonic_time();
     }
 
-    static int last_frame_rate = 0;
-    int frame_rate = fs_emu_get_video_frame_rate();
+    static double last_frame_rate = 0.0;
+    double frame_rate = fs_emu_get_video_frame_rate();
     if (frame_rate != last_frame_rate) {
         frame_time = ((int64_t) 1000000) / frame_rate;
-        fs_log("wait_for_frame_no_netplay: new frame rate %d (time: %d)\n",
-                frame_rate, (int) frame_time);
+        fs_log("wait_for_frame_no_netplay: new frame rate %0.2f (time: %d)\n",
+               frame_rate, (int) frame_time);
         last_frame_rate = frame_rate;
     }
 

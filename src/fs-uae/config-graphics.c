@@ -12,26 +12,26 @@
 #include "config-model.h"
 #include "fs-uae.h"
 
+#define BUFFER_SIZE 32
+
 static bool check_card(amiga_config *c, const char **card, int *memory,
                        const char *check, const char *z2, int m2,
                        const char *z3, int m3)
 {
     int z = 0;
-    char check2[32];
+    char check2[BUFFER_SIZE];
     if (fs_uae_values_matches(*card, check)) {
         /* Auto-select Zorro II / Zorro III */
         z = 1;
     }
-    strcpy(check2, check);
-    strcat(check2, "-z2");
+    snprintf(check2, BUFFER_SIZE, "%s-z2", check);
     if (fs_uae_values_matches(*card, check2)) {
         z = 2;
         if (!z2) {
             return false;
         }
     }
-    strcpy(check2, check);
-    strcat(check2, "-z3");
+    snprintf(check2, BUFFER_SIZE, "%s-z3", check);
     if (fs_uae_values_matches(*card, check2)) {
         z = 3;
         if (!z3) {

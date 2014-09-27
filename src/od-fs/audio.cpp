@@ -13,9 +13,35 @@ static float scaled_sample_evtime_orig;
 static int obtainedfreq;
 static float sound_sync_multiplier = 1.0;
 
+/* Originally from sampler.cpp (not used in FS-UAE) */
+float sampler_evtime;
+
 static int (*g_audio_callback)(int type, int16_t *buffer, int size) = NULL;
-static int g_audio_frequency = 44100;
 static int g_audio_buffer_size = 512 * 2 * 2;
+
+struct sound_data
+{
+#if 0
+	int waiting_for_buffer;
+	int deactive;
+	int devicetype;
+#endif
+	int obtainedfreq;
+#if 0
+	int paused;
+	int mute;
+	int channels;
+	int freq;
+	int samplesize;
+	int sndbufsize;
+	int sndbufframes;
+	int softvolume;
+	struct sound_dp *data;
+#endif
+};
+
+static struct sound_data sdpaula;
+static struct sound_data *sdp = &sdpaula;
 
 int amiga_set_audio_callback(audio_callback func)
 {
@@ -36,7 +62,7 @@ int amiga_set_audio_frequency(int frequency)
     amiga_set_option("sound_frequency", freq);
 
     write_log("amiga_set_audio_frequency: %d\n", frequency);
-    g_audio_frequency = frequency;
+    sdp->obtainedfreq = frequency;
     //changed_prefs.sound_freq = frequency;
     //write_log("changed_prefs: %p\n", &changed_prefs);
     //config_changed = 1;
@@ -47,10 +73,11 @@ void update_sound (double clk)
 {
 	if (!have_sound)
 		return;
-	scaled_sample_evtime_orig = clk * CYCLE_UNIT * sound_sync_multiplier / obtainedfreq;
+	scaled_sample_evtime_orig = clk * CYCLE_UNIT * sound_sync_multiplier / sdp->obtainedfreq;
 	scaled_sample_evtime = scaled_sample_evtime_orig;
-	// sampler_evtime = clk * CYCLE_UNIT * sound_sync_multiplier;
+	sampler_evtime = clk * CYCLE_UNIT * sound_sync_multiplier;
 }
+
 
 #if 0
 void update_sound (double freq, int longframe, int linetoggle) {
@@ -163,13 +190,13 @@ static int open_sound (void)
 
     currprefs.sound_stereo = 1;
     //currprefs.sound_freq = fs_emu_get_audio_frequency();
-    //changed_prefs.sound_freq = g_audio_frequency;
+    //changed_prefs.sound_freq = sdp->obtainedfreq;
 
     //init_sound_table16 ();
     sample_handler = currprefs.sound_stereo ? sample16s_handler : sample16_handler;
 
     //obtainedfreq = currprefs.sound_freq;
-    obtainedfreq = g_audio_frequency;
+    obtainedfreq = sdp->obtainedfreq;
 
     have_sound = 1;
     sound_available = 1;

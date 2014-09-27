@@ -11,8 +11,22 @@
 #include "sysconfig.h"
 #include "slirp_config.h"
 
+#ifdef FSUAE // NL
+#ifndef _MSC_VER
+#define container_of(ptr, type, member) ({ \
+                const typeof( ((type *)0)->member ) *__mptr = (ptr); \
+                (type *)( (char *)__mptr - offsetof(type,member) );})
+#endif
+#endif
+
 #ifdef _WIN32
 # include <inttypes.h>
+
+#ifdef _MSC_VER
+#define container_of(address, type, field) ((type *)( \
+        (PCHAR)(address) - \
+        (ULONG_PTR)(&((type *)0)->field)))
+#endif
 
 typedef char *caddr_t;
 typedef int socklen_t;
@@ -48,12 +62,6 @@ typedef int ioctlsockopt_t;
 #endif
 #ifdef HAVE_STDINT_H
 # include <stdint.h>
-#endif
-
-#ifdef __MINGW32__
-typedef uint8_t u_int8_t;
-typedef uint16_t u_int16_t;
-typedef uint32_t u_int32_t;
 #endif
 
 #ifdef NEED_TYPEDEFS
@@ -291,8 +299,11 @@ void if_start _P((struct ttys *));
  extern char *strerror _P((int error));
 #endif
 
+#ifdef FSUAE
+#else
 #ifndef HAVE_INDEX
  char *index _P((const char *, int));
+#endif
 #endif
 
 #ifndef HAVE_GETHOSTID
@@ -300,8 +311,6 @@ void if_start _P((struct ttys *));
 #endif
 
 void lprint _P((const char *, ...));
-
-extern int do_echo;
 
 #ifndef _WIN32
 #include <netdb.h>
@@ -320,7 +329,7 @@ void if_output _P((struct socket *, struct mbuf *));
 void ip_init _P((void));
 void ip_cleanup _P((void));
 void ip_input _P((struct mbuf *));
-struct ip *ip_reass(struct ip *ip, struct ipq *fp);
+struct ip * ip_reass _P((struct ip *, struct ipq *));
 void ip_freef _P((struct ipq *));
 void ip_enq _P((register struct ipasfrag *, register struct ipasfrag *));
 void ip_deq _P((register struct ipasfrag *));
@@ -366,7 +375,7 @@ struct tcpcb *tcp_drop(struct tcpcb *tp, int err);
 #define MAX_MRU 16384
 #endif
 
-#if !defined(_WIN32) || defined(__MINGW32__)
+#ifndef _WIN32
 #define min(x,y) ((x) < (y) ? (x) : (y))
 #define max(x,y) ((x) > (y) ? (x) : (y))
 #endif

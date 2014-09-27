@@ -91,7 +91,7 @@ tcp_seq tcp_iss;                /* tcp initial send seq # */
 #else
 #define	TCP_REASS(tp, ti, m, so, flags) { \
 	if ((ti)->ti_seq == (tp)->rcv_nxt && \
-        tcpfrag_list_empty(tp) && \
+	    tcpfrag_list_empty(tp) && \
 	    (tp)->t_state == TCPS_ESTABLISHED) { \
 		tp->t_flags |= TF_DELACK; \
 		(tp)->rcv_nxt += (ti)->ti_len; \
@@ -128,7 +128,7 @@ tcp_reass(struct tcpcb *tp, struct tcpiphdr *ti, struct mbuf *m)
 	 * Find a segment which begins after this one does.
 	 */
 	for (q = tcpfrag_list_first(tp); !tcpfrag_list_end(q, tp);
-            q = tcpiphdr_next(q))
+		q = tcpiphdr_next(q))
 		if (SEQ_GT(q->ti_seq, ti->ti_seq))
 			break;
 
@@ -138,7 +138,7 @@ tcp_reass(struct tcpcb *tp, struct tcpiphdr *ti, struct mbuf *m)
 	 * segment.  If it provides all of our data, drop us.
 	 */
 	if (!tcpfrag_list_end(tcpiphdr_prev(q), tp)) {
-		register int i;
+		int i;
 		q = tcpiphdr_prev(q);
 		/* conversion to int (in i) handles seq wraparound */
 		i = q->ti_seq + q->ti_len - ti->ti_seq;
@@ -291,7 +291,7 @@ void tcp_input(struct mbuf *m, int iphlen, struct socket *inso)
 	 */
 	tlen = ((struct ip *)ti)->ip_len;
 	tcpiphdr2qlink(ti)->next = tcpiphdr2qlink(ti)->prev = 0;
-    memset(&ti->ti_i.ih_mbuf, 0 , sizeof(struct mbuf_ptr));
+	memset(&ti->ti_i.ih_mbuf, 0 , sizeof(struct mbuf_ptr));
 	ti->ti_x1 = 0;
 	ti->ti_len = htons((u_int16_t)tlen);
 	len = sizeof(struct ip ) + tlen;
@@ -540,8 +540,8 @@ findso:
 				return;
 			}
 		} else if (ti->ti_ack == tp->snd_una &&
-		    tcpfrag_list_empty(tp) &&
-		    ti->ti_len <= sbspace(&so->so_rcv)) {
+			tcpfrag_list_empty(tp) &&
+			ti->ti_len <= sbspace(&so->so_rcv)) {
 			/*
 			 * this is a pure, in-sequence data packet
 			 * with nothing on the reassembly queue and

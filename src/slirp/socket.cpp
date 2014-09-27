@@ -403,21 +403,17 @@ void sorecvfrom(struct socket *so)
 	  int len;
 	  ioctlsockopt_t n;
 
-	  /*
+	  if (!(m = m_get())) return;
+	  m->m_data += if_maxlinkhdr;
+		
+	  /* 
 	   * XXX Shouldn't FIONREAD packets destined for port 53,
 	   * but I don't know the max packet size for DNS lookups
 	   */
+	  len = M_FREEROOM(m);
 	  /* if (so->so_fport != htons(53)) { */
 	  ioctlsocket(so->s, FIONREAD, &n);
-	  if (n == 0) {
-	      return;
-	  }
-
-	  if (!(m = m_get())) return;
-	  m->m_data += if_maxlinkhdr;
-
-	  len = M_FREEROOM(m);
-
+	  
 	  if (n > len) {
 	    n = (m->m_data - m->m_dat) + m->m_len + n + 1;
 	    m_inc(m, n);

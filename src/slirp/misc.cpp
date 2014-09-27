@@ -97,6 +97,7 @@ getouraddr(void)
             our_addr.s_addr = loopback_addr.s_addr;
 }
 
+
 struct quehead {
 	struct quehead *qh_link;
 	struct quehead *qh_rlink;
@@ -225,9 +226,7 @@ slirp_openpty(int *amaster, int *aslave)
 			} else {
 				line[5] = 't';
 				/* These will fail */
-				if (chown(line, getuid(), 0) == -1) {
-					/* ignoring error */
-				}
+				(void) chown(line, getuid(), 0);
 				(void) chmod(line, S_IRUSR|S_IWUSR|S_IWGRP);
 #ifdef HAVE_REVOKE
 				(void) revoke(line);
@@ -375,7 +374,7 @@ fork_exec(struct socket *so, char *ex, int do_pty)
 			  
 			  sprintf(buff, "Error: execvp of %s failed: %s\n", 
 				  argv[0], strerror(errno));
-			  fprintf(stderr, "%s", buff);
+			  write(2, buff, strlen(buff)+1);
 		  }
 		close(0); close(1); close(2); /* XXX */
 		exit(1);

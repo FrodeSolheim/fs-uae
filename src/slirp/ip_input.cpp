@@ -45,10 +45,6 @@ int ip_defttl;
 struct ipstat ipstat;
 struct ipq ipq;
 
-#define container_of(ptr, type, member) ({                      \
-	const typeof( ((type *)0)->member ) *__mptr = (ptr);    \
-	(type *)( (char *)__mptr - offsetof(type,member) );})
-
 /*
  * IP initialization: fill in IP protocol switch table.
  * All protocols not implemented in kernel go to raw IP protocol handler.
@@ -163,21 +159,21 @@ void ip_input(struct mbuf *m)
 	 * XXX This should fail, don't fragment yet
 	 */
 	if (ip->ip_off &~ IP_DF) {
-	  register struct ipq *fp;
-      struct qlink *l;
+	  struct ipq *fp;
+	  struct qlink *l;
 		/*
 		 * Look for queue of fragments
 		 * of this datagram.
 		 */
-		for (l = (struct qlink *) ipq.ip_link.next; l != &ipq.ip_link; l = (struct qlink *) l->next) {
+        for (l = (struct qlink*)(ipq.ip_link.next); l != &ipq.ip_link; l = (struct qlink*)(l->next)) {
             fp = container_of(l, struct ipq, ip_link);
             if (ip->ip_id == fp->ipq_id &&
                     ip->ip_src.s_addr == fp->ipq_src.s_addr &&
                     ip->ip_dst.s_addr == fp->ipq_dst.s_addr &&
                     ip->ip_p == fp->ipq_p)
 		    goto found;
-        }
-        fp = NULL;
+		}
+		fp = NULL;
 	found:
 
 		/*
@@ -187,9 +183,9 @@ void ip_input(struct mbuf *m)
 		 */
 		ip->ip_len -= hlen;
 		if (ip->ip_off & IP_MF)
-		  ip->ip_tos |= 1;
+		   ip->ip_tos |= 1;
 		else 
-		  ip->ip_tos &= ~1;
+		   ip->ip_tos &= ~1;
 
 		ip->ip_off <<= 3;
 
@@ -198,7 +194,7 @@ void ip_input(struct mbuf *m)
 		 * or if this is not the first fragment,
 		 * attempt reassembly; if it succeeds, proceed.
 		 */
-		if (ip->ip_tos & 1 || ip->ip_off) {
+		if ((ip->ip_tos & 1) || ip->ip_off) {
 			ipstat.ips_fragments++;
 			ip = ip_reass(ip, fp);
 			if (ip == 0)
@@ -238,6 +234,7 @@ bad:
 
 #define iptofrag(P) ((struct ipasfrag *)(((char*)(P)) - sizeof(struct qlink)))
 #define fragtoip(P) ((struct ip*)(((char*)(P)) + sizeof(struct qlink)))
+
 /*
  * Take incoming datagram fragment and try to
  * reassemble it into whole datagram.  If a chain for
@@ -285,10 +282,10 @@ struct ip *ip_reass(struct ip *ip, struct ipq *fp)
 	/*
 	 * Find a segment which begins after this one does.
 	 */
-	for (q = (struct ipasfrag *) fp->frag_link.next; q != (struct ipasfrag *)&fp->frag_link;
-	    q = (struct ipasfrag *) q->ipf_next)
+	for (q = (struct ipasfrag*)fp->frag_link.next; q != (struct ipasfrag *)&fp->frag_link; q = (struct ipasfrag*)(q->ipf_next)) {
 		if (q->ipf_off > ip->ip_off)
 			break;
+	}
 
 	/*
 	 * If there is a preceding segment, it may provide some of
@@ -296,7 +293,7 @@ struct ip *ip_reass(struct ip *ip, struct ipq *fp)
 	 * segment.  If it provides all of our data, drop us.
 	 */
 	if (q->ipf_prev != &fp->frag_link) {
-	struct ipasfrag *pq = (struct ipasfrag *) q->ipf_prev;
+		struct ipasfrag *pq = (struct ipasfrag*)(q->ipf_prev);
 		i = pq->ipf_off + pq->ipf_len - ip->ip_off;
 		if (i > 0) {
 			if (i >= ip->ip_len)
@@ -312,7 +309,7 @@ struct ip *ip_reass(struct ip *ip, struct ipq *fp)
 	 * if they are completely covered, dequeue them.
 	 */
 	while (q != (struct ipasfrag*)&fp->frag_link &&
-            ip->ip_off + ip->ip_len > q->ipf_off) {
+		ip->ip_off + ip->ip_len > q->ipf_off) {
 		i = (ip->ip_off + ip->ip_len) - q->ipf_off;
 		if (i < q->ipf_len) {
 			q->ipf_len -= i;
@@ -320,9 +317,9 @@ struct ip *ip_reass(struct ip *ip, struct ipq *fp)
 			m_adj(dtom(q), i);
 			break;
 		}
-		q = (struct ipasfrag *) q->ipf_next;
+		q = (struct ipasfrag*)(q->ipf_next);
 		m_freem(dtom(q->ipf_prev));
-		ip_deq((struct ipasfrag *) q->ipf_prev);
+		ip_deq((struct ipasfrag*)(q->ipf_prev));
 	}
 
 insert:
@@ -330,12 +327,11 @@ insert:
 	 * Stick new segment in its place;
 	 * check for complete reassembly.
 	 */
-	ip_enq(iptofrag(ip), (struct ipasfrag *) q->ipf_prev);
+	ip_enq(iptofrag(ip), (struct ipasfrag*)(q->ipf_prev));
 	next = 0;
-	for (q = (struct ipasfrag *) fp->frag_link.next; q != (struct ipasfrag*)&fp->frag_link;
-	    q = (struct ipasfrag *) q->ipf_next) {
+	for (q = (struct ipasfrag*)(fp->frag_link.next); q != (struct ipasfrag*)&fp->frag_link; q = (struct ipasfrag*)(q->ipf_next)) {
 		if (q->ipf_off != next)
-			return (0);
+			return 0;
 		next += q->ipf_len;
 	}
 	if (((struct ipasfrag *)(q->ipf_prev))->ipf_tos & 1)
@@ -344,14 +340,14 @@ insert:
 	/*
 	 * Reassembly is complete; concatenate fragments.
 	 */
-	q = (struct ipasfrag *) fp->frag_link.next;
+	q = (struct ipasfrag*)(fp->frag_link.next);
 	m = dtom(q);
 
 	q = (struct ipasfrag *) q->ipf_next;
 	while (q != (struct ipasfrag*)&fp->frag_link) {
-	  struct mbuf *t = dtom(q);
-	  q = (struct ipasfrag *) q->ipf_next;
-	  m_cat(m, t);
+		struct mbuf *t = dtom(q);
+		q = (struct ipasfrag *) q->ipf_next;
+		m_cat(m, t);
 	}
 
 	/*
@@ -360,7 +356,7 @@ insert:
 	 * dequeue and discard fragment reassembly header.
 	 * Make header visible.
 	 */
-	q = (struct ipasfrag *) fp->frag_link.next;
+	q = (struct ipasfrag*)(fp->frag_link.next);
 
 	/*
 	 * If the fragments concatenated to an mbuf that's
@@ -404,8 +400,8 @@ void ip_freef(struct ipq *fp)
 {
 	struct ipasfrag *q, *p;
 
-	for (q = (struct ipasfrag *) fp->frag_link.next; q != (struct ipasfrag*)&fp->frag_link; q = p) {
-		p = (struct ipasfrag *) q->ipf_next;
+	for (q = (struct ipasfrag*)(fp->frag_link.next); q != (struct ipasfrag*)&fp->frag_link; q = p) {
+		p = (struct ipasfrag*)(q->ipf_next);
 		ip_deq(q);
 		m_freem(dtom(q));
 	}
@@ -445,17 +441,17 @@ void ip_slowtimo(void)
 {
 	struct qlink *l;
 	
-	//DEBUG_CALL("ip_slowtimo\n");
+	DEBUG_CALL("ip_slowtimo");
 	
-	l = (struct qlink *) ipq.ip_link.next;
+	l = (struct qlink*)(ipq.ip_link.next);
 
 	if (l == 0)
-	   return;
+		return;
 
 	while (l != &ipq.ip_link) {
-	    struct ipq *fp = container_of(l, struct ipq, ip_link);
-	    l = (struct qlink *) l->next;
-	    if (--fp->ipq_ttl == 0) {
+		struct ipq *fp = container_of(l, struct ipq, ip_link);
+		l = (struct qlink*)(l->next);
+		if (--fp->ipq_ttl == 0) {
 			ipstat.ips_fragtimeout++;
 			ip_freef(fp);
 		}

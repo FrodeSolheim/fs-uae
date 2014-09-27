@@ -187,22 +187,22 @@ struct	ip_timestamp {
 struct mbuf_ptr {
 	struct mbuf *mptr;
 	uint32_t dummy;
-} __attribute__((packed));
+};
 #else
 struct mbuf_ptr {
 	struct mbuf *mptr;
-} __attribute__((packed));
+};
 #endif
 struct qlink {
 	void *next, *prev;
 };
-
+ 
 /*
  * Overlay for ip header used by other protocols (tcp, udp).
  */
 #include "packed.h"
 struct ipovly {
-	struct mbuf_ptr ih_mbuf;        /* backpointer to mbuf */
+	struct mbuf_ptr ih_mbuf;	/* backpointer to mbuf */
 	u_int8_t	ih_x1;			/* (unused) */
 	u_int8_t	ih_pr;			/* protocol */
 	u_int16_t	ih_len;			/* protocol length */
@@ -219,12 +219,12 @@ struct ipovly {
  * size 28 bytes
  */
 struct ipq {
-	struct qlink frag_link;         /* to ip headers of fragments */
-	struct qlink ip_link;           /* to other reass headers */
-	u_int8_t ipq_ttl;               /* time for reass q to live */
-	u_int8_t ipq_p;                 /* protocol of this fragment */
-	u_int16_t ipq_id;               /* sequence id for reassembly */
-	struct in_addr ipq_src,ipq_dst;
+	struct qlink frag_link;		/* to ip headers of fragments */
+	struct qlink ip_link;		/* to other reass headers */
+	u_int8_t	ipq_ttl;		/* time for reass q to live */
+	u_int8_t	ipq_p;			/* protocol of this fragment */
+	u_int16_t	ipq_id;			/* sequence id for reassembly */
+	struct	in_addr ipq_src,ipq_dst;
 };
 
 /*
@@ -237,11 +237,11 @@ struct	ipasfrag {
 	struct ip ipf_ip;
 };
 
-#define ipf_off      ipf_ip.ip_off
-#define ipf_tos      ipf_ip.ip_tos
-#define ipf_len      ipf_ip.ip_len
-#define ipf_next     ipf_link.next
-#define ipf_prev     ipf_link.prev
+#define ipf_off		ipf_ip.ip_off
+#define ipf_tos		ipf_ip.ip_tos
+#define ipf_len		ipf_ip.ip_len
+#define ipf_next	ipf_link.next
+#define ipf_prev	ipf_link.prev 
 
 /*
  * Structure stored in mbuf in inpcb.ip_options

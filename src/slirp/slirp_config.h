@@ -51,10 +51,6 @@
  * You shouldn't need to touch any of these
  */
 
-//#ifdef FSUAE
-
-//#else
-
 /* Ignore this */
 #undef DUMMY_PPP
 
@@ -103,7 +99,7 @@
 #undef HAVE_SETENV
 
 /* Define if you have index() */
-//#undef HAVE_INDEX
+#undef HAVE_INDEX
 
 /* Define if you have bcmp() */
 #undef HAVE_BCMP
@@ -139,5 +135,3 @@
 
 /* Define if you have <sys/type32.h> */
 #undef HAVE_SYS_TYPES32_H
-
-//#endif // FSUAE

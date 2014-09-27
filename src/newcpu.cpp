@@ -3652,7 +3652,7 @@ static void bus_error(void)
 		Exception (2);
 	} CATCH (prb2) {
 		cpu_halt (1);
-	}
+	} ENDTRY
 }
 
 #ifndef CPUEMU_11
@@ -3708,7 +3708,7 @@ retry:
 	} CATCH (prb) {
 		bus_error();
 		goto retry;
-	}
+	} ENDTRY
 }
 
 #endif /* CPUEMU_11 */
@@ -3816,7 +3816,7 @@ cont:
 	} CATCH (prb) {
 		bus_error();
 		goto retry;
-	}
+	} ENDTRY
 }
 
 #endif
@@ -3981,7 +3981,7 @@ static void opcodedebug (uae_u32 pc, uae_u16 opcode, bool full)
 		addr = mmu_translate (pc, (regs.mmu_ssw & 4) ? 1 : 0, 0, 0);
 	} CATCH (prb) {
 		fault = 1;
-	}
+	} ENDTRY
 	if (!fault) {
 		TCHAR buf[100];
 		if (full)
@@ -4063,7 +4063,7 @@ retry:
 			return;
 		}
 		goto retry;
-	}
+	} ENDTRY
 
 }
 
@@ -4119,7 +4119,7 @@ retry:
 			return;
 		}
 		goto retry;
-	}
+	} ENDTRY
 
 }
 
@@ -4205,7 +4205,7 @@ insretry:
 			return;
 		}
 		goto retry;
-	}
+	} ENDTRY
 
 }
 

@@ -582,7 +582,7 @@ OPT_FEATURE([A_ZIP], [zip], [zip],
 	[enable ZIP archive support], [yes])
 
 OPT_FEATURE([WITH_PEARPC_CPU], [pearpc_cpu], [pearpc-cpu],
-	[use PearPC for PPC emulation], [yes])
+	[use PearPC for PPC emulation], [no])
 OPT_FEATURE([WITH_QEMU_CPU], [qemu_cpu], [qemu-cpu],
 	[use QEmu for PPC emulation], [yes])
 

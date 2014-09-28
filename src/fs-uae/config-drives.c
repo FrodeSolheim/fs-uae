@@ -134,8 +134,12 @@ void fs_uae_configure_cdrom(void)
         if (g_ascii_strcasecmp(uae_controller, "uae") == 0) {
             /* Setting scsi option enables uaescsi.device */
             amiga_set_option("scsi", "true");
-            /* Enables win32_automount_cddrives */
-            amiga_map_cd_drives(1);
+            if (fs_config_get_boolean(OPTION_CDFS) == 0) {
+                fs_log("CDROM: CDFS option was excplicitly disabled\n");
+            } else {
+                /* Enables win32_automount_cddrives */
+                amiga_map_cd_drives(1);
+            }
         }
         g_free(uae_controller);
     }

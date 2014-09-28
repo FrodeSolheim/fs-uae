@@ -99,7 +99,7 @@ typedef struct audio_stream {
 
 static audio_stream *g_streams[MAX_STREAMS] = {};
 
-#define MAX_BUFFERS 96
+#define MAX_BUFFERS 48
 
 static ALCdevice *g_device = NULL;
 static ALCcontext *g_context = NULL;

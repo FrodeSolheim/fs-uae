@@ -80,6 +80,7 @@ static void init_a4000(amiga_config *c, const char *id, const char *name,
     c->allow_z3_memory = 1;
     c->enhanced_audio_filter = 1;
     c->wb_disk = wb_disk_3_1_0;
+    c->default_floppy_drive_type = 1; // 3.5" HD
 }
 
 static void init_a4000_ppc(amiga_config *c, const char *id, const char *name,

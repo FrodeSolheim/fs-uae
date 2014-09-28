@@ -425,7 +425,8 @@ void fs_uae_configure_floppies()
             auto_num_drives = i + 1;
         }
         amiga_set_option(option_floppyx, path);
-        amiga_set_option(option_floppyxtype, "0");
+        amiga_set_int_option(option_floppyxtype,
+                             cfg->default_floppy_drive_type);
         free(path);
 
         const char *floppy_sounds = fs_config_get_const_string(

@@ -56,6 +56,7 @@ typedef struct amiga_config {
     int cpu_idle;
     int z3realmapping;
     const char *accelerator;
+    int default_floppy_drive_type;
 } amiga_config;
 
 extern amiga_config g_fs_uae_amiga_configs[];

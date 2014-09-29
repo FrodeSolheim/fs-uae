@@ -1,5 +1,6 @@
 Version 2.5.18dev:
 
+* Disabled / soft-removed PearPC PPC implementation.
 * Changed A4000 default floppy drive type to 3.5" HD.
 * New option cdfs (boolean). Can be used to disable builtin CDFS.
 * Reduced number of OpenAL buffers to pre-2.5.17dev level.

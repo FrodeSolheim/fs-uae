@@ -452,6 +452,7 @@ static void insert_cdrom(int drive_index, int disk_index) {
         fs_emu_log("no CD at this index in CD-ROM list\n");
     }
     path = fs_uae_expand_path_and_free(path);
+    path = fs_uae_resolve_path_and_free(path, FS_UAE_CD_PATHS);
     amiga_cdrom_set_file(drive_index, path);
     free(path);
 }

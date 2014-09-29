@@ -1,3 +1,7 @@
+Version 2.5.19dev:
+
+* Fixed loading CD into drive from CD image list (full path wasn't resolved).
+
 Version 2.5.18dev:
 
 * Disabled / soft-removed PearPC PPC implementation.

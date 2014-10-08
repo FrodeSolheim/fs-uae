@@ -242,6 +242,7 @@ static const TCHAR *cpuboards[] = {
 	_T("BlizzardPPC"),
 	_T("WarpEngineA4000"),
 	_T("TekMagic"),
+	_T("A2630"),
 	NULL
 };
 static const TCHAR *ppc_implementations[] = {
@@ -6352,8 +6353,12 @@ int built_in_chipset_prefs (struct uae_prefs *p)
 		p->cs_ciatodbug = true;
 		break;
 	case CP_A600: // A600
+#ifdef FSUAE
 		if (p->chipmem_size > 0x100000 || p->fastmem_size)
 			p->cs_rtc = 1;
+#else
+
+#endif
 		p->cs_ide = IDE_A600A1200;
 		p->cs_pcmcia = 1;
 		p->cs_ksmirror_a8 = 1;

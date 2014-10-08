@@ -195,7 +195,7 @@ static struct impl {
 	ppc_cpu_reset_function reset;
 } impl;
 
-static void load_dummy_implementation()
+static void load_dummy_implementation(void)
 {
 	write_log(_T("PPC: Loading dummy implementation\n"));
 	memset(&impl, 0, sizeof(impl));
@@ -231,7 +231,7 @@ static void uae_patch_library_ppc(UAE_DLHANDLE handle)
 	else write_log(_T("WARNING: uae_ppc_io_mem_write64 not set\n"));
 }
 
-static bool load_qemu_implementation()
+static bool load_qemu_implementation(void)
 {
 #ifdef WITH_QEMU_CPU
 	write_log(_T("PPC: Loading QEmu implementation\n"));
@@ -292,7 +292,7 @@ static bool load_qemu_implementation()
 #endif
 }
 
-static bool load_pearpc_implementation()
+static bool load_pearpc_implementation(void)
 {
 #ifdef WITH_PEARPC_CPU
 	write_log(_T("PPC: Loading PearPC implementation\n"));
@@ -314,7 +314,7 @@ static bool load_pearpc_implementation()
 #endif
 }
 
-static void load_ppc_implementation()
+static void load_ppc_implementation(void)
 {
 	int impl = currprefs.ppc_implementation;
 	if (impl == PPC_IMPLEMENTATION_AUTO || impl == PPC_IMPLEMENTATION_QEMU) {
@@ -333,17 +333,17 @@ static void load_ppc_implementation()
 	ppc_implementation = PPC_IMPLEMENTATION_DUMMY;
 }
 
-static bool using_qemu()
+static bool using_qemu(void)
 {
 	return ppc_implementation == PPC_IMPLEMENTATION_QEMU;
 }
 
-static bool using_pearpc()
+static bool using_pearpc(void)
 {
 	return ppc_implementation == PPC_IMPLEMENTATION_PEARPC;
 }
 
-static void initialize()
+static void initialize(void)
 {
 	static bool initialized = false;
 	if (initialized) {
@@ -590,7 +590,7 @@ bool UAECALL uae_ppc_io_mem_write(uint32_t addr, uint32_t data, int size)
 	}
 	spinlock_post(locked);
 
-#if PPC_ACCESS_LOG > 2
+#if PPC_ACCESS_LOG >= 2
 	write_log(_T("PPC write %08x = %08x %d\n"), addr, data, size);
 #endif
 
@@ -638,7 +638,7 @@ bool UAECALL uae_ppc_io_mem_read(uint32_t addr, uint32_t *data, int size)
 			write_log(_T("PPC io read %08x=%08x %d\n"), addr, v, size);
 	}
 #endif
-#if PPC_ACCESS_LOG > 2
+#if PPC_ACCESS_LOG >= 2
 	write_log(_T("PPC read %08x=%08x %d\n"), addr, v, size);
 #endif
 	return true;
@@ -647,6 +647,7 @@ bool UAECALL uae_ppc_io_mem_read(uint32_t addr, uint32_t *data, int size)
 bool UAECALL uae_ppc_io_mem_write64(uint32_t addr, uint64_t data)
 {
 	bool locked = false;
+
 	while (ppc_thread_running && ppc_cpu_lock_state < 0 && ppc_state);
 
 	locked = spinlock_pre(addr);
@@ -654,7 +655,7 @@ bool UAECALL uae_ppc_io_mem_write64(uint32_t addr, uint64_t data)
 	put_long(addr + 4, data & 0xffffffff);
 	spinlock_post(locked);
 
-#if PPC_ACCESS_LOG > 2
+#if PPC_ACCESS_LOG >= 2
 	write_log(_T("PPC mem write64 %08x = %08llx\n"), addr, data);
 #endif
 
@@ -674,7 +675,7 @@ bool UAECALL uae_ppc_io_mem_read64(uint32_t addr, uint64_t *data)
 	*data = ((uint64_t)v1 << 32) | v2;
 	spinlock_post(locked);
 
-#if PPC_ACCESS_LOG > 2
+#if PPC_ACCESS_LOG >= 2
 	write_log(_T("PPC mem read64 %08x = %08llx\n"), addr, *data);
 #endif
 
@@ -740,6 +741,14 @@ void uae_ppc_reset(bool hardreset)
 	ppc_state = PPC_STATE_INACTIVE;
 }
 
+void uae_ppc_free(void)
+{
+	bool wasactive = ppc_state != PPC_STATE_INACTIVE;
+	uae_ppc_cpu_stop();
+	if (wasactive && impl.map_memory)
+		impl.map_memory(NULL, 0);
+}
+
 void uae_ppc_cpu_lock(void)
 {
 	// when called, lock was already set by other CPU
@@ -799,6 +808,8 @@ void uae_ppc_crash(void)
 
 void uae_ppc_hsync_handler(void)
 {
+	if (ppc_state == PPC_STATE_INACTIVE)
+		return;
 	if (using_pearpc()) {
 		if (ppc_state != PPC_STATE_SLEEP)
 			return;
@@ -812,6 +823,8 @@ void uae_ppc_hsync_handler(void)
 
 void uae_ppc_pause(int pause)
 {
+	if (ppc_state == PPC_STATE_INACTIVE)
+		return;
 	// FIXME: assert(uae_is_emulation_thread())
 	if (using_qemu()) {
 		if (pause) {

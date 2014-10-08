@@ -4564,13 +4564,16 @@ static void exception2_handle (uaecptr addr, uaecptr fault)
 	Exception (2);
 }
 
-static bool cpu_hardreset;
+static bool cpu_hardreset, cpu_keyboardreset;
 
 bool is_hardreset(void)
 {
 	return cpu_hardreset;
 }
-
+bool is_keyboardreset(void)
+{
+	return  cpu_keyboardreset;
+}
 
 void m68k_go (int may_quit)
 {
@@ -4605,7 +4608,7 @@ void m68k_go (int may_quit)
 
 		if (quit_program > 0) {
 			int restored = 0;
-			bool kbreset = quit_program == UAE_RESET_KEYBOARD;
+			cpu_keyboardreset = quit_program == UAE_RESET_KEYBOARD;
 			cpu_hardreset = ((quit_program == UAE_RESET_HARD ? 1 : 0) | hardboot) != 0;
 
 			if (quit_program == UAE_QUIT)
@@ -4625,7 +4628,7 @@ void m68k_go (int may_quit)
 				savestate_rewind ();
 #endif
 			set_cycles (start_cycles);
-			custom_reset (cpu_hardreset != 0, kbreset);
+			custom_reset (cpu_hardreset != 0, cpu_keyboardreset);
 			m68k_reset2 (cpu_hardreset != 0);
 			if (cpu_hardreset) {
 				memory_clear ();

@@ -13,12 +13,7 @@
 #include "uae/dlopen.h"
 #include "uae/log.h"
 #include "uae/ppc.h"
-
-/* The qemu-uae major version must match this */
-#define QEMU_UAE_VERSION_MAJOR 2
-
-/* The qemu-uae minor version must be at least this */
-#define QEMU_UAE_VERSION_MINOR 0
+#include "uae/qemu.h"
 
 #define SPINLOCK_DEBUG 0
 #define PPC_ACCESS_LOG 0
@@ -193,6 +188,8 @@ static struct impl {
 	ppc_cpu_check_state_function check_state;
 	ppc_cpu_set_state_function set_state;
 	ppc_cpu_reset_function reset;
+	qemu_uae_ppc_in_cpu_thread_function in_cpu_thread;
+
 } impl;
 
 static void load_dummy_implementation(void)
@@ -263,6 +260,7 @@ static bool load_qemu_implementation(void)
 	impl.check_state = (ppc_cpu_check_state_function) uae_dlsym(handle, "ppc_cpu_check_state");
 	impl.set_state = (ppc_cpu_set_state_function) uae_dlsym(handle, "ppc_cpu_set_state");
 	impl.reset = (ppc_cpu_reset_function) uae_dlsym(handle, "ppc_cpu_reset");
+	impl.in_cpu_thread = (qemu_uae_ppc_in_cpu_thread_function) uae_dlsym(handle, "qemu_uae_ppc_in_cpu_thread");
 
 	/* Check major version (=) and minor version (>=) */
 
@@ -384,7 +382,15 @@ static void map_banks(void)
 		regions[i].alias = r->alias;
 		regions[i].memory = r->memory;
 	}
+
+	if (impl.in_cpu_thread() == false) {
+		uae_ppc_spinlock_release();
+	}
 	impl.map_memory(regions, map.num_regions);
+	if (impl.in_cpu_thread() == false) {
+		uae_ppc_spinlock_get();
+	}
+
 	for (int i = 0; i < map.num_regions; i++) {
 		free(regions[i].name);
 	}
@@ -419,13 +425,24 @@ void ppc_map_banks(uae_u32 start, uae_u32 size, const TCHAR *name, void *addr, b
 {
 	if (ppc_state == PPC_STATE_INACTIVE || !impl.map_memory)
 		return;
+
 	PPCMemoryRegion r;
 	r.start = start;
 	r.size = size;
 	r.name = ua(name);
 	r.alias = remove ? 0xffffffff : 0;
 	r.memory = addr;
+
+	if (impl.in_cpu_thread() == false) {
+		/* map_memory will acquire the qemu global lock, so we must ensure
+		 * the PPC CPU can finish any I/O requests and release the lock. */
+		uae_ppc_spinlock_release();
+	}
 	impl.map_memory(&r, -1);
+	if (impl.in_cpu_thread() == false) {
+		uae_ppc_spinlock_get();
+	}
+
 	free((void*)r.name);
 }
 
@@ -777,11 +794,17 @@ void uae_ppc_wakeup(void)
 
 void uae_ppc_interrupt(bool active)
 {
+	if (impl.in_cpu_thread() == false) {
+		uae_ppc_spinlock_release();
+	}
 	if (active) {
 		impl.atomic_raise_ext_exception();
 		uae_ppc_wakeup();
 	} else {
 		impl.atomic_cancel_ext_exception();
+	}
+	if (impl.in_cpu_thread() == false) {
+		uae_ppc_spinlock_get();
 	}
 }
 

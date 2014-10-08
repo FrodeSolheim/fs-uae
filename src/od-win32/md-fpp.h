@@ -176,8 +176,13 @@ STATIC_INLINE double to_double_x(uae_u32 wrd1, uae_u32 wrd2)
 		uae_u32 u[2];
 	} val;
 
-	val.u[0] = wrd2; // little endian
+#ifdef WORDS_BIGENDIAN
+	val.u[0] = wrd1;
+	val.u[1] = wrd2;
+#else
 	val.u[1] = wrd1;
+	val.u[0] = wrd2;
+#endif
 	return val.d;
 }
 #endif
@@ -186,10 +191,26 @@ STATIC_INLINE double to_double_x(uae_u32 wrd1, uae_u32 wrd2)
 #define HAVE_from_double
 STATIC_INLINE void from_double_x(double src, uae_u32 * wrd1, uae_u32 * wrd2)
 {
+#ifdef FSUAE
+	union {
+		double d;
+		uae_u32 u[2];
+	} val;
+
+	val.d = src;
+#ifdef WORDS_BIGENDIAN
+	*wrd1 = val.u[0];
+	*wrd2 = val.u[1];
+#else
+	*wrd1 = val.u[1];
+	*wrd2 = val.u[0];
+#endif
+#else
 	uae_u32 *longarray = (uae_u32 *)&src;
 
 	*wrd1 = longarray[1]; // little endian
 	*wrd2 = longarray[0];
+#endif
 }
 #endif
 

@@ -400,7 +400,7 @@ void fs_uae_configure_floppies()
     char option_floppyxtype[] = "floppy0type";
     char option_floppyxsound[] = "floppy0sound";
     char option_floppyxsoundext[] = "floppy0soundext";
-    int auto_num_drives = 1;
+    int auto_num_drives = cfg->default_floppy_drive_count;
     for(int i = 0; i < 4; i++) {
         option_floppy_drive_x[13] = '0' + i;
         option_floppy_drive_x_sounds[13] = '0' + i;
@@ -422,7 +422,7 @@ void fs_uae_configure_floppies()
                 fs_emu_warning("Not found: %s", fs_config_get_const_string(
                                    option_floppy_drive_x));
             }
-            auto_num_drives = i + 1;
+            auto_num_drives = MAX(auto_num_drives, i + 1);
         }
         amiga_set_option(option_floppyx, path);
         amiga_set_int_option(option_floppyxtype,

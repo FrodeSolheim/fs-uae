@@ -41,8 +41,8 @@ typedef struct amiga_config {
     int quickstart_model;
     int quickstart_config;
     int allow_z3_memory;
-    int z3mem_size;
-    const char *cpu_model;
+    //int z3mem_size;
+    //const char *cpu_model;
     int cpu_32bit_addressing;
     int fast;
     int fast_on_accuracy_level;
@@ -57,6 +57,11 @@ typedef struct amiga_config {
     int z3realmapping;
     const char *accelerator;
     int default_floppy_drive_type;
+    int default_floppy_drive_count;
+    const char *default_cpu;
+    const char *default_fpu;
+    const char *default_fpu_noninternal;
+    const char *default_mmu;
 } amiga_config;
 
 extern amiga_config g_fs_uae_amiga_configs[];

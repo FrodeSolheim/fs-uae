@@ -1,5 +1,10 @@
 Version 2.5.19dev:
 
+* Workaround for Hexagons Joystick Adapter (name is a single non-ASCII letter).
+* Workaround for SDL 2 XInput Controller names with #x in the name.
+* Recognize --version and --help arguments.
+* The bitmap fonts are also now loaded from fs-uae.dat.
+* Don't add RTC module on stock A600, A1200 (exp) defaults to MSM6242B.
 * Fixed loading CD into drive from CD image list (full path wasn't resolved).
 
 Version 2.5.18dev:

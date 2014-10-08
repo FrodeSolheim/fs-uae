@@ -354,6 +354,20 @@ static void initialize() {
     initialized = 1;
     fs_emu_log("initializing menu\n");
 
+    char *data;
+    int data_size;
+    int error;
+    error = fs_get_program_data("title_font.png", &data, &data_size);
+    if (error != 0) {
+        fs_emu_warning("Error %d loading title_font.png\n", error);
+    }
+    g_font_title = fs_emu_font_new_from_data(data, data_size);
+    error = fs_get_program_data("menu_font.png", &data, &data_size);
+    if (error != 0) {
+        fs_emu_warning("Error %d loading menu_font.png\n", error);
+    }
+    g_font_menu = fs_emu_font_new_from_data(data, data_size);
+#if 0
     char *path;
     path = fs_emu_theme_get_resource_path("title_font.png");
     g_font_title = fs_emu_font_new_from_file(path);
@@ -361,6 +375,7 @@ static void initialize() {
     path = fs_emu_theme_get_resource_path("menu_font.png");
     g_font_menu = fs_emu_font_new_from_file(path);
     free(path);
+#endif
 
     g_top_menu = fs_emu_menu_new();
     fs_emu_menu_item *item;

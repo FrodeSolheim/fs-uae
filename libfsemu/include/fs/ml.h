@@ -104,6 +104,7 @@ int fs_ml_get_windowed_width();
 int fs_ml_get_windowed_height();
 
 char *fs_ml_input_unique_device_name(char *name);
+char *fs_ml_input_fix_joystick_name(const char *name, int upper);
 
 //int fs_ml_main_iteration();
 // FIXME: REMOVE?

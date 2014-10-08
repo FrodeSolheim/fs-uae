@@ -865,9 +865,15 @@ static const char *overlay_names[] = {
 "PURPOSE. See the README for more copyright info, and the source code for\n" \
 "a full list of contributors\n\n"
 
+#define EXTRA_HELP_TEXT "" \
+"Documentation is available at http://fs-uae.net/documentation\n" \
+"(See http://fs-uae.net/options for a list of configuration options)\n" \
+"\n"
+
 FILE *g_state_log_file = NULL;
 
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[])
+{
     fs_uae_argc = argc;
     fs_uae_argv = argv;
     fs_set_argv(argc, argv);
@@ -878,9 +884,15 @@ int main(int argc, char* argv[]) {
         if (strcmp(*arg, "--list-joysticks") == 0) {
             list_joysticks();
             exit(0);
-        }
-        else if (strcmp(*arg, "--list-devices") == 0) {
+        } else if (strcmp(*arg, "--list-devices") == 0) {
             list_joysticks();
+            exit(0);
+        } else if (strcmp(*arg, "--version") == 0) {
+            printf("%s\n", PACKAGE_VERSION);
+            exit(0);
+        } else if (strcmp(*arg, "--help") == 0) {
+            printf(COPYRIGHT_NOTICE, PACKAGE_VERSION);
+            printf(EXTRA_HELP_TEXT);
             exit(0);
         }
         arg++;
@@ -1126,6 +1138,7 @@ int main(int argc, char* argv[]) {
         fs_emu_warning("Unsupported video format requested");
     }
     amiga_add_rtg_resolution(672, 540);
+    amiga_add_rtg_resolution(960, 540);
     amiga_add_rtg_resolution(672 * 2, 540 * 2);
     amiga_add_rtg_resolution(fs_emu_get_windowed_width(),
             fs_emu_get_windowed_height());

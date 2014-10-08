@@ -50,6 +50,11 @@ static const char *get_message(int msg)
         return "One of the following system ROMs is required: %s";
     } else if (msg == NUMSG_EXPROMNEED) {
         return "One of the following expansion boot ROMs is required: %s";
+    } else if (msg == NUMSG_KS68020) {
+        return "The selected system ROM requires a 68020 with 32-bit "
+               "addressing or 68030 or higher CPU";
+    } else if (msg == NUMSG_KS68030) {
+        return "The selected system ROM requires a 68030 CPU";
     }
     return NULL;
 }

@@ -1245,13 +1245,17 @@ void fs_emu_set_hotkey_function(fs_emu_hotkey_function function) {
     g_hotkey_function = function;
 }
 
+#if 0
 void fsuae_ppc_pause(int pause);
+#endif
 
 static void special_function()
 {
+#if 0
     static int paused = 0;
     fsuae_ppc_pause(!paused);
     paused = !paused;
+#endif
 }
 
 static int handle_shortcut(fs_ml_event *event) {

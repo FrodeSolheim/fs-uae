@@ -153,7 +153,7 @@ static void initialize() {
 
 void fs_emu_font_measure(fs_emu_font *font, const char *text, int* width,
         int *height) {
-    if (font->image == NULL) {
+    if (font == NULL || font->image == NULL) {
         if (width) {
             *width = 0;
         }
@@ -208,7 +208,7 @@ static int fix_char(fs_emu_font *font, int c) {
 
 int fs_emu_font_render(fs_emu_font *font, const char *text, float x, float y,
         float r, float g, float b, float alpha) {
-    if (font->image == NULL) {
+    if (font == NULL || font->image == NULL) {
         return 0;
     }
     if (text == NULL || *text == '\0') {
@@ -519,10 +519,23 @@ int fs_emu_font_render(fs_emu_font *font, const char *text, float x, float y,
     return fs_emu_font_render(font, text, x, y, r, g, b, alpha);
 }
 
-static fs_image *load_font_from_file(const char *path) {
-    //char *full_name = g_strconcat(name, ".png", NULL);
-    //char *path = g_build_filename(fs_emu_get_share_dir(), full_name, NULL);
-    //char *path = fs_get_program_data_file(full_name);
+static void convert_to_premultiplied_alpha(fs_image *image)
+{
+    if (image->format == FS_IMAGE_FORMAT_RGBA) {
+        int num_pixels = image->width * image->height;
+        unsigned char *pixels = image->data;
+        for (int i = 0; i < num_pixels; i++) {
+            unsigned char alpha = pixels[3];
+            pixels[0] = ((int) pixels[0]) * alpha / 255;
+            pixels[1] = ((int) pixels[1]) * alpha / 255;
+            pixels[2] = ((int) pixels[2]) * alpha / 255;
+            pixels += 4;
+        }
+    }
+}
+
+static fs_image *load_font_from_file(const char *path)
+{
     if (path == NULL) {
         fs_emu_warning(_("Could not find font: %s"), path);
         return NULL;
@@ -533,34 +546,23 @@ static fs_image *load_font_from_file(const char *path) {
         fs_emu_warning(_("Error loading font: %s"), path);
         return NULL;
     }
-
-    // convert to premultiplied alpha
-    if (image->format == FS_IMAGE_FORMAT_RGBA) {
-        int num_pixels = image->width * image->height;
-        unsigned char *pixels = image->data;
-        for (int i = 0; i < num_pixels; i++) {
-            unsigned char alpha = pixels[3];
-            // should really divide by 255, but 256 is faster...
-            //pixels[0] = ((int) pixels[0]) * alpha / 256;
-            //pixels[1] = ((int) pixels[1]) * alpha / 256;
-            //pixels[2] = ((int) pixels[2]) * alpha / 256;
-            pixels[0] = ((int) pixels[0]) * alpha / 255;
-            pixels[1] = ((int) pixels[1]) * alpha / 255;
-            pixels[2] = ((int) pixels[2]) * alpha / 255;
-            //pixels[0] = (unsigned char) ((pixels[0] * alpha + 0.5) / 255.0);
-            //pixels[1] = (unsigned char) ((pixels[1] * alpha + 0.5) / 255.0);
-            //pixels[2] = (unsigned char) ((pixels[2] * alpha + 0.5) / 255.0);
-            pixels += 4;
-        }
-    }
+    convert_to_premultiplied_alpha(image);
     return image;
 }
 
-fs_emu_font *fs_emu_font_new_from_file(const char *name) {
-    fs_emu_log("load font %s\n", name);
-    fs_emu_font *font = g_malloc0(sizeof(fs_emu_font));
-    font->image = load_font_from_file(name);
+static fs_image *load_font_from_data(char *data, int size)
+{
+    fs_image *image = fs_image_new_from_data(data, size);
+    if (image == NULL) {
+        fs_emu_warning(_("Error loading font from data"));
+        return NULL;
+    }
+    convert_to_premultiplied_alpha(image);
+    return image;
+}
 
+static void prepare_font(fs_emu_font *font)
+{
     if (font->image) {
         unsigned char *data = font->image->data;
         uint32_t *idata = (uint32_t *) data;
@@ -626,6 +628,24 @@ fs_emu_font *fs_emu_font_new_from_file(const char *name) {
         font->chars = c + 1;
         fs_emu_log("%d characters\n", font->chars);
     }
+}
 
+fs_emu_font *fs_emu_font_new_from_data(char *data, int size)
+{
+    fs_emu_log("load font from data\n");
+    fs_emu_font *font = g_malloc0(sizeof(fs_emu_font));
+    if (data != NULL) {
+        font->image = load_font_from_data(data, size);
+    }
+    prepare_font(font);
+    return font;
+}
+
+fs_emu_font *fs_emu_font_new_from_file(const char *name)
+{
+    fs_emu_log("load font %s\n", name);
+    fs_emu_font *font = g_malloc0(sizeof(fs_emu_font));
+    font->image = load_font_from_file(name);
+    prepare_font(font);
     return font;
 }

@@ -254,6 +254,7 @@ void fs_uae_configure_amiga_hardware()
     amiga_set_option("comp_trustlong", "indirect");
     amiga_set_option("comp_trustnaddr", "indirect");
 
+#if 0
     if (cfg->cpu_model) {
         amiga_set_option("cpu_model", cfg->cpu_model);
         if (strcmp(cfg->cpu_model, "68040") == 0) {
@@ -262,13 +263,19 @@ void fs_uae_configure_amiga_hardware()
             amiga_set_option("fpu_model", "68060");
         }
     }
+#endif
 
+#if 0
     if (c->z3mem_size) {
         amiga_set_int_option("z3mem_size", c->z3mem_size);
     }
+#endif
+#if 0
     if (c->cpu_32bit_addressing) {
         amiga_set_option("cpu_24bit_addressing", "false");
     }
+#endif
+
     if (c->fast) {
         amiga_set_option("cpu_speed", "max");
         amiga_set_option("blitter_cycle_exact", "false");
@@ -297,13 +304,14 @@ void fs_uae_configure_amiga_hardware()
         amiga_set_option("ntsc", "true");
     }
 
-    configure_accuracy(c);
     configure_roms(c);
     configure_memory(c);
 
     fs_uae_configure_hardware();
     fs_uae_configure_accelerator();
     fs_uae_configure_graphics_card(c);
+
+    configure_accuracy(c);
 
     const char *serial_port = fs_config_get_const_string("serial_port");
     if (serial_port && g_ascii_strcasecmp(serial_port, "none") != 0) {

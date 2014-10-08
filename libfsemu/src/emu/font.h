@@ -21,6 +21,8 @@ typedef struct _fs_emu_font {
 } fs_emu_font;
 
 fs_emu_font *fs_emu_font_new_from_file(const char *name);
+fs_emu_font *fs_emu_font_new_from_data(char *data, int size);
+
 int fs_emu_font_render(fs_emu_font *font, const char *text, float x, float y,
         float r, float g, float b, float alpha);
 int fs_emu_font_render_with_outline(fs_emu_font *font, const char *text,

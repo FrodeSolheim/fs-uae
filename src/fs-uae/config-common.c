@@ -31,6 +31,11 @@ static void strip(char *dstr, const char *sstr)
 
 bool fs_uae_values_matches(const char *str1, const char *str2)
 {
+    if (str1 == NULL) {
+        return str2 == NULL;
+    } else if (str2 == NULL) {
+        return str1 == NULL;
+    }
     char nrm1[LEN_MAX + 1];
     char nrm2[LEN_MAX + 1];
     strip(nrm1, str1);

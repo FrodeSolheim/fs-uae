@@ -20,8 +20,11 @@ PACKAGE_MAJOR=`echo ${PACKAGE_VERSION} | sed -e 's,\(\.*\)\..*\..*,\1,g'`
 PACKAGE_MINOR=`echo ${PACKAGE_VERSION} | sed -e 's,.*\.\(.*\)\..*,\1,g'`
 PACKAGE_REVISION=`echo ${PACKAGE_VERSION} | sed -e 's,.*\..*\.\([[0-9]]*\).*,\1,g'`
 AC_SUBST(PACKAGE_MAJOR)
+AC_DEFINE_UNQUOTED([PACKAGE_MAJOR], [$PACKAGE_MAJOR], [Package major version])
 AC_SUBST(PACKAGE_MINOR)
+AC_DEFINE_UNQUOTED([PACKAGE_MINOR], [$PACKAGE_MINOR], [Package minor version])
 AC_SUBST(PACKAGE_REVISION)
+AC_DEFINE_UNQUOTED([PACKAGE_REVISION], [$PACKAGE_REVISION], [Package revision])
 
 # Checks for programs.
 

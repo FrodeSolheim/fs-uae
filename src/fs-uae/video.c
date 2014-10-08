@@ -31,6 +31,9 @@ static zoom_mode g_zoom_modes[] = {
     { N_("Auto"), NULL, 0, 0, 0, 0 },
     /// TRANSLATORS: In context "Zoom: Full Frame"
     { N_("Full Frame"), "full", 0, 0, 752, 572 },
+    { "724x566", NULL, 2, 6, 724, 566 },
+    { "704x566", NULL, 42, 6, 704, 566 },
+    { "704x540", NULL, 42, 22, 704, 540 },
     { "640x512", NULL, 74, 36, 640, 512 },
     { "640x480", NULL, 74, 36, 640, 480 },
     { "640x400", NULL, 74, 36, 640, 400 },

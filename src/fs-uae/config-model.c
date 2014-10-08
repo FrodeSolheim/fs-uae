@@ -79,6 +79,9 @@ static void init_a3000(amiga_config *c, const char *id, const char *name,
     // c->enhanced_audio_filter = 1;
     c->wb_disk = wb_disk_3_1_0;
     c->default_cpu = "68030";
+    c->default_fpu = "68882";
+    c->default_fpu_noninternal = "68882";
+    c->default_mmu = "68030";
     c->cpu_32bit_addressing = 1;
 }
 

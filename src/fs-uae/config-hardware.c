@@ -11,6 +11,17 @@
 #include "config-model.h"
 #include "config-hardware.h"
 
+#define CPU_SPEED_REAL 0
+#define CPU_SPEED_MAX 1
+
+#define CPU_MODE_CYCLE_EXACT 0
+#define CPU_MODE_COMPATIBLE 1
+#define CPU_MODE_NONCOMPATIBLE 2
+
+#define BLITTER_MODE_NORMAL 0
+#define BLITTER_MODE_WAITING 1
+#define BLITTER_MODE_IMMEDIATE 2
+
 static void configure_cpu(void)
 {
     const char *uae_cpu_24bit_addressing =
@@ -173,6 +184,80 @@ static void configure_cpu(void)
     }
     if (uae_cpu_24bit_addressing[0]) {
         amiga_set_option("cpu_24bit_addressing", uae_cpu_24bit_addressing);
+    }
+
+    int accuracy = fs_config_get_int("accuracy");
+    if (accuracy == FS_CONFIG_NONE) {
+        accuracy = 1;
+    }
+
+    int blitter_mode = BLITTER_MODE_NORMAL;
+    int cpu_mode = CPU_MODE_CYCLE_EXACT;
+    int cpu_speed = CPU_SPEED_REAL;
+
+    if (strcmp(uae_cpu_model, "68030") == 0 ||
+            strcmp(uae_cpu_model, "68040") == 0 ||
+            strcmp(uae_cpu_model, "68060") == 0) {
+        cpu_speed = CPU_SPEED_MAX;
+        cpu_mode = CPU_MODE_NONCOMPATIBLE;
+    } else {
+        cpu_speed = CPU_SPEED_REAL;
+        if (accuracy > 0) {
+            cpu_mode = CPU_MODE_CYCLE_EXACT;
+        } else if (accuracy == 0) {
+            cpu_mode = CPU_MODE_NONCOMPATIBLE;
+        } else if (accuracy < 0) {
+            cpu_mode = CPU_MODE_NONCOMPATIBLE;
+        }
+    }
+
+    if (cpu_mode == CPU_MODE_CYCLE_EXACT &&
+            strcmp(uae_cpu_model, "68000") == 0) {
+        blitter_mode = BLITTER_MODE_NORMAL;
+    } else if (accuracy < 0) {
+        blitter_mode = BLITTER_MODE_IMMEDIATE;
+    } else {
+        blitter_mode = BLITTER_MODE_WAITING;
+    }
+
+    if (cpu_speed == CPU_SPEED_MAX) {
+        amiga_set_option("cpu_speed", "max");
+    } else {
+        amiga_set_option("cpu_speed", "real");
+    }
+
+    if (cpu_mode == CPU_MODE_CYCLE_EXACT) {
+        amiga_set_option("blitter_cycle_exact", "true");
+        amiga_set_option("cpu_compatible", "true");
+        amiga_set_option("cpu_cycle_exact", "true");
+    } else if (cpu_mode == CPU_MODE_COMPATIBLE) {
+        amiga_set_option("blitter_cycle_exact", "false");
+        amiga_set_option("cpu_compatible", "true");
+        amiga_set_option("cpu_cycle_exact", "false");
+    } else if (cpu_mode == CPU_MODE_NONCOMPATIBLE) {
+        amiga_set_option("blitter_cycle_exact", "false");
+        amiga_set_option("cpu_compatible", "false");
+        amiga_set_option("cpu_cycle_exact", "false");
+    }
+
+    if (blitter_mode == BLITTER_MODE_NORMAL) {
+        amiga_set_option("waiting_blits", "false");
+        amiga_set_option("immediate_blits", "false");
+    } else if (blitter_mode == BLITTER_MODE_WAITING) {
+        amiga_set_option("waiting_blits", "true");
+        amiga_set_option("immediate_blits", "false");
+    } else if (blitter_mode == BLITTER_MODE_IMMEDIATE) {
+        amiga_set_option("waiting_blits", "false");
+        amiga_set_option("immediate_blits", "true");
+    }
+
+    int cpu_idle = fs_config_get_int_clamped(OPTION_CPU_IDLE, 0, 10);
+    if (cpu_idle == FS_CONFIG_NONE) {
+        cpu_idle = cfg->cpu_idle;
+    }
+    if (cpu_idle != FS_CONFIG_NONE) {
+        fs_log("Setting cpu_idle to %d\n", cpu_idle);
+        amiga_set_cpu_idle(cpu_idle);
     }
 }
 

@@ -1,5 +1,12 @@
 Version 2.5.19dev:
 
+* New options cpu, fpu, mmu, changes to how CPU is configured.
+* Defaults for fpu, mmu, cpu speed, cpu accuracy, blitter mode now
+  automatically depends on specified (or implied) cpu option. Example,
+  cpu = 68040 will automatically enable 68040 FPU (and MMU), set fastest
+  possible mode, less compatible CPU and enable waiting blits.
+* A3000/A4000 models now use waiting blits by default (was immediate).
+* Fix reset problem while PPC CPU is active.
 * Workaround for Hexagons Joystick Adapter (name is a single non-ASCII letter).
 * Workaround for SDL 2 XInput Controller names with #x in the name.
 * Recognize --version and --help arguments.

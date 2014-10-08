@@ -91,6 +91,7 @@ void fs_uae_configure_amiga_model()
 
 static void configure_accuracy(amiga_config *c)
 {
+#if 0
 #ifdef NEW_ACCURACY_SYSTEM
     int cpu_accuracy = fs_config_get_int("cpu_accuracy");
     if (cpu_accuracy == FS_CONFIG_NONE) {
@@ -136,6 +137,7 @@ static void configure_accuracy(amiga_config *c)
             amiga_set_option("sound_output", "interrupts");
         }
     }
+#endif
 #endif
 }
 
@@ -275,25 +277,6 @@ void fs_uae_configure_amiga_hardware()
         amiga_set_option("cpu_24bit_addressing", "false");
     }
 #endif
-
-    if (c->fast) {
-        amiga_set_option("cpu_speed", "max");
-        amiga_set_option("blitter_cycle_exact", "false");
-        amiga_set_option("cpu_cycle_exact", "false");
-
-        amiga_set_option("cpu_compatible", "false");
-        amiga_set_option("waiting_blits", "false");
-        amiga_set_option("immediate_blits", "true");
-    }
-
-    int cpu_idle = fs_config_get_int_clamped(OPTION_CPU_IDLE, 0, 10);
-    if (cpu_idle == FS_CONFIG_NONE) {
-        cpu_idle = cfg->cpu_idle;
-    }
-    if (cpu_idle != FS_CONFIG_NONE) {
-        fs_log("Setting cpu_idle to %d\n", cpu_idle);
-        amiga_set_cpu_idle(cpu_idle);
-    }
 
     if (cfg->z3realmapping != FS_CONFIG_NONE) {
         amiga_set_int_option("z3realmapping", cfg->z3realmapping);

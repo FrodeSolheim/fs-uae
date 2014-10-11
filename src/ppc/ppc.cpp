@@ -189,6 +189,8 @@ static struct impl {
 	ppc_cpu_set_state_function set_state;
 	ppc_cpu_reset_function reset;
 	qemu_uae_ppc_in_cpu_thread_function in_cpu_thread;
+	qemu_uae_ppc_external_interrupt_function external_interrupt;
+	qemu_uae_lock_function lock;
 
 } impl;
 
@@ -248,8 +250,7 @@ static bool load_qemu_implementation(void)
 	impl.init = (ppc_cpu_init_function) uae_dlsym(handle, "ppc_cpu_init");
 	//impl.free = (ppc_cpu_free_function) uae_dlsym(handle, "ppc_cpu_free");
 	//impl.stop = (ppc_cpu_stop_function) uae_dlsym(handle, "ppc_cpu_stop");
-	impl.atomic_raise_ext_exception = (ppc_cpu_atomic_raise_ext_exception_function) uae_dlsym(handle, "ppc_cpu_atomic_raise_ext_exception");
-	impl.atomic_cancel_ext_exception = (ppc_cpu_atomic_cancel_ext_exception_function) uae_dlsym(handle, "ppc_cpu_atomic_cancel_ext_exception");
+	impl.external_interrupt = (qemu_uae_ppc_external_interrupt_function) uae_dlsym(handle, "qemu_uae_ppc_external_interrupt");
 	impl.map_memory = (ppc_cpu_map_memory_function) uae_dlsym(handle, "ppc_cpu_map_memory");
 	//impl.set_pc = (ppc_cpu_set_pc_function) uae_dlsym(handle, "ppc_cpu_set_pc");
 	impl.run_continuous = (ppc_cpu_run_continuous_function) uae_dlsym(handle, "ppc_cpu_run_continuous");
@@ -261,6 +262,7 @@ static bool load_qemu_implementation(void)
 	impl.set_state = (ppc_cpu_set_state_function) uae_dlsym(handle, "ppc_cpu_set_state");
 	impl.reset = (ppc_cpu_reset_function) uae_dlsym(handle, "ppc_cpu_reset");
 	impl.in_cpu_thread = (qemu_uae_ppc_in_cpu_thread_function) uae_dlsym(handle, "qemu_uae_ppc_in_cpu_thread");
+	impl.lock = (qemu_uae_lock_function) uae_dlsym(handle, "qemu_uae_lock");
 
 	/* Check major version (=) and minor version (>=) */
 
@@ -339,6 +341,61 @@ static bool using_qemu(void)
 static bool using_pearpc(void)
 {
 	return ppc_implementation == PPC_IMPLEMENTATION_PEARPC;
+}
+
+enum PPCLockMethod {
+	PPC_RELEASE_SPINLOCK,
+	PPC_KEEP_SPINLOCK,
+};
+
+enum PPCLockStatus {
+	PPC_NO_LOCK_NEEDED,
+	PPC_LOCKED,
+	PPC_LOCKED_WITHOUT_SPINLOCK,
+};
+
+static PPCLockStatus get_ppc_lock(PPCLockMethod method)
+{
+	if (impl.in_cpu_thread()) {
+		return PPC_NO_LOCK_NEEDED;
+	} else if (method == PPC_RELEASE_SPINLOCK) {
+
+		uae_ppc_spinlock_release();
+		impl.lock(QEMU_UAE_LOCK_ACQUIRE);
+		return PPC_LOCKED_WITHOUT_SPINLOCK;
+
+	} else if (method == PPC_KEEP_SPINLOCK) {
+
+		bool trylock_called = false;
+		while (true) {
+			if (ppc_spinlock_waiting) {
+				/* PPC CPU is waiting for the spinlock and the UAE side
+				 * owns the spinlock - no additional locking needed */
+				if (trylock_called) {
+					impl.lock(QEMU_UAE_LOCK_TRYLOCK_CANCEL);
+				}
+				return PPC_NO_LOCK_NEEDED;
+			}
+			int error = impl.lock(QEMU_UAE_LOCK_TRYLOCK);
+			if (error == 0) {
+				/* Lock succeeded */
+				return PPC_LOCKED;
+			}
+			trylock_called = true;
+		}
+	}
+}
+
+static void release_ppc_lock(PPCLockStatus status)
+{
+	if (status == PPC_NO_LOCK_NEEDED) {
+		return;
+	} else if (status == PPC_LOCKED_WITHOUT_SPINLOCK) {
+		impl.lock(QEMU_UAE_LOCK_RELEASE);
+		uae_ppc_spinlock_get();
+	} else if (status == PPC_LOCKED) {
+		impl.lock(QEMU_UAE_LOCK_RELEASE);
+	}
 }
 
 static void initialize(void)
@@ -793,18 +850,19 @@ void uae_ppc_wakeup(void)
 
 void uae_ppc_interrupt(bool active)
 {
-	if (impl.in_cpu_thread() == false) {
-		uae_ppc_spinlock_release();
+	if (using_pearpc()) {
+		if (active) {
+			impl.atomic_raise_ext_exception();
+			uae_ppc_wakeup();
+		} else {
+			impl.atomic_cancel_ext_exception();
+		}
+		return;
 	}
-	if (active) {
-		impl.atomic_raise_ext_exception();
-		uae_ppc_wakeup();
-	} else {
-		impl.atomic_cancel_ext_exception();
-	}
-	if (impl.in_cpu_thread() == false) {
-		uae_ppc_spinlock_get();
-	}
+
+	PPCLockStatus status = get_ppc_lock(PPC_KEEP_SPINLOCK);
+	impl.external_interrupt(active);
+	release_ppc_lock(status);
 }
 
 // sleep until interrupt (or PPC stopped)

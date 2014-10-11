@@ -18,6 +18,8 @@ UAE_DECLARE_IMPORT_FUNCTION(
 	void, qemu_uae_init, void)
 UAE_DECLARE_IMPORT_FUNCTION(
 	void, qemu_uae_start, void)
+UAE_DECLARE_IMPORT_FUNCTION(
+	int, qemu_uae_lock, int)
 
 UAE_DECLARE_IMPORT_FUNCTION(
 	void, qemu_uae_slirp_init, void)
@@ -31,6 +33,13 @@ UAE_DECLARE_IMPORT_FUNCTION(
 	bool, qemu_uae_ppc_init, const char* model, uint32_t hid1)
 UAE_DECLARE_IMPORT_FUNCTION(
 	bool, qemu_uae_ppc_in_cpu_thread, void)
+UAE_DECLARE_IMPORT_FUNCTION(
+	void, qemu_uae_ppc_external_interrupt, bool)
+
+#define QEMU_UAE_LOCK_TRYLOCK 1
+#define QEMU_UAE_LOCK_TRYLOCK_CANCEL 2
+#define QEMU_UAE_LOCK_ACQUIRE 3
+#define QEMU_UAE_LOCK_RELEASE 4
 
 #ifdef UAE
 

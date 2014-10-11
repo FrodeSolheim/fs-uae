@@ -1102,6 +1102,7 @@ static void REGPARAM2 blizzardio_bput(uaecptr addr, uae_u32 v)
 					}
 					if (!(io_reg[CSIII_REG_SHADOW] & P5_SELF_RESET)) {
 						if (!(regval & P5_AMIGA_RESET)) {
+							uae_ppc_cpu_stop();
 							uae_reset(0, 0);
 							write_log(_T("CS: Amiga Reset\n"));
 							io_reg[addr] |= P5_AMIGA_RESET;

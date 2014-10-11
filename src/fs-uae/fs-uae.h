@@ -94,7 +94,6 @@ char *fs_uae_resolve_path_and_free(char *name, int type);
 void fs_uae_set_uae_paths();
 
 //extern char *g_fs_uae_default_dir;
-extern int g_fs_uae_fastest_possible;
 extern char *g_fs_uae_config_file_path;
 extern char *g_fs_uae_config_dir_path;
 

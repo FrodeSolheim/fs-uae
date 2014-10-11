@@ -34,7 +34,6 @@ static void init_common(amiga_config *c, const char *id, const char *name,
     c->model = model;
     c->quickstart_model = quickstart;
     c->quickstart_config = quickstart_config;
-    c->fast_on_accuracy_level = -999;
     c->cpu_idle = FS_CONFIG_NONE;
     c->z3realmapping = FS_CONFIG_NONE;
     c->default_floppy_drive_count = 1;
@@ -50,10 +49,6 @@ static void init_a1200(amiga_config *c, const char *id, const char *name,
 {
     init_common(c, id, name, MODEL_A1200, 4, quickstart_config);
     c->enhanced_audio_filter = 1;
-#ifndef NEW_ACCURACY_SYSTEM
-#error do not use
-    c->fast_on_accuracy_level = 0;
-#endif
     c->wb_disk = wb_disk_3_1_0;
     c->default_cpu = "68020";
 }
@@ -63,9 +58,6 @@ static void init_cd32(amiga_config *c, const char *id, const char *name,
 {
     init_common(c, id, name, MODEL_CD32, 8, quickstart_config);
     c->enhanced_audio_filter = 1;
-#ifndef NEW_ACCURACY_SYSTEM
-    c->fast_on_accuracy_level = 0;
-#endif
     c->default_cpu = "68020";
 }
 
@@ -73,8 +65,6 @@ static void init_a3000(amiga_config *c, const char *id, const char *name,
                        int quickstart_config)
 {
     init_common(c, id, name, MODEL_A3000, 5, quickstart_config);
-    c->fast_on_accuracy_level = 1;
-    c->no_accuracy_adjustment = 1;
     c->allow_z3_memory = 1;
     // c->enhanced_audio_filter = 1;
     c->wb_disk = wb_disk_3_1_0;
@@ -89,8 +79,6 @@ static void init_a4000(amiga_config *c, const char *id, const char *name,
                        int quickstart_config)
 {
     init_common(c, id, name, MODEL_A4000, 6, quickstart_config);
-    c->fast_on_accuracy_level = 1;
-    c->no_accuracy_adjustment = 1;
     c->allow_z3_memory = 1;
     c->enhanced_audio_filter = 1;
     c->wb_disk = wb_disk_3_1_0;
@@ -214,8 +202,6 @@ void fs_uae_init_configs()
     c->name = "Amiga (Super)";
     //c->quickstart = "A1200,,";
     c->quickstart_model = 11;
-    c->fast_on_accuracy_level = 1;
-    c->no_accuracy_adjustment = 1;
     //c->cpu_model = "68020";
     //c->cpu_32bit_addressing = 1;
     c->allow_z3_memory = 1;

@@ -1002,13 +1002,6 @@ int main(int argc, char* argv[])
     // must be called early, before fs_emu_init -affects video output
     fs_uae_configure_amiga_model();
 
-    if (g_fs_uae_fastest_possible) {
-        //fs_log("fastest possible mode - disabling frame throttling\n");
-        //fs_emu_disable_throttling();
-        fs_log("fastest possible mode - disallowing full sync\n");
-        //fs_emu_disallow_full_sync();
-    }
-
     // force creation of state directories
     //fs_uae_flash_memory_dir();
     //fs_uae_save_states_dir();

@@ -798,6 +798,9 @@ static void cyberstorm_copymaprom(void)
 	if (blizzardmaprom_bank.baseaddr) {
 		uae_u8 *src = blizzardmaprom_bank.baseaddr;
 		uae_u8 *dst = kickmem_bank.baseaddr;
+#ifdef FSUAE
+		write_log("cyberstorm_copymaprom src=%p dst=%p\n", src, dst);
+#endif
 		protect_roms(false);
 		memcpy(dst, src, 524288);
 		protect_roms(true);
@@ -853,12 +856,22 @@ static void blizzardppc_maprom(void)
 }
 static void cyberstorm_maprom(void)
 {
+#ifdef FSUAE
+	write_log("cyberstorm_maprom\n");
+#endif
 	if (a3000hmem_bank.allocated <= 2 * 524288)
 		return;
-	if (maprom_state && is_ppc())
+	if (maprom_state && is_ppc()) {
+#ifdef FSUAE
+		write_log("map_banks(&blizzardmaprom2_bank\n");
+#endif
 		map_banks(&blizzardmaprom2_bank, CYBERSTORM_MAPROM_BASE >> 16, 524288 >> 16, 0);
-	else
+	} else {
 		map_banks(&blizzardmaprom_bank, CYBERSTORM_MAPROM_BASE >> 16, 524288 >> 16, 0);
+	}
+#ifdef FSUAE
+	write_log("cyberstorm_maprom (done)\n");
+#endif
 }
 
 static void cyberstormmk2_maprom(void)

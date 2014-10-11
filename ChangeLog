@@ -13,6 +13,7 @@ Version 2.5.19dev:
 * The bitmap fonts are also now loaded from fs-uae.dat.
 * Don't add RTC module on stock A600, A1200 (exp) defaults to MSM6242B.
 * Fixed loading CD into drive from CD image list (full path wasn't resolved).
+* Added new boolean option uaenative_library.
 * Updated emulation core from WinUAE 2900b19.
 
 Version 2.5.18dev:

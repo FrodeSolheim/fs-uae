@@ -2660,6 +2660,9 @@ void memory_cleanup (void)
 
 void set_roms_modified(void)
 {
+#ifdef FSUAE
+	write_log("set roms_modified = true;\n");
+#endif
 	roms_modified = true;
 }
 

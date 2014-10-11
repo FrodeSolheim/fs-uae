@@ -202,6 +202,7 @@ bool ppc_interrupt(int new_m68k_ipl)
 		return false;
 
 	if (!m68kint && iplemu && active) {
+
 		uae_u8 ppcipl = (~io_reg[CSIII_REG_IPL_EMU]) & P5_PPC_IPL_MASK;
 		if (new_m68k_ipl < 0)
 			new_m68k_ipl = 0;
@@ -713,12 +714,12 @@ static void REGPARAM2 blizzarde8_wput(uaecptr addr, uae_u32 b)
 	if (is_a2630()) {
 		addr &= 65535;
 		if (addr == 0x0040) {
-			write_log(_T("A2630 write %04x\n"), b);
+			write_log(_T("A2630 write %04x PC=%08x\n"), b, M68K_GETPC);
 			a2630_io = b;
 			// bit 0: unmap 0x000000
 			// bit 1: unmap 0xf80000
 			if (b & 2) {
-				map_banks(&kickmem_bank, 0xf80000 >> 16, 65536 >> 16, 0);
+				map_banks(&kickmem_bank, 0xf80000 >> 16, 131072 >> 16, 0);
 				write_log(_T("A2630 boot rom unmapped\n"));
 			}
 			// bit 2: autoconfig region enable
@@ -786,16 +787,24 @@ static uae_u32 REGPARAM2 blizzarde8_lget(uaecptr addr)
 
 static void blizzard_copymaprom(void)
 {
-	uae_u8 *src = get_real_address(BLIZZARD_MAPROM_BASE);
-	uae_u8 *dst = kickmem_bank.baseaddr;
-	protect_roms(false);
-	memcpy(dst, src, 524288);
-	protect_roms(true);
-	set_roms_modified();
+	if (!maprom_state) {
+		reload_roms();
+	} else {
+		uae_u8 *src = get_real_address(BLIZZARD_MAPROM_BASE);
+		if (src) {
+			uae_u8 *dst = kickmem_bank.baseaddr;
+			protect_roms(false);
+			memcpy(dst, src, 524288);
+			protect_roms(true);
+			set_roms_modified();
+		}
+	}
 }
 static void cyberstorm_copymaprom(void)
 {
-	if (blizzardmaprom_bank.baseaddr) {
+	if (!maprom_state) {
+		reload_roms();
+	} else if (blizzardmaprom_bank.baseaddr) {
 		uae_u8 *src = blizzardmaprom_bank.baseaddr;
 		uae_u8 *dst = kickmem_bank.baseaddr;
 #ifdef FSUAE
@@ -835,8 +844,7 @@ void cpuboard_rethink(void)
 	if (is_csmk3() || is_blizzardppc()) {
 		if (!(io_reg[CSIII_REG_IRQ] & (P5_IRQ_SCSI_EN | P5_IRQ_SCSI))) {
 			INTREQ_0(0x8000 | 0x0008);
-		}
-		if (!(io_reg[CSIII_REG_IRQ] & (P5_IRQ_PPC_1 | P5_IRQ_PPC_2))) {
+		} else if (!(io_reg[CSIII_REG_IRQ] & (P5_IRQ_PPC_1 | P5_IRQ_PPC_2))) {
 			INTREQ_0(0x8000 | 0x0008);
 		}
 		check_ppc_int_lvl();
@@ -1014,6 +1022,7 @@ static void REGPARAM2 blizzardio_bput(uaecptr addr, uae_u32 v)
 					write_log(_T("BPPC: maprom disabled\n"));
 					maprom_state = 0;
 					blizzardppc_maprom();
+					cyberstorm_copymaprom();
 				}
 			}
 			addr /= 8;
@@ -1210,6 +1219,8 @@ void cpuboard_hsync(void)
 	// should be fast enough for now
 	if (is_csmk3() || is_blizzardppc()) {
 		check_ppc_int_lvl();
+		if (ppc_irq_pending)
+			uae_ppc_interrupt(true);
 	}
 }
 

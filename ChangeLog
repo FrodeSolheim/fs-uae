@@ -1,5 +1,10 @@
 Version 2.5.19dev:
 
+* Restore kickstart ROM when CSMK3/CSPPC/BPPC maprom is disabled.
+* New PPC lock implemented, fixes occasional PPC lockup.
+* Fix crash during PPC reset (missing lock when memory regions were updated).
+* Stop PPC CPU before resetting Amiga.
+* Floating point fixes for PowerPC hosts.
 * New options cpu, fpu, mmu, changes to how CPU is configured.
 * Defaults for fpu, mmu, cpu speed, cpu accuracy, blitter mode now
   automatically depends on specified (or implied) cpu option. Example,

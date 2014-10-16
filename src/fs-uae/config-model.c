@@ -92,7 +92,7 @@ static void init_a4000(amiga_config *c, const char *id, const char *name,
     } else if (quickstart_config == 1) {
         c->default_cpu = "68040";
         c->default_fpu = "68040";
-        c->default_mmu = "68040";
+        //c->default_mmu = "68040";
     } else {
         fs_emu_warning("Unknown A4000 quickstart model\n");
     }
@@ -110,7 +110,7 @@ static void init_a4000_ppc(amiga_config *c, const char *id, const char *name,
 
     c->default_cpu = "68060";
     c->default_fpu = "68060";
-    c->default_mmu = "68060";
+    //c->default_mmu = "68060";
 }
 
 void fs_uae_init_configs()

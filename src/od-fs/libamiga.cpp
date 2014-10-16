@@ -30,7 +30,6 @@ amiga_media_function g_amiga_media_function = NULL;
 
 int g_uae_deterministic_mode = 0;
 int g_amiga_paused = 0;
-char *g_libamiga_save_image_path = NULL;
 
 int g_amiga_savestate_docompress = 1;
 
@@ -274,11 +273,6 @@ int amiga_quickstart(int quickstart_model, int quickstart_config,
             quickstart_model, quickstart_config, quickstart_compa, accuracy);
     return built_in_prefs(&currprefs, quickstart_model, quickstart_config,
             quickstart_compa, quickstart_romcheck);
-}
-
-void amiga_set_save_image_dir(const char *path) {
-    write_log("amiga_set_save_image_dir %s\n", path);
-    g_libamiga_save_image_path = g_strdup(path);
 }
 
 int amiga_get_rand_checksum() {

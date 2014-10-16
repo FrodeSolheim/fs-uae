@@ -55,6 +55,7 @@ const char *fs_uae_state_dir();
 //const char *fs_uae_floppy_overlays_dir();
 const char *fs_uae_controllers_dir();
 const char *fs_uae_logs_dir();
+const char *fs_uae_module_ripper_dir();
 const char *fs_uae_exe_dir();
 const char *fs_uae_themes_dir();
 const char *fs_uae_cache_dir();

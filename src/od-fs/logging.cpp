@@ -55,7 +55,12 @@ static const char *get_message(int msg)
                "addressing or 68030 or higher CPU";
     } else if (msg == NUMSG_KS68030) {
         return "The selected system ROM requires a 68030 CPU";
+    } else if (msg == NUMSG_MODRIP_NOTFOUND) {
+        return "Module ripper: No music modules or packed data found";
+    } else if (msg == NUMSG_MODRIP_FINISHED) {
+        return "Module ripper: Scan finished";
     }
+
     return NULL;
 }
 

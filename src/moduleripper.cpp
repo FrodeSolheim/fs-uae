@@ -19,6 +19,18 @@
 #include "gui.h"
 #include "uae.h"
 
+#ifdef FSUAE // NL
+
+typedef unsigned char Uchar;
+typedef unsigned long Ulong;
+
+extern "C" {
+#include "../prowizard/include/globals.h"
+#include "../prowizard/include/extern.h"
+}
+
+#endif
+
 static int got, canceled;
 
 static void mc (uae_u8 *d, uaecptr s, int size)
@@ -71,13 +83,21 @@ void moduleripper (void)
 	got = 0;
 	canceled = 0;
 #ifdef _WIN32
+#ifdef FSUAE
+
+#else
 	__try {
+#endif
 #endif
 		prowizard_search (buf, size);
 #ifdef _WIN32
+#ifdef FSUAE
+
+#else
 	} __except(ExceptionFilter (GetExceptionInformation (), GetExceptionCode ())) {
 		write_log (_T("prowizard scan crashed\n"));
 	}
+#endif
 #endif
 	if (!got)
 		notify_user (NUMSG_MODRIP_NOTFOUND);
@@ -118,7 +138,11 @@ FILE *moduleripper2_fopen (const char *name, const char *mode, const char *aid, 
 	translate_message (NUMSG_MODRIP_SAVE, msg);
 	id = au (aid);
 	_stprintf (msg2, msg, id, addr, size);
+#ifdef FSUAE
+	ret = 1;
+#else
 	ret = gui_message_multibutton (2, msg2);
+#endif
 	xfree (id);
 	if (ret < 0)
 		canceled = 1;
@@ -130,7 +154,6 @@ FILE *moduleripper2_fopen (const char *name, const char *mode, const char *aid, 
 void pw_write_log (const char *format,...)
 {
 }
-
 }
 
 #else

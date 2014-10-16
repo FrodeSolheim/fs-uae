@@ -290,7 +290,8 @@ static const char *fs_uae_state_dir_path() {
     return path;
 }
 
-const char *fs_uae_state_dir() {
+const char *fs_uae_state_dir()
+{
     static const char *path = NULL;
     if (path == NULL) {
         path = fs_uae_state_dir_path();
@@ -345,11 +346,22 @@ const char *fs_uae_controllers_dir() {
     return path;
 }
 
-const char *fs_uae_logs_dir() {
+const char *fs_uae_logs_dir()
+{
     static const char *path = NULL;
     if (path == NULL) {
         path = create_default_dir("Cache/Logs", "logs_dir", NULL,
                 "logs-dir");
+    }
+    return path;
+}
+
+const char *fs_uae_module_ripper_dir()
+{
+    static const char *path = NULL;
+    if (path == NULL) {
+        path = create_default_dir(
+            "Cache/Modules", "module_ripper_dir", NULL, "module-ripper-dir");
     }
     return path;
 }
@@ -531,9 +543,10 @@ void fs_uae_configure_directories() {
         amiga_set_option("flash_file", path);
         free(path);
     }
+    free(state_base_name);
 
     amiga_set_save_image_dir(fs_uae_state_dir());
-    free(state_base_name);
+    amiga_set_module_ripper_dir(fs_uae_module_ripper_dir());
 }
 
 static void fix_separators(char *path) {

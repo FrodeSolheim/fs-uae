@@ -571,6 +571,8 @@ REQ_FEATURE([PICASSO96], [picasso96], [picasso96],
 	[enable Picasso 96 (uaegfx.card)], [yes])
 REQ_FEATURE([WITH_PPC], [ppc], [ppc],
 	[enable PPC (requires cpu board)], [yes])
+OPT_FEATURE([PROWIZARD], [prowizard], [prowizard],
+	[enable prowizard request], [yes])
 OPT_FEATURE([WITH_SLIRP], [slirp], [slirp],
 	[enable SLIRP (user mode NAT)], [yes])
 OPT_FEATURE([WITH_UAENATIVE], [uaenative], [uaenative],

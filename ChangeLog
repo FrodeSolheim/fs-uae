@@ -1,3 +1,8 @@
+Version 2.5.20dev:
+
+* Enabled support for prowizard module ripper.
+* New action "ation_module_ripper" available for custom input mapping.
+
 Version 2.5.19dev:
 
 * Restore kickstart ROM when CSMK3/CSPPC/BPPC maprom is disabled.

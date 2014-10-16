@@ -407,6 +407,8 @@ static fs_emu_action g_actions[] = {
     { INPUTEVENT_AMIGA_JOYPORT_MODE_3_CD32JOY, "action_joyport_3_mode_cd32joy", 0 },
     { INPUTEVENT_AMIGA_JOYPORT_MODE_3_LIGHTPEN, "action_joyport_3_mode_lightpen", 0 },
 
+    { INPUTEVENT_UAE_MODULE_RIPPER, "action_module_ripper", 0 },
+
     { INPUTEVENT_SPC_ENTERDEBUGGER, "action_enter_debugger", 0 },
 
     { 65536, "action_none", 0 },

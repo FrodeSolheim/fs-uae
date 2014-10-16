@@ -66,6 +66,7 @@ void amiga_set_save_state_compression(int compress);
 int amiga_enable_serial_port(const char *serial_name);
 
 void amiga_set_save_image_dir(const char *path);
+void amiga_set_module_ripper_dir(const char *path);
 
 int amiga_set_min_first_line(int line, int ntsc);
 

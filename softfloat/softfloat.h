@@ -37,7 +37,7 @@ these four paragraphs for those parts of this code that are retained.
 #ifndef _SOFTFLOAT_H_
 #define _SOFTFLOAT_H_
 
-#include "defines.h"
+#include "softfloat-uae.h"
 
 #define FLOAT16
 #define FLOATX80

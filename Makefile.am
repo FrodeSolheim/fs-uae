@@ -982,6 +982,7 @@ noinst_LIBRARIES += libsoftfloat.a
 AM_CPPFLAGS += -I$(s)/softfloat
 fs_uae_LDADD += libsoftfloat.a
 libsoftfloat_a_SOURCES = \
+	softfloat/softfloat-uae.h \
 	softfloat/fprem.cc \
 	softfloat/fpu_constant.h \
 	softfloat/fsincos.cc \

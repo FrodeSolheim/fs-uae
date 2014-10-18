@@ -972,6 +972,29 @@ libprowizard_a_SOURCES = \
 	prowizard/r/ZenPacker.c
 endif
 
+if WITH_SOFTFLOAT
+noinst_LIBRARIES += libsoftfloat.a
+AM_CPPFLAGS += -I$(s)/softfloat
+fs_uae_LDADD += libsoftfloat.a
+libsoftfloat_a_SOURCES = \
+	softfloat/fprem.cc \
+	softfloat/fpu_constant.h \
+	softfloat/fsincos.cc \
+	softfloat/poly.cc \
+	softfloat/softfloat16.cc \
+	softfloat/softfloat.cc \
+	softfloat/softfloat-compare.h \
+	softfloat/softfloat.h \
+	softfloat/softfloat-macros.h \
+	softfloat/softfloat-muladd.cc \
+	softfloat/softfloat-round-pack.cc \
+	softfloat/softfloat-round-pack.h \
+	softfloat/softfloat-specialize.cc \
+	softfloat/softfloat-specialize.h \
+	softfloat/softfloatx80.cc \
+	softfloat/softfloatx80.h
+endif
+
 if BUILTIN_LIBMPEG2
 AM_CPPFLAGS += -I$(s)/libmpeg2/include
 fs_uae_LDADD += \

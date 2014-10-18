@@ -575,6 +575,8 @@ OPT_FEATURE([PROWIZARD], [prowizard], [prowizard],
 	[enable prowizard request], [yes])
 OPT_FEATURE([WITH_SLIRP], [slirp], [slirp],
 	[enable SLIRP (user mode NAT)], [yes])
+OPT_FEATURE([WITH_SOFTFLOAT], [softfloat], [softfloat],
+	[enable use of softfloat library], [yes])
 OPT_FEATURE([WITH_UAENATIVE], [uaenative], [uaenative],
 	[enable uaenative.library], [yes])
 OPT_FEATURE([SANA2], [uaenet], [uaenet],

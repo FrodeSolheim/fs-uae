@@ -1,5 +1,6 @@
 Version 2.5.20dev:
 
+* Use qemu-uae for slirp support.
 * Added support for softfloat library (not tested).
 * Enabled support for prowizard module ripper.
 * New action "action_module_ripper" available for custom input mapping.

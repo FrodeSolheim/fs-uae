@@ -34,7 +34,4 @@ extern int ethernet_open (struct netdriverdata *ndd, void*, void*, ethernet_gotf
 extern void ethernet_close (struct netdriverdata *ndd, void*);
 extern void ethernet_trigger (void*);
 
-extern bool slirp_start (void);
-extern void slirp_end (void);
-
 #endif // UAE_ETHERNET_H

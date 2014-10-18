@@ -618,7 +618,10 @@ struct uae_prefs {
 	TCHAR win32_guiactivepage[32];
 	bool win32_filesystem_mangle_reserved_names;
 #ifdef WITH_SLIRP
-	struct slirp_redir slirp_redirs[MAX_SLIRP_REDIRS]; 
+#ifdef FSUAE
+	int slirp_implementation;
+#endif
+	struct slirp_redir slirp_redirs[MAX_SLIRP_REDIRS];
 #endif
 	int statecapturerate, statecapturebuffersize;
 

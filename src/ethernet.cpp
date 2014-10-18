@@ -2,8 +2,7 @@
 
 #ifdef WITH_SLIRP
 
-#include "slirp/slirp.h"
-#include "slirp/libslirp.h"
+#include "uae/slirp.h"
 
 #ifdef FSUAE
 #include "ethernet.h"
@@ -49,12 +48,7 @@ static struct netdriverdata slirpd2 =
 	1
 };
 
-int slirp_can_output(void)
-{
-	return 1;
-}
-
-void slirp_output (const uint8 *pkt, int pkt_len)
+void slirp_output (const uint8_t *pkt, int pkt_len)
 {
 	if (!slirp_data)
 		return;
@@ -80,7 +74,7 @@ void ethernet_trigger (void *vsd)
 				uae_sem_post (&slirp_sem1);
 				if (v) {
 					uae_sem_wait (&slirp_sem2);
-					slirp_input(pkt, len);
+					uae_slirp_input(pkt, len);
 					uae_sem_post (&slirp_sem2);
 				}
 			}
@@ -107,21 +101,21 @@ int ethernet_open (struct netdriverdata *ndd, void *vsd, void *user, ethernet_go
 			slirp_data = ed;
 			uae_sem_init (&slirp_sem1, 0, 1);
 			uae_sem_init (&slirp_sem2, 0, 1);
-			slirp_init ();
+			uae_slirp_init();
 			for (int i = 0; i < MAX_SLIRP_REDIRS; i++) {
 				struct slirp_redir *sr = &currprefs.slirp_redirs[i];
 				if (sr->proto) {
 					struct in_addr a;
 					if (sr->srcport == 0) {
 					    inet_aton("10.0.2.15", &a);
-						slirp_redir (0, sr->dstport, a, sr->dstport);
+						uae_slirp_redir (0, sr->dstport, a, sr->dstport);
 					} else {
 #ifdef HAVE_STRUCT_IN_ADDR_S_UN
 						a.S_un.S_addr = sr->addr;
 #else
 						a.s_addr = sr->addr;
 #endif
-						slirp_redir (sr->proto == 1 ? 0 : 1, sr->dstport, a, sr->srcport);
+						uae_slirp_redir (sr->proto == 1 ? 0 : 1, sr->dstport, a, sr->srcport);
 					}
 				}
 			}
@@ -137,10 +131,10 @@ int ethernet_open (struct netdriverdata *ndd, void *vsd, void *user, ethernet_go
 							break;
 					}
 					if (j == MAX_SLIRP_REDIRS)
-						slirp_redir (0, port + SLIRP_PORT_OFFSET, a, port);
+						uae_slirp_redir (0, port + SLIRP_PORT_OFFSET, a, port);
 				}
 			}
-			slirp_start ();
+			uae_slirp_start ();
 		}
 		return 1;
 #ifdef WITH_UAENET_PCAP
@@ -161,8 +155,8 @@ void ethernet_close (struct netdriverdata *ndd, void *vsd)
 		case UAENET_SLIRP_INBOUND:
 		if (slirp_data) {
 			slirp_data = NULL;
-			slirp_end ();
-			slirp_cleanup ();
+			uae_slirp_end ();
+			uae_slirp_cleanup ();
 			uae_sem_destroy (&slirp_sem1);
 			uae_sem_destroy (&slirp_sem2);
 		}

@@ -252,6 +252,15 @@ static const TCHAR *ppc_implementations[] = {
 	_T("qemu"),
 	NULL
 };
+#ifdef FSUAE
+static const TCHAR *slirp_implementations[] = {
+	_T("auto"),
+	_T("none"),
+	_T("builtin"),
+	_T("qemu"),
+	NULL
+};
+#endif
 static const TCHAR *ppc_cpu_idle[] = {
 	_T("disabled"),
 	_T("1"),
@@ -1214,6 +1223,9 @@ void cfgfile_save_options (struct zfile *f, struct uae_prefs *p, int type)
 		cfgfile_write_str (f, _T("a2065"), p->a2065name);
 
 #ifdef WITH_SLIRP
+#ifdef FSUAE
+	cfgfile_dwrite_str(f, _T("slirp_implementation"), slirp_implementations[p->slirp_implementation]);
+#endif
 	tmp[0] = 0;
 	for (i = 0; i < MAX_SLIRP_REDIRS; i++) {
 		struct slirp_redir *sr = &p->slirp_redirs[i];
@@ -2854,6 +2866,10 @@ static int cfgfile_parse_host (struct uae_prefs *p, TCHAR *option, TCHAR *value)
 	}
 
 #ifdef WITH_SLIRP
+#ifdef FSUAE
+	if (cfgfile_strval(option, value, _T("slirp_implementation"), &p->slirp_implementation, slirp_implementations, 0))
+		return 1;
+#endif
 	if (cfgfile_string (option, value, _T("slirp_ports"), tmpbuf, sizeof (tmpbuf) / sizeof (TCHAR))) {
 		TCHAR *tmpp2 = tmpbuf;
 		_tcscat (tmpbuf, _T(","));

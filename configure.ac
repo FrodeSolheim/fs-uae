@@ -545,6 +545,8 @@ REQ_FEATURE([A2091], [a2091], [a2091],
 	[enable A590/A2091 SCSI], [yes])
 REQ_FEATURE([ACTION_REPLAY], [action_replay], [action-replay],
 	[enable Action Replay 1/2/3 support], [yes])
+OPT_FEATURE([WITH_BUILTIN_SLIRP], [builtin_slirp], [builtin-slirp],
+	[enable builtin SLIRP implementation], [yes])
 OPT_FEATURE([CAPS], [caps], [caps],
 	[enable IPF support via libcapsimage], [yes])
 REQ_FEATURE([CD32], [cd32], [cd32],
@@ -577,6 +579,8 @@ OPT_FEATURE([WITH_SLIRP], [slirp], [slirp],
 	[enable SLIRP (user mode NAT)], [yes])
 OPT_FEATURE([WITH_SOFTFLOAT], [softfloat], [softfloat],
 	[enable use of softfloat library], [yes])
+OPT_FEATURE([WITH_QEMU_SLIRP], [qemu_slirp], [qemu-slirp],
+	[enable QEMU SLIRP implementation], [yes])
 OPT_FEATURE([WITH_UAENATIVE], [uaenative], [uaenative],
 	[enable uaenative.library], [yes])
 OPT_FEATURE([SANA2], [uaenet], [uaenet],

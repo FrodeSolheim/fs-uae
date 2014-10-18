@@ -344,6 +344,7 @@ libuae_a_SOURCES = \
 	src/include/uae/qemu.h \
 	src/include/uae/regparam.h \
 	src/include/uae/seh.h \
+	src/include/uae/slirp.h \
 	src/include/uae/specialmonitors.h \
 	src/include/uae/string.h \
 	src/include/uae/types.h \
@@ -450,6 +451,7 @@ libuae_a_SOURCES = \
 	src/od-win32/win32_uaenet.cpp \
 	src/ppc/pixman-stubs.cpp \
 	src/ppc/ppc.cpp \
+	src/qemu.cpp \
 	src/qemuvga/cirrus_vga.cpp \
 	src/qemuvga/cirrus_vga_rop.h \
 	src/qemuvga/cirrus_vga_rop2.h \
@@ -477,6 +479,7 @@ libuae_a_SOURCES = \
 	src/scsi.cpp \
 	src/scsiemul.cpp \
 	src/scsitape.cpp \
+	src/slirp.cpp \
 	src/specialmonitors.cpp \
 	src/statusline.cpp \
 	src/traps.cpp \
@@ -711,6 +714,7 @@ fs_uae_SOURCES += \
 endif
 
 if WITH_SLIRP
+if WITH_BUILTIN_SLIRP
 noinst_LIBRARIES += libslirp.a
 AM_CPPFLAGS += -I$(s)/src/slirp/include
 fs_uae_LDADD += libslirp.a
@@ -754,6 +758,7 @@ libslirp_a_SOURCES = \
 	src/slirp/tftp.h \
 	src/slirp/udp.cpp \
 	src/slirp/udp.h
+endif
 endif
 
 if WITH_UDIS86

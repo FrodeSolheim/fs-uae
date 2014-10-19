@@ -116,7 +116,7 @@ static int read_window_override(const char* s, int* pos) {
         if (s[(*pos)++] != ']') return 0;
     }
 
-    if (!s[(*pos)++] == '=') return 0;
+    if (s[(*pos)++] != '=') return 0;
     if (s[(*pos)++] == '>') ++(*pos);
     if (!read_window_override_int(s, pos, &dx)) return 0;
     if (!read_window_override_int(s, pos, &dy)) return 0;

@@ -10,9 +10,9 @@ rm -Rf autom4te.cache
 echo "Running aclocal"
 if [ -e /opt/share/aclocal ]; then
 	# extra m4 macros installed on mingw system
-	aclocal -I /opt/share/aclocal
+	aclocal -I m4 -I /opt/share/aclocal
 else
-	aclocal
+	aclocal -I m4
 fi
 echo "Running autoheader"
 autoheader

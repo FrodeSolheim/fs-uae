@@ -205,7 +205,7 @@ static void configure_cpu(void)
         if (accuracy > 0) {
             cpu_mode = CPU_MODE_CYCLE_EXACT;
         } else if (accuracy == 0) {
-            cpu_mode = CPU_MODE_NONCOMPATIBLE;
+            cpu_mode = CPU_MODE_COMPATIBLE;
         } else if (accuracy < 0) {
             cpu_mode = CPU_MODE_NONCOMPATIBLE;
         }

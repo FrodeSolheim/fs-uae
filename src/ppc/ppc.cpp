@@ -348,6 +348,10 @@ static PPCLockStatus get_ppc_lock(PPCLockMethod method)
 			}
 			trylock_called = true;
 		}
+	} else {
+		//uae_abort("invalid ppc loc method");
+		write_log("invalid ppc loc method");
+		abort();
 	}
 }
 

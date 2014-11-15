@@ -325,6 +325,8 @@ int zfile_gettype (struct zfile *z)
 			return ZFILE_HDF;
 		if (strcasecmp (ext, _T("hdz")) == 0)
 			return ZFILE_HDF;
+		if (strcasecmp (ext, _T("vhd")) == 0)
+			return ZFILE_HDF;
 	}
 	return ZFILE_UNKNOWN;
 }

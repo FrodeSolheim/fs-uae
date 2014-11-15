@@ -198,6 +198,7 @@ libuae_a_SOURCES = \
 	src/cd32_fmv_genlock.cpp \
 	src/cdrom.cpp \
 	src/cdtv.cpp \
+	src/cdtvcr.cpp \
 	src/cfgfile.cpp \
 	src/cia.cpp \
 	src/consolehook.cpp \

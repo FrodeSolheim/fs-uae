@@ -157,7 +157,7 @@ struct mystat
 	uae_s64 st_blocks;
 #endif
 };
-extern void timeval_to_amiga (struct mytimeval *tv, int* days, int* mins, int* ticks);
-extern void amiga_to_timeval (struct mytimeval *tv, int days, int mins, int ticks);
+extern void timeval_to_amiga (struct mytimeval *tv, int* days, int* mins, int* ticks, int tickcount);
+extern void amiga_to_timeval (struct mytimeval *tv, int days, int mins, int ticks, int tickcount);
 
 #endif // UAE_ZFILE_H

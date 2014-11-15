@@ -155,7 +155,7 @@ void fsdb_init_file_info(fsdb_file_info *info) {
         struct mytimeval mtv;
         mtv.tv_sec = tv.tv_sec + fs_get_local_time_offset(tv.tv_sec);
         mtv.tv_usec = tv.tv_usec;
-        timeval_to_amiga (&mtv, &info->days, &info->mins, &info->ticks);
+        timeval_to_amiga (&mtv, &info->days, &info->mins, &info->ticks, 50);
         if (g_fsdb_debug) {
             write_log("- initialized date/time from current time\n");
             write_log("- days %d mins %d ticks %d - %lld %d\n",
@@ -485,7 +485,7 @@ static int fsdb_get_file_info(const char *nname, fsdb_file_info *info) {
         }
         else {
             mtv.tv_usec = sub * 10000;
-            timeval_to_amiga(&mtv, &info->days, &info->mins, &info->ticks);
+            timeval_to_amiga(&mtv, &info->days, &info->mins, &info->ticks, 50);
             read_time = 1;
         }
     }
@@ -541,7 +541,7 @@ static int fsdb_get_file_info(const char *nname, fsdb_file_info *info) {
             mytimeval mtv;
             mtv.tv_sec = buf.mtime + fs_get_local_time_offset(buf.mtime);
             mtv.tv_usec = buf.mtime_nsec / 1000;
-            timeval_to_amiga(&mtv, &info->days, &info->mins, &info->ticks);
+            timeval_to_amiga(&mtv, &info->days, &info->mins, &info->ticks, 50);
 
             if (g_fsdb_debug) {
                 write_log("- initialized date/time from file mtime\n");
@@ -610,7 +610,7 @@ int fsdb_set_file_info(const char *nname, fsdb_file_info *info) {
     }
 
     struct mytimeval mtv;
-    amiga_to_timeval(&mtv, info->days, info->mins, info->ticks);
+    amiga_to_timeval(&mtv, info->days, info->mins, info->ticks, 50);
     mtv.tv_sec -= fs_get_local_time_offset(mtv.tv_sec);
     if (g_fsdb_debug) {
         write_log("- days %d mins %d ticks %d - %lld %d\n",
@@ -732,7 +732,7 @@ int fsdb_set_file_info(const char *nname, fsdb_file_info *info) {
 
     if (!error && f != NULL) {
         struct mytimeval mtv;
-        amiga_to_timeval(&mtv, info->days, info->mins, info->ticks);
+        amiga_to_timeval(&mtv, info->days, info->mins, info->ticks, 50);
 
         // FIXME: reentrant?
         time_t secs = mtv.tv_sec;
@@ -804,13 +804,13 @@ bool my_utime(const char *name, struct mytimeval *tv) {
         struct mytimeval mtv;
         mtv.tv_sec = tv.tv_sec + fs_get_local_time_offset(tv.tv_sec);
         mtv.tv_usec = tv.tv_usec;
-        timeval_to_amiga (&mtv, &days, &mins, &ticks);
+        timeval_to_amiga (&mtv, &days, &mins, &ticks, 50);
     }
     else {
         struct mytimeval mtv2;
         mtv2.tv_sec = tv->tv_sec + fs_get_local_time_offset(tv->tv_sec);
         mtv2.tv_usec = tv->tv_usec;
-        timeval_to_amiga(&mtv2, &days, &mins, &ticks);
+        timeval_to_amiga(&mtv2, &days, &mins, &ticks, 50);
     }
 
     if (g_fsdb_debug) {

@@ -182,9 +182,15 @@ void fs_uae_configure_amiga_hardware()
     amiga_set_option("comp_trustlong", "indirect");
     amiga_set_option("comp_trustnaddr", "indirect");
 
+#if 1
+    if (cfg->z3realmapping == 0) {
+        amiga_set_option("z3mapping", "real");
+    }
+#else
     if (cfg->z3realmapping != FS_CONFIG_NONE) {
         amiga_set_int_option("z3realmapping", cfg->z3realmapping);
     }
+#endif
 
     if (g_fs_uae_ntsc_mode) {
         // FIXME: ciiatod on some Amiga models?

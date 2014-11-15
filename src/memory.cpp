@@ -2459,6 +2459,8 @@ void memory_reset (void)
 	}
 #endif
 #ifdef CDTV
+	if (currprefs.cs_cdtvcr)
+		map_banks(&cdtvcr_bank, 0xB8, 1, 0);
 	if (currprefs.cs_cdtvcd)
 		cdtv_check_banks ();
 #endif

@@ -1219,8 +1219,6 @@ void cpuboard_hsync(void)
 	// should be fast enough for now
 	if (is_csmk3() || is_blizzardppc()) {
 		check_ppc_int_lvl();
-		if (ppc_irq_pending)
-			uae_ppc_interrupt(true);
 	}
 }
 

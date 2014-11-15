@@ -347,6 +347,7 @@ extern addrbank gayle_bank;
 extern addrbank gayle2_bank;
 extern addrbank mbres_bank;
 extern addrbank akiko_bank;
+extern addrbank cdtvcr_bank;
 extern addrbank cardmem_bank;
 extern addrbank bogomem_bank;
 extern addrbank z3fastmem_bank;

@@ -409,11 +409,11 @@ static void map_banks(void)
 		regions[i].memory = r->memory;
 	}
 
-	if (impl.in_cpu_thread() == false) {
+	if (impl.in_cpu_thread && impl.in_cpu_thread() == false) {
 		uae_ppc_spinlock_release();
 	}
 	impl.map_memory(regions, map.num_regions);
-	if (impl.in_cpu_thread() == false) {
+	if (impl.in_cpu_thread && impl.in_cpu_thread() == false) {
 		uae_ppc_spinlock_get();
 	}
 

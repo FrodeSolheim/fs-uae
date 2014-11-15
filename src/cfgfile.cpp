@@ -1492,6 +1492,7 @@ void cfgfile_save_options (struct zfile *f, struct uae_prefs *p, int type)
 	cfgfile_dwrite_bool(f, _T("cd32nvram"), p->cs_cd32nvram);
 	cfgfile_dwrite_bool(f, _T("cd32fmv"), p->cs_cd32fmv);
 	cfgfile_dwrite_bool(f, _T("cdtvcd"), p->cs_cdtvcd);
+	cfgfile_dwrite_bool(f, _T("cdtv-cr"), p->cs_cdtvcr);
 	cfgfile_dwrite_bool (f, _T("cdtvram"), p->cs_cdtvram);
 	cfgfile_dwrite (f, _T("cdtvramcard"), _T("%d"), p->cs_cdtvcard);
 	cfgfile_dwrite_str (f, _T("ide"), p->cs_ide == IDE_A600A1200 ? _T("a600/a1200") : (p->cs_ide == IDE_A4000 ? _T("a4000") : _T("none")));
@@ -3680,6 +3681,7 @@ static int cfgfile_parse_hardware (struct uae_prefs *p, const TCHAR *option, TCH
 		|| cfgfile_yesno(option, value, _T("cd32nvram"), &p->cs_cd32nvram)
 		|| cfgfile_yesno(option, value, _T("cd32fmv"), &p->cs_cd32fmv)
 		|| cfgfile_yesno(option, value, _T("cdtvcd"), &p->cs_cdtvcd)
+		|| cfgfile_yesno(option, value, _T("cdtv-cr"), &p->cs_cdtvcr)
 		|| cfgfile_yesno (option, value, _T("cdtvram"), &p->cs_cdtvram)
 		|| cfgfile_yesno (option, value, _T("a1000ram"), &p->cs_a1000ram)
 		|| cfgfile_yesno (option, value, _T("pcmcia"), &p->cs_pcmcia)
@@ -5782,6 +5784,9 @@ static void buildin_default_prefs (struct uae_prefs *p)
 	p->cs_resetwarning = 0;
 	p->cs_ciatodbug = false;
 
+	_tcscpy (p->romextfile, _T(""));
+	_tcscpy (p->romextfile2, _T(""));
+
 	p->prtname[0] = 0;
 	p->sername[0] = 0;
 
@@ -6000,8 +6005,9 @@ static int bip_cdtvcr (struct uae_prefs *p, int config, int compa, int romcheck)
 	roms[2] = -1;
 	if (!configure_rom (p, roms, romcheck))
 		return 0;
-	roms[0] = 107;
-	roms[1] = -1;
+	roms[0] = 108;
+	roms[1] = 107;
+	roms[2] = -1;
 	if (!configure_rom (p, roms, romcheck))
 		return 0;
 	return 1;
@@ -6010,6 +6016,9 @@ static int bip_cdtvcr (struct uae_prefs *p, int config, int compa, int romcheck)
 static int bip_cdtv (struct uae_prefs *p, int config, int compa, int romcheck)
 {
 	int roms[4];
+
+	if (config >= 2)
+		return bip_cdtvcr(p, config - 2, compa, romcheck);
 
 	p->bogomem_size = 0;
 	p->chipmem_size = 0x100000;
@@ -6311,12 +6320,9 @@ int built_in_prefs (struct uae_prefs *p, int model, int config, int compa, int r
 		v = bip_cdtv (p, config, compa, romcheck);
 		break;
 	case 10:
-		v = bip_cdtvcr(p, config, compa, romcheck);
-		break;
-	case 11:
 		v = bip_arcadia (p, config , compa, romcheck);
 		break;
-	case 12:
+	case 11:
 		v = bip_super (p, config, compa, romcheck);
 		break;
 	}

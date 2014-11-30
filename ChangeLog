@@ -1,3 +1,7 @@
+Version 2.5.21dev:
+
+* Added microsoft_x_box_one_pad_11_6_1_0_linux.conf.
+
 Version 2.5.20dev:
 
 * Use qemu-uae for slirp support.

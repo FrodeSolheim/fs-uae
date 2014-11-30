@@ -516,7 +516,6 @@ nodist_libcpuemu_a_SOURCES = \
 	gen/cpuemu_22.cpp \
 	gen/cpuemu_23.cpp \
 	gen/cpuemu_24.cpp \
-	gen/cpuemu_25.cpp \
 	gen/cpuemu_31.cpp \
 	gen/cpuemu_32.cpp \
 	gen/cpuemu_33.cpp \
@@ -1156,8 +1155,6 @@ gen/cpuemu_22.cpp: gen/cpuemu_0.cpp
 gen/cpuemu_23.cpp: gen/cpuemu_0.cpp
 
 gen/cpuemu_24.cpp: gen/cpuemu_0.cpp
-
-gen/cpuemu_25.cpp: gen/cpuemu_0.cpp
 
 gen/cpuemu_31.cpp: gen/cpuemu_0.cpp
 

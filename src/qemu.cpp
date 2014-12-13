@@ -51,6 +51,12 @@ UAE_DLHANDLE uae_qemu_uae_init(void)
 	initialized = true;
 
 	handle = uae_dlopen_plugin(_T("qemu-uae"));
+#ifdef FSUAE
+	// compatibility lookup for older plugin
+	if (!handle) {
+		handle = uae_dlopen_plugin(_T("libqemu-uae"));
+	}
+#endif
 	if (!handle) {
 		gui_message(_T("Error loading qemu-uae plugin\n"));
 		return handle;

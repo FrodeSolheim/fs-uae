@@ -2,6 +2,7 @@
 #include "config.h"
 #endif
 
+#include <fs/base.h>
 #include <fs/log.h>
 #include <uae/uae.h>
 #include "paths.h"
@@ -26,6 +27,29 @@ static GHashTable *provides;
 static const char *lookup_plugin(const char *name)
 {
     fs_log("PLUGIN: Looking up \"%s\"\n", name);
+    gchar *module_name = g_strconcat(name, LT_MODULE_EXT, NULL);
+    char executable_dir[FS_PATH_MAX];
+    fs_get_application_exe_dir(executable_dir, FS_PATH_MAX);
+
+    gchar *path = g_build_filename(executable_dir, module_name, NULL);
+    fs_log("PLUGIN: Checking \"%s\"\n", path);
+    if (g_file_test(path, G_FILE_TEST_EXISTS)) {
+        g_free(module_name);
+        // FIXME: resource leak if called more than once for the same
+        // plugin, should cache the path
+        return (const char*) path;
+    }
+    g_free(path);
+    path = g_build_filename(executable_dir, "..", name, module_name, NULL);
+    fs_log("PLUGIN: Checking \"%s\"\n", path);
+    if (g_file_test(path, G_FILE_TEST_EXISTS)) {
+        g_free(module_name);
+        // FIXME: resource leak, should cache the path
+        return (const char*) path;
+    }
+    g_free(module_name);
+    g_free(path);
+
     void *data = g_hash_table_lookup(provides, name);
     return (const char *) data;
 }

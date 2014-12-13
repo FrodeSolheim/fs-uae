@@ -2,6 +2,7 @@ base-dir
 autom4te.cache
 dist
 /fs-uae
+/fs-uae.rc
 /fs-uae.dat
 /fs-uae-with-dat
 /fs-uae-device-helper

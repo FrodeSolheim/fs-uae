@@ -1,5 +1,0 @@
-all:
-	~/.steam/runtime-sdk/runtime/run.sh make -C ../linux-dist
-
-clean:
-	~/.steam/runtime-sdk/runtime/run.sh make -C ../linux-dist clean

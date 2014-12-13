@@ -64,12 +64,18 @@ UAE_DLHANDLE uae_dlopen_plugin(const TCHAR *name)
 {
 #ifdef FSUAE
 	const TCHAR *path = NULL;
+#if 1
+	if (plugin_lookup) {
+		path = plugin_lookup(name);
+	}
+#else
 	TCHAR lib_name[MAX_DPATH] = {};
 	_tcscat(lib_name, _T("lib"));
 	_tcscat(lib_name, name);
 	if (plugin_lookup) {
 		path = plugin_lookup(lib_name);
 	}
+#endif
 	if (path == NULL or path[0] == _T('\0')) {
 		write_log(_T("DLOPEN: Could not find plugin \"%s\"\n"), name);
 		return NULL;

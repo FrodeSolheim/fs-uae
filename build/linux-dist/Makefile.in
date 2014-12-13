@@ -1,7 +1,0 @@
-version = @PACKAGE_VERSION@
-
-all:
-	python3 build.py $(version)
-
-clean:
-	rm -Rf *-linux-* *-steamos-*

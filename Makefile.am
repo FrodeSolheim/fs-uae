@@ -118,6 +118,15 @@ fs_uae_SOURCES = \
 	src/fs-uae/uae_config.c \
 	src/fs-uae/video.c
 
+
+if WINDOWS
+fs_uae_SOURCES += fs-uae.rc
+.rc.o:
+	windres $^ -o $@
+%.o : %.rc
+	windres $^ -o $@
+endif
+
 fs_uae_LDADD =
 
 fs_uae_device_helper_SOURCES = \
@@ -704,12 +713,6 @@ libpearpc_a_SOURCES = \
 	src/ppc/pearpc/uaeglue.cpp
 endif
 
-if WITH_QEMU_CPU
-# fs_uae_LDADD += qemu/uae/libqemu.a
-# LIBS += -lutil
-# AM_CPPFLAGS += -I$(s)/qemu/uae
-endif
-
 if WITH_PPC
 fs_uae_SOURCES += \
 	src/ppc/ppcd.cpp \
@@ -1077,6 +1080,11 @@ EXTRA_DIST = $(TESTS) $(EXTRA_TESTS) \
 	debian/rules \
 	debian/source \
 	debian/source/format \
+	dist/linux/build.py \
+	dist/linux/standalone.py \
+	dist/windows/clib.py \
+	dist/windows/iscc.py \
+	dist/windows/sign.py \
 	flac/include/FLAC/all.h \
 	flac/include/FLAC/assert.h \
 	flac/include/FLAC/callback.h \
@@ -1087,6 +1095,7 @@ EXTRA_DIST = $(TESTS) $(EXTRA_TESTS) \
 	flac/include/FLAC/stream_decoder.h \
 	flac/include/FLAC/stream_encoder.h \
 	fs-uae.spec \
+	icon/fs-uae.ico \
 	libudis86/README \
 	licenses/fs-uae.txt \
 	licenses/glib.txt \

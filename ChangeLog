@@ -1,6 +1,12 @@
 Version 2.5.21dev:
 
+* Added file version information to fs-uae.exe
+* Updated Windows build/dist system to work with MSYS2.
+* Also check for plugin .dll/.so in executable directory and
+  exedir/../name/name.dll-or-so (useful for development and testing)
 * Added microsoft_x_box_one_pad_11_6_1_0_linux.conf.
+* Added sony_computer_entertainment_wireless_controller_14_10_1_0_linux.conf.
+* Added wireless_controller_14_6_1_0_macosx.conf.
 * Updated emulation core from WinUAE 2900b25.
 
 Version 2.5.20dev:

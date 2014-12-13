@@ -211,6 +211,7 @@ AS_CASE([$target_os],
 [mingw*], [
 	OS_NAME="windows"
 	OS_CPPFLAGS="-DWINDOWS"
+	OS_LDFLAGS="-mwindows"
 	LOADABLE_MODULE_EXT=".dll"
 ],
 [linux*], [
@@ -238,6 +239,8 @@ AS_CASE([$target_os],
 	OS_NAME="unknown"
 	LOADABLE_MODULE_EXT=".unknown"
 ])
+
+AM_CONDITIONAL([WINDOWS], [test x$OS_NAME = xwindows])
 
 # Not using libtool right now, but use name LT_MODULE_EXT anyway in case
 # transitioning to libtool later.
@@ -605,12 +608,13 @@ AC_CONFIG_SUBDIRS([libmpeg2])
 # Write Makefile
 
 AC_CONFIG_FILES([
-    build/linux-dist/Makefile
-    build/steamos-dist/Makefile
+    dist/linux/Makefile
+    dist/steamos/Makefile
+    dist/windows/fs-uae.iss
+    dist/windows/Makefile
+    fs-uae.rc
     macosx/Info.plist
     macosx/Makefile
     Makefile
-    windows/fs-uae.iss
-    windows/Makefile
 ])
 AC_OUTPUT

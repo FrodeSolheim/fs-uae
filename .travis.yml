@@ -1,6 +1,6 @@
 language: cpp
 compiler:
-  - clang
+  #  - clang
   - gcc
 before_install:
  - echo "yes" | sudo apt-add-repository ppa:zoogie/sdl2-snapshots

@@ -1,0 +1,5 @@
+all:
+	/usr/local/i686-linux-steamos/bin/run make -C ../linux
+
+clean:
+	/usr/local/i686-linux-steamos/bin/run make -C ../linux clean

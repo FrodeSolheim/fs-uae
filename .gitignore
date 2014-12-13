@@ -1,6 +1,5 @@
 base-dir
 autom4te.cache
-dist
 /fs-uae
 /fs-uae.rc
 /fs-uae.dat
@@ -23,9 +22,9 @@ dist
 /scan-build
 libcapsimage.dylib
 libfs-capsimage.dylib
-/fs-uae-[0-9]*
-/fs-uae_[0-9]*
-/fs-uae-dbg-[0-9]*
+fs-uae-[0-9]*
+fs-uae_[0-9]*
+fs-uae-dbg-[0-9]*
 *.autosave
 *.tar.gz
 *.tar.xz
@@ -160,3 +159,8 @@ libmpeg2/test/Makefile
 libmpeg2/test/Makefile.in
 libmpeg2/vc++/Makefile
 libmpeg2/vc++/Makefile.in
+
+dist/linux/Makefile
+dist/steamos/Makefile
+dist/windows/Makefile
+dist/windows/fs-uae.iss

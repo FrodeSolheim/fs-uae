@@ -2143,6 +2143,8 @@ addrbank *gfxboard_init_memory (void)
 		fetch_rompath (path, sizeof path / sizeof (TCHAR));
 
 #ifdef FSUAE
+		// FIXME: This can possibly be removed now due to
+		// currprefs.picassoivromfile having been added below
 		if (currprefs.fs_graphics_card_rom_file) {
 			p4rom = read_rom_name(currprefs.fs_graphics_card_rom_file);
 			if (p4rom) {
@@ -2150,7 +2152,11 @@ addrbank *gfxboard_init_memory (void)
 			}
 		}
 #endif
-		if (rl) {
+		p4rom = NULL;
+		if (currprefs.picassoivromfile[0])
+			p4rom = read_rom_name(currprefs.picassoivromfile);
+
+		if (!p4rom && rl) {
 			p4rom = read_rom (rl->rd);
 		}
 		if (!p4rom) {

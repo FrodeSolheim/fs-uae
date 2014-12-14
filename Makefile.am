@@ -87,6 +87,8 @@ noinst_LIBRARIES =
 BUILT_SOURCES = \
 	gen/linetoscr.cpp
 
+nodist_fs_uae_SOURCES =
+
 fs_uae_SOURCES = \
 	src/fs-uae/config.c \
 	src/fs-uae/config-accelerator.c \
@@ -120,7 +122,7 @@ fs_uae_SOURCES = \
 
 
 if WINDOWS
-fs_uae_SOURCES += src/fs-uae/fs-uae.rc
+nodist_fs_uae_SOURCES += src/fs-uae/fs-uae.rc
 .rc.o:
 	windres $< -o $@
 %.o : %.rc
@@ -1112,6 +1114,7 @@ EXTRA_DIST = $(TESTS) $(EXTRA_TESTS) \
 	licenses/zlib.txt \
 	po \
 	src/filesys_bootrom.cpp \
+	src/fs-uae/fs-uae.rc.in \
 	src/inputevents.def \
 	src/jit/compemu_optimizer_x86.cpp \
 	src/jit/compemu_raw_x86.cpp \

@@ -36,7 +36,6 @@ core
 /desktop/
 .dirstamp
 /dist/linux/Makefile
-/dist/macosx/fs-uae*
 /dist/macosx/Info.plist
 /dist/macosx/Makefile
 /dist/steamos/Makefile

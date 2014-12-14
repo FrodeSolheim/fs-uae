@@ -120,11 +120,11 @@ fs_uae_SOURCES = \
 
 
 if WINDOWS
-fs_uae_SOURCES += fs-uae.rc
+fs_uae_SOURCES += src/fs-uae/fs-uae.rc
 .rc.o:
-	windres $^ -o $@
+	windres $< -o $@
 %.o : %.rc
-	windres $^ -o $@
+	windres $< -o $@
 endif
 
 fs_uae_LDADD =
@@ -1082,6 +1082,10 @@ EXTRA_DIST = $(TESTS) $(EXTRA_TESTS) \
 	debian/source/format \
 	dist/linux/build.py \
 	dist/linux/standalone.py \
+	dist/macosx/fs-uae-config.icns \
+	dist/macosx/fs-uae.icns \
+	dist/macosx/PkgInfo \
+	dist/macosx/standalone.py \
 	dist/windows/clib.py \
 	dist/windows/iscc.py \
 	dist/windows/sign.py \
@@ -1106,10 +1110,6 @@ EXTRA_DIST = $(TESTS) $(EXTRA_TESTS) \
 	licenses/libstdc++.txt \
 	licenses/lua.txt \
 	licenses/zlib.txt \
-	macosx/fs-uae-config.icns \
-	macosx/fs-uae.icns \
-	macosx/PkgInfo \
-	macosx/standalone.py \
 	po \
 	src/filesys_bootrom.cpp \
 	src/inputevents.def \

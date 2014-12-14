@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.67])
-AC_INIT([FS-UAE], [2.5.20dev],
+AC_INIT([FS-UAE], [2.5.21dev],
         [frode@fs-uae.net], [fs-uae], [http://fs-uae.net])
 AC_CONFIG_AUX_DIR([.])
 AC_CANONICAL_SYSTEM
@@ -609,12 +609,12 @@ AC_CONFIG_SUBDIRS([libmpeg2])
 
 AC_CONFIG_FILES([
     dist/linux/Makefile
+    dist/macosx/Info.plist
+    dist/macosx/Makefile
     dist/steamos/Makefile
     dist/windows/fs-uae.iss
     dist/windows/Makefile
-    fs-uae.rc
-    macosx/Info.plist
-    macosx/Makefile
+    src/fs-uae/fs-uae.rc
     Makefile
 ])
 AC_OUTPUT

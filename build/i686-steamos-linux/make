@@ -1,2 +1,0 @@
-#!/bin/sh -e
-~/.steam/runtime-sdk/shell-i386.sh make "$@"

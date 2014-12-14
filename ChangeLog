@@ -1,3 +1,7 @@
+Version 2.5.22dev:
+
+* Updated emulation core from WinUAE 3000b27.
+
 Version 2.5.21dev:
 
 * Added file version information to fs-uae.exe

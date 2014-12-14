@@ -104,6 +104,7 @@ typedef enum {
 	NUMSG_KICKREPNO,
 	NUMSG_KS68030PLUS, // 20
 	NUMSG_NO_PPC,
+	NUMSG_UAEBOOTROM_PPC,
 	NUMSG_LAST
 } notify_user_msg;
 

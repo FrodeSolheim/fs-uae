@@ -33,8 +33,8 @@ else:
 #    arch = "i386"
 
 version = sys.argv[1]
-package_name = "fs-uae-{0}-{1}-{2}".format(version, os_name, arch)
-package_dir = "../{1}/fs-uae-{0}-{1}-{2}".format(version, os_name, arch)
+package_name = "fs-uae_{0}_{1}_{2}".format(version, os_name, arch)
+package_dir = "../{1}/fs-uae_{0}_{1}_{2}".format(version, os_name, arch)
 #dbg_package_dir = "fs-uae-dbg-{0}-{1}-{2}".format(version, os_name, arch)
 
 
@@ -89,7 +89,7 @@ s("cp -a ../../fs-uae-device-helper {package_dir}/fs-uae-device-helper.bin")
 s("cp -a ../../share {package_dir}/share")
 s("cp -a ../../licenses {package_dir}/licenses")
 s("cp -a ../../README {package_dir}/fs-uae.txt")
-s("python3 standalone.py {package_dir}")
+s("./standalone.py {package_dir}")
 s("strip {package_dir}/*.bin")
 s("strip {package_dir}/*.so.* || true")
 

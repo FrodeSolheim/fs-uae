@@ -986,11 +986,11 @@ STATIC_INLINE void fill_line_16 (uae_u8 *buf, int start, int stop, bool blank)
 	unsigned int i;
 	unsigned int rem = 0;
 	xcolnr col = getbgc (blank);
-	if (((long)&b[start]) & 1)
+	if (((uintptr_t)&b[start]) & 1)
 		b[start++] = (uae_u16) col;
 	if (start >= stop)
 		return;
-	if (((long)&b[stop]) & 1) {
+	if (((uintptr_t)&b[stop]) & 1) {
 		rem++;
 		stop--;
 	}

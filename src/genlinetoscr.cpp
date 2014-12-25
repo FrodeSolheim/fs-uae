@@ -319,7 +319,7 @@ static void out_linetoscr_mode (DEPTH_T bpp, HMODE_T hmode, int aga, int spr, CM
 
 	if (bpp == DEPTH_16BPP && hmode != HMODE_DOUBLE && hmode != HMODE_DOUBLE2X && spr == 0) {
 		outln (		"int rem;");
-		outln (		"if (((long)&buf[dpix]) & 2) {");
+		outln (		"if (((uintptr_t)&buf[dpix]) & 2) {");
 		outln (		"    uae_u32 spix_val;");
 		outln (		"    uae_u32 dpix_val;");
 
@@ -331,7 +331,7 @@ static void out_linetoscr_mode (DEPTH_T bpp, HMODE_T hmode, int aga, int spr, CM
 		outln (		"}");
 		outln (		"if (dpix >= dpix_end)");
 		outln (		"    return spix;");
-		outln (		"rem = (((long)&buf[dpix_end]) & 2);");
+		outln (		"rem = (((uintptr_t)&buf[dpix_end]) & 2);");
 		outln (		"if (rem)");
 		outln (		"    dpix_end--;");
 	}

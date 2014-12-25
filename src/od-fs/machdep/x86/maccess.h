@@ -143,7 +143,7 @@ STATIC_INLINE void byteput_1 (uae_cptr addr, uae_u32 b)
 
 #endif
 
-#define ALIGN_POINTER_TO32(p) ((~(unsigned long)(p)) & 3)
+#define ALIGN_POINTER_TO32(p) ((~(uintptr_t)(p)) & 3)
 
 /* Not the best place for this, but then there's no good place for a kludge
  * like this... */

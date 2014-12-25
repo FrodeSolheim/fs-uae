@@ -127,7 +127,7 @@ extern FILE *g_fs_uae_sync_debug_file;
 #define INVALID_SOCKET -1
 #endif
 #ifdef WINDOWS
-typedef unsigned int SOCKET;
+typedef uintptr_t SOCKET;
 #else
 typedef int SOCKET;
 #endif

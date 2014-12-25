@@ -581,13 +581,13 @@ static void display_screen()
     }
 #endif
     fs_emu_video_buffer_set_current(g_buffer);
-    if (roundl(g_last_refresh_rate) == -1) {
-        if (roundl(fs_emu_get_video_frame_rate()) != TURBO_FRAME_RATE) {
+    if (round(g_last_refresh_rate) == -1) {
+        if (round(fs_emu_get_video_frame_rate()) != TURBO_FRAME_RATE) {
             fs_emu_notification(45194412, _("Warp mode enabled"));
         }
         fs_emu_set_video_frame_rate(TURBO_FRAME_RATE);
     } else {
-        if (roundl(fs_emu_get_video_frame_rate()) == TURBO_FRAME_RATE) {
+        if (round(fs_emu_get_video_frame_rate()) == TURBO_FRAME_RATE) {
             fs_emu_notification(45194412, _("Warp mode disabled"));
         }
         fs_emu_set_video_frame_rate(g_last_refresh_rate);

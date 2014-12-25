@@ -112,7 +112,7 @@ void fs_emu_set_video_frame_rate(double frame_rate) {
     last_frame_rate = frame_rate;
     last_frame_rate_host = g_fs_emu_video_frame_rate_host;
 
-    int frame_rate_i = roundl(frame_rate);
+    int frame_rate_i = round(frame_rate);
     fs_log("fs_emu_set_video_frame_rate: %0.2f (%d)\n",
            frame_rate, frame_rate_i);
     g_video_frame_rate = frame_rate;

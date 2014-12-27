@@ -2,10 +2,10 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.67])
-AC_INIT([FS-UAE], [2.5.22dev],
+AC_INIT([FS-UAE], [2.5.23],
         [frode@fs-uae.net], [fs-uae], [http://fs-uae.net])
 AC_CONFIG_AUX_DIR([.])
-AC_CANONICAL_SYSTEM
+AC_CANONICAL_HOST
 AC_CONFIG_SRCDIR([src/main.cpp])
 AC_CONFIG_HEADERS([config.h])
 # AC_CONFIG_MACRO_DIRS([m4])
@@ -13,7 +13,7 @@ AM_INIT_AUTOMAKE([tar-ustar subdir-objects])
 
 AC_SUBST([PACKAGE_SERIES], [devel])
 
-AC_DEFINE_UNQUOTED([UAE_BASE_VERSION], ["WinUAE 3000b28"],
+AC_DEFINE_UNQUOTED([UAE_BASE_VERSION], ["WinUAE 3000"],
 [Which UAE core this version is based on.])
 
 PACKAGE_MAJOR=`echo ${PACKAGE_VERSION} | sed -e 's,\(\.*\)\..*\..*,\1,g'`
@@ -79,7 +79,7 @@ AC_SYS_LARGEFILE
 # Checks for libraries.
 
 AC_SUBST([CARBON_LIBS])
-AS_CASE([$target_os],
+AS_CASE([$host_os],
 [darwin*], [
 	AC_MSG_NOTICE([Using Carbon.framework])
 	CARBON_LIBS="-framework Carbon"
@@ -107,16 +107,17 @@ AM_CONDITIONAL([BUILTIN_LIBMPEG2], [true])
 
 AM_CONDITIONAL([BUILTIN_MANYMOUSE], [true])
 
-# The built-in Lua has been sandboxed
-# AC_DEFINE([USE_LUA], [1], [Define to 1 to use LUA])
+# The built-in Lua has been sandboxed, which is why we do not
+# want to pick up the system lua, if present.
+
 AC_SUBST([LUA_CFLAGS])
-AS_CASE([$target_os],
+AS_CASE([$host_os],
 	[mingw*], [],
 	[LUA_CFLAGS="-DLUA_USE_POSIX"]
 )
 
 AC_SUBST([IOKIT_LIBS])
-AS_CASE([$target_os],
+AS_CASE([$host_os],
 [darwin*], [
 	AC_MSG_NOTICE([Using IOKit.framework])
 	IOKIT_LIBS="-framework IOKit"
@@ -136,7 +137,7 @@ PKG_CHECK_MODULES([MIR], [mirclient], [
 AC_DEFINE([USE_OPENAL], [1], [Define to 1 to use OpenAL])
 PKG_CHECK_MODULES([OPENAL], [openal], [
 ], [
-	AS_CASE([$target_os],
+        AS_CASE([$host_os],
 	[darwin*], [
 		AC_MSG_NOTICE([Using OpenAL.framework])
 		#OPENAL_CFLAGS="-I/System/Library/Frameworks/OpenAL.framework/Headers"
@@ -157,7 +158,7 @@ PKG_CHECK_MODULES([OPENAL], [openal], [
 AC_DEFINE([USE_OPENGL], [1], [Define to 1 to use OpenGL])
 PKG_CHECK_MODULES([OPENGL], [gl glu], [
 ], [
-	AS_CASE([$target_os],
+        AS_CASE([$host_os],
 	[darwin*], [
 		AC_MSG_NOTICE([Using OpenGL.framework])
 		OPENGL_LIBS="-framework OpenGL"
@@ -181,7 +182,7 @@ PKG_CHECK_MODULES([SDL2], [sdl2])
 AC_DEFINE([USE_SDL_VIDEO], [1], [Define to 1 to use SDL for video])
 AC_DEFINE([USE_SDL_INPUT], [1], [Define to 1 to use SDL for input])
 
-AS_CASE([$target_os],
+AS_CASE([$host_os],
 [mingw*], [],
 [darwin*], [],
 [
@@ -207,7 +208,7 @@ AC_CHECK_LIB([Ws2_32], [main])
 
 AC_SUBST([OS_CPPFLAGS])
 AC_SUBST([OS_LDFLAGS])
-AS_CASE([$target_os],
+AS_CASE([$host_os],
 [mingw*], [
 	OS_NAME="windows"
 	OS_CPPFLAGS="-DWINDOWS"
@@ -425,7 +426,7 @@ AC_CHECK_DECLS([CLOCK_MONOTONIC], [], [], [#include <time.h>])
 
 # Check for POSIX support.
 
-AS_CASE([$target_os],
+AS_CASE([$host_os],
 	[mingw*], [],
 	[
 		AC_DEFINE([POSIX_SERIAL], [1],
@@ -618,3 +619,22 @@ AC_CONFIG_FILES([
     Makefile
 ])
 AC_OUTPUT
+
+
+# Summary
+
+echo ""
+echo "Configuration summary for FS-UAE:"
+echo ""
+echo "  Building for OS:   $host_os"
+echo "  Building for CPU:  $host_cpu"
+echo "  Using OS name:     $OS_NAME"
+echo "  Module extension:  $LOADABLE_MODULE_EXT"
+echo ""
+echo "  OPENAL_CFLAGS:     $OPENAL_CFLAGS"
+echo "  OPENAL_LIBS:       $OPENAL_LIBS"
+echo "  OPENGL_CFLAGS:     $OPENGL_CFLAGS"
+echo "  OPENGL_LIBS:       $OPENGL_LIBS"
+echo "  OS_CPPFLAGS:       $OS_CPPFLAGS"
+echo "  OS_LDFLAGS:        $OS_LDFLAGS"
+echo ""

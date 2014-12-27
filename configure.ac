@@ -284,6 +284,10 @@ case $host_cpu in
        HOST_CPU=ppc
        MDFPP_H=fpp-ieee.h
        ;;
+     powerpc64*)
+       HOST_CPU=ppc64
+       MDFPP_H=fpp-ieee.h
+       ;;
      m68k | m680[246]0)
        HOST_CPU=68k
        MDFPP_H=fpp-ieee.h

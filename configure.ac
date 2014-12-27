@@ -251,6 +251,180 @@ AC_DEFINE_UNQUOTED([OS_NAME], ["$OS_NAME"],
 [Define to a name identifier for the operating system, "linux".])
 
 
+dnl -----------------------------------------------
+dnl CPU Specifics?
+dnl -----------------------------------------------
+
+dnl
+dnl CPU info
+dnl
+
+dnl
+dnl  Find out what CPU arch to build for
+dnl
+AC_MSG_CHECKING([host cpu support])
+
+dnl default is to use no CPU-specific features
+HOST_CPU=generic
+MDFPP_H=fpp-unknown.h
+
+dnl quick hack for arm
+have_armcpu=no
+
+case $host_cpu in
+     i[[3-7]]86)
+       HOST_CPU=i386
+       MDFPP_H=fpp-ieee.h
+       ;;
+     amd64 | x86_64)
+       HOST_CPU=amd64
+       MDFPP_H=fpp-ieee.h
+       ;;
+     powerpc*)
+       HOST_CPU=ppc
+       MDFPP_H=fpp-ieee.h
+       ;;
+     m68k | m680[246]0)
+       HOST_CPU=68k
+       MDFPP_H=fpp-ieee.h
+       ;;
+     arm*)
+       HOST_CPU=generic
+       MDFPP_H=fpp-unknown.h
+       have_armcpu=yes
+       ;;
+esac
+
+AC_MSG_RESULT([$HOST_CPU])
+MACHDEP="md-$HOST_CPU"
+
+dnl -- ppc
+if [[ "$HOST_CPU = 'ppc*'" ]]; then 
+AC_DEFINE_UNQUOTED(PPC_CPU, $host_cpu, [PPC CPU])
+
+dnl
+dnl 64 or 32 bit
+dnl 
+dnl
+is_64bit=no
+AC_MSG_CHECKING([whether CPU is 64bit])
+if [[ "$HOST_CPU" = ppc64 ]]; then
+is_64bit=yes
+AC_DEFINE(HAVE_PPC64,1,[CPU is PPC64])
+AC_DEFINE(ICACHE_SIZE,64,[CPU ICACHE_SIZE 64])
+AC_DEFINE(DCACHE_SIZE,64,[CPU DCACHE_SIZE 64])
+fi
+AC_MSG_RESULT([$is_64bit])
+
+is_32bit=no
+AC_MSG_CHECKING([whether CPU is 32bit])
+if [[ "$HOST_CPU" = ppc ]]; then
+is_32bit=yes
+AC_DEFINE(HAVE_PPC32,1,[CPU is PPC32])
+AC_DEFINE(ICACHE_SIZE,32,[CPU ICACHE_SIZE 32])
+AC_DEFINE(DCACHE_SIZE,32,[CPU DCACHE_SIZE 32])
+fi
+AC_MSG_RESULT([$is_32bit])
+
+have_g4=no
+have_g5=no
+have_altivec=no
+have_440ep=no
+have_460ex=no
+
+dnl -- macos
+if [[ "x$OS_NAME" = "xmacosx" ]]; then
+
+AC_MSG_CHECKING([host cpu Altivec support])
+CPUFLAGS=`sysctl -a hw | grep hw.optional.altivec: | awk '{print $2}'`
+if test "$CPUFLAGS" = "1"; then
+have_altivec=yes
+CPUCFLAG="-maltivec"
+AC_DEFINE(HAVE_ALTIVEC,1,[CPU supports Altivec])
+fi
+AC_MSG_RESULT([$have_altivec])
+
+fi 
+dnl -- macos
+
+dnl -- linux
+if [[ "x$OS_NAME" = "xlinux" ]]; then
+_cpuinfo="cat /proc/cpuinfo"
+proc=$($_cpuinfo | grep 'cpu' | cut -d ':' -f 2 | cut -d ',' -f 1 | cut -b 2- | head -n 1)
+AC_MSG_CHECKING([host cpu Altivec(tm) support])
+    if test -n "$($_cpuinfo | grep altivec)"; then
+      _altivec=yes
+    fi
+    if test "$_altivec" = yes; then
+AC_MSG_RESULT([$proc altivec])
+CPUCFLAG="-maltivec -mabi=altivec"
+    else
+        _altivec=no
+AC_MSG_RESULT([$proc"])
+    fi
+
+
+AC_MSG_CHECKING([host cpu is ])
+
+    if test -n "$proc"; then
+        case "$proc" in
+            601) _march='-mcpu=601' _mcpu='-mtune=601' ;;
+            603) _march='-mcpu=603' _mcpu='-mtune=603' ;;
+            603e|603ev) _march='-mcpu=603e' _mcpu='-mtune=603e' ;;
+            604|604e|604r|604ev) _march='-mcpu=604' _mcpu='-mtune=604' ;;
+            740|740/750|745/755) _march='-mcpu=740' _mcpu='-mtune=740' ;;
+            750|750CX) _march='-mcpu=750' _mcpu='-mtune=750' ;;
+            POWER)  _march='-mcpu=power'  _mcpu='-mtune=power'  ;;
+            POWER2) _march='-mcpu=power2' _mcpu='-mtune=power2' ;;
+            POWER3) _march='-mcpu=power3' _mcpu='-mtune=power3' ;;
+            7400*|7410*) _march='-mcpu=7400' _mcpu='-mtune=7400' have_g4='yes' ;;
+            7447*|7450*|7455*) _march='-mcpu=7450' _mcpu='-mtune=7450' have_g4='yes' ;;
+            970*|PPC970*) _march='-mcpu=970' _mcpu='-mtune=970' have_g5='yes' ;;
+            POWER4) _march='-mcpu=power4' _mcpu='-mtune=power4' have_g4='yes' ;;
+            POWER5*) _march='-mcpu=power5' _mcpu='-mtune=power5' have_g5='yes' ;;
+			POWER6*) _march='-mcpu=power6' _mcpu='-mtune=power6' ;;
+			POWER7*) _march='-mcpu=power7' _mcpu='-mtune=power7' ;;
+			POWER8*) _march='-mcpu=power8' _mcpu='-mtune=power8' ;;
+            440EP*) _march='-mcpu=440fp' _mcpu='-mtune=440fp' have_440ep='yes'
+ 				AC_DEFINE_UNQUOTED(AMCC_CPU, "$host_cpu"-amcc-440ep, [AMCC PPC CPU])
+				;;
+            440G* ) _march='-mcpu=440'   _mcpu='-mtune=440' have_440ep='yes'
+  				AC_DEFINE_UNQUOTED(AMCC_CPU, "$host_cpu"-amcc-440g, [AMCC PPC CPU])
+				;;
+            460EX*) _march='-mcpu=440fp' _mcpu='-mtune=440fp'
+				AC_DEFINE_UNQUOTED(AMCC_CPU, "$host_cpu"-amcc-460ex, [AMCC PPC CPU])
+				;;
+			PA6T*) _march='-mcpu=pa6t' _mcpu='-mtune=pa6t' ;;
+            CELL*) _march='-mcpu=cell' _mcpu='-mtune=cell' ;;
+            *) ;;
+        esac
+	fi
+
+
+    if test -n "$_mcpu"; then
+        _optimizing=$(echo $_mcpu | cut -c 8-)
+AC_MSG_RESULT(["$_optimizing"])
+    else
+AC_MSG_RESULT(["none"])
+    fi
+
+CPUCFLAG="$_march $_mcpu $CPUCFLAG"
+
+dnl -- linux
+fi
+
+dnl -- ppc
+cp confdefs.h src/include/config.h
+fi
+
+
+CFLAGS+=" $CPUCFLAG"
+CXXFLAGS+=" $CPUCFLAG"
+CPPFLAGS+=" $CPUCFLAG"
+
+dnl detect cpu
+
+
 # Checks for header files.
 
 AC_CHECK_HEADERS([AL/al.h])

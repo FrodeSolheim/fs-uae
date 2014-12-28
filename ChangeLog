@@ -1,5 +1,7 @@
 Version 2.5.23dev:
 
+* Fixed loading of Picasso IV ROM when using graphics_card_rom_option.
+* Read plugins from [prefix]/lib/fs-uae/plugins too.
 * Updated emulation core from WinUAE 3000.
 
 Version 2.5.22dev:

@@ -124,7 +124,7 @@ void fs_uae_configure_graphics_card(amiga_config *c)
     if (path) {
         path = fs_uae_expand_path_and_free(path);
         path = fs_uae_resolve_path_and_free(path, FS_UAE_ROM_PATHS);
-        amiga_set_option("fs_graphics_card_rom_file", path);
+        amiga_set_option("picassoiv_rom_file", path);
         g_free(path);
     }
 }

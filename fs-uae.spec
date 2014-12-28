@@ -1,5 +1,5 @@
 Name: fs-uae
-Version: 2.5.22dev
+Version: 2.5.22dev5
 Release: 1%{?dist}
 Summary: Amiga emulator with on-screen GUI and online play support
 License: GPL-2.0+

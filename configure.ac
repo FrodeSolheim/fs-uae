@@ -301,7 +301,7 @@ AC_MSG_RESULT([$HOST_CPU])
 MACHDEP="md-$HOST_CPU"
 
 dnl ppc
-if [[ "$HOST_CPU = 'ppc*'" ]]; then 
+if [[ "$HOST_CPU" = 'ppc' -o "$HOST_CPU" = 'ppc64' ]]; then 
 AC_DEFINE_UNQUOTED(PPC_CPU, $host_cpu, [PPC CPU])
 
 dnl

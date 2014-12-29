@@ -253,12 +253,9 @@ AC_DEFINE_UNQUOTED([OS_NAME], ["$OS_NAME"],
 
 
 dnl -----------------------------------------------
-dnl CPU Specifics?
+dnl CPU Specifics
 dnl -----------------------------------------------
 
-dnl
-dnl CPU info
-dnl
 
 dnl
 dnl  Find out what CPU arch to build for
@@ -303,24 +300,25 @@ esac
 AC_MSG_RESULT([$HOST_CPU])
 MACHDEP="md-$HOST_CPU"
 
-dnl -- ppc
+dnl ppc
 if [[ "$HOST_CPU = 'ppc*'" ]]; then 
 AC_DEFINE_UNQUOTED(PPC_CPU, $host_cpu, [PPC CPU])
 
 dnl
-dnl 64 or 32 bit
-dnl 
+dnl  Do we want local cpu optimization
 dnl
-is_64bit=no
-AC_MSG_CHECKING([whether CPU is 64bit])
-if [[ "$HOST_CPU" = ppc64 ]]; then
-is_64bit=yes
-AC_DEFINE(HAVE_PPC64,1,[CPU is PPC64])
-AC_DEFINE(ICACHE_SIZE,64,[CPU ICACHE_SIZE 64])
-AC_DEFINE(DCACHE_SIZE,64,[CPU DCACHE_SIZE 64])
-fi
-AC_MSG_RESULT([$is_64bit])
 
+AC_ARG_ENABLE([optimization], [AS_HELP_STRING([--disable-optimization],
+        [Disable local CPU specific optimization  @<:@default=no@:>@])
+    ], [disable_optimization=yes], [disable_optimization=no])
+
+AC_MSG_CHECKING([whether to build with cpu specific optimization])
+AS_IF([test "x$disable_optimization" != xyes], [
+AC_MSG_RESULT(yes)
+
+dnl
+dnl 32 or 64 bit
+dnl 
 is_32bit=no
 AC_MSG_CHECKING([whether CPU is 32bit])
 if [[ "$HOST_CPU" = ppc ]]; then
@@ -330,6 +328,16 @@ AC_DEFINE(ICACHE_SIZE,32,[CPU ICACHE_SIZE 32])
 AC_DEFINE(DCACHE_SIZE,32,[CPU DCACHE_SIZE 32])
 fi
 AC_MSG_RESULT([$is_32bit])
+
+is_64bit=no
+AC_MSG_CHECKING([whether CPU is 64bit])
+if [[ "$HOST_CPU" = ppc64 ]]; then
+is_64bit=yes
+AC_DEFINE(HAVE_PPC64,1,[CPU is PPC64])
+AC_DEFINE(ICACHE_SIZE,64,[CPU ICACHE_SIZE 64])
+AC_DEFINE(DCACHE_SIZE,64,[CPU DCACHE_SIZE 64])
+fi
+AC_MSG_RESULT([$is_64bit])
 
 have_g4=no
 have_g5=no
@@ -399,8 +407,8 @@ AC_MSG_CHECKING([host cpu is ])
             460EX*) _march='-mcpu=440fp' _mcpu='-mtune=440fp'
 				AC_DEFINE_UNQUOTED(AMCC_CPU, "$host_cpu"-amcc-460ex, [AMCC PPC CPU])
 				;;
-			PA6T*) _march='-mcpu=pa6t' _mcpu='-mtune=pa6t' ;;
             CELL*) _march='-mcpu=cell' _mcpu='-mtune=cell' ;;
+			PA6T*) _march='-mcpu=pa6t' _mcpu='-mtune=pa6t' ;;
             *) ;;
         esac
 	fi
@@ -415,19 +423,23 @@ AC_MSG_RESULT(["none"])
 
 CPUCFLAG="$_march $_mcpu $CPUCFLAG"
 
+fi
 dnl -- linux
-fi
 
-dnl -- ppc
 cp confdefs.h src/include/config.h
-fi
-
 
 CFLAGS+=" $CPUCFLAG"
 CXXFLAGS+=" $CPUCFLAG"
 CPPFLAGS+=" $CPUCFLAG"
 
-dnl detect cpu
+elif test "x$disable_optimization" != xno; then
+AC_MSG_RESULT(no)
+fi
+], [])
+
+dnl -- Do we want local cpu optimazions
+
+dnl -- ppc
 
 
 # Checks for header files.
@@ -614,6 +626,7 @@ AS_CASE([$host_os],
 #AC_CHECK_FUNC(ioctl, [
 #	AC_DEFINE(POSIX_SERIAL)
 #])
+
 
 
 # JIT support

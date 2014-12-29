@@ -264,7 +264,6 @@ AC_MSG_CHECKING([host cpu support])
 
 dnl default is to use no CPU-specific features
 HOST_CPU=generic
-MDFPP_H=fpp-unknown.h
 
 dnl quick hack for arm
 have_armcpu=no
@@ -272,27 +271,21 @@ have_armcpu=no
 case $host_cpu in
      i[[3-7]]86)
        HOST_CPU=i386
-       MDFPP_H=fpp-ieee.h
        ;;
      amd64 | x86_64)
        HOST_CPU=amd64
-       MDFPP_H=fpp-ieee.h
        ;;
      powerpc*)
        HOST_CPU=ppc
-       MDFPP_H=fpp-ieee.h
        ;;
      powerpc64*)
        HOST_CPU=ppc64
-       MDFPP_H=fpp-ieee.h
        ;;
      m68k | m680[246]0)
        HOST_CPU=68k
-       MDFPP_H=fpp-ieee.h
        ;;
      arm*)
-       HOST_CPU=generic
-       MDFPP_H=fpp-unknown.h
+       HOST_CPU=arm
        have_armcpu=yes
        ;;
 esac
@@ -432,13 +425,13 @@ CFLAGS+=" $CPUCFLAG"
 CXXFLAGS+=" $CPUCFLAG"
 CPPFLAGS+=" $CPUCFLAG"
 
-elif test "x$disable_optimization" != xno; then
+    ], [test "x$disable_optimization" != xno], [
 AC_MSG_RESULT(no)
-fi
 ], [])
 
 dnl -- Do we want local cpu optimazions
 
+fi
 dnl -- ppc
 
 
@@ -626,7 +619,6 @@ AS_CASE([$host_os],
 #AC_CHECK_FUNC(ioctl, [
 #	AC_DEFINE(POSIX_SERIAL)
 #])
-
 
 
 # JIT support

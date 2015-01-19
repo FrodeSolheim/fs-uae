@@ -1,3 +1,7 @@
+Version 2.5.25dev:
+
+* Added several joystick configs [johanpalmqvist].
+
 Version 2.5.23dev:
 
 * Fixed loading of Picasso IV ROM when using graphics_card_rom_option.

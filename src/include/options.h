@@ -16,7 +16,7 @@
 #endif
 
 #define UAEMAJOR 3
-#define UAEMINOR 0
+#define UAEMINOR 1
 #define UAESUBREV 0
 
 typedef enum { KBD_LANG_US, KBD_LANG_DK, KBD_LANG_DE, KBD_LANG_SE, KBD_LANG_FR, KBD_LANG_IT, KBD_LANG_ES } KbdLang;
@@ -435,6 +435,10 @@ struct uae_prefs {
 	int filesys_limit;
 	int filesys_max_name;
 	int filesys_max_file_size;
+	bool filesys_inject_icons;
+	TCHAR filesys_inject_icons_tool[MAX_DPATH];
+	TCHAR filesys_inject_icons_project[MAX_DPATH];
+	TCHAR filesys_inject_icons_drawer[MAX_DPATH];
 	int uaescsidevmode;
 	bool reset_delay;
 
@@ -479,6 +483,7 @@ struct uae_prefs {
 	struct boardromconfig a4091rom;
 	struct boardromconfig fastlanerom;
 	struct boardromconfig oktagonrom;
+	struct boardromconfig gvprom;
 
 	TCHAR romfile[MAX_DPATH];
 	TCHAR romident[256];
@@ -559,6 +564,7 @@ struct uae_prefs {
 	bool native_code;
 	bool uae_hide_autoconfig;
 	int z3_mapping_mode;
+	bool sound_toccata;
 
 	int mountitems;
 	struct uaedev_config_data mountconfig[MOUNT_CONFIG_SIZE];

@@ -62,6 +62,15 @@
 #define A_FIBF_EXECUTE (1<<1)
 #define A_FIBF_DELETE  (1<<0)
 
+struct virtualfilesysobject
+{
+	int dir;
+	TCHAR *comment;
+	uae_u32 amigaos_mode;
+	uae_u8 *data;
+	int size;
+};
+
 /* AmigaOS "keys" */
 typedef struct a_inode_struct {
 #ifdef AINO_DEBUG
@@ -107,6 +116,7 @@ typedef struct a_inode_struct {
     /* not equaling unit.mountcount -> not in this volume */
     unsigned int mountcount;
 	uae_u64 uniq_external;
+	struct virtualfilesysobject *vfso;
 #ifdef AINO_DEBUG
     uae_u32 checksum2;
 #endif

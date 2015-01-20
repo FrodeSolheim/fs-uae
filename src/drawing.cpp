@@ -2452,6 +2452,7 @@ static void pfield_draw_line (struct vidbuffer *vb, int lineno, int gfx_ypos, in
 	int do_double = 0;
 	bool have_color_changes;
 	enum double_how dh;
+	int ls = linestate[lineno];
 
 	dp_for_drawing = line_decisions + lineno;
 	dip_for_drawing = curr_drawinfo + lineno;
@@ -2461,7 +2462,7 @@ static void pfield_draw_line (struct vidbuffer *vb, int lineno, int gfx_ypos, in
 		resolution_count[dp_for_drawing->bplres]++;
 	}
 
-	switch (linestate[lineno])
+	switch (ls)
 	{
 	case LINE_REMEMBERED_AS_PREVIOUS:
 //		if (!warned) // happens when program messes up with VPOSW
@@ -2651,8 +2652,8 @@ static void pfield_draw_line (struct vidbuffer *vb, int lineno, int gfx_ypos, in
 		int tmp = hposblank;
 		hposblank = 1;
 		fill_line_border ();
-		do_flush_line (vb, gfx_ypos);
 		hposblank = tmp;
+		do_flush_line(vb, gfx_ypos);
 
 	}
 }
@@ -2903,7 +2904,8 @@ static void init_drawing_frame (void)
 	maxline = ((maxvpos_display + 1) << linedbl) + 2;
 #ifdef SMART_UPDATE
 	for (i = 0; i < maxline; i++) {
-		switch (linestate[i]) {
+		int ls = linestate[i];
+		switch (ls) {
 		case LINE_DONE_AS_PREVIOUS:
 			linestate[i] = LINE_REMEMBERED_AS_PREVIOUS;
 			break;
@@ -3089,6 +3091,8 @@ static void lightpen_update (struct vidbuffer *vb)
 
 struct vidbuffer *xvbin, *xvbout;
 
+#define LARGEST_LINE_DEBUG 0
+
 static void draw_frame2 (struct vidbuffer *vbin, struct vidbuffer *vbout)
 {
 	int i;
@@ -3096,23 +3100,32 @@ static void draw_frame2 (struct vidbuffer *vbin, struct vidbuffer *vbout)
 	xvbin = vbin;
 	xvbout = vbout;
 
-//	int largest = 0;
+#if LARGEST_LINE_DEBUG
+	int largest = 0;
+#endif
 	for (i = 0; i < max_ypos_thisframe; i++) {
 		int i1 = i + min_ypos_for_screen;
 		int line = i + thisframe_y_adjust_real;
-		int where2 = amiga2aspect_line_map[i1];
+		int whereline = amiga2aspect_line_map[i1];
+		int wherenext = amiga2aspect_line_map[i1 + 1];
 
-		if (where2 >= vbin->inheight)
+		if (whereline >= vbin->inheight)
 			break;
-		if (where2 < 0)
+		if (whereline < 0)
 			continue;
 
-//		if (largest < where2)
-//			largest = where2;
+#if LARGEST_LINE_DEBUG
+		if (largest < whereline)
+			largest = whereline;
+#endif
+
 		hposblank = 0;
-		pfield_draw_line (vbout, line, where2, amiga2aspect_line_map[i1 + 1]);
+		pfield_draw_line(vbout, line, whereline, wherenext);
 	}
+
+#if LARGEST_LINE_DEBUG
 	//write_log (_T("%d\n"), largest);
+#endif
 }
 
 bool draw_frame (struct vidbuffer *vb)
@@ -3415,20 +3428,28 @@ void hsync_record_line_state (int lineno, enum nln_how how, int changed)
 	case nln_lower_black_always:
 		state[1] = LINE_BLACK;
 		*state = LINE_DECIDED;
+//		if (lineno == (maxvpos + lof_store) * 2 - 1)
+//			*state = LINE_BLACK;
 		break;
 	case nln_lower_black:
 		changed += state[0] != LINE_DONE;
 		state[1] = LINE_DONE;
 		*state = changed ? LINE_DECIDED : LINE_DONE;
+//		if (lineno == (maxvpos + lof_store) * 2 - 1)
+//			*state = LINE_BLACK;
 		break;
 	case nln_upper_black_always:
 		*state = LINE_DECIDED;
 		state[-1] = LINE_BLACK;
+		if (!interlace_seen && lineno == (maxvpos + lof_store) * 2 - 2)
+			state[1] = LINE_BLACK;
 		break;
 	case nln_upper_black:
 		changed += state[0] != LINE_DONE;
 		*state = changed ? LINE_DECIDED : LINE_DONE;
 		state[-1] = LINE_DONE;
+		if (!interlace_seen && lineno == (maxvpos + lof_store) * 2 - 2)
+			state[1] = LINE_DONE;
 		break;
 	}
 }

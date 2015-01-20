@@ -26,6 +26,7 @@
 #include "mp3decoder.h"
 #include "cda_play.h"
 #include "uae/memory.h"
+#include "audio.h"
 #include "uae/cdrom.h"
 #ifdef RETROPLATFORM
 #include "rp.h"
@@ -429,6 +430,11 @@ static void audio_unpack (struct cdunit *cdu, struct cdtoc *t)
 		Sleep (10);
 }
 
+void audio_state_cda(int ch)
+{
+	audio_state_cda_state(ch, 0, 0);
+}
+
 static void *cdda_play_func (void *v)
 {
 	int cdda_pos;
@@ -451,7 +457,7 @@ static void *cdda_play_func (void *v)
 	bufon[0] = bufon[1] = 0;
 	bufnum = 0;
 
-	cda_audio *cda = new cda_audio (num_sectors, 2352);
+	cda_audio *cda = new cda_audio (num_sectors, 2352, 44100);
 
 	while (cdu->cdda_play > 0) {
 

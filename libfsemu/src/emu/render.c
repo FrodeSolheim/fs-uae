@@ -21,11 +21,11 @@
 #include <fs/thread.h>
 #include <fs/time.h>
 #include <fs/util.h>
+#include <fs/emu_lua.h>
 
 #include "libfsemu.h"
 #include "audio.h"
 #include "dialog.h"
-#include "emu_lua.h"
 #include "font.h"
 #include "hud.h"
 #include "menu.h"
@@ -2444,9 +2444,8 @@ void fs_emu_render_init_lua(void) {
 
     //lua_register(fs_emu_lua_state, "fs_emu_render_frame",
     //        l_fs_emu_render_frame);
-    lua_register(fs_emu_lua_state, "fs_emu_set_scale",
-            l_fs_emu_set_scale);
-    lua_register(fs_emu_lua_state, "fs_emu_set_frame_position_and_size",
+    fs_emu_lua_register_func("set_scale", l_fs_emu_set_scale);
+    fs_emu_lua_register_func("set_frame_position_and_size",
             l_fs_emu_set_frame_position_and_size);
 }
 

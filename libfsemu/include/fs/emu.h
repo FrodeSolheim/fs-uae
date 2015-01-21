@@ -7,6 +7,7 @@
 #include <fs/log.h>
 #include <fs/conf.h>
 #include <fs/ml.h>
+#include <fs/emu_lua.h>
 
 #if 0
 
@@ -34,15 +35,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#ifdef WITH_LUA
-#include <lauxlib.h>
-lua_State *fs_emu_get_lua_state(void);
-void fs_emu_acquire_lua(void);
-void fs_emu_release_lua(void);
-#endif
-
-void fs_emu_lua_run_handler(const char *name);
 
 // Can (or should) be called before fs_emu_init
 

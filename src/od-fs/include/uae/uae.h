@@ -23,8 +23,15 @@ void amiga_on_restore_state_finished(uae_callback_function *function);
 
 #ifdef WITH_LUA
 #include <lauxlib.h>
-void amiga_init_lua(void (*lock)(void), void (*unlock)(void));
-void amiga_init_lua_state(lua_State *L);
+typedef void (*uae_lua_init_state_callback)(lua_State *L);
+void amiga_lua_init(void (*init)(void), void (*done)(void));
+void amiga_lua_set_extra_state_init(uae_lua_init_state_callback f);
+int amiga_lua_run_handler(const char *name);
+int amiga_lua_run_script(const char *path);
+lua_State *amiga_lua_create_state(void);
+void amiga_lua_destroy_state(lua_State *);
+void amiga_lua_lock_state(lua_State *);
+void amiga_lua_unlock_state(lua_State *);
 #endif
 
 #define AMIGA_FLOPPY_LIST_SIZE 20

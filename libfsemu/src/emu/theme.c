@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <fs/emu_lua.h>
 
 #include "texture.h"
 #include "libfsemu.h"
@@ -30,11 +31,7 @@ void fs_emu_theme_init_lua(void)
 
     char *path = g_build_filename(g_fs_emu_theme.path, "theme.lua", NULL);
     if (fs_path_exists(path)) {
-        int result = luaL_dofile(fs_emu_lua_state, path);
-        if (result != 0) {
-            fs_emu_warning("Error loading/running theme.lua");
-            fs_emu_lua_log_error("Error loading/running theme.lua");
-        }
+        fs_emu_lua_run_script(path);
     }
     free(path);
 }

@@ -22,6 +22,7 @@
 #include <fs/ml.h>
 #include <fs/thread.h>
 #include <fs/time.h>
+#include <fs/emu_lua.h>
 
 #ifdef USE_GLIB
 #include <glib.h>
@@ -29,7 +30,6 @@
 
 #include "audio.h"
 #include "dialog.h"
-#include "emu_lua.h"
 #include "hud.h"
 #include "input.h"
 #include "libfsemu.h"

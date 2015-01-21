@@ -15,11 +15,12 @@ public:
 #endif
     int num_sectors;
 	int sectorsize;
-	cda_audio(int num_sectors, int sectorsize);
-    ~cda_audio();
-    void setvolume(int master, int left, int right);
-    bool play(int bufnum);
-    void wait(void);
-    void wait(int bufnum);
+
+	cda_audio(int num_sectors, int sectorsize, int samplerate);
+	~cda_audio();
+	void setvolume(int master, int left, int right);
+	bool play(int bufnum);
+	void wait(void);
+	void wait(int bufnum);
 	bool isplaying(int bufnum);
 };

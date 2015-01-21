@@ -64,7 +64,7 @@ static void *audio_thread(void *cda_pointer) {
 }
 #endif
 
-cda_audio::cda_audio(int num_sectors, int sectorsize)
+cda_audio::cda_audio(int num_sectors, int sectorsize, int samplerate)
 {
     write_log("cda_audio::cda_audio(num_sectors=%d)\n", num_sectors);
 #if 0
@@ -73,6 +73,8 @@ cda_audio::cda_audio(int num_sectors, int sectorsize)
     mBufferDone[1] = 1;
     uae_start_thread("cdda", audio_thread, this, &mThread);
 #endif
+    // FIXME: handle samplerate
+    write_log("WARNING: ignoring samplerate\n");
 
     active = false;
     playing = false;

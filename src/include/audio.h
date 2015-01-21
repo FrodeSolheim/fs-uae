@@ -20,6 +20,7 @@
 #else
 #define PERIOD_MAX ULONG_MAX
 #endif
+#define MAX_EV ~0u
 
 void aud0_handler (void);
 void aud1_handler (void);

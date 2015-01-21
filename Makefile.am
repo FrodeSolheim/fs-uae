@@ -219,6 +219,7 @@ libuae_a_SOURCES = \
 	src/crc32.cpp \
 	src/custom.cpp \
 	src/debug.cpp \
+	src/def_icons.cpp \
 	src/disk.cpp \
 	src/diskutil.cpp \
 	src/dlopen.cpp \
@@ -325,6 +326,7 @@ libuae_a_SOURCES = \
 	src/include/scsi.h \
 	src/include/scsidev.h \
 	src/include/serial.h \
+	src/include/sndboard.h \
 	src/include/statusline.h \
 	src/include/sysdeps.h \
 	src/include/tabletlibrary.h \
@@ -493,6 +495,7 @@ libuae_a_SOURCES = \
 	src/scsiemul.cpp \
 	src/scsitape.cpp \
 	src/slirp.cpp \
+	src/sndboard.cpp \
 	src/specialmonitors.cpp \
 	src/statusline.cpp \
 	src/traps.cpp \

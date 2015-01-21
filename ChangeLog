@@ -1,6 +1,8 @@
 Version 2.5.25dev:
 
+* New option sound_card = toccata.
 * Added several joystick configs [johanpalmqvist].
+* Updated emulation core from WinUAE 3100b1.
 
 Version 2.5.23dev:
 

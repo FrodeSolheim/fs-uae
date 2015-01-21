@@ -46,6 +46,7 @@ void audio_evhandler (void);
 void audio_hsync (void);
 void audio_update_adkmasks (void);
 void update_sound (double clk);
+void update_cda_sound (double clk);
 void led_filter_audio (void);
 void set_audio (void);
 int audio_activate (void);
@@ -61,10 +62,9 @@ extern void audio_enable_sndboard(bool);
 extern void audio_state_sndboard(int);
 extern void audio_state_sndboard_state(int, int, unsigned int);
 
-extern void audio_update_cda(unsigned int);
-extern void audio_enable_cda(bool);
-extern void audio_state_cda(int);
-extern void audio_state_cda_state(int, int, unsigned int);
+typedef void (*CDA_CALLBACK)(int);
+extern void audio_cda_new_buffer(uae_s16 *buffer, int length, int userdata, CDA_CALLBACK next_cd_audio_buffer_callback);
+extern void audio_cda_volume(int master, int left, int right);
 
 #define AUDIO_CHANNELS_PAULA 4
 #define AUDIO_CHANNELS_MAX 8

@@ -662,14 +662,14 @@ static int doinit_shm (void)
 	return canbang;
 }
 
+static uae_u32 oz3fastmem_size, oz3fastmem2_size;
+static uae_u32 oz3chipmem_size;
+static uae_u32 ortgmem_size;
+static int ortgmem_type = -1;
+
 bool init_shm (void)
 {
 	write_log("init_shm\n");
-	static uae_u32 oz3fastmem_size, oz3fastmem2_size;
-	static uae_u32 oz3chipmem_size;
-	static uae_u32 ortgmem_size;
-	static int ortgmem_type;
-
 	if (
 		oz3fastmem_size == changed_prefs.z3fastmem_size &&
 		oz3fastmem2_size == changed_prefs.z3fastmem2_size &&
@@ -697,6 +697,7 @@ void free_shm (void)
 {
 	resetmem (true);
 	clear_shm ();
+	ortgmem_type = -1;
 }
 
 void mapped_free (addrbank *ab)
@@ -733,8 +734,8 @@ void mapped_free (addrbank *ab)
 	if (!(ab->flags & ABFLAG_DIRECTMAP)) {
 		if (!(ab->flags & ABFLAG_NOALLOC)) {
 			xfree(ab->baseaddr);
-			ab->baseaddr = NULL;
 		}
+		ab->baseaddr = NULL;
 		write_log(_T("mapped_free nondirect %s\n"), ab->name);
 		return;
 	}

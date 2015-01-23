@@ -57,6 +57,7 @@
 #include "sampler.h"
 #include "consolehook.h"
 #include "gayle.h"
+#include "idecontrollers.h"
 #include "gfxboard.h"
 #include "luascript.h"
 #include "uaenative.h"
@@ -1079,6 +1080,7 @@ void do_leave_program (void)
 	bsdlib_reset ();
 #endif
 	gayle_free ();
+	idecontroller_free();
 	device_func_reset ();
 #ifdef WITH_LUA
 	uae_lua_free ();

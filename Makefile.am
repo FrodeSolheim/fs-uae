@@ -243,6 +243,8 @@ libuae_a_SOURCES = \
 	src/gfxutil.cpp \
 	src/hardfile.cpp \
 	src/hrtmon.rom.cpp \
+	src/ide.cpp \
+	src/idecontrollers.cpp \
 	src/identify.cpp \
 	src/include/a2065.h \
 	src/include/a2091.h \
@@ -297,6 +299,8 @@ libuae_a_SOURCES = \
 	src/include/gfxboard.h \
 	src/include/gfxfilter.h \
 	src/include/gui.h \
+	src/include/ide.h \
+	src/include/idecontrollers.h \
 	src/include/identify.h \
 	src/include/inputdevice.h \
 	src/include/inputrecord.h \

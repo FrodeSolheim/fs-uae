@@ -1015,6 +1015,7 @@ static void set_x_funcs (void)
 	}
 
 	set_x_cp_funcs();
+	mmu_set_funcs();
 	mmu030_set_funcs();
 
 }

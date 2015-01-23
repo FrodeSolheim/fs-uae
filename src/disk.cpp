@@ -64,6 +64,11 @@ int disk_debug_track = -1;
 #include "uae/fs.h"
 #endif
 
+#ifdef FSUAE
+/* in WinUAE, this is stored in od-win32/win32.cpp */
+int saveimageoriginalpath = 0;
+#endif
+
 #undef CATWEASEL
 
 static int longwritemode = 0;
@@ -855,41 +860,8 @@ static int read_header_ext2 (struct zfile *diskfile, trackid *trackdata, int *nu
 	return 1;
 }
 
-//TCHAR *DISK_get_saveimagepath (const TCHAR *name)
 static void saveimagecutpathpart(TCHAR *name)
 {
-#ifdef FSUAE_XXX
-    static TCHAR name1[MAX_DPATH];
-    TCHAR name2[MAX_DPATH];
-    TCHAR path[MAX_DPATH];
-    int i;
-
-    _tcscpy (name2, name);
-    i = _tcslen (name2) - 1;
-    while (i > 0) {
-        if (name2[i] == '.') {
-            name2[i] = 0;
-            break;
-        }
-        i--;
-    }
-    fetch_saveimagepath (path, sizeof path / sizeof (TCHAR), 1);
-    if (strlen(path) > 0) {
-        while (i > 0) {
-            if (name2[i] == '/' || name2[i] == '\\') {
-                i++;
-                break;
-            }
-            i--;
-        }
-        _stprintf (name1, _T("%s/%s.sdf"), path, name2 + i);
-    }
-    else {
-        _stprintf (name1, _T("%s.sdf"), name2);
-    }
-    write_log("DISK_get_saveimagepath returning %s\n", name1);
-    return name1;
-#else
 	int i;
 
 	i = _tcslen (name) - 1;
@@ -911,7 +883,6 @@ static void saveimagecutpathpart(TCHAR *name)
 		}
 		i--;
 	}
-#endif
 }
 
 static void saveimagecutfilepart(TCHAR *name)
@@ -967,6 +938,38 @@ static TCHAR *DISK_get_default_saveimagepath (const TCHAR *name)
 // 1 = image dir
 TCHAR *DISK_get_saveimagepath(const TCHAR *name, int type)
 {
+#ifdef FSUAE
+    static TCHAR name1[MAX_DPATH];
+    TCHAR name2[MAX_DPATH];
+    TCHAR path[MAX_DPATH];
+    int i;
+
+    _tcscpy (name2, name);
+    i = _tcslen (name2) - 1;
+    while (i > 0) {
+        if (name2[i] == '.') {
+            name2[i] = 0;
+            break;
+        }
+        i--;
+    }
+    fetch_saveimagepath (path, sizeof path / sizeof (TCHAR), 1);
+    if (strlen(path) > 0) {
+        while (i > 0) {
+            if (name2[i] == '/' || name2[i] == '\\') {
+                i++;
+                break;
+            }
+            i--;
+        }
+        _stprintf (name1, _T("%s/%s.sdf"), path, name2 + i);
+    }
+    else {
+        _stprintf (name1, _T("%s.sdf"), name2);
+    }
+    write_log("DISK_get_saveimagepath returning %s\n", name1);
+    return strdup(name1);
+#else
 	int typev = type;
 
 	for (int i = 0; i < 2; i++) {
@@ -989,6 +992,7 @@ TCHAR *DISK_get_saveimagepath(const TCHAR *name, int type)
 		}
 	}
 	return DISK_get_saveimagepath(name, -1);
+#endif
 }
 
 static struct zfile *getexistingwritefile(struct uae_prefs *p, const TCHAR *name, bool *wrprot)
@@ -1035,7 +1039,7 @@ static int openwritefile (struct uae_prefs *p, drive *drv, int create)
 #ifdef FSUAE
     if (create) {
         const char *writefile = DISK_get_saveimagepath(
-                currprefs.floppyslots[drv - &floppy[0]].df);
+                currprefs.floppyslots[drv - &floppy[0]].df, 0);
         FILE *f = fopen(writefile, "rb");
         if (f == NULL) {
             // good, file did not exist

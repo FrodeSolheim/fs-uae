@@ -1,3 +1,8 @@
+Version 2.5.26dev:
+
+* Option sound_card = toccata actually implemented now.
+* Updated emulation core from WinUAE 3100b2.
+
 Version 2.5.25dev:
 
 * New option sound_card = toccata.

@@ -103,6 +103,8 @@ fs_uae_SOURCES = \
 	src/fs-uae/config-hardware.h \
 	src/fs-uae/config-model.c \
 	src/fs-uae/config-model.h \
+	src/fs-uae/config-sound.c \
+	src/fs-uae/config-sound.h \
 	src/fs-uae/fs-uae.h \
 	src/fs-uae/input.c \
 	src/fs-uae/joystick.c \
@@ -495,7 +497,6 @@ libuae_a_SOURCES = \
 	src/scsiemul.cpp \
 	src/scsitape.cpp \
 	src/slirp.cpp \
-	src/sndboard.cpp \
 	src/specialmonitors.cpp \
 	src/statusline.cpp \
 	src/traps.cpp \
@@ -770,6 +771,11 @@ libslirp_a_SOURCES = \
 	src/slirp/udp.cpp \
 	src/slirp/udp.h
 endif
+endif
+
+if WITH_TOCCATA
+fs_uae_SOURCES += \
+	src/sndboard.cpp
 endif
 
 if WITH_UDIS86

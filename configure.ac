@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.67])
-AC_INIT([FS-UAE], [2.5.25dev],
+AC_INIT([FS-UAE], [2.5.26dev],
         [frode@fs-uae.net], [fs-uae], [http://fs-uae.net])
 AC_CONFIG_AUX_DIR([.])
 AC_CANONICAL_HOST
@@ -13,7 +13,7 @@ AM_INIT_AUTOMAKE([tar-ustar subdir-objects])
 
 AC_SUBST([PACKAGE_SERIES], [devel])
 
-AC_DEFINE_UNQUOTED([UAE_BASE_VERSION], ["WinUAE 3100b1"],
+AC_DEFINE_UNQUOTED([UAE_BASE_VERSION], ["WinUAE 3100b2"],
 [Which UAE core this version is based on.])
 
 PACKAGE_MAJOR=`echo ${PACKAGE_VERSION} | sed -e 's,\(\.*\)\..*\..*,\1,g'`
@@ -590,6 +590,8 @@ OPT_FEATURE([WITH_UAENATIVE], [uaenative], [uaenative],
 	[enable uaenative.library], [yes])
 OPT_FEATURE([SANA2], [uaenet], [uaenet],
 	[enable uaenet.device], [yes])
+OPT_FEATURE([WITH_TOCCATA], [toccata], [toccata],
+	[enable Toccata sound card emulation], [yes])
 OPT_FEATURE([WITH_UDIS86], [udis86], [udis86],
 	[enable UDIS86 x86/x86-64 disassembler], [yes])
 OPT_FEATURE([WITH_XML_SHADER], [xml_shader], [xml-shader],

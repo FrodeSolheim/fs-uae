@@ -16,6 +16,7 @@
 #include "config-graphics.h"
 #include "config-hardware.h"
 #include "config-model.h"
+#include "config-sound.h"
 
 void fs_uae_configure_amiga_model()
 {
@@ -203,6 +204,7 @@ void fs_uae_configure_amiga_hardware()
     fs_uae_configure_hardware();
     fs_uae_configure_accelerator();
     fs_uae_configure_graphics_card(c);
+    fs_uae_configure_sound_card(c);
 
     const char *serial_port = fs_config_get_const_string(OPTION_SERIAL_PORT);
     if (serial_port && g_ascii_strcasecmp(serial_port, "none") != 0) {

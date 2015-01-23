@@ -1586,7 +1586,7 @@ static void audio_state_channel2 (int nr, bool perfin)
 	}
 }
 
-void audio_state_cda(void);
+static void audio_state_cda(void);
 
 static void audio_state_channel (int nr, bool perfin)
 {
@@ -2274,7 +2274,7 @@ void audio_enable_sndboard(bool enable)
 	audio_set_extra_channels();
 }
 
-void audio_enable_cda(bool enable)
+static void audio_enable_cda(bool enable)
 {
 	struct audio_channel_data *acd = audio_channel + AUDIO_CHANNEL_CDA_LEFT;
 	if (!enable) {

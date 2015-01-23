@@ -24,6 +24,7 @@
 #define OPTION_MODEL "model"
 #define OPTION_SERIAL_PORT "serial_port"
 #define OPTION_SLOW_MEMORY "slow_memory"
+#define OPTION_SOUND_CARD "sound_card"
 #define OPTION_STEREO_SEPARATION "stereo_separation"
 #define OPTION_UAENATIVE_LIBRARY "uaenative_library"
 #define OPTION_WORKBENCH_DISK "workbench_disk"

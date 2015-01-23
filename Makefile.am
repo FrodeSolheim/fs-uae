@@ -222,6 +222,7 @@ libuae_a_SOURCES = \
 	src/custom.cpp \
 	src/debug.cpp \
 	src/def_icons.cpp \
+	src/devices.cpp \
 	src/disk.cpp \
 	src/diskutil.cpp \
 	src/dlopen.cpp \
@@ -273,6 +274,7 @@ libuae_a_SOURCES = \
 	src/include/crc32.h \
 	src/include/custom.h \
 	src/include/debug.h \
+	src/include/devices.h \
 	src/include/disk.h \
 	src/include/diskutil.h \
 	src/include/dongle.h \

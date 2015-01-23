@@ -1550,7 +1550,7 @@ static int superiv_init (struct romdata *rd, struct zfile *f)
 		hrtmem_rom = 1;
 		memname1 = _T("nordic_f0");
 		memname2 = _T("nordic_f4");
-		if (subtype == 70) {
+		if (rd->ver >= 3) {
 			hrtmem_start += 0x60000;
 			hrtmem_end += 0x60000;
 			memname1 = _T("nordic_f6");
@@ -1666,7 +1666,7 @@ int action_replay_load (void)
 	}
 	rd = getromdatabyzfile(f);
 	if (!rd) {
-		write_log (_T("Unknown cartridge ROM\n"));
+		write_log (_T("Unknown cartridge ROM '%s'\n"), currprefs.cartfile);
 	} else {
 		int type = rd->type & ROMTYPE_MASK;
 		if (type == ROMTYPE_SUPERIV || rd->type == ROMTYPE_NORDIC || rd->type == ROMTYPE_XPOWER) {
@@ -1692,6 +1692,7 @@ int action_replay_load (void)
 	zfile_fread (armemory_rom, 1, ar_rom_file_size, f);
 	zfile_fclose (f);
 	if (ar_rom_file_size == 65536) {
+		// AR1 and Pro Access
 		armodel = 1;
 		arrom_start = 0xf00000;
 		arrom_size = 0x10000;

@@ -2121,6 +2121,7 @@ static void Exception_ce000 (int nr)
 	uae_u32 currpc = m68k_getpc (), newpc;
 	int sv = regs.s;
 	int start, interrupt;
+	int vector_nr = nr;
 
 	start = 6;
 	interrupt = nr >= 24 && nr < 24 + 8;
@@ -2168,21 +2169,21 @@ static void Exception_ce000 (int nr)
 		m68k_areg (regs, 7) -= 8;
 		x_put_word (m68k_areg (regs, 7) + 4, currpc); // write low address
 		if (interrupt)
-			nr = iack_cycle(nr);
+			vector_nr = iack_cycle(nr);
 		x_put_word (m68k_areg (regs, 7) + 0, regs.sr); // write SR
 		x_put_word (m68k_areg (regs, 7) + 2, currpc >> 16); // write high address
-		x_put_word (m68k_areg (regs, 7) + 6, nr * 4);
+		x_put_word (m68k_areg (regs, 7) + 6, vector_nr * 4);
 	} else {
 		m68k_areg (regs, 7) -= 6;
 		x_put_word (m68k_areg (regs, 7) + 4, currpc); // write low address
 		if (interrupt)
-			nr = iack_cycle(nr);
+			vector_nr = iack_cycle(nr);
 		x_put_word (m68k_areg (regs, 7) + 0, regs.sr); // write SR
 		x_put_word (m68k_areg (regs, 7) + 2, currpc >> 16); // write high address
 	}
 kludge_me_do:
-	newpc = x_get_word (regs.vbr + 4 * nr) << 16; // read high address
-	newpc |= x_get_word (regs.vbr + 4 * nr + 2); // read low address
+	newpc = x_get_word (regs.vbr + 4 * vector_nr) << 16; // read high address
+	newpc |= x_get_word (regs.vbr + 4 * vector_nr + 2); // read low address
 	if (newpc & 1) {
 		if (nr == 2 || nr == 3)
 			cpu_halt (2);
@@ -2532,11 +2533,12 @@ static void Exception_normal (int nr)
 	uae_u32 currpc, newpc;
 	int sv = regs.s;
 	int interrupt;
+	int vector_nr = nr;
 
 	interrupt = nr >= 24 && nr < 24 + 8;
 
 	if (interrupt && currprefs.cpu_model <= 68010)
-		nr = iack_cycle(nr);
+		vector_nr = iack_cycle(nr);
 
 	exception_debug (nr);
 	MakeSR ();
@@ -2587,12 +2589,12 @@ static void Exception_normal (int nr)
 						x_put_long (m68k_areg (regs, 7), regs.mmu_fault_addr);
 
 						m68k_areg (regs, 7) -= 2;
-						x_put_word (m68k_areg (regs, 7), 0x7000 + nr * 4);
+						x_put_word (m68k_areg (regs, 7), 0x7000 + vector_nr * 4);
 						m68k_areg (regs, 7) -= 4;
 						x_put_long (m68k_areg (regs, 7), regs.instruction_pc);
 						m68k_areg (regs, 7) -= 2;
 						x_put_word (m68k_areg (regs, 7), regs.sr);
-						newpc = x_get_long (regs.vbr + 4 * nr);
+						newpc = x_get_long (regs.vbr + 4 * vector_nr);
 						if (newpc & 1) {
 							if (nr == 2 || nr == 3)
 								cpu_halt (2);
@@ -2627,7 +2629,7 @@ static void Exception_normal (int nr)
 						m68k_areg (regs, 7) -= 4;
 						x_put_long (m68k_areg (regs, 7), last_addr_for_exception_3);
 						m68k_areg (regs, 7) -= 2;
-						x_put_word (m68k_areg (regs, 7), 0x7000 + nr * 4);
+						x_put_word (m68k_areg (regs, 7), 0x7000 + vector_nr * 4);
 						m68k_areg (regs, 7) -= 4;
 						x_put_long (m68k_areg (regs, 7), regs.instruction_pc);
 						m68k_areg (regs, 7) -= 2;
@@ -2640,7 +2642,7 @@ static void Exception_normal (int nr)
 					m68k_areg (regs, 7) -= 4;
 					x_put_long (m68k_areg (regs, 7), last_fault_for_exception_3);
 					m68k_areg (regs, 7) -= 2;
-					x_put_word (m68k_areg (regs, 7), 0x2000 + nr * 4);
+					x_put_word (m68k_areg (regs, 7), 0x2000 + vector_nr * 4);
 				}
 			} else {
 				// 68020 address error
@@ -2662,17 +2664,17 @@ static void Exception_normal (int nr)
 				m68k_areg (regs, 7) -= 2;
 				x_put_word (m68k_areg (regs, 7), ssw);
 				m68k_areg (regs, 7) -= 2;
-				x_put_word (m68k_areg (regs, 7), 0xb000 + nr * 4);
+				x_put_word (m68k_areg (regs, 7), 0xb000 + vector_nr * 4);
 			}
-			write_log (_T("Exception %d (%x) at %x -> %x!\n"), nr, regs.instruction_pc, currpc, get_long_debug (regs.vbr + 4*nr));
+			write_log (_T("Exception %d (%x) at %x -> %x!\n"), nr, regs.instruction_pc, currpc, get_long_debug (regs.vbr + 4 * vector_nr));
 		} else if (nr ==5 || nr == 6 || nr == 7 || nr == 9) {
 			m68k_areg (regs, 7) -= 4;
 			x_put_long (m68k_areg (regs, 7), regs.instruction_pc);
 			m68k_areg (regs, 7) -= 2;
-			x_put_word (m68k_areg (regs, 7), 0x2000 + nr * 4);
+			x_put_word (m68k_areg (regs, 7), 0x2000 + vector_nr * 4);
 		} else if (regs.m && interrupt) { /* M + Interrupt */
 			m68k_areg (regs, 7) -= 2;
-			x_put_word (m68k_areg (regs, 7), nr * 4);
+			x_put_word (m68k_areg (regs, 7), vector_nr * 4);
 			m68k_areg (regs, 7) -= 4;
 			x_put_long (m68k_areg (regs, 7), currpc);
 			m68k_areg (regs, 7) -= 2;
@@ -2682,10 +2684,10 @@ static void Exception_normal (int nr)
 			regs.m = 0;
 			m68k_areg (regs, 7) = regs.isp;
 			m68k_areg (regs, 7) -= 2;
-			x_put_word (m68k_areg (regs, 7), 0x1000 + nr * 4);
+			x_put_word (m68k_areg (regs, 7), 0x1000 + vector_nr * 4);
 		} else {
 			m68k_areg (regs, 7) -= 2;
-			x_put_word (m68k_areg (regs, 7), nr * 4);
+			x_put_word (m68k_areg (regs, 7), vector_nr * 4);
 		}
 	} else {
 		add_approximate_exception_cycles(nr);
@@ -2701,7 +2703,7 @@ static void Exception_normal (int nr)
 			x_put_word (m68k_areg (regs, 7) + 6, last_op_for_exception_3);
 			x_put_word (m68k_areg (regs, 7) + 8, regs.sr);
 			x_put_long (m68k_areg (regs, 7) + 10, last_addr_for_exception_3);
-			write_log (_T("Exception %d (%x) at %x -> %x!\n"), nr, last_fault_for_exception_3, currpc, get_long_debug (regs.vbr + 4*nr));
+			write_log (_T("Exception %d (%x) at %x -> %x!\n"), nr, last_fault_for_exception_3, currpc, get_long_debug (regs.vbr + 4 * vector_nr));
 			goto kludge_me_do;
 		}
 	}
@@ -2710,7 +2712,7 @@ static void Exception_normal (int nr)
 	m68k_areg (regs, 7) -= 2;
 	x_put_word (m68k_areg (regs, 7), regs.sr);
 kludge_me_do:
-	newpc = x_get_long (regs.vbr + 4 * nr);
+	newpc = x_get_long (regs.vbr + 4 * vector_nr);
 	if (newpc & 1) {
 		if (nr == 2 || nr == 3)
 			cpu_halt (2);
@@ -2828,9 +2830,14 @@ static void m68k_reset2(bool hardreset)
 {
 	uae_u32 v;
 
+	regs.halted = 0;
+	gui_data.cpu_halted = 0;
+	gui_led (LED_CPU, 0);
+
 	regs.spcflags = 0;
 	m68k_reset_delay = 0;
 	regs.ipl = regs.ipl_pin = 0;
+
 #ifdef SAVESTATE
 	if (isrestore ()) {
 		m68k_reset_sr();
@@ -2889,10 +2896,6 @@ static void m68k_reset2(bool hardreset)
 		}
 		fake_mmusr_030 = 0;
 	}
-
-	regs.halted = 0;
-	gui_data.cpu_halted = 0;
-	gui_led (LED_CPU, 0);
 
 	/* 68060 FPU is not compatible with 68040,
 	* 68060 accelerators' boot ROM disables the FPU

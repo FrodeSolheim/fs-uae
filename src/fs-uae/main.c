@@ -19,6 +19,7 @@
 #include <fs/base.h>
 #include <fs/data.h>
 #include <fs/emu.h>
+#include <fs/emu/path.h>
 #include <fs/glib.h>
 #include <fs/main.h>
 #include <fs/i18n.h>
@@ -966,6 +967,8 @@ int main(int argc, char* argv[])
     fs_log("libfsemu init\n");
     fs_log(LOG_LINE);
     fs_log("\n");
+
+    fs_emu_path_set_expand_function(fs_uae_expand_path);
 
     fs_emu_init_overlays(overlay_names);
     fs_emu_init();

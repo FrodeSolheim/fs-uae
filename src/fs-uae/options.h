@@ -18,6 +18,7 @@
 #define OPTION_GRAPHICS_CARD "graphics_card"
 #define OPTION_GRAPHICS_CARD_ROM "graphics_card_rom"
 #define OPTION_GRAPHICS_CARD_MEMORY "graphics_card_memory"
+#define OPTION_JOYSTICK_PORT_0_AUTOSWITCH "joystick_port_0_autoswitch"
 #define OPTION_LINE_DOUBLING "line_doubling"
 #define OPTION_LOW_RESOLUTION "low_resolution"
 #define OPTION_MMU "mmu"

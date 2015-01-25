@@ -20,4 +20,7 @@ void fs_uae_configure_mouse(void)
         amiga_set_option("magic_mouse", "yes");
         amiga_set_option("absolute_mouse", "mousehack");
     }
+
+    int autoswitch = fs_config_get_boolean(OPTION_JOYSTICK_PORT_0_AUTOSWITCH);
+    amiga_enable_auto_mouse_mode(autoswitch != 0);
 }

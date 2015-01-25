@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.67])
-AC_INIT([FS-UAE], [2.5.26dev],
+AC_INIT([FS-UAE], [2.5.27dev],
         [frode@fs-uae.net], [fs-uae], [http://fs-uae.net])
 AC_CONFIG_AUX_DIR([.])
 AC_CANONICAL_HOST
@@ -603,6 +603,9 @@ OPT_FEATURE([WITH_PEARPC_CPU], [pearpc_cpu], [pearpc-cpu],
 	[use PearPC for PPC emulation], [no])
 OPT_FEATURE([WITH_QEMU_CPU], [qemu_cpu], [qemu-cpu],
 	[use QEmu for PPC emulation], [yes])
+
+OPT_FEATURE([FS_EMU_DRIVERS], [fs_emu_drivers], [fs-emu-drivers],
+        [enable multiple driver backends in libfsemu], [no])
 
 AC_DEFINE([FPU_UAE], [1], [Define to 1])
 

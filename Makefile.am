@@ -553,10 +553,12 @@ libfsemu_a_SOURCES = \
 	libfsemu/include/fs/data.h \
 	libfsemu/include/fs/defines.h \
 	libfsemu/include/fs/emu.h \
-	libfsemu/include/fs/emu/dialog.h \
+        libfsemu/include/fs/emu/audio.h \
+        libfsemu/include/fs/emu/dialog.h \
 	libfsemu/include/fs/emu/hacks.h \
 	libfsemu/include/fs/emu/options.h \
-	libfsemu/include/fs/emu/video.h \
+        libfsemu/include/fs/emu/path.h \
+        libfsemu/include/fs/emu/video.h \
 	libfsemu/include/fs/endian.h \
 	libfsemu/include/fs/eventlog.h \
 	libfsemu/include/fs/filesys.h \
@@ -577,7 +579,11 @@ libfsemu_a_SOURCES = \
 	libfsemu/include/fs/thread.h \
 	libfsemu/include/fs/time.h \
 	libfsemu/include/fs/util.h \
-	libfsemu/src/base.c \
+        libfsemu/src/audio/common.c \
+        libfsemu/src/audio/init.c \
+        libfsemu/src/audio/openal.c \
+        libfsemu/src/audio/sdl2.c \
+        libfsemu/src/base.c \
 	libfsemu/src/conf.c \
 	libfsemu/src/data.c \
 	libfsemu/src/emu/actions.c \
@@ -650,7 +656,8 @@ libfsemu_a_SOURCES = \
 	libfsemu/src/ml/windows.c \
 	libfsemu/src/ml/x11.c \
 	libfsemu/src/opengl.c \
-	libfsemu/src/ref.c \
+        libfsemu/src/path.c \
+        libfsemu/src/ref.c \
 	libfsemu/src/thread.c \
 	libfsemu/src/time.c
 

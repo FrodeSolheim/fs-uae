@@ -7641,12 +7641,15 @@ void uae_mousehack_helper(int x, int y)
 
 #include <fs/i18n.h>
 
+static bool g_amiga_allow_auto_mouse_mode = false;
 static int g_requested_port_modes[4];
 
 static void amiga_set_joystick_port_mode_2 (int port, int mode)
 {
     int *ip = NULL;
-    //parport_joystick_enabled = 0;
+#if 0
+    parport_joystick_enabled = 0;
+#endif
     if (port == 0 || port == 1) {
         mouse_port[port] = 0;
         cd32_pad_enabled[port] = 0;
@@ -7703,12 +7706,19 @@ static void amiga_set_joystick_port_mode_2 (int port, int mode)
             ip++;
         }
     }
-    //changed_prefs.jports[port].mode = mode;
-    //config_changed = 1;
-    //inputdevice_updateconfig(&currprefs);
+#if 0
+    changed_prefs.jports[port].mode = mode;
+    config_changed = 1;
+    inputdevice_updateconfig(&currprefs);
+#endif
 }
 
 extern "C" {
+
+void amiga_enable_auto_mouse_mode(bool enable)
+{
+    g_amiga_allow_auto_mouse_mode = enable;
+}
 
 void amiga_set_joystick_port_mode(int port, int mode)
 {
@@ -7725,14 +7735,12 @@ int amiga_handle_input_event (int nr, int state, int max,
     switch (nr) {
     case INPUTEVENT_MOUSE1_HORIZ:
     case INPUTEVENT_MOUSE1_VERT:
-        if (mouse_port[0] == 0) {
+        if (mouse_port[0] == 0 && g_amiga_allow_auto_mouse_mode) {
             if (g_requested_port_modes[0] == AMIGA_JOYPORT_DJOY) {
                 // require a bit  than the minimum registered motion activity
                 // more to switch mode
                 if (state < -2 || state > 2) {
                     gui_message ("%s", _("[ Port 0 ] Switched to mouse mode"));
-                    printf ("state %d\n", state);
-                    printf ("[auto] joyport 0 -> mouse mode\n");
                     amiga_set_joystick_port_mode_2 (0, AMIGA_JOYPORT_MOUSE);
                 }
             }
@@ -7742,13 +7750,9 @@ int amiga_handle_input_event (int nr, int state, int max,
     case INPUTEVENT_JOY1_DOWN:
     case INPUTEVENT_JOY1_LEFT:
     case INPUTEVENT_JOY1_RIGHT:
-        printf ("..1\n");
-        if (mouse_port[0] == 1) {
-            printf ("..2\n");
+        if (mouse_port[0] == 1 && g_amiga_allow_auto_mouse_mode) {
             if (g_requested_port_modes[0] == AMIGA_JOYPORT_DJOY) {
-                printf ("..3\n");
                 gui_message ("%s", _("[ Port 0 ] Switched to joystick mode"));
-                printf ("[auto] joyport 0 -> joystick mode\n");
                 amiga_set_joystick_port_mode_2 (0, AMIGA_JOYPORT_DJOY);
             }
         }

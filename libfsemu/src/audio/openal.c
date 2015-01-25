@@ -2,9 +2,12 @@
 #include "config.h"
 #endif
 
-#ifndef FS_EMU_DRIVERS
+#ifdef FS_EMU_DRIVERS
 
 #ifdef USE_OPENAL
+
+#define FS_EMU_INTERNAL
+#include <fs/emu/audio.h>
 
 #include <fs/emu.h>
 #include <stdio.h>
@@ -23,15 +26,12 @@
 #include <alc.h>
 #endif
 
-#include "libfsemu.h"
-#include "audio.h"
+#include "../emu/libfsemu.h"
+#include "../emu/audio.h"
 
 // the actual frequency negotiated with the audio driver
 static double g_audio_out_frequency = 0.0;
 
-static int g_volume = 100;
-static int g_mute = 0;
-static double g_want_volume = 1.0;
 static int g_sys_buffer_bytes = 0;
 
 double g_default_audio_pitch = 1.0;
@@ -282,7 +282,7 @@ int fs_emu_queue_audio_buffer(int stream, int16_t* data, int size)
         //}
     }
 
-    double want_volume = g_want_volume * 0.9;
+    double want_volume = g_fs_emu_audio_want_volume * 0.9;
     if (want_volume != s->source_volume_current) {
         s->source_volume_current = want_volume;
         alSourcef(s->source, AL_GAIN, want_volume);
@@ -313,28 +313,6 @@ void fs_emu_disable_audio_stream(int stream)
 }
 
 #endif
-
-void fs_emu_audio_set_volume(int volume)
-{
-    g_volume = volume;
-    g_want_volume = g_mute ? 0.0 : g_volume / 100.0;
-}
-
-void fs_emu_audio_set_mute(int mute)
-{
-    g_mute = mute;
-    g_want_volume = g_mute ? 0.0 : g_volume / 100.0;
-}
-
-int fs_emu_audio_get_volume()
-{
-    return g_volume;
-}
-
-int fs_emu_audio_get_mute()
-{
-    return g_mute || g_volume == 0;
-}
 
 #if 0
 void fs_emu_set_audio_buffer_frequency(int stream, int frequency)
@@ -492,9 +470,9 @@ static void log_openal_info()
            alcGetString(NULL, ALC_DEFAULT_DEVICE_SPECIFIER));
 }
 
-static void openal_audio_init()
+void fs_emu_openal_audio_init(void)
 {
-    fs_log("OPENAL: openal_audio_init\n");
+    fs_log("fs_emu_openal_audio_init\n");
 
     int volume = fs_config_get_int_clamped("volume", 0, 100);
     if (volume != FS_CONFIG_NONE) {
@@ -612,12 +590,6 @@ static void openal_audio_init()
     // fs_log("AUDIO: Buffer target size (bytes) = %d\n", abt);
     /* Specifying fill target in microseconds */
     g_default_fill_target = abt * 1000;
-}
-
-void fs_emu_audio_init()
-{
-    fs_log("fs_emu_audio_init\n");
-    openal_audio_init();
 }
 
 static void openal_audio_shutdown()
@@ -773,12 +745,14 @@ void fs_emu_audio_render_debug_info(uint32_t *texture)
     }
 }
 
+/*
 fs_emu_audio_driver g_fs_emu_audio_openal_driver = {
     "openal",
     openal_audio_init,
     openal_audio_shutdown,
 };
+*/
 
-#endif // USE_OPENAL
+#endif /* USE_OPENAL */
 
-#endif
+#endif /* FS_EMU_DRIVER */

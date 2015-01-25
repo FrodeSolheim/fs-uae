@@ -2,7 +2,11 @@
 #include "config.h"
 #endif
 
+#define FS_EMU_INTERNAL
 #include <fs/emu.h>
+#include <fs/emu/options.h>
+#include <fs/emu/path.h>
+
 #include "render.h"
 
 #include <stdio.h>
@@ -474,8 +478,9 @@ static int update_texture() {
         static char* screenshots_prefix = NULL;
         static int screenshots_mask = 7;
         if (screenshots_dir == NULL) {
-            char *path = fs_config_get_string("screenshots_output_dir");
+            char *path = fs_config_get_string(OPTION_SCREENSHOTS_OUTPUT_DIR);
             if (path) {
+                path = fs_emu_path_expand_and_free(path);
                 if (fs_path_exists(path)) {
                     screenshots_dir = path;
                 }

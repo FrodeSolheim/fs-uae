@@ -218,6 +218,7 @@ int amiga_get_joystick_port_mode(int port);
 */
 void amiga_set_joystick_port_mode(int port, int mode);
 void amiga_set_joystick_port_autofire(int port, int autofire);
+void amiga_enable_auto_mouse_mode(bool enable);
 
 int amiga_send_input_event(int input_event, int state);
 

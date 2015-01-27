@@ -881,15 +881,6 @@ STATIC_INLINE uae_key_t find_shmkey (uae_key_t key)
     return result;
 }
 
-int mprotect (void *addr, size_t len, int prot)
-#ifdef PANDORA    
-    __THROW
-#endif
-{
-    int result = 0;
-    return result;
-}
-
 void *uae_shmat (int shmid, void *shmaddr, int shmflg)
 {
     write_log("uae_shmat shmid %d shmaddr %p, shmflg %d natmem_offset = %p\n",

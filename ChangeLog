@@ -1,3 +1,12 @@
+Version 2.4.3:
+
+* Fixed bug causing crash with recent NVIDIA linux drivers [NVIDIA].
+
+Version 2.4.2:
+
+* Fixed left trigger = toggle autofire.
+* (Launcher) Case insensitive kickstart scan on startup.
+
 Version 2.4.1:
 
 * (Launcher) Fixed a bug preventing hd_requirements = workbench from working.

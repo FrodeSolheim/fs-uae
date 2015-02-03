@@ -16,15 +16,16 @@ bundle:
 	mkdir -p fs-uae_$(version)_macosx/FS-UAE.app/Contents/MacOS
 	mkdir -p fs-uae_$(version)_macosx/FS-UAE.app/Contents/Resources
 	mkdir -p fs-uae_$(version)_macosx/FS-UAE.app/Contents/
-	cp Info.plist PkgInfo fs-uae_$(version)_macosx/FS-UAE.app/Contents/
+	cp Info.plist fs-uae_$(version)_macosx/FS-UAE.app/Contents/
+	cp @srcdir@/PkgInfo fs-uae_$(version)_macosx/FS-UAE.app/Contents/
 	cp ../../fs-uae fs-uae_$(version)_macosx/FS-UAE.app/Contents/MacOS/
 	cp ../../fs-uae.dat fs-uae_$(version)_macosx/FS-UAE.app/Contents/MacOS/
 	cp ../../fs-uae-device-helper fs-uae_$(version)_macosx/FS-UAE.app/Contents/MacOS/
 	cp -pPR ../../share/* fs-uae_$(version)_macosx/FS-UAE.app/Contents/Resources
 	strip fs-uae_$(version)_macosx/FS-UAE.app/Contents/MacOS/*
-	cp fs-uae.icns fs-uae_$(version)_macosx/FS-UAE.app/Contents/Resources/
-	cp fs-uae-config.icns fs-uae_$(version)_macosx/FS-UAE.app/Contents/Resources/
-	cp -pPR ../../licenses fs-uae_$(version)_macosx/FS-UAE.app/Contents/Resources/
-	cp ../../COPYING fs-uae_$(version)_macosx/FS-UAE.app/Contents/Resources/
-	cp ../../README fs-uae_$(version)_macosx/FS-UAE.app/Contents/Resources/
-	cd fs-uae_$(version)_macosx && ../standalone.py FS-UAE.app
+	cp @srcdir@/fs-uae.icns fs-uae_$(version)_macosx/FS-UAE.app/Contents/Resources/
+	cp @srcdir@/fs-uae-config.icns fs-uae_$(version)_macosx/FS-UAE.app/Contents/Resources/
+	cp -pPR @srcdir@/../../licenses fs-uae_$(version)_macosx/FS-UAE.app/Contents/Resources/
+	cp @srcdir@/../../COPYING fs-uae_$(version)_macosx/FS-UAE.app/Contents/Resources/
+	cp @srcdir@/../../README fs-uae_$(version)_macosx/FS-UAE.app/Contents/Resources/
+	@srcdir@/standalone.py fs-uae_$(version)_macosx/FS-UAE.app

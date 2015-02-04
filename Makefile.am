@@ -126,7 +126,7 @@ fs_uae_SOURCES = \
 if WINDOWS
 nodist_fs_uae_SOURCES += src/fs-uae/fs-uae.rc
 .rc.o:
-	windres $< -o $@
+	windres $< -o $@ -I$(s)
 endif
 
 fs_uae_LDADD =

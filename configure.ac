@@ -216,6 +216,7 @@ AC_CHECK_LIB([Ws2_32], [main])
 
 AC_SUBST([OS_CPPFLAGS])
 AC_SUBST([OS_LDFLAGS])
+AC_SUBST([OS_NAME])
 AS_CASE([$host_os],
 [mingw*], [
 	OS_NAME="windows"

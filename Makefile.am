@@ -1326,3 +1326,6 @@ uninstall-local:
 clean-local:
 	rm -f fs-uae.dat
 	find share -name fs-uae.mo -delete
+
+fs-uae-dist:
+	$(MAKE) -C dist/@OS_NAME@

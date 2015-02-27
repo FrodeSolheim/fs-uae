@@ -2894,13 +2894,12 @@ void init_wd_scsi (struct wd_state *wd)
 int a3000_add_scsi_unit (int ch, struct uaedev_config_info *ci)
 {
 	struct wd_state *wd = &wd_a3000;
-
 	if (ci->type == UAEDEV_CD)
-		return add_scsi_cd(wd->scsis, ch, ci->device_emu_unit);
+		return add_scsi_cd (wd->scsis, ch, ci->device_emu_unit);
 	else if (ci->type == UAEDEV_TAPE)
-		return add_scsi_tape(wd->scsis, ch, ci->rootdir, ci->readonly);
+		return add_scsi_tape (wd->scsis, ch, ci->rootdir, ci->readonly);
 	else
-		return add_scsi_hd(wd->scsis, ch, NULL, ci, 2);
+		return add_scsi_hd (wd->scsis, ch, NULL, ci, 2);
 }
 
 void a3000scsi_reset (void)
@@ -2946,14 +2945,14 @@ int gvp_add_scsi_unit(int ch, struct uaedev_config_info *ci, int devnum)
 	struct wd_state *wd = gvpscsi[devnum];
 
 	if (ci->type == UAEDEV_CD)
-		return add_wd_scsi_cd(wd, ch, ci->device_emu_unit);
+		return add_scsi_cd(wd->scsis, ch, ci->device_emu_unit);
 	else if (ci->type == UAEDEV_TAPE)
-		return add_wd_scsi_tape(wd, ch, ci->rootdir, ci->readonly);
+		return add_scsi_tape(wd->scsis, ch, ci->rootdir, ci->readonly);
 	else
-		return add_wd_scsi_hd(wd, ch, NULL, ci, 2);
+		return add_scsi_hd(wd->scsis, ch, NULL, ci, 2);
 }
 
-static void a2091_free_device (struct wd_state *wd)
+void a2091_free_device (struct wd_state *wd)
 {
 	scsi_freenative(wd->scsis);
 	xfree (wd->rom);

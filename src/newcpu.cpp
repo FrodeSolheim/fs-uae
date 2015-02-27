@@ -3542,8 +3542,8 @@ static int do_specialties (int cycles)
 		unset_special (SPCFLAG_TRAP);
 		Exception (3);
 	}
+	bool first = true;
 	while ((regs.spcflags & SPCFLAG_STOP) && !(regs.spcflags & SPCFLAG_BRK)) {
-
 isstopped:
 		if (uae_int_requested || uaenet_int_requested) {
 			INTREQ_f (0x8008);
@@ -3569,7 +3569,9 @@ isstopped:
 			cputrace.cyclecounter = cputrace.cyclecounter_pre = cputrace.cyclecounter_post = 0;
 			cputrace.readcounter = cputrace.writecounter = 0;
 		}
-		x_do_cycles (currprefs.cpu_cycle_exact ? 2 * CYCLE_UNIT : 4 * CYCLE_UNIT);
+		if (!first)
+			x_do_cycles (currprefs.cpu_cycle_exact ? 2 * CYCLE_UNIT : 4 * CYCLE_UNIT);
+		first = false;
 		if (regs.spcflags & SPCFLAG_COPPER)
 			do_copper ();
 

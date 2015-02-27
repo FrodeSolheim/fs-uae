@@ -191,25 +191,24 @@ static void unqueue_old_buffers(int stream)
     fs_mutex_unlock(s->mutex);
 }
 
-void fs_emu_audio_pause_stream(int stream)
+void fs_emu_audio_set_paused(int stream, bool paused)
 {
-    fs_log("fs_emu_audio_resume_stream %d\n", stream);
-    audio_stream *s = g_streams[stream];
-    alSourcePause(s->source);
-    g_fs_emu_audio_stream_playing[stream] = 0;
-    check_al_error("alSourcePlay");
+    if (paused) {
+        fs_log("fs_emu_audio_resume_stream %d\n", stream);
+        audio_stream *s = g_streams[stream];
+        alSourcePause(s->source);
+        g_fs_emu_audio_stream_playing[stream] = 0;
+        check_al_error("alSourcePlay");
+    } else {
+        fs_log("fs_emu_audio_resume_stream %d\n", stream);
+        audio_stream *s = g_streams[stream];
+        alSourcePlay(s->source);
+        g_fs_emu_audio_stream_playing[stream] = 1;
+        check_al_error("alSourcePlay");
+    }
 }
 
-void fs_emu_audio_resume_stream(int stream)
-{
-    fs_log("fs_emu_audio_resume_stream %d\n", stream);
-    audio_stream *s = g_streams[stream];
-    alSourcePlay(s->source);
-    g_fs_emu_audio_stream_playing[stream] = 1;
-    check_al_error("alSourcePlay");
-}
-
-int fs_emu_check_audio_buffer_done(int stream, int buffer)
+int fs_emu_audio_check_buffer(int stream, int buffer)
 {
     unqueue_old_buffers(stream);
     audio_stream *s = g_streams[stream];
@@ -227,7 +226,7 @@ int fs_emu_check_audio_buffer_done(int stream, int buffer)
     return 0;
 }
 
-int fs_emu_queue_audio_buffer(int stream, int16_t* data, int size)
+int fs_emu_audio_queue_buffer(int stream, int16_t* data, int size)
 {
     if (g_fs_emu_benchmarking) {
         // no audio output while benchmarking
@@ -314,24 +313,24 @@ void fs_emu_disable_audio_stream(int stream)
 
 #endif
 
-void fs_emu_audio_set_volume(int volume)
+void fs_emu_audio_set_volume(int stream, int volume)
 {
     g_volume = volume;
     g_want_volume = g_mute ? 0.0 : g_volume / 100.0;
 }
 
-void fs_emu_audio_set_mute(int mute)
+void fs_emu_audio_set_muted(int stream, int mute)
 {
     g_mute = mute;
     g_want_volume = g_mute ? 0.0 : g_volume / 100.0;
 }
 
-int fs_emu_audio_get_volume()
+int fs_emu_audio_volume(int stream)
 {
     return g_volume;
 }
 
-int fs_emu_audio_get_mute()
+bool fs_emu_audio_muted(int stream)
 {
     return g_mute || g_volume == 0;
 }
@@ -344,7 +343,7 @@ void fs_emu_set_audio_buffer_frequency(int stream, int frequency)
 
 #endif
 
-int fs_emu_get_audio_frequency()
+int fs_emu_audio_output_frequency()
 {
     return g_audio_out_frequency;
 }
@@ -499,9 +498,9 @@ static void openal_audio_init()
     int volume = fs_config_get_int_clamped("volume", 0, 100);
     if (volume != FS_CONFIG_NONE) {
         if (volume == 0) {
-            fs_emu_audio_set_mute(1);
+            fs_emu_audio_set_muted(FS_EMU_AUDIO_MASTER, 1);
         } else {
-            fs_emu_audio_set_volume(volume);
+            fs_emu_audio_set_volume(FS_EMU_AUDIO_MASTER, volume);
         }
     }
 

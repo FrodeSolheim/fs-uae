@@ -172,7 +172,11 @@ void fs_emu_video_render_mutex_unlock() {
     fs_mutex_unlock(g_video_render_mutex);
 }
 
-void fs_emu_video_init() {
+#ifdef FS_EMU_DRIVERS
+/* see video/init.c instead */
+#else
+void fs_emu_video_init(void)
+{
     fs_log("fs_emu_video_init\n");
     fs_emu_video_init_options();
 
@@ -180,6 +184,7 @@ void fs_emu_video_init() {
     g_emu_video_struct_queue = g_queue_new();
     g_emu_video_struct_mutex = fs_mutex_create();
 }
+#endif
 
 int fs_emu_get_video_format() {
     return g_fs_emu_video_format;

@@ -127,8 +127,6 @@ if WINDOWS
 nodist_fs_uae_SOURCES += src/fs-uae/fs-uae.rc
 .rc.o:
 	windres $< -o $@
-%.o : %.rc
-	windres $< -o $@
 endif
 
 fs_uae_LDADD =
@@ -554,8 +552,11 @@ libfsemu_a_SOURCES = \
 	libfsemu/include/fs/defines.h \
 	libfsemu/include/fs/emu.h \
         libfsemu/include/fs/emu/audio.h \
+        libfsemu/include/fs/emu/benchmark.h \
+        libfsemu/include/fs/emu/buffer.h \
         libfsemu/include/fs/emu/dialog.h \
 	libfsemu/include/fs/emu/hacks.h \
+	libfsemu/include/fs/emu/input.h \
 	libfsemu/include/fs/emu/options.h \
         libfsemu/include/fs/emu/path.h \
         libfsemu/include/fs/emu/video.h \
@@ -579,10 +580,11 @@ libfsemu_a_SOURCES = \
 	libfsemu/include/fs/thread.h \
 	libfsemu/include/fs/time.h \
 	libfsemu/include/fs/util.h \
-        libfsemu/src/audio/common.c \
-        libfsemu/src/audio/init.c \
-        libfsemu/src/audio/openal.c \
-        libfsemu/src/audio/sdl2.c \
+        libfsemu/src/audio/audio-common.c \
+        libfsemu/src/audio/audio-driver-dummy.c \
+        libfsemu/src/audio/audio-driver-openal.c \
+        libfsemu/src/audio/audio-driver-sdl.c \
+        libfsemu/src/audio/audio-init.c \
         libfsemu/src/base.c \
 	libfsemu/src/conf.c \
 	libfsemu/src/data.c \
@@ -630,11 +632,15 @@ libfsemu_a_SOURCES = \
 	libfsemu/src/emu/xml_shader.h \
 	libfsemu/src/eventlog.c \
 	libfsemu/src/filesys.c \
-	libfsemu/src/malloc.c \
 	libfsemu/src/image.c \
+	libfsemu/src/input/input-actions.c \
+	libfsemu/src/input/input-common.c \
+	libfsemu/src/input/input-driver-sdl.c \
+	libfsemu/src/input/input-init.c \
 	libfsemu/src/inifile.c \
 	libfsemu/src/init.c \
 	libfsemu/src/log.c \
+	libfsemu/src/malloc.c \
 	libfsemu/src/ml/clock.c \
 	libfsemu/src/ml/config.c \
 	libfsemu/src/ml/input.c \
@@ -659,7 +665,13 @@ libfsemu_a_SOURCES = \
         libfsemu/src/path.c \
         libfsemu/src/ref.c \
 	libfsemu/src/thread.c \
-	libfsemu/src/time.c
+	libfsemu/src/time.c \
+        libfsemu/src/video/video-buffer.c \
+        libfsemu/src/video/video-common.c \
+        libfsemu/src/video/video-common-sdl.c \
+        libfsemu/src/video/video-driver-dummy.c \
+        libfsemu/src/video/video-driver-sdl.c \
+        libfsemu/src/video/video-init.c
 
 if BUILTIN_GLEE
 noinst_LIBRARIES += libglee.a

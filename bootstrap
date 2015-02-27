@@ -8,12 +8,7 @@ echo "Boostrapping fs-uae..."
 rm -Rf autom4te.cache
 # cat m4/* | grep -v "#serial" > acinclude.m4
 echo "Running aclocal"
-if [ -e /opt/share/aclocal ]; then
-	# extra m4 macros installed on mingw system
-	aclocal -I m4 -I /opt/share/aclocal
-else
-	aclocal -I m4
-fi
+aclocal
 echo "Running autoheader"
 autoheader
 echo "Running automake --add-missing --copy"

@@ -8,7 +8,7 @@
 
 #define FS_EMU_INTERNAL
 #include <fs/emu/audio.h>
-
+#include <fs/emu/benchmark.h>
 #include <fs/emu.h>
 #include <stdio.h>
 #include <fs/base.h>
@@ -191,25 +191,24 @@ static void unqueue_old_buffers(int stream)
     fs_mutex_unlock(s->mutex);
 }
 
-void fs_emu_audio_pause_stream(int stream)
+static void set_paused(int stream, bool paused)
 {
-    fs_log("fs_emu_audio_resume_stream %d\n", stream);
-    audio_stream *s = g_streams[stream];
-    alSourcePause(s->source);
-    g_fs_emu_audio_stream_playing[stream] = 0;
-    check_al_error("alSourcePlay");
+    if (paused) {
+        fs_log("fs_emu_audio_resume_stream %d\n", stream);
+        audio_stream *s = g_streams[stream];
+        alSourcePause(s->source);
+        g_fs_emu_audio_stream_playing[stream] = 0;
+        check_al_error("alSourcePlay");
+    } else {
+        fs_log("fs_emu_audio_resume_stream %d\n", stream);
+        audio_stream *s = g_streams[stream];
+        alSourcePlay(s->source);
+        g_fs_emu_audio_stream_playing[stream] = 1;
+        check_al_error("alSourcePlay");
+    }
 }
 
-void fs_emu_audio_resume_stream(int stream)
-{
-    fs_log("fs_emu_audio_resume_stream %d\n", stream);
-    audio_stream *s = g_streams[stream];
-    alSourcePlay(s->source);
-    g_fs_emu_audio_stream_playing[stream] = 1;
-    check_al_error("alSourcePlay");
-}
-
-int fs_emu_check_audio_buffer_done(int stream, int buffer)
+static int check_buffer(int stream, int buffer)
 {
     unqueue_old_buffers(stream);
     audio_stream *s = g_streams[stream];
@@ -227,10 +226,14 @@ int fs_emu_check_audio_buffer_done(int stream, int buffer)
     return 0;
 }
 
-int fs_emu_queue_audio_buffer(int stream, int16_t* data, int size)
+static int queue_buffer(int stream, int16_t* data, int size)
 {
+    if (g_fs_emu_benchmark_mode) {
+        /* no audio output while benchmarking */
+        return 0;
+    }
     if (g_fs_emu_benchmarking) {
-        // no audio output while benchmarking
+        /* no audio output while benchmarking */
         return 0;
     }
     //fs_log("fs_emu_queue_audio_buffer stream %d size %d\n", stream, size);
@@ -250,13 +253,15 @@ int fs_emu_queue_audio_buffer(int stream, int16_t* data, int size)
     //int buffers_queued = s->buffers_queued;
     fs_mutex_unlock(s->mutex);
 
-    // for debugging, clear one of the stereo channels
-    //int16_t *d = data;
-    //for (int i = 0; i < size / 4; i++) {
-    //    d++;
-    //    *d = 0;
-    //    d++;
-    //}
+#if 0
+    /* for debugging, clear one of the stereo channels */
+    int16_t *d = data;
+    for (int i = 0; i < size / 4; i++) {
+        d++;
+        *d = 0;
+        d++;
+    }
+#endif
 
     alBufferData(buffer, AL_FORMAT_STEREO16, data, size, s->frequency);
     check_al_error("alBufferData");
@@ -282,7 +287,7 @@ int fs_emu_queue_audio_buffer(int stream, int16_t* data, int size)
         //}
     }
 
-    double want_volume = g_fs_emu_audio_want_volume * 0.9;
+    double want_volume = g_fs_emu_audio_want_volume[stream] * 0.9;
     if (want_volume != s->source_volume_current) {
         s->source_volume_current = want_volume;
         alSourcef(s->source, AL_GAIN, want_volume);
@@ -322,7 +327,7 @@ void fs_emu_set_audio_buffer_frequency(int stream, int frequency)
 
 #endif
 
-int fs_emu_get_audio_frequency()
+static int output_frequency(void)
 {
     return g_audio_out_frequency;
 }
@@ -470,18 +475,71 @@ static void log_openal_info()
            alcGetString(NULL, ALC_DEFAULT_DEVICE_SPECIFIER));
 }
 
-void fs_emu_openal_audio_init(void)
+static void fs_emu_init_audio_stream(int stream,
+                              fs_emu_audio_stream_options *options)
 {
-    fs_log("fs_emu_openal_audio_init\n");
+    audio_stream *s = g_malloc0(sizeof(audio_stream));
+    s->buffer_size = options->buffer_size;
+    s->frequency = options->frequency;
+    s->num_buffers = MAX_BUFFERS;
+    s->min_buffers = options->min_buffers;
+    fs_log("AUDIO: Stream %d,  frequency: %d, buffers: %d buffer "
+           "size: %d bytes\n", stream, s->frequency, s->num_buffers,
+           s->buffer_size);
+    s->mutex = fs_mutex_create();
+    s->queue = g_queue_new();
+    s->source_volume_current = 1.0;
+    s->buffers_queued = 0;
+    s->pid_last_error = 0;
+    s->pid_last_last_error = 0;
+    s->pid_last_time = 0;
+    s->pid_last_last_time = 0;
 
-    int volume = fs_config_get_int_clamped("volume", 0, 100);
-    if (volume != FS_CONFIG_NONE) {
-        if (volume == 0) {
-            fs_emu_audio_set_mute(1);
-        } else {
-            fs_emu_audio_set_volume(volume);
-        }
+    alGenSources(1, &s->source);
+    //alSourcei (s->source, AL_SOURCE_RELATIVE, AL_TRUE);
+    //alSource3f(s->source, AL_POSITION, 0.0, 0.0, -1.0);
+    //alSourcef (s->source, AL_ROLLOFF_FACTOR, 0.0);
+    // AL_DIRECT_CHANNELS_SOFT
+    alSourcei(s->source, 0x1033, AL_TRUE);
+
+    check_al_error("alGenSources");
+    for (int i = 0; i < s->num_buffers; i++) {
+        ALuint buffer;
+        alGenBuffers(1, &buffer);
+        check_al_error("alGenBuffers");
+        g_queue_push_tail(s->queue, FS_UINT_TO_POINTER(buffer));
     }
+
+    if (stream == 0) {
+        s->fill_target = g_default_fill_target;
+    } else {
+        s->fill_target = 0;
+    }
+
+    g_streams[stream] = s;
+}
+
+static void configure(fs_emu_audio_stream_options **options)
+{
+    int k = 0;
+    for (fs_emu_audio_stream_options **o = options; *o; o++) {
+        fs_emu_init_audio_stream(k++, *o);
+    }
+}
+
+static void register_functions(void)
+{
+    fs_emu_audio_configure = configure;
+    fs_emu_audio_queue_buffer = queue_buffer;
+    fs_emu_audio_check_buffer = check_buffer;
+    fs_emu_audio_set_paused = set_paused;
+    fs_emu_audio_output_frequency = output_frequency;
+}
+
+void fs_emu_audio_openal_init(void)
+{
+    fs_log("fs_emu_audio_openal_init\n");
+    register_functions();
 
     // select the "preferred device"
     g_device = alcOpenDevice(NULL);
@@ -490,7 +548,7 @@ void fs_emu_openal_audio_init(void)
                alcGetString(g_device, ALC_DEVICE_SPECIFIER));
     } else {
         fs_log("OPENAL: alcOpenDevice returned NULL\n");
-        fs_emu_warning("OPENAL: Could not open audio device device\n");
+        fs_emu_warning("OPENAL: Could not open audio device\n");
         ALenum error_code = alGetError();
         fs_log("OPENAL: error code %d\n", error_code);
         if (alGetString(error_code)) {
@@ -517,14 +575,6 @@ void fs_emu_openal_audio_init(void)
             ALC_FREQUENCY, frequency,
             0
         };
-#if 0
-        if (frequency == 0) {
-            // this will zero out ALC_FREQUENCY, so this index will be
-            // interpreted as end-of-attributes and OpenAL will choose
-            // frequency itself.
-            attributes[4] = 0;
-        }
-#endif
 
         g_context = alcCreateContext(g_device, attributes);
         if (g_context) {
@@ -533,28 +583,6 @@ void fs_emu_openal_audio_init(void)
         }
     }
 
-#if 0
-    // FIXME: enable later
-    ALCint attributes[3] = { ALC_FREQUENCY,  48000, 0 };
-
-    fs_log("OPENAL: trying 48000\n");
-    g_context = alcCreateContext(g_device, attributes);
-    if (g_context) {
-        g_audio_out_frequency = 48000;
-    } else {
-        //check_al_error("alcCreateContext");
-        fs_log("OPENAL: trying without frequency specified\n");
-    }
-#endif
-#if 0
-    ALCint attributes[] = { ALC_MONO_SOURCES, 0,
-                            ALC_STEREO_SOURCES, 2, 0 };
-
-    if (!g_context) {
-        g_context = alcCreateContext(g_device, attributes);
-        g_audio_out_frequency = 44100;
-    }
-#endif
     if (g_context) {
         fs_log("OPENAL: created context\n");
         alcMakeContextCurrent(g_context);
@@ -612,6 +640,7 @@ void fs_emu_audio_shutdown()
     openal_audio_shutdown();
 }
 
+#if 0
 void fs_emu_init_audio_stream_options(fs_emu_audio_stream_options *options)
 {
     options->frequency = 44100;
@@ -622,50 +651,7 @@ void fs_emu_init_audio_stream_options(fs_emu_audio_stream_options *options)
     //options->min_buffers = 10;
     options->min_buffers = 1;
 }
-
-void fs_emu_init_audio_stream(int stream,
-                              fs_emu_audio_stream_options *options)
-{
-    audio_stream *s = g_malloc0(sizeof(audio_stream));
-    s->buffer_size = options->buffer_size;
-    s->frequency = options->frequency;
-    s->num_buffers = MAX_BUFFERS;
-    s->min_buffers = options->min_buffers;
-    fs_log("AUDIO: Stream %d,  frequency: %d, buffers: %d buffer "
-           "size: %d bytes\n", stream, s->frequency, s->num_buffers,
-           s->buffer_size);
-    s->mutex = fs_mutex_create();
-    s->queue = g_queue_new();
-    s->source_volume_current = 1.0;
-    s->buffers_queued = 0;
-    s->pid_last_error = 0;
-    s->pid_last_last_error = 0;
-    s->pid_last_time = 0;
-    s->pid_last_last_time = 0;
-
-    alGenSources(1, &s->source);
-    //alSourcei (s->source, AL_SOURCE_RELATIVE, AL_TRUE);
-    //alSource3f(s->source, AL_POSITION, 0.0, 0.0, -1.0);
-    //alSourcef (s->source, AL_ROLLOFF_FACTOR, 0.0);
-    // AL_DIRECT_CHANNELS_SOFT
-    alSourcei(s->source, 0x1033, AL_TRUE);
-
-    check_al_error("alGenSources");
-    for (int i = 0; i < s->num_buffers; i++) {
-        ALuint buffer;
-        alGenBuffers(1, &buffer);
-        check_al_error("alGenBuffers");
-        g_queue_push_tail(s->queue, FS_UINT_TO_POINTER(buffer));
-    }
-
-    if (stream == 0) {
-        s->fill_target = g_default_fill_target;
-    } else {
-        s->fill_target = 0;
-    }
-
-    g_streams[stream] = s;
-}
+#endif
 
 //#define AUDIO_DEBUG_SCALE 0.012
 #define AUDIO_DEBUG_SCALE 0.003
@@ -744,14 +730,6 @@ void fs_emu_audio_render_debug_info(uint32_t *texture)
         *(line++) = color;
     }
 }
-
-/*
-fs_emu_audio_driver g_fs_emu_audio_openal_driver = {
-    "openal",
-    openal_audio_init,
-    openal_audio_shutdown,
-};
-*/
 
 #endif /* USE_OPENAL */
 

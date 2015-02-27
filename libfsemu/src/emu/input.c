@@ -2,7 +2,9 @@
 #include "config.h"
 #endif
 
+#define FS_EMU_INTERNAL
 #include <fs/emu.h>
+#include <fs/emu/input.h>
 #include <fs/emu/options.h>
 #include "input.h"
 
@@ -150,7 +152,8 @@ void fs_emu_set_keyboard_translation(fs_emu_key_translation *keymap) {
 }
 
 void fs_emu_configure_mouse(const char* name, int horiz, int vert, int left,
-        int middle, int right, int wheel_axis) {
+        int middle, int right, int wheel_axis)
+{
     fs_log("fs_emu_configure_mouse (device: %s)\n", name);
 
     fs_ml_input_device device;
@@ -659,7 +662,8 @@ void fs_emu_reset_input_mapping() {
 static fs_mutex* g_input_event_mutex;
 static GQueue* g_input_event_queue;
 
-int fs_emu_get_input_event() {
+int fs_emu_get_input_event()
+{
     fs_mutex_lock(g_input_event_mutex);
     int input_event = FS_POINTER_TO_INT(g_queue_pop_tail(
             g_input_event_queue));
@@ -667,7 +671,8 @@ int fs_emu_get_input_event() {
     return input_event;
 }
 
-void fs_emu_queue_input_event_internal(int input_event) {
+void fs_emu_queue_input_event_internal(int input_event)
+{
     if (input_event == 0) {
         fs_log("WARNING: tried to queue input event 0\n");
         return;
@@ -677,12 +682,14 @@ void fs_emu_queue_input_event_internal(int input_event) {
     fs_mutex_unlock(g_input_event_mutex);
 }
 
-void fs_emu_queue_action(int action, int state) {
+void fs_emu_queue_action(int action, int state)
+{
     int input_event = action | (state << 16);
     fs_emu_queue_input_event(input_event);
 }
 
-void fs_emu_queue_input_event(int input_event) {
+void fs_emu_queue_input_event(int input_event)
+{
     if (input_event & 0x8000) {
         int state = (input_event & 0xff0000) >> 16;
         int action = input_event & 0xffff;
@@ -705,11 +712,13 @@ void fs_emu_queue_input_event(int input_event) {
 #endif
 }
 
-fs_emu_input_device *fs_emu_get_input_devices(int* count) {
+fs_emu_input_device *fs_emu_get_input_devices(int* count)
+{
     return fs_ml_get_input_devices(count);
 }
 
-static void queue_input_event_with_state(int input_event, int state) {
+static void queue_input_event_with_state(int input_event, int state)
+{
     //printf("----------------------------- %d\n", state);
     //printf("action_function => input event %d (state %d)\n", input_event, state);
     if (input_event > 0) {
@@ -1411,7 +1420,8 @@ static void adjust_mouse_movement(int mouse, int axis, int *movement) {
 int fs_emu_mouse_absolute_x = 0;
 int fs_emu_mouse_absolute_y = 0;
 
-static int input_function(fs_ml_event *event) {
+static int input_function(fs_ml_event *event)
+{
     if (event->type == FS_ML_MOUSEMOTION) {
         if (g_ignore_next_motion) {
             g_ignore_next_motion = 0;
@@ -1547,7 +1557,12 @@ static int input_function(fs_ml_event *event) {
     return process_input_event(event);
 }
 
-void fs_emu_input_init() {
+#ifdef FS_EMU_DRIVERS
+void fs_emu_input_init_2(void)
+#else
+void fs_emu_input_init(void)
+#endif
+{
     fs_log("fs_emu_input_init\n");
 
     g_debug_input = getenv("FS_DEBUG_INPUT") && \

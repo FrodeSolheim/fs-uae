@@ -58,7 +58,7 @@ void fs_emu_set_controllers_dir(const char *path);
 // initialize libfsemu
 
 void fs_emu_init_overlays(const char **overlay_names);
-void fs_emu_init();
+void fs_emu_init(void);
 
 #define FS_EMU_INIT_VIDEO 1
 #define FS_EMU_INIT_AUDIO 2

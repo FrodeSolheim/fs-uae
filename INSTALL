@@ -1,4 +1,22 @@
-COMPILING FS-UAE
+Compiling FS-UAE
 ================
+
 Instructions for compiling and installing FS-UAE is available here: 
 http://fengestad.no/fs-uae/compiling
+
+
+openSUSE Dependencies
+---------------------
+
+Dependendices for running bootstrap:
+
+    sudo zypper install autoconf automake libtool gettext
+
+Dependencies for compiling FS-UAE:
+
+    sudo zypper install SDL2-devel glib2-devel libpng-devel gettext \
+    freetype2-devel gcc gcc-c++ openal-devel libXi-devel
+
+Additional dependencies for running FS-UAE Launcher:
+
+    sudo zypper install python3-qt4

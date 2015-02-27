@@ -129,7 +129,8 @@ static char* read_custom_path(const char *key) {
     return NULL;
 }
 
-static const char* fs_uae_base_dir() {
+static const char* fs_uae_base_dir(void)
+{
     static const char* path = NULL;
     if (path) {
         return path;
@@ -147,6 +148,35 @@ static const char* fs_uae_base_dir() {
             path = env_path;
             fs_log("base specified via FS_UAE_BASE_DIR\n");
             fs_emu_deprecated("FS_UAE_BASE_DIR is deprecated");
+        }
+    }
+    if (path == NULL) {
+        // check for portable dir
+        char buffer[MAX_PATH];
+        fs_get_application_exe_dir(buffer, MAX_PATH);
+        char *next = g_strdup(buffer);
+        char *orig = g_strdup(":INVALID;");
+        while (strcmp(orig, next) != 0) {
+            char *test = g_build_filename(next, "Portable.ini", NULL);
+            fs_log("checking %s\n", test);
+            if (fs_path_exists(test)) {
+                path = next;
+                fs_log("using portable base dir %s\n", path);
+                next = NULL;
+                break;
+            }
+            g_free(test);
+            if (orig != NULL) {
+                g_free(orig);
+            }
+            orig = next;
+            next = g_path_get_dirname(next);
+        }
+        if (orig != NULL) {
+            g_free(orig);
+        }
+        if (next != NULL) {
+            g_free(next);
         }
     }
     if (path == NULL) {

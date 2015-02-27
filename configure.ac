@@ -8,7 +8,15 @@ AC_CONFIG_AUX_DIR([.])
 AC_CANONICAL_HOST
 AC_CONFIG_SRCDIR([src/main.cpp])
 AC_CONFIG_HEADERS([config.h])
+
+# AC_CONFIG_MACRO_DIRS requires newer autoconf/automake than is found in
+# Debian 7.0
 # AC_CONFIG_MACRO_DIRS([m4])
+m4_include([m4/ax_c___builtin_expect.m4])
+m4_include([m4/ax_check_compile_flag.m4])
+m4_include([m4/ax_gcc_var_attribute.m4])
+m4_include([m4/ax_gcc_func_attribute.m4])
+
 AM_INIT_AUTOMAKE([tar-ustar subdir-objects])
 
 AC_SUBST([PACKAGE_SERIES], [devel])
@@ -550,6 +558,8 @@ REQ_FEATURE([A2091], [a2091], [a2091],
 	[enable A590/A2091 SCSI], [yes])
 REQ_FEATURE([ACTION_REPLAY], [action_replay], [action-replay],
 	[enable Action Replay 1/2/3 support], [yes])
+OPT_FEATURE([AHI], [ahi], [ahi],
+	[builtin AHI device], [no])
 OPT_FEATURE([WITH_BUILTIN_SLIRP], [builtin_slirp], [builtin-slirp],
 	[enable builtin SLIRP implementation], [yes])
 OPT_FEATURE([CAPS], [caps], [caps],

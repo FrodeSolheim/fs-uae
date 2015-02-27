@@ -592,7 +592,7 @@ static void render_top_item(int mode, int index) {
         if (mode == 0) {
             //fs_emu_texture *texture = NULL;
             int texture = TEXTURE_VOLUME;
-            if (fs_emu_audio_get_mute()) {
+            if (fs_emu_audio_muted(FS_EMU_AUDIO_MASTER)) {
                 //texture = g_tex_volume_mute;
                 texture = TEXTURE_VOLUME_MUTED;
             }

@@ -253,6 +253,48 @@ static int input_handler_loop(int line) {
                 g_fs_uae_last_input_event_state, 0);
     }
 
+#if 0
+    if (line == 0) {
+        int o = 300;
+        if (g_fs_uae_frame == o + 600) {
+            printf("Fake events!\n");
+            fs_uae_process_input_event(line, INPUTEVENT_MOUSE1_HORIZ, 50, 0);
+        }
+        if (g_fs_uae_frame == o + 650) {
+            fs_uae_process_input_event(line, INPUTEVENT_MOUSE1_VERT, 200, 0);
+        }
+        if (g_fs_uae_frame == o + 675) {
+            fs_uae_process_input_event(line, INPUTEVENT_MOUSE1_VERT, 30, 0);
+        }
+        if (g_fs_uae_frame == o + 700) {
+            fs_uae_process_input_event(line, INPUTEVENT_JOY1_FIRE_BUTTON, 1, 0);
+        }
+        if (g_fs_uae_frame == o + 710) {
+            fs_uae_process_input_event(line, INPUTEVENT_JOY1_FIRE_BUTTON, 0, 0);
+        }
+        if (g_fs_uae_frame == o + 800) {
+            fs_uae_process_input_event(line, INPUTEVENT_JOY1_FIRE_BUTTON, 1, 0);
+        }
+        if (g_fs_uae_frame == o + 810) {
+            fs_uae_process_input_event(line, INPUTEVENT_JOY1_FIRE_BUTTON, 0, 0);
+        }
+        if (g_fs_uae_frame == o + 900) {
+            fs_uae_process_input_event(line, INPUTEVENT_JOY1_FIRE_BUTTON, 1, 0);
+        }
+        if (g_fs_uae_frame == o + 910) {
+            fs_uae_process_input_event(line, INPUTEVENT_JOY1_FIRE_BUTTON, 0, 0);
+        }
+#if 0
+        if (g_fs_uae_frame == 1000) {
+            fs_uae_process_input_event(line, INPUTEVENT_JOY1_2ND_BUTTON, 1, 0);
+        }
+        if (g_fs_uae_frame == 1050) {
+            fs_uae_process_input_event(line, INPUTEVENT_JOY1_2ND_BUTTON, 0, 0);
+        }
+#endif
+    }
+#endif
+
     int event, state;
     while (fs_uae_get_recorded_input_event(g_fs_uae_frame, line, &event, &state)) {
         fs_uae_process_input_event(line, event, state, 1);
@@ -343,23 +385,23 @@ char *g_fs_uae_config_dir_path = NULL;
 
 static int audio_callback_function(int type, int16_t *buffer, int size) {
     if (type == 0) {
-        return fs_emu_queue_audio_buffer(0, buffer, size);
+        return fs_emu_audio_queue_buffer(0, buffer, size);
     }
     else if (type == 1) {
-        fs_emu_audio_pause_stream(0);
+        fs_emu_audio_set_paused(0, true);
         return 0;
     }
     else if (type == 2) {
-        fs_emu_audio_resume_stream(0);
+        fs_emu_audio_set_paused(0, false);
         return 0;
     }
     else if (type == 3) {
         // cd audio stream
         if (buffer == NULL) {
             // check status of buffer number given by size
-            return fs_emu_check_audio_buffer_done(1, size);
+            return fs_emu_audio_check_buffer(1, size);
         }
-        return fs_emu_queue_audio_buffer(1, buffer, size);
+        return fs_emu_audio_queue_buffer(1, buffer, size);
     }
     return -1;
 }
@@ -498,7 +540,7 @@ static void on_init() {
     // continuous output
     //amiga_set_option("sound_auto", "false");
 
-    amiga_set_audio_frequency(fs_emu_get_audio_frequency());
+    amiga_set_audio_frequency(fs_emu_audio_output_frequency());
 
     //amiga_set_audio_frequency(22050);
 
@@ -857,9 +899,9 @@ static const char *overlay_names[] = {
 };
 
 #define COPYRIGHT_NOTICE "\nFS-UAE VERSION %s\n" \
-"Copyright 1995-2002 Bernd Schmidt, 1999-2014 Toni Wilen,\n" \
+"Copyright 1995-2002 Bernd Schmidt, 1999-2015 Toni Wilen,\n" \
 "2003-2007 Richard Drummond, 2006-2011 Mustafa 'GnoStiC' Tufan,\n" \
-"2011-2014 Frode Solheim, and contributors.\n" \
+"2011-2015 Frode Solheim, and contributors.\n" \
 "\n" \
 "This is free software; see the file COPYING for copying conditions. There\n" \
 "is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR\n" \
@@ -1084,13 +1126,24 @@ int main(int argc, char* argv[])
         }
     }
 
+#ifdef FS_EMU_DRIVERS
+    fs_emu_audio_stream_options **options = fs_emu_audio_alloc_stream_options(2);
+    options[0]->frequency = fs_emu_audio_output_frequency();
+    /* 12 * 2352 is CDDA_BUFFERS * 2352 (blkdev_cdimage.cpp) */
+    options[1]->buffer_size = 12 * 2352;
+    // begin playing with only one buffer queued
+    options[1]->min_buffers = 1;
+    fs_emu_audio_configure(options);
+    amiga_set_audio_buffer_size(options[0]->buffer_size);
+    fs_emu_audio_free_stream_options(options);
+#else
     // this stream is for paula output and drive clicks
     // FIXME: could mix drive clicks in its own stream instead, -might
     // give higher quality mixing
     fs_emu_audio_stream_options options;
     options.struct_size = sizeof(fs_emu_audio_stream_options);
     fs_emu_init_audio_stream_options(&options);
-    options.frequency = fs_emu_get_audio_frequency();
+    options.frequency = fs_emu_audio_output_frequency();
     fs_emu_init_audio_stream(0, &options);
     amiga_set_audio_buffer_size(options.buffer_size);
 
@@ -1101,6 +1154,7 @@ int main(int argc, char* argv[])
     // begin playing with only one buffer queued
     options.min_buffers = 1;
     fs_emu_init_audio_stream(1, &options);
+#endif
 
     amiga_set_audio_callback(audio_callback_function);
     amiga_set_cd_audio_callback(audio_callback_function);

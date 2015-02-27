@@ -1,29 +1,35 @@
-#ifndef LIBFSEMU_INCLUDE_FS_EMU_VIDEO_H_
-#define LIBFSEMU_INCLUDE_FS_EMU_VIDEO_H_
+#ifndef FS_EMU_VIDEO_H
+#define FS_EMU_VIDEO_H
 
 #include <fs/ml.h>
 
-static inline int fs_emu_get_vblank_count() {
+static inline int fs_emu_get_vblank_count()
+{
     return fs_ml_get_vblank_count();
 }
 
-static inline int64_t fs_emu_get_vblank_time() {
+static inline int64_t fs_emu_get_vblank_time()
+{
     return fs_ml_get_vblank_time();
 }
 
-static inline int fs_emu_get_fullscreen_width() {
+static inline int fs_emu_get_fullscreen_width()
+{
     return fs_ml_get_fullscreen_width();
 }
 
-static inline int fs_emu_get_fullscreen_height() {
+static inline int fs_emu_get_fullscreen_height()
+{
     return fs_ml_get_fullscreen_height();
 }
 
-static inline int fs_emu_get_windowed_width() {
+static inline int fs_emu_get_windowed_width()
+{
     return fs_ml_get_windowed_width();
 }
 
-static inline int fs_emu_get_windowed_height() {
+static inline int fs_emu_get_windowed_height()
+{
     return fs_ml_get_windowed_height();
 }
 
@@ -40,4 +46,35 @@ static inline int fs_emu_get_windowed_height() {
 int fs_emu_get_video_format();
 int fs_emu_get_texture_format();
 
-#endif // LIBFSEMU_INCLUDE_FS_EMU_VIDEO_H_
+static inline int fs_emu_buffer_format()
+{
+    return fs_emu_get_video_format();
+}
+
+static inline int fs_emu_video_texture_format()
+{
+    return fs_emu_get_texture_format();
+}
+
+#ifdef FS_EMU_DRIVERS
+
+#endif
+
+#ifdef FS_EMU_INTERNAL
+
+// FIXME: move
+int fs_emu_main_loop(void);
+
+void fs_emu_video_init(void);
+
+void fs_emu_video_dummy_init(void);
+
+void fs_emu_video_sdl_init(void);
+
+extern void (*fs_emu_video_create_window)(int width, int height);
+
+extern void (*fs_emu_video_render)(void);
+
+#endif /* FS_EMU_INTERNAL */
+
+#endif /* FS_EMU_VIDEO_H */

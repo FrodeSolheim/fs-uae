@@ -111,7 +111,8 @@ fs_ml_input_device *fs_ml_get_input_devices(int* count) {
     return g_fs_ml_input_devices;
 }
 
-int fs_ml_input_device_get(int index, fs_ml_input_device *device) {
+int fs_ml_input_device_get(int index, fs_ml_input_device *device)
+{
     if (index < 0) {
         return 0;
     }

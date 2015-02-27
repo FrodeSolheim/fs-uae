@@ -2469,9 +2469,19 @@ static void update_fetch (int until, int fm)
 
 		count = stop - pos;
 		if (count >= fetchstart) {
+#if 0
+			if (count > 80) count = 80;
+#endif
 			count &= ~fetchstart_mask;
 			int stoppos = pos + count;
-
+#if 0
+			if (vpos >= 60 && vpos <= 250) {
+				if (stoppos != 0xd0) {
+					printf("0x%x (vpos: %d, plfstop 0x%x, ddfstop_to_test 0x%x, ddf2 0x%x)\n",
+						   stoppos, vpos, plfstop, ddfstop_to_test, ddf2);
+				}
+			}
+#endif
 			if (thisline_decision.plfleft < 0) {
 				compute_toscr_delay (bplcon1);
 			}

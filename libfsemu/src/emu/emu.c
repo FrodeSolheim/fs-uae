@@ -2,7 +2,12 @@
 #include "config.h"
 #endif
 
+#define FS_EMU_INTERNAL
 #include <fs/emu.h>
+#include <fs/emu/benchmark.h>
+#include <fs/emu/input.h>
+#include <fs/emu/video.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -13,7 +18,6 @@
 #endif
 
 #include <fs/base.h>
-#include <fs/emu.h>
 #include <fs/i18n.h>
 #include <fs/ml.h>
 #include <fs/thread.h>
@@ -155,7 +159,8 @@ void fs_emu_set_pause_function(fs_emu_pause_function function) {
     g_pause_function = function;
 }
 
-static void read_config() {
+static void read_config()
+{
     char *string_result;
 
     int fullscreen = fs_config_get_boolean("fullscreen");
@@ -226,62 +231,41 @@ void fs_emu_release_gui_lock() {
 
 void fs_emu_volume_control(int volume) {
     if (volume == -1) {
-        if (fs_emu_audio_get_mute()) {
-            fs_emu_audio_set_mute(0);
-            if (fs_emu_audio_get_volume() == 0) {
-                fs_emu_audio_set_volume(10);
+        if (fs_emu_audio_muted(FS_EMU_AUDIO_MASTER)) {
+            fs_emu_audio_set_muted(FS_EMU_AUDIO_MASTER, 0);
+            if (fs_emu_audio_volume(FS_EMU_AUDIO_MASTER) == 0) {
+                fs_emu_audio_set_volume(FS_EMU_AUDIO_MASTER, 10);
             }
         }
         else {
-            fs_emu_audio_set_mute(1);
+            fs_emu_audio_set_muted(FS_EMU_AUDIO_MASTER, true);
         }
     }
     else if (volume == -2) {
-        int volume = MAX(0, fs_emu_audio_get_volume() - 10);
-        fs_emu_audio_set_volume(volume);
-        if (fs_emu_audio_get_mute()) {
-            fs_emu_audio_set_mute(0);
+        int volume = MAX(0, fs_emu_audio_volume(FS_EMU_AUDIO_MASTER) - 10);
+        fs_emu_audio_set_volume(FS_EMU_AUDIO_MASTER, volume);
+        if (fs_emu_audio_muted(FS_EMU_AUDIO_MASTER)) {
+            fs_emu_audio_set_muted(FS_EMU_AUDIO_MASTER, false);
         }
     }
     else if (volume == -3) {
-        int volume = MIN(100, fs_emu_audio_get_volume() + 10);
-        fs_emu_audio_set_volume(volume);
-        if (fs_emu_audio_get_mute()) {
-            fs_emu_audio_set_mute(0);
+        int volume = MIN(100, fs_emu_audio_volume(FS_EMU_AUDIO_MASTER) + 10);
+        fs_emu_audio_set_volume(FS_EMU_AUDIO_MASTER, volume);
+        if (fs_emu_audio_muted(FS_EMU_AUDIO_MASTER)) {
+            fs_emu_audio_set_muted(FS_EMU_AUDIO_MASTER, false);
         }
     }
 
-    if (fs_emu_audio_get_mute()) {
+    if (fs_emu_audio_muted(FS_EMU_AUDIO_MASTER)) {
         fs_emu_notification(1418909137, _("Volume: Muted"));
-    }
-    else {
+    } else {
         fs_emu_notification(1418909137, _("Volume: %d%%"),
-                fs_emu_audio_get_volume());
+                fs_emu_audio_volume(FS_EMU_AUDIO_MASTER));
     }
-#if 0
-
-
-    fs_emu_log("decrease volume\n");
-    if (fs_emu_audio_get_mute()) {
-        fs_emu_audio_set_mute(0);
-    }
-    int volume = MAX(0, fs_emu_audio_get_volume() - 10);
-    fs_emu_audio_set_volume(volume);
-    fs_emu_notification(1418909137, _("Volume: %d%%"), volume);
-}
-else if (key_code == FS_ML_KEY_PERIOD) {
-    fs_emu_volume_control(-3);
-    fs_emu_log("increase volume\n");
-    if (fs_emu_audio_get_mute()) {
-        fs_emu_audio_set_mute(0);
-    }
-    int volume = MIN(100, fs_emu_audio_get_volume() + 10);
-    fs_emu_audio_set_volume(volume);
-    fs_emu_notification(1418909137, _("Volume: %d%%"), volume);
-#endif
 }
 
-void fs_emu_init() {
+void fs_emu_init(void)
+{
     fs_log("fs_emu_init\n");
     //if (!g_fs_emu_config) {
     //    g_fs_emu_config = g_key_file_new();
@@ -322,11 +306,15 @@ void fs_emu_init_2(int options) {
     fs_emu_netplay_init();
 #endif
 
+#ifdef FS_EMU_DRIVERS
+    fs_emu_video_init();
+#else
     if (options & FS_EMU_INIT_VIDEO) {
         fs_emu_video_init();
     }
 
     fs_emu_init_render();
+#endif
 
     // these must (currently) be called after renderer has been initialized,
     // due to a mutex that must be initialized first
@@ -335,20 +323,29 @@ void fs_emu_init_2(int options) {
     fs_emu_set_overlay_state(FS_EMU_BOTTOM_RIGHT_OVERLAY, 1);
     fs_emu_set_overlay_state(FS_EMU_BOTTOM_LEFT_OVERLAY, 1);
 
+// #ifdef FS_EMU_DRIVERS_XXX
+// #else
     fs_emu_log("calling fs_ml_init_2\n");
     fs_ml_init_2();
     fs_ml_set_quit_function(on_quit);
 
     fs_emu_log("read config\n");
     read_config();
+// #endif
 
     if (options & FS_EMU_INIT_INPUT) {
         fs_emu_input_init();
+#ifdef FS_EMU_DRIVERS
+        fs_emu_input_init_2();
+#endif
     }
     if (options & FS_EMU_INIT_AUDIO) {
         fs_emu_audio_init();
     }
 
+#ifdef FS_EMU_DRIVERS
+
+#else
     fs_ml_video_set_update_function(fs_emu_video_update_function);
     fs_ml_video_set_render_function(fs_emu_video_render_function);
     fs_ml_video_set_post_render_function(fs_emu_video_after_update);
@@ -371,6 +368,7 @@ void fs_emu_init_2(int options) {
         fs_ml_video_create_window(title);
         free(title);
     }
+#endif
 }
 
 int fs_emu_thread_running() {
@@ -450,7 +448,11 @@ int fs_emu_run(fs_emu_main_function function) {
         // FIXME: FATAL
     }
 
+#ifdef FS_EMU_DRIVERS
+    int result = fs_emu_main_loop();
+#else
     int result = fs_ml_main_loop();
+#endif
     fs_emu_log("fs_emu_run: main loop is done\n");
 
     if (g_fs_emu_benchmark_start_time) {
@@ -487,6 +489,11 @@ static int wait_for_frame_no_netplay() {
     if (g_fs_emu_benchmarking) {
         return 1;
     }
+#ifdef FS_EMU_DRIVERS
+    if (g_fs_emu_benchmark_mode) {
+        return 1;
+    }
+#endif
     if (!g_fs_emu_throttling) {
         return 1;
     }

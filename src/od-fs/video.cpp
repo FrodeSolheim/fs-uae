@@ -157,6 +157,7 @@ static bool render_frame(bool immediate)
             g_has_flushed_screen;
 
     g_renderdata.bpp = g_amiga_video_bpp;
+    // printf("%d %d %d\n", g_amiga_video_bpp, AMIGA_WIDTH, AMIGA_HEIGHT);
 
     static int cx, cy, cw, ch, crealh;
     //printf("g_picasso_enabled %d\n", g_picasso_enabled);
@@ -251,6 +252,11 @@ static bool render_frame(bool immediate)
     g_has_flushed_line = 0;
     g_has_flushed_block = 0;
     g_has_flushed_screen = 0;
+
+#ifdef FS_EMU_DRIVERS
+    notice_screen_contents_lost();
+#endif
+
     return 1;
 }
 

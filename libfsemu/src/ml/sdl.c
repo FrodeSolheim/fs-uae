@@ -35,6 +35,9 @@
 #endif
 
 //#include "fs/emu.h"
+#define FS_EMU_INTERNAL
+#include <fs/emu/input.h>
+
 #include "ml_internal.h"
 
 static GQueue *g_video_event_queue = NULL;
@@ -104,10 +107,15 @@ int fs_ml_get_windowed_height() {
     return g_window_height;
 }
 
-static void post_video_event(int event) {
+static void post_video_event(int event)
+{
+#ifdef FS_EMU_DRIVERS
+    // printf("FS_EMU_DRIVERS: ignoring post_video_event\n");
+#else
     fs_mutex_lock(g_video_event_mutex);
     g_queue_push_head(g_video_event_queue, FS_INT_TO_POINTER(event));
     fs_mutex_unlock(g_video_event_mutex);
+#endif
 }
 
 static void process_video_events() {
@@ -650,7 +658,9 @@ static void on_resize(int width, int height) {
 #endif
 }
 
-static int event_loop() {
+int fs_ml_event_loop(void)
+{
+    // printf("fs_ml_event_loop\n");
     int result = 0;
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
@@ -658,6 +668,10 @@ static int event_loop() {
         case SDL_QUIT:
             fs_log("intercepted SDL_QUIT\n");
             fs_ml_quit();
+#ifdef FS_EMU_DRIVERS
+            printf("returning 1 from fs_ml_event_loop\n");
+            result = 1;
+#endif
             continue;
 #ifdef USE_SDL2
         case SDL_WINDOWEVENT:
@@ -1014,7 +1028,7 @@ void fs_ml_video_swap_buffers() {
 
 int fs_ml_main_loop() {
     while (g_fs_ml_running) {
-        event_loop();
+        fs_ml_event_loop();
         process_video_events();
 
 #if defined(WINDOWS) || defined (MACOSX)

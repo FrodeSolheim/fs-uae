@@ -249,14 +249,14 @@ static addrbank gfxboard_bank_registers = {
 	gfxboard_lget_regs, gfxboard_wget_regs, gfxboard_bget_regs,
 	gfxboard_lput_regs, gfxboard_wput_regs, gfxboard_bput_regs,
 	default_xlate, default_check, NULL, NULL, NULL,
-	dummy_lgeti, dummy_wgeti, ABFLAG_IO | ABFLAG_SAFE | ABFLAG_THREADSAFE
+	dummy_lgeti, dummy_wgeti, ABFLAG_IO | ABFLAG_SAFE
 };
 
 static addrbank gfxboard_bank_special = {
 	gfxboards_lget_regs, gfxboards_wget_regs, gfxboards_bget_regs,
 	gfxboards_lput_regs, gfxboards_wput_regs, gfxboards_bput_regs,
 	default_xlate, default_check, NULL, NULL, _T("Picasso IV MISC"),
-	dummy_lgeti, dummy_wgeti, ABFLAG_IO | ABFLAG_SAFE | ABFLAG_THREADSAFE
+	dummy_lgeti, dummy_wgeti, ABFLAG_IO | ABFLAG_SAFE
 };
 
 static void init_board (void)
@@ -2168,7 +2168,7 @@ static void ew (int addr, uae_u32 value)
 	}
 }
 
-addrbank *gfxboard_init_memory (void)
+addrbank *gfxboard_init_memory (int devnum)
 {
 	int bank;
 	uae_u8 z2_flags, z3_flags, type;
@@ -2259,7 +2259,7 @@ addrbank *gfxboard_init_memory (void)
 	return &gfxboard_bank_memory;
 }
 
-addrbank *gfxboard_init_memory_p4_z2 (void)
+addrbank *gfxboard_init_memory_p4_z2 (int devnum)
 {
 	if (board->z3)
 		return &expamem_null;
@@ -2268,7 +2268,7 @@ addrbank *gfxboard_init_memory_p4_z2 (void)
 	return &gfxboard_bank_memory;
 }
 
-addrbank *gfxboard_init_registers (void)
+addrbank *gfxboard_init_registers (int devnum)
 {
 	if (!board->model_registers)
 		return &expamem_null;

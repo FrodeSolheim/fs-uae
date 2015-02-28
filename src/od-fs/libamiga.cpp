@@ -3,12 +3,12 @@
 #include "sysdeps.h"
 
 #include "uae.h"
-#include "autoconf.h"
 
 #include <string.h>
 #include <string.h>
 
 #include "uae/memory.h"
+#include "autoconf.h"
 #include "options.h"
 #include "blkdev.h"
 #include "custom.h"

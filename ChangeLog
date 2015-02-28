@@ -1,6 +1,7 @@
 Version 2.5.28dev:
 
 * Detect portable dir without help from FS-UAE Launcher.
+* Updated emulation core from WinUAE 3100b8.
 
 Version 2.5.27dev:
 

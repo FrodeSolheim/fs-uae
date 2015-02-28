@@ -41,6 +41,7 @@
 #include "inputrecord.h"
 #include "autoconf.h"
 #include "uae/ppc.h"
+#include "rommgr.h"
 
 #ifdef FSUAE // NL
 #include "uae/fs.h"
@@ -1229,7 +1230,7 @@ static void WriteCIAA (uae_u16 addr, uae_u8 val)
 		handle_cd32_joystick_cia (ciaapra, ciaadra);
 		dongle_cia_write (0, reg, val);
 #ifdef AMAX
-		if (currprefs.amaxromfile[0])
+		if (is_device_rom(&currprefs, 0, ROMTYPE_AMAX) > 0)
 			amax_bfe001_write (val, ciaadra);
 #endif
 		break;

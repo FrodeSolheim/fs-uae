@@ -914,10 +914,8 @@ static int get_fpu_version (void)
 	switch (currprefs.fpu_model)
 	{
 	case 68881:
-		v = 0x1f;
-		break;
 	case 68882:
-		v = 0x20;
+		v = 0x1f;
 		break;
 	case 68040:
 		if (currprefs.fpu_revision == 0x40)
@@ -1369,7 +1367,7 @@ static bool fault_if_no_denormal_support_post(uae_u16 opcode, uae_u16 extra, uae
 static int get_fp_value (uae_u32 opcode, uae_u16 extra, fpdata *src, uaecptr oldpc, uae_u32 *adp)
 {
 	int size, mode, reg;
-	uae_u32 ad = 0, ad2;
+	uae_u32 ad = 0;
 	static const int sz1[8] = { 4, 4, 12, 12, 2, 8, 1, 0 };
 	static const int sz2[8] = { 4, 4, 12, 12, 2, 8, 2, 0 };
 	uae_u32 exts[3];
@@ -1489,7 +1487,6 @@ static int get_fp_value (uae_u32 opcode, uae_u16 extra, fpdata *src, uaecptr old
 	}
 
 	*adp = ad;
-	ad2 = ad;
 
 	if (currprefs.fpu_model == 68060 && fault_if_unimplemented_680x0 (opcode, extra, ad, oldpc, src, -1))
 		return -1;
@@ -2222,7 +2219,7 @@ void fpuop_save (uae_u32 opcode)
 
 void fpuop_restore (uae_u32 opcode)
 {
-	int fpu_version = get_fpu_version ();
+	int fpu_version = get_fpu_version (); // TODO: check version of stack frame
 	uaecptr pc = m68k_getpc () - 2;
 	uae_u32 ad;
 	uae_u32 d;
@@ -2246,7 +2243,6 @@ void fpuop_restore (uae_u32 opcode)
 		return;
 	regs.fpiar = pc;
 
-	uae_u32 pad = ad;
 	if (incr < 0) {
 		ad -= 4;
 		d = x_get_long (ad);

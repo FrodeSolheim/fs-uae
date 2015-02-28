@@ -1,0 +1,9 @@
+
+Code:
+
+    if c.accelerator_memory.explicit:
+        value = c.accelerator_memory.explicit
+    elif f.matches(c.accelerator, "cyberstorm-ppc"):
+        value = str(128 * 1024)
+    else:
+        value = "0"

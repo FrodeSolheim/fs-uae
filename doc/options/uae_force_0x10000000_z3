@@ -1,0 +1,9 @@
+Description: Force Zorro-III address space at 0x10000000
+Default: false
+Example: true
+Type: boolean
+
+This option won't have any effect if [uae_z3mem_start] has been used to set
+a Zorro-III start address other than 0x10000000 or 0x40000000.
+
+See: [uae_z3mem_start], [uae_uae_z3realmapping]

@@ -1,0 +1,4 @@
+Description: Override the amount of graphics memory on the graphics card
+Default:
+Since: 2.5.15
+Type: integer

@@ -1,0 +1,5 @@
+Default: 750
+Example: 0
+Since: 2.1.24
+
+Override the fade out duration when FS-UAE shuts down. Specified in miliseconds.

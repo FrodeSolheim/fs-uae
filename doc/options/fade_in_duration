@@ -1,0 +1,5 @@
+Default: 750
+Example: 0
+Since: 2.3.6
+
+Override the fade in duration when FS-UAE starts. Specified in miliseconds.

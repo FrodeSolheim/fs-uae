@@ -1,0 +1,12 @@
+Example: 65536
+
+Override the amount of Zorro III Fast memory, specified in KB. Must be a
+multiple of 1024. The default value depends on [amiga_model]. Requires a
+processor with 32-bit address bus, (use for example the A1200/020 model).
+
+Code:
+
+    if c.zorro_iii_memory.explicit:
+        value = c.zorro_iii_memory.explicit
+    else:
+        value = "0"

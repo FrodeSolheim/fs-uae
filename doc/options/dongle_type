@@ -1,0 +1,15 @@
+Default:
+Example: robocop 3
+Since: 2.1.33
+
+If a game requires an emulated hardware dongle, set dongle_type to one
+of these values:
+
+* robocop 3
+* leaderboard
+* b.a.t. ii
+* italy’90 soccer
+* dames grand maitre
+* rugby coach
+* cricket captain
+* leviathan

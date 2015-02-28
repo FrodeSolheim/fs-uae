@@ -1,0 +1,22 @@
+Description: Stereo separation
+Default: 100
+Example: 70
+Since: 2.3.12
+Type: choice
+
+Controls the amount of mixing of the stereo channels. The default is that the
+channels are not mixed together, but especially if you are usng headphones,
+and your operating system does not automatically mix channels somewhat when
+headphones are plugged in, you may want to choose a lower value (say 70%).
+
+Value: 100 (100%)
+Value: 90 (90%)
+Value: 80 (80%)
+Value: 70 (70%)
+Value: 60 (60%)
+Value: 50 (50%)
+Value: 40 (40%)
+Value: 30 (30%)
+Value: 20 (20%)
+Value: 10 (10%)
+Value: 0 (0%)

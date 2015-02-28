@@ -1,0 +1,22 @@
+Description: Zoom Amiga display (crop)
+Default: auto
+Example: 640x512+border
+Since: 1.3.2
+Type: choice
+
+This setting controls the initial mode for the F11 zoom key, which defaults
+to auto. Valid values are (with or without +border):
+
+Value: auto ("Auto")
+       Viewport settings are only used in auto mode
+Value: full ("Full Frame")
+       Show the full frame (not full zoom)
+Value: 640x400 (640x400)
+Value: 640x480 (640x480)
+Value: 640x512 (640x512)
+Value: auto+border ("Auto + Border")
+Value: 640x400+border ("640x400 + Border")
+Value: 640x480+border ("640x480 + Border")
+Value: 640x512+border ("640x512 + Border")
+
+The zoom settings has no effect while in RTG graphics mode ("Picasso 96").

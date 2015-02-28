@@ -1,0 +1,25 @@
+Description: FIXME
+Default:
+Example: 4
+Range: 0 - 256
+Type: integer
+
+In cycle-exact mode, specify the frequency of the emulated CPU in multiples
+of 3.546895 / 3.579545. Some examples of common settings:
+
+1:
+PAL: 3.546895, NTSC: 3.579545
+
+2 - A500 speed:
+PAL: 7.093790, NTSC: 7.159090
+
+4 - A1200 speed:
+PAL: 14.187580, NTSC: 14.318180
+
+8:
+PAL: 28.375160, NTSC: 28.636360
+
+If you want to freely specify frequency, set this option to 0 and use [uae_cpu_frequency]. When this option is non-0, [uae_cpu_frequency] will be
+ignored.
+
+This option is only intended to be used with cycle-exact CPU.

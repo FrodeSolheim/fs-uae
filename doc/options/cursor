@@ -1,0 +1,9 @@
+Since: 2.3.17
+Default: auto
+Example: off
+Type: choice
+
+Values:
+* auto
+* 1 on visible
+* 0 off invisible

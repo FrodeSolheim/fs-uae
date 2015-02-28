@@ -1,0 +1,11 @@
+Example: 4096
+
+Override the amount of Zorro II Fast memory, specified in KB. Must be a
+multiple of 1024. The default value depends on [amiga_model].
+
+Code:
+
+    if c.fast_memory.explicit:
+        value = c.fast_memory.explicit
+    else:
+        value = "0"

@@ -1,0 +1,8 @@
+Default: 0x10000000
+Type: integer
+
+p->z3autoconfig_start = 0x10000000;
+
+
+See: [uae_z3mem_size], [uae_z3mem2_size], [uae_z3realmapping]
+See: [uae_force_0x10000000_z3]

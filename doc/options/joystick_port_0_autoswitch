@@ -1,0 +1,9 @@
+Default: 0
+Example: 1
+Since: 2.1.33
+Type: boolean
+
+When this option is enabled, a device is automatically inserted into port
+0 when you press the primary button (unless the device is used in
+another joystick port). The joystick port mode will also change depending
+on whether the device is a mouse or a joystick/gamepad.

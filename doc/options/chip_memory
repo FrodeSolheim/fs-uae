@@ -1,0 +1,42 @@
+Example: 1024
+
+Override amount of chip memory, specified in KB. Must be a multiple of 512.
+The default value depends on [amiga_model].
+
+Code:
+
+    if c.chip_memory.explicit:
+        value = c.chip_memory.explicit
+    elif c.amiga_model == "A500":
+        value = "512"
+    elif c.amiga_model == "A500/512K":
+        value = "512"
+    elif c.amiga_model == "A500+":
+        value = "1024"
+    elif c.amiga_model == "A600":
+        value = "1024"
+    elif c.amiga_model == "A1000":
+        value = "512"
+    elif c.amiga_model == "A1200":
+        value = "2048"
+    elif c.amiga_model == "A1200/020":
+        value = "2048"
+    elif c.amiga_model == "A3000":
+        # FIXME: did it usually have 1 MB?
+        value = "2048"
+    elif c.amiga_model == "A4000":
+        value = "2048"
+    elif c.amiga_model == "A4000/040":
+        value = "2048"
+    elif c.amiga_model == "A4000/OS4":
+        value = "2048"
+    elif c.amiga_model == "A4000/PPC":
+        value = "2048"
+    elif c.amiga_model == "CD32":
+        value = "2048"
+    elif c.amiga_model == "CD32/FMV":
+        value = "2048"
+    elif c.amiga_model == "CDTV":
+        value = "512"
+    else:
+        f.fail("Unknown amiga_model")

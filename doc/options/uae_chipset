@@ -1,0 +1,53 @@
+Category: Hardware
+Default:
+Example: aga
+
+Overrides the chipset type in the emulated Amiga. You normally don't need
+to use this option since a suitable chipset is automatically chosen based
+on Amiga model. Valid values are:
+
+Values:
+* ocs (OCS)
+* ecs (ECS)
+* ecs_agnus (ECS Agnus)
+* ecs_denise (ECS Denise)
+* aga (AGA)
+
+Code:
+
+Code:
+
+    if c.uae_chipset.explicit:
+        value = c.uae_chipset.explicit
+    elif f.matches(c.amiga_model, "A500"):
+        value = "ocs"
+    elif f.matches(c.amiga_model, "A500/512K"):
+        value = "ocs"
+    elif f.matches(c.amiga_model, "A500+"):
+        value = "ecs"
+    elif f.matches(c.amiga_model, "A600"):
+        value = "ecs"
+    elif f.matches(c.amiga_model, "A1000"):
+        value = "ocs"
+    elif f.matches(c.amiga_model, "A1200"):
+        value = "aga"
+    elif f.matches(c.amiga_model, "A1200/020"):
+        value = "aga"
+    elif f.matches(c.amiga_model, "A3000"):
+        value = "ecs"
+    elif f.matches(c.amiga_model, "A4000"):
+        value = "aga"
+    elif f.matches(c.amiga_model, "A4000/040"):
+        value = "aga"
+    elif f.matches(c.amiga_model, "A4000/OS4"):
+        value = "aga"
+    elif f.matches(c.amiga_model, "A4000/PPC"):
+        value = "aga"
+    elif f.matches(c.amiga_model, "CD32"):
+        value = "aga"
+    elif f.matches(c.amiga_model, "CD32/FMV"):
+        value = "aga"
+    elif f.matches(c.amiga_model, "CDTV"):
+        value = "ecs_agnus"
+    else:
+        f.fail("Unknown amiga_model")

@@ -1,0 +1,81 @@
+Default: 0
+Example: cyberstorm-ppc
+Since: 2.5.15
+Type: Choice
+
+Value: 0 ("None")
+Value: cyberstorm-ppc ("CyberStorm PPC")
+
+Some boards have flashable ROM. Either the .rom file must exist in the
+Kickstarts directory with a recognized name, or you must use the
+[accelerator_rom] option.
+
+Recognized ROM names:
+
+* CyberStorm MK III: cyberstormmk3.rom
+* CyberStorm PPC: cyberstormppc.rom
+* Blizzard PPC: blizzardppc.rom
+
+FIXME: more?
+
+TODO:
+
+Value: ppc ("Auto Blizzard/CyberStorm PPC")
+Value: Blizzard1230IV (Blizzard 1230 IV)
+Value: Blizzard1230IV+SCSI (Blizzard 1230 IV + SCSI)
+Value: Blizzard1260 (Blizzard 1260)
+Value: Blizzard1260+SCSI (Blizzard 1260 + SCSI)
+Value: Blizzard2060 (Blizzard 2060)
+Value: CyberStormMK1 (CyberStorm MK I)
+Value: CyberStormMK2 (CyberStorm MK II)
+Value: CyberStormMK3 (CyberStorm MK III)
+Value: BlizzardPPC (Blizzard PPC)
+Value: WarpEngineA4000 (Warp Engine)
+Value: TekMagic (Tek Magic)
+Value: dkb-1230 (DKB 1230)
+Value: dkb-1240 (DKB 1240)
+Value: fusion-forty (Fusion Forty)
+Value: a3001-si (GVP A3001 Series I)
+Value: a3001-sii (GVP A3001 Series II)
+
+Code:
+
+    if c.accelerator.explicit:
+        value = c.accelerator.explicit
+    elif c.amiga_model == "A4000/PPC":
+        value = "cyberstorm-ppc"
+    elif c.amiga_model == "A4000/OS4":
+        value = "cyberstorm-ppc"
+    else:
+        value = "0"
+
+    if f.matches(value, "blizzard-1230-iv"):
+        value = "blizzard-1230-iv"
+    elif f.matches(value, "blizzard-1230-iv-scsi"):
+        value = "blizzard-1230-iv-scsi"
+    # elif f.matches(value, "blizzard-1230-iv+scsi"):
+    #     value = "blizzard-1230-iv-scsi"
+    elif f.matches(value, "blizzard-1260"):
+        value = "blizzard-1260"
+    elif f.matches(value, "blizzard-1260-scsi"):
+        value = "blizzard-1260-scsi"
+    elif f.matches(value, "blizzard-2060"):
+        value = "blizzard-2060"
+    elif f.matches(value, "blizzard-ppc"):
+        value = "blizzard-ppc"
+    elif f.matches(value, "cyberstorm-mk-i"):
+        value = "cyberstorm-mk-i"
+    elif f.matches(value, "cyberstorm-mk-ii"):
+        value = "cyberstorm-mk-ii"
+    elif f.matches(value, "cyberstorm-mk-iii"):
+        value = "cyberstorm-mk-iii"
+    elif f.matches(value, "cyberstorm-ppc"):
+        value = "cyberstorm-ppc"
+    elif f.matches(value, "dkb-1230"):
+        value = "dkb-1230"
+    elif f.matches(value, "dkb-1240"):
+        value = "dkb-1240"
+    elif f.matches(value, "fusion-forty"):
+        value = "fusion-forty"
+    elif f.matches(value, "warp-engine-a4000"):
+        value = "warp-engine-a4000"

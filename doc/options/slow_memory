@@ -1,0 +1,14 @@
+Example: 512
+
+Override the amount of "slow" memory, specified in KB. Must be a multiple
+of 256. The default value depends on [amiga_model].
+
+
+Code:
+
+    if c.slow_memory.explicit:
+        value = c.slow_memory.explicit
+    elif c.amiga_model == "A500":
+        value = "512"
+    else:
+        value = "0"

@@ -1,0 +1,69 @@
+# cpu #
+
+Specify the CPU in the emulated Amiga
+
+Since: 2.5.19
+Type: Choice,
+Default: `auto`,
+Example:
+
+    cpu = 68040
+
+Use this option to override the CPU model in the emulated Amiga. All Amiga
+models imply a default CPU model, so you only need to use this option if
+want to use another CPU.
+
+Values:
+
+* `auto` ("Auto")
+* `68000`
+* `68010`
+* `68EC020` - 68020 with 24-bit addressing
+* `68020`
+* `68EC030` - 68030 without internal MMU
+* `68030`
+* `68EC040` - 68040 without internal FPU and MMU
+* `68LC040` - 68040 without internal FPU
+* `68040-NOMMU` - 68040 without internal MMU
+* `68040`
+* `68EC060` - 68060 without internal FPU and MMU
+* `68LC060` - 68060 without internal FPU
+* `68060-NOMMU` - 68040 without internal MMU
+* `68060`
+
+Code:
+
+    if c.cpu.explicit:
+        c.cpu = c.cpu.explicit
+    elif c.amiga_model == "A500":
+        c.cpu = "68000"
+    elif c.amiga_model == "A500/512K":
+        c.cpu = "68000"
+    elif c.amiga_model == "A500+":
+        c.cpu = "68000"
+    elif c.amiga_model == "A600":
+        c.cpu = "68000"
+    elif c.amiga_model == "A1000":
+        c.cpu = "68000"
+    elif c.amiga_model == "A1200":
+        c.cpu = "68EC020"
+    elif c.amiga_model == "A1200/020":
+        c.cpu = "68020"
+    elif c.amiga_model == "A3000":
+        c.cpu = "68030"
+    elif c.amiga_model == "A4000":
+        c.cpu = "68EC030"
+    elif c.amiga_model == "A4000/040":
+        c.cpu = "68040"
+    elif c.amiga_model == "A4000/OS4":
+        c.cpu = "68060"
+    elif c.amiga_model == "A4000/PPC":
+        c.cpu = "68060"
+    elif c.amiga_model == "CD32":
+        c.cpu = "68EC020"
+    elif c.amiga_model == "CD32/FMV":
+        c.cpu = "68EC020"
+    elif c.amiga_model == "CDTV":
+        c.cpu = "68000"
+    else:
+        f.fail("Unknown amiga_model")

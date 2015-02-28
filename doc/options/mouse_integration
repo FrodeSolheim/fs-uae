@@ -1,0 +1,7 @@
+
+
+AKA magic mouse / mousehack / virtual mouse driver
+
+This option implies (unless overriden):
+- cursor = 0
+- automatic-input-grab = 0

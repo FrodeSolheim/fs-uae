@@ -1,0 +1,45 @@
+Description: Video synchronization method
+Default:
+Example: finish-sleep-swap-finish
+Since: 1.1.9
+Type: choice
+
+Choose the method used to ensure video synchronization with the display.
+Valid values are:
+
+Value: swap (Swap)
+       Most basic method, but will probably not mantain emulation
+       perfectly in sync on many GPUs due to pipelining and the swap buffers
+       command returning before it is completed.
+Value: swap-finish (Swap-Finish)
+       This method should force the emulation to be in sync with
+       the display, but glFinish may use a busy-loop and cause high CPU usage.
+Value: finish-swap-finish (Finish-Swap-Finish)
+       Execute a glFinish also before swapping buffers.
+       May work better with some OpenGL drivers. Otherwise same as swap-finish
+       (High CPU usage with many drivers).
+Value: finish-sleep-swap-finish (Finish-Sleep-Swap-Finish)
+       Same as above, but sleep before executing
+       the swap command. The sleep time is based on the (estimated) time left
+       to the next vblank. This should reduce the CPU usage a lot, but on some
+       systems/drivers, the display will not be synchronized properly.
+Value: sleep-swap-finish (Sleep-Swap-Finish)
+       Same as above, but do not issue a glFinish before
+       starting the sleep. This should use less CPU than the above option, but
+       some drivers seem to need the finish before the sleep to achieve proper
+       sync.
+Value: swap-fence (Swap-Fence)
+       Set a fence after swapping buffers and poll periodically
+       (with sleeps) for completion of swap. This seems to work very well on
+       Linux with recent nVIDIA drivers.
+Value: swap-sleep-fence (Swap-Sleep-Fence)
+       Same as above, but sleep a while (based on estimated
+       time to next vblank) before starting to pool the fence, (in case the
+       test-fence method blocks with high CPU usage, problem seen on
+       nVIDIA/Windows).
+
+The default value is:
+* finish-sleep-swap-finish - for Windows and Mac OS X
+* finish-swap-finish - for Linux.
+
+See also [video_sync].

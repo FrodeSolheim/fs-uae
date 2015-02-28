@@ -176,7 +176,7 @@ struct uaedev_config_info {
 	int sectorsperblock;
 	int forceload;
 	int device_emu_unit;
-
+	bool inject_icons;
 };
 
 struct uaedev_config_data
@@ -288,6 +288,7 @@ struct romconfig
 	TCHAR romfile[MAX_DPATH];
 	TCHAR romident[256];
 	uae_u32 board_ram_size;
+	bool autoboot_disabled;
 };
 #define MAX_BOARD_ROMS 2
 struct boardromconfig

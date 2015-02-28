@@ -1647,6 +1647,17 @@ struct boardromconfig *get_device_rom(struct uae_prefs *p, int romtype, int *ind
 	return NULL;
 }
 
+struct romconfig *get_device_romconfig(struct uae_prefs *p, int devnum, int romtype)
+{
+	int idx;
+	if (devnum)
+		return NULL;
+	struct boardromconfig *brc = get_device_rom(p, romtype, &idx);
+	if (brc)
+		return &brc->roms[idx];
+	return NULL;
+}
+
 struct zfile *read_device_rom(struct uae_prefs *p, int devnum, int romtype, int *roms)
 {
 	int idx;
@@ -1682,5 +1693,5 @@ int is_device_rom(struct uae_prefs *p, int devnum, int romtype)
 			return 0;
 		return 1;
 	}
-	return 0;
+	return -1;
 }

@@ -1122,6 +1122,7 @@ EXTRA_DIST = $(TESTS) $(EXTRA_TESTS) \
 	dist/macosx/fs-uae-config.icns \
 	dist/macosx/fs-uae.icns \
 	dist/macosx/PkgInfo \
+	dist/macosx/sign.py \
 	dist/macosx/standalone.py \
 	dist/windows/clib.py \
 	dist/windows/iscc.py \

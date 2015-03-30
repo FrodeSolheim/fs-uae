@@ -11,7 +11,7 @@
 #include "config-common.h"
 #include "config-model.h"
 
-static void configure_accelerator_rom(void)
+static void configure_accelerator_rom(const char *default_rom)
 {
     char *path = fs_config_get_string(OPTION_ACCELERATOR_ROM);
     if (!path) {
@@ -22,6 +22,8 @@ static void configure_accelerator_rom(void)
         path = fs_uae_resolve_path_and_free(path, FS_UAE_ROM_PATHS);
         amiga_set_option("cpuboard_rom_file", path);
         g_free(path);
+    } else if (default_rom) {
+        amiga_set_option("cpuboard_rom_file", default_rom);
     }
 
     path = fs_config_get_string("cpuboard_flash_ext_file");
@@ -37,6 +39,7 @@ void fs_uae_configure_accelerator(void)
 {
     int memory = 128;
     const char *card = fs_config_get_const_string(OPTION_ACCELERATOR);
+    const char *rom = NULL;
     if (card == NULL) {
         card = cfg->accelerator;
     }
@@ -44,6 +47,7 @@ void fs_uae_configure_accelerator(void)
     if (card != NULL) {
         if (fs_uae_values_matches(card, "cyberstorm-ppc")) {
             card = "CyberstormPPC";
+            rom = "cyberstormppc.rom";
         }
     }
 
@@ -60,5 +64,5 @@ void fs_uae_configure_accelerator(void)
         }
     }
 
-    configure_accelerator_rom();
+    configure_accelerator_rom(rom);
 }

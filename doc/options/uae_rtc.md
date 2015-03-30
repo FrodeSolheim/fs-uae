@@ -1,6 +1,6 @@
 # Option uae_rtc #
 
-Enable a real time clock (RTC) module.
+Description: Enable a real time clock (RTC) module.
 
 Type: `choice`
 Default: `auto`

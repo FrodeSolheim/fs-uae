@@ -1,6 +1,6 @@
 # sound-card #
 
-Description: 
+Description: Sound card
 Default: 0
 Example: toccata
 Since: 2.5.25

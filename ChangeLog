@@ -1,6 +1,7 @@
 Version 2.5.30dev:
 
 * Fixed ROM initialization of Cyberstorm PPC.
+* Lowered default volume of floppy drive sounds.
 * Updated emulation core from WinUAE 3100b14.
 
 Version 2.5.29dev:

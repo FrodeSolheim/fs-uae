@@ -464,16 +464,17 @@ void fs_uae_configure_floppies()
     }
 
     int volume = fs_config_get_int_clamped("floppy_drive_volume", 0, 100);
-    if (volume != FS_CONFIG_NONE) {
-        if (volume == 0) {
-            for (int i = 0; i < 4; i++) {
-                char *key = g_strdup_printf("floppy%dsound", i);
-                amiga_set_option(key, "0");
-                g_free(key);
-            }
-        }
-        amiga_set_int_option("floppy_volume", 100 - volume);
+    if (volume == FS_CONFIG_NONE) {
+        volume = 67;
     }
+    if (volume == 0) {
+        for (int i = 0; i < 4; i++) {
+            char *key = g_strdup_printf("floppy%dsound", i);
+            amiga_set_option(key, "0");
+            g_free(key);
+        }
+    }
+    amiga_set_int_option("floppy_volume", 100 - volume);
 
     int count = 0;
     int k = 0;

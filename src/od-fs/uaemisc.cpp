@@ -41,13 +41,9 @@ void target_default_options (struct uae_prefs *p, int type) {
     write_log("target_default_options p=%p type=%d\n", p, type);
     // FIXME: move out of here - into a (lib)amiga_ function
     write_log("target_default_options: enabling floppy sounds\n");
-    p->floppyslots[0].dfxclick = 1;
-    p->floppyslots[1].dfxclick = 1;
-    p->floppyslots[2].dfxclick = 1;
+
     for (int i = 0; i < 4; i++) {
         p->floppyslots[i].dfxclick = 1;
-        p->dfxclickvolume_disk[i] = 80;
-        p->dfxclickvolume_empty[i] = 80;
     }
 
     if (type == 2 || type == 0) {

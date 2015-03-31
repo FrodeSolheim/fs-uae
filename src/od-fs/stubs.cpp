@@ -16,9 +16,9 @@
 #include "uae.h"
 #include "xwin.h"
 
-void graphics_reset(void)
+void graphics_reset(bool force)
 {
-    LOG_STUB("");
+    LOG_STUB("force=%d", force);
 }
 
 void clipboard_vsync (void) {

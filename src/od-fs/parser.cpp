@@ -137,7 +137,8 @@ static int writepending;
 */
 
 void initparallel (void) {
-    write_log("initparallel uae_boot_rom = %d\n", uae_boot_rom);
+    //write_log("initparallel uae_boot_rom = %d\n", uae_boot_rom);
+    write_log("initparallel\n");
 #ifdef AHI
     if (uae_boot_rom) {
         write_log("installing ahi_winuae\n");

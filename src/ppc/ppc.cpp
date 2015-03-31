@@ -10,6 +10,8 @@
 #include "debug.h"
 #include "custom.h"
 #include "uae.h"
+#include "gui.h"
+#include "autoconf.h"
 #include "uae/dlopen.h"
 #include "uae/log.h"
 #include "uae/ppc.h"

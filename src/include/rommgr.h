@@ -38,6 +38,7 @@ extern int decode_cloanto_rom_do (uae_u8 *mem, int size, int real_size);
 #define ROMTYPE_CB_CSMK3	0x0004000d
 #define ROMTYPE_CB_CSPPC	0x0004000e
 #define ROMTYPE_CB_BLIZPPC	0x0004000f
+#define ROMTYPE_CB_GOLEM030	0x00040010
 
 #define ROMTYPE_FREEZER		0x00080000
 #define ROMTYPE_AR			0x00080001
@@ -64,6 +65,12 @@ extern int decode_cloanto_rom_do (uae_u8 *mem, int size, int real_size);
 #define ROMTYPE_SUPRA		0x0010000e
 #define ROMTYPE_A2090		0x0010000f
 #define ROMTYPE_GOLEM		0x00100010
+#define ROMTYPE_STARDRIVE	0x00100011
+#define ROMTYPE_KOMMOS		0x00100012
+#define ROMTYPE_VECTOR		0x00100013
+#define ROMTYPE_ADIDE		0x00100014
+#define ROMTYPE_MTEC		0x00100015
+#define ROMTYPE_PROTAR		0x00100016
 
 #define ROMTYPE_QUAD		0x01000000
 #define ROMTYPE_EVEN		0x02000000
@@ -129,6 +136,7 @@ extern TCHAR *romlist_get (const struct romdata *rd);
 extern void romlist_clear (void);
 extern struct zfile *read_rom (struct romdata *rd);
 extern struct zfile *read_rom_name (const TCHAR *filename);
+extern struct zfile *read_device_from_romconfig(struct romconfig *rc, int *roms);
 
 extern int load_keyring (struct uae_prefs *p, const TCHAR *path);
 extern uae_u8 *target_load_keyfile (struct uae_prefs *p, const TCHAR *path, int *size, TCHAR *name);
@@ -146,15 +154,15 @@ extern int romlist_count (void);
 extern struct romlist *romlist_getit (void);
 extern int configure_rom (struct uae_prefs *p, const int *rom, int msg);
 
-int is_device_rom(struct uae_prefs *p, int devnum, int romtype);
-struct zfile *read_device_rom(struct uae_prefs *p, int devnum, int romtype, int *roms);
-struct romconfig *get_device_romconfig(struct uae_prefs *p, int devnum, int romtype);
-struct boardromconfig *get_device_rom(struct uae_prefs *p, int romtype, int *index);
-void set_device_rom(struct uae_prefs *p, const TCHAR *path, int romtype);
+int is_device_rom(struct uae_prefs *p, int romtype, int devnum);
+struct zfile *read_device_rom(struct uae_prefs *p, int romtype, int devnum, int *roms);
+struct romconfig *get_device_romconfig(struct uae_prefs *p, int romtype, int devnum);
+struct boardromconfig *get_device_rom(struct uae_prefs *p, int romtype, int devnum, int *index);
+void set_device_rom(struct uae_prefs *p, const TCHAR *path, int romtype, int devnum);
 const struct expansionromtype *get_device_expansion_rom(int romtype);
 const struct expansionromtype *get_unit_expansion_rom(int hdunit);
-struct boardromconfig *get_device_rom_new(struct uae_prefs *p, int romtype, int *index);
-void clear_device_rom(struct uae_prefs *p, int romtype);
+struct boardromconfig *get_device_rom_new(struct uae_prefs *p, int romtype, int devnum, int *index);
+void clear_device_rom(struct uae_prefs *p, int romtype, int devnum);
 struct boardromconfig *get_boardromconfig(struct uae_prefs *p, int romtype, int *index);
 
-#endif // UAE_ROMMGR_H
+#endif /* UAE_ROMMGR_H */

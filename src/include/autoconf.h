@@ -115,8 +115,8 @@ extern void uaegfx_install_code (uaecptr);
 
 extern uae_u32 emulib_target_getcpurate (uae_u32, uae_u32*);
 
-typedef addrbank*(*DEVICE_INIT)(int);
-typedef int(*DEVICE_ADD)(int, struct uaedev_config_info*);
+typedef addrbank*(*DEVICE_INIT)(struct romconfig*);
+typedef void(*DEVICE_ADD)(int, struct uaedev_config_info*, struct romconfig*);
 typedef bool(*E8ACCESS)(int, uae_u32*, int, bool);
 #define EXPANSIONTYPE_SCSI 1
 #define EXPANSIONTYPE_IDE 2
@@ -132,12 +132,14 @@ struct expansionromtype
 {
 	const TCHAR *name;
 	const TCHAR *friendlyname;
+	const TCHAR *friendlymanufacturer;
 	DEVICE_INIT init;
 	DEVICE_ADD add;
 	int romtype;
 	int romtype_extra;
 	int parentromtype;
 	int zorro;
+	bool singleonly;
 	const struct expansionsubromtype *subtypes;
 	int defaultsubtype;
 	bool autoboot_jumper;
@@ -170,6 +172,7 @@ struct cpuboardsubtype
 };
 struct cpuboardtype
 {
+	int id;
 	const TCHAR *name;
 	const struct cpuboardsubtype *subtypes;
 	int defaultsubtype;

@@ -66,6 +66,7 @@ int debug_sprite_mask = 0xff;
 int debug_illegal = 0;
 uae_u64 debug_illegal_mask;
 static int debug_mmu_mode;
+static bool break_if_enforcer;
 
 static uaecptr processptr;
 static uae_char *processname;
@@ -94,6 +95,14 @@ void activate_debugger (void)
 	set_special (SPCFLAG_BRK);
 	debugging = 1;
 	mmu_triggered = 0;
+}
+
+bool debug_enforcer(void)
+{
+	if (!break_if_enforcer)
+		return false;
+	activate_debugger();
+	return true;
 }
 
 int firsthist = 0;
@@ -4423,6 +4432,9 @@ static bool debug_line (TCHAR *input)
 			} else if (inptr[0] == 'c' || inptr[0] == 's') {
 				if (cycle_breakpoint(&inptr))
 					return true;
+			} else if (inptr[0] == 'e' && inptr[1] == 'n') {
+				break_if_enforcer = break_if_enforcer ? false : true;
+				console_out_f(_T("Break when enforcer hit: %s\n"), break_if_enforcer ? _T("enabled") : _T("disabled"));
 			} else {
 				if (instruction_breakpoint (&inptr))
 					return true;

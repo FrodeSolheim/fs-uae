@@ -44,8 +44,11 @@ void target_default_options (struct uae_prefs *p, int type) {
     p->floppyslots[0].dfxclick = 1;
     p->floppyslots[1].dfxclick = 1;
     p->floppyslots[2].dfxclick = 1;
-    p->floppyslots[3].dfxclick = 1;
-    p->dfxclickvolume = 80;
+    for (int i = 0; i < 4; i++) {
+        p->floppyslots[i].dfxclick = 1;
+        p->dfxclickvolume_disk[i] = 80;
+        p->dfxclickvolume_empty[i] = 80;
+    }
 
     if (type == 2 || type == 0) {
         // if this isn't set to -1, will caused problems for parallel

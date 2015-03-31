@@ -1641,7 +1641,7 @@ const struct expansionromtype *get_device_expansion_rom(int romtype)
 
 static void device_rom_defaults(struct boardromconfig *brc, int romtype, int devnum)
 {
-	memset(brc, 0, sizeof boardromconfig);
+	memset(brc, 0, sizeof(boardromconfig));
 	brc->device_type = romtype;
 	brc->device_num = devnum;
 	for (int i = 0; i < MAX_BOARD_ROMS; i++) {

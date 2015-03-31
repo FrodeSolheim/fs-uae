@@ -493,6 +493,7 @@ extern void write_log (const char *, ...);
 #endif
 #endif
 extern void write_dlog (const TCHAR *, ...);
+extern int read_log(void);
 
 extern void flush_log (void);
 extern TCHAR *setconsolemode (TCHAR *buffer, int maxlen);

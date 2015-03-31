@@ -1,7 +1,7 @@
 /*
 * UAE Action Replay 1/2/3/1200 and HRTMon support
 *
-* (c) 2000-2006 Toni Wilen <twilen@arabuusimiehet.com>
+* (c) 2000-2015 Toni Wilen <twilen@arabuusimiehet.com>
 * (c) 2003 Mark Cox <markcox@email.com>
 *
 * Action Replay 1200 (basically old version of HRTMon):
@@ -81,18 +81,22 @@
 * first 8 bytes of ROM are not really ROM, they are
 * used to read/write cartridge's hardware state
 *
-* 0x400000: hides cartridge ROM/RAM when written
-* 0x400001: read/write HW state
-*  3 = reset (read-only)
-*  2 = sets HW to activate when breakpoint condition is detected
-*  1 = ???
-*  0 = freeze pressed
+* Read/write HW state
+*
+* 0x400001.B READ:
+*
+* 11 (3) = freeze was caused by reset condition
+* 10 (2) = freeze was caused by 0xBFD100.B WRITE
+* 01 (1) = freeze was caused by 0xBFE001.B READ
+* 00 (0) = freeze was caused by button press
+*
+* 0x400001.B WRITE
+*
+* bit 1 set: enable freeze caused by BFE001.B READ
+* bit 0 set: enable freeze caused by BFD100.B WRITE 
+*
 * 0x400002/0x400003: mirrors 0x400000/0x400001
 * 0x400006/0x400007: when written to, turns chip-ram overlay off
-*
-* breakpoint condition is detected when CPU first accesses
-* chip memory below 1024 bytes and then reads CIA register
-* $BFE001.
 *
 * cartridge hardware also snoops CPU accesses to custom chip
 * registers (DFF000-DFF1FE). All CPU custom chip accesses are
@@ -221,11 +225,17 @@ extern void activate_debugger (void);
 
 static const TCHAR *cart_memnames[] = { NULL, _T("hrtmon"), _T("arhrtmon"), _T("superiv") };
 
-#define ARMODE_FREEZE 0 /* AR2/3 The action replay 'freeze' button has been pressed.  */
-#define ARMODE_BREAKPOINT_AR2 2 /* AR2: The action replay is activated via a breakpoint. */
-#define ARMODE_BREAKPOINT_ACTIVATED 1
-#define ARMODE_BREAKPOINT_AR3_RESET_AR2 3 /* AR2: The action replay is activated after a reset. */
-/* AR3: The action replay is activated by a breakpoint. */
+// Action Replay 2/3
+// $400001.B read values
+#define ARMODE_FREEZE 0 /* 'freeze' button has been pressed.  */
+#define ARMODE_READ_BFE001 1 /* BFE001 read = freeze */
+#define ARMODE_WRITE_BFD100 2 /* BFD100 write = freeze */
+#define ARMODE_SOFTRESET 2
+#define ARMODE_RESET 3 /* reset state */
+// $400001.B written values
+#define ARMODE_ACTIVATE_BFE001 2
+#define ARMODE_ACTIVATE_BFD100 1
+#define ARMODE_ACTIVE_NONE 0
 
 #define CART_AR 0
 #define CART_HRTMON 1
@@ -238,6 +248,7 @@ static int hrtmon_ciadiv = 256;
 
 int hrtmon_flag = ACTION_REPLAY_INACTIVE;
 static int cart_type;
+static int ar_mapped, ar_hidden;
 
 static uae_u8 *hrtmemory = 0, *hrtmemory2 = 0, *hrtmemory3 = 0;
 static uae_u8 *armemory_rom = 0, *armemory_ram = 0;
@@ -499,7 +510,7 @@ static int ar_rom_file_size;
 static int ar_rom_location;
 /*static*/ int armodel;
 static uae_u8 artemp[4]; /* Space to store the 'real' level 7 interrupt */
-static uae_u8 armode;
+static uae_u8 armode_read, armode_write;
 
 static uae_u32 arrom_start, arrom_size, arrom_mask;
 static uae_u32 arram_start, arram_size, arram_mask;
@@ -572,35 +583,24 @@ STATIC_INLINE int ar3a (uaecptr addr, uae_u8 b, int writing)
 		return 0;
 #endif
 
-	if (!writing) /* reading */
-	{
+	if (!writing) {
+		//write_log(_T("READ %x\n"), addr);
 		if (addr == 1 || addr == 3) /* This is necessary because we don't update rom location 0 every time we change armode */
-			return armode | (regs.irc & ~3);
+			return armode_read | (regs.irc & ~3);
 		else if (addr < 4)
 			return (addr & 1) ? regs.irc : regs.irc >> 8;
-		else
-			return armemory_rom[addr];
-	}
-	/* else, we are writing */
-	else if (addr == 1) {
-		armode = b;
-		if (armode >= 2) {
-			if (armode == ARMODE_BREAKPOINT_AR2) {
-				write_log (_T("AR2: exit with breakpoint(s) active\n")); /* Correct for AR2 */
-			} else if (armode == ARMODE_BREAKPOINT_AR3_RESET_AR2 ) {
-				write_log (_T("AR3: exit waiting for breakpoint.\n")); /* Correct for AR3 (waiting for breakpoint)*/
-			} else {
-				write_log (_T("AR2/3: mode(%d) > 3 this shouldn't happen.\n"), armode);
-			}
-		} else {
-			write_log (_T("AR: exit with armode(%d)\n"), armode);
+		return armemory_rom[addr];
+	} else {
+		//write_log(_T("WRITE %x\n"), addr);
+		if (addr == 1) {
+			armode_write = b;
+			armode_read = 0;
+			write_log(_T("ARMODE %02x written\n"), b);
+			set_special (SPCFLAG_ACTION_REPLAY);
+			action_replay_flag = ACTION_REPLAY_HIDE;
+		} else if (addr == 6) {
+			copytoamiga (regs.vbr + 0x7c, artemp, 4);
 		}
-
-		set_special (SPCFLAG_ACTION_REPLAY);
-		action_replay_flag = ACTION_REPLAY_HIDE;
-	} else if (addr == 6) {
-		copytoamiga (regs.vbr + 0x7c, artemp, 4);
-		write_log (_T("AR: chipmem returned\n"));
 	}
 	return 0;
 }
@@ -643,7 +643,7 @@ void REGPARAM2 chipmem_lput_actionreplay23 (uaecptr addr, uae_u32 l)
 	addr &= chipmem_bank.mask;
 	m = (uae_u32 *)(chipmem_bank.baseaddr + addr);
 	do_put_mem_long (m, l);
-	if (addr == 8 && action_replay_flag == ACTION_REPLAY_WAITRESET)
+	if (action_replay_flag == ACTION_REPLAY_WAITRESET)
 		action_replay_chipwrite();
 }
 void REGPARAM2 chipmem_wput_actionreplay23 (uaecptr addr, uae_u32 w)
@@ -654,7 +654,7 @@ void REGPARAM2 chipmem_wput_actionreplay23 (uaecptr addr, uae_u32 w)
 	addr &= chipmem_bank.mask;
 	m = (uae_u16 *)(chipmem_bank.baseaddr + addr);
 	do_put_mem_word (m, w);
-	if (addr == 8 && action_replay_flag == ACTION_REPLAY_WAITRESET)
+	if (action_replay_flag == ACTION_REPLAY_WAITRESET)
 		action_replay_chipwrite();
 }
 
@@ -682,12 +682,23 @@ static uae_u32 action_replay_calculate_checksum(void);
 static uae_u8* get_checksum_location(void);
 static void disable_rom_test(void);
 
+static uae_u32 ar_null(int size)
+{
+	if (size == 4)
+		return dummy_bank.lget(0);
+	if (size == 2)
+		return dummy_bank.wget(0);
+	return dummy_bank.bget(0);
+}
+
 static uae_u32 REGPARAM2 arram_lget (uaecptr addr)
 {
 	uae_u32 *m;
 #ifdef JIT
 	special_mem |= S_READ;
 #endif
+	if (ar_hidden)
+		return ar_null(4);
 	addr -= arram_start;
 	addr &= arram_mask;
 	m = (uae_u32 *)(armemory_ram + addr);
@@ -714,6 +725,8 @@ static uae_u32 REGPARAM2 arram_wget (uaecptr addr)
 #ifdef JIT
 	special_mem |= S_READ;
 #endif
+	if (ar_hidden)
+		return ar_null(4);
 	addr -= arram_start;
 	addr &= arram_mask;
 	m = (uae_u16 *)(armemory_ram + addr);
@@ -725,6 +738,8 @@ static uae_u32 REGPARAM2 arram_bget (uaecptr addr)
 #ifdef JIT
 	special_mem |= S_READ;
 #endif
+	if (ar_hidden)
+		return ar_null(4);
 	addr -= arram_start;
 	addr &= arram_mask;
 	return armemory_ram[addr];
@@ -737,6 +752,8 @@ void REGPARAM2 arram_lput (uaecptr addr, uae_u32 l)
 #ifdef JIT
 	special_mem |= S_WRITE;
 #endif
+	if (ar_hidden)
+		return;
 	addr -= arram_start;
 	addr &= arram_mask;
 	m = (uae_u32 *)(armemory_ram + addr);
@@ -764,6 +781,8 @@ void REGPARAM2 arram_wput (uaecptr addr, uae_u32 w)
 #ifdef JIT
 	special_mem |= S_WRITE;
 #endif
+	if (ar_hidden)
+		return;
 	addr -= arram_start;
 	addr &= arram_mask;
 	m = (uae_u16 *)(armemory_ram + addr);
@@ -775,6 +794,8 @@ void REGPARAM2 arram_bput (uaecptr addr, uae_u32 b)
 #ifdef JIT
 	special_mem |= S_WRITE;
 #endif
+	if (ar_hidden)
+		return;
 	addr -= arram_start;
 	addr &= arram_mask;
 	armemory_ram[addr] = b;
@@ -799,6 +820,8 @@ static uae_u32 REGPARAM2 arrom_lget (uaecptr addr)
 #ifdef JIT
 	special_mem |= S_READ;
 #endif
+	if (ar_hidden)
+		return ar_null(4);
 	addr -= arrom_start;
 	addr &= arrom_mask;
 	return (ar3a (addr, 0, 0) << 24) | (ar3a (addr + 1, 0, 0) << 16) | (ar3a (addr + 2, 0, 0) << 8) | ar3a (addr + 3, 0, 0);
@@ -809,6 +832,8 @@ static uae_u32 REGPARAM2 arrom_wget (uaecptr addr)
 #ifdef JIT
 	special_mem |= S_READ;
 #endif
+	if (ar_hidden)
+		return ar_null(2);
 	addr -= arrom_start;
 	addr &= arrom_mask;
 	return (ar3a (addr, 0, 0) << 8) | ar3a (addr + 1, 0, 0);
@@ -819,6 +844,8 @@ static uae_u32 REGPARAM2 arrom_bget (uaecptr addr)
 #ifdef JIT
 	special_mem |= S_READ;
 #endif
+	if (ar_hidden)
+		return ar_null(1);
 	addr -= arrom_start;
 	addr &= arrom_mask;
 	return ar3a (addr, 0, 0);
@@ -829,6 +856,8 @@ static void REGPARAM2 arrom_lput (uaecptr addr, uae_u32 l)
 #ifdef JIT
 	special_mem |= S_WRITE;
 #endif
+	if (ar_hidden)
+		return;
 	addr -= arrom_start;
 	addr &= arrom_mask;
 	ar3a (addr + 0,(uae_u8)(l >> 24), 1);
@@ -842,6 +871,8 @@ static void REGPARAM2 arrom_wput (uaecptr addr, uae_u32 w)
 #ifdef JIT
 	special_mem |= S_WRITE;
 #endif
+	if (ar_hidden)
+		return;
 	addr -= arrom_start;
 	addr &= arrom_mask;
 	ar3a (addr + 0,(uae_u8)(w >> 8), 1);
@@ -853,6 +884,8 @@ static void REGPARAM2 arrom_bput (uaecptr addr, uae_u32 b)
 #ifdef JIT
 	special_mem |= S_WRITE;
 #endif
+	if (ar_hidden)
+		return;
 	addr -= arrom_start;
 	addr &= arrom_mask;
 	ar3a (addr, b, 1);
@@ -890,6 +923,10 @@ static void action_replay_map_banks (void)
 {
 	if(!armemory_rom)
 		return;
+	ar_hidden = false;
+	if (ar_mapped > 0)
+		return;
+	ar_mapped = 1;
 	map_banks (&arrom_bank, arrom_start >> 16, arrom_size >> 16, 0);
 	map_banks (&arram_bank, arram_start >> 16, arram_size >> 16, 0);
 }
@@ -902,6 +939,10 @@ static void action_replay_unmap_banks (void)
 		action_replay_map_banks ();
 		return;
 	}
+	ar_hidden = true;
+	if (ar_mapped == 0)
+		return;
+	ar_mapped = 0;
 	map_banks (&dummy_bank, arrom_start >> 16 , arrom_size >> 16, 0);
 	map_banks (&dummy_bank, arram_start >> 16 , arram_size >> 16, 0);
 }
@@ -926,7 +967,6 @@ static void hide_cart (int hide)
 
 static void action_replay_go (void)
 {
-	//write_log (_T("AR GO %d\n"), armode);
 	cartridge_enter();
 	hide_cart (0);
 	memcpy (armemory_ram + 0xf000, ar_custom, 2 * 256);
@@ -1042,18 +1082,9 @@ void action_replay_enter (void)
 	}
 	if (action_replay_flag == ACTION_REPLAY_DORESET) {
 		write_log (_T("AR2/3: reset\n"));
-		armode = action_replay_hardreset ? ARMODE_BREAKPOINT_AR3_RESET_AR2 : 2;
+		armode_read = action_replay_hardreset ? ARMODE_RESET : ARMODE_SOFTRESET;
 		action_replay_hardreset = false;
-	} else if (armode == ARMODE_FREEZE) {
-		write_log (_T("AR2/3: activated (freeze)\n"));
-	} else if (armode >= 2) {
-		if (armode == ARMODE_BREAKPOINT_AR2)
-			write_log (_T("AR2: activated (breakpoint)\n"));
-		else if (armode == ARMODE_BREAKPOINT_AR3_RESET_AR2)
-			write_log (_T("AR3: activated (breakpoint)\n"));
-		else
-			write_log (_T("AR2/3: mode(%d) > 3 this shouldn't happen.\n"), armode);
-		armode = ARMODE_BREAKPOINT_ACTIVATED;
+		ar_mapped = -1;
 	}
 	action_replay_go();
 }
@@ -1081,6 +1112,7 @@ void check_prefs_changed_carts (int in_memory_reset)
 
 void action_replay_reset (bool hardreset, bool keyboardreset)
 {
+	ar_mapped = -1;
 	if (hrtmemory) {
 		if (isrestore ()) {
 			if (m68k_getpc () >= hrtmem_start && m68k_getpc () <= hrtmem_start + hrtmem_size)
@@ -1107,8 +1139,7 @@ void action_replay_reset (bool hardreset, bool keyboardreset)
 			action_replay_flag = ACTION_REPLAY_ACTIVE;
 			hide_cart (0);
 		} else {
-			write_log_debug (_T("Setting flag to ACTION_REPLAY_WAITRESET (%d)\n"), hardreset);
-			write_log_debug (_T("armode == %d\n"), armode);
+			armode_read = ARMODE_RESET;
 			action_replay_flag = ACTION_REPLAY_WAITRESET;
 			if (hardreset || keyboardreset || armodel == 2)
 				action_replay_hardreset = true;
@@ -1117,7 +1148,7 @@ void action_replay_reset (bool hardreset, bool keyboardreset)
 	}
 }
 
-void action_replay_ciaread (void)
+void action_replay_cia_access(bool write)
 {
 	if (armodel < 2)
 		return;
@@ -1125,13 +1156,15 @@ void action_replay_ciaread (void)
 		return;
 	if (action_replay_flag == ACTION_REPLAY_INACTIVE)
 		return;
-	if (armode < 2)
-		/* If there are no active breakpoints */
-		return;
-	if (m68k_getpc () >= 0x200)
-		return;
-	action_replay_flag = ACTION_REPLAY_ACTIVATE;
-	set_special (SPCFLAG_ACTION_REPLAY);
+	if ((armode_write & ARMODE_ACTIVATE_BFE001) && !write) {
+		armode_read = ARMODE_READ_BFE001;
+		action_replay_flag = ACTION_REPLAY_ACTIVATE;
+		set_special (SPCFLAG_ACTION_REPLAY);
+	} else if ((armode_write & ARMODE_ACTIVATE_BFD100) && write) {
+		armode_read = ARMODE_WRITE_BFD100;
+		action_replay_flag = ACTION_REPLAY_ACTIVATE;
+		set_special (SPCFLAG_ACTION_REPLAY);
+	}
 }
 
 int action_replay_freeze (void)
@@ -1142,7 +1175,7 @@ int action_replay_freeze (void)
 		} else {
 			action_replay_flag = ACTION_REPLAY_ACTIVATE;
 			set_special (SPCFLAG_ACTION_REPLAY);
-			armode = ARMODE_FREEZE;
+			armode_read = ARMODE_FREEZE;
 		}
 		return 1;
 	} else if (hrtmon_flag) {
@@ -1173,8 +1206,19 @@ static void action_replay_chipwrite (void)
 
 void action_replay_hide(void)
 {
-	hide_cart(1);
-	action_replay_flag = ACTION_REPLAY_IDLE;
+	if (armodel >= 2) {
+		// Do not unmap if breakpoint mode
+		// It would cause dozens of map/unmaps per frame
+		// Just "hide" it.
+		ar_hidden = true;
+		if (armode_read == 0) {
+			hide_cart(1);
+		}
+		action_replay_flag = ACTION_REPLAY_IDLE;
+	} else {
+		hide_cart(1);
+		action_replay_flag = ACTION_REPLAY_IDLE;
+	}
 }
 
 void hrtmon_hide(void)

@@ -1,3 +1,10 @@
+#ifndef UAE_IDE_H
+#define UAE_IDE_H
+
+#include "uae/types.h"
+#include "uae/memory.h"
+#include "commpipe.h"
+#include "filesys.h"
 
 /* IDE drive registers */
 #define IDE_DATA	0x00
@@ -146,3 +153,5 @@ uae_u32 REGPARAM2 x ## _lget(uaecptr addr) \
 	v |= y ## _read_word(z, addr + 2); \
 	return v; \
 }
+
+#endif /* UAE_IDE_H */

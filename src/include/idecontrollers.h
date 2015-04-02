@@ -1,3 +1,9 @@
+#ifndef UAE_IDECONTROLLERS_H
+#define UAE_IDECONTROLLERS_H
+
+#include "uae/types.h"
+#include "uae/memory.h"
+
 // Other IDE controllers
 
 void idecontroller_free(void);
@@ -33,3 +39,5 @@ void REGPARAM3 apollo_ide_wput (uaecptr addr, uae_u32 w) REGPARAM;
 void REGPARAM3 apollo_ide_bput (uaecptr addr, uae_u32 b) REGPARAM;
 extern const uae_u8 apollo_autoconfig[16];
 extern const uae_u8 apollo_autoconfig_060[16];
+
+#endif /* UAE_IDECONTROLLERS_H */

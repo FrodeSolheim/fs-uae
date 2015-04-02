@@ -85,7 +85,10 @@ struct MultiDisplay {
 	TCHAR *monitorname, *monitorid;
 	TCHAR *fullname;
 	struct PicassoResolution *DisplayModes;
+#ifdef FSUAE
+#else
 	RECT rect;
+#endif
 };
 extern struct MultiDisplay Displays[MAX_DISPLAYS + 1];
 

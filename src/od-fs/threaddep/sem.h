@@ -1,6 +1,7 @@
 #ifndef THREADDEP_SEM_H
 #define THREADDEP_SEM_H
 
+#include <stddef.h>
 #include <fs/thread.h>
 
 typedef fs_semaphore *uae_sem_t;

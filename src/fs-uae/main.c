@@ -1024,7 +1024,7 @@ int main(int argc, char* argv[])
     init_i18n();
 
     if (g_warn_about_missing_config_file) {
-		fs_emu_warning(_("No configuration file was found\n"));
+		fs_emu_warning(_("No configuration file was found"));
     }
 
     fs_log("\n");

@@ -198,7 +198,8 @@ static const char* fs_uae_base_dir(void)
 }
 
 static char *get_or_create_default_dir(const char *name, const char *key1,
-        const char *key2, const char *dashed_key, int create) {
+        const char *key2, const char *dashed_key, int create, int cache)
+{
     char *path = NULL;
 
     if (path == NULL && key1 != NULL) {
@@ -211,7 +212,11 @@ static char *get_or_create_default_dir(const char *name, const char *key1,
         path = read_custom_path(dashed_key);
     }
     if (path == NULL) {
-        path = g_build_filename(fs_uae_base_dir(), name, NULL);
+        if (cache) {
+            path = g_build_filename(fs_uae_cache_dir(), name, NULL);
+        } else {
+            path = g_build_filename(fs_uae_base_dir(), name, NULL);
+        }
     }
     char *expanded_path = fs_uae_expand_path_and_free(path);
     path = fs_uae_resolve_path(expanded_path, FS_UAE_DIR_PATHS);
@@ -229,17 +234,26 @@ static char *get_or_create_default_dir(const char *name, const char *key1,
     return path;
 }
 
+static char *create_default_cache_dir(const char *name, const char *key1,
+        const char *key2, const char *dashed_key)
+{
+    return get_or_create_default_dir(name, key1, key2, dashed_key, 1, 1);
+}
+
 static char *create_default_dir(const char *name, const char *key1,
-        const char *key2, const char *dashed_key) {
-    return get_or_create_default_dir(name, key1, key2, dashed_key, 1);
+        const char *key2, const char *dashed_key)
+{
+    return get_or_create_default_dir(name, key1, key2, dashed_key, 1, 0);
 }
 
 static char *get_default_dir(const char *name, const char *key1,
-        const char *key2, const char *dashed_key) {
-    return get_or_create_default_dir(name, key1, key2, dashed_key, 0);
+        const char *key2, const char *dashed_key)
+{
+    return get_or_create_default_dir(name, key1, key2, dashed_key, 0, 0);
 }
 
-const char *fs_uae_kickstarts_dir() {
+const char *fs_uae_kickstarts_dir()
+{
     static const char *path = NULL;
     if (path == NULL) {
         path = create_default_dir("Kickstarts", "kickstarts_dir", "roms_dir",
@@ -248,11 +262,12 @@ const char *fs_uae_kickstarts_dir() {
     return path;
 }
 
-const char *fs_uae_configurations_dir() {
+const char *fs_uae_configurations_dir()
+{
     static const char *path = NULL;
     if (path == NULL) {
-        path = create_default_dir("Configurations", NULL, NULL,
-                "configurations-dir");
+        path = create_default_dir("Configurations", "configurations_dir",
+                                  NULL, "configurations-dir");
     }
     return path;
 }
@@ -380,8 +395,7 @@ const char *fs_uae_logs_dir()
 {
     static const char *path = NULL;
     if (path == NULL) {
-        path = create_default_dir("Cache/Logs", "logs_dir", NULL,
-                "logs-dir");
+        path = create_default_cache_dir("Logs", "logs_dir", NULL, "logs-dir");
     }
     return path;
 }
@@ -390,17 +404,18 @@ const char *fs_uae_module_ripper_dir()
 {
     static const char *path = NULL;
     if (path == NULL) {
-        path = create_default_dir(
-            "Cache/Modules", "module_ripper_dir", NULL, "module-ripper-dir");
+        path = create_default_cache_dir("Modules", "module_ripper_dir", NULL,
+                                        "module-ripper-dir");
     }
     return path;
 }
 
-const char *fs_uae_cache_dir() {
+const char *fs_uae_cache_dir()
+{
     static const char *path = NULL;
     if (path == NULL) {
         path = create_default_dir("Cache", "cache_dir", NULL,
-                "cache-dir");
+                                  "cache-dir");
     }
     return path;
 }
@@ -418,11 +433,12 @@ const char *fs_uae_kickstarts_cache_dir() {
     return path;
 }
 
-const char *fs_uae_themes_dir() {
+const char *fs_uae_themes_dir()
+{
     static const char *path = NULL;
     if (path == NULL) {
         path = create_default_dir("Themes", "themes_dir", NULL,
-                "themes-dir");
+                                  "themes-dir");
     }
     return path;
 }

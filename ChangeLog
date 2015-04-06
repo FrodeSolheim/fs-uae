@@ -1,6 +1,7 @@
 Version 2.5.31dev:
 
 * Fixed handling of configurations_dir and cache_dir options.
+* Updated emulation core from WinUAE 3100b15.
 
 Version 2.5.30dev:
 

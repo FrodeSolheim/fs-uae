@@ -29,4 +29,4 @@ bundle:
 	cp @srcdir@/../../COPYING fs-uae_$(version)_macosx/FS-UAE.app/Contents/Resources/
 	cp @srcdir@/../../README fs-uae_$(version)_macosx/FS-UAE.app/Contents/Resources/
 	@srcdir@/standalone.py fs-uae_$(version)_macosx/FS-UAE.app
-	python3 sign.py fs-uae_$(version)_macosx/FS-UAE.app
+	python3 @srcdir@/sign.py fs-uae_$(version)_macosx/FS-UAE.app

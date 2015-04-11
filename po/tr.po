@@ -1,22 +1,26 @@
 msgid ""
-msgstr "Project-Id-Version: fs-uae\n"
+msgstr ""
+"Project-Id-Version: fs-uae\n"
 "Report-Msgid-Bugs-To: frode@fs-uae.net\n"
-"POT-Creation-Date: 2014-03-14 19:32+0100\n"
-"PO-Revision-Date: 2014-05-11 15:57-0400\n"
+"POT-Creation-Date: 2015-04-02 15:52+0200\n"
+"PO-Revision-Date: 2015-04-11 02:57-0400\n"
 "Last-Translator: FrodeSolheim <frode-crowdin@fsolheim.net>\n"
 "Language-Team: Turkish\n"
 "Language: tr_TR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: crowdin.net\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n\n"
+"X-Generator: crowdin.com\n"
+"X-Crowdin-Project: fs-uae\n"
+"X-Crowdin-Language: tr\n"
+"X-Crowdin-File: /fs-uae/messages.pot\n"
 
 msgid "Activated debugger"
 msgstr "Hata ayıklama aktifleştirildi"
 
 msgid "Amiga Control"
-msgstr "Amiga Kontrolü"
+msgstr "Amiga Kontrol"
 
 #. / TRANSLATORS: In context "Zoom: Auto"
 msgid "Auto"
@@ -60,7 +64,7 @@ msgid "Disabled"
 msgstr "Devre dışı"
 
 msgid "Eject"
-msgstr "Çıkar"
+msgstr "Çıkart"
 
 msgid "Empty"
 msgstr "Boş"
@@ -93,9 +97,6 @@ msgstr "CD%d Sürücüsüne Takın"
 #, c-format
 msgid "Insert Into DF%d"
 msgstr "DF%d Sürücüsüne Takın"
-
-msgid "Invalid number of CD-ROM drives specified"
-msgstr "Belirtilen CD-ROM sürücüsü sayısı geçersiz"
 
 msgid "Joystick Mode"
 msgstr "Joystick Modu"
@@ -134,6 +135,9 @@ msgstr "Yükle"
 
 msgid "Load State"
 msgstr "Durum Yükle"
+
+msgid "Max 1 CD-ROM drive supported currently"
+msgstr "Şu anda max 1 CD-ROM sürücü desteklenmektedir"
 
 msgid "More..."
 msgstr "Fazlası..."
@@ -179,7 +183,7 @@ msgstr "uaegfx.card ayarı 32-bit adreslemeli bir CPU gerektirir"
 msgid "Option zorro_iii_memory must be a multiple of 1024"
 msgstr "zorro_iii_memory ayarı 1024'ün katı olmalıdır"
 
-msgid "Options zorro_iii_memory needs a CPU with 32-bit addressing"
+msgid "Option zorro_iii_memory needs a CPU with 32-bit addressing"
 msgstr "zorro_iii_memory ayarı 32-bit adreslemeli bir CPU gerektirir"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
@@ -223,13 +227,25 @@ msgid "Warp mode enabled"
 msgstr "Hız modu aktif"
 
 msgid "Zoom is disabled in RTG mode"
-msgstr "RTG modunda zum yapma özelliği kapalıdır"
+msgstr "RTG modunda yakınlaşma özelliği kapalıdır"
 
 #, c-format
 msgid "Zoom: %s"
-msgstr "Zum yap: %s"
+msgstr "Yakınlaş: %s"
 
 #, c-format
 msgid "Zoom: %s + Border"
-msgstr "Zum yap: %s + Kenar Çizgisi"
+msgstr "Yakınlaş: %s + Kenar Çizgisi"
+
+msgid "[ Port 0 ] Switched to joystick mode"
+msgstr "[ Port 0 ] Joystick moduna geçildi"
+
+msgid "[ Port 0 ] Switched to mouse mode"
+msgstr "[ Port 0 ] Fare moduna geçildi"
+
+msgid "Invalid number of CD-ROM drives specified"
+msgstr "Belirtilen CD-ROM sürücüsü sayısı geçersiz"
+
+msgid "Options zorro_iii_memory needs a CPU with 32-bit addressing"
+msgstr "zorro_iii_memory ayarı 32-bit adreslemeli bir CPU gerektirir"
 

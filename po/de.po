@@ -1,8 +1,9 @@
 msgid ""
-msgstr "Project-Id-Version: fs-uae\n"
+msgstr ""
+"Project-Id-Version: fs-uae\n"
 "Report-Msgid-Bugs-To: frode@fs-uae.net\n"
-"POT-Creation-Date: 2014-03-14 19:32+0100\n"
-"PO-Revision-Date: 2014-05-11 15:57-0400\n"
+"POT-Creation-Date: 2015-04-02 15:52+0200\n"
+"PO-Revision-Date: 2015-04-11 02:57-0400\n"
 "Last-Translator: FrodeSolheim <frode-crowdin@fsolheim.net>\n"
 "Language-Team: German\n"
 "Language: de_DE\n"
@@ -10,31 +11,34 @@ msgstr "Project-Id-Version: fs-uae\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: crowdin.net\n"
+"X-Generator: crowdin.com\n"
+"X-Crowdin-Project: fs-uae\n"
+"X-Crowdin-Language: de\n"
+"X-Crowdin-File: /fs-uae/messages.pot\n"
 
 msgid "Activated debugger"
 msgstr "Debugger aktiviert"
 
 msgid "Amiga Control"
-msgstr "Amiga Kontrollen"
+msgstr "Amiga-Steuerung"
 
 #. / TRANSLATORS: In context "Zoom: Auto"
 msgid "Auto"
 msgstr "Automatisch"
 
 msgid "Auto-Fire is Off"
-msgstr "Dauerfeuer ist ausgeschaltet"
+msgstr "Dauerfeuer ist aus"
 
 msgid "Auto-Fire is On"
-msgstr "Dauerfeuer ist eingeschaltet"
+msgstr "Dauerfeuer ist an"
 
 #, c-format
 msgid "Auto-fire disabled for port %d"
-msgstr "Dauerfeuer ausgeschaltet für Port %d"
+msgstr "Dauerfeuer bei Anschluss %d ist aus"
 
 #, c-format
 msgid "Auto-fire enabled for port %d"
-msgstr "Dauerfeuer eingeschaltet für Port %d"
+msgstr "Dauerfeuer bei Anschluss %d ist an"
 
 #. / TRANSLATORS: Empty or nothing
 #, c-format
@@ -46,7 +50,7 @@ msgstr "CD32-Gamepad-Modus"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 msgid "Custom Joystick Port"
-msgstr "Benutzerdef. Joystickport"
+msgstr "Eigener Joystick-Anschluss"
 
 msgid "Custom Mode"
 msgstr "Benutzerdef. Modus"
@@ -66,11 +70,11 @@ msgid "Empty"
 msgstr "Leer"
 
 msgid "Emulator Control"
-msgstr "Emulator Kontrollen"
+msgstr "Emulator-Steuerung"
 
 #. / TRANSLATORS: In context "Zoom: Full Frame"
 msgid "Full Frame"
-msgstr "Volles Frame"
+msgstr "Full Frame"
 
 #, c-format
 msgid "HD not found: %s"
@@ -79,10 +83,10 @@ msgstr "HD nicht gefunden: %s"
 #. / TRANSLATORS: Hard reset is a computer reboot with an emulated power
 #. / cycle
 msgid "Hard Reset"
-msgstr "Kaltstart"
+msgstr "Hard Reset"
 
 msgid "Input Options"
-msgstr "Eingabeoptionen"
+msgstr "Eingabe-Einstellungen"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
@@ -94,37 +98,34 @@ msgstr "In CD%d: einlegen"
 msgid "Insert Into DF%d"
 msgstr "In DF%d: einlegen"
 
-msgid "Invalid number of CD-ROM drives specified"
-msgstr "Ungültige Anzahl von CDROM-Laufwerken spezifiziert"
-
 msgid "Joystick Mode"
 msgstr "Joystick-Modus"
 
 msgid "Joystick Port"
-msgstr "Joystickport"
+msgstr "Joystick-Anschluss"
 
 #, c-format
 msgid "Joystick Port %d"
-msgstr "Joystickport %d"
+msgstr "Joystick-Anschluss %d"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Joystick Port %d Device"
-msgstr "Gerät Joystickport %d"
+msgstr "Joystick-Anschluss Gerät %d"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Joystick Port %d Mode"
-msgstr "Modus Joystickport %d"
+msgstr "Joystick-Anschluss Modus %d"
 
 msgid "Joystick Port 2"
-msgstr "Joystickport 2"
+msgstr "Joystick-Anschluss 2"
 
 msgid "Joystick Port 3"
-msgstr "Joystickport 3"
+msgstr "Joystick-Anschluss 3"
 
 msgid "Joystick Port 4"
-msgstr "Joystickport 4"
+msgstr "Joystick-Anschluss 4"
 
 msgid "Keyboard"
 msgstr "Tastatur"
@@ -135,8 +136,11 @@ msgstr "Laden"
 msgid "Load State"
 msgstr "Zustand laden"
 
+msgid "Max 1 CD-ROM drive supported currently"
+msgstr "Derzeit wird max. 1 CD-Laufwerk unterstützt"
+
 msgid "More..."
-msgstr "Mehr..."
+msgstr "Mehr …"
 
 msgid "Mouse"
 msgstr "Maus"
@@ -145,20 +149,20 @@ msgid "Mouse Mode"
 msgstr "Maus-Modus"
 
 msgid "Mouse Port"
-msgstr "Mausport"
+msgstr "Maus-Anschluss"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long: If you struggle
 #. / to get in short enough, just translate "No Device" instead.
 msgid "No Amiga Device"
-msgstr "Kein Amigagerät"
+msgstr "Kein Amiga"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long: If you struggle
 #. / to get in short enough, just translate "No Device" instead.
 msgid "No Host Device"
-msgstr "Kein Hostgerät"
+msgstr "Kein Host"
 
 msgid "No configuration file was found"
-msgstr "Konfigurationsdatei nicht gefunden"
+msgstr "Keine Konfigurationsdatei gefunden"
 
 #, c-format
 msgid "Option \"%s\" is not enabled"
@@ -179,32 +183,32 @@ msgstr "Option uaegfx_card benötigt eine CPU mit 32bit-Adressierung"
 msgid "Option zorro_iii_memory must be a multiple of 1024"
 msgstr "Die Option zorro_iii_memory muss ein Vielfaches von 1024 sein"
 
-msgid "Options zorro_iii_memory needs a CPU with 32-bit addressing"
-msgstr "Die Option zorro_iii_memory benötigt eine CPU mit 32bit-Adressierung"
+msgid "Option zorro_iii_memory needs a CPU with 32-bit addressing"
+msgstr "Die Option zorro_iii_memory erfordert eine CPU mit 32-Bit-Adressierung"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 msgid "Parallel Joystick Ports"
-msgstr "Par. Joystick Anschl."
+msgstr "Par. Joystick-Anschl."
 
 msgid "Pause"
 msgstr "Pause"
 
 #, c-format
 msgid "Port 0: %s"
-msgstr "Anschluß 0: %s"
+msgstr "Anschluss 0: %s"
 
 msgid "Port Settings"
-msgstr "Anschluß-Einstellungen"
+msgstr "Anschluss-Einstellungen"
 
 msgid "Removable Media"
 msgstr "Wechseldatenträger"
 
 #. / TRANSLATORS: Reset Amiga as in reboot the computer
 msgid "Reset Amiga"
-msgstr "Amiga neu starten"
+msgstr "Amiga zurücksetzen"
 
 msgid "Resume"
-msgstr "Wiederaufnehmen"
+msgstr "Fortsetzen"
 
 msgid "Save"
 msgstr "Sichern"
@@ -214,7 +218,7 @@ msgstr "Zustand speichern"
 
 #. / TRANSLATORS: Soft reset reboots the computer without a power cycle
 msgid "Soft Reset"
-msgstr "Warmstart"
+msgstr "Warmneustart"
 
 msgid "Warp mode disabled"
 msgstr "Warp-Modus deaktiviert"
@@ -223,7 +227,7 @@ msgid "Warp mode enabled"
 msgstr "Warp-Modus aktiviert"
 
 msgid "Zoom is disabled in RTG mode"
-msgstr "Zoom ist im RTG Modus abgeschaltet "
+msgstr "Zoom ist im RTG-Modus ausgeschaltet "
 
 #, c-format
 msgid "Zoom: %s"
@@ -231,5 +235,17 @@ msgstr "Zoom: %s"
 
 #, c-format
 msgid "Zoom: %s + Border"
-msgstr "Zoom: %s + Rand"
+msgstr "Zoom: %s + Begrenzung"
+
+msgid "[ Port 0 ] Switched to joystick mode"
+msgstr "[ Anschluss 0 ] Auf Joystick-Modus umgestellt"
+
+msgid "[ Port 0 ] Switched to mouse mode"
+msgstr "[ Anschluss 0 ] Auf Maus-Modus umgestellt"
+
+msgid "Invalid number of CD-ROM drives specified"
+msgstr "Ungültige Anzahl von CDROM-Laufwerken spezifiziert"
+
+msgid "Options zorro_iii_memory needs a CPU with 32-bit addressing"
+msgstr "Die Option zorro_iii_memory benötigt eine CPU mit 32bit-Adressierung"
 

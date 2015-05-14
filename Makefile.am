@@ -126,7 +126,7 @@ fs_uae_SOURCES = \
 if WINDOWS
 nodist_fs_uae_SOURCES += src/fs-uae/fs-uae.rc
 .rc.o:
-	windres $< -o $@
+	windres $< -o $@ -I$(s)
 endif
 
 fs_uae_LDADD =
@@ -1327,3 +1327,6 @@ uninstall-local:
 clean-local:
 	rm -f fs-uae.dat
 	find share -name fs-uae.mo -delete
+
+fs-uae-dist:
+	$(MAKE) -C dist/@OS_NAME@

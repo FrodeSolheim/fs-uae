@@ -99,7 +99,7 @@ struct romdata *getromdatabypath (const TCHAR *path)
 	return NULL;
 }
 
-#define NEXT_ROM_ID 139
+#define NEXT_ROM_ID 140
 
 #define ALTROM(id,grp,num,size,flags,crc32,a,b,c,d,e) \
 { _T("X"), 0, 0, 0, 0, 0, size, id, 0, 0, flags, (grp << 16) | num, 0, NULL, crc32, a, b, c, d, e },
@@ -367,8 +367,10 @@ static struct romdata roms[] = {
 	{ _T("Kupke Golem 030"), 0, 0, 0, 0, _T("GOLEM030\0"), 8192, 126, 0, 0, ROMTYPE_CB_GOLEM030, 0, 0, NULL,
 	0x05d473f4, 0x574ec567,0xcc67e06f,0x91dcecb9,0x8c204399,0x5fe2a09f, NULL, NULL },
 
+	{ _T("Preferred Technologies Nexus"), 1, 0, 1, 0, _T("PTNEXUS\0"), 8192, 139, 0, 0, ROMTYPE_PTNEXUS, 0, 0, NULL,
+	0xf495879a, 0xa3bd0202, 0xe14aa5b6, 0x49d3ce88, 0x22975950, 0x6500dbc2, NULL, NULL },
 	{ _T("ICD AdSCSI 2000"), 1, 6, 1, 6, _T("ADSCSI\0"), 32768, 133, 0, 0, ROMTYPE_ADSCSI, 0, 0, NULL,
-	0x7dba3e1f, 0x1e05f284,0xd59a1e5d,0x4e4de44e,0x6f075175,0x625cd6c0, NULL, NULL },
+	0x7dba3e1f, 0x1e05f284, 0xd59a1e5d, 0x4e4de44e, 0x6f075175, 0x625cd6c0, NULL, NULL },
 	{ _T("Archos ADD-500"), 1, 21, 1, 21, _T("ADD\0"), 16384, 132, 0, 0, ROMTYPE_ADD500, 0, 0, NULL,
 	0x3f4e4a74, 0x9ed96fc0,0xd6381dc3,0x3192b0af,0xdfae4b74,0x576c3a69, NULL, NULL },
 	{ _T("Protar A500HD"), 1, 193, 1, 193, _T("PROTAR\0"), 32768, 131, 0, 0, ROMTYPE_PROTAR, 0, 0, NULL,
@@ -1711,6 +1713,8 @@ struct boardromconfig *get_device_rom(struct uae_prefs *p, int romtype, int devn
 	*index = ert->parentromtype ? 1 : 0;
 	for (int i = 0; i < MAX_EXPANSION_BOARDS; i++) {
 		struct boardromconfig *brc = &p->expansionboard[i];
+		if (!brc->device_type)
+			continue;
 		if ((brc->device_type & ROMTYPE_MASK) == (parentrom & ROMTYPE_MASK) && brc->device_num == devnum)
 			return brc;
 	}
@@ -1784,6 +1788,8 @@ struct boardromconfig *get_boardromconfig(struct uae_prefs *p, int romtype, int 
 {
 	for (int i = 0; i < MAX_EXPANSION_BOARDS; i++) {
 		struct boardromconfig *brc = &p->expansionboard[i];
+		if (!brc->device_type)
+			continue;
 		if ((brc->device_type & ROMTYPE_MASK) == (romtype & ROMTYPE_MASK)) {
 			for (int j = 0; j < MAX_BOARD_ROMS; j++) {
 				if (brc->roms[j].romfile[0]) {

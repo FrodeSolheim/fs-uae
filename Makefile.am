@@ -334,6 +334,7 @@ libuae_a_SOURCES = \
 	src/include/scsidev.h \
 	src/include/serial.h \
 	src/include/sndboard.h \
+	src/include/specialmonitors.h \
 	src/include/statusline.h \
 	src/include/sysdeps.h \
 	src/include/tabletlibrary.h \

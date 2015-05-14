@@ -77,6 +77,7 @@ struct hardfiledata {
 	int reinsertdelay;
 	bool isreinsert;
 	bool unit_stopped;
+	int unit_attention;
 };
 
 #define HFD_FLAGS_REALDRIVE 1

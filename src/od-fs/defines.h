@@ -94,7 +94,6 @@ extern FILE *g_fs_uae_sync_debug_file;
 #define SAVESTATE
 #define SCP
 #define SCSIEMU
-#define SERIAL_PORT
 #define SUPPORT_THREADS
 #define UAESERIAL
 #define UAE_FILESYS_THREADS

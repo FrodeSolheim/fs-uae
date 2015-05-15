@@ -89,7 +89,9 @@ void console_out_f(const TCHAR *fmt, ...) {
     va_end(arg_ptr);
 }
 
-void f_out(void *f, const TCHAR *format, ...) {
+/* FIXME: change void *f to FILE* f */
+void f_out(void *f, const TCHAR *format, ...)
+{
     if (f == NULL) {
         return;
     }

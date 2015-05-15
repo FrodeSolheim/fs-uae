@@ -177,7 +177,7 @@ extern int sys_command_cd_qcode (int unitnum, uae_u8*);
 extern int sys_command_cd_toc (int unitnum, struct cd_toc_head*);
 extern int sys_command_cd_read (int unitnum, uae_u8 *data, int block, int size);
 extern int sys_command_cd_rawread (int unitnum, uae_u8 *data, int sector, int size, int sectorsize);
-extern int sys_command_cd_rawread (int unitnum, uae_u8 *data, int sector, int size, int sectorsize, uae_u8 scsicmd9, uae_u8 subs);
+int sys_command_cd_rawread (int unitnum, uae_u8 *data, int sector, int size, int sectorsize, uae_u8 sectortype, uae_u8 scsicmd9, uae_u8 subs);
 extern int sys_command_read (int unitnum, uae_u8 *data, int block, int size);
 extern int sys_command_write (int unitnum, uae_u8 *data, int block, int size);
 extern int sys_command_scsi_direct_native (int unitnum, int type, struct amigascsi *as);
@@ -227,4 +227,4 @@ extern struct device_functions devicefunc_scsi_ioctl;
 extern struct device_functions devicefunc_scsi_spti;
 extern struct device_functions devicefunc_cdimage;
 
-#endif // UAE_BLKDEV_H
+#endif /* UAE_BLKDEV_H */

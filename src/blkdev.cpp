@@ -374,24 +374,12 @@ static int get_standard_cd_unit2 (struct uae_prefs *p, cd_standard_unit csu)
 	int isaudio = 0;
 	if (p->cdslots[unitnum].name[0] || p->cdslots[unitnum].inuse) {
 		if (p->cdslots[unitnum].name[0]) {
-#ifdef FSUAE_XXX
-            if (cdscsidevicetype[unitnum]) {
-                device_func_init (cdscsidevicetype[unitnum]);
-                if (!sys_command_open_internal (unitnum, p->cdslots[unitnum].name, csu)) {
-                    goto fallback;
-                }
-            }
-            else {
-                goto fallback;
-            }
-#else
 			device_func_init (SCSI_UNIT_IOCTL);
 			if (!sys_command_open_internal (unitnum, p->cdslots[unitnum].name, csu)) {
 				device_func_init (SCSI_UNIT_IMAGE);
 				if (!sys_command_open_internal (unitnum, p->cdslots[unitnum].name, csu))
 					goto fallback;
 			}
-#endif
 		} else {
 			goto fallback;
 		}
@@ -604,16 +592,8 @@ static void check_changes (int unitnum)
 	bool changed = false;
 	bool gotsem = false;
 
-	if (st->device_func == NULL) {
-#ifdef FSUAE
-#if 0
-		if (unitnum == 0) {
-			printf("st->device_func == NULL\n");
-		}
-#endif
-#endif
+	if (st->device_func == NULL)
 		return;
-	}
 
 	if (st->showstatusline) {
 		cd_statusline_label(unitnum);
@@ -920,7 +900,6 @@ int sys_command_cd_read (int unitnum, uae_u8 *data, int block, int size)
 	freesem (unitnum);
 	return v;
 }
-
 int sys_command_cd_rawread (int unitnum, uae_u8 *data, int block, int size, int sectorsize)
 {
 	int v;
@@ -937,8 +916,7 @@ int sys_command_cd_rawread (int unitnum, uae_u8 *data, int block, int size, int 
 	freesem (unitnum);
 	return v;
 }
-
-static int sys_command_cd_rawread (int unitnum, uae_u8 *data, int block, int size, int sectorsize, uae_u8 sectortype, uae_u8 scsicmd9, uae_u8 subs)
+int sys_command_cd_rawread (int unitnum, uae_u8 *data, int block, int size, int sectorsize, uae_u8 sectortype, uae_u8 scsicmd9, uae_u8 subs)
 {
 	int v;
 	if (failunit (unitnum))

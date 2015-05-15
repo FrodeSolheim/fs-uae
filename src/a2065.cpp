@@ -994,4 +994,4 @@ addrbank *a2065_init (int devnum)
 	return a2065_config ();
 }
 
-#endif // A2065
+#endif /* A2065 */

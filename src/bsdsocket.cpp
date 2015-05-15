@@ -321,6 +321,7 @@ void addtosigqueue (SB, int events)
 	unlocksigqueue ();
 }
 
+
 void bsdsock_fake_int_handler(void)
 {
 	locksigqueue ();

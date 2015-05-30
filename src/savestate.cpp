@@ -769,8 +769,8 @@ void savestate_restore_finish (void)
 	restore_cia_finish ();
 	restore_debug_memwatch_finish ();
 	savestate_state = 0;
-	init_hz_full ();
-	audio_activate ();
+	init_hz_normal();
+	audio_activate();
 #ifdef FSUAE
     uae_callback(uae_on_restore_state_finished, savestate_fname);
 #endif

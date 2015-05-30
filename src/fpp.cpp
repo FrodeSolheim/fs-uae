@@ -1026,7 +1026,7 @@ static bool fp_is_infinity (fpdata *fpd)
 #ifdef _MSC_VER
 	return !_finite (fpd->fp);
 #elif defined(HAVE_ISINF)
-	return isinf (fpd->fp);
+	return isinf(fpd->fp);
 #else
 	return false;
 #endif

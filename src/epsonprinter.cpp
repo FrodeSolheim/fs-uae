@@ -681,7 +681,7 @@ static void getfname (TCHAR *fname)
 	for (;;) {
 		FILE *fp;
 		_stprintf (fname, _T("%sPRINT_%03d.png"), tmp, number);
-		if ((fp = uae_tfopen (fname, _T("rb"))) == NULL)
+		if ((fp = uae_tfopen(fname, _T("rb"))) == NULL)
 			return;
 		number++;
 		fclose (fp);

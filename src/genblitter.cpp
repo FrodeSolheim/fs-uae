@@ -95,7 +95,7 @@ static void generate_func(void)
 	if (c_is_on) printf("uae_u32 srcc = b->bltcdat;\n");
 	printf("uae_u32 dstd=0;\n");
 	printf("uaecptr dstp = 0;\n");
-#ifdef FSUAE
+#ifdef FSUAE_XXX
 	printf("for (j = b->vblitsize; j--; ) {\n");
 	if (a_is_on) {
 		printf("\tfor (i = 0; i < b->hblitsize; i++) {\n\t\tuae_u32 bltadat, srca;\n\n");
@@ -181,7 +181,7 @@ static void generate_func(void)
 	if (c_is_on) printf("uae_u32 srcc = b->bltcdat;\n");
 	printf("uae_u32 dstd = 0;\n");
 	printf("uaecptr dstp = 0;\n");
-#ifdef FSUAE
+#ifdef FSUAE_XXX
 	printf("for (j = b->vblitsize; j--; ) {\n");
 	if (a_is_on) {
 		printf("\tfor (i = 0; i < b->hblitsize; i++) {\n\t\tuae_u32 bltadat, srca;\n");

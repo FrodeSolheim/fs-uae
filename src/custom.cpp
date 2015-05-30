@@ -4028,7 +4028,7 @@ void compute_framesync (void)
 }
 
 /* set PAL/NTSC or custom timing variables */
-static void init_hz (bool fullinit)
+static void init_hz (bool checkvposw)
 {
 	int isntsc, islace;
 	int odbl = doublescan, omaxvpos = maxvpos;

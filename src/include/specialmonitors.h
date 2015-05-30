@@ -1,6 +1,7 @@
 #ifndef UAE_SPECIALMONITORS_H
 #define UAE_SPECIALMONITORS_H
 
+#include "uae/memory.h"
 #include "xwin.h"
 
 bool emulate_specialmonitors(struct vidbuffer *src, struct vidbuffer *dst);

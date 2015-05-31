@@ -67,7 +67,8 @@ extern "C" {
         g_uaem_flags |= name; \
     }
 
-void uae_set_uaem_write_flags_from_string(const char *flags) {
+void uae_set_uaem_write_flags_from_string(const char *flags)
+{
     uae_assert (flags != NULL);
     write_log("uaem_write_flags = %s\n", flags);
     g_uaem_flags = 0;
@@ -100,30 +101,35 @@ void uae_set_uaem_write_flags_from_string(const char *flags) {
 }
 #endif
 
-static char *fsdb_file_path(const char* nname) {
+static char *fsdb_file_path(const char* nname)
+{
     strncpy(g_fsdb_file_path_buffer, nname, PATH_MAX);
     return g_fsdb_file_path_buffer;
 }
 
-int fsdb_name_invalid(const TCHAR *n) {
+int fsdb_name_invalid(const TCHAR *n)
+{
     if (g_fsdb_debug) {
         write_log("fsdb_name_invalid n=%s\n", n);
     }
     return 0;
 }
 
-int fsdb_name_invalid_dir(const TCHAR *n) {
+int fsdb_name_invalid_dir(const TCHAR *n)
+{
     if (g_fsdb_debug) {
         write_log("fsdb_name_invalid_dir n=%s\n", n);
     }
     return 0;
 }
 
-static uae_u32 filesys_parse_mask(uae_u32 mask) {
+static uae_u32 filesys_parse_mask(uae_u32 mask)
+{
     return mask ^ 0xf;
 }
 
-int fsdb_exists(const TCHAR *nname) {
+int fsdb_exists(const TCHAR *nname)
+{
     return fs_path_exists(nname);
 }
 
@@ -139,7 +145,8 @@ int fsdb_exists(const TCHAR *nname) {
 //#define TIME_LEN (1 + DAYS_LEN + 1 + MINS_LEN + 1 + TICKS_LEN + 1)
 #define TIME_LEN 22
 
-void fsdb_init_file_info(fsdb_file_info *info) {
+void fsdb_init_file_info(fsdb_file_info *info)
+{
     info->days = 0;
     info->mins = 0;
     info->ticks = 0;
@@ -148,8 +155,7 @@ void fsdb_init_file_info(fsdb_file_info *info) {
 
     if (uae_deterministic_mode()) {
         // leave time at 0, 0, 0
-    }
-    else {
+    } else {
         fs_time_val tv;
         fs_get_current_time(&tv);
         struct mytimeval mtv;
@@ -165,7 +171,8 @@ void fsdb_init_file_info(fsdb_file_info *info) {
     }
 }
 
-static FILE *fsdb_open_meta_file(const char *meta_file, const char *mode) {
+static FILE *fsdb_open_meta_file(const char *meta_file, const char *mode)
+{
     if (g_fsdb_debug) {
         write_log("opening meta file %s mode %s\n", meta_file, mode);
     }
@@ -177,7 +184,8 @@ static FILE *fsdb_open_meta_file(const char *meta_file, const char *mode) {
 }
 
 /* return supported combination */
-int fsdb_mode_supported(const a_inode *aino) {
+int fsdb_mode_supported(const a_inode *aino)
+{
     int mask = aino->amigaos_mode;
     return mask;
 }
@@ -187,7 +195,8 @@ static TCHAR evilchars[NUM_EVILCHARS] = { '%', '\\', '*', '?', '\"', '/', '|',
         '<', '>'};
 static char hex_chars[] = "0123456789abcdef";
 
-static char *aname_to_nname(const char *aname, int ascii) {
+static char *aname_to_nname(const char *aname, int ascii)
+{
     size_t len = strlen(aname);
     unsigned int repl_1 = UINT_MAX;
     unsigned int repl_2 = UINT_MAX;
@@ -280,7 +289,8 @@ static char *aname_to_nname(const char *aname, int ascii) {
     return result;
 }
 
-static unsigned char char_to_hex(unsigned char c) {
+static unsigned char char_to_hex(unsigned char c)
+{
     if (c >= '0' && c <= '9') {
         return c - '0';
     }
@@ -293,13 +303,15 @@ static unsigned char char_to_hex(unsigned char c) {
     return 0;
 }
 
-int same_aname (const char *an1, const char *an2) {
+int same_aname (const char *an1, const char *an2)
+{
     // FIXME: latin 1 chars?
     // FIXME: compare with latin1 table in charset/filesys_host/fsdb_host
     return strcasecmp (an1, an2) == 0;
 }
 
-static char *nname_to_aname(const char *nname, int noconvert) {
+static char *nname_to_aname(const char *nname, int noconvert)
+{
     int len = strlen(nname);
     char *result = strdup(nname);
     unsigned char *p = (unsigned char *) result;
@@ -336,11 +348,13 @@ static char *nname_to_aname(const char *nname, int noconvert) {
 /* Return nonzero if we can represent the amigaos_mode of AINO within the
  * native FS.  Return zero if that is not possible.
  */
-int fsdb_mode_representable_p(const a_inode *aino, int amigaos_mode) {
+int fsdb_mode_representable_p(const a_inode *aino, int amigaos_mode)
+{
     return 1;
 }
 
-TCHAR *fsdb_create_unique_nname(a_inode *base, const TCHAR *suggestion) {
+TCHAR *fsdb_create_unique_nname(a_inode *base, const TCHAR *suggestion)
+{
     char *nname = aname_to_nname(suggestion, 0);
     TCHAR *p = build_nname(base->nname, nname);
     free(nname);
@@ -350,12 +364,14 @@ TCHAR *fsdb_create_unique_nname(a_inode *base, const TCHAR *suggestion) {
 /* Return 1 if the nname is a special host-only name which must be translated
  * to aname using fsdb.
  */
-int custom_fsdb_used_as_nname(a_inode *base, const TCHAR *nname) {
+int custom_fsdb_used_as_nname(a_inode *base, const TCHAR *nname)
+{
     //STUB("base=? nname=\"%s\"", nname);
     return 1;
 }
 
-static int fsdb_get_file_info(const char *nname, fsdb_file_info *info) {
+static int fsdb_get_file_info(const char *nname, fsdb_file_info *info)
+{
     int error = 0;
     if (g_fsdb_debug) {
         write_log("fsdb_get_file_info %s\n", nname);
@@ -555,7 +571,8 @@ static int fsdb_get_file_info(const char *nname, fsdb_file_info *info) {
     return error;
 }
 
-int fsdb_set_file_info(const char *nname, fsdb_file_info *info) {
+int fsdb_set_file_info(const char *nname, fsdb_file_info *info)
+{
     FILE *f = NULL;
     if (g_fsdb_debug) {
         write_log("fsdb_set_file_info %s\n", nname);
@@ -774,7 +791,8 @@ int fsdb_set_file_info(const char *nname, fsdb_file_info *info) {
     return error;
 }
 
-void fsdb_get_file_time(a_inode *aino, int *days, int *mins, int *ticks) {
+void fsdb_get_file_time(a_inode *aino, int *days, int *mins, int *ticks)
+{
     fsdb_file_info info;
     fsdb_get_file_info(aino->nname, &info);
     if (info.type) {
@@ -793,7 +811,8 @@ void fsdb_get_file_time(a_inode *aino, int *days, int *mins, int *ticks) {
     }
 }
 
-bool my_utime(const char *name, struct mytimeval *tv) {
+bool my_utime(const char *name, struct mytimeval *tv)
+{
     int days = 0;
     int mins = 0;
     int ticks = 0;
@@ -808,7 +827,8 @@ bool my_utime(const char *name, struct mytimeval *tv) {
     }
     else {
         struct mytimeval mtv2;
-        mtv2.tv_sec = tv->tv_sec + fs_get_local_time_offset(tv->tv_sec);
+        // mtv2.tv_sec = tv->tv_sec + fs_get_local_time_offset(tv->tv_sec);
+        mtv2.tv_sec = tv->tv_sec;
         mtv2.tv_usec = tv->tv_usec;
         timeval_to_amiga(&mtv2, &days, &mins, &ticks, 50);
     }
@@ -828,13 +848,17 @@ bool my_utime(const char *name, struct mytimeval *tv) {
     info.days = days;
     info.mins = mins;
     info.ticks = ticks;
+    if (g_fsdb_debug) {
+        write_log("my_utime days %d mins %d ticks %d\n", days, mins, ticks);
+    }
     my_errno = fsdb_set_file_info(name, &info);
     return my_errno == 0;
 }
 
 extern unsigned char g_latin1_lower_table[256];
 
-static void lower_latin1(char *s) {
+static void lower_latin1(char *s)
+{
     unsigned char *u = (unsigned char*) s;
     while (*u) {
         *u = g_latin1_lower_table[*u];
@@ -842,7 +866,8 @@ static void lower_latin1(char *s) {
     }
 }
 
-int fsdb_fill_file_attrs(a_inode *base, a_inode *aino) {
+int fsdb_fill_file_attrs(a_inode *base, a_inode *aino)
+{
     if (g_fsdb_debug) {
         write_log("fsdb_fill_file_attrs nname is %s\n", aino->nname);
     }
@@ -864,7 +889,8 @@ int fsdb_fill_file_attrs(a_inode *base, a_inode *aino) {
     return 1;
 }
 
-int fsdb_set_file_attrs(a_inode *aino) {
+int fsdb_set_file_attrs(a_inode *aino)
+{
     if (g_fsdb_debug) {
         write_log("fsdb_set_file_attrs nname is %s\n", aino->nname);
     }
@@ -889,7 +915,8 @@ int fsdb_set_file_attrs(a_inode *aino) {
     return fsdb_set_file_info(aino->nname, &info);
 }
 
-static void find_nname_case(const char *dir_path, char **name) {
+static void find_nname_case(const char *dir_path, char **name)
+{
     // FIXME: should cache these results...!!
     if (g_fsdb_debug) {
         write_log("find case for %s in dir %s\n", *name, dir_path);
@@ -945,7 +972,8 @@ static void find_nname_case(const char *dir_path, char **name) {
     g_free(cmp_name);
 }
 
-char *fsdb_native_path(const char *root_dir, const char *amiga_path) {
+char *fsdb_native_path(const char *root_dir, const char *amiga_path)
+{
     if (g_fsdb_debug) {
         write_log("fsdb_native_path (%s) %s\n", root_dir, amiga_path);
     }
@@ -970,7 +998,8 @@ char *fsdb_native_path(const char *root_dir, const char *amiga_path) {
     return current_path;
 }
 
-a_inode *custom_fsdb_lookup_aino_aname(a_inode *base, const TCHAR *aname) {
+a_inode *custom_fsdb_lookup_aino_aname(a_inode *base, const TCHAR *aname)
+{
     //STUB("base=? aname=\"%s\"", aname);
 
     char *nname = aname_to_nname(aname, 0);
@@ -1015,7 +1044,8 @@ a_inode *custom_fsdb_lookup_aino_aname(a_inode *base, const TCHAR *aname) {
     return aino;
 }
 
-a_inode *custom_fsdb_lookup_aino_nname(a_inode *base, const TCHAR *nname) {
+a_inode *custom_fsdb_lookup_aino_nname(a_inode *base, const TCHAR *nname)
+{
     //STUB("base=? nname=\"%s\"", nname);
 
     char *full_nname = build_nname(base->nname, (TCHAR*) nname);

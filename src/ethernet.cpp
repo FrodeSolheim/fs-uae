@@ -71,6 +71,8 @@ void slirp_output (const uint8_t *pkt, int pkt_len)
 
 void ethernet_trigger (struct netdriverdata *ndd, void *vsd)
 {
+	if (!ndd)
+		return;
 	switch (ndd->type)
 	{
 		case UAENET_SLIRP:

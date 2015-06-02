@@ -143,11 +143,36 @@ static void clearbuffer (void)
 
 void finish_sound_buffer (void)
 {
-    if (currprefs.turbo_emulation)
-        return;
+	/* FIXME: finish merging code from od-win32/sounddep/sound.cpp */
+
+#ifdef FIXME_ENABLE_CODE
+	static unsigned long tframe;
+	int bufsize = (uae_u8*)paula_sndbufpt - (uae_u8*)paula_sndbuffer;
+#endif
+
+	if (currprefs.turbo_emulation) {
+#ifdef FIXME_ENABLE_CODE
+		paula_sndbufpt = paula_sndbuffer;
+#endif
+		return;
+	}
+#ifdef FIXME_ENABLE_CODE
+	if (currprefs.sound_stereo_swap_paula) {
+		if (get_audio_nativechannels (currprefs.sound_stereo) == 2 || get_audio_nativechannels (currprefs.sound_stereo) == 4)
+			channelswap((uae_s16*)paula_sndbuffer, bufsize / 2);
+		else if (get_audio_nativechannels (currprefs.sound_stereo) == 6)
+			channelswap6((uae_s16*)paula_sndbuffer, bufsize / 2);
+	}
+#endif
+
 #ifdef DRIVESOUND
     driveclick_mix ((uae_s16*)paula_sndbuffer, paula_sndbufsize / 2, currprefs.dfxclickchannelmask);
 #endif
+#ifdef FIXME_ENABLE_CODE
+	// must be after driveclick_mix
+	paula_sndbufpt = paula_sndbuffer;
+#endif
+
     if (!have_sound)
         return;
 

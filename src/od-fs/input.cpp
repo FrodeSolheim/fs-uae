@@ -198,3 +198,8 @@ int handle_msgpump (void) {
 int is_tablet (void) {
     return 0;
 }
+
+bool target_can_autoswitchdevice(void)
+{
+    return false;
+}

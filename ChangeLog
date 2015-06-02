@@ -4,7 +4,7 @@ Version 2.5.31dev:
 * Temporarily disabled serial port emulation (need code update).
 * Fixed handling of configurations_dir and cache_dir options.
 * Imported updated translations from crowdin.com.
-* Updated emulation core from WinUAE 3100b22.
+* Updated emulation core from WinUAE 3100b23.
 
 Version 2.5.30dev:
 

@@ -49,6 +49,10 @@ static fs_mutex *g_video_mutex = NULL;
 #ifdef USE_SDL2
 SDL_Window *g_fs_ml_window = NULL;
 SDL_GLContext g_fs_ml_context = 0;
+static int g_display;
+static int g_num_displays;
+#define MAX_DISPLAYS 10
+static SDL_Rect g_display_bounds[MAX_DISPLAYS];
 #else
 static SDL_Surface *g_sdl_screen = NULL;
 #endif
@@ -87,23 +91,28 @@ int g_fs_ml_was_fullscreen = 0;
 #define FULLSCREEN_WINDOW 1
 #define FULLSCREEN_DESKTOP 2
 
-int fs_ml_get_max_texture_size() {
+int fs_ml_get_max_texture_size()
+{
     return g_max_texture_size;
 }
 
-int fs_ml_get_fullscreen_width() {
+int fs_ml_get_fullscreen_width()
+{
     return g_fullscreen_width;
 }
 
-int fs_ml_get_fullscreen_height() {
+int fs_ml_get_fullscreen_height()
+{
     return g_fullscreen_height;
 }
 
-int fs_ml_get_windowed_width() {
+int fs_ml_get_windowed_width()
+{
     return g_window_width;
 }
 
-int fs_ml_get_windowed_height() {
+int fs_ml_get_windowed_height()
+{
     return g_window_height;
 }
 
@@ -118,7 +127,8 @@ static void post_video_event(int event)
 #endif
 }
 
-static void process_video_events() {
+static void process_video_events()
+{
     fs_mutex_lock(g_video_event_mutex);
     int count = g_queue_get_length(g_video_event_queue);
     for (int i = 0; i < count; i++) {
@@ -139,16 +149,19 @@ static void process_video_events() {
     fs_mutex_unlock(g_video_event_mutex);
 }
 
-int fs_ml_has_input_grab() {
+int fs_ml_has_input_grab()
+{
     //printf("has input grab? %d\n", g_grab_input);
     return g_has_input_grab;
 }
 
-int fs_ml_has_automatic_input_grab() {
+int fs_ml_has_automatic_input_grab()
+{
     return g_fs_ml_automatic_input_grab;
 }
 
-void fs_ml_grab_input(int grab, int immediate) {
+void fs_ml_grab_input(int grab, int immediate)
+{
     //printf("fs_ml_grab_input %d %d\n", grab, immediate);
     if (immediate) {
 #ifdef USE_SDL2
@@ -168,11 +181,13 @@ void fs_ml_grab_input(int grab, int immediate) {
     g_has_input_grab = grab ? 1 : 0;
 }
 
-void fs_ml_set_video_fsaa(int fsaa) {
+void fs_ml_set_video_fsaa(int fsaa)
+{
     g_fsaa = fsaa;
 }
 
-void fs_ml_show_cursor(int show, int immediate) {
+void fs_ml_show_cursor(int show, int immediate)
+{
     if (immediate) {
         SDL_ShowCursor(show);
     }
@@ -182,7 +197,8 @@ void fs_ml_show_cursor(int show, int immediate) {
     }
 }
 
-static void log_opengl_information() {
+static void log_opengl_information()
+{
     static int written = 0;
     if (written) {
         return;
@@ -224,7 +240,8 @@ static void log_opengl_information() {
     }
 }
 
-static void set_video_mode() {
+static void set_video_mode()
+{
 #ifdef USE_SDL2
     int flags = SDL_WINDOW_OPENGL;
     if (g_fs_emu_video_fullscreen_mode != FULLSCREEN_WINDOW &&
@@ -258,14 +275,15 @@ static void set_video_mode() {
             // the width and height will not be used for the fullscreen
             // desktop mode, only for the window when toggling fullscreen
             // state
+#if 0
             w = g_window_width;
             h = g_window_height;
-
-            // x = 0;
-            // y = 0;
-            // w = g_fullscreen_width;
-            // h = g_fullscreen_height;
-
+#else
+            x = g_display_bounds[g_display].x;
+            y = g_display_bounds[g_display].y;
+            w = g_display_bounds[g_display].w;
+            h = g_display_bounds[g_display].h;
+#endif
             flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
         }
         else {
@@ -347,12 +365,14 @@ static void set_video_mode() {
 // resizing the window and/or toggling fullscreen.
 #else
 
-static void destroy_opengl_state() {
+static void destroy_opengl_state()
+{
     fs_log("destroy_opengl_state\n");
     fs_gl_send_context_notification(FS_GL_CONTEXT_DESTROY);
 }
 
-static void recreate_opengl_state() {
+static void recreate_opengl_state()
+{
     fs_log("recreate_opengl_state\n");
     fs_gl_reset_client_state();
     fs_gl_send_context_notification(FS_GL_CONTEXT_CREATE);
@@ -360,7 +380,8 @@ static void recreate_opengl_state() {
 
 #endif
 
-void fs_ml_toggle_fullscreen() {
+void fs_ml_toggle_fullscreen()
+{
     fs_log("fs_ml_toggle_fullscreen\n");
 #ifdef USE_SDL2
     if (g_fs_emu_video_fullscreen_mode == FULLSCREEN_WINDOW) {
@@ -395,7 +416,8 @@ void fs_ml_toggle_fullscreen() {
 #endif
 }
 
-int fs_ml_video_create_window(const char *title) {
+int fs_ml_video_create_window(const char *title)
+{
     fs_log("fs_ml_video_create_window\n");
     g_window_title = g_strdup(title);
 
@@ -410,6 +432,9 @@ int fs_ml_video_create_window(const char *title) {
 #ifdef USE_SDL2
    SDL_SetHint(SDL_HINT_GRAB_KEYBOARD,
                g_fs_ml_keyboard_input_grab ? "1" : "0");
+
+   SDL_SetHint(SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "0");
+
 #endif
     SDL_Init(SDL_INIT_VIDEO);
 
@@ -422,14 +447,51 @@ int fs_ml_video_create_window(const char *title) {
 #ifdef USE_SDL2
         int display_index = 0;
         SDL_DisplayMode mode;
-        int should_be_zero = SDL_GetCurrentDisplayMode(display_index, &mode);
-        if(should_be_zero != 0) {
+        int error = SDL_GetCurrentDisplayMode(display_index, &mode);
+        if (error) {
             fs_log("SDL_GetCurrentDisplayMode failed\n");
             SDL_ShowSimpleMessageBox(
                 SDL_MESSAGEBOX_ERROR, "Display Error",
                 "SDL_GetCurrentDisplayMode failed.", NULL);
             exit(1);
         }
+
+        g_num_displays = SDL_GetNumVideoDisplays();
+        if (g_num_displays < 1) {
+            fs_log("Error %d retrieving number of displays/monitors\n",
+                   g_num_displays);
+            g_num_displays = 1;
+        }
+        if (g_num_displays > MAX_DISPLAYS) {
+            fs_log("Limiting number of displays to %d\n",
+                   MAX_DISPLAYS);
+            g_num_displays = MAX_DISPLAYS;
+        }
+        for (int i = 0; i < g_num_displays; i++) {
+            int error = SDL_GetDisplayBounds(i, g_display_bounds + i);
+            if (error) {
+                fs_log("Error retrieving display bounds for display %d: %s\n",
+                       i, SDL_GetError());
+                /* Setting dummy values on error*/
+                g_display_bounds[i].x = 0;
+                g_display_bounds[i].y = 0;
+                g_display_bounds[i].w = 1024;
+                g_display_bounds[i].h = 768;
+            }
+        }
+
+        g_display = fs_config_get_int("monitor");
+        if (g_display == FS_CONFIG_NONE) {
+            g_display = 0;
+        }
+        if (g_display < 1 || g_display > g_num_displays) {
+            fs_log("Monitor number %d out of range, using primary monitor\n",
+                   g_display);
+            g_display = 0;
+        } else {
+            g_display -= 1;
+        }
+
 #else
         const SDL_VideoInfo* info = SDL_GetVideoInfo();
 
@@ -614,7 +676,8 @@ int g_fs_ml_running = 1;
 
 #ifndef WINDOWS
 // using separate implementation on Windows with raw input
-void fs_ml_clear_keyboard_modifier_state() {
+void fs_ml_clear_keyboard_modifier_state()
+{
 
 }
 #endif
@@ -627,7 +690,8 @@ void fs_ml_clear_keyboard_modifier_state() {
 #define KMOD_META (KMOD_LMETA|KMOD_RMETA)
 #endif
 
-static void on_resize(int width, int height) {
+static void on_resize(int width, int height)
+{
     if (width == g_fs_ml_video_width && height == g_fs_ml_video_height) {
         fs_log("got resize event, but size was unchanged\n");
         return;
@@ -1018,7 +1082,8 @@ int fs_ml_event_loop(void)
     return result;
 }
 
-void fs_ml_video_swap_buffers() {
+void fs_ml_video_swap_buffers()
+{
 #ifdef USE_SDL2
     SDL_GL_SwapWindow(g_fs_ml_window);
 #else
@@ -1026,7 +1091,8 @@ void fs_ml_video_swap_buffers() {
 #endif
 }
 
-int fs_ml_main_loop() {
+int fs_ml_main_loop()
+{
     while (g_fs_ml_running) {
         fs_ml_event_loop();
         process_video_events();
@@ -1071,7 +1137,8 @@ int fs_ml_main_loop() {
     return 0;
 }
 
-void fs_ml_video_init() {
+void fs_ml_video_init()
+{
     FS_ML_INIT_ONCE;
 
     fs_log("creating condition\n");

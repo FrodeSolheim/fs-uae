@@ -1,0 +1,7 @@
+Description: Monitor to display FS-UAE on (fullscreen)
+Default: 1
+Type: integer
+Range: 1 - 10
+
+Specify the monitor to use for fullscreen (1, 2, 3, ...). Only implemented
+for the default "fullscreen desktop" mode.

@@ -1,3 +1,7 @@
+Version 2.5.32dev:
+
+* Updated emulation core from WinUAE 3100.
+
 Version 2.5.31dev:
 
 * Fixed a time offset bug in my_utime used by action_set_date.

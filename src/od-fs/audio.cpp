@@ -43,6 +43,10 @@ struct sound_data
 static struct sound_data sdpaula;
 static struct sound_data *sdp = &sdpaula;
 
+static uae_u8 *extrasndbuf;
+static int extrasndbufsize;
+static int extrasndbuffered;
+
 int amiga_set_audio_callback(audio_callback func)
 {
     g_audio_callback = func;
@@ -141,60 +145,116 @@ static void clearbuffer (void)
     memset (paula_sndbuffer, 0, sizeof (paula_sndbuffer));
 }
 
+static void channelswap (uae_s16 *sndbuffer, int len)
+{
+	int i;
+	for (i = 0; i < len; i += 2) {
+		uae_s16 t;
+		t = sndbuffer[i];
+		sndbuffer[i] = sndbuffer[i + 1];
+		sndbuffer[i + 1] = t;
+	}
+}
+
+static void channelswap6 (uae_s16 *sndbuffer, int len)
+{
+	int i;
+	for (i = 0; i < len; i += 6) {
+		uae_s16 t;
+		t = sndbuffer[i + 0];
+		sndbuffer[i + 0] = sndbuffer[i + 1];
+		sndbuffer[i + 1] = t;
+		t = sndbuffer[i + 4];
+		sndbuffer[i + 4] = sndbuffer[i + 5];
+		sndbuffer[i + 5] = t;
+	}
+}
+
+static void send_sound (struct sound_data *sd, uae_u16 *sndbuffer)
+{
+#if 0
+	if (savestate_state)
+		return;
+	if (sd->paused)
+		return;
+	if (sd->softvolume >= 0) {
+		uae_s16 *p = (uae_s16*)sndbuffer;
+		for (int i = 0; i < sd->sndbufsize / 2; i++) {
+			p[i] = p[i] * sd->softvolume / 32768;
+		}
+	}
+#endif
+	if (g_audio_callback) {
+		g_audio_callback(0, (int16_t *) paula_sndbuffer, paula_sndbufsize);
+	}
+}
+
 void finish_sound_buffer (void)
 {
-	/* FIXME: finish merging code from od-win32/sounddep/sound.cpp */
-
-#ifdef FIXME_ENABLE_CODE
 	static unsigned long tframe;
 	int bufsize = (uae_u8*)paula_sndbufpt - (uae_u8*)paula_sndbuffer;
-#endif
 
 	if (currprefs.turbo_emulation) {
-#ifdef FIXME_ENABLE_CODE
 		paula_sndbufpt = paula_sndbuffer;
-#endif
 		return;
 	}
-#ifdef FIXME_ENABLE_CODE
 	if (currprefs.sound_stereo_swap_paula) {
 		if (get_audio_nativechannels (currprefs.sound_stereo) == 2 || get_audio_nativechannels (currprefs.sound_stereo) == 4)
 			channelswap((uae_s16*)paula_sndbuffer, bufsize / 2);
 		else if (get_audio_nativechannels (currprefs.sound_stereo) == 6)
 			channelswap6((uae_s16*)paula_sndbuffer, bufsize / 2);
 	}
-#endif
 
 #ifdef DRIVESOUND
     driveclick_mix ((uae_s16*)paula_sndbuffer, paula_sndbufsize / 2, currprefs.dfxclickchannelmask);
 #endif
-#ifdef FIXME_ENABLE_CODE
 	// must be after driveclick_mix
 	paula_sndbufpt = paula_sndbuffer;
+#ifdef AVIOUTPUT
+	if (avioutput_enabled && avioutput_audio) {
+		AVIOutput_WriteAudio((uae_u8*)paula_sndbuffer, bufsize);
+		if (avioutput_nosoundsync)
+			sound_setadjust(0);
+	}
+	if (avioutput_enabled && (!avioutput_framelimiter || avioutput_nosoundoutput))
+		return;
 #endif
-
     if (!have_sound)
         return;
 
+#if 0
+	// we got buffer that was not full (recording active). Need special handling.
+	if (bufsize < sdp->sndbufsize && !extrasndbuf) {
+		extrasndbufsize = sdp->sndbufsize;
+		extrasndbuf = xcalloc(uae_u8, sdp->sndbufsize);
+		extrasndbuffered = 0;
+	}
+#endif
+
     static int statuscnt;
-    if (statuscnt > 0) {
+    if (statuscnt > 0 && tframe != timeframes) {
+        tframe = timeframes;
         statuscnt--;
         if (statuscnt == 0)
             gui_data.sndbuf_status = 0;
     }
     if (gui_data.sndbuf_status == 3)
         gui_data.sndbuf_status = 0;
-/*
-    static int get_audio_buffer_fill() {
-        return g_audio_buffer_queue_size * SYS_BUFFER_BYTES + g_audio_buffer_pos;
-    }
-*/
 
-    if (g_audio_callback) {
-        g_audio_callback(0, (int16_t *) paula_sndbuffer, paula_sndbufsize);
-    }
-    //uae_sem_post (&data_available_sem);
-    //uae_sem_wait (&callback_done_sem);
+	if (extrasndbuf) {
+		int size = extrasndbuffered + bufsize;
+		int copied = 0;
+		if (size > extrasndbufsize) {
+			copied = extrasndbufsize - extrasndbuffered;
+			memcpy(extrasndbuf + extrasndbuffered, paula_sndbuffer, copied);
+			send_sound(sdp, (uae_u16*)extrasndbuf);
+			extrasndbuffered = 0;
+		}
+		memcpy(extrasndbuf + extrasndbuffered, (uae_u8*)paula_sndbuffer + copied, bufsize - copied);
+		extrasndbuffered += bufsize - copied;
+	} else {
+		send_sound(sdp, paula_sndbuffer);
+	}
 }
 
 /* Try to determine whether sound is available. */

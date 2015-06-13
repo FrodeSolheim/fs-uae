@@ -37,6 +37,7 @@
 //#include "fs/emu.h"
 #define FS_EMU_INTERNAL
 #include <fs/emu/input.h>
+#include <fs/emu/monitor.h>
 
 #include "ml_internal.h"
 
@@ -50,9 +51,6 @@ static fs_mutex *g_video_mutex = NULL;
 SDL_Window *g_fs_ml_window = NULL;
 SDL_GLContext g_fs_ml_context = 0;
 static int g_display;
-static int g_num_displays;
-#define MAX_DISPLAYS 10
-static SDL_Rect g_display_bounds[MAX_DISPLAYS];
 #else
 static SDL_Surface *g_sdl_screen = NULL;
 #endif
@@ -264,11 +262,18 @@ static void set_video_mode()
 
         if (g_fs_emu_video_fullscreen_mode == FULLSCREEN_WINDOW) {
             fs_log("using fullscreen window mode\n");
-            x = 0;
-            y = 0;
+            //x = 0;
+            //y = 0;
             //w = g_fullscreen_width;
             //h = g_fullscreen_height;
             flags |= SDL_WINDOW_BORDERLESS;
+
+            FSEmuMonitor monitor;
+            fs_emu_monitor_get_by_index(g_display, &monitor);
+            x = monitor.rect.x;
+            y = monitor.rect.y;
+            w = monitor.rect.w;
+            h = monitor.rect.h;
         }
         else if (g_fs_emu_video_fullscreen_mode == FULLSCREEN_DESKTOP) {
             fs_log("using fullscreen desktop mode\n");
@@ -279,10 +284,13 @@ static void set_video_mode()
             w = g_window_width;
             h = g_window_height;
 #else
-            x = g_display_bounds[g_display].x;
-            y = g_display_bounds[g_display].y;
-            w = g_display_bounds[g_display].w;
-            h = g_display_bounds[g_display].h;
+            FSEmuMonitor monitor;
+            fs_emu_monitor_get_by_index(g_display, &monitor);
+            x = monitor.rect.x;
+            y = monitor.rect.y;
+            w = monitor.rect.w;
+            h = monitor.rect.h;
+            
 #endif
             flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
         }
@@ -416,6 +424,126 @@ void fs_ml_toggle_fullscreen()
 #endif
 }
 
+static int g_fs_emu_monitor_count;
+// static FSEmuMonitor g_fs_emu_monitors[FS_EMU_MONITOR_MAX_COUNT];
+static GArray *g_fs_emu_monitors;
+
+static gint fs_emu_monitor_compare(gconstpointer a, gconstpointer b)
+{
+    FSEmuMonitor *am = (FSEmuMonitor *) a;
+    FSEmuMonitor *bm = (FSEmuMonitor *) b;
+
+    return am->rect.x - bm->rect.x;
+}
+
+static void fs_emu_monitor_init()
+{
+    static bool initialized = false;
+    if (initialized) {
+        return;
+    }
+    initialized = true;
+
+    g_fs_emu_monitors = g_array_new(false, true, sizeof(FSEmuMonitor));
+
+    int display_index = 0;
+    SDL_DisplayMode mode;
+    int error = SDL_GetCurrentDisplayMode(display_index, &mode);
+    if (error) {
+        fs_log("SDL_GetCurrentDisplayMode failed\n");
+        SDL_ShowSimpleMessageBox(
+            SDL_MESSAGEBOX_ERROR, "Display Error",
+            "SDL_GetCurrentDisplayMode failed.", NULL);
+        exit(1);
+    }
+    g_fs_emu_monitor_count = SDL_GetNumVideoDisplays();
+
+    if (g_fs_emu_monitor_count < 1) {
+        fs_log("Error %d retrieving number of displays/monitors\n",
+               g_fs_emu_monitor_count);
+        g_fs_emu_monitor_count = 1;
+    }
+    if (g_fs_emu_monitor_count >  FS_EMU_MONITOR_MAX_COUNT) {
+        fs_log("Limiting number of displays to %d\n",
+                FS_EMU_MONITOR_MAX_COUNT);
+        g_fs_emu_monitor_count =  FS_EMU_MONITOR_MAX_COUNT;
+    }
+
+    for (int i = 0; i < g_fs_emu_monitor_count; i++) {
+        SDL_Rect rect;
+        FSEmuMonitor monitor;
+        int error = SDL_GetDisplayBounds(i, &rect);
+        if (error) {
+            fs_log("Error retrieving display bounds for display %d: %s\n",
+                   i, SDL_GetError());
+            /* Setting dummy values on error*/
+            rect.x = 0;
+            rect.y = 0;
+            rect.w = 1024;
+            rect.h = 768;
+        }
+
+        monitor.rect.x = rect.x;
+        monitor.rect.y = rect.y;
+        monitor.rect.w = rect.w;
+        monitor.rect.h = rect.h;
+        monitor.index = i;
+
+        g_array_append_val(g_fs_emu_monitors, monitor);
+    }
+
+    g_array_sort(g_fs_emu_monitors, fs_emu_monitor_compare);
+    for (int i = 0; i < g_fs_emu_monitor_count; i++) {
+        g_array_index(g_fs_emu_monitors, FSEmuMonitor, i).index = i;
+        /* Set physical position flags (left, m-left, m-right, right) */
+        int flags = 0;
+        for (int j = 0; j < 4; j++) {
+            int pos = (g_fs_emu_monitor_count - 1.0) * j / 3.0 + 0.5;
+            fs_log("Monitor - j %d pos %d\n", j, pos);
+            if (pos == i) {
+                flags |= (1 << j);
+            }
+        }
+        fs_log("Monitor index %d flags %d\n", i, flags);
+        g_array_index(g_fs_emu_monitors, FSEmuMonitor, i).flags = flags;
+    }
+}
+
+int fs_emu_monitor_count()
+{
+    return g_fs_emu_monitor_count;
+}
+
+bool fs_emu_monitor_get_by_index(int index, FSEmuMonitor* monitor)
+{
+    if (index < 0 || index >= g_fs_emu_monitor_count) {
+        monitor->index = -1;
+        monitor->flags = 0;
+        monitor->rect.x = 0;
+        monitor->rect.y = 0;
+        monitor->rect.w = 1024;
+        monitor->rect.h = 768;
+        return false;
+    }
+    SDL_assert(monitor != NULL);
+    memcpy(monitor, &g_array_index(g_fs_emu_monitors, FSEmuMonitor, index),
+           sizeof(FSEmuMonitor));
+    return true;
+}
+
+bool fs_emu_monitor_get_by_flag(int flag, FSEmuMonitor* monitor)
+{
+    for (int i = 0; i < g_fs_emu_monitor_count; i++) {
+        if ((g_array_index(g_fs_emu_monitors,
+                          FSEmuMonitor, i).flags & flag) == flag) {
+            fs_log("Monitor: found index %d for flag %d\n", i, flag);
+            return fs_emu_monitor_get_by_index(i, monitor);
+        }
+    }
+    fs_emu_monitor_get_by_index(0, monitor);
+    return false;
+}
+
 int fs_ml_video_create_window(const char *title)
 {
     fs_log("fs_ml_video_create_window\n");
@@ -445,6 +573,7 @@ int fs_ml_video_create_window(const char *title)
 
     if (!initialized) {
 #ifdef USE_SDL2
+
         int display_index = 0;
         SDL_DisplayMode mode;
         int error = SDL_GetCurrentDisplayMode(display_index, &mode);
@@ -456,41 +585,30 @@ int fs_ml_video_create_window(const char *title)
             exit(1);
         }
 
-        g_num_displays = SDL_GetNumVideoDisplays();
-        if (g_num_displays < 1) {
-            fs_log("Error %d retrieving number of displays/monitors\n",
-                   g_num_displays);
-            g_num_displays = 1;
-        }
-        if (g_num_displays > MAX_DISPLAYS) {
-            fs_log("Limiting number of displays to %d\n",
-                   MAX_DISPLAYS);
-            g_num_displays = MAX_DISPLAYS;
-        }
-        for (int i = 0; i < g_num_displays; i++) {
-            int error = SDL_GetDisplayBounds(i, g_display_bounds + i);
-            if (error) {
-                fs_log("Error retrieving display bounds for display %d: %s\n",
-                       i, SDL_GetError());
-                /* Setting dummy values on error*/
-                g_display_bounds[i].x = 0;
-                g_display_bounds[i].y = 0;
-                g_display_bounds[i].w = 1024;
-                g_display_bounds[i].h = 768;
-            }
-        }
+        fs_emu_monitor_init();
 
-        g_display = fs_config_get_int("monitor");
-        if (g_display == FS_CONFIG_NONE) {
-            g_display = 0;
+        const char *mon = fs_config_get_const_string("monitor");
+        int mon_flag = -1;
+        if (mon == NULL) {
+            mon = "middle-left";
         }
-        if (g_display < 1 || g_display > g_num_displays) {
-            fs_log("Monitor number %d out of range, using primary monitor\n",
-                   g_display);
-            g_display = 0;
-        } else {
-            g_display -= 1;
+        if (strcmp(mon, "left") == 0) {
+            mon_flag = FS_EMU_MONITOR_FLAG_LEFT;
+        } else if (strcmp(mon, "middle-left") == 0) {
+            mon_flag = FS_EMU_MONITOR_FLAG_MIDDLE_LEFT;
+        } else if (strcmp(mon, "middle-right") == 0) {
+            mon_flag = FS_EMU_MONITOR_FLAG_MIDDLE_RIGHT;
+        } else if (strcmp(mon, "right") == 0) {
+            mon_flag = FS_EMU_MONITOR_FLAG_RIGHT;
         }
+        else {
+            mon_flag = FS_EMU_MONITOR_FLAG_MIDDLE_LEFT;
+        }
+        FSEmuMonitor monitor;
+        fs_emu_monitor_get_by_flag(mon_flag, &monitor);
+        fs_log("Monitor \"%s\" (flag %d) => index %d\n",
+               mon, mon_flag, monitor.index);
+        g_display = monitor.index;
 
 #else
         const SDL_VideoInfo* info = SDL_GetVideoInfo();

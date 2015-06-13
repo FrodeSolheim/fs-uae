@@ -1,5 +1,6 @@
 Version 2.5.32dev:
 
+* Choose which monitor FS-UAE appears on in full-screen mode.
 * Added mime type application/x-adf for Linux desktops.
 * Updated emulation core from WinUAE 3100.
 

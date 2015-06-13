@@ -1325,8 +1325,9 @@ install-data-hook: mo fs-uae.dat
 uninstall-local:
 	rm -f $(DESTDIR)$(datadir)/applications/fs-uae.desktop
 	rm -Rf $(DESTDIR)$(datadir)/fs-uae
-	find $(DESTDIR)$(datadir)/locale -name fs-uae.mo -delete
 	find $(DESTDIR)$(datadir)/icons/hicolor -name fs-uae.png -delete
+	find $(DESTDIR)$(datadir)/locale -name fs-uae.mo -delete
+	rm -f $(DESTDIR)$(datadir)/mime/packages/fs-uae.xml
 
 clean-local:
 	rm -f fs-uae.dat

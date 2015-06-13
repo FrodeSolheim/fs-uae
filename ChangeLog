@@ -1,5 +1,6 @@
 Version 2.5.32dev:
 
+* Added mime type application/x-adf for Linux desktops.
 * Updated emulation core from WinUAE 3100.
 
 Version 2.5.31dev:

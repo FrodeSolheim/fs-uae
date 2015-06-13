@@ -9,3 +9,4 @@ Type=Application
 Icon=fs-uae
 Categories=System;Emulator;
 NoDisplay=true
+MimeType=application/x-adf

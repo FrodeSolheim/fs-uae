@@ -1162,7 +1162,8 @@ EXTRA_DIST = $(TESTS) $(EXTRA_TESTS) \
 	src/table68k \
 	share/applications \
 	share/fs-uae \
-	share/icons
+	share/icons \
+	share/mime
 
 CLEANFILES = $(BUILT_SOURCES)
 
@@ -1316,6 +1317,8 @@ install-data-hook: mo fs-uae.dat
 	cp -R $(s)/share/icons/* $(DESTDIR)$(datadir)/icons
 	mkdir -p $(DESTDIR)$(datadir)/locale
 	cp -R $(b)/share/locale/* $(DESTDIR)$(datadir)/locale
+	mkdir -p $(DESTDIR)$(datadir)/mime
+	cp -R $(s)/share/mime/* $(DESTDIR)$(datadir)/mime
 	cp fs-uae.dat $(DESTDIR)$(datadir)/fs-uae
 
 uninstall-local:

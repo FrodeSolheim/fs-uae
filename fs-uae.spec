@@ -82,5 +82,6 @@ make %{?_smp_mflags}
 %{_defaultdocdir}/fs-uae/
 %{_datadir}/applications/fs-uae.desktop
 %{_datadir}/icons/*/*/*/*
+%{_datadir}/mime/packages/fs-uae.xml
 
 %changelog

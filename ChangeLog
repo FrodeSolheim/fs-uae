@@ -1,3 +1,8 @@
+Version 2.5.33dev:
+
+* If STEAM_RUNTIME is set, look for "steamos" plugins, not "linux" plugins.
+* Plugin search path updated (also changed plugin format slightly).
+
 Version 2.5.32dev:
 
 * Choose which monitor FS-UAE appears on in full-screen mode.

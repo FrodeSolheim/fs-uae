@@ -45,7 +45,7 @@ void gui_message (const char *format,...)
 static const char *get_message(int msg)
 {
     if (msg == NUMSG_NOCAPS) {
-        return "Missing libcapsimage plugin";
+        return "IPF support plugin (capsimg) is not installed";
     } else if (msg == NUMSG_ROMNEED) {
         return "One of the following system ROMs is required: %s";
     } else if (msg == NUMSG_EXPROMNEED) {

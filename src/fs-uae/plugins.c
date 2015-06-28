@@ -9,6 +9,7 @@
 #include "plugins.h"
 
 #include <string.h>
+#include <stdlib.h>
 #include <glib.h>
 
 // FIXME: move to configure.ac / config.h
@@ -23,6 +24,25 @@
 #endif
 
 static GHashTable *provides;
+#define MAX_PLUGINS 256
+static gchar* g_plugin_ver_dirs[MAX_PLUGINS];
+static int g_plugin_count;
+
+static const char *os_arch_name()
+{
+    static const char *name = NULL;
+    if (name == NULL) {
+#ifdef LINUX
+        if (getenv("STEAM_RUNTIME") && getenv("STEAM_RUNTIME")[0]) {
+            fs_log("os_arch_name: detected STEAM_RUNTIME, using steamos\n");
+            name = "steamos_" ARCH_NAME;
+            return name;
+        }
+#endif
+        name = OS_NAME "_" ARCH_NAME;
+    }
+    return name;
+}
 
 static const char *lookup_plugin(const char *name)
 {
@@ -30,8 +50,9 @@ static const char *lookup_plugin(const char *name)
     gchar *module_name = g_strconcat(name, LT_MODULE_EXT, NULL);
     char executable_dir[FS_PATH_MAX];
     fs_get_application_exe_dir(executable_dir, FS_PATH_MAX);
+    gchar *path;
 
-    gchar *path = g_build_filename(executable_dir, module_name, NULL);
+    path = g_build_filename(executable_dir, module_name, NULL);
     fs_log("PLUGIN: Checking \"%s\"\n", path);
     if (g_file_test(path, G_FILE_TEST_EXISTS)) {
         g_free(module_name);
@@ -40,7 +61,8 @@ static const char *lookup_plugin(const char *name)
         return (const char*) path;
     }
     g_free(path);
-    path = g_build_filename(executable_dir, "..", name, module_name, NULL);
+
+    path = g_build_filename(fs_uae_plugins_dir(), module_name, NULL);
     fs_log("PLUGIN: Checking \"%s\"\n", path);
     if (g_file_test(path, G_FILE_TEST_EXISTS)) {
         g_free(module_name);
@@ -49,13 +71,40 @@ static const char *lookup_plugin(const char *name)
     }
     g_free(path);
 
-    void *data = g_hash_table_lookup(provides, module_name);
-    g_free(module_name);
+#if 0
+    path = g_build_filename(executable_dir, "..", name, module_name, NULL);
+    fs_log("PLUGIN: Checking \"%s\"\n", path);
+    if (g_file_test(path, G_FILE_TEST_EXISTS)) {
+        g_free(module_name);
+        // FIXME: resource leak, should cache the path
+        return (const char*) path;
+    }
+    g_free(path);
+#endif
 
+    void *data = g_hash_table_lookup(provides, module_name);
     if (!data) {
         data = g_hash_table_lookup(provides, name);
     }
-    return (const char *) data;
+    if (data) {
+        g_free(module_name);
+        return (const char *) data;
+    }
+
+    for (int i = 0; i < g_plugin_count; i++) {
+        path = g_build_filename(g_plugin_ver_dirs[i], os_arch_name(),
+                                module_name, NULL);
+        fs_log("PLUGIN: Checking \"%s\"\n", path);
+        if (g_file_test(path, G_FILE_TEST_EXISTS)) {
+            g_free(module_name);
+            // FIXME: resource leak, should cache the path
+            return (const char*) path;
+        }
+        g_free(path);
+    }
+
+    g_free(module_name);
+    return NULL;
 }
 
 static void load_plugin_provides(const char *path, GKeyFile *key_file,
@@ -111,31 +160,15 @@ static void load_plugin(const char *path, const char *ini_path)
     fs_log("-> %s\n", version_path);
     load_plugin_provides(version_path, key_file, "provides", 0);
 
-    // FIXME: deprecated
-    load_plugin_provides(version_path, key_file, OS_NAME "-" ARCH_NAME, 1);
+    load_plugin_provides(version_path, key_file, os_arch_name(), 1);
 
-#ifdef __i386__
-    load_plugin_provides(version_path, key_file, OS_NAME "_i386", 1);
-#endif
-#ifdef __i686__
-    /* If there's an i686 version of the plugin, we want to use that instead
-     * of the i386 one. */
-    load_plugin_provides(version_path, key_file, OS_NAME "_i686", 1);
-#ifdef STEAMOS
-    load_plugin_provides(version_path, key_file, "steamos_i686", 1);
-#endif
-#endif
-#ifdef __x86_64__
-    load_plugin_provides(version_path, key_file, OS_NAME "_x86-64", 1);
-#ifdef STEAMOS
-    load_plugin_provides(version_path, key_file, "steamos_x86-64", 1);
-#endif
-#endif
-#ifdef __ppc__
-    load_plugin_provides(version_path, key_file, OS_NAME "_ppc", 1);
-#endif
+    if (g_plugin_count < MAX_PLUGINS) {
+        g_plugin_ver_dirs[g_plugin_count] = version_path;
+        g_plugin_count += 1;
+    } else {
+        g_free(version_path);
+    }
 
-    g_free(version_path);
     g_free(version);
     g_key_file_free(key_file);
 }

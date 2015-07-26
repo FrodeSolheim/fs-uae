@@ -91,9 +91,24 @@ static const char *lookup_plugin(const char *name)
         return (const char *) data;
     }
 
+    /* First check within plugin os/arch directories */
+
     for (int i = 0; i < g_plugin_count; i++) {
         path = g_build_filename(g_plugin_ver_dirs[i], os_arch_name(),
                                 module_name, NULL);
+        fs_log("PLUGIN: Checking \"%s\"\n", path);
+        if (g_file_test(path, G_FILE_TEST_EXISTS)) {
+            g_free(module_name);
+            // FIXME: resource leak, should cache the path
+            return (const char*) path;
+        }
+        g_free(path);
+    }
+
+    /* Check outside arch directories */
+
+    for (int i = 0; i < g_plugin_count; i++) {
+        path = g_build_filename(g_plugin_ver_dirs[i], module_name, NULL);
         fs_log("PLUGIN: Checking \"%s\"\n", path);
         if (g_file_test(path, G_FILE_TEST_EXISTS)) {
             g_free(module_name);

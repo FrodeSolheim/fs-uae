@@ -1,5 +1,6 @@
 Version 2.5.33dev:
 
+* New boolean option window_border to disable window decorations.
 * If STEAM_RUNTIME is set, look for "steamos" plugins, not "linux" plugins.
 * Plugin search path updated (also changed plugin format slightly).
 

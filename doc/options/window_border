@@ -1,0 +1,3 @@
+Description: Show window border and decorations
+Default:
+Type: boolean

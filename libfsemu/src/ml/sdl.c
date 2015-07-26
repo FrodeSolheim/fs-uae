@@ -290,7 +290,6 @@ static void set_video_mode()
             y = monitor.rect.y;
             w = monitor.rect.w;
             h = monitor.rect.h;
-            
 #endif
             flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
         }
@@ -307,6 +306,11 @@ static void set_video_mode()
         fs_log("using windowed mode\n");
         //SDL_putenv("SDL_VIDEO_WINDOW_POS=");
         fs_log("setting (windowed) video mode %d %d\n", w, h);
+    }
+
+    if (fs_config_get_boolean("window_border") == 0) {
+        fs_log("borderless window requested\n");
+        flags |= SDL_WINDOW_BORDERLESS;
     }
 
 #if 0

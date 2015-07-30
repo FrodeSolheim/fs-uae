@@ -1291,7 +1291,7 @@ static void build_cpufunctbl (void)
 			if (f == op_illg_1)
 				abort ();
 			cpufunctbl[opcode] = f;
-			memcpy(&cpudatatbl[opcode], &cpudatatbl[idx], sizeof cputbl_data);
+            memcpy(&cpudatatbl[opcode], &cpudatatbl[idx], sizeof(cputbl_data));
 			opcnt++;
 		}
 	}

@@ -322,6 +322,8 @@ libuae_a_SOURCES = \
 	src/include/osemu.h \
 	src/include/packed.h \
 	src/include/parallel.h \
+	src/include/pci.h \
+	src/include/pci_hw.h \
 	src/include/picasso96.h \
 	src/include/readcpu.h \
 	src/include/rommgr.h \
@@ -472,6 +474,7 @@ libuae_a_SOURCES = \
 	src/od-win32/picasso96_win.cpp \
 	src/od-win32/picasso96_win.h \
 	src/od-win32/win32_uaenet.cpp \
+	src/pci.cpp \
 	src/ppc/pixman-stubs.cpp \
 	src/ppc/ppc.cpp \
 	src/qemu.cpp \
@@ -482,6 +485,8 @@ libuae_a_SOURCES = \
 	src/qemuvga/esp.cpp \
 	src/qemuvga/lsi53c710.cpp \
 	src/qemuvga/lsi53c895a.cpp \
+	src/qemuvga/ne2000.cpp \
+	src/qemuvga/ne2000.h \
 	src/qemuvga/pixel_ops.h \
 	src/qemuvga/qemumemory.h \
 	src/qemuvga/qemuuaeglue.cpp \

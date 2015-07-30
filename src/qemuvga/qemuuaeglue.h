@@ -1,4 +1,4 @@
-
+#include "uae/inline.h"
 
 #include <stdint.h>
 #include <stdio.h>
@@ -34,7 +34,10 @@ extern void write_log (const char *, ...);
 #define unlikely(x)   __builtin_expect(!!(x), 0)
 #endif
 
+#ifdef FSUAE
+#else
 typedef int ssize_t;
+#endif
 
 #ifdef _MSC_VER
 #include <windows.h>

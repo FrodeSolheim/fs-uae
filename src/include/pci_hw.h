@@ -1,4 +1,5 @@
-
+#include "uae/types.h"
+#include "uae/memory.h"
 
 #define MAX_PCI_BOARDS 6
 #define MAX_PCI_BARS 7

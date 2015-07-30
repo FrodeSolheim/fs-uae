@@ -132,6 +132,7 @@ struct expansionsubromtype
 {
 	const TCHAR *name;
 	const TCHAR *configname;
+	int romtype;
 	int memory_mid, memory_pid;
 	uae_u32 memory_serial;
 	bool memory_after;
@@ -142,7 +143,7 @@ struct expansionromtype
 	const TCHAR *name;
 	const TCHAR *friendlyname;
 	const TCHAR *friendlymanufacturer;
-	DEVICE_INIT init;
+	DEVICE_INIT init, init2;
 	DEVICE_ADD add;
 	int romtype;
 	int romtype_extra;
@@ -177,6 +178,11 @@ struct cpuboardsubtype
 	int initflag;
 	const struct expansionboardsettings *settings;
 	E8ACCESS e8;
+	// if includes Z2 or Z3 RAM
+	int memory_mid, memory_pid;
+	uae_u32 memory_serial;
+	bool memory_after;
+	uae_u8 autoconfig[16];
 };
 struct cpuboardtype
 {

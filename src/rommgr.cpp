@@ -99,7 +99,7 @@ struct romdata *getromdatabypath (const TCHAR *path)
 	return NULL;
 }
 
-#define NEXT_ROM_ID 142
+#define NEXT_ROM_ID 143
 
 #define ALTROM(id,grp,num,size,flags,crc32,a,b,c,d,e) \
 { _T("X"), 0, 0, 0, 0, 0, size, id, 0, 0, flags, (grp << 16) | num, 0, NULL, crc32, a, b, c, d, e },
@@ -111,6 +111,8 @@ static struct romdata roms[] = {
 	0xffffffff, 0, 0, 0, 0, 0, _T("AROS") },
 	{ _T(" ROM Disabled"), 0, 0, 0, 0, _T("NOROM\0"), 0, 87, 0, 0, ROMTYPE_NONE, 0, 0, NULL,
 	0xffffffff, 0, 0, 0, 0, 0, _T("NOROM") },
+	{ _T(" Enabled"), 0, 0, 0, 0, _T("ENABLED\0"), 0, 142, 0, 0, ROMTYPE_NOT, 0, 0, NULL,
+	0xffffffff, 0, 0, 0, 0, 0, _T("ENABLED") },
 
 	{ _T("Cloanto Amiga Forever ROM key"), 0, 0, 0, 0, 0, 2069, 0, 0, 1, ROMTYPE_KEY, 0, 0, NULL,
 	0x869ae1b1, 0x801bbab3,0x2e3d3738,0x6dd1636d,0x4f1d6fa7,0xe21d5874 },
@@ -1741,7 +1743,7 @@ struct zfile *read_device_from_romconfig(struct romconfig *rc, const int *roms)
 	if (!_tcsicmp(rc->romfile, _T(":NOROM")))
 		return NULL;
 	struct zfile *z = read_rom_name (rc->romfile);
-	if (!z) {
+	if (!z && roms) {
 		struct romlist *rl = getromlistbyids(roms, rc->romfile);
 		if (rl) {
 			struct romdata *rd = rl->rd;
@@ -1763,7 +1765,7 @@ struct zfile *read_device_rom(struct uae_prefs *p, int romtype, int devnum, int 
 		if (!_tcsicmp(romname, _T(":NOROM")))
 			return NULL;
 		struct zfile *z = read_rom_name (romname);
-		if (!z) {
+		if (!z && roms) {
 			struct romlist *rl = getromlistbyids(roms, romname);
 			if (rl) {
 				struct romdata *rd = rl->rd;

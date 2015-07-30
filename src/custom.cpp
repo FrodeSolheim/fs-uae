@@ -8148,7 +8148,7 @@ static void hsync_handler_post (bool onvsync)
 		port_get_custom (1, out);
 	}
 #endif
-	if (currprefs.m68k_speed < 0 && !currprefs.cpu_cycle_exact) {
+	if (!currprefs.cpu_thread && currprefs.m68k_speed < 0 && !currprefs.cpu_cycle_exact) {
 		static int sleeps_remaining;
 		if (is_last_line ()) {
 			sleeps_remaining = (165 - currprefs.cpu_idle) / 6;
@@ -8205,7 +8205,7 @@ static void hsync_handler_post (bool onvsync)
 				}
 			}
 		}
-	} else {
+	} else if (!currprefs.cpu_thread) {
 		if (vpos + 1 < maxvpos + lof_store && (vpos == maxvpos_display * 1 / 3 || vpos == maxvpos_display * 2 / 3)) {
 			vsyncmintime += vsynctimeperline;
 			if (!vsync_isdone () && !currprefs.turbo_emulation) {

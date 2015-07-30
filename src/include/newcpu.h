@@ -72,6 +72,9 @@ typedef void REGPARAM3 cpuop_func_ce (uae_u32) REGPARAM;
 struct cputbl {
 	cpuop_func *handler;
 	uae_u16 opcode;
+	uae_s16 length;
+	uae_u16 disp020;
+	uae_u16 branch;
 };
 
 #ifdef JIT
@@ -160,7 +163,7 @@ struct regstruct
 	uae_u32 instruction_pc;
 
 	uae_u16 irc, ir, db;
-	uae_u32 spcflags;
+	volatile uae_u32 spcflags;
 	uae_u32 last_prefetch;
 	uae_u32 chipset_latch_rw;
 	uae_u32 chipset_latch_read;
@@ -216,6 +219,9 @@ struct regstruct
 	uae_u32 prefetch020addr;
 	uae_u32 cacheholdingdata020;
 	uae_u32 cacheholdingaddr020;
+	int pipeline_pos;
+	bool pipeline_next;
+	int pipeline_stop;
 	int ce020memcycles;
 	int ce020extracycles;
 	bool ce020memcycle_data;
@@ -268,13 +274,29 @@ extern int cpucycleunit;
 extern int m68k_pc_indirect;
 STATIC_INLINE void set_special (uae_u32 x)
 {
+#ifdef WITH_THREADED_CPU
+#ifdef _WIN32
+	_InterlockedOr((volatile long*)&regs.spcflags, x);
+#else
 	regs.spcflags |= x;
+#endif
+#else
+	regs.spcflags |= x;
+#endif
 	cycles_do_special ();
 }
 
 STATIC_INLINE void unset_special (uae_u32 x)
 {
+#ifdef WITH_THREADED_CPU
+#ifdef _WIN32
+	_InterlockedAnd((volatile long*)&regs.spcflags, ~x);
+#else
 	regs.spcflags &= ~x;
+#endif
+#else
+	regs.spcflags &= ~x;
+#endif
 }
 
 #define m68k_dreg(r,num) ((r).regs[(num)])
@@ -673,4 +695,7 @@ extern bool can_cpu_tracer (void);
 #define CPU_HALT_PCI_CONFLICT 8
 #define CPU_HALT_CPU_STUCK 9
 
-#endif // UAE_NEWCPU_H
+void cpu_semaphore_get(void);
+void cpu_semaphore_release(void);
+
+#endif /* UAE_NEWCPU_H */

@@ -13,6 +13,17 @@
 
 #define C_FPU 1
 
+#ifdef FSUAE
+#include "uae/types.h"
+typedef uint8_t Bit8u;
+typedef int8_t Bit8s;
+typedef uint16_t Bit16u;
+typedef int16_t Bit16s;
+typedef uint32_t Bit32u;
+typedef int32_t Bit32s;
+typedef uint64_t Bit64u;
+typedef int64_t Bit64s;
+#else
 typedef unsigned char Bit8u;
 typedef signed char Bit8s;
 typedef unsigned short Bit16u;
@@ -25,6 +36,7 @@ typedef signed __int64 Bit64s;
 #else
 typedef unsigned long long int Bit64u;
 typedef signed long long int Bit64s;
+#endif
 #endif
 typedef Bit32u Bitu;
 typedef Bit32s Bits;

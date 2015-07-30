@@ -380,7 +380,7 @@ static void inittiming()
 	i8253tickgap = hostfreq / 119318;
 }
 
-static void timing(void)
+static void timing(int count)
 {
 	struct x86_bridge *xb = bridges[0];
 
@@ -2717,7 +2717,7 @@ void DOSBOX_RunMachine(void)
 {
 }
 
-void GFX_SetTitle(long a, long b, bool c)
+void GFX_SetTitle(Bit32s cycles, Bits frameskip, bool paused)
 {
 }
 

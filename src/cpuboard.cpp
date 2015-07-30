@@ -1293,10 +1293,16 @@ void cpuboard_vsync(void)
 
 void cpuboard_map(void)
 {
+#ifdef FSUAE
+    write_log("cpuboard_map currprefs.cpuboard_type = %d\n", currprefs.cpuboard_type);
+#endif
 	if (!currprefs.cpuboard_type)
 		return;
 	if (is_blizzard() || is_blizzardppc()) {
-		if (cpuboard_size) {
+#ifdef FSUAE
+    write_log("is_blizzard() || is_blizzardppc() -> cpuboard_size = %d\n", cpuboard_size);
+#endif
+        if (cpuboard_size) {
 			if (cpuboard_size < 256 * 1024 * 1024) {
 				if (blizzard_jit) {
 					map_banks(&blizzardram_bank, blizzardram_bank.start >> 16, cpuboard_size >> 16, 0);

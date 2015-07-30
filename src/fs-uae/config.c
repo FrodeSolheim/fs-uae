@@ -129,6 +129,23 @@ static void configure_memory(amiga_config *c)
     } else {
         z3_memory = 0;
     }
+
+    int mb_ram = fs_uae_read_memory_option(OPTION_MOTHERBOARD_RAM);
+    if (mb_ram != FS_CONFIG_NONE) {
+        if (mb_ram && !c->allow_z3_memory) {
+            fs_emu_warning(_("Option motherboard_ram needs a CPU "
+                             "with 32-bit addressing"));
+            mb_ram = 0;
+        } else if (mb_ram % 1024 == 0) {
+            amiga_set_int_option("a3000mem_size", mb_ram / 1024);
+        } else {
+            fs_emu_warning(_("Option motherboard_ram must be a multiple "
+                             "of 1024"));
+            mb_ram = 0;
+        }
+    } else {
+        mb_ram = 0;
+    }
 }
 
 static void configure_roms(amiga_config *c)

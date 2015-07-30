@@ -45,7 +45,17 @@ Code:
         value = "A1000"
     elif c.amiga_model == "A1200":
         value = "A1200"
+    elif c.amiga_model == "A1200/3.0":
+        value = "A1200"
     elif c.amiga_model == "A1200/020":
+        value = "A1200"
+    elif c.amiga_model == "A1200/1230":
+        value = "A1200"
+    elif c.amiga_model == "A1200/1240":
+        value = "A1200"
+    elif c.amiga_model == "A1200/1260":
+        value = "A1200"
+    elif c.amiga_model == "A1200/PPC":
         value = "A1200"
     elif c.amiga_model == "A3000":
         value = "A3000"

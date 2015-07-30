@@ -1,0 +1,11 @@
+Example: 8192
+
+Override the amount of Motherboard Fast RAM, specified in KB.
+
+The default value depends on [amiga_model].
+
+Code:
+    if c.motherboard_ram.explicit:
+        value = c.motherboard_ram.explicit
+    else:
+        value = "0"

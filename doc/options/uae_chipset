@@ -19,35 +19,45 @@ Code:
 
     if c.uae_chipset.explicit:
         value = c.uae_chipset.explicit
-    elif f.matches(c.amiga_model, "A500"):
+    elif c.amiga_model == "A500":
         value = "ocs"
-    elif f.matches(c.amiga_model, "A500/512K"):
+    elif c.amiga_model == "A500/512K":
         value = "ocs"
-    elif f.matches(c.amiga_model, "A500+"):
+    elif c.amiga_model == "A500+":
         value = "ecs"
-    elif f.matches(c.amiga_model, "A600"):
+    elif c.amiga_model == "A600":
         value = "ecs"
-    elif f.matches(c.amiga_model, "A1000"):
+    elif c.amiga_model == "A1000":
         value = "ocs"
-    elif f.matches(c.amiga_model, "A1200"):
+    elif c.amiga_model == "A1200":
         value = "aga"
-    elif f.matches(c.amiga_model, "A1200/020"):
+    elif c.amiga_model == "A1200/3.0":
         value = "aga"
-    elif f.matches(c.amiga_model, "A3000"):
+    elif c.amiga_model == "A1200/020":
+        value = "aga"
+    elif c.amiga_model == "A1200/1230":
+        value = "aga"
+    elif c.amiga_model == "A1200/1240":
+        value = "aga"
+    elif c.amiga_model == "A1200/1260":
+        value = "aga"
+    elif c.amiga_model == "A1200/PPC":
+        value = "aga"
+    elif c.amiga_model == "A3000":
         value = "ecs"
-    elif f.matches(c.amiga_model, "A4000"):
+    elif c.amiga_model == "A4000":
         value = "aga"
-    elif f.matches(c.amiga_model, "A4000/040"):
+    elif c.amiga_model == "A4000/040":
         value = "aga"
-    elif f.matches(c.amiga_model, "A4000/OS4"):
+    elif c.amiga_model == "A4000/OS4":
         value = "aga"
-    elif f.matches(c.amiga_model, "A4000/PPC"):
+    elif c.amiga_model == "A4000/PPC":
         value = "aga"
-    elif f.matches(c.amiga_model, "CD32"):
+    elif c.amiga_model == "CD32":
         value = "aga"
-    elif f.matches(c.amiga_model, "CD32/FMV"):
+    elif c.amiga_model == "CD32/FMV":
         value = "aga"
-    elif f.matches(c.amiga_model, "CDTV"):
+    elif c.amiga_model == "CDTV":
         value = "ecs_agnus"
     else:
         f.fail("Unknown amiga_model")

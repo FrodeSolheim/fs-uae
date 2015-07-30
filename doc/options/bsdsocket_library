@@ -1,13 +1,16 @@
+Summary: Virtual bsdsocket.library
+Type: boolean
 Default: 0
 Example: 1
+Tags: affectsemu, uaeboot
+Description:
+    Enable emulation of bsdsocket.library. This will allow Amiga OS to open
+    TCP connections (use web browsers, etc). The default is 0 (off).
 
-Enable emulation of bsdsocket.library. This will allow Amiga OS to open
-TCP connections (use web browsers, etc). The default is 0 (off).
-
-To use with Windows hosts, you need FS-UAE version 2.1.20+.
-
+    You cannot use this option if you want to run AmigaOS 4.x / PPC. For
+    networking in this environment, please use the network_card option
+    instead.
 Code:
-
     if c.bsdsocket_library.explicit:
         value = c.bsdsocket_library.explicit
     else:

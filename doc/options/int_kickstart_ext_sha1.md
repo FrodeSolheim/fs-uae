@@ -13,7 +13,17 @@ Code:
         value = ""
     elif t == "A1200":
         value = ""
+    elif t == "A1200/3.0":
+        value = ""
     elif t == "A1200/020":
+        value = ""
+    elif t == "A1200/1230":
+        value = ""
+    elif t == "A1200/1240":
+        value = ""
+    elif t == "A1200/1260":
+        value = ""
+    elif t == "A1200/PPC":
         value = ""
     elif t == "A3000":
         value = ""

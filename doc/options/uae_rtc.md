@@ -28,6 +28,8 @@ models:
 * A1200 defaults to `MSM6242B` only when fast memory is added.
 * A3000 and A4000 models default to `RP5C01A`.
 
+# FIXME: A1200 Blizzard expansions!
+
 Enabling warp mode can cause Workbench to not detect the RTC module
 because the read time does not progress as expected (FIXME).
 
@@ -40,7 +42,9 @@ have any RTC module).
     uae_rtc = MSM6242B
 
 ## Code ##
-
+    
+    # FIXME: Blizzard expansions!
+    
     if c.uae_chipset_compatible == "-":
         if c.uae_rtc.explicit:
             value = c.uae_rtc.explicit

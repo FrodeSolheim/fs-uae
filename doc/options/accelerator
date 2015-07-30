@@ -22,9 +22,9 @@ TODO:
 
 Value: ppc ("Auto Blizzard/CyberStorm PPC")
 Value: Blizzard1230IV (Blizzard 1230 IV)
-Value: Blizzard1230IV+SCSI (Blizzard 1230 IV + SCSI)
+// Value: Blizzard1230IV+SCSI (Blizzard 1230 IV + SCSI)
 Value: Blizzard1260 (Blizzard 1260)
-Value: Blizzard1260+SCSI (Blizzard 1260 + SCSI)
+// Value: Blizzard1260+SCSI (Blizzard 1260 + SCSI)
 Value: Blizzard2060 (Blizzard 2060)
 Value: CyberStormMK1 (CyberStorm MK I)
 Value: CyberStormMK2 (CyberStorm MK II)

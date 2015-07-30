@@ -12,7 +12,17 @@ Code:
         c.int_model = "A1000"
     elif c.amiga_model == "A1200":
         c.int_model = "A1200"
+    elif c.amiga_model == "A1200/3.0":
+        c.int_model = "A1200"
     elif c.amiga_model == "A1200/020":
+        c.int_model = "A1200"
+    elif c.amiga_model == "A1200/1230":
+        c.int_model = "A1200"
+    elif c.amiga_model == "A1200/1240":
+        c.int_model = "A1200"
+    elif c.amiga_model == "A1200/1260":
+        c.int_model = "A1200"
+    elif c.amiga_model == "A1200/PPC":
         c.int_model = "A1200"
     elif c.amiga_model == "A3000":
         c.int_model = "A3000"

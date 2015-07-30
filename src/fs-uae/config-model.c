@@ -147,6 +147,11 @@ void fs_uae_init_configs()
 
     c = g_fs_uae_amiga_configs + CONFIG_A1200;
     init_a1200(c, "A1200", "Amiga 1200", 0);
+    // FIXME: Kickstart version
+
+    c = g_fs_uae_amiga_configs + CONFIG_A1200_3_0;
+    init_a1200(c, "A1200/3.0", "Amiga 1200", 0);
+    // FIXME: WB DISK 3.0
 
     c = g_fs_uae_amiga_configs + CONFIG_A1200_020;
     init_a1200(c, "A1200/020", "Amiga 1200 (68020)", 0);

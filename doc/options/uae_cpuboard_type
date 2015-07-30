@@ -1,9 +1,11 @@
 
+FIXME: Check if this list is current / up2date
+
 Value: none ("None")
 Value: Blizzard1230IV (Blizzard 1230 IV)
-Value: Blizzard1230IV+SCSI (Blizzard 1230 IV + SCSI)
+// Value: Blizzard1230IV+SCSI (Blizzard 1230 IV + SCSI)
 Value: Blizzard1260 (Blizzard 1260)
-Value: Blizzard1260+SCSI (Blizzard 1260 + SCSI)
+// Value: Blizzard1260+SCSI (Blizzard 1260 + SCSI)
 Value: Blizzard2060 (Blizzard 2060)
 Value: CyberStormMK1 (CyberStorm MK I)
 Value: CyberStormMK2 (CyberStorm MK II)
@@ -18,7 +20,6 @@ Value: A3001SI (GVP A3001 Series I)
 Value: A3001SII (GVP A3001 Series II)
 
 Code:
-
     if c.uae_cpuboard_type.explicit:
         value = c.uae_cpuboard_type.explicit
     elif f.matches(c.accelerator, "0"):

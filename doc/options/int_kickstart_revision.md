@@ -13,10 +13,13 @@ Code:
     elif t == "5fe04842d04a489720f0f4bb0e46948199406f49":
         # Kickstart v3.1 rev 40.68 (1993)(Commodore)(A4000)
         value = "40.68"
+    elif t == "70033828182fffc7ed106e5373a8b89dda76faa5":
+        # Kickstart v3.0 rev 39.106 (1992)(Commodore)(A1200)[!]
+        value = "39.106"
     elif t == "891e9a547772fe0c6c19b610baf8bc4ea7fcb785":
         # Kickstart v1.3 rev 34.5 (1987)(Commodore)(A500-A1000-A2000-CDTV)[!]
         value = "34.5"
-    elif t == "c5839f5cb98a7a8947065c3ed2f14f5f42e334a":
+    elif t == "c5839f5cb98a7a8947065c3ed2f14f5f42e334a1":
         # Kickstart v2.04 rev 37.175 (1991)(Commodore)(A500+)[!]
         value = "37.175"
     elif t == "e21545723fe8374e91342617604f1b3d703094f1":

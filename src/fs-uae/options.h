@@ -21,6 +21,7 @@
 #define OPTION_JOYSTICK_PORT_0_AUTOSWITCH "joystick_port_0_autoswitch"
 #define OPTION_LINE_DOUBLING "line_doubling"
 #define OPTION_LOW_RESOLUTION "low_resolution"
+#define OPTION_MOTHERBOARD_RAM "motherboard_ram"
 #define OPTION_MMU "mmu"
 #define OPTION_MODEL "model"
 #define OPTION_SERIAL_PORT "serial_port"

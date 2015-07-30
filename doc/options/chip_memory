@@ -19,7 +19,17 @@ Code:
         value = "512"
     elif c.amiga_model == "A1200":
         value = "2048"
+    elif c.amiga_model == "A1200/3.0":
+        value = "2048"
     elif c.amiga_model == "A1200/020":
+        value = "2048"
+    elif c.amiga_model == "A1200/1230":
+        value = "2048"
+    elif c.amiga_model == "A1200/1240":
+        value = "2048"
+    elif c.amiga_model == "A1200/1260":
+        value = "2048"
+    elif c.amiga_model == "A1200/PPC":
         value = "2048"
     elif c.amiga_model == "A3000":
         # FIXME: did it usually have 1 MB?

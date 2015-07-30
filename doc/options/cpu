@@ -47,8 +47,18 @@ Code:
         c.cpu = "68000"
     elif c.amiga_model == "A1200":
         c.cpu = "68EC020"
+    elif c.amiga_model == "A1200/3.0":
+        c.cpu = "68EC020"
     elif c.amiga_model == "A1200/020":
         c.cpu = "68020"
+    elif c.amiga_model == "A1200/1230":
+        c.cpu = "68030"
+    elif c.amiga_model == "A1200/1240":
+        c.cpu = "68040"
+    elif c.amiga_model == "A1200/1260":
+        c.cpu = "68060"
+    elif c.amiga_model == "A1200/PPC":
+        c.cpu = "68060"
     elif c.amiga_model == "A3000":
         c.cpu = "68030"
     elif c.amiga_model == "A4000":

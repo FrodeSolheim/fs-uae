@@ -12,7 +12,17 @@ Code:
         value = "11f9e62cf299f72184835b7b2a70a16333fc0d88"
     elif c.amiga_model == "A1200":
         value = "e21545723fe8374e91342617604f1b3d703094f1"
+    elif c.amiga_model == "A1200/3.0":
+        value = "70033828182fffc7ed106e5373a8b89dda76faa5"
     elif c.amiga_model == "A1200/020":
+        value = "e21545723fe8374e91342617604f1b3d703094f1"
+    elif c.amiga_model == "A1200/1230":
+        value = "e21545723fe8374e91342617604f1b3d703094f1"
+    elif c.amiga_model == "A1200/1240":
+        value = "e21545723fe8374e91342617604f1b3d703094f1"
+    elif c.amiga_model == "A1200/1260":
+        value = "e21545723fe8374e91342617604f1b3d703094f1"
+    elif c.amiga_model == "A1200/PPC":
         value = "e21545723fe8374e91342617604f1b3d703094f1"
     elif c.amiga_model == "A3000":
         value = "f8e210d72b4c4853e0c9b85d223ba20e3d1b36ee"

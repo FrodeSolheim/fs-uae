@@ -65,6 +65,9 @@ static char **retrieve_keys(GHashTable *hash_table, int *length) {
     }
     result[size] = NULL;
     GList *key_list = g_hash_table_get_keys(hash_table);
+    if (key_list) {
+        key_list = g_list_sort(key_list, g_strcmp0);
+    }
     GList *item = key_list;
     int k = 0;
     while (item) {

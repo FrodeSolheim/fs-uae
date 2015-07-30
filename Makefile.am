@@ -232,6 +232,7 @@ libuae_a_SOURCES = \
 	src/ethernet.cpp \
 	src/events.cpp \
 	src/expansion.cpp \
+	src/fake86_cpu.cpp \
 	src/fdi2raw.cpp \
 	src/filesys.cpp \
 	src/flashrom.cpp \
@@ -380,6 +381,7 @@ libuae_a_SOURCES = \
 	src/include/uaeserial.h \
 	src/include/uni_common.h \
 	src/include/unpacked.h \
+	src/include/x86.h \
 	src/include/xwin.h \
 	src/include/zarchive.h \
 	src/include/zfile.h \
@@ -523,6 +525,7 @@ libuae_a_SOURCES = \
 	src/uaenative.cpp \
 	src/uaeresource.cpp \
 	src/uaeserial.cpp \
+	src/x86.cpp \
 	src/zfile.cpp \
 	src/zfile_archive.cpp
 nodist_libuae_a_SOURCES = \

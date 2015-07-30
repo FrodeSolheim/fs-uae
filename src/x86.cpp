@@ -274,6 +274,7 @@ static void inittiming()
 	QueryPerformanceCounter(&queryperf);
 	curtick = queryperf.QuadPart;
 #else
+	struct timeval tv;
 	hostfreq = 1000000;
 	gettimeofday(&tv, NULL);
 	curtick = (uint64_t)tv.tv_sec * (uint64_t)1000000 + (uint64_t)tv.tv_usec;
@@ -291,6 +292,7 @@ static void timing(void)
 	QueryPerformanceCounter(&queryperf);
 	curtick = queryperf.QuadPart;
 #else
+	struct timeval tv;
 	gettimeofday(&tv, NULL);
 	curtick = (uint64_t)tv.tv_sec * (uint64_t)1000000 + (uint64_t)tv.tv_usec;
 #endif

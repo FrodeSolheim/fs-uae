@@ -1,3 +1,4 @@
+#include "uae/memory.h"
 
 extern addrbank *a1060_init(struct romconfig *rc);
 extern addrbank *a2088xt_init(struct romconfig *rc);

@@ -1149,6 +1149,33 @@ static const uae_u8 sasi_commands2[] =
 	0xff
 };
 
+static uae_u64 get_scsi_6_offset(struct hardfiledata *hfd, struct hd_hardfiledata *hdhfd, uae_u8 *cmdbuf)
+{
+	bool omti = hfd->ci.unit_feature_level == HD_LEVEL_OMTI;
+	uae_u64 offset;
+	if (omti) {
+		int cyl, cylsec, head, tracksec;
+		if (hdhfd) {
+			cyl = hdhfd->cyls;
+			head = hdhfd->heads;
+			tracksec = hdhfd->secspertrack;
+			cylsec = 0;
+		} else {
+			getchsx(hfd, &cyl, &cylsec, &head, &tracksec);
+		}
+		int d_head = cmdbuf[1] & 31;
+		int d_cyl = cmdbuf[3] | ((cmdbuf[2] >> 6) << 8) | ((cmdbuf[1] >> 7) << 10);
+		int d_sec = cmdbuf[2] & 63;
+
+		if (d_cyl >= cyl || d_head >= head || d_sec >= tracksec)
+			return ~0;
+		offset = d_cyl * head * tracksec + d_head * tracksec + d_sec;
+	} else {
+		offset = ((cmdbuf[1] & 31) << 16) | (cmdbuf[2] << 8) | cmdbuf[3];
+	}
+	return offset;
+}
+
 int scsi_hd_emulate (struct hardfiledata *hfd, struct hd_hardfiledata *hdhfd, uae_u8 *cmdbuf, int scsi_cmd_len,
 	uae_u8 *scsi_data, int *data_len, uae_u8 *r, int *reply_len, uae_u8 *s, int *sense_len)
 {
@@ -1158,8 +1185,9 @@ int scsi_hd_emulate (struct hardfiledata *hfd, struct hd_hardfiledata *hdhfd, ua
 	int status = 0;
 	int lun;
 	uae_u8 cmd = cmdbuf[0];
-	bool sasi = hfd->ci.unit_feature_level >= HD_LEVEL_SASI;
+	bool sasi = hfd->ci.unit_feature_level >= HD_LEVEL_SASI && hfd->ci.unit_feature_level <= HD_LEVEL_SASI_ENHANCED;
 	bool sasie = hfd->ci.unit_feature_level == HD_LEVEL_SASI_ENHANCED;
+	bool omti = hfd->ci.unit_feature_level == HD_LEVEL_OMTI;
 
 	if (log_scsiemu) {
 		write_log (_T("SCSIEMU HD %d: %02X.%02X.%02X.%02X.%02X.%02X.%02X.%02X.%02X.%02X.%02X.%02X CMDLEN=%d DATA=%p\n"), hfd->unitnum,
@@ -1181,8 +1209,11 @@ int scsi_hd_emulate (struct hardfiledata *hfd, struct hd_hardfiledata *hdhfd, ua
 
 	*reply_len = *sense_len = 0;
 	lun = cmdbuf[1] >> 5;
-	if (sasi)
-		lun = 0;
+	if (sasi || omti) {
+		lun = lun & 1;
+		if (lun)
+			goto sasi_nodisk;
+	}
 	if (cmd != 0x03 && cmd != 0x12 && lun) {
 		status = 2; /* CHECK CONDITION */
 		s[0] = 0x70;
@@ -1193,7 +1224,7 @@ int scsi_hd_emulate (struct hardfiledata *hfd, struct hd_hardfiledata *hdhfd, ua
 		goto scsi_done;
 	}
 
-	if (sasi) {
+	if (sasi || omti) {
 		int i;
 		for (i = 0; sasi_commands[i] != 0xff; i++) {
 			if (sasi_commands[i] == cmdbuf[0])
@@ -1213,7 +1244,18 @@ int scsi_hd_emulate (struct hardfiledata *hfd, struct hd_hardfiledata *hdhfd, ua
 		}
 		switch (cmdbuf[0])
 		{
-			case 0x0c: /* INITIALIZE DRIVE CHARACTERICS */
+			case 0x05: /* READ VERIFY */
+			if (nodisk(hfd))
+				goto nodisk;
+			offset = get_scsi_6_offset(hfd, hdhfd, cmdbuf);
+			if (offset == ~0)
+				goto outofbounds;
+			offset *= hfd->ci.blocksize;
+			if (!checkbounds(hfd, offset, hfd->ci.blocksize))
+				goto outofbounds;
+			scsi_len = 0;
+			goto scsi_done;
+			case 0x0c: /* INITIALIZE DRIVE CHARACTERISTICS */
 			scsi_len = 8;
 			goto scsi_done;
 			case 0x12: /* INQUIRY */
@@ -1312,7 +1354,9 @@ int scsi_hd_emulate (struct hardfiledata *hfd, struct hd_hardfiledata *hdhfd, ua
 	case 0x09: /* READ VERIFY */
 		if (nodisk(hfd))
 			goto nodisk;
-		offset = ((cmdbuf[1] & 31) << 16) | (cmdbuf[2] << 8) | cmdbuf[3];
+		offset = get_scsi_6_offset(hfd, hdhfd, cmdbuf);
+		if (offset == ~0)
+			goto outofbounds;
 		offset *= hfd->ci.blocksize;
 		if (!checkbounds(hfd, offset, hfd->ci.blocksize))
 			goto outofbounds;
@@ -1321,7 +1365,9 @@ int scsi_hd_emulate (struct hardfiledata *hfd, struct hd_hardfiledata *hdhfd, ua
 	case 0x0b: /* SEEK (6) */
 		if (nodisk (hfd))
 			goto nodisk;
-		offset = ((cmdbuf[1] & 31) << 16) | (cmdbuf[2] << 8) | cmdbuf[3];
+		offset = get_scsi_6_offset(hfd, hdhfd, cmdbuf);
+		if (offset == ~0)
+			goto outofbounds;
 		offset *= hfd->ci.blocksize;
 		if (!checkbounds(hfd, offset, hfd->ci.blocksize))
 			goto outofbounds;
@@ -1330,7 +1376,9 @@ int scsi_hd_emulate (struct hardfiledata *hfd, struct hd_hardfiledata *hdhfd, ua
 	case 0x08: /* READ (6) */
 		if (nodisk (hfd))
 			goto nodisk;
-		offset = ((cmdbuf[1] & 31) << 16) | (cmdbuf[2] << 8) | cmdbuf[3];
+		offset = get_scsi_6_offset(hfd, hdhfd, cmdbuf);
+		if (offset == ~0)
+			goto outofbounds;
 		offset *= hfd->ci.blocksize;
 		len = cmdbuf[4];
 		if (!len)
@@ -1348,7 +1396,9 @@ int scsi_hd_emulate (struct hardfiledata *hfd, struct hd_hardfiledata *hdhfd, ua
 			goto nodisk;
 		if (hfd->ci.readonly || hfd->dangerous)
 			goto readprot;
-		offset = ((cmdbuf[1] & 31) << 16) | (cmdbuf[2] << 8) | cmdbuf[3];
+		offset = get_scsi_6_offset(hfd, hdhfd, cmdbuf);
+		if (offset == ~0)
+			goto outofbounds;
 		offset *= hfd->ci.blocksize;
 		len = cmdbuf[4];
 		if (!len)
@@ -1581,6 +1631,12 @@ readprot:
 		s[12] = 0x27; /* WRITE PROTECTED */
 		ls = 0x12;
 		break;
+sasi_nodisk:
+		status = 2;
+		s[0] = 0x04; // Drive not ready
+		s[1] = lun << 5;
+		ls = 4;
+		break;
 nodisk:
 		status = 2; /* CHECK CONDITION */
 		s[0] = 0x70;
@@ -1638,6 +1694,13 @@ scsi_done:
 	}
 	*sense_len = ls;
 	if (ls > 0) {
+		if (omti) {
+			if (ls > 4) {
+				ls = 4;
+				*sense_len = ls;
+			}
+			hfd->scsi_sense[1] = (lun & 1) << 5;
+		}
 		memset (hfd->scsi_sense, 0, MAX_SCSI_SENSE);
 		memcpy (hfd->scsi_sense, s, ls);
 	}

@@ -156,6 +156,11 @@ static struct gfxboard boards[] =
 		_T("Picasso IV Zorro III"),
 		BOARD_MANUFACTURER_PICASSO, BOARD_MODEL_MEMORY_PICASSOIV, 0,
 		0x00000000, 0x00400000, 0x00400000, 0x04000000, CIRRUS_ID_CLGD5446, true, 2, false
+	},
+	{
+		_T("A2410"),
+		1030, 0, 0,
+		0x00000000, 0x00200000, 0x00200000, 0x00000000, 0,false, 2, false
 	}
 };
 
@@ -293,6 +298,10 @@ static void init_board (void)
 
 bool gfxboard_toggle (int mode)
 {
+	if (currprefs.rtgmem_type == GFXBOARD_A2410) {
+		return tms_toggle(mode);
+	}
+
 	if (vram == NULL)
 		return false;
 	if (monswitch_current) {
@@ -413,6 +422,13 @@ void gfxboard_refresh (void)
 	fullrefresh = 2;
 }
 
+void gfxboard_hsync_handler(void)
+{
+    if (currprefs.rtgmem_type == GFXBOARD_A2410) {
+        tms_hsync_handler();
+    }
+}
+
 void gfxboard_vsync_handler (void)
 {
 #ifdef FSUAE
@@ -420,6 +436,11 @@ void gfxboard_vsync_handler (void)
 	printf("gfxboard_vsync_handler\n");
 #endif
 #endif
+    if (currprefs.rtgmem_type == GFXBOARD_A2410) {
+        tms_vsync_handler();
+        return;
+    }
+
 	if (!configured_mem || !configured_regs)
 		return;
 

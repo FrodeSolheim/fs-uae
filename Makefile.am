@@ -394,6 +394,10 @@ libuae_a_SOURCES = \
 	src/keybuf.cpp \
 	src/logging.cpp \
 	src/main.cpp \
+	src/mame/a2410.cpp \
+	src/mame/mameglue.h \
+	src/mame/tm34010/tms34010.cpp \
+	src/mame/tm34010/tms34010.h \
 	src/memory.cpp \
 	src/native2amiga.cpp \
 	src/ncr9x_scsi.cpp \
@@ -482,12 +486,14 @@ libuae_a_SOURCES = \
 	src/qemuvga/cirrus_vga_rop.h \
 	src/qemuvga/cirrus_vga_rop2.h \
 	src/qemuvga/cirrus_vga_template.h \
+	src/qemuvga/es1370.cpp \
 	src/qemuvga/esp.cpp \
 	src/qemuvga/lsi53c710.cpp \
 	src/qemuvga/lsi53c895a.cpp \
 	src/qemuvga/ne2000.cpp \
 	src/qemuvga/ne2000.h \
 	src/qemuvga/pixel_ops.h \
+	src/qemuvga/qemuaudio.h \
 	src/qemuvga/qemumemory.h \
 	src/qemuvga/qemuuaeglue.cpp \
 	src/qemuvga/qemuuaeglue.h \
@@ -1162,6 +1168,11 @@ EXTRA_DIST = $(TESTS) $(EXTRA_TESTS) \
 	src/inputevents.def \
 	src/jit/compemu_optimizer_x86.cpp \
 	src/jit/compemu_raw_x86.cpp \
+	src/mame/tm34010/34010fld.c \
+	src/mame/tm34010/34010tbl.c \
+	src/mame/tm34010/34010ops.c \
+	src/mame/tm34010/34010ops.h \
+	src/mame/tm34010/34010gfx.c \
 	src/od-fs/bsdsocket_posix.cpp \
 	src/od-win32/bsdsock.cpp \
 	src/p96_blit.cpp \

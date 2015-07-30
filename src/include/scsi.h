@@ -231,7 +231,7 @@ void hda506_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct romconfi
 addrbank *alf1_init(struct romconfig *rc);
 void alf1_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct romconfig *rc);
 
-+addrbank *promigos_init(struct romconfig *rc);
+addrbank *promigos_init(struct romconfig *rc);
 void promigos_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct romconfig *rc);
 
 addrbank *system2000_init(struct romconfig *rc);

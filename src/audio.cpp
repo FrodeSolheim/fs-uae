@@ -494,9 +494,6 @@ STATIC_INLINE void put_sound_word_left2 (uae_u32 w)
 	}
 }
 
-
-#define	DO_CHANNEL(v, c) do { (v) &= audio_channel[c].adk_mask; data += v; } while (0);
-
 static void anti_prehandler (unsigned long best_evtime)
 {
 	int i, output;
@@ -1349,7 +1346,7 @@ static void loaddat (int nr, bool modper)
 				// since cdp[1].per is int, not long. But should per
 				// be an unsigned int??
 #endif
-				cdp[1].per = PERIOD_MAX;
+                cdp[1].per = 65536 * CYCLE_UNIT;
 			else if (cdp->dat > PERIOD_MIN)
 				cdp[1].per = cdp->dat * CYCLE_UNIT;
 			else

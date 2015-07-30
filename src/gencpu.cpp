@@ -102,6 +102,7 @@ static const char *dstblrmw, *dstwlrmw, *dstllrmw;
 static const char *srcbrmw, *srcwrmw, *srclrmw;
 static const char *dstbrmw, *dstwrmw, *dstlrmw;
 static const char *prefetch_long, *prefetch_word;
+static const char *prefetch_long_buffer, *prefetch_word_buffer;
 static const char *srcli, *srcwi, *srcbi, *nextl, *nextw;
 static const char *srcld, *dstld;
 static const char *srcwd, *dstwd;
@@ -473,7 +474,10 @@ static void gen_nextilong2 (const char *type, const char *name, int flags, int m
 	printf ("\t%s %s;\n", type, name);
 	add_mmu040_movem (movem);
 	if (using_ce020) {
-		printf ("\t%s = %s (%d);\n", name, prefetch_long, r);
+		if (flags & GF_NOREFILL)
+			printf("\t%s = %s (%d);\n", name, prefetch_long_buffer, r);
+		else
+			printf("\t%s = %s (%d);\n", name, prefetch_long, r);
 		count_read += 2;
 	} else if (using_ce) {
 		/* we must do this because execution order of (something | something2) is not defined */
@@ -518,7 +522,10 @@ static const char *gen_nextiword (int flags)
 	m68k_pc_offset += 2;
 
 	if (using_ce020) {
-		sprintf (buffer, "%s (%d)", prefetch_word, r);
+		if (flags & GF_NOREFILL)
+			sprintf(buffer, "%s (%d)", prefetch_word_buffer, r);
+		else
+			sprintf(buffer, "%s (%d)", prefetch_word, r);
 		count_read++;
 	} else if (using_ce) {
 		if (flags & GF_NOREFILL) {
@@ -555,7 +562,10 @@ static const char *gen_nextibyte (int flags)
 	m68k_pc_offset += 2;
 
 	if (using_ce020 || using_prefetch_020) {
-		sprintf (buffer, "(uae_u8)%s (%d)", prefetch_word, r);
+		if (flags & GF_NOREFILL)
+			sprintf(buffer, "(uae_u8)%s (%d)", prefetch_word_buffer, r);
+		else
+			sprintf(buffer, "(uae_u8)%s (%d)", prefetch_word, r);
 		count_read++;
 	} else if (using_ce) {
 		if (flags & GF_NOREFILL) {
@@ -2697,6 +2707,8 @@ static void resetvars (void)
 	got_ea_ce020 = false;
 	
 	prefetch_long = NULL;
+	prefetch_word_buffer = NULL;
+	prefetch_long_buffer = NULL;
 	srcli = NULL;
 	srcbi = NULL;
 	disp000 = "get_disp_ea_000";
@@ -2753,6 +2765,8 @@ static void resetvars (void)
 			disp020 = "x_get_disp_ea_ce020";
 			prefetch_word = "get_word_ce020_prefetch";
 			prefetch_long = "get_long_ce020_prefetch";
+			prefetch_word_buffer = "get_word_ce020_prefetch_buffer";
+			prefetch_long_buffer = "get_long_ce020_prefetch_buffer";
 			srcli = "x_get_ilong";
 			srcwi = "x_get_iword";
 			srcbi = "x_get_ibyte";
@@ -2770,6 +2784,8 @@ static void resetvars (void)
 			disp020 = "x_get_disp_ea_ce030";
 			prefetch_long = "get_long_ce030_prefetch";
 			prefetch_word = "get_word_ce030_prefetch";
+			prefetch_word_buffer = "get_word_ce030_prefetch_buffer";
+			prefetch_long_buffer = "get_long_ce030_prefetch_buffer";
 			srcli = "x_get_ilong";
 			srcwi = "x_get_iword";
 			srcbi = "x_get_ibyte";
@@ -2803,6 +2819,8 @@ static void resetvars (void)
 			disp020 = "x_get_disp_ea_020";
 			prefetch_word = "get_word_020_prefetch";
 			prefetch_long = "get_long_020_prefetch";
+			prefetch_word_buffer = "get_word_020_prefetch_buffer";
+			prefetch_long_buffer = "get_long_020_prefetch_buffer";
 			srcli = "x_get_ilong";
 			srcwi = "x_get_iword";
 			srcbi = "x_get_ibyte";
@@ -2985,6 +3003,10 @@ static void resetvars (void)
 		dstwlrmw = dstw;
 		dstllrmw = dstl;
 	}
+	if (!prefetch_word_buffer)
+		prefetch_word_buffer = prefetch_word;
+	if (!prefetch_long_buffer)
+		prefetch_long_buffer = prefetch_long;
 
 }
 
@@ -4052,7 +4074,7 @@ static void gen_opcode (unsigned int opcode)
 					next_cpu_level = 1;
 			}
 		}
-		genamode (curi, curi->smode, "srcreg", curi->size, "src", 1, 0, GF_AA | GF_NOREFILL);
+		genamode (curi, curi->smode, "srcreg", curi->size, "src", 1, 0, GF_AA | (cpu_level < 2 ? GF_NOREFILL : 0));
 		addcycles000 (2);
 		printf ("\tif (!cctrue (%d)) goto didnt_jump;\n", curi->cc);
 		if (using_exception_3) {
@@ -4128,8 +4150,8 @@ bccl_not68020:
 		// cc false, counter not expired: idle cycle, prefetch
 		tail_ce020_done = true;
 		genamodedual (curi,
-			curi->smode, "srcreg", curi->size, "src", 1, GF_AA | GF_NOREFILL,
-			curi->dmode, "dstreg", curi->size, "offs", 1, GF_AA | GF_NOREFILL);
+			curi->smode, "srcreg", curi->size, "src", 1, GF_AA | (cpu_level < 2 ? GF_NOREFILL : 0),
+			curi->dmode, "dstreg", curi->size, "offs", 1, GF_AA | (cpu_level < 2 ? GF_NOREFILL : 0));
 		//genamode (curi, curi->smode, "srcreg", curi->size, "src", 1, 0, GF_AA | GF_NOREFILL);
 		//genamode (curi, curi->dmode, "dstreg", curi->size, "offs", 1, 0, GF_AA | GF_NOREFILL);
 		printf ("\tuaecptr oldpc = %s;\n", getpc);

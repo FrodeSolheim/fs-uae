@@ -544,7 +544,7 @@ static int doinit_shm (void)
 		othersize = 0;
 		size = 0x1000000;
 		startbarrier = changed_prefs.mbresmem_high_size >= 128 * 1024 * 1024 ? (changed_prefs.mbresmem_high_size - 128 * 1024 * 1024) + 16 * 1024 * 1024 : 0;
-		z3rtgmem_size = gfxboard_is_z3 (changed_prefs.rtgmem_type) ? changed_prefs.rtgmem_size : 0;
+		z3rtgmem_size = gfxboard_get_configtype(changed_prefs.rtgmem_type) == 3 ? changed_prefs.rtgmem_size : 0;
 		if (changed_prefs.cpu_model >= 68020)
 			size = 0x10000000;
 		z3size = ((changed_prefs.z3fastmem_size + align) & ~align) + ((changed_prefs.z3fastmem2_size + align) & ~align) + ((changed_prefs.z3chipmem_size + align) & ~align);
@@ -606,14 +606,16 @@ static int doinit_shm (void)
 	p96mem_size = z3rtgmem_size;
 	p96base_offset = 0;
 	uae_u32 z3rtgallocsize = 0;
-	if (changed_prefs.rtgmem_size && gfxboard_is_z3 (changed_prefs.rtgmem_type)) {
+	if (changed_prefs.rtgmem_size && gfxboard_get_configtype(changed_prefs.rtgmem_type) == 3) {
 		z3rtgallocsize = gfxboard_get_autoconfig_size(changed_prefs.rtgmem_type) < 0 ? changed_prefs.rtgmem_size : gfxboard_get_autoconfig_size(changed_prefs.rtgmem_type);
 		if (changed_prefs.z3autoconfig_start == Z3BASE_UAE)
 			p96base_offset = natmemsize + startbarrier + z3offset;
 		else
 			p96base_offset = expansion_startaddress(natmemsize + startbarrier + z3offset, z3rtgallocsize);
-	} else if (changed_prefs.rtgmem_size && !gfxboard_is_z3 (changed_prefs.rtgmem_type)) {
+	} else if (changed_prefs.rtgmem_size && gfxboard_get_configtype(changed_prefs.rtgmem_type) == 2) {
 		p96base_offset = getz2rtgaddr (changed_prefs.rtgmem_size);
+	} else if (changed_prefs.rtgmem_size && gfxboard_get_configtype(changed_prefs.rtgmem_type) == 1) {
+		p96base_offset = 0xa80000;
 	}
 	if (p96base_offset) {
 		if (jit_direct_compatible_memory) {
@@ -631,7 +633,7 @@ static int doinit_shm (void)
 			addr = expansion_startaddress(addr, changed_prefs.z3fastmem2_size);
 			addr += changed_prefs.z3fastmem2_size;
 			addr = expansion_startaddress(addr, z3rtgallocsize);
-			if (gfxboard_is_z3(changed_prefs.rtgmem_type)) {
+			if (gfxboard_get_configtype(changed_prefs.rtgmem_type) == 3) {
 				p96base_offset = addr;
 				// adjust p96mem_offset to beginning of natmem
 				// by subtracting start of original p96mem_offset from natmem_offset
@@ -852,7 +854,7 @@ void *uae_shmat (addrbank *ab, int shmid, void *shmaddr, int shmflg)
 				shmaddr=natmem_offset + 0xec0000;
 			} else {
 				shmaddr=natmem_offset + 0x200000;
-				if (!(currprefs.rtgmem_size && gfxboard_is_z3 (currprefs.rtgmem_type)))
+				if (!(currprefs.rtgmem_size && gfxboard_get_configtype(currprefs.rtgmem_type) == 3))
 					size += BARRIER;
 			}
 		} else if(!_tcscmp (shmids[shmid].name, _T("fast2"))) {
@@ -863,13 +865,13 @@ void *uae_shmat (addrbank *ab, int shmid, void *shmaddr, int shmflg)
 				shmaddr=natmem_offset + 0x200000;
 				if (currprefs.fastmem_size >= 524288)
 					shmaddr=natmem_offset + 0x200000 + currprefs.fastmem_size;
-				if (!(currprefs.rtgmem_size && gfxboard_is_z3 (currprefs.rtgmem_type)))
+				if (!(currprefs.rtgmem_size && gfxboard_get_configtype(currprefs.rtgmem_type) == 3))
 					size += BARRIER;
 			}
 		} else if(!_tcscmp (shmids[shmid].name, _T("fast2"))) {
 			shmaddr=natmem_offset + 0x200000;
 			got = TRUE;
-			if (!(currprefs.rtgmem_size && gfxboard_is_z3 (currprefs.rtgmem_type)))
+			if (!(currprefs.rtgmem_size && gfxboard_get_configtype(currprefs.rtgmem_type) == 3))
 				size += BARRIER;
 		} else if(!_tcscmp (shmids[shmid].name, _T("z2_gfx"))) {
 			ULONG start = getz2rtgaddr (size);
@@ -996,8 +998,8 @@ void *uae_shmat (addrbank *ab, int shmid, void *shmaddr, int shmflg)
 			shmaddr = natmem_offset + 0x00e00000;
 			size += BARRIER;
 			got = TRUE;
-		} else if (!_tcscmp(shmids[shmid].name, _T("x_a0"))) {
-			shmaddr = natmem_offset + 0x00a00000;
+		} else if (!_tcscmp(shmids[shmid].name, _T("ram_a8"))) {
+			shmaddr = natmem_offset + 0x00a80000;
 			size += BARRIER;
 			got = TRUE;
 		}

@@ -505,6 +505,7 @@ libuae_a_SOURCES = \
 	src/slirp.cpp \
 	src/specialmonitors.cpp \
 	src/statusline.cpp \
+	src/test_card.cpp \
 	src/traps.cpp \
 	src/uaeexe.cpp \
 	src/uaelib.cpp \

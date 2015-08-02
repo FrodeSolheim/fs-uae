@@ -1,0 +1,3 @@
+Summary: keyboard_key_insert
+Default: action_key_backslash
+Example: action_key_equals

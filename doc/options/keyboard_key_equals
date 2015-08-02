@@ -1,0 +1,3 @@
+Summary: keyboard_key_equals
+Default: action_key_equals
+Example: action_key_backslash

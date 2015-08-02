@@ -3445,6 +3445,9 @@ static void parse_addmem (struct uae_prefs *p, TCHAR *buf, int num)
 
 static void get_filesys_controller (const TCHAR *hdc, int *type, int *typenum, int *num)
 {
+#ifdef FSUAE
+	write_log("get_filesys_controller %s\n", hdc);
+#endif
 	int hdcv = HD_CONTROLLER_TYPE_UAE;
 	int hdunit = 0;
 	int idx = 0;
@@ -3455,6 +3458,9 @@ static void get_filesys_controller (const TCHAR *hdc, int *type, int *typenum, i
 			hdunit = 0;
 	} else if(_tcslen (hdc) >= 5 && !_tcsncmp (hdc, _T("scsi"), 4)) {
 		hdcv = HD_CONTROLLER_TYPE_SCSI_AUTO;
+#ifdef FSUAE
+	write_log(" - HD_CONTROLLER_TYPE_SCSI_AUTO\n");
+#endif
 		hdunit = hdc[4] - '0';
 		if (hdunit < 0 || hdunit > 7)
 			hdunit = 0;
@@ -3479,6 +3485,9 @@ static void get_filesys_controller (const TCHAR *hdc, int *type, int *typenum, i
 						} else {
 							hdcv = i + HD_CONTROLLER_EXPANSION_MAX;
 						}
+#ifdef FSUAE
+						write_log(" - found\n");
+#endif
 						found = true;
 						break;
 					}
@@ -3493,6 +3502,10 @@ static void get_filesys_controller (const TCHAR *hdc, int *type, int *typenum, i
 						} else {
 							hdcv = HD_CONTROLLER_TYPE_SCSI_EXPANSION_FIRST + i;
 						}
+#ifdef FSUAE
+						write_log(" - ert->name=%s ext=%s len=%d\n", ert->name, ext, len);
+#endif
+
 						break;
 					}
 				}

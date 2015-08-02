@@ -1270,9 +1270,15 @@ static int read_rom_file (uae_u8 *buf, const struct romdata *rd)
 	struct zfile *zf;
 	struct romlist *rl = romlist_getrl (rd);
 	uae_char tmp[11];
+#ifdef FSUAE
+	write_log("read_rom_file\n");
+#endif
 
 	if (!rl || _tcslen (rl->path) == 0)
 		return 0;
+#ifdef FSUAE
+	write_log("read_rom_file (rl->path: '%s')\n", rl->path);
+#endif
 	zf = zfile_fopen (rl->path, _T("rb"), ZFD_NORMAL);
 	if (!zf)
 		return 0;
@@ -1312,6 +1318,10 @@ struct zfile *read_rom (struct romdata *prd)
 	uae_u32 crc32;
 	int size;
 	uae_u8 *buf, *buf2;
+#ifdef FSUAE
+	write_log("read_rom '%s'\n", prd->name);
+#endif
+
 
 	/* find parent node */
 	for (;;) {
@@ -1468,6 +1478,9 @@ struct zfile *read_rom_name (const TCHAR *filename)
 {
 	int i;
 	struct zfile *f;
+#ifdef FSUAE
+		write_log("read_rom_name %s\n", filename);
+#endif
 
 	for (i = 0; i < romlist_cnt; i++) {
 #ifdef FSUAE
@@ -1621,9 +1634,15 @@ int configure_rom (struct uae_prefs *p, const int *rom, int msg)
 void set_device_rom(struct uae_prefs *p, const TCHAR *path, int romtype, int devnum)
 {
 	int idx;
+#ifdef FSUAE
+	write_log("set_device_rom path=%s romtype=%d devnum=%d\n", path ? path : "(null)", romtype, devnum);
+#endif
 	const struct expansionromtype *ert = get_device_expansion_rom(romtype);
 	if (path == NULL) {
 		struct boardromconfig *brc = get_device_rom(p, romtype, devnum, &idx);
+#ifdef FSUAE
+		write_log("boardromconfig %p\n", brc);
+#endif
 		if (brc) {
 			brc->roms[idx].romfile[0] = 0;
 			brc->roms[idx].romident[0] = 0;
@@ -1668,8 +1687,14 @@ struct boardromconfig *get_device_rom_new(struct uae_prefs *p, int romtype, int 
 	int idx2;
 	static struct boardromconfig fake;
 	const struct expansionromtype *ert = get_device_expansion_rom(romtype);
+#ifdef FSUAE
+	write_log("get_device_rom_new romtype=%d devnum=%d\n", romtype, devnum);
+#endif
 	if (!ert) {
 		*index = 0;
+#ifdef FSUAE
+	write_log("- return &fake\n");
+#endif
 		return &fake;
 	}
 	*index = ert->parentromtype ? 1 : 0;
@@ -1691,11 +1716,20 @@ struct boardromconfig *get_device_rom_new(struct uae_prefs *p, int romtype, int 
 			brc = &p->expansionboard[i];
 			if (brc->device_type == 0) {
 				device_rom_defaults(brc, romtype, devnum);
+#ifdef FSUAE
+	write_log("- return brc ()\n");
+#endif
 				return brc;
 			}
 		}
+#ifdef FSUAE
+	write_log("- return &fake (2)\n");
+#endif
 		return &fake;
 	}
+#ifdef FSUAE
+	write_log("- return brc (2)\n");
+#endif
 	return brc;
 }
 
@@ -1757,6 +1791,9 @@ struct zfile *read_device_from_romconfig(struct romconfig *rc, const int *roms)
 struct zfile *read_device_rom(struct uae_prefs *p, int romtype, int devnum, int *roms)
 {
 	int idx;
+#ifdef FSUAE
+	write_log("read_device_rom romtype=%d devnum=%d\n", romtype, devnum);
+#endif
 	struct boardromconfig *brc = get_device_rom(p, romtype, devnum, &idx);
 	if (brc) {
 		const TCHAR *romname = brc->roms[idx].romfile;

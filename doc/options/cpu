@@ -1,38 +1,31 @@
-# cpu #
-
-Specify the CPU in the emulated Amiga
-
+Summary: CPU
+Type: Choice
+Default:
+// Default: auto
+Example: 68040
 Since: 2.5.19
-Type: Choice,
-Default: `auto`,
-Example:
-
-    cpu = 68040
 
 Use this option to override the CPU model in the emulated Amiga. All Amiga
 models imply a default CPU model, so you only need to use this option if
 want to use another CPU.
 
-Values:
-
-* `auto` ("Auto")
-* `68000`
-* `68010`
-* `68EC020` - 68020 with 24-bit addressing
-* `68020`
-* `68EC030` - 68030 without internal MMU
-* `68030`
-* `68EC040` - 68040 without internal FPU and MMU
-* `68LC040` - 68040 without internal FPU
-* `68040-NOMMU` - 68040 without internal MMU
-* `68040`
-* `68EC060` - 68060 without internal FPU and MMU
-* `68LC060` - 68060 without internal FPU
-* `68060-NOMMU` - 68040 without internal MMU
-* `68060`
+// Value: auto ("Auto")
+Value: 68000
+Value: 68010
+Value: 68EC020 - 68020 with 24-bit addressing
+Value: 68020
+Value: 68EC030 - 68030 without internal MMU
+Value: 68030
+Value: 68EC040 - 68040 without internal FPU and MMU
+Value: 68LC040 - 68040 without internal FPU
+Value: 68040-NOMMU - 68040 without internal MMU
+Value: 68040
+Value: 68EC060 - 68060 without internal FPU and MMU
+Value: 68LC060 - 68060 without internal FPU
+Value: 68060-NOMMU - 68040 without internal MMU
+Value: 68060
 
 Code:
-
     if c.cpu.explicit:
         c.cpu = c.cpu.explicit
     elif c.amiga_model == "A500":

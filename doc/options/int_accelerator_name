@@ -4,12 +4,8 @@ Code:
         value = ""
     elif f.matches(c.uae_cpuboard_type, "Blizzard1230IV"):
         value = "Blizzard 1230 IV"
-    elif f.matches(c.uae_cpuboard_type, "Blizzard1230IV+SCSI"):
-        value = "Blizzard 1230 IV + SCSI"
     elif f.matches(c.uae_cpuboard_type, "Blizzard1260"):
-        value = "Blizzard 1260"
-    elif f.matches(c.uae_cpuboard_type, "Blizzard1260+SCSI"):
-        value = "Blizzard 1260 + SCSI"
+        value = "Blizzard 1240/1260"
     elif f.matches(c.uae_cpuboard_type, "Blizzard2060"):
         value = "Blizzard 2060"
     elif f.matches(c.uae_cpuboard_type, "BlizzardPPC"):

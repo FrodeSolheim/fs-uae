@@ -1,3 +1,5 @@
+Summary: Chip RAM
+Type: Choice
 Example: 1024
 
 Override amount of chip memory, specified in KB. Must be a multiple of 512.

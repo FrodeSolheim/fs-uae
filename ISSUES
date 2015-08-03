@@ -1,3 +1,4 @@
+* Launcher login window obscures sync progress on OS X.
 * A600 always gets an RTC, even a stock one.
 * Should A1200 with expanded memory use MSM6242B or RP5C01A?
 * A1200 model uses KS 3.0 not KS 3.1 by default.

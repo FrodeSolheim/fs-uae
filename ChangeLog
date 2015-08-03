@@ -1,8 +1,9 @@
 Version 2.5.33dev:
 
 * Blizzard SCSI Kit ROM wasn't found by (full) path.
-* New amiga model "A1200/3.0".
-* Added option new motherboard_ram.
+* Several new amiga quickstart models for A1200.
+* Added several Blizzard boards to accelerator option.
+* Added new options motherboard_ram, blizzard_scsi_kit.
 * New boolean option window_border to disable window decorations.
 * If STEAM_RUNTIME is set, look for "steamos" plugins, not "linux" plugins.
 * Plugin search path updated (also changed plugin format slightly).

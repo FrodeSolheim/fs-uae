@@ -3,9 +3,7 @@ FIXME: Check if this list is current / up2date
 
 Value: none ("None")
 Value: Blizzard1230IV (Blizzard 1230 IV)
-// Value: Blizzard1230IV+SCSI (Blizzard 1230 IV + SCSI)
-Value: Blizzard1260 (Blizzard 1260)
-// Value: Blizzard1260+SCSI (Blizzard 1260 + SCSI)
+Value: Blizzard1260 (Blizzard 1240/1260)
 Value: Blizzard2060 (Blizzard 2060)
 Value: CyberStormMK1 (CyberStorm MK I)
 Value: CyberStormMK2 (CyberStorm MK II)
@@ -26,12 +24,10 @@ Code:
         value = "none"
     elif f.matches(c.accelerator, "blizzard-1230-iv"):
         value = "Blizzard1230IV"
-    elif f.matches(c.accelerator, "blizzard-1230-iv-scsi"):
-        value = "Blizzard1230IV+SCSI"
+    elif f.matches(c.accelerator, "blizzard-1240"):
+        value = "Blizzard1260"
     elif f.matches(c.accelerator, "blizzard-1260"):
         value = "Blizzard1260"
-    elif f.matches(c.accelerator, "blizzard-1260-scsi"):
-        value = "Blizzard1260+SCSI"
     elif f.matches(c.accelerator, "blizzard-2060"):
         value = "Blizzard2060"
     elif f.matches(c.accelerator, "blizzard-ppc"):

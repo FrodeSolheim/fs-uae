@@ -99,6 +99,20 @@ static void init_a4000(amiga_config *c, const char *id, const char *name,
     c->cpu_32bit_addressing = 1;
 }
 
+static void init_a1200_ppc(amiga_config *c, const char *id, const char *name,
+                           int quickstart_config)
+{
+    init_a1200(c, id, name, quickstart_config);
+    //c->cpu_model = "68060";
+    c->cpu_idle = 0;
+    c->z3realmapping = 0;
+    c->accelerator = "blizzard-ppc";
+
+    c->default_cpu = "68060";
+    c->default_fpu = "68060";
+    //c->default_mmu = "68060";
+}
+
 static void init_a4000_ppc(amiga_config *c, const char *id, const char *name,
                            int quickstart_config)
 {
@@ -159,6 +173,38 @@ void fs_uae_init_configs()
     c->cpu_32bit_addressing = 1;
     c->allow_z3_memory = 1;
 
+    // FIXME: use WinUAE quickstart configs ??
+    // FIXME: check real-time clocks
+
+    c = g_fs_uae_amiga_configs + CONFIG_A1200_1230;
+    init_a1200(c, "A1200/1230", "Amiga 1200 (Blizzard 1230 IV)", 0);
+    c->cpu_32bit_addressing = 1;
+    c->allow_z3_memory = 1;
+    c->default_cpu = "68030";
+    c->default_fpu = "68030";
+    c->accelerator = "blizzard-1230-iv";
+
+    c = g_fs_uae_amiga_configs + CONFIG_A1200_1240;
+    init_a1200(c, "A1200/1240", "Amiga 1200 (Blizzard 1240)", 0);
+    c->cpu_32bit_addressing = 1;
+    c->allow_z3_memory = 1;
+    c->default_cpu = "68040";
+    c->default_fpu = "68040";
+    c->accelerator = "blizzard-1240";
+
+    c = g_fs_uae_amiga_configs + CONFIG_A1200_1260;
+    init_a1200(c, "A1200/1260", "Amiga 1200 (Blizzard 1260)", 0);
+    c->cpu_32bit_addressing = 1;
+    c->allow_z3_memory = 1;
+    c->default_cpu = "68060";
+    c->default_fpu = "68060";
+    c->accelerator = "blizzard-1260";
+
+    c = g_fs_uae_amiga_configs + CONFIG_A1200_PPC;
+    init_a1200_ppc(c, "A1200/PPC", "Amiga 1200 (Blizzard PPC)", 0);
+    c->cpu_32bit_addressing = 1;
+    c->allow_z3_memory = 1;
+
     c = g_fs_uae_amiga_configs + CONFIG_A3000;
     init_a3000(c, "A3000", "Amiga 3000", 2);
 
@@ -169,7 +215,7 @@ void fs_uae_init_configs()
     init_a4000(c, "A4000/040", "Amiga 4000 (68040)", 1);
 
     c = g_fs_uae_amiga_configs + CONFIG_A4000_PPC;
-    init_a4000_ppc(c, "A4000/PPC", "Amiga 4000 (PPC)", 1);
+    init_a4000_ppc(c, "A4000/PPC", "Amiga 4000 (CyberStorm PPC)", 1);
 
     c = g_fs_uae_amiga_configs + CONFIG_A4000_OS4;
     init_a4000_ppc(c, "A4000/OS4", "Amiga 4000 (PPC / OS4)", 1);

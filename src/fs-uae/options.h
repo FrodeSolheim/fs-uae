@@ -6,6 +6,7 @@
 #define OPTION_ACCELERATOR_MEMORY "accelerator_memory"
 #define OPTION_ACCURACY "accuracy"
 #define OPTION_AMIGA_MODEL "amiga_model"
+#define OPTION_BLIZZARD_SCSI_KIT "blizzard_scsi_kit"
 #define OPTION_BSDSOCKET_LIBRARY "bsdsocket_library"
 #define OPTION_CDFS "cdfs"
 #define OPTION_CHIP_MEMORY "chip_memory"

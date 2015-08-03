@@ -1,8 +1,28 @@
+Summary: CPU Accelerator Board RAM
+Type: Choice
+
+Value: 1024 (1 MB)
+Value: 2048 (2 MB)
+Value: 4096 (4 MB)
+Value: 8192 (8 MB)
+Value: 16384 (16 MB)
+Value: 32768 (32 MB)
+Value: 65536 (64 MB)
+Value: 131072 (128 MB)
+Value: 262144 (256 MB)
 
 Code:
 
     if c.accelerator_memory.explicit:
         value = c.accelerator_memory.explicit
+    elif f.matches(c.accelerator, "blizzard-1230-iv"):
+        value = str(32 * 1024)
+    elif f.matches(c.accelerator, "blizzard-1240"):
+        value = str(32 * 1024)
+    elif f.matches(c.accelerator, "blizzard-1260"):
+        value = str(32 * 1024)
+    elif f.matches(c.accelerator, "blizzard-ppc"):
+        value = str(256 * 1024)
     elif f.matches(c.accelerator, "cyberstorm-ppc"):
         value = str(128 * 1024)
     else:

@@ -28,6 +28,9 @@ progdir:
 	python3 clib.py SDL2.dll $(emulator_dir)
 	python3 clib.py OpenAL32.dll $(emulator_dir)
 
+        # For qemu-uae on Windows
+	python3 clib.py libpixman-1-0.dll $(emulator_dir)
+
 	cp -a ../../fs-uae.exe $(emulator_dir)/
 	cp -a ../../fs-uae.dat $(emulator_dir)/
 	cp -a ../../fs-uae-device-helper.exe $(emulator_dir)/

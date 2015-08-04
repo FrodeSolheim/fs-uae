@@ -1,5 +1,5 @@
 Name: fs-uae
-Version: 2.5.34dev
+Version: 2.5.34dev2
 Release: 1%{?dist}
 Summary: Amiga emulator with on-screen GUI and online play support
 License: GPL-2.0+
@@ -14,6 +14,7 @@ BuildRequires: hicolor-icon-theme
 BuildRequires: libpng-devel
 BuildRequires: libXi-devel
 BuildRequires: pkgconfig(gl)
+BuildRequires: pkgconfig(glew)
 BuildRequires: pkgconfig(glib-2.0)
 BuildRequires: pkgconfig(glu)
 BuildRequires: pkgconfig(gthread-2.0)

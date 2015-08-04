@@ -290,6 +290,7 @@ static void full_sleep_until_vsync() {
 }
 #endif
 
+#ifdef USE_GLEE
 typedef int64_t GLint64;
 typedef uint64_t GLuint64;
 typedef struct __GLsync *GLsync;
@@ -300,6 +301,7 @@ static GLenum (APIENTRYP glClientWaitSync)(GLsync sync, GLbitfield flags,
         GLuint64 timeout) = NULL;
 static GLsync (APIENTRYP glFenceSync)(GLenum condition, 
         GLbitfield flags) = NULL;
+#endif
 
 #define GL_OBJECT_TYPE                 0x9112
 #define GL_SYNC_CONDITION              0x9113
@@ -413,9 +415,11 @@ static void check_opengl_sync_capabilities() {
         }
         if (strstr(ext, "GL_ARB_sync") != NULL) {
             fs_log("GL_ARB_sync extension found\n");
+#ifdef USE_GLEE
             glFenceSync = __GLeeGetProcAddress("glFenceSync");
             glWaitSync = __GLeeGetProcAddress("glWaitSync");
             glClientWaitSync = __GLeeGetProcAddress("glClientWaitSync");
+#endif
             if (glFenceSync && glClientWaitSync) {
                 g_has_arb_sync = 1;
             }

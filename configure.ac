@@ -107,7 +107,9 @@ PKG_CHECK_MODULES([GLIB], [glib-2.0 >= 2.32 gthread-2.0])
 
 AC_CHECK_LIB([Iphlpapi], [main])
 
-AM_CONDITIONAL([BUILTIN_GLEE], [true])
+AM_CONDITIONAL([BUILTIN_GLEE], [false])
+
+PKG_CHECK_MODULES([GLEW], [glew])
 
 # Todo: make configurable
 # PKG_CHECK_MODULES([LIBMPEG2], [libmpeg2 libmpeg2convert])

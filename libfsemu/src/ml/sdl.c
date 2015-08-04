@@ -25,7 +25,8 @@
 //#endif
 
 #include <fs/conf.h>
-#include <GLee.h>
+// #include <GLee.h>
+#include <GL/glew.h>
 #include <fs/glib.h>
 #include <fs/ml.h>
 #include <fs/thread.h>
@@ -363,6 +364,16 @@ static void set_video_mode()
     }
 
 #endif
+
+    static int glew_initialized = 0;
+    if (!glew_initialized) {
+        GLenum err = glewInit();
+        if (GLEW_OK != err) {
+          fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
+          fs_emu_fatal("Error initializing glew");
+        }
+        fs_log("Using GLEW %s\n", glewGetString(GLEW_VERSION));
+    }
 
     fs_ml_configure_window();
 

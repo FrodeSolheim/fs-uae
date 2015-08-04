@@ -1,7 +1,7 @@
-Summary: Host Key INSERT
+Summary: Host Key BACKSLASH
 Type: Choice
-Default: action_key_2b
-Example: action_key_backslash
+Default: action_key_backslash
+Example: action_key_2b
 
 Value: action_key_2b (Amiga Key 0x2B)
 Value: action_key_30 (Amiga Key 0x30)

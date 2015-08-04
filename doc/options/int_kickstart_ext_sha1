@@ -1,5 +1,4 @@
 Code:
-
     t = c.amiga_model
     if t == "A500":
         value = ""

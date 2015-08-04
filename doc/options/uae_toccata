@@ -1,10 +1,7 @@
-# uae-toccata #
-
-Toccata Z2 sound card emulation
+Summary: Toccata Z2 sound card emulation
 Type: uaeyesno
 
 Code:
-
     if c.uae_toccata.explicit:
         value = c.uae_toccata.explicit
         if f.matches(value, ["true", "yes", "1"]):

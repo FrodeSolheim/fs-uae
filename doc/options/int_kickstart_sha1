@@ -1,5 +1,4 @@
 Code:
-
     if c.amiga_model == "A500":
         value = "891e9a547772fe0c6c19b610baf8bc4ea7fcb785"
     elif c.amiga_model == "A500/512K":

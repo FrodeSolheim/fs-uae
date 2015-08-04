@@ -1,5 +1,4 @@
 Code:
-
     if c.uae_cd32cd.explicit:
         # FIXME: boolean
         value = c.uae_cd32cd.explicit

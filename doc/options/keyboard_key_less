@@ -1,6 +1,6 @@
-Summary: Host Key INSERT
+Summary: Host Key LESS
 Type: Choice
-Default: action_key_2b
+Default: action_key_30
 Example: action_key_backslash
 
 Value: action_key_2b (Amiga Key 0x2B)

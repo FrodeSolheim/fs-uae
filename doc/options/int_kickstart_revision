@@ -1,5 +1,4 @@
 Code:
-
     t = c.int_kickstart_sha1
     if t == "02843c4253bbd29aba535b0aa3bd9a85034ecde4":
         # Kickstart v2.05 rev 37.350 (1992)(Commodore)(A600HD)[!]

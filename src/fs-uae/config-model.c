@@ -160,15 +160,14 @@ void fs_uae_init_configs()
     init_cd32(c, "CD32/FMV", "Amiga CD32 + FMV ROM", 1);
 
     c = g_fs_uae_amiga_configs + CONFIG_A1200;
-    init_a1200(c, "A1200", "Amiga 1200", 0);
-    // FIXME: Kickstart version
+    init_a1200(c, "A1200", "Amiga 1200", 6);
 
     c = g_fs_uae_amiga_configs + CONFIG_A1200_3_0;
     init_a1200(c, "A1200/3.0", "Amiga 1200", 0);
     // FIXME: WB DISK 3.0
 
     c = g_fs_uae_amiga_configs + CONFIG_A1200_020;
-    init_a1200(c, "A1200/020", "Amiga 1200 (68020)", 0);
+    init_a1200(c, "A1200/020", "Amiga 1200 (68020)", 6);
     //c->cpu_model = "68020";
     c->cpu_32bit_addressing = 1;
     c->allow_z3_memory = 1;
@@ -177,7 +176,7 @@ void fs_uae_init_configs()
     // FIXME: check real-time clocks
 
     c = g_fs_uae_amiga_configs + CONFIG_A1200_1230;
-    init_a1200(c, "A1200/1230", "Amiga 1200 (Blizzard 1230 IV)", 0);
+    init_a1200(c, "A1200/1230", "Amiga 1200 (Blizzard 1230 IV)", 6);
     c->cpu_32bit_addressing = 1;
     c->allow_z3_memory = 1;
     c->default_cpu = "68030";
@@ -185,7 +184,7 @@ void fs_uae_init_configs()
     c->accelerator = "blizzard-1230-iv";
 
     c = g_fs_uae_amiga_configs + CONFIG_A1200_1240;
-    init_a1200(c, "A1200/1240", "Amiga 1200 (Blizzard 1240)", 0);
+    init_a1200(c, "A1200/1240", "Amiga 1200 (Blizzard 1240)", 6);
     c->cpu_32bit_addressing = 1;
     c->allow_z3_memory = 1;
     c->default_cpu = "68040";
@@ -193,7 +192,7 @@ void fs_uae_init_configs()
     c->accelerator = "blizzard-1240";
 
     c = g_fs_uae_amiga_configs + CONFIG_A1200_1260;
-    init_a1200(c, "A1200/1260", "Amiga 1200 (Blizzard 1260)", 0);
+    init_a1200(c, "A1200/1260", "Amiga 1200 (Blizzard 1260)", 6);
     c->cpu_32bit_addressing = 1;
     c->allow_z3_memory = 1;
     c->default_cpu = "68060";
@@ -201,7 +200,7 @@ void fs_uae_init_configs()
     c->accelerator = "blizzard-1260";
 
     c = g_fs_uae_amiga_configs + CONFIG_A1200_PPC;
-    init_a1200_ppc(c, "A1200/PPC", "Amiga 1200 (Blizzard PPC)", 0);
+    init_a1200_ppc(c, "A1200/PPC", "Amiga 1200 (Blizzard PPC)", 6);
     c->cpu_32bit_addressing = 1;
     c->allow_z3_memory = 1;
 

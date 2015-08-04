@@ -6657,6 +6657,10 @@ static int bip_a1200 (struct uae_prefs *p, int config, int compa, int romcheck)
 	roms[1] = 15;
 	roms[2] = 31;
 	roms[3] = -1;
+#ifdef FSUAE
+	roms[1] = -1;
+#endif
+
 	roms_bliz[0] = -1;
 	roms_bliz[1] = -1;
 	p->cs_rtc = 0;
@@ -6707,6 +6711,12 @@ static int bip_a1200 (struct uae_prefs *p, int config, int compa, int romcheck)
 		roms_bliz[0] = 100;
 		configure_rom(p, roms_bliz, romcheck);
 		break;
+#ifdef FSUAE
+		case 6:
+		roms[0] = 15;
+		roms[3] = -1;
+		break;
+#endif
 	}
 	set_68020_compa (p, compa, 0);
 	return configure_rom (p, roms, romcheck);

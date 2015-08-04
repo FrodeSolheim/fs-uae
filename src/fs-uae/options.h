@@ -15,6 +15,8 @@
 #define OPTION_CPU_IDLE "cpu_idle"
 #define OPTION_DONGLE_TYPE "dongle_type"
 #define OPTION_FAST_MEMORY "fast_memory"
+#define OPTION_FLOPPY_DRIVE_VOLUME "floppy_drive_volume"
+#define OPTION_FLOPPY_DRIVE_VOLUME_EMPTY "floppy_drive_volume_empty"
 #define OPTION_FPU "fpu"
 #define OPTION_GRAPHICS_CARD "graphics_card"
 #define OPTION_GRAPHICS_CARD_ROM "graphics_card_rom"

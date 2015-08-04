@@ -1,5 +1,4 @@
 Code:
-
     if c.uae_bsdsocket_emu == "true":
         value = "true"
     elif c.uae_sana2 == "true":

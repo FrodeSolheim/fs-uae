@@ -463,7 +463,8 @@ void fs_uae_configure_floppies()
         amiga_set_option(option_floppyxtype, "-1");
     }
 
-    int volume = fs_config_get_int_clamped("floppy_drive_volume", 0, 100);
+    int volume = fs_config_get_int_clamped(
+                OPTION_FLOPPY_DRIVE_VOLUME, 0, 100);
     if (volume == FS_CONFIG_NONE) {
         volume = 67;
     }
@@ -475,6 +476,16 @@ void fs_uae_configure_floppies()
         }
     }
     amiga_set_int_option("floppy_volume", 100 - volume);
+
+    volume = fs_config_get_int_clamped(
+                OPTION_FLOPPY_DRIVE_VOLUME_EMPTY, 0, 100);
+    if (volume != FS_CONFIG_NONE) {
+        for (int i = 0; i < 4; i++) {
+            char *key = g_strdup_printf("floppy%dsoundvolume_empty", i);
+            amiga_set_int_option(key, 100 - volume);
+            g_free(key);
+        }
+    }
 
     int count = 0;
     int k = 0;

@@ -1,5 +1,4 @@
 Code:
-
     t = c.uae_gfxcard_type
     if t == "PicassoII":
         value = "Picasso II"

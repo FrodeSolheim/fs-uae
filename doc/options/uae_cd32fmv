@@ -1,5 +1,4 @@
 Code:
-
     if c.uae_cd32fmv.explicit:
         # FIXME: boolean
         value = c.uae_cd32fmv.explicit

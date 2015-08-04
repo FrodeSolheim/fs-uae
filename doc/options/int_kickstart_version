@@ -1,5 +1,4 @@
 Code:
-
     t = c.int_kickstart_revision
     if t == "33.180":
         value = "1.2"

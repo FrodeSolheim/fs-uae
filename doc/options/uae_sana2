@@ -1,15 +1,9 @@
-# uae-sana2 #
-
-Enables uaenet.device
-
+Summary: uae_sana2
 Type: BooleanUAE,
-Default: `false`,
-Example:
-
-    uae-sana2 = true
+Default: false
+Example: true
 
 Code:
-
     if c.uae_sana2.explicit:
         # FIXME: ok? keep already specified value
         value = c.uae_rtc.explicit

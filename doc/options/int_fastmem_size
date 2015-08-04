@@ -1,6 +1,4 @@
-
 Code:
-
     if c.fast_memory:
         value = str(int(c.fast_memory) * 1024)
     else:

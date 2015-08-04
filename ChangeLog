@@ -1,6 +1,9 @@
 Version 2.5.34dev:
 
+* New option floppy_drive_volume_empty.
+* Switched default key mapping for host backslash and insert keys.
 * Use GLEW instead of GLee for OpenGL extensions.
+* When not using FS-UAE Launcher, model A1200 defaulted to kickstart 3.0.
 
 Version 2.5.33dev:
 

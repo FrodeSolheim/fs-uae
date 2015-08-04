@@ -288,7 +288,6 @@ static int open_sound (void)
     paula_sndbufsize = g_audio_buffer_size;
     paula_sndbufpt = paula_sndbuffer;
 #ifdef DRIVESOUND
-    write_log("initialize drivesound\n");
     driveclick_init();
 #endif
     write_log("open_sound returning 1\n");

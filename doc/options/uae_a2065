@@ -1,19 +1,13 @@
-# uae-a2065 #
-
-A2065 Network Card
-
+Summary: uae_a2065
 Type: 
-Default: ``,
-Example:
+Default:
+Example: slirp
 
-    uae-a2065 = slirp
+Emulate a A2065 network card.
 
-Values:
-
- * slirp
+Value: slirp
 
 Code:
-
     if c.uae_a2065.explicit:
         # FIXME: ok? keep already specified value
         value = c.uae_a2065.explicit

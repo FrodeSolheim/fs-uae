@@ -7,18 +7,20 @@ import subprocess
 p = subprocess.Popen(["file", "-L", "/bin/sh"], stdout=subprocess.PIPE)
 exe_info = p.stdout.read().decode("UTF-8")
 if "386" in exe_info:
-    arch = "i386"
+    # arch = "i386"
+    arch = "x86"
 elif "x86-64" in exe_info:
-    arch = "amd64"
+    # arch = "amd64"
+    arch = "x86-64"
 else:
     raise Exception("unrecognized arch " + repr(exe_info))
 
 #if os.environ.get("STEAM_RUNTIME", ""):
 if os.environ.get("STEAMOS", ""):
     os_name = "steamos"
-    if arch == "i386":
-        # steam runtime sdk compiles with -mtune=generic -march=i686
-        arch = "i686"
+    # if arch == "i386":
+    #     # steam runtime sdk compiles with -mtune=generic -march=i686
+    #     arch = "i686"
 else:
     os_name = "linux"
 
@@ -56,9 +58,11 @@ def wrap(name, target, args=None):
         for arg in args:
             command += " \"{0}\"".format(arg)
         if os_name == "steamos":
-            if arch == "i686":
+            # if arch == "i686":
+            if arch == "x86":
                 bin_dir = "bin32"
-            elif arch == "amd64":
+            # elif arch == "amd64":
+            elif arch == "x86-64":
                 bin_dir = "bin64"
             else:
                 raise Exception("unsupported steamos arch?")

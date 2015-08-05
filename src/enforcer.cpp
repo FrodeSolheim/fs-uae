@@ -20,6 +20,8 @@
 #include "enforcer.h"
 #include "debug.h"
 
+int enforcermode = 0;
+
 #ifdef AHI
 
 #if defined(JIT)
@@ -46,7 +48,6 @@
 extern uae_u8 *natmem_offset;
 
 static int enforcer_installed = 0;
-int enforcermode = 0;
 static int enforcer_hit = 0; /* set to 1 if displaying the hit */
 
 #define ENFORCER_BUF_SIZE 8192

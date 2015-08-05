@@ -373,7 +373,7 @@ int readser (int *buffer)
     }
 }
 
-int checkserwrite (void)
+int checkserwrite(int spaceneeded)
 {
     if (ser_fd < 0 || !currprefs.use_serial) {
         return 1;

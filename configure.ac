@@ -594,7 +594,7 @@ REQ_FEATURE([WITH_PPC], [ppc], [ppc],
 OPT_FEATURE([PROWIZARD], [prowizard], [prowizard],
 	[enable prowizard request], [yes])
 OPT_FEATURE([SERIAL_PORT], [serial_port], [serial-port],
-        [enable serial port emulation], [no])
+        [enable serial port emulation], [yes])
 OPT_FEATURE([WITH_SLIRP], [slirp], [slirp],
 	[enable SLIRP (user mode NAT)], [yes])
 OPT_FEATURE([WITH_SOFTFLOAT], [softfloat], [softfloat],

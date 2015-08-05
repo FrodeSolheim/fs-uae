@@ -473,6 +473,7 @@ libuae_a_SOURCES = \
 	src/od-win32/parser.h \
 	src/od-win32/picasso96_win.cpp \
 	src/od-win32/picasso96_win.h \
+	src/od-win32/serial_win32.cpp \
 	src/od-win32/win32_uaenet.cpp \
 	src/ppc/pixman-stubs.cpp \
 	src/ppc/ppc.cpp \

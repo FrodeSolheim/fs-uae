@@ -447,7 +447,6 @@ libuae_a_SOURCES = \
 	src/od-fs/parser.cpp \
 	src/od-fs/paths.cpp \
 	src/od-fs/roms.cpp \
-	src/od-fs/serial_host.cpp \
 	src/od-fs/sleep.h \
 	src/od-fs/sounddep/sound.h \
 	src/od-fs/statusline.cpp \

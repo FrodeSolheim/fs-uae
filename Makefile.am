@@ -200,7 +200,6 @@ libuae_a_SOURCES = \
 	src/archivers/wrp/warp.h \
 	src/archivers/zip/unzip.cpp \
 	src/archivers/zip/unzip.h \
-	src/aros.rom.cpp \
 	src/audio.cpp \
 	src/autoconf.cpp \
 	src/blitter.cpp \

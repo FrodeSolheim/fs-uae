@@ -1,0 +1,7 @@
+Summary: CD-ROM Drive Count
+Type: Choice
+Default:
+Example: 1
+
+Value: 0
+Value: 1

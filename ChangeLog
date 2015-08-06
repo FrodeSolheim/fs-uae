@@ -1,7 +1,11 @@
 Version 2.5.35dev:
 
-* Load kickstart replacement from data files instead of embedding in executable.
-* Re-enabled serial port (was disabled in 2.5.31dev), fixed AROS Kickstart replacement.
+* Fixed bug (lockup) when quitting FS-UAE from Amiga side on some platforms.
+* Fixed a potential key repeat issue (could not reproduce original problem).
+* Load kickstart replacement from data files instead of embedding in
+  executable.
+* Re-enabled serial port (was disabled in 2.5.31dev), fixed AROS Kickstart
+  replacement.
 * Share serial port emulation code with WinUAE.
 
 Version 2.5.34dev:

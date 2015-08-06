@@ -6,20 +6,23 @@
 #include <fs/log.h>
 #include <stdio.h>
 
-void fs_ref_initialize(void *ptr, void (*destroy_function)(void *ptr)) {
+void fs_ref_initialize(void *ptr, void (*destroy_function)(void *ptr))
+{
     struct fs_ref *ref = ptr;
     ref->magic = FS_REF_MAGIC;
     ref->count = 1;
     ref->destroy = destroy_function;
 }
 
-int fs_ref(void *ptr) {
+int fs_ref(void *ptr)
+{
     struct fs_ref *ref = ptr;
     ref->count += 1;
     return ref->count;
 }
 
-int fs_unref(void *ptr) {
+int fs_unref(void *ptr)
+{
     struct fs_ref* ref = ptr;
     if (ref->magic != FS_REF_MAGIC) {
         fs_log("ERROR: not UNREF'ING fs-ref struct\n");

@@ -1141,6 +1141,9 @@ EXTRA_DIST = $(TESTS) $(EXTRA_TESTS) \
 	flac/include/FLAC/stream_encoder.h \
 	fs-uae.spec \
 	icon/fs-uae.ico \
+	libinih/ini.c \
+	libinih/ini.h \
+	libinih/LICENSE.txt \
 	libudis86/README \
 	licenses/fs-uae.txt \
 	licenses/glib.txt \

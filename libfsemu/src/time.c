@@ -8,7 +8,6 @@
 #include <fs/log.h>
 #include <fs/thread.h>
 #include <fs/time.h>
-
 #include <stdlib.h>
 #include <time.h>
 #ifdef HAVE_UNISTD_H
@@ -17,21 +16,21 @@
 
 static fs_mutex *g_mutex;
 
-struct tm *fs_localtime_r(const time_t *timep, struct tm *result) {
+struct tm *fs_localtime_r(const time_t *timep, struct tm *result)
+{
 #ifdef HAVE_LOCALTIME_R
     return localtime_r(timep, result);
 #else
-    // on Windows, localtime is thread-safe due to using thread-local
-    // storage, using mutexes for other platforms (and hopefully no-one
-    // else calls localtime simultaneously...)
+    /* On Windows, localtime is thread-safe due to using thread-local
+     * storage, using mutexes for other platforms (and hopefully no-one
+     * else calls localtime simultaneously...) */
     if (g_mutex) {
         fs_mutex_lock(g_mutex);
     }
     struct tm* tm = localtime(timep);
     if (tm == NULL) {
         fs_log("WARNING: localtime - invalid time_t (%d)\n", *timep);
-    }
-    else {
+    } else {
         *result = *tm;
     }
     if (g_mutex) {
@@ -44,21 +43,21 @@ struct tm *fs_localtime_r(const time_t *timep, struct tm *result) {
 #endif
 }
 
-struct tm *fs_gmtime_r(const time_t *timep, struct tm *result) {
+struct tm *fs_gmtime_r(const time_t *timep, struct tm *result)
+{
 #ifdef HAVE_GMTIME_R
     return gmtime_r(timep, result);
 #else
-    // on Windows, gmtime is thread-safe due to using thread-local
-    // storage, using mutexes for other platforms (and hopefully no-one
-    // else calls localtime simultaneously...)    if (g_mutex) {
+    /* on Windows, gmtime is thread-safe due to using thread-local
+     * storage, using mutexes for other platforms (and hopefully no-one
+     * else calls gmtime simultaneously...) */
     if (g_mutex) {
         fs_mutex_lock(g_mutex);
     }
     struct tm* tm = gmtime(timep);
     if (tm == NULL) {
         fs_log("WARNING: gmtime - invalid time_t (%d)\n", *timep);
-    }
-    else {
+    } else {
         *result = *tm;
     }
     if (g_mutex) {
@@ -71,19 +70,19 @@ struct tm *fs_gmtime_r(const time_t *timep, struct tm *result) {
 #endif
 }
 
-time_t fs_timegm(struct tm *tm) {
+time_t fs_timegm(struct tm *tm)
+{
     if (g_mutex) {
         fs_mutex_lock(g_mutex);
     }
     time_t ret;
-    // code adapted from the man page of timegm
+    /* Code adapted from the man page of timegm */
     char *tz;
 #ifdef WINDOWS
     tz = getenv("TZ");
     if (tz) {
         tz = g_strdup_printf("TZ=%s", tz);
-    }
-    else {
+    } else {
         tz = g_strdup("TZ=");
     }
     _putenv("TZ=GMT");
@@ -100,8 +99,7 @@ time_t fs_timegm(struct tm *tm) {
     ret = mktime(tm);
     if (tz) {
         setenv("TZ", tz, 1);
-    }
-    else {
+    } else {
         unsetenv("TZ");
     }
     tzset();
@@ -114,7 +112,8 @@ time_t fs_timegm(struct tm *tm) {
 
 #include <stdio.h>
 
-int fs_get_local_time_offset(time_t time) {
+int fs_get_local_time_offset(time_t time)
+{
     time_t t = time;
     struct tm lt;
     void *result1 = fs_localtime_r(&t, &lt);
@@ -124,13 +123,12 @@ int fs_get_local_time_offset(time_t time) {
     if (result1 == NULL || result2 == NULL) {
         return 0;
     }
-    //fs_log("------------- isdst %d -------------\n", lt.tm_isdst);
     return t - mktime(&gt);
 }
 
-static int g_initialized = 0;
-
-void fs_time_init(void) {
+void fs_time_init(void)
+{
+    static int g_initialized = 0;
     if (g_initialized) {
         return;
     }

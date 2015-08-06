@@ -68,28 +68,37 @@ void fs_emu_set_quit_function(fs_ml_void_function function) {
     g_quit_function = function;
 }
 
-static void *force_quit_thread(void *data) {
-    for (int i = 0; i < 5; i++) {
+static void *force_quit_thread(void *data)
+{
+    for (int i = 0; i < 10; i++) {
         fs_ml_usleep(1000 * 1000);
+        fs_log("force_quit_thread: %d seconds passed\n", i + 1);
     }
+    fs_log("force_quit_thread: should force quit (FIXME: not implemented)\n");
+    printf("force_quit_thread: should force quit (FIXME: not implemented)\n");
     return NULL;
 }
 
-static void on_quit() {
-    fs_log("libfsemu:on_quit\n");
+static void on_quit()
+{
     g_fs_emu_quit_time = fs_emu_monotonic_time();
     if (g_quit_function) {
+        fs_log("libfsemu on_quit: executing quit function\n");
         g_quit_function();
+    } else {
+        fs_log("libfsemu on_quit: no quit function\n");
     }
     // FIXME: detached?
     fs_thread_create("force-quit", force_quit_thread, NULL);
 }
 
-void fs_emu_quit() {
+void fs_emu_quit()
+{
     fs_ml_quit();
 }
 
-int fs_emu_is_quitting() {
+int fs_emu_is_quitting()
+{
     // FIXME: move to header file for possible inlining...
     return fs_ml_is_quitting();
 }

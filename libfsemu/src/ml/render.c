@@ -630,19 +630,24 @@ void fs_ml_render_iteration() {
             // frames so there's no point waiting for them. Instead, we just
             // sleep a bit to throttle the frame rate for the quit animation
             fs_ml_usleep(10000);
-        }
-        else {
+        } else {
             // wait max 33 ms to allow the user interface to work even if
             // the emu hangs
             // int64_t dest_time = fs_get_real_time() + 33 * 1000;
             int64_t end_time = fs_condition_get_wait_end_time(33 * 1000);
+            int64_t check_time = 0;
 
             fs_mutex_lock(g_frame_available_mutex);
+            // fs_log("cond wait until %lld\n", end_time);
             while (g_rendered_frame == g_available_frame) {
                 fs_condition_wait_until(
                     g_frame_available_cond, g_frame_available_mutex, end_time);
-                if (fs_condition_get_wait_end_time(0) >= end_time) {
+                check_time = fs_condition_get_wait_end_time(0);
+                if (check_time >= end_time) {
+                    // fs_log("timed out at %lld\n", check_time);
                     break;
+                } else {
+                    // fs_log("wake-up at %lld (end_time = %lld)\n", check_time, end_time);
                 }
             }
             fs_mutex_unlock(g_frame_available_mutex);

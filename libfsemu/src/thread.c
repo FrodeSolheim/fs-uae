@@ -5,25 +5,20 @@
 #include <fs/thread.h>
 #include <fs/base.h>
 #include <stdlib.h>
-
 #ifdef USE_GLIB
 #include <glib.h>
 #endif
-
 #ifdef USE_SDL2
 #define USE_SDL
 #endif
-
 #ifdef USE_SDL
 #include <SDL.h>
 #include <SDL_thread.h>
 #endif
-
 #ifdef USE_PTHREADS
 #include <pthread.h>
 #define USE_PSEM
 #endif
-
 #ifdef USE_PSEM
 #include <semaphore.h>
 #endif
@@ -66,7 +61,8 @@ struct fs_semaphore {
 };
 
 fs_thread *fs_thread_create(
-        const char *name, fs_thread_function fn, void *data) {
+        const char *name, fs_thread_function fn, void *data)
+{
     fs_thread *thread = (fs_thread *) g_malloc(sizeof(fs_thread));
 #if defined(USE_PTHREADS)
     pthread_attr_init(&thread->attr);
@@ -77,25 +73,19 @@ fs_thread *fs_thread_create(
 #else
 #error no thread support
 #endif
-
-/*
-#ifdef USE_SDL
-    thread->thread = SDL_CreateThread(fn, data);
-#endif
-*/
     return thread;
 }
 
 #if 0
 fs_thread *fs_thread_create_detached(
-        const char *name, fs_thread_function fn, void *data) {
+        const char *name, fs_thread_function fn, void *data)
+{
     fs_thread *thread = (fs_thread *) g_malloc(sizeof(fs_thread));
 #if defined(USE_PTHREADS)
     pthread_attr_init(&thread->attr);
     pthread_attr_setdetachstate(&thread->attr, PTHREAD_CREATE_DETACHED);
     pthread_create(&thread->thread, &thread->attr, fn, data);
 #elif defined(USE_GLIB)
-    //thread->thread = g_thread_new(name, fn, data);
     thread->thread = g_thread_create(fn, data, FALSE, NULL);
 #else
 #error no thread support
@@ -104,41 +94,29 @@ fs_thread *fs_thread_create_detached(
 }
 #endif
 
-void *fs_thread_wait(fs_thread *thread) {
+void *fs_thread_wait(fs_thread *thread)
+{
     void *result;
 #if defined(USE_PTHREADS)
     pthread_join(thread->thread, &result);
     pthread_attr_destroy(&thread->attr);
 #elif defined(USE_GLIB)
-    // FIXME: can use g_thread_ref if we want to keep a reference,
-    // and implemented fs_thread_destroy separately
-    //g_thread_ref(thread->thread);
+    /* FIXME: can use g_thread_ref if we want to keep a reference, and
+     * implement fs_thread_destroy separately */
     result = g_thread_join(thread->thread);
 #else
 #error no thread support
 #endif
-/*
-#ifdef USE_SDL
-    return SDL_WaitThread(thread->thread, NULL);
-#endif
-*/
     return result;
 }
 
-/*
-void fs_thread_destroy(fs_thread *thread) {
-#ifdef USE_GLIB
-    //g_thread_unref(thread->thread);
-#endif
-    g_free(thread);
-}
-*/
-
-void fs_thread_free(fs_thread *thread) {
+void fs_thread_free(fs_thread *thread)
+{
     g_free(thread);
 }
 
-fs_mutex *fs_mutex_create() {
+fs_mutex *fs_mutex_create()
+{
     fs_mutex *mutex = (fs_mutex *) g_malloc(sizeof(fs_mutex));
 #if defined(USE_PTHREADS)
     pthread_mutex_init(&mutex->mutex, NULL);
@@ -152,7 +130,8 @@ fs_mutex *fs_mutex_create() {
     return mutex;
 }
 
-void fs_mutex_destroy(fs_mutex *mutex) {
+void fs_mutex_destroy(fs_mutex *mutex)
+{
 #if defined(USE_PTHREADS)
     pthread_mutex_destroy(&mutex->mutex);
 #elif defined(USE_GLIB)
@@ -165,7 +144,8 @@ void fs_mutex_destroy(fs_mutex *mutex) {
     g_free(mutex);
 }
 
-int fs_mutex_lock(fs_mutex *mutex) {
+int fs_mutex_lock(fs_mutex *mutex)
+{
 #if defined(USE_PTHREADS)
     return pthread_mutex_lock(&mutex->mutex);
 #elif defined(USE_GLIB)
@@ -178,7 +158,8 @@ int fs_mutex_lock(fs_mutex *mutex) {
 #endif
 }
 
-int fs_mutex_unlock(fs_mutex *mutex) {
+int fs_mutex_unlock(fs_mutex *mutex)
+{
 #if defined(USE_PTHREADS)
     return pthread_mutex_unlock(&mutex->mutex);
 #elif defined(USE_GLIB)
@@ -191,7 +172,8 @@ int fs_mutex_unlock(fs_mutex *mutex) {
 #endif
 }
 
-fs_condition *fs_condition_create(void) {
+fs_condition *fs_condition_create(void)
+{
     fs_condition *condition = (fs_condition *) g_malloc(sizeof(fs_condition));
 #if defined(USE_PTHREADS)
     pthread_cond_init(&condition->condition, NULL);
@@ -205,7 +187,8 @@ fs_condition *fs_condition_create(void) {
     return condition;
 }
 
-void fs_condition_destroy(fs_condition *condition) {
+void fs_condition_destroy(fs_condition *condition)
+{
 #if defined(USE_PTHREADS)
     pthread_cond_destroy(&condition->condition);
 #elif defined(USE_GLIB)
@@ -218,7 +201,8 @@ void fs_condition_destroy(fs_condition *condition) {
     g_free(condition);
 }
 
-int fs_condition_wait (fs_condition *condition, fs_mutex *mutex) {
+int fs_condition_wait (fs_condition *condition, fs_mutex *mutex)
+{
 #if defined(USE_PTHREADS)
     return pthread_cond_wait(&condition->condition, &mutex->mutex);
 #elif defined(USE_GLIB)
@@ -231,39 +215,40 @@ int fs_condition_wait (fs_condition *condition, fs_mutex *mutex) {
 #endif
 }
 
-int64_t fs_condition_get_wait_end_time(int period) {
-#if defined(USE_GLIB)
-    return fs_get_monotonic_time() + period;
+int64_t fs_condition_get_wait_end_time(int period)
+{
+#if defined(USE_PTHREADS)
+#error FIXME: implement with clock_gettime(CLOCK_REALTIME, &ts);
+#elif defined(USE_GLIB)
+    return g_get_monotonic_time() + period;
 #else
     return fs_get_current_time() + period;
 #endif
 }
 
-int fs_condition_wait_until(fs_condition *condition, fs_mutex *mutex,
-        int64_t end_time) {
+int fs_condition_wait_until(
+        fs_condition *condition, fs_mutex *mutex, int64_t end_time)
+{
 #if defined(USE_PTHREADS)
     struct timespec tv;
     tv.tv_sec = end_time / 1000000;
     tv.tv_nsec = (end_time % 1000000) * 1000;
     return pthread_cond_timedwait(&condition->condition, &mutex->mutex, &tv);
 #elif defined(USE_GLIB)
-    // GTimeVal tv;
-    // tv.tv_sec = end_time / 1000000;
-    // tv.tv_usec = end_time % 1000000;
-    // gboolean result = g_cond_timed_wait(
-    //         &condition->condition, &mutex->mutex, &tv);
     gboolean result = g_cond_wait_until(
              &condition->condition, &mutex->mutex, end_time);
     return !result;
+#elif defined(USE_SDL2)
+#error FIXME: implement with SDL_CondWaitTimeout
 #elif defined(USE_SDL)
-    // FIXME: no timed wait...
-    return SDL_CondWait(condition->condition, mutex->mutex);
+#error no support for timed condition wait
 #else
 #error no thread support
 #endif
 }
 
-int fs_condition_signal(fs_condition *condition) {
+int fs_condition_signal(fs_condition *condition)
+{
 #if defined(USE_PTHREADS)
     return pthread_cond_signal(&condition->condition);
 #elif defined(USE_GLIB)
@@ -276,7 +261,8 @@ int fs_condition_signal(fs_condition *condition) {
 #endif
 }
 
-fs_semaphore *fs_semaphore_create(int value) {
+fs_semaphore *fs_semaphore_create(int value)
+{
     fs_semaphore *semaphore = (fs_semaphore *) g_malloc(sizeof(fs_semaphore));
 #if defined(USE_PSEM)
     sem_init(&semaphore->semaphore, 1, value);
@@ -288,7 +274,8 @@ fs_semaphore *fs_semaphore_create(int value) {
     return semaphore;
 }
 
-void fs_semaphore_destroy(fs_semaphore *semaphore) {
+void fs_semaphore_destroy(fs_semaphore *semaphore)
+{
 #if defined(USE_PSEM)
     sem_destroy(&semaphore->semaphore);
 #elif defined(USE_SDL)
@@ -299,7 +286,8 @@ void fs_semaphore_destroy(fs_semaphore *semaphore) {
     g_free(semaphore);
 }
 
-int fs_semaphore_post(fs_semaphore *semaphore) {
+int fs_semaphore_post(fs_semaphore *semaphore)
+{
 #if defined(USE_PSEM)
     return sem_post(&semaphore->semaphore);
 #elif defined(USE_SDL)
@@ -309,7 +297,8 @@ int fs_semaphore_post(fs_semaphore *semaphore) {
 #endif
 }
 
-int fs_semaphore_wait(fs_semaphore *semaphore) {
+int fs_semaphore_wait(fs_semaphore *semaphore)
+{
 #if defined(USE_PSEM)
     return sem_wait(&semaphore->semaphore);
 #elif defined(USE_SDL)
@@ -319,7 +308,8 @@ int fs_semaphore_wait(fs_semaphore *semaphore) {
 #endif
 }
 
-int fs_semaphore_try_wait(fs_semaphore *semaphore) {
+int fs_semaphore_try_wait(fs_semaphore *semaphore)
+{
 #if defined(USE_PSEM)
     return sem_trywait(&semaphore->semaphore);
 #elif defined(USE_SDL)

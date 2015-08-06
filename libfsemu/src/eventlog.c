@@ -3,22 +3,19 @@
 #endif
 
 #include <fs/eventlog.h>
-
 #include <stdio.h>
 #include <stdlib.h>
-
 #include <fs/base.h>
 #include <fs/filesys.h>
 #include <fs/glib.h>
 #include <fs/init.h>
 #include <fs/thread.h>
 
-//#define THREADED_LOGGING
+#ifdef NOT_USED
 
 static int g_log_events = 0;
 static fs_mutex *g_mutex = NULL;
 static GList *g_event_list = NULL;
-//static int64_t g_epoch = 0;
 static volatile int g_event = 0;
 static volatile int g_event_count = 0;
 static FILE *g_event_file;
@@ -36,7 +33,8 @@ FS_INIT_FUNCTION(module) {
     }
 }
 
-static void flush_events() {
+static void flush_events()
+{
     GList *link = g_event_list;
     while (link) {
         fwrite(link->data, 13, 1, g_event_file);
@@ -49,8 +47,9 @@ static void flush_events() {
     g_event_count = 0;
 }
 
-static void fs_eventlog_new_event(int64_t *event_time, int *event,
-        uint8_t event_type) {
+static void fs_eventlog_new_event(
+        int64_t *event_time, int *event, uint8_t event_type)
+{
     FS_INIT(module);
     if (!g_log_events) {
         return;
@@ -85,8 +84,9 @@ static void fs_eventlog_new_event(int64_t *event_time, int *event,
     }
 }
 
-static void fs_eventlog_update_event(int64_t event_time, int event,
-            int64_t t1, int64_t t2) {
+static void fs_eventlog_update_event(
+        int64_t event_time, int event, int64_t t1, int64_t t2)
+{
     FS_INIT(module);
     if (!g_log_events) {
         return;
@@ -112,3 +112,5 @@ static void fs_eventlog_update_event(int64_t event_time, int event,
     g_event_count++;
     fs_mutex_unlock(g_mutex);
 }
+
+#endif

@@ -567,7 +567,6 @@ static int createimagefromexe (struct zfile *src, struct zfile *dst)
 
 static bool isfloppysound (drive *drv)
 {
-	write_log("isfloppysound %d\n", drv->useturbo == 0);
 	return drv->useturbo == 0;
 }
 

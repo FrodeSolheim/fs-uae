@@ -924,14 +924,18 @@ int fs_ml_event_loop(void)
         case SDL_KEYDOWN:
         case SDL_KEYUP:
             if (g_debug_input) {
-                fs_log("SDL key sym %d mod %d scancode %d state %d\n",
+                fs_log("SDL key sym %d mod %d scancode %d state %d repeat %d\n",
                         event.key.keysym.sym, event.key.keysym.mod,
-                        event.key.keysym.scancode, event.key.state);
+                        event.key.keysym.scancode, event.key.state,
+                       event.key.repeat);
+            }
+            if (event.key.repeat) {
+                continue;
             }
             if (event.key.keysym.sym == 0 && event.key.keysym.scancode == 0) {
-                // ignore "ghost key" seen on OS X which without this
-                // specific check will cause the A key to be mysteriously
-                // pressed.
+                /* ignore "ghost key" seen on OS X which without this
+                 * specific check will cause the A key to be mysteriously
+                 * pressed. */
                 if (g_debug_input) {
                     fs_log("- ignored key with keysym 0 and scancode 0\n");
                 }

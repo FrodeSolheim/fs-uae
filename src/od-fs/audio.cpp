@@ -61,6 +61,11 @@ int amiga_set_audio_buffer_size(int size)
 
 int amiga_set_audio_frequency(int frequency)
 {
+    if (frequency == 0) {
+        /* Some code divides by frequency, so 0 is not a good idea */
+        write_log("WARNING: amiga_set_audio_frequency 0, set to 44100\n");
+        frequency = 44100;
+    }
     char freq[13];
     snprintf(freq, 13, "%d", frequency);
     amiga_set_option("sound_frequency", freq);

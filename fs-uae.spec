@@ -1,11 +1,16 @@
-Name: fs-uae
-Version: 2.5.35dev
-Release: 1%{?dist}
+%define name fs-uae
+%define version 2.5.36dev
+%define unmangled_version 2.5.36dev
+%define release 1%{?dist}
+
 Summary: Amiga emulator with on-screen GUI and online play support
+Name: %{name}
+Version: %{version}
+Release: %{release}
+URL: http://fs-uae.net/
+Source0: %{name}-%{unmangled_version}.tar.gz
 License: GPL-2.0+
 Group: System/Emulators/Other
-Url: http://fs-uae.net/
-Source0: http://fs-uae.net/devel/%{version}/fs-uae-%{version}.tar.gz
 %if 0%{?suse_version}
 BuildRequires: fdupes
 %endif
@@ -47,7 +52,7 @@ recommended, but not required (FS-UAE can emulate a joystick
 using the cursor keys and right ctrl/alt keys).
 
 %prep
-%setup -q
+%setup -n %{name}-%{unmangled_version}
 
 %build
 %configure

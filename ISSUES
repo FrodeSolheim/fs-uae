@@ -1,5 +1,3 @@
 * When entering the GUI using modifier+F12, the modifier key(s) sticks in
   the emulated Amiga when you return to the emulation.
 * Graphical flickering in Workbench with non-cycle-exact emulation.
-* When starting FS-UAE from FS-UAE Launcher, accelerator flashs ROM writes
-  are not persistent because the launcher uses a new copy every time.

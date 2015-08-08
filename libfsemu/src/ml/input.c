@@ -5,6 +5,7 @@
 #include <SDL.h>
 #include <stdlib.h>
 #include <fs/conf.h>
+#include <fs/lazyness.h>
 #include <fs/log.h>
 #include <fs/glib.h>
 #include <fs/ml/options.h>
@@ -17,6 +18,7 @@ static GQueue *g_input_queue = NULL;
 static fs_mutex *g_input_mutex = NULL;
 static fs_ml_input_function g_input_function = NULL;
 
+int g_fs_log_input = 0;
 int g_fs_ml_first_keyboard_index = 0;
 int g_fs_ml_first_mouse_index = 0;
 int g_fs_ml_first_joystick_index = 0;
@@ -121,6 +123,14 @@ void fs_ml_input_init()
 
     fs_log("fs_ml_input_init\n");
 
+    g_fs_log_input = getenv("FS_DEBUG_INPUT") && \
+            getenv("FS_DEBUG_INPUT")[0] == '1';
+
+    if (fs_config_get_boolean(OPTION_LOG_INPUT) == 1) {
+        fs_log("Logging: enable input event logging\n");
+        g_fs_log_input = 1;
+    }
+
     if (fs_config_get_boolean(OPTION_MOUSE_INTEGRATION) == 1) {
         g_mouse_integration = 1;
     }
@@ -174,6 +184,7 @@ void fs_ml_input_init()
             break;
         }
         SDL_Joystick *joystick = SDL_JoystickOpen(i);
+        fs_log("SDL_JoystickOpen(%d)\n", i);
 
 #ifdef USE_SDL2
         char *name = fs_ml_input_fix_joystick_name(

@@ -25,6 +25,7 @@
 //#endif
 
 #include <fs/conf.h>
+#include <fs/lazyness.h>
 // #include <GLee.h>
 #include <GL/glew.h>
 #include <fs/glib.h>
@@ -65,7 +66,6 @@ static int g_fs_ml_automatic_input_grab = 1;
 static int g_fs_ml_keyboard_input_grab = 1;
 static int g_fsaa = 0;
 
-static int g_debug_input = 0;
 static int g_f12_state, g_f11_state;
 
 static char *g_window_title;
@@ -923,7 +923,7 @@ int fs_ml_event_loop(void)
 #endif
         case SDL_KEYDOWN:
         case SDL_KEYUP:
-            if (g_debug_input) {
+            if (g_fs_log_input) {
                 fs_log("SDL key sym %d mod %d scancode %d state %d repeat %d\n",
                         event.key.keysym.sym, event.key.keysym.mod,
                         event.key.keysym.scancode, event.key.state,
@@ -936,7 +936,7 @@ int fs_ml_event_loop(void)
                 /* ignore "ghost key" seen on OS X which without this
                  * specific check will cause the A key to be mysteriously
                  * pressed. */
-                if (g_debug_input) {
+                if (g_fs_log_input) {
                     fs_log("- ignored key with keysym 0 and scancode 0\n");
                 }
                 continue;
@@ -1027,7 +1027,7 @@ int fs_ml_event_loop(void)
             }
 #endif
             else if (key >= 0) {
-                if (g_debug_input) {
+                if (g_fs_log_input) {
                     fs_log("- key code set to %d (was %d) based on "
                            "scancode %d\n", key, event.key.keysym.sym,
                            event.key.keysym.scancode);
@@ -1091,6 +1091,11 @@ int fs_ml_event_loop(void)
             new_event->key.state = event.key.state;
         }
         else if (event.type == SDL_JOYBUTTONDOWN) {
+            if (g_fs_log_input) {
+                fs_log("SDL_JOYBUTTONDOWN which %d button %d state %d\n",
+                       event.jbutton.which, event.jbutton.button,
+                       event.jbutton.state);
+            }
             new_event = fs_ml_alloc_event();
             new_event->type = FS_ML_JOYBUTTONDOWN;
             new_event->jbutton.which = g_fs_ml_first_joystick_index + \
@@ -1099,6 +1104,11 @@ int fs_ml_event_loop(void)
             new_event->jbutton.state = event.jbutton.state;
         }
         else if (event.type == SDL_JOYBUTTONUP) {
+            if (g_fs_log_input) {
+                fs_log("SDL_JOYBUTTONUP which %d button %d state %d\n",
+                       event.jbutton.which, event.jbutton.button,
+                       event.jbutton.state);
+            }
             new_event = fs_ml_alloc_event();
             new_event->type = FS_ML_JOYBUTTONUP;
             new_event->jbutton.which = g_fs_ml_first_joystick_index + \
@@ -1107,6 +1117,7 @@ int fs_ml_event_loop(void)
             new_event->jbutton.state = event.jbutton.state;
         }
         else if (event.type == SDL_JOYAXISMOTION) {
+            /* Not logging axis motion, too much noise */
             new_event = fs_ml_alloc_event();
             new_event->type = FS_ML_JOYAXISMOTION;
             new_event->jaxis.which = g_fs_ml_first_joystick_index + \
@@ -1115,6 +1126,10 @@ int fs_ml_event_loop(void)
             new_event->jaxis.value = event.jaxis.value;
         }
         else if (event.type == SDL_JOYHATMOTION) {
+            if (g_fs_log_input) {
+                fs_log("SDL_JOYHATMOTION which %d hat %d value %d\n",
+                       event.jhat.which, event.jhat.hat, event.jhat.value);
+            }
             new_event = fs_ml_alloc_event();
             new_event->type = FS_ML_JOYHATMOTION;
             new_event->jhat.which = g_fs_ml_first_joystick_index + \
@@ -1133,7 +1148,7 @@ int fs_ml_event_loop(void)
             new_event->motion.y = event.motion.y;
             //printf("ISREL %d\n", SDL_GetRelativeMouseMode());
 
-            if (g_debug_input) {
+            if (g_fs_log_input) {
                 fs_log("SDL mouse event x: %4d y: %4d xrel: %4d yrel: %4d\n", 
                     event.motion.x, event.motion.y,
                     event.motion.xrel, event.motion.yrel);
@@ -1183,7 +1198,7 @@ int fs_ml_event_loop(void)
             }
             */
             if (event.wheel.y) {
-                if (g_debug_input) {
+                if (g_fs_log_input) {
                     fs_log("SDL mouse event y-scroll: %4d\n",
                         event.wheel.y);
                 }
@@ -1285,9 +1300,6 @@ void fs_ml_video_init()
 
     g_video_event_queue = g_queue_new();
     g_video_event_mutex = fs_mutex_create();
-
-    g_debug_input = getenv("FS_DEBUG_INPUT") && \
-            getenv("FS_DEBUG_INPUT")[0] == '1';
 
     fs_ml_render_init();
 }

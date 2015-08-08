@@ -11,7 +11,6 @@
 
 int tablet_log = 0;
 
-static int g_debug_input;
 static int g_joystick_port_autofire[4];
 
 void amiga_set_joystick_port_autofire(int port, int autofire) {
@@ -65,11 +64,9 @@ int amiga_send_input_event(int input_event, int state) {
     static int initialized = 0;
     if (!initialized) {
         initialized = 1;
-        g_debug_input = getenv("FS_DEBUG_INPUT") && \
-                getenv("FS_DEBUG_INPUT")[0] == '1';
     }
 
-    if (g_debug_input) {
+    if (g_fs_log_input) {
         write_log("amiga_send_input_event %d %d\n", input_event, state);
     }
 

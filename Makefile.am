@@ -574,6 +574,7 @@ libfsemu_a_SOURCES = \
 	libfsemu/include/fs/image.h \
 	libfsemu/include/fs/inifile.h \
 	libfsemu/include/fs/init.h \
+	libfsemu/include/fs/lazyness.h \
 	libfsemu/include/fs/log.h \
 	libfsemu/include/fs/main.h \
 	libfsemu/include/fs/malloc.h \

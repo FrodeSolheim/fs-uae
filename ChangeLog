@@ -1,3 +1,8 @@
+Version 2.5.37dev:
+
+* Added new option log_input (replaces environment variable FS_DEBUG_INPUT).
+* Also log joystick button and hat events when log_input is enabled.
+
 Version 2.5.36dev:
 
 * Fixed a crash (floating point exception) if audio device cannot be opened.

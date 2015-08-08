@@ -8,6 +8,8 @@
 #include "uae/types.h"
 #include "uae/uae.h"
 
+#include <fs/lazyness.h>
+
 void romlist_init (void);
 void romlist_patch_rom(uae_u8 *buf, size_t size);
 void keyboard_settrans (void);

@@ -1098,8 +1098,8 @@ int fs_ml_event_loop(void)
             }
             new_event = fs_ml_alloc_event();
             new_event->type = FS_ML_JOYBUTTONDOWN;
-            new_event->jbutton.which = g_fs_ml_first_joystick_index + \
-                    event.jbutton.which;
+            new_event->jbutton.which = \
+                    g_fs_ml_sdl_joystick_index_map[event.jbutton.which];
             new_event->jbutton.button = event.jbutton.button;
             new_event->jbutton.state = event.jbutton.state;
         }
@@ -1111,8 +1111,8 @@ int fs_ml_event_loop(void)
             }
             new_event = fs_ml_alloc_event();
             new_event->type = FS_ML_JOYBUTTONUP;
-            new_event->jbutton.which = g_fs_ml_first_joystick_index + \
-                    event.jbutton.which;
+            new_event->jbutton.which = \
+                    g_fs_ml_sdl_joystick_index_map[event.jbutton.which];
             new_event->jbutton.button = event.jbutton.button;
             new_event->jbutton.state = event.jbutton.state;
         }
@@ -1120,8 +1120,8 @@ int fs_ml_event_loop(void)
             /* Not logging axis motion, too much noise */
             new_event = fs_ml_alloc_event();
             new_event->type = FS_ML_JOYAXISMOTION;
-            new_event->jaxis.which = g_fs_ml_first_joystick_index + \
-                    event.jaxis.which;
+            new_event->jaxis.which = \
+                    g_fs_ml_sdl_joystick_index_map[event.jaxis.which];
             new_event->jaxis.axis = event.jaxis.axis;
             new_event->jaxis.value = event.jaxis.value;
         }
@@ -1132,8 +1132,8 @@ int fs_ml_event_loop(void)
             }
             new_event = fs_ml_alloc_event();
             new_event->type = FS_ML_JOYHATMOTION;
-            new_event->jhat.which = g_fs_ml_first_joystick_index + \
-                    event.jhat.which;
+            new_event->jhat.which = \
+                    g_fs_ml_sdl_joystick_index_map[event.jhat.which];
             new_event->jhat.hat = event.jhat.hat;
             new_event->jhat.value = event.jhat.value;
         }

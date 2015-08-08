@@ -23,6 +23,9 @@ int g_fs_ml_first_keyboard_index = 0;
 int g_fs_ml_first_mouse_index = 0;
 int g_fs_ml_first_joystick_index = 0;
 
+/* maps SDL joystick indices to fs_ml indices */
+SDL_JoystickID g_fs_ml_sdl_joystick_index_map[MAX_SDL_JOYSTICK_IDS];
+
 static int g_cursor_mode = 1;
 static int g_mouse_integration = 0;
 
@@ -115,6 +118,23 @@ char *fs_ml_input_fix_joystick_name(const char *name, int upper)
     return n;
 }
 
+static int fs_ml_check_joystick_blacklist_by_guid(const char *guid)
+{
+    if (false) {
+#if 0
+    } else if (strcasecmp(guid, "efbeedfe000000000000504944564944") == 0) {
+        /* VIRTUAL HID DEVICE */
+        return 1;
+#endif
+#if 0
+    } else if (strcasecmp(guid, "030000000b0400003365000000010000") == 0) {
+        /* MOSIC      SPEED-LINK COMPETITION PRO */
+        return 1;
+#endif
+    }
+    return 0;
+}
+
 void fs_ml_input_init()
 {
     FS_ML_INIT_ONCE;
@@ -183,6 +203,17 @@ void fs_ml_input_init()
             fs_log("WARNING: reached max num devices\n");
             break;
         }
+
+        char guid_str[33];
+        SDL_JoystickGUID guid = SDL_JoystickGetDeviceGUID(i);
+        SDL_JoystickGetGUIDString(guid, guid_str, 33);
+        guid_str[32] = '\0';
+        fs_log("SDL_JoystickGetDeviceGUID(%d) = %s\n", i, guid_str);
+        if (fs_ml_check_joystick_blacklist_by_guid(guid_str)) {
+            fs_log("- blacklisted, not opening!\n");
+            continue;
+        }
+
         SDL_Joystick *joystick = SDL_JoystickOpen(i);
         fs_log("SDL_JoystickOpen(%d)\n", i);
 
@@ -220,6 +251,17 @@ void fs_ml_input_init()
                g_fs_ml_input_devices[k].hats,
                g_fs_ml_input_devices[k].axes,
                g_fs_ml_input_devices[k].balls);
+
+        SDL_JoystickID instance_id = SDL_JoystickInstanceID(joystick);
+        fs_log("- instance ID = %d\n", instance_id);
+        if (instance_id >= MAX_SDL_JOYSTICK_IDS) {
+            fs_log("SDL_JoystickID > %d\n", MAX_SDL_JOYSTICK_IDS);
+            fs_log("- closing joystick\n");
+            SDL_JoystickClose(joystick);
+            continue;
+        }
+
+        g_fs_ml_sdl_joystick_index_map[instance_id] = k;
         k += 1;
     }
 

@@ -1,5 +1,6 @@
 Version 2.5.37dev:
 
+* Fixed a joystick issue where SDL_JoystickID was not used properly.
 * Added new option log_input (replaces environment variable FS_DEBUG_INPUT).
 * Also log joystick button and hat events when log_input is enabled.
 

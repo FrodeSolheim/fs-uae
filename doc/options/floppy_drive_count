@@ -1,6 +1,15 @@
+Summary: Floppy Drive Count
+Type: Choice
+Default:
+Example: 2
+
+Value: 0
+Value: 1
+Value: 2
+Value: 3
+Value: 4
 
 Code:
-
     if c.floppy_drive_count.explicit:
         value = c.floppy_drive_count.explicit
     elif c.floppy_drive_3:

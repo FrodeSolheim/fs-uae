@@ -1,7 +1,36 @@
+Version 2.5.37dev:
+
+* Fixed a joystick issue where SDL_JoystickID was not used properly.
+* Added new option log_input (replaces environment variable FS_DEBUG_INPUT).
+* Also log joystick button and hat events when log_input is enabled.
+
+Version 2.5.36dev:
+
+* Fixed a crash (floating point exception) if audio device cannot be opened.
+
+Version 2.5.35dev:
+
+* Fixed bug (lockup) when quitting FS-UAE from Amiga side on some platforms.
+* Fixed a potential key repeat issue (could not reproduce original problem).
+* Load kickstart replacement from data files instead of embedding in
+  executable.
+* Re-enabled serial port (was disabled in 2.5.31dev), fixed AROS Kickstart
+  replacement.
+* Share serial port emulation code with WinUAE.
+
+Version 2.5.34dev:
+
+* New option floppy_drive_volume_empty.
+* Switched default key mapping for host backslash and insert keys.
+* Use GLEW instead of GLee for OpenGL extensions.
+* When not using FS-UAE Launcher, model A1200 defaulted to kickstart 3.0.
+
 Version 2.5.33dev:
 
-* New amiga model "A1200/3.0".
-* Added option new motherboard_ram.
+* Blizzard SCSI Kit ROM wasn't found by (full) path.
+* Several new amiga quickstart models for A1200.
+* Added several Blizzard boards to accelerator option.
+* Added new options motherboard_ram, blizzard_scsi_kit.
 * New boolean option window_border to disable window decorations.
 * If STEAM_RUNTIME is set, look for "steamos" plugins, not "linux" plugins.
 * Plugin search path updated (also changed plugin format slightly).

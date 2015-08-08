@@ -1,10 +1,7 @@
 #include "fs/base.h"
-
 #include <string.h>
 
-#ifdef USE_GLIB
-
-#else
+#ifndef USE_GLIB
 
 void *fs_malloc0(size_t n_bytes)
 {

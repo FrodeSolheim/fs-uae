@@ -182,7 +182,7 @@ void fs_ml_initialize_keymap() {
 #ifdef WITH_WINDOWS_VIDEO
 
 #include "video.h"
-#include <fs/glee.>
+// #include <fs/glee.>
 #include <Ddraw.h>
 
 /*

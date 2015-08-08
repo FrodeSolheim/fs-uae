@@ -76,14 +76,14 @@ typedef struct local_file_header {
 
 static int read_zip_entries (FILE *f) {
     if (fseek(f, 0, SEEK_END) != 0) {
-        // fseek to end of file failed
+        /* fseek to end of file failed */
         return 2;
     }
     int file_size = ftell(f);
 
-    // we do not support zip file comments here (which are added at the end),
-    // and assume that the file ends with the (fixed size) end of
-    // central directory.
+    /* We do not support zip file comments here (which are added at the end),
+     * and assume that the file ends with the (fixed size) end of central
+     * directory. */
 
     int pos = file_size - sizeof(end_of_central_directory_record);
     if (fseek(f, pos, SEEK_SET) != 0) {
@@ -95,7 +95,7 @@ static int read_zip_entries (FILE *f) {
         return ERROR_EOCDR_READ;
     }
     if (strncmp(eocdr.signature, "PK\x05\x06", 4) != 0) {
-        // no signature found, not a zip file
+        /* no signature found, not a zip file */
         return ERROR_EOCDR_SIG;
     }
     if (le16toh(eocdr.num_entries) > 8192) {
@@ -105,7 +105,6 @@ static int read_zip_entries (FILE *f) {
     pos = le32toh(eocdr.central_directory_offset);
     central_file_header cfh;
     for (int i = 0; i < le16toh(eocdr.num_entries); i++) {
-        // printf("reading zip entry %d from position %d\n", i, pos);
         if (fseek(f, pos, SEEK_SET) != 0) {
             return ERROR_CFH_SEEK;
         }
@@ -113,7 +112,7 @@ static int read_zip_entries (FILE *f) {
             return ERROR_CFH_READ;
         }
         if (strncmp(cfh.signature, "PK\x01\x02", 4) != 0) {
-            // no signature found, not a central file header
+            /* no signature found, not a central file header */
             return ERROR_CFH_SIG;
         }
         uint16_t name_len = le16toh(cfh.file_name_length);
@@ -124,7 +123,6 @@ static int read_zip_entries (FILE *f) {
             free(name);
             return ERROR_CFH_NAME;
         }
-        // printf("%s\n", name);
 
         g_hash_table_insert(
             g_dat_table, name,
@@ -133,23 +131,10 @@ static int read_zip_entries (FILE *f) {
         pos += name_len + le16toh(cfh.extra_field_length) + \
                 le16toh(cfh.file_comment_length);
     }
-
-    /*
-    char signature[4];
-    if (fread(signature, 4, 1, f) != 1) {
-        return 4;
-    }
-    if (strncmp(signature, "PK\x05\x06", 4) != 0) {
-        // no signature found, not a zip file
-        return 5;
-    }
-    */
-
     return 0;
 }
 
 int fs_data_file_content(const char *name, char **data, int *size) {
-    // printf("fs_data_file_content %s\n", name);
     if (g_dat_file == NULL) {
         return 1;
     }
@@ -167,7 +152,6 @@ int fs_data_file_content(const char *name, char **data, int *size) {
     gpointer ptr = g_hash_table_lookup(g_dat_table, name2);
     g_free(name2);
     if (ptr == NULL) {
-        // printf("did not find entry in dat file\n");
         return 3;
     }
     int pos = GPOINTER_TO_UINT(ptr);
@@ -182,11 +166,11 @@ int fs_data_file_content(const char *name, char **data, int *size) {
         return 7;
     }
     if (strncmp(lfh.signature, "PK\x03\x04", 4) != 0) {
-        // no signature found, not a local file header
+        /* no signature found, not a local file header */
         return 8;
     }
     if (lfh.compression_method != 0) {
-        // file is stored compressed
+        /* file is stored compressed, not supported right now */
         return 9;
     }
     if (lfh.compressed_size != lfh.uncompressed_size) {
@@ -202,10 +186,9 @@ int fs_data_file_content(const char *name, char **data, int *size) {
 
     *size = le32toh(lfh.uncompressed_size);
     if (*size > 10 * 1024 * 1024) {
-        // don't try to allocate very large files
+        /* don't try to allocate very large files */
         return 12;
     }
-
     *data = malloc(*size);
 
     pos += sizeof(local_file_header) + le16toh(lfh.file_name_length) + \
@@ -215,18 +198,16 @@ int fs_data_file_content(const char *name, char **data, int *size) {
         printf("could not seek to dat file data position %d\n", pos);
         return 13;
     }
-
     if (fread(*data, *size, 1, g_dat_file) != 1) {
         printf("could not read entry data\n");
         return 14;
     }
-
-    // printf("read data into %p[%d]\n", *data, *size);
     return 0;
 }
 
-int fs_data_init(const char *app_name, const char *dat_name) {
-    printf("fs_data_init %s %s\n", app_name, dat_name);
+int fs_data_init(const char *app_name, const char *dat_name)
+{
+    fs_log("fs_data_init %s %s\n", app_name, dat_name);
     char exe_path[PATH_MAX + 1];
     int result = fs_get_application_exe_path(exe_path, PATH_MAX);
     if (result != 1) {
@@ -235,14 +216,14 @@ int fs_data_init(const char *app_name, const char *dat_name) {
 
     g_dat_table = g_hash_table_new(g_str_hash, g_str_equal);
 
-    // check for embedded dat file
-    printf("checking dat file: %s\n", exe_path);
+    /* Check for embedded dat file */
+    fs_log("checking dat file: %s\n", exe_path);
     g_dat_file = g_fopen(exe_path, "rb");
     int error = read_zip_entries(g_dat_file);
     if (error == 0) {
         return 0;
     }
-    printf("no dat file: %s\n", exe_path);
+    fs_log("no dat file: %s\n", exe_path);
     fclose(g_dat_file);
     g_dat_file = NULL;
 
@@ -251,35 +232,27 @@ int fs_data_init(const char *app_name, const char *dat_name) {
         return 1;
     }
 
-    // check if dat file is beside the executable
+    /* Check if dat file is placed alongside the executable */
     char *dat_path = g_build_filename(exe_path, dat_name, NULL);
-    printf("checking dat file: %s\n", dat_path);
+    fs_log("checking dat file: %s\n", dat_path);
     g_dat_file = g_fopen(dat_path, "rb");
     free(dat_path);
 
     if (g_dat_file == NULL) {
         char *dat_path = g_build_filename(
             exe_path, "..", "share", app_name, dat_name, NULL);
-        printf("checking dat file: %s\n", dat_path);
+        fs_log("checking dat file: %s\n", dat_path);
         g_dat_file = g_fopen(dat_path, "rb");
         free(dat_path);
     }
 
     if (g_dat_file == NULL) {
         error = 10;
-    }
-    else {
+    } else {
         error = read_zip_entries(g_dat_file);
         if (error == 0) {
-/*
-            char *data_out;
-            int size_out;
-            int r = fs_data_file_content("share/fs-uae/menu_fade_item.png", &data_out, &size_out);
-            printf("result:%d %p %d\n", r, data_out, size_out);
-*/
             return 0;
         }
     }
-
     return error;
 }

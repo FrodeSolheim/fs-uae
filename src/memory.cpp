@@ -1595,19 +1595,34 @@ static void patch_kick (void)
 		kickstart_fix_checksum (kickmem_bank.baseaddr, kickmem_bank.allocated);
 }
 
+#ifdef FSUAE
+#include "fs/data.h"
+#else
 extern unsigned char arosrom[];
 extern unsigned int arosrom_len;
+#endif
 extern int seriallog;
 static bool load_kickstart_replacement (void)
 {
 	struct zfile *f;
-	
+
+#ifdef FSUAE
+	char *data;
+	int data_size;
+	if (fs_data_file_content("share/fs-uae/aros-amiga-m68k-ext.bin",
+							 &data, &data_size) != 0) {
+		//printf("%d\n", false);
+		return false;
+	}
+	f = zfile_fopen_data(_T("aros-ext.bin"), data_size, (const uae_u8*) data);
+#else
 	f = zfile_fopen_data (_T("aros.gz"), arosrom_len, arosrom);
 	if (!f)
 		return false;
 	f = zfile_gunzip (f);
 	if (!f)
 		return false;
+#endif
 
 	extendedkickmem_bank.allocated = ROM_SIZE_512;
 	extendedkickmem_bank.mask = ROM_SIZE_512 - 1;
@@ -1616,11 +1631,24 @@ static bool load_kickstart_replacement (void)
 	mapped_malloc (&extendedkickmem_bank);
 	read_kickstart (f, extendedkickmem_bank.baseaddr, ROM_SIZE_512, 0, 1);
 
+#ifdef FSUAE
+	zfile_fclose(f);
+	free(data);
+	if (fs_data_file_content("share/fs-uae/aros-amiga-m68k-rom.bin",
+							 &data, &data_size) != 0) {
+		return false;
+	}
+	f = zfile_fopen_data(_T("aros-rom.bin"), data_size, (const uae_u8*) data);
+#endif
+
 	kickmem_bank.allocated = ROM_SIZE_512;
 	kickmem_bank.mask = ROM_SIZE_512 - 1;
 	read_kickstart (f, kickmem_bank.baseaddr, ROM_SIZE_512, 1, 0);
 
 	zfile_fclose (f);
+#ifdef FSUAE
+	free(data);
+#endif
 
 	changed_prefs.custom_memory_addrs[0] = currprefs.custom_memory_addrs[0] = 0xa80000;
 	changed_prefs.custom_memory_sizes[0] = currprefs.custom_memory_sizes[0] = 512 * 1024;
@@ -2353,7 +2381,7 @@ uae_u32 getz2endaddr (void)
 	return start + 2 * 1024 * 1024;
 }
 
-void map_banks_set(addrbank *bank, int start, int size, int realsize)
+static void map_banks_set(addrbank *bank, int start, int size, int realsize)
 {
 	bank->startmask = start << 16;
 	map_banks(bank, start, size, realsize);
@@ -3098,7 +3126,7 @@ uae_u8 *save_bram (int *len)
 	return bogomem_bank.baseaddr;
 }
 
-uae_u8 *save_mem25bitram (int *len)
+static uae_u8 *save_mem25bitram (int *len)
 {
 	*len = mem25bit_bank.allocated;
 	return mem25bit_bank.baseaddr;

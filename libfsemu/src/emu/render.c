@@ -2264,7 +2264,7 @@ void fs_emu_video_render_function() {
     if (fade_time == FS_CONFIG_NONE) {
         fade_time = fs_config_get_int_clamped("fade_in_duration", 0, 10000);
         if (fade_time == FS_CONFIG_NONE) {
-            fade_time = 750;
+            fade_time = 0;
         }
         fade_time = fade_time * 1000;
     }

@@ -1,4 +1,4 @@
-Description: Grab mouse and keyboard input when FS-UAE starts
+Description: Grab Input on FS-UAE Startup
 Default:
 Example: 0
 Type: boolean

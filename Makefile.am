@@ -6,6 +6,7 @@ WARNINGS =
 
 CM_CFLAGS =
 CM_CFLAGS += @FREETYPE_CFLAGS@
+CM_CFLAGS += @GLEW_CFLAGS@
 CM_CFLAGS += @GLIB_CFLAGS@
 CM_CFLAGS += @LUA_CFLAGS@
 CM_CFLAGS += @MIR_CFLAGS@
@@ -48,6 +49,7 @@ AM_CPPFLAGS += -DUAE -DFSUAE
 
 LIBS += @CARBON_LIBS@
 LIBS += @FREETYPE_LIBS@
+LIBS += @GLEW_LIBS@
 LIBS += @GLIB_LIBS@
 LIBS += @IOKIT_LIBS@
 # LIBS += @MIR_LIBS@
@@ -198,7 +200,6 @@ libuae_a_SOURCES = \
 	src/archivers/wrp/warp.h \
 	src/archivers/zip/unzip.cpp \
 	src/archivers/zip/unzip.h \
-	src/aros.rom.cpp \
 	src/audio.cpp \
 	src/autoconf.cpp \
 	src/blitter.cpp \
@@ -498,7 +499,6 @@ libuae_a_SOURCES = \
 	src/od-fs/parser.cpp \
 	src/od-fs/paths.cpp \
 	src/od-fs/roms.cpp \
-	src/od-fs/serial_host.cpp \
 	src/od-fs/sleep.h \
 	src/od-fs/sounddep/sound.h \
 	src/od-fs/statusline.cpp \
@@ -524,6 +524,7 @@ libuae_a_SOURCES = \
 	src/od-win32/parser.h \
 	src/od-win32/picasso96_win.cpp \
 	src/od-win32/picasso96_win.h \
+	src/od-win32/serial_win32.cpp \
 	src/od-win32/win32_uaenet.cpp \
 	src/pci.cpp \
 	src/ppc/pixman-stubs.cpp \
@@ -633,6 +634,7 @@ libfsemu_a_SOURCES = \
 	libfsemu/include/fs/image.h \
 	libfsemu/include/fs/inifile.h \
 	libfsemu/include/fs/init.h \
+	libfsemu/include/fs/lazyness.h \
 	libfsemu/include/fs/log.h \
 	libfsemu/include/fs/main.h \
 	libfsemu/include/fs/malloc.h \
@@ -1200,6 +1202,9 @@ EXTRA_DIST = $(TESTS) $(EXTRA_TESTS) \
 	flac/include/FLAC/stream_encoder.h \
 	fs-uae.spec \
 	icon/fs-uae.ico \
+	libinih/ini.c \
+	libinih/ini.h \
+	libinih/LICENSE.txt \
 	libudis86/README \
 	licenses/fs-uae.txt \
 	licenses/glib.txt \

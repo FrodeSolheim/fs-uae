@@ -23,7 +23,8 @@
 #include <GLES/gl.h>
 #define GL_BGRA 0x80e1
 #else
-#include <GLee.h>
+// #include <GLee.h>
+ #include <GL/glew.h>
 #endif
 
 #ifndef APIENTRY

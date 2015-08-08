@@ -19,7 +19,7 @@ to work. A game pad or joystick is recommended, but not required (FS-UAE
 can emulate a joystick using the cursor keys and right ctrl/alt keys).
 
 The official home page of FS-UAE is:
-http://fengestad.no/fs-uae/
+http://fs-uae.net/
 
 Thank you for your interest in FS-UAE :)
 
@@ -32,7 +32,7 @@ FS-UAE itself does not include a configuration UI, so you must either:
   fairly easy, please read on for more information.
 * Run FS-UAE from a third-party configuration interface / frontend.
 
-Please report any errors found in the documentation to fs-uae@fengestad.no.
+Please report any errors found in the documentation to frode@fs-uae.net.
 
 
 CONFIGURATION FILE
@@ -40,7 +40,7 @@ CONFIGURATION FILE
 You will also need to create a configuration file for FS-UAE.  The important
 things you need to configure is what floppy disks to use, and where the
 Kickstart ROMs are stored. Documentation (and examples) is available here:
-http://fengestad.no/wp/fs-uae/documentation
+http://fs-uae.net/documentation
 
 You have several options for where to store the configuration file:
 
@@ -85,14 +85,14 @@ You can specify which joystick to use for each Amiga joystick port in the
 configuration file, and you can also change this during runtime from the
 FS-UAE menu. 
 Information about supported controllers here:
-http://fengestad.no/wp/fs-uae/controllers
+http://fs-uae.net/controllers
 
 If your joystick is not recognized by FS-UAE (you can see this in the log
 file), you can create a configuration file for it. See
-http://fengestad.no/wp/fs-uae/custom-controller-configuration
+http://fs-uae.net/custom-controller-configuration
 
 If you create a configuration file, I would appreciate it if you would
-send a copy to fs-uae@fengestad.no with the producer and model name of
+send a copy to frode@fs-uae.net with the producer and model name of
 the joystick/gamepad (for inclusing in future versions of FS-UAE). 
 
 
@@ -261,7 +261,7 @@ Large portions are copyrighted by other individuals.
 
 FS-UAE is based on the fantastic work of the original UAE authors, the authors
 of WinUAE, contributions from external contributors as well as some code
-from E-UAE and P-UAE. See http://fengestad.no/fs-uae/contributions for an
+from E-UAE and P-UAE. See http://fs-uae.net/contributions for an
 updated list of people having contributed patches, translations and donations.
 
 UAE was created by Bernd Schmidt, with the help of a host of volunteer

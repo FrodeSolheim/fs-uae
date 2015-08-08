@@ -8,7 +8,8 @@
 #ifdef WITH_XML_SHADER
 
 #include <fs/ml/opengl.h>
-#include <GLee.h>
+// #include <GLee.h>
+#include <GL/glew.h>
 
 #include <fs/emu.h>
 #include <fs/glib.h>

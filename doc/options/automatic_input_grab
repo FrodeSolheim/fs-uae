@@ -1,4 +1,4 @@
-Description: Grab mouse and keyboard input when clicking on FS-UAE window
+Description: Grab Input on Click
 Default: 1
 Example: 0
 Since: 1.3.23

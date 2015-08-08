@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
+#include <fs/lazyness.h>
 #include <fs/log.h>
 #include <fs/thread.h>
 
@@ -15,10 +16,9 @@
 static fs_thread *g_manymouse_thread = NULL;
 static int g_first_manymouse_index = 0;
 static volatile int g_manymouse_last_index = -1;
-static int g_debug_input = 0;
 
 #define db_log(name, format, ...) \
-    if (g_debug_ ## name) { \
+    if (g_fs_log_ ## name) { \
         fs_log(format, ## __VA_ARGS__); \
     }
 
@@ -159,9 +159,6 @@ void fs_ml_mouse_init(void)
 {
     FS_ML_INIT_ONCE;
     fs_log("fs_ml_mouse_init\n");
-
-    g_debug_input = getenv("FS_DEBUG_INPUT") && \
-            getenv("FS_DEBUG_INPUT")[0] == '1';
 
     g_fs_ml_first_mouse_index = g_fs_ml_input_device_count;
     int k = g_fs_ml_input_device_count;

@@ -20,17 +20,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
  */
 
-#ifdef USE_OPENGL
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-
 #include <fs/fs.h>
 #include <fs/log.h>
-
 #include <fs/ml/opengl.h>
 #include <fs/glu.h>
+
+#ifdef USE_OPENGL
 
 #if defined(USE_GLES) && !defined(FAKE_GLES)
 #define glOrtho glOrthof

@@ -1,9 +1,9 @@
-Summary: Virtual bsdsocket.library
+Summary: UAE bsdsocket.library
 Type: boolean
 Default: 0
 Example: 1
 Tags: affectsemu, uaeboot
-Description:
+Desc:
     Enable emulation of bsdsocket.library. This will allow Amiga OS to open
     TCP connections (use web browsers, etc). The default is 0 (off).
 

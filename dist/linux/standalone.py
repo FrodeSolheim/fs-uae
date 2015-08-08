@@ -50,7 +50,8 @@ def fix_binary(path):
         library_source = os.path.normpath(library_source)
         print(library, library_source)
         #if steam_runtime and library_source.startswith(steam_runtime):
-        if steam_runtime and not library_source.startswith("/usr/local"):
+        # if steam_runtime and not library_source.startswith("/usr/local"):
+        if steam_runtime and not library_source.startswith("/home"):
             print("skipping steam runtime library")
             continue
         dst = os.path.join(os.path.dirname(path), library)

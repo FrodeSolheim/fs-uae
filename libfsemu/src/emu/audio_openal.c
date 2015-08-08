@@ -704,6 +704,11 @@ void fs_emu_audio_render_debug_info(uint32_t *texture)
     uint32_t color;
     uint32_t *line;
 
+    if (g_audio_out_frequency == 0.0) {
+        /* no audio */
+        return;
+    }
+
     audio_stream *s = g_streams[0];
     int head_pos = s->fill_stat_buffer_pos;
 

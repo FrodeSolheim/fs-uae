@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.67])
-AC_INIT([FS-UAE], [2.5.32dev],
+AC_INIT([FS-UAE], [2.5.36dev],
         [frode@fs-uae.net], [fs-uae], [http://fs-uae.net])
 AC_CONFIG_AUX_DIR([.])
 AC_CANONICAL_HOST
@@ -107,7 +107,9 @@ PKG_CHECK_MODULES([GLIB], [glib-2.0 >= 2.32 gthread-2.0])
 
 AC_CHECK_LIB([Iphlpapi], [main])
 
-AM_CONDITIONAL([BUILTIN_GLEE], [true])
+AM_CONDITIONAL([BUILTIN_GLEE], [false])
+
+PKG_CHECK_MODULES([GLEW], [glew])
 
 # Todo: make configurable
 # PKG_CHECK_MODULES([LIBMPEG2], [libmpeg2 libmpeg2convert])
@@ -592,7 +594,7 @@ REQ_FEATURE([WITH_PPC], [ppc], [ppc],
 OPT_FEATURE([PROWIZARD], [prowizard], [prowizard],
 	[enable prowizard request], [yes])
 OPT_FEATURE([SERIAL_PORT], [serial_port], [serial-port],
-        [enable serial port emulation], [no])
+        [enable serial port emulation], [yes])
 OPT_FEATURE([WITH_SLIRP], [slirp], [slirp],
 	[enable SLIRP (user mode NAT)], [yes])
 OPT_FEATURE([WITH_SOFTFLOAT], [softfloat], [softfloat],

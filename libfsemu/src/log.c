@@ -8,20 +8,17 @@
 #include <fs/log.h>
 #include <fs/thread.h>
 #include <fs/util.h>
-
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 static struct {
-
     int use_stdout;
     FILE *file;
     char *initial_path;
     int initialized;
     fs_mutex *mutex;
     int flush;
-
 } log;
 
 static void initialize()
@@ -79,7 +76,7 @@ void fs_config_set_log_file(const char *path)
         }
     }
 
-    // All options should have been read, so we can no check log options
+    /* All options should have been read, so we can no check log options */
 
     if (fs_config_get_boolean("flush_log") == 1) {
         log.flush = 1;

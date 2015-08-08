@@ -1,4 +1,4 @@
-Description: Main volume control
+Description: Main Volume
 Default: 100
 Example: 50
 Type: integer

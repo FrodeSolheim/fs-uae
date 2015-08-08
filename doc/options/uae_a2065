@@ -1,0 +1,16 @@
+Summary: uae_a2065
+Type: 
+Default:
+Example: slirp
+
+Emulate a A2065 network card.
+
+Value: slirp
+
+Code:
+    if c.uae_a2065.explicit:
+        # FIXME: ok? keep already specified value
+        value = c.uae_a2065.explicit
+        # FIXME: check value
+    else:
+        value = ""

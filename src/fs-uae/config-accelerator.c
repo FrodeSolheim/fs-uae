@@ -40,14 +40,32 @@ void fs_uae_configure_accelerator(void)
     int memory = 128;
     const char *card = fs_config_get_const_string(OPTION_ACCELERATOR);
     const char *rom = NULL;
+    bool allow_scsi_kit = false;
     if (card == NULL) {
         card = cfg->accelerator;
     }
 
     if (card != NULL) {
-        if (fs_uae_values_matches(card, "cyberstorm-ppc")) {
+        if (fs_uae_values_matches(card, "blizzard-1230-iv")) {
+            card = "Blizzard1230IV";
+            memory = 32;
+            allow_scsi_kit = true;
+        } else if (fs_uae_values_matches(card, "blizzard-1240")) {
+            card = "Blizzard1260";
+            memory = 32;
+            allow_scsi_kit = true;
+        } else if (fs_uae_values_matches(card, "blizzard-1260")) {
+            card = "Blizzard1260";
+            memory = 32;
+            allow_scsi_kit = true;
+        } else if (fs_uae_values_matches(card, "blizzard-ppc")) {
+            card = "BlizzardPPC";
+            rom = "blizzardppc_060.rom";
+            memory = 256;
+        } else if (fs_uae_values_matches(card, "cyberstorm-ppc")) {
             card = "CyberstormPPC";
             rom = "cyberstormppc.rom";
+            memory = 128;
         }
     }
 
@@ -55,6 +73,14 @@ void fs_uae_configure_accelerator(void)
         memory = fs_uae_read_memory_option(OPTION_ACCELERATOR_MEMORY);
         memory /= 1024;
         fs_log("CONFIG: Overriding accelerator memory: %d MB\n", memory);
+    }
+
+    if (fs_config_get_boolean(OPTION_BLIZZARD_SCSI_KIT) == 1) {
+        if (allow_scsi_kit) {
+            amiga_set_option("cpuboard_ext_rom_file", "Blizzard_SCSI_Kit_IV_v8.5.bin");
+        } else {
+            fs_emu_warning("Blizzard SCSI Kit cannot be used with this accelerator");
+        }
     }
 
     if (card != NULL) {

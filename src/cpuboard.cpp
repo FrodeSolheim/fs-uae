@@ -2009,13 +2009,26 @@ static struct zfile *flashfile_open(const TCHAR *name)
 static struct zfile *board_rom_open(int *roms, const TCHAR *name)
 {
 	struct zfile *zf = NULL;
+#ifdef FSUAE
+	write_log("board_rom_open roms=... name=%s\n", name ? name : "(null)");
+#endif
 	struct romlist *rl = getromlistbyids(roms, name);
 	if (rl)
 		zf = read_rom(rl->rd);
 	if (!zf && name) {
+#ifdef FSUAE
+	write_log("zfile_fopen %s\n", name);
+#endif
+		zf = zfile_fopen(name, _T("rb"), ZFD_NORMAL);
+		if (zf) {
+			return zf;
+		}
 		TCHAR path[MAX_DPATH];
 		fetch_rompath(path, sizeof path / sizeof(TCHAR));
 		_tcscat(path, name);
+#ifdef FSUAE
+	write_log("zfile_fopen %s\n", path);
+#endif
 		zf = zfile_fopen(path, _T("rb"), ZFD_NORMAL);
 	}
 	return zf;

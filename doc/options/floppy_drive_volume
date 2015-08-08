@@ -1,7 +1,7 @@
-Description: Floppy drive volume
+Description: Floppy Drive Volume
+Type: integer
 Default: 67
 Example: 0
-Type: integer
 Range: 0 - 100
 
 Set volume to 0 to disable floppy drive sounds. Max volume is 100.

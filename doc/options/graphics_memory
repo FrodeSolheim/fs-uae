@@ -1,4 +1,16 @@
-Description: Override the amount of graphics memory on the graphics card
+Summary: Graphics Card VRAM
+Type: Choice
 Default:
 Since: 2.5.15
-Type: integer
+
+Override the amount of graphics memory on the graphics card.
+
+Value: 1024 (1 MB)
+Value: 2048 (2 MB)
+Value: 4096 (4 MB)
+Value: 8192 (8 MB)
+Value: 16384 (16 MB)
+Value: 32768 (32 MB)
+Value: 65536 (64 MB)
+Value: 131072 (128 MB)
+Value: 262144 (256 MB)

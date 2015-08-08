@@ -1,8 +1,3 @@
-* A600 always gets an RTC, even a stock one.
-* Should A1200 with expanded memory use MSM6242B or RP5C01A?
-* A1200 model uses KS 3.0 not KS 3.1 by default.
-* When starting FS-UAE from FS-UAE Launcher, accelerator flashs ROM writes
-  are not persistent because the launcher uses a new copy every time.
-* On OS X, cursor movement is currently not received by FS-UAE when the
-  window is not focused (either something SDL 2 or OS X itself does). This
-  makes mouse integration a bit less useful.
+* When entering the GUI using modifier+F12, the modifier key(s) sticks in
+  the emulated Amiga when you return to the emulation.
+* Graphical flickering in Workbench with non-cycle-exact emulation.

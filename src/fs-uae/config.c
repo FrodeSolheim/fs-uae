@@ -254,7 +254,7 @@ void fs_uae_configure_amiga_hardware()
     int stereo_separation = fs_config_get_int_clamped(
         OPTION_STEREO_SEPARATION, 0, 100);
     if (stereo_separation == FS_CONFIG_NONE) {
-        stereo_separation = 100;
+        stereo_separation = 70;
     }
     stereo_separation = stereo_separation / 10;
     amiga_set_int_option("sound_stereo_separation", stereo_separation);

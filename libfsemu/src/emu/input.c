@@ -6,6 +6,7 @@
 #include <fs/emu.h>
 #include <fs/emu/input.h>
 #include <fs/emu/options.h>
+#include <fs/lazyness.h>
 #include "input.h"
 
 #include <stdio.h>
@@ -53,8 +54,6 @@ keyboard is MAX_DEVICES - 1
 - 0 and 512 (see button_index)
 */
 
-
-static int g_debug_input = 0;
 
 #define MAX_DEVICES 64
 #define KEYBOARD 0
@@ -419,7 +418,7 @@ static void map_custom_joystick_action(int joy, const char *name,
         int axis, int hat, int button, int value, const char *n1,
         int n2, const char *n3) {
     char *config_key = g_strdup_printf("%s%s%d%s", name, n1, n2, n3);
-    if (g_debug_input) {
+    if (g_fs_log_input) {
         fs_log("%s\n", config_key);
     }
     const char *config_value = fs_config_get_const_string(config_key);
@@ -570,7 +569,7 @@ static void map_custom_gamepad_actions(int joy, const char *name,
     for (int j = 0; config[j].config_key != NULL; j++) {
         char *config_key = g_strdup_printf("%s_%s", name,
                 config[j].config_value);
-        if (g_debug_input) {
+        if (g_fs_log_input) {
             fs_log("%s\n", config_key);
         }
         const char *config_value = fs_config_get_const_string(config_key);
@@ -1127,13 +1126,13 @@ int fs_emu_process_key_event(int key_code, int key_mod, int state) {
         g_key_modifiers_at_pressed_state[key_code] = key_mod;
     }
 
-    if (g_debug_input) {
+    if (g_fs_log_input) {
         fs_log("--> key_code %d key_mod %d state %d: \"%s\"\n",
                 key_code, key_mod, state, g_fs_emu_key_names[key_code]);
     }
     // 65536 is also used as null event
     if (input_event > 0 && input_event < 65536) {
-        if (g_debug_input) {
+        if (g_fs_log_input) {
             fs_log("  = press (index %d) => "
                     "input event %d\n", index, input_event);
         }
@@ -1141,7 +1140,7 @@ int fs_emu_process_key_event(int key_code, int key_mod, int state) {
         input_event = input_event | (state << 16);
         fs_emu_queue_input_event(input_event);
     }
-    else if (g_debug_input) {
+    else if (g_fs_log_input) {
         fs_log("  = press (index %d) => NO INPUT EVENT\n", index);
     }
     return 1;
@@ -1532,7 +1531,7 @@ static int input_function(fs_ml_event *event)
         }
 
         int state = event->button.state;
-        if (g_debug_input) {
+        if (g_fs_log_input) {
             fs_log(" => mouse button %d, %d\n", event->button.button, state);
         }
         if (event->button.button == FS_ML_BUTTON_WHEELUP) {
@@ -1544,7 +1543,7 @@ static int input_function(fs_ml_event *event)
         int input_event = g_input_action_table[mouse_index(
                 event->button.device, 0, 0, event->button.button)];
         if (input_event > 0) {
-            if (g_debug_input) {
+            if (g_fs_log_input) {
                 fs_log(" => button input_event %d state %d\n",
                        input_event, state);
             }
@@ -1564,9 +1563,6 @@ void fs_emu_input_init(void)
 #endif
 {
     fs_log("fs_emu_input_init\n");
-
-    g_debug_input = getenv("FS_DEBUG_INPUT") && \
-            getenv("FS_DEBUG_INPUT")[0] == '1';
 
     g_input_event_mutex = fs_mutex_create();
     g_input_event_queue = g_queue_new();

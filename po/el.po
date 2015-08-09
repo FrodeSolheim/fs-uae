@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae\n"
 "Report-Msgid-Bugs-To: frode@fs-uae.net\n"
-"POT-Creation-Date: 2015-04-02 15:52+0200\n"
-"PO-Revision-Date: 2015-04-11 02:57-0400\n"
+"POT-Creation-Date: 2015-08-07 20:13+0200\n"
+"PO-Revision-Date: 2015-08-08 12:23-0400\n"
 "Last-Translator: FrodeSolheim <frode-crowdin@fsolheim.net>\n"
 "Language-Team: Greek\n"
 "Language: el_GR\n"
@@ -174,6 +174,12 @@ msgstr "Η επιλογή chip_memory πρέπει να είναι πολλαπ�
 msgid "Option fast_memory must be a multiple of 1024"
 msgstr "Η επιλογή fast_memory πρέπει να είναι πολλαπλάσιο του 1024"
 
+msgid "Option motherboard_ram must be a multiple of 1024"
+msgstr ""
+
+msgid "Option motherboard_ram needs a CPU with 32-bit addressing"
+msgstr ""
+
 msgid "Option slow_memory must be a multiple of 256"
 msgstr "Η επιλογή slow_memory πρέπει να είναι πολλαπλάσιο του 256"
 
@@ -242,10 +248,4 @@ msgstr "[ Port 0 ] Άλλαξε σε λειτουργία χειριστηρίο
 
 msgid "[ Port 0 ] Switched to mouse mode"
 msgstr "[ Port 0 ] Άλλαξε σε λειτουργία ποντικιού"
-
-msgid "Invalid number of CD-ROM drives specified"
-msgstr "Καθορίσατε μη έγκυρο αριθμό μονάδων CD-ROM"
-
-msgid "Options zorro_iii_memory needs a CPU with 32-bit addressing"
-msgstr "Η επιλογή  Zorro_III_memory απαιτεί επεξεργαστή με δυνατότητα 32-bit"
 

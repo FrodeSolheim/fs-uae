@@ -1,13 +1,12 @@
 Description: Stereo Separation
-Default: 100
-Example: 70
+Default: 70
+Example: 100
 Since: 2.3.12
 Type: choice
 
-Controls the amount of mixing of the stereo channels. The default is that the
-channels are not mixed together, but especially if you are usng headphones,
-and your operating system does not automatically mix channels somewhat when
-headphones are plugged in, you may want to choose a lower value (say 70%).
+Controls the amount of mixing of the stereo channels. 100% means that
+the left and right channels are not mixed together at all, and 0% means
+that you get mono sound output on stereo speaker.
 
 Value: 100 (100%)
 Value: 90 (90%)

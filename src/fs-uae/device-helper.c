@@ -100,11 +100,17 @@ static void list_joysticks()
         printf("J: %s\n", name);
         g_free(name);
 
-        printf("   Buttons: %d Hats: %d Axes: %d Balls: %d\n",
+        char guid_str[33];
+        SDL_JoystickGUID guid = SDL_JoystickGetGUID(joystick);
+        SDL_JoystickGetGUIDString(guid, guid_str, 33);
+        guid_str[32] = '\0';
+
+        printf("   Buttons: %d Hats: %d Axes: %d Balls: %d GUID: %s\n",
                SDL_JoystickNumButtons(joystick),
                SDL_JoystickNumHats(joystick),
                SDL_JoystickNumAxes(joystick),
-               SDL_JoystickNumBalls(joystick));
+               SDL_JoystickNumBalls(joystick),
+               guid_str);
         SDL_JoystickClose(joystick);
     }
 #else

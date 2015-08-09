@@ -12,6 +12,7 @@
 #include <stddef.h>
 #include <glib.h>
 
+#include <fs/lazyness.h>
 #include <fs/log.h>
 #include "fs/ml.h"
 #include "ml_internal.h"
@@ -37,8 +38,6 @@ static char g_is_modifier_key[FS_ML_KEY_LAST] = {};
 static HWND g_window = 0;
 //static HGLRC g_hglrc = 0;
 static HKL g_keyboard_layout = 0;
-
-static int g_debug_keys = 0;
 
 static int g_mod_lalt = 0;
 static int g_mod_ralt = 0;
@@ -71,7 +70,7 @@ static void process_keyboard_input(LPRAWINPUT raw_input) {
     int vkey = raw_input->data.keyboard.VKey;
     int flags = raw_input->data.keyboard.Flags;
     int make_code = raw_input->data.keyboard.MakeCode;
-    if (g_debug_keys) {
+    if (g_fs_log_input) {
         fs_log("vkey...: %d (0x%x) make %d extra %d flags %d E0 %d E1 %d\n",
                 vkey, vkey, raw_input->data.keyboard.MakeCode,
                 raw_input->data.keyboard.ExtraInformation, flags,
@@ -531,9 +530,6 @@ static void init_key_mapping() {
 
 void fs_ml_init_raw_input() {
     fs_log("fs_ml_init_raw_input\n");
-
-    g_debug_keys = getenv("FS_DEBUG_INPUT") && \
-            getenv("FS_DEBUG_INPUT")[0] == '1';
 
     //list_input_devices();
     init_key_mapping();

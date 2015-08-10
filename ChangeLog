@@ -1,6 +1,10 @@
+Version 2.5.39dev:
+
+* Updated AROS kickstart replacement to ver. 2015-05-20 from WinUAE 3.1.0.
+
 Version 2.5.38dev:
 
-* Several new and update joystick and gamepad configs.
+* Several new and updated joystick and gamepad configs.
 * Built-in configs for Xbox 360 / One pads on OS X (requires driver).
 * Changed default stereo separation setting to 70%.
 * Windows builds are digitally signed again.

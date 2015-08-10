@@ -1350,9 +1350,9 @@ static void log_kickstart(uae_u8 *mem, int size)
 	if (rd) {
 		char tmp[MAX_DPATH];
 		getromname(rd, tmp);
-		printf("KICKSTART: %s\n", tmp);
+		printf("UAE: %s\n", tmp);
 	} else {
-		printf("KICKSTART: Unknown %08x (size %d)\n", crc32, size);
+		printf("UAE: KS ROM %08x (%d bytes)\n", crc32, size);
 	}
 }
 
@@ -1691,7 +1691,9 @@ static int load_kickstart (void)
 
 	if (f != NULL) {
 #ifdef FSUAE
+#if 0
 		printf("KICKSTART: %s\n", currprefs.romfile);
+#endif
 #endif
 		int filesize, size, maxsize;
 		int kspos = ROM_SIZE_512;

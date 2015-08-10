@@ -776,7 +776,7 @@ void ManyMouse_Quit(void);
 const char *ManyMouse_DeviceName(unsigned int index);
 
 static void list_joysticks() {
-    printf("# FS-UAE VERSION %s\n", PACKAGE_VERSION);
+    printf("# FS-UAE %s\n", PACKAGE_VERSION);
     printf("# listing keyboards\n");
     printf("K: Keyboard\n");
     printf("# listing mice\n");
@@ -898,7 +898,7 @@ static const char *overlay_names[] = {
     NULL,
 };
 
-#define COPYRIGHT_NOTICE "\nFS-UAE VERSION %s\n" \
+#define COPYRIGHT_NOTICE "FS-UAE %s\n" \
 "Copyright 1995-2002 Bernd Schmidt, 1999-2015 Toni Wilen,\n" \
 "2003-2007 Richard Drummond, 2006-2011 Mustafa 'GnoStiC' Tufan,\n" \
 "2011-2015 Frode Solheim, and contributors.\n" \

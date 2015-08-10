@@ -41,7 +41,7 @@ static void initialize()
     log.initial_path = g_build_filename(dir, "fs-uae.log", NULL);
     log.file = g_fopen(log.initial_path, "w");
     if (log.file) {
-        printf("logging to %s\n", log.initial_path);
+        // printf("[LOG] %s\n", log.initial_path);
     }
     g_free(dir);
 }
@@ -60,7 +60,7 @@ void fs_config_set_log_file(const char *path)
     }
     log.file = g_fopen(path, "w");
     if (log.file) {
-        printf("logging to %s\n", path);
+        printf("LOG: %s\n", path);
         if (log.initial_path) {
             FILE *f = g_fopen(log.initial_path, "r");
             if (f) {

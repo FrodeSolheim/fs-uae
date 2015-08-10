@@ -1,6 +1,9 @@
 Version 2.5.39dev:
 
 * Updated AROS kickstart replacement to ver. 2015-05-20 from WinUAE 3.1.0.
+* Config files must end with .fs-uae or .conf to be loaded by FS-UAE.
+* If you give fs-uae a command line argument with path to a .adf, it will
+  be used as value for floppy_drive_0.
 
 Version 2.5.38dev:
 

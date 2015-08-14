@@ -1,6 +1,6 @@
 [fs-uae-controller]
 name = Logitech Dual Action
-platform = macosx
+platform = windows
 
 [device]
 make = Logitech
@@ -8,7 +8,7 @@ model = F310
 type = gamepad
 
 [sdl]
-guid = 6d0400000000000016c2000000000000
+guid = 6d0416c2000000000000504944564944
 buttons = 12
 hats = 1
 axes = 4

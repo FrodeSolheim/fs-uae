@@ -5,6 +5,7 @@ Version 2.5.39dev:
 * Config files must end with .fs-uae or .conf to be loaded by FS-UAE.
 * If you give fs-uae a command line argument with path to a .adf, it will
   be used as value for floppy_drive_0.
+* Imported updated translations from crowdin.com.
 
 Version 2.5.38dev:
 

@@ -126,11 +126,10 @@ void amiga_floppy_set_writable_images(int writable) {
     g_fs_uae_writable_disk_images = writable;
 }
 
-int amiga_init() {
-    printf("libamiga (based on emulation core from %s) initialized\n",
-            UAE_BASE_VERSION);
-    write_log("libamiga (based on emulation core from %s) initialized\n",
-            UAE_BASE_VERSION);
+int amiga_init()
+{
+    printf("UAE: Initializing core derived from %s\n", UAE_BASE_VERSION);
+    write_log("UAE: Initializing core derived from %s\n", UAE_BASE_VERSION);
 
     // because frame_time_t is sometimes cast to int, we make sure to
     // start from 0 wo it will work for "a while". Should be fixed
@@ -597,8 +596,9 @@ int amiga_set_int_option(const char *option, int value) {
     return result;
 }
 
-int amiga_quit() {
-	printf("amiga_quit\n");
+int amiga_quit()
+{
+    printf("UAE: Calling uae_quit\n");
     uae_quit();
     return 1;
 }

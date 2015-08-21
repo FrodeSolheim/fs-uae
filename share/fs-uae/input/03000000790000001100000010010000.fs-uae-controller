@@ -1,0 +1,30 @@
+[fs-uae-controller]
+name = USB Gamepad
+platform = linux
+
+[device]
+make = Retrolink
+model = Classic Controller
+type = gamepad
+
+[sdl]
+guid = 03000000790000001100000010010000
+buttons = 10
+hats = 0
+axes = 2
+balls = 0
+
+[default]
+include = universal_gamepad
+axis_0_neg = dpad_left
+axis_0_pos = dpad_right
+axis_1_neg = dpad_up
+axis_1_pos = dpad_down
+button_0 = north_button
+button_1 = east_button
+button_2 = south_button
+button_3 = west_button
+button_4 = left_shoulder
+button_5 = right_shoulder
+button_8 = select_button
+button_9 = start_button

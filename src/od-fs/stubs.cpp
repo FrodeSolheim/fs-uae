@@ -172,9 +172,10 @@ void target_restart (void) {
     STUB("");
 }
 
-void target_quit (void) {
-    write_log("UAE emulation core is quitting\n");
-    printf("UAE emulation core is quitting\n");
+void target_quit (void)
+{
+    write_log("UAE: Stopping\n");
+    printf("UAE: Stopping\n");
 }
 
 void target_fixup_options (struct uae_prefs *p) {

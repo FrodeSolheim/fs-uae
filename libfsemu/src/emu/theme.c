@@ -81,13 +81,8 @@ char *fs_emu_theme_get_resource_path(const char *name) {
     return NULL;
 }
 
-int fs_emu_theme_get_resource_data(const char *name, char **data, int *size) {
-    // printf("fs_emu_theme_get_resource_data (%s)\n", name);
-    /*
-    if (fs_path_exists(name)) {
-        return g_strdup(name);
-    }
-    */
+int fs_emu_theme_get_resource_data(const char *name, char **data, int *size)
+{
     char *p;
     p = g_build_filename(g_fs_emu_theme.path, name, NULL);
     if (fs_path_exists(p)) {
@@ -108,13 +103,13 @@ int fs_emu_theme_get_resource_data(const char *name, char **data, int *size) {
         }
         *data = malloc(*size);
         if (fread(*data, *size, 1, f) != 1) {
+            free(*data);
             fclose(f);
             return 3;
         }
         fclose(f);
         return 0;
-    }
-    else {
+    } else {
         free(p);
     }
 

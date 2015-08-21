@@ -3,28 +3,24 @@
 #endif
 
 #define _GNU_SOURCE 1
-
 #include <uae/uae.h>
-
 #ifdef USE_SDL
-// we must include SDL first before emu.h, so libfsemu's #definition of main
-// is the current one (on Windows) when main is encountered further down
+/* We must include SDL first before emu.h, so libfsemu's #definition of main
+ * is the current one (on Windows) when main is encountered further down. */
 #include <SDL.h>
 #endif
-
 #ifdef MACOSX
 #include <SDL.h>
 #endif
-
 #include <fs/base.h>
 #include <fs/data.h>
 #include <fs/emu.h>
 #include <fs/emu/path.h>
 #include <fs/glib.h>
+#include <fs/lazyness.h>
 #include <fs/main.h>
 #include <fs/i18n.h>
 #include <fs/thread.h>
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -33,9 +29,8 @@
 #include "fs-uae.h"
 #include "recording.h"
 #include "plugins.h"
+#include "options.h"
 #include "config-drives.h"
-
-//static char *g_default_rom_dir = ".";
 
 static int fs_uae_argc;
 static char **fs_uae_argv;
@@ -44,7 +39,8 @@ static int g_warn_about_missing_config_file = 0;
 #define LOG_LINE "---------------------------------------------------------" \
         "-------------------\n"
 
-static void change_port_device_mode(int data) {
+static void change_port_device_mode(int data)
+{
     int modes = INPUTEVENT_AMIGA_JOYPORT_MODE_0_LAST -
             INPUTEVENT_AMIGA_JOYPORT_MODE_0_NONE + 1;
     int port = data / modes;
@@ -62,7 +58,8 @@ static void change_port_device_mode(int data) {
     }
 }
 
-static void select_port_0_device(int data) {
+static void select_port_0_device(int data)
+{
     printf("--> device index %d\n", data);
     int port = 0;
     if (data == 9) {
@@ -106,7 +103,8 @@ int g_fs_uae_last_input_event = 0;
 int g_fs_uae_last_input_event_state = 0;
 int g_fs_uae_state_number = 0;
 
-void fs_uae_process_input_event(int line, int action, int state, int playback) {
+void fs_uae_process_input_event(int line, int action, int state, int playback)
+{
     static int first_time = 1;
     if (first_time == 1) {
         first_time = 0;
@@ -303,7 +301,8 @@ static int input_handler_loop(int line) {
     return 1;
 }
 
-static void pause_throttle() {
+static void pause_throttle()
+{
     /*
     if (fs_emu_get_vblank_sync()) {
         return;
@@ -312,7 +311,8 @@ static void pause_throttle() {
     fs_emu_msleep(5);
 }
 
-static void event_handler(int line) {
+static void event_handler(int line)
+{
     // printf("%d\n", line);
     if (line >= 0) {
         input_handler_loop(line);
@@ -379,11 +379,13 @@ static void event_handler(int line) {
 
 }
 
+char *g_fs_uae_disk_file_path = NULL;
 char *g_fs_uae_config_file_path = NULL;
 char *g_fs_uae_config_dir_path = NULL;
 //GKeyFile *g_fs_uae_config = NULL;
 
-static int audio_callback_function(int type, int16_t *buffer, int size) {
+static int audio_callback_function(int type, int16_t *buffer, int size)
+{
     if (type == 0) {
         return fs_emu_audio_queue_buffer(0, buffer, size);
     }
@@ -406,7 +408,8 @@ static int audio_callback_function(int type, int16_t *buffer, int size) {
     return -1;
 }
 
-void fs_uae_load_rom_files(const char *path) {
+void fs_uae_load_rom_files(const char *path)
+{
     fs_log("fs_uae_load_rom_files %s\n", path);
     GDir *dir = g_dir_open(path, 0, NULL);
     if (dir == NULL) {
@@ -470,13 +473,15 @@ void fs_uae_load_rom_files(const char *path) {
     //exit(1);
 }
 
-char *fs_uae_encode_path(const char* path) {
+char *fs_uae_encode_path(const char* path)
+{
     // FIXME: libamiga now always accepts UTF-8, so this function is
     // deprecated. Simply returning a duplicate now.
     return g_strdup(path);
 }
 
-char *fs_uae_decode_path(const char* path) {
+char *fs_uae_decode_path(const char* path)
+{
     // FIXME: libamiga now always accepts UTF-8, so this function is
     // deprecated. Simply returning a duplicate now.
     return g_strdup(path);
@@ -488,7 +493,8 @@ static void on_gui_message(const char* message)
     fs_emu_warning("%s", message);
 }
 
-static void on_init() {
+static void on_init()
+{
     fs_log("\n");
     fs_log(LOG_LINE);
     fs_log("uae configuration\n");
@@ -588,13 +594,15 @@ static void on_init() {
     fs_log("\n");
 }
 
-static void pause_function(int pause) {
+static void pause_function(int pause)
+{
     fs_log("pause_function %d\n", pause);
     //uae_pause(pause);
     amiga_pause(pause);
 }
 
-static int load_config_file() {
+static int load_config_file()
+{
     fs_log("load config file\n");
     const char *msg = "checking config file %s\n";
 
@@ -686,11 +694,13 @@ static int load_config_file() {
     return 0;
 }
 
-static void log_to_libfsemu(const char *message) {
+static void log_to_libfsemu(const char *message)
+{
     fs_log_string(message);
 }
 
-static void main_function() {
+static void main_function()
+{
     amiga_main();
     fs_log("amiga_main returned\n");
     fs_uae_write_recorded_session();
@@ -701,7 +711,8 @@ static void main_function() {
 // int _putenv(const char *envstring);
 #endif
 
-static void init_i18n() {
+static void init_i18n()
+{
     if (fs_config_get_boolean("localization") == 0) {
         fs_log("localization was forced off\n");
         return;
@@ -747,15 +758,19 @@ static void init_i18n() {
 #endif
 }
 
-static void led_function(int led, int state) {
-    // floppy led status is custom overlay 0..3
-    //if (led >= 0) {
-    //    printf("led %d state %d\n", led, state);
-    //}
+static void led_function(int led, int state)
+{
+    /* floppy led status is custom overlay 0..3 */
+#if 0
+    if (led >= 0) {
+        printf("led %d state %d\n", led, state);
+    }
+#endif
     fs_emu_set_custom_overlay_state(led, state);
 }
 
-static void on_update_leds(void *data) {
+static void on_update_leds(void *data)
+{
     amiga_led_data *leds = (amiga_led_data *) data;
     for (int i = 0; i < 4; i++) {
         int led = 12; // df0_d1
@@ -766,7 +781,8 @@ static void on_update_leds(void *data) {
 }
 
 
-static void media_function(int drive, const char *path) {
+static void media_function(int drive, const char *path)
+{
     // media insertion status is custom overlay 4..7
     fs_emu_set_custom_overlay_state(4 + drive, path && path[0]);
 }
@@ -775,8 +791,9 @@ int ManyMouse_Init(void);
 void ManyMouse_Quit(void);
 const char *ManyMouse_DeviceName(unsigned int index);
 
-static void list_joysticks() {
-    printf("# FS-UAE VERSION %s\n", PACKAGE_VERSION);
+static void list_joysticks()
+{
+    printf("# FS-UAE %s\n", PACKAGE_VERSION);
     printf("# listing keyboards\n");
     printf("K: Keyboard\n");
     printf("# listing mice\n");
@@ -822,7 +839,12 @@ extern int g_fsdb_debug;
 extern int g_random_debug_logging;
 extern int inputdevice_logging;
 
-static void configure_logging(const char *logstr) {
+static void configure_logging(const char *logstr)
+{
+    if (fs_config_get_int(OPTION_LOG_BSDSOCKET) == 1) {
+        log_bsd = 1;
+    }
+
     if (!logstr) {
         fs_log("configure logging: none\n");
         return;
@@ -847,7 +869,8 @@ static void configure_logging(const char *logstr) {
     }
 }
 
-static void cleanup_old_file(const char *path) {
+static void cleanup_old_file(const char *path)
+{
     char *p = fs_uae_expand_path(path);
     if (fs_path_exists(p)) {
         if (fs_path_is_dir(p)) {
@@ -862,7 +885,8 @@ static void cleanup_old_file(const char *path) {
     free(p);
 }
 
-static void cleanup_old_files() {
+static void cleanup_old_files()
+{
     // Logs are now stored in $BASE/Cache/Logs by default
     cleanup_old_file("$BASE/Logs/FS-UAE.log");
     cleanup_old_file("$BASE/Logs/FS-UAE.log.txt");
@@ -871,6 +895,17 @@ static void cleanup_old_files() {
     cleanup_old_file("$BASE/Logs/Synchronization.log");
     // try to remove the dir - if it now is empty
     cleanup_old_file("$BASE/Logs");
+}
+
+static bool check_extension(const char *path, const char *ext)
+{
+    if (path == NULL) {
+        return false;
+    }
+    gchar* path_lower = g_ascii_strdown(path, -1);
+    bool result = g_str_has_suffix(path_lower, ext);
+    g_free(path_lower);
+    return result;
 }
 
 static const char *overlay_names[] = {
@@ -898,7 +933,7 @@ static const char *overlay_names[] = {
     NULL,
 };
 
-#define COPYRIGHT_NOTICE "\nFS-UAE VERSION %s\n" \
+#define COPYRIGHT_NOTICE "FS-UAE %s\n" \
 "Copyright 1995-2002 Bernd Schmidt, 1999-2015 Toni Wilen,\n" \
 "2003-2007 Richard Drummond, 2006-2011 Mustafa 'GnoStiC' Tufan,\n" \
 "2011-2015 Frode Solheim, and contributors.\n" \
@@ -994,14 +1029,20 @@ int main(int argc, char* argv[])
         while (arg && *arg) {
             const gchar *test_path = *arg;
             if (test_path && fs_path_exists(test_path)) {
-                g_fs_uae_config_file_path = g_strdup(test_path);
+                if (check_extension(test_path, ".fs-uae")) {
+                    g_fs_uae_config_file_path = g_strdup(test_path);
+                } else if (check_extension(test_path, ".conf")) {
+                    g_fs_uae_config_file_path = g_strdup(test_path);
+                } else if (check_extension(test_path, ".adf")) {
+                    g_fs_uae_disk_file_path = g_strdup(test_path);
+                }
             }
             arg++;
         }
     }
 
-    // parse options first, in case base_dir, logging  options etc is
-    // specified on the command line
+    /* Parse options first, in case base_dir, logging  options etc is
+     * specified on the command line. */
     fs_config_parse_options(argc - 1, argv + 1);
 
     fs_log("\n");
@@ -1017,11 +1058,13 @@ int main(int argc, char* argv[])
 
     // then load the config file
     load_config_file();
-    // parse options again, overwriting options loaded from configuration
-    // file
-    //fs_config_parse_options(argc - 1, argv + 1);
 
     init_i18n();
+
+    if (g_fs_uae_disk_file_path) {
+        fs_config_set_string(OPTION_FLOPPY_DRIVE_0, g_fs_uae_disk_file_path);
+        g_warn_about_missing_config_file = 0;
+    }
 
     if (g_warn_about_missing_config_file) {
 		fs_emu_warning(_("No configuration file was found"));
@@ -1103,16 +1146,13 @@ int main(int argc, char* argv[])
             record_file);
         deterministic_mode = 1;
         fs_uae_enable_recording(record_file);
-    }
-    else {
+    } else {
         fs_log("not running in record mode\n");
     }
-
     if (fs_emu_netplay_enabled() ||
-            fs_config_get_boolean("deterministic") == 1) {
+            fs_config_get_boolean(OPTION_DETERMINISTIC) == 1) {
         deterministic_mode = 1;
     }
-
     if (deterministic_mode) {
         amiga_set_deterministic_mode();
     }
@@ -1174,17 +1214,13 @@ int main(int argc, char* argv[])
 
     if (fs_emu_get_video_format() == FS_EMU_VIDEO_FORMAT_RGBA) {
         amiga_set_video_format(AMIGA_VIDEO_FORMAT_RGBA);
-    }
-    else if (fs_emu_get_video_format() == FS_EMU_VIDEO_FORMAT_BGRA) {
+    } else if (fs_emu_get_video_format() == FS_EMU_VIDEO_FORMAT_BGRA) {
         amiga_set_video_format(AMIGA_VIDEO_FORMAT_BGRA);
-    }
-    else if (fs_emu_get_video_format() == FS_EMU_VIDEO_FORMAT_R5G6B5) {
+    } else if (fs_emu_get_video_format() == FS_EMU_VIDEO_FORMAT_R5G6B5) {
         amiga_set_video_format(AMIGA_VIDEO_FORMAT_R5G6B5);
-    }
-    else if (fs_emu_get_video_format() == FS_EMU_VIDEO_FORMAT_R5G5B5A1) {
+    } else if (fs_emu_get_video_format() == FS_EMU_VIDEO_FORMAT_R5G5B5A1) {
         amiga_set_video_format(AMIGA_VIDEO_FORMAT_R5G5B5A1);
-    }
-    else {
+    } else {
         fs_emu_warning("Unsupported video format requested");
     }
     amiga_add_rtg_resolution(672, 540);

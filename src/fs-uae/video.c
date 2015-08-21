@@ -12,11 +12,7 @@
 #endif
 #include <fs/i18n.h>
 #include "fs-uae.h"
-
-//#define MAX_ZOOM_MODES 5
-static int g_zoom_mode = 0;
-static int g_zoom_border = 0;
-static double g_last_refresh_rate = 0;
+#include "options.h"
 
 typedef struct zoom_mode {
     char *name;
@@ -44,8 +40,6 @@ static zoom_mode g_zoom_modes[] = {
     { NULL, NULL, 0, 0, 0, 0 },
 };
 
-int g_fs_uae_video_zoom = 1;
-
 struct WindowOverride {
     int sx;
     int sy;
@@ -55,7 +49,6 @@ struct WindowOverride {
     int dy;
     int dw;
     int dh;
-
     int ssx;
     int ssy;
     int ssw;
@@ -65,19 +58,23 @@ struct WindowOverride {
 
 static struct WindowOverride* g_window_override = NULL;
 static struct WindowOverride* g_last_window_override = NULL;
-
+int g_fs_uae_video_zoom = 1;
+static int g_zoom_mode = 0;
+static int g_zoom_border = 0;
+static double g_last_refresh_rate = 0;
+static bool g_fs_log_autoscale = false;
+static int g_remember_last_screen = 0;
+static int g_use_rtg_scanlines = 0;
+static int g_last_seen_mode_rtg = 0;
 static int g_frame_seq_no = 0;
 #ifdef FS_EMU_DRIVERS
 static fs_emu_buffer *g_buffer = NULL;
 #else
 static fs_emu_video_buffer *g_buffer = NULL;
 #endif
-static int g_remember_last_screen = 0;
 
-static int g_use_rtg_scanlines = 0;
-static int g_last_seen_mode_rtg = 0;
-
-static int read_window_override_int(const char* s, int* pos, int* out) {
+static int read_window_override_int(const char* s, int* pos, int* out)
+{
     char temp[4];
     int read = 0;
     while(s[*pos] == ' ') ++(*pos);
@@ -99,11 +96,12 @@ static int read_window_override_int(const char* s, int* pos, int* out) {
         *out = atoi(temp);
         return 1;
     }
-    // read failed
+    /* read failed */
     return 0;
 }
 
-static int read_window_override(const char* s, int* pos) {
+static int read_window_override(const char* s, int* pos)
+{
     while(s[*pos] == ' ') ++(*pos);
     int sx, sy, sw, sh;
     int dx, dy, dw, dh;
@@ -129,8 +127,8 @@ static int read_window_override(const char* s, int* pos) {
     if (!read_window_override_int(s, pos, &dy)) return 0;
     if (!read_window_override_int(s, pos, &dw)) return 0;
     if (!read_window_override_int(s, pos, &dh)) return 0;
-    fs_emu_log("viewport transformation: %3d %3d %3d %3d => %3d %3d %3d %3d\n",
-            sx, sy, sw, sh, dx, dy, dw, dh);
+    fs_log("viewport transformation: %3d %3d %3d %3d => %3d %3d %3d %3d\n",
+           sx, sy, sw, sh, dx, dy, dw, dh);
     struct WindowOverride* wo = (struct WindowOverride*)
             malloc(sizeof(struct WindowOverride));
     wo->sx = sx;
@@ -150,15 +148,15 @@ static int read_window_override(const char* s, int* pos) {
 
     if (g_last_window_override == NULL) {
         g_window_override = wo;
-    }
-    else {
+    } else {
         g_last_window_override->next = wo;
     }
     g_last_window_override = wo;
     return 1;
 }
 
-static void init_window_overrides() {
+static void init_window_overrides()
+{
     const char *s = fs_config_get_const_string("viewport");
     if (s == NULL) {
         return;
@@ -167,22 +165,21 @@ static void init_window_overrides() {
     while (1) {
         int result = read_window_override(s, &pos);
         if (!result) {
-            fs_emu_log("error parsing wiewport transformation\n");
+            fs_log("error parsing wiewport transformation\n");
         }
-        while(s[pos] == ' ') ++(pos);
+        while(s[pos] == ' ') {
+            ++(pos);
+        }
         int c = s[(pos)++];
         if (c == ';') {
             continue;
-        }
-        else if (c == ',') {
+        } else if (c == ',') {
             continue;
-        }
-        else if (c == '\0') {
+        } else if (c == '\0') {
             break;
-        }
-        else {
+        } else {
             fs_emu_warning("Unexpected byte (%d) while parsing "
-                    "viewport option\n", c);
+                           "viewport option\n", c);
             return;
         }
     }
@@ -191,70 +188,97 @@ static void init_window_overrides() {
 static int ucx = 0, ucy = 0, ucw = 0, uch = 0;
 static int rd_width, rd_height;
 
-static int modify_coordinates(int *cx, int *cy, int *cw, int *ch) {
+static int modify_coordinates(int *cx, int *cy, int *cw, int *ch)
+{
+    int ocx = *cx, ocy = *cy, ocw = *cw, och = *ch;
     int changed = 0;
-    int ocx = *cx;
-    int ocy = *cy;
-    int ocw = *cw;
-    int och = *ch;
-    if (*cx == 114 && *cy == 96 && *cw == 560 && *ch == 384) {
-        fs_log("* amiga 600 kickstart screen?\n");
+    if (false) {
+#if 0
+    } else if (*cx == 114 && *cy == 96 && *cw == 560 && *ch == 384) {
+        if (g_fs_log_autoscale) {
+            fs_log("* amiga 600 kickstart screen?\n");
+        }
         *cx = 74; *cy = 92; *cw = 640; *ch = 400; changed = 1;
-    }
-    else if (*cx == 114 && *cy == 99 && *cw == 560 && *ch == 384) {
-        fs_log("* amiga 1200 kickstart screen?\n");
+#endif
+    } else if (*cx == 74 && *cy == 99 && *cw == 640 && *ch == 384) {
+        if (g_fs_log_autoscale) {
+            fs_log("* amiga 600 kickstart screen (pre)?\n");
+        }
         *cx = 74; *cy = 92; *cw = 640; *ch = 400; changed = 1;
-    }
+    } else if (*cx == 6 && *cy == 99 && *cw == 724 && *ch == 384) {
+        if (g_fs_log_autoscale) {
+            fs_log("* amiga 1200 kickstart screen (pre)?\n");
+        }
+        *cx = 74; *cy = 92; *cw = 640; *ch = 400; changed = 1;
+    } else if (*cx == 114 && *cy == 99 && *cw == 560 && *ch == 384) {
+        if (g_fs_log_autoscale) {
+            fs_log("* amiga 600/1200 kickstart screen?\n");
+        }
+        *cx = 74; *cy = 92; *cw = 640; *ch = 400; changed = 1;
+#if 0
     // The following interfered with autoscaling for Jim Power
-    /*
-    else if (*cx == 74 && *cy == 30 && *cw == 640 && *ch == 518) {
-        fs_log("* workbench 1.3/2.0 screen?\n");
+    } else if (*cx == 74 && *cy == 30 && *cw == 640 && *ch == 518) {
+        if (g_fs_log_autoscale) {
+            fs_log("* workbench 1.3/2.0 screen?\n");
+        }
+        *cx = 74; *cy = 36; *cw = 640; *ch = 512; changed = 1;
+    } else if (*cx == 74 && *cy == 28 && *cw == 640 && *ch == 520) {
+        if (g_fs_log_autoscale) {
+            fs_log("* workbench 1.3/2.0 screen?\n");
+        }
         *cx = 74; *cy = 36; *cw = 640; *ch = 512; changed = 1;
     }
-    else if (*cx == 74 && *cy == 28 && *cw == 640 && *ch == 520) {
-        fs_log("* workbench 1.3/2.0 screen?\n");
+#endif
+#if 0
+    } else if (*cx == 6 && *cy == 36 && *cw == 724 && *ch == 512) {
+        if (g_fs_log_autoscale) {
+            fs_log("* workbench screen with too much border?\n");
+        }
         *cx = 74; *cy = 36; *cw = 640; *ch = 512; changed = 1;
-    }
-    */
-    /*
-    else if (*cx == 6 && *cy == 36 && *cw == 724 && *ch == 512) {
-        fs_log("* workbench screen with too much border?\n");
-        *cx = 74; *cy = 36; *cw = 640; *ch = 512; changed = 1;
-    }
-    */
-    else if (*cx == 6 && *cy == 6 && *cw == 724 && *ch == 566) {
-        fs_log("* workbench screen with overscan incorrectly placed?\n");
+#endif
+    } else if (*cx == 6 && *cy == 6 && *cw == 724 && *ch == 566) {
+        if (g_fs_log_autoscale) {
+            fs_log("* workbench screen with overscan incorrectly placed?\n");
+        }
         *cx = 2; *cy = 6; *cw = 724; *ch = 566; changed = 1;
-    }
-    else if (*cx == 10 && *cy == 7 && *cw == 716 && *ch == 566) {
-        fs_log("* amiga cd32 boot screen?\n");
+    } else if (*cx == 10 && *cy == 7 && *cw == 716 && *ch == 566) {
+        if (g_fs_log_autoscale) {
+            fs_log("* amiga cd32 boot screen?\n");
+        }
         *cx = 16; *cy = 6; *cw = 704; *ch = 566; changed = 1;
-    }
-    else if (*cx == 10 && *cy == 6 && *cw == 716 && *ch == 566) {
-        fs_log("* amiga cd32 boot screen?\n");
+    } else if (*cx == 10 && *cy == 6 && *cw == 716 && *ch == 566) {
+        if (g_fs_log_autoscale) {
+            fs_log("* amiga cd32 boot screen?\n");
+        }
         *cx = 16; *cy = 6; *cw = 704; *ch = 566; changed = 1;
-    }
-    else if (*cx == 6 && *cy == 96 && *cw == 724 && *ch == 476) {
-        fs_log("* amiga cd32 boot screen (booting CD)\n");
+    } else if (*cx == 6 && *cy == 96 && *cw == 724 && *ch == 476) {
+        if (g_fs_log_autoscale) {
+            fs_log("* amiga cd32 boot screen (booting CD)\n");
+        }
         *cx = 16; *cy = 6; *cw = 704; *ch = 566; changed = 1;
-    }
-    else if (*cx == 10 && *cy == 96 && *cw == 716 && *ch == 476) {
-        fs_log("* amiga cd32 boot screen (booting CD)\n");
+    } else if (*cx == 10 && *cy == 96 && *cw == 716 && *ch == 476) {
+        if (g_fs_log_autoscale) {
+            fs_log("* amiga cd32 boot screen (booting CD)\n");
+        }
         *cx = 16; *cy = 6; *cw = 704; *ch = 566; changed = 1;
-    }
-    else if (*cx == 6 && *cy == 82 && *cw == 724 && *ch == 490) {
-        fs_log("* amiga cd32 boot screen (booting Arcade Pool CD)\n");
+    } else if (*cx == 6 && *cy == 82 && *cw == 724 && *ch == 490) {
+        if (g_fs_log_autoscale) {
+            fs_log("* amiga cd32 boot screen (booting Arcade Pool CD)\n");
+        }
         *cx = 16; *cy = 6; *cw = 704; *ch = 566; changed = 1;
-    }
-    else if (*cx + *cw == 698 && *cy == 6 && *ch == 566) {
-        fs_log("* amiga cd32 menu\n");
+    } else if (*cx + *cw == 698 && *cy == 6 && *ch == 566) {
+        if (g_fs_log_autoscale) {
+            fs_log("* amiga cd32 menu\n");
+        }
         *cx = 16; *cy = 6; *cw = 704; *ch = 566; changed = 1;
     }
     if (changed) {
-        fs_log("* %3d %3d %3d %3d [ %3d %3d %3d %3d ]\n",
-                *cx, *cy, *cw, *ch, ocx, ocy, ocw, och);
-        printf("* %3d %3d %3d %3d [ %3d %3d %3d %3d ]\n",
-                *cx, *cy, *cw, *ch, ocx, ocy, ocw, och);
+        if (g_fs_log_autoscale) {
+            fs_log("* %3d %3d %3d %3d [ %3d %3d %3d %3d ]\n",
+                    *cx, *cy, *cw, *ch, ocx, ocy, ocw, och);
+            printf("* %3d %3d %3d %3d [ %3d %3d %3d %3d ]\n",
+                    *cx, *cy, *cw, *ch, ocx, ocy, ocw, och);
+        }
     }
     return changed;
 }
@@ -262,7 +286,8 @@ static int modify_coordinates(int *cx, int *cy, int *cw, int *ch) {
 #define SUBSCAN
 
 #ifdef SUBSCAN
-static void narrow_rect(RenderData* rd, int *nx, int *ny, int *nw, int *nh) {
+static void narrow_rect(RenderData* rd, int *nx, int *ny, int *nw, int *nh)
+{
     if (rd->bpp != 4) {
         // not implemented for 16-bit video.
         return;
@@ -359,8 +384,10 @@ static void narrow_rect(RenderData* rd, int *nx, int *ny, int *nw, int *nh) {
 
     static int px = 0, py = 0, pw = 0, ph = 0;
     if (x != px || y != py || w != pw || h != ph) {
-        fs_log(" sub: %3d %3d %3d %3d\n", x, y, w, h);
-        printf(" sub: %3d %3d %3d %3d\n", x, y, w, h);
+        if (g_fs_log_autoscale) {
+            fs_log(" sub: %3d %3d %3d %3d\n", x, y, w, h);
+            printf(" sub: %3d %3d %3d %3d\n", x, y, w, h);
+        }
         px = x;
         py = y;
         pw = w;
@@ -379,7 +406,8 @@ static void narrow_rect(RenderData* rd, int *nx, int *ny, int *nw, int *nh) {
 }
 #endif
 
-static void render_screen(RenderData* rd) {
+static void render_screen(RenderData* rd)
+{
 #if 0
     static int64_t last_time = 0;
     int64_t t = fs_emu_monotonic_time();
@@ -446,8 +474,10 @@ static void render_screen(RenderData* rd) {
         int have_narrowed = 0;
 #endif
         if (cchange) {
-            fs_log("auto: %3d %3d %3d %3d\n", cx, cy, cw, ch);
-            printf("auto: %3d %3d %3d %3d\n", cx, cy, cw, ch);
+            if (g_fs_log_autoscale) {
+                fs_log("auto: %3d %3d %3d %3d\n", cx, cy, cw, ch);
+                printf("auto: %3d %3d %3d %3d\n", cx, cy, cw, ch);
+            }
         }
         modify_coordinates(&cx, &cy, &cw, &ch);
         //if (!modify_coordinates(&cx, &cy, &cw, &ch)) {
@@ -489,10 +519,12 @@ static void render_screen(RenderData* rd) {
                     }
 #endif
                     /*
-                    fs_log("%3d %3d %3d %3d [ %3d %3d %3d %3d ]\n",
-                            ucx, ucy, ucw, uch, cx, cy, cw, ch);
-                    printf("%3d %3d %3d %3d [ %3d %3d %3d %3d ]\n",
-                            ucx, ucy, ucw, uch, cx, cy, cw, ch);
+                     * if (g_fs_log_autoscale) {
+                        fs_log("%3d %3d %3d %3d [ %3d %3d %3d %3d ]\n",
+                                ucx, ucy, ucw, uch, cx, cy, cw, ch);
+                        printf("%3d %3d %3d %3d [ %3d %3d %3d %3d ]\n",
+                                ucx, ucy, ucw, uch, cx, cy, cw, ch);
+                    }
                     */
                     break;
                 }
@@ -505,14 +537,18 @@ static void render_screen(RenderData* rd) {
             ucw = cw;
             uch = ch;
             /*
-            fs_log("%3d %3d %3d %3d\n", ucx, ucy, ucw, uch);
-            printf("%3d %3d %3d %3d\n", ucx, ucy, ucw, uch);
+            if (g_fs_log_autoscale) {
+                fs_log("%3d %3d %3d %3d\n", ucx, ucy, ucw, uch);
+                printf("%3d %3d %3d %3d\n", ucx, ucy, ucw, uch);
+            }
             */
         }
         static int lucx = 0, lucy = 0, lucw = 0, luch = 0;
         if (ucx != lucx || ucy != lucy || ucw != lucw || uch != luch) {
-            fs_log("    = %3d %3d %3d %3d\n", ucx, ucy, ucw, uch);
-            printf("    = %3d %3d %3d %3d\n", ucx, ucy, ucw, uch);
+            if (g_fs_log_autoscale) {
+                fs_log("    = %3d %3d %3d %3d\n", ucx, ucy, ucw, uch);
+                printf("    = %3d %3d %3d %3d\n", ucx, ucy, ucw, uch);
+            }
             lucx = ucx;
             lucy = ucy;
             lucw = ucw;
@@ -642,7 +678,8 @@ static void display_screen()
 #endif
 }
 
-static void toggle_zoom(int flags) {
+static void toggle_zoom(int flags)
+{
     if (g_last_seen_mode_rtg) {
         fs_emu_notification(1511162016, _("Zoom is disabled in RTG mode"));
         return;
@@ -730,7 +767,11 @@ void fs_uae_init_video(void)
         free(value);
     }
 
-    const char* cvalue = fs_config_get_const_string("theme_zoom");
+    if (fs_config_get_boolean(OPTION_LOG_AUTOSCALE) == 1) {
+        g_fs_log_autoscale = true;
+    }
+
+    const char* cvalue = fs_config_get_const_string(OPTION_THEME_ZOOM);
     if (cvalue) {
         zoom_mode *z = g_zoom_modes + CUSTOM_ZOOM_MODE;
         //char *name = malloc(strlen(cvalue) + 1);

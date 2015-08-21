@@ -162,21 +162,13 @@ static const char* fs_uae_base_dir(void)
             if (fs_path_exists(test)) {
                 path = next;
                 fs_log("using portable base dir %s\n", path);
-                next = NULL;
+                g_free(orig);
                 break;
             }
             g_free(test);
-            if (orig != NULL) {
-                g_free(orig);
-            }
+            g_free(orig);
             orig = next;
             next = g_path_get_dirname(next);
-        }
-        if (orig != NULL) {
-            g_free(orig);
-        }
-        if (next != NULL) {
-            g_free(next);
         }
     }
     if (path == NULL) {

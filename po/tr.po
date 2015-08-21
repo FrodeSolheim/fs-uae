@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae\n"
 "Report-Msgid-Bugs-To: frode@fs-uae.net\n"
-"POT-Creation-Date: 2015-04-02 15:52+0200\n"
-"PO-Revision-Date: 2015-04-11 02:57-0400\n"
+"POT-Creation-Date: 2015-08-09 21:35+0200\n"
+"PO-Revision-Date: 2015-08-10 14:41-0400\n"
 "Last-Translator: FrodeSolheim <frode-crowdin@fsolheim.net>\n"
 "Language-Team: Turkish\n"
 "Language: tr_TR\n"
@@ -174,6 +174,12 @@ msgstr "chip_memory ayarı 512'nin katı olmalıdır"
 msgid "Option fast_memory must be a multiple of 1024"
 msgstr "fast_memory ayarı 1024'ün katı olmalıdır"
 
+msgid "Option motherboard_ram must be a multiple of 1024"
+msgstr ""
+
+msgid "Option motherboard_ram needs a CPU with 32-bit addressing"
+msgstr ""
+
 msgid "Option slow_memory must be a multiple of 256"
 msgstr "slow_memory ayarı 256'nın katı olmalıdır"
 
@@ -242,10 +248,4 @@ msgstr "[ Port 0 ] Joystick moduna geçildi"
 
 msgid "[ Port 0 ] Switched to mouse mode"
 msgstr "[ Port 0 ] Fare moduna geçildi"
-
-msgid "Invalid number of CD-ROM drives specified"
-msgstr "Belirtilen CD-ROM sürücüsü sayısı geçersiz"
-
-msgid "Options zorro_iii_memory needs a CPU with 32-bit addressing"
-msgstr "zorro_iii_memory ayarı 32-bit adreslemeli bir CPU gerektirir"
 

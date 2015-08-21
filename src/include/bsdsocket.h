@@ -219,4 +219,4 @@ void bsdsock_fake_int_handler(void);
 
 extern int volatile bsd_int_requested;
 
-#endif // UAE_BSDSOCKET_H
+#endif /* UAE_BSDSOCKET_H */

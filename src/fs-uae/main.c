@@ -17,6 +17,7 @@
 #include <fs/emu.h>
 #include <fs/emu/path.h>
 #include <fs/glib.h>
+#include <fs/lazyness.h>
 #include <fs/main.h>
 #include <fs/i18n.h>
 #include <fs/thread.h>
@@ -840,6 +841,10 @@ extern int inputdevice_logging;
 
 static void configure_logging(const char *logstr)
 {
+    if (fs_config_get_int(OPTION_LOG_BSDSOCKET) == 1) {
+        log_bsd = 1;
+    }
+
     if (!logstr) {
         fs_log("configure logging: none\n");
         return;

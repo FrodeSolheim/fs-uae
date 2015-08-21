@@ -3,4 +3,7 @@
 
 extern int g_fs_log_input;
 
+/* bsdsocket.h (uae) */
+extern int log_bsd;
+
 #endif /* FS_LAZYNESS_H */

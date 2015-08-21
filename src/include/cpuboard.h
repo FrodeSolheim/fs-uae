@@ -43,6 +43,7 @@ void blizzardppc_irq(int level);
 #define BOARD_MEMORY_BLIZZARD_12xx 4
 #define BOARD_MEMORY_BLIZZARD_PPC 5
 #define BOARD_MEMORY_25BITMEM 6
+#define BOARD_MEMORY_EMATRIX 7
 
 #define ISCPUBOARD(type,subtype) (cpuboards[currprefs.cpuboard_type].id == type && (type < 0 || currprefs.cpuboard_subtype == subtype))
 
@@ -86,5 +87,7 @@ void blizzardppc_irq(int level);
 #define BOARD_IC 10
 #define BOARD_IC_ACA500 0
 
+#define BOARD_MTEC 11
+#define BOARD_MTEC_SUB_EMATRIX530 0
 
 #endif /* UAE_CPUBOARD_H */

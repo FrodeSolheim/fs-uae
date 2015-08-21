@@ -161,9 +161,6 @@ static struct ncr_state *ncr_we;
 static struct ncr_state *ncr_a4000t;
 static struct ncr_state *ncra4091[MAX_DUPLICATE_EXPANSION_BOARDS];
 
-extern void cyberstorm_mk3_ppc_irq(int);
-extern void blizzardppc_irq(int);
-
 static void set_irq2(int level)
 {
 	if (level)

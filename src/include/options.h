@@ -522,6 +522,7 @@ struct uae_prefs {
 	bool cs_z3autoconfig;
 	bool cs_1mchipjumper;
 	bool cs_cia6526;
+	bool cs_bytecustomwritebug;
 	int cs_hacks;
 
 	struct boardromconfig expansionboard[MAX_EXPANSION_BOARDS];

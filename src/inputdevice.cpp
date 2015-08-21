@@ -1448,15 +1448,13 @@ void inputdevice_tablet_info (int maxx, int maxy, int maxz, int maxax, int maxay
 
 static void inputdevice_mh_abs (int x, int y, uae_u32 buttonbits)
 {
-	uae_u8 *p;
-
 	x -= mouseoffset_x + 1;
 	y -= mouseoffset_y + 2;
 
 	mousehack_enable ();
 	if (mousehack_address) {
 		uae_u8 tmp1[4], tmp2[4];
-		p = get_real_address (mousehack_address);
+		uae_u8 *p = get_real_address (mousehack_address);
 
 		memcpy (tmp1, p + MH_ABSX, sizeof tmp1);
 		memcpy (tmp2, p + MH_BUTTONBITS, sizeof tmp2);
@@ -1485,10 +1483,10 @@ static void inputdevice_mh_abs (int x, int y, uae_u32 buttonbits)
 		}
 #endif
 	}
-	p = uaeboard_bank.baseaddr + 0x200;
-	if (p) {
+	if (uaeboard_bank.baseaddr) {
 		uae_u8 tmp[16];
 
+		uae_u8 *p = uaeboard_bank.baseaddr + 0x200;
 		memcpy(tmp, p + 2, 2 * 5);
 		p[0] = 0;
 		p[1] = 0;

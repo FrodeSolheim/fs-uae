@@ -161,7 +161,7 @@ FILE *moduleripper_fopen (const char *aname, const char *amode)
 	moduleripper_filename(aname, outname, true);
 
 	mode = au (amode);
-	f = _tfopen (outname, mode);
+	f = uae_tfopen (outname, mode);
 	xfree (mode);
 	return f;
 }

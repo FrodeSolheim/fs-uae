@@ -548,11 +548,7 @@ static const char *gen_nextiword (int flags)
 	} else {
 		if (using_prefetch) {
 			if (flags & GF_NOREFILL) {
-#ifdef FSUAE
-				sprintf (buffer, "regs.irc");
-#else
-				sprintf (buffer, "regs.irc", r);
-#endif
+				strcpy (buffer, "regs.irc");
 			} else {
 				sprintf (buffer, "%s (%d)", prefetch_word, r + 2);
 				count_read++;
@@ -589,11 +585,7 @@ static const char *gen_nextibyte (int flags)
 		insn_n_cycles += 4;
 		if (using_prefetch) {
 			if (flags & GF_NOREFILL) {
-#ifdef FSUAE
-				sprintf (buffer, "(uae_u8)regs.irc");
-#else
-				sprintf (buffer, "(uae_u8)regs.irc", r);
-#endif
+				strcpy (buffer, "(uae_u8)regs.irc");
 			} else {
 				sprintf (buffer, "(uae_u8)%s (%d)", prefetch_word, r + 2);
 				insn_n_cycles += 4;
@@ -2837,7 +2829,7 @@ static void resetvars (void)
 			do_cycles = "do_cycles_ce020_internal";
 			nextw = "next_iword_cache040";
 			nextl = "next_ilong_cache040";
-		} else if (using_prefetch_020) {
+		} else if (using_prefetch_020 == 1) {
 			disp020 = "x_get_disp_ea_020";
 			prefetch_word = "get_word_020_prefetch";
 			prefetch_long = "get_long_020_prefetch";
@@ -2852,6 +2844,21 @@ static void resetvars (void)
 			dstb = "x_put_byte";
 			nextw = "next_iword_020_prefetch";
 			nextl = "next_ilong_020_prefetch";
+		} else if (using_prefetch_020 == 2) {
+			disp020 = "x_get_disp_ea_020";
+			prefetch_word = "get_word_030_prefetch";
+			prefetch_long = "get_long_030_prefetch";
+			srcli = "x_get_ilong";
+			srcwi = "x_get_iword";
+			srcbi = "x_get_ibyte";
+			srcl = "x_get_long";
+			dstl = "x_put_long";
+			srcw = "x_get_word";
+			dstw = "x_put_word";
+			srcb = "x_get_byte";
+			dstb = "x_put_byte";
+			nextw = "next_iword_030_prefetch";
+			nextl = "next_ilong_030_prefetch";
 		}
 #if 0
 	} else if (using_ce020) {
@@ -5817,14 +5824,14 @@ static void generate_cpu (int id, int mode)
 		}
 	} else if (id == 20) { // 68020 prefetch
 		cpu_level = 2;
-		using_prefetch_020 = 2;
+		using_prefetch_020 = 1;
 		read_counts ();
 		for (rp = 0; rp < nr_cpuop_funcs; rp++)
 			opcode_next_clev[rp] = cpu_level;
 	} else if (id == 21) { // 68020 cycle-exact
 		cpu_level = 2;
 		using_ce020 = 1;
-		using_prefetch_020 = 2;
+		using_prefetch_020 = 1;
 		// timing tables are from 030 which has 2
 		// clock memory accesses, 68020 has 3 clock
 		// memory accesses

@@ -1,5 +1,6 @@
 Version 2.5.40dev:
 
+* Re-enable uae_comp_trust* = indirectKS options.
 * Allow uae_rtc to be set without disabling uae_chipset_compatible.
 * Fixed flickering caused by undefined behavior in shift operations.
 * Added new option log_bsdsocket (boolean).

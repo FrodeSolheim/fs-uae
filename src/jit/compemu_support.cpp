@@ -5015,7 +5015,7 @@ STATIC_INLINE void writemem(int address, int source, int offset, int size, int t
 void writebyte(int address, int source, int tmp)
 {
 	int distrust = currprefs.comptrustbyte;
-#if 0
+#ifdef FSUAE
 	switch (currprefs.comptrustbyte) {
 	case 0: distrust=0; break;
 	case 1: distrust=1; break;
@@ -5034,7 +5034,7 @@ STATIC_INLINE void writeword_general(int address, int source, int tmp,
 	int clobber)
 {
 	int distrust = currprefs.comptrustword;
-#if 0
+#ifdef FSUAE
 	switch (currprefs.comptrustword) {
 	case 0: distrust=0; break;
 	case 1: distrust=1; break;
@@ -5063,7 +5063,7 @@ STATIC_INLINE void writelong_general(int address, int source, int tmp,
 	int clobber)
 {
 	int  distrust = currprefs.comptrustlong;
-#if 0
+#ifdef FSUAE
 	switch (currprefs.comptrustlong) {
 	case 0: distrust=0; break;
 	case 1: distrust=1; break;
@@ -5145,7 +5145,7 @@ STATIC_INLINE void readmem(int address, int dest, int offset, int size, int tmp)
 void readbyte(int address, int dest, int tmp)
 {
 	int distrust = currprefs.comptrustbyte;
-#if 0
+#ifdef FSUAE
 	switch (currprefs.comptrustbyte) {
 	case 0: distrust=0; break;
 	case 1: distrust=1; break;
@@ -5163,7 +5163,7 @@ void readbyte(int address, int dest, int tmp)
 void readword(int address, int dest, int tmp)
 {
 	int distrust = currprefs.comptrustword;
-#if 0
+#ifdef FSUAE
 	switch (currprefs.comptrustword) {
 	case 0: distrust=0; break;
 	case 1: distrust=1; break;
@@ -5181,7 +5181,7 @@ void readword(int address, int dest, int tmp)
 void readlong(int address, int dest, int tmp)
 {
 	int distrust = currprefs.comptrustlong;
-#if 0
+#ifdef FSUAE
 	switch (currprefs.comptrustlong) {
 	case 0: distrust=0; break;
 	case 1: distrust=1; break;
@@ -5228,7 +5228,7 @@ STATIC_INLINE void get_n_addr_real(int address, int dest, int tmp)
 void get_n_addr(int address, int dest, int tmp)
 {
 	int distrust = currprefs.comptrustnaddr;
-#if 0
+#ifdef FSUAE
 	switch (currprefs.comptrustnaddr) {
 	case 0: distrust=0; break;
 	case 1: distrust=1; break;

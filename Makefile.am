@@ -441,6 +441,7 @@ libuae_a_SOURCES = \
 	src/od-fs/machdep/ppc/maccess.h \
 	src/od-fs/machdep/rpt.h \
 	src/od-fs/machdep/x86/maccess.h \
+	src/od-fs/mman.cpp \
 	src/od-fs/mouse.cpp \
 	src/od-fs/mp3decoder.h \
 	src/od-fs/parser.cpp \
@@ -467,7 +468,6 @@ libuae_a_SOURCES = \
 	src/od-win32/debug_win32.h \
 	src/od-win32/dxwrap.h \
 	src/od-win32/md-fpp.h \
-	src/od-win32/mman.cpp \
 	src/od-win32/parser.h \
 	src/od-win32/picasso96_win.cpp \
 	src/od-win32/picasso96_win.h \
@@ -1163,6 +1163,7 @@ EXTRA_DIST = $(TESTS) $(EXTRA_TESTS) \
 	src/jit/compemu_raw_x86.cpp \
 	src/od-fs/bsdsocket_posix.cpp \
 	src/od-win32/bsdsock.cpp \
+        src/od-win32/mman.cpp \
 	src/p96_blit.cpp \
 	src/sinctable.cpp \
 	src/table68k \

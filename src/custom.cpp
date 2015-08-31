@@ -1950,6 +1950,8 @@ STATIC_INLINE void long_fetch_32 (int plane, int nwords, int weird_number_of_bit
 	outword[plane] = outval;
 }
 
+#ifndef HAVE_UAE_U128
+
 STATIC_INLINE void shift32plus (uae_u64 *p, int n)
 {
 	uae_u64 t = p[1];
@@ -1960,6 +1962,7 @@ STATIC_INLINE void shift32plus (uae_u64 *p, int n)
 
 STATIC_INLINE void aga_shift (uae_u64 *p, int n)
 {
+	if (n == 0) return;
 	shift32plus (p, n);
 	p[0] <<= n;
 }
@@ -1974,16 +1977,23 @@ STATIC_INLINE void shift32plusn (uae_u64 *p, int n)
 
 STATIC_INLINE void aga_shift_n (uae_u64 *p, int n)
 {
+	if (n == 0) return;
 	shift32plusn (p, n);
 	p[1] >>= n;
 }
+
+#endif
 
 STATIC_INLINE void long_fetch_64 (int plane, int nwords, int weird_number_of_bits, int dma)
 {
 	uae_u32 *real_pt = (uae_u32 *)pfield_xlateptr (bplpt[plane], nwords * 2);
 	int delay = toscr_delay_adjusted[plane & 1];
 	int tmp_nbits = out_nbits;
+#ifdef HAVE_UAE_U128
+	uae_u128 shiftbuffer;
+#else
 	uae_u64 shiftbuffer[2];
+#endif
 	uae_u32 outval = outword[plane];
 	uae_u64 fetchval = fetched_aga[plane];
 	uae_u32 *dataptr = (uae_u32 *)(line_data[next_lineno] + 2 * plane * MAX_WORDS_PER_LINE + 4 * out_offs);
@@ -1998,19 +2008,30 @@ STATIC_INLINE void long_fetch_64 (int plane, int nwords, int weird_number_of_bit
 		/* @@@ Don't do this, fall back on chipmem_wget instead.  */
 		return;
 
+#ifdef HAVE_UAE_U128
+	shiftbuffer = todisplay2_aga[plane] << delay;
+#else
 	shiftbuffer[1] = 0;
 	shiftbuffer[0] = todisplay2_aga[plane];
 	aga_shift (shiftbuffer, delay);
+#endif
 
 	while (nwords > 0) {
 		int i;
 
+#ifdef HAVE_UAE_U128
+		shiftbuffer |= fetchval;
+#else
 		shiftbuffer[0] |= fetchval;
+#endif
 
 		for (i = 0; i < 4; i++) {
 			uae_u32 t;
 			int bits_left = 32 - tmp_nbits;
 
+#ifdef HAVE_UAE_U128
+			t = (shiftbuffer >> shift) & 0xffff;
+#else
 			if (64 - shift > 0) {
 				t = shiftbuffer[1] << (64 - shift);
 				t |= shiftbuffer[0] >> shift;
@@ -2018,6 +2039,7 @@ STATIC_INLINE void long_fetch_64 (int plane, int nwords, int weird_number_of_bit
 				t = shiftbuffer[1] >> (shift - 64);
 			}
 			t &= 0xffff;
+#endif
 
 			if (weird_number_of_bits && bits_left < 16) {
 				outval <<= bits_left;
@@ -2037,7 +2059,11 @@ STATIC_INLINE void long_fetch_64 (int plane, int nwords, int weird_number_of_bit
 					tmp_nbits = 0;
 				}
 			}
+#ifdef HAVE_UAE_U128
+			shiftbuffer <<= 16;
+#else
 			aga_shift (shiftbuffer, 16);
+#endif
 		}
 
 		nwords -= 4;
@@ -2053,8 +2079,12 @@ STATIC_INLINE void long_fetch_64 (int plane, int nwords, int weird_number_of_bit
 		}
 	}
 	fetched_aga[plane] = fetchval;
+#ifdef HAVE_UAE_U128
+	todisplay2_aga[plane] = shiftbuffer >> delay;
+#else
 	aga_shift_n (shiftbuffer, delay);
 	todisplay2_aga[plane] = shiftbuffer[0];
+#endif
 	outword[plane] = outval;
 }
 #endif

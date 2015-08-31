@@ -7114,7 +7114,11 @@ int built_in_chipset_prefs (struct uae_prefs *p)
 	p->cs_ksmirror_a8 = 0;
 	p->cs_ciaoverlay = 1;
 	p->cs_ciaatod = 0;
+#ifdef FSUAE
+	/* Allow RTC to be set without disabling cs_compatible */
+#else
 	p->cs_rtc = 0;
+#endif
 	p->cs_rtc_adjust_mode = p->cs_rtc_adjust = 0;
 	p->cs_df0idhw = 1;
 	p->cs_resetwarning = 1;

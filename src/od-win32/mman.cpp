@@ -2,13 +2,6 @@
 // Copyright (C) 2000, Brian King
 // GNU Public License
 
-#ifdef FSUAE // NL
-#ifdef WINDOWS
-#define _WIN32_WINNT 0x0501
-#include <Windows.h>
-#endif
-#endif
-
 #include <float.h>
 
 #include "sysconfig.h"
@@ -21,161 +14,6 @@
 #include "cpuboard.h"
 #include "rommgr.h"
 #include "newcpu.h"
-
-#ifdef FSUAE // NL
-
-#ifdef __x86_64__
-static int os_64bit = 1;
-#else
-static int os_64bit = 0;
-#endif
-
-#ifdef WINDOWS
-
-#else
-
-#ifdef HAVE_SYS_PARAM_H
-#include <sys/param.h>
-#endif
-#if defined(__APPLE__)
-#include <sys/sysctl.h>
-#endif
-#include <sys/mman.h>
-
-#define MEM_COMMIT 0x00001000
-#define MEM_RESERVE 0x00002000
-#define MEM_DECOMMIT 0x4000
-#define MEM_RELEASE 0x8000
-#define MEM_WRITE_WATCH 0x00200000
-#define MEM_TOP_DOWN 0x00100000
-
-#define PAGE_EXECUTE 0x10
-#define PAGE_EXECUTE_READ 0x20
-#define PAGE_EXECUTE_READWRITE 0x40
-#define PAGE_EXECUTE_WRITECOPY 0x80
-#define PAGE_NOACCESS 0x01
-#define PAGE_READONLY 0x02
-#define PAGE_READWRITE 0x04
-#define PAGE_WRITECOPY 0x08
-
-typedef void * LPVOID;
-typedef size_t SIZE_T;
-
-typedef struct {
-	int dwPageSize;
-} SYSTEM_INFO;
-
-static void GetSystemInfo(SYSTEM_INFO *si) {
-	si->dwPageSize = sysconf(_SC_PAGESIZE);
-}
-
-static void *VirtualAlloc(void *lpAddress, size_t dwSize, int flAllocationType,
-		int flProtect) {
-	write_log("- VirtualAlloc %p %zu %d %d\n", lpAddress, dwSize,
-			flAllocationType, flProtect);
-	if (flAllocationType & MEM_RESERVE) {
-		write_log("  MEM_RESERVE\n");
-	}
-	if (flAllocationType & MEM_COMMIT) {
-		write_log("  MEM_COMMIT\n");
-	}
-	if (flAllocationType & PAGE_READWRITE) {
-		write_log("  PAGE_READWRITE\n");
-	}
-	int prot = 0;
-	void *memory = NULL;
-
-	if (flAllocationType == MEM_COMMIT && lpAddress == NULL) {
-		memory = malloc(dwSize);
-		if (memory == NULL) {
-			write_log("memory allocated failed errno %d\n", errno);
-		}
-		return memory;
-	}
-
-	if (flAllocationType & MEM_RESERVE) {
-		memory = malloc(dwSize);
-		if (memory == NULL) {
-			write_log("memory allocated failed errno %d\n", errno);
-		}
-#if 0
-		memory = mmap(lpAddress, dwSize, prot, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-		printf("mmap result: %p\n", memory);
-		if (memory == (void *) -1) {
-			printf("mmap failed errno %d\n", errno);
-		}
-#endif
-	}
-	else {
-		memory = lpAddress;
-	}
-
-	if (flAllocationType & MEM_COMMIT) {
-#if 0
-		int lockresult = mlock(memory, dwSize);
-		if (lockresult != 0) {
-			printf("mlock failed errno %d\n", errno);
-			perror("mlock failed");
-		}
-#endif
-	}
-
-	return memory;
-}
-
-static bool VirtualFree(void *lpAddress, size_t dwSize, int dwFreeType) {
-#if 0
-	int result = 0;
-	if (dwFreeType == MEM_DECOMMIT) {
-		result = munlock(lpAddress, dwSize);
-		if (result != 0) {
-			printf("munlock failed %d\n", errno);
-		}
-	}
-	else if (dwFreeType == MEM_RELEASE) {
-		result = munmap(lpAddress, dwSize);
-		if (result != 0) {
-			printf("mlock failed\n");
-		}
-	}
-	return result == 0;
-#endif
-	return 1;
-}
-
-static int GetLastError() {
-	return errno;
-}
-
-#if 0
-#ifdef HAVE_POSIX_MEMALIGN
-// FIXME: Set HAVE_POSIX_MEMALIGN when available in config.h,
-// possibly via autoconf
-#define valloc my_valloc
-
-static void *my_valloc(size_t size) {
-	size_t alignment = sysconf(_SC_PAGESIZE);
-	void *memptr = NULL;
-	if (posix_memalign(&memptr, alignment, size) == 0) {
-		return memptr;
-	}
-	return NULL;
-}
-
-#endif
-#endif
-
-static int my_getpagesize (void) {
-	return sysconf(_SC_PAGESIZE);
-}
-
-#define getpagesize my_getpagesize
-
-#endif
-
-#else
-#include "win32.h"
-#endif
 
 #if defined(NATMEM_OFFSET)
 
@@ -212,7 +50,7 @@ static void virtualfreewithlock (LPVOID addr, SIZE_T size, DWORD freetype)
 
 void cache_free (uae_u8 *cache)
 {
-#ifdef WINDOWS
+#ifdef _WIN32
 	virtualfreewithlock (cache, 0, MEM_RELEASE);
 #else
 	// FIXME: Must add (address, size) to a list in cache_alloc, so the memory
@@ -225,7 +63,7 @@ void cache_free (uae_u8 *cache)
 uae_u8 *cache_alloc (int size)
 {
 	printf("cache_alloc size = %d\n", size);
-#ifdef WINDOWS
+#ifdef _WIN32
 	return virtualallocwithlock (NULL, size, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
 #else
 	size = size < getpagesize() ? getpagesize() : size;
@@ -286,7 +124,7 @@ void mman_ResetWatch (PVOID lpBaseAddress, SIZE_T dwRegionSize)
 #endif
 
 static uae_u64 size64;
-#ifdef WINDOWS
+#ifdef _WIN32
 typedef BOOL (CALLBACK* GLOBALMEMORYSTATUSEX)(LPMEMORYSTATUSEX);
 #endif
 
@@ -304,7 +142,7 @@ bool preinit_shm (void)
 	write_log("preinit_shm\n");
 	uae_u64 total64;
 	uae_u64 totalphys64;
-#ifdef WINDOWS
+#ifdef _WIN32
 	MEMORYSTATUS memstats;
 	GLOBALMEMORYSTATUSEX pGlobalMemoryStatusEx;
 	MEMORYSTATUSEX memstatsex;
@@ -312,7 +150,7 @@ bool preinit_shm (void)
 	uae_u32 max_allowed_mman;
 
 	if (natmem_offset_allocated)
-#ifdef WINDOWS
+#ifdef _WIN32
 		VirtualFree (natmem_offset_allocated, 0, MEM_RELEASE);
 #else
 		free (natmem_offset_allocated);
@@ -320,7 +158,7 @@ bool preinit_shm (void)
 	natmem_offset_allocated = NULL;
 	natmem_offset = NULL;
 	if (p96mem_offset)
-#ifdef WINDOWS
+#ifdef _WIN32
 		VirtualFree (p96mem_offset, 0, MEM_RELEASE);
 #else
 		// Don't free p96mem_offset - it is freed as part of natmem_offset
@@ -343,7 +181,7 @@ bool preinit_shm (void)
 	if (maxmem > max_allowed_mman)
 		max_allowed_mman = maxmem;
 
-#ifdef WINDOWS
+#ifdef _WIN32
 	memstats.dwLength = sizeof(memstats);
 	GlobalMemoryStatus(&memstats);
 	totalphys64 = memstats.dwTotalPhys;
@@ -1046,14 +884,12 @@ void unprotect_maprom (void)
 		if (shm->maprom <= 0)
 			continue;
 		shm->maprom = -1;
-#ifdef WINDOWS
 		DWORD old;
 		if (!VirtualProtect (shm->attached, shm->rosize, protect ? PAGE_READONLY : PAGE_READWRITE, &old)) {
 			write_log (_T("unprotect_maprom VP %08X - %08X %x (%dk) failed %d\n"),
 				(uae_u8*)shm->attached - natmem_offset, (uae_u8*)shm->attached - natmem_offset + shm->size,
 				shm->size, shm->size >> 10, GetLastError ());
 		}
-#endif
 	}
 }
 
@@ -1072,14 +908,12 @@ void protect_roms (bool protect)
 			continue;
 		if (shm->maprom < 0 && protect)
 			continue;
-#ifdef WINDOWS
 		DWORD old;
 		if (!VirtualProtect (shm->attached, shm->rosize, protect ? PAGE_READONLY : PAGE_READWRITE, &old)) {
 			write_log (_T("protect_roms VP %08X - %08X %x (%dk) failed %d\n"),
 				(uae_u8*)shm->attached - natmem_offset, (uae_u8*)shm->attached - natmem_offset + shm->size,
 				shm->size, shm->size >> 10, GetLastError ());
 		}
-#endif
 	}
 }
 

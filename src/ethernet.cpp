@@ -15,6 +15,7 @@
 #endif
 #include "threaddep/thread.h"
 #include "options.h"
+#include "sana2.h"
 
 #ifndef HAVE_INET_ATON
 static int inet_aton(const char *cp, struct in_addr *ia)
@@ -222,8 +223,9 @@ bool ethernet_enumerate (struct netdriverdata **nddp, const TCHAR *name)
 #ifdef WITH_UAENET_PCAP
 	nd = uaenet_enumerate (NULL);
 	if (nd) {
-		for (int i = 0; nd[i].active; i++) {
-			nddp[j++] = &nd[i];
+		for (int i = 0; i < MAX_TOTAL_NET_DEVICES; i++) {
+			if (nd[i].active)
+				nddp[j++] = &nd[i];
 		}
 	}
 #endif

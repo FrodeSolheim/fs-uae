@@ -1082,7 +1082,7 @@ int sprintf_filesys_unit (TCHAR *buffer, int num)
 
 	if (uip[num].volname != 0)
 		_stprintf (buffer, _T("(DH%d:) Filesystem, %s: %s %s"), num, uip[num].volname,
-		uip[num].rootdir, uip[num].readonly ? "ro" : "");
+		uip[num].rootdir, uip[num].readonly ? _T("ro") : _T(""));
 	else
 		_stprintf (buffer, _T("(DH%d:) Hardfile, \"%s\", size %d Mbytes"), num,
 		uip[num].rootdir, (int)(uip[num].hf.virtsize / (1024 * 1024)));
@@ -5209,7 +5209,6 @@ static void
 			/* it really crosses memory boundary */
 			uae_u8 *buf;
 			
-			write_log (_T("unixfs warning: Bad pointer passed for read: %08x, size %d\n"), addr, size);
 			/* ugh this is inefficient but easy */
 
 			if (key_seek(k, k->file_pos, SEEK_SET) < 0) {
@@ -5313,7 +5312,6 @@ static void
 
 		actual = fs_write (k->fd, realpt, size);
 	} else {
-		write_log (_T("unixfs warning: Bad pointer passed for write: %08x, size %d\n"), addr, size);
 		/* ugh this is inefficient but easy */
 
 		if (key_seek(k, k->file_pos, SEEK_SET) < 0) {

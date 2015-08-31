@@ -5677,19 +5677,7 @@ void build_comp(void)
 #endif
 	raw_init_cpu();
 #ifdef NATMEM_OFFSET
-	write_log (_T("JIT: Setting signal handler\n"));
-#ifndef _WIN32
-#ifdef FSUAE
-	struct sigaction sa;
-	sa.sa_handler = (void (*)(int)) vec;
- 	sigemptyset(&sa.sa_mask);
-	sa.sa_flags = SA_RESTART;
-
-	sigaction(SIGSEGV, &sa, NULL);
-#else
-	signal(SIGSEGV,vec);
-#endif
-#endif
+	install_exception_handler();
 #endif
 	write_log (_T("JIT: Building Compiler function table\n"));
 	for (opcode = 0; opcode < 65536; opcode++) {

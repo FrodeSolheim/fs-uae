@@ -1,5 +1,7 @@
 Version 2.5.40dev:
 
+* Use SetUnhandledExceptionFilter on Windows for JIT direct memory.
+* Unified (segfault) exception handler for Windows and Linux.
 * Fixed mman for compatibility with JIT direct memory access.
 * Re-enable uae_comp_trust* = indirectKS options.
 * Allow uae_rtc to be set without disabling uae_chipset_compatible.

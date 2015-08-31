@@ -1161,6 +1161,7 @@ EXTRA_DIST = $(TESTS) $(EXTRA_TESTS) \
 	src/inputevents.def \
 	src/jit/compemu_optimizer_x86.cpp \
 	src/jit/compemu_raw_x86.cpp \
+	src/jit/exception_handler.cpp \
 	src/od-fs/bsdsocket_posix.cpp \
 	src/od-win32/bsdsock.cpp \
         src/od-win32/mman.cpp \

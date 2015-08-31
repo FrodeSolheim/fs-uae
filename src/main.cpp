@@ -41,6 +41,7 @@
 #include "cpuboard.h"
 #include "uae/ppc.h"
 #include "devices.h"
+#include "jit/compemu.h"
 #ifdef RETROPLATFORM
 #include "rp.h"
 #endif
@@ -959,30 +960,21 @@ void do_start_program (void)
 #ifdef WITH_LUA
 	uae_lua_loadall ();
 #endif
-#ifdef FSUAE
-
-#else
-#if (defined (_WIN32) || defined (_WIN64)) && !defined (NO_WIN32_EXCEPTION_HANDLER)
-	extern int EvalException (LPEXCEPTION_POINTERS blah, int n_except);
+#ifdef USE_STRUCTURED_EXCEPTION_HANDLING
 	__try
-#endif
 #endif
 	{
 		m68k_go (1);
 	}
-#ifdef FSUAE
-
-#else
-#if (defined (_WIN32) || defined (_WIN64)) && !defined (NO_WIN32_EXCEPTION_HANDLER)
+#ifdef USE_STRUCTURED_EXCEPTION_HANDLING
 #ifdef JIT
-	__except (EvalException (GetExceptionInformation (), GetExceptionCode ()))
+	__except (EvalException(GetExceptionInformation()))
 #else
 	__except (DummyException (GetExceptionInformation (), GetExceptionCode ()))
 #endif
 	{
 		// EvalException does the good stuff...
 	}
-#endif
 #endif
 }
 

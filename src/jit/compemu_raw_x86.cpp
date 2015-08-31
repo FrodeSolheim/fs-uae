@@ -1,15 +1,6 @@
 /* This should eventually end up in machdep/, but for now, x86 is the
 only target, and it's easier this way... */
 
-#ifdef FSUAE // NL
-extern uae_u8 *natmem_offset, *natmem_offset_end;
-
-#ifdef WINDOWS
-#define _WIN32
-#endif
-
-#endif
-
 /*************************************************************************
 * Some basic information about the the target CPU                       *
 *************************************************************************/

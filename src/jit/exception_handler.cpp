@@ -2,7 +2,6 @@
 * Handling mistaken direct memory access                                *
 *************************************************************************/
 
-
 #ifdef NATMEM_OFFSET
 #ifdef _WIN32 // %%% BRIAN KING WAS HERE %%%
 #include <winbase.h>
@@ -22,39 +21,81 @@ static uae_u8 *veccode;
 
 #ifdef _WIN32
 
-#if defined(CPU_64_BIT)
-#define ctxPC (pContext->Rip)
-#else
-#define ctxPC (pContext->Eip)
+typedef LPEXCEPTION_POINTERS CONTEXT_T;
+#define HAVE_CONTEXT_T 1
+
+#define CONTEXT_EIP(context) (context->ContextRecord->Eip)
+#define CONTEXT_EAX(context) (context->ContextRecord->Eax)
+#define CONTEXT_ECX(context) (context->ContextRecord->Ecx)
+#define CONTEXT_EDX(context) (context->ContextRecord->Edx)
+#define CONTEXT_EBX(context) (context->ContextRecord->Ebx)
+#define CONTEXT_ESP(context) (context->ContextRecord->Esp)
+#define CONTEXT_EBP(context) (context->ContextRecord->Ebp)
+#define CONTEXT_ESI(context) (context->ContextRecord->Esi)
+#define CONTEXT_EDI(context) (context->ContextRecord->Edi)
+
+#define CONTEXT_RIP(context) (context->ContextRecord->Rip)
+#define CONTEXT_RAX(context) (context->ContextRecord->Rax)
+#define CONTEXT_RCX(context) (context->ContextRecord->Rcx)
+#define CONTEXT_RDX(context) (context->ContextRecord->Rdx)
+#define CONTEXT_RBX(context) (context->ContextRecord->Rbx)
+#define CONTEXT_RSP(context) (context->ContextRecord->Rsp)
+#define CONTEXT_RBP(context) (context->ContextRecord->Rbp)
+#define CONTEXT_RSI(context) (context->ContextRecord->Rsi)
+#define CONTEXT_RDI(context) (context->ContextRecord->Rdi)
+
+#define CONTEXT_CR2(context) ((uae_u32)(context->ExceptionRecord->ExceptionInformation[1]))
+
+#elif HAVE_STRUCT_UCONTEXT_UC_MCONTEXT_GREGS
+
+typedef void *CONTEXT_T;
+#define HAVE_CONTEXT_T 1
+
+#define CONTEXT_EIP(context) (((struct ucontext *) context)->uc_mcontext.gregs[REG_EIP])
+#define CONTEXT_EAX(context) (((struct ucontext *) context)->uc_mcontext.gregs[REG_EAX])
+#define CONTEXT_ECX(context) (((struct ucontext *) context)->uc_mcontext.gregs[REG_ECX])
+#define CONTEXT_EDX(context) (((struct ucontext *) context)->uc_mcontext.gregs[REG_EDX])
+#define CONTEXT_EBX(context) (((struct ucontext *) context)->uc_mcontext.gregs[REG_EBX])
+#define CONTEXT_ESP(context) (((struct ucontext *) context)->uc_mcontext.gregs[REG_ESP])
+#define CONTEXT_EBP(context) (((struct ucontext *) context)->uc_mcontext.gregs[REG_EBP])
+#define CONTEXT_ESI(context) (((struct ucontext *) context)->uc_mcontext.gregs[REG_ESI])
+#define CONTEXT_EDI(context) (((struct ucontext *) context)->uc_mcontext.gregs[REG_EDI])
+
+#define CONTEXT_CR2(context) (((struct ucontext *) context)->uc_mcontext.cr2)
+
 #endif
 
-int EvalException (LPEXCEPTION_POINTERS blah, int n_except)
-{
-	PEXCEPTION_RECORD pExceptRecord = NULL;
-	PCONTEXT          pContext = NULL;
+#if defined(CPU_64_BIT)
+#ifdef CONTEXT_RIP
+#define CONTEXT_PC(context) CONTEXT_RIP(context)
+#endif
+#else
+#ifdef CONTEXT_EIP
+#define CONTEXT_PC(context) CONTEXT_EIP(context)
+#endif
+#endif
 
-	uae_u8* i = NULL;
-	uae_u32 addr = 0;
+#ifdef HAVE_CONTEXT_T
+/*
+ * Try to handle faulted memory access in compiled code
+ *
+ * Returns 1 if handled, 0 otherwise
+ */
+static int handle_access(CONTEXT_T context)
+{
+	uae_u8  *i    = (uae_u8 *) CONTEXT_EIP(context);
+	uae_u32  addr =            CONTEXT_CR2(context);
+
 	int r=-1;
 	int size=4;
 	int dir=-1;
 	int len=0;
 
-	if (n_except != STATUS_ACCESS_VIOLATION || !canbang || currprefs.cachesize == 0)
-		return EXCEPTION_CONTINUE_SEARCH;
-
-	pExceptRecord = blah->ExceptionRecord;
-	pContext = blah->ContextRecord;
-
-	if (pContext)
-		i = (uae_u8 *)ctxPC;
-	if (pExceptRecord)
-		addr = (uae_u32)(pExceptRecord->ExceptionInformation[1]);
 #ifdef JIT_DEBUG
 	write_log (_T("JIT: fault address is 0x%x at 0x%x\n"),addr,i);
 #endif
 	if (!canbang || !currprefs.cachesize)
-		return EXCEPTION_CONTINUE_SEARCH;
+		return 0;
 
 	if (in_handler)
 		write_log (_T("JIT: Argh --- Am already in a handler. Shouldn't happen!\n"));
@@ -136,37 +177,42 @@ int EvalException (LPEXCEPTION_POINTERS blah, int n_except)
 
 		switch(r) {
 #if defined(CPU_64_BIT)
-		case 0: pr=&(pContext->Rax); break;
-		case 1: pr=&(pContext->Rcx); break;
-		case 2: pr=&(pContext->Rdx); break;
-		case 3: pr=&(pContext->Rbx); break;
-		case 4: pr=(size>1)?NULL:(((uae_u8*)&(pContext->Rax))+1); break;
-		case 5: pr=(size>1)?
-			(void*)(&(pContext->Rbp)):
-			(void*)(((uae_u8*)&(pContext->Rcx))+1); break;
-		case 6: pr=(size>1)?
-			(void*)(&(pContext->Rsi)):
-			(void*)(((uae_u8*)&(pContext->Rdx))+1); break;
-		case 7: pr=(size>1)?
-			(void*)(&(pContext->Rdi)):
-			(void*)(((uae_u8*)&(pContext->Rbx))+1); break;
+		case 0: pr = &(CONTEXT_RAX(context)); break;
+		case 1: pr = &(CONTEXT_RCX(context)); break;
+		case 2: pr = &(CONTEXT_RDX(context)); break;
+		case 3: pr = &(CONTEXT_RBX(context)); break;
+		case 4: pr = (size > 1) ? NULL
+					: (((uae_u8*)&(CONTEXT_RAX(context)))+1);
+			break;
+		case 5: pr = (size > 1) ? (void*)          (&(CONTEXT_RBP(context)))
+					: (void*)(((uae_u8*)&(CONTEXT_RCX(context))) + 1);
+			break;
+		case 6: pr = (size > 1) ? (void*)          (&(CONTEXT_RSI(context)))
+					: (void*)(((uae_u8*)&(CONTEXT_RDX(context))) + 1);
+			break;
+		case 7: pr = (size > 1) ? (void*)          (&(CONTEXT_RDI(context)))
+					: (void*)(((uae_u8*)&(CONTEXT_RBX(context))) + 1);
+			break;
 #else
-		case 0: pr=&(pContext->Eax); break;
-		case 1: pr=&(pContext->Ecx); break;
-		case 2: pr=&(pContext->Edx); break;
-		case 3: pr=&(pContext->Ebx); break;
-		case 4: pr=(size>1)?NULL:(((uae_u8*)&(pContext->Eax))+1); break;
-		case 5: pr=(size>1)?
-			(void*)(&(pContext->Ebp)):
-			(void*)(((uae_u8*)&(pContext->Ecx))+1); break;
-		case 6: pr=(size>1)?
-			(void*)(&(pContext->Esi)):
-			(void*)(((uae_u8*)&(pContext->Edx))+1); break;
-		case 7: pr=(size>1)?
-			(void*)(&(pContext->Edi)):
-			(void*)(((uae_u8*)&(pContext->Ebx))+1); break;
+		case 0: pr = &(CONTEXT_EAX(context)); break;
+		case 1: pr = &(CONTEXT_ECX(context)); break;
+		case 2: pr = &(CONTEXT_EDX(context)); break;
+		case 3: pr = &(CONTEXT_EBX(context)); break;
+		case 4: pr = (size > 1) ? NULL
+					: (((uae_u8*)&(CONTEXT_EAX(context)))+1);
+			break;
+		case 5: pr = (size > 1) ? (void*)          (&(CONTEXT_EBP(context)))
+					: (void*)(((uae_u8*)&(CONTEXT_ECX(context))) + 1);
+			break;
+		case 6: pr = (size > 1) ? (void*)          (&(CONTEXT_ESI(context)))
+					: (void*)(((uae_u8*)&(CONTEXT_EDX(context))) + 1);
+			break;
+		case 7: pr = (size > 1) ? (void*)          (&(CONTEXT_EDI(context)))
+					: (void*)(((uae_u8*)&(CONTEXT_EBX(context))) + 1);
+			break;
 #endif
-		default: abort();
+	    default:
+		    abort ();
 		}
 		if (pr) {
 			blockinfo* bi;
@@ -201,7 +247,7 @@ int EvalException (LPEXCEPTION_POINTERS blah, int n_except)
 #endif
 				fflush(stdout);
 				segvcount++;
-				ctxPC+=len;
+				CONTEXT_PC(context) += len;
 			}
 			else {
 				void* tmp=target;
@@ -217,7 +263,7 @@ int EvalException (LPEXCEPTION_POINTERS blah, int n_except)
 				}
 #endif
 
-				target=(uae_u8*)ctxPC;
+				target = (uae_u8*) CONTEXT_PC(context);
 				for (i=0;i<5;i++)
 					vecbuf[i]=target[i];
 				emit_byte(0xe9);
@@ -248,10 +294,10 @@ int EvalException (LPEXCEPTION_POINTERS blah, int n_except)
 					}
 				}
 				for (i=0;i<5;i++)
-					raw_mov_b_mi(ctxPC+i,vecbuf[i]);
+					raw_mov_b_mi(CONTEXT_PC(context) + i, vecbuf[i]);
 				raw_mov_l_mi((uae_u32)&in_handler,0);
 				emit_byte(0xe9);
-				emit_long(ctxPC+len-(uae_u32)target-4);
+				emit_long(CONTEXT_PC(context) + len - (uae_u32)target - 4);
 				in_handler=1;
 				target=(uae_u8*)tmp;
 			}
@@ -270,7 +316,7 @@ int EvalException (LPEXCEPTION_POINTERS blah, int n_except)
 					invalidate_block(bi);
 					raise_in_cl_list(bi);
 					set_special(0);
-					return EXCEPTION_CONTINUE_EXECUTION;
+					return 1;
 				}
 				bi=bi->next;
 			}
@@ -291,14 +337,14 @@ int EvalException (LPEXCEPTION_POINTERS blah, int n_except)
 					invalidate_block(bi);
 					raise_in_cl_list(bi);
 					set_special(0);
-					return EXCEPTION_CONTINUE_EXECUTION;
+					return 1;
 				}
 				bi=bi->next;
 			}
 #ifdef JIT_DEBUG
 			write_log (_T("JIT: Huh? Could not find trigger!\n"));
 #endif
-			return EXCEPTION_CONTINUE_EXECUTION;
+			return 1;
 		}
 	}
 	write_log (_T("JIT: Can't handle access %08X!\n"), i);
@@ -315,291 +361,66 @@ int EvalException (LPEXCEPTION_POINTERS blah, int n_except)
 	write_log (_T("bmeyer@csse.monash.edu.au\n"));
 	write_log (_T("This shouldn't happen ;-)\n"));
 #endif
+	return 0;
+}
+#endif /* CONTEXT_T */
+
+#ifdef _WIN32
+
+LONG WINAPI EvalException(LPEXCEPTION_POINTERS info)
+{
+	DWORD code = info->ExceptionRecord->ExceptionCode;
+	if (code != STATUS_ACCESS_VIOLATION || !canbang || currprefs.cachesize == 0)
+		return EXCEPTION_CONTINUE_SEARCH;
+
+	if (handle_access(info)) {
+		return EXCEPTION_CONTINUE_EXECUTION;
+	}
 	return EXCEPTION_CONTINUE_SEARCH;
 }
-#else
 
-#if defined(__APPLE__) && __DARWIN_UNIX03
-#define CONTEXT_MEMBER(x) __##x
-#elif defined(__FreeBSD__)
-#define CONTEXT_MEMBER(x) sc_##x
-#else
-#define CONTEXT_MEMBER(x) x
-#endif
+#elif defined(HAVE_CONTEXT_T)
 
-#ifdef __APPLE__
-static void vec(int x, siginfo_t *info, ucontext_t *uap)
+static void sigsegv_handler(int signum, struct siginfo *info, void *context)
 {
-	_STRUCT_X86_THREAD_STATE32 sc = uap->uc_mcontext->CONTEXT_MEMBER(ss);
-	uae_u32 addr = 0;
-#else
-static void vec(int x, struct sigcontext sc)
-{
-#endif
-    uae_u8* i=(uae_u8*)sc.CONTEXT_MEMBER(eip);
-#ifdef __APPLE__
+	uae_u8  *i    = (uae_u8 *) CONTEXT_EIP(context);
+	uae_u32  addr =            CONTEXT_CR2(context);
+
 	if (i >= compiled_code) {
-			unsigned int j;
-			write_log ("JIT_APPLE: can't handle access!\n");
+		if (handle_access (context))
+			return;
+		else {
+			int j;
+			write_log ("JIT: can't handle access!\n");
 			for (j = 0 ; j < 10; j++)
 				write_log ("JIT: instruction byte %2d is %02x\n", i, j[i]);
+		}
 	} else {
-		write_log ("Caught illegal access to (unknown) at eip=%08x\n", i);
-	}
-   exit (EXIT_FAILURE);
-#elif defined(__FreeBSD__)
-	//uae_u32 addr=sc.cr2;
-	uae_u32 addr=sc.CONTEXT_MEMBER(spare2); // UJ: @@@@: ????:
-#else
-	uae_u32 addr=sc.cr2;
-#endif
-	int r=-1;
-	int size=4;
-	int dir=-1;
-	int len=0;
-	int j;
-
-	write_log (_T("JIT: fault address is %08x at %08x\n"),addr,i);
-	if (!canbang)
-		write_log (_T("JIT: Not happy! Canbang is 0 in SIGSEGV handler!\n"));
-	if (in_handler)
-		write_log (_T("JIT: Argh --- Am already in a handler. Shouldn't happen!\n"));
-
-    /*
-     * Decode access opcode
-     */
-    if (canbang && i>=compiled_code && i<=current_compile_p) {
-        if (*i==0x66) {
-            i++;
-            size=2;
-            len++;
-        }
-
-		switch(i[0]) {
-		case 0x8a:
-			if ((i[1]&0xc0)==0x80) {
-				r=(i[1]>>3)&7;
-				dir=SIG_READ;
-				size=1;
-				len+=6;
-				break;
-			}
-			break;
-		case 0x88:
-			if ((i[1]&0xc0)==0x80) {
-				r=(i[1]>>3)&7;
-				dir=SIG_WRITE;
-				size=1;
-				len+=6;
-				break;
-			}
-			break;
-
-		case 0x8b:
-			switch(i[1]&0xc0) {
-			case 0x80:
-				r=(i[1]>>3)&7;
-				dir=SIG_READ;
-				len+=6;
-				break;
-			case 0x40:
-				r=(i[1]>>3)&7;
-				dir=SIG_READ;
-				len+=3;
-				break;
-			case 0x00:
-				r=(i[1]>>3)&7;
-				dir=SIG_READ;
-				len+=2;
-				break;
-			default:
-				break;
-			}
-			break;
-
-		case 0x89:
-			switch(i[1]&0xc0) {
-			case 0x80:
-				r=(i[1]>>3)&7;
-				dir=SIG_WRITE;
-				len+=6;
-				break;
-			case 0x40:
-				r=(i[1]>>3)&7;
-				dir=SIG_WRITE;
-				len+=3;
-				break;
-			case 0x00:
-				r=(i[1]>>3)&7;
-				dir=SIG_WRITE;
-				len+=2;
-				break;
-			}
-			break;
-		}
+		write_log ("Caught illegal access to %08x at eip=%08x\n", addr, i);
 	}
 
-	if (r!=-1) {
-		void* pr=NULL;
-		write_log (_T("JIT: register was %d, direction was %d, size was %d\n"),r,dir,size);
-
-		switch(r) {
-		case 0: pr = &(sc.CONTEXT_MEMBER(eax)); break;
-		case 1: pr = &(sc.CONTEXT_MEMBER(ecx)); break;
-		case 2: pr = &(sc.CONTEXT_MEMBER(edx)); break;
-		case 3: pr = &(sc.CONTEXT_MEMBER(ebx)); break;
-		case 4: pr = (size>1) ? NULL:(((uae_u8*)&(sc.CONTEXT_MEMBER(eax)))+1); break;
-		case 5: pr=(size>1)?
-			(void*)(&(sc.CONTEXT_MEMBER(ebp))):
-			(void*)(((uae_u8*)&(sc.CONTEXT_MEMBER(ecx)))+1); break;
-		case 6: pr=(size>1)?
-			(void*)(&(sc.CONTEXT_MEMBER(esi))):
-			(void*)(((uae_u8*)&(sc.CONTEXT_MEMBER(edx)))+1); break;
-		case 7: pr=(size>1)?
-			(void*)(&(sc.CONTEXT_MEMBER(edi))):
-			(void*)(((uae_u8*)&(sc.CONTEXT_MEMBER(ebx)))+1); break;
-		default: abort();
-		}
-		if (pr) {
-			blockinfo* bi;
-
-			if (currprefs.comp_oldsegv) {
-#ifdef FSUAE
-// FIXME: check why (uae_u8 was here originally...?)
-				addr -= (uae_u32)NATMEM_OFFSET;
-#else
-				addr -= (uae_u8)NATMEM_OFFSET;
-#endif
-
-				if ((addr>=0x10000000 && addr<0x40000000) ||
-					(addr>=0x50000000)) {
-						write_log (_T("JIT: Suspicious address in %x SEGV handler.\n"),addr);
-				}
-				if (dir==SIG_READ) {
-					switch(size) {
-					case 1: *((uae_u8*)pr)=get_byte (addr); break;
-					case 2: *((uae_u16*)pr)=get_word (addr); break;
-					case 4: *((uae_u32*)pr)=get_long (addr); break;
-					default: abort();
-					}
-				}
-				else { /* write */
-					switch(size) {
-					case 1: put_byte (addr,*((uae_u8*)pr)); break;
-					case 2: put_word (addr,*((uae_u16*)pr)); break;
-					case 4: put_long (addr,*((uae_u32*)pr)); break;
-					default: abort();
-					}
-				}
-				write_log ("JIT: Handled one access!\n");
-				fflush(stdout);
-				segvcount++;
-				sc.CONTEXT_MEMBER(eip) += len;
-			}
-			else {
-				uint8_t* tmp=target;
-				int i;
-				uae_u8 vecbuf[5];
-
-#ifdef FSUAE
-// FIXME: check why (uae_u8 was here originally...?)
-				addr -= (uae_u32)NATMEM_OFFSET;
-#else
-				addr-=(uae_u8)NATMEM_OFFSET;
-#endif
-
-				if ((addr>=0x10000000 && addr<0x40000000) ||
-					(addr>=0x50000000)) {
-						write_log (_T("JIT: Suspicious address 0x%x in SEGV handler.\n"),addr);
-				}
-
-				target = (uae_u8*)sc.CONTEXT_MEMBER(eip);
-				for (i=0;i<5;i++)
-					vecbuf[i]=target[i];
-				emit_byte(0xe9);
-				emit_long((uae_u32)veccode-(uae_u32)target-4);
-				write_log (_T("JIT: Create jump to %p\n"),veccode);
-
-				write_log (_T("JIT: Handled one access!\n"));
-				segvcount++;
-
-				target=veccode;
-
-				if (dir==SIG_READ) {
-					switch(size) {
-					case 1: raw_mov_b_ri(r,get_byte (addr)); break;
-					case 2: raw_mov_w_ri(r,get_word (addr)); break;
-					case 4: raw_mov_l_ri(r,get_long (addr)); break;
-					default: abort();
-					}
-				}
-				else { /* write */
-					switch(size) {
-					case 1: put_byte (addr,*((uae_u8*)pr)); break;
-					case 2: put_word (addr,*((uae_u16*)pr)); break;
-					case 4: put_long (addr,*((uae_u32*)pr)); break;
-					default: abort();
-					}
-				}
-				for (i=0;i<5;i++)
-					raw_mov_b_mi(sc.CONTEXT_MEMBER(eip)+i,vecbuf[i]);
-				raw_mov_l_mi((uae_u32)&in_handler,0);
-				emit_byte(0xe9);
-				emit_long(sc.CONTEXT_MEMBER(eip)+len-(uae_u32)target-4);
-				in_handler=1;
-				target=tmp;
-			}
-			bi=active;
-			while (bi) {
-				if (bi->handler &&
-					(uae_u8*)bi->direct_handler<=i &&
-					(uae_u8*)bi->nexthandler>i) {
-						write_log (_T("JIT: deleted trigger (%p<%p<%p) %p\n"),
-							bi->handler,
-							i,
-							bi->nexthandler,
-							bi->pc_p);
-						invalidate_block(bi);
-						raise_in_cl_list(bi);
-						set_special(0);
-						return;
-				}
-				bi=bi->next;
-			}
-			/* Not found in the active list. Might be a rom routine that
-			is in the dormant list */
-			bi=dormant;
-			while (bi) {
-				if (bi->handler &&
-					(uae_u8*)bi->direct_handler<=i &&
-					(uae_u8*)bi->nexthandler>i) {
-						write_log (_T("JIT: deleted trigger (%p<%p<%p) %p\n"),
-							bi->handler,
-							i,
-							bi->nexthandler,
-							bi->pc_p);
-						invalidate_block(bi);
-						raise_in_cl_list(bi);
-						set_special(0);
-						return;
-				}
-				bi=bi->next;
-			}
-			write_log (_T("JIT: Huh? Could not find trigger!\n"));
-			return;
-		}
-	}
-	write_log (_T("JIT: Can't handle access!\n"));
-	for (j=0;j<10;j++) {
-		write_log (_T("JIT: instruction byte %2d is %02x\n"),j,i[j]);
-	}
-#if 0
-	write_log (_T("Please send the above info (starting at \"fault address\") to\n")
-		"bmeyer@csse.monash.edu.au\n"
-		"This shouldn't happen ;-)\n");
-	fflush(stdout);
-#endif
-	signal(SIGSEGV,SIG_DFL);  /* returning here will cause a "real" SEGV */
+	exit (EXIT_FAILURE);
 }
+
 #endif
+
+static void install_exception_handler(void)
+{
+#ifdef USE_STRUCTURED_EXCEPTION_HANDLING
+	/* Structured exception handler is installed in main.cpp */
+#elif defined(_WIN32)
+	write_log (_T("JIT: Installing unhandled exception filter\n"));
+	SetUnhandledExceptionFilter(EvalException);
+#elif defined(HAVE_CONTEXT_T)
+	write_log (_T("JIT: Installing segfault handler\n"));
+	struct sigaction act;
+	act.sa_sigaction = (void (*)(int, siginfo_t*, void*)) sigsegv_handler;
+	sigemptyset (&act.sa_mask);
+	act.sa_flags = SA_SIGINFO;
+	sigaction(SIGSEGV, &act, NULL);
+#else
+	write_log (_T("JIT: No segfault handler installed\n"));
 #endif
+}
+
+#endif /* NATMEM_OFFSET */

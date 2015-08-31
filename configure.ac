@@ -333,6 +333,8 @@ AC_CHECK_MEMBERS([struct stat.st_mtim.tv_nsec])
 AC_CHECK_MEMBERS([struct stat.st_mtimespec.tv_nsec])
 AC_CHECK_MEMBERS([struct stat.st_mtime_nsec])
 AC_CHECK_MEMBERS([struct in_addr.S_un])
+AC_CHECK_MEMBERS([struct ucontext.uc_mcontext.gregs],
+	[], [], [[#include <sys/ucontext.h>]])
 
 AC_CHECK_TYPES([ptrdiff_t])
 AC_STRUCT_ST_BLOCKS

@@ -100,11 +100,13 @@ static void *VirtualAlloc(void *lpAddress, size_t dwSize, int flAllocationType,
 		memory = mmap(lpAddress, dwSize, 0, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 		if (memory == (void *) -1) {
 			write_log("mmap failed errno %d\n", errno);
+			return NULL;
 		}
 #else
 		memory = malloc(dwSize);
 		if (memory == NULL) {
 			write_log("memory allocated failed errno %d\n", errno);
+			return NULL;
 		}
 #endif
 	}

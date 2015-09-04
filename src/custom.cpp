@@ -4302,6 +4302,7 @@ static void init_hz (bool checkvposw)
 #endif
 
 	compute_framesync ();
+	devices_syncchange();
 
 #ifdef PICASSO96
 	init_hz_p96 ();

@@ -94,4 +94,4 @@ struct uni {
 #endif
 };
 
-#endif // UAE_UNI_COMMON_H
+#endif /* UAE_UNI_COMMON_H */

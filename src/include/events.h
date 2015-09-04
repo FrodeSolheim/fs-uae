@@ -12,8 +12,8 @@
 #ifndef UAE_EVENTS_H
 #define UAE_EVENTS_H
 
-#ifdef FSUAE // NL
 #include "uae/types.h"
+#ifdef FSUAE
 #include "uae/inline.h"
 #include "options.h"
 // FIXME: move CYCLE_UNIT define here instead
@@ -161,4 +161,4 @@ STATIC_INLINE void event2_remevent (int no)
 	eventtab2[no].active = 0;
 }
 
-#endif // UAE_EVENTS_H
+#endif /* UAE_EVENTS_H */

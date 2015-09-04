@@ -10,8 +10,8 @@
 #ifndef UAE_DEBUG_H
 #define UAE_DEBUG_H
 
-#ifdef FSUAE // NL
 #include "uae/types.h"
+#ifdef FSUAE
 #include "uae/inline.h"
 #endif
 
@@ -174,6 +174,6 @@ extern void debug_draw_cycles (uae_u8 *buf, int bpp, int line, int width, int he
 
 STATIC_INLINE void activate_debugger (void) { };
 
-#endif // DEBUGGER
+#endif /* DEBUGGER */
 
-#endif // UAE_DEBUG_H
+#endif /* UAE_DEBUG_H */

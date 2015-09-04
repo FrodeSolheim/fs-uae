@@ -9,8 +9,8 @@
 #ifndef UAE_AUDIO_H
 #define UAE_AUDIO_H
 
-#ifdef FSUAE // NL
 #include "uae/types.h"
+#ifdef FSUAE
 #include "uae/inline.h"
 #endif
 
@@ -124,4 +124,4 @@ STATIC_INLINE int get_audio_ismono (int stereomode)
 #define MIXED_STEREO_MAX 16
 #define MIXED_STEREO_SCALE 32
 
-#endif // UAE_AUDIO_H
+#endif /* UAE_AUDIO_H */

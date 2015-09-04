@@ -9,8 +9,8 @@
 #ifndef UAE_AUTOCONF_H
 #define UAE_AUTOCONF_H
 
-#ifdef FSUAE // NL
 #include "uae/types.h"
+#ifdef FSUAE
 #include "uae/memory.h"
 #include "uae/limits.h"
 #endif

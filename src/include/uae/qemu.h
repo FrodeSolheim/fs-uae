@@ -4,6 +4,7 @@
 /* This file is intended to be included by external libraries as well,
  * so don't pull in too much UAE-specific stuff. */
 
+#include "uae/types.h"
 #include "uae/api.h"
 
 /* The qemu-uae major version must match this */

@@ -9,8 +9,8 @@
 #ifndef UAE_CUSTOM_H
 #define UAE_CUSTOM_H
 
-#ifdef FSUAE
 #include "uae/types.h"
+#ifdef FSUAE
 #include "uae/inline.h"
 #include "options.h"
 #else
@@ -251,4 +251,4 @@ extern void compute_framesync (void);
 extern void getsyncregisters(uae_u16 *phsstrt, uae_u16 *phsstop, uae_u16 *pvsstrt, uae_u16 *pvsstop);
 int is_bitplane_dma (int hpos);
 
-#endif // UAE_CUSTOM_H
+#endif /* UAE_CUSTOM_H */

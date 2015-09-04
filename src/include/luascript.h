@@ -33,6 +33,6 @@ void uae_lua_run_handler(const char *name);
 void uae_lua_aquire_lock();
 void uae_lua_release_lock();
 
-#endif // WITH_LUA
+#endif /* WITH_LUA */
 
-#endif // UAE_LUASCRIPT_H
+#endif /* UAE_LUASCRIPT_H */

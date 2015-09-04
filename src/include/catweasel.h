@@ -94,6 +94,6 @@ int catweasel_diskready(catweasel_drive *d);
 int catweasel_track0(catweasel_drive *d);
 
 
-#endif // CATWEASEL
+#endif /* CATWEASEL */
 
-#endif // UAE_CATWEASEL_H
+#endif /* UAE_CATWEASEL_H */

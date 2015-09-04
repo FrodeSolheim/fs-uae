@@ -1,9 +1,7 @@
 #ifndef UAE_TABLETLIBRARY_H
 #define UAE_TABLETLIBRARY_H
 
-#ifdef FSUAE // NL
 #include "uae/types.h"
-#endif
 
 uaecptr tabletlib_startup (uaecptr resaddr);
 void tabletlib_install (void);
@@ -13,4 +11,4 @@ extern void tabletlib_tablet (int x, int y, int z,
 	      int ax, int ay, int az);
 extern void tabletlib_tablet_info (int maxx, int maxy, int maxz, int maxax, int maxay, int maxaz, int xres, int yres);
 
-#endif // UAE_TABLETLIBRARY_H
+#endif /* UAE_TABLETLIBRARY_H */

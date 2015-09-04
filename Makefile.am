@@ -417,7 +417,6 @@ libuae_a_SOURCES = \
 	src/include/uae/regparam.h \
 	src/include/uae/seh.h \
 	src/include/uae/slirp.h \
-	src/include/uae/specialmonitors.h \
 	src/include/uae/string.h \
 	src/include/uae/types.h \
 	src/include/uaeexe.h \

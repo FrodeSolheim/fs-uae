@@ -10,8 +10,8 @@
 #ifndef UAE_OPTIONS_H
 #define UAE_OPTIONS_H
 
-#ifdef FSUAE // NL
 #include "uae/types.h"
+#ifdef FSUAE
 #include "uae/limits.h"
 #endif
 
@@ -801,4 +801,4 @@ extern struct uae_prefs currprefs, changed_prefs;
 extern int machdep_init (void);
 extern void machdep_free (void);
 
-#endif // UAE_OPTIONS_H
+#endif /* UAE_OPTIONS_H */

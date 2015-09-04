@@ -9,9 +9,7 @@
 #ifndef UAE_UAE_H
 #define UAE_UAE_H
 
-#ifdef FSUAE // NL
 #include "uae/types.h"
-#endif
 
 extern void do_start_program (void);
 extern void start_program (void);
@@ -88,4 +86,4 @@ int get_guid_target (uae_u8 *out);
 void filesys_addexternals (void);
 void jit_abort (const TCHAR *format,...);
 
-#endif // UAE_UAE_H
+#endif /* UAE_UAE_H */

@@ -9,8 +9,8 @@
 #ifndef UAE_FILESYS_H
 #define UAE_FILESYS_H
 
-#ifdef FSUAE // NL
 #include "uae/types.h"
+#ifdef FSUAE
 #include "options.h"
 #include <time.h>
 #endif
@@ -162,4 +162,4 @@ extern void getchsgeometry (uae_u64 size, int *pcyl, int *phead, int *psectorspe
 extern void getchsgeometry_hdf (struct hardfiledata *hfd, uae_u64 size, int *pcyl, int *phead, int *psectorspertrack);
 extern void getchspgeometry (uae_u64 total, int *pcyl, int *phead, int *psectorspertrack, bool idegeometry);
 
-#endif // UAE_FILESYS_H
+#endif /* UAE_FILESYS_H */

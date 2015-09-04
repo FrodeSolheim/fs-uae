@@ -15,4 +15,4 @@
 #define MAX_PATH PATH_MAX
 #endif
 
-#endif // UAE_LIMITS_H
+#endif /* UAE_LIMITS_H */

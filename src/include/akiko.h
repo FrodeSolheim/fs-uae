@@ -13,4 +13,4 @@ extern void akiko_mute (int);
 
 extern void rethink_akiko (void);
 
-#endif // UAE_AKIKO_H
+#endif /* UAE_AKIKO_H */

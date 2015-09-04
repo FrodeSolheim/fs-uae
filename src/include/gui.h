@@ -9,9 +9,7 @@
 #ifndef UAE_GUI_H
 #define UAE_GUI_H
 
-#ifdef FSUAE // NL
 #include "uae/types.h"
-#endif
 
 extern int gui_init (void);
 extern int gui_update (void);
@@ -108,4 +106,4 @@ typedef enum {
 	NUMSG_LAST
 } notify_user_msg;
 
-#endif // UAE_GUI_H
+#endif /* UAE_GUI_H */

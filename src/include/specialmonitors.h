@@ -2,7 +2,9 @@
 #define UAE_SPECIALMONITORS_H
 
 #include "uae/memory.h"
+#ifdef FSUAE
 #include "xwin.h"
+#endif
 
 bool emulate_specialmonitors(struct vidbuffer *src, struct vidbuffer *dst);
 void specialmonitor_store_fmode(int vpos, int hpos, uae_u16 fmode);

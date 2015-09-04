@@ -67,4 +67,4 @@ typedef enum {
 #define	RGBFB_PLANAR	RGBFB_NONE
 #define	RGBFB_CHUNKY	RGBFB_CLUT
 
-#endif // UAE_RTGMODES_H
+#endif /* UAE_RTGMODES_H */

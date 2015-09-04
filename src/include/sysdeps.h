@@ -589,8 +589,6 @@ extern void log_close (FILE *f);
 # endif
 #endif
 
-#endif
-
 #ifndef __cplusplus
 
 #define xmalloc(T, N) malloc(sizeof (T) * (N))
@@ -620,3 +618,5 @@ extern void xfree (const void*);
 #else
 #define NOWARN_UNUSED(x) x
 #endif
+
+#endif /* UAE_SYSDEPS_H */

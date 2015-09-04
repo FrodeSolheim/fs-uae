@@ -4,4 +4,4 @@
 extern "C" int prowizard_search (unsigned char *in_data, int in_size);
 extern void moduleripper (void);
 
-#endif // UAE_MODULERIPPER_H
+#endif /* UAE_MODULERIPPER_H */

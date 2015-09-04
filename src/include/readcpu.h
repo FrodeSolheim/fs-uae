@@ -1,8 +1,8 @@
 #ifndef UAE_READCPU_H
 #define UAE_READCPU_H
 
-#ifdef FSUAE // NL
 #include "uae/types.h"
+#ifdef FSUAE
 #include "uae/enum.h"
 #endif
 
@@ -119,4 +119,4 @@ extern void do_merges (void);
 extern int get_no_mismatches (void);
 extern int nr_cpuop_funcs;
 
-#endif // UAE_READCPU_H
+#endif /* UAE_READCPU_H */

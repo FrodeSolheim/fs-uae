@@ -9,8 +9,8 @@
 #ifndef UAE_OSEMU_H
 #define UAE_OSEMU_H
 
-#ifdef FSUAE // NL
 #include "uae/types.h"
+#ifdef FSUAE
 #include "uae/inline.h"
 #include "uae/memory.h"
 #include <stddef.h>
@@ -27,4 +27,4 @@ extern void gfxlib_install(void);
 
 extern int GFX_WritePixel(uaecptr rp, int x, int y);
 
-#endif // UAE_OSEMU_H
+#endif /* UAE_OSEMU_H */

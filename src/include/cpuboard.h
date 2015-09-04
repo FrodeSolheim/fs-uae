@@ -1,8 +1,8 @@
 #ifndef UAE_CPUBOARD_H
 #define UAE_CPUBOARD_H
 
-#ifdef FSUAE // NL
 #include "uae/types.h"
+#ifdef FSUAE
 #include "uae/memory.h"
 #endif
 

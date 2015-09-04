@@ -1,4 +1,9 @@
+#ifndef UAE_X86_H
+#define UAE_X86_H
+
+#ifdef FSUAE // NL
 #include "uae/memory.h"
+#endif
 
 extern addrbank *a1060_init(struct romconfig *rc);
 extern addrbank *a2088xt_init(struct romconfig *rc);
@@ -17,3 +22,5 @@ void x86_bridge_rethink(void);
 int is_x86_cpu(struct uae_prefs*);
 void x86_bridge_execute_until(int until);
 extern bool x86_turbo_on;
+
+#endif /* UAE_X86_H */

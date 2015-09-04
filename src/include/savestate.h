@@ -9,8 +9,8 @@
 #ifndef UAE_SAVESTATE_H
 #define UAE_SAVESTATE_H
 
-#ifdef FSUAE // NL
 #include "uae/types.h"
+#ifdef FSUAE
 #include "uae/limits.h"
 #include "uae/inline.h"
 #include <stddef.h>
@@ -258,4 +258,4 @@ extern void savestate_listrewind (void);
 extern void statefile_save_recording (const TCHAR*);
 extern void savestate_capture_request (void);
 
-#endif // UAE_SAVESTATE_H
+#endif /* UAE_SAVESTATE_H */

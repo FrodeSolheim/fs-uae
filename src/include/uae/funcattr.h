@@ -17,4 +17,4 @@
 #endif
 */
 
-#endif // UAE_FUNCATTR_H
+#endif /* UAE_FUNCATTR_H */

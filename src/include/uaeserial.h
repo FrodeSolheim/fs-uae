@@ -9,9 +9,7 @@
 #ifndef UAE_UAESERIAL_H
 #define UAE_UAESERIAL_H
 
-#ifdef FSUAE // NL
 #include "uae/types.h"
-#endif
 
 uaecptr uaeserialdev_startup (uaecptr resaddr);
 void uaeserialdev_install (void);
@@ -28,4 +26,4 @@ struct uaeserialdata
 #endif
 };
 
-#endif // UAE_UAESERIAL_H
+#endif /* UAE_UAESERIAL_H */

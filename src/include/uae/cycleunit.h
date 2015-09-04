@@ -10,4 +10,4 @@
 #define CYCLE_UNIT 512
 #define OFFICIAL_CYCLE_UNIT 512
 
-#endif // UAE_CYCLEUNIT_H
+#endif /* UAE_CYCLEUNIT_H */

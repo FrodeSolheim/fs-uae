@@ -1,9 +1,7 @@
 #ifndef UAE_CRC32_H
 #define UAE_CRC32_H
 
-#ifdef FSUAE // NL
 #include "uae/types.h"
-#endif
 
 extern uae_u32 get_crc32 (void *p, int size);
 extern uae_u16 get_crc16 (void *p, int size);
@@ -12,4 +10,4 @@ extern void get_sha1 (void *p, int size, void *out);
 extern const TCHAR *get_sha1_txt (void *p, int size);
 #define SHA1_SIZE 20
 
-#endif // UAE_CRC32_H
+#endif /* UAE_CRC32_H */

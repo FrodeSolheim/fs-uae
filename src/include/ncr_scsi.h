@@ -1,8 +1,8 @@
 #ifndef UAE_NCR_SCSI_H
 #define UAE_NCR_SCSI_H
 
-#ifdef FSUAE // NL
 #include "uae/types.h"
+#ifdef FSUAE
 #include "uae/memory.h"
 #endif
 

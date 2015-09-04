@@ -1,9 +1,7 @@
 #ifndef UAE_GAYLE_H
 #define UAE_GAYLE_H
 
-#ifdef FSUAE // NL
 #include "uae/types.h"
-#endif
 
 extern void gayle_reset (int);
 extern void gayle_hsync (void);

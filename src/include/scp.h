@@ -1,9 +1,7 @@
 #ifndef UAE_SCP_H
 #define UAE_SCP_H
 
-#ifdef FSUAE // NL
 #include "uae/types.h"
-#endif
 
 int scp_open(struct zfile *zf, int drv, int *num_tracks);
 void scp_close(int drv);
@@ -15,4 +13,4 @@ void scp_loadrevolution(
     uae_u16 *mfmbuf, int drv, uae_u16 *tracktiming,
     int *tracklength);
 
-#endif // UAE_SCP_H
+#endif /* UAE_SCP_H */

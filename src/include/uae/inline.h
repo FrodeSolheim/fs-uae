@@ -44,4 +44,4 @@
 #define NORETURN UAE_NORETURN
 #endif
 
-#endif // UAE_INLINE_H
+#endif /* UAE_INLINE_H */

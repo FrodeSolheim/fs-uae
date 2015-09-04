@@ -18,4 +18,4 @@ extern void keybuf_init (void);
 extern int getcapslockstate (void);
 extern void setcapslockstate (int);
 
-#endif // UAE_KEYBUF_H
+#endif /* UAE_KEYBUF_H */

@@ -7,8 +7,8 @@
 #ifndef UAE_DRAWING_H
 #define UAE_DRAWING_H
 
-#ifdef FSUAE // NL
 #include "uae/types.h"
+#ifdef FSUAE
 #include "uae/inline.h"
 #include "custom.h"
 #include "xwin.h"
@@ -327,4 +327,4 @@ STATIC_INLINE void toggle_inhibit_frame (int bit)
 	inhibit_frame ^= 1 << bit;
 }
 
-#endif // UAE_DRAWING_H
+#endif /* UAE_DRAWING_H */

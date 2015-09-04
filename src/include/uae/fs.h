@@ -56,4 +56,4 @@ extern int g_uae_min_first_line_ntsc;
 
 void od_fs_update_leds(void);
 
-#endif // UAE_FS_H
+#endif /* UAE_FS_H */

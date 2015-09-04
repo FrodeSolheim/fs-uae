@@ -33,6 +33,6 @@ uaecptr uaenative_startup (uaecptr resaddr);
  * be de-allocated. */
 const TCHAR **uaenative_get_library_dirs(void);
 
-#endif // WITH_UAENATIVE
+#endif /* WITH_UAENATIVE */
 
-#endif // UAE_UAENATIVE_H
+#endif /* UAE_UAENATIVE_H */

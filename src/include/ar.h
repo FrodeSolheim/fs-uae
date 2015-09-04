@@ -1,8 +1,8 @@
 #ifndef UAE_AR_H
 #define UAE_AR_H
 
-#ifdef FSUAE // NL
 #include "uae/types.h"
+#ifdef FSUAE
 #include "uae/regparam.h"
 #endif
 
@@ -75,4 +75,4 @@ extern uae_u8 ar_custom[2*256], ar_ciaa[16], ar_ciab[16];
 
 extern int hrtmon_lang;
 
-#endif // UAE_AR_H
+#endif /* UAE_AR_H */

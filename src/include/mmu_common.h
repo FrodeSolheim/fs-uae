@@ -1,13 +1,13 @@
 #ifndef UAE_MMU_COMMON_H
 #define UAE_MMU_COMMON_H
 
-#ifdef FSUAE // NL
 #include "uae/types.h"
+#include "uae/likely.h"
+#ifdef FSUAE
 #include "uae/inline.h"
 #include "uae/memory.h"
 #include "newcpu.h"
 #endif
-#include "uae/likely.h"
 
 #define MMUDEBUG 0
 #define MMUINSDEBUG 0
@@ -158,4 +158,4 @@ extern void(*x_phys_put_byte)(uaecptr, uae_u32);
 extern void(*x_phys_put_word)(uaecptr, uae_u32);
 extern void(*x_phys_put_long)(uaecptr, uae_u32);
 
-#endif // UAE_MMU_COMMON_H
+#endif /* UAE_MMU_COMMON_H */

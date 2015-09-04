@@ -60,4 +60,4 @@
 #error REGPARAM3 is not defined
 #endif
 
-#endif // UAE_REGPARAM_H
+#endif /* UAE_REGPARAM_H */

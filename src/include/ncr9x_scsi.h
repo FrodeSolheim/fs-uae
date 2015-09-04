@@ -1,8 +1,8 @@
 #ifndef UAE_NCR9X_SCSI_H
 #define UAE_NCR9X_SCSI_H
 
-#ifdef FSUAE // NL
 #include "uae/types.h"
+#ifdef FSUAE
 #include "uae/memory.h"
 #endif
 
@@ -46,4 +46,4 @@ void ncr_masoboshi_autoconfig_init(struct romconfig*, uaecptr);
 #define CYBERSTORM_MK1_DMA_OFFSET 0xf800
 #define CYBERSTORM_MK1_JUMPER_OFFSET 0xfc02
 
-#endif // UAE_NCR9X_SCSI_H
+#endif /* UAE_NCR9X_SCSI_H */

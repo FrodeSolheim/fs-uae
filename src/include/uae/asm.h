@@ -11,4 +11,4 @@
 #define ASM_SYM_FOR_FUNC(a)
 #endif
 
-#endif // UAE_ASM_H
+#endif /* UAE_ASM_H */

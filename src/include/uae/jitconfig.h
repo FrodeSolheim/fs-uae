@@ -9,4 +9,4 @@
 
 #include "uae/regparam.h"
 
-#endif // UAE_JITCONFIG_H
+#endif /* UAE_JITCONFIG_H */

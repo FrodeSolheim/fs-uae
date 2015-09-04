@@ -7,9 +7,7 @@
 #ifndef UAE_UAEEXE_H
 #define UAE_UAEEXE_H
 
-#ifdef FSUAE // NL
 #include "uae/types.h"
-#endif
 
 struct uae_xcmd {
     struct uae_xcmd *prev, *next;
@@ -25,4 +23,4 @@ struct uae_xcmd {
 extern void uaeexe_install (void);
 extern int uaeexe (const TCHAR *cmd);
 
-#endif // UAE_UAEEXE_H
+#endif /* UAE_UAEEXE_H */

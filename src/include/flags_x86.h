@@ -26,6 +26,10 @@
 #ifndef UAE_FLAGS_X86_H
 #define UAE_FLAGS_X86_H
 
+#ifdef FSUAE // NL
+/* FIXME: This is a JIT-related header */
+#endif
+
 /* Native integer code conditions */
 enum {
 	NATIVE_CC_HI = 7,

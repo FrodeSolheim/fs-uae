@@ -9,9 +9,7 @@
 #ifndef UAE_SANA2_H
 #define UAE_SANA2_H
 
-#ifdef FSUAE // NL
 #include "uae/types.h"
-#endif
 
 #define MAX_TOTAL_NET_DEVICES 10
 
@@ -22,4 +20,4 @@ void netdev_start_threads (void);
 
 extern int log_net;
 
-#endif // UAE_SANA2_H
+#endif /* UAE_SANA2_H */

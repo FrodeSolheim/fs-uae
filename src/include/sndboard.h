@@ -2,7 +2,9 @@
 #define UAE_SNDBOARD_H
 
 #include "uae/types.h"
+#ifdef FSUAE
 #include "uae/memory.h"
+#endif
 
 addrbank *sndboard_init(int devnum);
 void sndboard_free(void);

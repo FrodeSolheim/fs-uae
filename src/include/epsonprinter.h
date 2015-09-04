@@ -83,4 +83,4 @@ enum Typeface
 	svjittra = 31
 };
 
-#endif // UAE_EPSONPRINTER_H
+#endif /* UAE_EPSONPRINTER_H */

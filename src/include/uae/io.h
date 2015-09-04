@@ -1,10 +1,8 @@
 #ifndef UAE_IO_H
 #define UAE_IO_H
 
+#include "uae/types.h"
 #include <stdio.h>
-#ifdef WINUAE
-#include <tchar.h>
-#endif
 
 #ifdef WINUAE
 #define uae_tfopen _tfopen

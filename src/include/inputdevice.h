@@ -10,8 +10,8 @@
 #ifndef UAE_INPUTDEVICE_H
 #define UAE_INPUTDEVICE_H
 
-#ifdef FSUAE // NL
 #include "uae/types.h"
+#ifdef FSUAE
 #include "options.h"
 #endif
 

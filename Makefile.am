@@ -272,6 +272,8 @@ libuae_a_SOURCES = \
 	src/dosbox/regs.h \
 	src/dosbox/setup.h \
 	src/dosbox/support.h \
+	src/dosbox/timer.cpp \
+	src/dosbox/timer.h \
 	src/drawing.cpp \
 	src/driveclick.cpp \
 	src/enforcer.cpp \

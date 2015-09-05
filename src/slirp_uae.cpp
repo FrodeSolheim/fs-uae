@@ -1,10 +1,14 @@
 #include "sysconfig.h"
+#ifdef _WIN32
+#include "Winsock2.h"
+#endif
 #include "sysdeps.h"
 
 #ifdef WITH_SLIRP
 
 #include "options.h"
 #include "uae/slirp.h"
+#include "uae.h"
 
 #ifdef WITH_BUILTIN_SLIRP
 #include "slirp/slirp.h"

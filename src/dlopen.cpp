@@ -1,6 +1,6 @@
 #include "sysconfig.h"
 #include "sysdeps.h"
-
+#include "uae/api.h"
 #include "uae/dlopen.h"
 #include "uae/log.h"
 
@@ -16,7 +16,7 @@
 UAE_DLHANDLE uae_dlopen(const TCHAR *path)
 {
 	UAE_DLHANDLE result;
-	if (path == NULL or path[0] == _T('\0')) {
+	if (path == NULL || path[0] == _T('\0')) {
 		write_log(_T("DLOPEN: No path given\n"));
 		return NULL;
 	}
@@ -29,6 +29,9 @@ UAE_DLHANDLE uae_dlopen(const TCHAR *path)
 		write_log("DLOPEN: %s\n", error);
 	}
 #endif
+	if (result == NULL) {
+		write_log("DLOPEN: Failed to open %s\n", path);
+	}
 	return result;
 }
 
@@ -55,37 +58,36 @@ void uae_dlclose(UAE_DLHANDLE handle)
 #endif
 }
 
-#ifdef FSUAE
+#ifdef FSUAE // NL
 #include "uae/uae.h"
 static amiga_plugin_lookup_function plugin_lookup;
+UAE_EXTERN_C void amiga_set_plugin_lookup_function(
+		amiga_plugin_lookup_function function)
+{
+	plugin_lookup = function;
+}
 #endif
 
 UAE_DLHANDLE uae_dlopen_plugin(const TCHAR *name)
 {
-#ifdef FSUAE
+#if defined(FSUAE) // ME
 	const TCHAR *path = NULL;
-#if 1
 	if (plugin_lookup) {
 		path = plugin_lookup(name);
 	}
-#else
-	TCHAR lib_name[MAX_DPATH] = {};
-	_tcscat(lib_name, _T("lib"));
-	_tcscat(lib_name, name);
-	if (plugin_lookup) {
-		path = plugin_lookup(lib_name);
-	}
-#endif
 	if (path == NULL or path[0] == _T('\0')) {
 		write_log(_T("DLOPEN: Could not find plugin \"%s\"\n"), name);
 		return NULL;
 	}
 	UAE_DLHANDLE handle = uae_dlopen(path);
 #else
-	TCHAR path[MAX_DPATH] = {};
-	_tcscat(path, name);
-	_tcscat(path, _T(".dll"));
-	UAE_DLHANDLE handle = WIN32_LoadLibrary(path);
+	TCHAR path[MAX_DPATH];
+	_tcscpy(path, name);
+#ifdef _WIN64
+	_tcscat(path, _T("_x64"));
+#endif
+	_tcscat(path, LT_MODULE_EXT);
+	UAE_DLHANDLE handle = uae_dlopen(path);
 #endif
 	if (handle) {
 		write_log(_T("DLOPEN: Loaded plugin %s\n"), path);
@@ -101,18 +103,3 @@ void uae_dlopen_patch_common(UAE_DLHANDLE handle)
 	ptr = uae_dlsym(handle, "uae_log");
 	if (ptr) *((uae_log_function *) ptr) = &uae_log;
 }
-
-#ifdef FSUAE // NL
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-void amiga_set_plugin_lookup_function(amiga_plugin_lookup_function function)
-{
-	plugin_lookup = function;
-}
-
-#ifdef __cplusplus
-}
-#endif
-#endif /* FSUAE */

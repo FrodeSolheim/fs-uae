@@ -890,8 +890,6 @@ static void ncr9x_io_bput(struct ncr9x_state *ncr, uaecptr addr, uae_u32 val)
 	esp_reg_write(ncr->devobject.lsistate, (addr), val);
 }
 
-static int perse = 0;
-
 static uae_u32 ncr9x_io_bget(struct ncr9x_state *ncr, uaecptr addr)
 {
 	uae_u8 v = 0xff;
@@ -925,7 +923,7 @@ static uae_u32 ncr9x_io_bget(struct ncr9x_state *ncr, uaecptr addr)
 			int shift = (addr - 0xf04c) * 8;
 			uae_u32 mask = 0xff << shift;
 			if (addr == 0xf04f)
-				write_log(_T("MASOBOSHI DMA PTR READ = %08x\n"), ncr->dma_ptr, M68K_GETPC);
+				write_log(_T("MASOBOSHI DMA PTR READ = %08x %08x\n"), ncr->dma_ptr, M68K_GETPC);
 			return ncr->dma_ptr >> shift;
 		}
 		if (addr >= 0xf048 && addr < 0xf04c) {

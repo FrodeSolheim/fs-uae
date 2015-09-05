@@ -1,11 +1,3 @@
-/*
-  * UAE - The Un*x Amiga Emulator
-  *
-  * Target specific stuff, *nix version
-  *
-  * Copyright 1997 Bernd Schmidt
-  */
-
 #ifndef UAE_OD_FS_TARGET_H
 #define UAE_OD_FS_TARGET_H
 
@@ -24,25 +16,20 @@
 #define DEFPRTNAME "lpr"
 #define DEFSERNAME "/dev/ttyS1"
 
-
 void filesys_host_init();
 int filesys_get_unit_with_package();
 void filesys_register_package_available(int unit);
 int filesys_get_max_frame_packages();
-//int filesys_has_more_packages();
-//void filesys_wait_for_frame();
-//void frame_wait_for_filesys();
-//void filesys_handle_events();
 
 void uae_mousehack_helper(int x, int y);
 
 extern int g_uae_deterministic_mode;
 
-static inline int uae_deterministic_mode() {
-    return g_uae_deterministic_mode;
+static inline int uae_deterministic_mode()
+{
+	return g_uae_deterministic_mode;
 }
 
-//void uae_line_update(int line, int updated);
 uint8_t *uae_get_render_buffer();
 
-#endif // UAE_OD_FS_TARGET_H
+#endif /* UAE_OD_FS_TARGET_H */

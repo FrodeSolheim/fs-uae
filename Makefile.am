@@ -562,7 +562,7 @@ libuae_a_SOURCES = \
 	src/scsi.cpp \
 	src/scsiemul.cpp \
 	src/scsitape.cpp \
-	src/slirp.cpp \
+	src/slirp_uae.cpp \
 	src/specialmonitors.cpp \
 	src/statusline.cpp \
 	src/test_card.cpp \

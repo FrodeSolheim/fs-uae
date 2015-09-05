@@ -62,8 +62,8 @@
 #undef _WIN32
 #endif
 
-// FIXME: replace strcasecmp with _tcsicmp instead
 #if SIZEOF_TCHAR != 1
+/* FIXME: replace strcasecmp with _tcsicmp in source code instead */
 #undef strcasecmp
 #define strcasecmp _tcsicmp
 #endif
@@ -3859,7 +3859,6 @@ static int switchdevice (struct uae_input_device *id, int num, bool buttonmode)
 				devnum = jsem_isjoy(newport, &currprefs);
 #if SWITCHDEBUG_DEBUG
 				write_log(_T("isjoy num = %d\n"), devnum);
-				}
 #endif
 				if (devnum >= 0) {
 					if (changed_prefs.joystick_settings[currprefs.input_selected_setting][devnum].enabled) {

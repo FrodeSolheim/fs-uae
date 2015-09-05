@@ -1,21 +1,17 @@
 #include "sysconfig.h"
+#include "sysdeps.h"
 
-#ifdef WITH_SLIRP
-
-#include "uae/slirp.h"
-
-#ifdef FSUAE
 #include "ethernet.h"
-#else
 #ifdef _WIN32
-#include "win32_uaenet.h"
+#ifdef FSUAE
 #else
-#include "ethernet.h"
+#include "win32_uaenet.h"
 #endif
 #endif
 #include "threaddep/thread.h"
 #include "options.h"
 #include "sana2.h"
+#include "uae/slirp.h"
 
 #ifndef HAVE_INET_ATON
 static int inet_aton(const char *cp, struct in_addr *ia)
@@ -262,16 +258,3 @@ int ethernet_getdatalenght (struct netdriverdata *ndd)
 	}
 	return 0;
 }
-
-#else
-/*
-int slirp_can_output(void)
-{
-        return 0;
-}
-
-void slirp_output (const uint8 *pkt, int pkt_len)
-{
-}
-*/
-#endif // WITH_SLIRP

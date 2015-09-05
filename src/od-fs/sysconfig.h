@@ -1,5 +1,5 @@
-#ifndef UAE_OD_FS_SYSCONFIG_H
-#define UAE_OD_FS_SYSCONFIG_H
+#ifndef FSUAE_SYSCONFIG_H
+#define FSUAE_SYSCONFIG_H
 
 // FIXME: this file was created by configure for PUAE and has been
 // manually altered with reasonable values.
@@ -278,4 +278,4 @@
 
 #include "defines.h"
 
-#endif // UAE_OD_FS_SYSCONFIG_H
+#endif /* FSUAE_SYSCONFIG_H */

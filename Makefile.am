@@ -435,9 +435,7 @@ libuae_a_SOURCES = \
 	src/inputdevice.cpp \
 	src/isofs.cpp \
 	src/jit/codegen_udis86.h \
-	src/jit/codegen_x86.h \
 	src/jit/compemu.h \
-	src/jit/compemu_codegen.h \
 	src/jit/compemu_fpp.cpp \
 	src/jit/compemu_support.cpp \
 	src/keybuf.cpp \
@@ -1220,8 +1218,8 @@ EXTRA_DIST = $(TESTS) $(EXTRA_TESTS) \
 	src/filesys_bootrom.cpp \
 	src/fs-uae/fs-uae.rc.in \
 	src/inputevents.def \
+	src/jit/codegen_x86.cpp \
 	src/jit/compemu_optimizer_x86.cpp \
-	src/jit/compemu_raw_x86.cpp \
 	src/jit/exception_handler.cpp \
 	src/mame/tm34010/34010fld.c \
 	src/mame/tm34010/34010tbl.c \

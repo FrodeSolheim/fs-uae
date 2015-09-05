@@ -19,8 +19,10 @@
 #ifdef UAE
 #define UNUSED(x)
 #define HAVE_GET_WORD_UNSWAPPED
-#define jit_log write_log
-#define jit_log2 write_log
+#include "uae.h"
+#include "uae/log.h"
+#define jit_log uae_log
+#define jit_log2(...)
 #else
 #define DEBUG 0
 #include "debug.h"
@@ -33,8 +35,6 @@
 
 // %%% BRIAN KING WAS HERE %%%
 extern bool canbang;
-//#include <sys/mman.h>
-extern void jit_abort(const TCHAR*,...);
 
 # include <csignal>
 # include <cstdlib>

@@ -102,26 +102,26 @@ static void outindent(void)
 {
 	unsigned int i;
 	for (i = 0; i < outfile_indent; i++)
-        fputc(' ', outfile);
+		fputc(' ', outfile);
 }
 
 static void outf(const char *s, ...)
 {
-    va_list ap;
-    va_start(ap, s);
-    vfprintf(outfile, s, ap);
+	va_list ap;
+	va_start(ap, s);
+	vfprintf(outfile, s, ap);
 }
 
 static void outln (const char *s)
 {
-    outindent();
+	outindent();
 	fprintf (outfile, "%s\n", s);
 }
 
 static void outlnf (const char *s, ...)
 {
 	va_list ap;
-    outindent();
+	outindent();
 	va_start (ap, s);
 	vfprintf (outfile, s, ap);
 	fputc ('\n', outfile);
@@ -237,7 +237,7 @@ static void out_linetoscr_do_incspix (DEPTH_T bpp, HMODE_T hmode, int aga, CMODE
 
 static void put_dpixsprgenlock(int offset, int genlock)
 {
-    if (!genlock)
+	if (!genlock)
 		return;
 	if (offset)
 		outlnf("            genlock_buf[dpix + %d] = get_genlock_transparency(sprcol);", offset);

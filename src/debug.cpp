@@ -2450,7 +2450,7 @@ static void memwatch_reset (void)
 	}
 	for (int i = 0; membank_stores[i].addr; i++) {
 		struct membank_store *ms = &membank_stores[i];
-		// name was allocated in memwatch_remap
+		/* name was allocated in memwatch_remap */
 		xfree ((char*)ms->newbank.name);
 		memset (ms, 0, sizeof (struct membank_store));
 		ms->addr = NULL;
@@ -2500,7 +2500,7 @@ static void memwatch_remap (uaecptr addr)
 		newbank->xlateaddr = debug_xlate;
 		newbank->wgeti = mode ? mmu_wgeti : debug_wgeti;
 		newbank->lgeti = mode ? mmu_lgeti : debug_lgeti;
-		// name will be freed by memwatch_reset
+		/* name will be freed by memwatch_reset */
 		newbank->name = my_strdup (tmp);
 		if (!newbank->mask)
 			newbank->mask = -1;
@@ -3065,7 +3065,6 @@ static void memory_map_dump_3(UaeMemoryMap *map, int log)
 						_tcscat (tmp, _T("\n"));
 					}
 				}
-
 
 				if (a1 != &dummy_bank) {
 					for (int m = 0; m < mirrored2; m++) {

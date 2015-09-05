@@ -32,9 +32,7 @@
 #endif
 #include "execio.h"
 
-// these variables are referenced by custom.cpp and newcpu.cpp also when
-// SANA2 is not defined
-
+/* These variables are referenced by custom.cpp and newcpu.cpp */
 volatile int uaenet_int_requested = 0;
 volatile int uaenet_vsync_requested = 0;
 
@@ -1759,4 +1757,4 @@ void netdev_reset (void)
 	dev_reset ();
 }
 
-#endif // SANA2
+#endif /* SANA2 */

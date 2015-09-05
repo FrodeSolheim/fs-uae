@@ -798,7 +798,7 @@ static void *prt_thread (void *p)
 
 		getfname (fname);
 		/* Open the actual file */
-		fp = uae_tfopen(fname,_T("wb"));
+		fp = uae_tfopen(fname, _T("wb"));
 		if (!fp) 
 		{
 			write_log(_T("EPSONPRINTER: Can't open file %s for printer output\n"), fname);

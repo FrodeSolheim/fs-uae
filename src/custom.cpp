@@ -576,10 +576,15 @@ static void docols (struct color_entry *colentry)
 	int i;
 
 #ifdef AGA
+#ifdef FSUAE
+#if 0
 	// if (currprefs.chipset_mask & CSMASK_AGA) {
 	// color_reg_get checks aga_mode, so use that here too so
 	// static analyzers don't complain about out-of-bounds accesses
 	if (aga_mode) {
+#endif
+#endif
+	if (currprefs.chipset_mask & CSMASK_AGA) {
 		for (i = 0; i < 256; i++) {
 			int v = color_reg_get (colentry, i);
 			if (v < 0 || v > 16777215)
@@ -1950,7 +1955,9 @@ STATIC_INLINE void long_fetch_32 (int plane, int nwords, int weird_number_of_bit
 	outword[plane] = outval;
 }
 
-#ifndef HAVE_UAE_U128
+#ifdef HAVE_UAE_U128
+/* uae_u128 is available, custom shift functions not necessary */
+#else
 
 STATIC_INLINE void shift32plus (uae_u64 *p, int n)
 {
@@ -2535,19 +2542,9 @@ static void update_fetch (int until, int fm)
 
 		count = stop - pos;
 		if (count >= fetchstart) {
-#if 0
-			if (count > 80) count = 80;
-#endif
 			count &= ~fetchstart_mask;
 			int stoppos = pos + count;
-#if 0
-			if (vpos >= 60 && vpos <= 250) {
-				if (stoppos != 0xd0) {
-					printf("0x%x (vpos: %d, plfstop 0x%x, ddfstop_to_test 0x%x, ddf2 0x%x)\n",
-						   stoppos, vpos, plfstop, ddfstop_to_test, ddf2);
-				}
-			}
-#endif
+
 			if (thisline_decision.plfleft < 0) {
 				compute_toscr_delay (bplcon1);
 			}
@@ -7404,7 +7401,8 @@ static bool framewait (void)
 
 #ifdef FSUAE // NL
 
-static bool framewait (void) {
+static bool framewait (void)
+{
     //printf("fw\n");
     if (currprefs.m68k_speed == -1) {
         return framewait_2();
@@ -7419,10 +7417,8 @@ static bool framewait (void) {
     //if (!frame_shown) {
     // FIXME: hack: don't show frame if picasso is enabled
     if (!frame_shown && !picasso_on) {
-#ifdef FSUAE
 #ifdef DEBUG_SHOW_SCREEN
-                        printf("framewait -> show_screen(0)\n");
-#endif
+        printf("framewait -> show_screen(0)\n");
 #endif
         show_screen (0);
         frame_shown = true;

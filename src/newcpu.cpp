@@ -3655,9 +3655,9 @@ static int do_specialties (int cycles)
 	}
 	bool first = true;
 	while ((regs.spcflags & SPCFLAG_STOP) && !(regs.spcflags & SPCFLAG_BRK)) {
-    isstopped:
-        check_uae_int_request();
-        {
+	isstopped:
+		check_uae_int_request();
+		{
 			if (bsd_int_requested)
 				bsdsock_fake_int_handler ();
 		}

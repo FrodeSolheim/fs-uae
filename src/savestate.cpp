@@ -1090,7 +1090,9 @@ static int save_state_internal (struct zfile *f, const TCHAR *description, int c
 
 int save_state (const TCHAR *filename, const TCHAR *description)
 {
+#ifdef FSUAE
 	printf("save_state %s\n", filename);
+#endif
 	struct zfile *f;
 	int comp = savestate_docompress;
 

@@ -3916,7 +3916,7 @@ static void move_exkeys (Unit *unit, a_inode *from, a_inode *to)
 static bool get_statinfo(Unit *unit, a_inode *aino, struct mystat *statbuf)
 {
 	bool ok = true;
-	memset (statbuf, 0, sizeof (*statbuf));
+	memset (statbuf, 0, sizeof(struct mystat));
 	/* No error checks - this had better work. */
 	if (unit->volflags & MYVOLUMEINFO_ARCHIVE)
 		ok = zfile_stat_archive (aino->nname, statbuf) != 0;
@@ -4001,7 +4001,6 @@ static void
 	} else {
 		put_long (info + 124, statbuf.size > MAXFILESIZE32 ? MAXFILESIZE32 : (uae_u32)statbuf.size);
 	}
-
 
 #ifdef FSUAE
 	fsdb_get_file_time(aino, &days, &mins, &ticks);
@@ -4792,7 +4791,6 @@ static void action_examine_next (Unit *unit, dpacket packet, bool largefilesize)
 	uaecptr lock = GET_PCK_ARG1 (packet) << 2;
 	uaecptr info = GET_PCK_ARG2 (packet) << 2;
 	a_inode *aino = 0, *daino = 0;
-	ExamineKey *ek;
 	uae_u32 uniq;
 
 	TRACE((_T("ACTION_EXAMINE_NEXT(0x%x,0x%x,%d)\n"), lock, info, largefilesize));
@@ -4857,10 +4855,10 @@ static void action_examine_next (Unit *unit, dpacket packet, bool largefilesize)
 			}
 		}
 		if (!daino)
- 			goto no_more_entries;
+			goto no_more_entries;
 		if (daino->parent != aino) {
 			write_log(_T("Houston, we have a BIG problem. %s is not parent of %s\n"), daino->nname, aino->nname);
- 			goto no_more_entries;
+			goto no_more_entries;
 		}
 		uniq = daino->uniq;
 		if (daino->mountcount != unit->mountcount)

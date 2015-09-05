@@ -2251,8 +2251,8 @@ static void load_genlock_image(void)
 	png_uint_32 width, height;
 	int depth, color_type;
 	struct png_cb cb;
-    png_bytepp row_pp;
-    png_size_t cols;
+	png_bytepp row_pp;
+	png_size_t cols;
 
 	xfree(genlock_image);
 	genlock_image = NULL;
@@ -2298,13 +2298,13 @@ static void load_genlock_image(void)
 	if (!(color_type & PNG_COLOR_MASK_ALPHA))
 		png_set_add_alpha(png_ptr, 0, PNG_FILLER_AFTER);
 
-    cols = png_get_rowbytes(png_ptr, info_ptr);
+	cols = png_get_rowbytes(png_ptr, info_ptr);
 
 	genlock_image_pitch = width * 4;
 	genlock_image_width = width;
 	genlock_image_height = height;
 
-    row_pp = new png_bytep[height];
+	row_pp = new png_bytep[height];
 	
 	genlock_image = xcalloc(uae_u8, width * height * 4);
 	

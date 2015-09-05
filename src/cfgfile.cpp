@@ -53,8 +53,8 @@
 #define cfgfile_warning_obsolete write_log
 #endif
 
-// FIXME: replace strcasecmp with _tcsicmp instead
 #if SIZEOF_TCHAR != 1
+/* FIXME: replace strcasecmp with _tcsicmp in source code instead */
 #undef strcasecmp
 #define strcasecmp _tcsicmp
 #endif
@@ -894,7 +894,7 @@ static void write_filesys_config (struct uae_prefs *p, struct zfile *f)
 			TCHAR *ptr;
 			// separate harddrive names
 			str1 = my_strdup (ci->rootdir);
-			ptr = (TCHAR *) _tcschr (str1 + 1, ':');
+			ptr = _tcschr (str1 + 1, ':');
 			if (ptr) {
 				*ptr++ = 0;
 				str2 = ptr;
@@ -957,7 +957,7 @@ static void write_filesys_config (struct uae_prefs *p, struct zfile *f)
 				_tcscat(tmp, _T(",CF"));
 				_tcscat(tmp3, _T(",CF"));
 			}
-			TCHAR *extras = NULL;
+			const TCHAR *extras = NULL;
 			if (ct >= HD_CONTROLLER_TYPE_SCSI_FIRST && ct <= HD_CONTROLLER_TYPE_SCSI_LAST) {
 				if (ci->unit_feature_level == HD_LEVEL_SCSI_1){
 					extras = _T("SCSI1");
@@ -1479,8 +1479,8 @@ void cfgfile_save_options (struct zfile *f, struct uae_prefs *p, int type)
 	cfgfile_write_bool (f, _T("bsdsocket_emu"), p->socket_emu);
 	if (p->a2065name[0])
 		cfgfile_write_str (f, _T("a2065"), p->a2065name);
-    if (p->ne2000pciname[0])
-        cfgfile_write_str(f, _T("ne2000_pci"), p->ne2000pciname);
+	if (p->ne2000pciname[0])
+		cfgfile_write_str(f, _T("ne2000_pci"), p->ne2000pciname);
 
 #ifdef WITH_SLIRP
 #ifdef FSUAE
@@ -1515,7 +1515,7 @@ void cfgfile_save_options (struct zfile *f, struct uae_prefs *p, int type)
 			cfgfile_write_str (f, _T("slirp_redir"), tmp);
 		}
 	}
-#endif // WITH_SLIRP
+#endif /* WITH_SLIRP */
 
 	cfgfile_write_bool (f, _T("synchronize_clock"), p->tod_hack);
 	cfgfile_write (f, _T("maprom"), _T("0x%x"), p->maprom);
@@ -1826,9 +1826,8 @@ void cfgfile_save_options (struct zfile *f, struct uae_prefs *p, int type)
 	}
 	cfgfile_dwrite(f, _T("cpuboardmem1_size"), _T("%d"), p->cpuboardmem1_size / 0x100000);
 	cfgfile_dwrite(f, _T("cpuboardmem2_size"), _T("%d"), p->cpuboardmem2_size / 0x100000);
-	cfgfile_dwrite_str(f, _T("ppc_implementation"), ppc_implementations[p->ppc_implementation]);
 	cfgfile_write(f, _T("gfxcard_size"), _T("%d"), p->rtgmem_size / 0x100000);
-    cfgfile_write_str(f, _T("gfxcard_type"), gfxboard_get_configname(p->rtgmem_type));
+	cfgfile_write_str(f, _T("gfxcard_type"), gfxboard_get_configname(p->rtgmem_type));
 	cfgfile_write_bool(f, _T("gfxcard_hardware_vblank"), p->rtg_hardwareinterrupt);
 	cfgfile_write_bool (f, _T("gfxcard_hardware_sprite"), p->rtg_hardwaresprite);
 	cfgfile_write (f, _T("chipmem_size"), _T("%d"), p->chipmem_size == 0x20000 ? -1 : (p->chipmem_size == 0x40000 ? 0 : p->chipmem_size / 0x80000));
@@ -1945,7 +1944,7 @@ static int cfgfile_yesno (const TCHAR *option, const TCHAR *value, const TCHAR *
 		|| (numbercheck && strcasecmp (value, _T("0")) == 0))
 		*location = 0;
 	else {
-		cfgfile_warning (_T("Option '%s' requires a value of either 'true' or 'false' (was '%s').\n"), option, value);
+		cfgfile_warning(_T("Option '%s' requires a value of either 'true' or 'false' (was '%s').\n"), option, value);
 		return -1;
 	}
 	return 1;
@@ -2038,7 +2037,7 @@ static int cfgfile_intval (const TCHAR *option, const TCHAR *value, const TCHAR 
 			*location = 1;
 			return 1;
 		}
-		cfgfile_warning (_T("Option '%s' requires a numeric argument but got '%s'\n"), nameext ? tmp : option, value);
+		cfgfile_warning(_T("Option '%s' requires a numeric argument but got '%s'\n"), nameext ? tmp : option, value);
 		return -1;
 	}
 	return 1;
@@ -2090,7 +2089,7 @@ static int cfgfile_strval (const TCHAR *option, const TCHAR *value, const TCHAR 
 		} else if  (!strcasecmp (value, _T("no")) || !strcasecmp (value, _T("false"))) {
 			val = 0;
 		} else {
-			cfgfile_warning (_T("Unknown value ('%s') for option '%s'.\n"), value, nameext ? tmp : option);
+			cfgfile_warning(_T("Unknown value ('%s') for option '%s'.\n"), value, nameext ? tmp : option);
 			return -1;
 		}
 	}
@@ -3135,7 +3134,7 @@ static int cfgfile_parse_host (struct uae_prefs *p, TCHAR *option, TCHAR *value)
 			|| (l = KBD_LANG_ES, strcasecmp (value, _T("es")) == 0))
 			p->keyboard_lang = l;
 		else
-			cfgfile_warning (_T("Unknown keyboard language\n"));
+			cfgfile_warning(_T("Unknown keyboard language\n"));
 		return 1;
 	}
 
@@ -3604,7 +3603,6 @@ static void get_filesys_controller (const TCHAR *hdc, int *type, int *typenum, i
 #ifdef FSUAE
 						write_log(" - ert->name=%s ext=%s len=%d\n", ert->name, ext, len);
 #endif
-
 						break;
 					}
 				}
@@ -3946,7 +3944,7 @@ empty_fs:
 	return 1;
 
 invalid_fs:
-	cfgfile_warning (_T("Invalid filesystem/hardfile/cd specification.\n"));
+	cfgfile_warning(_T("Invalid filesystem/hardfile/cd specification.\n"));
 	return 1;
 }
 
@@ -4069,7 +4067,7 @@ static int cfgfile_parse_filesys (struct uae_prefs *p, const TCHAR *option, TCHA
 		xfree (str);
 		return 1;
 invalid_fs:
-		cfgfile_warning (_T("Invalid filesystem/hardfile specification.\n"));
+		cfgfile_warning(_T("Invalid filesystem/hardfile specification.\n"));
 		return 1;
 
 	}
@@ -4365,7 +4363,6 @@ static int cfgfile_parse_hardware (struct uae_prefs *p, const TCHAR *option, TCH
 		|| cfgfile_intval (option, value, _T("z3mem_start"), &p->z3autoconfig_start, 1)
 		|| cfgfile_intval (option, value, _T("bogomem_size"), &p->bogomem_size, 0x40000)
 		|| cfgfile_intval (option, value, _T("gfxcard_size"), &p->rtgmem_size, 0x100000)
-		|| cfgfile_strval(option, value, _T("ppc_implementation"), &p->ppc_implementation, ppc_implementations, 0)
 		|| cfgfile_intval(option, value, _T("rtg_modes"), &p->picasso96_modeflags, 1)
 		|| cfgfile_intval (option, value, _T("floppy_speed"), &p->floppy_speed, 1)
 		|| cfgfile_intval (option, value, _T("cd_speed"), &p->cd_speed, 1)
@@ -4773,7 +4770,7 @@ static int cfgfile_separate_linea (const TCHAR *filename, char *line, TCHAR *lin
 	line2 = strchr (line, '=');
 	if (! line2) {
 		TCHAR *s = au (line1);
-		cfgfile_warning (_T("CFGFILE: '%s', linea was incomplete with only %s\n"), filename, s);
+		cfgfile_warning(_T("CFGFILE: '%s', linea was incomplete with only %s\n"), filename, s);
 		xfree (s);
 		return 0;
 	}
@@ -4815,7 +4812,7 @@ static int cfgfile_separate_line (TCHAR *line, TCHAR *line1b, TCHAR *line2b)
 		return 0;
 	line2 = _tcschr (line, '=');
 	if (! line2) {
-		cfgfile_warning (_T("CFGFILE: line was incomplete with only %s\n"), line1);
+		cfgfile_warning(_T("CFGFILE: line was incomplete with only %s\n"), line1);
 		return 0;
 	}
 	*line2++ = '\0';
@@ -4853,7 +4850,7 @@ static int isobsolete (TCHAR *s)
 	int i = 0;
 	while (obsolete[i]) {
 		if (!strcasecmp (s, obsolete[i])) {
-			cfgfile_warning_obsolete (_T("obsolete config entry '%s'\n"), s);
+			cfgfile_warning_obsolete(_T("obsolete config entry '%s'\n"), s);
 			return 1;
 		}
 		i++;
@@ -4861,11 +4858,11 @@ static int isobsolete (TCHAR *s)
 	if (_tcslen (s) > 2 && !_tcsncmp (s, _T("w."), 2))
 		return 1;
 	if (_tcslen (s) >= 10 && !_tcsncmp (s, _T("gfx_opengl"), 10)) {
-		cfgfile_warning_obsolete (_T("obsolete config entry '%s\n"), s);
+		cfgfile_warning_obsolete(_T("obsolete config entry '%s\n"), s);
 		return 1;
 	}
 	if (_tcslen (s) >= 6 && !_tcsncmp (s, _T("gfx_3d"), 6)) {
-		cfgfile_warning_obsolete (_T("obsolete config entry '%s\n"), s);
+		cfgfile_warning_obsolete(_T("obsolete config entry '%s\n"), s);
 		return 1;
 	}
 	return 0;
@@ -4892,7 +4889,7 @@ static void cfgfile_parse_separated_line (struct uae_prefs *p, TCHAR *line1b, TC
 			p->all_lines = u;
 			if (!ret) {
 				u->unknown = 1;
-				cfgfile_warning (_T("unknown config entry: '%s=%s'\n"), u->option, u->value);
+				cfgfile_warning(_T("unknown config entry: '%s=%s'\n"), u->option, u->value);
 			}
 		}
 	}
@@ -5107,7 +5104,7 @@ int cfgfile_load (struct uae_prefs *p, const TCHAR *filename, int *type, int ign
 	write_log (_T("load config '%s':%d\n"), filename, type ? *type : -1);
 	v = cfgfile_load_2 (p, filename, 1, type);
 	if (!v) {
-		cfgfile_warning (_T("cfgfile_load_2 failed\n"));
+		cfgfile_warning(_T("cfgfile_load_2 failed\n"));
 		goto end;
 	}
 	if (userconfig)
@@ -5384,14 +5381,14 @@ static void parse_hardfile_spec (struct uae_prefs *p, const TCHAR *spec)
 
 argh:
 	free (x0);
-	cfgfile_warning (_T("Bad hardfile parameter specified\n"));
+	cfgfile_warning(_T("Bad hardfile parameter specified\n"));
 	return;
 }
 
 static void parse_cpu_specs (struct uae_prefs *p, const TCHAR *spec)
 {
 	if (*spec < '0' || *spec > '4') {
-		cfgfile_warning (_T("CPU parameter string must begin with '0', '1', '2', '3' or '4'.\n"));
+		cfgfile_warning(_T("CPU parameter string must begin with '0', '1', '2', '3' or '4'.\n"));
 		return;
 	}
 
@@ -5402,21 +5399,21 @@ static void parse_cpu_specs (struct uae_prefs *p, const TCHAR *spec)
 		switch (*spec) {
 		case 'a':
 			if (p->cpu_model < 68020)
-				cfgfile_warning (_T("In 68000/68010 emulation, the address space is always 24 bit.\n"));
+				cfgfile_warning(_T("In 68000/68010 emulation, the address space is always 24 bit.\n"));
 			else if (p->cpu_model >= 68040)
-				cfgfile_warning (_T("In 68040/060 emulation, the address space is always 32 bit.\n"));
+				cfgfile_warning(_T("In 68040/060 emulation, the address space is always 32 bit.\n"));
 			else
 				p->address_space_24 = 1;
 			break;
 		case 'c':
 			if (p->cpu_model != 68000)
-				cfgfile_warning (_T("The more compatible CPU emulation is only available for 68000\n")
+				cfgfile_warning(_T("The more compatible CPU emulation is only available for 68000\n")
 				_T("emulation, not for 68010 upwards.\n"));
 			else
 				p->cpu_compatible = 1;
 			break;
 		default:
-			cfgfile_warning (_T("Bad CPU parameter specified.\n"));
+			cfgfile_warning(_T("Bad CPU parameter specified.\n"));
 			break;
 		}
 		spec++;
@@ -6794,7 +6791,6 @@ static int bip_a1200 (struct uae_prefs *p, int config, int compa, int romcheck)
 #ifdef FSUAE
 	roms[1] = -1;
 #endif
-
 	roms_bliz[0] = -1;
 	roms_bliz[1] = -1;
 	p->cs_rtc = 0;
@@ -7182,8 +7178,6 @@ int built_in_chipset_prefs (struct uae_prefs *p)
 #ifdef FSUAE
 		if (p->chipmem_size > 0x100000 || p->fastmem_size)
 			p->cs_rtc = 1;
-#else
-
 #endif
 		p->cs_ide = IDE_A600A1200;
 		p->cs_pcmcia = 1;

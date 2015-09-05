@@ -63,9 +63,6 @@ int disk_debug_track = -1;
 
 #ifdef FSUAE // NL
 #include "uae/fs.h"
-#endif
-
-#ifdef FSUAE
 /* in WinUAE, this is stored in od-win32/win32.cpp */
 int saveimageoriginalpath = 0;
 #endif

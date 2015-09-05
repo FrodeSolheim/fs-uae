@@ -626,60 +626,60 @@ static void ew (uae_u8 *acmemory, int addr, uae_u32 value)
 
 addrbank *sndboard_init(int devnum)
 {
-    struct toccata_data *data = &toccata;
-    memset(data->ad1848_regs, 0, sizeof data->ad1848_regs);
-    data->ad1848_regs[2] = 0x80;
-    data->ad1848_regs[3] = 0x80;
-    data->ad1848_regs[4] = 0x80;
-    data->ad1848_regs[5] = 0x80;
-    data->ad1848_regs[6] = 0x80;
-    data->ad1848_regs[7] = 0x80;
-    data->ad1848_regs[9] = 0x10;
-    data->ad1848_status = 0xcc;
-    data->ad1848_index = 0x40;
-    calculate_volume_toccata();
+	struct toccata_data *data = &toccata;
+	memset(data->ad1848_regs, 0, sizeof data->ad1848_regs);
+	data->ad1848_regs[2] = 0x80;
+	data->ad1848_regs[3] = 0x80;
+	data->ad1848_regs[4] = 0x80;
+	data->ad1848_regs[5] = 0x80;
+	data->ad1848_regs[6] = 0x80;
+	data->ad1848_regs[7] = 0x80;
+	data->ad1848_regs[9] = 0x10;
+	data->ad1848_status = 0xcc;
+	data->ad1848_index = 0x40;
+	calculate_volume_toccata();
 
-    data->configured = 0;
-    memset(data->acmemory, 0xff, sizeof data->acmemory);
+	data->configured = 0;
+	memset(data->acmemory, 0xff, sizeof data->acmemory);
 	for (int i = 0; i < 16; i++) {
 		uae_u8 b = toccata_autoconfig[i];
-        ew(data->acmemory, i * 4, b);
+		ew(data->acmemory, i * 4, b);
 	}
 	return &toccata_bank;
 }
 
 void sndboard_free(void)
 {
-    struct toccata_data *data = &toccata;
-    data->toccata_irq = 0;
-    uae_int_requested &= ~0x200;
+	struct toccata_data *data = &toccata;
+	data->toccata_irq = 0;
+	uae_int_requested &= ~0x200;
 }
 
 void sndboard_reset(void)
 {
-    struct toccata_data *data = &toccata;
-    data->ch_sample[0] = 0;
-    data->ch_sample[1] = 0;
-    audio_enable_sndboard(false);
+	struct toccata_data *data = &toccata;
+	data->ch_sample[0] = 0;
+	data->ch_sample[1] = 0;
+	audio_enable_sndboard(false);
 }
 
 struct fm801_data
 {
-    struct pci_board_state *pcibs;
-    uaecptr play_dma[2], play_dma2[2];
-    uae_u16 play_len, play_len2;
-    uae_u16 play_control;
-    uae_u16 interrupt_control;
-    uae_u16 interrupt_status;
-    int dmach;
-    int freq;
-    int bits;
-    int ch;
-    int bytesperframe;
-    bool play_on;
-    int left_volume, right_volume;
-    int ch_sample[2];
-    int event_time;
+	struct pci_board_state *pcibs;
+	uaecptr play_dma[2], play_dma2[2];
+	uae_u16 play_len, play_len2;
+	uae_u16 play_control;
+	uae_u16 interrupt_control;
+	uae_u16 interrupt_status;
+	int dmach;
+	int freq;
+	int bits;
+	int ch;
+	int bytesperframe;
+	bool play_on;
+	int left_volume, right_volume;
+	int ch_sample[2];
+	int event_time;
 };
 static struct fm801_data fm801;
 static bool fm801_active;
@@ -687,83 +687,83 @@ static const int fm801_freq[16] = { 5500, 8000, 9600, 11025, 16000, 19200, 22050
 
 static void calculate_volume_fm801(void)
 {
-    struct fm801_data *data = &fm801;
-    data->left_volume = (100 - currprefs.sound_volume_board) * 32768 / 100;
-    data->right_volume = (100 - currprefs.sound_volume_board) * 32768 / 100;
+	struct fm801_data *data = &fm801;
+	data->left_volume = (100 - currprefs.sound_volume_board) * 32768 / 100;
+	data->right_volume = (100 - currprefs.sound_volume_board) * 32768 / 100;
 }
 
 static void sndboard_vsync_fm801(void)
 {
-    audio_activate();
-    calculate_volume_fm801();
+	audio_activate();
+	calculate_volume_fm801();
 }
 
 static void fm801_stop(struct fm801_data *data)
 {
-    write_log(_T("FM801 STOP\n"));
-    data->play_on = false;
-    audio_enable_sndboard(false);
+	write_log(_T("FM801 STOP\n"));
+	data->play_on = false;
+	audio_enable_sndboard(false);
 }
 
 static void fm801_swap_buffers(struct fm801_data *data)
 {
-    data->dmach = data->dmach ? 0 : 1;
-    data->play_dma2[data->dmach] = data->play_dma[data->dmach];
-    data->play_len2 = data->play_len;
-    // stop at the end of buffer
-    if (!(data->play_control & 0x20) && !(data->play_control & 0x80))
-        fm801_stop(data);
+	data->dmach = data->dmach ? 0 : 1;
+	data->play_dma2[data->dmach] = data->play_dma[data->dmach];
+	data->play_len2 = data->play_len;
+	// stop at the end of buffer
+	if (!(data->play_control & 0x20) && !(data->play_control & 0x80))
+		fm801_stop(data);
 }
 
 static void fm801_interrupt(struct fm801_data *data)
 {
-    if ((data->interrupt_status & 0x100) && !(data->interrupt_control & 1)) {
-        data->pcibs->board->irq(data->pcibs, true);
-    } else {
-        data->pcibs->board->irq(data->pcibs, false);
-    }
+	if ((data->interrupt_status & 0x100) && !(data->interrupt_control & 1)) {
+		data->pcibs->board->irq(data->pcibs, true);
+	} else {
+		data->pcibs->board->irq(data->pcibs, false);
+	}
 }
 
 static void audio_state_sndboard_fm801(int ch)
 {
-    struct fm801_data *data = &fm801;
+	struct fm801_data *data = &fm801;
 
-    if (data->play_on && ch == 0) {
-        uae_u8 sample[2 * 6] = { 0 };
-        uae_s16 l, r;
-        pci_read_dma(data->pcibs, data->play_dma2[data->dmach], sample, data->bytesperframe);
-        if (data->bits == 8) {
-            if (data->ch == 1) {
-                sample[1] = sample[0];
-                sample[2] = sample[0];
-                sample[3] = sample[0];
-            } else {
-                sample[2] = sample[1];
-                sample[3] = sample[1];
-                sample[1] = sample[0];
-            }
-        } else {
-            if (data->ch == 1) {
-                sample[2] = sample[0];
-                sample[3] = sample[1];
-            }
-        }
-        l = (sample[1] << 8) | sample[0];
-        r = (sample[3] << 8) | sample[2];
-        data->ch_sample[0] = l;
-        data->ch_sample[1] = r;
-        data->ch_sample[0] = data->ch_sample[0] * data->left_volume / 32768;
-        data->ch_sample[1] = data->ch_sample[1] * data->right_volume / 32768;
+	if (data->play_on && ch == 0) {
+		uae_u8 sample[2 * 6] = { 0 };
+		uae_s16 l, r;
+		pci_read_dma(data->pcibs, data->play_dma2[data->dmach], sample, data->bytesperframe);
+		if (data->bits == 8) {
+			if (data->ch == 1) {
+				sample[1] = sample[0];
+				sample[2] = sample[0];
+				sample[3] = sample[0];
+			} else {
+				sample[2] = sample[1];
+				sample[3] = sample[1];
+				sample[1] = sample[0];
+			}
+		} else {
+			if (data->ch == 1) {
+				sample[2] = sample[0];
+				sample[3] = sample[1];
+			}
+		}
+		l = (sample[1] << 8) | sample[0];
+		r = (sample[3] << 8) | sample[2];
+		data->ch_sample[0] = l;
+		data->ch_sample[1] = r;
+		data->ch_sample[0] = data->ch_sample[0] * data->left_volume / 32768;
+		data->ch_sample[1] = data->ch_sample[1] * data->right_volume / 32768;
 
-        data->play_len2 -= data->bytesperframe;
-        data->play_dma2[data->dmach] += data->bytesperframe;
-        if (data->play_len2 == 0xffff) {
-            fm801_swap_buffers(data);
-            data->interrupt_status |= 0x100;
-            fm801_interrupt(data);
-        }
-    }
-    audio_state_sndboard_state(ch, data->ch_sample[ch], data->event_time);
+		data->play_len2 -= data->bytesperframe;
+		data->play_dma2[data->dmach] += data->bytesperframe;
+		if (data->play_len2 == 0xffff) {
+			fm801_swap_buffers(data);
+			data->interrupt_status |= 0x100;
+			fm801_interrupt(data);
+		}
+	}
+	audio_state_sndboard_state(ch, data->ch_sample[ch], data->event_time);
 }
 
 static void fm801_hsync_handler(struct pci_board_state *pcibs)
@@ -772,207 +772,207 @@ static void fm801_hsync_handler(struct pci_board_state *pcibs)
 
 static void fm801_play(struct fm801_data *data)
 {
-    uae_u16 control = data->play_control;
-    int f = (control >> 8) & 15;
-    data->freq = fm801_freq[f];
-    if (!data->freq)
-        data->freq = 44100;
-    data->event_time = base_event_clock * CYCLE_UNIT / data->freq;
-    data->bits = (control & 0x4000) ? 16 : 8;
-    f = (control >> 12) & 3;
-    switch (f)
-    {
-        case 0:
-        data->ch = (control & 0x8000) ? 2 : 1;
-        break;
-        case 1:
-        data->ch = 4;
-        break;
-        case 2:
-        data->ch = 6;
-        break;
-        case 3:
-        data->ch = 6;
-        break;
-    }
-    data->bytesperframe = data->bits * data->ch / 8;
-    data->play_on = true;
+	uae_u16 control = data->play_control;
+	int f = (control >> 8) & 15;
+	data->freq = fm801_freq[f];
+	if (!data->freq)
+		data->freq = 44100;
+	data->event_time = base_event_clock * CYCLE_UNIT / data->freq;
+	data->bits = (control & 0x4000) ? 16 : 8;
+	f = (control >> 12) & 3;
+	switch (f)
+	{
+		case 0:
+		data->ch = (control & 0x8000) ? 2 : 1;
+		break;
+		case 1:
+		data->ch = 4;
+		break;
+		case 2:
+		data->ch = 6;
+		break;
+		case 3:
+		data->ch = 6;
+		break;
+	}
+	data->bytesperframe = data->bits * data->ch / 8;
+	data->play_on = true;
 
-    data->dmach = 1;
-    fm801_swap_buffers(data);
+	data->dmach = 1;
+	fm801_swap_buffers(data);
 
-    calculate_volume_fm801();
+	calculate_volume_fm801();
 
-    write_log(_T("FM801 PLAY: freq=%d ch=%d bits=%d\n"), data->freq, data->ch, data->bits);
+	write_log(_T("FM801 PLAY: freq=%d ch=%d bits=%d\n"), data->freq, data->ch, data->bits);
 
-    audio_enable_sndboard(true);
+	audio_enable_sndboard(true);
 }
 
 static void fm801_pause(struct fm801_data *data, bool pause)
 {
-    write_log(_T("FM801 PAUSED %d\n"), pause);
+	write_log(_T("FM801 PAUSED %d\n"), pause);
 }
 static void fm801_control(struct fm801_data *data, uae_u16 control)
 {
-    uae_u16 old_control = data->play_control;
-    data->play_control = control;
-    data->play_control &= ~(8 | 16);
-    if ((data->play_control & 0x20) && !(old_control & 0x20)) {
-        fm801_play(data);
-    } else if (!(data->play_control & 0x20) && (old_control & 0x20)) {
-        if (data->play_control & 0x80)
-            fm801_stop(data);
-    } else if (data->play_control & 0x20) {
-        if ((data->play_control & 0x40) && !(old_control & 0x40)) {
-            fm801_pause(data, true);
-        } else if (!(data->play_control & 0x40) && (old_control & 0x40)) {
-            fm801_pause(data, true);
-        }
-    }
+	uae_u16 old_control = data->play_control;
+	data->play_control = control;
+	data->play_control &= ~(8 | 16);
+	if ((data->play_control & 0x20) && !(old_control & 0x20)) {
+		fm801_play(data);
+	} else if (!(data->play_control & 0x20) && (old_control & 0x20)) {
+		if (data->play_control & 0x80)
+			fm801_stop(data);
+	} else if (data->play_control & 0x20) {
+		if ((data->play_control & 0x40) && !(old_control & 0x40)) {
+			fm801_pause(data, true);
+		} else if (!(data->play_control & 0x40) && (old_control & 0x40)) {
+			fm801_pause(data, true);
+		}
+	}
 
 }
 
 static void REGPARAM2 fm801_bput(struct pci_board_state *pcibs, uaecptr addr, uae_u32 b)
 {
-    struct fm801_data *data = &fm801;
+	struct fm801_data *data = &fm801;
 }
 static void REGPARAM2 fm801_wput(struct pci_board_state *pcibs, uaecptr addr, uae_u32 b)
 {
-    struct fm801_data *data = &fm801;
-    switch (addr)
-    {
-        case 0x08:
-        fm801_control(data, b);
-        break;
-        case 0x0a:
-        data->play_len = b;
-        break;
-        case 0x56:
-        data->interrupt_control = b;
-        fm801_interrupt(data);
-        break;
-        case 0x5a:
-        data->interrupt_status &= ~b;
-        fm801_interrupt(data);
-        break;
-    }
+	struct fm801_data *data = &fm801;
+	switch (addr)
+	{
+		case 0x08:
+		fm801_control(data, b);
+		break;
+		case 0x0a:
+		data->play_len = b;
+		break;
+		case 0x56:
+		data->interrupt_control = b;
+		fm801_interrupt(data);
+		break;
+		case 0x5a:
+		data->interrupt_status &= ~b;
+		fm801_interrupt(data);
+		break;
+	}
 }
 static void REGPARAM2 fm801_lput(struct pci_board_state *pcibs, uaecptr addr, uae_u32 b)
 {
-    struct fm801_data *data = &fm801;
-    switch (addr)
-    {
-        case 0x0c:
-        data->play_dma[0] = b;
-        break;
-        case 0x10:
-        data->play_dma[1] = b;
-        break;
-    }
+	struct fm801_data *data = &fm801;
+	switch (addr)
+	{
+		case 0x0c:
+		data->play_dma[0] = b;
+		break;
+		case 0x10:
+		data->play_dma[1] = b;
+		break;
+	}
 }
 static uae_u32 REGPARAM2 fm801_bget(struct pci_board_state *pcibs, uaecptr addr)
 {
-    struct fm801_data *data = &fm801;
-    uae_u32 v = 0;
-    return v;
+	struct fm801_data *data = &fm801;
+	uae_u32 v = 0;
+	return v;
 }
 static uae_u32 REGPARAM2 fm801_wget(struct pci_board_state *pcibs, uaecptr addr)
 {
-    struct fm801_data *data = &fm801;
-    uae_u32 v = 0;
-    switch (addr) {
-        case 0x08:
-        v = data->play_control;
-        break;
-        case 0x0a:
-        v = data->play_len2;
-        break;
-        case 0x56:
-        v = data->interrupt_control;
-        break;
-        case 0x5a:
-        v = data->interrupt_status;
-        break;
+	struct fm801_data *data = &fm801;
+	uae_u32 v = 0;
+	switch (addr) {
+		case 0x08:
+		v = data->play_control;
+		break;
+		case 0x0a:
+		v = data->play_len2;
+		break;
+		case 0x56:
+		v = data->interrupt_control;
+		break;
+		case 0x5a:
+		v = data->interrupt_status;
+		break;
 
-    }
-    return v;
+	}
+	return v;
 }
 static uae_u32 REGPARAM2 fm801_lget(struct pci_board_state *pcibs, uaecptr addr)
 {
-    struct fm801_data *data = &fm801;
-    uae_u32 v = 0;
-    switch(addr)
-    {
-        case 0x0c:
-        v = data->play_dma2[data->dmach];
-        break;
-        case 0x10:
-        v = data->play_dma2[data->dmach];
-        break;
-    }
-    return v;
+	struct fm801_data *data = &fm801;
+	uae_u32 v = 0;
+	switch(addr)
+	{
+		case 0x0c:
+		v = data->play_dma2[data->dmach];
+		break;
+		case 0x10:
+		v = data->play_dma2[data->dmach];
+		break;
+	}
+	return v;
 }
 
 static void fm801_reset(struct pci_board_state *pcibs)
 {
-    struct fm801_data *data = &fm801;
-    data->play_control = 0xca00;
-    data->interrupt_control = 0x00df;
+	struct fm801_data *data = &fm801;
+	data->play_control = 0xca00;
+	data->interrupt_control = 0x00df;
 }
 
 static void fm801_free(struct pci_board_state *pcibs)
 {
-    struct fm801_data *data = &fm801;
-    fm801_active = false;
-    fm801_stop(data);
+	struct fm801_data *data = &fm801;
+	fm801_active = false;
+	fm801_stop(data);
 }
 
 static bool fm801_init(struct pci_board_state *pcibs)
 {
-    struct fm801_data *data = &fm801;
-    memset(data, 0, sizeof(struct fm801_data));
-    data->pcibs = pcibs;
-    fm801_active = true;
-    return false;
+	struct fm801_data *data = &fm801;
+	memset(data, 0, sizeof(struct fm801_data));
+	data->pcibs = pcibs;
+	fm801_active = true;
+	return false;
 }
 
 static const struct pci_config fm801_pci_config =
 {
-    0x1319, 0x0801, 0, 0, 0xb2, 0x040100, 0x80, 0x1319, 0x1319, 1, 0x04, 0x28, { 128 | 1, 0, 0, 0, 0, 0, 0 }
+	0x1319, 0x0801, 0, 0, 0xb2, 0x040100, 0x80, 0x1319, 0x1319, 1, 0x04, 0x28, { 128 | 1, 0, 0, 0, 0, 0, 0 }
 };
 static const struct pci_config fm801_pci_config_func1 =
 {
-    0x1319, 0x0802, 0, 0, 0xb2, 0x098000, 0x80, 0x1319, 0x1319, 0, 0x04, 0x28, { 16 | 1, 0, 0, 0, 0, 0, 0 }
+	0x1319, 0x0802, 0, 0, 0xb2, 0x098000, 0x80, 0x1319, 0x1319, 0, 0x04, 0x28, { 16 | 1, 0, 0, 0, 0, 0, 0 }
 };
 
 const struct pci_board fm801_pci_board =
 {
-    _T("FM801"),
-    &fm801_pci_config, fm801_init, fm801_free, fm801_reset, fm801_hsync_handler, pci_irq_callback,
-    {
-        { fm801_lget, fm801_wget, fm801_bget, fm801_lput, fm801_wput, fm801_bput },
-        { NULL },
-        { NULL },
-        { NULL },
-        { NULL },
-        { NULL },
-        { NULL },
-    }
+	_T("FM801"),
+	&fm801_pci_config, fm801_init, fm801_free, fm801_reset, fm801_hsync_handler, pci_irq_callback,
+	{
+		{ fm801_lget, fm801_wget, fm801_bget, fm801_lput, fm801_wput, fm801_bput },
+		{ NULL },
+		{ NULL },
+		{ NULL },
+		{ NULL },
+		{ NULL },
+		{ NULL },
+	}
 };
 
 const struct pci_board fm801_pci_board_func1 =
 {
-    _T("FM801-2"),
-    &fm801_pci_config_func1, NULL, NULL, NULL, NULL, NULL,
-    {
-        { fm801_lget, fm801_wget, fm801_bget, fm801_lput, fm801_wput, fm801_bput },
-        { NULL },
-        { NULL },
-        { NULL },
-        { NULL },
-        { NULL },
-        { NULL },
-    }
+	_T("FM801-2"),
+	&fm801_pci_config_func1, NULL, NULL, NULL, NULL, NULL,
+	{
+		{ fm801_lget, fm801_wget, fm801_bget, fm801_lput, fm801_wput, fm801_bput },
+		{ NULL },
+		{ NULL },
+		{ NULL },
+		{ NULL },
+		{ NULL },
+		{ NULL },
+	}
 };
 
 static void solo1_reset(struct pci_board_state *pcibs)
@@ -985,7 +985,7 @@ static void solo1_free(struct pci_board_state *pcibs)
 
 static bool solo1_init(struct pci_board_state *pcibs)
 {
-    return true;
+	return true;
 }
 
 static void solo1_sb_put(struct pci_board_state *pcibs, uaecptr addr, uae_u32 b)
@@ -993,90 +993,90 @@ static void solo1_sb_put(struct pci_board_state *pcibs, uaecptr addr, uae_u32 b)
 }
 static uae_u32 solo1_sb_get(struct pci_board_state *pcibs, uaecptr addr)
 {
-    uae_u32 v = 0;
-    return v;
+	uae_u32 v = 0;
+	return v;
 }
 
 static void solo1_put(struct pci_board_state *pcibs, int bar, uaecptr addr, uae_u32 b)
 {
-    if (bar == 1)
-        solo1_sb_put(pcibs, addr, b);
+	if (bar == 1)
+		solo1_sb_put(pcibs, addr, b);
 }
 static uae_u32 solo1_get(struct pci_board_state *pcibs, int bar, uaecptr addr)
 {
-    uae_u32 v = 0;
-    if (bar == 1)
-        v = solo1_sb_get(pcibs, addr);
-    return v;
+	uae_u32 v = 0;
+	if (bar == 1)
+		v = solo1_sb_get(pcibs, addr);
+	return v;
 }
 
 static void REGPARAM2 solo1_bput(struct pci_board_state *pcibs, uaecptr addr, uae_u32 b)
 {
-    write_log(_T("SOLO1 BPUT %08x=%08x %d\n"), addr, b, pcibs->selected_bar);
-    solo1_put(pcibs, pcibs->selected_bar, addr + 0, b >> 24);
-    solo1_put(pcibs, pcibs->selected_bar, addr + 1, b >> 16);
-    solo1_put(pcibs, pcibs->selected_bar, addr + 2, b >>  8);
-    solo1_put(pcibs, pcibs->selected_bar, addr + 3, b >>  0);
+	write_log(_T("SOLO1 BPUT %08x=%08x %d\n"), addr, b, pcibs->selected_bar);
+	solo1_put(pcibs, pcibs->selected_bar, addr + 0, b >> 24);
+	solo1_put(pcibs, pcibs->selected_bar, addr + 1, b >> 16);
+	solo1_put(pcibs, pcibs->selected_bar, addr + 2, b >>  8);
+	solo1_put(pcibs, pcibs->selected_bar, addr + 3, b >>  0);
 }
 static void REGPARAM2 solo1_wput(struct pci_board_state *pcibs, uaecptr addr, uae_u32 b)
 {
-    write_log(_T("SOLO1 WPUT %08x=%08x %d\n"), addr, b, pcibs->selected_bar);
-    solo1_put(pcibs, pcibs->selected_bar, addr + 0, b >> 8);
-    solo1_put(pcibs, pcibs->selected_bar, addr + 1, b >> 0);
+	write_log(_T("SOLO1 WPUT %08x=%08x %d\n"), addr, b, pcibs->selected_bar);
+	solo1_put(pcibs, pcibs->selected_bar, addr + 0, b >> 8);
+	solo1_put(pcibs, pcibs->selected_bar, addr + 1, b >> 0);
 }
 static void REGPARAM2 solo1_lput(struct pci_board_state *pcibs, uaecptr addr, uae_u32 b)
 {
-    write_log(_T("SOLO1 LPUT %08x=%08x %d\n"), addr, b, pcibs->selected_bar);
-    solo1_put(pcibs, pcibs->selected_bar, addr, b);
+	write_log(_T("SOLO1 LPUT %08x=%08x %d\n"), addr, b, pcibs->selected_bar);
+	solo1_put(pcibs, pcibs->selected_bar, addr, b);
 }
 static uae_u32 REGPARAM2 solo1_bget(struct pci_board_state *pcibs, uaecptr addr)
 {
-    uae_u32 v = 0;
-    v = solo1_get(pcibs, pcibs->selected_bar, addr);
-    write_log(_T("SOLO1 BGET %08x %d\n"), addr, pcibs->selected_bar);
-    return v;
+	uae_u32 v = 0;
+	v = solo1_get(pcibs, pcibs->selected_bar, addr);
+	write_log(_T("SOLO1 BGET %08x %d\n"), addr, pcibs->selected_bar);
+	return v;
 }
 static uae_u32 REGPARAM2 solo1_wget(struct pci_board_state *pcibs, uaecptr addr)
 {
-    uae_u32 v = 0;
-    write_log(_T("SOLO1 WGET %08x %d\n"), addr, pcibs->selected_bar);
-    return v;
+	uae_u32 v = 0;
+	write_log(_T("SOLO1 WGET %08x %d\n"), addr, pcibs->selected_bar);
+	return v;
 }
 static uae_u32 REGPARAM2 solo1_lget(struct pci_board_state *pcibs, uaecptr addr)
 {
-    uae_u32 v = 0;
-    write_log(_T("SOLO1 LGET %08x %d\n"), addr, pcibs->selected_bar);
-    return v;
+	uae_u32 v = 0;
+	write_log(_T("SOLO1 LGET %08x %d\n"), addr, pcibs->selected_bar);
+	return v;
 }
 
 static const struct pci_config solo1_pci_config =
 {
-    0x125d, 0x1969, 0, 0, 0, 0x040100, 0, 0x125d, 0x1818, 1, 2, 0x18, { 16 | 1, 16 | 1, 16 | 1, 4 | 1, 4 | 1, 0, 0 }
+	0x125d, 0x1969, 0, 0, 0, 0x040100, 0, 0x125d, 0x1818, 1, 2, 0x18, { 16 | 1, 16 | 1, 16 | 1, 4 | 1, 4 | 1, 0, 0 }
 };
 const struct pci_board solo1_pci_board =
 {
-    _T("SOLO1"),
-    &solo1_pci_config, solo1_init, solo1_free, solo1_reset, NULL, pci_irq_callback,
-    {
-        { solo1_lget, solo1_wget, solo1_bget, solo1_lput, solo1_wput, solo1_bput },
-        { solo1_lget, solo1_wget, solo1_bget, solo1_lput, solo1_wput, solo1_bput },
-        { solo1_lget, solo1_wget, solo1_bget, solo1_lput, solo1_wput, solo1_bput },
-        { solo1_lget, solo1_wget, solo1_bget, solo1_lput, solo1_wput, solo1_bput },
-        { solo1_lget, solo1_wget, solo1_bget, solo1_lput, solo1_wput, solo1_bput },
-        { NULL },
-        { NULL },
-    }
+	_T("SOLO1"),
+	&solo1_pci_config, solo1_init, solo1_free, solo1_reset, NULL, pci_irq_callback,
+	{
+		{ solo1_lget, solo1_wget, solo1_bget, solo1_lput, solo1_wput, solo1_bput },
+		{ solo1_lget, solo1_wget, solo1_bget, solo1_lput, solo1_wput, solo1_bput },
+		{ solo1_lget, solo1_wget, solo1_bget, solo1_lput, solo1_wput, solo1_bput },
+		{ solo1_lget, solo1_wget, solo1_bget, solo1_lput, solo1_wput, solo1_bput },
+		{ solo1_lget, solo1_wget, solo1_bget, solo1_lput, solo1_wput, solo1_bput },
+		{ NULL },
+		{ NULL },
+	}
 };
 
 static SWVoiceOut *qemu_voice_out;
 
 static void calculate_volume_qemu(void)
 {
-    SWVoiceOut *out = qemu_voice_out;
-    if (!out)
-        return;
-    out->left_volume = (100 - currprefs.sound_volume_board) * 32768 / 100;
-    out->right_volume = (100 - currprefs.sound_volume_board) * 32768 / 100;
+	SWVoiceOut *out = qemu_voice_out;
+	if (!out)
+		return;
+	out->left_volume = (100 - currprefs.sound_volume_board) * 32768 / 100;
+	out->right_volume = (100 - currprefs.sound_volume_board) * 32768 / 100;
 }
 
 void AUD_close_in(QEMUSoundCard *card, SWVoiceIn *sw)
@@ -1084,158 +1084,158 @@ void AUD_close_in(QEMUSoundCard *card, SWVoiceIn *sw)
 }
 int AUD_read(SWVoiceIn *sw, void *pcm_buf, int size)
 {
-    return size;
+	return size;
 }
 int AUD_write(SWVoiceOut *sw, void *pcm_buf, int size)
 {
-    memcpy(sw->samplebuf, pcm_buf, size);
-    sw->samplebuf_total = size;
-    return sw->samplebuf_total;
+	memcpy(sw->samplebuf, pcm_buf, size);
+	sw->samplebuf_total = size;
+	return sw->samplebuf_total;
 }
 void AUD_set_active_out(SWVoiceOut *sw, int on)
 {
-    sw->active = on != 0;
-    sw->event_time = base_event_clock * CYCLE_UNIT / sw->freq;
-    sw->samplebuf_index = 0;
-    sw->samplebuf_total = 0;
-    calculate_volume_qemu();
-    audio_enable_sndboard(sw->active);
+	sw->active = on != 0;
+	sw->event_time = base_event_clock * CYCLE_UNIT / sw->freq;
+	sw->samplebuf_index = 0;
+	sw->samplebuf_total = 0;
+	calculate_volume_qemu();
+	audio_enable_sndboard(sw->active);
 }
 void AUD_set_active_in(SWVoiceIn *sw, int on)
 {
 }
 int  AUD_is_active_in(SWVoiceIn *sw)
 {
-    return 0;
+	return 0;
 }
 void AUD_close_out(QEMUSoundCard *card, SWVoiceOut *sw)
 {
-    qemu_voice_out = NULL;
-    audio_enable_sndboard(false);
-    xfree(sw);
+	qemu_voice_out = NULL;
+	audio_enable_sndboard(false);
+	xfree(sw);
 }
 SWVoiceIn *AUD_open_in(
-    QEMUSoundCard *card,
-    SWVoiceIn *sw,
-    const char *name,
-    void *callback_opaque,
-    audio_callback_fn callback_fn,
+	QEMUSoundCard *card,
+	SWVoiceIn *sw,
+	const char *name,
+	void *callback_opaque,
+	audio_callback_fn callback_fn,
 struct audsettings *settings)
 {
-    return NULL;
+	return NULL;
 }
 SWVoiceOut *AUD_open_out(
-    QEMUSoundCard *card,
-    SWVoiceOut *sw,
-    const char *name,
-    void *callback_opaque,
-    audio_callback_fn callback_fn,
-    struct audsettings *settings)
+	QEMUSoundCard *card,
+	SWVoiceOut *sw,
+	const char *name,
+	void *callback_opaque,
+	audio_callback_fn callback_fn,
+	struct audsettings *settings)
 {
-    SWVoiceOut *out = sw;
-    if (!sw)
-        out = xcalloc(SWVoiceOut, 1);
-    int bits = 8;
+	SWVoiceOut *out = sw;
+	if (!sw)
+		out = xcalloc(SWVoiceOut, 1);
+	int bits = 8;
 
-    if (settings->fmt >= AUD_FMT_U16)
-        bits = 16;
-    if (settings->fmt >= AUD_FMT_U32)
-        bits = 32;
+	if (settings->fmt >= AUD_FMT_U16)
+		bits = 16;
+	if (settings->fmt >= AUD_FMT_U32)
+		bits = 32;
 
-    out->callback = callback_fn;
-    out->opaque = callback_opaque;
-    out->bits = bits;
-    out->freq = settings->freq;
-    out->ch = settings->nchannels;
-    out->fmt = settings->fmt;
-    out->bytesperframe = out->ch * bits / 8;
+	out->callback = callback_fn;
+	out->opaque = callback_opaque;
+	out->bits = bits;
+	out->freq = settings->freq;
+	out->ch = settings->nchannels;
+	out->fmt = settings->fmt;
+	out->bytesperframe = out->ch * bits / 8;
 
-    write_log(_T("QEMU AUDIO: freq=%d ch=%d bits=%d (fmt=%d) '%s'\n"), out->freq, out->ch, bits, settings->fmt, name);
+	write_log(_T("QEMU AUDIO: freq=%d ch=%d bits=%d (fmt=%d) '%s'\n"), out->freq, out->ch, bits, settings->fmt, name);
 
-    qemu_voice_out = out;
+	qemu_voice_out = out;
 
-    return out;
+	return out;
 }
 
 static void audio_state_sndboard_qemu(int ch)
 {
-    SWVoiceOut *out = qemu_voice_out;
+	SWVoiceOut *out = qemu_voice_out;
 
-    if (!out)
-        return;
-    if (out->active && ch == 0) {
-        uae_s16 l, r;
-        if (out->samplebuf_index >= out->samplebuf_total) {
-            int maxsize = sizeof(out->samplebuf);
-            int size = 128 * out->bytesperframe;
-            if (size > maxsize)
-                size = maxsize;
-            out->callback(out->opaque, size);
-            out->samplebuf_index = 0;
-        }
-        uae_u8 *p = out->samplebuf + out->samplebuf_index;
-        if (out->bits == 8) {
-            if (out->ch == 1) {
-                p[1] = p[0];
-                p[2] = p[0];
-                p[3] = p[0];
-            } else {
-                p[2] = p[1];
-                p[3] = p[1];
-                p[1] = p[0];
-            }
-        } else {
-            if (out->ch == 1) {
-                p[2] = p[0];
-                p[3] = p[1];
-            }
-        }
-        l = (p[1] << 8) | p[0];
-        r = (p[3] << 8) | p[2];
-        out->ch_sample[0] = l;
-        out->ch_sample[1] = r;
-        out->ch_sample[0] = out->ch_sample[0] * out->left_volume / 32768;
-        out->ch_sample[1] = out->ch_sample[1] * out->right_volume / 32768;
-        out->samplebuf_index += out->bytesperframe;
-    }
-    audio_state_sndboard_state(ch, out->ch_sample[ch], out->event_time);
+	if (!out)
+		return;
+	if (out->active && ch == 0) {
+		uae_s16 l, r;
+		if (out->samplebuf_index >= out->samplebuf_total) {
+			int maxsize = sizeof(out->samplebuf);
+			int size = 128 * out->bytesperframe;
+			if (size > maxsize)
+				size = maxsize;
+			out->callback(out->opaque, size);
+			out->samplebuf_index = 0;
+		}
+		uae_u8 *p = out->samplebuf + out->samplebuf_index;
+		if (out->bits == 8) {
+			if (out->ch == 1) {
+				p[1] = p[0];
+				p[2] = p[0];
+				p[3] = p[0];
+			} else {
+				p[2] = p[1];
+				p[3] = p[1];
+				p[1] = p[0];
+			}
+		} else {
+			if (out->ch == 1) {
+				p[2] = p[0];
+				p[3] = p[1];
+			}
+		}
+		l = (p[1] << 8) | p[0];
+		r = (p[3] << 8) | p[2];
+		out->ch_sample[0] = l;
+		out->ch_sample[1] = r;
+		out->ch_sample[0] = out->ch_sample[0] * out->left_volume / 32768;
+		out->ch_sample[1] = out->ch_sample[1] * out->right_volume / 32768;
+		out->samplebuf_index += out->bytesperframe;
+	}
+	audio_state_sndboard_state(ch, out->ch_sample[ch], out->event_time);
 }
 
 
 static void sndboard_vsync_qemu(void)
 {
-    audio_activate();
+	audio_activate();
 }
 
 
 void audio_state_sndboard(int ch)
 {
-    if (toccata.toccata_active)
-        audio_state_sndboard_toccata(ch);
-    if (fm801_active)
-        audio_state_sndboard_fm801(ch);
-    if (qemu_voice_out && qemu_voice_out->active)
-        audio_state_sndboard_qemu(ch);
+	if (toccata.toccata_active)
+		audio_state_sndboard_toccata(ch);
+	if (fm801_active)
+		audio_state_sndboard_fm801(ch);
+	if (qemu_voice_out && qemu_voice_out->active)
+		audio_state_sndboard_qemu(ch);
 }
 
 void sndboard_vsync(void)
 {
-    if (toccata.toccata_active)
-        sndboard_vsync_toccata();
-    if (fm801_active)
-        sndboard_vsync_fm801();
-    if (qemu_voice_out && qemu_voice_out->active)
-        sndboard_vsync_qemu();
+	if (toccata.toccata_active)
+		sndboard_vsync_toccata();
+	if (fm801_active)
+		sndboard_vsync_fm801();
+	if (qemu_voice_out && qemu_voice_out->active)
+		sndboard_vsync_qemu();
 }
 
 void sndboard_ext_volume(void)
 {
-    if (toccata.toccata_active)
-        calculate_volume_toccata();
-    if (fm801_active)
-        calculate_volume_fm801();
-    if (qemu_voice_out && qemu_voice_out->active)
-        calculate_volume_qemu();
+	if (toccata.toccata_active)
+		calculate_volume_toccata();
+	if (fm801_active)
+		calculate_volume_fm801();
+	if (qemu_voice_out && qemu_voice_out->active)
+		calculate_volume_qemu();
 }
 
 #ifdef FSUAE
@@ -1259,7 +1259,6 @@ static bool sndboard_init_capture(int freq)
 }
 
 #else
-
 #ifdef _WIN32
 
 #include <mmdeviceapi.h>
@@ -1316,10 +1315,10 @@ static void sndboard_free_capture(void)
 	if (capture_started)
 		pAudioClient->Stop();
 	capture_started = false;
-    SAFE_RELEASE(pEnumerator)
-    SAFE_RELEASE(pDevice)
-    SAFE_RELEASE(pAudioClient)
-    SAFE_RELEASE(pCaptureClient)
+	SAFE_RELEASE(pEnumerator)
+	SAFE_RELEASE(pDevice)
+	SAFE_RELEASE(pAudioClient)
+	SAFE_RELEASE(pCaptureClient)
 }
 
 static bool sndboard_init_capture(int freq)
@@ -1340,7 +1339,7 @@ static bool sndboard_init_capture(int freq)
 	hr = pEnumerator->GetDefaultAudioEndpoint(eCapture, eConsole, &pDevice);
 	EXIT_ON_ERROR(hr)
 
-    hr = pDevice->Activate(IID_IAudioClient, CLSCTX_ALL, NULL, (void**)&pAudioClient);
+	hr = pDevice->Activate(IID_IAudioClient, CLSCTX_ALL, NULL, (void**)&pAudioClient);
 	EXIT_ON_ERROR(hr)
 
 	memset (&wavfmtsrc, 0, sizeof wavfmtsrc);
@@ -1385,7 +1384,7 @@ static bool sndboard_init_capture(int freq)
 
 
 	hr = pAudioClient->GetService(IID_IAudioCaptureClient, (void**)&pCaptureClient);
-    EXIT_ON_ERROR(hr)
+	EXIT_ON_ERROR(hr)
 		
 	hr = pAudioClient->Start();
 	EXIT_ON_ERROR(hr)
@@ -1402,7 +1401,6 @@ Exit:;
 	sndboard_free_capture();
 	return false;
 }
-
 
 #endif
 #endif

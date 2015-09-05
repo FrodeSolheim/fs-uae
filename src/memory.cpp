@@ -1427,17 +1427,21 @@ static int read_kickstart (struct zfile *f, uae_u8 *mem, int size, int dochecksu
 		if (!decode_rom (mem, size, cr, i))
 			return 0;
 	}
+#ifdef FSUAE
 	/* When i >= ROM_SIZE_256, a full kickstart ROM is in use, and we
 	 * don't want the A1000 KS bootstrap-specific behavior in this case. */
+#endif
 	if (currprefs.cs_a1000ram && i < ROM_SIZE_256) {
 		int off = 0;
 		if (!a1000_bootrom)
 			a1000_bootrom = xcalloc (uae_u8, ROM_SIZE_256);
+#ifdef FSUAE
 		/* FIXME: This loop looks a bit suspicious. When the A1000 bootstrap
 		 * ROM is 64 KB, this loop looks like it repeats the ROM. Fair enough,
 		 * but with <, it will only fill it three times and leave the upper
 		 * 64 KB alone (will be zeroed by xcalloc). Is this intentional, or
 		 * should it be <= here? -Frode. */
+#endif
 		while (off + i < ROM_SIZE_256) {
 			memcpy (a1000_bootrom + off, kickmem_bank.baseaddr, i);
 			off += i;
@@ -1606,7 +1610,7 @@ static bool load_kickstart_replacement (void)
 {
 	struct zfile *f;
 
-#ifdef FSUAE
+#ifdef FSUAE // NL
 	char *data;
 	int data_size;
 	if (fs_data_file_content("share/fs-uae/aros-amiga-m68k-ext.bin",
@@ -1798,10 +1802,6 @@ void mapped_free (addrbank *ab)
 #else
 
 #include <uae/mman.h>
-#define shmat uae_shmat
-#define shmdt uae_shmdt
-#define shmctl uae_shmctl
-#define shmget uae_shmget
 
 shmpiece *shm_start;
 
@@ -1854,7 +1854,7 @@ static void delete_shmmaps (uae_u32 start, uae_u32 size)
 				size = x->size;
 			}
 
-			shmdt (x->native_address);
+			uae_shmdt (x->native_address);
 			size -= x->size;
 			start += x->size;
 			if (x->next)
@@ -1890,7 +1890,7 @@ static void add_shmmaps (uae_u32 start, addrbank *what)
 	y = xmalloc (shmpiece, 1);
 	*y = *x;
 	base = ((uae_u8 *) NATMEM_OFFSET) + start;
-	y->native_address = (uae_u8*)shmat (what, y->id, base, 0);
+	y->native_address = (uae_u8*)uae_shmat (what, y->id, base, 0);
 	if (y->native_address == (void *) -1) {
 		write_log (_T("NATMEM: Failure to map existing at %08x (%p)\n"), start, base);
 		dumplist ();
@@ -1931,7 +1931,7 @@ bool mapped_malloc (addrbank *ab)
 		return ab->baseaddr != NULL;
 	}
 
-	id = shmget (IPC_PRIVATE, ab->allocated, 0x1ff, ab->label);
+	id = uae_shmget (UAE_IPC_PRIVATE, ab->allocated, 0x1ff, ab->label);
 	if (id == -1) {
 		nocanbang ();
 		if (recurse)
@@ -1942,8 +1942,8 @@ bool mapped_malloc (addrbank *ab)
 		return ab->baseaddr != NULL;
 	}
 	if (!(ab->flags & ABFLAG_NOALLOC)) {
-		answer = shmat (ab, id, 0, 0);
-		shmctl (id, IPC_RMID, NULL);
+		answer = uae_shmat (ab, id, 0, 0);
+		uae_shmctl (id, UAE_IPC_RMID, NULL);
 	} else {
 		answer = ab->baseaddr;
 	}

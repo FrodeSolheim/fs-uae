@@ -89,18 +89,19 @@ void uae_ppc_spinlock_release(void)
 static void uae_ppc_spinlock_create(void)
 {
 #ifdef WIN32_SPINLOCK
+#if SPINLOCK_DEBUG
+	write_log(_T("uae_ppc_spinlock_create\n"));
+#endif
 	if (ppc_cs_initialized) {
 		DeleteCriticalSection(&ppc_cs1);
 		DeleteCriticalSection(&ppc_cs2);
 	}
 	InitializeCriticalSectionAndSpinCount(&ppc_cs1, CRITICAL_SECTION_SPIN_COUNT);
 	InitializeCriticalSectionAndSpinCount(&ppc_cs2, CRITICAL_SECTION_SPIN_COUNT);
-	ppc_cs_initialized = true;
-#else
-
-#endif
 #if SPINLOCK_DEBUG
 	spinlock_cnt = 0;
+#endif
+	ppc_cs_initialized = true;
 #endif
 }
 
@@ -230,7 +231,11 @@ static bool load_qemu_implementation(void)
 
 	UAE_DLHANDLE handle = uae_qemu_uae_init();
 	if (!handle) {
+#ifdef FSUAE
 		gui_message(_T("PPC: Error loading qemu-uae plugin\n"));
+#else
+		notify_user (NUMSG_NO_PPC);
+#endif
 		return false;
 	}
 	write_log(_T("PPC: Loaded qemu-uae library at %p\n"), handle);
@@ -255,7 +260,7 @@ static bool load_qemu_implementation(void)
 	uae_patch_library_ppc(handle);
 	return true;
 #else
-        return false;
+	return false;
 #endif
 }
 
@@ -351,9 +356,14 @@ static PPCLockStatus get_ppc_lock(PPCLockMethod method)
 			trylock_called = true;
 		}
 	} else {
+#ifdef FSUAE
 		//uae_abort("invalid ppc loc method");
 		write_log("invalid ppc loc method");
 		abort();
+#else
+		write_log("?\n");
+		return PPC_NO_LOCK_NEEDED;
+#endif
 	}
 }
 
@@ -476,7 +486,6 @@ void ppc_map_banks(uae_u32 start, uae_u32 size, const TCHAR *name, void *addr, b
 	if (impl.in_cpu_thread() == false) {
 		uae_ppc_spinlock_get();
 	}
-
 	free((void*)r.name);
 }
 
@@ -510,11 +519,9 @@ static void cpu_init(void)
 		uint32_t pvr = 0;
 		if (_tcsicmp(model, _T("603ev")) == 0) {
 			pvr = BLIZZPPC_PVR;
-		}
-		else if (_tcsicmp(model, _T("604e")) == 0) {
+		} else if (_tcsicmp(model, _T("604e")) == 0) {
 			pvr = CSPPC_PVR;
-		}
-		else {
+		} else {
 			pvr = CSPPC_PVR;
 			write_log(_T("PPC: Unrecognized model \"%s\", using PVR 0x%08x\n"), model, pvr);
 		}

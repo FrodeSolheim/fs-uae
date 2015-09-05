@@ -83,8 +83,8 @@ static bool memlogw = false;
 struct gfxboard
 {
 	const TCHAR *name;
-    TCHAR *manufacturername;
-    TCHAR *configname;
+	TCHAR *manufacturername;
+	TCHAR *configname;
 	int manufacturer;
 	int model_memory;
 	int model_registers;
@@ -454,9 +454,9 @@ void gfxboard_refresh (void)
 
 void gfxboard_hsync_handler(void)
 {
-    if (currprefs.rtgmem_type == GFXBOARD_A2410) {
-        tms_hsync_handler();
-    }
+	if (currprefs.rtgmem_type == GFXBOARD_A2410) {
+		tms_hsync_handler();
+	}
 }
 
 void gfxboard_vsync_handler (void)
@@ -466,10 +466,10 @@ void gfxboard_vsync_handler (void)
 	printf("gfxboard_vsync_handler\n");
 #endif
 #endif
-    if (currprefs.rtgmem_type == GFXBOARD_A2410) {
-        tms_vsync_handler();
-        return;
-    }
+	if (currprefs.rtgmem_type == GFXBOARD_A2410) {
+		tms_vsync_handler();
+		return;
+	}
 
 	if (!configured_mem || !configured_regs)
 		return;
@@ -2140,38 +2140,38 @@ static void REGPARAM2 gfxboards_bput_regs (uaecptr addr, uae_u32 v)
 const TCHAR *gfxboard_get_name(int type)
 {
 	if (type == GFXBOARD_UAE_Z2)
-        return _T("UAE Zorro II");
+		return _T("UAE Zorro II");
 	if (type == GFXBOARD_UAE_Z3)
-        return _T("UAE Zorro III (*)");
-    return boards[type - GFXBOARD_HARDWARE].name;
+		return _T("UAE Zorro III (*)");
+	return boards[type - GFXBOARD_HARDWARE].name;
 }
 
 const TCHAR *gfxboard_get_manufacturername(int type)
 {
-    if (type == GFXBOARD_UAE_Z2)
-        return NULL;
-    if (type == GFXBOARD_UAE_Z3)
-        return NULL;
-    return boards[type - GFXBOARD_HARDWARE].manufacturername;
+	if (type == GFXBOARD_UAE_Z2)
+		return NULL;
+	if (type == GFXBOARD_UAE_Z3)
+		return NULL;
+	return boards[type - GFXBOARD_HARDWARE].manufacturername;
 }
 
 const TCHAR *gfxboard_get_configname(int type)
 {
-    if (type == GFXBOARD_UAE_Z2)
-        return _T("ZorroII");
-    if (type == GFXBOARD_UAE_Z3)
-        return _T("ZorroIII");
-    return boards[type - GFXBOARD_HARDWARE].configname;
+	if (type == GFXBOARD_UAE_Z2)
+		return _T("ZorroII");
+	if (type == GFXBOARD_UAE_Z3)
+		return _T("ZorroIII");
+	return boards[type - GFXBOARD_HARDWARE].configname;
 }
 
 int gfxboard_get_configtype(int type)
 {
-    if (type == GFXBOARD_UAE_Z2)
-        return 2;
-    if (type == GFXBOARD_UAE_Z3)
-        return 3;
+	if (type == GFXBOARD_UAE_Z2)
+		return 2;
+	if (type == GFXBOARD_UAE_Z3)
+		return 3;
 	board = &boards[type - GFXBOARD_HARDWARE];
-    return board->configtype;
+	return board->configtype;
 }
 
 bool gfxboard_need_byteswap (int type)

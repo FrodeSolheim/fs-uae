@@ -1372,7 +1372,6 @@ struct zfile *read_rom (struct romdata *prd)
 	write_log("read_rom '%s'\n", prd->name);
 #endif
 
-
 	/* find parent node */
 	for (;;) {
 		if (rd2 == &roms[0])

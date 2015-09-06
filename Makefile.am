@@ -337,7 +337,6 @@ libuae_a_SOURCES = \
 	src/include/execlib.h \
 	src/include/fdi2raw.h \
 	src/include/filesys.h \
-	src/include/flags_x86.h \
 	src/include/flashrom.h \
 	src/include/fpp-ieee-be.h \
 	src/include/fpp-unknown.h \
@@ -435,9 +434,11 @@ libuae_a_SOURCES = \
 	src/inputdevice.cpp \
 	src/isofs.cpp \
 	src/jit/codegen_udis86.h \
+	src/jit/codegen_x86.h \
 	src/jit/compemu.h \
 	src/jit/compemu_fpp.cpp \
 	src/jit/compemu_support.cpp \
+	src/jit/flags_x86.h \
 	src/keybuf.cpp \
 	src/logging.cpp \
 	src/main.cpp \
@@ -1219,7 +1220,8 @@ EXTRA_DIST = $(TESTS) $(EXTRA_TESTS) \
 	src/fs-uae/fs-uae.rc.in \
 	src/inputevents.def \
 	src/jit/codegen_x86.cpp \
-	src/jit/compemu_optimizer_x86.cpp \
+	src/jit/compemu_midfunc_x86.cpp \
+	src/jit/compemu_prefs.cpp \
 	src/jit/exception_handler.cpp \
 	src/mame/tm34010/34010fld.c \
 	src/mame/tm34010/34010tbl.c \

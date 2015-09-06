@@ -214,6 +214,24 @@ AC_CHECK_LIB([Winmm], [main])
 AC_CHECK_LIB([Ws2_32], [main])
 
 
+# CPU type
+
+case "$host_cpu" in
+    i386* | i486* | i586* | i686* | i786* )
+        AC_DEFINE([CPU_i386], [1], [CPU is x86])
+        ;;
+    arm* )
+        AC_DEFINE([CPU_arm], [1], [CPU is arm])
+        ;;
+    powerpc* )
+        AC_DEFINE([CPU_powerpc], [1], [CPU is powerpc])
+        ;;
+    x86_64* )
+        AC_DEFINE([CPU_x86_64], [1], [CPU is x86_64])
+        ;;
+esac
+
+
 # Operating system
 
 AC_SUBST([OS_CPPFLAGS])

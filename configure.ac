@@ -479,8 +479,8 @@ AC_ARG_ENABLE([jit], [AS_HELP_STRING([--enable-jit],
 AS_IF([test "x$enable_jit" != xno], [
     AC_TRY_COMPILE([
     ], [
-        #ifndef __i386__
-        #error JIT is only supported on x86
+        #if !defined(__i386__) && !defined(__x86_64__)
+        #error JIT is only supported on x86/x86-64
         #endif
         #if defined(__OpenBSD__) || defined(__FreeBSD__)
         #error no JIT on OpenBSD/FreeBSD right now

@@ -4406,7 +4406,7 @@ void compile_block(cpu_history* pc_hist, int blocklen, int totcycles)
 				raw_sub_l_mi((uae_u32)&countdown,scaled_cycles(totcycles));
 				raw_jcc_l_oponly(9);
 				tba=(uae_u32*)get_target();
-				emit_long(get_handler(t1)-((uae_u32)tba+4));
+				emit_jmp_target(get_handler(t1));
 				raw_mov_l_mi((uintptr)&regs.pc_p,t1);
 				raw_jmp((uintptr)popall_do_nothing);
 				create_jmpdep(bi,0,tba,t1);
@@ -4422,7 +4422,7 @@ void compile_block(cpu_history* pc_hist, int blocklen, int totcycles)
 				raw_sub_l_mi((uae_u32)&countdown,scaled_cycles(totcycles));
 				raw_jcc_l_oponly(9);
 				tba=(uae_u32*)get_target();
-				emit_long(get_handler(t2)-((uae_u32)tba+4));
+				emit_jmp_target(get_handler(t2));
 				raw_mov_l_mi((uintptr)&regs.pc_p,t2);
 				raw_jmp((uintptr)popall_do_nothing);
 				create_jmpdep(bi,1,tba,t2);
@@ -4454,7 +4454,7 @@ void compile_block(cpu_history* pc_hist, int blocklen, int totcycles)
 					raw_sub_l_mi((uae_u32)&countdown,scaled_cycles(totcycles));
 					raw_jcc_l_oponly(9);
 					tba=(uae_u32*)get_target();
-					emit_long(get_handler(v)-((uae_u32)tba+4));
+					emit_jmp_target(get_handler(v));
 					raw_mov_l_mi((uintptr)&regs.pc_p,v);
 					raw_jmp((uintptr)popall_do_nothing);
 					create_jmpdep(bi,0,tba,v);

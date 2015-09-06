@@ -104,12 +104,16 @@ void jit_abort (const TCHAR *format,...)
     else {
         printf("%s", buffer);
     }
-    g_free(buffer);
-
+#if 1
+    fprintf(stderr, "JIT: %s\n", buffer);
+    abort();
+#else
     static int happened;
     //int count;
     if (!happened)
         gui_message (_T("JIT: Serious error:\n%s"), buffer);
     happened = 1;
     uae_reset(1, 1);
+#endif
+    g_free(buffer);
 }

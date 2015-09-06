@@ -437,6 +437,7 @@ libuae_a_SOURCES = \
 	src/jit/codegen_x86.h \
 	src/jit/compemu.h \
 	src/jit/compemu_fpp.cpp \
+	src/jit/compemu_midfunc_x86.h \
 	src/jit/compemu_support.cpp \
 	src/jit/flags_x86.h \
 	src/keybuf.cpp \

@@ -2353,9 +2353,6 @@ static void fflags_into_flags_internal(uae_u32 tmp)
  * Support functions exposed to gencomp. CREATE time                *
  ********************************************************************/
 
-#ifdef UAE
-/* FIXME: implement */
-#else
 void set_zero(int r, int tmp)
 {
     if (setzflg_uses_bsf)
@@ -2363,7 +2360,6 @@ void set_zero(int r, int tmp)
     else
 	simulate_bsf(tmp,r);
 }
-#endif
 
 int kill_rodent(int r)
 {

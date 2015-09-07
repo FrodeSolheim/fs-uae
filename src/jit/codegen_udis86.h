@@ -3,7 +3,7 @@
 
 #ifdef WITH_UDIS86
 
-#define USE_UDIS86
+// #define USE_UDIS86
 
 #include <udis86.h>
 #if defined(__x86_64__)
@@ -12,6 +12,8 @@
 #define UD_MODE 32
 #endif // __x86_64__
 
+// 			write_log("%08x ", i); \
+
 #define UDISFN(udis_func, udis_end) { \
 	int dSize = (int)((uintptr_t)(udis_end) - (uintptr_t)(udis_func)); \
 	if (dSize > 0) { \
@@ -19,7 +21,6 @@
 		for ( ; dSize && (!p[dSize-1] || (0x90 == p[dSize-1])); --dSize) ; /* Find ending */ \
 		jit_log("Disassembling %s (size %u bytes) @ 0x%p:", #udis_func, dSize, p) \
 		for (int i = 0; i < dSize; i += 0x10) { \
-			write_log("%08x ", i); \
 			for (int j = 0; j < 16; ++j) \
 				write_log("%s%02x", 8==j ? "  " : " ", p[i + j]); \
 			write_log("\n"); \
@@ -38,6 +39,6 @@
 				#udis_func, (uintptr_t)udis_func, (uintptr_t)udis_end); \
 }
 
-#endif // WITH_UDIS86
+#endif /* WITH_UDIS86 */
 
-#endif // UAE_CODEGEN_UDIS86_H
+#endif /* UAE_CODEGEN_UDIS86_H */

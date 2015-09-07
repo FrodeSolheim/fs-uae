@@ -3595,6 +3595,7 @@ static inline void create_popalls(void)
 		if (need_to_preserve[i])
 			raw_push_l_r(i);
 	}
+	raw_dec_sp(stack_space);
 	r=REG_PC_TMP;
 	raw_mov_l_rm(r,(uintptr)&regs.pc_p);
 	raw_and_l_ri(r,TAGMASK);
@@ -3603,6 +3604,7 @@ static inline void create_popalls(void)
 	/* now the exit points */
 	align_target(align_jumps);
 	popall_do_nothing=get_target();
+	raw_inc_sp(stack_space);
 	for (i=0;i<N_REGS;i++) {
 		if (need_to_preserve[i])
 			raw_pop_l_r(i);
@@ -3611,6 +3613,7 @@ static inline void create_popalls(void)
 
 	align_target(align_jumps);
 	popall_execute_normal=get_target();
+	raw_inc_sp(stack_space);
 	for (i=0;i<N_REGS;i++) {
 		if (need_to_preserve[i])
 			raw_pop_l_r(i);
@@ -3619,6 +3622,7 @@ static inline void create_popalls(void)
 
 	align_target(align_jumps);
 	popall_cache_miss=get_target();
+	raw_inc_sp(stack_space);
 	for (i=0;i<N_REGS;i++) {
 		if (need_to_preserve[i])
 			raw_pop_l_r(i);
@@ -3627,6 +3631,7 @@ static inline void create_popalls(void)
 
 	align_target(align_jumps);
 	popall_recompile_block=get_target();
+	raw_inc_sp(stack_space);
 	for (i=0;i<N_REGS;i++) {
 		if (need_to_preserve[i])
 			raw_pop_l_r(i);
@@ -3635,6 +3640,7 @@ static inline void create_popalls(void)
 
 	align_target(align_jumps);
 	popall_exec_nostats=get_target();
+	raw_inc_sp(stack_space);
 	for (i=0;i<N_REGS;i++) {
 		if (need_to_preserve[i])
 			raw_pop_l_r(i);
@@ -3643,6 +3649,7 @@ static inline void create_popalls(void)
 
 	align_target(align_jumps);
 	popall_check_checksum=get_target();
+	raw_inc_sp(stack_space);
 	for (i=0;i<N_REGS;i++) {
 		if (need_to_preserve[i])
 			raw_pop_l_r(i);

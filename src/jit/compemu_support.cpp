@@ -2933,7 +2933,7 @@ static void writemem_real(int address, int source, int size, int tmp, int clobbe
 
 	mov_l_rr(f,address);
 	shrl_l_ri(f,16);  /* The index into the baseaddr table */
-	mov_l_rm_indexed(f,uae_p32(baseaddr),f);
+	mov_l_rm_indexed(f,uae_p32(baseaddr),f,SIZEOF_VOID_P); /* FIXME: is SIZEOF_VOID_P correct? */
 
 	if (address==source) { /* IBrowse does this! */
 		if (size > 1) {
@@ -2961,7 +2961,7 @@ static inline void writemem(int address, int source, int offset, int size, int t
 
 	mov_l_rr(f,address);
 	shrl_l_ri(f,16);   /* The index into the mem bank table */
-	mov_l_rm_indexed(f,uae_p32(mem_banks),f);
+	mov_l_rm_indexed(f,uae_p32(mem_banks),f,SIZEOF_VOID_P); /* FIXME: is SIZEOF_VOID_P correct? */
 	/* Now f holds a pointer to the actual membank */
 	mov_l_rR(f,f,offset);
 	/* Now f holds the address of the b/w/lput function */
@@ -3043,7 +3043,7 @@ static void readmem_real(int address, int dest, int size, int tmp)
 
 	mov_l_rr(f,address);
 	shrl_l_ri(f,16);   /* The index into the baseaddr table */
-	mov_l_rm_indexed(f,uae_p32(baseaddr),f);
+	mov_l_rm_indexed(f,uae_p32(baseaddr),f,SIZEOF_VOID_P); /* FIXME: is SIZEOF_VOID_P correct? */
 	/* f now holds the offset */
 
 	switch(size) {
@@ -3062,7 +3062,7 @@ static inline void readmem(int address, int dest, int offset, int size, int tmp)
 
 	mov_l_rr(f,address);
 	shrl_l_ri(f,16);   /* The index into the mem bank table */
-	mov_l_rm_indexed(f,uae_p32(mem_banks),f);
+	mov_l_rm_indexed(f,uae_p32(mem_banks),f,SIZEOF_VOID_P); /* FIXME: is SIZEOF_VOID_P correct? */
 	/* Now f holds a pointer to the actual membank */
 	mov_l_rR(f,f,offset);
 	/* Now f holds the address of the b/w/lget function */
@@ -3131,7 +3131,7 @@ void get_n_addr(int address, int dest, int tmp)
 	mov_l_rr(f,address);
 	mov_l_rr(dest,address); // gb-- nop if dest==address
 	shrl_l_ri(f,16);
-	mov_l_rm_indexed(f,uae_p32(baseaddr),f);
+	mov_l_rm_indexed(f,uae_p32(baseaddr),f,SIZEOF_VOID_P); /* FIXME: is SIZEOF_VOID_P correct? */
 	add_l(dest,f);
 	forget_about(tmp);
 }
@@ -3148,7 +3148,7 @@ void get_n_addr_jmp(int address, int dest, int tmp)
 		f=dest;
 	mov_l_rr(f,address);
 	shrl_l_ri(f,16);   /* The index into the baseaddr bank table */
-	mov_l_rm_indexed(dest,uae_p32(baseaddr),f);
+	mov_l_rm_indexed(dest,uae_p32(baseaddr),f,SIZEOF_VOID_P); /* FIXME: is SIZEOF_VOID_P correct? */
 	add_l(dest,address);
 	and_l_ri (dest, ~1);
 	forget_about(tmp);
@@ -4476,6 +4476,7 @@ void compile_block(cpu_history* pc_hist, int blocklen, int totcycles)
 				tba=(uae_u32*)get_target();
 				emit_jmp_target(get_handler(t1));
 				raw_mov_l_mi((uintptr)&regs.pc_p,t1);
+				flush_reg_count();
 				raw_jmp((uintptr)popall_do_nothing);
 				create_jmpdep(bi,0,tba,t1);
 
@@ -4501,6 +4502,7 @@ void compile_block(cpu_history* pc_hist, int blocklen, int totcycles)
 				if (was_comp) {
 					flush(1);
 				}
+				flush_reg_count();
 
 				/* Let's find out where next_handler is... */
 				if (was_comp && isinreg(PC_P)) {

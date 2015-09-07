@@ -82,6 +82,9 @@
 #include "comptbl.h"
 #ifdef UAE
 #include "compemu.h"
+#ifdef FSUAE
+#include "codegen_udis86.h"
+#endif
 #else
 #include "compiler/compemu.h"
 #include "fpu/fpu.h"
@@ -3648,6 +3651,9 @@ static inline void create_popalls(void)
 
 #ifdef UAE
 	/* FIXME: write-protect popallspace? */
+#ifdef USE_UDIS86
+	UDISFN(pushall_call_handler, get_target());
+#endif
 #else
 	// no need to further write into popallspace
 	vm_protect(popallspace, POPALLSPACE_SIZE, VM_PAGE_READ | VM_PAGE_EXECUTE);
@@ -4551,6 +4557,10 @@ void compile_block(cpu_history* pc_hist, int blocklen, int totcycles)
 		log_dump();
 		align_target(align_jumps);
 		current_compile_p=get_target();
+
+#ifdef USE_UDIS86
+		UDISFN(current_block_start_target, target)
+#endif
 
 		raise_in_cl_list(bi);
 		bi->nexthandler=current_compile_p;

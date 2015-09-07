@@ -17,7 +17,7 @@
 	if (dSize > 0) { \
 		uint8_t* p = (uint8_t*)(udis_func); \
 		for ( ; dSize && (!p[dSize-1] || (0x90 == p[dSize-1])); --dSize) ; /* Find ending */ \
-		JITLOG("Disassembling %s (size %u bytes) @ 0x%p:", #udis_func, dSize, p) \
+		jit_log("Disassembling %s (size %u bytes) @ 0x%p:", #udis_func, dSize, p) \
 		for (int i = 0; i < dSize; i += 0x10) { \
 			write_log("%08x ", i); \
 			for (int j = 0; j < 16; ++j) \
@@ -31,10 +31,10 @@
 		ud_set_syntax(&ud_obj, UD_SYN_INTEL); \
 		while (dSize > 0) { \
 				dSize -= ud_disassemble(&ud_obj); \
-				JITLOG("  [x86]  %s", ud_insn_asm(&ud_obj)); \
+				jit_log("  [x86]  %s", ud_insn_asm(&ud_obj)); \
 		} \
 	} else \
-		JITLOG("Can't dissassemble %s, start (0x%08lx) is larger than end (0x%08lx)", \
+		jit_log("Can't dissassemble %s, start (0x%08lx) is larger than end (0x%08lx)", \
 				#udis_func, (uintptr_t)udis_func, (uintptr_t)udis_end); \
 }
 

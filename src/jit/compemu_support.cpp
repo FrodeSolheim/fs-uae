@@ -1227,7 +1227,6 @@ static uae_s8 nstate[N_REGS];
 #define L_NEEDED -2
 #define L_UNNEEDED -3
 
-#if USE_MATCH
 static inline void big_to_small_state(bigstate * /* b */, smallstate * s)
 {
   int i;
@@ -1260,7 +1259,6 @@ static inline int callers_need_recompile(bigstate * /* b */, smallstate * s)
 				 * callers */
   return 0;
 }
-#endif
 
 static inline void log_startblock(void)
 {

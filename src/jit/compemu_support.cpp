@@ -2972,7 +2972,7 @@ static inline void writemem(int address, int source, int offset, int size, int t
 void writebyte(int address, int source, int tmp)
 {
 	if ((special_mem & S_WRITE) || distrust_byte())
-		writemem_special(address,source,20,1,tmp);
+		writemem_special(address, source, 5 * SIZEOF_VOID_P, 1, tmp);
 	else
 		writemem_real(address,source,1,tmp,0);
 }
@@ -2981,7 +2981,7 @@ static inline void writeword_general(int address, int source, int tmp,
 	int clobber)
 {
 	if ((special_mem & S_WRITE) || distrust_word())
-		writemem_special(address,source,16,2,tmp);
+		writemem_special(address, source, 4 * SIZEOF_VOID_P, 2, tmp);
 	else
 		writemem_real(address,source,2,tmp,clobber);
 }
@@ -3000,7 +3000,7 @@ static inline void writelong_general(int address, int source, int tmp,
 	int clobber)
 {
 	if ((special_mem & S_WRITE) || distrust_long())
-		writemem_special(address,source,12,4,tmp);
+		writemem_special(address, source, 3 * SIZEOF_VOID_P, 4, tmp);
 	else
 		writemem_real(address,source,4,tmp,clobber);
 }
@@ -3073,7 +3073,7 @@ static inline void readmem(int address, int dest, int offset, int size, int tmp)
 void readbyte(int address, int dest, int tmp)
 {
 	if ((special_mem & S_READ) || distrust_byte())
-		readmem_special(address,dest,8,1,tmp);
+		readmem_special(address, dest, 2 * SIZEOF_VOID_P, 1, tmp);
 	else
 		readmem_real(address,dest,1,tmp);
 }
@@ -3081,7 +3081,7 @@ void readbyte(int address, int dest, int tmp)
 void readword(int address, int dest, int tmp)
 {
 	if ((special_mem & S_READ) || distrust_word())
-		readmem_special(address,dest,4,2,tmp);
+		readmem_special(address, dest, 1 * SIZEOF_VOID_P, 2, tmp);
 	else
 		readmem_real(address,dest,2,tmp);
 }
@@ -3089,7 +3089,7 @@ void readword(int address, int dest, int tmp)
 void readlong(int address, int dest, int tmp)
 {
 	if ((special_mem & S_READ) || distrust_long())
-		readmem_special(address,dest,0,4,tmp);
+		readmem_special(address, dest, 0 * SIZEOF_VOID_P, 4, tmp);
 	else
 		readmem_real(address,dest,4,tmp);
 }
@@ -3098,7 +3098,7 @@ void get_n_addr(int address, int dest, int tmp)
 {
 	if (special_mem || distrust_addr()) {
 		/* This one might appear a bit odd... */
-		readmem(address,dest,24,4,tmp);
+		readmem(address, dest, 6 * SIZEOF_VOID_P, 4, tmp);
 		return;
 	}
 

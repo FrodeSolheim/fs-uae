@@ -420,6 +420,7 @@ libuae_a_SOURCES = \
 	src/include/uae/slirp.h \
 	src/include/uae/string.h \
 	src/include/uae/types.h \
+	src/include/uae/vm.h \
 	src/include/uaeexe.h \
 	src/include/uaeipc.h \
 	src/include/uaenative.h \
@@ -572,6 +573,7 @@ libuae_a_SOURCES = \
 	src/uaenative.cpp \
 	src/uaeresource.cpp \
 	src/uaeserial.cpp \
+	src/vm.cpp \
 	src/x86.cpp \
 	src/zfile.cpp \
 	src/zfile_archive.cpp

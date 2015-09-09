@@ -7,6 +7,4 @@
 
 // #define JIT_DEBUG
 
-#include "uae/regparam.h"
-
 #endif /* UAE_JITCONFIG_H */

@@ -2,9 +2,6 @@
 #define UAE_AR_H
 
 #include "uae/types.h"
-#ifdef FSUAE
-#include "uae/regparam.h"
-#endif
 
 /* disable HRTMon support by commenting this out */
 #define ACTION_REPLAY_HRTMON

@@ -17,7 +17,6 @@
 #include "uae/types.h"
 #ifdef FSUAE
 #include "uae/inline.h"
-#include "uae/regparam.h"
 #include "uae/memory.h"
 #include "uae/asm.h"
 #endif

@@ -415,7 +415,6 @@ libuae_a_SOURCES = \
 	src/include/uae/parser.h \
 	src/include/uae/ppc.h \
 	src/include/uae/qemu.h \
-	src/include/uae/regparam.h \
 	src/include/uae/seh.h \
 	src/include/uae/slirp.h \
 	src/include/uae/string.h \

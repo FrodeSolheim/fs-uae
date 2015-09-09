@@ -97,7 +97,7 @@ static void *VirtualAlloc(void *lpAddress, size_t dwSize, int flAllocationType,
 
 	if (flAllocationType & MEM_RESERVE) {
 #ifdef USE_MMAP
-#ifdef CPU_x86_64
+#ifdef CPU_64BIT
 		memory = mmap(lpAddress, dwSize, 0, MAP_PRIVATE | MAP_ANONYMOUS | MAP_32BIT, -1, 0);
 #else
 		memory = mmap(lpAddress, dwSize, 0, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
@@ -201,7 +201,7 @@ uae_u8 *cache_alloc (int size)
 	printf("cache_alloc size = %d\n", size);
 	size = size < getpagesize() ? getpagesize() : size;
 
-#ifdef CPU_x86_64
+#ifdef CPU_64BIT
 	void *cache = mmap(0, size, PROT_READ | PROT_WRITE | PROT_EXEC,
 		MAP_PRIVATE | MAP_ANON | MAP_32BIT, -1, 0);
 #else

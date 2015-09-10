@@ -3,7 +3,7 @@
 
 #ifdef WITH_UDIS86
 
-#define USE_UDIS86
+// #define USE_UDIS86
 
 #include <udis86.h>
 #if defined(__x86_64__)

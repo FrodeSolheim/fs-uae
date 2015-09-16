@@ -44,8 +44,6 @@ typedef LPEXCEPTION_POINTERS CONTEXT_T;
 #define CONTEXT_RSI(context) (context->ContextRecord->Rsi)
 #define CONTEXT_RDI(context) (context->ContextRecord->Rdi)
 
-#define CONTEXT_CR2(context) ((uae_u32)(context->ExceptionRecord->ExceptionInformation[1]))
-
 #elif HAVE_STRUCT_UCONTEXT_UC_MCONTEXT_GREGS
 
 typedef void *CONTEXT_T;
@@ -61,7 +59,19 @@ typedef void *CONTEXT_T;
 #define CONTEXT_ESI(context) (((struct ucontext *) context)->uc_mcontext.gregs[REG_ESI])
 #define CONTEXT_EDI(context) (((struct ucontext *) context)->uc_mcontext.gregs[REG_EDI])
 
-#define CONTEXT_CR2(context) (((struct ucontext *) context)->uc_mcontext.cr2)
+#elif defined(__DARWIN_UNIX03) && defined(_STRUCT_X86_EXCEPTION_STATE32)
+
+typedef void *CONTEXT_T;
+#define HAVE_CONTEXT_T 1
+#define CONTEXT_EIP(context) (*((unsigned long *) &((ucontext_t *) context)->uc_mcontext->__ss.__eip))
+#define CONTEXT_EAX(context) (((ucontext_t *) context)->uc_mcontext->__ss.__eax)
+#define CONTEXT_ECX(context) (((ucontext_t *) context)->uc_mcontext->__ss.__ecx)
+#define CONTEXT_EDX(context) (((ucontext_t *) context)->uc_mcontext->__ss.__edx)
+#define CONTEXT_EBX(context) (((ucontext_t *) context)->uc_mcontext->__ss.__ebx)
+#define CONTEXT_ESP(context) (*((unsigned long *) &((ucontext_t *) context)->uc_mcontext->__ss.__esp))
+#define CONTEXT_EBP(context) (((ucontext_t *) context)->uc_mcontext->__ss.__ebp)
+#define CONTEXT_ESI(context) (((ucontext_t *) context)->uc_mcontext->__ss.__esi)
+#define CONTEXT_EDI(context) (((ucontext_t *) context)->uc_mcontext->__ss.__edi)
 
 #endif
 
@@ -91,10 +101,10 @@ static inline uae_u32 swap32(uae_u32 x)
  *
  * Returns 1 if handled, 0 otherwise
  */
-static int handle_access(CONTEXT_T context)
+static int handle_access(uintptr_t fault_addr, CONTEXT_T context)
 {
 	uae_u8  *i    = (uae_u8 *) CONTEXT_EIP(context);
-	uae_u32  addr =            CONTEXT_CR2(context);
+	uae_u32 addr = fault_addr;
 
 	int r=-1;
 	int size=4;
@@ -383,7 +393,8 @@ LONG WINAPI EvalException(LPEXCEPTION_POINTERS info)
 	if (code != STATUS_ACCESS_VIOLATION || !canbang || currprefs.cachesize == 0)
 		return EXCEPTION_CONTINUE_SEARCH;
 
-	if (handle_access(info)) {
+	uintptr_t address = info->ExceptionRecord->ExceptionInformation[1];
+	if (handle_access(address, info)) {
 		return EXCEPTION_CONTINUE_EXECUTION;
 	}
 	return EXCEPTION_CONTINUE_SEARCH;
@@ -391,13 +402,13 @@ LONG WINAPI EvalException(LPEXCEPTION_POINTERS info)
 
 #elif defined(HAVE_CONTEXT_T)
 
-static void sigsegv_handler(int signum, struct siginfo *info, void *context)
+static void sigsegv_handler(int signum, siginfo_t *info, void *context)
 {
 	uae_u8  *i    = (uae_u8 *) CONTEXT_EIP(context);
-	uae_u32  addr =            CONTEXT_CR2(context);
+	uintptr_t address = (uintptr_t) info->si_addr;
 
 	if (i >= compiled_code) {
-		if (handle_access (context))
+		if (handle_access(address, context))
 			return;
 		else {
 			int j;
@@ -406,7 +417,7 @@ static void sigsegv_handler(int signum, struct siginfo *info, void *context)
 				write_log ("JIT: instruction byte %2d is %02x\n", i, j[i]);
 		}
 	} else {
-		write_log ("Caught illegal access to %08x at eip=%08x\n", addr, i);
+		write_log ("Caught illegal access to %08lx at eip=%p\n", address, i);
 	}
 
 	exit (EXIT_FAILURE);
@@ -428,6 +439,9 @@ static void install_exception_handler(void)
 	sigemptyset (&act.sa_mask);
 	act.sa_flags = SA_SIGINFO;
 	sigaction(SIGSEGV, &act, NULL);
+#ifdef MACOSX
+	sigaction(SIGBUS, &act, NULL);
+#endif
 #else
 	write_log (_T("JIT: No segfault handler installed\n"));
 #endif

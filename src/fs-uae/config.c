@@ -194,11 +194,19 @@ void fs_uae_configure_amiga_hardware()
     fs_emu_log("configuring \"%s\", accuracy=%d\n", c->name, 1);
 
     amiga_quickstart(c->quickstart_model, c->quickstart_config, 1);
-    amiga_set_option("cachesize", "0");
-    amiga_set_option("comp_trustbyte", "indirect");
-    amiga_set_option("comp_trustword", "indirect");
-    amiga_set_option("comp_trustlong", "indirect");
-    amiga_set_option("comp_trustnaddr", "indirect");
+
+    if (fs_config_get_boolean(OPTION_JIT_COMPILER) == 1) {
+        amiga_set_option("cachesize", "8192");
+    } else {
+        amiga_set_option("cachesize", "0");
+    }
+    const char *jit_memory = fs_config_get_const_string(OPTION_JIT_MEMORY);
+    if (jit_memory && strcmp(jit_memory, "indirect") == 0) {
+        amiga_set_option("comp_trustbyte", "indirect");
+        amiga_set_option("comp_trustword", "indirect");
+        amiga_set_option("comp_trustlong", "indirect");
+        amiga_set_option("comp_trustnaddr", "indirect");
+    }
 
 #if 1
     if (cfg->z3realmapping == 0) {

@@ -257,6 +257,16 @@ bool preinit_shm (void)
 		natmem_size = 0x80000000;
 	}
 #endif
+#ifdef FSUAE
+#ifndef _WIN32
+	natmem_offset_allocated = (uae_u8 *) mmap((void *) 0x50000000, 0x80000000, PROT_NONE, MAP_PRIVATE | MAP_ANON | MAP_FIXED, -1, 0);
+	if (natmem_offset_allocated != MAP_FAILED) {
+		natmem_size = 0x80000000;
+	} else {
+		natmem_offset_allocated = 0;
+	}
+#endif
+#endif
 
 	if (!natmem_offset_allocated) {
 		if (natmem_size <= 768 * 1024 * 1024) {

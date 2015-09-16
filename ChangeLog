@@ -1,3 +1,7 @@
+Version 2.5.41dev:
+
+* JIT direct memory exception handler for OS X (32-bit).
+
 Version 2.5.40dev:
 
 * Use SetUnhandledExceptionFilter on Windows for JIT direct memory.

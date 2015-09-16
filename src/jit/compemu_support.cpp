@@ -136,6 +136,9 @@ static inline int distrust_byte(void)
 	default: abort();
 	}
 #endif
+#ifdef JIT_ALWAYS_DISTRUST
+	distrust = 1;
+#endif
 	return distrust;
 }
 
@@ -150,6 +153,9 @@ static inline int distrust_word(void)
 	case 3: distrust=!have_done_picasso; break;
 	default: abort();
 	}
+#endif
+#ifdef JIT_ALWAYS_DISTRUST
+	distrust = 1;
 #endif
 	return distrust;
 }
@@ -166,6 +172,9 @@ static inline int distrust_long(void)
 	default: abort();
 	}
 #endif
+#ifdef JIT_ALWAYS_DISTRUST
+	distrust = 1;
+#endif
 	return distrust;
 }
 
@@ -180,6 +189,9 @@ static inline int distrust_addr(void)
 	case 3: distrust=!have_done_picasso; break;
 	default: abort();
 	}
+#endif
+#ifdef JIT_ALWAYS_DISTRUST
+	distrust = 1;
 #endif
 	return distrust;
 }

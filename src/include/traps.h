@@ -14,9 +14,6 @@
 #define UAE_TRAPS_H
 
 #include "uae/types.h"
-#ifdef FSUAE
-#include "uae/regparam.h"
-#endif
 
 /*
  * Data passed to a trap handler

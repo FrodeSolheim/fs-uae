@@ -214,24 +214,6 @@ AC_CHECK_LIB([Winmm], [main])
 AC_CHECK_LIB([Ws2_32], [main])
 
 
-# CPU type
-
-case "$host_cpu" in
-    i386* | i486* | i586* | i686* | i786* )
-        AC_DEFINE([CPU_i386], [1], [CPU is x86])
-        ;;
-    arm* )
-        AC_DEFINE([CPU_arm], [1], [CPU is arm])
-        ;;
-    powerpc* )
-        AC_DEFINE([CPU_powerpc], [1], [CPU is powerpc])
-        ;;
-    x86_64* )
-        AC_DEFINE([CPU_x86_64], [1], [CPU is x86_64])
-        ;;
-esac
-
-
 # Operating system
 
 AC_SUBST([OS_CPPFLAGS])
@@ -479,8 +461,8 @@ AC_ARG_ENABLE([jit], [AS_HELP_STRING([--enable-jit],
 AS_IF([test "x$enable_jit" != xno], [
     AC_TRY_COMPILE([
     ], [
-        #ifndef __i386__
-        #error JIT is only supported on x86
+        #if !defined(__i386__) && !defined(__x86_64__)
+        #error JIT is only supported on x86/x86-64
         #endif
         #if defined(__OpenBSD__) || defined(__FreeBSD__)
         #error no JIT on OpenBSD/FreeBSD right now

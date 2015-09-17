@@ -3,7 +3,7 @@
 
 #ifdef WITH_UDIS86
 
-#define USE_UDIS86
+// #define USE_UDIS86
 
 #include <udis86.h>
 #if defined(__x86_64__)
@@ -12,14 +12,15 @@
 #define UD_MODE 32
 #endif // __x86_64__
 
+// 			write_log("%08x ", i); \
+//		for ( ; dSize && (!p[dSize-1] || (0x90 == p[dSize-1])); --dSize) ; /* Find ending */ \
+
 #define UDISFN(udis_func, udis_end) { \
 	int dSize = (int)((uintptr_t)(udis_end) - (uintptr_t)(udis_func)); \
 	if (dSize > 0) { \
 		uint8_t* p = (uint8_t*)(udis_func); \
-		for ( ; dSize && (!p[dSize-1] || (0x90 == p[dSize-1])); --dSize) ; /* Find ending */ \
-		JITLOG("Disassembling %s (size %u bytes) @ 0x%p:", #udis_func, dSize, p) \
+		jit_log("Disassembling %s (size %u bytes) @ 0x%p:", #udis_func, dSize, p) \
 		for (int i = 0; i < dSize; i += 0x10) { \
-			write_log("%08x ", i); \
 			for (int j = 0; j < 16; ++j) \
 				write_log("%s%02x", 8==j ? "  " : " ", p[i + j]); \
 			write_log("\n"); \
@@ -31,13 +32,13 @@
 		ud_set_syntax(&ud_obj, UD_SYN_INTEL); \
 		while (dSize > 0) { \
 				dSize -= ud_disassemble(&ud_obj); \
-				JITLOG("  [x86]  %s", ud_insn_asm(&ud_obj)); \
+				jit_log("%04llx  %20s  %s", (uae_u64) ud_insn_off(&ud_obj), ud_insn_hex(&ud_obj), ud_insn_asm(&ud_obj)); \
 		} \
 	} else \
-		JITLOG("Can't dissassemble %s, start (0x%08lx) is larger than end (0x%08lx)", \
+		jit_log("Can't dissassemble %s, start (0x%08lx) is larger than end (0x%08lx)", \
 				#udis_func, (uintptr_t)udis_func, (uintptr_t)udis_end); \
 }
 
-#endif // WITH_UDIS86
+#endif /* WITH_UDIS86 */
 
-#endif // UAE_CODEGEN_UDIS86_H
+#endif /* UAE_CODEGEN_UDIS86_H */

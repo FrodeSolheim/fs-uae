@@ -12,7 +12,6 @@
 #ifdef FSUAE // NL
 #include "config.h"
 #include "uae/types.h"
-#include "uae/regparam.h"
 #include <stddef.h>
 #endif
 

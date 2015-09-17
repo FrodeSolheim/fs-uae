@@ -8,6 +8,7 @@
 #include "sysdeps.h"
 #include "uae/memory.h"
 #include "uae/mman.h"
+#include "uae/vm.h"
 #include "options.h"
 #include "autoconf.h"
 #include "gfxboard.h"
@@ -165,14 +166,18 @@ bool preinit_shm (void)
 	p96mem_offset = NULL;
 
 	GetSystemInfo (&si);
+#ifdef FSUAE
+	max_allowed_mman = 2048;
+#else
 	max_allowed_mman = 512 + 256;
+#endif
 #if 1
 	if (os_64bit) {
-#ifdef WIN64
-		max_allowed_mman = 3072;
-#else
+//#ifdef WIN64
+//		max_allowed_mman = 3072;
+//#else
 		max_allowed_mman = 2048;
-#endif
+//#endif
 	}
 #endif
 	if (maxmem > max_allowed_mman)
@@ -208,7 +213,7 @@ bool preinit_shm (void)
 	sysctl(mib, 2, &totalphys64, &len, NULL, 0);
 	total64 = (uae_u64) totalphys64;
 #else
-	totalphys64 = sysconf (_SC_PHYS_PAGES) * getpagesize();
+	totalphys64 = sysconf (_SC_PHYS_PAGES) * (uae_u64)getpagesize();
 	total64 = (uae_u64)sysconf (_SC_PHYS_PAGES) * (uae_u64)getpagesize();
 #endif
 #endif
@@ -248,24 +253,21 @@ bool preinit_shm (void)
 
 	//natmem_size = 257 * 1024 * 1024;
 
-	write_log (_T("Total physical RAM %lluM, all RAM %lluM. Attempting to reserve: %uM.\n"), totalphys64 >> 20, total64 >> 20, natmem_size >> 20);
-	natmem_offset_allocated = 0;
+	if (natmem_size > 0x80000000) {
+		natmem_size = 0x80000000;
+	}
 
-#ifdef _WIN64
-	natmem_offset_allocated = (uae_u8*) VirtualAlloc((void*)(uintptr_t)0x80000000, 0x80000000, MEM_RESERVE | MEM_WRITE_WATCH, PAGE_READWRITE);
-	if (natmem_offset_allocated) {
-		natmem_size = 0x80000000;
-	}
-#endif
-#ifdef FSUAE
-#ifndef _WIN32
-	natmem_offset_allocated = (uae_u8 *) mmap((void *) 0x50000000, 0x80000000, PROT_NONE, MAP_PRIVATE | MAP_ANON | MAP_FIXED, -1, 0);
-	if (natmem_offset_allocated != MAP_FAILED) {
-		natmem_size = 0x80000000;
-	} else {
-		natmem_offset_allocated = 0;
-	}
-#endif
+	write_log (_T("NATMEM: Total physical RAM %llu MB, all RAM %llu MB\n"),
+				  totalphys64 >> 20, total64 >> 20);
+	write_log(_T("NATMEM: Attempting to reserve: %u MB\n"), natmem_size >> 20);
+
+#if 1
+	natmem_offset_allocated = (uae_u8 *) uae_vm_reserve(
+		natmem_size, UAE_VM_32BIT | UAE_VM_WRITE_WATCH);
+#else
+	natmem_size = 0x20000000;
+	natmem_offset_allocated = (uae_u8 *) uae_vm_reserve_fixed(
+		(void *) 0x90000000, natmem_size, UAE_VM_32BIT | UAE_VM_WRITE_WATCH);
 #endif
 
 	if (!natmem_offset_allocated) {

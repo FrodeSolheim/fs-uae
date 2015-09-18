@@ -1419,7 +1419,6 @@ void cfgfile_save_options (struct zfile *f, struct uae_prefs *p, int type)
 	cfgfile_write_str (f, _T("comp_trustnaddr"), compmode[p->comptrustnaddr]);
 	cfgfile_write_bool (f, _T("comp_nf"), p->compnf);
 	cfgfile_write_bool (f, _T("comp_constjump"), p->comp_constjump);
-	cfgfile_write_bool (f, _T("comp_oldsegv"), p->comp_oldsegv);
 	cfgfile_write_str (f, _T("comp_flushmode"), flushmode[p->comp_hardflush]);
 #ifdef USE_JIT_FPU
 	cfgfile_write_bool (f, _T("compfpu"), p->compfpu);
@@ -4319,7 +4318,6 @@ static int cfgfile_parse_hardware (struct uae_prefs *p, const TCHAR *option, TCH
 		|| cfgfile_yesno (option, value, _T("fpu_softfloat"), &p->fpu_softfloat)
 		|| cfgfile_yesno (option, value, _T("comp_nf"), &p->compnf)
 		|| cfgfile_yesno (option, value, _T("comp_constjump"), &p->comp_constjump)
-		|| cfgfile_yesno (option, value, _T("comp_oldsegv"), &p->comp_oldsegv)
 #ifdef USE_JIT_FPU
 		|| cfgfile_yesno (option, value, _T("compfpu"), &p->compfpu)
 #endif
@@ -6072,7 +6070,6 @@ void default_prefs (struct uae_prefs *p, int type)
 	p->compnf = 1;
 	p->comp_hardflush = 0;
 	p->comp_constjump = 1;
-	p->comp_oldsegv = 0;
 #ifdef USE_JIT_FPU
 	p->compfpu = 1;
 #else

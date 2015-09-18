@@ -223,7 +223,7 @@ AS_CASE([$host_os],
 [mingw*], [
 	OS_NAME="windows"
 	OS_CPPFLAGS="-DWINDOWS"
-	OS_LDFLAGS="-mwindows"
+	OS_LDFLAGS="-mwindows -Wl,--large-address-aware"
 	LOADABLE_MODULE_EXT=".dll"
 ],
 [linux*], [

@@ -1,5 +1,7 @@
 Version 2.5.41dev:
 
+* Separate auto-fire button (based on patch from S. Jordan).
+* Dedicated auto-fire button mapped to "right trigger" by default.
 * New boolean option jit_compiler (to enable/disable JIT compilation).
 * New option jit_memory (=direct/indirect).
 * JIT compiler defaults to direct memory access on all platforms now.

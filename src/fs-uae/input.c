@@ -276,6 +276,12 @@ static fs_emu_action g_actions[] = {
     { INPUTEVENT_SPC_CDTV_FRONT_PANEL_NEXT, "action_cdtv_front_panel_next", 0 },
     { INPUTEVENT_SPC_CDTV_FRONT_PANEL_REW, "action_cdtv_front_panel_rew", 0 },
     { INPUTEVENT_SPC_CDTV_FRONT_PANEL_FF, "action_cdtv_front_panel_ff", 0 },
+
+    { INPUTEVENT_JOY1_AUTOFIRE_BUTTON, "action_joy_0_autofire_button", 0 },
+    { INPUTEVENT_JOY2_AUTOFIRE_BUTTON, "action_joy_1_autofire_button", 0 },
+    { INPUTEVENT_PAR_JOY1_AUTOFIRE_BUTTON, "action_par_joy_0_autofire_button", 0 },
+    { INPUTEVENT_PAR_JOY2_AUTOFIRE_BUTTON, "action_par_joy_1_autofire_button", 0 },
+
     { INPUTEVENT_SPC_STATESAVE1, "action_save_state_1", 0 },
     { INPUTEVENT_SPC_STATESAVE2, "action_save_state_2", 0 },
     { INPUTEVENT_SPC_STATESAVE3, "action_save_state_3", 0 },

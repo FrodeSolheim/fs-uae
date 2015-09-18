@@ -121,7 +121,10 @@ int amiga_send_input_event(int input_event, int state) {
             g_joystick_port_autofire[3]) {
         autofire = 1;
     }
-
+    else if ((input_event > INPUTEVENT_AUTOFIRE_BEGIN) &&
+             (input_event < INPUTEVENT_AUTOFIRE_END)) {
+        autofire = 1;
+    }
     bool canstopplayback = 1;
     bool playbackevent = 0;
 

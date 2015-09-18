@@ -149,36 +149,6 @@ static int my_getpagesize (void)
 
 #define getpagesize my_getpagesize
 
-#ifdef JIT
-
-void cache_free (uae_u8 *cache)
-{
-	// FIXME: Must add (address, size) to a list in cache_alloc, so the memory
-	// can be correctly released here...
-	printf("TODO: free memory with munmap\n");
-	//munmap(cache, size);
-}
-
-uae_u8 *cache_alloc (int size)
-{
-	printf("cache_alloc size = %d\n", size);
-	size = size < getpagesize() ? getpagesize() : size;
-
-//#ifdef CPU_64_BIT
-//	void *cache = mmap(0, size, PROT_READ | PROT_WRITE | PROT_EXEC,
-//		MAP_PRIVATE | MAP_ANON | MAP_32BIT, -1, 0);
-//#else
-	void *cache = mmap(0, size, PROT_READ | PROT_WRITE | PROT_EXEC,
-		MAP_PRIVATE | MAP_ANON, -1, 0);
-//#endif
-	if (cache == MAP_FAILED) {
-		write_log ("Cache_Alloc of %d failed. ERR=%d\n", size, errno);
-	}
-	return (uae_u8 *) cache;
-}
-
-#endif /* JIT */
-
 #endif /* !WIN32 */
 
 /* Prevent od-win32/win32.h from being included */

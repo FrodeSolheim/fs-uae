@@ -584,6 +584,8 @@ REQ_FEATURE([FPUEMU], [fpuemu], [fpuemu],
 	[enable FPU emulation], [yes])
 OPT_FEATURE([GFXBOARD], [gfxboard], [gfxboard],
 	[enable GFX hardware boards], [yes])
+OPT_FEATURE([USE_JIT_FPU], [jit_fpu], [jit-fpu],
+	[enable JIT FPU], [yes])
 OPT_FEATURE([WITH_LUA], [lua], [lua],
 	[enable LUA scripting], [no])
 OPT_FEATURE([WITH_NETPLAY], [netplay], [netplay],

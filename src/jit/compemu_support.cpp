@@ -96,13 +96,20 @@
 #include "uae/log.h"
 
 #include "uae/vm.h"
-#define vm_acquire(size) uae_vm_alloc(size, UAE_VM_32BIT, UAE_VM_READ_WRITE)
-#define vm_protect(address, size, protect) uae_vm_protect(address, size, protect)
-#define vm_release(address, size) uae_vm_free(address, size)
 #define VM_PAGE_READ UAE_VM_READ
 #define VM_PAGE_WRITE UAE_VM_WRITE
 #define VM_PAGE_EXECUTE UAE_VM_EXECUTE
 #define VM_MAP_FAILED UAE_VM_ALLOC_FAILED
+#define VM_MAP_DEFAULT 1
+#define VM_MAP_32BIT 1
+#define vm_protect(address, size, protect) uae_vm_protect(address, size, protect)
+#define vm_release(address, size) uae_vm_free(address, size)
+
+static inline void *vm_acquire(size_t size, int options = VM_MAP_DEFAULT)
+{
+	assert(options == (VM_MAP_DEFAULT | VM_MAP_32BIT));
+	return uae_vm_alloc(size, UAE_VM_32BIT, UAE_VM_READ_WRITE);
+}
 
 #define UNUSED(x)
 #include "uae.h"
@@ -127,76 +134,43 @@ extern bool canbang;
 #define uint32 uae_u32
 #define uint8 uae_u8
 
-static inline int distrust_byte(void)
+static inline int distrust_check(int value)
 {
-	int distrust = currprefs.comptrustbyte;
+#ifdef JIT_ALWAYS_DISTRUST
+	return 1;
+#else
+	int distrust = value;
 #ifdef FSUAE
-	switch (currprefs.comptrustbyte) {
-	case 0: distrust=0; break;
-	case 1: distrust=1; break;
-	case 2: distrust=((start_pc&0xF80000)==0xF80000); break;
-	case 3: distrust=!have_done_picasso; break;
+	switch (value) {
+	case 0: distrust = 0; break;
+	case 1: distrust = 1; break;
+	case 2: distrust = ((start_pc & 0xF80000) == 0xF80000); break;
+	case 3: distrust = !have_done_picasso; break;
 	default: abort();
 	}
 #endif
-#ifdef JIT_ALWAYS_DISTRUST
-	distrust = 1;
-#endif
 	return distrust;
+#endif
+}
+
+static inline int distrust_byte(void)
+{
+	return distrust_check(currprefs.comptrustbyte);
 }
 
 static inline int distrust_word(void)
 {
-	int distrust = currprefs.comptrustword;
-#ifdef FSUAE
-	switch (currprefs.comptrustword) {
-	case 0: distrust=0; break;
-	case 1: distrust=1; break;
-	case 2: distrust=((start_pc&0xF80000)==0xF80000); break;
-	case 3: distrust=!have_done_picasso; break;
-	default: abort();
-	}
-#endif
-#ifdef JIT_ALWAYS_DISTRUST
-	distrust = 1;
-#endif
-	return distrust;
+	return distrust_check(currprefs.comptrustword);
 }
 
 static inline int distrust_long(void)
 {
-	int distrust = currprefs.comptrustlong;
-#ifdef FSUAE
-	switch (currprefs.comptrustlong) {
-	case 0: distrust=0; break;
-	case 1: distrust=1; break;
-	case 2: distrust=((start_pc&0xF80000)==0xF80000); break;
-	case 3: distrust=!have_done_picasso; break;
-	default: abort();
-	}
-#endif
-#ifdef JIT_ALWAYS_DISTRUST
-	distrust = 1;
-#endif
-	return distrust;
+	return distrust_check(currprefs.comptrustlong);
 }
 
 static inline int distrust_addr(void)
 {
-	int distrust = currprefs.comptrustnaddr;
-#ifdef FSUAE
-	switch (currprefs.comptrustnaddr) {
-	case 0: distrust=0; break;
-	case 1: distrust=1; break;
-	case 2: distrust=((start_pc&0xF80000)==0xF80000); break;
-	case 3: distrust=!have_done_picasso; break;
-	default: abort();
-	}
-#endif
-#ifdef JIT_ALWAYS_DISTRUST
-	distrust = 1;
-#endif
-	return distrust;
+	return distrust_check(currprefs.comptrustnaddr);
 }
 
 #else
@@ -786,11 +760,7 @@ T * LazyBlockAllocator<T>::acquire()
 	if (!mChunks) {
 		// There is no chunk left, allocate a new pool and link the
 		// chunks into the free list
-#ifdef UAE
-		Pool * newPool = (Pool *)vm_acquire(sizeof(Pool));
-#else
 		Pool * newPool = (Pool *)vm_acquire(sizeof(Pool), VM_MAP_DEFAULT | VM_MAP_32BIT);
-#endif
 		if (newPool == VM_MAP_FAILED) {
 			jit_abort("Could not allocate block pool!");
 		}
@@ -3452,12 +3422,8 @@ static uint8 *do_alloc_code(uint32 size, int depth)
 	return do_alloc_code(size, depth + 1);
 #else
 	UNUSED(depth);
-#ifdef UAE
-	return (uae_u8*) vm_acquire(size);
-#else
 	uint8 *code = (uint8 *)vm_acquire(size, VM_MAP_DEFAULT | VM_MAP_32BIT);
 	return code == VM_MAP_FAILED ? NULL : code;
-#endif
 #endif
 }
 
@@ -3824,6 +3790,10 @@ static inline void create_popalls(void)
 	raw_inc_sp(stack_space);
 	raw_pop_preserved_regs();
 	compemu_raw_jmp(uae_p32(check_checksum));
+
+#if defined(USE_DATA_BUFFER)
+	reset_data_buffer();
+#endif
 
 #ifdef UAE
 #ifdef USE_UDIS86
@@ -4265,7 +4235,9 @@ int failure;
 #define TARGET_NATIVE	TARGET_ARM
 #endif
 
+#ifdef UAE
 static
+#endif
 void disasm_block(int /* target */, uint8 * /* start */, size_t /* length */)
 {
 	if (!JITDebug)
@@ -4330,9 +4302,9 @@ void compiler_dumpstate(void)
 #endif
 
 #ifdef UAE
-void compile_block(cpu_history* pc_hist, int blocklen, int totcycles)
+void compile_block(cpu_history *pc_hist, int blocklen, int totcycles)
 {
-	if (letit && compiled_code && currprefs.cpu_model>=68020) {
+	if (letit && compiled_code && currprefs.cpu_model >= 68020) {
 #else
 static void compile_block(cpu_history* pc_hist, int blocklen)
 {
@@ -4427,16 +4399,20 @@ static void compile_block(cpu_history* pc_hist, int blocklen)
 				max_pcp=(uintptr)currpcp;
 #endif
 
+#ifdef UAE
 			if (currprefs.compnf) {
+#endif
 				liveflags[i]=((liveflags[i+1]&
 					(~prop[op].set_flags))|
 					prop[op].use_flags);
 				if (prop[op].is_addx && (liveflags[i+1]&FLAG_Z)==0)
 					liveflags[i]&= ~FLAG_Z;
+#ifdef UAE
 			}
 			else {
 				liveflags[i]=0x1f;
 			}
+#endif
 		}
 
 #if USE_CHECKSUM_INFO

@@ -7,6 +7,7 @@ Version 2.5.41dev:
 * New option jit_memory (=direct/indirect).
 * JIT compiler defaults to direct memory access on all platforms now.
 * JIT direct memory exception handler for OS X (32-bit).
+* Imported updated translations from crowdin.com.
 
 Version 2.5.40dev:
 

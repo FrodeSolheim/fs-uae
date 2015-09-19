@@ -8,7 +8,6 @@
 #include <fs/emu/options.h>
 #include <fs/lazyness.h>
 #include "input.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -17,8 +16,7 @@
 #include <fs/inifile.h>
 #include <fs/glib.h>
 #include <fs/thread.h>
-
-#include "actions.h"
+#include <fs/emu/actions.h>
 #include "hud.h"
 #include "menu.h"
 #include "netplay.h"

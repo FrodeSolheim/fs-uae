@@ -7,120 +7,108 @@
 
 #include <uae/uae.h>
 #include <fs/emu.h>
+#include <fs/emu/actions.h>
 #include "fs-uae.h"
 #include "config-common.h"
 
 fs_uae_input_port g_fs_uae_input_ports[FS_UAE_NUM_INPUT_PORTS] = {};
 
-static fs_emu_input_mapping g_joystick_mappings[][FS_UAE_MAX_PORT_ACTIONS] = {
-    // joystick in joystick port 0
-    {
-        { "left", INPUTEVENT_JOY1_LEFT },
-        { "right", INPUTEVENT_JOY1_RIGHT },
-        { "up", INPUTEVENT_JOY1_UP },
-        { "down", INPUTEVENT_JOY1_DOWN },
-        { "1", INPUTEVENT_JOY1_FIRE_BUTTON },
-        { "2", INPUTEVENT_JOY1_2ND_BUTTON },
-        { "3", INPUTEVENT_JOY1_3RD_BUTTON },
-        { "red", INPUTEVENT_JOY1_CD32_RED },
-        { "yellow", INPUTEVENT_JOY1_CD32_YELLOW },
-        { "green", INPUTEVENT_JOY1_CD32_GREEN },
-        { "blue", INPUTEVENT_JOY1_CD32_BLUE },
-        { "rewind", INPUTEVENT_JOY1_CD32_RWD },
-        { "forward", INPUTEVENT_JOY1_CD32_FFW },
-        { "play", INPUTEVENT_JOY1_CD32_PLAY },
-        { "autofire", INPUTEVENT_JOY1_AUTOFIRE_BUTTON },
-        { "toggle_autofire", INPUTEVENT_AMIGA_JOYPORT_0_AUTOFIRE },
-        { NULL, 0 },
-    },
-    // joystick in joystick port 1
-    {
-        { "left", INPUTEVENT_JOY2_LEFT },
-        { "right", INPUTEVENT_JOY2_RIGHT },
-        { "up", INPUTEVENT_JOY2_UP },
-        { "down", INPUTEVENT_JOY2_DOWN },
-        { "1", INPUTEVENT_JOY2_FIRE_BUTTON },
-        { "2", INPUTEVENT_JOY2_2ND_BUTTON },
-        { "3", INPUTEVENT_JOY2_3RD_BUTTON },
-        { "red", INPUTEVENT_JOY2_CD32_RED },
-        { "yellow", INPUTEVENT_JOY2_CD32_YELLOW },
-        { "green", INPUTEVENT_JOY2_CD32_GREEN },
-        { "blue", INPUTEVENT_JOY2_CD32_BLUE },
-        { "rewind", INPUTEVENT_JOY2_CD32_RWD },
-        { "forward", INPUTEVENT_JOY2_CD32_FFW },
-        { "play", INPUTEVENT_JOY2_CD32_PLAY },
-        { "autofire", INPUTEVENT_JOY2_AUTOFIRE_BUTTON },
-        { "toggle_autofire", INPUTEVENT_AMIGA_JOYPORT_1_AUTOFIRE },
-        { NULL, 0 },
-    },
-    // first parallel port joystick
-    {
-        { "left", INPUTEVENT_PAR_JOY1_LEFT },
-        { "right", INPUTEVENT_PAR_JOY1_RIGHT },
-        { "up", INPUTEVENT_PAR_JOY1_UP },
-        { "down", INPUTEVENT_PAR_JOY1_DOWN },
-        { "1", INPUTEVENT_PAR_JOY1_FIRE_BUTTON },
-        { "2", INPUTEVENT_PAR_JOY1_2ND_BUTTON },
-        { "autofire", INPUTEVENT_PAR_JOY1_AUTOFIRE_BUTTON },
-        { "toggle_autofire", INPUTEVENT_AMIGA_JOYPORT_2_AUTOFIRE },
-        { NULL, 0 },
-        { NULL, 0 },
-        { NULL, 0 },
-        { NULL, 0 },
-        { NULL, 0 },
-        { NULL, 0 },
-        { NULL, 0 },
-        { NULL, 0 },
-        { NULL, 0 },
-    },
-    // second parallel port joystick
-    {
-        { "left", INPUTEVENT_PAR_JOY2_LEFT },
-        { "right", INPUTEVENT_PAR_JOY2_RIGHT },
-        { "up", INPUTEVENT_PAR_JOY2_UP },
-        { "down", INPUTEVENT_PAR_JOY2_DOWN },
-        { "1", INPUTEVENT_PAR_JOY2_FIRE_BUTTON },
-        { "2", INPUTEVENT_PAR_JOY2_2ND_BUTTON },
-        { "autofire", INPUTEVENT_PAR_JOY2_AUTOFIRE_BUTTON },
-        { "toggle_autofire", INPUTEVENT_AMIGA_JOYPORT_3_AUTOFIRE },
-        { NULL, 0 },
-        { NULL, 0 },
-        { NULL, 0 },
-        { NULL, 0 },
-        { NULL, 0 },
-        { NULL, 0 },
-        { NULL, 0 },
-        { NULL, 0 },
-        { NULL, 0 },
-    },
-    // custom joystick, 65536 = no action
-    {
-        { "left", 65536 },
-        { "right", 65536 },
-        { "up", 65536 },
-        { "down", 65536 },
-        { "1", 65536 },
-        { "2", 65536 },
-        { NULL, 0 },
-        { NULL, 0 },
-        { NULL, 0 },
-        { NULL, 0 },
-        { NULL, 0 },
-        { NULL, 0 },
-        { NULL, 0 },
-        { NULL, 0 },
-        { NULL, 0 },
-        { NULL, 0 },
-    },
+#define NO_ACTION 65536
+
+#define COMMON_ACTIONS \
+    { "pause", FS_EMU_ACTION_PAUSE },
+
+static fs_emu_input_mapping g_joystick_port_0_mapping[] = {
+    { "left", INPUTEVENT_JOY1_LEFT },
+    { "right", INPUTEVENT_JOY1_RIGHT },
+    { "up", INPUTEVENT_JOY1_UP },
+    { "down", INPUTEVENT_JOY1_DOWN },
+    { "1", INPUTEVENT_JOY1_FIRE_BUTTON },
+    { "2", INPUTEVENT_JOY1_2ND_BUTTON },
+    { "3", INPUTEVENT_JOY1_3RD_BUTTON },
+    { "red", INPUTEVENT_JOY1_CD32_RED },
+    { "yellow", INPUTEVENT_JOY1_CD32_YELLOW },
+    { "green", INPUTEVENT_JOY1_CD32_GREEN },
+    { "blue", INPUTEVENT_JOY1_CD32_BLUE },
+    { "rewind", INPUTEVENT_JOY1_CD32_RWD },
+    { "forward", INPUTEVENT_JOY1_CD32_FFW },
+    { "play", INPUTEVENT_JOY1_CD32_PLAY },
+    { "autofire", INPUTEVENT_JOY1_AUTOFIRE_BUTTON },
+    { "toggle_autofire", INPUTEVENT_AMIGA_JOYPORT_0_AUTOFIRE },
+    COMMON_ACTIONS
+    { NULL, 0 },
 };
 
-void fs_uae_read_override_actions_for_port(int port) {
+static fs_emu_input_mapping g_joystick_port_1_mapping[] = {
+    { "left", INPUTEVENT_JOY2_LEFT },
+    { "right", INPUTEVENT_JOY2_RIGHT },
+    { "up", INPUTEVENT_JOY2_UP },
+    { "down", INPUTEVENT_JOY2_DOWN },
+    { "1", INPUTEVENT_JOY2_FIRE_BUTTON },
+    { "2", INPUTEVENT_JOY2_2ND_BUTTON },
+    { "3", INPUTEVENT_JOY2_3RD_BUTTON },
+    { "red", INPUTEVENT_JOY2_CD32_RED },
+    { "yellow", INPUTEVENT_JOY2_CD32_YELLOW },
+    { "green", INPUTEVENT_JOY2_CD32_GREEN },
+    { "blue", INPUTEVENT_JOY2_CD32_BLUE },
+    { "rewind", INPUTEVENT_JOY2_CD32_RWD },
+    { "forward", INPUTEVENT_JOY2_CD32_FFW },
+    { "play", INPUTEVENT_JOY2_CD32_PLAY },
+    { "autofire", INPUTEVENT_JOY2_AUTOFIRE_BUTTON },
+    { "toggle_autofire", INPUTEVENT_AMIGA_JOYPORT_1_AUTOFIRE },
+    COMMON_ACTIONS
+    { NULL, 0 },
+};
+
+static fs_emu_input_mapping g_parallel_port_1st_mapping[] = {
+    { "left", INPUTEVENT_PAR_JOY1_LEFT },
+    { "right", INPUTEVENT_PAR_JOY1_RIGHT },
+    { "up", INPUTEVENT_PAR_JOY1_UP },
+    { "down", INPUTEVENT_PAR_JOY1_DOWN },
+    { "1", INPUTEVENT_PAR_JOY1_FIRE_BUTTON },
+    { "2", INPUTEVENT_PAR_JOY1_2ND_BUTTON },
+    { "autofire", INPUTEVENT_PAR_JOY1_AUTOFIRE_BUTTON },
+    { "toggle_autofire", INPUTEVENT_AMIGA_JOYPORT_2_AUTOFIRE },
+    COMMON_ACTIONS
+    { NULL, 0 },
+};
+
+static fs_emu_input_mapping g_parallel_port_2nd_mapping[] = {
+    { "left", INPUTEVENT_PAR_JOY2_LEFT },
+    { "right", INPUTEVENT_PAR_JOY2_RIGHT },
+    { "up", INPUTEVENT_PAR_JOY2_UP },
+    { "down", INPUTEVENT_PAR_JOY2_DOWN },
+    { "1", INPUTEVENT_PAR_JOY2_FIRE_BUTTON },
+    { "2", INPUTEVENT_PAR_JOY2_2ND_BUTTON },
+    { "autofire", INPUTEVENT_PAR_JOY2_AUTOFIRE_BUTTON },
+    { "toggle_autofire", INPUTEVENT_AMIGA_JOYPORT_3_AUTOFIRE },
+    COMMON_ACTIONS
+    { NULL, 0 },
+};
+
+static fs_emu_input_mapping g_custom_port_mapping[] = {
+    { "left", NO_ACTION },
+    { "right", NO_ACTION },
+    { "up", NO_ACTION },
+    { "down", NO_ACTION },
+    { "1", NO_ACTION },
+    { "2", NO_ACTION },
+    { NULL, 0 },
+};
+
+static fs_emu_input_mapping *g_joystick_mappings[] = {
+    g_joystick_port_0_mapping,
+    g_joystick_port_1_mapping,
+    g_parallel_port_1st_mapping,
+    g_parallel_port_2nd_mapping,
+    g_custom_port_mapping,
+};
+
+void fs_uae_read_override_actions_for_port(int port)
+{
     fs_log("fs_uae_read_override_actions_for_port %d\n", port);
     fs_emu_input_mapping *mapping = g_joystick_mappings[port];
-    for (int i = 0; i < FS_UAE_MAX_PORT_ACTIONS; i++) {
-        if (mapping[i].name == NULL) {
-            continue;
-        }
+    for (int i = 0; mapping[i].name != NULL; i++) {
         const char* name = mapping[i].name;
         if (strcmp(name, "1") == 0) {
             name = "primary";
@@ -143,7 +131,8 @@ void fs_uae_read_override_actions_for_port(int port) {
     }
 }
 
-static void map_mouse(const char *device_name, int port) {
+static void map_mouse(const char *device_name, int port)
+{
     fs_log("mapping mouse to port %d\n", port);
     if (port == 0) {
         fs_emu_configure_mouse(device_name, INPUTEVENT_MOUSE1_HORIZ,
@@ -163,7 +152,8 @@ static void map_mouse(const char *device_name, int port) {
 }
 
 static void configure_joystick_port(int port, const char *value,
-        const char *port_name, const char *joy_dev) {
+        const char *port_name, const char *joy_dev)
+{
     fs_emu_log("configuring joystick port %d (%s)\n", port, value);
     fs_uae_input_port *p = g_fs_uae_input_ports + port;
 
@@ -320,7 +310,8 @@ void fs_uae_configure_input()
     g_free(value);
 }
 
-void fs_uae_reconfigure_input_ports_amiga() {
+void fs_uae_reconfigure_input_ports_amiga()
+{
     fs_emu_log("fs_uae_reconfigure_input_ports_amiga\n");
     int modes = INPUTEVENT_AMIGA_JOYPORT_MODE_0_LAST -
             INPUTEVENT_AMIGA_JOYPORT_MODE_0_NONE + 1;
@@ -345,7 +336,8 @@ void fs_uae_reconfigure_input_ports_amiga() {
     }
 }
 
-void fs_uae_reconfigure_input_ports_host() {
+void fs_uae_reconfigure_input_ports_host()
+{
     fs_emu_log("fs_uae_reconfigure_input_ports_host\n");
     fs_emu_reset_input_mapping();
     fs_uae_map_keyboard();

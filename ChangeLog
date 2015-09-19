@@ -1,3 +1,7 @@
+Version 2.5.42dev:
+
+* Map gamepad select button to pause action.
+
 Version 2.5.41dev:
 
 * Implement action_pause to make action key configurable.

@@ -21,13 +21,11 @@
 #endif
 
 #include <fs/emu.h>
+#include <fs/emu/actions.h>
+#include <fs/lazyness.h>
 #include <fs/glib.h>
-
-#include "actions.h"
 #include "video.h"
-
 #include <stdlib.h>
-
 
 static const char* g_taunts[] = {
         "You play like a dairy farmer!",
@@ -42,7 +40,8 @@ static const char* g_taunts[] = {
 };
 static int g_num_taunts = 8;
 
-static void taunt() {
+static void taunt()
+{
     char *text = g_strdup_printf("%c%s\n", 1,
             g_taunts[g_random_int_range(0, g_num_taunts)]);
     fs_emu_netplay_say(text);
@@ -51,7 +50,9 @@ static void taunt() {
 
 void fs_emu_handle_libfsemu_action(int action, int state)
 {
-    printf("internal action %d %d\n", action, state);
+    if (g_fs_log_input) {
+        fs_log("fs_emu_handle_libfsemu_action %d %d\n", action, state);
+    }
     if (state) {
         if (action == FS_EMU_ACTION_TAUNT) {
             taunt();

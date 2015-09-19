@@ -627,13 +627,16 @@ void fs_emu_map_custom_actions() {
     map_custom_joystick_actions();
 }
 
-void fs_emu_set_actions(fs_emu_action *actions) {
+void fs_emu_set_actions(fs_emu_action *actions)
+{
     int k = 0;
 
     g_actions[k].name = "action_taunt";
     g_actions[k++].input_event = FS_EMU_ACTION_TAUNT;
     g_actions[k].name = "action_screenshot";
     g_actions[k++].input_event = FS_EMU_ACTION_SCREENSHOT;
+    g_actions[k].name = "action_pause";
+    g_actions[k++].input_event = FS_EMU_ACTION_PAUSE;
 
     while (actions->name) {
         if (k == MAX_ACTIONS) {

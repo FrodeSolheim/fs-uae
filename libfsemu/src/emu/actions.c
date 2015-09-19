@@ -49,7 +49,8 @@ static void taunt() {
     g_free(text);
 }
 
-void fs_emu_handle_libfsemu_action(int action, int state) {
+void fs_emu_handle_libfsemu_action(int action, int state)
+{
     printf("internal action %d %d\n", action, state);
     if (state) {
         if (action == FS_EMU_ACTION_TAUNT) {
@@ -57,6 +58,9 @@ void fs_emu_handle_libfsemu_action(int action, int state) {
         }
         else if (action == FS_EMU_ACTION_SCREENSHOT) {
             g_fs_emu_screenshot = 1;
+        }
+        else if (action == FS_EMU_ACTION_PAUSE) {
+            fs_emu_pause(!fs_emu_is_paused());
         }
     }
 }

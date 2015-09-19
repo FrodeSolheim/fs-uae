@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.67])
-AC_INIT([FS-UAE], [2.5.40dev],
+AC_INIT([FS-UAE], [2.5.41dev],
         [frode@fs-uae.net], [fs-uae], [http://fs-uae.net])
 AC_CONFIG_AUX_DIR([.])
 AC_CANONICAL_HOST
@@ -150,8 +150,8 @@ PKG_CHECK_MODULES([OPENAL], [openal], [
         AS_CASE([$host_os],
 	[darwin*], [
 		AC_MSG_NOTICE([Using OpenAL.framework])
-		#OPENAL_CFLAGS="-I/System/Library/Frameworks/OpenAL.framework/Headers"
-		OPENAL_CFLAGS="-I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk/System/Library/Frameworks/OpenAL.framework/Headers"
+		OPENAL_CFLAGS="-I/System/Library/Frameworks/OpenAL.framework/Headers"
+		# OPENAL_CFLAGS="-I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk/System/Library/Frameworks/OpenAL.framework/Headers"
 		OPENAL_LIBS="-framework OpenAL"
 
 	],

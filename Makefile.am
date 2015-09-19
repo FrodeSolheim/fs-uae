@@ -616,6 +616,7 @@ libfsemu_a_SOURCES = \
 	libfsemu/include/fs/data.h \
 	libfsemu/include/fs/defines.h \
 	libfsemu/include/fs/emu.h \
+	libfsemu/include/fs/emu/actions.h \
         libfsemu/include/fs/emu/audio.h \
         libfsemu/include/fs/emu/benchmark.h \
         libfsemu/include/fs/emu/buffer.h \
@@ -656,7 +657,6 @@ libfsemu_a_SOURCES = \
 	libfsemu/src/conf.c \
 	libfsemu/src/data.c \
 	libfsemu/src/emu/actions.c \
-	libfsemu/src/emu/actions.h \
 	libfsemu/src/emu/audio.h \
 	libfsemu/src/emu/audio_common.c \
 	libfsemu/src/emu/audio_debug.c \

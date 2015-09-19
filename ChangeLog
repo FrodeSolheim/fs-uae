@@ -1,11 +1,19 @@
+Version 2.5.42dev:
+
+* Map gamepad start button to menu when in Amiga joystick mode (not CD32).
+* Map gamepad select button to pause action.
+* Added/updated some XInput controller configs for DirectInput mode.
+
 Version 2.5.41dev:
 
+* Implement action_pause to make action key configurable.
 * Separate auto-fire button (based on patch from S. Jordan).
 * Dedicated auto-fire button mapped to "right trigger" by default.
 * New boolean option jit_compiler (to enable/disable JIT compilation).
 * New option jit_memory (=direct/indirect).
 * JIT compiler defaults to direct memory access on all platforms now.
 * JIT direct memory exception handler for OS X (32-bit).
+* Imported updated translations from crowdin.com.
 
 Version 2.5.40dev:
 

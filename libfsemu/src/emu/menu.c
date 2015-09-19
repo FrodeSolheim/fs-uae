@@ -181,6 +181,9 @@ void fs_emu_menu_function(int action, int state) {
     else if (action == ACTION_MENU_BACK) {
         go_back_in_menu_stack();
     }
+    else if (action == ACTION_MENU_START) {
+        fs_emu_menu_toggle();
+    }
     else if (action == ACTION_MENU_ESCAPE) {
         if (!go_back_in_menu_stack()) {
             // no more menus to back out of, go out of menu mode instead
@@ -680,8 +683,9 @@ void fs_emu_menu_render(double transition) {
     glPopMatrix();
 }
 
-void fs_emu_menu_toggle() {
-    fs_emu_log("fs_emu_toggle_menu\n");
+void fs_emu_menu_toggle()
+{
+    fs_emu_log("fs_emu_menu_toggle\n");
     if (g_fs_emu_menu_mode) {
         // leave menu
         g_fs_emu_menu_mode = 0;

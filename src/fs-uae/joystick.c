@@ -16,6 +16,7 @@ fs_uae_input_port g_fs_uae_input_ports[FS_UAE_NUM_INPUT_PORTS] = {};
 #define NO_ACTION 65536
 
 #define COMMON_ACTIONS \
+    { "menu_alt", FS_EMU_ACTION_MENU_ALT }, \
     { "pause", FS_EMU_ACTION_PAUSE },
 
 static fs_emu_input_mapping g_joystick_port_0_mapping[] = {

@@ -54,13 +54,13 @@ void fs_emu_handle_libfsemu_action(int action, int state)
         fs_log("fs_emu_handle_libfsemu_action %d %d\n", action, state);
     }
     if (state) {
-        if (action == FS_EMU_ACTION_TAUNT) {
+        if (action == FS_EMU_ACTION_MENU_ALT) {
+            fs_emu_menu_toggle();
+        } else if (action == FS_EMU_ACTION_TAUNT) {
             taunt();
-        }
-        else if (action == FS_EMU_ACTION_SCREENSHOT) {
+        } else if (action == FS_EMU_ACTION_SCREENSHOT) {
             g_fs_emu_screenshot = 1;
-        }
-        else if (action == FS_EMU_ACTION_PAUSE) {
+        } else if (action == FS_EMU_ACTION_PAUSE) {
             fs_emu_pause(!fs_emu_is_paused());
         }
     }

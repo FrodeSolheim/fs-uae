@@ -1,5 +1,6 @@
 Version 2.5.42dev:
 
+* Map gamepad start button to menu when in Amiga joystick mode (not CD32).
 * Map gamepad select button to pause action.
 
 Version 2.5.41dev:

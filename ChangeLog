@@ -1,3 +1,12 @@
+Version 2.7.0dev:
+
+* Merged JIT compiler updates from the ARAnyM project.
+* Support for JIT compilation on x86-64 (Linux/Windows/OS X). It may contain
+  bugs yet. FPU JIT is currently disabled by default for x86-64.
+* JIT 64-bit direct memory exception handlers for Linux/Windows/OS X.
+* Compile FS-UAE / Windows as large address aware for more virtual memory.
+* Updated emulation core from WinUAE 3200b12.
+
 Version 2.5.42dev:
 
 * Map gamepad start button to menu when in Amiga joystick mode (not CD32).

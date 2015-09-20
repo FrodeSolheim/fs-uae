@@ -5015,7 +5015,7 @@ STATIC_INLINE void writemem(int address, int source, int offset, int size, int t
 void writebyte(int address, int source, int tmp)
 {
 	int distrust = currprefs.comptrustbyte;
-#if 0
+#ifdef FSUAE
 	switch (currprefs.comptrustbyte) {
 	case 0: distrust=0; break;
 	case 1: distrust=1; break;
@@ -5034,7 +5034,7 @@ STATIC_INLINE void writeword_general(int address, int source, int tmp,
 	int clobber)
 {
 	int distrust = currprefs.comptrustword;
-#if 0
+#ifdef FSUAE
 	switch (currprefs.comptrustword) {
 	case 0: distrust=0; break;
 	case 1: distrust=1; break;
@@ -5063,7 +5063,7 @@ STATIC_INLINE void writelong_general(int address, int source, int tmp,
 	int clobber)
 {
 	int  distrust = currprefs.comptrustlong;
-#if 0
+#ifdef FSUAE
 	switch (currprefs.comptrustlong) {
 	case 0: distrust=0; break;
 	case 1: distrust=1; break;
@@ -5145,7 +5145,7 @@ STATIC_INLINE void readmem(int address, int dest, int offset, int size, int tmp)
 void readbyte(int address, int dest, int tmp)
 {
 	int distrust = currprefs.comptrustbyte;
-#if 0
+#ifdef FSUAE
 	switch (currprefs.comptrustbyte) {
 	case 0: distrust=0; break;
 	case 1: distrust=1; break;
@@ -5163,7 +5163,7 @@ void readbyte(int address, int dest, int tmp)
 void readword(int address, int dest, int tmp)
 {
 	int distrust = currprefs.comptrustword;
-#if 0
+#ifdef FSUAE
 	switch (currprefs.comptrustword) {
 	case 0: distrust=0; break;
 	case 1: distrust=1; break;
@@ -5181,7 +5181,7 @@ void readword(int address, int dest, int tmp)
 void readlong(int address, int dest, int tmp)
 {
 	int distrust = currprefs.comptrustlong;
-#if 0
+#ifdef FSUAE
 	switch (currprefs.comptrustlong) {
 	case 0: distrust=0; break;
 	case 1: distrust=1; break;
@@ -5228,7 +5228,7 @@ STATIC_INLINE void get_n_addr_real(int address, int dest, int tmp)
 void get_n_addr(int address, int dest, int tmp)
 {
 	int distrust = currprefs.comptrustnaddr;
-#if 0
+#ifdef FSUAE
 	switch (currprefs.comptrustnaddr) {
 	case 0: distrust=0; break;
 	case 1: distrust=1; break;
@@ -5677,19 +5677,7 @@ void build_comp(void)
 #endif
 	raw_init_cpu();
 #ifdef NATMEM_OFFSET
-	write_log (_T("JIT: Setting signal handler\n"));
-#ifndef _WIN32
-#ifdef FSUAE
-	struct sigaction sa;
-	sa.sa_handler = (void (*)(int)) vec;
- 	sigemptyset(&sa.sa_mask);
-	sa.sa_flags = SA_RESTART;
-
-	sigaction(SIGSEGV, &sa, NULL);
-#else
-	signal(SIGSEGV,vec);
-#endif
-#endif
+	install_exception_handler();
 #endif
 	write_log (_T("JIT: Building Compiler function table\n"));
 	for (opcode = 0; opcode < 65536; opcode++) {

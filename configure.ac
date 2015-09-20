@@ -150,8 +150,8 @@ PKG_CHECK_MODULES([OPENAL], [openal], [
         AS_CASE([$host_os],
 	[darwin*], [
 		AC_MSG_NOTICE([Using OpenAL.framework])
-		#OPENAL_CFLAGS="-I/System/Library/Frameworks/OpenAL.framework/Headers"
-		OPENAL_CFLAGS="-I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk/System/Library/Frameworks/OpenAL.framework/Headers"
+		OPENAL_CFLAGS="-I/System/Library/Frameworks/OpenAL.framework/Headers"
+		# OPENAL_CFLAGS="-I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk/System/Library/Frameworks/OpenAL.framework/Headers"
 		OPENAL_LIBS="-framework OpenAL"
 
 	],
@@ -333,6 +333,8 @@ AC_CHECK_MEMBERS([struct stat.st_mtim.tv_nsec])
 AC_CHECK_MEMBERS([struct stat.st_mtimespec.tv_nsec])
 AC_CHECK_MEMBERS([struct stat.st_mtime_nsec])
 AC_CHECK_MEMBERS([struct in_addr.S_un])
+AC_CHECK_MEMBERS([struct ucontext.uc_mcontext.gregs],
+	[], [], [[#include <sys/ucontext.h>]])
 
 AC_CHECK_TYPES([ptrdiff_t])
 AC_STRUCT_ST_BLOCKS
@@ -349,6 +351,7 @@ AC_TYPE_UINT16_T
 AC_TYPE_UINT32_T
 AC_TYPE_UINT64_T
 AC_TYPE_UINT8_T
+AC_CHECK_TYPES([__uint128_t])
 AC_TYPE_LONG_LONG_INT
 
 AC_CHECK_SIZEOF(int)

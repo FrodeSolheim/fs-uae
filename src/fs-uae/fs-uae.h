@@ -64,8 +64,6 @@ const char *fs_uae_kickstarts_cache_dir();
 #define FS_UAE_CONFIG_TYPE_JOYSTICK "amiga"
 #define FS_UAE_CONFIG_TYPE_MOUSE "amiga_mouse"
 
-#define FS_UAE_MAX_PORT_ACTIONS 16
-
 #define FS_UAE_NUM_INPUT_PORTS 5
 #define MAX_DEVICE_NAME_LEN 128
 typedef struct fs_uae_input_port {

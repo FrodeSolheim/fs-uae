@@ -323,6 +323,7 @@ DECLARE(setcc_m(IMM d, IMM cc));
 DECLARE(cmov_b_rr(RW1 d, R1 s, IMM cc));
 DECLARE(cmov_w_rr(RW2 d, R2 s, IMM cc));
 DECLARE(cmov_l_rr(RW4 d, R4 s, IMM cc));
+DECLARE(setzflg_l(RW4 r));
 DECLARE(cmov_l_rm(RW4 d, IMM s, IMM cc));
 DECLARE(bsf_l_rr(W4 d, R4 s));
 DECLARE(pop_m(IMM d));
@@ -578,3 +579,10 @@ void comp_fbcc_opp (uae_u32 opcode);
 void comp_fsave_opp (uae_u32 opcode);
 void comp_frestore_opp (uae_u32 opcode);
 void comp_fpp_opp (uae_u32 opcode, uae_u16 extra);
+
+#ifdef _WIN32
+LONG WINAPI EvalException(LPEXCEPTION_POINTERS info);
+#if defined(_MSC_VER) && !defined(NO_WIN32_EXCEPTION_HANDLER)
+#define USE_STRUCTURED_EXCEPTION_HANDLING
+#endif
+#endif

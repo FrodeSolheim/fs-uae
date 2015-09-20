@@ -11,7 +11,7 @@ want to override this option, you may also have to set
 
 Value: auto ("Auto") - Automatically enable RTC module for some Amiga models.
 Value: none ("None") - Real time clock is explicitly disabled.
-Value: MSM6242B (Oki MSM6242B)- RTC module in A500/500+/600/1200/2000 models.
+Value: MSM6242B (Oki MSM6242B) - RTC module in A500/500+/600/1200/2000 models.
 Value: RP5C01A (Ricoh RP5C01A) - RTC module in big-box Amigas (A3000, A4000).
 Value: MSM6242B_A2000 (A2000 MSM6242B) - Only used in very early A2000
        revisions, not even WB 1.3 supports it.

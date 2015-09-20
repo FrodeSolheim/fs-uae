@@ -220,7 +220,7 @@ SUPPORTED HOST OPERATING SYSTEM
 ===============================
 - Linux
 - Windows XP or newer
-- Mac OS X 10.5 or newer
+- Mac OS X 10.6 or newer
 - FreeBSD (Other Unices will probably also work just fine)
 
 
@@ -256,7 +256,7 @@ in the floppy list, some may be obscured.
 
 COPYRIGHT AND CREDITS
 =====================
-FS-UAE is Copyright (c) 2011-2014, Frode Solheim
+FS-UAE is Copyright (c) 2011-2015, Frode Solheim
 Large portions are copyrighted by other individuals.
 
 FS-UAE is based on the fantastic work of the original UAE authors, the authors
@@ -270,12 +270,10 @@ contributors (see the UAE distribution for full credits).
 WinUAE has been developed and maintained by Mathias Ortmann and Toni Wilen.
 Toni Wilen has developed WinUAE for the last years and is the current
 maintainer. E-UAE was developed by Richard Drummond (no longer maintained),
-and P-UAE is developed by Mustafa "GnoStiC" TUFAN.
+and P-UAE is developed by Mustafa "GnoStiC" TUFAN (no longer maintained).
 
-http://www.amigaemulator.org/
 http://www.winuae.net/
 http://www.rcdrummond.net/uae/
-https://github.com/GnoStiC/PUAE
 http://www.softpres.org/
 
 libfsemu is Copyright (c) 2011-2013, Frode Solheim

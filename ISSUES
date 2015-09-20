@@ -1,3 +1,9 @@
-* When entering the GUI using modifier+F12, the modifier key(s) sticks in
-  the emulated Amiga when you return to the emulation.
-* Graphical flickering in Workbench with non-cycle-exact emulation.
+* Amiga key sticks when opening/closing FS-UAE menu with modifier+F12
+  https://github.com/FrodeSolheim/fs-uae/issues/77
+
+* FS-UAE freezes with black screen on Windows / nVIDIA?
+  https://github.com/FrodeSolheim/fs-uae/issues/75
+
+* Black screen when FS-UAE is started from FS-UAE Arcade?
+  https://github.com/FrodeSolheim/fs-uae/issues/76
+  https://github.com/FrodeSolheim/fs-uae-arcade/issues/6

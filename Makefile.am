@@ -441,6 +441,7 @@ libuae_a_SOURCES = \
 	src/od-fs/machdep/ppc/maccess.h \
 	src/od-fs/machdep/rpt.h \
 	src/od-fs/machdep/x86/maccess.h \
+	src/od-fs/mman.cpp \
 	src/od-fs/mouse.cpp \
 	src/od-fs/mp3decoder.h \
 	src/od-fs/parser.cpp \
@@ -467,7 +468,6 @@ libuae_a_SOURCES = \
 	src/od-win32/debug_win32.h \
 	src/od-win32/dxwrap.h \
 	src/od-win32/md-fpp.h \
-	src/od-win32/mman.cpp \
 	src/od-win32/parser.h \
 	src/od-win32/picasso96_win.cpp \
 	src/od-win32/picasso96_win.h \
@@ -554,6 +554,7 @@ libfsemu_a_SOURCES = \
 	libfsemu/include/fs/data.h \
 	libfsemu/include/fs/defines.h \
 	libfsemu/include/fs/emu.h \
+	libfsemu/include/fs/emu/actions.h \
         libfsemu/include/fs/emu/audio.h \
         libfsemu/include/fs/emu/benchmark.h \
         libfsemu/include/fs/emu/buffer.h \
@@ -594,7 +595,6 @@ libfsemu_a_SOURCES = \
 	libfsemu/src/conf.c \
 	libfsemu/src/data.c \
 	libfsemu/src/emu/actions.c \
-	libfsemu/src/emu/actions.h \
 	libfsemu/src/emu/audio.h \
 	libfsemu/src/emu/audio_common.c \
 	libfsemu/src/emu/audio_debug.c \
@@ -1161,8 +1161,10 @@ EXTRA_DIST = $(TESTS) $(EXTRA_TESTS) \
 	src/inputevents.def \
 	src/jit/compemu_optimizer_x86.cpp \
 	src/jit/compemu_raw_x86.cpp \
+	src/jit/exception_handler.cpp \
 	src/od-fs/bsdsocket_posix.cpp \
 	src/od-win32/bsdsock.cpp \
+        src/od-win32/mman.cpp \
 	src/p96_blit.cpp \
 	src/sinctable.cpp \
 	src/table68k \

@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae\n"
 "Report-Msgid-Bugs-To: frode@fs-uae.net\n"
-"POT-Creation-Date: 2015-08-07 20:13+0200\n"
-"PO-Revision-Date: 2015-08-08 12:23-0400\n"
+"POT-Creation-Date: 2015-09-19 12:02+0200\n"
+"PO-Revision-Date: 2015-09-19 06:02-0400\n"
 "Last-Translator: FrodeSolheim <frode-crowdin@fsolheim.net>\n"
 "Language-Team: Italian\n"
 "Language: it_IT\n"
@@ -27,18 +27,18 @@ msgid "Auto"
 msgstr "Automatico"
 
 msgid "Auto-Fire is Off"
-msgstr "Fuoco-Automatico Spento"
+msgstr "Fuoco automatico disattivato"
 
 msgid "Auto-Fire is On"
-msgstr "Fuco-Automatico Attivato"
+msgstr "Fuoco automatico attivato"
 
 #, c-format
 msgid "Auto-fire disabled for port %d"
-msgstr "Fuoco-Automatico disabilitato sulla porta %d"
+msgstr "Fuoco automatico disabilitato sulla porta %d"
 
 #, c-format
 msgid "Auto-fire enabled for port %d"
-msgstr "Fuoco-Automatico abilitato sulla porta %d"
+msgstr "Fuoco automatico abilitato sulla porta %d"
 
 #. / TRANSLATORS: Empty or nothing
 #, c-format
@@ -74,7 +74,7 @@ msgstr "Controllo Emulatore"
 
 #. / TRANSLATORS: In context "Zoom: Full Frame"
 msgid "Full Frame"
-msgstr "Fotogramma Completo"
+msgstr "Fotogramma completo"
 
 #, c-format
 msgid "HD not found: %s"
@@ -91,12 +91,12 @@ msgstr "Opzioni di Input"
 #. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Insert Into CD%d"
-msgstr "Inserisci in CD%d"
+msgstr "Inserisci nel CD%d"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Insert Into DF%d"
-msgstr "Inserire nel DF%d"
+msgstr "Inserisci nel DF%d"
 
 msgid "Joystick Mode"
 msgstr "Modalità joystick"
@@ -159,7 +159,7 @@ msgstr "Nessun Dispositivo Amiga"
 #. / TRANSLATORS: This is a menu entry and must not be too long: If you struggle
 #. / to get in short enough, just translate "No Device" instead.
 msgid "No Host Device"
-msgstr "Nessun Dispositivo Ospite"
+msgstr "Nessun dispositivo ospite"
 
 msgid "No configuration file was found"
 msgstr "Non è stato trovato alcun file di configurazione"
@@ -175,10 +175,10 @@ msgid "Option fast_memory must be a multiple of 1024"
 msgstr "L'opzione fast_memory deve essere un multiplo di 1024"
 
 msgid "Option motherboard_ram must be a multiple of 1024"
-msgstr ""
+msgstr "L'opzione motherboard_ram deve essere un multiplo di 1024"
 
 msgid "Option motherboard_ram needs a CPU with 32-bit addressing"
-msgstr ""
+msgstr "L'opzione motherboard_ram ha bisogno di una CPU con indirizzamento a 32-bit"
 
 msgid "Option slow_memory must be a multiple of 256"
 msgstr "L'opzione slow_memory deve essere un multiplo di 256"
@@ -204,10 +204,10 @@ msgid "Port 0: %s"
 msgstr "Porta 0: %s"
 
 msgid "Port Settings"
-msgstr "Impostazioni Porta"
+msgstr "Impostazioni porta"
 
 msgid "Removable Media"
-msgstr "Supporti Rimovibili"
+msgstr "Supporti rimovibili"
 
 #. / TRANSLATORS: Reset Amiga as in reboot the computer
 msgid "Reset Amiga"
@@ -220,7 +220,7 @@ msgid "Save"
 msgstr "Salva"
 
 msgid "Save State"
-msgstr "Salva Stato"
+msgstr "Salva stato"
 
 #. / TRANSLATORS: Soft reset reboots the computer without a power cycle
 msgid "Soft Reset"

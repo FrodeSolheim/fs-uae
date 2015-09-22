@@ -1,3 +1,7 @@
+Version 2.7.1dev:
+
+* Updated emulation core from WinUAE 3200b13.
+
 Version 2.7.0dev:
 
 * Merged JIT compiler updates from the ARAnyM project.

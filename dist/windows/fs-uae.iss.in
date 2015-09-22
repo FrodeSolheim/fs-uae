@@ -5,7 +5,7 @@ AppVerName=FS-UAE
 DefaultDirName={localappdata}\fs-uae
 DefaultGroupName=FS-UAE
 UninstallDisplayIcon={app}\Emulator\fs-uae.exe
-OutputBaseFilename=fs-uae_@PACKAGE_VERSION@_windows
+OutputBaseFilename=fs-uae_@PACKAGE_VERSION@_windows_@PACKAGE_ARCH@
 OutputDir=../..
 PrivilegesRequired=lowest
 ShowLanguageDialog=no
@@ -16,7 +16,7 @@ DisableStartupPrompt=yes
 DisableProgramGroupPage=yes
 
 [Files]
-Source: "fs-uae_@PACKAGE_VERSION@_windows\*"; DestDir: "{app}\"; Flags: recursesubdirs ignoreversion;
+Source: "fs-uae_@PACKAGE_VERSION@_windows_@PACKAGE_ARCH@\*"; DestDir: "{app}\"; Flags: recursesubdirs ignoreversion;
 
 [installDelete]
 Type: filesandordirs; Name: "{app}\Emulator"

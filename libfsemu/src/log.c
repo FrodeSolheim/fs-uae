@@ -76,9 +76,11 @@ void fs_config_set_log_file(const char *path)
         }
     }
 
-    /* All options should have been read, so we can no check log options */
+    /* All options should have been read, so we can now check log options */
 
-    if (fs_config_get_boolean("flush_log") == 1) {
+    if (fs_config_get_boolean("log_flush") == 1) {
+        log.flush = 1;
+    } else if (fs_config_get_boolean("flush_log") == 1) {
         log.flush = 1;
     }
 

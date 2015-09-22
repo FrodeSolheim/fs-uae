@@ -1184,6 +1184,7 @@ EXTRA_DIST = $(TESTS) $(EXTRA_TESTS) \
 	debian/source \
 	debian/source/format \
 	dist/linux/build.py \
+	dist/arch.py \
 	dist/linux/standalone.py \
 	dist/macosx/fs-uae-config.icns \
 	dist/macosx/fs-uae.icns \

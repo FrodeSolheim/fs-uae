@@ -1,4 +1,10 @@
-version = @PACKAGE_VERSION@
+ver = @PACKAGE_VERSION@
+os = macosx
+arch = $(strip $(shell python3 ../arch.py))
+
+os_arch = $(os)_$(arch)
+ver_os_arch = $(ver)_$(os_arch)
+dname = fs-uae_$(ver_os_arch)
 
 all: bindist
 
@@ -6,27 +12,27 @@ clean:
 	rm -Rf ../macosx/fs-uae*
 
 bindist: bundle
-	cd fs-uae_$(version)_macosx && GZIP=-9 tar zcfv ../../../fs-uae_$(version)_macosx.tar.gz *
+	cd $(dname) && GZIP=-9 tar zcfv ../../../$(dname).tar.gz *
 
 bundle:
 	make -C ../..
-	rm -Rf fs-uae_$(version)_macosx
-	mkdir -p fs-uae_$(version)_macosx
-	mkdir -p fs-uae_$(version)_macosx/FS-UAE.app/Contents/Frameworks
-	mkdir -p fs-uae_$(version)_macosx/FS-UAE.app/Contents/MacOS
-	mkdir -p fs-uae_$(version)_macosx/FS-UAE.app/Contents/Resources
-	mkdir -p fs-uae_$(version)_macosx/FS-UAE.app/Contents/
-	cp Info.plist fs-uae_$(version)_macosx/FS-UAE.app/Contents/
-	cp @srcdir@/PkgInfo fs-uae_$(version)_macosx/FS-UAE.app/Contents/
-	cp ../../fs-uae fs-uae_$(version)_macosx/FS-UAE.app/Contents/MacOS/
-	cp ../../fs-uae.dat fs-uae_$(version)_macosx/FS-UAE.app/Contents/MacOS/
-	cp ../../fs-uae-device-helper fs-uae_$(version)_macosx/FS-UAE.app/Contents/MacOS/
-	cp -pPR ../../share/* fs-uae_$(version)_macosx/FS-UAE.app/Contents/Resources
-	strip fs-uae_$(version)_macosx/FS-UAE.app/Contents/MacOS/*
-	cp @srcdir@/fs-uae.icns fs-uae_$(version)_macosx/FS-UAE.app/Contents/Resources/
-	cp @srcdir@/fs-uae-config.icns fs-uae_$(version)_macosx/FS-UAE.app/Contents/Resources/
-	cp -pPR @srcdir@/../../licenses fs-uae_$(version)_macosx/FS-UAE.app/Contents/Resources/
-	cp @srcdir@/../../COPYING fs-uae_$(version)_macosx/FS-UAE.app/Contents/Resources/
-	cp @srcdir@/../../README fs-uae_$(version)_macosx/FS-UAE.app/Contents/Resources/
-	@srcdir@/standalone.py fs-uae_$(version)_macosx/FS-UAE.app
-	python3 @srcdir@/sign.py fs-uae_$(version)_macosx/FS-UAE.app
+	rm -Rf $(dname)
+	mkdir -p $(dname)
+	mkdir -p $(dname)/FS-UAE.app/Contents/Frameworks
+	mkdir -p $(dname)/FS-UAE.app/Contents/MacOS
+	mkdir -p $(dname)/FS-UAE.app/Contents/Resources
+	mkdir -p $(dname)/FS-UAE.app/Contents/
+	cp Info.plist $(dname)/FS-UAE.app/Contents/
+	cp ./PkgInfo $(dname)/FS-UAE.app/Contents/
+	cp ../../fs-uae $(dname)/FS-UAE.app/Contents/MacOS/
+	cp ../../fs-uae.dat $(dname)/FS-UAE.app/Contents/MacOS/
+	cp ../../fs-uae-device-helper $(dname)/FS-UAE.app/Contents/MacOS/
+	cp -pPR ../../share/* $(dname)/FS-UAE.app/Contents/Resources
+	strip $(dname)/FS-UAE.app/Contents/MacOS/*
+	cp ./fs-uae.icns $(dname)/FS-UAE.app/Contents/Resources/
+	cp ./fs-uae-config.icns $(dname)/FS-UAE.app/Contents/Resources/
+	cp -pPR ./../../licenses $(dname)/FS-UAE.app/Contents/Resources/
+	cp ./../../COPYING $(dname)/FS-UAE.app/Contents/Resources/
+	cp ./../../README $(dname)/FS-UAE.app/Contents/Resources/
+	./standalone.py $(dname)/FS-UAE.app
+	python3 ./sign.py $(dname)/FS-UAE.app

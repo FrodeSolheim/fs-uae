@@ -63,7 +63,7 @@ def wrap(name, target, args=None):
                 bin_dir = "bin32"
             # elif arch == "amd64":
             elif arch == "x86-64":
-                bin_dir = "bin64"
+                bin_dir = "bin32"
             else:
                 raise Exception("unsupported steamos arch?")
             f.write("if [ -e \"$HOME/.steam/{0}/steam-runtime/"

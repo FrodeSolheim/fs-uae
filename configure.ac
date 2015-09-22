@@ -219,11 +219,19 @@ AC_CHECK_LIB([Ws2_32], [main])
 AC_SUBST([OS_CPPFLAGS])
 AC_SUBST([OS_LDFLAGS])
 AC_SUBST([OS_NAME])
+AC_SUBST([PACKAGE_ARCH])
 AS_CASE([$host_os],
 [mingw*], [
 	OS_NAME="windows"
 	OS_CPPFLAGS="-DWINDOWS"
-	OS_LDFLAGS="-mwindows -Wl,--large-address-aware"
+	AS_CASE([$host_os],
+	[mingw64], [
+		OS_LDFLAGS="-mwindows"
+		PACKAGE_ARCH="x86-64"
+	], [
+		OS_LDFLAGS="-mwindows -Wl,--large-address-aware"
+		PACKAGE_ARCH="x86"
+	])
 	LOADABLE_MODULE_EXT=".dll"
 ],
 [linux*], [

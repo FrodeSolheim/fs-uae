@@ -2860,7 +2860,7 @@ static void init_picasso_screen (void)
 	}
 	init_picasso_screen_called = 1;
 #ifdef FSUAE
-	printf("FIXME: not calling mman_ResetWatch (p96ram_start + natmem_offset, gfxmem_bank.allocated);\n");
+	// printf("FIXME: not calling mman_ResetWatch (p96ram_start + natmem_offset, gfxmem_bank.allocated);\n");
 #else
 	mman_ResetWatch (gfxmem_bank.start + natmem_offset, gfxmem_bank.allocated);
 #endif

@@ -106,7 +106,7 @@ static void *VirtualAlloc(void *lpAddress, size_t dwSize, int flAllocationType,
 static int VirtualProtect(void *lpAddress, int dwSize, int flNewProtect,
 						  unsigned int *lpflOldProtect)
 {
-	write_log("- VirtualProtect addr=%p size=%zu prot=%d\n",
+	write_log("- VirtualProtect addr=%p size=%d prot=%d\n",
 			  lpAddress, dwSize, flNewProtect);
 	int prot = 0;
 	if (flNewProtect == PAGE_READWRITE) {

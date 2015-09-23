@@ -56,8 +56,9 @@ struct WindowOverride {
     struct WindowOverride* next;
 };
 
-static struct WindowOverride* g_window_override = NULL;
-static struct WindowOverride* g_last_window_override = NULL;
+static struct WindowOverride* g_window_override[2] = { NULL, NULL };
+static struct WindowOverride* g_last_window_override[2] = { NULL, NULL };
+
 int g_fs_uae_video_zoom = 1;
 static int g_zoom_mode = 0;
 static int g_zoom_border = 0;
@@ -100,7 +101,8 @@ static int read_window_override_int(const char* s, int* pos, int* out)
     return 0;
 }
 
-static int read_window_override(const char* s, int* pos)
+/* type: 0 is Amiga chipset, 1 is RTG */
+static int read_window_override(int type, const char* s, int* pos)
 {
     while(s[*pos] == ' ') ++(*pos);
     int sx, sy, sw, sh;
@@ -146,24 +148,20 @@ static int read_window_override(const char* s, int* pos)
     wo->ssh = ssh;
     wo->next = NULL;
 
-    if (g_last_window_override == NULL) {
-        g_window_override = wo;
+    if (g_last_window_override[type] == NULL) {
+        g_window_override[type] = wo;
     } else {
-        g_last_window_override->next = wo;
+        g_last_window_override[type]->next = wo;
     }
-    g_last_window_override = wo;
+    g_last_window_override[type] = wo;
     return 1;
 }
 
-static void init_window_overrides()
+static void init_window_overrides_2(int type, const char *s)
 {
-    const char *s = fs_config_get_const_string("viewport");
-    if (s == NULL) {
-        return;
-    }
     int pos = 0;
     while (1) {
-        int result = read_window_override(s, &pos);
+        int result = read_window_override(type, s, &pos);
         if (!result) {
             fs_log("error parsing wiewport transformation\n");
         }
@@ -182,6 +180,19 @@ static void init_window_overrides()
                            "viewport option\n", c);
             return;
         }
+    }
+}
+
+static void init_window_overrides()
+{
+    const char *s;
+    s = fs_config_get_const_string("viewport");
+    if (s != NULL) {
+        init_window_overrides_2(0, s);
+    }
+    s = fs_config_get_const_string("rtg_viewport");
+    if (s != NULL) {
+        init_window_overrides_2(1, s);
     }
 }
 
@@ -482,7 +493,11 @@ static void render_screen(RenderData* rd)
         modify_coordinates(&cx, &cy, &cw, &ch);
         //if (!modify_coordinates(&cx, &cy, &cw, &ch)) {
         if (1) {
-            wo = g_window_override;
+            int type = 0;
+            if (rd->flags & AMIGA_VIDEO_RTG_MODE) {
+                type = 1;
+            }
+            wo = g_window_override[type];
             while (wo != NULL) {
                 if ((wo->sx == -1 || wo->sx == cx) &&
                         (wo->sy == -1 || wo->sy == cy) &&
@@ -564,7 +579,13 @@ static void render_screen(RenderData* rd)
     crop.h = rd_height;
 
     if (rd->flags & AMIGA_VIDEO_RTG_MODE) {
-        // no cropping in RTG mode
+        /* no zoom modes in RTG mode */
+        if (g_zoom_mode == 0) {
+            crop.x = ucx >> hshift;
+            crop.w = ucw >> hshift;
+            crop.y = ucy >> vshift;
+            crop.h = uch >> vshift;
+        }
     }
     else {
         if (g_fs_uae_video_zoom && ucw > 0 && uch > 0) {

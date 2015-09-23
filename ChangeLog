@@ -1,5 +1,6 @@
 Version 2.7.1dev:
 
+* New option rtg_viewport.
 * Updated emulation core from WinUAE 3200b13.
 
 Version 2.7.0dev:

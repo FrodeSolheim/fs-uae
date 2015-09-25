@@ -1,5 +1,7 @@
 Version 2.7.1dev:
 
+* Fixed non-blocking socket I/O support in bsdsocket_posix [Jens Maus].
+* Added more gamepad controller configurations.
 * New option rtg_viewport.
 * Updated emulation core from WinUAE 3200b13.
 

@@ -22,8 +22,7 @@ void romlist_init (void)
 		if (rd->crc32 == 0xffffffff) {
 			if (rd->configname) {
 				_stprintf (tmp2, _T (":%s"), rd->configname);
-			}
-			else {
+			} else {
 				_stprintf (tmp2, _T (":ROM_%03d"), rd->id);
 			}
 			romlist_add (tmp2, rd);
@@ -32,12 +31,12 @@ void romlist_init (void)
 }
 
 #define AMIGA_OS_130_SHA1 \
-        "\xc3\x9b\xd9\x09\x4d\x4e\x5f\x4e\x28\xc1" \
-        "\x41\x1f\x30\x86\x95\x04\x06\x06\x2e\x87"
+	"\xc3\x9b\xd9\x09\x4d\x4e\x5f\x4e\x28\xc1" \
+	"\x41\x1f\x30\x86\x95\x04\x06\x06\x2e\x87"
 
 #define AMIGA_OS_310_SHA1 \
-        "\xc3\xc4\x81\x16\x08\x66\xe6\x0d\x08\x5e" \
-        "\x43\x6a\x24\xdb\x36\x17\xff\x60\xb5\xf9"
+	"\xc3\xc4\x81\x16\x08\x66\xe6\x0d\x08\x5e" \
+	"\x43\x6a\x24\xdb\x36\x17\xff\x60\xb5\xf9"
 
 void romlist_patch_rom (uae_u8 *buf, size_t size)
 {
@@ -52,15 +51,14 @@ void romlist_patch_rom (uae_u8 *buf, size_t size)
 	int converted = 0;
 	if (memcmp (sha1, AMIGA_OS_130_SHA1, SHA1_SIZE) == 0) {
 		write_log ("convering amiga-os-130 ROM (in-memory) "
-		           "to preferred A500 ROM\n");
+			   "to preferred A500 ROM\n");
 		buf[413] = '\x08';
 		buf[176029] = '\xb9';
 		buf[262121] = '\x26';
 		converted = 1;
-	}
-	else if (memcmp (sha1, AMIGA_OS_310_SHA1, SHA1_SIZE) == 0) {
+	} else if (memcmp (sha1, AMIGA_OS_310_SHA1, SHA1_SIZE) == 0) {
 		write_log ("converting amiga-os-310 ROM (in-memory) "
-		           "to preferred A4000 ROM\n");
+			   "to preferred A4000 ROM\n");
 		buf[220] = '\x74';
 		buf[222] = '\x7a';
 		buf[326] = '\x70';
@@ -137,12 +135,12 @@ static struct romdata *scan_single_rom_2 (struct zfile *f, uae_u32 *crc32)
 	*crc32 = get_crc32 (rombuf, size);
 	if (!rd) {
 		write_log (_T ("!: Name='%s':%d\nCRC32=%08X SHA1=%s\n"),
-		           zfile_getname (f), size, *crc32, get_sha1_txt (rombuf, size));
+			   zfile_getname (f), size, *crc32, get_sha1_txt (rombuf, size));
 	} else {
 		TCHAR tmp[MAX_DPATH];
 		getromname (rd, tmp);
 		write_log (_T ("*: %s:%d = %s\nCRC32=%08X SHA1=%s\n"),
-		           zfile_getname (f), size, tmp, *crc32, get_sha1_txt (rombuf, size));
+			   zfile_getname (f), size, tmp, *crc32, get_sha1_txt (rombuf, size));
 	}
 	xfree (rombuf);
 	return rd;
@@ -201,7 +199,7 @@ int amiga_add_rom_file (const char *path, const char *cache_path)
 				if (read_count == 1) {
 					write_log ("- found cached crc32\n");
 					uae_u32 crc32 = buf[0] << 24 | buf[1] << 16 |
-					                buf[2] << 8 | buf[3];
+							buf[2] << 8 | buf[3];
 					rd = getromdatabycrc (crc32);
 					if (rd) {
 						write_log ("- rom added via cached entry\n");
@@ -228,8 +226,7 @@ int amiga_add_rom_file (const char *path, const char *cache_path)
 		//}
 		romlist_add (path, rd);
 		// FIXME: Should rd be freed here?
-	}
-	else {
+	} else {
 		write_log ("- not a known rom file\n");
 		// FIXME: should set crc32 here also, so this ROM won't be
 		// rescanned again and again
@@ -251,8 +248,7 @@ int amiga_add_rom_file (const char *path, const char *cache_path)
 				tv.tv_usec = 0;
 				//write_log("- setting file time\n");
 				fs_set_file_time (cache_path, &tv);
-			}
-			else {
+			} else {
 				fclose (f);
 			}
 		}

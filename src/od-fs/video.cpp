@@ -23,7 +23,6 @@ int max_uae_height = 2048;
 volatile bool vblank_found_chipset;
 volatile bool vblank_found_rtg;
 
-int flashscreen = 0;
 #define MAXBLOCKLINES_MAX INT_MAX;
 
 #define AMIGA_WIDTH (AMIGA_WIDTH_MAX * 2)

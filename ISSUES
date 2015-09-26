@@ -1,3 +1,7 @@
+* For full (FPU) JIT speed you need to manually enable uae_compfpu = 1.
+* Windows (x86-64) portable version uses 32-bit "shortcut executables".
+* Portable x86-64 versions should be able to co-locate with x86-versions.
+
 * Amiga key sticks when opening/closing FS-UAE menu with modifier+F12
   https://github.com/FrodeSolheim/fs-uae/issues/77
 

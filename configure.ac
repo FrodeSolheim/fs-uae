@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.67])
-AC_INIT([FS-UAE], [2.7.0dev],
+AC_INIT([FS-UAE], [2.7.1dev],
         [frode@fs-uae.net], [fs-uae], [http://fs-uae.net])
 AC_CONFIG_AUX_DIR([.])
 AC_CANONICAL_HOST
@@ -219,11 +219,13 @@ AC_CHECK_LIB([Ws2_32], [main])
 AC_SUBST([OS_CPPFLAGS])
 AC_SUBST([OS_LDFLAGS])
 AC_SUBST([OS_NAME])
+AC_SUBST([OS_NAME_2])
 AC_SUBST([PACKAGE_ARCH])
 AS_CASE([$host_os],
 [mingw*], [
 	OS_NAME="windows"
-	OS_CPPFLAGS="-DWINDOWS"
+        OS_NAME_2="Windows"
+        OS_CPPFLAGS="-DWINDOWS"
 	AS_CASE([$host_os],
 	[mingw64], [
 		OS_LDFLAGS="-mwindows"
@@ -236,28 +238,33 @@ AS_CASE([$host_os],
 ],
 [linux*], [
 	OS_NAME="linux"
-	OS_CPPFLAGS="-DLINUX"
+        OS_NAME_2="Linux"
+        OS_CPPFLAGS="-DLINUX"
 	LOADABLE_MODULE_EXT=".so"
 ],
 [darwin*], [
 	OS_NAME="macosx"
-	OS_CPPFLAGS="-DMACOSX"
+        OS_NAME_2="Mac OS X"
+        OS_CPPFLAGS="-DMACOSX"
 	LOADABLE_MODULE_EXT=".so"
 	OS_LDFLAGS="-headerpad_max_install_names -pagezero_size 0x2000 -rpath @executable_path/../Frameworks"
 ],
 [freebsd*], [
 	OS_NAME="freebsd"
-	OS_CPPFLAGS="-DFREEBSD"
+        OS_NAME_2="FreeBSD"
+        OS_CPPFLAGS="-DFREEBSD"
 	LOADABLE_MODULE_EXT=".so"
 ],
 [openbsd*], [
 	OS_NAME="openbsd"
-	OS_CPPFLAGS="-DOPENBSD"
+        OS_NAME_2="OpenBSD"
+        OS_CPPFLAGS="-DOPENBSD"
 	LOADABLE_MODULE_EXT=".so"
 ],
 [
-	OS_NAME="unknown"
-	LOADABLE_MODULE_EXT=".unknown"
+        OS_NAME="unknown"
+        OS_NAME_2="Unknown OS"
+        LOADABLE_MODULE_EXT=".unknown"
 ])
 
 AM_CONDITIONAL([WINDOWS], [test x$OS_NAME = xwindows])
@@ -270,6 +277,8 @@ AC_DEFINE_UNQUOTED([LT_MODULE_EXT], ["$LOADABLE_MODULE_EXT"],
 AC_DEFINE_UNQUOTED([OS_NAME], ["$OS_NAME"],
 [Define to a name identifier for the operating system, "linux".])
 
+AC_DEFINE_UNQUOTED([OS_NAME_2], ["$OS_NAME_2"],
+[Define to a nicely formatted name for the operating system, "Linux".])
 
 # Checks for header files.
 

@@ -178,7 +178,6 @@ static void *uae_vm_alloc_with_flags(uae_u32 size, int flags, int protect)
 			if (p >= p_end) {
 				break;
 			}
-			printf("%p\n", p);
 			address = mmap(p, size, mmap_prot, mmap_flags, -1, 0);
 			/* FIXME: check 32-bit result */
 			if (address == MAP_FAILED) {

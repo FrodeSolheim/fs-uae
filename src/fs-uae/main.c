@@ -933,7 +933,19 @@ static const char *overlay_names[] = {
     NULL,
 };
 
-#define COPYRIGHT_NOTICE "FS-UAE %s\n" \
+#if defined(__x86_64__) || defined(_M_AMD64) || defined(_M_X64)
+#define ARCH_NAME_2 "x86-64"
+#elif defined(__i386__) || defined (_M_IX86)
+#define ARCH_NAME_2 "x86"
+#elif defined(__ppc__)
+#define ARCH_NAME_2 "PPC"
+#elif defined(__arm__)
+#define ARCH_NAME_2 "ARM"
+#else
+#define ARCH_NAME_2 "?"
+#endif
+
+#define COPYRIGHT_NOTICE "FS-UAE %s (Built for %s %s)\n" \
 "Copyright 1995-2002 Bernd Schmidt, 1999-2015 Toni Wilen,\n" \
 "2003-2007 Richard Drummond, 2006-2011 Mustafa 'GnoStiC' Tufan,\n" \
 "2011-2015 Frode Solheim, and contributors.\n" \
@@ -969,7 +981,7 @@ int main(int argc, char* argv[])
             printf("%s\n", PACKAGE_VERSION);
             exit(0);
         } else if (strcmp(*arg, "--help") == 0) {
-            printf(COPYRIGHT_NOTICE, PACKAGE_VERSION);
+            printf(COPYRIGHT_NOTICE, PACKAGE_VERSION, OS_NAME_2, ARCH_NAME_2);
             printf(EXTRA_HELP_TEXT);
             exit(0);
         }
@@ -989,8 +1001,8 @@ int main(int argc, char* argv[])
 
     //result = parse_options(argc, argv);
 
-    printf(COPYRIGHT_NOTICE, PACKAGE_VERSION);
-    fs_log(COPYRIGHT_NOTICE, PACKAGE_VERSION);
+    printf(COPYRIGHT_NOTICE, PACKAGE_VERSION, OS_NAME_2, ARCH_NAME_2);
+    fs_log(COPYRIGHT_NOTICE, PACKAGE_VERSION, OS_NAME_2, ARCH_NAME_2);
 
     char *current_dir = g_get_current_dir();
     fs_log("current directory is %s\n", current_dir);

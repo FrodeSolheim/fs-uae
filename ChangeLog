@@ -1,8 +1,11 @@
 Version 2.7.1dev:
 
+* Several FPU JIT fixes for x86-64 (fixes crashes and misbehavior).
+* Access fault handler supports x86-64 extended registers (REX prefix).
+* Fixed crash when 1 GB Zorro III RAM was used without other Z3 expansions.
 * Fixed non-blocking socket I/O support in bsdsocket_posix [Jens Maus].
 * Added more gamepad controller configurations.
-* New option rtg_viewport.
+* New option rtg_viewport for optional cropping of the RTG display.
 * Updated emulation core from WinUAE 3200b13.
 
 Version 2.7.0dev:

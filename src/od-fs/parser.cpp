@@ -37,6 +37,9 @@
 #include <termios.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
+#include <sys/socket.h>
+#include <sys/select.h>
+#include <netdb.h>
 #endif
 
 #if !defined B300 || !defined B1200 || !defined B2400 || !defined B4800 || !defined B9600
@@ -212,42 +215,201 @@ void uaeser_close (void *vsd)
 	STUB("");
 }
 
+#ifdef _WIN32
+static HANDLE hCom = INVALID_HANDLE_VALUE;
+static DCB dcb;
+static HANDLE writeevent, readevent;
+#else
+static int ser_fd = -1;
+#endif
 #define SERIAL_WRITE_BUFFER 100
 #define SERIAL_READ_BUFFER 100
-#if 0
 static uae_u8 outputbuffer[SERIAL_WRITE_BUFFER];
 static uae_u8 outputbufferout[SERIAL_WRITE_BUFFER];
 static uae_u8 inputbuffer[SERIAL_READ_BUFFER];
 static int datainoutput;
 static int dataininput, dataininputcnt;
-static int writepending;
+#ifdef _WIN32
+static OVERLAPPED writeol, readol;
 #endif
+static int writepending;
+
+#ifndef _WIN32
+
+static int WSAGetLastError()
+{
+	return errno;
+
+}
+
+static void WSACleanup()
+{
+
+}
+
+#define closesocket close
+#define GetAddrInfoW getaddrinfo
+#define FreeAddrInfoW freeaddrinfo
+#define PADDRINFOW struct addrinfo *
+#define BOOL bool
+#define SOCKADDR_INET sockaddr_in
+#define SOCKET_ERROR -1
+
+#endif
+
+#ifdef _WIN32
+static WSADATA wsadata;
+#endif
+static SOCKET serialsocket = INVALID_SOCKET;
+static SOCKET serialconn = INVALID_SOCKET;
+static PADDRINFOW socketinfo;
+static char socketaddr[sizeof(SOCKADDR_INET)];
+static BOOL tcpserial;
 
 static bool tcp_is_connected (void)
 {
-	return false;
+	socklen_t sa_len = sizeof(SOCKADDR_INET);
+	if (serialsocket == INVALID_SOCKET)
+		return false;
+	if (serialconn == INVALID_SOCKET) {
+		struct timeval tv;
+		fd_set fd;
+		tv.tv_sec = 1;
+		tv.tv_usec = 0;
+#ifdef _WIN32
+		fd.fd_array[0] = serialsocket;
+		fd.fd_count = 1;
+#else
+		FD_ZERO(&fd);
+		FD_SET(serialsocket, &fd);
+#endif
+		if (select(serialsocket + 1, &fd, NULL, NULL, &tv)) {
+			serialconn = accept (serialsocket, (struct sockaddr*)socketaddr, &sa_len);
+			if (serialconn != INVALID_SOCKET)
+				write_log (_T("SERIAL_TCP: connection accepted\n"));
+		}
+	}
+	return serialconn != INVALID_SOCKET;
 }
 
 static void tcp_disconnect (void)
 {
-	STUB("");
+	if (serialconn == INVALID_SOCKET)
+		return;
+	closesocket (serialconn);
+	serialconn = INVALID_SOCKET;
+	write_log (_T("SERIAL_TCP: disconnect\n"));
 }
 
 static void closetcp (void)
 {
-	STUB("");
+	if (serialconn != INVALID_SOCKET)
+		closesocket (serialconn);
+	serialconn = INVALID_SOCKET;
+	if (serialsocket != INVALID_SOCKET)
+		closesocket (serialsocket);
+	serialsocket = INVALID_SOCKET;
+	if (socketinfo)
+		FreeAddrInfoW (socketinfo);
+	socketinfo = NULL;
+	WSACleanup ();
 }
 
 static int opentcp (const TCHAR *sername)
 {
-	STUB("");
+	int err;
+	TCHAR *port, *name;
+	const TCHAR *p;
+	bool waitmode = false;
+	const int one = 1;
+	const struct linger linger_1s = { 1, 1 };
+
+#ifdef _WIN32
+	if (WSAStartup (MAKEWORD (2, 2), &wsadata)) {
+		DWORD lasterror = WSAGetLastError ();
+		write_log (_T("SERIAL_TCP: can't open '%s', error %d\n"), sername, lasterror);
+		return 0;
+	}
+#endif
+
+	name = my_strdup (sername);
+	port = NULL;
+	p = _tcschr (sername, ':');
+	if (p) {
+		name[p - sername] = 0;
+		port = my_strdup (p + 1);
+		const TCHAR *p2 = _tcschr (port, '/');
+		if (p2) {
+			port[p2 - port] = 0;
+			if (!_tcsicmp (p2 + 1, _T("wait")))
+				waitmode = true;
+		}
+	}
+	if (port && port[0] == 0) {
+		xfree (port);
+		port = NULL;
+	}
+	if (!port)
+		port = 	my_strdup (_T("1234"));
+
+	err = GetAddrInfoW (name, port, NULL, &socketinfo);
+	if (err < 0) {
+		write_log (_T("SERIAL_TCP: GetAddrInfoW() failed, %s:%s: %d\n"), name, port, WSAGetLastError ());
+		goto end;
+	}
+	serialsocket = socket (socketinfo->ai_family, socketinfo->ai_socktype, socketinfo->ai_protocol);
+	if (serialsocket == INVALID_SOCKET) {
+		write_log(_T("SERIAL_TCP: socket() failed, %s:%s: %d\n"), name, port, WSAGetLastError ());
+		goto end;
+	}
+	err = bind (serialsocket, socketinfo->ai_addr, socketinfo->ai_addrlen);
+	if (err < 0) {
+		write_log(_T("SERIAL_TCP: bind() failed, %s:%s: %d\n"), name, port, WSAGetLastError ());
+		goto end;
+	}
+	err = listen (serialsocket, 1);
+	if (err < 0) {
+		write_log(_T("SERIAL_TCP: listen() failed, %s:%s: %d\n"), name, port, WSAGetLastError ());
+		goto end;
+	}
+	err = setsockopt (serialsocket, SOL_SOCKET, SO_LINGER, (char*)&linger_1s, sizeof linger_1s);
+	if (err < 0) {
+		write_log(_T("SERIAL_TCP: setsockopt(SO_LINGER) failed, %s:%s: %d\n"), name, port, WSAGetLastError ());
+		goto end;
+	}
+	err = setsockopt (serialsocket, SOL_SOCKET, SO_REUSEADDR, (char*)&one, sizeof one);
+	if (err < 0) {
+		write_log(_T("SERIAL_TCP: setsockopt(SO_REUSEADDR) failed, %s:%s: %d\n"), name, port, WSAGetLastError ());
+		goto end;
+	}
+
+	if (waitmode) {
+		while (tcp_is_connected () == false) {
+			Sleep (1000);
+			write_log (_T("SERIAL_TCP: waiting for connect...\n"));
+		}
+	}
+
+	xfree (port);
+	xfree (name);
+	tcpserial = TRUE;
+	return 1;
+end:
+	xfree (port);
+	xfree (name);
+	closetcp ();
 	return 0;
 }
 
-static int ser_fd = -1;
-
 int openser (const TCHAR *sername)
 {
+	if (!_tcsnicmp (sername, _T("TCP://"), 6)) {
+		return opentcp (sername + 6);
+	}
+	if (!_tcsnicmp (sername, _T("TCP:"), 4)) {
+		return opentcp (sername + 4);
+	}
+
 #ifdef POSIX_SERIAL
 	ser_fd = open (currprefs.sername, O_RDWR|O_NONBLOCK|O_BINARY, 0);
 	write_log("serial: open '%s' -> fd=%d\n", sername, ser_fd);
@@ -259,6 +421,10 @@ int openser (const TCHAR *sername)
 
 void closeser (void)
 {
+	if (tcpserial) {
+		closetcp ();
+		tcpserial = FALSE;
+	}
 #ifdef POSIX_SERIAL
 	write_log("serial: close fd=%d\n", ser_fd);
 	if (ser_fd >= 0) {
@@ -268,22 +434,67 @@ void closeser (void)
 #endif
 }
 
+#ifdef _WIN32
 static void outser (void)
 {
-	STUB("");
+	DWORD actual;
+	if (datainoutput > 0 && WaitForSingleObject (writeevent, 0) == WAIT_OBJECT_0 ) {
+		memcpy (outputbufferout, outputbuffer, datainoutput);
+		WriteFile (hCom, outputbufferout, datainoutput, &actual, &writeol);
+		datainoutput = 0;
+	}
+}
+#endif
+
+static bool serial_enabled(void)
+{
+	if (!currprefs.use_serial) return false;
+#ifdef _WIN32
+	if (hCom == INVALID_HANDLE_VALUE) return false;
+#else
+	if (ser_fd < 0) return false;
+#endif
+	return true;
 }
 
 void writeser (int c)
 {
-	if (ser_fd < 0 || !currprefs.use_serial) {
-		return;
-	}
+	if (tcpserial) {
+		if (tcp_is_connected ()) {
+			char buf[1];
+			buf[0] = (char)c;
+			if (send (serialconn, buf, 1, 0) != 1) {
+				tcp_disconnect ();
+			}
+		}
+#ifdef _WIN32
+	} else if (midi_ready) {
+		BYTE outchar = (BYTE)c;
+		Midi_Parse (midi_output, &outchar);
+#endif
+	} else {
+#ifdef _WIN32
+		if (hCom == INVALID_HANDLE_VALUE || !currprefs.use_serial)
+			return;
+		if (datainoutput + 1 < sizeof (outputbuffer)) {
+			outputbuffer[datainoutput++] = c;
+		} else {
+			write_log (_T("serial output buffer overflow, data will be lost\n"));
+			datainoutput = 0;
+		}
+		outser ();
+#else
+		if (ser_fd < 0 || !currprefs.use_serial) {
+			return;
+		}
 
-	char b = (char)c;
-	if (write(ser_fd, &b, 1) != 1) {
-		write_log("WARNING: writeser - 1 byte was not written (errno %d)\n",
-			  errno);
+		char b = (char)c;
+		if (write(ser_fd, &b, 1) != 1) {
+			write_log("WARNING: writeser - 1 byte was not written (errno %d)\n",
+				  errno);
+		}
 	}
+#endif
 }
 
 int checkserwrite(int spaceneeded)
@@ -298,53 +509,150 @@ int checkserwrite(int spaceneeded)
 
 int readseravail (void)
 {
-	if (!currprefs.use_serial) {
-		return 0;
-	}
-
-#ifdef POSIX_SERIAL
-	/* device is closed */
-	if (ser_fd < 0) {
-		return 0;
-	}
-
-	/* poll if read data is available */
-	struct timeval tv;
-	fd_set fd;
-	tv.tv_sec = 0;
-	tv.tv_usec = 0;
-	FD_ZERO(&fd);
-	FD_SET(ser_fd, &fd);
-	int num_ready = select (FD_SETSIZE, &fd, NULL, NULL, &tv);
-	return (num_ready == 1);
+	if (tcpserial) {
+		if (tcp_is_connected ()) {
+			struct timeval tv;
+			fd_set fd;
+			tv.tv_sec = 0;
+			tv.tv_usec = 0;
+#ifdef _WIN32
+			fd.fd_array[0] = serialconn;
+			fd.fd_count = 1;
 #else
-	return 0;
+			FD_ZERO(&fd);
+			FD_SET(serialconn, &fd);
 #endif
+			int err = select(serialconn + 1, &fd, NULL, NULL, &tv);
+			if (err == SOCKET_ERROR) {
+				tcp_disconnect ();
+				return 0;
+			}
+			if (err > 0)
+				return 1;
+		}
+		return 0;
+#ifdef _WIN32
+	} else if (midi_ready) {
+		if (ismidibyte ())
+			return 1;
+#endif
+	} else {
+		if (!currprefs.use_serial)
+			return 0;
+#ifdef _WIN32
+		if (dataininput > dataininputcnt)
+			return 1;
+		if (hCom != INVALID_HANDLE_VALUE)  {
+			ClearCommError (hCom, &dwErrorFlags, &ComStat);
+			if (ComStat.cbInQue > 0)
+				return 1;
+		}
+#else
+		/* device is closed */
+		if (ser_fd < 0) {
+			return 0;
+		}
+		/* poll if read data is available */
+		struct timeval tv;
+		fd_set fd;
+		tv.tv_sec = 0;
+		tv.tv_usec = 0;
+		FD_ZERO(&fd);
+		FD_SET(ser_fd, &fd);
+		int num_ready = select (FD_SETSIZE, &fd, NULL, NULL, &tv);
+		return (num_ready == 1);
+#endif
+	}
+	return 0;
 }
 
 int readser (int *buffer)
 {
-	if (ser_fd < 0 || !currprefs.use_serial) {
+	if (tcpserial) {
+		if (tcp_is_connected ()) {
+			char buf[1];
+			buf[0] = 0;
+			int err = recv (serialconn, buf, 1, 0);
+			if (err == 1) {
+				*buffer = buf[0];
+				//write_log(_T(" %02X "), buf[0]);
+				return 1;
+			} else {
+				tcp_disconnect ();
+			}
+		}
 		return 0;
-	}
-
-	char b;
-	int num = read(ser_fd, &b, 1);
-	if (num == 1) {
-		*buffer = b;
+#ifdef _WIN23
+	} else if (midi_ready) {
+		*buffer = getmidibyte ();
+		if (*buffer < 0)
+			return 0;
 		return 1;
+#endif
 	} else {
-		return 0;
+		if (!currprefs.use_serial)
+			return 0;
+#ifdef _WIN32
+		if (dataininput > dataininputcnt) {
+			*buffer = inputbuffer[dataininputcnt++];
+			return 1;
+		}
+		dataininput = 0;
+		dataininputcnt = 0;
+		if (hCom != INVALID_HANDLE_VALUE)  {
+			COMSTAT ComStat;
+			DWORD dwErrorFlags;
+			DWORD actual;
+
+			/* only try to read number of bytes in queue */
+			ClearCommError (hCom, &dwErrorFlags, &ComStat);
+			if (ComStat.cbInQue)  {
+				int len = ComStat.cbInQue;
+				if (len > sizeof (inputbuffer))
+					len = sizeof (inputbuffer);
+				if (!ReadFile (hCom, inputbuffer, len, &actual, &readol))  {
+					if (GetLastError() == ERROR_IO_PENDING)
+						WaitForSingleObject (&readol, INFINITE);
+					else
+						return 0;
+				}
+				dataininput = actual;
+				dataininputcnt = 0;
+				if (actual == 0)
+					return 0;
+				return readser (buffer);
+			}
+		}
+#else
+		if (ser_fd < 0) {
+			return 0;
+		}
+
+		char b;
+		int num = read(ser_fd, &b, 1);
+		if (num == 1) {
+			*buffer = b;
+			return 1;
+		} else {
+			return 0;
+		}
+#endif
 	}
+	return 0;
 }
 
 void serialuartbreak (int v)
 {
-	if (ser_fd < 0 || !currprefs.use_serial) {
+	if (!serial_enabled()) {
 		return;
 	}
 
-#ifdef POSIX_SERIAL
+#ifdef _WIN32
+	if (v)
+		EscapeCommFunction (hCom, SETBREAK);
+	else
+		EscapeCommFunction (hCom, CLRBREAK);
+#else
 	if (v) {
 		/* in posix serial calls we can't fulfill this function interface
 		   completely: as we are not able to toggle the break mode with "v".
@@ -358,70 +666,87 @@ void serialuartbreak (int v)
 
 void getserstat (int *pstatus)
 {
-	*pstatus = 0;
-
-	if (ser_fd < 0 || !currprefs.use_serial) {
+	if (!serial_enabled()) {
 		return;
 	}
 
-#ifdef POSIX_SERIAL
 	int status = 0;
+	*pstatus = 0;
 
+#ifdef _WIN32
+	DWORD stat;
+	GetCommModemStatus (hCom, &stat);
+	if (stat & MS_CTS_ON)
+		status |= TIOCM_CTS;
+	if (stat & MS_RLSD_ON)
+		status |= TIOCM_CAR;
+	if (stat & MS_DSR_ON)
+		status |= TIOCM_DSR;
+	if (stat & MS_RING_ON)
+		status |= TIOCM_RI;
+#else
+	int stat;
 	/* read control signals */
-	if (ioctl (ser_fd, TIOCMGET, &status) < 0) {
+	if (ioctl (ser_fd, TIOCMGET, &stat) < 0) {
 		write_log ("serial: ioctl TIOCMGET failed\n");
 		*pstatus = TIOCM_CTS | TIOCM_CAR | TIOCM_DSR;
 		return;
 	}
-
-	int out = 0;
-	if (status & TIOCM_CTS)
-		out |= TIOCM_CTS;
-	if (status & TIOCM_CAR)
-		out |= TIOCM_CAR;
-	if (status & TIOCM_DSR)
-		out |= TIOCM_DSR;
-	if (status & TIOCM_RI)
-		out |= TIOCM_RI;
-
-	*pstatus = out;
+	if (stat & TIOCM_CTS)
+		status |= TIOCM_CTS;
+	if (stat & TIOCM_CAR)
+		status |= TIOCM_CAR;
+	if (stat & TIOCM_DSR)
+		status |= TIOCM_DSR;
+	if (stat & TIOCM_RI)
+		status |= TIOCM_RI;
 #endif
+	*pstatus = status;
 }
 
 void setserstat (int mask, int onoff)
 {
-	if (ser_fd < 0 || !currprefs.use_serial) {
+	if (!serial_enabled()) {
 		return;
 	}
 
 #ifdef POSIX_SERIAL
 	int status = 0;
-
 	/* read control signals */
-	if (ioctl (ser_fd, TIOCMGET, &status) < 0) {
+	if (ioctl(ser_fd, TIOCMGET, &status) < 0) {
 		write_log ("serial: ioctl TIOCMGET failed\n");
 		return;
 	}
+#endif
 
 	if (mask & TIOCM_DTR) {
+#ifdef _WIN32
+		EscapeCommFunction (hCom, onoff ? SETDTR : CLRDTR);
+#else
 		if (onoff) {
 			status |= TIOCM_DTR;
 		} else {
 			status &= ~TIOCM_DTR;
 		}
+#endif
 	}
 	if (!currprefs.serial_hwctsrts) {
 		if (mask & TIOCM_RTS) {
+#ifdef _WIN32
+			EscapeCommFunction (hCom, onoff ? SETRTS : CLRRTS);
+#else
 			if (onoff) {
 				status |= TIOCM_RTS;
 			} else {
 				status &= ~TIOCM_RTS;
 			}
+#endif
 		}
 	}
 
+#ifdef POSIX_SERIAL
 	/* write control signals */
-	if (ioctl( ser_fd, TIOCMSET, &status) < 0) {
+	if (ioctl(ser_fd, TIOCMSET, &status) < 0) {
 		write_log ("serial: ioctl TIOCMSET failed\n");
 	}
 #endif
@@ -484,11 +809,14 @@ int setbaud (long baud)
 
 void initparallel (void)
 {
-	//write_log("initparallel uae_boot_rom = %d\n", uae_boot_rom);
+#ifdef FSUAE
 	write_log("initparallel\n");
+#endif
 #ifdef AHI
-	if (uae_boot_rom) {
+	if (uae_boot_rom_type) {
+#ifdef FSUAE
 		write_log("installing ahi_winuae\n");
+#endif
 		uaecptr a = here (); //this install the ahisound
 		org (rtarea_base + 0xFFC0);
 		calltrap (deftrapres (ahi_demux, 0, _T("ahi_winuae")));
@@ -505,7 +833,9 @@ int flashscreen = 0;
 
 void doflashscreen (void)
 {
-#if 0
+#ifdef FSUAE
+
+#else
 	flashscreen = 10;
 	init_colors ();
 	picasso_refresh ();
@@ -515,13 +845,15 @@ void doflashscreen (void)
 }
 
 void hsyncstuff (void)
-{
 	//only generate Interrupts when
 	//writebuffer is complete flushed
 	//check state of lwin rwin
-	//static int keycheck = 0;
+{
+	static int keycheck = 0;
 
-#if 0 // DISABLED -- OLD AHI VERSION?
+#ifdef FSUAE
+/* DISABLED -- OLD AHI VERSION? */
+#else
 #ifdef AHI
 	{ //begin ahi_sound
 		static int count;
@@ -537,7 +869,9 @@ void hsyncstuff (void)
 #endif
 #endif
 
-#if 0 // DISABLED FOR NOW
+#ifdef FSUAE
+/* DISABLED FOR NOW */
+#else
 #ifdef PARALLEL_PORT
 	keycheck++;
 	if (keycheck >= 1000)

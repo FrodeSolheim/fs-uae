@@ -603,7 +603,8 @@ nodist_libcpuemu_a_SOURCES = \
 	gen/cpuemu_31.cpp \
 	gen/cpuemu_32.cpp \
 	gen/cpuemu_33.cpp \
-	gen/cpuemu_40.cpp
+	gen/cpuemu_40.cpp \
+	gen/cpuemu_50.cpp
 BUILT_SOURCES += $(nodist_libcpuemu_a_SOURCES)
 
 noinst_LIBRARIES += libfsemu.a

@@ -65,7 +65,7 @@ extern FILE *g_fs_uae_sync_debug_file;
 #endif
 
 #define ECS_DENISE
-#define CPUEMU_0 /* generic 680x0 emulation with direct memory access */
+#define CPUEMU_0 /* generic 680x0 emulation */
 #define CPUEMU_11 /* 68000/68010 prefetch emulation */
 #define CPUEMU_13 /* 68000/68010 cycle-exact cpu&blitter */
 #define CPUEMU_20 /* 68020 prefetch */
@@ -77,7 +77,8 @@ extern FILE *g_fs_uae_sync_debug_file;
 #define CPUEMU_31 /* Aranym 68040 MMU */
 #define CPUEMU_32 /* Previous 68030 MMU */
 #define CPUEMU_33 /* 68060 MMU */
-#define CPUEMU_40 /* generic 680x0 with indirect memory access */
+#define CPUEMU_40 /* generic 680x0 with JIT direct memory access */
+#define CPUEMU_50 /* generic 680x0 with indirect memory access */
 //#define DEBUGGER
 //#define ENFORCER
 #define FDI2RAW

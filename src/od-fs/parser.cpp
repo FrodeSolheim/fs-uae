@@ -274,7 +274,7 @@ static bool tcp_is_connected (void)
 	if (serialconn == INVALID_SOCKET) {
 		struct timeval tv;
 		fd_set fd;
-		tv.tv_sec = 1;
+		tv.tv_sec = 0;
 		tv.tv_usec = 0;
 #ifdef _WIN32
 		fd.fd_array[0] = serialsocket;
@@ -419,6 +419,16 @@ int openser (const TCHAR *sername)
 #endif
 }
 
+static bool valid_serial_handle(void)
+{
+#ifdef _WIN32
+	return hCom != INVALID_HANDLE_VALUE;
+#else
+	return ser_fd > 0;
+
+#endif
+}
+
 void closeser (void)
 {
 	if (tcpserial) {
@@ -427,9 +437,14 @@ void closeser (void)
 	}
 #ifdef POSIX_SERIAL
 	write_log("serial: close fd=%d\n", ser_fd);
-	if (ser_fd >= 0) {
+	if (valid_serial_handle()) {
+#ifdef _WIN32
+		CloseHandle (hCom);
+		hCom = INVALID_HANDLE_VALUE;
+#else
 		close(ser_fd);
 		ser_fd = 0;
+#endif
 	}
 #endif
 }
@@ -445,17 +460,6 @@ static void outser (void)
 	}
 }
 #endif
-
-static bool serial_enabled(void)
-{
-	if (!currprefs.use_serial) return false;
-#ifdef _WIN32
-	if (hCom == INVALID_HANDLE_VALUE) return false;
-#else
-	if (ser_fd < 0) return false;
-#endif
-	return true;
-}
 
 void writeser (int c)
 {
@@ -473,9 +477,9 @@ void writeser (int c)
 		Midi_Parse (midi_output, &outchar);
 #endif
 	} else {
-#ifdef _WIN32
-		if (hCom == INVALID_HANDLE_VALUE || !currprefs.use_serial)
+		if (!valid_serial_handle() || !currprefs.use_serial)
 			return;
+#ifdef _WIN32
 		if (datainoutput + 1 < sizeof (outputbuffer)) {
 			outputbuffer[datainoutput++] = c;
 		} else {
@@ -484,10 +488,6 @@ void writeser (int c)
 		}
 		outser ();
 #else
-		if (ser_fd < 0 || !currprefs.use_serial) {
-			return;
-		}
-
 		char b = (char)c;
 		if (write(ser_fd, &b, 1) != 1) {
 			write_log("WARNING: writeser - 1 byte was not written (errno %d)\n",
@@ -499,11 +499,19 @@ void writeser (int c)
 
 int checkserwrite(int spaceneeded)
 {
-	if (ser_fd < 0 || !currprefs.use_serial) {
+	if (!valid_serial_handle() || !currprefs.use_serial)
 		return 1;
+#ifdef _WIN32
+	if (midi_ready) {
+		return 1;
+	} else {
+		outser ();
+		if (datainoutput + spaceneeded >= sizeof (outputbuffer))
+			return 0;
 	}
-
+#else
 	/* we assume that we can write always */
+#endif
 	return 1;
 }
 
@@ -643,9 +651,8 @@ int readser (int *buffer)
 
 void serialuartbreak (int v)
 {
-	if (!serial_enabled()) {
+	if (!valid_serial_handle() || !currprefs.use_serial)
 		return;
-	}
 
 #ifdef _WIN32
 	if (v)
@@ -666,9 +673,8 @@ void serialuartbreak (int v)
 
 void getserstat (int *pstatus)
 {
-	if (!serial_enabled()) {
+	if (!valid_serial_handle() || !currprefs.use_serial)
 		return;
-	}
 
 	int status = 0;
 	*pstatus = 0;
@@ -706,9 +712,8 @@ void getserstat (int *pstatus)
 
 void setserstat (int mask, int onoff)
 {
-	if (!serial_enabled()) {
+	if (!valid_serial_handle() || !currprefs.use_serial)
 		return;
-	}
 
 #ifdef POSIX_SERIAL
 	int status = 0;

@@ -233,49 +233,56 @@ static addrbank gfxboard_bank_memory = {
 	gfxboard_lget_mem, gfxboard_wget_mem, gfxboard_bget_mem,
 	gfxboard_lput_mem, gfxboard_wput_mem, gfxboard_bput_mem,
 	gfxboard_xlate, gfxboard_check, NULL, NULL, NULL,
-	gfxboard_lget_mem, gfxboard_wget_mem, ABFLAG_RAM | ABFLAG_THREADSAFE
+	gfxboard_lget_mem, gfxboard_wget_mem,
+	ABFLAG_RAM | ABFLAG_THREADSAFE, 0, 0
 };
 
 static addrbank gfxboard_bank_memory_nojit = {
 	gfxboard_lget_mem_nojit, gfxboard_wget_mem_nojit, gfxboard_bget_mem_nojit,
 	gfxboard_lput_mem_nojit, gfxboard_wput_mem_nojit, gfxboard_bput_mem_nojit,
 	gfxboard_xlate, gfxboard_check, NULL, NULL, NULL,
-	gfxboard_lget_mem_nojit, gfxboard_wget_mem_nojit, ABFLAG_RAM | ABFLAG_THREADSAFE
+	gfxboard_lget_mem_nojit, gfxboard_wget_mem_nojit,
+	ABFLAG_RAM | ABFLAG_THREADSAFE, S_READ, S_WRITE
 };
 
 static addrbank gfxboard_bank_wbsmemory = {
 	gfxboard_lget_wbsmem, gfxboard_wget_wbsmem, gfxboard_bget_wbsmem,
 	gfxboard_lput_wbsmem, gfxboard_wput_wbsmem, gfxboard_bput_wbsmem,
 	gfxboard_xlate, gfxboard_check, NULL, NULL, NULL,
-	gfxboard_lget_wbsmem, gfxboard_wget_wbsmem, ABFLAG_RAM | ABFLAG_THREADSAFE
+	gfxboard_lget_wbsmem, gfxboard_wget_wbsmem,
+	ABFLAG_RAM | ABFLAG_THREADSAFE, S_READ, S_WRITE
 };
 
 static addrbank gfxboard_bank_lbsmemory = {
 	gfxboard_lget_lbsmem, gfxboard_wget_lbsmem, gfxboard_bget_lbsmem,
 	gfxboard_lput_lbsmem, gfxboard_wput_lbsmem, gfxboard_bput_lbsmem,
 	gfxboard_xlate, gfxboard_check, NULL, NULL, NULL,
-	gfxboard_lget_lbsmem, gfxboard_wget_lbsmem, ABFLAG_RAM | ABFLAG_THREADSAFE
+	gfxboard_lget_lbsmem, gfxboard_wget_lbsmem,
+	ABFLAG_RAM | ABFLAG_THREADSAFE, S_READ, S_WRITE
 };
 
 static addrbank gfxboard_bank_nbsmemory = {
 	gfxboard_lget_nbsmem, gfxboard_wget_nbsmem, gfxboard_bget_bsmem,
 	gfxboard_lput_nbsmem, gfxboard_wput_nbsmem, gfxboard_bput_bsmem,
 	gfxboard_xlate, gfxboard_check, NULL, NULL, _T("Picasso IV banked VRAM"),
-	gfxboard_lget_nbsmem, gfxboard_wget_nbsmem, ABFLAG_RAM | ABFLAG_THREADSAFE
+	gfxboard_lget_nbsmem, gfxboard_wget_nbsmem,
+	ABFLAG_RAM | ABFLAG_THREADSAFE, S_READ, S_WRITE
 };
 
 static addrbank gfxboard_bank_registers = {
 	gfxboard_lget_regs, gfxboard_wget_regs, gfxboard_bget_regs,
 	gfxboard_lput_regs, gfxboard_wput_regs, gfxboard_bput_regs,
 	default_xlate, default_check, NULL, NULL, NULL,
-	dummy_lgeti, dummy_wgeti, ABFLAG_IO | ABFLAG_SAFE
+	dummy_lgeti, dummy_wgeti,
+	ABFLAG_IO | ABFLAG_SAFE, S_READ, S_WRITE
 };
 
 static addrbank gfxboard_bank_special = {
 	gfxboards_lget_regs, gfxboards_wget_regs, gfxboards_bget_regs,
 	gfxboards_lput_regs, gfxboards_wput_regs, gfxboards_bput_regs,
 	default_xlate, default_check, NULL, NULL, _T("Picasso IV MISC"),
-	dummy_lgeti, dummy_wgeti, ABFLAG_IO | ABFLAG_SAFE
+	dummy_lgeti, dummy_wgeti,
+	ABFLAG_IO | ABFLAG_SAFE, S_READ, S_WRITE
 };
 
 static void init_board (void)
@@ -1111,9 +1118,6 @@ static void gfxboard_bput_vram (uaecptr addr, uae_u8 b, int bs)
 // LONG byteswapped VRAM
 static uae_u32 REGPARAM2 gfxboard_lget_lbsmem (uaecptr addr)
 {
-#ifdef JIT
-	special_mem |= S_READ;
-#endif
 	addr -= gfxboardmem_start & gfxmem_bank.mask;
 	addr = fixaddr (addr, 0);
 	if (addr == -1)
@@ -1122,9 +1126,6 @@ static uae_u32 REGPARAM2 gfxboard_lget_lbsmem (uaecptr addr)
 }
 static uae_u32 REGPARAM2 gfxboard_wget_lbsmem (uaecptr addr)
 {
-#ifdef JIT
-	special_mem |= S_READ;
-#endif
 	addr -= gfxboardmem_start & gfxmem_bank.mask;
 	addr = fixaddr (addr, 0);
 	if (addr == -1)
@@ -1133,9 +1134,6 @@ static uae_u32 REGPARAM2 gfxboard_wget_lbsmem (uaecptr addr)
 }
 static uae_u32 REGPARAM2 gfxboard_bget_lbsmem (uaecptr addr)
 {
-#ifdef JIT
-	special_mem |= S_READ;
-#endif
 	addr -= gfxboardmem_start & gfxmem_bank.mask;
 	addr = fixaddr (addr, 0);
 	if (addr == -1)
@@ -1145,9 +1143,6 @@ static uae_u32 REGPARAM2 gfxboard_bget_lbsmem (uaecptr addr)
 
 static void REGPARAM2 gfxboard_lput_lbsmem (uaecptr addr, uae_u32 l)
 {
-#ifdef JIT
-	special_mem |= S_WRITE;
-#endif
 	addr -= gfxboardmem_start & gfxmem_bank.mask;
 	addr = fixaddr (addr, 0);
 	if (addr == -1)
@@ -1156,9 +1151,6 @@ static void REGPARAM2 gfxboard_lput_lbsmem (uaecptr addr, uae_u32 l)
 }
 static void REGPARAM2 gfxboard_wput_lbsmem (uaecptr addr, uae_u32 w)
 {
-#ifdef JIT
-	special_mem |= S_WRITE;
-#endif
 	addr -= gfxboardmem_start & gfxmem_bank.mask;
 	addr = fixaddr (addr, 0);
 	if (addr == -1)
@@ -1167,9 +1159,6 @@ static void REGPARAM2 gfxboard_wput_lbsmem (uaecptr addr, uae_u32 w)
 }
 static void REGPARAM2 gfxboard_bput_lbsmem (uaecptr addr, uae_u32 w)
 {
-#ifdef JIT
-	special_mem |= S_WRITE;
-#endif
 	addr -= gfxboardmem_start & gfxmem_bank.mask;
 	addr = fixaddr (addr, 0);
 	if (addr == -1)
@@ -1180,9 +1169,6 @@ static void REGPARAM2 gfxboard_bput_lbsmem (uaecptr addr, uae_u32 w)
 // WORD byteswapped VRAM
 static uae_u32 REGPARAM2 gfxboard_lget_wbsmem (uaecptr addr)
 {
-#ifdef JIT
-	special_mem |= S_READ;
-#endif
 	addr -= gfxboardmem_start & gfxmem_bank.mask;
 	addr = fixaddr (addr, 0);
 	if (addr == -1)
@@ -1191,9 +1177,6 @@ static uae_u32 REGPARAM2 gfxboard_lget_wbsmem (uaecptr addr)
 }
 static uae_u32 REGPARAM2 gfxboard_wget_wbsmem (uaecptr addr)
 {
-#ifdef JIT
-	special_mem |= S_READ;
-#endif
 	addr -= gfxboardmem_start & gfxmem_bank.mask;
 	addr = fixaddr (addr, 0);
 	if (addr == -1)
@@ -1202,9 +1185,6 @@ static uae_u32 REGPARAM2 gfxboard_wget_wbsmem (uaecptr addr)
 }
 static uae_u32 REGPARAM2 gfxboard_bget_wbsmem (uaecptr addr)
 {
-#ifdef JIT
-	special_mem |= S_READ;
-#endif
 	addr -= gfxboardmem_start & gfxmem_bank.mask;
 	addr = fixaddr (addr, 0);
 	if (addr == -1)
@@ -1214,9 +1194,6 @@ static uae_u32 REGPARAM2 gfxboard_bget_wbsmem (uaecptr addr)
 
 static void REGPARAM2 gfxboard_lput_wbsmem (uaecptr addr, uae_u32 l)
 {
-#ifdef JIT
-	special_mem |= S_WRITE;
-#endif
 	addr -= gfxboardmem_start & gfxmem_bank.mask;
 	addr = fixaddr (addr, 0);
 	if (addr == -1)
@@ -1225,9 +1202,6 @@ static void REGPARAM2 gfxboard_lput_wbsmem (uaecptr addr, uae_u32 l)
 }
 static void REGPARAM2 gfxboard_wput_wbsmem (uaecptr addr, uae_u32 w)
 {
-#ifdef JIT
-	special_mem |= S_WRITE;
-#endif
 	addr -= gfxboardmem_start & gfxmem_bank.mask;
 	addr = fixaddr (addr, 0);
 	if (addr == -1)
@@ -1236,9 +1210,6 @@ static void REGPARAM2 gfxboard_wput_wbsmem (uaecptr addr, uae_u32 w)
 }
 static void REGPARAM2 gfxboard_bput_wbsmem (uaecptr addr, uae_u32 w)
 {
-#ifdef JIT
-	special_mem |= S_WRITE;
-#endif
 	addr -= gfxboardmem_start & gfxmem_bank.mask;
 	addr = fixaddr (addr, 0);
 	if (addr == -1)
@@ -1249,9 +1220,6 @@ static void REGPARAM2 gfxboard_bput_wbsmem (uaecptr addr, uae_u32 w)
 // normal or byteswapped (banked) vram
 static uae_u32 REGPARAM2 gfxboard_lget_nbsmem (uaecptr addr)
 {
-#ifdef JIT
-	special_mem |= S_READ;
-#endif
 	int bs = 0;
 	addr -= gfxboardmem_start & gfxmem_bank.mask;
 	addr = fixaddr_bs (addr, 0, &bs);
@@ -1262,9 +1230,6 @@ static uae_u32 REGPARAM2 gfxboard_lget_nbsmem (uaecptr addr)
 }
 static uae_u32 REGPARAM2 gfxboard_wget_nbsmem (uaecptr addr)
 {
-#ifdef JIT
-	special_mem |= S_READ;
-#endif
 	int bs = 0;
 	addr -= gfxboardmem_start & gfxmem_bank.mask;
 	addr = fixaddr_bs (addr, 0, &bs);
@@ -1275,9 +1240,6 @@ static uae_u32 REGPARAM2 gfxboard_wget_nbsmem (uaecptr addr)
 
 static void REGPARAM2 gfxboard_lput_nbsmem (uaecptr addr, uae_u32 l)
 {
-#ifdef JIT
-	special_mem |= S_WRITE;
-#endif
 	int bs = 0;
 	addr -= gfxboardmem_start & gfxmem_bank.mask;
 	addr = fixaddr_bs (addr, 0, &bs);
@@ -1287,9 +1249,6 @@ static void REGPARAM2 gfxboard_lput_nbsmem (uaecptr addr, uae_u32 l)
 }
 static void REGPARAM2 gfxboard_wput_nbsmem (uaecptr addr, uae_u32 w)
 {
-#ifdef JIT
-	special_mem |= S_WRITE;
-#endif
 	int bs = 0;
 	addr -= gfxboardmem_start & gfxmem_bank.mask;
 	addr = fixaddr_bs (addr, 0, &bs);
@@ -1300,9 +1259,6 @@ static void REGPARAM2 gfxboard_wput_nbsmem (uaecptr addr, uae_u32 w)
 
 static uae_u32 REGPARAM2 gfxboard_bget_bsmem (uaecptr addr)
 {
-#ifdef JIT
-	special_mem |= S_READ;
-#endif
 	int bs = 0;
 	addr -= gfxboardmem_start & gfxmem_bank.mask;
 	addr = fixaddr (addr, 0);
@@ -1312,9 +1268,6 @@ static uae_u32 REGPARAM2 gfxboard_bget_bsmem (uaecptr addr)
 }
 static void REGPARAM2 gfxboard_bput_bsmem (uaecptr addr, uae_u32 b)
 {
-#ifdef JIT
-	special_mem |= S_WRITE;
-#endif
 	int bs = 0;
 	addr -= gfxboardmem_start & gfxmem_bank.mask;
 	addr = fixaddr_bs (addr, 0, &bs);
@@ -1376,9 +1329,6 @@ static void REGPARAM2 gfxboard_bput_mem (uaecptr addr, uae_u32 b)
 // normal vram, no jit direct
 static uae_u32 REGPARAM2 gfxboard_lget_mem_nojit (uaecptr addr)
 {
-#ifdef JIT
-	special_mem |= S_READ;
-#endif
 	addr -= gfxboardmem_start & gfxmem_bank.mask;
 	addr = fixaddr (addr);
 	if (addr == -1)
@@ -1387,9 +1337,6 @@ static uae_u32 REGPARAM2 gfxboard_lget_mem_nojit (uaecptr addr)
 }
 static uae_u32 REGPARAM2 gfxboard_wget_mem_nojit (uaecptr addr)
 {
-#ifdef JIT
-	special_mem |= S_READ;
-#endif
 	addr -= gfxboardmem_start & gfxmem_bank.mask;
 	addr = fixaddr (addr);
 	if (addr == -1)
@@ -1398,9 +1345,6 @@ static uae_u32 REGPARAM2 gfxboard_wget_mem_nojit (uaecptr addr)
 }
 static uae_u32 REGPARAM2 gfxboard_bget_mem_nojit (uaecptr addr)
 {
-#ifdef JIT
-	special_mem |= S_READ;
-#endif
 	addr -= gfxboardmem_start & gfxmem_bank.mask;
 	addr = fixaddr (addr);
 	if (addr == -1)
@@ -1409,9 +1353,6 @@ static uae_u32 REGPARAM2 gfxboard_bget_mem_nojit (uaecptr addr)
 }
 static void REGPARAM2 gfxboard_lput_mem_nojit (uaecptr addr, uae_u32 l)
 {
-#ifdef JIT
-	special_mem |= S_WRITE;
-#endif
 	addr -= gfxboardmem_start & gfxmem_bank.mask;
 	addr = fixaddr (addr);
 	if (addr == -1)
@@ -1420,9 +1361,6 @@ static void REGPARAM2 gfxboard_lput_mem_nojit (uaecptr addr, uae_u32 l)
 }
 static void REGPARAM2 gfxboard_wput_mem_nojit (uaecptr addr, uae_u32 w)
 {
-#ifdef JIT
-	special_mem |= S_WRITE;
-#endif
 	addr -= gfxboardmem_start & gfxmem_bank.mask;
 	addr = fixaddr (addr);
 	if (addr == -1)
@@ -1431,9 +1369,6 @@ static void REGPARAM2 gfxboard_wput_mem_nojit (uaecptr addr, uae_u32 w)
 }
 static void REGPARAM2 gfxboard_bput_mem_nojit (uaecptr addr, uae_u32 b)
 {
-#ifdef JIT
-	special_mem |= S_WRITE;
-#endif
 	addr -= gfxboardmem_start & gfxmem_bank.mask;
 	addr = fixaddr (addr);
 	if (addr == -1)
@@ -1457,9 +1392,6 @@ static uae_u8 *REGPARAM2 gfxboard_xlate (uaecptr addr)
 static uae_u32 REGPARAM2 gfxboard_bget_mem_autoconfig (uaecptr addr)
 {
 	uae_u32 v = 0;
-#ifdef JIT
-	special_mem |= S_READ;
-#endif
 	addr &= 65535;
 	if (addr < GFXBOARD_AUTOCONFIG_SIZE)
 		v = automemory[addr];
@@ -1468,9 +1400,6 @@ static uae_u32 REGPARAM2 gfxboard_bget_mem_autoconfig (uaecptr addr)
 
 static void REGPARAM2 gfxboard_wput_mem_autoconfig (uaecptr addr, uae_u32 b)
 {
-#ifdef JIT
-	special_mem |= S_WRITE;
-#endif
 	if (board->configtype == 2)
 		return;
 	b &= 0xffff;
@@ -1517,9 +1446,6 @@ static void REGPARAM2 gfxboard_wput_mem_autoconfig (uaecptr addr, uae_u32 b)
 
 static void REGPARAM2 gfxboard_bput_mem_autoconfig (uaecptr addr, uae_u32 b)
 {
-#ifdef JIT
-	special_mem |= S_WRITE;
-#endif
 	b &= 0xff;
 	addr &= 65535;
 	if (addr == 0x48) {
@@ -1603,9 +1529,6 @@ static uaecptr mungeaddr (uaecptr addr, bool write)
 static uae_u32 REGPARAM2 gfxboard_lget_regs (uaecptr addr)
 {
 	uae_u32 v = 0xffffffff;
-#ifdef JIT
-	special_mem |= S_READ;
-#endif
 	addr = mungeaddr (addr, false);
 	if (addr)
 		v = vgaio->read (&vga, addr, 4);
@@ -1614,9 +1537,6 @@ static uae_u32 REGPARAM2 gfxboard_lget_regs (uaecptr addr)
 static uae_u32 REGPARAM2 gfxboard_wget_regs (uaecptr addr)
 {
 	uae_u16 v = 0xffff;
-#ifdef JIT
-	special_mem |= S_READ;
-#endif
 	addr = mungeaddr (addr, false);
 	if (addr) {
 		uae_u8 v1, v2;
@@ -1631,9 +1551,6 @@ static uae_u32 REGPARAM2 gfxboard_wget_regs (uaecptr addr)
 static uae_u32 REGPARAM2 gfxboard_bget_regs (uaecptr addr)
 {
 	uae_u8 v = 0xff;
-#ifdef JIT
-	special_mem |= S_READ;
-#endif
 	addr &= 65535;
 	if (addr >= 0x8000) {
 		write_log (_T("GFX SPECIAL BGET IO %08X\n"), addr);
@@ -1649,9 +1566,6 @@ static uae_u32 REGPARAM2 gfxboard_bget_regs (uaecptr addr)
 
 static void REGPARAM2 gfxboard_lput_regs (uaecptr addr, uae_u32 l)
 {
-#ifdef JIT
-	special_mem |= S_WRITE;
-#endif
 	//write_log (_T("GFX LONG PUT IO %04X = %04X\n"), addr & 65535, l);
 	addr = mungeaddr (addr, true);
 	if (addr) {
@@ -1667,9 +1581,6 @@ static void REGPARAM2 gfxboard_lput_regs (uaecptr addr, uae_u32 l)
 }
 static void REGPARAM2 gfxboard_wput_regs (uaecptr addr, uae_u32 w)
 {
-#ifdef JIT
-	special_mem |= S_WRITE;
-#endif
 	//write_log (_T("GFX WORD PUT IO %04X = %04X\n"), addr & 65535, w & 0xffff);
 	addr = mungeaddr (addr, true);
 	if (addr) {
@@ -1681,9 +1592,6 @@ static void REGPARAM2 gfxboard_wput_regs (uaecptr addr, uae_u32 w)
 }
 static void REGPARAM2 gfxboard_bput_regs (uaecptr addr, uae_u32 b)
 {
-#ifdef JIT
-	special_mem |= S_WRITE;
-#endif
 	//write_log (_T("GFX BYTE PUT IO %04X = %02X\n"), addr & 65535, b & 0xff);
 	addr &= 65535;
 	if (addr >= 0x8000) {
@@ -1720,9 +1628,6 @@ static void REGPARAM2 gfxboard_bput_regs (uaecptr addr, uae_u32 b)
 static uae_u32 REGPARAM2 gfxboard_bget_regs_autoconfig (uaecptr addr)
 {
 	uae_u32 v = 0;
-#ifdef JIT
-	special_mem |= S_READ;
-#endif
 	addr &= 65535;
 	if (addr < GFXBOARD_AUTOCONFIG_SIZE)
 		v = automemory[addr];
@@ -1732,9 +1637,6 @@ static uae_u32 REGPARAM2 gfxboard_bget_regs_autoconfig (uaecptr addr)
 static void REGPARAM2 gfxboard_bput_regs_autoconfig (uaecptr addr, uae_u32 b)
 {
 	addrbank *ab;
-#ifdef JIT
-	special_mem |= S_WRITE;
-#endif
 	b &= 0xff;
 	addr &= 65535;
 	if (addr == 0x48) {
@@ -1806,9 +1708,6 @@ void gfxboard_reset (void)
 static uae_u32 REGPARAM2 gfxboards_lget_regs (uaecptr addr)
 {
 	uae_u32 v = 0;
-#ifdef JIT
-	special_mem |= S_READ;
-#endif
 	addr &= p4_special_mask;
 	// pci config
 	if (addr >= 0x400000 || (p4z2 && !(picassoiv_bank & PICASSOIV_BANK_MAPRAM) && (picassoiv_bank & PICASSOIV_BANK_UNMAPFLASH) && ((addr >= 0x800 && addr < 0xc00) || (addr >= 0x1000 && addr < 0x2000)))) {
@@ -1856,9 +1755,6 @@ static uae_u32 REGPARAM2 gfxboards_lget_regs (uaecptr addr)
 static uae_u32 REGPARAM2 gfxboards_wget_regs (uaecptr addr)
 {
 	uae_u16 v = 0;
-#ifdef JIT
-	special_mem |= S_READ;
-#endif
 	addr &= p4_special_mask;
 	// pci config
 	if (addr >= 0x400000 || (p4z2 && !(picassoiv_bank & PICASSOIV_BANK_MAPRAM) && (picassoiv_bank & PICASSOIV_BANK_UNMAPFLASH) && ((addr >= 0x800 && addr < 0xc00) || (addr >= 0x1000 && addr < 0x2000)))) {
@@ -1900,9 +1796,6 @@ static uae_u32 REGPARAM2 gfxboards_wget_regs (uaecptr addr)
 static uae_u32 REGPARAM2 gfxboards_bget_regs (uaecptr addr)
 {
 	uae_u8 v = 0xff;
-#ifdef JIT
-	special_mem |= S_READ;
-#endif
 	addr &= p4_special_mask;
 
 	// pci config
@@ -1986,9 +1879,6 @@ static uae_u32 REGPARAM2 gfxboards_bget_regs (uaecptr addr)
 }
 static void REGPARAM2 gfxboards_lput_regs (uaecptr addr, uae_u32 l)
 {
-#ifdef JIT
-	special_mem |= S_WRITE;
-#endif
 	addr &= p4_special_mask;
 	if (addr >= 0x400000 || (p4z2 && !(picassoiv_bank & PICASSOIV_BANK_MAPRAM) && (picassoiv_bank & PICASSOIV_BANK_UNMAPFLASH) && ((addr >= 0x800 && addr < 0xc00) || (addr >= 0x1000 && addr < 0x2000)))) {
 		uae_u32 addr2 = addr & 0xffff;
@@ -2035,9 +1925,6 @@ static void REGPARAM2 gfxboards_lput_regs (uaecptr addr, uae_u32 l)
 }
 static void REGPARAM2 gfxboards_wput_regs (uaecptr addr, uae_u32 v)
 {
-#ifdef JIT
-	special_mem |= S_WRITE;
-#endif
 	uae_u16 w = (uae_u16)v;
 	addr &= p4_special_mask;
 	if (addr >= 0x400000 || (p4z2 && !(picassoiv_bank & PICASSOIV_BANK_MAPRAM) && (picassoiv_bank & PICASSOIV_BANK_UNMAPFLASH) && ((addr >= 0x800 && addr < 0xc00) || (addr >= 0x1000 && addr < 0x2000)))) {
@@ -2092,9 +1979,6 @@ static void REGPARAM2 gfxboards_wput_regs (uaecptr addr, uae_u32 v)
 static void REGPARAM2 gfxboards_bput_regs (uaecptr addr, uae_u32 v)
 {
 	uae_u8 b = (uae_u8)v;
-#ifdef JIT
-	special_mem |= S_WRITE;
-#endif
 	addr &= p4_special_mask;
 	if (addr >= 0x400000 || (p4z2 && !(picassoiv_bank & PICASSOIV_BANK_MAPRAM) && (picassoiv_bank & PICASSOIV_BANK_UNMAPFLASH) && ((addr >= 0x800 && addr < 0xc00) || (addr >= 0x1000 && addr < 0x2000)))) {
 		uae_u32 addr2 = addr & 0xffff;

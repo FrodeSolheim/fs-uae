@@ -434,6 +434,13 @@ static int doinit_shm (void)
 			return 0;
 		}
 	}
+#ifdef FSUAE
+	write_log("NATMEM: size            0x%08x\n", size);
+	write_log("NATMEM: z3size        + 0x%08x\n", z3size);
+	write_log("NATMEM: z3rtgmem_size + 0x%08x\n", z3rtgmem_size);
+	write_log("NATMEM: othersize     + 0x%08x\n", othersize);
+	write_log("NATMEM: totalsize     = 0x%08x\n", totalsize);
+#endif
 
 	set_expamem_z3_hack_override(false);
 	z3offset = 0;
@@ -460,6 +467,9 @@ static int doinit_shm (void)
 		jit_direct_compatible_memory = true;
 		write_log(_T("Z3 UAE mapping.\n"));
 	}
+#ifdef FSUAE
+	write_log("NATMEM: JIT direct compatible: %d\n", jit_direct_compatible_memory);
+#endif
 
 	p96mem_offset = NULL;
 	p96mem_size = z3rtgmem_size;
@@ -494,9 +504,13 @@ static int doinit_shm (void)
 			addr = expansion_startaddress(addr, z3rtgallocsize);
 			if (gfxboard_get_configtype(changed_prefs.rtgmem_type) == 3) {
 				p96base_offset = addr;
+				write_log("NATMEM: p96base_offset = 0x%x\n", p96base_offset);
 				// adjust p96mem_offset to beginning of natmem
 				// by subtracting start of original p96mem_offset from natmem_offset
 				if (p96base_offset >= 0x10000000) {
+#ifdef FSUAE
+					write_log("NATMEM: natmem_offset = %p - 0x%x\n", natmem_reserved, p96base_offset);
+#endif
 					natmem_offset = natmem_reserved - p96base_offset;
 					p96mem_offset = natmem_offset + p96base_offset;
 				}
@@ -511,7 +525,7 @@ static int doinit_shm (void)
 				  natmem_offset, (uae_u8*)natmem_offset + natmemsize,
 				  natmemsize, natmemsize / (1024 * 1024));
 		if (changed_prefs.rtgmem_size)
-			write_log (_T("NATMEM: P96 special area: 0x%p-0x%p (%08x %dM)\n"),
+			write_log (_T("NATMEM: P96 special area: %p-%p (0x%08x %dM)\n"),
 			p96mem_offset, (uae_u8*)p96mem_offset + changed_prefs.rtgmem_size,
 			changed_prefs.rtgmem_size, changed_prefs.rtgmem_size >> 20);
 		canbang = jit_direct_compatible_memory ? 1 : 0;

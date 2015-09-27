@@ -10,6 +10,24 @@
 
 #undef SERIAL_ENET
 
+#ifdef _WIN32
+#include <Ws2tcpip.h>
+#include <windows.h>
+#include <winspool.h>
+#include <stdlib.h>
+#include <stdarg.h>
+#include <mmsystem.h>
+#include <ddraw.h>
+#include <commctrl.h>
+#include <commdlg.h>
+#include <stdio.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <io.h>
+#include <setupapi.h>
+#include <Ntddpar.h>
+#endif
+
 #include "config.h"
 #include "sysdeps.h"
 #include "options.h"
@@ -215,6 +233,12 @@ void uaeser_close (void *vsd)
 	STUB("");
 }
 
+#ifdef FSUAE
+/* No MIDI support. */
+#else
+#define WITH_MIDI
+#endif
+
 #ifdef _WIN32
 static HANDLE hCom = INVALID_HANDLE_VALUE;
 static DCB dcb;
@@ -248,13 +272,16 @@ static void WSACleanup()
 }
 
 #define closesocket close
-#define GetAddrInfoW getaddrinfo
-#define FreeAddrInfoW freeaddrinfo
-#define PADDRINFOW struct addrinfo *
 #define BOOL bool
 #define SOCKADDR_INET sockaddr_in
 #define SOCKET_ERROR -1
 
+#endif
+
+#if SIZEOF_TCHAR == 1
+#define PADDRINFOW struct addrinfo *
+#define GetAddrInfoW getaddrinfo
+#define FreeAddrInfoW freeaddrinfo
 #endif
 
 #ifdef _WIN32
@@ -471,7 +498,7 @@ void writeser (int c)
 				tcp_disconnect ();
 			}
 		}
-#ifdef _WIN32
+#ifdef WITH_MIDI
 	} else if (midi_ready) {
 		BYTE outchar = (BYTE)c;
 		Midi_Parse (midi_output, &outchar);
@@ -493,21 +520,23 @@ void writeser (int c)
 			write_log("WARNING: writeser - 1 byte was not written (errno %d)\n",
 				  errno);
 		}
-	}
 #endif
+	}
 }
 
 int checkserwrite(int spaceneeded)
 {
 	if (!valid_serial_handle() || !currprefs.use_serial)
 		return 1;
-#ifdef _WIN32
+#ifdef WITH_MIDI
 	if (midi_ready) {
 		return 1;
-	} else {
-		outser ();
-		if (datainoutput + spaceneeded >= sizeof (outputbuffer))
-			return 0;
+	}
+#endif
+#ifdef _WIN32
+	outser ();
+	if (datainoutput + spaceneeded >= sizeof (outputbuffer)) {
+		return 0;
 	}
 #else
 	/* we assume that we can write always */
@@ -539,7 +568,7 @@ int readseravail (void)
 				return 1;
 		}
 		return 0;
-#ifdef _WIN32
+#ifdef WITH_MIDI
 	} else if (midi_ready) {
 		if (ismidibyte ())
 			return 1;
@@ -551,6 +580,8 @@ int readseravail (void)
 		if (dataininput > dataininputcnt)
 			return 1;
 		if (hCom != INVALID_HANDLE_VALUE)  {
+			COMSTAT ComStat;
+			DWORD dwErrorFlags;
 			ClearCommError (hCom, &dwErrorFlags, &ComStat);
 			if (ComStat.cbInQue > 0)
 				return 1;
@@ -590,7 +621,7 @@ int readser (int *buffer)
 			}
 		}
 		return 0;
-#ifdef _WIN23
+#ifdef WITH_MIDI
 	} else if (midi_ready) {
 		*buffer = getmidibyte ();
 		if (*buffer < 0)

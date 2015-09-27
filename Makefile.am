@@ -1292,6 +1292,8 @@ gen/cpuemu_33.cpp: gen/cpuemu_0.cpp
 
 gen/cpuemu_40.cpp: gen/cpuemu_0.cpp
 
+gen/cpuemu_50.cpp: gen/cpuemu_0.cpp
+
 gen/cpustbl.cpp: gen/cpuemu_0.cpp
 
 gen/cputbl.h: gen/cpuemu_0.cpp

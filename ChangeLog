@@ -1,6 +1,7 @@
 Version 2.7.2dev:
 
 * Serial port over TCP/IP.
+* Updated emulation core from WinUAE 3200b14.
 
 Version 2.7.1dev:
 

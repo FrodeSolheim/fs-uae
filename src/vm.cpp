@@ -27,11 +27,9 @@
 #define HAVE_MAP_32BIT 1
 #endif
 
-/* Commiting memory on Windows zeroes the region. We do the same on other
- * platforms so the functions exhibits the same behavior. I.e. a decommit
- * followed by a commit results in zeroed memory. */
-#define CLEAR_MEMORY_ON_COMMIT
+// #define CLEAR_MEMORY_ON_COMMIT
 
+// #define LOG_ALLOCATIONS
 // #define TRACK_ALLOCATIONS
 
 #ifdef TRACK_ALLOCATIONS
@@ -136,8 +134,10 @@ int uae_vm_page_size(void)
 static void *uae_vm_alloc_with_flags(uae_u32 size, int flags, int protect)
 {
 	void *address = NULL;
+#ifdef LOG_ALLOCATIONS
 	uae_log("VM: Allocate 0x%-8x bytes [%d] (%s)\n",
 			size, flags, protect_description(protect));
+#endif
 #ifdef _WIN32
 	int va_type = MEM_COMMIT | MEM_RESERVE;
 	if (flags & UAE_VM_WRITE_WATCH) {
@@ -203,7 +203,9 @@ static void *uae_vm_alloc_with_flags(uae_u32 size, int flags, int protect)
 #ifdef TRACK_ALLOCATIONS
 	add_allocation(address, size);
 #endif
+#ifdef LOG_ALLOCATIONS
 	uae_log("VM: %p\n", address);
+#endif
 	return address;
 }
 
@@ -394,16 +396,16 @@ bool uae_vm_decommit(void *address, uae_u32 size)
 #ifdef _WIN32
 	return VirtualFree (address, size, MEM_DECOMMIT) != 0;
 #else
-#if 0
-	/* FIXME: perhaps we can unmmap and mmap the memory region again to
-	 * allow the operating system to throw away the (unused) pages. Of
-	 * course, we have problem if re-mmaping it fails. If we do this,
-	 * we may be able to remove the memory clear operation in
-	 * uae_vm_commit. We might also be able to use mmap with MAP_FIXED
-	 * to more "safely" overwrite the old mapping. */
-	munmap(address, size);
-	mmap(...);
-#endif
-	return do_protect(address, size, UAE_VM_NO_ACCESS);
+    /* Re-map the memory so we get fresh unused pages (and the old ones can be
+     * released and physical memory reclaimed). We also assume that the new
+     * pages will be zero-initialized (tested on Linux and OS X). */
+    void *result = mmap(address, size, PROT_NONE,
+                        MAP_ANON | MAP_PRIVATE | MAP_FIXED, -1, 0);
+    if (result == MAP_FAILED) {
+        uae_log("VM: Warning - could not re-map with MAP_FIXED at %p\n",
+                address);
+        do_protect(address, size, UAE_VM_NO_ACCESS);
+    }
+    return result != MAP_FAILED;
 #endif
 }

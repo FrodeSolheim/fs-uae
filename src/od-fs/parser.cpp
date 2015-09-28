@@ -279,6 +279,7 @@ static void WSACleanup()
 #endif
 
 #if SIZEOF_TCHAR == 1
+#define ADDRINFOW struct addrinfo
 #define PADDRINFOW struct addrinfo *
 #define GetAddrInfoW getaddrinfo
 #define FreeAddrInfoW freeaddrinfo
@@ -379,12 +380,22 @@ static int opentcp (const TCHAR *sername)
 	if (!port)
 		port = 	my_strdup (_T("1234"));
 
-	err = GetAddrInfoW (name, port, NULL, &socketinfo);
+	ADDRINFOW hints;
+	memset(&hints, 0, sizeof(hints));
+	hints.ai_family = PF_UNSPEC;
+	hints.ai_socktype = SOCK_STREAM;
+	err = GetAddrInfoW(name, port, &hints, &socketinfo);
 	if (err < 0) {
 		write_log (_T("SERIAL_TCP: GetAddrInfoW() failed, %s:%s: %d\n"), name, port, WSAGetLastError ());
 		goto end;
 	}
-	serialsocket = socket (socketinfo->ai_family, socketinfo->ai_socktype, socketinfo->ai_protocol);
+	serialsocket = INVALID_SOCKET;
+	for (; socketinfo; socketinfo = socketinfo->ai_next) {
+		serialsocket = socket (socketinfo->ai_family, socketinfo->ai_socktype, socketinfo->ai_protocol);
+		if (serialsocket != INVALID_SOCKET) {
+			break;
+		}
+	}
 	if (serialsocket == INVALID_SOCKET) {
 		write_log(_T("SERIAL_TCP: socket() failed, %s:%s: %d\n"), name, port, WSAGetLastError ());
 		goto end;

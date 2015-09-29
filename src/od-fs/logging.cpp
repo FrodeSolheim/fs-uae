@@ -59,6 +59,10 @@ static const char *get_message(int msg)
         return "Module ripper: No music modules or packed data found";
     } else if (msg == NUMSG_MODRIP_FINISHED) {
         return "Module ripper: Scan finished";
+    } else if (msg == NUMSG_NO_PPC) {
+        return "PPC CPU was started but qemu-uae plugin was not found";
+    } else if (msg == NUMSG_UAEBOOTROM_PPC) {
+        return "UAE boot ROM cannot be used with PPC native OS";
     }
 
     return NULL;

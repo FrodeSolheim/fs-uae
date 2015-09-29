@@ -62,16 +62,6 @@ static const char *lookup_plugin(const char *name)
     }
     g_free(path);
 
-    path = g_build_filename(fs_uae_plugins_dir(), module_name, NULL);
-    fs_log("PLUGIN: Checking \"%s\"\n", path);
-    if (g_file_test(path, G_FILE_TEST_EXISTS)) {
-        g_free(module_name);
-        // FIXME: resource leak, should cache the path
-        return (const char*) path;
-    }
-    g_free(path);
-
-#if 0
     path = g_build_filename(executable_dir, "..", name, module_name, NULL);
     fs_log("PLUGIN: Checking \"%s\"\n", path);
     if (g_file_test(path, G_FILE_TEST_EXISTS)) {
@@ -80,7 +70,15 @@ static const char *lookup_plugin(const char *name)
         return (const char*) path;
     }
     g_free(path);
-#endif
+
+    path = g_build_filename(fs_uae_plugins_dir(), module_name, NULL);
+    fs_log("PLUGIN: Checking \"%s\"\n", path);
+    if (g_file_test(path, G_FILE_TEST_EXISTS)) {
+        g_free(module_name);
+        // FIXME: resource leak, should cache the path
+        return (const char*) path;
+    }
+    g_free(path);
 
     void *data = g_hash_table_lookup(provides, module_name);
     if (!data) {

@@ -384,31 +384,41 @@ STATIC_INLINE uae_u32 get_wordi(uaecptr addr)
 STATIC_INLINE uae_u32 get_long_jit(uaecptr addr)
 {
 	addrbank *bank = &get_mem_bank(addr);
+#ifdef JIT
 	special_mem |= bank->jit_read_flag;
+#endif
 	return bank->lget(addr);
 }
 STATIC_INLINE uae_u32 get_word_jit(uaecptr addr)
 {
 	addrbank *bank = &get_mem_bank(addr);
+#ifdef JIT
 	special_mem |= bank->jit_read_flag;
+#endif
 	return bank->wget(addr);
 }
 STATIC_INLINE uae_u32 get_byte_jit(uaecptr addr)
 {
 	addrbank *bank = &get_mem_bank(addr);
+#ifdef JIT
 	special_mem |= bank->jit_read_flag;
+#endif
 	return bank->bget(addr);
 }
 STATIC_INLINE uae_u32 get_longi_jit(uaecptr addr)
 {
 	addrbank *bank = &get_mem_bank(addr);
+#ifdef JIT
 	special_mem |= bank->jit_read_flag;
+#endif
 	return bank->lgeti(addr);
 }
 STATIC_INLINE uae_u32 get_wordi_jit(uaecptr addr)
 {
 	addrbank *bank = &get_mem_bank(addr);
+#ifdef JIT
 	special_mem |= bank->jit_read_flag;
+#endif
 	return bank->wgeti(addr);
 }
 
@@ -458,19 +468,25 @@ STATIC_INLINE void put_byte (uaecptr addr, uae_u32 b)
 STATIC_INLINE void put_long_jit(uaecptr addr, uae_u32 l)
 {
 	addrbank *bank = &get_mem_bank(addr);
+#ifdef JIT
 	special_mem |= bank->jit_write_flag;
+#endif
 	bank->lput(addr, l);
 }
 STATIC_INLINE void put_word_jit(uaecptr addr, uae_u32 l)
 {
 	addrbank *bank = &get_mem_bank(addr);
+#ifdef JIT
 	special_mem |= bank->jit_write_flag;
+#endif
 	bank->wput(addr, l);
 }
 STATIC_INLINE void put_byte_jit(uaecptr addr, uae_u32 l)
 {
 	addrbank *bank = &get_mem_bank(addr);
+#ifdef JIT
 	special_mem |= bank->jit_write_flag;
+#endif
 	bank->bput(addr, l);
 }
 

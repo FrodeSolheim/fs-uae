@@ -86,7 +86,12 @@ static void *VirtualAlloc(void *lpAddress, size_t dwSize, int flAllocationType,
 	void *address = NULL;
 
 	if (flAllocationType == MEM_COMMIT && lpAddress == NULL) {
-		assert(false);
+		write_log("NATMEM: Allocated non-reserved memory size %zu\n", dwSize);
+		void *memory = uae_vm_alloc(dwSize, 0, UAE_VM_READ_WRITE);
+		if (memory == NULL) {
+			write_log("memory allocated failed errno %d\n", errno);
+		}
+		return memory;
 	}
 
 	if (flAllocationType & MEM_RESERVE) {

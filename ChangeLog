@@ -1,5 +1,6 @@
 Version 2.7.2dev:
 
+* Added Lallafa's vpar virtual parallel port.
 * Serial port over TCP/IP.
 * Updated emulation core from WinUAE 3200b14.
 

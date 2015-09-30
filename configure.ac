@@ -631,6 +631,8 @@ OPT_FEATURE([WITH_TOCCATA], [toccata], [toccata],
 	[enable Toccata sound card emulation], [yes])
 OPT_FEATURE([WITH_UDIS86], [udis86], [udis86],
 	[enable UDIS86 x86/x86-64 disassembler], [yes])
+OPT_FEATURE([WITH_VPAR], [vpar], [vpar],
+	[enable vpar virtual parallel port], [yes])
 OPT_FEATURE([WITH_XML_SHADER], [xml_shader], [xml-shader],
 	[enable XML shader support], [yes])
 OPT_FEATURE([A_ZIP], [zip], [zip],

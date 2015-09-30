@@ -9,5 +9,6 @@ extern void flushprinter (void);
 extern void closeprinter (void);
 extern int isprinteropen (void);
 extern void initparallel (void);
+void exitparallel(void);
 
 #endif /* UAE_PARALLEL_H */

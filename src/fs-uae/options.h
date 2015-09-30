@@ -33,6 +33,7 @@
 #define OPTION_MOTHERBOARD_RAM "motherboard_ram"
 #define OPTION_MMU "mmu"
 #define OPTION_MODEL "model"
+#define OPTION_PARALLEL_PORT "parallel_port"
 #define OPTION_SERIAL_PORT "serial_port"
 #define OPTION_SLOW_MEMORY "slow_memory"
 #define OPTION_SOUND_CARD "sound_card"

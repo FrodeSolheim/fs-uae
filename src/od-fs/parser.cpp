@@ -44,12 +44,14 @@
 #include "threaddep/thread.h"
 #include "serial.h"
 #include "parser.h"
+#include "ioport.h"
 #include "parallel.h"
 #include "cia.h"
 #include "savestate.h"
 #include "ahidsound_new.h"
 #include "xwin.h"
 #include "drawing.h"
+#include "vpar.h"
 
 #ifdef POSIX_SERIAL
 #include <termios.h>
@@ -72,26 +74,6 @@ struct termios tios;
 #endif
 
 #define MIN_PRTBYTES 10
-
-int parallel_direct_write_status (uae_u8 v, uae_u8 dir)
-{
-	return 0;
-}
-
-int parallel_direct_read_status (uae_u8 *vp)
-{
-	return 0;
-}
-
-int parallel_direct_write_data (uae_u8 v, uae_u8 dir)
-{
-	return 0;
-}
-
-int parallel_direct_read_data (uae_u8 *v)
-{
-	return 0;
-}
 
 static void freepsbuffers (void)
 {
@@ -128,7 +110,12 @@ static void DoSomeWeirdPrintingStuff (uae_char val)
 
 int isprinter (void)
 {
-	return 0;
+#ifdef WITH_VPAR
+    if (par_fd >= 0) {
+        return par_mode;
+    }
+#endif
+    return 0;
 }
 
 int isprinteropen (void)
@@ -153,6 +140,11 @@ void flushprinter (void)
 
 void doprinter (uae_u8 val)
 {
+#ifdef WITH_VPAR
+    if (par_fd >= 0) {
+        write(par_fd, &val, 1);
+    }
+#endif
 }
 
 struct uaeserialdata
@@ -859,6 +851,11 @@ void initparallel (void)
 #ifdef FSUAE
 	write_log("initparallel\n");
 #endif
+
+#ifdef WITH_VPAR
+	vpar_open();
+#endif
+
 #ifdef AHI
 	if (uae_boot_rom_type) {
 #ifdef FSUAE
@@ -872,6 +869,16 @@ void initparallel (void)
 #ifdef AHI_V2
 		init_ahi_v2 ();
 #endif
+	}
+#endif
+}
+
+/* FIXME: This function isn't called from anywhere */
+void exitparallel(void)
+{
+#ifdef WITH_VPAR
+	if (vpar_enabled()) {
+		vpar_close();
 	}
 #endif
 }

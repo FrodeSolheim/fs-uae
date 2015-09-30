@@ -483,6 +483,8 @@ libuae_a_SOURCES = \
 	src/od-fs/include/win32gui.h \
 	src/od-fs/input.cpp \
 	src/od-fs/inputrecord.cpp \
+	src/od-fs/ioport.cpp \
+	src/od-fs/ioport.h \
 	src/od-fs/joystick.cpp \
 	src/od-fs/keyboard.cpp \
 	src/od-fs/libamiga.cpp \
@@ -514,6 +516,8 @@ libuae_a_SOURCES = \
 	src/od-fs/uae_host.cpp \
 	src/od-fs/uaemisc.cpp \
 	src/od-fs/video.cpp \
+	src/od-fs/vpar.cpp \
+	src/od-fs/vpar.h \
 	src/od-fs/winuae_compat.h \
 	src/od-win32/caps/CapsAPI.h \
 	src/od-win32/caps/Comtype.h \

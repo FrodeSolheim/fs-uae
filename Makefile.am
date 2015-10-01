@@ -417,6 +417,7 @@ libuae_a_SOURCES = \
 	src/include/uae/qemu.h \
 	src/include/uae/seh.h \
 	src/include/uae/slirp.h \
+	src/include/uae/socket.h \
 	src/include/uae/string.h \
 	src/include/uae/types.h \
 	src/include/uae/vm.h \
@@ -569,6 +570,7 @@ libuae_a_SOURCES = \
 	src/slirp_uae.cpp \
 	src/specialmonitors.cpp \
 	src/statusline.cpp \
+	src/support/socket.cpp \
 	src/test_card.cpp \
 	src/traps.cpp \
 	src/uaeexe.cpp \

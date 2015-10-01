@@ -279,7 +279,7 @@ void reset_all_systems (void)
 	uaeserialdev_reset ();
 	uaeserialdev_start_threads ();
 #endif
-#if defined (PARALLEL_PORT)
+#ifdef PARALLEL_PORT
 	initparallel ();
 #endif
 	native2amiga_reset ();
@@ -295,6 +295,9 @@ void do_leave_program (void)
 	DISK_free ();
 	close_sound ();
 	dump_counts ();
+#ifdef PARALLEL_PORT
+	parallel_exit();
+#endif
 #ifdef SERIAL_PORT
 	serial_exit ();
 #endif

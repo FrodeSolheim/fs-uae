@@ -239,7 +239,7 @@ void fs_uae_configure_amiga_hardware()
     const char *parallel_port = fs_config_get_const_string(
                 OPTION_PARALLEL_PORT);
     if (parallel_port && g_ascii_strcasecmp(parallel_port, "none") != 0) {
-        amiga_set_option("prtname", parallel_port);
+        amiga_enable_parallel_port(parallel_port);
     }
 
     const char *dongle_type = fs_config_get_const_string(OPTION_DONGLE_TYPE);

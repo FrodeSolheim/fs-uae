@@ -311,7 +311,8 @@ void amiga_write_config(const char *path) {
     cfgfile_save(&currprefs, path, 0);
 }
 
-int amiga_enable_serial_port(const char *serial_name) {
+int amiga_enable_serial_port(const char *serial_name)
+{
     write_log("amiga_enable_serial_port\n");
     if (serial_name != NULL && serial_name[0]) {
         write_log("serial port device: %s\n", serial_name);
@@ -319,14 +320,21 @@ int amiga_enable_serial_port(const char *serial_name) {
         strcpy(currprefs.sername, serial_name);
         changed_prefs.use_serial = 1;
         currprefs.use_serial = 1;
+        return 1;
     }
-    /*
-    else {
-        write_log("serial: using dummy serial port\n");
+    return 0;
+}
+
+int amiga_enable_parallel_port(const char *parallel_name)
+{
+    write_log("amiga_enable_parallel_port\n");
+    if (parallel_name != NULL && parallel_name[0]) {
+        write_log("Parallel port device: %s\n", parallel_name);
+        strcpy(changed_prefs.prtname, parallel_name);
+        strcpy(currprefs.prtname, parallel_name);
+        return 1;
     }
-    */
-    //config_changed = 1;
-    return 1;
+    return 0;
 }
 
 void amiga_set_cpu_idle(int idle)

@@ -62,6 +62,8 @@
 #include <netdb.h>
 #endif
 
+#include "uae/socket.h"
+
 #if !defined B300 || !defined B1200 || !defined B2400 || !defined B4800 || !defined B9600
 #undef POSIX_SERIAL
 #endif
@@ -74,6 +76,75 @@ struct termios tios;
 #endif
 
 #define MIN_PRTBYTES 10
+
+#define PARALLEL_MODE_NONE 0
+#define PARALLEL_MODE_TCP_PRINTER 1
+
+int parallel_mode = 0;
+static uae_socket parallel_tcp_listener = UAE_SOCKET_INVALID;
+static uae_socket parallel_tcp = UAE_SOCKET_INVALID;
+
+static bool parallel_tcp_connected(void)
+{
+	if (parallel_tcp_listener == UAE_SOCKET_INVALID) {
+		return false;
+	}
+	if (parallel_tcp == UAE_SOCKET_INVALID) {
+		if (uae_socket_select_read(parallel_tcp_listener)) {
+			parallel_tcp = uae_socket_accept(parallel_tcp_listener);
+			if (parallel_tcp != UAE_SOCKET_INVALID) {
+				write_log(_T("TCP: Parallel connection accepted\n"));
+			}
+		}
+	}
+	return parallel_tcp != UAE_SOCKET_INVALID;
+}
+
+static void parallel_tcp_disconnect(void)
+{
+	if (parallel_tcp == UAE_SOCKET_INVALID) {
+		return;
+	}
+	uae_socket_close(parallel_tcp);
+	parallel_tcp = UAE_SOCKET_INVALID;
+	write_log(_T("TCP: Parallel disconnect\n"));
+}
+
+static void parallel_tcp_open(const TCHAR *name)
+{
+	parallel_tcp_listener = uae_tcp_listen_uri(
+				name, "1235", UAE_SOCKET_DEFAULT);
+	if (parallel_tcp_listener != UAE_SOCKET_INVALID) {
+		parallel_mode = PARALLEL_MODE_TCP_PRINTER;
+		if (_tcsicmp(uae_uri_path(name), _T("/wait")) == 0) {
+			while (parallel_tcp_connected() == false) {
+				sleep_millis(1000);
+				write_log(_T("TCP: Waiting for parallel connection...\n"));
+			}
+		}
+	}
+}
+
+static void parallel_tcp_close(void)
+{
+	if (parallel_tcp_listener == UAE_SOCKET_INVALID) {
+		return;
+	}
+	parallel_tcp_disconnect();
+	uae_socket_close(parallel_tcp_listener);
+	parallel_tcp_listener = UAE_SOCKET_INVALID;
+	uae_log("TCP: Parallel listener socket closed\n");
+}
+
+void parallel_exit(void)
+{
+	parallel_tcp_close();
+#ifdef WITH_VPAR
+	vpar_close();
+#endif
+}
+
+#if 0
 
 static void freepsbuffers (void)
 {
@@ -108,8 +179,13 @@ static void DoSomeWeirdPrintingStuff (uae_char val)
 {
 }
 
+#endif
+
 int isprinter (void)
 {
+	if (parallel_mode == PARALLEL_MODE_TCP_PRINTER) {
+		return 1;
+	}
 #ifdef WITH_VPAR
     if (par_fd >= 0) {
         return par_mode;
@@ -117,6 +193,8 @@ int isprinter (void)
 #endif
     return 0;
 }
+
+#if 0
 
 int isprinteropen (void)
 {
@@ -133,13 +211,28 @@ void unload_ghostscript (void)
 	STUB("");
 }
 
+static void openprinter (void)
+{
+	STUB("");
+}
+
 void flushprinter (void)
 {
 	STUB("");
 }
 
+#endif
+
 void doprinter (uae_u8 val)
 {
+	if (parallel_mode == PARALLEL_MODE_TCP_PRINTER) {
+		if (parallel_tcp_connected()) {
+			if (uae_socket_write(parallel_tcp, &val, 1) != 1) {
+				parallel_tcp_disconnect ();
+			}
+		}
+	}
+
 #ifdef WITH_VPAR
     if (par_fd >= 0) {
         write(par_fd, &val, 1);
@@ -251,193 +344,72 @@ static OVERLAPPED writeol, readol;
 static int writepending;
 
 #ifndef _WIN32
-
-static int WSAGetLastError()
-{
-	return errno;
-
-}
-
-static void WSACleanup()
-{
-
-}
-
-#define closesocket close
 #define BOOL bool
-#define SOCKADDR_INET sockaddr_in
-#define SOCKET_ERROR -1
-
 #endif
 
-#if SIZEOF_TCHAR == 1
-#define ADDRINFOW struct addrinfo
-#define PADDRINFOW struct addrinfo *
-#define GetAddrInfoW getaddrinfo
-#define FreeAddrInfoW freeaddrinfo
-#endif
-
-#ifdef _WIN32
-static WSADATA wsadata;
-#endif
-static SOCKET serialsocket = INVALID_SOCKET;
-static SOCKET serialconn = INVALID_SOCKET;
-static PADDRINFOW socketinfo;
-static char socketaddr[sizeof(SOCKADDR_INET)];
+static SOCKET serialsocket = UAE_SOCKET_INVALID;
+static SOCKET serialconn = UAE_SOCKET_INVALID;
 static BOOL tcpserial;
 
 static bool tcp_is_connected (void)
 {
-	socklen_t sa_len = sizeof(SOCKADDR_INET);
-	if (serialsocket == INVALID_SOCKET)
+	if (serialsocket == UAE_SOCKET_INVALID) {
 		return false;
-	if (serialconn == INVALID_SOCKET) {
-		struct timeval tv;
-		fd_set fd;
-		tv.tv_sec = 0;
-		tv.tv_usec = 0;
-#ifdef _WIN32
-		fd.fd_array[0] = serialsocket;
-		fd.fd_count = 1;
-#else
-		FD_ZERO(&fd);
-		FD_SET(serialsocket, &fd);
-#endif
-		if (select(serialsocket + 1, &fd, NULL, NULL, &tv)) {
-			serialconn = accept (serialsocket, (struct sockaddr*)socketaddr, &sa_len);
-			if (serialconn != INVALID_SOCKET)
-				write_log (_T("SERIAL_TCP: connection accepted\n"));
+	}
+	if (serialconn == UAE_SOCKET_INVALID) {
+		if (uae_socket_select_read(serialsocket)) {
+			serialconn = uae_socket_accept(serialsocket);
+			if (serialconn != UAE_SOCKET_INVALID) {
+				write_log(_T("TCP: Serial connection accepted\n"));
+			}
 		}
 	}
-	return serialconn != INVALID_SOCKET;
+	return serialconn != UAE_SOCKET_INVALID;
 }
 
 static void tcp_disconnect (void)
 {
-	if (serialconn == INVALID_SOCKET)
+	if (serialconn == UAE_SOCKET_INVALID) {
 		return;
-	closesocket (serialconn);
-	serialconn = INVALID_SOCKET;
-	write_log (_T("SERIAL_TCP: disconnect\n"));
+	}
+	uae_socket_close(serialconn);
+	serialconn = UAE_SOCKET_INVALID;
+	write_log(_T("TCP: Serial disconnect\n"));
 }
 
 static void closetcp (void)
 {
-	if (serialconn != INVALID_SOCKET)
-		closesocket (serialconn);
-	serialconn = INVALID_SOCKET;
-	if (serialsocket != INVALID_SOCKET)
-		closesocket (serialsocket);
-	serialsocket = INVALID_SOCKET;
-	if (socketinfo)
-		FreeAddrInfoW (socketinfo);
-	socketinfo = NULL;
-	WSACleanup ();
+	if (serialconn != UAE_SOCKET_INVALID) {
+		uae_socket_close(serialconn);
+		serialconn = UAE_SOCKET_INVALID;
+	}
+	if (serialsocket != UAE_SOCKET_INVALID) {
+		uae_socket_close(serialsocket);
+		serialsocket = UAE_SOCKET_INVALID;
+	}
+	// WSACleanup ();
 }
 
 static int opentcp (const TCHAR *sername)
 {
-	int err;
-	TCHAR *port, *name;
-	const TCHAR *p;
-	bool waitmode = false;
-	const int one = 1;
-	const struct linger linger_1s = { 1, 1 };
-
-#ifdef _WIN32
-	if (WSAStartup (MAKEWORD (2, 2), &wsadata)) {
-		DWORD lasterror = WSAGetLastError ();
-		write_log (_T("SERIAL_TCP: can't open '%s', error %d\n"), sername, lasterror);
+	serialsocket = uae_tcp_listen_uri(sername, "1234", UAE_SOCKET_DEFAULT);
+	if (serialsocket == UAE_SOCKET_INVALID) {
 		return 0;
 	}
-#endif
-
-	name = my_strdup (sername);
-	port = NULL;
-	p = _tcschr (sername, ':');
-	if (p) {
-		name[p - sername] = 0;
-		port = my_strdup (p + 1);
-		const TCHAR *p2 = _tcschr (port, '/');
-		if (p2) {
-			port[p2 - port] = 0;
-			if (!_tcsicmp (p2 + 1, _T("wait")))
-				waitmode = true;
+	if (_tcsicmp(uae_uri_path(sername), _T("/wait")) == 0) {
+		while (tcp_is_connected() == false) {
+			Sleep(1000);
+			write_log(_T("TCP: Waiting for serial connection...\n"));
 		}
 	}
-	if (port && port[0] == 0) {
-		xfree (port);
-		port = NULL;
-	}
-	if (!port)
-		port = 	my_strdup (_T("1234"));
-
-	ADDRINFOW hints;
-	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = PF_UNSPEC;
-	hints.ai_socktype = SOCK_STREAM;
-	err = GetAddrInfoW(name, port, &hints, &socketinfo);
-	if (err < 0) {
-		write_log (_T("SERIAL_TCP: GetAddrInfoW() failed, %s:%s: %d\n"), name, port, WSAGetLastError ());
-		goto end;
-	}
-	serialsocket = INVALID_SOCKET;
-	for (; socketinfo; socketinfo = socketinfo->ai_next) {
-		serialsocket = socket (socketinfo->ai_family, socketinfo->ai_socktype, socketinfo->ai_protocol);
-		if (serialsocket != INVALID_SOCKET) {
-			break;
-		}
-	}
-	if (serialsocket == INVALID_SOCKET) {
-		write_log(_T("SERIAL_TCP: socket() failed, %s:%s: %d\n"), name, port, WSAGetLastError ());
-		goto end;
-	}
-	err = bind (serialsocket, socketinfo->ai_addr, socketinfo->ai_addrlen);
-	if (err < 0) {
-		write_log(_T("SERIAL_TCP: bind() failed, %s:%s: %d\n"), name, port, WSAGetLastError ());
-		goto end;
-	}
-	err = listen (serialsocket, 1);
-	if (err < 0) {
-		write_log(_T("SERIAL_TCP: listen() failed, %s:%s: %d\n"), name, port, WSAGetLastError ());
-		goto end;
-	}
-	err = setsockopt (serialsocket, SOL_SOCKET, SO_LINGER, (char*)&linger_1s, sizeof linger_1s);
-	if (err < 0) {
-		write_log(_T("SERIAL_TCP: setsockopt(SO_LINGER) failed, %s:%s: %d\n"), name, port, WSAGetLastError ());
-		goto end;
-	}
-	err = setsockopt (serialsocket, SOL_SOCKET, SO_REUSEADDR, (char*)&one, sizeof one);
-	if (err < 0) {
-		write_log(_T("SERIAL_TCP: setsockopt(SO_REUSEADDR) failed, %s:%s: %d\n"), name, port, WSAGetLastError ());
-		goto end;
-	}
-
-	if (waitmode) {
-		while (tcp_is_connected () == false) {
-			Sleep (1000);
-			write_log (_T("SERIAL_TCP: waiting for connect...\n"));
-		}
-	}
-
-	xfree (port);
-	xfree (name);
 	tcpserial = TRUE;
 	return 1;
-end:
-	xfree (port);
-	xfree (name);
-	closetcp ();
-	return 0;
 }
 
 int openser (const TCHAR *sername)
 {
-	if (!_tcsnicmp (sername, _T("TCP://"), 6)) {
-		return opentcp (sername + 6);
-	}
-	if (!_tcsnicmp (sername, _T("TCP:"), 4)) {
-		return opentcp (sername + 4);
+	if (_tcsnicmp(sername, _T("tcp:"), 4) == 0) {
+		return opentcp(sername);
 	}
 
 #ifdef POSIX_SERIAL
@@ -497,7 +469,7 @@ void writeser (int c)
 		if (tcp_is_connected ()) {
 			char buf[1];
 			buf[0] = (char)c;
-			if (send (serialconn, buf, 1, 0) != 1) {
+			if (uae_socket_write(serialconn, buf, 1) != 1) {
 				tcp_disconnect ();
 			}
 		}
@@ -551,19 +523,8 @@ int readseravail (void)
 {
 	if (tcpserial) {
 		if (tcp_is_connected ()) {
-			struct timeval tv;
-			fd_set fd;
-			tv.tv_sec = 0;
-			tv.tv_usec = 0;
-#ifdef _WIN32
-			fd.fd_array[0] = serialconn;
-			fd.fd_count = 1;
-#else
-			FD_ZERO(&fd);
-			FD_SET(serialconn, &fd);
-#endif
-			int err = select(serialconn + 1, &fd, NULL, NULL, &tv);
-			if (err == SOCKET_ERROR) {
+			int err = uae_socket_select_read(serialconn);
+			if (err == UAE_SELECT_ERROR) {
 				tcp_disconnect ();
 				return 0;
 			}
@@ -614,7 +575,7 @@ int readser (int *buffer)
 		if (tcp_is_connected ()) {
 			char buf[1];
 			buf[0] = 0;
-			int err = recv (serialconn, buf, 1, 0);
+			int err = uae_socket_read(serialconn, buf, 1);
 			if (err == 1) {
 				*buffer = buf[0];
 				//write_log(_T(" %02X "), buf[0]);
@@ -851,10 +812,13 @@ void initparallel (void)
 #ifdef FSUAE
 	write_log("initparallel\n");
 #endif
-
+	if (_tcsnicmp(currprefs.prtname, "tcp:", 4) == 0) {
+		parallel_tcp_open(currprefs.prtname);
+	} else {
 #ifdef WITH_VPAR
-	vpar_open();
+		vpar_open();
 #endif
+	}
 
 #ifdef AHI
 	if (uae_boot_rom_type) {
@@ -869,16 +833,6 @@ void initparallel (void)
 #ifdef AHI_V2
 		init_ahi_v2 ();
 #endif
-	}
-#endif
-}
-
-/* FIXME: This function isn't called from anywhere */
-void exitparallel(void)
-{
-#ifdef WITH_VPAR
-	if (vpar_enabled()) {
-		vpar_close();
 	}
 #endif
 }

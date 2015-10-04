@@ -22,6 +22,7 @@
 #include "uae/fs.h"
 #include "uae/log.h"
 #include "uae/glib.h"
+#include "uae/time.h"
 
 void keyboard_settrans (void);
 libamiga_callbacks g_libamiga_callbacks = {};
@@ -131,10 +132,7 @@ int amiga_init()
     printf("UAE: Initializing core derived from %s\n", UAE_BASE_VERSION);
     write_log("UAE: Initializing core derived from %s\n", UAE_BASE_VERSION);
 
-    // because frame_time_t is sometimes cast to int, we make sure to
-    // start from 0 wo it will work for "a while". Should be fixed
-    // properly
-    g_uae_epoch = fs_get_monotonic_time();
+    uae_time_init();
 
     /*
 #ifdef DEBUG_SYNC

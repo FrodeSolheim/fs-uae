@@ -1,5 +1,6 @@
 Version 2.7.2dev:
 
+* Use high-res timer on Windows for fastest-possible mode (perf fix).
 * Parallel port ("printer") over TCP/IP, added parallel_port option.
 * Fixed crash (abort) with A1200 Blizzard CPU board models.
 * Added Lallafa's vpar virtual parallel port.

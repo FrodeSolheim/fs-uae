@@ -172,12 +172,12 @@ uae_socket uae_socket_accept(uae_socket s)
 
 int uae_socket_read(uae_socket s, void *buf, int count)
 {
-	return recv(s, buf, count, 0);
+	return recv(s, (char *) buf, count, 0);
 }
 
 int uae_socket_write(uae_socket s, const void *buf, int count)
 {
-	return send(s, buf, count, 0);
+	return send(s, (const char *) buf, count, 0);
 }
 
 int uae_socket_select(

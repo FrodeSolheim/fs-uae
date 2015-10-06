@@ -1,3 +1,7 @@
+Version 2.7.3dev:
+
+* Respect cpu option when checking for Zorro III config problems.
+
 Version 2.7.2dev:
 
 * Enable FPU JIT compilation by default on x86-64.

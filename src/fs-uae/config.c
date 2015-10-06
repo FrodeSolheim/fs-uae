@@ -71,83 +71,6 @@ void fs_uae_configure_amiga_model()
     }
 }
 
-static void configure_memory(amiga_config *c)
-{
-    int chip_memory = fs_uae_read_memory_option_small(OPTION_CHIP_MEMORY);
-    if (chip_memory != FS_CONFIG_NONE) {
-        if (chip_memory == 128) {
-            amiga_set_int_option("chipmem_size", -1);
-        } else if (chip_memory == 256) {
-            amiga_set_int_option("chipmem_size", 0);
-        } else if (chip_memory % 512 == 0) {
-            amiga_set_int_option("chipmem_size", chip_memory / 512);
-        } else {
-            fs_emu_warning(_("Option chip_memory must be a multiple of 512"));
-            chip_memory = 0;
-        }
-    } else {
-        chip_memory = 0;
-    }
-
-    int slow_memory = fs_uae_read_memory_option_small(OPTION_SLOW_MEMORY);
-    if (slow_memory != FS_CONFIG_NONE) {
-        if (slow_memory % 256 == 0) {
-            amiga_set_int_option("bogomem_size", slow_memory / 256);
-        } else {
-            fs_emu_warning(_("Option slow_memory must be a multiple of 256"));
-            slow_memory = 0;
-        }
-    } else {
-        slow_memory = 0;
-    }
-
-    int fast_memory = fs_uae_read_memory_option(OPTION_FAST_MEMORY);
-    if (fast_memory != FS_CONFIG_NONE) {
-        if (fast_memory % 1024 == 0) {
-            amiga_set_int_option("fastmem_size", fast_memory / 1024);
-        } else {
-            fs_emu_warning(_("Option fast_memory must be a multiple of 1024"));
-            fast_memory = 0;
-        }
-    } else {
-        fast_memory = 0;
-    }
-
-    int z3_memory = fs_uae_read_memory_option(OPTION_ZORRO_III_MEMORY);
-    if (z3_memory != FS_CONFIG_NONE) {
-        if (z3_memory && !c->allow_z3_memory) {
-            fs_emu_warning(_("Option zorro_iii_memory needs a CPU "
-                             "with 32-bit addressing"));
-            z3_memory = 0;
-        } else if (z3_memory % 1024 == 0) {
-            amiga_set_int_option("z3mem_size", z3_memory / 1024);
-        } else {
-            fs_emu_warning(_("Option zorro_iii_memory must be a multiple "
-                             "of 1024"));
-            z3_memory = 0;
-        }
-    } else {
-        z3_memory = 0;
-    }
-
-    int mb_ram = fs_uae_read_memory_option(OPTION_MOTHERBOARD_RAM);
-    if (mb_ram != FS_CONFIG_NONE) {
-        if (mb_ram && !c->allow_z3_memory) {
-            fs_emu_warning(_("Option motherboard_ram needs a CPU "
-                             "with 32-bit addressing"));
-            mb_ram = 0;
-        } else if (mb_ram % 1024 == 0) {
-            amiga_set_int_option("a3000mem_size", mb_ram / 1024);
-        } else {
-            fs_emu_warning(_("Option motherboard_ram must be a multiple "
-                             "of 1024"));
-            mb_ram = 0;
-        }
-    } else {
-        mb_ram = 0;
-    }
-}
-
 static void configure_roms(amiga_config *c)
 {
     char *path = fs_config_get_string("kickstart_file");
@@ -224,7 +147,6 @@ void fs_uae_configure_amiga_hardware()
     }
 
     configure_roms(c);
-    configure_memory(c);
 
     fs_uae_configure_hardware();
     fs_uae_configure_accelerator();

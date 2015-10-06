@@ -6,6 +6,7 @@
 #include <fs/conf.h>
 #include <fs/emu.h>
 #include <fs/glib.h>
+#include <fs/i18n.h>
 #include "options.h"
 #include "config-common.h"
 #include "config-model.h"
@@ -24,8 +25,7 @@
 
 static void configure_cpu(void)
 {
-    const char *uae_cpu_24bit_addressing =
-            cfg->cpu_32bit_addressing ? "false" : "true";
+    bool uae_cpu_24bit_addressing = !cfg->cpu_32bit_addressing;
     const char *uae_cpu_model = cfg->default_cpu;
     const char *uae_fpu_model = cfg->default_fpu;
     const char *uae_mmu_model = cfg->default_mmu;
@@ -37,73 +37,73 @@ static void configure_cpu(void)
     if (cpu == NULL || fs_uae_values_matches(cpu, "auto")) {
         /* Go with the already configured value */
     } else if (fs_uae_values_matches(cpu, "68000")) {
-        uae_cpu_24bit_addressing = "true";
+        uae_cpu_24bit_addressing = true;
         uae_cpu_model = "68000";
         uae_fpu_model = "0";
         uae_mmu_model = "0";
     } else if (fs_uae_values_matches(cpu, "68010")) {
-        uae_cpu_24bit_addressing = "true";
+        uae_cpu_24bit_addressing = true;
         uae_cpu_model = "68010";
         uae_fpu_model = "0";
         uae_mmu_model = "0";
     } else if (fs_uae_values_matches(cpu, "68EC020")) {
-        uae_cpu_24bit_addressing = "true";
+        uae_cpu_24bit_addressing = true;
         uae_cpu_model = "68020";
         uae_fpu_model = cfg->default_fpu_noninternal;
         uae_mmu_model = "0";
         //allow_6888x_fpu = true;
     } else if (fs_uae_values_matches(cpu, "68020")) {
-        uae_cpu_24bit_addressing = "false";
+        uae_cpu_24bit_addressing = false;
         uae_cpu_model = "68020";
         uae_fpu_model = cfg->default_fpu_noninternal;
         uae_mmu_model = "0";
     } else if (fs_uae_values_matches(cpu, "68EC030")) {
-        uae_cpu_24bit_addressing = "false";
+        uae_cpu_24bit_addressing = false;
         uae_cpu_model = "68030";
         uae_fpu_model = "0";
         uae_mmu_model = "0";
     } else if (fs_uae_values_matches(cpu, "68030")) {
-        uae_cpu_24bit_addressing = "false";
+        uae_cpu_24bit_addressing = false;
         uae_cpu_model = "68030";
         uae_fpu_model = cfg->default_fpu_noninternal;
         uae_mmu_model = "68030";
     } else if (fs_uae_values_matches(cpu, "68EC040")) {
-        uae_cpu_24bit_addressing = "false";
+        uae_cpu_24bit_addressing = false;
         uae_cpu_model = "68040";
         uae_fpu_model = "0";
         uae_mmu_model = "0";
     } else if (fs_uae_values_matches(cpu, "68LC040")) {
-        uae_cpu_24bit_addressing = "false";
+        uae_cpu_24bit_addressing = false;
         uae_cpu_model = "68040";
         uae_fpu_model = "0";
         uae_mmu_model = "68040";
     } else if (fs_uae_values_matches(cpu, "68040")) {
-        uae_cpu_24bit_addressing = "false";
+        uae_cpu_24bit_addressing = false;
         uae_cpu_model = "68040";
         uae_fpu_model = "68040";
         uae_mmu_model = "68040";
     } else if (fs_uae_values_matches(cpu, "68040-NOMMU")) {
-        uae_cpu_24bit_addressing = "false";
+        uae_cpu_24bit_addressing = false;
         uae_cpu_model = "68040";
         uae_fpu_model = "68040";
         uae_mmu_model = "0";
     } else if (fs_uae_values_matches(cpu, "68EC060")) {
-        uae_cpu_24bit_addressing = "false";
+        uae_cpu_24bit_addressing = false;
         uae_cpu_model = "68060";
         uae_fpu_model = "0";
         uae_mmu_model = "0";
     } else if (fs_uae_values_matches(cpu, "68LC060")) {
-        uae_cpu_24bit_addressing = "false";
+        uae_cpu_24bit_addressing = false;
         uae_cpu_model = "68060";
         uae_fpu_model = "0";
         uae_mmu_model = "68060";
     } else if (fs_uae_values_matches(cpu, "68060-NOMMU")) {
-        uae_cpu_24bit_addressing = "false";
+        uae_cpu_24bit_addressing = false;
         uae_cpu_model = "68060";
         uae_fpu_model = "68060";
         uae_mmu_model = "0";
     } else if (fs_uae_values_matches(cpu, "68060")) {
-        uae_cpu_24bit_addressing = "false";
+        uae_cpu_24bit_addressing = false;
         uae_cpu_model = "68060";
         uae_fpu_model = "68060";
         uae_mmu_model = "68060";
@@ -182,9 +182,14 @@ static void configure_cpu(void)
     if (uae_mmu_model[0]) {
         amiga_set_option("mmu_model", uae_mmu_model);
     }
-    if (uae_cpu_24bit_addressing[0]) {
-        amiga_set_option("cpu_24bit_addressing", uae_cpu_24bit_addressing);
+
+    if (uae_cpu_24bit_addressing) {
+        amiga_set_option("cpu_24bit_addressing", "true");
+    } else {
+        amiga_set_option("cpu_24bit_addressing", "false");
     }
+    cfg->cpu_32bit_addressing = !uae_cpu_24bit_addressing;
+    cfg->allow_z3_memory = !uae_cpu_24bit_addressing;
 
     int accuracy = fs_config_get_int("accuracy");
     if (accuracy == FS_CONFIG_NONE) {
@@ -261,7 +266,81 @@ static void configure_cpu(void)
     }
 }
 
+static void configure_memory()
+{
+    int chip_memory = fs_uae_read_memory_option_small(OPTION_CHIP_MEMORY);
+    if (chip_memory != FS_CONFIG_NONE) {
+        if (chip_memory == 128) {
+            amiga_set_int_option("chipmem_size", -1);
+        } else if (chip_memory == 256) {
+            amiga_set_int_option("chipmem_size", 0);
+        } else if (chip_memory % 512 == 0) {
+            amiga_set_int_option("chipmem_size", chip_memory / 512);
+        } else {
+            fs_emu_warning(_("Option chip_memory must be a multiple of 512"));
+            chip_memory = 0;
+        }
+    } else {
+        chip_memory = 0;
+    }
+
+    int slow_memory = fs_uae_read_memory_option_small(OPTION_SLOW_MEMORY);
+    if (slow_memory != FS_CONFIG_NONE) {
+        if (slow_memory % 256 == 0) {
+            amiga_set_int_option("bogomem_size", slow_memory / 256);
+        } else {
+            fs_emu_warning(_("Option slow_memory must be a multiple of 256"));
+            slow_memory = 0;
+        }
+    } else {
+        slow_memory = 0;
+    }
+
+    int fast_memory = fs_uae_read_memory_option(OPTION_FAST_MEMORY);
+    if (fast_memory != FS_CONFIG_NONE) {
+        if (fast_memory % 1024 == 0) {
+            amiga_set_int_option("fastmem_size", fast_memory / 1024);
+        } else {
+            fs_emu_warning(_("Option fast_memory must be a multiple of 1024"));
+            fast_memory = 0;
+        }
+    } else {
+        fast_memory = 0;
+    }
+
+    int z3_memory = fs_uae_read_memory_option(OPTION_ZORRO_III_MEMORY);
+    if (z3_memory != FS_CONFIG_NONE) {
+        if (z3_memory && !cfg->allow_z3_memory) {
+            fs_emu_warning(_("Option zorro_iii_memory needs a CPU "
+                             "with 32-bit addressing"));
+        }
+        if (z3_memory % 1024 != 0) {
+            fs_emu_warning(_("Option zorro_iii_memory must be a multiple "
+                             "of 1024"));
+        }
+        amiga_set_int_option("z3mem_size", z3_memory / 1024);
+    }
+
+    int mb_ram = fs_uae_read_memory_option(OPTION_MOTHERBOARD_RAM);
+    if (mb_ram != FS_CONFIG_NONE) {
+        if (mb_ram && !cfg->allow_z3_memory) {
+            fs_emu_warning(_("Option motherboard_ram needs a CPU "
+                             "with 32-bit addressing"));
+            mb_ram = 0;
+        } else if (mb_ram % 1024 == 0) {
+            amiga_set_int_option("a3000mem_size", mb_ram / 1024);
+        } else {
+            fs_emu_warning(_("Option motherboard_ram must be a multiple "
+                             "of 1024"));
+            mb_ram = 0;
+        }
+    } else {
+        mb_ram = 0;
+    }
+}
+
 void fs_uae_configure_hardware(void)
 {
     configure_cpu();
+    configure_memory();
 }

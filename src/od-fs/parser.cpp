@@ -283,6 +283,7 @@ int uaeser_setparams (void *vsd, int baud, int rbuffer, int bits, int sbits, int
 static void *uaeser_trap_thread (void *arg)
 {
 	STUB("");
+	return NULL;
 }
 
 void uaeser_trigger (void *vsd)
@@ -919,11 +920,13 @@ static int enumports_2 (struct serparportinfo **pi, int cnt, bool parport)
 int enumserialports (void)
 {
 	STUB("");
+	return 0;
 }
 
 int enummidiports (void)
 {
 	STUB("");
+	return 0;
 }
 
 void sernametodev (TCHAR *sername)

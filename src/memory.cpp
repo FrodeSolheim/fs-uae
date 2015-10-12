@@ -1821,6 +1821,22 @@ static void add_shmmaps (uae_u32 start, addrbank *what)
 
 bool mapped_malloc (addrbank *ab)
 {
+#ifdef FSUAE
+	write_log(_T("MMAN: mapped_malloc 0x%08x start=0x%08x %s (%s)\n"),
+			  ab->allocated, ab->start, ab->name, ab->label);
+	write_log(_T("MMAN: Flags:%s%s%s%s%s%s%s%s%s%s%s\n"),
+			  (ab->flags & ABFLAG_RAM) ? " RAM" : "",
+			  (ab->flags & ABFLAG_ROM) ? " ROM" : "",
+			  (ab->flags & ABFLAG_ROMIN) ? " ROMIN" : "",
+			  (ab->flags & ABFLAG_IO) ? " IO" : "",
+			  (ab->flags & ABFLAG_NONE) ? " NONE" : "",
+			  (ab->flags & ABFLAG_SAFE) ? " SAFE" : "",
+			  (ab->flags & ABFLAG_INDIRECT) ? " INDIRECT" : "",
+			  (ab->flags & ABFLAG_NOALLOC) ? " NOALLOC" : "",
+			  (ab->flags & ABFLAG_RTG) ? " RTG" : "",
+			  (ab->flags & ABFLAG_THREADSAFE) ? " THREADSAFE" : "",
+			  (ab->flags & ABFLAG_DIRECTMAP) ? " DIRECTMAP" : "");
+#endif
 	int id;
 	void *answer;
 	shmpiece *x;
@@ -1858,6 +1874,7 @@ bool mapped_malloc (addrbank *ab)
 		answer = uae_shmat (ab, id, 0, 0);
 		uae_shmctl (id, UAE_IPC_RMID, NULL);
 	} else {
+		write_log(_T("MMAN: mapped_malloc using existing baseaddr %p\n"), ab->baseaddr);
 		answer = ab->baseaddr;
 	}
 	if (answer != (void *) -1) {

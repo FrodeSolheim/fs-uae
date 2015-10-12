@@ -575,6 +575,8 @@ typedef struct shmpiece_reg {
 extern shmpiece *shm_start;
 
 extern uae_u8* natmem_offset;
+extern uae_u8 *natmem_reserved;
+extern uae_u32 natmem_reserved_size;
 
 #endif
 

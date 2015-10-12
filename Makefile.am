@@ -22,15 +22,15 @@ CM_CFLAGS += $(WARNINGS)
 if F_NO_STRICT_OVERFLOW
 CM_CFLAGS += -fno-strict-overflow
 endif
-
+if F_NO_STRICT_ALIASING
+CM_CFLAGS += -fno-strict-aliasing
+endif
 if W_MISSING_DECLARATIONS
 CM_CFLAGS += -Wmissing-declarations
 endif
-
 if W_ADDRESS
 CM_CFLAGS += -Waddress
 endif
-
 #if W_MISSING_FORMAT_ATTRIBUTE
 #CM_CFLAGS += -Wmissing-format-attribute
 #endif

@@ -57,6 +57,12 @@ AX_CHECK_COMPILE_FLAG(-fno-strict-overflow,
 AM_CONDITIONAL([F_NO_STRICT_OVERFLOW],
 [test x$f_no_strict_overflow = xyes])
 
+AX_CHECK_COMPILE_FLAG(-fno-strict-aliasing,
+[f_no_strict_aliasing=yes],
+[f_no_strict_aliasing=no])
+AM_CONDITIONAL([F_NO_STRICT_ALIASING],
+[test x$f_no_strict_aliasing = xyes])
+
 AX_CHECK_COMPILE_FLAG(-Wmissing-declarations,
 [w_missing_declarations=yes],
 [w_missing_declarations=no])
@@ -150,10 +156,10 @@ PKG_CHECK_MODULES([OPENAL], [openal], [
         AS_CASE([$host_os],
 	[darwin*], [
 		AC_MSG_NOTICE([Using OpenAL.framework])
-		OPENAL_CFLAGS="-I/System/Library/Frameworks/OpenAL.framework/Headers"
+		# OPENAL_CFLAGS="-I/System/Library/Frameworks/OpenAL.framework/Headers"
 		# OPENAL_CFLAGS="-I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk/System/Library/Frameworks/OpenAL.framework/Headers"
+		OPENAL_CFLAGS="-I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk/System/Library/Frameworks/OpenAL.framework/Headers"
 		OPENAL_LIBS="-framework OpenAL"
-
 	],
 	[
 		AC_MSG_NOTICE([Assuming -lopenal works])

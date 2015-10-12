@@ -1,6 +1,10 @@
 Version 2.7.3dev:
 
+* Fixed RSP inc/dec for x86-64, shadow stack space on Windows / x86-64.
+* Fix callee-saved registers for Windows x64 ABI.
+* Fixed crash when using Blizzard accelerators and x86-64 JIT.
 * Respect cpu option when checking for Zorro III config problems.
+* Compile with -fno-strict-aliasing to avoid potential aliasing bugs.
 
 Version 2.7.2dev:
 

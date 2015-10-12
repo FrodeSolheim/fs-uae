@@ -15,7 +15,7 @@
 #endif
 
 #ifndef _WIN32
-#define SOCKADDR_INET sockaddr_in
+#define SOCKADDR_INET sockaddr_storage
 #endif
 
 #if SIZEOF_TCHAR == 1

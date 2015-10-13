@@ -65,6 +65,16 @@ AM_LDFLAGS =
 # AM_LDFLAGS += -rdynamic
 AM_LDFLAGS += @OS_LDFLAGS@
 
+if STATIC_BUILD
+AM_LDFLAGS += -static
+AM_CPPFLAGS += -DGLEW_STATIC
+AM_CPPFLAGS += -DAL_LIBTYPE_STATIC
+# Hack for OpenAL static missing libcommon.a
+LIBS += libcommon.a
+# One or more .pc files are missing -liconv
+LIBS += -liconv
+endif
+
 MSGFMT = @MSGFMT@
 ZIP = @ZIP@
 
@@ -1422,3 +1432,12 @@ clean-local:
 
 fs-uae-dist:
 	$(MAKE) -C dist/@OS_NAME@
+
+
+static: fs-uae$(EXEEXT) fs-uae.dat
+	@echo "Stripping fs-uae$(EXEEXT)"
+	strip fs-uae$(EXEEXT)
+	@echo "Appending fs-uae.dat"
+	cat fs-uae.dat >> fs-uae$(EXEEXT)
+	@echo "Correcting zip offsets"
+	zip -A fs-uae$(EXEEXT)

@@ -5,6 +5,7 @@ struct fs_ini_file;
 typedef struct fs_ini_file fs_ini_file;
 
 fs_ini_file* fs_ini_file_open(const char *path);
+fs_ini_file* fs_ini_file_open_data(const char *data, int size);
 void fs_ini_file_destroy(fs_ini_file *ini_file);
 
 char **fs_ini_file_get_groups(fs_ini_file *ini_file, int *length);

@@ -854,16 +854,37 @@ static int map_joystick(int joystick, input_config_item *config,
 
 static GHashTable *g_input_config_paths = NULL;
 
-static int read_input_config(const char *config_name, GHashTable *config,
-        const char *platform) {
+static int read_input_config(
+        const char *config_name, GHashTable *config, const char *platform)
+{
     const char *path = g_hash_table_lookup(g_input_config_paths, config_name);
+    char *data = NULL;
+    int data_size = 0;
     if (path == NULL) {
-        fs_log("config file for %s was not found\n", config_name);
-        return 0;
+        int error;
+        gchar *data_name = g_strdup_printf("input/%s.conf", config_name);
+        error = fs_get_program_data(data_name, &data, &data_size);
+        fs_log("checked data \"%s\" = %d\n", data_name, error);
+        g_free(data_name);
+        if (error != 0) {
+            fs_log("config file for %s was not found\n", config_name);
+            return 0;
+        }
     }
-    fs_log("read config for %s for %s (from %s)\n", config_name, platform,
-            path);
-    fs_ini_file *ini_file = fs_ini_file_open(path);
+
+    fs_ini_file *ini_file;
+    if (path) {
+        fs_log("read config for %s for %s (from %s)\n",
+               config_name, platform, path);
+        ini_file = fs_ini_file_open(path);
+    } else if (data) {
+        fs_log("read config for %s for %s (from data)\n",
+               config_name, platform);
+        ini_file = fs_ini_file_open_data(data, data_size);
+        free(data);
+        data = NULL;
+        data_size = 0;
+    }
     if (ini_file == NULL) {
         fs_log("error loading config file\n");
         return 0;
@@ -932,19 +953,53 @@ static int read_input_config(const char *config_name, GHashTable *config,
     return 1;
 }
 
-static GHashTable *configure_input_device(const char *name,
-        const char *platform) {
+static GHashTable *configure_input_device(
+        const char *name, const char *platform)
+{
     GHashTable *config = g_hash_table_new(g_str_hash, g_str_equal);
-    //char *config_name = joystick_config_name(name, 0);
     int result = read_input_config(name, config, platform);
-    //free(config_name);
     if (result) {
         return config;
-    }
-    else {
+    } else {
         g_hash_table_destroy(config);
         return NULL;
     }
+}
+
+static input_config_item *get_config(
+        fs_ml_input_device *device, const char *type)
+{
+    input_config_item *config = NULL;
+    char *config_name = NULL;
+
+    if (config == NULL) {
+        config_name = joystick_long_config_name(device);
+        fs_log("config name \"%s\"\n", config_name);
+        config = get_config_for_device(config_name, type);
+        if (config == NULL) {
+            fs_log("did not find config for device \"%s\"\n", config_name);
+        }
+        free(config_name);
+    }
+    if (config == NULL) {
+        config_name = joystick_config_name(device->name, 0);
+        fs_log("config name \"%s\"\n", config_name);
+        config = get_config_for_device(config_name, type);
+        if (config == NULL) {
+            fs_log("did not find config for device \"%s\"\n", config_name);
+        }
+        free(config_name);
+    }
+    if (config == NULL) {
+        config_name = g_strdup("unknown");
+        fs_log("config name \"%s\"\n", config_name);
+        config = get_config_for_device(config_name, type);
+        if (config == NULL) {
+            fs_log("did not find config for device \"%s\"\n", config_name);
+        }
+        free(config_name);
+    }
+    return config;
 }
 
 int fs_emu_configure_joystick(const char *name, const char *type,
@@ -973,43 +1028,20 @@ int fs_emu_configure_joystick(const char *name, const char *type,
             strncpy(out_name, device.name, out_name_len);
         }
 
-        char* config_name = joystick_long_config_name(&device);
-        fs_log("config name \"%s\"\n", config_name);
-        input_config_item *config = get_config_for_device(
-                config_name, type);
+        input_config_item *config = get_config(&device, type);
         if (config == NULL) {
-            fs_log("did not find config for device \"%s\"\n", config_name);
-            free(config_name);
-            config_name = joystick_config_name(device.name, 0);
-            fs_log("config name \"%s\"\n", config_name);
-            config = get_config_for_device(config_name, type);
-            if (config == NULL) {
-                fs_log("did not find config for device \"%s\"\n", config_name);
-                free(config_name);
-                config_name = g_strdup("unknown");
-                fs_log("config name \"%s\"\n", config_name);
-                config = get_config_for_device(config_name, type);
-                if (config == NULL) {
-                    fs_log("did not find config for device \"%s\"\n", config_name);
-                    free(config_name);
-                    fs_emu_notification(0, _("Device needs config for %s: %s"),
-                            type, name);
-                    break;
-                }
-            }
+            fs_emu_notification(0, _("Device needs config for %s: %s"),
+                    type, name);
+            break;
         }
-        //printf("aaa config %p\n", config);
         for (int j = 0; config[j].config_key != NULL; j++) {
-            //printf("%d\n", j);
             map_joystick(i, config + j, mapping, g_input_action_table,
                     NULL, NULL);
         }
 
         fs_ml_input_device *devices = fs_ml_get_input_devices(NULL);
         devices[i].usage = usage;
-        //printf("bbb\n");
         free_input_config_item_list(config);
-        free(config_name);
         return 1;
     }
     return 0;

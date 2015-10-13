@@ -1,5 +1,7 @@
 Version 2.7.3dev:
 
+* Added support for reading controller configs from fs-uae.dat.
+* Support for creating static / fully self-contained .exe on Windows.
 * JIT: Better fldcw_m_indexed fix (can use all x86-64 registers).
 * Fixed RSP inc/dec for x86-64, shadow stack space on Windows / x86-64.
 * Fix callee-saved registers for Windows x64 ABI.

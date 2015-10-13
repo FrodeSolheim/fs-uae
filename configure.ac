@@ -34,7 +34,8 @@ AC_DEFINE_UNQUOTED([PACKAGE_MINOR], [$PACKAGE_MINOR], [Package minor version])
 AC_SUBST(PACKAGE_REVISION)
 AC_DEFINE_UNQUOTED([PACKAGE_REVISION], [$PACKAGE_REVISION], [Package revision])
 
-# Checks for programs.
+
+# Checks for programs
 
 AC_PROG_CC
 AC_PROG_CXX
@@ -48,6 +49,35 @@ AM_PROG_CC_C_O
 # AC_PATH_TOOL(OBJCOPY, objcopy)
 AC_PATH_PROG([MSGFMT], [msgfmt])
 AC_PATH_PROG([ZIP], [zip])
+PKG_PROG_PKG_CONFIG
+
+
+# Feature test macros
+
+AC_DEFUN([OPT_FEATURE], [
+AC_ARG_ENABLE([$3],
+	[AS_HELP_STRING([--enable-$3], [$4 @<:@default=$5@:>@])],
+	[], [enable_$2=$5])
+AS_IF([test x$enable_$2 = xyes], [
+	AC_DEFINE([$1], [1], [Define to 1 to $4])
+])
+AM_CONDITIONAL([$1], [test x$enable_$2 = xyes])
+])
+
+AC_DEFUN([REQ_FEATURE], [
+AC_DEFINE([$1], [1], [Define to 1 to $4])
+AM_CONDITIONAL([$1], [true])
+])
+
+
+# Static build
+
+OPT_FEATURE([STATIC_BUILD], [static], [static],
+        [enable static build], [no])
+
+AS_IF([test "x$enable_static" != xno],
+      [PKG_CONFIG="$PKG_CONFIG --static"])
+
 
 # Compiler flags
 
@@ -184,7 +214,7 @@ PKG_CHECK_MODULES([OPENGL], [gl glu], [
 		AC_CHECK_LIB([GL], [glViewport])
 		AC_CHECK_LIB([GLU], [gluPerspective])
 		AC_CHECK_LIB([GLU32], [main])
-		AC_CHECK_LIB([OpenGL32], [main])
+		AC_CHECK_LIB([OpenGL32], [main], [OPENGL_LIBS=-lOpenGL32])
 	])
 	AC_SUBST([OPENGL_CFLAGS])
 	AC_SUBST([OPENGL_LIBS])
@@ -554,33 +584,6 @@ AC_TRY_LINK([
 # compiling without them may not work (without further changes to
 # source code).
 
-AC_DEFUN([OPT_FEATURE], [
-
-# AS_IF([test "x$5" = "xyes"], [
-#	AC_ARG_ENABLE([$3],
-#	[AS_HELP_STRING([--disable-$3], [$4])],
-#	[enable_$2=no],
-#	[enable_$2=yes])
-# ], [
-#	AC_ARG_ENABLE([$3],
-#	[AS_HELP_STRING([--enable-$3], [$4])],
-#	[enable_$2=yes],
-#	[enable_$2=no])
-# ])
-AC_ARG_ENABLE([$3],
-	[AS_HELP_STRING([--enable-$3], [$4 @<:@default=$5@:>@])],
-	[], [enable_$2=$5])
-AS_IF([test x$enable_$2 = xyes], [
-	AC_DEFINE([$1], [1], [Define to 1 to $4])
-])
-AM_CONDITIONAL([$1], [test x$enable_$2 = xyes])
-])
-
-AC_DEFUN([REQ_FEATURE], [
-AC_DEFINE([$1], [1], [Define to 1 to $4])
-AM_CONDITIONAL([$1], [true])
-])
-
 OPT_FEATURE([A2065], [a2065], [a2065],
 	[enable A2065 ethernet card], [yes])
 REQ_FEATURE([A2091], [a2091], [a2091],
@@ -687,4 +690,6 @@ echo "  OPENGL_CFLAGS:     $OPENGL_CFLAGS"
 echo "  OPENGL_LIBS:       $OPENGL_LIBS"
 echo "  OS_CPPFLAGS:       $OS_CPPFLAGS"
 echo "  OS_LDFLAGS:        $OS_LDFLAGS"
+echo "  SDL2_CFLAGS:       $SDL2_CFLAGS"
+echo "  SDL2_LIBS:         $SDL2_LIBS"
 echo ""

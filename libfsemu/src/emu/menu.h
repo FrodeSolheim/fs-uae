@@ -17,8 +17,7 @@ enum {
 
 int fs_emu_menu_or_dialog_is_active(void);
 void fs_emu_menu_init_opengl(void);
-int fs_emu_menu_is_active(void);
-void fs_emu_menu_toggle(void);
+
 void fs_emu_menu_render(double transition);
 void fs_emu_menu_function(int action, int state);
 

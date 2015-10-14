@@ -17,7 +17,8 @@
 #include <fs/ml.h>
 #include "ml_internal.h"
 
-void fs_ml_configure_window() {
+void fs_ml_configure_window(void)
+{
 
 }
 
@@ -43,13 +44,19 @@ void fs_ml_usleep(int usec) {
     usleep(usec);
 }
 
-void fs_ml_prevent_power_saving(void) {
+void fs_ml_prevent_power_saving(void)
+{
     static int counter = 0;
     if (++counter == 50 * 30) {
         // prevent screen saver about every 30 seconds
         UpdateSystemActivity(OverallAct);
         counter = 0;
     }
+}
+
+void fs_ml_activate_window_switcher_impl(void)
+{
+    fs_log("FIXME: Active window switcher not implemented\n");
 }
 
 //void fs_ml_set_fullscreen_extra() {

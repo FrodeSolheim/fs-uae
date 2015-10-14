@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <uae/uae.h>
 #include <fs/emu.h>
+#include <fs/emu/actions.h>
 #include <fs/i18n.h>
 
 static fs_emu_action g_actions[] = {
@@ -415,45 +416,37 @@ static fs_emu_action g_actions[] = {
 
     { INPUTEVENT_UAE_MODULE_RIPPER, "action_module_ripper", 0 },
 
+#if 1
+    { FS_UAE_ACTION_ENTER_DEBUGGER, "action_enter_debugger", 0 },
+#else
     { INPUTEVENT_SPC_ENTERDEBUGGER, "action_enter_debugger", 0 },
+#endif
 
     { 65536, "action_none", 0 },
     { 0, 0, 0 },
 };
 
-static int hotkey_function(int key_code, int key_mod) {
-    //write_log("hotkey: %d mod %d\n", key_code, key_mod);
-    switch (key_code) {
-    case FS_ML_KEY_R:
-        fs_emu_log("hot key: soft reset\n");
-        fs_emu_warning(_("Soft Reset"));
-        fs_emu_queue_action(INPUTEVENT_SPC_SOFTRESET, 1);
-        return 0;
-    case FS_ML_KEY_T:
-        fs_emu_log("hot key: hard reset\n");
-        fs_emu_warning(_("Hard Reset"));
-        fs_emu_queue_action(INPUTEVENT_SPC_HARDRESET, 1);
-        return 0;
-    case FS_ML_KEY_A:
-        fs_emu_log("hot key: freeze button\n");
-        fs_emu_queue_action(INPUTEVENT_SPC_FREEZEBUTTON, 1);
-        return 0;
-    case FS_ML_KEY_D:
-        fs_emu_log("hot key: enter debugger\n");
-        if (fs_config_get_boolean("console_debugger") == 1) {
-            fs_emu_warning(_("Activated debugger"));
-            fs_emu_queue_action(INPUTEVENT_SPC_ENTERDEBUGGER, 1);
+static int hotkey_function(int action, int state)
+{
+    switch(action) {
+    case FS_UAE_ACTION_ENTER_DEBUGGER:
+        if (state) {
+            fs_emu_log("hot key: enter debugger\n");
+            if (fs_config_get_boolean("console_debugger") == 1) {
+                fs_emu_warning(_("Activated debugger"));
+                fs_emu_queue_action(INPUTEVENT_SPC_ENTERDEBUGGER, 1);
+            } else {
+                fs_emu_warning(_("Option \"%s\" is not enabled"),
+                               "console_debugger");
+            }
         }
-        else {
-            fs_emu_warning(_("Option \"%s\" is not enabled"),
-                    "console_debugger");
-        }
-        return 0;
+        return 1;
     }
     return 0;
 }
 
-void fs_uae_configure_actions() {
+void fs_uae_configure_actions()
+{
     fs_log("fs_uae_configure_actions\n");
     fs_emu_set_actions(g_actions);
     for (int i = 0; i < FS_UAE_NUM_INPUT_PORTS; i++) {

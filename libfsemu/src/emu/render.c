@@ -1814,7 +1814,7 @@ void fs_emu_video_render_function() {
     fs_emu_video_render_mutex_lock();
 
 
-    int in_menu = fs_emu_menu_is_active();
+    int in_menu = fs_emu_menu_mode();
     if (in_menu && g_menu_transition_target < 1.0) {
         g_menu_transition_target = 1.0;
     }

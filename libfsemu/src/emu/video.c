@@ -207,7 +207,8 @@ void fs_emu_video_init_opengl() {
 #endif
 }
 
-void fs_emu_toggle_fullscreen() {
+void fs_emu_toggle_fullscreen(void)
+{
     fs_ml_toggle_fullscreen();
 }
 

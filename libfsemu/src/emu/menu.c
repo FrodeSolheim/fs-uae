@@ -49,10 +49,6 @@ int fs_emu_menu_or_dialog_is_active() {
     return g_fs_emu_menu_mode || fs_emu_in_dialog_mode();
 }
 
-int fs_emu_menu_is_active() {
-    return g_fs_emu_menu_mode;
-}
-
 static fs_emu_menu *fs_emu_menu_get_current() {
     return g_menu;
 }
@@ -105,7 +101,13 @@ static int go_back_in_menu_stack() {
     return 0;
 }
 
-void fs_emu_menu_function(int action, int state) {
+void fs_emu_menu_function(int action, int state)
+{
+    if (fs_emu_handle_local_action(action, state)) {
+        fs_log("menu shortcut intercepted by action handling\n");
+        return;
+    }
+
     fs_emu_acquire_gui_lock();
     fs_emu_dialog *dialog = fs_emu_dialog_get_current();
     if (dialog) {
@@ -142,8 +144,8 @@ void fs_emu_menu_function(int action, int state) {
                 break;
             }
             if (g_menu->index == last_index) {
-                // we were already at the top-most selectable item, so
-                // we move focus to the top menu
+                /* We were already at the top-most selectable item, so
+                 * we move focus to the top menu. */
                 g_top_menu_focus = 1;
             }
         }
@@ -247,8 +249,11 @@ void fs_emu_menu_function(int action, int state) {
     fs_emu_release_gui_lock();
 }
 
-void fs_emu_menu_set_current(fs_emu_menu *menu) {
+void fs_emu_menu_set_current(fs_emu_menu *menu)
+{
+#if 0
     fs_emu_log("fs_emu_menu_set_current %p\n", menu);
+#endif
     g_menu = menu;
     if (g_menu->items[g_menu->index]->type == FS_EMU_MENU_ITEM_TYPE_HEADING) {
         select_next();
@@ -683,28 +688,45 @@ void fs_emu_menu_render(double transition) {
     glPopMatrix();
 }
 
-void fs_emu_menu_toggle()
+static bool did_have_input_grab_before_menu;
+
+static void enter_menu(void)
 {
-    fs_emu_log("fs_emu_menu_toggle\n");
-    if (g_fs_emu_menu_mode) {
-        // leave menu
-        g_fs_emu_menu_mode = 0;
-        //fs_emu_pause(0);
+    fs_emu_log("EMU: Enter menu\n");
+
+    // go back to top-level menu
+    while (g_menu_stack) {
+        go_back_in_menu_stack();
     }
-    else {
-        // enter menu
 
-        // go back to top-level menu
-        while (g_menu_stack) {
-            go_back_in_menu_stack();
+    //fs_emu_pause(1);
+    g_fs_emu_menu_mode = 1;
+    if (g_menu) {
+        if (g_menu->update) {
+            g_menu->update(g_menu);
         }
+    }
+    did_have_input_grab_before_menu = fs_emu_input_grab();
+    fs_emu_set_input_grab_and_visibility(false, 0);
+}
 
-        //fs_emu_pause(1);
-        g_fs_emu_menu_mode = 1;
-        if (g_menu) {
-            if (g_menu->update) {
-                g_menu->update(g_menu);
-            }
-        }
+static void leave_menu(void)
+{
+    fs_emu_log("EMU: Leave menu\n");
+    g_fs_emu_menu_mode = 0;
+    fs_emu_set_input_grab(did_have_input_grab_before_menu);
+}
+
+bool fs_emu_menu_mode(void)
+{
+    return g_fs_emu_menu_mode;
+}
+
+void fs_emu_set_menu_mode(bool mode)
+{
+    if (mode && !fs_emu_menu_mode()) {
+        enter_menu();
+    } else if (!mode && fs_emu_menu_mode()) {
+        leave_menu();
     }
 }

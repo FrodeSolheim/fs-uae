@@ -1,5 +1,11 @@
 Version 2.7.3dev:
 
+* Restore FS-UAE 2.4 alt-tab behavior when input is grabbed.
+* Use XTEST extension to send fake alt-tab after ungrabbing (on alt-tab).
+* Most built-in shortcuts are now configurable.
+* Actions for built-in shortcuts are now available for mapping.
+* Actions for F11 and F12 (release) can be customized.
+* Ungrab mouse and keyboard when entering the menu.
 * Added support for reading controller configs from fs-uae.dat.
 * Support for creating static / fully self-contained .exe on Windows.
 * JIT: Better fldcw_m_indexed fix (can use all x86-64 registers).
@@ -8,6 +14,7 @@ Version 2.7.3dev:
 * Fixed crash when using Blizzard accelerators and x86-64 JIT.
 * Respect cpu option when checking for Zorro III config problems.
 * Compile with -fno-strict-aliasing to avoid potential aliasing bugs.
+* Removed some SDL 1.2 code.
 
 Version 2.7.2dev:
 

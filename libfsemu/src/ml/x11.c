@@ -25,10 +25,50 @@ extern SDL_Window* g_fs_ml_window;
 // FIXME: REMOVE / replace with fs functions
 #include <glib.h>
 
+#include <X11/Xlib.h>
+#include <X11/keysym.h>
+#ifdef USE_X11_XTEST
+#include <X11/extensions/XTest.h>
+#endif
+
 Display *g_display = NULL;
 Window g_window = 0;
 
-static void set_window_icon() {
+void fs_ml_prevent_power_saving(void)
+{
+
+}
+
+void fs_ml_activate_window_switcher_impl(void)
+{
+    /* The code assumes that Alt+Tab is the window-switching combination
+     * and that the left Alt key is already pressed.
+     *
+     * Works somewhat OK on GNOME 3 at least. The next window will be
+     * switched to, but the window selector will not be shown unless
+     * the user releases and re-presses the Alt key. */
+#ifdef USE_X11_XTEST
+    fs_log("Sending XTEST fake (alt) tab key press\n");
+#if 0
+    XTestFakeKeyEvent(g_display, XK_Alt_L, True, CurrentTime);
+    XSync(g_display, False);
+#endif
+    XTestFakeKeyEvent(g_display, XK_Tab, True, CurrentTime);
+    XSync(g_display, False);
+
+    XTestFakeKeyEvent(g_display, XK_Tab, False, CurrentTime);
+    XSync(g_display, False);
+#if 0
+    XTestFakeKeyEvent(g_display, XK_Alt_L, False, CurrentTime);
+    XSync(g_display, False);
+#endif
+#else
+    fs_log("Support for XTEST extension not enabled\n");
+#endif
+}
+
+static void set_window_icon(void)
+{
     fs_log("setting _NET_WM_ICON from icon images\n");
 
     int max_size = (16 * 16 + 32 * 32 + 48 * 48 + 64 * 64 + 128 * 128) * \
@@ -86,7 +126,8 @@ static void set_window_icon() {
     g_free(icon_data);
 }
 
-static void set_above_state() {
+static void set_above_state(void)
+{
     printf("_NET_WM_STATE = _NET_WM_STATE_ABOVE\n");
     Atom ATOM = XInternAtom(g_display, "ATOM", False);
     Atom _NET_WM_STATE = XInternAtom(g_display, "_NET_WM_STATE", False);
@@ -120,7 +161,8 @@ static void set_above_state() {
     XUnlockDisplay(g_display);
 }
 
-void fs_ml_configure_window() {
+void fs_ml_configure_window(void)
+{
     SDL_SysWMinfo info;
     SDL_VERSION(&info.version); // this is important!
 #ifdef USE_SDL2
@@ -178,7 +220,8 @@ enum {
 #define CLOCK_FREQ 10000000
 static int64_t g_syncbase = 0;
 
-static int64_t fs_ml_read_clock(void) {
+static int64_t fs_ml_read_clock(void)
+{
     struct timespec tp;
     clock_gettime(CLOCK_REALTIME, &tp);
     int64_t t = ((int64_t) tp.tv_sec) * CLOCK_FREQ + \
@@ -198,25 +241,26 @@ static int64_t fs_ml_read_clock(void) {
     return t - base_time;
 }
 
-void fs_ml_calibrate_clock(void) {
+void fs_ml_calibrate_clock(void)
+{
     g_syncbase = CLOCK_FREQ;
 }
 
-int64_t fs_ml_monotonic_time() {
+int64_t fs_ml_monotonic_time()
+{
     //return (1000000 * fs_ml_read_clock()) / g_syncbase;
     return fs_ml_read_clock() / 10;
 }
 
 #endif
 
-void fs_ml_usleep(int usec) {
+void fs_ml_usleep(int usec)
+{
     usleep(usec);
 }
 
-//void fs_ml_set_fullscreen_extra() {
-//}
-
-int fs_ml_video_mode_get_current(fs_ml_video_mode *mode) {
+int fs_ml_video_mode_get_current(fs_ml_video_mode *mode)
+{
     mode->width = 0;
     mode->height = 0;
     mode->fps = 0;
@@ -307,7 +351,8 @@ int fs_ml_video_mode_get_current(fs_ml_video_mode *mode) {
 #define MAX_SCANCODES 200
 static int g_key_map[MAX_SCANCODES] = {};
 
-void fs_ml_initialize_keymap() {
+void fs_ml_initialize_keymap()
+{
     for (int i = 0; i < MAX_SCANCODES; i++) {
         g_key_map[i] = -1;
     }
@@ -437,7 +482,8 @@ void fs_ml_initialize_keymap() {
     */
 }
 
-int fs_ml_scancode_to_key(int scancode) {
+int fs_ml_scancode_to_key(int scancode)
+{
     if (scancode < 0 || scancode >= MAX_SCANCODES) {
         return -1;
     }

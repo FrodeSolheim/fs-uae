@@ -36,59 +36,53 @@
 #include <fs/ml/opengl.h>
 #endif
 
-//#include "fs/emu.h"
 #define FS_EMU_INTERNAL
 #include <fs/emu/input.h>
 #include <fs/emu/monitor.h>
-
 #include "ml_internal.h"
 
-static GQueue *g_video_event_queue = NULL;
-static fs_mutex *g_video_event_mutex = NULL;
-
-static fs_condition *g_video_cond = NULL;
-static fs_mutex *g_video_mutex = NULL;
-
-#ifdef USE_SDL2
 SDL_Window *g_fs_ml_window = NULL;
 SDL_GLContext g_fs_ml_context = 0;
-static int g_display;
-#else
-static SDL_Surface *g_sdl_screen = NULL;
-#endif
+int g_fs_ml_had_input_grab = 0;
+int g_fs_ml_was_fullscreen = 0;
 
-// current size of window or fullscreen view
-//static int g_video_width = 0;
-//static int g_video_height = 0;
+static GQueue *g_video_event_queue;
+static fs_mutex *g_video_event_mutex;
+static fs_thread_id_t g_video_thread_id;
+static fs_condition *g_video_cond;
+static fs_mutex *g_video_mutex;
+static int g_display;
 static int g_has_input_grab = 0;
 static int g_initial_input_grab = 0;
+static bool g_grab_input_on_activate;
 static int g_fs_ml_automatic_input_grab = 1;
 static int g_fs_ml_keyboard_input_grab = 1;
 static int g_fsaa = 0;
-
 static int g_f12_state, g_f11_state;
-
 static char *g_window_title;
 static int g_window_width, g_window_height;
-#ifdef USE_SDL2
 static int g_window_x, g_window_y;
-#endif
 static int g_window_resizable;
 static int g_fullscreen_width, g_fullscreen_height;
-
 static GLint g_max_texture_size;
-
-int g_fs_ml_had_input_grab = 0;
-int g_fs_ml_was_fullscreen = 0;
 
 #define FS_ML_VIDEO_EVENT_GRAB_INPUT 1
 #define FS_ML_VIDEO_EVENT_UNGRAB_INPUT 2
 #define FS_ML_VIDEO_EVENT_SHOW_CURSOR 3
 #define FS_ML_VIDEO_EVENT_HIDE_CURSOR 4
+#define FS_ML_VIDEO_EVENT_TOGGLE_FULLSCREEN 5
+#define FS_ML_VIDEO_EVENT_ENABLE_FULLSCREEN 6
+#define FS_ML_VIDEO_EVENT_DISABLE_FULLSCREEN 7
+#define FS_ML_VIDEO_EVENT_ACTIVATE_WINDOW_SWITCHER 8
 
 #define FULLSCREEN_FULLSCREEN 0
 #define FULLSCREEN_WINDOW 1
 #define FULLSCREEN_DESKTOP 2
+
+static inline bool is_video_thread(void)
+{
+    return fs_thread_id() == g_video_thread_id;
+}
 
 int fs_ml_get_max_texture_size()
 {
@@ -133,51 +127,64 @@ static void process_video_events()
     for (int i = 0; i < count; i++) {
         int event = FS_POINTER_TO_INT(g_queue_pop_tail(g_video_event_queue));
         if (event == FS_ML_VIDEO_EVENT_GRAB_INPUT) {
-            fs_ml_grab_input(1, 1);
-        }
-        else if (event == FS_ML_VIDEO_EVENT_UNGRAB_INPUT) {
-            fs_ml_grab_input(0, 1);
-        }
-        else if (event == FS_ML_VIDEO_EVENT_SHOW_CURSOR) {
+            fs_ml_set_input_grab(true);
+        } else if (event == FS_ML_VIDEO_EVENT_UNGRAB_INPUT) {
+            fs_ml_set_input_grab(false);
+        } else if (event == FS_ML_VIDEO_EVENT_SHOW_CURSOR) {
             fs_ml_show_cursor(1, 1);
-        }
-        else if (event == FS_ML_VIDEO_EVENT_HIDE_CURSOR) {
+        } else if (event == FS_ML_VIDEO_EVENT_HIDE_CURSOR) {
             fs_ml_show_cursor(0, 1);
+        } else if (event == FS_ML_VIDEO_EVENT_TOGGLE_FULLSCREEN) {
+            fs_ml_toggle_fullscreen();
+        } else if (event == FS_ML_VIDEO_EVENT_ENABLE_FULLSCREEN) {
+            fs_ml_set_fullscreen(true);
+        } else if (event == FS_ML_VIDEO_EVENT_DISABLE_FULLSCREEN) {
+            fs_ml_set_fullscreen(false);
         }
     }
     fs_mutex_unlock(g_video_event_mutex);
 }
 
-int fs_ml_has_input_grab()
+bool fs_ml_input_grab(void)
 {
-    //printf("has input grab? %d\n", g_grab_input);
     return g_has_input_grab;
 }
 
-int fs_ml_has_automatic_input_grab()
+bool fs_ml_automatic_input_grab(void)
 {
     return g_fs_ml_automatic_input_grab;
 }
 
-void fs_ml_grab_input(int grab, int immediate)
+void fs_ml_set_input_grab(bool grab)
 {
-    //printf("fs_ml_grab_input %d %d\n", grab, immediate);
-    if (immediate) {
-#ifdef USE_SDL2
-        SDL_SetWindowGrab(g_fs_ml_window, grab ? SDL_TRUE : SDL_FALSE);
-        SDL_SetRelativeMouseMode(grab ? SDL_TRUE : SDL_FALSE);
-#else
-        SDL_WM_GrabInput(grab ? SDL_GRAB_ON : SDL_GRAB_OFF);
-#endif
-        if (fs_ml_cursor_allowed()) {
-            fs_ml_show_cursor(!grab, 1);
-        }
-    }
-    else {
+    if (!is_video_thread()) {
         post_video_event(grab ? FS_ML_VIDEO_EVENT_GRAB_INPUT :
-                FS_ML_VIDEO_EVENT_UNGRAB_INPUT);
+                                FS_ML_VIDEO_EVENT_UNGRAB_INPUT);
+        /* FIXME: Not really, yet */
+        g_has_input_grab = grab ? 1 : 0;
+        return;
     }
+
+    SDL_SetWindowGrab(g_fs_ml_window, grab ? SDL_TRUE : SDL_FALSE);
+    SDL_SetRelativeMouseMode(grab ? SDL_TRUE : SDL_FALSE);
+    if (fs_ml_cursor_allowed())
+        fs_ml_show_cursor(!grab, 1);
     g_has_input_grab = grab ? 1 : 0;
+}
+
+void fs_ml_activate_window_switcher(void)
+{
+    if (!is_video_thread()) {
+        post_video_event(FS_ML_VIDEO_EVENT_ACTIVATE_WINDOW_SWITCHER);
+        return;
+    }
+
+    fs_ml_activate_window_switcher_impl();
+}
+
+void fs_ml_set_input_grab_on_activate(bool grab)
+{
+    g_grab_input_on_activate = grab;
 }
 
 void fs_ml_set_video_fsaa(int fsaa)
@@ -204,44 +211,42 @@ static void log_opengl_information()
     }
     written = 1;
     char *software_renderer = NULL;
-    const char *s;
-    s = (const char*) glGetString(GL_VENDOR);
-    if (s) {
-        fs_log("opengl vendor: %s\n", s);
+    const char *str;
+    str = (const char*) glGetString(GL_VENDOR);
+    if (str) {
+        fs_log("opengl vendor: %s\n", str);
     }
-    s = (const char*) glGetString(GL_RENDERER);
-    if (s) {
-        fs_log("opengl renderer: %s\n", s);
-        if (strstr(s, "GDI Generic") != NULL) {
-            software_renderer = g_strdup(s);
+    str = (const char*) glGetString(GL_RENDERER);
+    if (str) {
+        fs_log("opengl renderer: %s\n", str);
+        if (strstr(str, "GDI Generic") != NULL) {
+            software_renderer = g_strdup(str);
         }
     }
-    s = (const char*) glGetString(GL_VERSION);
-    if (s) {
-        fs_log("opengl version: %s\n", s);
+    str = (const char*) glGetString(GL_VERSION);
+    if (str) {
+        fs_log("opengl version: %s\n", str);
     }
-    s = (const char*) glGetString(GL_SHADING_LANGUAGE_VERSION);
-    if (s) {
-        fs_log("opengl shading language version: %s\n", s);
+    str = (const char*) glGetString(GL_SHADING_LANGUAGE_VERSION);
+    if (str) {
+        fs_log("opengl shading language version: %s\n", str);
     }
-    s = (const char*) glGetString(GL_EXTENSIONS);
-    if (s) {
-        fs_log("opengl extensions: %s\n", s);
+    str = (const char*) glGetString(GL_EXTENSIONS);
+    if (str) {
+        fs_log("opengl extensions: %s\n", str);
     }
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &g_max_texture_size);
     fs_log("opengl max texture size (estimate): %dx%d\n", g_max_texture_size,
             g_max_texture_size);
 
     if (software_renderer) {
-        fs_emu_warning("No HW OpenGL driver (\"%s\")",
-                software_renderer);
+        fs_emu_warning("No HW OpenGL driver (\"%s\")", software_renderer);
         g_free(software_renderer);
     }
 }
 
 static void set_video_mode()
 {
-#ifdef USE_SDL2
     int flags = SDL_WINDOW_OPENGL;
     if (g_fs_emu_video_fullscreen_mode != FULLSCREEN_WINDOW &&
             g_window_resizable) {
@@ -327,44 +332,6 @@ static void set_video_mode()
     g_fs_ml_window = SDL_CreateWindow(g_window_title, x, y, w, h, flags);
     g_fs_ml_context = SDL_GL_CreateContext(g_fs_ml_window);
 
-#else
-    int flags = SDL_DOUBLEBUF | SDL_OPENGL;
-    if (g_fs_emu_video_fullscreen == 1) {
-        g_fs_ml_video_width = g_fullscreen_width;
-        g_fs_ml_video_height = g_fullscreen_height;
-        if (g_fs_emu_video_fullscreen_mode == FULLSCREEN_WINDOW) {
-            fs_log("using fullscreen window mode\n");
-            SDL_putenv("SDL_VIDEO_WINDOW_POS=0,0");
-            flags |= SDL_NOFRAME;
-            //fs_ml_set_fullscreen_extra();
-        }
-        else {
-            fs_log("using SDL_FULLSCREEN mode\n");
-            flags |= SDL_FULLSCREEN;
-        }
-        fs_log("setting (fullscreen) video mode %d %d\n", g_fs_ml_video_width,
-                g_fs_ml_video_height);
-        g_sdl_screen = SDL_SetVideoMode(g_fs_ml_video_width,
-                g_fs_ml_video_height, 0, flags);
-        //update_viewport();
-    }
-    else {
-        fs_log("using windowed mode\n");
-        //SDL_putenv("SDL_VIDEO_WINDOW_POS=");
-        g_fs_ml_video_width = g_window_width;
-        g_fs_ml_video_height = g_window_height;
-        if (g_window_resizable) {
-            flags |= SDL_RESIZABLE;
-        }
-        fs_log("setting (windowed) video mode %d %d\n", g_fs_ml_video_width,
-                g_fs_ml_video_height);
-        g_sdl_screen = SDL_SetVideoMode(g_fs_ml_video_width,
-                g_fs_ml_video_height, 0, flags);
-        //update_viewport();
-    }
-
-#endif
-
     static int glew_initialized = 0;
     if (!glew_initialized) {
         GLenum err = glewInit();
@@ -383,30 +350,29 @@ static void set_video_mode()
     log_opengl_information();
 }
 
-#ifdef USE_SDL2
-// When using SDL 2, the OpenGL context does not need to be recreated when
-// resizing the window and/or toggling fullscreen.
-#else
-
-static void destroy_opengl_state()
+bool fs_ml_fullscreen(void)
 {
-    fs_log("destroy_opengl_state\n");
-    fs_gl_send_context_notification(FS_GL_CONTEXT_DESTROY);
+    /* FIXME: This can return (kind of) false answer if a fullscreen
+     * event is unprocessed in the event queue. */
+    return g_fs_emu_video_fullscreen;
 }
 
-static void recreate_opengl_state()
+void fs_ml_set_fullscreen(bool fullscreen)
 {
-    fs_log("recreate_opengl_state\n");
-    fs_gl_reset_client_state();
-    fs_gl_send_context_notification(FS_GL_CONTEXT_CREATE);
-}
+    if (!is_video_thread()) {
+        if (fullscreen) {
+            fs_log("Posting enable fullscreen event\n");
+            post_video_event(FS_ML_VIDEO_EVENT_ENABLE_FULLSCREEN);
+        } else {
+            fs_log("Posting disable fullscreen event\n");
+            post_video_event(FS_ML_VIDEO_EVENT_DISABLE_FULLSCREEN);
+        }
+        return;
+    }
 
-#endif
+    if (fullscreen == g_fs_emu_video_fullscreen)
+        return;
 
-void fs_ml_toggle_fullscreen()
-{
-    fs_log("fs_ml_toggle_fullscreen\n");
-#ifdef USE_SDL2
     if (g_fs_emu_video_fullscreen_mode == FULLSCREEN_WINDOW) {
         fs_emu_warning("Cannot toggle fullscreen with fullscreen-mode=window");
         return;
@@ -419,24 +385,25 @@ void fs_ml_toggle_fullscreen()
         SDL_SetWindowDisplayMode(g_fs_ml_window, &mode);
     }
 
-    g_fs_emu_video_fullscreen = !g_fs_emu_video_fullscreen;
     int flags = 0;
-    if (g_fs_emu_video_fullscreen) {
-        if (g_fs_emu_video_fullscreen_mode == FULLSCREEN_DESKTOP) {
+    if (fullscreen) {
+        if (g_fs_emu_video_fullscreen_mode == FULLSCREEN_DESKTOP)
             flags = SDL_WINDOW_FULLSCREEN_DESKTOP;
-        }
-        else {
+        else
             flags = SDL_WINDOW_FULLSCREEN;
-        }
     }
     SDL_SetWindowFullscreen(g_fs_ml_window, flags);
+    g_fs_emu_video_fullscreen = fullscreen;
+}
 
-#else
-    g_fs_emu_video_fullscreen = !g_fs_emu_video_fullscreen;
-    destroy_opengl_state();
-    set_video_mode();
-    recreate_opengl_state();
-#endif
+void fs_ml_toggle_fullscreen(void)
+{
+    if (!is_video_thread()) {
+        fs_log("Posting toggle video event\n");
+        post_video_event(FS_ML_VIDEO_EVENT_TOGGLE_FULLSCREEN);
+        return;
+    }
+    fs_ml_set_fullscreen(!fs_ml_fullscreen());
 }
 
 static int g_fs_emu_monitor_count;
@@ -572,13 +539,12 @@ int fs_ml_video_create_window(const char *title)
     fs_log("keyboard input grab: %d\n", g_fs_ml_keyboard_input_grab);
 
     static int initialized = 0;
-#ifdef USE_SDL2
-   SDL_SetHint(SDL_HINT_GRAB_KEYBOARD,
-               g_fs_ml_keyboard_input_grab ? "1" : "0");
 
-   SDL_SetHint(SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "0");
+    SDL_SetHint(SDL_HINT_GRAB_KEYBOARD,
+                g_fs_ml_keyboard_input_grab ? "1" : "0");
 
-#endif
+    SDL_SetHint(SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "0");
+
     SDL_Init(SDL_INIT_VIDEO);
 
     SDL_version version;
@@ -587,8 +553,6 @@ int fs_ml_video_create_window(const char *title)
            version.major, version.minor, version.patch);
 
     if (!initialized) {
-#ifdef USE_SDL2
-
         int display_index = 0;
         SDL_DisplayMode mode;
         int error = SDL_GetCurrentDisplayMode(display_index, &mode);
@@ -625,25 +589,13 @@ int fs_ml_video_create_window(const char *title)
                mon, mon_flag, monitor.index);
         g_display = monitor.index;
 
-#else
-        const SDL_VideoInfo* info = SDL_GetVideoInfo();
-
-#endif
         g_fullscreen_width = fs_config_get_int("fullscreen_width");
         if (g_fullscreen_width == FS_CONFIG_NONE) {
-#ifdef USE_SDL2
             g_fullscreen_width = mode.w;
-#else
-            g_fullscreen_width = info->current_w;
-#endif
         }
         g_fullscreen_height = fs_config_get_int("fullscreen_height");
         if (g_fullscreen_height == FS_CONFIG_NONE) {
-#ifdef USE_SDL2
             g_fullscreen_height = mode.h;
-#else
-            g_fullscreen_height = info->current_h;
-#endif
         }
 
         if (g_fs_emu_video_fullscreen_mode_string == NULL) {
@@ -657,22 +609,18 @@ int fs_ml_video_create_window(const char *title)
                 "fullscreen") == 0) {
             g_fs_emu_video_fullscreen_mode = FULLSCREEN_FULLSCREEN;
         }
-#ifdef USE_SDL2
         else if (g_ascii_strcasecmp(g_fs_emu_video_fullscreen_mode_string,
                 "desktop") == 0) {
             g_fs_emu_video_fullscreen_mode = FULLSCREEN_DESKTOP;
         }
-#endif
         if (g_fs_emu_video_fullscreen_mode == -1) {
 #ifdef MACOSX
             g_fs_emu_video_fullscreen_mode = FULLSCREEN_FULLSCREEN;
 #else
             g_fs_emu_video_fullscreen_mode = FULLSCREEN_FULLSCREEN;
 #endif
-#ifdef USE_SDL2
             fs_log("defaulting to fullscreen_mode = desktop for SDL2\n");
             g_fs_emu_video_fullscreen_mode = FULLSCREEN_DESKTOP;
-#endif
         }
         initialized = 1;
     }
@@ -682,18 +630,6 @@ int fs_ml_video_create_window(const char *title)
     }
 
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-#ifdef USE_SDL2
-    // setting swap interval after creating OpenGL context
-#else
-    if (g_fs_ml_vblank_sync) {
-        fs_emu_log("*** Setting swap interval to 1 ***\n");
-        SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, 1);
-    }
-    else {
-        fs_emu_log("*** Setting swap interval to 0 ***\n");
-        SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, 0);
-    }
-#endif
 
     if (g_fsaa) {
         fs_log("setting FSAA samples to %d\n", g_fsaa);
@@ -709,7 +645,6 @@ int fs_ml_video_create_window(const char *title)
     if (g_window_height == FS_CONFIG_NONE) {
         g_window_height = 1080/ 2;
     }
-#ifdef USE_SDL2
     g_window_x = fs_config_get_int("window_x");
     if (g_window_x == FS_CONFIG_NONE) {
         g_window_x = SDL_WINDOWPOS_CENTERED;
@@ -718,7 +653,6 @@ int fs_ml_video_create_window(const char *title)
     if (g_window_y == FS_CONFIG_NONE) {
         g_window_y = SDL_WINDOWPOS_CENTERED;
     }
-#endif
     g_window_resizable = fs_config_get_boolean("window_resizable");
     if (g_window_resizable == FS_CONFIG_NONE) {
         g_window_resizable = 1;
@@ -748,7 +682,6 @@ int fs_ml_video_create_window(const char *title)
 
     set_video_mode();
 
-#ifdef USE_SDL2
     if (g_fs_ml_vblank_sync) {
         fs_emu_log("*** Setting swap interval to 1 ***\n");
         if (SDL_GL_SetSwapInterval(1) != 0) {
@@ -759,27 +692,16 @@ int fs_ml_video_create_window(const char *title)
         fs_emu_log("*** Setting swap interval to 0 ***\n");
         SDL_GL_SetSwapInterval(0);
     }
-#endif
 
     // we display a black frame as soon as possible (to reduce flickering on
     // startup)
     glClear(GL_COLOR_BUFFER_BIT);
-#ifdef USE_SDL2
     SDL_GL_SwapWindow(g_fs_ml_window);
-#else
-    SDL_GL_SwapBuffers();
-#endif
     fs_gl_finish();
-
-#ifdef USE_SDL2
-    // set in SDL_CreateWindow instead
-#else
-    SDL_WM_SetCaption(g_window_title, fs_get_application_name());
-#endif
 
     fs_log("initial input grab: %d\n", g_initial_input_grab);
     if (g_initial_input_grab && !g_has_input_grab) {
-        fs_ml_grab_input(1, 1);
+        fs_ml_set_input_grab(true);
     }
     fs_ml_show_cursor(0, 1);
 
@@ -787,20 +709,8 @@ int fs_ml_video_create_window(const char *title)
     fs_log("init_opengl\n");
     fs_emu_video_init_opengl();
 
-#ifdef WINDOWS
-#ifdef USE_SDL2
-    // we use only SDL functions with SDL2
-#else
-    fs_ml_init_raw_input();
-#endif
-#else
-#ifdef USE_SDL2
     SDL_StartTextInput();
-#else
-    // enable keysym to unicode char translation
-    SDL_EnableUNICODE(1);
-#endif
-#endif
+
     fs_log("create windows is done\n");
     return 1;
 }
@@ -815,13 +725,11 @@ void fs_ml_clear_keyboard_modifier_state()
 }
 #endif
 
-#ifdef USE_SDL2
 #include "sdl2_keys.h"
 // modifiers have values in SDL and SDL2, except META is renamed to GUI
 #define KMOD_LMETA KMOD_LGUI
 #define KMOD_RMETA KMOD_RGUI
 #define KMOD_META (KMOD_LMETA|KMOD_RMETA)
-#endif
 
 static void on_resize(int width, int height)
 {
@@ -841,18 +749,8 @@ static void on_resize(int width, int height)
         g_window_height = height;
         fs_log("resize event %d %d\n", width, height);
     }
-#ifdef USE_SDL2
     g_fs_ml_video_width = width;
     g_fs_ml_video_height = height;
-#else
-#ifdef MACOSX
-        destroy_opengl_state();
-#endif
-        set_video_mode();
-#ifdef MACOSX
-        recreate_opengl_state();
-#endif
-#endif
 }
 
 int fs_ml_event_loop(void)
@@ -870,57 +768,20 @@ int fs_ml_event_loop(void)
             result = 1;
 #endif
             continue;
-#ifdef USE_SDL2
         case SDL_WINDOWEVENT:
-            // printf("SDL_WINDOWEVENT...\n");
             if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
                 on_resize(event.window.data1, event.window.data2);
-            }
-            else if (event.window.event == SDL_WINDOWEVENT_CLOSE) {
+            } else if (event.window.event == SDL_WINDOWEVENT_CLOSE) {
                 event.type = SDL_QUIT;
                 SDL_PushEvent(&event);
-            }
-            continue;
-#else
-        case SDL_VIDEORESIZE:
-            on_resize(event.resize.w, event.resize.h);
-            continue;
-        case SDL_ACTIVEEVENT:
-            //fs_log("got active event %d %d %d %d\n", event.active.state,
-            //      SDL_APPMOUSEFOCUS, SDL_APPINPUTFOCUS, SDL_APPACTIVE);
-            if ((event.active.state & SDL_APPINPUTFOCUS)) {
-                if (event.active.gain) {
-                    fs_log("got keyboard focus\n");
-                    // just got keyboard focus -- clearing modifier states
-                    fs_ml_clear_keyboard_modifier_state();
-                    if (g_fs_ml_had_input_grab) {
-                        fs_log("- had input grab, re-acquiring\n");
-                        fs_ml_grab_input(1, 1);
-                        g_fs_ml_had_input_grab = 0;
-                    }
-                    if (g_fs_ml_was_fullscreen) {
-                        if (!g_fs_emu_video_fullscreen) {
-                            fs_log("- was in fullsreen mode before (switching)\n");
-                            fs_ml_toggle_fullscreen();
-                        }
-                        g_fs_ml_was_fullscreen = 0;
-                    }
-                }
-                else {
-                    fs_log("lost keyboard focus\n");
-                    if (fs_ml_has_input_grab()) {
-                        fs_log("- releasing input grab\n");
-                        fs_ml_grab_input(0, 1);
-                        g_fs_ml_had_input_grab = 1;
-                    }
-                    else {
-                        fs_log("- did not have input grab\n");
-                        //g_fs_ml_had_input_grab = 0;
-                    }
+            } else if (event.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
+                if (g_grab_input_on_activate) {
+                    fs_log("Window focus gained - grabbing input\n");
+                    g_grab_input_on_activate = false;
+                    fs_ml_set_input_grab(true);
                 }
             }
             continue;
-#endif
         case SDL_KEYDOWN:
         case SDL_KEYUP:
             if (g_fs_log_input) {
@@ -953,60 +814,16 @@ int fs_ml_event_loop(void)
 
             const Uint8* key_state;
             int num_keys;
-#ifdef USE_SDL2
             key_state = SDL_GetKeyboardState(&num_keys);
             g_f11_state = key_state[SDL_SCANCODE_F11] ? FS_ML_KEY_MOD_F11 : 0;
             g_f12_state = key_state[SDL_SCANCODE_F12] ? FS_ML_KEY_MOD_F12 : 0;
-            // printf("%d %d\n", g_f11_state, g_f12_state);
-#else
-            key_state = SDL_GetKeyState(&num_keys);
-            g_f11_state = key_state[SDLK_F11] ? FS_ML_KEY_MOD_F11 : 0;
-            g_f12_state = key_state[SDLK_F12] ? FS_ML_KEY_MOD_F12 : 0;
-#endif
 
             int key = -1;
-#ifdef USE_SDL2
             if (event.key.keysym.scancode <= LAST_SDL2_SCANCODE) {
                 key = g_sdl2_keys[event.key.keysym.scancode];
             }
-#else
-            if (0) {
-            }
-#endif
 #if defined(MACOSX)
-#ifdef USE_SDL2
-
-#else
-            else if (event.key.keysym.sym == SDLK_LSHIFT) {
-                key = SDLK_LSHIFT;
-            }
-            else if (event.key.keysym.sym == SDLK_LCTRL) {
-                key = SDLK_LCTRL;
-            }
-            else if (event.key.keysym.sym == SDLK_LALT) {
-                key = SDLK_LALT;
-            }
-            else if (event.key.keysym.sym == SDLK_LMETA) {
-                key = SDLK_LSUPER;
-            }
-            else if (event.key.keysym.sym == SDLK_RMETA) {
-                key = SDLK_RSUPER;
-            }
-            else if (event.key.keysym.sym == SDLK_RALT) {
-                key = SDLK_RALT;
-            }
-            else if (event.key.keysym.sym == SDLK_RCTRL) {
-                key = SDLK_RCTRL;
-            }
-            else if (event.key.keysym.sym == SDLK_RSHIFT) {
-                key = SDLK_RSHIFT;
-            }
-            else if (event.key.keysym.sym == SDLK_CAPSLOCK) {
-                key = SDLK_CAPSLOCK;
-            }
-#endif
 #elif defined(WINDOWS)
-
 #else
             else if (event.key.keysym.sym == SDLK_MODE) {
                 key = SDLK_RALT;
@@ -1036,23 +853,23 @@ int fs_ml_event_loop(void)
             }
 
             int mod = event.key.keysym.mod;
-            if (mod & KMOD_LSHIFT || mod & KMOD_RSHIFT) {
+            if (mod & KMOD_LSHIFT || mod & KMOD_RSHIFT)
                 event.key.keysym.mod |= KMOD_SHIFT;
-            }
-            if (mod & KMOD_LALT || mod & KMOD_RALT) {
-                //mod & ~(KMOD_LALT | KMOD_RALT);
+#if 0
+            if (mod & KMOD_LALT || mod & KMOD_RALT)
                 event.key.keysym.mod |= KMOD_ALT;
-            }
-            if (mod & KMOD_LCTRL || mod & KMOD_RCTRL) {
+#endif
+            if (mod & KMOD_LCTRL || mod & KMOD_RCTRL)
                 event.key.keysym.mod |= KMOD_CTRL;
-            }
-            if (mod & KMOD_LMETA || mod & KMOD_RMETA) {
+#if 0
+            if (mod & KMOD_LMETA || mod & KMOD_RMETA)
                 event.key.keysym.mod |= KMOD_META;
-            }
-            // filter out other modidifers
-            event.key.keysym.mod &= (KMOD_SHIFT | KMOD_ALT | KMOD_CTRL |
-                    KMOD_META);
-            // add F11/F12 state
+#endif
+
+            /* Filter out other modidifers */
+            event.key.keysym.mod &=
+                        KMOD_SHIFT | KMOD_ALT | KMOD_CTRL | KMOD_META;
+            /* Add F11/F12 modifier state */
             event.key.keysym.mod |= g_f11_state | g_f12_state;
 
             //printf("%d %d %d %d\n", event.key.keysym.mod,
@@ -1062,25 +879,12 @@ int fs_ml_event_loop(void)
         //    printf("--- mousebutton down ---\n");
         }
         fs_ml_event *new_event = NULL;
-#if !defined(USE_SDL2)
-        fs_ml_event *new_event_2 = NULL;
-#endif
+
         if (event.type == SDL_KEYDOWN) {
             new_event = fs_ml_alloc_event();
             new_event->type = FS_ML_KEYDOWN;
             new_event->key.keysym.sym = event.key.keysym.sym;
             new_event->key.keysym.mod = event.key.keysym.mod;
-#ifdef USE_SDL2
-            // SDL2 sends its own text input events
-#else
-            if (event.key.keysym.unicode && event.key.keysym.unicode < 128) {
-                // FIXME: only supporting ASCII for now..
-                new_event_2 = fs_ml_alloc_event();
-                new_event_2->type = FS_ML_TEXTINPUT;
-                new_event_2->text.text[0] = event.key.keysym.unicode;
-                new_event_2->text.text[1] = '\0';
-            }
-#endif
             new_event->key.state = event.key.state;
         }
         else if (event.type == SDL_KEYUP) {
@@ -1190,7 +994,6 @@ int fs_ml_event_loop(void)
 #endif
             new_event->button.state = event.button.state;
         }
-#ifdef USE_SDL2
         else if (event.type == SDL_MOUSEWHEEL) {
             /*
             if (event.wheel.which == SDL_TOUCH_MOUSEID) {
@@ -1221,26 +1024,46 @@ int fs_ml_event_loop(void)
                    MIN(TEXTINPUTEVENT_TEXT_SIZE, SDL_TEXTINPUTEVENT_TEXT_SIZE));
             new_event->text.text[TEXTINPUTEVENT_TEXT_SIZE - 1] = 0;
         }
-#endif
+
         if (new_event) {
             fs_ml_post_event(new_event);
         }
-#if !defined(USE_SDL2)
-        if (new_event_2) {
-            fs_ml_post_event(new_event_2);
-        }
-#endif
     }
     return result;
 }
 
 void fs_ml_video_swap_buffers()
 {
-#ifdef USE_SDL2
     SDL_GL_SwapWindow(g_fs_ml_window);
-#else
-    SDL_GL_SwapBuffers();
+}
+
+static int post_main_loop(void)
+{
+    /* We want to improve the transitioning from FS-UAE back to e.g.
+     * FS-UAE Game Center - avoid blinking cursor - so we try to move it (to
+     * the bottom right of the screen). This probably requires that the
+     * cursor is not grabbed (SDL often keeps the cursor in the center of the
+     * screen then). */
+    if (g_fs_emu_video_fullscreen) {
+        if (SDL_getenv("FSGS_RETURN_CURSOR_TO") &&
+                SDL_getenv("FSGS_RETURN_CURSOR_TO")[0]) {
+            int x = -1; int y = -1;
+            sscanf(SDL_getenv("FSGS_RETURN_CURSOR_TO"), "%d,%d", &x, &y);
+            if (x != -1 && y != -1) {
+#if 0
+                fs_log("trying to move mouse cursor to x=%d y=%d\n", x, y);
 #endif
+                Uint8 data[] = "\0";
+                SDL_SetWindowGrab(g_fs_ml_window, SDL_FALSE);
+                /* Setting invisible cursor so we won't see it when we
+                 * enable the cursor in order to move it. */
+                SDL_Cursor *cursor = SDL_CreateCursor(data, data, 8, 1, 0, 0);
+                SDL_SetCursor(cursor);
+                SDL_ShowCursor(SDL_ENABLE);
+                SDL_WarpMouseInWindow(g_fs_ml_window, x, y);
+            }
+        }
+    }
 }
 
 int fs_ml_main_loop()
@@ -1248,44 +1071,10 @@ int fs_ml_main_loop()
     while (g_fs_ml_running) {
         fs_ml_event_loop();
         process_video_events();
-
-#if defined(WINDOWS) || defined (MACOSX)
         fs_ml_prevent_power_saving();
-#endif
         fs_ml_render_iteration();
     }
-
-    if (g_fs_emu_video_fullscreen) {
-        if (SDL_getenv("FSGS_RETURN_CURSOR_TO") &&
-                SDL_getenv("FSGS_RETURN_CURSOR_TO")[0]) {
-            // we want to improve the transitioning from FS-UAE back to
-            // e.g. FS-UAE Game Center - avoid blinking cursor - so we try
-            // to move it (to the bottom right of the screen). This probably
-            // requires that the cursor is not grabbed (SDL often keeps the
-            // cursor in the center of the screen, then).
-            int x = -1; int y = -1;
-            sscanf(SDL_getenv("FSGS_RETURN_CURSOR_TO"), "%d,%d", &x, &y);
-            if (x != -1 && y != -1) {
-                fs_log("trying to move mouse cursor to x=%d y=%d\n", x, y);
-                Uint8 data[] = "\0";
-#ifdef USE_SDL2
-                SDL_SetWindowGrab(g_fs_ml_window, SDL_FALSE);
-#else
-                SDL_WM_GrabInput(SDL_GRAB_OFF);
-#endif
-                // setting invisible cursor so we won't see it when we
-                // enable the cursor in order to move it
-                SDL_Cursor *cursor = SDL_CreateCursor(data, data, 8, 1, 0, 0);
-                SDL_SetCursor(cursor);
-                SDL_ShowCursor(SDL_ENABLE);
-#ifdef USE_SDL2
-                SDL_WarpMouseInWindow(g_fs_ml_window, x, y);
-#else
-                SDL_WarpMouse(x, y);
-#endif
-            }
-        }
-    }
+    post_main_loop();
     return 0;
 }
 
@@ -1293,11 +1082,9 @@ void fs_ml_video_init()
 {
     FS_ML_INIT_ONCE;
 
-    fs_log("creating condition\n");
+    g_video_thread_id = fs_thread_id();
     g_video_cond = fs_condition_create();
-    fs_log("creating mutex\n");
     g_video_mutex = fs_mutex_create();
-
     g_video_event_queue = g_queue_new();
     g_video_event_mutex = fs_mutex_create();
 

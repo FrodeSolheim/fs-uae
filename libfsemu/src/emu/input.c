@@ -25,7 +25,8 @@
 
 static char *g_controllers_dir = NULL;
 
-void fs_emu_set_controllers_dir(const char *path) {
+void fs_emu_set_controllers_dir(const char *path)
+{
     if (g_controllers_dir) {
         free(g_controllers_dir);
     }
@@ -34,9 +35,9 @@ void fs_emu_set_controllers_dir(const char *path) {
     }
 }
 
-#define CTRL_BIT 1
-#define ALT_BIT 2
-#define SHIFT_BIT 4
+static GHashTable *configure_input_device(const char *name,
+        const char *platform);
+
 #define MAX_ACTIONS 1024
 #define MAX_ACTIONS_WITH_LIBFSEMU_INTERNAL 1200
 static fs_emu_action g_actions[MAX_ACTIONS_WITH_LIBFSEMU_INTERNAL] = {};
@@ -52,58 +53,71 @@ keyboard is MAX_DEVICES - 1
 - 0 and 512 (see button_index)
 */
 
-
 #define MAX_DEVICES 64
 #define KEYBOARD 0
 #define MOUSE 1
 #define SLOTS 512
 
+/* KEYBOARD occupies 16 "devices" (15 extra) at the beginning, to account
+ * for all modifier combinations */
+#define RESERVED_DEVICES 15
 
-static GHashTable *configure_input_device(const char *name,
-        const char *platform);
+#define CTRL_BIT          1
+#define ALT_BIT           2
+#define SHIFT_BIT         4
+#define SPECIAL_BIT       8
 
-// KEYBOARD occupies 8 "devices" (7 extra) at the beginning, to account
-// for all key combinations
-#define RESERVED_DEVICES 7
+static int key_index(int key, int mod, int offset)
+{
+    if (key == 0)
+        return 0;
 
-static int key_index(int key, int mod, int offset) {
     int slots_offset = offset;
-    if (mod & FS_ML_KEY_MOD_CTRL) {
+    if (mod & FS_ML_KEY_MOD_CTRL)
         slots_offset |= CTRL_BIT;
-    }
-    if (mod & FS_ML_KEY_MOD_ALT) {
+    if (mod & FS_ML_KEY_MOD_ALT)
         slots_offset |= ALT_BIT;
-    }
-    if (mod & FS_ML_KEY_MOD_SHIFT) {
+    if (mod & FS_ML_KEY_MOD_SHIFT)
         slots_offset |= SHIFT_BIT;
-    }
-    int key_index = 0;
-    if (key >= 0) {
-        // key_index = (MAX_DEVICES - 8 + slots_offset) * SLOTS + key;
-        key_index = slots_offset * SLOTS + key;
-    }
-    //printf("key index is %d\n", key);
-    return key_index;
+    if (mod & FS_ML_KEY_MOD_SPECIAL)
+        slots_offset |= SPECIAL_BIT;
+
+    return slots_offset * SLOTS + key;
 }
 
-static int mouse_index(int device_index, int horiz, int vert, int button) {
+static int event_mod(fs_ml_event *event)
+{
+#if 0
+    printf("event_mod %d LALT %d F12 %d\n",
+           event->key.keysym.mod, FS_ML_KEY_MOD_LALT, FS_ML_KEY_MOD_F12);
+#endif
+#ifdef MACOSX
+    if (event->key.keysym.mod == FS_ML_KEY_MOD_LMETA)
+        return FS_ML_KEY_MOD_SPECIAL;
+#else
+    if (event->key.keysym.mod == FS_ML_KEY_MOD_LALT)
+        return FS_ML_KEY_MOD_SPECIAL;
+#endif
+    else if (event->key.keysym.mod == FS_ML_KEY_MOD_F11)
+        return FS_ML_KEY_MOD_SPECIAL;
+    else if (event->key.keysym.mod == FS_ML_KEY_MOD_F12)
+        return FS_ML_KEY_MOD_SPECIAL;
+    return event->key.keysym.mod;
+}
+
+static int mouse_index(int device_index, int horiz, int vert, int button)
+{
     int index = 0;
-    if (horiz) {
+    if (horiz)
         index = 1;
-    }
-    else if (vert) {
+    else if (vert)
         index = 2;
-    }
-    else if (button == FS_ML_BUTTON_LEFT) {
+    else if (button == FS_ML_BUTTON_LEFT)
         index = 3;
-    }
-    else if (button == FS_ML_BUTTON_MIDDLE) {
+    else if (button == FS_ML_BUTTON_MIDDLE)
         index = 4;
-    }
-    else if (button == FS_ML_BUTTON_RIGHT) {
+    else if (button == FS_ML_BUTTON_RIGHT)
         index = 5;
-    }
-    //return (MOUSE + mouse) * SLOTS + index;
     return (RESERVED_DEVICES + device_index) * SLOTS + index;
 }
 
@@ -123,20 +137,36 @@ static int g_menu_action_corresponding[MAX_DEVICES * SLOTS];
 #define MAX_BUTTONS 63
 #define MAX_AXIS 63
 
-static void map_keyboard_key(int key, int mod, int input_event, int offset) {
+static void map_keyboard_key(int key, int mod, int action, int offset)
+{
     if (mod == -1) {
-        for (int i = 0; i < 8; i++) {
-            map_keyboard_key(key, 0, input_event, i);
+        /* On purpose we do not map for SPECIAL_BIT, so key events are
+         * not sent to emulator when special modifier is pressed. */
+        for (int i = 0; i < (CTRL_BIT | SHIFT_BIT | ALT_BIT); i++) {
+            map_keyboard_key(key, 0, action, i);
         }
         return;
     }
     int index = key_index(key, mod, offset);
     if (index > 0) {
-        g_input_action_table[index] = input_event;
+        g_input_action_table[index] = action;
+
+        for (int i = 0; g_actions[i].input_event != FS_EMU_ACTION_LAST; i++) {
+            /* Not very elegant, but ok for now since there is only a few fs
+             * emu actions. */
+            if (g_actions[i].input_event == action) {
+                if ((g_actions[i].flags & FS_EMU_ACTION_FLAG_MENU)) {
+                    // fs_log("MENU ACTION index %d -> action %d\n", index, action);
+                    g_menu_action_table[index] = action;
+                }
+                break;
+            }
+        }
     }
 }
 
-void fs_emu_set_keyboard_translation(fs_emu_key_translation *keymap) {
+void fs_emu_set_keyboard_translation(fs_emu_key_translation *keymap)
+{
     for (; keymap->system_key; keymap++) {
         int key = keymap->system_key;
         int mod = keymap->system_mod;
@@ -197,7 +227,8 @@ typedef struct input_config_item {
     int value;
 } input_config_item;
 
-static void free_input_config_item_list(input_config_item *items) {
+static void free_input_config_item_list(input_config_item *items)
+{
     for (input_config_item *item = items; item->config_key; item++) {
         g_free(item->config_key);
         g_free(item->config_value);
@@ -205,8 +236,10 @@ static void free_input_config_item_list(input_config_item *items) {
     g_free(items);
 }
 
-static void map_input_config_item(const char* desc, int *out_key,
-        int *out_axis, int *out_hat, int *out_button, int *out_value) {
+static void map_input_config_item(
+        const char* desc, int *out_key, int *out_axis, int *out_hat,
+        int *out_button, int *out_value)
+{
     // make parts always at least three items -this way we do not have to
     // bounds check parts
     char *tmp = g_strconcat(desc, "_x_x_x_x", NULL);
@@ -275,8 +308,9 @@ static void map_input_config_item(const char* desc, int *out_key,
 
 }
 
-static input_config_item *get_system_config_for_device(const char *device,
-        const char *platform) {
+static input_config_item *get_system_config_for_device(
+        const char *device, const char *platform)
+{
     fs_log("get system config for device: %s\n", device);
     GHashTable *config = configure_input_device(device, platform);
     if (config == NULL) {
@@ -315,12 +349,14 @@ static input_config_item *get_system_config_for_device(const char *device,
     return result;
 }
 
-static input_config_item *get_config_for_device(const char *device,
-        const char *platform) {
+static input_config_item *get_config_for_device(
+        const char *device, const char *platform)
+{
     return get_system_config_for_device(device, platform);
 }
 
-int fs_emu_input_action_from_string(const char *value) {
+int fs_emu_input_action_from_string(const char *value)
+{
     char *value_l = g_ascii_strdown(value, -1);
     fs_emu_action *action = g_actions;
     while (action->name) {
@@ -336,8 +372,9 @@ int fs_emu_input_action_from_string(const char *value) {
     return -1;
 }
 
-static void map_custom_key_action(const char *key_name, int key_val,
-        const char *mod_name, int mod_val) {
+static void map_custom_key_action(
+        const char *key_name, int key_val, const char *mod_name, int mod_val)
+{
     char *config_key = g_strdup_printf("keyboard_key_%s%s", mod_name,
             key_name);
     const char *config_value = fs_config_get_const_string(config_key);
@@ -352,7 +389,8 @@ static void map_custom_key_action(const char *key_name, int key_val,
     g_free(config_key);
 }
 
-static void map_custom_keyboard_actions() {
+static void map_custom_keyboard_actions(void)
+{
     fs_log("map_custom_keyboard_actions\n");
     const char **key = g_fs_emu_key_names;
     int k = 0;
@@ -375,14 +413,16 @@ static void map_custom_keyboard_actions() {
         map_custom_key_action(keyl, k, "shift_alt_", FS_ML_KEY_MOD_SHIFT |
                 FS_ML_KEY_MOD_ALT);
         map_custom_key_action(keyl, k, "alt_", FS_ML_KEY_MOD_ALT);
+        map_custom_key_action(keyl, k, "mod_", FS_ML_KEY_MOD_SPECIAL);
         free(keyl);
         key++;
         k++;
     }
 }
 
-static int button_index(int key, int joystick, int axis, int hat, int button,
-        int value) {
+static int button_index(
+        int key, int joystick, int axis, int hat, int button, int value)
+{
     if (key >= 0) {
         return key_index(key, 0, 0);
     }
@@ -412,9 +452,10 @@ static int button_index(int key, int joystick, int axis, int hat, int button,
     return index;
 }
 
-static void map_custom_joystick_action(int joy, const char *name,
-        int axis, int hat, int button, int value, const char *n1,
-        int n2, const char *n3) {
+static void map_custom_joystick_action(
+        int joy, const char *name, int axis, int hat, int button, int value,
+        const char *n1, int n2, const char *n3)
+{
     char *config_key = g_strdup_printf("%s%s%d%s", name, n1, n2, n3);
     if (g_fs_log_input) {
         fs_log("%s\n", config_key);
@@ -435,14 +476,16 @@ static void map_custom_joystick_action(int joy, const char *name,
 // 0-based or 1-based configuuration
 #define CONFIG_OFFSET 0
 
-static void map_custom_axis_actions(int joy, const char *name, int axis) {
+static void map_custom_axis_actions(int joy, const char *name, int axis)
+{
     map_custom_joystick_action(joy, name, axis, -1, -1, 0,
             "_axis_", axis + CONFIG_OFFSET, "_neg");
     map_custom_joystick_action(joy, name, axis, -1, -1, 1,
             "_axis_", axis + CONFIG_OFFSET, "_pos");
 }
 
-static void map_custom_hat_actions(int joy, const char *name, int hat) {
+static void map_custom_hat_actions(int joy, const char *name, int hat)
+{
     map_custom_joystick_action(joy, name, -1, hat, -1, FS_ML_HAT_UP,
             "_hat_", hat + CONFIG_OFFSET, "_up");
     map_custom_joystick_action(joy, name, -1, hat, -1, FS_ML_HAT_DOWN,
@@ -453,13 +496,16 @@ static void map_custom_hat_actions(int joy, const char *name, int hat) {
             "_hat_", hat + CONFIG_OFFSET, "_right");
 }
 
-static void map_custom_button_actions(int joy, const char *name, int button) {
+static void map_custom_button_actions(int joy, const char *name, int button)
+{
     map_custom_joystick_action(joy, name, -1, -1, button, 0,
             "_button_", button + CONFIG_OFFSET, "");
 }
 
-static void map_custom_joystick_actions_2(int joy, const char *name,
-        int axis_count, int hat_count, int button_count) {
+static void map_custom_joystick_actions_2(
+        int joy, const char *name, int axis_count, int hat_count,
+        int button_count)
+{
     for (int i = 0; i < axis_count; i++) {
         map_custom_axis_actions(joy, name, i);
     }
@@ -471,7 +517,8 @@ static void map_custom_joystick_actions_2(int joy, const char *name,
     }
 }
 
-static char *joystick_long_config_name(const fs_ml_input_device *device) {
+static char *joystick_long_config_name(const fs_ml_input_device *device)
+{
     const char *in = device->name;
     char *result = g_malloc(strlen(device->name) + 1);
     char *out = result;
@@ -512,7 +559,8 @@ static char *joystick_long_config_name(const fs_ml_input_device *device) {
     return result2;
 }
 
-static char *joystick_config_name(const char* name, int with_number) {
+static char *joystick_config_name(const char* name, int with_number)
+{
     const char *in = name;
     char *result = g_malloc(strlen(name) + 1);
     char *out = result;
@@ -544,8 +592,9 @@ static char *joystick_config_name(const char* name, int with_number) {
     return result;
 }
 
-static void map_custom_gamepad_actions(int joy, const char *name,
-        fs_ml_input_device *device) {
+static void map_custom_gamepad_actions(
+        int joy, const char *name, fs_ml_input_device *device)
+{
     char* config_name = joystick_long_config_name(device);
     fs_log("config name \"%s\"\n", config_name);
     input_config_item *config = get_config_for_device(config_name,
@@ -586,7 +635,8 @@ static void map_custom_gamepad_actions(int joy, const char *name,
     free(config_name);
 }
 
-static void map_custom_joystick_actions() {
+static void map_custom_joystick_actions()
+{
     fs_log("map_custom_joystick_actions\n");
     fs_ml_input_device device;
     int joystick_index = 0;
@@ -629,12 +679,65 @@ void fs_emu_set_actions(fs_emu_action *actions)
 {
     int k = 0;
 
-    g_actions[k].name = "action_taunt";
-    g_actions[k++].input_event = FS_EMU_ACTION_TAUNT;
-    g_actions[k].name = "action_screenshot";
-    g_actions[k++].input_event = FS_EMU_ACTION_SCREENSHOT;
+    g_actions[k].name = "action_fullscreen";
+    g_actions[k].flags = FS_EMU_ACTION_FLAG_MENU;
+    g_actions[k++].input_event = FS_EMU_ACTION_FULLSCREEN;
+
+    g_actions[k].name = "action_grab_input";
+    g_actions[k].flags = 0;
+    g_actions[k++].input_event = FS_EMU_ACTION_GRAB_INPUT;
+
+    g_actions[k].name = "action_menu";
+    g_actions[k].flags = FS_EMU_ACTION_FLAG_MENU;
+    g_actions[k++].input_event = FS_EMU_ACTION_MENU_ALT;
+
     g_actions[k].name = "action_pause";
+    g_actions[k].flags = FS_EMU_ACTION_FLAG_MENU;
     g_actions[k++].input_event = FS_EMU_ACTION_PAUSE;
+
+    g_actions[k].name = "action_quit";
+    g_actions[k].flags = FS_EMU_ACTION_FLAG_MENU;
+    g_actions[k++].input_event = FS_EMU_ACTION_QUIT;
+
+    g_actions[k].name = "action_screenshot";
+    g_actions[k].flags = FS_EMU_ACTION_FLAG_MENU;
+    g_actions[k++].input_event = FS_EMU_ACTION_SCREENSHOT;
+
+    g_actions[k].name = "action_special";
+    g_actions[k].flags = 0;
+    g_actions[k++].input_event = FS_EMU_ACTION_SPECIAL;
+
+    g_actions[k].name = "action_taunt";
+    g_actions[k].flags = 0;
+    g_actions[k++].input_event = FS_EMU_ACTION_TAUNT;
+
+    g_actions[k].name = "action_volume_down";
+    g_actions[k].flags = FS_EMU_ACTION_FLAG_MENU;
+    g_actions[k++].input_event = FS_EMU_ACTION_VOLUME_DOWN;
+
+    g_actions[k].name = "action_volume_mute";
+    g_actions[k].flags = FS_EMU_ACTION_FLAG_MENU;
+    g_actions[k++].input_event = FS_EMU_ACTION_VOLUME_MUTE;
+
+    g_actions[k].name = "action_volume_up";
+    g_actions[k].flags = FS_EMU_ACTION_FLAG_MENU;
+    g_actions[k++].input_event = FS_EMU_ACTION_VOLUME_UP;
+
+    g_actions[k].name = "action_warp";
+    g_actions[k].flags = 0;
+    g_actions[k++].input_event = FS_EMU_ACTION_WARP;
+
+    g_actions[k].name = "action_zoom";
+    g_actions[k].flags = 0;
+    g_actions[k++].input_event = FS_EMU_ACTION_ZOOM;
+
+    g_actions[k].name = "action_zoom_border";
+    g_actions[k].flags = 0;
+    g_actions[k++].input_event = FS_EMU_ACTION_ZOOM_BORDER;
+
+    g_actions[k].name = "";
+    g_actions[k].flags = 0;
+    g_actions[k++].input_event = FS_EMU_ACTION_LAST;
 
     while (actions->name) {
         if (k == MAX_ACTIONS) {
@@ -647,10 +750,10 @@ void fs_emu_set_actions(fs_emu_action *actions)
         k++;
         actions++;
     }
-
 }
 
-void fs_emu_reset_input_mapping() {
+void fs_emu_reset_input_mapping()
+{
     memset(g_input_action_table, 0, INPUT_ACTION_TABLE_SIZE_BYTES);
     int count;
     fs_ml_input_device *devices = fs_ml_get_input_devices(&count);
@@ -688,21 +791,44 @@ void fs_emu_queue_action(int action, int state)
     fs_emu_queue_input_event(input_event);
 }
 
+static fs_emu_hotkey_function g_hotkey_function = NULL;
+void fs_emu_set_hotkey_function(fs_emu_hotkey_function function)
+{
+    g_hotkey_function = function;
+}
+
+bool fs_emu_handle_local_action(int action, int state)
+{
+    if (action & FS_EMU_ACTION_LOCAL) {
+        /* Local action */
+        if (action >= FS_EMU_ACTION_LOCAL_LIBFSEMU) {
+            /* This is a libfsemu-internal action */
+            fs_emu_handle_libfsemu_action(action, state);
+        } else {
+            /* Local application action */
+            if (g_hotkey_function != NULL) {
+                g_hotkey_function(action, state);
+            }
+        }
+        return true;
+    }
+    return false;
+}
+
+static bool fs_emu_handle_local_input_event(int input_event)
+{
+    if (input_event & FS_EMU_ACTION_LOCAL) {
+        int action = input_event & 0xffff;
+        int state = (input_event & 0xff0000) >> 16;
+        return fs_emu_handle_local_action(action, state);
+    }
+    return false;
+}
+
 void fs_emu_queue_input_event(int input_event)
 {
-    if (input_event & 0x8000) {
-        int state = (input_event & 0xff0000) >> 16;
-        int action = input_event & 0xffff;
-        // local action
-        if (input_event & 0xc000) {
-            // local libfsemu action
-            fs_emu_handle_libfsemu_action(action, state);
-            return;
-        }
-        else {
-            // local application action
-        }
-    }
+    if (fs_emu_handle_local_input_event(input_event))
+        return;
 #ifdef WITH_NETPLAY
     if (!fs_emu_netplay_send_input_event(input_event)) {
 #endif
@@ -730,20 +856,15 @@ static void queue_input_event_with_state(int input_event, int state)
 static int g_cursor_visible = 1;
 static int64_t g_cursor_visible_to = 0;
 
-#if 0
-static int g_cursor_mode = 1;
-static int g_mouse_integration = 0;
-#endif
-
 bool fs_emu_mouse_integration(void)
 {
-    //return g_mouse_integration;
     return fs_ml_mouse_integration();
 }
 
 bool fs_emu_cursor_allowed(void)
 {
-    //return g_cursor_mode != 0;
+    if (fs_emu_menu_mode())
+        return true;
     return fs_ml_cursor_allowed();
 }
 
@@ -756,7 +877,7 @@ void fs_emu_show_cursor(int show)
 
 void fs_emu_show_cursor_msec(int duration)
 {
-    fs_ml_show_cursor(1, 0);
+    fs_ml_show_cursor(duration > 0, 0);
     g_cursor_visible = 1;
     g_cursor_visible_to = fs_emu_monotonic_time() + \
                           (int64_t) duration * 1000;
@@ -772,23 +893,31 @@ int64_t fs_emu_cursor_is_visible_to(void)
     return g_cursor_visible_to;
 }
 
-int fs_emu_has_input_grab()
+bool fs_emu_input_grab(void)
 {
-    return fs_ml_has_input_grab();
+    return fs_ml_input_grab();
 }
 
 static int g_ignore_next_motion = 0;
 
-void fs_emu_grab_input(int mode) {
-    fs_log("grab input mode: %d\n", mode);
-    if (mode) {
-        fs_ml_grab_input(1, 0);
+void fs_emu_set_input_grab(bool grab)
+{
+    fs_emu_set_input_grab_and_visibility(grab, FS_EMU_MOUSE_DEFAULT_DURATION);
+}
+
+void fs_emu_set_input_grab_and_visibility(bool grab, int duration)
+{
+    if (grab == fs_emu_input_grab())
+        return;
+
+    fs_log("EMU: %s input\n", grab ? "Grab" : "Ungrab");
+    if (grab) {
+        fs_ml_set_input_grab(true);
         fs_emu_show_cursor(0);
-    }
-    else {
-        fs_ml_grab_input(0, 0);
+    } else {
+        fs_ml_set_input_grab(false);
         if (fs_emu_cursor_allowed()) {
-           fs_emu_show_cursor_msec(FS_EMU_MOUSE_DEFAULT_DURATION);
+           fs_emu_show_cursor_msec(duration);
         }
     }
     g_ignore_next_motion = 1;
@@ -1002,9 +1131,10 @@ static input_config_item *get_config(
     return config;
 }
 
-int fs_emu_configure_joystick(const char *name, const char *type,
-        fs_emu_input_mapping *mapping, int usage,
-        char *out_name, int out_name_len) {
+int fs_emu_configure_joystick(
+        const char *name, const char *type, fs_emu_input_mapping *mapping,
+        int usage, char *out_name, int out_name_len)
+{
     fs_log("configure joystick \"%s\" for \"%s\"\n", name, type);
     if (name == NULL || name[0] == '\0') {
         return 0;
@@ -1079,7 +1209,8 @@ int fs_emu_configure_joystick(const char *name, const char *type,
             } \
         }
 
-static int process_input_event(fs_ml_event *event) {
+static int process_input_event(fs_ml_event *event)
+{
     int handled = 0;
 
     //fs_log("process_input_event type %d (%d)\n", event->type, FS_ML_JOYBUTTONDOWN);
@@ -1134,28 +1265,44 @@ static int process_input_event(fs_ml_event *event) {
     return handled;
 }
 
-int fs_emu_process_key_event(int key_code, int key_mod, int state) {
-    //fs_log("fs_emu_process_key_event %d %d %d\n", key_code, key_mod, state);
-    //if (state == 1) {
-    //}
+#define F11_F12_SPECIAL_STATE -1
+
+int fs_emu_process_key_event(int key_code, int key_mod, int state)
+{
+#if 1
+    fs_log("fs_emu_process_key_event %d %d %d\n", key_code, key_mod, state);
+#endif
+
+    if (key_code == FS_ML_KEY_F11 || key_code == FS_ML_KEY_F12) {
+        /* Special handling because we only want to process F11/F12 if
+         * it hasn't been used as a modifier key. */
+        if (state == F11_F12_SPECIAL_STATE)
+            state = 1;
+        else
+            return 1;
+    }
+
+    int index = key_index(key_code, key_mod, 0);
 
     if (fs_emu_menu_or_dialog_is_active()) {
+#if 0
         //printf("in menu mode\n");
         // for now
         return 0;
+#endif
+        int action = g_menu_action_table[index];
+        fs_emu_menu_function(action, state);
+        return 1;
     }
 
-    // always process all key events, now
-    int index = key_index(key_code, key_mod, 0);
     int input_event = g_input_action_table[index];
 
     if (state == 0) {
-        // key was released - we must now send a "release" event for
-        // the key that was originally pressed (with the original
-        // modifiers)
+        /* The key was released - we must now send a "release" event for
+         * the key that was originally pressed (with the original
+         * modifiers). */
         key_mod = g_key_modifiers_at_pressed_state[key_code];
-    }
-    else {
+    } else {
         g_key_modifiers_at_pressed_state[key_code] = key_mod;
     }
 
@@ -1179,7 +1326,8 @@ int fs_emu_process_key_event(int key_code, int key_mod, int state) {
     return 1;
 }
 
-int fs_emu_process_event(fs_emu_event *event) {
+int fs_emu_process_event(fs_emu_event *event)
+{
     return 0;
 }
 
@@ -1266,7 +1414,8 @@ static void read_input_configs_from_dir(const char *dir_name) {
     g_dir_close(dir);
 }
 
-static void init_input_configs() {
+static void init_input_configs()
+{
     fs_log("init_input_configs\n");
     g_input_config_paths = g_hash_table_new_full(g_str_hash, g_str_equal,
                                                  g_free, g_free);
@@ -1281,33 +1430,17 @@ static void init_input_configs() {
     }
 }
 
-static fs_emu_hotkey_function g_hotkey_function = NULL;
-void fs_emu_set_hotkey_function(fs_emu_hotkey_function function) {
-    g_hotkey_function = function;
-}
-
-#if 0
-void fsuae_ppc_pause(int pause);
-#endif
-
-static void special_function()
+static int handle_shortcut(fs_ml_event *event)
 {
-#if 0
-    static int paused = 0;
-    fsuae_ppc_pause(!paused);
-    paused = !paused;
-#endif
-}
-
-static int handle_shortcut(fs_ml_event *event) {
     //int sym = event->key.keysym.sym;
     int key_code = event->key.keysym.sym;
     int key_mod = event->key.keysym.mod;
     int state = (event->type == FS_ML_KEYDOWN);
     int special = key_mod & (FS_ML_KEY_MOD_F11 | FS_ML_KEY_MOD_F12);
-    // keep track of whether F11/F12 has been used alone or not
-    // this code will get a little confused if you use F11
-    // and F12 keys simultaneously..
+
+    /* Keep track of whether F11/F12 has been used alone or not. This code
+     * will get a little confused if you use F11 and F12 keys
+     * simultaneously. */
     static int special_pressed = 0;
     static int special_combo = 0;
 
@@ -1322,10 +1455,12 @@ static int handle_shortcut(fs_ml_event *event) {
             // release event after switching fullscreen / window mode
             if (special_pressed && !special_combo) {
                 if (key_code == FS_ML_KEY_F12) {
-                    fs_emu_menu_toggle();
+                    fs_emu_process_key_event(
+                        FS_ML_KEY_F12, 0, F11_F12_SPECIAL_STATE);
                 }
                 else {
-                    fs_emu_toggle_zoom(0);
+                    fs_emu_process_key_event(
+                        FS_ML_KEY_F11, 0, F11_F12_SPECIAL_STATE);
                 }
             }
             special_combo = 0;
@@ -1336,49 +1471,12 @@ static int handle_shortcut(fs_ml_event *event) {
         if (state) {
             // F11/F12 has been used in combination with another key
             special_combo = 1;
-
-            if (key_code == FS_ML_KEY_G) {
-                fs_emu_grab_input(!fs_emu_has_input_grab());
-            }
-            else if (key_code == FS_ML_KEY_S) {
-                fs_log("printscreen pressed\n");
-                g_fs_emu_screenshot = 1;
-            }
-            else if (key_code == FS_ML_KEY_Z) {
-                fs_emu_toggle_zoom(0);
-            }
-            else if (key_code == FS_ML_KEY_B) {
-                // toogle zoom border
-                fs_emu_toggle_zoom(1);
-            }
-            else if (key_code == FS_ML_KEY_M) {
-                fs_emu_volume_control(-1);
-            }
-            else if (key_code == FS_ML_KEY_COMMA) {
-                fs_emu_volume_control(-2);
-            }
-            else if (key_code == FS_ML_KEY_PERIOD) {
-                fs_emu_volume_control(-3);
-            }
-            else if (key_code == FS_ML_KEY_P) {
-                fs_emu_pause(!fs_emu_is_paused());
-            }
-            else if (key_code == FS_ML_KEY_X) {
-                special_function();
-            }
-            else if (key_code == FS_ML_KEY_W) {
-                // FIXME: UAE-specific hot key hack for warp function,
-                // must be moved out of libfsemu
-                fs_emu_queue_input_event(0x00010000 | 275);
-            }
-            else if (g_hotkey_function != NULL) {
-                g_hotkey_function(key_code, key_mod);
-            }
+            /* FIXME: can this be removed? */
         }
     }
 
     if (special || key_code == FS_ML_KEY_F11 || key_code == FS_ML_KEY_F12) {
-        return 1;
+        return 0;
     }
 
     if (key_code == FS_ML_KEY_TAB && !fs_emu_hud_in_chat_mode() &&
@@ -1406,18 +1504,6 @@ static int handle_shortcut(fs_ml_event *event) {
                 }
             }
             return 1;
-        }
-    }
-    else if (key_code == FS_ML_KEY_PRINT) {
-        if (state) {
-            fs_log("printscreen pressed\n");
-            g_fs_emu_screenshot = 1;
-        }
-        return 1;
-    }
-    else if (key_code == FS_ML_KEY_PAUSE) {
-        if (state) {
-            fs_emu_pause(!fs_emu_is_paused());
         }
     }
     else if (fs_emu_hud_in_chat_mode() && !fs_emu_menu_or_dialog_is_active()) {
@@ -1464,7 +1550,7 @@ static int input_function(fs_ml_event *event)
         //             event->motion.xrel, event->motion.yrel);
         // }
 
-        if (fs_emu_has_input_grab() == FALSE) {
+        if (fs_emu_input_grab() == FALSE) {
             if (fs_emu_cursor_allowed()) {
                 fs_emu_show_cursor_msec(FS_EMU_MOUSE_DEFAULT_DURATION);
             }
@@ -1519,7 +1605,7 @@ static int input_function(fs_ml_event *event)
             return 1;
         }
         else if (fs_emu_process_key_event(event->key.keysym.sym,
-                event->key.keysym.mod, event->type == FS_ML_KEYDOWN)) {
+                event_mod(event), event->type == FS_ML_KEYDOWN)) {
             return 1;
         }
     }
@@ -1537,28 +1623,29 @@ static int input_function(fs_ml_event *event)
         // are processed by chat...
 
         if (fs_emu_process_key_event(event->key.keysym.sym,
-                event->key.keysym.mod, event->type == FS_ML_KEYDOWN)) {
+                event_mod(event), event->type == FS_ML_KEYDOWN)) {
             return 1;
         }
     }
     */
-    else if (event->type == FS_ML_MOUSEBUTTONDOWN ||
-            event->type == FS_ML_MOUSEBUTTONUP) {
+    else if (event->type == FS_ML_MOUSEBUTTONDOWN
+             || event->type == FS_ML_MOUSEBUTTONUP) {
         if (event->type == FS_ML_MOUSEBUTTONDOWN
                 && event->button.device == 1) {
             // we only check this for device 1 (system mouse), since otherwise
             // we would process double events due to specific mouse input
             // events too (ManyMouse). FIXME: don't hardcode device index..
-            if (fs_emu_has_input_grab()) {
+            if (fs_emu_input_grab()) {
                 if (event->button.button == FS_ML_BUTTON_MIDDLE) {
                     if (g_middle_click_ungrab) {
-                        fs_emu_grab_input(0);
+                        fs_emu_set_input_grab(false);
                     }
                 }
-            }
-            else {
-                if (fs_ml_has_automatic_input_grab()) {
-                    fs_emu_grab_input(1);
+            } else {
+                if (fs_emu_menu_mode()) {
+                    /* Mouse is always ungrabbed in menu mode. */
+                } else if (fs_ml_automatic_input_grab()) {
+                    fs_emu_set_input_grab(true);
                 }
             }
         }

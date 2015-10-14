@@ -129,11 +129,11 @@ int amiga_send_input_event(int input_event, int state) {
     bool playbackevent = 0;
 
     //amiga_configure_port_from_input_event(input_event);
-    int result = amiga_handle_input_event (input_event, state, max, autofire,
-            canstopplayback, playbackevent);
+    int result = amiga_handle_input_event (
+        input_event, state, max, autofire, canstopplayback, playbackevent);
     if (result != 1) {
         write_log("amiga_handle_input_event(%d, %d, ...) failed with "
-                "result %d", input_event, state, result);
+                  "result %d\n", input_event, state, result);
     }
     return result;
 }

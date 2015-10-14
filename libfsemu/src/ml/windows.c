@@ -21,7 +21,8 @@
 HICON hIconSmall = 0;
 HICON hIconBig = 0;
 
-void fs_ml_configure_window() {
+void fs_ml_configure_window(void)
+{
     fs_log("fs_ml_configure_window\n");
 
     SDL_SysWMinfo info;
@@ -62,7 +63,8 @@ void fs_ml_configure_window() {
     }
 }
 
-void fs_ml_prevent_power_saving(void) {
+void fs_ml_prevent_power_saving(void)
+{
     // on Windows we only need to call a function once to change the thread
     // state
     static int initialized = 0;
@@ -74,6 +76,11 @@ void fs_ml_prevent_power_saving(void) {
         fs_log("SetThreadExecutionState failed\n");
     }
     initialized = 1;
+}
+
+void fs_ml_activate_window_switcher_impl(void)
+{
+    fs_log("FIXME: Active window switcher not implemented\n");
 }
 
 // not used

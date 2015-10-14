@@ -33,6 +33,7 @@ typedef struct fs_emu_player {
 } fs_emu_player;
 extern fs_emu_player g_fs_emu_players[MAX_PLAYERS];
 
+bool fs_emu_handle_local_action(int action, int state);
 void fs_emu_queue_input_event(int input_event);
 void fs_emu_queue_input_event_internal(int input_event);
 

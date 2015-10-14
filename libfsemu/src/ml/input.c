@@ -26,7 +26,11 @@ int g_fs_ml_first_joystick_index = 0;
 /* maps SDL joystick indices to fs_ml indices */
 SDL_JoystickID g_fs_ml_sdl_joystick_index_map[MAX_SDL_JOYSTICK_IDS];
 
-static int g_cursor_mode = 1;
+#define CURSOR_MODE_ON 1
+#define CURSOR_MODE_OFF 0
+#define CURSOR_MODE_AUTO -1
+static int g_cursor_mode = CURSOR_MODE_ON;
+
 static int g_mouse_integration = 0;
 
 bool fs_ml_mouse_integration(void)
@@ -36,7 +40,7 @@ bool fs_ml_mouse_integration(void)
 
 bool fs_ml_cursor_allowed(void)
 {
-    return g_cursor_mode != 0;
+    return g_cursor_mode != CURSOR_MODE_OFF;
 }
 
 fs_ml_event* fs_ml_alloc_event()
@@ -158,9 +162,9 @@ void fs_ml_input_init()
     g_cursor_mode = fs_config_get_boolean(OPTION_CURSOR);
     if (fs_config_check_auto(OPTION_CURSOR, FS_CONFIG_AUTO)) {
         if (fs_emu_mouse_integration()) {
-            g_cursor_mode = 0;
+            g_cursor_mode = CURSOR_MODE_OFF;
         } else {
-            g_cursor_mode = -1;
+            g_cursor_mode = CURSOR_MODE_AUTO;
         }
     }
 

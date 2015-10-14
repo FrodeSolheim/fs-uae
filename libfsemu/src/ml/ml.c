@@ -166,7 +166,9 @@ void fs_ml_video_set_post_render_function(fs_ml_void_function function) {
     g_fs_ml_video_post_render_function = function;
 }
 
-int fs_ml_handle_keyboard_shortcut(fs_ml_event *event) {
+int fs_ml_handle_keyboard_shortcut(fs_ml_event *event)
+{
+#if 0
     int state = event->key.state;
     int key = event->key.keysym.sym;
     int mod = event->key.keysym.mod;
@@ -179,28 +181,6 @@ int fs_ml_handle_keyboard_shortcut(fs_ml_event *event) {
     int alt_mod = mod & FS_ML_KEY_MOD_ALT;
 #endif
 
-    if (special) {
-        if (key == FS_ML_KEY_F) {
-            if (state) {
-                fs_ml_toggle_fullscreen();
-            }
-            //return 1;
-        }
-        else if (key == FS_ML_KEY_Q) {
-            if (state) {
-                fs_ml_quit();
-            }
-            //return 1;
-        }
-    }
-
-    if (key == FS_ML_KEY_RETURN && alt_mod) {
-        if (state) {
-            fs_log("ALT+Return key press detected\n");
-            fs_ml_toggle_fullscreen();
-        }
-        return 1;
-    }
     else if (key == FS_ML_KEY_F4 && alt_mod) {
         if (state) {
             fs_log("ALT+F4 key press detected\n");
@@ -233,7 +213,7 @@ int fs_ml_handle_keyboard_shortcut(fs_ml_event *event) {
         }
         return 1;
     }
-
+#endif
     return 0;
 }
 

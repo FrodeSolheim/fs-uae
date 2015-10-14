@@ -108,4 +108,12 @@ void fs_uae_init_lua_state(lua_State *L);
 
 extern int g_fs_uae_frame;
 
+#include <fs/emu/actions.h>
+
+enum {
+    FS_UAE_ACTION_FIRST = FS_EMU_ACTION_LOCAL,
+
+    FS_UAE_ACTION_ENTER_DEBUGGER,
+};
+
 #endif /* FS_UAE_FS_UAE_H */

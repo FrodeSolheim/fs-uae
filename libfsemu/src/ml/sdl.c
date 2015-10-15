@@ -761,7 +761,7 @@ int fs_ml_event_loop(void)
     while (SDL_PollEvent(&event)) {
         switch(event.type) {
         case SDL_QUIT:
-            fs_log("intercepted SDL_QUIT\n");
+            fs_log("Received SDL_QUIT\n");
             fs_ml_quit();
 #ifdef FS_EMU_DRIVERS
             printf("returning 1 from fs_ml_event_loop\n");
@@ -779,6 +779,13 @@ int fs_ml_event_loop(void)
                     fs_log("Window focus gained - grabbing input\n");
                     g_grab_input_on_activate = false;
                     fs_ml_set_input_grab(true);
+#ifdef MACOSX
+                } else if (fs_ml_input_grab()) {
+                    /* Input grab could be "lost" due to Cmd+Tab */
+                    fs_log("Forcing re-grab of input on OS X\n");
+                    fs_ml_set_input_grab(false);
+                    fs_ml_set_input_grab(true);
+#endif
                 }
             }
             continue;
@@ -1037,7 +1044,7 @@ void fs_ml_video_swap_buffers()
     SDL_GL_SwapWindow(g_fs_ml_window);
 }
 
-static int post_main_loop(void)
+static void post_main_loop(void)
 {
     /* We want to improve the transitioning from FS-UAE back to e.g.
      * FS-UAE Game Center - avoid blinking cursor - so we try to move it (to

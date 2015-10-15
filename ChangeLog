@@ -1,7 +1,6 @@
 Version 2.7.3dev:
 
-* Restore FS-UAE 2.4 alt-tab behavior when input is grabbed.
-* Use XTEST extension to send fake alt-tab after ungrabbing (on alt-tab).
+* Workaround to allow Alt+Tab to work on non-Windows/non-OS-X platforms.
 * Most built-in shortcuts are now configurable.
 * Actions for built-in shortcuts are now available for mapping.
 * Actions for F11 and F12 (release) can be customized.

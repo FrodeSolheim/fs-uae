@@ -60,19 +60,9 @@ void fs_ml_set_input_function(fs_ml_input_function function)
 
 int fs_ml_post_event(fs_ml_event* event)
 {
-    if (event->type == FS_ML_KEYDOWN || event->type == FS_ML_KEYUP) {
-        if (fs_ml_handle_keyboard_shortcut(event)) {
-            return 1;
-        }
-    }
     if (g_input_function) {
         g_input_function(event);
     }
-#if 0
-    fs_mutex_lock(g_input_mutex);
-    fs_queue_push_tail(g_input_queue, event);
-    fs_mutex_unlock(g_input_mutex);
-#endif
     return 1;
 }
 

@@ -18,6 +18,7 @@ BuildRequires: gcc-c++
 BuildRequires: hicolor-icon-theme
 BuildRequires: libpng-devel
 BuildRequires: libXi-devel
+BuildRequires: libXtst-devel
 BuildRequires: pkgconfig(gl)
 BuildRequires: pkgconfig(glew)
 BuildRequires: pkgconfig(glib-2.0)

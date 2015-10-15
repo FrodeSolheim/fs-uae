@@ -1265,11 +1265,30 @@ static int process_input_event(fs_ml_event *event)
     return handled;
 }
 
+static void handle_modifier(int key_code, int state)
+{
+    if (key_code == FS_ML_KEY_LALT) {
+        static bool grab_input_on_mod_release;
+        if (state) {
+            if (fs_emu_input_grab()) {
+                fs_emu_set_input_grab_and_visibility(false, 0);
+                grab_input_on_mod_release = true;
+            }
+        } else {
+            if (grab_input_on_mod_release) {
+                if (!fs_emu_input_grab())
+                    fs_emu_set_input_grab(true);
+                grab_input_on_mod_release = false;
+            }
+        }
+    }
+}
+
 #define F11_F12_SPECIAL_STATE -1
 
 int fs_emu_process_key_event(int key_code, int key_mod, int state)
 {
-#if 1
+#if 0
     fs_log("fs_emu_process_key_event %d %d %d\n", key_code, key_mod, state);
 #endif
 
@@ -1601,10 +1620,12 @@ static int input_function(fs_ml_event *event)
                 event->key.keysym.sym = FS_ML_KEY_LCTRL;
             }
         }
+        handle_modifier(event->key.keysym.sym, event->type == FS_ML_KEYDOWN);
         if (handle_shortcut(event)) {
+            /* Mostly just net play chat and a few special shortcuts. */
             return 1;
         }
-        else if (fs_emu_process_key_event(event->key.keysym.sym,
+        if (fs_emu_process_key_event(event->key.keysym.sym,
                 event_mod(event), event->type == FS_ML_KEYDOWN)) {
             return 1;
         }

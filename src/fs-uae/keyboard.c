@@ -94,12 +94,16 @@ static fs_emu_key_translation g_default_keymap[] = {
     { FS_ML_KEY_LCTRL,        ALL, INPUTEVENT_KEY_CTRL },
     /* FIXME */
     { FS_ML_KEY_LSUPER,       ALL, INPUTEVENT_KEY_AMIGA_LEFT },
+#if 0
     { FS_ML_KEY_LMETA,        ALL, INPUTEVENT_KEY_AMIGA_LEFT },
+#endif
     { FS_ML_KEY_LALT,         ALL, INPUTEVENT_KEY_ALT_LEFT },
     { FS_ML_KEY_RALT,         ALL, INPUTEVENT_KEY_ALT_RIGHT },
     /* FIXME */
     { FS_ML_KEY_RSUPER,       ALL, INPUTEVENT_KEY_AMIGA_RIGHT },
+#if 0
     { FS_ML_KEY_RMETA,        ALL, INPUTEVENT_KEY_AMIGA_RIGHT },
+#endif
     { FS_ML_KEY_MENU,         ALL, INPUTEVENT_KEY_AMIGA_RIGHT },
 #if 0
     { FS_ML_KEY_RCTRL,        ALL, INPUTEVENT_KEY_CTRL_RIGHT },

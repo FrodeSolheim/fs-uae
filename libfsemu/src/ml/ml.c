@@ -166,58 +166,8 @@ void fs_ml_video_set_post_render_function(fs_ml_void_function function) {
     g_fs_ml_video_post_render_function = function;
 }
 
-int fs_ml_handle_keyboard_shortcut(fs_ml_event *event)
+void fs_ml_init()
 {
-#if 0
-    int state = event->key.state;
-    int key = event->key.keysym.sym;
-    int mod = event->key.keysym.mod;
-    //printf("%d %d -- %d %d\n", key, mod, SDLK_RETURN, KMOD_ALT);
-    int special = mod & (FS_ML_KEY_MOD_F11 | FS_ML_KEY_MOD_F12);
-
-#ifdef MACOSX
-    int alt_mod = mod & (FS_ML_KEY_MOD_ALT | FS_ML_KEY_MOD_META);
-#else
-    int alt_mod = mod & FS_ML_KEY_MOD_ALT;
-#endif
-
-    else if (key == FS_ML_KEY_F4 && alt_mod) {
-        if (state) {
-            fs_log("ALT+F4 key press detected\n");
-            fs_ml_quit();
-        }
-    }
-    else if (key == FS_ML_KEY_TAB && alt_mod) {
-        if (state) {
-            fs_log("ALT+Tab key press detected\n");
-#ifdef USE_SDL2
-
-#else
-#ifdef WINDOWS
-            // input grab will be released be deactivation
-                        // event in this case
-#else
-            if (fs_ml_has_input_grab()) {
-                fs_log("- releasing input grab");
-                fs_ml_grab_input(0, 1);
-                g_fs_ml_had_input_grab = 1;
-            }
-            if (g_fs_emu_video_fullscreen == 1 &&
-                    g_fs_emu_video_fullscreen_mode == 0) {
-                fs_log("- switching to window mode\n");
-                g_fs_ml_was_fullscreen = 1;
-                fs_ml_toggle_fullscreen();
-            }
-#endif
-#endif
-        }
-        return 1;
-    }
-#endif
-    return 0;
-}
-
-void fs_ml_init() {
     fs_log("fs_ml_init (operating system: %s)\n", OS_NAME);
 
     g_fs_ml_video_render_function = NULL;

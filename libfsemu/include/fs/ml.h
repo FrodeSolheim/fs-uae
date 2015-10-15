@@ -544,8 +544,10 @@ typedef enum {
     FS_ML_KEY_LCTRL        = 306,
     FS_ML_KEY_RALT         = 307,
     FS_ML_KEY_LALT         = 308,
+#if 0
     FS_ML_KEY_RMETA        = 309,
     FS_ML_KEY_LMETA        = 310,
+#endif
     FS_ML_KEY_LSUPER       = 311,
     FS_ML_KEY_RSUPER       = 312,
     FS_ML_KEY_MODE         = 313,

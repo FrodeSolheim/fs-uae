@@ -235,8 +235,8 @@ AS_CASE([$host_os],
     X11_LIBS="-lX11"
     AC_DEFINE([USE_X11], [1], [Define to 1 to use X11])
 
-    X11_LIBS="$X11_LIBS -lXtst"
-    AC_DEFINE([USE_X11_XTEST], [1], [Define to 1 to use X11 XTEST extension])
+#    X11_LIBS="$X11_LIBS -lXtst"
+#    AC_DEFINE([USE_X11_XTEST], [1], [Define to 1 to use X11 XTEST extension])
 ])
 AC_SUBST([X11_LIBS])
 

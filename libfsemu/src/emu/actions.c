@@ -27,6 +27,7 @@
 #include <fs/glib.h>
 #include "video.h"
 #include "libfsemu.h"
+#include "input.h"
 #include <stdlib.h>
 
 static const char* g_taunts[] = {
@@ -91,8 +92,16 @@ void fs_emu_handle_libfsemu_action(int action, int state)
             fs_emu_toggle_fullscreen();
         break;
     case FS_EMU_ACTION_GRAB_INPUT:
-        if (state)
-            fs_emu_set_input_grab(!fs_emu_input_grab());
+        if (state) {
+            if (g_fs_emu_grab_input_on_mod_release) {
+                /* We had grapped the input, but is holding the modifier
+                 * key. So we just don't ungrab on release. */
+                g_fs_emu_grab_input_on_mod_release = false;
+                fs_emu_show_cursor_msec(FS_EMU_MOUSE_DEFAULT_DURATION);
+            } else {
+                fs_emu_set_input_grab(!fs_emu_input_grab());
+            }
+        }
         break;
     case FS_EMU_ACTION_MENU_ALT:
         if (state)

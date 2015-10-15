@@ -1,9 +1,11 @@
-#ifndef LIBFSEMU_INPUT_H_
-#define LIBFSEMU_INPUT_H_
+#ifndef LIBFSEMU_INPUT_H
+#define LIBFSEMU_INPUT_H
 
 #include <fs/ml.h>
 #include <fs/emu.h>
 
 void fs_emu_input_init();
 
-#endif // LIBFSEMU_INPUT_H_
+extern bool g_fs_emu_grab_input_on_mod_release;
+
+#endif /* LIBFSEMU_INPUT_H */

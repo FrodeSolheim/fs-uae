@@ -75,6 +75,7 @@ static unsigned char g_input_state[MAX_DEVICES * SLOTS];
 static int g_key_modifiers_at_pressed_state[FS_ML_KEY_LAST] = {};
 static int g_modifier_key;
 static bool g_modifier_key_pressed;
+bool g_fs_emu_grab_input_on_mod_release = false;
 
 // used to look up start index from select index and vice-versa for menu
 // button emulation (you can simultaneously press start and select instead
@@ -900,6 +901,7 @@ static int g_ignore_next_motion = 0;
 void fs_emu_set_input_grab(bool grab)
 {
     fs_emu_set_input_grab_and_visibility(grab, FS_EMU_MOUSE_DEFAULT_DURATION);
+    g_fs_emu_grab_input_on_mod_release = false;
 }
 
 void fs_emu_set_input_grab_and_visibility(bool grab, int duration)
@@ -1310,19 +1312,18 @@ static bool handle_modifier_key(int key_code, int state)
 {
     if (key_code == g_modifier_key) {
         g_modifier_key_pressed = state ? true : false;
-        static bool grab_input_on_mod_release;
         if (state) {
             if (!fs_emu_full_keyboard_emulation()) {
                 if (fs_emu_input_grab()) {
                     fs_emu_set_input_grab_and_visibility(false, 0);
-                    grab_input_on_mod_release = true;
+                    g_fs_emu_grab_input_on_mod_release = true;
                 }
             }
         } else {
-            if (grab_input_on_mod_release) {
+            if (g_fs_emu_grab_input_on_mod_release) {
                 if (!fs_emu_input_grab())
                     fs_emu_set_input_grab(true);
-                grab_input_on_mod_release = false;
+                g_fs_emu_grab_input_on_mod_release = false;
             }
         }
         if (!fs_emu_full_keyboard_emulation()) {
@@ -1710,14 +1711,16 @@ static int input_function(fs_ml_event *event)
             // we would process double events due to specific mouse input
             // events too (ManyMouse). FIXME: don't hardcode device index..
             if (fs_emu_input_grab()) {
-                if (event->button.button == FS_ML_BUTTON_MIDDLE) {
-                    if (g_middle_click_ungrab) {
-                        fs_emu_set_input_grab(false);
-                    }
+                if (g_middle_click_ungrab
+                        && event->button.button == FS_ML_BUTTON_MIDDLE) {
+                    fs_emu_set_input_grab(false);
                 }
-            } else {
-                if (fs_emu_menu_mode()) {
+            } else if (fs_emu_menu_mode()) {
                     /* Mouse is always ungrabbed in menu mode. */
+            } else {
+                if (g_middle_click_ungrab
+                        && event->button.button == FS_ML_BUTTON_MIDDLE) {
+                    fs_emu_set_input_grab(true);
                 } else if (fs_ml_automatic_input_grab()) {
                     fs_emu_set_input_grab(true);
                 }

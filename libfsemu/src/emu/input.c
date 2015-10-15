@@ -105,7 +105,7 @@ static int key_index(int key, int mod, int offset)
 
 static int event_mod(fs_ml_event *event)
 {
-    if (g_modifier_key_pressed)
+    if (g_modifier_key_pressed && !fs_emu_full_keyboard_emulation())
         return FS_ML_KEY_MOD_SPECIAL;
     else if (event->key.keysym.mod == FS_ML_KEY_MOD_F11)
         return FS_ML_KEY_MOD_SPECIAL;
@@ -671,6 +671,10 @@ void fs_emu_map_custom_actions() {
 void fs_emu_set_actions(fs_emu_action *actions)
 {
     int k = 0;
+
+    g_actions[k].name = "action_full_keyboard";
+    g_actions[k].flags = 0;
+    g_actions[k++].input_event = FS_EMU_ACTION_FULL_KEYBOARD;
 
     g_actions[k].name = "action_fullscreen";
     g_actions[k].flags = FS_EMU_ACTION_FLAG_MENU;
@@ -1258,6 +1262,26 @@ static int process_input_event(fs_ml_event *event)
     return handled;
 }
 
+#define NOTIFICATION_FULL_KEYBOARD 0x30a91db6
+
+static bool g_full_keyboard;
+
+bool fs_emu_full_keyboard_emulation(void)
+{
+    return g_full_keyboard;
+}
+
+void fs_emu_set_full_keyboard_emulation(bool full)
+{
+    g_full_keyboard = full;
+    const char *msg;
+    if (g_full_keyboard)
+        msg = gettext("Full keyboard emulation enabled");
+    else
+        msg = gettext("Full keyboard emulation disabled");
+    fs_emu_notification(NOTIFICATION_FULL_KEYBOARD, msg);
+}
+
 static void initialize_modifier_key(void)
 {
     const char *value = fs_config_get_const_string(OPTION_MODIFIER_KEY);
@@ -1284,14 +1308,15 @@ static void initialize_modifier_key(void)
 
 static bool handle_modifier_key(int key_code, int state)
 {
-    printf("%d vs %d\n", key_code, g_modifier_key);
     if (key_code == g_modifier_key) {
         g_modifier_key_pressed = state ? true : false;
         static bool grab_input_on_mod_release;
         if (state) {
-            if (fs_emu_input_grab()) {
-                fs_emu_set_input_grab_and_visibility(false, 0);
-                grab_input_on_mod_release = true;
+            if (!fs_emu_full_keyboard_emulation()) {
+                if (fs_emu_input_grab()) {
+                    fs_emu_set_input_grab_and_visibility(false, 0);
+                    grab_input_on_mod_release = true;
+                }
             }
         } else {
             if (grab_input_on_mod_release) {
@@ -1300,8 +1325,10 @@ static bool handle_modifier_key(int key_code, int state)
                 grab_input_on_mod_release = false;
             }
         }
-        /* Signal that we want to swallow this key event. */
-        return true;
+        if (!fs_emu_full_keyboard_emulation()) {
+            /* Signal that we want to swallow this key event. */
+            return true;
+        }
     }
     /* Continue processing the key event. */
     return false;

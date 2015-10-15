@@ -22,6 +22,7 @@
 
 #include <fs/emu.h>
 #include <fs/emu/actions.h>
+#include <fs/emu/input.h>
 #include <fs/lazyness.h>
 #include <fs/glib.h>
 #include "video.h"
@@ -79,6 +80,12 @@ void fs_emu_handle_libfsemu_action(int action, int state)
         fs_log("fs_emu_handle_libfsemu_action %d %d\n", action, state);
 
     switch (action) {
+    case FS_EMU_ACTION_FULL_KEYBOARD:
+        if (state) {
+            fs_emu_set_full_keyboard_emulation(
+                !fs_emu_full_keyboard_emulation());
+        }
+        break;
     case FS_EMU_ACTION_FULLSCREEN:
         if (state)
             fs_emu_toggle_fullscreen();

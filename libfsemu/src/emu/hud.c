@@ -83,7 +83,8 @@ void fs_emu_hud_enable_chat_mode() {
     g_fs_emu_hud_mode = 1;
 }
 
-void fs_emu_notification(int type, const char *format, ...) {
+void fs_emu_notification(uint32_t type, const char *format, ...)
+{
     va_list ap;
     va_start(ap, format);
     char *buffer = g_strdup_vprintf(format, ap);

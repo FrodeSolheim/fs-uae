@@ -1,5 +1,6 @@
 Version 2.7.3dev:
 
+* New shortcut Mod+K to toggle full keyboard emulation.
 * Using (Left) Alt (Cmd on OS X) as default keyboard shortcut modifier.
 * Workaround to allow Alt+Tab to work on non-Windows/non-OS-X platforms.
 * Most built-in shortcuts are now configurable.

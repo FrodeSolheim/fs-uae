@@ -174,6 +174,7 @@ static fs_emu_key_translation g_default_keymap[] = {
 
     // { FS_ML_KEY_F, FS_ML_KEY_MOD_LALT, FS_EMU_ACTION_FULLSCREEN },
 
+    { FS_ML_KEY_K,            MOD, FS_EMU_ACTION_FULL_KEYBOARD },
     { FS_ML_KEY_F,            MOD, FS_EMU_ACTION_FULLSCREEN },
     { FS_ML_KEY_RETURN,       MOD, FS_EMU_ACTION_FULLSCREEN },
     { FS_ML_KEY_G,            MOD, FS_EMU_ACTION_GRAB_INPUT },

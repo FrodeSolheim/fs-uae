@@ -3,6 +3,9 @@
 
 #include <fs/ml.h>
 
+bool fs_emu_full_keyboard_emulation(void);
+void fs_emu_set_full_keyboard_emulation(bool full);
+
 #ifdef FS_EMU_DRIVERS
 
 typedef struct fs_emu_action_id {

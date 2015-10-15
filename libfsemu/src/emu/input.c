@@ -67,6 +67,24 @@ keyboard is MAX_DEVICES - 1
 #define SHIFT_BIT         4
 #define SPECIAL_BIT       8
 
+#define INPUT_ACTION_TABLE_SIZE_BYTES (MAX_DEVICES * SLOTS * sizeof(int))
+
+static int g_input_action_table[MAX_DEVICES * SLOTS];
+static int g_menu_action_table[MAX_DEVICES * SLOTS];
+static unsigned char g_input_state[MAX_DEVICES * SLOTS];
+static int g_key_modifiers_at_pressed_state[FS_ML_KEY_LAST] = {};
+static int g_modifier_key;
+static bool g_modifier_key_pressed;
+
+// used to look up start index from select index and vice-versa for menu
+// button emulation (you can simultaneously press start and select instead
+// of pressing menu button)
+static int g_menu_action_corresponding[MAX_DEVICES * SLOTS];
+
+#define MAX_JOYSTICKS 63
+#define MAX_BUTTONS 63
+#define MAX_AXIS 63
+
 static int key_index(int key, int mod, int offset)
 {
     if (key == 0)
@@ -87,17 +105,8 @@ static int key_index(int key, int mod, int offset)
 
 static int event_mod(fs_ml_event *event)
 {
-#if 0
-    printf("event_mod %d LALT %d F12 %d\n",
-           event->key.keysym.mod, FS_ML_KEY_MOD_LALT, FS_ML_KEY_MOD_F12);
-#endif
-#ifdef MACOSX
-    if (event->key.keysym.mod == FS_ML_KEY_MOD_LMETA)
+    if (g_modifier_key_pressed)
         return FS_ML_KEY_MOD_SPECIAL;
-#else
-    if (event->key.keysym.mod == FS_ML_KEY_MOD_LALT)
-        return FS_ML_KEY_MOD_SPECIAL;
-#endif
     else if (event->key.keysym.mod == FS_ML_KEY_MOD_F11)
         return FS_ML_KEY_MOD_SPECIAL;
     else if (event->key.keysym.mod == FS_ML_KEY_MOD_F12)
@@ -120,22 +129,6 @@ static int mouse_index(int device_index, int horiz, int vert, int button)
         index = 5;
     return (RESERVED_DEVICES + device_index) * SLOTS + index;
 }
-
-#define INPUT_ACTION_TABLE_SIZE_BYTES (MAX_DEVICES * SLOTS * sizeof(int))
-
-static int g_input_action_table[MAX_DEVICES * SLOTS];
-static int g_menu_action_table[MAX_DEVICES * SLOTS];
-static unsigned char g_input_state[MAX_DEVICES * SLOTS];
-static int g_key_modifiers_at_pressed_state[FS_ML_KEY_LAST] = {};
-
-// used to look up start index from select index and vice-versa for menu
-// button emulation (you can simultaneously press start and select instead
-// of pressing menu button)
-static int g_menu_action_corresponding[MAX_DEVICES * SLOTS];
-
-#define MAX_JOYSTICKS 63
-#define MAX_BUTTONS 63
-#define MAX_AXIS 63
 
 static void map_keyboard_key(int key, int mod, int action, int offset)
 {
@@ -240,25 +233,23 @@ static void map_input_config_item(
         const char* desc, int *out_key, int *out_axis, int *out_hat,
         int *out_button, int *out_value)
 {
-    // make parts always at least three items -this way we do not have to
-    // bounds check parts
+    /* Make parts always at least three items -this way we do not have to
+     * bounds check parts. */
     char *tmp = g_strconcat(desc, "_x_x_x_x", NULL);
     char** parts = g_strsplit(tmp, "_", 4);
 
-    //int is_keyboard_key = 0;
-    //int index = -1;
     if (g_ascii_strcasecmp(parts[0], "key") == 0) {
         for (int i = 0; g_fs_emu_key_names[i]; i++) {
             if (g_ascii_strcasecmp(parts[1], g_fs_emu_key_names[i]) == 0) {
-                *out_key = i;
+                if (out_key)
+                    *out_key = i;
                 break;
             }
         }
-    }
-    else if (g_ascii_strcasecmp(parts[0], "button") == 0) {
-        *out_button = atoi(parts[1]);
-    }
-    else if (g_ascii_strcasecmp(parts[0], "axis") == 0) {
+    } else if (g_ascii_strcasecmp(parts[0], "button") == 0) {
+        if (out_button)
+            *out_button = atoi(parts[1]);
+    } else if (g_ascii_strcasecmp(parts[0], "axis") == 0) {
         int axis = atoi(parts[1]);
         int direction = -1;
         if (g_ascii_strcasecmp(parts[2], "pos") == 0) {
@@ -273,10 +264,11 @@ static void map_input_config_item(
             g_strfreev(parts);
             return;
         }
-        *out_axis = axis;
-        *out_value = direction;
-    }
-    else if (g_ascii_strcasecmp(parts[0], "hat") == 0) {
+        if (out_axis)
+            *out_axis = axis;
+        if (out_value)
+            *out_value = direction;
+    } else if (g_ascii_strcasecmp(parts[0], "hat") == 0) {
         int hat = atoi(parts[1]);
         int direction = -1;
         if (g_ascii_strcasecmp(parts[2], "up") == 0) {
@@ -297,10 +289,11 @@ static void map_input_config_item(
             g_strfreev(parts);
             return;
         }
-        *out_hat = hat;
-        *out_value = direction;
-    }
-    else {
+        if (out_hat)
+            *out_hat = hat;
+        if (out_value)
+            *out_value = direction;
+    } else {
         fs_log("error parsing \"%s\"\n", desc);
     }
     g_free(tmp);
@@ -1265,9 +1258,35 @@ static int process_input_event(fs_ml_event *event)
     return handled;
 }
 
-static void handle_modifier(int key_code, int state)
+static void initialize_modifier_key(void)
 {
-    if (key_code == FS_ML_KEY_LALT) {
+    const char *value = fs_config_get_const_string(OPTION_MODIFIER_KEY);
+    if (!value) {
+#ifdef MACOSX
+        fs_log("INPUT: Using default modifier key LSUPER\n");
+        g_modifier_key = FS_ML_KEY_LSUPER;
+#else
+        fs_log("INPUT: Using default modifier key LALT\n");
+        g_modifier_key = FS_ML_KEY_LALT;
+#endif
+        return;
+    }
+
+    int key = 0;
+    map_input_config_item(value, &key, NULL, NULL, NULL, NULL);
+    if (key) {
+        fs_log("INPUT: Using modifier key 0x%d (%s)\n", key, value);
+        g_modifier_key = key;
+    } else {
+        fs_log("INPUT: Error parsing modifier key (%s)\n", value);
+    }
+}
+
+static bool handle_modifier_key(int key_code, int state)
+{
+    printf("%d vs %d\n", key_code, g_modifier_key);
+    if (key_code == g_modifier_key) {
+        g_modifier_key_pressed = state ? true : false;
         static bool grab_input_on_mod_release;
         if (state) {
             if (fs_emu_input_grab()) {
@@ -1281,7 +1300,11 @@ static void handle_modifier(int key_code, int state)
                 grab_input_on_mod_release = false;
             }
         }
+        /* Signal that we want to swallow this key event. */
+        return true;
     }
+    /* Continue processing the key event. */
+    return false;
 }
 
 #define F11_F12_SPECIAL_STATE -1
@@ -1620,7 +1643,10 @@ static int input_function(fs_ml_event *event)
                 event->key.keysym.sym = FS_ML_KEY_LCTRL;
             }
         }
-        handle_modifier(event->key.keysym.sym, event->type == FS_ML_KEYDOWN);
+        if (handle_modifier_key(
+                event->key.keysym.sym, event->type == FS_ML_KEYDOWN)) {
+            return 1;
+        }
         if (handle_shortcut(event)) {
             /* Mostly just net play chat and a few special shortcuts. */
             return 1;
@@ -1697,6 +1723,53 @@ static int input_function(fs_ml_event *event)
     return process_input_event(event);
 }
 
+static void initialize_devices_for_menu(void)
+{
+    fs_log("INPUT: Initializing devices for menu\n");
+    fs_ml_input_device device;
+    for (int i = 0; i < FS_ML_INPUT_DEVICES_MAX; i++) {
+        if (!fs_ml_input_device_get(i, &device)) {
+            continue;
+        }
+        fs_log("%i %s\n", i, device.name);
+        char *config_name = joystick_long_config_name(&device);
+        input_config_item *config = get_config_for_device(config_name, "menu");
+        if (config == NULL) {
+            fs_log("did not find menu config for device \"%s\"\n",
+                    config_name);
+            g_free(config_name);
+            config_name = joystick_config_name(device.name, 0);
+            config = get_config_for_device(config_name, "menu");
+            if (config == NULL) {
+                fs_log("did not find menu config for device \"%s\"\n",
+                        config_name);
+            }
+        }
+        if (config != NULL) {
+            int start_index = 0;
+            int select_index = 0;
+            int action, index;
+            for (int j = 0; config[j].config_key != NULL; j++) {
+                if (map_joystick(i, config + j, g_menu_mapping,
+                        g_menu_action_table, &action, &index)) {
+                    if (action == ACTION_MENU_START) {
+                        start_index = index;
+                    } else if (action == ACTION_MENU_SELECT) {
+                        select_index = index;
+                    }
+                }
+            }
+            if (start_index && select_index) {
+                // register menu button emulation
+                g_menu_action_corresponding[start_index] = select_index;
+                g_menu_action_corresponding[select_index] = start_index;
+            }
+            free_input_config_item_list(config);
+        }
+        g_free(config_name);
+    }
+}
+
 #ifdef FS_EMU_DRIVERS
 void fs_emu_input_init_2(void)
 #else
@@ -1734,49 +1807,7 @@ void fs_emu_input_init(void)
         g_swap_ctrl_keys = 0;
     }
 
-    fs_log("initializing devices for menu\n");
-    fs_ml_input_device device;
-    for (int i = 0; i < FS_ML_INPUT_DEVICES_MAX; i++) {
-        if (!fs_ml_input_device_get(i, &device)) {
-            continue;
-        }
-        fs_log("%i %s\n", i, device.name);
-        char *config_name = joystick_long_config_name(&device);
-        input_config_item *config = get_config_for_device(config_name, "menu");
-        if (config == NULL) {
-            fs_log("did not find menu config for device \"%s\"\n",
-                    config_name);
-            g_free(config_name);
-            config_name = joystick_config_name(device.name, 0);
-            config = get_config_for_device(config_name, "menu");
-            if (config == NULL) {
-                fs_log("did not find menu config for device \"%s\"\n",
-                        config_name);
-            }
-        }
-        if (config != NULL) {
-            int start_index = 0;
-            int select_index = 0;
-            int action, index;
-            for (int j = 0; config[j].config_key != NULL; j++) {
-                if (map_joystick(i, config + j, g_menu_mapping,
-                        g_menu_action_table, &action, &index)) {
-                    if (action == ACTION_MENU_START) {
-                        start_index = index;
-                    }
-                    else if (action == ACTION_MENU_SELECT) {
-                        select_index = index;
-                    }
-                }
-            }
-            if (start_index && select_index) {
-                // register menu button emulation
-                g_menu_action_corresponding[start_index] = select_index;
-                g_menu_action_corresponding[select_index] = start_index;
-            }
-            free_input_config_item_list(config);
-        }
-        g_free(config_name);
-    }
+    initialize_modifier_key();
+    initialize_devices_for_menu();
     fs_ml_set_input_function(input_function);
 }

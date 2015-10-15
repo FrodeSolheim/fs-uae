@@ -36,7 +36,7 @@ operating systems. From now on, we will refer to the modifier key as
 <kbd>Mod</kbd>.
 
 > **Note:** You can specify another key with the
-> [modifier](options/modifier.md) option.
+> [modifier_key](options/modifier_key.md) option.
 
 Since <kbd>Mod</kbd> is used to trigger special actions, this key is not
 directly usable for Amiga emulation. This means that -- unless you have

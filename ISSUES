@@ -1,8 +1,12 @@
+* Opening the F12 menu / Using the modifier key causes FS-UAE to blink
+  on Windows due to ungrabbing input (might have to disable this feature
+  on Windows).
+
 * When internal kickstart is being used and kickstart_file = internal
   was not used, show GUI message "Using AROS kickstart replacement".
 
-* For full (FPU) JIT speed you need to manually enable uae_compfpu = 1.
 * Windows (x86-64) portable version uses 32-bit "shortcut executables".
+
 * Portable x86-64 versions should be able to co-locate with x86-versions.
 
 * Amiga key sticks when opening/closing FS-UAE menu with modifier+F12

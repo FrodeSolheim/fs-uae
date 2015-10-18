@@ -312,7 +312,7 @@ which has these physical keys:
 
 Host Key     | Input Mapping Option        | Comment
 ------------ | --------------------------- | -------
-ESCAPE       | `keyboard_key_escape`       |
+ESCAPE       | `keyboard_key_escape`       | Function key row
 F1           | `keyboard_key_f1`           |
 F2           | `keyboard_key_f2`           |
 F3           | `keyboard_key_f3`           |
@@ -329,7 +329,7 @@ PRINT        | `keyboard_key_print`        |
 SCROLLOCK    | `keyboard_key_scrollock`    |
 PAUSE        | `keyboard_key_print`        |
 -            |                             |
-BACKQUOTE    | `keyboard_key_backquote`    |
+BACKQUOTE    | `keyboard_key_backquote`    | Number row
 1            | `keyboard_key_1`            |
 2            | `keyboard_key_2`            |
 3            | `keyboard_key_3`            |
@@ -340,12 +340,93 @@ BACKQUOTE    | `keyboard_key_backquote`    |
 8            | `keyboard_key_8`            |
 9            | `keyboard_key_9`            |
 0            | `keyboard_key_0`            |
-...          |                             |
+MINUS        | `keyboard_key_minus`        |
+EQUALS       | `keyboard_key_equals`       |
+BACKSPACE    | `keyboard_key_backspace`    |
+INSERT       | `keyboard_key_insert`       |
+HOME         | `keyboard_key_home`         |
+PAGEUP       | `keyboard_key_pageup`       |
+NUMLOCK      | `keyboard_key_numlock`      |
+KP_DIVIDE    | `keyboard_key_kp_divide`    |
+KP_MULTIPLY  | `keyboard_key_kp_multiply`  |
+KP_MINUS     | `keyboard_key_kp_minus`     |
 -            |                             |
+TAB          | `keyboard_key_tab`          |
+Q            | `keyboard_key_q`            |
+W            | `keyboard_key_w`            |
+E            | `keyboard_key_e`            |
+R            | `keyboard_key_r`            |
+T            | `keyboard_key_t`            |
+Y            | `keyboard_key_y`            |
+U            | `keyboard_key_u`            |
+I            | `keyboard_key_i`            |
+O            | `keyboard_key_o`            |
+P            | `keyboard_key_p`            |
+LEFTBRACKET  | `keyboard_key_rightbracket` |
 RIGHTBRACKET | `keyboard_key_rightbracket` |
-...          |                             |
+RETURN       | `keyboard_key_return`       |
+DELETE       | `keyboard_key_delete`       |
+END          | `keyboard_key_end`          |
+PAGEDOWN     | `keyboard_key_pagedown`     |
+KP7          | `keyboard_key_kp7`          |
+KP8          | `keyboard_key_kp8`          |
+KP9          | `keyboard_key_kp9`          |
+KP_PLUS      | `keyboard_key_kp_plus`      |
+-            |                             |
+CAPSLOCK     | `keyboard_key_capslock`     |
 A            | `keyboard_key_a`            |
-...          |                             |
+S            | `keyboard_key_s`            |
+D            | `keyboard_key_d`            |
+F            | `keyboard_key_f`            |
+G            | `keyboard_key_g`            |
+H            | `keyboard_key_h`            |
+J            | `keyboard_key_j`            |
+K            | `keyboard_key_k`            |
+L            | `keyboard_key_l`            |
+SEMICOLON    | `keyboard_key_semicolon`    |
+QUOTE        | `keyboard_key_quote`        |
+BACKSLASH    | `keyboard_key_backslash`    |
+KP4          | `keyboard_key_kp4`          |
+KP5          | `keyboard_key_kp5`          |
+KP6          | `keyboard_key_kp6`          |
+-            |                             |
+LSHIFT       | `keyboard_key_lshift`       |
+LESS         | `keyboard_key_less`         |
+Z            | `keyboard_key_z`            |
+X            | `keyboard_key_x`            |
+C            | `keyboard_key_c`            |
+V            | `keyboard_key_v`            |
+B            | `keyboard_key_b`            |
+N            | `keyboard_key_n`            |
+M            | `keyboard_key_m`            |
+COMMA        | `keyboard_key_comma`        |
+PERIOD       | `keyboard_key_period`       |
+SLASH        | `keyboard_key_slash`        |
+RSHIFT       | `keyboard_key_rshift`       |
+UP           | `keyboard_key_up`           |
+KP1          | `keyboard_key_kp1`          |
+KP2          | `keyboard_key_kp2`          |
+KP3          | `keyboard_key_kp3`          |
+KP_ENTER     | `keyboard_key_kp_enter`     |
+-            |                             | Bottom row
+LCTRL        | `keyboard_key_kp_lctrl`     |
+LSUPER       | `keyboard_key_kp_lsuper`    | Left "Windows" key or "Cmd"
+LALT         | `keyboard_key_kp_lalt`      | Different physical position on Mac
+SPACE        | `keyboard_key_kp_space`     |
+RALT         | `keyboard_key_kp_ralt`      | Different physical position on Mac
+RSUPER       | `keyboard_key_kp_rsuper`    | Right "Windows" key or "Cmd"
+MENU         | `keyboard_key_kp_menu`      |
+RCTRL        | `keyboard_key_kp_rctrl`     |
+LEFT         | `keyboard_key_left`         |
+DOWN         | `keyboard_key_down`         |
+RIGHT        | `keyboard_key_right`        |
+KP0          | `keyboard_key_kp0`          |
+KP_PERIOD    | `keyboard_key_kp_period`    |
+-            |                             | Special keys
+VOLUMEUP     | `keyboard_key_volumeup`     |
+VOLUMEDOWN   | `keyboard_key_volumedown`   |
+MUTE         | `keyboard_key_mute`         |
+
 
 ## Additional Shortcuts
 

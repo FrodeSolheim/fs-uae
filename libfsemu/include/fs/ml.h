@@ -560,6 +560,12 @@ typedef enum {
     FS_ML_KEY_POWER        = 320,
     FS_ML_KEY_EURO         = 321,
     FS_ML_KEY_UNDO         = 322,
+
+    FS_ML_KEY_NEW_SECTION,
+    FS_ML_KEY_VOLUMEUP,
+    FS_ML_KEY_VOLUMEDOWN,
+    FS_ML_KEY_MUTE,
+
     FS_ML_KEY_LAST
 } fs_ml_key;
 

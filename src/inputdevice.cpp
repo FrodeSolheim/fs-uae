@@ -5535,14 +5535,18 @@ static void compatibility_copy (struct uae_prefs *prefs, bool gameports)
 			}
 		}
 	}
+#ifdef ARCADIA
 	if (arcadia_bios) {
 		setcompakb (prefs, keyboard_default_kbmaps[KBR_DEFAULT_MAP_ARCADIA], ip_arcadia, 0, 0);
 		if (JSEM_ISXARCADE1 (i, prefs) || JSEM_ISXARCADE2 (i, prefs))
 			setcompakb (prefs, keyboard_default_kbmaps[KBR_DEFAULT_MAP_ARCADIA_XA], ip_arcadiaxa, JSEM_ISXARCADE2 (i, prefs) ? 1 : 0, prefs->jports[i].autofire);
 	}
+#endif
+#ifdef CDTV
 	if (0 && currprefs.cs_cdtvcd) {
 		setcompakb (prefs, keyboard_default_kbmaps[KBR_DEFAULT_MAP_CDTV], ip_mediacdtv, 0, 0);
 	}
+#endif
 
 	// parport
 	for (i = 2; i < MAX_JPORTS; i++) {

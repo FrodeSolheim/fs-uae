@@ -52,8 +52,6 @@ extern FILE *g_fs_uae_sync_debug_file;
 // needed to include functions in include/debug.h, which in turn
 // is needed by code
 
-#define ARCADIA
-
 #define ECS_DENISE
 #define CPUEMU_0 /* generic 680x0 emulation */
 #define CPUEMU_11 /* 68000/68010 prefetch emulation */
@@ -69,9 +67,7 @@ extern FILE *g_fs_uae_sync_debug_file;
 #define CPUEMU_33 /* 68060 MMU */
 #define CPUEMU_40 /* generic 680x0 with JIT direct memory access */
 #define CPUEMU_50 /* generic 680x0 with indirect memory access */
-//#define DEBUGGER
 //#define ENFORCER
-#define FDI2RAW
 #define GFXFILTER
 
 #define MMU
@@ -80,8 +76,6 @@ extern FILE *g_fs_uae_sync_debug_file;
 #define NATMEM_OFFSET natmem_offset
 #define NCR
 #define FULLMMU /* Aranym 68040 MMU */
-#define PARALLEL_PORT
-#define SCP
 #define SCSIEMU
 #define SUPPORT_THREADS
 #define UAESERIAL

@@ -149,13 +149,15 @@ static struct romdata *scan_single_rom_2 (struct zfile *f, uae_u32 *crc32)
 static struct romdata *scan_single_rom (const TCHAR *path, uae_u32 *crc32)
 {
 	struct zfile *z;
-	TCHAR tmp[MAX_DPATH];
 	struct romdata *rd;
 
+#ifdef ARCADIA
+	TCHAR tmp[MAX_DPATH];
 	_tcscpy (tmp, path);
 	rd = scan_arcadia_rom (tmp, 0);
 	if (rd)
 		return rd;
+#endif
 	rd = getromdatabypath (path);
 	if (rd && rd->crc32 == 0xffffffff)
 		return rd;

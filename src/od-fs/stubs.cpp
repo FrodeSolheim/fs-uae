@@ -4,6 +4,7 @@
 #include "autoconf.h"
 #include "clipboard.h"
 #include "debug.h"
+#include "enforcer.h"
 #include "filesys.h"
 #include "fsdb.h"
 #include "gui.h"
@@ -21,28 +22,34 @@ void graphics_reset(bool force)
     LOG_STUB("force=%d", force);
 }
 
-void clipboard_vsync (void) {
+void clipboard_vsync (void)
+{
 
 }
 
-void gui_lock (void) {
+void gui_lock (void)
+{
 
 }
 
-void gui_unlock (void) {
+void gui_unlock (void)
+{
 
 }
 
-void gui_display (int shortcut) {
+void gui_display (int shortcut)
+{
     STUB("shortcut=%d", shortcut);
 }
 
-int gui_init() {
+int gui_init()
+{
     LOG_STUB("");
     return 1;
 }
 
-void gui_exit() {
+void gui_exit()
+{
     LOG_STUB("");
 }
 

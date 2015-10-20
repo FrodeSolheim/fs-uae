@@ -1022,8 +1022,9 @@ static uae_u8 ReadCIAA (unsigned int addr)
 
 		return tmp;
 	case 1:
+		if (0) {
 #ifdef PARALLEL_PORT
-		if (isprinter () > 0) {
+		} else if (isprinter () > 0) {
 			tmp = ciaaprb;
 		} else if (isprinter () < 0) {
 			uae_u8 v;

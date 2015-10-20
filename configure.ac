@@ -553,6 +553,8 @@ OPT_FEATURE([AGA], [aga], [aga],
             [AGA chipset emulation])
 DIS_FEATURE([AHI], [ahi], [ahi],
             [builtin AHI device (unsupported)])
+OPT_FEATURE([ARCADIA], [arcadia], [arcadia],
+            [Arcadia arcade system])
 REQ_FEATURE([AUTOCONFIG], [autoconfig], [autoconfig],
             [autoconfig support, fast ram, harddrives etc...])
 OPT_FEATURE([BSDSOCKET], [bsdsocket], [bsdsocket],
@@ -573,6 +575,8 @@ OPT_FEATURE([A_DMS], [dms], [dms],
             [DMS support])
 OPT_FEATURE([DRIVESOUND], [drivesound], [drivesound],
             [drive sound emulation])
+OPT_FEATURE([FDI2RAW], [fdi2raw], [fdi2raw],
+            [FDI 1.0 and 2.x image support])
 REQ_FEATURE([FILESYS], [filesys], [filesys],
             [directory hard drives])
 REQ_FEATURE([FPUEMU], [fpuemu], [fpuemu],
@@ -608,6 +612,8 @@ OPT_FEATURE([WITH_NETPLAY], [netplay], [netplay],
             [netplay support])
 REQ_FEATURE([NCR9X], [ncr9x], [ncr9x], [disable],
             [53C9X SCSI])
+OPT_FEATURE([PARALLEL_PORT], [parallel_port], [parallel-port],
+            [parallell port (printer) emulation])
 DIS_FEATURE([WITH_PEARPC_CPU], [pearpc_cpu], [pearpc-cpu],
             [use PearPC for PPC emulation (deprecated)])
 REQ_FEATURE([PICASSO96], [picasso96], [picasso96],
@@ -618,6 +624,8 @@ OPT_FEATURE([PROWIZARD], [prowizard], [prowizard],
             [prowizard])
 OPT_FEATURE([SAVESTATE], [savestate], [savestate],
             [save state support])
+OPT_FEATURE([SCP], [scp], [scp],
+            [SuperCardPro floppy image support])
 OPT_FEATURE([SERIAL_PORT], [serial_port], [serial-port],
             [serial port emulation])
 OPT_FEATURE([WITH_SLIRP], [slirp], [slirp],

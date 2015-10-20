@@ -11,6 +11,8 @@
 #include "sysconfig.h"
 #include "sysdeps.h"
 
+#ifdef ARCADIA
+
 #include "options.h"
 #include "uae.h"
 #include "uae/memory.h"
@@ -545,3 +547,5 @@ struct romdata *scan_arcadia_rom (TCHAR *path, int cnt)
 	}
 	return rd;
 }
+
+#endif /* ARCADIA */

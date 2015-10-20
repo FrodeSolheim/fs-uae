@@ -37,7 +37,9 @@ static int handle_custom_action(int action, int state)
 
     if (action == INPUTEVENT_UAE_MODULE_RIPPER) {
         if (state) {
+#ifdef PROWIZARD
             moduleripper();
+#endif
         }
         return 1;
     }

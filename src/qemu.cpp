@@ -30,7 +30,7 @@ static void init_ppc(UAE_DLHANDLE handle)
 	}
 }
 
-#ifdef WITH_QEMU_SLIRP
+#if defined(WITH_SLIRP) && defined(WITH_QEMU_SLIRP)
 static void init_slirp(UAE_DLHANDLE handle)
 {
 	UAE_IMPORT_FUNCTION(handle, qemu_uae_slirp_init);
@@ -98,7 +98,7 @@ UAE_DLHANDLE uae_qemu_uae_init(void)
 	}
 
 	init_ppc(handle);
-#ifdef WITH_QEMU_SLIRP
+#if defined(WITH_SLIRP) && defined(WITH_QEMU_SLIRP)
 	init_slirp(handle);
 #endif
 

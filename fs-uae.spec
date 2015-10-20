@@ -29,6 +29,8 @@ BuildRequires: pkgconfig(sdl2)
 BuildRequires: pkgconfig(x11)
 BuildRequires: pkgconfig(zlib)
 BuildRequires: pkgconfig(freetype2)
+BuildRequires: pkgconfig(libmpeg2)
+BuildRequires: pkgconfig(libmpeg2convert)
 BuildRequires: zip
 
 %description

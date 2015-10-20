@@ -756,7 +756,9 @@ void savestate_restore_finish (void)
 	restore_audio_finish ();
 	restore_disk_finish ();
 	restore_blitter_finish ();
+#ifdef CD32
 	restore_akiko_finish ();
+#endif
 #ifdef CDTV
 	restore_cdtv_finish ();
 #endif

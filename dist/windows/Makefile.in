@@ -35,6 +35,8 @@ endif
 	python3 clib.py SDL2.dll $(dname)
 	python3 clib.py OpenAL32.dll $(dname)
 	python3 clib.py GLEW32.dll $(dname)
+	python3 clib.py libmpeg2-0.dll $(dname)
+	python3 clib.py libmpeg2convert-0.dll $(dname)
 
         # For qemu-uae on Windows
 	python3 clib.py libpixman-1-0.dll $(dname)

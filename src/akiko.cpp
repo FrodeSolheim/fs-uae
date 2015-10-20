@@ -14,6 +14,8 @@
 #include "sysconfig.h"
 #include "sysdeps.h"
 
+#ifdef CD32
+
 #include "options.h"
 #include "uae/memory.h"
 #include "events.h"
@@ -1899,3 +1901,4 @@ void akiko_mute (int muted)
 		write_comm_pipe_u32 (&requests, 0x0105, 1);
 }
 
+#endif /* CD32 */

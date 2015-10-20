@@ -508,10 +508,12 @@ static void doscsistatus(struct wd_state *wd, uae_u8 status)
 #endif
 	if (!wd->enabled)
 		return;
+#ifdef CDTV
 	if (wd->cdtv) {
 		cdtv_scsi_int ();
 		return;
 	}
+#endif
 	dmac_scsi_int(wd);
 #if WD33C93_DEBUG > 2
 	write_log (_T("Interrupt\n"));
@@ -706,8 +708,10 @@ static bool do_dma_commodore_8727(struct wd_state *wd, struct scsi_data *scsi)
 
 static bool do_dma_commodore(struct wd_state *wd, struct scsi_data *scsi)
 {
+#ifdef CDTV
 	if (wd->cdtv)
 		cdtv_getdmadata(&wd->cdmac.dmac_acr);
+#endif
 	if (scsi->direction < 0) {
 #if WD33C93_DEBUG || XT_DEBUG > 0
 		uaecptr odmac_acr = wd->cdmac.dmac_acr;
@@ -1531,8 +1535,10 @@ uae_u8 wdscsi_get (struct wd_chip_state *wd, struct wd_state *wds)
 		}
 	} else if (wd->sasr == WD_SCSI_STATUS) {
 		wd->auxstatus &= ~0x80;
+#ifdef CDTV
 		if (wds->cdtv)
 			cdtv_scsi_clear_int ();
+#endif
 		wds->cdmac.dmac_istr &= ~ISTR_INTS;
 		wd_check_interrupt(wds, true);
 #if 0
@@ -3706,6 +3712,7 @@ addrbank *gvp_init_accelerator(struct romconfig *rc)
 	return gvp_init(rc, true, true);
 }
 
+#ifdef CDTV
 void cdtv_add_scsi_unit (int ch, struct uaedev_config_info *ci, struct romconfig *rc)
 {
 	struct wd_state *wd = allocscsi(&wd_cdtv, rc, ch);
@@ -3713,6 +3720,7 @@ void cdtv_add_scsi_unit (int ch, struct uaedev_config_info *ci, struct romconfig
 		return;
 	add_scsi_device(&wd_cdtv->scsis[ch], ch, ci, rc);
 }
+#endif
 
 
 #if 0

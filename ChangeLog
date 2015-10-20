@@ -1,3 +1,10 @@
+Version 2.7.4dev:
+
+* Fixed building with ./configure --disable-drivesound --disable-slirp
+  --disable-prowizard --disable-cdtv.
+* Some cleanup in the configure script.
+* Do not use built-in libmpeg2.
+
 Version 2.7.3dev:
 
 * Support for multimedia keys: volume up, volume down and mute.

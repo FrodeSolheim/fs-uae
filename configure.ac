@@ -55,27 +55,35 @@ PKG_PROG_PKG_CONFIG
 # Feature test macros
 
 AC_DEFUN([OPT_FEATURE], [
-AC_ARG_ENABLE([$3],
-	[AS_HELP_STRING([--enable-$3], [$4 @<:@default=$5@:>@])],
-	[], [enable_$2=$5])
-AS_IF([test x$enable_$2 = xyes], [
-	AC_DEFINE([$1], [1], [Define to 1 to $4])
+AC_ARG_ENABLE([$3], [AS_HELP_STRING([--disable-$3], [$4])])
+AS_IF([test x$enable_$2 != xno], [AC_DEFINE([$1], [1], [$4])])
+AM_CONDITIONAL([$1], [test x$enable_$2 != xno])
 ])
+
+AC_DEFUN([DIS_FEATURE], [
+AC_ARG_ENABLE([$3], [AS_HELP_STRING([--enable-$3], [$4])])
+AS_IF([test x$enable_$2 = xyes], [AC_DEFINE([$1], [1], [$4])])
 AM_CONDITIONAL([$1], [test x$enable_$2 = xyes])
 ])
 
 AC_DEFUN([REQ_FEATURE], [
-AC_DEFINE([$1], [1], [Define to 1 to $4])
+AC_DEFINE([$1], [1], [$4])
 AM_CONDITIONAL([$1], [true])
 ])
 
 
+# Misc system checks
+
+AC_SYS_LARGEFILE
+# AC_LTDL_SHLIBEXT
+
+
 # Static build
 
-OPT_FEATURE([STATIC_BUILD], [static], [static],
-        [enable static build], [no])
+DIS_FEATURE([STATIC_BUILD], [static], [static],
+            [static build (works on Windows)])
 
-AS_IF([test "x$enable_static" != xno],
+AS_IF([test "x$enable_static" = xyes],
       [PKG_CONFIG="$PKG_CONFIG --static"])
 
 
@@ -115,11 +123,6 @@ AM_CONDITIONAL([W_MISSING_FORMAT_ATTRIBUTE],
 
 AX_C___BUILTIN_EXPECT
 
-# Misc system checks.
-
-AC_SYS_LARGEFILE
-# AC_LTDL_SHLIBEXT
-
 # Checks for libraries.
 
 AC_SUBST([CARBON_LIBS])
@@ -148,8 +151,8 @@ AM_CONDITIONAL([BUILTIN_GLEE], [false])
 PKG_CHECK_MODULES([GLEW], [glew])
 
 # Todo: make configurable
-# PKG_CHECK_MODULES([LIBMPEG2], [libmpeg2 libmpeg2convert])
-AM_CONDITIONAL([BUILTIN_LIBMPEG2], [true])
+PKG_CHECK_MODULES([LIBMPEG2], [libmpeg2 libmpeg2convert])
+AM_CONDITIONAL([BUILTIN_LIBMPEG2], [false])
 
 AM_CONDITIONAL([BUILTIN_MANYMOUSE], [true])
 
@@ -193,7 +196,7 @@ PKG_CHECK_MODULES([OPENAL], [openal], [
 	],
 	[
 		AC_MSG_NOTICE([Assuming -lopenal works])
-		OPENAL_LIBS = -lopenal
+		OPENAL_LIBS="-lopenal"
 	])
 	AC_SUBST([OPENAL_CFLAGS])
 	AC_SUBST([OPENAL_LIBS])
@@ -202,7 +205,7 @@ PKG_CHECK_MODULES([OPENAL], [openal], [
 
 # AC_SUBST([USE_OPENGL], [1])
 AC_DEFINE([USE_OPENGL], [1], [Define to 1 to use OpenGL])
-PKG_CHECK_MODULES([OPENGL], [gl glu], [
+PKG_CHECK_MODULES([OPENGL], [gl], [
 ], [
         AS_CASE([$host_os],
 	[darwin*], [
@@ -212,8 +215,6 @@ PKG_CHECK_MODULES([OPENGL], [gl glu], [
 	],
 	[
 		AC_CHECK_LIB([GL], [glViewport])
-		AC_CHECK_LIB([GLU], [gluPerspective])
-		AC_CHECK_LIB([GLU32], [main])
 		AC_CHECK_LIB([OpenGL32], [main], [OPENGL_LIBS=-lOpenGL32])
 	])
 	AC_SUBST([OPENGL_CFLAGS])
@@ -508,51 +509,6 @@ AS_CASE([$host_os],
 #])
 
 
-# JIT support
-
-AC_ARG_ENABLE([jit], [AS_HELP_STRING([--enable-jit],
-        [enable support for JIT compilation @<:@default=check@:>@])
-    ], [], [enable_jit=check])
-
-AS_IF([test "x$enable_jit" != xno], [
-    AC_TRY_COMPILE([
-    ], [
-        #if !defined(__i386__) && !defined(__x86_64__)
-        #error JIT is only supported on x86/x86-64
-        #endif
-        #if defined(__OpenBSD__) || defined(__FreeBSD__)
-        #error no JIT on OpenBSD/FreeBSD right now
-        #endif
-    ], [
-        AC_DEFINE([JIT], [1], [Define to 1 to enable JIT compilation])
-    ], [
-        if test "x$enable_jit" != xcheck; then
-            AC_MSG_FAILURE(
-                [--enable-jit was given, but arch is not supported])
-        fi
-    ]) 
-], [])
-
-
-# Udis86
-
-#AC_ARG_ENABLE(
-#    [udis86],
-#    [AS_HELP_STRING(
-#            [--enable-udis86],
-#            [enable support for JIT compilation @<:@default=no@:>@]
-#    )],
-#    [],
-#    [enable_udis86=no]
-#)
-#AS_IF(
-#    [test "x$enable_udis86" != xno],
-#    [
-#        AC_CHECK_LIB([udis86], [ud_init])
-#    ],
-#    []
-#)
-
 # Byte swapping
 
 AC_MSG_CHECKING(for bswap_16)
@@ -588,75 +544,92 @@ AC_TRY_LINK([
 # source code).
 
 OPT_FEATURE([A2065], [a2065], [a2065],
-	[enable A2065 ethernet card], [yes])
+            [A2065 ethernet card])
 REQ_FEATURE([A2091], [a2091], [a2091],
-	[enable A590/A2091 SCSI], [yes])
-REQ_FEATURE([ACTION_REPLAY], [action_replay], [action-replay],
-	[enable Action Replay 1/2/3 support], [yes])
-OPT_FEATURE([AHI], [ahi], [ahi],
-	[builtin AHI device], [no])
-OPT_FEATURE([WITH_BUILTIN_SLIRP], [builtin_slirp], [builtin-slirp],
-	[enable builtin SLIRP implementation], [yes])
+            [A590/A2091 SCSI])
+OPT_FEATURE([ACTION_REPLAY], [action_replay], [action-replay],
+            [Action Replay 1/2/3 support])
+DIS_FEATURE([AHI], [ahi], [ahi],
+            [builtin AHI device (unsupported)])
+DIS_FEATURE([WITH_BUILTIN_SLIRP], [builtin_slirp], [builtin-slirp],
+            [built-in SLIRP implementation (unsupported)])
 OPT_FEATURE([CAPS], [caps], [caps],
-	[enable IPF support via libcapsimage], [yes])
-REQ_FEATURE([CD32], [cd32], [cd32],
-	[enable CD32 emulation], [yes])
-REQ_FEATURE([CDTV], [cdtv], [cdtv],
-	[enable CDTV emulation], [yes])
+            [IPF support via libcapsimage])
+OPT_FEATURE([CD32], [cd32], [cd32],
+            [CD32 emulation])
+OPT_FEATURE([CDTV], [cdtv], [cdtv],
+            [CDTV emulation])
 REQ_FEATURE([WITH_CPUBOARD], [cpuboard], [cpuboard],
-	[enable cpu board emulation], [yes])
+            [cpu board emulation])
 OPT_FEATURE([A_DMS], [dms], [dms],
-        [enable DMS support], [yes])
+            [DMS support])
 OPT_FEATURE([DRIVESOUND], [drivesound], [drivesound],
-	[enable drive sound emulation], [yes])
+            [drive sound emulation])
 REQ_FEATURE([FPUEMU], [fpuemu], [fpuemu],
-	[enable FPU emulation], [yes])
+            [FPU emulation])
+DIS_FEATURE([FS_EMU_DRIVERS], [fs_emu_drivers], [fs-emu-drivers],
+            [multiple driver backends (experimental)])
 OPT_FEATURE([GFXBOARD], [gfxboard], [gfxboard],
-	[enable GFX hardware boards], [yes])
+            [GFX hardware boards])
+AC_ARG_ENABLE([jit], [AS_HELP_STRING([--disable-jit], [JIT compiler])])
+AS_IF([test "x$enable_jit" != xno], [
+    AC_TRY_COMPILE([
+    ], [
+        #if !defined(__i386__) && !defined(__x86_64__)
+        #error JIT is only supported on x86/x86-64
+        #endif
+        #if defined(__OpenBSD__) || defined(__FreeBSD__)
+        #error no JIT on OpenBSD/FreeBSD right now
+        #endif
+    ], [
+        AC_DEFINE([JIT], [1], [Define to 1 to enable JIT compilation])
+    ], [
+        if test "x$enable_jit" != xyes; then
+            AC_MSG_FAILURE(
+                [--enable-jit was given, but arch is not supported])
+        fi
+    ])
+])
 OPT_FEATURE([USE_JIT_FPU], [jit_fpu], [jit-fpu],
-	[enable JIT FPU], [yes])
-OPT_FEATURE([WITH_LUA], [lua], [lua],
-	[enable LUA scripting], [no])
+            [JIT compilation of FPU instructions])
+DIS_FEATURE([WITH_LUA], [lua], [lua],
+            [LUA scripting (unfinished)])
 OPT_FEATURE([WITH_NETPLAY], [netplay], [netplay],
-	[enable netplay support], [yes])
-REQ_FEATURE([NCR9X], [ncr9x], [ncr9x],
-	[enable 53C9X SCSI], [yes])
+            [netplay support])
+REQ_FEATURE([NCR9X], [ncr9x], [ncr9x], [disable],
+            [53C9X SCSI])
+DIS_FEATURE([WITH_PEARPC_CPU], [pearpc_cpu], [pearpc-cpu],
+            [use PearPC for PPC emulation (deprecated)])
 REQ_FEATURE([PICASSO96], [picasso96], [picasso96],
-	[enable Picasso 96 (uaegfx.card)], [yes])
+            [Picasso 96 (uaegfx.card)])
 REQ_FEATURE([WITH_PPC], [ppc], [ppc],
-	[enable PPC (requires cpu board)], [yes])
+            [PPC (requires cpu board)])
 OPT_FEATURE([PROWIZARD], [prowizard], [prowizard],
-	[enable prowizard request], [yes])
+            [prowizard])
 OPT_FEATURE([SERIAL_PORT], [serial_port], [serial-port],
-        [enable serial port emulation], [yes])
+            [serial port emulation])
 OPT_FEATURE([WITH_SLIRP], [slirp], [slirp],
-	[enable SLIRP (user mode NAT)], [yes])
+            [SLIRP (user mode NAT)])
 OPT_FEATURE([WITH_SOFTFLOAT], [softfloat], [softfloat],
-	[enable use of softfloat library], [yes])
-OPT_FEATURE([WITH_QEMU_SLIRP], [qemu_slirp], [qemu-slirp],
-	[enable QEMU SLIRP implementation], [yes])
-OPT_FEATURE([WITH_UAENATIVE], [uaenative], [uaenative],
-	[enable uaenative.library], [yes])
-OPT_FEATURE([SANA2], [uaenet], [uaenet],
-	[enable uaenet.device], [yes])
-OPT_FEATURE([WITH_TOCCATA], [toccata], [toccata],
-	[enable Toccata sound card emulation], [yes])
-OPT_FEATURE([WITH_UDIS86], [udis86], [udis86],
-	[enable UDIS86 x86/x86-64 disassembler], [yes])
-OPT_FEATURE([WITH_VPAR], [vpar], [vpar],
-	[enable vpar virtual parallel port], [yes])
-OPT_FEATURE([WITH_XML_SHADER], [xml_shader], [xml-shader],
-	[enable XML shader support], [yes])
-OPT_FEATURE([A_ZIP], [zip], [zip],
-	[enable ZIP archive support], [yes])
-
-OPT_FEATURE([WITH_PEARPC_CPU], [pearpc_cpu], [pearpc-cpu],
-	[use PearPC for PPC emulation], [no])
+            [use softfloat library])
 OPT_FEATURE([WITH_QEMU_CPU], [qemu_cpu], [qemu-cpu],
-	[use QEmu for PPC emulation], [yes])
-
-OPT_FEATURE([FS_EMU_DRIVERS], [fs_emu_drivers], [fs-emu-drivers],
-        [enable multiple driver backends in libfsemu], [no])
+            [use QEMU plugin for PPC emulation])
+OPT_FEATURE([WITH_QEMU_SLIRP], [qemu_slirp], [qemu-slirp],
+            [use QEMU plugin for SLIRP implementation])
+REQ_FEATURE([WITH_TOCCATA], [toccata], [toccata],
+            [Toccata sound card emulation])
+OPT_FEATURE([WITH_UAENATIVE], [uaenative], [uaenative],
+            [uaenative.library])
+OPT_FEATURE([SANA2], [uaenet], [uaenet],
+            [uaenet.device])
+OPT_FEATURE([WITH_UDIS86], [udis86], [udis86],
+            [UDIS86 x86/x86-64 disassembler])
+OPT_FEATURE([WITH_VPAR], [vpar], [vpar],
+            [vpar virtual parallel port])
+OPT_FEATURE([WITH_XML_SHADER], [xml_shader], [xml-shader],
+            [XML shader support])
+OPT_FEATURE([A_ZIP], [zip], [zip],
+            [ZIP archive support])
 
 AC_DEFINE([FPU_UAE], [1], [Define to 1])
 
@@ -682,9 +655,8 @@ AC_OUTPUT
 echo ""
 echo "Configuration summary for FS-UAE:"
 echo ""
-echo "  Building for OS:   $host_os"
+echo "  Building for OS:   $host_os (\"$OS_NAME\")"
 echo "  Building for CPU:  $host_cpu"
-echo "  Using OS name:     $OS_NAME"
 echo "  Module extension:  $LOADABLE_MODULE_EXT"
 echo ""
 echo "  OPENAL_CFLAGS:     $OPENAL_CFLAGS"

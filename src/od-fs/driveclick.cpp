@@ -11,19 +11,24 @@ static const char *g_driveclick_path = "";
 
 extern "C" {
 
-void amiga_set_builtin_driveclick_path(const char *path) {
+void amiga_set_builtin_driveclick_path(const char *path)
+{
     g_driveclick_path = g_strdup(path);
 }
 
 #if 0
-void amiga_set_drive_sound_name(const char *name) {
+void amiga_set_drive_sound_name(const char *name)
+{
     g_driveclick_name = g_strdup(name);
 }
 #endif
 
 } // extern C
 
-int driveclick_loadresource (struct drvsample *sp, int drivetype) {
+#ifdef DRIVESOUND
+
+int driveclick_loadresource (struct drvsample *sp, int drivetype)
+{
     int type, ok;
     ok = 1;
     for (type = 0; type < DS_END; type++) {
@@ -89,25 +94,34 @@ int driveclick_loadresource (struct drvsample *sp, int drivetype) {
     return ok;
 }
 
-void driveclick_fdrawcmd_close(int drive) {
+void driveclick_fdrawcmd_close(int drive)
+{
 
 }
 
-int driveclick_fdrawcmd_open(int drive) {
+int driveclick_fdrawcmd_open(int drive)
+{
     return 0;
 }
 
-void driveclick_fdrawcmd_detect(void) {
+void driveclick_fdrawcmd_detect(void)
+{
 
 }
 
-void driveclick_fdrawcmd_seek(int drive, int cyl) {
+void driveclick_fdrawcmd_seek(int drive, int cyl)
+{
 
 }
-void driveclick_fdrawcmd_motor (int drive, int running) {
+
+void driveclick_fdrawcmd_motor (int drive, int running)
+{
 
 }
 
-void driveclick_fdrawcmd_vsync(void) {
+void driveclick_fdrawcmd_vsync(void)
+{
 
 }
+
+#endif /* DRIVESOUND */

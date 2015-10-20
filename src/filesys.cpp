@@ -884,10 +884,12 @@ static void add_mainboard_unit_init(void)
 		write_log(_T("Initializing A4000T mainboard SCSI\n"));
 		a4000t_add_scsi_unit(-1, NULL, NULL);
 	}
+#ifdef CDTV
 	if (iscdtvscsi()) {
 		write_log(_T("Initializing CDTV SCSI expansion\n"));
 		cdtv_add_scsi_unit(-1, NULL, NULL);
 	}
+#endif
 }
 
 static bool add_ide_unit(int type, int unit, struct uaedev_config_info *uci)

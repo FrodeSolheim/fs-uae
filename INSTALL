@@ -4,6 +4,17 @@ Compiling FS-UAE
 Instructions for compiling and installing FS-UAE is available here: 
 http://fengestad.no/fs-uae/compiling
 
+Configure Options
+-----------------
+
+The configure script can be used to enable some additional features
+(but they might not work or even compile) and disable default features.
+
+Please note, the only *supported* configuration is to build with the
+default option set. The options are provided for testing and debugging
+purposes - and also for your convenience, in these cases where it happens
+to work ;-).
+
 
 openSUSE Dependencies
 ---------------------

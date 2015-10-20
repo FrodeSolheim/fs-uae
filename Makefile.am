@@ -70,7 +70,7 @@ AM_LDFLAGS += -static
 AM_CPPFLAGS += -DGLEW_STATIC
 AM_CPPFLAGS += -DAL_LIBTYPE_STATIC
 # Hack for OpenAL static missing libcommon.a
-LIBS += libcommon.a
+LIBS += ../openal-soft/libcommon.a
 # One or more .pc files are missing -liconv
 LIBS += -liconv
 endif

@@ -228,7 +228,9 @@ void devices_rethink(void)
 void devices_update_sound(double clk, double syncadjust)
 {
 	update_sound (clk);
+#ifdef WITH_TOCCATA
 	update_sndboard_sound (clk / syncadjust);
+#endif
 	update_cda_sound(clk / syncadjust);
 }
 
@@ -359,7 +361,9 @@ void do_leave_program (void)
 	free_shm ();
 	cfgfile_addcfgparam (0);
 	machdep_free ();
+#ifdef DRIVESOUND
 	driveclick_free();
+#endif
 	ethernet_enumerate_free();
 }
 

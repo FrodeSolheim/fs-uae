@@ -950,10 +950,12 @@ static void bfe001_change (void)
 			map_overlay (0);
 		}
 	}
+#ifdef CD32
 	if (currprefs.cs_cd32cd && (v & 1) != oldcd32mute) {
 		oldcd32mute = v & 1;
 		akiko_mute (oldcd32mute ? 0 : 1);
 	}
+#endif
 }
 
 static uae_u32 getciatod(uae_u32 tod)

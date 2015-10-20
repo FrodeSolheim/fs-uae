@@ -864,10 +864,12 @@ static void dump_custom_regs (int aga)
 	int len, i, j, end;
 	uae_u8 *p1, *p2, *p3, *p4;
 
+#ifdef AGA
 	if (aga) {
 		dump_aga_custom();
 		return;
 	}
+#endif
 
 	p1 = p2 = save_custom (&len, 0, 1);
 	p1 += 4; // skip chipset type
@@ -4860,6 +4862,7 @@ void debug (void)
 	}
 #endif
 	debug_1 ();
+#ifdef SAVESTATE
 	if (!debug_rewind && !currprefs.cachesize
 #ifdef FILESYS
 		&& nr_units () == 0
@@ -4867,6 +4870,7 @@ void debug (void)
 		) {
 			savestate_capture (1);
 	}
+#endif
 	for (i = 0; i < BREAKPOINT_TOTAL; i++) {
 		if (bpnodes[i].enabled)
 			do_skip = 1;

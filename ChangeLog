@@ -1,7 +1,7 @@
 Version 2.7.4dev:
 
 * Fixed building with ./configure --disable-drivesound --disable-slirp
-  --disable-prowizard --disable-cdtv.
+  --disable-prowizard --disable-cdtv --disable-savestate.
 * Some cleanup in the configure script.
 * Do not use built-in libmpeg2.
 

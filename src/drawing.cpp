@@ -137,9 +137,9 @@ static struct spritepixelsbuf spritepixels_buffer[MAX_PIXELS_PER_LINE];
 static struct spritepixelsbuf *spritepixels;
 static int sprite_first_x, sprite_last_x;
 
-#ifdef AGA
 /* AGA mode color lookup tables */
 unsigned int xredcolors[256], xgreencolors[256], xbluecolors[256];
+#ifdef AGA
 static int dblpf_ind1_aga[256], dblpf_ind2_aga[256];
 #else
 static uae_u8 spriteagadpfpixels[1];
@@ -1256,9 +1256,12 @@ static bool get_genlock_very_rare_and_complex_case(uae_u8 v)
 		return false;
 	if (ecs_genlock_features_colorkey) {
 		// color key match?
-		if (currprefs.chipset_mask & CSMASK_AGA) {
+		if (0) {
+#ifdef AGA
+		} else if (currprefs.chipset_mask & CSMASK_AGA) {
 			if (colors_for_drawing.color_regs_aga[v] & 0x80000000)
 				return false;
+#endif
 		} else {
 			if (colors_for_drawing.color_regs_ecs[v] & 0x8000)
 				return false;

@@ -35,22 +35,14 @@ static int handle_custom_action(int action, int state)
         return 1;
     }
 
+#ifdef PROWIZARD
     if (action == INPUTEVENT_UAE_MODULE_RIPPER) {
         if (state) {
-#ifdef PROWIZARD
             moduleripper();
-#endif
         }
         return 1;
     }
-
-    /*
-    if (state && action >= INPUTEVENT_AMIGA_JOYPORT_0_AUTOFIRE &&
-            action <= INPUTEVENT_AMIGA_JOYPORT_3_AUTOFIRE) {
-        int port = action - INPUTEVENT_AMIGA_JOYPORT_0_AUTOFIRE;
-        g_joystick_port_autofire[port] = !g_joystick_port_autofire[port];
-    }
-    */
+#endif
 
     return 0;
 }

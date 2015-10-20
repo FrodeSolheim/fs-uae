@@ -5122,13 +5122,15 @@ void m68k_go (int may_quit)
 				eventtab[ev_audio].active = 0;
 			m68k_setpc_normal (regs.pc);
 			check_prefs_changed_audio ();
-
+#ifdef SAVESTATE
 			if (!restored || hsync_counter == 0)
 				savestate_check ();
 			if (input_record == INPREC_RECORD_START)
 				input_record = INPREC_RECORD_NORMAL;
+#endif
 			statusline_clear();
 		} else {
+#ifdef SAVESTATE
 			if (input_record == INPREC_RECORD_START) {
 				input_record = INPREC_RECORD_NORMAL;
 				savestate_init ();
@@ -5136,10 +5138,13 @@ void m68k_go (int may_quit)
 				vsync_counter = 0;
 				savestate_check ();
 			}
+#endif
 		}
 
+#ifdef SAVESTATE
 		if (changed_prefs.inprecfile[0] && input_record)
 			inprec_prepare_record (savestate_fname[0] ? savestate_fname : NULL);
+#endif
 
 		set_cpu_tracer (false);
 

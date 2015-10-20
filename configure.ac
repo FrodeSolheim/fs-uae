@@ -549,8 +549,14 @@ REQ_FEATURE([A2091], [a2091], [a2091],
             [A590/A2091 SCSI])
 OPT_FEATURE([ACTION_REPLAY], [action_replay], [action-replay],
             [Action Replay 1/2/3 support])
+OPT_FEATURE([AGA], [aga], [aga],
+            [AGA chipset emulation])
 DIS_FEATURE([AHI], [ahi], [ahi],
             [builtin AHI device (unsupported)])
+REQ_FEATURE([AUTOCONFIG], [autoconfig], [autoconfig],
+            [autoconfig support, fast ram, harddrives etc...])
+OPT_FEATURE([BSDSOCKET], [bsdsocket], [bsdsocket],
+            [built-in bsdsocket.library])
 DIS_FEATURE([WITH_BUILTIN_SLIRP], [builtin_slirp], [builtin-slirp],
             [built-in SLIRP implementation (unsupported)])
 OPT_FEATURE([CAPS], [caps], [caps],
@@ -561,10 +567,14 @@ OPT_FEATURE([CDTV], [cdtv], [cdtv],
             [CDTV emulation])
 REQ_FEATURE([WITH_CPUBOARD], [cpuboard], [cpuboard],
             [cpu board emulation])
+OPT_FEATURE([DEBUGGER], [debugger], [debugger],
+            [debugger support])
 OPT_FEATURE([A_DMS], [dms], [dms],
             [DMS support])
 OPT_FEATURE([DRIVESOUND], [drivesound], [drivesound],
             [drive sound emulation])
+REQ_FEATURE([FILESYS], [filesys], [filesys],
+            [directory hard drives])
 REQ_FEATURE([FPUEMU], [fpuemu], [fpuemu],
             [FPU emulation])
 DIS_FEATURE([FS_EMU_DRIVERS], [fs_emu_drivers], [fs-emu-drivers],
@@ -606,6 +616,8 @@ REQ_FEATURE([WITH_PPC], [ppc], [ppc],
             [PPC (requires cpu board)])
 OPT_FEATURE([PROWIZARD], [prowizard], [prowizard],
             [prowizard])
+OPT_FEATURE([SAVESTATE], [savestate], [savestate],
+            [save state support])
 OPT_FEATURE([SERIAL_PORT], [serial_port], [serial-port],
             [serial port emulation])
 OPT_FEATURE([WITH_SLIRP], [slirp], [slirp],

@@ -5062,6 +5062,8 @@ void restore_p96_finish (void)
 #endif
 }
 
+#ifdef SAVESTATE
+
 uae_u8 *restore_p96 (uae_u8 *src)
 {
 	uae_u32 flags;
@@ -5152,6 +5154,6 @@ uae_u8 *save_p96 (int *len, uae_u8 *dstptr)
 	return dstbak;
 }
 
+#endif /* SAVESTATE */
+
 #endif
-
-

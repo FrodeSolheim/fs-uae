@@ -52,17 +52,7 @@ extern FILE *g_fs_uae_sync_debug_file;
 // needed to include functions in include/debug.h, which in turn
 // is needed by code
 
-#define DEBUGGER 1
-
-//#define A2065
-#define AGA
-//#define AHI
 #define ARCADIA
-#define AUTOCONFIG
-
-#if !defined(ANDROID) && !defined(__LSB_VERSION__)
-#define BSDSOCKET
-#endif
 
 #define ECS_DENISE
 #define CPUEMU_0 /* generic 680x0 emulation */
@@ -82,7 +72,6 @@ extern FILE *g_fs_uae_sync_debug_file;
 //#define DEBUGGER
 //#define ENFORCER
 #define FDI2RAW
-#define FILESYS
 #define GFXFILTER
 
 #define MMU
@@ -92,7 +81,6 @@ extern FILE *g_fs_uae_sync_debug_file;
 #define NCR
 #define FULLMMU /* Aranym 68040 MMU */
 #define PARALLEL_PORT
-#define SAVESTATE
 #define SCP
 #define SCSIEMU
 #define SUPPORT_THREADS

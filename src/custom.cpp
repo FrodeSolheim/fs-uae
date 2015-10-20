@@ -1523,6 +1523,8 @@ STATIC_INLINE void do_delays_fast_3_ecs (int nbits)
 		do_tosrc (0, 1, nbits2, 0);
 }
 
+#ifdef AGA
+
 STATIC_INLINE void do_delays_3_aga (int nbits, int fm)
 {
 	int delaypos = delay_cycles & fetchmode_mask;
@@ -1567,6 +1569,8 @@ STATIC_INLINE void do_delays_fast_3_aga (int nbits, int fm)
 	if (nbits2)
 		do_tosrc (0, 1, nbits2, fm);
 }
+
+#endif
 
 static void do_delays_2_0 (int nbits) { do_delays_3_ecs (nbits); }
 #ifdef AGA
@@ -5423,7 +5427,9 @@ static void BPLxDAT (int hpos, int num, uae_u16 v)
 	}
 	flush_display (fetchmode);
 	fetched[num] = v;
+#ifdef AGA
 	fetched_aga[num] = v;
+#endif
 	if (num == 0 && hpos >= 8) {
 		bpl1dat_written = true;
 		bpl1dat_written_at_least_once = true;
@@ -6675,11 +6681,14 @@ static void cursorsprite (void)
 	sprite_0_doubled = 0;
 	if (sprres == 0)
 		sprite_0_doubled = 1;
-	if (currprefs.chipset_mask & CSMASK_AGA) {
+	if (0) {
+#ifdef AGA
+	} else if (currprefs.chipset_mask & CSMASK_AGA) {
 		int sbasecol = ((bplcon4 >> 4) & 15) << 4;
 		sprite_0_colors[1] = current_colors.color_regs_aga[sbasecol + 1];
 		sprite_0_colors[2] = current_colors.color_regs_aga[sbasecol + 2];
 		sprite_0_colors[3] = current_colors.color_regs_aga[sbasecol + 3];
+#endif
 	} else {
 		sprite_0_colors[1] = xcolors[current_colors.color_regs_ecs[17]];
 		sprite_0_colors[2] = xcolors[current_colors.color_regs_ecs[18]];
@@ -8426,10 +8435,12 @@ static void hsync_handler (void)
 	hsync_handler_pre (vs);
 	if (vs) {
 		vsync_handler_pre ();
+#ifdef SAVESTATE
 		if (savestate_check ()) {
 			uae_reset (0, 0);
 			return;
 		}
+#endif
 	}
 	hsync_handler_post (vs);
 }
@@ -9504,7 +9515,9 @@ uae_u8 *save_custom (int *len, uae_u8 *dstptr, int full)
 		}
 	}
 	for (i = 0; i < 32; i++) {
-		if (currprefs.chipset_mask & CSMASK_AGA) {
+		if (0) {
+#ifdef AGA
+		} else if (currprefs.chipset_mask & CSMASK_AGA) {
 			uae_u32 v = current_colors.color_regs_aga[i];
 			uae_u16 v2;
 			v &= 0x00f0f0f0;
@@ -9512,6 +9525,7 @@ uae_u8 *save_custom (int *len, uae_u8 *dstptr, int full)
 			v2 |= ((v >> 12) & 15) << 4;
 			v2 |= ((v >> 20) & 15) << 8;
 			SW (v2);
+#endif
 		} else {
 			uae_u16 v = current_colors.color_regs_ecs[i];
 			if (color_regs_genlock[i])

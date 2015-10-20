@@ -2770,7 +2770,7 @@ static const struct expansionboardsettings x86_athdxt_settings[] = {
 
 static void fastlane_memory_callback(struct romconfig *rc, uae_u8 *ac, int size)
 {
-	struct zfile *z = read_device_from_romconfig(rc, NULL);
+	struct zfile *z = read_device_from_romconfig(rc, 0);
 	if (z) {
 		// load autoconfig data from rom file
 		uae_u8 act[16] = { 0 };

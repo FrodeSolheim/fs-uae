@@ -1700,6 +1700,8 @@ void gayle_reset (int hardreset)
 	gayle_dataflyer_enable(false);
 }
 
+#ifdef SAVESTATE
+
 uae_u8 *restore_gayle (uae_u8 *src)
 {
 	changed_prefs.cs_ide = restore_u8 ();
@@ -1776,3 +1778,5 @@ uae_u8 *restore_gayle_ide (uae_u8 *src)
 	xfree (path);
 	return src;
 }
+
+#endif /* SAVESTATE */

@@ -2142,6 +2142,7 @@ static void allocate_memory (void)
 		}
 	}
 
+#ifdef SAVESTATE
 	if (savestate_state == STATE_RESTORE) {
 		if (bootrom_filepos) {
 			protect_roms (false);
@@ -2158,6 +2159,8 @@ static void allocate_memory (void)
 		if (a3000hmem_bank.allocated > 0)
 			restore_ram (a3000hmem_filepos, a3000hmem_bank.baseaddr);
 	}
+#endif
+
 #ifdef AGA
 	chipmem_bank_ce2.baseaddr = chipmem_bank.baseaddr;
 #endif

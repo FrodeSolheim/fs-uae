@@ -2227,6 +2227,8 @@ void audio_vsync (void)
 #endif
 }
 
+#ifdef SAVESTATE
+
 void restore_audio_finish (void)
 {
 	last_cycles = get_cycles ();
@@ -2264,6 +2266,10 @@ uae_u8 *restore_audio (int nr, uae_u8 *src)
 	return src;
 }
 
+#endif /* SAVESTATE */
+
+#if defined SAVESTATE || defined DEBUGGER
+
 uae_u8 *save_audio (int nr, int *len, uae_u8 *dstptr)
 {
 	struct audio_channel_data *acd = audio_channel + nr;
@@ -2288,6 +2294,8 @@ uae_u8 *save_audio (int nr, int *len, uae_u8 *dstptr)
 	*len = dst - dstbak;
 	return dstbak;
 }
+
+#endif /* defined SAVESTATE || defined DEBUGGER */
 
 static void audio_set_extra_channels(void)
 {

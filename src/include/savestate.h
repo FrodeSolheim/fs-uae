@@ -244,7 +244,11 @@ extern struct zfile *savestate_file;
 
 STATIC_INLINE bool isrestore (void)
 {
+#ifdef SAVESTATE
 	return savestate_state == STATE_RESTORE || savestate_state == STATE_REWIND;
+#else
+	return false;
+#endif
 }
 
 extern void savestate_quick (int slot, int save);

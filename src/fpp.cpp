@@ -3160,6 +3160,8 @@ void fpu_reset (void)
 #endif
 }
 
+#ifdef SAVESTATE
+
 uae_u8 *restore_fpu (uae_u8 *src)
 {
 	uae_u32 w1, w2, w3;
@@ -3252,6 +3254,8 @@ uae_u8 *save_fpu (int *len, uae_u8 *dstptr)
 	*len = dst - dstbak;
 	return dstbak;
 }
+
+#endif /* SAVESTATE */
 
 #ifdef _MSC_VER
 #pragma fenv_access(off)

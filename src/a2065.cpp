@@ -945,6 +945,8 @@ static addrbank *a2065_config (void)
 	return NULL;
 }
 
+#ifdef SAVESTATE
+
 uae_u8 *save_a2065 (int *len, uae_u8 *dstptr)
 {
 	uae_u8 *dstbak,*dst;
@@ -976,6 +978,8 @@ void restore_a2065_finish (void)
 	if (configured)
 		a2065_config ();
 }
+
+#endif /* SAVESTATE */
 
 addrbank *a2065_init (int devnum)
 {

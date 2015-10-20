@@ -186,10 +186,8 @@ extern uae_u32 lorestab_h[256][4];
 extern uae_u32 hirestab_l[256][1];
 extern uae_u32 lorestab_l[256][2];
 
-#ifdef AGA
 /* AGA mode color lookup tables */
 extern unsigned int xredcolors[256], xgreencolors[256], xbluecolors[256];
-#endif
 extern int xredcolor_s, xredcolor_b, xredcolor_m;
 extern int xgreencolor_s, xgreencolor_b, xgreencolor_m;
 extern int xbluecolor_s, xbluecolor_b, xbluecolor_m;

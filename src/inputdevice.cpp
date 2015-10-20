@@ -266,6 +266,8 @@ struct input_queue_struct {
 };
 static struct input_queue_struct input_queue[INPUT_QUEUE_SIZE];
 
+#ifdef SAVESTATE
+
 uae_u8 *restore_input (uae_u8 *src)
 {
 	restore_u32 ();
@@ -276,6 +278,7 @@ uae_u8 *restore_input (uae_u8 *src)
 	}
 	return src;
 }
+
 uae_u8 *save_input (int *len, uae_u8 *dstptr)
 {
 	uae_u8 *dstbak, *dst;
@@ -293,6 +296,8 @@ uae_u8 *save_input (int *len, uae_u8 *dstptr)
 	*len = dst - dstbak;
 	return dstbak;
 }
+
+#endif /* SAVESTATE */
 
 static void freejport (struct uae_prefs *dst, int num)
 {
@@ -3085,13 +3090,19 @@ static bool inputdevice_handle_inputcode2 (int code, int state)
 		toggle_inhibit_frame (IHF_SCROLLLOCK);
 		break;
 	case AKS_STATEREWIND:
+#ifdef SAVESTATE
 		savestate_dorewind (-2);
+#endif
 		break;
 	case AKS_STATECURRENT:
+#ifdef SAVESTATE
 		savestate_dorewind (-1);
+#endif
 		break;
 	case AKS_STATECAPTURE:
+#ifdef SAVESTATE
 		savestate_capture (1);
+#endif
 		break;
 	case AKS_VOLDOWN:
 		sound_volume (newstate <= 0 ? -1 : 1);
@@ -3130,7 +3141,9 @@ static bool inputdevice_handle_inputcode2 (int code, int state)
 	case AKS_STATESAVEQUICK7:
 	case AKS_STATESAVEQUICK8:
 	case AKS_STATESAVEQUICK9:
+#ifdef SAVESTATE
 		savestate_quick ((code - AKS_STATESAVEQUICK) / 2, 1);
+#endif
 		break;
 	case AKS_STATERESTOREQUICK:
 	case AKS_STATERESTOREQUICK1:
@@ -3142,7 +3155,9 @@ static bool inputdevice_handle_inputcode2 (int code, int state)
 	case AKS_STATERESTOREQUICK7:
 	case AKS_STATERESTOREQUICK8:
 	case AKS_STATERESTOREQUICK9:
+#ifdef SAVESTATE
 		savestate_quick ((code - AKS_STATERESTOREQUICK) / 2, 0);
+#endif
 		break;
 	case AKS_TOGGLEDEFAULTSCREEN:
 		toggle_fullscreen (-1);
@@ -7689,6 +7704,8 @@ int inputdevice_getjoyportdevice (int port, int val)
 
 // for state recorder use only!
 
+#ifdef SAVESTATE
+
 uae_u8 *save_inputstate (int *len, uae_u8 *dstptr)
 {
 	uae_u8 *dstbak, *dst;
@@ -7751,6 +7768,8 @@ uae_u8 *restore_inputstate (uae_u8 *src)
 	}
 	return src;
 }
+
+#endif
 
 void clear_inputstate (void)
 {

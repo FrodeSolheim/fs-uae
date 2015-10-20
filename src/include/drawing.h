@@ -234,9 +234,9 @@ struct decision {
 	int ctable;
 
 	uae_u16 bplcon0, bplcon2;
-#ifdef AGA
+//#ifdef AGA
 	uae_u16 bplcon3, bplcon4;
-#endif
+//#endif
 	uae_u8 nr_planes;
 	uae_u8 bplres;
 	bool ehb_seen;

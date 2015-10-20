@@ -356,7 +356,9 @@ void do_leave_program (void)
 	sndboard_free();
 #endif
 	gfxboard_free();
+#ifdef SAVESTATE
 	savestate_free ();
+#endif
 	memory_cleanup ();
 	free_shm ();
 	cfgfile_addcfgparam (0);
@@ -415,6 +417,8 @@ void virtualdevice_init (void)
 #endif
 }
 
+#ifdef SAVESTATE
+
 void devices_restore_start(void)
 {
 	restore_cia_start();
@@ -427,6 +431,8 @@ void devices_restore_start(void)
 	changed_prefs.mbresmem_low_size = 0;
 	changed_prefs.mbresmem_high_size = 0;
 }
+
+#endif
 
 void devices_syncchange(void)
 {

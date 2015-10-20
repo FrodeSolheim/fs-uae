@@ -8743,6 +8743,8 @@ static TCHAR *makenativepath (UnitInfo *ui, TCHAR *apath)
 #endif
 }
 
+#ifdef SAVESTATE
+
 static uae_u8 *restore_aino (UnitInfo *ui, Unit *u, uae_u8 *src)
 {
 	TCHAR *p, *p2, *pn;
@@ -9281,3 +9283,5 @@ int save_filesys_cando (void)
 		return -1;
 	return filesys_in_interrupt ? 0 : 1;
 }
+
+#endif /* SAVESTATE */

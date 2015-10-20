@@ -72,6 +72,9 @@
 #endif
 
 int savestate_state = 0;
+
+#ifdef SAVESTATE
+
 static int savestate_first_capture;
 
 static bool new_blitter = false;
@@ -135,6 +138,8 @@ static void state_incompatible_warn (void)
 		notify_user (NUMSG_STATEHD);
 	}
 }
+
+#endif
 
 /* functions for reading/writing bytes, shorts and longs in big-endian
 * format independent of host machine's endianess */
@@ -257,6 +262,9 @@ TCHAR *restore_string_func (uae_u8 **dstp)
 	xfree (to);
 	return s;
 }
+
+#ifdef SAVESTATE
+
 TCHAR *restore_path_func (uae_u8 **dstp, int type)
 {
 	TCHAR *newpath;
@@ -2132,3 +2140,5 @@ misc:
 - should we strip all paths from image file names?
 
 */
+
+#endif /* SAVESTATE */

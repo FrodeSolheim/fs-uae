@@ -2022,6 +2022,8 @@ void action_replay_memory_reset (void)
 		action_replay_flag = ACTION_REPLAY_ACTIVE;
 }
 
+#ifdef SAVESTATE
+
 uae_u8 *save_hrtmon (int *len, uae_u8 *dstptr)
 {
 	uae_u8 *dstbak, *dst;
@@ -2167,6 +2169,7 @@ uae_u8 *restore_action_replay (uae_u8 *src)
 	return src;
 }
 
+#endif /* SAVESTATE */
 
 #define NPSIZE 65536
 

@@ -1047,6 +1047,10 @@ int main(int argc, char* argv[])
                     g_fs_uae_config_file_path = g_strdup(test_path);
                 } else if (check_extension(test_path, ".adf")) {
                     g_fs_uae_disk_file_path = g_strdup(test_path);
+                } else if (check_extension(test_path, ".ipf")) {
+                    g_fs_uae_disk_file_path = g_strdup(test_path);
+                } else if (check_extension(test_path, ".dms")) {
+                    g_fs_uae_disk_file_path = g_strdup(test_path);
                 }
             }
             arg++;

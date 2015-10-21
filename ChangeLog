@@ -1,5 +1,6 @@
 Version 2.7.4dev:
 
+* Support for three additional custom "joystick ports" (maps to Amiga keys).
 * Also recognize .ipf and .dms floppy paths as standalone parameters.
 * Fixed building with ./configure --disable-drivesound --disable-slirp
   --disable-prowizard --disable-cdtv --disable-savestate

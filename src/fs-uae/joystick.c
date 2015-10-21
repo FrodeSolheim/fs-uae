@@ -103,6 +103,9 @@ static fs_emu_input_mapping *g_joystick_mappings[] = {
     g_parallel_port_1st_mapping,
     g_parallel_port_2nd_mapping,
     g_custom_port_mapping,
+    g_custom_port_mapping,
+    g_custom_port_mapping,
+    g_custom_port_mapping,
 };
 
 void fs_uae_read_override_actions_for_port(int port)
@@ -303,12 +306,20 @@ void fs_uae_configure_input()
     configure_joystick_port(3, value, "joyport3", "joy3");
     g_free(value);
 
-    value = fs_config_get_string("joystick_port_4");
-    if (value == NULL) {
-        value = g_strdup("nothing");
+    for (int i = 4; i < FS_UAE_NUM_INPUT_PORTS; i++) {
+        gchar *key = g_strdup_printf("joystick_port_%d", i);
+        value = fs_config_get_string(key);
+        g_free(key);
+        if (value == NULL) {
+            value = g_strdup("nothing");
+        }
+        gchar *key2 = g_strdup_printf("joyport%d", i);
+        gchar *key3 = g_strdup_printf("joy%d", i);
+        configure_joystick_port(i, value, key2, key3);
+        g_free(key3);
+        g_free(key2);
+        g_free(value);
     }
-    configure_joystick_port(4, value, "joyport4", "joy4");
-    g_free(value);
 }
 
 void fs_uae_reconfigure_input_ports_amiga()

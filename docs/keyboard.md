@@ -457,7 +457,7 @@ mode:
 
 If you create a custom shortcut, for example:
 
-    keyboard_ctrl_p = action_pause
+    keyboard_key_ctrl_p = action_pause
 
 Then you should be aware that the emulated Amiga will see the
 <kbd>Ctrl</kbd> key press before you have pressed <kbd>P</kbd>. The Amiga
@@ -469,12 +469,12 @@ automatically because FS-UAE cannot know if you are going to press a key
 combination or not. In this case, if you do not want the Amiga to see the
 <kbd>Ctrl</kbd> key presses, you can for example also add:
 
-    keyboard_ctrl = action_none
+    keyboard_key_ctrl = action_none
 
 But then of course, you'll have no way to press the Amiga "Ctrl" key - unless
 you also map another host key (combination) to Amiga "Ctrl", for example:
 
-    keyboard_ctrl_c = action_key_ctrl
+    keyboard_key_ctrl_c = action_key_ctrl
 
 
 ## Examples

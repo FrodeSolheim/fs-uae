@@ -997,6 +997,8 @@ static void initialize_mountinfo (void)
 	nr = nr_units ();
 	cd_unit_offset = nr;
 	cd_unit_number = 0;
+
+#ifdef SCSIEMU
 	if (currprefs.scsi && currprefs.win32_automount_cddrives) {
 		uae_u32 mask = scsi_get_cd_drive_mask ();
 		for (int i = 0; i < 32; i++) {
@@ -1015,10 +1017,12 @@ static void initialize_mountinfo (void)
 			}
 		}
 	}
+#endif
 
 	for (nr = 0; nr < currprefs.mountitems; nr++) {
 		struct uaedev_config_data *uci = &currprefs.mountconfig[nr];
 		if (uci->ci.controller_type == HD_CONTROLLER_TYPE_UAE) {
+#ifdef SCSIEMU
 			if (uci->ci.type == UAEDEV_TAPE) {
 				struct uaedev_config_info ci;
 				memcpy (&ci, &uci->ci, sizeof (struct uaedev_config_info));
@@ -1028,6 +1032,7 @@ static void initialize_mountinfo (void)
 					allocuci (&currprefs, nr, idx, unitnum);
 				}
 			}
+#endif
 		}
 	}
 
@@ -8241,7 +8246,11 @@ static uae_u32 REGPARAM2 filesys_dev_storeinfo (TrapContext *context)
 		put_long (parmpacket + 64, 1); /* Buffer mem type */
 		put_long (parmpacket + 68, 0x7FFFFFFE); /* largest transfer */
 		put_long (parmpacket + 72, 0xFFFFFFFE); /* dma mask */
+#ifdef SCSIEMU
 		put_long (parmpacket + 76, scsi_get_cd_drive_media_mask () & (1 << cd_unit_no) ? -127 : -128); /* bootPri */
+#else
+		put_long (parmpacket + 76, -128); /* bootPri */
+#endif
 		put_long (parmpacket + 80, CDFS_DOSTYPE | (((cd_unit_no / 10) + '0') << 8) | ((cd_unit_no % 10) + '0'));
 		put_long (parmpacket + 84, 0); /* baud */
 		put_long (parmpacket + 88, 0); /* control */

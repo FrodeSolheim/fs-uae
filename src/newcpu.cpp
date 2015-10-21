@@ -855,7 +855,9 @@ static void set_x_funcs (void)
 	} else if (!currprefs.cpu_cycle_exact) {
 		// 68020+ no ce
 		if (currprefs.cpu_compatible) {
-			if (currprefs.cpu_model == 68020 && !currprefs.cachesize) {
+			if (false) {
+#ifdef CPUEMU_20
+			} else if (currprefs.cpu_model == 68020 && !currprefs.cachesize) {
 				x_prefetch = get_word_prefetch;
 				x_get_ilong = get_long_020_prefetch;
 				x_get_iword = get_word_020_prefetch;
@@ -871,6 +873,8 @@ static void set_x_funcs (void)
 				x_do_cycles = do_cycles;
 				x_do_cycles_pre = do_cycles;
 				x_do_cycles_post = do_cycles_post;
+#endif
+#ifdef CPUEMU_22
 			} else if (currprefs.cpu_model == 68030 && !currprefs.cachesize) {
 				x_prefetch = get_word_prefetch;
 				x_get_ilong = get_long_030_prefetch;
@@ -887,6 +891,7 @@ static void set_x_funcs (void)
 				x_do_cycles = do_cycles;
 				x_do_cycles_pre = do_cycles;
 				x_do_cycles_post = do_cycles_post;
+#endif
 			} else if (currprefs.cpu_model < 68040) {
 				// JIT or 68030+ does not have real prefetch only emulation
 				x_prefetch = NULL;
@@ -940,6 +945,7 @@ static void set_x_funcs (void)
 			x_do_cycles_post = do_cycles_post;
 		}
 		// 68020+ cycle exact
+#ifdef CPUEMU_21
 	} else if (currprefs.cpu_model == 68020) {
 		x_prefetch = get_word_ce020_prefetch;
 		x_get_ilong = get_long_ce020_prefetch;
@@ -956,6 +962,8 @@ static void set_x_funcs (void)
 		x_do_cycles = do_cycles_ce020;
 		x_do_cycles_pre = do_cycles_ce020;
 		x_do_cycles_post = do_cycles_ce020_post;
+#endif
+#ifdef CPUEMU_23
 	} else if (currprefs.cpu_model == 68030) {
 		x_prefetch = get_word_ce030_prefetch;
 		x_get_ilong = get_long_ce030_prefetch;
@@ -972,6 +980,7 @@ static void set_x_funcs (void)
 		x_do_cycles = do_cycles_ce020;
 		x_do_cycles_pre = do_cycles_ce020;
 		x_do_cycles_post = do_cycles_ce020_post;
+#endif
 	} else if (currprefs.cpu_model >= 68040) {
 		x_prefetch = NULL;
 		x_get_ilong = get_ilong_cache_040;
@@ -1189,6 +1198,62 @@ static uae_u32 REGPARAM2 op_unimpl_1 (uae_u32 opcode)
 		op_unimpl (opcode);
 	return 4;
 }
+
+#ifndef CPUEMU_0
+#define op_smalltbl_0_ff NULL
+#define op_smalltbl_1_ff NULL
+#define op_smalltbl_2_ff NULL
+#define op_smalltbl_3_ff NULL
+#define op_smalltbl_4_ff NULL
+#define op_smalltbl_5_ff NULL
+#endif
+#ifndef CPUEMU_11
+#define op_smalltbl_11_ff op_smalltbl_0_ff
+#define op_smalltbl_12_ff op_smalltbl_0_ff
+#endif
+#ifndef CPUEMU_20
+#define op_smalltbl_20_ff op_smalltbl_0_ff
+#endif
+#ifndef CPUEMU_21
+#define op_smalltbl_21_ff op_smalltbl_0_ff
+#endif
+#ifndef CPUEMU_22
+#define op_smalltbl_22_ff op_smalltbl_0_ff
+#endif
+#ifndef CPUEMU_23
+#define op_smalltbl_23_ff op_smalltbl_0_ff
+#endif
+#ifndef CPUEMU_24
+#define op_smalltbl_24_ff op_smalltbl_0_ff
+#endif
+#ifndef CPUEMU_25
+#define op_smalltbl_25_ff op_smalltbl_0_ff
+#endif
+#ifndef CPUEMU_31
+#define op_smalltbl_31_ff op_smalltbl_0_ff
+#endif
+#ifndef CPUEMU_32
+#define op_smalltbl_32_ff op_smalltbl_0_ff
+#endif
+#ifndef CPUEMU_33
+#define op_smalltbl_33_ff op_smalltbl_0_ff
+#endif
+#ifndef CPUEMU_40
+#define op_smalltbl_40_ff op_smalltbl_0_ff
+#define op_smalltbl_41_ff op_smalltbl_0_ff
+#define op_smalltbl_42_ff op_smalltbl_0_ff
+#define op_smalltbl_43_ff op_smalltbl_0_ff
+#define op_smalltbl_44_ff op_smalltbl_0_ff
+#define op_smalltbl_45_ff op_smalltbl_0_ff
+#endif
+#ifndef CPUEMU_50
+#define op_smalltbl_50_ff op_smalltbl_0_ff
+#define op_smalltbl_51_ff op_smalltbl_0_ff
+#define op_smalltbl_52_ff op_smalltbl_0_ff
+#define op_smalltbl_53_ff op_smalltbl_0_ff
+#define op_smalltbl_54_ff op_smalltbl_0_ff
+#define op_smalltbl_55_ff op_smalltbl_0_ff
+#endif
 
 // generic+direct, generic+direct+jit, generic+indirect, more compatible, cycle-exact, mmu
 static const struct cputbl *cputbls[6][6] =
@@ -4035,7 +4100,6 @@ cont:
 
 #endif
 
-#ifdef CPUEMU_20
 // emulate simple prefetch
 static uae_u16 get_word_020_prefetchf (uae_u32 pc)
 {
@@ -4068,7 +4132,6 @@ static uae_u16 get_word_020_prefetchf (uae_u32 pc)
 		return x_get_word (pc);
 	}
 }
-#endif
 
 #ifdef WITH_THREADED_CPU
 static volatile int cpu_thread_active;
@@ -4402,7 +4465,8 @@ static void m68k_run_jit(void)
 }
 #endif /* JIT */
 
-#ifndef CPUEMU_0
+//#ifndef CPUEMU_0
+#if 0
 
 static void m68k_run_2 (void)
 {
@@ -4875,7 +4939,7 @@ static void m68k_run_2ce (void)
 	}
 }
 
-#ifdef CPUEMU_20
+#if defined CPUEMU_20 || defined CPUEMU_22
 
 // full prefetch 020 (more compatible)
 static void m68k_run_2p (void)
@@ -4916,7 +4980,7 @@ static void m68k_run_2p (void)
 	}
 }
 
-#endif
+#endif /* defined CPUEMU_20 || defined CPUEMU_22 */
 
 #ifdef WITH_THREADED_CPU
 static void *cpu_thread_run_2(void *v)
@@ -5196,17 +5260,30 @@ void m68k_go (int may_quit)
 #ifdef JIT
 				currprefs.cpu_model >= 68020 && currprefs.cachesize ? m68k_run_jit :
 #endif
+#ifdef CPUEMU_32
 				currprefs.cpu_model == 68030 && currprefs.mmu_model ? m68k_run_mmu030 :
+#endif
+#ifdef CPUEMU_31
 				currprefs.cpu_model == 68040 && currprefs.mmu_model ? m68k_run_mmu040 :
+#endif
+#ifdef CPUEMU_33
 				currprefs.cpu_model == 68060 && currprefs.mmu_model ? m68k_run_mmu060 :
-
+#endif
+#if defined CPUEMU_24 || defined CPUEMU_25
 				currprefs.cpu_model >= 68040 && currprefs.cpu_cycle_exact ? m68k_run_3ce :
+#endif
+#if defined CPUEMU_21 || defined CPUEMU_23
 				currprefs.cpu_model >= 68020 && currprefs.cpu_cycle_exact ? m68k_run_2ce :
-
+#endif
+#ifdef CPUEMU_20
 				currprefs.cpu_model <= 68020 && currprefs.cpu_compatible ? m68k_run_2p :
+#endif
+#ifdef CPUEMU_22
 				currprefs.cpu_model == 68030 && currprefs.cpu_compatible ? m68k_run_2p :
+#endif
+#ifdef CPUEMU_0
 				currprefs.cpu_model >= 68040 && currprefs.cpu_compatible ? m68k_run_3p :
-
+#endif
 				m68k_run_2;
 #if 0
 		}
@@ -6791,16 +6868,21 @@ static void pipeline_020(uae_u16 w, uaecptr pc)
 }
 
 // Not exactly right, requires logic analyzer checks.
+
+#if defined CPUEMU_21 || defined CPUEMU_23
 void continue_ce020_prefetch(void)
 {
 	fill_prefetch_020();
 }
+#endif
+
 void continue_020_prefetch(void)
 {
 	fill_prefetch_020();
 }
 #endif
 
+#if defined CPUEMU_21 || defined CPUEMU_22 || defined CPUEMU_23 || defined CPUEMU_32
 uae_u32 get_word_ce020_prefetch (int o)
 {
 	uae_u32 pc = m68k_getpc () + o;
@@ -6828,6 +6910,7 @@ uae_u32 get_word_ce020_prefetch (int o)
 	do_cycles_ce020_internal (2);
 	return v;
 }
+#endif
 
 uae_u32 get_word_020_prefetch (int o)
 {
@@ -6854,6 +6937,8 @@ uae_u32 get_word_020_prefetch (int o)
 	}
 	return v;
 }
+
+#if defined CPUEMU_21 || defined CPUEMU_22 || defined CPUEMU_23 || defined CPUEMU_32
 
 // these are also used by 68030.
 
@@ -7082,6 +7167,7 @@ void mem_access_delay_long_write_ce020 (uaecptr addr, uae_u32 v)
 	ADD_CE020_CYCLES;
 }
 
+#endif /* defined CPUEMU_21 || defined CPUEMU_22 || defined CPUEMU_23 || defined CPUEMU_32 */
 
 // 68030 caches aren't so simple as 68020 cache..
 STATIC_INLINE struct cache030 *getcache030 (struct cache030 *cp, uaecptr addr, uae_u32 *tagp, int *lwsp)
@@ -7342,6 +7428,7 @@ uae_u32 read_dcache030 (uaecptr addr, int size)
 	return 0;
 }
 
+#ifdef CPUEMU_23
 uae_u32 get_word_ce030_prefetch (int o)
 {
 	uae_u32 pc = m68k_getpc () + o;
@@ -7367,7 +7454,9 @@ uae_u32 get_word_ce030_prefetch (int o)
 	do_cycles_ce020_internal (2);
 	return v;
 }
+#endif
 
+#ifdef CPUEMU_22
 uae_u32 get_word_030_prefetch(int o)
 {
 	uae_u32 pc = m68k_getpc() + o;
@@ -7392,6 +7481,7 @@ uae_u32 get_word_030_prefetch(int o)
 	}
 	return v;
 }
+#endif
 
 uae_u32 get_word_icache030(uaecptr addr)
 {
@@ -7814,10 +7904,14 @@ void fill_prefetch_030 (void)
 	}
 #endif
 
+#ifdef CPUEMU_23
 	if (currprefs.cpu_cycle_exact)
 		regs.irc = get_word_ce030_prefetch (0);
 	else
+#endif
+#ifdef CPUEMU_22
 		regs.irc = get_word_030_prefetch(0);
+#endif
 }
 
 void fill_prefetch_020 (void)

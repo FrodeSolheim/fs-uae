@@ -7,10 +7,10 @@
 #include "newcpu.h"
 #endif
 
-#ifdef CPUEMU_20
-
 extern uae_u32 get_word_020_prefetch (int);
 extern void continue_020_prefetch(void);
+
+#ifdef CPUEMU_20
 
 STATIC_INLINE uae_u32 next_iword_020_prefetch (void)
 {
@@ -34,7 +34,7 @@ STATIC_INLINE uae_u32 get_long_020_prefetch (int o)
 
 #endif
 
-#ifdef CPUEMU_21
+#if defined CPUEMU_21 || defined CPUEMU_22 || defined CPUEMU_23 || defined CPUEMU_32
 
 #define CE020_INITCYCLES() \
 	int head = 0, tail = 0, cycles = 0; \
@@ -156,8 +156,7 @@ STATIC_INLINE void m68k_do_rts_ce020 (void)
 	m68k_areg (regs, 7) += 4;
 }
 
-
-#endif
+#endif /* defined CPUEMU_21 || defined CPUEMU_22 || defined CPUEMU_23 || defined CPUEMU_32 */
 
 #ifdef CPUEMU_22
 
@@ -287,8 +286,6 @@ STATIC_INLINE void m68k_do_rts_ce030 (void)
 
 #endif
 
-#ifdef CPUEMU_11
-
 STATIC_INLINE uae_u32 get_word_prefetch (int o)
 {
 	uae_u32 v = regs.irc;
@@ -307,6 +304,7 @@ STATIC_INLINE uae_u32 get_word_prefetch (uaecptr addr)
 	regs.db = v;
 	return v;
 }
+
 STATIC_INLINE void put_byte_prefetch (uaecptr addr, uae_u32 v)
 {
 	regs.db = (v << 8) | v;
@@ -317,7 +315,6 @@ STATIC_INLINE void put_word_prefetch (uaecptr addr, uae_u32 v)
 	regs.db = v;
 	put_word (addr, v);
 }
-#endif
 
 #ifdef CPUEMU_13
 

@@ -610,19 +610,19 @@ BUILT_SOURCES += $(nodist_libuae_a_SOURCES)
 noinst_LIBRARIES += libcpuemu.a
 fs_uae_LDADD += libcpuemu.a
 nodist_libcpuemu_a_SOURCES = \
-	gen/cpuemu_0.cpp \
-	gen/cpuemu_11.cpp \
-	gen/cpuemu_13.cpp \
-	gen/cpuemu_20.cpp \
-	gen/cpuemu_21.cpp \
-	gen/cpuemu_22.cpp \
-	gen/cpuemu_23.cpp \
-	gen/cpuemu_24.cpp \
-	gen/cpuemu_31.cpp \
-	gen/cpuemu_32.cpp \
-	gen/cpuemu_33.cpp \
-	gen/cpuemu_40.cpp \
-	gen/cpuemu_50.cpp
+        gen/cpuemu_0.cpp \
+        gen/cpuemu_11.cpp \
+        gen/cpuemu_13.cpp \
+        gen/cpuemu_20.cpp \
+        gen/cpuemu_21.cpp \
+        gen/cpuemu_22.cpp \
+        gen/cpuemu_23.cpp \
+        gen/cpuemu_24.cpp \
+        gen/cpuemu_31.cpp \
+        gen/cpuemu_32.cpp \
+        gen/cpuemu_33.cpp \
+        gen/cpuemu_40.cpp \
+        gen/cpuemu_50.cpp
 BUILT_SOURCES += $(nodist_libcpuemu_a_SOURCES)
 
 noinst_LIBRARIES += libfsemu.a

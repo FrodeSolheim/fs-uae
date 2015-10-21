@@ -136,8 +136,11 @@ AC_CHECK_LIB([compat], [ftime])
 
 AC_CHECK_LIB([dl], [dlopen])
 
-AC_DEFINE([USE_FREETYPE], [1], [Define to 1 to use FreeType])
-PKG_CHECK_MODULES([FREETYPE], [freetype2])
+# not using freetype right now
+# AC_DEFINE([USE_FREETYPE], [1], [Define to 1 to use FreeType])
+# PKG_CHECK_MODULES([FREETYPE], [freetype2])
+AC_SUBST([FREETYPE_CFLAGS])
+AC_SUBST([FREETYPE_LIBS])
 
 AC_CHECK_LIB([gdi32], [main])
 
@@ -567,10 +570,38 @@ OPT_FEATURE([CD32], [cd32], [cd32],
             [CD32 emulation])
 OPT_FEATURE([CDTV], [cdtv], [cdtv],
             [CDTV emulation])
+OPT_FEATURE([CPUEMU_0], [cpuemu_0], [cpuemu-0],
+            [generic 680x0 emulation])
+OPT_FEATURE([CPUEMU_11], [cpuemu_11], [cpuemu-11],
+            [68000/68010 prefetch emulation])
+REQ_FEATURE([CPUEMU_13], [cpuemu_13], [cpuemu-13],
+            [68000/68010 cycle-exact cpu&blitter])
+OPT_FEATURE([CPUEMU_20], [cpuemu_20], [cpuemu-20],
+            [68020 prefetch])
+OPT_FEATURE([CPUEMU_21], [cpuemu_21], [cpuemu-21],
+            [68020 "cycle-exact" + blitter])
+OPT_FEATURE([CPUEMU_22], [cpuemu_22], [cpuemu-22],
+            [68030 prefetch])
+OPT_FEATURE([CPUEMU_23], [cpuemu_23], [cpuemu-23],
+            [68030 "cycle-exact" + blitter])
+OPT_FEATURE([CPUEMU_24], [cpuemu_24], [cpuemu-24],
+            [68060 "cycle-exact" + blitter])
+OPT_FEATURE([CPUEMU_25], [cpuemu_25], [cpuemu-25],
+            [68040 "cycle-exact" + blitter (needs cpuemu-24)])
+OPT_FEATURE([CPUEMU_31], [cpuemu_31], [cpuemu-31],
+            [Aranym 68040 MMU])
+OPT_FEATURE([CPUEMU_32], [cpuemu_32], [cpuemu-32],
+            [Previous 68030 MMU])
+OPT_FEATURE([CPUEMU_33], [cpuemu_33], [cpuemu-33],
+            [68060 MMU])
+OPT_FEATURE([CPUEMU_40], [cpuemu_40], [cpuemu-40],
+            [generic 680x0 with JIT direct memory access])
+OPT_FEATURE([CPUEMU_50], [cpuemu_50], [cpuemu-50],
+            [generic 680x0 with indirect memory access])
 REQ_FEATURE([WITH_CPUBOARD], [cpuboard], [cpuboard],
             [cpu board emulation])
 OPT_FEATURE([DEBUGGER], [debugger], [debugger],
-            [debugger support])
+            [debugger support (cannot be disabled right now)])
 OPT_FEATURE([A_DMS], [dms], [dms],
             [DMS support])
 OPT_FEATURE([DRIVESOUND], [drivesound], [drivesound],
@@ -610,7 +641,9 @@ DIS_FEATURE([WITH_LUA], [lua], [lua],
             [LUA scripting (unfinished)])
 OPT_FEATURE([WITH_NETPLAY], [netplay], [netplay],
             [netplay support])
-REQ_FEATURE([NCR9X], [ncr9x], [ncr9x], [disable],
+OPT_FEATURE([NCR], [ncr], [ncr],
+            [A4000T/A4091, 53C710/53C770 SCSI])
+OPT_FEATURE([NCR9X], [ncr9x], [ncr9x],
             [53C9X SCSI])
 OPT_FEATURE([PARALLEL_PORT], [parallel_port], [parallel-port],
             [parallell port (printer) emulation])
@@ -642,6 +675,10 @@ OPT_FEATURE([WITH_UAENATIVE], [uaenative], [uaenative],
             [uaenative.library])
 OPT_FEATURE([SANA2], [uaenet], [uaenet],
             [uaenet.device])
+OPT_FEATURE([SCSIEMU], [uaescsi], [uaescsi],
+            [uaescsi.device])
+OPT_FEATURE([UAESERIAL], [uaeserial], [uaeserial],
+            [uaeserial.device])
 OPT_FEATURE([WITH_UDIS86], [udis86], [udis86],
             [UDIS86 x86/x86-64 disassembler])
 OPT_FEATURE([WITH_VPAR], [vpar], [vpar],

@@ -13,6 +13,8 @@
 #include "sysconfig.h"
 #include "sysdeps.h"
 
+#ifdef SCSIEMU
+
 #include "threaddep/thread.h"
 #include "options.h"
 #include "uae/memory.h"
@@ -1585,3 +1587,5 @@ uae_u8 *restore_scsidev (uae_u8 *src)
 }
 
 #endif /* SAVESTATE */
+
+#endif /* SCSIEMU */

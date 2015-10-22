@@ -13,16 +13,21 @@
 #include "fs-uae.h"
 #include "config-common.h"
 #include "paths.h"
+#include "options.h"
 
 #define MAX_PATHS 8
+#define ZERO_SUCCESS 0
+
+static char* g_fs_uae_state_base_name;
 
 struct multipath {
     const char *path[MAX_PATHS];
 };
 
-static struct multipath g_paths[5] = {};
+static struct multipath g_paths[5];
 
-static const char* fs_uae_home_dir() {
+static const char* fs_uae_home_dir()
+{
     static const char* path = NULL;
     if (path == NULL) {
         path = fs_get_home_dir();
@@ -35,7 +40,8 @@ static const char* fs_uae_home_dir() {
     return path;
 }
 
-const char* fs_uae_exe_dir() {
+const char* fs_uae_exe_dir()
+{
     static const char* path = NULL;
     if (path == NULL) {
         char *app_dir = (char*) malloc(MAX_PATH);
@@ -48,7 +54,8 @@ const char* fs_uae_exe_dir() {
     return path;
 }
 
-static const char* fs_uae_app_dir() {
+static const char* fs_uae_app_dir()
+{
     static const char* path = NULL;
     if (path == NULL) {
         char *app_dir = (char*) malloc(MAX_PATH);
@@ -78,7 +85,8 @@ static const char* fs_uae_app_dir() {
     return path;
 }
 
-static const char* fs_uae_documents_dir() {
+static const char* fs_uae_documents_dir()
+{
     static const char* path = NULL;
     if (path == NULL) {
         path = fs_get_documents_dir();
@@ -97,7 +105,8 @@ static const char* fs_uae_documents_dir() {
     return path;
 }
 
-static char* read_custom_path(const char *key) {
+static char* read_custom_path(const char *key)
+{
     char *key_path = g_build_filename(fs_get_user_config_dir(),
             "fs-uae", key, NULL);
     fs_log("- checking %s\n", key_path);
@@ -264,18 +273,8 @@ const char *fs_uae_configurations_dir()
     return path;
 }
 
-/*
-const char *fs_uae_flash_memory_dir() {
-    static const char *path = NULL;
-    if (path == NULL) {
-        path = create_default_dir("Flash Memory", "flash_memory_dir",
-                "state_dir");
-    }
-    return path;
-}
-*/
-
-static const char *fs_uae_save_states_dir() {
+static const char *fs_uae_save_states_dir()
+{
     static const char *path = NULL;
     if (path == NULL) {
         path = create_default_dir("Save States", "save_states_dir",
@@ -284,7 +283,8 @@ static const char *fs_uae_save_states_dir() {
     return path;
 }
 
-static const char *fs_uae_state_dir_path() {
+static const char *fs_uae_state_dir_path()
+{
     static const char *path = NULL;
     char *free_state_dir_name = NULL;
     if (path == NULL) {
@@ -412,7 +412,8 @@ const char *fs_uae_cache_dir()
     return path;
 }
 
-const char *fs_uae_kickstarts_cache_dir() {
+const char *fs_uae_kickstarts_cache_dir()
+{
     static const char *path = NULL;
     if (path == NULL) {
         path = g_build_filename(fs_uae_cache_dir(), "Kickstarts", NULL);
@@ -435,7 +436,8 @@ const char *fs_uae_themes_dir()
     return path;
 }
 
-const char *fs_uae_plugins_dir(void) {
+const char *fs_uae_plugins_dir(void)
+{
     static const char *path = NULL;
     if (path == NULL) {
         path = get_default_dir("Plugins", "plugins_dir", NULL,
@@ -444,7 +446,8 @@ const char *fs_uae_plugins_dir(void) {
     return path;
 }
 
-char *fs_uae_expand_path(const char* path) {
+char *fs_uae_expand_path(const char* path)
+{
     char* lower = g_ascii_strdown(path, -1);
     int replace = 0;
     const char *replace_with = NULL;
@@ -499,25 +502,25 @@ char *fs_uae_expand_path(const char* path) {
     }
 }
 
-char *fs_uae_expand_path_and_free(char *path) {
+char *fs_uae_expand_path_and_free(char *path)
+{
     char *p = fs_uae_expand_path(path);
     free(path);
     return p;
 }
 
-static char* g_fs_uae_state_base_name = NULL;
-
-const char *fs_uae_get_state_base_name() {
+const char *fs_uae_get_state_base_name()
+{
     return g_fs_uae_state_base_name;
 }
 
-static void fs_uae_set_state_base_name(const char *base_name) {
+static void fs_uae_set_state_base_name(const char *base_name)
+{
     g_fs_uae_state_base_name = g_strdup(base_name);
 }
 
-#define ZERO_SUCCESS 0
-
-void fs_uae_configure_directories() {
+void fs_uae_configure_directories()
+{
     char *path;
 
     for (int i = 0; i < 10; i++) {
@@ -587,7 +590,8 @@ void fs_uae_configure_directories() {
     amiga_set_module_ripper_dir(fs_uae_module_ripper_dir());
 }
 
-static void fix_separators(char *path) {
+static void fix_separators(char *path)
+{
 #ifdef WINDOWS
     char *p = path;
     while (*p) {
@@ -599,7 +603,8 @@ static void fix_separators(char *path) {
 #endif
 }
 
-char *fs_uae_resolve_path(const char *name, int type) {
+char *fs_uae_resolve_path(const char *name, int type)
+{
     if (name[0] == '\0') {
         fs_log("resolve_path (empty string)\n");
         return g_strdup("");
@@ -632,13 +637,15 @@ char *fs_uae_resolve_path(const char *name, int type) {
     return path;
 }
 
-char *fs_uae_resolve_path_and_free(char *name, int type) {
+char *fs_uae_resolve_path_and_free(char *name, int type)
+{
     char *result = fs_uae_resolve_path(name, type);
     free(name);
     return result;
 }
 
-void fs_uae_set_uae_paths() {
+void fs_uae_set_uae_paths()
+{
     fs_log("fs_uae_set_uae_paths\n");
     amiga_set_paths(g_paths[FS_UAE_ROM_PATHS].path,
             g_paths[FS_UAE_FLOPPY_PATHS].path,
@@ -667,30 +674,41 @@ void fs_uae_set_uae_paths() {
     free(path);
 }
 
-void fs_uae_init_path_resolver() {
+void fs_uae_init_path_resolver()
+{
+    bool relative_paths = true;
+    if (fs_config_is_false(OPTION_RELATIVE_PATHS)) {
+        relative_paths = false;
+    }
+
     int k;
-    // current working directory should always come first (index 0)
     k = 0;
-    g_paths[FS_UAE_DIR_PATHS].path[k++] = g_strdup(".");
+    if (relative_paths) {
+        /* Current working directory should always come first (index 0) */
+        g_paths[FS_UAE_DIR_PATHS].path[k++] = g_strdup(".");
+    }
     if (g_fs_uae_config_dir_path) {
         g_paths[FS_UAE_DIR_PATHS].path[k++] = g_strdup(
                 g_fs_uae_config_dir_path);
     }
-    // current working directory should always come first (index 0)
+
     k = 0;
-    g_paths[FS_UAE_FLOPPY_PATHS].path[k++] = g_strdup(".");
+    if (relative_paths) {
+        g_paths[FS_UAE_FLOPPY_PATHS].path[k++] = g_strdup(".");
+    }
     if (g_fs_uae_config_dir_path) {
         g_paths[FS_UAE_FLOPPY_PATHS].path[k++] = g_strdup(
                 g_fs_uae_config_dir_path);
     }
-    // then add the default floppies dir
     if (fs_uae_floppies_dir()) {
         g_paths[FS_UAE_FLOPPY_PATHS].path[k++] = g_strdup(
                 fs_uae_floppies_dir());
     }
-    // similarly for other path types
+
     k = 0;
-    g_paths[FS_UAE_CD_PATHS].path[k++] = g_strdup(".");
+    if (relative_paths) {
+        g_paths[FS_UAE_CD_PATHS].path[k++] = g_strdup(".");
+    }
     if (g_fs_uae_config_dir_path) {
         g_paths[FS_UAE_CD_PATHS].path[k++] = g_strdup(
                 g_fs_uae_config_dir_path);
@@ -699,8 +717,11 @@ void fs_uae_init_path_resolver() {
         g_paths[FS_UAE_CD_PATHS].path[k++] = g_strdup(
                 fs_uae_cdroms_dir());
     }
+
     k = 0;
-    g_paths[FS_UAE_HD_PATHS].path[k++] = g_strdup(".");
+    if (relative_paths) {
+        g_paths[FS_UAE_HD_PATHS].path[k++] = g_strdup(".");
+    }
     if (g_fs_uae_config_dir_path) {
         g_paths[FS_UAE_HD_PATHS].path[k++] = g_strdup(
                 g_fs_uae_config_dir_path);
@@ -710,8 +731,11 @@ void fs_uae_init_path_resolver() {
                 fs_uae_hard_drives_dir());
 
     }
+
     k = 0;
-    g_paths[FS_UAE_ROM_PATHS].path[k++] = g_strdup(".");
+    if (relative_paths) {
+        g_paths[FS_UAE_ROM_PATHS].path[k++] = g_strdup(".");
+    }
     if (g_fs_uae_config_dir_path) {
         g_paths[FS_UAE_ROM_PATHS].path[k++] = g_strdup(
                 g_fs_uae_config_dir_path);

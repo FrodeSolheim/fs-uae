@@ -30,6 +30,16 @@ const char *fs_config_get_const_string(const char *key);
 void fs_config_set_string(const char *key, const char *value);
 void fs_config_set_string_if_unset(const char *key, const char *value);
 
+static inline bool fs_config_is_true(const char *key)
+{
+    return fs_config_get_int(key) == 1;
+}
+
+static inline bool fs_config_is_false(const char *key)
+{
+    return fs_config_get_int(key) == 0;
+}
+
 #ifdef __cplusplus
 }
 #endif

@@ -159,6 +159,8 @@ static bool blizzardmaprom_bank_mapped, blizzardmaprom2_bank_mapped;
 static bool cpuboard_non_byte_ea;
 static uae_u16 a2630_io;
 
+#ifdef WITH_PPC
+
 static bool ppc_irq_pending;
 
 static void set_ppc_interrupt(void)
@@ -224,6 +226,8 @@ bool ppc_interrupt(int new_m68k_ipl)
 
 	return m68kint;
 }
+
+#endif /* WITH_PPC */
 
 static bool mapromconfigured(void)
 {
@@ -866,8 +870,10 @@ void cpuboard_rethink(void)
 		} else if (!(io_reg[CSIII_REG_IRQ] & (P5_IRQ_PPC_1 | P5_IRQ_PPC_2))) {
 			INTREQ_0(0x8000 | 0x0008);
 		}
+#ifdef WITH_PPC
 		check_ppc_int_lvl();
 		ppc_interrupt(intlev());
+#endif
 	}
 }
 
@@ -1085,11 +1091,15 @@ static void REGPARAM2 blizzardio_bput(uaecptr addr, uae_u32 v)
 					flash_unlocked &= ~2;
 				if (v & P5_LOCK_CPU) {
 					if (v & 0x80) {
+#ifdef WITH_PPC
 						if (uae_ppc_cpu_unlock())
+#endif
 							regval |= P5_LOCK_CPU;
 					} else {
+#ifdef WITH_PPC
 						if (!(regval & P5_LOCK_CPU))
 							uae_ppc_cpu_lock();
+#endif
 						regval &= ~P5_LOCK_CPU;
 					}
 #if CPUBOARD_IO_LOG > 0
@@ -1135,9 +1145,13 @@ static void REGPARAM2 blizzardio_bput(uaecptr addr, uae_u32 v)
 					}
 					if (!(io_reg[CSIII_REG_SHADOW] & P5_SELF_RESET) || uae_self_is_ppc() == false) {
 						if ((oldval & P5_PPC_RESET) && !(regval & P5_PPC_RESET)) {
+#ifdef WITH_PPC
 							uae_ppc_cpu_stop();
+#endif
 						} else if (!(oldval & P5_PPC_RESET) && (regval & P5_PPC_RESET)) {
+#ifdef WITH_PPC
 							uae_ppc_cpu_reboot();
+#endif
 						}
 					} else {
 						io_reg[CSIII_REG_RESET] &= ~P5_PPC_RESET;
@@ -1163,7 +1177,9 @@ static void REGPARAM2 blizzardio_bput(uaecptr addr, uae_u32 v)
 					}
 					if (!(io_reg[CSIII_REG_SHADOW] & P5_SELF_RESET)) {
 						if (!(regval & P5_AMIGA_RESET)) {
+#ifdef WITH_PPC
 							uae_ppc_cpu_stop();
+#endif
 							uae_reset(0, 0);
 							write_log(_T("CS: Amiga Reset\n"));
 							io_reg[addr] |= P5_AMIGA_RESET;
@@ -1177,8 +1193,11 @@ static void REGPARAM2 blizzardio_bput(uaecptr addr, uae_u32 v)
 					regval &= ~P5_M68k_IPL_MASK;
 					regval |= oldval & P5_M68k_IPL_MASK;
 					bool active = (regval & P5_DISABLE_INT) == 0;
-					if (!active)
+					if (!active) {
+#ifdef WITH_PPC
 						clear_ppc_interrupt();
+#endif
+					}
 					io_reg[addr] = regval;
 #if CPUBOARD_IRQ_LOG > 0
 					if ((regval & P5_DISABLE_INT) != (oldval & P5_DISABLE_INT))
@@ -1266,7 +1285,9 @@ void cpuboard_hsync(void)
 	// after PPC CPU's interrupt flag is cleared but this
 	// should be fast enough for now
 	if (is_csmk3() || is_blizzardppc()) {
+#ifdef WITH_PPC
 		check_ppc_int_lvl();
+#endif
 	}
 }
 

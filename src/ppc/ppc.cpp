@@ -2,6 +2,8 @@
 #include "sysconfig.h"
 #include "sysdeps.h"
 
+#ifdef WITH_PPC
+
 #include "options.h"
 #include "threaddep/thread.h"
 #include "machdep/rpt.h"
@@ -935,3 +937,14 @@ UAE_EXTERN_C void fsuae_ppc_pause(int pause)
 }
 
 #endif
+
+#else
+
+#include "uae/ppc.h"
+
+bool uae_self_is_ppc(void)
+{
+	return false;
+}
+
+#endif /* WITH_PPC */

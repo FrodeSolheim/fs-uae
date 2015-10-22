@@ -651,7 +651,7 @@ DIS_FEATURE([WITH_PEARPC_CPU], [pearpc_cpu], [pearpc-cpu],
             [use PearPC for PPC emulation (deprecated)])
 REQ_FEATURE([PICASSO96], [picasso96], [picasso96],
             [Picasso 96 (uaegfx.card)])
-REQ_FEATURE([WITH_PPC], [ppc], [ppc],
+OPT_FEATURE([WITH_PPC], [ppc], [ppc],
             [PPC (requires cpu board)])
 OPT_FEATURE([PROWIZARD], [prowizard], [prowizard],
             [prowizard])

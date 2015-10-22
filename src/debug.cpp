@@ -40,9 +40,11 @@
 #include "cpummu030.h"
 #include "ar.h"
 #include "pci.h"
-#include "ppc/ppcd.h"
 #include "uae/io.h"
+#ifdef WITH_PPC
+#include "ppc/ppcd.h"
 #include "uae/ppc.h"
+#endif
 
 #ifdef FSUAE // NL
 #include "uae/fs.h"
@@ -4264,6 +4266,7 @@ static void m68k_modify (TCHAR **inptr)
 	}
 }
 
+#ifdef WITH_PPC
 static void ppc_disasm(uaecptr addr, uaecptr *nextpc, int cnt)
 {
 	PPCD_CB disa;
@@ -4283,6 +4286,7 @@ static void ppc_disasm(uaecptr addr, uaecptr *nextpc, int cnt)
 	if (nextpc)
 		*nextpc = addr;
 }
+#endif
 
 static uaecptr nxdis, nxmem;
 static bool ppcmode;
@@ -4395,7 +4399,9 @@ static bool debug_line (TCHAR *input)
 					else
 						count = 10;
 					if (ppcmode) {
+#ifdef WITH_PPC
 						ppc_disasm(daddr, &nxdis, count);
+#endif
 					} else {
 						m68k_disasm (daddr, &nxdis, count);
 					}

@@ -47,9 +47,6 @@
 #ifdef JIT
 #include "jit/compemu.h"
 #include <signal.h>
-#else
-/* Need to have these somewhere */
-bool check_prefs_changed_comp (void) { return false; }
 #endif
 /* For faster JIT cycles handling */
 uae_s32 pissoff = 0;
@@ -874,7 +871,9 @@ static void set_x_funcs (void)
 		// 68020+ no ce
 		if (currprefs.cpu_memory_cycle_exact) {
 			// cpu_memory_cycle_exact + cpu_compatible
-			if (currprefs.cpu_model == 68020 && !currprefs.cachesize) {
+			if (false) {
+#ifdef CPUEMU_20
+			} else if (currprefs.cpu_model == 68020 && !currprefs.cachesize) {
 				x_prefetch = get_word_020_prefetch;
 				x_get_ilong = get_long_020_prefetch;
 				x_get_iword = get_word_020_prefetch;
@@ -890,6 +889,8 @@ static void set_x_funcs (void)
 				x_do_cycles = do_cycles;
 				x_do_cycles_pre = do_cycles;
 				x_do_cycles_post = do_cycles_post;
+#endif
+#ifdef CPUEMU_22
 			} else if (currprefs.cpu_model == 68030 && !currprefs.cachesize) {
 				x_prefetch = get_word_030_prefetch;
 				x_get_ilong = get_long_030_prefetch;
@@ -906,6 +907,7 @@ static void set_x_funcs (void)
 				x_do_cycles = do_cycles;
 				x_do_cycles_pre = do_cycles;
 				x_do_cycles_post = do_cycles_post;
+#endif
 			} else if (currprefs.cpu_model < 68040) {
 				// JIT or 68030+ does not have real prefetch only emulation
 				x_prefetch = NULL;
@@ -1576,7 +1578,9 @@ static void update_68k_cycles (void)
 static void prefs_changed_cpu (void)
 {
 	fixup_cpu (&changed_prefs);
+#ifdef JIT
 	check_prefs_changed_comp(false);
+#endif
 	currprefs.cpu_model = changed_prefs.cpu_model;
 	currprefs.fpu_model = changed_prefs.fpu_model;
 	currprefs.mmu_model = changed_prefs.mmu_model;

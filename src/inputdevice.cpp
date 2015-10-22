@@ -81,7 +81,7 @@ static void diskswapper_notification(int swapperslot, int drive)
 #endif
 		g_free(name);
 	} else {
-		msg = g_strdup_printf("Swapper: Inserted into DF%d\n", drive);
+		msg = g_strdup_printf("Swapper: Inserted disk into DF%d\n", drive);
 	}
 
 	if (msg) {

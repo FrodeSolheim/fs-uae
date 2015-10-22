@@ -1,5 +1,7 @@
 Version 2.7.4dev:
 
+* Added support for audioprev, audionext, audiostop, audioplay keys.
+* Map audioprev, audionext and audioplay to disk swapper actions by default.
 * Show on-screen messages when using disk swapper prev/next/insert actions.
 * New option relative_paths (see docs).
 * Support for three additional custom "joystick ports" (maps to Amiga keys).

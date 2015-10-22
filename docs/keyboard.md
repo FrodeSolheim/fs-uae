@@ -426,7 +426,10 @@ KP_PERIOD    | `keyboard_key_kp_period`    |
 VOLUMEUP     | `keyboard_key_volumeup`     |
 VOLUMEDOWN   | `keyboard_key_volumedown`   |
 MUTE         | `keyboard_key_mute`         |
-
+AUDIONEXT    | `keyboard_key_audionext`    |
+AUDIOPREV    | `keyboard_key_audioprev`    |
+AUDIOSTOP    | `keyboard_key_audiostop`    |
+AUDIOPLAY    | `keyboard_key_audioplay`    |
 
 ## Additional Shortcuts
 

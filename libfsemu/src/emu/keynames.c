@@ -332,5 +332,9 @@ const char* g_fs_emu_key_names[] = {
     "VOLUMEUP",
     "VOLUMEDOWN",
     "MUTE",
+    "AUDIONEXT",
+    "AUDIOPREV",
+    "AUDIOSTOP",
+    "AUDIOPLAY",
     NULL,
 };

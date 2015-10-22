@@ -125,6 +125,10 @@ int amiga_send_input_event(int input_event, int state) {
     //amiga_configure_port_from_input_event(input_event);
     int result = amiga_handle_input_event (
         input_event, state, max, autofire, canstopplayback, playbackevent);
+    if (input_event >= INPUTEVENT_SPC_START && state == 0 && result == 0) {
+        /* SPC / AKS keys do nothing for state 0 */
+        result = 1;
+    }
     if (result != 1) {
         write_log("amiga_handle_input_event(%d, %d, ...) failed with "
                   "result %d\n", input_event, state, result);

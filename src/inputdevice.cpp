@@ -58,8 +58,40 @@
 #include "statusline.h"
 
 #ifdef FSUAE // NL
+
 #include "uae/fs.h"
+#include "uae/glib.h"
+// FIXME
+#include <fs/emu.h>
+
 #undef _WIN32
+
+#define NOTIFICATION_SWAPPER 0xc629ee2b
+
+static void diskswapper_notification(int swapperslot, int drive)
+{
+	gchar *msg = NULL;
+	if (drive == -1) {
+		const char *path = currprefs.dfxlist[swapperslot];
+		gchar *name = g_path_get_basename(path);
+#if 1
+		msg = g_strdup_printf("Swapper: %s\n", name);
+#else
+		msg = g_strdup_printf("Swapper: %s [%d]\n", name, swapperslot);
+#endif
+		g_free(name);
+	} else {
+		msg = g_strdup_printf("Swapper: Inserted into DF%d\n", drive);
+	}
+
+	if (msg) {
+		/* FIXME: use a new (lib)UAE notification system instead */
+		//error_log("%s\n", msg);
+		fs_emu_notification(NOTIFICATION_SWAPPER, "%s", msg);
+		g_free(msg);
+	}
+}
+
 #endif
 
 #if SIZEOF_TCHAR != 1
@@ -3210,6 +3242,9 @@ static bool inputdevice_handle_inputcode2 (int code, int state)
 		swapperslot++;
 		if (swapperslot >= MAX_SPARE_DRIVES || currprefs.dfxlist[swapperslot][0] == 0)
 			swapperslot = 0;
+#ifdef FSUAE
+		diskswapper_notification(swapperslot, -1);
+#endif
 		break;
 	case AKS_DISKSWAPPER_PREV:
 		swapperslot--;
@@ -3220,6 +3255,9 @@ static bool inputdevice_handle_inputcode2 (int code, int state)
 				break;
 			swapperslot--;
 		}
+#ifdef FSUAE
+		diskswapper_notification(swapperslot, -1);
+#endif
 		break;
 	case AKS_DISKSWAPPER_INSERT0:
 	case AKS_DISKSWAPPER_INSERT1:
@@ -3227,6 +3265,9 @@ static bool inputdevice_handle_inputcode2 (int code, int state)
 	case AKS_DISKSWAPPER_INSERT3:
 		_tcscpy (changed_prefs.floppyslots[code - AKS_DISKSWAPPER_INSERT0].df, currprefs.dfxlist[swapperslot]);
 		set_config_changed ();
+#ifdef FSUAE
+		diskswapper_notification(swapperslot, code - AKS_DISKSWAPPER_INSERT0);
+#endif
 		break;
 
 		break;

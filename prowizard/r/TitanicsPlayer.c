@@ -100,7 +100,7 @@ short testTitanicsPlayer ( void )
 
 /* With the help of Xigh :) .. thx */
 #ifdef FSUAE
-int cmplong(const void * a, const void * b)
+static int cmplong(const void * a, const void * b)
 #else
 int _cdecl cmplong(const void * a, const void * b)
 #endif

@@ -994,20 +994,11 @@ libprowizard_a_SOURCES = \
 	prowizard/prowiz.c \
 	prowizard/r/AC1D_packer.c \
 	prowizard/r/AMOS-MusicBank.c \
-	prowizard/r/AMOS-PowerPackerBank.c \
 	prowizard/r/BP-Soundmonitor.c \
 	prowizard/r/BSI-FutureComposer.c \
-	prowizard/r/Bytekiller.c \
 	prowizard/r/ChipTracker.c \
-	prowizard/r/Crunchmania-Address.c \
-	prowizard/r/Crunchmania-Simple.c \
-	prowizard/r/datacrunchers.c \
-	prowizard/r/DefjamCruncher32-pro.c \
 	prowizard/r/DigiBooster17.c \
 	prowizard/r/DigitalIllusion.c \
-	prowizard/r/DoubleAction.c \
-	prowizard/r/Dragpack100.c \
-	prowizard/r/Dragpack252.c \
 	prowizard/r/EurekaPacker.c \
 	prowizard/r/FastTracker2.c \
 	prowizard/r/FC-M-Packer.c \
@@ -1016,19 +1007,13 @@ libprowizard_a_SOURCES = \
 	prowizard/r/FutureComposer14.c \
 	prowizard/r/FuzzacPacker.c \
 	prowizard/r/GMC.c \
-	prowizard/r/GNUPacker12.c \
 	prowizard/r/GnuPlayer.c \
 	prowizard/r/GPMO.c \
 	prowizard/r/HeatseekerMC10.c \
 	prowizard/r/HornetPacker.c \
-	prowizard/r/HQC2.c \
 	prowizard/r/JamCracker.c \
 	prowizard/r/KefrensSoundMachine.c \
-	prowizard/r/MasterCruncher30-Address.c \
-	prowizard/r/MaxPacker12.c \
 	prowizard/r/MED-Octamed.c \
-	prowizard/r/MegaCruncher.c \
-	prowizard/r/MegaCruncher-Object.c \
 	prowizard/r/MOD-compatible.c \
 	prowizard/r/ModuleProtector.c \
 	prowizard/r/Mugician.c \
@@ -1043,10 +1028,6 @@ libprowizard_a_SOURCES = \
 	prowizard/r/PhaPacker.c \
 	prowizard/r/PolkaPacker.c \
 	prowizard/r/PowerMusic.c \
-	prowizard/r/PowerPacker23.c \
-	prowizard/r/PowerPacker30.c \
-	prowizard/r/PowerPacker40.c \
-	prowizard/r/PowerPacker40-library.c \
 	prowizard/r/Promizer01.c \
 	prowizard/r/Promizer10c.c \
 	prowizard/r/Promizer18a.c \
@@ -1058,28 +1039,15 @@ libprowizard_a_SOURCES = \
 	prowizard/r/Prorunner10.c \
 	prowizard/r/Prorunner20.c \
 	prowizard/r/QuadraComposer.c \
-	prowizard/r/RelokIt10.c \
 	prowizard/r/SGT-Packer.c \
 	prowizard/r/skizzo.c \
 	prowizard/r/SkytPacker.c \
 	prowizard/r/SoundFX.c \
 	prowizard/r/SoundTracker26.c \
 	prowizard/r/SoundTracker.c \
-	prowizard/r/SpikeCruncher.c \
 	prowizard/r/StartrekkerPack.c \
 	prowizard/r/StimPacker.c \
 	prowizard/r/StoneArtsPlayer.c \
-	prowizard/r/StoneCracker270.c \
-	prowizard/r/StoneCracker299b.c \
-	prowizard/r/StoneCracker299.c \
-	prowizard/r/StoneCracker299d.c \
-	prowizard/r/StoneCracker300.c \
-	prowizard/r/StoneCracker310.c \
-	prowizard/r/SuperCruncher27.c \
-	prowizard/r/SyncroPacker46.c \
-	prowizard/r/TetraPack102.c \
-	prowizard/r/TetraPack21.c \
-	prowizard/r/TetraPack22.c \
 	prowizard/r/TheDarkDemon.c \
 	prowizard/r/ThePlayer22a.c \
 	prowizard/r/ThePlayer30a.c \
@@ -1088,16 +1056,11 @@ libprowizard_a_SOURCES = \
 	prowizard/r/ThePlayer50a.c \
 	prowizard/r/ThePlayer60a.c \
 	prowizard/r/ThePlayer61a.c \
-	prowizard/r/TimeCruncher17.c \
 	prowizard/r/TitanicsPlayer.c \
 	prowizard/r/TMK.c \
-	prowizard/r/TNMCruncher.c \
 	prowizard/r/TrackerPacker1.c \
 	prowizard/r/TrackerPacker2.c \
 	prowizard/r/TrackerPacker3.c \
-	prowizard/r/TreasurePattern.c \
-	prowizard/r/TryItCruncher101.c \
-	prowizard/r/TurboSqueezer61.c \
 	prowizard/r/UnicTracker2.c \
 	prowizard/r/UnicTracker.c \
 	prowizard/r/Viruz2.c \

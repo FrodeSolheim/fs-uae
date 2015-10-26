@@ -14,6 +14,7 @@ Version 2.7.4dev:
 * Some cleanup in the configure script.
 * Remove dependency on GLU.
 * Do not use built-in libmpeg2.
+* Imported updated translations from crowdin.com.
 * Updated emulation core from WinUAE 3200b18.
 
 Version 2.7.3dev:

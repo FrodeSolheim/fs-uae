@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae\n"
 "Report-Msgid-Bugs-To: frode@fs-uae.net\n"
-"POT-Creation-Date: 2015-09-19 12:02+0200\n"
-"PO-Revision-Date: 2015-09-19 06:02-0400\n"
+"POT-Creation-Date: 2015-09-21 00:42+0200\n"
+"PO-Revision-Date: 2015-10-26 14:17-0400\n"
 "Last-Translator: FrodeSolheim <frode-crowdin@fsolheim.net>\n"
 "Language-Team: Swedish\n"
 "Language: sv_SE\n"
@@ -20,7 +20,7 @@ msgid "Activated debugger"
 msgstr ""
 
 msgid "Amiga Control"
-msgstr ""
+msgstr "Amiga kontroll"
 
 #. / TRANSLATORS: In context "Zoom: Auto"
 msgid "Auto"
@@ -46,14 +46,14 @@ msgid "CD%d: Empty"
 msgstr "CD %d: Tom"
 
 msgid "CD32 Pad Mode"
-msgstr ""
+msgstr "CD32 Pad läge"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 msgid "Custom Joystick Port"
-msgstr ""
+msgstr "Anpassad Joystick Port"
 
 msgid "Custom Mode"
-msgstr ""
+msgstr "Anpassat läge"
 
 #. / TRANSLATORS: Empty or nothing
 #, c-format
@@ -61,7 +61,7 @@ msgid "DF%d: Empty"
 msgstr "DF %d: Tom"
 
 msgid "Disabled"
-msgstr ""
+msgstr "Inaktiverad"
 
 msgid "Eject"
 msgstr "Mata ut"
@@ -70,7 +70,7 @@ msgid "Empty"
 msgstr "Tom"
 
 msgid "Emulator Control"
-msgstr ""
+msgstr "Emulator kontroll"
 
 #. / TRANSLATORS: In context "Zoom: Full Frame"
 msgid "Full Frame"
@@ -78,15 +78,15 @@ msgstr ""
 
 #, c-format
 msgid "HD not found: %s"
-msgstr ""
+msgstr "HD hittades inte: %s"
 
 #. / TRANSLATORS: Hard reset is a computer reboot with an emulated power
 #. / cycle
 msgid "Hard Reset"
-msgstr ""
+msgstr "Maskinåterställning"
 
 msgid "Input Options"
-msgstr ""
+msgstr "Inmatningsalternativ"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
@@ -99,24 +99,24 @@ msgid "Insert Into DF%d"
 msgstr "Mata in i DF %d"
 
 msgid "Joystick Mode"
-msgstr ""
+msgstr "Joystick-läge"
 
 msgid "Joystick Port"
 msgstr "Joystick Port"
 
 #, c-format
 msgid "Joystick Port %d"
-msgstr ""
+msgstr "Joystick Port %d"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Joystick Port %d Device"
-msgstr ""
+msgstr "Joystick Port %d enhet"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Joystick Port %d Mode"
-msgstr ""
+msgstr "Joystick Port %d läge"
 
 msgid "Joystick Port 2"
 msgstr "Joystick Port 2"
@@ -131,60 +131,60 @@ msgid "Keyboard"
 msgstr "Tangentbord"
 
 msgid "Load"
-msgstr ""
+msgstr "Belastning"
 
 msgid "Load State"
-msgstr ""
+msgstr "Belastningsnivå"
 
 msgid "Max 1 CD-ROM drive supported currently"
-msgstr ""
+msgstr "Max 1 CD-ROM-enhet stöds för närvarande"
 
 msgid "More..."
-msgstr ""
+msgstr "Mer..."
 
 msgid "Mouse"
 msgstr "Mus"
 
 msgid "Mouse Mode"
-msgstr ""
+msgstr "Musläge"
 
 msgid "Mouse Port"
-msgstr ""
+msgstr "Port för mus"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long: If you struggle
 #. / to get in short enough, just translate "No Device" instead.
 msgid "No Amiga Device"
-msgstr ""
+msgstr "Ingen Amiga enhet"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long: If you struggle
 #. / to get in short enough, just translate "No Device" instead.
 msgid "No Host Device"
-msgstr ""
+msgstr "Ingen värdenhet"
 
 msgid "No configuration file was found"
-msgstr ""
+msgstr "Ingen konfigurationsfil hittades"
 
 #, c-format
 msgid "Option \"%s\" is not enabled"
-msgstr ""
+msgstr "\"%s\" är inte aktiverat"
 
 msgid "Option chip_memory must be a multiple of 512"
-msgstr ""
+msgstr "Alternativt minneschip måste vara en delbart med 512"
 
 msgid "Option fast_memory must be a multiple of 1024"
-msgstr ""
+msgstr "Alternativt minneschip måste vara en delbart med 1024"
 
 msgid "Option motherboard_ram must be a multiple of 1024"
-msgstr ""
+msgstr "Alternativet moderkort måste vara en delbart med 1024"
 
 msgid "Option motherboard_ram needs a CPU with 32-bit addressing"
-msgstr ""
+msgstr "Alternativet moderkort_ram behöver en CPU med 32-bitars adressering"
 
 msgid "Option slow_memory must be a multiple of 256"
-msgstr ""
+msgstr "Alternativet slow_memory måste vara delbart med 256"
 
 msgid "Option uaegfx.card needs a CPU with 32-bit addressing"
-msgstr ""
+msgstr "Alternativet uaegfx.card behöver en CPU med 32-bitars adressering"
 
 msgid "Option zorro_iii_memory must be a multiple of 1024"
 msgstr ""

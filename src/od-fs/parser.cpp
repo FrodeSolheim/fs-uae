@@ -235,7 +235,9 @@ void doprinter (uae_u8 val)
 
 #ifdef WITH_VPAR
     if (par_fd >= 0) {
-        write(par_fd, &val, 1);
+        if (write(par_fd, &val, 1) != 1) {
+            write_log("VPAR: Writing one byte failed\n");
+        }
     }
 #endif
 }

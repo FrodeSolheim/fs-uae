@@ -737,7 +737,7 @@ uae_u32 bsdthr_Accept_2 (SB)
         fcntl (s, F_SETFL, flags & ~O_NONBLOCK); /* @@@ Don't do this if it's supposed to stay nonblocking... */
         s2 = getsd (sb->context, sb, s);
         sb->ftable[s2-1] = sb->ftable[sb->len]; /* new socket inherits the old socket's properties */
-        DEBUG_LOG ("Accept: AmigaSide %d, NativeSide %d, len %d(%d)", sb->resultval, s, &hlen, get_long (sb->a_addrlen));
+        DEBUG_LOG ("Accept: AmigaSide %d, NativeSide %d, len %d(%d)", sb->resultval, s, hlen, get_long (sb->a_addrlen));
         printSockAddr (&addr);
         foo = get_long (sb->a_addrlen);
         if (foo > 16)
@@ -987,7 +987,7 @@ void host_recvfrom (TrapContext *context, SB, uae_u32 sd, uae_u32 msg, uae_u32 l
 {
     int s = getsock (sb, sd + 1);
 
-    DEBUG_LOG ("Recv[from](%lx, %d, %lx, %ld, %lx, %lx, %d)\n",
+    DEBUG_LOG ("Recv[from](%p, %x, %x, %d, %x, %x, %u)\n",
            sb, sd, msg, len, flags, addr, addrlen);
 
     if (s == -1) {
@@ -1043,7 +1043,7 @@ uae_u32 host_getsockname (SB, uae_u32 sd, uae_u32 name, uae_u32 namelen)
     socklen_t len = sizeof (struct sockaddr_in);
     struct sockaddr_in addr;
 
-    DEBUG_LOG ("getsockname(%d,0x%lx,%d) -> ", sd, name, len);
+    DEBUG_LOG ("getsockname(%u, 0x%x, %u) -> ", sd, name, len);
 
     s = getsock (sb, sd + 1);
 
@@ -1071,7 +1071,7 @@ uae_u32 host_getpeername (SB, uae_u32 sd, uae_u32 name, uae_u32 namelen)
     socklen_t len = sizeof (struct sockaddr_in);
     struct sockaddr_in addr;
 
-    DEBUG_LOG ("getpeername(%d,0x%lx,%d) -> ", sd, name, len);
+    DEBUG_LOG ("getpeername(%u, 0x%x, %u) -> ", sd, name, len);
 
     s = getsock (sb, sd + 1);
 
@@ -1164,7 +1164,7 @@ void host_WaitSelect (TrapContext *context, SB, uae_u32 nfds, uae_u32 readfds, u
 
     if (sigs & wssigs) {
         /* Received the signals we were waiting on */
-        DEBUG_LOG ("WaitSelect: got signal(s) %lx\n", sigs);
+        DEBUG_LOG ("WaitSelect: got signal(s) %x\n", sigs);
 
         if (!(sigs & (((uae_u32)1) << sb->signal))) {
             sockabort (sb);
@@ -1203,7 +1203,7 @@ void host_accept (TrapContext *context, SB, uae_u32 sd, uae_u32 name, uae_u32 na
         return;
     }
 
-    DEBUG_LOG ("accept(%d, %lx, %lx)\n", sb->s, name, namelen);
+    DEBUG_LOG ("accept(%d, %x, %x)\n", sb->s, name, namelen);
     sb->a_addr    = name;
     sb->a_addrlen = namelen;
     sb->action    = 6;
@@ -1255,7 +1255,7 @@ uae_u32 host_bind (TrapContext *context, SB, uae_u32 sd, uae_u32 name, uae_u32 n
         return -1;
     }
 
-    DEBUG_LOG ("bind(%d[%d],0x%lx,%d) -> ", sd, s, name, namelen);
+    DEBUG_LOG ("bind(%u[%d], 0x%x, %u) -> ", sd, s, name, namelen);
     copysockaddr_a2n (&addr, name, namelen);
     printSockAddr (&addr);
     if ((success = bind (s, (struct sockaddr *)&addr, len)) != 0) {
@@ -1293,7 +1293,7 @@ void host_getprotobyname (TrapContext *context, SB, uae_u32 name)
 {
     struct protoent *p = getprotobyname ((char *)get_real_address (name));
 
-    DEBUG_LOG ("Getprotobyname(%s)=%lx\n", get_real_address (name), p);
+    DEBUG_LOG ("Getprotobyname(%s) = %p\n", get_real_address (name), p);
 
     if (p == NULL) {
         SETERRNO;
@@ -1307,7 +1307,7 @@ void host_getprotobyname (TrapContext *context, SB, uae_u32 name)
 void host_getprotobynumber (TrapContext *context, SB, uae_u32 number)
 {
     struct protoent *p = getprotobynumber(number);
-    DEBUG_LOG("getprotobynumber(%d)=%lx\n", number, p);
+    DEBUG_LOG("getprotobynumber(%d) = %p\n", number, p);
 
     if (p == NULL) {
         SETERRNO;
@@ -1329,9 +1329,9 @@ void host_getservbynameport (TrapContext *context, SB, uae_u32 name, uae_u32 pro
     int i;
 
     if (type) {
-        DEBUG_LOG("Getservbyport(%d, %s) = %lx\n", name, get_real_address (proto), s);
+        DEBUG_LOG("Getservbyport(%d, %s) = %p\n", name, get_real_address (proto), s);
     } else {
-        DEBUG_LOG("Getservbyname(%s, %s) = %lx\n", get_real_address (name), get_real_address (proto), s);
+        DEBUG_LOG("Getservbyname(%s, %s) = %p\n", get_real_address (name), get_real_address (proto), s);
     }
 
     if (s == NULL) {
@@ -1603,7 +1603,7 @@ uae_u32 host_IoctlSocket (TrapContext *context, SB, uae_u32 sd, uae_u32 request,
         return -1;
     }
 
-    DEBUG_LOG ("Ioctl code is %lx, flags are %d\n", request, flags);
+    DEBUG_LOG ("Ioctl code is %x, flags are %ld\n", request, flags);
 
     switch (request) {
     case 0x8004667B: /* FIOGETOWN */
@@ -1710,7 +1710,7 @@ void sockabort (SB)
     int chr = 1;
     DEBUG_LOG ("Sock abort!!\n");
     if (write (sb->sockabort[1], &chr, sizeof (chr)) != sizeof (chr)) {
-        DEBUG_LOG ("sockabort - did not write %d bytes\n", sizeof (chr));
+        DEBUG_LOG ("sockabort - did not write %zd bytes\n", sizeof(chr));
     }
 }
 

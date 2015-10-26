@@ -52,7 +52,7 @@ typedef double Real64;
 
 #include "logging.h"
 
-extern void E_Exit(char*,...);
+extern void E_Exit(const char*,...);
 extern void DOSBOX_RunMachine(void);
 
 #define GCC_UNLIKELY(x) x
@@ -86,5 +86,70 @@ private:
 };
 
 extern int x86_fpu_enabled;
+
+#ifdef UAE
+
+#include "dosbox/setup.h"
+#include "dosbox/mem.h"
+
+void cmos_selreg(Bitu port, Bitu val, Bitu iolen);
+void cmos_writereg(Bitu port, Bitu val, Bitu iolen);
+Bitu cmos_readreg(Bitu port, Bitu iolen);
+void CMOS_Init(Section* sec, int);
+void CMOS_Destroy(Section* sec);
+void CMOS_SetRegister(Bitu regNr, Bit8u val);
+
+void CPU_CheckSegments(void);
+Bits CPU_Core_Simple_Trap_Run(void);
+void CPU_Core_Simple_Init(void);
+void CPU_Core_Normal_Init(void);
+void CPU_Core_Full_Init(void);
+void CPU_Init(Section*, int, int);
+//bool CPU_SwitchTask(Bitu new_tss_selector,TSwitchType tstype,Bitu old_eip);
+void CPU_ShutDown(Section*);
+
+void FPU_Init(Section*);
+
+void GFX_SetTitle(Bit32s cycles, Bits frameskip, bool paused);
+
+void KEYBOARD_AddBuffer(Bit8u data);
+void KEYBOARD_ClrBuffer(void);
+void KEYBOARD_Init(Section* sec);
+
+void MEM_Init(Section * sec);
+void MEM_SetVGAHandler(void);
+void MEM_ShutDown(Section * sec);
+
+void PAGING_Init(Section * sec);
+void PAGING_PageFault(PhysPt lin_addr,Bitu page_addr,Bitu faultcode);
+
+void PIC_Init(Section* sec);
+void PIC_Destroy(Section* sec);
+
+void TIMER_Destroy(Section*);
+void TIMER_Init(Section* sec);
+void TIMER_SetGate2(bool);
+bool TIMER_GetGate2(void);
+
+Bit8u *x86_cmos_regs(Bit8u *regs);
+Bitu x86_in_keyboard(Bitu port);
+void x86_out_keyboard(Bitu port, Bitu val);
+bool x86_is_keyboard(void);
+void x86_pic_write(Bitu port, Bitu val);
+Bitu x86_pic_read(Bitu port);
+void x86_timer_write(Bitu port, Bitu val);
+Bitu x86_timer_read(Bitu port);
+void x86_init_reset(void);
+uint8_t x86_get_jumpers(void);
+void x86_ack_keyboard(void);
+void x86_clearirq(uint8_t irqnum);
+void x86_doirq_keyboard(void);
+void check_x86_irq(void);
+
+PhysPt SelBase(Bitu sel);
+void RemoveEMSPageFrame(void);
+void PreparePCJRCartRom(void);
+
+#endif
 
 #endif

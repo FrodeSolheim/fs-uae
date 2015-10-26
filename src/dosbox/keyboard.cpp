@@ -58,8 +58,6 @@ static struct {
 	Bit8u outport;
 } keyb;
 
-extern void x86_doirq_keyboard(void);
-
 bool x86_is_keyboard(void)
 {
 	return keyb.p60changed;
@@ -121,9 +119,6 @@ static Bitu read_p60(Bitu port,Bitu iolen) {
 	}
 	return keyb.p60data;
 }	
-
-void x86_init_reset(void);
-uint8_t x86_get_jumpers(void);
 
 static void write_p60(Bitu port,Bitu val,Bitu iolen) {
 	switch (keyb.command) {

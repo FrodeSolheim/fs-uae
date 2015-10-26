@@ -1,5 +1,6 @@
 Version 2.7.4dev:
 
+* New action_mute_floppy_sounds, mapped to MOD+N by default.
 * Added support for audioprev, audionext, audiostop, audioplay keys.
 * Map audioprev, audionext and audioplay to disk swapper actions by default.
 * Show on-screen messages when using disk swapper prev/next/insert actions.

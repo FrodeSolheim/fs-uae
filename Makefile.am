@@ -345,6 +345,7 @@ libuae_a_SOURCES = \
 	src/include/events.h \
 	src/include/execio.h \
 	src/include/execlib.h \
+	src/include/fake86_cpu.h \
 	src/include/fdi2raw.h \
 	src/include/filesys.h \
 	src/include/flashrom.h \

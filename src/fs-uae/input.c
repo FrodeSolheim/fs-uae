@@ -415,6 +415,7 @@ static fs_emu_action g_actions[] = {
     { INPUTEVENT_AMIGA_JOYPORT_MODE_3_LIGHTPEN, "action_joyport_3_mode_lightpen", 0 },
 
     { INPUTEVENT_UAE_MODULE_RIPPER, "action_module_ripper", 0 },
+    { INPUTEVENT_UAE_MUTE_FLOPPY_SOUNDS, "action_mute_floppy_sounds", 0 },
 
 #if 1
     { FS_UAE_ACTION_ENTER_DEBUGGER, "action_enter_debugger", 0 },

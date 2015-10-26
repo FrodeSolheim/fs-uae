@@ -72,8 +72,6 @@ static struct {
 	PICEntry * next_entry;
 } pic_queue;
 
-void x86_ack_keyboard(void);
-
 static void write_command(Bitu port,Bitu val,Bitu iolen) {
 	PIC_Controller * pic=&pics[port==0x20 ? 0 : 1];
 	Bitu irq_base=port==0x20 ? 0 : 8;

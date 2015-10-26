@@ -37,6 +37,7 @@
 #include "driveclick.h"
 #include "scsi.h"
 #include "idecontrollers.h"
+#include "fake86_cpu.h"
 #include "gfxboard.h"
 
 #include "dosbox/dosbox.h"
@@ -44,6 +45,7 @@
 #include "dosbox/paging.h"
 #include "dosbox/setup.h"
 #include "dosbox/cpu.h"
+#include "dosbox/inout.h"
 #include "dosbox/pic.h"
 #include "dosbox/timer.h"
 typedef Bits(CPU_Decoder)(void);
@@ -73,36 +75,13 @@ static bool x86_turbo_enabled;
 bool x86_turbo_on;
 bool x86_cpu_active;
 
-void CPU_Init(Section*, int, int);
-void CPU_ShutDown(Section*);
 void CPU_JMP(bool use32, Bitu selector, Bitu offset, Bitu oldeip);
-void PAGING_Init(Section * sec);
-void MEM_Init(Section * sec);
-void MEM_ShutDown(Section * sec);
-void CMOS_Init(Section* sec, int);
-void CMOS_Destroy(Section* sec);
-void PIC_Init(Section* sec);
-void PIC_Destroy(Section* sec);
-void TIMER_Destroy(Section*);
-void TIMER_Init(Section* sec);
-void TIMER_SetGate2(bool);
-bool TIMER_GetGate2(void);
 static Section_prop *dosbox_sec;
-Bitu x86_in_keyboard(Bitu port);
-void x86_out_keyboard(Bitu port, Bitu val);
-void cmos_selreg(Bitu port, Bitu val, Bitu iolen);
-void cmos_writereg(Bitu port, Bitu val, Bitu iolen);
-Bitu cmos_readreg(Bitu port, Bitu iolen);
-void x86_pic_write(Bitu port, Bitu val);
-Bitu x86_pic_read(Bitu port);
-void x86_timer_write(Bitu port, Bitu val);
-Bitu x86_timer_read(Bitu port);
 void PIC_ActivateIRQ(Bitu irq);
 void PIC_DeActivateIRQ(Bitu irq);
 void PIC_runIRQs(void);
 void KEYBOARD_AddBuffer(Bit8u data);
-void FPU_Init(Section*);
-Bit8u *x86_cmos_regs(Bit8u *regs);
+
 void MEM_SetVGAHandler(void);
 Bit32s ticksDone;
 Bit32u ticksScheduled;
@@ -830,7 +809,7 @@ static uint8_t in8259(uint16_t portnum)
 
 extern uint32_t makeupticks;
 
-void out8259(uint16_t portnum, uint8_t value)
+static void out8259(uint16_t portnum, uint8_t value)
 {
 	struct x86_bridge *xb = bridges[0];
 	uint8_t i;
@@ -1176,6 +1155,7 @@ static void floppy_do_cmd(struct x86_bridge *xb)
 		case 5:
 		{
 			write_log(_T("Floppy%d write MT=%d MF=%d C=%d:H=%d:R=%d:N=%d:EOT=%d:GPL=%d:DTL=%d\n"),
+					  floppy_num,
 					  (floppy_cmd[0] & 0x80) ? 1 : 0, (floppy_cmd[0] & 0x40) ? 1 : 0,
 					  floppy_cmd[2], floppy_cmd[3], floppy_cmd[4], floppy_cmd[5],
 					  floppy_cmd[6], floppy_cmd[7], floppy_cmd[8]);
@@ -3263,7 +3243,7 @@ void x86_xt_ide_bios(struct zfile *z, struct romconfig *rc)
 static const uae_u8 a1060_autoconfig[16] = { 0xc4, 0x01, 0x80, 0x00, 0x02, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
 static const uae_u8 a2386_autoconfig[16] = { 0xc4, 0x67, 0x80, 0x00, 0x02, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
 
-addrbank *x86_bridge_init(struct romconfig *rc, uae_u32 romtype, int type)
+static addrbank *x86_bridge_init(struct romconfig *rc, uae_u32 romtype, int type)
 {
 	struct x86_bridge *xb = x86_bridge_alloc();
 	const uae_u8 *ac;
@@ -3478,7 +3458,7 @@ void GFX_SetTitle(Bit32s cycles, Bits frameskip, bool paused)
 {
 }
 
-void E_Exit(char *format, ...)
+void E_Exit(const char *format, ...)
 {
 	va_list parms;
 	va_start(parms, format);

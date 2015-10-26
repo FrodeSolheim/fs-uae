@@ -19,6 +19,8 @@
 
 /* cpu.c: functions to emulate the 8086/V20 CPU in software. the heart of Fake86. */
 
+#include "fake86_cpu.h"
+
 #include <stdint.h>
 #include <stdio.h>
 
@@ -169,15 +171,6 @@ void intcall86 (uint8_t intnum);
 #if 0
 extern void	writeVGA (uint32_t addr32, uint8_t value);
 #endif
-extern void	portout (uint16_t portnum, uint8_t value);
-extern void	portout16 (uint16_t portnum, uint16_t value);
-extern uint8_t	portin (uint16_t portnum);
-extern uint16_t portin16 (uint16_t portnum);
-
-void write86(uint32_t addr32, uint8_t value);
-void writew86(uint32_t addr32, uint16_t value);
-uint8_t read86(uint32_t addr32);
-uint16_t readw86(uint32_t addr32);
 
 void flag_szp8 (uint8_t value) {
 	if (!value) {

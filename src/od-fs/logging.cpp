@@ -3,6 +3,7 @@
 
 #include "uae.h"
 #include "gui.h"
+#include "compemu.h"
 #include "uae/fs.h"
 #include "uae/glib.h"
 

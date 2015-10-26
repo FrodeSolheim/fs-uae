@@ -26,7 +26,9 @@ these four paragraphs for those parts of this code that are retained.
 #define FLOAT128
 
 #include <assert.h>
+#ifdef UAE
 #include "softfloat.h"
+#endif
 
 //                            2         3         4               n
 // f(x) ~ C + (C * x) + (C * x) + (C * x) + (C * x) + ... + (C * x)

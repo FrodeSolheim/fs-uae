@@ -23,6 +23,7 @@
 #include "custom.h"
 #include "gayle.h"
 #include "cia.h"
+#include "x86.h"
 
 #define SCSI_EMU_DEBUG 0
 #define RAW_SCSI_DEBUG 1
@@ -3600,7 +3601,6 @@ void omtiadapter_scsi_unit(int ch, struct uaedev_config_info *ci, struct romconf
 	generic_soft_scsi_add(ch, ci, rc, OMTI_ADAPTER, 65536, 0, ROMTYPE_OMTIADAPTER);
 }
 
-extern void x86_xt_ide_bios(struct zfile*, struct romconfig *rc);
 addrbank *x86_xt_hd_init(struct romconfig *rc)
 {
 	struct soft_scsi *scsi = getscsi(rc);

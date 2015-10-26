@@ -1,12 +1,12 @@
 #include "sysconfig.h"
 #include "sysdeps.h"
 
-#include "options.h"
-#include "inputdevice.h"
 #include "custom.h"
-#include "xwin.h"
 #include "gui.h"
+#include "inputdevice.h"
 #include "moduleripper.h"
+#include "options.h"
+#include "xwin.h"
 #include "uae/fs.h"
 
 int tablet_log = 0;
@@ -35,15 +35,37 @@ static int handle_custom_action(int action, int state)
         return 1;
     }
 
+    switch(action) {
 #ifdef PROWIZARD
-    if (action == INPUTEVENT_UAE_MODULE_RIPPER) {
+    case INPUTEVENT_UAE_MODULE_RIPPER:
         if (state) {
             moduleripper();
         }
         return 1;
-    }
+#endif
+#ifdef DRIVESOUND
+    case INPUTEVENT_UAE_MUTE_FLOPPY_SOUNDS:
+        if (state) {
+            bool mute = false;
+            if (currprefs.floppyslots[0].dfxclick) {
+                mute = true;
+            }
+            write_log("mute floppy sounds? %d\n", mute);
+            for (int i = 0; i < 4; i++) {
+                //changed_prefs.floppyslots[i].dfxclick = !mute;
+                currprefs.floppyslots[i].dfxclick = !mute;
+            }
+            /* FIXME: Use notification instead */
+            if (!mute) {
+                error_log("%s", "Floppy sounds enabled");
+            } else {
+                error_log("%s", "Floppy sounds disabled");
+            }
+        }
+        return 1;
 #endif
 
+    }
     return 0;
 }
 
@@ -51,7 +73,8 @@ static int handle_custom_action(int action, int state)
 
 extern "C" {
 
-int amiga_send_input_event(int input_event, int state) {
+int amiga_send_input_event(int input_event, int state)
+{
 //#ifdef DEBUG_SYNC
     write_sync_log("apply action %d state=%d\n", input_event, state);
 //#endif
@@ -102,20 +125,16 @@ int amiga_send_input_event(int input_event, int state) {
     if (input_event == INPUTEVENT_JOY1_FIRE_BUTTON &&
             g_joystick_port_autofire[0]) {
         autofire = 1;
-    }
-    else if (input_event == INPUTEVENT_JOY2_FIRE_BUTTON &&
+    } else if (input_event == INPUTEVENT_JOY2_FIRE_BUTTON &&
             g_joystick_port_autofire[1]) {
         autofire = 1;
-    }
-    else if (input_event == INPUTEVENT_PAR_JOY1_FIRE_BUTTON &&
+    } else if (input_event == INPUTEVENT_PAR_JOY1_FIRE_BUTTON &&
             g_joystick_port_autofire[2]) {
         autofire = 1;
-    }
-    else if (input_event == INPUTEVENT_PAR_JOY2_FIRE_BUTTON &&
+    } else if (input_event == INPUTEVENT_PAR_JOY2_FIRE_BUTTON &&
             g_joystick_port_autofire[3]) {
         autofire = 1;
-    }
-    else if ((input_event > INPUTEVENT_AUTOFIRE_BEGIN) &&
+    } else if ((input_event > INPUTEVENT_AUTOFIRE_BEGIN) &&
              (input_event < INPUTEVENT_AUTOFIRE_END)) {
         autofire = 1;
     }

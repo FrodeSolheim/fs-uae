@@ -342,7 +342,7 @@ enum TSwitchType {
 	TSwitch_JMP,TSwitch_CALL_INT,TSwitch_IRET
 };
 
-bool CPU_SwitchTask(Bitu new_tss_selector,TSwitchType tstype,Bitu old_eip) {
+static bool CPU_SwitchTask(Bitu new_tss_selector,TSwitchType tstype,Bitu old_eip) {
 	FillFlags();
 	TaskStateSegment new_tss;
 	if (!new_tss.SetSelector(new_tss_selector)) 

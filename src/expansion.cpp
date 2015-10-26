@@ -387,7 +387,7 @@ static int REGPARAM2 expamem_type (void)
 }
 
 static void call_card_init(int index)
-{	
+{
 	addrbank *ab, *abe;
 	uae_u8 code;
 	uae_u32 expamem_z3_pointer_old;
@@ -635,7 +635,7 @@ static void REGPARAM2 expamem_wput (uaecptr addr, uae_u32 value)
 		if (expamem_type() == zorroII) {
 			expamem_lo = 0;
 			expamem_hi = (value >> 8) & 0xff;
-			expamem_z2_pointer = (expamem_hi | (expamem_lo >> 4)) << 16; 
+			expamem_z2_pointer = (expamem_hi | (expamem_lo >> 4)) << 16;
 			expamem_board_pointer = expamem_z2_pointer;
 			if (cards[ecard].map) {
 				expamem_next(cards[ecard].map(), NULL);
@@ -707,7 +707,7 @@ static void REGPARAM2 expamem_bput (uaecptr addr, uae_u32 value)
 		case 0x48:
 			if (expamem_type() == zorroII) {
 				expamem_hi = value & 0xff;
-				expamem_z2_pointer = (expamem_hi | (expamem_lo >> 4)) << 16; 
+				expamem_z2_pointer = (expamem_hi | (expamem_lo >> 4)) << 16;
 				expamem_board_pointer = expamem_z2_pointer;
 				if (cards[ecard].map) {
 					expamem_next(cards[ecard].map(), NULL);
@@ -768,7 +768,7 @@ static void REGPARAM2 expamemz3_bput (uaecptr addr, uae_u32 value)
 	if (reg == 0x48) {
 		if (expamem_type() == zorroII) {
 			expamem_hi = value & 0xff;
-			expamem_z2_pointer = (expamem_hi | (expamem_lo >> 4)) << 16; 
+			expamem_z2_pointer = (expamem_hi | (expamem_lo >> 4)) << 16;
 			expamem_board_pointer = expamem_z2_pointer;
 		} else {
 			expamem_lo = value & 0xff;
@@ -880,7 +880,7 @@ addrbank fastmem2_nojit_bank = {
 	ABFLAG_RAM | ABFLAG_THREADSAFE, S_READ, S_WRITE
 };
 
-static addrbank *fastbanks[] = 
+static addrbank *fastbanks[] =
 {
 	&fastmem_bank,
 	&fastmem_nojit_bank,
@@ -1733,7 +1733,7 @@ static void allocate_expamem (void)
 	z3fastmem2_bank.start = z3fastmem_bank.start + currprefs.z3fastmem_size;
 
 	if (currprefs.z3chipmem_size && z3fastmem_bank.start - z3chipmem_bank.start < currprefs.z3chipmem_size)
-		currprefs.z3chipmem_size = changed_prefs.z3chipmem_size = 0;	
+		currprefs.z3chipmem_size = changed_prefs.z3chipmem_size = 0;
 
 	if (fastmem_bank.allocated != currprefs.fastmem_size) {
 		free_fastmemory (0);
@@ -2625,7 +2625,7 @@ static const struct expansionboardsettings x86at286_bridge_settings[] = {
 		false, false, 1
 	},
 	{	// 23 - 25
-		_T("CPU Arch\0") _T("auto") _T("386\0") _T("386_prefetch\0") _T("386_slow\0") _T("486_slow\0") _T("486_prefetch\0") _T("pentium_slow\0"), 
+		_T("CPU Arch\0") _T("auto") _T("386\0") _T("386_prefetch\0") _T("386_slow\0") _T("486_slow\0") _T("486_prefetch\0") _T("pentium_slow\0"),
 		_T("cpuarch\0") _T("auto") _T("386\0") _T("386_prefetch\0") _T("386_slow\0") _T("486_slow\0") _T("486_prefetch\0") _T("pentium_slow\0"),
 		true, false, 0
 	},
@@ -3018,7 +3018,7 @@ const struct expansionromtype expansionroms[] = {
 		adscsi2000_settings
 	},
 	{
-		_T("kommos"), _T("A500/A2000 SCSI"), _T("Jürgen Kommos"),
+		_T("kommos"), _T("A500/A2000 SCSI"), _T("J?rgen Kommos"),
 		kommos_init, NULL, kommos_add_scsi_unit, ROMTYPE_KOMMOS, 0, 0, BOARD_NONAUTOCONFIG_BEFORE, true,
 		NULL, 0,
 		false, EXPANSIONTYPE_SCSI
@@ -3123,14 +3123,14 @@ const struct expansionromtype expansionroms[] = {
 		false, EXPANSIONTYPE_CUSTOM | EXPANSIONTYPE_SCSI
 	},
 	{
-		_T("promigos"), _T("Promigos"), _T("Flesch und Hörnemann"),
+		_T("promigos"), _T("Promigos"), _T("Flesch und H?rnemann"),
 		promigos_init, NULL, promigos_add_scsi_unit, ROMTYPE_PROMIGOS | ROMTYPE_NOT, 0, 0, BOARD_NONAUTOCONFIG_BEFORE, true,
 		NULL, 0,
 		false, EXPANSIONTYPE_CUSTOM | EXPANSIONTYPE_SCSI
 	},
 	{
 		_T("tecmar"), _T("T-Card/T-Disk"), _T("Tecmar"),
-		tecmar_init, NULL, tecmar_add_scsi_unit, ROMTYPE_TECMAR | ROMTYPE_NOT, 0, 0, BOARD_NONAUTOCONFIG_BEFORE, true,	
+		tecmar_init, NULL, tecmar_add_scsi_unit, ROMTYPE_TECMAR | ROMTYPE_NOT, 0, 0, BOARD_NONAUTOCONFIG_BEFORE, true,
 		NULL, 0,
 		false, EXPANSIONTYPE_SASI | EXPANSIONTYPE_SCSI
 	},
@@ -3259,7 +3259,6 @@ const struct expansionromtype expansionroms[] = {
 		NULL, 0,
 		false, EXPANSIONTYPE_RTG,
 	},
-
 
 	{
 		NULL
@@ -3627,6 +3626,6 @@ const struct cpuboardtype cpuboards[] = {
 	},
 #endif
 	{
-		NULL
+		0
 	}
 };

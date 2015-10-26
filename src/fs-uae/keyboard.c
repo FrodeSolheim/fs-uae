@@ -206,6 +206,7 @@ static fs_emu_key_translation g_default_keymap[] = {
     { FS_ML_KEY_AUDIOPREV,     -1, INPUTEVENT_SPC_DISKSWAPPER_PREV },
     { FS_ML_KEY_AUDIONEXT,     -1, INPUTEVENT_SPC_DISKSWAPPER_NEXT },
     { FS_ML_KEY_AUDIOPLAY,     -1, INPUTEVENT_SPC_DISKSWAPPER_INSERT0 },
+    { FS_ML_KEY_N,            MOD, INPUTEVENT_UAE_MUTE_FLOPPY_SOUNDS },
 
     { 0, 0, 0 } /* Sentinel */
 };

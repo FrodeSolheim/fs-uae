@@ -9,21 +9,64 @@ keyboard works.
 ## Keyboard Shortcuts
 
 The following keyboard shortcuts are available by default. <kbd>Mod</kbd>
-means by default <kbd>Cmd</kbd> on OS X and <kbd>Alt</kbd> on other platforms.
-See the "modifier key" section for more information.
+means <kbd>Cmd</kbd> on OS X and <kbd>Alt</kbd> on other platforms, but it
+can be re-configured as another key. See the "modifier key" section for more
+information.
+
+> **Note:** The shortcuts are mapped against keys on a English keyboard,
+> so on international keyboards, the key (symbol) you have to press may
+> in some cases be different (but same physical key).
 
 * Use <kbd>F12</kbd> to enter the FS-UAE on-screen menu.
 * Use <kbd>Mod</kbd>+<kbd>F</kbd> or <kbd>Mod</kbd>+<kbd>Return</kbd> to
   toggle full-screen mode.
+* Use <kbd>Mod</kbd>+<kbd>Z</kbd> or <kbd>F11</kbd> to cycle through zoom modes.
+* Use <kbd>Mod</kbd>+<kbd>B</kbd> to toggle extra visible border.
+* Use <kbd>Mod</kbd>+<kbd>S</kbd> or <kbd>Print Scrn</kbd> to save a screenshot
+  of the current Amiga frame to the desktop (or chosen screenshots location).
+* Use <kbd>Mod</kbd>+<kbd>Q</kbd> or <kbd>Mod</kbd>+<kbd>F4</kbd> to quit.
+* Use <kbd>Mod</kbd>+<kbd>D</kbd> to activate (console) debugger.
+
+Input control:
+
 * Use <kbd>Mod</kbd>+<kbd>G</kbd> to release or acquire the input grab. You
   can also use the middle mouse button, or enter the menu.
-* **FIXME** Add remaining!
 * Use <kbd>Mod</kbd>+<kbd>K</kbd> to enable full keyboard emulation. This
   disables the modifier key to make it usable in emulation. In order to
   disable full keyboard emulation you need to press
   <kbd>AltMod</kbd>+<kbd>K</kbd>. This will usually be
   <kbd>F12</kbd>+<kbd>K</kbd>. Please see the "alternative modifier keys"
   section.
+
+Emulation control:
+
+* Use <kbd>Mod</kbd>+<kbd>W</kbd> to toggle warp mode (no frame limit,
+  no audio). This does not affect the emulation accuracy, it only removes the
+  pauses between generating frames.
+* Use <kbd>Mod</kbd>+<kbd>R</kbd> to perform a soft reset.
+* Use <kbd>Mod</kbd>+<kbd>T</kbd> to perform a hard reset.
+* Use <kbd>Mod</kbd>+<kbd>P</kbd> or <kbd>Pause</kbd> to toggle pause mode.
+* Use <kbd>Mod</kbd>+<kbd>A</kbd> to activate cartridge (Action Replay, ...).
+
+Volume control:
+
+* Use <kbd>Mod</kbd>+<kbd>,</kbd> to decrease FS-UAE volume.
+* Use <kbd>Mod</kbd>+<kbd>.</kbd> to increase FS-UAE volume.
+* Use <kbd>Mod</kbd>+<kbd>M</kbd> to mute FS-UAE (press again to unmute).
+* Use <kbd>Mod</kbd>+<kbd>N</kbd> to mute floppy sounds (press again to unmute).
+
+Disk swapper:
+
+* Use <kbd>Prev</kbd> (multimedia key) to go backward through the swap list.
+* Use <kbd>Next</kbd> (multimedia key) to go forward through the swap list.
+* Use <kbd>Play</kbd> (multimedia key) to insert the currently selected
+  swap list entry into `DF0`.
+
+FIXME:
+
+* Tab – toggle chat function.
+* Ctrl+F10 – Toggle performance graphs / FPS display (There are two FPS numbers shown, SYS: actual video output frame rate. EMU: emulated video frame rate).
+* Alt+Tab (or Cmd+Tab) – Switch to another window / release input grab.
 
 > **Note:** It is possible to customize the keyboard shortcuts. See
 > [input mapping](input-mapping.md).
@@ -312,7 +355,8 @@ which has these physical keys:
 
 Host Key     | Input Mapping Option        | Comment
 ------------ | --------------------------- | -------
-ESCAPE       | `keyboard_key_escape`       | Function key row
+-            |                             | **Function key row**
+ESCAPE       | `keyboard_key_escape`       |
 F1           | `keyboard_key_f1`           |
 F2           | `keyboard_key_f2`           |
 F3           | `keyboard_key_f3`           |
@@ -328,8 +372,8 @@ F12          | `keyboard_key_f12`          |
 PRINT        | `keyboard_key_print`        |
 SCROLLOCK    | `keyboard_key_scrollock`    |
 PAUSE        | `keyboard_key_print`        |
--            |                             |
-BACKQUOTE    | `keyboard_key_backquote`    | Number row
+-            |                             | **Number row**
+BACKQUOTE    | `keyboard_key_backquote`    |
 1            | `keyboard_key_1`            |
 2            | `keyboard_key_2`            |
 3            | `keyboard_key_3`            |
@@ -350,7 +394,7 @@ NUMLOCK      | `keyboard_key_numlock`      |
 KP_DIVIDE    | `keyboard_key_kp_divide`    |
 KP_MULTIPLY  | `keyboard_key_kp_multiply`  |
 KP_MINUS     | `keyboard_key_kp_minus`     |
--            |                             |
+-            |                             | **Top letter row**
 TAB          | `keyboard_key_tab`          |
 Q            | `keyboard_key_q`            |
 W            | `keyboard_key_w`            |
@@ -372,7 +416,7 @@ KP7          | `keyboard_key_kp7`          |
 KP8          | `keyboard_key_kp8`          |
 KP9          | `keyboard_key_kp9`          |
 KP_PLUS      | `keyboard_key_kp_plus`      |
--            |                             |
+-            |                             | **Middle letter row**
 CAPSLOCK     | `keyboard_key_capslock`     |
 A            | `keyboard_key_a`            |
 S            | `keyboard_key_s`            |
@@ -389,7 +433,7 @@ BACKSLASH    | `keyboard_key_backslash`    |
 KP4          | `keyboard_key_kp4`          |
 KP5          | `keyboard_key_kp5`          |
 KP6          | `keyboard_key_kp6`          |
--            |                             |
+-            |                             | **Bottom letter row**
 LSHIFT       | `keyboard_key_lshift`       |
 LESS         | `keyboard_key_less`         |
 Z            | `keyboard_key_z`            |
@@ -408,7 +452,7 @@ KP1          | `keyboard_key_kp1`          |
 KP2          | `keyboard_key_kp2`          |
 KP3          | `keyboard_key_kp3`          |
 KP_ENTER     | `keyboard_key_kp_enter`     |
--            |                             | Bottom row
+-            |                             | **Bottom row**
 LCTRL        | `keyboard_key_kp_lctrl`     |
 LSUPER       | `keyboard_key_kp_lsuper`    | Left "Windows" key or "Cmd"
 LALT         | `keyboard_key_kp_lalt`      | Different physical position on Mac
@@ -422,7 +466,7 @@ DOWN         | `keyboard_key_down`         |
 RIGHT        | `keyboard_key_right`        |
 KP0          | `keyboard_key_kp0`          |
 KP_PERIOD    | `keyboard_key_kp_period`    |
--            |                             | Special keys
+-            |                             | **Special keys**
 VOLUMEUP     | `keyboard_key_volumeup`     |
 VOLUMEDOWN   | `keyboard_key_volumedown`   |
 MUTE         | `keyboard_key_mute`         |

@@ -1,3 +1,11 @@
+Version 2.6.2:
+
+* Do not use built-in libmpeg2.
+* Fixed crash (abort) with A1200 Blizzard CPU board models.
+* Added more gamepad controller configurations.
+* Fixed non-blocking socket I/O support in bsdsocket_posix [Jens Maus].
+* Imported updated translations from crowdin.com.
+
 Version 2.5.42dev:
 
 * Map gamepad start button to menu when in Amiga joystick mode (not CD32).

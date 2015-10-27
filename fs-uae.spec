@@ -1,6 +1,6 @@
 %define name fs-uae
-%define version 2.6.1
-%define unmangled_version 2.6.1
+%define version 2.6.2
+%define unmangled_version 2.6.2
 %define release 1%{?dist}
 
 Summary: Amiga emulator with on-screen GUI and online play support
@@ -28,6 +28,8 @@ BuildRequires: pkgconfig(sdl2)
 BuildRequires: pkgconfig(x11)
 BuildRequires: pkgconfig(zlib)
 BuildRequires: pkgconfig(freetype2)
+BuildRequires: pkgconfig(libmpeg2)
+BuildRequires: pkgconfig(libmpeg2convert)
 BuildRequires: zip
 
 %description

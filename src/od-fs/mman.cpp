@@ -87,7 +87,6 @@ static void *VirtualAlloc(void *lpAddress, size_t dwSize, int flAllocationType,
 	void *memory = NULL;
 
 	if (flAllocationType == MEM_COMMIT && lpAddress == NULL) {
-		assert(false);
 		memory = malloc(dwSize);
 		if (memory == NULL) {
 			write_log("memory allocated failed errno %d\n", errno);

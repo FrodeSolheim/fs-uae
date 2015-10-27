@@ -48,7 +48,8 @@ set -e
 --disable-drivesound \
 --disable-serial-port \
 --disable-xml-shader \
---disable-zip
+--disable-zip \
+"$@"
 
 # FIXME:
 # --disable-a2091 \

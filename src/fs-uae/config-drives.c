@@ -416,11 +416,15 @@ void fs_uae_configure_floppies()
         }
 
         if (path[0] != '\0') {
-            path = fs_uae_expand_path_and_free(path);
-            path = fs_uae_resolve_path_and_free(path, FS_UAE_FLOPPY_PATHS);
-            if (!g_file_test(path, G_FILE_TEST_EXISTS)) {
-                fs_emu_warning("Not found: %s", fs_config_get_const_string(
-                                   option_floppy_drive_x));
+            if (g_str_has_prefix(path, "dat://")) {
+
+            } else {
+                path = fs_uae_expand_path_and_free(path);
+                path = fs_uae_resolve_path_and_free(path, FS_UAE_FLOPPY_PATHS);
+                if (!g_file_test(path, G_FILE_TEST_EXISTS)) {
+                    fs_emu_warning("Not found: %s", fs_config_get_const_string(
+                                       option_floppy_drive_x));
+                }
             }
             auto_num_drives = MAX(auto_num_drives, i + 1);
         }

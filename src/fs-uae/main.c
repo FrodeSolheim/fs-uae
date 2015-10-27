@@ -353,7 +353,7 @@ static void event_handler(int line)
 
     if (fs_emu_is_quitting()) {
         if (fs_emu_is_paused()) {
-        	fs_emu_pause(0);
+            fs_emu_pause(0);
         }
         static int quit_called = 0;
         if (quit_called == 0) {
@@ -605,6 +605,19 @@ static int load_config_file()
 {
     fs_log("load config file\n");
     const char *msg = "checking config file %s\n";
+
+    char *data;
+    int size;
+    if (fs_data_file_content("META-INF/Config.fs-uae", &data, &size) == 0) {
+        fs_ini_file *ini_file = fs_ini_file_open_data(data, size);
+        if (ini_file == NULL) {
+            fs_log("error loading config file\n");
+            return 1;
+        }
+        fs_config_parse_ini_file(ini_file);
+        fs_ini_file_destroy(ini_file);
+        return 0;
+    }
 
     //g_fs_uae_config = g_key_file_new();
     if (g_fs_uae_config_file_path == NULL) {
@@ -1011,12 +1024,12 @@ int main(int argc, char* argv[])
     amiga_init();
 
 #if 0
-	// FIXME: disabling fullscreen spaces must be done before
-	// SDL_INIT_VIDEO, but we need to check config to see if this should
-	// be done, and we initialize SDL early to check for config file
-	// (catch 22)...
-	// FIXME: check fullscreen_spaces option
-	SDL_SetHint(SDL_HINT_VIDEO_MAC_FULLSCREEN_SPACES, "0");
+    // FIXME: disabling fullscreen spaces must be done before
+    // SDL_INIT_VIDEO, but we need to check config to see if this should
+    // be done, and we initialize SDL early to check for config file
+    // (catch 22)...
+    // FIXME: check fullscreen_spaces option
+    SDL_SetHint(SDL_HINT_VIDEO_MAC_FULLSCREEN_SPACES, "0");
 #endif
 
 #ifdef MACOSX
@@ -1083,7 +1096,7 @@ int main(int argc, char* argv[])
     }
 
     if (g_warn_about_missing_config_file) {
-		fs_emu_warning(_("No configuration file was found"));
+        fs_emu_warning(_("No configuration file was found"));
     }
 
     fs_log("\n");

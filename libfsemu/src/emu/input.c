@@ -1132,7 +1132,7 @@ static input_config_item *get_config(
 
 int fs_emu_configure_joystick(
         const char *name, const char *type, fs_emu_input_mapping *mapping,
-        int usage, char *out_name, int out_name_len)
+        int usage, char *out_name, int out_name_len, bool reuse)
 {
     fs_log("configure joystick \"%s\" for \"%s\"\n", name, type);
     if (name == NULL || name[0] == '\0') {
@@ -1153,6 +1153,10 @@ int fs_emu_configure_joystick(
             continue;
         }
         fs_log("matched device #%d\n", i);
+        if (device.usage && !reuse) {
+            fs_log("existing usage (%d) - cannot reuse\n", device.usage);
+            return 0;
+        }
         if (out_name) {
             strncpy(out_name, device.name, out_name_len);
         }

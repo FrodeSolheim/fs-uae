@@ -673,9 +673,6 @@ void fixup_prefs (struct uae_prefs *p)
 #endif
 #if !defined (SCSIEMU)
 	p->scsi = 0;
-#ifdef _WIN32
-	p->win32_aspi = 0;
-#endif
 #endif
 #if !defined (SANA2)
 	p->sana2 = 0;
@@ -953,9 +950,11 @@ static void parse_cmdline (int argc, TCHAR **argv)
 					if (type == ZFILE_CONFIGURATION) {
 						currprefs.mountitems = 0;
 						target_cfgfile_load(&currprefs, txt, CONFIG_TYPE_ALL, 0);
+#ifdef SAVESTATE
 					} else if (type == ZFILE_STATEFILE) {
 						savestate_state = STATE_DORESTORE;
 						_tcscpy(savestate_fname, txt);
+#endif
 					}
 				}
 				xfree(txt);

@@ -11,6 +11,7 @@
 #include <fs/time.h>
 #include "fs-uae.h"
 #include "config-common.h"
+#include "options.h"
 
 #define NUM_SAVE_SLOTS 9
 /// TRANSLATORS: This is a menu entry and must not be too long: If you struggle
@@ -686,7 +687,8 @@ static void update_input_menu(fs_emu_menu *menu) {
     }
 }
 
-static void set_input_port(int port, const char *device, int remove_other) {
+static void set_input_port(int port, const char *device, int remove_other)
+{
     strncpy(g_fs_uae_input_ports[port].device, device, MAX_DEVICE_NAME_LEN);
     if (remove_other) {
         for (int i = 0; i < FS_UAE_NUM_INPUT_PORTS; i++) {
@@ -1079,7 +1081,7 @@ void fs_uae_configure_menu() {
     fs_emu_menu_append_item(menu, item);
     fs_emu_menu_item_set_title(item, _("Load State"));
     fs_emu_menu_item_set_activate_function(item, load_states_menu_function);
-    if (fs_config_get_boolean("save_states") == 0) {
+    if (fs_config_is_false(OPTION_SAVE_STATES)) {
         fs_emu_menu_item_set_enabled(item, 0);
     }
 
@@ -1087,7 +1089,7 @@ void fs_uae_configure_menu() {
     fs_emu_menu_append_item(menu, item);
     fs_emu_menu_item_set_title(item, _("Save State"));
     fs_emu_menu_item_set_activate_function(item, save_states_menu_function);
-    if (fs_config_get_boolean("save_states") == 0) {
+    if (fs_config_is_false(OPTION_SAVE_STATES)) {
         fs_emu_menu_item_set_enabled(item, 0);
     }
 /*

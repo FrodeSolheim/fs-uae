@@ -1364,8 +1364,8 @@ mo: $(catalogs)
 
 fs-uae.dat: $(catalogs)
 	rm -f fs-uae.dat
-	cd $(s) && $(ZIP) -r -Z store $(abs_builddir)/fs-uae.dat share
-	cd $(b) && $(ZIP) -r -Z store $(abs_builddir)/fs-uae.dat share
+	cd $(s) && $(ZIP) -r $(abs_builddir)/fs-uae.dat share
+	cd $(b) && $(ZIP) -r $(abs_builddir)/fs-uae.dat share
 
 all-local: mo fs-uae.dat
 
@@ -1397,8 +1397,7 @@ clean-local:
 fs-uae-dist:
 	$(MAKE) -C dist/@OS_NAME@
 
-
-static: fs-uae$(EXEEXT) fs-uae.dat
+standalone: fs-uae$(EXEEXT) fs-uae.dat
 	@echo "Stripping fs-uae$(EXEEXT)"
 	strip fs-uae$(EXEEXT)
 	@echo "Appending fs-uae.dat"

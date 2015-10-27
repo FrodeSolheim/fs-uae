@@ -1,7 +1,8 @@
-#ifndef FS_CONFIG_H_
-#define FS_CONFIG_H_
+#ifndef FS_CONF_H
+#define FS_CONF_H
 
 #include <stdbool.h>
+#include <fs/inifile.h>
 
 #define FS_CONFIG_NONE 0x12345678
 #define FS_CONFIG_AUTO "auto"
@@ -11,6 +12,9 @@ extern "C" {
 #endif
 
 int fs_config_read_file(const char *path, int force);
+void fs_config_parse_ini_file(fs_ini_file *ini_file);
+void fs_config_parse_options(int argc, char **argv);
+
 void fs_config_parse_options(int argc, char **argv);
 
 bool fs_config_exists(const char *key);
@@ -44,4 +48,4 @@ static inline bool fs_config_is_false(const char *key)
 }
 #endif
 
-#endif // FS_CONFIG_H_
+#endif /* FS_CONF_H */

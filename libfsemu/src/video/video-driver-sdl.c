@@ -106,10 +106,10 @@ static void sdl_video_create_window(int width, int height)
     window_flags |= SDL_WINDOW_RESIZABLE;
     g_window = SDL_CreateWindow("FS-UAE SDL Test Driver",
     SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 752, 572, window_flags);
-#if 1
-    g_renderer = SDL_CreateRenderer(g_window, -1, SDL_RENDERER_ACCELERATED);
-#else
+#ifdef VIDEO_DRIVER_SDL_SOFTWARE
     g_renderer = SDL_CreateRenderer(g_window, -1, SDL_RENDERER_SOFTWARE);
+#else
+    g_renderer = SDL_CreateRenderer(g_window, -1, 0);
 #endif
 
     SDL_RendererInfo info;
@@ -181,9 +181,15 @@ static void register_functions(void)
     fs_emu_video_render = sdl_video_render;
 }
 
+#ifdef VIDEO_DRIVER_SDL_SOFTWARE
+void fs_emu_video_sdl_software_init(void)
+{
+    fs_log("fs_emu_video_sdl_software_init\n");
+#else
 void fs_emu_video_sdl_init(void)
 {
     fs_log("fs_emu_video_sdl_init\n");
+#endif
     register_functions();
 }
 

@@ -758,6 +758,7 @@ libfsemu_a_SOURCES = \
         libfsemu/src/video/video-common-sdl.c \
         libfsemu/src/video/video-driver-dummy.c \
         libfsemu/src/video/video-driver-sdl.c \
+        libfsemu/src/video/video-driver-sdl-software.c \
         libfsemu/src/video/video-init.c
 
 if BUILTIN_GLEE

@@ -26,6 +26,8 @@ void fs_emu_video_init(void)
 #ifdef USE_SDL2
     } else if (!driver || strcmp(driver, "sdl") == 0) {
         fs_emu_video_sdl_init();
+    } else if (!driver || strcmp(driver, "sdl-software") == 0) {
+        fs_emu_video_sdl_software_init();
 #endif
     }
 

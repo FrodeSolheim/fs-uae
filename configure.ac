@@ -612,7 +612,7 @@ REQ_FEATURE([FILESYS], [filesys], [filesys],
             [directory hard drives])
 REQ_FEATURE([FPUEMU], [fpuemu], [fpuemu],
             [FPU emulation])
-DIS_FEATURE([FS_EMU_DRIVERS], [fs_emu_drivers], [fs-emu-drivers],
+DIS_FEATURE([FS_EMU_DRIVERS], [drivers], [drivers],
             [multiple driver backends (experimental)])
 OPT_FEATURE([GFXBOARD], [gfxboard], [gfxboard],
             [GFX hardware boards])

@@ -1,5 +1,9 @@
 Version 2.7.5dev:
 
+* New configure option --with-libmpeg2=yes/builtin (no won't work yet),
+  defaults to yes (using system library).
+* Fix additional custom joystick ports.
+* New boolean option full_keyboard to set the initial state.
 * Auto-choose joystick device for port 0 when not started in mouse mode.
 * Support deflate compression in fs-uae.dat.
 

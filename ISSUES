@@ -5,9 +5,8 @@
 * When internal kickstart is being used and kickstart_file = internal
   was not used, show GUI message "Using AROS kickstart replacement".
 
-* Windows (x86-64) portable version uses 32-bit "shortcut executables".
-
 * Portable x86-64 versions should be able to co-locate with x86-versions.
+  (Fixed for Windows)
 
 * Amiga key sticks when opening/closing FS-UAE menu with modifier+F12
   https://github.com/FrodeSolheim/fs-uae/issues/77

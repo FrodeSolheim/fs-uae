@@ -17,7 +17,17 @@ fs_uae_input_port g_fs_uae_input_ports[FS_UAE_NUM_INPUT_PORTS] = {};
 
 #define COMMON_ACTIONS \
     { "menu_alt", FS_EMU_ACTION_MENU_ALT }, \
-    { "pause", FS_EMU_ACTION_PAUSE },
+    { "pause", FS_EMU_ACTION_PAUSE }
+
+#define CUSTOM_ACTIONS \
+    { "left", NO_ACTION }, \
+    { "right", NO_ACTION }, \
+    { "up", NO_ACTION }, \
+    { "down", NO_ACTION }, \
+    { "1", NO_ACTION }, \
+    { "2", NO_ACTION }
+
+#define END_ACTIONS { NULL, 0 }
 
 static fs_emu_input_mapping g_joystick_port_0_mapping[] = {
     { "left", INPUTEVENT_JOY1_LEFT },
@@ -36,8 +46,8 @@ static fs_emu_input_mapping g_joystick_port_0_mapping[] = {
     { "play", INPUTEVENT_JOY1_CD32_PLAY },
     { "autofire", INPUTEVENT_JOY1_AUTOFIRE_BUTTON },
     { "toggle_autofire", INPUTEVENT_AMIGA_JOYPORT_0_AUTOFIRE },
-    COMMON_ACTIONS
-    { NULL, 0 },
+    COMMON_ACTIONS,
+    END_ACTIONS
 };
 
 static fs_emu_input_mapping g_joystick_port_1_mapping[] = {
@@ -57,8 +67,8 @@ static fs_emu_input_mapping g_joystick_port_1_mapping[] = {
     { "play", INPUTEVENT_JOY2_CD32_PLAY },
     { "autofire", INPUTEVENT_JOY2_AUTOFIRE_BUTTON },
     { "toggle_autofire", INPUTEVENT_AMIGA_JOYPORT_1_AUTOFIRE },
-    COMMON_ACTIONS
-    { NULL, 0 },
+    COMMON_ACTIONS,
+    END_ACTIONS
 };
 
 static fs_emu_input_mapping g_parallel_port_1st_mapping[] = {
@@ -70,8 +80,8 @@ static fs_emu_input_mapping g_parallel_port_1st_mapping[] = {
     { "2", INPUTEVENT_PAR_JOY1_2ND_BUTTON },
     { "autofire", INPUTEVENT_PAR_JOY1_AUTOFIRE_BUTTON },
     { "toggle_autofire", INPUTEVENT_AMIGA_JOYPORT_2_AUTOFIRE },
-    COMMON_ACTIONS
-    { NULL, 0 },
+    COMMON_ACTIONS,
+    END_ACTIONS
 };
 
 static fs_emu_input_mapping g_parallel_port_2nd_mapping[] = {
@@ -83,18 +93,28 @@ static fs_emu_input_mapping g_parallel_port_2nd_mapping[] = {
     { "2", INPUTEVENT_PAR_JOY2_2ND_BUTTON },
     { "autofire", INPUTEVENT_PAR_JOY2_AUTOFIRE_BUTTON },
     { "toggle_autofire", INPUTEVENT_AMIGA_JOYPORT_3_AUTOFIRE },
-    COMMON_ACTIONS
-    { NULL, 0 },
+    COMMON_ACTIONS,
+    END_ACTIONS
 };
 
-static fs_emu_input_mapping g_custom_port_mapping[] = {
-    { "left", NO_ACTION },
-    { "right", NO_ACTION },
-    { "up", NO_ACTION },
-    { "down", NO_ACTION },
-    { "1", NO_ACTION },
-    { "2", NO_ACTION },
-    { NULL, 0 },
+static fs_emu_input_mapping g_port_4_mapping[] = {
+    CUSTOM_ACTIONS,
+    END_ACTIONS
+};
+
+static fs_emu_input_mapping g_port_5_mapping[] = {
+    CUSTOM_ACTIONS,
+    END_ACTIONS
+};
+
+static fs_emu_input_mapping g_port_6_mapping[] = {
+    CUSTOM_ACTIONS,
+    END_ACTIONS
+};
+
+static fs_emu_input_mapping g_port_7_mapping[] = {
+    CUSTOM_ACTIONS,
+    END_ACTIONS
 };
 
 static fs_emu_input_mapping *g_joystick_mappings[] = {
@@ -102,10 +122,11 @@ static fs_emu_input_mapping *g_joystick_mappings[] = {
     g_joystick_port_1_mapping,
     g_parallel_port_1st_mapping,
     g_parallel_port_2nd_mapping,
-    g_custom_port_mapping,
-    g_custom_port_mapping,
-    g_custom_port_mapping,
-    g_custom_port_mapping,
+    /* Custom ports (maps to UAE actions, if configured) */
+    g_port_4_mapping,
+    g_port_5_mapping,
+    g_port_6_mapping,
+    g_port_7_mapping,
 };
 
 void fs_uae_read_override_actions_for_port(int port)

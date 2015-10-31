@@ -1300,6 +1300,10 @@ static void initialize_modifier_key(void)
         g_modifier_key = FS_ML_KEY_LALT;
 #endif
         return;
+    } else if (strcmp(value, "0") == 0) {
+        fs_log("INPUT: Modifier key disabled\n");
+        g_modifier_key = -1;
+        return;
     }
 
     int key = 0;
@@ -1839,6 +1843,10 @@ void fs_emu_input_init(void)
     g_swap_ctrl_keys = fs_config_get_boolean("swap_ctrl_keys");
     if (g_swap_ctrl_keys == FS_CONFIG_NONE) {
         g_swap_ctrl_keys = 0;
+    }
+
+    if (fs_config_is_true(OPTION_FULL_KEYBOARD)) {
+        fs_emu_set_full_keyboard_emulation(true);
     }
 
     initialize_modifier_key();

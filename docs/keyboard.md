@@ -6,6 +6,8 @@ keyboard works.
 
 **FIXME** Keyboard joystick emulation
 
+**FIXME** Reference full_keyboard
+
 ## Keyboard Shortcuts
 
 The following keyboard shortcuts are available by default. <kbd>Mod</kbd>

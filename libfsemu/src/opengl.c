@@ -26,7 +26,6 @@
 #include <fs/fs.h>
 #include <fs/log.h>
 #include <fs/ml/opengl.h>
-#include <fs/glu.h>
 
 #ifdef USE_OPENGL
 

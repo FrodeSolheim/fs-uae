@@ -151,10 +151,15 @@ AC_CHECK_LIB([Iphlpapi], [main])
 
 AM_CONDITIONAL([BUILTIN_GLEE], [false])
 
-PKG_CHECK_MODULES([GLEW], [glew])
+AC_ARG_WITH(glew, AS_HELP_STRING(
+    [--without-glew], [do not use GLEW library]))
+AS_IF([test "x$with_glew" != xno], [
+    PKG_CHECK_MODULES([GLEW], [glew])
+    AC_DEFINE([WITH_GLEW], [1], [Define to 1 to use GLEW])
+])
 
 AC_ARG_WITH(libmpeg2, AS_HELP_STRING(
-    [--with-libmpeg2], [use libmpeg2 library (yes, no, builtin)]))
+    [--without-libmpeg2], [or --with-libmpeg=builtin to use included version]))
 AM_CONDITIONAL([BUILTIN_LIBMPEG2], [test x$with_libmpeg2 = xbuiltin])
 AS_IF([test "x$with_libmpeg2" != xno], [
     AS_IF([test "x$with_libmpeg2" = xbuiltin], [
@@ -435,7 +440,6 @@ AC_FUNC_CHOWN
 AC_FUNC_ERROR_AT_LINE
 AC_FUNC_FORK
 AC_FUNC_FSEEKO
-AC_FUNC_MALLOC
 AC_FUNC_MKTIME
 AC_FUNC_MMAP
 AC_FUNC_REALLOC
@@ -577,6 +581,8 @@ OPT_FEATURE([CD32], [cd32], [cd32],
             [CD32 emulation])
 OPT_FEATURE([CDTV], [cdtv], [cdtv],
             [CDTV emulation])
+OPT_FEATURE([CODEGEN], [codegen], [codegen],
+            [Code generation (disable for cross-compilation)])
 OPT_FEATURE([CPUEMU_0], [cpuemu_0], [cpuemu-0],
             [generic 680x0 emulation])
 OPT_FEATURE([CPUEMU_11], [cpuemu_11], [cpuemu-11],

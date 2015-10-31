@@ -25,6 +25,7 @@
 
 #include "cda_play.h"
 #include "archivers/mp2/kjmp2.h"
+#ifdef WITH_LIBMPEG2
 #ifdef FSUAE
 // FIXME: use libmpeg2 from ffmpeg:
 // https://github.com/tonioni/WinUAE/pull/17#issuecomment-50335355
@@ -37,6 +38,7 @@ extern "C" {
 #ifdef FSUAE
 #ifdef __cplusplus
 }
+#endif
 #endif
 #endif
 
@@ -277,8 +279,10 @@ static uae_u16 l64111intmask[2], l64111intstatus[2];
 
 static uae_u16 mpeg_io_reg;
 
+#ifdef WITH_LIBMPEG2
 static mpeg2dec_t *mpeg_decoder;
 static const mpeg2_info_t *mpeg_info;
+#endif
 
 #if FMV_DEBUG
 static int isdebug(uaecptr addr)
@@ -814,6 +818,7 @@ static struct zfile *videodump;
 
 static void cl450_parse_frame(void)
 {
+#ifdef WITH_LIBMPEG2
 	for (;;) {
 		mpeg2_state_t mpeg_state = mpeg2_parse(mpeg_decoder);
 		switch (mpeg_state)
@@ -889,6 +894,7 @@ static void cl450_parse_frame(void)
 				break;
 		}
 	}
+#endif
 }
 
 static void cl450_reset(void)
@@ -909,8 +915,10 @@ static void cl450_reset(void)
 	cl450_videoram_read = 0;
 	cl450_videoram_cnt = 0;
 	memset(cl450_regs, 0, sizeof cl450_regs);
+#ifdef WITH_LIBMPEG2
 	if (mpeg_decoder)
 		mpeg2_reset(mpeg_decoder, 1);
+#endif
 	if (fmv_ram_bank.baseaddr) {
 		memset(fmv_ram_bank.baseaddr, 0, 0x100);
 		write_log(_T("CL450 reset\n"));
@@ -1551,9 +1559,11 @@ void cd32_fmv_free(void)
 	uae_sem_destroy(&play_sem);
 	xfree(pcmaudio);
 	pcmaudio = NULL;
+#ifdef WITH_LIBMPEG2
 	if (mpeg_decoder)
 		mpeg2_close(mpeg_decoder);
 	mpeg_decoder = NULL;
+#endif
 	cl450_reset();
 	l64111_reset();
 }
@@ -1611,10 +1621,12 @@ addrbank *cd32_fmv_init (uaecptr start)
 		cda = new cda_audio(PCM_SECTORS, KJMP2_SAMPLES_PER_FRAME * 4, 44100);
 		l64111_setvolume();
 	}
+#ifdef WITH_LIBMPEG2
 	if (!mpeg_decoder) {
 		mpeg_decoder = mpeg2_init();
 		mpeg_info = mpeg2_info(mpeg_decoder);
 	}
+#endif
 	fmv_bank.mask = fmv_board_size - 1;
 	map_banks(&fmv_rom_bank, (fmv_start + ROM_BASE) >> 16, fmv_rom_size >> 16, 0);
 	map_banks(&fmv_ram_bank, (fmv_start + RAM_BASE) >> 16, fmv_ram_size >> 16, 0);

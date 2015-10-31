@@ -24,7 +24,9 @@
 #define GL_BGRA 0x80e1
 #else
 // #include <GLee.h>
- #include <GL/glew.h>
+#ifdef WITH_GLEW
+#include <GL/glew.h>
+#endif
 #endif
 
 #ifndef APIENTRY

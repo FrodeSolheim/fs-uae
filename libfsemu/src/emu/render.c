@@ -39,7 +39,6 @@
 
 #ifdef USE_OPENGL
 #include <fs/ml/opengl.h>
-#include <fs/glu.h>
 #endif
 
 #ifdef USE_GLES

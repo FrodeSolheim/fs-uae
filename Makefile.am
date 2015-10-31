@@ -450,6 +450,7 @@ libuae_a_SOURCES = \
 	src/jit/codegen_x86.h \
 	src/jit/compemu.h \
 	src/jit/compemu_fpp.cpp \
+	src/jit/compemu_midfunc_arm.h \
 	src/jit/compemu_midfunc_x86.h \
 	src/jit/compemu_support.cpp \
 	src/jit/flags_x86.h \
@@ -652,7 +653,6 @@ libfsemu_a_SOURCES = \
 	libfsemu/include/fs/filesys.h \
 	libfsemu/include/fs/fs.h \
 	libfsemu/include/fs/glib.h \
-	libfsemu/include/fs/glu.h \
 	libfsemu/include/fs/i18n.h \
 	libfsemu/include/fs/image.h \
 	libfsemu/include/fs/inifile.h \
@@ -1229,6 +1229,8 @@ EXTRA_DIST = $(TESTS) $(EXTRA_TESTS) \
 
 CLEANFILES = $(BUILT_SOURCES)
 
+if CODEGEN
+
 gen/blit.h: gen/genblitter$(EXEEXT)
 	$(b)/gen/genblitter$(EXEEXT) i > $(b)/gen/blit.h
 
@@ -1284,6 +1286,8 @@ gen/cputbl.h: gen/cpuemu_0.cpp
 
 gen/linetoscr.cpp: gen/genlinetoscr$(EXEEXT)
 	$(b)/gen/genlinetoscr$(EXEEXT) > $(b)/gen/linetoscr.cpp
+
+endif
 
 catalogs = \
 	share/locale/cs/LC_MESSAGES/fs-uae.mo \

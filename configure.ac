@@ -111,9 +111,16 @@ AM_CONDITIONAL([BUILTIN_GLEE], [false])
 
 PKG_CHECK_MODULES([GLEW], [glew])
 
-# Todo: make configurable
-PKG_CHECK_MODULES([LIBMPEG2], [libmpeg2 libmpeg2convert])
-AM_CONDITIONAL([BUILTIN_LIBMPEG2], [false])
+AC_ARG_WITH(libmpeg2, AS_HELP_STRING(
+    [--with-libmpeg2], [use libmpeg2 library (yes, no, builtin)]))
+AM_CONDITIONAL([BUILTIN_LIBMPEG2], [test x$with_libmpeg2 = xbuiltin])
+AS_IF([test "x$with_libmpeg2" != xno], [
+    AS_IF([test "x$with_libmpeg2" = xbuiltin], [
+    ], [
+        PKG_CHECK_MODULES([LIBMPEG2], [libmpeg2 libmpeg2convert])
+    ])
+    AC_DEFINE([WITH_LIBMPEG2], [1], [Define to 1 to use libmpeg2])
+])
 
 AM_CONDITIONAL([BUILTIN_MANYMOUSE], [true])
 
@@ -655,6 +662,8 @@ echo "  Building for CPU:  $host_cpu"
 echo "  Using OS name:     $OS_NAME"
 echo "  Module extension:  $LOADABLE_MODULE_EXT"
 echo ""
+echo "  LIBMPEG2_CFLAGS:   $LIBMPEG2_CFLAGS"
+echo "  LIBMPEG2_LIBS:     $LIBMPEG2_LIBS"
 echo "  OPENAL_CFLAGS:     $OPENAL_CFLAGS"
 echo "  OPENAL_LIBS:       $OPENAL_LIBS"
 echo "  OPENGL_CFLAGS:     $OPENGL_CFLAGS"

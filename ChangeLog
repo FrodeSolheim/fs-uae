@@ -1,3 +1,8 @@
+Version 2.6.3:
+
+* New configure option --with-libmpeg2=yes/builtin (no won't work yet),
+  defaults to yes (using system library).
+
 Version 2.6.2:
 
 * Do not use built-in libmpeg2.

@@ -1,6 +1,6 @@
 # Makefile.am for FS-UAE
 
-SUBDIRS = libmpeg2
+SUBDIRS =
 
 WARNINGS =
 
@@ -1049,6 +1049,7 @@ libsoftfloat_a_SOURCES = \
 endif
 
 if BUILTIN_LIBMPEG2
+SUBDIRS += libmpeg2
 AM_CPPFLAGS += -I$(s)/libmpeg2/include
 fs_uae_LDADD += \
 	libmpeg2/libmpeg2/.libs/libmpeg2.a \

@@ -14,6 +14,7 @@ CM_CFLAGS += @OPENAL_CFLAGS@
 CM_CFLAGS += @OPENGL_CFLAGS@
 # CM_CFLAGS += @OS_CFLAGS@
 CM_CFLAGS += @PNG_CFLAGS@
+CM_CFLAGS += @QT_CFLAGS@
 CM_CFLAGS += @SDL2_CFLAGS@
 # CM_CFLAGS += @X11_CFLAGS@
 CM_CFLAGS += @ZLIB_CFLAGS@
@@ -57,6 +58,7 @@ LIBS += @OPENAL_LIBS@
 LIBS += @OPENGL_LIBS@
 # LIBS += @OS_LIBS@
 LIBS += @PNG_LIBS@
+LIBS += @QT_LIBS@
 LIBS += @SDL2_LIBS@
 LIBS += @X11_LIBS@
 LIBS += @ZLIB_LIBS@
@@ -102,7 +104,7 @@ BUILT_SOURCES = \
 nodist_fs_uae_SOURCES =
 
 fs_uae_SOURCES = \
-	src/fs-uae/config.c \
+        src/fs-uae/config.c \
 	src/fs-uae/config-accelerator.c \
 	src/fs-uae/config-accelerator.h \
 	src/fs-uae/config-common.c \
@@ -641,6 +643,7 @@ libfsemu_a_SOURCES = \
         libfsemu/include/fs/emu/audio.h \
         libfsemu/include/fs/emu/benchmark.h \
         libfsemu/include/fs/emu/buffer.h \
+        libfsemu/include/fs/emu/cef.h \
         libfsemu/include/fs/emu/dialog.h \
 	libfsemu/include/fs/emu/hacks.h \
 	libfsemu/include/fs/emu/input.h \
@@ -684,6 +687,7 @@ libfsemu_a_SOURCES = \
 	libfsemu/src/emu/audio_dummy.c \
 	libfsemu/src/emu/audio_openal.c \
 	libfsemu/src/emu/audio_sdl.c \
+        libfsemu/src/emu/cef.cpp \
 	libfsemu/src/emu/dialog.c \
 	libfsemu/src/emu/dialog.h \
 	libfsemu/src/emu/emu.c \
@@ -760,6 +764,11 @@ libfsemu_a_SOURCES = \
         libfsemu/src/video/video-driver-sdl.c \
         libfsemu/src/video/video-driver-sdl-software.c \
         libfsemu/src/video/video-init.c
+
+if BUILTIN_CEF
+AM_CPPFLAGS += -I$(s)/cef
+fs_uae_LDADD += cef/libcef_dll/libcef_dll_wrapper.a -L $(s)/cef/Release -lcef
+endif
 
 if BUILTIN_GLEE
 noinst_LIBRARIES += libglee.a

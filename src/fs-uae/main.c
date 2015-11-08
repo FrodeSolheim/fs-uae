@@ -31,6 +31,9 @@
 #include "plugins.h"
 #include "options.h"
 #include "config-drives.h"
+#ifdef WITH_CEF
+#include <fs/emu/cef.h>
+#endif
 
 static int fs_uae_argc;
 static char **fs_uae_argv;
@@ -975,11 +978,15 @@ static const char *overlay_names[] = {
 
 FILE *g_state_log_file = NULL;
 
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
     fs_uae_argc = argc;
     fs_uae_argv = argv;
     fs_set_argv(argc, argv);
+
+#ifdef WITH_CEF
+    cef_init(argc, argv);
+#endif
 
     char **arg;
     arg = argv + 1;
@@ -1277,5 +1284,9 @@ int main(int argc, char* argv[])
     }
     fs_log("end of main function\n");
     cleanup_old_files();
+
+#ifdef WITH_CEF
+    cef_destroy();
+#endif
     return 0;
 }

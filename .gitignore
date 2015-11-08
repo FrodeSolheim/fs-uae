@@ -1,3 +1,8 @@
+/chrome-sandbox
+/icudtl.dat
+/libcef.so
+/natives_blob.bin
+/snapshot_blob.bin
 *~
 *.a
 /aclocal.m4
@@ -12,6 +17,7 @@ build68k
 /build/linux-dist/Makefile
 /build/linux-dist/*-steamos-*
 /build/steamos-dist/Makefile
+/cef/
 /*.cfg
 /*.changes
 /compile

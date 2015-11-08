@@ -132,6 +132,13 @@ AS_CASE([$host_os],
 	CARBON_LIBS="-framework Carbon"
 ])
 
+AC_ARG_WITH(cef, AS_HELP_STRING(
+    [--with-cef], [use Chromium Embedded Framework (experimental)]))
+AM_CONDITIONAL([BUILTIN_CEF], [test x$with_cef = xyes])
+AS_IF([test "x$with_cef" = xyes], [
+    AC_DEFINE([WITH_CEF], [1], [Define to 1 to use CEF])
+])
+
 AC_CHECK_LIB([compat], [ftime])
 
 AC_CHECK_LIB([dl], [dlopen])
@@ -239,6 +246,13 @@ PKG_CHECK_MODULES([OPENGL], [gl], [
 AC_DEFINE([USE_PNG], [1], [Define to 1 to use libpng])
 PKG_CHECK_MODULES([PNG], [libpng])
 
+AC_ARG_WITH(qt, AS_HELP_STRING(
+    [--with-qt], [use QT]))
+AS_IF([test "x$with_qt" = xyes], [
+    AC_DEFINE([WITH_QT], [1], [Define to 1 to use QT])
+    PKG_CHECK_MODULES([QT], [Qt5Gui])
+])
+
 AC_DEFINE([USE_SDL2], [1], [Define to 1 to use SDL 2.0])
 PKG_CHECK_MODULES([SDL2], [sdl2])
 AC_DEFINE([USE_SDL_VIDEO], [1], [Define to 1 to use SDL for video])
@@ -292,34 +306,40 @@ AS_CASE([$host_os],
 	LOADABLE_MODULE_EXT=".dll"
 ],
 [linux*], [
-	OS_NAME="linux"
-        OS_NAME_2="Linux"
-        OS_CPPFLAGS="-DLINUX"
-	LOADABLE_MODULE_EXT=".so"
+    OS_NAME="linux"
+    OS_NAME_2="Linux"
+    OS_CPPFLAGS="-DLINUX"
+    LOADABLE_MODULE_EXT=".so"
 ],
 [darwin*], [
-	OS_NAME="macosx"
-        OS_NAME_2="Mac OS X"
-        OS_CPPFLAGS="-DMACOSX"
-	LOADABLE_MODULE_EXT=".so"
-	OS_LDFLAGS="-headerpad_max_install_names -pagezero_size 0x2000 -rpath @executable_path/../Frameworks"
+    OS_NAME="macosx"
+    OS_NAME_2="Mac OS X"
+    OS_CPPFLAGS="-DMACOSX"
+    LOADABLE_MODULE_EXT=".so"
+    OS_LDFLAGS="-headerpad_max_install_names -pagezero_size 0x2000 -rpath @executable_path/../Frameworks"
 ],
 [freebsd*], [
-	OS_NAME="freebsd"
-        OS_NAME_2="FreeBSD"
-        OS_CPPFLAGS="-DFREEBSD"
-	LOADABLE_MODULE_EXT=".so"
+    OS_NAME="freebsd"
+    OS_NAME_2="FreeBSD"
+    OS_CPPFLAGS="-DFREEBSD"
+    LOADABLE_MODULE_EXT=".so"
 ],
 [openbsd*], [
-	OS_NAME="openbsd"
-        OS_NAME_2="OpenBSD"
-        OS_CPPFLAGS="-DOPENBSD"
-	LOADABLE_MODULE_EXT=".so"
+    OS_NAME="openbsd"
+    OS_NAME_2="OpenBSD"
+    OS_CPPFLAGS="-DOPENBSD"
+    LOADABLE_MODULE_EXT=".so"
+],
+[dragonfly*], [
+    OS_NAME="dragonflybsd"
+    OS_NAME_2="DragonFlyBSD"
+    OS_CPPFLAGS="-DDRAGONFLYBSD"
+    LOADABLE_MODULE_EXT=".so"
 ],
 [
-        OS_NAME="unknown"
-        OS_NAME_2="Unknown OS"
-        LOADABLE_MODULE_EXT=".unknown"
+    OS_NAME="unknown"
+    OS_NAME_2="Unknown OS"
+    LOADABLE_MODULE_EXT=".unknown"
 ])
 
 AM_CONDITIONAL([WINDOWS], [test x$OS_NAME = xwindows])

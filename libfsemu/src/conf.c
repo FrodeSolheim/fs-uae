@@ -144,7 +144,6 @@ void fs_config_parse_ini_file(fs_ini_file *ini_file)
         g_strfreev(keys);
     }
     g_strfreev(groups);
-    return 1;
 }
 
 

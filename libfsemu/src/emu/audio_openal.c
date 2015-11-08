@@ -14,13 +14,13 @@
 
 #ifdef HAVE_AL_AL_H
 #include <AL/al.h>
-#else
-#include <al.h>
+#elif defined(HAVE_OPENAL_AL_H)
+#include <OpenAL/al.h>
 #endif
 #ifdef HAVE_AL_ALC_H
 #include <AL/alc.h>
-#else
-#include <alc.h>
+#elif defined(HAVE_OPENAL_ALC_H)
+#include <OpenAL/alc.h>
 #endif
 
 #include "libfsemu.h"

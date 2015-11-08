@@ -211,9 +211,6 @@ PKG_CHECK_MODULES([OPENAL], [openal], [
         AS_CASE([$host_os],
 	[darwin*], [
 		AC_MSG_NOTICE([Using OpenAL.framework])
-		# OPENAL_CFLAGS="-I/System/Library/Frameworks/OpenAL.framework/Headers"
-		# OPENAL_CFLAGS="-I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk/System/Library/Frameworks/OpenAL.framework/Headers"
-		OPENAL_CFLAGS="-I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk/System/Library/Frameworks/OpenAL.framework/Headers"
 		OPENAL_LIBS="-framework OpenAL"
 	],
 	[
@@ -374,6 +371,8 @@ AC_CHECK_HEADERS([locale.h])
 AC_CHECK_HEADERS([malloc.h])
 AC_CHECK_HEADERS([netdb.h])
 AC_CHECK_HEADERS([netinet/in.h])
+AC_CHECK_HEADERS([OpenAL/al.h])
+AC_CHECK_HEADERS([OpenAL/alc.h])
 AC_CHECK_HEADERS([stddef.h])
 AC_CHECK_HEADERS([stdint.h])
 AC_CHECK_HEADERS([stdlib.h])

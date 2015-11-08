@@ -1,5 +1,6 @@
 Version 2.7.5dev:
 
+* Better (build-time) OpenAL detection on OS X.
 * New configure option --with-libmpeg2=yes/builtin (no won't work yet),
   defaults to yes (using system library).
 * Fix additional custom joystick ports.

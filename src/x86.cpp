@@ -246,7 +246,8 @@ static uae_u8 get_mode_register(struct x86_bridge *xb, uae_u8 v)
 static uae_u8 x86_bridge_put_io(struct x86_bridge *xb, uaecptr addr, uae_u8 v)
 {
 #if X86_DEBUG_BRIDGE_IO
-	write_log(_T("IO write %08x %02x\n"), addr, v);
+	uae_u8 old = xb->amiga_io[addr];
+	write_log(_T("IO write %08x %02x -> %02x\n"), addr, old, v);
 #endif
 
 	switch (addr)
@@ -258,7 +259,7 @@ static uae_u8 x86_bridge_put_io(struct x86_bridge *xb, uaecptr addr, uae_u8 v)
 		case IO_PC_INTERRUPT_STATUS:
 		v = xb->amiga_io[addr];
 #if X86_DEBUG_BRIDGE_IRQ
-		write_log(_T("IO_PC_INTERRUPT_STATUS %02x\n"), v);
+		write_log(_T("IO_PC_INTERRUPT_STATUS %02X -> %02x\n"), old, v);
 #endif
 		break;
 		case IO_NEGATE_PC_RESET:
@@ -267,7 +268,7 @@ static uae_u8 x86_bridge_put_io(struct x86_bridge *xb, uaecptr addr, uae_u8 v)
 		case IO_PC_INTERRUPT_CONTROL:
 		if ((v & 1) || (v & (2 | 4 | 8)) != (2 | 4 | 8)) {
 #if X86_DEBUG_BRIDGE_IRQ
-			write_log(_T("IO_PC_INTERRUPT_CONTROL %02x\n"), v);
+			write_log(_T("IO_PC_INTERRUPT_CONTROL %02X -> %02x\n"), old, v);
 #endif
 			if (xb->type < TYPE_2286 && (v & 1))
 				x86_doirq(1);
@@ -286,13 +287,13 @@ static uae_u8 x86_bridge_put_io(struct x86_bridge *xb, uaecptr addr, uae_u8 v)
 		else if (!(v & 2))
 			v |= 1;
 #if X86_DEBUG_BRIDGE_IO
-		write_log(_T("IO_CONTROL_REGISTER %02x\n"), v);
+		write_log(_T("IO_CONTROL_REGISTER %02X -> %02x\n"), old, v);
 #endif
 		break;
 		case IO_KEYBOARD_REGISTER_A1000:
 		if (xb->type == TYPE_SIDECAR) {
 #if X86_DEBUG_BRIDGE_IO
-			write_log(_T("IO_KEYBOARD_REGISTER %02x\n"), v);
+			write_log(_T("IO_KEYBOARD_REGISTER %02X -> %02x\n"), old, v);
 #endif
 			xb->io_ports[0x60] = v;
 		}
@@ -300,7 +301,7 @@ static uae_u8 x86_bridge_put_io(struct x86_bridge *xb, uaecptr addr, uae_u8 v)
 		case IO_KEYBOARD_REGISTER_A2000:
 		if (xb->type >= TYPE_2088) {
 #if X86_DEBUG_BRIDGE_IO
-			write_log(_T("IO_KEYBOARD_REGISTER %02x\n"), v);
+			write_log(_T("IO_KEYBOARD_REGISTER %02X -> %02x\n"), old, v);
 #endif
 			xb->io_ports[0x60] = v;
 			if (xb->type >= TYPE_2286) {
@@ -311,10 +312,13 @@ static uae_u8 x86_bridge_put_io(struct x86_bridge *xb, uaecptr addr, uae_u8 v)
 		case IO_MODE_REGISTER:
 		v = get_mode_register(xb, v);
 #if X86_DEBUG_BRIDGE_IO
-		write_log(_T("IO_MODE_REGISTER %02x\n"), v);
+		write_log(_T("IO_MODE_REGISTER %02X -> %02x\n"), old, v);
 #endif
 		break;
 		case IO_INTERRUPT_MASK:
+#if X86_DEBUG_BRIDGE_IO
+		write_log(_T("IO_INTERRUPT_MASK %02X -> %02x\n"), old, v);
+#endif
 		break;
 		case IO_A2386_CONFIG:
 		write_log(_T("A2386 CONFIG BYTE %02x\n"), v);

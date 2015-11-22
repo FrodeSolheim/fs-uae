@@ -8,7 +8,7 @@ Version 2.7.5dev:
 * New boolean option full_keyboard to set the initial state.
 * Auto-choose joystick device for port 0 when not started in mouse mode.
 * Support deflate compression in fs-uae.dat.
-* Updated emulation core from WinUAE 3200b20.
+* Updated emulation core from WinUAE 3200.
 
 Version 2.7.4dev:
 

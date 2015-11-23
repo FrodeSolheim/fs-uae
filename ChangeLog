@@ -1,5 +1,6 @@
 Version 2.7.5dev:
 
+* Fix abort in OpenAL on OS X on shutdown.
 * On x86-64, do not try to use "32-bit memory" unless JIT is enabled.
 * If x87_fldcw dynamic function cannot be created, fall back to inline asm.
 * Fix loading controller configs from non-ASCII paths on Windows.

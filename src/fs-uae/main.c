@@ -544,10 +544,9 @@ static void on_init()
     }
     */
 
-    // with sound_auto set to true, UAE stops audio output if the amiga does
-    // not produce sound, but this just confuses libfsemu which expects
-    // continuous output
-    //amiga_set_option("sound_auto", "false");
+    /* With sound_auto set to true, UAE stops audio output if the amiga does
+     * not produce sound.  */
+    // amiga_set_option("sound_auto", "false");
 
     amiga_set_audio_frequency(fs_emu_audio_output_frequency());
 

@@ -615,20 +615,26 @@ static void openal_audio_init()
 
 void fs_emu_audio_init()
 {
-    fs_log("fs_emu_audio_init\n");
+    fs_log("OPENAL: fs_emu_audio_init\n");
     openal_audio_init();
 }
 
 static void openal_audio_shutdown()
 {
-    //alDeleteSources(NUM_SOURCES, source);
-    //alDeleteBuffers(NUM_BUFFERS, buffers);
+    for (int i = 0; i < MAX_STREAMS; i++) {
+        if (g_streams[i]) {
+            fs_log("OPENAL: Stopping stream %d\n", i);
+            alSourceStop(g_streams[i]->source);
+        }
+    }
     alcMakeContextCurrent(NULL);
-    if (!g_context) {
+    if (g_context) {
+        fs_log("OPENAL: alcDestroyContext\n");
         alcDestroyContext(g_context);
         g_context = NULL;
     }
     if (g_device) {
+        fs_log("OPENAL: alcCloseDevice\n");
         alcCloseDevice(g_device);
         g_device = NULL;
     }
@@ -636,6 +642,7 @@ static void openal_audio_shutdown()
 
 void fs_emu_audio_shutdown()
 {
+    fs_log("OPENAL: fs_emu_audio_shutdown\n");
     openal_audio_shutdown();
 }
 

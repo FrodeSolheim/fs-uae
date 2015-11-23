@@ -37,7 +37,9 @@ void amiga_init_lua_state(lua_State *L);
 #define AMIGA_VIDEO_FORMAT_R5G6B5 2
 #define AMIGA_VIDEO_FORMAT_R5G5B5A1 3
 
-int amiga_init();
+int amiga_init(void);
+bool amiga_init_jit_compiler(void);
+
 int amiga_set_synchronization_log_file(const char *path);
 int amiga_quickstart(int model, int config, int accuracy);
 //int amiga_main(int argc, char** argv);

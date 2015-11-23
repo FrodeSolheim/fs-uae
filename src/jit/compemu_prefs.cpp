@@ -5,6 +5,11 @@ extern bool have_done_picasso;
 
 bool check_prefs_changed_comp (bool checkonly)
 {
+#ifdef FSUAE
+	if (!g_fs_uae_jit_compiler) {
+		return false;
+	}
+#endif
 	bool changed = 0;
 	static int cachesize_prev, comptrust_prev;
 	static bool canbang_prev;

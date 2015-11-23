@@ -93,6 +93,9 @@
 #endif
 
 #ifdef UAE
+#ifdef FSUAE
+#include "uae/fs.h"
+#endif
 #include "uae/log.h"
 
 #include "uae/vm.h"
@@ -3949,6 +3952,12 @@ static bool merge_blacklist()
 
 void build_comp(void)
 {
+#ifdef FSUAE
+	if (!g_fs_uae_jit_compiler) {
+		jit_log("JIT: JIT compiler is not enabled");
+		return;
+	}
+#endif
 	int i;
 	unsigned long opcode;
 	const struct comptbl* tbl=op_smalltbl_0_comp_ff;

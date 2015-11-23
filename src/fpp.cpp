@@ -544,8 +544,8 @@ static inline void set_fpucw_softfloat(uae_u32 m68k_cw)
  * and the x86-64 versions of _control87/_controlfp functions only modifies
  * SSE2 registers. */
 
-static uae_u16 x87_cw = 0;
-static char *x87_fldcw_code = NULL;
+static uae_u16 x87_cw;
+static char *x87_fldcw_code;
 typedef void (uae_cdecl *x87_fldcw_function)(void);
 
 static void init_fpucw_x87(void)
@@ -555,6 +555,10 @@ static void init_fpucw_x87(void)
 	}
 	x87_fldcw_code = (char *) uae_vm_alloc(
 		uae_vm_page_size(), UAE_VM_32BIT, UAE_VM_READ_WRITE_EXECUTE);
+	if (!x87_fldcw_code) {
+		write_log("WARNING: Could not initialize fpucw_x87\n");
+		return;
+	}
 	char *c = x87_fldcw_code;
 	/* mov eax,0x0 */
 	*(c++) = 0xb8;
@@ -581,6 +585,11 @@ static void init_fpucw_x87(void)
 
 static inline void set_fpucw_x87(uae_u32 m68k_cw)
 {
+	if (x87_fldcw_code) {
+		((x87_fldcw_function) x87_fldcw_code)();
+		return;
+	}
+
 	static const uae_u16 x87_cw_tab[] = {
 		0x137f, 0x1f7f, 0x177f, 0x1b7f,	/* Extended */
 		0x107f, 0x1c7f, 0x147f, 0x187f,	/* Single */
@@ -592,8 +601,6 @@ static inline void set_fpucw_x87(uae_u32 m68k_cw)
 	__asm { fldcw word ptr x87_cw }
 #elif defined(__GNUC__) && 0
 	__asm__("fldcw %0" : : "m" (*&x87_cw));
-#else
-	((x87_fldcw_function) x87_fldcw_code)();
 #endif
 }
 

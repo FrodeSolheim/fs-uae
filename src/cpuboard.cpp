@@ -33,6 +33,10 @@
 #include "scsi.h"
 #include "cpummu030.h"
 
+#ifdef FSUAE // NL
+#include "uae/fs.h"
+#endif
+
 #define CPUBOARD_IO_LOG 0
 #define CPUBOARD_IRQ_LOG 0
 
@@ -1596,8 +1600,15 @@ retry:
 		} else {
 			if (cpuboard_size) {
 #ifdef CPU_64_BIT
+				int vm_flags = UAE_VM_32BIT;
+#ifdef FSUAE
+				if (!g_fs_uae_jit_compiler) {
+					/* Not using the JIT compiler, so we do not need "32-bit memory". */
+					vm_flags &= ~UAE_VM_32BIT;
+				}
+#endif
 				blizzardram_bank.baseaddr = (uae_u8 *) uae_vm_alloc(
-					blizzardram_bank.allocated, UAE_VM_32BIT, UAE_VM_READ_WRITE);
+					blizzardram_bank.allocated, vm_flags, UAE_VM_READ_WRITE);
 #else
 				blizzardram_bank.baseaddr = xmalloc(uae_u8, blizzardram_bank.allocated);
 				if (!blizzardram_bank.baseaddr) {

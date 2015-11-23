@@ -1,5 +1,7 @@
 Version 2.7.5dev:
 
+* On x86-64, do not try to use "32-bit memory" unless JIT is enabled.
+* If x87_fldcw dynamic function cannot be created, fall back to inline asm.
 * Fix loading controller configs from non-ASCII paths on Windows.
 * Better (build-time) OpenAL detection on OS X.
 * New configure option --with-libmpeg2=yes/builtin (no won't work yet),

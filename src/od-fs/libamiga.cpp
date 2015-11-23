@@ -31,7 +31,7 @@ amiga_media_function g_amiga_media_function = NULL;
 
 int g_uae_deterministic_mode = 0;
 int g_amiga_paused = 0;
-
+bool g_fs_uae_jit_compiler;
 int g_amiga_savestate_docompress = 1;
 
 #ifdef DEBUG_SYNC
@@ -127,7 +127,7 @@ void amiga_floppy_set_writable_images(int writable) {
     g_fs_uae_writable_disk_images = writable;
 }
 
-int amiga_init()
+int amiga_init(void)
 {
     printf("UAE: Initializing core derived from %s\n", UAE_BASE_VERSION);
     write_log("UAE: Initializing core derived from %s\n", UAE_BASE_VERSION);
@@ -151,6 +151,13 @@ int amiga_init()
     romlist_init();
 
     return 1;
+}
+
+bool amiga_init_jit_compiler(void)
+{
+    write_log("JIT: Enabling JIT compiler\n");
+    g_fs_uae_jit_compiler = true;
+    return true;
 }
 
 void amiga_set_video_format(int format) {

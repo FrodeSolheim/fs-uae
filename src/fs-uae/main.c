@@ -37,7 +37,7 @@
 
 static int fs_uae_argc;
 static char **fs_uae_argv;
-static int g_warn_about_missing_config_file = 0;
+static int g_warn_about_missing_config_file;
 
 #define LOG_LINE "---------------------------------------------------------" \
         "-------------------\n"
@@ -1241,6 +1241,10 @@ int main(int argc, char *argv[])
 
     amiga_set_media_function(media_function);
     amiga_set_init_function(on_init);
+
+    if (fs_config_get_boolean(OPTION_JIT_COMPILER) == 1) {
+        amiga_init_jit_compiler();
+    }
 
 #ifdef WITH_LUA
     amiga_init_lua(fs_emu_acquire_lua, fs_emu_release_lua);

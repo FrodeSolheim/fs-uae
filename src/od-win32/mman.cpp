@@ -19,6 +19,10 @@
 #include "win32.h"
 #endif
 
+#ifdef FSUAE // NL
+#include "uae/fs.h"
+#endif
+
 #if defined(NATMEM_OFFSET)
 
 uae_u32 max_z3fastmem;
@@ -250,14 +254,15 @@ bool preinit_shm (void)
 				  totalphys64 >> 20, total64 >> 20);
 	write_log(_T("NATMEM: Attempting to reserve: %u MB\n"), natmem_size >> 20);
 
-#if 1
-	natmem_reserved = (uae_u8 *) uae_vm_reserve(
-		natmem_size, UAE_VM_32BIT | UAE_VM_WRITE_WATCH);
-#else
-	natmem_size = 0x20000000;
-	natmem_reserved = (uae_u8 *) uae_vm_reserve_fixed(
-		(void *) 0x90000000, natmem_size, UAE_VM_32BIT | UAE_VM_WRITE_WATCH);
+	int vm_flags = UAE_VM_32BIT | UAE_VM_WRITE_WATCH;
+#ifdef FSUAE
+	write_log("NATMEM: jit compiler %d\n", g_fs_uae_jit_compiler);
+	if (!g_fs_uae_jit_compiler) {
+		/* Not using the JIT compiler, so we do not need "32-bit memory". */
+		vm_flags &= ~UAE_VM_32BIT;
+	}
 #endif
+	natmem_reserved = (uae_u8 *) uae_vm_reserve(natmem_size, vm_flags);
 
 	if (!natmem_reserved) {
 		if (natmem_size <= 768 * 1024 * 1024) {

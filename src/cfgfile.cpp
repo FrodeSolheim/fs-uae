@@ -46,6 +46,7 @@
 #include "luascript.h"
 
 #ifdef FSUAE
+#include <uae/fs.h>
 #define cfgfile_warning error_log
 #define cfgfile_warning_obsolete error_log
 #else
@@ -4383,6 +4384,19 @@ static int cfgfile_parse_hardware (struct uae_prefs *p, const TCHAR *option, TCH
 		|| cfgfile_yesno (option, value, _T("toccata_mixer"), &p->sound_toccata_mixer)
 		|| cfgfile_yesno (option, value, _T("uaeserial"), &p->uaeserial))
 		return 1;
+
+#ifdef FSUAE // NL
+	if (!g_fs_uae_jit_compiler) {
+		if (cfgfile_intval(option, value, _T("cachesize"), &p->cachesize, 1)) {
+			/* If FS-UAE wasn't started with JIT support initially, we cannot
+			 * enable it at a later time, since 32-bit memory may not be
+			 * configured. */
+			error_log(_T("uae_cachesize set but jit_compiler is not enabled"));
+			p->cachesize = 0;
+			return 1;
+		}
+	}
+#endif
 
 	if (cfgfile_intval (option, value, _T("cachesize"), &p->cachesize, 1)
 		|| cfgfile_intval (option, value, _T("cd32nvram_size"), &p->cs_cd32nvram_size, 1024)

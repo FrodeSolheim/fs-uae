@@ -1,5 +1,6 @@
 Version 2.7.6dev:
 
+* Warn when uae_cachesize is used without jit_compiler enabled.
 * Theme options override options from config.
 
 Version 2.7.5dev:

@@ -12,7 +12,7 @@ extern "C" {
 #endif
 
 int fs_config_read_file(const char *path, int force);
-void fs_config_parse_ini_file(fs_ini_file *ini_file);
+void fs_config_parse_ini_file(fs_ini_file *ini_file, int force);
 void fs_config_parse_options(int argc, char **argv);
 
 void fs_config_parse_options(int argc, char **argv);

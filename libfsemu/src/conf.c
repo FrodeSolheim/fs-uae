@@ -124,7 +124,7 @@ void fs_config_set_string_if_unset(const char *key, const char *value)
     }
 }
 
-void fs_config_parse_ini_file(fs_ini_file *ini_file)
+void fs_config_parse_ini_file(fs_ini_file *ini_file, int force)
 {
     char **groups = fs_ini_file_get_groups(ini_file, NULL);
     for (char **group = groups; *group; group++) {
@@ -137,7 +137,7 @@ void fs_config_parse_ini_file(fs_ini_file *ini_file)
             char *value = fs_ini_file_get_value(ini_file, *group, *key);
             if (value) {
                 char *key2 = g_strconcat(prefix, *key, NULL);
-                process_key_value(key2, value, 0);
+                process_key_value(key2, value, force);
                 g_free(key2);
             }
         }
@@ -172,7 +172,7 @@ int fs_config_read_file(const char *path, int force)
         fs_log("error loading config file\n");
         return 0;
     }
-    fs_config_parse_ini_file(ini_file);
+    fs_config_parse_ini_file(ini_file, force);
     fs_ini_file_destroy(ini_file);
     return 1;
 }

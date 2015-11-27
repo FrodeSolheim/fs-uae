@@ -616,7 +616,7 @@ static int load_config_file()
             fs_log("error loading config file\n");
             return 1;
         }
-        fs_config_parse_ini_file(ini_file);
+        fs_config_parse_ini_file(ini_file, 0);
         fs_ini_file_destroy(ini_file);
         return 0;
     }

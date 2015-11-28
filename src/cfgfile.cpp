@@ -4391,9 +4391,11 @@ static int cfgfile_parse_hardware (struct uae_prefs *p, const TCHAR *option, TCH
 			/* If FS-UAE wasn't started with JIT support initially, we cannot
 			 * enable it at a later time, since 32-bit memory may not be
 			 * configured. */
-			error_log(_T("uae_cachesize set but jit_compiler is not enabled"));
-			p->cachesize = 0;
-			return 1;
+			if (p->cachesize) {
+				error_log(_T("uae_cachesize set without jit_compiler"));
+				p->cachesize = 0;
+				return 1;
+			}
 		}
 	}
 #endif

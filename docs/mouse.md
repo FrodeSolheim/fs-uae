@@ -40,7 +40,7 @@ Support for multiple mice seems to work just fine on Windows out of the box.
 
 Support for multiple mice seems to work just fine on OS X out of the box.
 
-# ## Mouse Buttons on OS X
+### Mouse Buttons on OS X
 
 ## Linux
 
@@ -107,13 +107,13 @@ The reason for this is that when XInput2 is used and mouse input is grabbed
 by FS-UAE, no mouse events at all reach the ManyMouse library. It works fine
 when input grab is released. With the evdev driver, it always works fine.
 
-## OpenBSD
+## FreeBSD / OpenBSD
 
 Presumably, XInput2 should work well, with the caveat that input from
-specific mice probably only works when FS-UAE does not have input focus
+specific mice probably only works when FS-UAE does not have input grabbed
 (See the Linux section for more information). You can use the option
 [automatic_input_grab](options/automatic_input_grab.md) to prevent FS-UAE from
 grabbing the input.
 
-If you are using OpenBSD and have tested this feature, please leave
+If you are using FreeBSD / OpenBSD and have tested this feature, please leave
 feedback on fs-uae.net!

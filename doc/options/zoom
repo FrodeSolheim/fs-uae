@@ -18,6 +18,7 @@ Value: 640x480
 Value: 640x480+border ("640x480 + Border")
 Value: 640x512
 Value: 640x512+border ("640x512 + Border")
+Value: 704x520
 Value: 704x540
 Value: 704x566
 Value: 724x566

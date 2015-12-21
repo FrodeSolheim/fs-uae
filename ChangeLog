@@ -3,6 +3,7 @@ Version 2.7.6dev:
 * Lowered default floppy drive sound volume.
 * Warn when uae_cachesize is used without jit_compiler enabled.
 * Theme options override options from config.
+* Updated emulation core from WinUAE 3220b1.
 
 Version 2.7.5dev:
 

@@ -241,6 +241,8 @@ int inet_aton _P((const char *cp, struct in_addr *ia));
 
 /* Should be UINT_PTR but SLIRP code has <= 0 tests */
 #define SLIRP_SOCKET INT_PTR
+#else
+#define SLIRP_SOCKET intptr_t
 #endif
 
 #include "debug.h"

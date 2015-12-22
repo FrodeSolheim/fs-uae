@@ -105,11 +105,16 @@ only target, and it's easier this way... */
 #define STACK_SHADOW_SPACE 0
 #endif
 
-uae_s8 always_used[]={4,-1};
 #if defined(CPU_x86_64)
+/* Register R12 (and ESP) cannot be used with simple [r/m + disp32] addressing,
+ * since r/m bits 100 implies SIB byte. Simplest fix is to not use these
+ * registers. Also note that these registers are listed in the freescratch
+ * function as well. */
+uae_s8 always_used[] = { 4, 12, -1 };
 uae_s8 can_byte[]={0,1,2,3,5,6,7,8,9,10,11,12,13,14,15,-1};
 uae_s8 can_word[]={0,1,2,3,5,6,7,8,9,10,11,12,13,14,15,-1};
 #else
+uae_s8 always_used[] = { 4, -1 };
 uae_s8 can_byte[]={0,1,2,3,-1};
 uae_s8 can_word[]={0,1,2,3,5,6,7,-1};
 #endif

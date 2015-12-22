@@ -2941,7 +2941,7 @@ void freescratch(void)
 {
 	int i;
 	for (i=0;i<N_REGS;i++)
-		if (live.nat[i].locked && i!=4) {
+		if (live.nat[i].locked && i != 4 && i != 12) {
 			jit_log("Warning! %d is locked",i);
 	}
 

@@ -466,6 +466,11 @@ static void outser (void)
 }
 #endif
 
+void writeser_flush(void)
+{
+
+}
+
 void writeser (int c)
 {
 	if (tcpserial) {

@@ -1,5 +1,6 @@
 Version 2.7.6dev:
 
+* Fix AGA flickering bug introduced in 2.5.40dev.
 * Do not use R12 register in x86-64 JIT due to addressing issue.
 * Lowered default floppy drive sound volume.
 * Warn when uae_cachesize is used without jit_compiler enabled.

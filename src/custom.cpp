@@ -2042,7 +2042,7 @@ STATIC_INLINE void long_fetch_64 (int plane, int nwords, int weird_number_of_bit
 		return;
 
 #ifdef HAVE_UAE_U128
-	shiftbuffer = todisplay2_aga[plane] << delay;
+	shiftbuffer = ((uae_u128) todisplay2_aga[plane]) << delay;
 #else
 	shiftbuffer[1] = 0;
 	shiftbuffer[0] = todisplay2_aga[plane];

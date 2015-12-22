@@ -27,7 +27,7 @@
 #include "parser.h"
 
 #define SERIALLOGGING 0
-#define SERIALDEBUG 1 /* 0, 1, 2 3 */
+#define SERIALDEBUG 0 /* 0, 1, 2 3 */
 #define SERIALHSDEBUG 0
 #define SERIAL_HSYNC_BEFORE_OVERFLOW 200
 
@@ -249,13 +249,21 @@ void SERPER (uae_u16 w)
 #endif
 }
 
-static TCHAR dochar (int v)
+static TCHAR docharlog(int v)
 {
 	v &= 0xff;
 	if (v >= 32 && v < 127)
 		return v;
 	if (v == 10)
 		return 10;
+	return '.';
+}
+
+static TCHAR dochar(int v)
+{
+	v &= 0xff;
+	if (v >= 32 && v < 127)
+		return v;
 	return '.';
 }
 
@@ -377,7 +385,7 @@ static void serdatcopy(void);
 
 static void checksend(void)
 {
-	if (data_in_sershift != 1)
+	if (data_in_sershift != 1 && data_in_sershift != 2)
 		return;
 
 #ifdef SERIAL_MAP
@@ -391,29 +399,35 @@ static void checksend(void)
 #endif
 #ifdef SERIAL_PORT
 	if (ninebit) {
-		if (!checkserwrite(2))
+		if (!checkserwrite(2)) {
+			data_in_sershift = 2;
 			return;
+		}
 		writeser(((serdatshift >> 8) & 1) | 0xa8);
 		writeser(serdatshift_masked);
 	} else {
 		if (currprefs.serial_crlf) {
 			if (serdatshift_masked == 10 && serial_send_previous != 13) {
-				if (!checkserwrite(2))
+				if (!checkserwrite(2)) {
+					data_in_sershift = 2;
 					return;
+				}
 				writeser(13);
 			}
 		}
-		if (!checkserwrite(1))
+		if (!checkserwrite(1)) {
+			data_in_sershift = 2;
 			return;
+		}
 		writeser(serdatshift_masked);
 		serial_send_previous = serdatshift_masked;
 	}
 #endif
-	if (serial_period_hsyncs <= 1) {
+	if (serial_period_hsyncs <= 1 || data_in_sershift == 2) {
 		data_in_sershift = 0;
 		serdatcopy();
 	} else {
-		data_in_sershift = 2;
+		data_in_sershift = 3;
 	}
 #if SERIALDEBUG > 2
 	write_log(_T("SERIAL: send %04X (%c)\n"), serdatshift, dochar(serdatshift));
@@ -422,8 +436,9 @@ static void checksend(void)
 
 static bool checkshiftempty(void)
 {
+	writeser_flush();
 	checksend();
-	if (data_in_sershift == 2) {
+	if (data_in_sershift == 3) {
 		data_in_sershift = 0;
 		serdatcopy();
 		return true;
@@ -436,7 +451,7 @@ static void sersend_ce(uae_u32 v)
 	if (checkshiftempty()) {
 		lastbitcycle = get_cycles() + ((serper & 0x7fff) + 1) * CYCLE_UNIT;
 		lastbitcycle_active_hsyncs = ((serper & 0x7fff) + 1) / maxhpos + 2;
-	} else if (data_in_sershift == 1) {
+	} else if (data_in_sershift == 1 || data_in_sershift == 2) {
 		event2_newevent_x(-1, maxhpos, 0, sersend_ce);
 	}
 }
@@ -458,14 +473,12 @@ static void serdatcopy(void)
 
 	if (seriallog) {
 		gotlogwrite = true;
-		write_log(_T("%c"), dochar(serdatshift_masked));
+		write_log(_T("%c"), docharlog(serdatshift_masked));
 	}
 
 	if (serper == 372) {
 		if (enforcermode & 2) {
-			console_out_f(_T("%c"), dochar(serdatshift_masked));
-			if (serdatshift_masked == 10)
-				console_out(_T("\n"));
+			console_out_f(_T("%c"), docharlog(serdatshift_masked));
 		}
 	}
 
@@ -545,6 +558,10 @@ void serial_hsynchandler (void)
 
 void SERDAT (uae_u16 w)
 {
+#if SERIALDEBUG > 2
+	write_log(_T("SERIAL: SERDAT write 0x%04x (%c) PC=%x\n"), w, dochar(w), M68K_GETPC);
+#endif
+
 	serdatcopy();
 
 	serdat = w;
@@ -564,10 +581,6 @@ void SERDAT (uae_u16 w)
 
 	data_in_serdat = 1;
 	serdatcopy();
-
-#if SERIALDEBUG > 2
-	write_log (_T("SERIAL: wrote 0x%04x (%c) PC=%x\n"), w, dochar (w), M68K_GETPC);
-#endif
 }
 
 uae_u16 SERDATR (void)
@@ -584,16 +597,20 @@ uae_u16 SERDATR (void)
 #if SERIALDEBUG > 2
 	write_log (_T("SERIAL: read 0x%04x (%c) %x\n"), serdatr, dochar (serdatr), M68K_GETPC);
 #endif
-	ovrun = 0;
 	data_in_serdatr = 0;
 	return serdatr;
+}
+
+void serial_rbf_clear(void)
+{
+	ovrun = 0;
 }
 
 void serial_check_irq (void)
 {
 	// Data in receive buffer
 	if (data_in_serdatr)
-		INTREQ(0x8000 | 0x0800);
+		INTREQ_0(0x8000 | 0x0800);
 }
 
 void serial_dtr_on (void)

@@ -193,6 +193,8 @@ static int isdevice (struct uae_input_device *id)
 	return 0;
 }
 
+static void check_enable(int ei);
+
 int inputdevice_uaelib (const TCHAR *s, const TCHAR *parm)
 {
 	int i;
@@ -222,6 +224,7 @@ int inputdevice_uaelib (const TCHAR *s, const TCHAR *parm)
 
 	for (i = 1; events[i].name; i++) {
 		if (!_tcscmp (s, events[i].confname)) {
+			check_enable(i);
 			handle_input_event (i, parm ? _tstol (parm) : 0, 1, 0, false, false);
 			return 1;
 		}
@@ -233,6 +236,7 @@ int inputdevice_uaelib(const TCHAR *s, int parm, int max, bool autofire)
 {
 	for (int i = 1; events[i].name; i++) {
 		if (!_tcscmp(s, events[i].confname)) {
+			check_enable(i);
 			handle_input_event(i, parm, max, autofire, false, false);
 			return 1;
 		}
@@ -3487,7 +3491,7 @@ static int handle_input_event (int nr, int state, int max, int autofire, bool ca
 
 			/* real mouse / analog stick mouse emulation */
 			int delta;
-			int deadzone = currprefs.input_joymouse_deadzone * max / 100;
+			int deadzone = max < 0 ? 0 : currprefs.input_joymouse_deadzone * max / 100;
 			int unit = ie->data & 0x7f;
 
 			if (max) {
@@ -3501,8 +3505,12 @@ static int handle_input_event (int nr, int state, int max, int autofire, bool ca
 					state -= deadzone;
 					mouse_deltanoreset[joy][unit] = 1;
 				}
-				max -= deadzone;
-				delta = state * currprefs.input_joymouse_multiplier / max;
+				if (max > 0) {
+					max -= deadzone;
+					delta = state * currprefs.input_joymouse_multiplier / max;
+				} else {
+					delta = state;
+				}
 			} else {
 				delta = state;
 				mouse_deltanoreset[joy][unit] = 0;
@@ -4519,6 +4527,16 @@ static int islightpen (int ei)
 
 static void isqualifier (int ei)
 {
+}
+
+static void check_enable(int ei)
+{
+	iscd32(ei);
+	isparport(ei);
+	ismouse(ei);
+	isdigitalbutton(ei);
+	isqualifier(ei);
+	islightpen(ei);
 }
 
 static void scanevents (struct uae_prefs *p)

@@ -137,7 +137,7 @@ static char* read_custom_path(const char *key)
     return NULL;
 }
 
-static const char* fs_uae_base_dir(void)
+const char* fs_uae_base_dir(void)
 {
     static const char* path;
     if (path) {

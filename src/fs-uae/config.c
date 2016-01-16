@@ -11,6 +11,7 @@
 #include "fs-uae.h"
 
 #include "options.h"
+#include "paths.h"
 #include "config-accelerator.h"
 #include "config-common.h"
 #include "config-graphics.h"
@@ -112,6 +113,13 @@ void fs_uae_configure_amiga_hardware()
     }
     if (scan_kickstarts) {
         fs_uae_load_rom_files(fs_uae_kickstarts_dir());
+        gchar *scan_path = g_build_filename(
+            fs_uae_base_dir(), "AmigaForever", "Amiga Files", "Shared",
+            "rom", NULL);
+        if (g_file_test(scan_path, G_FILE_TEST_IS_DIR)) {
+            fs_uae_load_rom_files(scan_path);
+        }
+        g_free(scan_path);
     }
 
     fs_emu_log("configuring \"%s\", accuracy=%d\n", c->name, 1);

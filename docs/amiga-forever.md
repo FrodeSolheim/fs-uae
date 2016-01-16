@@ -8,10 +8,9 @@ There are two versions which contains all Kickstart ROMs:
 * Premium: Physical media, plus access to the plus edition .msi installer.
 
 **Note:** There is also a value edition, but this only provides a
-Kickstart 1.3 image (though sufficient for most classic games), and may
-require some non-trivial operations to extract the Kickstart ROM. Unless
-you know what you are doing, I strongly recommend the Plus or Premium
-edition.
+Kickstart 1.3 image (though sufficient for most classic games), and some
+some non-trivial operations are required to extract the Kickstart ROM. Unless
+you know what you are doing, I recommend the Plus or Premium edition instead.
 
 Please note that Amiga Forever and Cloanto is not in any way affiliated
 with FS-UAE, and I get no provisions from the sale of Amiga Forever. I
@@ -117,10 +116,12 @@ Just transfer the entire `Amiga Files` directory to
 
 ## Value edition
 
-Warning: The value edition does not contains Kickstart ROMs except for
-version 1.3. Also, the rom.key file might be missing, and you may have to
-extract the Kickstart ROM file from the running emulated Amiga. Unless
-you know what you are doing, I recommend using the Plus or Premium edition.
+**Warning:** The value edition does not contains Kickstart ROMs except for
+version 1.3.
+
+It is possible to extract an un-encrypted Kickstart ROM file from
+Amiga Forever Value Edition. At the time of writing, a video tutorial for
+doing this is available at https://www.youtube.com/watch?v=W2_edUd2KyI.
 
 ## Final notes
 

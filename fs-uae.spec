@@ -1,7 +1,9 @@
 %define name fs-uae
-%define version 2.7.6dev
-%define unmangled_version 2.7.6dev
+%define version 2.7.7dev
+%define unmangled_version 2.7.7dev
 %define release 1%{?dist}
+
+%undefine _hardened_build
 
 Summary: Amiga emulator with on-screen GUI and online play support
 Name: %{name}

@@ -607,14 +607,13 @@ static inline void set_fpucw_x87(uae_u32 m68k_cw)
 		0x137f, 0x1f7f, 0x177f, 0x1b7f	/* undefined */
 	};
 	x87_cw = x87_cw_tab[(m68k_cw >> 4) & 0xf];
+#if defined(__GNUC__)
+	__asm__("fldcw %0" : : "m" (*&x87_cw));
+#else
 	if (x87_fldcw_code) {
 		((x87_fldcw_function) x87_fldcw_code)();
 		return;
 	}
-#if defined(X86_MSVC_ASSEMBLY)
-	__asm { fldcw word ptr x87_cw }
-#elif defined(__GNUC__)
-	__asm__("fldcw %0" : : "m" (*&x87_cw));
 #endif
 }
 

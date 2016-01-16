@@ -4,7 +4,8 @@ This document explains how to use keyboard shortcuts in FS-UAE, how FS-UAE
 and system keyboard shortcuts can interfere, and how the emulated Amiga
 keyboard works.
 
-**FIXME** Keyboard joystick emulation
+**FIXME** Keyboard joystick emulation doc
+**FIXME** Keyboard CD32 emulation doc
 
 **FIXME** Reference full_keyboard
 

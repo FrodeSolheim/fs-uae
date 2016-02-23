@@ -17,43 +17,46 @@
 #define CHUNK_SIZE 1024
 #define CHUNK_BYTES (CHUNK_SIZE * 4)
 
-static int g_recording_enabled = 0;
-static int g_recording_invalid = 0;
-
-static int g_recording_modified = 0;
-static GList *g_record_chunks = NULL;
-static uint32_t *g_record_chunk = NULL;
+static int g_recording_enabled;
+static int g_recording_invalid;
+static int g_recording_modified;
+static GList *g_record_chunks;
+static uint32_t *g_record_chunk;
 // position in number of 32-bit values, not bytes
-static int g_chunk_pos = 0;
-static int g_last_recorded_line = 0;
+static int g_chunk_pos;
+static int g_last_recorded_line;
 
-static int g_recording_length = 0;
-static int g_playback_pos = 0;
-static int g_playback_frame = 0;
-static int g_playback_line = 0;
-static GList *g_playback_list = NULL;
-static char *g_record_path = NULL;
+static int g_recording_length;
+static int g_playback_pos;
+static int g_playback_frame;
+static int g_playback_line;
+static GList *g_playback_list;
+static char *g_record_path;
 
 // FIXME: write endianness to record file, or simply require little-endian
 // encoding, or big-endian...
 
-int fs_uae_is_recording_enabled() {
+int fs_uae_is_recording_enabled(void)
+{
     return g_recording_enabled;
 }
 
-static void invalidate_recording(void) {
+static void invalidate_recording(void)
+{
     fs_emu_notification(0, "Recording is corrupted/invalid");
     // g_recording_enabled = 0;
     g_recording_invalid = 1;
 }
 
-static void new_chunk() {
+static void new_chunk(void)
+{
     g_record_chunk = (uint32_t *) malloc(CHUNK_BYTES);
     g_record_chunks = g_list_append(g_record_chunks, g_record_chunk);
     g_chunk_pos = 0;
 }
 
-static uint32_t get_value() {
+static uint32_t get_value(void)
+{
     if (g_playback_pos == g_recording_length) {
         //printf("g_playback_pos == g_recording_length\n");
         return 0;
@@ -77,7 +80,8 @@ static uint32_t get_value() {
     return value;
 }
 
-static void next_value() {
+static void next_value(void)
+{
     g_chunk_pos += 1;
     g_playback_pos += 1;
     if (g_playback_pos == g_recording_length) {
@@ -86,7 +90,8 @@ static void next_value() {
     }
 }
 
-static int write_recording(const char *path, int length) {
+static int write_recording(const char *path, int length)
+{
     FILE *f = g_fopen(path, "wb");
     if (f == NULL) {
         fs_emu_warning("Could not open recording file for writing\n");
@@ -116,8 +121,10 @@ static int write_recording(const char *path, int length) {
     return 1;
 }
 
-static void reset_recording() {
+static void reset_recording(void)
+{
 
+    fs_log("-- reset_recording --\n");
     GList *item = g_record_chunks;
     while (item) {
         free(item->data);
@@ -131,8 +138,6 @@ static void reset_recording() {
 
     g_recording_length = 0;
 
-    g_chunk_pos = 0;
-    g_record_chunk = NULL;
     g_playback_pos = 0;
     g_playback_list = g_record_chunks;
 
@@ -147,7 +152,8 @@ static void reset_recording() {
     g_recording_modified = 0;
 }
 
-static int read_recording(const char *path, int end) {
+static int read_recording(const char *path, int end)
+{
     reset_recording();
 
     FILE *f = g_fopen(path, "rb");
@@ -231,7 +237,8 @@ static int read_recording(const char *path, int end) {
     return 1;
 }
 
-static char *get_state_recording_path(const char *p) {
+static char *get_state_recording_path(const char *p)
+{
     char *temp = strdup(p);
     int len = strlen(temp);
     if (len > 4 && strcmp(temp + len - 4, ".uss") == 0) {
@@ -242,7 +249,8 @@ static char *get_state_recording_path(const char *p) {
     return path;
 }
 
-static void on_save_state_finished(void *data) {
+static void on_save_state_finished(void *data)
+{
     const char *path = (const char *) data;
     printf("on_save_state_finished path = %s\n", path);
 
@@ -264,7 +272,8 @@ static void on_save_state_finished(void *data) {
     g_free(recording_path);
 }
 
-static void on_restore_state_finished(void *data) {
+static void on_restore_state_finished(void *data)
+{
     const char *path = (const char *) data;
     printf("on_restore_state_finished path = %s\n", path);
 
@@ -286,14 +295,16 @@ static void on_restore_state_finished(void *data) {
     }
 }
 
-void fs_uae_init_recording() {
+void fs_uae_init_recording(void)
+{
     fs_log("fs_uae_init_recording\n");
 
     amiga_on_restore_state_finished(on_restore_state_finished);
     amiga_on_save_state_finished(on_save_state_finished);
 }
 
-void fs_uae_enable_recording(const char *record_file) {
+void fs_uae_enable_recording(const char *record_file)
+{
     fs_log("enabling input recording\n");
 
     g_record_path = strdup(record_file);
@@ -325,7 +336,8 @@ void fs_uae_enable_recording(const char *record_file) {
     }
 }
 
-static void record_uint32(uint32_t value) {
+static void record_uint32(uint32_t value)
+{
     // printf("record_uint32_t %08x\n", value);
     if (g_playback_pos != g_recording_length) {
         printf("WARNING: record_uint32 -- position %d not at end %d!\n",
@@ -344,7 +356,8 @@ static void record_uint32(uint32_t value) {
     g_playback_pos = g_recording_length;
 }
 
-void fs_uae_record_frame(int frame) {
+void fs_uae_record_frame(int frame)
+{
     if (!g_recording_enabled || g_recording_invalid) {
         return;
     }
@@ -388,18 +401,21 @@ void fs_uae_record_frame(int frame) {
             invalidate_recording();
             return;
         }
-/*
+
         printf("- %08x\n", (amiga_get_state_checksum() & 0x00ffffff));
         if ((value & 0x00ffffff) != (amiga_get_state_checksum() & 0x00ffffff)) {
             printf("X %08x\n", (value & 0x00ffffff));
 
+#if 0
             fs_emu_warning("State checksum mismatch\n");
             invalidate_recording();
             return;
+#else
+            fs_emu_notification(0x8d94378a, "State checksum mismatch\n");
+#endif
         }
-*/
-        next_value();
 
+        next_value();
     }
     else {
         uint32_t value = 0x80000000 | frame;
@@ -416,7 +432,8 @@ void fs_uae_record_frame(int frame) {
     }
 }
 
-static void record_line_if_needed(int line) {
+static void record_line_if_needed(int line)
+{
     /*
     if (line == g_last_recorded_line) {
         return;
@@ -427,7 +444,8 @@ static void record_line_if_needed(int line) {
     g_last_recorded_line = line;
 }
 
-static int filter_input_event(int event) {
+static int filter_input_event(int event)
+{
     printf("%d (%d, %d)\n", event, INPUTEVENT_SPC_STATESAVE1, INPUTEVENT_SPC_STATESAVE9);
     if (event >= INPUTEVENT_SPC_STATERESTORE1 && event <= INPUTEVENT_SPC_STATERESTORE9) {
         return 0;
@@ -444,7 +462,8 @@ static int filter_input_event(int event) {
     return 1;
 }
 
-void fs_uae_record_input_event(int line, int event, int state) {
+void fs_uae_record_input_event(int line, int event, int state)
+{
     if (!g_recording_enabled || g_recording_invalid) {
         return;
     }
@@ -475,7 +494,8 @@ void fs_uae_record_input_event(int line, int event, int state) {
     g_recording_modified = 1;
 }
 
-int fs_uae_get_recorded_input_event(int frame, int line, int *event, int *state) {
+int fs_uae_get_recorded_input_event(int frame, int line, int *event, int *state)
+{
     //printf("fs_uae_get_recorded_input_event\n");
     if (!g_recording_enabled || g_recording_invalid) {
         return 0;
@@ -548,7 +568,8 @@ int fs_uae_get_recorded_input_event(int frame, int line, int *event, int *state)
     }
 }
 
-void fs_uae_write_recorded_session(void) {
+void fs_uae_write_recorded_session(void)
+{
     if (!g_recording_enabled) {
         return;
     }

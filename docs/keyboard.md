@@ -529,6 +529,17 @@ you also map another host key (combination) to Amiga "Ctrl", for example:
 
 ## Examples
 
+### Remapping the Extra Key on the Number Row
+
+The number row of the Amiga has one more key than on PC keyboards. By
+default, this key is moved to the key left of <kbd>Return</kbd>
+(two rows down), and this key again is moved to the <kb>Insert</kbd> key.
+If you want to, you can change the mapping so the extra key is moved directly
+to the Insert key, while leaving the one next to Return alone:
+
+    keyboard_key_insert = action_key_backslash
+    keyboard_key_backslash = action_key_2b
+
 ### Disabling the F12 Menu Key
 
 You can disable the F12 menu key with the following option, but please note

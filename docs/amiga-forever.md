@@ -7,10 +7,11 @@ There are two versions which contains all Kickstart ROMs:
 * Plus: Gives you access to a downloadable .msi installer.
 * Premium: Physical media, plus access to the plus edition .msi installer.
 
-**Note:** There is also a value edition, but this only provides a
-Kickstart 1.3 image (though sufficient for most classic games), and some
-some non-trivial operations are required to extract the Kickstart ROM. Unless
-you know what you are doing, I recommend the Plus or Premium edition instead.
+> **Note:** There is also a value edition, but this only provides a
+> Kickstart 1.3 image (though sufficient for most classic games), and some
+> some non-trivial operations are required to extract the Kickstart ROM.
+> Unless you know what you are doing, I recommend the Plus or Premium
+> edition instead.
 
 Please note that Amiga Forever and Cloanto is not in any way affiliated
 with FS-UAE, and I get no provisions from the sale of Amiga Forever. I
@@ -52,8 +53,8 @@ FS-UAE should automatically find the Kickstart ROM files from this directory.
 <!--
 ### Extracting files with msiextract
 
-**Note:** This does not actually work, because it turns out that rom.key is
-missing from the extracted files.
+> **Note:** This does not actually work, because it turns out that rom.key is
+> missing from the extracted files.
 
 These instructions assume that the FS-UAE base directory is Documents/FS-UAE,
 and that you have `AmigaForever2016Plus.msi` in your downloads directory.
@@ -82,7 +83,8 @@ using Wine in Linux (Ubuntu 15.10). Install using the following command
 
 After installation, you need to copy the Amiga Forever into place.
 These instructions assume that the FS-UAE base dir is Documents/FS-UAE,
-and that you have performed the Amiga Forever using the default Wine prefix:
+and that you have performed the Amiga Forever installation using the default
+Wine prefix:
 
     cd ~/Documents/FS-UAE
     mkdir AmigaForever

@@ -605,7 +605,7 @@ uae_u32 getz2endaddr (void);
 #define UAE_MEMORY_REGION_MIRROR (1 << 2)
 
 #ifdef FSUAE // NL
-int uae_get_memory_checksum();
+int uae_get_memory_checksum(void *data, int size);
 #endif
 
 /* Get a list of memory regions in the Amiga address space */

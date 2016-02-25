@@ -3342,29 +3342,49 @@ uaecptr strcpyha_safe (uaecptr dst, const uae_char *src)
 }
 #ifdef FSUAE
 
-int uae_get_memory_checksum() {
+int uae_get_memory_checksum(void *data, int size)
+{
 	uint32_t checksum = 0;
-    int size;
+	int bank_size;
     uint32_t *mem;
+    int pos = 0;
 
     mem = (uint32_t *) chipmem_bank.baseaddr;
-    size = chipmem_bank.allocated / 4;
-    for (int i = 0; i < size; i++) {
+    bank_size = chipmem_bank.allocated / 4;
+    if (data) {
+        if (pos + bank_size * 4 <= size) {
+            memcpy((char *) data + pos, mem, bank_size * 4);
+        }
+        pos += bank_size * 4;
+    }
+    for (int i = 0; i < bank_size; i++) {
         //checksum = (checksum + *mem) & 0x00ffffff;
     	checksum += *mem;
         mem++;
     }
 
     mem = (uint32_t *) bogomem_bank.baseaddr;
-    size = bogomem_bank.allocated / 4;
-    for (int i = 0; i < size; i++) {
+    bank_size = bogomem_bank.allocated / 4;
+    if (data) {
+        if (pos + bank_size * 4 <= size) {
+            memcpy((char *) data + pos, mem, bank_size * 4);
+        }
+        pos += bank_size * 4;
+    }
+    for (int i = 0; i < bank_size; i++) {
     	checksum += *mem;
         mem++;
     }
 
     mem = (uint32_t *) fastmem_bank.baseaddr;
-    size = fastmem_bank.allocated / 4;
-    for (int i = 0; i < size; i++) {
+    bank_size = fastmem_bank.allocated / 4;
+    if (data) {
+        if (pos + bank_size * 4 <= size) {
+            memcpy((char *) data + pos, mem, bank_size * 4);
+        }
+        pos += bank_size * 4;
+    }
+    for (int i = 0; i < bank_size; i++) {
         checksum += *mem;
         mem++;
     }

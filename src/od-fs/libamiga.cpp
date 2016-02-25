@@ -283,11 +283,18 @@ int amiga_get_rand_checksum() {
     return uaerand() & 0x00ffffff;
 }
 
-int amiga_get_state_checksum() {
-    int checksum = uae_get_memory_checksum();
+int amiga_get_state_checksum(void)
+{
+    int checksum = uae_get_memory_checksum(NULL, 0);
 #ifdef DEBUG_SYNC
     write_sync_log("memcheck: %08x\n", checksum);
 #endif
+    return checksum & 0x00ffffff;
+}
+
+int amiga_get_state_checksum_and_dump(void *data, int size)
+{
+    int checksum = uae_get_memory_checksum(data, size);
     return checksum & 0x00ffffff;
 }
 

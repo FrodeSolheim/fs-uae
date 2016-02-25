@@ -17,6 +17,8 @@
 #define CHUNK_SIZE 1024
 #define CHUNK_BYTES (CHUNK_SIZE * 4)
 
+// #define DEBUG_MEM 1
+
 static int g_recording_enabled;
 static int g_recording_invalid;
 static int g_recording_modified;
@@ -310,7 +312,7 @@ void fs_uae_enable_recording(const char *record_file)
     g_record_path = strdup(record_file);
 
     if (!fs_path_exists(g_record_path)) {
-        fs_log("record file \"%s\" does not yet exist\n");
+        fs_log("record file \"%s\" does not yet exist\n", record_file);
         FILE *f = g_fopen(g_record_path, "wb");
         if (f) {
             // ok, we could open the file for writing
@@ -405,6 +407,34 @@ void fs_uae_record_frame(int frame)
         printf("- %08x\n", (amiga_get_state_checksum() & 0x00ffffff));
         if ((value & 0x00ffffff) != (amiga_get_state_checksum() & 0x00ffffff)) {
             printf("X %08x\n", (value & 0x00ffffff));
+#ifdef DEBUG_MEM
+            int data_size = 1 * 1024 * 1024;
+            void *data = malloc(data_size);
+            memset(data, 0, data_size);
+            amiga_get_state_checksum_and_dump(data, data_size);
+
+            char fname[PATH_MAX];
+            sprintf(fname, "/home/frode/mem/%04d.bin", frame);
+            FILE *f = fopen(fname, "rb");
+            void *data2 = malloc(data_size);
+            fread(data2, data_size, 1, f);
+            fclose(f);
+
+            sprintf(fname, "/home/frode/mem/%04d.bin.conflict", frame);
+            f = fopen(fname, "wb");
+            fwrite(data, data_size, 1, f);
+            fclose(f);
+
+            printf("compare:\n");
+            for (int i = 0; i < data_size; i++) {
+                if (((char *) data)[i] != ((char *) data2)[i]) {
+                    printf("0x%08x: playback %02x recording %02x\n",
+                           i, ((unsigned char *) data)[i], ((unsigned char *) data2)[i]);
+                }
+            }
+            printf("compare done!\n");
+            exit(1);
+#endif
 
 #if 0
             fs_emu_warning("State checksum mismatch\n");
@@ -424,9 +454,23 @@ void fs_uae_record_frame(int frame)
         value = 0x10000000 | (amiga_get_rand_checksum() & 0x00ffffff);
         record_uint32(value);
 
-        value = 0x08000000 | (amiga_get_state_checksum() & 0x00ffffff);
+#ifdef DEBUG_MEM
+        int data_size = 1 * 1024 * 1024;
+        void *data = malloc(data_size);
+        memset(data, 0, data_size);
+#else
+        int data_size = 0;
+        void *data = NULL;
+#endif
+        value = 0x08000000 | (amiga_get_state_checksum_and_dump(data, data_size) & 0x00ffffff);
         record_uint32(value);
-
+#ifdef DEBUG_MEM
+        char fname[PATH_MAX];
+        sprintf(fname, "/home/frode/mem/%04d.bin", frame);
+        FILE *f = fopen(fname, "wb");
+        fwrite(data, data_size, 1, f);
+        fclose(f);
+#endif
         // a new frame implicitly means last recorded line is 0
         g_last_recorded_line = 0;
     }

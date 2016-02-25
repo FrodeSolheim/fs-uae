@@ -3,6 +3,7 @@ Version 2.7.8dev:
 * Disable use of fullscreen spaces on OS X by default. Use
   SDL_VIDEO_MAC_FULLSCREEN_SPACES = 1 (advanced settings or environment) if
   you want to re-enable it.
+* Fixed a crash when using (experimental and) unsupported re-recording.
 
 Version 2.7.7dev:
 

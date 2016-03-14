@@ -1277,15 +1277,18 @@ bool fs_emu_full_keyboard_emulation(void)
     return g_full_keyboard;
 }
 
-void fs_emu_set_full_keyboard_emulation(bool full)
+void fs_emu_set_full_keyboard_emulation(bool full, bool notification)
 {
     g_full_keyboard = full;
-    const char *msg;
-    if (g_full_keyboard)
-        msg = gettext("Full keyboard emulation enabled");
-    else
-        msg = gettext("Full keyboard emulation disabled");
-    fs_emu_notification(NOTIFICATION_FULL_KEYBOARD, msg);
+    if (notification) {
+        const char *msg;
+        if (g_full_keyboard) {
+            msg = gettext("Full keyboard emulation enabled");
+        } else {
+            msg = gettext("Full keyboard emulation disabled");
+        }
+        fs_emu_notification(NOTIFICATION_FULL_KEYBOARD, msg);
+    }
 }
 
 static void initialize_modifier_key(void)
@@ -1846,7 +1849,7 @@ void fs_emu_input_init(void)
     }
 
     if (fs_config_is_true(OPTION_FULL_KEYBOARD)) {
-        fs_emu_set_full_keyboard_emulation(true);
+        fs_emu_set_full_keyboard_emulation(true, false);
     }
 
     initialize_modifier_key();

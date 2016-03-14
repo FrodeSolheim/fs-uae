@@ -84,7 +84,7 @@ void fs_emu_handle_libfsemu_action(int action, int state)
     case FS_EMU_ACTION_FULL_KEYBOARD:
         if (state) {
             fs_emu_set_full_keyboard_emulation(
-                !fs_emu_full_keyboard_emulation());
+                !fs_emu_full_keyboard_emulation(), true);
         }
         break;
     case FS_EMU_ACTION_FULLSCREEN:

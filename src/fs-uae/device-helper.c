@@ -137,9 +137,9 @@ static void list_joysticks(void)
         for (int i = 0; i < count; i++) {
             const char *name = ManyMouse_DeviceName(i);
             if (name[0] == 0 || g_ascii_strcasecmp(name, "mouse") == 0) {
-                printf("M: Unnamed Mouse\n");
+                printf("M: Mouse: Unnamed Mouse\n");
             } else {
-                printf("M: %s\n", ManyMouse_DeviceName(i));
+                printf("M: Mouse: %s\n", ManyMouse_DeviceName(i));
             }
         }
         ManyMouse_Quit();

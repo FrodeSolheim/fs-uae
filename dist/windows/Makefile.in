@@ -44,7 +44,12 @@ endif
 	cp -a ../../fs-uae.exe $(dname)/
 	cp -a ../../fs-uae.dat $(dname)/
 	cp -a ../../fs-uae-device-helper.exe $(dname)/
-	cp -a ../../share $(dname)/share
+
+	mkdir -p $(dname)/share
+	cp -a ../../share/locale $(dname)/share/locale
+	mkdir -p $(dname)/share/fs-uae
+	touch $(dname)/share/fs-uae/share-dir
+
 	cp -a ../../licenses $(dname)/licenses
 	cp -a ../../README $(dname)/README.txt
 	cp -a ../../COPYING $(dname)/COPYING.txt

@@ -122,6 +122,7 @@ static int read_window_override(int type, const char* s, int* pos)
         if (!read_window_override_int(s, pos, &ssh)) return 0;
         while(s[*pos] == ' ') ++(*pos);
         if (s[(*pos)++] != ']') return 0;
+        while(s[*pos] == ' ') ++(*pos);
     }
 
     if (s[(*pos)++] != '=') return 0;

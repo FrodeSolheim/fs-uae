@@ -321,6 +321,24 @@ int fs_data_init(const char *app_name, const char *dat_name)
         free(dat_path);
     }
 
+#ifdef MACOSX
+    if (g_dat_file == NULL) {
+        char *dat_path = g_build_filename(
+            exe_path, "..", "..", "..", "..", "..", "Data", dat_name, NULL);
+        fs_log("checking dat file: %s\n", dat_path);
+        g_dat_file = g_fopen(dat_path, "rb");
+        free(dat_path);
+    }
+#else
+    if (g_dat_file == NULL) {
+        char *dat_path = g_build_filename(
+            exe_path, "..", "..", "Data", dat_name, NULL);
+        fs_log("checking dat file: %s\n", dat_path);
+        g_dat_file = g_fopen(dat_path, "rb");
+        free(dat_path);
+    }
+#endif
+
     if (g_dat_file == NULL) {
         error = 10;
     } else {

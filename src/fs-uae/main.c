@@ -768,6 +768,16 @@ static void init_i18n()
         bindtextdomain("fs-uae", locale_base);
         free(locale_base);
         free(path);
+    } else {
+        char executable_dir[FS_PATH_MAX];
+        fs_get_application_exe_dir(executable_dir, FS_PATH_MAX);
+        char *locale_base = g_build_filename(
+            executable_dir, "..", "..", "Data", "Locale", NULL);
+        if (g_file_test(locale_base, G_FILE_TEST_IS_DIR)) {
+            fs_log("using locale dir \"%s\"\n", locale_base);
+            bindtextdomain("fs-uae", locale_base);
+        }
+        free(locale_base);
     }
     bind_textdomain_codeset("fs-uae", "UTF-8");
 #endif

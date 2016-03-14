@@ -90,7 +90,12 @@ else:
 s("cp -a ../../fs-uae {package_dir}/fs-uae.bin")
 s("cp -a ../../fs-uae.dat {package_dir}/fs-uae.dat")
 s("cp -a ../../fs-uae-device-helper {package_dir}/fs-uae-device-helper.bin")
-s("cp -a ../../share {package_dir}/share")
+
+s("mkdir -p {package_dir}/share")
+s("cp -a ../../share/locale {package_dir}/share/locale")
+s("mkdir -p {package_dir}/share/fs-uae")
+s("touch {package_dir}/share/fs-uae/share-dir")
+
 s("cp -a ../../licenses {package_dir}/licenses")
 s("cp -a ../../README {package_dir}/fs-uae.txt")
 s("./standalone.py {package_dir}")

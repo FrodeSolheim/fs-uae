@@ -15,14 +15,7 @@
 #include "paths.h"
 #include "options.h"
 
-#define MAX_PATHS 8
-#define ZERO_SUCCESS 0
-
-struct multipath {
-    const char *path[MAX_PATHS];
-};
-
-static struct multipath g_paths[5];
+struct multipath g_paths[5] = {};
 static char *g_fs_uae_state_base_name;
 
 static const char* fs_uae_home_dir()
@@ -405,12 +398,20 @@ const char *fs_uae_module_ripper_dir()
     return path;
 }
 
-const char *fs_uae_cache_dir()
+const char *fs_uae_cache_dir(void)
 {
     static const char *path;
     if (!path) {
-        path = create_default_dir("Cache", "cache_dir", NULL,
-                                  "cache-dir");
+        path = create_default_dir("Cache", "cache_dir", NULL, "cache-dir");
+    }
+    return path;
+}
+
+const char *fs_uae_data_dir(void)
+{
+    static const char *path;
+    if (!path) {
+        path = create_default_dir("Data", "data_dir", NULL, "data-dir");
     }
     return path;
 }
@@ -520,82 +521,9 @@ const char *fs_uae_get_state_base_name()
     return g_fs_uae_state_base_name;
 }
 
-static void fs_uae_set_state_base_name(const char *base_name)
+void fs_uae_set_state_base_name(const char *base_name)
 {
     g_fs_uae_state_base_name = g_strdup(base_name);
-}
-
-void fs_uae_configure_directories()
-{
-    char *path;
-
-    for (int i = 0; i < 10; i++) {
-        char *src_name = g_strdup_printf("fs-uae-state_%d.uss", i);
-        char *src = g_build_filename(fs_uae_state_dir(), src_name, NULL);
-        g_free(src_name);
-        char *dst_name = g_strdup_printf("Saved State %d.uss", i);
-        char *dst = g_build_filename(fs_uae_state_dir(), dst_name, NULL);
-        g_free(dst_name);
-        if (fs_path_exists(src)) {
-            fs_log("renaming file %s to %s\n", src, dst);
-            if (g_rename(src, dst) != ZERO_SUCCESS) {
-                fs_log("WARNING: renamed failed\n");
-            }
-        }
-        g_free(src);
-        g_free(dst);
-    }
-    char *state_base_name = g_build_filename(fs_uae_state_dir(),
-            "Saved State", NULL);
-    fs_uae_set_state_base_name(state_base_name);
-
-    /*
-    path = g_build_filename(fs_uae_state_dir(), "Autoload State.uss", NULL);
-    if (fs_path_exists(path)) {
-        fs_log("found autoload state at %s\n", path);
-        amiga_set_option("statefile", path);
-    }
-    free(path);
-    */
-
-    /*
-    path = fs_strconcat(state_base_name, ".uss", NULL);
-    amiga_set_option("statefile_name", path);
-    free(path);
-    */
-
-#ifdef SAVESTATE
-    path = g_strconcat(state_base_name, ".uss", NULL);
-    amiga_set_option("statefile", path);
-    free(path);
-#endif
-
-    if (g_fs_uae_amiga_model == MODEL_CD32) {
-        // legacy file name
-        path = g_build_filename(fs_uae_state_dir(), "cd32.nvr", NULL);
-        if (!fs_path_exists(path)) {
-            free(path);
-            // new file name
-            path = g_build_filename(fs_uae_state_dir(), "CD32 Storage.nvr", NULL);
-        }
-        amiga_set_option("flash_file", path);
-        free(path);
-    }
-    else if (g_fs_uae_amiga_model == MODEL_CDTV) {
-        // legacy file name
-        path = g_build_filename(fs_uae_state_dir(), "cdtv.nvr", NULL);
-        if (!fs_path_exists(path)) {
-            free(path);
-            // new file name
-            path = g_build_filename(fs_uae_state_dir(), "CDTV Storage.nvr", NULL);
-        }
-        amiga_set_option("flash_file", path);
-        free(path);
-    }
-    free(state_base_name);
-
-    amiga_set_save_image_dir(fs_uae_state_dir());
-    amiga_set_module_ripper_dir(fs_uae_module_ripper_dir());
 }
 
 static void fix_separators(char *path)
@@ -652,37 +580,7 @@ char *fs_uae_resolve_path_and_free(char *name, int type)
     return result;
 }
 
-void fs_uae_set_uae_paths()
-{
-    fs_log("fs_uae_set_uae_paths\n");
-    amiga_set_paths(g_paths[FS_UAE_ROM_PATHS].path,
-            g_paths[FS_UAE_FLOPPY_PATHS].path,
-            g_paths[FS_UAE_CD_PATHS].path,
-            g_paths[FS_UAE_HD_PATHS].path);
-
-    static const char *library_dirs[2];
-    library_dirs[0] = fs_uae_plugins_dir();
-    library_dirs[1] = NULL; // terminates the list
-    amiga_set_native_library_dirs(library_dirs);
-
-    // find path for built-in drive sounds
-    char *path = fs_get_program_data_file("floppy_sounds");
-    if (path) {
-        fs_log("found \"built-in\" driveclick directory at %s\n", path);
-        amiga_set_builtin_driveclick_path(path);
-        free(path);
-    }
-    else {
-        fs_log("did not find \"built-in\" driveclick directory\n");
-    }
-
-    // find path for custom drive sounds
-    path = g_build_filename(fs_uae_base_dir(), "Floppy Sounds", NULL);
-    amiga_set_floppy_sounds_dir(path);
-    free(path);
-}
-
-void fs_uae_init_path_resolver()
+void fs_uae_init_path_resolver(void)
 {
     bool relative_paths = true;
     if (fs_config_is_false(OPTION_RELATIVE_PATHS)) {

@@ -117,6 +117,7 @@ fs_uae_SOURCES = \
 	src/fs-uae/config-hardware.h \
 	src/fs-uae/config-model.c \
 	src/fs-uae/config-model.h \
+	src/fs-uae/config-paths.c \
 	src/fs-uae/config-sound.c \
 	src/fs-uae/config-sound.h \
 	src/fs-uae/fs-uae.h \
@@ -146,7 +147,8 @@ endif
 fs_uae_LDADD =
 
 fs_uae_device_helper_SOURCES = \
-	src/fs-uae/device-helper.c
+	src/fs-uae/device-helper.c \
+	src/fs-uae/paths.c
 
 fs_uae_device_helper_LDADD =
 

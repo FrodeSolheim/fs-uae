@@ -1,3 +1,8 @@
+Version 2.7.9dev:
+
+* CD-based games are now downloadable from OAGD.net locker (if the user has
+  them stored there).
+
 Version 2.7.8dev:
 
 * Disable use of fullscreen spaces on OS X by default. Use

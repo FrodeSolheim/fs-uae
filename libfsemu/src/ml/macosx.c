@@ -64,7 +64,9 @@ void fs_ml_activate_window_switcher_impl(void)
 //    //SetSystemUIMode(kUIModeAllHidden, kUIOptionAutoShowMenuBar);
 //}
 
-int fs_ml_video_mode_get_current(fs_ml_video_mode *mode) {
+#if 0
+int fs_ml_video_mode_get_current(fs_ml_video_mode *mode)
+{
     mode->width = 0;
     mode->height = 0;
     mode->fps = 0;
@@ -108,6 +110,7 @@ int fs_ml_video_mode_get_current(fs_ml_video_mode *mode) {
 
     return 0;
 }
+#endif
 
 #define MAX_SCANCODES 200
 static int g_key_map[MAX_SCANCODES] = {};

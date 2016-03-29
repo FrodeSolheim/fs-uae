@@ -1,7 +1,8 @@
 Version 2.7.9dev:
 
-* CD-based games are now downloadable from OAGD.net locker (if the user has
-  them stored there).
+* Detect screen refresh rate for correct display with multiple displays.
+* Simplified video_sync option (is a boolean now).
+* Low latency vsync is enabled by default.
 
 Version 2.7.8dev:
 

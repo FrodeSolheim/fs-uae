@@ -241,7 +241,8 @@ void fs_emu_update_video_stats_2() {
     g_frame_time_last = time_ms;
 }
 
-static void update_video_stats_system_video() {
+static void update_video_stats_system_video()
+{
     if (g_fs_emu_benchmark_start_time > 0) {
         g_fs_emu_total_sys_frames++;
     }

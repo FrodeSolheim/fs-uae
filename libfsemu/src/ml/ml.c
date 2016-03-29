@@ -35,7 +35,6 @@ int g_fs_ml_video_sync = 0;
 int g_fs_ml_video_sync_low_latency = 0;
 int g_fs_ml_vblank_sync = 0;
 
-int g_fs_ml_target_refresh_rate = 0;
 int g_fs_ml_target_frame_time = 0;
 
 // when OpenGL is reinitialized, we update this version (because we may need
@@ -216,27 +215,14 @@ void fs_ml_init()
 #endif
 }
 
-void fs_ml_init_2() {
-    fs_ml_video_mode mode;
-    memset(&mode, 0, sizeof(fs_ml_video_mode));
-    if (fs_ml_video_mode_get_current(&mode) == 0) {
-        g_fs_ml_target_refresh_rate = mode.fps;
-    }
-    else {
-        fs_log("WARNING: could not read refresh rate from current mode\n");
-        g_fs_ml_target_refresh_rate = 0;
-    }
-    if (g_fs_ml_target_refresh_rate) {
-        g_fs_ml_target_frame_time = 1000000 / g_fs_ml_target_refresh_rate;
-    }
-    fs_log("assuming refresh rate: %d (%d usec per frame)\n",
-            g_fs_ml_target_refresh_rate, g_fs_ml_target_frame_time);
-
+void fs_ml_init_2(void)
+{
     fs_ml_input_init();
 
     g_fs_ml_video_screenshot_mutex = fs_mutex_create();
 }
 
-double fs_ml_get_refresh_rate() {
-    return g_fs_ml_target_refresh_rate;
+double fs_ml_get_refresh_rate(void)
+{
+    return g_fs_emu_video_frame_rate_host;
 }

@@ -126,7 +126,9 @@ void fs_ml_usleep(int usec) {
 //void fs_ml_set_fullscreen_extra() {
 //}
 
-int fs_ml_video_mode_get_current(fs_ml_video_mode *mode) {
+#if 0
+int fs_ml_video_mode_get_current(fs_ml_video_mode *mode)
+{
     DEVMODE devmode;
     devmode.dmSize = sizeof(DEVMODE);
     devmode.dmDriverExtra = 0;
@@ -141,6 +143,7 @@ int fs_ml_video_mode_get_current(fs_ml_video_mode *mode) {
     mode->flags = devmode.dmDisplayFlags;
     return 0;
 }
+#endif
 
 static STICKYKEYS g_StartupStickyKeys = {sizeof(STICKYKEYS), 0};
 static TOGGLEKEYS g_StartupToggleKeys = {sizeof(TOGGLEKEYS), 0};

@@ -251,7 +251,8 @@ static void gl_finish() {
 //void fs_ml_wait_vblank() {
 //}
 
-static void sleep_until_vsync() {
+static void sleep_until_vsync()
+{
     int sleep_time = 5000;
     int64_t t = fs_emu_monotonic_time();
     //int64_t sleep_until = 0;
@@ -272,7 +273,8 @@ static void sleep_until_vsync() {
 }
 
 #if 0
-static void full_sleep_until_vsync() {
+static void full_sleep_until_vsync()
+{
     // FIXME: use this instead of sleep_until_vsync
     int sleep_time = 0;
     int time_left = 3000;
@@ -541,7 +543,8 @@ static void opengl_swap_synchronous() {
     }
 }
 
-static void render_iteration_vsync() {
+static void render_iteration_vsync()
+{
     if (g_fs_ml_video_sync_low_latency) {
         int current_frame_at_start = g_available_frame;
 
@@ -675,7 +678,8 @@ void fs_ml_render_iteration() {
     }
 }
 
-void fs_ml_render_init() {
+void fs_ml_render_init()
+{
     g_frame_available_cond = fs_condition_create();
     g_frame_available_mutex = fs_mutex_create();
 
@@ -689,12 +693,11 @@ void fs_ml_render_init() {
     g_vblank_mutex = fs_mutex_create();
     //fs_emu_stat_queue_init(&g_measured_vblank_times, VBLANK_TIMES_COUNT);
 
-    if (fs_config_get_boolean("low_latency_vsync") == 1) {
-        fs_log("using low latency vsync when full vsync is enabled\n");
-        g_fs_ml_video_sync_low_latency = 1;
-    }
-    else if (fs_config_get_boolean("low_latency_vsync") == 0) {
+    if (fs_config_get_boolean("low_latency_vsync") == 0) {
         fs_log("disabling use of low latency vsync\n");
         g_fs_ml_video_sync_low_latency = 0;
+    } else {
+        fs_log("using low latency vsync when full vsync is enabled\n");
+        g_fs_ml_video_sync_low_latency = 1;
     }
 }

@@ -21,8 +21,8 @@
 
 extern int g_fs_ml_benchmarking;
 
-void fs_emu_video_init_options(void) {
-
+void fs_emu_video_init_options(void)
+{
 	//int auto_sync_mode = 1;
     //int sync_to_vblank = 1;
     //int sync_with_emu = 0;
@@ -38,6 +38,7 @@ void fs_emu_video_init_options(void) {
         fs_log("full-scene anti-aliasing is not requested\n");
     }
 
+#if 0
     fs_ml_video_mode mode;
     memset(&mode, 0, sizeof(fs_ml_video_mode));
     if (fs_ml_video_mode_get_current(&mode) == 0) {
@@ -56,6 +57,7 @@ void fs_emu_video_init_options(void) {
     else {
         fs_log("could not get display mode\n");
     }
+#endif
 
     fs_log("checking video sync mode\n");
 
@@ -89,9 +91,11 @@ void fs_emu_video_init_options(void) {
             //g_fs_emu_video_sync_to_vblank = 0;
             //g_fs_emu_video_allow_full_sync = 0;
         }
+#if 0
         else if (g_ascii_strcasecmp(sync_mode_str, "vblank") == 0) {
             g_fs_emu_video_sync_to_vblank = 1;
         }
+#endif
         else {
             fs_log("WARNING: invalid value for video-sync: %s\n",
                     sync_mode_str);

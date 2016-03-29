@@ -259,6 +259,7 @@ void fs_ml_usleep(int usec)
     usleep(usec);
 }
 
+#if 0
 int fs_ml_video_mode_get_current(fs_ml_video_mode *mode)
 {
     mode->width = 0;
@@ -347,6 +348,7 @@ int fs_ml_video_mode_get_current(fs_ml_video_mode *mode)
     }
     return 0;
 }
+#endif
 
 #define MAX_SCANCODES 200
 static int g_key_map[MAX_SCANCODES] = {};

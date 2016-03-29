@@ -70,14 +70,14 @@ void fs_ml_usleep(int usec);
 #define FS_ML_VIDEO_EVENT_HIDE_CURSOR 4
 
 void fs_ml_init();
-void fs_ml_init_2();
+void fs_ml_init_2(void);
 
 void fs_ml_stop();
 
 int fs_ml_main_loop();
 
 int fs_ml_get_video_sync();
-double fs_ml_get_refresh_rate();
+double fs_ml_get_refresh_rate(void);
 int fs_ml_get_vblank_sync();
 
 int fs_ml_get_vblank_count();

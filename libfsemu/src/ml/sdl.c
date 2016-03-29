@@ -330,8 +330,28 @@ static void set_video_mode()
     fs_log("SDL_CreateWindow(x=%d, y=%d, w=%d, h=%d, flags=%d)\n",
            x, y, w, h, flags);
     g_fs_ml_window = SDL_CreateWindow(g_window_title, x, y, w, h, flags);
-    g_fs_ml_context = SDL_GL_CreateContext(g_fs_ml_window);
 
+    int assume_refresh_rate = fs_config_get_int("assume_refresh_rate");
+    if (assume_refresh_rate != FS_CONFIG_NONE) {
+        fs_log("[DISPLAY] Assuming host refresh rate: %d Hz (from config)\n",
+                assume_refresh_rate);
+        g_fs_emu_video_frame_rate_host = assume_refresh_rate;
+    } else {
+        SDL_DisplayMode mode;
+        if (SDL_GetWindowDisplayMode(g_fs_ml_window, &mode) == 0) {
+            g_fs_emu_video_frame_rate_host = mode.refresh_rate;
+        } else {
+            g_fs_emu_video_frame_rate_host = 0;
+        }
+        fs_log("[DISPLAY] Host refresh rate: %d Hz\n",
+               g_fs_emu_video_frame_rate_host);
+    }
+
+    if (g_fs_emu_video_frame_rate_host) {
+        g_fs_ml_target_frame_time = 1000000 / g_fs_emu_video_frame_rate_host;
+    }
+
+    g_fs_ml_context = SDL_GL_CreateContext(g_fs_ml_window);
     static int glew_initialized = 0;
     if (!glew_initialized) {
         GLenum err = glewInit();
@@ -418,6 +438,27 @@ static gint fs_emu_monitor_compare(gconstpointer a, gconstpointer b)
     return am->rect.x - bm->rect.x;
 }
 
+int fs_ml_video_mode_get_current(fs_ml_video_mode *mode)
+{
+    mode->width = 0;
+    mode->height = 0;
+    mode->fps = 0;
+    mode->bpp = 0;
+    mode->flags = 0;
+
+    FSEmuMonitor monitor;
+    fs_emu_monitor_get_by_index(g_display, &monitor);
+    mode->width = monitor.rect.w;
+    mode->height = monitor.rect.h;
+    mode->fps = monitor.refresh_rate;
+
+    if (mode->fps == 0) {
+        fs_log("WARNING: refresh rate was not detected\n");
+        fs_log("full video sync will not be enabled automatically, but can "
+                "be forced\n");
+    }
+}
+
 static void fs_emu_monitor_init()
 {
     static bool initialized = false;
@@ -429,6 +470,41 @@ static void fs_emu_monitor_init()
     g_fs_emu_monitors = g_array_new(false, true, sizeof(FSEmuMonitor));
 
     int display_index = 0;
+    while (true) {
+        SDL_DisplayMode mode;
+        int error = SDL_GetDesktopDisplayMode(display_index, &mode);
+        if (error) {
+            break;
+        }
+
+        FSEmuMonitor monitor;
+        monitor.index = display_index;
+        SDL_Rect rect;
+        error = SDL_GetDisplayBounds(display_index, &rect);
+        if (error) {
+            fs_log("Error retrieving display bounds for display %d: %s\n",
+                   display_index, SDL_GetError());
+            monitor.rect.x = 0;
+            monitor.rect.y = 0;
+            monitor.rect.w = 1024;
+            monitor.rect.h = 768;
+            monitor.refresh_rate = 1;
+        } else {
+            monitor.rect.x = rect.x;
+            monitor.rect.y = rect.y;
+            monitor.rect.w = rect.w;
+            monitor.rect.h = rect.h;
+            monitor.refresh_rate = mode.refresh_rate;
+        }
+        fs_log("[DISPLAY] %d: %dx%d+%d+%d @%d\n", display_index,
+               monitor.rect.w, monitor.rect.h, monitor.rect.x, monitor.rect.y,
+               monitor.refresh_rate);
+        g_array_append_val(g_fs_emu_monitors, monitor);
+        display_index += 1;
+    }
+    g_fs_emu_monitor_count = display_index;
+
+#if 0
     SDL_DisplayMode mode;
     int error = SDL_GetCurrentDisplayMode(display_index, &mode);
     if (error) {
@@ -473,6 +549,7 @@ static void fs_emu_monitor_init()
 
         g_array_append_val(g_fs_emu_monitors, monitor);
     }
+#endif
 
     g_array_sort(g_fs_emu_monitors, fs_emu_monitor_compare);
     for (int i = 0; i < g_fs_emu_monitor_count; i++) {
@@ -505,6 +582,7 @@ bool fs_emu_monitor_get_by_index(int index, FSEmuMonitor* monitor)
         monitor->rect.y = 0;
         monitor->rect.w = 1024;
         monitor->rect.h = 768;
+        monitor->refresh_rate = 1;
         return false;
     }
     SDL_assert(monitor != NULL);
@@ -622,6 +700,7 @@ int fs_ml_video_create_window(const char *title)
             fs_log("defaulting to fullscreen_mode = desktop for SDL2\n");
             g_fs_emu_video_fullscreen_mode = FULLSCREEN_DESKTOP;
         }
+
         initialized = 1;
     }
 

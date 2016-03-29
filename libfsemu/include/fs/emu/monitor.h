@@ -19,6 +19,7 @@ typedef struct FSEmuMonitor {
     int index;
     int flags;
     FSEmuMonitorRect rect;
+    int refresh_rate;
 } FSEmuMonitor;
 
 int fs_emu_monitor_count();

@@ -9,15 +9,5 @@
 * When internal kickstart is being used and kickstart_file = internal
   was not used, show GUI message "Using AROS kickstart replacement".
 
-* Portable x86-64 versions should be able to co-locate with x86-versions.
-  (Fixed for Windows)
-
 * Amiga key sticks when opening/closing FS-UAE menu with modifier+F12
   https://github.com/FrodeSolheim/fs-uae/issues/77
-
-* FS-UAE freezes with black screen on Windows / nVIDIA?
-  https://github.com/FrodeSolheim/fs-uae/issues/75
-
-* Black screen when FS-UAE is started from FS-UAE Arcade?
-  https://github.com/FrodeSolheim/fs-uae/issues/76
-  https://github.com/FrodeSolheim/fs-uae-arcade/issues/6

@@ -7,24 +7,28 @@ There are two versions which contains all Kickstart ROMs:
 * Plus: Gives you access to a downloadable .msi installer.
 * Premium: Physical media, plus access to the plus edition .msi installer.
 
-> **Note:** There is also a value edition, but this only provides a
-> Kickstart 1.3 image (though sufficient for most classic games), and some
-> some non-trivial operations are required to extract the Kickstart ROM.
-> Unless you know what you are doing, I recommend the Plus or Premium
-> edition instead.
+> **Note:** There is also a value edition, but this only provides kickstart
+> ROM for Amiga 500 (and possibly a few other models depending on the
+> Amiga Forever version). This is sufficient for most classic games though!
 
-Please note that Amiga Forever and Cloanto is not in any way affiliated
-with FS-UAE, and I get no provisions from the sale of Amiga Forever. I
-provide this information as a convenience to the users of FS-UAE.
+Please note that FS-UAE / Frode Solheim is not affiliated with
+Amiga Forever, and I get no provisions from the sale of Amiga Forever.
+I provide this information as a convenience to the users of FS-UAE.
 
 ## Using the Amiga Forever .msi installer (Plus edition)
 
 If you are using Windows, you can simply install Amiga Forever. FS-UAE
 should automatically find the Kickstart ROM files.
 
+> **Note:** You may have to run the Amiga Forever Player at least once
+> in order to create the (required) rom.key file.
+
 On other systems (Linux, OS X), you need to get a copy of the ROM files
 installed on your system in a location FS-UAE expects to find them.
 Read on for alternative installation methods.
+
+> **Note:** FS-UAE may be able to find the ROM files automatically if you
+> have installed Amiga Forever via Wine.
 
 ## A note about Documents/FS-UAE
 

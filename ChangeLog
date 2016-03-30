@@ -1,5 +1,6 @@
 Version 2.7.9dev:
 
+* Plugin layout changed - new plugins must be downloaded.
 * Detect screen refresh rate for correct display with multiple displays.
 * Simplified video_sync option (is a boolean now).
 * Low latency vsync is enabled by default.

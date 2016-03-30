@@ -1756,8 +1756,8 @@ static void render_fade_overlay(double alpha) {
 static void handle_quit_sequence() {
     int fade_time = fs_config_get_int_clamped("fade_out_duration", 0, 10000);
     if (fade_time == FS_CONFIG_NONE) {
-        // fade out over 750ms
-        fade_time = 750;
+        // fade out over 250ms
+        fade_time = 250;
     }
     fade_time = fade_time * 1000;
 

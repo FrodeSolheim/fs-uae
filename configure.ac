@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.67])
-AC_INIT([FS-UAE], [2.7.8dev5],
+AC_INIT([FS-UAE], [2.7.9dev],
         [frode@fs-uae.net], [fs-uae], [http://fs-uae.net])
 AC_CONFIG_AUX_DIR([.])
 AC_CANONICAL_HOST
@@ -286,31 +286,35 @@ AC_SUBST([OS_CPPFLAGS])
 AC_SUBST([OS_LDFLAGS])
 AC_SUBST([OS_NAME])
 AC_SUBST([OS_NAME_2])
+AC_SUBST([OS_NAME_3])
 AC_SUBST([PACKAGE_ARCH])
 AS_CASE([$host_os],
 [mingw*], [
-	OS_NAME="windows"
-        OS_NAME_2="Windows"
-        OS_CPPFLAGS="-DWINDOWS"
-	AS_CASE([$host_os],
-	[mingw64], [
-		OS_LDFLAGS="-mwindows"
-		PACKAGE_ARCH="x86-64"
-	], [
-		OS_LDFLAGS="-mwindows -Wl,--large-address-aware"
-		PACKAGE_ARCH="x86"
-	])
-	LOADABLE_MODULE_EXT=".dll"
+    OS_NAME="windows"
+    OS_NAME_2="Windows"
+    OS_NAME_3="Windows"
+    OS_CPPFLAGS="-DWINDOWS"
+    AS_CASE([$host_os],
+    [mingw64], [
+        OS_LDFLAGS="-mwindows"
+        PACKAGE_ARCH="x86-64"
+    ], [
+        OS_LDFLAGS="-mwindows -Wl,--large-address-aware"
+        PACKAGE_ARCH="x86"
+    ])
+    LOADABLE_MODULE_EXT=".dll"
 ],
 [linux*], [
     OS_NAME="linux"
     OS_NAME_2="Linux"
+    OS_NAME_3="Linux"
     OS_CPPFLAGS="-DLINUX"
     LOADABLE_MODULE_EXT=".so"
 ],
 [darwin*], [
     OS_NAME="macosx"
     OS_NAME_2="Mac OS X"
+    OS_NAME_3="OSX"
     OS_CPPFLAGS="-DMACOSX"
     LOADABLE_MODULE_EXT=".so"
     OS_LDFLAGS="-headerpad_max_install_names -pagezero_size 0x2000 -rpath @executable_path/../Frameworks"
@@ -318,24 +322,28 @@ AS_CASE([$host_os],
 [freebsd*], [
     OS_NAME="freebsd"
     OS_NAME_2="FreeBSD"
+    OS_NAME_3="FreeBSD"
     OS_CPPFLAGS="-DFREEBSD"
     LOADABLE_MODULE_EXT=".so"
 ],
 [openbsd*], [
     OS_NAME="openbsd"
     OS_NAME_2="OpenBSD"
+    OS_NAME_3="OpenBSD"
     OS_CPPFLAGS="-DOPENBSD"
     LOADABLE_MODULE_EXT=".so"
 ],
 [dragonfly*], [
     OS_NAME="dragonflybsd"
     OS_NAME_2="DragonFlyBSD"
+    OS_NAME_3="DragonFlyBSD"
     OS_CPPFLAGS="-DDRAGONFLYBSD"
     LOADABLE_MODULE_EXT=".so"
 ],
 [
     OS_NAME="unknown"
     OS_NAME_2="Unknown OS"
+    OS_NAME_3="Unknown"
     LOADABLE_MODULE_EXT=".unknown"
 ])
 
@@ -351,6 +359,9 @@ AC_DEFINE_UNQUOTED([OS_NAME], ["$OS_NAME"],
 
 AC_DEFINE_UNQUOTED([OS_NAME_2], ["$OS_NAME_2"],
 [Define to a nicely formatted name for the operating system, "Linux".])
+
+AC_DEFINE_UNQUOTED([OS_NAME_3], ["$OS_NAME_3"],
+[New name identifier for the operating system, "Linux".])
 
 # Checks for header files.
 

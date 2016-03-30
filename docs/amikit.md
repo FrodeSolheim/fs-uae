@@ -20,12 +20,17 @@ Steps:
 6. Open a shell and execute: `copy AmiKit: AmiKitTransfer: all quiet clone`.
 7. Shut down WinUAE after the copy operation is done.
 8. Set up an FS-UAE config with a Workbench 3.x boot floppy, add a *new*
-   *empty* directory hard drive called `AmiKit`, and also add the
-   AmiKitTransfer.hdf you created in step 3.
-   uaem_write_flags = nhsparwed
+   *empty* directory hard drive called `AmiKit` (it is important that this
+   is not C:\AmiKit\AmiKit, but a separate empty directory), and also add the
+   AmiKitTransfer.hdf you created in step 3. Add the following option to
+   custom configuration: `uaem_write_flags = nhsparwed`.
 9. Boot the FS-UAE configuration, booting to Workbench
 10. Open a shell and execute: `copy AmiKitTransfer: AmiKit: all quiet clone`.
 11. Shut down FS-UAE after the copy operation is done.
 
 The main idea of the above steps is to create a AmiKit directory hard drive
 with correct metadata for a few files with special metadata and/or filenames.
+
+You can now create a AmiKit.zip file with the new AmiKit directory you
+created in step 8 if you want to keep the clean installer, or proceed to
+use the AmiKit directory to install/run AmiKit.

@@ -171,7 +171,7 @@ static void load_plugin_provides(const char *path, GKeyFile *key_file,
 
 static void load_plugin(const char *path, const char *ini_path)
 {
-    fs_log("Loading %s\n", path);
+    fs_log("[PLUGINS] Loading %s\n", path);
 #if NEW_PLUGINS
     gchar *version_path = g_build_filename(path, NULL);
 #else

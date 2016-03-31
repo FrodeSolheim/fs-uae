@@ -40,6 +40,10 @@ Input control:
   <kbd>AltMod</kbd>+<kbd>K</kbd>. This will usually be
   <kbd>F12</kbd>+<kbd>K</kbd>. Please see the "alternative modifier keys"
   section.
+* Use <kbd>Mod</kbd>+<kbd>Up</kbd> when you need to press Amiga cursor
+  up and joystick emulation is enabled. Similar for
+  <kbd>Mod</kbd>+<kbd>Down</kbd>, <kbd>Mod</kbd>+<kbd>Left</kbd> and
+  <kbd>Mod</kbd>+<kbd>Right</kbd>.
 
 Emulation control:
 

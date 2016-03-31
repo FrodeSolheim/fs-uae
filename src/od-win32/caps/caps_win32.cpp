@@ -68,10 +68,6 @@ int caps_init (void)
 		return 1;
 #ifdef FSUAE
 	UAE_DLHANDLE h = uae_dlopen_plugin(_T("capsimg"));
-	// compatibility lookup for older plugin
-	if (!h) {
-		h = uae_dlopen_plugin(_T("libcapsimage"));
-	}
 #else
 	UAE_DLHANDLE h = uae_dlopen_plugin(_T("CAPSImg"));
 	if (!h) {

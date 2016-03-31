@@ -208,6 +208,11 @@ static fs_emu_key_translation g_default_keymap[] = {
     { FS_ML_KEY_AUDIOPLAY,     -1, INPUTEVENT_SPC_DISKSWAPPER_INSERT0 },
     { FS_ML_KEY_N,            MOD, INPUTEVENT_UAE_MUTE_FLOPPY_SOUNDS },
 
+    { FS_ML_KEY_UP,           MOD, INPUTEVENT_KEY_CURSOR_UP },
+    { FS_ML_KEY_DOWN,         MOD, INPUTEVENT_KEY_CURSOR_DOWN },
+    { FS_ML_KEY_LEFT,         MOD, INPUTEVENT_KEY_CURSOR_LEFT },
+    { FS_ML_KEY_RIGHT,        MOD, INPUTEVENT_KEY_CURSOR_RIGHT },
+
     { 0, 0, 0 } /* Sentinel */
 };
 

@@ -1096,8 +1096,9 @@ int main(int argc, char *argv[])
     fs_emu_init_overlays(overlay_names);
     fs_emu_init();
 
-    // then load the config file
+    /* Then load the config file and set data dir */
     load_config_file();
+    fs_set_data_dir(fs_uae_data_dir());
 
     init_i18n();
 

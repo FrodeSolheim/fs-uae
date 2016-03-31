@@ -171,7 +171,7 @@ static void on_text(GMarkupParseContext *context, const gchar *text,
     if (value_len > 0) {
         parse_data *data = user_data;
         if (data->length + value_len > MAX_TEXT_SIZE) {
-            fs_log("shader text length is too big\n");
+            fs_log("[SHADERS] Shader text length is too big\n");
             data->error = 1;
         }
         else {
@@ -196,7 +196,7 @@ static void log_shader_log(int shader) {
         free(buffer);
     }
     else {
-        fs_log("GL_INFO_LENGTH was %d\n", info_length);
+        fs_log("[SHADERS] GL_INFO_LENGTH was %d\n", info_length);
     }
 }
 
@@ -253,12 +253,12 @@ static void handle_element(parse_data *data, const char *element,
         CHECK_GL_ERROR();
         log_shader_log(shader);
         if (compile_status == GL_FALSE) {
-            fs_emu_warning("failed to compile vertex shader");
+            fs_emu_warning("[SHADERS] Failed to compile vertex shader");
             data->error = 1;
             return;
         }
         else {
-            fs_log("compiled vertex shader successfully\n");
+            fs_log("[SHADERS] Compiled vertex shader successfully\n");
         }
         data->shader->current_shaders = g_list_append(
                 data->shader->current_shaders,
@@ -278,7 +278,7 @@ static void handle_element(parse_data *data, const char *element,
     if (HASATTR(OUTSCALE)) count++;
     if (HASATTR(OUTSCALE_X)) count++;
     if (count > 1) {
-        fs_emu_warning("Error (3) loading shader");
+        fs_emu_warning("[SHADERS] Error (3) loading shader");
         data->error = 1;
         return;
     }
@@ -296,7 +296,7 @@ static void handle_element(parse_data *data, const char *element,
     if (HASATTR(OUTSCALE)) count++;
     if (HASATTR(OUTSCALE_Y)) count++;
     if (count > 1) {
-        fs_emu_warning("Error (4) loading shader");
+        fs_emu_warning("[SHADERS] Error (4) loading shader");
         data->error = 1;
         return;
     }
@@ -375,12 +375,12 @@ static void handle_element(parse_data *data, const char *element,
     CHECK_GL_ERROR();
     log_shader_log(shader);
     if (compile_status == GL_FALSE) {
-        fs_emu_warning("failed to compile fragment shader");
+        fs_emu_warning("[SHADERS] Failed to compile fragment shader");
         data->error = 1;
         return;
     }
     else {
-        fs_log("compiled fragment shader successfully\n");
+        fs_log("[SHADERS] Compiled fragment shader successfully\n");
     }
 
     // Add the shader handle to the current list of shaders.
@@ -395,7 +395,7 @@ static void handle_element(parse_data *data, const char *element,
     GLuint program = glCreateProgram();
     CHECK_GL_ERROR();
     if (program == 0) {
-        fs_emu_warning("failed to create shader program");
+        fs_emu_warning("[SHADERS] Failed to create shader program");
         data->error = 1;
         return;
     }
@@ -430,12 +430,11 @@ static void handle_element(parse_data *data, const char *element,
     glGetProgramiv(program, GL_LINK_STATUS, &link_status);
     CHECK_GL_ERROR();
     if (link_status == GL_FALSE) {
-        fs_emu_warning("failed to link shader pass");
+        fs_emu_warning("[SHADERS] Failed to link shader pass");
         data->error = 1;
         return;
-    }
-    else {
-        fs_log("linked shader program successfully\n");
+    } else {
+        fs_log("[SHADERS] linked shader program successfully\n");
     }
 
     // Create a new shader pass from the new shader program handle,
@@ -462,16 +461,15 @@ static void handle_element(parse_data *data, const char *element,
     data->shader->passes = g_list_append(data->shader->passes, pass);
 }
 
-static void on_end_element(GMarkupParseContext *context,
-        const gchar *element_name,
-        gpointer user_data, GError **error) {
-    debug_printf("on_end_element %s\n", element_name);
+static void on_end_element(
+        GMarkupParseContext *context, const gchar *element_name,
+        gpointer user_data, GError **error)
+{
+    debug_printf("[SHADERS] on_end_element %s\n", element_name);
 
     if (strcmp(element_name, "fragment") == 0) {
-    }
-    else if (strcmp(element_name, "vertex") == 0) {
-    }
-    else {
+    } else if (strcmp(element_name, "vertex") == 0) {
+    } else {
         return;
     }
 
@@ -490,9 +488,10 @@ static void on_end_element(GMarkupParseContext *context,
     }
 }
 
-static void on_error(GMarkupParseContext *context, GError *error,
-        gpointer user_data) {
-    fs_log("on_error\n");
+static void on_error(
+        GMarkupParseContext *context, GError *error, gpointer user_data)
+{
+    fs_log("[SHADERS] on_error\n");
 }
 
 static GMarkupParser counter_subparser = {
@@ -501,17 +500,17 @@ static GMarkupParser counter_subparser = {
 
 void fs_emu_load_shader(fs_emu_shader *shader);
 
-static void context_notification_handler(int notification, void *data) {
+static void context_notification_handler(int notification, void *data)
+{
     static int recreate = 0;
     fs_emu_shader *shader = (fs_emu_shader *) data;
     if (notification == FS_GL_CONTEXT_DESTROY) {
-        fs_log("FS_GL_CONTEXT_DESTROY handler for shader\n");
+        fs_log("[SHADERS] FS_GL_CONTEXT_DESTROY handler for shader\n");
         GList *link = shader->passes;
         if (shader->passes == NULL) {
             return;
         }
-        printf("destroying shaders\n");
-        fs_log("destroying shaders\n");
+        fs_log("[SHADERS] destroying shaders\n");
         while (link) {
             shader_pass *pass = link->data;
             glDeleteProgram(pass->program);
@@ -524,14 +523,15 @@ static void context_notification_handler(int notification, void *data) {
         shader->passes = NULL;
     }
     else if (notification == FS_GL_CONTEXT_CREATE) {
-        fs_log("FS_GL_CONTEXT_CREATE handler for shader\n");
+        fs_log("[SHADERS] FS_GL_CONTEXT_CREATE handler for shader\n");
         if (recreate) {
             fs_emu_load_shader(shader);
         }
     }
 }
 
-void fs_emu_load_shader(fs_emu_shader *shader) {
+void fs_emu_load_shader(fs_emu_shader *shader)
+{
     parse_data *data = g_new0(parse_data, 1);
     data->shader = shader;
     data->buffer = malloc(MAX_TEXT_SIZE);
@@ -541,7 +541,7 @@ void fs_emu_load_shader(fs_emu_shader *shader) {
 
     FILE *f = g_fopen(data->shader->path, "rb");
     if (f == NULL) {
-        fs_log("could not open shader file\n");
+        fs_log("[SHADERS] Could not open shader file\n");
         return;
     }
     char *buffer = malloc(8192);
@@ -559,15 +559,13 @@ void fs_emu_load_shader(fs_emu_shader *shader) {
     // the file.
 
     if (data->shader->passes == NULL) {
-        fs_emu_warning("no shader passes loaded");
+        fs_emu_warning("[SHADERS] No shader passes loaded");
         data->shader->ok = 0;
-    }
-    else if (data->error) {
-        fs_emu_warning("error occured while loading shader");
+    } else if (data->error) {
+        fs_emu_warning("[SHADERS] Error occured while loading shader");
         data->shader->ok = 0;
-    }
-    else {
-        fs_log("shader ok\n");
+    } else {
+        fs_log("[SHADERS] Shader OK\n");
         data->shader->ok = 1;
     }
 
@@ -577,20 +575,30 @@ void fs_emu_load_shader(fs_emu_shader *shader) {
 
     CHECK_GL_ERROR();
 
-    fs_log("done loading shader\n");
+    fs_log("[SHADERS] Done loading shader\n");
     //exit(1);
 }
 
-static char *find_shader(const char *name) {
-    //char *path = g_strdup(name);
-    fs_log("checking shader %s\n", name);
+static char *find_shader(const char *name)
+{
+    fs_log("[SHADERS] Checking shader %s\n", name);
     if (fs_path_exists(name)) {
         return g_strdup(name);
     }
+
     char *name2 = g_strconcat(name, ".shader", NULL);
-    char *path = g_build_filename("shaders", name2, NULL);
+    char *path = g_build_filename(fs_data_dir(), "Shaders", name2, NULL);
     g_free(name2);
-    fs_log("checking shader (share)/%s\n", path);
+    fs_log("[SHADERS] Checking shader %s\n", path);
+    if (g_file_test(path, G_FILE_TEST_EXISTS)) {
+        return path;
+    }
+    g_free(path);
+
+    name2 = g_strconcat(name, ".shader", NULL);
+    path = g_build_filename("shaders", name2, NULL);
+    g_free(name2);
+    fs_log("[SHADERS] Checking shader [program_data_dir]/%s\n", path);
     char *path2 = fs_get_program_data_file(path);
     g_free(path);
     if (path2) {
@@ -599,7 +607,8 @@ static char *find_shader(const char *name) {
     return NULL;
 }
 
-static void fs_emu_load_default_shader() {
+static void fs_emu_load_default_shader()
+{
     const char *name = fs_config_get_const_string("shader");
     if (!name) {
         return;
@@ -642,8 +651,9 @@ static float g_alpha;
 static int g_render_textured_side = 0;
 
 
-static void render_quad(float s2, float t1, float t2, int first, int last,
-        int flip) {
+static void render_quad(
+        float s2, float t1, float t2, int first, int last, int flip)
+{
 
     float x1 = -1.0;
     float x2 = 1.0;
@@ -681,7 +691,8 @@ static void render_quad(float s2, float t1, float t2, int first, int last,
     glEnd();
 }
 
-static int round_up_pow2(int val) {
+static int round_up_pow2(int val)
+{
     // simple implementation, but works
     int x = 1;
     while (x < val) {
@@ -690,7 +701,8 @@ static int round_up_pow2(int val) {
     return x;
 }
 
-static void render_pass(shader_pass *pass, int first, int last) {
+static void render_pass(shader_pass *pass, int first, int last)
+{
     int output_w = -1;
     int output_h = -1;
 
@@ -724,7 +736,7 @@ static void render_pass(shader_pass *pass, int first, int last) {
 
     else if (first && !last) {
         output_w = 1024;
-        debug_printf("setting output width to arbitrary value %d\n",
+        debug_printf("[SHADERS] setting output width to arbitrary value %d\n",
                 output_w);
     }
 
@@ -759,7 +771,7 @@ static void render_pass(shader_pass *pass, int first, int last) {
 
     if (pass->ver_scale_method == SCALING_FIXED) {
         output_h = pass->ver_scale_value;
-        debug_printf("pass->ver_scale_method == SCALING_FIXED, "
+        debug_printf("[SHADERS] pass->ver_scale_method == SCALING_FIXED, "
                 "output_h = %d\n", output_h);
     }
 
@@ -769,7 +781,7 @@ static void render_pass(shader_pass *pass, int first, int last) {
 
     else if (pass->ver_scale_method == SCALING_INPUT) {
         output_h = g_cur_input_h * pass->ver_scale_value;
-        debug_printf("pass->ver_scale_method == SCALING_INPUT, "
+        debug_printf("[SHADERS] pass->ver_scale_method == SCALING_INPUT, "
                 "output_h = %d\n", output_h);
     }
 
@@ -779,7 +791,7 @@ static void render_pass(shader_pass *pass, int first, int last) {
 
     else if (pass->ver_scale_method == SCALING_OUTPUT) {
         output_h = g_final_output_h * pass->ver_scale_value;
-        debug_printf("pass->ver_scale_method == SCALING_OUTPUT, "
+        debug_printf("[SHADERS] pass->ver_scale_method == SCALING_OUTPUT, "
                 "output_h = %d\n", output_h);
     }
 
@@ -789,7 +801,7 @@ static void render_pass(shader_pass *pass, int first, int last) {
 
     else if (first && !last) {
         output_h = 1024;
-        debug_printf("setting output height to arbitrary value %d\n",
+        debug_printf("[SHADERS] setting output height to arbitrary value %d\n",
                 output_h);
     }
 
@@ -879,7 +891,7 @@ static void render_pass(shader_pass *pass, int first, int last) {
         // Tell OpenGL to render to the frame-buffer object.
 
         if (!pass->frame_buffer) {
-            //debug_printf("generating frame buffer\n");
+            //debug_printf("[SHADERS] generating frame buffer\n");
             glGenFramebuffers(1, &pass->frame_buffer);
             CHECK_GL_ERROR();
         }
@@ -903,7 +915,7 @@ static void render_pass(shader_pass *pass, int first, int last) {
 
         if (glCheckFramebufferStatus(GL_FRAMEBUFFER) !=
                 GL_FRAMEBUFFER_COMPLETE) {
-            debug_printf("fbo is not complete!\n");
+            debug_printf("[SHADERS] fbo is not complete!\n");
         }
 
         glClear(GL_COLOR_BUFFER_BIT);
@@ -946,7 +958,7 @@ static void render_pass(shader_pass *pass, int first, int last) {
     GLint rubyOrigTexture = glGetUniformLocation(pass->program,
             "rubyOrigTexture");
     if (rubyOrigTexture >= 0) {
-        debug_printf("set rubyOrigTexture to %d\n", 1);
+        debug_printf("[SHADERS] set rubyOrigTexture to %d\n", 1);
         glUniform1i(rubyOrigTexture, 1);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, g_orig_texture);
@@ -959,7 +971,7 @@ static void render_pass(shader_pass *pass, int first, int last) {
     GLint rubyOrigTextureSize = glGetUniformLocation(pass->program,
             "rubyOrigTextureSize");
     if (rubyOrigTextureSize >= 0) {
-        debug_printf("set rubyOrigTextureSize to %dx%d\n",
+        debug_printf("[SHADERS] set rubyOrigTextureSize to %dx%d\n",
                 g_orig_texture_w, g_orig_texture_h);
         glUniform2f(rubyOrigTextureSize, g_orig_texture_w, g_orig_texture_h);
     }
@@ -970,7 +982,7 @@ static void render_pass(shader_pass *pass, int first, int last) {
     GLint rubyOrigInputSize = glGetUniformLocation(pass->program,
             "rubyOrigInputSize");
     if (rubyOrigInputSize >= 0) {
-        debug_printf("set rubyOrigInputSize to %dx%d\n",
+        debug_printf("[SHADERS] set rubyOrigInputSize to %dx%d\n",
                 g_orig_input_w, g_orig_input_h);
         glUniform2f(rubyOrigInputSize, g_orig_input_w, g_orig_input_h);
     }
@@ -980,7 +992,7 @@ static void render_pass(shader_pass *pass, int first, int last) {
 
     GLint rubyTexture = glGetUniformLocation(pass->program, "rubyTexture");
     if (rubyTexture >= 0) {
-        debug_printf("set rubyTexture to %d\n", 0);
+        debug_printf("[SHADERS] set rubyTexture to %d\n", 0);
         glUniform1i(rubyTexture, 0);
     }
     CHECK_GL_ERROR();
@@ -990,7 +1002,7 @@ static void render_pass(shader_pass *pass, int first, int last) {
     GLint rubyTextureSize = glGetUniformLocation(pass->program,
             "rubyTextureSize");
     if (rubyTextureSize >= 0) {
-        debug_printf("set rubyTextureSize to %dx%d\n",
+        debug_printf("[SHADERS] set rubyTextureSize to %dx%d\n",
                 g_cur_texture_w, g_cur_texture_h);
         glUniform2f(rubyTextureSize, g_cur_texture_w, g_cur_texture_h);
     }
@@ -1001,7 +1013,7 @@ static void render_pass(shader_pass *pass, int first, int last) {
     GLint rubyInputSize = glGetUniformLocation(pass->program,
             "rubyInputSize");
     if (rubyInputSize >= 0) {
-        debug_printf("set rubyInputSize to %dx%d\n",
+        debug_printf("[SHADERS] set rubyInputSize to %dx%d\n",
                 g_cur_input_w, g_cur_input_h);
         glUniform2f(rubyInputSize, g_cur_input_w, g_cur_input_h);
     }
@@ -1012,7 +1024,8 @@ static void render_pass(shader_pass *pass, int first, int last) {
     GLint rubyOutputSize = glGetUniformLocation(pass->program,
             "rubyOutputSize");
     if (rubyOutputSize >= 0) {
-        debug_printf("set rubyOutputSize to %dx%d\n", output_w, output_h);
+        debug_printf("[SHADERS] set rubyOutputSize to %dx%d\n",
+                     output_w, output_h);
         glUniform2f(rubyOutputSize, output_w, output_h);
     }
     CHECK_GL_ERROR();
@@ -1037,7 +1050,7 @@ static void render_pass(shader_pass *pass, int first, int last) {
     if (!last || g_requires_implicit_pass) {
 
         // Tell OpenGL not to use the frame-buffer object.
-        debug_printf("unbind framebuffer\n");
+        debug_printf("[SHADERS] unbind framebuffer\n");
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         CHECK_GL_ERROR();
@@ -1115,7 +1128,7 @@ int fs_emu_xml_shader_render(int texture, int texture_width,
 
     g_cur_texture = texture;
     debug_printf("\n\n\n\n\n");
-    debug_printf("cur tex %d\n", g_cur_texture);
+    debug_printf("[SHADERS] cur tex %d\n", g_cur_texture);
 
     g_orig_texture = g_cur_texture;
     g_orig_texture_w = g_cur_texture_w;
@@ -1123,9 +1136,12 @@ int fs_emu_xml_shader_render(int texture, int texture_width,
     g_orig_input_w = g_cur_input_w;
     g_orig_input_h = g_cur_input_h;
 
-    debug_printf("final output: %d %d\n", g_final_output_w, g_final_output_h);
-    debug_printf("       input: %d %d\n", g_cur_input_w, g_cur_input_h);
-    debug_printf("     texture: %d %d\n", g_cur_texture_w, g_cur_texture_h);
+    debug_printf("[SHADERS] final output: %d %d\n",
+                 g_final_output_w, g_final_output_h);
+    debug_printf("[SHADERS]        input: %d %d\n",
+                 g_cur_input_w, g_cur_input_h);
+    debug_printf("[SHADERS]      texture: %d %d\n",
+                 g_cur_texture_w, g_cur_texture_h);
 
     // For each shader pass in the list of shader passes...
     GList *link = g_active_shader->passes;
@@ -1139,8 +1155,8 @@ int fs_emu_xml_shader_render(int texture, int texture_width,
 
     // If requires implicit pass is True
     if (g_requires_implicit_pass) {
-        debug_printf("implicit pass, cur tex %d %d %d\n", g_cur_texture,
-                g_cur_texture_w, g_cur_texture_h);
+        debug_printf("[SHADERS] implicit pass, cur tex %d %d %d\n",
+                     g_cur_texture, g_cur_texture_w, g_cur_texture_h);
         // Render a quad, textured with the current texture, with a vertex
         // at each corner of the final output size.
 
@@ -1192,8 +1208,9 @@ static int l_fs_emu_set_shader(lua_State *L) {
 
 #endif
 
-void fs_emu_xml_shader_init(void) {
-    fs_log("fs_emu_xml_shader_init\n");
+void fs_emu_xml_shader_init(void)
+{
+    fs_log("[SHADERS] Initialize\n");
     fs_emu_load_default_shader();
 
 #ifdef WITH_LUA

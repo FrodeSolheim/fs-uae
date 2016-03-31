@@ -1,5 +1,6 @@
 Version 2.7.10dev:
 
+* Also look for named shaders in FS-UAE/Data/Shaders.
 * Map Mod+cursors to Amiga cursor keys (useful with joystick emulation).
 
 Version 2.7.9dev:

@@ -28,7 +28,11 @@
 
 int log_scsiemu = 0;
 
+#ifdef FSUAE
+#define PRE_INSERT_DELAY (10 * (currprefs.ntscmode ? 60 : 50))
+#else
 #define PRE_INSERT_DELAY (3 * (currprefs.ntscmode ? 60 : 50))
+#endif
 
 struct blkdevstate
 {

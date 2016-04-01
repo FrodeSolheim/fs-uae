@@ -1,5 +1,8 @@
 Version 2.7.10dev:
 
+* You can now more easily override keybindings in keyboard.conf.
+* New option cdrom_drive_0_delay (boolean) - delayed insert for CD32.
+* Enable the CD-ROM drive if there are CD images in the CD swap list.
 * Load floppy drive sounds from fs-uae.dat (fixes missing drive sounds).
 * Also look for named shaders in FS-UAE/Data/Shaders.
 * Map Mod+cursors to Amiga cursor keys (useful with joystick emulation).

@@ -88,10 +88,17 @@ void fs_uae_configure_cdrom(void)
         path = fs_uae_resolve_path_and_free(path, FS_UAE_CD_PATHS);
         //set_default_dirs_from_file_path(path);
         // FIXME: can possibly remove temp / ,image now
-        char *temp = g_strconcat(path, ",image", NULL);
+        char *temp;
+        if (fs_config_is_true("cdrom_drive_0_delay")) {
+            temp = g_strconcat(path, ",delay:image", NULL);
+        } else {
+            temp = g_strconcat(path, ",image", NULL);
+        }
         amiga_set_option("cdimage0", temp);
         g_free(temp);
         g_free(path);
+        auto_num_drives = 1;
+    } else if (fs_config_get_const_string("cdrom_image_0")) {
         auto_num_drives = 1;
     }
 

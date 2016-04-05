@@ -23,8 +23,6 @@ struct fs_emu_theme g_fs_emu_theme = {};
 
 #ifdef WITH_LUA
 
-#include "emu_lua.h"
-
 void fs_emu_theme_init_lua(void)
 {
     fs_log("fs_emu_theme_init_lua\n");

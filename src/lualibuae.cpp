@@ -21,6 +21,7 @@ extern "C" {
 #include "options.h"
 #include "identify.h"
 #include "debug.h"
+#include "uaeexe.h"
 
 #ifdef WITH_LUA
 
@@ -106,6 +107,14 @@ static int l_uae_log(lua_State *L)
     return 0;
 }
 
+static int l_uae_exe(lua_State *L)
+{
+    const char *s = luaL_checkstring(L, 1);
+    int result = uaeexe(s);
+    lua_pushinteger(L, result);
+    return 1;
+}
+
 static const struct luaL_Reg uaelib[] = {
     {"log", l_uae_log},
     {"read_u8", l_uae_read_u8},
@@ -115,6 +124,7 @@ static const struct luaL_Reg uaelib[] = {
     {"write_u16", l_uae_write_u16},
     {"read_config", l_uae_read_config},
     {"write_config", l_uae_write_config},
+    {"exe", l_uae_exe},
     {NULL, NULL}
 };
 

@@ -350,49 +350,43 @@ static int check_sync_method(const char *a, const char *b) {
     return 0;
 }
 
-static void decide_opengl_sync_method() {
-    fs_log("deciding video sync method\n");
+static void decide_opengl_sync_method()
+{
+    fs_log("[OPENGL] Deciding video sync method\n");
     const char *c = fs_config_get_const_string("video_sync_method");
-    if (check_sync_method(c, "swap")) {
-        fs_log("- SYNC_SWAP\n");
+    if (check_sync_method(c, "auto")) {
+    } else if (check_sync_method(c, "swap")) {
+        fs_log("[OPENGL] SYNC_SWAP\n");
         g_sync_method = SYNC_SWAP;
-    }
-    else if (check_sync_method(c, "swap-finish")) {
-        fs_log("- SYNC_SWAP_FINISH\n");
+    } else if (check_sync_method(c, "swap-finish")) {
+        fs_log("[OPENGL] SYNC_SWAP_FINISH\n");
         g_sync_method = SYNC_SWAP_FINISH;
-    }
-    else if (check_sync_method(c, "finish-swap-finish")) {
-        fs_log("- SYNC_FINISH_SWAP_FINISH\n");
+    } else if (check_sync_method(c, "finish-swap-finish")) {
+        fs_log("[OPENGL] SYNC_FINISH_SWAP_FINISH\n");
         g_sync_method = SYNC_FINISH_SWAP_FINISH;
-    }
-    else if (check_sync_method(c, "sleep-swap-finish")) {
-        fs_log("- SYNC_SLEEP_SWAP_FINISH\n");
+    } else if (check_sync_method(c, "sleep-swap-finish")) {
+        fs_log("[OPENGL] SYNC_SLEEP_SWAP_FINISH\n");
         g_sync_method = SYNC_SLEEP_SWAP_FINISH;
-    }
-    else if (check_sync_method(c, "finish-sleep-swap-finish")) {
-        fs_log("- SYNC_FINISH_SLEEP_SWAP_FINISH\n");
+    } else if (check_sync_method(c, "finish-sleep-swap-finish")) {
+        fs_log("[OPENGL] SYNC_FINISH_SLEEP_SWAP_FINISH\n");
         g_sync_method = SYNC_FINISH_SLEEP_SWAP_FINISH;
-    }
-    else if (check_sync_method(c, "swap-fence")) {
-        fs_log("- SYNC_SWAP_FENCE\n");
+    } else if (check_sync_method(c, "swap-fence")) {
+        fs_log("[OPENGL] SYNC_SWAP_FENCE\n");
         g_sync_method = SYNC_SWAP_FENCE;
-    }
-    else if (check_sync_method(c, "swap-sleep-fence")) {
-        fs_log("- SYNC_SWAP_SLEEP_FENCE\n");
+    } else if (check_sync_method(c, "swap-sleep-fence")) {
+        fs_log("[OPENGL] SYNC_SWAP_SLEEP_FENCE\n");
         g_sync_method = SYNC_SWAP_SLEEP_FENCE;
-    }
-    else if (c) {
-        fs_log("WARNING: unknown sync method specified, using default\n");
+    } else if (c) {
+        fs_log("[OPENGL] Unknown sync method specified\n");
         g_sync_method = 0;
     }
-
     int fence_support = g_has_nv_fence || g_has_apple_fence || g_has_arb_sync;
     if (g_sync_method >= SYNC_SWAP_FENCE_START && !fence_support) {
-        fs_log("- no fence support, cannot use this sync method\n");
+        fs_log("[OPENGL] No fence support, cannot use this sync method\n");
         g_sync_method = 0;
     }
     if (g_sync_method == 0) {
-        fs_log("- using default sync method\n");
+        fs_log("[OPENGL] Using default sync method\n");
 #if defined(WINDOWS) || defined(MACOSX)
         fs_log("- SYNC_FINISH_SLEEP_SWAP_FINISH\n");
         g_sync_method = SYNC_FINISH_SLEEP_SWAP_FINISH;

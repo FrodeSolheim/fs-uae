@@ -1,7 +1,22 @@
+Summary: Fast RAM
+Type: Choice
+Default:
 Example: 4096
 
 Override the amount of Zorro II Fast memory, specified in KB. Must be a
 multiple of 1024. The default value depends on [amiga_model].
+
+Value: 0 (0 MB)
+Value: 64 (64 KB)
+Value: 128 (128 KB)
+Value: 256 (256 KB)
+Value: 512 (512 KB)
+Value: 1024 (1 MB)
+Value: 2048 (2 MB)
+Value: 4096 (4 MB)
+Value: 8192 (8 MB)
+
+Value: 
 
 Code:
 

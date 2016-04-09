@@ -28,6 +28,16 @@ Value: 68060
 Code:
     if c.cpu.explicit:
         c.cpu = c.cpu.explicit
+    elif c.accelerator == "blizzard-1230-iv":
+        c.cpu = "68EC030"
+    elif c.accelerator == "blizzard-1240":
+        c.cpu = "68040-NOMMU"
+    elif c.accelerator == "blizzard-1260":
+        c.cpu = "68060-NOMMU"
+    elif c.accelerator == "blizzard-ppc":
+        c.cpu = "68060-NOMMU"
+    elif c.accelerator == "cyberstorm-ppc":
+        c.cpu = "68060-NOMMU"
     elif c.amiga_model == "A500":
         c.cpu = "68000"
     elif c.amiga_model == "A500/512K":
@@ -47,21 +57,21 @@ Code:
     elif c.amiga_model == "A1200/1230":
         c.cpu = "68030"
     elif c.amiga_model == "A1200/1240":
-        c.cpu = "68040"
+        c.cpu = "68040-NOMMU"
     elif c.amiga_model == "A1200/1260":
-        c.cpu = "68060"
+        c.cpu = "68060-NOMMU"
     elif c.amiga_model == "A1200/PPC":
-        c.cpu = "68060"
+        c.cpu = "68060-NOMMU"
     elif c.amiga_model == "A3000":
         c.cpu = "68030"
     elif c.amiga_model == "A4000":
         c.cpu = "68EC030"
     elif c.amiga_model == "A4000/040":
-        c.cpu = "68040"
+        c.cpu = "68040-NOMMU"
     elif c.amiga_model == "A4000/OS4":
-        c.cpu = "68060"
+        c.cpu = "68060-NOMMU"
     elif c.amiga_model == "A4000/PPC":
-        c.cpu = "68060"
+        c.cpu = "68060-NOMMU"
     elif c.amiga_model == "CD32":
         c.cpu = "68EC020"
     elif c.amiga_model == "CD32/FMV":

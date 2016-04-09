@@ -96,6 +96,18 @@ static void configure_roms(amiga_config *c)
     }
 }
 
+static void fs_uae_configure_network_card(amiga_config *c)
+{
+    const char *card = fs_config_get_const_string(OPTION_NETWORK_CARD);
+    if (card != NULL) {
+        if (fs_uae_values_matches(card, "a2065")) {
+            amiga_set_option("a2065", "slirp");
+        } else {
+            fs_emu_warning("Unrecognized network card");
+        }
+    }
+}
+
 void fs_uae_configure_amiga_hardware()
 {
     amiga_config *c = g_fs_uae_amiga_configs + g_fs_uae_amiga_config;
@@ -156,10 +168,12 @@ void fs_uae_configure_amiga_hardware()
 
     configure_roms(c);
 
-    fs_uae_configure_hardware();
+    /* Accelerator must be configured before CPU */
     fs_uae_configure_accelerator();
+    fs_uae_configure_hardware();
     fs_uae_configure_graphics_card(c);
     fs_uae_configure_sound_card(c);
+    fs_uae_configure_network_card(c);
 
     const char *serial_port = fs_config_get_const_string(OPTION_SERIAL_PORT);
     if (serial_port && g_ascii_strcasecmp(serial_port, "none") != 0) {
@@ -174,7 +188,30 @@ void fs_uae_configure_amiga_hardware()
 
     const char *dongle_type = fs_config_get_const_string(OPTION_DONGLE_TYPE);
     if (dongle_type) {
-        amiga_set_option("dongle", dongle_type);
+        int dongle_index = 0;
+        if (strcmp(dongle_type, "0") == 0) {
+        } else if (strcmp(dongle_type, "robocop 3") == 0) {
+            dongle_index = 1;
+        } else if (strcmp(dongle_type, "leaderboard") == 0) {
+            dongle_index = 2;
+        } else if (strcmp(dongle_type, "b.a.t. ii") == 0) {
+            dongle_index = 3;
+        } else if (strcmp(dongle_type, "italy'90 soccer") == 0) {
+            dongle_index = 4;
+        } else if (strcmp(dongle_type, "dames grand maitre") == 0) {
+            dongle_index = 5;
+        } else if (strcmp(dongle_type, "rugby coach") == 0) {
+            dongle_index = 6;
+        } else if (strcmp(dongle_type, "cricket captain") == 0) {
+            dongle_index = 7;
+        } else if (strcmp(dongle_type, "leviathan") == 0) {
+            dongle_index = 8;
+        } else {
+            fs_emu_warning("Unrecognized dongle type");
+        }
+        if (dongle_index > 0) {
+            amiga_set_int_option("dongle", dongle_index);
+        }
     }
 
     if (fs_config_get_boolean(OPTION_BSDSOCKET_LIBRARY) == 1) {
@@ -205,5 +242,20 @@ void fs_uae_configure_amiga_hardware()
 
     if (c->enhanced_audio_filter) {
         amiga_set_option("sound_filter_type", "enhanced");
+    }
+
+    const char *freezer = fs_config_get_const_string(OPTION_FREEZER_CARTRIDGE);
+    if (freezer) {
+        if (strcmp(freezer, "0") == 0) {
+            /* No freezer cartridge */
+        } else if (strcmp(freezer, "hrtmon") == 0) {
+            amiga_set_option("cart_file", ":HRTMon");
+        } else if (strcmp(freezer, "action-replay-2") == 0) {
+            amiga_set_option("cart", "Freezer: Action Replay Mk II v2.14");
+        } else if (strcmp(freezer, "action-replay-3") == 0) {
+            amiga_set_option("cart", "Freezer: Action Replay Mk III v3.17");
+        } else {
+            fs_emu_warning("Unrecognized cartridge");
+        }
     }
 }

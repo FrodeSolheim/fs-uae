@@ -30,6 +30,7 @@
 #include "recording.h"
 #include "plugins.h"
 #include "options.h"
+#include "paths.h"
 #include "config-drives.h"
 #ifdef WITH_CEF
 #include <fs/emu/cef.h>

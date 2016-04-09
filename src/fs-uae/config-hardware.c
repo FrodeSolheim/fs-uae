@@ -34,6 +34,9 @@ static void configure_cpu(void)
     //bool allow_68060_fpu = false;
 
     const char *cpu = fs_config_get_const_string(OPTION_CPU);
+    if (cpu == NULL) {
+        cpu = cfg->accelerator_cpu;
+    }
     if (cpu == NULL || fs_uae_values_matches(cpu, "auto")) {
         /* Go with the already configured value */
     } else if (fs_uae_values_matches(cpu, "68000")) {
@@ -271,11 +274,15 @@ static void configure_memory()
     int chip_memory = fs_uae_read_memory_option_small(OPTION_CHIP_MEMORY);
     if (chip_memory != FS_CONFIG_NONE) {
         if (chip_memory == 128) {
-            amiga_set_int_option("chipmem_size", -1);
+            amiga_set_int_option("chipmem_size", -1); /* 128 KB */
         } else if (chip_memory == 256) {
-            amiga_set_int_option("chipmem_size", 0);
+            amiga_set_int_option("chipmem_size", 0); /* 256 KB */
         } else if (chip_memory % 512 == 0) {
             amiga_set_int_option("chipmem_size", chip_memory / 512);
+            if (chip_memory >= 2 && cfg->can_use_ecs_agnus) {
+                fs_log("[CONFIG] >= 1 MB chip RAM, enabling ECS Agnus\n");
+                amiga_set_option("chipset", "ecs_agnus");
+            }
         } else {
             fs_emu_warning(_("Option chip_memory must be a multiple of 512"));
             chip_memory = 0;

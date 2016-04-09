@@ -1,5 +1,11 @@
 Version 2.7.10dev:
 
+* Choosing an accelerator now auto-selects a suitable CPU.
+* Added new option: network_card.
+* Added new option: freezer_cartridge.
+* Automatically set chipset to ECS Agnus if A500 and chip RAM >= 1MB.
+* A4000 model defaults to 680EC30 now, not 68030.
+* Fixed on-screen warning when using hardware dongle.
 * You can now more easily override keybindings in keyboard.conf.
 * New option cdrom_drive_0_delay (boolean) - delayed insert for CD32.
 * Enable the CD-ROM drive if there are CD images in the CD swap list.

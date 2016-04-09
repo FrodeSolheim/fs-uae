@@ -1,8 +1,8 @@
-Summary: CPU Accelerator Board
+Summary: Accelerator Board
+Type: Choice
 Default: 0
 Example: cyberstorm-ppc
 Since: 2.5.15
-Type: Choice
 
 Value: 0 ("None")
 Value: blizzard-1230-iv (Blizzard 1230 IV)

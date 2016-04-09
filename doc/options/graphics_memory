@@ -1,10 +1,14 @@
-Summary: Graphics Card VRAM
+Summary: Graphics Card RAM
 Type: Choice
 Default:
 Since: 2.5.15
 
 Override the amount of graphics memory on the graphics card.
 
+The 0 MB option is not really valid, but exists for user interface reasons
+in FS-UAE Launcher.
+
+Value: 0 (0 MB)
 Value: 1024 (1 MB)
 Value: 2048 (2 MB)
 Value: 4096 (4 MB)
@@ -14,3 +18,12 @@ Value: 32768 (32 MB)
 Value: 65536 (64 MB)
 Value: 131072 (128 MB)
 Value: 262144 (256 MB)
+
+Code:
+
+    if c.graphics_memory.explicit:
+        value = c.graphics_memory.explicit
+    elif c.uae_gfxcard_size == "0":
+        value = "0"
+    else:
+        value = int(c.uae_gfxcard_size) * 1024

@@ -1,8 +1,16 @@
+Summary: Slow RAM
+Type: Choice
+Default:
 Example: 512
 
 Override the amount of "slow" memory, specified in KB. Must be a multiple
 of 256. The default value depends on [amiga_model].
 
+Value: 0 (0 MB)
+Value: 512 (512 KB)
+Value: 1024 (1 MB)
+Value: 1536 (1.5 MB)
+Value: 1792 (1.8 MB)
 
 Code:
 

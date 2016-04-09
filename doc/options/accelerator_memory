@@ -1,6 +1,7 @@
-Summary: CPU Accelerator Board RAM
+Summary: Accelerator RAM
 Type: Choice
 
+Value: 0 (0 MB)
 Value: 1024 (1 MB)
 Value: 2048 (2 MB)
 Value: 4096 (4 MB)
@@ -11,10 +12,15 @@ Value: 65536 (64 MB)
 Value: 131072 (128 MB)
 Value: 262144 (256 MB)
 
+The 0 MB option is not really valid, but exists for user interface reasons
+in FS-UAE Launcher.
+
 Code:
 
     if c.accelerator_memory.explicit:
         value = c.accelerator_memory.explicit
+    elif c.accelerator == "":
+        value = "0"
     elif f.matches(c.accelerator, "blizzard-1230-iv"):
         value = str(32 * 1024)
     elif f.matches(c.accelerator, "blizzard-1240"):
@@ -25,5 +31,8 @@ Code:
         value = str(256 * 1024)
     elif f.matches(c.accelerator, "cyberstorm-ppc"):
         value = str(128 * 1024)
+    elif f.matches(c.accelerator, "0"):
+        value = str(0 * 1024)
     else:
+        f.warning("accelerator_memory")
         value = "0"

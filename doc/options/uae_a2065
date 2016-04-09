@@ -8,9 +8,12 @@ Emulate a A2065 network card.
 Value: slirp
 
 Code:
+
     if c.uae_a2065.explicit:
         # FIXME: ok? keep already specified value
         value = c.uae_a2065.explicit
         # FIXME: check value
+    elif c.network_card == "a2065":
+        value = "slirp"
     else:
         value = ""

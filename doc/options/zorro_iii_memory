@@ -1,8 +1,26 @@
+Summary: Zorro III Fast Memory
+Type: Choice
+Default:
 Example: 65536
 
 Override the amount of Zorro III Fast memory, specified in KB. Must be a
 multiple of 1024. The default value depends on [amiga_model]. Requires a
 processor with 32-bit address bus, (use for example the A1200/020 model).
+
+Value: 0 (0 MB)
+Value: 1024 (1 MB)
+Value: 2048 (2 MB)
+Value: 4096 (4 MB)
+Value: 8192 (8 MB)
+Value: 16384 (16 MB)
+Value: 32768 (32 MB)
+Value: 65536 (64 MB)
+Value: 131072 (128 MB)
+Value: 262144 (256 MB)
+Value: 393216 (384 MB)
+Value: 524288 (512 MB)
+Value: 786432 (768 MB)
+Value: 1048576 (1024 MB)
 
 Code:
 

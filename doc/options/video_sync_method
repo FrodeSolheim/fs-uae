@@ -1,12 +1,13 @@
-Description: Video synchronization method
-Default:
+Summary: Video synchronization method
+Default: auto
 Example: finish-sleep-swap-finish
-Since: 1.1.9
 Type: choice
 
 Choose the method used to ensure video synchronization with the display.
 Valid values are:
 
+Value: auto (Auto)
+       Automaically choose sync method based on platform.
 Value: swap (Swap)
        Most basic method, but will probably not mantain emulation
        perfectly in sync on many GPUs due to pipelining and the swap buffers

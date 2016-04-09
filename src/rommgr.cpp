@@ -623,6 +623,12 @@ struct romlist **getromlistbyident (int ver, int rev, int subver, int subrev, co
 			continue;
 		if (model && !_tcsicmp (model, rd->name))
 			ok = 2;
+#ifdef FSUAE
+		/* If we get an exact match by model name, we do not want to downgrade
+		 * the match, otherwise we will fail the second model check below. */
+		// FIXME: Should probably send this else fix upstream.
+		else
+#endif
 		if ((ver < 0 || rd->ver == ver) && (rev < 0 || rd->rev == rev)) {
 			if (subver >= 0) {
 				if (rd->subver == subver && (subrev < 0 || rd->subrev == subrev) && rd->subver > 0)

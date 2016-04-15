@@ -1,6 +1,7 @@
 Version 2.7.12dev:
 
-* Support additional/custom keybard-emulated joysticks.
+* Support additional/custom keybard-emulated joysticks, built-in configs
+  for X-Arcade controllers.
 * Enabled ECS Agnus for *all* A500 models by mistake (2.7.10dev).
 
 Version 2.7.10dev:

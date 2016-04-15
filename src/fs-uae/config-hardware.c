@@ -279,7 +279,7 @@ static void configure_memory()
             amiga_set_int_option("chipmem_size", 0); /* 256 KB */
         } else if (chip_memory % 512 == 0) {
             amiga_set_int_option("chipmem_size", chip_memory / 512);
-            if (chip_memory >= 2 && cfg->can_use_ecs_agnus) {
+            if (chip_memory >= 1024 && cfg->can_use_ecs_agnus) {
                 fs_log("[CONFIG] >= 1 MB chip RAM, enabling ECS Agnus\n");
                 amiga_set_option("chipset", "ecs_agnus");
             }

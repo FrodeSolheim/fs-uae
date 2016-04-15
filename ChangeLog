@@ -1,3 +1,8 @@
+Version 2.7.12dev:
+
+* Support additional/custom keybard-emulated joysticks.
+* Enabled ECS Agnus for *all* A500 models by mistake (2.7.10dev).
+
 Version 2.7.10dev:
 
 * Choosing an accelerator now auto-selects a suitable CPU.

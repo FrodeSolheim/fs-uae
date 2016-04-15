@@ -56,6 +56,8 @@ void fs_ml_set_input_grab(bool grab);
 bool fs_ml_automatic_input_grab(void);
 void fs_ml_set_input_grab_on_activate(bool grab);
 
+GList *fs_ml_input_list_custom_keyboards(void);
+
 void fs_ml_activate_window_switcher(void);
 
 static inline int64_t fs_ml_monotonic_time() {

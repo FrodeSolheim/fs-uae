@@ -62,74 +62,17 @@ int ManyMouse_Init(void);
 void ManyMouse_Quit(void);
 const char *ManyMouse_DeviceName(unsigned int index);
 
-static void add_keyboards(void)
-{
-    char *keyboards_path = g_build_filename(
-        fs_uae_data_dir(), "Devs", NULL);
-    printf("# %s\n", keyboards_path);
-    GList *list = NULL;
-    GDir *dir = g_dir_open(keyboards_path, 0, NULL);
-    if (dir) {
-        const gchar *name;
-        while ((name = g_dir_read_name(dir))) {
-            if (!g_str_has_suffix(name, ".fs-device")) {
-                continue;
-            }
-            gchar *path = g_build_filename(keyboards_path, name, NULL);
-            GKeyFile *key_file = g_key_file_new();
-            if (!g_key_file_load_from_file(
-                    key_file, path, G_KEY_FILE_NONE, NULL)) {
-                fs_log("WARNING: Could not load %s\n", path);
-                continue;
-            }
-            gchar *type = g_key_file_get_string(
-                        key_file, "device", "type", NULL);
-            if (!type || strcmp(type, "keyboard") != 0) {
-                g_free(type);
-                continue;
-            }
-            g_free(type);
-            gchar *attached = g_key_file_get_string(
-                        key_file, "fs-device", "attached", NULL);
-            if (!attached || strcmp(attached, "1") != 0) {
-                g_free(attached);
-                continue;
-            }
-            g_free(attached);
-            char *name2 = g_strdup(name);
-            name2[strlen(name) - 10] = '\0';
-            list = g_list_append(list, name2);
-        }
-        g_dir_close(dir);
-    } else {
-        printf("# could not open dir\n");
-    }
-
-    list = g_list_sort(list, (GCompareFunc) g_ascii_strcasecmp);
-    list = g_list_prepend(list, g_strdup("Keyboard"));
-    GList *iterator = list;
-    while (iterator) {
-        gchar *disable_name = g_strdup_printf(
-            "%s.fs-device-disabled", (gchar *) iterator->data);
-        gchar *disable_path = g_build_filename(
-            fs_uae_data_dir(), "Devs", disable_name, NULL);
-        g_free(disable_name);
-        if (!g_file_test(disable_path, G_FILE_TEST_EXISTS)) {
-            printf("K: %s\n", (gchar *) iterator->data);
-        }
-        g_free(disable_path);
-        iterator = g_list_next(iterator);
-    }
-    g_list_free_full(list, g_free);
-    g_free(keyboards_path);
-}
-
-
 static void list_joysticks(void)
 {
     // printf("# FS-UAE VERSION %s\n", g_fs_uae_version);
     printf("# listing keyboards\n");
-    add_keyboards();
+    GList *list = fs_ml_input_list_custom_keyboards();
+    GList *iterator = list;
+    while (iterator) {
+        printf("K: %s\n", (gchar *) iterator->data);
+        iterator = g_list_next(iterator);
+    }
+    g_list_free_full(list, g_free);
     printf("# listing mice\n");
     printf("M: Mouse\n");
     int count = ManyMouse_Init();
@@ -144,7 +87,6 @@ static void list_joysticks(void)
         }
         ManyMouse_Quit();
     }
-
     printf("# listing joysticks\n");
     // printf("J: Fake Test Joystick %c%c\n", 0xc2, 0xae);
     // printf("   Buttons: 0 Hats: 0 Axes: 0 Balls: 0\n");
@@ -192,9 +134,17 @@ static void print_events(void)
     printf("# Printing events\n");
 
     printf("# listing keyboards\n");
-    printf("{\"type\": \"keyboard-device-added\", \"device\": %d, "
-           "\"name\": \"%s\"}\n",
-           0, "Keyboard");
+    GList *list = fs_ml_input_list_custom_keyboards();
+    GList *iterator = list;
+    int k = 0;
+    while (iterator) {
+        printf("{\"type\": \"keyboard-device-added\", \"device\": %d, "
+               "\"name\": \"%s\"}\n",
+               k++, (const char *) iterator->data);
+        iterator = g_list_next(iterator);
+    }
+    g_list_free_full(list, g_free);
+
     printf("# listing mice\n");
     printf("{\"type\": \"mouse-device-added\", \"device\": %d, "
            "\"name\": \"%s\"}\n",
@@ -348,6 +298,7 @@ HINSTANCE g_fs_ml_hinstance;
 int main(int argc, char* argv[])
 {
     fs_set_argv(argc, argv);
+    fs_set_data_dir(fs_uae_data_dir());
 
     if (argc != 2) {
         printf("usages:\n");

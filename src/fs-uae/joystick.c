@@ -203,7 +203,7 @@ static void configure_joystick_port(
     const char *auto_type = "amiga";
     int auto_mode = AMIGA_JOYPORT_DJOY;
     if (g_fs_uae_amiga_model == MODEL_CD32) {
-        auto_type = "amigacd32";
+        auto_type = "cd32";
         auto_mode = AMIGA_JOYPORT_CD32JOY;
     }
     char *key = g_strdup_printf("joystick_port_%d_mode", port);
@@ -224,7 +224,7 @@ static void configure_joystick_port(
             } else if (g_ascii_strcasecmp(mode_string, "joystick") == 0) {
                 auto_joystick(p, port, AMIGA_JOYPORT_DJOY, "amiga");
             } else if (g_ascii_strcasecmp(mode_string, "cd32 gamepad") == 0) {
-                auto_joystick(p, port, AMIGA_JOYPORT_CD32JOY, "amigacd32");
+                auto_joystick(p, port, AMIGA_JOYPORT_CD32JOY, "cd32");
             }
         } else {
             auto_joystick(p, port, auto_mode, auto_type);
@@ -412,7 +412,7 @@ void fs_uae_reconfigure_input_ports_host()
             }
             else {
                 fs_log("* using device %s\n", port->device);
-                fs_emu_configure_joystick(port->device, "amigacd32",
+                fs_emu_configure_joystick(port->device, "cd32",
                         g_joystick_mappings[i], 1, NULL, 0, true);
             }
         }

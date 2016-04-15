@@ -1101,6 +1101,13 @@ static input_config_item *get_config(
     char *config_name = NULL;
 
     if (config == NULL) {
+        fs_log("config name \"%s\"\n", device->name);
+        config = get_config_for_device(device->name, type);
+        if (config == NULL) {
+            fs_log("did not find config for device \"%s\"\n", device->name);
+        }
+    }
+    if (config == NULL) {
         config_name = joystick_long_config_name(device);
         fs_log("config name \"%s\"\n", config_name);
         config = get_config_for_device(config_name, type);
@@ -1426,7 +1433,8 @@ static fs_emu_input_mapping g_menu_mapping[] = {
     { NULL, ACTION_MENU_NONE },
 };
 
-static void read_input_configs_from_dir(const char *dir_name) {
+static void read_input_configs_from_dir(const char *dir_name)
+{
     fs_log("reading input device configs from %s\n", dir_name);
     GDir *dir = g_dir_open(dir_name, 0, NULL);
     if (dir == NULL) {
@@ -1447,8 +1455,7 @@ static void read_input_configs_from_dir(const char *dir_name) {
                                     g_strdup(dir2_name));
                 ////fs_log("[*] %s\n", name3);
                 g_free(name3);
-            }
-            else if (g_str_has_suffix(name, ".conf")) {
+            } else if (g_str_has_suffix(name, ".conf")) {
                 // remove .conf suffix
                 char* name3 = g_strdup(name);
                 name3[strlen(name3) - 5] = '\0';
@@ -1506,6 +1513,13 @@ static void init_input_configs()
         free(dir_name);
     }
     // read override configurations
+    if (g_controllers_dir) {
+        read_input_configs_from_dir(g_controllers_dir);
+    }
+    // read override configurations
+    gchar *devs_dir = g_build_filename(fs_data_dir(), "Devs", "Keyboards", NULL);
+    read_input_configs_from_dir(devs_dir);
+    g_free(devs_dir);
     if (g_controllers_dir) {
         read_input_configs_from_dir(g_controllers_dir);
     }
@@ -1773,18 +1787,31 @@ static void initialize_devices_for_menu(void)
             continue;
         }
         fs_log("%i %s\n", i, device.name);
-        char *config_name = joystick_long_config_name(&device);
-        input_config_item *config = get_config_for_device(config_name, "menu");
+        input_config_item *config = NULL;
         if (config == NULL) {
-            fs_log("did not find menu config for device \"%s\"\n",
-                    config_name);
-            g_free(config_name);
-            config_name = joystick_config_name(device.name, 0);
+            fs_log("config name \"%s\"\n", device.name);
+            config = get_config_for_device(device.name, "menu");
+            if (config == NULL) {
+                fs_log("did not find config for device \"%s\"\n", device.name);
+            }
+        }
+        if (config == NULL) {
+            char *config_name = joystick_long_config_name(&device);
             config = get_config_for_device(config_name, "menu");
             if (config == NULL) {
                 fs_log("did not find menu config for device \"%s\"\n",
                         config_name);
             }
+            g_free(config_name);
+        }
+        if (config == NULL) {
+            char *config_name = joystick_config_name(device.name, 0);
+            config = get_config_for_device(config_name, "menu");
+            if (config == NULL) {
+                fs_log("did not find menu config for device \"%s\"\n",
+                        config_name);
+            }
+            g_free(config_name);
         }
         if (config != NULL) {
             int start_index = 0;
@@ -1807,7 +1834,6 @@ static void initialize_devices_for_menu(void)
             }
             free_input_config_item_list(config);
         }
-        g_free(config_name);
     }
 }
 

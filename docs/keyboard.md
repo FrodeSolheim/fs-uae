@@ -5,6 +5,9 @@ and system keyboard shortcuts can interfere, and how the emulated Amiga
 keyboard works.
 
 **FIXME** Keyboard joystick emulation doc
+
+**FIXME** Write about custom keyboard joystick emulation devices
+
 **FIXME** Keyboard CD32 emulation doc
 
 **FIXME** Reference full_keyboard

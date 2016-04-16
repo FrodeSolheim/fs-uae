@@ -49,6 +49,7 @@ typedef struct fs_ml_video_mode {
 void fs_ml_show_cursor(int show, int immediate);
 bool fs_ml_mouse_integration(void);
 bool fs_ml_cursor_allowed(void);
+int fs_ml_first_mouse_index(void);
 
 bool fs_ml_input_grab(void);
 void fs_ml_set_input_grab(bool grab);

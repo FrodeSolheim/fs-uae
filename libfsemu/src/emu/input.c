@@ -1731,10 +1731,10 @@ static int input_function(fs_ml_event *event)
     else if (event->type == FS_ML_MOUSEBUTTONDOWN
              || event->type == FS_ML_MOUSEBUTTONUP) {
         if (event->type == FS_ML_MOUSEBUTTONDOWN
-                && event->button.device == 1) {
-            // we only check this for device 1 (system mouse), since otherwise
-            // we would process double events due to specific mouse input
-            // events too (ManyMouse). FIXME: don't hardcode device index..
+                && event->button.device == fs_ml_first_mouse_index()) {
+            /* We only check this for device 1 (system mouse), since otherwise
+             * we would process double events due to specific mouse input
+             * events too (ManyMouse). */
             if (fs_emu_input_grab()) {
                 if (g_middle_click_ungrab
                         && event->button.button == FS_ML_BUTTON_MIDDLE) {

@@ -23,6 +23,11 @@ int g_fs_ml_first_keyboard_index = 0;
 int g_fs_ml_first_mouse_index = 0;
 int g_fs_ml_first_joystick_index = 0;
 
+int fs_ml_first_mouse_index(void)
+{
+    return g_fs_ml_first_mouse_index;
+}
+
 /* maps SDL joystick indices to fs_ml indices */
 SDL_JoystickID g_fs_ml_sdl_joystick_index_map[MAX_SDL_JOYSTICK_IDS];
 

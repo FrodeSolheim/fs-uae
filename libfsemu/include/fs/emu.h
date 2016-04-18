@@ -259,7 +259,7 @@ double fs_emu_get_average_sys_fps();
 
 // video interface
 
-double fs_emu_get_video_frame_rate();
+double fs_emu_get_video_frame_rate(void);
 /**
  * Specify the frame rate for emulated video (typically 50 or 60).
  */

@@ -100,7 +100,8 @@ static void fs_uae_configure_network_card(amiga_config *c)
 {
     const char *card = fs_config_get_const_string(OPTION_NETWORK_CARD);
     if (card != NULL) {
-        if (fs_uae_values_matches(card, "a2065")) {
+        if (strcmp(card, "0") == 0) {
+        } else if (fs_uae_values_matches(card, "a2065")) {
             amiga_set_option("a2065", "slirp");
         } else {
             fs_emu_warning("Unrecognized network card");

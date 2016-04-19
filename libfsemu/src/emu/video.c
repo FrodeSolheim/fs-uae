@@ -120,20 +120,20 @@ void fs_emu_set_video_frame_rate(double frame_rate)
            frame_rate, frame_rate_i);
     g_video_frame_rate = frame_rate;
 
-    fs_log("[VIDEO] Sync: g_fs_emu_video_sync_to_vblank = %d\n",
+    fs_log("[DISPLAY] Sync: g_fs_emu_video_sync_to_vblank = %d\n",
             g_fs_emu_video_sync_to_vblank);
     if (g_fs_emu_video_sync_to_vblank) {
-        fs_log("[VIDEO] Sync: g_fs_emu_video_allow_full_sync = %d\n",
+        fs_log("[DISPLAY] Sync: g_fs_emu_video_allow_full_sync = %d\n",
                 g_fs_emu_video_allow_full_sync);
         if (g_fs_emu_video_allow_full_sync) {
             if (frame_rate && (frame_rate_i == g_fs_emu_video_frame_rate_host
                     || frame_rate_i == g_fs_emu_video_frame_rate_host + 1)) {
-                fs_log("[VIDEO] Sync: Frame rate (%0.2f) close enough to "
+                fs_log("[DISPLAY] Sync: Frame rate (%0.2f) close enough to "
                        "screen refresh (%d)\n",
                        frame_rate, g_fs_emu_video_frame_rate_host);
                 fs_ml_video_sync_enable(1);
             } else {
-                fs_log("[VIDEO] Sync: Frame rate (%0.2f) does not equal "
+                fs_log("[DISPLAY] Sync: Frame rate (%0.2f) does not equal "
                        "screen refresh (%d)\n",
                        frame_rate, g_fs_emu_video_frame_rate_host);
                 fs_ml_video_sync_enable(0);

@@ -1329,10 +1329,6 @@ share/locale/de/LC_MESSAGES/fs-uae.mo: po/de.po
 	mkdir -p share/locale/de/LC_MESSAGES
 	$(MSGFMT) --verbose $(s)/po/de.po -o $@
 
-share/locale/el/LC_MESSAGES/fs-uae.mo: po/el.po
-	mkdir -p share/locale/el/LC_MESSAGES
-	$(MSGFMT) --verbose $(s)/po/el.po -o $@
-
 share/locale/es/LC_MESSAGES/fs-uae.mo: po/es.po
 	mkdir -p share/locale/es/LC_MESSAGES
 	$(MSGFMT) --verbose $(s)/po/es.po -o $@

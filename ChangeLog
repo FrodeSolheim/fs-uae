@@ -1,6 +1,7 @@
 Version 2.7.13dev:
 
 * Fixed middle mouse button ungrabbing with more than 1 keyboard joystick.
+* Remove greek translations due to missing bitmap font characters.
 * Imported updated translations from crowdin.com.
 
 Version 2.7.12dev:

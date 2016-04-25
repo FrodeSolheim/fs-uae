@@ -16,6 +16,7 @@
 #define OPTION_CPU_IDLE "cpu_idle"
 #define OPTION_DETERMINISTIC "deterministic"
 #define OPTION_DONGLE_TYPE "dongle_type"
+#define OPTION_EXPECT_VERSION "expect_version"
 #define OPTION_FAST_MEMORY "fast_memory"
 #define OPTION_FLOPPY_DRIVE_0 "floppy_drive_0"
 #define OPTION_FLOPPY_DRIVE_VOLUME "floppy_drive_volume"

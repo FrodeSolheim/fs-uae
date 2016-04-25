@@ -105,7 +105,6 @@ double fs_emu_get_video_frame_rate(void)
 
 void fs_emu_set_video_frame_rate(double frame_rate)
 {
-    fs_log("[VIDEO] Set video frame rate to %0.2f\n", frame_rate);
     static double last_frame_rate = 0;
     static int last_frame_rate_host = 0;
     if (frame_rate == last_frame_rate
@@ -114,7 +113,6 @@ void fs_emu_set_video_frame_rate(double frame_rate)
     }
     last_frame_rate = frame_rate;
     last_frame_rate_host = g_fs_emu_video_frame_rate_host;
-
     int frame_rate_i = round(frame_rate);
     fs_log("[VIDEO] fs_emu_set_video_frame_rate: %0.2f (%d)\n",
            frame_rate, frame_rate_i);

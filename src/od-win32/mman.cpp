@@ -268,7 +268,11 @@ bool preinit_shm (void)
 		if (natmem_size <= 768 * 1024 * 1024) {
 			uae_u32 p = 0x78000000 - natmem_size;
 			for (;;) {
+#ifdef FSUAE
+				natmem_reserved = (uae_u8 *) uae_vm_reserve(natmem_size, vm_flags);
+#else
 				natmem_reserved = (uae_u8*) VirtualAlloc((void*)(intptr_t)p, natmem_size, MEM_RESERVE | MEM_WRITE_WATCH, PAGE_READWRITE);
+#endif
 				if (natmem_reserved)
 					break;
 				p -= 128 * 1024 * 1024;
@@ -292,14 +296,22 @@ bool preinit_shm (void)
 #endif
 #endif
 		for (;;) {
+#ifdef FSUAE
+			natmem_reserved = (uae_u8 *) uae_vm_reserve(natmem_size, vm_flags);
+#else
 			natmem_reserved = (uae_u8*)VirtualAlloc (NULL, natmem_size, vaflags, PAGE_READWRITE);
+#endif
 			if (natmem_reserved)
 				break;
 			natmem_size -= 128 * 1024 * 1024;
 			if (!natmem_size) {
 				write_log (_T("Can't allocate 257M of virtual address space!?\n"));
 				natmem_size = 17 * 1024 * 1024;
+#ifdef FSUAE
+				natmem_reserved = (uae_u8 *) uae_vm_reserve(natmem_size, vm_flags);
+#else
 				natmem_reserved = (uae_u8*)VirtualAlloc (NULL, natmem_size, vaflags, PAGE_READWRITE);
+#endif
 				if (!natmem_size) {
 					write_log (_T("Can't allocate 17M of virtual address space!? Something is seriously wrong\n"));
 					return false;

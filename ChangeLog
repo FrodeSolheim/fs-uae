@@ -1,5 +1,8 @@
 Version 2.7.13dev:
 
+* JIT on x86-64: Handle it gracefully when 2 GB virtual memory could not
+  be allocated (reduce size of allocation region).
+* A bit more flexible VM allocation function.
 * New option expect_version (used by Fs-UAE Launcher).
 * Fixed middle mouse button ungrabbing with more than 1 keyboard joystick.
 * Remove greek translations due to missing bitmap font characters.

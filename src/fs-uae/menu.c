@@ -16,9 +16,12 @@
 #define NUM_SAVE_SLOTS 9
 /// TRANSLATORS: This is a menu entry and must not be too long: If you struggle
 /// to get in short enough, just translate "No Device" instead.
+/// The context is that no host device is inserted into the joystick port.
 #define NO_HOST_DEVICE _("No Host Device")
 /// TRANSLATORS: This is a menu entry and must not be too long: If you struggle
 /// to get in short enough, just translate "No Device" instead.
+/// The context is that nothing (no emulated device) is inserted into the
+/// joystick port.
 #define NO_AMIGA_DEVICE _("No Amiga Device")
 #define PAUSE_ITEM_INDEX 1
 #define INPUT_ITEM_INDEX 7

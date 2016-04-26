@@ -58,6 +58,8 @@
 #include "pci_hw.h"
 #include "x86.h"
 #include "ethernet.h"
+#include "debuginfo.h"
+#include "segtracker.h"
 #ifdef RETROPLATFORM
 #include "rp.h"
 #endif
@@ -376,6 +378,7 @@ void virtualdevice_init (void)
 #endif
 #ifdef FILESYS
 	rtarea_init ();
+	segtracker_install ();
 	uaeres_install ();
 	hardfile_install ();
 #endif

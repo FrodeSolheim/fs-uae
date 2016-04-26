@@ -235,6 +235,7 @@ libuae_a_SOURCES = \
 	src/crc32.cpp \
 	src/custom.cpp \
 	src/debug.cpp \
+	src/debuginfo.cpp \
 	src/def_icons.cpp \
 	src/devices.cpp \
 	src/disk.cpp \
@@ -336,6 +337,7 @@ libuae_a_SOURCES = \
 	src/include/crc32.h \
 	src/include/custom.h \
 	src/include/debug.h \
+	src/include/debuginfo.h \
 	src/include/devices.h \
 	src/include/disk.h \
 	src/include/diskutil.h \
@@ -385,6 +387,7 @@ libuae_a_SOURCES = \
 	src/include/osemu.h \
 	src/include/packed.h \
 	src/include/parallel.h \
+	src/include/patch.h \
 	src/include/pci.h \
 	src/include/pci_hw.h \
 	src/include/picasso96.h \
@@ -397,6 +400,7 @@ libuae_a_SOURCES = \
 	src/include/scp.h \
 	src/include/scsi.h \
 	src/include/scsidev.h \
+	src/include/segtracker.h \
 	src/include/serial.h \
 	src/include/sndboard.h \
 	src/include/specialmonitors.h \
@@ -549,6 +553,7 @@ libuae_a_SOURCES = \
 	src/od-win32/picasso96_win.h \
 	src/od-win32/serial_win32.cpp \
 	src/od-win32/win32_uaenet.cpp \
+	src/patch.cpp \
 	src/pci.cpp \
 	src/ppc/pixman-stubs.cpp \
 	src/ppc/ppc.cpp \
@@ -584,6 +589,7 @@ libuae_a_SOURCES = \
 	src/scsi.cpp \
 	src/scsiemul.cpp \
 	src/scsitape.cpp \
+	src/segtracker.cpp \
 	src/slirp_uae.cpp \
 	src/specialmonitors.cpp \
 	src/statusline.cpp \

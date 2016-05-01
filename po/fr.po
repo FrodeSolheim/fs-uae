@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae\n"
 "Report-Msgid-Bugs-To: frode@fs-uae.net\n"
-"POT-Creation-Date: 2016-04-16 15:17+0200\n"
-"PO-Revision-Date: 2016-04-16 09:20-0400\n"
+"POT-Creation-Date: 2016-04-26 00:59+0200\n"
+"PO-Revision-Date: 2016-05-01 06:23-0400\n"
 "Last-Translator: FrodeSolheim <frode-crowdin@fsolheim.net>\n"
 "Language-Team: French\n"
 "Language: fr_FR\n"
@@ -50,7 +50,7 @@ msgstr "Mode Pad CD32"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 msgid "Custom Joystick Ports"
-msgstr ""
+msgstr "Ports Joystick Personnalisés"
 
 msgid "Custom Mode"
 msgstr "Mode Personnalisé"
@@ -71,6 +71,10 @@ msgstr "Vide"
 
 msgid "Emulator Control"
 msgstr "Contrôles Emulateur"
+
+#, c-format
+msgid "Expected FS-UAE version %s, got %s"
+msgstr "Version de FS-UAE attendue %s, trouvé %s"
 
 #. / TRANSLATORS: In context "Zoom: Full Frame"
 msgid "Full Frame"
@@ -144,11 +148,14 @@ msgstr "Port  Souris"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long: If you struggle
 #. / to get in short enough, just translate "No Device" instead.
+#. / The context is that nothing (no emulated device) is inserted into the
+#. / joystick port.
 msgid "No Amiga Device"
 msgstr "Périph. Amiga Absent"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long: If you struggle
 #. / to get in short enough, just translate "No Device" instead.
+#. / The context is that no host device is inserted into the joystick port.
 msgid "No Host Device"
 msgstr "Périph. Hôte Absent"
 
@@ -239,17 +246,4 @@ msgstr "[Port 0] Passer en mode joystick"
 
 msgid "[ Port 0 ] Switched to mouse mode"
 msgstr "[Port 0] Passer en mode souris"
-
-#. / TRANSLATORS: This is a menu entry and must not be too long
-msgid "Custom Joystick Port"
-msgstr "Port Joystick Personnalisé"
-
-msgid "Joystick Port 2"
-msgstr "Ports Joystick 2"
-
-msgid "Joystick Port 3"
-msgstr "Ports Joystick 3"
-
-msgid "Joystick Port 4"
-msgstr "Port Joystick 4"
 

@@ -7159,9 +7159,9 @@ static uae_u32 REGPARAM2 filesys_diagentry (TrapContext *context)
 	* Resident structures and call InitResident() for them at the end of the
 	* diag entry. */
 
-    /* CV: segtracker setup */
-    resaddr = segtracker_startup( resaddr );
-
+#ifdef WITH_SEGTRACKER
+	resaddr = segtracker_startup(resaddr);
+#endif
 	resaddr = uaeres_startup (resaddr);
 #ifdef BSDSOCKET
 	resaddr = bsdlib_startup (resaddr);

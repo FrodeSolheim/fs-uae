@@ -1,3 +1,7 @@
+Version 2.7.14dev:
+
+* Added segtracker to UAE debugger [cnvogelg].
+
 Version 2.7.13dev:
 
 * JIT on x86-64: Handle it gracefully when 2 GB virtual memory could not

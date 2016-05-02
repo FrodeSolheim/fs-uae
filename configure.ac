@@ -702,6 +702,8 @@ OPT_FEATURE([SAVESTATE], [savestate], [savestate],
             [save state support])
 OPT_FEATURE([SCP], [scp], [scp],
             [SuperCardPro floppy image support])
+OPT_FEATURE([WITH_SEGTRACKER], [segtracker], [segtracker],
+            [segtracker support in debugger])
 OPT_FEATURE([SERIAL_PORT], [serial_port], [serial-port],
             [serial port emulation])
 OPT_FEATURE([WITH_SLIRP], [slirp], [slirp],

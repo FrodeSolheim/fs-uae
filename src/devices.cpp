@@ -378,7 +378,9 @@ void virtualdevice_init (void)
 #endif
 #ifdef FILESYS
 	rtarea_init ();
+#ifdef WITH_SEGTRACKER
 	segtracker_install ();
+#endif /* WITH_SEGTRACKER */
 	uaeres_install ();
 	hardfile_install ();
 #endif

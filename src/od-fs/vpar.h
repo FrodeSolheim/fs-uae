@@ -22,7 +22,7 @@
 
 void vpar_open(void);
 void vpar_close(void);
-
+void vpar_update(void);
 int vpar_direct_write_status(uae_u8 v, uae_u8 dir);
 int vpar_direct_read_status(uae_u8 *vp);
 int vpar_direct_write_data(uae_u8 v, uae_u8 dir);

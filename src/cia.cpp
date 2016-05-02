@@ -722,6 +722,9 @@ static void resetwarning_check (void)
 
 void CIA_hsync_prehandler (void)
 {
+#ifdef FSUAE
+	parallel_poll_ack();
+#endif
 }
 
 static void keyreq (void)
@@ -1329,7 +1332,11 @@ static void WriteCIAA (uae_u16 addr, uae_u8 val)
 			cia_parallelack ();
 		} else if (isprinter() < 0) {
 			parallel_direct_write_data (val, ciaadrb);
+#ifdef FSUAE
+			parallel_ack();
+#else
 			cia_parallelack ();
+#endif
 #ifdef ARCADIA
 		} else if (arcadia_bios) {
 			arcadia_parport (1, ciaaprb, ciaadrb);

@@ -291,7 +291,7 @@ static void vpar_exit(void)
     vpar_write_state(VPAR_EXIT);
 }
 
-static void vpar_update(void)
+void vpar_update(void)
 {
     // report
     if (ack_flag) {

@@ -337,7 +337,6 @@ libuae_a_SOURCES = \
 	src/include/crc32.h \
 	src/include/custom.h \
 	src/include/debug.h \
-	src/include/debuginfo.h \
 	src/include/devices.h \
 	src/include/disk.h \
 	src/include/diskutil.h \
@@ -387,7 +386,6 @@ libuae_a_SOURCES = \
 	src/include/osemu.h \
 	src/include/packed.h \
 	src/include/parallel.h \
-	src/include/patch.h \
 	src/include/pci.h \
 	src/include/pci_hw.h \
 	src/include/picasso96.h \
@@ -400,7 +398,6 @@ libuae_a_SOURCES = \
 	src/include/scp.h \
 	src/include/scsi.h \
 	src/include/scsidev.h \
-	src/include/segtracker.h \
 	src/include/serial.h \
 	src/include/sndboard.h \
 	src/include/specialmonitors.h \
@@ -417,6 +414,7 @@ libuae_a_SOURCES = \
 	src/include/uae/caps.h \
 	src/include/uae/cdrom.h \
 	src/include/uae/cycleunit.h \
+	src/include/uae/debuginfo.h \
 	src/include/uae/dlopen.h \
 	src/include/uae/endian.h \
 	src/include/uae/enum.h \
@@ -432,8 +430,10 @@ libuae_a_SOURCES = \
 	src/include/uae/memory.h \
 	src/include/uae/mman.h \
 	src/include/uae/parser.h \
+	src/include/uae/patch.h \
 	src/include/uae/ppc.h \
 	src/include/uae/qemu.h \
+	src/include/uae/segtracker.h \
 	src/include/uae/seh.h \
 	src/include/uae/slirp.h \
 	src/include/uae/socket.h \

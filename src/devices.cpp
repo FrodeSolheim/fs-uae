@@ -58,8 +58,8 @@
 #include "pci_hw.h"
 #include "x86.h"
 #include "ethernet.h"
-#include "debuginfo.h"
-#include "segtracker.h"
+#include "uae/debuginfo.h"
+#include "uae/segtracker.h"
 #ifdef RETROPLATFORM
 #include "rp.h"
 #endif

@@ -13,7 +13,7 @@
 #include "uae/memory.h"
 #include "traps.h"
 #include "autoconf.h"
-#include "patch.h"
+#include "uae/patch.h"
 #include "newcpu.h"
 
 #define JMP 0x4ef9

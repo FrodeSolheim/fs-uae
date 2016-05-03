@@ -137,7 +137,7 @@ struct romdata {
 	int id;
 	int cpu;
 	int cloanto;
-	int type;
+	unsigned int type;
 	int group;
 	int title;
 	const TCHAR *partnumber;

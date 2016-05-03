@@ -7,7 +7,7 @@ Since: 2.1.33
 If a game requires an emulated hardware dongle, set dongle_type to one
 of these values:
 
-Value: 0 (None)
+Value: 0 ("None")
 Value: robocop 3 (RoboCop 3)
 Value: leaderboard (Leader Board)
 Value: b.a.t. ii (B.A.T. II)

@@ -1,5 +1,6 @@
 Version 2.7.14dev:
 
+* Fixed reserved word problem ("filter") in crt.shader.
 * Fixes for earlier vpar merge (fs-uae/issues/93).
 * Added segtracker to UAE debugger [cnvogelg].
 

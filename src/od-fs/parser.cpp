@@ -138,8 +138,11 @@ static void parallel_tcp_close(void)
 
 void parallel_ack(void)
 {
-	if (vpar_enabled()) {
+	if (0) {
+#ifdef WITH_VPAR
+	} else if (vpar_enabled()) {
 		/* Do nothing, acking is instead done via parallel_poll_ack. */
+#endif
 	} else {
 		cia_parallelack();
 	}

@@ -4317,13 +4317,13 @@ static void segtracker(TCHAR **inptr)
 				int found = segtracker_search_address(addr, &sl, &num_seg);
 				if(found) {
 					segment *seg = &sl->segments[num_seg];
-					uae_u32 s_addr = seg->addr;
-					uae_u32 s_size = seg->size;
-					uae_u32 s_end = s_addr + s_size;
-					uae_u32 offset = addr - s_addr;
+					uae_u32 seg_addr = seg->addr;
+					uae_u32 seg_size = seg->size;
+					uae_u32 seg_end = seg_addr + seg_size;
+					uae_u32 offset = addr - seg_addr;
 					console_out_f(_T("%08x: '%s' #%02d [%08x,%08x,%08x] +%08x\n"),
 								addr, sl->name, num_seg,
-								s_addr, s_size, s_end,
+								seg_addr, seg_size, seg_end,
 								offset);
 
 					/* try to find symbol info */

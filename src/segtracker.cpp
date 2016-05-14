@@ -26,6 +26,11 @@ static patch_func pf_LoadSeg;
 static patch_func pf_UnLoadSeg;
 static patch_func pf_NewLoadSeg;
 
+#ifdef _WIN32
+#define strcasestr strstr
+#warning Needs strcasestr replacement
+#endif
+
 int segtracker_enabled = 0;
 
 /* patch the interesting DOS functions.

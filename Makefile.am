@@ -1310,11 +1310,14 @@ catalogs = \
 	share/locale/cs/LC_MESSAGES/fs-uae.mo \
 	share/locale/da/LC_MESSAGES/fs-uae.mo \
 	share/locale/de/LC_MESSAGES/fs-uae.mo \
+	share/locale/eo/LC_MESSAGES/fs-uae.mo \
 	share/locale/es/LC_MESSAGES/fs-uae.mo \
 	share/locale/fi/LC_MESSAGES/fs-uae.mo \
 	share/locale/fr/LC_MESSAGES/fs-uae.mo \
+	share/locale/hu/LC_MESSAGES/fs-uae.mo \
 	share/locale/it/LC_MESSAGES/fs-uae.mo \
 	share/locale/nb/LC_MESSAGES/fs-uae.mo \
+	share/locale/nl/LC_MESSAGES/fs-uae.mo \
 	share/locale/pl/LC_MESSAGES/fs-uae.mo \
 	share/locale/pt/LC_MESSAGES/fs-uae.mo \
 	share/locale/pt_BR/LC_MESSAGES/fs-uae.mo \
@@ -1334,6 +1337,10 @@ share/locale/de/LC_MESSAGES/fs-uae.mo: po/de.po
 	mkdir -p share/locale/de/LC_MESSAGES
 	$(MSGFMT) --verbose $(s)/po/de.po -o $@
 
+share/locale/eo/LC_MESSAGES/fs-uae.mo: po/eo.po
+	mkdir -p share/locale/eo/LC_MESSAGES
+	$(MSGFMT) --verbose $(s)/po/eo.po -o $@
+
 share/locale/es/LC_MESSAGES/fs-uae.mo: po/es.po
 	mkdir -p share/locale/es/LC_MESSAGES
 	$(MSGFMT) --verbose $(s)/po/es.po -o $@
@@ -1346,6 +1353,10 @@ share/locale/fr/LC_MESSAGES/fs-uae.mo: po/fr.po
 	mkdir -p share/locale/fr/LC_MESSAGES
 	$(MSGFMT) --verbose $(s)/po/fr.po -o $@
 
+share/locale/hu/LC_MESSAGES/fs-uae.mo: po/hu.po
+	mkdir -p share/locale/hu/LC_MESSAGES
+	$(MSGFMT) --verbose $(s)/po/hu.po -o $@
+
 share/locale/it/LC_MESSAGES/fs-uae.mo: po/it.po
 	mkdir -p share/locale/it/LC_MESSAGES
 	$(MSGFMT) --verbose $(s)/po/it.po -o $@
@@ -1353,6 +1364,10 @@ share/locale/it/LC_MESSAGES/fs-uae.mo: po/it.po
 share/locale/nb/LC_MESSAGES/fs-uae.mo: po/nb.po
 	mkdir -p share/locale/nb/LC_MESSAGES
 	$(MSGFMT) --verbose $(s)/po/nb.po -o $@
+
+share/locale/nl/LC_MESSAGES/fs-uae.mo: po/nl.po
+	mkdir -p share/locale/nl/LC_MESSAGES
+	$(MSGFMT) --verbose $(s)/po/nl.po -o $@
 
 share/locale/pl/LC_MESSAGES/fs-uae.mo: po/pl.po
 	mkdir -p share/locale/pl/LC_MESSAGES

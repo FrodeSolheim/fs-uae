@@ -718,7 +718,7 @@ static void log_to_libfsemu(const char *message)
 static void main_function()
 {
     amiga_main();
-    fs_log("amiga_main returned\n");
+    fs_log("[CORE] Return from amiga_main\n");
     fs_uae_write_recorded_session();
 }
 
@@ -727,45 +727,45 @@ static void main_function()
 // int _putenv(const char *envstring);
 #endif
 
-static void init_i18n()
+static void init_i18n(void)
 {
+    // FIXME: language = 0 instead?
     if (fs_config_get_boolean("localization") == 0) {
-        fs_log("localization was forced off\n");
+        fs_log("[I18N ] Localization was forcefully disabled\n");
         return;
     }
 
     char *locale = setlocale(LC_MESSAGES, "");
     if (locale) {
-        fs_log("locale is set to %s\n", locale);
-    }
-    else {
-        fs_log("failed to set current locale\n");
+        fs_log("[I18N] Locale is set to %s\n", locale);
+    } else {
+        fs_log("[I18N] Failed to set current locale\n");
     }
 
     const char *language = fs_config_get_const_string("language");
     if (language) {
-        fs_log("setting LANGUAGE=%s\n", language);
+        fs_log("[I18N] Set environment LANGUAGE=%s\n", language);
         char *env_str = g_strdup_printf("LANGUAGE=%s", language);
 #ifdef WINDOWS
         _putenv(env_str);
 #else
         putenv(env_str);
 #endif
-        // don't free env_str, it's put directly in the environment
+        /* Do not free env_str, it's put directly in the environment. */
     }
 
 #ifndef ANDROID
     textdomain("fs-uae");
     char *path = fs_get_data_file("fs-uae/share-dir");
     if (path) {
-        fs_log("using data dir \"%s\"\n", path);
-        // remove "fs-uae/share-dir" from the returned path
+        fs_log("[I18N] Using data dir \"%s\"\n", path);
+        /* Remove trailing "fs-uae/share-dir" from the returned path. */
         int len = strlen(path);
         if (len > 16) {
             path[len - 16] = '\0';
         }
         char *locale_base = g_build_filename(path, "locale", NULL);
-        fs_log("using locale dir \"%s\"\n", locale_base);
+        fs_log("[I18N] Using locale dir \"%s\"\n", locale_base);
         bindtextdomain("fs-uae", locale_base);
         free(locale_base);
         free(path);
@@ -775,7 +775,7 @@ static void init_i18n()
         char *locale_base = g_build_filename(
             executable_dir, "..", "..", "Data", "Locale", NULL);
         if (g_file_test(locale_base, G_FILE_TEST_IS_DIR)) {
-            fs_log("using locale dir \"%s\"\n", locale_base);
+            fs_log("[I18N] Using locale dir \"%s\"\n", locale_base);
             bindtextdomain("fs-uae", locale_base);
         }
         free(locale_base);

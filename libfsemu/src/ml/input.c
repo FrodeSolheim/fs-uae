@@ -186,8 +186,6 @@ GList *fs_ml_input_list_custom_keyboards(void)
             list = g_list_append(list, name2);
         }
         g_dir_close(dir);
-    } else {
-        printf("# could not open dir\n");
     }
     list = g_list_sort(list, (GCompareFunc) g_ascii_strcasecmp);
     gchar *disable_path = g_build_filename(

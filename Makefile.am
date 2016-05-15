@@ -1187,7 +1187,7 @@ EXTRA_DIST = $(TESTS) $(EXTRA_TESTS) \
 	debian/source/format \
 	dist/linux/build.py \
 	dist/arch.py \
-	dist/linux/standalone.py \
+	dist/linux/standalone-linux.py \
 	dist/macosx/fs-uae-config.icns \
 	dist/macosx/fs-uae.icns \
 	dist/macosx/PkgInfo \
@@ -1407,14 +1407,14 @@ install-data-hook: mo fs-uae.dat
 	mkdir -p $(DESTDIR)$(datadir)/applications
 	cp -R $(s)/share/applications/* $(DESTDIR)$(datadir)/applications
 	mkdir -p $(DESTDIR)$(datadir)/fs-uae
-	cp -R $(s)/share/fs-uae/* $(DESTDIR)$(datadir)/fs-uae
+	touch $(DESTDIR)$(datadir)/fs-uae/share-dir
+	cp fs-uae.dat $(DESTDIR)$(datadir)/fs-uae
 	mkdir -p $(DESTDIR)$(datadir)/icons
 	cp -R $(s)/share/icons/* $(DESTDIR)$(datadir)/icons
 	mkdir -p $(DESTDIR)$(datadir)/locale
 	cp -R $(b)/share/locale/* $(DESTDIR)$(datadir)/locale
 	mkdir -p $(DESTDIR)$(datadir)/mime
 	cp -R $(s)/share/mime/* $(DESTDIR)$(datadir)/mime
-	cp fs-uae.dat $(DESTDIR)$(datadir)/fs-uae
 
 uninstall-local:
 	rm -f $(DESTDIR)$(datadir)/applications/fs-uae.desktop

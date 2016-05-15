@@ -103,7 +103,8 @@ int fs_emu_is_quitting()
     return fs_ml_is_quitting();
 }
 
-void fs_emu_warning(const char *format, ...) {
+void fs_emu_warning(const char *format, ...)
+{
     va_list ap;
     va_start(ap, format);
     char *buffer = g_strdup_vprintf(format, ap);
@@ -119,7 +120,8 @@ void fs_emu_warning(const char *format, ...) {
     g_free(buffer);
 }
 
-void fs_emu_deprecated(const char *format, ...) {
+void fs_emu_deprecated(const char *format, ...)
+{
     va_list ap;
     va_start(ap, format);
     char *buffer = g_strdup_vprintf(format, ap);
@@ -134,7 +136,8 @@ void fs_emu_deprecated(const char *format, ...) {
     g_free(buffer);
 }
 
-const char *fs_emu_get_title() {
+const char *fs_emu_get_title()
+{
     return g_fs_emu_title;
 }
 

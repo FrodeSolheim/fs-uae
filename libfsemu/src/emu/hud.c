@@ -58,12 +58,14 @@ typedef struct console_line {
 static GQueue *g_console_lines = NULL;
 static fs_mutex *g_console_mutex = NULL;
 
-void fs_emu_hud_init(void) {
+void fs_emu_hud_init(void)
+{
     g_console_mutex = fs_mutex_create();
     g_console_lines = g_queue_new();
 }
 
-void fs_emu_hud_init_after_config(void) {
+void fs_emu_hud_init_after_config(void)
+{
     g_notification_duration = fs_config_get_int_clamped(
             "notification_duration", 0, 60 * 1000);
     if (g_notification_duration == FS_CONFIG_NONE) {
@@ -123,7 +125,8 @@ void fs_emu_notification(uint32_t type, const char *format, ...)
     fs_mutex_unlock(g_console_mutex);
 }
 
-void fs_emu_hud_add_console_line(const char *text, int flags) {
+void fs_emu_hud_add_console_line(const char *text, int flags)
+{
     console_line *line = malloc(sizeof(console_line));
     line->type = 0;
     line->text = g_strdup(text);
@@ -131,6 +134,7 @@ void fs_emu_hud_add_console_line(const char *text, int flags) {
     line->show_until = line->time + DEFAULT_DURATION;
     g_last_line_time = MAX(line->show_until, line->show_until);
 
+    // assert(g_console_mutex != NULL);
     fs_mutex_lock(g_console_mutex);
     g_queue_push_head(g_console_lines, line);
     fs_mutex_unlock(g_console_mutex);

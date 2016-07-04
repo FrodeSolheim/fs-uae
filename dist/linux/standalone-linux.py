@@ -102,9 +102,9 @@ def ignore_library(name):
         return True
     if name.startswith("libutil.so"):
         return True
-    if name.startswith("libpcre.so"):
-        # Problem with OpenAL on Ubuntu 16.04 if this is included.
-        return True
+    # if name.startswith("libpcre.so"):
+    #     # Problem with OpenAL on Ubuntu 16.04 if this is included.
+    #     return True
 
     if name.startswith("libGL.so"):
         return True

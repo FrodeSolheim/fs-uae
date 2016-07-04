@@ -457,6 +457,7 @@ int fs_ml_video_mode_get_current(fs_ml_video_mode *mode)
         fs_log("full video sync will not be enabled automatically, but can "
                 "be forced\n");
     }
+    return 0;
 }
 
 static void fs_emu_monitor_init()

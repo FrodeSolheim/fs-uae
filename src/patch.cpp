@@ -71,7 +71,7 @@ void patch_func_init_post_call(TrapHandler func, patch_func *pf, int flags, int 
     dw(RTS);
 }
 
-static uae_u32 SetFunction(TrapContext *ctx, uae_u32 lib_base, uae_s16 offset, uae_u32 new_func)
+uae_u32 patch_SetFunction(TrapContext *ctx, uae_u32 lib_base, uae_s16 offset, uae_u32 new_func)
 {
     uae_u32 old_a1 = m68k_areg(regs,1);
     uae_u32 old_a0 = m68k_areg(regs,0);
@@ -109,7 +109,7 @@ void patch_func_set(TrapContext *ctx, uaecptr lib_base, uae_s16 func_lvo, patch_
     }
 
     /* patch lib function */
-    uae_u32 old_func = SetFunction(ctx, lib_base, func_lvo, pf->new_entry_addr);
+    uae_u32 old_func = patch_SetFunction(ctx, lib_base, func_lvo, pf->new_entry_addr);
     pf->old_entry_addr = old_func;
 
     /* store old pointer in rt_area */

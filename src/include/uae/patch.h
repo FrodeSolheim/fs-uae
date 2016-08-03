@@ -17,3 +17,6 @@ extern void patch_func_init_post_call(TrapHandler func, patch_func *pf,
                                       int flags, int save);
 extern void patch_func_set(TrapContext *ctx, uaecptr lib_base, uae_s16 func_lvo,
                            patch_func *pf);
+
+extern uae_u32 patch_SetFunction(TrapContext *ctx, uae_u32 lib_base,
+                                 uae_s16 offset, uae_u32 new_func);

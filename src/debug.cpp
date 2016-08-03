@@ -38,6 +38,7 @@
 #include "calc.h"
 #include "uae/debuginfo.h"
 #include "uae/segtracker.h"
+#include "uae/libtrace.h"
 #include "cpummu.h"
 #include "cpummu030.h"
 #include "ar.h"
@@ -136,7 +137,7 @@ static TCHAR help[] = {
 	_T("  fd                    Remove all breakpoints.\n")
 	_T("  fs <lines to wait> | <vpos> <hpos> Wait n scanlines/position.\n")
 	_T("  fc <CCKs to wait>     Wait n color clocks.\n")
-	_T("  fS <val> <mask>       Break when (SR & mask) = val.\n")                   
+	_T("  fS <val> <mask>       Break when (SR & mask) = val.\n")
 	_T("  f <addr1> <addr2>     Step forward until <addr1> <= PC <= <addr2>.\n")
 	_T("  e                     Dump contents of all custom registers, ea = AGA colors.\n")
 	_T("  i [<addr>]            Dump contents of interrupt and trap vectors.\n")
@@ -182,6 +183,11 @@ static TCHAR help[] = {
 	_T("  Zy 'symbol'           find symbol address.\n")
 	_T("  Zc 'file' <line>      find source code line address.\n")
 #endif /* WITH_SEGTRACKER */
+	_T("  L                     print libtrace status.\n")
+	_T("  Le [<0-1]             enable/disable/toggle libtrace\n")
+	_T("  Lc 'config'           set libtrace config file\n")
+	_T("  Lt 'task'             trace only task with this name\n")
+	_T("  Lo 'output'           write traces to output file\n")
 	_T("  ?<value>              Hex ($ and 0x)/Bin (%)/Dec (!) converter.\n")
 #ifdef _WIN32
 	_T("  x                     Close debugger.\n")
@@ -2928,7 +2934,7 @@ static void writeintomem (TCHAR **c)
 			if (!more_params (c))
 				break;
 			val = readhex (c, &len);
-		
+
 			if (len == 4) {
 				put_long (addr, val);
 				cc = 'L';
@@ -3529,7 +3535,7 @@ static void show_exec_lists (TCHAR *t)
 			console_out_f (_T("%08x %d %d %s\n"), node, (int)((v >> 8) & 0xff), (uae_s8)(v & 0xff), name);
 			xfree (name);
 			console_out_f (_T("Attributes %04x First %08x Lower %08x Upper %08x Free %d\n"),
-				get_word_debug (node + 14), get_long_debug (node + 16), get_long_debug (node + 20), 
+				get_word_debug (node + 14), get_long_debug (node + 16), get_long_debug (node + 20),
 				get_long_debug (node + 24), get_long_debug (node + 28));
 			uaecptr mc = get_long_debug (node + 16);
 			while (mc) {
@@ -4104,7 +4110,7 @@ static void debug_sprite (TCHAR **inptr)
 int debug_write_memory_16 (uaecptr addr, uae_u16 v)
 {
 	addrbank *ad;
-	
+
 	ad = &get_mem_bank (addr);
 	if (ad) {
 		ad->wput (addr, v);
@@ -4115,7 +4121,7 @@ int debug_write_memory_16 (uaecptr addr, uae_u16 v)
 int debug_write_memory_8 (uaecptr addr, uae_u8 v)
 {
 	addrbank *ad;
-	
+
 	ad = &get_mem_bank (addr);
 	if (ad) {
 		ad->bput (addr, v);
@@ -4126,7 +4132,7 @@ int debug_write_memory_8 (uaecptr addr, uae_u8 v)
 int debug_peek_memory_16 (uaecptr addr)
 {
 	addrbank *ad;
-	
+
 	ad = &get_mem_bank (addr);
 	if (ad->flags & (ABFLAG_RAM | ABFLAG_ROM | ABFLAG_ROMIN | ABFLAG_SAFE))
 		return ad->wget (addr);
@@ -4139,7 +4145,7 @@ int debug_peek_memory_16 (uaecptr addr)
 int debug_read_memory_16 (uaecptr addr)
 {
 	addrbank *ad;
-	
+
 	ad = &get_mem_bank (addr);
 	if (ad)
 		return ad->wget (addr);
@@ -4148,7 +4154,7 @@ int debug_read_memory_16 (uaecptr addr)
 int debug_read_memory_8 (uaecptr addr)
 {
 	addrbank *ad;
-	
+
 	ad = &get_mem_bank (addr);
 	if (ad)
 		return ad->bget (addr);
@@ -4297,6 +4303,8 @@ static int parse_string(TCHAR **inptr, TCHAR *str, int max_len)
 		if (**inptr != 0) {
 			(*inptr)++;
 		}
+	} else {
+		return -1;
 	}
 	str[len] = '\0';
 	return len;
@@ -4459,6 +4467,76 @@ static void segtracker(TCHAR **inptr)
 }
 
 #endif /* WITH_SEGTRACKER */
+
+static void libtrace(TCHAR **inptr)
+{
+	int show_status = 0;
+	if (more_params (inptr)) {
+		switch (next_char (inptr))
+		{
+		case 'e': /* 'Le' enable/disable/toggle libtrace */
+			{
+				int enable = libtrace_is_enabled();
+				ignore_ws(inptr);
+				if(more_params(inptr)) {
+					int v = readint(inptr);
+					enable = v ? 1 : 0;
+				} else {
+					enable = enable ? 0 : 1;
+				}
+				show_status = 1;
+				if(enable != libtrace_is_enabled()) {
+					libtrace_enable(enable);
+					if(enable) {
+						console_out_f(_T("Reset Amiga to activate libtrace!\n"));
+					}
+				}
+			}
+			break;
+		case 'c': /* 'Lc' set config file */
+			{
+				TCHAR str[256];
+				int len = parse_string(inptr, str, 256);
+				if(len > 0) {
+					libtrace_set_cfg_file(str);
+				}
+				console_out_f(_T("libtrace config file: '%s'\n"), libtrace_get_cfg_file());
+			}
+			break;
+		case 't': /* 'Lt' set task to trace */
+			{
+				TCHAR str[256];
+				int len = parse_string(inptr, str, 256);
+				if(len > 0) {
+					libtrace_set_task_name(str);
+				} else if(len == 0) {
+					libtrace_set_task_name(NULL);
+				}
+				console_out_f(_T("libtrace task: %s\n"), libtrace_get_task_name());
+			}
+			break;
+		case 'o': /* 'Lo' set set output file */
+			{
+				TCHAR str[256];
+				int len = parse_string(inptr, str, 256);
+				if(len > 0) {
+					libtrace_set_output_file(str);
+				} else if(len == 0) {
+					libtrace_set_output_file(NULL);
+				}
+				console_out_f(_T("libtrace output file: %s\n"), libtrace_get_output_file());
+			}
+			break;
+		}
+	} else {
+		/* only 'L': show libtrace status */
+		show_status = 1;
+	}
+
+	if(show_status) {
+		console_out_f(_T("libtrace is %s\n"), libtrace_is_enabled() ? "enabled":"disabled");
+	}
+}
 
 #ifdef WITH_PPC
 static void ppc_disasm(uaecptr addr, uaecptr *nextpc, int cnt)
@@ -4858,6 +4936,9 @@ static bool debug_line (TCHAR *input)
 			segtracker(&inptr);
 			break;
 #endif /* WITH_SEGTRACKER */
+		case 'L':
+			libtrace(&inptr);
+			break;
 		case 'h':
 		case '?':
 			if (more_params (&inptr))

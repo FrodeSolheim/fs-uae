@@ -1,5 +1,6 @@
 Version 2.7.15dev:
 
+* New option clipboard_sharing.
 * Translation fix for Fedora.
 * Do do install unused files to $prefix/share/fs-uae.
 * Packaging fix for Linux standalone version (fixes crash on Ubuntu 16.04).

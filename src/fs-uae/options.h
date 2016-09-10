@@ -11,6 +11,7 @@
 #define OPTION_CDFS "cdfs"
 #define OPTION_CDFS "cdfs"
 #define OPTION_CHIP_MEMORY "chip_memory"
+#define OPTION_CLIPBOARD_SHARING "clipboard_sharing"
 //#define OPTION_CURSOR_INTEGRATION "cursor_integration"
 #define OPTION_CPU "cpu"
 #define OPTION_CPU_IDLE "cpu_idle"

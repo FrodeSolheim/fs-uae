@@ -222,7 +222,8 @@ void fs_uae_process_input_event(int line, int action, int state, int playback)
 
 int g_fs_uae_frame = 0;
 
-static int input_handler_loop(int line) {
+static int input_handler_loop(int line)
+{
     static int last_frame = -1;
     if (g_fs_uae_frame != last_frame) {
         // only run this for the first input handler loop per frame
@@ -231,6 +232,9 @@ static int input_handler_loop(int line) {
 #endif
         last_frame = g_fs_uae_frame;
     }
+
+    // FIXME: Move to another place?
+    uae_clipboard_update();
 
     int action;
     //int reconfigure_input = 0;
@@ -527,6 +531,9 @@ static void on_init()
     }
     if (fs_config_get_int("min_first_line_ntsc") != FS_CONFIG_NONE) {
         amiga_set_min_first_line(fs_config_get_int("min_first_line_ntsc"), 1);
+    }
+    if (fs_config_is_true(OPTION_CLIPBOARD_SHARING)) {
+        amiga_set_option("clipboard_sharing", "yes");
     }
 
     /*

@@ -12,4 +12,11 @@ extern void amiga_clipboard_task_start (uaecptr);
 extern void clipboard_disable (bool);
 extern void clipboard_vsync (void);
 
+#ifdef FSUAE
+void clipboard_init(void);
+void clipboard_changed(void);
+void clipboard_reset(void);
+void clipboard_active(int active);
+#endif
+
 #endif /* UAE_CLIPBOARD_H */

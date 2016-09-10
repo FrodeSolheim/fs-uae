@@ -8366,8 +8366,9 @@ static uae_u32 REGPARAM2 mousehack_done (TrapContext *context)
 		input_mousehack_mouseoffset (a2);
 	} else if (mode == 17) {
 		uae_u32 v = 0;
-		if (currprefs.clipboard_sharing)
+		if (currprefs.clipboard_sharing) {
 			v |= 1;
+		}
 		if (consolehook_activate ())
 			v |= 2;
 		return v;

@@ -2,7 +2,6 @@
 #include "sysdeps.h"
 
 #include "autoconf.h"
-#include "clipboard.h"
 #include "debug.h"
 #include "enforcer.h"
 #include "filesys.h"
@@ -20,11 +19,6 @@
 void graphics_reset(bool force)
 {
     LOG_STUB("force=%d", force);
-}
-
-void clipboard_vsync (void)
-{
-
 }
 
 void gui_lock (void)

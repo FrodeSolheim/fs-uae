@@ -8,6 +8,8 @@
 extern "C" {
 #endif
 
+void uae_clipboard_update(void);
+
 /* Sets uaem metadata write flags based on chars in flags. You only need
  * to call this function to set non-default behavior. */
 void uae_set_uaem_write_flags_from_string(const char *flags);
@@ -55,7 +57,7 @@ void amiga_set_builtin_driveclick_path(const char *path);
 // for custom floppy sound files
 void amiga_set_floppy_sounds_dir(const char *path);
 
-void amiga_main();
+void amiga_main(void);
 int amiga_reset(int hard);
 int amiga_pause(int pause);
 int amiga_cpu_get_speed();

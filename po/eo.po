@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: fs-uae\n"
 "Report-Msgid-Bugs-To: frode@fs-uae.net\n"
 "POT-Creation-Date: 2016-04-26 00:59+0200\n"
-"PO-Revision-Date: 2016-05-14 05:19-0400\n"
+"PO-Revision-Date: 2016-09-10 15:11-0400\n"
 "Last-Translator: FrodeSolheim <frode-crowdin@fsolheim.net>\n"
 "Language-Team: Esperanto\n"
 "Language: eo_UY\n"
@@ -50,15 +50,15 @@ msgstr "CD32 Kontrolilreĝimo"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 msgid "Custom Joystick Ports"
-msgstr ""
+msgstr "Laŭmendaj stirstangpordoj"
 
 msgid "Custom Mode"
-msgstr ""
+msgstr "Laŭmenda reĝimo"
 
 #. / TRANSLATORS: Empty or nothing
 #, c-format
 msgid "DF%d: Empty"
-msgstr ""
+msgstr "DF%d: Malplena"
 
 msgid "Disabled"
 msgstr "Malvalidigita"
@@ -115,7 +115,7 @@ msgstr "Stirstanga Pordo%d"
 #. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Joystick Port %d Device"
-msgstr ""
+msgstr "Stirstangpordo %d Aparato"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
@@ -138,13 +138,13 @@ msgid "More..."
 msgstr "Pli..."
 
 msgid "Mouse"
-msgstr "Muzo"
+msgstr "Muso"
 
 msgid "Mouse Mode"
 msgstr "Paŭzi"
 
 msgid "Mouse Port"
-msgstr "Muzpordo"
+msgstr "Muspordo"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long: If you struggle
 #. / to get in short enough, just translate "No Device" instead.
@@ -170,25 +170,25 @@ msgid "Option chip_memory must be a multiple of 512"
 msgstr ""
 
 msgid "Option fast_memory must be a multiple of 1024"
-msgstr ""
+msgstr "La opcio \"fast_memory\" devas esti oblo de 1024"
 
 msgid "Option motherboard_ram must be a multiple of 1024"
-msgstr ""
+msgstr "La opcio \"motherboard_ram\" devas esti oblo de 1024"
 
 msgid "Option motherboard_ram needs a CPU with 32-bit addressing"
-msgstr ""
+msgstr "La opcio \"motherboard_ram\" bezonas ĉefprocesoron kun 32-bita adresado"
 
 msgid "Option slow_memory must be a multiple of 256"
-msgstr ""
+msgstr "La opcio \"slow_memory\" devas esti oblo de 256"
 
 msgid "Option uaegfx.card needs a CPU with 32-bit addressing"
-msgstr ""
+msgstr "La opcio \"uaegfx.card\" bezonas ĉefprocesoron kun 32-bita adresado"
 
 msgid "Option zorro_iii_memory must be a multiple of 1024"
-msgstr ""
+msgstr "La opcio \"zorro_iii_memory\" devas esti oblo de 1024"
 
 msgid "Option zorro_iii_memory needs a CPU with 32-bit addressing"
-msgstr ""
+msgstr "La opcio \"zorro_iii_memory\" bezonas ĉefprocesoron kun 32-bita adresado"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 msgid "Parallel Joystick Ports"
@@ -242,8 +242,8 @@ msgid "Zoom: %s + Border"
 msgstr "Pligrandigo: %s + Bordero"
 
 msgid "[ Port 0 ] Switched to joystick mode"
-msgstr ""
+msgstr "[ Pordo 0 ] Ŝaltis al stirstangreĝimo"
 
 msgid "[ Port 0 ] Switched to mouse mode"
-msgstr ""
+msgstr "[ Pordo 0 ] Ŝaltis al musreĝimo"
 

@@ -5,6 +5,7 @@ Version 2.7.15dev:
 * Do do install unused files to $prefix/share/fs-uae.
 * Packaging fix for Linux standalone version (fixes crash on Ubuntu 16.04).
 * Use embedded RUNPATHs instead of LD_LIBRARY_PATH for generic Linux versions.
+* Imported updated translations from crowdin.com.
 
 Version 2.7.14dev:
 

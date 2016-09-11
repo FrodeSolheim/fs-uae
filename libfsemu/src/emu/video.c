@@ -9,13 +9,13 @@
 #include <fs/ml.h>
 #include <fs/thread.h>
 #include <math.h>
+#include <fs/emu_lua.h>
 
 #ifdef USE_OPENGL
 #include <fs/ml/opengl.h>
 #endif
 
 #include "audio.h"
-#include "emu_lua.h"
 #include "font.h"
 #include "libfsemu.h"
 #include "menu.h"

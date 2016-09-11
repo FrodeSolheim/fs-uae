@@ -373,6 +373,7 @@ libuae_a_SOURCES = \
 	src/include/isofs_api.h \
 	src/include/keyboard.h \
 	src/include/keybuf.h \
+	src/include/lualibuae.h \
 	src/include/luascript.h \
 	src/include/mackbd.h \
 	src/include/mmu_common.h \
@@ -648,6 +649,7 @@ libfsemu_a_SOURCES = \
 	libfsemu/include/fs/defines.h \
 	libfsemu/include/fs/emu.h \
 	libfsemu/include/fs/emu/actions.h \
+	libfsemu/include/fs/emu_lua.h \
         libfsemu/include/fs/emu/audio.h \
         libfsemu/include/fs/emu/benchmark.h \
         libfsemu/include/fs/emu/buffer.h \
@@ -675,6 +677,7 @@ libfsemu_a_SOURCES = \
 	libfsemu/include/fs/ml.h \
 	libfsemu/include/fs/ml/opengl.h \
 	libfsemu/include/fs/ml/options.h \
+	libfsemu/include/fs/net.h \
 	libfsemu/include/fs/ref.h \
 	libfsemu/include/fs/thread.h \
 	libfsemu/include/fs/time.h \
@@ -699,7 +702,6 @@ libfsemu_a_SOURCES = \
 	libfsemu/src/emu/dialog.c \
 	libfsemu/src/emu/dialog.h \
 	libfsemu/src/emu/emu.c \
-	libfsemu/src/emu/emu_lua.h \
 	libfsemu/src/emu/font.c \
 	libfsemu/src/emu/font.h \
 	libfsemu/src/emu/hud.c \
@@ -708,6 +710,8 @@ libfsemu_a_SOURCES = \
 	libfsemu/src/emu/input.h \
 	libfsemu/src/emu/keynames.c \
 	libfsemu/src/emu/libfsemu.h \
+	libfsemu/src/emu/lua_shell.c \
+	libfsemu/src/emu/lua_shell.h \
 	libfsemu/src/emu/menu.c \
 	libfsemu/src/emu/menu.h \
 	libfsemu/src/emu/netplay.c \
@@ -932,6 +936,7 @@ if WITH_LUA
 noinst_LIBRARIES += liblua.a
 AM_CPPFLAGS += -I$(s)/lua/src
 fs_uae_LDADD += liblua.a
+fs_uae_device_helper_LDADD += liblua.a
 liblua_a_SOURCES = \
 	lua/src/lapi.c \
 	lua/src/lapi.h \
@@ -990,8 +995,9 @@ liblua_a_SOURCES = \
 	lua/src/lzio.c \
 	lua/src/lzio.h
 fs_uae_SOURCES += \
-	src/fs-uae/luascript.c \
-	src/luascript.cpp
+	src/fs-uae/lualibfsuae.c \
+	src/luascript.cpp \
+	src/lualibuae.cpp
 libfsemu_a_SOURCES += \
 	libfsemu/src/emu/emu_lua.c
 endif

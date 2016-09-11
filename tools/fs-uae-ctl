@@ -1,0 +1,121 @@
+#!/usr/bin/env python3
+#
+# fs-uae-ctl - a cli control tool for fs-uae
+
+import sys
+import os
+import argparse
+import fsuae
+
+usage="""
+Usage:
+
+ df[n]                show inserted floppy image file
+ df[n] <image_file>   insert an image file into floppy slot
+ df[n] eject          remove an image file from floppy slot
+
+ cd[n]                show inserted CDROM image file
+ cd[n] <image_file>   insert an image file into CDROM slot
+ cd[n] eject          remove an image file from CDROM slot
+"""
+
+def check_drive_name(s, drive_type):
+    if len(s) > 2 and s.startswith(drive_type):
+        num = s[2]
+        if num >= '0' and num <= '9':
+            return int(num)
+
+def handle_drive(emu, obj, slot, value, funcs):
+    name = obj[:3]
+    nd = funcs[0]() # getNumXDrives
+    if slot >= nd:
+        print(name,"not available")
+        return 2
+    if value is None:
+        img = funcs[1](slot) # getXImagePath
+        if img == "":
+            img = "empty"
+        print(name, img)
+    elif value == "eject":
+        funcs[2](slot, "") # setXImagePath
+    else:
+        # check for file
+        if not os.path.isfile(value):
+            print(value, "does not exist!")
+            return 3
+        funcs[2](slot, value) # setXImagePath
+    return 0
+
+def handle_command(emu, obj, val):
+    if obj is None:
+        print("no object given")
+        return
+    # check for floppy
+    n = check_drive_name(obj, "df")
+    if n is not None:
+        f = (emu.getNumFloppyDrives,
+             emu.getFloppyImagePath,
+             emu.setFloppyImagePath)
+        handle_drive(emu, obj, n, val, f)
+    else:
+        # check for CDROM
+        n = check_drive_name(obj, "cd")
+        if n is not None:
+            f = (emu.getNumCDROMDrives,
+                 emu.getCDROMImagePath,
+                 emu.setCDROMImagePath)
+            handle_drive(emu, obj, n, val, f)
+        else:
+            # invalid
+            print("invalid command!")
+
+def command_loop(emu):
+    while True:
+        line = input('> ')
+        parts = line.split()
+        if len(parts) == 2:
+            handle_command(emu, parts[0], parts[1])
+        elif len(parts) == 1:
+            cmd = parts[0]
+            if cmd in ('quit', 'exit'):
+                break
+            else:
+                handle_command(emu, cmd, None)
+        else:
+            print("syntax error")
+
+def main(args):
+    p = argparse.ArgumentParser(
+            description="Remote control FS-UAE via the lua shell interface",
+            formatter_class=argparse.RawDescriptionHelpFormatter,
+            epilog=usage)
+    p.add_argument('obj', nargs='?', help='floppy dfx: or cdrom cdx: drive')
+    p.add_argument('val', nargs='?', help='drive image file or "eject"')
+    p.add_argument('--host', '-H', help="lua shell host address", default="localhost")
+    p.add_argument('--port', '-P', help="lua shell port", type=int, default=6800)
+    p.add_argument('--interactive', '-i', help="enter commands", action='store_true')
+    r = p.parse_args(args[1:])
+    obj = r.obj
+    val = r.val
+
+    # open shell
+    emu = fsuae.Emu()
+    if not emu.connect(host=r.host, port=r.port):
+        print(emu.getError())
+        return 1
+
+    try:
+        # interactive mode
+        if r.interactive:
+            command_loop(emu)
+        # direct command
+        else:
+            handle_command(emu, obj, val)
+    except fsuae.LuaShellError as e:
+        print(e.msg)
+
+    emu.disconnect()
+
+if __name__ == '__main__':
+    res = main(sys.argv)
+    sys.exit(res)

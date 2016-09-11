@@ -7,6 +7,7 @@
 // later includes of windows.h
 
 #include "windef.h"
+#include "winsock2.h"
 #include "windows.h"
 
 #endif

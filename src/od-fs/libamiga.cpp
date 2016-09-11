@@ -97,14 +97,44 @@ void amiga_set_save_state_compression(int compress) {
 
 #ifdef WITH_LUA
 
-void amiga_init_lua(void (*lock)(void), void (*unlock)(void)) {
-    //uae_lua_init(lock, unlock);
-    write_log("WARNING: not sending lock function to uae_lua_init\n");
-    uae_lua_init();
+void amiga_lua_init(void (*bind)(void), void (*unbind)(void))
+{
+    uae_lua_set_callbacks(bind, unbind);
 }
 
-void amiga_init_lua_state(lua_State *L) {
-    uae_lua_init_state(L);
+void amiga_lua_set_extra_state_init(uae_lua_init_state_callback f)
+{
+    uae_lua_set_extra_state_setup(f);
+}
+
+int amiga_lua_run_handler(const char *name)
+{
+    return uae_lua_run_handler(name);
+}
+
+int amiga_lua_run_script(const char *path)
+{
+    return uae_lua_run_script(path);
+}
+
+lua_State *amiga_lua_create_state(void)
+{
+    return uae_lua_create_state(0);
+}
+
+void amiga_lua_destroy_state(lua_State *state)
+{
+    uae_lua_destroy_state(state);
+}
+
+void amiga_lua_lock_state(lua_State *state)
+{
+    uae_lua_lock_state(state);
+}
+
+void amiga_lua_unlock_state(lua_State *state)
+{
+    uae_lua_unlock_state(state);
 }
 
 #endif

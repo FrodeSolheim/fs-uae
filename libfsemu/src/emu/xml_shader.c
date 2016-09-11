@@ -15,6 +15,7 @@
 #include <fs/glib.h>
 #include <fs/i18n.h>
 #include <fs/log.h>
+#include <fs/emu_lua.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,10 +24,6 @@
 
 #ifdef USE_GLIB
 #include <glib.h>
-#endif
-
-#ifdef WITH_LUA
-#include "emu_lua.h"
 #endif
 
 #define debug_printf(format, ...)
@@ -1214,11 +1211,8 @@ void fs_emu_xml_shader_init(void)
     fs_emu_load_default_shader();
 
 #ifdef WITH_LUA
-    lua_State *L = fs_emu_lua_state;
-
-    lua_register(L, "fs_emu_load_shader", l_fs_emu_load_shader);
-    lua_register(L, "fs_emu_set_shader", l_fs_emu_set_shader);
-
+    fs_emu_lua_register_func("load_shader", l_fs_emu_load_shader);
+    fs_emu_lua_register_func("set_shader", l_fs_emu_set_shader);
 #endif
 }
 

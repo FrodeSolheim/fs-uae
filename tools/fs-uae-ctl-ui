@@ -1,0 +1,185 @@
+#!/usr/bin/env python3
+
+import sys
+import os
+from PyQt4 import QtCore, QtGui
+import fsuae
+
+class DriveSelector(QtGui.QWidget):
+
+    error = QtCore.pyqtSignal('QString')
+
+    def __init__(self, name, funcs, slot, settings, filt, *args):
+        self.name = name
+        self.get_func = funcs[0]
+        self.set_func = funcs[1]
+        self.slot = slot
+        self.filt = filt
+        self.settings = settings
+        QtGui.QWidget.__init__(self, *args)
+        self.label = QtGui.QLabel(name, self)
+        self.input = QtGui.QLineEdit(self)
+        self.pick = QtGui.QPushButton("...", self)
+        self.eject = QtGui.QPushButton("\u23cf", self)
+        self.pick.setMaximumWidth(32)
+        self.eject.setMaximumWidth(32)
+        layout = QtGui.QHBoxLayout()
+        layout.setSpacing(2)
+        layout.setMargin(2)
+        layout.addWidget(self.label,0,QtCore.Qt.AlignLeft)
+        layout.addWidget(self.input,1)
+        layout.addWidget(self.pick)
+        layout.addWidget(self.eject)
+        self.setLayout(layout)
+        # connects
+        self.eject.clicked.connect(self.onEject)
+        self.pick.clicked.connect(self.onPick)
+
+    def get_name(self):
+        return self.name
+
+    def setEnabled(self, on):
+        self.input.setEnabled(on)
+        self.pick.setEnabled(on)
+        self.eject.setEnabled(on)
+
+    def updatePath(self):
+        try:
+            path = self.get_func(self.slot)
+            self.input.setText(path)
+        except fsuae.LuaShellError as e:
+            self.error.emit(e.msg)
+
+    @QtCore.pyqtSlot()
+    def onEject(self):
+        try:
+            self.set_func(self.slot, "")
+            self.input.setText("")
+        except fsuae.LuaShellError as e:
+            self.error.emit(e.msg)
+
+    @QtCore.pyqtSlot()
+    def onPick(self):
+        key = self.name + "/dir"
+        dir_path = self.settings.value(key)
+        path = QtGui.QFileDialog.getOpenFileName(self, "Pick Image", dir_path, self.filt)
+        if path != "":
+            dir_path = os.path.dirname(path)
+            self.settings.setValue(key, dir_path)
+            try:
+                self.set_func(self.slot, path)
+                self.input.setText(path)
+            except fsuae.LuaShellError as e:
+                self.error.emit(e.msg)
+
+
+class UIWindow(QtGui.QMainWindow):
+    def __init__(self, emu, *args):
+        QtGui.QMainWindow.__init__(self, *args)
+        self.emu = emu
+        self.floppy_widgets = [None] * 4
+        self.cdrom_widgets = [None] * 4
+        self._create_widgets()
+
+    def _create_widgets(self):
+        tab = self._create_tab()
+        self.setCentralWidget(tab)
+
+        # tool bar
+        tb = QtGui.QToolBar("Tools")
+        self.addToolBar(tb)
+        action = tb.addAction("Connect")
+        action.triggered.connect(self.onConnect)
+
+        # status bar
+        self.status = QtGui.QStatusBar()
+        self.setStatusBar(self.status)
+        self.status.showMessage("Ready.")
+
+    def _create_tab(self):
+        w = QtGui.QTabWidget()
+        settings = QtCore.QSettings("FS-UAE", "fs-uae-ctl-ui")
+
+        # floppies tab
+        fw = QtGui.QWidget()
+        w.addTab(fw, "Floppies")
+        l = QtGui.QVBoxLayout()
+        l.setSpacing(0)
+        fw.setLayout(l)
+        floppy_filter = "ADF Image (*.adf);;All Files (*.*)"
+        for i in range(len(self.floppy_widgets)):
+            t = "df{}:".format(i)
+            funcs = (self.emu.getFloppyImagePath,
+                     self.emu.setFloppyImagePath)
+            f = DriveSelector(t, funcs, i, settings, floppy_filter, fw)
+            f.error.connect(self.onError)
+            f.setEnabled(False)
+            l.addWidget(f)
+            self.floppy_widgets[i] = f
+
+        # CDROMs tab
+        fc = QtGui.QWidget()
+        w.addTab(fc, "CDROMs")
+        l = QtGui.QVBoxLayout()
+        l.setSpacing(0)
+        fc.setLayout(l)
+        cdrom_filter = "CDROM Image (*.iso *.img);;All Files (*.*)"
+        for i in range(len(self.cdrom_widgets)):
+            t = "cd{}:".format(i)
+            funcs = (self.emu.getCDROMImagePath,
+                     self.emu.setCDROMImagePath)
+            f = DriveSelector(t, funcs, i, settings, cdrom_filter, fc)
+            f.error.connect(self.onError)
+            f.setEnabled(False)
+            l.addWidget(f)
+            self.cdrom_widgets[i] = f
+
+        return w
+
+    def setEnabled(self, num_floppies=0, num_cdroms=0):
+        self.num_floppies = num_floppies
+        i = 0
+        for f in self.floppy_widgets:
+            f.setEnabled(i < num_floppies)
+            i += 1
+
+        self.num_cdroms = num_cdroms
+        i = 0
+        for c in self.cdrom_widgets:
+            c.setEnabled(i < num_cdroms)
+            i += 1
+
+    @QtCore.pyqtSlot()
+    def onConnect(self):
+        if self.emu.isConnected():
+            self.emu.disconnect()
+
+        ok = self.emu.connect()
+        if ok:
+            nf = self.emu.getNumFloppyDrives()
+            nc = self.emu.getNumCDROMDrives()
+            self.status.showMessage("Connected: #{} floppies, #{} cdroms".format(nf,nc));
+            self.setEnabled(nf, nc)
+            for f in range(nf):
+                self.floppy_widgets[f].updatePath()
+            for c in range(nc):
+                self.cdroms_widgets[c].updatePath()
+        else:
+            self.status.showMessage("Not Connected: " + self.emu.getError())
+
+    @QtCore.pyqtSlot(str)
+    def onError(self, msg):
+        self.status.showMessage("Disconnected: " + msg)
+        self.emu.disconnect()
+        self.setEnabled()
+
+
+def main(args):
+    emu=fsuae.Emu()
+    app=QtGui.QApplication(args)
+    win=UIWindow(emu)
+    win.show()
+    sys.exit(app.exec_())
+
+if __name__=="__main__":
+    main(sys.argv)

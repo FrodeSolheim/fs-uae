@@ -49,7 +49,8 @@ def s(command):
 def wrap(name, target=None, args=None):
     if target is None:
         target = name + ".bin"
-        os.rename(name, target)
+        os.rename(os.path.join(package_dir, name),
+                  os.path.join(package_dir, target))
     if args is None:
         args = ["$@"]
     path = os.path.join(package_dir, name)

@@ -777,6 +777,10 @@ static int clipboard_put_text_real(const TCHAR *txt)
 {
     int ret = FALSE;
     fs_mutex_lock(clipboard_mutex);
+    if (clipboard_to_host_text != NULL) {
+        free(clipboard_to_host_text);
+        clipboard_to_host_text = NULL;
+    }
     clipboard_to_host_text = strdup(txt);
     fs_mutex_unlock(clipboard_mutex);
     return ret;
@@ -938,7 +942,7 @@ void clipboard_init(void)
 UAE_EXTERN_C void uae_clipboard_update(void)
 {
     clipboard_read();
-//#if 0
+
     fs_mutex_lock(clipboard_mutex);
     if (clipboard_to_host_text) {
         write_log("[CLIPBOARD] Set host clipboard to \"%s\"\n",
@@ -948,5 +952,4 @@ UAE_EXTERN_C void uae_clipboard_update(void)
         clipboard_to_host_text = NULL;
     }
     fs_mutex_unlock(clipboard_mutex);
-//#endif
 }

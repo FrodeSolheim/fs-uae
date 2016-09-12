@@ -158,9 +158,16 @@ AC_CHECK_LIB([Iphlpapi], [main])
 
 AM_CONDITIONAL([BUILTIN_GLEE], [false])
 
+AC_ARG_WITH(glad, AS_HELP_STRING(
+    [--without-glad], [use GLAD OpenGL loader]))
+AS_IF([test "x$with_glad" != xno], [
+    AC_DEFINE([WITH_GLAD], [1], [Define to 1 to use GLAD])
+])
+AM_CONDITIONAL([WITH_GLAD], [test x$with_glad != xno])
+
 AC_ARG_WITH(glew, AS_HELP_STRING(
-    [--without-glew], [do not use GLEW library]))
-AS_IF([test "x$with_glew" != xno], [
+    [--with-glew], [use GLEW library]))
+AS_IF([test "x$with_glew" = xyes], [
     PKG_CHECK_MODULES([GLEW], [glew])
     AC_DEFINE([WITH_GLEW], [1], [Define to 1 to use GLEW])
 ])

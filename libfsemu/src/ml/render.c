@@ -33,6 +33,78 @@
 
 #include <fs/thread.h>
 
+#ifdef USE_GLEE
+void * __GLeeGetProcAddress(const char *extname);
+typedef int64_t GLint64;
+typedef uint64_t GLuint64;
+typedef struct __GLsync *GLsync;
+
+static void (APIENTRYP glWaitSync)(GLsync sync, GLbitfield flags,
+        GLuint64 timeout) = NULL;
+static GLenum (APIENTRYP glClientWaitSync)(GLsync sync, GLbitfield flags,
+        GLuint64 timeout) = NULL;
+static GLsync (APIENTRYP glFenceSync)(GLenum condition,
+        GLbitfield flags) = NULL;
+#elif defined(WITH_GLEW)
+#elif defined(WITH_GLAD)
+#else
+static FS_PFNGLWAITSYNCPROC _glWaitSync;
+#define glWaitSync _glWaitSync
+static FS_PFNGLCLIENTWAITSYNCPROC _glClientWaitSync;
+#define glClientWaitSync _glClientWaitSync
+static FS_PFNGLFENCESYNCPROC _glFenceSync;
+#define glFenceSync _glFenceSync
+static FS_PFNGLGENFENCESNVPROC _glGenFencesNV;
+#define glGenFencesNV _glGenFencesNV
+static FS_PFNGLSETFENCENVPROC _glSetFenceNV;
+#define glSetFenceNV _glSetFenceNV
+static FS_PFNGLTESTFENCENVPROC _glTestFenceNV;
+#define glTestFenceNV _glTestFenceNV
+static FS_PFNGLGENFENCESAPPLEPROC _glGenFencesAPPLE;
+#define glGenFencesAPPLE _glGenFencesAPPLE
+static FS_PFNGLSETFENCEAPPLEPROC _glSetFenceAPPLE;
+#define glSetFenceAPPLE _glSetFenceAPPLE
+static FS_PFNGLTESTFENCEAPPLEPROC _glTestFenceAPPLE;
+#define glTestFenceAPPLE _glTestFenceAPPLE
+#endif
+
+#if 0
+#define GL_OBJECT_TYPE                 0x9112
+#define GL_SYNC_CONDITION              0x9113
+#define GL_SYNC_STATUS                 0x9114
+#define GL_SYNC_FLAGS                  0x9115
+#define GL_SYNC_GPU_COMMANDS_COMPLETE  0x9117
+#define GL_ALREADY_SIGNALED            0x911A
+#define GL_TIMEOUT_EXPIRED             0x911B
+#define GL_CONDITION_SATISFIED         0x911C
+#define GL_WAIT_FAILED                 0x911D
+#define GL_SYNC_FLUSH_COMMANDS_BIT     0x00000001
+#define GL_UNSIGNALED                  0x9118
+#define GL_SIGNALED                    0x9119
+#define TIMEOUT_IGNORED                0xFFFFFFFFFFFFFFFFull
+#endif
+
+#ifdef USE_GLES
+
+#else
+static GLuint g_fence;
+static GLsync g_sync;
+#endif
+
+#define FENCE_SET 1
+#define FENCE_WAIT 2
+
+#define SYNC_SWAP 1
+#define SYNC_SWAP_FINISH 2
+#define SYNC_FINISH_SWAP_FINISH 3
+#define SYNC_SLEEP_SWAP_FINISH 4
+#define SYNC_FINISH_SLEEP_SWAP_FINISH 5
+#define SYNC_SWAP_FENCE_START 6
+#define SYNC_SWAP_FENCE 7
+#define SYNC_SWAP_SLEEP_FENCE 8
+
+static int g_sync_method = 0;
+
 static int g_vblank_count = 0;
 static int64_t g_measured_vblank_time = 0;
 static int64_t g_adjusted_vblank_time = 0;
@@ -76,24 +148,23 @@ static int64_t g_epoch = 0;
 
 #define CHECK_GL_ERROR_MSG(msg)
 
-void fs_ml_frame_update_begin(int frame) {
+void fs_ml_frame_update_begin(int frame)
+{
     if (g_fs_ml_video_sync) {
 
-    }
-    else if (g_fs_ml_vblank_sync) {
-        // emulation running independently on the video renderer
-    }
-    else if (g_fs_ml_benchmarking) {
-        // run as fast as possible
-    }
-    else {
-        // video renderer is waiting for a new frame -signal that a new
-        // frame is ready
+    } else if (g_fs_ml_vblank_sync) {
+        /* Emulation running independently on the video renderer. */
+    } else if (g_fs_ml_benchmarking) {
+        /* Run as fast as possible. */
+    } else {
+        /* Video renderer is waiting for a new frame -signal that a new
+         * frame is ready. */
         //fs_condition_signal(g_video_cond);
     }
 }
 
-void fs_ml_frame_update_end(int frame) {
+void fs_ml_frame_update_end(int frame)
+{
 
     //printf("%d\n", frame);
 
@@ -112,21 +183,19 @@ void fs_ml_frame_update_end(int frame) {
         }
         g_start_new_frame = 0;
         fs_mutex_unlock(g_start_new_frame_mutex);
-    }
-    else if (g_fs_ml_vblank_sync) {
+    } else if (g_fs_ml_vblank_sync) {
         // emulation running independently on the video renderer
-    }
-    else if (g_fs_ml_benchmarking) {
+    } else if (g_fs_ml_benchmarking) {
         // run as fast as possible
-    }
-    else {
+    } else {
         // video renderer is waiting for a new frame -signal that a new
         // frame is ready
         //fs_condition_signal(g_video_cond);
     }
 }
 
-static void save_screenshot_of_opengl_framebuffer(const char *path) {
+static void save_screenshot_of_opengl_framebuffer(const char *path)
+{
 #if 0
     static int count = 0;
     count += 1;
@@ -179,8 +248,7 @@ static void save_screenshot_of_opengl_framebuffer(const char *path) {
     int result = fs_image_save_data(path, out_data, w, h, 4);
     if (result) {
         fs_log("saved screenshot\n");
-    }
-    else {
+    } else {
         fs_log("error saving screenshot\n");
     }
     g_free(out_data);
@@ -190,34 +258,33 @@ static void save_screenshot_of_opengl_framebuffer(const char *path) {
 #endif
 }
 
-int fs_ml_get_vblank_count() {
+int fs_ml_get_vblank_count(void)
+{
     return g_vblank_count;
 }
 
-int64_t fs_ml_get_vblank_time() {
+int64_t fs_ml_get_vblank_time(void)
+{
     return g_measured_vblank_time;
 }
 
-void fs_ml_stop() {
+void fs_ml_stop(void)
+{
     g_fs_ml_running = 0;
     // signal g_frame_available_cond because video (main) thread may be
     // blocking on this condition
     // fs_condition_signal(g_frame_available_cond);
 }
 
-#if 0
-static int eltime(int64_t t) {
-    return (int) ((t - g_epoch));
-}
-#endif
-
-static void update_frame() {
+static void update_frame(void)
+{
     if (g_fs_ml_video_update_function) {
         g_uploaded_frame = g_fs_ml_video_update_function();
     }
 }
 
-static void render_frame() {
+static void render_frame(void)
+{
     if (g_fs_ml_video_render_function) {
         g_fs_ml_video_render_function();
         g_rendered_frame = g_uploaded_frame;
@@ -228,7 +295,8 @@ static void render_frame() {
 extern SDL_Window* g_fs_ml_window;
 #endif
 
-static void swap_opengl_buffers() {
+static void swap_opengl_buffers(void)
+{
     //int64_t t1 = fs_get_monotonic_time();
 #if defined(USE_SDL2)
     SDL_GL_SwapWindow(g_fs_ml_window);
@@ -251,7 +319,7 @@ static void gl_finish() {
 //void fs_ml_wait_vblank() {
 //}
 
-static void sleep_until_vsync()
+static void sleep_until_vsync(void)
 {
     int sleep_time = 5000;
     int64_t t = fs_emu_monotonic_time();
@@ -273,7 +341,7 @@ static void sleep_until_vsync()
 }
 
 #if 0
-static void full_sleep_until_vsync()
+static void full_sleep_until_vsync(void)
 {
     // FIXME: use this instead of sleep_until_vsync
     int sleep_time = 0;
@@ -292,65 +360,15 @@ static void full_sleep_until_vsync()
 }
 #endif
 
-#ifdef USE_GLEE
-typedef int64_t GLint64;
-typedef uint64_t GLuint64;
-typedef struct __GLsync *GLsync;
-
-static void (APIENTRYP glWaitSync)(GLsync sync, GLbitfield flags,
-        GLuint64 timeout) = NULL;
-static GLenum (APIENTRYP glClientWaitSync)(GLsync sync, GLbitfield flags,
-        GLuint64 timeout) = NULL;
-static GLsync (APIENTRYP glFenceSync)(GLenum condition, 
-        GLbitfield flags) = NULL;
-#endif
-
-#define GL_OBJECT_TYPE                 0x9112
-#define GL_SYNC_CONDITION              0x9113
-#define GL_SYNC_STATUS                 0x9114
-#define GL_SYNC_FLAGS                  0x9115
-#define GL_SYNC_GPU_COMMANDS_COMPLETE  0x9117
-#define GL_ALREADY_SIGNALED            0x911A
-#define GL_TIMEOUT_EXPIRED             0x911B
-#define GL_CONDITION_SATISFIED         0x911C
-#define GL_WAIT_FAILED                 0x911D
-#define GL_SYNC_FLUSH_COMMANDS_BIT     0x00000001
-#define GL_UNSIGNALED                  0x9118
-#define GL_SIGNALED                    0x9119
-#define TIMEOUT_IGNORED                0xFFFFFFFFFFFFFFFFull
-
-#define FENCE_SET 1
-#define FENCE_WAIT 2
-
-#ifdef USE_GLES
-
-#else
-static GLuint g_fence;
-static GLsync g_sync;
-#endif
-
-void * __GLeeGetProcAddress(const char *extname);
-
-#define SYNC_SWAP 1
-#define SYNC_SWAP_FINISH 2
-#define SYNC_FINISH_SWAP_FINISH 3
-#define SYNC_SLEEP_SWAP_FINISH 4
-#define SYNC_FINISH_SLEEP_SWAP_FINISH 5
-
-#define SYNC_SWAP_FENCE_START 6
-#define SYNC_SWAP_FENCE 7
-#define SYNC_SWAP_SLEEP_FENCE 8
-
-static int g_sync_method = 0;
-
-static int check_sync_method(const char *a, const char *b) {
+static int check_sync_method(const char *a, const char *b)
+{
     if (a && g_ascii_strcasecmp(a, b) == 0) {
         return 1;
     }
     return 0;
 }
 
-static void decide_opengl_sync_method()
+static void decide_opengl_sync_method(void)
 {
     fs_log("[OPENGL] Deciding video sync method\n");
     const char *c = fs_config_get_const_string("video_sync_method");
@@ -397,17 +415,34 @@ static void decide_opengl_sync_method()
     }
 }
 
-static void check_opengl_sync_capabilities() {
+static void check_opengl_sync_capabilities(void)
+{
     fs_log("checking OpenGL capabilities\n");
     const char *ext = (const char *) glGetString(GL_EXTENSIONS);
     if (ext) {
         if (strstr(ext, "GL_NV_fence") != NULL) {
             g_has_nv_fence = 1;
             fs_log("GL_NV_fence extension found \n");
+#ifdef USE_GLEE
+#elif defined(WITH_GLEW)
+#elif defined(WITH_GLAD)
+#else
+            glGenFencesNV = SDL_GL_GetProcAddress("glGenFencesNV");
+            glSetFenceNV = SDL_GL_GetProcAddress("glSetFenceNV");
+            glTestFenceNV = SDL_GL_GetProcAddress("glTestFenceNV");
+#endif
         }
         if (strstr(ext, "GL_APPLE_fence") != NULL) {
             g_has_apple_fence = 1;
             fs_log("GL_APPLE_fence extension found\n");
+#ifdef USE_GLEE
+#elif defined(WITH_GLEW)
+#elif defined(WITH_GLAD)
+#else
+            glGenFencesAPPLE = SDL_GL_GetProcAddress("glGenFencesAPPLE");
+            glSetFenceAPPLE = SDL_GL_GetProcAddress("glSetFenceAPPLE");
+            glTestFenceAPPLE = SDL_GL_GetProcAddress("glTestFenceAPPLE");
+#endif
         }
         if (strstr(ext, "GL_ARB_sync") != NULL) {
             fs_log("GL_ARB_sync extension found\n");
@@ -415,18 +450,24 @@ static void check_opengl_sync_capabilities() {
             glFenceSync = __GLeeGetProcAddress("glFenceSync");
             glWaitSync = __GLeeGetProcAddress("glWaitSync");
             glClientWaitSync = __GLeeGetProcAddress("glClientWaitSync");
+#elif defined(WITH_GLEW)
+#elif defined(WITH_GLAD)
+#else
+            glFenceSync = SDL_GL_GetProcAddress("glFenceSync");
+            glWaitSync = SDL_GL_GetProcAddress("glWaitSync");
+            glClientWaitSync = SDL_GL_GetProcAddress("glClientWaitSync");
 #endif
             if (glFenceSync && glClientWaitSync) {
                 g_has_arb_sync = 1;
-            }
-            else {
+            } else {
                 fs_log("error looking up functions\n");
             }
         }
     }
 }
 
-static void initialize_opengl_sync() {
+static void initialize_opengl_sync(void)
+{
     check_opengl_sync_capabilities();
     decide_opengl_sync_method();
 #ifdef USE_GLES
@@ -443,7 +484,8 @@ static void initialize_opengl_sync() {
 #endif
 }
 
-static void opengl_fence(int command) {
+static void opengl_fence(int command)
+{
 #ifdef USE_GLES
 
 #else
@@ -452,12 +494,10 @@ static void opengl_fence(int command) {
             //printf("...\n");
             glSetFenceNV(g_fence, GL_ALL_COMPLETED_NV);
             CHECK_GL_ERROR_MSG("glSetFenceNV(g_fence, GL_ALL_COMPLETED_NV)");
-        }
-        else if (g_has_apple_fence) {
+        } else if (g_has_apple_fence) {
             glSetFenceAPPLE(g_fence);
             CHECK_GL_ERROR_MSG("glSetFenceAPPLE(g_fence)");
-        }
-        else if (g_has_arb_sync) {
+        } else if (g_has_arb_sync) {
             g_sync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
             CHECK_GL_ERROR_MSG("glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0)");
         }
@@ -476,15 +516,13 @@ static void opengl_fence(int command) {
                 //printf("-> %lld\n", fs_get_monotonic_time() - t1);
             }
             CHECK_GL_ERROR_MSG("glTestFenceNV(g_fence)");
-        }
-        else if (g_has_apple_fence) {
+        } else if (g_has_apple_fence) {
             while (!glTestFenceAPPLE(g_fence)) {
                 CHECK_GL_ERROR_MSG("glTestFenceAPPLE(g_fence)");
                 fs_ml_usleep(1000);
             }
             CHECK_GL_ERROR_MSG("glTestFenceAPPLE(g_fence)");
-        }
-        else if (g_has_arb_sync) {
+        } else if (g_has_arb_sync) {
             int flags = GL_SYNC_FLUSH_COMMANDS_BIT;
             while (glClientWaitSync(g_sync, flags, 0)
                     == GL_TIMEOUT_EXPIRED) {
@@ -498,37 +536,32 @@ static void opengl_fence(int command) {
 #endif
 }
 
-static void opengl_swap_synchronous() {
+static void opengl_swap_synchronous(void)
+{
     if (g_sync_method == SYNC_SWAP) {
         swap_opengl_buffers();
-    }
-    else if (g_sync_method == SYNC_SWAP_FINISH) {
+    } else if (g_sync_method == SYNC_SWAP_FINISH) {
         swap_opengl_buffers();
         gl_finish();
-    }
-    else if (g_sync_method == SYNC_FINISH_SWAP_FINISH) {
+    } else if (g_sync_method == SYNC_FINISH_SWAP_FINISH) {
         gl_finish();
         swap_opengl_buffers();
         gl_finish();
-    }
-    else if (g_sync_method == SYNC_SLEEP_SWAP_FINISH) {
+    } else if (g_sync_method == SYNC_SLEEP_SWAP_FINISH) {
         sleep_until_vsync();
         swap_opengl_buffers();
         gl_finish();
-    }
-    else if (g_sync_method == SYNC_FINISH_SLEEP_SWAP_FINISH) {
+    } else if (g_sync_method == SYNC_FINISH_SLEEP_SWAP_FINISH) {
         gl_finish();
         sleep_until_vsync();
         swap_opengl_buffers();
         gl_finish();
-    }
-    else if (g_sync_method == SYNC_SWAP_FENCE) {
+    } else if (g_sync_method == SYNC_SWAP_FENCE) {
         swap_opengl_buffers();
         opengl_fence(FENCE_SET);
         glFlush();
         opengl_fence(FENCE_WAIT);
-    }
-    else if (g_sync_method == SYNC_SWAP_SLEEP_FENCE) {
+    } else if (g_sync_method == SYNC_SWAP_SLEEP_FENCE) {
         swap_opengl_buffers();
         sleep_until_vsync();
         opengl_fence(FENCE_SET);
@@ -537,7 +570,7 @@ static void opengl_swap_synchronous() {
     }
 }
 
-static void render_iteration_vsync()
+static void render_iteration_vsync(void)
 {
     if (g_fs_ml_video_sync_low_latency) {
         int current_frame_at_start = g_available_frame;
@@ -559,8 +592,7 @@ static void render_iteration_vsync()
 
         if (g_available_frame > current_frame_at_start) {
             //printf("low latency %d\n", g_available_frame);
-        }
-        else {
+        } else {
             //printf("...\n");
         }
     }
@@ -603,7 +635,8 @@ static void render_iteration_vsync()
     fs_mutex_unlock(g_start_new_frame_mutex);
 }
 
-void fs_ml_render_iteration() {
+void fs_ml_render_iteration(void)
+{
     static int first = 1;
     if (first) {
         first = 0;
@@ -612,13 +645,11 @@ void fs_ml_render_iteration() {
 
     if (g_fs_ml_vblank_sync) {
         render_iteration_vsync();
-    }
-    else if (g_fs_ml_benchmarking) {
+    } else if (g_fs_ml_benchmarking) {
         update_frame();
         render_frame();
         swap_opengl_buffers();
-    }
-    else {
+    } else {
         // when vsync is off, we wait until a new frame is ready and
         // then we display it immediately
 
@@ -672,7 +703,7 @@ void fs_ml_render_iteration() {
     }
 }
 
-void fs_ml_render_init()
+void fs_ml_render_init(void)
 {
     g_frame_available_cond = fs_condition_create();
     g_frame_available_mutex = fs_mutex_create();
@@ -688,10 +719,10 @@ void fs_ml_render_init()
     //fs_emu_stat_queue_init(&g_measured_vblank_times, VBLANK_TIMES_COUNT);
 
     if (fs_config_get_boolean("low_latency_vsync") == 0) {
-        fs_log("disabling use of low latency vsync\n");
+        fs_log("[VIDEO] Disabling use of low latency vsync\n");
         g_fs_ml_video_sync_low_latency = 0;
     } else {
-        fs_log("using low latency vsync when full vsync is enabled\n");
+        fs_log("[VIDEO] Using low latency vsync when full vsync is enabled\n");
         g_fs_ml_video_sync_low_latency = 1;
     }
 }

@@ -803,6 +803,15 @@ libmanymouse_a_SOURCES = \
 	manymouse/x11_xinput2.c
 endif
 
+if WITH_GLAD
+noinst_LIBRARIES += libglad.a
+AM_CPPFLAGS += -I$(s)/glad/include
+fs_uae_LDADD += libglad.a
+fs_uae_device_helper_LDADD += libglad.a
+libglad_a_SOURCES = \
+	glad/src/glad.c
+endif
+
 if WITH_PEARPC_CPU
 noinst_LIBRARIES += libpearpc.a
 AM_CPPFLAGS += -I$(s)/src/ppc/pearpc

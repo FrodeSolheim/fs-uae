@@ -1,5 +1,5 @@
 Default: A500
-Example: 1200/020
+Example: A1200/020
 
 Specify the Amiga model you want to emulate. The default is A500. Valid
 values are:

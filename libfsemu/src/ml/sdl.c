@@ -27,7 +27,9 @@
 #include <fs/conf.h>
 #include <fs/lazyness.h>
 // #include <GLee.h>
+#ifdef WITH_GLEW
 #include <GL/glew.h>
+#endif
 #include <fs/glib.h>
 #include <fs/ml.h>
 #include <fs/thread.h>
@@ -327,7 +329,7 @@ static void set_video_mode()
 
     g_fs_ml_video_width = w;
     g_fs_ml_video_height = h;
-    fs_log("SDL_CreateWindow(x=%d, y=%d, w=%d, h=%d, flags=%d)\n",
+    fs_log("[SDL] CreateWindow(x=%d, y=%d, w=%d, h=%d, flags=%d)\n",
            x, y, w, h, flags);
     g_fs_ml_window = SDL_CreateWindow(g_window_title, x, y, w, h, flags);
 
@@ -352,16 +354,26 @@ static void set_video_mode()
     }
 
     g_fs_ml_context = SDL_GL_CreateContext(g_fs_ml_window);
+#ifdef WITH_GLEW
     static int glew_initialized = 0;
     if (!glew_initialized) {
         GLenum err = glewInit();
         if (GLEW_OK != err) {
-          fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
-          fs_emu_fatal("Error initializing glew");
+          fprintf(stderr, "[GLEW] Error: %s\n", glewGetErrorString(err));
+          fs_emu_fatal("[GLEW] Error initializing glew");
         }
-        fs_log("Using GLEW %s\n", glewGetString(GLEW_VERSION));
+        fs_log("[GLEW] Version %s\n", glewGetString(GLEW_VERSION));
+        glew_initialized = 1;
     }
-
+#elif defined(WITH_GLAD)
+    static int glad_initialized = 0;
+    if (!glad_initialized) {
+        if (!gladLoadGLLoader((GLADloadproc) SDL_GL_GetProcAddress)) {
+            fs_emu_fatal("[GLAD] Failed to initialize OpenGL context");
+        }
+        glad_initialized = 1;
+    }
+#endif
     fs_ml_configure_window();
 
     // FIXME: this can be removed
@@ -626,10 +638,12 @@ int fs_ml_video_create_window(const char *title)
 
     SDL_Init(SDL_INIT_VIDEO);
 
-    SDL_version version;
-    SDL_VERSION(&version);
-    fs_log("FS-UAE was compiled for SDL %d.%d.%d\n",
-           version.major, version.minor, version.patch);
+    SDL_version cversion, lversion;
+    SDL_VERSION(&cversion);
+    SDL_GetVersion(&lversion);
+    fs_log("[SDL] Version %d.%d.%d (Compiled against %d.%d.%d)\n",
+           lversion.major, lversion.minor, lversion.patch,
+           cversion.major, cversion.minor, cversion.patch);
 
     if (!initialized) {
         int display_index = 0;
@@ -698,7 +712,7 @@ int fs_ml_video_create_window(const char *title)
 #else
             g_fs_emu_video_fullscreen_mode = FULLSCREEN_FULLSCREEN;
 #endif
-            fs_log("defaulting to fullscreen_mode = desktop for SDL2\n");
+            fs_log("[SDL] Defaulting to fullscreen_mode = desktop for SDL 2\n");
             g_fs_emu_video_fullscreen_mode = FULLSCREEN_DESKTOP;
         }
 

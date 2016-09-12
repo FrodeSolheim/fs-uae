@@ -16,17 +16,20 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
  */
 
-#ifndef LIBFSGL_OPENGL_H_
-#define LIBFSGL_OPENGL_H_
+#ifndef LIBFSGL_OPENGL_H
+#define LIBFSGL_OPENGL_H
 
 #if defined(USE_GLES) && !defined(FAKE_GLES)
 #include <GLES/gl.h>
 #define GL_BGRA 0x80e1
-#else
-// #include <GLee.h>
-#ifdef WITH_GLEW
+#elif defined(WITH_GLEW)
 #include <GL/glew.h>
-#endif
+#elif defined(WITH_GLAD)
+#include <glad/glad.h>
+#elif defined(USE_SDL2)
+#include <SDL_opengl.h>
+#else
+#include <GL/gl.h>
 #endif
 
 #ifndef APIENTRY
@@ -79,4 +82,25 @@ void fs_gl_remove_context_notification(fs_gl_context_notify_function function,
 #define CHECK_GL_ERROR()
 #endif
 
-#endif // LIBFSGL_OPENGL_H_
+typedef GLsync (APIENTRYP FS_PFNGLFENCESYNCPROC) (GLenum condition, GLbitfield flags);
+typedef GLenum (APIENTRYP FS_PFNGLCLIENTWAITSYNCPROC) (GLsync sync, GLbitfield flags, GLuint64 timeout);
+typedef void (APIENTRYP FS_PFNGLWAITSYNCPROC) (GLsync sync, GLbitfield flags, GLuint64 timeout);
+
+typedef void (APIENTRYP FS_PFNGLGENFENCESAPPLEPROC) (GLsizei n, GLuint *fences);
+typedef void (APIENTRYP FS_PFNGLDELETEFENCESAPPLEPROC) (GLsizei n, const GLuint *fences);
+typedef void (APIENTRYP FS_PFNGLSETFENCEAPPLEPROC) (GLuint fence);
+typedef GLboolean (APIENTRYP FS_PFNGLISFENCEAPPLEPROC) (GLuint fence);
+typedef GLboolean (APIENTRYP FS_PFNGLTESTFENCEAPPLEPROC) (GLuint fence);
+typedef void (APIENTRYP FS_PFNGLFINISHFENCEAPPLEPROC) (GLuint fence);
+typedef GLboolean (APIENTRYP FS_PFNGLTESTOBJECTAPPLEPROC) (GLenum object, GLuint name);
+typedef void (APIENTRYP FS_PFNGLFINISHOBJECTAPPLEPROC) (GLenum object, GLint name);
+
+typedef void (APIENTRYP FS_PFNGLDELETEFENCESNVPROC) (GLsizei n, const GLuint *fences);
+typedef void (APIENTRYP FS_PFNGLGENFENCESNVPROC) (GLsizei n, GLuint *fences);
+typedef GLboolean (APIENTRYP FS_PFNGLISFENCENVPROC) (GLuint fence);
+typedef GLboolean (APIENTRYP FS_PFNGLTESTFENCENVPROC) (GLuint fence);
+typedef void (APIENTRYP FS_PFNGLGETFENCEIVNVPROC) (GLuint fence, GLenum pname, GLint *params);
+typedef void (APIENTRYP FS_PFNGLFINISHFENCENVPROC) (GLuint fence);
+typedef void (APIENTRYP FS_PFNGLSETFENCENVPROC) (GLuint fence, GLenum condition);
+
+#endif /* LIBFSGL_OPENGL_H_ */

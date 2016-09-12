@@ -170,6 +170,10 @@ void fs_ml_configure_window(void)
         fs_log("error getting window information\n");
         return;
     }
+    if (info.subsystem != SDL_SYSWM_X11) {
+        fs_log("[SDL] Subsystem is not SDL_SYSWM_X11\n");
+        return;
+    }
     g_display = info.info.x11.display;
     g_window = info.info.x11.window;
 #else
@@ -180,6 +184,10 @@ void fs_ml_configure_window(void)
     g_display = info.info.x11.display;
     g_window = info.info.x11.wmwindow;
 #endif
+    if (g_display == NULL) {
+        fs_log("[X11] Display is NULL\n");
+        return;
+    }
 
     // Set the PID related to the window for the given hostname, if possible
     //   if (data->pid > 0) {

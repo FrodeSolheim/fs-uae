@@ -83,8 +83,8 @@ int fs_ml_get_video_sync();
 double fs_ml_get_refresh_rate(void);
 int fs_ml_get_vblank_sync();
 
-int fs_ml_get_vblank_count();
-int64_t fs_ml_get_vblank_time();
+int fs_ml_get_vblank_count(void);
+int64_t fs_ml_get_vblank_time(void);
 
 int fs_ml_video_mode_get_current(fs_ml_video_mode *mode);
 int fs_ml_video_create_window(const char *title);

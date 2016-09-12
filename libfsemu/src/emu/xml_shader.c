@@ -2,14 +2,12 @@
 #include "config.h"
 #endif
 
+#ifdef WITH_XML_SHADER
+
 #include <fs/emu.h>
 #include "xml_shader.h"
 
-#ifdef WITH_XML_SHADER
-
 #include <fs/ml/opengl.h>
-// #include <GLee.h>
-#include <GL/glew.h>
 
 #include <fs/emu.h>
 #include <fs/glib.h>
@@ -24,7 +22,9 @@
 #ifdef USE_GLIB
 #include <glib.h>
 #endif
-
+#ifdef USE_SDL2
+#include <SDL.h>
+#endif
 #ifdef WITH_LUA
 #include "emu_lua.h"
 #endif
@@ -101,9 +101,35 @@ typedef struct parse_data {
     fs_emu_shader *shader;
 } parse_data;
 
+#ifdef USE_GLEE
+#elif defined(WITH_GLEW)
+#elif defined(WITH_GLAD)
+#else
+static PFNGLGETSHADERIVPROC glGetShaderiv;
+static PFNGLGETSHADERINFOLOGPROC glGetShaderInfoLog;
+static PFNGLCREATESHADERPROC glCreateShader;
+static PFNGLSHADERSOURCEPROC glShaderSource;
+static PFNGLCOMPILESHADERPROC glCompileShader;
+static PFNGLCREATEPROGRAMPROC glCreateProgram;
+static PFNGLATTACHSHADERPROC glAttachShader;
+static PFNGLDELETESHADERPROC glDeleteShader;
+static PFNGLLINKPROGRAMPROC glLinkProgram;
+static PFNGLGETPROGRAMIVPROC glGetProgramiv;
+static PFNGLDELETEPROGRAMPROC glDeleteProgram;
+static PFNGLGENFRAMEBUFFERSPROC glGenFramebuffers;
+static PFNGLBINDFRAMEBUFFERPROC glBindFramebuffer;
+static PFNGLFRAMEBUFFERTEXTURE2DPROC glFramebufferTexture2D;
+static PFNGLCHECKFRAMEBUFFERSTATUSPROC glCheckFramebufferStatus;
+static PFNGLUSEPROGRAMPROC glUseProgram;
+static PFNGLGETUNIFORMLOCATIONPROC glGetUniformLocation;
+static PFNGLUNIFORM1IPROC glUniform1i;
+static PFNGLUNIFORM2FPROC glUniform2f;
+#endif
+
 static void on_start_element(GMarkupParseContext *context,
         const gchar *element_name, const gchar **attribute_names,
-        const gchar **attribute_values, gpointer user_data, GError **error) {
+        const gchar **attribute_values, gpointer user_data, GError **error)
+{
     debug_printf("element %s\n", element_name);
 
     if (strcmp(element_name, "fragment") == 0) {
@@ -1211,6 +1237,32 @@ static int l_fs_emu_set_shader(lua_State *L) {
 void fs_emu_xml_shader_init(void)
 {
     fs_log("[SHADERS] Initialize\n");
+
+#ifdef USE_GLEE
+#elif defined(WITH_GLEW)
+#elif defined(WITH_GLAD)
+#else
+    glGetShaderiv = SDL_GL_GetProcAddress("glGetShaderiv");
+    glGetShaderInfoLog = SDL_GL_GetProcAddress("glGetShaderInfoLog");
+    glCreateShader = SDL_GL_GetProcAddress("glCreateShader");
+    glShaderSource = SDL_GL_GetProcAddress("glShaderSource");
+    glCompileShader = SDL_GL_GetProcAddress("glCompileShader");
+    glCreateProgram = SDL_GL_GetProcAddress("glCreateProgram");
+    glAttachShader = SDL_GL_GetProcAddress("glAttachShader");
+    glDeleteShader = SDL_GL_GetProcAddress("glDeleteShader");
+    glLinkProgram = SDL_GL_GetProcAddress("glLinkProgram");
+    glGetProgramiv = SDL_GL_GetProcAddress("glGetProgramiv");
+    glDeleteProgram = SDL_GL_GetProcAddress("glDeleteProgram");
+    glGenFramebuffers = SDL_GL_GetProcAddress("glGenFramebuffers");
+    glBindFramebuffer = SDL_GL_GetProcAddress("glBindFramebuffer");
+    glFramebufferTexture2D = SDL_GL_GetProcAddress("glFramebufferTexture2D");
+    glCheckFramebufferStatus = SDL_GL_GetProcAddress("glCheckFramebufferStatus");
+    glUseProgram = SDL_GL_GetProcAddress("glUseProgram");
+    glGetUniformLocation = SDL_GL_GetProcAddress("glGetUniformLocation");
+    glUniform1i = SDL_GL_GetProcAddress("glUniform1i");
+    glUniform2f = SDL_GL_GetProcAddress("glUniform2f");
+#endif
+
     fs_emu_load_default_shader();
 
 #ifdef WITH_LUA
@@ -1222,4 +1274,4 @@ void fs_emu_xml_shader_init(void)
 #endif
 }
 
-#endif
+#endif /* WITH_XML_SHADER */

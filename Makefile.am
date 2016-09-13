@@ -1216,6 +1216,9 @@ EXTRA_DIST = $(TESTS) $(EXTRA_TESTS) \
 	flac/include/FLAC/stream_encoder.h \
 	fs-uae.spec \
 	icon/fs-uae.ico \
+	glad/include/glad/glad.h \
+	glad/include/KHR/khrplatform.h \
+	glad/LICENSE \
 	libinih/ini.c \
 	libinih/ini.h \
 	libinih/LICENSE.txt \

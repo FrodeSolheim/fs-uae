@@ -91,6 +91,66 @@ void deactivate_debugger (void)
 	processname = NULL;
 }
 
+/* newcpu.h declare m68k_do_rte, but it's not implemented anywhere,
+ * so let's grab default implementation from gen/cpuemu_*.cpp */
+static void m68k_do_rte (void)
+{
+  uae_u16 newsr;
+  uae_u32 newpc;
+  for (;;) {
+    uaecptr a = m68k_areg (regs, 7);
+    uae_u16 sr = get_word (a);
+    uae_u32 pc = get_long (a + 2);
+    uae_u16 format = get_word (a + 2 + 4);
+    int frame = format >> 12;
+    int offset = 8;
+    newsr = sr; newpc = pc;
+    if (frame == 0x0) { m68k_areg (regs, 7) += offset; break; }
+    else if (frame == 0x1) { m68k_areg (regs, 7) += offset; }
+    else if (frame == 0x2) { m68k_areg (regs, 7) += offset + 4; break; }
+    else if (frame == 0x4) { m68k_areg (regs, 7) += offset + 8; break; }
+    else if (frame == 0x8) { m68k_areg (regs, 7) += offset + 50; break; }
+    else if (frame == 0x7) { m68k_areg (regs, 7) += offset + 52; break; }
+    else if (frame == 0x9) { m68k_areg (regs, 7) += offset + 12; break; }
+    else if (frame == 0xa) { m68k_areg (regs, 7) += offset + 24; break; }
+    else if (frame == 0xb) { m68k_areg (regs, 7) += offset + 84; break; }
+    else { m68k_areg (regs, 7) += offset; Exception (14); return; }
+    regs.sr = newsr;
+    MakeFromSR();
+  }
+  regs.sr = newsr;
+  MakeFromSR();
+  if (newpc & 1) {
+    exception3i (0x4E73, newpc);
+    return;
+  }
+  m68k_setpc (newpc);
+}
+
+/*
+ * If you want to activate uae built-in debugger on trap,
+ * put following into your code:
+ *
+ *      ...
+ *      sub.l   a1,a1
+ *      JSRLIB  FindTask                ; Find current task
+ *      move.l  d0,a5
+ *
+ *      lea     UAEDebug,a1             ; Set trap handler
+ *      move.l  a1,TC_TRAPCODE(a5)
+ *      ...
+ *
+ * UAEDebug:
+ *      addq.l  #4,sp                   ; Skip vector number
+ *      jmp     $f0ff68                 ; Tigger activate_debugger_trap
+ */
+uae_u32 REGPARAM2 activate_debugger_trap (TrapContext *context)
+{
+	m68k_do_rte ();
+	activate_debugger ();
+	return 1;
+}
+
 void activate_debugger (void)
 {
 	do_skip = 0;

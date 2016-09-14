@@ -1,30 +1,26 @@
 Alias: vsync, sync
-Default: off
+Default: 0
 Description: Video synchronization
-Example: auto
+Example: 1
 Type: choice
 
 Video sync behaviour can be configured with the "video_sync" option. The
 default setting is off. The available values are:
 
-Value: auto ("Auto")
+Value: 1 ("Auto")
        If the host refresh rate matches the game's refresh rate, emulation
        and video will be synchronized to the display for perfectly smooth
        scrolling. If not, FS-UAE will only sync buffer swap to vblank in order
        to remove tearing.
-Value: vblank ("Buffer swap only")
-       Video buffer swap (but not emulation) will be synced to vblank
-       to remove tearing. This value is used to prevent FS-UAE from
-       synchronizing the emulation to the display.
-Value: off ("Off")
+# Value: vblank ("Buffer swap only")
+#        Video buffer swap (but not emulation) will be synced to vblank
+#        to remove tearing. This value is used to prevent FS-UAE from
+#        synchronizing the emulation to the display.
+Value: 0 ("Off")
        Video and emulation will not be synced to the display. Instead,
        a timer will be used to manage the emulation speed. You may see
        tearing on the display since buffer swaps are not synchronized to
        vblank either.
-
-It is generally recommended to leave this option at auto. If you change
-your desktop to a 50Hz screen mode, full synchronization and smooth
-scrolling will be enabled automatically.
 
 The previous value "full" is deprecated as of FS-UAE version 2.2.2, and it
 will now behave as auto. See [assume_refresh_rate] if you need to force vsync.

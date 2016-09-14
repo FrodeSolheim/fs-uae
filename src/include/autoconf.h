@@ -9,8 +9,8 @@
 #ifndef UAE_AUTOCONF_H
 #define UAE_AUTOCONF_H
 
-#ifdef FSUAE // NL
 #include "uae/types.h"
+#ifdef FSUAE
 #include "uae/memory.h"
 #include "uae/limits.h"
 #endif
@@ -54,7 +54,7 @@ extern uaecptr ROM_filesys_resname, ROM_filesys_resid;
 extern uaecptr ROM_filesys_diagentry;
 extern uaecptr ROM_hardfile_resname, ROM_hardfile_resid;
 extern uaecptr ROM_hardfile_init;
-extern uaecptr filesys_initcode;
+extern uaecptr filesys_initcode, filesys_initcode_ptr;
 
 extern int is_hardfile (int unit_no);
 extern int nr_units (void);
@@ -123,15 +123,26 @@ typedef void(*DEVICE_MEMORY_CALLBACK)(struct romconfig*, uae_u8*, int);
 #define EXPANSIONTYPE_IDE 2
 #define EXPANSIONTYPE_24BIT 4
 #define EXPANSIONTYPE_IDE_PORT_DOUBLED 8
+#define EXPANSIONTYPE_SASI 16
+#define EXPANSIONTYPE_CUSTOM 32
+#define EXPANSIONTYPE_PCI_BRIDGE 64
+#define EXPANSIONTYPE_PARALLEL_ADAPTER 128
+#define EXPANSIONTYPE_X86_BRIDGE 256
+#define EXPANSIONTYPE_CUSTOM_SECONDARY 512
+#define EXPANSIONTYPE_RTG 1024
 struct expansionboardsettings
 {
 	const TCHAR *name;
 	const TCHAR *configname;
+	bool multiselect;
+	bool invert;
+	int bitshift;
 };
 struct expansionsubromtype
 {
 	const TCHAR *name;
 	const TCHAR *configname;
+	uae_u32 romtype;
 	int memory_mid, memory_pid;
 	uae_u32 memory_serial;
 	bool memory_after;
@@ -142,11 +153,11 @@ struct expansionromtype
 	const TCHAR *name;
 	const TCHAR *friendlyname;
 	const TCHAR *friendlymanufacturer;
-	DEVICE_INIT init;
+	DEVICE_INIT init, init2;
 	DEVICE_ADD add;
-	int romtype;
-	int romtype_extra;
-	int parentromtype;
+	uae_u32 romtype;
+	uae_u32 romtype_extra;
+	uae_u32 parentromtype;
 	int zorro;
 	bool singleonly;
 	const struct expansionsubromtype *subtypes;
@@ -177,6 +188,11 @@ struct cpuboardsubtype
 	int initflag;
 	const struct expansionboardsettings *settings;
 	E8ACCESS e8;
+	// if includes Z2 or Z3 RAM
+	int memory_mid, memory_pid;
+	uae_u32 memory_serial;
+	bool memory_after;
+	uae_u8 autoconfig[16];
 };
 struct cpuboardtype
 {

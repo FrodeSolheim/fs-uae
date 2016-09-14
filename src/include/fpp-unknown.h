@@ -11,8 +11,8 @@
 #ifndef UAE_FPP_UNKNOWN_H
 #define UAE_FPP_UNKNOWN_H
 
-#ifdef FSUAE // NL
 #include "uae/types.h"
+#ifdef FSUAE
 #include "uae/inline.h"
 #include <math.h>
 #endif
@@ -147,4 +147,4 @@ STATIC_INLINE void from_double(double src, uae_u32 * wrd1, uae_u32 * wrd2)
 }
 #endif
 
-#endif // UAE_FPP_UNKNOWN_H
+#endif /* UAE_FPP_UNKNOWN_H */

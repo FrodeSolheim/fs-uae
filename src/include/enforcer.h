@@ -6,4 +6,4 @@ int enforcer_disable(void);
 
 extern int enforcermode;
 
-#endif // UAE_ENFORCER_H
+#endif /* UAE_ENFORCER_H */

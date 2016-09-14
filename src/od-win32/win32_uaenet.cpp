@@ -293,11 +293,15 @@ void uaenet_enumerate_free (void)
 	for (i = 0; i < MAX_TOTAL_NET_DEVICES; i++) {
 		tds[i].active = 0;
 	}
+	enumerated = 0;
 }
 
 static struct netdriverdata *enumit (const TCHAR *name)
 {
 	int cnt;
+	
+	if (name == NULL)
+		return tds;
 	for (cnt = 0; cnt < MAX_TOTAL_NET_DEVICES; cnt++) {
 		TCHAR mac[20];
 		struct netdriverdata *tc = tds + cnt;
@@ -406,12 +410,13 @@ struct netdriverdata *uaenet_enumerate (const TCHAR *name)
 				if (!done)
 					write_log (_T("- MAC %02X:%02X:%02X:%02X:%02X:%02X (%d)\n"),
 					tc->mac[0], tc->mac[1], tc->mac[2],
-					tc->mac[3], tc->mac[4], tc->mac[5], cnt++);
+					tc->mac[3], tc->mac[4], tc->mac[5], cnt);
 				tc->type = UAENET_PCAP;
 				tc->active = 1;
 				tc->mtu = 1522;
 				tc->name = au (d->name);
 				tc->desc = au (d->description);
+				cnt++;
 			} else {
 				write_log (_T(" - failed to get MAC\n"));
 			}
@@ -420,7 +425,7 @@ struct netdriverdata *uaenet_enumerate (const TCHAR *name)
 		PacketCloseAdapter (lpAdapter);
 	}
 	if (!done)
-		write_log (_T("uaenet: end of detection\n"));
+		write_log (_T("uaenet: end of detection, %d devices found.\n"), cnt);
 	done = 1;
 	pcap_freealldevs (alldevs);
 	enumerated = 1;

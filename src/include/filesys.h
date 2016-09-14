@@ -9,8 +9,8 @@
 #ifndef UAE_FILESYS_H
 #define UAE_FILESYS_H
 
-#ifdef FSUAE // NL
 #include "uae/types.h"
+#ifdef FSUAE
 #include "options.h"
 #include <time.h>
 #endif
@@ -77,7 +77,6 @@ struct hardfiledata {
 	int reinsertdelay;
 	bool isreinsert;
 	bool unit_stopped;
-	int unit_attention;
 };
 
 #define HFD_FLAGS_REALDRIVE 1
@@ -95,8 +94,8 @@ struct hd_hardfiledata {
     int ansi_version;
 };
 
-#define HD_CONTROLLER_EXPANSION_MAX 30
-#define HD_CONTROLLER_NEXT_UNIT 100
+#define HD_CONTROLLER_EXPANSION_MAX 50
+#define HD_CONTROLLER_NEXT_UNIT 200
 
 #define HD_CONTROLLER_TYPE_UAE 0
 #define HD_CONTROLLER_TYPE_IDE_AUTO (HD_CONTROLLER_TYPE_UAE + 1)
@@ -163,4 +162,6 @@ extern void getchsgeometry (uae_u64 size, int *pcyl, int *phead, int *psectorspe
 extern void getchsgeometry_hdf (struct hardfiledata *hfd, uae_u64 size, int *pcyl, int *phead, int *psectorspertrack);
 extern void getchspgeometry (uae_u64 total, int *pcyl, int *phead, int *psectorspertrack, bool idegeometry);
 
-#endif // UAE_FILESYS_H
+void add_cpuboard_unit(int unit, struct uaedev_config_info *uci, struct romconfig *rc);
+
+#endif /* UAE_FILESYS_H */

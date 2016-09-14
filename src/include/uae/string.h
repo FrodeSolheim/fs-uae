@@ -4,20 +4,19 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
-
 #include "uae/types.h"
 #include <string.h>
 
 #ifdef _WIN32
-// make sure the real _tcs* functions are already declared before we
-// re-define them below
+/* Make sure the real _tcs* functions are already declared before we
+ * re-define them below. */
 #include <tchar.h>
 #include <wchar.h>
 #include <stdlib.h>
 #endif
 
 #ifdef _WIN32
-// use the real _tcs* functions
+/* Using the real _tcs* functions */
 #else
 #define _istdigit isdigit
 #define _istspace isspace
@@ -86,4 +85,4 @@ static inline size_t uae_strlcpy(char *dst, const char *src, size_t size)
 	return src_len;
 }
 
-#endif // UAE_STRING_H
+#endif /* UAE_STRING_H */

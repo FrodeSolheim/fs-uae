@@ -26,5 +26,13 @@ Code:
         value = "0"
     elif c.int_model == "CDTV":
         value = "0"
-    else:
+    elif c.platform == "amiga":
         value = "1"
+    elif c.platform == "cd32":
+        value = "1"
+    elif c.platform == "cdtv":
+        value = "1"
+    elif c.platform == "":
+        value = "1"
+    else:
+        value = "0"

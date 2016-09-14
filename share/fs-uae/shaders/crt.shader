@@ -293,7 +293,7 @@
                 // currently rendering, which pixel are we currently rendering?
                 vec2 ratio_scale = xy * rubyTextureSize - vec2(0.5);
         #ifdef OVERSAMPLE
-                float filter = fwidth(ratio_scale.y);
+                float filter_ = fwidth(ratio_scale.y);
         #endif
                 vec2 uv_ratio = fract(ratio_scale);
 
@@ -340,10 +340,10 @@
                 vec4 weights  = scanlineWeights(uv_ratio.y, col);
                 vec4 weights2 = scanlineWeights(1.0 - uv_ratio.y, col2);
         #ifdef OVERSAMPLE
-                uv_ratio.y =uv_ratio.y+1.0/3.0*filter;
+                uv_ratio.y =uv_ratio.y+1.0/3.0*filter_;
                 weights = (weights+scanlineWeights(uv_ratio.y, col))/3.0;
                 weights2=(weights2+scanlineWeights(abs(1.0-uv_ratio.y), col2))/3.0;
-                uv_ratio.y =uv_ratio.y-2.0/3.0*filter;
+                uv_ratio.y =uv_ratio.y-2.0/3.0*filter_;
                 weights=weights+scanlineWeights(abs(uv_ratio.y), col)/3.0;
                 weights2=weights2+scanlineWeights(abs(1.0-uv_ratio.y), col2)/3.0;
         #endif

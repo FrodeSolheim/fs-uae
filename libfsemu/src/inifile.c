@@ -51,6 +51,49 @@ fs_ini_file* fs_ini_file_open(const char *path)
     return ini_file;
 }
 
+struct data_stream
+{
+    const char *data;
+    int size;
+    const char *pos;
+};
+
+static char *data_stream_fgets(char *str, int num, void *stream)
+{
+    struct data_stream *s = (struct data_stream *) stream;
+    char *p = str;
+    int read = 0;
+    while (read < num - 1 && s->pos < (s->data + s->size)) {
+        *p++ = *(s->pos)++;
+        read++;
+        if (*(p - 1) == '\n') {
+            break;
+        }
+    }
+    if (read == 0) {
+        return NULL;
+    }
+    *p = '\0';
+    return str;
+}
+
+fs_ini_file* fs_ini_file_open_data(const char *data, int size)
+{
+    fs_ini_file *ini_file = fs_ini_file_create();
+    struct data_stream stream;
+    stream.data = data;
+    stream.size = size;
+    stream.pos = data;
+    int result = ini_parse_stream(
+        (ini_reader) data_stream_fgets, &stream, handler, ini_file);
+    if (result == -1) {
+        /* Could not open file */
+        fs_ini_file_destroy(ini_file);
+        return NULL;
+    }
+    return ini_file;
+}
+
 void fs_ini_file_destroy(fs_ini_file *ini_file)
 {
     g_hash_table_destroy(ini_file->groups);

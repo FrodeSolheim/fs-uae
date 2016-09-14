@@ -11,6 +11,7 @@
 #include "fs-uae.h"
 
 #include "options.h"
+#include "paths.h"
 #include "config-accelerator.h"
 #include "config-common.h"
 #include "config-graphics.h"
@@ -71,83 +72,6 @@ void fs_uae_configure_amiga_model()
     }
 }
 
-static void configure_memory(amiga_config *c)
-{
-    int chip_memory = fs_uae_read_memory_option_small(OPTION_CHIP_MEMORY);
-    if (chip_memory != FS_CONFIG_NONE) {
-        if (chip_memory == 128) {
-            amiga_set_int_option("chipmem_size", -1);
-        } else if (chip_memory == 256) {
-            amiga_set_int_option("chipmem_size", 0);
-        } else if (chip_memory % 512 == 0) {
-            amiga_set_int_option("chipmem_size", chip_memory / 512);
-        } else {
-            fs_emu_warning(_("Option chip_memory must be a multiple of 512"));
-            chip_memory = 0;
-        }
-    } else {
-        chip_memory = 0;
-    }
-
-    int slow_memory = fs_uae_read_memory_option_small(OPTION_SLOW_MEMORY);
-    if (slow_memory != FS_CONFIG_NONE) {
-        if (slow_memory % 256 == 0) {
-            amiga_set_int_option("bogomem_size", slow_memory / 256);
-        } else {
-            fs_emu_warning(_("Option slow_memory must be a multiple of 256"));
-            slow_memory = 0;
-        }
-    } else {
-        slow_memory = 0;
-    }
-
-    int fast_memory = fs_uae_read_memory_option(OPTION_FAST_MEMORY);
-    if (fast_memory != FS_CONFIG_NONE) {
-        if (fast_memory % 1024 == 0) {
-            amiga_set_int_option("fastmem_size", fast_memory / 1024);
-        } else {
-            fs_emu_warning(_("Option fast_memory must be a multiple of 1024"));
-            fast_memory = 0;
-        }
-    } else {
-        fast_memory = 0;
-    }
-
-    int z3_memory = fs_uae_read_memory_option(OPTION_ZORRO_III_MEMORY);
-    if (z3_memory != FS_CONFIG_NONE) {
-        if (z3_memory && !c->allow_z3_memory) {
-            fs_emu_warning(_("Option zorro_iii_memory needs a CPU "
-                             "with 32-bit addressing"));
-            z3_memory = 0;
-        } else if (z3_memory % 1024 == 0) {
-            amiga_set_int_option("z3mem_size", z3_memory / 1024);
-        } else {
-            fs_emu_warning(_("Option zorro_iii_memory must be a multiple "
-                             "of 1024"));
-            z3_memory = 0;
-        }
-    } else {
-        z3_memory = 0;
-    }
-
-    int mb_ram = fs_uae_read_memory_option(OPTION_MOTHERBOARD_RAM);
-    if (mb_ram != FS_CONFIG_NONE) {
-        if (mb_ram && !c->allow_z3_memory) {
-            fs_emu_warning(_("Option motherboard_ram needs a CPU "
-                             "with 32-bit addressing"));
-            mb_ram = 0;
-        } else if (mb_ram % 1024 == 0) {
-            amiga_set_int_option("a3000mem_size", mb_ram / 1024);
-        } else {
-            fs_emu_warning(_("Option motherboard_ram must be a multiple "
-                             "of 1024"));
-            mb_ram = 0;
-        }
-    } else {
-        mb_ram = 0;
-    }
-}
-
 static void configure_roms(amiga_config *c)
 {
     char *path = fs_config_get_string("kickstart_file");
@@ -172,6 +96,19 @@ static void configure_roms(amiga_config *c)
     }
 }
 
+static void fs_uae_configure_network_card(amiga_config *c)
+{
+    const char *card = fs_config_get_const_string(OPTION_NETWORK_CARD);
+    if (card != NULL) {
+        if (strcmp(card, "0") == 0) {
+        } else if (fs_uae_values_matches(card, "a2065")) {
+            amiga_set_option("a2065", "slirp");
+        } else {
+            fs_emu_warning("Unrecognized network card");
+        }
+    }
+}
+
 void fs_uae_configure_amiga_hardware()
 {
     amiga_config *c = g_fs_uae_amiga_configs + g_fs_uae_amiga_config;
@@ -189,6 +126,13 @@ void fs_uae_configure_amiga_hardware()
     }
     if (scan_kickstarts) {
         fs_uae_load_rom_files(fs_uae_kickstarts_dir());
+        gchar *scan_path = g_build_filename(
+            fs_uae_base_dir(), "AmigaForever", "Amiga Files", "Shared",
+            "rom", NULL);
+        if (g_file_test(scan_path, G_FILE_TEST_IS_DIR)) {
+            fs_uae_load_rom_files(scan_path);
+        }
+        g_free(scan_path);
     }
 
     fs_emu_log("configuring \"%s\", accuracy=%d\n", c->name, 1);
@@ -224,21 +168,51 @@ void fs_uae_configure_amiga_hardware()
     }
 
     configure_roms(c);
-    configure_memory(c);
 
-    fs_uae_configure_hardware();
+    /* Accelerator must be configured before CPU */
     fs_uae_configure_accelerator();
+    fs_uae_configure_hardware();
     fs_uae_configure_graphics_card(c);
     fs_uae_configure_sound_card(c);
+    fs_uae_configure_network_card(c);
 
     const char *serial_port = fs_config_get_const_string(OPTION_SERIAL_PORT);
     if (serial_port && g_ascii_strcasecmp(serial_port, "none") != 0) {
         amiga_enable_serial_port(serial_port);
     }
 
+    const char *parallel_port = fs_config_get_const_string(
+                OPTION_PARALLEL_PORT);
+    if (parallel_port && g_ascii_strcasecmp(parallel_port, "none") != 0) {
+        amiga_enable_parallel_port(parallel_port);
+    }
+
     const char *dongle_type = fs_config_get_const_string(OPTION_DONGLE_TYPE);
     if (dongle_type) {
-        amiga_set_option("dongle", dongle_type);
+        int dongle_index = 0;
+        if (strcmp(dongle_type, "0") == 0) {
+        } else if (strcmp(dongle_type, "robocop 3") == 0) {
+            dongle_index = 1;
+        } else if (strcmp(dongle_type, "leaderboard") == 0) {
+            dongle_index = 2;
+        } else if (strcmp(dongle_type, "b.a.t. ii") == 0) {
+            dongle_index = 3;
+        } else if (strcmp(dongle_type, "italy'90 soccer") == 0) {
+            dongle_index = 4;
+        } else if (strcmp(dongle_type, "dames grand maitre") == 0) {
+            dongle_index = 5;
+        } else if (strcmp(dongle_type, "rugby coach") == 0) {
+            dongle_index = 6;
+        } else if (strcmp(dongle_type, "cricket captain") == 0) {
+            dongle_index = 7;
+        } else if (strcmp(dongle_type, "leviathan") == 0) {
+            dongle_index = 8;
+        } else {
+            fs_emu_warning("Unrecognized dongle type");
+        }
+        if (dongle_index > 0) {
+            amiga_set_int_option("dongle", dongle_index);
+        }
     }
 
     if (fs_config_get_boolean(OPTION_BSDSOCKET_LIBRARY) == 1) {
@@ -269,5 +243,20 @@ void fs_uae_configure_amiga_hardware()
 
     if (c->enhanced_audio_filter) {
         amiga_set_option("sound_filter_type", "enhanced");
+    }
+
+    const char *freezer = fs_config_get_const_string(OPTION_FREEZER_CARTRIDGE);
+    if (freezer) {
+        if (strcmp(freezer, "0") == 0) {
+            /* No freezer cartridge */
+        } else if (strcmp(freezer, "hrtmon") == 0) {
+            amiga_set_option("cart_file", ":HRTMon");
+        } else if (strcmp(freezer, "action-replay-2") == 0) {
+            amiga_set_option("cart", "Freezer: Action Replay Mk II v2.14");
+        } else if (strcmp(freezer, "action-replay-3") == 0) {
+            amiga_set_option("cart", "Freezer: Action Replay Mk III v3.17");
+        } else {
+            fs_emu_warning("Unrecognized cartridge");
+        }
     }
 }

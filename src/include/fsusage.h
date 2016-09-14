@@ -13,14 +13,13 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- *  Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
 
 #ifndef UAE_FSUSAGE_H
 #define UAE_FSUSAGE_H
 
-#ifdef FSUAE // NL
 #include "uae/types.h"
-#endif
 
 /* Space usage statistics for a filesystem.  Blocks are 512-byte. */
 struct fs_usage
@@ -34,4 +33,4 @@ struct fs_usage
 
 int get_fs_usage (const TCHAR *path, const TCHAR *disk, struct fs_usage *fsp);
 
-#endif // UAE_FSUSAGE_H
+#endif /* UAE_FSUSAGE_H */

@@ -11,9 +11,7 @@
 #ifndef UAE_SCSIDEV_H
 #define UAE_SCSIDEV_H
 
-#ifdef FSUAE // NL
 #include "uae/types.h"
-#endif
 
 uaecptr scsidev_startup (uaecptr resaddr);
 void scsidev_install (void);
@@ -34,4 +32,4 @@ extern int log_scsi;
 #define UAESCSI_LAST 2
 #endif
 
-#endif // UAE_SCSIDEV_H
+#endif /* UAE_SCSIDEV_H */

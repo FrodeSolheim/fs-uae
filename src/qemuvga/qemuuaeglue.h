@@ -1,5 +1,5 @@
-
-
+#include "uae/inline.h"
+#include "uae/likely.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -26,12 +26,9 @@ extern void write_log (const char *, ...);
 #define tostring(s)	#s
 #endif
 
-#ifndef likely
-#if __GNUC__ < 3
-#define __builtin_expect(x, n) (x)
-#endif
-#define likely(x)   __builtin_expect(!!(x), 1)
-#define unlikely(x)   __builtin_expect(!!(x), 0)
+#ifdef FSUAE
+#else
+typedef int ssize_t;
 #endif
 
 #ifdef _MSC_VER
@@ -39,7 +36,6 @@ extern void write_log (const char *, ...);
 #define container_of(address, type, field) ((type *)( \
         (PCHAR)(address) - \
         (ULONG_PTR)(&((type *)0)->field)))
-#define STATIC_INLINE static __forceinline
 
 #define snprintf c99_snprintf
 inline int c99_vsnprintf(char* str, size_t size, const char* format, va_list ap)
@@ -125,8 +121,30 @@ typedef struct DisplaySurface {
 uint16_t le16_to_cpu(uint16_t v);
 uint32_t le32_to_cpu(uint32_t v);
 
-static inline void cpu_to_32wu(uint32_t *p, uint32_t v)
+#define le_bswap(v, size) (v)
+#define cpu_to_le16(x) (x)
+
+STATIC_INLINE void stl_he_p(void *ptr, uint32_t v)
 {
+	memcpy(ptr, &v, sizeof(v));
+}
+STATIC_INLINE void stl_le_p(void *ptr, uint32_t v)
+{
+	stl_he_p(ptr, le_bswap(v, 32));
+}
+STATIC_INLINE int ldl_he_p(const void *ptr)
+{
+	int32_t r;
+	memcpy(&r, ptr, sizeof(r));
+	return r;
+}
+STATIC_INLINE int ldl_le_p(const void *ptr)
+{
+	return le_bswap(ldl_he_p(ptr), 32);
+}
+STATIC_INLINE void cpu_to_32wu(uint32_t *p, uint32_t v)
+{
+	stl_le_p(p, v);
 }
 
 void graphic_hw_update(QemuConsole *con);
@@ -296,7 +314,7 @@ struct CirrusVGAState {
 
 void cirrus_init_common(CirrusVGAState * s, int device_id, int is_pci,
                                MemoryRegion *system_memory,
-                               MemoryRegion *system_io);
+                               MemoryRegion *system_io, int vramlimit);
 
 struct DeviceState
 {

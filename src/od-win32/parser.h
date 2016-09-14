@@ -14,7 +14,8 @@ void getserstat(int *status);
 void setserstat (int mask, int onoff);
 int readser (int *buffer);
 int readseravail (void);
-void writeser (int c);
+void writeser(int c);
+void writeser_flush(void);
 int openser (const TCHAR *sername);
 void closeser (void);
 void doserout (void);
@@ -74,3 +75,5 @@ extern void epson_close (void);
 #define PARALLEL_MATRIX_EPSON9 2
 #define PARALLEL_MATRIX_EPSON24 3
 #define PARALLEL_MATRIX_EPSON48 4
+
+void finishjob (void);

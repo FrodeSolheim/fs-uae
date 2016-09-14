@@ -1628,7 +1628,7 @@ static struct zfile *archive_access_adf (struct znode *zn)
 		for (i = 0; i < sfsblockcnt; i++)
 			bsize += sfsblocks[i].length * adf->blocksize;
 		if (bsize < size)
-			write_log (_T("SFS extracting error, %s size mismatch %d<%d\n"), z->name, bsize, size);
+			write_log (_T("SFS extracting error, %s size mismatch %lld<%lld\n"), z->name, bsize, size);
 
 		dst = z->data;
 		block = zn->offset;

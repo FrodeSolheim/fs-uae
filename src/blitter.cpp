@@ -1506,7 +1506,7 @@ static void do_blitter2 (int hpos, int copper)
 		cycles = blt_info.vblitsize;
 	} else {
 		cycles = blt_info.vblitsize * blt_info.hblitsize;
-		blit_firstline_cycles = blit_first_cycle + (blit_diag[0] * blt_info.hblitsize + cpu_cycles) * CYCLE_UNIT;
+		blit_firstline_cycles = blit_first_cycle + (blit_diag[0] * blt_info.hblitsize) * CYCLE_UNIT + cpu_cycles;
 	}
 
 	if (cleanstart) {
@@ -1599,7 +1599,7 @@ static void do_blitter2 (int hpos, int copper)
 	blit_cyclecounter = cycles * (blit_dmacount2 + (blit_nod ? 0 : 1)); 
 	event2_newevent (ev2_blitter, blit_cyclecounter, 0);
 
-	if (dmaen (DMA_BLITTER) && (currprefs.cpu_model >= 68020 || !currprefs.cpu_cycle_exact)) {
+	if (dmaen (DMA_BLITTER) && (currprefs.cpu_model >= 68020 || !currprefs.cpu_memory_cycle_exact)) {
 		if (currprefs.waiting_blits) {
 			// wait immediately if all cycles in use and blitter nastry
 			if (blit_dmacount == blit_diag[0] && (regs.spcflags & SPCFLAG_BLTNASTY)) {
@@ -1646,7 +1646,7 @@ void maybe_blit (int hpos, int hack)
 	if (savestate_state)
 		return;
 
-	if (dmaen (DMA_BLITTER) && (currprefs.cpu_model >= 68020 || !currprefs.cpu_cycle_exact)) {
+	if (dmaen (DMA_BLITTER) && (currprefs.cpu_model >= 68020 || !currprefs.cpu_memory_cycle_exact)) {
 		bool doit = false;
 		if (currprefs.waiting_blits == 3) { // always
 			doit = true;
@@ -1683,7 +1683,7 @@ void maybe_blit (int hpos, int hack)
 		goto end;
 	}
 
-	if (hack == 1 && get_cycles() < blit_firstline_cycles)
+	if (hack == 1 && (int)get_cycles() - (int)blit_firstline_cycles < 0)
 		goto end;
 
 	blitter_handler (0);

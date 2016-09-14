@@ -10,8 +10,8 @@
 #ifndef UAE_FSDB_H
 #define UAE_FSDB_H
 
-#ifdef FSUAE // NL
 #include "uae/types.h"
+#ifdef FSUAE
 #include <stdio.h>
 #endif
 
@@ -208,4 +208,4 @@ int fsdb_set_file_time(a_inode *node, int days, int mins, int ticks);
 int host_errno_to_dos_errno(int err);
 #endif
 
-#endif // UAE_FSDB_H
+#endif /* UAE_FSDB_H */

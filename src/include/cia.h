@@ -9,9 +9,7 @@
 #ifndef UAE_CIA_H
 #define UAE_CIA_H
 
-#ifdef FSUAE // NL
 #include "uae/types.h"
-#endif
 
 extern void CIA_reset (void);
 extern void CIA_vsync_prehandler (void);
@@ -38,4 +36,4 @@ extern int parallel_direct_read_status (uae_u8*);
 
 extern void rtc_hardreset (void);
 
-#endif // UAE_CIA_H
+#endif /* UAE_CIA_H */

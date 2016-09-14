@@ -6,8 +6,8 @@
  * See the file 'COPYING' for full license text.
  */
 
-#ifndef UAE_LOGGING_H
-#define UAE_LOGGING_H
+#ifndef UAE_LOG_H
+#define UAE_LOG_H
 
 /* This file is intended to be included by external libraries as well,
  * so don't pull in too much UAE-specific stuff. */
@@ -95,4 +95,4 @@ void write_log (const TCHAR *, ...) UAE_WPRINTF_FORMAT(1, 2);
 
 #endif
 
-#endif /* UAE_LOGGING_H */
+#endif /* UAE_LOG_H */

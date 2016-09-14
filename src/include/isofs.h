@@ -1,10 +1,10 @@
 #ifndef UAE_ISOFS_H
 #define UAE_ISOFS_H
 
-#ifdef FSUAE // NL
+#ifdef FSUAE
 #include "config.h"
-#include "uae/types.h"
 #endif
+#include "uae/types.h"
 
 typedef int isofs_gid_t;
 typedef int isofs_uid_t;
@@ -387,4 +387,4 @@ struct rock_ridge {
 
 # pragma pack ()
 
-#endif // UAE_ISOFS_H
+#endif /* UAE_ISOFS_H */

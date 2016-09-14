@@ -118,4 +118,4 @@
 #define NSCMD_TD_SEEK64 0xc002
 #define NSCMD_TD_FORMAT64 0xc003
 
-#endif // UAE_EXECIO_H
+#endif /* UAE_EXECIO_H */

@@ -12,6 +12,10 @@
 #include <stdint.h>
 #include <glib.h>
 
+#ifdef USE_ZLIB
+#include "zlib.h"
+#endif
+
 static FILE* g_dat_file;
 static GHashTable *g_dat_table;
 
@@ -74,7 +78,8 @@ typedef struct local_file_header {
 #define ERROR_CFH_SIG 9
 #define ERROR_CFH_NAME 10
 
-static int read_zip_entries (FILE *f) {
+static int read_zip_entries (FILE *f)
+{
     if (fseek(f, 0, SEEK_END) != 0) {
         /* fseek to end of file failed */
         return 2;
@@ -134,7 +139,8 @@ static int read_zip_entries (FILE *f) {
     return 0;
 }
 
-int fs_data_file_content(const char *name, char **data, int *size) {
+int fs_data_file_content(const char *name, char **data, int *size)
+{
     if (g_dat_file == NULL) {
         return 1;
     }
@@ -169,14 +175,10 @@ int fs_data_file_content(const char *name, char **data, int *size) {
         /* no signature found, not a local file header */
         return 8;
     }
-    if (lfh.compression_method != 0) {
+    if (lfh.compression_method != 0 && lfh.compression_method != 8) {
         /* file is stored compressed, not supported right now */
         return 9;
     }
-    if (lfh.compressed_size != lfh.uncompressed_size) {
-        return 9;
-    }
-
     if (data == NULL) {
         return 10;
     }
@@ -185,7 +187,7 @@ int fs_data_file_content(const char *name, char **data, int *size) {
     }
 
     *size = le32toh(lfh.uncompressed_size);
-    if (*size > 10 * 1024 * 1024) {
+    if (*size > 16 * 1024 * 1024) {
         /* don't try to allocate very large files */
         return 12;
     }
@@ -193,15 +195,88 @@ int fs_data_file_content(const char *name, char **data, int *size) {
 
     pos += sizeof(local_file_header) + le16toh(lfh.file_name_length) + \
             le16toh(lfh.extra_field_length);
-
     if (fseek(g_dat_file, pos, SEEK_SET) != 0) {
         printf("could not seek to dat file data position %d\n", pos);
         return 13;
     }
-    if (fread(*data, *size, 1, g_dat_file) != 1) {
-        printf("could not read entry data\n");
-        return 14;
+
+    if (lfh.compression_method == 0) {
+        // printf("STORE %s\n", name);
+        /* Compression method "store" */
+        if (lfh.compressed_size != lfh.uncompressed_size) {
+            return 9;
+        }
+        if (fread(*data, *size, 1, g_dat_file) != 1) {
+            printf("could not read entry data\n");
+            return 14;
+        }
+#ifdef USE_ZLIB
+    } else if (lfh.compression_method == 8) {
+        // printf("DEFLATE %s\n", name);
+        /* Compression method "deflate". Borrowed some public domain code from
+         * http://codeandlife.com/2014/01/01/unzip-library-for-c/ */
+        z_stream strm;
+        strm.zalloc = Z_NULL;
+        strm.zfree = Z_NULL;
+        strm.opaque = Z_NULL;
+        strm.avail_in = 0;
+        strm.next_in = Z_NULL;
+        static char buffer[1024];
+
+        int ret;
+        char *data_p = *data;
+        /* Use inflateInit2 with negative window bits to indicate raw data */
+        if ((ret = inflateInit2(&strm, -MAX_WBITS)) != Z_OK) {
+            /* zlib errors are negative */
+            return ret;
+        }
+
+        /* Inflate compressed data */
+        int compressed_left = lfh.compressed_size;
+        int uncompressed_left = lfh.uncompressed_size;
+        while (compressed_left && uncompressed_left && ret != Z_STREAM_END) {
+            /* Read next chunk */
+            strm.avail_in = fread(buffer, 1,
+                (sizeof(buffer) < compressed_left) ?
+                 sizeof(buffer) : compressed_left, g_dat_file);
+
+            if (strm.avail_in == 0 || ferror(g_dat_file)) {
+                inflateEnd(&strm);
+                return 15;
+            }
+
+            strm.next_in = buffer;
+            strm.avail_out = uncompressed_left;
+            strm.next_out = data_p;
+
+            compressed_left -= strm.avail_in;
+            /* inflate will change avail_in */
+            ret = inflate(&strm, Z_NO_FLUSH);
+
+            switch (ret) {
+            case Z_STREAM_ERROR:
+                return ret;
+            case Z_NEED_DICT:
+                ret = Z_DATA_ERROR;
+                /* and fall through */
+            case Z_DATA_ERROR:
+            case Z_MEM_ERROR:
+                (void) inflateEnd(&strm);
+                return ret;
+            }
+
+            /* bytes uncompressed */
+            data_p += uncompressed_left - strm.avail_out;
+            uncompressed_left = strm.avail_out;
+            compressed_left -= strm.avail_in;
+        }
+        inflateEnd(&strm);
+#endif
+    } else {
+        /* Unsupported compression method */
+        return 16;
     }
+
     return 0;
 }
 
@@ -245,6 +320,24 @@ int fs_data_init(const char *app_name, const char *dat_name)
         g_dat_file = g_fopen(dat_path, "rb");
         free(dat_path);
     }
+
+#ifdef MACOSX
+    if (g_dat_file == NULL) {
+        char *dat_path = g_build_filename(
+            exe_path, "..", "..", "..", "..", "..", "Data", dat_name, NULL);
+        fs_log("checking dat file: %s\n", dat_path);
+        g_dat_file = g_fopen(dat_path, "rb");
+        free(dat_path);
+    }
+#else
+    if (g_dat_file == NULL) {
+        char *dat_path = g_build_filename(
+            exe_path, "..", "..", "Data", dat_name, NULL);
+        fs_log("checking dat file: %s\n", dat_path);
+        g_dat_file = g_fopen(dat_path, "rb");
+        free(dat_path);
+    }
+#endif
 
     if (g_dat_file == NULL) {
         error = 10;

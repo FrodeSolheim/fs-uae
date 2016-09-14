@@ -48,11 +48,12 @@
 #include "savestate.h"
 #include "a2091.h"
 #include "ncr_scsi.h"
-#include "ncr9x_scsi.h"
 #include "cdtv.h"
 #include "sana2.h"
 #include "bsdsocket.h"
 #include "uaeresource.h"
+#include "uae/debuginfo.h"
+#include "uae/segtracker.h"
 #include "inputdevice.h"
 #include "clipboard.h"
 #include "consolehook.h"
@@ -65,6 +66,7 @@
 #include "picasso96.h"
 #include "cpuboard.h"
 #include "rommgr.h"
+#include "debug.h"
 #ifdef RETROPLATFORM
 #include "rp.h"
 #endif
@@ -95,6 +97,8 @@ int log_filesys = 0;
 #ifdef FSUAE
 static int g_packet_delay = 0;
 #endif
+
+#define KS12_BOOT_HACK 1
 
 #define UNIT_LED(unit) ((unit)->ui.unit_type == UNIT_CDFS ? LED_CD : LED_HD)
 
@@ -139,7 +143,7 @@ static void aino_test_init (a_inode *aino)
 }
 
 
-uaecptr filesys_initcode;
+uaecptr filesys_initcode, filesys_initcode_ptr;
 static uae_u32 fsdevname, fshandlername, filesys_configdev;
 static uae_u32 cdfs_devname, cdfs_handlername;
 static int filesys_in_interrupt;
@@ -147,6 +151,10 @@ static uae_u32 mountertask;
 static int automountunit = -1;
 static int autocreatedunit;
 static int cd_unit_offset, cd_unit_number;
+static uaecptr ROM_filesys_doio, ROM_filesys_doio_original;
+static uaecptr ROM_filesys_putmsg, ROM_filesys_putmsg_original;
+static uaecptr ROM_filesys_putmsg_return;
+static uaecptr ROM_filesys_hack_remove;
 
 #define FS_STARTUP 0
 #define FS_GO_DOWN 1
@@ -163,6 +171,7 @@ typedef struct {
 	uaecptr devname_amiga;
 	uaecptr startup;
 	uaecptr devicenode;
+	uaecptr parmpacket;
 	TCHAR *volname; /* volume name, e.g. CDROM, WORK, etc. */
 	int volflags; /* volume flags, readonly, stream uaefsdb support */
 	TCHAR *rootdir; /* root native directory/hdf. empty drive if invalid path */
@@ -798,6 +807,11 @@ static void allocuci (struct uae_prefs *p, int nr, int idx)
 	allocuci (p, nr, idx, -1);
 }
 
+static const TCHAR *getunittype(struct uaedev_config_info *uci)
+{
+	return uci->type == UAEDEV_CD ? _T("CD") : (uci->type == UAEDEV_TAPE ? _T("TAPE") : _T("HD"));
+}
+
 static int cpuboard_hd;
 static romconfig cpuboard_dummy;
 
@@ -809,9 +823,9 @@ void add_cpuboard_unit(int unit, struct uaedev_config_info *uci, struct romconfi
 	if (cbt->subtypes) {
 		if (cbt->subtypes[currprefs.cpuboard_subtype].add && (cbt->subtypes[currprefs.cpuboard_subtype].deviceflags & flags)) {
 			if (unit >= 0) {
-				write_log(_T("Adding CPUBoard '%s' HD unit %d ('%s')\n"),
+				write_log(_T("Adding CPUBoard '%s' %s unit %d ('%s')\n"),
 					cbt->subtypes[currprefs.cpuboard_subtype].name,
-					unit, uci->rootdir);
+					getunittype(uci), unit, uci->rootdir);
 			}
 			cbt->subtypes[currprefs.cpuboard_subtype].add(unit, uci, rc);
 			cpuboard_hd = 1;
@@ -830,9 +844,11 @@ static void add_cpuboard_unit_init(void)
 		const struct cpuboardtype *cbt = &cpuboards[currprefs.cpuboard_type];
 		if (cbt->subtypes) {
 			if (cbt->subtypes[currprefs.cpuboard_subtype].add) {
+				const struct cpuboardsubtype *cst = &cbt->subtypes[currprefs.cpuboard_subtype];
 				struct uaedev_config_info ci = { 0 };
-				write_log(_T("Initializing CPUBoard '%s' HD controller\n"), cbt->subtypes[currprefs.cpuboard_subtype].name);
-				cbt->subtypes[currprefs.cpuboard_subtype].add(-1, &ci, rc);
+				write_log(_T("Initializing CPUBoard '%s' %s controller\n"),
+					cst->name, (cst->deviceflags & EXPANSIONTYPE_SCSI) ? _T("SCSI") : _T("IDE"));
+				cst->add(-1, &ci, rc);
 			}
 		}
 	}
@@ -870,10 +886,12 @@ static void add_mainboard_unit_init(void)
 		write_log(_T("Initializing A4000T mainboard SCSI\n"));
 		a4000t_add_scsi_unit(-1, NULL, NULL);
 	}
+#ifdef CDTV
 	if (iscdtvscsi()) {
 		write_log(_T("Initializing CDTV SCSI expansion\n"));
 		cdtv_add_scsi_unit(-1, NULL, NULL);
 	}
+#endif
 }
 
 static bool add_ide_unit(int type, int unit, struct uaedev_config_info *uci)
@@ -881,8 +899,8 @@ static bool add_ide_unit(int type, int unit, struct uaedev_config_info *uci)
 	bool added = false;
 	if (type == HD_CONTROLLER_TYPE_IDE_MB) {
 		if (ismainboardide()) {
-			write_log(_T("Adding mainboard IDE HD unit %d ('%s')\n"),
-				unit, uci->rootdir);
+			write_log(_T("Adding mainboard IDE %s unit %d ('%s')\n"),
+				getunittype(uci), unit, uci->rootdir);
 			gayle_add_ide_unit(unit, uci);
 			added = true;
 		}
@@ -894,7 +912,7 @@ static bool add_ide_unit(int type, int unit, struct uaedev_config_info *uci)
 					cpuboard_hd = 1;
 					if (ert->add) {
 						struct romconfig *rc = get_device_romconfig(&currprefs, ert->romtype, uci->controller_type_unit);
-						write_log(_T("Adding IDE HD '%s' unit %d ('%s')\n"),
+						write_log(_T("Adding IDE %s '%s' unit %d ('%s')\n"), getunittype(uci),
 							ert->name, unit, uci->rootdir);
 						ert->add(unit, uci, rc);
 					}
@@ -913,7 +931,7 @@ static bool add_scsi_unit(int type, int unit, struct uaedev_config_info *uci)
 	if (type == HD_CONTROLLER_TYPE_SCSI_A3000) {
 #ifdef A2091
 		if (isa3000scsi()) {
-			write_log(_T("Adding A3000 mainboard SCSI HD unit %d ('%s')\n"),
+			write_log(_T("Adding A3000 mainboard SCSI %s unit %d ('%s')\n"), getunittype(uci),
 				unit, uci->rootdir);
 			a3000_add_scsi_unit (unit, uci, NULL);
 			added = true;
@@ -922,7 +940,7 @@ static bool add_scsi_unit(int type, int unit, struct uaedev_config_info *uci)
 	} else if (type == HD_CONTROLLER_TYPE_SCSI_A4000T) {
 #ifdef NCR
 		if (isa4000tscsi()) {
-			write_log(_T("Adding A4000T mainboard SCSI HD unit %d ('%s')\n"),
+			write_log(_T("Adding A4000T mainboard SCSI %s unit %d ('%s')\n"), getunittype(uci),
 				unit, uci->rootdir);
 			a4000t_add_scsi_unit (unit, uci, NULL);
 			added = true;
@@ -931,7 +949,7 @@ static bool add_scsi_unit(int type, int unit, struct uaedev_config_info *uci)
 	} else if (type == HD_CONTROLLER_TYPE_SCSI_CDTV) {
 #ifdef CDTV
 		if (iscdtvscsi()) {
-			write_log(_T("Adding CDTV SCSI expansion HD unit %d ('%s')\n"),
+			write_log(_T("Adding CDTV SCSI expansion %s unit %d ('%s')\n"), getunittype(uci),
 				unit, uci->rootdir);
 			cdtv_add_scsi_unit (unit, uci, NULL);
 			added = true;
@@ -945,7 +963,7 @@ static bool add_scsi_unit(int type, int unit, struct uaedev_config_info *uci)
 					cpuboard_hd = 1;
 					if (ert->add) {
 						struct romconfig *rc = get_device_romconfig(&currprefs, ert->romtype, uci->controller_type_unit);
-						write_log(_T("Adding SCSI HD '%s' unit %d ('%s')\n"),
+						write_log(_T("Adding SCSI %s '%s' unit %d ('%s')\n"), getunittype(uci),
 							ert->name, unit, uci->rootdir);
 						ert->add(unit, uci, rc);
 					}
@@ -981,6 +999,8 @@ static void initialize_mountinfo (void)
 	nr = nr_units ();
 	cd_unit_offset = nr;
 	cd_unit_number = 0;
+
+#ifdef SCSIEMU
 	if (currprefs.scsi && currprefs.win32_automount_cddrives) {
 		uae_u32 mask = scsi_get_cd_drive_mask ();
 		for (int i = 0; i < 32; i++) {
@@ -999,10 +1019,12 @@ static void initialize_mountinfo (void)
 			}
 		}
 	}
+#endif
 
 	for (nr = 0; nr < currprefs.mountitems; nr++) {
 		struct uaedev_config_data *uci = &currprefs.mountconfig[nr];
 		if (uci->ci.controller_type == HD_CONTROLLER_TYPE_UAE) {
+#ifdef SCSIEMU
 			if (uci->ci.type == UAEDEV_TAPE) {
 				struct uaedev_config_info ci;
 				memcpy (&ci, &uci->ci, sizeof (struct uaedev_config_info));
@@ -1012,6 +1034,7 @@ static void initialize_mountinfo (void)
 					allocuci (&currprefs, nr, idx, unitnum);
 				}
 			}
+#endif
 		}
 	}
 
@@ -1075,7 +1098,7 @@ int sprintf_filesys_unit (TCHAR *buffer, int num)
 
 	if (uip[num].volname != 0)
 		_stprintf (buffer, _T("(DH%d:) Filesystem, %s: %s %s"), num, uip[num].volname,
-		uip[num].rootdir, uip[num].readonly ? "ro" : "");
+		uip[num].rootdir, uip[num].readonly ? _T("ro") : _T(""));
 	else
 		_stprintf (buffer, _T("(DH%d:) Hardfile, \"%s\", size %d Mbytes"), num,
 		uip[num].rootdir, (int)(uip[num].hf.virtsize / (1024 * 1024)));
@@ -1775,8 +1798,43 @@ static void setsystime_vblank (void)
 	Unit *u;
 	for (u = units; u; u = u->next) {
 		if (is_virtual (u->unit) && filesys_isvolume (u)) {
-			put_byte (u->volume + 173 - 32, 1);
+			put_byte (u->volume + 173 - 32, get_byte(u->volume + 173 - 32) | 1);
 			uae_Signal (get_long (u->volume + 176 - 32), 1 << 13);
+			break;
+		}
+	}
+}
+
+static uae_u32 REGPARAM2 debugger_helper(TrapContext *context)
+{
+	int mode = m68k_dreg(regs, 1);
+	switch (mode)
+	{
+		case 1:
+		// Execute debugger_boot() to get here.
+		write_log(_T("debugger #1\n"));
+		// return RunCommand(() parameters
+		// does nothing if D1 == 0.
+		break;
+		case 2:
+		// called when RunCommand() returns
+		// D0 = RunCommand() return code.
+		write_log(_T("debugger #2\n"));
+		break;
+		default:
+		write_log(_T("Unknown debugger hook %d\n"), mode);
+		return 0;
+	}
+	return 1;
+}
+
+static void debugger_boot(void)
+{
+	Unit *u;
+	for (u = units; u; u = u->next) {
+		if (is_virtual(u->unit) && filesys_isvolume(u)) {
+			put_byte(u->volume + 173 - 32, get_byte(u->volume + 173 - 32) | 2);
+			uae_Signal(get_long(u->volume + 176 - 32), 1 << 13);
 			break;
 		}
 	}
@@ -3677,8 +3735,7 @@ static void action_make_link (Unit *unit, dpacket packet)
 			}
 			return;
 		}
-		// real Amiga softlinks would accept invalid paths too,
-		// we won't.
+		// real Amiga softlinks would accept invalid paths too, we won't.
 		PUT_PCK_RES1 (packet, DOS_FALSE);
 		PUT_PCK_RES2 (packet, ERROR_OBJECT_NOT_AROUND);
 	}
@@ -3714,6 +3771,7 @@ static void action_read_link (Unit *unit, dpacket packet)
 	if (!a->softlink)
 		err = ERROR_OBJECT_WRONG_TYPE;
 	if (err != 0) {
+		xfree(extrapath);
 		PUT_PCK_RES1 (packet, DOS_FALSE);
 		PUT_PCK_RES2 (packet, err);
 		return;
@@ -3721,6 +3779,7 @@ static void action_read_link (Unit *unit, dpacket packet)
 	_tcscpy (tmp, a->nname);
 	write_log (_T("Resolving softlink '%s'\n"), tmp);
 	if (!my_resolvesoftlink (tmp, sizeof tmp / sizeof (TCHAR))) {
+		xfree(extrapath);
 		PUT_PCK_RES1 (packet, DOS_FALSE);
 		//  not sure what to return
 		PUT_PCK_RES2 (packet, ERROR_OBJECT_NOT_AROUND);
@@ -3747,6 +3806,7 @@ static void action_read_link (Unit *unit, dpacket packet)
 		}
 	}
 	if (!matched_aino) {
+		xfree(extrapath);
 		write_log (_T("Path not found in any mounted drive\n"));
 		PUT_PCK_RES1 (packet, DOS_FALSE);
 		PUT_PCK_RES2 (packet, ERROR_OBJECT_NOT_AROUND);
@@ -3872,7 +3932,7 @@ static void move_exkeys (Unit *unit, a_inode *from, a_inode *to)
 static bool get_statinfo(Unit *unit, a_inode *aino, struct mystat *statbuf)
 {
 	bool ok = true;
-	memset (statbuf, 0, sizeof (*statbuf));
+	memset (statbuf, 0, sizeof(struct mystat));
 	/* No error checks - this had better work. */
 	if (unit->volflags & MYVOLUMEINFO_ARCHIVE)
 		ok = zfile_stat_archive (aino->nname, statbuf) != 0;
@@ -3957,7 +4017,6 @@ static void
 	} else {
 		put_long (info + 124, statbuf.size > MAXFILESIZE32 ? MAXFILESIZE32 : (uae_u32)statbuf.size);
 	}
-
 
 #ifdef FSUAE
 	fsdb_get_file_time(aino, &days, &mins, &ticks);
@@ -4748,7 +4807,6 @@ static void action_examine_next (Unit *unit, dpacket packet, bool largefilesize)
 	uaecptr lock = GET_PCK_ARG1 (packet) << 2;
 	uaecptr info = GET_PCK_ARG2 (packet) << 2;
 	a_inode *aino = 0, *daino = 0;
-	ExamineKey *ek;
 	uae_u32 uniq;
 
 	TRACE((_T("ACTION_EXAMINE_NEXT(0x%x,0x%x,%d)\n"), lock, info, largefilesize));
@@ -4813,10 +4871,10 @@ static void action_examine_next (Unit *unit, dpacket packet, bool largefilesize)
 			}
 		}
 		if (!daino)
- 			goto no_more_entries;
+			goto no_more_entries;
 		if (daino->parent != aino) {
 			write_log(_T("Houston, we have a BIG problem. %s is not parent of %s\n"), daino->nname, aino->nname);
- 			goto no_more_entries;
+			goto no_more_entries;
 		}
 		uniq = daino->uniq;
 		if (daino->mountcount != unit->mountcount)
@@ -5165,7 +5223,6 @@ static void
 			/* it really crosses memory boundary */
 			uae_u8 *buf;
 			
-			write_log (_T("unixfs warning: Bad pointer passed for read: %08x, size %d\n"), addr, size);
 			/* ugh this is inefficient but easy */
 
 			if (key_seek(k, k->file_pos, SEEK_SET) < 0) {
@@ -5269,7 +5326,6 @@ static void
 
 		actual = fs_write (k->fd, realpt, size);
 	} else {
-		write_log (_T("unixfs warning: Bad pointer passed for write: %08x, size %d\n"), addr, size);
 		/* ugh this is inefficient but easy */
 
 		if (key_seek(k, k->file_pos, SEEK_SET) < 0) {
@@ -6809,16 +6865,6 @@ error2:
 	return 0;
 }
 
-static void init_filesys_diagentry (void)
-{
-	do_put_mem_long ((uae_u32 *)(filesys_bank.baseaddr + 0x2100), EXPANSION_explibname);
-	do_put_mem_long ((uae_u32 *)(filesys_bank.baseaddr + 0x2104), filesys_configdev);
-	do_put_mem_long ((uae_u32 *)(filesys_bank.baseaddr + 0x2108), EXPANSION_doslibname);
-	do_put_mem_word ((uae_u16 *)(filesys_bank.baseaddr + 0x210e), nr_units ());
-	do_put_mem_word ((uae_u16 *)(filesys_bank.baseaddr + 0x210c), 0);
-	native2amiga_startup ();
-}
-
 void filesys_start_threads (void)
 {
 	int i;
@@ -6944,18 +6990,152 @@ void filesys_prepare_reset (void)
 	filesys_prepare_reset2 ();
 }
 
+
+/* don't forget filesys.asm! */
+#define PP_MAXSIZE 4 * 96
+#define PP_FSSIZE 400
+#define PP_FSPTR 404
+#define PP_ADDTOFSRES 408
+#define PP_FSRES 412
+#define PP_FSRES_CREATED 416
+#define PP_DEVICEPROC 420
+#define PP_EXPLIB 424
+#define PP_FSHDSTART 428
+
+static int trackdisk_hack_state;
+static int putmsg_hack_state;
+static int putmsg_hack_filesystemtask;
+static uae_u32 ks12hack_deviceproc;
+
+static bool bcplonlydos(void)
+{
+	return kickstart_version && kickstart_version < 33;
+}
+
+static const uae_u8 bootblock_ofs[] = {
+	0x44,0x4f,0x53,0x00,0xc0,0x20,0x0f,0x19,0x00,0x00,0x03,0x70,0x43,0xfa,0x00,0x18,
+	0x4e,0xae,0xff,0xa0,0x4a,0x80,0x67,0x0a,0x20,0x40,0x20,0x68,0x00,0x16,0x70,0x00,
+	0x4e,0x75,0x70,0xff,0x60,0xfa,0x64,0x6f,0x73,0x2e,0x6c,0x69,0x62,0x72,0x61,0x72,
+	0x79
+};
+static uae_u32 REGPARAM2 filesys_putmsg_return(TrapContext *context)
+{
+	uaecptr message = m68k_areg(regs, 1);
+	uaecptr dospacket = get_long(message + 10);
+	UnitInfo *uip = mountinfo.ui;
+	if (!ks12hack_deviceproc && uip[0].parmpacket)
+		ks12hack_deviceproc = get_long(uip[0].parmpacket + PP_DEVICEPROC);
+	if (ks12hack_deviceproc) {
+		uae_u32 port = ks12hack_deviceproc;
+		if (port) {
+			uaecptr proc = get_long(get_long(4) + 276); // ThisTask
+			put_long(proc + 168, port); // pr_FileSystemTask
+			m68k_areg(regs, 0) = port;
+			write_log(_T("Pre-KS 1.3 automount hack: patch boot handler process. DP=%08x Proc %08x pr_FileSystemTask=%08x.\n"), dospacket, proc, port);
+		}
+	}
+	return m68k_dreg(regs, 0);
+}
+
+static uae_u32 REGPARAM2 filesys_putmsg(TrapContext *context)
+{
+	m68k_areg(regs, 7) -= 4;
+	put_long(m68k_areg(regs, 7), get_long(ROM_filesys_putmsg_original));
+	if (putmsg_hack_state) {
+		uaecptr message = m68k_areg(regs, 1);
+		uaecptr dospacket = get_long(message + 10);
+		if (dospacket && !(dospacket & 3) && valid_address(dospacket, 48)) {
+			int type = get_long(dospacket + 8);
+//			write_log(_T("Port=%08x Msg=%08x DP=%08x dp_Link=%08x dp_Port=%08x dp_Type=%d\n"),
+//				m68k_areg(regs, 0), m68k_areg(regs, 1), dospacket, get_long(dospacket), get_long(dospacket + 4), type);
+			if (type == ACTION_LOCATE_OBJECT) {
+				write_log(_T("Pre-KS 1.3 automount hack: init drives.\n"));
+				putmsg_hack_state = 0;
+				if (putmsg_hack_filesystemtask) {
+					m68k_areg(regs, 7) -= 4;
+					put_long(m68k_areg(regs, 7), ROM_filesys_putmsg_return);
+				}
+				m68k_areg(regs, 7) -= 4;
+				put_long(m68k_areg(regs, 7), filesys_initcode);
+				m68k_areg(regs, 7) -= 4;
+				put_long(m68k_areg(regs, 7), ROM_filesys_hack_remove);
+				return m68k_dreg(regs, 0);
+			}
+		}
+	}
+	return m68k_dreg(regs, 0);
+}
+
+static uae_u32 REGPARAM2 filesys_doio(TrapContext *context)
+{
+	uaecptr ioreq = m68k_areg(regs, 1);
+	uaecptr unit = get_long(ioreq + 24); // io_Unit
+	if (trackdisk_hack_state && unit && valid_address(unit, 14)) {
+		uaecptr name = get_long(unit + 10); // ln_Name
+		if (name && valid_address(name, 20)) {
+			uae_u8 *addr = get_real_address(name);
+			if (!memcmp(addr, "trackdisk.device", 17)) {
+				int cmd = get_word(ioreq + 28); // io_Command
+				uaecptr data = get_long(ioreq + 40);
+				int len = get_long(ioreq + 36);
+				//write_log(_T("%08x %d\n"), ioreq, cmd);
+				switch (cmd)
+				{
+				case 2: // CMD_READ
+				{
+					// trackdisk.device reading boot block
+					uae_u8 *d = get_real_address(data);
+					memset(d, 0, 1024);
+					memcpy(d, bootblock_ofs, sizeof bootblock_ofs);
+					put_long(ioreq + 32, len); // io_Actual
+					trackdisk_hack_state = 0;
+					write_log(_T("Pre-KS 1.3 automount hack: DF0: boot block faked.\n"));
+				}
+				break;
+				case 9: // TD_MOTOR
+					put_long(ioreq + 32, trackdisk_hack_state < 0 ? 0 : 1);
+					trackdisk_hack_state = len ? 1 : -1;
+				break;
+				case 13: // TD_CHANGENUM
+					put_long(ioreq + 32, 1); // io_Actual
+				break;
+				case 14: // TD_CHANGESTATE
+					put_long(ioreq + 32, 0);
+				break;
+				}
+				return 0;
+			}
+		}
+	}
+	m68k_areg(regs, 7) -= 4;
+	put_long(m68k_areg(regs, 7), get_long(ROM_filesys_doio_original));
+	return 0;
+}
+
 static uae_u32 REGPARAM2 filesys_diagentry (TrapContext *context)
 {
+	UnitInfo *uip = mountinfo.ui;
 	uaecptr resaddr = m68k_areg (regs, 2) + 0x10;
 	uaecptr expansion = m68k_areg (regs, 5);
 	uaecptr start = resaddr;
 	uaecptr residents, tmp;
+	uaecptr resaddr_hack = 0;
 
-	write_log (_T("filesystem: diagentry called: %x\n"), resaddr);
+	filesys_configdev = m68k_areg(regs, 3);
 
-	filesys_configdev = m68k_areg (regs, 3);
-	init_filesys_diagentry ();
+	do_put_mem_long((uae_u32 *)(filesys_bank.baseaddr + 0x2100), EXPANSION_explibname);
+	do_put_mem_long((uae_u32 *)(filesys_bank.baseaddr + 0x2104), filesys_configdev);
+	do_put_mem_long((uae_u32 *)(filesys_bank.baseaddr + 0x2108), EXPANSION_doslibname);
+	do_put_mem_word((uae_u16 *)(filesys_bank.baseaddr + 0x210c), 0);
+	do_put_mem_word((uae_u16 *)(filesys_bank.baseaddr + 0x210e), nr_units());
+	do_put_mem_word((uae_u16 *)(filesys_bank.baseaddr + 0x2110), 0);
+	do_put_mem_word((uae_u16 *)(filesys_bank.baseaddr + 0x2112), 1 | (currprefs.uae_hide_autoconfig ? 16 : 0));
 
+	native2amiga_startup();
+
+	write_log (_T("filesystem: diagentry %08x configdev %08x\n"), resaddr, filesys_configdev);
+
+	tmp = resaddr;
 	if (ROM_hardfile_resid != 0) {
 		/* Build a struct Resident. This will set up and initialize
 		* the uae.device */
@@ -6969,7 +7149,8 @@ static uae_u32 REGPARAM2 filesys_diagentry (TrapContext *context)
 		put_long (resaddr + 0x16, ROM_hardfile_init); /* calls filesys_init */
 	}
 	resaddr += 0x1A;
-	tmp = resaddr;
+	if (!KS12_BOOT_HACK || expansion)
+		tmp = resaddr;
 	/* The good thing about this function is that it always gets called
 	* when we boot. So we could put all sorts of stuff that wants to be done
 	* here.
@@ -6978,6 +7159,9 @@ static uae_u32 REGPARAM2 filesys_diagentry (TrapContext *context)
 	* Resident structures and call InitResident() for them at the end of the
 	* diag entry. */
 
+#ifdef WITH_SEGTRACKER
+	resaddr = segtracker_startup(resaddr);
+#endif
 	resaddr = uaeres_startup (resaddr);
 #ifdef BSDSOCKET
 	resaddr = bsdlib_startup (resaddr);
@@ -7000,7 +7184,7 @@ static uae_u32 REGPARAM2 filesys_diagentry (TrapContext *context)
 
 	/* scan for Residents and return pointer to array of them */
 	residents = resaddr;
-	while (tmp < residents && tmp > start) {
+	while (tmp < residents && tmp >= start) {
 		if (get_word (tmp) == 0x4AFC &&
 			get_long (tmp + 0x2) == tmp) {
 				put_word (resaddr, 0x227C);         /* move.l #tmp,a1 */
@@ -7019,12 +7203,101 @@ static uae_u32 REGPARAM2 filesys_diagentry (TrapContext *context)
 	put_word (resaddr +  6, 0xd1fc);
 	put_long (resaddr +  8, rtarea_base + bootrom_header); /* add.l #RTAREA_BASE+bootrom_header,a0 */
 	put_word (resaddr + 12, 0x4e90); /* jsr (a0) */
-	put_word (resaddr + 14, 0x7001); /* moveq #1,d0 */
-	put_word (resaddr + 16, RTS);
+	resaddr += 14;
+
+	trackdisk_hack_state = 0;
+	putmsg_hack_state = 0;
+	putmsg_hack_filesystemtask = 0;
+	ks12hack_deviceproc = 0;
+
+	if (KS12_BOOT_HACK && nr_units() && filesys_configdev == 0) {
+		resaddr_hack = resaddr;
+		putmsg_hack_state = -1;
+		if (uip[0].bootpri > -128) {
+			resaddr += 2 * 22;
+			trackdisk_hack_state = -1;
+			putmsg_hack_filesystemtask = 1;
+		} else {
+			resaddr += 1 * 22;
+		}
+	}
+
+	put_word (resaddr + 0, 0x7001); /* moveq #1,d0 */
+	put_word (resaddr + 2, RTS);
+	resaddr += 4;
+
+	ROM_filesys_doio_original = resaddr;
+	ROM_filesys_putmsg_original = resaddr + 4;
+	resaddr += 8;
+	ROM_filesys_hack_remove = resaddr;
+
+	if (putmsg_hack_state) {
+
+		// remove patches
+		put_long(resaddr + 0, 0x48e7fffe); // movem.l d0-d7/a0-a6,-(sp)
+		put_word(resaddr + 4, 0x224e); // move.l a6,a1
+		resaddr += 6;
+		if (trackdisk_hack_state) {
+			put_word(resaddr + 0, 0x307c); // move.w #x,a0
+			put_word(resaddr + 2, -0x1c8);
+			put_word(resaddr + 4, 0x2039);	// move.l x,d0
+			put_long(resaddr + 6, ROM_filesys_doio_original);
+			put_word(resaddr + 10, 0x4eae);  // jsr x(a6)
+			put_word(resaddr + 12, -0x1a4);
+			resaddr += 14;
+		}
+		put_word(resaddr + 0, 0x307c); // move.w #x,a0
+		put_word(resaddr + 2, -0x16e);
+		put_word(resaddr + 4, 0x2039);	// move.l x,d0
+		put_long(resaddr + 6, ROM_filesys_putmsg_original);
+		put_word(resaddr + 10, 0x4eae);  // jsr x(a6)
+		put_word(resaddr + 12, -0x1a4);
+		resaddr += 14;
+		put_long(resaddr + 0, 0x4cdf7fff); // movem.l (sp)+,d0-d7/a0-a6
+		resaddr += 4;
+
+		uaecptr temp = here();
+		org(filesys_initcode_ptr);
+		dl(resaddr);
+		org(temp);
+
+		put_word(resaddr, 0x4e75); // rts
+
+		resaddr = resaddr_hack;
+
+		if (trackdisk_hack_state) {
+			// Pre-KS 1.3 trackdisk.device boot block injection hack. Patch DoIO()
+			put_word(resaddr + 0, 0x224e); // move.l a6,a1
+			put_word(resaddr + 2, 0x307c); // move.w #x,a0
+			put_word(resaddr + 4, -0x1c8);
+			put_word(resaddr + 6, 0x203c);	// move.l #x,d0
+			put_long(resaddr + 8, ROM_filesys_doio);
+			put_word(resaddr + 12, 0x4eae);  // jsr x(a6)
+			put_word(resaddr + 14, -0x1a4);
+			put_word(resaddr + 16, 0x23c0); // move.l d0,x
+			put_long(resaddr + 18, ROM_filesys_doio_original);
+			resaddr += 22;
+		}
+
+		// Pre-KS 1.3 automount hack. Patch PutMsg()
+		put_word(resaddr + 0, 0x224e); // move.l a6,a1
+		put_word(resaddr + 2, 0x307c); // move.w #x,a0
+		put_word(resaddr + 4, -0x16e);
+		put_word(resaddr + 6, 0x203c);	// move.l #x,d0
+		put_long(resaddr + 8, ROM_filesys_putmsg);
+		put_word(resaddr + 12, 0x4eae);  // jsr x(a6)
+		put_word(resaddr + 14, -0x1a4);
+		put_word(resaddr + 16, 0x23c0); // move.l d0,x
+		put_long(resaddr + 18, ROM_filesys_putmsg_original);
+		resaddr += 22;
+
+		// filesys.asm make_dev D7
+		do_put_mem_word((uae_u16 *)(filesys_bank.baseaddr + 0x2112), 1 | 2 | 8 | 16);
+	}
 
 	m68k_areg (regs, 0) = residents;
 	
-	if (currprefs.uae_hide_autoconfig) {
+	if (currprefs.uae_hide_autoconfig && expansion) {
 		bool found = true;
 		while (found) {
 			uaecptr node = get_long (expansion + 0x3c);
@@ -7052,16 +7325,6 @@ static uae_u32 REGPARAM2 filesys_diagentry (TrapContext *context)
 
 	return 1;
 }
-
-/* don't forget filesys.asm! */
-#define PP_MAXSIZE 4 * 96
-#define PP_FSSIZE 400
-#define PP_FSPTR 404
-#define PP_ADDTOFSRES 408
-#define PP_FSRES 412
-#define PP_FSRES_CREATED 416
-#define PP_EXPLIB 420
-#define PP_FSHDSTART 424
 
 static uae_u32 REGPARAM2 filesys_dev_bootfilesys (TrapContext *context)
 {
@@ -7099,7 +7362,12 @@ static uae_u32 REGPARAM2 filesys_dev_bootfilesys (TrapContext *context)
 			if (pf & (1 << i))
 				put_long (devicenode + 4 + i * 4, get_long (parmpacket + PP_FSHDSTART + 8 + 4 + i * 4));
 		}
-		put_long (devicenode + 4 + 7 * 4, fsptr >> 2); // seglist
+		uaecptr seglist = fsptr >> 2;
+		if (bcplonlydos()) {
+			put_long(devicenode + 4 + 3 * 4, seglist);
+			seglist = (get_long(rtarea_base + bootrom_header + 4 + 6 * 4) + rtarea_base + bootrom_header) >> 2;
+		}
+		put_long(devicenode + 4 + 7 * 4, seglist);
 		return 1;
 	}
 	dostype = get_long (parmpacket + 80);
@@ -7109,8 +7377,15 @@ static uae_u32 REGPARAM2 filesys_dev_bootfilesys (TrapContext *context)
 		if (dostype2 == dostype) {
 			uae_u32 pf = get_long (fsnode + 22); // fse_PatchFlags
 			for (int i = 0; i < 32; i++) {
-				if (pf & (1 << i))
-					put_long (devicenode + 4 + i * 4, get_long (fsnode + 22 + 4 + i * 4));
+				if (pf & (1 << i)) {
+					uae_u32 data = get_long(fsnode + 22 + 4 + i * 4);
+					if (i == 7 && bcplonlydos()) { // seglist
+						// point seglist to bcpl wrapper and put original seglist in dn_Handler
+						put_long(devicenode + 4 + 3 * 4, get_long(fsnode + 22 + 4 + 7 * 4));
+						data = (get_long(rtarea_base + bootrom_header + 4 + 6 * 4) + rtarea_base + bootrom_header) >> 2;
+					}
+					put_long(devicenode + 4 + i * 4, data);
+				}
 			}
 			return 1;
 		}
@@ -7124,6 +7399,50 @@ static uae_u32 REGPARAM2 filesys_dev_bootfilesys (TrapContext *context)
 		}
 		put_long (devicenode + 4 + 7 * 4, 0); // seglist
 	}
+
+	uaecptr file_system_proc = m68k_dreg(regs, 1);
+	if (bcplonlydos() && file_system_proc && get_long(devicenode + 4 + 7 * 4) == 0) {
+		// 1.1 or older, seglist == 0: get ROM OFS seglist from "File System" process.
+		// 1.2 and newer automatically use ROM OFS if seglist is zero.
+		// d1 = "File System" process pointer.
+		uaecptr p = get_long(file_system_proc + 0x80) << 2; // pr_SegList
+		if (p) {
+			uae_u32 cnt = get_long(p);
+			if (cnt > 0 && cnt < 16) {
+				uaecptr handlerseg = get_long(p + cnt * 4);
+				write_log(_T("Pre-KS 1.2 handler segment %08x.\n"), handlerseg << 2);
+				put_long(devicenode + 4 + 7 * 4, handlerseg);
+			}
+		}
+	}
+
+	return 0;
+}
+
+// called from bcplwrapper
+static uae_u32 REGPARAM2 filesys_bcpl_wrapper(TrapContext *context)
+{
+	const int patches[] = { 0x782, 0x7b8, 0x159c, 0x15b4, 0 };
+	uaecptr devicenode = get_long(m68k_dreg(regs, 1) + 0x1c) << 2;
+	// fetch original seglist from dn_Handler
+	uaecptr seglist = get_long(devicenode + 4 + 3 * 4) << 2;
+	uaecptr patchfunc = m68k_areg(regs, 1);
+	seglist += 4;
+	m68k_areg(regs, 0) = seglist;
+	for (int i = 0; patches[i]; i++) {
+		int offset = patches[i];
+		if (get_long(seglist + offset + 2) != 0x4eaefd90) {
+			write_log(_T("FFS patch failed, comparison mismatch.\n"));
+			return 0;
+		}
+	}
+	for (int i = 0; patches[i]; i++) {
+		int offset = patches[i];
+		put_word(seglist + offset, 0x4eb9);
+		put_long(seglist + offset + 2, patchfunc);
+		patchfunc += 4;
+	}
+	write_log(_T("FFS pre-1.2 patched\n"));
 	return 0;
 }
 
@@ -7224,6 +7543,8 @@ static int device_isdup (uaecptr expbase, TCHAR *devname)
 	int len, i;
 	TCHAR dname[256];
 
+	if (!expbase)
+		return 0;
 	bnode = get_long (expbase + 74); /* expansion.library bootnode list */
 	while (get_long (bnode)) {
 		dnode = get_long (bnode + 16); /* device node */
@@ -7330,6 +7651,23 @@ static void dump_partinfo (struct hardfiledata *hfd, uae_u8 *pp)
 	}
 }
 
+static void dumprdbblock(const uae_u8 *buf, int block)
+{
+	int w = 16;
+	write_log(_T("RDB block %d:\n"), block);
+	for (int i = 0; i < 512; i += w) {
+		TCHAR outbuf[81];
+		for (int j = 0; j < w; j++) {
+			uae_u8 v = buf[i + j];
+			_stprintf(outbuf + 2 * j, _T("%02X"), v);
+			outbuf[2 * w + 1 + j] = (v >= 32 && v <= 126) ? v : '.';
+		}
+		outbuf[2 * w] = ' ';
+		outbuf[2 * w + 1 + w] = 0;
+		write_log(_T("%s\n"), outbuf);
+	}
+}
+
 static void dump_rdb (UnitInfo *uip, struct hardfiledata *hfd, uae_u8 *bufrdb, uae_u8 *buf, int readblocksize)
 {
 	write_log (_T("RDB: HostID: %08x Flags: %08x\n"),
@@ -7347,12 +7685,14 @@ static void dump_rdb (UnitInfo *uip, struct hardfiledata *hfd, uae_u8 *bufrdb, u
 		write_log (_T("RDB: PART block %d:\n"), partblock);
 		if (!legalrdbblock (uip, partblock)) {
 			write_log (_T("RDB: corrupt PART pointer %d\n"), partblock);
+			dumprdbblock(i == 0 ? bufrdb : buf, partblock);
 			break;
 		}
 		memset (buf, 0, readblocksize);
 		hdf_read (hfd, buf, partblock * hfd->ci.blocksize, readblocksize);
 		if (!rdb_checksum ("PART", buf, partblock)) {
 			write_log (_T("RDB: checksum error PART block %d\n"), partblock);
+			dumprdbblock(buf, partblock);
 			break;
 		}
 		dump_partinfo (hfd, buf);
@@ -7368,12 +7708,14 @@ static void dump_rdb (UnitInfo *uip, struct hardfiledata *hfd, uae_u8 *bufrdb, u
 		write_log (_T("RDB: LSEG block %d:\n"), fileblock);
 		if (!legalrdbblock (uip, fileblock)) {
 			write_log (_T("RDB: corrupt FSHD pointer %d\n"), fileblock);
+			dumprdbblock(i == 0 ? bufrdb : buf, fileblock);
 			break;
 		}
 		memset (buf, 0, readblocksize);
 		hdf_read (hfd, buf, fileblock * hfd->ci.blocksize, readblocksize);
 		if (!rdb_checksum ("FSHD", buf, fileblock)) {
 			write_log (_T("RDB: checksum error FSHD block %d\n"), fileblock);
+			dumprdbblock(buf, fileblock);
 			break;
 		}
 		uae_u32 dostype = rl (buf + 32);
@@ -7443,18 +7785,19 @@ static int rdb_mount (UnitInfo *uip, int unit_no, int partnum, uaecptr parmpacke
 	}
 	blocksize = rl (bufrdb + 16);
 	readblocksize = blocksize > hfd->ci.blocksize ? blocksize : hfd->ci.blocksize;
+
 	badblock = rl (bufrdb + 24);
 	if (badblock != -1) {
-		rdbmnt
-		write_log (_T("RDB: badblock list is not yet supported. Contact the author.\n"));
-		return -2;
+		write_log (_T("RDB: badblock list %08x\n"), badblock);
+		dumprdbblock(bufrdb, rdblock);
 	}
+
 	driveinitblock = rl (bufrdb + 36);
 	if (driveinitblock != -1) {
-		rdbmnt
-		write_log (_T("RDB: driveinit is not yet supported. Contact the author.\n"));
-		return -2;
+		write_log (_T("RDB: driveinit = %08x\n"), driveinitblock);
+		dumprdbblock(bufrdb, rdblock);
 	}
+
 	hfd->rdbcylinders = rl (bufrdb + 64);
 	hfd->rdbsectors = rl (bufrdb + 68);
 	hfd->rdbheads = rl (bufrdb + 72);
@@ -7497,6 +7840,8 @@ static int rdb_mount (UnitInfo *uip, int unit_no, int partnum, uaecptr parmpacke
 		hdf_read (hfd, buf, partblock * hfd->ci.blocksize, readblocksize);
 		if (!rdb_checksum ("PART", buf, partblock)) {
 			err = -2;
+			write_log(_T("RDB: checksum error in PART block %d\n"), partblock);
+			dumprdbblock(buf, partblock);
 			goto error;
 		}
 	}
@@ -7573,6 +7918,7 @@ static int rdb_mount (UnitInfo *uip, int unit_no, int partnum, uaecptr parmpacke
 		hdf_read (hfd, buf, fileblock * hfd->ci.blocksize, readblocksize);
 		if (!rdb_checksum ("FSHD", buf, fileblock)) {
 			write_log (_T("RDB: checksum error in FSHD block %d\n"), fileblock);
+			dumprdbblock(buf, fileblock);
 			goto error;
 		}
 		fileblock = rl (buf + 16);
@@ -7605,8 +7951,11 @@ static int rdb_mount (UnitInfo *uip, int unit_no, int partnum, uaecptr parmpacke
 			goto error;
 		memset (buf, 0, readblocksize);
 		hdf_read (hfd, buf, lsegblock * hfd->ci.blocksize, readblocksize);
-		if (!rdb_checksum ("LSEG", buf, lsegblock))
+		if (!rdb_checksum("LSEG", buf, lsegblock)) {
+			write_log(_T("RDB: checksum error in LSEG block %d\n"), lsegblock);
+			dumprdbblock(buf, lsegblock);
 			goto error;
+		}
 		lsegblock = rl (buf + 16);
 		if (lsegblock == pb)
 			goto error;
@@ -7652,7 +8001,7 @@ static void addfakefilesys (uaecptr parmpacket, uae_u32 dostype, int ver, int re
 		put_long (parmpacket + PP_FSHDSTART + 12 + 5 * 4, ci->priority);
 		flags |= 0x20;
 	}
-	put_long (parmpacket + PP_FSHDSTART + 12 + 8 * 4, dostype == 0x444f5300 ? 0 : -1); // globvec
+	put_long (parmpacket + PP_FSHDSTART + 12 + 8 * 4, dostype == 0x444f5300 || bcplonlydos() ? 0 : -1); // globvec
 	// if OFS = seglist -> NULL
 	if (dostype == 0x444f5300)
 		flags &= ~0x080;
@@ -7848,7 +8197,7 @@ static void get_new_device (int type, uaecptr parmpacket, TCHAR **devname, uaecp
 		(uae_u32)(mountinfo.ui[unit_no].hf.virtsize),
 		mountinfo.ui[unit_no].rootdir);
 }
-
+	
 /* Fill in per-unit fields of a parampacket */
 static uae_u32 REGPARAM2 filesys_dev_storeinfo (TrapContext *context)
 {
@@ -7861,8 +8210,12 @@ static uae_u32 REGPARAM2 filesys_dev_storeinfo (TrapContext *context)
 	uaecptr parmpacket = m68k_areg (regs, 0);
 	struct uaedev_config_info *ci = &uip[unit_no].hf.ci;
 
-	put_long (parmpacket + PP_ADDTOFSRES, 0);
-	put_long (parmpacket + PP_FSSIZE, 0);
+	uip[unit_no].parmpacket = parmpacket;
+	if (!ks12hack_deviceproc)
+		ks12hack_deviceproc = get_long(parmpacket + PP_DEVICEPROC);
+	put_long(parmpacket + PP_DEVICEPROC, 0);
+	put_long(parmpacket + PP_ADDTOFSRES, 0);
+	put_long(parmpacket + PP_FSSIZE, 0);
 	if (iscd) {
 		TCHAR *cdname = NULL;
 		uaecptr cdname_amiga;
@@ -7898,7 +8251,11 @@ static uae_u32 REGPARAM2 filesys_dev_storeinfo (TrapContext *context)
 		put_long (parmpacket + 64, 1); /* Buffer mem type */
 		put_long (parmpacket + 68, 0x7FFFFFFE); /* largest transfer */
 		put_long (parmpacket + 72, 0xFFFFFFFE); /* dma mask */
+#ifdef SCSIEMU
 		put_long (parmpacket + 76, scsi_get_cd_drive_media_mask () & (1 << cd_unit_no) ? -127 : -128); /* bootPri */
+#else
+		put_long (parmpacket + 76, -128); /* bootPri */
+#endif
 		put_long (parmpacket + 80, CDFS_DOSTYPE | (((cd_unit_no / 10) + '0') << 8) | ((cd_unit_no % 10) + '0'));
 		put_long (parmpacket + 84, 0); /* baud */
 		put_long (parmpacket + 88, 0); /* control */
@@ -7942,12 +8299,7 @@ static uae_u32 REGPARAM2 filesys_dev_storeinfo (TrapContext *context)
 			put_long (parmpacket + 52, 0); /* lowCyl */
 			put_long (parmpacket + 56, 1); /* hiCyl */
 		} else {
-			uae_u8 buf[512] = { 0 };
-			char *s = ua_fs (uip[unit_no].devname, -1);
-			buf[36] = strlen (s);			
-			for (int i = 0; i < buf[36]; i++)
-				buf[37 + i] = s[i];
-			xfree (s);
+			uae_u8 buf[512];
 			put_long (parmpacket + 4, ROM_hardfile_resname);
 			put_long (parmpacket + 20, ci->blocksize >> 2); /* longwords per block */
 			put_long (parmpacket + 28, ci->surfaces); /* heads */
@@ -7961,6 +8313,7 @@ static uae_u32 REGPARAM2 filesys_dev_storeinfo (TrapContext *context)
 			put_long (parmpacket + 64, ci->bufmemtype); /* Buffer mem type */
 			put_long (parmpacket + 68, ci->maxtransfer); /* largest transfer */
 			put_long (parmpacket + 72, ci->mask); /* dma mask */
+			memset(buf, 0, sizeof buf);
 			if (ci->dostype) { // forced dostype?
 				put_long (parmpacket + 80, ci->dostype); /* dostype */
 			} else if (hdf_read (&uip[unit_no].hf, buf, 0, sizeof buf)) {
@@ -7968,6 +8321,12 @@ static uae_u32 REGPARAM2 filesys_dev_storeinfo (TrapContext *context)
 				if (dt != 0x00000000 && dt != 0xffffffff)
 					put_long (parmpacket + 80, dt);
 			}
+			memset(buf, 0, sizeof buf);
+			char *s = ua_fs(uip[unit_no].devname, -1);
+			buf[36] = strlen(s);
+			for (int i = 0; i < buf[36]; i++)
+				buf[37 + i] = s[i];
+			xfree(s);
 			for (int i = 0; i < 80; i++)
 				buf[i + 128] = get_byte (parmpacket + 16 + i);
 			dump_partinfo (&uip[unit_no].hf, buf);
@@ -8007,8 +8366,9 @@ static uae_u32 REGPARAM2 mousehack_done (TrapContext *context)
 		input_mousehack_mouseoffset (a2);
 	} else if (mode == 17) {
 		uae_u32 v = 0;
-		if (currprefs.clipboard_sharing)
+		if (currprefs.clipboard_sharing) {
 			v |= 1;
+		}
 		if (consolehook_activate ())
 			v |= 2;
 		return v;
@@ -8157,9 +8517,22 @@ void filesys_install (void)
 	fshandlername = ds_bstr_ansi ("uaefs");
 	cdfs_devname = ds_ansi ("uaescsi.device");
 	cdfs_handlername = ds_bstr_ansi ("uaecdfs");
+
 	ROM_filesys_diagentry = here ();
 	calltrap (deftrap2 (filesys_diagentry, 0, _T("filesys_diagentry")));
 	dw(0x4ED0); /* JMP (a0) - jump to code that inits Residents */
+
+	ROM_filesys_doio = here();
+	calltrap(deftrap2(filesys_doio, 0, _T("filesys_doio")));
+	dw(RTS);
+
+	ROM_filesys_putmsg = here();
+	calltrap(deftrap2(filesys_putmsg, 0, _T("filesys_putmsg")));
+	dw(RTS);
+
+	ROM_filesys_putmsg_return = here();
+	calltrap(deftrap2(filesys_putmsg_return, 0, _T("filesys_putmsg_return")));
+	dw(RTS);
 
 	loop = here ();
 
@@ -8181,6 +8554,10 @@ void filesys_install (void)
 	calltrap (deftrap2 (filesys_dev_storeinfo, 0, _T("filesys_dev_storeinfo")));
 	dw (RTS);
 
+	org(rtarea_base + 0xFF2C);
+	calltrap(deftrap2(filesys_bcpl_wrapper, 0, _T("filesys_bcpl_wrapper")));
+	dw(RTS);
+
 	org (rtarea_base + 0xFF30);
 	calltrap (deftrap2 (filesys_handler, 0, _T("filesys_handler")));
 	dw (RTS);
@@ -8188,6 +8565,10 @@ void filesys_install (void)
 	org (rtarea_base + 0xFF38);
 	calltrap (deftrap2 (mousehack_done, 0, _T("mousehack_done")));
 	dw (RTS);
+
+	org(rtarea_base + 0xFF3C);
+	calltrap(deftrap2(debugger_helper, 0, _T("debugger_helper")));
+	dw(RTS);
 
 	org (rtarea_base + 0xFF40);
 	calltrap (deftrap2 (startup_handler, 0, _T("startup_handler")));
@@ -8376,6 +8757,8 @@ static TCHAR *makenativepath (UnitInfo *ui, TCHAR *apath)
 	return pn;
 #endif
 }
+
+#ifdef SAVESTATE
 
 static uae_u8 *restore_aino (UnitInfo *ui, Unit *u, uae_u8 *src)
 {
@@ -8915,3 +9298,5 @@ int save_filesys_cando (void)
 		return -1;
 	return filesys_in_interrupt ? 0 : 1;
 }
+
+#endif /* SAVESTATE */

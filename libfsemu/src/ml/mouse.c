@@ -42,10 +42,11 @@ static void *manymouse_thread(void* data)
         const char *device = ManyMouse_DeviceName(i);
         const char *driver = ManyMouse_DriverName();
 
-        char *name = g_strdup(device);
-        if (name[0] == 0 || g_ascii_strcasecmp(name, "mouse") == 0) {
-            g_free(name);
-            name = g_strdup("Unnamed Mouse");
+        char *name;
+        if (device[0] == 0 || g_ascii_strcasecmp(device, "mouse") == 0) {
+            name = g_strdup("Mouse: Unnamed Mouse");
+        } else {
+            name = g_strdup_printf("Mouse: %s", device);
         }
         // fs_ml_input_unique_device_name either returns name, or frees it
         // and return another name, so name must be malloced and owned by

@@ -1,9 +1,9 @@
 #ifndef UAE_SCSI_H
 #define UAE_SCSI_H
 
-#ifdef FSUAE // NL
 #include "uae/types.h"
 #include "uae/memory.h"
+#ifdef FSUAE
 #include "uae/limits.h"
 #endif
 
@@ -28,31 +28,32 @@ struct scsi_data_tape
 
 struct scsi_data
 {
-    int id;
+	int id;
 	void *privdata;
-    int cmd_len;
-    uae_u8 *data;
-    int data_len;
-    int status;
-    uae_u8 sense[256];
-    int sense_len;
-    uae_u8 reply[256];
-    uae_u8 cmd[16];
+	int cmd_len;
+	uae_u8 *data;
+	int data_len;
+	int status;
+	uae_u8 sense[256];
+	int sense_len;
+	uae_u8 reply[256];
+	uae_u8 cmd[16];
 	uae_u8 msgout[4];
-    int reply_len;
-    int direction;
+	int reply_len;
+	int direction;
 	uae_u8 message[1];
 	int blocksize;
 
-    int offset;
-    uae_u8 *buffer;
+	int offset;
+	uae_u8 *buffer;
 	int buffer_size;
-    struct hd_hardfiledata *hfd;
+	struct hd_hardfiledata *hfd;
 	struct scsi_data_tape *tape;
-    int device_type;
+	int device_type;
 	int nativescsiunit;
 	int cd_emu_unit;
 	bool atapi;
+	uae_u32 unit_attention;
 };
 
 extern struct scsi_data *scsi_alloc_hd(int, struct hd_hardfiledata*);
@@ -86,7 +87,7 @@ int add_scsi_cd (struct scsi_data **sd, int ch, int unitnum);
 int add_scsi_tape (struct scsi_data **sd, int ch, const TCHAR *tape_directory, bool readonly);
 void free_scsi (struct scsi_data *sd);
 
-void scsi_freenative(struct scsi_data **sd);
+void scsi_freenative(struct scsi_data **sd, int max);
 void scsi_addnative(struct scsi_data **sd);
 
 #define SCSI_NO_SENSE_DATA		0x00
@@ -168,6 +169,10 @@ void apollo_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct romconfi
 void soft_scsi_free(void);
 void soft_scsi_reset(void);
 
+uae_u8 parallel_port_scsi_read(int reg, uae_u8 data, uae_u8 dir);
+void parallel_port_scsi_write(int reg, uae_u8 v, uae_u8 dir);
+extern bool parallel_port_scsi;
+
 addrbank *supra_init(struct romconfig*);
 void supra_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct romconfig *rc);
 
@@ -208,5 +213,40 @@ void ptnexus_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct romconf
 
 addrbank *dataflyer_init(struct romconfig *rc);
 void dataflyer_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct romconfig *rc);
+
+addrbank *tecmar_init(struct romconfig *rc);
+void tecmar_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct romconfig *rc);
+
+addrbank *xebec_init(struct romconfig *rc);
+void xebec_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct romconfig *rc);
+
+addrbank *microforge_init(struct romconfig *rc);
+void microforge_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct romconfig *rc);
+
+addrbank *paradox_init(struct romconfig *rc);
+void paradox_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct romconfig *rc);
+
+addrbank *hda506_init(struct romconfig *rc);
+void hda506_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct romconfig *rc);
+
+addrbank *alf1_init(struct romconfig *rc);
+void alf1_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct romconfig *rc);
+
+addrbank *promigos_init(struct romconfig *rc);
+void promigos_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct romconfig *rc);
+
+addrbank *system2000_init(struct romconfig *rc);
+void system2000_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct romconfig *rc);
+
+addrbank *omtiadapter_init(struct romconfig *rc);
+void omtiadapter_scsi_unit(int ch, struct uaedev_config_info *ci, struct romconfig *rc);
+
+addrbank *phoenixboard_init(struct romconfig *rc);
+void phoenixboard_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct romconfig *rc);
+
+void x86_xt_hd_bput(int, uae_u8);
+uae_u8 x86_xt_hd_bget(int);
+addrbank *x86_xt_hd_init(struct romconfig *rc);
+void x86_add_xt_hd_unit(int ch, struct uaedev_config_info *ci, struct romconfig *rc);
 
 #endif /* UAE_SCSI_H */

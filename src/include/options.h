@@ -10,14 +10,14 @@
 #ifndef UAE_OPTIONS_H
 #define UAE_OPTIONS_H
 
-#ifdef FSUAE // NL
 #include "uae/types.h"
+#ifdef FSUAE
 #include "uae/limits.h"
 #endif
 
 #define UAEMAJOR 3
-#define UAEMINOR 1
-#define UAESUBREV 0
+#define UAEMINOR 2
+#define UAESUBREV 2
 
 typedef enum { KBD_LANG_US, KBD_LANG_DK, KBD_LANG_DE, KBD_LANG_SE, KBD_LANG_FR, KBD_LANG_IT, KBD_LANG_ES } KbdLang;
 
@@ -139,6 +139,16 @@ struct wh {
 #define UAEDEV_CD 2
 #define UAEDEV_TAPE 3
 
+#define HD_LEVEL_SCSI_1 0
+#define HD_LEVEL_SCSI_2 1
+#define HD_LEVEL_SASI 2
+#define HD_LEVEL_SASI_ENHANCED 2
+#define HD_LEVEL_SASI_CHS 3
+
+#define HD_LEVEL_ATA_1 0
+#define HD_LEVEL_ATA_2 1
+#define HD_LEVEL_ATA_2S 2
+
 #define BOOTPRI_NOAUTOBOOT -128
 #define BOOTPRI_NOAUTOMOUNT -129
 #define ISAUTOBOOT(ci) ((ci)->bootpri > BOOTPRI_NOAUTOBOOT)
@@ -163,6 +173,7 @@ struct uaedev_config_info {
 	int controller_unit;
 	int controller_media_type; // 1 = CF IDE, 0 = normal
 	int unit_feature_level;
+	int unit_special_flags;
 	bool physical_geometry; // if false: use defaults
 	int pcyls, pheads, psecs;
 	int flags;
@@ -380,19 +391,12 @@ struct uae_prefs {
 	int comptrustnaddr;
 	bool compnf;
 	bool compfpu;
-	bool comp_midopt;
-	bool comp_lowopt;
-	bool fpu_strict;
-	bool fpu_softfloat;
-
 	bool comp_hardflush;
 	bool comp_constjump;
-	bool comp_oldsegv;
-
 	int cachesize;
-	int optcount[10];
+	bool fpu_strict;
 
-	bool avoid_cmov;
+	bool fpu_softfloat;
 
 	int gfx_framerate, gfx_autoframerate;
 	struct wh gfx_size_win;
@@ -431,6 +435,9 @@ struct uae_prefs {
 	unsigned int chipset_mask;
 	bool ntscmode;
 	bool genlock;
+	int genlock_image;
+	int genlock_mix;
+	TCHAR genlock_image_file[MAX_DPATH];
 	int monitoremu;
 	double chipset_refreshrate;
 	struct chipset_refresh cr[MAX_CHIPSET_REFRESH + 2];
@@ -451,6 +458,7 @@ struct uae_prefs {
 	int cpu_clock_multiplier;
 	int cpu_frequency;
 	bool blitter_cycle_exact;
+	bool cpu_memory_cycle_exact;
 	int floppy_speed;
 	int floppy_write_length;
 	int floppy_random_bits_min;
@@ -462,6 +470,7 @@ struct uae_prefs {
 	int boot_rom;
 	bool rom_readwrite;
 	int turbo_emulation;
+	int turbo_emulation_limit;
 	bool headless;
 	int filesys_limit;
 	int filesys_max_name;
@@ -509,6 +518,7 @@ struct uae_prefs {
 	bool cs_z3autoconfig;
 	bool cs_1mchipjumper;
 	bool cs_cia6526;
+	bool cs_bytecustomwritebug;
 	int cs_hacks;
 
 	struct boardromconfig expansionboard[MAX_EXPANSION_BOARDS];
@@ -528,12 +538,14 @@ struct uae_prefs {
 	TCHAR prtname[256];
 	TCHAR sername[256];
 	TCHAR a2065name[MAX_DPATH];
+	TCHAR ne2000pciname[MAX_DPATH];
 	TCHAR picassoivromfile[MAX_DPATH];
 	struct cdslot cdslots[MAX_TOTAL_SCSI_DEVICES];
 	TCHAR quitstatefile[MAX_DPATH];
 	TCHAR statefile[MAX_DPATH];
 	TCHAR inprecfile[MAX_DPATH];
 	bool inprec_autoplay;
+	bool refresh_indicator;
 
 	struct multipath path_floppy;
 	struct multipath path_hardfile;
@@ -542,6 +554,7 @@ struct uae_prefs {
 
 	int m68k_speed;
 	double m68k_speed_throttle;
+	double x86_speed_throttle;
 	int cpu_model;
 	int mmu_model;
 	int cpu060_revision;
@@ -550,6 +563,7 @@ struct uae_prefs {
 	int ppc_mode;
 	TCHAR ppc_model[32];
 	bool cpu_compatible;
+	bool cpu_thread;
 	bool int_no_unimplemented;
 	bool fpu_no_unimplemented;
 	bool address_space_24;
@@ -580,6 +594,7 @@ struct uae_prefs {
 	bool rtg_more_compatible;
 	uae_u32 custom_memory_addrs[MAX_CUSTOM_MEMORY_ADDRS];
 	uae_u32 custom_memory_sizes[MAX_CUSTOM_MEMORY_ADDRS];
+	int uaeboard;
 
 	bool kickshifter;
 	bool filesys_no_uaefsdb;
@@ -592,6 +607,8 @@ struct uae_prefs {
 	int z3_mapping_mode;
 	bool sound_toccata;
 	bool sound_toccata_mixer;
+	bool sound_es1370;
+	bool sound_fm801;
 
 	int mountitems;
 	struct uaedev_config_data mountconfig[MOUNT_CONFIG_SIZE];
@@ -659,6 +676,7 @@ struct uae_prefs {
 	TCHAR win32_guipage[32];
 	TCHAR win32_guiactivepage[32];
 	bool win32_filesystem_mangle_reserved_names;
+	bool right_control_is_right_win_key;
 #ifdef WITH_SLIRP
 #ifdef FSUAE
 	int slirp_implementation;
@@ -666,6 +684,7 @@ struct uae_prefs {
 	struct slirp_redir slirp_redirs[MAX_SLIRP_REDIRS];
 #endif
 	int statecapturerate, statecapturebuffersize;
+	int aviout_width, aviout_height, aviout_xoffset, aviout_yoffset;
 
 	/* input */
 
@@ -780,4 +799,4 @@ extern struct uae_prefs currprefs, changed_prefs;
 extern int machdep_init (void);
 extern void machdep_free (void);
 
-#endif // UAE_OPTIONS_H
+#endif /* UAE_OPTIONS_H */

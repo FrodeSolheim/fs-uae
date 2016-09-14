@@ -29,7 +29,8 @@ void od_fs_update_leds(void) {
     uae_callback(uae_on_update_leds, &g_uae_led_data);
 }
 
-static void gui_flicker_led2 (int led, int unitnum, int status) {
+static void gui_flicker_led2 (int led, int unitnum, int status)
+{
     static int resetcounter[LED_MAX];
     static uae_s8 gui_data_hd, gui_data_cd, gui_data_md;
     uae_s8 old;
@@ -47,7 +48,7 @@ static void gui_flicker_led2 (int led, int unitnum, int status) {
     if (status < 0) {
             if (old < 0) {
                     *p = 0;
-                    gui_led (led, 0);
+                    gui_led (led, 0, -1);
             }
             return;
     }
@@ -63,7 +64,7 @@ static void gui_flicker_led2 (int led, int unitnum, int status) {
     *p = status;
     resetcounter[led] = 6;
     if (old != *p)
-            gui_led (led, *p);
+            gui_led (led, *p, -1);
 }
 
 void gui_flicker_led (int led, int unitnum, int status) {
@@ -77,7 +78,8 @@ void gui_flicker_led (int led, int unitnum, int status) {
     }
 }
 
-void gui_led (int led, int state) {
+void gui_led (int led, int state, int brightness)
+{
     //STUB("led %d state %d", led, state);
     int out_led = -1;
     int out_state = state;

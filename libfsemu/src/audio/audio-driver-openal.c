@@ -442,22 +442,26 @@ void fs_emu_audio_video_sync(int time_ms)
     }
 }
 
-static void log_openal_info()
+static void log_openal_info(void)
 {
+    fs_log("[OPENAL] Information\n");
     if (alGetString(AL_VERSION)) {
-        fs_log("OPENAL: Version \"%s\"\n", alGetString(AL_VERSION));
+        fs_log("[OPENAL] Version \"%s\"\n", alGetString(AL_VERSION));
     }
     if (alGetString(AL_RENDERER)) {
-        fs_log("OPENAL: Renderer \"%s\"\n", alGetString(AL_RENDERER));
+        fs_log("[OPENAL] Renderer \"%s\"\n", alGetString(AL_RENDERER));
     }
     if (alGetString(AL_VENDOR)) {
-        fs_log("OPENAL: Vendor \"%s\"\n", alGetString(AL_VENDOR));
+        fs_log("[OPENAL] Vendor \"%s\"\n", alGetString(AL_VENDOR));
     }
     if (alGetString(AL_EXTENSIONS)) {
-        fs_log("OPENAL: Extensions \"%s\"\n", alGetString(AL_EXTENSIONS));
+        fs_log("[OPENAL] Extensions \"%s\"\n", alGetString(AL_EXTENSIONS));
     }
+}
 
-    fs_log("openal devices:\n");
+static void log_openal_devices(void)
+{
+    fs_log("[OPENAL] Devices:\n");
     if (alcIsExtensionPresent(NULL, "ALC_ENUMERATION_EXT") == AL_TRUE) {
         const char *s = (const char *) alcGetString(NULL,
                                                     ALC_DEVICE_SPECIFIER);
@@ -470,8 +474,7 @@ static void log_openal_info()
     } else {
         fs_log(" - no support for device enumeration\n");
     }
-
-    fs_log("OPENAL: Default device: %s\n",
+    fs_log("[OPENAL] Default device: %s\n",
            alcGetString(NULL, ALC_DEFAULT_DEVICE_SPECIFIER));
 }
 
@@ -544,22 +547,22 @@ void fs_emu_audio_openal_init(void)
     // select the "preferred device"
     g_device = alcOpenDevice(NULL);
     if (g_device) {
-        fs_log("OPENAL: Opened device: %s\n",
+        fs_log("[OPENAL] Opened device: %s\n",
                alcGetString(g_device, ALC_DEVICE_SPECIFIER));
     } else {
-        fs_log("OPENAL: alcOpenDevice returned NULL\n");
-        fs_emu_warning("OPENAL: Could not open audio device\n");
+        fs_log("[OPENAL] NULL from alcOpenDevice\n");
         ALenum error_code = alGetError();
-        fs_log("OPENAL: error code %d\n", error_code);
+        fs_log("[OPENAL] Error code %d\n", error_code);
         if (alGetString(error_code)) {
-            fs_log("(%s)\n", alGetString(error_code));
+            fs_log("[OPENAL] %s\n", alGetString(error_code));
         }
+        fs_emu_warning("OPENAL: Could not open audio device");
     }
-
-    log_openal_info();
     if (!g_device) {
         return;
     }
+    log_openal_info();
+    log_openal_devices();
 
     int frequencies[] = { 48000, 44100, 0 };
     if (fs_config_get_int("audio_frequency") != FS_CONFIG_NONE) {

@@ -20,7 +20,13 @@ int uae_start_thread (const char *name, uae_thread_function fn, void *arg,
 int uae_wait_thread (uae_thread_id thread);
 void uae_end_thread (uae_thread_id *thread);
 
+void uae_register_main_thread(void);
+bool uae_is_main_thread(void);
+
+void uae_register_emulation_thread(void);
+bool uae_is_emulation_thread(void);
+
 /* Do nothing; thread exits if thread function returns.  */
 #define UAE_THREAD_EXIT do {} while (0)
 
-#endif // THREADDEP_THREAD_H
+#endif /* THREADDEP_THREAD_H */

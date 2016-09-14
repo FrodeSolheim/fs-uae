@@ -98,11 +98,13 @@ void fs_emu_set_pixel_aspect_ratio(double ratio) {
     g_video_aspect_ratio = ratio;
 }
 
-double fs_emu_get_video_frame_rate() {
+double fs_emu_get_video_frame_rate(void)
+{
     return g_video_frame_rate;
 }
 
-void fs_emu_set_video_frame_rate(double frame_rate) {
+void fs_emu_set_video_frame_rate(double frame_rate)
+{
     static double last_frame_rate = 0;
     static int last_frame_rate_host = 0;
     if (frame_rate == last_frame_rate
@@ -111,35 +113,35 @@ void fs_emu_set_video_frame_rate(double frame_rate) {
     }
     last_frame_rate = frame_rate;
     last_frame_rate_host = g_fs_emu_video_frame_rate_host;
-
     int frame_rate_i = round(frame_rate);
-    fs_log("fs_emu_set_video_frame_rate: %0.2f (%d)\n",
+    fs_log("[VIDEO] fs_emu_set_video_frame_rate: %0.2f (%d)\n",
            frame_rate, frame_rate_i);
     g_video_frame_rate = frame_rate;
 
-    fs_log("g_fs_emu_video_sync_to_vblank = %d\n",
+    fs_log("[DISPLAY] Sync: g_fs_emu_video_sync_to_vblank = %d\n",
             g_fs_emu_video_sync_to_vblank);
-
     if (g_fs_emu_video_sync_to_vblank) {
-        fs_log("g_fs_emu_video_allow_full_sync = %d\n",
+        fs_log("[DISPLAY] Sync: g_fs_emu_video_allow_full_sync = %d\n",
                 g_fs_emu_video_allow_full_sync);
         if (g_fs_emu_video_allow_full_sync) {
             if (frame_rate && (frame_rate_i == g_fs_emu_video_frame_rate_host
                     || frame_rate_i == g_fs_emu_video_frame_rate_host + 1)) {
-                fs_log("frame rate (%d) close enough to screen refresh (%d)\n",
-                        frame_rate, g_fs_emu_video_frame_rate_host);
+                fs_log("[DISPLAY] Sync: Frame rate (%0.2f) close enough to "
+                       "screen refresh (%d)\n",
+                       frame_rate, g_fs_emu_video_frame_rate_host);
                 fs_ml_video_sync_enable(1);
-            }
-            else {
-                fs_log("frame rate (%d) does not equal screen refresh (%d)\n",
-                        frame_rate, g_fs_emu_video_frame_rate_host);
+            } else {
+                fs_log("[DISPLAY] Sync: Frame rate (%0.2f) does not equal "
+                       "screen refresh (%d)\n",
+                       frame_rate, g_fs_emu_video_frame_rate_host);
                 fs_ml_video_sync_enable(0);
             }
         }
     }
 }
 
-static void initialize() {
+static void initialize()
+{
     static int initialized = 0;
     if (initialized == 1) {
         return;
@@ -207,7 +209,8 @@ void fs_emu_video_init_opengl() {
 #endif
 }
 
-void fs_emu_toggle_fullscreen() {
+void fs_emu_toggle_fullscreen(void)
+{
     fs_ml_toggle_fullscreen();
 }
 
@@ -240,7 +243,8 @@ void fs_emu_update_video_stats_2() {
     g_frame_time_last = time_ms;
 }
 
-static void update_video_stats_system_video() {
+static void update_video_stats_system_video()
+{
     if (g_fs_emu_benchmark_start_time > 0) {
         g_fs_emu_total_sys_frames++;
     }

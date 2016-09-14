@@ -8,6 +8,8 @@
 extern "C" {
 #endif
 
+void uae_clipboard_update(void);
+
 /* Sets uaem metadata write flags based on chars in flags. You only need
  * to call this function to set non-default behavior. */
 void uae_set_uaem_write_flags_from_string(const char *flags);
@@ -37,7 +39,9 @@ void amiga_init_lua_state(lua_State *L);
 #define AMIGA_VIDEO_FORMAT_R5G6B5 2
 #define AMIGA_VIDEO_FORMAT_R5G5B5A1 3
 
-int amiga_init();
+int amiga_init(void);
+bool amiga_init_jit_compiler(void);
+
 int amiga_set_synchronization_log_file(const char *path);
 int amiga_quickstart(int model, int config, int accuracy);
 //int amiga_main(int argc, char** argv);
@@ -53,7 +57,7 @@ void amiga_set_builtin_driveclick_path(const char *path);
 // for custom floppy sound files
 void amiga_set_floppy_sounds_dir(const char *path);
 
-void amiga_main();
+void amiga_main(void);
 int amiga_reset(int hard);
 int amiga_pause(int pause);
 int amiga_cpu_get_speed();
@@ -64,6 +68,7 @@ void amiga_set_deterministic_mode();
 void amiga_set_save_state_compression(int compress);
 
 int amiga_enable_serial_port(const char *serial_name);
+int amiga_enable_parallel_port(const char *parallel_name);
 
 void amiga_set_save_image_dir(const char *path);
 void amiga_set_module_ripper_dir(const char *path);
@@ -79,7 +84,8 @@ enum {
 };
 
 int amiga_get_rand_checksum();
-int amiga_get_state_checksum();
+int amiga_get_state_checksum(void);
+int amiga_get_state_checksum_and_dump(void *data, int size);
 
 void amiga_floppy_set_writable_images(int writable);
 const char *amiga_floppy_get_file(int index);

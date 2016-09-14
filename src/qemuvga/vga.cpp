@@ -835,6 +835,8 @@ uint32_t vga_mem_readb(VGACommonState *s, hwaddr addr)
 //            return 0xff;
         break;
     }
+	if (addr >= s->vram_size)
+		return 0xff;
 
     if (s->sr[VGA_SEQ_MEMORY_MODE] & VGA_SR04_CHN_4M) {
         /* chain 4 mode : simplest access */
@@ -895,6 +897,8 @@ void vga_mem_writeb(VGACommonState *s, hwaddr addr, uint32_t val)
 //            return;
         break;
     }
+	if (addr >= s->vram_size)
+		return;
 
     if (s->sr[VGA_SEQ_MEMORY_MODE] & VGA_SR04_CHN_4M) {
         /* chain 4 mode : simplest access */
@@ -906,7 +910,7 @@ void vga_mem_writeb(VGACommonState *s, hwaddr addr, uint32_t val)
             write_log("vga: chain4: [0x" TARGET_FMT_plx "]\n", addr);
 #endif
             s->plane_updated |= mask; /* only used to detect font change */
-            memory_region_set_dirty(&s->vram, addr, 1);
+            vga_memory_region_set_dirty(&s->vram, addr, 1);
         }
     } else if (s->gr[VGA_GFX_MODE] & 0x10) {
         /* odd/even mode (aka text mode mapping) */
@@ -919,7 +923,7 @@ void vga_mem_writeb(VGACommonState *s, hwaddr addr, uint32_t val)
             write_log("vga: odd/even: [0x" TARGET_FMT_plx "]\n", addr);
 #endif
             s->plane_updated |= mask; /* only used to detect font change */
-            memory_region_set_dirty(&s->vram, addr, 1);
+            vga_memory_region_set_dirty(&s->vram, addr, 1);
         }
     } else {
         /* standard VGA latched access */
@@ -994,7 +998,7 @@ void vga_mem_writeb(VGACommonState *s, hwaddr addr, uint32_t val)
         write_log("vga: latch: [0x" TARGET_FMT_plx "] mask=0x%08x val=0x%08x\n",
                addr * 4, write_mask, val);
 #endif
-        memory_region_set_dirty(&s->vram, addr << 2, sizeof(uint32_t));
+        vga_memory_region_set_dirty(&s->vram, addr << 2, sizeof(uint32_t));
     }
 }
 
@@ -1365,6 +1369,9 @@ static void vga_draw_text(VGACommonState *s, int full_update)
         return;
     }
 
+	if (full_update)
+		qemu_console_resize(s->con, s->last_scr_width, s->last_scr_height);
+
     if (width != s->last_width || height != s->last_height ||
         cw != s->last_cw || cheight != s->last_ch || s->last_depth) {
         s->last_scr_width = width * cw;
@@ -1720,6 +1727,8 @@ static void vga_draw_graphic(VGACommonState *s, int full_update)
     }
 
     depth = s->get_bpp(s);
+	if (full_update)
+		qemu_console_resize(s->con, disp_width, height);
     if (s->line_offset != s->last_line_offset ||
         disp_width != s->last_width ||
         height != s->last_height ||
@@ -1838,7 +1847,7 @@ static void vga_draw_graphic(VGACommonState *s, int full_update)
 
         update = full_update;
 
-		if (addr + width < s->vram_size) {
+		if (addr + bwidth < s->vram_size) {
 			page0 = addr;
 			page1 = addr + bwidth - 1;
 			update |= memory_region_get_dirty(&s->vram, page0, page1 - page0,

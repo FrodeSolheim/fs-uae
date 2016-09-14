@@ -9,9 +9,7 @@
 #ifndef UAE_UAE_H
 #define UAE_UAE_H
 
-#ifdef FSUAE // NL
 #include "uae/types.h"
-#endif
 
 extern void do_start_program (void);
 extern void start_program (void);
@@ -19,8 +17,8 @@ extern void leave_program (void);
 extern void real_main (int, TCHAR **);
 extern void usage (void);
 extern void sleep_millis (int ms);
-extern void sleep_millis_main (int ms);
-extern void sleep_millis_busy (int ms);
+extern void sleep_millis_main(int ms);
+extern void sleep_millis_amiga(int ms);
 extern int sleep_resolution;
 
 #define UAE_QUIT 1
@@ -86,6 +84,5 @@ extern uae_u32 uaerandgetseed (void);
 
 int get_guid_target (uae_u8 *out);
 void filesys_addexternals (void);
-void jit_abort (const TCHAR *format,...);
 
-#endif // UAE_UAE_H
+#endif /* UAE_UAE_H */

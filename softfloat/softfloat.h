@@ -471,6 +471,12 @@ float128 float128_sub(float128 a, float128 b, float_status_t &status);
 float128 float128_mul(float128 a, float128 b, float_status_t &status);
 float128 float128_div(float128 a, float128 b, float_status_t &status);
 
+#ifdef UAE
+float128 EvalPoly(float128 x, float128 *arr, int n, float_status_t &status);
+float128 OddPoly (float128 x, float128 *arr, int n, float_status_t &status);
+float128 EvenPoly(float128 x, float128 *arr, int n, float_status_t &status);
+#endif
+
 #endif  /* FLOAT128 */
 
 #endif

@@ -3,6 +3,7 @@
 
 #include "uae.h"
 #include "gui.h"
+#include "compemu.h"
 #include "uae/fs.h"
 #include "uae/glib.h"
 
@@ -59,6 +60,10 @@ static const char *get_message(int msg)
         return "Module ripper: No music modules or packed data found";
     } else if (msg == NUMSG_MODRIP_FINISHED) {
         return "Module ripper: Scan finished";
+    } else if (msg == NUMSG_NO_PPC) {
+        return "PPC CPU was started but qemu-uae plugin was not found";
+    } else if (msg == NUMSG_UAEBOOTROM_PPC) {
+        return "UAE boot ROM cannot be used with PPC native OS";
     }
 
     return NULL;
@@ -104,12 +109,16 @@ void jit_abort (const TCHAR *format,...)
     else {
         printf("%s", buffer);
     }
-    g_free(buffer);
-
+#if 1
+    fprintf(stderr, "JIT: %s\n", buffer);
+    abort();
+#else
     static int happened;
     //int count;
     if (!happened)
         gui_message (_T("JIT: Serious error:\n%s"), buffer);
     happened = 1;
     uae_reset(1, 1);
+#endif
+    g_free(buffer);
 }

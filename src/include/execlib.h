@@ -49,4 +49,4 @@
 #define MEMF_TOTAL (1<<19)
 #endif
 
-#endif // UAE_EXECLIB_H
+#endif /* UAE_EXECLIB_H */

@@ -42,7 +42,9 @@
 #define MTEC_IDE (ADIDE_IDE + MAX_DUPLICATE_EXPANSION_BOARDS)
 #define PROTAR_IDE (MTEC_IDE + MAX_DUPLICATE_EXPANSION_BOARDS)
 #define ROCHARD_IDE (PROTAR_IDE + MAX_DUPLICATE_EXPANSION_BOARDS)
-#define TOTAL_IDE (ROCHARD_IDE + 2 * MAX_DUPLICATE_EXPANSION_BOARDS)
+#define x86_AT_IDE (ROCHARD_IDE + 2 * MAX_DUPLICATE_EXPANSION_BOARDS)
+#define GOLEMFAST_IDE (x86_AT_IDE + 2 * MAX_DUPLICATE_EXPANSION_BOARDS)
+#define TOTAL_IDE (GOLEMFAST_IDE + MAX_DUPLICATE_EXPANSION_BOARDS)
 
 #define ALF_ROM_OFFSET 0x0100
 #define GVP_IDE_ROM_OFFSET 0x8000
@@ -91,6 +93,8 @@ static struct ide_board *adide_board[MAX_DUPLICATE_EXPANSION_BOARDS];
 static struct ide_board *mtec_board[MAX_DUPLICATE_EXPANSION_BOARDS];
 static struct ide_board *protar_board[MAX_DUPLICATE_EXPANSION_BOARDS];
 static struct ide_board *rochard_board[MAX_DUPLICATE_EXPANSION_BOARDS];
+static struct ide_board *x86_at_ide_board[MAX_DUPLICATE_EXPANSION_BOARDS];
+static struct ide_board *golemfast_board[MAX_DUPLICATE_EXPANSION_BOARDS];
 
 static struct ide_hdf *idecontroller_drive[TOTAL_IDE * 2];
 static struct ide_thread_state idecontroller_its;
@@ -200,14 +204,14 @@ static void add_ide_standard_unit(int ch, struct uaedev_config_info *ci, struct 
 	init_ide(ideb, idetype + ci->controller_type_unit, maxunit, byteswap, adide);
 }
 
-static bool ide_interrupt_check(struct ide_board *board)
+static bool ide_interrupt_check(struct ide_board *board, bool edge_triggered)
 {
 	if (!board->configured)
 		return false;
 	bool irq = false;
 	for (int i = 0; i < MAX_IDE_PORTS_BOARD; i++) {
 		if (board->ide[i] && !irq) {
-			irq = ide_irq_check(board->ide[i]);
+			irq = ide_irq_check(board->ide[i], edge_triggered);
 		}
 	}
 #if 0
@@ -218,22 +222,32 @@ static bool ide_interrupt_check(struct ide_board *board)
 	return irq;
 }
 
-static bool ide_rethink(struct ide_board *board)
+static bool ide_rethink(struct ide_board *board, bool edge_triggered)
 {
 	bool irq = false;
 	if (board->configured) {
-		if (board->intena && ide_interrupt_check(board)) {
+		if (board->intena && ide_interrupt_check(board, edge_triggered)) {
 			irq = true;
 		}
 	}
 	return irq;
 }
 
+void x86_doirq(uint8_t irqnum);
+
 void idecontroller_rethink(void)
 {
 	bool irq = false;
 	for (int i = 0; ide_boards[i]; i++) {
-		irq |= ide_rethink(ide_boards[i]);
+		if (ide_boards[i] == x86_at_ide_board[0] || ide_boards[i] == x86_at_ide_board[1]) {
+			bool x86irq = ide_rethink(ide_boards[i], true);
+			if (x86irq) {
+				//write_log(_T("x86 IDE IRQ\n"));
+				x86_doirq(ide_boards[i] == x86_at_ide_board[0] ? 14 : 15);
+			}
+		} else {
+			irq |= ide_rethink(ide_boards[i], false);
+		}
 	}
 	if (irq && !(intreq & 0x0008)) {
 		INTREQ_0(0x8000 | 0x0008);
@@ -250,7 +264,7 @@ void idecontroller_hsync(void)
 					ide_interrupt_hsync(board->ide[j]);
 				}
 			}
-			if (ide_interrupt_check(board)) {
+			if (ide_interrupt_check(board, false)) {
 				idecontroller_rethink();
 			}
 		}
@@ -292,38 +306,65 @@ static bool is_gvp1_intreq(uaecptr addr)
 	return false;
 }
 
-static uae_u32 get_ide_reg_multi(struct ide_board *board, int reg, int portnum)
+static bool get_ide_is_8bit(struct ide_board *board)
+{
+	struct ide_hdf *ide = board->ide[0];
+	if (!ide)
+		return false;
+	if (ide->ide_drv)
+		ide = ide->pair;
+	return ide->mode_8bit;
+}
+
+static uae_u32 get_ide_reg_multi(struct ide_board *board, int reg, int portnum, int dataportsize)
 {
 	struct ide_hdf *ide = board->ide[portnum];
 	if (!ide)
 		return 0;
 	if (ide->ide_drv)
 		ide = ide->pair;
-	if (reg == 0)
-		return ide_get_data(ide);
-	else
+	if (reg == 0) {
+		if (dataportsize)
+			return ide_get_data(ide);
+		else
+			return ide_get_data_8bit(ide);
+	} else {
 		return ide_read_reg(ide, reg);
+	}
 }
-static void put_ide_reg_multi(struct ide_board *board, int reg, uae_u32 v, int portnum)
+static void put_ide_reg_multi(struct ide_board *board, int reg, uae_u32 v, int portnum, int dataportsize)
 {
 	struct ide_hdf *ide = board->ide[portnum];
 	if (!ide)
 		return;
 	if (ide->ide_drv)
 		ide = ide->pair;
-	if (reg == 0)
-		ide_put_data(ide, v);
-	else
+	if (reg == 0) {
+		if (dataportsize)
+			ide_put_data(ide, v);
+		else
+			ide_put_data_8bit(ide, v);
+	} else {
 		ide_write_reg(ide, reg, v);
+	}
 }
 static uae_u32 get_ide_reg(struct ide_board *board, int reg)
 {
-	return get_ide_reg_multi(board, reg, 0);
+	return get_ide_reg_multi(board, reg, 0, 1);
 }
 static void put_ide_reg(struct ide_board *board, int reg, uae_u32 v)
 {
-	put_ide_reg_multi(board, reg, v, 0);
+	put_ide_reg_multi(board, reg, v, 0, 1);
 }
+static uae_u32 get_ide_reg_8bitdata(struct ide_board *board, int reg)
+{
+	return get_ide_reg_multi(board, reg, 0, 0);
+}
+static void put_ide_reg_8bitdata(struct ide_board *board, int reg, uae_u32 v)
+{
+	put_ide_reg_multi(board, reg, v, 0, 0);
+}
+
 
 static int get_gvp_reg(uaecptr addr, struct ide_board *board)
 {
@@ -412,6 +453,16 @@ static int get_rochard_reg(uaecptr addr, struct ide_board *board, int *portnum)
 	return reg;
 }
 
+static int get_golemfast_reg(uaecptr addr, struct ide_board *board)
+{
+	int reg = -1;
+	if ((addr & 0x8001) != 0x8000)
+		return -1;
+	reg = (addr >> 2) & 7;
+	if (addr & 0x2000)
+		reg |= IDE_SECONDARY;
+	return reg;
+}
 
 static int getidenum(struct ide_board *board, struct ide_board **arr)
 {
@@ -426,10 +477,6 @@ static uae_u32 ide_read_byte(struct ide_board *board, uaecptr addr)
 {
 	uaecptr oaddr = addr;
 	uae_u8 v = 0xff;
-
-#ifdef JIT
-	special_mem |= S_READ;
-#endif
 
 	addr &= board->mask;
 
@@ -455,6 +502,30 @@ static uae_u32 ide_read_byte(struct ide_board *board, uaecptr addr)
 		write_log(_T("ALF GET %08x %02x %d %08x\n"), addr, v, regnum, M68K_GETPC);
 #endif
 
+	} else if (board->type == GOLEMFAST_IDE) {
+
+		if (!(addr & 0x8000)) {
+			if (board->rom) {
+				v = board->rom[addr & board->rom_mask];
+			}
+		} else if ((addr & 0x8700) == 0x8400 || (addr & 0x8700) == 0x8000) {
+			v = golemfast_ncr9x_scsi_get(oaddr, getidenum(board, golemfast_board));
+		} else if ((addr & 0x8700) == 0x8100) {
+			int regnum = get_golemfast_reg(addr, board);
+			if (regnum >= 0) {
+				v = get_ide_reg(board, regnum);
+			}
+		} else if ((addr & 0x8700) == 0x8300) {
+			v = board->original_rc->device_id ^ 7;
+			if (!board->original_rc->autoboot_disabled)
+				v |= 0x20;
+			if (!(board->original_rc->device_settings & 1))
+				v |= 0x08;
+			if (ide_irq_check(board->ide[0], false) || ide_drq_check(board->ide[0]))
+				v |= 0x80; // IDE IRQ | DRQ
+			//write_log(_T("READ JUMPER %08x %02x %08x\n"), addr, v, M68K_GETPC);
+		}
+		
 	} else if (board->type == MASOBOSHI_IDE) {
 		int regnum = -1;
 		bool rom = false;
@@ -468,7 +539,7 @@ static uae_u32 ide_read_byte(struct ide_board *board, uaecptr addr)
 				v = masoboshi_ncr9x_scsi_get(oaddr, getidenum(board, masoboshi_board));
 		} else if (addr == 0xf040) {
 			v = 1;
-			if (ide_irq_check(board->ide[0])) {
+			if (ide_irq_check(board->ide[0], false)) {
 				v |= 2;
 				board->irq = true;
 			}
@@ -547,13 +618,13 @@ static uae_u32 ide_read_byte(struct ide_board *board, uaecptr addr)
 #if DEBUG_IDE_GVP
 					write_log(_T("GVP IRQ %02x\n"), v);
 #endif
-					ide_interrupt_check(board);
+					ide_interrupt_check(board, false);
 				} else if (is_gvp1_intreq(addr)) {
 					v = board->irq ? 0x80 : 0x00;
 #if DEBUG_IDE_GVP
 					write_log(_T("GVP IRQ %02x\n"), v);
 #endif
-					ide_interrupt_check(board);
+					ide_interrupt_check(board, false);
 				}
 			}
 		} else {
@@ -588,7 +659,7 @@ static uae_u32 ide_read_byte(struct ide_board *board, uaecptr addr)
 			int portnum;
 			int regnum = get_rochard_reg(addr, board, &portnum);
 			if (regnum >= 0 && board->ide[portnum])
-				v = get_ide_reg_multi(board, regnum, portnum);
+				v = get_ide_reg_multi(board, regnum, portnum, 1);
 		} else if ((addr & 0x7c00) == 0x7000) {
 			if (board->subtype)
 				v = rochard_scsi_get(oaddr);
@@ -607,10 +678,6 @@ static uae_u32 ide_read_byte(struct ide_board *board, uaecptr addr)
 static uae_u32 ide_read_word(struct ide_board *board, uaecptr addr)
 {
 	uae_u32 v = 0xffff;
-
-#ifdef JIT
-	special_mem |= S_READ;
-#endif
 
 	addr &= board->mask;
 
@@ -656,6 +723,21 @@ static uae_u32 ide_read_word(struct ide_board *board, uaecptr addr)
 #if DEBUG_IDE_ALF
 				write_log(_T("ALF IO WORD READ %08x %08x\n"), addr, M68K_GETPC);
 #endif
+			}
+
+		} else if (board->type == GOLEMFAST_IDE) {
+
+			if ((addr & 0x8700) == 0x8100) {
+				int regnum = get_golemfast_reg(addr, board);
+				if (regnum == IDE_DATA) {
+					v = get_ide_reg(board, IDE_DATA);
+				} else {
+					v = ide_read_byte(board, addr) << 8;
+					v |= ide_read_byte(board, addr + 1);
+				}
+			} else {
+				v = ide_read_byte(board, addr) << 8;
+				v |= ide_read_byte(board, addr + 1);
 			}
 
 		} else if (board->type == MASOBOSHI_IDE) {
@@ -740,7 +822,7 @@ static uae_u32 ide_read_word(struct ide_board *board, uaecptr addr)
 		} else if (board->type == ROCHARD_IDE) {
 
 			if (board->configured && (addr & 0x8020) == 0x8000) {
-				v = get_ide_reg_multi(board, IDE_DATA, (addr & 0x4000) ? 1 : 0);
+				v = get_ide_reg_multi(board, IDE_DATA, (addr & 0x4000) ? 1 : 0, 1);
 			}
 
 		}
@@ -759,10 +841,6 @@ static void ide_write_byte(struct ide_board *board, uaecptr addr, uae_u8 v)
 	uaecptr oaddr = addr;
 	addr &= board->mask;
 
-#ifdef JIT
-	special_mem |= S_WRITE;
-#endif
-
 #if DEBUG_IDE
 	write_log(_T("IDE IO BYTE WRITE %08x=%02x %08x\n"), addr, v, M68K_GETPC);
 #endif
@@ -777,6 +855,8 @@ static void ide_write_byte(struct ide_board *board, uaecptr addr, uae_u8 v)
 				rochard_scsi_init(board->original_rc, board->baseaddress);
 			} else if (board->type == MASOBOSHI_IDE) {
 				ncr_masoboshi_autoconfig_init(board->original_rc, board->baseaddress);
+			} else if (board->type == GOLEMFAST_IDE) {
+				ncr_golemfast_autoconfig_init(board->original_rc, board->baseaddress);
 			}
 			expamem_next(ab, NULL);
 			return;
@@ -795,6 +875,16 @@ static void ide_write_byte(struct ide_board *board, uaecptr addr, uae_u8 v)
 #if DEBUG_IDE_ALF
 			write_log(_T("ALF PUT %08x %02x %d %08x\n"), addr, v, regnum, M68K_GETPC);
 #endif
+		} else if (board->type == GOLEMFAST_IDE) {
+
+			if ((addr & 0x8700) == 0x8400 || (addr & 0x8700) == 0x8000) {
+				golemfast_ncr9x_scsi_put(oaddr, v, getidenum(board, golemfast_board));
+			} else if ((addr & 0x8700) == 0x8100) {
+				int regnum = get_golemfast_reg(addr, board);
+				if (regnum >= 0)
+					put_ide_reg(board, regnum, v);
+			}
+
 		} else if (board->type == MASOBOSHI_IDE) {
 
 #if DEBUG_IDE_MASOBOSHI
@@ -871,7 +961,7 @@ static void ide_write_byte(struct ide_board *board, uaecptr addr, uae_u8 v)
 					int portnum;
 					int regnum = get_rochard_reg(addr, board, &portnum);
 					if (regnum >= 0 && board->ide[portnum])
-						put_ide_reg_multi(board, regnum, v, portnum);
+						put_ide_reg_multi(board, regnum, v, portnum, 1);
 				} else if ((addr & 0x7c00) == 0x7000) {
 					if (board->subtype)
 						rochard_scsi_put(oaddr, v);
@@ -885,13 +975,6 @@ static void ide_write_byte(struct ide_board *board, uaecptr addr, uae_u8 v)
 static void ide_write_word(struct ide_board *board, uaecptr addr, uae_u16 v)
 {
 	addr &= board->mask;
-
-#ifdef JIT
-	special_mem |= S_WRITE;
-#endif
-
-	if (addr == 0xf04a)
-		addr &= 0xffff;
 
 #if DEBUG_IDE
 	write_log(_T("IDE IO WORD WRITE %08x=%04x %08x\n"), addr, v, M68K_GETPC);
@@ -908,6 +991,22 @@ static void ide_write_word(struct ide_board *board, uaecptr addr, uae_u16 v)
 #endif
 			}
 
+
+		} else if (board->type == GOLEMFAST_IDE) {
+
+			if ((addr & 0x8700) == 0x8100) {
+				int regnum = get_golemfast_reg(addr, board);
+				if (regnum == IDE_DATA) {
+					put_ide_reg(board, IDE_DATA, v);
+				} else {
+					ide_write_byte(board, addr, v >> 8);
+					ide_write_byte(board, addr + 1, v);
+				}
+			} else {
+				ide_write_byte(board, addr, v >> 8);
+				ide_write_byte(board, addr + 1, v);
+			}
+		
 		} else if (board->type == MASOBOSHI_IDE) {
 
 			int regnum = get_masoboshi_reg(addr, board);
@@ -979,12 +1078,34 @@ static void ide_write_word(struct ide_board *board, uaecptr addr, uae_u16 v)
 		} else if (board->type == ROCHARD_IDE) {
 
 			if (board->configured && (addr & 0x8020) == 0x8000) {
-				put_ide_reg_multi(board, IDE_DATA, v, (addr & 0x4000) ? 1 : 0);
+				put_ide_reg_multi(board, IDE_DATA, v, (addr & 0x4000) ? 1 : 0, 1);
 			}
 
 		}
 	}
 }
+
+static uae_u32 ide_read_wordi(struct ide_board *board, uaecptr addr)
+{
+	uae_u16 v = 0;
+	if (board->type == GOLEMFAST_IDE) {
+
+		if (!(addr & 0x8000)) {
+			if (board->rom) {
+				v = board->rom[addr & board->rom_mask] << 8;
+				v |= board->rom[(addr + 1) & board->rom_mask];
+			}
+		}
+
+	} else {
+
+		v = dummy_wgeti(addr);
+
+	}
+	return v;
+}
+
+
 
 IDE_MEMORY_FUNCTIONS(ide_controller_gvp, ide, gvp_ide_controller_board);
 
@@ -992,7 +1113,8 @@ addrbank gvp_ide_controller_bank = {
 	ide_controller_gvp_lget, ide_controller_gvp_wget, ide_controller_gvp_bget,
 	ide_controller_gvp_lput, ide_controller_gvp_wput, ide_controller_gvp_bput,
 	default_xlate, default_check, NULL, NULL, _T("GVP IDE"),
-	dummy_lgeti, dummy_wgeti, ABFLAG_IO | ABFLAG_SAFE
+	dummy_lgeti, dummy_wgeti,
+	ABFLAG_IO | ABFLAG_SAFE, S_READ, S_WRITE
 };
 
 IDE_MEMORY_FUNCTIONS(ide_rom_gvp, ide, gvp_ide_rom_board);
@@ -1001,7 +1123,8 @@ addrbank gvp_ide_rom_bank = {
 	ide_rom_gvp_lget, ide_rom_gvp_wget, ide_rom_gvp_bget,
 	ide_rom_gvp_lput, ide_rom_gvp_wput, ide_rom_gvp_bput,
 	default_xlate, default_check, NULL, NULL, _T("GVP BOOT"),
-	dummy_lgeti, dummy_wgeti, ABFLAG_IO | ABFLAG_SAFE
+	dummy_lgeti, dummy_wgeti,
+	ABFLAG_IO | ABFLAG_SAFE, S_READ, S_WRITE
 };
 
 static void REGPARAM2 ide_generic_bput (uaecptr addr, uae_u32 b)
@@ -1048,11 +1171,49 @@ static uae_u32 REGPARAM2 ide_generic_lget (uaecptr addr)
 	}
 	return 0;
 }
+static uae_u32 REGPARAM2 ide_generic_wgeti(uaecptr addr)
+{
+	struct ide_board *ide = getideboard(addr);
+	if (ide)
+		return ide_read_wordi(ide, addr);
+	return 0;
+}
+static uae_u32 REGPARAM2 ide_generic_lgeti(uaecptr addr)
+{
+	struct ide_board *ide = getideboard(addr);
+	if (ide) {
+		uae_u32 v = ide_read_wordi(ide, addr) << 16;
+		v |= ide_read_wordi(ide, addr + 2);
+		return v;
+	}
+	return 0;
+}
+static uae_u8 *REGPARAM2 ide_generic_xlate(uaecptr addr)
+{
+	struct ide_board *ide = getideboard(addr);
+	if (!ide)
+		return NULL;
+	addr &= ide->rom_mask;
+	return ide->rom + addr;
+
+}
+static int REGPARAM2 ide_generic_check(uaecptr a, uae_u32 b)
+{
+	struct ide_board *ide = getideboard(a);
+	if (!ide)
+		return 0;
+	a &= ide->rom_mask;
+	if (a >= ide->rom_start && a + b < ide->rom_size)
+		return 1;
+	return 0;
+}
+
 static addrbank ide_bank_generic = {
 	ide_generic_lget, ide_generic_wget, ide_generic_bget,
 	ide_generic_lput, ide_generic_wput, ide_generic_bput,
-	default_xlate, default_check, NULL, NULL, _T("IDE"),
-	dummy_lgeti, dummy_wgeti, ABFLAG_IO | ABFLAG_SAFE
+	ide_generic_xlate, ide_generic_check, NULL, NULL, _T("IDE"),
+	ide_generic_lgeti, ide_generic_wgeti,
+	ABFLAG_IO | ABFLAG_SAFE, S_READ, S_WRITE
 };
 
 
@@ -1075,7 +1236,6 @@ static const uae_u8 gvp_ide1_controller_autoconfig[16] = { 0xd1, 0x08, 0x00, 0x0
 addrbank *gvp_ide_rom_autoconfig_init(struct romconfig *rc)
 {
 	struct ide_board *ide = getide(rc);
-	int roms[2];
 	const uae_u8 *autoconfig;
 
 	if (ISCPUBOARD(BOARD_GVP, BOARD_GVP_SUB_A3001SI)) {
@@ -1086,13 +1246,10 @@ addrbank *gvp_ide_rom_autoconfig_init(struct romconfig *rc)
 		gvp_ide_controller_board->intena = true;
 		ide->intena = true;
 		gvp_ide_controller_board->configured = -1;
-		roms[0] = 114;
-		roms[1] = -1;
 	} else {
 		ide->bank = &gvp_ide_rom_bank;
 		autoconfig = gvp_ide2_rom_autoconfig;
 		ide->rom_size = 16384;
-		roms[0] = -1;
 	}
 	ide->configured = 0;
 	ide->mask = 65536 - 1;
@@ -1104,7 +1261,7 @@ addrbank *gvp_ide_rom_autoconfig_init(struct romconfig *rc)
 	memset(ide->rom, 0xff, ide->rom_size);
 	ide->rom_mask = ide->rom_size - 1;
 
-	load_rom_rc(rc, roms, ide->rom_size, 0, ide->rom, ide->rom_size, LOADROM_FILL);
+	load_rom_rc(rc, ROMTYPE_CB_A3001S1, ide->rom_size, 0, ide->rom, ide->rom_size, LOADROM_FILL);
 	for (int i = 0; i < 16; i++) {
 		uae_u8 b = autoconfig[i];
 		ew(ide, i * 4, b);
@@ -1144,16 +1301,12 @@ static const uae_u8 alfplus_autoconfig[16] = { 0xd1, 38, 0x00, 0x00, 0x08, 0x2c,
 addrbank *alf_init(struct romconfig *rc)
 {
 	struct ide_board *ide = getide(rc);
-	int roms[2];
 	bool alfplus = cfgfile_board_enabled(&currprefs, ROMTYPE_ALFAPLUS, 0);
 
 	if (!ide)
 		return &expamem_null;
 
 	ide->configured = 0;
-
-	roms[0] = alfplus ? 118 : 117;
-	roms[1] = -1;
 
 	ide->configured = 0;
 	ide->bank = &ide_bank_generic;
@@ -1175,7 +1328,7 @@ addrbank *alf_init(struct romconfig *rc)
 	}
 
 	if (!rc->autoboot_disabled) {
-		struct zfile *z = read_device_from_romconfig(rc, roms);
+		struct zfile *z = read_device_from_romconfig(rc, alfplus ? ROMTYPE_ALFAPLUS : ROMTYPE_ALFA);
 		if (z) {
 			for (int i = 0; i < 0x1000 / 2; i++) {
 				uae_u8 b;
@@ -1206,24 +1359,21 @@ void alf_add_ide_unit(int ch, struct uaedev_config_info *ci, struct romconfig *r
 // prod 0x23 = SCSI only
 // prod 0x33 = IDE only
 
-const uae_u8 apollo_autoconfig[16] = { 0xd2, 0x23, 0x00, 0x00, 0x22, 0x22, 0x00, 0x00, 0x00, 0x00, APOLLO_ROM_OFFSET >> 8, APOLLO_ROM_OFFSET & 0xff };
+const uae_u8 apollo_autoconfig[16] = { 0xd1, 0x22, 0x00, 0x00, 0x22, 0x22, 0x00, 0x00, 0x00, 0x00, APOLLO_ROM_OFFSET >> 8, APOLLO_ROM_OFFSET & 0xff };
 const uae_u8 apollo_autoconfig_cpuboard[16] = { 0xd2, 0x23, 0x00, 0x00, 0x22, 0x22, 0x00, 0x00, 0x00, 0x00, APOLLO_ROM_OFFSET >> 8, APOLLO_ROM_OFFSET & 0xff };
 const uae_u8 apollo_autoconfig_cpuboard_060[16] = { 0xd2, 0x23, 0x00, 0x00, 0x22, 0x22, 0x00, 0x00, 0x00, 0x02, APOLLO_ROM_OFFSET >> 8, APOLLO_ROM_OFFSET & 0xff };
 
 static addrbank *apollo_init(struct romconfig *rc, bool cpuboard)
 {
 	struct ide_board *ide = getide(rc);
-	int roms[2];
 	const uae_u8 *autoconfig;
 
 	if (!ide)
 		return &expamem_null;
 
-	roms[0] = -1;
 	ide->configured = 0;
 	ide->bank = &ide_bank_generic;
 	ide->rom_size = 32768;
-	ide->mask = 131072 - 1;
 	ide->type = APOLLO_IDE;
 
 	memset(ide->acmemory, 0xff, sizeof ide->acmemory);
@@ -1231,6 +1381,7 @@ static addrbank *apollo_init(struct romconfig *rc, bool cpuboard)
 	ide->rom = xcalloc(uae_u8, ide->rom_size);
 	memset(ide->rom, 0xff, ide->rom_size);
 	ide->rom_mask = ide->rom_size - 1;
+	ide->keepautoconfig = false;
 	autoconfig = apollo_autoconfig;
 	if (cpuboard) {
 		if (currprefs.cpu_model == 68060)
@@ -1238,22 +1389,28 @@ static addrbank *apollo_init(struct romconfig *rc, bool cpuboard)
 		else
 			autoconfig = apollo_autoconfig_cpuboard;
 	}
-	struct zfile *z = read_device_from_romconfig(rc, roms);
 	for (int i = 0; i < 16; i++) {
 		uae_u8 b = autoconfig[i];
 		ew(ide, i * 4, b);
 	}
-	if (z) {
-		int len = zfile_size(z);
-		// skip 68060 $f0 ROM block
-		if (len >= 65536)
-			zfile_fseek(z, 32768, SEEK_SET);
-		for (int i = 0; i < 32768; i++) {
-			uae_u8 b;
-			zfile_fread(&b, 1, 1, z);
-			ide->rom[i] = b;
+	if (cpuboard) {
+		ide->mask = 131072 - 1;
+		struct zfile *z = read_device_from_romconfig(rc, ROMTYPE_APOLLO);
+		if (z) {
+			int len = zfile_size(z);
+			// skip 68060 $f0 ROM block
+			if (len >= 65536)
+				zfile_fseek(z, 32768, SEEK_SET);
+			for (int i = 0; i < 32768; i++) {
+				uae_u8 b;
+				zfile_fread(&b, 1, 1, z);
+				ide->rom[i] = b;
+			}
+			zfile_fclose(z);
 		}
-		zfile_fclose(z);
+	} else {
+		ide->mask = 65536 - 1;
+		load_rom_rc(rc, ROMTYPE_APOLLO, 16384, 0, ide->rom, 32768, LOADROM_EVENONLY_ODDONE | LOADROM_FILL);
 	}
 	return ide->bank;
 }
@@ -1269,21 +1426,18 @@ addrbank *apollo_init_cpu(struct romconfig *rc)
 
 void apollo_add_ide_unit(int ch, struct uaedev_config_info *ci, struct romconfig *rc)
 {
-	add_ide_standard_unit(ch, ci, rc, apollo_board, APOLLO_IDE, false, false, 2);
+	add_ide_standard_unit(ch, ci, rc, apollo_board, APOLLO_IDE, true, false, 2);
 }
 
 addrbank *masoboshi_init(struct romconfig *rc)
 {
 	struct ide_board *ide = getide(rc);
-	int roms[2];
 
 	if (!ide)
 		return &expamem_null;
 
 	ide->configured = 0;
 
-	roms[0] = 120;
-	roms[1] = -1;
 	ide->configured = 0;
 	ide->bank = &ide_bank_generic;
 	ide->type = MASOBOSHI_IDE;
@@ -1296,7 +1450,7 @@ addrbank *masoboshi_init(struct romconfig *rc)
 	memset(ide->acmemory, 0xff, sizeof ide->acmemory);
 	ide->rom_mask = ide->rom_size - 1;
 
-	load_rom_rc(rc, roms, 32768, 0, ide->rom, 65536, LOADROM_EVENONLY_ODDONE | LOADROM_FILL);
+	load_rom_rc(rc, ROMTYPE_MASOBOSHI, 32768, 0, ide->rom, 65536, LOADROM_EVENONLY_ODDONE | LOADROM_FILL);
 	ide->subtype = rc->subtype;
 	if (rc && rc->autoboot_disabled)
 		memcpy(ide->acmemory, ide->rom + 0x100, sizeof ide->acmemory);
@@ -1329,10 +1483,7 @@ static const uae_u8 adide_autoconfig[16] = { 0xd1, 0x02, 0x00, 0x00, 0x08, 0x17,
 addrbank *adide_init(struct romconfig *rc)
 {
 	struct ide_board *ide = getide(rc);
-	int roms[2];
 
-	roms[0] = 129;
-	roms[1] = -1;
 	ide->configured = 0;
 	ide->keepautoconfig = false;
 	ide->bank = &ide_bank_generic;
@@ -1345,7 +1496,7 @@ addrbank *adide_init(struct romconfig *rc)
 	memset(ide->rom, 0xff, ide->rom_size);
 	ide->rom_mask = ide->rom_size - 1;
 	if (!rc->autoboot_disabled) {
-		load_rom_rc(rc, roms, 16384, 0, ide->rom, 32768, LOADROM_EVENONLY_ODDONE | LOADROM_FILL);
+		load_rom_rc(rc, ROMTYPE_ADIDE, 16384, 0, ide->rom, 32768, LOADROM_EVENONLY_ODDONE | LOADROM_FILL);
 	}
 	for (int i = 0; i < 16; i++) {
 		uae_u8 b = adide_autoconfig[i];
@@ -1362,21 +1513,16 @@ void adide_add_ide_unit(int ch, struct uaedev_config_info *ci, struct romconfig 
 addrbank *mtec_init(struct romconfig *rc)
 {
 	struct ide_board *ide = getide(rc);
-	int roms[2];
 
-	roms[0] = 130;
-	roms[1] = -1;
 	ide->configured = 0;
 	ide->bank = &ide_bank_generic;
 	ide->rom_size = 32768;
 	ide->mask = 65536 - 1;
 
-	memset(ide->acmemory, 0xff, sizeof ide->acmemory);
-
 	ide->rom = xcalloc(uae_u8, ide->rom_size);
 	memset(ide->rom, 0xff, ide->rom_size);
 	ide->rom_mask = ide->rom_size - 1;
-	load_rom_rc(rc, roms, 16384, !rc->autoboot_disabled ? 16384 : 0, ide->rom, 32768, LOADROM_EVENONLY_ODDONE | LOADROM_FILL);
+	load_rom_rc(rc, ROMTYPE_MTEC, 16384, !rc->autoboot_disabled ? 16384 : 0, ide->rom, 32768, LOADROM_EVENONLY_ODDONE | LOADROM_FILL);
 	memcpy(ide->acmemory, ide->rom, sizeof ide->acmemory);
 	return ide->bank;
 }
@@ -1389,22 +1535,17 @@ void mtec_add_ide_unit(int ch, struct uaedev_config_info *ci, struct romconfig *
 addrbank *rochard_init(struct romconfig *rc)
 {
 	struct ide_board *ide = getide(rc);
-	int roms[2];
 
-	roms[0] = 138;
-	roms[1] = -1;
 	ide->configured = 0;
 	ide->bank = &ide_bank_generic;
 	ide->rom_size = 32768;
 	ide->mask = 65536 - 1;
 	ide->subtype = rc->subtype;
 
-	memset(ide->acmemory, 0xff, sizeof ide->acmemory);
-
 	ide->rom = xcalloc(uae_u8, ide->rom_size);
 	memset(ide->rom, 0xff, ide->rom_size);
 	ide->rom_mask = ide->rom_size - 1;
-	load_rom_rc(rc, roms, 8192, !rc->autoboot_disabled ? 8192 : 0, ide->rom, 16384, 0);
+	load_rom_rc(rc, ROMTYPE_ROCHARD, 8192, !rc->autoboot_disabled ? 8192 : 0, ide->rom, 16384, 0);
 	memcpy(ide->acmemory, ide->rom, sizeof ide->acmemory);
 	return ide->bank;
 }
@@ -1425,4 +1566,191 @@ void rochard_add_idescsi_unit(int ch, struct uaedev_config_info *ci, struct romc
 		else
 			rochard_add_scsi_unit(ch, ci, rc);
 	}
+}
+
+addrbank *golemfast_init(struct romconfig *rc)
+{
+	struct ide_board *ide = getide(rc);
+
+	ide->configured = 0;
+	ide->bank = &ide_bank_generic;
+	ide->rom_size = 32768;
+	ide->mask = 65536 - 1;
+
+	ide->rom = xcalloc(uae_u8, ide->rom_size);
+	memset(ide->rom, 0xff, ide->rom_size);
+	ide->rom_mask = ide->rom_size - 1;
+	load_rom_rc(rc, ROMTYPE_GOLEMFAST, 16384, 0, ide->rom, 32768, 0);
+	memcpy(ide->acmemory, ide->rom, sizeof ide->acmemory);
+	return ide->bank;
+}
+
+static void golemfast_add_ide_unit(int ch, struct uaedev_config_info *ci, struct romconfig *rc)
+{
+	add_ide_standard_unit(ch, ci, rc, golemfast_board, GOLEMFAST_IDE, false, false, 2);
+}
+
+void golemfast_add_idescsi_unit(int ch, struct uaedev_config_info *ci, struct romconfig *rc)
+{
+	if (ch < 0) {
+		golemfast_add_ide_unit(ch, ci, rc);
+		golemfast_add_scsi_unit(ch, ci, rc);
+	} else {
+		if (ci->controller_type < HD_CONTROLLER_TYPE_SCSI_FIRST)
+			golemfast_add_ide_unit(ch, ci, rc);
+		else
+			golemfast_add_scsi_unit(ch, ci, rc);
+	}
+}
+
+
+extern void x86_xt_ide_bios(struct zfile*, struct romconfig*);
+static addrbank *x86_at_hd_init(struct romconfig *rc, int type)
+{
+	struct ide_board *ide = getide(rc);
+
+	if (!ide)
+		return NULL;
+
+	ide->intena = type == 0;
+	ide->configured = 1;
+	ide->bank = &ide_bank_generic;
+
+	struct zfile *f = read_device_from_romconfig(rc, 0);
+	if (f) {
+		x86_xt_ide_bios(f, rc);
+		zfile_fclose(f);
+	}
+
+	return NULL;
+}
+addrbank *x86_at_hd_init_1(struct romconfig *rc)
+{
+	return x86_at_hd_init(rc, 0);
+}
+addrbank *x86_at_hd_init_2(struct romconfig *rc)
+{
+	return x86_at_hd_init(rc, 0);
+}
+addrbank *x86_at_hd_init_xt(struct romconfig *rc)
+{
+	return x86_at_hd_init(rc, 1);
+}
+
+void x86_add_at_hd_unit_1(int ch, struct uaedev_config_info *ci, struct romconfig *rc)
+{
+	add_ide_standard_unit(ch, ci, rc, &x86_at_ide_board[0], x86_AT_IDE + 0, false, false, 2);
+}
+void x86_add_at_hd_unit_2(int ch, struct uaedev_config_info *ci, struct romconfig *rc)
+{
+	add_ide_standard_unit(ch, ci, rc, &x86_at_ide_board[1], x86_AT_IDE + 1, false, false, 2);
+}
+void x86_add_at_hd_unit_xt(int ch, struct uaedev_config_info *ci, struct romconfig *rc)
+{
+	add_ide_standard_unit(ch, ci, rc, &x86_at_ide_board[2], x86_AT_IDE + 2, false, false, 2);
+}
+
+static int x86_ide_reg(int portnum, int *unit)
+{
+	if (portnum >= 0x1f0 && portnum < 0x1f8) {
+		*unit = 0;
+		return portnum & 7;
+	}
+	if (portnum == 0x3f6) {
+		*unit = 0;
+		return 6 | IDE_SECONDARY;
+	}
+	if (portnum >= 0x170 && portnum < 0x178) {
+		*unit = 1;
+		return portnum & 7;
+	}
+	if (portnum == 0x376) {
+		*unit = 1;
+		return 6 | IDE_SECONDARY;
+	}
+	if (portnum >= 0x300 && portnum < 0x310) {
+		*unit = 2;
+		if (portnum < 0x308)
+			return portnum & 7;
+		if (portnum == 0x308)
+			return 8;
+		if (portnum >= 0x308+6)
+			return (portnum & 7) | IDE_SECONDARY;
+	}
+	return -1;
+}
+
+void x86_ide_hd_put(int portnum, uae_u16 v, int size)
+{
+
+	if (portnum < 0) {
+		for (int i = 0; i < MAX_DUPLICATE_EXPANSION_BOARDS; i++) {
+			struct ide_board *board = x86_at_ide_board[i];
+			if (board)
+				ide_reset_device(board->ide[0]);
+		}
+		return;
+	}
+	int unit;
+	int regnum = x86_ide_reg(portnum, &unit);
+	if (regnum >= 0) {
+		struct ide_board *board = x86_at_ide_board[unit];
+		if (board) {
+#if 0
+			if (regnum == 0 || regnum == 8)
+				write_log(_T("WRITE %04x = %04x %d\n"), portnum, v, size);
+#endif
+			if (size == 0) {
+				if (get_ide_is_8bit(board)) {
+					v = get_ide_reg_8bitdata(board, regnum);
+				} else {
+					if (regnum == 8) {
+						board->data_latch = v;
+					} else if (regnum == 0) {
+						v <<= 8;
+						v |= board->data_latch;
+						put_ide_reg(board, regnum, v);
+					} else {
+						put_ide_reg_8bitdata(board, regnum, v);
+					}
+				}
+			} else {
+				put_ide_reg(board, regnum, (v >> 8) | (v << 8));
+			}
+		}
+	}
+}
+uae_u16 x86_ide_hd_get(int portnum, int size)
+{
+	uae_u16 v = 0;
+	int unit;
+	int regnum = x86_ide_reg(portnum, &unit);
+	if (regnum >= 0) {
+		struct ide_board *board = x86_at_ide_board[unit];
+		if (board) {
+
+			if (size == 0) {
+				if (get_ide_is_8bit(board)) {
+					v = get_ide_reg_8bitdata(board, regnum);
+				} else {
+					if (regnum == 0) {
+						board->data_latch = get_ide_reg(board, regnum);
+						v = board->data_latch >> 8;
+					} else if (regnum == 8) {
+						v = board->data_latch;
+					} else {
+						v = get_ide_reg_8bitdata(board, regnum & 7);
+					}
+				}
+			} else {
+				v = get_ide_reg(board, regnum);
+				v = (v >> 8) | (v << 8);
+			}
+#if 0
+			if (regnum == 0 || regnum == 8)
+				write_log(_T("READ %04x = %04x %d\n"), portnum, v, size);
+#endif
+		}
+	}
+	return v;
 }

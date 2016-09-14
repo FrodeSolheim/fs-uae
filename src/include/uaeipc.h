@@ -1,9 +1,7 @@
 #ifndef UAE_UAEIPC_H
 #define UAE_UAEIPC_H
 
-#ifdef FSUAE // NL
 #include "uae/types.h"
-#endif
 
 extern void *createIPC (const TCHAR *name, int);
 extern void closeIPC (void*);
@@ -13,4 +11,4 @@ extern int sendBinIPC (void*, uae_u8 *msg, int len);
 extern int sendIPC (void*, TCHAR *msg);
 extern int isIPC (const TCHAR *pipename);
 
-#endif // UAE_UAEIPC_H
+#endif /* UAE_UAEIPC_H */

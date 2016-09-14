@@ -19,16 +19,16 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with ARAnyM; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
 
 #ifndef UAE_CPUMMU_H
 #define UAE_CPUMMU_H
 
-#ifdef FSUAE // NL
 #include "uae/types.h"
+#ifdef FSUAE
 #include "uae/inline.h"
 #include "newcpu.h"
 #endif
@@ -359,7 +359,7 @@ extern void mmu_make_transparent_region(uaecptr baseaddr, uae_u32 size, int data
 #define FC_INST		(regs.s ? 6 : 2)
 
 extern uaecptr REGPARAM3 mmu_translate(uaecptr addr, bool super, bool data, bool write) REGPARAM;
-extern void mmu_bus_error(uaecptr addr, int fc, bool write, int size, bool rmw, uae_u32 status);
+extern void mmu_bus_error(uaecptr addr, int fc, bool write, int size, bool rmw, uae_u32 status, bool nonmmu);
 
 extern uae_u32 REGPARAM3 sfc_get_long(uaecptr addr) REGPARAM;
 extern uae_u16 REGPARAM3 sfc_get_word(uaecptr addr) REGPARAM;
@@ -927,4 +927,4 @@ extern void m68k_do_rts_mmu060 (void);
 extern void m68k_do_rte_mmu060 (uaecptr a7);
 extern void m68k_do_bsr_mmu060 (uaecptr oldpc, uae_s32 offset);
 
-#endif // UAE_CPUMMU_H
+#endif /* UAE_CPUMMU_H */

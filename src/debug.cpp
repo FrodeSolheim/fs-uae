@@ -36,12 +36,17 @@
 #include "rommgr.h"
 #include "inputrecord.h"
 #include "calc.h"
+#include "uae/debuginfo.h"
+#include "uae/segtracker.h"
 #include "cpummu.h"
 #include "cpummu030.h"
 #include "ar.h"
-#include "ppc/ppcd.h"
+#include "pci.h"
 #include "uae/io.h"
+#ifdef WITH_PPC
+#include "ppc/ppcd.h"
 #include "uae/ppc.h"
+#endif
 
 #ifdef FSUAE // NL
 #include "uae/fs.h"
@@ -167,6 +172,16 @@ static TCHAR help[] = {
 	_T("  dm                    Dump current address space map.\n")
 	_T("  v <vpos> [<hpos>]     Show DMA data (accurate only in cycle-exact mode).\n")
 	_T("                        v [-1 to -4] = enable visual DMA debugger.\n")
+#ifdef WITH_SEGTRACKER
+	_T("  Z                     print SegmentTracker status.\n")
+	_T("  Ze [<0-1>]            enable/disable/toggle SegmentTracker\n")
+	_T("  Zl                    show seglists tracked by SegmentTracker.\n")
+	_T("  Za <addr>             find segment that contains given address.\n")
+	_T("  Zs 'name'             search seglist with given name.\n")
+	_T("  Zf 'hostfile'         load debug info from given executable file.\n")
+	_T("  Zy 'symbol'           find symbol address.\n")
+	_T("  Zc 'file' <line>      find source code line address.\n")
+#endif /* WITH_SEGTRACKER */
 	_T("  ?<value>              Hex ($ and 0x)/Bin (%)/Dec (!) converter.\n")
 #ifdef _WIN32
 	_T("  x                     Close debugger.\n")
@@ -863,10 +878,12 @@ static void dump_custom_regs (int aga)
 	int len, i, j, end;
 	uae_u8 *p1, *p2, *p3, *p4;
 
+#ifdef AGA
 	if (aga) {
 		dump_aga_custom();
 		return;
 	}
+#endif
 
 	p1 = p2 = save_custom (&len, 0, 1);
 	p1 += 4; // skip chipset type
@@ -1181,7 +1198,7 @@ static void decode_dma_record (int hpos, int vpos, int toggle, bool logfile)
 	int h, i, maxh, cnt;
 	uae_u32 cycles;
 
-	if (!dma_record[0])
+	if (!dma_record[0] || hpos < 0 || vpos < 0)
 		return;
 	dr = &dma_record[dma_record_toggle ^ toggle][vpos * NR_DMA_REC_HPOS];
 	if (logfile)
@@ -2449,7 +2466,7 @@ static void memwatch_reset (void)
 	}
 	for (int i = 0; membank_stores[i].addr; i++) {
 		struct membank_store *ms = &membank_stores[i];
-		// name was allocated in memwatch_remap
+		/* name was allocated in memwatch_remap */
 		xfree ((char*)ms->newbank.name);
 		memset (ms, 0, sizeof (struct membank_store));
 		ms->addr = NULL;
@@ -2499,7 +2516,7 @@ static void memwatch_remap (uaecptr addr)
 		newbank->xlateaddr = debug_xlate;
 		newbank->wgeti = mode ? mmu_wgeti : debug_wgeti;
 		newbank->lgeti = mode ? mmu_lgeti : debug_lgeti;
-		// name will be freed by memwatch_reset
+		/* name will be freed by memwatch_reset */
 		newbank->name = my_strdup (tmp);
 		if (!newbank->mask)
 			newbank->mask = -1;
@@ -2636,6 +2653,7 @@ struct mw_acc
 static const struct mw_acc memwatch_access_masks[] =
 {
 	{ MW_MASK_ALL, _T("ALL") },
+	{ MW_MASK_NONE, _T("NONE") },
 	{ MW_MASK_ALL & ~MW_MASK_CPU, _T("DMA") },
 	{ MW_MASK_BLITTER_A | MW_MASK_BLITTER_B | MW_MASK_BLITTER_C | MW_MASK_BLITTER_D, _T("BLT") },
 	{ MW_MASK_AUDIO_0 | MW_MASK_AUDIO_1 | MW_MASK_AUDIO_2 | MW_MASK_AUDIO_3, _T("AUD") },
@@ -2991,7 +3009,7 @@ static void memory_map_dump_3(UaeMemoryMap *map, int log)
 #ifdef FSUAE
 #if 0
 			if (caddr) {
-			    printf("-> bank at %08x mirrored at %08x (%p - %p)\n", (j << 16), (uint32_t)(caddr - NATMEM_OFFSET), caddr, NATMEM_OFFSET);
+				printf("-> bank at %08x mirrored at %08x (%p - %p)\n", (j << 16), (uint32_t)(caddr - NATMEM_OFFSET), caddr, NATMEM_OFFSET);
 			}
 #endif
 #endif
@@ -3065,7 +3083,6 @@ static void memory_map_dump_3(UaeMemoryMap *map, int log)
 					}
 				}
 
-
 				if (a1 != &dummy_bank) {
 					for (int m = 0; m < mirrored2; m++) {
 						UaeMemoryRegion *r = &map->regions[map->num_regions];
@@ -3108,6 +3125,7 @@ static void memory_map_dump_3(UaeMemoryMap *map, int log)
 			a1 = a2;
 		}
 	}
+	pci_dump(log);
 	currprefs.illegal_mem = imold;
 }
 
@@ -3191,7 +3209,8 @@ static void print_task_info (uaecptr node, bool nonactive)
 		uae_u32 sigwait = get_long_debug(node + 22);
 		if (sigwait)
 			console_out_f(_T("          Waiting signals: %08x\n"), sigwait);
-		uae_u32 sp = get_long_debug(node + 54) + 70;
+		int offset = kickstart_version >= 37 ? 74 : 70;
+		uae_u32 sp = get_long_debug(node + 54) + offset;
 		uae_u32 pc = get_long_debug(sp);
 		console_out_f(_T("          SP: %08x PC: %08x\n"), sp, pc);
 	}
@@ -4259,6 +4278,189 @@ static void m68k_modify (TCHAR **inptr)
 	}
 }
 
+#ifdef WITH_SEGTRACKER
+
+static int parse_string(TCHAR **inptr, TCHAR *str, int max_len)
+{
+	int len = 0;
+	ignore_ws (inptr);
+	if ((**inptr == '"')||(**inptr == '\'')) {
+		TCHAR delim = **inptr;
+		(*inptr)++;
+		while (**inptr != delim && **inptr != 0) {
+			str[len++] = tolower(**inptr);
+			(*inptr)++;
+			if (len == max_len) {
+				break;
+			}
+		}
+		if (**inptr != 0) {
+			(*inptr)++;
+		}
+	}
+	str[len] = '\0';
+	return len;
+}
+
+/* SegmentTracker Z* command parser */
+static void segtracker(TCHAR **inptr)
+{
+	int show_status = 0;
+	if (more_params (inptr)) {
+		switch (next_char (inptr))
+		{
+		case 'a': /* 'Za' <address> searches segment for address */
+			{
+				uae_u32 addr = readhex (inptr);
+				seglist *sl;
+				int num_seg;
+				int found = segtracker_search_address(addr, &sl, &num_seg);
+				if(found) {
+					segment *seg = &sl->segments[num_seg];
+					uae_u32 seg_addr = seg->addr;
+					uae_u32 seg_size = seg->size;
+					uae_u32 seg_end = seg_addr + seg_size;
+					uae_u32 offset = addr - seg_addr;
+					console_out_f(_T("%08x: '%s' #%02d [%08x,%08x,%08x] +%08x\n"),
+								addr, sl->name, num_seg,
+								seg_addr, seg_size, seg_end,
+								offset);
+
+					/* try to find symbol info */
+					debug_symbol *symbol;
+					uae_u32 reloff;
+					int ok = segtracker_find_symbol(seg, offset, &symbol, &reloff);
+					if(ok == 1) {
+						console_out_f(_T("    %08x +%08x  %s\n"),
+									  symbol->offset + seg->addr,
+									  reloff,
+									  symbol->name);
+					}
+
+					/* try to find src line info */
+					debug_src_file *src_file;
+					debug_src_line *src_line;
+					ok = segtracker_find_src_line(seg, offset, &src_file,
+												  &src_line, &reloff);
+					if(ok == 1) {
+						console_out_f(_T("    %08x +%08x  %s:%d\n"),
+									  seg->addr + src_line->offset, reloff,
+									  src_file->src_file, src_line->line);
+					}
+
+				} else {
+					console_out_f(_T("%08x: not found in any segments.\n"), addr);
+				}
+			}
+			break;
+		case 's': /* 'Zs' "pattern" show seglists matching name pattern */
+			{
+				TCHAR str[64];
+				int len = parse_string(inptr, str, 64);
+				if(len > 0) {
+					char *cstr = au(str);
+					console_out_f(_T("Searching seglists matching '%s'\n"),cstr);
+					segtracker_dump(cstr);
+					xfree(cstr);
+				}
+			}
+			break;
+		case 'l': /* 'Zl' list all tracked segments */
+			segtracker_dump(NULL);
+			break;
+		case 'e': /* 'Ze' enable segtracker */
+			ignore_ws(inptr);
+			if(more_params(inptr)) {
+				int v = readint(inptr);
+				segtracker_enabled = v ? 1 : 0;
+			} else {
+				segtracker_enabled = segtracker_enabled ? 0 : 1;
+			}
+			show_status = 1;
+			/* clear seglist if disabled */
+			if(!segtracker_enabled) {
+				segtracker_clear();
+			}
+			break;
+		case 'f': /* 'Zf': load symbols from hunk file */
+			{
+				TCHAR str[256];
+				int len = parse_string(inptr, str, 256);
+				if(len > 0) {
+					/* find segment */
+					seglist *sl = segtracker_find_by_name(str);
+					if(sl != NULL) {
+						console_out_f(_T("Loading debug info for seglist '%s' from hunk file '%s'\n"),
+									  sl->name, str);
+						/* try to load hunk file */
+						debug_file *file = debug_info_load_hunks(str);
+						if(file != NULL) {
+							debug_info_dump_file(file);
+							/* try to add debug info to segment */
+							const char *err;
+							int ok = segtracker_add_debug_info(sl, file, &err);
+							if(ok != 0) {
+								/* adding debug info failed -> free debug info */
+								console_out_f(_T("Error adding debug info: %s\n"), err);
+								debug_info_free_file(file);
+							}
+						} else {
+							console_out_f(_T("Error loading hunk file!\n"));
+						}
+					} else {
+						console_out_f(_T("No loaded segment list found for '%s'\n"), str);
+					}
+				} else {
+					console_out_f(_T("No hunk file given!\n"));
+				}
+			}
+			break;
+		case 'y': /* 'Zy': find symbol */
+			{
+				TCHAR str[64];
+				int len = parse_string(inptr, str, 64);
+				if(len > 0) {
+					char *cstr = au(str);
+					console_out_f(_T("Searching symbols matching '%s'\n"),cstr);
+					segtracker_dump_symbols(cstr);
+					xfree(cstr);
+				}
+			}
+			break;
+		case 'c': /* 'Zc': find code line */
+			{
+				TCHAR str[64];
+				int len = parse_string(inptr, str, 64);
+				if(len > 0) {
+					char *cstr = au(str);
+					ignore_ws(inptr);
+					if(more_params(inptr)) {
+						int line = readint(inptr);
+						console_out_f(_T("Searching code line matching %s:%d\n"),cstr, line);
+						segtracker_dump_src_lines(cstr, line);
+					}
+					xfree(cstr);
+				}
+			}
+			break;
+		}
+	} else {
+		/* only 'Z': show tracker status */
+		show_status = 1;
+	}
+
+	if(show_status) {
+		console_out_f(_T("SegmentTracker is %s\n"), segtracker_enabled ? "enabled":"disabled");
+		int num = segtracker_pool.num_seglists;
+		if(num > 0) {
+			console_out_f(_T("Found %d segment lists\n"), num);
+		}
+	}
+}
+
+#endif /* WITH_SEGTRACKER */
+
+#ifdef WITH_PPC
 static void ppc_disasm(uaecptr addr, uaecptr *nextpc, int cnt)
 {
 	PPCD_CB disa;
@@ -4278,6 +4480,7 @@ static void ppc_disasm(uaecptr addr, uaecptr *nextpc, int cnt)
 	if (nextpc)
 		*nextpc = addr;
 }
+#endif
 
 static uaecptr nxdis, nxmem;
 static bool ppcmode;
@@ -4390,7 +4593,9 @@ static bool debug_line (TCHAR *input)
 					else
 						count = 10;
 					if (ppcmode) {
+#ifdef WITH_PPC
 						ppc_disasm(daddr, &nxdis, count);
+#endif
 					} else {
 						m68k_disasm (daddr, &nxdis, count);
 					}
@@ -4648,6 +4853,11 @@ static bool debug_line (TCHAR *input)
 				console_out_f (_T("\n"));
 			}
 			break;
+#ifdef WITH_SEGTRACKER
+		case 'Z':
+			segtracker(&inptr);
+			break;
+#endif /* WITH_SEGTRACKER */
 		case 'h':
 		case '?':
 			if (more_params (&inptr))
@@ -4776,7 +4986,7 @@ void debug (void)
 							seglist = BPTR2APTR(get_long_debug (activetask + 128));
 							seglist = BPTR2APTR(get_long_debug (seglist + 12));
 						}
-						if (activetask == processptr || (processname && (!stricmp (name, processname) || (command && command[0] && !strnicmp (command + 1, processname, command[0]) && processname[((unsigned char *)command)[0]] == 0)))) {
+						if (activetask == processptr || (processname && (!stricmp (name, processname) || (command && command[0] && !strnicmp (command + 1, processname, command[0]) && processname[command[0]] == 0)))) {
 							while (seglist) {
 								uae_u32 size = get_long_debug (seglist - 4) - 4;
 								if (pc >= (seglist + 4) && pc < (seglist + size)) {
@@ -4857,6 +5067,7 @@ void debug (void)
 	}
 #endif
 	debug_1 ();
+#ifdef SAVESTATE
 	if (!debug_rewind && !currprefs.cachesize
 #ifdef FILESYS
 		&& nr_units () == 0
@@ -4864,6 +5075,7 @@ void debug (void)
 		) {
 			savestate_capture (1);
 	}
+#endif
 	for (i = 0; i < BREAKPOINT_TOTAL; i++) {
 		if (bpnodes[i].enabled)
 			do_skip = 1;
@@ -5171,7 +5383,7 @@ int mmu_init(int mode, uaecptr parm, uaecptr parm2)
 		wasjit = currprefs.cachesize;
 		changed_prefs.cachesize = 0;
 		console_out (_T("MMU: JIT disabled\n"));
-		check_prefs_changed_comp ();
+		check_prefs_changed_comp(false);
 	}
 	if (mode == 0) {
 		if (mmu_enabled) {

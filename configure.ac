@@ -14,6 +14,7 @@ AC_CONFIG_HEADERS([config.h])
 # AC_CONFIG_MACRO_DIRS([m4])
 m4_include([m4/ax_c___builtin_expect.m4])
 m4_include([m4/ax_check_compile_flag.m4])
+m4_include([m4/ax_check_link_flag.m4])
 m4_include([m4/ax_gcc_var_attribute.m4])
 m4_include([m4/ax_gcc_func_attribute.m4])
 
@@ -21,7 +22,7 @@ AM_INIT_AUTOMAKE([tar-ustar subdir-objects])
 
 AC_SUBST([PACKAGE_SERIES], [devel])
 
-AC_DEFINE_UNQUOTED([UAE_BASE_VERSION], ["WinUAE 3100"],
+AC_DEFINE_UNQUOTED([UAE_BASE_VERSION], ["WinUAE 3220"],
 [Which UAE core this version is based on.])
 
 PACKAGE_MAJOR=`echo ${PACKAGE_VERSION} | sed -e 's,\(\.*\)\..*\..*,\1,g'`
@@ -34,7 +35,8 @@ AC_DEFINE_UNQUOTED([PACKAGE_MINOR], [$PACKAGE_MINOR], [Package minor version])
 AC_SUBST(PACKAGE_REVISION)
 AC_DEFINE_UNQUOTED([PACKAGE_REVISION], [$PACKAGE_REVISION], [Package revision])
 
-# Checks for programs.
+
+# Checks for programs
 
 AC_PROG_CC
 AC_PROG_CXX
@@ -48,14 +50,57 @@ AM_PROG_CC_C_O
 # AC_PATH_TOOL(OBJCOPY, objcopy)
 AC_PATH_PROG([MSGFMT], [msgfmt])
 AC_PATH_PROG([ZIP], [zip])
+PKG_PROG_PKG_CONFIG
 
-# Compiler flags
+
+# Feature test macros
+
+AC_DEFUN([OPT_FEATURE], [
+AC_ARG_ENABLE([$3], [AS_HELP_STRING([--disable-$3], [$4])])
+AS_IF([test x$enable_$2 != xno], [AC_DEFINE([$1], [1], [$4])])
+AM_CONDITIONAL([$1], [test x$enable_$2 != xno])
+])
+
+AC_DEFUN([DIS_FEATURE], [
+AC_ARG_ENABLE([$3], [AS_HELP_STRING([--enable-$3], [$4])])
+AS_IF([test x$enable_$2 = xyes], [AC_DEFINE([$1], [1], [$4])])
+AM_CONDITIONAL([$1], [test x$enable_$2 = xyes])
+])
+
+AC_DEFUN([REQ_FEATURE], [
+AC_DEFINE([$1], [1], [$4])
+AM_CONDITIONAL([$1], [true])
+])
+
+
+# Misc system checks
+
+AC_SYS_LARGEFILE
+# AC_LTDL_SHLIBEXT
+
+
+# Static build
+
+DIS_FEATURE([STATIC_BUILD], [static], [static],
+            [static build (works on Windows)])
+
+AS_IF([test "x$enable_static" = xyes],
+      [PKG_CONFIG="$PKG_CONFIG --static"])
+
+
+# Compiler / linker feature checks
 
 AX_CHECK_COMPILE_FLAG(-fno-strict-overflow,
 [f_no_strict_overflow=yes],
 [f_no_strict_overflow=no])
 AM_CONDITIONAL([F_NO_STRICT_OVERFLOW],
 [test x$f_no_strict_overflow = xyes])
+
+AX_CHECK_COMPILE_FLAG(-fno-strict-aliasing,
+[f_no_strict_aliasing=yes],
+[f_no_strict_aliasing=no])
+AM_CONDITIONAL([F_NO_STRICT_ALIASING],
+[test x$f_no_strict_aliasing = xyes])
 
 AX_CHECK_COMPILE_FLAG(-Wmissing-declarations,
 [w_missing_declarations=yes],
@@ -75,14 +120,13 @@ AX_CHECK_COMPILE_FLAG(-Wmissing-format-attribute,
 AM_CONDITIONAL([W_MISSING_FORMAT_ATTRIBUTE],
 [test x$w_missing_format_attribute = xyes])
 
-# Compiler features
+AX_CHECK_LINK_FLAG(-no-pie,
+[no_pie=yes],
+[no_pie=no])
+AM_CONDITIONAL([NO_PIE],
+[test x$no_pie = xyes])
 
 AX_C___BUILTIN_EXPECT
-
-# Misc system checks.
-
-AC_SYS_LARGEFILE
-# AC_LTDL_SHLIBEXT
 
 # Checks for libraries.
 
@@ -93,12 +137,22 @@ AS_CASE([$host_os],
 	CARBON_LIBS="-framework Carbon"
 ])
 
+AC_ARG_WITH(cef, AS_HELP_STRING(
+    [--with-cef], [use Chromium Embedded Framework (experimental)]))
+AM_CONDITIONAL([BUILTIN_CEF], [test x$with_cef = xyes])
+AS_IF([test "x$with_cef" = xyes], [
+    AC_DEFINE([WITH_CEF], [1], [Define to 1 to use CEF])
+])
+
 AC_CHECK_LIB([compat], [ftime])
 
 AC_CHECK_LIB([dl], [dlopen])
 
-AC_DEFINE([USE_FREETYPE], [1], [Define to 1 to use FreeType])
-PKG_CHECK_MODULES([FREETYPE], [freetype2])
+# not using freetype right now
+# AC_DEFINE([USE_FREETYPE], [1], [Define to 1 to use FreeType])
+# PKG_CHECK_MODULES([FREETYPE], [freetype2])
+AC_SUBST([FREETYPE_CFLAGS])
+AC_SUBST([FREETYPE_LIBS])
 
 AC_CHECK_LIB([gdi32], [main])
 
@@ -109,10 +163,22 @@ AC_CHECK_LIB([Iphlpapi], [main])
 
 AM_CONDITIONAL([BUILTIN_GLEE], [false])
 
-PKG_CHECK_MODULES([GLEW], [glew])
+AC_ARG_WITH(glad, AS_HELP_STRING(
+    [--without-glad], [use GLAD OpenGL loader]))
+AS_IF([test "x$with_glad" != xno], [
+    AC_DEFINE([WITH_GLAD], [1], [Define to 1 to use GLAD])
+])
+AM_CONDITIONAL([WITH_GLAD], [test x$with_glad != xno])
+
+AC_ARG_WITH(glew, AS_HELP_STRING(
+    [--with-glew], [use GLEW library]))
+AS_IF([test "x$with_glew" = xyes], [
+    PKG_CHECK_MODULES([GLEW], [glew])
+    AC_DEFINE([WITH_GLEW], [1], [Define to 1 to use GLEW])
+])
 
 AC_ARG_WITH(libmpeg2, AS_HELP_STRING(
-    [--with-libmpeg2], [use libmpeg2 library (yes, no, builtin)]))
+    [--without-libmpeg2], [or --with-libmpeg=builtin to use included version]))
 AM_CONDITIONAL([BUILTIN_LIBMPEG2], [test x$with_libmpeg2 = xbuiltin])
 AS_IF([test "x$with_libmpeg2" != xno], [
     AS_IF([test "x$with_libmpeg2" = xbuiltin], [
@@ -157,15 +223,11 @@ PKG_CHECK_MODULES([OPENAL], [openal], [
         AS_CASE([$host_os],
 	[darwin*], [
 		AC_MSG_NOTICE([Using OpenAL.framework])
-		# OPENAL_CFLAGS="-I/System/Library/Frameworks/OpenAL.framework/Headers"
-		# OPENAL_CFLAGS="-I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk/System/Library/Frameworks/OpenAL.framework/Headers"
-		OPENAL_CFLAGS="-I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk/System/Library/Frameworks/OpenAL.framework/Headers"
 		OPENAL_LIBS="-framework OpenAL"
-
 	],
 	[
 		AC_MSG_NOTICE([Assuming -lopenal works])
-		OPENAL_LIBS = -lopenal
+		OPENAL_LIBS="-lopenal"
 	])
 	AC_SUBST([OPENAL_CFLAGS])
 	AC_SUBST([OPENAL_LIBS])
@@ -174,7 +236,7 @@ PKG_CHECK_MODULES([OPENAL], [openal], [
 
 # AC_SUBST([USE_OPENGL], [1])
 AC_DEFINE([USE_OPENGL], [1], [Define to 1 to use OpenGL])
-PKG_CHECK_MODULES([OPENGL], [gl glu], [
+PKG_CHECK_MODULES([OPENGL], [gl], [
 ], [
         AS_CASE([$host_os],
 	[darwin*], [
@@ -184,9 +246,7 @@ PKG_CHECK_MODULES([OPENGL], [gl glu], [
 	],
 	[
 		AC_CHECK_LIB([GL], [glViewport])
-		AC_CHECK_LIB([GLU], [gluPerspective])
-		AC_CHECK_LIB([GLU32], [main])
-		AC_CHECK_LIB([OpenGL32], [main])
+		AC_CHECK_LIB([OpenGL32], [main], [OPENGL_LIBS=-lOpenGL32])
 	])
 	AC_SUBST([OPENGL_CFLAGS])
 	AC_SUBST([OPENGL_LIBS])
@@ -194,6 +254,13 @@ PKG_CHECK_MODULES([OPENGL], [gl glu], [
 
 AC_DEFINE([USE_PNG], [1], [Define to 1 to use libpng])
 PKG_CHECK_MODULES([PNG], [libpng])
+
+AC_ARG_WITH(qt, AS_HELP_STRING(
+    [--with-qt], [use QT]))
+AS_IF([test "x$with_qt" = xyes], [
+    AC_DEFINE([WITH_QT], [1], [Define to 1 to use QT])
+    PKG_CHECK_MODULES([QT], [Qt5Gui])
+])
 
 AC_DEFINE([USE_SDL2], [1], [Define to 1 to use SDL 2.0])
 PKG_CHECK_MODULES([SDL2], [sdl2])
@@ -204,8 +271,11 @@ AS_CASE([$host_os],
 [mingw*], [],
 [darwin*], [],
 [
-	X11_LIBS="-lX11"
-	AC_DEFINE([USE_X11], [1], [Define to 1 to use X11])
+    X11_LIBS="-lX11"
+    AC_DEFINE([USE_X11], [1], [Define to 1 to use X11])
+
+#    X11_LIBS="$X11_LIBS -lXtst"
+#    AC_DEFINE([USE_X11_XTEST], [1], [Define to 1 to use X11 XTEST extension])
 ])
 AC_SUBST([X11_LIBS])
 
@@ -227,37 +297,69 @@ AC_CHECK_LIB([Ws2_32], [main])
 AC_SUBST([OS_CPPFLAGS])
 AC_SUBST([OS_LDFLAGS])
 AC_SUBST([OS_NAME])
+AC_SUBST([OS_NAME_2])
+AC_SUBST([OS_NAME_3])
+AC_SUBST([PACKAGE_ARCH])
 AS_CASE([$host_os],
 [mingw*], [
-	OS_NAME="windows"
-	OS_CPPFLAGS="-DWINDOWS"
-	OS_LDFLAGS="-mwindows"
-	LOADABLE_MODULE_EXT=".dll"
+    OS_NAME="windows"
+    OS_NAME_2="Windows"
+    OS_NAME_3="Windows"
+    OS_CPPFLAGS="-DWINDOWS"
+    AS_CASE([$host_os],
+    [mingw64], [
+        OS_LDFLAGS="-mwindows"
+        PACKAGE_ARCH="x86-64"
+    ], [
+        OS_LDFLAGS="-mwindows -Wl,--large-address-aware"
+        PACKAGE_ARCH="x86"
+    ])
+    LOADABLE_MODULE_EXT=".dll"
 ],
 [linux*], [
-	OS_NAME="linux"
-	OS_CPPFLAGS="-DLINUX"
-	LOADABLE_MODULE_EXT=".so"
+    OS_NAME="linux"
+    OS_NAME_2="Linux"
+    OS_NAME_3="Linux"
+    OS_CPPFLAGS="-DLINUX"
+    LOADABLE_MODULE_EXT=".so"
 ],
 [darwin*], [
-	OS_NAME="macosx"
-	OS_CPPFLAGS="-DMACOSX"
-	LOADABLE_MODULE_EXT=".so"
-	OS_LDFLAGS="-headerpad_max_install_names -pagezero_size 0x2000 -rpath @executable_path/../Frameworks"
+    OS_NAME="macosx"
+    OS_NAME_2="Mac OS X"
+    OS_NAME_3="OSX"
+    # OS_NAME="macos"
+    # OS_NAME_2="MacOS"
+    # OS_NAME_3="MacOS"
+    OS_CPPFLAGS="-DMACOSX"
+    LOADABLE_MODULE_EXT=".so"
+    OS_LDFLAGS="-headerpad_max_install_names -pagezero_size 0x2000 -rpath @executable_path/../Frameworks"
 ],
 [freebsd*], [
-	OS_NAME="freebsd"
-	OS_CPPFLAGS="-DFREEBSD"
-	LOADABLE_MODULE_EXT=".so"
+    OS_NAME="freebsd"
+    OS_NAME_2="FreeBSD"
+    OS_NAME_3="FreeBSD"
+    OS_CPPFLAGS="-DFREEBSD"
+    LOADABLE_MODULE_EXT=".so"
 ],
 [openbsd*], [
-	OS_NAME="openbsd"
-	OS_CPPFLAGS="-DOPENBSD"
-	LOADABLE_MODULE_EXT=".so"
+    OS_NAME="openbsd"
+    OS_NAME_2="OpenBSD"
+    OS_NAME_3="OpenBSD"
+    OS_CPPFLAGS="-DOPENBSD"
+    LOADABLE_MODULE_EXT=".so"
+],
+[dragonfly*], [
+    OS_NAME="dragonflybsd"
+    OS_NAME_2="DragonFlyBSD"
+    OS_NAME_3="DragonFlyBSD"
+    OS_CPPFLAGS="-DDRAGONFLYBSD"
+    LOADABLE_MODULE_EXT=".so"
 ],
 [
-	OS_NAME="unknown"
-	LOADABLE_MODULE_EXT=".unknown"
+    OS_NAME="unknown"
+    OS_NAME_2="Unknown OS"
+    OS_NAME_3="Unknown"
+    LOADABLE_MODULE_EXT=".unknown"
 ])
 
 AM_CONDITIONAL([WINDOWS], [test x$OS_NAME = xwindows])
@@ -270,6 +372,11 @@ AC_DEFINE_UNQUOTED([LT_MODULE_EXT], ["$LOADABLE_MODULE_EXT"],
 AC_DEFINE_UNQUOTED([OS_NAME], ["$OS_NAME"],
 [Define to a name identifier for the operating system, "linux".])
 
+AC_DEFINE_UNQUOTED([OS_NAME_2], ["$OS_NAME_2"],
+[Define to a nicely formatted name for the operating system, "Linux".])
+
+AC_DEFINE_UNQUOTED([OS_NAME_3], ["$OS_NAME_3"],
+[New name identifier for the operating system, "Linux".])
 
 # Checks for header files.
 
@@ -290,6 +397,8 @@ AC_CHECK_HEADERS([locale.h])
 AC_CHECK_HEADERS([malloc.h])
 AC_CHECK_HEADERS([netdb.h])
 AC_CHECK_HEADERS([netinet/in.h])
+AC_CHECK_HEADERS([OpenAL/al.h])
+AC_CHECK_HEADERS([OpenAL/alc.h])
 AC_CHECK_HEADERS([stddef.h])
 AC_CHECK_HEADERS([stdint.h])
 AC_CHECK_HEADERS([stdlib.h])
@@ -376,7 +485,6 @@ AC_FUNC_CHOWN
 AC_FUNC_ERROR_AT_LINE
 AC_FUNC_FORK
 AC_FUNC_FSEEKO
-AC_FUNC_MALLOC
 AC_FUNC_MKTIME
 AC_FUNC_MMAP
 AC_FUNC_REALLOC
@@ -460,51 +568,6 @@ AS_CASE([$host_os],
 #])
 
 
-# JIT support
-
-AC_ARG_ENABLE([jit], [AS_HELP_STRING([--enable-jit],
-        [enable support for JIT compilation @<:@default=check@:>@])
-    ], [], [enable_jit=check])
-
-AS_IF([test "x$enable_jit" != xno], [
-    AC_TRY_COMPILE([
-    ], [
-        #ifndef __i386__
-        #error JIT is only supported on x86
-        #endif
-        #if defined(__OpenBSD__) || defined(__FreeBSD__)
-        #error no JIT on OpenBSD/FreeBSD right now
-        #endif
-    ], [
-        AC_DEFINE([JIT], [1], [Define to 1 to enable JIT compilation])
-    ], [
-        if test "x$enable_jit" != xcheck; then
-            AC_MSG_FAILURE(
-                [--enable-jit was given, but arch is not supported])
-        fi
-    ]) 
-], [])
-
-
-# Udis86
-
-#AC_ARG_ENABLE(
-#    [udis86],
-#    [AS_HELP_STRING(
-#            [--enable-udis86],
-#            [enable support for JIT compilation @<:@default=no@:>@]
-#    )],
-#    [],
-#    [enable_udis86=no]
-#)
-#AS_IF(
-#    [test "x$enable_udis86" != xno],
-#    [
-#        AC_CHECK_LIB([udis86], [ud_init])
-#    ],
-#    []
-#)
-
 # Byte swapping
 
 AC_MSG_CHECKING(for bswap_16)
@@ -539,99 +602,154 @@ AC_TRY_LINK([
 # compiling without them may not work (without further changes to
 # source code).
 
-AC_DEFUN([OPT_FEATURE], [
-
-# AS_IF([test "x$5" = "xyes"], [
-#	AC_ARG_ENABLE([$3],
-#	[AS_HELP_STRING([--disable-$3], [$4])],
-#	[enable_$2=no],
-#	[enable_$2=yes])
-# ], [
-#	AC_ARG_ENABLE([$3],
-#	[AS_HELP_STRING([--enable-$3], [$4])],
-#	[enable_$2=yes],
-#	[enable_$2=no])
-# ])
-AC_ARG_ENABLE([$3],
-	[AS_HELP_STRING([--enable-$3], [$4 @<:@default=$5@:>@])],
-	[], [enable_$2=$5])
-AS_IF([test x$enable_$2 = xyes], [
-	AC_DEFINE([$1], [1], [Define to 1 to $4])
-])
-AM_CONDITIONAL([$1], [test x$enable_$2 = xyes])
-])
-
-AC_DEFUN([REQ_FEATURE], [
-AC_DEFINE([$1], [1], [Define to 1 to $4])
-AM_CONDITIONAL([$1], [true])
-])
-
 OPT_FEATURE([A2065], [a2065], [a2065],
-	[enable A2065 ethernet card], [yes])
+            [A2065 ethernet card])
 REQ_FEATURE([A2091], [a2091], [a2091],
-	[enable A590/A2091 SCSI], [yes])
-REQ_FEATURE([ACTION_REPLAY], [action_replay], [action-replay],
-	[enable Action Replay 1/2/3 support], [yes])
-OPT_FEATURE([AHI], [ahi], [ahi],
-	[builtin AHI device], [no])
-OPT_FEATURE([WITH_BUILTIN_SLIRP], [builtin_slirp], [builtin-slirp],
-	[enable builtin SLIRP implementation], [yes])
+            [A590/A2091 SCSI])
+OPT_FEATURE([ACTION_REPLAY], [action_replay], [action-replay],
+            [Action Replay 1/2/3 support])
+OPT_FEATURE([AGA], [aga], [aga],
+            [AGA chipset emulation])
+DIS_FEATURE([AHI], [ahi], [ahi],
+            [builtin AHI device (unsupported)])
+OPT_FEATURE([ARCADIA], [arcadia], [arcadia],
+            [Arcadia arcade system])
+REQ_FEATURE([AUTOCONFIG], [autoconfig], [autoconfig],
+            [autoconfig support, fast ram, harddrives etc...])
+OPT_FEATURE([BSDSOCKET], [bsdsocket], [bsdsocket],
+            [built-in bsdsocket.library])
+DIS_FEATURE([WITH_BUILTIN_SLIRP], [builtin_slirp], [builtin-slirp],
+            [built-in SLIRP implementation (unsupported)])
 OPT_FEATURE([CAPS], [caps], [caps],
-	[enable IPF support via libcapsimage], [yes])
-REQ_FEATURE([CD32], [cd32], [cd32],
-	[enable CD32 emulation], [yes])
-REQ_FEATURE([CDTV], [cdtv], [cdtv],
-	[enable CDTV emulation], [yes])
+            [IPF support via libcapsimage])
+OPT_FEATURE([CD32], [cd32], [cd32],
+            [CD32 emulation])
+OPT_FEATURE([CDTV], [cdtv], [cdtv],
+            [CDTV emulation])
+OPT_FEATURE([CODEGEN], [codegen], [codegen],
+            [Code generation (disable for cross-compilation)])
+OPT_FEATURE([CPUEMU_0], [cpuemu_0], [cpuemu-0],
+            [generic 680x0 emulation])
+OPT_FEATURE([CPUEMU_11], [cpuemu_11], [cpuemu-11],
+            [68000/68010 prefetch emulation])
+REQ_FEATURE([CPUEMU_13], [cpuemu_13], [cpuemu-13],
+            [68000/68010 cycle-exact cpu&blitter])
+OPT_FEATURE([CPUEMU_20], [cpuemu_20], [cpuemu-20],
+            [68020 prefetch])
+OPT_FEATURE([CPUEMU_21], [cpuemu_21], [cpuemu-21],
+            [68020 "cycle-exact" + blitter])
+OPT_FEATURE([CPUEMU_22], [cpuemu_22], [cpuemu-22],
+            [68030 prefetch])
+OPT_FEATURE([CPUEMU_23], [cpuemu_23], [cpuemu-23],
+            [68030 "cycle-exact" + blitter])
+OPT_FEATURE([CPUEMU_24], [cpuemu_24], [cpuemu-24],
+            [68060 "cycle-exact" + blitter])
+OPT_FEATURE([CPUEMU_25], [cpuemu_25], [cpuemu-25],
+            [68040 "cycle-exact" + blitter (needs cpuemu-24)])
+OPT_FEATURE([CPUEMU_31], [cpuemu_31], [cpuemu-31],
+            [Aranym 68040 MMU])
+OPT_FEATURE([CPUEMU_32], [cpuemu_32], [cpuemu-32],
+            [Previous 68030 MMU])
+OPT_FEATURE([CPUEMU_33], [cpuemu_33], [cpuemu-33],
+            [68060 MMU])
+OPT_FEATURE([CPUEMU_40], [cpuemu_40], [cpuemu-40],
+            [generic 680x0 with JIT direct memory access])
+OPT_FEATURE([CPUEMU_50], [cpuemu_50], [cpuemu-50],
+            [generic 680x0 with indirect memory access])
 REQ_FEATURE([WITH_CPUBOARD], [cpuboard], [cpuboard],
-	[enable cpu board emulation], [yes])
+            [cpu board emulation])
+OPT_FEATURE([DEBUGGER], [debugger], [debugger],
+            [debugger support (cannot be disabled right now)])
 OPT_FEATURE([A_DMS], [dms], [dms],
-        [enable DMS support], [yes])
+            [DMS support])
 OPT_FEATURE([DRIVESOUND], [drivesound], [drivesound],
-	[enable drive sound emulation], [yes])
+            [drive sound emulation])
+OPT_FEATURE([FDI2RAW], [fdi2raw], [fdi2raw],
+            [FDI 1.0 and 2.x image support])
+REQ_FEATURE([FILESYS], [filesys], [filesys],
+            [directory hard drives])
 REQ_FEATURE([FPUEMU], [fpuemu], [fpuemu],
-	[enable FPU emulation], [yes])
+            [FPU emulation])
+DIS_FEATURE([FS_EMU_DRIVERS], [drivers], [drivers],
+            [multiple driver backends (experimental)])
 OPT_FEATURE([GFXBOARD], [gfxboard], [gfxboard],
-	[enable GFX hardware boards], [yes])
-OPT_FEATURE([WITH_LUA], [lua], [lua],
-	[enable LUA scripting], [no])
+            [GFX hardware boards])
+AC_ARG_ENABLE([jit], [AS_HELP_STRING([--disable-jit], [JIT compiler])])
+AS_IF([test "x$enable_jit" != xno], [
+    AC_TRY_COMPILE([
+    ], [
+        #if !defined(__i386__) && !defined(__x86_64__)
+        #error JIT is only supported on x86/x86-64
+        #endif
+        #if defined(__OpenBSD__) || defined(__FreeBSD__)
+        #error no JIT on OpenBSD/FreeBSD right now
+        #endif
+    ], [
+        AC_DEFINE([JIT], [1], [Define to 1 to enable JIT compilation])
+    ], [
+        if test "x$enable_jit" != xyes; then
+            AC_MSG_FAILURE(
+                [--enable-jit was given, but arch is not supported])
+        fi
+    ])
+])
+AM_CONDITIONAL([JIT],
+[test x$enable_jit != xno])
+
+OPT_FEATURE([USE_JIT_FPU], [jit_fpu], [jit-fpu],
+            [JIT compilation of FPU instructions])
+DIS_FEATURE([WITH_LUA], [lua], [lua],
+            [LUA scripting (unfinished)])
 OPT_FEATURE([WITH_NETPLAY], [netplay], [netplay],
-	[enable netplay support], [yes])
-REQ_FEATURE([NCR9X], [ncr9x], [ncr9x],
-	[enable 53C9X SCSI], [yes])
+            [netplay support])
+OPT_FEATURE([NCR], [ncr], [ncr],
+            [A4000T/A4091, 53C710/53C770 SCSI])
+OPT_FEATURE([NCR9X], [ncr9x], [ncr9x],
+            [53C9X SCSI])
+OPT_FEATURE([PARALLEL_PORT], [parallel_port], [parallel-port],
+            [parallell port (printer) emulation])
+DIS_FEATURE([WITH_PEARPC_CPU], [pearpc_cpu], [pearpc-cpu],
+            [use PearPC for PPC emulation (deprecated)])
 REQ_FEATURE([PICASSO96], [picasso96], [picasso96],
-	[enable Picasso 96 (uaegfx.card)], [yes])
-REQ_FEATURE([WITH_PPC], [ppc], [ppc],
-	[enable PPC (requires cpu board)], [yes])
+            [Picasso 96 (uaegfx.card)])
+OPT_FEATURE([WITH_PPC], [ppc], [ppc],
+            [PPC (requires cpu board)])
 OPT_FEATURE([PROWIZARD], [prowizard], [prowizard],
-	[enable prowizard request], [yes])
+            [prowizard])
+OPT_FEATURE([SAVESTATE], [savestate], [savestate],
+            [save state support])
+OPT_FEATURE([SCP], [scp], [scp],
+            [SuperCardPro floppy image support])
+OPT_FEATURE([WITH_SEGTRACKER], [segtracker], [segtracker],
+            [segtracker support in debugger])
 OPT_FEATURE([SERIAL_PORT], [serial_port], [serial-port],
-        [enable serial port emulation], [yes])
+            [serial port emulation])
 OPT_FEATURE([WITH_SLIRP], [slirp], [slirp],
-	[enable SLIRP (user mode NAT)], [yes])
+            [SLIRP (user mode NAT)])
 OPT_FEATURE([WITH_SOFTFLOAT], [softfloat], [softfloat],
-	[enable use of softfloat library], [yes])
-OPT_FEATURE([WITH_QEMU_SLIRP], [qemu_slirp], [qemu-slirp],
-	[enable QEMU SLIRP implementation], [yes])
-OPT_FEATURE([WITH_UAENATIVE], [uaenative], [uaenative],
-	[enable uaenative.library], [yes])
-OPT_FEATURE([SANA2], [uaenet], [uaenet],
-	[enable uaenet.device], [yes])
-OPT_FEATURE([WITH_TOCCATA], [toccata], [toccata],
-	[enable Toccata sound card emulation], [yes])
-OPT_FEATURE([WITH_UDIS86], [udis86], [udis86],
-	[enable UDIS86 x86/x86-64 disassembler], [yes])
-OPT_FEATURE([WITH_XML_SHADER], [xml_shader], [xml-shader],
-	[enable XML shader support], [yes])
-OPT_FEATURE([A_ZIP], [zip], [zip],
-	[enable ZIP archive support], [yes])
-
-OPT_FEATURE([WITH_PEARPC_CPU], [pearpc_cpu], [pearpc-cpu],
-	[use PearPC for PPC emulation], [no])
+            [use softfloat library])
 OPT_FEATURE([WITH_QEMU_CPU], [qemu_cpu], [qemu-cpu],
-	[use QEmu for PPC emulation], [yes])
-
-OPT_FEATURE([FS_EMU_DRIVERS], [fs_emu_drivers], [fs-emu-drivers],
-        [enable multiple driver backends in libfsemu], [no])
+            [use QEMU plugin for PPC emulation])
+OPT_FEATURE([WITH_QEMU_SLIRP], [qemu_slirp], [qemu-slirp],
+            [use QEMU plugin for SLIRP implementation])
+REQ_FEATURE([WITH_TOCCATA], [toccata], [toccata],
+            [Toccata sound card emulation])
+OPT_FEATURE([WITH_UAENATIVE], [uaenative], [uaenative],
+            [uaenative.library])
+OPT_FEATURE([SANA2], [uaenet], [uaenet],
+            [uaenet.device])
+OPT_FEATURE([SCSIEMU], [uaescsi], [uaescsi],
+            [uaescsi.device])
+OPT_FEATURE([UAESERIAL], [uaeserial], [uaeserial],
+            [uaeserial.device])
+OPT_FEATURE([WITH_UDIS86], [udis86], [udis86],
+            [UDIS86 x86/x86-64 disassembler])
+OPT_FEATURE([WITH_VPAR], [vpar], [vpar],
+            [vpar virtual parallel port])
+OPT_FEATURE([WITH_XML_SHADER], [xml_shader], [xml-shader],
+            [XML shader support])
+OPT_FEATURE([A_ZIP], [zip], [zip],
+            [ZIP archive support])
 
 AC_DEFINE([FPU_UAE], [1], [Define to 1])
 
@@ -651,15 +769,13 @@ AC_CONFIG_FILES([
 ])
 AC_OUTPUT
 
-
 # Summary
 
 echo ""
 echo "Configuration summary for FS-UAE:"
 echo ""
-echo "  Building for OS:   $host_os"
+echo "  Building for OS:   $host_os (\"$OS_NAME\")"
 echo "  Building for CPU:  $host_cpu"
-echo "  Using OS name:     $OS_NAME"
 echo "  Module extension:  $LOADABLE_MODULE_EXT"
 echo ""
 echo "  LIBMPEG2_CFLAGS:   $LIBMPEG2_CFLAGS"
@@ -670,4 +786,6 @@ echo "  OPENGL_CFLAGS:     $OPENGL_CFLAGS"
 echo "  OPENGL_LIBS:       $OPENGL_LIBS"
 echo "  OS_CPPFLAGS:       $OS_CPPFLAGS"
 echo "  OS_LDFLAGS:        $OS_LDFLAGS"
+echo "  SDL2_CFLAGS:       $SDL2_CFLAGS"
+echo "  SDL2_LIBS:         $SDL2_LIBS"
 echo ""

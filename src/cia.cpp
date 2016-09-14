@@ -42,6 +42,7 @@
 #include "autoconf.h"
 #include "uae/ppc.h"
 #include "rommgr.h"
+#include "scsi.h"
 
 #ifdef FSUAE // NL
 #include "uae/fs.h"
@@ -615,7 +616,7 @@ static void do_tod_hack (int dotod)
 	if (rate <= 0)
 		return;
 	if (rate != oldrate || (ciaatod & 0xfff) != (tod_hack_tod_last & 0xfff)) {
-		write_log (_T("TOD HACK reset %d,%d %d,%d\n"), rate, oldrate, ciaatod, tod_hack_tod_last);
+		write_log (_T("TOD HACK reset %d,%d %ld,%lld\n"), rate, oldrate, ciaatod, tod_hack_tod_last);
 		tod_hack_reset ();
 		oldrate = rate;
 		docount = 1;
@@ -721,6 +722,9 @@ static void resetwarning_check (void)
 
 void CIA_hsync_prehandler (void)
 {
+#ifdef FSUAE
+	parallel_poll_ack();
+#endif
 }
 
 static void keyreq (void)
@@ -748,7 +752,7 @@ static int ciab_tod_event_state;
 static void CIAB_tod_inc (bool irq)
 {
 	ciab_tod_event_state = 3; // done
-	if (!ciaatodon)
+	if (!ciabtodon)
 		return;
 	ciabtod++;
 	ciabtod &= 0xFFFFFF;
@@ -871,7 +875,7 @@ static void led_vsync (void)
 	led_cycles_off = 0;
 	if (led_old_brightness != gui_data.powerled_brightness) {
 		gui_data.powerled = gui_data.powerled_brightness > 127;
-		gui_led (LED_POWER, gui_data.powerled);
+		gui_led (LED_POWER, gui_data.powerled, gui_data.powerled_brightness);
 		led_filter_audio ();
 	}
 	led_old_brightness = gui_data.powerled_brightness;
@@ -949,10 +953,12 @@ static void bfe001_change (void)
 			map_overlay (0);
 		}
 	}
+#ifdef CD32
 	if (currprefs.cs_cd32cd && (v & 1) != oldcd32mute) {
 		oldcd32mute = v & 1;
 		akiko_mute (oldcd32mute ? 0 : 1);
 	}
+#endif
 }
 
 static uae_u32 getciatod(uae_u32 tod)
@@ -1019,8 +1025,9 @@ static uae_u8 ReadCIAA (unsigned int addr)
 
 		return tmp;
 	case 1:
+		if (0) {
 #ifdef PARALLEL_PORT
-		if (isprinter () > 0) {
+		} else if (isprinter () > 0) {
 			tmp = ciaaprb;
 		} else if (isprinter () < 0) {
 			uae_u8 v;
@@ -1033,11 +1040,13 @@ static uae_u8 ReadCIAA (unsigned int addr)
 		} else if (currprefs.win32_samplersoundcard >= 0) {
 
 			tmp = sampler_getsample ((ciabpra & 4) ? 1 : 0);
-
-		} else
 #endif
 
-		{
+		} else if (parallel_port_scsi) {
+
+			tmp = parallel_port_scsi_read(0, ciaaprb, ciaadrb);
+
+		} else {
 			tmp = handle_parport_joystick (0, ciaaprb, ciaadrb);
 			tmp = dongle_cia_read (1, reg, tmp);
 #if DONGLE_DEBUG > 0
@@ -1173,6 +1182,8 @@ static uae_u8 ReadCIAB (unsigned int addr)
 			uae_u8 v;
 			parallel_direct_read_status (&v);
 			tmp |= v & 7;
+		} else if (parallel_port_scsi) {
+			tmp = parallel_port_scsi_read(1, ciabpra, ciabdra);
 		} else {
 			tmp |= handle_parport_joystick (1, ciabpra, ciabdra);
 		}
@@ -1321,11 +1332,17 @@ static void WriteCIAA (uae_u16 addr, uae_u8 val)
 			cia_parallelack ();
 		} else if (isprinter() < 0) {
 			parallel_direct_write_data (val, ciaadrb);
+#ifdef FSUAE
+			parallel_ack();
+#else
 			cia_parallelack ();
+#endif
 #ifdef ARCADIA
 		} else if (arcadia_bios) {
 			arcadia_parport (1, ciaaprb, ciaadrb);
 #endif
+		} else if (parallel_port_scsi) {
+			parallel_port_scsi_write(0, ciaaprb, ciaadrb);
 		}
 #endif
 		break;
@@ -1495,8 +1512,11 @@ static void WriteCIAB (uae_u16 addr, uae_u8 val)
 			serial_writestatus(ciabpra, ciabdra);
 #endif
 #ifdef PARALLEL_PORT
-		if (isprinter () < 0)
+		if (isprinter () < 0) {
 			parallel_direct_write_status (val, ciabdra);
+		} else if (parallel_port_scsi) {
+			parallel_port_scsi_write(1, ciabpra, ciabdra);
+		}
 #endif
 		break;
 	case 1:
@@ -1726,7 +1746,8 @@ addrbank cia_bank = {
 	cia_lget, cia_wget, cia_bget,
 	cia_lput, cia_wput, cia_bput,
 	default_xlate, default_check, NULL, NULL, _T("CIA"),
-	cia_lgeti, cia_wgeti, ABFLAG_IO, NULL, 0x3f01, 0xbfc000
+	cia_lgeti, cia_wgeti,
+	ABFLAG_IO, S_READ, S_WRITE, NULL, 0x3f01, 0xbfc000
 };
 
 // Gayle or Fat Gary does not enable CIA /CS lines if both CIAs are selected
@@ -1743,7 +1764,7 @@ STATIC_INLINE bool isgayle (void)
 
 static void cia_wait_pre (int cianummask)
 {
-	if (currprefs.cachesize)
+	if (currprefs.cachesize || currprefs.cpu_thread)
 		return;
 #ifdef WITH_PPC
 	if (ppc_state)
@@ -1782,11 +1803,13 @@ static void cia_wait_post (int cianummask, uae_u32 value)
 	if (ppc_state)
 		return;
 #endif
+	if (currprefs.cpu_thread)
+		return;
 	if (currprefs.cachesize) {
 		do_cycles (8 * CYCLE_UNIT /2);
 	} else {
 		int c = 6 * CYCLE_UNIT / 2;
-		if (currprefs.cpu_cycle_exact)
+		if (currprefs.cpu_memory_cycle_exact)
 			x_do_cycles_post (c, value);
 		else
 			do_cycles (c);
@@ -1836,12 +1859,8 @@ static uae_u32 REGPARAM2 cia_bget (uaecptr addr)
 	int r = (addr & 0xf00) >> 8;
 	uae_u8 v = 0xff;
 
-#ifdef JIT
-	special_mem |= S_READ;
-#endif
-
 	if (isgarynocia(addr))
-		return dummy_get(addr, 1, false);
+		return dummy_get(addr, 1, false, 0);
 
 	if (!isgaylenocia (addr))
 		return v;
@@ -1892,12 +1911,8 @@ static uae_u32 REGPARAM2 cia_wget (uaecptr addr)
 	int r = (addr & 0xf00) >> 8;
 	uae_u16 v = 0xffff;
 
-#ifdef JIT
-	special_mem |= S_READ;
-#endif
-
 	if (isgarynocia(addr))
-		return dummy_get(addr, 2, false);
+		return dummy_get(addr, 2, false, 0);
 
 	if (!isgaylenocia (addr))
 		return v;
@@ -1961,10 +1976,6 @@ static void REGPARAM2 cia_bput (uaecptr addr, uae_u32 value)
 {
 	int r = (addr & 0xf00) >> 8;
 
-#ifdef JIT
-	special_mem |= S_WRITE;
-#endif
-
 	if (isgarynocia(addr)) {
 		dummy_put(addr, 1, false);
 		return;
@@ -1990,10 +2001,6 @@ static void REGPARAM2 cia_bput (uaecptr addr, uae_u32 value)
 static void REGPARAM2 cia_wput (uaecptr addr, uae_u32 value)
 {
 	int r = (addr & 0xf00) >> 8;
-
-#ifdef JIT
-	special_mem |= S_WRITE;
-#endif
 
 	if (isgarynocia(addr)) {
 		dummy_put(addr, 2, false);
@@ -2036,7 +2043,8 @@ addrbank clock_bank = {
 	clock_lget, clock_wget, clock_bget,
 	clock_lput, clock_wput, clock_bput,
 	default_xlate, default_check, NULL, NULL, _T("Battery backed up clock (none)"),
-	dummy_lgeti, dummy_wgeti, ABFLAG_IO, NULL, 0x3f, 0xd80000
+	dummy_lgeti, dummy_wgeti,
+	ABFLAG_IO, S_READ, S_WRITE, NULL, 0x3f, 0xd80000
 };
 
 static unsigned int clock_control_d;
@@ -2188,7 +2196,7 @@ void rtc_hardreset (void)
 static uae_u32 REGPARAM2 clock_lget (uaecptr addr)
 {
 	if ((addr & 0xffff) >= 0x8000 && currprefs.cs_fatgaryrev >= 0)
-		return dummy_get(addr, 4, false);
+		return dummy_get(addr, 4, false, 0);
 
 	return (clock_wget (addr) << 16) | clock_wget (addr + 2);
 }
@@ -2196,7 +2204,7 @@ static uae_u32 REGPARAM2 clock_lget (uaecptr addr)
 static uae_u32 REGPARAM2 clock_wget (uaecptr addr)
 {
 	if ((addr & 0xffff) >= 0x8000 && currprefs.cs_fatgaryrev >= 0)
-		return dummy_get(addr, 2, false);
+		return dummy_get(addr, 2, false, 0);
 
 	return (clock_bget (addr) << 8) | clock_bget (addr + 1);
 }
@@ -2206,12 +2214,8 @@ static uae_u32 REGPARAM2 clock_bget (uaecptr addr)
 	struct tm *ct;
 	uae_u8 v = 0;
 
-#ifdef JIT
-	special_mem |= S_READ;
-#endif
-
 	if ((addr & 0xffff) >= 0x8000 && currprefs.cs_fatgaryrev >= 0)
-		return dummy_get(addr, 1, false);
+		return dummy_get(addr, 1, false, 0);
 
 #ifdef CDTV
 	if (currprefs.cs_cdtvram && (addr & 0xffff) >= 0x8000)
@@ -2220,9 +2224,7 @@ static uae_u32 REGPARAM2 clock_bget (uaecptr addr)
 
 	addr &= 0x3f;
 	if ((addr & 3) == 2 || (addr & 3) == 0 || currprefs.cs_rtc == 0) {
-		if (currprefs.cpu_model == 68000 && currprefs.cpu_compatible)
-			v = regs.irc >> 8;
-		return v;
+		return dummy_get_safe(addr, 1, false, v);
 	}
 #ifdef FSUAE
 	ct = uae_get_amiga_time();
@@ -2259,9 +2261,6 @@ static void REGPARAM2 clock_wput (uaecptr addr, uae_u32 value)
 
 static void REGPARAM2 clock_bput (uaecptr addr, uae_u32 value)
 {
-#ifdef JIT
-	special_mem |= S_WRITE;
-#endif
 //	write_log(_T("W: %x (%x): %x, PC=%08x\n"), addr, (addr & 0xff) >> 2, value & 0xff, M68K_GETPC);
 
 	if ((addr & 0xffff) >= 0x8000 && currprefs.cs_fatgaryrev >= 0) {

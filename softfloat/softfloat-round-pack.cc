@@ -563,7 +563,7 @@ void normalizeFloatx80Subnormal(Bit64u aSig, Bit32s *zExpPtr, Bit64u *zSigPtr)
 | Floating-Point Arithmetic.
 *----------------------------------------------------------------------------*/
 
-floatx80 SoftFloatRoundAndPackFloatx80(int roundingPrecision,
+static floatx80 SoftFloatRoundAndPackFloatx80(int roundingPrecision,
         int zSign, Bit32s zExp, Bit64u zSig0, Bit64u zSig1, float_status_t &status)
 {
     Bit64u roundIncrement, roundMask, roundBits;

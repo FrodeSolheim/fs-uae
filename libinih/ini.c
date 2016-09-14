@@ -7,6 +7,14 @@ https://github.com/benhoyt/inih
 
 */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#ifdef USE_GLIB
+#include <glib.h>
+#endif
+
 #ifdef _MSC_VER
 #define _CRT_SECURE_NO_WARNINGS
 #endif
@@ -178,7 +186,11 @@ int ini_parse(const char* filename, ini_handler handler, void* user)
     FILE* file;
     int error;
 
+#ifdef USE_GLIB
+    file = g_fopen(filename, "r");
+#else
     file = fopen(filename, "r");
+#endif
     if (!file)
         return -1;
     error = ini_parse_file(file, handler, user);

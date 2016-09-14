@@ -1,0 +1,18 @@
+Summary: Freezer Cartridge
+Type: Choice
+Default: 0
+Example: hrtmon
+Since: 2.7.10
+
+Value: 0 ("None")
+Value: hrtmon ("HRTMon v2.36 (Built-in)")
+Value: action-replay-2 (Action Replay Mk II v2.14)
+Value: action-replay-3 (Action Replay Mk III v3.17)
+
+Code:
+
+    if c.freezer_cartridge.explicit:
+        c.freezer_cartridge = c.freezer_cartridge.explicit
+        # FIXME: Check valid values
+    else:
+        c.freezer_cartridge = "0"

@@ -17,4 +17,4 @@ struct blitop {
 
 extern struct blitop blitops[256];
 
-#endif // UAE_GENBLITTER_H
+#endif /* UAE_GENBLITTER_H */

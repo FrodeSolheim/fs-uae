@@ -1,8 +1,8 @@
 #ifndef UAE_CPUMMU030_H
 #define UAE_CPUMMU030_H
 
-#ifdef FSUAE // NL
 #include "uae/types.h"
+#ifdef FSUAE
 #include "uae/inline.h"
 #include "newcpu.h"
 #endif
@@ -476,4 +476,4 @@ extern void m68k_do_rte_mmu030 (uaecptr a7);
 extern void flush_mmu030 (uaecptr, int);
 extern void m68k_do_bsr_mmu030 (uaecptr oldpc, uae_s32 offset);
 
-#endif // UAE_CPUMMU030_H
+#endif /* UAE_CPUMMU030_H */

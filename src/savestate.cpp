@@ -72,6 +72,9 @@
 #endif
 
 int savestate_state = 0;
+
+#ifdef SAVESTATE
+
 static int savestate_first_capture;
 
 static bool new_blitter = false;
@@ -135,6 +138,8 @@ static void state_incompatible_warn (void)
 		notify_user (NUMSG_STATEHD);
 	}
 }
+
+#endif
 
 /* functions for reading/writing bytes, shorts and longs in big-endian
 * format independent of host machine's endianess */
@@ -257,6 +262,9 @@ TCHAR *restore_string_func (uae_u8 **dstp)
 	xfree (to);
 	return s;
 }
+
+#ifdef SAVESTATE
+
 TCHAR *restore_path_func (uae_u8 **dstp, int type)
 {
 	TCHAR *newpath;
@@ -700,8 +708,10 @@ void restore_state (const TCHAR *filename)
 		else if (!_tcscmp (name, _T("SCS4")))
 			end = restore_scsi_device (WDTYPE_A2091_2, chunk);
 #endif
+#ifdef SCSIEMU
 		else if (!_tcscmp (name, _T("SCSD")))
 			end = restore_scsidev (chunk);
+#endif
 		else if (!_tcscmp (name, _T("GAYL")))
 			end = restore_gayle (chunk);
 		else if (!_tcscmp (name, _T("IDE ")))
@@ -756,7 +766,9 @@ void savestate_restore_finish (void)
 	restore_audio_finish ();
 	restore_disk_finish ();
 	restore_blitter_finish ();
+#ifdef CD32
 	restore_akiko_finish ();
+#endif
 #ifdef CDTV
 	restore_cdtv_finish ();
 #endif
@@ -1016,11 +1028,13 @@ static int save_state_internal (struct zfile *f, const TCHAR *description, int c
 		}
 	}
 #endif
+#ifdef SCSIEMU
 	for (i = 0; i < MAX_TOTAL_SCSI_DEVICES; i++) {
 		dst = save_scsidev (i, &len, NULL);
 		save_chunk (f, dst, len, _T("SCSD"), 0);
 		xfree (dst);
 	}
+#endif
 #ifdef ACTION_REPLAY
 	dst = save_action_replay (&len, NULL);
 	save_chunk (f, dst, len, _T("ACTR"), comp);
@@ -1090,7 +1104,9 @@ static int save_state_internal (struct zfile *f, const TCHAR *description, int c
 
 int save_state (const TCHAR *filename, const TCHAR *description)
 {
+#ifdef FSUAE
 	printf("save_state %s\n", filename);
+#endif
 	struct zfile *f;
 	int comp = savestate_docompress;
 
@@ -2128,3 +2144,5 @@ misc:
 - should we strip all paths from image file names?
 
 */
+
+#endif /* SAVESTATE */

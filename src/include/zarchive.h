@@ -1,8 +1,8 @@
 #ifndef UAE_ZARCHIVE_H
 #define UAE_ZARCHIVE_H
 
-#ifdef FSUAE // NL
 #include "uae/types.h"
+#ifdef FSUAE
 #include "zfile.h"
 #include <stdio.h>
 #include <stddef.h>
@@ -154,4 +154,4 @@ extern struct zfile *archive_unpackzfile (struct zfile *zf);
 
 extern struct zfile *decompress_zfd (struct zfile*);
 
-#endif // UAE_ZARCHIVE_H
+#endif /* UAE_ZARCHIVE_H */

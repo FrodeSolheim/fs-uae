@@ -32,9 +32,7 @@
 #endif
 #include "execio.h"
 
-// these variables are referenced by custom.cpp and newcpu.cpp also when
-// SANA2 is not defined
-
+/* These variables are referenced by custom.cpp and newcpu.cpp */
 volatile int uaenet_int_requested = 0;
 volatile int uaenet_vsync_requested = 0;
 
@@ -1579,6 +1577,11 @@ static void dev_reset (void)
 
 	write_log (_T("%s reset\n"), getdevname());
 	for (i = 0; i < MAX_TOTAL_NET_DEVICES; i++) {
+		if (td[i] && td[i]->active) {
+			write_log(_T("- %d: '%s'\n"), i, td[i]->name);
+		}
+	}
+	for (i = 0; i < MAX_TOTAL_NET_DEVICES; i++) {
 		dev = &devst[i];
 		if (dev->opencnt) {
 			struct asyncreq *ar = dev->ar;
@@ -1754,4 +1757,4 @@ void netdev_reset (void)
 	dev_reset ();
 }
 
-#endif // SANA2
+#endif /* SANA2 */

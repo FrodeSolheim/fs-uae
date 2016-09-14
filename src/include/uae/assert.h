@@ -8,4 +8,4 @@
 #include <assert.h>
 #define uae_assert assert
 
-#endif // UAE_ASSERT_H
+#endif /* UAE_ASSERT_H */

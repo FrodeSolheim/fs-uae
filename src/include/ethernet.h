@@ -1,9 +1,7 @@
 #ifndef UAE_ETHERNET_H
 #define UAE_ETHERNET_H
 
-#ifdef FSUAE // NL
 #include "uae/types.h"
-#endif
 
 #define UAENET_NONE 0
 #define UAENET_SLIRP 1
@@ -34,4 +32,4 @@ extern int ethernet_open (struct netdriverdata *ndd, void*, void*, ethernet_gotf
 extern void ethernet_close (struct netdriverdata *ndd, void*);
 extern void ethernet_trigger (struct netdriverdata *ndd, void*);
 
-#endif // UAE_ETHERNET_H
+#endif /* UAE_ETHERNET_H */

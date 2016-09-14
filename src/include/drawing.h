@@ -7,8 +7,8 @@
 #ifndef UAE_DRAWING_H
 #define UAE_DRAWING_H
 
-#ifdef FSUAE // NL
 #include "uae/types.h"
+#ifdef FSUAE
 #include "uae/inline.h"
 #include "custom.h"
 #include "xwin.h"
@@ -53,7 +53,7 @@ before it appears on-screen. (TW: display emulation now does this automatically)
 #define min_diwlastword (0)
 #define max_diwlastword (PIXEL_XPOS(0x1d4 >> 1))
 
-extern int lores_factor, lores_shift, interlace_seen;
+extern int lores_shift, interlace_seen;
 extern bool aga_mode, direct_rgb;
 extern int visible_left_border, visible_right_border;
 
@@ -81,13 +81,31 @@ STATIC_INLINE int coord_window_to_diw_x (int x)
 }
 
 extern int framecnt;
-
+extern int custom_frame_redraw_necessary;
 
 /* color values in two formats: 12 (OCS/ECS) or 24 (AGA) bit Amiga RGB (color_regs),
 * and the native color value; both for each Amiga hardware color register.
 *
 * !!! See color_reg_xxx functions below before touching !!!
 */
+#define CE_BORDERBLANK 0
+#define CE_BORDERNTRANS 1
+#define CE_BORDERSPRITE 2
+#define CE_SHRES_DELAY 4
+
+STATIC_INLINE bool ce_is_borderblank(uae_u8 data)
+{
+	return (data & (1 << CE_BORDERBLANK)) != 0;
+}
+STATIC_INLINE bool ce_is_bordersprite(uae_u8 data)
+{
+	return (data & (1 << CE_BORDERSPRITE)) != 0;
+}
+STATIC_INLINE bool ce_is_borderntrans(uae_u8 data)
+{
+	return (data & (1 << CE_BORDERNTRANS)) != 0;
+}
+
 struct color_entry {
 	uae_u16 color_regs_ecs[32];
 #ifndef AGA
@@ -96,7 +114,7 @@ struct color_entry {
 	xcolnr acolors[256];
 	uae_u32 color_regs_aga[256];
 #endif
-	bool borderblank, bordersprite;
+	uae_u8 extra;
 };
 
 #ifdef AGA
@@ -151,14 +169,14 @@ STATIC_INLINE int color_reg_cmp (struct color_entry *ce1, struct color_entry *ce
 	else
 #endif
 		v = memcmp (ce1->color_regs_ecs, ce2->color_regs_ecs, sizeof (uae_u16) * 32);
-	if (!v && ce1->borderblank == ce2->borderblank)
+	if (!v && ce1->extra == ce2->extra)
 		return 0;
 	return 1;
 }
 /* ugly copy hack, is there better solution? */
 STATIC_INLINE void color_reg_cpy (struct color_entry *dst, struct color_entry *src)
 {
-	dst->borderblank = src->borderblank;
+	dst->extra = src->extra;
 #ifdef AGA
 	if (aga_mode)
 		/* copy acolors and color_regs_aga */
@@ -179,6 +197,7 @@ STATIC_INLINE void color_reg_cpy (struct color_entry *dst, struct color_entry *s
 */
 
 #define COLOR_CHANGE_BRDBLANK 0x80000000
+#define COLOR_CHANGE_SHRES_DELAY 0x40000000
 struct color_change {
 	int linepos;
 	int regno;
@@ -234,9 +253,9 @@ struct decision {
 	int ctable;
 
 	uae_u16 bplcon0, bplcon2;
-#ifdef AGA
+//#ifdef AGA
 	uae_u16 bplcon3, bplcon4;
-#endif
+//#endif
 	uae_u8 nr_planes;
 	uae_u8 bplres;
 	bool ehb_seen;
@@ -327,4 +346,4 @@ STATIC_INLINE void toggle_inhibit_frame (int bit)
 	inhibit_frame ^= 1 << bit;
 }
 
-#endif // UAE_DRAWING_H
+#endif /* UAE_DRAWING_H */

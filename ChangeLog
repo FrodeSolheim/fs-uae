@@ -1,15 +1,168 @@
-Version 2.6.3:
+Version 2.7.16dev:
 
+* Add -no-pie (unless JIT is explicitly disabled) if supported by linker.
+* Removed dependency on GLEW, use GLAD OpenGL loader instead.
+* Check if SDL2 uses the X11 subsystem before using X11 directly.
+* Fixed crash when using the Wayland SDL2 driver.
+
+Version 2.7.15dev:
+
+* New option clipboard_sharing.
+* Translation fix for Fedora.
+* Do do install unused files to $prefix/share/fs-uae.
+* Packaging fix for Linux standalone version (fixes crash on Ubuntu 16.04).
+* Use embedded RUNPATHs instead of LD_LIBRARY_PATH for generic Linux versions.
+* Imported updated translations from crowdin.com.
+
+Version 2.7.14dev:
+
+* Fixed reserved word problem ("filter") in crt.shader.
+* Fixes for earlier vpar merge (fs-uae/issues/93).
+* Added segtracker to UAE debugger [cnvogelg].
+* Imported updated translations from crowdin.com.
+
+Version 2.7.13dev:
+
+* JIT on x86-64: Handle it gracefully when 2 GB virtual memory could not
+  be allocated (reduce size of allocation region).
+* A bit more flexible VM allocation function.
+* New option expect_version (used by FS-UAE Launcher).
+* Fixed middle mouse button ungrabbing with more than 1 keyboard joystick.
+* Remove greek translations due to missing bitmap font characters.
+* Imported updated translations from crowdin.com.
+
+Version 2.7.12dev:
+
+* Support additional/custom keybard-emulated joysticks, built-in configs
+  for X-Arcade controllers.
+* Enabled ECS Agnus for *all* A500 models by mistake (2.7.10dev).
+
+Version 2.7.10dev:
+
+* Choosing an accelerator now auto-selects a suitable CPU.
+* Added new option: network_card.
+* Added new option: freezer_cartridge.
+* Automatically set chipset to ECS Agnus if A500 and chip RAM >= 1MB.
+* A4000 model defaults to 680EC30 now, not 68030.
+* Fixed on-screen warning when using hardware dongle.
+* You can now more easily override keybindings in keyboard.conf.
+* New option cdrom_drive_0_delay (boolean) - delayed insert for CD32.
+* Enable the CD-ROM drive if there are CD images in the CD swap list.
+* Load floppy drive sounds from fs-uae.dat (fixes missing drive sounds).
+* Also look for named shaders in FS-UAE/Data/Shaders.
+* Map Mod+cursors to Amiga cursor keys (useful with joystick emulation).
+
+Version 2.7.9dev:
+
+* Plugin layout changed - new plugins must be downloaded.
+* Detect screen refresh rate for correct display with multiple displays.
+* Simplified video_sync option (is a boolean now).
+* Low latency vsync is enabled by default.
+
+Version 2.7.8dev:
+
+* Disable use of fullscreen spaces on OS X by default. Use
+  SDL_VIDEO_MAC_FULLSCREEN_SPACES = 1 (advanced settings or environment) if
+  you want to re-enable it.
+* Fixed a crash when using (experimental and) unsupported re-recording.
+
+Version 2.7.7dev:
+
+* Compile with hardening disabled for Fedora 23+.
+* Automatically scan $BASE/AmigaForever/Amiga Files/Shared/rom for Kickstarts.
+
+Version 2.7.6dev:
+
+* Fix AGA flickering bug introduced in 2.5.40dev.
+* Do not use R12 register in x86-64 JIT due to addressing issue.
+* Lowered default floppy drive sound volume.
+* Warn when uae_cachesize is used without jit_compiler enabled.
+* Theme options override options from config.
+* Updated emulation core from WinUAE 3220.
+
+Version 2.7.5dev:
+
+* Fix abort in OpenAL on OS X on shutdown.
+* On x86-64, do not try to use "32-bit memory" unless JIT is enabled.
+* If x87_fldcw dynamic function cannot be created, fall back to inline asm.
+* Fix loading controller configs from non-ASCII paths on Windows.
+* Better (build-time) OpenAL detection on OS X.
 * New configure option --with-libmpeg2=yes/builtin (no won't work yet),
   defaults to yes (using system library).
+* Fix additional custom joystick ports.
+* New boolean option full_keyboard to set the initial state.
+* Auto-choose joystick device for port 0 when not started in mouse mode.
+* Support deflate compression in fs-uae.dat.
+* Updated emulation core from WinUAE 3210.
 
-Version 2.6.2:
+Version 2.7.4dev:
 
+* New action_mute_floppy_sounds, mapped to MOD+N by default.
+* Added support for audioprev, audionext, audiostop, audioplay keys.
+* Map audioprev, audionext and audioplay to disk swapper actions by default.
+* Show on-screen messages when using disk swapper prev/next/insert actions.
+* New option relative_paths (see docs).
+* Support for three additional custom "joystick ports" (maps to Amiga keys).
+* Also recognize .ipf and .dms floppy paths as standalone parameters.
+* Fixed building with ./configure --disable-drivesound --disable-slirp
+  --disable-prowizard --disable-cdtv --disable-savestate
+  --disable-parallel-port and others.
+* Can build with many CPU emu cores disabled.
+* Some cleanup in the configure script.
+* Remove dependency on GLU.
 * Do not use built-in libmpeg2.
-* Fixed crash (abort) with A1200 Blizzard CPU board models.
-* Added more gamepad controller configurations.
-* Fixed non-blocking socket I/O support in bsdsocket_posix [Jens Maus].
 * Imported updated translations from crowdin.com.
+* Updated emulation core from WinUAE 3200b18.
+
+Version 2.7.3dev:
+
+* Support for multimedia keys: volume up, volume down and mute.
+* New shortcut Mod+K to toggle full keyboard emulation.
+* Using (Left) Alt (Cmd on OS X) as default keyboard shortcut modifier.
+* Workaround to allow Alt+Tab to work on non-Windows/non-OS-X platforms.
+* Most built-in shortcuts are now configurable.
+* Actions for built-in shortcuts are now available for mapping.
+* Actions for F11 and F12 (release) can be customized.
+* Ungrab mouse and keyboard when entering the menu.
+* Added support for reading controller configs from fs-uae.dat.
+* Support for creating static / fully self-contained .exe on Windows.
+* JIT: Better fldcw_m_indexed fix (can use all x86-64 registers).
+* Fixed RSP inc/dec for x86-64, shadow stack space on Windows / x86-64.
+* Fix callee-saved registers for Windows x64 ABI.
+* Fixed crash when using Blizzard accelerators and x86-64 JIT.
+* Respect cpu option when checking for Zorro III config problems.
+* Compile with -fno-strict-aliasing to avoid potential aliasing bugs.
+* Removed some SDL 1.2 code.
+
+Version 2.7.2dev:
+
+* Enable FPU JIT compilation by default on x86-64.
+* Use high-res timer on Windows for fastest-possible mode (perf fix).
+* Parallel port ("printer") over TCP/IP, added parallel_port option.
+* Fixed crash (abort) with A1200 Blizzard CPU board models.
+* Added Lallafa's vpar virtual parallel port (not tested).
+* Serial port over TCP/IP.
+* More efficient uae_vm_commit for Linux and OS X.
+* Updated emulation core from WinUAE 3200b15.
+
+Version 2.7.1dev:
+
+* Several FPU JIT fixes for x86-64 (fixes crashes and misbehavior).
+* Access fault handler supports x86-64 extended registers (REX prefix).
+* Fixed crash when 1 GB Zorro III RAM was used without other Z3 expansions.
+* Fixed non-blocking socket I/O support in bsdsocket_posix [Jens Maus].
+* Added more gamepad controller configurations.
+* New option rtg_viewport for optional cropping of the RTG display.
+* Updated emulation core from WinUAE 3200b13.
+
+Version 2.7.0dev:
+
+* Merged JIT compiler updates from the ARAnyM project.
+* Support for JIT compilation on x86-64 (Linux/Windows/OS X). It may contain
+  bugs yet. FPU JIT is currently disabled by default for x86-64.
+* JIT 64-bit direct memory exception handlers for Linux/Windows/OS X.
+* Compile FS-UAE / Windows as large address aware for more virtual memory.
+* Updated emulation core from WinUAE 3200b12.
 
 Version 2.5.42dev:
 

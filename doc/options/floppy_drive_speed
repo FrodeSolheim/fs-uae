@@ -17,3 +17,10 @@ Value: 800 (800 %)
 The only supported value is 100. Other speeds may or may not work with your
 games. The faster the emulated floppy drive speed, the less likely it is to
 work with (some) games.
+
+Code:
+
+    if c.floppy_drive_speed.explicit:
+        c.floppy_drive_speed = c.floppy_drive_speed.explicit
+    else:
+        c.floppy_drive_speed = "100"

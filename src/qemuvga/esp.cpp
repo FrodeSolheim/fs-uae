@@ -220,7 +220,13 @@ static int handle_satn_stop(ESPState *s)
 
 static void write_response(ESPState *s)
 {
-    s->ti_buf[0] = s->status;
+	// Multi Evolution driver reads FIFO after
+	// Message Accepted command. This makes
+	// sure wrong buffer is not read.
+	s->pio_on = 0;
+	s->async_buf = NULL;
+
+	s->ti_buf[0] = s->status;
     s->ti_buf[1] = 0;
     if (s->dma) {
         s->dma_memory_write(s->dma_opaque, s->ti_buf, 2);
@@ -271,6 +277,7 @@ static int esp_do_dma(ESPState *s)
         len = s->async_len;
     }
 	len2 = len;
+	s->dma_pending = len2;
     if (to_device) {
         len = s->dma_memory_read(s->dma_opaque, s->async_buf, len2);
     } else {
@@ -306,7 +313,22 @@ static int esp_do_dma(ESPState *s)
 void esp_fake_dma_done(void *opaque)
 {
 	ESPState *s = (ESPState*)opaque;
-	scsiesp_req_continue(s->current_req);
+	int to_device = (s->ti_size < 0);
+	int len = s->dma_pending;
+
+	s->dma_pending = 0;
+	s->dma_left -= len;
+	s->async_buf += len;
+	s->async_len -= len;
+	if (to_device)
+		s->ti_size += len;
+	else
+		s->ti_size -= len;
+	if (s->async_len == 0) {
+		scsiesp_req_continue(s->current_req);
+	} else {
+		esp_do_dma(s);
+	}
 }
 
 void esp_command_complete(SCSIRequest *req, uint32_t status,
@@ -316,6 +338,7 @@ void esp_command_complete(SCSIRequest *req, uint32_t status,
 
     s->ti_size = 0;
     s->dma_left = 0;
+	s->dma_pending = 0;
     s->async_len = 0;
     s->status = status;
     s->rregs[ESP_RSTAT] = STAT_ST;
@@ -434,9 +457,13 @@ uint64_t esp_reg_read(void *opaque, uint32_t saddr)
             if ((s->rregs[ESP_RSTAT] & STAT_PIO_MASK) == 0 || s->pio_on) {
                 /* Data out.  */
                 //write_log("esp: PIO data read not implemented\n");
-                s->rregs[ESP_FIFO] = s->async_buf[s->ti_rptr++];
-				s->pio_on = 1;
-				if (s->ti_size == 1) {
+				if (s->async_buf) {
+	                s->rregs[ESP_FIFO] = s->async_buf[s->ti_rptr++];
+					s->pio_on = 1;
+				} else {
+					s->rregs[ESP_FIFO] = 0;
+				}
+				if (s->ti_size == 1 && s->current_req) {
 					scsiesp_req_continue(s->current_req);
 				}
             } else {
@@ -461,7 +488,14 @@ uint64_t esp_reg_read(void *opaque, uint32_t saddr)
 
         return old_val;
 	case ESP_RFLAGS:
-		return s->rregs[saddr] | s->rregs[ESP_RSEQ] << 5;
+	{
+		int v;
+		if (s->ti_size >= 7)
+			v = 31;
+		else
+			v = (1 << s->ti_size) - 1;
+		return v | (s->rregs[ESP_RSEQ] << 5);
+	}
 	case ESP_RES4:
 		return 0x80 | 0x20 | 0x2;
     default:
@@ -513,6 +547,10 @@ void esp_reg_write(void *opaque, uint32_t saddr, uint64_t val)
             break;
         case CMD_RESET:
             esp_soft_reset(s);
+			// E-Matrix 530 detects existence of SCSI chip by
+			// writing CMD_RESET and then immediately checking
+			// if it reads back.
+			s->rregs[saddr] = CMD_RESET;
             break;
         case CMD_BUSRESET:
             s->rregs[ESP_RINTR] = INTR_RST;

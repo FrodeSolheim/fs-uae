@@ -9,8 +9,8 @@
 #ifndef UAE_XWIN_H
 #define UAE_XWIN_H
 
-#ifdef FSUAE
 #include "uae/types.h"
+#ifdef FSUAE
 #include "uae/asm.h"
 #include <string.h>
 #endif
@@ -176,4 +176,4 @@ extern struct vidbuf_description gfxvidinfo;
 extern struct bstring *video_mode_menu;
 extern void vidmode_menu_selected(int);
 
-#endif // UAE_XWIN_H
+#endif /* UAE_XWIN_H */

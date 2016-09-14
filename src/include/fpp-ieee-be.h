@@ -12,8 +12,8 @@
 #ifndef UAE_FPP_IEEE_BE_H
 #define UAE_FPP_IEEE_BE_H
 
-#ifdef FSUAE // NL
 #include "uae/types.h"
+#ifdef FSUAE
 #include "uae/inline.h"
 #endif
 
@@ -72,4 +72,4 @@ STATIC_INLINE void from_double(double src, uae_u32 * wrd1, uae_u32 * wrd2)
 /* Get the rest of the conversion functions defined.  */
 #include "fpp-unknown.h"
 
-#endif // UAE_FPP_IEEE_BE_H
+#endif /* UAE_FPP_IEEE_BE_H */

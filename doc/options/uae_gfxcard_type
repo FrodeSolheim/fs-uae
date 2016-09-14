@@ -4,8 +4,6 @@ Code:
     t = c.graphics_card
     if c.uae_gfxcard_type.explicit:
         value = c.uae_gfxcard_type.explicit
-    elif t == "" and c.uaegfx_card == "1":
-        value = "ZorroIII"
     elif t == "":
         value = ""
     elif t == "uaegfx":

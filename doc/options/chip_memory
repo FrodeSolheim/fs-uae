@@ -1,9 +1,18 @@
 Summary: Chip RAM
 Type: Choice
+Default:
 Example: 1024
 
 Override amount of chip memory, specified in KB. Must be a multiple of 512.
 The default value depends on [amiga_model].
+
+Value: 256 (256 KB)
+Value: 512 (512 KB)
+Value: 1024 (1 MB)
+Value: 1536 (1.5 MB)
+Value: 2048 (2 MB)
+Value: 4096 (4 MB)
+Value: 8192 (8 MB)
 
 Code:
 

@@ -15,7 +15,8 @@ void fs_uae_configure_sound_card(amiga_config *c)
 {
     const char *card = fs_config_get_const_string(OPTION_SOUND_CARD);
     if (card != NULL) {
-        if (fs_uae_values_matches(card, "toccata")) {
+        if (strcmp(card, "0") == 0) {
+        } else if (fs_uae_values_matches(card, "toccata")) {
             amiga_set_option("toccata", "true");
         } else {
             fs_emu_warning("Unrecognized sound card");

@@ -54,6 +54,12 @@
 #include "tabletlibrary.h"
 #include "luascript.h"
 #include "driveclick.h"
+#include "pci.h"
+#include "pci_hw.h"
+#include "x86.h"
+#include "ethernet.h"
+#include "uae/debuginfo.h"
+#include "uae/segtracker.h"
 #ifdef RETROPLATFORM
 #include "rp.h"
 #endif
@@ -83,6 +89,12 @@ void devices_reset(int hardreset)
 #ifdef NCR9X
 	ncr9x_reset();
 #endif
+#ifdef WITH_PCI
+	pci_reset();
+#endif
+#ifdef WITH_X86
+	x86_bridge_reset();
+#endif
 #ifdef JIT
 	compemu_reset ();
 #endif
@@ -109,6 +121,9 @@ void devices_vsync_pre(void)
 #endif
 	cpuboard_vsync();
 	statusline_vsync();
+#ifdef WITH_X86
+	x86_bridge_vsync();
+#endif
 }
 
 void devices_vsync_post(void)
@@ -124,7 +139,10 @@ void devices_vsync_post(void)
 
 void devices_hsync(void)
 {
-	#ifdef A2065
+#ifdef GFXBOARD
+	gfxboard_hsync_handler();
+#endif
+#ifdef A2065
 	a2065_hsync_handler ();
 #endif
 #ifdef CD32
@@ -149,6 +167,12 @@ void devices_hsync(void)
 #ifdef WITH_PPC
 	uae_ppc_hsync_handler();
 	cpuboard_hsync();
+#endif
+#ifdef WITH_PCI
+	pci_hsync();
+#endif
+#ifdef WITH_X86
+	x86_bridge_hsync();
 #endif
 #ifdef WITH_TOCCATA
 	sndboard_hsync();
@@ -188,6 +212,12 @@ void devices_rethink(void)
 	ncr9x_rethink();
 #endif
 	ncr80_rethink();
+#ifdef WITH_PCI
+	pci_rethink();
+#endif
+#ifdef WITH_X86
+	x86_bridge_rethink();
+#endif
 #ifdef WITH_TOCCATA
 	sndboard_rethink();
 #endif
@@ -200,7 +230,9 @@ void devices_rethink(void)
 void devices_update_sound(double clk, double syncadjust)
 {
 	update_sound (clk);
+#ifdef WITH_TOCCATA
 	update_sndboard_sound (clk / syncadjust);
+#endif
 	update_cda_sound(clk / syncadjust);
 }
 
@@ -231,6 +263,9 @@ void reset_all_systems (void)
 	netdev_reset ();
 	netdev_start_threads ();
 #endif
+#ifdef WITH_PCI
+	pci_reset();
+#endif
 #ifdef FILESYS
 	filesys_prepare_reset ();
 	filesys_reset ();
@@ -248,7 +283,7 @@ void reset_all_systems (void)
 	uaeserialdev_reset ();
 	uaeserialdev_start_threads ();
 #endif
-#if defined (PARALLEL_PORT)
+#ifdef PARALLEL_PORT
 	initparallel ();
 #endif
 	native2amiga_reset ();
@@ -264,6 +299,9 @@ void do_leave_program (void)
 	DISK_free ();
 	close_sound ();
 	dump_counts ();
+#ifdef PARALLEL_PORT
+	parallel_exit();
+#endif
 #ifdef SERIAL_PORT
 	serial_exit ();
 #endif
@@ -295,6 +333,12 @@ void do_leave_program (void)
 #ifdef AUTOCONFIG
 	expansion_cleanup ();
 #endif
+#ifdef WITH_PCI
+	pci_free();
+#endif
+#ifdef WITH_X86
+	x86_bridge_free();
+#endif
 #ifdef FILESYS
 	filesys_cleanup ();
 #endif
@@ -314,12 +358,17 @@ void do_leave_program (void)
 	sndboard_free();
 #endif
 	gfxboard_free();
+#ifdef SAVESTATE
 	savestate_free ();
+#endif
 	memory_cleanup ();
 	free_shm ();
 	cfgfile_addcfgparam (0);
 	machdep_free ();
+#ifdef DRIVESOUND
 	driveclick_free();
+#endif
+	ethernet_enumerate_free();
 }
 
 void virtualdevice_init (void)
@@ -329,6 +378,9 @@ void virtualdevice_init (void)
 #endif
 #ifdef FILESYS
 	rtarea_init ();
+#ifdef WITH_SEGTRACKER
+	segtracker_install ();
+#endif /* WITH_SEGTRACKER */
 	uaeres_install ();
 	hardfile_install ();
 #endif
@@ -370,6 +422,8 @@ void virtualdevice_init (void)
 #endif
 }
 
+#ifdef SAVESTATE
+
 void devices_restore_start(void)
 {
 	restore_cia_start();
@@ -381,4 +435,11 @@ void devices_restore_start(void)
 	changed_prefs.z3fastmem2_size = 0;
 	changed_prefs.mbresmem_low_size = 0;
 	changed_prefs.mbresmem_high_size = 0;
+}
+
+#endif
+
+void devices_syncchange(void)
+{
+	x86_bridge_sync_change();
 }

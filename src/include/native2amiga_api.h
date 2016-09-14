@@ -7,9 +7,7 @@
 #ifndef UAE_NATIVE2AMIGA_API_H
 #define UAE_NATIVE2AMIGA_API_H
 
-#ifdef FSUAE
 #include "uae/types.h"
-#endif
 
 #ifdef SUPPORT_THREADS
 void uae_Cause(uaecptr interrupt);
@@ -21,4 +19,4 @@ void uae_NotificationHack(uaecptr, uaecptr);
 void uae_NewList(uaecptr list);
 int native2amiga_isfree (void);
 
-#endif // UAE_NATIVE2AMIGA_API_H
+#endif /* UAE_NATIVE2AMIGA_API_H */

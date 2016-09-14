@@ -111,4 +111,4 @@
 #define kKP8KeyMap					0x5B
 #define kKP9KeyMap					0x5C
 
-#endif // UAE_MACKBD_H
+#endif /* UAE_MACKBD_H */

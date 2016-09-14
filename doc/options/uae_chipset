@@ -18,9 +18,15 @@ Code:
 Code:
 
     if c.uae_chipset.explicit:
-        value = c.uae_chipset.explicit
+        if int(c.int_chipmem_size) >= 1048576:
+            value = "ecs_agnus"
+        else:
+            value = "ocs"
     elif c.amiga_model == "A500":
-        value = "ocs"
+        if int(c.int_chipmem_size) >= 1048576:
+            value = "ecs_agnus"
+        else:
+            value = "ocs"
     elif c.amiga_model == "A500/512K":
         value = "ocs"
     elif c.amiga_model == "A500+":

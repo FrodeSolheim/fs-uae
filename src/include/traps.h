@@ -13,10 +13,7 @@
 #ifndef UAE_TRAPS_H
 #define UAE_TRAPS_H
 
-#ifdef FSUAE // NL
 #include "uae/types.h"
-#include "uae/regparam.h"
-#endif
 
 /*
  * Data passed to a trap handler
@@ -60,4 +57,4 @@ void init_extended_traps (void);
 #define deftrap2(f, mode, str) define_trap((f), (mode), (str))
 #define deftrapres(f, mode, str) define_trap((f), (mode | TRAPFLAG_UAERES), (str))
 
-#endif // UAE_TRAPS_H
+#endif /* UAE_TRAPS_H */

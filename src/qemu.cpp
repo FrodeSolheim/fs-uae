@@ -15,6 +15,7 @@ UAE_DEFINE_IMPORT_FUNCTION(qemu_uae_slirp_input)
 UAE_DEFINE_IMPORT_FUNCTION(qemu_uae_ppc_init)
 UAE_DEFINE_IMPORT_FUNCTION(qemu_uae_ppc_in_cpu_thread)
 
+#ifdef WITH_PPC
 static void init_ppc(UAE_DLHANDLE handle)
 {
 	UAE_IMPORT_FUNCTION(handle, qemu_uae_ppc_init);
@@ -29,7 +30,9 @@ static void init_ppc(UAE_DLHANDLE handle)
 		free(model_s);
 	}
 }
+#endif
 
+#if defined(WITH_SLIRP) && defined(WITH_QEMU_SLIRP)
 static void init_slirp(UAE_DLHANDLE handle)
 {
 	UAE_IMPORT_FUNCTION(handle, qemu_uae_slirp_init);
@@ -40,6 +43,7 @@ static void init_slirp(UAE_DLHANDLE handle)
 		qemu_uae_slirp_init();
 	}
 }
+#endif
 
 UAE_DLHANDLE uae_qemu_uae_init(void)
 {
@@ -95,8 +99,12 @@ UAE_DLHANDLE uae_qemu_uae_init(void)
 		return handle;
 	}
 
+#ifdef WITH_PPC
 	init_ppc(handle);
+#endif
+#if defined(WITH_SLIRP) && defined(WITH_QEMU_SLIRP)
 	init_slirp(handle);
+#endif
 
 	if (qemu_uae_start) {
 		qemu_uae_start();

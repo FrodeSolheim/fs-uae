@@ -1,10 +1,7 @@
 #ifndef UAE_PICASSO96_H
 #define UAE_PICASSO96_H
 
-#ifdef FSUAE // NL
 #include "uae/types.h"
-#endif
-
 #include "traps.h"
 
 void picasso96_alloc (TrapContext* ctx);
@@ -604,4 +601,4 @@ extern int p96refresh_active;
 #endif
 #endif
 
-#endif // UAE_PICASSO96_H
+#endif /* UAE_PICASSO96_H */

@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae\n"
 "Report-Msgid-Bugs-To: frode@fs-uae.net\n"
-"POT-Creation-Date: 2015-09-21 00:42+0200\n"
-"PO-Revision-Date: 2015-10-26 14:17-0400\n"
+"POT-Creation-Date: 2016-04-26 00:59+0200\n"
+"PO-Revision-Date: 2016-05-01 06:24-0400\n"
 "Last-Translator: FrodeSolheim <frode-crowdin@fsolheim.net>\n"
 "Language-Team: Serbian (Latin)\n"
 "Language: sr_CS\n"
@@ -14,7 +14,7 @@ msgstr ""
 "X-Generator: crowdin.com\n"
 "X-Crowdin-Project: fs-uae\n"
 "X-Crowdin-Language: sr-CS\n"
-"X-Crowdin-File: /fs-uae/messages.pot\n"
+"X-Crowdin-File: fs-uae.pot\n"
 
 msgid "Activated debugger"
 msgstr "Debager je aktiviran"
@@ -49,8 +49,8 @@ msgid "CD32 Pad Mode"
 msgstr "CD32 pad mod"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
-msgid "Custom Joystick Port"
-msgstr "Prilagođeni port džojstika"
+msgid "Custom Joystick Ports"
+msgstr ""
 
 msgid "Custom Mode"
 msgstr "Prilagođeni način rada"
@@ -71,6 +71,10 @@ msgstr "Prazno"
 
 msgid "Emulator Control"
 msgstr "Kontrole emulatora"
+
+#, c-format
+msgid "Expected FS-UAE version %s, got %s"
+msgstr ""
 
 #. / TRANSLATORS: In context "Zoom: Full Frame"
 msgid "Full Frame"
@@ -118,15 +122,6 @@ msgstr "Džojstik port %d uređaj"
 msgid "Joystick Port %d Mode"
 msgstr "Džojstik port %d mod"
 
-msgid "Joystick Port 2"
-msgstr "Džojstik port 2"
-
-msgid "Joystick Port 3"
-msgstr "Džojstik port 3"
-
-msgid "Joystick Port 4"
-msgstr "Džojstik port 4"
-
 msgid "Keyboard"
 msgstr "Tastatura"
 
@@ -153,11 +148,14 @@ msgstr "Port miša"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long: If you struggle
 #. / to get in short enough, just translate "No Device" instead.
+#. / The context is that nothing (no emulated device) is inserted into the
+#. / joystick port.
 msgid "No Amiga Device"
 msgstr "Nema uređaja"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long: If you struggle
 #. / to get in short enough, just translate "No Device" instead.
+#. / The context is that no host device is inserted into the joystick port.
 msgid "No Host Device"
 msgstr "Nema host uređaja"
 

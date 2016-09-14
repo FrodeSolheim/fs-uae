@@ -20,6 +20,9 @@ void fs_set_application_name(const char *application_name);
 const char *fs_get_prgname(void);
 void fs_set_prgname(const char *prgname);
 
+const char *fs_data_dir(void);
+void fs_set_data_dir(const char *path);
+
 char *fs_get_data_file(const char *relative);
 char *fs_get_program_data_file(const char *relative);
 int fs_get_program_data(const char *relative, char **data, int *size);

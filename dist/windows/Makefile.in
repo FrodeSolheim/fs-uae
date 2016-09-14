@@ -1,5 +1,8 @@
-version = @PACKAGE_VERSION@
-emulator_dir = fs-uae_$(version)_windows
+ver = @PACKAGE_VERSION@
+os = windows
+arch = $(strip $(shell python3 ../arch.py))
+
+dname = fs-uae_$(ver)_$(os)_$(arch)
 
 all: progdir zipfile setup
 
@@ -8,48 +11,57 @@ clean:
 	rm -Rf fs-uae_*_windows*
 
 progdir:
-	rm -Rf $(emulator_dir)
-	mkdir $(emulator_dir)
+	rm -Rf $(dname)
+	mkdir $(dname)
 
 	make -C ../..
 
-	python3 clib.py libbz2-1.dll $(emulator_dir)
-	python3 clib.py libgcc_s_dw2-1.dll $(emulator_dir)
-	python3 clib.py libharfbuzz-0.dll $(emulator_dir)
-	python3 clib.py libstdc++-6.dll $(emulator_dir)
-	python3 clib.py libwinpthread-1.dll $(emulator_dir)
-	python3 clib.py libpng16-16.dll $(emulator_dir)
-	python3 clib.py libfreetype-6.dll $(emulator_dir)
-	python3 clib.py zlib1.dll $(emulator_dir)
-	python3 clib.py libglib-2.0-0.dll $(emulator_dir)
-	python3 clib.py libgthread-2.0-0.dll $(emulator_dir)
-	python3 clib.py libintl-8.dll $(emulator_dir)
-	python3 clib.py libiconv-2.dll $(emulator_dir)
-	python3 clib.py SDL2.dll $(emulator_dir)
-	python3 clib.py OpenAL32.dll $(emulator_dir)
-	python3 clib.py GLEW32.dll $(emulator_dir)
-	python3 clib.py libmpeg2-0.dll $(emulator_dir)
-	python3 clib.py libmpeg2convert-0.dll $(emulator_dir)
+	python3 clib.py libbz2-1.dll $(dname)
+ifeq ($(arch),x86-64)
+	python3 clib.py libgcc_s_seh-1.dll $(dname)
+else
+	python3 clib.py libgcc_s_dw2-1.dll $(dname)
+endif
+	python3 clib.py libharfbuzz-0.dll $(dname)
+	python3 clib.py libstdc++-6.dll $(dname)
+	python3 clib.py libwinpthread-1.dll $(dname)
+	python3 clib.py libpng16-16.dll $(dname)
+	python3 clib.py libfreetype-6.dll $(dname)
+	python3 clib.py zlib1.dll $(dname)
+	python3 clib.py libglib-2.0-0.dll $(dname)
+	python3 clib.py libgthread-2.0-0.dll $(dname)
+	python3 clib.py libintl-8.dll $(dname)
+	python3 clib.py libiconv-2.dll $(dname)
+	python3 clib.py SDL2.dll $(dname)
+	python3 clib.py OpenAL32.dll $(dname)
+	python3 clib.py GLEW32.dll $(dname)
+	python3 clib.py libmpeg2-0.dll $(dname)
+	python3 clib.py libmpeg2convert-0.dll $(dname)
 
         # For qemu-uae on Windows
-	python3 clib.py libpixman-1-0.dll $(emulator_dir)
+	python3 clib.py libpixman-1-0.dll $(dname)
 
-	cp -a ../../fs-uae.exe $(emulator_dir)/
-	cp -a ../../fs-uae.dat $(emulator_dir)/
-	cp -a ../../fs-uae-device-helper.exe $(emulator_dir)/
-	cp -a ../../share $(emulator_dir)/share
-	cp -a ../../licenses $(emulator_dir)/licenses
-	cp -a ../../README $(emulator_dir)/README.txt
-	cp -a ../../COPYING $(emulator_dir)/COPYING.txt
+	cp -a ../../fs-uae.exe $(dname)/
+	cp -a ../../fs-uae.dat $(dname)/
+	cp -a ../../fs-uae-device-helper.exe $(dname)/
 
-	strip $(emulator_dir)/*.exe
-	strip $(emulator_dir)/*.dll
+	mkdir -p $(dname)/share
+	cp -a ../../share/locale $(dname)/share/locale
+	mkdir -p $(dname)/share/fs-uae
+	touch $(dname)/share/fs-uae/share-dir
 
-	python3 sign.py $(emulator_dir)/*.exe
+	cp -a ../../licenses $(dname)/licenses
+	cp -a ../../README $(dname)/README.txt
+	cp -a ../../COPYING $(dname)/COPYING.txt
+
+	strip $(dname)/*.exe
+	strip $(dname)/*.dll
+
+	python3 sign.py $(dname)/*.exe
 
 zipfile:
-	cd $(emulator_dir) && zip -9 -r ../../../$(emulator_dir).zip *
+	cd $(dname) && zip -9 -r ../../../$(dname).zip *
 
 setup:
 	python3 iscc.py fs-uae.iss
-	python3 sign.py ../../fs-uae_$(version)_windows.exe
+	python3 sign.py ../../$(dname).exe

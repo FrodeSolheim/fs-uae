@@ -88,7 +88,7 @@ static void init_a4000(amiga_config *c, const char *id, const char *name,
         c->default_cpu = "68030";
         c->default_fpu = "68882";
         c->default_fpu_noninternal = "68882";
-        c->default_mmu = "68030";
+        // c->default_mmu = "68030";
     } else if (quickstart_config == 1) {
         c->default_cpu = "68040";
         c->default_fpu = "68040";
@@ -107,9 +107,8 @@ static void init_a1200_ppc(amiga_config *c, const char *id, const char *name,
     c->cpu_idle = 0;
     c->z3realmapping = 0;
     c->accelerator = "blizzard-ppc";
-
-    c->default_cpu = "68060";
-    c->default_fpu = "68060";
+    //c->default_cpu = "68060";
+    //c->default_fpu = "68060";
     //c->default_mmu = "68060";
 }
 
@@ -121,9 +120,8 @@ static void init_a4000_ppc(amiga_config *c, const char *id, const char *name,
     c->cpu_idle = 0;
     c->z3realmapping = 0;
     c->accelerator = "cyberstorm-ppc";
-
-    c->default_cpu = "68060";
-    c->default_fpu = "68060";
+    //c->default_cpu = "68060";
+    //c->default_fpu = "68060";
     //c->default_mmu = "68060";
 }
 
@@ -136,10 +134,12 @@ void fs_uae_init_configs()
 
     c = g_fs_uae_amiga_configs + CONFIG_A500;
     init_common(c, "A500", "Amiga 500", MODEL_A500, 0, 0);
+    c->can_use_ecs_agnus = 1;
     c->wb_disk = wb_disk_1_3_3;
 
     c = g_fs_uae_amiga_configs + CONFIG_A500_512K;
     init_common(c, "A500/512K", "Amiga 500 (512 KB)", MODEL_A500, 0, 3);
+    c->can_use_ecs_agnus = 1;
     c->wb_disk = wb_disk_1_3_3;
 
     c = g_fs_uae_amiga_configs + CONFIG_A500P;
@@ -179,24 +179,24 @@ void fs_uae_init_configs()
     init_a1200(c, "A1200/1230", "Amiga 1200 (Blizzard 1230 IV)", 6);
     c->cpu_32bit_addressing = 1;
     c->allow_z3_memory = 1;
-    c->default_cpu = "68030";
-    c->default_fpu = "68030";
+    // c->default_cpu = "68030";
+    // c->default_fpu = "68030";
     c->accelerator = "blizzard-1230-iv";
 
     c = g_fs_uae_amiga_configs + CONFIG_A1200_1240;
     init_a1200(c, "A1200/1240", "Amiga 1200 (Blizzard 1240)", 6);
     c->cpu_32bit_addressing = 1;
     c->allow_z3_memory = 1;
-    c->default_cpu = "68040";
-    c->default_fpu = "68040";
+    // c->default_cpu = "68040";
+    // c->default_fpu = "68040";
     c->accelerator = "blizzard-1240";
 
     c = g_fs_uae_amiga_configs + CONFIG_A1200_1260;
     init_a1200(c, "A1200/1260", "Amiga 1200 (Blizzard 1260)", 6);
     c->cpu_32bit_addressing = 1;
     c->allow_z3_memory = 1;
-    c->default_cpu = "68060";
-    c->default_fpu = "68060";
+    // c->default_cpu = "68060";
+    // c->default_fpu = "68060";
     c->accelerator = "blizzard-1260";
 
     c = g_fs_uae_amiga_configs + CONFIG_A1200_PPC;

@@ -9,20 +9,20 @@
 #ifndef UAE_NEWCPU_H
 #define UAE_NEWCPU_H
 
+#ifdef FSUAE
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
-
+#endif
 #include "uae/types.h"
+#ifdef FSUAE
 #include "uae/inline.h"
-#include "uae/regparam.h"
 #include "uae/memory.h"
 #include "uae/asm.h"
-
+#endif
 #include "readcpu.h"
 #include "machdep/m68k.h"
 #include "events.h"
-
 #ifdef WITH_SOFTFLOAT
 #include <softfloat.h>
 #endif
@@ -72,10 +72,20 @@ typedef void REGPARAM3 cpuop_func_ce (uae_u32) REGPARAM;
 struct cputbl {
 	cpuop_func *handler;
 	uae_u16 opcode;
+	uae_s8 length;
+	uae_s8 disp020[2];
+	uae_u8 branch;
 };
 
 #ifdef JIT
 typedef uae_u32 REGPARAM3 compop_func (uae_u32) REGPARAM;
+
+#define COMP_OPCODE_ISJUMP      0x0001
+#define COMP_OPCODE_LONG_OPCODE 0x0002
+#define COMP_OPCODE_CMOV        0x0004
+#define COMP_OPCODE_ISADDX      0x0008
+#define COMP_OPCODE_ISCJUMP     0x0010
+#define COMP_OPCODE_USES_FPU    0x0020
 
 struct comptbl {
 	compop_func *handler;
@@ -160,7 +170,7 @@ struct regstruct
 	uae_u32 instruction_pc;
 
 	uae_u16 irc, ir, db;
-	uae_u32 spcflags;
+	volatile uae_u32 spcflags;
 	uae_u32 last_prefetch;
 	uae_u32 chipset_latch_rw;
 	uae_u32 chipset_latch_read;
@@ -216,6 +226,9 @@ struct regstruct
 	uae_u32 prefetch020addr;
 	uae_u32 cacheholdingdata020;
 	uae_u32 cacheholdingaddr020;
+	int pipeline_pos;
+	int pipeline_r8[2];
+	int pipeline_stop;
 	int ce020memcycles;
 	int ce020extracycles;
 	bool ce020memcycle_data;
@@ -268,13 +281,29 @@ extern int cpucycleunit;
 extern int m68k_pc_indirect;
 STATIC_INLINE void set_special (uae_u32 x)
 {
+#ifdef WITH_THREADED_CPU
+#ifdef _WIN32
+	_InterlockedOr((volatile long*)&regs.spcflags, x);
+#else
 	regs.spcflags |= x;
+#endif
+#else
+	regs.spcflags |= x;
+#endif
 	cycles_do_special ();
 }
 
 STATIC_INLINE void unset_special (uae_u32 x)
 {
+#ifdef WITH_THREADED_CPU
+#ifdef _WIN32
+	_InterlockedAnd((volatile long*)&regs.spcflags, ~x);
+#else
 	regs.spcflags &= ~x;
+#endif
+#else
+	regs.spcflags &= ~x;
+#endif
 }
 
 #define m68k_dreg(r,num) ((r).regs[(num)])
@@ -606,32 +635,38 @@ extern void fill_prefetch_030 (void);
 /* 68060 */
 extern const struct cputbl op_smalltbl_0_ff[];
 extern const struct cputbl op_smalltbl_40_ff[];
+extern const struct cputbl op_smalltbl_50_ff[];
 extern const struct cputbl op_smalltbl_24_ff[]; // CE
 extern const struct cputbl op_smalltbl_33_ff[]; // MMU
 /* 68040 */
 extern const struct cputbl op_smalltbl_1_ff[];
 extern const struct cputbl op_smalltbl_41_ff[];
+extern const struct cputbl op_smalltbl_51_ff[];
 extern const struct cputbl op_smalltbl_25_ff[]; // CE
 extern const struct cputbl op_smalltbl_31_ff[]; // MMU
 /* 68030 */
 extern const struct cputbl op_smalltbl_2_ff[];
 extern const struct cputbl op_smalltbl_42_ff[];
+extern const struct cputbl op_smalltbl_52_ff[];
 extern const struct cputbl op_smalltbl_22_ff[]; // prefetch
 extern const struct cputbl op_smalltbl_23_ff[]; // CE
 extern const struct cputbl op_smalltbl_32_ff[]; // MMU
 /* 68020 */
 extern const struct cputbl op_smalltbl_3_ff[];
 extern const struct cputbl op_smalltbl_43_ff[];
+extern const struct cputbl op_smalltbl_53_ff[];
 extern const struct cputbl op_smalltbl_20_ff[]; // prefetch
 extern const struct cputbl op_smalltbl_21_ff[]; // CE
 /* 68010 */
 extern const struct cputbl op_smalltbl_4_ff[];
 extern const struct cputbl op_smalltbl_44_ff[];
+extern const struct cputbl op_smalltbl_54_ff[];
 extern const struct cputbl op_smalltbl_11_ff[]; // prefetch
 extern const struct cputbl op_smalltbl_13_ff[]; // CE
 /* 68000 */
 extern const struct cputbl op_smalltbl_5_ff[];
 extern const struct cputbl op_smalltbl_45_ff[];
+extern const struct cputbl op_smalltbl_55_ff[];
 extern const struct cputbl op_smalltbl_12_ff[]; // prefetch
 extern const struct cputbl op_smalltbl_14_ff[]; // CE
 
@@ -645,7 +680,7 @@ extern void compemu_reset(void);
 #define flush_icache(uaecptr, int) do {} while (0)
 #define flush_icache_hard(uaecptr, int) do {} while (0)
 #endif
-bool check_prefs_changed_comp (void);
+bool check_prefs_changed_comp (bool);
 extern void flush_dcache (uaecptr, int);
 extern void flush_mmu (uaecptr, int);
 
@@ -662,4 +697,20 @@ extern bool is_cpu_tracer (void);
 extern bool set_cpu_tracer (bool force);
 extern bool can_cpu_tracer (void);
 
-#endif // UAE_NEWCPU_H
+#define CPU_HALT_PPC_ONLY -1
+#define CPU_HALT_BUS_ERROR_DOUBLE_FAULT 1
+#define CPU_HALT_DOUBLE_FAULT 2
+#define CPU_HALT_OPCODE_FETCH_FROM_NON_EXISTING_ADDRESS 3
+#define CPU_HALT_ACCELERATOR_CPU_FALLBACK 4
+#define CPU_HALT_ALL_CPUS_STOPPED 5
+#define CPU_HALT_FAKE_DMA 6
+#define CPU_HALT_AUTOCONFIG_CONFLICT 7
+#define CPU_HALT_PCI_CONFLICT 8
+#define CPU_HALT_CPU_STUCK 9
+
+void cpu_semaphore_get(void);
+void cpu_semaphore_release(void);
+bool execute_other_cpu(int until);
+void execute_other_cpu_single(void);
+
+#endif /* UAE_NEWCPU_H */

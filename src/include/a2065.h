@@ -12,4 +12,4 @@ extern void rethink_a2065 (void);
 
 #endif
 
-#endif // UAE_A2065_H
+#endif /* UAE_A2065_H */

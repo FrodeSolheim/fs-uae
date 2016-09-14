@@ -1,8 +1,8 @@
 #ifndef UAE_NCR9X_SCSI_H
 #define UAE_NCR9X_SCSI_H
 
-#ifdef FSUAE // NL
 #include "uae/types.h"
+#ifdef FSUAE
 #include "uae/memory.h"
 #endif
 
@@ -16,10 +16,15 @@ extern void cpuboard_dkb_add_scsi_unit(int ch, struct uaedev_config_info *ci, st
 extern void fastlane_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct romconfig *rc);
 extern void oktagon_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct romconfig *rc);
 extern void masoboshi_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct romconfig *rc);
+extern void ematrix_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct romconfig *rc);
+extern void multievolution_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct romconfig *rc);
+extern void golemfast_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct romconfig *rc);
 
 extern addrbank *ncr_fastlane_autoconfig_init(struct romconfig*);
 extern addrbank *ncr_oktagon_autoconfig_init(struct romconfig*);
 extern addrbank *ncr_dkb_autoconfig_init(struct romconfig*);
+extern addrbank *ncr_ematrix_autoconfig_init(struct romconfig *rc);
+extern addrbank *ncr_multievolution_init(struct romconfig*);
 
 extern void cpuboard_ncr9x_scsi_put(uaecptr, uae_u32);
 extern uae_u32 cpuboard_ncr9x_scsi_get(uaecptr);
@@ -27,6 +32,10 @@ extern uae_u32 cpuboard_ncr9x_scsi_get(uaecptr);
 uae_u32 masoboshi_ncr9x_scsi_get(uaecptr addr, int devnum);
 void masoboshi_ncr9x_scsi_put(uaecptr addr, uae_u32 v, int devnum);
 void ncr_masoboshi_autoconfig_init(struct romconfig*, uaecptr);
+
+uae_u32 golemfast_ncr9x_scsi_get(uaecptr addr, int devnum);
+void golemfast_ncr9x_scsi_put(uaecptr addr, uae_u32 v, int devnum);
+void ncr_golemfast_autoconfig_init(struct romconfig*, uaecptr);
 
 #define BLIZZARD_2060_SCSI_OFFSET 0x1ff00
 #define BLIZZARD_2060_DMA_OFFSET 0x1fff0
@@ -44,4 +53,4 @@ void ncr_masoboshi_autoconfig_init(struct romconfig*, uaecptr);
 #define CYBERSTORM_MK1_DMA_OFFSET 0xf800
 #define CYBERSTORM_MK1_JUMPER_OFFSET 0xfc02
 
-#endif // UAE_NCR9X_SCSI_H
+#endif /* UAE_NCR9X_SCSI_H */

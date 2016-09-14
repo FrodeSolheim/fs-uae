@@ -3,6 +3,8 @@
 %define unmangled_version 2.6.2
 %define release 1%{?dist}
 
+%undefine _hardened_build
+
 Summary: Amiga emulator with on-screen GUI and online play support
 Name: %{name}
 Version: %{version}
@@ -18,6 +20,7 @@ BuildRequires: gcc-c++
 BuildRequires: hicolor-icon-theme
 BuildRequires: libpng-devel
 BuildRequires: libXi-devel
+BuildRequires: libXtst-devel
 BuildRequires: pkgconfig(gl)
 BuildRequires: pkgconfig(glew)
 BuildRequires: pkgconfig(glib-2.0)

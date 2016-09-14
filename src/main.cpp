@@ -204,11 +204,15 @@ void fixup_prefs_dimensions (struct uae_prefs *prefs)
 		}
 		if (i == 0) {
 			if (prefs->gf[i].gfx_filter == 0 && prefs->monitoremu) {
-				error_log(_T("A2024 and Graffiti require at least null filter enabled."));
+				error_log(_T("Display port adapter emulation require at least null filter enabled."));
 				prefs->gf[i].gfx_filter = 1;
 			}
 			if (prefs->gf[i].gfx_filter == 0 && prefs->cs_cd32fmv) {
 				error_log(_T("CD32 MPEG module overlay support require at least null filter enabled."));
+				prefs->gf[i].gfx_filter = 1;
+			}
+			if (prefs->gf[i].gfx_filter == 0 && (prefs->genlock && prefs->genlock_image)) {
+				error_log(_T("Genlock emulation require at least null filter enabled."));
 				prefs->gf[i].gfx_filter = 1;
 			}
 		}
@@ -231,7 +235,7 @@ void fixup_cpu (struct uae_prefs *p)
 		error_log (_T("24-bit address space is not supported with 68040/060 configurations."));
 		p->address_space_24 = 0;
 	}
-	if (p->cpu_model < 68020 && p->fpu_model && (p->cpu_compatible || p->cpu_cycle_exact)) {
+	if (p->cpu_model < 68020 && p->fpu_model && (p->cpu_compatible || p->cpu_memory_cycle_exact)) {
 		error_log (_T("FPU is not supported with 68000/010 configurations."));
 		p->fpu_model = 0;
 	}
@@ -256,6 +260,11 @@ void fixup_cpu (struct uae_prefs *p)
 		break;
 	}
 
+	if (p->cpu_thread && (p->cpu_compatible || p->ppc_mode || p->cpu_memory_cycle_exact || p->cpu_model < 68020)) {
+		p->cpu_thread = false;
+		error_log(_T("Threaded CPU mode is not compatible with PPC emulation, More compatible or Cycle Exact modes. CPU type must be 68020 or higher."));
+	}
+
 	// 1 = "automatic" PPC config
 	if (p->ppc_mode == 1) {
 		cpuboard_setboard(p,  BOARD_CYBERSTORM, BOARD_CYBERSTORM_SUB_PPC);
@@ -275,6 +284,9 @@ void fixup_cpu (struct uae_prefs *p)
 		error_log (_T("JIT requires 68020 or better CPU."));
 	}
 
+	if (!p->cpu_memory_cycle_exact && p->cpu_cycle_exact)
+		p->cpu_memory_cycle_exact = true;
+
 	if (p->cpu_model >= 68040 && p->cachesize && p->cpu_compatible)
 		p->cpu_compatible = false;
 
@@ -283,7 +295,7 @@ void fixup_cpu (struct uae_prefs *p)
 		p->mmu_model = 0;
 	}
 
-	if (p->cachesize && p->cpu_cycle_exact) {
+	if (p->cachesize && p->cpu_memory_cycle_exact) {
 		error_log (_T("JIT and cycle-exact can't be enabled simultaneously."));
 		p->cachesize = 0;
 	}
@@ -307,15 +319,15 @@ void fixup_cpu (struct uae_prefs *p)
 		error_log (_T("Immediate blitter and waiting blits can't be enabled simultaneously.\n"));
 		p->waiting_blits = 0;
 	}
-	if (p->cpu_cycle_exact)
+	if (p->cpu_memory_cycle_exact)
 		p->cpu_compatible = true;
 
-	if (p->cpu_cycle_exact && p->produce_sound == 0) {
+	if (p->cpu_memory_cycle_exact && p->produce_sound == 0) {
 		p->produce_sound = 1;
 		error_log(_T("Cycle-exact mode requires at least Disabled but emulated sound setting."));
 	}
 
-	if (p->cpuboard_type && cpuboard_jitdirectompatible(p) && !p->comptrustbyte) {
+	if (p->cachesize && p->cpuboard_type && !cpuboard_jitdirectompatible(p) && !p->comptrustbyte) {
 		error_log(_T("JIT direct is not compatible with emulated Blizzard accelerator boards."));
 		p->comptrustbyte = 1;
 		p->comptrustlong = 1;
@@ -331,7 +343,6 @@ void fixup_prefs (struct uae_prefs *p)
 	built_in_chipset_prefs (p);
 	fixup_cpu (p);
 
-
 	if (p->cpuboard_type && p->cpuboardmem1_size > cpuboard_maxmemory(p)) {
 		error_log(_T("Unsupported accelerator board memory size %d (0x%x).\n"), p->cpuboardmem1_size, p->cpuboardmem1_size);
 		p->cpuboardmem1_size = cpuboard_maxmemory(p);
@@ -342,6 +353,19 @@ void fixup_prefs (struct uae_prefs *p)
 		p->fastmem2_size = p->cpuboardmem1_size;
 	} else if (cpuboard_memorytype(p) == BOARD_MEMORY_25BITMEM) {
 		p->mem25bit_size = p->cpuboardmem1_size;
+	} else if (cpuboard_memorytype(p) == BOARD_MEMORY_EMATRIX) {
+		int size = p->cpuboardmem1_size / (1024 * 1024);
+		if (size == 32 || size == 8 || size == 2) {
+			p->custom_memory_sizes[0] = p->cpuboardmem1_size / 2;
+			p->custom_memory_sizes[1] = p->cpuboardmem1_size / 2;
+			p->custom_memory_addrs[0] = 0x18000000 - p->custom_memory_sizes[0];
+			p->custom_memory_addrs[1] = 0x18000000;
+		} else {
+			p->custom_memory_sizes[0] = p->cpuboardmem1_size;
+			p->custom_memory_sizes[1] = 0;
+			p->custom_memory_addrs[0] = 0x18000000 - p->custom_memory_sizes[0];
+			p->custom_memory_addrs[1] = 0;
+		}
 	}
 
 	if (((p->chipmem_size & (p->chipmem_size - 1)) != 0 && p->chipmem_size != 0x180000)
@@ -453,14 +477,14 @@ void fixup_prefs (struct uae_prefs *p)
 		p->chipmem_size = 0x200000;
 		err = 1;
 	}
-	if (p->chipmem_size > 0x200000 && p->rtgmem_size && !gfxboard_is_z3(p->rtgmem_type)) {
+	if (p->chipmem_size > 0x200000 && p->rtgmem_size && gfxboard_get_configtype(p->rtgmem_type) == 2) {
 		error_log(_T("You can't use Zorro II RTG and more than 2MB chip at the same time."));
 		p->chipmem_size = 0x200000;
 		err = 1;
 	}
 	if (p->mem25bit_size > 128 * 1024 * 1024 || (p->mem25bit_size & 0xfffff)) {
 		p->mem25bit_size = 0;
-		error_log (_T("Unsupported 25bit RAM size"));
+		error_log(_T("Unsupported 25bit RAM size"));
 	}
 	if (p->mbresmem_low_size > 0x04000000 || (p->mbresmem_low_size & 0xfffff)) {
 		p->mbresmem_low_size = 0;
@@ -477,7 +501,7 @@ void fixup_prefs (struct uae_prefs *p)
 				p->rtgmem_size, p->rtgmem_size, gfxboard_get_vram_min(p->rtgmem_type), gfxboard_get_vram_min(p->rtgmem_type));
 			p->rtgmem_size = gfxboard_get_vram_min (p->rtgmem_type);
 		}
-		if (p->address_space_24 && gfxboard_is_z3 (p->rtgmem_type)) {
+		if (p->address_space_24 && gfxboard_get_configtype(p->rtgmem_type) == 3) {
 			p->rtgmem_type = GFXBOARD_UAE_Z2;
 			p->rtgmem_size = 0;
 			error_log (_T("Z3 RTG and 24-bit address space are not compatible."));
@@ -649,9 +673,6 @@ void fixup_prefs (struct uae_prefs *p)
 #endif
 #if !defined (SCSIEMU)
 	p->scsi = 0;
-#ifdef _WIN32
-	p->win32_aspi = 0;
-#endif
 #endif
 #if !defined (SANA2)
 	p->sana2 = 0;
@@ -691,6 +712,20 @@ void fixup_prefs (struct uae_prefs *p)
 	}
 	if (p->tod_hack && p->cs_ciaatod == 0)
 		p->cs_ciaatod = p->ntscmode ? 2 : 1;
+
+	if (p->sound_toccata + p->sound_es1370 + p->sound_fm801 > 1) {
+		error_log(_T("Only one sound card can be enabled at the same time."));
+		if (p->sound_toccata) {
+			p->sound_es1370 = 0;
+			p->sound_fm801 = 0;
+		} else if (p->sound_es1370) {
+			p->sound_toccata = 0;
+			p->sound_fm801 = 0;
+		} else {
+			p->sound_toccata = 0;
+			p->sound_es1370 = 0;
+		}
+	}
 
 	built_in_chipset_prefs (p);
 	blkdev_fix_prefs (p);
@@ -832,7 +867,14 @@ static TCHAR *parsetextpath (const TCHAR *s)
 static void parse_cmdline (int argc, TCHAR **argv)
 {
 	int i;
+	static bool started;
 	bool firstconfig = true;
+	bool loaded = false;
+
+	// only parse command line when starting for the first time
+	if (started)
+		return;
+	started = true;
 
 	for (i = 1; i < argc; i++) {
 		if (!_tcsncmp (argv[i], _T("-diskswapper="), 13)) {
@@ -850,11 +892,15 @@ static void parse_cmdline (int argc, TCHAR **argv)
 			target_cfgfile_load (&currprefs, txt, firstconfig ? CONFIG_TYPE_ALL : CONFIG_TYPE_HARDWARE | CONFIG_TYPE_HOST | CONFIG_TYPE_NORESET, 0);
 			xfree (txt);
 			firstconfig = false;
+			loaded = true;
+#ifdef SAVESTATE
 		} else if (_tcsncmp (argv[i], _T("-statefile="), 11) == 0) {
 			TCHAR *txt = parsetextpath (argv[i] + 11);
 			savestate_state = STATE_DORESTORE;
 			_tcscpy (savestate_fname, txt);
 			xfree (txt);
+			loaded = true;
+#endif
 		} else if (_tcscmp (argv[i], _T("-f")) == 0) {
 			/* Check for new-style "-f xxx" argument, where xxx is config-file */
 			if (i + 1 == argc) {
@@ -866,6 +912,7 @@ static void parse_cmdline (int argc, TCHAR **argv)
 				xfree (txt);
 				firstconfig = false;
 			}
+			loaded = true;
 		} else if (_tcscmp (argv[i], _T("-s")) == 0) {
 			if (i + 1 == argc)
 				write_log (_T("Missing argument for '-s' option.\n"));
@@ -882,15 +929,35 @@ static void parse_cmdline (int argc, TCHAR **argv)
 				_tcscat(txt2, _T(","));
 			cfgfile_parse_option (&currprefs, _T("cdimage0"), txt2, 0);
 			xfree(txt2);
-			xfree (txt);
-		} else {
-			if (argv[i][0] == '-' && argv[i][1] != '\0') {
+			xfree(txt);
+			loaded = true;
+		} else if (argv[i][0] == '-' && argv[i][1] != '\0') {
 				const TCHAR *arg = argv[i] + 2;
 				int extra_arg = *arg == '\0';
 				if (extra_arg)
 					arg = i + 1 < argc ? argv[i + 1] : 0;
 				if (parse_cmdline_option (&currprefs, argv[i][1], arg) && extra_arg)
 					i++;
+		} else if (i == argc - 1) {
+			// if last config entry is an orphan and nothing else was loaded:
+			// check if it is config file or statefile
+			if (!loaded) {
+				TCHAR *txt = parsetextpath(argv[i]);
+				struct zfile *z = zfile_fopen(txt, _T("rb"), ZFD_NORMAL);
+				if (z) {
+					int type = zfile_gettype(z);
+					zfile_fclose(z);
+					if (type == ZFILE_CONFIGURATION) {
+						currprefs.mountitems = 0;
+						target_cfgfile_load(&currprefs, txt, CONFIG_TYPE_ALL, 0);
+#ifdef SAVESTATE
+					} else if (type == ZFILE_STATEFILE) {
+						savestate_state = STATE_DORESTORE;
+						_tcscpy(savestate_fname, txt);
+#endif
+					}
+				}
+				xfree(txt);
 			}
 		}
 	}
@@ -1085,7 +1152,9 @@ static int real_main2 (int argc, TCHAR **argv)
 	/* force sound settings change */
 	currprefs.produce_sound = 0;
 
+#ifdef SAVESTATE
 	savestate_init ();
+#endif
 	keybuf_init (); /* Must come after init_joystick */
 
 	memory_hardreset (2);

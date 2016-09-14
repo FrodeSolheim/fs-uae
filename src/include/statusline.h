@@ -1,9 +1,7 @@
 #ifndef UAE_STATUSLINE_H
 #define UAE_STATUSLINE_H
 
-#ifdef FSUAE // NL
 #include "uae/types.h"
-#endif
 
 #define TD_PADX 4
 #define TD_PADY 2
@@ -47,4 +45,4 @@ extern void statusline_updated(void);
 extern bool has_statusline_updated(void);
 extern const TCHAR *statusline_fetch(void);
 
-#endif // UAE_STATUSLINE_H
+#endif /* UAE_STATUSLINE_H */

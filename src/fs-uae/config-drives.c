@@ -88,10 +88,17 @@ void fs_uae_configure_cdrom(void)
         path = fs_uae_resolve_path_and_free(path, FS_UAE_CD_PATHS);
         //set_default_dirs_from_file_path(path);
         // FIXME: can possibly remove temp / ,image now
-        char *temp = g_strconcat(path, ",image", NULL);
+        char *temp;
+        if (fs_config_is_true("cdrom_drive_0_delay")) {
+            temp = g_strconcat(path, ",delay:image", NULL);
+        } else {
+            temp = g_strconcat(path, ",image", NULL);
+        }
         amiga_set_option("cdimage0", temp);
         g_free(temp);
         g_free(path);
+        auto_num_drives = 1;
+    } else if (fs_config_get_const_string("cdrom_image_0")) {
         auto_num_drives = 1;
     }
 
@@ -416,11 +423,15 @@ void fs_uae_configure_floppies()
         }
 
         if (path[0] != '\0') {
-            path = fs_uae_expand_path_and_free(path);
-            path = fs_uae_resolve_path_and_free(path, FS_UAE_FLOPPY_PATHS);
-            if (!g_file_test(path, G_FILE_TEST_EXISTS)) {
-                fs_emu_warning("Not found: %s", fs_config_get_const_string(
-                                   option_floppy_drive_x));
+            if (g_str_has_prefix(path, "dat://")) {
+
+            } else {
+                path = fs_uae_expand_path_and_free(path);
+                path = fs_uae_resolve_path_and_free(path, FS_UAE_FLOPPY_PATHS);
+                if (!g_file_test(path, G_FILE_TEST_EXISTS)) {
+                    fs_emu_warning("Not found: %s", fs_config_get_const_string(
+                                       option_floppy_drive_x));
+                }
             }
             auto_num_drives = MAX(auto_num_drives, i + 1);
         }
@@ -466,7 +477,7 @@ void fs_uae_configure_floppies()
     int volume = fs_config_get_int_clamped(
                 OPTION_FLOPPY_DRIVE_VOLUME, 0, 100);
     if (volume == FS_CONFIG_NONE) {
-        volume = 67;
+        volume = 25;
     }
     if (volume == 0) {
         for (int i = 0; i < 4; i++) {

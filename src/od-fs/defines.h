@@ -52,50 +52,16 @@ extern FILE *g_fs_uae_sync_debug_file;
 // needed to include functions in include/debug.h, which in turn
 // is needed by code
 
-#define DEBUGGER 1
-
-//#define A2065
-#define AGA
-//#define AHI
-#define ARCADIA
-#define AUTOCONFIG
-
-#if !defined(ANDROID) && !defined(__LSB_VERSION__)
-#define BSDSOCKET
-#endif
-
 #define ECS_DENISE
-#define CPUEMU_0 /* generic 680x0 emulation with direct memory access */
-#define CPUEMU_11 /* 68000/68010 prefetch emulation */
-#define CPUEMU_13 /* 68000/68010 cycle-exact cpu&blitter */
-#define CPUEMU_20 /* 68020 prefetch */
-#define CPUEMU_21 /* 68020 "cycle-exact" + blitter */
-#define CPUEMU_22 /* 68030 prefetch */
-#define CPUEMU_23 /* 68030 "cycle-exact" + blitter */
-#define CPUEMU_24 /* 68060 "cycle-exact" + blitter */
-#define CPUEMU_25 /* 68040 "cycle-exact" + blitter */
-#define CPUEMU_31 /* Aranym 68040 MMU */
-#define CPUEMU_32 /* Previous 68030 MMU */
-#define CPUEMU_33 /* 68060 MMU */
-#define CPUEMU_40 /* generic 680x0 with indirect memory access */
-//#define DEBUGGER
 //#define ENFORCER
-#define FDI2RAW
-#define FILESYS
 #define GFXFILTER
 
 #define MMU
 #define MMUEMU /* Aranym 68040 MMU */
 //#define MULTIDISPLAY 1
 #define NATMEM_OFFSET natmem_offset
-#define NCR
 #define FULLMMU /* Aranym 68040 MMU */
-#define PARALLEL_PORT
-#define SAVESTATE
-#define SCP
-#define SCSIEMU
 #define SUPPORT_THREADS
-#define UAESERIAL
 #define UAE_FILESYS_THREADS
 //#define UAE_FILESYS_ASYNCHRONOUS
 //#define USE_SDL

@@ -26,7 +26,6 @@
 #include <fs/fs.h>
 #include <fs/log.h>
 #include <fs/ml/opengl.h>
-#include <fs/glu.h>
 
 #ifdef USE_OPENGL
 
@@ -230,7 +229,8 @@ void fs_gl_ortho_hd() {
     g_projection = 2;
 }
 
-void fs_gl_perspective() {
+void fs_gl_perspective(void)
+{
     if (g_projection == 3) {
         return;
     }
@@ -245,15 +245,16 @@ void fs_gl_perspective() {
     double front = 0.1;
     double back = 100.0;
 
-#ifdef USE_GLES
     const double DEG2RAD = 3.14159265 / 180;
-    double tangent = tan(fov_y/2 * DEG2RAD);   // tangent of half fovY
+    double tangent = tan(fov_y / 2 * DEG2RAD); // tangent of half fovY
     double height = front * tangent;           // half height of near plane
     double width = height * aspect_ratio;      // half width of near plane
     // params: left, right, bottom, top, front, back
+#ifdef USE_GLES
     glFrustumf(-width, width, -height, height, front, back);
 #else
-    gluPerspective(fov_y, aspect_ratio, front, back);
+    glFrustum(-width, width, -height, height, front, back);
+    //gluPerspective(fov_y, aspect_ratio, front, back);
 #endif
     glMatrixMode(GL_MODELVIEW);
     CHECK_GL_ERROR();

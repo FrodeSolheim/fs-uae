@@ -9,14 +9,12 @@
 #ifndef UAE_GUI_H
 #define UAE_GUI_H
 
-#ifdef FSUAE // NL
 #include "uae/types.h"
-#endif
 
 extern int gui_init (void);
 extern int gui_update (void);
 extern void gui_exit (void);
-extern void gui_led (int, int);
+extern void gui_led (int, int, int);
 extern void gui_handle_events (void);
 extern void gui_filename (int, const TCHAR *);
 extern void gui_fps (int fps, int idle, int color);
@@ -108,4 +106,4 @@ typedef enum {
 	NUMSG_LAST
 } notify_user_msg;
 
-#endif // UAE_GUI_H
+#endif /* UAE_GUI_H */

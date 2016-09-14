@@ -7,4 +7,4 @@
 #define ENUMDECL enum
 #define ENUMNAME(name) ; typedef int name ;
 
-#endif // UAE_ENUM_H
+#endif /* UAE_ENUM_H */

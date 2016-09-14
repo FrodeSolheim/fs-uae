@@ -1,9 +1,7 @@
 #ifndef UAE_GFXFILTER_H
 #define UAE_GFXFILTER_H
 
-#ifdef FSUAE // NL
 #include "uae/types.h"
-#endif
 
 #ifdef GFXFILTER
 
@@ -95,6 +93,6 @@ void freertgbuffer (uae_u8 *dst);
 
 extern void getrtgfilterrect2 (RECT *sr, RECT *dr, RECT *zr, int dst_width, int dst_height);
 
-#endif // GFXFILTER
+#endif /* GFXFILTER */
 
-#endif // UAE_GFXFILTER_H
+#endif /* UAE_GFXFILTER_H */

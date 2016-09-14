@@ -24,7 +24,8 @@ struct fs_emu_theme g_fs_emu_theme = {};
 
 #include "emu_lua.h"
 
-void fs_emu_theme_init_lua(void) {
+void fs_emu_theme_init_lua(void)
+{
     fs_log("fs_emu_theme_init_lua\n");
 
     char *path = g_build_filename(g_fs_emu_theme.path, "theme.lua", NULL);
@@ -40,7 +41,8 @@ void fs_emu_theme_init_lua(void) {
 
 #endif
 
-void fs_emu_init_overlays(const char **overlay_names) {
+void fs_emu_init_overlays(const char **overlay_names)
+{
     int k = FS_EMU_FIRST_CUSTOM_OVERLAY;
     const char **name = overlay_names;
     while(*name) {
@@ -52,7 +54,8 @@ void fs_emu_init_overlays(const char **overlay_names) {
     }
 }
 
-char *fs_emu_theme_get_resource_path(const char *name) {
+char *fs_emu_theme_get_resource_path(const char *name)
+{
     printf("WARNING: fs_emu_theme_get_resource_path (%s) is deprecated\n",
         name);
     if (fs_path_exists(name)) {
@@ -125,14 +128,16 @@ int fs_emu_theme_get_resource_data(const char *name, char **data, int *size)
     return error;
 }
 
-static void set_color(float *c, float r, float g, float b, float a) {
+static void set_color(float *c, float r, float g, float b, float a)
+{
     c[0] = r;
     c[1] = g;
     c[2] = b;
     c[3] = a;
 }
 
-static void set_color_component(float *c, const char *s) {
+static void set_color_component(float *c, const char *s)
+{
     int val = 0;
     if (s[0] >= '0' && s[0] <= '9') {
         val = val + (s[0] - '0') * 16;
@@ -155,7 +160,8 @@ static void set_color_component(float *c, const char *s) {
     *c = val / 255.0;
 }
 
-static void set_color_from_string(float *c, const char *s) {
+static void set_color_from_string(float *c, const char *s)
+{
     //printf("set_color_from_string %s\n", s);
     if (!s) {
         return;
@@ -180,7 +186,8 @@ static void set_color_from_string(float *c, const char *s) {
     }
 }
 
-static void load_defaults() {
+static void load_defaults()
+{
     // this determines the coordinate system for overlays, etc
     g_fs_emu_theme.width = 1920;
     g_fs_emu_theme.height = 1080;
@@ -209,8 +216,9 @@ static void load_defaults() {
     g_fs_emu_theme.overlay_image = g_strdup("overlay.png");
 }
 
-static void load_theme() {
-    fs_log("loading theme \"%s\"\n", g_fs_emu_theme.path);
+static void load_theme(void)
+{
+    fs_log("THEME: Loading \"%s\"\n", g_fs_emu_theme.path);
     char *p = g_build_filename(g_fs_emu_theme.path, "theme.conf", NULL);
     if (fs_path_exists(p)) {
         fs_config_read_file(p, 1);
@@ -324,8 +332,9 @@ static void load_theme() {
 #endif
 }
 
-void fs_emu_theme_init() {
-    fs_log("fs_emu_theme_init\n");
+void fs_emu_theme_init()
+{
+    fs_log("THEME: Init\n");
 
     fs_emu_theme_overlay* o = g_fs_emu_theme.overlays;
     o[FS_EMU_TOP_LEFT_OVERLAY].name = g_strdup("top_left_overlay");
@@ -368,15 +377,13 @@ void fs_emu_theme_init() {
         }
         if (g_fs_emu_theme.path) {
             fs_log("theme found at %s\n", g_fs_emu_theme.path);
-        }
-        else {
+        } else {
             fs_emu_warning(_("Theme not found: %s"), g_fs_emu_theme.name);
             free(g_fs_emu_theme.name);
             // resources will not be found, but path should not be NULL...
             g_fs_emu_theme.path = g_strdup("");
         }
-    }
-    else {
+    } else {
         g_fs_emu_theme.name = g_strdup("");
         g_fs_emu_theme.path = g_strdup("");
     }

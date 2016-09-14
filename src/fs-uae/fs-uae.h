@@ -58,13 +58,13 @@ const char *fs_uae_logs_dir();
 const char *fs_uae_module_ripper_dir();
 const char *fs_uae_exe_dir();
 const char *fs_uae_themes_dir();
-const char *fs_uae_cache_dir();
+const char *fs_uae_cache_dir(void);
 const char *fs_uae_kickstarts_cache_dir();
 
 #define FS_UAE_CONFIG_TYPE_JOYSTICK "amiga"
 #define FS_UAE_CONFIG_TYPE_MOUSE "amiga_mouse"
 
-#define FS_UAE_NUM_INPUT_PORTS 5
+#define FS_UAE_NUM_INPUT_PORTS 8
 #define MAX_DEVICE_NAME_LEN 128
 typedef struct fs_uae_input_port {
     char device[MAX_DEVICE_NAME_LEN + 1];
@@ -107,5 +107,13 @@ void fs_uae_init_lua_state(lua_State *L);
 #endif
 
 extern int g_fs_uae_frame;
+
+#include <fs/emu/actions.h>
+
+enum {
+    FS_UAE_ACTION_FIRST = FS_EMU_ACTION_LOCAL,
+
+    FS_UAE_ACTION_ENTER_DEBUGGER,
+};
 
 #endif /* FS_UAE_FS_UAE_H */

@@ -25,6 +25,7 @@
 
 #include "cda_play.h"
 #include "archivers/mp2/kjmp2.h"
+#ifdef WITH_LIBMPEG2
 #ifdef FSUAE
 // FIXME: use libmpeg2 from ffmpeg:
 // https://github.com/tonioni/WinUAE/pull/17#issuecomment-50335355
@@ -37,6 +38,7 @@ extern "C" {
 #ifdef FSUAE
 #ifdef __cplusplus
 }
+#endif
 #endif
 #endif
 
@@ -277,8 +279,10 @@ static uae_u16 l64111intmask[2], l64111intstatus[2];
 
 static uae_u16 mpeg_io_reg;
 
+#ifdef WITH_LIBMPEG2
 static mpeg2dec_t *mpeg_decoder;
 static const mpeg2_info_t *mpeg_info;
+#endif
 
 #if FMV_DEBUG
 static int isdebug(uaecptr addr)
@@ -333,7 +337,8 @@ static addrbank fmv_bank = {
 	fmv_lget, fmv_wget, fmv_bget,
 	fmv_lput, fmv_wput, fmv_bput,
 	default_xlate, default_check, NULL, NULL, _T("CD32 FMV IO"),
-	fmv_lget, fmv_wget, ABFLAG_IO
+	fmv_lget, fmv_wget,
+	ABFLAG_IO, S_READ, S_WRITE
 };
 
 DECLARE_MEMORY_FUNCTIONS(fmv_rom);
@@ -341,7 +346,8 @@ static addrbank fmv_rom_bank = {
 	fmv_rom_lget, fmv_rom_wget, fmv_rom_bget,
 	fmv_rom_lput, fmv_rom_wput, fmv_rom_bput,
 	fmv_rom_xlate, fmv_rom_check, NULL, _T("fmv_rom"), _T("CD32 FMV ROM"),
-	fmv_rom_lget, fmv_rom_wget, ABFLAG_ROM
+	fmv_rom_lget, fmv_rom_wget,
+	ABFLAG_ROM, S_READ, S_WRITE
 };
 
 DECLARE_MEMORY_FUNCTIONS(fmv_ram);
@@ -349,11 +355,12 @@ static addrbank fmv_ram_bank = {
 	fmv_ram_lget, fmv_ram_wget, fmv_ram_bget,
 	fmv_ram_lput, fmv_ram_wput, fmv_ram_bput,
 	fmv_ram_xlate, fmv_ram_check, NULL, _T("fmv_ram"), _T("CD32 FMV RAM"),
-	fmv_ram_lget, fmv_ram_wget, ABFLAG_RAM
+	fmv_ram_lget, fmv_ram_wget,
+	ABFLAG_RAM, S_READ, S_WRITE
 };
 
-MEMORY_FUNCTIONS_NOJIT(fmv_rom);
-MEMORY_FUNCTIONS_NOJIT(fmv_ram);
+MEMORY_FUNCTIONS(fmv_rom);
+MEMORY_FUNCTIONS(fmv_ram);
 
 void rethink_cd32fmv(void)
 {
@@ -811,6 +818,7 @@ static struct zfile *videodump;
 
 static void cl450_parse_frame(void)
 {
+#ifdef WITH_LIBMPEG2
 	for (;;) {
 		mpeg2_state_t mpeg_state = mpeg2_parse(mpeg_decoder);
 		switch (mpeg_state)
@@ -886,6 +894,7 @@ static void cl450_parse_frame(void)
 				break;
 		}
 	}
+#endif
 }
 
 static void cl450_reset(void)
@@ -906,8 +915,10 @@ static void cl450_reset(void)
 	cl450_videoram_read = 0;
 	cl450_videoram_cnt = 0;
 	memset(cl450_regs, 0, sizeof cl450_regs);
+#ifdef WITH_LIBMPEG2
 	if (mpeg_decoder)
 		mpeg2_reset(mpeg_decoder, 1);
+#endif
 	if (fmv_ram_bank.baseaddr) {
 		memset(fmv_ram_bank.baseaddr, 0, 0x100);
 		write_log(_T("CL450 reset\n"));
@@ -1548,9 +1559,11 @@ void cd32_fmv_free(void)
 	uae_sem_destroy(&play_sem);
 	xfree(pcmaudio);
 	pcmaudio = NULL;
+#ifdef WITH_LIBMPEG2
 	if (mpeg_decoder)
 		mpeg2_close(mpeg_decoder);
 	mpeg_decoder = NULL;
+#endif
 	cl450_reset();
 	l64111_reset();
 }
@@ -1563,8 +1576,11 @@ addrbank *cd32_fmv_init (uaecptr start)
 	write_log (_T("CD32 FMV mapped @$%x\n"), start);
 	if (start != fmv_start) {
 		write_log(_T("CD32 FMV invalid base address!\n"));
-		return &fmv_rom_bank;
+		return &expamem_null;
 	}
+	if (!validate_banks_z2(&fmv_bank, fmv_start >> 16, expamem_z2_size >> 16))
+		return &expamem_null;
+
 	z = read_rom_name(currprefs.cartfile);
 	if (!z) {
 		int ids[] = { 74, 23, -1 };
@@ -1590,7 +1606,7 @@ addrbank *cd32_fmv_init (uaecptr start)
 	}
 	if (!fmv_rom_bank.baseaddr) {
 		write_log(_T("CD32 FMV without ROM is not supported.\n"));
-		return &fmv_rom_bank;
+		return &expamem_null;
 	}
 	if (!audioram)
 		audioram = xmalloc(uae_u8, 262144);
@@ -1605,11 +1621,12 @@ addrbank *cd32_fmv_init (uaecptr start)
 		cda = new cda_audio(PCM_SECTORS, KJMP2_SAMPLES_PER_FRAME * 4, 44100);
 		l64111_setvolume();
 	}
+#ifdef WITH_LIBMPEG2
 	if (!mpeg_decoder) {
 		mpeg_decoder = mpeg2_init();
 		mpeg_info = mpeg2_info(mpeg_decoder);
 	}
-
+#endif
 	fmv_bank.mask = fmv_board_size - 1;
 	map_banks(&fmv_rom_bank, (fmv_start + ROM_BASE) >> 16, fmv_rom_size >> 16, 0);
 	map_banks(&fmv_ram_bank, (fmv_start + RAM_BASE) >> 16, fmv_ram_size >> 16, 0);

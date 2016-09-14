@@ -1,1 +1,11 @@
+Summary: JIT Compiler
+Default: 0
+Example: 1
 Type: Boolean
+
+Code:
+
+    if c.jit_compiler.explicit:
+        c.jit_compiler = c.jit_compiler.explicit
+    else:
+        c.jit_compiler = "0"

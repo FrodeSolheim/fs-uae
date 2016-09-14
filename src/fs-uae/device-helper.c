@@ -17,10 +17,14 @@
 
 #include <fs/emu.h>
 #include <fs/glib.h>
+#include "paths.h"
 
 #ifndef WINDOWS
 #undef main
 #endif
+
+char *g_fs_uae_config_file_path = "";
+char *g_fs_uae_config_dir_path = "";
 
 static char *joystick_config_name(const char* name, int with_number)
 {
@@ -58,11 +62,17 @@ int ManyMouse_Init(void);
 void ManyMouse_Quit(void);
 const char *ManyMouse_DeviceName(unsigned int index);
 
-static void list_joysticks()
+static void list_joysticks(void)
 {
     // printf("# FS-UAE VERSION %s\n", g_fs_uae_version);
     printf("# listing keyboards\n");
-    printf("K: Keyboard\n");
+    GList *list = fs_ml_input_list_custom_keyboards();
+    GList *iterator = list;
+    while (iterator) {
+        printf("K: %s\n", (gchar *) iterator->data);
+        iterator = g_list_next(iterator);
+    }
+    g_list_free_full(list, g_free);
     printf("# listing mice\n");
     printf("M: Mouse\n");
     int count = ManyMouse_Init();
@@ -70,14 +80,13 @@ static void list_joysticks()
         for (int i = 0; i < count; i++) {
             const char *name = ManyMouse_DeviceName(i);
             if (name[0] == 0 || g_ascii_strcasecmp(name, "mouse") == 0) {
-                printf("M: Unnamed Mouse\n");
+                printf("M: Mouse: Unnamed Mouse\n");
             } else {
-                printf("M: %s\n", ManyMouse_DeviceName(i));
+                printf("M: Mouse: %s\n", ManyMouse_DeviceName(i));
             }
         }
         ManyMouse_Quit();
     }
-
     printf("# listing joysticks\n");
     // printf("J: Fake Test Joystick %c%c\n", 0xc2, 0xae);
     // printf("   Buttons: 0 Hats: 0 Axes: 0 Balls: 0\n");
@@ -119,15 +128,22 @@ static void list_joysticks()
     printf("# listing joysticks done\n");
 }
 
-static void print_events()
+static void print_events(void)
 {
 #ifdef USE_SDL2
     printf("# Printing events\n");
 
     printf("# listing keyboards\n");
-    printf("{\"type\": \"keyboard-device-added\", \"device\": %d, "
-           "\"name\": \"%s\"}\n",
-           0, "Keyboard");
+    GList *list = fs_ml_input_list_custom_keyboards();
+    GList *iterator = list;
+    int k = 0;
+    while (iterator) {
+        printf("{\"type\": \"keyboard-device-added\", \"device\": %d, "
+               "\"name\": \"%s\"}\n",
+               k++, (const char *) iterator->data);
+        iterator = g_list_next(iterator);
+    }
+    g_list_free_full(list, g_free);
 
     printf("# listing mice\n");
     printf("{\"type\": \"mouse-device-added\", \"device\": %d, "
@@ -204,7 +220,7 @@ static void print_events()
             SDL_Joystick *joystick = SDL_JoystickOpen(event.jdevice.which);
 
             char *name = fs_ml_input_fix_joystick_name(
-                SDL_JoystickName(joystick), 1);
+                SDL_JoystickName(joystick), 0);
 
             char *name2 = strdup(name);
             char *c = name2;
@@ -281,6 +297,8 @@ HINSTANCE g_fs_ml_hinstance;
 
 int main(int argc, char* argv[])
 {
+    fs_set_argv(argc, argv);
+    fs_set_data_dir(fs_uae_data_dir());
 
     if (argc != 2) {
         printf("usages:\n");

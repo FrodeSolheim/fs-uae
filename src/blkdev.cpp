@@ -28,7 +28,11 @@
 
 int log_scsiemu = 0;
 
+#ifdef FSUAE
+#define PRE_INSERT_DELAY (10 * (currprefs.ntscmode ? 60 : 50))
+#else
 #define PRE_INSERT_DELAY (3 * (currprefs.ntscmode ? 60 : 50))
+#endif
 
 struct blkdevstate
 {
@@ -53,25 +57,6 @@ struct blkdevstate
 };
 
 struct blkdevstate state[MAX_TOTAL_SCSI_DEVICES];
-
-#if 0
-static int scsiemu[MAX_TOTAL_SCSI_DEVICES];
-
-static struct device_functions *device_func[MAX_TOTAL_SCSI_DEVICES];
-static int openlist[MAX_TOTAL_SCSI_DEVICES];
-static int waspaused[MAX_TOTAL_SCSI_DEVICES];
-static int delayed[MAX_TOTAL_SCSI_DEVICES];
-static uae_sem_t unitsem[MAX_TOTAL_SCSI_DEVICES];
-static int unitsem_cnt[MAX_TOTAL_SCSI_DEVICES];
-
-static int play_end_pos[MAX_TOTAL_SCSI_DEVICES];
-static uae_u8 play_qcode[MAX_TOTAL_SCSI_DEVICES][SUBQ_SIZE];
-
-static TCHAR newimagefiles[MAX_TOTAL_SCSI_DEVICES][256];
-static int imagechangetime[MAX_TOTAL_SCSI_DEVICES];
-static bool cdimagefileinuse[MAX_TOTAL_SCSI_DEVICES];
-static int wasopen[MAX_TOTAL_SCSI_DEVICES];
-#endif
 
 static bool dev_init;
 
@@ -195,6 +180,16 @@ static void install_driver (int flags)
 				}
 				break;
 			}
+			// do not default to image mode if unit 1+ and automount
+			if (i == 0 || !currprefs.win32_automount_cddrives) {
+				// use image mode if driver disabled
+				for (int j = 1; j < NUM_DEVICE_TABLE_ENTRIES; j++) {
+					if (devicetable[j] == st->device_func && driver_installed[j] < 0) {
+						st->device_func = devicetable[SCSI_UNIT_IMAGE];
+						st->scsiemu = true;
+					}
+				}
+			}
 		}
 	}
 
@@ -207,7 +202,14 @@ static void install_driver (int flags)
 				struct blkdevstate *st = &state[i];
 				if (st->device_func == devicetable[j]) {
 					int ok = st->device_func->openbus (0);
-					driver_installed[j] = 1;
+					if (!ok && st->device_func != devicetable[SCSI_UNIT_IMAGE]) {
+						st->device_func = devicetable[SCSI_UNIT_IMAGE];
+						st->scsiemu = true;
+						write_log (_T("Fallback to image mode, unit %d.\n"), i);
+						driver_installed[j] = -1;
+					} else {
+						driver_installed[j] = 1;
+					}
 					write_log (_T("%s driver installed, ok=%d\n"), st->device_func->name, ok);
 					break;
 				}
@@ -473,7 +475,6 @@ int sys_command_open (int unitnum)
 	blkdev_fix_prefs (&currprefs);
 	if (!dev_init) {
 		device_func_init (0);
-		dev_init = true;
 	}
 
 	if (st->isopen) {
@@ -527,12 +528,14 @@ void device_func_reset (void)
 		st->cdimagefileinuse = false;
 		st->newimagefile[0] = 0;
 	}
+	dev_init = false;
 }
 
 int device_func_init (int flags)
 {
 	blkdev_fix_prefs (&currprefs);
 	install_driver (flags);
+	dev_init = true;
 	return 1;
 }
 
@@ -629,6 +632,7 @@ static void check_changes (int unitnum)
 		if (st->wasopen) {
 			st->device_func->closedev (unitnum);
 			st->wasopen = -1;
+#ifdef SCSIEMU
 			if (currprefs.scsi)  {
 				scsi_do_disk_change (unitnum, 0, &pollmode);
 				if (pollmode)
@@ -638,6 +642,7 @@ static void check_changes (int unitnum)
 					pollmode = 0;
 				}
 			}
+#endif
 		}
 		write_log (_T("CD: eject (%s) open=%d\n"), pollmode ? _T("slow") : _T("fast"), st->wasopen ? 1 : 0);
 		if (wasimage)
@@ -673,6 +678,7 @@ static void check_changes (int unitnum)
 			write_log (_T("-> device reopened\n"));
 		}
 	}
+#ifdef SCSIEMU
 	if (currprefs.scsi && st->wasopen) {
 		struct device_info di;
 		st->device_func->info (unitnum, &di, 0, -1);
@@ -684,6 +690,7 @@ static void check_changes (int unitnum)
 		scsi_do_disk_change (unitnum, 1, &pollmode);
 		filesys_do_disk_change (unitnum, 1);
 	}
+#endif
 	st->mediawaschanged = true;
 	st->showstatusline = true;
 	if (gotsem) {
@@ -1299,11 +1306,20 @@ int scsi_cd_emulate (int unitnum, uae_u8 *cmdbuf, int scsi_cmd_len,
 	int v;
 	int status = 0;
 	struct device_info di;
-	uae_u8 cmd = cmdbuf[0];
+	uae_u8 cmd;
 	int dlen, lun;
 	
-	if (cmd == 0x03) { /* REQUEST SENSE */
-		st->mediawaschanged = false;
+	if (cmdbuf == NULL) {
+		if (st->mediawaschanged) {
+			st->mediawaschanged = false;
+			return (0x28 << 8) | (0x00);
+		}
+		return 0;
+	}
+
+	cmd = cmdbuf[0];
+
+	if (cmd == 0x03) {
 		return 0;
 	}
 	
@@ -1325,22 +1341,6 @@ int scsi_cd_emulate (int unitnum, uae_u8 *cmdbuf, int scsi_cmd_len,
 		s[12] = 0x25; /* INVALID LUN */
 		ls = 0x12;
 		write_log (_T("CD SCSIEMU %d: CMD=%02X LUN=%d ignored\n"), unitnum, cmdbuf[0], lun);
-		goto end;
-	}
-
-	// media changed and not inquiry
-	if (st->mediawaschanged && cmd != 0x12) {
-		if (log_scsiemu) {
-			write_log (_T("CD SCSIEMU %d: MEDIUM MAY HAVE CHANGED STATE\n"), unitnum);
-		}
-		lr = -1;
-		status = 2; /* CHECK CONDITION */
-		s[0] = 0x70;
-		s[2] = 6; /* UNIT ATTENTION */
-		s[12] = 0x28; /* MEDIUM MAY HAVE CHANGED */
-		ls = 0x12;
-		if (cmd == 0x00)
-			st->mediawaschanged = false;
 		goto end;
 	}
 

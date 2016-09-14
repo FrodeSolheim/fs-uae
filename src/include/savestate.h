@@ -9,8 +9,8 @@
 #ifndef UAE_SAVESTATE_H
 #define UAE_SAVESTATE_H
 
-#ifdef FSUAE // NL
 #include "uae/types.h"
+#ifdef FSUAE
 #include "uae/limits.h"
 #include "uae/inline.h"
 #include <stddef.h>
@@ -244,7 +244,11 @@ extern struct zfile *savestate_file;
 
 STATIC_INLINE bool isrestore (void)
 {
+#ifdef SAVESTATE
 	return savestate_state == STATE_RESTORE || savestate_state == STATE_REWIND;
+#else
+	return false;
+#endif
 }
 
 extern void savestate_quick (int slot, int save);
@@ -258,4 +262,4 @@ extern void savestate_listrewind (void);
 extern void statefile_save_recording (const TCHAR*);
 extern void savestate_capture_request (void);
 
-#endif // UAE_SAVESTATE_H
+#endif /* UAE_SAVESTATE_H */

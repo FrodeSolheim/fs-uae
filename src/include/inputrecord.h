@@ -9,9 +9,7 @@
 #ifndef UAE_INPUTRECORD_H
 #define UAE_INPUTRECORD_H
 
-#ifdef FSUAE // NL
 #include "uae/types.h"
-#endif
 
 extern int inputrecord_debug;
 
@@ -62,4 +60,4 @@ extern void inprec_setposition (int offset, int replaycounter);
 extern bool inprec_realtime (void);
 extern void inprec_getstatus (TCHAR*);
 
-#endif // UAE_INPUTRECORD_H
+#endif /* UAE_INPUTRECORD_H */

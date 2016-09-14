@@ -60,6 +60,17 @@ struct fs_semaphore {
 #endif
 };
 
+fs_thread_id_t fs_thread_id(void)
+{
+    fs_thread_id_t thread_id = 0;
+#if defined(USE_GLIB)
+    thread_id = (uintptr_t) g_thread_self();
+#else
+#error no thread support
+#endif
+    return thread_id;
+}
+
 fs_thread *fs_thread_create(
         const char *name, fs_thread_function fn, void *data)
 {

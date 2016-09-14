@@ -1,0 +1,4 @@
+Summary: Delayed CD-ROM Insert
+Type: Boolean
+Default: 0
+Example: 1

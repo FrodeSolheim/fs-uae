@@ -112,6 +112,19 @@ char *fs_get_data_file(const char *relative)
     return NULL;
 }
 
+static const char *g_data_dir;
+
+void fs_set_data_dir(const char *path)
+{
+    g_data_dir = path;
+}
+
+const char *fs_data_dir(void)
+{
+    g_assert(g_data_dir != NULL);
+    return g_data_dir;
+}
+
 char *fs_get_program_data_file(const char *relative)
 {
     char *relative2 = g_build_filename(fs_get_prgname(), relative, NULL);

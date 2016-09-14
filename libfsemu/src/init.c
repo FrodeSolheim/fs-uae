@@ -17,12 +17,17 @@ void fs_init()
 {
 #ifdef USE_GLIB
 #ifdef USE_REAL_MALLOC
+#if !GLIB_CHECK_VERSION (2, 46, 0)
+    /* g_mem_is_system_malloc has been deprecated since version 2.46 and
+     * should not be used in newly-written code. GLib always uses the system
+     * malloc. */
     GMemVTable vtable;
     memset(&vtable, 0, sizeof(GMemVTable));
     vtable.malloc = malloc;
     vtable.realloc = realloc;
     vtable.free = free;
     g_mem_set_vtable(&vtable);
+#endif
 #endif
 #if !GLIB_CHECK_VERSION (2, 32, 0)
     /* g_thread_init is deprecated since 2.32, and is only needed for older

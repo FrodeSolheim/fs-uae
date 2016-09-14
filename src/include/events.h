@@ -12,8 +12,8 @@
 #ifndef UAE_EVENTS_H
 #define UAE_EVENTS_H
 
-#ifdef FSUAE // NL
 #include "uae/types.h"
+#ifdef FSUAE
 #include "uae/inline.h"
 #include "options.h"
 // FIXME: move CYCLE_UNIT define here instead
@@ -75,7 +75,7 @@ enum {
 };
 
 extern int pissoff_value;
-extern signed long pissoff;
+extern uae_s32 pissoff;
 
 #define countdown pissoff
 #define do_cycles do_cycles_slow
@@ -161,4 +161,4 @@ STATIC_INLINE void event2_remevent (int no)
 	eventtab2[no].active = 0;
 }
 
-#endif // UAE_EVENTS_H
+#endif /* UAE_EVENTS_H */

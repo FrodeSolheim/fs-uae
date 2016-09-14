@@ -48,6 +48,8 @@ struct commodore_dmac
 
 	uae_u8 c8727_pcss;
 	uae_u8 c8727_ctl;
+	uae_u8 c8727_wrcbp;
+	uae_u16 c8727_st506_cb;
 };
 struct gvp_dmac
 {
@@ -84,8 +86,9 @@ struct wd_state {
 	smp_comm_pipe requests;
 	volatile int scsi_thread_running;
 
-	// unit 7 = XT
-	struct scsi_data *scsis[8];
+	// unit 8,9 = ST-506 (A2090)
+	// unit 8 = XT (A2091)
+	struct scsi_data *scsis[8 + 2];
 
 	bool cdtv;
 
@@ -136,12 +139,13 @@ extern void a2090_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct ro
 extern void a2091_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct romconfig *rc);
 extern void gvp_s1_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct romconfig *rc);
 extern void gvp_s2_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct romconfig *rc);
+extern void gvp_s2_add_accelerator_scsi_unit(int ch, struct uaedev_config_info *ci, struct romconfig *rc);
 extern void a3000_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct romconfig *rc);
 
 extern int add_wd_scsi_hd (struct wd_state *wd, int ch, struct hd_hardfiledata *hfd, struct uaedev_config_info *ci, int scsi_level);
 extern int add_wd_scsi_cd (struct wd_state *wd, int ch, int unitnum);
 extern int add_wd_scsi_tape (struct wd_state *wd, int ch, const TCHAR *tape_directory, bool readonly);
 
-#endif // A2091
+#endif /* A2091 */
 
-#endif // UAE_A2091_H
+#endif /* UAE_A2091_H */

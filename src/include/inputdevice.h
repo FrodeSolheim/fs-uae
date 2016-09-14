@@ -10,8 +10,8 @@
 #ifndef UAE_INPUTDEVICE_H
 #define UAE_INPUTDEVICE_H
 
-#ifdef FSUAE // NL
 #include "uae/types.h"
+#ifdef FSUAE
 #include "options.h"
 #endif
 
@@ -222,6 +222,8 @@ extern int inputdevice_is_tablet (void);
 extern int input_mousehack_status (int mode, uaecptr diminfo, uaecptr dispinfo, uaecptr vp, uae_u32 moffset);
 extern void input_mousehack_mouseoffset (uaecptr pointerprefs);
 extern int mousehack_alive (void);
+extern void mousehack_wakeup(void);
+extern void mousehack_write(int reg, uae_u16 val);
 extern void setmouseactive (int);
 extern bool ismouseactive (void);
 
@@ -337,6 +339,7 @@ extern int jsem_ismouse (int port, const struct uae_prefs *p);
 extern int jsem_iskbdjoy (int port, const struct uae_prefs *p);
 
 extern int inputdevice_uaelib (const TCHAR *, const TCHAR *);
+extern int inputdevice_uaelib(const TCHAR *s, int parm, int max, bool autofire);
 
 extern int inputdevice_testread (int*, int*, int*, bool);
 extern int inputdevice_istest (void);

@@ -1,16 +1,13 @@
-Default:
-Example: window
-Since: 1.1.8
+Summary: Fullscreen Mode
+Default: desktop
+Example: fullscreen
+Type: Choice
 
 You can set this option to window instead if you want to use
 the fake fullscreen support (a borderless window the size of the current
 display will be created instead of switching to real fullscreen).
 
-Since version 2.3.10, the following values are supported:
+Value: fullscreen ("Fullscreen") - Classic fullscreen mode (SDL_FULLSCREEN)
+Value: desktop ("Fullscreen Desktop") - New fullscreen mode (SDL_FULLSCREEN_DESKTOP)
+Value: window ("Fullscreen Window") - Frameless window with same size as desktop
 
-* fullscreen - Classic fullscreen mode (SDL_FULLSCREEN)
-* desktop - New fullscreen mode (SDL_FULLSCREEN_DESKTOP)
-* window - Frameless window with same size as desktop
-
-Since version 2.3.10, the default value varies by platform and whether
-FS-UAE is compiled with SDL or SDL2.

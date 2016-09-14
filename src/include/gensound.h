@@ -30,4 +30,4 @@ extern void sample16s_handler (void);
 extern void sample16ss_handler (void);
 extern void sample8s_handler (void);
 
-#endif // UAE_GENSOUND_H
+#endif /* UAE_GENSOUND_H */

@@ -68,8 +68,8 @@ int fs_emu_main_loop(void);
 void fs_emu_video_init(void);
 
 void fs_emu_video_dummy_init(void);
-
 void fs_emu_video_sdl_init(void);
+void fs_emu_video_sdl_software_init(void);
 
 extern void (*fs_emu_video_create_window)(int width, int height);
 

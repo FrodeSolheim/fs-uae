@@ -1,8 +1,8 @@
 #ifndef UAE_BLKDEV_H
 #define UAE_BLKDEV_H
 
-#ifdef FSUAE // NL
 #include "uae/types.h"
+#ifdef FSUAE // NL
 #include "uae/limits.h"
 #endif
 

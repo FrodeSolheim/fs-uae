@@ -10,6 +10,8 @@
 #include "sysconfig.h"
 #include "sysdeps.h"
 
+#ifdef UAESERIAL
+
 #include "threaddep/thread.h"
 #include "options.h"
 #include "uae/memory.h"
@@ -780,3 +782,5 @@ void uaeserialdev_reset (void)
 		return;
 	dev_reset ();
 }
+
+#endif /* UAESERIAL */

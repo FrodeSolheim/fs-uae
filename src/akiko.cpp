@@ -14,6 +14,8 @@
 #include "sysconfig.h"
 #include "sysdeps.h"
 
+#ifdef CD32
+
 #include "options.h"
 #include "uae/memory.h"
 #include "events.h"
@@ -1463,18 +1465,12 @@ static uae_u32 akiko_bget2 (uaecptr addr, int msg)
 
 static uae_u32 REGPARAM2 akiko_bget (uaecptr addr)
 {
-#ifdef JIT
-	special_mem |= S_READ;
-#endif
 	return akiko_bget2 (addr, 1);
 }
 
 static uae_u32 REGPARAM2 akiko_wget (uaecptr addr)
 {
 	uae_u16 v;
-#ifdef JIT
-	special_mem |= S_READ;
-#endif
 	addr &= 0xffff;
 	v = akiko_bget2 (addr + 1, 0);
 	v |= akiko_bget2 (addr + 0, 0) << 8;
@@ -1487,9 +1483,6 @@ static uae_u32 REGPARAM2 akiko_lget (uaecptr addr)
 {
 	uae_u32 v;
 
-#ifdef JIT
-	special_mem |= S_READ;
-#endif
 	addr &= 0xffff;
 	v = akiko_bget2 (addr + 3, 0);
 	v |= akiko_bget2 (addr + 2, 0) << 8;
@@ -1615,17 +1608,11 @@ static void akiko_bput2 (uaecptr addr, uae_u32 v, int msg)
 
 static void REGPARAM2 akiko_bput (uaecptr addr, uae_u32 v)
 {
-#ifdef JIT
-	special_mem |= S_WRITE;
-#endif
 	akiko_bput2 (addr, v, 1);
 }
 
 static void REGPARAM2 akiko_wput (uaecptr addr, uae_u32 v)
 {
-#ifdef JIT
-	special_mem |= S_WRITE;
-#endif
 	addr &= 0xfff;
 	if((addr < 0x30 && AKIKO_DEBUG_IO))
 		write_log (_T("akiko_wput %08X: %08X=%04X\n"), M68K_GETPC, addr, v & 0xffff);
@@ -1635,9 +1622,6 @@ static void REGPARAM2 akiko_wput (uaecptr addr, uae_u32 v)
 
 static void REGPARAM2 akiko_lput (uaecptr addr, uae_u32 v)
 {
-#ifdef JIT
-	special_mem |= S_WRITE;
-#endif
 	addr &= 0xffff;
 	if(addr < 0x30 && AKIKO_DEBUG_IO)
 		write_log (_T("akiko_lput %08X: %08X=%08X\n"), M68K_GETPC, addr, v);
@@ -1651,7 +1635,8 @@ addrbank akiko_bank = {
 	akiko_lget, akiko_wget, akiko_bget,
 	akiko_lput, akiko_wput, akiko_bput,
 	default_xlate, default_check, NULL, NULL, _T("Akiko"),
-	dummy_lgeti, dummy_wgeti, ABFLAG_IO
+	dummy_lgeti, dummy_wgeti,
+	ABFLAG_IO, S_READ, S_WRITE
 };
 
 static const uae_u8 patchdata[]={0x0c,0x82,0x00,0x00,0x03,0xe8,0x64,0x00,0x00,0x46};
@@ -1916,3 +1901,4 @@ void akiko_mute (int muted)
 		write_comm_pipe_u32 (&requests, 0x0105, 1);
 }
 
+#endif /* CD32 */

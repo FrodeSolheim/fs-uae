@@ -31,6 +31,8 @@
 
 #ifdef FSUAE // NL
 #include "uae/fs.h"
+#include "uae/glib.h"
+#include <fs/data.h>
 #undef _WIN32
 #endif
 
@@ -270,7 +272,7 @@ static bool checkwrite (struct zfile *zf, int *retcode)
 
 
 static uae_u8 exeheader[]={ 0x00,0x00,0x03,0xf3,0x00,0x00,0x00,0x00 };
-static const TCHAR *diskimages[] = { _T("adf"), _T("adz"), _T("ipf"), _T("scp"), _T("fdi"), _T("dms"), _T("wrp"), _T("dsq"), _T("pkd"), 0 };
+static const TCHAR *diskimages[] = { _T("adf"), _T("adz"), _T("ipf"), _T("scp"), _T("fdi"), _T("dms"), _T("wrp"), _T("dsq"), _T("pkd"), _T("ima"), 0 };
 
 int zfile_gettype (struct zfile *z)
 {
@@ -1920,6 +1922,24 @@ static struct zfile *zfile_fopenx2 (const TCHAR *name, const TCHAR *mode, int ma
 #ifdef _WIN32
 	if (isinternetfile (name))
 		return zfile_fopen_internet (name, mode, mask);
+#endif
+#ifdef FSUAE
+	if (g_str_has_prefix(name, "dat://")) {
+		write_log("zfile_fopenx2 %s\n", name);
+		char *data;
+		int data_size;
+		if (fs_data_file_content(name + 6, &data, &data_size) != 0) {
+			return NULL;
+		}
+		struct zfile *zf = zfile_create(NULL, name);
+		if (zf) {
+			/* The data will be freed by zfile_close (zfile_free). */
+			zf->data = (uae_u8 *) data;
+			zf->size = data_size;
+			zf->datasize = data_size;
+		}
+		return zf;
+	}
 #endif
 	f = zfile_fopen_x (name, mode, mask, index);
 	if (f)

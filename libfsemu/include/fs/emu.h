@@ -70,9 +70,9 @@ void fs_emu_init_2(int options);
 
 typedef void (*fs_emu_zoom_function)(int);
 void fs_emu_set_toggle_zoom_function(fs_emu_zoom_function function);
-void fs_emu_toggle_zoom();
+void fs_emu_toggle_zoom(int flags);
 
-void fs_emu_notification(int type, const char *format, ...);
+void fs_emu_notification(uint32_t type, const char *format, ...);
 
 void fs_emu_warning(const char *format, ...);
 void fs_emu_deprecated(const char *format, ...);
@@ -86,18 +86,6 @@ void fs_emu_deprecated(const char *format, ...);
     //return g_fs_emu_config;
 //}
 //void fs_emu_set_config(GKeyFile *config);
-
-//typedef void (*fs_emu_action_function)(int state);
-
-typedef struct fs_emu_action {
-    int input_event;
-    const char *name;
-    int flags;
-    //fs_emu_action_function *function;
-} fs_emu_action;
-
-void fs_emu_set_actions(fs_emu_action *actions);
-int fs_emu_input_action_from_string(const char *value);
 
 void fs_emu_reset_input_mapping();
 void fs_emu_map_custom_actions();
@@ -197,9 +185,9 @@ fs_emu_input_device *fs_emu_get_input_devices(int* count);
 //typedef void (*fs_emu_action_function)(int action, int state);
 //void fs_emu_set_action_function(fs_emu_action_function function);
 
-int fs_emu_configure_joystick(const char *name, const char *type,
-        fs_emu_input_mapping *mapping, int usage,
-        char *out_name, int out_name_len);
+int fs_emu_configure_joystick(
+    const char *name, const char *type, fs_emu_input_mapping *mapping,
+        int usage, char *out_name, int out_name_len, bool reuse);
 
 void fs_emu_configure_mouse(const char *name, int horiz, int vert, int left,
         int middle, int right, int wheel_axis);
@@ -264,14 +252,14 @@ void fs_emu_set_title(const char *title);
 const char *fs_emu_get_sub_title();
 void fs_emu_set_sub_title(const char *title);
 
-void fs_emu_toggle_fullscreen();
+void fs_emu_toggle_fullscreen(void);
 
 double fs_emu_get_average_emu_fps();
 double fs_emu_get_average_sys_fps();
 
 // video interface
 
-double fs_emu_get_video_frame_rate();
+double fs_emu_get_video_frame_rate(void);
 /**
  * Specify the frame rate for emulated video (typically 50 or 60).
  */
@@ -376,8 +364,9 @@ int fs_emu_is_cursor_visible(void);
 bool fs_emu_cursor_allowed(void);
 int64_t fs_emu_cursor_is_visible_to(void);
 
-void fs_emu_grab_input(int mode);
-int fs_emu_has_input_grab(void);
+bool fs_emu_input_grab(void);
+void fs_emu_set_input_grab(bool grab);
+void fs_emu_set_input_grab_and_visibility(bool grab, int duration);
 
 void fs_emu_screenshot(const char *path, int crop);
 
@@ -419,13 +408,17 @@ typedef struct fs_emu_menu {
     int idata;
 } fs_emu_menu;
 
+bool fs_emu_menu_mode(void);
+void fs_emu_set_menu_mode(bool mode);
+
+static inline void fs_emu_menu_toggle(void)
+{
+    fs_emu_set_menu_mode(!fs_emu_menu_mode());
+}
+
 void fs_emu_menu_update_current();
 
-void fs_emu_menu_toggle();
-
 void fs_emu_menu_set_current(fs_emu_menu *menu);
-
-int fs_emu_menu_is_active();
 
 fs_emu_menu *fs_emu_menu_new();
 

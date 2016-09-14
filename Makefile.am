@@ -67,6 +67,12 @@ AM_LDFLAGS =
 # AM_LDFLAGS += -rdynamic
 AM_LDFLAGS += @OS_LDFLAGS@
 
+if JIT
+if NO_PIE
+AM_LDFLAGS += -no-pie
+endif
+endif
+
 if STATIC_BUILD
 AM_LDFLAGS += -static
 AM_CPPFLAGS += -DGLEW_STATIC

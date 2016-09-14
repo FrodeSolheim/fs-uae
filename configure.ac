@@ -87,7 +87,7 @@ AS_IF([test "x$enable_static" = xyes],
       [PKG_CONFIG="$PKG_CONFIG --static"])
 
 
-# Compiler flags
+# Compiler / linker feature checks
 
 AX_CHECK_COMPILE_FLAG(-fno-strict-overflow,
 [f_no_strict_overflow=yes],
@@ -119,7 +119,11 @@ AX_CHECK_COMPILE_FLAG(-Wmissing-format-attribute,
 AM_CONDITIONAL([W_MISSING_FORMAT_ATTRIBUTE],
 [test x$w_missing_format_attribute = xyes])
 
-# Compiler features
+AX_CHECK_LINK_FLAG(-no-pie,
+[no_pie=yes],
+[no_pie=no])
+AM_CONDITIONAL([NO_PIE],
+[test x$no_pie = xyes])
 
 AX_C___BUILTIN_EXPECT
 
@@ -688,6 +692,9 @@ AS_IF([test "x$enable_jit" != xno], [
         fi
     ])
 ])
+AM_CONDITIONAL([JIT],
+[test x$enable_jit != xno])
+
 OPT_FEATURE([USE_JIT_FPU], [jit_fpu], [jit-fpu],
             [JIT compilation of FPU instructions])
 DIS_FEATURE([WITH_LUA], [lua], [lua],

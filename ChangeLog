@@ -1,5 +1,6 @@
 Version 2.7.16dev:
 
+* Add -no-pie (unless JIT is explicitly disabled) if supported by linker.
 * Removed dependency on GLEW, use GLAD OpenGL loader instead.
 * Check if SDL2 uses the X11 subsystem before using X11 directly.
 * Fixed crash when using the Wayland SDL2 driver.

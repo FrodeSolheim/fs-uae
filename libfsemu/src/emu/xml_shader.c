@@ -54,6 +54,8 @@ typedef struct shader_pass {
 
 typedef struct fs_emu_shader {
     char *path;
+    char *data;
+    int data_size;
     int ok;
     GList *passes;
     GList *current_shaders;
@@ -565,19 +567,28 @@ void fs_emu_load_shader(fs_emu_shader *shader)
     GMarkupParseContext *context = g_markup_parse_context_new(
             &counter_subparser, G_MARKUP_TREAT_CDATA_AS_TEXT, data, NULL);
 
-    FILE *f = g_fopen(data->shader->path, "rb");
-    if (f == NULL) {
-        fs_log("[SHADERS] Could not open shader file\n");
+    if (data->shader->path) {
+        FILE *f = g_fopen(data->shader->path, "rb");
+        if (f == NULL) {
+            fs_log("[SHADERS] Could not open shader file\n");
+            return;
+        }
+        char *buffer = malloc(8192);
+        int read = fread(buffer, 1, 8192, f);
+        while (read > 0) {
+            g_markup_parse_context_parse(context, buffer, read, NULL);
+            read = fread(buffer, 1, 8192, f);
+        }
+        fclose(f);
+        free(buffer);
+    } else if (data->shader->data) {
+        g_markup_parse_context_parse(context, data->shader->data,
+                                     data->shader->data_size, NULL);
+    } else {
+        fs_emu_warning("[SHADERS] No shader data or path");
+        data->shader->ok = 0;
         return;
     }
-    char *buffer = malloc(8192);
-    int read = fread(buffer, 1, 8192, f);
-    while (read > 0) {
-        g_markup_parse_context_parse(context, buffer, read, NULL);
-        read = fread(buffer, 1, 8192, f);
-    }
-    fclose(f);
-    free(buffer);
 
     // If the list of shader passes is empty, this shader file is invalid.
     // Abort this algorithm, do not continue trying to load the file. Host
@@ -611,7 +622,6 @@ static char *find_shader(const char *name)
     if (fs_path_exists(name)) {
         return g_strdup(name);
     }
-
     char *name2 = g_strconcat(name, ".shader", NULL);
     char *path = g_build_filename(fs_data_dir(), "Shaders", name2, NULL);
     g_free(name2);
@@ -620,7 +630,7 @@ static char *find_shader(const char *name)
         return path;
     }
     g_free(path);
-
+#if 0
     name2 = g_strconcat(name, ".shader", NULL);
     path = g_build_filename("shaders", name2, NULL);
     g_free(name2);
@@ -630,23 +640,39 @@ static char *find_shader(const char *name)
     if (path2) {
         return path2;
     }
+#endif
     return NULL;
 }
 
-static void fs_emu_load_default_shader()
+static void fs_emu_load_default_shader(void)
 {
     const char *name = fs_config_get_const_string("shader");
     if (!name) {
         return;
     }
     char *path = find_shader(name);
+    char *data = NULL;
+    int data_size = 0;
     if (!path) {
-        fs_emu_warning(_("Shader not found: %s"), name);
-        return;
+        gchar *name2 = g_strconcat(name, ".shader", NULL);
+        gchar *relative = g_build_filename("shaders", name2, NULL);
+        g_free(name2);
+        fs_log("[SHADERS] Checking fs-uae.dat:%s\n", relative);
+        if (fs_get_program_data(relative, &data, &data_size) != FS_NO_ERROR) {
+            fs_emu_warning(_("Shader not found: %s"), name);
+            g_free(relative);
+            return;
+        }
+        g_free(relative);
     }
 
     fs_emu_shader *shader= g_new0(fs_emu_shader, 1);
-    shader->path = path;
+    if (path) {
+        shader->path = path;
+    } else {
+        shader->data = data;
+        shader->data_size = data_size;
+    }
     fs_emu_load_shader(shader);
     fs_gl_add_context_notification(context_notification_handler, shader);
     g_active_shader = shader;

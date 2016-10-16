@@ -1,4 +1,9 @@
-Version 2.7.16dev:
+Version 2.8.1:
+
+* Fixed loading shaders from fs-uae.dat.
+* Updated Xbox 360 configs for Linux.
+
+Version 2.8.0 / 2.7.16dev:
 
 * Add -no-pie (unless JIT is explicitly disabled) if supported by linker.
 * Removed dependency on GLEW, use GLAD OpenGL loader instead.

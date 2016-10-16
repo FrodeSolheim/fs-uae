@@ -8,6 +8,8 @@
 extern "C" {
 #endif
 
+#define FS_NO_ERROR 0
+
 struct fs_time_val {
   int32_t tv_sec;
   int32_t tv_usec;

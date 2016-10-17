@@ -64,8 +64,8 @@ const char *ManyMouse_DeviceName(unsigned int index);
 
 static void list_joysticks(void)
 {
-    // printf("# FS-UAE VERSION %s\n", g_fs_uae_version);
-    printf("# listing keyboards\n");
+    printf("# fs-uae-device-helper %s #\n", PACKAGE_VERSION);
+    printf("## keyboards ##\n");
     GList *list = fs_ml_input_list_custom_keyboards();
     GList *iterator = list;
     while (iterator) {
@@ -73,7 +73,7 @@ static void list_joysticks(void)
         iterator = g_list_next(iterator);
     }
     g_list_free_full(list, g_free);
-    printf("# listing mice\n");
+    printf("## mice ##\n");
     printf("M: Mouse\n");
     int count = ManyMouse_Init();
     if (count >= 0) {
@@ -87,9 +87,11 @@ static void list_joysticks(void)
         }
         ManyMouse_Quit();
     }
-    printf("# listing joysticks\n");
-    // printf("J: Fake Test Joystick %c%c\n", 0xc2, 0xae);
-    // printf("   Buttons: 0 Hats: 0 Axes: 0 Balls: 0\n");
+    printf("## joysticks ##\n");
+#if 0
+    printf("J: Fake Test Joystick %c%c\n", 0xc2, 0xae);
+    printf("   Buttons: 0 Hats: 0 Axes: 0 Balls: 0\n");
+#endif
 #ifdef USE_SDL
     if (SDL_Init(SDL_INIT_JOYSTICK ) < 0) {
         printf("# SDL_Init(SDL_INIT_JOYSTICK ) < 0\n");
@@ -125,7 +127,7 @@ static void list_joysticks(void)
 #else
     printf("# USE_SDL is not defined\n");
 #endif
-    printf("# listing joysticks done\n");
+    printf("## end ##\n");
 }
 
 static void print_events(void)
@@ -308,11 +310,7 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    if (strcmp(argv[1], "--list") == 0) {
-        list_joysticks();
-        return 0;
-    }
-    if (strcmp(argv[1], "list") == 0) {
+    if (strcmp(argv[1], "--list") == 0 || strcmp(argv[1], "list") == 0) {
         list_joysticks();
         return 0;
     }
@@ -325,10 +323,8 @@ int main(int argc, char* argv[])
 
     if (SDL_Init(SDL_INIT_JOYSTICK) < 0) {
         printf("# SDL_Init(SDL_INIT_JOYSTICK ) < 0\n");
-        return 1;
+        return 2;
     }
-
-    // SDL_Init(SDL_INIT_EVERYTHING);
 
     int num_joysticks = SDL_NumJoysticks();
     for (int i = 0; i < num_joysticks; i++) {

@@ -5,6 +5,7 @@
 #define OPTION_LOG_INPUT "log_input"
 #define OPTION_MODIFIER_KEY "modifier_key"
 #define OPTION_MOUSE_INTEGRATION "mouse_integration"
+#define OPTION_RAW_INPUT "raw_input"
 
 /* Deprecated options */
 

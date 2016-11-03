@@ -1,0 +1,3 @@
+Summary: Use raw input (on Windows) for keyboard
+Type: Boolean
+Default: 1

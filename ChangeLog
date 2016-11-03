@@ -1,5 +1,8 @@
 Version 2.8.1:
 
+* Alt+F4 and Cmd+Q will no longer quit FS-UAE (in full keyboard emulation mode).
+* Use raw input on Windows again (allows grabbing of Windows keys, etc).
+* New option raw_input = 0 will disable use of raw input for keyboard.
 * Fixed loading shaders from fs-uae.dat.
 * Updated Xbox 360 configs for Linux.
 

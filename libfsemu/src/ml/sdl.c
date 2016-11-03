@@ -634,8 +634,10 @@ int fs_ml_video_create_window(const char *title)
 
     SDL_SetHint(SDL_HINT_GRAB_KEYBOARD,
                 g_fs_ml_keyboard_input_grab ? "1" : "0");
-
     SDL_SetHint(SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "0");
+#ifdef WINDOWS
+    SDL_SetHint(SDL_HINT_WINDOWS_NO_CLOSE_ON_ALT_F4, "1");
+#endif
 
     SDL_Init(SDL_INIT_VIDEO);
 

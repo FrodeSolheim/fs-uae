@@ -62,10 +62,10 @@ void fs_uae_configure_amiga_model()
     g_fs_uae_amiga_model = c->model;
 
     if (!fs_emu_get_title()) {
-        fs_emu_set_title(c->name);
+        fs_emu_set_title("FS-UAE");
     }
     if (!fs_emu_get_sub_title()) {
-        fs_emu_set_sub_title("FS-UAE");
+        fs_emu_set_sub_title(c->name);
     }
     if (c->warning) {
         fs_emu_warning(c->warning);

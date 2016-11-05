@@ -241,7 +241,8 @@ void fs_emu_release_gui_lock() {
     fs_mutex_unlock(g_gui_mutex);
 }
 
-void fs_emu_volume_control(int volume) {
+void fs_emu_volume_control(int volume)
+{
     if (volume == -1) {
         if (fs_emu_audio_muted(FS_EMU_AUDIO_MASTER)) {
             fs_emu_audio_set_muted(FS_EMU_AUDIO_MASTER, 0);

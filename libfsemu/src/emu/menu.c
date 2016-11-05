@@ -33,27 +33,33 @@ int g_fs_emu_menu_mode = 0;
 
 static int g_update_current_menu = 0;
 
-void fs_emu_menu_update_current() {
+void fs_emu_menu_update_current()
+{
     g_update_current_menu = 1;
 }
 
-fs_emu_font *fs_emu_font_get_title() {
+fs_emu_font *fs_emu_font_get_title()
+{
     return g_font_title;
 }
 
-fs_emu_font *fs_emu_font_get_menu() {
+fs_emu_font *fs_emu_font_get_menu()
+{
     return g_font_menu;
 }
 
-int fs_emu_menu_or_dialog_is_active() {
+int fs_emu_menu_or_dialog_is_active()
+{
     return g_fs_emu_menu_mode || fs_emu_in_dialog_mode();
 }
 
-static fs_emu_menu *fs_emu_menu_get_current() {
+static fs_emu_menu *fs_emu_menu_get_current()
+{
     return g_menu;
 }
 
-static void select_next() {
+static void select_next(void)
+{
     if (g_menu == NULL) {
         return;
     }
@@ -68,20 +74,23 @@ static void select_next() {
     }
 }
 
-static int on_quit(fs_emu_menu_item* item, void **result_data) {
+static int on_quit(fs_emu_menu_item* item, void **result_data)
+{
     fs_emu_log("on_quit selected from menu\n");
     fs_emu_quit();
     return FS_EMU_MENU_RESULT_NONE;
 }
 
-static int on_volume(fs_emu_menu_item* item, void **result_data) {
+static int on_volume(fs_emu_menu_item* item, void **result_data)
+{
     fs_emu_log("on_volume selected from menu\n");
     //fs_emu_toggle_mute();
     fs_emu_volume_control(-1);
     return FS_EMU_MENU_RESULT_NONE;
 }
 
-static int on_aspect(fs_emu_menu_item* item, void **result_data) {
+static int on_aspect(fs_emu_menu_item* item, void **result_data)
+{
     fs_emu_log("on_aspect selected from menu\n");
     fs_emu_video_set_aspect_correction(!fs_emu_video_get_aspect_correction());
     return FS_EMU_MENU_RESULT_NONE;
@@ -130,8 +139,7 @@ void fs_emu_menu_function(int action, int state)
     if (action == ACTION_MENU_UP) {
         if (g_top_menu_focus) {
 
-        }
-        else {
+        } else {
             int last_index = g_menu->index;
             int index = g_menu->index - 1;
             while (index >= 0) {
@@ -149,16 +157,14 @@ void fs_emu_menu_function(int action, int state)
                 g_top_menu_focus = 1;
             }
         }
-    }
-    else if (action == ACTION_MENU_DOWN) {
+    } else if (action == ACTION_MENU_DOWN) {
         if (g_top_menu_focus) {
             g_top_menu_focus = 0;
         }
         else {
             select_next();
         }
-    }
-    else if (action == ACTION_MENU_LEFT) {
+    } else if (action == ACTION_MENU_LEFT) {
         if (g_top_menu_focus) {
             if (g_top_menu->index == 0) {
                 // special case: skip clock
@@ -168,8 +174,7 @@ void fs_emu_menu_function(int action, int state)
                 g_top_menu->index++;
             }
         }
-    }
-    else if (action == ACTION_MENU_RIGHT) {
+    } else if (action == ACTION_MENU_RIGHT) {
         if (g_top_menu_focus) {
             if (g_top_menu->index == 2) {
                 // special case: skip clock
@@ -179,30 +184,25 @@ void fs_emu_menu_function(int action, int state)
                 g_top_menu->index--;
             }
         }
-    }
-    else if (action == ACTION_MENU_BACK) {
+    } else if (action == ACTION_MENU_BACK) {
         go_back_in_menu_stack();
-    }
-    else if (action == ACTION_MENU_START) {
+    } else if (action == ACTION_MENU_START) {
         fs_emu_menu_toggle();
-    }
-    else if (action == ACTION_MENU_ESCAPE) {
+    } else if (action == ACTION_MENU_ESCAPE) {
         if (!go_back_in_menu_stack()) {
             // no more menus to back out of, go out of menu mode instead
             fs_emu_menu_toggle();
             // hack to clear button input state
             fs_emu_clear_menu_input_states(FS_ML_KEY_ESCAPE);
         }
-    }
-    else if (action == ACTION_MENU_PRIMARY) {
+    } else if (action == ACTION_MENU_PRIMARY) {
         if (g_top_menu_focus) {
             if (g_top_menu->items[g_top_menu->index]->activate) {
                 void *result_data = NULL;
                 g_top_menu->items[g_top_menu->index]->activate(
                         g_top_menu->items[g_top_menu->index], &result_data);
             }
-        }
-        else {
+        } else {
             fs_emu_menu_item *item = g_menu->items[g_menu->index];
             if (item->activate && !item->disabled) {
                 void *result_data;
@@ -260,7 +260,8 @@ void fs_emu_menu_set_current(fs_emu_menu *menu)
     }
 }
 
-static void fs_emu_menu_destroy(void* ptr) {
+static void fs_emu_menu_destroy(void* ptr)
+{
     fs_log("fs_emu_menu_destroy\n");
     fs_emu_menu* menu = ptr;
     for (int i = 0; i < menu->count; i++) {
@@ -269,14 +270,16 @@ static void fs_emu_menu_destroy(void* ptr) {
     free(menu);
 }
 
-fs_emu_menu *fs_emu_menu_new() {
+fs_emu_menu *fs_emu_menu_new()
+{
     fs_emu_menu *menu = malloc(sizeof(fs_emu_menu));
     memset(menu, 0, sizeof(fs_emu_menu));
     fs_ref_initialize(menu, fs_emu_menu_destroy);
     return menu;
 }
 
-static void fs_emu_menu_item_destroy(void* ptr) {
+static void fs_emu_menu_item_destroy(void* ptr)
+{
     //fs_log("fs_emu_menu_item_destroy\n");
     fs_emu_menu_item* item = ptr;
     /*
@@ -290,71 +293,84 @@ static void fs_emu_menu_item_destroy(void* ptr) {
     free(item);
 }
 
-fs_emu_menu_item *fs_emu_menu_item_new() {
+fs_emu_menu_item *fs_emu_menu_item_new()
+{
     fs_emu_menu_item *item = malloc(sizeof(fs_emu_menu_item));
     memset(item, 0, sizeof(fs_emu_menu_item));
     fs_ref_initialize(item, fs_emu_menu_item_destroy);
     return item;
 }
 
-void fs_emu_menu_append_item(fs_emu_menu *menu,
-        fs_emu_menu_item *item) {
+void fs_emu_menu_append_item(fs_emu_menu *menu, fs_emu_menu_item *item)
+{
     menu->items[menu->count] = item;
     menu->count += 1;
 }
 
-fs_emu_menu_item *fs_emu_menu_item_at(fs_emu_menu *menu, int index) {
+fs_emu_menu_item *fs_emu_menu_item_at(fs_emu_menu *menu, int index)
+{
     //return (fs_emu_menu_item *) g_list_nth_data(menu->items, index);
     return menu->items[index];
 }
 
-static int fs_emu_menu_item_count(fs_emu_menu *menu) {
+static int fs_emu_menu_item_count(fs_emu_menu *menu)
+{
     //return (fs_emu_menu_item *) g_list_length(menu->items);
     return menu->count;
 }
 
-void fs_emu_menu_item_set_type(fs_emu_menu_item *item, int type) {
+void fs_emu_menu_item_set_type(fs_emu_menu_item *item, int type)
+{
     item->type = type;
 }
 
-void fs_emu_menu_item_set_enabled(fs_emu_menu_item *item, int enabled) {
+void fs_emu_menu_item_set_enabled(fs_emu_menu_item *item, int enabled)
+{
     item->disabled = !enabled;
 }
 
-void fs_emu_menu_item_set_title(fs_emu_menu_item *item, const char* title) {
+void fs_emu_menu_item_set_title(fs_emu_menu_item *item, const char* title)
+{
     if (item->title) {
         free(item->title);
     }
     item->title = g_strdup(title);
 }
 
-int fs_emu_menu_item_get_idata(fs_emu_menu_item *item) {
+int fs_emu_menu_item_get_idata(fs_emu_menu_item *item)
+{
     return item->idata;
 }
 
-void *fs_emu_menu_item_get_pdata(fs_emu_menu_item *item) {
+void *fs_emu_menu_item_get_pdata(fs_emu_menu_item *item)
+{
     return item->pdata;
 }
 
-void fs_emu_menu_item_set_idata(fs_emu_menu_item *item, int idata) {
+void fs_emu_menu_item_set_idata(fs_emu_menu_item *item, int idata)
+{
     item->idata = idata;
 }
 
-void fs_emu_menu_item_set_pdata(fs_emu_menu_item *item, void *pdata) {
+void fs_emu_menu_item_set_pdata(fs_emu_menu_item *item, void *pdata)
+{
     item->pdata = pdata;
 }
 
 void fs_emu_menu_set_update_function(fs_emu_menu *menu,
-        void (*function)(fs_emu_menu* menu)) {
+        void (*function)(fs_emu_menu* menu))
+{
     menu->update = function;
 }
 
 void fs_emu_menu_item_set_activate_function(fs_emu_menu_item *item,
-        int (*function)(fs_emu_menu_item* menu_item, void **result)) {
+        int (*function)(fs_emu_menu_item* menu_item, void **result))
+{
     item->activate = function;
 }
 
-static void initialize() {
+static void initialize(void)
+{
     static int initialized = 0;
     if (initialized == 1) {
         return;
@@ -397,28 +413,29 @@ static void initialize() {
     fs_emu_menu_append_item(g_top_menu, item);
     // volume item
     item = fs_emu_menu_item_new();
-    fs_emu_menu_item_set_activate_function(item, on_volume);
+    fs_emu_menu_item_set_activate_function(item, on_aspect);
     //g_top_menu = g_list_append(g_top_menu, item);
     fs_emu_menu_append_item(g_top_menu, item);
     // aspect item
     item = fs_emu_menu_item_new();
-    fs_emu_menu_item_set_activate_function(item, on_aspect);
+    fs_emu_menu_item_set_activate_function(item, on_volume);
     //g_top_menu = g_list_append(g_top_menu, item);
     fs_emu_menu_append_item(g_top_menu, item);
 }
 
-void fs_emu_menu_init_opengl() {
+void fs_emu_menu_init_opengl()
+{
     initialize();
 }
 
 #define GROUP_SPACING 26
-
 #define HEADING_TEXT_LEFT (1920 - 560 + 40 + 20 - 28)
 #define ITEM_TEXT_LEFT    (1920 - 560 + 40 + 20)
 #define SIDEBAR_START_Y   (1080 - 90 - 50)
 
 static int render_sidebar_item(int mode, int sel, fs_emu_menu *menu,
-        int index, int y) {
+        int index, int y)
+{
     int selected = (menu->index == index) && !g_top_menu_focus;
     fs_emu_menu_item *item = fs_emu_menu_item_at(menu, index);
     int result = 0;
@@ -453,13 +470,15 @@ static int render_sidebar_item(int mode, int sel, fs_emu_menu *menu,
         b = g_fs_emu_theme.heading_color[2];
         alpha = g_fs_emu_theme.heading_color[3];
 
-        int x = 0;
-        fs_emu_font_measure(g_font_menu, item->title, &x, NULL);
-        x += text_left + 12;
-        fs_emu_draw_texture_with_size(TEXTURE_HEADING_BG,
-                x, y + 14, 1920 - x, 32);
-    }
-    else {
+        if (mode == 1) {
+            int x = 0;
+            fs_emu_font_measure(g_font_menu, item->title, &x, NULL);
+            x += text_left + 12;
+            fs_gl_blending(1);
+            fs_emu_draw_texture_with_size(TEXTURE_HEADING_BG,
+                    x, y + 14, 1920 - x, 32);
+        }
+    } else {
         if (selected) {
             if (mode == 0) {
                 fs_gl_blending(1);
@@ -505,7 +524,8 @@ static int render_sidebar_item(int mode, int sel, fs_emu_menu *menu,
     return result;
 }
 
-static void render_sidebar(int mode) {
+static void render_sidebar(int mode)
+{
     //printf("-- render sidebar mode = %d\n", mode);
     fs_emu_menu *menu = fs_emu_menu_get_current();
     if (!menu) {
@@ -520,7 +540,7 @@ static void render_sidebar(int mode) {
         }
     }
     int count = menu->count;
-    //int y = 938;
+    /* Render unselected items */
     int y = SIDEBAR_START_Y;
     for (int i = 0; i < count; i++) {
         int result = render_sidebar_item(mode, 0, menu, i, y);
@@ -529,6 +549,7 @@ static void render_sidebar(int mode) {
         }
         y -= 54;
     }
+    /* Render selected items */
     y = SIDEBAR_START_Y;
     for (int i = 0; i < count; i++) {
         int result = render_sidebar_item(mode, 1, menu, i, y);
@@ -537,11 +558,11 @@ static void render_sidebar(int mode) {
         }
         y -= 54;
     }
-    //printf("-- render sidebar (end)\n");
 }
 
-static void render_top_item_background(int selected, int x, int y, int w,
-        int h) {
+static void render_top_item_background(
+        int selected, int x, int y, int w, int h)
+{
     if (!selected) {
         return;
     }
@@ -550,7 +571,8 @@ static void render_top_item_background(int selected, int x, int y, int w,
     fs_emu_draw_texture_with_size(TEXTURE_TOP_ITEM_BG, x, y, w, h);
 }
 
-static void render_top_item(int mode, int index) {
+static void render_top_item(int mode, int index)
+{
     int selected = g_top_menu_focus && index == g_top_menu->index;
 
     int x = 1920;
@@ -598,15 +620,11 @@ static void render_top_item(int mode, int index) {
 
     if (index == 2) {
         if (mode == 0) {
-            //fs_emu_texture *texture = NULL;
-            int texture = TEXTURE_VOLUME;
-            if (fs_emu_audio_muted(FS_EMU_AUDIO_MASTER)) {
-                //texture = g_tex_volume_mute;
-                texture = TEXTURE_VOLUME_MUTED;
+            int texture = TEXTURE_STRETCH;
+            if (fs_emu_video_get_aspect_correction()) {
+                texture = TEXTURE_ASPECT;
             }
             render_top_item_background(selected, x, y, 80, 60);
-            //fs_emu_texture_render(texture, x, y);
-
             fs_gl_blending(1);
             fs_gl_color4f(1.0, 1.0, 1.0, 1.0);
             fs_emu_draw_texture(texture, x + 8, y - 2);
@@ -618,18 +636,11 @@ static void render_top_item(int mode, int index) {
 
     if (index == 3) {
         if (mode == 0) {
-            //fs_emu_texture *texture = NULL;
-            int texture = TEXTURE_STRETCH;
-            if (fs_emu_video_get_aspect_correction()) {
-                //texture = g_tex_aspect_correct;
-                texture = TEXTURE_ASPECT;
+            int texture = TEXTURE_VOLUME;
+            if (fs_emu_audio_muted(FS_EMU_AUDIO_MASTER)) {
+                texture = TEXTURE_VOLUME_MUTED;
             }
-            //else {
-            //    texture = g_tex_aspect_stretch;
-            //}
             render_top_item_background(selected, x, y, 80, 60);
-            //fs_emu_texture_render(texture, x, y);
-
             fs_gl_blending(1);
             fs_gl_color4f(1.0, 1.0, 1.0, 1.0);
             fs_emu_draw_texture(texture, x + 8, y - 2);
@@ -638,7 +649,8 @@ static void render_top_item(int mode, int index) {
     }
 }
 
-void fs_emu_menu_render(double transition) {
+void fs_emu_menu_render(double transition)
+{
     initialize();
     fs_gl_ortho_hd();
 
@@ -674,12 +686,15 @@ void fs_emu_menu_render(double transition) {
     else {
         title = fs_get_application_name();
     }
+    int x = 20;
+    fs_emu_draw_texture(TEXTURE_LOGO_32, x, 1080 - 60 + (60 - 32) / 2);
+    x += 32 + 20;
     int w = fs_emu_font_render(g_font_title, title,
-            20, 1080 - 60 + (60 - g_font_title->h) / 2, 1.0, 1.0, 1.0, 1.0);
+            x, 1080 - 60 + (60 - g_font_title->h) / 2, 1.0, 1.0, 1.0, 1.0);
     if (g_fs_emu_sub_title) {
         fs_emu_font_render(g_font_title, g_fs_emu_sub_title,
-                20 + w + 20, 1080 - 60 + (60 - g_font_title->h) / 2,
-                0.4, 0.4, 0.4, 0.4);
+                x + w + 20, 1080 - 60 + (60 - g_font_title->h) / 2,
+                0.5, 0.5, 0.5, 0.5);
     }
     for (int i = 0; i < g_top_menu->count; i++) {
         render_top_item(1, i);

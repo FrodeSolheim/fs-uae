@@ -1,3 +1,7 @@
+Version 2.8.1u1:
+
+* Fix mouse input on Windows with raw keyboard input enabled.
+
 Version 2.8.1:
 
 * Alt+F4 and Cmd+Q will no longer quit FS-UAE (in full keyboard emulation mode).

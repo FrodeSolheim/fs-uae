@@ -285,7 +285,9 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wparam,
         }
         // must call DefWindowProc according to http://msdn.microsoft.com/
         // en-us/library/windows/desktop/ms645590(v=vs.85).aspx
-        return DefWindowProc(hwnd, message, wparam, lparam);
+        // EDIT: We want SDL2 to receive WM_INPUT messages as well (for mouse
+        // input) so we let CallWindowProc be called...
+        // return DefWindowProc(hwnd, message, wparam, lparam);
     }
 
     return CallWindowProc(g_wndproc, hwnd, message, wparam, lparam);

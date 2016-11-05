@@ -9,18 +9,17 @@
 #define TEXTURE_GLOW_TOP 4
 #define TEXTURE_SIDEBAR 5
 #define TEXTURE_SIDEBAR_EDGE 6
-
 #define TEXTURE_CLOSE 7
 #define TEXTURE_VOLUME 8
 #define TEXTURE_VOLUME_MUTED 9
 #define TEXTURE_ASPECT 10
 #define TEXTURE_STRETCH 11
-
 #define TEXTURE_ITEM_BACKGROUND 12
 #define TEXTURE_TOP_ITEM_BG 13
 #define TEXTURE_HEADING_BG 14
 #define TEXTURE_PAUSE 15
-#define TEXTURE_LAST 16
+#define TEXTURE_LOGO_32 16
+#define TEXTURE_LAST 17
 
 typedef struct _fs_emu_texture {
     unsigned int texture;

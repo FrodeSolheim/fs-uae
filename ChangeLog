@@ -1,3 +1,12 @@
+Version 2.9.0dev:
+
+* Fix mouse input on Windows with raw keyboard input enabled.
+* Alt+F4 and Cmd+Q will no longer quit FS-UAE (in full keyboard emulation mode).
+* Use raw input on Windows again (allows grabbing of Windows keys, etc).
+* New option raw_input = 0 will disable use of raw input for keyboard.
+* Fixed loading shaders from fs-uae.dat.
+* Updated Xbox 360 configs for Linux.
+
 Version 2.7.16dev:
 
 * Add -no-pie (unless JIT is explicitly disabled) if supported by linker.

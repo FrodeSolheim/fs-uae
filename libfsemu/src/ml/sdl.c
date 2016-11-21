@@ -37,6 +37,7 @@
 #ifdef USE_OPENGL
 #include <fs/ml/opengl.h>
 #endif
+#include <fs/ml/options.h>
 
 #define FS_EMU_INTERNAL
 #include <fs/emu/input.h>
@@ -633,8 +634,10 @@ int fs_ml_video_create_window(const char *title)
 
     SDL_SetHint(SDL_HINT_GRAB_KEYBOARD,
                 g_fs_ml_keyboard_input_grab ? "1" : "0");
-
     SDL_SetHint(SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "0");
+#ifdef WINDOWS
+    SDL_SetHint(SDL_HINT_WINDOWS_NO_CLOSE_ON_ALT_F4, "1");
+#endif
 
     SDL_Init(SDL_INIT_VIDEO);
 
@@ -804,6 +807,12 @@ int fs_ml_video_create_window(const char *title)
     fs_emu_video_init_opengl();
 
     SDL_StartTextInput();
+
+#ifdef WINDOWS
+    if (!fs_config_is_false(OPTION_RAW_INPUT)) {
+        fs_ml_init_raw_input();
+    }
+#endif
 
     fs_log("create windows is done\n");
     return 1;

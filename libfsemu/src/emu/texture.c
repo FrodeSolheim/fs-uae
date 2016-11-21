@@ -55,10 +55,72 @@ static texture_entry g_entries[] = {
     { 658, 402,  60,   60}, // TEXTURE_TOP_ITEM_BG - OK
     { 672, 480,  32,   32}, // TEXTURE_HEADING_BG - OK
     { 0, 0, 0, 0}, // TEXTURE_PAUSE
+    { 0, 0, 0, 0}, // TEXTURE_LOGO_32
 };
 
+static void premultiply_image(fs_image *image)
+{
+    if (fs_emu_get_video_format() == FS_EMU_VIDEO_FORMAT_BGRA) {
+        // convert to premultiplied alpha
+        if (image->format == FS_IMAGE_FORMAT_RGBA) {
+            int num_pixels = image->width * image->height;
+            unsigned char *pixels = image->data;
+            for (int i = 0; i < num_pixels; i++) {
+                unsigned char alpha = pixels[3];
+                unsigned char temp = pixels[2];
+                pixels[2] = ((int) pixels[0]) * alpha / 255;
+                pixels[1] = ((int) pixels[1]) * alpha / 255;
+                pixels[0] = ((int) temp) * alpha / 255;
+                pixels += 4;
+            }
+        } else {
+            // FIXME: should swap R and B here...
+        }
+    } else {
+        // convert to premultiplied alpha
+        if (image->format == FS_IMAGE_FORMAT_RGBA) {
+            int num_pixels = image->width * image->height;
+            unsigned char *pixels = image->data;
+            for (int i = 0; i < num_pixels; i++) {
+                unsigned char alpha = pixels[3];
+                // should really divide by 255, but 256 is faster...
+                //pixels[0] = ((int) pixels[0]) * alpha / 256;
+                //pixels[1] = ((int) pixels[1]) * alpha / 256;
+                //pixels[2] = ((int) pixels[2]) * alpha / 256;
+                pixels[0] = ((int) pixels[0]) * alpha / 255;
+                pixels[1] = ((int) pixels[1]) * alpha / 255;
+                pixels[2] = ((int) pixels[2]) * alpha / 255;
+                //pixels[0] = (unsigned char) ((pixels[0] * alpha + 0.5) / 255.0);
+                //pixels[1] = (unsigned char) ((pixels[1] * alpha + 0.5) / 255.0);
+                //pixels[2] = (unsigned char) ((pixels[2] * alpha + 0.5) / 255.0);
+                pixels += 4;
+            }
+        }
+    }
+}
+
+static inline void copy_pixel(unsigned char **dst, unsigned char **src)
+{
+    unsigned char *sp = *src;
+    unsigned char *dp = *dst;
+    /* Copy pixel and premultiply alpha. */
+    if (fs_emu_get_video_format() == FS_EMU_VIDEO_FORMAT_BGRA) {
+        dp[0] = ((int) sp[2]) * sp[3] / 255;
+        dp[1] = ((int) sp[1]) * sp[3] / 255;
+        dp[2] = ((int) sp[0]) * sp[3] / 255;
+    } else {
+        dp[0] = ((int) sp[0]) * sp[3] / 255;
+        dp[1] = ((int) sp[1]) * sp[3] / 255;
+        dp[2] = ((int) sp[2]) * sp[3] / 255;
+    }
+    dp[3] = sp[3];
+    *dst = *dst + 4;
+    *src = *src + 4;
+}
+
 static void fs_emu_draw_from_atlas(float dx, float dy, float dw, float dh,
-        int sx, int sy, int sw, int sh) {
+        int sx, int sy, int sw, int sh)
+{
     float tx = sx / 1024.0;
     float ty = sy / 1024.0;
     float tw = sw / 1024.0;
@@ -102,7 +164,8 @@ static void fs_emu_draw_from_atlas(float dx, float dy, float dw, float dh,
 }
 
 void fs_emu_prepare_texture(int entry, float *tx1, float *ty1,
-        float *tx2, float *ty2) {
+        float *tx2, float *ty2)
+{
     *tx1 = g_entries[entry].x / 1024.0;
     *ty1 = g_entries[entry].y / 1024.0;
     *tx2 = *tx1 + g_entries[entry].w / 1024.0;
@@ -111,18 +174,21 @@ void fs_emu_prepare_texture(int entry, float *tx1, float *ty1,
 }
 
 void fs_emu_draw_texture_with_size(int entry, float x, float y, float w,
-        float h) {
+        float h)
+{
     fs_emu_draw_from_atlas(x, y, w, h, g_entries[entry].x,
             g_entries[entry].y, g_entries[entry].w, g_entries[entry].h);
 }
 
-void fs_emu_draw_texture(int entry, float x, float y) {
+void fs_emu_draw_texture(int entry, float x, float y)
+{
     //printf("%d - %f %f\n", entry, x, y);
     fs_emu_draw_texture_with_size(entry, x, y, g_entries[entry].w,
             g_entries[entry].h);
 }
 
-static int check_placement(int cx, int cy, int cw, int ch) {
+static int check_placement(int cx, int cy, int cw, int ch)
+{
     // just using a naive approach to finding a suitable space. The search
     // space isn't that big in this case..
     for (int y = cy; y < cy + ch; y++) {
@@ -136,26 +202,9 @@ static int check_placement(int cx, int cy, int cw, int ch) {
     return 1;
 }
 
-static inline void copy_pixel(unsigned char **dst, unsigned char **src) {
-    unsigned char *sp = *src;
-    unsigned char *dp = *dst;
-    if (fs_emu_get_video_format() == FS_EMU_VIDEO_FORMAT_BGRA) {
-        dp[0] = ((int) sp[2]) * sp[3] / 255;
-        dp[1] = ((int) sp[1]) * sp[3] / 255;
-        dp[2] = ((int) sp[0]) * sp[3] / 255;
-    }
-    else {
-        dp[0] = ((int) sp[0]) * sp[3] / 255;
-        dp[1] = ((int) sp[1]) * sp[3] / 255;
-        dp[2] = ((int) sp[2]) * sp[3] / 255;
-    }
-    dp[3] = sp[3];
-    *dst = *dst + 4;
-    *src = *src + 4;
-}
-
 static void load_atlas_texture(fs_image *atlas_image,
-        int texture_id, const char *name) {
+        int texture_id, const char *name)
+{
     char *data;
     int size;
     int error = fs_emu_theme_get_resource_data(name, &data, &size);
@@ -214,9 +263,9 @@ static void load_atlas_texture(fs_image *atlas_image,
     }
     //printf("%d %d %d %d\n", cx * 8, cy * 8, cw * 8, ch * 8);
 
-    // copy sub-texture into texture, also converting to pre-multiplied
-    // alpha, and BGRA if needed. Also copy border pixels to pixels outside
-    // border to fix unwanted bilinear filtering effects
+    /* Copy sub-texture into texture, also converting to pre-multiplied
+     * alpha, and BGRA if needed. Also copy border pixels to pixels outside
+     * border to fix unwanted bilinear filtering effects. */
     int dx = cx * 8;
     int dy = cy * 8;
     int ds = atlas_image->width * 4; // stride
@@ -285,7 +334,8 @@ static void load_atlas_texture(fs_image *atlas_image,
     fs_unref(image);
 }
 
-static void initialize_atlas(fs_image *image) {
+static void initialize_atlas(fs_image *image)
+{
     load_atlas_texture(image, TEXTURE_SIDEBAR_EDGE, "sidebar_edge.png");
     load_atlas_texture(image, TEXTURE_SIDEBAR, "sidebar.png");
     load_atlas_texture(image, TEXTURE_GLOSS, "gloss.png");
@@ -297,17 +347,18 @@ static void initialize_atlas(fs_image *image) {
     load_atlas_texture(image, TEXTURE_VOLUME_MUTED, "volume_muted.png");
     load_atlas_texture(image, TEXTURE_ASPECT, "aspect.png");
     load_atlas_texture(image, TEXTURE_STRETCH, "stretch.png");
-
     load_atlas_texture(image, TEXTURE_ITEM_BACKGROUND, "item_background.png");
     load_atlas_texture(image, TEXTURE_TOP_ITEM_BG, "top_item_background.png");
     load_atlas_texture(image, TEXTURE_HEADING_BG, "heading_strip.png");
     load_atlas_texture(image, TEXTURE_PAUSE, "pause_indicator.png");
+    load_atlas_texture(image, TEXTURE_LOGO_32, "logo-32.png");
 
     //fs_image_save_data("atlas-output-test.png", image->data,
     //        image->width, image->height, 4);
 }
 
-static void load_texture(fs_emu_texture *texture) {
+static void load_texture(fs_emu_texture *texture)
+{
     fs_image *image = texture->image;
     //printf("loading texture from image %p\n", image);
     if (!image) {
@@ -338,7 +389,8 @@ static void load_texture(fs_emu_texture *texture) {
     texture->texture = opengl_texture;
 }
 
-static void context_notification_handler(int notification, void *data) {
+static void context_notification_handler(int notification, void *data)
+{
     fs_emu_texture *texture = (fs_emu_texture *) data;
     if (notification == FS_GL_CONTEXT_DESTROY) {
         //printf("context_notification_handler DESTROY %d\n", texture->texture);
@@ -354,7 +406,8 @@ static void context_notification_handler(int notification, void *data) {
     }
 }
 
-void fs_emu_initialize_textures() {
+void fs_emu_initialize_textures()
+{
     if (g_fs_emu_theme.width == 0) {
         fs_emu_fatal("theme is not initialized yet");
     }
@@ -404,8 +457,7 @@ void fs_emu_initialize_textures() {
                 tex = fs_emu_texture_new_from_data(data, size);
                 free(data);
                 g_fs_emu_theme.overlays[i].textures[j] = tex;
-            }
-            else if (j == 1) {
+            } else if (j == 1) {
                 char *base_name = g_strdup_printf("custom_%d.png",
                         i - FS_EMU_FIRST_CUSTOM_OVERLAY);
                 error = fs_emu_theme_get_resource_data(base_name, &data, &size);
@@ -421,8 +473,7 @@ void fs_emu_initialize_textures() {
                     g_fs_emu_theme.overlays[i].textures[j] = tex;
                 }
                 free(base_name);
-            }
-            else if (j >= 2) {
+            } else if (j >= 2) {
                 g_fs_emu_theme.overlays[i].textures[j] = \
                         g_fs_emu_theme.overlays[i].textures[j - 1];
             }
@@ -440,7 +491,8 @@ void fs_emu_initialize_textures() {
     }
 }
 
-void fs_emu_set_texture(fs_emu_texture *texture) {
+void fs_emu_set_texture(fs_emu_texture *texture)
+{
     fs_gl_texturing(1);
     /*
     if (texture && texture->opengl_context_stamp && \
@@ -455,67 +507,27 @@ void fs_emu_set_texture(fs_emu_texture *texture) {
     }
     if (texture->texture) {
         fs_gl_bind_texture(texture->texture);
-    }
-    else {
+    } else {
         // texture was not loaded, perhaps due to context recreation
         load_texture(texture);
     }
 }
 
-static fs_emu_texture *texture_from_image(fs_image *image) {
-    if (fs_emu_get_video_format() == FS_EMU_VIDEO_FORMAT_BGRA) {
-        // convert to premultiplied alpha
-        if (image->format == FS_IMAGE_FORMAT_RGBA) {
-            int num_pixels = image->width * image->height;
-            unsigned char *pixels = image->data;
-            for (int i = 0; i < num_pixels; i++) {
-                unsigned char alpha = pixels[3];
-                unsigned char temp = pixels[2];
-                pixels[2] = ((int) pixels[0]) * alpha / 255;
-                pixels[1] = ((int) pixels[1]) * alpha / 255;
-                pixels[0] = ((int) temp) * alpha / 255;
-                pixels += 4;
-            }
-        }
-        else {
-            // FIXME: should swap R and B here...
-        }
-    }
-    else {
-        // convert to premultiplied alpha
-        if (image->format == FS_IMAGE_FORMAT_RGBA) {
-            int num_pixels = image->width * image->height;
-            unsigned char *pixels = image->data;
-            for (int i = 0; i < num_pixels; i++) {
-                unsigned char alpha = pixels[3];
-                // should really divide by 255, but 256 is faster...
-                //pixels[0] = ((int) pixels[0]) * alpha / 256;
-                //pixels[1] = ((int) pixels[1]) * alpha / 256;
-                //pixels[2] = ((int) pixels[2]) * alpha / 256;
-                pixels[0] = ((int) pixels[0]) * alpha / 255;
-                pixels[1] = ((int) pixels[1]) * alpha / 255;
-                pixels[2] = ((int) pixels[2]) * alpha / 255;
-                //pixels[0] = (unsigned char) ((pixels[0] * alpha + 0.5) / 255.0);
-                //pixels[1] = (unsigned char) ((pixels[1] * alpha + 0.5) / 255.0);
-                //pixels[2] = (unsigned char) ((pixels[2] * alpha + 0.5) / 255.0);
-                pixels += 4;
-            }
-        }
-    }
-
+static fs_emu_texture *texture_from_image(fs_image *image)
+{
+    premultiply_image(image);
     fs_emu_texture *texture = g_new(fs_emu_texture, 1);
     texture->width = image->width;
     texture->height = image->height;
     texture->image = image;
     load_texture(texture);
     fs_emu_set_texture(texture);
-
     fs_gl_add_context_notification(context_notification_handler, texture);
-
     return texture;
 }
 
-fs_emu_texture *fs_emu_texture_new_from_data(char *data, int size) {
+fs_emu_texture *fs_emu_texture_new_from_data(char *data, int size)
+{
     fs_image *image = fs_image_new_from_data(data, size);
     fs_emu_log("loading texture from %p\n", data);
     if (image == NULL) {
@@ -525,7 +537,8 @@ fs_emu_texture *fs_emu_texture_new_from_data(char *data, int size) {
     return texture_from_image(image);
 }
 
-fs_emu_texture *fs_emu_texture_new_from_file(const char *name) {
+fs_emu_texture *fs_emu_texture_new_from_file(const char *name)
+{
     char *full_name;
     char *path;
     if (fs_path_exists(name)) {
@@ -553,13 +566,15 @@ fs_emu_texture *fs_emu_texture_new_from_file(const char *name) {
     return texture_from_image(image);
 }
 
-void fs_emu_texture_render(fs_emu_texture *texture, int x, int y) {
+void fs_emu_texture_render(fs_emu_texture *texture, int x, int y)
+{
     fs_emu_render_texture_with_size(texture, x, y, texture->width,
             texture->height);
 }
 
 void fs_emu_render_texture_with_size(fs_emu_texture *texture, int x, int y,
-        int w, int h) {
+        int w, int h)
+{
     fs_emu_set_texture(texture);
     fs_gl_blending(1);
     //fs_emu_texturing(0);

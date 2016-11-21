@@ -5,8 +5,8 @@
 #include <fs/ml.h>
 #include <fs/glib.h>
 
-char *fs_ml_input_unique_device_name(char *name) {
-    // fs_hash_table_destroy(device_counts);
+char *fs_ml_input_unique_device_name(char *name)
+{
     static GHashTable *device_counts = NULL;
     if (device_counts == NULL) {
         device_counts = g_hash_table_new_full(

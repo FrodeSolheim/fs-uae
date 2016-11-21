@@ -84,20 +84,23 @@ void fs_ml_activate_window_switcher_impl(void)
 }
 
 // not used
-int fs_ml_scancode_to_key(int scancode) {
+int fs_ml_scancode_to_key(int scancode)
+{
     return 0;
 }
 
 #if 0
 static int64_t g_syncbase = 0;
 
-int64_t fs_ml_read_clock(void) {
+int64_t fs_ml_read_clock(void)
+{
     LARGE_INTEGER result;
     QueryPerformanceCounter(&result);
     return result.QuadPart;
 }
 
-void fs_ml_calibrate_clock(void) {
+void fs_ml_calibrate_clock(void)
+{
     //SetProcessAffinityMask(GetCurrentProcess(), 1);
     LARGE_INTEGER result;
     QueryPerformanceFrequency(&result);
@@ -105,7 +108,8 @@ void fs_ml_calibrate_clock(void) {
     fs_log("calibrating clock: frequency is %lld\n", g_syncbase);
 }
 
-int64_t fs_ml_monotonic_time() {
+int64_t fs_ml_monotonic_time()
+{
     // FIXME: QueryPerformanceFrequency seems to give incorrect result
     // on my computer. Using "less accurate" timeGetTime instead, -but
     // beware, value will wrap around after about 47 days...
@@ -119,7 +123,8 @@ int64_t fs_ml_monotonic_time() {
 }
 #endif
 
-void fs_ml_usleep(int usec) {
+void fs_ml_usleep(int usec)
+{
     SDL_Delay(usec / 1000);
 }
 
@@ -149,8 +154,8 @@ static STICKYKEYS g_StartupStickyKeys = {sizeof(STICKYKEYS), 0};
 static TOGGLEKEYS g_StartupToggleKeys = {sizeof(TOGGLEKEYS), 0};
 static FILTERKEYS g_StartupFilterKeys = {sizeof(FILTERKEYS), 0};
 
-static void disable_accessibility_shortcuts() {
-
+static void disable_accessibility_shortcuts(void)
+{
     SystemParametersInfo(SPI_GETSTICKYKEYS, sizeof(STICKYKEYS),
             &g_StartupStickyKeys, 0);
     SystemParametersInfo(SPI_GETTOGGLEKEYS, sizeof(TOGGLEKEYS),
@@ -183,8 +188,9 @@ static void disable_accessibility_shortcuts() {
     }
 }
 
-void fs_ml_initialize_keymap() {
-    // FIXME: should ideally re-enable the shortcuts on exit, of they
+void fs_ml_initialize_keymap()
+{
+    // FIXME: should ideally re-enable the shortcuts on exit, if they
     // were enabled in the first place.
     disable_accessibility_shortcuts();
 }
@@ -205,7 +211,8 @@ void fs_ml_initialize_keymap() {
 static HGLRC g_hrc;
 static HDC g_hdc;
 
-static void setup_pixel_format(HDC hdc) {
+static void setup_pixel_format(HDC hdc)
+{
     static PIXELFORMATDESCRIPTOR pfd = {
             sizeof(PIXELFORMATDESCRIPTOR),          //size of structure
             1,                                      //default version
@@ -233,11 +240,13 @@ static void setup_pixel_format(HDC hdc) {
     SetPixelFormat(hdc, nPixelFormat, &pfd);
 }
 
-static int get_fullscreen_width() {
+static int get_fullscreen_width(void)
+{
     return GetSystemMetrics(SM_CXSCREEN);
 }
 
-static int get_fullscreen_height() {
+static int get_fullscreen_height(void)
+{
     return GetSystemMetrics(SM_CYSCREEN);
 }
 
@@ -506,11 +515,13 @@ static gpointer video_thread_entry(gpointer data) {
     return NULL;
 }
 
-void fs_ml_swap_buffers() {
+void fs_ml_swap_buffers()
+{
     SwapBuffers(g_hdc);
 }
 
-int fs_ml_video_create_window() {
+int fs_ml_video_create_window()
+{
 
 /*
 int WINAPI fs_emu_winmain(HINSTANCE hInstance,
@@ -662,7 +673,8 @@ int WINAPI fs_emu_winmain(HINSTANCE hInstance,
     */
 }
 
-int fs_ml_main_loop() {
+int fs_ml_main_loop()
+{
     // Main message loop:
     MSG msg;
     while (GetMessage(&msg, NULL, 0, 0)) {
@@ -685,13 +697,15 @@ int main(int argc, char *argv[]) {
   //__in       UINT cbSize
 //);
 
-void fs_ml_error(const char *msg) {
+void fs_ml_error(const char *msg)
+{
     fs_log("ERROR: %s\n", msg);
     int error = GetLastError();
     fs_log("GetLastError returned %d (not necessarily related)\n", error);
 }
 
-void fs_ml_fatal(const char *msg) {
+void fs_ml_fatal(const char *msg)
+{
     fs_log("FATAL: %s\n", msg);
     int error = GetLastError();
     fs_log("GetLastError returned %d (not necessarily related)\n", error);
@@ -699,11 +713,13 @@ void fs_ml_fatal(const char *msg) {
     exit(1);
 }
 
-void fs_ml_fatal_malloc() {
+void fs_ml_fatal_malloc()
+{
     fs_ml_fatal("could not allocate memory");
 }
 
-static void list_input_devices() {
+static void list_input_devices()
+{
     UINT num_devices;
     PRAWINPUTDEVICELIST pRawInputDeviceList;
     if (GetRawInputDeviceList(NULL, &num_devices,
@@ -749,11 +765,13 @@ static void list_input_devices() {
 }
 
 
-void fs_ml_video_init() {
+void fs_ml_video_init()
+{
 
 }
 
-void fs_ml_input_init() {
+void fs_ml_input_init()
+{
     list_input_devices();
     // http://msdn.microsoft.com/en-us/library/windows/desktop/dd375731(v=VS.85).aspx
     g_key_mapping[VK_BACK] = FS_ML_KEY_BACKSPACE;
@@ -786,11 +804,10 @@ void fs_ml_input_init() {
     g_key_mapping[VK_F12] = FS_ML_KEY_F12;
 }
 
-#endif // WITH_VIDEO_WINDOWS
+#endif /* WITH_VIDEO_WINDOWS */
 
 #else
 
 int libfsemu_ml_windows_dummy;
 
-#endif // WINDOWS
-
+#endif /* WINDOWS */

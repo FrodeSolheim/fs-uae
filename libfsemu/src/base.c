@@ -266,7 +266,7 @@ int fs_get_application_exe_path(char *buffer, int size)
 
 #else
 
-    if (g_argc == 0) {
+    if (g_argc == 0 || g_argv == NULL) {
         buffer[0] = '\0';
         return 0;
     }

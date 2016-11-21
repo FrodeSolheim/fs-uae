@@ -130,7 +130,8 @@ void fs_emu_set_overlay_state(int overlay, int state) {
     // fs_mutex_unlock(g_overlay_mutex);
 }
 
-static void setup_opengl() {
+static void setup_opengl(void)
+{
     fs_log("setup_opengl\n");
     glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
     CHECK_GL_ERROR();

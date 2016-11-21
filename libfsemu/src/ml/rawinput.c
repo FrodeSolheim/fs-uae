@@ -26,7 +26,9 @@
 #define E0 NUM_VKEYS
 #define E1 (NUM_VKEYS * 2)
 
+#ifndef MAPVK_VK_TO_CHAR
 #define MAPVK_VK_TO_CHAR 2
+#endif
 
 #define USE_MAKECODES
 
@@ -49,7 +51,8 @@ static int g_mod_f11 = 0;
 static int g_mod_f12 = 0;
 static int g_mod = 0;
 
-void fs_ml_clear_keyboard_modifier_state() {
+void fs_ml_clear_keyboard_modifier_state()
+{
     fs_log("clearing keyboard modifier state\n");
     g_mod_lalt = 0;
     g_mod_ralt = 0;
@@ -62,7 +65,8 @@ void fs_ml_clear_keyboard_modifier_state() {
     g_mod = 0;
 }
 
-static void process_keyboard_input(LPRAWINPUT raw_input) {
+static void process_keyboard_input(LPRAWINPUT raw_input)
+{
     //LPRAWKEYBOARD raw_keyboard = &(raw_input->data.keyboard);
     //int vkey = raw_keyboard->VKey;
     //int vkey = raw_keyboard->VKey;
@@ -235,13 +239,13 @@ static void process_keyboard_input(LPRAWINPUT raw_input) {
     }
 }
 
-static void process_input(void *data) {
+static void process_input(void *data)
+{
     //fs_log("process_input\n");
     LPRAWINPUT raw_input = data;
     if (raw_input->header.dwType == RIM_TYPEMOUSE) {
         //process_mouse_input(raw_input);
-    }
-    else if (raw_input->header.dwType == RIM_TYPEKEYBOARD) {
+    } else if (raw_input->header.dwType == RIM_TYPEKEYBOARD) {
         process_keyboard_input(raw_input);
     }
 }
@@ -252,7 +256,8 @@ static unsigned char *g_raw_input_data[RAW_INPUT_MAX_SIZE];
 static WNDPROC g_wndproc = NULL;
 
 static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wparam,
-        LPARAM lparam) {
+        LPARAM lparam)
+{
     //fs_log("WndProc %d\n", message);
     HRAWINPUT raw_input_handle;
     switch (message) {
@@ -280,13 +285,16 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wparam,
         }
         // must call DefWindowProc according to http://msdn.microsoft.com/
         // en-us/library/windows/desktop/ms645590(v=vs.85).aspx
-        return DefWindowProc(hwnd, message, wparam, lparam);
+        // EDIT: We want SDL2 to receive WM_INPUT messages as well (for mouse
+        // input) so we let CallWindowProc be called...
+        // return DefWindowProc(hwnd, message, wparam, lparam);
     }
 
     return CallWindowProc(g_wndproc, hwnd, message, wparam, lparam);
 }
 
-static void init_key_mapping() {
+static void init_key_mapping(void)
+{
     // http://msdn.microsoft.com/en-us/library/windows/desktop/dd375731(v=VS.85).aspx
 
 #ifdef USE_MAKECODES
@@ -528,7 +536,8 @@ static void init_key_mapping() {
 #endif
 }
 
-void fs_ml_init_raw_input() {
+void fs_ml_init_raw_input(void)
+{
     fs_log("fs_ml_init_raw_input\n");
 
     //list_input_devices();
@@ -551,7 +560,7 @@ void fs_ml_init_raw_input() {
  
     g_wndproc = (WNDPROC) GetWindowLongPtr(g_window, GWLP_WNDPROC);
     SetWindowLongPtr(g_window, GWLP_WNDPROC, (LONG_PTR) WndProc);
-    fs_log("old window proc: %p new window proc: %p\n", g_wndproc, WndProc);
+    fs_log("[RAWINPUT ]Old wndproc: %p new wndproc: %p\n", g_wndproc, WndProc);
 
     RAWINPUTDEVICE rid;
     /*

@@ -62,7 +62,7 @@ void uae_fatal(const char *format, ...) UAE_PRINTF_FORMAT(1, 2);
 	if (log_stub_count < max) { \
 		LOG_STUB(format, ##__VA_ARGS__) \
 		if (++log_stub_count == max) { \
-			uae_log("    (ignoring further calls to %s)\n", __func__); \
+			uae_log("[WARNING] Will not log further calls to %s\n", __func__); \
 		} \
 	} \
 }

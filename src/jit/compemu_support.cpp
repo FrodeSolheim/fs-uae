@@ -3623,7 +3623,7 @@ static inline int block_check_checksum(blockinfo* bi)
 		bi->handler_to_use=bi->handler;
 		set_dhtu(bi,bi->direct_handler);
 		bi->status=BI_CHECKING;
-		isgood=called_check_checksum(bi);
+		isgood=called_check_checksum(bi) != 0;
 	}
 	if (isgood) {
 		jit_log2("reactivate %p/%p (%x %x/%x %x)",bi,bi->pc_p, c1,c2,bi->c1,bi->c2);
@@ -4352,7 +4352,7 @@ static void compile_block(cpu_history* pc_hist, int blocklen)
 		int was_comp=0;
 		uae_u8 liveflags[MAXRUN+1];
 #if USE_CHECKSUM_INFO
-		bool trace_in_rom = isinrom((uintptr)pc_hist[0].location);
+		bool trace_in_rom = isinrom((uintptr)pc_hist[0].location) != 0;
 		uintptr max_pcp=(uintptr)pc_hist[blocklen - 1].location;
 		uintptr min_pcp=max_pcp;
 #else

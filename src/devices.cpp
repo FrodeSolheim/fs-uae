@@ -101,6 +101,7 @@ void devices_reset(int hardreset)
 #ifdef AUTOCONFIG
 	expamem_reset ();
 #endif
+	uae_int_requested = 0;
 }
 
 
@@ -289,6 +290,7 @@ void reset_all_systems (void)
 	native2amiga_reset ();
 	dongle_reset ();
 	sampler_init ();
+	uae_int_requested = 0;
 }
 
 void do_leave_program (void)

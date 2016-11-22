@@ -6,6 +6,7 @@ Version 2.9.0dev:
 * New option raw_input = 0 will disable use of raw input for keyboard.
 * Fixed loading shaders from fs-uae.dat.
 * Updated Xbox 360 configs for Linux.
+* Updated emulation core from WinUAE 3300b1.
 
 Version 2.7.16dev:
 

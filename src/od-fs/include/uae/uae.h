@@ -247,6 +247,7 @@ void amiga_set_native_library_dirs(const char **library_dirs);
 // by od-fs code.
 
 #define DEFEVENT(A, B, C, D, E, F) INPUTEVENT_ ## A,
+#define DEFEVENT2(A, B, B2, C, D, E, F, G) INPUTEVENT_ ## A,
 enum inputevents {
 INPUTEVENT_ZERO,
 #include "uae_inputevents_def.h"

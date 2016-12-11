@@ -6957,7 +6957,7 @@ uae_u32 mem_access_delay_word_read (uaecptr addr)
 	{
 	case CE_MEMBANK_CHIP16:
 	case CE_MEMBANK_CHIP32:
-		v = wait_cpu_cycle_read (addr, 2);
+		v = wait_cpu_cycle_read (addr, 1);
 		break;
 	case CE_MEMBANK_FAST16:
 	case CE_MEMBANK_FAST32:
@@ -6978,7 +6978,7 @@ uae_u32 mem_access_delay_wordi_read (uaecptr addr)
 	{
 	case CE_MEMBANK_CHIP16:
 	case CE_MEMBANK_CHIP32:
-		v = wait_cpu_cycle_read (addr, 1);
+		v = wait_cpu_cycle_read (addr, 2);
 		break;
 	case CE_MEMBANK_FAST16:
 	case CE_MEMBANK_FAST32:
@@ -7268,15 +7268,15 @@ uae_u32 mem_access_delay_long_read_ce020 (uaecptr addr)
 	switch (ce_banktype[addr >> 16])
 	{
 	case CE_MEMBANK_CHIP16:
-		v  = wait_cpu_cycle_read_ce020 (addr + 0, 2) << 16;
-		v |= wait_cpu_cycle_read_ce020 (addr + 2, 2) <<  0;
+		v  = wait_cpu_cycle_read_ce020 (addr + 0, 1) << 16;
+		v |= wait_cpu_cycle_read_ce020 (addr + 2, 1) <<  0;
 		break;
 	case CE_MEMBANK_CHIP32:
 		if ((addr & 3) != 0) {
-			v  = wait_cpu_cycle_read_ce020 (addr + 0, 2) << 16;
-			v |= wait_cpu_cycle_read_ce020 (addr + 2, 2) <<  0;
+			v  = wait_cpu_cycle_read_ce020 (addr + 0, 1) << 16;
+			v |= wait_cpu_cycle_read_ce020 (addr + 2, 1) <<  0;
 		} else {
-			v = wait_cpu_cycle_read_ce020 (addr, -2);
+			v = wait_cpu_cycle_read_ce020 (addr, -1);
 		}
 		break;
 	case CE_MEMBANK_FAST32:
@@ -7304,15 +7304,15 @@ uae_u32 mem_access_delay_longi_read_ce020 (uaecptr addr)
 	switch (ce_banktype[addr >> 16])
 	{
 	case CE_MEMBANK_CHIP16:
-		v  = wait_cpu_cycle_read_ce020 (addr + 0, 1) << 16;
-		v |= wait_cpu_cycle_read_ce020 (addr + 2, 1) <<  0;
+		v  = wait_cpu_cycle_read_ce020 (addr + 0, 2) << 16;
+		v |= wait_cpu_cycle_read_ce020 (addr + 2, 2) <<  0;
 		break;
 	case CE_MEMBANK_CHIP32:
 		if ((addr & 3) != 0) {
-			v  = wait_cpu_cycle_read_ce020 (addr + 0, 1) << 16;
-			v |= wait_cpu_cycle_read_ce020 (addr + 2, 1) <<  0;
+			v  = wait_cpu_cycle_read_ce020 (addr + 0, 2) << 16;
+			v |= wait_cpu_cycle_read_ce020 (addr + 2, 2) <<  0;
 		} else {
-			v = wait_cpu_cycle_read_ce020 (addr, -1);
+			v = wait_cpu_cycle_read_ce020 (addr, -2);
 		}
 		break;
 	case CE_MEMBANK_FAST32:

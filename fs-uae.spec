@@ -1,6 +1,6 @@
 %define name fs-uae
-%define version 2.8.2
-%define unmangled_version 2.8.2
+%define version 2.9.0dev
+%define unmangled_version 2.9.0dev
 %define release 1%{?dist}
 
 %undefine _hardened_build

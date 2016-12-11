@@ -36,11 +36,13 @@ static const char *os_arch_name()
     static const char *name = NULL;
     if (name == NULL) {
 #ifdef LINUX
+#if 0
         if (getenv("STEAM_RUNTIME") && getenv("STEAM_RUNTIME")[0]) {
             fs_log("os_arch_name: detected STEAM_RUNTIME, using steamos\n");
             name = "steamos_" ARCH_NAME;
             return name;
         }
+#endif
 #endif
         name = OS_NAME "_" ARCH_NAME;
     }

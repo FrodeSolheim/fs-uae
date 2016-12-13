@@ -1,5 +1,6 @@
 Version 2.9.1dev:
 
+* Fixed loading compressed resources from fs-uae.dat on big-endian CPU.
 * Fix compilation with --disable-jit.
 
 Version 2.9.0dev:

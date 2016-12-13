@@ -175,8 +175,9 @@ int fs_data_file_content(const char *name, char **data, int *size)
         /* no signature found, not a local file header */
         return 8;
     }
-    if (lfh.compression_method != 0 && lfh.compression_method != 8) {
-        /* file is stored compressed, not supported right now */
+    if (le16toh(lfh.compression_method) != 0 &&
+            le16toh(lfh.compression_method) != 8) {
+        /* Unsupported compression type. */
         return 9;
     }
     if (data == NULL) {
@@ -200,10 +201,10 @@ int fs_data_file_content(const char *name, char **data, int *size)
         return 13;
     }
 
-    if (lfh.compression_method == 0) {
+    if (le16toh(lfh.compression_method) == 0) {
         // printf("STORE %s\n", name);
         /* Compression method "store" */
-        if (lfh.compressed_size != lfh.uncompressed_size) {
+        if (le32toh(lfh.compressed_size) != le32toh(lfh.uncompressed_size)) {
             return 9;
         }
         if (fread(*data, *size, 1, g_dat_file) != 1) {
@@ -211,7 +212,7 @@ int fs_data_file_content(const char *name, char **data, int *size)
             return 14;
         }
 #ifdef USE_ZLIB
-    } else if (lfh.compression_method == 8) {
+    } else if (le16toh(lfh.compression_method) == 8) {
         // printf("DEFLATE %s\n", name);
         /* Compression method "deflate". Borrowed some public domain code from
          * http://codeandlife.com/2014/01/01/unzip-library-for-c/ */
@@ -232,8 +233,8 @@ int fs_data_file_content(const char *name, char **data, int *size)
         }
 
         /* Inflate compressed data */
-        int compressed_left = lfh.compressed_size;
-        int uncompressed_left = lfh.uncompressed_size;
+        int compressed_left = le32toh(lfh.compressed_size);
+        int uncompressed_left = le32toh(lfh.uncompressed_size);
         while (compressed_left && uncompressed_left && ret != Z_STREAM_END) {
             /* Read next chunk */
             strm.avail_in = fread(buffer, 1,

@@ -93,6 +93,8 @@ struct comptbl {
 	uae_u32 opcode;
 	int specific;
 };
+#else
+#define MAX_JIT_CACHE 0
 #endif
 
 extern uae_u32 REGPARAM3 op_illg (uae_u32) REGPARAM;

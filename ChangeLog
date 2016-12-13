@@ -1,3 +1,7 @@
+Version 2.9.1dev:
+
+* Fix compilation with --disable-jit.
+
 Version 2.9.0dev:
 
 * Fix mouse input on Windows with raw keyboard input enabled.

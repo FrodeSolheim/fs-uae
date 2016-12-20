@@ -1,9 +1,14 @@
-Default: 0
-Example: 1
+Summary: Automatic mouse/joystick mode for mouse port
+Default: 1
+Example: 0
 Since: 2.1.33
 Type: boolean
 
-When this option is enabled, a device is automatically inserted into port
-0 when you press the primary button (unless the device is used in
-another joystick port). The joystick port mode will also change depending
-on whether the device is a mouse or a joystick/gamepad.
+When this option is enabled, and joystick mode is selected for port 0,
+the port will automatically switch between mouse and joystick mode when
+you perform joystick or mouse movement.
+
+This is especially useful when you want to play a two-player game with
+two joysticks, but need the mouse to get past cracktros or trainers. With
+this option enabled, you can use both the mouse and the second joystick
+seamlessly.

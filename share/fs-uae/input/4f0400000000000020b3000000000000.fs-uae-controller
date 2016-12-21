@@ -1,6 +1,6 @@
 [fs-uae-controller]
 name = 2 in 1 DT
-platform = macosx
+platform = macos
 
 [device]
 make = Thrustmaster

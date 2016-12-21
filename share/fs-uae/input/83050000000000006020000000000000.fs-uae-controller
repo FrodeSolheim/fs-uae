@@ -1,6 +1,6 @@
 [fs-uae-controller]
 name = USB,2-axis 8-button gamepad
-platform = macosx
+platform = macos
 
 [device]
 make = iBuffalo

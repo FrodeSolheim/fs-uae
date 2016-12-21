@@ -1,6 +1,6 @@
 [fs-uae-controller]
 name = Thrustmaster dual analog 3.2
-platform = macosx
+platform = macos
 
 [device]
 make = Thrustmaster

@@ -1,5 +1,6 @@
 Version 2.9.1dev:
 
+* Added xinput_controller_11_6_1_0_windows.
 * GUI warning when running with llvmpipe software renderer.
 * Fixed caps lock.
 * Fix loading of bundled gamepad configs for macOS.

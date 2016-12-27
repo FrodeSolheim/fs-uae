@@ -206,7 +206,7 @@ void fs_ml_show_cursor(int show, int immediate)
     }
 }
 
-static void log_opengl_information()
+static void log_opengl_information(void)
 {
     static int written = 0;
     if (written) {
@@ -223,6 +223,8 @@ static void log_opengl_information()
     if (str) {
         fs_log("opengl renderer: %s\n", str);
         if (strstr(str, "GDI Generic") != NULL) {
+            software_renderer = g_strdup(str);
+        } else if (strstr(str, "llvmpipe") != NULL) {
             software_renderer = g_strdup(str);
         }
     }
@@ -243,7 +245,7 @@ static void log_opengl_information()
             g_max_texture_size);
 
     if (software_renderer) {
-        fs_emu_warning("No HW OpenGL driver (\"%s\")", software_renderer);
+        fs_emu_warning("No HW OpenGL driver: %s", software_renderer);
         g_free(software_renderer);
     }
 }

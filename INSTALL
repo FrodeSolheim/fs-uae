@@ -1,5 +1,5 @@
-Compiling FS-UAE
-================
+Building and Installing FS-UAE
+==============================
 
 Instructions for compiling and installing FS-UAE is available here: 
 https://fs-uae.net/compiling
@@ -11,23 +11,36 @@ The configure script can be used to enable some additional features
 (but they might not work or even compile) and disable default features.
 
 Please note, the only *supported* configuration is to build with the
-default option set. The options are provided for testing and debugging
-purposes - and also for your convenience, in these cases where it happens
-to work ;-).
+default option set or the ones listed below.  Other options are provided
+for testing and debugging purposes - and also for your convenience, in
+the cases where it happens to work ;-).
 
+Supported options:
 
-openSUSE Dependencies
----------------------
+ * --with-libmpeg=builtin    For systems lacking libmpeg2.
+ * --disable-jit             For platforms without UAE JIT support.
 
-Dependendices for running bootstrap:
+Ubuntu / Debian
+---------------
+
+Install dependencies for running bootstrap:
+
+    sudo apt-get install autoconf automake libtool gettext
+
+Install dependencies for building FS-UAE:
+
+    sudo apt-get install libsdl2-dev libglib2.0-dev libpng-dev gettext \
+    libfreetype6-dev build-essential libopenal-dev libxi-dev zip \
+    libmpeg2-4-dev
+
+openSUSE
+--------
+
+Install dependencies for running bootstrap:
 
     sudo zypper install autoconf automake libtool gettext
 
-Dependencies for compiling FS-UAE:
+Install dependencies for building FS-UAE:
 
     sudo zypper install SDL2-devel glib2-devel libpng-devel gettext \
-    freetype2-devel gcc gcc-c++ openal-devel libXi-devel
-
-Additional dependencies for running FS-UAE Launcher:
-
-    sudo zypper install python3-qt4
+    freetype2-devel gcc gcc-c++ openal-devel libXi-devel zip

@@ -686,7 +686,7 @@ AS_IF([test "x$enable_jit" != xno], [
     ], [
         if test "x$enable_jit" != xyes; then
             AC_MSG_FAILURE(
-                [--enable-jit was given, but arch is not supported])
+                [JIT is not supported on $host])
         fi
     ])
 ])

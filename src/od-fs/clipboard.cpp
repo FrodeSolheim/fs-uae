@@ -1,6 +1,8 @@
 #include "sysconfig.h"
 #include "sysdeps.h"
 
+#ifdef WITH_CLIPBOARD
+
 #include <stdlib.h>
 #include <stdarg.h>
 
@@ -43,29 +45,39 @@ static bool clip_disabled;
 static fs_mutex *clipboard_mutex;
 static char *clipboard_to_host_text;
 
-static void debugwrite(const TCHAR *name, uae_u8 *p, int size)
+static void debugwrite(TrapContext *ctx, const TCHAR *name, uae_u8 *p, int size)
 {
     STUB("");
 }
 
-static void to_amiga_start (void)
+static uae_u32 to_amiga_start_cb(TrapContext *ctx, void *ud)
+{
+	if (trap_get_long(ctx, clipboard_data) != 0)
+		return 0;
+	if (clipboard_debug) {
+		debugwrite(ctx, _T("clipboard_p2a"), clipboard_data, to_amiga_size);
+	}
+#if DEBUG_CLIP > 0
+	write_log(_T("clipboard: to_amiga %08x %d\n"), clipboard_data, to_amiga_size);
+#endif
+	trap_put_long(ctx, clipboard_data, to_amiga_size);
+	uae_Signal(trap_get_long(ctx, clipboard_data + 8), 1 << 13);
+	return 1;
+}
+
+static void to_amiga_start(TrapContext *ctx)
 {
     printf("clipboard a\n");
     if (!initialized)
         return;
     printf("clipboard b\n");
-    if (!clipboard_data || get_long(clipboard_data) != 0)
+    if (!clipboard_data)
         return;
-    printf("clipboard c\n");
-    if (clipboard_debug) {
-        debugwrite(_T("clipboard_p2a"), to_amiga, to_amiga_size);
+    if (!ctx) {
+        trap_callback(to_amiga_start_cb, NULL);
+    } else {
+        to_amiga_start_cb(ctx, NULL);
     }
-    printf("clipboard d\n");
-#if DEBUG_CLIP > 0
-    write_log (_T("clipboard: to_amiga %08x %d\n"), clipboard_data, to_amiga_size);
-#endif
-    put_long(clipboard_data, to_amiga_size);
-    uae_Signal(get_long(clipboard_data + 8), 1 << 13);
 }
 
 static uae_char *pctoamiga (const uae_char *txt)
@@ -138,7 +150,7 @@ static TCHAR *amigatopc (const char *txt)
 }
 
 
-static void to_iff_text (const TCHAR *pctxt)
+static void to_iff_text(TrapContext *ctx, const TCHAR *pctxt)
 {
     uae_u8 b[] = { 'F','O','R','M',0,0,0,0,'F','T','X','T','C','H','R','S',0,0,0,0 };
     uae_u32 size;
@@ -164,7 +176,7 @@ static void to_iff_text (const TCHAR *pctxt)
     to_amiga = xcalloc (uae_u8, to_amiga_size);
     memcpy (to_amiga, b, sizeof b);
     memcpy (to_amiga + sizeof b, txt, txtlen);
-    to_amiga_start ();
+    to_amiga_start(ctx);
     xfree (txt);
     xfree (s);
 }
@@ -655,25 +667,28 @@ static void from_iff_ilbm (uaecptr ilbm, uae_u32 len)
 }
 #endif
 
-static void from_iff (uaecptr data, uae_u32 len)
+static void from_iff(TrapContext *ctx, uaecptr data, uae_u32 len)
 {
-    uae_u8 *addr;
+	uae_u8 *buf;
 
-    if (len < 18)
-        return;
-    if (!valid_address(data, len))
-        return;
-    addr = get_real_address(data);
+	if (len < 18)
+		return;
+	if (!trap_valid_address(ctx, data, len))
+		return;
+	buf = xmalloc(uae_u8, (len + 3) & ~3);
+	trap_get_bytes(ctx, buf, data, (len + 3) & ~3);
+
     if (clipboard_debug)
-        debugwrite (_T("clipboard_a2p"), addr, len);
-    if (memcmp("FORM", addr, 4))
-        return;
-    if (!memcmp("FTXT", addr + 8, 4))
-        from_iff_text (data, len);
+        debugwrite(ctx, _T("clipboard_a2p"), data, len);
+    if (!memcmp ("FORM", buf, 4)) {
+        if (!memcmp ("FTXT", buf + 8, 4))
+            from_iff_text(ctx, buf, len);
 #if 0
-    if (!memcmp("ILBM", addr + 8, 4))
-        from_iff_ilbm (data, len);
+		if (!memcmp ("ILBM", buf + 8, 4))
+			from_iff_ilbm(ctx, buf, len);
 #endif
+    }
+    xfree(buf);
 }
 
 void clipboard_disable (bool disabled)
@@ -681,7 +696,7 @@ void clipboard_disable (bool disabled)
     clip_disabled = disabled;
 }
 
-static void clipboard_read(void)
+static void clipboard_read(TrapContext *ctx)
 {
     int text = FALSE, bmp = FALSE;
     static char *last_text;
@@ -724,7 +739,7 @@ static void clipboard_read(void)
 #if DEBUG_CLIP > 0
             write_log(_T("clipboard: '%s'\n"), new_text);
 #endif
-            to_iff_text(new_text);
+            to_iff_text(ctx, new_text);
             fs_mutex_unlock(clipboard_mutex);
         }
     } else if (bmp) {
@@ -807,35 +822,35 @@ static int clipboard_put_bmp(HBITMAP hbmp)
 }
 #endif
 
-void amiga_clipboard_die(void)
+void amiga_clipboard_die(TrapContext *ctx)
 {
     signaling = 0;
     write_log(_T("clipboard not initialized\n"));
 }
 
-void amiga_clipboard_init(void)
+void amiga_clipboard_init(TrapContext *ctx)
 {
     signaling = 0;
     write_log(_T("clipboard initialized\n"));
     initialized = 1;
-    clipboard_read();
+    clipboard_read(ctx);
 }
 
-void amiga_clipboard_task_start(uaecptr data)
+void amiga_clipboard_task_start(TrapContext *ctx, uaecptr data)
 {
     clipboard_data = data;
     signaling = 1;
     write_log(_T("clipboard task init: %08x\n"), clipboard_data);
 }
 
-uae_u32 amiga_clipboard_proc_start(void)
+uae_u32 amiga_clipboard_proc_start(TrapContext *ctx)
 {
     write_log(_T("clipboard process init: %08x\n"), clipboard_data);
     signaling = 1;
     return clipboard_data;
 }
 
-void amiga_clipboard_got_data(uaecptr data, uae_u32 size, uae_u32 actual)
+void amiga_clipboard_got_data(TrapContext *ctx, uaecptr data, uae_u32 size, uae_u32 actual)
 {
     uae_u8 *addr;
     if (!initialized) {
@@ -846,15 +861,15 @@ void amiga_clipboard_got_data(uaecptr data, uae_u32 size, uae_u32 actual)
 #if DEBUG_CLIP > 0
     write_log(_T("clipboard: <-amiga, %08x, %08x %d %d\n"), clipboard_data, data, size, actual);
 #endif
-    from_iff(data, actual);
+    from_iff(ctx, data, actual);
 }
 
-int amiga_clipboard_want_data (void)
+int amiga_clipboard_want_data(TrapContext *ctx)
 {
     uae_u32 addr, size;
 
-    addr = get_long(clipboard_data + 4);
-    size = get_long(clipboard_data);
+	addr = trap_get_long(ctx, clipboard_data + 4);
+	size = trap_get_long(ctx, clipboard_data);
     if (!initialized) {
         write_log(_T("clipboard: want_data() before initialized!? (%08x %08x %d)\n"), clipboard_data, addr, size);
         to_amiga = NULL;
@@ -866,8 +881,7 @@ int amiga_clipboard_want_data (void)
         return 0;
     }
     if (addr && size) {
-        uae_u8 *raddr = get_real_address(addr);
-        memcpy(raddr, to_amiga, size);
+        trap_put_bytes(ctx, to_amiga, addr, size);
     }
     xfree (to_amiga);
 #if DEBUG_CLIP > 0
@@ -900,6 +914,18 @@ void clipboard_active (HWND hwnd, int active)
 }
 #endif
 
+static uae_u32 clipboard_vsync_cb(TrapContext *ctx, void *ud)
+{
+	uaecptr task = trap_get_long(ctx, clipboard_data + 8);
+	if (task && native2amiga_isfree()) {
+		uae_Signal(task, 1 << 13);
+#if DEBUG_CLIP > 0
+		write_log(_T("clipboard: signal %08x\n"), clipboard_data);
+#endif
+	}
+	return 0;
+}
+
 void clipboard_vsync(void)
 {
     uaecptr task;
@@ -908,13 +934,7 @@ void clipboard_vsync(void)
     vdelay--;
     if (vdelay > 0)
         return;
-    task = get_long(clipboard_data + 8);
-    if (task && native2amiga_isfree()) {
-        uae_Signal (task, 1 << 13);
-#if DEBUG_CLIP > 0
-        write_log(_T("clipboard: signal %08x\n"), clipboard_data);
-#endif
-    }
+    trap_callback(clipboard_vsync_cb, NULL);
     vdelay = 50;
 }
 
@@ -953,3 +973,5 @@ UAE_EXTERN_C void uae_clipboard_update(void)
     }
     fs_mutex_unlock(clipboard_mutex);
 }
+
+#endif /* CLIPBOARD */

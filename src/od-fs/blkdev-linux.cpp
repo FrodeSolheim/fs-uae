@@ -254,7 +254,7 @@ static int execscsicmd_direct (int unitnum, struct amigascsi *as)
     struct cdrom_generic_command cmd;
     struct request_sense sense;
 
-    uae_u8 *scsi_data         = as->data;
+    uae_u8 *scsi_data         = as->data_h;
     int     scsi_len          = as->len;
     uae_u8 *scsi_cmd          = as->cmd;
     int     scsi_cmd_len      = as->cmd_len;

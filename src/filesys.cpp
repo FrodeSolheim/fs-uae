@@ -8776,6 +8776,7 @@ static uae_u32 REGPARAM2 mousehack_done (TrapContext *ctx)
 		uaecptr dispinfo = trap_get_areg(ctx, 3);
 		uaecptr vp = trap_get_areg(ctx, 4);
 		return input_mousehack_status(ctx, mode, diminfo, dispinfo, vp, trap_get_dreg(ctx, 2));
+#ifdef WITH_CLIPBOARD
 	} else if (mode == 10) {
 		amiga_clipboard_die(ctx);
 	} else if (mode == 11) {
@@ -8788,6 +8789,7 @@ static uae_u32 REGPARAM2 mousehack_done (TrapContext *ctx)
 		amiga_clipboard_task_start(ctx, trap_get_dreg(ctx, 0));
 	} else if (mode == 15) {
 		amiga_clipboard_init(ctx);
+#endif
 	} else if (mode == 16) {
 		uaecptr a2 = trap_get_areg(ctx, 2);
 		input_mousehack_mouseoffset(a2);

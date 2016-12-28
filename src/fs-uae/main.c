@@ -237,7 +237,9 @@ static int input_handler_loop(int line)
     }
 
     // FIXME: Move to another place?
+#ifdef WITH_CLIPBOARD
     uae_clipboard_update();
+#endif
 
     int action;
     //int reconfigure_input = 0;

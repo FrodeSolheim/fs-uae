@@ -31,6 +31,7 @@
 
 #include "sysdeps.h"
 #include "options.h"
+#include "traps.h"
 #include "sana2.h"
 
 #include "threaddep/thread.h"

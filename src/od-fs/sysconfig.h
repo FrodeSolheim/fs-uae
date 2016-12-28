@@ -11,6 +11,10 @@
 #include "config.h"
 #endif
 
+// FIXME: move to uae/types.h
+// FIXME: merge with od-win32/sysconfig.h
+typedef int uae_atomic;
+
 /* src/sysconfig.h.  Generated from sysconfig.h.in by configure.  */
 /* src/sysconfig.h.in.  Generated from configure.in by autoheader.  */
 

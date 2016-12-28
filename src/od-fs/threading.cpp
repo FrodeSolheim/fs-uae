@@ -71,3 +71,31 @@ bool uae_is_emulation_thread(void)
 {
     return SDL_ThreadID() == g_emulation_thread_id;
 }
+
+/* FIXME: Move atomic functions to header for inlining? */
+
+void atomic_and(volatile uae_atomic *p, uae_u32 v)
+{
+    __sync_fetch_and_and(p, v);
+}
+
+void atomic_or(volatile uae_atomic *p, uae_u32 v)
+{
+    __sync_fetch_and_or(p, v);
+}
+
+uae_atomic atomic_inc(volatile uae_atomic *p)
+{
+    __sync_fetch_and_add(p, 1);
+}
+
+uae_atomic atomic_dec(volatile uae_atomic *p)
+{
+    __sync_fetch_and_sub(p, 1);
+}
+
+uae_u32 atomic_bit_test_and_reset(volatile uae_atomic *p, uae_u32 v)
+{
+    uae_u32 value = __sync_fetch_and_and(p, ~(1 << v));
+    return (value >> v) & 1;
+}

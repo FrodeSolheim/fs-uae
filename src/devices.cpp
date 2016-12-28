@@ -114,7 +114,9 @@ void devices_vsync_pre(void)
 	inputdevice_vsync ();
 	filesys_vsync ();
 	sampler_vsync ();
+#ifdef WITH_CLIPBOARD
 	clipboard_vsync ();
+#endif
 	uaenet_vsync();
 #ifdef RETROPLATFORM
 	rp_vsync ();

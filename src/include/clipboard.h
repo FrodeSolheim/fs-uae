@@ -2,6 +2,7 @@
 #define UAE_CLIPBOARD_H
 
 #include "uae/types.h"
+#include "traps.h"
 
 extern int amiga_clipboard_want_data(TrapContext *ctx);
 extern void amiga_clipboard_got_data(TrapContext *ctx, uaecptr data, uae_u32 size, uae_u32 actual);

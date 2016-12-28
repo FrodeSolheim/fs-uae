@@ -8565,6 +8565,9 @@ void inputdevice_joyport_config_store(struct uae_prefs *p, const TCHAR *value, i
 
 int inputdevice_joyport_config (struct uae_prefs *p, const TCHAR *value1, const TCHAR *value2, int portnum, int mode, int type, bool candefault)
 {
+#ifdef FSUAE
+	return 0;
+#endif
 	switch (type)
 	{
 	case 1: // check and set
@@ -8756,6 +8759,9 @@ int inputdevice_getjoyportdevice (int port, int val)
 
 void inputdevice_fix_prefs(struct uae_prefs *p, bool userconfig)
 {
+#ifdef FSUAE
+	return;
+#endif
 	bool defaultports = userconfig == false;
 	// Convert old style custom mapping to new style
 	for (int i = 0; i < MAX_JPORTS_CUSTOM; i++) {

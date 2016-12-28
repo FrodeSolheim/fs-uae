@@ -35,4 +35,10 @@ static inline int uae_sem_trywait(uae_sem_t *sem)
 	return fs_semaphore_try_wait(*sem);
 }
 
+static inline int uae_sem_trywait_delay(uae_sem_t *sem, int delay)
+{
+#warning delay for uae_sem_trywait_delay not implemented
+	return fs_semaphore_try_wait(*sem);
+}
+
 #endif // THREADDEP_SEM_H

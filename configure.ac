@@ -22,7 +22,7 @@ AM_INIT_AUTOMAKE([tar-ustar subdir-objects])
 
 AC_SUBST([PACKAGE_SERIES], [devel])
 
-AC_DEFINE_UNQUOTED([UAE_BASE_VERSION], ["WinUAE 3300b3"],
+AC_DEFINE_UNQUOTED([UAE_BASE_VERSION], ["WinUAE 3300b4"],
 [Which UAE core this version is based on.])
 
 PACKAGE_MAJOR=`echo ${PACKAGE_VERSION} | sed -e 's,\(\.*\)\..*\..*,\1,g'`
@@ -639,7 +639,7 @@ OPT_FEATURE([ARCADIA], [arcadia], [arcadia],
             [Arcadia arcade system])
 REQ_FEATURE([AUTOCONFIG], [autoconfig], [autoconfig],
             [autoconfig support, fast ram, harddrives etc...])
-OPT_FEATURE([BSDSOCKET], [bsdsocket], [bsdsocket],
+DIS_FEATURE([BSDSOCKET], [bsdsocket], [bsdsocket],
             [built-in bsdsocket.library])
 DIS_FEATURE([WITH_BUILTIN_SLIRP], [builtin_slirp], [builtin-slirp],
             [built-in SLIRP implementation (unsupported)])
@@ -649,8 +649,10 @@ OPT_FEATURE([CD32], [cd32], [cd32],
             [CD32 emulation])
 OPT_FEATURE([CDTV], [cdtv], [cdtv],
             [CDTV emulation])
+DIS_FEATURE([WITH_CLIPBOARD], [clipboard], [clipboard],
+            [clipboard integration])
 OPT_FEATURE([CODEGEN], [codegen], [codegen],
-            [Code generation (disable for cross-compilation)])
+            [code generation (disable for cross-compilation)])
 OPT_FEATURE([CPUEMU_0], [cpuemu_0], [cpuemu-0],
             [generic 680x0 emulation])
 OPT_FEATURE([CPUEMU_11], [cpuemu_11], [cpuemu-11],

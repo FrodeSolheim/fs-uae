@@ -335,7 +335,7 @@ static void hardware_trap_ack(TrapContext *ctx)
 
 static void *hardware_trap_thread(void *arg)
 {
-	int tid = (uae_u32)arg;
+	int tid = (uae_u32)(uintptr_t)arg;
 	for (;;) {
 		TrapContext *ctx = (TrapContext*)read_comm_pipe_pvoid_blocking(&trap_thread_pipe[tid]);
 		if (!ctx)

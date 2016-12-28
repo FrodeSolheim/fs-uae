@@ -151,7 +151,9 @@ int amiga_init(void)
     filesys_host_init();
 
     romlist_init();
+#ifdef WITH_CLIPBOARD
     clipboard_init();
+#endif
     return 1;
 }
 

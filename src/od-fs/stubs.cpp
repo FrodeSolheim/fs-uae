@@ -15,6 +15,8 @@
 #include "scsidev.h"
 #include "uae.h"
 #include "xwin.h"
+#include "sana2.h"
+#include "ethernet.h"
 
 void graphics_reset(bool force)
 {
@@ -226,4 +228,17 @@ bool my_issamepath(const TCHAR *path1, const TCHAR *path2)
 {
         LOG_STUB_MAX(3, "");
         return false;
+}
+
+static struct netdriverdata *ndd[MAX_TOTAL_NET_DEVICES + 1];
+static int net_enumerated;
+
+struct netdriverdata **target_ethernet_enumerate(void)
+{
+	STUB("");
+	if (net_enumerated)
+		return ndd;
+	ethernet_enumerate(ndd, 0);
+	net_enumerated = 1;
+	return ndd;
 }

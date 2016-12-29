@@ -50,4 +50,6 @@ bool ethernet_getmac(uae_u8 *m, const TCHAR *mac);
 void ethernet_pause(int);
 void ethernet_reset(void);
 
+struct netdriverdata **target_ethernet_enumerate(void);
+
 #endif /* UAE_ETHERNET_H */

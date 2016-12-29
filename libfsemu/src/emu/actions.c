@@ -148,7 +148,7 @@ void fs_emu_handle_libfsemu_action(int action, int state)
         if (state) {
             /* FIXME: UAE-specific hot key hack for warp function,
              * should be moved out of libfsemu. */
-            fs_emu_queue_input_event(0x00010000 | 275);
+            fs_emu_queue_input_event(0x00010000 | FS_EMU_WARP_HACK);
         }
         break;
     case FS_EMU_ACTION_ZOOM:

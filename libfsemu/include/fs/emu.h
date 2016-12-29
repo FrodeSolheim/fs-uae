@@ -436,4 +436,6 @@ void fs_emu_release_gui_lock();
 }
 #endif
 
+#define FS_EMU_WARP_HACK 276
+
 #endif // LIBFSEMU_EMU_H_

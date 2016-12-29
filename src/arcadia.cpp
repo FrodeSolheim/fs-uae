@@ -809,7 +809,7 @@ bool alg_ld_active(void)
 	return ld_mode == LD_MODE_PLAY || ld_mode == LD_MODE_STILL;
 }
 
-static void alg_vsync(void)
+void alg_vsync(void)
 {
 	ld_wait_ack = 0;
 	ld_vsync++;

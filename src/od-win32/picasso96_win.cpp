@@ -684,7 +684,7 @@ static void setupcursor (void)
 	D3DLOCKED_RECT locked;
 	HRESULT hr;
 
-	if (currprefs.rtgmem_type >= GFXBOARD_HARDWARE)
+	if (currprefs.rtgboards[0].rtgmem_type >= GFXBOARD_HARDWARE)
 		return;
 	gfx_lock ();
 	setupcursor_needed = 1;
@@ -788,7 +788,7 @@ static bool rtg_render (void)
 #endif
 #endif
 	bool flushed = false;
-	bool uaegfx = currprefs.rtgmem_type < GFXBOARD_HARDWARE;
+	bool uaegfx = currprefs.rtgboards[0].rtgmem_type < GFXBOARD_HARDWARE;
 
 	if (doskip () && p96skipmode == 0) {
 		;
@@ -1044,7 +1044,7 @@ void picasso_refresh (void)
 	setupcursor();
 	rtg_clear();
 
-	if (currprefs.rtgmem_type >= GFXBOARD_HARDWARE) {
+	if (currprefs.rtgboards[0].rtgmem_type >= GFXBOARD_HARDWARE) {
 		gfxboard_refresh ();
 		return;
 	}
@@ -1091,7 +1091,7 @@ static void picasso_handle_vsync2(void)
 	int vsync = isvsync_rtg();
 	int mult;
 	bool rendered = false;
-	bool uaegfx = currprefs.rtgmem_type < GFXBOARD_HARDWARE;
+	bool uaegfx = currprefs.rtgboards[0].rtgmem_type < GFXBOARD_HARDWARE;
 
 	int state = picasso_state_change;
 	if (state & PICASSO_STATE_SETDAC) {
@@ -1178,9 +1178,9 @@ static int p96hsync;
 
 void picasso_handle_vsync(void)
 {
-	bool uaegfx = currprefs.rtgmem_type < GFXBOARD_HARDWARE;
+	bool uaegfx = currprefs.rtgboards[0].rtgmem_type < GFXBOARD_HARDWARE;
 
-	if (currprefs.rtgmem_size == 0)
+	if (currprefs.rtgboards[0].rtgmem_size == 0)
 		return;
 
 	if (!picasso_on && uaegfx) {
@@ -1200,9 +1200,9 @@ void picasso_handle_vsync(void)
 
 void picasso_handle_hsync(void)
 {
-	bool uaegfx = currprefs.rtgmem_type < GFXBOARD_HARDWARE;
+	bool uaegfx = currprefs.rtgboards[0].rtgmem_type < GFXBOARD_HARDWARE;
 
-	if (currprefs.rtgmem_size == 0)
+	if (currprefs.rtgboards[0].rtgmem_size == 0)
 		return;
 
 	int vsync = isvsync_rtg();
@@ -2642,7 +2642,7 @@ static void picasso96_alloc2 (TrapContext *ctx)
 
 void picasso96_alloc (TrapContext *ctx)
 {
-	if (uaegfx_old || currprefs.rtgmem_type >= GFXBOARD_HARDWARE)
+	if (uaegfx_old || currprefs.rtgboards[0].rtgmem_type >= GFXBOARD_HARDWARE)
 		return;
 	uaegfx_resname = ds (_T("uaegfx.card"));
 	picasso96_alloc2 (ctx);
@@ -3543,6 +3543,9 @@ static uae_u32 REGPARAM2 picasso_BlitPattern (TrapContext *ctx)
 		} else {
 			result = 1;
 		}
+
+		if (pattern.Size >= 16)
+			result = 0;
 
 		if(result) {
 			bool indirect = trap_is_indirect();
@@ -5359,7 +5362,7 @@ uae_u8 *restore_p96 (uae_u8 *src)
 	set_gc_called = !!(flags & 2);
 	set_panning_called = !!(flags & 4);
 	interrupt_enabled = !!(flags & 32);
-	changed_prefs.rtgmem_size = restore_u32 ();
+	changed_prefs.rtgboards[0].rtgmem_size = restore_u32 ();
 	picasso96_state.Address = restore_u32 ();
 	picasso96_state.RGBFormat = (RGBFTYPE)restore_u32 ();
 	picasso96_state.Width = restore_u16 ();
@@ -5395,7 +5398,7 @@ uae_u8 *save_p96 (int *len, uae_u8 *dstptr)
 	uae_u8 *dstbak, *dst;
 	int i;
 
-	if (currprefs.rtgmem_size == 0)
+	if (currprefs.rtgboards[0].rtgmem_size == 0)
 		return NULL;
 	if (dstptr)
 		dstbak = dst = dstptr;
@@ -5404,7 +5407,7 @@ uae_u8 *save_p96 (int *len, uae_u8 *dstptr)
 	save_u32 (2);
 	save_u32 ((picasso_on ? 1 : 0) | (set_gc_called ? 2 : 0) | (set_panning_called ? 4 : 0) |
 		(hwsprite ? 8 : 0) | (cursorvisible ? 16 : 0) | (interrupt_enabled ? 32 : 0) | 64);
-	save_u32 (currprefs.rtgmem_size);
+	save_u32 (currprefs.rtgboards[0].rtgmem_size);
 	save_u32 (picasso96_state.Address);
 	save_u32 (picasso96_state.RGBFormat);
 	save_u16 (picasso96_state.Width);

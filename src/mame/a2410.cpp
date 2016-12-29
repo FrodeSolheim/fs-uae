@@ -558,7 +558,7 @@ static void REGPARAM2 tms_bput(uaecptr addr, uae_u32 b)
 	tms_execute_single();
 }
 
-static addrbank tms_bank = {
+addrbank tms_bank = {
 	tms_lget, tms_wget, tms_bget,
 	tms_lput, tms_wput, tms_bput,
 	default_xlate, default_check, NULL, NULL, _T("A2410"),

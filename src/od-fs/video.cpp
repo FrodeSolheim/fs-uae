@@ -1005,14 +1005,32 @@ end:
 
 #if 1
 
-void gfx_set_picasso_modeinfo (uae_u32 w, uae_u32 h, uae_u32 depth,
-        RGBFTYPE rgbfmt) {
-    write_log("gfx_set_picasso_modeinfo %d %d %d %d\n", w, h, depth, rgbfmt);
+void gfx_set_picasso_modeinfo (RGBFTYPE rgbfmt) {
+    write_log("gfx_set_picasso_modeinfo %d\n", rgbfmt);
+    //write_log("gfx_set_picasso_modeinfo %d %d %d %d\n", w, h, depth, rgbfmt);
+#if 1
+    g_picasso_width = picasso_vidinfo.width;
+    g_picasso_height = picasso_vidinfo.height;
+    g_picasso_depth = picasso_vidinfo.depth;
+    g_picasso_format = picasso_vidinfo.selected_rgbformat;
+/*
+    g_picasso_width = picasso96_state_uaegfx.Width;
+    g_picasso_height = picasso96_state_uaegfx.Height;
+    g_picasso_depth = picasso96_state_uaegfx.GC_Depth;
+    g_picasso_format = picasso96_state_uaegfx.RGBFormat;
+    */
+/*
+	if((picasso_vidinfo.width == ) &&
+		(picasso_vidinfo.height == ) &&
+		(picasso_vidinfo.depth == ( >> 3)) &&
+		(picasso_vidinfo.selected_rgbformat == ))
+		*/
+#else
     g_picasso_width = w;
     g_picasso_height = h;
     g_picasso_depth = depth;
     g_picasso_format = rgbfmt;
-
+#endif
     // register largest width seen, so render buffers can be adjusted if
     // necessary
     if (g_picasso_width > g_largest_width) {

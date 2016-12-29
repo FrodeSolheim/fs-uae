@@ -15,6 +15,7 @@
 #ifdef FSUAE // NL
 
 #include "ethernet.h"
+static int ethernet_paused;
 
 #else
 

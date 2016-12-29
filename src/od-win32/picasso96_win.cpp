@@ -2310,11 +2310,11 @@ static void init_alloc (TrapContext *ctx, int size)
 	picasso_allocatewritewatch (0, gfxmem_bank.allocated);
 #ifdef FSUAE
 	printf("setting gwwpagesize to something...\n");
-	gwwpagesize = 1024*1024*4; // FIXME:...
+	gwwpagesize[0] = 1024*1024*4; // FIXME:...
 
-	gwwbufsize = gfxmem_bank.allocated / gwwpagesize + 1;
-	gwwpagemask = gwwpagesize - 1;
-	gwwbuf = xmalloc (void*, gwwbufsize);
+	gwwbufsize[0] = gfxmem_bank.allocated / gwwpagesize[0] + 1;
+	gwwpagemask[0] = gwwpagesize[0] - 1;
+	gwwbuf[0] = xmalloc (void*, gwwbufsize[0]);
 #endif
 }
 

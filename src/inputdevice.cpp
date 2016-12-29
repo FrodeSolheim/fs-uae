@@ -3039,7 +3039,8 @@ static void maybe_read_input(void)
 	//	cnt = 0;
 	//}
 		if ((vpos & 63) == 63 ) {
-			inputdevice_read ();
+			/* FIXME: Peek parameter? */
+			inputdevice_read(false);
 		}
 		// also effectively disable inputdelay here, don't seem to be essential,
 		// and it easier (for deterministic behavior) to leave it out.
@@ -3879,6 +3880,7 @@ static bool inputdevice_handle_inputcode2 (int code, int state)
 	static int swapperslot;
 	static int tracer_enable;
 	int newstate;
+	int onoffstate = 0;
 
 	if (code == 0)
 		goto end;
@@ -3892,7 +3894,7 @@ static bool inputdevice_handle_inputcode2 (int code, int state)
 	if (vpos != 0)
 		write_log (_T("inputcode=%d but vpos = %d"), code, vpos);
 
-	int onoffstate = state & ~SET_ONOFF_MASK_PRESS;
+	onoffstate = state & ~SET_ONOFF_MASK_PRESS;
 
 	if (onoffstate == SET_ONOFF_ON_VALUE)
 		newstate = 1;

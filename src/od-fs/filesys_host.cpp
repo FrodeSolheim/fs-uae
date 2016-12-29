@@ -18,6 +18,7 @@
 #include <Windows.h>
 #endif
 #include "fsdb_host.h"
+#include "uae.h"
 
 int g_fsdb_debug = 0;
 

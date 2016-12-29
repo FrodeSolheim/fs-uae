@@ -2310,7 +2310,7 @@ static void init_alloc (TrapContext *ctx, int size)
 	printf("setting gwwpagesize to something...\n");
 	gwwpagesize[0] = 1024*1024*4; // FIXME:...
 
-	gwwbufsize[0] = gfxmem_bank.allocated / gwwpagesize[0] + 1;
+	gwwbufsize[0] = gfxmem_bank.allocated_size / gwwpagesize[0] + 1;
 	gwwpagemask[0] = gwwpagesize[0] - 1;
 	gwwbuf[0] = xmalloc (void*, gwwbufsize[0]);
 #endif

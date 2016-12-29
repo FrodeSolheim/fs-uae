@@ -55,7 +55,8 @@
 #define OMTI_ADAPTER 23
 #define OMTI_X86 24
 #define NCR5380_PHOENIXBOARD 25
-#define NCR_LAST 26
+#define NCR5380_TRUMPCARDPRO 26
+#define NCR_LAST 27
 
 extern int log_scsiemu;
 
@@ -1092,8 +1093,8 @@ static uae_u8 raw_scsi_get_data_2(struct raw_scsi *rs, bool next, bool nodebug)
 		break;
 		case SCSI_SIGNAL_PHASE_STATUS:
 #if RAW_SCSI_DEBUG
-		if (!nodebug)
-			write_log(_T("raw_scsi: status byte read %02x\n"), sd->status);
+		if (!nodebug || next)
+			write_log(_T("raw_scsi: status byte read %02x. Next=%d\n"), sd->status, next);
 #endif
 		v = sd->status;
 		if (next) {
@@ -1103,8 +1104,8 @@ static uae_u8 raw_scsi_get_data_2(struct raw_scsi *rs, bool next, bool nodebug)
 		break;
 		case SCSI_SIGNAL_PHASE_MESSAGE_IN:
 #if RAW_SCSI_DEBUG
-		if (!nodebug)
-			write_log(_T("raw_scsi: message byte read %02x\n"), sd->status);
+		if (!nodebug || next)
+			write_log(_T("raw_scsi: message byte read %02x. Next=%d\n"), sd->status, next);
 #endif
 		v = sd->status;
 		rs->status = v;
@@ -1212,6 +1213,7 @@ static void raw_scsi_write_data(struct raw_scsi *rs, uae_u8 data)
 		break;
 		default:
 		write_log(_T("raw_scsi_put_data but bus phase is %d!\n"), rs->bus_phase);
+		//raw_scsi_get_data_2(rs, true, false);
 		break;
 	}
 }
@@ -1481,7 +1483,7 @@ uae_u8 ncr5380_bget(struct soft_scsi *scsi, int reg)
 			if (scsi->irq) {
 				v |= 1 << 4;
 			}
-			if (scsi->dma_active && !scsi->dma_controller) {
+			if (scsi->dma_active && !scsi->dma_controller && r->bus_phase == (scsi->regs[3] & 7)) {
 				v |= 1 << 6;
 			}
 			if (scsi->regs[2] & 4) {
@@ -1606,7 +1608,9 @@ void ncr5380_bput(struct soft_scsi *scsi, int reg, uae_u8 v)
 #endif
 		break;
 		case 8: // fake dma port
-		raw_scsi_put_data(r, v, true);
+		if (r->bus_phase == (scsi->regs[3] & 7)) {
+			raw_scsi_put_data(r, v, true);
+		}
 		ncr5380_check_phase(scsi);
 		break;
 	}
@@ -2112,6 +2116,20 @@ static int phoenixboard_reg(struct soft_scsi *ncr, uaecptr addr)
 	return addr;
 }
 
+static int trumpcardpro_reg(struct soft_scsi *ncr, uaecptr addr)
+{
+	if (addr & 1)
+		return -1;
+	if (addr & 0x8000)
+		return -1;
+	if ((addr & 0xe0) == 0x60)
+		return 8;
+	if ((addr & 0xe0) != 0x40)
+		return -1;
+	addr >>= 1;
+	addr &= 7;
+	return addr;
+}
 static uae_u8 read_supra_dma(struct soft_scsi *ncr, uaecptr addr)
 {
 	uae_u8 val = 0;
@@ -2611,9 +2629,22 @@ static uae_u32 ncr80_bget2(struct soft_scsi *ncr, uaecptr addr, int size)
 		} else if (addr < 0x8000) {
 			v = ncr->rom[addr];
 		}
+
+	} else if (ncr->type == NCR5380_TRUMPCARDPRO) {
+
+		reg = trumpcardpro_reg(ncr, addr);
+		if (reg >= 0) {
+			v = ncr5380_bget(ncr, reg);
+		} else if (addr & 0x8000) {
+			v = ncr->rom[addr & 0x7fff];
+		} else if ((addr & 0xe0) == 0xc0) {
+			v = ncr->irq && ncr->intena ? 4 : 0;
+		}
+
 	}
+
 #if NCR5380_DEBUG > 1
-	if ((origaddr >= 0xf00000 && size == 1) || (origaddr < 0xf00000))
+	if (!(origaddr & 0x8000))
 		write_log(_T("GET %08x %02x %d %08x %d\n"), origaddr, v, reg, M68K_GETPC, regs.intmask);
 #endif
 
@@ -2860,10 +2891,17 @@ static void ncr80_bput2(struct soft_scsi *ncr, uaecptr addr, uae_u32 val, int si
 			ncr5380_bput(ncr, reg, val);
 		}
 
+	} else if (ncr->type == NCR5380_TRUMPCARDPRO) {
+
+		reg = trumpcardpro_reg(ncr, addr);
+		if (reg >= 0) {
+			ncr5380_bput(ncr, reg, val);
+		}
 	}
 
 #if NCR5380_DEBUG > 1
-	write_log(_T("PUT %08x %02x %d %08x %d\n"), origddr, val, reg, M68K_GETPC, regs.intmask);
+	if (1)
+		write_log(_T("PUT %08x %02x %d %08x %d\n"), origddr, val, reg, M68K_GETPC, regs.intmask);
 #endif
 }
 
@@ -3321,6 +3359,31 @@ addrbank *adscsi_init(struct romconfig *rc)
 void adscsi_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct romconfig *rc)
 {
 	generic_soft_scsi_add(ch, ci, rc, NCR5380_ADSCSI, 65536, 65536, ROMTYPE_ADSCSI);
+}
+
+addrbank *trumpcardpro_init(struct romconfig *rc)
+{
+	struct soft_scsi *scsi = getscsi(rc);
+
+	if (!scsi)
+		return &expamem_null;
+
+	scsi->intena = true;
+
+	load_rom_rc(rc, ROMTYPE_IVSTPRO, 16384, 0, scsi->rom, 32768, LOADROM_EVENONLY_ODDONE | LOADROM_FILL);
+
+	const struct expansionromtype *ert = get_device_expansion_rom(ROMTYPE_IVSTPRO);
+	for (int i = 0; i < 16; i++) {
+		uae_u8 b = ert->autoconfig[i];
+		ew(scsi, i * 4, b);
+	}
+
+	return scsi->bank;
+}
+
+void trumpcardpro_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct romconfig *rc)
+{
+	generic_soft_scsi_add(ch, ci, rc, NCR5380_TRUMPCARDPRO, 65536, 32768, NCR5380_TRUMPCARDPRO);
 }
 
 bool rochard_scsi_init(struct romconfig *rc, uaecptr baseaddress)

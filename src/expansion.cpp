@@ -3168,7 +3168,16 @@ const struct expansionromtype expansionroms[] = {
 		adscsi2000_settings
 	},
 	{
-		_T("kommos"), _T("A500/A2000 SCSI"), _T("J?rgen Kommos"),
+		_T("trumpcardpro"), _T("Grand Slam"), _T("IVS"),
+		trumpcardpro_init, NULL, trumpcardpro_add_scsi_unit, ROMTYPE_IVSTPRO, 0, 0, BOARD_AUTOCONFIG_Z2, false,
+		NULL, 0,
+		false, EXPANSIONTYPE_SCSI,
+		2112, 4, 0, false, NULL,
+		false, NULL,
+		{  0xd1, 2, 0x00, 0x00, 0x08, 0x40, 0x00, 0x00, 0x00, 0x00, 0x80, 0x00 },
+	},
+	{
+		_T("kommos"), _T("A500/A2000 SCSI"), _T("J\xfcrgen Kommos"),
 		kommos_init, NULL, kommos_add_scsi_unit, ROMTYPE_KOMMOS, 0, 0, BOARD_NONAUTOCONFIG_BEFORE, true,
 		NULL, 0,
 		false, EXPANSIONTYPE_SCSI
@@ -3288,7 +3297,7 @@ const struct expansionromtype expansionroms[] = {
 		false, EXPANSIONTYPE_CUSTOM | EXPANSIONTYPE_SCSI
 	},
 	{
-		_T("promigos"), _T("Promigos"), _T("Flesch und H?rnemann"),
+		_T("promigos"), _T("Promigos"), _T("Flesch und H\xf6rnemann"),
 		promigos_init, NULL, promigos_add_scsi_unit, ROMTYPE_PROMIGOS | ROMTYPE_NOT, 0, 0, BOARD_NONAUTOCONFIG_BEFORE, true,
 		NULL, 0,
 		false, EXPANSIONTYPE_CUSTOM | EXPANSIONTYPE_SCSI

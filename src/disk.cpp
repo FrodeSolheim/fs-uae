@@ -4985,7 +4985,7 @@ bool disk_reserved_getinfo(int num, struct floppy_reserved *fr)
 				drv->cyl = cyl;
 				side = side2;
 				if (ok) {
-					write_log(_T("Created  internal PC disk image cyl=%d secs=%d size=%d\n"), drv->num_tracks / 2, drv->num_secs, zfile_size(z));
+					write_log(_T("Created  internal PC disk image cyl=%d secs=%d size=%lld\n"), drv->num_tracks / 2, drv->num_secs, zfile_size(z));
 					drv->pcdecodedfile = z;
 				} else {
 					write_log(_T("Failed to create internal PC disk image\n"));

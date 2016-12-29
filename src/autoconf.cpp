@@ -474,7 +474,7 @@ uae_u32 boot_rom_copy(TrapContext *ctx, uaecptr rombase, int mode)
 	} else {
 		rtarea_write_enabled = false;
 		protect_roms(true);
-		write_log(_T("ROMBASE changed.\n"), absolute_rom_address);
+		write_log(_T("ROMBASE changed (%d)\n"), absolute_rom_address);
 		reloc = 1;
 	}
 	return reloc;

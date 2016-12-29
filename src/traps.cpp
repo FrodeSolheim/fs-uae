@@ -547,7 +547,7 @@ static void hardware_trap_ack(TrapContext *ctx)
 		set_special_exter(SPCFLAG_UAEINT);
 	}
 	if (!trap_in_use[ctx->trap_slot])
-		write_log(_T("TRAP SLOT %d ACK WIIHOUT ALLOCATION!\n"));
+		write_log(_T("TRAP SLOT %d ACK WIIHOUT ALLOCATION!\n"), ctx->trap_slot);
 	trap_in_use[ctx->trap_slot] = false;
 	xfree(ctx);
 }
@@ -561,7 +561,7 @@ static void *hardware_trap_thread(void *arg)
 			break;
 
 		if (trap_in_use[ctx->trap_slot]) {
-			write_log(_T("TRAP SLOT %d ALREADY IN USE!\n"));
+			write_log(_T("TRAP SLOT %d ALREADY IN USE!\n"), ctx->trap_slot);
 		}
 		trap_in_use[ctx->trap_slot] = true;
 
@@ -805,7 +805,7 @@ void init_traps(void)
 		for (int i = 0; i < TRAP_THREADS; i++) {
 			init_comm_pipe(&trap_thread_pipe[i], 100, 1);
 			hardware_trap_kill[i] = 1;
-			uae_start_thread_fast(hardware_trap_thread, (void *)i, &trap_thread_id[i]);
+			uae_start_thread_fast(hardware_trap_thread, (void *)(uintptr_t) i, &trap_thread_id[i]);
 		}
 	}
 }
@@ -1276,7 +1276,7 @@ uae_char *trap_get_alloc_string(TrapContext *ctx, uaecptr addr, int maxlen)
 	return buf;
 }
 
-int trap_get_bstr(TrapContext *ctx, uae_u8 *haddr, uaecptr addr, int maxlen)
+static int trap_get_bstr(TrapContext *ctx, uae_u8 *haddr, uaecptr addr, int maxlen)
 {
 	int len = 0;
 	if (trap_is_indirect_null(ctx)) {

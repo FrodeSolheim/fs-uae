@@ -106,7 +106,7 @@ void ethernet_trigger (struct netdriverdata *ndd, void *vsd)
 	}
 }
 
-int ethernet_open (struct netdriverdata *ndd, void *vsd, void *user, ethernet_gotfunc *gotfunc, ethernet_getfunc *getfunc, int promiscuous)
+int ethernet_open (struct netdriverdata *ndd, void *vsd, void *user, ethernet_gotfunc *gotfunc, ethernet_getfunc *getfunc, int promiscuous, const uae_u8 *mac)
 {
 	switch (ndd->type)
 	{
@@ -161,7 +161,7 @@ int ethernet_open (struct netdriverdata *ndd, void *vsd, void *user, ethernet_go
 #endif
 #ifdef WITH_UAENET_PCAP
 		case UAENET_PCAP:
-		if (uaenet_open (vsd, ndd, user, gotfunc, getfunc, promiscuous)) {
+		if (uaenet_open (vsd, ndd, user, gotfunc, getfunc, promiscuous, mac)) {
 			netmode = ndd->type;
 			return 1;
 		}

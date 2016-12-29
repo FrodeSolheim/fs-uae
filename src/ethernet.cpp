@@ -48,7 +48,8 @@ static struct netdriverdata slirpd =
 	UAENET_SLIRP,
 	_T("slirp"), _T("SLIRP User Mode NAT"),
 	1500,
-	{ 0x00,0x00,0x00,50,51,52 },
+	{ 0x00, 0x00, 0x00, 50, 51, 52 },
+	{ 0x00, 0x00, 0x00, 50, 51, 52 },
 	1
 };
 static struct netdriverdata slirpd2 =
@@ -56,7 +57,8 @@ static struct netdriverdata slirpd2 =
 	UAENET_SLIRP_INBOUND,
 	_T("slirp_inbound"), _T("SLIRP + Open ports (21-23,80)"),
 	1500,
-	{ 0x00,0x00,0x00,50,51,52 },
+	{ 0x00, 0x00, 0x00, 50, 51, 52 },
+	{ 0x00, 0x00, 0x00, 50, 51, 52 },
 	1
 };
 

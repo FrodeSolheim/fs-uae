@@ -465,6 +465,7 @@ libuae_a_SOURCES = \
 	src/include/uaeserial.h \
 	src/include/uni_common.h \
 	src/include/unpacked.h \
+	src/include/videograb.h \
 	src/include/x86.h \
 	src/include/xwin.h \
 	src/include/zarchive.h \

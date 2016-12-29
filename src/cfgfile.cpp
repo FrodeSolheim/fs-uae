@@ -7827,7 +7827,7 @@ int built_in_chipset_prefs (struct uae_prefs *p)
 		break;
 	case CP_A600: // A600
 #ifdef FSUAE
-		if (p->chipmem_size > 0x100000 || p->fastmem_size)
+		if (p->chipmem_size > 0x100000 || p->fastmem[0].size)
 			p->cs_rtc = 1;
 #endif
 		p->cs_ide = IDE_A600A1200;

@@ -5,6 +5,7 @@
 #include "audio.h"
 #include "options.h"
 #include "uae/fs.h"
+#include "uae.h"
 
 static int (*g_audio_callback)(int type, int16_t *buffer, int size) = NULL;
 

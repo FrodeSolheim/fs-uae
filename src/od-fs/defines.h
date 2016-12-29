@@ -137,7 +137,7 @@ extern void picasso_handle_hsync (void);
 extern void init_hz_p96 (void);
 int GetDriveType(TCHAR* vol);
 
-void sleep_millis(int ms);
+//void sleep_millis(int ms);
 //void install_driver(int flags);
 
 extern int uae_start_thread_fast (void *(*f)(void *), void *arg,

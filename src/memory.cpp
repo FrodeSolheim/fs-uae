@@ -3352,8 +3352,8 @@ int uae_get_memory_checksum(void *data, int size)
         mem++;
     }
 
-    mem = (uint32_t *) fastmem_bank.baseaddr;
-    bank_size = fastmem_bank.allocated / 4;
+    mem = (uint32_t *) fastmem_bank[0].baseaddr;
+    bank_size = fastmem_bank[0].allocated / 4;
     if (data) {
         if (pos + bank_size * 4 <= size) {
             memcpy((char *) data + pos, mem, bank_size * 4);

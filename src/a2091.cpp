@@ -2450,7 +2450,7 @@ static void REGPARAM2 dmac_a2091_lput (uaecptr addr, uae_u32 b)
 		dmac_a2091_lput(wd, addr, b);
 }
 
-static const addrbank dmaca2091_bank = {
+const addrbank dmaca2091_bank = {
 	dmac_a2091_lget, dmac_a2091_wget, dmac_a2091_bget,
 	dmac_a2091_lput, dmac_a2091_wput, dmac_a2091_bput,
 	dmac_a2091_xlate, dmac_a2091_check, NULL, _T("*"), _T("A2090/A2091/A590"),
@@ -2950,7 +2950,7 @@ static uae_u8 *REGPARAM2 dmac_gvp_xlate(uaecptr addr)
 	return wd->rom + addr;
 }
 
-static const addrbank gvp_bank = {
+const addrbank gvp_bank = {
 	dmac_gvp_lget, dmac_gvp_wget, dmac_gvp_bget,
 	dmac_gvp_lput, dmac_gvp_wput, dmac_gvp_bput,
 	dmac_gvp_xlate, dmac_gvp_check, NULL, NULL, _T("GVP"),
@@ -3459,7 +3459,7 @@ bool a2091_init (struct autoconfig_info *aci)
 	wd->configured = 0;
 	wd->autoconfig = true;
 	wd->board_mask = 65535;
-	memcpy(&wd->bank, &dmaca2091_bank, sizeof addrbank);
+	memcpy(&wd->bank, &dmaca2091_bank, sizeof(addrbank));
 	memcpy(wd->dmacmemory, aci->autoconfig_raw, sizeof wd->dmacmemory);
 
 	alloc_expansion_bank(&wd->bank, aci);
@@ -3526,7 +3526,7 @@ bool a2090_init (struct autoconfig_info *aci)
 	wd->configured = 0;
 	wd->autoconfig = true;
 	wd->board_mask = 65535;
-	memcpy(&wd->bank, &dmaca2091_bank, sizeof addrbank);
+	memcpy(&wd->bank, &dmaca2091_bank, sizeof(addrbank));
 	memcpy(wd->dmacmemory, aci->autoconfig_raw, sizeof wd->dmacmemory);
 	//ew(wd, 0x30, 0x80); // SCSI only flag
 
@@ -3634,7 +3634,7 @@ static bool gvp_init(struct autoconfig_info *aci, bool series2, bool accel)
 
 	init_wd_scsi(wd);
 	wd->configured = 0;
-	memcpy(&wd->bank, &gvp_bank, sizeof addrbank);
+	memcpy(&wd->bank, &gvp_bank, sizeof(addrbank));
 	wd->autoconfig = true;
 	wd->rombankswitcher = 0;
 	memset(wd->dmacmemory, 0xff, sizeof wd->dmacmemory);

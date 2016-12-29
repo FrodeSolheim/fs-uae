@@ -53,6 +53,9 @@ void fs_semaphore_destroy(fs_semaphore *semaphore);
 int fs_semaphore_post(fs_semaphore *semaphore);
 int fs_semaphore_wait(fs_semaphore *semaphore);
 int fs_semaphore_try_wait(fs_semaphore *semaphore);
+int fs_semaphore_wait_timeout_ms(fs_semaphore *semaphore, int timeout);
+
+#define FS_SEMAPHORE_TIMEOUT -1
 
 #ifdef __cplusplus
 }

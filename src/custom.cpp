@@ -7275,6 +7275,8 @@ static bool framewait (void)
 				show_screen (2);
 		}
 
+		maybe_process_pull_audio();
+
 		int legacy_avg = mavg (&ma_legacy, t, MAVG_VSYNC_SIZE);
 		if (t > legacy_avg)
 			legacy_avg = t;
@@ -8507,6 +8509,7 @@ static void hsync_handler_post (bool onvsync)
 		if (vpos == 0)
 			nextwaitvpos = maxvpos_display * 1 / 4;
 		if (audio_is_pull() > 0 && !currprefs.turbo_emulation) {
+			maybe_process_pull_audio();
 			frame_time_t rpt = read_processor_time();
 			while (audio_pull_buffer() > 1 && (!isvsync() || (!vsync_isdone() && (int)vsyncmintime - (int)(rpt + vsynctimebase / 10) > 0 && (int)vsyncmintime - (int)rpt < vsynctimebase))) {
 				cpu_sleep_millis(1);

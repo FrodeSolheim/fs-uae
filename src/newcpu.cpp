@@ -3542,11 +3542,11 @@ static void check_uae_int_request(void)
 	if (uae_int_requested) {
 		bool irq = false;
 		if (uae_int_requested & 0x00ff) {
-			INTREQ_0(0x8000 | 0x0008);
+			INTREQ_f(0x8000 | 0x0008);
 			irq = true;
 		}
 		if (uae_int_requested & 0xff00) {
-			INTREQ_0(0x8000 | 0x2000);
+			INTREQ_f(0x8000 | 0x2000);
 			irq = true;
 		}
 		if (uae_int_requested & 0xff0000) {
@@ -3554,7 +3554,7 @@ static void check_uae_int_request(void)
 				atomic_and(&uae_int_requested, ~0x010000);
 		}
 		if (irq)
-			set_special(SPCFLAG_INT);
+			doint();
 	}
 }
 

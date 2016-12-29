@@ -150,7 +150,7 @@ void devices_vsync_post(void)
 {
 #ifdef GFXBOARD
 	if (!picasso_on)
-		gfxboard_vsync_handler ();
+		gfxboard_vsync_handler(false);
 #endif
 #ifdef WITH_TOCCATA
 	sndboard_vsync();

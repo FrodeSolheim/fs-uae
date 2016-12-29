@@ -10,6 +10,7 @@
 
 #ifdef DEBUGGER
 
+#include "options.h"
 #include "uae/memory.h"
 #include "identify.h"
 

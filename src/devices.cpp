@@ -59,6 +59,7 @@
 #include "x86.h"
 #include "ethernet.h"
 #include "drawing.h"
+#include "videograb.h"
 #include "uae/debuginfo.h"
 #include "uae/segtracker.h"
 #ifdef RETROPLATFORM
@@ -469,4 +470,28 @@ void devices_restore_start(void)
 void devices_syncchange(void)
 {
 	x86_bridge_sync_change();
+}
+
+void devices_pause(void)
+{
+#ifdef WITH_PPC
+	uae_ppc_pause(1);
+#endif
+	blkdev_entergui();
+#ifdef RETROPLATFORM
+	rp_pause(pause_emulation);
+#endif
+	pausevideograb(true);
+}
+
+void devices_unpause(void)
+{
+	blkdev_exitgui();
+#ifdef RETROPLATFORM
+	rp_pause(pause_emulation);
+#endif
+#ifdef WITH_PPC
+	uae_ppc_pause(0);
+#endif
+	pausevideograb(false);
 }

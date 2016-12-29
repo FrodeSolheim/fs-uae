@@ -1059,7 +1059,7 @@ static int openwritefile (struct uae_prefs *p, drive *drv, int create)
             write_log("creating write disk file\n");
             // create with type=1 (ext2adf)
             drive_type drvtype = DRV_35_DD;
-            disk_creatediskfile(&currprefs, writefile, 1, drvtype, NULL, false, false, NULL);
+            disk_creatediskfile(&currprefs, writefile, 1, drvtype, -1, NULL, false, false, NULL);
         }
         else {
             // not overwriting existing file;

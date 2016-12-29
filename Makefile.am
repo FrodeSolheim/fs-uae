@@ -374,6 +374,7 @@ libuae_a_SOURCES = \
 	src/include/fpp-unknown.h \
 	src/include/fsdb.h \
 	src/include/fsusage.h \
+	src/include/framebufferboards.h \
 	src/include/gayle.h \
 	src/include/genblitter.h \
 	src/include/gensound.h \
@@ -554,6 +555,7 @@ libuae_a_SOURCES = \
 	src/od-fs/uae_host.cpp \
 	src/od-fs/uaemisc.cpp \
 	src/od-fs/video.cpp \
+	src/od-fs/videograb_fs.cpp \
 	src/od-fs/vpar.cpp \
 	src/od-fs/vpar.h \
 	src/od-fs/winuae_compat.h \

@@ -42,6 +42,7 @@
 
 #define USE_HARDWARESPRITE 1
 #define P96TRACING_ENABLED 0
+#define P96TRACING_SETUP_ENABLED 0
 #define P96SPRTRACING_ENABLED 0
 
 #include "options.h"
@@ -119,6 +120,11 @@ int p96hsync_counter, full_refresh;
 #else
 #define P96TRACE(x)
 #endif
+#if P96TRACING_SETUP_ENABLED
+#define P96TRACE_SETUP(x) do { write_log x; } while(0)
+#else
+#define P96TRACE_SETUP(x)
+#endif
 #if P96SPRTRACING_ENABLED
 #define P96TRACE_SPR(x) do { write_log x; } while(0)
 #else
@@ -161,6 +167,7 @@ static int interrupt_enabled;
 double p96vblank;
 static int rtg_clear_flag;
 static bool picasso_active;
+static bool picasso_changed;
 
 static int uaegfx_old, uaegfx_active;
 static uae_u32 reserved_gfxmem;
@@ -287,6 +294,10 @@ static void DumpPattern (struct Pattern *patt)
 {
 	uae_u8 *mem;
 	int row, col;
+
+	if (!patt->Memory)
+		return;
+
 	for (row = 0; row < (1 << patt->Size); row++) {
 		mem = patt->Memory + row * 2;
 		for (col = 0; col < 2; col++) {
@@ -300,6 +311,9 @@ static void DumpTemplate (struct Template *tmp, unsigned long w, unsigned long h
 {
 	uae_u8 *mem = tmp->Memory;
 	unsigned int row, col, width;
+	
+	if (!mem)
+		return;
 	width = (w + 7) >> 3;
 	write_log (_T("xoffset = %d, bpr = %d\n"), tmp->XOffset, tmp->BytesPerRow);
 	for (row = 0; row < h; row++) {
@@ -2806,6 +2820,10 @@ static uae_u32 REGPARAM2 picasso_SetSwitch (TrapContext *ctx)
 	* desired state, and wait for custom.c to call picasso_enablescreen
 	* whenever it is ready to change the screen state.  */
 	picasso_requested_on = flag != 0;
+	if (picasso_on == picasso_requested_on && picasso_requested_on && picasso_changed) {
+		picasso_requested_forced_on = true;
+	}
+	picasso_changed = false;
 	picasso_active = picasso_requested_on;
 	p96text[0] = 0;
 	if (flag)
@@ -2883,7 +2901,7 @@ static uae_u32 REGPARAM2 picasso_SetColorArray (TrapContext *ctx)
 		return 0;
 	if (updateclut(ctx, clut, start, count))
 		full_refresh = 1;
-	P96TRACE((_T("SetColorArray(%d,%d)\n"), start, count));
+	P96TRACE_SETUP((_T("SetColorArray(%d,%d)\n"), start, count));
 	return 1;
 }
 
@@ -2900,7 +2918,7 @@ static uae_u32 REGPARAM2 picasso_SetDAC (TrapContext *ctx)
 	/* Fill in some static UAE related structure about this new DAC setting
 	* Lets us keep track of what pixel format the Amiga is thinking about in our frame-buffer */
 
-	P96TRACE((_T("SetDAC()\n")));
+	P96TRACE_SETUP((_T("SetDAC()\n")));
 	rtg_clear ();
 	return 1;
 }
@@ -2961,8 +2979,9 @@ static uae_u32 REGPARAM2 picasso_SetGC (TrapContext *ctx)
 	picasso96_state.GC_Depth = trap_get_byte(ctx, modeinfo + PSSO_ModeInfo_Depth);
 	picasso96_state.GC_Flags = trap_get_byte(ctx, modeinfo + PSSO_ModeInfo_Flags);
 
-	P96TRACE((_T("SetGC(%d,%d,%d,%d)\n"), picasso96_state.Width, picasso96_state.Height, picasso96_state.GC_Depth, border));
+	P96TRACE_SETUP((_T("SetGC(%d,%d,%d,%d)\n"), picasso96_state.Width, picasso96_state.Height, picasso96_state.GC_Depth, border));
 	set_gc_called = 1;
+	picasso_changed = true;
 	picasso96_state.HostAddress = NULL;
 	init_picasso_screen ();
 	init_hz_p96 ();
@@ -3021,7 +3040,7 @@ static uae_u32 REGPARAM2 picasso_SetPanning (TrapContext *ctx)
 		changed = 1;
 	}
 
-	bme_width =trap_get_word(ctx, bmeptr + PSSO_BitMapExtra_Width);
+	bme_width = trap_get_word(ctx, bmeptr + PSSO_BitMapExtra_Width);
 	bme_height = trap_get_word(ctx, bmeptr + PSSO_BitMapExtra_Height);
 	rgbf = picasso96_state.RGBFormat;
 
@@ -3042,7 +3061,7 @@ static uae_u32 REGPARAM2 picasso_SetPanning (TrapContext *ctx)
 
 	full_refresh = 1;
 	set_panning_called = 1;
-	P96TRACE((_T("SetPanning(%d, %d, %d) (%dx%d) Start 0x%x, BPR %d Bpp %d RGBF %d\n"),
+	P96TRACE_SETUP((_T("SetPanning(%d, %d, %d) (%dx%d) Start 0x%x, BPR %d Bpp %d RGBF %d\n"),
 		Width, picasso96_state.XOffset, picasso96_state.YOffset,
 		bme_width, bme_height,
 		start_of_screen, picasso96_state.BytesPerRow, picasso96_state.BytesPerPixel, picasso96_state.RGBFormat));
@@ -3827,8 +3846,9 @@ static uae_u32 REGPARAM2 picasso_CalculateBytesPerRow (TrapContext *ctx)
 static uae_u32 REGPARAM2 picasso_SetDisplay (TrapContext *ctx)
 {
 	uae_u32 state = trap_get_dreg(ctx, 0);
-	P96TRACE ((_T("SetDisplay(%d)\n"), state));
+	P96TRACE_SETUP((_T("SetDisplay(%d)\n"), state));
 	resetpalette ();
+	picasso_changed = true;
 	return !state;
 }
 
@@ -4844,7 +4864,7 @@ static void initvblankirq (TrapContext *ctx, uaecptr base)
 static uae_u32 REGPARAM2 picasso_SetClock(TrapContext *ctx)
 {
 	uaecptr bi = trap_get_areg(ctx, 0);
-	P96TRACE((_T("SetClock\n")));
+	P96TRACE_SETUP((_T("SetClock\n")));
 	return 0;
 }
 
@@ -4852,7 +4872,7 @@ static uae_u32 REGPARAM2 picasso_SetMemoryMode(TrapContext *ctx)
 {
 	uaecptr bi = trap_get_areg(ctx, 0);
 	uae_u32 rgbformat = trap_get_dreg(ctx, 7);
-	P96TRACE((_T("SetMemoryMode\n")));
+	P96TRACE_SETUP((_T("SetMemoryMode\n")));
 	return 0;
 }
 

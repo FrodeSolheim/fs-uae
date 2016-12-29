@@ -90,7 +90,7 @@ int amiga_send_input_event(int input_event, int state)
     }
 
     int max = 1;  /* FIXME: is max = 1 always appropriate? */
-    bool magic_mouse = currprefs.input_magic_mouse;
+    bool magic_mouse = currprefs.input_mouse_untrap & MOUSEUNTRAP_MAGIC;
     if (uae_deterministic_mode()) {
         magic_mouse = false;
     }

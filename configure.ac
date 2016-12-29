@@ -48,8 +48,14 @@ AC_PROG_MAKE_SET
 AC_PROG_RANLIB
 AM_PROG_CC_C_O
 # AC_PATH_TOOL(OBJCOPY, objcopy)
-AC_PATH_PROG([MSGFMT], [msgfmt])
-AC_PATH_PROG([ZIP], [zip])
+AC_PATH_PROG([MSGFMT], [msgfmt], [not found])
+if test "$MSGFMT" = "not found"; then
+  AC_MSG_ERROR([msgfmt not found on path])
+fi
+AC_PATH_PROG([ZIP], [zip], [not found])
+if test "$ZIP" = "not found"; then
+  AC_MSG_ERROR([zip not found on path])
+fi
 PKG_PROG_PKG_CONFIG
 
 

@@ -1,5 +1,6 @@
 Version 2.9.1dev:
 
+* Configure now fails if zip or msgfmt is not found on path.
 * Added xinput_controller_11_6_1_0_windows.
 * GUI warning when running with llvmpipe software renderer.
 * Fixed caps lock.

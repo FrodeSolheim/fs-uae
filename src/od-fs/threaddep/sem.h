@@ -3,6 +3,9 @@
 
 #include <stddef.h>
 #include <fs/thread.h>
+#ifdef USE_SDL2
+#include <SDL.h>
+#endif
 
 typedef fs_semaphore *uae_sem_t;
 
@@ -35,10 +38,15 @@ static inline int uae_sem_trywait(uae_sem_t *sem)
 	return fs_semaphore_try_wait(*sem);
 }
 
-static inline int uae_sem_trywait_delay(uae_sem_t *sem, int delay)
+static inline int uae_sem_trywait_delay(uae_sem_t *sem, int millis)
 {
-#warning delay for uae_sem_trywait_delay not implemented
-	return fs_semaphore_try_wait(*sem);
+	int result = fs_semaphore_wait_timeout_ms(*sem, millis);
+	if (result == 0) {
+		return 0;
+	} else if (result == FS_SEMAPHORE_TIMEOUT) {
+		return -1;
+	}
+	return -3;
 }
 
 #endif // THREADDEP_SEM_H

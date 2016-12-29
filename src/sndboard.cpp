@@ -608,7 +608,7 @@ static bool audio_state_sndboard_uae(int streamid)
 					uaesndboard_stop(data, s);
 				}
 				if (!s->indirect_address) {
-					s->indirect_ptr = NULL;
+					s->indirect_ptr = 0;
 				}
 			}
 			if (end) {
@@ -951,7 +951,7 @@ static void ew(uae_u8 *acmemory, int addr, uae_u32 value)
 	}
 }
 
-bool uaesndboard_init (struct autoconfig_info *aci, int z)
+static bool uaesndboard_init (struct autoconfig_info *aci, int z)
 {
 	struct uaesndboard_data *data = &uaesndboard[0];
 

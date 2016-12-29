@@ -19,7 +19,7 @@ extern void check_prefs_changed_gayle(void);
 extern void gayle_add_pcmcia_unit(int ch, struct uaedev_config_info *ci, struct romconfig *rc);
 extern bool gayle_pcmcia_init(struct autoconfig_info*);
 extern bool gayle_init_ne2000_pcmcia(struct autoconfig_info *aci);
-
+bool isideint(void);
 
 extern int gary_toenb; // non-existing memory access = bus error.
 extern int gary_timeout; // non-existing memory access = delay

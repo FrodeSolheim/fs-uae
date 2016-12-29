@@ -3459,7 +3459,7 @@ static a_inode *find_aino(TrapContext* ctx, Unit *unit, uaecptr lock, const TCHA
 	return a;
 }
 
-static uaecptr make_lock(TrapContext *ctx, Unit *unit, uae_u32 uniq, long mode)
+static uaecptr make_lock(TrapContext *ctx, Unit *unit, uae_u32 uniq, uae_u32 mode)
 {
 	/* allocate lock from the list kept by the assembly code */
 	uaecptr lock;
@@ -7015,7 +7015,7 @@ static int filesys_iteration(UnitInfo *ui)
 		{ TRAPCMD_GET_LONG, { ui->self->locklist }, 2, 1 },
 		{ TRAPCMD_PUT_LONG },
 		{ TRAPCMD_PUT_LONG, { ui->self->locklist, morelocks }},
-		{ ui->self->volume ? TRAPCMD_GET_BYTE : TRAPCMD_NOP, { ui->self->volume + 64 }},
+		{ (uae_u16) (ui->self->volume ? TRAPCMD_GET_BYTE : TRAPCMD_NOP), { ui->self->volume + 64 }},
 	};
 	trap_multi(ctx, md, sizeof md / sizeof(struct trapmd));
 

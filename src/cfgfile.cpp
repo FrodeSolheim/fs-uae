@@ -5358,7 +5358,7 @@ void cfgfile_compatibility_rtg(struct uae_prefs *p)
 				for (int j = i; j < MAX_RTG_BOARDS; j++) {
 					rtgs[j] = 1;
 					if (gfxboard_get_romtype(&p->rtgboards[j]) == romtype) {
-						TCHAR *romname = NULL;
+						const TCHAR *romname = NULL;
 						if (romtype == ROMTYPE_PICASSOIV) {
 							romname = p->picassoivromfile;
 						} else if (romtype == ROMTYPE_x86_VGA) {

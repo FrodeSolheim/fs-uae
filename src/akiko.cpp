@@ -33,8 +33,8 @@
 #include "debug.h"
 
 #define AKIKO_DEBUG_NVRAM 0
-#define AKIKO_DEBUG_IO 0
-#define AKIKO_DEBUG_IO_CMD 0
+#define AKIKO_DEBUG_IO 1
+#define AKIKO_DEBUG_IO_CMD 1
 
 int log_cd32 = 0;
 
@@ -650,12 +650,13 @@ static int cdrom_start_return_data (int len)
 	}
 	cdrom_result_buffer[cdrom_receive_length++] = checksum;
 #if AKIKO_DEBUG_IO_CMD
-	if (log_cd32 > 0)
+	if (log_cd32 > 0) {
 		write_log(_T("CD32: OUT "));
-	for (int i = 0; i < cdrom_receive_length; i++) {
+		for (int i = 0; i < cdrom_receive_length; i++) {
 			write_log(_T("%02X "), cdrom_result_buffer[i]);
 		}
 		write_log(_T("\n"));
+	}
 #endif
 	cdrom_receive_offset = 0;
 	set_status(CDINTERRUPT_DRIVERECV);

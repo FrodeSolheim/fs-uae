@@ -93,6 +93,7 @@ void devices_reset(int hardreset)
 #endif
 #ifdef WITH_TOCCATA
 	sndboard_reset();
+	uaesndboard_reset();
 #endif
 #ifdef NCR
 	ncr_reset();
@@ -375,7 +376,7 @@ void do_leave_program (void)
 	uae_ppc_free();
 #endif
 #ifdef WITH_TOCCATA
-	sndboard_free();
+	uaesndboard_free();
 #endif
 	gfxboard_free();
 #ifdef SAVESTATE
@@ -451,9 +452,10 @@ void devices_restore_start(void)
 	restore_blkdev_start();
 	changed_prefs.bogomem_size = 0;
 	changed_prefs.chipmem_size = 0;
-	changed_prefs.fastmem_size = 0;
-	changed_prefs.z3fastmem_size = 0;
-	changed_prefs.z3fastmem2_size = 0;
+	for (int i = 0; i < MAX_RAM_BOARDS; i++) {
+		changed_prefs.fastmem[i].size = 0;
+		changed_prefs.z3fastmem[i].size = 0;
+	}
 	changed_prefs.mbresmem_low_size = 0;
 	changed_prefs.mbresmem_high_size = 0;
 }

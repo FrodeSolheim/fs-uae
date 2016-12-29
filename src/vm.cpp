@@ -10,6 +10,7 @@
 #include "sysdeps.h"
 #include "uae/vm.h"
 #include "uae/log.h"
+#include "options.h"
 #include "uae/memory.h"
 #ifdef _WIN32
 
@@ -308,7 +309,6 @@ static bool do_free(void *address, int size)
 bool uae_vm_free(void *address, int size)
 {
 	uae_log("VM: Free     0x%-8x bytes at %p\n", size, address);
-
 	return do_free(address, size);
 }
 

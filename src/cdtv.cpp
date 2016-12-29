@@ -64,7 +64,8 @@ static smp_comm_pipe requests;
 static volatile int thread_alive;
 
 static int configured;
-static uae_u8 dmacmemory[100];
+static int cdtvscsi;
+static uae_u8 dmacmemory[128];
 
 static struct cd_toc_head toc;
 static uae_u32 last_cd_position, play_start, play_end;
@@ -260,7 +261,7 @@ static void subfunc (uae_u8 *data, int cnt)
 	subcodebufferoffsetw = offset;
 	uae_sem_post (&sub_sem);
 }
-static int statusfunc (int status)
+static int statusfunc (int status, int playpos)
 {
 	if (status == -1)
 		return 500;
@@ -275,6 +276,8 @@ static int statusfunc (int status)
 			activate_stch = 1;
 		}
 	}
+	if (status == AUDIO_STATUS_IN_PROGRESS)
+		last_play_pos = playpos;
 	cd_audio_status = status;
 	return 0;
 }
@@ -1068,7 +1071,7 @@ static void checkint (void)
 {
 	int irq = 0;
 
-	if (currprefs.cs_cdtvscsi && (wdscsi_getauxstatus (&wd_cdtv->wc) & 0x80)) {
+	if (cdtvscsi && (wdscsi_getauxstatus (&wd_cdtv->wc) & 0x80)) {
 		dmac_istr |= ISTR_INTS;
 		if ((dmac_cntr & CNTR_INTEN) && (dmac_istr & ISTR_INTS))
 			irq = 1;
@@ -1259,11 +1262,11 @@ static uae_u32 dmac_bget2 (uaecptr addr)
 		v = dmac_cntr;
 		break;
 	case 0x91:
-		if (currprefs.cs_cdtvscsi)
+		if (cdtvscsi)
 			v = wdscsi_getauxstatus (&wd_cdtv->wc);
 		break;
 	case 0x93:
-		if (currprefs.cs_cdtvscsi) {
+		if (cdtvscsi) {
 			v = wdscsi_get (&wd_cdtv->wc, wd_cdtv);
 			checkint ();
 		}
@@ -1366,13 +1369,13 @@ static void dmac_bput2 (uaecptr addr, uae_u32 b)
 		dmac_dawr |= b << 0;
 		break;
 	case 0x91:
-		if (currprefs.cs_cdtvscsi) {
+		if (cdtvscsi) {
 			wdscsi_sasr (&wd_cdtv->wc, b);
 			checkint ();
 		}
 		break;
 	case 0x93:
-		if (currprefs.cs_cdtvscsi) {
+		if (cdtvscsi) {
 			wdscsi_put (&wd_cdtv->wc, wd_cdtv, b);
 			checkint ();
 		}
@@ -1627,8 +1630,28 @@ void cdtv_free (void)
 	configured = 0;
 }
 
-addrbank *cdtv_init (struct romconfig *rc)
+bool cdtv_init (struct autoconfig_info *aci)
 {
+	memset(dmacmemory, 0xff, sizeof dmacmemory);
+	ew(0x00, 0xc0 | 0x01);
+	ew(0x04, 0x03);
+	ew(0x08, 0x40);
+	ew(0x10, 0x02);
+	ew(0x14, 0x02);
+
+	ew(0x18, 0x00); /* ser.no. Byte 0 */
+	ew(0x1c, 0x00); /* ser.no. Byte 1 */
+	ew(0x20, 0x00); /* ser.no. Byte 2 */
+	ew(0x24, 0x00); /* ser.no. Byte 3 */
+
+	if (aci) {
+		aci->label = dmac_bank.name;
+		if (!aci->doinit) {
+			memcpy(aci->autoconfig_raw, dmacmemory, sizeof dmacmemory);
+			return true;
+		}
+	}
+
 	close_unit ();
 	if (!thread_alive) {
 		init_comm_pipe (&requests, 100, 1);
@@ -1641,17 +1664,6 @@ addrbank *cdtv_init (struct romconfig *rc)
 
 	cdrom_command_cnt_out = -1;
 	cmd = enable = xaen = dten = 0;
-	memset (dmacmemory, 0xff, 100);
-	ew (0x00, 0xc0 | 0x01);
-	ew (0x04, 0x03);
-	ew (0x08, 0x40);
-	ew (0x10, 0x02);
-	ew (0x14, 0x02);
-
-	ew (0x18, 0x00); /* ser.no. Byte 0 */
-	ew (0x1c, 0x00); /* ser.no. Byte 1 */
-	ew (0x20, 0x00); /* ser.no. Byte 2 */
-	ew (0x24, 0x00); /* ser.no. Byte 3 */
 
 	/* KS autoconfig handles the rest */
 	if (!savestate_state) {
@@ -1663,22 +1675,28 @@ addrbank *cdtv_init (struct romconfig *rc)
 		sten = 0;
 		scor = 0;
 		sbcp = 0;
+		cdtvscsi = 0;
 	}
 
 	cdtv_battram_reset ();
 	open_unit ();
 	gui_flicker_led (LED_CD, 0, -1);
-	if (currprefs.cs_cdtvscsi) {
-		init_wd_scsi (wd_cdtv);
-		wd_cdtv->dmac_type = COMMODORE_DMAC;
-	}
-	return &dmac_bank;
+	if (aci)
+		aci->addrbank = &dmac_bank;
+	return true;
 }
 
-void cdtv_check_banks (void)
+bool cdtvscsi_init(struct autoconfig_info *aci)
 {
+	aci->parent_name = _T("CDTV DMAC");
+	if (!aci->doinit)
+		return true;
+	cdtvscsi = true;
+	init_wd_scsi(wd_cdtv);
+	wd_cdtv->dmac_type = COMMODORE_DMAC;
 	if (configured > 0)
-		map_banks_z2 (&dmac_bank, configured, 0x10000 >> 16);
+		map_banks_z2(&dmac_bank, configured, 0x10000 >> 16);
+	return true;
 }
 
 #ifdef SAVESTATE
@@ -1777,7 +1795,7 @@ uae_u8 *restore_cdtv (uae_u8 *src)
 	if (!currprefs.cs_cdtvcd) {
 		changed_prefs.cs_cdtvcd = changed_prefs.cs_cdtvram = true;
 		currprefs.cs_cdtvcd = currprefs.cs_cdtvram = true;
-		cdtv_init (0);
+		cdtv_init(NULL);
 	}
 	restore_u32 ();
 	

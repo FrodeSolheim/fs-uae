@@ -73,6 +73,7 @@ struct device_info {
 	bool open;
     int type;
     int media_inserted;
+	int audio_playing;
     int removable;
     int write_protected;
     int cylinders;
@@ -118,7 +119,7 @@ typedef uae_u8* (*execscsicmd_in_func)(int, uae_u8*, int, int*);
 typedef int (*execscsicmd_direct_func)(int, struct amigascsi*);
 
 typedef void (*play_subchannel_callback)(uae_u8*, int);
-typedef int (*play_status_callback)(int);
+typedef int (*play_status_callback)(int, int);
 
 typedef int (*pause_func)(int, int);
 typedef int (*stop_func)(int);

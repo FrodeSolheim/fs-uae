@@ -721,7 +721,7 @@ static void REGPARAM2 uaesndboard_lput(uaecptr addr, uae_u32 b)
 	}
 }
 
-static addrbank uaesndboard_bank = {
+addrbank uaesndboard_bank = {
 	uaesndboard_lget, uaesndboard_wget, uaesndboard_bget,
 	uaesndboard_lput, uaesndboard_wput, uaesndboard_bput,
 	default_xlate, default_check, NULL, NULL, _T("uaesnd"),

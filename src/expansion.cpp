@@ -4413,6 +4413,7 @@ const struct expansionromtype expansionroms[] = {
 		false, EXPANSIONTYPE_NET
 	},
 
+#ifdef CATWEASEL
 		/* Catweasel */
 	{
 		_T("catweasel"), _T("Catweasel"), _T("Individual Computers"),
@@ -4420,6 +4421,7 @@ const struct expansionromtype expansionroms[] = {
 		NULL, 0,
 		false, EXPANSIONTYPE_FLOPPY
 	},
+#endif
 
 		/* built-in controllers */
 	{

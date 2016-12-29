@@ -450,10 +450,10 @@ static int doinit_shm (void)
 		return -1;
 	}
 #ifdef FSUAE
-	write_log("NATMEM: size            0x%08x\n", size);
-	write_log("NATMEM: z3size        + 0x%08x\n", z3size);
+	//write_log("NATMEM: size            0x%08x\n", size);
+	//write_log("NATMEM: z3size        + 0x%08x\n", z3size);
 	write_log("NATMEM: z3rtgmem_size + 0x%08x\n", z3rtgmem_size);
-	write_log("NATMEM: othersize     + 0x%08x\n", othersize);
+	//write_log("NATMEM: othersize     + 0x%08x\n", othersize);
 	write_log("NATMEM: totalsize     = 0x%08x\n", totalsize);
 #endif
 

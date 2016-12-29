@@ -15,6 +15,7 @@
 
 #ifdef PICASSO96
 #include "picasso96.h"
+int rtg_index = 0;
 #endif
 
 #include <fs/emu/video.h>
@@ -374,6 +375,7 @@ double vblank_calibrate (double approx_vblank, bool waitonly) {
 
 // FIXME: What is this?
 int extraframewait = 0;
+int extraframewait2 = 0;
 static int frame_missed, frame_counted, frame_errors;
 static int frame_usage, frame_usage_avg, frame_usage_total;
 //extern int log_vsync;

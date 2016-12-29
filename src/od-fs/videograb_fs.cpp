@@ -16,9 +16,19 @@ bool initvideograb(const TCHAR *filename)
     return false;
 }
 
+void setvolumevideograb(int volume)
+{
+    STUB("");
+}
+
+bool getpausevideograb(void)
+{
+    return false;
+}
+
 void pausevideograb(int pause)
 {
-
+    STUB("");
 }
 
 bool getvideograb(long **buffer, int *width, int *height)
@@ -29,4 +39,14 @@ bool getvideograb(long **buffer, int *width, int *height)
 uae_s64 getsetpositionvideograb(uae_s64 framepos)
 {
     return 0;
+}
+
+bool isvideograb(void)
+{
+    return false;
+}
+
+void isvideograb_status(void)
+{
+    return;
 }

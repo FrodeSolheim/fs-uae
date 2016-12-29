@@ -775,6 +775,7 @@ void divbyzero_special (bool issigned, uae_s32 dst)
 
 #ifndef CPUEMU_68000_ONLY
 
+#if !defined (uae_s64)
 STATIC_INLINE int div_unsigned (uae_u32 src_hi, uae_u32 src_lo, uae_u32 div, uae_u32 *quot, uae_u32 *rem)
 {
 	uae_u32 q = 0, cbit = 0;
@@ -798,6 +799,7 @@ STATIC_INLINE int div_unsigned (uae_u32 src_hi, uae_u32 src_lo, uae_u32 div, uae
 	*rem = src_hi;
 	return 0;
 }
+#endif
 
 bool m68k_divl (uae_u32 opcode, uae_u32 src, uae_u16 extra)
 {
@@ -928,6 +930,7 @@ bool m68k_divl (uae_u32 opcode, uae_u32 src, uae_u16 extra)
 	return true;
 }
 
+#if !defined (uae_s64)
 STATIC_INLINE void mul_unsigned (uae_u32 src1, uae_u32 src2, uae_u32 *dst_hi, uae_u32 *dst_lo)
 {
 	uae_u32 r0 = (src1 & 0xffff) * (src2 & 0xffff);
@@ -945,6 +948,7 @@ STATIC_INLINE void mul_unsigned (uae_u32 src1, uae_u32 src2, uae_u32 *dst_hi, ua
 	*dst_lo = lo;
 	*dst_hi = r3;
 }
+#endif
 
 bool m68k_mull (uae_u32 opcode, uae_u32 src, uae_u16 extra)
 {
@@ -962,9 +966,9 @@ bool m68k_mull (uae_u32 opcode, uae_u32 src, uae_u16 extra)
 		SET_CFLG (0);
 		SET_ZFLG (a == 0);
 		SET_NFLG (a < 0);
-		if (extra & 0x400)
+		if (extra & 0x400) {
 			m68k_dreg (regs, extra & 7) = (uae_u32)(a >> 32);
-		else if ((a & UVAL64 (0xffffffff80000000)) != 0
+		} else if ((a & UVAL64 (0xffffffff80000000)) != 0
 			&& (a & UVAL64 (0xffffffff80000000)) != UVAL64 (0xffffffff80000000))
 		{
 			SET_VFLG (1);
@@ -979,9 +983,9 @@ bool m68k_mull (uae_u32 opcode, uae_u32 src, uae_u16 extra)
 		SET_CFLG (0);
 		SET_ZFLG (a == 0);
 		SET_NFLG (((uae_s64)a) < 0);
-		if (extra & 0x400)
+		if (extra & 0x400) {
 			m68k_dreg (regs, extra & 7) = (uae_u32)(a >> 32);
-		else if ((a & UVAL64 (0xffffffff00000000)) != 0) {
+		} else if ((a & UVAL64 (0xffffffff00000000)) != 0) {
 			SET_VFLG (1);
 		}
 		m68k_dreg (regs, (extra >> 12) & 7) = (uae_u32)a;

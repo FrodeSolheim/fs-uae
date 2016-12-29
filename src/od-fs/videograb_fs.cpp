@@ -16,7 +16,7 @@ bool initvideograb(const TCHAR *filename)
     return false;
 }
 
-void pausevideograb(bool pause)
+void pausevideograb(int pause)
 {
 
 }
@@ -24,4 +24,9 @@ void pausevideograb(bool pause)
 bool getvideograb(long **buffer, int *width, int *height)
 {
     return false;
+}
+
+uae_s64 getsetpositionvideograb(uae_s64 framepos)
+{
+    return 0;
 }

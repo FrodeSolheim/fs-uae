@@ -433,8 +433,13 @@ static int play_ioctl (int unitnum, int startlsn, int endlsn, int scan, play_sta
     return -1;
 }
 
-static int qcode_ioctl (int unitnum, uae_u8 *buf, int sector)
+static int qcode_ioctl (int unitnum, uae_u8 *buf, int sector, bool all)
 {
+    /* FIXME: Correct handling of all? See
+     * Data track subchannel support. [WinUAE 14af77e5]. */
+    if (all)
+            return 0;
+
     struct scsidevdata *sdd = unitisopen(unitnum);
     DEBUG_LOG ("SCSIDEV: unit = %d, qcode_ioctl\n", unitnum);
     if (sdd) {

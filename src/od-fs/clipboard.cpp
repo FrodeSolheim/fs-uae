@@ -696,7 +696,7 @@ void clipboard_disable (bool disabled)
     clip_disabled = disabled;
 }
 
-static void clipboard_read(TrapContext *ctx)
+static void clipboard_read(TrapContext *ctx, bool keyboardinject)
 {
     int text = FALSE, bmp = FALSE;
     static char *last_text;
@@ -957,6 +957,11 @@ void clipboard_init(void)
 {
     // FIXME: Call this
     clipboard_mutex = fs_mutex_create();
+}
+
+void target_paste_to_keyboard(void)
+{
+    clipboard_read(NULL, true);
 }
 
 UAE_EXTERN_C void uae_clipboard_update(void)

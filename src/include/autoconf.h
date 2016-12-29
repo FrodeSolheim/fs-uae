@@ -14,6 +14,7 @@
 #include "uae/memory.h"
 #include "uae/limits.h"
 #endif
+#include "traps.h"
 
 #define AFTERDOS_INIT_PRI ((-121) & 0xff)
 #define AFTERDOS_PRI ((-122) & 0xff)

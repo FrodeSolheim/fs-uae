@@ -3874,6 +3874,7 @@ void check_prefs_picasso(void)
 	notice_screen_contents_lost ();
 	notice_new_xcolors ();
 	count_frame ();
+	compute_framesync();
 #endif
 }
 

@@ -45,6 +45,7 @@
 #include "cpuboard.h"
 #include "luascript.h"
 #include "native2amiga_api.h"
+#include "ethernet.h"
 
 #ifdef FSUAE
 #include <uae/fs.h>

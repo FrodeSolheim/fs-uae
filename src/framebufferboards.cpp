@@ -479,7 +479,7 @@ static uae_u32 REGPARAM2 fb_lget(uaecptr addr)
 	return v;
 }
 
-static addrbank generic_fb_bank
+addrbank generic_fb_bank
 {
 	fb_lget, fb_wget, fb_bget,
 	fb_lput, fb_wput, fb_bput,

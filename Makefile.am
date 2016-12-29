@@ -315,6 +315,7 @@ libuae_a_SOURCES = \
 	src/filesys.cpp \
 	src/flashrom.cpp \
 	src/fpp.cpp \
+	src/framebufferboards.cpp \
 	src/fsdb.cpp \
 	src/fsusage.cpp \
 	src/gayle.cpp \

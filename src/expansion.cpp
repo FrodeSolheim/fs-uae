@@ -2564,7 +2564,7 @@ bool alloc_expansion_bank(addrbank *bank, struct autoconfig_info *aci)
 void free_expansion_bank(addrbank *bank)
 {
 	mapped_free(bank);
-	bank->start = NULL;
+	bank->start = 0;
 	bank->reserved_size = 0;
 }
 
@@ -2889,7 +2889,7 @@ static void expansion_parse_cards(struct uae_prefs *p, bool log)
 				aci->parent_of_previous = true;
 		} else {
 			if (log)
-				write_log(_T("init failed.\n"), i);
+				write_log(_T("init failed.\n"));
 		}
 	}
 	if (log)

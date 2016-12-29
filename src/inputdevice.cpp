@@ -4063,7 +4063,9 @@ static bool inputdevice_handle_inputcode2 (int code, int state)
 			inputdevice_swap_compa_ports(&changed_prefs, 2);
 		break;
 	case AKS_PASTE:
+#ifdef WITH_CLIPBOARD
 		target_paste_to_keyboard();
+#endif
 		break;
 	case AKS_SWITCHINTERPOL:
 		changed_prefs.sound_interpol++;

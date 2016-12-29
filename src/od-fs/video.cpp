@@ -1056,3 +1056,10 @@ void gfx_set_picasso_modeinfo (uae_u32 w, uae_u32 h, uae_u32 depth, RGBFTYPE rgb
 }
 
 #endif
+
+double target_adjust_vblank_hz(double hz)
+{
+	/* FIXME: Can make small adjustments to vblank hertz here if rate
+	 * almost matches native vblank, but not quite? */
+	return hz;
+}

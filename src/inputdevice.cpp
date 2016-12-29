@@ -1818,16 +1818,12 @@ static int custom_autoswitch_mouse[MAX_JPORTS_CUSTOM];
 
 void inputdevice_parse_jport_custom(struct uae_prefs *pr, int index, int port, TCHAR *outname)
 {
+#ifdef FSUAE
+#else
 	const TCHAR *eventstr = pr->jports_custom[index].custom;
 	TCHAR data[CONFIG_BLEN];
 	TCHAR *bufp;
 	int cnt = 0;
-	const struct inputevent *ie = NULL;
-	int num = 0;
-	int keynum = 0;
-	int devnum = 0;
-	TCHAR devtype = 0;
-	int devindex = 0;
 
 	custom_autoswitch_joy[index] = -1;
 
@@ -1855,15 +1851,15 @@ void inputdevice_parse_jport_custom(struct uae_prefs *pr, int index, int port, T
 		if (!p)
 			goto skip;
 
-		devindex = getnum(&bufp2);
+		int devindex = getnum(&bufp2);
 		if (*bufp == 0)
 			goto skip;
 		if (devindex < 0 || devindex >= MAX_INPUT_DEVICES)
 			goto skip;
 
-		devtype = _totupper(*p);
+		TCHAR devtype = _totupper(*p);
 
-		devnum = 0;
+		int devnum = 0;
 		if (devtype == 'M') {
 			id = &pr->mouse_settings[pr->input_selected_setting][devindex];
 			joystick = 0;
@@ -1894,8 +1890,8 @@ void inputdevice_parse_jport_custom(struct uae_prefs *pr, int index, int port, T
 		if (!p)
 			goto skip;
 
-		num = -1;
-		keynum = 0;
+		int num = -1;
+		int keynum = 0;
 		if (joystick < 0) {
 			num = getnum(&bufp2);
 			if (*bufp == 0)
@@ -1937,7 +1933,7 @@ void inputdevice_parse_jport_custom(struct uae_prefs *pr, int index, int port, T
 		if (!p)
 			goto skip;
 
-		ie = readevent(p, NULL);
+		const struct inputevent *ie = readevent(p, NULL);
 		if (ie) {
 			// Different port? Find matching request port event.
 			if (port >= 0 && ie->unit > 0 && ie->unit != port + 1) {
@@ -1996,6 +1992,7 @@ void inputdevice_parse_jport_custom(struct uae_prefs *pr, int index, int port, T
 skip:
 		bufp = next;
 	}
+#endif
 }
 
 static int mouseedge_alive, mousehack_alive_cnt;
@@ -7057,6 +7054,7 @@ void inputdevice_default_prefs (struct uae_prefs *p)
 	p->input_mouse_speed = 100;
 	p->input_autofire_linecnt = 600;
 	p->input_keyboard_type = 0;
+	p->input_autoswitch = true;
 	p->input_device_match_mask = -1;
 	keyboard_default = keyboard_default_table[p->input_keyboard_type];
 #ifdef FSUAE

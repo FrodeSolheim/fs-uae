@@ -118,6 +118,7 @@ void devices_reset(int hardreset)
 #ifdef DRIVESOUND
 	driveclick_reset();
 #endif
+	ethernet_reset();
 	uae_int_requested = 0;
 }
 
@@ -486,6 +487,7 @@ void devices_pause(void)
 	rp_pause(pause_emulation);
 #endif
 	pausevideograb(1);
+	ethernet_pause(1);
 }
 
 void devices_unpause(void)
@@ -498,4 +500,5 @@ void devices_unpause(void)
 	uae_ppc_pause(0);
 #endif
 	pausevideograb(0);
+	ethernet_pause(0);
 }

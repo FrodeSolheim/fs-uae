@@ -4,6 +4,7 @@
 
 #include <fs/thread.h>
 #include <fs/base.h>
+#include <fs/log.h>
 #include <stdlib.h>
 #ifdef USE_GLIB
 #include <glib.h>

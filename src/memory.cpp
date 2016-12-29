@@ -1842,7 +1842,7 @@ bool mapped_malloc (addrbank *ab)
 {
 #ifdef FSUAE
 	write_log(_T("MMAN: mapped_malloc 0x%08x start=0x%08x %s (%s)\n"),
-			  ab->allocated, ab->start, ab->name, ab->label);
+			  ab->allocated_size, ab->start, ab->name, ab->label);
 	write_log(_T("MMAN: Flags:%s%s%s%s%s%s%s%s%s%s%s\n"),
 			  (ab->flags & ABFLAG_RAM) ? " RAM" : "",
 			  (ab->flags & ABFLAG_ROM) ? " ROM" : "",
@@ -2485,7 +2485,7 @@ void memory_reset (void)
 
 	if ((cloanto_rom || extendedkickmem_bank.allocated_size) && currprefs.maprom && currprefs.maprom < 0x01000000) {
 #ifdef FSUAE
-	    write_log("MAPROM: cloanto_rom=%d extendedkickmem_bank.allocated=%u\n", cloanto_rom, extendedkickmem_bank.allocated);
+		write_log("MAPROM: cloanto_rom=%d extendedkickmem_bank.allocated=%u\n", cloanto_rom, extendedkickmem_bank.allocated_size);
 	    write_log("MAPROM: Setting address 0x00a80000 (was 0x%08x)\n", currprefs.maprom);
 #endif
 		currprefs.maprom = changed_prefs.maprom = 0x00a80000;
@@ -3383,7 +3383,7 @@ int uae_get_memory_checksum(void *data, int size)
     int pos = 0;
 
     mem = (uint32_t *) chipmem_bank.baseaddr;
-    bank_size = chipmem_bank.allocated / 4;
+    bank_size = chipmem_bank.allocated_size / 4;
     if (data) {
         if (pos + bank_size * 4 <= size) {
             memcpy((char *) data + pos, mem, bank_size * 4);
@@ -3397,7 +3397,7 @@ int uae_get_memory_checksum(void *data, int size)
     }
 
     mem = (uint32_t *) bogomem_bank.baseaddr;
-    bank_size = bogomem_bank.allocated / 4;
+    bank_size = bogomem_bank.allocated_size / 4;
     if (data) {
         if (pos + bank_size * 4 <= size) {
             memcpy((char *) data + pos, mem, bank_size * 4);
@@ -3410,7 +3410,7 @@ int uae_get_memory_checksum(void *data, int size)
     }
 
     mem = (uint32_t *) fastmem_bank[0].baseaddr;
-    bank_size = fastmem_bank[0].allocated / 4;
+    bank_size = fastmem_bank[0].allocated_size / 4;
     if (data) {
         if (pos + bank_size * 4 <= size) {
             memcpy((char *) data + pos, mem, bank_size * 4);

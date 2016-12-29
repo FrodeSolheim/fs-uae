@@ -50,7 +50,6 @@ struct pci_board
 	pci_dev_free free;
 	pci_dev_reset reset;
 	pci_dev_hsync hsync;
-	pci_dev_irq irq;
 	pci_addrbank bars[MAX_PCI_BARS];
 };
 
@@ -70,6 +69,7 @@ struct pci_board_state
 	bool memory_map_active;
 	bool io_map_active;
 	struct pci_bridge *bridge;
+	pci_dev_irq irq_callback;
 };
 
 struct pci_bridge

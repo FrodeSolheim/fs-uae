@@ -13,6 +13,7 @@
 #include "traps.h"
 #include "sana2.h"
 #include "uae/slirp.h"
+#include "gui.h"
 
 #ifndef HAVE_INET_ATON
 static int inet_aton(const char *cp, struct in_addr *ia)
@@ -62,6 +63,7 @@ void slirp_output (const uint8_t *pkt, int pkt_len)
 {
 	if (!slirp_data)
 		return;
+	gui_flicker_led(LED_NET, 0, gui_data.net | 1);
 	uae_sem_wait (&slirp_sem1);
 	slirp_data->gotfunc (slirp_data->userdata, pkt, pkt_len);
 	uae_sem_post (&slirp_sem1);
@@ -71,6 +73,7 @@ void ethernet_trigger (struct netdriverdata *ndd, void *vsd)
 {
 	if (!ndd)
 		return;
+	gui_flicker_led(LED_NET, 0, gui_data.net | 2);
 	switch (ndd->type)
 	{
 #ifdef WITH_SLIRP

@@ -487,7 +487,7 @@ void fs_uae_configure_actions()
         fs_uae_read_override_actions_for_port(i);
     }
     fs_emu_set_hotkey_function(hotkey_function);
-    if (FS_EMU_WARP_HACK != INPUTEVENT_SPC_PAUSE) {
+    if (FS_EMU_WARP_HACK != INPUTEVENT_SPC_WARP) {
         printf("warp id does not match\n");
         exit(1);
     }

@@ -7,6 +7,7 @@
 #include <fs/glib.h>
 #include "options.h"
 #include "fs-uae.h"
+#include "paths.h"
 #include "config-accelerator.h"
 #include "config-common.h"
 #include "config-model.h"
@@ -67,7 +68,18 @@ void fs_uae_configure_accelerator(void)
             cfg->accelerator_cpu = "68060-NOMMU";
         } else if (fs_uae_values_matches(card, "cyberstorm-ppc")) {
             card = "CyberstormPPC";
-            rom = "cyberstormppc.rom";
+            gchar *csppc_rom_path = g_build_filename(
+                        fs_uae_kickstarts_dir(), "cyberstormppc.rom", NULL);
+            if (fs_path_exists(csppc_rom_path)) {
+                rom = "cyberstormppc.rom";
+                fs_log("[ROM] Found cyberstormppc.rom\n");
+            } else {
+                fs_log("[ROM] Did not find cyberstormppc.rom\n");
+                fs_log("[ROM] Trying ralphschmidt-cyberstorm-ppc-4471.rom\n");
+                rom = "ralphschmidt-cyberstorm-ppc-4471.rom";
+            }
+            /* FIXME: TODO: Also try to find ROM in Amiga Forever roms dir.
+             * (Or maybe just implement that for FS-UAE Launcher) */
             memory = 128;
             cfg->accelerator_cpu = "68060-NOMMU";
         }

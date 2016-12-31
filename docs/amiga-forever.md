@@ -123,11 +123,8 @@ Just transfer the entire `Amiga Files` directory to
 ## Value edition
 
 **Warning:** The value edition does not contains Kickstart ROMs except for
-version 1.3.
-
-It is possible to extract an un-encrypted Kickstart ROM file from
-Amiga Forever Value Edition. At the time of writing, a video tutorial for
-doing this is available at https://www.youtube.com/watch?v=W2_edUd2KyI.
+version 1.3. That's still sufficient for emulating a lot of the classic
+Amiga games though!
 
 ## Final notes
 
@@ -137,5 +134,5 @@ Kickstart ROMs needed for accurate emulation.
 If the above instructions do not work for you, it's useful to know that
 you don't need to copy all the Amiga Forever files. You simply need
 to find all the .rom files (amiga-os-130.rom, etc) - as well as rom.key -
-from Amiga Forever Plus/Premium installation or install media, and copy these
+from the Amiga Forever installation or install media, and copy these
 to Documents/FS-UAE/Kickstarts.

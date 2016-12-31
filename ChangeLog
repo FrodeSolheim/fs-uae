@@ -1,3 +1,7 @@
+Version 2.9.2dev:
+
+* Try ralphschmidt-cyberstorm-ppc-4471.rom if cyberstormppc.rom is not found.
+
 Version 2.9.1dev:
 
 * Configure now fails if zip or msgfmt is not found on path.

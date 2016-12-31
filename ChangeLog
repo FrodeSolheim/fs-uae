@@ -1,3 +1,7 @@
+Version 2.9.3dev:
+
+* Allow specifying sub_title = 0 to disable the sub title.
+
 Version 2.9.2dev:
 
 * New boolean option warp_mode (warp_mode = 1 to start in warp mode).

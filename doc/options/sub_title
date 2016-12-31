@@ -1,3 +1,7 @@
+Type: String
+Default:
 Example: Custom Sub Title
 
-Use this option to override the sub title displayed in menu mode.
+Use this option to override the sub title displayed in menu mode. You
+can specify the special value 0 to disable the sub title. This also
+allows you to start fs-uae with --no-sub-title parameter.

@@ -247,9 +247,9 @@ int fs_emu_send_netplay_message(const char *text);
 
 
 //void fs_emu_set_application_title(const char *title);
-const char *fs_emu_get_title();
+const char *fs_emu_get_title(void);
 void fs_emu_set_title(const char *title);
-const char *fs_emu_get_sub_title();
+const char *fs_emu_get_sub_title(void);
 void fs_emu_set_sub_title(const char *title);
 
 void fs_emu_toggle_fullscreen(void);

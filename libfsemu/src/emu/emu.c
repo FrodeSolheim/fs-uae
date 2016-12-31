@@ -6,6 +6,7 @@
 #include <fs/emu.h>
 #include <fs/emu/benchmark.h>
 #include <fs/emu/input.h>
+#include <fs/emu/options.h>
 #include <fs/emu/video.h>
 
 #include <stdio.h>
@@ -136,12 +137,13 @@ void fs_emu_deprecated(const char *format, ...)
     g_free(buffer);
 }
 
-const char *fs_emu_get_title()
+const char *fs_emu_get_title(void)
 {
     return g_fs_emu_title;
 }
 
-void fs_emu_set_title(const char *title) {
+void fs_emu_set_title(const char *title)
+{
     fs_emu_video_render_mutex_lock();
     if (g_fs_emu_title) {
         free(g_fs_emu_title);
@@ -150,11 +152,13 @@ void fs_emu_set_title(const char *title) {
     fs_emu_video_render_mutex_unlock();
 }
 
-const char *fs_emu_get_sub_title() {
+const char *fs_emu_get_sub_title(void)
+{
     return g_fs_emu_sub_title;
 }
 
-void fs_emu_set_sub_title(const char *title) {
+void fs_emu_set_sub_title(const char *title)
+{
     fs_emu_video_render_mutex_lock();
     if (g_fs_emu_sub_title) {
         free(g_fs_emu_sub_title);
@@ -163,36 +167,43 @@ void fs_emu_set_sub_title(const char *title) {
     fs_emu_video_render_mutex_unlock();
 }
 
-void fs_emu_msleep(int msec) {
+void fs_emu_msleep(int msec)
+{
     fs_ml_usleep(msec * 1000);
 }
 
-void fs_emu_set_pause_function(fs_emu_pause_function function) {
+void fs_emu_set_pause_function(fs_emu_pause_function function)
+{
     g_pause_function = function;
 }
 
-static void read_config()
+static void read_config(void)
 {
     char *string_result;
 
-    int fullscreen = fs_config_get_boolean("fullscreen");
+    int fullscreen = fs_config_get_boolean(OPTION_FULLSCREEN);
     if (fullscreen != FS_CONFIG_NONE) {
         g_fs_emu_video_fullscreen = fullscreen;
     }
+    g_fs_emu_video_fullscreen_mode_string = fs_config_get_string(
+                OPTION_FULLSCREEN_MODE);
 
-    g_fs_emu_video_fullscreen_mode_string = fs_config_get_string("fullscreen_mode");
-
-    string_result = fs_config_get_string("title");
+    string_result = fs_config_get_string(OPTION_TITLE);
     if (string_result) {
         g_fs_emu_title = string_result;
     }
-    string_result = fs_config_get_string("sub_title");
+    string_result = fs_config_get_string(OPTION_SUB_TITLE);
     if (string_result) {
-        g_fs_emu_sub_title = string_result;
+        if (strcmp(string_result, "0") == 0) {
+            g_fs_emu_sub_title = g_strdup("");
+        } else {
+            g_fs_emu_sub_title = string_result;
+        }
     }
 }
 
-void fs_emu_fatal(const char *msg) {
+void fs_emu_fatal(const char *msg)
+{
     fs_emu_log("FATAL: %s\n", msg);
     printf("FATAL: %s\n", msg);
     exit(1);
@@ -371,7 +382,7 @@ void fs_emu_init_2(int options) {
         else {
             title = g_strdup("Emulator");
         }
-        if (fs_emu_get_sub_title()) {
+        if (fs_emu_get_sub_title() && fs_emu_get_sub_title()[0] != '\0') {
             char *temp = title;
             // using 'MIDDLE DOT' (U+00B7) in UTF-8 format as separator
             title = g_strdup_printf("%s %c%c %s", temp, 0xC2, 0xB7,

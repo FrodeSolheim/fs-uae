@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae\n"
 "Report-Msgid-Bugs-To: frode@fs-uae.net\n"
-"POT-Creation-Date: 2016-04-26 00:59+0200\n"
-"PO-Revision-Date: 2016-05-01 06:23-0400\n"
+"POT-Creation-Date: 2016-12-11 15:15+0100\n"
+"PO-Revision-Date: 2016-12-11 12:01-0500\n"
 "Last-Translator: FrodeSolheim <frode-crowdin@fsolheim.net>\n"
 "Language-Team: Portuguese\n"
 "Language: pt_PT\n"
@@ -24,7 +24,7 @@ msgstr "Controlo do Amiga"
 
 #. / TRANSLATORS: In context "Zoom: Auto"
 msgid "Auto"
-msgstr ""
+msgstr "Automático"
 
 msgid "Auto-Fire is Off"
 msgstr "Auto-Fire está Desligado"
@@ -50,7 +50,7 @@ msgstr "Modo Gamepad CD32"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 msgid "Custom Joystick Ports"
-msgstr ""
+msgstr "Portas de Joystick personalizado"
 
 msgid "Custom Mode"
 msgstr "Modo customisado"
@@ -74,7 +74,7 @@ msgstr "Controlo do Emulador"
 
 #, c-format
 msgid "Expected FS-UAE version %s, got %s"
-msgstr ""
+msgstr "Versão esperada do FS-UAE %s, tem a %s"
 
 #. / TRANSLATORS: In context "Zoom: Full Frame"
 msgid "Full Frame"
@@ -106,7 +106,7 @@ msgid "Joystick Mode"
 msgstr "Modo joystick"
 
 msgid "Joystick Port"
-msgstr ""
+msgstr "Porta do Joystick"
 
 #, c-format
 msgid "Joystick Port %d"
@@ -129,10 +129,10 @@ msgid "Load"
 msgstr "Abrir"
 
 msgid "Load State"
-msgstr ""
+msgstr "Carregar Estado"
 
 msgid "Max 1 CD-ROM drive supported currently"
-msgstr ""
+msgstr "Atualmente é suportado um máximo de 1 drive de CD-ROM"
 
 msgid "More..."
 msgstr "Mais..."
@@ -144,7 +144,7 @@ msgid "Mouse Mode"
 msgstr "Modo Rato"
 
 msgid "Mouse Port"
-msgstr ""
+msgstr "Porta do Rato"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long: If you struggle
 #. / to get in short enough, just translate "No Device" instead.
@@ -173,10 +173,10 @@ msgid "Option fast_memory must be a multiple of 1024"
 msgstr "Opção fast_memory necessita de múltiplos de 1024"
 
 msgid "Option motherboard_ram must be a multiple of 1024"
-msgstr ""
+msgstr "Opção motherboard_ram tem de ser um múltiplo de 1024"
 
 msgid "Option motherboard_ram needs a CPU with 32-bit addressing"
-msgstr ""
+msgstr "Opção motherboard_ram necessita de um CPU com endereçamento de 32-bit"
 
 msgid "Option slow_memory must be a multiple of 256"
 msgstr "Opção slow_memory necessita de múltiplos de 256"
@@ -188,7 +188,7 @@ msgid "Option zorro_iii_memory must be a multiple of 1024"
 msgstr "Opção zorro_iii_memory necessita de múltiplos de 1024"
 
 msgid "Option zorro_iii_memory needs a CPU with 32-bit addressing"
-msgstr ""
+msgstr "Opção zorro_iii_memory necessita de um CPU com endereçamento de 32-bit"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 msgid "Parallel Joystick Ports"
@@ -218,7 +218,7 @@ msgid "Save"
 msgstr "Guardar"
 
 msgid "Save State"
-msgstr ""
+msgstr "Salvar Estado"
 
 #. / TRANSLATORS: Soft reset reboots the computer without a power cycle
 msgid "Soft Reset"
@@ -235,15 +235,15 @@ msgstr "Zoom está desactivado no modo RTG"
 
 #, c-format
 msgid "Zoom: %s"
-msgstr ""
+msgstr "Aumentar: %s"
 
 #, c-format
 msgid "Zoom: %s + Border"
 msgstr "Zoom: %s + Margem"
 
 msgid "[ Port 0 ] Switched to joystick mode"
-msgstr ""
+msgstr "[ Port 0 ] Alterado para modo joystick"
 
 msgid "[ Port 0 ] Switched to mouse mode"
-msgstr ""
+msgstr "[ Port 0 ] Alterado para modo rato"
 

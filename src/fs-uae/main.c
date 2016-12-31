@@ -238,7 +238,7 @@ static int input_handler_loop(int line)
 
     int action;
     //int reconfigure_input = 0;
-    while((action = fs_emu_get_input_event()) != 0) {
+    while ((action = fs_emu_get_input_event()) != 0) {
         //printf("event_handler_loop received input action %d\n", action);
         int istate = (action & 0x00ff0000) >> 16;
         // force to -128 to 127 range
@@ -309,7 +309,7 @@ static int input_handler_loop(int line)
     return 1;
 }
 
-static void pause_throttle()
+static void pause_throttle(void)
 {
     /*
     if (fs_emu_get_vblank_sync()) {
@@ -352,10 +352,15 @@ static void event_handler(int line)
 
     fs_emu_wait_for_frame(g_fs_uae_frame);
     if (g_fs_uae_frame == 1) {
-        // we configure input ports after first frame are confirmed,
-        // because otherwise configure events would get lost if initially
-        // connected to the server (for net play game), but aborted connection
-        // before game started
+        if (!fs_emu_netplay_enabled()) {
+            if (fs_config_is_true(OPTION_WARP_MODE)) {
+                amiga_send_input_event(INPUTEVENT_SPC_WARP, 1);
+            }
+        }
+        /* We configure input ports after first frame are confirmed,
+         * because otherwise configure events would get lost if initially
+         * connected to the server (for net play game), but aborted connection
+         * before game started. */
         fs_uae_reconfigure_input_ports_amiga();
     }
 
@@ -481,27 +486,27 @@ void fs_uae_load_rom_files(const char *path)
     //exit(1);
 }
 
-char *fs_uae_encode_path(const char* path)
+char *fs_uae_encode_path(const char *path)
 {
     // FIXME: libamiga now always accepts UTF-8, so this function is
     // deprecated. Simply returning a duplicate now.
     return g_strdup(path);
 }
 
-char *fs_uae_decode_path(const char* path)
+char *fs_uae_decode_path(const char *path)
 {
     // FIXME: libamiga now always accepts UTF-8, so this function is
     // deprecated. Simply returning a duplicate now.
     return g_strdup(path);
 }
 
-static void on_gui_message(const char* message)
+static void on_gui_message(const char *message)
 {
     printf("MESSAGE: %s\n", message);
     fs_emu_warning("%s", message);
 }
 
-static void on_init()
+static void on_init(void)
 {
     fs_log("\n");
     fs_log(LOG_LINE);
@@ -611,7 +616,7 @@ static void pause_function(int pause)
     amiga_pause(pause);
 }
 
-static int load_config_file()
+static int load_config_file(void)
 {
     fs_log("load config file\n");
     const char *msg = "checking config file %s\n";

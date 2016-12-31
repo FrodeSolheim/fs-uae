@@ -18,7 +18,7 @@ I provide this information as a convenience to the users of FS-UAE.
 ## Using the Amiga Forever .msi installer (Plus edition)
 
 If you are using Windows, you can simply install Amiga Forever. FS-UAE
-should automatically find the Kickstart ROM files.
+should automatically find the ROM files.
 
 > **Note:** You may have to run the Amiga Forever Player at least once
 > in order to create the (required) rom.key file.
@@ -38,7 +38,7 @@ portable version, you need to use the portable directory instead of
 Documents/FS-UAE. Also, on some Linux distributions, the directory may
 be ~/FS-UAE instead of ~/Documents/FS-UAE, depending on your setup.
 
-## Installing using Amiga Forever .iso
+## Installing using an Amiga Forever .iso
 
 If you have an .iso image of the Amiga Forever Plus edition, you can either:
 * Mount this as a virtual DVD (depends on your system), or
@@ -52,7 +52,7 @@ Once you can access the files on the physical or virtual DVD, you need to:
 1. Create `Documents/FS-UAE/AmigaForever`
 2. Copy the entire contents of the DVD into `Documents/FS-UAE/AmigaForever`.
 
-FS-UAE should automatically find the Kickstart ROM files from this directory.
+FS-UAE should automatically find the ROM files from this directory.
 
 <!--
 ### Extracting files with msiextract

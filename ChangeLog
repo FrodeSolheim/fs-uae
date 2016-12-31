@@ -1,6 +1,8 @@
 Version 2.9.2dev:
 
+* New boolean option warp_mode (warp_mode = 1 to start in warp mode).
 * Try ralphschmidt-cyberstorm-ppc-4471.rom if cyberstormppc.rom is not found.
+* Imported updated translations from crowdin.com.
 
 Version 2.9.1dev:
 

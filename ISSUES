@@ -1,9 +1,0 @@
-* Opening the F12 menu / Using the modifier key causes FS-UAE to blink
-  on Windows due to ungrabbing input (might have to disable this feature
-  on Windows).
-
-* When internal kickstart is being used and kickstart_file = internal
-  was not used, show GUI message "Using AROS kickstart replacement".
-
-* Amiga key sticks when opening/closing FS-UAE menu with modifier+F12
-  https://github.com/FrodeSolheim/fs-uae/issues/77

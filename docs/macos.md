@@ -1,4 +1,4 @@
-# Notes for macOS
+# Notes for macOS Users
 
 ## Fullscreen Spaces
 

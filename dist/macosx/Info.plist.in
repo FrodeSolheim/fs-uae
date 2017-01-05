@@ -46,7 +46,7 @@
 	<key>NSAppleScriptEnabled</key>
 	<false/>
 	<key>NSHumanReadableCopyright</key>
-	<string>Copyright 2011-2015 Frode Solheim</string>
+	<string>Copyright 2011-2017 Frode Solheim</string>
 	<key>NSMainNibFile</key>
 	<string></string>
 	<key>NSPrincipalClass</key>

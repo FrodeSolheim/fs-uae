@@ -10,7 +10,7 @@ BEGIN
       VALUE "FileDescription", "Cross-platform Amiga emulator"
       VALUE "FileVersion", "@PACKAGE_VERSION@"
       VALUE "InternalName", "fs-uae"
-      VALUE "LegalCopyright", "Copyright 2011-2015 Frode Solheim and others"
+      VALUE "LegalCopyright", "Copyright 2011-2017 Frode Solheim and others"
       VALUE "OriginalFilename", "fs-uae.exe"
       VALUE "ProductName", "FS-UAE"
       VALUE "ProductVersion", "@PACKAGE_VERSION@"

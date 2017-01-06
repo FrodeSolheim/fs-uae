@@ -204,13 +204,13 @@ void fs_ml_input_init()
 
     SDL_Init(SDL_INIT_JOYSTICK);
 
-    fs_log("fs_ml_input_init\n");
+    fs_log("[INPUT] fs_ml_input_init\n");
 
     g_fs_log_input = getenv("FS_DEBUG_INPUT") && \
             getenv("FS_DEBUG_INPUT")[0] == '1';
 
     if (fs_config_get_boolean(OPTION_LOG_INPUT) == 1) {
-        fs_log("Logging: enable input event logging\n");
+        fs_log("[INPUT] enable input event logging\n");
         g_fs_log_input = 1;
     }
 
@@ -230,13 +230,13 @@ void fs_ml_input_init()
     g_input_queue = g_queue_new();
     g_input_mutex = fs_mutex_create();
 #ifdef FS_EMU_DRIVERS
-    fs_log("NOT calling fs_ml_video_init\n");
+    fs_log("[INPUT] NOT calling fs_ml_video_init\n");
 #else
-    fs_log("calling fs_ml_video_init\n");
+    fs_log("[INPUT] calling fs_ml_video_init\n");
     fs_ml_video_init();
 #endif
     int size = sizeof(fs_ml_input_device) * FS_ML_INPUT_DEVICES_MAX;
-    // allocate zeroed memory
+    /* Allocate zeroed memory. */
     g_fs_ml_input_devices = g_malloc0(size);
 
     fs_ml_initialize_keymap();
@@ -270,13 +270,13 @@ void fs_ml_input_init()
     g_fs_ml_first_joystick_index = g_fs_ml_input_device_count;
 
     int num_joysticks = SDL_NumJoysticks();
-    fs_log("num joystick devices: %d\n", num_joysticks);
+    fs_log("[INPUT] Joystick device count: %d\n", num_joysticks);
     if (SDL_WasInit(SDL_INIT_JOYSTICK) == 0) {
-        fs_log("WARNING: Joystick module not initialized\n");
+        fs_log("[INPUT] WARNING: Joystick module not initialized\n");
     }
     for (int i = 0; i < num_joysticks; i++) {
         if (k == FS_ML_INPUT_DEVICES_MAX) {
-            fs_log("WARNING: reached max num devices\n");
+            fs_log("[INPUT] WARNING: Reached max num devices\n");
             break;
         }
 
@@ -284,14 +284,14 @@ void fs_ml_input_init()
         SDL_JoystickGUID guid = SDL_JoystickGetDeviceGUID(i);
         SDL_JoystickGetGUIDString(guid, guid_str, 33);
         guid_str[32] = '\0';
-        fs_log("SDL_JoystickGetDeviceGUID(%d) = %s\n", i, guid_str);
+        fs_log("[INPUT] SDL_JoystickGetDeviceGUID(%d) = %s\n", i, guid_str);
         if (fs_ml_check_joystick_blacklist_by_guid(guid_str)) {
-            fs_log("- blacklisted, not opening!\n");
+            fs_log("[INPUT] Blacklisted joystick, not opening!\n");
             continue;
         }
 
         SDL_Joystick *joystick = SDL_JoystickOpen(i);
-        fs_log("SDL_JoystickOpen(%d)\n", i);
+        fs_log("[INPUT] SDL_JoystickOpen(%d)\n", i);
 
 #ifdef USE_SDL2
         char *name = fs_ml_input_fix_joystick_name(
@@ -321,18 +321,18 @@ void fs_ml_input_init()
         g_fs_ml_input_devices[k].axes = SDL_JoystickNumAxes(joystick);
         g_fs_ml_input_devices[k].balls = SDL_JoystickNumBalls(joystick);
 
-        fs_log("joystick device #%02d found: %s\n", i + 1, name);
-        fs_log("- %d buttons %d hats %d axes %d balls\n",
+        fs_log("[INPUT] Joystick device #%02d found: %s\n", i + 1, name);
+        fs_log("[INPUT] %d buttons %d hats %d axes %d balls\n",
                g_fs_ml_input_devices[k].buttons,
                g_fs_ml_input_devices[k].hats,
                g_fs_ml_input_devices[k].axes,
                g_fs_ml_input_devices[k].balls);
 
         SDL_JoystickID instance_id = SDL_JoystickInstanceID(joystick);
-        fs_log("- instance ID = %d\n", instance_id);
+        fs_log("[INPUT] Joystick instance ID = %d\n", instance_id);
         if (instance_id >= MAX_SDL_JOYSTICK_IDS) {
-            fs_log("SDL_JoystickID > %d\n", MAX_SDL_JOYSTICK_IDS);
-            fs_log("- closing joystick\n");
+            fs_log("[INPUT] SDL_JoystickID > %d\n", MAX_SDL_JOYSTICK_IDS);
+            fs_log("[INPUT] Closing joystick\n");
             SDL_JoystickClose(joystick);
             continue;
         }

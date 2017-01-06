@@ -242,60 +242,58 @@ static void map_input_config_item(
     if (g_ascii_strcasecmp(parts[0], "key") == 0) {
         for (int i = 0; g_fs_emu_key_names[i]; i++) {
             if (g_ascii_strcasecmp(parts[1], g_fs_emu_key_names[i]) == 0) {
-                if (out_key)
+                if (out_key) {
                     *out_key = i;
+                }
                 break;
             }
         }
     } else if (g_ascii_strcasecmp(parts[0], "button") == 0) {
-        if (out_button)
+        if (out_button) {
             *out_button = atoi(parts[1]);
+        }
     } else if (g_ascii_strcasecmp(parts[0], "axis") == 0) {
         int axis = atoi(parts[1]);
         int direction = -1;
         if (g_ascii_strcasecmp(parts[2], "pos") == 0) {
             direction = 1;
-        }
-        else if (g_ascii_strcasecmp(parts[2], "neg") == 0) {
+        } else if (g_ascii_strcasecmp(parts[2], "neg") == 0) {
             direction = 0;
-        }
-        else {
-            fs_log("error parsing \"%s\"\n", desc);
+        } else {
+            fs_log("[INPUT] Error parsing \"%s\"\n", desc);
             g_free(tmp);
             g_strfreev(parts);
             return;
         }
-        if (out_axis)
+        if (out_axis) {
             *out_axis = axis;
-        if (out_value)
+        }
+        if (out_value) {
             *out_value = direction;
+        }
     } else if (g_ascii_strcasecmp(parts[0], "hat") == 0) {
         int hat = atoi(parts[1]);
         int direction = -1;
         if (g_ascii_strcasecmp(parts[2], "up") == 0) {
             direction = FS_ML_HAT_UP;
-        }
-        else if (g_ascii_strcasecmp(parts[2], "down") == 0) {
+        } else if (g_ascii_strcasecmp(parts[2], "down") == 0) {
             direction = FS_ML_HAT_DOWN;
-        }
-        else if (g_ascii_strcasecmp(parts[2], "left") == 0) {
+        } else if (g_ascii_strcasecmp(parts[2], "left") == 0) {
             direction = FS_ML_HAT_LEFT;
-        }
-        else if (g_ascii_strcasecmp(parts[2], "right") == 0) {
+        } else if (g_ascii_strcasecmp(parts[2], "right") == 0) {
             direction = FS_ML_HAT_RIGHT;
-        }
-        else {
-            fs_log("error parsing \"%s\"\n", desc);
+        } else {
+            fs_log("[INPUT] Error parsing \"%s\"\n", desc);
             g_free(tmp);
             g_strfreev(parts);
             return;
         }
-        if (out_hat)
+        if (out_hat) {
             *out_hat = hat;
-        if (out_value)
+        }
+        if (out_value) {
             *out_value = direction;
-    } else {
-        fs_log("error parsing \"%s\"\n", desc);
+        }
     }
     g_free(tmp);
     g_strfreev(parts);
@@ -452,7 +450,7 @@ static void map_custom_joystick_action(
 {
     char *config_key = g_strdup_printf("%s%s%d%s", name, n1, n2, n3);
     if (g_fs_log_input) {
-        fs_log("%s\n", config_key);
+        fs_log("[INPUT] %s\n", config_key);
     }
     const char *config_value = fs_config_get_const_string(config_key);
     if (!config_value) {
@@ -590,19 +588,19 @@ static void map_custom_gamepad_actions(
         int joy, const char *name, fs_ml_input_device *device)
 {
     char* config_name = joystick_long_config_name(device);
-    fs_log("config name \"%s\"\n", config_name);
+    fs_log("[INPUT] Config name \"%s\"\n", config_name);
     input_config_item *config = get_config_for_device(config_name,
             "universal");
     if (config == NULL) {
-        fs_log("did not find generic gamepad config for device \"%s\"\n",
-                config_name);
+        fs_log("[INPUT] Did not find generic gamepad config for device "
+               "\"%s\"\n", config_name);
         free(config_name);
         config_name = joystick_config_name(device->name, 0);
         fs_log("config name \"%s\"\n", config_name);
         config = get_config_for_device(config_name, "universal");
         if (config == NULL) {
-            fs_log("did not find generic gamepad config for device \"%s\"\n",
-                    config_name);
+            fs_log("[INPUT] Did not find generic gamepad config for device"
+                   "\"%s\"\n", config_name);
             free(config_name);
             return;
         }
@@ -611,7 +609,7 @@ static void map_custom_gamepad_actions(
         char *config_key = g_strdup_printf("%s_%s", name,
                 config[j].config_value);
         if (g_fs_log_input) {
-            fs_log("%s\n", config_key);
+            fs_log("[INPUT] %s\n", config_key);
         }
         const char *config_value = fs_config_get_const_string(config_key);
         if (!config_value) {
@@ -642,10 +640,10 @@ static void map_custom_joystick_actions()
             continue;
         }
         char *name, *config_name;
-        fs_log("map_custom_joystick_actions for %s\n", device.name);
 
         name = g_ascii_strdown(device.name, -1);
         config_name = joystick_config_name(name, 1);
+        fs_log("[INPUT] Map custom joystick actions for %s\n", config_name);
         g_free(name);
         map_custom_joystick_actions_2(i, config_name, device.axes,
                 device.hats, device.buttons);
@@ -654,7 +652,8 @@ static void map_custom_joystick_actions()
 
         if (device.type == FS_ML_JOYSTICK) {
             config_name = g_strdup_printf("joystick_%d", joystick_index);
-            fs_log("%s\n", config_name);
+            fs_log("[INPUT] Map custom joystick actions for %s\n",
+                   config_name);
             map_custom_joystick_actions_2(i, config_name, device.axes,
                     device.hats, device.buttons);
             map_custom_gamepad_actions(i, config_name, &device);
@@ -1303,15 +1302,15 @@ static void initialize_modifier_key(void)
     const char *value = fs_config_get_const_string(OPTION_MODIFIER_KEY);
     if (!value) {
 #ifdef MACOSX
-        fs_log("INPUT: Using default modifier key LSUPER\n");
+        fs_log("[INPUT] Using default modifier key LSUPER\n");
         g_modifier_key = FS_ML_KEY_LSUPER;
 #else
-        fs_log("INPUT: Using default modifier key LALT\n");
+        fs_log("[INPUT] Using default modifier key LALT\n");
         g_modifier_key = FS_ML_KEY_LALT;
 #endif
         return;
     } else if (strcmp(value, "0") == 0) {
-        fs_log("INPUT: Modifier key disabled\n");
+        fs_log("[INPUT] Modifier key disabled\n");
         g_modifier_key = -1;
         return;
     }
@@ -1319,10 +1318,10 @@ static void initialize_modifier_key(void)
     int key = 0;
     map_input_config_item(value, &key, NULL, NULL, NULL, NULL);
     if (key) {
-        fs_log("INPUT: Using modifier key 0x%d (%s)\n", key, value);
+        fs_log("[INPUT] Using modifier key 0x%d (%s)\n", key, value);
         g_modifier_key = key;
     } else {
-        fs_log("INPUT: Error parsing modifier key (%s)\n", value);
+        fs_log("[INPUT] Error parsing modifier key (%s)\n", value);
     }
 }
 
@@ -1780,7 +1779,7 @@ static int input_function(fs_ml_event *event)
 
 static void initialize_devices_for_menu(void)
 {
-    fs_log("INPUT: Initializing devices for menu\n");
+    fs_log("[INPUT] Initializing devices for \"menu\"\n");
     fs_ml_input_device device;
     for (int i = 0; i < FS_ML_INPUT_DEVICES_MAX; i++) {
         if (!fs_ml_input_device_get(i, &device)) {
@@ -1789,18 +1788,19 @@ static void initialize_devices_for_menu(void)
         fs_log("%i %s\n", i, device.name);
         input_config_item *config = NULL;
         if (config == NULL) {
-            fs_log("config name \"%s\"\n", device.name);
+            fs_log("[INPUT] Config name \"%s\"\n", device.name);
             config = get_config_for_device(device.name, "menu");
             if (config == NULL) {
-                fs_log("did not find config for device \"%s\"\n", device.name);
+                fs_log("[INPUT] Did not find config for device "
+                       "\"%s\"\n", device.name);
             }
         }
         if (config == NULL) {
             char *config_name = joystick_long_config_name(&device);
             config = get_config_for_device(config_name, "menu");
             if (config == NULL) {
-                fs_log("did not find menu config for device \"%s\"\n",
-                        config_name);
+                fs_log("[INPUT] Did not find menu config for device "
+                       "\"%s\"\n", config_name);
             }
             g_free(config_name);
         }
@@ -1808,8 +1808,8 @@ static void initialize_devices_for_menu(void)
             char *config_name = joystick_config_name(device.name, 0);
             config = get_config_for_device(config_name, "menu");
             if (config == NULL) {
-                fs_log("did not find menu config for device \"%s\"\n",
-                        config_name);
+                fs_log("[INPUT] Did not find menu config for device"
+                       "\"%s\"\n", config_name);
             }
             g_free(config_name);
         }
@@ -1828,7 +1828,7 @@ static void initialize_devices_for_menu(void)
                 }
             }
             if (start_index && select_index) {
-                // register menu button emulation
+                /* Register menu button emulation. */
                 g_menu_action_corresponding[start_index] = select_index;
                 g_menu_action_corresponding[select_index] = start_index;
             }
@@ -1843,7 +1843,7 @@ void fs_emu_input_init_2(void)
 void fs_emu_input_init(void)
 #endif
 {
-    fs_log("fs_emu_input_init\n");
+    fs_log("[INPUT] fs_emu_input_init\n");
 
     g_input_event_mutex = fs_mutex_create();
     g_input_event_queue = g_queue_new();

@@ -22,7 +22,6 @@ extern SDL_Window* g_fs_ml_window;
 #endif
 
 #include <SDL_syswm.h>
-// FIXME: REMOVE / replace with fs functions
 #include <glib.h>
 
 #include <X11/Xlib.h>
@@ -48,7 +47,7 @@ void fs_ml_activate_window_switcher_impl(void)
      * switched to, but the window selector will not be shown unless
      * the user releases and re-presses the Alt key. */
 #ifdef USE_X11_XTEST
-    fs_log("Sending XTEST fake (alt) tab key press\n");
+    fs_log("[X11] Sending XTEST fake (alt) tab key press\n");
 #if 0
     XTestFakeKeyEvent(g_display, XK_Alt_L, True, CurrentTime);
     XSync(g_display, False);
@@ -63,48 +62,42 @@ void fs_ml_activate_window_switcher_impl(void)
     XSync(g_display, False);
 #endif
 #else
-    fs_log("Support for XTEST extension not enabled\n");
+    fs_log("[X11] Support for XTEST extension not enabled\n");
 #endif
 }
 
 static void set_window_icon(void)
 {
-    fs_log("setting _NET_WM_ICON from icon images\n");
-
+    fs_log("[X11] Setting _NET_WM_ICON from icon images\n");
     int max_size = (16 * 16 + 32 * 32 + 48 * 48 + 64 * 64 + 128 * 128) * \
             sizeof(unsigned long);
-    // add space for width, height cardinals
+    /* Add space for width, height cardinals. */
     max_size += 2 * 5 * sizeof(unsigned long);
-
     unsigned long *icon_data = (unsigned long *) g_malloc(max_size);
     unsigned long *op = icon_data;
-    int card_count  = 0;
-
+    int cardinal_count  = 0;
     int sizes[] = {128, 64, 48, 32, 16, 0};
     for(int *size = sizes; *size; size++) {
-        char *rel = g_strdup_printf("icons/hicolor/%dx%d/apps/fs-uae.png",
-                *size, *size);
+        char *rel = g_strdup_printf(
+                    "icons/hicolor/%dx%d/apps/fs-uae.png", *size, *size);
         char *path = fs_get_data_file(rel);
         g_free(rel);
         if (!path) {
-            fs_log("did not find icon for %dx%d\n", *size, *size);
+            fs_log("[X11] Did not find icon for %dx%d\n", *size, *size);
             continue;
         }
-
         fs_image *image = fs_image_new_from_file(path);
         if (!image) {
-            fs_log("could not load icon from %s\n", path);
+            fs_log("[X11] Could not load icon from %s\n", path);
             continue;
         }
         g_free(path);
 
-        //printf("%d\n", image->width);
         int pixel_count = image->width * image->height;
         unsigned char *p = image->data;
         *op++ = image->width;
         *op++ = image->height;
         for (int i = 0; i < pixel_count; i++) {
-            //*op = 0xffff0000;
             *op = (((unsigned long) p[3]) << 24) |
                     (p[0] << 16) |
                     (p[1] << 8) |
@@ -112,17 +105,12 @@ static void set_window_icon(void)
             p += 4;
             op++;
         }
-        card_count += 2 + pixel_count;
-
+        cardinal_count += 2 + pixel_count;
         fs_unref(image);
-
-        // FIXME
-
     }
-
     Atom _NET_WM_ICON = XInternAtom(g_display, "_NET_WM_ICON", False);
     XChangeProperty(g_display, g_window, _NET_WM_ICON, XA_CARDINAL, 32,
-            PropModeReplace, (unsigned char *) icon_data, card_count);
+            PropModeReplace, (unsigned char *) icon_data, cardinal_count);
     g_free(icon_data);
 }
 
@@ -167,18 +155,18 @@ void fs_ml_configure_window(void)
     SDL_VERSION(&info.version); // this is important!
 #ifdef USE_SDL2
     if (!SDL_GetWindowWMInfo(g_fs_ml_window, &info)) {
-        fs_log("error getting window information\n");
+        fs_log("[X11] Error getting window information\n");
         return;
     }
     if (info.subsystem != SDL_SYSWM_X11) {
-        fs_log("[SDL] Subsystem is not SDL_SYSWM_X11\n");
+        fs_log("[X11] Subsystem is not SDL_SYSWM_X11\n");
         return;
     }
     g_display = info.info.x11.display;
     g_window = info.info.x11.window;
 #else
     if (!SDL_GetWMInfo(&info)) {
-        fs_log("error getting window information\n");
+        fs_log("[X11] Error getting window information\n");
         return;
     }
     g_display = info.info.x11.display;
@@ -197,7 +185,7 @@ void fs_ml_configure_window(void)
 
     Atom UTF8_STRING = XInternAtom(g_display, "UTF8_STRING", False);
 
-    fs_log("requesting dark window manager theme\n");
+    fs_log("[X11] Requesting dark window manager theme\n");
     Atom _GTK_THEME_VARIANT = XInternAtom(g_display, "_GTK_THEME_VARIANT", False);
     XChangeProperty(g_display, g_window, _GTK_THEME_VARIANT, UTF8_STRING, 8,
             PropModeReplace, (const unsigned char *) "dark", 4);
@@ -206,12 +194,6 @@ void fs_ml_configure_window(void)
     if (fs_config_get_int("always_on_top") == 1) {
         set_above_state();
     }
-    /*
-    set_window_icon(32);
-    set_window_icon(48);
-    set_window_icon(64);
-    set_window_icon(128);
-    */
 }
 
 enum {
@@ -222,45 +204,6 @@ enum {
     WAIT_REFRESH,
     REFRESH,
 };
-
-#if 0
-
-#define CLOCK_FREQ 10000000
-static int64_t g_syncbase = 0;
-
-static int64_t fs_ml_read_clock(void)
-{
-    struct timespec tp;
-    clock_gettime(CLOCK_REALTIME, &tp);
-    int64_t t = ((int64_t) tp.tv_sec) * CLOCK_FREQ + \
-            ((int64_t) tp.tv_nsec) / 100;
-    //printf("%lld\n", t);
-
-    static int64_t base_time = 0;
-    if (base_time == 0) {
-        base_time = t;
-    }
-    //    clock_gettime(CLOCK_REALTIME, &tp);
-    //    base_secs = tp.tv_sec;
-    //}
-    //clock_gettime(CLOCK_REALTIME, &tp);
-    //tp.tv_sec -= base_secs;
-    //return ((int64_t) tp.tv_sec) * CLOCK_FREQ + ((int64_t) tp.tv_nsec) / 100;
-    return t - base_time;
-}
-
-void fs_ml_calibrate_clock(void)
-{
-    g_syncbase = CLOCK_FREQ;
-}
-
-int64_t fs_ml_monotonic_time()
-{
-    //return (1000000 * fs_ml_read_clock()) / g_syncbase;
-    return fs_ml_read_clock() / 10;
-}
-
-#endif
 
 void fs_ml_usleep(int usec)
 {
@@ -504,4 +447,4 @@ int fs_ml_scancode_to_key(int scancode)
 
 int libfsemu_x11_dummy;
 
-#endif // USE_X11
+#endif /* USE_X11 */

@@ -1,5 +1,5 @@
 ver = @PACKAGE_VERSION@
-os = macosx
+os = macos
 arch = $(strip $(shell python3 ../arch.py))
 
 os_arch = $(os)_$(arch)

@@ -1,3 +1,17 @@
+Version 2.8.3:
+
+* Fix decoding on non-ascii %-escaped file names on directory HDs.
+* Fixed caps lock.
+* Imported updated translations from crowdin.com.
+
+Version 2.8.2u2:
+
+* Added Added xinput_controller_11_6_1_0_windows.
+
+Version 2.8.2u1:
+
+* Fix loading of bundled gamepad configs for macOS.
+
 Version 2.8.1u1:
 
 * Fix mouse input on Windows with raw keyboard input enabled.

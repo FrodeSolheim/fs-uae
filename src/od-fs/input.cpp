@@ -75,13 +75,11 @@ extern "C" {
 
 int amiga_send_input_event(int input_event, int state)
 {
+    static bool caps_lock_state;
+
 //#ifdef DEBUG_SYNC
     write_sync_log("apply action %d state=%d\n", input_event, state);
 //#endif
-    static int initialized = 0;
-    if (!initialized) {
-        initialized = 1;
-    }
 
     if (g_fs_log_input) {
         write_log("amiga_send_input_event %d %d\n", input_event, state);
@@ -90,8 +88,8 @@ int amiga_send_input_event(int input_event, int state)
     if (input_event > INPUTEVENT_PRIVATE_START) {
         return handle_custom_action(input_event, state);
     }
-    // FIXME: is max = 1 always appropriate?
-    int max = 1;
+
+    int max = 1;  /* FIXME: is max = 1 always appropriate? */
     bool magic_mouse = currprefs.input_magic_mouse;
     if (uae_deterministic_mode()) {
         magic_mouse = false;
@@ -114,11 +112,19 @@ int amiga_send_input_event(int input_event, int state)
         max = 0;
         break;
     case INPUTEVENT_KEY_CAPS_LOCK:
+        if (state && !caps_lock_state) {
+            caps_lock_state = true;
+        } else if (state && caps_lock_state) {
+            caps_lock_state = false;
+        }
+        state = caps_lock_state;
+#if 0
         // handled specially because of toggle mode
         // keyboard 0, using input event as scan code (correctly mapped
         // in keymap.cpp)
         inputdevice_translatekeycode(0, INPUTEVENT_KEY_CAPS_LOCK, state);
         return 1;
+#endif
     }
     int autofire = 0;
 

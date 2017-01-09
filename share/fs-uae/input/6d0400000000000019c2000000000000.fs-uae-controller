@@ -1,6 +1,6 @@
 [fs-uae-controller]
 name = Logitech Cordless RumblePad 2
-platform = macosx
+platform = macos
 
 [device]
 make = Logitech

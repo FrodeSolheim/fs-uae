@@ -312,21 +312,39 @@ int same_aname (const char *an1, const char *an2)
 
 static char *nname_to_aname(const char *nname, int noconvert)
 {
+    char *cresult;
     int len = strlen(nname);
-    char *result = strdup(nname);
+    if (noconvert) {
+        cresult = strdup(nname);
+    } else {
+        cresult = fs_utf8_to_latin1(nname, -1);
+//        free(result);
+    }
+
+    if (!cresult) {
+        write_log("[WARNING] nname_to_aname %s => Failed\n", nname);
+        return NULL;
+    }
+
+    char *result = strdup(cresult);
     unsigned char *p = (unsigned char *) result;
     for (int i = 0; i < len; i++) {
-        unsigned char c = nname[i];
+        unsigned char c = cresult[i];
         if (c == '%' && i < len - 2) {
-            *p++ = (char_to_hex(nname[i + 1]) << 4) | char_to_hex(nname[i + 2]);
+            *p++ = (char_to_hex(cresult[i + 1]) << 4) |
+                    char_to_hex(cresult[i + 2]);
             i += 2;
-        }
-        else {
+        } else {
             *p++ = c;
         }
     }
     *p++ = '\0';
-
+    free(cresult);
+    if (g_fsdb_debug) {
+        write_log("nname_to_aname %s => %s\n", nname, result);
+    }
+    return result;
+/*
     if (noconvert) {
         return result;
     }
@@ -334,15 +352,15 @@ static char *nname_to_aname(const char *nname, int noconvert)
     char* cresult = fs_utf8_to_latin1(result, -1);
     free(result);
 
-    if (g_fsdb_debug) {
-        if (cresult) {
+    if (cresult) {
+        if (g_fsdb_debug) {
             write_log("nname_to_aname %s => %s\n", nname, cresult);
         }
-        else {
-            write_log("nname_to_aname %s => Failed\n", nname);
-        }
+    } else {
+        write_log("[WARNING] nname_to_aname %s => Failed\n", nname);
     }
     return cresult;
+*/
 }
 
 /* Return nonzero if we can represent the amigaos_mode of AINO within the

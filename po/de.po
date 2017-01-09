@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae\n"
 "Report-Msgid-Bugs-To: frode@fs-uae.net\n"
-"POT-Creation-Date: 2016-04-26 00:59+0200\n"
-"PO-Revision-Date: 2016-05-14 05:19-0400\n"
+"POT-Creation-Date: 2016-12-11 15:15+0100\n"
+"PO-Revision-Date: 2016-12-31 10:05-0500\n"
 "Last-Translator: FrodeSolheim <frode-crowdin@fsolheim.net>\n"
 "Language-Team: German\n"
 "Language: de_DE\n"
@@ -30,11 +30,11 @@ msgid "Auto-Fire is Off"
 msgstr "Dauerfeuer ist aus"
 
 msgid "Auto-Fire is On"
-msgstr "Dauerfeuer ist an"
+msgstr "Dauerfeuer ist eingeschaltet"
 
 #, c-format
 msgid "Auto-fire disabled for port %d"
-msgstr "Dauerfeuer bei Anschluss %d ist aus"
+msgstr "Dauerfeuer für Anschluss %d ausgeschaltet"
 
 #, c-format
 msgid "Auto-fire enabled for port %d"
@@ -74,7 +74,7 @@ msgstr "Emulator-Steuerung"
 
 #, c-format
 msgid "Expected FS-UAE version %s, got %s"
-msgstr "Version %s erwartet; ist %s"
+msgstr "FS-UAE in Version %s erwartet; ist %s"
 
 #. / TRANSLATORS: In context "Zoom: Full Frame"
 msgid "Full Frame"
@@ -120,7 +120,7 @@ msgstr "Gerät an Joystick-Anschluss %d"
 #. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Joystick Port %d Mode"
-msgstr "Joystick-Anschluss Modus %d"
+msgstr "Joystick-Anschluss-Modus %d"
 
 msgid "Keyboard"
 msgstr "Tastatur"
@@ -170,7 +170,7 @@ msgid "Option chip_memory must be a multiple of 512"
 msgstr "Die Option chip_memory muss ein Vielfaches von 512 betragen"
 
 msgid "Option fast_memory must be a multiple of 1024"
-msgstr "Die Option fast_memory muss ein Vielfaches von 1024 sein"
+msgstr "Die Option fast_memory muss ein Vielfaches von 1024 betragen"
 
 msgid "Option motherboard_ram must be a multiple of 1024"
 msgstr "Die Option motherboard_ram muss ein Vielfaches von 1024 betragen"
@@ -179,10 +179,10 @@ msgid "Option motherboard_ram needs a CPU with 32-bit addressing"
 msgstr "Die Option Motherboard_ram benötigt eine CPU mit 32-Bit-Adressierung"
 
 msgid "Option slow_memory must be a multiple of 256"
-msgstr "Die Option slow_memory muss ein Vielfaches von 256 sein"
+msgstr "Die Option slow_memory muss ein Vielfaches von 256 betragen"
 
 msgid "Option uaegfx.card needs a CPU with 32-bit addressing"
-msgstr "Option uaegfx_card benötigt eine CPU mit 32bit-Adressierung"
+msgstr "Die Option uaegfx_card benötigt eine CPU mit 32-Bit-Adressierung"
 
 msgid "Option zorro_iii_memory must be a multiple of 1024"
 msgstr "Die Option zorro_iii_memory muss ein Vielfaches von 1024 betragen"
@@ -215,7 +215,7 @@ msgid "Resume"
 msgstr "Fortsetzen"
 
 msgid "Save"
-msgstr "Sichern"
+msgstr "Speichern"
 
 msgid "Save State"
 msgstr "Zustand speichern"

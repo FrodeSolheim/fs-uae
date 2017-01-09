@@ -1,6 +1,6 @@
 [fs-uae-controller]
 name = PS3/USB Cordless Gamepad
-platform = macosx
+platform = macos
 
 [device]
 make = Logitech

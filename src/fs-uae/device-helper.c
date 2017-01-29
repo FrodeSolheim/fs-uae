@@ -88,9 +88,19 @@ static void list_joysticks(void)
         ManyMouse_Quit();
     }
     printf("## joysticks ##\n");
+    if (getenv("FSGS_FAKE_JOYSTICKS")) {
+        int fake_joysticks = 0;
+        sscanf(getenv("FSGS_FAKE_JOYSTICKS"), "%d", &fake_joysticks);
+        for (int i = 0; i < fake_joysticks; i++) {
+            printf("J: Fake Joystick\n");
+            printf("   Buttons: 0 Hats: 0 Axes: 0 Balls: 0 GUID: %s\n",
+                   "4300a03b56ae4b6dbdbf2030995ec9b0");
+        }
+    }
 #if 0
     printf("J: Fake Test Joystick %c%c\n", 0xc2, 0xae);
-    printf("   Buttons: 0 Hats: 0 Axes: 0 Balls: 0\n");
+    printf("   Buttons: 0 Hats: 0 Axes: 0 Balls: 0 GUID: %s\n",
+           "4300a03b56ae4b6dbdbf2030995ec9b0");
 #endif
 #ifdef USE_SDL
     if (SDL_Init(SDL_INIT_JOYSTICK ) < 0) {

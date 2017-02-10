@@ -56,7 +56,6 @@ the Amiga model your trying to emulate and defaults back to the built-in AROS
 kickstart. Please verify that your configuration correctly points to a valid
 kickstart file.
 
-
 ## Why isn’t my gamepad or joystick working?
 
 Make sure it’s plugged in and connected before starting FS-UAE. If it’s still
@@ -64,6 +63,23 @@ not working, read the documentation on on how to configure your controller,
 you may have to create a configuration file for it. This is easily done for
 you via FS-UAE Launcher -> Settings -> Joysticks & Gamepads. Just
 double-click on your device to start configuring it.
+
+## What can I do if I cannot get F12 to work for opening the menu?
+
+If you've tried combining <kbd>F12</kbd> with <kbd>Fn</kbd> and/or
+<kbd>Cmd</kbd>, and it still does not work, you can either:
+
+* Bind the menu action to another key combination, or
+* Toggle the menu with a controller (menu button or start + select together).
+
+To bind the menu action to a key combination, you can add the following
+to advanced settings:
+
+    keyboard_key_mod_m = action_menu
+
+Then you should be able to use <kbd>Mod+M</kbd> to open/close the menu.
+<kbd>Mod</kbd> means <kbd>Cmd</kbd> on Macs and <kbd>Alt</kbd> on other
+computers.
 
 ## In what directory must screenshots for FS-UAE Launcher be saved?
 

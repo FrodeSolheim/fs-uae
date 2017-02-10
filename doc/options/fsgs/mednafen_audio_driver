@@ -1,0 +1,5 @@
+Summary: Mednafen Audio Driver
+Type: Choice
+Default:
+
+Value: sdl

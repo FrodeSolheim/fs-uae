@@ -1,0 +1,6 @@
+Summary: Arcade theme
+Type: Choice
+Default: blue
+
+Value: blue ("Blue")
+Value: red ("Red")

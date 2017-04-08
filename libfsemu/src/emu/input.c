@@ -2,7 +2,7 @@
 #include "config.h"
 #endif
 
-#define FS_EMU_INTERNAL
+#define FSE_INTERNAL_API
 #include <fs/emu.h>
 #include <fs/emu/input.h>
 #include <fs/emu/options.h>
@@ -1837,11 +1837,7 @@ static void initialize_devices_for_menu(void)
     }
 }
 
-#ifdef FS_EMU_DRIVERS
 void fs_emu_input_init_2(void)
-#else
-void fs_emu_input_init(void)
-#endif
 {
     fs_log("[INPUT] fs_emu_input_init\n");
 
@@ -1874,7 +1870,7 @@ void fs_emu_input_init(void)
         g_swap_ctrl_keys = 0;
     }
 
-    if (fs_config_is_true(OPTION_FULL_KEYBOARD)) {
+    if (fs_config_true(OPTION_FULL_KEYBOARD)) {
         fs_emu_set_full_keyboard_emulation(true, false);
     }
 

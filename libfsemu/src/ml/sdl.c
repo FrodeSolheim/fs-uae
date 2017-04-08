@@ -39,9 +39,10 @@
 #endif
 #include <fs/ml/options.h>
 
-#define FS_EMU_INTERNAL
+#define FSE_INTERNAL_API
 #include <fs/emu/input.h>
 #include <fs/emu/monitor.h>
+#include <fs/emu/video.h>
 #include "ml_internal.h"
 
 SDL_Window *g_fs_ml_window = NULL;
@@ -114,16 +115,16 @@ int fs_ml_get_windowed_height()
 
 static void post_video_event(int event)
 {
-#ifdef FS_EMU_DRIVERS
-    // printf("FS_EMU_DRIVERS: ignoring post_video_event\n");
-#else
-    fs_mutex_lock(g_video_event_mutex);
-    g_queue_push_head(g_video_event_queue, FS_INT_TO_POINTER(event));
-    fs_mutex_unlock(g_video_event_mutex);
-#endif
+    if (fse_drivers()) {
+        // printf("FSE_DRIVERS: ignoring post_video_event\n");
+    } else {
+        fs_mutex_lock(g_video_event_mutex);
+        g_queue_push_head(g_video_event_queue, FS_INT_TO_POINTER(event));
+        fs_mutex_unlock(g_video_event_mutex);
+    }
 }
 
-static void process_video_events()
+static void process_video_events(void)
 {
     fs_mutex_lock(g_video_event_mutex);
     int count = g_queue_get_length(g_video_event_queue);
@@ -806,12 +807,12 @@ int fs_ml_video_create_window(const char *title)
 
     // this function must be called from the video thread
     fs_log("init_opengl\n");
-    fs_emu_video_init_opengl();
+    fse_init_video_opengl();
 
     SDL_StartTextInput();
 
 #ifdef WINDOWS
-    if (!fs_config_is_false(OPTION_RAW_INPUT)) {
+    if (!fs_config_false(OPTION_RAW_INPUT)) {
         fs_ml_init_raw_input();
     }
 #endif
@@ -868,7 +869,7 @@ int fs_ml_event_loop(void)
         case SDL_QUIT:
             fs_log("Received SDL_QUIT\n");
             fs_ml_quit();
-#ifdef FS_EMU_DRIVERS
+#ifdef FSE_DRIVERS
             printf("returning 1 from fs_ml_event_loop\n");
             result = 1;
 #endif
@@ -1178,7 +1179,7 @@ static void post_main_loop(void)
     }
 }
 
-int fs_ml_main_loop()
+int fs_ml_main_loop(void)
 {
     while (g_fs_ml_running) {
         fs_ml_event_loop();

@@ -5,6 +5,7 @@
 #include "font.h"
 
 #include <fs/emu.h>
+#include <fs/emu/video.h>
 #include <fs/glib.h>
 #include <fs/i18n.h>
 

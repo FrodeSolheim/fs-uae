@@ -1,0 +1,21 @@
+Summary: C64 Palette
+Type: Choice
+Default: 0
+Example: community-colors
+
+Value: 0 (None)
+Value: c64hq (C64HQ)
+Value: c64s (C64S)
+Value: ccs64 (CCS64)
+Value: community-colors (Community)
+Value: deekay (Deekay)
+Value: frodo (Frode)
+Value: godot (Godot)
+Value: pc64 (PC64)
+Value: pepto-ntsc-sony (Pepto NTSC Sony)
+Value: pepto-ntsc (Pepto NTSC)
+Value: pepto-palold (Pepto PAL-Old)
+Value: pepto-pal (Pepto PAL)
+Value: ptoing (Ptoing)
+Value: rgb (RGB)
+Value: vice (Vice)

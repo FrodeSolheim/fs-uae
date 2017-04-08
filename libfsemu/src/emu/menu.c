@@ -3,6 +3,8 @@
 #endif
 
 #include <fs/emu.h>
+#include <fs/emu/audio.h>
+
 #include "menu.h"
 
 #include <stdlib.h>
@@ -641,7 +643,7 @@ static void render_top_item(int mode, int index)
     if (index == 3) {
         if (mode == 0) {
             int texture = TEXTURE_VOLUME;
-            if (fs_emu_audio_muted(FS_EMU_AUDIO_MASTER)) {
+            if (fse_audio_muted(FS_EMU_AUDIO_MASTER)) {
                 texture = TEXTURE_VOLUME_MUTED;
             }
             render_top_item_background(selected, x, y, 80, 60);

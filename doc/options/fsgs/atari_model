@@ -1,0 +1,8 @@
+Summary: Atari ST Model
+Type: Choice
+Default: 1040st
+
+Value: 520st (520ST)
+Value: 1040st (1040ST)
+Value: 520ste (520STE)
+Value: 1040ste (1040STE)

@@ -3,6 +3,7 @@
 #endif
 
 #include <fs/emu.h>
+#include <fs/emu/video.h>
 
 #ifdef USE_OPENGL
 #include <fs/ml/opengl.h>

@@ -1084,7 +1084,7 @@ void fs_uae_configure_menu() {
     fs_emu_menu_append_item(menu, item);
     fs_emu_menu_item_set_title(item, _("Load State"));
     fs_emu_menu_item_set_activate_function(item, load_states_menu_function);
-    if (fs_config_is_false(OPTION_SAVE_STATES)) {
+    if (fs_config_false(OPTION_SAVE_STATES)) {
         fs_emu_menu_item_set_enabled(item, 0);
     }
 
@@ -1092,7 +1092,7 @@ void fs_uae_configure_menu() {
     fs_emu_menu_append_item(menu, item);
     fs_emu_menu_item_set_title(item, _("Save State"));
     fs_emu_menu_item_set_activate_function(item, save_states_menu_function);
-    if (fs_config_is_false(OPTION_SAVE_STATES)) {
+    if (fs_config_false(OPTION_SAVE_STATES)) {
         fs_emu_menu_item_set_enabled(item, 0);
     }
 /*

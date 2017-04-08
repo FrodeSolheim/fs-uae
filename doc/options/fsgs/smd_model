@@ -1,0 +1,8 @@
+Summary: Mega Drive Model
+Type: Choice
+Default: auto
+
+Value: auto (Auto-Select Region)
+Value: ntsc-u (NTSC-U (Genesis))
+Value: ntsc-j (NTSC-J)
+Value: pal (PAL)

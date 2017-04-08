@@ -7,6 +7,7 @@
 #include <string.h>
 
 #include <fs/emu.h>
+#include <fs/emu/video.h>
 #include <fs/ml.h>
 
 #include "libfsemu.h"
@@ -21,7 +22,7 @@
 
 extern int g_fs_ml_benchmarking;
 
-void fs_emu_video_init_options(void)
+void fse_init_video_options(void)
 {
 	//int auto_sync_mode = 1;
     //int sync_to_vblank = 1;

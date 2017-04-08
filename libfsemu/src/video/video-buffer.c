@@ -2,9 +2,7 @@
 #include "config.h"
 #endif
 
-#ifdef FS_EMU_DRIVERS
-
-#define FS_EMU_INTERNAL
+#define FSE_INTERNAL_API
 #include <fs/emu/buffer.h>
 #include <fs/emu/benchmark.h>
 #include <fs/emu/options.h>
@@ -125,8 +123,7 @@ fs_emu_video_buffer *fs_emu_video_buffer_get_available(int copy)
             memcpy((g_video_buffers + next_buffer)->data,
                     g_video_buffer_current->data,
                     (g_video_buffers + next_buffer)->size);
-        }
-        else {
+        } else {
             memset((g_video_buffers + next_buffer)->data, 0x0,
                     (g_video_buffers + next_buffer)->size);
         }
@@ -140,8 +137,7 @@ int fs_emu_buffer_lock(void)
     fs_mutex_lock(g_fs_emu_buffer_mutex);
     if (g_video_buffer_locked == -1) {
         g_video_buffer_locked = g_video_buffer_current;
-    }
-    else {
+    } else {
         /* already locked */
     }
     fs_mutex_unlock(g_fs_emu_buffer_mutex);
@@ -154,5 +150,3 @@ void fs_emu_buffer_unlock(void)
     g_video_buffer_locked = -1;
     fs_mutex_unlock(g_fs_emu_buffer_mutex);
 }
-
-#endif /* FS_EMU_DRIVERS */

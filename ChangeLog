@@ -1,3 +1,8 @@
+Version 2.9.5dev:
+
+* Added some game controller configs.
+* Restructuring to allow for (future) multiple video/audio/input drivers.
+
 Version 2.9.3dev:
 
 * Updated FS-UAE icon.

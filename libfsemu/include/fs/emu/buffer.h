@@ -19,13 +19,11 @@ typedef struct fs_emu_buffer {
     int flags;
 } fs_emu_buffer;
 
-extern void (*fs_emu_buffer_configure)(int width, int height);
+void fs_emu_buffer_configure(int width, int height);
+fs_emu_buffer *fs_emu_buffer_get(void);
+void fs_emu_buffer_finish(fs_emu_buffer *buffer);
 
-extern fs_emu_buffer *(*fs_emu_buffer_get)(void);
-
-extern void (*fs_emu_buffer_finish)(fs_emu_buffer *buffer);
-
-#ifdef FS_EMU_INTERNAL
+#ifdef FSE_INTERNAL_API
 
 void fs_emu_buffer_init(void);
 
@@ -41,6 +39,17 @@ void fs_emu_buffer_unlock(void);
 
 int fs_emu_buffer_wait(int number, int timeout);
 
-#endif /* FS_EMU_INTERNAL */
+#endif /* FSE_INTERNAL_API */
 
-#endif // FS_EMU_BUFFER_H
+/* Old functions */
+
+typedef fs_emu_buffer fs_emu_video_buffer;
+int fs_emu_video_buffer_init(int width, int height, int bpp);
+fs_emu_video_buffer *fs_emu_video_buffer_get_available(int copy);
+void fs_emu_video_buffer_update_lines(fs_emu_video_buffer *buffer);
+void fs_emu_video_buffer_set_current(fs_emu_video_buffer *buffer);
+fs_emu_video_buffer *fs_emu_video_buffer_get_current();
+int fs_emu_video_buffer_grow(fs_emu_video_buffer *buffer, int width,
+        int height);
+
+#endif /* FS_EMU_BUFFER_H */

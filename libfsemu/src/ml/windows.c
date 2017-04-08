@@ -461,7 +461,7 @@ static gpointer video_thread_entry(gpointer data) {
     }
 
     // this function must be called from the video thread
-    fs_emu_video_init_opengl();
+    fse_init_video_opengl();
     if (fs_ml_video_vsync()) {
         wglSwapIntervalEXT(1);
     }

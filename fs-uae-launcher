@@ -3,5 +3,5 @@ export PYTHONPATH=../python
 if [ "x$STEAM_RUNTIME_ROOT" != "x" ]; then
 run.sh python3 ../fs-uae-launcher/fs-uae-launcher "$@"
 else
-python3 ../fs-uae-launcher/fs-uae-launcher "$@"
+python3 ../fs-uae-launcher/fs-uae-launcher "$@" --base-dir=../base-dir
 fi

@@ -7,9 +7,8 @@
 #include <math.h>
 #include <uae/uae.h>
 #include <fs/emu.h>
-#ifdef FS_EMU_DRIVERS
 #include <fs/emu/buffer.h>
-#endif
+#include <fs/emu/video.h>
 #include <fs/i18n.h>
 #include "fs-uae.h"
 #include "options.h"
@@ -69,11 +68,7 @@ static int g_remember_last_screen = 0;
 static int g_use_rtg_scanlines = 0;
 static int g_last_seen_mode_rtg = 0;
 static int g_frame_seq_no = 0;
-#ifdef FS_EMU_DRIVERS
-static fs_emu_buffer *g_buffer = NULL;
-#else
 static fs_emu_video_buffer *g_buffer = NULL;
-#endif
 
 static int read_window_override_int(const char* s, int* pos, int* out)
 {
@@ -446,12 +441,14 @@ static void render_screen(RenderData* rd)
             g_buffer->flags |= FS_EMU_NO_SCANLINES_FLAG;
         }
     }
-#ifdef FS_EMU_DRIVERS
 
-#else
-    memcpy(g_buffer->line, rd->line, AMIGA_MAX_LINES);
-    fs_emu_video_buffer_update_lines(g_buffer);
-#endif
+    if (fse_drivers()) {
+
+    } else {
+        memcpy(g_buffer->line, rd->line, AMIGA_MAX_LINES);
+        fs_emu_video_buffer_update_lines(g_buffer);
+    }
+
     static int lastcx = 0, lastcy = 0, lastcw = 0, lastch = 0;
     static int lastsubscan = 0;
 
@@ -634,34 +631,32 @@ static void render_screen(RenderData* rd)
 static void *grow_buffer(int width, int height)
 {
     //printf("growing buffer: %p\n", g_buffer->data);
-#ifdef FS_EMU_DRIVERS
+    if (fse_drivers()) {
     // printf("FIXME: buffer growing NOT IMPLEMENTED\n");
-#else
-    fs_emu_video_buffer_grow(g_buffer, width, height);
-#endif
+    } else {
+        fs_emu_video_buffer_grow(g_buffer, width, height);
+    }
     return g_buffer->data;
 }
 
 #define TURBO_FRAME_RATE 10000
 
-#ifdef FS_EMU_DRIVERS
 // char *temp = NULL;
-#endif
 
 static void new_buffer(void)
 {
-#ifdef FS_EMU_DRIVERS
-    g_buffer = fs_emu_buffer_get();
-    // if (temp) {
-    //     memcpy(g_buffer->data, temp, g_buffer->size);
-    // }
-    amiga_set_render_buffer(g_buffer->data, g_buffer->size,
-            !g_remember_last_screen, grow_buffer);
-#else
-    g_buffer = fs_emu_video_buffer_get_available(g_remember_last_screen);
-    amiga_set_render_buffer(g_buffer->data, g_buffer->size,
-            !g_remember_last_screen, grow_buffer);
-#endif
+    if (fse_drivers()) {
+        g_buffer = fs_emu_buffer_get();
+        // if (temp) {
+        //     memcpy(g_buffer->data, temp, g_buffer->size);
+        // }
+        amiga_set_render_buffer(g_buffer->data, g_buffer->size,
+                !g_remember_last_screen, grow_buffer);
+    } else {
+        g_buffer = fs_emu_video_buffer_get_available(g_remember_last_screen);
+        amiga_set_render_buffer(g_buffer->data, g_buffer->size,
+                !g_remember_last_screen, grow_buffer);
+    }
 }
 
 static void display_screen()
@@ -674,15 +669,15 @@ static void display_screen()
         //printf("%d\n", dt);
     }
 #endif
-#ifdef FS_EMU_DRIVERS
-    // if (temp == NULL) {
-    //     temp = malloc(g_buffer->size);
-    // }
-    // memcpy(temp, g_buffer->data, g_buffer->size);
-    fs_emu_buffer_finish(g_buffer);
-#else
-    fs_emu_video_buffer_set_current(g_buffer);
-#endif
+    if (fse_drivers()) {
+        // if (temp == NULL) {
+        //     temp = malloc(g_buffer->size);
+        // }
+        // memcpy(temp, g_buffer->data, g_buffer->size);
+        fs_emu_buffer_finish(g_buffer);
+    } else {
+        fs_emu_video_buffer_set_current(g_buffer);
+    }
     if (round(g_last_refresh_rate) == -1) {
         if (round(fs_emu_get_video_frame_rate()) != TURBO_FRAME_RATE) {
             fs_emu_notification(45194412, _("Warp mode enabled"));
@@ -738,17 +733,18 @@ void fs_uae_init_video(void)
     fs_log("fs_uae_init_video\n");
     init_window_overrides();
 
-#ifdef FS_EMU_DRIVERS
-    fs_emu_buffer_configure(AMIGA_WIDTH, AMIGA_HEIGHT);
-//    g_buffer = fs_emu_buffer_get();
-//    amiga_set_render_buffer(g_buffer->data, g_buffer->size,
-//            !g_remember_last_screen, grow_buffer);
-#else
-    fs_emu_video_buffer_init(1024, 1024, 0);
-//    g_buffer = fs_emu_video_buffer_get_available(g_remember_last_screen);
-//    amiga_set_render_buffer(g_buffer->data, g_buffer->size,
-//            !g_remember_last_screen, grow_buffer);
-#endif
+    if (fse_drivers()) {
+        // FIXME
+        fs_emu_buffer_configure(AMIGA_WIDTH, AMIGA_HEIGHT);
+        // g_buffer = fs_emu_buffer_get();
+        // amiga_set_render_buffer(g_buffer->data, g_buffer->size,
+        //         !g_remember_last_screen, grow_buffer);
+    } else {
+        fs_emu_video_buffer_init(1024, 1024, 0);
+        // g_buffer = fs_emu_video_buffer_get_available(g_remember_last_screen);
+        // amiga_set_render_buffer(g_buffer->data, g_buffer->size,
+        //         !g_remember_last_screen, grow_buffer);
+    }
     new_buffer();
 
     amiga_set_render_function(render_screen);

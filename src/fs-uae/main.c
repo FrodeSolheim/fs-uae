@@ -15,7 +15,9 @@
 #include <fs/base.h>
 #include <fs/data.h>
 #include <fs/emu.h>
+#include <fs/emu/audio.h>
 #include <fs/emu/path.h>
+#include <fs/emu/video.h>
 #include <fs/glib.h>
 #include <fs/lazyness.h>
 #include <fs/main.h>
@@ -353,7 +355,7 @@ static void event_handler(int line)
     fs_emu_wait_for_frame(g_fs_uae_frame);
     if (g_fs_uae_frame == 1) {
         if (!fs_emu_netplay_enabled()) {
-            if (fs_config_is_true(OPTION_WARP_MODE)) {
+            if (fs_config_true(OPTION_WARP_MODE)) {
                 amiga_send_input_event(INPUTEVENT_SPC_WARP, 1);
             }
         }
@@ -400,23 +402,20 @@ char *g_fs_uae_config_dir_path = NULL;
 static int audio_callback_function(int type, int16_t *buffer, int size)
 {
     if (type == 0) {
-        return fs_emu_audio_queue_buffer(0, buffer, size);
-    }
-    else if (type == 1) {
-        fs_emu_audio_set_paused(0, true);
+        return fse_queue_audio_buffer(0, buffer, size);
+    } else if (type == 1) {
+        fse_set_audio_paused(0, true);
         return 0;
-    }
-    else if (type == 2) {
-        fs_emu_audio_set_paused(0, false);
+    } else if (type == 2) {
+        fse_set_audio_paused(0, false);
         return 0;
-    }
-    else if (type == 3) {
-        // cd audio stream
+    } else if (type == 3) {
+        /* CD audio stream */
         if (buffer == NULL) {
-            // check status of buffer number given by size
-            return fs_emu_audio_check_buffer(1, size);
+            /* Check status of buffer number given by size. */
+            return fse_check_audio_buffer(1, size);
         }
-        return fs_emu_audio_queue_buffer(1, buffer, size);
+        return fse_queue_audio_buffer(1, buffer, size);
     }
     return -1;
 }
@@ -537,7 +536,7 @@ static void on_init(void)
     if (fs_config_get_int("min_first_line_ntsc") != FS_CONFIG_NONE) {
         amiga_set_min_first_line(fs_config_get_int("min_first_line_ntsc"), 1);
     }
-    if (fs_config_is_true(OPTION_CLIPBOARD_SHARING)) {
+    if (fs_config_true(OPTION_CLIPBOARD_SHARING)) {
         amiga_set_option("clipboard_sharing", "yes");
     }
 
@@ -1107,7 +1106,7 @@ int main(int argc, char *argv[])
     fs_emu_path_set_expand_function(fs_uae_expand_path);
 
     fs_emu_init_overlays(overlay_names);
-    fs_emu_init();
+    fse_init_early();
 
     /* Then load the config file and set data dir */
     load_config_file();
@@ -1202,7 +1201,7 @@ int main(int argc, char *argv[])
     fs_emu_set_pause_function(pause_function);
 
     //fs_uae_init_input();
-    fs_emu_init_2(FS_EMU_INIT_EVERYTHING);
+    fse_init(FS_EMU_INIT_EVERYTHING);
 
     // we initialize the recording module either it is used or not, so it
     // can delete state-specific recordings (if necessary) when states are
@@ -1236,8 +1235,8 @@ int main(int argc, char *argv[])
         }
     }
 
-#ifdef FS_EMU_DRIVERS
-    fs_emu_audio_stream_options **options = fs_emu_audio_alloc_stream_options(2);
+#if 1 // def FSE_DRIVERS
+    fse_audio_stream_options **options = fs_emu_audio_alloc_stream_options(2);
     options[0]->frequency = fs_emu_audio_output_frequency();
     /* 12 * 2352 is CDDA_BUFFERS * 2352 (blkdev_cdimage.cpp) */
     options[1]->buffer_size = 12 * 2352;
@@ -1250,8 +1249,8 @@ int main(int argc, char *argv[])
     // this stream is for paula output and drive clicks
     // FIXME: could mix drive clicks in its own stream instead, -might
     // give higher quality mixing
-    fs_emu_audio_stream_options options;
-    options.struct_size = sizeof(fs_emu_audio_stream_options);
+    fse_audio_stream_options options;
+    options.struct_size = sizeof(fse_audio_stream_options);
     fs_emu_init_audio_stream_options(&options);
     options.frequency = fs_emu_audio_output_frequency();
     fs_emu_init_audio_stream(0, &options);

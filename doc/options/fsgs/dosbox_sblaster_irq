@@ -1,0 +1,7 @@
+Summary: Sound Blaster IRQ
+Type: Choice
+Default: 7
+Example: 5
+
+Choice: 5
+Choice 7

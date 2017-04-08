@@ -2,7 +2,7 @@
 #include "config.h"
 #endif
 
-#define FS_EMU_INTERNAL
+#define FSE_INTERNAL_API
 #include <fs/emu/path.h>
 
 #include <fs/glib.h>

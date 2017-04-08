@@ -1,0 +1,8 @@
+Summary: DOS Emulator
+Type: Choice
+Default: dosbox-fs
+Example: dosbox
+
+Value: dosbox-fs (DOSBox-FS)
+Value: dosbox (DOSBox)
+Value: dosbox-svn (DOSBox-SVN)

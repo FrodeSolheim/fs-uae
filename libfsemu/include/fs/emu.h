@@ -46,10 +46,13 @@ void fs_emu_lua_run_handler(const char *name);
 
 // Can (or should) be called before fs_emu_init
 
+#define fse_log fs_log
+#define fse_log_string fs_log_string
+
 #define fs_emu_log fs_log
 #define fs_emu_log_string fs_log_string
 
-typedef void (*fs_emu_simple_function)();
+typedef void (*fs_emu_simple_function)(void);
 
 void fs_emu_set_quit_function(fs_emu_simple_function function);
 
@@ -58,13 +61,13 @@ void fs_emu_set_controllers_dir(const char *path);
 // initialize libfsemu
 
 void fs_emu_init_overlays(const char **overlay_names);
-void fs_emu_init(void);
+void fse_init_early(void);
 
 #define FS_EMU_INIT_VIDEO 1
 #define FS_EMU_INIT_AUDIO 2
 #define FS_EMU_INIT_INPUT 4
 #define FS_EMU_INIT_EVERYTHING 0xffffffff
-void fs_emu_init_2(int options);
+void fse_init(int options);
 
 // ----------
 
@@ -330,33 +333,6 @@ void fs_emu_video_render_synchronous();
 #define FS_EMU_FORCE_VIEWPORT_CROP_FLAG 2
 #define FS_EMU_FILL_BORDER_FLAG 4
 
-typedef struct fs_emu_video_buffer {
-    int seq;
-    void *data;
-    int width;
-    int height;
-    int bpp;
-    double aspect;
-    int size;
-    fs_emu_rect crop;
-    //int buffer_width;
-    //int buffer_height;
-    char line[FS_EMU_MAX_LINES];
-    int flags;
-} fs_emu_video_buffer;
-
-int fs_emu_video_buffer_init(int width, int height, int bpp);
-fs_emu_video_buffer *fs_emu_video_buffer_get_available(int copy);
-void fs_emu_video_buffer_update_lines(fs_emu_video_buffer *buffer);
-void fs_emu_video_buffer_set_current(fs_emu_video_buffer *buffer);
-fs_emu_video_buffer *fs_emu_video_buffer_get_current();
-int fs_emu_video_buffer_grow(fs_emu_video_buffer *buffer, int width,
-        int height);
-
-// audio interface
-
-#include <fs/emu/audio.h>
-
 bool fs_emu_mouse_integration(void);
 void fs_emu_show_cursor(int show);
 void fs_emu_show_cursor_msec(int duration);
@@ -454,7 +430,6 @@ void fs_emu_assert_gui_lock();
 void fs_emu_release_gui_lock();
 
 #include <fs/emu/dialog.h>
-#include <fs/emu/video.h>
 
 #ifdef __cplusplus
 }

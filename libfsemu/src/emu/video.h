@@ -28,9 +28,9 @@ void fs_emu_on_resize(int width, int height);
 
 void fs_emu_video_render_debug_info(uint32_t *texture);
 
-void fs_emu_video_init(void);
-void fs_emu_video_init_options(void);
-void fs_emu_video_init_opengl(void);
+void fse_init_video(void);
+void fse_init_video_options(void);
+void fse_init_video_opengl(void);
 
 int fs_emu_video_update_function(void);
 void fs_emu_video_render_function(void);

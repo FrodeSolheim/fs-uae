@@ -1,0 +1,6 @@
+Summary: ZX Spectrum Game Driver
+Type: Choice
+Default: fuse
+
+Value: fuse (Fuse)
+Value: mess (MESS)

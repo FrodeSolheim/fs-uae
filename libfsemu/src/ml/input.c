@@ -229,12 +229,7 @@ void fs_ml_input_init()
 
     g_input_queue = g_queue_new();
     g_input_mutex = fs_mutex_create();
-#ifdef FS_EMU_DRIVERS
-    fs_log("[INPUT] NOT calling fs_ml_video_init\n");
-#else
-    fs_log("[INPUT] calling fs_ml_video_init\n");
-    fs_ml_video_init();
-#endif
+
     int size = sizeof(fs_ml_input_device) * FS_ML_INPUT_DEVICES_MAX;
     /* Allocate zeroed memory. */
     g_fs_ml_input_devices = g_malloc0(size);

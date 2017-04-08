@@ -89,7 +89,7 @@ void fs_uae_configure_cdrom(void)
         //set_default_dirs_from_file_path(path);
         // FIXME: can possibly remove temp / ,image now
         char *temp;
-        if (fs_config_is_true("cdrom_drive_0_delay")) {
+        if (fs_config_true("cdrom_drive_0_delay")) {
             temp = g_strconcat(path, ",delay:image", NULL);
         } else {
             temp = g_strconcat(path, ",image", NULL);

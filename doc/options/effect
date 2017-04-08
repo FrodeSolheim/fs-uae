@@ -1,0 +1,9 @@
+Summary: Effect
+Type: Choice
+Default: 0
+Example: crt
+
+Value: 0 ("No Effect")
+Value: hq2x (HQ2X)
+Value: scale2x (Scale2X)
+Value: crt ("CRT Emulation")

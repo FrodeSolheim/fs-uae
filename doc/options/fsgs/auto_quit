@@ -1,0 +1,4 @@
+Summary: Auto-Quit
+Type: Boolean
+Default: 1
+Example: 0

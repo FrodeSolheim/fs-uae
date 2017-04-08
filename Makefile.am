@@ -660,6 +660,7 @@ libfsemu_a_SOURCES = \
         libfsemu/include/fs/emu/cef.h \
         libfsemu/include/fs/emu/dialog.h \
 	libfsemu/include/fs/emu/hacks.h \
+	libfsemu/include/fs/emu/log.h \
 	libfsemu/include/fs/emu/input.h \
 	libfsemu/include/fs/emu/monitor.h \
 	libfsemu/include/fs/emu/options.h \
@@ -685,22 +686,16 @@ libfsemu_a_SOURCES = \
 	libfsemu/include/fs/thread.h \
 	libfsemu/include/fs/time.h \
 	libfsemu/include/fs/util.h \
-        libfsemu/src/audio/audio-common.c \
-        libfsemu/src/audio/audio-driver-dummy.c \
-        libfsemu/src/audio/audio-driver-openal.c \
-        libfsemu/src/audio/audio-driver-sdl.c \
-        libfsemu/src/audio/audio-init.c \
+        libfsemu/src/audio/alsa-audio.c \
+        libfsemu/src/audio/audio.c \
+        libfsemu/src/audio/dummy-audio.c \
+        libfsemu/src/audio/openal-audio.c \
+        libfsemu/src/audio/sdl-audio.c \
         libfsemu/src/base.c \
 	libfsemu/src/conf.c \
 	libfsemu/src/data.c \
 	libfsemu/src/emu/actions.c \
 	libfsemu/src/emu/audio.h \
-	libfsemu/src/emu/audio_common.c \
-	libfsemu/src/emu/audio_debug.c \
-	libfsemu/src/emu/audio_dummy.c \
-	libfsemu/src/emu/audio_dummy.c \
-	libfsemu/src/emu/audio_openal.c \
-	libfsemu/src/emu/audio_sdl.c \
         libfsemu/src/emu/cef.cpp \
 	libfsemu/src/emu/dialog.c \
 	libfsemu/src/emu/dialog.h \
@@ -739,9 +734,9 @@ libfsemu_a_SOURCES = \
 	libfsemu/src/filesys.c \
 	libfsemu/src/image.c \
 	libfsemu/src/input/input-actions.c \
-	libfsemu/src/input/input-common.c \
-	libfsemu/src/input/input-driver-sdl.c \
-	libfsemu/src/input/input-init.c \
+	libfsemu/src/input/input.c \
+	libfsemu/src/input/legacy-input.c \
+	libfsemu/src/input/sdl-input.c \
 	libfsemu/src/inifile.c \
 	libfsemu/src/init.c \
 	libfsemu/src/log.c \
@@ -771,13 +766,13 @@ libfsemu_a_SOURCES = \
         libfsemu/src/ref.c \
 	libfsemu/src/thread.c \
 	libfsemu/src/time.c \
-        libfsemu/src/video/video-buffer.c \
-        libfsemu/src/video/video-common.c \
-        libfsemu/src/video/video-common-sdl.c \
-        libfsemu/src/video/video-driver-dummy.c \
-        libfsemu/src/video/video-driver-sdl.c \
-        libfsemu/src/video/video-driver-sdl-software.c \
-        libfsemu/src/video/video-init.c
+        libfsemu/src/video/dummy-video.c \
+        libfsemu/src/video/legacy-video.c \
+        libfsemu/src/video/sdl-video.c \
+        libfsemu/src/video/sdl-video-common.c \
+        libfsemu/src/video/sdl-video-software.c \
+        libfsemu/src/video/video.c \
+        libfsemu/src/video/video-buffer.c
 
 if BUILTIN_CEF
 AM_CPPFLAGS += -I$(s)/cef

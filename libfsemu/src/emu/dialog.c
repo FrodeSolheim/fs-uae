@@ -38,9 +38,12 @@
 static GList *g_dialog_stack = NULL;
 int g_fs_emu_dialog_mode = 0;
 
-void fs_emu_dialog_init() {
+#if 0
+void fs_emu_dialog_init(void)
+{
     fs_log("initialize dialog module\n");
 }
+#endif
 
 fs_emu_dialog* fs_emu_dialog_create(const char *title,
         const char *affirmative, const char *negative) {

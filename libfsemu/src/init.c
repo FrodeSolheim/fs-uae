@@ -13,7 +13,7 @@
 
 static fs_mutex *g_init_mutex;
 
-void fs_init()
+void fs_init(void)
 {
 #ifdef USE_GLIB
 #ifdef USE_REAL_MALLOC
@@ -39,12 +39,12 @@ void fs_init()
     g_init_mutex = fs_mutex_create();
 }
 
-void fs_init_lock()
+void fs_init_lock(void)
 {
     fs_mutex_lock(g_init_mutex);
 }
 
-void fs_init_unlock()
+void fs_init_unlock(void)
 {
     fs_mutex_unlock(g_init_mutex);
 }

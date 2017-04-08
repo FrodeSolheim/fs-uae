@@ -1,0 +1,8 @@
+Summary: ZX Spectrum Model
+Type: Choice
+Default: spectrum
+
+Value: spectrum (Spectrum 48K)
+Value: spectrum/if2 (Spectrum 48K, Interface 2)
+Value: spectrum128 (Spectrum 128)
+Value: spectrum+3 (Spectrum +3)

@@ -6,7 +6,7 @@
 bool fs_emu_full_keyboard_emulation(void);
 void fs_emu_set_full_keyboard_emulation(bool full, bool notification);
 
-#ifdef FS_EMU_DRIVERS
+#ifdef FSE_DRIVERS
 
 typedef struct fs_emu_action_id {
     int value;
@@ -23,7 +23,7 @@ void fs_emu_input_action_execute(fs_emu_action_id action, int state);
 
 #endif
 
-#ifdef FS_EMU_INTERNAL
+#ifdef FSE_INTERNAL_API
 
 void fs_emu_input_init(void);
 
@@ -35,10 +35,14 @@ void fs_emu_input_sdl_init(void);
 
 void fs_emu_input_action_init(void);
 
-extern int (*fs_emu_input_handler)(void);
-
 int fs_ml_event_loop(void);
 
-#endif /* FS_EMU_INTERNAL */
+typedef struct fse_input {
+    int (*input_handler)(void);
+} fse_input_t;
+
+extern fse_input_t fse_input;
+
+#endif /* FSE_INTERNAL_API */
 
 #endif /* FS_EMU_INPUT_H */

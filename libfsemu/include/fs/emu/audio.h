@@ -9,65 +9,62 @@
 #include <stdbool.h>
 
 #define FS_EMU_AUDIO_MASTER -1
-#define FS_EMU_AUDIO_MAX_STREAMS 2
+#define FSE_MAX_AUDIO_STREAMS 2
 
-#ifdef FS_EMU_DRIVERS
+//#ifdef FSE_DRIVERS
+#if 1
 
-typedef struct fs_emu_audio_stream_options {
+typedef struct fse_audio_stream_options {
     int struct_size;
     int frequency;
     int channels;
     int sample_size;
     int buffer_size;
     int min_buffers;
-} fs_emu_audio_stream_options;
+} fse_audio_stream_options;
 
-fs_emu_audio_stream_options **fs_emu_audio_alloc_stream_options(int streams);
+fse_audio_stream_options **fs_emu_audio_alloc_stream_options(int streams);
 
-void fs_emu_audio_free_stream_options(fs_emu_audio_stream_options **options);
+void fs_emu_audio_free_stream_options(fse_audio_stream_options **options);
 
-int fs_emu_audio_volume(int stream);
+void fs_emu_audio_configure(fse_audio_stream_options **options);
+int fs_emu_audio_output_frequency(void);
 
-void fs_emu_audio_set_volume(int stream, int volume);
+int fse_audio_volume(int stream);
+void fse_set_set_audio_volume(int stream, int volume);
 
-bool fs_emu_audio_muted(int stream);
+bool fse_audio_muted(int stream);
+void fse_set_audio_muted(int stream, bool muted);
 
-void fs_emu_audio_set_muted(int stream, bool muted);
+void fse_set_audio_paused(int stream, bool paused);
 
-extern void (*fs_emu_audio_configure)(fs_emu_audio_stream_options **options);
-
-extern int (*fs_emu_audio_queue_buffer)(int stream, int16_t* buffer, int size);
-
-extern int (*fs_emu_audio_check_buffer)(int stream, int buffer);
-
-extern void (*fs_emu_audio_set_paused)(int stream, bool paused);
-
-extern int (*fs_emu_audio_output_frequency)(void);
+int fse_queue_audio_buffer(int stream, int16_t *buffer, int size);
+int fse_check_audio_buffer(int stream, int buffer);
 
 #else
 
-int fs_emu_audio_volume(int stream);
-void fs_emu_audio_set_volume(int stream, int volume);
+int fse_audio_volume(int stream);
+void fse_set_set_audio_volume(int stream, int volume);
 
-bool fs_emu_audio_muted(int stream);
-void fs_emu_audio_set_muted(int stream, int muted);
+bool fse_audio_muted(int stream);
+void fse_set_audio_muted(int stream, int muted);
 
-typedef struct fs_emu_audio_stream_options {
+typedef struct fse_audio_stream_options {
     int struct_size;
     int frequency;
     int channels;
     int sample_size;
     int buffer_size;
     int min_buffers;
-} fs_emu_audio_stream_options;
+} fse_audio_stream_options;
 
 void fs_emu_init_audio_stream(int stream,
-        fs_emu_audio_stream_options *options);
-void fs_emu_init_audio_stream_options(fs_emu_audio_stream_options *options);
-void fs_emu_audio_set_paused(int stream, bool paused);
-int fs_emu_audio_queue_buffer(int stream, int16_t* buffer, int size);
-int fs_emu_audio_check_buffer(int stream, int buffer);
-int fs_emu_audio_output_frequency();
+        fse_audio_stream_options *options);
+void fs_emu_init_audio_stream_options(fse_audio_stream_options *options);
+void fse_set_audio_paused(int stream, bool paused);
+int fse_queue_audio_buffer(int stream, int16_t* buffer, int size);
+int fse_check_audio_buffer(int stream, int buffer);
+int fs_emu_audio_output_frequency(void);
 
 #endif
 
@@ -85,16 +82,26 @@ void fs_emu_set_audio_buffer_frequency(int stream, int frequency);
 double fs_emu_audio_get_measured_avg_buffer_fill(int stream);
 double fs_emu_audio_get_measured_output_frequency();
 
-#ifdef FS_EMU_INTERNAL
+#if 1 // def FSE_INTERNAL_API
 
-void fs_emu_audio_init(void);
+void fse_init_audio(void);
 
-void fs_emu_audio_openal_init(void);
+void fse_init_openal_audio(void);
 
-void fs_emu_audio_dummy_init(void);
+void fse_init_dummy_audio(void);
 
-extern double g_fs_emu_audio_want_volume[FS_EMU_AUDIO_MAX_STREAMS];
+typedef struct fse_audio {
+    void (*configure)(fse_audio_stream_options **options);
+    int (*queue_buffer)(int stream, int16_t *buffer, int size);
+    int (*check_buffer)(int stream, int buffer);
+    void (*set_paused)(int stream, bool paused);
+    int (*frequency)(void);
 
-#endif /* FS_EMU_INTERNAL*/
+    double want_volume[FSE_MAX_AUDIO_STREAMS];
+} fse_audio_t;
+
+extern fse_audio_t fse_audio;
+
+#endif /* FSE_INTERNAL_API*/
 
 #endif /* FS_EMU_AUDIO_H */

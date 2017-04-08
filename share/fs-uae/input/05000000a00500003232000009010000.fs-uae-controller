@@ -1,0 +1,30 @@
+[fs-uae-controller]
+name = 8Bitdo Zero GamePad
+platform = linux
+
+[device]
+make = 8Bitdo
+model = Zero Gamepad
+type = gamepad
+
+[sdl]
+guid = 05000000a00500003232000009010000
+buttons = 16
+hats = 1
+axes = 6
+balls = 0
+
+[default]
+include = universal_gamepad
+axis_0_neg = dpad_left
+axis_0_pos = dpad_right
+axis_1_neg = dpad_up
+axis_1_pos = dpad_down
+button_0 = south_button
+button_1 = east_button
+button_10 = select_button
+button_11 = start_button
+button_3 = west_button
+button_4 = north_button
+button_6 = left_shoulder
+button_7 = right_shoulder

@@ -17,6 +17,8 @@
 #include "picasso96.h"
 #endif
 
+#include <fs/emu/video.h>
+
 int max_uae_width = 3072;
 int max_uae_height = 2048;
 
@@ -252,10 +254,9 @@ static bool render_frame(bool immediate)
     g_has_flushed_block = 0;
     g_has_flushed_screen = 0;
 
-#ifdef FS_EMU_DRIVERS
-    notice_screen_contents_lost();
-#endif
-
+    if (fse_drivers()) {
+        notice_screen_contents_lost();
+    }
     return 1;
 }
 

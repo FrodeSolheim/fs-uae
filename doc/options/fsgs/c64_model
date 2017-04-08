@@ -1,0 +1,7 @@
+Summary: Commodore 64 Model
+Type: Choice
+Default: c64c
+
+Value: c64c (C64C)
+Value: c64c/1541-ii (C64C, 1541-II Floppy Drive)
+Value: c64 (C64)

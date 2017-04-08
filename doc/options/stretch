@@ -1,0 +1,8 @@
+Summary: Stretch
+Type: Choice
+Default: 1
+Example: 0
+
+Value: 1 ("Fill Screen")
+Value: aspect ("Correct Aspect")
+Value: 0 ("Square Pixels")

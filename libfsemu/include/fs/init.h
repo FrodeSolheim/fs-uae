@@ -23,13 +23,25 @@ static void fs_init_function_ ## name ## _2 ()
     fs_init_function_ ## name (); \
 }
 
+#define FS_INIT_ONCE() static int initialized; \
+    if (initialized) { \
+        return; \
+    } \
+    initialized = 1
+
+#define FSE_INIT_ONCE() static int initialized; \
+    if (initialized) { \
+        return; \
+    } \
+    initialized = 1
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void fs_init();
-void fs_init_lock();
-void fs_init_unlock();
+void fs_init(void);
+void fs_init_lock(void);
+void fs_init_unlock(void);
 
 #ifdef __cplusplus
 }

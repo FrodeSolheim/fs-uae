@@ -16,7 +16,7 @@ typedef struct fs_emu_audio_driver {
     void(*shutdown)(void);
 } fs_emu_audio_driver;
 
-void fs_emu_audio_init();
+void fse_init_audio();
 void fs_emu_audio_shutdown();
 
 void fs_emu_audio_video_sync(int time_ms);

@@ -583,7 +583,7 @@ char *fs_uae_resolve_path_and_free(char *name, int type)
 void fs_uae_init_path_resolver(void)
 {
     bool relative_paths = true;
-    if (fs_config_is_false(OPTION_RELATIVE_PATHS)) {
+    if (fs_config_false(OPTION_RELATIVE_PATHS)) {
         relative_paths = false;
     }
 

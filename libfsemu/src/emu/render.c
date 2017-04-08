@@ -2,10 +2,12 @@
 #include "config.h"
 #endif
 
-#define FS_EMU_INTERNAL
+#define FSE_INTERNAL_API
 #include <fs/emu.h>
+#include <fs/emu/audio.h>
 #include <fs/emu/options.h>
 #include <fs/emu/path.h>
+#include <fs/emu/video.h>
 
 #include "render.h"
 

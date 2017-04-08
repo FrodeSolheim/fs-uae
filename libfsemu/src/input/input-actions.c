@@ -2,9 +2,9 @@
 #include "config.h"
 #endif
 
-#ifdef FS_EMU_DRIVERS
+#ifdef FSE_DRIVERS
 
-#define FS_EMU_INTERNAL
+#define FSE_INTERNAL_API
 #include <fs/emu/input.h>
 #include <fs/log.h>
 #include <stdio.h>
@@ -74,4 +74,4 @@ void fs_emu_input_action_init(void)
     register_actions();
 }
 
-#endif /* FS_EMU_DRIVERS */
+#endif /* FSE_DRIVERS */

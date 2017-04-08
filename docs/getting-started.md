@@ -18,11 +18,12 @@ Finally, you should have some software you want to run, for instance games.
 Amiga Forever comes with a selection of software and games, and there are
 several web sites with legal Amiga downloads:
 
-* Full versions of many games: http://www.amigafuture.de/downloads.php?cat=6
-* Team 17 games: http://www.dream17.info/downloads.php?cat=1
-* Gremlin games: http://gremlinworld.emuunlim.com/amiga.htm
-* Some Factor 5 games: http://www.factor5.de/downloads.shtml
-* List of downloadable games: https://openretro.org/reports/downloadable-games
+* Full versions of many games:
+  [http://www.amigafuture.de/downloads.php?cat=6](http://www.amigafuture.de/downloads.php?cat=6)
+* [Team 17 games](http://www.dream17.info/downloads.php?cat=1)
+* [Gremlin games](http://gremlinworld.emuunlim.com/amiga.htm)
+* [Some Factor 5 games](http://www.factor5.de/downloads.shtml)
+* [List of downloadable games](https://openretro.org/reports/downloadable-games)
 
 When you start FS-UAE Launcher, it should be quite straight-forward how to
 select the floppy disk images and start the emulation :)
@@ -67,9 +68,9 @@ If you want to play a game from a floppy disk image (ADF), copy the file
 ## Creating a Configuration File
 
 The last thing you need to do is to create a configuration file for FS-UAE.
-Download Default.fs-uae and save this file in the Configurations folder
-(right-click the link and choose “Save link as”, or similar option in your
-browser).
+Download [Default.fs-uae](https://fs-uae.net/files/Default.fs-uae)
+and save this file in the Configurations folder (right-click the link and 
+choose "Save link as", or similar option in your browser).
 
 If you now start FS-UAE, it should no longer complain that the configuration
 file was not found. The Default configuration file you downloaded specified

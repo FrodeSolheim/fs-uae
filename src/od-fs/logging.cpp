@@ -21,8 +21,7 @@ void write_log (const TCHAR *format, ...)
     log_function function = g_libamiga_callbacks.log;
     if (function) {
         function(buffer);
-    }
-    else {
+    } else {
         printf("%s", buffer);
     }
     free(buffer);
@@ -36,8 +35,7 @@ void gui_message (const char *format,...)
     va_end(args);
     if (g_amiga_gui_message_function) {
         g_amiga_gui_message_function(buffer);
-    }
-    else {
+    } else {
         printf("%s", buffer);
     }
     g_free(buffer);
@@ -105,8 +103,7 @@ void jit_abort (const TCHAR *format,...)
     log_function function = g_libamiga_callbacks.log;
     if (function) {
         function(buffer);
-    }
-    else {
+    } else {
         printf("%s", buffer);
     }
 #if 1

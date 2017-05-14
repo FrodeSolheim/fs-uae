@@ -8,6 +8,8 @@
 
 #include <fs/emu.h>
 #include <fs/emu/video.h>
+#include <fs/emu/options.h>
+#include <fs/emu/render.h>
 #include <fs/ml.h>
 
 #include "libfsemu.h"
@@ -24,6 +26,7 @@ extern int g_fs_ml_benchmarking;
 
 void fse_init_video_options(void)
 {
+	fse_init_render();
 	//int auto_sync_mode = 1;
     //int sync_to_vblank = 1;
     //int sync_with_emu = 0;
@@ -183,11 +186,16 @@ void fse_init_video_options(void)
         fs_log("no video sync (using timers only)\n");
     }
 
-    if (fs_config_get_boolean("disable_aspect_correction") == 1) {
-        g_fs_emu_disable_aspect_correction = 1;
-    }
-    else if (fs_config_get_boolean("keep_aspect") == 1) {
-        fs_emu_video_set_aspect_correction(1);
+    if (fs_config_get_const_string(OPTION_STRETCH) == 1) {
+        /* Stretch mode is set, ignoring legacy keep aspect option. */
+    } else {
+        if (fs_config_get_boolean("disable_aspect_correction") == 1) {
+            g_fs_emu_disable_aspect_correction = 1;
+        } else if (fs_config_get_boolean("keep_aspect") == 1) {
+            fs_emu_video_set_aspect_correction(1);
+            /* Old aspect action is square pixels. */
+            fse_set_stretch_mode(FSE_STRETCH_NONE);
+        }
     }
 
     // the default texture format is RGB, set here because some video

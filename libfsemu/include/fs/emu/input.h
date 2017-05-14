@@ -25,7 +25,7 @@ void fs_emu_input_action_execute(fs_emu_action_id action, int state);
 
 #ifdef FSE_INTERNAL_API
 
-void fs_emu_input_init(void);
+void fse_init_input(void);
 
 void fs_emu_input_init_2(void);
 

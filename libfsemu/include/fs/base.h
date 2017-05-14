@@ -39,8 +39,8 @@ int fs_get_application_exe_path(char *buffer, int size);
 int fs_get_application_exe_dir(char *buffer, int size);
 
 const char *fs_get_home_dir(void);
-const char *fs_get_user_config_dir(void);
-const char *fs_get_user_data_dir(void);
+const char *fse_user_config_dir(void);
+const char *fse_user_data_dir(void);
 
 #ifdef __cplusplus
 }

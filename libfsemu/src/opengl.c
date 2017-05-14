@@ -26,6 +26,8 @@
 #include <fs/fs.h>
 #include <fs/log.h>
 #include <fs/ml/opengl.h>
+#define FSE_INTERNAL_API
+#include <fs/emu/render.h>
 
 #ifdef USE_OPENGL
 
@@ -197,7 +199,7 @@ void fs_gl_blending(int enable) {
     g_blending_enabled = enable;
 }
 
-void fs_gl_ortho() {
+void fs_gl_ortho(void) {
     if (g_projection == 1) {
         return;
     }
@@ -213,7 +215,7 @@ void fs_gl_ortho() {
     g_projection = 1;
 }
 
-void fs_gl_ortho_hd() {
+void fs_gl_ortho_hd(void) {
     if (g_projection == 2) {
         return;
     }
@@ -227,6 +229,23 @@ void fs_gl_ortho_hd() {
     CHECK_GL_ERROR();
     //glLoadIdentity();
     g_projection = 2;
+}
+
+void fs_gl_ortho_render(void)
+{
+    if (g_projection == 3) {
+        return;
+    }
+#ifdef TRACE
+    printf("glOrtho 0.0 1920.0 0.0 1080.0\n");
+#endif
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(0.0, fse_render.width, 0.0, fse_render.height, -1.0, 1.0);
+    glMatrixMode(GL_MODELVIEW);
+    CHECK_GL_ERROR();
+    //glLoadIdentity();
+    g_projection = 3;
 }
 
 void fs_gl_perspective(void)

@@ -23,6 +23,7 @@
 #include <fs/emu.h>
 #include <fs/emu/actions.h>
 #include <fs/emu/input.h>
+#include <fs/emu/video.h>
 #include <fs/lazyness.h>
 #include <fs/glib.h>
 #include "video.h"
@@ -151,12 +152,19 @@ void fs_emu_handle_libfsemu_action(int action, int state)
         }
         break;
     case FS_EMU_ACTION_ZOOM:
-        if (state)
+        if (state) {
             fs_emu_toggle_zoom(0);
+        }
         break;
     case FS_EMU_ACTION_ZOOM_BORDER:
-        if (state)
+        if (state) {
             fs_emu_toggle_zoom(1);
+        }
+        break;
+    case FSE_ACTION_CYCLE_STRETCH_MODE:
+        if (state) {
+            fse_cycle_stretch_mode();
+        }
         break;
     }
 }

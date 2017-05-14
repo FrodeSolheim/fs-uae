@@ -11,9 +11,10 @@
 
 fse_input_t fse_input = {};
 
-void fs_emu_input_init(void)
+void fse_init_input(void)
 {
-    fs_log("fs_emu_input_init\n");
+    fs_log("[INPUT] Initialize\n");
     // fs_emu_input_action_init();
     fs_emu_input_sdl_init();
+    fs_emu_input_init_2();
 }

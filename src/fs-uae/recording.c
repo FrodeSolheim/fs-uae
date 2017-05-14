@@ -45,7 +45,7 @@ int fs_uae_is_recording_enabled(void)
 
 static void invalidate_recording(void)
 {
-    fs_emu_notification(0, "Recording is corrupted/invalid");
+    fse_notify(0, "Recording is corrupted/invalid");
     // g_recording_enabled = 0;
     g_recording_invalid = 1;
 }
@@ -87,8 +87,8 @@ static void next_value(void)
     g_chunk_pos += 1;
     g_playback_pos += 1;
     if (g_playback_pos == g_recording_length) {
-        fs_emu_notification(0, "End of playback");
-        fs_emu_notification(0, "Recording mode enabled");
+        fse_notify(0, "End of playback");
+        fse_notify(0, "Recording mode enabled");
     }
 }
 
@@ -283,7 +283,7 @@ static void on_restore_state_finished(void *data)
         char *recording_path = get_state_recording_path(path);
         // FIXME: load recording
         if (read_recording(recording_path, 1)) {
-            fs_emu_notification(0, "State recording loaded");
+            fse_notify(0, "State recording loaded");
         }
         else {
             fs_emu_warning("Could not read state recording, disabling recording\n");
@@ -327,10 +327,10 @@ void fs_uae_enable_recording(const char *record_file)
     if (read_recording(g_record_path, 0)) {
         g_recording_enabled = 1;
         if (g_recording_length > 0) {
-            fs_emu_notification(0, "Playing back recording");
+            fse_notify(0, "Playing back recording");
         }
         else {
-            fs_emu_notification(0, "Recording mode enabled");
+            fse_notify(0, "Recording mode enabled");
         }
     }
     else {
@@ -441,7 +441,7 @@ void fs_uae_record_frame(int frame)
             invalidate_recording();
             return;
 #else
-            fs_emu_notification(0x8d94378a, "State checksum mismatch\n");
+            fse_notify(0x8d94378a, "State checksum mismatch\n");
 #endif
         }
 

@@ -43,7 +43,7 @@ void fs_emu_initialize_opengl();
 
 void fs_emu_volume_control(int volume);
 
-void fs_emu_init_render();
+void fse_init_renderer();
 
 extern int g_fs_emu_benchmarking;
 extern int64_t g_fs_emu_benchmark_start_time;

@@ -55,8 +55,15 @@ static texture_entry g_entries[] = {
     {  96, 384, 540,   96}, // TEXTURE_ITEM_BACKGROUND - OK
     { 658, 402,  60,   60}, // TEXTURE_TOP_ITEM_BG - OK
     { 672, 480,  32,   32}, // TEXTURE_HEADING_BG - OK
+
+    // FIXME: Add to atlas!
     { 0, 0, 0, 0}, // TEXTURE_PAUSE
     { 0, 0, 0, 0}, // TEXTURE_LOGO_32
+    { 0, 0, 0, 0}, // TEXTURE_TOP_BG
+    { 0, 0, 0, 0}, // TEXTURE_TOP_FADE
+    { 0, 0, 0, 0}, // TEXTURE_FRAME_LEFT
+    { 0, 0, 0, 0}, // TEXTURE_FRAME_RIGHT
+    { 0, 0, 0, 0}, // TEXTURE_STRETCH_NONE
 };
 
 static void premultiply_image(fs_image *image)
@@ -186,6 +193,15 @@ void fs_emu_draw_texture(int entry, float x, float y)
     //printf("%d - %f %f\n", entry, x, y);
     fs_emu_draw_texture_with_size(entry, x, y, g_entries[entry].w,
             g_entries[entry].h);
+}
+
+void fse_render_image_with_size(int image, int x, int y, int w, int h)
+{
+    fs_gl_ortho_render();
+    int entry = image;
+    // printf("Render %d %d %d %d\n", x, y, w, h);
+    fs_emu_draw_from_atlas(x, y, w, h, g_entries[entry].x,
+            g_entries[entry].y, g_entries[entry].w, g_entries[entry].h);
 }
 
 static int check_placement(int cx, int cy, int cw, int ch)
@@ -346,13 +362,18 @@ static void initialize_atlas(fs_image *image)
     load_atlas_texture(image, TEXTURE_CLOSE, "close.png");
     load_atlas_texture(image, TEXTURE_VOLUME, "volume.png");
     load_atlas_texture(image, TEXTURE_VOLUME_MUTED, "volume_muted.png");
-    load_atlas_texture(image, TEXTURE_ASPECT, "aspect.png");
+    load_atlas_texture(image, TEXTURE_ASPECT, "stretch-aspect.png");
     load_atlas_texture(image, TEXTURE_STRETCH, "stretch.png");
     load_atlas_texture(image, TEXTURE_ITEM_BACKGROUND, "item_background.png");
     load_atlas_texture(image, TEXTURE_TOP_ITEM_BG, "top_item_background.png");
     load_atlas_texture(image, TEXTURE_HEADING_BG, "heading_strip.png");
     load_atlas_texture(image, TEXTURE_PAUSE, "pause_indicator.png");
     load_atlas_texture(image, TEXTURE_LOGO_32, "logo-32.png");
+    load_atlas_texture(image, TEXTURE_TITLE_BG, "top_background.png");
+    load_atlas_texture(image, TEXTURE_TITLE_FADE, "top_background_fade.png");
+    load_atlas_texture(image, TEXTURE_FRAME_LEFT, "frame-left.png");
+    load_atlas_texture(image, TEXTURE_FRAME_RIGHT, "frame-right.png");
+    load_atlas_texture(image, TEXTURE_STRETCH_NONE, "stretch-none.png");
 
     //fs_image_save_data("atlas-output-test.png", image->data,
     //        image->width, image->height, 4);

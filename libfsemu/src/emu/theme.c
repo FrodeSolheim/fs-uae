@@ -332,7 +332,7 @@ static void load_theme(void)
 #endif
 }
 
-void fs_emu_theme_init()
+void fse_init_theme()
 {
     fs_log("THEME: Init\n");
 

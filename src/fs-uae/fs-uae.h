@@ -21,6 +21,7 @@ void set_grab_input(int mode);
 
 void fs_uae_configure_actions();
 void fs_uae_init_video(void);
+void fs_uae_init_zoom_mode(void);
 void fs_uae_init_audio(void);
 void fs_uae_map_keyboard(void);
 void fs_uae_handle_keyboard_event(fs_emu_event *event);
@@ -106,6 +107,8 @@ void fs_uae_process_input_event(int line, int action, int state, int playback);
 void fs_uae_init_lua_state(lua_State *L);
 #endif
 
+void fs_uae_toggle_auto_zoom(void);
+
 extern int g_fs_uae_frame;
 
 #include <fs/emu/actions.h>
@@ -114,6 +117,7 @@ enum {
     FS_UAE_ACTION_FIRST = FS_EMU_ACTION_LOCAL,
 
     FS_UAE_ACTION_ENTER_DEBUGGER,
+    FS_UAE_ACTION_TOGGLE_AUTO_ZOOM,
 };
 
 #endif /* FS_UAE_FS_UAE_H */

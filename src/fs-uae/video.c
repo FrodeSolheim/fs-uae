@@ -22,8 +22,6 @@ typedef struct zoom_mode {
     int h;
 } zoom_mode;
 
-#define CUSTOM_ZOOM_MODE 5
-
 static zoom_mode g_zoom_modes[] = {
     /// TRANSLATORS: In context "Zoom: Auto"
     { N_("Auto"), NULL, 0, 0, 0, 0 },
@@ -31,14 +29,19 @@ static zoom_mode g_zoom_modes[] = {
     { N_("Full Frame"), "full", 0, 0, 752, 572 },
     { "724x566", NULL, 2, 6, 724, 566 },
     { "704x566", NULL, 42, 6, 704, 566 },
+    /* The following are very nice for 1920x1080 resolutions, scale = 2. */
     { "704x540", NULL, 42, 22, 704, 540 },
-    { "704x520", NULL, 42, 28, 704, 520 },
+    //{ "704x520", NULL, 42, 28, 704, 520 },
+    { "692x540", NULL, 48, 22, 692, 540 },
     { "640x512", NULL, 74, 36, 640, 512 },
     { "640x480", NULL, 74, 36, 640, 480 },
     { "640x400", NULL, 74, 36, 640, 400 },
     { NULL, NULL, 0, 0, 0, 0 },
     { NULL, NULL, 0, 0, 0, 0 },
 };
+
+#define DEFAULT_ZOOM_MODE 5
+#define CUSTOM_ZOOM_MODE 9
 
 struct WindowOverride {
     int sx;
@@ -62,6 +65,9 @@ static struct WindowOverride* g_last_window_override[2] = { NULL, NULL };
 int g_fs_uae_video_zoom = 1;
 static int g_zoom_mode = 0;
 static int g_zoom_border = 0;
+static int g_last_non_auto_zoom_mode = DEFAULT_ZOOM_MODE;
+static int g_last_non_auto_zoom_border = 0;
+
 static double g_last_refresh_rate = 0;
 static bool g_fs_log_autoscale = false;
 static int g_remember_last_screen = 0;
@@ -680,12 +686,12 @@ static void display_screen()
     }
     if (round(g_last_refresh_rate) == -1) {
         if (round(fs_emu_get_video_frame_rate()) != TURBO_FRAME_RATE) {
-            fs_emu_notification(45194412, _("Warp mode enabled"));
+            fse_notify(45194412, _("Warp mode enabled"));
         }
         fs_emu_set_video_frame_rate(TURBO_FRAME_RATE);
     } else {
         if (round(fs_emu_get_video_frame_rate()) == TURBO_FRAME_RATE) {
-            fs_emu_notification(45194412, _("Warp mode disabled"));
+            fse_notify(45194412, _("Warp mode disabled"));
         }
         fs_emu_set_video_frame_rate(g_last_refresh_rate);
     }
@@ -696,18 +702,43 @@ static void display_screen()
 #endif
 }
 
+static void zoom_notification(void)
+{
+    if (g_zoom_border) {
+        fse_notify(1511162016, _("Zoom: %s + Border"),
+                _(g_zoom_modes[g_zoom_mode].name));
+    } else {
+        fse_notify(1511162016, _("Zoom: %s"),
+                _(g_zoom_modes[g_zoom_mode].name));
+    }
+}
+
+void fs_uae_toggle_auto_zoom(void)
+{
+    if (g_last_seen_mode_rtg) {
+        fse_notify(1511162016, _("Zoom is disabled in RTG mode"));
+        return;
+    }
+    if (g_zoom_mode == 0) {
+        g_zoom_mode = g_last_non_auto_zoom_mode;
+        g_zoom_border = g_last_non_auto_zoom_border;
+    } else {
+        g_zoom_mode = 0;
+        g_zoom_border = 0;
+    }
+    zoom_notification();
+}
+
 static void toggle_zoom(int flags)
 {
     if (g_last_seen_mode_rtg) {
-        fs_emu_notification(1511162016, _("Zoom is disabled in RTG mode"));
+        fse_notify(1511162016, _("Zoom is disabled in RTG mode"));
         return;
     }
-
     if (flags == 1) {
         g_zoom_border = !g_zoom_border;
-    }
-    else {
-        //if (g_zoom_mode < MAX_ZOOM_MODES - 1) {
+        g_last_non_auto_zoom_border = g_zoom_border;
+    } else {
         if (g_zoom_modes[g_zoom_mode + 1].name) {
             g_zoom_mode += 1;
         }
@@ -715,18 +746,60 @@ static void toggle_zoom(int flags)
             g_zoom_mode = 0;
         }
     }
-    if (g_zoom_border) {
-        fs_emu_notification(1511162016, _("Zoom: %s + Border"),
-                _(g_zoom_modes[g_zoom_mode].name));
-    }
-    else {
-        fs_emu_notification(1511162016, _("Zoom: %s"),
-                _(g_zoom_modes[g_zoom_mode].name));
+    zoom_notification();
+    if (g_zoom_mode != 0) {
+        g_last_non_auto_zoom_mode = g_zoom_mode;
     }
 }
 
 #define AMIGA_WIDTH 752
 #define AMIGA_HEIGHT 572
+
+#include <fs/emu/render.h>
+
+void fs_uae_init_zoom_mode(void)
+{
+    FSE_INIT_ONCE();
+    // printf("fse_scale_mode %d\n", fse_scale_mode());
+    if (fse_scale_mode() == FSE_SCALE_LEGACY) {
+        g_zoom_mode = 0;
+    } else {
+        /* New default */
+        g_zoom_mode = DEFAULT_ZOOM_MODE;
+    }
+
+    char *value = fs_config_get_string("zoom");
+    if (value) {
+        char *c = value;
+        while (*c) {
+            if (*c == '+') {
+                if (g_ascii_strcasecmp(c + 1, "border") == 0) {
+                    g_zoom_border = 1;
+                    g_last_non_auto_zoom_border = 1;
+                }
+                *c = '\0';
+                break;
+            }
+            c++;
+        }
+        zoom_mode *z = g_zoom_modes;
+        int k = 0;
+        while (z->name) {
+            //printf(":%s:%s\n", z->name, value);
+            if (g_ascii_strcasecmp(z->name, value) == 0) {
+                g_zoom_mode = k;
+                break;
+            }
+            else if (z->cname && g_ascii_strcasecmp(z->cname, value) == 0) {
+                g_zoom_mode = k;
+                break;
+            }
+            k++;
+            z++;
+        }
+        free(value);
+    }
+}
 
 void fs_uae_init_video(void)
 {
@@ -754,37 +827,7 @@ void fs_uae_init_video(void)
     }
 
     fs_emu_set_toggle_zoom_function(toggle_zoom);
-
-    char *value = fs_config_get_string("zoom");
-    if (value) {
-        char *c = value;
-        while (*c) {
-            if (*c == '+') {
-                if (g_ascii_strcasecmp(c + 1, "border") == 0) {
-                    g_zoom_border = 1;
-                }
-                *c = '\0';
-                break;
-            }
-            c++;
-        }
-        zoom_mode *z = g_zoom_modes;
-        int k = 0;
-        while (z->name) {
-            //printf(":%s:%s\n", z->name, value);
-            if (g_ascii_strcasecmp(z->name, value) == 0) {
-                g_zoom_mode = k;
-                break;
-            }
-            else if (z->cname && g_ascii_strcasecmp(z->cname, value) == 0) {
-                g_zoom_mode = k;
-                break;
-            }
-            k++;
-            z++;
-        }
-        free(value);
-    }
+    fs_uae_init_zoom_mode();
 
     if (fs_config_get_boolean(OPTION_LOG_AUTOSCALE) == 1) {
         g_fs_log_autoscale = true;

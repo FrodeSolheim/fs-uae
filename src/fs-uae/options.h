@@ -46,6 +46,7 @@
 #define OPTION_SOUND_CARD "sound_card"
 #define OPTION_STEREO_SEPARATION "stereo_separation"
 #define OPTION_THEME_ZOOM "theme_zoom"
+#define OPTION_UAELOG "uaelog"
 #define OPTION_UAENATIVE_LIBRARY "uaenative_library"
 #define OPTION_WARP_MODE "warp_mode"
 #define OPTION_WORKBENCH_DISK "workbench_disk"

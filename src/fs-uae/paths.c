@@ -99,7 +99,7 @@ static const char* fs_uae_documents_dir()
 
 static char* read_custom_path(const char *key)
 {
-    char *key_path = g_build_filename(fs_get_user_config_dir(),
+    char *key_path = g_build_filename(fse_user_config_dir(),
             "fs-uae", key, NULL);
     fs_log("- checking %s\n", key_path);
     if (fs_path_is_file(key_path)) {

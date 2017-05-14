@@ -33,7 +33,7 @@
 #include <glib.h>
 #endif
 
-const char *fs_get_user_config_dir(void)
+const char *fse_user_config_dir(void)
 {
 #ifdef USE_GLIB
 #ifdef MACOSX
@@ -51,7 +51,7 @@ const char *fs_get_user_config_dir(void)
 #endif
 }
 
-const char *fs_get_user_data_dir(void)
+const char *fse_user_data_dir(void)
 {
 #ifdef USE_GLIB
     return g_get_user_data_dir();

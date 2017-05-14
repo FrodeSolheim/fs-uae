@@ -174,7 +174,7 @@ int fs_emu_netplay_connected() {
     return g_fs_emu_netplay_connected;
 }
 
-void fs_emu_netplay_init() {
+void fse_init_netplay() {
     const char *value;
 
     g_send_mutex = fs_mutex_create();
@@ -478,7 +478,7 @@ static void handle_player_tag_message(int ply, int data) {
     fs_emu_log("received player tag for player %d: \"%s\"\n", ply, p->tag);
 }
 
-static char g_text_buffer[FS_EMU_MAX_CHAT_STRING_SIZE + 1];
+static char g_text_buffer[FSE_MAX_CHAT_STRING_LENGTH + 1];
 
 static void process_text_message(const char *text, int from_player) {
     //printf("process message from player %d -- self = %d\n",
@@ -548,8 +548,8 @@ static void handle_ext_message(int message, int data) {
         fs_log("received text message (len %d) from player %d\n", text_len,
                 from_player);
         int remaining = text_len;
-        if (remaining > FS_EMU_MAX_CHAT_STRING_SIZE) {
-            remaining = FS_EMU_MAX_CHAT_STRING_SIZE;
+        if (remaining > FSE_MAX_CHAT_STRING_LENGTH) {
+            remaining = FSE_MAX_CHAT_STRING_LENGTH;
         }
         char *p = g_text_buffer;
         while (1) {

@@ -665,6 +665,7 @@ libfsemu_a_SOURCES = \
 	libfsemu/include/fs/emu/monitor.h \
 	libfsemu/include/fs/emu/options.h \
         libfsemu/include/fs/emu/path.h \
+        libfsemu/include/fs/emu/render.h \
         libfsemu/include/fs/emu/video.h \
 	libfsemu/include/fs/endian.h \
 	libfsemu/include/fs/eventlog.h \
@@ -741,8 +742,6 @@ libfsemu_a_SOURCES = \
 	libfsemu/src/init.c \
 	libfsemu/src/log.c \
 	libfsemu/src/malloc.c \
-	libfsemu/src/ml/clock.c \
-	libfsemu/src/ml/config.c \
 	libfsemu/src/ml/input.c \
 	libfsemu/src/ml/keyboard.c \
 	libfsemu/src/ml/macosx.c \
@@ -768,6 +767,8 @@ libfsemu_a_SOURCES = \
 	libfsemu/src/time.c \
         libfsemu/src/video/dummy-video.c \
         libfsemu/src/video/legacy-video.c \
+        libfsemu/src/video/opengl-render.c \
+        libfsemu/src/video/render.c \
         libfsemu/src/video/sdl-video.c \
         libfsemu/src/video/sdl-video-common.c \
         libfsemu/src/video/sdl-video-software.c \
@@ -1450,3 +1451,15 @@ standalone: fs-uae$(EXEEXT) fs-uae.dat
 	cat fs-uae.dat >> fs-uae$(EXEEXT)
 	@echo "Correcting zip offsets"
 	zip -A fs-uae$(EXEEXT)
+
+bindist:
+	./bootstrap
+	./configure
+	make distdir
+if LINUX
+	cd fs-uae-@PACKAGE_VERSION@ && fs-sdk-linux-x86-64 ./configure
+	fs-sdk-linux-x86-64 make -C fs-uae-@PACKAGE_VERSION@ -j4
+	fs-sdk-linux-x86-64 make -C fs-uae-@PACKAGE_VERSION@/dist/linux
+	mv fs-uae-@PACKAGE_VERSION@/fs-uae_@PACKAGE_VERSION@_linux_x86-64.tar.xz .
+endif
+	rm -Rf fs-uae-@PACKAGE_VERSION@

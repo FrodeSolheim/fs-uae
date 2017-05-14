@@ -48,8 +48,9 @@ void fs_gl_blending(int enable);
 void fs_gl_color4fv(float *c);
 void fs_gl_color4f(float r, float g, float b, float a);
 
-void fs_gl_ortho();
-void fs_gl_ortho_hd();
+void fs_gl_ortho(void);
+void fs_gl_ortho_hd(void);
+void fs_gl_ortho_render(void);
 void fs_gl_perspective();
 void fs_gl_viewport(int x, int y, int w, int h);
 

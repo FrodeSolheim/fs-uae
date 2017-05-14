@@ -1,4 +1,4 @@
 Summary: Arcade Fullscreen
 Type: boolean
-Default: 0
-Example: 1
+Default: 1
+Example: 0

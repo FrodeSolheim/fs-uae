@@ -169,6 +169,11 @@ void fs_ml_set_input_grab(bool grab)
         return;
     }
 
+    if (grab) {
+        fs_log("[INPUT] Grabbing input\n");
+    } else {
+        fs_log("[INPUT] Releasing input\n");
+    }
     SDL_SetWindowGrab(g_fs_ml_window, grab ? SDL_TRUE : SDL_FALSE);
     SDL_SetRelativeMouseMode(grab ? SDL_TRUE : SDL_FALSE);
     if (fs_ml_cursor_allowed())
@@ -793,17 +798,27 @@ int fs_ml_video_create_window(const char *title)
         SDL_GL_SetSwapInterval(0);
     }
 
-    // we display a black frame as soon as possible (to reduce flickering on
-    // startup)
-    glClear(GL_COLOR_BUFFER_BIT);
-    SDL_GL_SwapWindow(g_fs_ml_window);
-    fs_gl_finish();
-
     fs_log("initial input grab: %d\n", g_initial_input_grab);
     if (g_initial_input_grab && !g_has_input_grab) {
         fs_ml_set_input_grab(true);
     }
     fs_ml_show_cursor(0, 1);
+
+    /* This looks a bit peculiar, but it helps to show the window in
+     * fullscreen mode as soon as possible to reduce flickering,
+       at least under GNOME 3. */
+    glClearColor(0.0, 0.0, 0.0, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    SDL_GL_SwapWindow(g_fs_ml_window);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    SDL_GL_SwapWindow(g_fs_ml_window);
+    int64_t start_time = fs_emu_monotonic_time();
+    SDL_Event event;
+    while (fs_emu_monotonic_time() - start_time < 100 * 1000) {
+        SDL_WaitEventTimeout(&event, 10);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        SDL_GL_SwapWindow(g_fs_ml_window);
+    }
 
     // this function must be called from the video thread
     fs_log("init_opengl\n");
@@ -888,7 +903,7 @@ int fs_ml_event_loop(void)
 #ifdef MACOSX
                 } else if (fs_ml_input_grab()) {
                     /* Input grab could be "lost" due to Cmd+Tab */
-                    fs_log("Forcing re-grab of input on OS X\n");
+                    fs_log("[INPUT] Forcing re-grab of input on macOS\n");
                     fs_ml_set_input_grab(false);
                     fs_ml_set_input_grab(true);
 #endif

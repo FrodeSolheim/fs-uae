@@ -7,6 +7,7 @@
 
 #include <uae/uae.h>
 #include <fs/emu.h>
+#include <fs/emu/render.h>
 #include <fs/i18n.h>
 #include "fs-uae.h"
 
@@ -28,9 +29,13 @@ void fs_uae_configure_amiga_model()
         fs_emu_log("enabling NTSC mode (59.94Hz)\n");
         g_fs_uae_ntsc_mode = 1;
         fs_emu_set_video_frame_rate(59.94);
+        fse_set_pixel_aspect((4.0 / 3.0) / (640.0 / 400.0));
     } else {
         fs_emu_log("using PAL mode (50Hz)\n");
         fs_emu_set_video_frame_rate(50.0);
+        /* Pixel aspect is close enough to 1:1 what we just go with that
+         * for improved scaling quality. */
+        // fse_set_pixel_aspect((4.0 / 3.0) / (640.0 / 512.0));
     }
 
     g_fs_uae_amiga_config = -1;

@@ -4,6 +4,7 @@
 
 #include <fs/emu.h>
 #include <fs/emu/audio.h>
+#include <fs/emu/render.h>
 
 #include "menu.h"
 
@@ -94,11 +95,15 @@ static int on_volume(fs_emu_menu_item* item, void **result_data)
 static int on_aspect(fs_emu_menu_item* item, void **result_data)
 {
     fs_emu_log("on_aspect selected from menu\n");
-    fs_emu_video_set_aspect_correction(!fs_emu_video_get_aspect_correction());
+    // fs_emu_video_set_aspect_correction(!fs_emu_video_get_aspect_correction());'
+    fse_cycle_stretch_mode();
+    /* Set old variable as well */
+    fs_emu_video_set_aspect_correction(fse_stretch_mode() != FSE_STRETCH_FILL_SCREEN);
     return FS_EMU_MENU_RESULT_NONE;
 }
 
-static int go_back_in_menu_stack() {
+static int go_back_in_menu_stack(void)
+{
     if (g_menu_stack != NULL) {
         fs_unref(g_menu);
         GList* last = g_list_last(g_menu_stack);
@@ -627,8 +632,13 @@ static void render_top_item(int mode, int index)
     if (index == 2) {
         if (mode == 0) {
             int texture = TEXTURE_STRETCH;
-            if (fs_emu_video_get_aspect_correction()) {
+            if (fse_stretch_mode() == FSE_STRETCH_ASPECT) {
                 texture = TEXTURE_ASPECT;
+                if (fse_pixel_aspect() == 1.0) {
+                    texture = TEXTURE_STRETCH_NONE;
+                }
+            } else if (fse_stretch_mode() == FSE_STRETCH_NONE) {
+                texture = TEXTURE_STRETCH_NONE;
             }
             render_top_item_background(selected, x, y, 80, 60);
             fs_gl_blending(1);
@@ -664,6 +674,11 @@ void fs_emu_menu_render(double transition)
     glTranslatef((1.0 - transition) * 600, 0, 0);
     fs_gl_blending(1);
     fs_gl_color4f(1.0, 1.0, 1.0, 1.0);
+
+    fs_emu_draw_texture_with_size(TEXTURE_TITLE_BG, 0, 1080 - 60, 1920, 60);
+    fs_emu_draw_texture_with_size(
+                TEXTURE_TITLE_FADE, 0, 1080 - 60 - 256, 1920, 256);
+
     fs_emu_draw_texture(TEXTURE_SIDEBAR_EDGE, 1920 - 600, 0);
     fs_emu_draw_texture_with_size(TEXTURE_SIDEBAR, 1920 - 600 + 50, 0,
             600 - 50, 1020);

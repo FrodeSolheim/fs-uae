@@ -7,6 +7,7 @@
 #include <fs/emu/audio.h>
 #include <fs/emu/options.h>
 #include <fs/emu/path.h>
+#include <fs/emu/render.h>
 #include <fs/emu/video.h>
 
 #include "render.h"
@@ -51,6 +52,8 @@
 #endif
 
 #define VIDEO_DEBUG_SCALE_TIMES 2.5
+
+#define FLAT 1
 
 // menu transition
 static double g_menu_transition = 0.0;
@@ -108,11 +111,13 @@ struct overlay_status {
 static struct overlay_status g_overlay_status[FS_EMU_MAX_OVERLAYS];
 static fs_mutex *g_overlay_mutex = NULL;
 
-void fs_emu_set_custom_overlay_state(int overlay, int state) {
+void fs_emu_set_custom_overlay_state(int overlay, int state)
+{
     fs_emu_set_overlay_state(FS_EMU_FIRST_CUSTOM_OVERLAY + overlay, state);
 }
 
-void fs_emu_set_overlay_state(int overlay, int state) {
+void fs_emu_set_overlay_state(int overlay, int state)
+{
     if (overlay < 0 || overlay >= FS_EMU_MAX_OVERLAYS) {
         return;
     }
@@ -139,7 +144,8 @@ static void setup_opengl(void)
     CHECK_GL_ERROR();
 }
 
-static void context_notification_handler(int notification, void *data) {
+static void context_notification_handler(int notification, void *data)
+{
     if (notification == FS_GL_CONTEXT_DESTROY) {
         if (g_frame_texture != 0) {
             glDeleteTextures(1, &g_frame_texture);
@@ -152,13 +158,15 @@ static void context_notification_handler(int notification, void *data) {
     }
 }
 
-void fs_emu_initialize_opengl() {
+void fs_emu_initialize_opengl()
+{
     setup_opengl();
     fs_emu_initialize_textures();
     fs_gl_add_context_notification(context_notification_handler, NULL);
 }
 
-static void get_buffer_format(int *gl_buffer_format, int *gl_buffer_type) {
+static void get_buffer_format(int *gl_buffer_format, int *gl_buffer_type)
+{
     int format = fs_emu_get_video_format();
     if (format == FS_EMU_VIDEO_FORMAT_BGRA) {
         *gl_buffer_format = GL_BGRA;
@@ -194,7 +202,8 @@ static void get_buffer_format(int *gl_buffer_format, int *gl_buffer_type) {
     }
 }
 
-static void create_texture_if_needed(int width, int height) {
+static void create_texture_if_needed(int width, int height)
+{
     //g_frame_texture.video_version = g_fs_emu_video_version;
     if (g_frame_texture && g_frame_texture_width >= width &&
             g_frame_texture_height >= height) {
@@ -262,7 +271,8 @@ static void create_texture_if_needed(int width, int height) {
 }
 
 static void fix_border(fs_emu_video_buffer *buffer, int *upload_x,
-        int *upload_y, int *upload_w, int *upload_h) {
+        int *upload_y, int *upload_w, int *upload_h)
+{
     // upload fixed border as well
     int ux = g_crop.x;
     int uy = g_crop.y;
@@ -339,7 +349,8 @@ static void fix_border(fs_emu_video_buffer *buffer, int *upload_x,
 
 static void save_screenshot(const char *path, int cx, int cy, int cw, int ch,
         int count, uint8_t *frame, int frame_width, int frame_height,
-        int frame_bpp) {
+        int frame_bpp)
+{
     fs_log("writing screenshot to %s\n", path);
 
     uint8_t *out_data = malloc(cw * ch * 3);
@@ -409,7 +420,8 @@ static void save_screenshot(const char *path, int cx, int cy, int cw, int ch,
 #endif
 }
 
-static int update_texture() {
+static int update_texture(void)
+{
     fs_emu_video_buffer *buffer = fs_emu_video_buffer_lock();
 #ifdef DEBUG_VIDEO_SYNC
     printf("u %p\n", buffer);
@@ -438,8 +450,7 @@ static int update_texture() {
         }
         g_fs_emu_repeated_frame_time = fs_get_monotonic_time();
         is_new_frame = 0;
-    }
-    else {
+    } else {
         int lost_frame_count = buffer->seq - last_seq_no - 1;
         g_fs_emu_lost_frames += lost_frame_count;
         g_fs_emu_lost_frame_time = fs_get_monotonic_time();
@@ -464,8 +475,7 @@ static int update_texture() {
         if (g_crop.h == 0) {
             g_crop.h = height;
         }
-    }
-    else {
+    } else {
         g_crop.x = 0;
         g_crop.y = 0;
         g_crop.w = width;
@@ -560,7 +570,7 @@ static int update_texture() {
             // we wait a bit until printing the notification, so the OpenGL
             // screenshot can be captured before the notification is shown
             g_fs_emu_screenshot = 0;
-            fs_emu_notification(81830444,
+            fse_notify(81830444,
                     _("Saved screenshot %d"), total_count);
         }
         else {
@@ -576,8 +586,7 @@ static int update_texture() {
 
     if (g_effective_viewport_mode == FS_EMU_VIEWPORT_MODE_CROP) {
         fix_border(buffer, &upload_x, &upload_y, &upload_w, &upload_h);
-    }
-    else {
+    } else {
         upload_x = 0;
         upload_y = 0;
         upload_w = buffer->width;
@@ -587,8 +596,7 @@ static int update_texture() {
     int filter = 0;
     if (0) {
         filter = 1;
-    }
-    else if (g_fs_emu_scanlines &&
+    } else if (g_fs_emu_scanlines &&
             (buffer->flags & FS_EMU_NO_SCANLINES_FLAG) == 0) {
         filter = 2;
     }
@@ -608,8 +616,7 @@ static int update_texture() {
                 fs_emu_scanline_filter(g_scanline_buffer, buffer,
                         upload_x, upload_y, upload_w, upload_h,
                         g_fs_emu_scanlines_dark, g_fs_emu_scanlines_light);
-            }
-            else {
+            } else {
                 fs_emu_2xcolor_filter(g_scanline_buffer, buffer,
                         upload_x, upload_y, upload_w, upload_h,
                         g_fs_emu_scanlines_dark, g_fs_emu_scanlines_light);                
@@ -766,24 +773,16 @@ static int update_texture() {
     return last_seq_no;
 }
 
-static void render_gloss(double alpha) {
-    //fs_emu_set_texture(g_tex_screen_gloss);
+static void render_gloss(double alpha)
+{
     fs_gl_blending(1);
-    //fs_emu_blending(0);
-    //fs_emu_texturing(0);
     fs_gl_color4f(alpha, alpha, alpha, alpha);
-    //fs_ml_color4f(alpha, 0.0, 0.0, alpha);
-    //glBegin(GL_QUADS);
-    //glTexCoord2f(0.0, 1.0); glVertex2f(-1.0, -1.0);
-    //glTexCoord2f(1.0, 1.0); glVertex2f( 1.0, -1.0);
-    //glTexCoord2f(1.0, 0.0); glVertex2f( 1.0,  1.0);
-    //glTexCoord2f(0.0, 0.0); glVertex2f(-1.0,  1.0);
     fs_emu_draw_texture_with_size(TEXTURE_GLOSS, -1.0, -1.0, 2.0, 2.0);
-    //glEnd();
 }
 
 static void render_quad(float x1, float y1, float x2, float y2, float s1,
-        float t1, float s2, float t2) {
+                        float t1, float s2, float t2)
+{
 #ifdef USE_GLES
     GLfloat tex[] = {
         s1, t2,
@@ -822,7 +821,8 @@ static void render_quad(float x1, float y1, float x2, float y2, float s1,
     CHECK_GL_ERROR();
 }
 
-static void render_overlays(void) {
+static void render_overlays(void)
+{
     fs_mutex_lock(g_overlay_mutex);
     for (int i = 0; i < FS_EMU_MAX_OVERLAYS; i++) {
         int state = g_overlay_status[i].state;
@@ -929,7 +929,8 @@ double fs_emu_video_scale_y = 0.0;
 double fs_emu_video_offset_x = 1.0;
 double fs_emu_video_offset_y = 1.0;
 
-static void render_frame(double alpha, int perspective) {
+static void render_frame(double alpha, int perspective)
+{
 #ifdef WITH_LUA
     fs_emu_lua_run_handler("on_fs_emu_render_frame");
 #endif
@@ -1031,11 +1032,33 @@ static void render_frame(double alpha, int perspective) {
 
     int input_w = g_crop.w;
     int input_h = g_crop.h;
-    double emu_aspect = (double) input_w / (double) input_h;
-    emu_aspect *= g_frame_aspect;
+
+    if (fse_scale_mode() == FSE_SCALE_LEGACY) {
+        if (fs_emu_video_get_aspect_correction()) {
+            /* The old "aspect correction" was just square pixels. */
+            fse_set_stretch_mode(FSE_STRETCH_NONE);
+        } else {
+            fse_set_stretch_mode(FSE_STRETCH_FILL_SCREEN);
+        }
+    }
 
     int screen_w = fs_ml_video_width();
     int screen_h = fs_ml_video_height();
+    int output_w;
+    int output_h;
+    int offset_x;
+    int offset_y;
+
+    fse_set_render_size(screen_w, screen_h);
+    fse_calculate_video_rectangle(
+                screen_w, screen_h, g_crop.w, g_crop.h,
+                &offset_x, &offset_y, &output_w, &output_h, NULL, NULL);
+    fse_set_view_rectangle(offset_x, offset_y, output_w, output_h);
+
+#if 0
+    double emu_aspect = (double) input_w / (double) input_h;
+    emu_aspect *= g_frame_aspect;
+
     double screen_aspect = (double) screen_w / (double) screen_h;
 
     double doutput_w = screen_w;
@@ -1046,8 +1069,7 @@ static void render_frame(double alpha, int perspective) {
             // emu video is wider than screen, typical for 4:3 or 5:4 monitors
             double h = screen_aspect / emu_aspect;
             doutput_h *= h;
-        }
-        else {
+        } else {
             // typical scenario for wide-screen monitors
             double w = emu_aspect / screen_aspect;
             doutput_w *= w;
@@ -1056,14 +1078,12 @@ static void render_frame(double alpha, int perspective) {
 
     if (g_scale_x < 0.0) {
         doutput_w *= -g_scale_x;
-    }
-    else {
+    } else {
         doutput_w = input_w * g_scale_x;
     }
     if (g_scale_y < 0.0) {
         doutput_h *= -g_scale_y;
-    }
-    else {
+    } else {
         doutput_h = input_h * g_scale_y;
     }
 
@@ -1079,6 +1099,7 @@ static void render_frame(double alpha, int perspective) {
 
     fs_emu_video_scale_x = (double) input_w / output_w;
     fs_emu_video_scale_y = (double) input_h / output_h;
+#endif
 
     fs_emu_video_offset_x = offset_x - g_crop.x / fs_emu_video_scale_x;
     fs_emu_video_offset_y = offset_y - g_crop.y / fs_emu_video_scale_y;
@@ -1389,16 +1410,14 @@ static void render_frame(double alpha, int perspective) {
         // texture has not been created yet
         color = 0.0;
         fs_gl_texturing(0);
-    }
-    else {
+    } else {
         fs_gl_texturing(1);
         fs_gl_bind_texture(g_frame_texture);
     }
     if (alpha < 1.0) {
         fs_gl_blending(1);
         fs_gl_color4f(color * alpha, color * alpha, color * alpha, alpha);
-    }
-    else {
+    } else {
         fs_gl_blending(0);
         fs_gl_color4f(color, color, color, 1.0);
     }
@@ -1498,10 +1517,13 @@ static void render_frame(double alpha, int perspective) {
         glEnd();
 #endif
     }
+    fs_gl_color4f(1.0, 1.0, 1.0, 1.0);
+    fse_render_frame();
     render_overlays();
 }
 
-static void render_glow(double opacity) {
+static void render_glow(double opacity)
+{
     //printf("--- render glow ---\n");
     float tx1, ty1, tx2, ty2;
     //const double dx = 0.1 * 9.0 / 16.0;
@@ -1717,7 +1739,8 @@ static void render_glow(double opacity) {
     //printf("--- render glow done ---\n");
 }
 
-static void render_fade_overlay(double alpha) {
+static void render_fade_overlay(double alpha)
+{
     // draw fading effect
     fs_gl_viewport(0, 0, fs_ml_video_width(), fs_ml_video_height());
     fs_gl_ortho_hd();
@@ -1756,13 +1779,17 @@ static void render_fade_overlay(double alpha) {
 /**
  * This function is called at the end of the frame rendering function
  */
-static void handle_quit_sequence() {
+static void handle_quit_sequence(void)
+{
     int fade_time = fs_config_get_int_clamped("fade_out_duration", 0, 10000);
     if (fade_time == FS_CONFIG_NONE) {
-        // fade out over 250ms
-        fade_time = 250;
+        // fade out over 125ms
+        fade_time = 125;
     }
     fade_time = fade_time * 1000;
+    if (!fs_ml_fullscreen()) {
+        fade_time = 0;
+    }
 
     int64_t dt = fs_emu_monotonic_time() - g_fs_emu_quit_time;
     if (dt > fade_time && g_fs_emu_emulation_thread_stopped) {
@@ -1789,11 +1816,13 @@ static void handle_quit_sequence() {
     }
 }
 
-int fs_emu_video_update_function() {
+int fs_emu_video_update_function()
+{
     return update_texture();
 }
 
-void fs_emu_video_render_function() {
+void fs_emu_video_render_function()
+{
     static int initialized_menu = 0;
     if (!initialized_menu) {
         // render menu once (without really showing it, so all menu
@@ -1803,12 +1832,15 @@ void fs_emu_video_render_function() {
         initialized_menu = 1;
     }
 
+    // FIXME: MOVE TO DISPLAY FUNCTION, clear after flip so clearing can
+    // be done asynchronously?
+    glClear(GL_COLOR_BUFFER_BIT);
+
     if (g_fs_emu_video_debug) {
         int quarter_height = fs_ml_video_height() / 4;
         fs_gl_viewport(0, quarter_height, fs_ml_video_width(),
                 fs_ml_video_height() - quarter_height);
-    }
-    else {
+    } else {
         fs_gl_viewport(0, 0, fs_ml_video_width(), fs_ml_video_height());
     }
 
@@ -1824,7 +1856,7 @@ void fs_emu_video_render_function() {
         g_menu_transition_target = 0.0;
     }
 
-    float menu_transition_speed = 0.10;
+    float menu_transition_speed = 1.0;
     int allow_perspective = 1;
 
 #ifdef WITH_LUA
@@ -1859,8 +1891,7 @@ void fs_emu_video_render_function() {
     }
     if (g_menu_transition > 1.0) {
         g_menu_transition = 1.0;
-    }
-    else if (g_menu_transition < 0.0) {
+    } else if (g_menu_transition < 0.0) {
         g_menu_transition = 0.0;
     }
 
@@ -1878,13 +1909,17 @@ void fs_emu_video_render_function() {
     double r1_a = 30.0;
 
     int perspective = 0;
+
+#ifdef FLAT
+    allow_perspective = 0;
+#endif
+
     if (g_menu_transition == 0.0 || allow_perspective == 0) {
         perspective = 0;
         fs_gl_ortho();
         //glTranslated(1920.0 / 2.0, 1080.0 / 2.0, 0.0);
         //glScaled(1920.0 / 2.0, 1080.0 / 2.0, 1.0);
-    }
-    else {
+    } else {
         perspective = 1;
 
         glClearColor(0.1, 0.1, 0.1, 1.0);
@@ -2006,10 +2041,18 @@ void fs_emu_video_render_function() {
         glPopMatrix();
         CHECK_GL_ERROR();
     }
+#ifdef FLAT
+    if (g_menu_transition == 0) {
+        render_frame(1.0, 0);
+    } else {
+        render_frame(1.0 - g_menu_transition * 0.66, 0);
+    }
+#else
     render_frame(1.0, perspective);
     if (perspective) {
         render_gloss(g_menu_transition);
     }
+#endif
 #if 0
     if (fs_emu_is_paused()) {
         fs_gl_blending(1);
@@ -2025,7 +2068,7 @@ void fs_emu_video_render_function() {
     }
 
     fs_emu_acquire_gui_lock();
-    fs_emu_hud_render_chat();
+    fse_render_hud();
 
     //if (fs_emu_menu_is_active()) {
     if (g_menu_transition > 0.0) {
@@ -2266,9 +2309,12 @@ void fs_emu_video_render_function() {
     if (fade_time == FS_CONFIG_NONE) {
         fade_time = fs_config_get_int_clamped("fade_in_duration", 0, 10000);
         if (fade_time == FS_CONFIG_NONE) {
-            fade_time = 0;
+            fade_time = 500;
         }
         fade_time = fade_time * 1000;
+        if (!fs_ml_fullscreen()) {
+            fade_time = 0;
+        }
     }
 
     uint64_t dt = fs_emu_monotonic_time() - start_time;
@@ -2283,7 +2329,8 @@ void fs_emu_video_render_function() {
     fs_emu_video_render_mutex_unlock();
 }
 
-void fs_emu_video_render_debug_info(uint32_t *texture) {
+void fs_emu_video_render_debug_info(uint32_t *texture)
+{
     //return;
     int x;
     //, y;
@@ -2373,7 +2420,8 @@ void fs_emu_video_render_debug_info(uint32_t *texture) {
 
 #ifdef WITH_LUA
 
-static int l_fs_emu_set_scale(lua_State *L) {
+static int l_fs_emu_set_scale(lua_State *L)
+{
     int x = luaL_checkinteger(L, 1);
     int y = luaL_checkinteger(L, 2);
     // make sure we don't divide by zero later, zero scale not allowed
@@ -2442,7 +2490,8 @@ static int l_fs_emu_set_frame_position_and_size(lua_State *L) {
     return 0;
 }
 
-void fs_emu_render_init_lua(void) {
+void fs_emu_render_init_lua(void)
+{
     fs_log("fs_emu_render_init_lua\n");
 
     //lua_register(fs_emu_lua_state, "fs_emu_render_frame",
@@ -2455,8 +2504,10 @@ void fs_emu_render_init_lua(void) {
 
 #endif
 
-void fs_emu_init_render() {
-    fs_log("fs_emu_init_render\n");
+void fse_init_renderer()
+{
+    fs_log("fse_init_renderer\n");
+    fse_init_render();
 
     g_scale_x = fs_config_get_double("scale_x");
     if (g_scale_x == FS_CONFIG_NONE) {

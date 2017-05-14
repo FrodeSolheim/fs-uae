@@ -442,6 +442,9 @@ static int hotkey_function(int action, int state)
             }
         }
         return 1;
+    case FS_UAE_ACTION_TOGGLE_AUTO_ZOOM:
+        fs_uae_toggle_auto_zoom();
+        return 1;
     }
     return 0;
 }

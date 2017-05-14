@@ -53,7 +53,7 @@ static int g_mod = 0;
 
 void fs_ml_clear_keyboard_modifier_state()
 {
-    fs_log("clearing keyboard modifier state\n");
+    fs_log("[INPUT] Clearing keyboard modifier state (raw input)\n");
     g_mod_lalt = 0;
     g_mod_ralt = 0;
     g_mod_lctrl = 0;
@@ -89,9 +89,9 @@ static void process_keyboard_input(LPRAWINPUT raw_input)
         vkey += 2 * NUM_VKEYS;
     }
 #else
-    // special cases
+    /* Special cases */
     if (make_code == 54) {
-        // for some reason, flags is not set properly for right shift
+        /* For some reason, flags is not set properly for right shift */
         vkey = VK_SHIFT + E0;
     }
     else if (flags & RI_KEY_E0) {
@@ -258,7 +258,6 @@ static WNDPROC g_wndproc = NULL;
 static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wparam,
         LPARAM lparam)
 {
-    //fs_log("WndProc %d\n", message);
     HRAWINPUT raw_input_handle;
     switch (message) {
     case WM_INPUTLANGCHANGE:
@@ -283,10 +282,10 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wparam,
                 &g_raw_input_data, &size, sizeof(RAWINPUTHEADER)) != -1) {
             process_input(&g_raw_input_data);
         }
-        // must call DefWindowProc according to http://msdn.microsoft.com/
-        // en-us/library/windows/desktop/ms645590(v=vs.85).aspx
-        // EDIT: We want SDL2 to receive WM_INPUT messages as well (for mouse
-        // input) so we let CallWindowProc be called...
+        /* We must call DefWindowProc according to http://msdn.microsoft.com/
+         * en-us/library/windows/desktop/ms645590(v=vs.85).aspx
+         * EDIT: We want SDL2 to receive WM_INPUT messages as well (for mouse
+         * input) so we let CallWindowProc be called... */
         // return DefWindowProc(hwnd, message, wparam, lparam);
     }
 
@@ -538,13 +537,12 @@ static void init_key_mapping(void)
 
 void fs_ml_init_raw_input(void)
 {
-    fs_log("fs_ml_init_raw_input\n");
+    fs_log("[INPUT ]fs_ml_init_raw_input\n");
 
-    //list_input_devices();
     init_key_mapping();
 
     SDL_SysWMinfo info;
-    SDL_VERSION(&info.version); // this is important!
+    SDL_VERSION(&info.version); /* This is important! */
 #if SDL_VERSION_ATLEAST(2, 0, 0)
     if (SDL_GetWindowWMInfo(g_fs_ml_window, &info)) {
 #else
@@ -563,8 +561,8 @@ void fs_ml_init_raw_input(void)
     fs_log("[RAWINPUT ]Old wndproc: %p new wndproc: %p\n", g_wndproc, WndProc);
 
     RAWINPUTDEVICE rid;
-    /*
-    // mice
+#if 0
+    /* Mice */
     rid.usUsagePage = 0x01;
     rid.usUsage = 0x02;
     rid.dwFlags = 0;
@@ -572,8 +570,8 @@ void fs_ml_init_raw_input(void)
     //rid.dwFlags = RIDEV_NOLEGACY;
     rid.hwndTarget = hWnd;
     RegisterRawInputDevices(&rid, 1, sizeof(rid));
-    */
-    // keyboards
+#endif
+    /* Keyboards */
     rid.usUsagePage = 0x01;
     rid.usUsage = 0x06;
     rid.dwFlags = RIDEV_NOLEGACY | RIDEV_NOHOTKEYS;

@@ -1,3 +1,17 @@
+Version 2.9.6dev:
+
+* Changed default fade in/out duration, only fade in fullscreen.
+* FS-UAE default is now to show a 692x540 image, not stretched to fill screen.
+* Use scale = legacy to revert to old default behavior (Can put in Host.fs-uae
+  or use FS-UAE Launcher set set globally).
+* New option scale (choose between full, integer, legacy and no scaling).
+* New option stretch (replaces keep_aspect, though it still works).
+* F11 is now a dedicated toggle auto zoom function, Alt/Cmd+Z cycles through
+  zoom modes as before.
+* Render a frame around the view when not stretched (frame = 0 to disable).
+* Cartridge freeze shortcut is now Alt/Cmd+C.
+* Alt/Cmd+A now toggles stretch mode (aspect correction).
+
 Version 2.9.5dev:
 
 * Added some game controller configs.

@@ -60,7 +60,7 @@ struct fs_emu_theme {
     int display_h;
 };
 
-void fs_emu_theme_init();
+void fse_init_theme();
 char *fs_emu_theme_get_resource_path(const char *name);
 int fs_emu_theme_get_resource_data(const char *name, char **data, int *size);
 void fs_emu_set_overlay_state(int overlay, int state);

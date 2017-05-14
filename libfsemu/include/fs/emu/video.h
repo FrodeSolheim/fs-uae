@@ -1,5 +1,5 @@
-#ifndef FS_EMU_VIDEO_H
-#define FS_EMU_VIDEO_H
+#ifndef FSE_VIDEO_H
+#define FSE_VIDEO_H
 
 #include <fs/ml.h>
 #include <fs/emu/buffer.h>
@@ -106,4 +106,4 @@ extern int (*fse_main_loop)(void);
 }
 #endif
 
-#endif /* FS_EMU_VIDEO_H */
+#endif /* FSE_VIDEO_H */

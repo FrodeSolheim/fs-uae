@@ -75,7 +75,7 @@ typedef void (*fs_emu_zoom_function)(int);
 void fs_emu_set_toggle_zoom_function(fs_emu_zoom_function function);
 void fs_emu_toggle_zoom(int flags);
 
-void fs_emu_notification(uint32_t type, const char *format, ...);
+void fse_notify(uint32_t type, const char *format, ...);
 
 void fs_emu_warning(const char *format, ...);
 void fs_emu_deprecated(const char *format, ...);
@@ -225,7 +225,7 @@ void fs_emu_pause(int pause);
 int fs_emu_is_paused();
 
 void fs_emu_quit();
-int fs_emu_thread_running();
+int fs_emu_thread_running(void);
 int fs_emu_is_quitting();
 
 void fs_emu_disable_throttling();

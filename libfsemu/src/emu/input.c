@@ -732,6 +732,10 @@ void fs_emu_set_actions(fs_emu_action *actions)
     g_actions[k].flags = 0;
     g_actions[k++].input_event = FS_EMU_ACTION_ZOOM_BORDER;
 
+    g_actions[k].name = "action_cycle_stretch_mode";
+    g_actions[k].flags = 0;
+    g_actions[k++].input_event = FSE_ACTION_CYCLE_STRETCH_MODE;
+
     g_actions[k].name = "";
     g_actions[k].flags = 0;
     g_actions[k++].input_event = FS_EMU_ACTION_LAST;
@@ -1169,7 +1173,7 @@ int fs_emu_configure_joystick(
 
         input_config_item *config = get_config(&device, type);
         if (config == NULL) {
-            fs_emu_notification(0, _("Device needs config for %s: %s"),
+            fse_notify(0, _("Device needs config for %s: %s"),
                     type, name);
             break;
         }
@@ -1293,7 +1297,7 @@ void fs_emu_set_full_keyboard_emulation(bool full, bool notification)
         } else {
             msg = gettext("Full keyboard emulation disabled");
         }
-        fs_emu_notification(NOTIFICATION_FULL_KEYBOARD, msg);
+        fse_notify(NOTIFICATION_FULL_KEYBOARD, msg);
     }
 }
 

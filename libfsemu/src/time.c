@@ -126,7 +126,7 @@ int fs_get_local_time_offset(time_t time)
     return t - mktime(&gt);
 }
 
-void fs_time_init(void)
+void fs_init_time(void)
 {
     static int g_initialized = 0;
     if (g_initialized) {

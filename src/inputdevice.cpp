@@ -89,7 +89,7 @@ static void diskswapper_notification(int swapperslot, int drive)
 	if (msg) {
 		/* FIXME: use a new (lib)UAE notification system instead */
 		//error_log("%s\n", msg);
-		fs_emu_notification(NOTIFICATION_SWAPPER, "%s", msg);
+		fse_notify(NOTIFICATION_SWAPPER, "%s", msg);
 		g_free(msg);
 	}
 }

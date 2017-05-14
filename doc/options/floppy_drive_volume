@@ -1,6 +1,6 @@
 Description: Floppy Drive Volume
 Type: integer
-Default: 25
+Default: 20
 Example: 0
 Range: 0 - 100
 

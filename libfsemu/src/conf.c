@@ -17,11 +17,19 @@ GHashTable *g_hash_table = NULL;
 #define LOG_LINE \
 "----------------------------------------------------------------------------\n"
 
-static void initialize()
+static void initialize(void)
 {
+    if (g_initialized) {
+        return;
+    }
+    g_initialized = 1;
     g_hash_table = g_hash_table_new_full(
         g_str_hash, g_str_equal, g_free, g_free);
-    g_initialized = 1;
+}
+
+void fse_init_conf(void)
+{
+    initialize();
 }
 
 bool fs_config_exists(const char *key)

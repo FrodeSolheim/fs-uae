@@ -2,8 +2,8 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.67])
-AC_INIT([FS-UAE], [2.9.4dev7],
-        [frode@fs-uae.net], [fs-uae], [http://fs-uae.net])
+AC_INIT([FS-UAE], [2.9.5dev3],
+        [frode@fs-uae.net], [fs-uae], [https://fs-uae.net])
 AC_CONFIG_AUX_DIR([.])
 AC_CANONICAL_HOST
 AC_CONFIG_SRCDIR([src/main.cpp])
@@ -365,6 +365,8 @@ AS_CASE([$host_os],
     LOADABLE_MODULE_EXT=".unknown"
 ])
 
+AM_CONDITIONAL([LINUX], [test x$OS_NAME = xlinux])
+AM_CONDITIONAL([MACOS], [test x$OS_NAME = xmacos])
 AM_CONDITIONAL([WINDOWS], [test x$OS_NAME = xwindows])
 
 # Not using libtool right now, but use name LT_MODULE_EXT anyway in case

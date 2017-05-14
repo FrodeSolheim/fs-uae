@@ -24,14 +24,13 @@ static volatile int g_manymouse_last_index = -1;
 
 static void *manymouse_thread(void* data)
 {
-    fs_log("MANYMOUSE: (c) 2005-2012 Ryan C. Gordon\n");
-    fs_log("MANYMOUSE: Thread running\n");
+    fs_log("[MANYMOUSE] Thread running\n");
 
     int k = g_fs_ml_input_device_count;
     g_first_manymouse_index = k;
     int mouse_count = ManyMouse_Init();
     if (mouse_count < 0) {
-        fs_log("MANYMOUSE: Initialization failed (%d)\n", mouse_count);
+        fs_log("[MANYMOUSE] Initialization failed (%d)\n", mouse_count);
     }
     else if (mouse_count == 0) {
         fs_log("MANYMOUSE: no mice found\n");
@@ -156,36 +155,39 @@ static void *manymouse_thread(void* data)
     return NULL;
 }
 
+static void init_manymouse(void)
+{
+    /* On OS X with HIDManager driver at least, the mice must be polled from
+     * the same thread as the one which called ManyMouse_Init, so we do
+     * everything (also enumeration in a worker thread) and wait for
+     * enumeration to complete.*/
+
+    fs_log("[MANYMOUSE] Copyright (c) 2005-2012 Ryan C. Gordon\n");
+    g_manymouse_thread = fs_thread_create("manymouse", manymouse_thread, NULL);
+    if (g_manymouse_thread == NULL) {
+        fs_log("[MANYMOUSE] Error - could not create ManyMouse thread\n");
+        // ManyMouse_Quit();
+    } else {
+        while (g_manymouse_last_index < 0) {
+            fs_ml_usleep(1000);
+        }
+        g_fs_ml_input_device_count = g_manymouse_last_index;
+    }
+}
+
 void fs_ml_mouse_init(void)
 {
     FS_ML_INIT_ONCE;
-    fs_log("fs_ml_mouse_init\n");
+    fs_log("[INPUT] fs_ml_mouse_init\n");
 
     g_fs_ml_first_mouse_index = g_fs_ml_input_device_count;
     int k = g_fs_ml_input_device_count;
 
-    fs_log("- adding system mouse\n");
+    fs_log("[INPUT] Adding system mouse\n");
     g_fs_ml_input_devices[k].type = FS_ML_MOUSE;
     g_fs_ml_input_devices[k].index = k;
     g_fs_ml_input_devices[k].name = g_strdup("MOUSE");
     g_fs_ml_input_devices[k].alias = g_strdup("MOUSE");
     k += 1;
     g_fs_ml_input_device_count = k;
-
-    // On OS X with HIDManager driver at least, the mice must be polled from
-    // the same thread as the one which called ManyMouse_Init, so we do
-    // everything (also enumeration in a worker thread) and wait for
-    // enumeration to complete
-
-    g_manymouse_thread = fs_thread_create("manymouse", manymouse_thread, NULL);
-    if (g_manymouse_thread == NULL) {
-        fs_log("MANYMOUSE: Error - could not create ManyMouse thread\n");
-        // ManyMouse_Quit();
-    }
-    else {
-        while (g_manymouse_last_index < 0) {
-            fs_ml_usleep(1000);
-        }
-        g_fs_ml_input_device_count = g_manymouse_last_index;
-    }
 }

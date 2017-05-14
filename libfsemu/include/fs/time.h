@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-void fs_time_init(void);
+void fs_init_time(void);
 struct tm *fs_localtime_r(const time_t *timep, struct tm *result);
 struct tm *fs_gmtime_r(const time_t *timep, struct tm *result);
 time_t fs_timegm(struct tm *tm);

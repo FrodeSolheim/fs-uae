@@ -1,5 +1,5 @@
 Description: Zoom Amiga display (crop)
-Default: auto
+Default: 692x540
 Example: 640x512+border
 Since: 1.3.2
 Type: choice
@@ -18,7 +18,8 @@ Value: 640x480
 Value: 640x480+border ("640x480 + Border")
 Value: 640x512
 Value: 640x512+border ("640x512 + Border")
-Value: 704x520
+# Value: 704x520
+Value: 692x540
 Value: 704x540
 Value: 704x566
 Value: 724x566

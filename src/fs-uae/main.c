@@ -671,7 +671,7 @@ static int load_config_file(void)
         }
     }
     if (g_fs_uae_config_file_path == NULL) {
-        char *path = g_build_filename(fs_get_user_config_dir(),
+        char *path = g_build_filename(fse_user_config_dir(),
                 "fs-uae", "fs-uae.conf", NULL);
         fs_log(msg, path);
         if (fs_path_exists(path)) {
@@ -723,7 +723,18 @@ static int load_config_file(void)
 
 static void log_to_libfsemu(const char *message)
 {
-    fs_log_string(message);
+    /* UAE logs some messages char-for-char, so we need to buffer logging
+     * here if we want to log with [UAE] prefix. */
+    // fs_log("[UAE] %s", message);
+    static bool initialized;
+    static bool ignore;
+    if (!initialized) {
+        initialized = true;
+        ignore = fs_config_false(OPTION_UAELOG);
+    }
+    if (!ignore) {
+        //fs_log_string(message);
+    }
 }
 
 static void main_function()

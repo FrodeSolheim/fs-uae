@@ -107,23 +107,39 @@ void fse_calculate_video_rectangle(
     double scale_y = 1.0;
     int scale_mode = fse_scale_mode();
     int stretch_mode = fse_stretch_mode();
-    if (stretch_mode == FSE_STRETCH_FILL_SCREEN) {
-        /* No scaling change needed. */
-    } else {
-        double pixel_aspect = 1.0;
-        if (stretch_mode == FSE_STRETCH_ASPECT) {
-            pixel_aspect = fse_pixel_aspect();
-        }
-        double render_aspect = (double) render_w / render_h;
-        double aspect = ((double) video_w / video_h) / pixel_aspect;
-        if (aspect < render_aspect) {
-            scale_x = aspect / render_aspect;
-        } else {
-            scale_y = render_aspect / aspect;
-        }
-    }
 
-    if (scale_mode == FSE_SCALE_LEGACY) {
+    if (scale_mode == FSE_SCALE_MAX) {
+        if (stretch_mode == FSE_STRETCH_FILL_SCREEN) {
+            /* No scaling change needed. */
+        } else {
+            double pixel_aspect = 1.0;
+            if (stretch_mode == FSE_STRETCH_ASPECT) {
+                pixel_aspect = fse_pixel_aspect();
+            }
+            double render_aspect = (double) render_w / render_h;
+            double aspect = ((double) video_w / video_h) / pixel_aspect;
+            if (aspect < render_aspect) {
+                scale_x = aspect / render_aspect;
+            } else {
+                scale_y = render_aspect / aspect;
+            }
+        }
+    } else if (scale_mode == FSE_SCALE_INTEGER) {
+        scale_x = (double) video_w / render_w;
+        scale_y = (double) video_h / render_h;
+        int factor_x = 1.0 / scale_x;
+        int factor_y = 1.0 / scale_y;
+        factor_x = factor_x < factor_y ? factor_x : factor_y;
+        if (factor_x < 1) {
+            factor_x = 1;
+        }
+        factor_y = factor_x;
+        scale_x *= factor_x;
+        scale_y *= factor_y;
+    } else if (scale_mode == FSE_SCALE_NONE) {
+        scale_x = (double) video_w / render_w;
+        scale_y = (double) video_h / render_h;
+    } else if (scale_mode == FSE_SCALE_LEGACY) {
         assert(g_scale_x != 0);
         assert(g_scale_y != 0);
         if (g_scale_x < 0.0) {
@@ -136,7 +152,9 @@ void fse_calculate_video_rectangle(
         } else {
             scale_y = g_scale_y * video_h / render_h;
         }
-    } else {
+    }
+
+    if (scale_mode != FSE_SCALE_INTEGER && scale_mode != FSE_SCALE_LEGACY) {
         if (scale_x > 0.98) {
             scale_x = 1.0;
         }
@@ -181,6 +199,10 @@ void fse_calculate_video_rectangle(
 void fse_render_frame(void)
 {
     if (!g_render_frame) {
+        return;
+    }
+    if (fse_render.view_w == 0 || fse_render.view_h == 0) {
+        /* Not rendering surrounding frame when view size is not set. */
         return;
     }
     /* Frame is designed for a 1080p resolution, scaled based on height. */
@@ -257,7 +279,7 @@ void fse_init_render(void)
     }
     fse_set_scale_mode(scale_mode);
 
-    if (fs_config_false("frame")) {
+    if (fs_config_false(OPTION_FRAME)) {
         g_render_frame = false;
     }
 }

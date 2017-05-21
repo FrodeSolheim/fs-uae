@@ -11,6 +11,7 @@ Version 2.9.6dev:
 * Render a frame around the view when not stretched (frame = 0 to disable).
 * Cartridge freeze shortcut is now Alt/Cmd+C.
 * Alt/Cmd+A now toggles stretch mode (aspect correction).
+* Imported updated translations from crowdin.com.
 
 Version 2.9.5dev:
 

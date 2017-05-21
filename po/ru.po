@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae\n"
 "Report-Msgid-Bugs-To: frode@fs-uae.net\n"
-"POT-Creation-Date: 2016-12-11 15:15+0100\n"
-"PO-Revision-Date: 2016-12-31 10:05-0500\n"
+"POT-Creation-Date: 2017-05-20 17:57+0200\n"
+"PO-Revision-Date: 2017-05-21 04:54-0400\n"
 "Last-Translator: FrodeSolheim <frode-crowdin@fsolheim.net>\n"
 "Language-Team: Russian\n"
 "Language: ru_RU\n"
@@ -17,233 +17,233 @@ msgstr ""
 "X-Crowdin-File: fs-uae.pot\n"
 
 msgid "Activated debugger"
-msgstr ""
+msgstr "Активированный отладчик"
 
 msgid "Amiga Control"
-msgstr ""
+msgstr "Управление Amiga"
 
 #. / TRANSLATORS: In context "Zoom: Auto"
 msgid "Auto"
-msgstr ""
+msgstr "Автоматически"
 
 msgid "Auto-Fire is Off"
-msgstr ""
+msgstr "Авто-огонь выкл"
 
 msgid "Auto-Fire is On"
-msgstr ""
+msgstr "Авто-огонь вкл"
 
 #, c-format
 msgid "Auto-fire disabled for port %d"
-msgstr ""
+msgstr "Автоматический огонь отключен для порта %d"
 
 #, c-format
 msgid "Auto-fire enabled for port %d"
-msgstr ""
+msgstr "Автоматический огонь включен для порта %d"
 
 #. / TRANSLATORS: Empty or nothing
 #, c-format
 msgid "CD%d: Empty"
-msgstr ""
+msgstr "CD%d: пусто"
 
 msgid "CD32 Pad Mode"
-msgstr ""
+msgstr "Режим джойпада CD32"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 msgid "Custom Joystick Ports"
-msgstr ""
+msgstr "Пользовательские порты для джойстиков"
 
 msgid "Custom Mode"
-msgstr ""
+msgstr "Пользовательский режим"
 
 #. / TRANSLATORS: Empty or nothing
 #, c-format
 msgid "DF%d: Empty"
-msgstr ""
+msgstr "DF%d: пусто"
 
 msgid "Disabled"
-msgstr ""
+msgstr "Отключено"
 
 msgid "Eject"
-msgstr ""
+msgstr "Извлечь"
 
 msgid "Empty"
-msgstr ""
+msgstr "Пусто"
 
 msgid "Emulator Control"
-msgstr ""
+msgstr "Управление эмулятором"
 
 #, c-format
 msgid "Expected FS-UAE version %s, got %s"
-msgstr ""
+msgstr "Ожидаемая версия FS-UAE - %s, получено - %s"
 
 #. / TRANSLATORS: In context "Zoom: Full Frame"
 msgid "Full Frame"
-msgstr ""
+msgstr "Полная рамка"
 
 #, c-format
 msgid "HD not found: %s"
-msgstr ""
+msgstr "ЖД не найден: %s"
 
 #. / TRANSLATORS: Hard reset is a computer reboot with an emulated power
 #. / cycle
 msgid "Hard Reset"
-msgstr ""
+msgstr "Полный сброс"
 
 msgid "Input Options"
-msgstr ""
+msgstr "Варианты ввода"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Insert Into CD%d"
-msgstr ""
+msgstr "Вставьте в CD%d"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Insert Into DF%d"
-msgstr ""
+msgstr "Вставьте в DF%d"
 
 msgid "Joystick Mode"
-msgstr ""
+msgstr "Режим джойстика"
 
 msgid "Joystick Port"
-msgstr ""
+msgstr "Порт джойстика"
 
 #, c-format
 msgid "Joystick Port %d"
-msgstr ""
+msgstr "Порт джойстика %d"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Joystick Port %d Device"
-msgstr ""
+msgstr "Устройство порта джойстика %d"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Joystick Port %d Mode"
-msgstr ""
+msgstr "Режим порта джойстика %d"
 
 msgid "Keyboard"
-msgstr ""
+msgstr "Клавиатура"
 
 msgid "Load"
-msgstr ""
+msgstr "Загрузить"
 
 msgid "Load State"
-msgstr ""
+msgstr "Загрузить состояние"
 
 msgid "Max 1 CD-ROM drive supported currently"
-msgstr ""
+msgstr "Максимум 1 CD-ROM привод поддерживается в данный момент"
 
 msgid "More..."
-msgstr ""
+msgstr "Еще..."
 
 msgid "Mouse"
-msgstr ""
+msgstr "Мышь"
 
 msgid "Mouse Mode"
-msgstr ""
+msgstr "Режим мыши"
 
 msgid "Mouse Port"
-msgstr ""
+msgstr "Порт мыши"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long: If you struggle
 #. / to get in short enough, just translate "No Device" instead.
 #. / The context is that nothing (no emulated device) is inserted into the
 #. / joystick port.
 msgid "No Amiga Device"
-msgstr ""
+msgstr "Нет устройства Amiga"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long: If you struggle
 #. / to get in short enough, just translate "No Device" instead.
 #. / The context is that no host device is inserted into the joystick port.
 msgid "No Host Device"
-msgstr ""
+msgstr "Нет устройства"
 
 msgid "No configuration file was found"
-msgstr ""
+msgstr "Не найден файл конфигурации"
 
 #, c-format
 msgid "Option \"%s\" is not enabled"
-msgstr ""
+msgstr "Параметр \"%s\" не включен"
 
 msgid "Option chip_memory must be a multiple of 512"
-msgstr ""
+msgstr "Параметр chip_memory должен быть кратен 512"
 
 msgid "Option fast_memory must be a multiple of 1024"
-msgstr ""
+msgstr "Параметр fast_memory должен быть кратен 1024"
 
 msgid "Option motherboard_ram must be a multiple of 1024"
-msgstr ""
+msgstr "Параметр motherboard_ram должен быть кратен 1024"
 
 msgid "Option motherboard_ram needs a CPU with 32-bit addressing"
-msgstr ""
+msgstr "Параметру motherboard_ram нужен процессор с 32-битной адресацией"
 
 msgid "Option slow_memory must be a multiple of 256"
-msgstr ""
+msgstr "Параметр slow_memory должен быть кратен 256"
 
 msgid "Option uaegfx.card needs a CPU with 32-bit addressing"
-msgstr ""
+msgstr "Параметру uaegfx.card нужен процессор с 32-битной адресацией"
 
 msgid "Option zorro_iii_memory must be a multiple of 1024"
-msgstr ""
+msgstr "Параметр zorro_iii_memory должен быть кратен 1024"
 
 msgid "Option zorro_iii_memory needs a CPU with 32-bit addressing"
-msgstr ""
+msgstr "Параметру zorro_iii_memory нужен процессор с 32-битной адресацией"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 msgid "Parallel Joystick Ports"
-msgstr ""
+msgstr "Параллельные порты джойстиков"
 
 msgid "Pause"
-msgstr ""
+msgstr "Пауза"
 
 #, c-format
 msgid "Port 0: %s"
-msgstr ""
+msgstr "Порт 0: %s"
 
 msgid "Port Settings"
-msgstr ""
+msgstr "Настройки порта"
 
 msgid "Removable Media"
-msgstr ""
+msgstr "Съемные носители"
 
 #. / TRANSLATORS: Reset Amiga as in reboot the computer
 msgid "Reset Amiga"
-msgstr ""
+msgstr "Сбросить Амигу"
 
 msgid "Resume"
-msgstr ""
+msgstr "Возобновить"
 
 msgid "Save"
-msgstr ""
+msgstr "Сохранить"
 
 msgid "Save State"
-msgstr ""
+msgstr "Сохранить состояние"
 
 #. / TRANSLATORS: Soft reset reboots the computer without a power cycle
 msgid "Soft Reset"
-msgstr ""
+msgstr "Мягкий сброс"
 
 msgid "Warp mode disabled"
-msgstr ""
+msgstr "Перемотка выкл"
 
 msgid "Warp mode enabled"
-msgstr ""
+msgstr "Перемотка вкл"
 
 msgid "Zoom is disabled in RTG mode"
-msgstr ""
+msgstr "Масштаб отключен в режиме RTG"
 
 #, c-format
 msgid "Zoom: %s"
-msgstr ""
+msgstr "Масштаб: %s"
 
 #, c-format
 msgid "Zoom: %s + Border"
-msgstr ""
+msgstr "Масштаб: %s и граница"
 
 msgid "[ Port 0 ] Switched to joystick mode"
-msgstr ""
+msgstr "[ Порт 0 ] Переключено в режим джойстика"
 
 msgid "[ Port 0 ] Switched to mouse mode"
-msgstr ""
+msgstr "[ Порт 0 ] Переключено в режим мыши"
 

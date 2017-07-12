@@ -1,3 +1,7 @@
+Version 2.9.7dev:
+
+* Added shaders compiled/ported/written by guest.r.
+
 Version 2.9.6dev:
 
 * Changed default fade in/out duration, only fade in fullscreen.

@@ -240,10 +240,17 @@ void fs_uae_plugins_init()
     const char *plugins_dir = fs_uae_plugins_dir();
     load_plugins_from_dir(plugins_dir);
 
+    gchar *path;
     char executable_dir[FS_PATH_MAX];
     fs_get_application_exe_dir(executable_dir, FS_PATH_MAX);
-    gchar *path = g_build_filename(executable_dir, "..", "lib",
-                                   "fs-uae", "plugins", NULL);
+    path = g_build_filename(
+                executable_dir, "..", "lib", "fs-uae", "plugins", NULL);
+    if (g_file_test(path, G_FILE_TEST_IS_DIR)) {
+        load_plugins_from_dir(path);
+    }
+    g_free(path);
+    path = g_build_filename(
+                executable_dir, "..", "..", "..", "Plugins", NULL);
     if (g_file_test(path, G_FILE_TEST_IS_DIR)) {
         load_plugins_from_dir(path);
     }

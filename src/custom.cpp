@@ -8764,10 +8764,6 @@ int custom_init (void)
 		uaecptr pos;
 		pos = here ();
 
-		org (rtarea_base + 0xFF68);
-		calltrap (deftrap (activate_debugger_trap));
-		dw (RTS);
-
 		org (rtarea_base + 0xFF70);
 		calltrap (deftrap (mousehack_helper_old));
 		dw (RTS);

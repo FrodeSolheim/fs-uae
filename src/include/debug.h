@@ -17,8 +17,6 @@
 
 #ifdef DEBUGGER
 
-#include "traps.h"
-
 #define	MAX_HIST 500
 #define MAX_LINEWIDTH 100
 
@@ -36,7 +34,6 @@ extern uae_u64 debug_illegal_mask;
 extern void debug (void);
 extern void debugger_change (int mode);
 extern void activate_debugger (void);
-uae_u32 REGPARAM2 activate_debugger_trap (TrapContext *context);
 extern void deactivate_debugger (void);
 extern int notinrom (void);
 extern const TCHAR *debuginfo (int);

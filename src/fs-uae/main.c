@@ -728,16 +728,7 @@ static void log_to_libfsemu(const char *message)
 {
     /* UAE logs some messages char-for-char, so we need to buffer logging
      * here if we want to log with [UAE] prefix. */
-    // fs_log("[UAE] %s", message);
-    static bool initialized;
-    static bool ignore;
-    if (!initialized) {
-        initialized = true;
-        ignore = fs_config_false(OPTION_UAELOG);
-    }
-    if (!ignore) {
-        fs_log_string(message);
-    }
+    fs_log("[UAE] %s", message);
 }
 
 static void main_function()

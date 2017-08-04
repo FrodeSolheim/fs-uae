@@ -9,6 +9,7 @@
 #include "uae.h"
 #include "xwin.h"
 #include "uae/fs.h"
+#include <fs/conf.h>
 #include "../od-win32/debug_win32.h"
 
 #ifndef PICASSO96
@@ -229,7 +230,6 @@ TCHAR *target_expand_environment (const TCHAR *path) {
     return strdup(path);
 }
 
-#if 0
 #include <signal.h>
 #include "debug.h"
 #ifdef __cplusplus_disabled
@@ -246,11 +246,12 @@ static RETSIGTYPE sigbrkhandler (int foo)
     signal (SIGINT, sigbrkhandler);
 #endif
 }
-#endif
 
 void setup_brkhandler (void)
 {
-    /*
+    if (fs_config_false("console_debugger"))
+        return;
+
 #if defined(__unix) && !defined(__NeXT__)
     struct sigaction sa;
     sa.sa_handler = sigbrkhandler;
@@ -263,7 +264,6 @@ void setup_brkhandler (void)
 #else
     signal (SIGINT, sigbrkhandler);
 #endif
-    */
 }
 
 void sleep_cpu_wakeup(void)

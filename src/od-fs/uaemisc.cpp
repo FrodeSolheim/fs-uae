@@ -84,7 +84,7 @@ void sleep_millis (int ms) {
 void console_out_f(const TCHAR *fmt, ...) {
     va_list arg_ptr;
     va_start(arg_ptr, fmt);
-    vprintf(fmt, arg_ptr);
+    vfprintf(stderr, fmt, arg_ptr);
     va_end(arg_ptr);
 }
 
@@ -101,7 +101,7 @@ void f_out(void *f, const TCHAR *format, ...)
 }
 
 void console_out (const TCHAR *msg) {
-    printf("%s", msg);
+    fprintf(stderr, "%s", msg);
 }
 
 int console_get_gui (TCHAR *out, int maxlen) {
@@ -119,7 +119,7 @@ int console_get(TCHAR *in, int maxlen) {
 }
 
 void console_flush(void) {
-    fflush(stdout);
+    fflush(stderr);
 }
 
 TCHAR console_getch (void) {

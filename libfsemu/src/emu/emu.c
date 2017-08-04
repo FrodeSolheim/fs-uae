@@ -309,10 +309,6 @@ void fse_init_early(void)
 
     fs_init_time();
 
-    if (fs_config_true(OPTION_STDOUT)) {
-        fs_log_enable_stdout();
-    }
-
     fs_log("[FSE] Calling fs_ml_init\n");
     fs_ml_init();
 
@@ -331,6 +327,10 @@ void fse_init(int options)
     fse_init_early();
     fs_log("[FSE] Init\n");
     read_config();
+
+    if (fs_config_true(OPTION_STDOUT)) {
+        fs_log_enable_stdout();
+    }
 
 #ifdef USE_SDL
     fse_log("[FSE] Initializing SDL\n");

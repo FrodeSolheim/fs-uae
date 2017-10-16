@@ -17,6 +17,7 @@ static double g_scale_y = -1.0;
 static double g_align_x = 0.5;
 static double g_align_y = 0.5;
 static bool g_render_frame = true;
+static double g_force_aspect = 0.0;
 
 int fse_stretch_mode(void)
 {
@@ -113,9 +114,12 @@ void fse_calculate_video_rectangle(
             /* No scaling change needed. */
         } else {
             double pixel_aspect = 1.0;
-            if (stretch_mode == FSE_STRETCH_ASPECT) {
+            if (g_force_aspect != 0) {
+                pixel_aspect = ((double) video_w / video_h) / (g_force_aspect);
+            } else if (stretch_mode == FSE_STRETCH_ASPECT) {
                 pixel_aspect = fse_pixel_aspect();
             }
+
             double render_aspect = (double) render_w / render_h;
             double aspect = ((double) video_w / video_h) / pixel_aspect;
             if (aspect < render_aspect) {
@@ -279,7 +283,12 @@ void fse_init_render(void)
     }
     fse_set_scale_mode(scale_mode);
 
-    if (fs_config_false(OPTION_FRAME)) {
+    if (fs_config_false(OPTION_BEZEL)) {
         g_render_frame = false;
+    }
+
+    g_force_aspect = fs_config_get_double("force_aspect");
+    if (g_force_aspect == FS_CONFIG_NONE) {
+        g_force_aspect = 0;
     }
 }

@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.67])
-AC_INIT([FS-UAE], [2.9.6dev1],
+AC_INIT([FS-UAE], [2.9.6dev8],
         [frode@fs-uae.net], [fs-uae], [https://fs-uae.net])
 AC_CONFIG_AUX_DIR([.])
 AC_CANONICAL_HOST
@@ -312,8 +312,8 @@ AS_CASE([$host_os],
     OS_NAME_2="Windows"
     OS_NAME_3="Windows"
     OS_CPPFLAGS="-DWINDOWS"
-    AS_CASE([$host_os],
-    [mingw64], [
+    AS_CASE([$host_cpu],
+    [x86_64], [
         OS_LDFLAGS="-mwindows"
         PACKAGE_ARCH="x86-64"
     ], [
@@ -764,8 +764,8 @@ AC_CONFIG_SUBDIRS([libmpeg2])
 
 AC_CONFIG_FILES([
     dist/linux/Makefile
-    dist/macosx/Info.plist
-    dist/macosx/Makefile
+    dist/macos/Info.plist
+    dist/macos/Makefile
     dist/steamos/Makefile
     dist/windows/fs-uae.iss
     dist/windows/Makefile

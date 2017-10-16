@@ -1,6 +1,0 @@
-Summary: Mega Drive Game Driver
-Type: Choice
-Default: mednafen
-
-Value: mednafen
-Value: mess

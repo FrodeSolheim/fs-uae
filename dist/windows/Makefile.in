@@ -4,7 +4,7 @@ arch = $(strip $(shell python3 ../arch.py))
 
 dname = fs-uae_$(ver)_$(os)_$(arch)
 
-all: progdir zipfile setup
+all: progdir zip setup
 
 clean:
 	rm -Rf fs-uae-*_windows*
@@ -33,7 +33,7 @@ endif
 	python3 clib.py libintl-8.dll $(dname)
 	python3 clib.py libiconv-2.dll $(dname)
 	python3 clib.py SDL2.dll $(dname)
-	python3 clib.py OpenAL32.dll $(dname)
+	python3 clib.py libopenal-1.dll $(dname)
 	python3 clib.py GLEW32.dll $(dname)
 	python3 clib.py libmpeg2-0.dll $(dname)
 	python3 clib.py libmpeg2convert-0.dll $(dname)
@@ -59,8 +59,11 @@ endif
 
 	python3 sign.py $(dname)/*.exe
 
-zipfile:
+zip:
 	cd $(dname) && zip -9 -r ../../../$(dname).zip *
+
+tar.xz: progdir
+	cd $(dname) && tar cfvJ ../../../$(dname).tar.xz *
 
 setup:
 	python3 iscc.py fs-uae.iss

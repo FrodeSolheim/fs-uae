@@ -1,0 +1,7 @@
+Summary: Bezel
+Type: Choice
+Default: 1
+Example: 0
+
+Value: 1 ("Show Bezel")
+Value: 0 ("Hide Bezel")

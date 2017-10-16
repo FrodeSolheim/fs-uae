@@ -143,6 +143,7 @@ GList *fs_ml_input_list_custom_keyboards(void)
     char *keyboards_path = g_build_filename(
         fs_data_dir(), "Devs", "Keyboards", NULL);
 #endif
+    printf("# Keyboards path: %s\n", keyboards_path);
     GList *list = NULL;
     GDir *dir = g_dir_open(keyboards_path, 0, NULL);
     if (dir) {

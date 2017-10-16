@@ -439,7 +439,7 @@ void fs_emu_initialize_textures()
     image->width = 1024;
     image->height = 1024;
     image->format = FS_IMAGE_FORMAT_RGBA;
-    image->data = g_malloc0(1024 * 1024 * 4);
+    image->data = (unsigned char *) g_malloc0(1024 * 1024 * 4);
     initialize_atlas(image);
 
     g_atlas = g_new(fs_emu_texture, 1);

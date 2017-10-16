@@ -35,7 +35,7 @@ Value: swap-fence (Swap-Fence)
        Linux with recent nVIDIA drivers.
 Value: swap-sleep-fence (Swap-Sleep-Fence)
        Same as above, but sleep a while (based on estimated
-       time to next vblank) before starting to pool the fence, (in case the
+       time to next vblank) before starting to poll the fence, (in case the
        test-fence method blocks with high CPU usage, problem seen on
        nVIDIA/Windows).
 

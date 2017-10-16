@@ -121,7 +121,7 @@ static int read_zip_entries (FILE *f)
             return ERROR_CFH_SIG;
         }
         uint16_t name_len = le16toh(cfh.file_name_length);
-        char *name = malloc(name_len + 1);
+        char *name = (char *) malloc(name_len + 1);
         name[name_len] = 0;
         pos += sizeof(central_file_header);
         if (fread(name, name_len, 1, f) != 1) {
@@ -192,7 +192,7 @@ int fs_data_file_content(const char *name, char **data, int *size)
         /* don't try to allocate very large files */
         return 12;
     }
-    *data = malloc(*size);
+    *data = (char *) malloc(*size);
 
     pos += sizeof(local_file_header) + le16toh(lfh.file_name_length) + \
             le16toh(lfh.extra_field_length);

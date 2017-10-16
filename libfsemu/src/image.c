@@ -16,7 +16,7 @@
 static void fs_image_destroy(void* ptr)
 {
     fs_log("fs_image_destroy\n");
-    fs_image* image = ptr;
+    fs_image* image = (fs_image *) ptr;
     if (image->data) {
         free(image->data);
     }
@@ -25,7 +25,7 @@ static void fs_image_destroy(void* ptr)
 
 fs_image* fs_image_new()
 {
-    fs_image* image = malloc(sizeof(fs_image));
+    fs_image* image = (fs_image *) malloc(sizeof(fs_image));
     memset(image, 0, sizeof(fs_image));
     fs_ref_initialize(image, fs_image_destroy);
     image->format = FS_IMAGE_FORMAT_NONE;
@@ -72,7 +72,7 @@ fs_image* fs_image_new_from_data(const void *buffer, int size)
 
     fs_image* image = fs_image_new();
 
-    if (png_sig_cmp((void*) buffer, 0, 8)) {
+    if (png_sig_cmp((png_const_bytep) buffer, 0, 8)) {
         fs_log("file %p[%d] is not recognized as a PNG file\n", buffer, size);
         fs_unref(image);
         //return image;
@@ -162,7 +162,8 @@ fs_image* fs_image_new_from_data(const void *buffer, int size)
             return NULL;
     }
 
-    unsigned char* data = malloc(width * height * channels);
+    unsigned char* data = (unsigned char *) malloc(
+            width * height * channels);
     row_pointers = (png_bytep*) malloc(sizeof(png_bytep) * height);
     for (y = 0; y < height; y++) {
         row_pointers[y] = data + width * y * channels;
@@ -289,7 +290,8 @@ fs_image* fs_image_new_from_file(const char* file)
             return NULL;
     }
 
-    unsigned char* data = malloc(width * height * channels);
+    unsigned char* data = (unsigned char *) malloc(
+            width * height * channels);
     row_pointers = (png_bytep*) malloc(sizeof(png_bytep) * height);
     for (y = 0; y < height; y++) {
         row_pointers[y] = data + width * y * channels;
@@ -387,10 +389,11 @@ int fs_image_save_data(
     png_set_IHDR(png_ptr, info_ptr, width, height,
             bit_depth, color_type, interlace_type,
             compression_type, filter_method);
-    row_pointers = malloc(sizeof (unsigned char*) * height);
+    row_pointers = (unsigned char **) malloc(
+            sizeof (unsigned char*) * height);
     data = buffer;
     for (i = 0; i < height; i++) {
-        row_pointers[i] = data;
+        row_pointers[i] = (unsigned char *) data;
         data = data + row_stride;
     }
     png_set_rows(png_ptr, info_ptr, row_pointers);

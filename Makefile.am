@@ -1199,11 +1199,11 @@ EXTRA_DIST = $(TESTS) $(EXTRA_TESTS) \
 	dist/linux/build.py \
 	dist/arch.py \
 	dist/linux/standalone-linux.py \
-	dist/macosx/fs-uae-config.icns \
-	dist/macosx/fs-uae.icns \
-	dist/macosx/PkgInfo \
-	dist/macosx/sign.py \
-	dist/macosx/standalone.py \
+	dist/macos/fs-uae-config.icns \
+	dist/macos/fs-uae.icns \
+	dist/macos/PkgInfo \
+	dist/macos/sign.py \
+	dist/macos/standalone.py \
 	dist/windows/clib.py \
 	dist/windows/iscc.py \
 	dist/windows/sign.py \
@@ -1461,5 +1461,17 @@ if LINUX
 	fs-sdk-linux-x86-64 make -C fs-uae-@PACKAGE_VERSION@ -j4
 	fs-sdk-linux-x86-64 make -C fs-uae-@PACKAGE_VERSION@/dist/linux
 	mv fs-uae-@PACKAGE_VERSION@/fs-uae_@PACKAGE_VERSION@_linux_x86-64.tar.xz .
+endif
+if MACOS
+	cd fs-uae-@PACKAGE_VERSION@ && ./configure
+	make -C fs-uae-@PACKAGE_VERSION@ -j4
+	make -C fs-uae-@PACKAGE_VERSION@/dist/macos
+	mv fs-uae-@PACKAGE_VERSION@/fs-uae_@PACKAGE_VERSION@_macos_x86-64.tar.xz .
+endif
+if WINDOWS
+	cd fs-uae-@PACKAGE_VERSION@ && ./configure
+	make -C fs-uae-@PACKAGE_VERSION@ -j2
+	make -C fs-uae-@PACKAGE_VERSION@/dist/windows tar.xz
+	mv fs-uae-@PACKAGE_VERSION@/fs-uae_@PACKAGE_VERSION@_windows_x86.tar.xz .
 endif
 	rm -Rf fs-uae-@PACKAGE_VERSION@

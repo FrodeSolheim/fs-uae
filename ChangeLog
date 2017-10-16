@@ -1,5 +1,8 @@
 Version 2.9.7dev:
 
+* Support building with latest version of MSYS2.
+* Renamed option frame to bezel.
+* New option: force_aspect.
 * Added shaders compiled/ported/written by guest.r.
 
 Version 2.9.6dev:

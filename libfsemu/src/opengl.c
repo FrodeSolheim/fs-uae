@@ -73,7 +73,7 @@ static GList *g_context_notifications = NULL;
 void fs_gl_send_context_notification(int notification) {
     GList *link = g_context_notifications;
     while (link) {
-        context_notification *cn = link->data;
+        context_notification *cn = (context_notification *) link->data;
         cn->function(notification, cn->data);
         link = link->next;
     }
@@ -93,7 +93,7 @@ void fs_gl_remove_context_notification(fs_gl_context_notify_function function,
         void *data) {
     GList *link = g_context_notifications;
     while (link) {
-        context_notification *cn = link->data;
+        context_notification *cn = (context_notification *) link->data;
         if (cn->function == function && cn->data == data) {
             g_free(cn);
             g_context_notifications = g_list_delete_link(

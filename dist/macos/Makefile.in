@@ -9,10 +9,10 @@ dname = fs-uae_$(ver_os_arch)
 all: bindist
 
 clean:
-	rm -Rf ../macosx/fs-uae*
+	rm -Rf ../macos/fs-uae*
 
 bindist: bundle
-	cd $(dname) && GZIP=-9 tar zcfv ../../../$(dname).tar.gz *
+	cd $(dname) && tar Jcfv ../../../$(dname).tar.xz *
 
 bundle:
 	make -C ../..

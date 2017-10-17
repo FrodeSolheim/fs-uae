@@ -72,7 +72,11 @@ fs_image* fs_image_new_from_data(const void *buffer, int size)
 
     fs_image* image = fs_image_new();
 
+#if PNG_LIBPNG_VER < 10500
+    if (png_sig_cmp((png_bytep) buffer, 0, 8)) {
+#else
     if (png_sig_cmp((png_const_bytep) buffer, 0, 8)) {
+#endif
         fs_log("file %p[%d] is not recognized as a PNG file\n", buffer, size);
         fs_unref(image);
         //return image;

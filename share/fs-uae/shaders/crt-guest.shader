@@ -77,7 +77,7 @@ float sw(float x, float l)
 
 vec3 Mask1(float pos){
 
-	float m = mod(int(pos),3);
+	float m = round(mod(pos,3.0));
 	
 	if (m == 0.0) return vec3(1.0, 0.0, 0.0); else
 	if (m == 1.0) return vec3(0.0, 1.0, 0.0); else
@@ -86,7 +86,7 @@ vec3 Mask1(float pos){
 
 vec3 Mask(float pos){
 
-	float m = mod(int(pos),2);
+	float m = round(mod(pos,2.0));
 	
 	if (m == 0.0) return vec3(1.0, 0.0, 1.0); else
 	return vec3(0.0, 1.0, 0.0); 
@@ -149,9 +149,12 @@ void main()
 
 // calculating scanlines
 	
-	float f = fract(gl_TexCoord[0].y * rubyTextureSize.y); f = f-0.5; float luma = length(color)/1.73205080757;
-	color*=sw(abs(f),luma) + sw(f+1.0,luma) + sw(abs(f-1.0),luma);
+	//float f = fract(gl_TexCoord[0].y * rubyTextureSize.y); f = f-0.5; float luma = length(color)/1.73205080757;
+	//color*= sw(abs(f),luma) + sw(f+1.0,luma) + sw(abs(f-1.0),luma);
 
+	float f = fract((gl_TexCoord[0].y + 0.5/rubyTextureSize.y) * rubyTextureSize.y); float luma = length(color)/1.73205080757;
+	color*=sw(abs(1.0-f),luma) + sw(f,luma);	
+	
 // applying shadowmask
 
 	color = pow(color, vec3(1.2));	

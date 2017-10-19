@@ -44,6 +44,7 @@ uniform vec2 rubyTextureSize;
 uniform vec2 rubyOutputSize;
 uniform vec2 rubyInputSize;
 
+#define SATURATION 1.0
 #define PHOSPHOR 1.0
 #define VSCANLINES 0.0
 #define InputGamma 2.5
@@ -58,8 +59,8 @@ uniform vec2 rubyInputSize;
 #define BEAM_MAX_WIDTH 1.0
 #define CRT_ANTI_RINGING 0.8  
 
-#define GAMMA_IN(color)     pow(color, vec3(InputGamma, InputGamma, InputGamma))
-#define GAMMA_OUT(color)    pow(color, vec3(1.0 / OutputGamma, 1.0 / OutputGamma, 1.0 / OutputGamma))
+#define GAMMA_IN(color)     pow(color, vec4(InputGamma, InputGamma, InputGamma, InputGamma))
+#define GAMMA_OUT(color)    pow(color, vec4(1.0 / OutputGamma, 1.0 / OutputGamma, 1.0 / OutputGamma, 1.0 / OutputGamma))
 
 
 // Horizontal cubic filter.
@@ -88,7 +89,7 @@ mat4 invX = mat4(            (-B - 6.0*C)/6.0,         (3.0*B + 12.0*C)/6.0,    
  
  
 void main(void) {   
-    vec3 color;
+    vec4 color;
 
     vec2 TextureSize = vec2(SHARPNESS*rubyTextureSize.x, rubyTextureSize.y);
 
@@ -101,28 +102,28 @@ void main(void) {
 
     vec2 fp = mix(fract(pix_coord), fract(pix_coord.yx), VSCANLINES);
 
-    vec3 c00 = GAMMA_IN(texture2D(rubyTexture, tc     - dx - dy).xyz);
-    vec3 c01 = GAMMA_IN(texture2D(rubyTexture, tc          - dy).xyz);
-    vec3 c02 = GAMMA_IN(texture2D(rubyTexture, tc     + dx - dy).xyz);
-    vec3 c03 = GAMMA_IN(texture2D(rubyTexture, tc + 2.0*dx - dy).xyz);
-    vec3 c10 = GAMMA_IN(texture2D(rubyTexture, tc     - dx     ).xyz);
-    vec3 c11 = GAMMA_IN(texture2D(rubyTexture, tc              ).xyz);
-    vec3 c12 = GAMMA_IN(texture2D(rubyTexture, tc     + dx     ).xyz);
-    vec3 c13 = GAMMA_IN(texture2D(rubyTexture, tc + 2.0*dx     ).xyz);
+    vec4 c00 = GAMMA_IN(texture2D(rubyTexture, tc     - dx - dy));
+    vec4 c01 = GAMMA_IN(texture2D(rubyTexture, tc          - dy));
+    vec4 c02 = GAMMA_IN(texture2D(rubyTexture, tc     + dx - dy));
+    vec4 c03 = GAMMA_IN(texture2D(rubyTexture, tc + 2.0*dx - dy));
+    vec4 c10 = GAMMA_IN(texture2D(rubyTexture, tc     - dx     ));
+    vec4 c11 = GAMMA_IN(texture2D(rubyTexture, tc              ));
+    vec4 c12 = GAMMA_IN(texture2D(rubyTexture, tc     + dx     ));
+    vec4 c13 = GAMMA_IN(texture2D(rubyTexture, tc + 2.0*dx     ));
 
     // Get min/max samples
-    vec3 min_sample = min(min(c01, c11), min(c02, c12));
-    vec3 max_sample = max(max(c01, c11), max(c02, c12));
+    vec4 min_sample = min(min(c01, c11), min(c02, c12));
+    vec4 max_sample = max(max(c01, c11), max(c02, c12));
 
-    mat4x3 color_matrix0 = mat4x3(c00, c01, c02, c03);
-    mat4x3 color_matrix1 = mat4x3(c10, c11, c12, c13);
+    mat4 color_matrix0 = mat4(c00, c01, c02, c03);
+    mat4 color_matrix1 = mat4(c10, c11, c12, c13);
     
     vec4 invX_Px    = vec4(fp.x*fp.x*fp.x, fp.x*fp.x, fp.x, 1.0) * invX;
-    vec3 color0     = color_matrix0 * invX_Px;
-    vec3 color1     = color_matrix1 * invX_Px;
+    vec4 color0     = color_matrix0 * invX_Px;
+    vec4 color1     = color_matrix1 * invX_Px;
 
     // Anti-ringing
-    vec3 aux    = color0;
+    vec4 aux    = color0;
     color0      = clamp(color0, min_sample, max_sample);
     color0      = mix(aux, color0, CRT_ANTI_RINGING);
     aux         = color1;
@@ -130,34 +131,37 @@ void main(void) {
     color1      = mix(aux, color1, CRT_ANTI_RINGING);
 
     float pos0 = fp.y;
-    float pos1 = 1 - fp.y;
+    float pos1 = 1.0 - fp.y;
 
-    vec3 lum0 = mix(vec3(BEAM_MIN_WIDTH), vec3(BEAM_MAX_WIDTH), color0);
-    vec3 lum1 = mix(vec3(BEAM_MIN_WIDTH), vec3(BEAM_MAX_WIDTH), color1);
+    vec4 lum0 = mix(vec4(BEAM_MIN_WIDTH), vec4(BEAM_MAX_WIDTH), color0);
+    vec4 lum1 = mix(vec4(BEAM_MIN_WIDTH), vec4(BEAM_MAX_WIDTH), color1);
 
-    vec3 d0 = clamp(pos0/(lum0 + 0.0000001), 0.0, 1.0);
-    vec3 d1 = clamp(pos1/(lum1 + 0.0000001), 0.0, 1.0);
+    vec4 d0 = clamp(pos0/(lum0 + 0.0000001), 0.0, 1.0);
+    vec4 d1 = clamp(pos1/(lum1 + 0.0000001), 0.0, 1.0);
 
     d0 = exp(-10.0*SCANLINES_STRENGTH*d0*d0);
     d1 = exp(-10.0*SCANLINES_STRENGTH*d1*d1);
 
     color = clamp(color0*d0 + color1*d1, 0.0, 1.0);            
 
-    color *= COLOR_BOOST*vec3(RED_BOOST, GREEN_BOOST, BLUE_BOOST);
+    color *= COLOR_BOOST*vec4(RED_BOOST, GREEN_BOOST, BLUE_BOOST, 1.0);
 
     float mod_factor = mix(gl_TexCoord[0].x * rubyOutputSize.x * rubyTextureSize.x / rubyInputSize.x, gl_TexCoord[0].y * rubyOutputSize.y * rubyTextureSize.y / rubyInputSize.y, VSCANLINES);
 
-    vec3 dotMaskWeights = mix(
-        vec3(1.0, 0.7, 1.0),
-        vec3(0.7, 1.0, 0.7),
+    vec4 dotMaskWeights = mix(
+        vec4(1.0, 0.7, 1.0, 0.0),
+        vec4(0.7, 1.0, 0.7, 0.0),
         floor(mod(mod_factor, 2.0))
     );
 
-    color.rgb *= mix(vec3(1.0), dotMaskWeights, PHOSPHOR);
+    color*= mix(vec4(1.0), dotMaskWeights, PHOSPHOR);
 
     color  = GAMMA_OUT(color);
 
-    gl_FragColor = vec4(color, 1.0); 
+	float l = length(color);
+	color = normalize(pow(color, vec4(SATURATION)))*l;		
+	
+    gl_FragColor = color; 
 }
 
 ]]></fragment>

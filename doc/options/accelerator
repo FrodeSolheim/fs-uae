@@ -1,4 +1,4 @@
-Summary: Accelerator Board
+Summary: "Accelerator Board"
 Type: Choice
 Default: 0
 Example: cyberstorm-ppc

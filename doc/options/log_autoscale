@@ -1,4 +1,4 @@
-Summary: Log Autoscale Changes
+Summary: "Log Autoscale Changes"
 Type: boolean
 Default: 0
 Example: 1

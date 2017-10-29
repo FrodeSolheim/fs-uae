@@ -21,10 +21,12 @@
 #define TEXTURE_LOGO_32 16
 #define TEXTURE_TITLE_BG 17
 #define TEXTURE_TITLE_FADE 18
-#define TEXTURE_FRAME_LEFT 19
-#define TEXTURE_FRAME_RIGHT 20
+#define TEXTURE_BEZEL_LEFT 19
+#define TEXTURE_BEZEL_RIGHT 20
 #define TEXTURE_STRETCH_NONE 21
-#define TEXTURE_LAST 22
+#define TEXTURE_BEZEL_LEFT_OVERLAY 22
+#define TEXTURE_BEZEL_RIGHT_OVERLAY 23
+#define TEXTURE_LAST 24
 
 typedef struct _fs_emu_texture {
     unsigned int texture;

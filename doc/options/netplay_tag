@@ -1,4 +1,4 @@
-Description: Net play tag (max 3 characters)
+Description: "Net play tag (max 3 characters)"
 Default: UNK
 Example: ABC
 Type: string

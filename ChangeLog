@@ -1,3 +1,9 @@
+Version 2.9.8dev:
+
+* Updated bezel.
+* Compatibility updates for a couple of shaders [guest.r].
+* Imported updated translations from crowdin.com.
+
 Version 2.9.7dev:
 
 * Support building with latest version of MSYS2.

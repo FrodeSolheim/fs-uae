@@ -1,4 +1,4 @@
-Summary: Sound Card
+Summary: "Sound Card"
 Type: Choice
 Default: 0
 Example: toccata

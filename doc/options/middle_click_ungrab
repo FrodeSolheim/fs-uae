@@ -1,4 +1,4 @@
-Description: Ungrab Input on Middle Mouse Button
+Description: "Ungrab Input on Middle Mouse Button"
 Default: 1
 Example: 0
 Type: boolean

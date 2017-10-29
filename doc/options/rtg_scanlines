@@ -1,4 +1,4 @@
-Description: Render scan lines in RTG graphics mode
+Description: "Render scan lines in RTG graphics mode"
 Default: 0
 Example: 1
 Since: 1.1.3

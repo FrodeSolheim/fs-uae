@@ -12,7 +12,7 @@ one of:
 This option can be visually configured in FS-UAE Launcher. In order to use
 Action Replay, you need a ROM file. See further below for more information.
 
-To activate the freezer cartridge in FS-UAE, you press <kbd>Mod+A</kbd>.
+To activate the freezer cartridge in FS-UAE, you press <kbd>Mod+C</kbd>.
 
 ## Action Replay Mk ROMs
 

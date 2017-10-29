@@ -1,4 +1,4 @@
-Summary: Automatic mouse/joystick mode for mouse port
+Summary: "Automatic mouse/joystick mode for mouse port"
 Default: 1
 Example: 0
 Since: 2.1.33

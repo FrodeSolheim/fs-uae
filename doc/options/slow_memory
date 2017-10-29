@@ -1,4 +1,4 @@
-Summary: Slow RAM
+Summary: "Slow RAM"
 Type: Choice
 Default:
 Example: 512

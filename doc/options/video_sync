@@ -1,6 +1,6 @@
 Alias: vsync, sync
 Default: 0
-Description: Video synchronization
+Description: "Video synchronization"
 Example: 1
 Type: choice
 

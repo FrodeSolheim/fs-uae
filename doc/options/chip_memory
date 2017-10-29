@@ -1,4 +1,4 @@
-Summary: Chip RAM
+Summary: "Chip RAM"
 Type: Choice
 Default:
 Example: 1024

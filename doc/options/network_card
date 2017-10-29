@@ -1,4 +1,4 @@
-Summary: Network Card
+Summary: "Network Card"
 Type: Choice
 Default: 0
 Example: a2065

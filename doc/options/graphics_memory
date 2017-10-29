@@ -1,4 +1,4 @@
-Summary: Graphics Card RAM
+Summary: "Graphics Card RAM"
 Type: Choice
 Default:
 Since: 2.5.15

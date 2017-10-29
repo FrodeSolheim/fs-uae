@@ -1,4 +1,4 @@
-Description: Video buffer format and color depth
+Description: "Video buffer format and color depth"
 Default: bgra
 Example: rgb565
 Since: 1.1.4

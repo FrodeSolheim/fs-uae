@@ -1,4 +1,4 @@
-Description: Grab keyboard when input is grabbed
+Description: "Grab keyboard when input is grabbed"
 Default: 1
 Example: 0
 Since: 2.3.10

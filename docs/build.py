@@ -7,7 +7,8 @@ IGNORED = [".gitignore", "Makefile", "build.py", "update.py"]
 
 option_names = set()
 
-shutil.rmtree("dist")
+if os.path.exists("dist"):
+    shutil.rmtree("dist")
 
 for dir_path, dir_names, file_names in os.walk("../doc/options"):
     if "dist" in dir_names:

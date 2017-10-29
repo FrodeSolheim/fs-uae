@@ -1,4 +1,4 @@
-Description: Stereo Separation
+Description: "Stereo Separation"
 Default: 70
 Example: 100
 Since: 2.3.12

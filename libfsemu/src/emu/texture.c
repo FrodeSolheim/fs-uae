@@ -3,6 +3,7 @@
 #endif
 
 #include <fs/emu.h>
+#include <fs/emu/render.h>
 #include <fs/emu/video.h>
 
 #ifdef USE_OPENGL
@@ -61,9 +62,11 @@ static texture_entry g_entries[] = {
     { 0, 0, 0, 0}, // TEXTURE_LOGO_32
     { 0, 0, 0, 0}, // TEXTURE_TOP_BG
     { 0, 0, 0, 0}, // TEXTURE_TOP_FADE
-    { 0, 0, 0, 0}, // TEXTURE_FRAME_LEFT
-    { 0, 0, 0, 0}, // TEXTURE_FRAME_RIGHT
+    { 0, 0, 0, 0}, // TEXTURE_BEZEL_LEFT
+    { 0, 0, 0, 0}, // TEXTURE_BEZEL_RIGHT
     { 0, 0, 0, 0}, // TEXTURE_STRETCH_NONE
+    { 0, 0, 0, 0}, // TEXTURE_BEZEL_LEFT_OVELAY
+    { 0, 0, 0, 0}, // TEXTURE_BEZEL_RIGHT_OVELAY
 };
 
 static void premultiply_image(fs_image *image)
@@ -371,9 +374,13 @@ static void initialize_atlas(fs_image *image)
     load_atlas_texture(image, TEXTURE_LOGO_32, "logo-32.png");
     load_atlas_texture(image, TEXTURE_TITLE_BG, "top_background.png");
     load_atlas_texture(image, TEXTURE_TITLE_FADE, "top_background_fade.png");
-    load_atlas_texture(image, TEXTURE_FRAME_LEFT, "frame-left.png");
-    load_atlas_texture(image, TEXTURE_FRAME_RIGHT, "frame-right.png");
+    load_atlas_texture(image, TEXTURE_BEZEL_LEFT, "bezel/left.png");
+    load_atlas_texture(image, TEXTURE_BEZEL_RIGHT, "bezel/right.png");
     load_atlas_texture(image, TEXTURE_STRETCH_NONE, "stretch-none.png");
+    load_atlas_texture(image, TEXTURE_BEZEL_LEFT_OVERLAY,
+                       "bezel/left-overlay.png");
+    load_atlas_texture(image, TEXTURE_BEZEL_RIGHT_OVERLAY,
+                       "bezel/right-overlay.png");
 
     //fs_image_save_data("atlas-output-test.png", image->data,
     //        image->width, image->height, 4);

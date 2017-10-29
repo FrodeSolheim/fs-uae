@@ -1,4 +1,4 @@
-Summary: Graphics Card
+Summary: "Graphics Card"
 Type: Choice
 Default: none
 Example: uaegfx

@@ -1,4 +1,4 @@
-Description: Audio buffer target size (ms)
+Description: "Audio buffer target size (ms)"
 Default: 40
 Example: 20
 Since: 2.3.14

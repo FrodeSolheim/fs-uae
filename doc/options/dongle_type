@@ -1,4 +1,4 @@
-Summary: Hardware Dongle
+Summary: "Hardware Dongle"
 Type: Choice
 Default: 0
 Example: robocop 3

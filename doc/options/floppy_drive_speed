@@ -1,4 +1,4 @@
-Summary: Floppy Drive Speed
+Summary: "Floppy Drive Speed"
 Type: Choice
 Default: 100
 Example: 800

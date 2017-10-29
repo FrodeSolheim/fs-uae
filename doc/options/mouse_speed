@@ -1,4 +1,4 @@
-Description: Mouse Speed (%)
+Description: "Mouse Speed (%)"
 Default: 100
 Example: 50
 Since: 2.1.3

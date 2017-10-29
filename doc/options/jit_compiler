@@ -1,4 +1,4 @@
-Summary: JIT Compiler
+Summary: "JIT Compiler"
 Default: 0
 Example: 1
 Type: Boolean

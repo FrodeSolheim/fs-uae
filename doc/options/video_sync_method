@@ -1,4 +1,4 @@
-Summary: Video synchronization method
+Summary: "Video synchronization method"
 Default: auto
 Example: finish-sleep-swap-finish
 Type: choice

@@ -1,4 +1,4 @@
-Description: Monitor to display FS-UAE on (fullscreen)
+Description: "Monitor to display FS-UAE on (fullscreen)"
 Default: middle-left
 Type: choice
 

@@ -6,6 +6,7 @@
 #include <fs/emu/log.h>
 #include <fs/emu/options.h>
 #include <fs/emu/render.h>
+#include <fs/ml/opengl.h>
 #include <fs/conf.h>
 #include <assert.h>
 #include <string.h>
@@ -213,11 +214,20 @@ void fse_render_frame(void)
     int frame_width = 256 * fse_render.height / 1080;
     if (fse_render.view_x > 0) {
         fse_render_image_with_size(
-                TEXTURE_FRAME_LEFT, fse_render.view_x - frame_width,
+                TEXTURE_BEZEL_LEFT, fse_render.view_x - frame_width,
                     0, frame_width, fse_render.height);
         fse_render_image_with_size(
-                TEXTURE_FRAME_RIGHT, fse_render.view_x + fse_render.view_w,
+                TEXTURE_BEZEL_RIGHT, fse_render.view_x + fse_render.view_w,
                     0, frame_width, fse_render.height);
+        int overlay_width = 32;
+        fs_gl_blending(true);
+        fse_render_image_with_size(
+                TEXTURE_BEZEL_LEFT_OVERLAY, fse_render.view_x,
+                    0, overlay_width, fse_render.height);
+        fse_render_image_with_size(
+                TEXTURE_BEZEL_RIGHT_OVERLAY,
+                    fse_render.view_x + fse_render.view_w - overlay_width,
+                    0, overlay_width, fse_render.height);
     }
 }
 

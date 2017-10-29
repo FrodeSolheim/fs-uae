@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae\n"
 "Report-Msgid-Bugs-To: frode@fs-uae.net\n"
-"POT-Creation-Date: 2017-05-20 17:57+0200\n"
-"PO-Revision-Date: 2017-05-21 04:54-0400\n"
+"POT-Creation-Date: 2017-10-19 23:07+0200\n"
+"PO-Revision-Date: 2017-10-29 17:22-0400\n"
 "Last-Translator: FrodeSolheim <frode-crowdin@fsolheim.net>\n"
 "Language-Team: Spanish\n"
 "Language: es_ES\n"
@@ -20,57 +20,57 @@ msgid "Activated debugger"
 msgstr "Depurador activado"
 
 msgid "Amiga Control"
-msgstr "Control Amiga"
+msgstr "Mando de Amiga"
 
 #. / TRANSLATORS: In context "Zoom: Auto"
 msgid "Auto"
 msgstr "Auto"
 
 msgid "Auto-Fire is Off"
-msgstr "Auto Disparo Desactivado"
+msgstr "Autodisparo desactivado"
 
 msgid "Auto-Fire is On"
-msgstr "Auto Disparo Activado"
+msgstr "Autodisparo activado"
 
 #, c-format
 msgid "Auto-fire disabled for port %d"
-msgstr "Auto Disparo Deshabilitado para puerto %d"
+msgstr "Autodisparo desactivado para puerto %d"
 
 #, c-format
 msgid "Auto-fire enabled for port %d"
-msgstr "Auto Disparo Habilitado para puerto %d"
+msgstr "Autodisparo activado para puerto %d"
 
 #. / TRANSLATORS: Empty or nothing
 #, c-format
 msgid "CD%d: Empty"
-msgstr "CD%d: Vacio"
+msgstr "CD%d: Vacío"
 
 msgid "CD32 Pad Mode"
-msgstr "CD32 Modo Gamepad"
+msgstr "Modo mando de CD32"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 msgid "Custom Joystick Ports"
 msgstr "Puertos de joystick personalizados"
 
 msgid "Custom Mode"
-msgstr "Modo Personalizado"
+msgstr "Modo personalizado"
 
 #. / TRANSLATORS: Empty or nothing
 #, c-format
 msgid "DF%d: Empty"
-msgstr "DF%d: Vacio"
+msgstr "DF%d: Vacío"
 
 msgid "Disabled"
-msgstr "Deshabilitado"
+msgstr "Desactivado"
 
 msgid "Eject"
-msgstr "Extraer"
+msgstr "Expulsar"
 
 msgid "Empty"
-msgstr "Vacio"
+msgstr "Vacío"
 
 msgid "Emulator Control"
-msgstr "Control Emulador"
+msgstr "Mando del emulador"
 
 #, c-format
 msgid "Expected FS-UAE version %s, got %s"
@@ -78,24 +78,24 @@ msgstr "Versión FS-UAE esperada %s, tú tienes %s"
 
 #. / TRANSLATORS: In context "Zoom: Full Frame"
 msgid "Full Frame"
-msgstr "Frame Completo"
+msgstr "Marco completo"
 
 #, c-format
 msgid "HD not found: %s"
-msgstr "HD no encontrado: %s"
+msgstr "No hay HD: %s"
 
 #. / TRANSLATORS: Hard reset is a computer reboot with an emulated power
 #. / cycle
 msgid "Hard Reset"
-msgstr "Reinicio Hardware"
+msgstr "Reiniciar hardware"
 
 msgid "Input Options"
-msgstr "Opciones Entrada"
+msgstr "Opciones de entrada"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Insert Into CD%d"
-msgstr "Insertar En CD%d"
+msgstr "Insertar en CD%d"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
@@ -103,24 +103,24 @@ msgid "Insert Into DF%d"
 msgstr "Insertar en DF%d"
 
 msgid "Joystick Mode"
-msgstr "Modo Joystick"
+msgstr "Modo joystick"
 
 msgid "Joystick Port"
-msgstr "Puerto Joystick"
+msgstr "Puertos de joystick"
 
 #, c-format
 msgid "Joystick Port %d"
-msgstr "Puerto Joystick %d"
+msgstr "Puerto de joystick %d"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Joystick Port %d Device"
-msgstr "Puerto Dispositivo Joystick %d"
+msgstr "Dispositivo de joystick del puerto %d"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Joystick Port %d Mode"
-msgstr "Modo Puerto Joystick %d"
+msgstr "Modo joystick puerto %d"
 
 msgid "Keyboard"
 msgstr "Teclado"
@@ -129,70 +129,70 @@ msgid "Load"
 msgstr "Cargar"
 
 msgid "Load State"
-msgstr "Cargar Estado"
+msgstr "Cargar estado"
 
 msgid "Max 1 CD-ROM drive supported currently"
-msgstr "Max 1 CD-ROM disco soportador actualmente"
+msgstr "Máximo 1 CD-ROM permitido actualmente"
 
 msgid "More..."
-msgstr "Mas..."
+msgstr "Más..."
 
 msgid "Mouse"
 msgstr "Ratón"
 
 msgid "Mouse Mode"
-msgstr "Modo Ratón"
+msgstr "Modo ratón"
 
 msgid "Mouse Port"
-msgstr "Puerto Ratón"
+msgstr "Puerto de ratón"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long: If you struggle
 #. / to get in short enough, just translate "No Device" instead.
 #. / The context is that nothing (no emulated device) is inserted into the
 #. / joystick port.
 msgid "No Amiga Device"
-msgstr "Ningún Dispositivo Amiga"
+msgstr "No hay dispositivos de Amiga"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long: If you struggle
 #. / to get in short enough, just translate "No Device" instead.
 #. / The context is that no host device is inserted into the joystick port.
 msgid "No Host Device"
-msgstr "Ningún Dispositivo Host"
+msgstr "No hay dispositivos de host"
 
 msgid "No configuration file was found"
-msgstr "Archivo de configuración no encontrado"
+msgstr "No se ha encontrado ningún archivo de configuración"
 
 #, c-format
 msgid "Option \"%s\" is not enabled"
-msgstr "Opció \"%s\" no esta activada"
+msgstr "La opción \"%s\" no está activada"
 
 msgid "Option chip_memory must be a multiple of 512"
-msgstr "Opción chip_memory debe ser mútiplo de 512"
+msgstr "La opción \"chip_memory\" debe ser múltiplo de 512"
 
 msgid "Option fast_memory must be a multiple of 1024"
-msgstr "Opción fast_memory debe ser mútiplo de 1024"
+msgstr "La opción \"fast_memory\" debe ser múltiplo de 1024"
 
 msgid "Option motherboard_ram must be a multiple of 1024"
-msgstr "Opción motherboard_ram debe ser mútiplo de 1024"
+msgstr "La opción \"motherboard_ram\" debe ser múltiplo de 1024"
 
 msgid "Option motherboard_ram needs a CPU with 32-bit addressing"
-msgstr "Opciónmotherboard_ram necesita una CPU con direcciones de 32-bit"
+msgstr "La opción \"motherboard_ram\" necesita una CPU con direcciones de 32-bit"
 
 msgid "Option slow_memory must be a multiple of 256"
-msgstr "Opción fast_memory debe ser mútiplo de 256"
+msgstr "La opción \"slow_memory\" debe ser múltiplo de 256"
 
 msgid "Option uaegfx.card needs a CPU with 32-bit addressing"
-msgstr "Opción uaegfx.card necesita una CPU CON direcciones de 32-bit"
+msgstr "La opción \"uaegfx.card\" necesita una CPU con direcciones de 32-bit"
 
 msgid "Option zorro_iii_memory must be a multiple of 1024"
-msgstr "Opción zorro_iii_memory debe ser mútiplo de 1024"
+msgstr "La opción \"zorro_iii_memory\" debe ser múltiplo de 1024"
 
 msgid "Option zorro_iii_memory needs a CPU with 32-bit addressing"
-msgstr "Opción zorro_iii_memory necesita una CPU con direcciones de 32-bit"
+msgstr "La opción \"zorro_iii_memory\" necesita una CPU con direcciones de 32-bit"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 msgid "Parallel Joystick Ports"
-msgstr "Joystick Puerto Paralelo"
+msgstr "Puertos de joystick paralelos"
 
 msgid "Pause"
 msgstr "Pausa"
@@ -202,36 +202,36 @@ msgid "Port 0: %s"
 msgstr "Puerto 0: %s"
 
 msgid "Port Settings"
-msgstr "Ajustes Puerto"
+msgstr "Ajustes del puerto"
 
 msgid "Removable Media"
-msgstr "Medio Removible"
+msgstr "Multimedia eliminable"
 
 #. / TRANSLATORS: Reset Amiga as in reboot the computer
 msgid "Reset Amiga"
 msgstr "Reiniciar Amiga"
 
 msgid "Resume"
-msgstr "Continuar"
+msgstr "Reanudar"
 
 msgid "Save"
 msgstr "Guardar"
 
 msgid "Save State"
-msgstr "Guardar Estado"
+msgstr "Guardar estado"
 
 #. / TRANSLATORS: Soft reset reboots the computer without a power cycle
 msgid "Soft Reset"
-msgstr "Reinicio Software"
+msgstr "Reiniciar software"
 
 msgid "Warp mode disabled"
-msgstr "Modo Warp desactivado"
+msgstr "Modo turbo desactivado"
 
 msgid "Warp mode enabled"
-msgstr "Modo Warp Activado"
+msgstr "Modo turbo activado"
 
 msgid "Zoom is disabled in RTG mode"
-msgstr "Zoom esta desactivado en modo RTG"
+msgstr "El zoom está desactivado en modo RTG"
 
 #, c-format
 msgid "Zoom: %s"
@@ -239,7 +239,7 @@ msgstr "Zoom: %s"
 
 #, c-format
 msgid "Zoom: %s + Border"
-msgstr "Zoom: %s + Borde"
+msgstr "Zoom: %s + borde"
 
 msgid "[ Port 0 ] Switched to joystick mode"
 msgstr "[ Puerto 0 ] Cambiado a joystick"

@@ -1,4 +1,4 @@
-Description: Floppy Drive Volume
+Description: "Floppy Drive Volume"
 Type: integer
 Default: 20
 Example: 0

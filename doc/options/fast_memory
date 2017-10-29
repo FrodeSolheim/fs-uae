@@ -1,4 +1,4 @@
-Summary: Fast RAM
+Summary: "Fast RAM"
 Type: Choice
 Default:
 Example: 4096

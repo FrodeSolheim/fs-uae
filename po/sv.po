@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae\n"
 "Report-Msgid-Bugs-To: frode@fs-uae.net\n"
-"POT-Creation-Date: 2017-05-20 17:57+0200\n"
-"PO-Revision-Date: 2017-05-21 04:54-0400\n"
+"POT-Creation-Date: 2017-10-19 23:07+0200\n"
+"PO-Revision-Date: 2017-10-20 05:21-0400\n"
 "Last-Translator: FrodeSolheim <frode-crowdin@fsolheim.net>\n"
 "Language-Team: Swedish\n"
 "Language: sv_SE\n"
@@ -129,7 +129,7 @@ msgid "Load"
 msgstr "Ladda"
 
 msgid "Load State"
-msgstr ""
+msgstr "Ladda Tillstånd"
 
 msgid "Max 1 CD-ROM drive supported currently"
 msgstr "Max 1 CD-ROM-enhet stöds för närvarande"
@@ -218,7 +218,7 @@ msgid "Save"
 msgstr "Spara"
 
 msgid "Save State"
-msgstr ""
+msgstr "Spara Tillstånd"
 
 #. / TRANSLATORS: Soft reset reboots the computer without a power cycle
 msgid "Soft Reset"

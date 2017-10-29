@@ -1,4 +1,4 @@
-Description: Keep aspect ratio when scaling (do not stretch)
+Description: "Keep aspect ratio when scaling (do not stretch)"
 Default: 0
 Example: 1
 Type: boolean

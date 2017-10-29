@@ -1,4 +1,4 @@
-Description: Audio output frequency
+Description: "Audio output frequency"
 Default: 48000
 Example: 44100
 Since: 2.3.14

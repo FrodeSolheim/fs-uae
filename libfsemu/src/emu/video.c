@@ -4,6 +4,7 @@
 
 #define FSE_INTERNAL_API
 #include <fs/emu.h>
+#include <fs/emu/hacks.h>
 #include <fs/emu/video.h>
 #include <stdio.h>
 #include <string.h>
@@ -138,6 +139,15 @@ void fs_emu_set_video_frame_rate(double frame_rate)
                        frame_rate, g_fs_emu_video_frame_rate_host);
                 fs_ml_video_sync_enable(0);
             }
+        }
+    }
+
+    static int last_frame_wait = 0;
+    if (fs_emu_frame_time) {
+        fs_emu_frame_wait = (1000 / frame_rate) - fs_emu_frame_time;
+        if (fs_emu_frame_wait != last_frame_wait) {
+            fs_log("[VIDEO] Frame wait is now %d ms\n", fs_emu_frame_wait);
+            last_frame_wait = fs_emu_frame_wait;
         }
     }
 }

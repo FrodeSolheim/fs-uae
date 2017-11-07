@@ -61,6 +61,7 @@
 extern uae_u16 serper;
 
 #ifdef FSUAE // NL
+#include <fs/emu/hacks.h>
 int g_frame_debug_logging = 0;
 #endif
 
@@ -7435,7 +7436,7 @@ static bool framewait (void)
 
 static bool framewait (void)
 {
-    //printf("fw\n");
+    // printf("currprefs.m68k_speed = %d\n", currprefs.m68k_speed);
     if (currprefs.m68k_speed == -1) {
         return framewait_2();
     }
@@ -7472,6 +7473,11 @@ static bool framewait (void)
     }
 
     target_time = target_time + vsynctimebase;
+
+	if (fs_emu_frame_wait > 0 && !currprefs.turbo_emulation) {
+		// printf("wait sleep millis %d\n", fs_emu_frame_wait);
+		cpu_sleep_millis(fs_emu_frame_wait);
+	}
 
     //printf("%lld\n", vsynctimebase);
     //static frame_time_t last_time = curr_time;

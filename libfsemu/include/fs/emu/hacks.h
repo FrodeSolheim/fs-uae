@@ -12,4 +12,9 @@ extern double fs_emu_video_scale_y;
 extern double fs_emu_video_offset_x;
 extern double fs_emu_video_offset_y;
 
+extern int fs_emu_frame_time;
+extern int fs_emu_frame_wait;
+
+extern int g_fs_ml_benchmarking;
+
 #endif /* FS_EMU_HACKS_H */

@@ -7,9 +7,10 @@
 #include <string.h>
 
 #include <fs/emu.h>
-#include <fs/emu/video.h>
+#include <fs/emu/hacks.h>
 #include <fs/emu/options.h>
 #include <fs/emu/render.h>
+#include <fs/emu/video.h>
 #include <fs/ml.h>
 
 #include "libfsemu.h"
@@ -22,7 +23,8 @@
 #define FS_EMU_TEXTURE_FORMAT_RGB5 0x8050
 #define FS_EMU_TEXTURE_FORMAT_RGB5_A1 0x8057
 
-extern int g_fs_ml_benchmarking;
+int fs_emu_frame_time;
+int fs_emu_frame_wait;
 
 void fse_init_video_options(void)
 {
@@ -186,7 +188,7 @@ void fse_init_video_options(void)
         fs_log("no video sync (using timers only)\n");
     }
 
-    if (fs_config_get_const_string(OPTION_STRETCH) == 1) {
+    if (fs_config_get_const_string(OPTION_STRETCH)) {
         /* Stretch mode is set, ignoring legacy keep aspect option. */
     } else {
         if (fs_config_get_boolean("disable_aspect_correction") == 1) {
@@ -287,5 +289,10 @@ void fse_init_video_options(void)
     dval = fs_config_get_double_clamped("scanlines_dark", 0, 100);
     if (dval != FS_CONFIG_NONE) {
         g_fs_emu_scanlines_dark = 255.0 * dval / 100.0;
+    }
+
+    fs_emu_frame_time = fs_config_get_int_clamped("frame_time", 0, 20);
+    if (fs_emu_frame_time == FS_CONFIG_NONE) {
+        fs_emu_frame_time = 0;
     }
 }

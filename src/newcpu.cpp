@@ -3577,6 +3577,8 @@ void cpu_sleep_millis(int ms)
 	} else {
 		sleep_millis_main(ms);
 	}
+#else
+	sleep_millis_main(ms);
 #endif
 #ifdef WITH_PPC
 	if (state)

@@ -1,5 +1,6 @@
 Version 2.9.8dev:
 
+* Changed default sync method on Windows to swap-finish.
 * Updated bezel.
 * New option: frame_time (can be used to limit emulation time before vsync).
 * Compatibility updates for a couple of shaders [guest.r].

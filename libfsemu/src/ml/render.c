@@ -405,7 +405,10 @@ static void decide_opengl_sync_method(void)
     }
     if (g_sync_method == 0) {
         fs_log("[OPENGL] Using default sync method\n");
-#if defined(WINDOWS) || defined(MACOSX)
+#if defined(WINDOWS)
+        fs_log("- SYNC_SWAP_FINISH\n");
+        g_sync_method = SYNC_SWAP_FINISH;
+#elif defined(MACOS)
         fs_log("- SYNC_FINISH_SLEEP_SWAP_FINISH\n");
         g_sync_method = SYNC_FINISH_SLEEP_SWAP_FINISH;
 #else

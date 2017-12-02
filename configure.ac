@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.67])
-AC_INIT([FS-UAE], [2.8.3],
+AC_INIT([FS-UAE], [2.8.3u2],
         [frode@fs-uae.net], [fs-uae], [http://fs-uae.net])
 AC_CONFIG_AUX_DIR([.])
 AC_CANONICAL_HOST
@@ -160,8 +160,6 @@ AC_DEFINE([USE_GLIB], [1], [Define to 1 to use GLib])
 PKG_CHECK_MODULES([GLIB], [glib-2.0 >= 2.32 gthread-2.0])
 
 AC_CHECK_LIB([Iphlpapi], [main])
-
-AM_CONDITIONAL([BUILTIN_GLEE], [false])
 
 AC_ARG_WITH(glad, AS_HELP_STRING(
     [--without-glad], [use GLAD OpenGL loader]))

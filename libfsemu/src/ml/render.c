@@ -33,19 +33,7 @@
 
 #include <fs/thread.h>
 
-#ifdef USE_GLEE
-void * __GLeeGetProcAddress(const char *extname);
-typedef int64_t GLint64;
-typedef uint64_t GLuint64;
-typedef struct __GLsync *GLsync;
-
-static void (APIENTRYP glWaitSync)(GLsync sync, GLbitfield flags,
-        GLuint64 timeout) = NULL;
-static GLenum (APIENTRYP glClientWaitSync)(GLsync sync, GLbitfield flags,
-        GLuint64 timeout) = NULL;
-static GLsync (APIENTRYP glFenceSync)(GLenum condition,
-        GLbitfield flags) = NULL;
-#elif defined(WITH_GLEW)
+#if defined(WITH_GLEW)
 #elif defined(WITH_GLAD)
 #else
 static FS_PFNGLWAITSYNCPROC _glWaitSync;
@@ -423,8 +411,7 @@ static void check_opengl_sync_capabilities(void)
         if (strstr(ext, "GL_NV_fence") != NULL) {
             g_has_nv_fence = 1;
             fs_log("GL_NV_fence extension found \n");
-#ifdef USE_GLEE
-#elif defined(WITH_GLEW)
+#if defined(WITH_GLEW)
 #elif defined(WITH_GLAD)
 #else
             glGenFencesNV = SDL_GL_GetProcAddress("glGenFencesNV");
@@ -435,8 +422,7 @@ static void check_opengl_sync_capabilities(void)
         if (strstr(ext, "GL_APPLE_fence") != NULL) {
             g_has_apple_fence = 1;
             fs_log("GL_APPLE_fence extension found\n");
-#ifdef USE_GLEE
-#elif defined(WITH_GLEW)
+#if defined(WITH_GLEW)
 #elif defined(WITH_GLAD)
 #else
             glGenFencesAPPLE = SDL_GL_GetProcAddress("glGenFencesAPPLE");
@@ -446,11 +432,7 @@ static void check_opengl_sync_capabilities(void)
         }
         if (strstr(ext, "GL_ARB_sync") != NULL) {
             fs_log("GL_ARB_sync extension found\n");
-#ifdef USE_GLEE
-            glFenceSync = __GLeeGetProcAddress("glFenceSync");
-            glWaitSync = __GLeeGetProcAddress("glWaitSync");
-            glClientWaitSync = __GLeeGetProcAddress("glClientWaitSync");
-#elif defined(WITH_GLEW)
+#if defined(WITH_GLEW)
 #elif defined(WITH_GLAD)
 #else
             glFenceSync = SDL_GL_GetProcAddress("glFenceSync");

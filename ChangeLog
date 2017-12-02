@@ -1,3 +1,7 @@
+Version 2.8.4:
+
+* Removed GLee from source.
+
 Version 2.8.3:
 
 * Fix decoding on non-ascii %-escaped file names on directory HDs.

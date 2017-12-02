@@ -784,16 +784,6 @@ AM_CPPFLAGS += -I$(s)/cef
 fs_uae_LDADD += cef/libcef_dll/libcef_dll_wrapper.a -L $(s)/cef/Release -lcef
 endif
 
-if BUILTIN_GLEE
-noinst_LIBRARIES += libglee.a
-AM_CPPFLAGS += -I$(s)/glee
-fs_uae_LDADD += libglee.a
-fs_uae_device_helper_LDADD += libglee.a
-libglee_a_SOURCES = \
-	glee/GLee.c \
-	glee/GLee.h
-endif
-
 if BUILTIN_MANYMOUSE
 noinst_LIBRARIES += libmanymouse.a
 AM_CPPFLAGS += -I$(s)/manymouse

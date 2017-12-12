@@ -126,11 +126,29 @@ AX_CHECK_COMPILE_FLAG(-Wmissing-format-attribute,
 AM_CONDITIONAL([W_MISSING_FORMAT_ATTRIBUTE],
 [test x$w_missing_format_attribute = xyes])
 
+AX_CHECK_COMPILE_FLAG(-fno-pie,
+[fno_pie=yes],
+[fno_pie=no])
+AM_CONDITIONAL([FNO_PIE],
+[test x$fno_pie = xyes])
+
+AX_CHECK_COMPILE_FLAG(-fno-PIE,
+[fno_pie_cap=yes],
+[fno_pie_cap=no])
+AM_CONDITIONAL([FNO_PIE_CAP],
+[test x$fno_pie_cap = xyes])
+
 AX_CHECK_LINK_FLAG(-no-pie,
 [no_pie=yes],
 [no_pie=no])
 AM_CONDITIONAL([NO_PIE],
 [test x$no_pie = xyes])
+
+# AX_CHECK_LINK_FLAG([-Wl,-Tdata=0x10000000],
+# [wl_tdata=yes],
+# [wl_tdata=no])
+# AM_CONDITIONAL([WL_TDATA],
+# [test x$wl_tdata = xyes])
 
 AX_C___BUILTIN_EXPECT
 
@@ -456,6 +474,8 @@ AC_CHECK_MEMBERS([struct stat.st_mtimespec.tv_nsec])
 AC_CHECK_MEMBERS([struct stat.st_mtime_nsec])
 AC_CHECK_MEMBERS([struct in_addr.S_un])
 AC_CHECK_MEMBERS([struct ucontext.uc_mcontext.gregs],
+	[], [], [[#include <sys/ucontext.h>]])
+AC_CHECK_MEMBERS([struct ucontext_t.uc_mcontext.gregs],
 	[], [], [[#include <sys/ucontext.h>]])
 
 AC_CHECK_TYPES([ptrdiff_t])

@@ -68,9 +68,18 @@ AM_LDFLAGS =
 AM_LDFLAGS += @OS_LDFLAGS@
 
 if JIT
+if FNO_PIE
+AM_CPPFLAGS += -fno-pie
+endif
+if FNO_PIE_CAP
+AM_CPPFLAGS += -fno-PIE
+endif
 if NO_PIE
 AM_LDFLAGS += -no-pie
 endif
+# if WL_TDATA
+# AM_LDFLAGS += -Wl,-Tdata=0x10000000
+# endif
 endif
 
 if STATIC_BUILD

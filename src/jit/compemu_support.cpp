@@ -98,6 +98,10 @@
 #endif
 #include "uae/log.h"
 
+#if defined(__pie__) || defined (__PIE__)
+#error Position-independent code (PIE) cannot be used with JIT
+#endif
+
 #include "uae/vm.h"
 #define VM_PAGE_READ UAE_VM_READ
 #define VM_PAGE_WRITE UAE_VM_WRITE

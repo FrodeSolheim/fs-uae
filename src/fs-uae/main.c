@@ -733,7 +733,7 @@ static void log_to_libfsemu(const char *message)
         ignore = fs_config_false(OPTION_UAELOG);
     }
     if (!ignore) {
-        //fs_log_string(message);
+        fs_log_string(message);
     }
 }
 

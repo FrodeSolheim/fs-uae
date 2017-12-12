@@ -1,5 +1,6 @@
 Version 2.9.8dev:
 
+* Removed GLee from source.
 * Fixed JIT direct access on modern Linux distributions.
 * Changed default sync method on Windows to swap-finish.
 * Updated bezel.

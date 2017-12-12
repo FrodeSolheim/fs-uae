@@ -185,8 +185,6 @@ PKG_CHECK_MODULES([GLIB], [glib-2.0 >= 2.32 gthread-2.0])
 
 AC_CHECK_LIB([Iphlpapi], [main])
 
-AM_CONDITIONAL([BUILTIN_GLEE], [false])
-
 AC_ARG_WITH(glad, AS_HELP_STRING(
     [--without-glad], [use GLAD OpenGL loader]))
 AS_IF([test "x$with_glad" != xno], [

@@ -26,7 +26,6 @@
 
 #include <fs/conf.h>
 #include <fs/lazyness.h>
-// #include <GLee.h>
 #ifdef WITH_GLEW
 #include <GL/glew.h>
 #endif

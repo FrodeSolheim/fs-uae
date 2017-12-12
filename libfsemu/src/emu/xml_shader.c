@@ -103,8 +103,7 @@ typedef struct parse_data {
     fs_emu_shader *shader;
 } parse_data;
 
-#ifdef USE_GLEE
-#elif defined(WITH_GLEW)
+#if defined(WITH_GLEW)
 #elif defined(WITH_GLAD)
 #else
 static PFNGLGETSHADERIVPROC glGetShaderiv;
@@ -1264,8 +1263,7 @@ void fs_emu_xml_shader_init(void)
 {
     fs_log("[SHADERS] Initialize\n");
 
-#ifdef USE_GLEE
-#elif defined(WITH_GLEW)
+#if defined(WITH_GLEW)
 #elif defined(WITH_GLAD)
 #else
     glGetShaderiv = SDL_GL_GetProcAddress("glGetShaderiv");

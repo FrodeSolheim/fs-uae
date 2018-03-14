@@ -329,6 +329,16 @@ static void set_video_mode()
         flags |= SDL_WINDOW_BORDERLESS;
     }
 
+    // special flags for command line usage
+    if (fs_config_get_boolean("window_hidden") == 1) {
+        fs_log("hidden window requested\n");
+        flags |= SDL_WINDOW_HIDDEN;
+    }
+    if (fs_config_get_boolean("window_minimized") == 1) {
+        fs_log("minimized window requested\n");
+        flags |= SDL_WINDOW_MINIMIZED;
+    }
+
 #if 0
     Uint8 data[] = "\0";
     SDL_Cursor *cursor = SDL_CreateCursor(data, data, 8, 1, 0, 0);
@@ -1080,7 +1090,7 @@ int fs_ml_event_loop(void)
             //printf("ISREL %d\n", SDL_GetRelativeMouseMode());
 
             if (g_fs_log_input) {
-                fs_log("SDL mouse event x: %4d y: %4d xrel: %4d yrel: %4d\n", 
+                fs_log("SDL mouse event x: %4d y: %4d xrel: %4d yrel: %4d\n",
                     event.motion.x, event.motion.y,
                     event.motion.xrel, event.motion.yrel);
             }

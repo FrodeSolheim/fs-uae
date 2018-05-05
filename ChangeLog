@@ -1,5 +1,8 @@
 Version 2.9.8dev:
 
+* Added Build-Conflicts: libroar-dev to fix building on OBS.
+* Added sharp-bilinear-simple.shader [rsn8887].
+* New options window_hidden, window_minimized [cnvogelg].
 * Removed GLee from source.
 * Fixed JIT direct access on modern Linux distributions.
 * Changed default sync method on Windows to swap-finish.

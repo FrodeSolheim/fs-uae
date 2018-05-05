@@ -123,6 +123,8 @@ def ignore_library(name):
         return True
     if name.startswith("libGLU.so"):
         return True
+    if name.startswith("libEGL.so"):
+        return True
 
     if name.startswith("libasound.so"):
         # Alsa library is in LSB, looks like only "old" interfaces are used

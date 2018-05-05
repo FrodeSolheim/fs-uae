@@ -1452,8 +1452,6 @@ standalone: fs-uae$(EXEEXT) fs-uae.dat
 	zip -A fs-uae$(EXEEXT)
 
 bindist:
-	./bootstrap
-	./configure
 	make distdir
 if LINUX
 	cd fs-uae-@PACKAGE_VERSION@ && fs-sdk-linux-x86-64 ./configure
@@ -1471,6 +1469,6 @@ if WINDOWS
 	cd fs-uae-@PACKAGE_VERSION@ && ./configure
 	make -C fs-uae-@PACKAGE_VERSION@ -j2
 	make -C fs-uae-@PACKAGE_VERSION@/dist/windows tar.xz
-	mv fs-uae-@PACKAGE_VERSION@/fs-uae_@PACKAGE_VERSION@_windows_x86.tar.xz .
+	mv fs-uae-@PACKAGE_VERSION@/fs-uae_@PACKAGE_VERSION@_windows_x86-64.tar.xz .
 endif
 	rm -Rf fs-uae-@PACKAGE_VERSION@

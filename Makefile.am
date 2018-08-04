@@ -1472,3 +1472,25 @@ if WINDOWS
 	mv fs-uae-@PACKAGE_VERSION@/fs-uae_@PACKAGE_VERSION@_windows_x86-64.tar.xz .
 endif
 	rm -Rf fs-uae-@PACKAGE_VERSION@
+
+bindist-x86:
+	make distdir
+if LINUX
+	cd fs-uae-@PACKAGE_VERSION@ && fs-sdk-linux-x86 ./configure
+	fs-sdk-linux-x86 make -C fs-uae-@PACKAGE_VERSION@ -j4
+	fs-sdk-linux-x86 make -C fs-uae-@PACKAGE_VERSION@/dist/linux
+	mv fs-uae-@PACKAGE_VERSION@/fs-uae_@PACKAGE_VERSION@_linux_x86.tar.xz .
+endif
+if MACOS
+	cd fs-uae-@PACKAGE_VERSION@ && ./configure
+	make -C fs-uae-@PACKAGE_VERSION@ -j4
+	make -C fs-uae-@PACKAGE_VERSION@/dist/macos
+	mv fs-uae-@PACKAGE_VERSION@/fs-uae_@PACKAGE_VERSION@_macos_x86.tar.xz .
+endif
+if WINDOWS
+	cd fs-uae-@PACKAGE_VERSION@ && ./configure
+	make -C fs-uae-@PACKAGE_VERSION@ -j2
+	make -C fs-uae-@PACKAGE_VERSION@/dist/windows tar.xz
+	mv fs-uae-@PACKAGE_VERSION@/fs-uae_@PACKAGE_VERSION@_windows_x86.tar.xz .
+endif
+	rm -Rf fs-uae-@PACKAGE_VERSION@

@@ -93,6 +93,8 @@ else:
     s("make -C ../..")
 s("cp -a ../../fs-uae {package_dir}/fs-uae")
 s("cp -a ../../fs-uae.dat {package_dir}/fs-uae.dat")
+s("PYTHONPATH=../../../fs-uae-launcher:../../../../fs-uae-launcher "
+  "python3 -m fspy.zipfile deterministic {package_dir}/fs-uae.dat")
 s("cp -a ../../fs-uae-device-helper {package_dir}/fs-uae-device-helper")
 
 s("mkdir -p {package_dir}/share")

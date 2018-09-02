@@ -1410,8 +1410,9 @@ mo: $(catalogs)
 
 fs-uae.dat: $(catalogs)
 	rm -f fs-uae.dat
-	cd $(s) && $(ZIP) -r $(abs_builddir)/fs-uae.dat share
-	cd $(b) && $(ZIP) -r $(abs_builddir)/fs-uae.dat share
+	for d in $(s) $(b) ; do \
+	  ( cd $$d && $(ZIP) -X $(abs_builddir)/fs-uae.dat $$(find share | LC_ALL=C sort ) ) ; \
+	done
 
 all-local: mo fs-uae.dat
 

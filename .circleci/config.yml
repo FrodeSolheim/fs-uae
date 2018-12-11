@@ -1,0 +1,24 @@
+version: 2
+
+defaults: &defaults
+  working_directory: ~/demoscene-fs-uae
+  docker:
+    - image: cahirwpz/demoscene-fs-uae-buildenv:latest
+
+jobs:
+  fs-uae:
+    <<: *defaults
+    steps:
+      - checkout
+      - run: './bootstrap'
+      - run: './configure --without-libmpeg2 --prefix=/usr/local'
+      - run: 'make'
+      - run: 'make install && tar cvzf /demoscene-fs-uae.tar.gz /usr/local'
+      - store_artifacts:
+          path: /demoscene-fs-uae.tar.gz
+
+workflows:
+  version: 2
+  demoscene-fs-uae:
+    jobs:
+      - fs-uae

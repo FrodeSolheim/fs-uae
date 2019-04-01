@@ -92,6 +92,7 @@ static GLsync g_sync;
 #define SYNC_SWAP_SLEEP_FENCE 8
 
 static int g_sync_method = 0;
+static int g_deterministic_mode = 0;
 
 static int g_vblank_count = 0;
 static int64_t g_measured_vblank_time = 0;
@@ -163,7 +164,16 @@ void fs_ml_frame_update_end(int frame)
     fs_condition_signal(g_frame_available_cond);
     fs_mutex_unlock(g_frame_available_mutex);
 
-    if (g_fs_ml_video_sync) {
+    // if deterministic mode, we always wait until rendering is completed
+    if (g_deterministic_mode) {
+        fs_mutex_lock(g_start_new_frame_mutex);
+        while (!g_start_new_frame) {
+            fs_condition_wait (g_start_new_frame_cond,
+                    g_start_new_frame_mutex);
+        }
+        g_start_new_frame = 0;
+        fs_mutex_unlock(g_start_new_frame_mutex);
+    } else if (g_fs_ml_video_sync) {
         fs_mutex_lock(g_start_new_frame_mutex);
         while (!g_start_new_frame) {
             fs_condition_wait (g_start_new_frame_cond,
@@ -176,14 +186,6 @@ void fs_ml_frame_update_end(int frame)
     } else if (g_fs_ml_benchmarking) {
         // run as fast as possible
     } else {
-        // wait for the video renderer to finish
-        fs_mutex_lock(g_start_new_frame_mutex);
-        while (!g_start_new_frame) {
-            fs_condition_wait (g_start_new_frame_cond,
-                    g_start_new_frame_mutex);
-        }
-        g_start_new_frame = 0;
-        fs_mutex_unlock(g_start_new_frame_mutex);
     }
 }
 
@@ -614,15 +616,6 @@ static void render_iteration_vsync(void)
     g_sleep_until_vsync_last_time = g_adjusted_vblank_time;
     g_estimated_next_vblank_time = g_adjusted_vblank_time + \
             g_fs_ml_target_frame_time;
-
-    // g_start_new_frame_cond is used to signal that a new frame can be
-    // generated when the emulation is running in sync - this is not used
-    // when only display flipping is synced to vblank
-
-    fs_mutex_lock(g_start_new_frame_mutex);
-    g_start_new_frame = 1;
-    fs_condition_signal(g_start_new_frame_cond);
-    fs_mutex_unlock(g_start_new_frame_mutex);
 }
 
 void fs_ml_render_iteration(void)
@@ -633,16 +626,9 @@ void fs_ml_render_iteration(void)
         initialize_opengl_sync();
     }
 
-    if (g_fs_ml_vblank_sync) {
-        render_iteration_vsync();
-    } else if (g_fs_ml_benchmarking) {
-        update_frame();
-        render_frame();
-        swap_opengl_buffers();
-    } else {
-        // when vsync is off, we wait until a new frame is ready and
-        // then we display it immediately
-
+    // when vsync is off or deterministic mode is on, we wait until a new
+    // frame is ready
+    if (g_deterministic_mode || (!g_fs_ml_vblank_sync && !g_fs_ml_benchmarking)) {
         if (fs_ml_is_quitting()) {
             // but when the emulation is quitting, we can't expect any new
             // frames so there's no point waiting for them. Instead, we just
@@ -670,19 +656,23 @@ void fs_ml_render_iteration(void)
             }
             fs_mutex_unlock(g_frame_available_mutex);
         }
+    }
 
+    if (g_fs_ml_vblank_sync) {
+        render_iteration_vsync();
+    } else {
         update_frame();
         render_frame();
         swap_opengl_buffers();
-
-        // signal the emulation to resume
-        fs_mutex_lock(g_start_new_frame_mutex);
-        g_start_new_frame = 1;
-        fs_condition_signal(g_start_new_frame_cond);
-        fs_mutex_unlock(g_start_new_frame_mutex);
-
-        //gl_finish();
     }
+
+    // g_start_new_frame_cond is used to signal that a new frame can be
+    // generated when the emulation is running in sync or if deterministic mode
+    // is on - this is not used otherwise
+    fs_mutex_lock(g_start_new_frame_mutex);
+    g_start_new_frame = 1;
+    fs_condition_signal(g_start_new_frame_cond);
+    fs_mutex_unlock(g_start_new_frame_mutex);
 
     if (g_fs_ml_video_screenshot_path) {
         fs_mutex_lock(g_fs_ml_video_screenshot_mutex);
@@ -721,5 +711,10 @@ void fs_ml_render_init(void)
     } else {
         fs_log("[VIDEO] Using low latency vsync when full vsync is enabled\n");
         g_fs_ml_video_sync_low_latency = 1;
+    }
+
+    if (fs_config_get_boolean("deterministic") == 1) {
+        fs_log("[VIDEO] Using deterministic mode\n");
+        g_deterministic_mode = 1;
     }
 }

@@ -176,9 +176,14 @@ void fs_ml_frame_update_end(int frame)
     } else if (g_fs_ml_benchmarking) {
         // run as fast as possible
     } else {
-        // video renderer is waiting for a new frame -signal that a new
-        // frame is ready
-        //fs_condition_signal(g_video_cond);
+        // wait for the video renderer to finish
+        fs_mutex_lock(g_start_new_frame_mutex);
+        while (!g_start_new_frame) {
+            fs_condition_wait (g_start_new_frame_cond,
+                    g_start_new_frame_mutex);
+        }
+        g_start_new_frame = 0;
+        fs_mutex_unlock(g_start_new_frame_mutex);
     }
 }
 
@@ -669,6 +674,13 @@ void fs_ml_render_iteration(void)
         update_frame();
         render_frame();
         swap_opengl_buffers();
+
+        // signal the emulation to resume
+        fs_mutex_lock(g_start_new_frame_mutex);
+        g_start_new_frame = 1;
+        fs_condition_signal(g_start_new_frame_cond);
+        fs_mutex_unlock(g_start_new_frame_mutex);
+
         //gl_finish();
     }
 

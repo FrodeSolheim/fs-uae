@@ -801,7 +801,9 @@ OPT_FEATURE([A_ZIP], [zip], [zip],
 
 AC_DEFINE([FPU_UAE], [1], [Define to 1])
 
-AC_CONFIG_SUBDIRS([libmpeg2])
+AS_IF([test "x$with_libmpeg2" = xbuiltin], [
+    AC_CONFIG_SUBDIRS([libmpeg2])
+])
 
 # Write Makefile
 

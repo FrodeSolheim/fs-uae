@@ -1,6 +1,7 @@
 # Makefile.am for FS-UAE
 
 SUBDIRS =
+DIST_SUBDIRS =
 
 WARNINGS =
 
@@ -1262,6 +1263,7 @@ endif
 
 if BUILTIN_LIBMPEG2
 SUBDIRS += libmpeg2
+DIST_SUBDIRS += libmpeg2
 AM_CPPFLAGS += -I$(s)/libmpeg2/include
 fs_uae_LDADD += \
 	libmpeg2/libmpeg2/.libs/libmpeg2.a \
@@ -1276,6 +1278,7 @@ SUBDIRS += libnfd
 AM_CPPFLAGS += -I$(s)/libnfd/src/include
 fs_uae_LDADD += libnfd.a
 endif
+DIST_SUBDIRS += libnfd
 
 
 noinst_LIBRARIES += libdummy.a

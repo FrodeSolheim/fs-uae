@@ -29,7 +29,11 @@ static void initialize_log()
     log_data.mutex = fs_mutex_create();
     log_data.initialized = 1;
 
+#ifdef WINDOWS
+    char *dir = g_build_filename(fse_user_data_dir(), "FS-UAE", NULL);
+#else
     char *dir = g_build_filename(fse_user_data_dir(), "fs-uae", NULL);
+#endif
     if (!fs_path_exists(dir)) {
         if (g_mkdir_with_parents(dir, 0755) == -1) {
             // could not create directory

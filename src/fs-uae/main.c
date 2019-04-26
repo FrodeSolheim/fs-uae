@@ -781,29 +781,30 @@ static void init_i18n(void)
 
 #ifndef ANDROID
     textdomain("fs-uae");
-    char *path = fs_get_data_file("fs-uae/share-dir");
-    if (path) {
-        fs_log("[I18N] Using data dir \"%s\"\n", path);
-        /* Remove trailing "fs-uae/share-dir" from the returned path. */
-        int len = strlen(path);
-        if (len > 16) {
-            path[len - 16] = '\0';
-        }
-        char *locale_base = g_build_filename(path, "locale", NULL);
+
+    char executable_dir[FS_PATH_MAX];
+    fs_get_application_exe_dir(executable_dir, FS_PATH_MAX);
+    char *locale_base = g_build_filename(
+        executable_dir, "..", "..", "Data", "Locale", NULL);
+    if (g_file_test(locale_base, G_FILE_TEST_IS_DIR)) {
         fs_log("[I18N] Using locale dir \"%s\"\n", locale_base);
         bindtextdomain("fs-uae", locale_base);
         free(locale_base);
-        free(path);
     } else {
-        char executable_dir[FS_PATH_MAX];
-        fs_get_application_exe_dir(executable_dir, FS_PATH_MAX);
-        char *locale_base = g_build_filename(
-            executable_dir, "..", "..", "Data", "Locale", NULL);
-        if (g_file_test(locale_base, G_FILE_TEST_IS_DIR)) {
+        char *path = fs_get_data_file("fs-uae/share-dir");
+        if (path) {
+            fs_log("[I18N] Using data dir \"%s\"\n", path);
+            /* Remove trailing "fs-uae/share-dir" from the returned path. */
+            int len = strlen(path);
+            if (len > 16) {
+                path[len - 16] = '\0';
+            }
+            char *locale_base = g_build_filename(path, "locale", NULL);
             fs_log("[I18N] Using locale dir \"%s\"\n", locale_base);
             bindtextdomain("fs-uae", locale_base);
+            free(locale_base);
+            free(path);
         }
-        free(locale_base);
     }
     bind_textdomain_codeset("fs-uae", "UTF-8");
 #endif

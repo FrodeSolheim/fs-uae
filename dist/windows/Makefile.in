@@ -1,70 +1,76 @@
 ver = @PACKAGE_VERSION@
 os = windows
 arch = $(strip $(shell python3 ../arch.py))
+fs_uae_dir = FS-UAE/Windows/$(arch)
+fs_uae_zip = fs-uae_$(ver)_$(os)_$(arch).zip
+fs_uae_txz = fs-uae_$(ver)_$(os)_$(arch).tar.zx
 
-dname = fs-uae_$(ver)_$(os)_$(arch)
-
-all: progdir zip setup
+all: clean progdir zip
 
 clean:
 	rm -Rf fs-uae-*_windows*
 	rm -Rf fs-uae_*_windows*
+	rm -Rf FS-UAE
 
 progdir:
-	rm -Rf $(dname)
-	mkdir $(dname)
+	rm -Rf FS-UAE
+	mkdir -p $(fs_uae_dir)
 
 	make -C ../..
 
-	python3 clib.py libbz2-1.dll $(dname)
+	python3 clib.py libbz2-1.dll $(fs_uae_dir)
 ifeq ($(arch),x86-64)
-	python3 clib.py libgcc_s_seh-1.dll $(dname)
+	python3 clib.py libgcc_s_seh-1.dll $(fs_uae_dir)
 else
-	python3 clib.py libgcc_s_dw2-1.dll $(dname)
+	python3 clib.py libgcc_s_dw2-1.dll $(fs_uae_dir)
 endif
-	python3 clib.py libharfbuzz-0.dll $(dname)
-	python3 clib.py libstdc++-6.dll $(dname)
-	python3 clib.py libwinpthread-1.dll $(dname)
-	python3 clib.py libpng16-16.dll $(dname)
-	python3 clib.py libfreetype-6.dll $(dname)
-	python3 clib.py zlib1.dll $(dname)
-	python3 clib.py libglib-2.0-0.dll $(dname)
-	python3 clib.py libgthread-2.0-0.dll $(dname)
-	python3 clib.py libintl-8.dll $(dname)
-	python3 clib.py libiconv-2.dll $(dname)
-	python3 clib.py SDL2.dll $(dname)
-	python3 clib.py libopenal-1.dll $(dname)
-	python3 clib.py GLEW32.dll $(dname)
-	python3 clib.py libmpeg2-0.dll $(dname)
-	python3 clib.py libmpeg2convert-0.dll $(dname)
+	python3 clib.py libharfbuzz-0.dll $(fs_uae_dir)
+	python3 clib.py libstdc++-6.dll $(fs_uae_dir)
+	python3 clib.py libwinpthread-1.dll $(fs_uae_dir)
+	python3 clib.py libpng16-16.dll $(fs_uae_dir)
+	python3 clib.py libfreetype-6.dll $(fs_uae_dir)
+	python3 clib.py zlib1.dll $(fs_uae_dir)
+	python3 clib.py libglib-2.0-0.dll $(fs_uae_dir)
+	python3 clib.py libgthread-2.0-0.dll $(fs_uae_dir)
+	python3 clib.py libintl-8.dll $(fs_uae_dir)
+	python3 clib.py libiconv-2.dll $(fs_uae_dir)
+	python3 clib.py SDL2.dll $(fs_uae_dir)
+	python3 clib.py libopenal-1.dll $(fs_uae_dir)
+	python3 clib.py GLEW32.dll $(fs_uae_dir)
+	python3 clib.py libmpeg2-0.dll $(fs_uae_dir)
+	python3 clib.py libmpeg2convert-0.dll $(fs_uae_dir)
+	python3 clib.py libpcre-1.dll $(fs_uae_dir)
 
         # For qemu-uae on Windows
-	python3 clib.py libpixman-1-0.dll $(dname)
+	python3 clib.py libpixman-1-0.dll $(fs_uae_dir)
 
-	cp -a ../../fs-uae.exe $(dname)/
-	cp -a ../../fs-uae.dat $(dname)/
-	cp -a ../../fs-uae-device-helper.exe $(dname)/
+	cp -a ../../fs-uae.exe $(fs_uae_dir)/
+	cp -a ../../fs-uae.dat $(fs_uae_dir)/
+	cp -a ../../fs-uae-device-helper.exe $(fs_uae_dir)/
 
-	mkdir -p $(dname)/share
-	cp -a ../../share/locale $(dname)/share/locale
-	mkdir -p $(dname)/share/fs-uae
-	touch $(dname)/share/fs-uae/share-dir
+	mkdir -p $(fs_uae_dir)/share
+	cp -a ../../share/locale $(fs_uae_dir)/share/locale
+	mkdir -p $(fs_uae_dir)/share/fs-uae
+	touch $(fs_uae_dir)/share/fs-uae/share-dir
 
-	cp -a ../../licenses $(dname)/licenses
-	cp -a ../../README $(dname)/README.txt
-	cp -a ../../COPYING $(dname)/COPYING.txt
+	cp -a ../../licenses $(fs_uae_dir)/licenses
+	cp -a ../../README $(fs_uae_dir)/README.txt
+	cp -a ../../COPYING $(fs_uae_dir)/COPYING.txt
 
-	strip $(dname)/*.exe
-	strip $(dname)/*.dll
+	strip $(fs_uae_dir)/*.exe
+	strip $(fs_uae_dir)/*.dll
 
-	python3 sign.py $(dname)/*.exe
+	python3 sign.py $(fs_uae_dir)/*.exe
 
 zip:
-	cd $(dname) && zip -9 -r ../../../$(dname).zip *
+	# cd $(fs_uae_dir) && zip -9 -r ../../../$(fs_uae_dir).zip *
+	rm -f ../../$(fs_uae_zip)
+	zip -9 -r ../../$(fs_uae_zip) FS-UAE
 
 tar.xz: progdir
-	cd $(dname) && tar cfvJ ../../../$(dname).tar.xz *
+	# cd $(fs_uae_dir) && tar cfvJ ../../../$(fs_uae_dir).tar.xz *
+	tar cfvJ ../../$(fs_uae_txz) FS-UAE
 
 setup:
 	python3 iscc.py fs-uae.iss
-	python3 sign.py ../../$(dname).exe
+	python3 sign.py ../../$(fs_uae_dir).exe

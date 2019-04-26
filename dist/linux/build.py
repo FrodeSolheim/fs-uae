@@ -7,37 +7,22 @@ import subprocess
 p = subprocess.Popen(["file", "-L", "/bin/sh"], stdout=subprocess.PIPE)
 exe_info = p.stdout.read().decode("UTF-8")
 if "386" in exe_info:
-    # arch = "i386"
     arch = "x86"
 elif "x86-64" in exe_info:
-    # arch = "amd64"
     arch = "x86-64"
 else:
     raise Exception("unrecognized arch " + repr(exe_info))
 
-#if os.environ.get("STEAM_RUNTIME", ""):
 if os.environ.get("STEAMOS", ""):
     os_name = "steamos"
-    # if arch == "i386":
-    #     # steam runtime sdk compiles with -mtune=generic -march=i686
-    #     arch = "i686"
 else:
     os_name = "linux"
-
-#if os.environ.get("STEAM_RUNTIME_TARGET_ARCH", ""):
-#    os_name = "steamos"
-#    arch = os.environ["STEAM_RUNTIME_TARGET_ARCH"]
-#elif platform.machine() == "x86_64":
-#    os_name = "linux"
-#    arch = "amd64"
-#else:
-#    os_name = "linux"
-#    arch = "i386"
+    os_name_pretty = "Linux"
 
 version = sys.argv[1]
 package_name = "fs-uae_{0}_{1}_{2}".format(version, os_name, arch)
-package_dir = "../{1}/fs-uae_{0}_{1}_{2}".format(version, os_name, arch)
-#dbg_package_dir = "fs-uae-dbg-{0}-{1}-{2}".format(version, os_name, arch)
+package_name_2 = "FS-UAE_{0}_{1}_{2}".format(version, os_name_pretty, arch)
+package_dir = "../{}/FS-UAE/{}/{}".format(os_name, os_name_pretty, arch)
 
 
 def s(command):
@@ -84,38 +69,47 @@ def wrap(name, target=None, args=None):
     os.chmod(path, 0o755)
 
 
-s("rm -Rf {package_dir}")
-s("mkdir {package_dir}")
+s("rm -Rf FS-UAE")
+s("mkdir -p {package_dir}")
 if os.environ.get("BUILD") == "0":
     pass
 else:
     s("cd ../.. && ./configure")
     s("make -C ../..")
+
 s("cp -a ../../fs-uae {package_dir}/fs-uae")
-s("cp -a ../../fs-uae.dat {package_dir}/fs-uae.dat")
-s("PYTHONPATH=../../../fs-uae-launcher:../../../../fs-uae-launcher "
-  "python3 -m fspy.zipfile deterministic {package_dir}/fs-uae.dat")
+# s("cp -a ../../fs-uae.dat {package_dir}/fs-uae.dat")
+# s("PYTHONPATH=../../../fs-uae-launcher:../../../../fs-uae-launcher "
+#   "python3 -m fspy.zipfile deterministic {package_dir}/fs-uae.dat")
 s("cp -a ../../fs-uae-device-helper {package_dir}/fs-uae-device-helper")
 
-s("mkdir -p {package_dir}/share")
-s("cp -a ../../share/locale {package_dir}/share/locale")
-s("mkdir -p {package_dir}/share/fs-uae")
-s("touch {package_dir}/share/fs-uae/share-dir")
+s("mkdir FS-UAE/Data")
+s("cp -a ../../fs-uae.dat FS-UAE/Data/fs-uae.dat")
+s("PYTHONPATH=../../../fs-uae-launcher:../../../../fs-uae-launcher "
+  "python3 -m fspy.zipfile deterministic FS-UAE/Data/fs-uae.dat")
+# s("mkdir -p {package_dir}/share")
+# s("cp -a ../../share/locale {package_dir}/share/locale")
+s("cp -a ../../share/locale FS-UAE/Data/Locale")
+# s("mkdir -p {package_dir}/share/fs-uae")
+# s("touch {package_dir}/share/fs-uae/share-dir")
 
-s("cp -a ../../licenses {package_dir}/licenses")
-s("cp -a ../../README {package_dir}/fs-uae.txt")
+s("cp -a ../../licenses FS-UAE/Licenses")
+s("cp -a ../../README FS-UAE/ReadMe.txt")
 s("./standalone-linux.py --strip --rpath='$ORIGIN' {package_dir}")
 s("find {package_dir} -name '*.standalone' -delete")
-# s("strip {package_dir}/*.bin")
-# s("strip {package_dir}/*.so.* || true")
+s("echo {version} > FS-UAE/Version.txt")
+s("echo {version} > {package_dir}/Version.txt")
 
-# wrap("fs-uae", "fs-uae.bin")
-# wrap("fs-uae-device-helper", "fs-uae-device-helper.bin")
 if os_name == "steamos":
     wrap("fs-uae")
     wrap("fs-uae-device-helper")
 
-s("cd {package_dir} && tar Jcfv ../../../{package_name}.tar.xz *")
+# s("cd {package_dir} && tar Jcfv ../../../{package_name}.tar.xz *")
+s("tar Jcfv ../../{package_name}.tar.xz FS-UAE")
+print(package_name)
+s("cp ../../{package_name}.tar.xz ../../{package_name_2}.tar.xz")
+print(package_name_2)
+print("OK")
 
 #s("rm -Rf {dbg_package_dir}")
 #s("mkdir {dbg_package_dir}")

@@ -1,6 +1,7 @@
 Version 2.9.8dev:
 
 * New option whdload_quit_key to gracefully quit slaves.
+* Do not alias mouse clicks when joystick_port_0_autoswitch is off.
 * Added Build-Conflicts: libroar-dev to fix building on OBS.
 * Added sharp-bilinear-simple.shader [rsn8887].
 * New options window_hidden, window_minimized [cnvogelg].

@@ -10,6 +10,7 @@
 #include <fs/emu/actions.h>
 #include "fs-uae.h"
 #include "config-common.h"
+#include "options.h"
 
 fs_uae_input_port g_fs_uae_input_ports[FS_UAE_NUM_INPUT_PORTS] = {};
 
@@ -437,9 +438,12 @@ void fs_uae_reconfigure_input_ports_host()
     }
 #endif
 
-    if (mouse_mapped_to_port == -1 && port0->mode == AMIGA_JOYPORT_DJOY) {
-        fs_log("additionally mapping mouse to port 0\n");
-        map_mouse("mouse", 0);
+    int autoswitch = fs_config_get_boolean(OPTION_JOYSTICK_PORT_0_AUTOSWITCH);
+    if (autoswitch != 0) {
+        if (mouse_mapped_to_port == -1 && port0->mode == AMIGA_JOYPORT_DJOY) {
+            fs_log("additionally mapping mouse to port 0\n");
+            map_mouse("mouse", 0);
+        }
     }
 
 #if 0

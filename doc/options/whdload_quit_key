@@ -13,3 +13,6 @@ quits:
     uae-configuration SPC_QUIT 1
 
 You can force FS-UAE to quit by pressing quit twice, rapidly.
+
+For an overview of the valid raw key codes, please see
+http://whdload.de/docs/en/rawkey.html.

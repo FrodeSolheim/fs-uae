@@ -37,6 +37,7 @@
 #ifdef WITH_CEF
 #include <fs/emu/cef.h>
 #endif
+#include <fs/emu/hacks.h>
 
 static int fs_uae_argc;
 static char **fs_uae_argv;
@@ -832,6 +833,50 @@ static void on_update_leds(void *data)
     }
 }
 
+static unsigned int whdload_quit_key = 0;
+static int64_t whdload_quit_time = 0;
+
+static void fs_emu_send_whdload_quit_key(int whdload_quit_key) {
+    fs_log("Find input event for amiga key %d\n", whdload_quit_key);
+    int input_event = amiga_find_input_event_for_key(whdload_quit_key);
+    fs_log("Found input event %d for amiga key %d\n", input_event, whdload_quit_key);
+    if (input_event) {
+        fs_log("Sending WHDLoad quit key input");
+        fs_emu_queue_action(input_event, 1);
+    }
+}
+
+static int quit_function()
+{
+    fs_log("quit_function\n");
+    if (whdload_quit_key) {
+        if (whdload_quit_time > 0) {
+            int64_t diff = fs_ml_monotonic_time() - whdload_quit_time;
+            if (diff < 0.1 * 1000000) {
+                // Duplicate SDL_QUIT event?
+                return 0;
+            }
+            // Press quit twice within one second to force quit
+            if (diff < 1.0 * 1000000) {
+                return 1;
+            }
+        }
+        fs_log("NOT QUITING\n");
+        if (whdload_quit_time == 0) {
+            // Only show this message once
+            fs_emu_warning(
+                "Sent WHDLoad quit key ($%02X) to exit gracefully",
+                whdload_quit_key
+            );
+        } else {
+            fs_emu_warning("Press Quit twice to force quit");
+        }
+        fs_emu_send_whdload_quit_key(whdload_quit_key);
+        whdload_quit_time = fs_ml_monotonic_time();
+        return 0;
+    }
+    return 1;
+}
 
 static void media_function(int drive, const char *path)
 {
@@ -1163,6 +1208,7 @@ int main(int argc, char *argv[])
 
     fs_emu_set_state_check_function(amiga_get_state_checksum);
     fs_emu_set_rand_check_function(amiga_get_rand_checksum);
+    fs_emu_set_quit_function(quit_function);
 
     // force creation of some recommended default directories
     fs_uae_kickstarts_dir();
@@ -1323,6 +1369,14 @@ int main(int argc, char *argv[])
     //fs_uae_init_keyboard();
     fs_uae_init_mouse();
     fs_uae_configure_menu();
+
+    const char *value = fs_config_get_const_string("whdload_quit_key");
+    if (value) {
+        sscanf(value, "%02x", &whdload_quit_key);
+        if (whdload_quit_key) {
+            fs_log("Using WHDLoad quit key: %02X\n", whdload_quit_key);
+        }
+    }
 
     fs_emu_run(main_function);
     fs_log("fs-uae shutting down, fs_emu_run returned\n");

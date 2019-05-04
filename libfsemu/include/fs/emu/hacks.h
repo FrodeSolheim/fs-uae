@@ -17,4 +17,14 @@ extern int fs_emu_frame_wait;
 
 extern int g_fs_ml_benchmarking;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+int amiga_find_input_event_for_key(int key);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif /* FS_EMU_HACKS_H */

@@ -53,23 +53,6 @@ int g_fs_emu_emulation_thread_running = 0;
 int g_fs_emu_emulation_thread_stopped = 0;
 static fs_thread *g_emulation_thread = NULL;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 void fs_emu_disable_throttling() {
     g_fs_emu_throttling = 0;
 }
@@ -81,9 +64,9 @@ void fs_emu_disallow_full_sync() {
 }
 
 int64_t g_fs_emu_quit_time = 0;
-static fs_emu_simple_function g_quit_function = NULL;
+static fs_emu_void_function_int g_quit_function = NULL;
 
-void fs_emu_set_quit_function(fs_ml_void_function function) {
+void fs_emu_set_quit_function(fs_emu_void_function_int function) {
     g_quit_function = function;
 }
 
@@ -101,18 +84,28 @@ static void *force_quit_thread(void *data)
 static void on_quit()
 {
     g_fs_emu_quit_time = fs_emu_monotonic_time();
-    if (g_quit_function) {
+    /*
+    if (g_post_quit_function) {
         fs_log("libfsemu on_quit: executing quit function\n");
-        g_quit_function();
+        g_post_quit_function();
     } else {
         fs_log("libfsemu on_quit: no quit function\n");
     }
+    */
     // FIXME: detached?
     fs_thread_create("force-quit", force_quit_thread, NULL);
 }
 
 void fs_emu_quit()
 {
+    fs_log("fs_emu_quit\n");
+    if (g_quit_function) {
+        fs_log("executing quit function\n");
+        if (!g_quit_function()) {
+            fs_log("quit aborted\n");
+            return;
+        }
+    }
     fs_ml_quit();
 }
 

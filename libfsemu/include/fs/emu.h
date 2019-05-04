@@ -53,8 +53,9 @@ void fs_emu_lua_run_handler(const char *name);
 #define fs_emu_log_string fs_log_string
 
 typedef void (*fs_emu_simple_function)(void);
+typedef int (*fs_emu_void_function_int)(void);
 
-void fs_emu_set_quit_function(fs_emu_simple_function function);
+void fs_emu_set_quit_function(fs_emu_void_function_int function);
 
 void fs_emu_set_controllers_dir(const char *path);
 

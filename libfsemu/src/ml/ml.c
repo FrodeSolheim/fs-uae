@@ -82,13 +82,20 @@ void fs_ml_video_screenshot(const char *path) {
     fs_mutex_unlock(g_fs_ml_video_screenshot_mutex);
 }
 
+void fs_ml_maybe_quit() {
+    fs_log("fs_ml_maybe_quit\n");
+    // Breaking the abstraction here due to lazyness
+    fs_emu_quit();
+}
+
 void fs_ml_quit() {
+    fs_log("fs_ml_quit\n");
     if (g_quit) {
         fs_log("fs_ml_quit already called\n");
         return;
     }
-    fs_log("fs_ml_quit called\n");
     if (g_quit_function) {
+        fs_log("running g_quit_function\n");
         g_quit_function();
     }
     g_quit = 1;

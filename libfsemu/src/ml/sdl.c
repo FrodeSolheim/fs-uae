@@ -892,7 +892,7 @@ int fs_ml_event_loop(void)
         switch(event.type) {
         case SDL_QUIT:
             fs_log("Received SDL_QUIT\n");
-            fs_ml_quit();
+            fs_ml_maybe_quit();
 #ifdef FSE_DRIVERS
             printf("returning 1 from fs_ml_event_loop\n");
             result = 1;

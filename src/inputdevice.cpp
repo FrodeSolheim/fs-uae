@@ -65,6 +65,7 @@
 #include "uae/glib.h"
 // FIXME
 #include <fs/emu.h>
+#include <fs/emu/hacks.h>
 
 #undef _WIN32
 
@@ -8797,6 +8798,16 @@ void amiga_set_joystick_port_mode(int port, int mode)
     write_log ("amiga_set_joystick_port_mode port=%d mode=%d\n", port, mode);
     g_requested_port_modes[port] = mode;
     return amiga_set_joystick_port_mode_2 (port, mode);
+}
+
+int amiga_find_input_event_for_key(int key)
+{
+    for (int i = 1; events[i].confname; i++) {
+		if (events[i].allow_mask == AM_K && events[i].data == key) {
+			return i;
+		}
+	}
+	return 0;
 }
 
 }

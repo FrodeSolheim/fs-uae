@@ -29,6 +29,7 @@ extern "C" {
 #endif
 
 void fs_ml_quit();
+void fs_ml_maybe_quit();
 int fs_ml_is_quitting();
 
 extern int g_fs_ml_opengl_context_stamp;

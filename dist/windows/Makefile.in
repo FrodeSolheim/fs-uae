@@ -45,17 +45,17 @@ endif
 	python3 clib.py libpixman-1-0.dll $(fs_uae_dir)
 
 	cp -a ../../fs-uae.exe $(fs_uae_dir)/
-	cp -a ../../fs-uae.dat $(fs_uae_dir)/
 	cp -a ../../fs-uae-device-helper.exe $(fs_uae_dir)/
 
-	mkdir -p $(fs_uae_dir)/share
-	cp -a ../../share/locale $(fs_uae_dir)/share/locale
-	mkdir -p $(fs_uae_dir)/share/fs-uae
-	touch $(fs_uae_dir)/share/fs-uae/share-dir
+	mkdir -p FS-UAE/Data
+	cp -a ../../fs-uae.dat FS-UAE/Data
+	cp -a ../../share/locale FS-UAE/Data/Locale
 
-	cp -a ../../licenses $(fs_uae_dir)/licenses
-	cp -a ../../README $(fs_uae_dir)/README.txt
-	cp -a ../../COPYING $(fs_uae_dir)/COPYING.txt
+	cp -a ../../licenses FS-UAE/Licenses
+	cp -a ../../README FS-UAE/ReadMe.txt
+
+	echo $(ver) > FS-UAE/Version.txt
+	echo $(ver) > $(fs_uae_dir)/Version.txt
 
 	strip $(fs_uae_dir)/*.exe
 	strip $(fs_uae_dir)/*.dll

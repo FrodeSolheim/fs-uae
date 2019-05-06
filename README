@@ -256,7 +256,7 @@ in the floppy list, some may be obscured.
 
 COPYRIGHT AND CREDITS
 =====================
-FS-UAE is Copyright (c) 2011-2017, Frode Solheim
+FS-UAE is Copyright (c) 2011-2019, Frode Solheim
 Large portions are copyrighted by other individuals.
 
 FS-UAE is based on the fantastic work of the original UAE authors, the authors
@@ -276,7 +276,7 @@ http://www.winuae.net/
 http://www.rcdrummond.net/uae/
 http://www.softpres.org/
 
-libfsemu is Copyright (c) 2011-2017, Frode Solheim
+libfsemu is Copyright (c) 2011-2019, Frode Solheim
 
 IPF decoder library is Copyright (c) 2001-2011 by István Fábián with
 additional work by Christian Sauer.

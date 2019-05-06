@@ -1,3 +1,8 @@
+Version 2.9.9dev:
+
+* More deterministic creation of fs-uae.dat [bmwiedemann].
+* HAM6 on AGA fix [sonnenscheinchen].
+
 Version 2.9.8dev:
 
 * New option whdload_quit_key to gracefully quit slaves.

@@ -42,11 +42,11 @@
 	<key>LSHasLocalizedDisplayName</key>
 	<true/>
 	<key>LSMinimumSystemVersion</key>
-	<string>10.11.0</string>
+	<string>10.9.0</string>
 	<key>NSAppleScriptEnabled</key>
 	<false/>
 	<key>NSHumanReadableCopyright</key>
-	<string>Copyright 2011-2017 Frode Solheim</string>
+	<string>Copyright 2011-2019 Frode Solheim</string>
 	<key>NSMainNibFile</key>
 	<string></string>
 	<key>NSPrincipalClass</key>

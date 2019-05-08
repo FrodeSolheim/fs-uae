@@ -101,6 +101,22 @@ static int picasso96_GCT = GCT_Unknown;
 static int picasso96_PCT = PCT_Unknown;
 
 #ifdef FSUAE
+typedef int CRITICAL_SECTION;
+static void InitializeCriticalSection(CRITICAL_SECTION*) {
+	// FIMXE: Implementation needed
+}
+static void EnterCriticalSection(CRITICAL_SECTION*) {
+	// FIMXE: Implementation needed
+}
+static void LeaveCriticalSection(CRITICAL_SECTION*) {
+
+}
+unsigned short _byteswap_ushort ( unsigned short val ) {
+	// FIMXE: Implementation needed
+}
+unsigned long _byteswap_ulong ( unsigned long val ) {
+	// FIMXE: Implementation needed
+}
 #else
 int mman_GetWriteWatch (PVOID lpBaseAddress, SIZE_T dwRegionSize, PVOID *lpAddresses, PULONG_PTR lpdwCount, PULONG lpdwGranularity);
 void mman_ResetWatch (PVOID lpBaseAddress, SIZE_T dwRegionSize);

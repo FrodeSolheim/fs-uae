@@ -275,3 +275,11 @@ void desktop_coords (int *dw, int *dh, int *ax, int *ay, int *aw, int *ah)
 int is_touch_lightpen(void) {
     return 0;
 }
+
+void target_getdate(int *y, int *m, int *d)
+{
+    STUB("");
+    *y = 2019;
+    *m = 5;
+    *d = 8;
+}

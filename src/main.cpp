@@ -1084,7 +1084,7 @@ static int real_main2 (int argc, TCHAR **argv)
 	if (restart_config[0])
 		parse_cmdline_and_init_file (argc, argv);
 	else
-		currprefs = changed_prefs;
+		copy_prefs(&changed_prefs, &currprefs);
 
 	if (!machdep_init ()) {
 		restart_program = 0;
@@ -1102,7 +1102,8 @@ static int real_main2 (int argc, TCHAR **argv)
 	}
 	inputdevice_init ();
 
-	changed_prefs = currprefs;
+	copy_prefs(&currprefs, &changed_prefs);
+
 	no_gui = ! currprefs.start_gui;
 	if (restart_program == 2)
 		no_gui = 1;
@@ -1111,7 +1112,7 @@ static int real_main2 (int argc, TCHAR **argv)
 	restart_program = 0;
 	if (! no_gui) {
 		int err = gui_init ();
-		currprefs = changed_prefs;
+		copy_prefs(&changed_prefs, &currprefs);
 		set_config_changed ();
 		if (err == -1) {
 			write_log (_T("Failed to initialize the GUI\n"));
@@ -1154,7 +1155,7 @@ static int real_main2 (int argc, TCHAR **argv)
 #ifdef RETROPLATFORM
 	rp_fixup_options (&currprefs);
 #endif
-	changed_prefs = currprefs;
+	copy_prefs(&currprefs, &changed_prefs);
 	target_run ();
 	/* force sound settings change */
 	currprefs.produce_sound = 0;
@@ -1210,7 +1211,7 @@ void real_main (int argc, TCHAR **argv)
 
 	while (restart_program) {
 		int ret;
-		changed_prefs = currprefs;
+		copy_prefs(&currprefs, &changed_prefs);
 		ret = real_main2 (argc, argv);
 		if (ret == 0 && quit_to_gui)
 			restart_program = 1;

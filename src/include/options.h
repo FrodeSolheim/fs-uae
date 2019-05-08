@@ -321,6 +321,7 @@ struct apmode
 	int gfx_backbuffers;
 	bool gfx_interlaced;
 	int gfx_refreshrate;
+	bool gfx_tearing;
 };
 
 #define MAX_LUA_STATES 16

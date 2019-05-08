@@ -354,6 +354,7 @@ struct gfx_filterdata
 
 #define MAX_DUPLICATE_EXPANSION_BOARDS 4
 #define MAX_EXPANSION_BOARDS 20
+#define ROMCONFIG_CONFIGTEXT_LEN 256
 struct boardromconfig;
 struct romconfig
 {
@@ -365,7 +366,7 @@ struct romconfig
 	int device_settings;
 	int subtype;
 	void *unitdata;
-	TCHAR configtext[256];
+	TCHAR configtext[ROMCONFIG_CONFIGTEXT_LEN];
 	uae_u16 manufacturer;
 	uae_u8 product;
 	uae_u8 autoconfig[16];
@@ -587,6 +588,7 @@ struct uae_prefs {
 	bool cs_cd32c2p;
 	bool cs_cd32nvram;
 	bool cs_cd32fmv;
+	bool cs_cd32cubo;
 	int cs_cd32nvram_size;
 	bool cs_cdtvcd;
 	bool cs_cdtvram;

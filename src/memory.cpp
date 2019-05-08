@@ -39,6 +39,7 @@
 #include "cpuboard.h"
 #include "uae/ppc.h"
 #include "devices.h"
+#include "inputdevice.h"
 
 #ifdef FSUAE // NL
 #undef _WIN32
@@ -2842,6 +2843,7 @@ void memory_reset (void)
 		arcadia_map_banks ();
 	}
 #endif
+	inputdevice_map();
 
 #ifdef ACTION_REPLAY
 #ifdef ARCADIA

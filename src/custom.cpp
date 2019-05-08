@@ -3539,7 +3539,7 @@ static void calcsprite (void)
 	}
 }
 
-static void decide_sprites (int hpos, bool usepointx)
+static void decide_sprites(int spnr, int hpos, bool usepointx, bool quick)
 {
 	int nrs[MAX_SPRITES * 2], posns[MAX_SPRITES * 2];
 	int count, i;
@@ -3547,6 +3547,7 @@ static void decide_sprites (int hpos, bool usepointx)
 	int width = sprite_width;
 	int sscanmask = 0x100 << sprite_buffer_res;
 	int gotdata = 0;
+	int startnr = 0, endnr = MAX_SPRITES - 1;
 
 	if (thisline_decision.plfleft < 0 && !(bplcon3 & 2))
 		return;
@@ -3560,12 +3561,18 @@ static void decide_sprites (int hpos, bool usepointx)
 	if (nodraw () || hpos < 0x14 || nr_armed == 0 || point == last_sprite_point)
 		return;
 
-	decide_diw (hpos);
-	decide_line (hpos);
-	calcsprite ();
+	if (spnr >= 0) {
+		startnr = spnr;
+		endnr = spnr;
+	}
+	if (!quick) {
+		decide_diw (hpos);
+		decide_line (hpos);
+		calcsprite ();
+	}
 
 	count = 0;
-	for (i = 0; i < MAX_SPRITES; i++) {
+	for (i = startnr; i <= endnr; i++) {
 		int xpos = spr[i].xpos;
 		int sprxp = (fmode & 0x8000) ? (xpos & ~sscanmask) : xpos;
 		int hw_xp = sprxp >> sprite_buffer_res;
@@ -3638,9 +3645,17 @@ static void decide_sprites (int hpos, bool usepointx)
 	}
 #endif
 }
-static void decide_sprites(int hpos)
+static void decide_sprites(int spnr, int hpos)
 {
-	decide_sprites(hpos, false);
+	decide_sprites(spnr, hpos, false, false);
+}
+static void maybe_decide_sprites(int spnr, int hpos)
+{
+	if (!spr[spnr].armed)
+		return;
+	if (!sprdata[spnr] && !sprdatb[spnr])
+		return;
+	decide_sprites(spnr, hpos, true, true);
 }
 
 static int sprites_differ (struct draw_info *dip, struct draw_info *dip_old)
@@ -3739,7 +3754,7 @@ static void finish_decisions (void)
 	if (thisline_decision.plfleft >= 0 && thisline_decision.nr_planes > 0)
 		record_diw_line (thisline_decision.plfleft, diwfirstword, diwlastword);
 
-	decide_sprites (hpos + 1);
+	decide_sprites(-1, hpos + 1);
 
 	dip->last_sprite_entry = next_sprite_entry;
 	dip->last_color_change = next_color_change;
@@ -4589,7 +4604,7 @@ static uae_u16 DENISEID (int *missing)
 #endif
 	if (currprefs.chipset_mask & CSMASK_ECS_DENISE)
 		return 0xFFFC;
-	if (currprefs.cpu_model == 68000 && (currprefs.cpu_compatible || currprefs.cpu_cycle_exact))
+	if (currprefs.cpu_model == 68000 && (currprefs.cpu_compatible || currprefs.cpu_memory_cycle_exact))
 		*missing = 1;
 	return 0xFFFF;
 }
@@ -4640,7 +4655,7 @@ static bool hsyncdelay (void)
 {
 	if (!currprefs.genlock)
 		return false;
-	if (currprefs.cpu_cycle_exact || currprefs.m68k_speed >= 0)
+	if (currprefs.cpu_memory_cycle_exact || currprefs.m68k_speed >= 0)
 		return false;
 	if (bplcon0 == (0x0100 | 0x0002)) {
 		return true;
@@ -4648,7 +4663,7 @@ static bool hsyncdelay (void)
 	return false;
 }
 
-#define CPU_ACCURATE (currprefs.cpu_model < 68020 || (currprefs.cpu_model == 68020 && currprefs.cpu_cycle_exact))
+#define CPU_ACCURATE (currprefs.cpu_model < 68020 || (currprefs.cpu_model == 68020 && currprefs.cpu_memory_cycle_exact))
 
 // DFF006 = 0.W must be valid result but better do this only in 68000 modes (whdload black screen!)
 // HPOS is shifted by 3 cycles and VPOS increases when shifted HPOS==1
@@ -4749,7 +4764,7 @@ static void VHPOSW (uae_u16 v)
 		write_log (_T("VHPOSW %04X PC=%08x\n"), v, M68K_GETPC);
 #endif
 
-	if (currprefs.cpu_cycle_exact && currprefs.cpu_model == 68000) {
+	if (currprefs.cpu_memory_cycle_exact && currprefs.cpu_model == 68000) {
 		/* Special hack for Smooth Copper in CoolFridge / Upfront demo */
 		int chp = current_hpos_safe();
 		int hp = v & 0xff;
@@ -5112,7 +5127,7 @@ int intlev (void)
 #define INT_PROCESSING_DELAY (3 * CYCLE_UNIT)
 STATIC_INLINE int use_eventmode (uae_u16 v)
 {
-	if (currprefs.cpu_cycle_exact && currprefs.cpu_model <= 68020)
+	if (currprefs.cpu_memory_cycle_exact && currprefs.cpu_model <= 68020)
 		return 1;
 	return 0;
 }
@@ -5427,7 +5442,7 @@ static void BPLCON0_Denise (int hpos, uae_u16 v, bool immediate)
 
 #ifdef ECS_DENISE
 	if (currprefs.chipset_mask & CSMASK_ECS_DENISE) {
-		decide_sprites (hpos);
+		decide_sprites(-1, hpos);
 		sprres = expand_sprres (v, bplcon3);
 	}
 #endif
@@ -5512,7 +5527,7 @@ static void BPLCON3(int hpos, uae_u16 v)
 	if (bplcon3 == v)
 		return;
 	decide_line (hpos);
-	decide_sprites (hpos);
+	decide_sprites(-1, hpos);
 	bplcon3 = v;
 	sprres = expand_sprres (bplcon0, bplcon3);
 	record_register_change (hpos, 0x106, v);
@@ -5755,7 +5770,7 @@ static void BLTALWM (int hpos, uae_u16 v) { maybe_blit (hpos, 2); blt_info.bltal
 static void BLTAPTH (int hpos, uae_u16 v)
 {
 	maybe_blit (hpos, 0);
-	if (bltstate != BLT_done && currprefs.blitter_cycle_exact && currprefs.cpu_cycle_exact) {
+	if (bltstate != BLT_done && currprefs.blitter_cycle_exact && currprefs.cpu_memory_cycle_exact) {
 		bltptx = (bltapt & 0xffff) | ((uae_u32)v << 16);
 		bltptxpos = hpos;
 		bltptxc = 1;
@@ -5766,7 +5781,7 @@ static void BLTAPTH (int hpos, uae_u16 v)
 static void BLTAPTL (int hpos, uae_u16 v)
 {
 	maybe_blit (hpos, 0);
-	if (bltstate != BLT_done && currprefs.blitter_cycle_exact && currprefs.cpu_cycle_exact) {
+	if (bltstate != BLT_done && currprefs.blitter_cycle_exact && currprefs.cpu_memory_cycle_exact) {
 		bltptx = (bltapt & ~0xffff) | (v & 0xFFFE);
 		bltptxpos = hpos;
 		bltptxc = 1;
@@ -5777,7 +5792,7 @@ static void BLTAPTL (int hpos, uae_u16 v)
 static void BLTBPTH (int hpos, uae_u16 v)
 {
 	maybe_blit (hpos, 0);
-	if (bltstate != BLT_done && currprefs.blitter_cycle_exact && currprefs.cpu_cycle_exact) {
+	if (bltstate != BLT_done && currprefs.blitter_cycle_exact && currprefs.cpu_memory_cycle_exact) {
 		bltptx = (bltbpt & 0xffff) | ((uae_u32)v << 16);
 		bltptxpos = hpos;
 		bltptxc = 2;
@@ -5788,7 +5803,7 @@ static void BLTBPTH (int hpos, uae_u16 v)
 static void BLTBPTL (int hpos, uae_u16 v)
 {
 	maybe_blit (hpos, 0);
-	if (bltstate != BLT_done && currprefs.blitter_cycle_exact && currprefs.cpu_cycle_exact) {
+	if (bltstate != BLT_done && currprefs.blitter_cycle_exact && currprefs.cpu_memory_cycle_exact) {
 		bltptx = (bltbpt & ~0xffff) | (v & 0xFFFE);
 		bltptxpos = hpos;
 		bltptxc = 2;
@@ -5799,7 +5814,7 @@ static void BLTBPTL (int hpos, uae_u16 v)
 static void BLTCPTH (int hpos, uae_u16 v)
 {
 	maybe_blit (hpos, 0);
-	if (bltstate != BLT_done && currprefs.blitter_cycle_exact && currprefs.cpu_cycle_exact) {
+	if (bltstate != BLT_done && currprefs.blitter_cycle_exact && currprefs.cpu_memory_cycle_exact) {
 		bltptx = (bltcpt & 0xffff) | ((uae_u32)v << 16);
 		bltptxpos = hpos;
 		bltptxc = 3;
@@ -5810,7 +5825,7 @@ static void BLTCPTH (int hpos, uae_u16 v)
 static void BLTCPTL (int hpos, uae_u16 v)
 {
 	maybe_blit (hpos, 0);
-	if (bltstate != BLT_done && currprefs.blitter_cycle_exact && currprefs.cpu_cycle_exact) {
+	if (bltstate != BLT_done && currprefs.blitter_cycle_exact && currprefs.cpu_memory_cycle_exact) {
 		bltptx = (bltcpt & ~0xffff) | (v & 0xFFFE);
 		bltptxpos = hpos;
 		bltptxc = 3;
@@ -5821,7 +5836,7 @@ static void BLTCPTL (int hpos, uae_u16 v)
 static void BLTDPTH (int hpos, uae_u16 v)
 {
 	maybe_blit (hpos, 0);
-	if (bltstate != BLT_done && currprefs.blitter_cycle_exact && currprefs.cpu_cycle_exact) {
+	if (bltstate != BLT_done && currprefs.blitter_cycle_exact && currprefs.cpu_memory_cycle_exact) {
 		bltptx = (bltdpt & 0xffff) | ((uae_u32)v << 16);
 		bltptxpos = hpos;
 		bltptxc = 4;
@@ -5832,7 +5847,7 @@ static void BLTDPTH (int hpos, uae_u16 v)
 static void BLTDPTL (int hpos, uae_u16 v)
 {
 	maybe_blit (hpos, 0);
-	if (bltstate != BLT_done && currprefs.blitter_cycle_exact && currprefs.cpu_cycle_exact) {
+	if (bltstate != BLT_done && currprefs.blitter_cycle_exact && currprefs.cpu_memory_cycle_exact) {
 		bltptx = (bltdpt & ~0xffff) | (v & 0xFFFE);
 		bltptxpos = hpos;
 		bltptxc = 4;
@@ -6030,12 +6045,12 @@ static void SPRxDATB_1(uae_u16 v, int num, int hpos)
 
 static void SPRxDATA (int hpos, uae_u16 v, int num)
 {
-	decide_sprites(hpos, true);
+	decide_sprites(-1, hpos, true, false);
 	SPRxDATA_1(v, num, hpos);
 }
 static void SPRxDATB (int hpos, uae_u16 v, int num)
 {
-	decide_sprites(hpos, true);
+	decide_sprites(-1, hpos, true, false);
 	SPRxDATB_1(v, num, hpos);
 }
 
@@ -6047,7 +6062,7 @@ static void SPRxCTL (int hpos, uae_u16 v, int num)
 	}
 #endif
 
-	decide_sprites(hpos);
+	decide_sprites(-1, hpos);
 	SPRxCTL_1(v, num, hpos);
 }
 static void SPRxPOS (int hpos, uae_u16 v, int num)
@@ -6059,7 +6074,7 @@ static void SPRxPOS (int hpos, uae_u16 v, int num)
 		write_log(_T("%d:%d:SPR%dPOSC %06X\n"), vpos, hpos, num, s->pt);
 	}
 #endif
-	decide_sprites(hpos);
+	decide_sprites(-1, hpos);
 	oldvpos = s->vstart;
 	SPRxPOS_1(v, num, hpos);
 	// Superfrog flashing intro bees fix.
@@ -6073,7 +6088,7 @@ static void SPRxPOS (int hpos, uae_u16 v, int num)
 
 static void SPRxPTH (int hpos, uae_u16 v, int num)
 {
-	decide_sprites (hpos);
+	decide_sprites(-1, hpos);
 	if (hpos - 1 != spr[num].ptxhpos) {
 		spr[num].pt &= 0xffff;
 		spr[num].pt |= (uae_u32)v << 16;
@@ -6086,7 +6101,7 @@ static void SPRxPTH (int hpos, uae_u16 v, int num)
 }
 static void SPRxPTL (int hpos, uae_u16 v, int num)
 {
-	decide_sprites (hpos);
+	decide_sprites(-1, hpos);
 	if (hpos - 1 != spr[num].ptxhpos) {
 		spr[num].pt &= ~0xffff;
 		spr[num].pt |= v & ~1;
@@ -6866,7 +6881,7 @@ static uae_u16 sprite_fetch(struct sprite *s, int dma, int hpos, int cycle, int 
 {
 	uae_u16 data = last_custom_value1;
 	if (dma) {
-		if (cycle && currprefs.cpu_cycle_exact)
+		if (cycle && currprefs.cpu_memory_cycle_exact)
 			s->ptxhpos = hpos;
 		data = last_custom_value1 = chipmem_wget_indirect (s->pt);
 		alloc_cycle (hpos, CYCLE_SPRITE);
@@ -6890,7 +6905,7 @@ static uae_u16 sprite_fetch2(struct sprite *s, int hpos, int cycle, int mode)
 static void do_sprites_1(int num, int cycle, int hpos)
 {
 	struct sprite *s = &spr[num];
-	int dma, posctl = 0;
+	int posctl = 0;
 	uae_u16 data;
 	// fetch both sprite pairs even if DMA was switched off between sprites
 	int isdma = dmaen (DMA_SPRITE) || ((num & 1) && spr[num & ~1].dmacycle);
@@ -6934,7 +6949,9 @@ static void do_sprites_1(int num, int cycle, int hpos)
 	if (!isdma)
 		return;
 
-	dma = hpos < plfstrt_sprite || diwstate != DIW_waiting_stop;
+	int dma = hpos < plfstrt_sprite || diwstate != DIW_waiting_stop;
+	int sprxp = s->xpos >> (sprite_buffer_res + 1);
+	bool start_before_dma = hpos >= sprxp && sprxp >= 16;
 	if (vpos == s->vstop || vpos == sprite_vblank_endline) {
 		s->dmastate = 0;
 		posctl = 1;
@@ -6951,6 +6968,9 @@ static void do_sprites_1(int num, int cycle, int hpos)
 			}
 			//write_log (_T("%d:%d: %04X=%04X\n"), vpos, hpos, 0x140 + cycle * 2 + num * 8, data);
 			if (cycle == 0) {
+				if (start_before_dma && s->armed) {
+					maybe_decide_sprites(num, hpos);
+				}
 				SPRxPOS_1 (data, num, hpos);
 				s->dmacycle = 1;
 			} else {
@@ -6974,20 +6994,27 @@ static void do_sprites_1(int num, int cycle, int hpos)
 #endif
 	}
 	if (s->dmastate && !posctl && dma) {
-		uae_u16 data;
-
-		data = sprite_fetch (s, dma, hpos, cycle, 1);
+		uae_u16 data = sprite_fetch (s, dma, hpos, cycle, 1);
 #if SPRITE_DEBUG >= 256
 		if (vpos >= SPRITE_DEBUG_MINY && vpos <= SPRITE_DEBUG_MAXY && (SPRITE_DEBUG & (1 << num))) {
 			write_log (_T("%d:%d:dma:P=%06X "), vpos, hpos, s->pt);
 		}
 #endif
 		if (cycle == 0) {
+			// if xpos is earlier than this cycle, decide it first.
+			if (start_before_dma) {
+				maybe_decide_sprites(num, hpos);
+			}
 			SPRxDATA_1 (data, num, hpos);
 			s->dmacycle = 1;
 		} else {
+			// This is needed if xpos is between DATA and DATB fetches
+			// Test does not need to be accurate, only purpose is to
+			// not lose performance when sprites have "normal" positioning.
+			if (start_before_dma) {
+				maybe_decide_sprites(num, hpos);
+			}
 			SPRxDATB_1 (data, num, hpos);
-			spr_arm (num, 1);
 		}
 #ifdef AGA
 		switch (sprite_width)
@@ -8159,7 +8186,7 @@ static void events_dmal (int hp)
 {
 	if (!dmal)
 		return;
-	if (currprefs.cpu_cycle_exact) {
+	if (currprefs.cpu_memory_cycle_exact) {
 		while (dmal) {
 			if (dmal & 3)
 				break;
@@ -8186,7 +8213,7 @@ static void events_dmal_hsync (void)
 	if (!dmal)
 		return;
 	dmal_hpos = 0;
-	if (currprefs.cpu_cycle_exact) {
+	if (currprefs.cpu_memory_cycle_exact) {
 		for (int i = 0; i < 6 + 8; i += 2) {
 			if (dmal & (3 << i)) {
 				alloc_cycle_ext (i + 7, CYCLE_MISC);
@@ -10357,8 +10384,8 @@ uae_u32 wait_cpu_cycle_read_ce020 (uaecptr addr, int mode)
 	if (debug_dma)
 		dr->dat = v;
 #endif
-	if (currprefs.cpu_model == 68020)
-		x_do_cycles_post (CYCLE_UNIT / 2, v);
+	
+	x_do_cycles_post (CYCLE_UNIT, v);
 
 	regs.chipset_latch_rw = regs.chipset_latch_read = v;
 	SETIFCHIP
@@ -10428,8 +10455,7 @@ void wait_cpu_cycle_write_ce020 (uaecptr addr, int mode, uae_u32 v)
 	else if (mode == 0)
 		put_byte (addr, v);
 
-	if (currprefs.cpu_model == 68020)
-		x_do_cycles_post (CYCLE_UNIT / 2, v);
+	x_do_cycles_post (CYCLE_UNIT, v);
 
 	regs.chipset_latch_rw = regs.chipset_latch_write = v;
 	SETIFCHIP

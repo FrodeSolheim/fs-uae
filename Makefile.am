@@ -604,6 +604,7 @@ libuae_a_SOURCES = \
 	src/random.cpp \
 	src/readcpu.cpp \
 	src/rommgr.cpp \
+	src/rtc.cpp \
 	src/sana2.cpp \
 	src/savestate.cpp \
 	src/scp.cpp \

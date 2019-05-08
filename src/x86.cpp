@@ -40,6 +40,7 @@
 #include "fake86_cpu.h"
 #include "gfxboard.h"
 #include "pci_hw.h"
+#include "devices.h"
 
 #include "dosbox/dosbox.h"
 #include "dosbox/mem.h"
@@ -401,7 +402,7 @@ static void set_interrupt(struct x86_bridge *xb, int bit)
 	write_log(_T("IO_AMIGA_INTERRUPT_STATUS set bit %d\n"), bit);
 #endif
 	xb->amiga_io[IO_AMIGA_INTERRUPT_STATUS] |= 1 << bit;
-	x86_bridge_rethink();
+	devices_rethink_all(x86_bridge_rethink);
 }
 
 /* 8237 and 8253 from fake86 with small modifications */
@@ -2947,7 +2948,7 @@ void x86_bridge_rethink(void)
 		uae_u8 intena = xb->amiga_io[IO_INTERRUPT_MASK];
 		uae_u8 status = intreq & ~intena;
 		if (status)
-			INTREQ_0(0x8000 | 0x0008);
+			safe_interrupt_set(0x0008);
 	}
 }
 
@@ -3079,7 +3080,7 @@ void x86_bridge_vsync(void)
 		return;
 
 	if (xb->delayed_interrupt) {
-		x86_bridge_rethink();
+		devices_rethink_all(x86_bridge_rethink);
 	}
 }
 

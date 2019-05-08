@@ -24,6 +24,7 @@
 #include "gayle.h"
 #include "cia.h"
 #include "x86.h"
+#include "devices.h"
 
 #define SCSI_EMU_DEBUG 0
 #define RAW_SCSI_DEBUG 0
@@ -1460,7 +1461,7 @@ static void aic_int(struct soft_scsi *scsi, uae_u8 mask)
 	scsi->regs[16 + 8] |= mask;
 	if ((scsi->regs[16 + 8] & scsi->regs[3]) & 0x1f) {
 		scsi->irq = true;
-		ncr80_rethink();
+		devices_rethink_all(ncr80_rethink);
 	} else {
 		scsi->irq = false;
 	}
@@ -1710,9 +1711,9 @@ void ncr80_rethink(void)
 				x86_doirq(5);
 			} else {
 				if (soft_scsi_devices[i]->level6)
-					INTREQ_0(0x8000 | 0x2000);
+					safe_interrupt_set(0x2000);
 				else
-					INTREQ_0(0x8000 | 0x0008);
+					safe_interrupt_set(0x0008);
 				return;
 			}
 		}
@@ -1724,7 +1725,7 @@ static void ncr5380_set_irq(struct soft_scsi *scsi)
 	if (scsi->irq)
 		return;
 	scsi->irq = true;
-	ncr80_rethink();
+	devices_rethink_all(ncr80_rethink);
 	if (scsi->delayed_irq)
 		x_do_cycles(2 * CYCLE_UNIT);
 #if NCR5380_DEBUG_IRQ

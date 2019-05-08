@@ -48,6 +48,7 @@
 #define P96TRACING_SETUP_ENABLED 0
 #define P96SPRTRACING_ENABLED 0
 
+#include "uae.h"
 #include "options.h"
 #include "threaddep/thread.h"
 #include "uae/memory.h"

@@ -163,5 +163,5 @@ util/temp
 winuae/od-win32/lib
 xxx*
 *.zip
-winuae-merge.txt
+merge.stage
 .vscode/ipch

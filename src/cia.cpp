@@ -133,7 +133,7 @@ static void ICRA (uae_u32 data)
 {
 	ciaaicr |= 0x40;
 #if 1
-	if (currprefs.cpu_cycle_exact && !(ciaaicr & 0x20) && (cia_interrupt_disabled & 1)) {
+	if (currprefs.cpu_memory_cycle_exact && !(ciaaicr & 0x20) && (cia_interrupt_disabled & 1)) {
 		cia_interrupt_delay |= 1;
 #if CIAB_DEBUG_IRQ
 		write_log(_T("ciab interrupt disabled ICR=%02X PC=%x\n"), ciabicr, M68K_GETPC);
@@ -149,7 +149,7 @@ static void ICRB (uae_u32 data)
 {
 	ciabicr |= 0x40;
 #if 1
-	if (currprefs.cpu_cycle_exact && !(ciabicr & 0x20) && (cia_interrupt_disabled & 2)) {
+	if (currprefs.cpu_memory_cycle_exact && !(ciabicr & 0x20) && (cia_interrupt_disabled & 2)) {
 		cia_interrupt_delay |= 2;
 #if CIAB_DEBUG_IRQ
 		write_log(_T("ciab interrupt disabled ICR=%02X PC=%x\n"), ciabicr, M68K_GETPC);
@@ -174,7 +174,7 @@ static void RethinkICRA (void)
 #endif
 		if (!(ciaaicr & 0x80)) {
 			ciaaicr |= 0x80;
-			if (currprefs.cpu_cycle_exact) {
+			if (currprefs.cpu_memory_cycle_exact) {
 				event2_newevent_xx (-1, DIV10 + 2 * CYCLE_UNIT + CYCLE_UNIT / 2, 0, ICRA);
 			} else {
 				ICRA (0x0008);
@@ -191,7 +191,7 @@ static void RethinkICRB (void)
 #endif
 		if (!(ciabicr & 0x80)) {
 			ciabicr |= 0x80;
-			if (currprefs.cpu_cycle_exact) {
+			if (currprefs.cpu_memory_cycle_exact) {
 				event2_newevent_xx (-1, DIV10 + 2 * CYCLE_UNIT + CYCLE_UNIT / 2, 0, ICRB);
 			} else {
 				ICRB (0);
@@ -1796,7 +1796,7 @@ static void cia_wait_pre (int cianummask)
 		return;
 #endif
 
-	if (currprefs.cpu_cycle_exact) {
+	if (currprefs.cpu_memory_cycle_exact) {
 		cia_interrupt_disabled |= cianummask;
 	}
 
@@ -1814,7 +1814,7 @@ static void cia_wait_pre (int cianummask)
 	}
 
 	if (cycles) {
-		if (currprefs.cpu_cycle_exact)
+		if (currprefs.cpu_memory_cycle_exact)
 			x_do_cycles_pre (cycles);
 		else
 			do_cycles (cycles);
@@ -1838,7 +1838,7 @@ static void cia_wait_post (int cianummask, uae_u32 value)
 			x_do_cycles_post (c, value);
 		else
 			do_cycles (c);
-		if (currprefs.cpu_cycle_exact) {
+		if (currprefs.cpu_memory_cycle_exact) {
 			cia_interrupt_disabled &= ~cianummask;
 			if ((cia_interrupt_delay & cianummask) & 1) {
 				cia_interrupt_delay &= ~1;
@@ -1850,7 +1850,7 @@ static void cia_wait_post (int cianummask, uae_u32 value)
 			}
 		}
 	}
-	if (!currprefs.cpu_cycle_exact && cia_interrupt_delay) {
+	if (!currprefs.cpu_memory_cycle_exact && cia_interrupt_delay) {
 		int v = cia_interrupt_delay;
 		cia_interrupt_delay = 0;
 		if (v & 1)
@@ -2049,7 +2049,7 @@ static void REGPARAM2 cia_bput (uaecptr addr, uae_u32 value)
 			WriteCIAA (r, value);
 		cia_wait_post (((cs & 2) == 0 ? 1 : 0) | ((cs & 1) == 0 ? 2 : 0), value);
 		if (((cs & 3) == 3) && (warned > 0 || currprefs.illegal_mem)) {
-			write_log (_T("cia_bput: unknown CIA address %08X=%082X PC=%08X\n"), addr, value & 0xff, M68K_GETPC);
+			write_log (_T("cia_bput: unknown CIA address %08X=%02X PC=%08X\n"), addr, value & 0xff, M68K_GETPC);
 			warned--;
 		}
 	}

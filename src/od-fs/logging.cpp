@@ -119,3 +119,8 @@ void jit_abort (const TCHAR *format,...)
 #endif
     g_free(buffer);
 }
+
+void write_logx(const char *format, ...)
+{
+    // FIXME
+}

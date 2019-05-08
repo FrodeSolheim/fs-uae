@@ -142,11 +142,11 @@ static LRESULT CALLBACK SocketWindowProc(HWND hwnd, UINT message, WPARAM wParam,
 #define SOCKVER_MAJOR 2
 #define SOCKVER_MINOR 2
 
-#define SF_RAW_RAW		0x20000000
-#define SF_RAW_UDP		0x10000000
-#define SF_RAW_RUDP		0x08000000
-#define SF_RAW_RICMP	0x04000000
-#define SF_RAW_HDR		0x02000000
+#define SF_RAW_RAW		0x10000000
+#define SF_RAW_UDP		0x08000000
+#define SF_RAW_RUDP		0x04000000
+#define SF_RAW_RICMP	0x02000000
+#define SF_RAW_HDR		0x01000000
 
 typedef	struct ip_option_information {
 	u_char Ttl;		/* Time To Live (used for traceroute) */
@@ -655,6 +655,9 @@ int host_socket(TrapContext *ctx, SB, int af, int type, int protocol)
 	}
 
 	sb->ftable[sd-1] = SF_BLOCKING;
+	if (faketype == SOCK_DGRAM || protocol != IPPROTO_TCP)
+		sb->ftable[sd-1] |= SF_DGRAM;
+
 	ioctlsocket(s,FIONBIO,&nonblocking);
 	BSDTRACE((_T(" -> Socket=%d %x\n"),sd,s));
 
@@ -845,7 +848,6 @@ struct threadsock_packet
 			uae_char *buf;
 			uae_char *realpt;
 			uae_u32 sd;
-			uae_u32 msg;
 			uae_u32 len;
 			uae_u32 flags;
 			uae_u32 to;
@@ -1098,7 +1100,7 @@ struct udphdr {
 
 #endif
 
-void host_sendto (TrapContext *ctx, SB, uae_u32 sd, uae_u32 msg, uae_u32 len, uae_u32 flags, uae_u32 to, uae_u32 tolen)
+void host_sendto (TrapContext *ctx, SB, uae_u32 sd, uae_u32 msg, uae_u8 *hmsg, uae_u32 len, uae_u32 flags, uae_u32 to, uae_u32 tolen)
 {
 	SOCKET s;
 	char *realpt;
@@ -1113,17 +1115,21 @@ void host_sendto (TrapContext *ctx, SB, uae_u32 sd, uae_u32 msg, uae_u32 len, ua
 
 
 	if (to)
-		BSDTRACE((_T("sendto(%d,0x%x,%d,0x%x,0x%x,%d):%d-> "),sd,msg,len,flags,to,tolen,wscnt));
+		BSDTRACE((_T("sendto(%d,0x%x,%p,%d,0x%x,0x%x,%d):%d-> "),sd,msg,hmsg,len,flags,to,tolen,wscnt));
 	else
-		BSDTRACE((_T("send(%d,0x%x,%d,%d):%d -> "),sd,msg,len,flags,wscnt));
+		BSDTRACE((_T("send(%d,0x%x,%p,%d,%d):%d -> "),sd,msg,hmsg,len,flags,wscnt));
 
 	sd++;
 	s = getsock(ctx, sb, sd);
 
 	if (s != INVALID_SOCKET) {
-		if (!addr_valid (_T("host_sendto1"), msg, 4))
-			return;
-		realpt = (char*)get_real_address (msg);
+		if (hmsg == NULL) {
+			if (!addr_valid (_T("host_sendto1"), msg, 4))
+				return;
+			realpt = (char*)get_real_address (msg);
+		} else {
+			realpt = (char*)hmsg;
+		}
 
 		if (ISBSDTRACE) {
 			write_log(_T("FT %08x "), sb->ftable[sd - 1]);
@@ -1218,7 +1224,6 @@ void host_sendto (TrapContext *ctx, SB, uae_u32 sd, uae_u32 msg, uae_u32 len, ua
 			sockreq.sb = sb;
 			sockreq.params.sendto_s.buf = buf;
 			sockreq.params.sendto_s.sd = sd;
-			sockreq.params.sendto_s.msg = msg;
 			sockreq.params.sendto_s.flags = flags;
 			sockreq.params.sendto_s.to = to;
 			sockreq.params.sendto_s.tolen = tolen;
@@ -1275,7 +1280,7 @@ error:
 		BSDTRACE((_T("sendto %d:%d\n"),sb->resultval,wscnt));
 }
 
-void host_recvfrom(TrapContext *ctx, SB, uae_u32 sd, uae_u32 msg, uae_u32 len, uae_u32 flags, uae_u32 addr, uae_u32 addrlen)
+void host_recvfrom(TrapContext *ctx, SB, uae_u32 sd, uae_u32 msg, uae_u8 *hmsg, uae_u32 len, uae_u32 flags, uae_u32 addr, uae_u32 addrlen)
 {
 	SOCKET s;
 	uae_char *realpt;
@@ -1289,17 +1294,21 @@ void host_recvfrom(TrapContext *ctx, SB, uae_u32 sd, uae_u32 msg, uae_u32 len, u
 	wscnt = ++wscounter;
 
 	if (addr)
-		BSDTRACE((_T("recvfrom(%d,0x%x,%d,0x%x,0x%x,%d):%d -> "),sd,msg,len,flags,addr,get_long (addrlen),wscnt));
+		BSDTRACE((_T("recvfrom(%d,0x%x,%p,%d,0x%x,0x%x,%d):%d -> "),sd,msg,hmsg,len,flags,addr,get_long (addrlen),wscnt));
 	else
-		BSDTRACE((_T("recv(%d,0x%x,%d,0x%x):%d -> "),sd,msg,len,flags,wscnt));
+		BSDTRACE((_T("recv(%d,0x%x,%p,%d,0x%x):%d -> "),sd,msg,hmsg,len,flags,wscnt));
 
 	sd++;
 	s = getsock(ctx, sb,sd);
 
 	if (s != INVALID_SOCKET) {
-		if (!addr_valid (_T("host_recvfrom1"), msg, 4))
-			return;
-		realpt = (char*)get_real_address (msg);
+		if (hmsg == NULL) {
+			if (!addr_valid (_T("host_recvfrom1"), msg, 4))
+				return;
+			realpt = (char*)get_real_address (msg);
+		} else {
+			realpt = (char*)hmsg;
+		}
 
 		if (addr) {
 			if (!addr_valid (_T("host_recvfrom1"), addrlen, 4))

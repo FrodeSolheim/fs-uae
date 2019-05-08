@@ -6,11 +6,15 @@
 * Copyright 2007 Toni Wilen
 */
 
-#include "sysconfig.h"
-
-#ifdef WITH_SLIRP
-#include "../slirp/slirp.h"
+#ifdef FSUAE // NL
+else
+#include <winsock2.h>
+#include <Ws2tcpip.h>
+#include <Iphlpapi.h>
 #endif
+
+#include "sysconfig.h"
+#include "sysdeps.h"
 
 #ifdef FSUAE // NL
 
@@ -25,12 +29,9 @@ static int ethernet_paused;
 #define WPCAP
 #include "pcap.h"
 
-#include <windows.h>
-
 #include "packet32.h"
 #include "ntddndis.h"
 
-#include "sysdeps.h"
 #include "options.h"
 #include "traps.h"
 #include "sana2.h"

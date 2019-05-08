@@ -677,6 +677,10 @@ OPT_FEATURE([CPUEMU_32], [cpuemu_32], [cpuemu-32],
             [Previous 68030 MMU])
 OPT_FEATURE([CPUEMU_33], [cpuemu_33], [cpuemu-33],
             [68060 MMU])
+OPT_FEATURE([CPUEMU_34], [cpuemu_34], [cpuemu-34],
+            [MMU + cache])
+OPT_FEATURE([CPUEMU_35], [cpuemu_35], [cpuemu-35],
+            [MMU + CE + cache])
 OPT_FEATURE([CPUEMU_40], [cpuemu_40], [cpuemu-40],
             [generic 680x0 with JIT direct memory access])
 OPT_FEATURE([CPUEMU_50], [cpuemu_50], [cpuemu-50],

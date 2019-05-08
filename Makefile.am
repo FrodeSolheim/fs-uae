@@ -472,6 +472,7 @@ libuae_a_SOURCES = \
 	src/include/xwin.h \
 	src/include/zarchive.h \
 	src/include/zfile.h \
+	src/ini.cpp \
 	src/inputdevice.cpp \
 	src/isofs.cpp \
 	src/jit/codegen_udis86.h \
@@ -658,6 +659,8 @@ nodist_libcpuemu_a_SOURCES = \
         gen/cpuemu_31.cpp \
         gen/cpuemu_32.cpp \
         gen/cpuemu_33.cpp \
+        gen/cpuemu_34.cpp \
+        gen/cpuemu_35.cpp \
         gen/cpuemu_40.cpp \
         gen/cpuemu_50.cpp
 BUILT_SOURCES += $(nodist_libcpuemu_a_SOURCES)
@@ -1315,6 +1318,10 @@ gen/cpuemu_31.cpp: gen/cpuemu_0.cpp
 gen/cpuemu_32.cpp: gen/cpuemu_0.cpp
 
 gen/cpuemu_33.cpp: gen/cpuemu_0.cpp
+
+gen/cpuemu_34.cpp: gen/cpuemu_0.cpp
+
+gen/cpuemu_35.cpp: gen/cpuemu_0.cpp
 
 gen/cpuemu_40.cpp: gen/cpuemu_0.cpp
 

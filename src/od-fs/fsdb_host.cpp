@@ -107,7 +107,8 @@ static char *fsdb_file_path(const char* nname)
     return g_fsdb_file_path_buffer;
 }
 
-int fsdb_name_invalid(const TCHAR *n)
+// FIXME: Not handling aino, see WinUAE
+int fsdb_name_invalid(a_inode *aino, const TCHAR *n)
 {
     if (g_fsdb_debug) {
         write_log("fsdb_name_invalid n=%s\n", n);
@@ -115,7 +116,8 @@ int fsdb_name_invalid(const TCHAR *n)
     return 0;
 }
 
-int fsdb_name_invalid_dir(const TCHAR *n)
+// FIXME: Not handling aino, see WinUAE
+int fsdb_name_invalid_dir(a_inode *aino, const TCHAR *n)
 {
     if (g_fsdb_debug) {
         write_log("fsdb_name_invalid_dir n=%s\n", n);

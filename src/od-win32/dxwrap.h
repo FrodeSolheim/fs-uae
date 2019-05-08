@@ -88,6 +88,7 @@ struct MultiDisplay {
 #ifdef FSUAE
 #else
 	RECT rect;
+	RECT workrect;
 #endif
 };
 extern struct MultiDisplay Displays[MAX_DISPLAYS + 1];

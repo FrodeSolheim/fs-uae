@@ -1,3 +1,6 @@
+#ifdef FSUAE
+#define _tcstoul strtoul
+#endif
 /*
 * UAE - The Un*x Amiga Emulator
 *

@@ -873,10 +873,7 @@ static bool rtg_render (void)
 	} else {
 		bool full = full_refresh > 0;
 		if (uaegfx_active) {
-			if (currprefs.rtg_multithread) {
-				write_comm_pipe_int(render_pipe, rtg_index, 0);
-				flushed = true;
-			} else {
+			if (!currprefs.rtg_multithread) {
 				flushed = picasso_flushpixels(rtg_index, gfxmem_banks[rtg_index]->start + natmem_offset, picasso96_state.XYOffset - gfxmem_banks[rtg_index]->start);
 			}
 		} else {
@@ -897,8 +894,12 @@ static bool rtg_render (void)
 			/* FIXME: maybe this hack can be removed now? */
 			flushed = true;
 #endif
-			flushed |= gfxboard_vsync_handler(full);
 		}
+		bool flushed2 = gfxboard_vsync_handler(full);
+		if (currprefs.rtg_multithread && uaegfx_active) {
+			write_comm_pipe_int(render_pipe, rtg_index | (flushed2 ? 0x80000000 : 0), 0);
+		}
+		flushed |= flushed2;
 	}
 	return flushed;
 }
@@ -4966,11 +4967,15 @@ static void *render_thread(void *v)
 	render_thread_state = 1;
 	for (;;) {
 		int idx = read_comm_pipe_int_blocking(render_pipe);
+		bool flush = (idx & 0x80000000) != 0;
 		if (idx == -1)
 			break;
 		if (picasso_on && picasso_requested_on) {
 			lockrtg();
-			picasso_flushpixels(idx, gfxmem_banks[idx]->start + natmem_offset, picasso96_state.XYOffset - gfxmem_banks[idx]->start);
+			if (!picasso_flushpixels(idx, gfxmem_banks[idx]->start + natmem_offset, picasso96_state.XYOffset - gfxmem_banks[idx]->start)) {
+				if (flush)
+					gfx_unlock_picasso(true);
+			}
 			unlockrtg();
 		}
 	}

@@ -372,6 +372,7 @@ libuae_a_SOURCES = \
 	src/include/fdi2raw.h \
 	src/include/filesys.h \
 	src/include/flashrom.h \
+	src/include/fpp.h \
 	src/include/fpp-ieee-be.h \
 	src/include/fpp-unknown.h \
 	src/include/fsdb.h \
@@ -386,6 +387,7 @@ libuae_a_SOURCES = \
 	src/include/ide.h \
 	src/include/idecontrollers.h \
 	src/include/identify.h \
+	src/include/ini.h \
 	src/include/inputdevice.h \
 	src/include/inputrecord.h \
 	src/include/isofs.h \
@@ -410,6 +412,7 @@ libuae_a_SOURCES = \
 	src/include/picasso96.h \
 	src/include/readcpu.h \
 	src/include/rommgr.h \
+	src/include/rtc.h \
 	src/include/rtgmodes.h \
 	src/include/sampler.h \
 	src/include/sana2.h \
@@ -614,6 +617,13 @@ libuae_a_SOURCES = \
 	src/scsitape.cpp \
 	src/segtracker.cpp \
 	src/slirp_uae.cpp \
+	src/softfloat/softfloat.cpp \
+	src/softfloat/softfloat_decimal.cpp \
+	src/softfloat/softfloat_fpsp.cpp \
+	src/softfloat/softfloat_fpsp_tables.h \
+	src/softfloat/softfloat.h \
+	src/softfloat/softfloat-macros.h \
+	src/softfloat/softfloat-specialize.h \
 	src/softfloat/softfloat.cpp \
 	src/softfloat/softfloat_decimal.cpp \
 	src/softfloat/softfloat_fpsp.cpp \
@@ -1247,6 +1257,7 @@ EXTRA_DIST = $(TESTS) $(EXTRA_TESTS) \
 	licenses/lua.txt \
 	licenses/zlib.txt \
 	po \
+	src/aks.def \
 	src/filesys_bootrom.cpp \
 	src/fs-uae/fs-uae.rc.in \
 	src/inputevents.def \

@@ -4101,7 +4101,7 @@ bool comspec_init (struct autoconfig_info *aci)
 	wd->autoconfig = true;
 	wd->board_mask = 65535;
 	wd->wc.resetnodelay = true;
-	memcpy(&wd->bank, &comspec_bank, sizeof addrbank);
+	memcpy(&wd->bank, &comspec_bank, sizeof(addrbank));
 	memcpy(wd->dmacmemory, aci->autoconfig_raw, sizeof wd->dmacmemory);
 
 	alloc_expansion_bank(&wd->bank, aci);

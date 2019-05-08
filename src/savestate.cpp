@@ -1195,6 +1195,7 @@ void savestate_quick (int slot, int save)
 #else
 		savestate_docompress = 1;
 #endif
+		savestate_nodialogs = 1;
 		save_state (savestate_fname, _T(""));
 	} else {
 		if (!zfile_exists (savestate_fname)) {

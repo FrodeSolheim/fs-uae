@@ -2926,7 +2926,7 @@ bool gfxboard_init_memory_p4_z2 (struct autoconfig_info *aci)
 	if (!aci->doinit)
 		return true;
 
-	memcpy(&gb->gfxboard_bank_memory, &tmpl_gfxboard_bank_memory, sizeof addrbank);
+	memcpy(&gb->gfxboard_bank_memory, &tmpl_gfxboard_bank_memory, sizeof(addrbank));
 	gb->gfxboard_bank_memory.bget = gfxboard_bget_mem_autoconfig;
 	gb->gfxboard_bank_memory.bput = gfxboard_bput_mem_autoconfig;
 	return true;

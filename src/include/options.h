@@ -205,6 +205,7 @@ struct uaedev_config_info {
 	int sectors;
 	int reserved;
 	int blocksize;
+	bool chs;
 	uae_u64 max_lba;
 	int controller_type;
 	int controller_type_unit;

@@ -396,6 +396,9 @@ static void checksend(void)
 		ld_serial_read(serdatshift);
 	}
 #endif
+	if (currprefs.cs_cd32cubo || cubo_enabled) {
+		touch_serial_read(serdatshift);
+	}
 #ifdef SERIAL_MAP
 	if (sermap_data && sermap_enabled)
 		shmem_serial_send(serdatshift);
@@ -536,6 +539,15 @@ void serial_hsynchandler (void)
 		}
 	}
 #endif
+	if ((currprefs.cs_cd32cubo || cubo_enabled) && !data_in_serdatr) {
+		int ch = touch_serial_write();
+		if (ch >= 0) {
+			serdatr = ch | 0x100;
+			data_in_serdatr = 1;
+			serdatr_last_got = 0;
+			serial_check_irq();
+		}
+	}
 #ifdef FSUAE
 	/* no read_log implementation */
 #else

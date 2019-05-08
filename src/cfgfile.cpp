@@ -2107,6 +2107,7 @@ void cfgfile_save_options (struct zfile *f, struct uae_prefs *p, int type)
 	cfgfile_dwrite_bool(f, _T("cd32cd"), p->cs_cd32cd);
 	cfgfile_dwrite_bool(f, _T("cd32c2p"), p->cs_cd32c2p);
 	cfgfile_dwrite_bool(f, _T("cd32nvram"), p->cs_cd32nvram);
+	cfgfile_dwrite_bool(f, _T("cd32cubo"), p->cs_cd32cubo);
 	cfgfile_dwrite(f, _T("cd32nvram_size"), _T("%d"), p->cs_cd32nvram_size / 1024);
 	cfgfile_dwrite_bool(f, _T("cdtvcd"), p->cs_cdtvcd);
 	cfgfile_dwrite_bool(f, _T("cdtv-cr"), p->cs_cdtvcr);
@@ -5014,6 +5015,7 @@ static int cfgfile_parse_hardware (struct uae_prefs *p, const TCHAR *option, TCH
 		|| cfgfile_yesno(option, value, _T("cd32cd"), &p->cs_cd32cd)
 		|| cfgfile_yesno(option, value, _T("cd32c2p"), &p->cs_cd32c2p)
 		|| cfgfile_yesno(option, value, _T("cd32nvram"), &p->cs_cd32nvram)
+		|| cfgfile_yesno(option, value, _T("cd32cubo"), &p->cs_cd32cubo)
 		|| cfgfile_yesno(option, value, _T("cdtvcd"), &p->cs_cdtvcd)
 		|| cfgfile_yesno(option, value, _T("cdtv-cr"), &p->cs_cdtvcr)
 		|| cfgfile_yesno(option, value, _T("cdtvram"), &p->cs_cdtvram)
@@ -7174,7 +7176,7 @@ void default_prefs (struct uae_prefs *p, bool reset, int type)
 	p->cs_agnusrev = -1;
 	p->cs_deniserev = -1;
 	p->cs_mbdmac = 0;
-	p->cs_cd32c2p = p->cs_cd32cd = p->cs_cd32nvram = p->cs_cd32fmv = false;
+	p->cs_cd32c2p = p->cs_cd32cd = p->cs_cd32nvram = p->cs_cd32fmv = p->cs_cd32cubo = false;
 	p->cs_cd32nvram_size = 1024;
 	p->cs_cdtvcd = p->cs_cdtvram = false;
 	p->cs_cdtvcard = 0;
@@ -7454,7 +7456,7 @@ static void buildin_default_prefs (struct uae_prefs *p)
 	p->cs_agnusrev = -1;
 	p->cs_deniserev = -1;
 	p->cs_mbdmac = 0;
-	p->cs_cd32c2p = p->cs_cd32cd = p->cs_cd32nvram = p->cs_cd32fmv = false;
+	p->cs_cd32c2p = p->cs_cd32cd = p->cs_cd32nvram = p->cs_cd32fmv = p->cs_cd32cubo = false;
 	p->cs_cdtvcd = p->cs_cdtvram = p->cs_cdtvcard = false;
 	p->cs_ide = 0;
 	p->cs_pcmcia = 0;
@@ -7815,13 +7817,15 @@ static int bip_cd32 (struct uae_prefs *p, int config, int compa, int romcheck)
 		if (!configure_rom (p, roms, romcheck))
 			return 0;
 	}
-	if (config > 0) {
+	if (config == 1) {
 		p->cs_cd32fmv = true;
 		roms[0] = 74;
 		roms[1] = 23;
 		roms[2] = -1;
 		if (!configure_rom (p, roms, romcheck))
 			return 0;
+	} else if (config > 1) {
+		p->cs_cd32cubo = true;
 	}
 	return 1;
 }

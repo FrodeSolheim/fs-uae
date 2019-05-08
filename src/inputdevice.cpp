@@ -4551,9 +4551,8 @@ static int handle_input_event2 (int nr, int state, int max, int flags, int extra
 {
 #ifdef FSUAE
     if (inputdevice_logging) {
-        write_log("        nr %d state %d max %d autofire %d "
-                "canstopplayback %d playbackevent %d\n",
-                nr, state, max, autofire, canstopplayback, playbackevent);
+        write_log("        nr %d state %d max %d flags %d\n",
+                nr, state, max, flags);
     }
 #endif
 	const struct inputevent *ie;
@@ -9528,9 +9527,17 @@ int amiga_handle_input_event (int nr, int state, int max,
         }
         break;
     }
-
-    return handle_input_event (nr, state, max, autofire, canstopplayback,
-            playbackevent);
+	int flags = 0;
+	if (autofire) {
+		flags = flags | HANDLE_IE_FLAG_AUTOFIRE;
+	}
+	if (canstopplayback) {
+		flags = flags | HANDLE_IE_FLAG_CANSTOPPLAYBACK;
+	}
+	if (playbackevent) {
+		flags = flags | HANDLE_IE_FLAG_PLAYBACKEVENT;
+	}
+    return handle_input_event (nr, state, max, flags);
 }
 
 #endif // FS-UAE

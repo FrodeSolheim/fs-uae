@@ -1356,7 +1356,7 @@ static void wd_cmd_reset (struct wd_chip_state *wd, bool irq)
 	wd->wd_selected = false;
 	wd->scsi = NULL;
 	for (int j = 0; j < WD_STATUS_QUEUE; j++) {
-		memset(&wd->status[j], 0, sizeof status_data);
+		memset(&wd->status[j], 0, sizeof(status_data));
 	}
 	wd->queue_index = 0;
 	wd->auxstatus = 0;
@@ -1405,7 +1405,7 @@ static void wd_check_interrupt(struct wd_state *wds, bool checkonly)
 		wd->wd_busy = 0;
 		if (wd->queue_index == 2) {
 			wd->status[0].irq = 1;
-			memcpy(&wd->status[0], &wd->status[1], sizeof status_data);
+			memcpy(&wd->status[0], &wd->status[1], sizeof(status_data));
 			wd->queue_index = 1;
 		} else {
 			wd->queue_index = 0;

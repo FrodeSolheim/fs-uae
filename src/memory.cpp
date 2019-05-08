@@ -41,6 +41,7 @@
 #include "uae/ppc.h"
 #include "devices.h"
 #include "inputdevice.h"
+#include "casablanca.h"
 
 #ifdef FSUAE // NL
 #undef _WIN32
@@ -2547,6 +2548,11 @@ void map_overlay (int chip)
 {
 	int size;
 	addrbank *cb;
+
+	if (currprefs.cs_compatible == CP_CASABLANCA) {
+		casablanca_map_overlay();
+		return;
+	}
 
 	size = chipmem_bank.allocated_size >= 0x180000 ? (chipmem_bank.allocated_size >> 16) : 32;
 	if (bogomem_aliasing)

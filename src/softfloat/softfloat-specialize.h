@@ -94,7 +94,7 @@ static inline flag floatx80_is_nan( floatx80 a )
 /*----------------------------------------------------------------------------
 | The pattern for a default generated extended double-precision NaN.
 *----------------------------------------------------------------------------*/
-static floatx80 floatx80_default_nan(float_status *status)
+static inline floatx80 floatx80_default_nan(float_status *status)
 {
     floatx80 r;
     r.high = 0x7FFF;

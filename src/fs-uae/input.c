@@ -96,6 +96,13 @@ static fs_emu_action g_actions[] = {
     { INPUTEVENT_LIGHTPEN_RIGHT, "action_lightpen_right", 0 },
     { INPUTEVENT_LIGHTPEN_UP, "action_lightpen_up", 0 },
     { INPUTEVENT_LIGHTPEN_DOWN, "action_lightpen_down", 0 },
+    { INPUTEVENT_LIGHTPEN_HORIZ2, "action_lightpen_horiz2", 0 },
+    { INPUTEVENT_LIGHTPEN_VERT2, "action_lightpen_vert2", 0 },
+    { INPUTEVENT_LIGHTPEN_LEFT2, "action_lightpen_left2", 0 },
+    { INPUTEVENT_LIGHTPEN_RIGHT2, "action_lightpen_right2", 0 },
+    { INPUTEVENT_LIGHTPEN_UP2, "action_lightpen_up2", 0 },
+    { INPUTEVENT_LIGHTPEN_DOWN2, "action_lightpen_down2", 0 },
+    { INPUTEVENT_LIGHTPEN_TRIGGER2, "action_lightpen_trigger2", 0 },
 
     { INPUTEVENT_PAR_JOY1_HORIZ, "action_par_joy_0_horiz", 0 },
     { INPUTEVENT_PAR_JOY1_VERT, "action_par_joy_0_vert", 0 },

@@ -43,6 +43,7 @@
 #include "uae/ppc.h"
 #include "rommgr.h"
 #include "scsi.h"
+#include "rtc.h"
 
 #ifdef FSUAE // NL
 #include "uae/fs.h"

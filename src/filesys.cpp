@@ -5337,7 +5337,6 @@ static void	action_read(TrapContext *ctx, Unit *unit, dpacket *packet)
 				k->file_pos += actual;
 			}
 			xfree (buf);
-			flush_dcache (addr, size);
 			size = 0;
 		}
 	}
@@ -5389,7 +5388,6 @@ static void	action_read(TrapContext *ctx, Unit *unit, dpacket *packet)
 			PUT_PCK_RES1 (packet, actual);
 			k->file_pos += actual;
 		}
-		flush_dcache (addr, size);
 	}
 
 	TRACE((_T("=%d\n"), actual));

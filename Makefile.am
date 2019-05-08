@@ -613,6 +613,7 @@ libuae_a_SOURCES = \
 	src/segtracker.cpp \
 	src/slirp_uae.cpp \
 	src/softfloat/softfloat.cpp \
+	src/softfloat/softfloat_decimal.cpp \
 	src/softfloat/softfloat_extension.cpp \
 	src/specialmonitors.cpp \
 	src/statusline.cpp \

@@ -248,3 +248,30 @@ bool gui_ask_disk(int drv, TCHAR *name)
     STUB("");
     return false;
 }
+
+void target_inputdevice_unacquire(void)
+{
+    STUB("");
+}
+void target_inputdevice_acquire(void)
+{
+    STUB("");
+}
+
+void desktop_coords (int *dw, int *dh, int *ax, int *ay, int *aw, int *ah)
+{
+#if 0
+        struct MultiDisplay *md = getdisplay (&currprefs);
+
+        *dw = md->rect.right - md->rect.left;
+        *dh = md->rect.bottom - md->rect.top;
+        *ax = amigawin_rect.left;
+        *ay = amigawin_rect.top;
+        *aw = amigawin_rect.right - *ax;
+        *ah = amigawin_rect.bottom - *ay;
+#endif
+}
+
+int is_touch_lightpen(void) {
+    return 0;
+}

@@ -7,7 +7,7 @@
 */
 
 #ifdef FSUAE // NL
-else
+#else
 #include <winsock2.h>
 #include <Ws2tcpip.h>
 #include <Iphlpapi.h>

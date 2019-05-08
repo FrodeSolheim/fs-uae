@@ -47,6 +47,7 @@
 #ifdef FSUAE
 #else
 #include "win32.h"
+#include "dxwrap.h"
 #endif
 
 #ifdef FSUAE // NL
@@ -60,6 +61,7 @@
 
 int rawsockets = 0;
 static int hWndSelector = 0; /* Set this to zero to get hSockWnd */
+static HWND hAmigaSockWnd;
 
 struct threadargs {
 	struct socketbase *sb;
@@ -114,9 +116,6 @@ static struct bsdsockdata *bsd;
 static int threadindextable[MAX_GET_THREADS];
 
 static unsigned int __stdcall sock_thread(void *);
-
-
-extern HWND hAmigaWnd;
 
 #define THREAD(func,arg) (HANDLE)_beginthreadex(NULL, 0, func, arg, 0, &bsd->threadid)
 #define THREADEND(result) _endthreadex(result)
@@ -435,7 +434,7 @@ static void sockmsg(unsigned int msg, WPARAM wParam, LPARAM lParam)
 		if ((SOCKET)wParam != bsd->asyncsock[index])
 		{
 			// cancel socket event
-			WSAAsyncSelect((SOCKET)wParam, hWndSelector ? hAmigaWnd : bsd->hSockWnd, 0, 0);
+			WSAAsyncSelect((SOCKET)wParam, hWndSelector ? hAmigaSockWnd : bsd->hSockWnd, 0, 0);
 			BSDTRACE((_T("unknown sockmsg %d\n"), index));
 			return;
 		}
@@ -575,7 +574,7 @@ static void setWSAAsyncSelect(SB, uae_u32 sd, SOCKET s, long lEvent )
 		bsd->asyncsb[i] = sb;
 		bsd->asyncsd[i] = sd;
 		bsd->asyncsock[i] = s;
-		WSAAsyncSelect(s, hWndSelector ? hAmigaWnd : bsd->hSockWnd, sb->mtable[sd - 1], wsbevents);
+		WSAAsyncSelect(s, hWndSelector ? hAmigaSockWnd : bsd->hSockWnd, sb->mtable[sd - 1], wsbevents);
 
 		unlocksigqueue();
 	}
@@ -768,7 +767,7 @@ void host_accept(TrapContext *ctx, SB, uae_u32 sd, uae_u32 name, uae_u32 namelen
 			if ((sb->ftable[sd - 1] & SF_BLOCKING) && sb->sb_errno == WSAEWOULDBLOCK - WSABASEERR) {
 				if (sb->mtable[sd - 1] || (wMsg = allocasyncmsg(ctx, sb, sd, s)) != 0) {
 					if (sb->mtable[sd - 1] == 0) {
-						WSAAsyncSelect(s,hWndSelector ? hAmigaWnd : bsd->hSockWnd, wMsg, FD_ACCEPT);
+						WSAAsyncSelect(s,hWndSelector ? hAmigaSockWnd : bsd->hSockWnd, wMsg, FD_ACCEPT);
 					} else {
 						setWSAAsyncSelect(sb, sd, s, FD_ACCEPT);
 					}
@@ -1021,7 +1020,7 @@ void host_connect(TrapContext *ctx, SB, uae_u32 sd, uae_u32 name, uae_u32 namele
 		if (namelen <= MAXADDRLEN) {
 			if (sb->mtable[sd-1] || (wMsg = allocasyncmsg(ctx, sb,sd,s)) != 0) {
 				if (sb->mtable[sd-1] == 0) {
-					WSAAsyncSelect(s, hWndSelector ? hAmigaWnd : bsd->hSockWnd, wMsg, FD_CONNECT);
+					WSAAsyncSelect(s, hWndSelector ? hAmigaSockWnd : bsd->hSockWnd, wMsg, FD_CONNECT);
 				} else {
 					setWSAAsyncSelect(sb, sd, s, FD_CONNECT);
 				}
@@ -1247,7 +1246,7 @@ void host_sendto (TrapContext *ctx, SB, uae_u32 sd, uae_u32 msg, uae_u8 *hmsg, u
 
 			if (sb->mtable[sd - 1] || (wMsg = allocasyncmsg(ctx, sb, sd, s)) != 0) {
 				if (sb->mtable[sd - 1] == 0) {
-					WSAAsyncSelect(s,hWndSelector ? hAmigaWnd : bsd->hSockWnd,wMsg,FD_WRITE);
+					WSAAsyncSelect(s,hWndSelector ? hAmigaSockWnd : bsd->hSockWnd,wMsg,FD_WRITE);
 				} else {
 					setWSAAsyncSelect(sb, sd, s, FD_WRITE);
 				}
@@ -1365,7 +1364,7 @@ void host_recvfrom(TrapContext *ctx, SB, uae_u32 sd, uae_u32 msg, uae_u8 *hmsg, 
 				if (sb->sb_errno == WSAEWOULDBLOCK - WSABASEERR && (sb->ftable[sd-1] & SF_BLOCKING)) {
 					if (sb->mtable[sd-1] || (wMsg = allocasyncmsg(ctx, sb,sd,s)) != 0) {
 						if (sb->mtable[sd-1] == 0) {
-							WSAAsyncSelect(s, hWndSelector ? hAmigaWnd : bsd->hSockWnd, wMsg, FD_READ|FD_CLOSE);
+							WSAAsyncSelect(s, hWndSelector ? hAmigaSockWnd : bsd->hSockWnd, wMsg, FD_READ|FD_CLOSE);
 						} else {
 							setWSAAsyncSelect(sb, sd, s, FD_READ|FD_CLOSE);
 						}
@@ -1486,7 +1485,7 @@ void host_setsockopt(SB, uae_u32 sd, uae_u32 level, uae_u32 optname, uae_u32 opt
 				wsbevents |= FD_CLOSE;
 
 			if (sb->mtable[sd-1] || (sb->mtable[sd-1] = allocasyncmsg(ctx, sb,sd,s))) {
-				WSAAsyncSelect(s,hWndSelector ? hAmigaWnd : bsd->hSockWnd,sb->mtable[sd-1],wsbevents);
+				WSAAsyncSelect(s,hWndSelector ? hAmigaSockWnd : bsd->hSockWnd,sb->mtable[sd-1],wsbevents);
 				sb->resultval = 0;
 			} else
 				sb->resultval = -1;
@@ -1680,7 +1679,7 @@ uae_u32 host_IoctlSocket(TrapContext *ctx, SB, uae_u32 sd, uae_u32 request, uae_
 
 				BSDTRACE((_T("[FIOASYNC] -> enabled\n")));
 				if (sb->mtable[sd-1] || (sb->mtable[sd-1] = allocasyncmsg(ctx, sb, sd, s))) {
-					WSAAsyncSelect(s,hWndSelector ? hAmigaWnd : bsd-> hSockWnd, sb->mtable[sd-1],
+					WSAAsyncSelect(s,hWndSelector ? hAmigaSockWnd : bsd-> hSockWnd, sb->mtable[sd-1],
 						FD_ACCEPT | FD_CONNECT | FD_OOB | FD_READ | FD_WRITE | FD_CLOSE);
 					success = 0;
 					break;
@@ -1737,7 +1736,7 @@ int host_CloseSocket(TrapContext *ctx, SB, int sd)
 				break;
 
 			if ((wMsg = allocasyncmsg(ctx, sb, sd, s)) != 0) {
-				WSAAsyncSelect(s,hWndSelector ? hAmigaWnd : bsd->hSockWnd,wMsg,FD_CLOSE);
+				WSAAsyncSelect(s,hWndSelector ? hAmigaSockWnd : bsd->hSockWnd,wMsg,FD_CLOSE);
 
 				WAITSIGNAL;
 
@@ -2207,12 +2206,14 @@ uae_u32 host_inet_addr(TrapContext *ctx, uae_u32 cp)
 int isfullscreen (void);
 static BOOL CheckOnline(SB)
 {
+	struct AmigaMonitor *mon = &AMonitors[0];
 	DWORD dwFlags;
 	BOOL bReturn = TRUE;
 
 #ifdef FSUAE
 	// We don't mess with the dialer in FS-UAE
 #else
+	hAmigaSockWnd = mon->hAmigaWnd;
 	if (InternetGetConnectedState(&dwFlags,0) == FALSE) { // Internet is offline
 		if (InternetAttemptConnect(0) != ERROR_SUCCESS) { // Show Dialer window
 			sb->sb_errno = 10001;
@@ -2221,8 +2222,8 @@ static BOOL CheckOnline(SB)
 			// No success or aborted
 		}
 		if (isfullscreen() > 0) {
-			ShowWindow (hAmigaWnd, SW_RESTORE);
-			SetActiveWindow(hAmigaWnd);
+			ShowWindow(mon->hAmigaWnd, SW_RESTORE);
+			SetActiveWindow(mon->hAmigaWnd);
 		}
 	}
 #endif

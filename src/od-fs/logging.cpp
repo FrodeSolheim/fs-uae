@@ -11,6 +11,7 @@
 
 int log_scsi = 0;
 int log_net = 0;
+int consoleopen = 0;
 
 void write_log (const TCHAR *format, ...)
 {

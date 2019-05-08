@@ -275,7 +275,7 @@ static ALWAYS_INLINE uae_u32 mmu_get_ilong(uaecptr addr, int size)
 		}
 #endif
 	}
-	return phys_get_long(addr);
+	return x_phys_get_ilong(addr);
 }
 
 static ALWAYS_INLINE uae_u16 mmu_get_iword(uaecptr addr, int size)
@@ -297,7 +297,7 @@ static ALWAYS_INLINE uae_u16 mmu_get_iword(uaecptr addr, int size)
 		}
 #endif
 	}
-	return phys_get_word(addr);
+	return x_phys_get_iword(addr);
 }
 
 

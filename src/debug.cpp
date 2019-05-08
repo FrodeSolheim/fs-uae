@@ -47,6 +47,7 @@
 #include "ppc/ppcd.h"
 #include "uae/ppc.h"
 #endif
+#include "drawing.h"
 
 #ifdef FSUAE // NL
 #include "uae/fs.h"
@@ -1377,9 +1378,7 @@ static void debug_draw_cycles (uae_u8 *buf, int bpp, int line, int width, int he
 	struct dma_rec *dr;
 	int t;
 
-	if (debug_dma >= 5)
-		yplus = 3;
-	else if (debug_dma >= 4)
+	if (debug_dma >= 4)
 		yplus = 2;
 	else
 		yplus = 1;
@@ -1391,7 +1390,9 @@ static void debug_draw_cycles (uae_u8 *buf, int bpp, int line, int width, int he
 		xplus = 1;
 
 	t = dma_record_toggle ^ 1;
-	y = line / yplus - 8;
+	y = line / yplus;
+	if (yplus < 2)
+		y -= 8;
 
 	if (y < 0)
 		return;
@@ -1407,11 +1408,8 @@ static void debug_draw_cycles (uae_u8 *buf, int bpp, int line, int width, int he
 		uae_u32 c = debug_colors[0].l[0];
 		xx = x * xplus + dx;
 		dr = &dma_record[t][y * NR_DMA_REC_HPOS + x];
-		if (dr->reg != 0xffff) {
-			if (debug_colors[dr->type].enabled)
-				c = debug_colors[dr->type].l[dr->extra];
-			else
-				c = 0;
+		if (dr->reg != 0xffff && debug_colors[dr->type].enabled) {
+			c = debug_colors[dr->type].l[dr->extra];
 		}
 		if (dr->intlev > intlev)
 			intlev = dr->intlev;
@@ -5442,6 +5440,7 @@ static bool debug_line (TCHAR *input)
 					if (debug_dma) {
 						console_out_f (_T("DMA debugger disabled\n"), debug_dma);
 						record_dma_reset();
+						reset_drawing();
 						debug_dma = 0;
 					}
 				} else if (*inptr == 'm') {
@@ -5490,8 +5489,10 @@ static bool debug_line (TCHAR *input)
 						if (debug_dma && v1 >= 0 && v2 >= 0) {
 							decode_dma_record (v2, v1, cmd == 'v', false);
 						} else {
-							if (debug_dma)
+							if (debug_dma) {
 								record_dma_reset();
+								reset_drawing();
+							}
 							debug_dma = v1 < 0 ? -v1 : 1;
 							console_out_f (_T("DMA debugger enabled, mode=%d.\n"), debug_dma);
 						}

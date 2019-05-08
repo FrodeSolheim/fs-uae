@@ -8186,6 +8186,14 @@ void inputdevice_copy_single_config (struct uae_prefs *p, int src, int dst, int 
 	}
 }
 
+static void clearpressmask(void)
+{
+	for (int i = 0; i < MAX_INPUT_DEVICES; i++) {
+		joysticks2[i].buttonmask = 0;
+		mice2[i].buttonmask = 0;
+	}
+}
+
 void inputdevice_acquire (int allmode)
 {
 	int i;
@@ -8213,12 +8221,15 @@ void inputdevice_acquire (int allmode)
 			idev[IDTYPE_KEYBOARD].acquire (i, allmode < 0);
 	}
 
+	clearpressmask();
+
 	if (input_acquired)
 		return;
 
 	idev[IDTYPE_JOYSTICK].acquire (-1, 0);
 	idev[IDTYPE_MOUSE].acquire (-1, 0);
 	idev[IDTYPE_KEYBOARD].acquire (-1, 0);
+
 	//    if (!input_acquired)
 	//	write_log (_T("input devices acquired (%s)\n"), allmode ? "all" : "selected only");
 	input_acquired = 1;
@@ -8257,6 +8268,8 @@ void inputdevice_unacquire(bool emulationactive, int inputmask)
 		idev[IDTYPE_MOUSE].unacquire(-1);
 	if (!(inputmask & 1))
 		idev[IDTYPE_KEYBOARD].unacquire(-1);
+
+	clearpressmask();
 }
 
 void inputdevice_unacquire(void)

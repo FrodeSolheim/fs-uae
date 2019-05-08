@@ -181,6 +181,7 @@ static int serdatr_last_got;
 int serdev;
 int seriallog = 0, log_sercon = 0;
 int serial_enet;
+extern int consoleopen;
 
 void serial_open (void);
 void serial_close (void);
@@ -478,7 +479,7 @@ static void serdatcopy(void)
 	data_in_sershift = 1;
 	data_in_serdat = 0;
 
-	if (seriallog) {
+	if (seriallog > 0 || (consoleopen && seriallog < 0)) {
 		gotlogwrite = true;
 		write_logx(_T("%c"), docharlog(serdatshift_masked));
 	}
@@ -538,7 +539,7 @@ void serial_hsynchandler (void)
 #ifdef FSUAE
 	/* no read_log implementation */
 #else
-	if (seriallog && !data_in_serdatr && gotlogwrite) {
+	if (seriallog > 0 && !data_in_serdatr && gotlogwrite) {
 		int ch = read_log();
 		if (ch > 0) {
 			serdatr = ch | 0x100;

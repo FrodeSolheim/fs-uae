@@ -1298,7 +1298,7 @@ static void io_wput(uaecptr addr, uae_u16 v)
 
 static uae_u32 REGPARAM2 fmv_wget (uaecptr addr)
 {
-	uae_u32 v;
+	uae_u32 v = 0;
 	addr -= fmv_start & fmv_bank.mask;
 	addr &= fmv_bank.mask;
 	int mask = addr & BANK_MASK;
@@ -1329,7 +1329,7 @@ static uae_u32 REGPARAM2 fmv_lget (uaecptr addr)
 
 static uae_u32 REGPARAM2 fmv_bget (uaecptr addr)
 {
-	uae_u32 v;
+	uae_u32 v = 0;
 	addr -= fmv_start & fmv_bank.mask;
 	addr &= fmv_bank.mask;
 	int mask = addr & BANK_MASK;

@@ -242,3 +242,9 @@ struct netdriverdata **target_ethernet_enumerate(void)
 	net_enumerated = 1;
 	return ndd;
 }
+
+bool gui_ask_disk(int drv, TCHAR *name)
+{
+    STUB("");
+    return false;
+}

@@ -2711,7 +2711,7 @@ static void inituaegfx(TrapContext *ctx, uaecptr ABI)
 	if (0) {
 		// FIXME: fix hardware sprite via OpenGL?
 #else
-	if (currprefs.gfx_api && D3D_goodenough () > 0 && USE_HARDWARESPRITE && currprefs.rtg_hardwaresprite) {
+	if (currprefs.gfx_api && D3D_goodenough () > 0 && D3D_setcursor(-1, -1, -1, -1, false, false) && USE_HARDWARESPRITE && currprefs.rtg_hardwaresprite) {
 #endif
 		hwsprite = 1;
 		flags |= BIF_HARDWARESPRITE;

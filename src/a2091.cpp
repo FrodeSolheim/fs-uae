@@ -4146,7 +4146,7 @@ bool a2090b_preinit (struct autoconfig_info *aci)
 	struct wd_state *wd = getscsi(aci->rc);
 	if (!wd)
 		return false;
-	memcpy(&wd->bank2, &combitec_bank, sizeof addrbank);
+	memcpy(&wd->bank2, &combitec_bank, sizeof(addrbank));
 	wd->bank2.start = 0xf10000;
 	wd->bank2.reserved_size = 0x10000;
 	wd->bank2.mask = 0xffff;

@@ -4,6 +4,12 @@
 
 #include "ini.h"
 
+#ifdef FSUAE
+#define _tfopen fopen
+#define fgetws fgets
+#define fputws fputs
+#endif
+
 static TCHAR *initrim(TCHAR *s)
 {
 	while (*s != 0 && *s <= 32)

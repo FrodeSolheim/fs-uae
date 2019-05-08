@@ -219,7 +219,7 @@ static const TCHAR *dongles[] =
 {
 	_T("none"),
 	_T("robocop 3"), _T("leaderboard"), _T("b.a.t. ii"), _T("italy'90 soccer"), _T("dames grand maitre"),
-	_T("rugby coach"), _T("cricket captain"), _T("leviathan"),
+	_T("rugby coach"), _T("cricket captain"), _T("leviathan"), _T("musicmaster"),
 	NULL
 };
 static const TCHAR *cdmodes[] = { _T("disabled"), _T(""), _T("image"), _T("ioctl"), _T("spti"), _T("aspi"), 0 };
@@ -2173,6 +2173,7 @@ void cfgfile_save_options (struct zfile *f, struct uae_prefs *p, int type)
 	cfgfile_dwrite_bool(f, _T("z3_autoconfig"), p->cs_z3autoconfig);
 	cfgfile_dwrite_bool(f, _T("1mchipjumper"), p->cs_1mchipjumper);
 	cfgfile_dwrite_bool(f, _T("color_burst"), p->cs_color_burst);
+	cfgfile_dwrite_bool(f, _T("unmapped_zero"), p->cs_unmapped_zero);
 	cfgfile_dwrite (f, _T("chipset_hacks"), _T("0x%x"), p->cs_hacks);
 
 	if (is_board_enabled(p, ROMTYPE_CD32CART, 0)) {
@@ -4132,7 +4133,7 @@ static void get_filesys_controller (const TCHAR *hdc, int *type, int *typenum, i
 		hdcv = HD_CONTROLLER_TYPE_PCMCIA;
 		hdunit = 0;
 		idx = 0;
-	} else if (_tcslen(hdc) >= 5 && !_tcsncmp(hdc, _T("scide"), 6)) {
+	} else if (_tcslen(hdc) >= 5 && !_tcsncmp(hdc, _T("scide"), 5)) {
 		hdcv = HD_CONTROLLER_TYPE_PCMCIA;
 		hdunit = 0;
 		idx = 1;
@@ -5062,6 +5063,7 @@ static int cfgfile_parse_hardware (struct uae_prefs *p, const TCHAR *option, TCH
 		|| cfgfile_yesno(option, value, _T("ics_agnus"), &p->cs_dipagnus)
 		|| cfgfile_yesno(option, value, _T("z3_autoconfig"), &p->cs_z3autoconfig)
 		|| cfgfile_yesno(option, value, _T("color_burst"), &p->cs_color_burst)
+		|| cfgfile_yesno(option, value, _T("unmapped_zero"), &p->cs_unmapped_zero)
 		|| cfgfile_yesno(option, value, _T("1mchipjumper"), &p->cs_1mchipjumper)
 		|| cfgfile_yesno(option, value, _T("agnus_bltbusybug"), &p->cs_agnusbltbusybug)
 		|| cfgfile_yesno(option, value, _T("gfxcard_hardware_vblank"), &p->rtg_hardwareinterrupt)
@@ -7221,6 +7223,7 @@ void default_prefs (struct uae_prefs *p, bool reset, int type)
 	p->cs_slowmemisfast = 0;
 	p->cs_resetwarning = 1;
 	p->cs_ciatodbug = false;
+	p->cs_unmapped_zero = false;
 	p->cs_color_burst = false;
 
 	for (int i = APMODE_NATIVE; i <= APMODE_RTG; i++) {
@@ -7833,6 +7836,7 @@ static int bip_cd32 (struct uae_prefs *p, int config, int compa, int romcheck)
 	p->nr_floppies = 0;
 	p->floppyslots[0].dfxtype = DRV_NONE;
 	p->floppyslots[1].dfxtype = DRV_NONE;
+	p->cs_unmapped_zero = true;
 	set_68020_compa (p, compa, 1);
 	p->cs_compatible = CP_CD32;
 	built_in_chipset_prefs (p);
@@ -8064,6 +8068,7 @@ static int bip_super (struct uae_prefs *p, int config, int compa, int romcheck)
 	p->cart_internal = 0;
 	p->picasso96_nocustom = 1;
 	p->cs_compatible = 1;
+	p->cs_unmapped_zero = true;
 	built_in_chipset_prefs (p);
 	p->cs_ide = -1;
 	p->cs_ciaatod = p->ntscmode ? 2 : 1;
@@ -8211,6 +8216,7 @@ int built_in_chipset_prefs (struct uae_prefs *p)
 	p->cs_z3autoconfig = false;
 	p->cs_bytecustomwritebug = false;
 	p->cs_1mchipjumper = false;
+	p->cs_unmapped_zero = false;
 
 	switch (p->cs_compatible)
 	{
@@ -8222,6 +8228,7 @@ int built_in_chipset_prefs (struct uae_prefs *p)
 			p->cs_ide = -1;
 			p->cs_mbdmac = 0;
 			p->cs_ramseyrev = 0x0f;
+			p->cs_unmapped_zero = true;
 		} else if (p->cpu_compatible) {
 			// very A500-like
 			p->cs_df0idhw = 0;
@@ -8260,6 +8267,7 @@ int built_in_chipset_prefs (struct uae_prefs *p)
 		p->cs_ksmirror_a8 = 1;
 		p->cs_ciaoverlay = 0;
 		p->cs_resetwarning = 0;
+		p->cs_unmapped_zero = true;
 		break;
 	case CP_A500: // A500
 		p->cs_df0idhw = 0;
@@ -8312,6 +8320,7 @@ int built_in_chipset_prefs (struct uae_prefs *p)
 		p->cs_rtc = 1;
 		p->cs_ciaatod = p->ntscmode ? 2 : 1;
 		p->cs_ciatodbug = true;
+		p->cs_unmapped_zero = true;
 		break;
 	case CP_A3000: // A3000
 		p->cs_rtc = 2;
@@ -8321,6 +8330,7 @@ int built_in_chipset_prefs (struct uae_prefs *p)
 		p->cs_ksmirror_e0 = 0;
 		p->cs_ciaatod = p->ntscmode ? 2 : 1;
 		p->cs_z3autoconfig = true;
+		p->cs_unmapped_zero = true;
 		break;
 	case CP_A3000T: // A3000T
 		p->cs_rtc = 2;
@@ -8330,6 +8340,7 @@ int built_in_chipset_prefs (struct uae_prefs *p)
 		p->cs_ksmirror_e0 = 0;
 		p->cs_ciaatod = p->ntscmode ? 2 : 1;
 		p->cs_z3autoconfig = true;
+		p->cs_unmapped_zero = true;
 		break;
 	case CP_A4000: // A4000
 		p->cs_rtc = 2;
@@ -8341,6 +8352,7 @@ int built_in_chipset_prefs (struct uae_prefs *p)
 		p->cs_ksmirror_e0 = 0;
 		p->cs_ciaoverlay = 0;
 		p->cs_z3autoconfig = true;
+		p->cs_unmapped_zero = true;
 		break;
 	case CP_A4000T: // A4000T
 		p->cs_rtc = 2;
@@ -8352,6 +8364,7 @@ int built_in_chipset_prefs (struct uae_prefs *p)
 		p->cs_ksmirror_e0 = 0;
 		p->cs_ciaoverlay = 0;
 		p->cs_z3autoconfig = true;
+		p->cs_unmapped_zero = true;
 		break;
 	}
 	if (p->cpu_model >= 68040)

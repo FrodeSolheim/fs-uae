@@ -140,7 +140,7 @@ void uae_line_update(int line, int update) {
 }
 #endif
 
-bool frame_drawn(void)
+bool frame_drawn (int monid)
 {
     return false;
 }

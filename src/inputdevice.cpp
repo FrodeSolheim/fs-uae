@@ -4122,6 +4122,8 @@ static struct inputcode inputcode_pending[MAX_PENDING_EVENTS];
 
 static bool inputdevice_handle_inputcode_immediate(int code, int state)
 {
+	if (!state)
+		return false;
 	switch(code)
 	{
 		case AKS_ENTERDEBUGGER:

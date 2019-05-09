@@ -503,7 +503,7 @@ void reset_frame_rate_hack (void)
 		return;
 
 	rpt_did_reset = 1;
-	is_syncline = 0;
+	events_reset_syncline();
 	vsyncmintime = read_processor_time () + vsynctimebase;
 	write_log (_T("Resetting frame rate hack\n"));
 }
@@ -7476,7 +7476,7 @@ static bool framewait (void)
 	int vs = isvsync_chipset ();
 	int status = 0;
 
-	is_syncline = 0;
+	events_reset_syncline();
 
 	static struct mavg_data ma_frameskipt;
 	int frameskipt_avg = mavg (&ma_frameskipt, frameskiptime, MAVG_VSYNC_SIZE);
@@ -8461,7 +8461,6 @@ static bool linesync_beam_single(void)
 {
 	frame_time_t maxtime = read_processor_time() + 2 * vsynctimebase;
 
-	is_syncline = 0;
 	if (is_last_line()) {
 		do_render_slice(-1, 0, vpos - 1);
 		while (!currprefs.turbo_emulation && sync_timeout_check(maxtime)) {
@@ -8499,7 +8498,7 @@ static bool linesync_beam_multi_dual(void)
 	bool input_read_done = false;
 	bool was_syncline = is_syncline != 0;
 
-	is_syncline = 0;
+	events_reset_syncline();
 	if (vpos == 0) {
 		int firstline, lastline;
 		linesync_first_last_line(&firstline, &lastline);
@@ -8604,7 +8603,7 @@ static bool linesync_beam_vrr(void)
 	bool input_read_done = false;
 	bool was_syncline = is_syncline != 0;
 
-	is_syncline = 0;
+	events_reset_syncline();
 	if (vpos == 0 && !was_syncline) {
 		int firstline, lastline;
 		linesync_first_last_line(&firstline, &lastline);
@@ -8674,6 +8673,7 @@ static bool linesync_beam_vrr(void)
 					maybe_process_pull_audio();
 					if (currprefs.m68k_speed < 0 && !was_syncline) {
 						is_syncline = -1;
+						is_syncline_end = target_get_display_scanline(-1);
 						return 0;
 					}
 					target_spin(0);
@@ -8691,10 +8691,12 @@ static bool linesync_beam_vrr(void)
 					maybe_process_pull_audio();
 					if (currprefs.m68k_speed < 0 && !was_syncline) {
 						is_syncline = -1;
+						is_syncline_end = target_get_display_scanline(-1);
 						return 0;
 					}
 					target_spin(0);
 				}
+
 				if ((int)rpt - (int)vsyncmintime < vsynctimebase && (int)rpt - (int)vsyncmintime > -vsynctimebase) {
 					vsyncmintime += vsynctimebase;
 				} else {
@@ -8759,7 +8761,7 @@ static bool linesync_beam_multi_single(void)
 	bool input_read_done = false;
 	bool was_syncline = is_syncline != 0;
 
-	is_syncline = 0;
+	events_reset_syncline();
 	if (vpos == 0 && !was_syncline) {
 		int firstline, lastline;
 		linesync_first_last_line(&firstline, &lastline);
@@ -8865,6 +8867,7 @@ static bool linesync_beam_multi_single(void)
 						break;
 					if (currprefs.m68k_speed < 0 && !was_syncline) {
 						is_syncline = -1;
+						is_syncline_end = vp;
 						return 0;
 					}
 					maybe_process_pull_audio();
@@ -8923,7 +8926,7 @@ static bool linesync_beam_multi_single(void)
 void vsync_event_done(void)
 {
 	if (!isvsync_chipset()) {
-		is_syncline = 0;
+		events_reset_syncline();
 		return;
 	}
 	if (currprefs.gfx_display_sections <= 1) {
@@ -9118,7 +9121,7 @@ static void hsync_handler_post (bool onvsync)
 				}
 			} else if (currprefs.m68k_speed_throttle) {
 				vsyncmintime = read_processor_time (); /* end of CPU emulation time */
-				is_syncline = 0;
+				events_reset_syncline();
 				maybe_process_pull_audio();
 			} else {
 				vsyncmintime = vsyncmaxtime; /* emulate if still time left */
@@ -9131,7 +9134,7 @@ static void hsync_handler_post (bool onvsync)
 			/* end of scanline, run cpu emulation as long as we still have time */
 			vsyncmintime += vsynctimeperline;
 			linecounter++;
-			is_syncline = 0;
+			events_reset_syncline();
 			if (vsync_isdone(NULL) <= 0 && !currprefs.turbo_emulation) {
 				if ((int)vsyncmaxtime - (int)vsyncmintime > 0) {
 					if ((int)vsyncwaittime - (int)vsyncmintime > 0) {

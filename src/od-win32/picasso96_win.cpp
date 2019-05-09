@@ -1075,20 +1075,20 @@ static void setconvert(int monid)
 	vidinfo->picasso_convert = getconvert(state->RGBFormat, picasso_vidinfo[monid].pixbytes);
 #ifdef FSUAE
 	if (g_amiga_video_format == AMIGA_VIDEO_FORMAT_RGBA) {
-		host_mode = RGBFB_R8G8B8A8;
+		vidinfo->host_mode = RGBFB_R8G8B8A8;
 	}
 	else if (g_amiga_video_format == AMIGA_VIDEO_FORMAT_BGRA) {
 #ifdef WORDS_BIGENDIAN
-		host_mode = RGBFB_A8R8G8B8;
+		vidinfo->host_mode = RGBFB_A8R8G8B8;
 #else
-		host_mode = RGBFB_B8G8R8A8;
+		vidinfo->host_mode = RGBFB_B8G8R8A8;
 #endif
 	}
 	else { // AMIGA_VIDEO_FORMAT_R5G6B5
 #ifdef WORDS_BIGENDIAN
-		host_mode = RGBFB_R5G6B5;
+		vidinfo->host_mode = RGBFB_R5G6B5;
 #else
-		host_mode = RGBFB_R5G6B5PC;
+		vidinfo->host_mode = RGBFB_R5G6B5PC;
 #endif
 	}
 #else
@@ -4845,7 +4845,7 @@ static bool picasso_flushpixels(int index, uae_u8 *src, int off)
 	struct picasso_vidbuf_description *vidinfo = &picasso_vidinfo[monid];
 
 #ifdef FSUAE // NL
-	picasso_vidinfo.extra_mem = 1;
+	vidinfo->extra_mem = 1;
 #endif
 
 	src_start = src + (off & ~gwwpagemask[index]);
@@ -4858,7 +4858,7 @@ static bool picasso_flushpixels(int index, uae_u8 *src, int off)
 #endif
 	if (!vidinfo->extra_mem || !gwwbuf[index] || src_start >= src_end) {
 #ifdef FSUAE
-		printf("%d %p %d returning\n", picasso_vidinfo.extra_mem, gwwbuf, src_start >= src_end);
+		printf("%d %p %d returning\n", vidinfo->extra_mem, gwwbuf, src_start >= src_end);
 #endif
 		return false;
 	}
@@ -5110,7 +5110,8 @@ void InitPicasso96(int monid)
 			| ((i & 1) ? 0x01 : 0));
 	}
 #ifdef FSUAE
-	picasso_vidinfo.pixbytes = g_amiga_video_bpp;
+	struct picasso_vidbuf_description *vidinfo = &picasso_vidinfo[0];
+	vidinfo->pixbytes = g_amiga_video_bpp;
 #endif
 }
 

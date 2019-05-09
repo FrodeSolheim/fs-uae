@@ -99,12 +99,12 @@ void toggle_mousegrab (void)
 	UAE_LOG_STUB ("");
 }
 
-void setmouseactivexy (int x, int y, int dir)
+void setmouseactivexy(int monid, int x, int y, int dir)
 {
 	UAE_LOG_STUB ("");
 }
 
-void setmouseactive (int active)
+void setmouseactive(int monid, int active)
 {
 	UAE_LOG_STUB ("");
 }

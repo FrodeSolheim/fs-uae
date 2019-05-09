@@ -55,7 +55,7 @@ happening, all ports should restrict window widths to be multiples of 16 pixels.
 #define BG_COLOR_DEBUG 0
 //#define XLINECHECK
 
-struct amigadisplay adisplays[MAX_AMIGADISPLAYS];
+struct amigadisplay adisplays[MAX_AMIGADISPLAYS] = {};
 
 typedef enum
 {

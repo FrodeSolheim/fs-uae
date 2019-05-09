@@ -1,5 +1,9 @@
 #ifdef FSUAE
 #define _tcstoul strtoul
+static int _tclen(const char *s) {
+	// FIXME: Correctly implement?
+	return 1;
+}
 #endif
 /*
 * UAE - The Un*x Amiga Emulator

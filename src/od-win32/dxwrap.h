@@ -113,8 +113,11 @@ struct winuae_currentmode {
 #define MAX_AMIGAMONITORS 4
 struct AmigaMonitor {
 	int monitor_id;
+#ifdef FSUAE
+#else
 	HWND hAmigaWnd;
 	HWND hMainWnd;
+#endif
 
 	RECT amigawin_rect, mainwin_rect;
 	RECT amigawinclip_rect;
@@ -138,8 +141,11 @@ struct AmigaMonitor {
 	int p96_double_buffer_first, p96_double_buffer_last;
 	int p96_double_buffer_needs_flushing;
 
+#ifdef FSUAE
+#else
 	HWND hStatusWnd;
 	HBRUSH hStatusBkgB;
+#endif
 
 	struct winuae_currentmode currentmode;
 	struct uae_filter *usedfilter;

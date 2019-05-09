@@ -311,3 +311,16 @@ void sleep_cpu_wakeup(void)
 {
     UAE_LOG_STUB_MAX(10, "");
 }
+
+void target_multipath_modified(struct uae_prefs *p)
+{
+    UAE_STUB("");
+    /*
+	if (p != &workprefs)
+		return;
+	memcpy(&currprefs.path_hardfile, &p->path_hardfile, sizeof(struct multipath));
+	memcpy(&currprefs.path_floppy, &p->path_floppy, sizeof(struct multipath));
+	memcpy(&currprefs.path_cd, &p->path_cd, sizeof(struct multipath));
+	memcpy(&currprefs.path_rom, &p->path_rom, sizeof(struct multipath));
+    */
+}

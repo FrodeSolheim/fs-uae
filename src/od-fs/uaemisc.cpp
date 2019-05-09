@@ -62,6 +62,15 @@ void target_default_options (struct uae_prefs *p, int type) {
     return;
 }
 
+void target_sleep_nanos(int nanos)
+{
+    struct timespec req;
+    req.tv_sec = nanos / 1000000;
+    req.tv_nsec = nanos % 1000000;
+    // struct timespec rem
+    nanosleep(&req, NULL);
+}
+
 static int sleep_millis2 (int ms, bool main)
 {
     /* FIXME: Check sleep_millis2 against od-win32/win32.cpp implementation. */

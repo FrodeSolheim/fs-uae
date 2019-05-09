@@ -4596,6 +4596,7 @@ int instruction_breakpoint (TCHAR **c)
 		trace_param1 = readhex (c);
 		if (more_params (c)) {
 			trace_param2 = readhex (c);
+			return 1;
 		} else {
 			for (i = 0; i < BREAKPOINT_TOTAL; i++) {
 				bpn = &bpnodes[i];

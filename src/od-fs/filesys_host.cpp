@@ -498,8 +498,7 @@ bool my_createshortcut(const char *source, const char *target, const char *descr
     return false;
 }
 
-
-bool my_resolvesoftlink(char *linkfile, int size)
+bool my_resolvesoftlink(TCHAR *linkfile, int size, bool linkonly)
 {
 	STUB("");
 	return false;

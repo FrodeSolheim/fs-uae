@@ -979,4 +979,12 @@ UAE_EXTERN_C void uae_clipboard_update(void)
     fs_mutex_unlock(clipboard_mutex);
 }
 
+// force 2 second delay before accepting new data
+void clipboard_unsafeperiod(void)
+{
+	vdelay2 = 100;
+	if (vdelay < 60)
+		vdelay = 60;
+}
+
 #endif /* CLIPBOARD */

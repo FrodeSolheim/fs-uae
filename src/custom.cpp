@@ -8447,6 +8447,14 @@ static void linesync_first_last_line(int *first, int *last)
 		*first += y;
 }
 
+static int vsyncnextscanline;
+static int vsyncnextscanline_add;
+static int nextwaitvpos;
+static int display_slice_cnt;
+static int display_slice_lines;
+static int display_slices;
+static bool display_rendered;
+
 static bool linesync_beam_single(void)
 {
 	frame_time_t maxtime = read_processor_time() + 2 * vsynctimebase;
@@ -8486,12 +8494,6 @@ static bool linesync_beam_single(void)
 static bool linesync_beam_multi_dual(void)
 {
 	frame_time_t maxtime = read_processor_time() + 2 * vsynctimebase;
-	static int vsyncnextscanline;
-	static int nextwaitvpos;
-	static int display_slice_cnt;
-	static int display_slice_lines;
-	static int display_slices;
-	static bool display_rendered;
 	bool input_read_done = false;
 	bool was_syncline = is_syncline != 0;
 
@@ -8596,13 +8598,6 @@ static bool linesync_beam_multi_dual(void)
 static bool linesync_beam_multi_single(void)
 {
 	frame_time_t maxtime = read_processor_time() + 2 * vsynctimebase;
-	static int vsyncnextscanline;
-	static int vsyncnextscanline_add;
-	static int nextwaitvpos;
-	static int display_slice_cnt;
-	static int display_slice_lines;
-	static int display_slices;
-	static bool display_rendered;
 	bool input_read_done = false;
 	bool was_syncline = is_syncline != 0;
 
@@ -8818,6 +8813,10 @@ static bool linesync_beam_multi_single(void)
 // called when extra CPU wait is done
 void vsync_event_done(void)
 {
+	if (!isvsync_chipset()) {
+		is_syncline = 0;
+		return;
+	}
 	if (currprefs.gfx_display_sections <= 1) {
 		linesync_beam_single();
 	} else {

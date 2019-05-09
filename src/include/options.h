@@ -803,6 +803,7 @@ struct uae_prefs {
 	TCHAR win32_guiactivepage[32];
 	bool win32_filesystem_mangle_reserved_names;
 	bool win32_shutdown_notification;
+	bool win32_warn_exit;
 	bool right_control_is_right_win_key;
 #ifdef WITH_SLIRP
 #ifdef FSUAE

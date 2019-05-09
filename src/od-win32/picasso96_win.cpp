@@ -124,7 +124,7 @@ int mman_GetWriteWatch (PVOID lpBaseAddress, SIZE_T dwRegionSize, PVOID *lpAddre
 void mman_ResetWatch (PVOID lpBaseAddress, SIZE_T dwRegionSize);
 #endif
 
-bool picasso_flushpixels(int index, uae_u8 *src, int offset);
+void picasso_flushpixels(int index, uae_u8 *src, int offset, bool render);
 
 int p96refresh_active;
 bool have_done_picasso = 1; /* For the JIT compiler */
@@ -858,20 +858,20 @@ static bool is_uaegfx_active(void)
 	return true;
 }
 
-static bool rtg_render(void)
+static void rtg_render(void)
 {
 #ifdef FSUAE
 #ifdef DEBUG_SHOW_SCREEN
 	printf("rtg_render\n");
 #endif
 #endif
-int monid = currprefs.rtgboards[0].monitor_id;
-	bool flushed = false;
+	int monid = currprefs.rtgboards[0].monitor_id;
 	bool uaegfx_active = is_uaegfx_active();
 	int uaegfx_index = 0;
 	struct AmigaMonitor *mon = &AMonitors[monid];
 	struct picasso96_state_struct *state = &picasso96_state[monid];
 	struct picasso_vidbuf_description *vidinfo = &picasso_vidinfo[monid];
+	struct amigadisplay *ad = &adisplays[monid];
 
 	if (doskip () && p96skipmode == 0) {
 		;
@@ -879,7 +879,7 @@ int monid = currprefs.rtgboards[0].monitor_id;
 		bool full = vidinfo->full_refresh > 0;
 		if (uaegfx_active) {
 			if (!currprefs.rtg_multithread) {
-				flushed = picasso_flushpixels(0, gfxmem_banks[uaegfx_index]->start + natmem_offset, state->XYOffset - gfxmem_banks[uaegfx_index]->start);
+				picasso_flushpixels(0, gfxmem_banks[uaegfx_index]->start + natmem_offset, state->XYOffset - gfxmem_banks[uaegfx_index]->start, true);
 			}
 		} else {
 			if (vidinfo->full_refresh < 0)
@@ -897,26 +897,18 @@ int monid = currprefs.rtgboards[0].monitor_id;
 			// returns flushed?
 
 			/* FIXME: maybe this hack can be removed now? */
-			flushed = true;
+			// flushed = true;
 #endif
 		}
-		bool flushed2 = gfxboard_vsync_handler(full, true);
+		gfxboard_vsync_handler(full, true);
 		if (currprefs.rtg_multithread && uaegfx_active) {
-			write_comm_pipe_int(render_pipe, uaegfx_index | (flushed2 ? 0x80000000 : 0), 0);
-			flushed = true;
+			if (ad->pending_render) {
+				ad->pending_render = false;
+				gfx_unlock_picasso(mon->monitor_id, true);
+			}
+			write_comm_pipe_int(render_pipe, uaegfx_index, 0);
 		}
-		flushed |= flushed2;
 	}
-	return flushed;
-}
-static void rtg_show(int monid)
-{
-#ifdef FSUAE
-#ifdef DEBUG_SHOW_SCREEN
-	printf("rtg_show\n");
-#endif
-#endif
-	gfx_unlock_picasso(monid, true);
 }
 static void rtg_clear(int monid)
 {
@@ -1264,7 +1256,7 @@ static void picasso_handle_vsync2(struct AmigaMonitor *mon)
 		mouseupdate(mon);
 
 	if (thisisvsync) {
-		rendered = rtg_render();
+		rtg_render();
 		frame_drawn(mon->monitor_id);
 	}
 
@@ -1281,8 +1273,6 @@ static void picasso_handle_vsync2(struct AmigaMonitor *mon)
 	}
 #endif
 
-	if (thisisvsync && !rendered)
-		rtg_show(mon->monitor_id);
 }
 
 static int p96hsync;
@@ -1323,6 +1313,11 @@ void picasso_handle_hsync(void)
 
 	if (currprefs.rtgboards[0].rtgmem_size == 0)
 		return;
+
+	if (ad->pending_render) {
+		ad->pending_render = false;
+		gfx_unlock_picasso(mon->monitor_id, true);
+	}
 
 	int vsync = isvsync_rtg();
 	if (vsync < 0) {
@@ -4821,13 +4816,12 @@ void picasso_invalidate(int monid, int x, int y, int w, int h)
 #endif
 }
 
-static bool picasso_flushpixels(int index, uae_u8 *src, int off)
+static void picasso_flushpixels(int index, uae_u8 *src, int off, bool render)
 {
 	int monid = currprefs.rtgboards[index].monitor_id;
 	struct picasso96_state_struct *state = &picasso96_state[monid];
 	uae_u8 *src_start;
 	uae_u8 *src_end;
-	int lock = 0;
 	uae_u8 *dst = NULL;
 #ifdef FSUAE
 	uintptr_t gwwcnt;
@@ -4857,7 +4851,7 @@ static bool picasso_flushpixels(int index, uae_u8 *src, int off)
 #ifdef FSUAE
 		printf("%d %p %d returning\n", vidinfo->extra_mem, gwwbuf, src_start >= src_end);
 #endif
-		return false;
+		return;
 	}
 
 	if (flashscreen) {
@@ -4905,7 +4899,6 @@ static bool picasso_flushpixels(int index, uae_u8 *src, int off)
 			vidinfo->rtg_clear_flag--;
 		if (dst == NULL)
 			break;
-		lock = 1;
 		dst += vidinfo->offset;
 
 		if (doskip () && p96skipmode == 2) {
@@ -4987,8 +4980,6 @@ static bool picasso_flushpixels(int index, uae_u8 *src, int off)
 	if (currprefs.leds_on_screen & STATUSLINE_RTG) {
 		if (dst == NULL) {
 			dst = gfx_lock_picasso(monid, false, false);
-			if (dst)
-				lock = 1;
 		}
 		if (dst) {
 			if (!(currprefs.leds_on_screen & STATUSLINE_TARGET)) {
@@ -5007,12 +4998,11 @@ static bool picasso_flushpixels(int index, uae_u8 *src, int off)
 		}
 	}
 
-	if (lock)
-		gfx_unlock_picasso(monid, true);
+	if (dst)
+		gfx_unlock_picasso(monid, render);
 	if (dst && gwwcnt) {
 		vidinfo->full_refresh = 0;
 	}
-	return lock != 0; 
 }
 
 static void *render_thread(void *v)
@@ -5020,7 +5010,6 @@ static void *render_thread(void *v)
 	render_thread_state = 1;
 	for (;;) {
 		int idx = read_comm_pipe_int_blocking(render_pipe);
-		bool flush = (idx & 0x80000000) != 0;
 		if (idx == -1)
 			break;
 		idx &= 0xff;
@@ -5029,10 +5018,8 @@ static void *render_thread(void *v)
 		if (ad->picasso_on && ad->picasso_requested_on) {
 			lockrtg();
 			struct picasso96_state_struct *state = &picasso96_state[monid];
-			if (!picasso_flushpixels(idx, gfxmem_banks[idx]->start + natmem_offset, state->XYOffset - gfxmem_banks[idx]->start)) {
-				if (flush)
-					gfx_unlock_picasso(monid, true);
-			}
+			picasso_flushpixels(idx, gfxmem_banks[idx]->start + natmem_offset, state->XYOffset - gfxmem_banks[idx]->start, false);
+			ad->pending_render = true;
 			unlockrtg();
 		}
 	}
@@ -5627,7 +5614,7 @@ uae_u32 picasso_demux (uae_u32 arg, TrapContext *ctx)
 
 void picasso_free(void)
 {
-	if (currprefs.rtg_multithread && render_thread_state > 0) {
+	if (render_thread_state > 0) {
 		write_comm_pipe_int(render_pipe, -1, 0);
 		while (render_thread_state >= 0) {
 			Sleep(10);

@@ -1313,7 +1313,7 @@ static inline void x86_fadd_m(MEMR s)
 	ADDR32 FADDLm(s,X86_NOREG,X86_NOREG,1);
 }
 
-#else
+#else /* !USE_NEW_RTASM */
 
 const bool optimize_accum	= true;
 const bool optimize_imm8	= true;
@@ -3102,7 +3102,7 @@ static inline void x86_fadd_m(MEMR s)
 	emit_long(s);
 }
 
-#endif
+#endif /* USE_NEW_RTASM */
 
 /*************************************************************************
  * Unoptimizable stuff --- jump                                          *

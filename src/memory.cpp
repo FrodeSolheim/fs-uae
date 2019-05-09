@@ -1474,7 +1474,7 @@ static void log_kickstart(uae_u8 *mem, int size)
 
 static int read_kickstart (struct zfile *f, uae_u8 *mem, int size, int dochecksum, int noalias)
 {
-	uae_char buffer[20];
+	uae_char buffer[11];
 	int i, j, oldpos;
 	int cr = 0, kickdisk = 0;
 
@@ -1484,7 +1484,9 @@ static int read_kickstart (struct zfile *f, uae_u8 *mem, int size, int dochecksu
 		zfile_fseek (f, 0, SEEK_SET);
 	}
 	oldpos = zfile_ftell (f);
-	i = zfile_fread (buffer, 1, 11, f);
+	i = zfile_fread (buffer, 1, sizeof(buffer), f);
+	if (i < sizeof(buffer))
+		return 0;
 	if (!memcmp (buffer, "KICK", 4)) {
 		zfile_fseek (f, 512, SEEK_SET);
 		kickdisk = 1;

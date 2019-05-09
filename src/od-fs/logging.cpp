@@ -125,3 +125,8 @@ void write_logx(const char *format, ...)
 {
     // FIXME
 }
+
+TCHAR *write_log_get_ts(void)
+{
+    STUB("");
+}

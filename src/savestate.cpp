@@ -66,6 +66,7 @@
 #include "threaddep/thread.h"
 #include "a2091.h"
 #include "devices.h"
+#include "fsdb.h"
 
 #ifdef FSUAE // NL
 #include "uae/fs.h"
@@ -265,6 +266,13 @@ TCHAR *restore_string_func (uae_u8 **dstp)
 
 #ifdef SAVESTATE
 
+static bool state_path_exists(const TCHAR *path, int type)
+{
+	if (type == SAVESTATE_PATH_VDIR)
+		return my_existsdir(path);
+	return my_existsfile(path);
+}
+
 TCHAR *restore_path_func (uae_u8 **dstp, int type)
 {
 	TCHAR *newpath;
@@ -278,8 +286,16 @@ TCHAR *restore_path_func (uae_u8 **dstp, int type)
 		return s;
 	if (type == SAVESTATE_PATH_HD)
 		return s;
+#if 0
+	_tcscpy(tmp, s);
+	fullpath(tmp, sizeof(tmp) / sizeof(TCHAR));
+	if (state_path_exists(tmp, type)) {
+		xfree(s);
+		return my_strdup(tmp);
+	}
+#endif
 	getfilepart (tmp, sizeof tmp / sizeof (TCHAR), s);
-	if (zfile_exists (tmp)) {
+	if (state_path_exists(tmp, type)) {
 		xfree (s);
 		return my_strdup (tmp);
 	}
@@ -297,14 +313,14 @@ TCHAR *restore_path_func (uae_u8 **dstp, int type)
 		fixtrailing (tmp2);
 		_tcscat (tmp2, tmp);
 		fullpath (tmp2, sizeof tmp2 / sizeof (TCHAR));
-		if (zfile_exists (tmp2)) {
+		if (state_path_exists(tmp2, type)) {
 			xfree (s);
 			return my_strdup (tmp2);
 		}
 	}
 	getpathpart (tmp2, sizeof tmp2 / sizeof (TCHAR), savestate_fname);
 	_tcscat (tmp2, tmp);
-	if (zfile_exists (tmp2)) {
+	if (state_path_exists(tmp2, type)) {
 		xfree (s);
 		return my_strdup (tmp2);
 	}
@@ -1804,7 +1820,7 @@ retry2:
 		input_record++;
 		for (i = 0; i < 4; i++) {
 			bool wp = true;
-			DISK_validate_filename (&currprefs, currprefs.floppyslots[i].df, false, &wp, NULL, NULL);
+			DISK_validate_filename (&currprefs, currprefs.floppyslots[i].df, NULL, false, &wp, NULL, NULL);
 			inprec_recorddiskchange (i, currprefs.floppyslots[i].df, wp);
 		}
 		input_record--;

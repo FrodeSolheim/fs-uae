@@ -1545,7 +1545,7 @@ static void cdtv_loadcardmem (uae_u8 *p, int size)
 	if (!size)
 		return;
 	memset (p, 0, size);
-	cfgfile_resolve_path_out(currprefs.flashfile, flashfilepath, MAX_DPATH, PATH_ROM);
+	cfgfile_resolve_path_out_load(currprefs.flashfile, flashfilepath, MAX_DPATH, PATH_ROM);
 	f = zfile_fopen (flashfilepath, _T("rb"), ZFD_NORMAL);
 	if (!f)
 		return;
@@ -1560,7 +1560,7 @@ static void cdtv_savecardmem (uae_u8 *p, int size)
 
 	if (!size)
 		return;
-	cfgfile_resolve_path_out(currprefs.flashfile, flashfilepath, MAX_DPATH, PATH_ROM);
+	cfgfile_resolve_path_out_load(currprefs.flashfile, flashfilepath, MAX_DPATH, PATH_ROM);
 	f = zfile_fopen (flashfilepath, _T("rb+"), ZFD_NORMAL);
 	if (!f)
 		return;
@@ -1575,7 +1575,7 @@ static void cdtv_battram_reset (void)
 	int v;
 
 	memset (cdtv_battram, 0, CDTV_NVRAM_SIZE);
-	cfgfile_resolve_path_out(currprefs.flashfile, flashfilepath, MAX_DPATH, PATH_ROM);
+	cfgfile_resolve_path_out_load(currprefs.flashfile, flashfilepath, MAX_DPATH, PATH_ROM);
 	f = zfile_fopen (flashfilepath, _T("rb+"), ZFD_NORMAL);
 	if (!f) {
 		f = zfile_fopen (flashfilepath, _T("wb"), 0);

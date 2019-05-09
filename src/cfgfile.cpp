@@ -939,12 +939,12 @@ static void cfgfile_write_rom (struct zfile *f, struct multipath *mp, const TCHA
 
 }
 
-static void cfgfile_to_path(const TCHAR *in, TCHAR *out, int type)
+static void cfgfile_to_path_save(const TCHAR *in, TCHAR *out, int type)
 {
 	if (_tcschr(in, '%')) {
 		_tcscpy(out, in);
 	} else {
-		cfgfile_resolve_path_out(in, out, MAX_DPATH, type);
+		cfgfile_resolve_path_out_save(in, out, MAX_DPATH, type);
 	}
 }
 
@@ -954,7 +954,7 @@ static void cfgfile_write_path2(struct zfile *f, const TCHAR *option, const TCHA
 		cfgfile_write_str(f, option, value);
 	} else {
 		TCHAR path[MAX_DPATH];
-		cfgfile_resolve_path_out(value, path, MAX_DPATH, type);
+		cfgfile_resolve_path_out_save(value, path, MAX_DPATH, type);
 		cfgfile_write_str(f, option, path);
 	}
 }
@@ -964,7 +964,7 @@ static void cfgfile_dwrite_path2(struct zfile *f, const TCHAR *option, const TCH
 		cfgfile_dwrite_str(f, option, value);
 	} else {
 		TCHAR path[MAX_DPATH];
-		cfgfile_resolve_path_out(value, path, MAX_DPATH, type);
+		cfgfile_resolve_path_out_save(value, path, MAX_DPATH, type);
 		cfgfile_dwrite_str(f, option, path);
 	}
 }
@@ -1030,7 +1030,7 @@ static void cfgfile_adjust_path(TCHAR *path, int maxsz, struct multipath *mp)
 	xfree(s);
 }
 
-void cfgfile_resolve_path_out(const TCHAR *path, TCHAR *out, int size, int type)
+static void cfgfile_resolve_path_out_all(const TCHAR *path, TCHAR *out, int size, int type, bool save)
 {
 	struct uae_prefs *p = &currprefs;
 	TCHAR *s = NULL;
@@ -1060,12 +1060,26 @@ void cfgfile_resolve_path_out(const TCHAR *path, TCHAR *out, int size, int type)
 		_tcscpy(out, s);
 		xfree(s);
 	}
-	my_resolvesoftlink(out, size);
+	if (!save) {
+		my_resolvesoftlink(out, size, true);
+	}
 }
 
-void cfgfile_resolve_path(TCHAR *path, int size, int type)
+void cfgfile_resolve_path_out_load(const TCHAR *path, TCHAR *out, int size, int type)
 {
-	cfgfile_resolve_path_out(path, path, size, type);
+	cfgfile_resolve_path_out_all(path, out, size, type, false);
+}
+void cfgfile_resolve_path_load(TCHAR *path, int size, int type)
+{
+	cfgfile_resolve_path_out_all(path, path, size, type, false);
+}
+void cfgfile_resolve_path_out_save(const TCHAR *path, TCHAR *out, int size, int type)
+{
+	cfgfile_resolve_path_out_all(path, out, size, type, true);
+}
+void cfgfile_resolve_path_save(TCHAR *path, int size, int type)
+{
+	cfgfile_resolve_path_out_all(path, path, size, type, true);
 }
 
 
@@ -1094,7 +1108,7 @@ static void write_filesys_config (struct uae_prefs *p, struct zfile *f)
 					*ptr = 0;
 			}
 		} else {
-			cfgfile_to_path(ci->rootdir, str1, ci->type == UAEDEV_DIR ? PATH_DIR : (ci->type == UAEDEV_CD ? PATH_CD : (ci->type == UAEDEV_HDF ? PATH_HDF : PATH_TAPE)));
+			cfgfile_to_path_save(ci->rootdir, str1, ci->type == UAEDEV_DIR ? PATH_DIR : (ci->type == UAEDEV_CD ? PATH_CD : (ci->type == UAEDEV_HDF ? PATH_HDF : PATH_TAPE)));
 		}
 		int ct = ci->controller_type;
 		int romtype = 0;
@@ -1142,7 +1156,7 @@ static void write_filesys_config (struct uae_prefs *p, struct zfile *f)
 #endif
 		} else if (ci->type == UAEDEV_HDF || ci->type == UAEDEV_CD || ci->type == UAEDEV_TAPE) {
 			TCHAR filesyspath[MAX_DPATH];
-			cfgfile_to_path(ci->filesys, filesyspath, PATH_HDF);
+			cfgfile_to_path_save(ci->filesys, filesyspath, PATH_HDF);
 			TCHAR *sfilesys = cfgfile_escape_min(filesyspath);
 			TCHAR *sgeometry = cfgfile_escape(ci->geometry, NULL, true);
 			_stprintf (tmp, _T("%s,%s:%s,%d,%d,%d,%d,%d,%s,%s"),
@@ -1778,7 +1792,7 @@ void cfgfile_save_options (struct zfile *f, struct uae_prefs *p, int type)
 		if (p->cdslots[i].name[0] || p->cdslots[i].inuse) {
 			TCHAR tmp2[MAX_DPATH];
 			_stprintf (tmp, _T("cdimage%d"), i);
-			cfgfile_to_path(p->cdslots[i].name, tmp2, PATH_CD);
+			cfgfile_to_path_save(p->cdslots[i].name, tmp2, PATH_CD);
 			if (p->cdslots[i].type != SCSI_UNIT_DEFAULT || _tcschr (p->cdslots[i].name, ',') || p->cdslots[i].delayed) {
 				_tcscat (tmp2, _T(","));
 				if (p->cdslots[i].delayed) {
@@ -4377,7 +4391,7 @@ static bool parse_geo (const TCHAR *tname, struct uaedev_config_info *uci, struc
 	bool ret = false;
 	TCHAR tgname[MAX_DPATH];
 
-	cfgfile_resolve_path_out(tname, tgname, MAX_DPATH, PATH_HDF);
+	cfgfile_resolve_path_out_load(tname, tgname, MAX_DPATH, PATH_HDF);
 	ini = ini_load(tgname);
 	if (!ini)
 		return ret;
@@ -6359,7 +6373,7 @@ static int cfgfile_load_2 (struct uae_prefs *p, const TCHAR *filename, bool real
 				cfgfile_string (line1b, line2b, _T("config_window_title"), p->config_window_title, sizeof p->config_window_title / sizeof (TCHAR));
 				// boxart checks
 				cfgfile_string(line1b, line2b, _T("floppy0"), p->floppyslots[0].df, sizeof p->floppyslots[0].df / sizeof(TCHAR));
-				cfgfile_resolve_path(p->floppyslots[0].df, MAX_DPATH, PATH_FLOPPY);
+				cfgfile_resolve_path_load(p->floppyslots[0].df, MAX_DPATH, PATH_FLOPPY);
 				TCHAR tmp[MAX_DPATH];
 				if (!p->mountitems && (cfgfile_string(line1b, line2b, _T("hardfile2"), tmp, sizeof tmp / sizeof(TCHAR)) || cfgfile_string(line1b, line2b, _T("filesystem2"), tmp, sizeof tmp / sizeof(TCHAR)))) {
 					const TCHAR *s = _tcschr(tmp, ':');
@@ -6381,7 +6395,7 @@ static int cfgfile_load_2 (struct uae_prefs *p, const TCHAR *filename, bool real
 							if (se) {
 								tmp[se - tmp] = 0;
 								_tcscpy(p->mountconfig[0].ci.rootdir, s);
-								cfgfile_resolve_path(p->mountconfig[0].ci.rootdir, MAX_DPATH, isvsys ? PATH_DIR : PATH_HDF);
+								cfgfile_resolve_path_load(p->mountconfig[0].ci.rootdir, MAX_DPATH, isvsys ? PATH_DIR : PATH_HDF);
 								p->mountitems = 1;
 							}
 						}
@@ -6400,7 +6414,7 @@ static int cfgfile_load_2 (struct uae_prefs *p, const TCHAR *filename, bool real
 							tmp[se - tmp] = 0;
 					}
 					_tcscpy(p->cdslots[0].name, s);
-					cfgfile_resolve_path(p->cdslots[0].name, MAX_DPATH, PATH_CD);
+					cfgfile_resolve_path_load(p->cdslots[0].name, MAX_DPATH, PATH_CD);
 					p->cdslots[0].inuse = 1;
 				}
 			}

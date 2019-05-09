@@ -1109,7 +1109,7 @@ static int openwritefile (struct uae_prefs *p, drive *drv, int create)
 static bool diskfile_iswriteprotect (struct uae_prefs *p, const TCHAR *fname_in, int *needwritefile, drive_type *drvtype)
 {
 #ifdef FSUAE
-	write_log("diskfile_iswriteprotect fname=%s\n", fname);
+	write_log("diskfile_iswriteprotect fname=%s\n", fname_in);
 #endif
 	struct zfile *zf1, *zf2;
 	bool wrprot1 = 0, wrprot2 = 1;
@@ -1187,7 +1187,7 @@ static void update_disk_statusline(int num)
 static int drive_insert (drive * drv, struct uae_prefs *p, int dnum, const TCHAR *fname_in, bool fake, bool forcedwriteprotect)
 {
 #ifdef FSUAE
-	write_log("drive_insert drv=%p dnum=%d fname=%s fake=%d\n", drv, dnum, fname, fake);
+	write_log("drive_insert drv=%p dnum=%d fname=%s fake=%d\n", drv, dnum, fname_in, fake);
 #endif
 	uae_u8 buffer[2 + 2 + 4 + 4];
 	trackid *tid;

@@ -872,8 +872,11 @@ static void rtg_render(void)
 	struct picasso_vidbuf_description *vidinfo = &picasso_vidinfo[monid];
 	struct amigadisplay *ad = &adisplays[monid];
 
+#ifdef FSUAE
+#else
 	if (D3D_restore)
 		D3D_restore(monid, true);
+#endif
 	if (doskip () && p96skipmode == 0) {
 		;
 	} else {

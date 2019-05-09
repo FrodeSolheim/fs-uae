@@ -49,6 +49,7 @@
 #include "zfile.h"
 #include "cia.h"
 #include "autoconf.h"
+#include "x86.h"
 #ifdef RETROPLATFORM
 #include "rp.h"
 #endif
@@ -2982,6 +2983,8 @@ static int getbuttonstate (int joy, int button)
 	return (joybutton[joy] & (1 << button)) ? 1 : 0;
 }
 
+static int pc_mouse_buttons[MAX_JPORTS];
+
 static int getvelocity (int num, int subnum, int pct)
 {
 	int val;
@@ -3093,6 +3096,20 @@ static void mouseupdate (int pct, bool vsync)
 				record_key (0x7b << 1);
 			if (!mouse_deltanoreset[i][2])
 				mouse_delta[i][2] = 0;
+
+			if (getbuttonstate(i, JOYBUTTON_1))
+				pc_mouse_buttons[i] |= 1;
+			else
+				pc_mouse_buttons[i] &= ~1;
+			if (getbuttonstate(i, JOYBUTTON_2))
+				pc_mouse_buttons[i] |= 2;
+			else
+				pc_mouse_buttons[i] &= ~2;
+			if (getbuttonstate(i, JOYBUTTON_3))
+				pc_mouse_buttons[i] |= 4;
+			else
+				pc_mouse_buttons[i] &= ~4;
+			x86_mouse(i, v1, v2, v3, pc_mouse_buttons[i]);
 
 #if OUTPUTDEBUG
 			if (v1 || v2) {
@@ -5259,6 +5276,9 @@ void inputdevice_reset (void)
 	for (int i = 0; i < 2; i++) {
 		lastmxy_abs[i][0] = 0;
 		lastmxy_abs[i][1] = 0;
+	}
+	for (int i = 0; i < MAX_JPORTS; i++) {
+		pc_mouse_buttons[i] = 0;
 	}
 	lightpen_trigger2 = 0;
 	cubo_flag = 0;

@@ -269,6 +269,7 @@ void devices_update_sound(double clk, double syncadjust)
 	update_sndboard_sound (clk / syncadjust);
 #endif
 	update_cda_sound(clk / syncadjust);
+	x86_update_sound(clk / syncadjust);
 }
 
 void devices_update_sync(double svpos, double syncadjust)

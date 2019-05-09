@@ -12,6 +12,7 @@ extern uaecptr amiga_clipboard_proc_start(TrapContext *ctx);
 extern void amiga_clipboard_task_start(TrapContext *ctx, uaecptr);
 extern void clipboard_disable(bool);
 extern void clipboard_vsync(void);
+extern void clipboard_unsafeperiod(void);
 
 #ifdef FSUAE
 void clipboard_init(void);

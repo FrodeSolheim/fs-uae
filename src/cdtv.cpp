@@ -1536,6 +1536,7 @@ addrbank dmac_bank = {
 #define CDTV_NVRAM_MASK 16383
 #define CDTV_NVRAM_SIZE 32768
 static uae_u8 cdtv_battram[CDTV_NVRAM_SIZE];
+static TCHAR flashfilepath[MAX_DPATH];
 
 static void cdtv_loadcardmem (uae_u8 *p, int size)
 {
@@ -1544,7 +1545,8 @@ static void cdtv_loadcardmem (uae_u8 *p, int size)
 	if (!size)
 		return;
 	memset (p, 0, size);
-	f = zfile_fopen (currprefs.flashfile, _T("rb"), ZFD_NORMAL);
+	cfgfile_resolve_path_out(currprefs.flashfile, flashfilepath, MAX_DPATH, PATH_ROM);
+	f = zfile_fopen (flashfilepath, _T("rb"), ZFD_NORMAL);
 	if (!f)
 		return;
 	zfile_fseek (f, CDTV_NVRAM_SIZE, SEEK_SET);
@@ -1558,7 +1560,8 @@ static void cdtv_savecardmem (uae_u8 *p, int size)
 
 	if (!size)
 		return;
-	f = zfile_fopen (currprefs.flashfile, _T("rb+"), ZFD_NORMAL);
+	cfgfile_resolve_path_out(currprefs.flashfile, flashfilepath, MAX_DPATH, PATH_ROM);
+	f = zfile_fopen (flashfilepath, _T("rb+"), ZFD_NORMAL);
 	if (!f)
 		return;
 	zfile_fseek (f, CDTV_NVRAM_SIZE, SEEK_SET);
@@ -1572,9 +1575,10 @@ static void cdtv_battram_reset (void)
 	int v;
 
 	memset (cdtv_battram, 0, CDTV_NVRAM_SIZE);
-	f = zfile_fopen (currprefs.flashfile, _T("rb+"), ZFD_NORMAL);
+	cfgfile_resolve_path_out(currprefs.flashfile, flashfilepath, MAX_DPATH, PATH_ROM);
+	f = zfile_fopen (flashfilepath, _T("rb+"), ZFD_NORMAL);
 	if (!f) {
-		f = zfile_fopen (currprefs.flashfile, _T("wb"), 0);
+		f = zfile_fopen (flashfilepath, _T("wb"), 0);
 		if (f) {
 			zfile_fwrite (cdtv_battram, CDTV_NVRAM_SIZE, 1, f);
 			zfile_fclose (f);
@@ -1598,7 +1602,7 @@ void cdtv_battram_write (int addr, int v)
 	if (cdtv_battram[offset] == v)
 		return;
 	cdtv_battram[offset] = v;
-	f = zfile_fopen (currprefs.flashfile, _T("rb+"), ZFD_NORMAL);
+	f = zfile_fopen (flashfilepath, _T("rb+"), ZFD_NORMAL);
 	if (!f)
 		return;
 	zfile_fseek (f, offset, SEEK_SET);

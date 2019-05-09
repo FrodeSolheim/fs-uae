@@ -3032,8 +3032,9 @@ void freescratch(void)
 #endif
 			)
 #endif
+		{
 			jit_log("Warning! %d is locked",i);
-	}
+		}
 
 	for (i=0;i<VREGS;i++)
 		if (live.state[i].needflush==NF_SCRATCH) {

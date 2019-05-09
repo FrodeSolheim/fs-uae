@@ -605,6 +605,12 @@ const TCHAR *target_get_display_name (int num, bool friendlyname)
     return (TCHAR *) "Dummy Display";
 }
 
+void target_cpu_speed(void)
+{
+	// display_vblank_thread(&AMonitors[0]);
+    STUB("");
+}
+
 // FIXME
 extern "C" {
 int fs_ml_get_vblank_count();

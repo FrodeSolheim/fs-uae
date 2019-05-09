@@ -3657,6 +3657,9 @@ static void ExceptionX (int nr, uaecptr address)
 	if (cpu_tracer) {
 		cputrace.state = nr;
 	}
+	if (!regs.s) {
+		regs.instruction_pc_user_exception = m68k_getpc();
+	}
 
 #ifdef JIT
 	if (currprefs.cachesize)

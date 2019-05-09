@@ -118,6 +118,7 @@ struct AmigaMonitor {
 #else
 	HWND hAmigaWnd;
 	HWND hMainWnd;
+	struct MultiDisplay *md;
 #endif
 
 	RECT amigawin_rect, mainwin_rect;

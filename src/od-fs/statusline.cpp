@@ -4,6 +4,11 @@
 #include "statusline.h"
 #include "uae.h"
 
+bool softstatusline(void)
+{
+	return false;
+}
+
 void statusline_updated(int monid)
 {
 

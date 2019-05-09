@@ -24,6 +24,7 @@ int max_uae_width = 3072;
 int max_uae_height = 2048;
 
 int busywait = 0;
+bool beamracer_debug = 0;
 
 volatile bool vblank_found_chipset;
 volatile bool vblank_found_rtg;

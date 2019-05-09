@@ -821,6 +821,7 @@ void restore_state (const TCHAR *filename)
 			break;
 	}
 	target_addtorecent (filename, 0);
+	DISK_history_add(filename, -1, HISTORY_STATEFILE, 0);
 	return;
 
 error:
@@ -1236,6 +1237,7 @@ int save_state (const TCHAR *filename, const TCHAR *description)
 	if (v)
 		write_log (_T("Save of '%s' complete\n"), filename);
 	zfile_fclose (f);
+	DISK_history_add(filename, -1, HISTORY_STATEFILE, 0);
 	savestate_state = 0;
 #ifdef FSUAE
     uae_callback(uae_on_save_state_finished, filename);

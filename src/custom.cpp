@@ -155,6 +155,7 @@ static bool genlockvtoggle;
 static bool graphicsbuffer_retry;
 static int scanlinecount;
 static int cia_hsync;
+static bool toscr_scanline_complex_bplcon1;
 
 #ifdef FSUAE // NL
 int g_uae_min_first_line_pal = VBLANK_ENDLINE_PAL;
@@ -1714,13 +1715,17 @@ static void toscr_1 (int nbits, int fm)
 {
 	if (delay_cycles + nbits >= delay_lastcycle[lol]) {
 		toscr_right_edge (nbits, fm);
-	} else if (toscr_delay[0] == toscr_delay[1]) {
+	} else if (!toscr_scanline_complex_bplcon1 && toscr_delay[0] == toscr_delay[1]) {
 		// Most common case.
 		do_delays_fast (nbits, fm);
 		delay_cycles += nbits;
 	} else {
 		do_delays (nbits, fm);
 		delay_cycles += nbits;
+		// if scanline has at least one complex case (odd != even)
+		// all possible remaining odd == even cases in same scanline
+		// must also use complex case routine.
+		toscr_scanline_complex_bplcon1 = true;
 	}
 
 	out_nbits += nbits;
@@ -4000,6 +4005,7 @@ static void reset_decisions (void)
 	bitplane_maybe_start_hpos = -1;
 	bitplane_off_delay = -1;
 	hack_delay_shift = 0;
+	toscr_scanline_complex_bplcon1 = false;
 
 	if (line_cyclebased) {
 		line_cyclebased--;

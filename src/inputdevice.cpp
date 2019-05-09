@@ -3237,8 +3237,7 @@ static void maybe_read_input(void)
 	//	cnt = 0;
 	//}
 		if ((vpos & 63) == 63 ) {
-			/* FIXME: Peek parameter? */
-			inputdevice_read(false);
+			inputdevice_read();
 		}
 		// also effectively disable inputdelay here, don't seem to be essential,
 		// and it easier (for deterministic behavior) to leave it out.
@@ -4146,7 +4145,7 @@ void inputdevice_add_inputcode (int code, int state, const TCHAR *s)
 			if (!inputdevice_handle_inputcode_immediate(code, state)) {
 				inputcode_pending[i].code = code;
 				inputcode_pending[i].state = state;
-				inputcode_pending[i].s = my_strdup(s);
+				inputcode_pending[i].s = s ? my_strdup(s) : NULL;
 			}
 			return;
 		}

@@ -68,8 +68,14 @@ static int sleep_millis2 (int ms, bool main)
     // FIXME: HOW EXACT MUST THE SLEEP BE?
     //printf("sleep_millis %d\n", ms);
     // FIXME: check usage of this for CD32
-    usleep(ms * 1000);
+    // usleep(ms * 1000);
     //uae_msleep(ms);
+    struct timespec req;
+    req.tv_sec = ms / 1000;
+    req.tv_nsec = (ms % 1000) * 1000;
+    // struct timespec rem
+    nanosleep(&req, NULL);
+    return 0;
 }
 
 int sleep_millis_main (int ms)

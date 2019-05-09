@@ -236,6 +236,7 @@ libuae_a_SOURCES = \
 	src/blkdev_cdimage.cpp \
 	src/bsdsocket.cpp \
 	src/calc.cpp \
+	src/casablanca.cpp \
 	src/cd32_fmv.cpp \
 	src/cd32_fmv_genlock.cpp \
 	src/cdrom.cpp \
@@ -251,6 +252,7 @@ libuae_a_SOURCES = \
 	src/custom.cpp \
 	src/debug.cpp \
 	src/debuginfo.cpp \
+	src/debugmem.cpp \
 	src/def_icons.cpp \
 	src/devices.cpp \
 	src/disk.cpp \
@@ -550,6 +552,7 @@ libuae_a_SOURCES = \
 	src/od-fs/paths.cpp \
 	src/od-fs/roms.cpp \
 	src/od-fs/sleep.h \
+	src/od-fs/spin.cpp \
 	src/od-fs/sounddep/sound.h \
 	src/od-fs/statusline.cpp \
 	src/od-fs/stubs.cpp \

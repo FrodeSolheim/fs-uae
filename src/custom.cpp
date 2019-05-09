@@ -7643,6 +7643,8 @@ static bool framewait (void)
 
 static bool framewait (void)
 {
+	struct amigadisplay *ad = &adisplays[0];
+
     // printf("currprefs.m68k_speed = %d\n", currprefs.m68k_speed);
     if (currprefs.m68k_speed == -1) {
         return framewait_2();
@@ -7650,17 +7652,17 @@ static bool framewait (void)
     //currprefs.cpu_idle = 150;
     //rtg_vsync ();
 
-    if (!frame_rendered && !picasso_on) {
+    if (!frame_rendered && !ad->picasso_on) {
     // if (!frame_rendered) {
-        frame_rendered = render_screen (false);
+        frame_rendered = render_screen(0, 1, false);
     }
     //if (!frame_shown) {
     // FIXME: hack: don't show frame if picasso is enabled
-    if (!frame_shown && !picasso_on) {
+    if (!frame_shown && !ad->picasso_on) {
 #ifdef DEBUG_SHOW_SCREEN
         printf("framewait -> show_screen(0)\n");
 #endif
-        show_screen (0);
+        show_screen(0, 0);
         frame_shown = true;
     }
 

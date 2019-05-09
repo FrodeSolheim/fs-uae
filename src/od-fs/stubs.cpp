@@ -79,7 +79,7 @@ void debugger_change (int mode) {
     STUB("mode=%d", mode);
 }
 
-void screenshot (int mode, int doprepare) {
+void screenshot(int monid, int mode, int doprepare) {
     STUB("mode=%d doprepare=%d", mode, doprepare);
 }
 
@@ -129,7 +129,8 @@ uae_u8 *target_load_keyfile (struct uae_prefs *p, const TCHAR *path, int *sizep,
     return NULL;
 }
 
-bool vsync_switchmode (int hz) {
+bool vsync_switchmode(int monid, int hz)
+{
     STUB("hz=%d", hz);
     return 0;
 }
@@ -155,7 +156,8 @@ void refreshtitle (void) {
     STUB("");
 }
 
-void updatedisplayarea (void) {
+void updatedisplayarea(int monid)
+{
     LOG_STUB("");
 }
 
@@ -258,8 +260,9 @@ void target_inputdevice_acquire(void)
     STUB("");
 }
 
-void desktop_coords (int *dw, int *dh, int *ax, int *ay, int *aw, int *ah)
+void desktop_coords (int monid, int *dw, int *dh, int *ax, int *ay, int *aw, int *ah)
 {
+    STUB("");
 #if 0
         struct MultiDisplay *md = getdisplay (&currprefs);
 

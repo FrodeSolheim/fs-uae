@@ -967,10 +967,6 @@ void chipmem_setindirect(void)
 
 MEMORY_FUNCTIONS(bogomem);
 
-/* CDTV expension memory card memory */
-
-MEMORY_FUNCTIONS(cardmem);
-
 /* A3000 motherboard fast memory */
 
 MEMORY_FUNCTIONS(a3000lmem);
@@ -1288,14 +1284,6 @@ addrbank bogomem_bank = {
 	bogomem_xlate, bogomem_check, NULL, _T("bogo"), _T("Slow memory"),
 	bogomem_lget, bogomem_wget,
 	ABFLAG_RAM | ABFLAG_THREADSAFE | ABFLAG_CACHE_ENABLE_BOTH, 0, 0
-};
-
-addrbank cardmem_bank = {
-	cardmem_lget, cardmem_wget, cardmem_bget,
-	cardmem_lput, cardmem_wput, cardmem_bput,
-	cardmem_xlate, cardmem_check, NULL, _T("rom_e0"), _T("CDTV memory card"),
-	cardmem_lget, cardmem_wget,
-	ABFLAG_RAM, 0, 0
 };
 
 addrbank mem25bit_bank = {
@@ -2411,23 +2399,6 @@ static void allocate_memory (void)
 		}
 		need_hardreset = true;
 	}
-#ifdef CDTV
-	if (cardmem_bank.reserved_size != currprefs.cs_cdtvcard * 1024) {
-		mapped_free (&cardmem_bank);
-		cardmem_bank.baseaddr = NULL;
-
-		cardmem_bank.reserved_size = currprefs.cs_cdtvcard * 1024;
-		cardmem_bank.mask = cardmem_bank.reserved_size - 1;
-		cardmem_bank.start = 0xe00000;
-		if (cardmem_bank.reserved_size) {
-			if (!mapped_malloc (&cardmem_bank)) {
-				write_log (_T("Out of memory for cardmem.\n"));
-				cardmem_bank.reserved_size = 0;
-			}
-		}
-		cdtv_loadcardmem(cardmem_bank.baseaddr, cardmem_bank.reserved_size);
-	}
-#endif
 	if (custmem1_bank.reserved_size != currprefs.custom_memory_sizes[0]) {
 		mapped_free (&custmem1_bank);
 		custmem1_bank.reserved_size = currprefs.custom_memory_sizes[0];
@@ -2764,7 +2735,6 @@ void memory_reset (void)
 	currprefs.cs_ksmirror_a8 = changed_prefs.cs_ksmirror_a8;
 	currprefs.cs_ciaoverlay = changed_prefs.cs_ciaoverlay;
 	currprefs.cs_cdtvram = changed_prefs.cs_cdtvram;
-	currprefs.cs_cdtvcard = changed_prefs.cs_cdtvcard;
 	currprefs.cs_a1000ram = changed_prefs.cs_a1000ram;
 	currprefs.cs_ide = changed_prefs.cs_ide;
 	currprefs.cs_fatgaryrev = changed_prefs.cs_fatgaryrev;
@@ -2866,10 +2836,6 @@ void memory_reset (void)
 		map_banks(&a3000hmem_bank, a3000hmem_bank.start >> 16, a3000hmem_bank.allocated_size >> 16, 0);
 	if (debugmem_bank.baseaddr)
 		map_banks(&debugmem_bank, debugmem_bank.start >> 16, debugmem_bank.allocated_size >> 16, 0);
-#ifdef CDTV
-	if (cardmem_bank.baseaddr)
-		map_banks (&cardmem_bank, cardmem_bank.start >> 16, cardmem_bank.allocated_size >> 16, 0);
-#endif
 	cpuboard_map();
 	map_banks_set(&kickmem_bank, 0xF8, 8, 0);
 	if (currprefs.maprom) {
@@ -3012,7 +2978,6 @@ void memory_init (void)
 	a3000lmem_bank.reserved_size = a3000hmem_bank.reserved_size = 0;
 	a3000lmem_bank.baseaddr = a3000hmem_bank.baseaddr = NULL;
 	bogomem_bank.baseaddr = NULL;
-	cardmem_bank.baseaddr = NULL;
 	custmem1_bank.reserved_size = custmem2_bank.reserved_size = 0;
 	custmem1_bank.baseaddr = NULL;
 	custmem2_bank.baseaddr = NULL;
@@ -3043,12 +3008,6 @@ void memory_cleanup (void)
 	mapped_free(&kickmem_bank);
 	xfree(a1000_bootrom);
 	mapped_free(&chipmem_bank);
-#ifdef CDTV
-	if (cardmem_bank.baseaddr) {
-		cdtv_savecardmem (cardmem_bank.baseaddr, cardmem_bank.allocated_size);
-		mapped_free (&cardmem_bank);
-	}
-#endif
 	mapped_free(&custmem1_bank);
 	mapped_free(&custmem2_bank);
 	mapped_free(&fakeuaebootrom_bank);
@@ -3060,7 +3019,6 @@ void memory_cleanup (void)
 	a1000_bootrom = NULL;
 	a1000_kickstart_mode = 0;
 	chipmem_bank.baseaddr = NULL;
-	cardmem_bank.baseaddr = NULL;
 	custmem1_bank.baseaddr = NULL;
 	custmem2_bank.baseaddr = NULL;
 

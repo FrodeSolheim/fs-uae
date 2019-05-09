@@ -522,5 +522,7 @@ void devices_unpause(void)
 
 void devices_unsafeperiod(void)
 {
+#ifdef WITH_CLIPBOARD
 	clipboard_unsafeperiod();
+#endif
 }

@@ -2385,7 +2385,7 @@ static uaecptr ShowEA_disp(uaecptr *pcp, uaecptr base, TCHAR *buffer, const TCHA
 	return addr;
 }
 
-static uaecptr ShowEA (void *f, uaecptr pc, uae_u16 opcode, int reg, amodes mode, wordsizes size, TCHAR *buf, uae_u32 *eaddr, int safemode)
+uaecptr ShowEA (void *f, uaecptr pc, uae_u16 opcode, int reg, amodes mode, wordsizes size, TCHAR *buf, uae_u32 *eaddr, int safemode)
 {
 	uaecptr addr = pc;
 	uae_s16 disp16;
@@ -3960,6 +3960,7 @@ static void m68k_reset2(bool hardreset)
 	}
 //	regs.ce020memcycles = 0;
 	regs.ce020startcycle = regs.ce020endcycle = 0;
+
 	fill_prefetch ();
 }
 
@@ -4027,6 +4028,7 @@ static void cpu_do_fallback(void)
 		fallback_cpu_model = 0;
 	}
 	init_m68k();
+	build_cpufunctbl();
 	m68k_reset2(false);
 	if (!fallbackmode) {
 		// restore original 68020+
@@ -5095,6 +5097,9 @@ static void m68k_run_1 (void)
 					//write_log (_T("%08X-%04X "), pc, r->opcode);
 				}
 #endif
+				if (debug_opcode_watch) {
+					debug_trainer_match();
+				}
 				do_cycles (cpu_cycles);
 				r->instruction_pc = m68k_getpc ();
 				cpu_cycles = (*cpufunctbl[r->opcode])(r->opcode);
@@ -5198,6 +5203,10 @@ static void m68k_run_1_ce (void)
 						inprec_recorddebug_cpu (1);
 					else if (input_play > 0)
 						inprec_playdebug_cpu (1);
+				}
+
+				if (debug_opcode_watch) {
+					debug_trainer_match();
 				}
 
 				r->instruction_pc = m68k_getpc ();
@@ -6046,6 +6055,10 @@ static void m68k_run_3ce (void)
 				if (regs.cacr & 0x8000)
 					fill_icache040(r->instruction_pc + 16);
 
+				if (debug_opcode_watch) {
+					debug_trainer_match();
+				}
+
 				(*cpufunctbl[r->opcode])(r->opcode);
 
 				if (r->spcflags) {
@@ -6086,6 +6099,10 @@ static void m68k_run_3p(void)
 				// "prefetch"
 				if (regs.cacr & 0x8000)
 					fill_icache040(r->instruction_pc + 16);
+
+				if (debug_opcode_watch) {
+					debug_trainer_match();
+				}
 
 				(*cpufunctbl[r->opcode])(r->opcode);
 
@@ -6222,6 +6239,10 @@ static void m68k_run_2ce (void)
 						inprec_playdebug_cpu (1);
 				}
 
+				if (debug_opcode_watch) {
+					debug_trainer_match();
+				}
+
 				(*cpufunctbl[r->opcode])(r->opcode);
 		
 				wait_memory_cycles();
@@ -6344,6 +6365,10 @@ static void m68k_run_2p (void)
 						inprec_playdebug_cpu (1);
 				}
 
+				if (debug_opcode_watch) {
+					debug_trainer_match();
+				}
+
 				if (cpu_cycles > 0)
 					x_do_cycles(cpu_cycles);
 
@@ -6443,6 +6468,9 @@ static void m68k_run_2 (void)
 				r->opcode = x_get_iword(0);
 				count_instr (r->opcode);
 
+				if (debug_opcode_watch) {
+					debug_trainer_match();
+				}
 				do_cycles (cpu_cycles);
 
 				cpu_cycles = (*cpufunctbl[r->opcode])(r->opcode);
@@ -6622,6 +6650,9 @@ void m68k_go (int may_quit)
 
 		if (changed_prefs.inprecfile[0] && input_record)
 			inprec_prepare_record (savestate_fname[0] ? savestate_fname : NULL);
+
+		if (changed_prefs.trainerfile[0])
+			debug_init_trainer(changed_prefs.trainerfile);
 
 		set_cpu_tracer (false);
 
@@ -7711,17 +7742,17 @@ void m68k_disasm_2 (TCHAR *buf, int bufsize, uaecptr pc, uaecptr *nextpc, int cn
 		} else if (lookup->mnemo == i_MVMEL) {
 			uae_u16 mask = extra;
 			pc += 2;
-			pc = ShowEA (0, pc, opcode, dp->dreg, dp->dmode, dp->size, instrname, deaddr, safemode);
+			pc = ShowEA (NULL, pc, opcode, dp->dreg, dp->dmode, dp->size, instrname, deaddr, safemode);
 			movemout (instrname, mask, dp->dmode, 0, true);
 		} else if (lookup->mnemo == i_MVMLE) {
 			uae_u16 mask = extra;
 			pc += 2;
 			if (movemout(instrname, mask, dp->dmode, 0, false))
 				_tcscat(instrname, _T(","));
-			pc = ShowEA(0, pc, opcode, dp->dreg, dp->dmode, dp->size, instrname, deaddr, safemode);
+			pc = ShowEA(NULL, pc, opcode, dp->dreg, dp->dmode, dp->size, instrname, deaddr, safemode);
 		} else if (lookup->mnemo == i_DIVL || lookup->mnemo == i_MULL) {
 			TCHAR *p;
-			pc = ShowEA(0, pc, opcode, dp->dreg, dp->dmode, dp->size, instrname, &seaddr2, safemode);
+			pc = ShowEA(NULL, pc, opcode, dp->dreg, dp->dmode, dp->size, instrname, &seaddr2, safemode);
 			extra = get_word_debug(pc);
 			pc += 2;
 			p = instrname + _tcslen(instrname);
@@ -7733,13 +7764,13 @@ void m68k_disasm_2 (TCHAR *buf, int bufsize, uaecptr pc, uaecptr *nextpc, int cn
 			TCHAR *p;
 			pc += 2;
 			if (!(extra & 0x0800)) {
-				pc = ShowEA(0, pc, opcode, dp->dreg, dp->dmode, dp->size, instrname, &seaddr2, safemode);
+				pc = ShowEA(NULL, pc, opcode, dp->dreg, dp->dmode, dp->size, instrname, &seaddr2, safemode);
 				p = instrname + _tcslen(instrname);
 				_stprintf(p, _T(",%c%d"), (extra & 0x8000) ? 'A' : 'D', (extra >> 12) & 7);
 			} else {
 				p = instrname + _tcslen(instrname);
 				_stprintf(p, _T("%c%d,"), (extra & 0x8000) ? 'A' : 'D', (extra >> 12) & 7);
-				pc = ShowEA(0, pc, opcode, dp->dreg, dp->dmode, dp->size, instrname, &seaddr2, safemode);
+				pc = ShowEA(NULL, pc, opcode, dp->dreg, dp->dmode, dp->size, instrname, &seaddr2, safemode);
 			}
 		} else if (lookup->mnemo == i_BFEXTS || lookup->mnemo == i_BFEXTU ||
 				   lookup->mnemo == i_BFCHG || lookup->mnemo == i_BFCLR ||
@@ -7754,7 +7785,7 @@ void m68k_disasm_2 (TCHAR *buf, int bufsize, uaecptr pc, uaecptr *nextpc, int cn
 				reg = (extra >> 12) & 7;
 			if (lookup->mnemo == i_BFINS)
 				_stprintf(p, _T("D%d,"), reg);
-			pc = ShowEA(0, pc, opcode, dp->dreg, dp->dmode, dp->size, instrname, &seaddr2, safemode);
+			pc = ShowEA(NULL, pc, opcode, dp->dreg, dp->dmode, dp->size, instrname, &seaddr2, safemode);
 			_tcscat(instrname, _T(" {"));
 			p = instrname + _tcslen(instrname);
 			if (extra & 0x0800)
@@ -7846,9 +7877,9 @@ void m68k_disasm_2 (TCHAR *buf, int bufsize, uaecptr pc, uaecptr *nextpc, int cn
 					else
 						movemout(instrname, regmask, dp->dmode, fpmode, false);
 					_tcscat(instrname, _T(","));
-					pc = ShowEA(0, pc, opcode, dp->dreg, dp->dmode, dp->size, instrname, deaddr, safemode);
+					pc = ShowEA(NULL, pc, opcode, dp->dreg, dp->dmode, dp->size, instrname, deaddr, safemode);
 				} else {
-					pc = ShowEA(0, pc, opcode, dp->dreg, dp->dmode, dp->size, instrname, deaddr, safemode);
+					pc = ShowEA(NULL, pc, opcode, dp->dreg, dp->dmode, dp->size, instrname, deaddr, safemode);
 					p = instrname + _tcslen(instrname);
 					if (mode & 1)
 						_stprintf(p, _T(",D%d"), dreg);
@@ -7868,7 +7899,7 @@ void m68k_disasm_2 (TCHAR *buf, int bufsize, uaecptr pc, uaecptr *nextpc, int cn
 					_tcscat(instrname, _T(" "));
 					p = instrname + _tcslen(instrname);
 					_stprintf(p, _T("FP%d,"), (extra >> 7) & 7);
-					pc = ShowEA(0, pc, opcode, dp->dreg, dp->dmode, fpsizeconv[size], instrname, &deaddr2, safemode);
+					pc = ShowEA(NULL, pc, opcode, dp->dreg, dp->dmode, fpsizeconv[size], instrname, &deaddr2, safemode);
 					p = instrname + _tcslen(instrname);
 					if (size == 7) {
 						_stprintf(p, _T(" {D%d}"), (kfactor >> 4));
@@ -7882,7 +7913,7 @@ void m68k_disasm_2 (TCHAR *buf, int bufsize, uaecptr pc, uaecptr *nextpc, int cn
 						_tcscat(instrname, _T("."));
 						_tcscat(instrname, fpsizes[size]);
 						_tcscat(instrname, _T(" "));
-						pc = ShowEA(0, pc, opcode, dp->dreg, dp->dmode, fpsizeconv[size], instrname, &seaddr2, safemode);
+						pc = ShowEA(NULL, pc, opcode, dp->dreg, dp->dmode, fpsizeconv[size], instrname, &seaddr2, safemode);
 					} else { // source is FPx
 						p = instrname + _tcslen(instrname);
 						_stprintf(p, _T(".X FP%d"), (extra >> 10) & 7);
@@ -7900,7 +7931,7 @@ void m68k_disasm_2 (TCHAR *buf, int bufsize, uaecptr pc, uaecptr *nextpc, int cn
 			_tcscpy(instrname, _T("A-LINE"));
 		} else {
 			if (dp->suse) {
-				pc = ShowEA (0, pc, opcode, dp->sreg, dp->smode, dp->size, instrname, &seaddr2, safemode);
+				pc = ShowEA (NULL, pc, opcode, dp->sreg, dp->smode, dp->size, instrname, &seaddr2, safemode);
 
 				// JSR x(a6) / JMP x(a6)
 				if (opcode == 0x4ea8 + 6 || opcode == 0x4ee8 + 6) {
@@ -7919,7 +7950,7 @@ void m68k_disasm_2 (TCHAR *buf, int bufsize, uaecptr pc, uaecptr *nextpc, int cn
 			if (dp->suse && dp->duse)
 				_tcscat (instrname, _T(","));
 			if (dp->duse) {
-				pc = ShowEA (0, pc, opcode, dp->dreg, dp->dmode, dp->size, instrname, &deaddr2, safemode);
+				pc = ShowEA (NULL, pc, opcode, dp->dreg, dp->dmode, dp->size, instrname, &deaddr2, safemode);
 			}
 		}
 

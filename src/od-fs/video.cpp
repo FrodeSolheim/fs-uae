@@ -957,27 +957,25 @@ void gfx_set_picasso_colors(int monid, RGBFTYPE rgbfmt)
             g_green_shift, g_blue_shift, rgbfmt, p96_rgbx16);
 }
 
-int picasso_palette(int monid, struct MyCLUTEntry *CLUT)
+int picasso_palette(struct MyCLUTEntry *CLUT, uae_u32 *clut)
 {
-	struct picasso_vidbuf_description *vidinfo = &picasso_vidinfo[monid];
-    int i, changed;
+	int changed = 0;
 
-    changed = 0;
-    for (i = 0; i < 256; i++) {
-        int r = CLUT[i].Red;
-        int g = CLUT[i].Green;
-        int b = CLUT[i].Blue;
-        uae_u32 v = (doMask256 (r, g_red_bits, g_red_shift)
-            | doMask256 (g, g_green_bits, g_green_shift)
-            | doMask256 (b, g_blue_bits, g_blue_shift))
-            | doMask256 (0xff, g_alpha_bits, g_alpha_shift);
-        if (v != vidinfo->clut[i]) {
-            //write_log (_T("%d:%08x\n"), i, v);
-            vidinfo->clut[i] = v;
-            changed = 1;
-        }
-    }
-    return changed;
+	for (int i = 0; i < 256; i++) {
+		int r = CLUT[i].Red;
+		int g = CLUT[i].Green;
+		int b = CLUT[i].Blue;
+		uae_u32 v = (doMask256 (r, g_red_bits, g_red_shift)
+			| doMask256 (g, g_green_bits, g_green_shift)
+			| doMask256 (b, g_blue_bits, g_blue_shift))
+			| doMask256 (0xff, g_alpha_bits, g_alpha_shift);
+		if (v != clut[i]) {
+			//write_log (_T("%d:%08x\n"), i, v);
+			clut[i] = v;
+			changed = 1;
+		}
+	}
+	return changed;
 }
 
 static uae_u8 *gfx_lock_picasso2(int monid, bool fullupdate)

@@ -40,7 +40,6 @@ extern void custom_reset (bool hardreset, bool keyboardreset);
 extern int intlev (void);
 extern void dumpcustom (void);
 
-extern void do_disk (void);
 extern void do_copper (void);
 
 extern void notice_new_xcolors (void);
@@ -65,8 +64,6 @@ extern uae_u16 dmacon;
 extern uae_u16 intena, intreq, intreqr;
 
 extern int vpos, lof_store;
-
-extern int find_copper_record (uaecptr, int *, int *);
 
 extern int n_frames;
 

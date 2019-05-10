@@ -978,7 +978,7 @@ enum {
 	RGBFB_CLUT_8
 };
 
-static int getconvert(int rgbformat, int pixbytes)
+int getconvert(int rgbformat, int pixbytes)
 {
 	int v = 0;
 	int d = pixbytes;
@@ -4783,7 +4783,12 @@ static void copyrow (int monid, uae_u8 *src, uae_u8 *dst, int x, int y, int widt
 }
 
 
-static void copyrow_scale(int monid, uae_u8 *src, uae_u8 *src_screen, uae_u8 *dst,
+#define CKCHECK if (!ck || (screenpixbytes == 4 && colorkey == ((uae_u32*)srcs)[dx]) \
+	|| (screenpixbytes == 2 && (uae_u16)colorkey == ((uae_u16*)srcs)[dx]) \
+	|| (screenpixbytes == 1 && (uae_u8)colorkey == ((uae_u8*)srcs)[dx]) \
+	|| (screenpixbytes == 3 && ckbytes[0] == srcs[dx * 3 + 0] && ckbytes[1] == srcs[dx * 3 + 1] && ckbytes[2] == srcs[dx * 3 + 2]))
+
+void copyrow_scale(int monid, uae_u8 *src, uae_u8 *src_screen, uae_u8 *dst,
 	int sx, int sy, int sxadd, int width, int srcbytesperrow, int srcpixbytes,
 	int screenbytesperrow, int screenpixbytes,
 	int dx, int dy, int dstbytesperrow, int dstpixbytes,
@@ -4798,6 +4803,20 @@ static void copyrow_scale(int monid, uae_u8 *src, uae_u8 *src_screen, uae_u8 *ds
 	int dstpix = dstpixbytes;
 	int srcpix = srcpixbytes;
 	int x;
+	uae_u8 ckbytes[3];
+
+	switch (convert_mode)
+	{
+		case RGBFB_Y4U2V2_32:
+		case RGBFB_Y4U2V2_16:
+		case RGBFB_Y4U1V1_32:
+		case RGBFB_Y4U1V1_16:
+		endx /= 2;
+		break;
+	}
+	ckbytes[0] = colorkey >> 16;
+	ckbytes[1] = colorkey >> 8;
+	ckbytes[2] = colorkey >> 0;
 
 	endx4 = endx & ~(3 << 8);
 
@@ -4808,7 +4827,7 @@ static void copyrow_scale(int monid, uae_u8 *src, uae_u8 *src_screen, uae_u8 *ds
 			while (sx < endx) {
 				x = sx >> 8;
 				sx += sxadd;
-				if (!ck || colorkey == ((uae_u32*)srcs)[dx])
+				CKCHECK
 					((uae_u32*)dst2)[dx] = (src2[x * 3 + 0] << 16) | (src2[x * 3 + 1] << 8) | (src2[x * 3 + 2] << 0);
 				dx++;
 			}
@@ -4817,7 +4836,7 @@ static void copyrow_scale(int monid, uae_u8 *src, uae_u8 *src_screen, uae_u8 *ds
 			while (sx < endx) {
 				x = sx >> 8;
 				sx += sxadd;
-				if (!ck || colorkey == ((uae_u32*)srcs)[dx])
+				CKCHECK
 					((uae_u32*)dst2)[dx] = ((uae_u32*)(src2 + x * 3))[0] & 0x00ffffff;
 				dx++;
 			}
@@ -4828,7 +4847,7 @@ static void copyrow_scale(int monid, uae_u8 *src, uae_u8 *src_screen, uae_u8 *ds
 			while (sx < endx) {
 				x = sx >> 8;
 				sx += sxadd;
-				if (!ck || colorkey == ((uae_u32*)srcs)[dx])
+				CKCHECK
 					((uae_u32*)dst2)[dx] = (src2[x * 4 + 0] << 16) | (src2[x * 4 + 1] << 8) | (src2[x * 4 + 2] << 0);
 				dx++;
 			}
@@ -4837,7 +4856,7 @@ static void copyrow_scale(int monid, uae_u8 *src, uae_u8 *src_screen, uae_u8 *ds
 			while (sx < endx) {
 				x = sx >> 8;
 				sx += sxadd;
-				if (!ck || colorkey == ((uae_u32*)srcs)[dx])
+				CKCHECK
 					((uae_u32*)dst2)[dx] = (src2[x * 4 + 1] << 16) | (src2[x * 4 + 2] << 8) | (src2[x * 4 + 3] << 0);
 				dx++;
 			}
@@ -4846,7 +4865,7 @@ static void copyrow_scale(int monid, uae_u8 *src, uae_u8 *src_screen, uae_u8 *ds
 			while (sx < endx) {
 				x = sx >> 8;
 				sx += sxadd;
-				if (!ck || colorkey == ((uae_u32*)srcs)[dx])
+				CKCHECK
 					((uae_u32*)dst2)[dx] = ((uae_u32*)src2)[x] >> 8;
 				dx++;
 			}
@@ -4859,44 +4878,73 @@ static void copyrow_scale(int monid, uae_u8 *src, uae_u8 *src_screen, uae_u8 *ds
 		case RGBFB_R5G5B5_32:
 		case RGBFB_B5G6R5PC_32:
 		case RGBFB_B5G5R5PC_32:
-
-		case RGBFB_Y4U1V1_32:
-		case RGBFB_Y4U2V2_32:
 		{
 			while ((sx & (3 << 8)) && sx < endx) {
 				x = sx >> 8;
 				sx += sxadd;
-				if (!ck || colorkey == ((uae_u32*)srcs)[dx])
+				CKCHECK
 					((uae_u32*)dst2)[dx] = p96_rgbx16p[((uae_u16*)src2)[x]];
 				dx++;
 			}
 			while (sx < endx4) {
 				x = sx >> 8;
 				sx += sxadd;
-				if (!ck || colorkey == ((uae_u32*)srcs)[dx])
+				CKCHECK
 					((uae_u32*)dst2)[dx] = p96_rgbx16p[((uae_u16*)src2)[x]];
 				dx++;
 				x = sx >> 8;
 				sx += sxadd;
-				if (!ck || colorkey == ((uae_u32*)srcs)[dx])
+				CKCHECK
 					((uae_u32*)dst2)[dx] = p96_rgbx16p[((uae_u16*)src2)[x]];
 				dx++;
 				x = sx >> 8;
 				sx += sxadd;
-				if (!ck || colorkey == ((uae_u32*)srcs)[dx])
+				CKCHECK
 					((uae_u32*)dst2)[dx] = p96_rgbx16p[((uae_u16*)src2)[x]];
 				dx++;
 				x = sx >> 8;
 				sx += sxadd;
-				if (!ck || colorkey == ((uae_u32*)srcs)[dx])
+				CKCHECK
 					((uae_u32*)dst2)[dx] = p96_rgbx16p[((uae_u16*)src2)[x]];
 				dx++;
 			}
 			while (sx < endx) {
 				x = sx >> 8;
 				sx += sxadd;
-				if (!ck || colorkey == ((uae_u32*)srcs)[dx])
+				CKCHECK
 					((uae_u32*)dst2)[dx] = p96_rgbx16p[((uae_u16*)src2)[x]];
+				dx++;
+			}
+		}
+		break;
+
+		case RGBFB_Y4U2V2_32:
+		{
+			while (sx < endx) {
+				x = sx >> 8;
+				sx += sxadd;
+				uae_u32 v = p96_rgbx16p[((uae_u16*)src2)[x]];
+				CKCHECK
+					((uae_u32*)dst2)[dx + 0] = v;
+				dx++;
+				CKCHECK
+					((uae_u32*)dst2)[dx + 1] = v;
+				dx++;
+			}
+		}
+		break;
+
+		case RGBFB_Y4U1V1_32:
+		{
+			while (sx < endx) {
+				x = sx >> 8;
+				sx += sxadd;
+				uae_u32 v = p96_rgbx16p[((uae_u16*)src2)[x]];
+				CKCHECK
+					((uae_u32*)dst2)[dx + 0] = v;
+				dx++;
+				CKCHECK
+					((uae_u32*)dst2)[dx + 1] = v;
 				dx++;
 			}
 		}
@@ -4909,48 +4957,78 @@ static void copyrow_scale(int monid, uae_u8 *src, uae_u8 *src_screen, uae_u8 *ds
 		case RGBFB_B5G5R5PC_16:
 		case RGBFB_B5G6R5PC_16:
 		case RGBFB_R5G6B5PC_16:
-
-		case RGBFB_Y4U1V1_16:
-		case RGBFB_Y4U2V2_16:
 		{
 			while ((sx & (3 << 8)) && sx < endx) {
 				x = sx >> 8;
 				sx += sxadd;
-				if (!ck || colorkey == ((uae_u16*)srcs)[dx])
+				CKCHECK
 					((uae_u16*)dst2)[dx] = (uae_u16)p96_rgbx16p[((uae_u16*)src2)[x]];
 				dx++;
 			}
 			while (sx < endx4) {
 				x = sx >> 8;
 				sx += sxadd;
-				if (!ck || colorkey == ((uae_u16*)srcs)[dx])
+				CKCHECK
 					((uae_u16*)dst2)[dx] = (uae_u16)p96_rgbx16p[((uae_u16*)src2)[x]];
 				dx++;
 				x = sx >> 8;
 				sx += sxadd;
-				if (!ck || colorkey == ((uae_u16*)srcs)[dx])
+				CKCHECK
 					((uae_u16*)dst2)[dx] = (uae_u16)p96_rgbx16p[((uae_u16*)src2)[x]];
 				dx++;
 				x = sx >> 8;
 				sx += sxadd;
-				if (!ck || colorkey == ((uae_u16*)srcs)[dx])
+				CKCHECK
 					((uae_u16*)dst2)[dx] = (uae_u16)p96_rgbx16p[((uae_u16*)src2)[x]];
 				dx++;
 				x = sx >> 8;
 				sx += sxadd;
-				if (!ck || colorkey == ((uae_u16*)srcs)[dx])
+				CKCHECK
 					((uae_u16*)dst2)[dx] = (uae_u16)p96_rgbx16p[((uae_u16*)src2)[x]];
 				dx++;
 			}
 			while (sx < endx) {
 				x = sx >> 8;
 				sx += sxadd;
-				if (!ck || colorkey == ((uae_u16*)srcs)[dx])
+				CKCHECK
 					((uae_u16*)dst2)[dx] = (uae_u16)p96_rgbx16p[((uae_u16*)src2)[x]];
 				dx++;
 			}
 		}
 		break;
+
+		case RGBFB_Y4U2V2_16:
+		{
+			while (sx < endx) {
+				x = sx >> 8;
+				sx += sxadd;
+				uae_u16 v = p96_rgbx16p[((uae_u16*)src2)[x]];
+				CKCHECK
+				((uae_u16*)dst2)[dx + 0] = v;
+				dx++;
+				CKCHECK
+				((uae_u16*)dst2)[dx + 1] = v;
+				dx++;
+			}
+		}
+		break;
+
+		case RGBFB_Y4U1V1_16:
+		{
+			while (sx < endx) {
+				x = sx >> 8;
+				sx += sxadd;
+				uae_u16 v = p96_rgbx16p[((uae_u16*)src2)[x]];
+				CKCHECK
+				((uae_u16*)dst2)[dx + 0] = v;
+				dx++;
+				CKCHECK
+				((uae_u16*)dst2)[dx + 1] = v;
+				dx++;
+			}
+		}
+		break;
+
 	}
 }
 
@@ -4961,12 +5039,19 @@ static void picasso_flushoverlay(int index, uae_u8 *src, int scr_offset, uae_u8 
 	struct picasso96_state_struct *state = &picasso96_state[monid];
 	struct picasso_vidbuf_description *vidinfo = &picasso_vidinfo[monid];
 
+	uae_u8 *vram_end = src + gfxmem_banks[0]->allocated_size;
 	uae_u8 *s = src + overlay_vram_offset;
 	uae_u8 *ss = src + scr_offset;
 	int mx = overlay_src_width * 256 / overlay_w;
 	int my = overlay_src_height * 256 / overlay_h;
 	int y = 0;
 	for (int dy = 0; dy < overlay_h; dy++) {
+		if (s + (y >> 8) * overlay_src_width * overlay_pix > vram_end)
+			break;
+		if (ss + (overlay_y + dy) * state->BytesPerRow > vram_end)
+			break;
+		if (dst + (overlay_y + dy) * vidinfo->rowbytes > vram_end)
+			break;
 		copyrow_scale(monid, s, ss, dst,
 			0, (y >> 8), mx, overlay_src_width, overlay_src_width * overlay_pix, overlay_pix,
 			state->BytesPerRow, state->BytesPerPixel,
@@ -5542,7 +5627,7 @@ static void overlaygettag(uae_u32 tag, uae_u32 val)
 		break;
 	case FA_Color:
 		overlay_color = val;
-		endianswap(&overlay_color, picasso_vidinfo[0].pixbytes);
+		endianswap(&overlay_color, picasso96_state[0].BytesPerPixel);
 		break;
 	}
 }

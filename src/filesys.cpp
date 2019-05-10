@@ -4036,7 +4036,7 @@ static void action_free_lock(TrapContext *ctx, Unit *unit, dpacket *packet)
 	PUT_PCK_RES1 (packet, DOS_TRUE);
 }
 
-static uaecptr action_dup_lock_2 (TrapContext *ctx, Unit *unit, dpacket *packet, uae_u32 uniq)
+static uaecptr action_dup_lock_2(TrapContext *ctx, Unit *unit, dpacket *packet, uae_u32 uniq)
 {
 	uaecptr out;
 	a_inode *a;
@@ -9064,9 +9064,8 @@ static uae_u32 REGPARAM2 mousehack_done (TrapContext *ctx)
 		input_mousehack_mouseoffset(a2);
 	} else if (mode == 17) {
 		uae_u32 v = 0;
-		if (currprefs.clipboard_sharing) {
+		if (currprefs.clipboard_sharing)
 			v |= 1;
-		}
 		if (consolehook_activate())
 			v |= 2;
 		if (currprefs.uaeboard > 2)

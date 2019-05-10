@@ -405,6 +405,7 @@ void do_leave_program (void)
 	uae_lua_free ();
 #endif
 #ifdef WITH_TOCCATA
+	sndboard_free();
 	uaesndboard_free();
 #endif
 	gfxboard_free();

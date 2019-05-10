@@ -4,7 +4,7 @@
 
 #include "ini.h"
 
-#ifdef FSUAE
+#ifdef FSUAE // NL
 #define _tfopen fopen
 #define fgetws fgets
 #define fputws fputs

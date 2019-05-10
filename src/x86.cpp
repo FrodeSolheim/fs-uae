@@ -111,6 +111,8 @@ static int32_t *x86_sndbuffer[2];
 static bool x86_sndbuffer_filled[2];
 bool ps2_mouse_supported;
 
+#ifdef WITH_X86
+
 struct membase
 {
 	uae_u8 *base;
@@ -3939,3 +3941,5 @@ bool isa_expansion_init(struct autoconfig_info *aci)
 	aci->zorro = 0;
 	return true;
 }
+
+#endif // WITH_X86

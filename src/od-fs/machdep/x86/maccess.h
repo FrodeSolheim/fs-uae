@@ -14,6 +14,8 @@
 #include "uae/inline.h"
 #endif
 
+#include <byteswap.h>
+
 STATIC_INLINE uae_u32 do_get_mem_long (uae_u32 *a)
 {
     uae_u32 retval;
@@ -35,6 +37,11 @@ STATIC_INLINE uae_u32 do_get_mem_word (uae_u16 *a)
 }
 
 #define do_get_mem_byte(a) ((uae_u32)*((uae_u8 *)a))
+
+STATIC_INLINE void do_put_mem_quad(uae_u64 *a, uae_u64 v)
+{
+	*a = bswap_64(v);
+}
 
 STATIC_INLINE void do_put_mem_long (uae_u32 *a, uae_u32 v)
 {

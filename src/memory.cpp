@@ -3144,7 +3144,7 @@ static addrbank *get_bank_cpu_thread(addrbank *bank)
 		at = xcalloc(addrbank_thread, 1);
 	thread_banks[thread_banks_used++] = at;
 	at->orig = bank;
-	memcpy(&at->ab, bank, sizeof addrbank);
+	memcpy(&at->ab, bank, sizeof(addrbank));
 	addrbank *tb = &at->ab;
 	tb->jit_read_flag = S_READ;
 	tb->jit_write_flag = S_WRITE;

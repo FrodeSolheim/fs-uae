@@ -1772,7 +1772,9 @@ void ncr80_rethink(void)
 	for (int i = 0; soft_scsi_devices[i]; i++) {
 		if (soft_scsi_devices[i]->irq && soft_scsi_devices[i]->intena) {
 			if (soft_scsi_devices[i] == x86_hd_data) {
+#ifdef WITH_X86
 				x86_doirq(5);
+#endif
 			} else {
 				safe_interrupt_set(IRQ_SOURCE_SCSI, i, soft_scsi_devices[i]->level6);
 			}
@@ -4793,6 +4795,8 @@ void omtiadapter_scsi_unit(int ch, struct uaedev_config_info *ci, struct romconf
 	generic_soft_scsi_add(ch, ci, rc, OMTI_ADAPTER, 65536, 0, ROMTYPE_OMTIADAPTER);
 }
 
+#ifdef WITH_X86
+
 bool x86_xt_hd_init(struct autoconfig_info *aci)
 {
 	if (!aci->doinit)
@@ -4814,6 +4818,8 @@ void x86_add_xt_hd_unit(int ch, struct uaedev_config_info *ci, struct romconfig 
 {
 	generic_soft_scsi_add(ch, ci, rc, OMTI_X86, 0, 0, ROMTYPE_X86_HD);
 }
+
+#endif
 
 bool phoenixboard_init(struct autoconfig_info *aci)
 {

@@ -259,53 +259,6 @@ libuae_a_SOURCES = \
 	src/diskutil.cpp \
 	src/dlopen.cpp \
 	src/dongle.cpp \
-	src/dosbox/callback.h \
-	src/dosbox/cmos.cpp \
-	src/dosbox/core_full/ea_lookup.h \
-	src/dosbox/core_full/load.h \
-	src/dosbox/core_full/loadwrite.h \
-	src/dosbox/core_full/op.h \
-	src/dosbox/core_full/optable.h \
-	src/dosbox/core_full/save.h \
-	src/dosbox/core_full/string.h \
-	src/dosbox/core_full/support.h \
-	src/dosbox/core_full.cpp \
-	src/dosbox/core_normal/helpers.h \
-	src/dosbox/core_normal/prefix_0f.h \
-	src/dosbox/core_normal/prefix_66_0f.h \
-	src/dosbox/core_normal/prefix_66.h \
-	src/dosbox/core_normal/prefix_none.h \
-	src/dosbox/core_normal/string.h \
-	src/dosbox/core_normal/support.h \
-	src/dosbox/core_normal/table_ea.h \
-	src/dosbox/core_normal.cpp \
-	src/dosbox/core_simple.cpp \
-	src/dosbox/cpu.cpp \
-	src/dosbox/cpu.h \
-	src/dosbox/db_memory.cpp \
-	src/dosbox/dosbox.h \
-	src/dosbox/flags.cpp \
-	src/dosbox/fpu.cpp \
-	src/dosbox/fpu.h \
-	src/dosbox/fpu_instructions.h \
-	src/dosbox/fpu_instructions_x86.h \
-	src/dosbox/inout.h \
-	src/dosbox/instructions.h \
-	src/dosbox/keyboard.cpp \
-	src/dosbox/lazyflags.h \
-	src/dosbox/logging.h \
-	src/dosbox/mem.h \
-	src/dosbox/modrm.cpp \
-	src/dosbox/modrm.h \
-	src/dosbox/paging.cpp \
-	src/dosbox/paging.h \
-	src/dosbox/pic.cpp \
-	src/dosbox/pic.h \
-	src/dosbox/regs.h \
-	src/dosbox/setup.h \
-	src/dosbox/support.h \
-	src/dosbox/timer.cpp \
-	src/dosbox/timer.h \
 	src/drawing.cpp \
 	src/driveclick.cpp \
 	src/enforcer.cpp \

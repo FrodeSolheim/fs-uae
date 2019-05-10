@@ -1738,7 +1738,6 @@ STATIC_INLINE void do_delays_fast_3_aga (int nbits, int fm)
 
 #endif
 
-static void do_delays_2_0 (int nbits) { do_delays_3_ecs (nbits); }
 #if 0
 
 STATIC_INLINE void do_delays_3_aga_hr(int nbits, int fm)

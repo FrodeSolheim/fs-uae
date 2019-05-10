@@ -10001,15 +10001,15 @@ void write_dcache030_mmu_lput(uaecptr addr, uae_u32 val)
 	write_dcache030_lput(addr, val, (regs.s ? 4 : 0) | 1);
 }
 
-uae_u32 read_dcache030_lrmw_mmu(uaecptr addr, uae_u32 size)
+uae_u32 read_dcache030_lrmw_mmu_fcx(uaecptr addr, uae_u32 size, int fc)
 {
 	if (currprefs.cpu_data_cache) {
 		mmu030_cache_state = CACHE_DISABLE_MMU;
 		if (size == 0)
-			return read_dcache030_bget(addr, (regs.s ? 4 : 0) | 1);
+			return read_dcache030_bget(addr, fc);
 		if (size == 1)
-			return read_dcache030_wget(addr, (regs.s ? 4 : 0) | 1);
-		return read_dcache030_lget(addr, (regs.s ? 4 : 0) | 1);
+			return read_dcache030_wget(addr, fc);
+		return read_dcache030_lget(addr, fc);
 	} else {
 		if (size == 0)
 			return read_data_030_bget(addr);
@@ -10018,16 +10018,20 @@ uae_u32 read_dcache030_lrmw_mmu(uaecptr addr, uae_u32 size)
 		return read_data_030_lget(addr);
 	}
 }
-void write_dcache030_lrmw_mmu(uaecptr addr, uae_u32 val, uae_u32 size)
+uae_u32 read_dcache030_lrmw_mmu(uaecptr addr, uae_u32 size)
+{
+	return read_dcache030_lrmw_mmu_fcx(addr, size, (regs.s ? 4 : 0) | 1);
+}
+void write_dcache030_lrmw_mmu_fcx(uaecptr addr, uae_u32 val, uae_u32 size, int fc)
 {
 	if (currprefs.cpu_data_cache) {
 		mmu030_cache_state = CACHE_DISABLE_MMU;
 		if (size == 0)
-			write_dcache030_bput(addr, val, (regs.s ? 4 : 0) | 1);
+			write_dcache030_bput(addr, val, fc);
 		else if (size == 1)
-			write_dcache030_wput(addr, val, (regs.s ? 4 : 0) | 1);
+			write_dcache030_wput(addr, val, fc);
 		else
-			write_dcache030_lput(addr, val, (regs.s ? 4 : 0) | 1);
+			write_dcache030_lput(addr, val, fc);
 	} else {
 		if (size == 0)
 			write_data_030_bput(addr, val);
@@ -10036,6 +10040,10 @@ void write_dcache030_lrmw_mmu(uaecptr addr, uae_u32 val, uae_u32 size)
 		else
 			write_data_030_lput(addr, val);
 	}
+}
+void write_dcache030_lrmw_mmu(uaecptr addr, uae_u32 val, uae_u32 size)
+{
+	write_dcache030_lrmw_mmu_fcx(addr, val, size, (regs.s ? 4 : 0) | 1);
 }
 
 static void do_access_or_bus_error(uaecptr pc, uaecptr pcnow)

@@ -954,7 +954,7 @@ void gfx_set_picasso_colors(int monid, RGBFTYPE rgbfmt)
 {
     write_log("gfx_set_picasso_colors %d\n", rgbfmt);
     alloc_colors_picasso(g_red_bits, g_green_bits, g_blue_bits, g_red_shift,
-            g_green_shift, g_blue_shift, rgbfmt);
+            g_green_shift, g_blue_shift, rgbfmt, p96_rgbx16);
 }
 
 int picasso_palette(int monid, struct MyCLUTEntry *CLUT)

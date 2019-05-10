@@ -153,6 +153,14 @@ bool target_isrelativemode(void)
 	return relativepaths != 0;
 }
 
+bool samepath(const TCHAR *p1, const TCHAR *p2)
+{
+	// FIXME: Copied minimal version from WinUAE, haven't checked usage
+	if (!_tcsicmp(p1, p2))
+		return true;
+	return false;
+}
+
 TCHAR start_path_data[MAX_DPATH];
 
 static void fetch_path (const TCHAR *name, TCHAR *out, int size)

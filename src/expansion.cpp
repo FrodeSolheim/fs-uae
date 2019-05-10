@@ -5474,6 +5474,7 @@ const struct expansionromtype expansionroms[] = {
 	},
 
 	/* PC Bridgeboards */
+
 	{
 		_T("a1060"), _T("A1060 Sidecar"), _T("Commodore"),
 		NULL, a1060_init, NULL, NULL, ROMTYPE_A1060 | ROMTYPE_NONE, 0, 0, BOARD_AUTOCONFIG_Z2, true,

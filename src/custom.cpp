@@ -9186,9 +9186,6 @@ static bool linesync_beam_multi_dual(void)
 					if (vp == -1) {
 						maybe_process_pull_audio();
 						target_spin(0);
-#if LLV_DEBUG
-						write_log(_T("3:%d:%d:%d:%d."), vpos, vp, nextwaitvpos, vsyncnextscanline);
-#endif
 						continue;
 					}
 					if (vp < 0 || vp >= vsyncnextscanline)
@@ -9555,6 +9552,9 @@ static bool linesync_beam_vrr(void)
 					if (display_slice_cnt == 1 && vp == -1) {
 						maybe_process_pull_audio();
 						target_spin(0);
+#if LLV_DEBUG
+						write_log(_T("3:%d:%d:%d:%d."), vpos, vp, nextwaitvpos, vsyncnextscanline);
+#endif
 						continue;
 					}
 					if (vp < 0 || vp >= vsyncnextscanline)
@@ -11798,9 +11798,7 @@ void wait_cpu_cycle_write (uaecptr addr, int mode, uae_u32 v)
 	else if (mode == 0)
 		put_byte (addr, v);
 
-	// chipset buffer latches the write, CPU does
-	// not need to wait for the chipset cycle to finish.
-	x_do_cycles_post (cpucycleunit + cpucycleunit / 2, v);
+	x_do_cycles_post (CYCLE_UNIT, v);
 
 	regs.chipset_latch_rw = regs.chipset_latch_write = v;
 	SETIFCHIP
@@ -11835,7 +11833,9 @@ void wait_cpu_cycle_write_ce020 (uaecptr addr, int mode, uae_u32 v)
 	else if (mode == 0)
 		put_byte (addr, v);
 
-	x_do_cycles_post (CYCLE_UNIT, v);
+	// chipset buffer latches the write, CPU does
+	// not need to wait for the chipset cycle to finish.
+	x_do_cycles_post (cpucycleunit + cpucycleunit / 2, v);
 
 	regs.chipset_latch_rw = regs.chipset_latch_write = v;
 	SETIFCHIP

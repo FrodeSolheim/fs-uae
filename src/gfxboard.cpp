@@ -122,22 +122,22 @@ static const struct gfxboard boards[] =
 		0x00100000, 0x00100000, 0x00200000, 0x00200000, CIRRUS_ID_CLGD5428, 2, 2, false
 	},
 	{
-		_T("Piccolo Zorro II"), _T("Ingenieurb�ro Helfrich"), _T("Piccolo_Z2"),
+		_T("Piccolo Zorro II"), _T("Ingenieurb\xfcro Helfrich"), _T("Piccolo_Z2"),
 		BOARD_MANUFACTURER_PICCOLO, BOARD_MODEL_MEMORY_PICCOLO, BOARD_MODEL_REGISTERS_PICCOLO,
 		0x00000000, 0x00100000, 0x00200000, 0x00200000, CIRRUS_ID_CLGD5426, 2, 6, true
 	},
 	{
-		_T("Piccolo Zorro III"), _T("Ingenieurb�ro Helfrich"), _T("Piccolo_Z3"),
+		_T("Piccolo Zorro III"), _T("Ingenieurb\xfcro Helfrich"), _T("Piccolo_Z3"),
 		BOARD_MANUFACTURER_PICCOLO, BOARD_MODEL_MEMORY_PICCOLO, BOARD_MODEL_REGISTERS_PICCOLO,
 		0x00000000, 0x00100000, 0x00200000, 0x00200000, CIRRUS_ID_CLGD5426, 3, 6, true
 	},
 	{
-		_T("Piccolo SD64 Zorro II"), _T("Ingenieurb�ro Helfrich"), _T("PiccoloSD64_Z2"),
+		_T("Piccolo SD64 Zorro II"), _T("Ingenieurb\xfcro Helfrich"), _T("PiccoloSD64_Z2"),
 		BOARD_MANUFACTURER_PICCOLO, BOARD_MODEL_MEMORY_PICCOLO64, BOARD_MODEL_REGISTERS_PICCOLO64,
 		0x00000000, 0x00200000, 0x00400000, 0x00400000, CIRRUS_ID_CLGD5434, 2, 6, true
 	},
 	{
-		_T("Piccolo SD64 Zorro III"), _T("Ingenieurb�ro Helfrich"), _T("PiccoloSD64_Z3"),
+		_T("Piccolo SD64 Zorro III"), _T("Ingenieurb\xfcro Helfrich"), _T("PiccoloSD64_Z3"),
 		BOARD_MANUFACTURER_PICCOLO, BOARD_MODEL_MEMORY_PICCOLO64, BOARD_MODEL_REGISTERS_PICCOLO64,
 		0x00000000, 0x00200000, 0x00400000, 0x04000000, CIRRUS_ID_CLGD5434, 3, 6, true
 	},

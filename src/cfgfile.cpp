@@ -44,10 +44,10 @@
 #include "gfxboard.h"
 #include "cpuboard.h"
 #include "luascript.h"
+#include "ethernet.h"
 #include "native2amiga_api.h"
 #include "ini.h"
 #include "specialmonitors.h"
-#include "ethernet.h"
 
 #ifdef FSUAE
 #include <uae/fs.h>

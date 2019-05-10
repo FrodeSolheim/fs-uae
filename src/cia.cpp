@@ -1413,7 +1413,7 @@ static void WriteCIAA (uae_u16 addr, uae_u8 val, uae_u32 *flags)
 #ifdef FSUAE
 				parallel_ack();
 #else
-				cia_parallelack ();
+				cia_parallelack();
 #endif
 			}
 		}

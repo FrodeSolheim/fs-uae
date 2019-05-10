@@ -248,7 +248,6 @@ static const TCHAR help[] = {
 	_T("  Zy 'symbol'           find symbol address.\n")
 	_T("  Zc 'file' <line>      find source code line address.\n")
 #endif /* WITH_SEGTRACKER */
-	_T("  ?<value>              Hex ($ and 0x)/Bin (%)/Dec (!) converter.\n")
 	_T("  vh [<ratio> <lines>]  \"Heat map\"\n")
 	_T("  I <custom event>      Send custom event string\n")
 	_T("  ?<value>              Hex ($ and 0x)/Bin (%)/Dec (!) converter and calculator.\n")

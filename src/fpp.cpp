@@ -3181,11 +3181,12 @@ void fpu_reset (void)
 	// reset precision
 	fpp_set_mode(0x00000080 | 0x00000010);
 	fpp_set_mode(0x00000000);
-}
 
 #if FPU_TEST
 	fpu_test();
 #endif
+
+}
 
 #ifdef SAVESTATE
 

@@ -6229,6 +6229,24 @@ static const struct cpuboardsubtype dceboard_sub[] = {
 	}
 };
 
+static const struct cpuboardsubtype harms_sub[] = {
+	{
+		_T("Professional 3000"),
+		_T("harms3kp"),
+		ROMTYPE_CB_HARMS3KP, 0,
+		NULL, 0,
+		BOARD_MEMORY_25BITMEM,
+		128 * 1024 * 1024,
+		0,
+		NULL, NULL, 0, 0,
+		NULL, //a26x0board_settings,
+		cpuboard_io_special
+	},
+	{
+		NULL
+	}
+};
+
 static const struct cpuboardsubtype dummy_sub[] = {
 	{ NULL }
 };
@@ -6313,6 +6331,11 @@ const struct cpuboardtype cpuboards[] = {
 		BOARD_HARDITAL,
 		_T("Hardital"),
 		hardital_sub, 0
+	},
+	{
+		BOARD_HARMS,
+		_T("Harms"),
+		harms_sub, 0
 	},
 	{
 		0

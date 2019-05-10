@@ -1699,19 +1699,34 @@ static bool load_extendedkickstart (const TCHAR *romextfile, int type)
 	return ret;
 }
 
-
+#ifdef FSUAE
+#include "fs/data.h"
+#else
 extern unsigned char arosrom[];
 extern unsigned int arosrom_len;
+#endif
 extern int seriallog;
 static bool load_kickstart_replacement(void)
 {
 	struct zfile *f;
+
+#ifdef FSUAE // NL
+	char *data;
+	int data_size;
+	if (fs_data_file_content("share/fs-uae/aros-amiga-m68k-ext.bin",
+							 &data, &data_size) != 0) {
+		//printf("%d\n", false);
+		return false;
+	}
+	f = zfile_fopen_data(_T("aros-ext.bin"), data_size, (const uae_u8*) data);
+#else
 	f = zfile_fopen_data(_T("aros.gz"), arosrom_len, arosrom);
 	if (!f)
 		return false;
 	f = zfile_gunzip(f);
 	if (!f)
 		return false;
+#endif
 
 	extendedkickmem_bank.reserved_size = ROM_SIZE_512;
 	extendedkickmem_bank.mask = ROM_SIZE_512 - 1;
@@ -1720,12 +1735,24 @@ static bool load_kickstart_replacement(void)
 	mapped_malloc(&extendedkickmem_bank);
 	read_kickstart(f, extendedkickmem_bank.baseaddr, ROM_SIZE_512, 0, 1);
 
+#ifdef FSUAE
+	zfile_fclose(f);
+	free(data);
+	if (fs_data_file_content("share/fs-uae/aros-amiga-m68k-rom.bin",
+							 &data, &data_size) != 0) {
+		return false;
+	}
+	f = zfile_fopen_data(_T("aros-rom.bin"), data_size, (const uae_u8*) data);
+#endif
 
 	kickmem_bank.reserved_size = ROM_SIZE_512;
 	kickmem_bank.mask = ROM_SIZE_512 - 1;
 	read_kickstart(f, kickmem_bank.baseaddr, ROM_SIZE_512, 1, 0);
 
 	zfile_fclose(f);
+#ifdef FSUAE
+	free(data);
+#endif
 
 	seriallog = -1;
 

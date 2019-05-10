@@ -237,11 +237,15 @@ struct sprite_entry
 	bool has_attached;
 };
 
-union sps_union {
-	uae_u8 bytes[2 * MAX_SPR_PIXELS];
-	uae_u32 words[2 * MAX_SPR_PIXELS / 4];
+struct sprite_stb
+{
+	/* Eight bits for every pixel for attachment
+	 * Another eight for 64/32 status
+	 */
+	uae_u8 stb[2 * MAX_SPR_PIXELS];
+	uae_u16 stbfm[2 * MAX_SPR_PIXELS];
 };
-extern union sps_union spixstate;
+extern struct sprite_stb spixstate;
 
 #ifdef OS_WITHOUT_MEMORY_MANAGEMENT
 extern uae_u16 *spixels;
@@ -268,9 +272,10 @@ struct decision {
 	int ctable;
 
 	uae_u16 bplcon0, bplcon2;
-//#ifdef AGA
+#ifdef AGA
 	uae_u16 bplcon3, bplcon4;
-//#endif
+	uae_u16 fmode;
+#endif
 	uae_u8 nr_planes;
 	uae_u8 bplres;
 	bool ehb_seen;

@@ -295,6 +295,7 @@ libuae_a_SOURCES = \
 	src/include/blkdev.h \
 	src/include/bsdsocket.h \
 	src/include/calc.h \
+	src/include/casablanca.h \
 	src/include/catweasel.h \
 	src/include/cd32_fmv.h \
 	src/include/cdtv.h \
@@ -310,6 +311,7 @@ libuae_a_SOURCES = \
 	src/include/crc32.h \
 	src/include/custom.h \
 	src/include/debug.h \
+	src/include/debugmem.h \
 	src/include/devices.h \
 	src/include/disk.h \
 	src/include/diskutil.h \
@@ -535,6 +537,27 @@ libuae_a_SOURCES = \
 	src/od-win32/serial_win32.cpp \
 	src/od-win32/win32_uaenet.cpp \
 	src/patch.cpp \
+	src/pcem/codegen.h \
+	src/pcem/codegen_x86-64.h \
+	src/pcem/cpu.h \
+	src/pcem/dma.h \
+	src/pcem/ibm.h \
+	src/pcem/keyboard.h \
+	src/pcem/keyboard_at.h \
+	src/pcem/mem.h \
+	src/pcem/model.h \
+	src/pcem/mouse.h \
+	src/pcem/mouse_serial.h \
+	src/pcem/nvr.h \
+	src/pcem/pcemglue.h \
+	src/pcem/pic.h \
+	src/pcem/pit.h \
+	src/pcem/sound.h \
+	src/pcem/sound_cms.h \
+	src/pcem/sound_speaker.h \
+	src/pcem/timer.h \
+	src/pcem/x86.h \
+	src/pcem/x86_ops.h \
 	src/pci.cpp \
 	src/ppc/pixman-stubs.cpp \
 	src/ppc/ppc.cpp \

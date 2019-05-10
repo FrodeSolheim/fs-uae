@@ -1957,7 +1957,7 @@ static uae_u32 REGPARAM2 toccata_lget(uaecptr addr)
 	return v;
 }
 
-static addrbank toccata_bank = {
+addrbank toccata_bank = {
 	toccata_lget, toccata_wget, toccata_bget,
 	toccata_lput, toccata_wput, toccata_bput,
 	default_xlate, default_check, NULL, _T("*"), _T("Toccata"),

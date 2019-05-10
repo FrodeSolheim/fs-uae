@@ -18,7 +18,7 @@ public:
     int num_sectors;
 	int sectorsize;
 
-	cda_audio(int num_sectors, int sectorsize, int samplerate);
+	cda_audio(int num_sectors, int sectorsize, int samplerate, bool internalmode);
 	~cda_audio();
 	void setvolume(int left, int right);
 	bool play(int bufnum);

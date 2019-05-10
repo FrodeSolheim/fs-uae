@@ -5250,6 +5250,7 @@ const struct expansionromtype expansionroms[] = {
 		_T("amax"), _T("AMAX ROM dongle"), _T("ReadySoft"),
 		NULL, NULL, NULL, NULL, ROMTYPE_AMAX | ROMTYPE_NONE, 0, 0, 0, false
 	},
+#ifdef WITH_X86
 	{
 		_T("x86athdprimary"), _T("AT IDE Primary"), _T("x86"),
 		NULL, x86_at_hd_init_1, NULL, x86_add_at_hd_unit_1, ROMTYPE_X86_AT_HD1 | ROMTYPE_NOT, 0, 0, BOARD_NONAUTOCONFIG_AFTER_Z2, true,
@@ -5266,7 +5267,6 @@ const struct expansionromtype expansionroms[] = {
 	},
 
 	/* PC Bridgeboards */
-
 	{
 		_T("a1060"), _T("A1060 Sidecar"), _T("Commodore"),
 		NULL, a1060_init, NULL, NULL, ROMTYPE_A1060 | ROMTYPE_NONE, 0, 0, BOARD_AUTOCONFIG_Z2, true,
@@ -5307,6 +5307,7 @@ const struct expansionromtype expansionroms[] = {
 		0, 0, 0, false, NULL,
 		false, 0, x86at386_bridge_settings
 	},
+#endif // WITH_X86
 
 	// only here for rom selection and settings
 	{
@@ -5373,6 +5374,7 @@ const struct expansionromtype expansionroms[] = {
 		false, 0, NULL,
 		{ 0x80, 2, 0x10, 0x00, 6502 >> 8, 6502 & 255, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }
 	},
+#ifdef WITH_X86
 	{
 		_T("sb_isa"), _T("SoundBlaster ISA (Creative)"), NULL,
 		NULL, isa_expansion_init, NULL, NULL, ROMTYPE_SBISA | ROMTYPE_NOT, 0, 0, BOARD_NONAUTOCONFIG_BEFORE, true,
@@ -5381,7 +5383,7 @@ const struct expansionromtype expansionroms[] = {
 		0, 0, 0, false, NULL,
 		false, 0, sb_isa_settings
 	},
-
+#endif // WITH_X86
 
 #if 0
 	{
@@ -5484,6 +5486,7 @@ const struct expansionromtype expansionroms[] = {
 		0, 0, 0, false, NULL,
 		false, 0, ethernet_settings,
 	},
+#ifdef WITH_X86
 	{
 		_T("ne2000_isa"), _T("RTL8019 ISA (NE2000 compatible)"), NULL,
 		NULL, isa_expansion_init, NULL, NULL, ROMTYPE_NE2KISA | ROMTYPE_NOT, 0, 0, BOARD_NONAUTOCONFIG_BEFORE, true,
@@ -5492,7 +5495,7 @@ const struct expansionromtype expansionroms[] = {
 		0, 0, 0, false, NULL,
 		false, 0, ne2k_isa_settings
 	},
-
+#endif
 #ifdef CATWEASEL
 		/* Catweasel */
 	{
@@ -5584,6 +5587,7 @@ const struct expansionromtype expansionroms[] = {
 		0, 0, 0, false, NULL,
 		false, 0, cubo_settings,
 	},
+#ifdef WITH_X86
 	{
 		_T("x86_mouse"), _T("x86 Bridgeboard mouse"), NULL,
 		NULL, isa_expansion_init, NULL, NULL, ROMTYPE_X86MOUSE | ROMTYPE_NOT, 0, 0, BOARD_NONAUTOCONFIG_BEFORE, true,
@@ -5592,7 +5596,7 @@ const struct expansionromtype expansionroms[] = {
 		0, 0, 0, false, NULL,
 		false, 0, x86_mouse_settings
 	},
-
+#endif // WITH_X86
 
 	{
 		NULL

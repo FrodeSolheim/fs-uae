@@ -269,7 +269,9 @@ void devices_update_sound(double clk, double syncadjust)
 	update_sndboard_sound (clk / syncadjust);
 #endif
 	update_cda_sound(clk / syncadjust);
+#ifdef WITH_X86
 	x86_update_sound(clk / syncadjust);
+#endif
 }
 
 void devices_update_sync(double svpos, double syncadjust)
@@ -491,7 +493,9 @@ void devices_restore_start(void)
 
 void devices_syncchange(void)
 {
+#ifdef WITH_X86
 	x86_bridge_sync_change();
+#endif
 }
 
 void devices_pause(void)

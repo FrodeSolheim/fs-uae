@@ -2348,6 +2348,8 @@ void elsathd_add_ide_unit(int ch, struct uaedev_config_info *ci, struct romconfi
 	add_ide_standard_unit(ch, ci, rc, elsathd_board, ELSATHD_IDE, true, false, 2);
 }
 
+#ifdef WITH_X86
+
 extern void x86_xt_ide_bios(struct zfile*, struct romconfig*);
 static bool x86_at_hd_init(struct autoconfig_info *aci, int type)
 {
@@ -2485,3 +2487,5 @@ uae_u16 x86_ide_hd_get(int portnum, int size)
 	}
 	return v;
 }
+
+#endif // WITH_X86

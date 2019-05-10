@@ -761,6 +761,8 @@ OPT_FEATURE([WITH_QEMU_CPU], [qemu_cpu], [qemu-cpu],
             [use QEMU plugin for PPC emulation])
 OPT_FEATURE([WITH_QEMU_SLIRP], [qemu_slirp], [qemu-slirp],
             [use QEMU plugin for SLIRP implementation])
+REQ_FEATURE([WITH_THREADED_CPU], [threaded_cpu], [threaded-cpu],
+            [Threaded CPU emulation])
 REQ_FEATURE([WITH_TOCCATA], [toccata], [toccata],
             [Toccata sound card emulation])
 OPT_FEATURE([WITH_UAENATIVE], [uaenative], [uaenative],

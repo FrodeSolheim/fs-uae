@@ -3109,7 +3109,9 @@ static void mouseupdate (int pct, bool vsync)
 				pc_mouse_buttons[i] |= 4;
 			else
 				pc_mouse_buttons[i] &= ~4;
+#ifdef WITH_X86
 			x86_mouse(i, v1, v2, v3, pc_mouse_buttons[i]);
+#endif
 
 #if OUTPUTDEBUG
 			if (v1 || v2) {

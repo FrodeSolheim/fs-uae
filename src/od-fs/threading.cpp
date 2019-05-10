@@ -68,6 +68,13 @@ bool is_mainthread(void)
     return uae_is_main_thread();
 }
 
+uae_thread_id uae_thread_get_id(void)
+{
+    // Casting a long to a pointer isn't very nice,
+    // but should work at least
+    return (uae_thread_id) SDL_ThreadID();
+}
+
 void uae_register_emulation_thread(void)
 {
     g_emulation_thread_id = SDL_ThreadID();

@@ -286,3 +286,9 @@ void target_getdate(int *y, int *m, int *d)
     *m = 5;
     *d = 8;
 }
+
+uae_u8 *save_screenshot(int monid, int *len)
+{
+    STUB("");
+    return NULL;
+}

@@ -5440,7 +5440,10 @@ static void picasso_flushpixels(int index, uae_u8 *src, int off, bool render)
 			gwwcnt = gwwbufsize[index];
 			uae_u8 *ovr_start = src + (overlay_vram_offset & ~gwwpagemask[index]);
 			uae_u8 *ovr_end = src + ((overlay_vram_offset + overlay_src_width * overlay_src_height * overlay_pix + gwwpagesize[index] - 1) & ~gwwpagemask[index]);
+#ifdef FSUAE
+#else
 			mman_GetWriteWatch(ovr_start, ovr_end - ovr_start, gwwbuf[index], &gwwcnt, &ps);
+#endif
 			overlay_updated = gwwcnt > 0;
 		}
 

@@ -5256,7 +5256,6 @@ static void picasso_flushoverlay(int index, uae_u8 *src, int scr_offset, uae_u8 
 			overlay_convert, p96_rgbx16_ovl);
 		y += my;
 	}
-	vidinfo->full_refresh = 1;
 }
 
 void fb_copyrow(int monid, uae_u8 *src, uae_u8 *dst, int x, int y, int width, int srcpixbytes, int dy)
@@ -5402,10 +5401,11 @@ static void picasso_flushpixels(int index, uae_u8 *src, int off, bool render)
 	vidinfo->extra_mem = 1;
 #endif
 
+	bool overlay_updated = false;
 	src_start = src + (off & ~gwwpagemask[index]);
 	src_end = src + ((off + state->BytesPerRow * pheight + gwwpagesize[index] - 1) & ~gwwpagemask[index]);
 #if 0
-	write_log (_T("%dx%d %dx%d %dx%d (%dx%d)\n"), state->Width, state->Width,
+	write_log(_T("%dx%d %dx%d %dx%d (%dx%d)\n"), state->Width, state->Width,
 		state->VirtualWidth, state->VirtualHeight,
 		picasso_vidinfo.width, picasso_vidinfo.height,
 		pwidth, pheight);
@@ -5428,14 +5428,23 @@ static void picasso_flushpixels(int index, uae_u8 *src, int off, bool render)
 
 		gwwcnt = 0;
 
-		if (doskip () && p96skipmode == 1) {
+		if (doskip() && p96skipmode == 1) {
 #ifdef FSUAE
 			printf("breaking\n");
 #endif
 			break;
 		}
 
-		if (vidinfo->full_refresh < 0) {
+		if (!index && overlay_vram && overlay_active) {
+			ULONG ps;
+			gwwcnt = gwwbufsize[index];
+			uae_u8 *ovr_start = src + (overlay_vram_offset & ~gwwpagemask[index]);
+			uae_u8 *ovr_end = src + ((overlay_vram_offset + overlay_src_width * overlay_src_height * overlay_pix + gwwpagesize[index] - 1) & ~gwwpagemask[index]);
+			mman_GetWriteWatch(ovr_start, ovr_end - ovr_start, gwwbuf[index], &gwwcnt, &ps);
+			overlay_updated = gwwcnt > 0;
+		}
+
+		if (vidinfo->full_refresh < 0 || overlay_updated) {
 			gwwcnt = (src_end - src_start) / gwwpagesize[index] + 1;
 			vidinfo->full_refresh = 1;
 			for (int i = 0; i < gwwcnt; i++)
@@ -5445,7 +5454,7 @@ static void picasso_flushpixels(int index, uae_u8 *src, int off, bool render)
 			gwwcnt = gwwbufsize[index];
 #ifdef FSUAE
 #else
-			if (mman_GetWriteWatch (src_start, src_end - src_start, gwwbuf[index], &gwwcnt, &ps))
+			if (mman_GetWriteWatch(src_start, src_end - src_start, gwwbuf[index], &gwwcnt, &ps))
 				break;
 #endif
 		}
@@ -5464,7 +5473,7 @@ static void picasso_flushpixels(int index, uae_u8 *src, int off, bool render)
 			break;
 		dst += vidinfo->offset;
 
-		if (doskip () && p96skipmode == 2) {
+		if (doskip() && p96skipmode == 2) {
 #ifdef FSUAE
 			printf("breaking (2)\n");
 #endif
@@ -5536,7 +5545,7 @@ static void picasso_flushpixels(int index, uae_u8 *src, int off, bool render)
 		break;
 	}
 
-	if (!index && overlay_vram && overlay_active) {
+	if (!index && overlay_vram && overlay_active && (flushlines || overlay_updated)) {
 		if (dst == NULL) {
 			dst = gfx_lock_picasso(monid, false, false);
 		}

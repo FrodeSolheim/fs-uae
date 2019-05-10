@@ -156,6 +156,8 @@ struct memwatch_node {
 	int frozen;
 	uae_u32 reg;
 	uaecptr pc;
+	bool nobreak;
+	bool reportonly;
 };
 extern struct memwatch_node mwnodes[MEMWATCH_TOTAL];
 

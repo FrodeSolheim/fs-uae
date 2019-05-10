@@ -8563,6 +8563,7 @@ static void vsync_handler_post (void)
 #ifdef PICASSO96
 	if (p96refresh_active) {
 		vpos_count = p96refresh_active;
+		vpos_count_diff = p96refresh_active;
 		vtotal = vpos_count;
 	}
 #endif

@@ -2297,8 +2297,19 @@ static uaecptr ShowEA_disp(uaecptr *pcp, uaecptr base, TCHAR *buffer, const TCHA
 		TCHAR *p = buffer + _tcslen(buffer);
 
 		if (dp & 3) {
+			// indirect
 			_stprintf(p, _T("["));
 			p += _tcslen(p);
+		} else {
+			// (an,dn,word/long)
+			if (name) {
+				_stprintf(p, _T("%s,"), name);
+				p += _tcslen(p);
+			}
+			if (dr[0]) {
+				_stprintf(p, _T("%s%s,"), dr, mult);
+				p += _tcslen(p);
+			}
 		}
 
 		if ((dp & 0x30) == 0x20) { // BD SIZE = 2 (WORD)
@@ -2320,27 +2331,26 @@ static uaecptr ShowEA_disp(uaecptr *pcp, uaecptr base, TCHAR *buffer, const TCHA
 				_stprintf(p, _T("%s,"), name);
 				p += _tcslen(p);
 			}
-		}
 
-		if (!(dp & 0x04)) {
-			if (dr[0]) {
-				_stprintf(p, _T("%s%s,"), dr, mult);
-				p += _tcslen(p);
+			if (!(dp & 0x04)) {
+				if (dr[0]) {
+					_stprintf(p, _T("%s%s,"), dr, mult);
+					p += _tcslen(p);
+				}
 			}
-		}
 
-		if (dp & 3) {
 			if (p[-1] == ',')
 				p--;
 			_stprintf(p, _T("],"));
 			p += _tcslen(p);
-		}
 
-		if ((dp & 0x04)) {
-			if (dr[0]) {
-				_stprintf(p, _T("%s%s,"), dr, mult);
-				p += _tcslen(p);
+			if ((dp & 0x04)) {
+				if (dr[0]) {
+					_stprintf(p, _T("%s%s,"), dr, mult);
+					p += _tcslen(p);
+				}
 			}
+
 		}
 
 		if ((dp & 0x03) == 0x02) {

@@ -1028,6 +1028,20 @@ static void mmu030_atc_handle_history_bit(int entry_num) {
 	}
 }
 
+static void desc_put_long(uaecptr addr, uae_u32 v)
+{
+	x_phys_put_long(addr, v);
+}
+static uae_u32 desc_get_long(uaecptr addr)
+{
+	return x_phys_get_long(addr);
+}
+static void desc_get_quad(uaecptr addr, uae_u32 *descr)
+{
+	descr[0] = x_phys_get_long(addr);
+	descr[1] = x_phys_get_long(addr + 4);
+}
+
 /* Descriptors */
 
 #define DESCR_TYPE_MASK         0x00000003
@@ -1188,38 +1202,42 @@ static void mmu030_atc_handle_history_bit(int entry_num) {
  * for PTEST (levels 1 to 7). Using level 0 creates an ATC entry. */
 
 static uae_u32 mmu030_table_search(uaecptr addr, uae_u32 fc, bool write, int level) {
-        /* During table walk up to 7 different descriptors are used:
-         * root pointer, descriptors fetched from function code lookup table,
-         * tables A, B, C and D and one indirect descriptor */
-        uae_u32 descr[2];
-        uae_u32 descr_type;
-        uaecptr descr_addr[7];
-        uaecptr table_addr = 0;
-        uaecptr page_addr = 0;
-        uaecptr indirect_addr = 0;
-        uae_u32 table_index = 0;
-        uae_u32 limit = 0;
-        uae_u32 unused_fields_mask = 0;
-        bool super = (fc&4) ? true : false;
-        bool super_violation = false;
-        bool write_protected = false;
-        uae_u8 cache_inhibit = CACHE_ENABLE_ALL;
-        bool descr_modified = false;
+    /* During table walk up to 7 different descriptors are used:
+     * root pointer, descriptors fetched from function code lookup table,
+     * tables A, B, C and D and one indirect descriptor */
+    uae_u32 descr[2];
+    uae_u32 descr_type;
+    uaecptr descr_addr[7];
+    uaecptr table_addr = 0;
+    uaecptr page_addr = 0;
+    uaecptr indirect_addr = 0;
+    uae_u32 table_index = 0;
+    uae_u32 limit = 0;
+    uae_u32 unused_fields_mask = 0;
+    bool super = (fc&4) ? true : false;
+    bool super_violation = false;
+    bool write_protected = false;
+    uae_u8 cache_inhibit = CACHE_ENABLE_ALL;
+    bool descr_modified = false;
         
-        mmu030.status = 0; /* Reset status */
+    mmu030.status = 0; /* Reset status */
         
-        /* Initial values for condition variables.
-         * Note: Root pointer is long descriptor. */
-        int t = 0;
-        int addr_position = 1;
-        int next_size = 0;
-        int descr_size = 8;
-        int descr_num = 0;
-        bool early_termination = false;
-        
-        int i;
+    /* Initial values for condition variables.
+     * Note: Root pointer is long descriptor. */
+    int t = 0;
+    int addr_position = 1;
+    int next_size = 0;
+    int descr_size = 8;
+    int descr_num = 0;
+    bool early_termination = false;
+    int old_s;
+    int i;
     
-    TRY(prb) {
+	// Always use supervisor mode to access descriptors
+    old_s = regs.s;
+    regs.s = 1;
+
+	TRY(prb) {
         /* Use super user root pointer if enabled in TC register and access is in
          * super user mode, else use cpu root pointer. */
         if ((tc_030&TC_ENABLE_SUPERVISOR) && super) {
@@ -1278,13 +1296,12 @@ static uae_u32 mmu030_table_search(uaecptr addr, uae_u32 fc, bool write, int lev
             descr_addr[descr_num] = table_addr+(table_index*next_size);
             
             if (next_size==4) {
-                descr[0] = phys_get_long(descr_addr[descr_num]);
+                descr[0] = desc_get_long(descr_addr[descr_num]);
 #if MMU030_REG_DBG_MSG
                 write_log(_T("Next descriptor: %08X\n"),descr[0]);
 #endif
             } else {
-                descr[0] = phys_get_long(descr_addr[descr_num]);
-                descr[1] = phys_get_long(descr_addr[descr_num]+4);
+				desc_get_quad(descr_addr[descr_num], descr);
 #if MMU030_REG_DBG_MSG
                 write_log(_T("Next descriptor: %08X%08X\n"),descr[0],descr[1]);
 #endif
@@ -1330,7 +1347,7 @@ static uae_u32 mmu030_table_search(uaecptr addr, uae_u32 fc, bool write, int lev
                 /* Set the updated bit */
                 if (!level && !(descr[0]&DESCR_U) && !super_violation) {
                     descr[0] |= DESCR_U;
-                    phys_put_long(descr_addr[descr_num], descr[0]);
+                    desc_put_long(descr_addr[descr_num], descr[0]);
                 }
                 
                 /* Update status bits */
@@ -1375,13 +1392,12 @@ static uae_u32 mmu030_table_search(uaecptr addr, uae_u32 fc, bool write, int lev
             descr_addr[descr_num] = table_addr+(table_index*next_size);
             
             if (next_size==4) {
-                descr[0] = phys_get_long(descr_addr[descr_num]);
+                descr[0] = desc_get_long(descr_addr[descr_num]);
 #if MMU030_REG_DBG_MSG
                 write_log(_T("Next descriptor: %08X\n"),descr[0]);
 #endif
             } else {
-                descr[0] = phys_get_long(descr_addr[descr_num]);
-                descr[1] = phys_get_long(descr_addr[descr_num]+4);
+				desc_get_quad(descr_addr[descr_num], descr);
 #if MMU030_REG_DBG_MSG
                 write_log(_T("Next descriptor: %08X%08X\n"),descr[0],descr[1]);
 #endif
@@ -1436,13 +1452,12 @@ static uae_u32 mmu030_table_search(uaecptr addr, uae_u32 fc, bool write, int lev
         descr_addr[descr_num] = indirect_addr;
         
         if (next_size==4) {
-            descr[0] = phys_get_long(descr_addr[descr_num]);
+            descr[0] = desc_get_long(descr_addr[descr_num]);
 #if MMU030_REG_DBG_MSG
             write_log(_T("descr = %08X\n"),descr[0]);
 #endif
 		} else {
-            descr[0] = phys_get_long(descr_addr[descr_num]);
-            descr[1] = phys_get_long(descr_addr[descr_num]+4);
+			desc_get_quad(descr_addr[descr_num], descr);
 #if MMU030_REG_DBG_MSG
             write_log(_T("descr = %08X%08X"),descr[0],descr[1]);
 #endif
@@ -1481,7 +1496,7 @@ static uae_u32 mmu030_table_search(uaecptr addr, uae_u32 fc, bool write, int lev
                 }
                 /* write modified descriptor if necessary */
                 if (descr_modified) {
-                    phys_put_long(descr_addr[descr_num], descr[0]);
+                    desc_put_long(descr_addr[descr_num], descr[0]);
                 }
             }
             
@@ -1553,8 +1568,11 @@ static uae_u32 mmu030_table_search(uaecptr addr, uae_u32 fc, bool write, int lev
         mmu030.status |= (MMUSR_BUS_ERROR|MMUSR_INVALID);
         write_log(_T("MMU: Bus error while %s descriptor!\n"),
                   bBusErrorReadWrite?_T("reading"):_T("writing"));
-    } ENDTRY
-    
+    } ENDTRY;
+
+    // Restore original supervisor state
+    regs.s = old_s;
+
     /* check if we have to handle ptest */
     if (level) {
         /* Note: wp, m and sv bits are undefined if the invalid bit is set */
@@ -1759,8 +1777,9 @@ void mmu030_page_fault(uaecptr addr, bool read, int flags, uae_u32 fc)
 	regs.mmu_ssw |= read ? MMU030_SSW_RW : 0;
 	regs.mmu_ssw |= flags;
 	regs.mmu_ssw |= fc;
-	// store in wb3_data because stack frame creation may modify data buffer.
+	// temporary store in 68040+ variables because stack frame creation may modify them.
 	regs.wb3_data = mmu030_data_buffer_out;
+	regs.wb2_address = mmu030_state[1];
     bBusErrorReadWrite = read; 
 	mm030_stageb_address = addr;
 
@@ -2380,28 +2399,37 @@ uae_u32 REGPARAM2 mmu030_get_ilong_unaligned(uaecptr addr, uae_u32 fc, int flags
 	return res;
 }
 
-static void unalign_init(bool l, bool l2)
+static void unalign_init(uaecptr addr, bool l, bool l2)
 {
 	if (l2)
 		mmu030_state[1] |= MMU030_STATEFLAG1_SUBACCESSX;
 	if (l)
 		mmu030_state[1] |= MMU030_STATEFLAG1_SUBACCESSL;
 	mmu030_state[1] |= MMU030_STATEFLAG1_SUBACCESS0;
+#if MMU030_DEBUG > 1
+	write_log(_T("unalign_init %08x %08x %d %d\n"), addr, mmu030_state[1], l, l2);
+#endif
 }
 static void unalign_set(int state)
 {
 	mmu030_state[1] |= (1 << state) << (MMU030_STATEFLAG1_SUBACCESS_SHIFT + 1);
+#if MMU030_DEBUG > 1
+	write_log(_T("unalign_set %d %08x\n"), state, mmu030_state[1]);
+#endif
 }
 static void unalign_clear(void)
 {
+#if MMU030_DEBUG > 1
+	write_log(_T("unalign_clear %08x %08x\n"), mmu030_state[1], mmu030_data_buffer_out);
+#endif
 	mmu030_state[1] &= ~(MMU030_STATEFLAG1_SUBACCESSL | MMU030_STATEFLAG1_SUBACCESSX |
 		MMU030_STATEFLAG1_SUBACCESS0 | MMU030_STATEFLAG1_SUBACCESS1 | MMU030_STATEFLAG1_SUBACCESS2 | MMU030_STATEFLAG1_SUBACCESS3);
 }
 
 uae_u16 REGPARAM2 mmu030_get_word_unaligned(uaecptr addr, uae_u32 fc, int flags)
 {
-	unalign_init(false, false);
-	mmu030_data_buffer_out = (uae_u16)mmu030_get_generic(addr, fc, sz_byte, flags | MMU030_SSW_SIZE_W) << 8;
+	unalign_init(addr, false, false);
+	mmu030_data_buffer_out = mmu030_get_generic(addr, fc, sz_byte, flags | MMU030_SSW_SIZE_W) << 8;
 	unalign_set(0);
 	mmu030_data_buffer_out |= mmu030_get_generic(addr + 1, fc, sz_byte, flags | MMU030_SSW_SIZE_B);
 	unalign_clear();
@@ -2411,13 +2439,13 @@ uae_u16 REGPARAM2 mmu030_get_word_unaligned(uaecptr addr, uae_u32 fc, int flags)
 uae_u32 REGPARAM2 mmu030_get_long_unaligned(uaecptr addr, uae_u32 fc, int flags)
 {
 	if (likely(!(addr & 1))) {
-		unalign_init(true, false);
-		mmu030_data_buffer_out = (uae_u32)mmu030_get_generic(addr, fc, sz_word, flags | MMU030_SSW_SIZE_L) << 16;
+		unalign_init(addr, true, false);
+		mmu030_data_buffer_out = mmu030_get_generic(addr, fc, sz_word, flags | MMU030_SSW_SIZE_L) << 16;
 		unalign_set(0);
 		mmu030_data_buffer_out |= mmu030_get_generic(addr + 2, fc, sz_word, flags | MMU030_SSW_SIZE_W);
 	} else {
-		unalign_init(true, true);
-		mmu030_data_buffer_out = (uae_u32)mmu030_get_generic(addr, fc, sz_byte, flags | MMU030_SSW_SIZE_L) << 24;
+		unalign_init(addr, true, true);
+		mmu030_data_buffer_out = mmu030_get_generic(addr, fc, sz_byte, flags | MMU030_SSW_SIZE_L) << 24;
 		unalign_set(0);
 		mmu030_data_buffer_out |= mmu030_get_generic(addr + 1, fc, sz_word, flags | MMU030_SSW_SIZE_W) << 8;
 		unalign_set(1);
@@ -2430,12 +2458,12 @@ uae_u32 REGPARAM2 mmu030_get_long_unaligned(uaecptr addr, uae_u32 fc, int flags)
 void REGPARAM2 mmu030_put_long_unaligned(uaecptr addr, uae_u32 val, uae_u32 fc, int flags)
 {
 	if (likely(!(addr & 1))) {
-		unalign_init(true, false);
+		unalign_init(addr, true, false);
 		mmu030_put_generic(addr, val >> 16, fc, sz_word, flags | MMU030_SSW_SIZE_L);
 		unalign_set(0);
 		mmu030_put_generic(addr + 2, val, fc, sz_word, flags | MMU030_SSW_SIZE_W);
 	} else {
-		unalign_init(true, true);
+		unalign_init(addr, true, true);
 		mmu030_put_generic(addr, val >> 24, fc, sz_byte, flags | MMU030_SSW_SIZE_L);
 		unalign_set(0);
 		mmu030_put_generic(addr + 1, val >> 8, fc, sz_word, flags | MMU030_SSW_SIZE_W);
@@ -2447,7 +2475,7 @@ void REGPARAM2 mmu030_put_long_unaligned(uaecptr addr, uae_u32 val, uae_u32 fc, 
 
 void REGPARAM2 mmu030_put_word_unaligned(uaecptr addr, uae_u16 val, uae_u32 fc, int flags)
 {
-	unalign_init(false, false);
+	unalign_init(addr, false, false);
 	mmu030_put_generic(addr, val >> 8, fc, sz_byte, flags | MMU030_SSW_SIZE_W);
 	unalign_set(0);
 	mmu030_put_generic(addr + 1, val, fc, sz_byte, flags | MMU030_SSW_SIZE_B);
@@ -2615,6 +2643,7 @@ static void mmu030_unaligned_read_continue(uaecptr addr, int fc, unaligned_read_
 #if MMUDEBUG
 	write_log(_T("unaligned_read_continue_e: %08x %d %08x %08x\n"), addr, fc, mmu030_data_buffer_out, st);
 #endif
+	unalign_clear();
 }
 
 typedef void (*unaligned_write_func)(uaecptr addr, uae_u32 val, uae_u32 fc, int size, int flags);
@@ -2690,6 +2719,7 @@ static void mmu030_unaligned_write_continue(uaecptr addr, int fc, unaligned_writ
 #if MMUDEBUG
 	write_log(_T("unaligned_write_continue_e: %08x %d %08x %08x\n"), addr, fc, mmu030_data_buffer_out, st);
 #endif
+	unalign_clear();
 }
 
 void m68k_do_rte_mmu030 (uaecptr a7)
@@ -2724,7 +2754,7 @@ void m68k_do_rte_mmu030 (uaecptr a7)
 	// Data buffer
 	uae_u32 mmu030_data_buffer_in_v = get_long_mmu030(a7 + 0x2c);;
 
-	uae_u32 mmu030_opcode_v = (ps & 0x80000000) ? -1U : (oc & 0xffff);
+	uae_u32 mmu030_opcode_v = (ps & 0x80000000) ? -1 : (oc & 0xffff);
 	// Misc state data
 	uae_u32 mmu030_state_0 = get_word_mmu030(a7 + 0x30);
 	uae_u32 mmu030_state_1 = get_word_mmu030(a7 + 0x32);
@@ -2767,11 +2797,12 @@ void m68k_do_rte_mmu030 (uaecptr a7)
 					mmu030_ad_v[idxsize].val = mmu030_data_buffer_in_v;
 				}
 			}
+			unalign_clear();
 		}
 		// did we have ins fault and RB bit cleared?
 		if ((ssw & MMU030_SSW_FB) && !(ssw & MMU030_SSW_RB)) {
 			uae_u16 stageb = get_word_mmu030 (a7 + 0x0e);
-			if (mmu030_opcode_v == -1U) {
+			if (mmu030_opcode_v == -1) {
 				mmu030_opcode_stageb = stageb;
 				write_log (_T("Software fixed stage B! opcode = %04x\n"), stageb);
 			} else {
@@ -2833,9 +2864,9 @@ void m68k_do_rte_mmu030 (uaecptr a7)
 #endif
 
 #if MMU030_DEBUG
-			write_log(_T("%08x %08x %08x %08x %08x %d %d %d %08x %08x\n"),
+			write_log(_T("%08x %08x %08x %08x %08x %d %d %d %08x %08x %04x\n"),
 				mmu030_state[1], mmu030_state[2], mmu030_disp_store[0], mmu030_disp_store[1],
-				addr, read, size, fc, mmu030_data_buffer_out, mmu030_ad[idxsize].val);
+				addr, read, size, fc, mmu030_data_buffer_out, mmu030_ad[idxsize].val, ssw);
 #endif
 
 			if (read) {
@@ -3112,7 +3143,7 @@ void m68k_do_rte_mmu030c (uaecptr a7)
 	// Data buffer
 	uae_u32 mmu030_data_buffer_in_v = get_long_mmu030c(a7 + 0x2c);;
 
-	uae_u32 mmu030_opcode_v = (ps & 0x80000000) ? -1U : (oc & 0xffff);
+	uae_u32 mmu030_opcode_v = (ps & 0x80000000) ? -1 : (oc & 0xffff);
 	// Misc state data
 	uae_u32 mmu030_state_0 = get_word_mmu030c(a7 + 0x30);
 	uae_u32 mmu030_state_1 = get_word_mmu030c(a7 + 0x32);
@@ -3154,6 +3185,7 @@ void m68k_do_rte_mmu030c (uaecptr a7)
 					mmu030_ad_v[idxsize].val = mmu030_data_buffer_in_v;
 				}
 			}
+			unalign_clear();
 		}
 
 		// Retried data access is the only memory access that can be done after this.
@@ -3164,7 +3196,7 @@ void m68k_do_rte_mmu030c (uaecptr a7)
 		regs.pipeline_r8[0] = (ps >> 8) & 7;
 		regs.pipeline_r8[1] = (ps >> 11) & 7;
 		regs.pipeline_pos = (ps >> 16) & 15;
-		regs.pipeline_stop = ((ps >> 20) & 15) == 15 ? -1 : (int)(ps >> 20) & 15;
+		regs.pipeline_stop = ((ps >> 20) & 15) == 15 ? -1 : (ps >> 20) & 15;
 
 		regs.prefetch020[2] = stagesbc;
 		regs.prefetch020[1] = stagesbc >> 16;

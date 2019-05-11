@@ -265,10 +265,12 @@ void idecontroller_rethink(void)
 	bool irq = false;
 	for (int i = 0; ide_boards[i]; i++) {
 		if (ide_boards[i] == x86_at_ide_board[0] || ide_boards[i] == x86_at_ide_board[1]) {
+#ifdef WITH_X86
 			bool x86irq = ide_rethink(ide_boards[i], true);
 			if (x86irq && ide_boards[i] == x86_at_ide_board[0]) {
 				x86_doirq(14);
 			}
+#endif
 		} else {
 			if (ide_rethink(ide_boards[i], false))
 				safe_interrupt_set(IRQ_SOURCE_IDE, i, ide_boards[i]->intlev6);

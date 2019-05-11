@@ -778,7 +778,6 @@ static void setupcursor(void)
 #else
 	uae_u8 *dptr;
 	int bpp = 4;
-	DWORD pitch;
 	int pitch;
 	struct rtgboardconfig *rbc = &currprefs.rtgboards[0];
 
@@ -3828,7 +3827,7 @@ static uae_u32 REGPARAM2 picasso_BlitPattern (TrapContext *ctx)
 								if (inversion)
 									bit_set = !bit_set;
 								if (bit_set)
-									PixelWrite(uae_mem2, bits, fgpen, Bpp, Mask);
+									PixelWrite (uae_mem2, bits, fgpen, Bpp, Mask);
 							}
 							break;
 						}
@@ -4013,7 +4012,7 @@ static uae_u32 REGPARAM2 picasso_BlitTemplate(TrapContext *ctx)
 								if (inversion)
 									bit_set = !bit_set;
 								if (bit_set)
-									PixelWrite (uae_mem2, bits, fgpen, Bpp, Mask);
+									PixelWrite(uae_mem2, bits, fgpen, Bpp, Mask);
 							}
 							break;
 						}
@@ -5408,8 +5407,8 @@ static void picasso_flushpixels(int index, uae_u8 *src, int off, bool render)
 #ifdef FSUAE // NL
 	vidinfo->extra_mem = 1;
 #endif
-
 	bool overlay_updated = false;
+
 	src_start = src + (off & ~gwwpagemask[index]);
 	src_end = src + ((off + state->BytesPerRow * pheight + gwwpagesize[index] - 1) & ~gwwpagemask[index]);
 #if 0

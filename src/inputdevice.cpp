@@ -4006,9 +4006,9 @@ void inputdevice_hsync (bool forceread)
 		inprec_playdiskchange ();
 		int nr, state, max, autofire;
 		while (inprec_playevent (&nr, &state, &max, &autofire))
-		handle_input_event (nr, state, max, (autofire ? HANDLE_IE_FLAG_AUTOFIRE : 0) | HANDLE_IE_FLAG_PLAYBACKEVENT);
+			handle_input_event (nr, state, max, (autofire ? HANDLE_IE_FLAG_AUTOFIRE : 0) | HANDLE_IE_FLAG_PLAYBACKEVENT);
 		if (vpos == 0)
-		handle_msgpump ();
+			handle_msgpump ();
 	}
 	if (!input_record && !input_play) {
 		if (forceread) {

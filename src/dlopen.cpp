@@ -70,7 +70,7 @@ UAE_EXTERN_C void amiga_set_plugin_lookup_function(
 
 UAE_DLHANDLE uae_dlopen_plugin(const TCHAR *name)
 {
-#if defined(FSUAE) // ME
+#if defined(FSUAE) // KP
 	const TCHAR *path = NULL;
 	if (plugin_lookup) {
 		path = plugin_lookup(name);

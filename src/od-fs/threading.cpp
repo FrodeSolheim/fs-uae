@@ -113,6 +113,7 @@ uae_atomic atomic_dec(volatile uae_atomic *p)
 
 uae_u32 atomic_bit_test_and_reset(volatile uae_atomic *p, uae_u32 v)
 {
-    uae_u32 value = __sync_fetch_and_or(p, 1 << v);
+    uae_u32 value = __sync_fetch_and_and(p, ~(1 << v));
+    // FIXME: Doublecheck that this should return 0 or 1, and not 0 or 1 << v)
     return (value >> v) & 1;
 }

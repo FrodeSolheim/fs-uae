@@ -2309,6 +2309,12 @@ static void init_mem_banks (void)
 #endif
 }
 
+static void map_banks_set(addrbank *bank, int start, int size, int realsize)
+{
+	bank->startmask = start << 16;
+	map_banks(bank, start, size, realsize);
+}
+
 static void allocate_memory (void)
 {
 	bogomem_aliasing = 0;
@@ -2508,6 +2514,9 @@ static void allocate_memory (void)
 			protect_roms (false);
 			restore_ram (bootrom_filepos, rtarea_bank.baseaddr);
 			protect_roms (true);
+			if (currprefs.uaeboard >= 2) {
+				map_banks_set(&rtarea_bank, rtarea_base >> 16, 1, 0);
+			}
 		}
 		restore_ram (chip_filepos, chipmem_bank.baseaddr);
 		if (bogomem_bank.allocated_size > 0)
@@ -2665,12 +2674,6 @@ void map_overlay (int chip)
 	cpuboard_overlay_override();
 	if (!isrestore () && valid_address (regs.pc, 4))
 		m68k_setpc_normal (m68k_getpc ());
-}
-
-static void map_banks_set(addrbank *bank, int start, int size, int realsize)
-{
-	bank->startmask = start << 16;
-	map_banks(bank, start, size, realsize);
 }
 
 void memory_clear (void)

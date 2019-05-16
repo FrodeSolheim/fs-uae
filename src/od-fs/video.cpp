@@ -748,10 +748,13 @@ void unlockscr(struct vidbuffer *vb, int y_start, int y_end)
     // gfxvidinfo.drawbuffer.unlockscr(&gfxvidinfo, buffer);
 }
 
-int graphics_setup()
+int graphics_setup(void)
 {
     write_log("graphics_setup\n");
-    return 1;
+#ifdef PICASSO96
+	InitPicasso96(0);
+#endif
+	return 1;
 }
 
 static void grow_render_buffer(int width, int height)

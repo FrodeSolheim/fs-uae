@@ -190,4 +190,6 @@ void fs_ml_mouse_init(void)
     g_fs_ml_input_devices[k].alias = g_strdup("MOUSE");
     k += 1;
     g_fs_ml_input_device_count = k;
+
+    init_manymouse();
 }

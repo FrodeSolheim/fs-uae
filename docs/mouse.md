@@ -7,7 +7,7 @@
 ## Multiple Mice
 
 FS-UAE supports multiple mice on many platforms through the ManyMouse library
-by Ryan C. Gordon).
+by Ryan C. Gordon.
 
 The old `Mouse` host device is still present and works like before - this
 is basically the system cursor, and most likely, all connected mice will

@@ -1,5 +1,6 @@
 Version 2.9.9dev:
 
+* Fixed support for multiple mice (was accidentally disabled).
 * More deterministic creation of fs-uae.dat [bmwiedemann].
 * HAM6 on AGA fix [sonnenscheinchen].
 

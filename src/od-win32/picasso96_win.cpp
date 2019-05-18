@@ -69,9 +69,6 @@
 #include "rp.h"
 #endif
 #include "picasso96_win.h"
-#ifdef FSUAE
-#include "picasso96.h"
-#endif
 #include "win32gfx.h"
 #include "direct3d.h"
 #include "clipboard.h"
@@ -86,7 +83,11 @@ int debug_rtg_blitter = 3;
 #define NOBLITTER_ALL 0
 
 #ifdef FSUAE // NL
+
+// #define DEBUG_PICASSO96
+
 #include "uae/fs.h"
+#include "picasso96.h"
 
 // FIXME: justing setting static value here -FS
 #define CURSORMAXWIDTH 128
@@ -95,19 +96,12 @@ int debug_rtg_blitter = 3;
 // FIXME: justing setting static value here -FS
 int default_freq = 50;
 
-#endif
-
-static int hwsprite = 0;
-static int picasso96_BT = BT_uaegfx;
-static int picasso96_GCT = GCT_Unknown;
-static int picasso96_PCT = PCT_Unknown;
-
-#ifdef FSUAE // NL
 
 typedef int CRITICAL_SECTION;
 
 static void InitializeCriticalSection(CRITICAL_SECTION*) {
 	// FIMXE: Implementation needed
+	STUB("");
 }
 
 static void EnterCriticalSection(CRITICAL_SECTION*) {
@@ -126,7 +120,14 @@ static uint32_t _byteswap_ulong(uint32_t val) {
         return bswap_32(val);
 }
 
-#else
+#endif
+
+static int hwsprite = 0;
+static int picasso96_BT = BT_uaegfx;
+static int picasso96_GCT = GCT_Unknown;
+static int picasso96_PCT = PCT_Unknown;
+
+#ifdef _WIN32
 int mman_GetWriteWatch (PVOID lpBaseAddress, SIZE_T dwRegionSize, PVOID *lpAddresses, PULONG_PTR lpdwCount, PULONG lpdwGranularity);
 void mman_ResetWatch (PVOID lpBaseAddress, SIZE_T dwRegionSize);
 #endif
@@ -993,6 +994,7 @@ enum {
 	RGBFB_CLUT_8
 };
 
+// FIXME: Put declaration in header file. Also used by src/qemuvga/vga.cpp.
 int getconvert(int rgbformat, int pixbytes)
 {
 	int v = 0;
@@ -1230,6 +1232,11 @@ void picasso_refresh(int monid)
 
 static void picasso_handle_vsync2(struct AmigaMonitor *mon)
 {
+#ifdef FSUAE
+#ifdef DEBUG_PICASSO96
+	printf("--- picasso_handle_vsync2 ---\n");
+#endif
+#endif
 	struct amigadisplay *ad = &adisplays[mon->monitor_id];
 	struct picasso_vidbuf_description *vidinfo = &picasso_vidinfo[mon->monitor_id];
 	static int vsynccnt;
@@ -1241,8 +1248,25 @@ static void picasso_handle_vsync2(struct AmigaMonitor *mon)
 	bool uaegfx_active = is_uaegfx_active();
 
 	int state = vidinfo->picasso_state_change;
+#ifdef FSUAE
+#ifdef DEBUG_PICASSO96
+	printf("picasso_state_change state is %x\n", vidinfo->picasso_state_change);
+#endif
+#endif
 	if (state)
 		lockrtg();
+#ifdef FSUAE
+	if (state & PICASSO_STATE_SETSWITCH) {
+		struct picasso96_state_struct *pstate = &picasso96_state[mon->monitor_id];
+		vidinfo->width = pstate->Width;
+		vidinfo->height = pstate->Height;
+		vidinfo->pixbytes = pstate->BytesPerPixel;
+		// FIXME: Should probably do this somewhere else, try to sync better
+		// with WinUAE code to avoid problems down the line.
+		write_log("FIXME: Setting Picasso95 vidinfo to %dx%d:%d\n",
+			vidinfo->width, vidinfo->height, vidinfo->pixbytes);
+	}
+#endif
 	if (state & PICASSO_STATE_SETDAC) {
 		atomic_and(&vidinfo->picasso_state_change, ~PICASSO_STATE_SETDAC);
 		rtg_clear(mon->monitor_id);
@@ -3034,6 +3058,11 @@ static uae_u32 REGPARAM2 picasso_InitCard (TrapContext *ctx)
 	if (amem > picasso96_amemend)
 		write_log (_T("P96: display resolution list corruption %08x<>%08x (%d)\n"), amem, picasso96_amemend, i);
 
+#ifdef FSUAE
+#ifdef DEBUG_PICASSO96
+	printf("picasso_InitCard done\n");
+#endif
+#endif
 	return -1;
 }
 
@@ -3059,6 +3088,11 @@ static uae_u32 REGPARAM2 picasso_SetSwitch (TrapContext *ctx)
 	uae_u16 flag = trap_get_dreg(ctx, 0) & 0xFFFF;
 
 	atomic_or(&vidinfo->picasso_state_change, PICASSO_STATE_SETSWITCH);
+#ifdef FSUAE
+#ifdef DEBUG_PICASSO96
+	printf("vidinfo->picasso_state_change <- %d\n", vidinfo->picasso_state_change);
+#endif
+#endif
 	ad->picasso_requested_on = flag != 0;
 	set_config_changed();
 
@@ -5361,6 +5395,11 @@ void fb_copyrow(int monid, uae_u8 *src, uae_u8 *dst, int x, int y, int width, in
 
 static void copyallinvert(int monid, uae_u8 *src, uae_u8 *dst, int pwidth, int pheight, int srcbytesperrow, int srcpixbytes, int dstbytesperrow, int dstpixbytes, bool direct, int mode_convert)
 {
+#ifdef FSUAE
+#ifdef DEBUG_PICASSO96
+	printf("copyallinvert\n");
+#endif
+#endif
 	int x, y, w;
 
 	w = pwidth * dstpixbytes;
@@ -5386,6 +5425,11 @@ static void copyallinvert(int monid, uae_u8 *src, uae_u8 *dst, int pwidth, int p
 
 static void copyall (int monid, uae_u8 *src, uae_u8 *dst, int pwidth, int pheight, int srcbytesperrow, int srcpixbytes, int dstbytesperrow, int dstpixbytes, bool direct, int mode_convert)
 {
+#ifdef FSUAE
+#ifdef DEBUG_PICASSO96
+	printf("copyall\n");
+#endif
+#endif
 	struct picasso_vidbuf_description *vidinfo = &picasso_vidinfo[monid];
 	int y;
 
@@ -5749,6 +5793,11 @@ addrbank *gfxmem_banks[MAX_RTG_BOARDS];
 * Also put it in reset_drawing() for safe-keeping.  */
 void InitPicasso96(int monid)
 {
+#ifdef FSUAE
+#ifdef DEBUG_PICASSO96
+	printf("InitPicasso96\n");
+#endif
+#endif
 	struct picasso96_state_struct *state = &picasso96_state[monid];
 	int i;
 
@@ -6685,6 +6734,11 @@ static uaecptr uaegfx_card_install (TrapContext *ctx, uae_u32 extrasize)
 uae_u32 picasso_demux (uae_u32 arg, TrapContext *ctx)
 {
 	uae_u32 num = trap_get_long(ctx, trap_get_areg(ctx, 7) + 4);
+#ifdef FSUAE
+#ifdef DEBUG_PICASSO96
+	printf("picasso_demux %d\n", num);
+#endif
+#endif
 
 	if (uaegfx_base) {
 		if (num >= 16 && num <= 39) {

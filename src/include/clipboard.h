@@ -18,7 +18,6 @@ void target_paste_to_keyboard(void);
 
 #ifdef FSUAE
 void clipboard_init(void);
-void clipboard_changed(void);
 void clipboard_reset(void);
 #endif
 

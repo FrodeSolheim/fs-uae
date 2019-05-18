@@ -1,5 +1,3 @@
-// FIXME: Merge completely with clipboard_win32.cpp (and use the latter)?
-
 #include "sysconfig.h"
 #include "sysdeps.h"
 
@@ -8,8 +6,17 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
+#ifdef FSUAE
+#else
+#include <windows.h>
+#endif
+
 #include "options.h"
 #include "traps.h"
+#ifdef FSUAE
+#else
+#include "clipboard_win32.h"
+#endif
 #include "clipboard.h"
 #include "keybuf.h"
 #include "memory.h"
@@ -62,8 +69,9 @@ static bool clip_disabled;
 
 static void debugwrite (TrapContext *ctx, const TCHAR *name, uaecptr p, int size)
 {
+#ifdef FSUAE
 	STUB("");
-#if 0
+#else
 	FILE *f;
 	int cnt;
 
@@ -89,8 +97,6 @@ static void debugwrite (TrapContext *ctx, const TCHAR *name, uaecptr p, int size
 		}
 		return;
 	}
-#else
-	STUB("");
 #endif
 }
 
@@ -271,13 +277,15 @@ static void from_iff_text(uae_u8 *addr, uae_u32 len)
 	xfree(txt);
 }
 
-#if 0
-static void to_iff_ilbm (HBITMAP hbmp)
+#ifdef FSUAE // NL
+#else
+
+static void to_iff_ilbm(TrapContext *ctx, HBITMAP hbmp)
 {
 	BITMAP bmp;
 	int bmpw, w, h, bpp, iffbpp, tsize, size, x, y, i;
 	int iffsize, bodysize;
-	uae_u32 colors[256];
+	uae_u32 colors[256] = { 0 };
 	int cnt;
 	uae_u8 *iff, *p;
 	uae_u8 iffilbm[] = {
@@ -378,8 +386,8 @@ static void to_iff_ilbm (HBITMAP hbmp)
 	memcpy (p, "BODY", 4);
 	p[4] = bodysize >> 24;
 	p[5] = bodysize >> 16;
-	p[6] = bodysize >>	8;
-	p[7] = bodysize >>	0;
+	p[6] = bodysize >>  8;
+	p[7] = bodysize >>  0;
 	p += 8;
 
 	if (bpp > 8 && iffbpp <= 8) {
@@ -442,38 +450,46 @@ static void to_iff_ilbm (HBITMAP hbmp)
 	p = iff + 4;
 	p[0] = tsize >> 24;
 	p[1] = tsize >> 16;
-	p[2] = tsize >>	 8;
-	p[3] = tsize >>	 0;
+	p[2] = tsize >>  8;
+	p[3] = tsize >>  0;
 
 	to_amiga_size = 8 + tsize + (tsize & 1);
 	to_amiga = iff;
 
-	to_amiga_start ();
+	to_amiga_start (ctx);
 
 	xfree (bmp.bmBits);
 }
 
-static uae_u8 *iff_decomp (const uae_u8 *addr, int w, int h, int planes)
+static uae_u8 *iff_decomp(const uae_u8 *addr, const uae_u8 *eaddr, int w, int h, int planes)
 {
 	int y, i, w2;
 	uae_u8 *dst;
 
 	w2 = (w + 15) & ~15;
-	dst = xmalloc (uae_u8, w2 * h * planes);
+	dst = xcalloc (uae_u8, w2 * h * planes);
 	for (y = 0; y < h * planes; y++) {
 		uae_u8 *p = dst + w2 * y;
 		uae_u8 *end = p + w2;
 		while (p < end) {
+			if (addr >= eaddr)
+				return dst;
 			uae_s8 c = *addr++;
 			if (c >= 0 && c <= 127) {
 				uae_u8 cnt = c + 1;
-				for (i = 0; i < cnt && p < end; i++)
+				if (addr + cnt > eaddr)
+					return dst;
+				for (i = 0; i < cnt && p < end; i++) {
 					*p++= *addr++;
+				}
 			} else if (c <= -1 && c >= -127) {
 				uae_u8 cnt = -c + 1;
+				if (addr >= eaddr)
+					return dst;
 				uae_u8 v = *addr++;
-				for (i = 0; i < cnt && p < end; i++)
+				for (i = 0; i < cnt && p < end; i++) {
 					*p++= v;
+				}
 			}
 		}
 	}
@@ -481,7 +497,7 @@ static uae_u8 *iff_decomp (const uae_u8 *addr, int w, int h, int planes)
 }
 
 static int clipboard_put_bmp (HBITMAP hbmp);
-static void from_iff_ilbm (uaecptr ilbm, uae_u32 len)
+static void from_iff_ilbm(uae_u8 *saddr, uae_u32 len)
 {
 	HBITMAP hbm = NULL;
 	BITMAPINFO *bmih;
@@ -492,14 +508,18 @@ static void from_iff_ilbm (uaecptr ilbm, uae_u32 len)
 	int bmhd, body;
 	RGBQUAD rgbx[256];
 
+	if (len < 12)
+		return;
 	bmih = NULL;
 	bmhd = 0, body = 0;
 	bmsize = 0;
 	bmptr = NULL;
 	planes = 0; compr = 0;
-	addr = get_real_address (ilbm);
+	addr = saddr;
 	eaddr = addr + len;
 	size = (addr[4] << 24) | (addr[5] << 16) | (addr[6] << 8) | (addr[7] << 0);
+	if (size > 0xffffff)
+		return;
 	if (memcmp ("ILBM", addr + 8, 4))
 		return;
 	camg = 0;
@@ -517,10 +537,15 @@ static void from_iff_ilbm (uaecptr ilbm, uae_u32 len)
 		uae_u8 *paddr, *ceaddr;
 
 		paddr = addr;
+		if (paddr + 8 > eaddr)
+			return;
 		memcpy (chunk, addr, 4);
 		csize = (addr[4] << 24) | (addr[5] << 16) | (addr[6] << 8) | (addr[7] << 0);
 		addr += 8;
 		ceaddr = addr + csize;
+		// chunk end larger than end of data?
+		if (ceaddr > eaddr)
+			return;
 		if (!memcmp (chunk, "BMHD" ,4)) {
 			bmhd = 1;
 			w = (addr[0] << 8) | addr[1];
@@ -606,7 +631,7 @@ static void from_iff_ilbm (uaecptr ilbm, uae_u32 len)
 			bmptr = xcalloc (uae_u8, bmpw * h);
 
 			if (compr)
-				addr = caddr = iff_decomp (addr, w, h, planes + (masking == 1 ? 1 : 0));
+				addr = caddr = iff_decomp(addr, addr + csize, w, h, planes + (masking == 1 ? 1 : 0));
 			dptr = bmptr;
 
 			if (planes <= 8 && !ham) {
@@ -731,7 +756,9 @@ static void from_iff(TrapContext *ctx, uaecptr data, uae_u32 len)
 	if (!memcmp ("FORM", buf, 4)) {
 		if (!memcmp ("FTXT", buf + 8, 4))
 			from_iff_text(buf, len);
-#if 0
+#ifdef FSUAE
+		/* Bitmaps are not supported in FS-UAE yet */
+#else
 		if (!memcmp ("ILBM", buf + 8, 4))
 			from_iff_ilbm(buf, len);
 #endif
@@ -749,8 +776,6 @@ static void clipboard_read(TrapContext *ctx, HWND hwnd, bool keyboardinject)
 	HGLOBAL hglb;
 	UINT f;
 	int text = FALSE, bmp = FALSE;
-
-	if (!initialized) return;
 
 	if (clip_disabled || !hwnd)
 		return;
@@ -795,13 +820,19 @@ static void clipboard_read(TrapContext *ctx, HWND hwnd, bool keyboardinject)
 	}
 #endif
 	if (text) {
-        if (true) {
-		    if (lptstr != NULL) {
 #ifdef FSUAE
-			    fs_mutex_lock(clipboard_mutex);
+		if (true) {
+#else
+		hglb = GetClipboardData (CF_UNICODETEXT); 
+		if (hglb != NULL) { 
+			TCHAR *lptstr = (TCHAR*)GlobalLock (hglb); 
+#endif
+			if (lptstr != NULL) {
+#ifdef FSUAE
+				fs_mutex_lock(clipboard_mutex);
 #endif
 #if DEBUG_CLIP > 0
-                write_log (_T("clipboard: CF_UNICODETEXT '%s'\n"), lptstr);
+				write_log (_T("clipboard: CF_UNICODETEXT '%s'\n"), lptstr);
 #endif
 				if (keyboardinject) {
 					to_keyboard(lptstr);
@@ -810,6 +841,8 @@ static void clipboard_read(TrapContext *ctx, HWND hwnd, bool keyboardinject)
 				}
 #ifdef FSUAE
 				fs_mutex_unlock(clipboard_mutex);
+#else
+				GlobalUnlock (hglb);
 #endif
 			}
 		}
@@ -826,6 +859,10 @@ static void clipboard_read(TrapContext *ctx, HWND hwnd, bool keyboardinject)
 		}
 #endif
 	}
+#ifdef FSUAE
+#else
+	CloseClipboard ();
+#endif
 }
 
 static void clipboard_free_delayed (void)
@@ -834,7 +871,8 @@ static void clipboard_free_delayed (void)
 		return;
 	if (clipboard_delayed_size < 0)
 		xfree (clipboard_delayed_data);
-#if 0
+#ifdef FSUAE
+#else
 	else
 		DeleteObject (clipboard_delayed_data);
 #endif
@@ -842,9 +880,10 @@ static void clipboard_free_delayed (void)
 	clipboard_delayed_size = 0;
 }
 
-void clipboard_changed(void)
+#ifdef FSUAE
+#else
+void clipboard_changed (HWND hwnd)
 {
-#if 0
 #if DEBUG_CLIP > 0
 	write_log (_T("clipboard: windows clipboard changed message\n"));
 #endif
@@ -859,10 +898,11 @@ void clipboard_changed(void)
 		return;
 	}
 	clipboard_read(NULL, hwnd, false);
-#endif
 }
+#endif
 
-#if 0
+#ifdef FSUAE
+#else
 static int clipboard_put_bmp_real (HBITMAP hbmp)
 {
 	int ret = FALSE;
@@ -882,9 +922,12 @@ static int clipboard_put_bmp_real (HBITMAP hbmp)
 }
 #endif
 
-static int clipboard_put_text_real(const TCHAR *txt)
+static int clipboard_put_text_real (const TCHAR *txt)
 {
+	HGLOBAL hglb;
 	int ret = FALSE;
+
+#ifdef FSUAE
 	fs_mutex_lock(clipboard_mutex);
 	if (clipboard_to_host_text != NULL) {
 		free(clipboard_to_host_text);
@@ -892,6 +935,25 @@ static int clipboard_put_text_real(const TCHAR *txt)
 	}
 	clipboard_to_host_text = strdup(txt);
 	fs_mutex_unlock(clipboard_mutex);
+#else
+	if (!OpenClipboard (chwnd)) 
+		return ret;
+	clipopen++;
+	EmptyClipboard (); 
+	hglb = GlobalAlloc (GMEM_MOVEABLE, (_tcslen (txt) + 1) * sizeof (TCHAR));
+	if (hglb) {
+		TCHAR *lptstr = (TCHAR*)GlobalLock (hglb);
+		_tcscpy (lptstr, txt);
+		GlobalUnlock (hglb);
+		SetClipboardData (CF_UNICODETEXT, hglb); 
+		ret = TRUE;
+	}
+	CloseClipboard ();
+	clipopen--;
+#if DEBUG_CLIP > 0
+	write_log (_T("clipboard: text written to windows clipboard\n"));
+#endif
+#endif
 	return ret;
 }
 
@@ -905,7 +967,8 @@ static int clipboard_put_text (const TCHAR *txt)
 	return 1;
 }
 
-#if 0
+#ifdef FSUAE
+#else
 static int clipboard_put_bmp (HBITMAP hbmp)
 {
 	if (!clipactive)
@@ -984,7 +1047,8 @@ int amiga_clipboard_want_data(TrapContext *ctx)
 	return 1;
 }
 
-#if 0
+#ifdef FSUAE
+#else
 void clipboard_active(HWND hwnd, int active)
 {
 	clipactive = active;
@@ -1064,11 +1128,18 @@ void clipboard_reset(void)
 #endif
 }
 
-void clipboard_init ()
+#ifdef FSUAE
+void clipboard_init (void)
 {
 	chwnd = 1; // fake window handle
 	write_log(_T("clipboard_init\n"));
 	clipboard_mutex = fs_mutex_create();
+#else
+void clipboard_init (HWND hwnd)
+{
+	chwnd = hwnd;
+	hdc = GetDC (chwnd);
+#endif
 }
 
 void target_paste_to_keyboard(void)
@@ -1084,6 +1155,7 @@ void clipboard_unsafeperiod(void)
 		vdelay = 60;
 }
 
+#ifdef FSUAE // NL
 UAE_EXTERN_C void uae_clipboard_update(void)
 {
 	clipboard_read(NULL, chwnd, false);
@@ -1097,5 +1169,6 @@ UAE_EXTERN_C void uae_clipboard_update(void)
 	}
 	fs_mutex_unlock(clipboard_mutex);
 }
+#endif
 
-#endif // WITH_CLIPBOARD
+#endif  // WITH_CLIPBOARD

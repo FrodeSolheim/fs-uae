@@ -1260,11 +1260,11 @@ static void picasso_handle_vsync2(struct AmigaMonitor *mon)
 		struct picasso96_state_struct *pstate = &picasso96_state[mon->monitor_id];
 		vidinfo->width = pstate->Width;
 		vidinfo->height = pstate->Height;
-		vidinfo->pixbytes = pstate->BytesPerPixel;
+		vidinfo->depth = pstate->BytesPerPixel;
 		// FIXME: Should probably do this somewhere else, try to sync better
 		// with WinUAE code to avoid problems down the line.
 		write_log("FIXME: Setting Picasso95 vidinfo to %dx%d:%d\n",
-			vidinfo->width, vidinfo->height, vidinfo->pixbytes);
+			vidinfo->width, vidinfo->height, vidinfo->depth);
 	}
 #endif
 	if (state & PICASSO_STATE_SETDAC) {
@@ -2389,6 +2389,16 @@ static struct modeids mi[] =
 	1152, 648, 173,
 	1776,1000, 174,
 	2560,1440, 175,
+
+#ifdef FSUAE
+	692, 540, 200,
+	704, 540, 201,
+	704, 566, 202,
+	724, 566, 203,
+	960, 540, 204,
+	1384, 1080, 205,
+#endif
+
 	-1,-1,0
 };
 

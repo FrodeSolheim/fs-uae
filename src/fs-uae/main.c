@@ -1360,9 +1360,6 @@ int main(int argc, char *argv[])
     } else {
         fs_emu_warning("Unsupported video format requested");
     }
-    amiga_add_rtg_resolution(672, 540);
-    amiga_add_rtg_resolution(960, 540);
-    amiga_add_rtg_resolution(672 * 2, 540 * 2);
     amiga_add_rtg_resolution(fs_emu_get_windowed_width(),
             fs_emu_get_windowed_height());
     amiga_add_rtg_resolution(fs_emu_get_fullscreen_width(),

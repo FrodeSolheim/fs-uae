@@ -115,15 +115,15 @@ static void EnterCriticalSection(CRITICAL_SECTION*) {
 }
 
 static void LeaveCriticalSection(CRITICAL_SECTION*) {
-
+	// FIMXE: Implementation needed
 }
 
-unsigned short _byteswap_ushort(uint16_t val) {
-	return bswap_16(val);
+static uint16_t _byteswap_ushort(uint16_t val) {
+        return bswap_16(val);
 }
 
-unsigned long _byteswap_ulong(uint32_t val) {
-	return bswap_32(val);
+static uint32_t _byteswap_ulong(uint32_t val) {
+        return bswap_32(val);
 }
 
 #else

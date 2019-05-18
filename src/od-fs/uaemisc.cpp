@@ -103,13 +103,6 @@ int sleep_millis_amiga(int ms)
 	return ret;
 }
 
-void console_out_f(const TCHAR *fmt, ...) {
-    va_list arg_ptr;
-    va_start(arg_ptr, fmt);
-    vprintf(fmt, arg_ptr);
-    va_end(arg_ptr);
-}
-
 /* FIXME: change void *f to FILE* f */
 void f_out(void *f, const TCHAR *format, ...)
 {
@@ -122,64 +115,10 @@ void f_out(void *f, const TCHAR *format, ...)
     va_end(arg_ptr);
 }
 
-void console_out (const TCHAR *msg) {
-    printf("%s", msg);
-}
-
 int console_get_gui (TCHAR *out, int maxlen) {
     STUB("");
     return 0;
 }
-
-int console_get(TCHAR *in, int maxlen) {
-    TCHAR *res = fgets(in, maxlen, stdin);
-    if (res == NULL) {
-        return -1;
-    }
-    int len = strlen(in);
-    return len - 1;
-}
-
-void console_flush(void) {
-    fflush(stdout);
-}
-
-TCHAR console_getch (void) {
-    STUB("");
-    return 0;
-}
-
-void close_console (void) {
-    STUB("");
-}
-
-extern void activate_console (void) {
-    STUB("");
-}
-
-bool console_isch (void)
-{
-    STUB("");
-    return false;
-}
-
-/*
-struct uae_filter usedfilter_storage
-struct uae_filter *usedfilter = &usedfilter_storage;
-*/
-
-//struct uae_prefs currprefs;
-/*
-uae_u8 *mapped_malloc (size_t s, TCHAR *file)
-{
-    return xmalloc (uae_u8, s);
-}
-
-void mapped_free (uae_u8 *p)
-{
-    xfree (p);
-}
-*/
 
 //#include "fsdb.h"
 // FIXME: to fsdb_unix.cpp
@@ -209,22 +148,6 @@ int target_get_volume_name (
      * does. */
     STUB("");
     return 0;
-}
-
-static char *console_buffer;
-static int console_buffer_size;
-
-char *setconsolemode (char *buffer, int maxlen) {
-    char *ret = NULL;
-    if (buffer) {
-        console_buffer = buffer;
-        console_buffer_size = maxlen;
-    }
-    else {
-        ret = console_buffer;
-        console_buffer = NULL;
-    }
-    return ret;
 }
 
 // writelog

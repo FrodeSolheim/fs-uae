@@ -75,10 +75,6 @@ void update_debug_info(void) {
     // not a console application).
 }
 
-void debugger_change (int mode) {
-    STUB("mode=%d", mode);
-}
-
 void screenshot(int monid, int mode, int doprepare) {
     STUB("mode=%d doprepare=%d", mode, doprepare);
 }

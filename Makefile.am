@@ -491,7 +491,6 @@ libuae_a_SOURCES = \
 	src/od-fs/joystick.cpp \
 	src/od-fs/keyboard.cpp \
 	src/od-fs/libamiga.cpp \
-	src/od-fs/logging.cpp \
 	src/od-fs/machdep/arm/maccess.h \
 	src/od-fs/machdep/generic/maccess.h \
 	src/od-fs/machdep/m68k.h \
@@ -524,6 +523,7 @@ libuae_a_SOURCES = \
 	src/od-fs/vpar.cpp \
 	src/od-fs/vpar.h \
 	src/od-fs/winuae_compat.h \
+	src/od-fs/writelog.cpp \
 	src/od-win32/caps/CapsAPI.h \
 	src/od-win32/caps/Comtype.h \
 	src/od-win32/caps/caps_win32.cpp \

@@ -649,7 +649,7 @@ OPT_FEATURE([CD32], [cd32], [cd32],
             [CD32 emulation])
 OPT_FEATURE([CDTV], [cdtv], [cdtv],
             [CDTV emulation])
-DIS_FEATURE([WITH_CLIPBOARD], [clipboard], [clipboard],
+OPT_FEATURE([WITH_CLIPBOARD], [clipboard], [clipboard],
             [clipboard integration])
 OPT_FEATURE([CODEGEN], [codegen], [codegen],
             [code generation (disable for cross-compilation)])

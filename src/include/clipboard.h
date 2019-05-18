@@ -14,11 +14,12 @@ extern void clipboard_disable(bool);
 extern void clipboard_vsync(void);
 extern void clipboard_unsafeperiod(void);
 
+void target_paste_to_keyboard(void);
+
 #ifdef FSUAE
 void clipboard_init(void);
 void clipboard_changed(void);
 void clipboard_reset(void);
-void clipboard_active(int active);
 #endif
 
 #endif /* UAE_CLIPBOARD_H */

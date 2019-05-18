@@ -8,6 +8,7 @@
 #include "sleep.h"
 #include "uae.h"
 #include "xwin.h"
+#include "clipboard.h"
 #include "uae/fs.h"
 #include "../od-win32/debug_win32.h"
 
@@ -240,4 +241,9 @@ void target_multipath_modified(struct uae_prefs *p)
 	memcpy(&currprefs.path_cd, &p->path_cd, sizeof(struct multipath));
 	memcpy(&currprefs.path_rom, &p->path_rom, sizeof(struct multipath));
     */
+}
+
+void target_reset (void)
+{
+	clipboard_reset ();
 }

@@ -62,6 +62,7 @@
 #include "statusline.h"
 #include "native2amiga_api.h"
 #include "videograb.h"
+#include "clipboard.h"
 
 #ifdef FSUAE // NL
 

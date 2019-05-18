@@ -580,7 +580,7 @@ extern void xfree (const void*);
 #else
 
 #define xmalloc(T, N) static_cast<T*>(malloc (sizeof (T) * (N)))
-#define xcalloc(T, N) static_cast<T*>(calloc (sizeof (T), N))
+#define xcalloc(T, N) static_cast<T*>(calloc ((N), sizeof (T)))
 #define xrealloc(T, TP, N) static_cast<T*>(realloc (TP, sizeof (T) * (N)))
 #define xfree(T) free(T)
 

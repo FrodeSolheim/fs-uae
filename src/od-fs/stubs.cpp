@@ -169,10 +169,6 @@ void target_run (void) {
     LOG_STUB("");
 }
 
-void target_reset (void) {
-    LOG_STUB("");
-}
-
 void target_restart (void) {
     STUB("");
 }

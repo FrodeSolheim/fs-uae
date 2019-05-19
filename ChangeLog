@@ -1,5 +1,6 @@
 Version 3.1.0dev:
 
+* Only do LF <-> CRLF clipboard conversion on Windows [BastyCDGS].
 * Console debugger can be used also in Windows.
 * Lots of fixes to restore functionality after the merge.
 * Updated emulation core from WinUAE 4210 (big merge).

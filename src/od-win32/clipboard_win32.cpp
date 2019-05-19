@@ -137,8 +137,10 @@ static uae_char *pctoamiga (const uae_char *txt)
 	j = 0;
 	for (i = 0; i < len; i++) {
 		uae_char c = txt[i];
+#ifdef _WIN32
 		if (c == 13)
 			continue;
+#endif
 		txt2[j++] = c;
 	}
 	return txt2;
@@ -181,8 +183,10 @@ static TCHAR *amigatopc (const char *txt)
 		uae_char c = txt[i];
 		if (c == 0 && i + 1 < len)
 			continue;
+#ifdef _WIN32
 		if (c == 10)
 			txt2[j++] = 13;
+#endif
 		if (c == 0x9b) {
 			i = parsecsi (txt, i + 1, len);
 			continue;

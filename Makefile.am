@@ -439,6 +439,8 @@ libuae_a_SOURCES = \
 	src/include/uae/inline.h \
 	src/include/uae/io.h \
 	src/include/uae/jitconfig.h \
+	src/include/uae/libinfo.h \
+	src/include/uae/libtrace.h \
 	src/include/uae/likely.h \
 	src/include/uae/limits.h \
 	src/include/uae/log.h \
@@ -478,6 +480,8 @@ libuae_a_SOURCES = \
 	src/jit/compemu_support.cpp \
 	src/jit/flags_x86.h \
 	src/keybuf.cpp \
+	src/libinfo.cpp \
+	src/libtrace.cpp \
 	src/logging.cpp \
 	src/main.cpp \
 	src/mame/a2410.cpp \

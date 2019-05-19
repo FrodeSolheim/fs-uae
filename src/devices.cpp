@@ -60,6 +60,7 @@
 #include "ethernet.h"
 #include "uae/debuginfo.h"
 #include "uae/segtracker.h"
+#include "uae/libtrace.h"
 #ifdef RETROPLATFORM
 #include "rp.h"
 #endif
@@ -301,6 +302,7 @@ void do_leave_program (void)
 	DISK_free ();
 	close_sound ();
 	dump_counts ();
+	libtrace_cleanup();
 #ifdef PARALLEL_PORT
 	parallel_exit();
 #endif
@@ -383,6 +385,7 @@ void virtualdevice_init (void)
 #ifdef WITH_SEGTRACKER
 	segtracker_install ();
 #endif /* WITH_SEGTRACKER */
+	libtrace_install ();
 	uaeres_install ();
 	hardfile_install ();
 #endif

@@ -46,7 +46,11 @@ Bit iotextptrs are never initialized. Instead, there this this initalization usi
 
 #define NEWTRAP 1
 
+#ifdef FSUAE
+int log_bsd = BSD_TRACING_ENABLED;
+#else
 int log_bsd = 0;
+#endif
 struct socketbase *socketbases;
 static uae_u32 SockLibBase;
 
@@ -1760,7 +1764,7 @@ static uae_u32 REGPARAM2 bsdsocklib_null(TrapContext *ctx)
 static uae_u32 REGPARAM2 bsdsocklib_init(TrapContext *ctx)
 {
 #ifdef FSUAE
-    write_log("bsdsock - bsdsocklib_init context = %p\n", context);
+    write_log("bsdsock - bsdsocklib_init ctx = %p\n", ctx);
 #endif
 	TCHAR verStr[32];
 	uae_u32 tmp1;

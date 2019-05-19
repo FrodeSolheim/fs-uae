@@ -657,11 +657,13 @@ void write_log (const TCHAR *format, ...)
     va_end(args);
 
     char *buffer2 = NULL;
+#if 0
     TCHAR *ts = write_log_get_ts();
     // printf("%s\n", ts ? ts : "");
     if (ts) {
         buffer2 = g_strdup_printf("%s%s", ts, buffer);
     }
+#endif
 
     log_function function = g_libamiga_callbacks.log;
     if (function) {

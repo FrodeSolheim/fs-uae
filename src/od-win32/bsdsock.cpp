@@ -9,6 +9,8 @@
 * GNU Public License
 *
 */
+#ifdef _WIN32
+
 #include <winsock2.h>
 #include <Ws2tcpip.h>
 
@@ -56,6 +58,8 @@
 // of ignoring these constructs in the code below?
 
 #define hInst GetModuleHandle(NULL)
+
+HWND hAmigaWnd = 0;
 
 #endif
 
@@ -2821,3 +2825,5 @@ uae_u32 host_gethostname(TrapContext *ctx, uae_u32 name, uae_u32 namelen)
 #endif
 
 #endif
+
+#endif // _WIN32

@@ -639,7 +639,7 @@ OPT_FEATURE([ARCADIA], [arcadia], [arcadia],
             [Arcadia arcade system])
 REQ_FEATURE([AUTOCONFIG], [autoconfig], [autoconfig],
             [autoconfig support, fast ram, harddrives etc...])
-DIS_FEATURE([BSDSOCKET], [bsdsocket], [bsdsocket],
+OPT_FEATURE([BSDSOCKET], [bsdsocket], [bsdsocket],
             [built-in bsdsocket.library])
 DIS_FEATURE([WITH_BUILTIN_SLIRP], [builtin_slirp], [builtin-slirp],
             [built-in SLIRP implementation (unsupported)])

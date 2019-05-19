@@ -462,7 +462,7 @@ libuae_a_SOURCES = \
 	src/od-fs/ahidsound_new.h \
 	src/od-fs/audio.cpp \
 	src/od-fs/blkdev-linux.cpp \
-	src/od-fs/bsdsocket_host.cpp \
+	src/od-fs/bsdsocket_posix.cpp \
 	src/od-fs/callbacks.h \
 	src/od-fs/cda_play.cpp \
 	src/od-fs/cda_play.h \
@@ -523,6 +523,7 @@ libuae_a_SOURCES = \
 	src/od-fs/vpar.h \
 	src/od-fs/winuae_compat.h \
 	src/od-fs/writelog_fs.cpp \
+	src/od-win32/bsdsock.cpp \
 	src/od-win32/caps/CapsAPI.h \
 	src/od-win32/caps/Comtype.h \
 	src/od-win32/caps/caps_win32.cpp \
@@ -1249,8 +1250,6 @@ EXTRA_DIST = $(TESTS) $(EXTRA_TESTS) \
 	src/mame/tm34010/34010ops.c \
 	src/mame/tm34010/34010ops.h \
 	src/mame/tm34010/34010gfx.c \
-	src/od-fs/bsdsocket_posix.cpp \
-	src/od-win32/bsdsock.cpp \
         src/od-win32/mman.cpp \
 	src/p96_blit.cpp \
 	src/sinctable.cpp \

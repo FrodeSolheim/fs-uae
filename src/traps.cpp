@@ -24,6 +24,9 @@
 #include "traps.h"
 #include "uae.h"
 #include "debug.h"
+#ifdef FSUAE
+#include "bsdsocket.h"
+#endif
 
 /*
 * Traps are the mechanism via which 68k code can call emulator code
@@ -153,6 +156,13 @@ void REGPARAM2 m68k_handle_trap (unsigned int trap_num)
 
 	if (trap->name && trap->name[0] != 0 && trace_traps)
 		write_log (_T("TRAP: %s\n"), trap->name);
+#ifdef FSUAE
+#if BSD_TRACING_ENABLED
+	if (trap->name && trap->name[0] != 0)
+		if (strncasecmp("bsdsock", trap->name, 7) == 0)
+			write_log (_T("TRAP: %s\n"), trap->name);
+#endif
+#endif
 
 	if (trap_num < trap_count) {
 		if (trap->flags & TRAPFLAG_EXTRA_STACK) {

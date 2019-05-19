@@ -1473,22 +1473,11 @@ int host_CloseSocket(TrapContext *ctx, SB, int sd)
 	return retval;
 }
 
-// FIXME: REPLACE
-/*
 static void fd_zero(TrapContext *ctx, uae_u32 fdset, uae_u32 nfds)
 {
 	unsigned int i;
 	for (i = 0; i < nfds; i += 32, fdset += 4)
 		trap_put_long(ctx, fdset,0);
-}
-*/
-
-STATIC_INLINE void fd_zero (uae_u32 fdset, uae_u32 nfds)
-{
-	unsigned int i;
-
-	for (i = 0; i < nfds; i += 32, fdset += 4)
-		put_long (fdset, 0);
 }
 
 uae_u32 bsdthr_WaitSelect (SB)
@@ -1590,12 +1579,15 @@ void host_WaitSelect(TrapContext *ctx, SB, uae_u32 nfds, uae_u32 readfds, uae_u3
 		m68k_dreg (regs, 1) = wssigs;
 		sigs = CallLib (ctx, get_long (4), -0x132) & wssigs;    // SetSignal()
 		if (sigs) {
-			DEBUG_LOG ("WaitSelect preempted by signals 0x%08x\n", sigs & wssigs);
+			BSDTRACE((_T("-> [preempted by signals 0x%08x]\n"), sigs & wssigs));
 			put_long (sigmp, sigs);
 			// Check for zero address -> otherwise WinUAE crashes
-			if (readfds)   fd_zero (readfds, nfds);
-			if (writefds)  fd_zero (writefds, nfds);
-			if (exceptfds) fd_zero (exceptfds, nfds);
+			if (readfds)
+				fd_zero(ctx, readfds,nfds);
+			if (writefds)
+				fd_zero(ctx, writefds,nfds);
+			if (exceptfds)
+				fd_zero(ctx, exceptfds,nfds);
 			sb->resultval = 0;
 			bsdsocklib_seterrno (ctx, sb, 0);
 			return;
@@ -1610,9 +1602,12 @@ void host_WaitSelect(TrapContext *ctx, SB, uae_u32 nfds, uae_u32 readfds, uae_u3
 		if (sigmp)
 			trap_put_long(ctx, sigmp, sigs & wssigs);
 
-		if (readfds)   fd_zero (readfds, nfds);
-		if (writefds)  fd_zero (writefds, nfds);
-		if (exceptfds) fd_zero (exceptfds, nfds);
+		if (readfds)
+			fd_zero (ctx, readfds,nfds);
+		if (writefds)
+			fd_zero (ctx, writefds,nfds);
+		if (exceptfds)
+			fd_zero (ctx, exceptfds,nfds);
 		sb->resultval = 0;
 		return;
 	}
@@ -1643,9 +1638,12 @@ void host_WaitSelect(TrapContext *ctx, SB, uae_u32 nfds, uae_u32 readfds, uae_u3
 		}
 
 		sb->resultval = 0;
-		if (readfds)   fd_zero (readfds, nfds);
-		if (writefds)  fd_zero (writefds, nfds);
-		if (exceptfds) fd_zero (exceptfds, nfds);
+		if (readfds)
+			fd_zero(ctx, readfds, nfds);
+		if (writefds)
+			fd_zero(ctx, writefds, nfds);
+		if (exceptfds)
+			fd_zero(ctx, exceptfds, nfds);
 
 		bsdsocklib_seterrno (ctx, sb, 0);
 	} else if (sigs & sb->eintrsigs) {
@@ -1665,13 +1663,13 @@ void host_WaitSelect(TrapContext *ctx, SB, uae_u32 nfds, uae_u32 readfds, uae_u3
 
 uae_u32 host_Inet_NtoA(TrapContext *ctx, SB, uae_u32 in)
 {
-	char *addr;
+	uae_char *addr;
 	struct in_addr ina;
 	uae_u32 buf;
 
 	*(uae_u32 *)&ina = htonl (in);
 
-	BSDTRACE (("Inet_NtoA(%x) -> ", in));
+	BSDTRACE((_T("Inet_NtoA(%x) -> "),in));
 
 	if ((addr = inet_ntoa(ina)) != NULL) {
 		buf = m68k_areg (regs, 6) + offsetof (struct UAEBSDBase, scratchbuf);
@@ -1681,7 +1679,7 @@ uae_u32 host_Inet_NtoA(TrapContext *ctx, SB, uae_u32 in)
 	} else
 		SETERRNO;
 
-	BSDTRACE (("failed (%d)\n", sb->sb_errno));
+	BSDTRACE((_T("failed (%d)\n"), sb->sb_errno));
 
 	return 0;
 }
@@ -1755,7 +1753,7 @@ void host_getservbynameport(TrapContext *ctx, SB, uae_u32 nameport, uae_u32 prot
 	struct servent *s = (type) ?
 	getservbyport (nameport, (char *)get_real_address (proto)) :
 	getservbyname ((char *)get_real_address (nameport), (char *)get_real_address (proto));
-	int size = 20;
+	int size;
 	int numaliases = 0;
 	uae_u32 aptr;
 	int i;
@@ -1766,52 +1764,57 @@ void host_getservbynameport(TrapContext *ctx, SB, uae_u32 nameport, uae_u32 prot
 		DEBUG_LOG("Getservbyname(%s, %s) = %p\n", get_real_address (nameport), get_real_address (proto), s);
 	}
 
-	if (s == NULL) {
-	SETERRNO;
-	return;
-	}
+	if (s != NULL) {
+		// compute total size of servent
+		size = 20;
+		if (s->s_name != NULL)
+			size += strlen (s->s_name) + 1;
+		if (s->s_proto != NULL)
+			size += strlen (s->s_proto) + 1;
 
-	// compute total size of servent
-	if (s->s_name != NULL)
-		size += strlen (s->s_name) + 1;
+		if (s->s_aliases != NULL)
+		while (s->s_aliases[numaliases])
+			size += strlen (s->s_aliases[numaliases++]) + 5;
 
-	if (s->s_proto != NULL)
-		size += strlen (s->s_proto) + 1;
+		if (sb->servent) {
+			uae_FreeMem(ctx, sb->servent, sb->serventsize, sb->sysbase);
+		}
 
-	if (s->s_aliases != NULL)
-	while (s->s_aliases[numaliases])
-		size += strlen (s->s_aliases[numaliases++]) + 5;
+		sb->servent = uae_AllocMem (ctx, size, 0, sb->sysbase);
 
-	if (sb->servent) {
-		uae_FreeMem(ctx, sb->servent, sb->serventsize, sb->sysbase);
-	}
+		if (!sb->servent) {
+			write_log ("BSDSOCK: WARNING - getservby%s() ran out of Amiga memory (couldn't allocate %d bytes)\n",type ? "port" : "name", size);
+			bsdsocklib_seterrno (ctx, sb, 12); // ENOMEM
+			return;
+		}
 
-	sb->servent = uae_AllocMem (ctx, size, 0, sb->sysbase);
+		sb->serventsize = size;
 
-	if (!sb->servent) {
-		write_log ("BSDSOCK: WARNING - getservby%s() ran out of Amiga memory (couldn't allocate %d bytes)\n",type ? "port" : "name", size);
-		bsdsocklib_seterrno (ctx, sb, 12); // ENOMEM
+		aptr = sb->servent + 20 + numaliases * 4;
+
+		// transfer servent to Amiga memory
+		trap_put_long(ctx, sb->servent + 4, sb->servent + 16);
+		trap_put_long(ctx, sb->servent + 8, (unsigned short)htons (s->s_port));
+
+		for (i = 0; i < numaliases; i++)
+			trap_put_long(ctx, sb->servent + 16 + i * 4, addstr_ansi(ctx, &aptr, s->s_aliases[i]));
+		trap_put_long(ctx, sb->servent + 16 + numaliases * 4, 0);
+		trap_put_long(ctx, sb->servent, aptr);
+		addstr_ansi(ctx, &aptr, s->s_name);
+		trap_put_long(ctx, sb->servent + 12, aptr);
+		addstr_ansi(ctx, &aptr, s->s_proto);
+
+		if (ISBSDTRACE) {
+			TCHAR *ss = au(s->s_name);
+			BSDTRACE((_T("OK (%s, %d)\n"), ss, (unsigned short)htons(s->s_port)));
+			xfree (ss);
+		}
+
+		bsdsocklib_seterrno (ctx, sb,0);
+	} else {
+		SETERRNO;
 		return;
 	}
-
-	sb->serventsize = size;
-
-	aptr = sb->servent + 20 + numaliases * 4;
-
-	// transfer servent to Amiga memory
-	trap_put_long(ctx, sb->servent + 4, sb->servent + 16);
-	trap_put_long(ctx, sb->servent + 8, (unsigned short)htons (s->s_port));
-
-	for (i = 0; i < numaliases; i++)
-	trap_put_long(ctx, sb->servent + 16 + i * 4, addstr(ctx, &aptr, s->s_aliases[i]));
-	trap_put_long(ctx, sb->servent + 16 + numaliases * 4, 0);
-	trap_put_long(ctx, sb->servent, aptr);
-	addstr(ctx, &aptr, s->s_name);
-	trap_put_long(ctx, sb->servent + 12, aptr);
-	addstr(ctx, &aptr, s->s_proto);
-
-	BSDTRACE (("OK (%s, %d)\n", s->s_name, (unsigned short)htons (s->s_port)));
-	bsdsocklib_seterrno (ctx, sb,0);
 }
 
 uae_u32 host_gethostname(TrapContext *ctx, uae_u32 name, uae_u32 namelen)

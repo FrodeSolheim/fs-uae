@@ -2200,7 +2200,7 @@ uae_u32 host_inet_addr(TrapContext *ctx, uae_u32 cp)
 	addr = htonl(inet_addr(cp_rp));
 	if (ISBSDTRACE) {
 		TCHAR *s = au (cp_rp);
-		BSDTRACE((_T("inet_addr(%s) -> 0x%08lx\n"), s, addr));
+		BSDTRACE((_T("inet_addr(%s) -> 0x%08x\n"), s, addr));
 		xfree (s);
 	}
 	xfree(cp_rp);

@@ -2706,7 +2706,7 @@ void host_getprotobyname(TrapContext *ctx, SB, uae_u32 name)
 	release_get_thread (tindex);
 }
 
-void host_getprotobynumber(TrapContext *ctx, SB, uae_u32 name)
+void host_getprotobynumber(TrapContext *ctx, SB, uae_u32 number)
 {
 	bsdsocklib_seterrno(ctx, sb, 1);
 }

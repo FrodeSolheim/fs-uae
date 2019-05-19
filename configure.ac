@@ -777,6 +777,8 @@ OPT_FEATURE([WITH_UDIS86], [udis86], [udis86],
             [UDIS86 x86/x86-64 disassembler])
 OPT_FEATURE([WITH_VPAR], [vpar], [vpar],
             [vpar virtual parallel port])
+OPT_FEATURE([WITH_X86], [x86], [x86],
+            [x86 bridgeboard support])
 OPT_FEATURE([WITH_XML_SHADER], [xml_shader], [xml-shader],
             [XML shader support])
 OPT_FEATURE([A_ZIP], [zip], [zip],

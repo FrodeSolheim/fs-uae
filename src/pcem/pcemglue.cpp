@@ -185,7 +185,7 @@ void outl(uint16_t port, uint32_t val)
 }
 
 
-static void model_init(void)
+void model_init(void)
 {
 
 }
@@ -264,16 +264,20 @@ static int midi_open;
 
 void midi_write(uint8_t v)
 {
+#ifdef WITH_MIDI
 	if (!midi_open) {
 		midi_open = Midi_Open();
 	}
 	Midi_Parse(midi_output, &v);
+#endif
 }
 
 void pcem_close(void)
 {
+#ifdef WITH_MIDI
 	if (midi_open)
 		Midi_Close();
+#endif
 	midi_open = 0;
 }
 

@@ -856,12 +856,17 @@ void clearsockabort (SB)
 
 int init_socket_layer(void)
 {
-	if (uae_sem_init(&sem_queue, 0, 1) < 0) {
-		DEBUG_LOG("Can't create sem %d\n", errno);
-		return 0;
+	int result = 0;
+
+	if (currprefs.socket_emu) {
+		if (uae_sem_init(&sem_queue, 0, 1) < 0) {
+			DEBUG_LOG("Can't create sem %d\n", errno);
+			return 0;
+		}
+		return 1;
 	}
 
-	return 1;
+	return result;
 }
 
 void locksigqueue(void)

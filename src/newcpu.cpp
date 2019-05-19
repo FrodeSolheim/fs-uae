@@ -4897,10 +4897,12 @@ static int do_specialties (int cycles)
 	while ((regs.spcflags & SPCFLAG_STOP) && !(regs.spcflags & SPCFLAG_BRK)) {
 	isstopped:
 		check_uae_int_request();
+#ifdef BSDSOCKET
 		{
 			if (bsd_int_requested)
 				bsdsock_fake_int_handler ();
 		}
+#endif
 
 		if (cpu_tracer > 0) {
 			cputrace.stopped = regs.stopped;

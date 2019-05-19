@@ -96,6 +96,9 @@ int debug_rtg_blitter = 3;
 // FIXME: justing setting static value here -FS
 int default_freq = 50;
 
+#ifdef _WIN32
+
+#else
 
 typedef int CRITICAL_SECTION;
 
@@ -120,6 +123,7 @@ static uint32_t _byteswap_ulong(uint32_t val) {
         return bswap_32(val);
 }
 
+#endif // _WIN32
 #endif
 
 static int hwsprite = 0;

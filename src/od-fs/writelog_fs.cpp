@@ -128,7 +128,10 @@ static void set_console_input_mode(int line)
 static BOOL WINAPI ctrlchandler(DWORD ct)
 {
 	if (ct == CTRL_C_EVENT || ct == CTRL_CLOSE_EVENT) {
+#ifdef FSUAE
+#else
 		systray(hHiddenWnd, TRUE);
+#endif
 	}
 	return FALSE;
 }
@@ -184,6 +187,35 @@ static void open_console_window (void)
 	reopen_console ();
 }
 
+#ifdef FSUAE
+
+#ifdef _WIN32
+BOOL debuggerinitializing = FALSE;
+#endif
+
+static bool open_debug_window()
+{
+	STUB("");
+	return false;
+}
+
+static void close_debug_window(void)
+{
+	STUB("");
+}
+
+static void WriteOutput(const TCHAR *out, int len)
+{
+	STUB("");
+}
+
+static int console_get_gui (TCHAR *out, int maxlen) {
+	STUB("");
+	return 0;
+}
+
+#endif
+
 static void openconsole (void)
 {
 #ifdef _WIN32
@@ -201,7 +233,10 @@ static void openconsole (void)
 		if (consoleopen > 0 || debuggerinitializing)
 			return;
 		if (debugger_type < 0) {
+#ifdef FSUAE
+#else
 			regqueryint (NULL, _T("DebuggerType"), &debugger_type);
+#endif
 			if (debugger_type <= 0)
 				debugger_type = 1;
 			openconsole();
@@ -251,6 +286,9 @@ void reopen_console (void)
 	if (hwnd) {
 		int newpos = 1;
 		int x, y, w, h;
+#ifdef FSUAE
+		newpos = 0;
+#else
 		if (!regqueryint (NULL, _T("LoggerPosX"), &x))
 			newpos = 0;
 		if (!regqueryint (NULL, _T("LoggerPosY"), &y))
@@ -259,6 +297,7 @@ void reopen_console (void)
 			newpos = 0;
 		if (!regqueryint (NULL, _T("LoggerPosH"), &h))
 			newpos = 0;
+#endif
 		if (newpos) {
 			RECT rc;
 			rc.left = x;
@@ -289,10 +328,13 @@ void close_console (void)
 			if (GetWindowRect (hwnd, &r)) {
 				r.bottom -= r.top;
 				r.right -= r.left;
+#ifdef FSUAE
+#else
 				regsetint (NULL, _T("LoggerPosX"), r.left);
 				regsetint (NULL, _T("LoggerPosY"), r.top);
 				regsetint (NULL, _T("LoggerPosW"), r.right);
 				regsetint (NULL, _T("LoggerPosH"), r.bottom);
+#endif
 			}
 		}
 		FreeConsole ();
@@ -559,7 +601,11 @@ void console_flush (void)
 TCHAR *write_log_get_ts(void)
 {
 	struct tm *t;
+#ifdef _WIN32
+	struct timeb tb;
+#else
 	struct _timeb tb;
+#endif
 	static TCHAR out[100];
 	TCHAR *p;
 	static TCHAR lastts[100];

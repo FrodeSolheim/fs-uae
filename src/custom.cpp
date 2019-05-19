@@ -48,6 +48,9 @@
 #include "rommgr.h"
 #include "specialmonitors.h"
 
+#include "bsdsocket.h"
+#undef SB  // FIXME, remove SB from bsdsocket.h?
+
 #define CUSTOM_DEBUG 0
 #define SPRITE_DEBUG 0
 #define SPRITE_DEBUG_MINY 0
@@ -5752,13 +5755,10 @@ void rethink_uae_int(void)
 		if (uae_int_requested & 0x00ff)
 			irq2 = true;
 	}
-
-	{
-		extern void bsdsock_fake_int_handler(void);
-		extern int volatile bsd_int_requested;
-		if (bsd_int_requested)
-			bsdsock_fake_int_handler();
-	}
+#ifdef BSDSOCKET
+	if (bsd_int_requested)
+		bsdsock_fake_int_handler();
+#endif
 	if (irq6)
 		safe_interrupt_set(IRQ_SOURCE_UAE, 0, true);
 	if (irq2)

@@ -1,3 +1,9 @@
+Version 3.1.0dev:
+
+* Console debugger can be used also in Windows.
+* Lots of fixes to restore functionality after the merge.
+* Updated emulation core from WinUAE 4210 (big merge).
+
 Version 2.9.9dev:
 
 * More deterministic creation of fs-uae.dat [bmwiedemann].

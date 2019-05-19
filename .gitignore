@@ -50,6 +50,7 @@ core
 *.dll
 /*.dsc
 *.exe
+*.lnk
 /fontconfig/
 /Frameworks/
 /fs-uae

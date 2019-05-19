@@ -93,6 +93,7 @@ struct comptbl {
 	int specific;
 };
 #else
+#define MIN_JIT_CACHE 0
 #define MAX_JIT_CACHE 0
 #endif
 

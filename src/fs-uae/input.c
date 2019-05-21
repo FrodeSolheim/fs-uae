@@ -295,6 +295,7 @@ static fs_emu_action g_actions[] = {
     { INPUTEVENT_SPC_DISKSWAPPER_INSERT1, "action_disk_swapper_insert_1", 0 },
     { INPUTEVENT_SPC_DISKSWAPPER_INSERT2, "action_disk_swapper_insert_2", 0 },
     { INPUTEVENT_SPC_DISKSWAPPER_INSERT3, "action_disk_swapper_insert_3", 0 },
+
     { INPUTEVENT_SPC_DISK_PREV0, "action_disk_prev_0", 0 },
     { INPUTEVENT_SPC_DISK_PREV1, "action_disk_prev_1", 0 },
     { INPUTEVENT_SPC_DISK_PREV2, "action_disk_prev_2", 0 },
@@ -303,6 +304,15 @@ static fs_emu_action g_actions[] = {
     { INPUTEVENT_SPC_DISK_NEXT1, "action_disk_next_1", 0 },
     { INPUTEVENT_SPC_DISK_NEXT2, "action_disk_next_2", 0 },
     { INPUTEVENT_SPC_DISK_NEXT3, "action_disk_next_3", 0 },
+
+    { INPUTEVENT_SPC_RTG_PREV, "action_spc_rtg_prev" },
+    { INPUTEVENT_SPC_TOGGLERTG, "action_spc_togglertg" },
+    { INPUTEVENT_SPC_RTG_C, "action_spc_rtg_c" },
+    { INPUTEVENT_SPC_RTG_0, "action_spc_rtg_0" },
+    { INPUTEVENT_SPC_RTG_1, "action_spc_rtg_1" },
+    { INPUTEVENT_SPC_RTG_2, "action_spc_rtg_2" },
+    { INPUTEVENT_SPC_RTG_3, "action_spc_rtg_3" },
+
     { INPUTEVENT_SPC_ARCADIA_DIAGNOSTICS, "action_arcadia_diagnostics", 0 },
     { INPUTEVENT_SPC_ARCADIA_PLAYER1, "action_arcadia_player_1", 0 },
     { INPUTEVENT_SPC_ARCADIA_PLAYER2, "action_arcadia_player_2", 0 },

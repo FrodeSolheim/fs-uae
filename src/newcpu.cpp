@@ -5575,7 +5575,7 @@ static void run_cpu_thread(void *(*f)(void *))
 
 #endif
 
-void custom_reset_cpu(bool hardreset, bool keyboardreset)
+static void custom_reset_cpu(bool hardreset, bool keyboardreset)
 {
 #ifdef WITH_THREADED_CPU
 	if (cpu_thread_tid != uae_thread_get_id()) {
@@ -11433,8 +11433,6 @@ void fill_prefetch (void)
 		regs.irc = x_get_word (pc + 2);
 	}
 }
-
-extern bool cpuboard_fc_check(uaecptr addr, uae_u32 *v, int size, bool write);
 
 uae_u32 sfc_nommu_get_byte(uaecptr addr)
 {

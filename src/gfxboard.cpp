@@ -504,6 +504,9 @@ static bool gfxboard_setmode(struct rtggfxboard *gb, struct gfxboard_mode *mode)
 	state->BytesPerPixel = bpp;
 	state->RGBFormat = mode->mode;
 	write_log(_T("GFXBOARD %dx%dx%d\n"), mode->width, mode->height, bpp);
+#ifdef FSUAE
+	write_log(_T("GFXBOARD rgbfmt=%d\n"), state->RGBFormat);
+#endif
 	if (!ad->picasso_requested_on && !ad->picasso_on) {
 		ad->picasso_requested_on = true;
 		set_config_changed();
@@ -715,6 +718,7 @@ bool gfxboard_rtg_enable_initial(int monid, int index)
 int gfxboard_toggle(int monid, int index, int log)
 {
 	bool initial = false;
+	struct rtggfxboard *gb = NULL;
 
 	if (rtg_visible[monid] < 0 && rtg_initial[monid] >= 0 && rtg_initial[monid] < MAX_RTG_BOARDS) {
 		index = rtg_initial[monid];
@@ -728,7 +732,7 @@ int gfxboard_toggle(int monid, int index, int log)
 	if (index < 0)
 		goto end;
 
-	struct rtggfxboard *gb = &rtggfxboards[index];
+	gb = &rtggfxboards[index];
 	if (!gb->active)
 		goto end;
 

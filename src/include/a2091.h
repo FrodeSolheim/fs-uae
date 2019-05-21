@@ -138,6 +138,7 @@ extern bool gvp_init_s2(struct autoconfig_info *aci);
 extern bool gvp_init_accelerator(struct autoconfig_info *aci);
 extern void gvp_free(void);
 extern void gvp_reset (void);
+void gvp_accelerator_set_dma_bank(uae_u8 v);
 
 extern bool comspec_init (struct autoconfig_info *aci);
 extern bool comspec_preinit (struct autoconfig_info *aci);

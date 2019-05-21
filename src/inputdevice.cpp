@@ -8635,9 +8635,6 @@ void inputdevice_releasebuttons(void)
 	}
 }
 
-void target_inputdevice_acquire(void);
-void target_inputdevice_unacquire(void);
-
 void inputdevice_acquire (int allmode)
 {
 	int i;

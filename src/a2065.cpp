@@ -32,11 +32,7 @@
 #endif
 
 #define MEM_MIN 0xffff
-#ifdef FSUAE
-int log_a2065 = 1;
-#else
 int log_a2065 = 0;
-#endif
 static int log_transmit = 1;
 static int log_receive = 1;
 int a2065_promiscuous = 0;

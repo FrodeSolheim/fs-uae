@@ -6747,7 +6747,7 @@ int cfgfile_get_description (struct uae_prefs *p, const TCHAR *filename, TCHAR *
 	return 1;
 }
 
-bool cfgfile_detect_art_path(const TCHAR *path, TCHAR *outpath)
+static bool cfgfile_detect_art_path(const TCHAR *path, TCHAR *outpath)
 {
 	TCHAR tmp[MAX_DPATH];
 	const TCHAR *p;

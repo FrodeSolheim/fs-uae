@@ -12,6 +12,7 @@
 #include "sysdeps.h"
 
 #include "options.h"
+#include "custom.h"
 #include "events.h"
 #include "memory.h"
 #include "newcpu.h"
@@ -61,7 +62,6 @@ void events_schedule (void)
 	nextevent = currcycle + mintime;
 }
 
-extern void vsync_event_done(void);
 extern int vsync_activeheight;
 
 static bool event_check_vsync(void)

@@ -18,6 +18,7 @@
 
 #include "options.h"
 #include "uae/memory.h"
+#include "a2091.h"
 #include "zfile.h"
 #include "rommgr.h"
 #include "autoconf.h"
@@ -1532,7 +1533,6 @@ static void REGPARAM2 blizzardio_wput(uaecptr addr, uae_u32 v)
 			cpu_fallback(0);
 		}
 	} else if (is_a1230s2(&currprefs)) {
-		extern void gvp_accelerator_set_dma_bank(uae_u8);
 		io_reg[0] = v & 0xff;
 		gvp_accelerator_set_dma_bank((v >> 4) & 3);
 	}

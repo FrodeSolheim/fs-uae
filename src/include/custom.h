@@ -255,4 +255,6 @@ struct custom_store
 };
 extern struct custom_store custom_storage[256];
 
+void vsync_event_done(void);
+
 #endif /* UAE_CUSTOM_H */

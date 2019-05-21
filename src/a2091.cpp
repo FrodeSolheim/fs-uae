@@ -1707,7 +1707,7 @@ uae_u8 wdscsi_get (struct wd_chip_state *wd, struct wd_state *wds)
 	return v;
 }
 
-uae_u8 wdscsi_get_data(struct wd_chip_state *wd, struct wd_state *wds)
+static uae_u8 wdscsi_get_data(struct wd_chip_state *wd, struct wd_state *wds)
 {
 	uae_u8 sasr = wd->sasr;
 	wd->sasr = WD_DATA;

@@ -36,6 +36,7 @@
 #include "qemuuaeglue.h"
 #include "vga.h"
 #include "vga_int.h"
+#include "xwin.h"
 #endif
 //#define DEBUG_VGA
 //#define DEBUG_VGA_MEM

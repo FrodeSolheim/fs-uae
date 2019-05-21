@@ -16,6 +16,8 @@
 #endif
 #include "machdep/rpt.h"
 
+#define MAX_AMIGADISPLAYS 4
+
 typedef uae_u32 xcolnr;
 
 typedef int (*allocfunc_type)(int, int, int, xcolnr *);
@@ -78,8 +80,16 @@ extern unsigned int doMask256 (int p, int bits, int shift);
 extern void alloc_colors64k (int monid, int, int, int, int, int, int, int, int, int, int, bool);
 extern void alloc_colors_rgb (int rw, int gw, int bw, int rs, int gs, int bs, int aw, int as, int alpha, int byte_swap,
 			      uae_u32 *rc, uae_u32 *gc, uae_u32 *bc);
-extern void alloc_colors_picasso (int rw, int gw, int bw, int rs, int gs, int bs, int rgbfmt, uae_u32 *rgbx16);
 extern float getvsyncrate(int monid, float hz, int *mult);
+
+void alloc_colors_picasso (int rw, int gw, int bw, int rs, int gs, int bs, int rgbfmt, uae_u32 *rgbx16);
+int getconvert(int rgbformat, int pixbytes);
+void copyrow_scale(int monid, uae_u8 *src, uae_u8 *src_screen, uae_u8 *dst,
+	int sx, int sy, int sxadd, int width, int srcbytesperrow, int srcpixbytes,
+	int screenbytesperrow, int screenpixbytes,
+	int dx, int dy, int dstwidth, int dstheight, int dstbytesperrow, int dstpixbytes,
+	bool ck, uae_u32 colorkey,
+	int convert_mode, uae_u32 *p96_rgbx16p, uae_u32 *clut, bool yuv_swap);
 
     /* The graphics code has a choice whether it wants to use a large buffer
      * for the whole display, or only a small buffer for a single line.

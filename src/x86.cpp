@@ -28,6 +28,8 @@
 #include "sysconfig.h"
 #include "sysdeps.h"
 
+#ifdef WITH_X86
+
 #include "options.h"
 #include "custom.h"
 #include "memory.h"
@@ -112,8 +114,6 @@ static int x86_sndbuffer_index;
 static int32_t *x86_sndbuffer[2];
 static bool x86_sndbuffer_filled[2];
 bool ps2_mouse_supported;
-
-#ifdef WITH_X86
 
 struct membase
 {

@@ -27,6 +27,7 @@ extern void cpuboard_overlay_override(void);
 extern void cpuboard_setboard(struct uae_prefs *p, int type, int subtype);
 extern uaecptr cpuboard_get_reset_pc(uaecptr *stack);
 extern void cpuboard_set_flash_unlocked(bool unlocked);
+bool cpuboard_fc_check(uaecptr addr, uae_u32 *v, int size, bool write);
 
 extern bool ppc_interrupt(int new_m68k_ipl);
 
@@ -38,7 +39,7 @@ extern uae_u8 *REGPARAM3 cyberstorm_scsi_ram_xlate(uaecptr addr) REGPARAM;
 void cyberstorm_mk3_ppc_irq(int id, int level);
 void blizzardppc_irq(int id, int level);
 void cyberstorm_mk3_ppc_irq_setonly(int id, int level);
-void blizzardppc_irq_setonly(int id, int level);
+void blizzardppc_irq_setonly(int level);
 
 #define BOARD_MEMORY_Z2 1
 #define BOARD_MEMORY_Z3 2

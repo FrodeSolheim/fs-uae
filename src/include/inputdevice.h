@@ -369,5 +369,7 @@ extern void inputdevice_settest (int);
 extern int inputdevice_testread_count (void);
 
 extern bool target_can_autoswitchdevice(void);
+void target_inputdevice_acquire(void);
+void target_inputdevice_unacquire(void);
 
 #endif /* UAE_INPUTDEVICE_H */

@@ -16,13 +16,13 @@ static void close_joystick (void)
 
 static int acquire_joystick (int num, int flags)
 {
-	UAE_LOG_STUB ("num=%d flags=%d return 1", num, flags);
+	// UAE_LOG_STUB ("num=%d flags=%d return 1", num, flags);
 	return 1;
 }
 
 static void unacquire_joystick (int num)
 {
-	UAE_LOG_STUB ("num=%d", num);
+	// UAE_LOG_STUB ("num=%d", num);
 }
 
 static void read_joystick (void)

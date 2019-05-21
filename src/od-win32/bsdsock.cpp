@@ -49,8 +49,8 @@
 #ifdef FSUAE
 #else
 #include "win32.h"
-#include "dxwrap.h"
 #endif
+#include "dxwrap.h"
 
 #ifdef FSUAE // NL
 

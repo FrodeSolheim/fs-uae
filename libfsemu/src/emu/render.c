@@ -1096,10 +1096,10 @@ static void render_frame(double alpha, int perspective)
     int offset_y = (screen_h - output_h) * (1.0 - g_align_y);
 
     //printf("w %d h %d x %d y %d\n", output_w, output_h, offset_x, offset_y);
+#endif
 
     fs_emu_video_scale_x = (double) input_w / output_w;
     fs_emu_video_scale_y = (double) input_h / output_h;
-#endif
 
     fs_emu_video_offset_x = offset_x - g_crop.x / fs_emu_video_scale_x;
     fs_emu_video_offset_y = offset_y - g_crop.y / fs_emu_video_scale_y;

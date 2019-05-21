@@ -2410,6 +2410,7 @@ int inputdevice_get_lightpen_id(void)
 void tablet_lightpen(int tx, int ty, int tmaxx, int tmaxy, int touch, int buttonmask, bool touchmode, int devid, int lpnum)
 {
 	int monid = 0;
+	int x = 0, y = 0;
 	struct vidbuf_description *vidinfo = &adisplays[monid].gfxvidinfo;
 	struct amigadisplay *ad = &adisplays[monid];
 	if (ad->picasso_on)
@@ -2457,8 +2458,8 @@ void tablet_lightpen(int tx, int ty, int tmaxx, int tmaxy, int touch, int button
 	float fdx, fdy, fmx, fmy;
 	getgfxoffset(0, &fdx, &fdy, &fmx, &fmy);
 
-	int x = (int)(fx * fmx);
-	int y = (int)(fy * fmy);
+	x = (int)(fx * fmx);
+	y = (int)(fy * fmy);
 	x -= (int)(fdx * fmx) - 1;
 	y -= (int)(fdy * fmy) - 2;
 

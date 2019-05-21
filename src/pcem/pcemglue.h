@@ -8,6 +8,3 @@ uint32_t mem_read_romextl(uint32_t addr, void *priv);
 
 void sound_speed_changed(void);
 extern int SOUNDBUFLEN;
-extern int32_t *x86_sndbuffer[2];
-extern bool x86_sndbuffer_filled[2];
-

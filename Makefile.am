@@ -178,7 +178,7 @@ AM_CPPFLAGS += -I$(s)/src/od-fs/include
 AM_CPPFLAGS += -I$(s)/src/od-win32
 AM_CPPFLAGS += -I$(s)/src/od-win32/caps
 fs_uae_LDADD += libuae.a
-libuae_a_CXXFLAGS = $(CM_CFLAGS) -fpermissive
+# libuae_a_CXXFLAGS = $(CM_CFLAGS) -fpermissive
 libuae_a_SOURCES = \
 	src/a2065.cpp \
 	src/a2091.cpp \

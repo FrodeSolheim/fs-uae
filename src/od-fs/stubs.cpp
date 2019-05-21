@@ -3,25 +3,23 @@
 
 #include "autoconf.h"
 #include "debug.h"
+#include "disk.h"
+#include "drawing.h"
 #include "enforcer.h"
+#include "ethernet.h"
 #include "filesys.h"
 #include "fsdb.h"
 #include "gui.h"
+#include "inputdevice.h"
 #include "newcpu.h"
 #include "options.h"
 #include "rommgr.h"
 #include "sampler.h"
+#include "sana2.h"
 #include "savestate.h"
 #include "scsidev.h"
 #include "uae.h"
 #include "xwin.h"
-#include "sana2.h"
-#include "ethernet.h"
-
-void graphics_reset(bool force)
-{
-    LOG_STUB("force=%d", force);
-}
 
 void gui_lock (void)
 {
@@ -125,12 +123,6 @@ uae_u8 *target_load_keyfile (struct uae_prefs *p, const TCHAR *path, int *sizep,
     return NULL;
 }
 
-bool vsync_switchmode(int monid, int hz)
-{
-    STUB("hz=%d", hz);
-    return 0;
-}
-
 #ifndef AHI
 
 #include "uae/ahi.h"
@@ -158,10 +150,6 @@ void updatedisplayarea(int monid)
 }
 
 void filesys_addexternals(void) {
-    LOG_STUB("");
-}
-
-void machdep_free (void) {
     LOG_STUB("");
 }
 
@@ -252,21 +240,6 @@ void target_inputdevice_acquire(void)
     STUB("");
 }
 
-void desktop_coords (int monid, int *dw, int *dh, int *ax, int *ay, int *aw, int *ah)
-{
-    STUB("");
-#if 0
-        struct MultiDisplay *md = getdisplay (&currprefs);
-
-        *dw = md->rect.right - md->rect.left;
-        *dh = md->rect.bottom - md->rect.top;
-        *ax = amigawin_rect.left;
-        *ay = amigawin_rect.top;
-        *aw = amigawin_rect.right - *ax;
-        *ah = amigawin_rect.bottom - *ay;
-#endif
-}
-
 int is_touch_lightpen(void) {
     return 0;
 }
@@ -283,4 +256,10 @@ uae_u8 *save_screenshot(int monid, int *len)
 {
     STUB("");
     return NULL;
+}
+
+/* Stub function for avioutput */
+bool frame_drawn (int monid)
+{
+    return false;
 }

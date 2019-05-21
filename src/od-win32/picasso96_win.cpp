@@ -998,7 +998,6 @@ enum {
 	RGBFB_CLUT_8
 };
 
-// FIXME: Put declaration in header file. Also used by src/qemuvga/vga.cpp.
 int getconvert(int rgbformat, int pixbytes)
 {
 	int v = 0;
@@ -1259,18 +1258,6 @@ static void picasso_handle_vsync2(struct AmigaMonitor *mon)
 #endif
 	if (state)
 		lockrtg();
-#ifdef FSUAE
-	if (state & PICASSO_STATE_SETSWITCH) {
-		struct picasso96_state_struct *pstate = &picasso96_state[mon->monitor_id];
-		vidinfo->width = pstate->Width;
-		vidinfo->height = pstate->Height;
-		vidinfo->depth = pstate->BytesPerPixel;
-		// FIXME: Should probably do this somewhere else, try to sync better
-		// with WinUAE code to avoid problems down the line.
-		write_log("FIXME: Setting Picasso95 vidinfo to %dx%d:%d\n",
-			vidinfo->width, vidinfo->height, vidinfo->depth);
-	}
-#endif
 	if (state & PICASSO_STATE_SETDAC) {
 		atomic_and(&vidinfo->picasso_state_change, ~PICASSO_STATE_SETDAC);
 		rtg_clear(mon->monitor_id);

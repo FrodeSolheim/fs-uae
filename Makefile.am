@@ -481,7 +481,6 @@ libuae_a_SOURCES = \
 	src/od-fs/include/resource.h \
 	src/od-fs/include/uae/uae.h \
 	src/od-fs/include/uae/uae_inputevents_def.h \
-	src/od-fs/include/win32gfx.h \
 	src/od-fs/include/win32gui.h \
 	src/od-fs/input.cpp \
 	src/od-fs/inputrecord.cpp \
@@ -536,6 +535,7 @@ libuae_a_SOURCES = \
 	src/od-win32/picasso96_win.cpp \
 	src/od-win32/picasso96_win.h \
 	src/od-win32/serial_win32.cpp \
+	src/od-win32/win32gfx.h \
 	src/od-win32/win32_uaenet.cpp \
 	src/patch.cpp \
 	src/pcem/codegen.h \

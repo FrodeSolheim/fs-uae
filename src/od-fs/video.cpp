@@ -70,15 +70,15 @@ static int g_largest_width = 0;
 static int g_largest_height = 0;
 
 struct uae_filter uaefilters[] = {
-    { UAE_FILTER_NULL, 0, 1, _T("Null filter"), _T("null"),
-            UAE_FILTER_MODE_16_16 | UAE_FILTER_MODE_32_32 },
-    { 0 }
+	{ UAE_FILTER_NULL, 0, 1, _T("Null filter"), _T("null"),
+			UAE_FILTER_MODE_16_16 | UAE_FILTER_MODE_32_32 },
+	{ 0 }
 };
 
 #define SET_FLAG(x, y) ((x) |= (y))
 #define CLEAR_FLAG(x, y) ((x) &= ~(y))
 #define SET_OR_CLEAR_FLAG(x, y, z) ((z) ? \
-        SET_FLAG((x), (y)) : CLEAR_FLAG((x), (y)))
+		SET_FLAG((x), (y)) : CLEAR_FLAG((x), (y)))
 
 static volatile bool render_ok, wait_render;
 
@@ -112,30 +112,30 @@ static int g_blue_shift;
 static int g_alpha_shift;
 
 int g_amiga_rtg_modes[] = {
-        // 640, 360, // 16:9
-        // 800, 450, // 16:9
-        // 800, 500, // 16:10
-        // 672, 540,
-        692, 540,
-        800, 600,
-        960, 540,
-        1024, 576, // 16:9
-        // 1024, 600, // 16:10
-        1024, 768,
-        1280, 720, // 16:9
-        1280, 800, // 16:10
-        // 1344, 1080, // 672 * 2, 540 * 2,
-        1384, 1080, // 692 * 2, 540 * 2,
-        1920, 1080,
-        0, 0,
-        0, 0,
-        0, 0,
-        0, 0,
-        0, 0,
-        0, 0,
-        0, 0,
-        0, 0,
-        -1, -1,
+		// 640, 360, // 16:9
+		// 800, 450, // 16:9
+		// 800, 500, // 16:10
+		// 672, 540,
+		692, 540,
+		800, 600,
+		960, 540,
+		1024, 576, // 16:9
+		// 1024, 600, // 16:10
+		1024, 768,
+		1280, 720, // 16:9
+		1280, 800, // 16:10
+		// 1344, 1080, // 672 * 2, 540 * 2,
+		1384, 1080, // 692 * 2, 540 * 2,
+		1920, 1080,
+		0, 0,
+		0, 0,
+		0, 0,
+		0, 0,
+		0, 0,
+		0, 0,
+		0, 0,
+		0, 0,
+		-1, -1,
 };
 
 static int dx_islost(void)
@@ -147,20 +147,20 @@ bool fs_render_frame(int monid, int mode, bool immediate);
 
 #if 0
 void uae_line_update(int line, int update) {
-    printf("%d %d\n", line, update);
-    if (!update) {
-        return;
-    }
-    // mark this line as not needing copy from the previous render buffer
-    g_renderdata.line[line] = 0;
-    g_screen_updated = 1;
+	printf("%d %d\n", line, update);
+	if (!update) {
+		return;
+	}
+	// mark this line as not needing copy from the previous render buffer
+	g_renderdata.line[line] = 0;
+	g_screen_updated = 1;
 }
 #endif
 
 #if 0
 double vblank_calibrate (double approx_vblank, bool waitonly) {
-    UAE_LOG_STUB("");
-    return -1;
+	UAE_LOG_STUB("");
+	return -1;
 }
 #endif
 
@@ -181,139 +181,139 @@ int log_vsync = 0, debug_vsync_min_delay = 0, debug_vsync_forced_delay = 0;
 #if 0
 void vsync_busywait_start(void)
 {
-    UAE_LOG_STUB("");
-    //changevblankthreadmode_fast (VBLANKTH_ACTIVE_START);
-    vblank_prev_time = thread_vblank_time;
+	UAE_LOG_STUB("");
+	//changevblankthreadmode_fast (VBLANKTH_ACTIVE_START);
+	vblank_prev_time = thread_vblank_time;
 }
 
 static bool isthreadedvsync (void) {
-    return isvsync_chipset () <= -2 || isvsync_rtg () < 0;
+	return isvsync_chipset () <= -2 || isvsync_rtg () < 0;
 }
 
 int vsync_busywait_do (int *freetime, bool lace, bool oddeven) {
-    UAE_LOG_STUB("");
-    return false;
+	UAE_LOG_STUB("");
+	return false;
 #if 0
-    bool v;
-    static bool framelost;
-    int ti;
-    frame_time_t t;
-    frame_time_t prevtime = vblank_prev_time;
+	bool v;
+	static bool framelost;
+	int ti;
+	frame_time_t t;
+	frame_time_t prevtime = vblank_prev_time;
 
-    dooddevenskip = false;
+	dooddevenskip = false;
 
-    if (lace)
-        vblankbaselace_chipset = oddeven;
-    else
-        vblankbaselace_chipset = -1;
+	if (lace)
+		vblankbaselace_chipset = oddeven;
+	else
+		vblankbaselace_chipset = -1;
 
-    t = read_processor_time ();
-    ti = t - prevtime;
-    //if (ti > 2 * vblankbasefull || ti < -2 * vblankbasefull) {
-    if (ti > 1 * vblankbasefull || ti < -1 * vblankbasefull) {
+	t = read_processor_time ();
+	ti = t - prevtime;
+	//if (ti > 2 * vblankbasefull || ti < -2 * vblankbasefull) {
+	if (ti > 1 * vblankbasefull || ti < -1 * vblankbasefull) {
 #if 0
-        waitvblankstate (false, NULL);
+		waitvblankstate (false, NULL);
 #endif
-        t = read_processor_time ();
-        vblank_prev_time = t;
-        thread_vblank_time = t;
-        frame_missed++;
-        return true;
-    }
+		t = read_processor_time ();
+		vblank_prev_time = t;
+		thread_vblank_time = t;
+		frame_missed++;
+		return true;
+	}
 
-    //if (log_vsync) {
-    //    console_out_f(_T("F:%8d M:%8d E:%8d %3d%% (%3d%%) %10d\r"), frame_counted, frame_missed, frame_errors, frame_usage, frame_usage_avg, (t - vblank_prev_time) - vblankbasefull);
-    //}
+	//if (log_vsync) {
+	//    console_out_f(_T("F:%8d M:%8d E:%8d %3d%% (%3d%%) %10d\r"), frame_counted, frame_missed, frame_errors, frame_usage, frame_usage_avg, (t - vblank_prev_time) - vblankbasefull);
+	//}
 
-    if (freetime)
-        *freetime = 0;
-    if (currprefs.turbo_emulation) {
-        frame_missed++;
-        return true;
-    }
+	if (freetime)
+		*freetime = 0;
+	if (currprefs.turbo_emulation) {
+		frame_missed++;
+		return true;
+	}
 #if 0
-    frame_usage = (t - prevtime) * 100 / vblankbasefull;
-    if (frame_usage > 99)
-        frame_usage = 99;
-    else if (frame_usage < 0)
-        frame_usage = 0;
-    frame_usage_total += frame_usage;
-    if (freetime)
-        *freetime = frame_usage;
-    if (frame_counted)
-        frame_usage_avg = frame_usage_total / frame_counted;
+	frame_usage = (t - prevtime) * 100 / vblankbasefull;
+	if (frame_usage > 99)
+		frame_usage = 99;
+	else if (frame_usage < 0)
+		frame_usage = 0;
+	frame_usage_total += frame_usage;
+	if (freetime)
+		*freetime = frame_usage;
+	if (frame_counted)
+		frame_usage_avg = frame_usage_total / frame_counted;
 #endif
-    v = false;
+	v = false;
 
-    if (isthreadedvsync ()) {
+	if (isthreadedvsync ()) {
 
-        framelost = false;
-        v = true;
+		framelost = false;
+		v = true;
 
-    } else {
+	} else {
 #if 0
-        bool doskip = false;
+		bool doskip = false;
 
-        if (!framelost && t - prevtime > vblankbasefull) {
-            framelost = true;
-            frame_missed++;
-            return true;
-        }
+		if (!framelost && t - prevtime > vblankbasefull) {
+			framelost = true;
+			frame_missed++;
+			return true;
+		}
 
-        if (vblanklaceskip ()) {
-            doskip = true;
-            dooddevenskip = true;
-        }
+		if (vblanklaceskip ()) {
+			doskip = true;
+			dooddevenskip = true;
+		}
 
-        if (!doskip) {
-            while (!framelost && read_processor_time () - prevtime < vblankbasewait1) {
-                vsync_sleep (false);
-            }
-            v = vblank_wait ();
-        } else {
-            v = true;
-        }
-        framelost = false;
+		if (!doskip) {
+			while (!framelost && read_processor_time () - prevtime < vblankbasewait1) {
+				vsync_sleep (false);
+			}
+			v = vblank_wait ();
+		} else {
+			v = true;
+		}
+		framelost = false;
 #endif
-    }
+	}
 
-    if (v) {
-        vblank_prev_time = read_processor_time ();
-        frame_counted++;
-        return true;
-    }
-    frame_errors++;
-    return false;
+	if (v) {
+		vblank_prev_time = read_processor_time ();
+		frame_counted++;
+		return true;
+	}
+	frame_errors++;
+	return false;
 #endif
 }
 
 static void vsync_sleep (bool preferbusy) {
-    struct apmode *ap = picasso_on ? &currprefs.gfx_apmode[1] : &currprefs.gfx_apmode[0];
-    bool dowait;
-    if (vsync_busy_wait_mode == 0) {
-        dowait = ap->gfx_vflip || !preferbusy;
-    } else if (vsync_busy_wait_mode < 0) {
-        dowait = true;
-    } else {
-        dowait = false;
-    }
-    dowait = true;
-    if (dowait && currprefs.m68k_speed >= 0)
-        sleep_millis_main (1);
+	struct apmode *ap = picasso_on ? &currprefs.gfx_apmode[1] : &currprefs.gfx_apmode[0];
+	bool dowait;
+	if (vsync_busy_wait_mode == 0) {
+		dowait = ap->gfx_vflip || !preferbusy;
+	} else if (vsync_busy_wait_mode < 0) {
+		dowait = true;
+	} else {
+		dowait = false;
+	}
+	dowait = true;
+	if (dowait && currprefs.m68k_speed >= 0)
+		sleep_millis_main (1);
 }
 
 static void vsync_notvblank (void) {
-    return;
-    for (;;) {
-        int vp;
-        if (!getvblankpos (&vp))
-            return;
-        if (vp > 0) {
-            //write_log (_T("%d "), vpos);
-            break;
-        }
-        vsync_sleep (true);
-    }
+	return;
+	for (;;) {
+		int vp;
+		if (!getvblankpos (&vp))
+			return;
+		if (vp > 0) {
+			//write_log (_T("%d "), vpos);
+			break;
+		}
+		vsync_sleep (true);
+	}
 }
 #endif
 
@@ -325,52 +325,52 @@ int fs_ml_get_vblank_count();
 #if 0
 frame_time_t vsync_busywait_end (int *flipdelay) {
 #if 0
-    printf("vsync_busywait_end\n");
-    show_screen ();
+	printf("vsync_busywait_end\n");
+	show_screen ();
 
-    static int last_vblank = 0;
-    while (fs_ml_get_vblank_count() == last_vblank) {
+	static int last_vblank = 0;
+	while (fs_ml_get_vblank_count() == last_vblank) {
 
-    }
-    last_vblank++;// = fs_ml_get_vblank_count();
+	}
+	last_vblank++;// = fs_ml_get_vblank_count();
 
-    if (!dooddevenskip) {
+	if (!dooddevenskip) {
 #if 0
-        vsync_notvblank ();
-        while (!vblank_found && vblankthread_mode == VBLANKTH_ACTIVE) {
-            vsync_sleep (currprefs.m68k_speed < 0);
-        }
+		vsync_notvblank ();
+		while (!vblank_found && vblankthread_mode == VBLANKTH_ACTIVE) {
+			vsync_sleep (currprefs.m68k_speed < 0);
+		}
 #endif
-    }
-    //changevblankthreadmode_fast (VBLANKTH_ACTIVE_WAIT);
+	}
+	//changevblankthreadmode_fast (VBLANKTH_ACTIVE_WAIT);
 #if 0
-    return thread_vblank_time;
+	return thread_vblank_time;
 
-    write_log("vsync_busywait_end\n");
+	write_log("vsync_busywait_end\n");
 #endif
 #endif
-    return read_processor_time();
+	return read_processor_time();
 }
 #endif
 
 static int uae_bits_in_mask (unsigned int mask)
 {
-    int n = 0;
-    while (mask) {
-        n += mask & 1;
-        mask >>= 1;
-    }
-    return n;
+	int n = 0;
+	while (mask) {
+		n += mask & 1;
+		mask >>= 1;
+	}
+	return n;
 }
 
 static int uae_mask_shift (unsigned int mask)
 {
-    int n = 0;
-    while (!(mask & 1)) {
-        n++;
-        mask >>= 1;
-    }
-    return n;
+	int n = 0;
+	while (!(mask & 1)) {
+		n++;
+		mask >>= 1;
+	}
+	return n;
 }
 
 #include <fs/emu/hacks.h>
@@ -401,41 +401,41 @@ static int isscreen(struct AmigaMonitor *mon)
 static void clearscreen (void)
 {
 	STUB("");
-    // FIXME: Schedule a clear (draw black) on both front and back buffers?
+	// FIXME: Schedule a clear (draw black) on both front and back buffers?
 }
 
 void desktop_coords (int monid, int *dw, int *dh, int *ax, int *ay, int *aw, int *ah)
 {
-    STUB("");
+	STUB("");
 #if 0
-        struct MultiDisplay *md = getdisplay (&currprefs);
+		struct MultiDisplay *md = getdisplay (&currprefs);
 
-        *dw = md->rect.right - md->rect.left;
-        *dh = md->rect.bottom - md->rect.top;
-        *ax = amigawin_rect.left;
-        *ay = amigawin_rect.top;
-        *aw = amigawin_rect.right - *ax;
-        *ah = amigawin_rect.bottom - *ay;
+		*dw = md->rect.right - md->rect.left;
+		*dh = md->rect.bottom - md->rect.top;
+		*ax = amigawin_rect.left;
+		*ay = amigawin_rect.top;
+		*aw = amigawin_rect.right - *ax;
+		*ah = amigawin_rect.bottom - *ay;
 #endif
 }
 
 int target_get_display (const TCHAR *name)
 {
-    if (strcmp(name, "Dummy Display") == 0) {
-        return 0;
-    }
-    return -1;
+	if (strcmp(name, "Dummy Display") == 0) {
+		return 0;
+	}
+	return -1;
 }
 
 int target_get_display_scanline(int displayindex)
 {
-    return -2;
+	return -2;
 }
 
 void target_cpu_speed(void)
 {
 #ifdef FSUAE
-    STUB("");
+	STUB("");
 #else
 	display_vblank_thread(&AMonitors[0]);
 #endif
@@ -443,69 +443,69 @@ void target_cpu_speed(void)
 
 const TCHAR *target_get_display_name (int num, bool friendlyname)
 {
-    static TCHAR name[] = "Dummy Display";
-    return name;
+	static TCHAR name[] = "Dummy Display";
+	return name;
 }
 
 void getgfxoffset(int monid, float *dxp, float *dyp, float *mxp, float *myp)
 {
-    /* Offset and scale factors used for magic mouse (in order to translate
-     * mouse coordinates to Amiga coordinates) */
-    *dxp = fs_emu_video_offset_x;
-    *dyp = fs_emu_video_offset_y;
-    *mxp = fs_emu_video_scale_x;
-    *myp = fs_emu_video_scale_y;
+	/* Offset and scale factors used for magic mouse (in order to translate
+	 * mouse coordinates to Amiga coordinates) */
+	*dxp = fs_emu_video_offset_x;
+	*dyp = fs_emu_video_offset_y;
+	*mxp = fs_emu_video_scale_x;
+	*myp = fs_emu_video_scale_y;
 }
 
 int isfullscreen (void)
 {
-    return 0;
+	return 0;
 }
 
 static void grow_render_buffer(int width, int height)
 {
-    struct vidbuf_description *vidinfo = &adisplays[0].gfxvidinfo;
-    unsigned char *new_pixels = (unsigned char*) g_renderdata.grow(width, height);
-    if (new_pixels != g_renderdata.pixels) {
-        //printf("new %p old %p\n", new_pixels, g_renderdata.pixels);
-        //printf("grow_render_buffer %d %d\n", width, height);
-        g_renderdata.pixels = new_pixels;
-        vidinfo->drawbuffer.bufmem = new_pixels;
-        init_row_map();
-        //printf("grow_render_buffer %d %d done\n", width, height);
-    }
+	struct vidbuf_description *vidinfo = &adisplays[0].gfxvidinfo;
+	unsigned char *new_pixels = (unsigned char*) g_renderdata.grow(width, height);
+	if (new_pixels != g_renderdata.pixels) {
+		//printf("new %p old %p\n", new_pixels, g_renderdata.pixels);
+		//printf("grow_render_buffer %d %d\n", width, height);
+		g_renderdata.pixels = new_pixels;
+		vidinfo->drawbuffer.bufmem = new_pixels;
+		init_row_map();
+		//printf("grow_render_buffer %d %d done\n", width, height);
+	}
 }
 
 void amiga_set_render_buffer(void *data, int size, int need_redraw,
-        void *(*grow)(int width, int height))
+		void *(*grow)(int width, int height))
 {
-    struct vidbuf_description *vidinfo = &adisplays[0].gfxvidinfo;
+	struct vidbuf_description *vidinfo = &adisplays[0].gfxvidinfo;
 
-    //printf("set render buffer %p\n", data);
-    g_renderdata.grow = grow;
-    g_renderdata.pixels = (unsigned char *) data;
+	//printf("set render buffer %p\n", data);
+	g_renderdata.grow = grow;
+	g_renderdata.pixels = (unsigned char *) data;
 
-    //printf("\n\n\n\n\n\n\n\n set buffer %p %d\n", data, size);
-    //g_renderdata.pixels = (unsigned char*) data;
-    //g_renderdata.pixels = (unsigned char*) data;
+	//printf("\n\n\n\n\n\n\n\n set buffer %p %d\n", data, size);
+	//g_renderdata.pixels = (unsigned char*) data;
+	//g_renderdata.pixels = (unsigned char*) data;
 
 #ifndef USE_BUFMEM
-    // reset line information
-    memset(g_renderdata.line, 1, AMIGA_MAX_LINES);
+	// reset line information
+	memset(g_renderdata.line, 1, AMIGA_MAX_LINES);
 #ifndef USE_LINEMEM
-    //printf("setting bufmem\n");
-    vidinfo->drawbuffer.bufmem = (unsigned char*) data;
+	//printf("setting bufmem\n");
+	vidinfo->drawbuffer.bufmem = (unsigned char*) data;
 #endif
-    //printf("updating row map\n");
+	//printf("updating row map\n");
 
-    grow_render_buffer(g_largest_width, g_largest_height);
-    init_row_map();
+	grow_render_buffer(g_largest_width, g_largest_height);
+	init_row_map();
 #endif
 }
 
 uint8_t *uae_get_render_buffer()
 {
-    return g_renderdata.pixels;
+	return g_renderdata.pixels;
 }
 
 #define RGBA_MASK_R 0x000000ff
@@ -524,45 +524,45 @@ uint8_t *uae_get_render_buffer()
 
 void gui_fps (int fps, int idle, int color)
 {
-    UAE_LOG_STUB_MAX(1, "");
+	UAE_LOG_STUB_MAX(1, "");
 }
 
 int gui_update (void)
 {
-    return 0;
+	return 0;
 }
 
 #if 0
 
 void flush_line (struct vidbuffer *buffer, int line_no)
 {
-    //printf("- flush_line %d\n", line_no);
+	//printf("- flush_line %d\n", line_no);
 
-    //scrlinebuf
+	//scrlinebuf
 #ifdef USE_LINEMEM
-    unsigned char *dst = g_renderdata.pixels + AMIGA_WIDTH * g_amiga_video_bpp * line_no;
-    memcpy(dst, g_linemem, AMIGA_WIDTH * g_amiga_video_bpp);
+	unsigned char *dst = g_renderdata.pixels + AMIGA_WIDTH * g_amiga_video_bpp * line_no;
+	memcpy(dst, g_linemem, AMIGA_WIDTH * g_amiga_video_bpp);
 #endif
 
 #ifndef USE_BUFMEM
-    // mark this line as not needing copy from the previous render buffer
-    g_renderdata.line[line_no] = 0;
+	// mark this line as not needing copy from the previous render buffer
+	g_renderdata.line[line_no] = 0;
 #endif
-    g_screen_updated = 1;   
-    g_has_flushed_line = 1;
+	g_screen_updated = 1;   
+	g_has_flushed_line = 1;
 }
 
 void flush_block (struct vidbuffer *buffer, int first_line, int last_line)
 {
-    //printf("- flush_block %d %d\n", first_line, last_line);
-    //g_screen_updated = 1;
-    g_has_flushed_block = 1;
+	//printf("- flush_block %d %d\n", first_line, last_line);
+	//g_screen_updated = 1;
+	g_has_flushed_block = 1;
 }
 
 void flush_screen (struct vidbuffer *buffer, int first_line, int last_line)
 {
-    write_log("flush_screen\n");
-    g_has_flushed_screen = 1;
+	write_log("flush_screen\n");
+	g_has_flushed_screen = 1;
 }
 
 #endif
@@ -571,26 +571,26 @@ bool render_screen(int monid, int mode, bool immediate)
 {
 	struct AmigaMonitor *mon = &AMonitors[monid];
 	struct amigadisplay *ad = &adisplays[monid];
-    bool v = false;
-    int cnt;
+	bool v = false;
+	int cnt;
 
-    render_ok = false;
-    if (minimized || ad->picasso_on || monitor_off || dx_islost ())
-            return render_ok;
-    cnt = 0;
-    while (wait_render) {
-            sleep_millis (1);
-            cnt++;
-            if (cnt > 500)
-                    return render_ok;
-    }
+	render_ok = false;
+	if (minimized || ad->picasso_on || monitor_off || dx_islost ())
+			return render_ok;
+	cnt = 0;
+	while (wait_render) {
+			sleep_millis (1);
+			cnt++;
+			if (cnt > 500)
+					return render_ok;
+	}
 #if 0
-    flushymin = 0;
-    flushymax = currentmode->amiga_height;
+	flushymin = 0;
+	flushymax = currentmode->amiga_height;
 #endif
-    gfx_lock();
+	gfx_lock();
 #ifdef FSUAE
-    v = fs_render_frame(monid, mode, immediate);
+	v = fs_render_frame(monid, mode, immediate);
 #else
 	if (mon->currentmode.flags & DM_D3D) {
 		v = D3D_renderframe(monid, mode, immediate);
@@ -610,27 +610,27 @@ bool show_screen_maybe(int monid, bool show)
 {
 	struct AmigaMonitor *mon = &AMonitors[monid];
 	struct amigadisplay *ad = &adisplays[monid];
-    struct apmode *ap = ad->picasso_on ? &currprefs.gfx_apmode[1] : &currprefs.gfx_apmode[0];
+	struct apmode *ap = ad->picasso_on ? &currprefs.gfx_apmode[1] : &currprefs.gfx_apmode[0];
 
 #ifdef DEBUG_SHOW_SCREEN
-    printf("show_screen_maybe monid=%d show=%d (picasso_on=%d)\n",
-           monid, show, ad->picasso_on);
+	printf("show_screen_maybe monid=%d show=%d (picasso_on=%d)\n",
+		   monid, show, ad->picasso_on);
 #endif
 
-    if (!ap->gfx_vflip || ap->gfx_vsyncmode == 0 || !ap->gfx_vsync) {
-        if (show) {
-        //if (show && !picasso_on) {
-            show_screen(monid, 0);
-        }
-        return false;
-    }
+	if (!ap->gfx_vflip || ap->gfx_vsyncmode == 0 || !ap->gfx_vsync) {
+		if (show) {
+		//if (show && !picasso_on) {
+			show_screen(monid, 0);
+		}
+		return false;
+	}
 #if 0
 	if (ap->gfx_vflip < 0) {
 		doflipevent ();
 		return true;
 	}
 #endif
-    return false;
+	return false;
 }
 
 float target_adjust_vblank_hz(int monid, float hz)
@@ -661,12 +661,12 @@ void show_screen(int monid, int mode)
 	struct amigadisplay *ad = &adisplays[monid];
 
 #ifdef DEBUG_SHOW_SCREEN
-    printf("show_screen mode=%d\n\n", mode);
+	printf("show_screen mode=%d\n\n", mode);
 #endif
 
-    if (g_libamiga_callbacks.display) {
-        g_libamiga_callbacks.display();
-    }
+	if (g_libamiga_callbacks.display) {
+		g_libamiga_callbacks.display();
+	}
 }
 
 int lockscr(struct vidbuffer *vb, bool fullupdate, bool first)
@@ -730,26 +730,26 @@ void unlockscr(struct vidbuffer *vb, int y_start, int y_end)
 #if 0
 void flush_clear_screen (struct vidbuffer *vb)
 {
-    STUB("");
+	STUB("");
 }
 #endif
 
 static uae_u8 *gfx_lock_picasso2(int monid, bool fullupdate)
 {
 #ifdef DEBUG_PICASSO96
-    printf("gfx_lock_picasso2\n");
+	printf("gfx_lock_picasso2\n");
 #endif
 	struct picasso_vidbuf_description *vidinfo = &picasso_vidinfo[monid];
 	if (true) { // if (currprefs.gfx_api) {
 		int pitch = vidinfo->width * g_amiga_video_bpp;
-        // FIXME: Make sure the render buffer is big enough!!
-        // FIXME: Can grow here if necessary?
-        // Or return NULL or use temp buffer if not?
-        // This is currently done in gfx_set_picasso_modeinfo, maybe it should be
-        // moved here...
+		// FIXME: Make sure the render buffer is big enough!!
+		// FIXME: Can grow here if necessary?
+		// Or return NULL or use temp buffer if not?
+		// This is currently done in gfx_set_picasso_modeinfo, maybe it should be
+		// moved here...
 		uae_u8 *p = uae_get_render_buffer();
 		vidinfo->rowbytes = pitch;
-        vidinfo->rowbytes = pitch;
+		vidinfo->rowbytes = pitch;
 		return p;
 	}
 }
@@ -788,26 +788,26 @@ uae_u8 *gfx_lock_picasso(int monid, bool fullupdate, bool doclear)
 void gfx_unlock_picasso(int monid, bool dorender)
 {
 #ifdef DEBUG_PICASSO96
-    printf("gfx_unlock_picasso monid %d dorender %d\n", monid, dorender);
+	printf("gfx_unlock_picasso monid %d dorender %d\n", monid, dorender);
 #endif
 	struct AmigaMonitor *mon = &AMonitors[monid];
 	struct picasso_vidbuf_description *vidinfo = &picasso_vidinfo[monid];
 
 #if 0
-    if (!rtg_locked)
-            EnterCriticalSection (&screen_cs);
+	if (!rtg_locked)
+			EnterCriticalSection (&screen_cs);
 #endif
 
-    mon->rtg_locked = false;
+	mon->rtg_locked = false;
 
-    if (dorender) {
-        //render_screen(1);
-        // FIXME: check what mode parameter is supposed to do. 1?
-        //show_screen(0);
-        if (fs_render_frame(monid, 1, false)) {
-            show_screen_maybe(monid, true);
-        }
-    }
+	if (dorender) {
+		//render_screen(1);
+		// FIXME: check what mode parameter is supposed to do. 1?
+		//show_screen(0);
+		if (fs_render_frame(monid, 1, false)) {
+			show_screen_maybe(monid, true);
+		}
+	}
 }
 
 static void closeblankwindows (void)
@@ -821,7 +821,7 @@ static void createblankwindows (void)
 
 static void close_hwnds(struct AmigaMonitor *mon)
 {
-    STUB("");
+	STUB("");
 }
 
 static bool canmatchdepth(void)
@@ -1018,28 +1018,28 @@ static int open_windows(struct AmigaMonitor *mon, bool mousecapture, bool starte
 		}
 	} while (ret < 0);
 #endif
-    ret = 0;
+	ret = 0;
 	return ret;
 }
 
 void graphics_reset(bool force)
 {
-    LOG_STUB("force=%d", force);
+	LOG_STUB("force=%d", force);
 }
 
 int check_prefs_changed_gfx (void)
 {
-    //write_log("check_prefs_changed_gfx\n");
-    return 0;
+	//write_log("check_prefs_changed_gfx\n");
+	return 0;
 }
 
 static int init_colors (int monid)
 {
-    write_log("init_colors\n");
-    bool use_yuv = false;
-    alloc_colors64k(monid, g_red_bits, g_green_bits, g_blue_bits, g_red_shift,
-            g_green_shift, g_blue_shift, 0, 0, 0, 0, use_yuv);
-    return 1;
+	write_log("init_colors\n");
+	bool use_yuv = false;
+	alloc_colors64k(monid, g_red_bits, g_green_bits, g_blue_bits, g_red_shift,
+			g_green_shift, g_blue_shift, 0, 0, 0, 0, use_yuv);
+	return 1;
 }
 
 int picasso_palette(struct MyCLUTEntry *CLUT, uae_u32 *clut)
@@ -1065,7 +1065,7 @@ int picasso_palette(struct MyCLUTEntry *CLUT, uae_u32 *clut)
 
 static void open_screen(struct AmigaMonitor *mon)
 {
-    STUB("");
+	STUB("");
 	close_windows(mon);
 	open_windows(mon, true, true);
 }
@@ -1089,9 +1089,9 @@ int vsync_isdone(frame_time_t *dt)
 	// if (dt)
 	//	*dt = wait_vblank_timestamp;
 	// return vsync_active ? 1 : 0;
-    return 1;
-    // FIXME ??
-    // return vblank_found_chipset || dooddevenskip;
+	return 1;
+	// FIXME ??
+	// return vblank_found_chipset || dooddevenskip;
 }
 
 static int modeswitchneeded(struct AmigaMonitor *mon, struct winuae_currentmode *wc)
@@ -1101,8 +1101,8 @@ static int modeswitchneeded(struct AmigaMonitor *mon, struct winuae_currentmode 
 
 void gfx_set_picasso_state(int monid, int on)
 {
-    write_log(_T("gfx_set_picasso_state monid=%d on=%d\n"), monid, on);
-    g_picasso_enabled = (on != 0);
+	write_log(_T("gfx_set_picasso_state monid=%d on=%d\n"), monid, on);
+	g_picasso_enabled = (on != 0);
 
 	struct AmigaMonitor *mon = &AMonitors[monid];
 	struct winuae_currentmode wc;
@@ -1132,42 +1132,42 @@ void gfx_set_picasso_modeinfo(int monid, RGBFTYPE rgbfmt)
 	struct AmigaMonitor *mon = &AMonitors[monid];
 	int need;
 #ifdef DEBUG_PICASSO96
-    write_log(_T("gfx_set_picasso_modeinfo rgbfmt=%d mon->screen_is_picasso=%d\n"),
-              rgbfmt, mon->screen_is_picasso);
+	write_log(_T("gfx_set_picasso_modeinfo rgbfmt=%d mon->screen_is_picasso=%d\n"),
+			  rgbfmt, mon->screen_is_picasso);
 #endif
 
 #ifdef DEBUG_PICASSO96
 	if (!mon->screen_is_picasso) {
 		printf("!mon->screen_is_picasso, RETURNING\n");
-    }
+	}
 #endif
 
 	if (!mon->screen_is_picasso)
 		return;
 
-    g_picasso_format = rgbfmt;
+	g_picasso_format = rgbfmt;
 
 #ifdef DEBUG_PICASSO96
-    write_log("====================== rgbfmt = %d\n ===============\n", g_picasso_format);
+	write_log("====================== rgbfmt = %d\n ===============\n", g_picasso_format);
 #endif
 
-    // FIXME: Clean up mess
+	// FIXME: Clean up mess
 
-    struct picasso_vidbuf_description *vidinfo = &picasso_vidinfo[monid];
-    write_log("gfx_set_picasso_modeinfo %dx%d:%d rgbfmt=%d/%d\n",
-    vidinfo->width, vidinfo->height, vidinfo->depth, vidinfo->selected_rgbformat,
-    rgbfmt);
+	struct picasso_vidbuf_description *vidinfo = &picasso_vidinfo[monid];
+	write_log("gfx_set_picasso_modeinfo %dx%d:%d rgbfmt=%d/%d\n",
+	vidinfo->width, vidinfo->height, vidinfo->depth, vidinfo->selected_rgbformat,
+	rgbfmt);
 #if 1
-    g_picasso_width = vidinfo->width;
-    g_picasso_height = vidinfo->height;
-    g_picasso_depth = vidinfo->depth;
-    g_picasso_format = vidinfo->selected_rgbformat;
+	g_picasso_width = vidinfo->width;
+	g_picasso_height = vidinfo->height;
+	g_picasso_depth = vidinfo->depth;
+	g_picasso_format = vidinfo->selected_rgbformat;
 /*
-    g_picasso_width = picasso96_state_uaegfx.Width;
-    g_picasso_height = picasso96_state_uaegfx.Height;
-    g_picasso_depth = picasso96_state_uaegfx.GC_Depth;
-    g_picasso_format = picasso96_state_uaegfx.RGBFormat;
-    */
+	g_picasso_width = picasso96_state_uaegfx.Width;
+	g_picasso_height = picasso96_state_uaegfx.Height;
+	g_picasso_depth = picasso96_state_uaegfx.GC_Depth;
+	g_picasso_format = picasso96_state_uaegfx.RGBFormat;
+	*/
 /*
 	if((picasso_vidinfo.width == ) &&
 		(picasso_vidinfo.height == ) &&
@@ -1175,10 +1175,10 @@ void gfx_set_picasso_modeinfo(int monid, RGBFTYPE rgbfmt)
 		(picasso_vidinfo.selected_rgbformat == ))
 		*/
 #else
-    g_picasso_width = w;
-    g_picasso_height = h;
-    g_picasso_depth = depth;
-    g_picasso_format = rgbfmt;
+	g_picasso_width = w;
+	g_picasso_height = h;
+	g_picasso_depth = depth;
+	g_picasso_format = rgbfmt;
 #endif
 
 	clearscreen();
@@ -1195,27 +1195,27 @@ void gfx_set_picasso_modeinfo(int monid, RGBFTYPE rgbfmt)
 	rp_set_hwnd(mon->hAmigaWnd);
 #endif
 
-    // register largest width seen, so render buffers can be adjusted if
-    // necessary
-    if (g_picasso_width > g_largest_width) {
-        g_largest_width = g_picasso_width;
-    }
-    if (g_picasso_height > g_largest_height) {
-        g_largest_height = g_picasso_height;
-    }
-    grow_render_buffer(g_largest_width, g_largest_height);
+	// register largest width seen, so render buffers can be adjusted if
+	// necessary
+	if (g_picasso_width > g_largest_width) {
+		g_largest_width = g_picasso_width;
+	}
+	if (g_picasso_height > g_largest_height) {
+		g_largest_height = g_picasso_height;
+	}
+	grow_render_buffer(g_largest_width, g_largest_height);
 
-    vidinfo->width = g_picasso_width;
-    vidinfo->height = g_picasso_height;
+	vidinfo->width = g_picasso_width;
+	vidinfo->height = g_picasso_height;
 }
 
 void gfx_set_picasso_colors(int monid, RGBFTYPE rgbfmt)
 {
 #ifdef DEBUG_PICASSO96
-    write_log(_T("gfx_set_picasso_colors monid=%d rgbfmt=%d\n"), monid, rgbfmt);
+	write_log(_T("gfx_set_picasso_colors monid=%d rgbfmt=%d\n"), monid, rgbfmt);
 #endif
-    alloc_colors_picasso(g_red_bits, g_green_bits, g_blue_bits, g_red_shift,
-            g_green_shift, g_blue_shift, rgbfmt, p96_rgbx16);
+	alloc_colors_picasso(g_red_bits, g_green_bits, g_blue_bits, g_red_shift,
+			g_green_shift, g_blue_shift, rgbfmt, p96_rgbx16);
 }
 
 int machdep_init(void)
@@ -1233,17 +1233,17 @@ int machdep_init(void)
 	lcd_open ();
 #endif
 
-    // We call libamiga_callbacks.init here because machdep_init is called
-    // very early in real_main2, just after default configuration and before
-    // it is too late to change the configuration
+	// We call libamiga_callbacks.init here because machdep_init is called
+	// very early in real_main2, just after default configuration and before
+	// it is too late to change the configuration
 
-    built_in_prefs(&currprefs, 1, 0, 0, 0);
+	built_in_prefs(&currprefs, 1, 0, 0, 0);
 
-    if (g_libamiga_callbacks.init) {
-        g_libamiga_callbacks.init();
-    }
+	if (g_libamiga_callbacks.init) {
+		g_libamiga_callbacks.init();
+	}
 
-    return 1;
+	return 1;
 }
 
 void machdep_free(void)
@@ -1255,120 +1255,120 @@ void machdep_free(void)
 
 int graphics_init(bool mousecapture)
 {
-    write_log("graphics_init\n");
+	write_log("graphics_init\n");
 
-    int monid = 0;
+	int monid = 0;
 	struct AmigaMonitor *mon = &AMonitors[monid];
 	struct amigadisplay *ad = &adisplays[monid];
-    struct vidbuf_description *avidinfo = &adisplays[0].gfxvidinfo;
+	struct vidbuf_description *avidinfo = &adisplays[0].gfxvidinfo;
 
-    // FIXME: perhaps modify so custom_limits defaults to -1, -1, -1, -1
-    set_custom_limits (-1, -1, -1, -1);
+	// FIXME: perhaps modify so custom_limits defaults to -1, -1, -1, -1
+	set_custom_limits (-1, -1, -1, -1);
 
-    if (g_amiga_video_format == AMIGA_VIDEO_FORMAT_R5G6B5) {
-        currprefs.color_mode = 2;
-        g_red_bits    = uae_bits_in_mask(R5G6B5_MASK_R);
-        g_red_shift   = uae_mask_shift(R5G6B5_MASK_R);
-        g_green_bits  = uae_bits_in_mask(R5G6B5_MASK_G);
-        g_green_shift = uae_mask_shift(R5G6B5_MASK_G);
-        g_blue_bits   = uae_bits_in_mask(R5G6B5_MASK_B);
-        g_blue_shift  = uae_mask_shift(R5G6B5_MASK_B);
-        g_alpha_bits   = 0;
-        g_alpha_shift  = 0;
-    }
-    else if (g_amiga_video_format == AMIGA_VIDEO_FORMAT_R5G5B5A1) {
-        currprefs.color_mode = 2;
-        g_red_bits    = uae_bits_in_mask(R5G5B5A1_MASK_R);
-        g_red_shift   = uae_mask_shift(R5G5B5A1_MASK_R);
-        g_green_bits  = uae_bits_in_mask(R5G5B5A1_MASK_G);
-        g_green_shift = uae_mask_shift(R5G5B5A1_MASK_G);
-        g_blue_bits   = uae_bits_in_mask(R5G5B5A1_MASK_B);
-        g_blue_shift  = uae_mask_shift(R5G5B5A1_MASK_B);
-        g_alpha_bits   = uae_bits_in_mask(R5G5B5A1_MASK_A);
-        g_alpha_shift  = uae_mask_shift(R5G5B5A1_MASK_A);
-    }
-    else { // RGBA or BGRA
-        currprefs.color_mode = 5;
-        if (g_amiga_video_format == AMIGA_VIDEO_FORMAT_RGBA) {
-            g_red_bits    = uae_bits_in_mask(RGBA_MASK_R);
-            g_red_shift   = uae_mask_shift(RGBA_MASK_R);
-            g_blue_bits   = uae_bits_in_mask(RGBA_MASK_B);
-            g_blue_shift  = uae_mask_shift(RGBA_MASK_B);
-        }
-        else { // BGRA
-            g_red_bits   = uae_bits_in_mask(RGBA_MASK_B);
-            g_red_shift  = uae_mask_shift(RGBA_MASK_B);
-            g_blue_bits    = uae_bits_in_mask(RGBA_MASK_R);
-            g_blue_shift   = uae_mask_shift(RGBA_MASK_R);
-        }
-        g_green_bits  = uae_bits_in_mask(RGBA_MASK_G);
-        g_green_shift = uae_mask_shift(RGBA_MASK_G);
-        g_alpha_bits   = uae_bits_in_mask(RGBA_MASK_A);
-        g_alpha_shift  = uae_mask_shift(RGBA_MASK_A);
-    }
+	if (g_amiga_video_format == AMIGA_VIDEO_FORMAT_R5G6B5) {
+		currprefs.color_mode = 2;
+		g_red_bits    = uae_bits_in_mask(R5G6B5_MASK_R);
+		g_red_shift   = uae_mask_shift(R5G6B5_MASK_R);
+		g_green_bits  = uae_bits_in_mask(R5G6B5_MASK_G);
+		g_green_shift = uae_mask_shift(R5G6B5_MASK_G);
+		g_blue_bits   = uae_bits_in_mask(R5G6B5_MASK_B);
+		g_blue_shift  = uae_mask_shift(R5G6B5_MASK_B);
+		g_alpha_bits   = 0;
+		g_alpha_shift  = 0;
+	}
+	else if (g_amiga_video_format == AMIGA_VIDEO_FORMAT_R5G5B5A1) {
+		currprefs.color_mode = 2;
+		g_red_bits    = uae_bits_in_mask(R5G5B5A1_MASK_R);
+		g_red_shift   = uae_mask_shift(R5G5B5A1_MASK_R);
+		g_green_bits  = uae_bits_in_mask(R5G5B5A1_MASK_G);
+		g_green_shift = uae_mask_shift(R5G5B5A1_MASK_G);
+		g_blue_bits   = uae_bits_in_mask(R5G5B5A1_MASK_B);
+		g_blue_shift  = uae_mask_shift(R5G5B5A1_MASK_B);
+		g_alpha_bits   = uae_bits_in_mask(R5G5B5A1_MASK_A);
+		g_alpha_shift  = uae_mask_shift(R5G5B5A1_MASK_A);
+	}
+	else { // RGBA or BGRA
+		currprefs.color_mode = 5;
+		if (g_amiga_video_format == AMIGA_VIDEO_FORMAT_RGBA) {
+			g_red_bits    = uae_bits_in_mask(RGBA_MASK_R);
+			g_red_shift   = uae_mask_shift(RGBA_MASK_R);
+			g_blue_bits   = uae_bits_in_mask(RGBA_MASK_B);
+			g_blue_shift  = uae_mask_shift(RGBA_MASK_B);
+		}
+		else { // BGRA
+			g_red_bits   = uae_bits_in_mask(RGBA_MASK_B);
+			g_red_shift  = uae_mask_shift(RGBA_MASK_B);
+			g_blue_bits    = uae_bits_in_mask(RGBA_MASK_R);
+			g_blue_shift   = uae_mask_shift(RGBA_MASK_R);
+		}
+		g_green_bits  = uae_bits_in_mask(RGBA_MASK_G);
+		g_green_shift = uae_mask_shift(RGBA_MASK_G);
+		g_alpha_bits   = uae_bits_in_mask(RGBA_MASK_A);
+		g_alpha_shift  = uae_mask_shift(RGBA_MASK_A);
+	}
 
-    //g_renderdata.pixels = (unsigned char*) malloc(AMIGA_WIDTH*AMIGA_HEIGHT*4);
+	//g_renderdata.pixels = (unsigned char*) malloc(AMIGA_WIDTH*AMIGA_HEIGHT*4);
 
-    memset(g_renderdata.line, 0, AMIGA_MAX_LINES);
-    // FIXME: ??
-    // avidinfo->maxblocklines = 0;
+	memset(g_renderdata.line, 0, AMIGA_MAX_LINES);
+	// FIXME: ??
+	// avidinfo->maxblocklines = 0;
 #ifdef USE_BUFMEM
-    g_bufmem = (unsigned char*) malloc(AMIGA_WIDTH * AMIGA_HEIGHT * g_amiga_video_bpp);
-    avidinfo->drawbuffer.bufmem = g_bufmem;
-    memset(g_bufmem, 0, AMIGA_WIDTH * AMIGA_HEIGHT * g_amiga_video_bpp);
-    avidinfo->maxblocklines = MAXBLOCKLINES_MAX;
+	g_bufmem = (unsigned char*) malloc(AMIGA_WIDTH * AMIGA_HEIGHT * g_amiga_video_bpp);
+	avidinfo->drawbuffer.bufmem = g_bufmem;
+	memset(g_bufmem, 0, AMIGA_WIDTH * AMIGA_HEIGHT * g_amiga_video_bpp);
+	avidinfo->maxblocklines = MAXBLOCKLINES_MAX;
 #endif
 
 #ifdef USE_LINEMEM
-    avidinfo->drawbuffer.emergmem = 0;
-    avidinfo->drawbuffer.linemem = g_linemem;
+	avidinfo->drawbuffer.emergmem = 0;
+	avidinfo->drawbuffer.linemem = g_linemem;
 #else
-    avidinfo->drawbuffer.emergmem = 0; //g_linemem;
-    avidinfo->drawbuffer.linemem = 0;
+	avidinfo->drawbuffer.emergmem = 0; //g_linemem;
+	avidinfo->drawbuffer.linemem = 0;
 #endif
-    avidinfo->drawbuffer.pixbytes = g_amiga_video_bpp;
-    avidinfo->drawbuffer.rowbytes = AMIGA_WIDTH * g_amiga_video_bpp;
-    avidinfo->drawbuffer.height_allocated = AMIGA_HEIGHT;
-    avidinfo->drawbuffer.inheight = AMIGA_HEIGHT;
-    avidinfo->drawbuffer.outheight = AMIGA_HEIGHT;
-    avidinfo->drawbuffer.width_allocated = AMIGA_WIDTH;
-    avidinfo->drawbuffer.inwidth = AMIGA_WIDTH;
-    avidinfo->drawbuffer.outwidth = AMIGA_WIDTH;
+	avidinfo->drawbuffer.pixbytes = g_amiga_video_bpp;
+	avidinfo->drawbuffer.rowbytes = AMIGA_WIDTH * g_amiga_video_bpp;
+	avidinfo->drawbuffer.height_allocated = AMIGA_HEIGHT;
+	avidinfo->drawbuffer.inheight = AMIGA_HEIGHT;
+	avidinfo->drawbuffer.outheight = AMIGA_HEIGHT;
+	avidinfo->drawbuffer.width_allocated = AMIGA_WIDTH;
+	avidinfo->drawbuffer.inwidth = AMIGA_WIDTH;
+	avidinfo->drawbuffer.outwidth = AMIGA_WIDTH;
 
-    //gfxvidinfo.flush_block = libamiga_flush_block;
-    //gfxvidinfo.flush_screen = libamiga_flush_screen;
-    //SDL_SetColors (display, arSDLColors, 0, 256);
-    write_log("calling reset_drawing\n");
-    reset_drawing ();
-    init_colors(monid);
+	//gfxvidinfo.flush_block = libamiga_flush_block;
+	//gfxvidinfo.flush_screen = libamiga_flush_screen;
+	//SDL_SetColors (display, arSDLColors, 0, 256);
+	write_log("calling reset_drawing\n");
+	reset_drawing ();
+	init_colors(monid);
 
 //#ifdef USE_BUFMEM
 //    init_row_map();
 //#endif
 
-    //write_log("FIXME: NOT USING VSYNC TRICK\n");
-    // Trick UAE into sending believing we are in vsync / fullscreen
-    // so a flush command is sent for each frame update in do_flush_screen.
+	//write_log("FIXME: NOT USING VSYNC TRICK\n");
+	// Trick UAE into sending believing we are in vsync / fullscreen
+	// so a flush command is sent for each frame update in do_flush_screen.
 
-    if (currprefs.m68k_speed == -1) {
-        write_log("currprefs.m68k_speed is -1, not allowing full sync\n");
-    }
-    else {
-        //currprefs.gfx_apmode[0].gfx_fullscreen = GFX_FULLSCREEN;
-        currprefs.gfx_apmode[0].gfx_vsync = 1;
-    }
+	if (currprefs.m68k_speed == -1) {
+		write_log("currprefs.m68k_speed is -1, not allowing full sync\n");
+	}
+	else {
+		//currprefs.gfx_apmode[0].gfx_fullscreen = GFX_FULLSCREEN;
+		currprefs.gfx_apmode[0].gfx_vsync = 1;
+	}
 
-    //currprefs.gfx_apmode[0].gfx_fullscreen = GFX_FULLSCREEN;
-    //currprefs.gfx_apmode[0].gfx_vsync = 1;
+	//currprefs.gfx_apmode[0].gfx_fullscreen = GFX_FULLSCREEN;
+	//currprefs.gfx_apmode[0].gfx_vsync = 1;
 
-    //currprefs.gfx_apmode[0].gfx_vsyncmode = 1;
-    //currprefs.gfx_apmode[1].gfx_fullscreen = GFX_FULLSCREEN;
-    //currprefs.gfx_apmode[1].gfx_vsync = 1;
+	//currprefs.gfx_apmode[0].gfx_vsyncmode = 1;
+	//currprefs.gfx_apmode[1].gfx_fullscreen = GFX_FULLSCREEN;
+	//currprefs.gfx_apmode[1].gfx_vsync = 1;
 
-    //amiga_set_option("gfx_vsync", "true");
-    //amiga_set_option("gfx_vsyncmode", "busywait");
+	//amiga_set_option("gfx_vsync", "true");
+	//amiga_set_option("gfx_vsyncmode", "busywait");
 
-    return 1;
+	return 1;
 }
 
 int graphics_setup(void)
@@ -1400,30 +1400,30 @@ void graphics_leave (void)
 
 void close_windows(struct AmigaMonitor *mon)
 {
-    STUB("");
+	STUB("");
 }
 
 float target_getcurrentvblankrate(int monid)
 {
-    UAE_LOG_STUB("");
-    if (remembered_vblank) {
-        return remembered_vblank;
-    }
-    return 50;
+	UAE_LOG_STUB("");
+	if (remembered_vblank) {
+		return remembered_vblank;
+	}
+	return 50;
 }
 
 static int oldtex_w, oldtex_h, oldtex_rtg;
 
 bool target_graphics_buffer_update(int monid)
 {
-    // FS-UAE:
+	// FS-UAE:
 
-    write_log("target_graphics_buffer_update - clearing buffer\n");
-    memset(g_renderdata.pixels, 0, \
-            AMIGA_WIDTH * AMIGA_HEIGHT * g_amiga_video_bpp);
-    memset(g_renderdata.line, 0, AMIGA_MAX_LINES);
+	write_log("target_graphics_buffer_update - clearing buffer\n");
+	memset(g_renderdata.pixels, 0, \
+			AMIGA_WIDTH * AMIGA_HEIGHT * g_amiga_video_bpp);
+	memset(g_renderdata.line, 0, AMIGA_MAX_LINES);
 
-    // WinUAE:
+	// WinUAE:
 
 	struct AmigaMonitor *mon = &AMonitors[monid];
 	struct picasso_vidbuf_description *vidinfo = &picasso_vidinfo[monid];
@@ -1440,17 +1440,17 @@ bool target_graphics_buffer_update(int monid)
 #ifdef FSUAE
 		w = state->Width;
 		h = state->Height;
-        vidinfo->width = w;
-        vidinfo->height = w;
-        g_picasso_width = w;
-        g_picasso_height = h;
+		vidinfo->width = w;
+		vidinfo->height = w;
+		g_picasso_width = w;
+		g_picasso_height = h;
 #endif
 	} else {
 		struct vidbuffer *vb = avidinfo->drawbuffer.tempbufferinuse ? &avidinfo->tempbuffer : &avidinfo->drawbuffer;
 		avidinfo->outbuffer = vb;
 		w = vb->outwidth;
 		h = vb->outheight;
-        printf("outwidth/height = %dx%d\n", w, h);
+		printf("outwidth/height = %dx%d\n", w, h);
 	}
 	
 	if (oldtex_w == w && oldtex_h == h && oldtex_rtg == mon->screen_is_picasso)
@@ -1491,7 +1491,7 @@ bool target_graphics_buffer_update(int monid)
 
 void updatewinfsmode(int monid, struct uae_prefs *p)
 {
-    STUB("");
+	STUB("");
 #if 0
 	struct MultiDisplay *md;
 
@@ -1517,7 +1517,7 @@ int rtg_index = -1;
 bool toggle_rtg (int monid, int mode)
 {
 #ifdef DEBUG_PICASSO96
-    printf("toggle_rtg monid=%d mode=%d\n", monid, mode);
+	printf("toggle_rtg monid=%d mode=%d\n", monid, mode);
 #endif
 	struct amigadisplay *ad = &adisplays[monid];
 
@@ -1598,31 +1598,31 @@ bool toggle_rtg (int monid, int mode)
 	return false;
 
 #if 0
-        if (mode == 0) {
-                if (!picasso_on)
-                        return false;
-        } else if (mode > 0) {
-                if (picasso_on)
-                        return false;
-        }
-        if (currprefs.rtgmem_type >= GFXBOARD_HARDWARE) {
-                return gfxboard_toggle (mode);
-        } else {
-                // can always switch from RTG to custom
-                if (picasso_requested_on && picasso_on) {
-                        picasso_requested_on = false;
-                        return true;
-                }
-                if (picasso_on)
-                        return false;
-                // can only switch from custom to RTG if there is some mode act$
-                if (picasso_is_active ()) {
-                        picasso_requested_on = true;
-                        return true;
-                }
-        }
+		if (mode == 0) {
+				if (!picasso_on)
+						return false;
+		} else if (mode > 0) {
+				if (picasso_on)
+						return false;
+		}
+		if (currprefs.rtgmem_type >= GFXBOARD_HARDWARE) {
+				return gfxboard_toggle (mode);
+		} else {
+				// can always switch from RTG to custom
+				if (picasso_requested_on && picasso_on) {
+						picasso_requested_on = false;
+						return true;
+				}
+				if (picasso_on)
+						return false;
+				// can only switch from custom to RTG if there is some mode act$
+				if (picasso_is_active ()) {
+						picasso_requested_on = true;
+						return true;
+				}
+		}
 #endif
-        return false;
+		return false;
 }
 
 void close_rtg(int monid)
@@ -1632,140 +1632,140 @@ void close_rtg(int monid)
 
 void toggle_fullscreen(int monid, int mode)
 {
-    STUB("");
+	STUB("");
 }
 
 bool fs_render_frame(int monid, int mode, bool immediate)
 {
 	struct AmigaMonitor *mon = &AMonitors[monid];
 	struct amigadisplay *ad = &adisplays[monid];
-    struct vidbuf_description *avidinfo = &adisplays[0].gfxvidinfo;
-    // FIXME: immediate is a new parameter
-    // FIXME: mode is a new parameter
+	struct vidbuf_description *avidinfo = &adisplays[0].gfxvidinfo;
+	// FIXME: immediate is a new parameter
+	// FIXME: mode is a new parameter
 
 #if 0
-    //write_log("render_screen line: %d block %d screen %d\n",
-    //        g_has_flushed_line, g_has_flushed_block, g_has_flushed_screen);
-    int flushed = g_has_flushed_line || g_has_flushed_block ||
-            g_has_flushed_screen;
+	//write_log("render_screen line: %d block %d screen %d\n",
+	//        g_has_flushed_line, g_has_flushed_block, g_has_flushed_screen);
+	int flushed = g_has_flushed_line || g_has_flushed_block ||
+			g_has_flushed_screen;
 #endif
 
-    g_renderdata.bpp = g_amiga_video_bpp;
-    // printf("%d %d %d\n", g_amiga_video_bpp, AMIGA_WIDTH, AMIGA_HEIGHT);
+	g_renderdata.bpp = g_amiga_video_bpp;
+	// printf("%d %d %d\n", g_amiga_video_bpp, AMIGA_WIDTH, AMIGA_HEIGHT);
 
-    static int cx, cy, cw, ch, crealh;
+	static int cx, cy, cw, ch, crealh;
 #if 0
-    printf("g_picasso_enabled %d\n", g_picasso_enabled);
+	printf("g_picasso_enabled %d\n", g_picasso_enabled);
 #endif
-    if (g_picasso_enabled) {
-        g_renderdata.width = g_picasso_width;
-        g_renderdata.height = g_picasso_height;
-        g_renderdata.limit_x = 0;
-        g_renderdata.limit_y = 0;
-        g_renderdata.limit_w = g_picasso_width;
-        g_renderdata.limit_h = g_picasso_height;
-        //g_renderdata.updated = g_screen_updated;
-        g_renderdata.flags |= AMIGA_VIDEO_RTG_MODE;
+	if (g_picasso_enabled) {
+		g_renderdata.width = g_picasso_width;
+		g_renderdata.height = g_picasso_height;
+		g_renderdata.limit_x = 0;
+		g_renderdata.limit_y = 0;
+		g_renderdata.limit_w = g_picasso_width;
+		g_renderdata.limit_h = g_picasso_height;
+		//g_renderdata.updated = g_screen_updated;
+		g_renderdata.flags |= AMIGA_VIDEO_RTG_MODE;
 
 #ifdef USE_BUFMEM
-        //memcpy(g_renderdata.pixels, g_bufmem, g_picasso_width * g_picasso_height * g_amiga_video_bpp);
+		//memcpy(g_renderdata.pixels, g_bufmem, g_picasso_width * g_picasso_height * g_amiga_video_bpp);
 #endif
-        // FIXME
-        memset(g_renderdata.line, 0, AMIGA_MAX_LINES);
-    }
-    else {
-        if (avidinfo->outbuffer) {
-            // if gfxvidinfo.outbuffer is not set, get_custom_limits will
-            // crash
-            // if (flushed) {
-            if (true) {
-                get_custom_limits(&cw, &ch, &cx, &cy, &crealh);
-                // FIXME: crealh is new - find out what it does
-            } else {
-                // reuse last custom limits
-            }
-        }
-        if (cx < 0) {
-            //write_log("WARNING: custom limit x (%d) is < 0 - clamping\n", cx);
-            cx = 0;
-        }
-        if (cy < 0) {
-            //write_log("WARNING: custom limit y (%d) is < 0 - clamping\n", cy);
-            cy = 0;
-        }
-        if (cx + cw > AMIGA_WIDTH) {
-            //write_log("WARNING: custom limit x (%d) + w (%d) is > "
-            //        "AMIGA_WIDTH (%d) - clamping\n", cx, cw, AMIGA_WIDTH);
-            cw = AMIGA_WIDTH - cx;
-        }
-        if (cy + ch > AMIGA_HEIGHT) {
-            //write_log("WARNING: custom limit y (%d) + h (%d) is > "
-            //        "AMIGA_HEIGHT (%d) - clamping\n", cy, ch, AMIGA_HEIGHT);
-            ch = AMIGA_HEIGHT - cy;
-        }
-        g_renderdata.width = AMIGA_WIDTH;
-        g_renderdata.height = AMIGA_HEIGHT;
-        g_renderdata.limit_x = cx;
-        g_renderdata.limit_y = cy;
-        g_renderdata.limit_w = cw;
-        g_renderdata.limit_h = ch;
-        //g_renderdata.updated = g_screen_updated;
-        CLEAR_FLAG(g_renderdata.flags, AMIGA_VIDEO_RTG_MODE);
-        SET_OR_CLEAR_FLAG(g_renderdata.flags, AMIGA_VIDEO_LOW_RESOLUTION,
-                currprefs.gfx_resolution == 0);
-        SET_OR_CLEAR_FLAG(g_renderdata.flags, AMIGA_VIDEO_LINE_DOUBLING,
-                currprefs.gfx_vresolution == 1);
+		// FIXME
+		memset(g_renderdata.line, 0, AMIGA_MAX_LINES);
+	}
+	else {
+		if (avidinfo->outbuffer) {
+			// if gfxvidinfo.outbuffer is not set, get_custom_limits will
+			// crash
+			// if (flushed) {
+			if (true) {
+				get_custom_limits(&cw, &ch, &cx, &cy, &crealh);
+				// FIXME: crealh is new - find out what it does
+			} else {
+				// reuse last custom limits
+			}
+		}
+		if (cx < 0) {
+			//write_log("WARNING: custom limit x (%d) is < 0 - clamping\n", cx);
+			cx = 0;
+		}
+		if (cy < 0) {
+			//write_log("WARNING: custom limit y (%d) is < 0 - clamping\n", cy);
+			cy = 0;
+		}
+		if (cx + cw > AMIGA_WIDTH) {
+			//write_log("WARNING: custom limit x (%d) + w (%d) is > "
+			//        "AMIGA_WIDTH (%d) - clamping\n", cx, cw, AMIGA_WIDTH);
+			cw = AMIGA_WIDTH - cx;
+		}
+		if (cy + ch > AMIGA_HEIGHT) {
+			//write_log("WARNING: custom limit y (%d) + h (%d) is > "
+			//        "AMIGA_HEIGHT (%d) - clamping\n", cy, ch, AMIGA_HEIGHT);
+			ch = AMIGA_HEIGHT - cy;
+		}
+		g_renderdata.width = AMIGA_WIDTH;
+		g_renderdata.height = AMIGA_HEIGHT;
+		g_renderdata.limit_x = cx;
+		g_renderdata.limit_y = cy;
+		g_renderdata.limit_w = cw;
+		g_renderdata.limit_h = ch;
+		//g_renderdata.updated = g_screen_updated;
+		CLEAR_FLAG(g_renderdata.flags, AMIGA_VIDEO_RTG_MODE);
+		SET_OR_CLEAR_FLAG(g_renderdata.flags, AMIGA_VIDEO_LOW_RESOLUTION,
+				currprefs.gfx_resolution == 0);
+		SET_OR_CLEAR_FLAG(g_renderdata.flags, AMIGA_VIDEO_LINE_DOUBLING,
+				currprefs.gfx_vresolution == 1);
 
 #ifdef USE_BUFMEM
-        //printf("g_renderdata.pixels %p %p", g_renderdata.pixels, g_bufmem);
-        memcpy(g_renderdata.pixels, g_bufmem, AMIGA_WIDTH * AMIGA_HEIGHT * g_amiga_video_bpp);
+		//printf("g_renderdata.pixels %p %p", g_renderdata.pixels, g_bufmem);
+		memcpy(g_renderdata.pixels, g_bufmem, AMIGA_WIDTH * AMIGA_HEIGHT * g_amiga_video_bpp);
 #endif
-    }
-    //g_renderdata.line[first_line] = 0;
-    //g_renderdata.line[first_line + 1] = 0;
-    //for (int y = first_line; y <= last_line; y++) {
-    //    g_renderdata.line[y] = 0;
-    //}
-    g_screen_updated = 0;
-    //printf("flush_screen (%d -> %d) %d %d %d %d\n", first_line, last_line,
-    //        cx, cy, cw, ch);
+	}
+	//g_renderdata.line[first_line] = 0;
+	//g_renderdata.line[first_line + 1] = 0;
+	//for (int y = first_line; y <= last_line; y++) {
+	//    g_renderdata.line[y] = 0;
+	//}
+	g_screen_updated = 0;
+	//printf("flush_screen (%d -> %d) %d %d %d %d\n", first_line, last_line,
+	//        cx, cy, cw, ch);
 
-    od_fs_update_leds();
+	od_fs_update_leds();
 
-    if (currprefs.turbo_emulation) {
-        g_renderdata.refresh_rate = -1;
-    }
-    else {
-        g_renderdata.refresh_rate = currprefs.chipset_refreshrate;
-    }
+	if (currprefs.turbo_emulation) {
+		g_renderdata.refresh_rate = -1;
+	}
+	else {
+		g_renderdata.refresh_rate = currprefs.chipset_refreshrate;
+	}
 #if 0
-    printf("%0.2f\n", g_renderdata.refresh_rate);
+	printf("%0.2f\n", g_renderdata.refresh_rate);
 #endif
 
-    // FIXME: Need to do this right now to fix rendering, this
-    // causes some slowdown, most likely
-    memset(g_renderdata.line, 0, AMIGA_MAX_LINES);
+	// FIXME: Need to do this right now to fix rendering, this
+	// causes some slowdown, most likely
+	memset(g_renderdata.line, 0, AMIGA_MAX_LINES);
 
-    if (g_libamiga_callbacks.render) {
+	if (g_libamiga_callbacks.render) {
 #if 0
-        printf("rendering with %p\n", g_renderdata.pixels);
-        printf("%dx%d (flags 0x%x)\n", g_renderdata.width, g_renderdata.height, g_renderdata.flags);
+		printf("rendering with %p\n", g_renderdata.pixels);
+		printf("%dx%d (flags 0x%x)\n", g_renderdata.width, g_renderdata.height, g_renderdata.flags);
 #endif
-        g_libamiga_callbacks.render(&g_renderdata);
-    }
+		g_libamiga_callbacks.render(&g_renderdata);
+	}
 
 #if 0
-    g_has_flushed_line = 0;
-    g_has_flushed_block = 0;
-    g_has_flushed_screen = 0;
+	g_has_flushed_line = 0;
+	g_has_flushed_block = 0;
+	g_has_flushed_screen = 0;
 #endif
 
-    if (fse_drivers()) {
-        notice_screen_contents_lost(monid);
-    } else {
-        // FIXME: Need to do this right now to fix rendering, this
-        // causes some slowdown, most likely
-        notice_screen_contents_lost(monid);
-    }
-    return 1;
+	if (fse_drivers()) {
+		notice_screen_contents_lost(monid);
+	} else {
+		// FIXME: Need to do this right now to fix rendering, this
+		// causes some slowdown, most likely
+		notice_screen_contents_lost(monid);
+	}
+	return 1;
 }

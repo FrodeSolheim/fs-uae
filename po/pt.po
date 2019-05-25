@@ -2,9 +2,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae\n"
 "Report-Msgid-Bugs-To: frode@fs-uae.net\n"
-"POT-Creation-Date: 2017-10-19 23:07+0200\n"
-"PO-Revision-Date: 2017-10-20 05:21-0400\n"
-"Last-Translator: FrodeSolheim <frode-crowdin@fsolheim.net>\n"
+"POT-Creation-Date: 2019-05-25 13:30+0200\n"
+"PO-Revision-Date: 2019-05-25 11:31\n"
+"Last-Translator: Frode Solheim (FrodeSolheim)\n"
 "Language-Team: Portuguese\n"
 "Language: pt_PT\n"
 "MIME-Version: 1.0\n"
@@ -30,15 +30,15 @@ msgid "Auto-Fire is Off"
 msgstr "Auto-Fire está Desligado"
 
 msgid "Auto-Fire is On"
-msgstr "Auto-Fire está Ligado"
+msgstr "Auto-Disparo está Ligado"
 
 #, c-format
 msgid "Auto-fire disabled for port %d"
-msgstr "Auto-Fire desligado na porta %d"
+msgstr "Auto-Disparo desligado na porta %d"
 
 #, c-format
 msgid "Auto-fire enabled for port %d"
-msgstr "Auto-Fire ligado na porta %d"
+msgstr "Auto-Disparo ligado na porta %d"
 
 #. / TRANSLATORS: Empty or nothing
 #, c-format
@@ -110,23 +110,23 @@ msgstr "Porta do Joystick"
 
 #, c-format
 msgid "Joystick Port %d"
-msgstr "Joystick porta %d"
+msgstr "Porta do Joystick %d"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Joystick Port %d Device"
-msgstr "Porta do dispositivo joystick %d"
+msgstr "Dispositivo da Porta do Joystick %d"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Joystick Port %d Mode"
-msgstr "Porta do joystick em modo %d"
+msgstr "Modo Porta do Joystick %d"
 
 msgid "Keyboard"
 msgstr "Teclado"
 
 msgid "Load"
-msgstr "Abrir"
+msgstr "Carregar"
 
 msgid "Load State"
 msgstr "Carregar Estado"
@@ -192,7 +192,7 @@ msgstr "Opção zorro_iii_memory necessita de um CPU com endereçamento de 32-bi
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 msgid "Parallel Joystick Ports"
-msgstr "Joystick da porta paralela"
+msgstr "Joystick da Porta Paralela"
 
 msgid "Pause"
 msgstr "Pausa"

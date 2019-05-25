@@ -2,9 +2,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae\n"
 "Report-Msgid-Bugs-To: frode@fs-uae.net\n"
-"POT-Creation-Date: 2017-10-19 23:07+0200\n"
-"PO-Revision-Date: 2017-10-20 05:21-0400\n"
-"Last-Translator: FrodeSolheim <frode-crowdin@fsolheim.net>\n"
+"POT-Creation-Date: 2019-05-25 13:30+0200\n"
+"PO-Revision-Date: 2019-05-25 11:31\n"
+"Last-Translator: Frode Solheim (FrodeSolheim)\n"
 "Language-Team: Portuguese, Brazilian\n"
 "Language: pt_BR\n"
 "MIME-Version: 1.0\n"
@@ -27,7 +27,7 @@ msgid "Auto"
 msgstr "Automático"
 
 msgid "Auto-Fire is Off"
-msgstr "Auto-Fire está Desligado"
+msgstr "Auto-Disparo está Desligado"
 
 msgid "Auto-Fire is On"
 msgstr "Auto-Disparo Ligado"
@@ -110,17 +110,17 @@ msgstr "Porta do Joystick"
 
 #, c-format
 msgid "Joystick Port %d"
-msgstr "Joystick Porta %d"
+msgstr "Porta do Joystick %d"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Joystick Port %d Device"
-msgstr "Porta do Dispositivo Joystick %d"
+msgstr "Dispositivo da Porta do Joystick %d"
 
 #. / TRANSLATORS: This is a menu entry and must not be too long
 #, c-format
 msgid "Joystick Port %d Mode"
-msgstr "Porta do Joystick em Modo %d"
+msgstr "Modo da Porta do Joystick %d"
 
 msgid "Keyboard"
 msgstr "Teclado"

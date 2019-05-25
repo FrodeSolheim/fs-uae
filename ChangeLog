@@ -1,5 +1,7 @@
 Version 2.9.9dev:
 
+* Added 8BitDo controller configurations, updated dualshock 3 for Linux.
+* Fixed mouse integration.
 * Fixed support for multiple mice (was accidentally disabled).
 * More deterministic creation of fs-uae.dat [bmwiedemann].
 * HAM6 on AGA fix [sonnenscheinchen].

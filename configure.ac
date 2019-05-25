@@ -200,7 +200,7 @@ AS_IF([test "x$with_glew" = xyes], [
 ])
 
 AC_ARG_WITH(libmpeg2, AS_HELP_STRING(
-    [--without-libmpeg2], [or --with-libmpeg=builtin to use included version]))
+    [--without-libmpeg2], [or --with-libmpeg2=builtin to use included version]))
 AM_CONDITIONAL([BUILTIN_LIBMPEG2], [test x$with_libmpeg2 = xbuiltin])
 AS_IF([test "x$with_libmpeg2" != xno], [
     AS_IF([test "x$with_libmpeg2" = xbuiltin], [

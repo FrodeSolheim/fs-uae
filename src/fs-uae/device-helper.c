@@ -104,6 +104,7 @@ static void list_joysticks(void)
             printf("J: Fake Joystick\n");
             printf("   Buttons: 0 Hats: 0 Axes: 0 Balls: 0 GUID: %s\n",
                    "4300a03b56ae4b6dbdbf2030995ec9b0");
+            printf("   SDLName: \"Fake Joystick\"\n");
             flush_stdout();
         }
     }
@@ -111,6 +112,7 @@ static void list_joysticks(void)
     printf("J: Fake Test Joystick %c%c\n", 0xc2, 0xae);
     printf("   Buttons: 0 Hats: 0 Axes: 0 Balls: 0 GUID: %s\n",
            "4300a03b56ae4b6dbdbf2030995ec9b0");
+    printf("   SDLName: \"Fake Test Joystick %c%c\"\n", 0xc2, 0xae);
     flush_stdout();
 #endif
 #ifdef USE_SDL
@@ -148,6 +150,7 @@ static void list_joysticks(void)
                SDL_JoystickNumAxes(joystick),
                SDL_JoystickNumBalls(joystick),
                guid_str);
+        printf("   SDLName: \"%s\"\n", SDL_JoystickName(joystick));
         flush_stdout();
         SDL_JoystickClose(joystick);
     }

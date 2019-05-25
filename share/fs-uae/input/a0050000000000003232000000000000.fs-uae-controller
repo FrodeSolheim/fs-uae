@@ -1,9 +1,9 @@
 [fs-uae-controller]
-name = 8Bitdo Zero GamePad
+name = 8BitDo Zero GamePad
 platform = macos
 
 [device]
-make = 8Bitdo
+make = 8BitDo
 model = Zero Gamepad
 type = gamepad
 

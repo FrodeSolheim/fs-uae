@@ -3,8 +3,8 @@ name = 8Bitdo Zero GamePad
 platform = linux
 
 [device]
-make = 8Bitdo
-model = Zero Gamepad
+make = 8BitDo
+model = Zero
 type = gamepad
 
 [sdl]

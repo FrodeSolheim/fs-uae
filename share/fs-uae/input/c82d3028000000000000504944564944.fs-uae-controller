@@ -3,7 +3,7 @@ name = Bluetooth Wireless Controller
 platform = windows
 
 [device]
-make = 8Bitdo
+make = 8BitDo
 model = SFC30 Gamepad
 type = gamepad
 

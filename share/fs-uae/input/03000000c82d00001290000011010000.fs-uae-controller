@@ -1,15 +1,15 @@
 [fs-uae-controller]
-name = 8Bitdo SFC30 GamePad
+name = 8Bitdo 8BitDo SN30 gamepad
 platform = linux
 
 [device]
 make = 8BitDo
-model = SFC30
+model = SN30
 type = gamepad
 
 [sdl]
-guid = 05000000c82d00003028000000010000
-buttons = 16
+guid = 03000000c82d00001290000011010000
+buttons = 15
 hats = 1
 axes = 6
 balls = 0

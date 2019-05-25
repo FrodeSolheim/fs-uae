@@ -112,6 +112,10 @@ int log_uaeserial = 0;
 *		13-15		reserved
 */
 
+#ifdef FSUAE // NL
+#define asyncreq uaeserial_asyncreq
+#define devstruct uaeserial_devstruct
+#endif
 
 struct asyncreq {
 	struct asyncreq *next;

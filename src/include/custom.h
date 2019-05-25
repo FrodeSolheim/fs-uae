@@ -257,4 +257,8 @@ extern struct custom_store custom_storage[256];
 
 void vsync_event_done(void);
 
+#ifdef CPUEMU_13
+extern uae_u8 cycle_line[256 + 1];
+#endif
+
 #endif /* UAE_CUSTOM_H */

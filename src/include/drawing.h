@@ -41,11 +41,13 @@
 /* According to the HRM, pixel data spends a couple of cycles somewhere in the chips
 before it appears on-screen. (TW: display emulation now does this automatically)  */
 #define DIW_DDF_OFFSET 1
+#define DIW_DDF_OFFSET_SHRES (DIW_DDF_OFFSET << 2)
 /* this many cycles starting from hpos=0 are visible on right border */
 #define HBLANK_OFFSET 9
 /* We ignore that many lores pixels at the start of the display. These are
 * invisible anyway due to hardware DDF limits. */
 #define DISPLAY_LEFT_SHIFT 0x38
+#define DISPLAY_LEFT_SHIFT_SHRES (DISPLAY_LEFT_SHIFT << 2)
 #endif
 
 #define PIXEL_XPOS(HPOS) (((HPOS)*2 - DISPLAY_LEFT_SHIFT + DIW_DDF_OFFSET - 1) << lores_shift)
@@ -53,9 +55,18 @@ before it appears on-screen. (TW: display emulation now does this automatically)
 #define min_diwlastword (0)
 #define max_diwlastword (PIXEL_XPOS(0x1d4 >> 1))
 
-extern int lores_shift, interlace_seen;
+extern int lores_shift, shres_shift, interlace_seen;
 extern bool aga_mode, direct_rgb;
 extern int visible_left_border, visible_right_border;
+extern int detected_screen_resolution;
+
+STATIC_INLINE int shres_coord_hw_to_window_x (int x)
+{
+	x -= DISPLAY_LEFT_SHIFT << 2;
+	x <<= lores_shift;
+	x >>= 2;
+	return x;
+}
 
 STATIC_INLINE int coord_hw_to_window_x (int x)
 {
@@ -69,9 +80,14 @@ STATIC_INLINE int coord_window_to_hw_x (int x)
 	return x + DISPLAY_LEFT_SHIFT;
 }
 
-STATIC_INLINE int coord_diw_to_window_x (int x)
+STATIC_INLINE int coord_diw_lores_to_window_x(int x)
 {
 	return (x - DISPLAY_LEFT_SHIFT + DIW_DDF_OFFSET - 1) << lores_shift;
+}
+
+STATIC_INLINE int coord_diw_shres_to_window_x (int x)
+{
+	return (x - DISPLAY_LEFT_SHIFT_SHRES + DIW_DDF_OFFSET_SHRES - (1 << 2)) >> shres_shift;
 }
 
 STATIC_INLINE int coord_window_to_diw_x (int x)
@@ -79,9 +95,6 @@ STATIC_INLINE int coord_window_to_diw_x (int x)
 	x = coord_window_to_hw_x (x);
 	return x - DIW_DDF_OFFSET;
 }
-
-extern int framecnt;
-extern int custom_frame_redraw_necessary;
 
 /* color values in two formats: 12 (OCS/ECS) or 24 (AGA) bit Amiga RGB (color_regs),
 * and the native color value; both for each Amiga hardware color register.
@@ -131,7 +144,7 @@ struct color_entry {
 #define CONVERT_RGB(c) 0
 #endif
 
-STATIC_INLINE xcolnr getxcolor (int c)
+STATIC_INLINE xcolnr getxcolor(int c)
 {
 #ifdef AGA
 	if (direct_rgb)
@@ -198,6 +211,8 @@ STATIC_INLINE void color_reg_cpy (struct color_entry *dst, struct color_entry *s
 
 #define COLOR_CHANGE_BRDBLANK 0x80000000
 #define COLOR_CHANGE_SHRES_DELAY 0x40000000
+#define COLOR_CHANGE_HSYNC_HACK 0x20000000
+#define COLOR_CHANGE_MASK 0xf0000000
 struct color_change {
 	int linepos;
 	int regno;
@@ -222,11 +237,15 @@ struct sprite_entry
 	bool has_attached;
 };
 
-union sps_union {
-	uae_u8 bytes[2 * MAX_SPR_PIXELS];
-	uae_u32 words[2 * MAX_SPR_PIXELS / 4];
+struct sprite_stb
+{
+	/* Eight bits for every pixel for attachment
+	 * Another eight for 64/32 status
+	 */
+	uae_u8 stb[2 * MAX_SPR_PIXELS];
+	uae_u16 stbfm[2 * MAX_SPR_PIXELS];
 };
-extern union sps_union spixstate;
+extern struct sprite_stb spixstate;
 
 #ifdef OS_WITHOUT_MEMORY_MANAGEMENT
 extern uae_u16 *spixels;
@@ -253,15 +272,19 @@ struct decision {
 	int ctable;
 
 	uae_u16 bplcon0, bplcon2;
-//#ifdef AGA
+#ifdef AGA
 	uae_u16 bplcon3, bplcon4;
-//#endif
+	uae_u16 fmode;
+#endif
 	uae_u8 nr_planes;
 	uae_u8 bplres;
 	bool ehb_seen;
 	bool ham_seen;
 	bool ham_at_start;
+#ifdef AGA
 	bool bordersprite_seen;
+	bool xor_seen;
+#endif
 };
 
 /* Anything related to changes in hw registers during the DDF for one
@@ -281,7 +304,6 @@ extern int coord_native_to_amiga_y (int);
 extern int coord_native_to_amiga_x (int);
 
 extern void record_diw_line (int plfstrt, int first, int last);
-extern void hardware_line_completed (int lineno);
 
 /* Determine how to draw a scan line.  */
 enum nln_how {
@@ -302,15 +324,17 @@ enum nln_how {
 };
 
 extern void hsync_record_line_state (int lineno, enum nln_how, int changed);
-extern void vsync_handle_redraw (int long_field, int lof_changed, uae_u16, uae_u16);
+extern void vsync_handle_redraw (int long_field, int lof_changed, uae_u16, uae_u16, bool drawlines);
 extern bool vsync_handle_check (void);
+extern void draw_lines(int end, int section);
 extern void init_hardware_for_drawing_frame (void);
 extern void reset_drawing (void);
 extern void drawing_init (void);
 extern bool notice_interlace_seen (bool);
 extern void notice_resolution_seen (int, bool);
-extern void frame_drawn (void);
-extern void redraw_frame (void);
+extern bool frame_drawn (int monid);
+extern void redraw_frame(void);
+extern void full_redraw_all(void);
 extern bool draw_frame (struct vidbuffer*);
 extern int get_custom_limits (int *pw, int *ph, int *pdx, int *pdy, int *prealh);
 extern void store_custom_limits (int w, int h, int dx, int dy);
@@ -319,9 +343,10 @@ extern void check_custom_limits (void);
 extern void get_custom_topedge (int *x, int *y, bool max);
 extern void get_custom_raw_limits (int *pw, int *ph, int *pdx, int *pdy);
 void get_custom_mouse_limits (int *pw, int *ph, int *pdx, int *pdy, int dbl);
-extern void putpixel (uae_u8 *buf, int bpp, int x, xcolnr c8, int opaq);
-extern void allocvidbuffer (struct vidbuffer *buf, int width, int height, int depth);
-extern void freevidbuffer (struct vidbuffer *buf);
+extern void putpixel (uae_u8 *buf, uae_u8 *genlockbuf, int bpp, int x, xcolnr c8, int opaq);
+extern void allocvidbuffer(int monid, struct vidbuffer *buf, int width, int height, int depth);
+extern void freevidbuffer(int monid, struct vidbuffer *buf);
+extern void check_prefs_picasso(void);
 
 /* Finally, stuff that shouldn't really be shared.  */
 
@@ -331,19 +356,8 @@ extern int thisframe_first_drawn_line, thisframe_last_drawn_line;
 #define IHF_QUIT_PROGRAM 1
 #define IHF_PICASSO 2
 
-extern int inhibit_frame;
-
-STATIC_INLINE void set_inhibit_frame (int bit)
-{
-	inhibit_frame |= 1 << bit;
-}
-STATIC_INLINE void clear_inhibit_frame (int bit)
-{
-	inhibit_frame &= ~(1 << bit);
-}
-STATIC_INLINE void toggle_inhibit_frame (int bit)
-{
-	inhibit_frame ^= 1 << bit;
-}
+void set_inhibit_frame(int monid, int bit);
+void clear_inhibit_frame(int monid, int bit);
+void toggle_inhibit_frame(int monid, int bit);
 
 #endif /* UAE_DRAWING_H */

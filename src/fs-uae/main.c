@@ -237,7 +237,9 @@ static int input_handler_loop(int line)
     }
 
     // FIXME: Move to another place?
+#ifdef WITH_CLIPBOARD
     uae_clipboard_update();
+#endif
 
     int action;
     //int reconfigure_input = 0;
@@ -938,9 +940,10 @@ extern int inputdevice_logging;
 
 static void configure_logging(const char *logstr)
 {
-    if (fs_config_get_int(OPTION_LOG_BSDSOCKET) == 1) {
-        log_bsd = 1;
-    }
+    /* FIXME: log_bsd */
+    //if (fs_config_get_int(OPTION_LOG_BSDSOCKET) == 1) {
+    //    log_bsd = 1;
+    //}
 
     if (!logstr) {
         fs_log("configure logging: none\n");
@@ -1357,9 +1360,6 @@ int main(int argc, char *argv[])
     } else {
         fs_emu_warning("Unsupported video format requested");
     }
-    amiga_add_rtg_resolution(672, 540);
-    amiga_add_rtg_resolution(960, 540);
-    amiga_add_rtg_resolution(672 * 2, 540 * 2);
     amiga_add_rtg_resolution(fs_emu_get_windowed_width(),
             fs_emu_get_windowed_height());
     amiga_add_rtg_resolution(fs_emu_get_fullscreen_width(),

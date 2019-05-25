@@ -49,9 +49,10 @@ static long adjust_blocks (long blocks, int fromsize, int tosize)
 
 #ifdef FSUAE
 static int get_fs_usage_fake (const TCHAR *path, const TCHAR *disk,
-		struct fs_usage *fsp) {
-	fsp->fsu_blocks = 0x7fffff;
-	fsp->fsu_bavail = 0x3fffff;
+		struct fs_usage *fsp)
+{
+	fsp->total = 2ll * 1024 * 1024 * 1024;
+	fsp->avail = 1ll * 1024 * 1024 * 1024;
 	return 0;
 }
 #endif
@@ -64,7 +65,7 @@ static int get_fs_usage_fake (const TCHAR *path, const TCHAR *disk,
 int get_fs_usage (const TCHAR *path, const TCHAR *disk, struct fs_usage *fsp)
 {
 #ifdef FSUAE
-	// FIXME: if net play only
+	/* FIXME: Use fake values in deterministic mode only. */
 	return get_fs_usage_fake(path, disk, fsp);
 #endif
 	TCHAR buf2[MAX_DPATH];
@@ -94,12 +95,9 @@ int get_fs_usage (const TCHAR *path, const TCHAR *disk, struct fs_usage *fsp)
 		return -1;
 	}
 
-	fsp->fsu_blocks = 0x7fffffff;
-	fsp->fsu_bavail = 0x7fffffff;
-	if (TotalNumberOfBytes.QuadPart / 1024 < (1 << 31))
-		fsp->fsu_blocks = (unsigned long)(TotalNumberOfBytes.QuadPart / 1024);
-	if (FreeBytesAvailable.QuadPart / 1024 < (1 << 31))
-		fsp->fsu_bavail = (unsigned long)(FreeBytesAvailable.QuadPart / 1024);
+	fsp->total = TotalNumberOfBytes.QuadPart;
+	fsp->avail = TotalNumberOfFreeBytes.QuadPart;
+
 	return 0;
 }
 

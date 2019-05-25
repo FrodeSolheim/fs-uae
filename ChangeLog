@@ -1,3 +1,13 @@
+Version 3.1.0dev:
+
+* New shortcut Mod+F9 to toggle between chipset and RTG display.
+* Bridgeboard & VGA available and works with custom uae_* options.
+* Fixed mouse integration.
+* Only do LF <-> CRLF clipboard conversion on Windows [BastyCDGS].
+* Console debugger can be used also in Windows.
+* Lots of fixes to restore functionality after the merge.
+* Updated emulation core from WinUAE 4210 (big merge).
+
 Version 2.9.9dev:
 
 * Added 8BitDo controller configurations, updated dualshock 3 for Linux.
@@ -70,6 +80,7 @@ Version 2.9.1dev:
 * Fix decoding on non-ascii %-escaped file names on directory HDs.
 * Fixed loading compressed resources from fs-uae.dat on big-endian CPU.
 * Fix compilation with --disable-jit.
+* Updated emulation core from WinUAE 3400.
 
 Version 2.9.0dev:
 

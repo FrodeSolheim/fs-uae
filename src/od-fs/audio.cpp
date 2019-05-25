@@ -405,3 +405,33 @@ void sound_mute(int newmute)
 {
     write_log("STUB: sound_mute\n");
 }
+
+int audio_is_pull(void)
+{
+    UAE_LOG_STUB_MAX(1, "");
+    return 0;
+}
+
+int audio_pull_buffer(void)
+{
+    UAE_LOG_STUB_MAX(1, "");
+    return 0;
+}
+
+bool audio_finish_pull(void)
+{
+    UAE_LOG_STUB_MAX(1, "");
+    return false;
+}
+
+bool audio_is_pull_event(void)
+{
+    UAE_LOG_STUB_MAX(1, "");
+    return false;
+}
+
+bool audio_is_event_frame_possible(int)
+{
+    UAE_LOG_STUB_MAX(1, "");
+    return false;
+}

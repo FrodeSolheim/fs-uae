@@ -101,7 +101,7 @@ int64_t get_ticks_per_sec(void);
 
 #define isa_mem_base 0
 
-#define QemuConsole uint32_t
+#define QemuConsole void
 #define console_ch_t uint8_t
 typedef struct GraphicHwOps {
     void (*invalidate)(void *opaque);
@@ -115,7 +115,7 @@ typedef struct GraphicHwOps {
 #define ram_addr_t uint32_t
 
 typedef struct DisplaySurface {
-	void *bah;
+	void *data;
 } DisplaySurface;
 
 uint16_t le16_to_cpu(uint16_t v);
@@ -245,6 +245,7 @@ void qemu_register_reset(QEMUResetHandler *func, void *opaque);
 #define CIRRUS_ID_CLGD5426  (0x24<<2)
 #define CIRRUS_ID_CLGD5424  (0x25<<2)
 #define CIRRUS_ID_CLGD5428  (0x26<<2)
+#define CIRRUS_ID_CLGD5429  (0x27<<2)
 #define CIRRUS_ID_CLGD5430  (0x28<<2)
 #define CIRRUS_ID_CLGD5434  (0x2A<<2)
 #define CIRRUS_ID_CLGD5436  (0x2B<<2)
@@ -253,11 +254,13 @@ void qemu_register_reset(QEMUResetHandler *func, void *opaque);
 typedef struct CirrusVGAState CirrusVGAState;
 
 typedef void (*cirrus_bitblt_rop_t) (CirrusVGAState *s,
-					 uint8_t * dst, const uint8_t * src,
-				     int dstpitch, int srcpitch,
-				     int bltwidth, int bltheight);
+					uint8_t *dst, uint32_t dstaddr, uint32_t dstmask,
+					const uint8_t *src, uint32_t srcaddr, uint32_t srcmask,
+				    int dstpitch, int srcpitch,
+				    int bltwidth, int bltheight);
 typedef void (*cirrus_fill_t)(CirrusVGAState *s,
-                              uint8_t *dst, int dst_pitch, int width, int height);
+					uint8_t *dst, uint32_t dstaddr, uint32_t dstmask,
+					int dst_pitch, int width, int height);
 
 struct CirrusVGAState {
     VGACommonState vga;
@@ -310,11 +313,12 @@ struct CirrusVGAState {
     int device_id;
     int bustype;
 	int valid_memory_config;
+	bool x86vga;
 };
 
 void cirrus_init_common(CirrusVGAState * s, int device_id, int is_pci,
                                MemoryRegion *system_memory,
-                               MemoryRegion *system_io, int vramlimit);
+                               MemoryRegion *system_io, int vramlimit, bool x86vga);
 
 struct DeviceState
 {

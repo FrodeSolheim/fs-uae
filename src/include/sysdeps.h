@@ -150,10 +150,6 @@ using namespace std;
 #include <errno.h>
 #include <assert.h>
 
-#if EEXIST == ENOTEMPTY
-#define BROKEN_OS_PROBABLY_AIX
-#endif
-
 #ifdef __NeXT__
 #define S_IRUSR S_IREAD
 #define S_IWUSR S_IWRITE
@@ -164,10 +160,6 @@ struct utimbuf
     time_t actime;
     time_t modtime;
 };
-#endif
-
-#ifndef L_tmpnam
-#define L_tmpnam 128 /* ought to be safe */
 #endif
 
 /* If char has more then 8 bits, good night. */
@@ -224,6 +216,12 @@ typedef uae_u32 uaecptr;
 #define UVAL64(a) (a ## ul)
 #endif
 #endif
+
+uae_atomic atomic_and(volatile uae_atomic *p, uae_u32 v);
+uae_atomic atomic_or(volatile uae_atomic *p, uae_u32 v);
+uae_atomic atomic_inc(volatile uae_atomic *p);
+uae_atomic atomic_dec(volatile uae_atomic *p);
+uae_u32 atomic_bit_test_and_reset(volatile uae_atomic *p, uae_u32 v);
 
 #ifdef HAVE_STRDUP
 #define my_strdup _tcsdup
@@ -458,11 +456,13 @@ extern void mallocemu_free (void *ptr);
 #include "uae/log.h"
 #else
 #if __GNUC__ - 1 > 1 || __GNUC_MINOR__ - 1 > 6
-extern void write_log (const TCHAR *, ...);
-extern void write_log (const char *, ...) __attribute__ ((format (printf, 1, 2)));
+extern void write_log(const TCHAR *, ...);
+extern void write_logx(const TCHAR *, ...);
+extern void write_log(const char *, ...) __attribute__ ((format (printf, 1, 2)));
 #else
-extern void write_log (const TCHAR *, ...);
-extern void write_log (const char *, ...);
+extern void write_log(const TCHAR *, ...);
+extern void write_logx(const TCHAR *, ...);
+extern void write_log(const char *, ...);
 #endif
 #endif
 extern void write_dlog (const TCHAR *, ...);
@@ -487,7 +487,9 @@ extern int gui_message_multibutton (int flags, const TCHAR *format,...);
 extern void logging_init (void);
 extern FILE *log_open (const TCHAR *name, int append, int bootlog, TCHAR*);
 extern void log_close (FILE *f);
+extern TCHAR *write_log_get_ts(void);
 
+extern bool use_long_double;
 
 #ifndef O_BINARY
 #define O_BINARY 0
@@ -497,7 +499,7 @@ extern void log_close (FILE *f);
 #include "uae/inline.h"
 #else
 #ifndef STATIC_INLINE
-#if __GNUC__ - 1 > 1 && __GNUC_MINOR__ - 1 >= 0
+#if __GNUC__ - 1 > 2 || (__GNUC__ - 1 == 2 && __GNUC_MINOR__ - 1 >= 0)
 #define STATIC_INLINE static __inline__ __attribute__ ((always_inline))
 #define NOINLINE __attribute__ ((noinline))
 #define NORETURN __attribute__ ((noreturn))
@@ -578,7 +580,7 @@ extern void xfree (const void*);
 #else
 
 #define xmalloc(T, N) static_cast<T*>(malloc (sizeof (T) * (N)))
-#define xcalloc(T, N) static_cast<T*>(calloc (sizeof (T), N))
+#define xcalloc(T, N) static_cast<T*>(calloc ((N), sizeof (T)))
 #define xrealloc(T, TP, N) static_cast<T*>(realloc (TP, sizeof (T) * (N)))
 #define xfree(T) free(T)
 

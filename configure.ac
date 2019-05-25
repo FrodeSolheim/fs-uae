@@ -22,7 +22,7 @@ AM_INIT_AUTOMAKE([tar-ustar subdir-objects])
 
 AC_SUBST([PACKAGE_SERIES], [devel])
 
-AC_DEFINE_UNQUOTED([UAE_BASE_VERSION], ["WinUAE 3300b2"],
+AC_DEFINE_UNQUOTED([UAE_BASE_VERSION], ["WinUAE 4210"],
 [Which UAE core this version is based on.])
 
 PACKAGE_MAJOR=`echo ${PACKAGE_VERSION} | sed -e 's,\(\.*\)\..*\..*,\1,g'`
@@ -649,8 +649,10 @@ OPT_FEATURE([CD32], [cd32], [cd32],
             [CD32 emulation])
 OPT_FEATURE([CDTV], [cdtv], [cdtv],
             [CDTV emulation])
+OPT_FEATURE([WITH_CLIPBOARD], [clipboard], [clipboard],
+            [clipboard integration])
 OPT_FEATURE([CODEGEN], [codegen], [codegen],
-            [Code generation (disable for cross-compilation)])
+            [code generation (disable for cross-compilation)])
 OPT_FEATURE([CPUEMU_0], [cpuemu_0], [cpuemu-0],
             [generic 680x0 emulation])
 OPT_FEATURE([CPUEMU_11], [cpuemu_11], [cpuemu-11],
@@ -675,6 +677,10 @@ OPT_FEATURE([CPUEMU_32], [cpuemu_32], [cpuemu-32],
             [Previous 68030 MMU])
 OPT_FEATURE([CPUEMU_33], [cpuemu_33], [cpuemu-33],
             [68060 MMU])
+OPT_FEATURE([CPUEMU_34], [cpuemu_34], [cpuemu-34],
+            [MMU + cache])
+OPT_FEATURE([CPUEMU_35], [cpuemu_35], [cpuemu-35],
+            [MMU + CE + cache])
 OPT_FEATURE([CPUEMU_40], [cpuemu_40], [cpuemu-40],
             [generic 680x0 with JIT direct memory access])
 OPT_FEATURE([CPUEMU_50], [cpuemu_50], [cpuemu-50],
@@ -755,6 +761,8 @@ OPT_FEATURE([WITH_QEMU_CPU], [qemu_cpu], [qemu-cpu],
             [use QEMU plugin for PPC emulation])
 OPT_FEATURE([WITH_QEMU_SLIRP], [qemu_slirp], [qemu-slirp],
             [use QEMU plugin for SLIRP implementation])
+REQ_FEATURE([WITH_THREADED_CPU], [threaded_cpu], [threaded-cpu],
+            [Threaded CPU emulation])
 REQ_FEATURE([WITH_TOCCATA], [toccata], [toccata],
             [Toccata sound card emulation])
 OPT_FEATURE([WITH_UAENATIVE], [uaenative], [uaenative],
@@ -769,6 +777,8 @@ OPT_FEATURE([WITH_UDIS86], [udis86], [udis86],
             [UDIS86 x86/x86-64 disassembler])
 OPT_FEATURE([WITH_VPAR], [vpar], [vpar],
             [vpar virtual parallel port])
+OPT_FEATURE([WITH_X86], [x86], [x86],
+            [x86 bridgeboard support])
 OPT_FEATURE([WITH_XML_SHADER], [xml_shader], [xml-shader],
             [XML shader support])
 OPT_FEATURE([A_ZIP], [zip], [zip],

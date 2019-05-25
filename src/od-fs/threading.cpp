@@ -1,5 +1,6 @@
 #include "sysconfig.h"
 #include "sysdeps.h"
+#include "uae.h"
 #include <fs/thread.h>
 
 int uae_start_thread_fast (void *(*f)(void *), void *arg,
@@ -62,6 +63,18 @@ bool uae_is_main_thread(void)
     return SDL_ThreadID() == g_main_thread_id;
 }
 
+bool is_mainthread(void)
+{
+    return uae_is_main_thread();
+}
+
+uae_thread_id uae_thread_get_id(void)
+{
+    // Casting a long to a pointer isn't very nice,
+    // but should work at least
+    return (uae_thread_id) SDL_ThreadID();
+}
+
 void uae_register_emulation_thread(void)
 {
     g_emulation_thread_id = SDL_ThreadID();
@@ -70,4 +83,37 @@ void uae_register_emulation_thread(void)
 bool uae_is_emulation_thread(void)
 {
     return SDL_ThreadID() == g_emulation_thread_id;
+}
+
+/* FIXME: Move atomic functions to header for inlining? */
+
+uae_atomic atomic_and(volatile uae_atomic *p, uae_u32 v)
+{
+    // FIXME: signature has changed, check return value!
+    return __sync_fetch_and_and(p, v);
+}
+
+uae_atomic atomic_or(volatile uae_atomic *p, uae_u32 v)
+{
+    // FIXME: signature has changed, check return value!
+    return __sync_fetch_and_or(p, v);
+}
+
+uae_atomic atomic_inc(volatile uae_atomic *p)
+{
+    // FIXME: signature has changed, check return value!
+    return __sync_fetch_and_add(p, 1);
+}
+
+uae_atomic atomic_dec(volatile uae_atomic *p)
+{
+    // FIXME: signature has changed, check return value!
+    return __sync_fetch_and_sub(p, 1);
+}
+
+uae_u32 atomic_bit_test_and_reset(volatile uae_atomic *p, uae_u32 v)
+{
+    uae_u32 value = __sync_fetch_and_and(p, ~(1 << v));
+    // FIXME: Doublecheck that this should return 0 or 1, and not 0 or 1 << v)
+    return (value >> v) & 1;
 }

@@ -138,8 +138,8 @@ extern int fsdb_exists (const TCHAR *nname);
 extern int same_aname (const TCHAR *an1, const TCHAR *an2);
 
 /* Filesystem-dependent functions.  */
-extern int fsdb_name_invalid (const TCHAR *n);
-extern int fsdb_name_invalid_dir (const TCHAR *n);
+extern int fsdb_name_invalid (a_inode *, const TCHAR *n);
+extern int fsdb_name_invalid_dir (a_inode *, const TCHAR *n);
 extern int fsdb_fill_file_attrs (a_inode *, a_inode *);
 extern int fsdb_set_file_attrs (a_inode *);
 extern int fsdb_mode_representable_p (const a_inode *, int);
@@ -179,7 +179,7 @@ extern bool my_utime (const TCHAR *name, struct mytimeval *tv);
 extern bool my_chmod (const TCHAR *name, uae_u32 mode);
 extern bool my_resolveshortcut(TCHAR *linkfile, int size);
 extern bool my_resolvessymboliclink(TCHAR *linkfile, int size);
-extern bool my_resolvesoftlink(TCHAR *linkfile, int size);
+extern bool my_resolvesoftlink(TCHAR *linkfile, int size, bool linkonly);
 extern const TCHAR *my_getfilepart(const TCHAR *filename);
 extern void my_canonicalize_path(const TCHAR *path, TCHAR *out, int size);
 extern int my_issamevolume(const TCHAR *path1, const TCHAR *path2, TCHAR *path);
@@ -187,8 +187,6 @@ extern bool my_issamepath(const TCHAR *path1, const TCHAR *path2);
 extern bool my_createsoftlink(const TCHAR *path, const TCHAR *target);
 extern bool my_createshortcut(const TCHAR *source, const TCHAR *target, const TCHAR *description);
 
-
-extern char *custom_fsdb_search_dir (const char *dirname, TCHAR *rel);
 extern a_inode *custom_fsdb_lookup_aino_aname (a_inode *base, const TCHAR *aname);
 extern a_inode *custom_fsdb_lookup_aino_nname (a_inode *base, const TCHAR *nname);
 extern int custom_fsdb_used_as_nname (a_inode *base, const TCHAR *nname);

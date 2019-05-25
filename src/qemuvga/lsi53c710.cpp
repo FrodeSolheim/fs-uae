@@ -1190,8 +1190,10 @@ again:
                 s->scntl1 |= LSI_SCNTL1_CON;
                 if (insn & (1 << 24)) {
                     s->socl |= LSI_SOCL_ATN;
-                }
-                lsi_set_phase(s, PHASE_MO);
+					lsi_set_phase(s, PHASE_MO);
+				} else {
+					lsi_set_phase(s, PHASE_CMD);
+				}
                 break;
             case 1: /* Disconnect */
                 DPRINTF("Wait Disconnect\n");
@@ -1714,7 +1716,7 @@ static uint8_t lsi_reg_readb2(LSIState710 *s, int offset)
 	case 0x21: /* ISTAT */
 		return s->istat;
 	case 0x22: /* CTEST8 */
-		return (s->ctest8 | (2 << 4)) & ~0x08; // clear CLF
+		return (s->ctest8 | (2 << 4)) & ~0x04; // clear CLF
 	case 0x23: /* LCRC */
 		return s->lcrc;
     CASE_GET_REG24(dbc, 0x24)
@@ -1747,6 +1749,18 @@ static uint8_t lsi_reg_readb(LSIState710 *s, int offset)
 
 static void lsi_reg_writeb(LSIState710 *s, int offset, uint8_t val)
 {
+#if 0
+	switch (offset)
+	{
+		case 0x05: // XFERP TP0=4, TP1=5, TP2=6
+		case 0x0b: // SSCF SSCF0=0 SSCF1=1
+		case 0x3b: // CF CF0=6, CF1=7
+		write_log("710 config reg %02x = %02x\n", offset, val);
+		//activate_debugger();
+		break;
+	}
+#endif
+
 #define CASE_SET_REG24(name, addr) \
     case addr    : s->name &= 0xffffff00; s->name |= val;       break; \
     case addr + 1: s->name &= 0xffff00ff; s->name |= val << 8;  break; \
@@ -1868,7 +1882,12 @@ static void lsi_reg_writeb(LSIState710 *s, int offset, uint8_t val)
             lsi_execute_script(s);
 		}
         break;
-    CASE_SET_REG32(scratch, 0x34)
+	case 0x30:
+	case 0x31:
+	case 0x32:
+	case 0x33:
+		break;
+	CASE_SET_REG32(scratch, 0x34)
 	case 0x38: /* DMODE */
 #if 0
 		if (val & (LSI_DMODE_SIOM | LSI_DMODE_DIOM)) {

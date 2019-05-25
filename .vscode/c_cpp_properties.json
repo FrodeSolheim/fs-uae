@@ -3,11 +3,29 @@
         {
             "name": "Linux",
             "includePath": [
-                "${workspaceFolder}/**",
+                "${workspaceFolder}",
+                "${workspaceFolder}/gen",
+                "${workspaceFolder}/src",
+                "${workspaceFolder}/src/jit",
+                "${workspaceFolder}/src/include",
+                "${workspaceFolder}/src/od-fs",
+                "${workspaceFolder}/src/od-fs/include",
+                "${workspaceFolder}/src/od-win32",
+                "${workspaceFolder}/src/od-win32/caps",
+                "${workspaceFolder}/libfsemu/include",
+                "${workspaceFolder}/manymouse",
+                "${workspaceFolder}/libudis86/include",
+                "${workspaceFolder}/prowizard/include",
                 "/usr/include/glib-2.0",
-                "/usr/include/SDL2"
+                "/usr/include/SDL2",
+                "/usr/lib/x86_64-linux-gnu/glib-2.0/include"
             ],
-            "defines": ["HAVE_CONFIG_H=1"],
+            "defines": [
+                "FSUAE=1",
+                "LINUX=1",
+                "HAVE_CONFIG_H=1",
+                "UAE=1"
+            ],
             "compilerPath": "/usr/bin/gcc",
             "cStandard": "c11",
             "cppStandard": "c++17",

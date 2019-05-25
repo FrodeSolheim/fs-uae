@@ -24,7 +24,8 @@
 
 #include "machdep/rpt.h"
 
-extern frame_time_t vsyncmintime, vsyncmaxtime, vsyncwaittime;
+extern frame_time_t vsyncmintime, vsyncmintimepre;
+extern frame_time_t vsyncmaxtime, vsyncwaittime;
 extern int vsynctimebase, syncbase;
 extern void reset_frame_rate_hack (void);
 extern unsigned long int vsync_cycles;
@@ -38,7 +39,7 @@ extern void do_cycles_ce (unsigned long cycles);
 extern void do_cycles_ce020 (unsigned long cycles);
 extern void events_schedule (void);
 extern void do_cycles_slow (unsigned long cycles_to_add);
-extern void do_cycles_fast (unsigned long cycles_to_add);
+extern void events_reset_syncline(void);
 
 extern int is_cycle_ce (void);
 
@@ -83,8 +84,6 @@ extern uae_s32 pissoff;
 extern struct ev eventtab[ev_max];
 extern struct ev2 eventtab2[ev2_max];
 
-extern volatile bool vblank_found_chipset;
-extern volatile bool vblank_found_rtg;
 extern int hpos_offset;
 extern int maxhpos;
 
@@ -137,6 +136,7 @@ STATIC_INLINE bool cycles_in_range (unsigned long endcycles)
 
 extern void MISC_handler (void);
 extern void event2_newevent_xx (int no, evt t, uae_u32 data, evfunc2 func);
+extern void event2_newevent_x_replace(evt t, uae_u32 data, evfunc2 func);
 
 STATIC_INLINE void event2_newevent_x (int no, evt t, uae_u32 data, evfunc2 func)
 {

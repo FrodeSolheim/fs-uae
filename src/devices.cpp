@@ -58,11 +58,27 @@
 #include "pci_hw.h"
 #include "x86.h"
 #include "ethernet.h"
+#include "drawing.h"
+#include "videograb.h"
+#include "arcadia.h"
+#include "rommgr.h"
+#include "newcpu.h"
 #include "uae/debuginfo.h"
 #include "uae/segtracker.h"
 #ifdef RETROPLATFORM
 #include "rp.h"
 #endif
+
+void device_check_config(void)
+{
+	check_prefs_changed_cd();
+	check_prefs_changed_audio();
+	check_prefs_changed_custom();
+	check_prefs_changed_cpu();
+	check_prefs_picasso();
+	check_prefs_changed_gayle();
+	check_arcadia_prefs_changed();
+}
 
 void devices_reset(int hardreset)
 {
@@ -82,6 +98,7 @@ void devices_reset(int hardreset)
 #endif
 #ifdef WITH_TOCCATA
 	sndboard_reset();
+	uaesndboard_reset();
 #endif
 #ifdef NCR
 	ncr_reset();
@@ -99,9 +116,16 @@ void devices_reset(int hardreset)
 	compemu_reset ();
 #endif
 #ifdef AUTOCONFIG
-	expamem_reset ();
+	rtarea_reset();
 #endif
+#ifdef DRIVESOUND
+	driveclick_reset();
+#endif
+	ethernet_reset();
 	uae_int_requested = 0;
+#ifdef ARCADIA
+	arcadia_reset();
+#endif
 }
 
 
@@ -113,7 +137,10 @@ void devices_vsync_pre(void)
 	inputdevice_vsync ();
 	filesys_vsync ();
 	sampler_vsync ();
+#ifdef WITH_CLIPBOARD
 	clipboard_vsync ();
+#endif
+	uaenet_vsync();
 #ifdef RETROPLATFORM
 	rp_vsync ();
 #endif
@@ -121,6 +148,7 @@ void devices_vsync_pre(void)
 	cd32_fmv_vsync_handler();
 #endif
 	cpuboard_vsync();
+	ncr_vsync();
 	statusline_vsync();
 #ifdef WITH_X86
 	x86_bridge_vsync();
@@ -129,10 +157,6 @@ void devices_vsync_pre(void)
 
 void devices_vsync_post(void)
 {
-#ifdef GFXBOARD
-	if (!picasso_on)
-		gfxboard_vsync_handler ();
-#endif
 #ifdef WITH_TOCCATA
 	sndboard_vsync();
 #endif
@@ -178,6 +202,7 @@ void devices_hsync(void)
 #ifdef WITH_TOCCATA
 	sndboard_hsync();
 #endif
+	ne2000_hsync();
 	DISK_hsync ();
 	audio_hsync ();
 	CIA_hsync_prehandler ();
@@ -189,6 +214,12 @@ void devices_hsync(void)
 #endif
 }
 
+void devices_rethink_all(void func(void))
+{
+	func();
+}
+
+// these really should be dynamically allocated..
 void devices_rethink(void)
 {
 	rethink_cias ();
@@ -222,8 +253,11 @@ void devices_rethink(void)
 #ifdef WITH_TOCCATA
 	sndboard_rethink();
 #endif
+	rethink_ne2000();
 	rethink_gayle ();
 	idecontroller_rethink();
+	rethink_uae_int();
+	rethink_traps();
 	/* cpuboard_rethink must be last */
 	cpuboard_rethink();
 }
@@ -235,6 +269,9 @@ void devices_update_sound(double clk, double syncadjust)
 	update_sndboard_sound (clk / syncadjust);
 #endif
 	update_cda_sound(clk / syncadjust);
+#ifdef WITH_X86
+	x86_update_sound(clk / syncadjust);
+#endif
 }
 
 void devices_update_sync(double svpos, double syncadjust)
@@ -250,7 +287,9 @@ void reset_all_systems (void)
 	uae_ppc_reset(is_hardreset());
 #endif
 #ifdef PICASSO96
-	picasso_reset ();
+	for (int i = 0; i < MAX_AMIGADISPLAYS; i++) {
+		picasso_reset(i);
+	}
 #endif
 #ifdef SCSIEMU
 	scsi_reset ();
@@ -287,14 +326,22 @@ void reset_all_systems (void)
 #ifdef PARALLEL_PORT
 	initparallel ();
 #endif
+	ne2000_reset();
 	native2amiga_reset ();
 	dongle_reset ();
 	sampler_init ();
+	device_func_reset();
 	uae_int_requested = 0;
 }
 
 void do_leave_program (void)
 {
+#ifdef WITH_PPC
+	// must be first
+	uae_ppc_free();
+#endif
+	picasso_free();
+	free_traps();
 	sampler_free ();
 	graphics_leave ();
 	inputdevice_close ();
@@ -323,6 +370,10 @@ void do_leave_program (void)
 #ifdef NCR9X
 	ncr9x_free();
 #endif
+#ifdef A2065
+	a2065_free();
+#endif
+	ne2000_free();
 #ifdef CD32
 	akiko_free ();
 	cd32_fmv_free();
@@ -349,15 +400,13 @@ void do_leave_program (void)
 #endif
 	gayle_free ();
 	idecontroller_free();
-	device_func_reset ();
+	device_func_free();
 #ifdef WITH_LUA
 	uae_lua_free ();
 #endif
-#ifdef WITH_PPC
-	uae_ppc_free();
-#endif
 #ifdef WITH_TOCCATA
 	sndboard_free();
+	uaesndboard_free();
 #endif
 	gfxboard_free();
 #ifdef SAVESTATE
@@ -371,6 +420,7 @@ void do_leave_program (void)
 	driveclick_free();
 #endif
 	ethernet_enumerate_free();
+	rtarea_free();
 }
 
 void virtualdevice_init (void)
@@ -432,9 +482,10 @@ void devices_restore_start(void)
 	restore_blkdev_start();
 	changed_prefs.bogomem_size = 0;
 	changed_prefs.chipmem_size = 0;
-	changed_prefs.fastmem_size = 0;
-	changed_prefs.z3fastmem_size = 0;
-	changed_prefs.z3fastmem2_size = 0;
+	for (int i = 0; i < MAX_RAM_BOARDS; i++) {
+		changed_prefs.fastmem[i].size = 0;
+		changed_prefs.z3fastmem[i].size = 0;
+	}
 	changed_prefs.mbresmem_low_size = 0;
 	changed_prefs.mbresmem_high_size = 0;
 }
@@ -443,5 +494,40 @@ void devices_restore_start(void)
 
 void devices_syncchange(void)
 {
+#ifdef WITH_X86
 	x86_bridge_sync_change();
+#endif
+}
+
+void devices_pause(void)
+{
+#ifdef WITH_PPC
+	uae_ppc_pause(1);
+#endif
+	blkdev_entergui();
+#ifdef RETROPLATFORM
+	rp_pause(1);
+#endif
+	pausevideograb(1);
+	ethernet_pause(1);
+}
+
+void devices_unpause(void)
+{
+	blkdev_exitgui();
+#ifdef RETROPLATFORM
+	rp_pause(0);
+#endif
+#ifdef WITH_PPC
+	uae_ppc_pause(0);
+#endif
+	pausevideograb(0);
+	ethernet_pause(0);
+}
+
+void devices_unsafeperiod(void)
+{
+#ifdef WITH_CLIPBOARD
+	clipboard_unsafeperiod();
+#endif
 }

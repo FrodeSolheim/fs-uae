@@ -18,7 +18,7 @@
 #ifdef DEBUGGER
 
 #define	MAX_HIST 500
-#define MAX_LINEWIDTH 100
+#define MAX_LINEWIDTH 10000
 
 extern int debugging;
 extern int memwatch_enabled;
@@ -33,7 +33,9 @@ extern uae_u64 debug_illegal_mask;
 
 extern void debug (void);
 extern void debugger_change (int mode);
-extern void activate_debugger (void);
+extern void activate_debugger(void);
+extern void activate_debugger_new(void);
+extern void activate_debugger_new_pc(uaecptr pc, int len);
 extern void deactivate_debugger (void);
 extern int notinrom (void);
 extern const TCHAR *debuginfo (int);
@@ -55,14 +57,57 @@ extern void mmu_disasm (uaecptr pc, int lines);
 extern int debug_read_memory_16 (uaecptr addr);
 extern int debug_peek_memory_16 (uaecptr addr);
 extern int debug_read_memory_8 (uaecptr addr);
-extern int debug_peek_memory_8 (uaecptr addr);
 extern int debug_write_memory_16 (uaecptr addr, uae_u16 v);
 extern int debug_write_memory_8 (uaecptr addr, uae_u8 v);
 extern bool debug_enforcer(void);
+extern int debug_safe_addr(uaecptr addr, int size);
+extern void debug_invalid_reg(int reg, int size, uae_u16 val);
+extern void debug_check_reg(uae_u32 addr, int write, uae_u16 v);
+extern int memwatch_access_validator;
+
+extern void debug_init_trainer(const TCHAR*);
+extern void debug_trainer_match(void);
+extern bool debug_opcode_watch;
+extern bool debug_trainer_event(int evt, int state);
 
 #define BREAKPOINT_TOTAL 20
+#define BREAKPOINT_REG_Dx 0
+#define BREAKPOINT_REG_Ax 8
+#define BREAKPOINT_REG_PC 16
+#define BREAKPOINT_REG_USP 17
+#define BREAKPOINT_REG_MSP 18
+#define BREAKPOINT_REG_ISP 19
+#define BREAKPOINT_REG_VBR 20
+#define BREAKPOINT_REG_SR 21
+#define BREAKPOINT_REG_CCR 22
+#define BREAKPOINT_REG_CACR 23
+#define BREAKPOINT_REG_CAAR 24
+#define BREAKPOINT_REG_SFC 25
+#define BREAKPOINT_REG_DFC 26
+#define BREAKPOINT_REG_TC 27
+#define BREAKPOINT_REG_ITT0 28
+#define BREAKPOINT_REG_ITT1 29
+#define BREAKPOINT_REG_DTT0 30
+#define BREAKPOINT_REG_DTT1 31
+#define BREAKPOINT_REG_BUSC 32
+#define BREAKPOINT_REG_PCR 33
+#define BREAKPOINT_REG_END 34
+
+#define BREAKPOINT_CMP_EQUAL 0
+#define BREAKPOINT_CMP_NEQUAL 1
+#define BREAKPOINT_CMP_SMALLER_EQUAL 2
+#define BREAKPOINT_CMP_LARGER_EQUAL 3
+#define BREAKPOINT_CMP_SMALLER 2
+#define BREAKPOINT_CMP_LARGER 3
+#define BREAKPOINT_CMP_RANGE 4
+#define BREAKPOINT_CMP_NRANGE 5
+
 struct breakpoint_node {
-    uaecptr addr;
+	uae_u32 value1;
+	uae_u32 value2;
+	uae_u32 mask;
+	int type;
+	int oper;
     int enabled;
 };
 extern struct breakpoint_node bpnodes[BREAKPOINT_TOTAL];
@@ -114,13 +159,15 @@ struct memwatch_node {
 	int frozen;
 	uae_u32 reg;
 	uaecptr pc;
+	bool nobreak;
+	bool reportonly;
 };
 extern struct memwatch_node mwnodes[MEMWATCH_TOTAL];
 
 extern void memwatch_dump2 (TCHAR *buf, int bufsize, int num);
 
-uae_u16 debug_wgetpeekdma_chipram (uaecptr addr, uae_u32 v, uae_u32 mask, int reg);
-uae_u16 debug_wputpeekdma_chipram (uaecptr addr, uae_u32 v, uae_u32 mask, int reg);
+uae_u16 debug_wgetpeekdma_chipram (uaecptr addr, uae_u32 v, uae_u32 mask, int reg, int ptrreg);
+uae_u16 debug_wputpeekdma_chipram (uaecptr addr, uae_u32 v, uae_u32 mask, int reg, int ptrreg);
 uae_u16 debug_wputpeekdma_chipset (uaecptr addr, uae_u32 v, uae_u32 mask, int reg);
 void debug_lgetpeek (uaecptr addr, uae_u32 v);
 void debug_wgetpeek (uaecptr addr, uae_u32 v);
@@ -135,6 +182,11 @@ uae_u32 get_long_debug (uaecptr addr);
 uae_u32 get_ilong_debug (uaecptr addr);
 uae_u32 get_iword_debug (uaecptr addr);
 
+uae_u32 get_byte_cache_debug(uaecptr addr, bool *cached);
+uae_u32 get_word_cache_debug(uaecptr addr, bool *cached);
+uae_u32 get_long_cache_debug(uaecptr addr, bool *cached);
+uae_u32 get_iword_cache_debug(uaecptr addr, bool *cached);
+uae_u32 get_ilong_cache_debug(uaecptr addr, bool *cached);
 
 enum debugtest_item { DEBUGTEST_BLITTER, DEBUGTEST_KEYBOARD, DEBUGTEST_FLOPPY, DEBUGTEST_MAX };
 void debugtest (enum debugtest_item, const TCHAR *, ...);
@@ -145,7 +197,8 @@ struct dma_rec
     uae_u32 dat;
     uae_u32 addr;
     uae_u16 evt;
-    int type;
+    uae_s16 type;
+	uae_u16 extra;
 	uae_s8 intlev;
 };
 
@@ -157,21 +210,21 @@ struct dma_rec
 #define DMA_EVENT_CPUIRQ 32
 #define DMA_EVENT_INTREQ 64
 #define DMA_EVENT_COPPERWANTED 128
+#define DMA_EVENT_NOONEGETS 256
+#define DMA_EVENT_SPECIAL 32768
 
 #define DMARECORD_REFRESH 1
-#define DMARECORD_CPU_I 2
-#define DMARECORD_CPU_D 3
-#define DMARECORD_COPPER 4
-#define DMARECORD_AUDIO 5
-#define DMARECORD_BLITTER 6
-#define DMARECORD_BLITTER_FILL 7
-#define DMARECORD_BLITTER_LINE 8
-#define DMARECORD_BITPLANE 9
-#define DMARECORD_SPRITE 10
-#define DMARECORD_DISK 11
-#define DMARECORD_MAX 12
+#define DMARECORD_CPU 2
+#define DMARECORD_COPPER 3
+#define DMARECORD_AUDIO 4
+#define DMARECORD_BLITTER 5
+#define DMARECORD_BITPLANE 6
+#define DMARECORD_SPRITE 7
+#define DMARECORD_DISK 8
+#define DMARECORD_MAX 9
 
-extern struct dma_rec *record_dma(uae_u16 reg, uae_u16 dat, uae_u32 addr, int hpos, int vpos, int type);
+extern struct dma_rec *record_dma(uae_u16 reg, uae_u16 dat, uae_u32 addr, int hpos, int vpos, int type, int extra);
+extern void record_dma_replace(int hpos, int vpos, int type, int extra);
 extern void record_dma_reset(void);
 extern void record_dma_event(int evt, int hpos, int vpos);
 extern void debug_draw(uae_u8 *buf, int bpp, int line, int width, int height, uae_u32 *xredcolors, uae_u32 *xgreencolors, uae_u32 *xbluescolors);

@@ -151,7 +151,9 @@ int amiga_init(void)
     filesys_host_init();
 
     romlist_init();
+#ifdef WITH_CLIPBOARD
     clipboard_init();
+#endif
     return 1;
 }
 
@@ -394,7 +396,7 @@ int amiga_state_save(int slot) {
     }
     write_log("amiga_state_save %d\n", slot);
     int code = AKS_STATESAVEQUICK1 + slot * 2;
-    inputdevice_add_inputcode(code, 1);
+    inputdevice_add_inputcode(code, 1, NULL);
     return 1;
 }
 
@@ -407,7 +409,7 @@ int amiga_state_load(int slot) {
     }
     write_log("amiga_state_load %d\n", slot);
     int code = AKS_STATERESTOREQUICK1 + slot * 2;
-    inputdevice_add_inputcode(code, 1);
+    inputdevice_add_inputcode(code, 1, NULL);
     return 1;
 }
 

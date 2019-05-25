@@ -192,7 +192,11 @@ static fs_emu_key_translation g_default_keymap[] = {
     { FS_ML_KEY_X,            MOD, FS_EMU_ACTION_SPECIAL },
     { FS_ML_KEY_W,            MOD, FS_EMU_ACTION_WARP },
 
+    // { FS_ML_KEY_1,            MOD, INPUTEVENT_SPC_RTG_C },
+    // { FS_ML_KEY_2,            MOD, INPUTEVENT_SPC_RTG_0 },
+
     { FS_ML_KEY_F4,           MOD, FS_EMU_ACTION_QUIT },
+    { FS_ML_KEY_F9,           MOD, INPUTEVENT_SPC_TOGGLERTG },
     { FS_ML_KEY_F11,           -1, FS_UAE_ACTION_TOGGLE_AUTO_ZOOM },
     { FS_ML_KEY_F12,           -1, FS_EMU_ACTION_MENU_ALT },
 

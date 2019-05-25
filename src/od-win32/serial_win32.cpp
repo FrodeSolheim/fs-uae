@@ -23,6 +23,7 @@
 #include "cia.h"
 #include "serial.h"
 #include "enforcer.h"
+#include "arcadia.h"
 
 #include "parser.h"
 
@@ -180,6 +181,8 @@ static int serdatr_last_got;
 int serdev;
 int seriallog = 0, log_sercon = 0;
 int serial_enet;
+static bool seriallog_lf;
+extern int consoleopen;
 
 void serial_open (void);
 void serial_close (void);
@@ -228,7 +231,9 @@ void SERPER (uae_u16 w)
 #endif
 	if (log_sercon) {
 		serial_period_hsyncs = 1;
-		seriallog = 1;
+		seriallog = log_sercon;
+		seriallog_lf = true;
+		write_logx(_T("\n"));
 	}
 
 	serial_period_hsync_counter = 0;
@@ -388,6 +393,14 @@ static void checksend(void)
 	if (data_in_sershift != 1 && data_in_sershift != 2)
 		return;
 
+#ifdef ARCADIA
+	if (alg_flag || currprefs.genlock_image >= 7) {
+		ld_serial_read(serdatshift);
+	}
+#endif
+	if (cubo_enabled) {
+		touch_serial_read(serdatshift);
+	}
 #ifdef SERIAL_MAP
 	if (sermap_data && sermap_enabled)
 		shmem_serial_send(serdatshift);
@@ -452,7 +465,7 @@ static void sersend_ce(uae_u32 v)
 		lastbitcycle = get_cycles() + ((serper & 0x7fff) + 1) * CYCLE_UNIT;
 		lastbitcycle_active_hsyncs = ((serper & 0x7fff) + 1) / maxhpos + 2;
 	} else if (data_in_sershift == 1 || data_in_sershift == 2) {
-		event2_newevent_x(-1, maxhpos, 0, sersend_ce);
+		event2_newevent_x_replace(maxhpos, 0, sersend_ce);
 	}
 }
 
@@ -471,9 +484,18 @@ static void serdatcopy(void)
 	data_in_sershift = 1;
 	data_in_serdat = 0;
 
-	if (seriallog) {
+	if (seriallog > 0 || (consoleopen && seriallog < 0)) {
 		gotlogwrite = true;
-		write_log(_T("%c"), docharlog(serdatshift_masked));
+		if (seriallog_lf && seriallog > 1) {
+			TCHAR *ts = write_log_get_ts();
+			if (ts)
+				write_logx(_T("%s:"), ts);
+			seriallog_lf = false;
+		}
+		TCHAR ch = docharlog(serdatshift_masked);
+		write_logx(_T("%c"), ch);
+		if (ch == 10)
+			seriallog_lf = true;
 	}
 
 	if (serper == 372) {
@@ -483,7 +505,7 @@ static void serdatcopy(void)
 	}
 
 	// if someone uses serial port as some kind of timer..
-	if (currprefs.cpu_cycle_exact) {
+	if (currprefs.cpu_memory_cycle_exact) {
 		int per;
 
 		bits = 16 + 1;
@@ -504,7 +526,7 @@ static void serdatcopy(void)
 		}
 		if (per < 4)
 			per = 4;
-		event2_newevent_x(-1, per, 0, sersend_ce);
+		event2_newevent_x_replace(per, 0, sersend_ce);
 	}
 
 	INTREQ(0x8000 | 0x0001);
@@ -517,10 +539,30 @@ void serial_hsynchandler (void)
 	extern void hsyncstuff(void);
 	hsyncstuff();
 #endif
+#ifdef ARCADIA
+	if ((alg_flag || currprefs.genlock_image >= 7) && !data_in_serdatr) {
+		int ch = ld_serial_write();
+		if (ch >= 0) {
+			serdatr = ch | 0x100;
+			data_in_serdatr = 1;
+			serdatr_last_got = 0;
+			serial_check_irq ();
+		}
+	}
+#endif
+	if (cubo_enabled && !data_in_serdatr) {
+		int ch = touch_serial_write();
+		if (ch >= 0) {
+			serdatr = ch | 0x100;
+			data_in_serdatr = 1;
+			serdatr_last_got = 0;
+			serial_check_irq();
+		}
+	}
 #ifdef FSUAE
 	/* no read_log implementation */
 #else
-	if (seriallog && !data_in_serdatr && gotlogwrite) {
+	if (seriallog > 0 && !data_in_serdatr && gotlogwrite) {
 		int ch = read_log();
 		if (ch > 0) {
 			serdatr = ch | 0x100;

@@ -33,10 +33,10 @@ typedef int fs_bool;
 #define MIN(a, b)  (((a) < (b)) ? (a) : (b))
 #endif
 
-#define FS_INT_TO_POINTER(i) ((void *) (long) (i))
-#define FS_POINTER_TO_INT(p) ((int)  (long) (p))
-#define FS_UINT_TO_POINTER(u) ((void *) (unsigned long) (u))
-#define FS_POINTER_TO_UINT(p) ((unsigned int) (unsigned long) (p))
+#define FS_INT_TO_POINTER(i) ((void *) (intptr_t) (i))
+#define FS_POINTER_TO_INT(p) ((int)  (intptr_t) (p))
+#define FS_UINT_TO_POINTER(u) ((void *) (uintptr_t) (u))
+#define FS_POINTER_TO_UINT(p) ((unsigned int) (uintptr_t) (p))
 
 #ifdef __cplusplus
 extern "C" {

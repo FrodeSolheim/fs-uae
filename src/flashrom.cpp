@@ -1,7 +1,9 @@
 /*
 * UAE - The Un*x Amiga Emulator
 *
-* Simple 29F010 flash ROM chip emulator
+* Simple 29Fxxx flash ROM chip emulator
+* I2C EEPROM (24C08)
+* MICROWIRE EEPROM (9346)
 *
 * (c) 2014 Toni Wilen
 */
@@ -19,6 +21,250 @@
 
 #define FLASH_LOG 0
 #define EEPROM_LOG 0
+
+/* MICROWIRE EEPROM */
+
+struct eeprom93xx_eeprom_t {
+	uint8_t  tick;
+	uint8_t  address;
+	uint8_t  command;
+	uint8_t  writeable;
+
+	uint8_t eecs;
+	uint8_t eesk;
+	uint8_t eedo;
+
+	uint8_t  addrbits;
+	uint16_t size;
+	uint16_t data;
+	uint16_t contents[256];
+
+	uae_u8 *memory;
+	struct zfile *zf;
+};
+
+static const char *opstring[] = { "extended", "write", "read", "erase" };
+
+void eeprom93xx_write(void *eepromp, int eecs, int eesk, int eedi)
+{
+	eeprom93xx_eeprom_t *eeprom = (eeprom93xx_eeprom_t*)eepromp;
+	uint8_t tick = eeprom->tick;
+	uint8_t eedo = eeprom->eedo;
+	uint16_t address = eeprom->address;
+	uint8_t command = eeprom->command;
+
+#if EEPROM_LOG
+	write_log("CS=%u SK=%u DI=%u DO=%u, tick = %u\n", eecs, eesk, eedi, eedo, tick);
+#endif
+
+	if (!eeprom->eecs && eecs) {
+		/* Start chip select cycle. */
+#if EEPROM_LOG
+		write_log("Cycle start, waiting for 1st start bit (0)\n");
+#endif
+		tick = 0;
+		command = 0x0;
+		address = 0x0;
+	}
+	else if (eeprom->eecs && !eecs) {
+		/* End chip select cycle. This triggers write / erase. */
+		if (eeprom->writeable) {
+			uint8_t subcommand = address >> (eeprom->addrbits - 2);
+			if (command == 0 && subcommand == 2) {
+				/* Erase all. */
+				for (address = 0; address < eeprom->size; address++) {
+					eeprom->contents[address] = 0xffff;
+				}
+			}
+			else if (command == 3) {
+				/* Erase word. */
+				eeprom->contents[address] = 0xffff;
+			}
+			else if (tick >= 2 + 2 + eeprom->addrbits + 16) {
+				if (command == 1) {
+					/* Write word. */
+					eeprom->contents[address] &= eeprom->data;
+				}
+				else if (command == 0 && subcommand == 1) {
+					/* Write all. */
+					for (address = 0; address < eeprom->size; address++) {
+						eeprom->contents[address] &= eeprom->data;
+					}
+				}
+			}
+		}
+		/* Output DO is tristate, read results in 1. */
+		eedo = 1;
+	}
+	else if (eecs && !eeprom->eesk && eesk) {
+		/* Raising edge of clock shifts data in. */
+		if (tick == 0) {
+			/* Wait for 1st start bit. */
+			if (eedi == 0) {
+#if EEPROM_LOG
+				write_log("Got correct 1st start bit, waiting for 2nd start bit (1)\n");
+#endif
+				tick++;
+			}
+			else {
+#if EEPROM_LOG
+				write_log("wrong 1st start bit (is 1, should be 0)\n");
+#endif
+				tick = 2;
+				//~ assert(!"wrong start bit");
+			}
+		}
+		else if (tick == 1) {
+			/* Wait for 2nd start bit. */
+			if (eedi != 0) {
+#if EEPROM_LOG
+				write_log("Got correct 2nd start bit, getting command + address\n");
+#endif
+				tick++;
+			}
+			else {
+#if EEPROM_LOG
+
+				write_log("1st start bit is longer than needed\n");
+#endif
+			}
+		}
+		else if (tick < 2 + 2) {
+			/* Got 2 start bits, transfer 2 opcode bits. */
+			tick++;
+			command <<= 1;
+			if (eedi) {
+				command += 1;
+			}
+		}
+		else if (tick < 2 + 2 + eeprom->addrbits) {
+			/* Got 2 start bits and 2 opcode bits, transfer all address bits. */
+			tick++;
+			address = ((address << 1) | eedi);
+			if (tick == 2 + 2 + eeprom->addrbits) {
+#if EEPROM_LOG
+				write_log("%s command, address = 0x%02x (value 0x%04x)\n", opstring[command], address, eeprom->contents[address]);
+#endif
+				if (command == 2) {
+					eedo = 0;
+				}
+				address = address % eeprom->size;
+				if (command == 0) {
+					/* Command code in upper 2 bits of address. */
+					switch (address >> (eeprom->addrbits - 2)) {
+					case 0:
+#if EEPROM_LOG
+						write_log("write disable command\n");
+#endif
+						eeprom->writeable = 0;
+						break;
+					case 1:
+#if EEPROM_LOG
+						write_log("write all command\n");
+#endif
+						break;
+					case 2:
+#if EEPROM_LOG
+						write_log("erase all command\n");
+#endif
+						break;
+					case 3:
+#if EEPROM_LOG
+						write_log("write enable command\n");
+#endif
+						eeprom->writeable = 1;
+						break;
+					}
+				}
+				else {
+					/* Read, write or erase word. */
+					eeprom->data = eeprom->contents[address];
+				}
+			}
+		}
+		else if (tick < 2 + 2 + eeprom->addrbits + 16) {
+			/* Transfer 16 data bits. */
+			tick++;
+			if (command == 2) {
+				/* Read word. */
+				eedo = ((eeprom->data & 0x8000) != 0);
+			}
+			eeprom->data <<= 1;
+			eeprom->data += eedi;
+		}
+		else {
+#if EEPROM_LOG
+			write_log("additional unneeded tick, not processed\n");
+#endif
+		}
+	}
+	/* Save status of EEPROM. */
+	eeprom->tick = tick;
+	eeprom->eecs = eecs;
+	eeprom->eesk = eesk;
+	eeprom->eedo = eedo;
+	eeprom->address = address;
+	eeprom->command = command;
+}
+
+uae_u16 eeprom93xx_read(void *eepromp)
+{
+	eeprom93xx_eeprom_t *eeprom = (eeprom93xx_eeprom_t*)eepromp;
+	/* Return status of pin DO (0 or 1). */
+#if EEPROM_LOG
+	write_log("CS=%u DO=%u\n", eeprom->eecs, eeprom->eedo);
+#endif
+	return eeprom->eedo;
+}
+
+uae_u8 eeprom93xx_read_byte(void *eepromp, int offset)
+{
+	eeprom93xx_eeprom_t *eeprom = (eeprom93xx_eeprom_t*)eepromp;
+	if (offset & 1)
+		return eeprom->contents[offset / 2];
+	else
+		return eeprom->contents[offset / 2] >> 8;
+}
+
+void *eeprom93xx_new(const uae_u8 *memory, int nwords, struct zfile *zf)
+{
+	/* Add a new EEPROM (with 16, 64 or 256 words). */
+	eeprom93xx_eeprom_t *eeprom;
+	uint8_t addrbits;
+
+	switch (nwords) {
+	case 16:
+	case 64:
+		addrbits = 6;
+		break;
+	case 128:
+	case 256:
+		addrbits = 8;
+		break;
+	default:
+		return NULL;
+	}
+
+	eeprom = (eeprom93xx_eeprom_t *)xcalloc(eeprom93xx_eeprom_t, 1);
+	eeprom->size = nwords;
+	eeprom->addrbits = addrbits;
+	for (int i = 0; i < nwords; i++) {
+		eeprom->contents[i] = (memory[i * 2 + 0] << 8) | memory[i * 2 + 1];
+	}
+	/* Output DO is tristate, read results in 1. */
+	eeprom->eedo = 1;
+//	write_log("eeprom = 0x%p, nwords = %u\n", eeprom, nwords);
+	return eeprom;
+}
+
+void eeprom93xx_free(void *eepromp)
+{
+	eeprom93xx_eeprom_t *eeprom = (eeprom93xx_eeprom_t*)eepromp;
+
+	/* Destroy EEPROM. */
+//	write_log("eeprom = 0x%p\n", eeprom);
+	xfree(eeprom);
+}
 
 /* I2C EEPROM */
 
@@ -60,6 +306,7 @@ struct bitbang_i2c_interface {
     int device_out;
     uint8_t buffer;
     int current_addr;
+	uae_u8 device_address, device_address_mask;
 
 	eeprom_state estate;
 	int eeprom_addr;
@@ -68,6 +315,9 @@ struct bitbang_i2c_interface {
 	int addressbitmask;
 	uae_u8 *memory;
 	struct zfile *zf;
+
+	uae_u8(*read_func)(uae_u8 addr);
+	void(*write_func)(uae_u8 addr, uae_u8 v);
 };
 
 static void nvram_write (struct bitbang_i2c_interface *i2c, int offset, int len)
@@ -81,7 +331,7 @@ static void nvram_write (struct bitbang_i2c_interface *i2c, int offset, int len)
 static void bitbang_i2c_enter_stop(bitbang_i2c_interface *i2c)
 {
 #if EEPROM_LOG
-    write_log(_T("STOP\n"));
+    write_log(_T("I2C STOP\n"));
 #endif
 	if (i2c->write_offset >= 0)
 		nvram_write(i2c, i2c->write_offset, 16);
@@ -123,7 +373,7 @@ int eeprom_i2c_set(void *fdv, int line, int level)
         }
         if (level == 0) {
 #if EEPROM_LOG
-            write_log(_T("START\n"));
+            write_log(_T("I2C START\n"));
 #endif
 			/* START condition.  */
             i2c->state = SENDING_BIT7;
@@ -171,10 +421,10 @@ int eeprom_i2c_set(void *fdv, int line, int level)
 		if (i2c->estate == I2C_DEVICEADDR) {
             i2c->current_addr = i2c->buffer;
 #if EEPROM_LOG
-			write_log(_T("Device address 0x%02x\n"), i2c->current_addr);
+			write_log(_T("I2C device address 0x%02x\n"), i2c->current_addr);
 #endif
-			if ((i2c->current_addr & 0xf0) != 0xa0) {
-				write_log (_T("WARNING: I2C_DEVICEADDR: device address != 0xA0\n"));
+			if ((i2c->current_addr & i2c->device_address_mask) != i2c->device_address) {
+				write_log (_T("I2C WARNING: device address != %02x\n"), i2c->device_address);
 				i2c->state = STOPPED;
 				return bitbang_i2c_ret(i2c, 0);
 			}
@@ -189,17 +439,21 @@ int eeprom_i2c_set(void *fdv, int line, int level)
 			i2c->eeprom_addr &= i2c->addressbitmask << 8;
 			i2c->eeprom_addr |= i2c->buffer;
 #if EEPROM_LOG
-			write_log(_T("EEPROM address %04x\n"), i2c->eeprom_addr);
+			write_log(_T("I2C device address 0x%02x (Address %04x)\n"), i2c->buffer, i2c->eeprom_addr);
 #endif
 		} else if (!(i2c->current_addr & 1)) {
 #if EEPROM_LOG
-            write_log(_T("Sent %04x 0x%02x\n"), i2c->eeprom_addr, i2c->buffer);
+            write_log(_T("I2C sent %04x 0x%02x\n"), i2c->eeprom_addr, i2c->buffer);
 #endif
 			if (i2c->write_offset < 0)
 				i2c->write_offset = i2c->eeprom_addr;
-			i2c->memory[i2c->eeprom_addr] = i2c->buffer;
-			i2c->eeprom_addr = (i2c->eeprom_addr & ~(NVRAM_PAGE_SIZE - 1)) | (i2c->eeprom_addr + 1) & (NVRAM_PAGE_SIZE - 1);
-			gui_flicker_led (LED_MD, 0, 2);
+			if (i2c->write_func) {
+				i2c->write_func(i2c->eeprom_addr, i2c->buffer);
+			} else {
+				i2c->memory[i2c->eeprom_addr] = i2c->buffer;
+				i2c->eeprom_addr = (i2c->eeprom_addr & ~(NVRAM_PAGE_SIZE - 1)) | (i2c->eeprom_addr + 1) & (NVRAM_PAGE_SIZE - 1);
+				gui_flicker_led(LED_MD, 0, 2);
+			}
         }
         if (i2c->current_addr & 1) {
             i2c->state = RECEIVING_BIT7;
@@ -210,10 +464,14 @@ int eeprom_i2c_set(void *fdv, int line, int level)
 
 	// Reading from EEPROM
     case RECEIVING_BIT7:
-        i2c->buffer = i2c->memory[i2c->eeprom_addr];
+		if (i2c->read_func) {
+			i2c->buffer = i2c->read_func(i2c->eeprom_addr);
+		} else {
+			i2c->buffer = i2c->memory[i2c->eeprom_addr];
+		}
 		//i2c->buffer = i2c_recv(i2c->bus);
 #if EEPROM_LOG
-        write_log(_T("RX byte %04X 0x%02x\n"), i2c->eeprom_addr, i2c->buffer);
+        write_log(_T("I2C RX byte %04X 0x%02x\n"), i2c->eeprom_addr, i2c->buffer);
 #endif
 		i2c->eeprom_addr++;
 		i2c->eeprom_addr &= i2c->size - 1;
@@ -236,19 +494,24 @@ int eeprom_i2c_set(void *fdv, int line, int level)
         i2c->state = RECEIVING_BIT7;
         if (data != 0) {
 #if EEPROM_LOG > 1
-			write_log(_T("NACKED\n"));
+			write_log(_T("I2C NACKED\n"));
 #endif
 			i2c->state = SENT_NACK;
             //i2c_nack(i2c->bus);
         } else {
 			;
 #if EEPROM_LOG > 1
-            write_log(_T("ACKED\n"));
+            write_log(_T("I2C ACKED\n"));
 #endif
 		}
         return bitbang_i2c_ret(i2c, 1);
     }
     abort();
+}
+
+int i2c_set(void *i2c, int line, int level)
+{
+	return eeprom_i2c_set(i2c, line, level);
 }
 
 void eeprom_reset(void *fdv)
@@ -276,14 +539,47 @@ void *eeprom_new(uae_u8 *memory, int size, struct zfile *zf)
 	s->size = size;
 	s->zf = zf;
 	s->addressbitmask = (size / 256) - 1;
+	s->device_address = 0xa0;
+	s->device_address_mask = 0xf0;
 
     return s;
+}
+
+void *i2c_new(uae_u8 device_address, int size, uae_u8 (*read_func)(uae_u8 addr), void (*write_func)(uae_u8 addr, uae_u8 v))
+{
+	bitbang_i2c_interface *s;
+
+	s = xcalloc(bitbang_i2c_interface, 1);
+
+	eeprom_reset(s);
+
+	s->memory = NULL;
+	s->size = size;
+	s->zf = NULL;
+	s->addressbitmask = 0;
+	s->device_address = 0xa2;
+	s->device_address_mask = 0xff;
+
+	s->read_func = read_func;
+	s->write_func = write_func;
+	return s;
 }
 
 void eeprom_free(void *fdv)
 {
 	struct bitbang_i2c_interface *i2c = (bitbang_i2c_interface*)fdv;
 	xfree(i2c);
+}
+
+void i2c_free(void *fdv)
+{
+	eeprom_free(fdv);
+}
+
+void i2c_reset(void *fdv)
+{
+	struct bitbang_i2c_interface *i2c = (bitbang_i2c_interface*)fdv;
+	eeprom_reset(i2c);
 }
 
 /* FLASH */
@@ -297,12 +593,12 @@ struct flashrom_data
 	int state;
 	int modified;
 	int sectorsize;
-	uae_u8 devicecode;
+	uae_u8 devicecode, mfgcode;
 	int flags;
 	struct zfile *zf;
 };
 
-void *flash_new(uae_u8 *rom, int flashsize, int allocsize, uae_u8 devicecode, struct zfile *zf, int flags)
+void *flash_new(uae_u8 *rom, int flashsize, int allocsize, uae_u8 mfgcode, uae_u8 devcode, struct zfile *zf, int flags)
 {
 	struct flashrom_data *fd = xcalloc(struct flashrom_data, 1);
 	fd->flashsize = flashsize;
@@ -311,8 +607,9 @@ void *flash_new(uae_u8 *rom, int flashsize, int allocsize, uae_u8 devicecode, st
 	fd->zf = zf;
 	fd->rom = rom;
 	fd->flags = flags;
-	fd->devicecode = devicecode;
-	fd->sectorsize = devicecode == 0x20 ? 16384 : 65536;
+	fd->devicecode = devcode;
+	fd->mfgcode = mfgcode;
+	fd->sectorsize = devcode == 0x20 ? 16384 : 65536;
 	return fd;
 }
 
@@ -376,7 +673,7 @@ bool flash_write(void *fdv, uaecptr addr, uae_u8 v)
 	addr &= fd->mask;
 	addr2 = addr & 0xffff;
 
-	if (fd->state == 7) {
+	if (fd->state >= 7 && fd->state < 7 + 64) {
 		if (!(fd->flags & FLASHROM_PARALLEL_EEPROM)) {
 			fd->state = 100;
 		} else {
@@ -472,7 +769,7 @@ uae_u32 flash_read(void *fdv, uaecptr addr)
 	if (fd->state == 3) {
 		uae_u8 a = addr & 0xff;
 		if (a == 0)
-			v = 0x01;
+			v = fd->mfgcode;
 		if (a == 1)
 			v = fd->devicecode;
 		if (a == 2)

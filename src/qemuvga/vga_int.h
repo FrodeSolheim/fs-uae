@@ -104,6 +104,7 @@ typedef struct VGACommonState {
     uint8_t ar_index;
     uint8_t ar[21];
     int ar_flip_flop;
+	int vref_toggle;
     uint8_t cr_index;
     uint8_t cr[256]; /* CRT registers */
     uint8_t msr; /* Misc Output Register */
@@ -139,6 +140,7 @@ typedef struct VGACommonState {
     int graphic_mode;
     uint8_t shift_control;
     uint8_t double_scan;
+	uint8_t double_scan2;
     uint32_t line_offset;
     uint32_t line_compare;
     uint32_t start_addr;
@@ -169,6 +171,12 @@ typedef struct VGACommonState {
     vga_update_retrace_info_fn update_retrace_info;
     union vga_retrace retrace_info;
     uint8_t is_vbe_vmstate;
+
+	uint32_t *cirrus_rgbx16;
+	int monid;
+	int old_ovl_format;
+	int old_overlay;
+	int ovl_changed;
 } VGACommonState;
 
 STATIC_INLINE int c6_to_8(int v)

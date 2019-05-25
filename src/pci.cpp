@@ -28,6 +28,7 @@
 #include "rommgr.h"
 #include "cpuboard.h"
 #include "autoconf.h"
+#include "devices.h"
 
 #include "qemuvga/qemuuaeglue.h"
 #include "qemuvga/queue.h"
@@ -105,7 +106,7 @@ static struct pci_board *pci_board_alloc(struct pci_config *config)
 	return pci;
 }
 
-static void pci_board_add(struct pci_bridge *pcib, const struct pci_board *pci, int slot, int func)
+static void pci_board_add(struct pci_bridge *pcib, const struct pci_board *pci, int slot, int func, struct autoconfig_info *aci)
 {
 	struct pci_board_state *pcibs = &pcib->boards[pcib->slot_cnt];
 	pcib->slot_cnt++;
@@ -113,12 +114,13 @@ static void pci_board_add(struct pci_bridge *pcib, const struct pci_board *pci, 
 	pcibs->slot = slot;
 	pcibs->func = func;
 	pcibs->bridge = pcib;
+	pcibs->irq_callback = pci_irq_callback;
 	memset(pcibs->config_data, 0, sizeof pcibs->config_data);
 	for (int i = 0; i < MAX_PCI_BARS; i++) {
 		pcibs->bar_size[i] = pci->config->bars[i];
 	}
 	if (pci->init)
-		pci->init(pcibs);
+		pci->init(pcibs, aci);
 	if (pci->hsync) {
 		for (int i = 0; i < MAX_PCI_BOARDS; i++) {
 			if (hsyncs[i] == NULL) {
@@ -138,7 +140,6 @@ void pci_free(void)
 	for (int i = 0; i < MAX_PCI_BOARDS; i++) {
 		hsyncs[i] = NULL;
 	}
-	uae_int_requested &= ~(0x10 | 0x100);
 }
 void pci_reset(void)
 {
@@ -155,7 +156,6 @@ void pci_hsync(void)
 
 void pci_rethink(void)
 {
-	uae_int_requested &= ~(0x10 | 0x100);
 	for (int i = 0; i < PCI_BRIDGE_MAX; i++) {
 		struct pci_bridge *pcib = bridges[i];
 		if (!pcib)
@@ -167,13 +167,14 @@ void pci_rethink(void)
 				const struct pci_config *c = pcibs->board->config;
 				if (c->interruptpin) {
 					if ((pcibs->config_data[5] & (1 << 3)) && !(pcibs->config_data[6] & (1 << (10 - 8)))) {
-						pcib->irq |= 1 << (c->interruptpin - 1);
+						uae_u8 irq = 1 << (c->interruptpin - 1);;
+						pcib->irq |= irq;
+						if (irq & pcib->intena) {
+							safe_interrupt_set(IRQ_SOURCE_PCI, i, (pcib->intreq_mask & 0x2000) != 0);
+						}
 					}
 				}
 			}
-		}
-		if (pcib->irq & pcib->intena) {
-			uae_int_requested |= pcib->intreq_mask;
 		}
 	}
 }
@@ -183,7 +184,7 @@ static void set_pci_irq(struct pci_bridge *pcib, struct pci_board_state *pcibs, 
 	pcibs->config_data[5] &= ~(1 << 3);
 	if (active)
 		pcibs->config_data[5] |= (1 << 3);
-	pci_rethink();
+	devices_rethink_all(pci_rethink);
 }
 
 static void create_config_data(struct pci_board_state *s)
@@ -224,7 +225,7 @@ static void create_config_data(struct pci_board_state *s)
 
 static struct pci_bridge *get_pci_bridge(uaecptr addr)
 {
-	if (addr < 0x10000 || (addr & 0xffff0000) == 0xe80000 || (addr & 0xff000000) == 0xff000000) {
+	if (addr < 0x10000 || (addr & 0xffff0000) == AUTOCONFIG_Z2 || (addr & 0xff000000) == AUTOCONFIG_Z3) {
 		for (int i = 0; i < PCI_BRIDGE_MAX; i++) {
 			struct pci_bridge *pcib = bridges[i];
 			if (pcib && pcib->configured == 0) {
@@ -254,7 +255,7 @@ static struct pci_bridge *get_pci_bridge(uaecptr addr)
 
 static struct pci_bridge *get_pci_bridge_2(uaecptr addr)
 {
-	if (addr < 0x10000 || (addr & 0xffff0000) == 0xe80000 || (addr & 0xff000000) == 0xff000000) {
+	if (addr < 0x10000 || (addr & 0xffff0000) == AUTOCONFIG_Z2 || (addr & 0xff000000) == AUTOCONFIG_Z3) {
 		for (int i = 0; i < PCI_BRIDGE_MAX; i++) {
 			struct pci_bridge *pcib = bridges[i];
 			if (pcib && pcib->configured_2 == 0) {
@@ -884,19 +885,19 @@ static void REGPARAM2 pci_bridge_wput(uaecptr addr, uae_u32 b)
 			{
 				case 0x44:
 				if (pcib->type == PCI_BRIDGE_PROMETHEUS) {
-					if (validate_banks_z3(&pci_io_bank, (expamem_z3_pointer) >> 16, expamem_z3_size >> 16)) {
-						map_banks_z3(&pci_io_bank, (expamem_z3_pointer) >> 16, 0xf0000 >> 16);
-						map_banks_z3(&pci_mem_bank, (expamem_z3_pointer + 0x100000) >> 16, (511 * 1024 * 1024) >> 16);
-						map_banks_z3(&pci_config_bank, (expamem_z3_pointer + 0xf0000) >> 16, 0x10000 >> 16);
+					if (validate_banks_z3(&pci_io_bank, (expamem_board_pointer) >> 16, expamem_board_size >> 16)) {
+						map_banks_z3(&pci_io_bank, (expamem_board_pointer) >> 16, 0xf0000 >> 16);
+						map_banks_z3(&pci_mem_bank, (expamem_board_pointer + 0x100000) >> 16, (511 * 1024 * 1024) >> 16);
+						map_banks_z3(&pci_config_bank, (expamem_board_pointer + 0xf0000) >> 16, 0x10000 >> 16);
 					}
 					pcib->baseaddress_offset = pcib->baseaddress;
-					pcib->io_offset = expamem_z3_pointer;
+					pcib->io_offset = expamem_board_pointer;
 				} else if (pcib->type == PCI_BRIDGE_MEDIATOR) {
-					map_banks_z3(&pci_mem_bank, expamem_z3_pointer >> 16, expamem_z3_size >> 16);
+					map_banks_z3(&pci_mem_bank, expamem_board_pointer >> 16, expamem_board_size >> 16);
 					pcib->baseaddress_offset = 0;
 				}
-				pcib->baseaddress = expamem_z3_pointer;
-				pcib->board_size = expamem_z3_size;
+				pcib->baseaddress = expamem_board_pointer;
+				pcib->board_size = expamem_board_size;
 				pcib->baseaddress_end = pcib->baseaddress + pcib->board_size;
 				pcib->configured = 1;
 				expamem_next(pcib->bank, NULL);
@@ -923,9 +924,9 @@ static void REGPARAM2 pci_bridge_bput(uaecptr addr, uae_u32 b)
 			{
 				case 0x48:
 				// Mediator 1200
-				map_banks_z2(&pci_mem_bank, b, expamem_z2_size >> 16);			
+				map_banks_z2(&pci_mem_bank, b, expamem_board_size >> 16);			
 				pcib->baseaddress = b << 16;
-				pcib->board_size = expamem_z2_size;
+				pcib->board_size = expamem_board_size;
 				pcib->baseaddress_end = pcib->baseaddress + pcib->board_size;
 				pcib->configured = 1;
 				expamem_next(pcib->bank, NULL);
@@ -944,8 +945,8 @@ static void REGPARAM2 pci_bridge_bput(uaecptr addr, uae_u32 b)
 		} else if (addr == 8) {
 			pcib->config[2] = b;
 			if (b & 1) {
-				write_log(_T("Wildfire 68000 mode!\n"));
-				cpu_halt(CPU_HALT_ACCELERATOR_CPU_FALLBACK);
+				write_log(_T("Wildfire fallback CPU mode!\n"));
+				cpu_fallback(0);
 			}
 		}
 	}
@@ -1063,9 +1064,9 @@ static void REGPARAM2 pci_bridge_bput_2(uaecptr addr, uae_u32 b)
 				case 0x48:
 				// Mediator 1200 IO
 				pcib->baseaddress_2 = b << 16;
-				pcib->baseaddress_end_2 = (b << 16) + expamem_z2_size;
+				pcib->baseaddress_end_2 = (b << 16) + expamem_board_size;
 				map_banks_z2(pcib->bank_2, pcib->baseaddress_2 >> 16, 0x10000 >> 16);
-				map_banks_z2(&dummy_bank, (pcib->baseaddress_2 + 0x10000) >> 16, (expamem_z2_size - 0x10000) >> 16);
+				map_banks_z2(&dummy_bank, (pcib->baseaddress_2 + 0x10000) >> 16, (expamem_board_size - 0x10000) >> 16);
 				pcib->configured_2 = 1;
 				pcib->io_offset = pcib->baseaddress_2 + 0x10000;
 				expamem_next(pcib->bank_2, NULL);
@@ -1121,16 +1122,16 @@ static void REGPARAM2 pci_bridge_wput_2(uaecptr addr, uae_u32 b)
 			{
 				case 0x44:
 				// Mediator 4000 IO
-				if (validate_banks_z3(&pci_io_bank, expamem_z3_pointer >> 16, expamem_z3_size >> 16)) {
-					map_banks(pcib->bank_2, expamem_z3_pointer >> 16, 0x800000 >> 16, 0);
-					map_banks(&pci_config_bank, (expamem_z3_pointer + 0x800000) >> 16, 0x400000 >> 16, 0);
-					map_banks(&pci_io_bank, (expamem_z3_pointer + 0xc00000) >> 16, 0x400000 >> 16, 0);
+				if (validate_banks_z3(&pci_io_bank, expamem_board_pointer >> 16, expamem_board_size >> 16)) {
+					map_banks(pcib->bank_2, expamem_board_pointer >> 16, 0x800000 >> 16, 0);
+					map_banks(&pci_config_bank, (expamem_board_pointer + 0x800000) >> 16, 0x400000 >> 16, 0);
+					map_banks(&pci_io_bank, (expamem_board_pointer + 0xc00000) >> 16, 0x400000 >> 16, 0);
 				}
-				pcib->baseaddress_2 = expamem_z3_pointer;
-				pcib->baseaddress_end_2 = expamem_z3_pointer + expamem_z3_size;
-				pcib->board_size_2 = expamem_z3_size;
+				pcib->baseaddress_2 = expamem_board_pointer;
+				pcib->baseaddress_end_2 = expamem_board_pointer + expamem_board_size;
+				pcib->board_size_2 = expamem_board_size;
 				pcib->configured_2 = 1;
-				pcib->io_offset = (expamem_z3_pointer + 0xc00000);
+				pcib->io_offset = (expamem_board_pointer + 0xc00000);
 				expamem_next(pcib->bank, NULL);
 				break;
 			}
@@ -1242,7 +1243,7 @@ void pci_read_dma(struct pci_board_state *pcibs, uaecptr addr, uae_u8 *p, int si
 	} else {
 		write_log(_T("pci_read_dma invalid address %08x, size %d\n"), addr, size);
 		while (size > 0) {
-			*p++ = uaerand();
+			*p++ = uaerand() >> 4;
 			addr++;
 			size--;
 		}
@@ -1276,7 +1277,7 @@ static void pci_dump_region(addrbank *bank, uaecptr *start, uaecptr *end)
 	*start = 0;
 	*end = 0;
 	for (int i = 0; i < 65536 + 1; i++) {
-		addrbank *a = mem_banks[i];
+		addrbank *a = i < 65536 ? mem_banks[i] : NULL;
 		if (*start == 0 && a == bank)
 			*start = i << 16;
 		if (*start && a != bank) {
@@ -1452,7 +1453,7 @@ static const struct pci_config ncr_53c815_pci_config =
 static const struct pci_board ncr_53c815_pci_board =
 {
 	_T("NCR53C815"),
-	&ncr_53c815_pci_config, NULL, NULL, NULL, NULL, pci_irq_callback,
+	&ncr_53c815_pci_config, NULL, NULL, NULL, NULL,
 	{
 		{ wildfire_lget, wildfire_wget, wildfire_bget, wildfire_lput, wildfire_wput, wildfire_bput },
 		{ wildfire_lget, wildfire_wget, wildfire_bget, wildfire_lput, wildfire_wput, wildfire_bput },
@@ -1464,40 +1465,40 @@ static const struct pci_board ncr_53c815_pci_board =
 	}
 };
 
-static void add_pci_devices(struct pci_bridge *pcib)
+static void add_pci_devices(struct pci_bridge *pcib, struct autoconfig_info *aci)
 {
 	int slot = 0;
 
-	if (currprefs.ne2000pciname[0]) {
-		pci_board_add(pcib, &ne2000_pci_board, slot++, 0);
+	if (is_device_rom(&currprefs, ROMTYPE_NE2KPCI, 0) >= 0) {
+		pci_board_add(pcib, &ne2000_pci_board, slot++, 0, aci);
 	}
 
-	if (currprefs.sound_fm801) {
-		pci_board_add(pcib, &fm801_pci_board, slot, 0);
-		pci_board_add(pcib, &fm801_pci_board_func1, slot, 1);
+	if (is_device_rom(&currprefs, ROMTYPE_FM801, 0) >= 0) {
+		pci_board_add(pcib, &fm801_pci_board, slot, 0, aci);
+		pci_board_add(pcib, &fm801_pci_board_func1, slot, 1, aci);
 		slot++;
 	}
 
-	if (currprefs.sound_es1370) {
-		pci_board_add(pcib, &es1370_pci_board, slot++, 0);
+	if (is_device_rom(&currprefs, ROMTYPE_ES1370, 0) >= 0) {
+		pci_board_add(pcib, &es1370_pci_board, slot++, 0, aci);
 	}
-
-	//pci_board_add(pcib, &solo1_pci_board, slot++, 0);
-
-	//pci_board_add(pcib, &ncr_53c815_pci_board, 1, 0);
 }
 
 // Wildfire
 
-void wildfire_ncr815_irq(int v)
+void wildfire_ncr815_irq(int id, int v)
 {
 	struct pci_board_state *pcibs = &bridges[PCI_BRIDGE_WILDFIRE]->boards[0];
 	set_pci_irq(bridges[PCI_BRIDGE_WILDFIRE], pcibs, v != 0);
 }
 
-addrbank *dkb_wildfire_pci_init(struct romconfig *rc)
+bool dkb_wildfire_pci_init(struct autoconfig_info *aci)
 {
 	struct pci_bridge *pcib = pci_bridge_alloc();
+
+	if (!aci->doinit) {
+		return true;
+	}
 
 	bridges[PCI_BRIDGE_WILDFIRE] = pcib;
 	pcib->label = _T("Wildfire");
@@ -1505,20 +1506,21 @@ addrbank *dkb_wildfire_pci_init(struct romconfig *rc)
 	pcib->endian_swap_io = 0;
 	pcib->endian_swap_memory = 0;
 	pcib->intena = 0xff; // controlled by bridge config bits, bit unknown.
-	pcib->intreq_mask = 0x100;
+	pcib->intreq_mask = 0x2000;
 	pcib->get_index = dkb_wildfire_get_index;
 	pcib->baseaddress = 0x80000000;
 	pcib->baseaddress_end = 0xffffffff;
 	pcib->configured = -1;
 	pcib->pcipcidma = true;
 	pcib->amigapicdma = true;
-	pci_board_add(pcib, &ncr_53c815_pci_board, 0, 0);
+	pci_board_add(pcib, &ncr_53c815_pci_board, 0, 0, aci);
 	map_banks(&pci_config_bank, 0x80000000 >> 16, 0x10000000 >> 16, 0);
 	map_banks(&pci_mem_bank, 0x90000000 >> 16, 0x30000000 >> 16, 0);
 	map_banks(&pci_io_bank, 0xc0000000 >> 16, 0x30000000 >> 16, 0);
 	map_banks(&pci_bridge_bank, 0xffff0000 >> 16, 0x10000 >> 16, 0);
 	pcib->data = xcalloc(uae_u8, 32768);
-	return &expamem_null;
+	aci->addrbank = &expamem_null;
+	return true;
 }
 
 // Prometheus: 44359/1
@@ -1550,17 +1552,24 @@ static int prometheus_get_index(uaecptr addr)
 	return slot;
 }
 
-static addrbank *prometheus_pci_init(struct romconfig *rc)
+static bool prometheus_pci_init(struct autoconfig_info *aci)
 {
+	if (!aci->doinit) {
+		for (int i = 0; i < sizeof prometheus_autoconfig; i++) {
+			ew(aci->autoconfig_raw, i * 4, prometheus_autoconfig[i]);
+		}
+		return true;
+	}
+	struct romconfig *rc = aci->rc;
 	struct pci_bridge *pcib = pci_bridge_alloc_zorro(PCI_BRIDGE_PROMETHEUS, rc);
 	if (!pcib)
-		return &expamem_null;
+		return false;
 	pcib->label = _T("Prometheus");
 	pcib->endian_swap_config = 1;
 	pcib->endian_swap_io = -1;
 	pcib->endian_swap_memory = -1;
 	pcib->intena = 0xff;
-	pcib->intreq_mask = 0x10;
+	pcib->intreq_mask = 0x0008;
 	pcib->get_index = prometheus_get_index;
 	pcib->bank = &pci_bridge_bank;
 	pcib->bank_zorro = 3;
@@ -1568,13 +1577,14 @@ static addrbank *prometheus_pci_init(struct romconfig *rc)
 	if (rc->device_settings & 1)
 		pcib->amigapicdma = true;
 
-	add_pci_devices(pcib);
+	add_pci_devices(pcib, aci);
 
 	memset(pcib->acmemory, 0xff, sizeof pcib->acmemory);
 	for (int i = 0; i < sizeof prometheus_autoconfig; i++) {
 		ew(pcib->acmemory, i * 4, prometheus_autoconfig[i]);
 	}
-	return pcib->bank;
+	aci->addrbank = pcib->bank;
+	return true;
 }
 
 // G-REX
@@ -1592,14 +1602,23 @@ static int grex_get_index(uaecptr addr)
 	return slot;
 }
 
-static addrbank *grex_pci_init(struct romconfig *rc)
+static bool grex_pci_init(struct autoconfig_info *aci)
 {
 	struct pci_bridge *pcib = pci_bridge_alloc();
+
+	aci->zorro = 0;
+	aci->parent_of_previous = true;
+	aci->start = 0x80000000;
+	aci->size = 0x80000000;
+
+	if (!aci->doinit) {
+		return true;
+	}
 
 	bridges[PCI_BRIDGE_GREX] = pcib;
 	pcib->label = _T("G-REX");
 	pcib->intena = 0;
-	pcib->intreq_mask = 0x10;
+	pcib->intreq_mask = 0x0008;
 	pcib->get_index = grex_get_index;
 	pcib->baseaddress = 0x80000000;
 	pcib->baseaddress_end = 0xffffffff;
@@ -1607,14 +1626,15 @@ static addrbank *grex_pci_init(struct romconfig *rc)
 	pcib->pcipcidma = true;
 	pcib->amigapicdma = true;
 
-	add_pci_devices(pcib);
+	add_pci_devices(pcib, aci);
 
 	map_banks(&pci_config_bank, 0xfffc0000 >> 16, 0x20000 >> 16, 0);
 	map_banks(&pci_mem_bank, 0x80000000 >> 16, 0x78000000 >> 16, 0);
 	map_banks(&pci_io_bank, 0xfffa0000 >> 16, 0x20000 >> 16, 0);
 	map_banks(&pci_bridge_bank, 0xfffe0000 >> 16, 0x10000 >> 16, 0);
 	pcib->io_offset = 0xfffa0000;
-	return &expamem_null;
+
+	return true;
 }
 
 // CyberVision/BlizzardVision without VGA chip...
@@ -1627,14 +1647,14 @@ static int xvision_get_index(uaecptr addr)
 	return -1;
 }
 
-static addrbank *cbvision(struct romconfig *rc)
+static bool cbvision(struct autoconfig_info *aci)
 {
 	struct pci_bridge *pcib = pci_bridge_alloc();
 
 	bridges[PCI_BRIDGE_XVISION] = pcib;
 	pcib->label = _T("CBVision");
 	pcib->intena = 0;
-	pcib->intreq_mask = 0x10;
+	pcib->intreq_mask = 0x0008;
 	pcib->get_index = xvision_get_index;
 	pcib->baseaddress = 0xe0000000;
 	pcib->baseaddress_end = 0xffffffff;
@@ -1647,7 +1667,9 @@ static addrbank *cbvision(struct romconfig *rc)
 	map_banks(&pci_io_bank, 0xfffa0000 >> 16, 0x20000 >> 16, 0);
 	map_banks(&pci_bridge_bank, 0xfffe0000 >> 16, 0x10000 >> 16, 0);
 	pcib->io_offset = 0xfffa0000;
-	return &expamem_null;
+	aci->zorro = 0;
+	aci->parent_of_previous = true;
+	return true;
 }
 
 // Mediator
@@ -1732,7 +1754,7 @@ static void mediator_pci_init_1200(struct pci_bridge *pcib)
 	pcib->endian_swap_io = -1;
 	pcib->endian_swap_memory = -1;
 	pcib->intena = 0;
-	pcib->intreq_mask = 0x10;
+	pcib->intreq_mask = 0x0008;
 	pcib->get_index = mediator_get_index_1200;
 	pcib->bank = &pci_bridge_bank;
 	pcib->bank_2 = &pci_bridge_bank_2;
@@ -1744,8 +1766,14 @@ static void mediator_pci_init_1200(struct pci_bridge *pcib)
 	mediator_set_window_offset(pcib, 0);
 }
 
-static addrbank *mediator_pci_init_1200_1(struct romconfig *rc, struct mediator_autoconfig *m_ac)
+static addrbank *mediator_pci_init_1200_1(struct autoconfig_info *aci, struct romconfig *rc, struct mediator_autoconfig *m_ac)
 {
+	if (!aci->doinit) {
+		for (int i = 0; i < 16; i++) {
+			ew(aci->autoconfig_raw, i * 4, m_ac->io[i]);
+		}
+		return NULL;
+	}
 	struct pci_bridge *pcib;
 	if (!(rc->device_settings & 4)) {
 		// io first
@@ -1753,7 +1781,7 @@ static addrbank *mediator_pci_init_1200_1(struct romconfig *rc, struct mediator_
 		if (!pcib)
 			return &expamem_null;
 		mediator_pci_init_1200(pcib);
-		add_pci_devices(pcib);
+		add_pci_devices(pcib, aci);
 	} else {
 		pcib = pci_bridge_get_zorro(rc);
 		if (!pcib)
@@ -1766,8 +1794,15 @@ static addrbank *mediator_pci_init_1200_1(struct romconfig *rc, struct mediator_
 	return &pci_bridge_bank_2;
 }
 
-static addrbank *mediator_pci_init_1200_2(struct romconfig *rc, struct mediator_autoconfig *m_ac)
+static addrbank *mediator_pci_init_1200_2(struct autoconfig_info *aci, struct romconfig *rc, struct mediator_autoconfig *m_ac)
 {
+	if (!aci->doinit) {
+		const uae_u8 *ac = (rc->device_settings & 2) ? m_ac->mem_large : m_ac->mem_small;
+		for (int i = 0; i < 16; i++) {
+			ew(aci->autoconfig_raw, i * 4, ac[i]);
+		}
+		return NULL;
+	}
 	struct pci_bridge *pcib;
 	if (!(rc->device_settings & 4)) {
 		// memory last
@@ -1780,7 +1815,7 @@ static addrbank *mediator_pci_init_1200_2(struct romconfig *rc, struct mediator_
 		if (!pcib)
 			return &expamem_null;
 		mediator_pci_init_1200(pcib);
-		add_pci_devices(pcib);
+		add_pci_devices(pcib, aci);
 	}
 	memset(pcib->acmemory, 0xff, sizeof pcib->acmemory);
 	const uae_u8 *ac = (rc->device_settings & 2) ? m_ac->mem_large : m_ac->mem_small;
@@ -1797,7 +1832,7 @@ static void mediator_pci_init_4000(struct pci_bridge *pcib)
 	pcib->endian_swap_io = -1;
 	pcib->endian_swap_memory = -1;
 	pcib->intena = 0;
-	pcib->intreq_mask = 0x10;
+	pcib->intreq_mask = 0x0008;
 	pcib->get_index = mediator_get_index_4000;
 	pcib->bank = &pci_bridge_bank;
 	pcib->bank_2 = &pci_bridge_bank_2;
@@ -1809,8 +1844,12 @@ static void mediator_pci_init_4000(struct pci_bridge *pcib)
 	mediator_set_window_offset(pcib, 0);
 }
 
-static addrbank *mediator_pci_init_4000_1(struct romconfig *rc, struct mediator_autoconfig *m_ac)
+static addrbank *mediator_pci_init_4000_1(struct autoconfig_info *aci, struct romconfig *rc, struct mediator_autoconfig *m_ac)
 {
+	if (!aci->doinit) {
+		aci->autoconfigp = m_ac->io;
+		return &pci_bridge_bank_2;
+	}
 	struct pci_bridge *pcib;
 	if (!(rc->device_settings & 4)) {
 		// io first
@@ -1818,7 +1857,7 @@ static addrbank *mediator_pci_init_4000_1(struct romconfig *rc, struct mediator_
 		if (!pcib)
 			return &expamem_null;
 		mediator_pci_init_4000(pcib);
-		add_pci_devices(pcib);
+		add_pci_devices(pcib, aci);
 	} else {
 		pcib = pci_bridge_get_zorro(rc);
 		if (!pcib)
@@ -1830,8 +1869,12 @@ static addrbank *mediator_pci_init_4000_1(struct romconfig *rc, struct mediator_
 	}
 	return &pci_bridge_bank_2;
 }
-static addrbank *mediator_pci_init_4000_2(struct romconfig *rc, struct mediator_autoconfig *m_ac)
+static addrbank *mediator_pci_init_4000_2(struct autoconfig_info *aci, struct romconfig *rc, struct mediator_autoconfig *m_ac)
 {
+	if (!aci->doinit) {
+		aci->autoconfigp = (rc->device_settings & 2) ? m_ac->mem_large : m_ac->mem_small;
+		return &pci_bridge_bank;
+	}
 	struct pci_bridge *pcib;
 	if (!(rc->device_settings & 4)) {
 		// memory last
@@ -1845,7 +1888,7 @@ static addrbank *mediator_pci_init_4000_2(struct romconfig *rc, struct mediator_
 			return &expamem_null;
 
 		mediator_pci_init_4000(pcib);
-		add_pci_devices(pcib);
+		add_pci_devices(pcib, aci);
 	}
 	memset(pcib->acmemory, 0xff, sizeof pcib->acmemory);
 	const uae_u8 *ac = (rc->device_settings & 2) ? m_ac->mem_large : m_ac->mem_small;
@@ -1855,83 +1898,101 @@ static addrbank *mediator_pci_init_4000_2(struct romconfig *rc, struct mediator_
 	return &pci_bridge_bank;
 }
 
-addrbank *mediator_init(struct romconfig *rc)
+bool mediator_init(struct autoconfig_info *aci)
 {
+	struct romconfig *rc = aci->rc;
 	struct mediator_autoconfig *ac;
 	switch (rc->subtype)
 	{
 		case 0:
 		ac = &mediator_ac[MED_1200];
 		if (rc->device_settings & 4)
-			return mediator_pci_init_1200_2(rc, ac);
+			aci->addrbank = mediator_pci_init_1200_2(aci, rc, ac);
 		else
-			return mediator_pci_init_1200_1(rc, ac);
+			aci->addrbank = mediator_pci_init_1200_1(aci, rc, ac);
+		return true;
 		case 1:
 		ac = &mediator_ac[MED_1200SX];
 		if (rc->device_settings & 4)
-			return mediator_pci_init_1200_2(rc, ac);
+			aci->addrbank = mediator_pci_init_1200_2(aci, rc, ac);
 		else
-			return mediator_pci_init_1200_1(rc, ac);
+			aci->addrbank = mediator_pci_init_1200_1(aci, rc, ac);
+		return true;
 		case 2:
 		ac = &mediator_ac[MED_1200TX];
 		if (rc->device_settings & 4)
-			return mediator_pci_init_1200_2(rc, ac);
+			aci->addrbank = mediator_pci_init_1200_2(aci, rc, ac);
 		else
-			return mediator_pci_init_1200_1(rc, ac);
+			aci->addrbank = mediator_pci_init_1200_1(aci, rc, ac);
+		return true;
 		case 3:
 		ac = &mediator_ac[MED_4000MK2];
 		if (rc->device_settings & 4)
-			return mediator_pci_init_4000_2(rc, ac);
+			aci->addrbank = mediator_pci_init_4000_2(aci, rc, ac);
 		else
-			return mediator_pci_init_4000_1(rc, ac);
+			aci->addrbank = mediator_pci_init_4000_1(aci, rc, ac);
+		return true;
 	}
-	return &expamem_null;
+	return false;
 }
 
-addrbank *mediator_init2(struct romconfig *rc)
+bool mediator_init2(struct autoconfig_info *aci)
 {
+	struct romconfig *rc = aci->rc;
 	struct mediator_autoconfig *ac;
 	switch (rc->subtype)
 	{
 		case 0:
 		ac = &mediator_ac[MED_1200];
 		if (rc->device_settings & 4)
-			return mediator_pci_init_1200_1(rc, ac);
+			aci->addrbank = mediator_pci_init_1200_1(aci, rc, ac);
 		else
-			return mediator_pci_init_1200_2(rc, ac);
+			aci->addrbank = mediator_pci_init_1200_2(aci, rc, ac);
+		return true;
 		case 1:
 		ac = &mediator_ac[MED_1200SX];
 		if (rc->device_settings & 4)
-			return mediator_pci_init_1200_1(rc, ac);
+			aci->addrbank = mediator_pci_init_1200_1(aci, rc, ac);
 		else
-			return mediator_pci_init_1200_2(rc, ac);
+			aci->addrbank = mediator_pci_init_1200_2(aci, rc, ac);
+		return true;
 		case 2:
 		ac = &mediator_ac[MED_1200TX];
 		if (rc->device_settings & 4)
-			return mediator_pci_init_1200_1(rc, ac);
+			aci->addrbank = mediator_pci_init_1200_1(aci, rc, ac);
 		else
-			return mediator_pci_init_1200_2(rc, ac);
+			aci->addrbank = mediator_pci_init_1200_2(aci, rc, ac);
+		return true;
 		case 3:
 		ac = &mediator_ac[MED_4000MK2];
 		if (rc->device_settings & 4)
-			return mediator_pci_init_4000_1(rc, ac);
+			aci->addrbank = mediator_pci_init_4000_1(aci, rc, ac);
 		else
-			return mediator_pci_init_4000_2(rc, ac);
+			aci->addrbank = mediator_pci_init_4000_2(aci, rc, ac);
+		return true;
 	}
-	return &expamem_null;
+	return false;
 }
 
-addrbank *prometheus_init(struct romconfig *rc)
+bool prometheus_init(struct autoconfig_info *aci)
 {
-	return prometheus_pci_init(rc);
+	return prometheus_pci_init(aci);
 }
 
-addrbank *cbvision_init(struct romconfig *rc)
+bool cbvision_init(struct autoconfig_info *aci)
 {
-	return cbvision(rc);
+	return cbvision(aci);
 }
 
-addrbank *grex_init(struct romconfig *rc)
+bool grex_init(struct autoconfig_info *aci)
 {
-	return grex_pci_init(rc);
+	return grex_pci_init(aci);
+}
+
+bool pci_expansion_init(struct autoconfig_info *aci)
+{
+	static const int parent[] = { ROMTYPE_GREX, ROMTYPE_MEDIATOR, ROMTYPE_PROMETHEUS, 0 };
+	aci->parent_romtype = parent;
+	aci->zorro = 0;
+	return true;
 }

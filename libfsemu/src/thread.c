@@ -4,6 +4,7 @@
 
 #include <fs/thread.h>
 #include <fs/base.h>
+#include <fs/log.h>
 #include <stdlib.h>
 #ifdef USE_GLIB
 #include <glib.h>
@@ -325,6 +326,25 @@ int fs_semaphore_try_wait(fs_semaphore *semaphore)
     return sem_trywait(&semaphore->semaphore);
 #elif defined(USE_SDL)
     return SDL_SemTryWait(semaphore->semaphore);
+#else
+#error no thread support
+#endif
+}
+
+int fs_semaphore_wait_timeout_ms(fs_semaphore *semaphore, int timeout)
+{
+#if defined(USE_PSEM)
+#error not implemented
+#elif defined(USE_SDL)
+	int result = SDL_SemWaitTimeout(semaphore->semaphore, timeout);
+	if (result == 0) {
+		return 0;
+	}
+	if (result == SDL_MUTEX_TIMEDOUT) {
+		return FS_SEMAPHORE_TIMEOUT;
+	}
+	fs_log("WARNING: uae_sem_trywait_delay failed\n");
+	return -3;
 #else
 #error no thread support
 #endif

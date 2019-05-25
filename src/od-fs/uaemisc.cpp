@@ -8,6 +8,7 @@
 #include "sleep.h"
 #include "uae.h"
 #include "xwin.h"
+#include "clipboard.h"
 #include "uae/fs.h"
 #include "../od-win32/debug_win32.h"
 
@@ -62,30 +63,45 @@ void target_default_options (struct uae_prefs *p, int type) {
     return;
 }
 
-/**
- * sleep_millis_main was introduced to custom.cpp in WinUAE 2.4.0b5.
- * FIXME: what does _main signify here?
- */
-void sleep_millis_main (int ms) {
-    // FIXME: HOW EXACT MUST THE SLEEP BE?
-    //printf("sleep_millis_main %d\n", ms);
-    usleep(ms * 1000);
-    //uae_msleep(ms);
+int target_sleep_nanos(int nanos)
+{
+    struct timespec req;
+    req.tv_sec = nanos / 1000000;
+    req.tv_nsec = nanos % 1000000;
+    // struct timespec rem
+    nanosleep(&req, NULL);
+    return 0;
 }
 
-void sleep_millis (int ms) {
+static int sleep_millis2 (int ms, bool main)
+{
+    /* FIXME: Check sleep_millis2 against od-win32/win32.cpp implementation. */
     // FIXME: HOW EXACT MUST THE SLEEP BE?
     //printf("sleep_millis %d\n", ms);
     // FIXME: check usage of this for CD32
-    usleep(ms * 1000);
+    // usleep(ms * 1000);
     //uae_msleep(ms);
+    struct timespec req;
+    req.tv_sec = ms / 1000;
+    req.tv_nsec = (ms % 1000) * 1000;
+    // struct timespec rem
+    nanosleep(&req, NULL);
+    return 0;
 }
 
-void console_out_f(const TCHAR *fmt, ...) {
-    va_list arg_ptr;
-    va_start(arg_ptr, fmt);
-    vprintf(fmt, arg_ptr);
-    va_end(arg_ptr);
+int sleep_millis_main (int ms)
+{
+	return sleep_millis2(ms, true);
+}
+int sleep_millis (int ms)
+{
+	return sleep_millis2(ms, false);
+}
+
+int sleep_millis_amiga(int ms)
+{
+	int ret = sleep_millis_main(ms);
+	return ret;
 }
 
 /* FIXME: change void *f to FILE* f */
@@ -100,103 +116,39 @@ void f_out(void *f, const TCHAR *format, ...)
     va_end(arg_ptr);
 }
 
-void console_out (const TCHAR *msg) {
-    printf("%s", msg);
-}
-
 int console_get_gui (TCHAR *out, int maxlen) {
     STUB("");
     return 0;
 }
 
-int console_get(TCHAR *in, int maxlen) {
-    TCHAR *res = fgets(in, maxlen, stdin);
-    if (res == NULL) {
-        return -1;
-    }
-    int len = strlen(in);
-    return len - 1;
-}
-
-void console_flush(void) {
-    fflush(stdout);
-}
-
-TCHAR console_getch (void) {
-    STUB("");
-    return 0;
-}
-
-void close_console (void) {
-    STUB("");
-}
-
-extern void activate_console (void) {
-    STUB("");
-}
-
-bool console_isch (void)
-{
-    STUB("");
-    return false;
-}
-
-/*
-struct uae_filter usedfilter_storage
-struct uae_filter *usedfilter = &usedfilter_storage;
-*/
-
-//struct uae_prefs currprefs;
-/*
-uae_u8 *mapped_malloc (size_t s, TCHAR *file)
-{
-    return xmalloc (uae_u8, s);
-}
-
-void mapped_free (uae_u8 *p)
-{
-    xfree (p);
-}
-*/
-
 //#include "fsdb.h"
 // FIXME: to fsdb_unix.cpp
 
-int my_setcurrentdir (const TCHAR *curdir, TCHAR *oldcur) {
+int my_setcurrentdir (const TCHAR *curdir, TCHAR *oldcur)
+{
     STUB("curdir=\"%s\" oldcur=\"%s\"", curdir, oldcur);
     return 0;
 }
 
-bool my_isfilehidden (const TCHAR *path) {
+bool my_isfilehidden (const TCHAR *path)
+{
     STUB("path=\"%s\"", path);
     return 0;
 }
 
-void my_setfilehidden (const TCHAR *path, bool hidden) {
+void my_setfilehidden (const TCHAR *path, bool hidden)
+{
     STUB("path=\"%s\" hidden=%d", path, hidden);
 }
 
-int target_get_volume_name (struct uaedev_mount_info *mtinf,
-        const TCHAR *volumepath, TCHAR *volumename, int size, bool inserted,
-        bool fullcheck) {
+int target_get_volume_name (
+        struct uaedev_mount_info *mtinf,
+        struct uaedev_config_info *ci, bool inserted, bool fullcheck, int cnt)
+{
+    /* FIXME: Check what target_get_volume_name in od-win32/win32_fileys.cpp
+     * does. */
     STUB("");
     return 0;
-}
-
-static char *console_buffer;
-static int console_buffer_size;
-
-char *setconsolemode (char *buffer, int maxlen) {
-    char *ret = NULL;
-    if (buffer) {
-        console_buffer = buffer;
-        console_buffer_size = maxlen;
-    }
-    else {
-        ret = console_buffer;
-        console_buffer = NULL;
-    }
-    return ret;
 }
 
 // writelog
@@ -224,9 +176,16 @@ void to_upper (TCHAR *s, int len) {
     }
 }
 
-TCHAR *target_expand_environment (const TCHAR *path) {
-    // FIXME:
-    return strdup(path);
+TCHAR *target_expand_environment (const TCHAR *path, TCHAR *out, int maxlen)
+{
+	if (!path)
+		return NULL;
+	if (out == NULL) {
+		return strdup(path);
+	} else {
+		_tcscpy(out, path);
+		return out;
+	}
 }
 
 #if 0
@@ -269,4 +228,22 @@ void setup_brkhandler (void)
 void sleep_cpu_wakeup(void)
 {
     UAE_LOG_STUB_MAX(10, "");
+}
+
+void target_multipath_modified(struct uae_prefs *p)
+{
+    UAE_STUB("");
+    /*
+	if (p != &workprefs)
+		return;
+	memcpy(&currprefs.path_hardfile, &p->path_hardfile, sizeof(struct multipath));
+	memcpy(&currprefs.path_floppy, &p->path_floppy, sizeof(struct multipath));
+	memcpy(&currprefs.path_cd, &p->path_cd, sizeof(struct multipath));
+	memcpy(&currprefs.path_rom, &p->path_rom, sizeof(struct multipath));
+    */
+}
+
+void target_reset (void)
+{
+	clipboard_reset ();
 }

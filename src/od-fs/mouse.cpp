@@ -17,13 +17,13 @@ static void close_mouse (void)
 
 static int acquire_mouse (int num, int flags)
 {
-	UAE_LOG_STUB ("num=%d flags=%d return 1", num, flags);
+	// UAE_LOG_STUB ("num=%d flags=%d return 1", num, flags);
 	return 1;
 }
 
 static void unacquire_mouse (int num)
 {
-	UAE_LOG_STUB ("num=%d", num);
+	// UAE_LOG_STUB ("num=%d", num);
 }
 
 static void read_mouse (void)
@@ -99,12 +99,12 @@ void toggle_mousegrab (void)
 	UAE_LOG_STUB ("");
 }
 
-void setmouseactivexy (int x, int y, int dir)
+void setmouseactivexy(int monid, int x, int y, int dir)
 {
 	UAE_LOG_STUB ("");
 }
 
-void setmouseactive (int active)
+void setmouseactive(int monid, int active)
 {
 	UAE_LOG_STUB ("");
 }

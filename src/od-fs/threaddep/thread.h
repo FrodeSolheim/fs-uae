@@ -26,6 +26,8 @@ bool uae_is_main_thread(void);
 void uae_register_emulation_thread(void);
 bool uae_is_emulation_thread(void);
 
+uae_thread_id uae_thread_get_id(void);
+
 /* Do nothing; thread exits if thread function returns.  */
 #define UAE_THREAD_EXIT do {} while (0)
 

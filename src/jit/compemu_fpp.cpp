@@ -132,14 +132,19 @@ STATIC_INLINE int comp_fp_get (uae_u32 opcode, uae_u16 extra, int treg)
 			}
 			case 2: /* (d16,PC) */
 			{
-				uae_u32 address = start_pc + ((uae_char*) comp_pc_p - (uae_char*) start_pc_p) +
-					m68k_pc_offset;
+				uae_u32 address = start_pc + ((uae_char*) comp_pc_p - (uae_char*) start_pc_p) + m68k_pc_offset;
 				uae_s32 PC16off = (uae_s32) (uae_s16) comp_get_iword ((m68k_pc_offset += 2) - 2);
 				mov_l_ri (S1, address + PC16off);
 				break;
 			}
 			case 3: /* (d8,PC,Xn) or (bd,PC,Xn) or ([bd,PC,Xn],od) or ([bd,PC],Xn,od) */
-			return -1; /* rarely used, fallback to non-JIT */
+			{
+				uae_u32 address = start_pc + ((uae_char*)comp_pc_p - (uae_char*)start_pc_p) + m68k_pc_offset;
+				uae_u32 dp = comp_get_iword((m68k_pc_offset += 2) - 2);
+				mov_l_ri(S3, address);
+				calc_disp_ea_020(S3, dp, S1, S2);
+				break;
+			}
 			case 4: /* # < data >; Constants should be converted just once by the JIT */
 			m68k_pc_offset += sz2[size];
 			switch (size) {
@@ -619,7 +624,7 @@ void comp_fbcc_opp (uae_u32 opcode)
 }
 
 /* Floating point conditions
-   The "NotANumber" part could be problematic; Howver, when NaN is
+   The "NotANumber" part could be problematic; However, when NaN is
    encountered, the ftst instruction sets bot N and Z to 1 on the x87,
    so quite often things just fall into place. This is probably not
    accurate wrt the 68k FPU, but it is *as* accurate as this was before.
@@ -1182,17 +1187,15 @@ void comp_fpp_opp (uae_u32 opcode, uae_u16 extra)
 			break;
 			case 0x1c: /* FACOS */
 #if USE_X86_FPUCW
-			if ((regs.fpcr & 0x30) != 0x10) { /* use round to zero */
-				mov_l_ri (S1, (regs.fpcr & 0xC0) | 0x10);
-				fldcw_m_indexed (S1, uae_p32(x86_fpucw));
-				facos_rr (dreg, sreg);
-				mov_l_rm (S1, uae_p32(&regs.fpcr));
-				and_l_ri (S1, 0xf0); /* restore control word */
-				fldcw_m_indexed (S1, uae_p32(x86_fpucw));
-				break;
-			}
-#endif
+			mov_l_ri (S1, (regs.fpcr & 0xC0) | 0x00);
+			fldcw_m_indexed (S1, uae_p32(x86_fpucw));
 			facos_rr (dreg, sreg);
+			mov_l_rm (S1, uae_p32(&regs.fpcr));
+			and_l_ri (S1, 0xf0); /* restore control word */
+			fldcw_m_indexed (S1, uae_p32(x86_fpucw));
+#else
+			facos_rr (dreg, sreg);
+#endif
 			break;
 			case 0x1d: /* FCOS */
 			fcos_rr (dreg, sreg);

@@ -26,6 +26,7 @@ struct m68k_exception {
 #define THROW(n) throw m68k_exception(n)
 #define THROW_AGAIN(var) throw
 #define ENDTRY
+#define STOPTRY
 #else
 /* we are in plain C, just use a stack of long jumps */
 #include <setjmp.h>
@@ -35,6 +36,7 @@ extern int     __exvalue;
                   if (__exvalue==0) { __pushtry(&__exbuf);
 #define CATCH(x)  __poptry(); } else {m68k_exception x=__exvalue; 
 #define ENDTRY    __poptry();}
+#define STOPTRY   __poptry()
 #define THROW(x) if (__is_catched()) {longjmp(__exbuf,x);}
 #define THROW_AGAIN(var) if (__is_catched()) longjmp(*__poptry(),__exvalue)
 #define SAVE_EXCEPTION
@@ -111,42 +113,39 @@ typedef  int m68k_exception;
 
 #define ALWAYS_INLINE __inline
 
-// take care of 2 kinds of alignement, bus size and page
-#if 1
-static ALWAYS_INLINE bool is_unaligned(uaecptr addr, int size)
+// take care of 2 kinds of alignment, bus size and page
+static ALWAYS_INLINE bool is_unaligned_page(uaecptr addr, int size)
 {
     return unlikely((addr & (size - 1)) && (addr ^ (addr + size - 1)) & regs.mmu_page_size);
 }
-#else
-static ALWAYS_INLINE bool is_unaligned(uaecptr addr, int size)
+static ALWAYS_INLINE bool is_unaligned_bus(uaecptr addr, int size)
 {
     return (addr & (size - 1));
 }
-#endif
 
 static ALWAYS_INLINE void phys_put_long(uaecptr addr, uae_u32 l)
 {
-    longput(addr, l);
+    put_long(addr, l);
 }
 static ALWAYS_INLINE void phys_put_word(uaecptr addr, uae_u32 w)
 {
-    wordput(addr, w);
+    put_word(addr, w);
 }
 static ALWAYS_INLINE void phys_put_byte(uaecptr addr, uae_u32 b)
 {
-    byteput(addr, b);
+    put_byte(addr, b);
 }
 static ALWAYS_INLINE uae_u32 phys_get_long(uaecptr addr)
 {
-    return longget (addr);
+    return get_long(addr);
 }
 static ALWAYS_INLINE uae_u32 phys_get_word(uaecptr addr)
 {
-    return wordget (addr);
+    return get_word(addr);
 }
 static ALWAYS_INLINE uae_u32 phys_get_byte(uaecptr addr)
 {
-    return byteget (addr);
+    return get_byte(addr);
 }
 
 extern uae_u32(*x_phys_get_iword)(uaecptr);

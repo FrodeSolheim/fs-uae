@@ -66,6 +66,7 @@
 #include "threaddep/thread.h"
 #include "a2091.h"
 #include "devices.h"
+#include "fsdb.h"
 
 #ifdef FSUAE // NL
 #include "uae/fs.h"
@@ -142,7 +143,7 @@ static void state_incompatible_warn (void)
 #endif
 
 /* functions for reading/writing bytes, shorts and longs in big-endian
-* format independent of host machine's endianess */
+* format independent of host machine's endianness */
 
 static uae_u8 *storepos;
 void save_store_pos_func (uae_u8 **dstp)
@@ -209,6 +210,17 @@ void save_path_func (uae_u8 **dstp, const TCHAR *from, int type)
 {
 	save_string_func (dstp, from);
 }
+void save_path_full_func(uae_u8 **dstp, const TCHAR *spath, int type)
+{
+	TCHAR path[MAX_DPATH];
+	save_u32_func(dstp, type);
+	_tcscpy(path, spath ? spath : _T(""));
+	fullpath(path, MAX_DPATH, false);
+	save_string_func(dstp, path);
+	_tcscpy(path, spath ? spath : _T(""));
+	fullpath(path, MAX_DPATH, true);
+	save_string_func(dstp, path);
+}
 
 uae_u32 restore_u32_func (uae_u8 **dstp)
 {
@@ -265,23 +277,38 @@ TCHAR *restore_string_func (uae_u8 **dstp)
 
 #ifdef SAVESTATE
 
-TCHAR *restore_path_func (uae_u8 **dstp, int type)
+static bool state_path_exists(const TCHAR *path, int type)
+{
+	if (type == SAVESTATE_PATH_VDIR)
+		return my_existsdir(path);
+	return my_existsfile(path);
+}
+
+static TCHAR *state_resolve_path(TCHAR *s, int type, bool newmode)
 {
 	TCHAR *newpath;
-	TCHAR *s;
 	TCHAR tmp[MAX_DPATH], tmp2[MAX_DPATH];
 
-	s = restore_string_func (dstp);
 	if (s[0] == 0)
 		return s;
-	if (zfile_exists (s))
+	if (!newmode && state_path_exists(s, type))
 		return s;
 	if (type == SAVESTATE_PATH_HD)
 		return s;
-	getfilepart (tmp, sizeof tmp / sizeof (TCHAR), s);
-	if (zfile_exists (tmp)) {
-		xfree (s);
-		return my_strdup (tmp);
+	if (newmode) {
+		_tcscpy(tmp, s);
+		fullpath(tmp, sizeof(tmp) / sizeof(TCHAR));
+		if (state_path_exists(tmp, type)) {
+			xfree(s);
+			return my_strdup(tmp);
+		}
+		getfilepart(tmp, sizeof tmp / sizeof(TCHAR), s);
+	} else {
+		getfilepart(tmp, sizeof tmp / sizeof(TCHAR), s);
+		if (state_path_exists(tmp, type)) {
+			xfree(s);
+			return my_strdup(tmp);
+		}
 	}
 	for (int i = 0; i < MAX_PATHS; i++) {
 		newpath = NULL;
@@ -297,19 +324,56 @@ TCHAR *restore_path_func (uae_u8 **dstp, int type)
 		fixtrailing (tmp2);
 		_tcscat (tmp2, tmp);
 		fullpath (tmp2, sizeof tmp2 / sizeof (TCHAR));
-		if (zfile_exists (tmp2)) {
+		if (state_path_exists(tmp2, type)) {
 			xfree (s);
 			return my_strdup (tmp2);
 		}
 	}
 	getpathpart (tmp2, sizeof tmp2 / sizeof (TCHAR), savestate_fname);
 	_tcscat (tmp2, tmp);
-	if (zfile_exists (tmp2)) {
+	if (state_path_exists(tmp2, type)) {
 		xfree (s);
 		return my_strdup (tmp2);
 	}
 	return s;
 }
+
+TCHAR *restore_path_func(uae_u8 **dstp, int type)
+{
+	TCHAR *s = restore_string_func(dstp);
+	return state_resolve_path(s, type, false);
+}
+
+TCHAR *restore_path_full_func(uae_u8 **dstp)
+{
+	int type = restore_u32_func(dstp);
+	TCHAR *a = restore_string_func(dstp);
+	TCHAR *r = restore_string_func(dstp);
+	if (target_isrelativemode()) {
+		xfree(a);
+		return state_resolve_path(r, type, true);
+	} else {
+		TCHAR tmp[MAX_DPATH];
+		_tcscpy(tmp, a);
+		fullpath(tmp, sizeof(tmp) / sizeof(TCHAR));
+		if (state_path_exists(tmp, type)) {
+			xfree(r);
+			xfree(a);
+			return my_strdup(tmp);
+		}
+		_tcscpy(tmp, r);
+		fullpath(tmp, sizeof(tmp) / sizeof(TCHAR));
+		if (state_path_exists(tmp, type)) {
+			xfree(r);
+			xfree(a);
+			return my_strdup(tmp);
+		}
+		xfree(r);
+		return state_resolve_path(a, type, true);
+	}
+	return NULL;
+}
+
 
 /* read and write IFF-style hunks */
 
@@ -386,12 +450,18 @@ static uae_u8 *restore_chunk (struct zfile *f, TCHAR *name, unsigned int *len, u
 	int len2;
 
 	*totallen = 0;
+	*filepos = 0;
+	*name = 0;
 	/* chunk name */
-	zfile_fread (tmp, 1, 4, f);
+	if (zfile_fread(tmp, 1, 4, f) != 4)
+		return NULL;
 	tmp[4] = 0;
 	au_copy (name, 5, (char*)tmp);
 	/* chunk size */
-	zfile_fread (tmp, 1, 4, f);
+	if (zfile_fread(tmp, 1, 4, f) != 4) {
+		*name = 0;
+		return NULL;
+	}
 	src = tmp;
 	len2 = restore_u32 () - 4 - 4 - 4;
 	if (len2 < 0)
@@ -403,7 +473,10 @@ static uae_u8 *restore_chunk (struct zfile *f, TCHAR *name, unsigned int *len, u
 	}
 
 	/* chunk flags */
-	zfile_fread (tmp, 1, 4, f);
+	if (zfile_fread(tmp, 1, 4, f) != 4) {
+		*name = 0;
+		return NULL;
+	}
 	src = tmp;
 	flags = restore_u32 ();
 	*totallen = *len;
@@ -419,14 +492,20 @@ static uae_u8 *restore_chunk (struct zfile *f, TCHAR *name, unsigned int *len, u
 	/* chunk data.  RAM contents will be loaded during the reset phase,
 	   no need to malloc multiple megabytes here.  */
 	if (_tcscmp (name, _T("CRAM")) != 0
-		&& _tcscmp (name, _T("BRAM")) != 0
-		&& _tcscmp (name, _T("FRAM")) != 0
-		&& _tcscmp (name, _T("ZRAM")) != 0
-		&& _tcscmp (name, _T("ZCRM")) != 0
-		&& _tcscmp (name, _T("PRAM")) != 0
-		&& _tcscmp (name, _T("A3K1")) != 0
-		&& _tcscmp (name, _T("A3K2")) != 0
-		&& _tcscmp (name, _T("BORO")) != 0
+		&& _tcscmp(name, _T("BRAM")) != 0
+		&& _tcscmp(name, _T("FRAM")) != 0
+		&& _tcscmp(name, _T("ZRAM")) != 0
+		&& _tcscmp(name, _T("FRA2")) != 0
+		&& _tcscmp(name, _T("ZRA2")) != 0
+		&& _tcscmp(name, _T("FRA3")) != 0
+		&& _tcscmp(name, _T("ZRA3")) != 0
+		&& _tcscmp(name, _T("FRA4")) != 0
+		&& _tcscmp(name, _T("ZRA4")) != 0
+		&& _tcscmp(name, _T("ZCRM")) != 0
+		&& _tcscmp(name, _T("PRAM")) != 0
+		&& _tcscmp(name, _T("A3K1")) != 0
+		&& _tcscmp(name, _T("A3K2")) != 0
+		&& _tcscmp(name, _T("BORO")) != 0
 	)
 	{
 		/* extra bytes at the end needed to handle old statefiles that now have new fields */
@@ -513,7 +592,8 @@ void restore_state (const TCHAR *filename)
 	TCHAR name[5];
 	unsigned int len, totallen;
 	size_t filepos, filesize;
-	int z3num;
+	int z3num, z2num;
+	bool end_found = false;
 
 	chunk = 0;
 	f = zfile_fopen (filename, _T("rb"), ZFD_NORMAL);
@@ -536,17 +616,16 @@ void restore_state (const TCHAR *filename)
 	restore_header (chunk);
 	xfree (chunk);
 	devices_restore_start();
-	z3num = 0;
+	z2num = z3num = 0;
 	for (;;) {
 		name[0] = 0;
 		chunk = end = restore_chunk (f, name, &len, &totallen, &filepos);
 		write_log (_T("Chunk '%s' size %u (%u)\n"), name, len, totallen);
 		if (!_tcscmp (name, _T("END "))) {
-#ifdef _DEBUG
-			if (filesize > filepos + 8)
-				continue;
-#endif
-			break;
+			if (end_found)
+				break;
+			end_found = true;
+			continue;
 		}
 		if (!_tcscmp (name, _T("CRAM"))) {
 			restore_cram (totallen, filepos);
@@ -562,10 +641,7 @@ void restore_state (const TCHAR *filename)
 			continue;
 #ifdef AUTOCONFIG
 		} else if (!_tcscmp (name, _T("FRAM"))) {
-			restore_fram (totallen, filepos, 0);
-			continue;
-		} else if (!_tcscmp (name, _T("FRA2"))) {
-			restore_fram (totallen, filepos, 1);
+			restore_fram (totallen, filepos, z2num++);
 			continue;
 		} else if (!_tcscmp (name, _T("ZRAM"))) {
 			restore_zram (totallen, filepos, z3num++);
@@ -677,10 +753,12 @@ void restore_state (const TCHAR *filename)
 			end = restore_hrtmon (chunk);
 #endif
 #ifdef FILESYS
-		else if (!_tcscmp (name, _T("FSYS")))
-			end = restore_filesys (chunk);
-		else if (!_tcscmp (name, _T("FSYC")))
-			end = restore_filesys_common (chunk);
+		else if (!_tcscmp(name, _T("FSYP")))
+			end = restore_filesys_paths(chunk);
+		else if (!_tcscmp(name, _T("FSYS")))
+			end = restore_filesys(chunk);
+		else if (!_tcscmp(name, _T("FSYC")))
+			end = restore_filesys_common(chunk);
 #endif
 #ifdef CD32
 		else if (!_tcscmp (name, _T("CD32")))
@@ -689,10 +767,8 @@ void restore_state (const TCHAR *filename)
 #ifdef CDTV
 		else if (!_tcscmp (name, _T("CDTV")))
 			end = restore_cdtv (chunk);
-#if 0
 		else if (!_tcscmp (name, _T("DMAC")))
 			end = restore_cdtv_dmac (chunk);
-#endif
 #endif
 #if 0
 		else if (!_tcscmp (name, _T("DMC2")))
@@ -722,8 +798,12 @@ void restore_state (const TCHAR *filename)
 		else if (!_tcsncmp (name, _T("2065"), 4))
 			end = restore_a2065 (chunk);
 #endif
+		else if (!_tcsncmp (name, _T("EXPI"), 4))
+			end = restore_expansion_info(chunk);
 		else if (!_tcsncmp (name, _T("DMWP"), 4))
 			end = restore_debug_memwatch (chunk);
+		else if (!_tcsncmp(name, _T("PIC0"), 4))
+			end = chunk + len;
 
 		else if (!_tcscmp (name, _T("CONF")))
 			end = restore_configuration (chunk);
@@ -740,8 +820,11 @@ void restore_state (const TCHAR *filename)
 			write_log (_T("Chunk '%s' total size %d bytes but read %ld bytes!\n"),
 			name, totallen, end - chunk);
 		xfree (chunk);
+		if (name[0] == 0)
+			break;
 	}
 	target_addtorecent (filename, 0);
+	DISK_history_add(filename, -1, HISTORY_STATEFILE, 0);
 	return;
 
 error:
@@ -779,6 +862,9 @@ void savestate_restore_finish (void)
 	restore_a2065_finish ();
 #endif
 	restore_cia_finish ();
+#ifdef ACTION_REPLAY
+	restore_ar_finish();
+#endif
 	restore_debug_memwatch_finish ();
 	savestate_state = 0;
 	init_hz_normal();
@@ -823,14 +909,14 @@ static void save_rams (struct zfile *f, int comp)
 	dst = save_a3000hram (&len);
 	save_chunk (f, dst, len, _T("A3K2"), comp);
 #ifdef AUTOCONFIG
-	dst = save_fram (&len, 0);
-	save_chunk (f, dst, len, _T("FRAM"), comp);
-	dst = save_fram (&len, 1);
-	save_chunk (f, dst, len, _T("FRA2"), comp);
-	dst = save_zram (&len, 0);
-	save_chunk (f, dst, len, _T("ZRAM"), comp);
-	dst = save_zram (&len, 1);
-	save_chunk (f, dst, len, _T("ZRAM"), comp);
+	for (int i = 0; i < MAX_RAM_BOARDS; i++) {
+		dst = save_fram(&len, i);
+		save_chunk(f, dst, len, _T("FRAM"), comp);
+	}
+	for (int i = 0; i < MAX_RAM_BOARDS; i++) {
+		dst = save_zram(&len, i);
+		save_chunk(f, dst, len, _T("ZRAM"), comp);
+	}
 	dst = save_zram (&len, -1);
 	save_chunk (f, dst, len, _T("ZCRM"), comp);
 	dst = save_bootrom (&len);
@@ -972,8 +1058,10 @@ static int save_state_internal (struct zfile *f, const TCHAR *description, int c
 	xfree (dst);
 
 #ifdef AUTOCONFIG
-	dst = save_expansion (&len, 0);
-	save_chunk (f, dst, len, _T("EXPA"), 0);
+	dst = save_expansion_info(&len, 0);
+	save_chunk(f, dst, len, _T("EXPI"), 0);
+	dst = save_expansion(&len, 0);
+	save_chunk(f, dst, len, _T("EXPA"), 0);
 #endif
 #ifdef A2065
 	dst = save_a2065 (&len, NULL);
@@ -1002,11 +1090,9 @@ static int save_state_internal (struct zfile *f, const TCHAR *description, int c
 	dst = save_cdtv (&len, NULL);
 	save_chunk (f, dst, len, _T("CDTV"), 0);
 	xfree (dst);
-#if 0
 	dst = save_cdtv_dmac (&len, NULL);
 	save_chunk (f, dst, len, _T("DMAC"), 0);
 	xfree (dst);
-#endif
 #endif
 #if 0
 	dst = save_scsi_dmac (WDTYPE_A3000, &len, NULL);
@@ -1046,10 +1132,15 @@ static int save_state_internal (struct zfile *f, const TCHAR *description, int c
 	if (dst) {
 		save_chunk (f, dst, len, _T("FSYC"), 0);
 		for (i = 0; i < nr_units (); i++) {
-			dst = save_filesys (i, &len);
+			dst = save_filesys_paths(i, &len);
 			if (dst) {
-				save_chunk (f, dst, len, _T("FSYS"), 0);
-				xfree (dst);
+				save_chunk(f, dst, len, _T("FSYP"), 0);
+				xfree(dst);
+			}
+			dst = save_filesys(i, &len);
+			if (dst) {
+				save_chunk(f, dst, len, _T("FSYS"), 0);
+				xfree(dst);
 			}
 		}
 	}
@@ -1078,6 +1169,12 @@ static int save_state_internal (struct zfile *f, const TCHAR *description, int c
 	dst = save_debug_memwatch (&len, NULL);
 	if (dst) {
 		save_chunk (f, dst, len, _T("DMWP"), 0);
+		xfree(dst);
+	}
+
+	dst = save_screenshot(0, &len);
+	if (dst) {
+		save_chunk(f, dst, len, _T("PIC0"), 0);
 		xfree(dst);
 	}
 
@@ -1149,6 +1246,7 @@ int save_state (const TCHAR *filename, const TCHAR *description)
 	if (v)
 		write_log (_T("Save of '%s' complete\n"), filename);
 	zfile_fclose (f);
+	DISK_history_add(filename, -1, HISTORY_STATEFILE, 0);
 	savestate_state = 0;
 #ifdef FSUAE
     uae_callback(uae_on_save_state_finished, filename);
@@ -1192,6 +1290,7 @@ void savestate_quick (int slot, int save)
 #else
 		savestate_docompress = 1;
 #endif
+		savestate_nodialogs = 1;
 		save_state (savestate_fname, _T(""));
 	} else {
 		if (!zfile_exists (savestate_fname)) {
@@ -1348,10 +1447,10 @@ void savestate_rewind (void)
 	p += len;
 #ifdef AUTOCONFIG
 	len = restore_u32_func (&p);
-	memcpy (save_fram (&dummy, 0), p, currprefs.fastmem_size > len ? len : currprefs.fastmem_size);
+	memcpy (save_fram (&dummy, 0), p, currprefs.fastmem[0].size > len ? len : currprefs.fastmem[0].size);
 	p += len;
 	len = restore_u32_func (&p);
-	memcpy (save_zram (&dummy, 0), p, currprefs.z3fastmem_size > len ? len : currprefs.z3fastmem_size);
+	memcpy (save_zram (&dummy, 0), p, currprefs.z3fastmem[0].size > len ? len : currprefs.z3fastmem[0].size);
 	p += len;
 #endif
 #ifdef ACTION_REPLAY
@@ -1786,7 +1885,7 @@ retry2:
 		input_record++;
 		for (i = 0; i < 4; i++) {
 			bool wp = true;
-			DISK_validate_filename (&currprefs, currprefs.floppyslots[i].df, false, &wp, NULL, NULL);
+			DISK_validate_filename (&currprefs, currprefs.floppyslots[i].df, NULL, false, &wp, NULL, NULL);
 			inprec_recorddiskchange (i, currprefs.floppyslots[i].df, wp);
 		}
 		input_record--;
@@ -1836,7 +1935,7 @@ void statefile_save_recording (const TCHAR *filename)
 	struct zfile *zf = zfile_fopen (filename, _T("wb"), 0);
 	if (zf) {
 		int len = zfile_size (staterecord_statefile);
-		uae_u8 *data = zfile_getdata (staterecord_statefile, 0, len);
+		uae_u8 *data = zfile_getdata (staterecord_statefile, 0, len, NULL);
 		zfile_fwrite (data, len, 1, zf);
 		xfree (data);
 		zfile_fclose (zf);

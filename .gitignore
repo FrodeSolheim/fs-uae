@@ -50,6 +50,7 @@ core
 *.dll
 /*.dsc
 *.exe
+*.lnk
 /fontconfig/
 /Frameworks/
 /fs-uae
@@ -163,5 +164,5 @@ util/temp
 winuae/od-win32/lib
 xxx*
 *.zip
-winuae-merge.txt
+merge.stage
 .vscode/ipch

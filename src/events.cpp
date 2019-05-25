@@ -12,11 +12,14 @@
 #include "sysdeps.h"
 
 #include "options.h"
+#include "custom.h"
 #include "events.h"
 #include "memory.h"
 #include "newcpu.h"
 #include "uae/ppc.h"
+#include "xwin.h"
 #include "x86.h"
+#include "audio.h"
 
 static const int pissoff_nojit_value = 256 * CYCLE_UNIT;
 
@@ -28,9 +31,21 @@ long cycles_to_hsync_event;
 unsigned long start_cycles;
 bool event_wait;
 
-frame_time_t vsyncmintime, vsyncmaxtime, vsyncwaittime;
+frame_time_t vsyncmintime, vsyncmintimepre;
+frame_time_t vsyncmaxtime, vsyncwaittime;
 int vsynctimebase;
 int event2_count;
+
+static void events_fast(void)
+{
+	cycles_do_special();
+}
+
+void events_reset_syncline(void)
+{
+	is_syncline = 0;
+	events_fast();
+}
 
 void events_schedule (void)
 {
@@ -47,75 +62,226 @@ void events_schedule (void)
 	nextevent = currcycle + mintime;
 }
 
+extern int vsync_activeheight;
+
+static bool event_check_vsync(void)
+{
+	/* Keep only CPU emulation running while waiting for sync point. */
+	if (is_syncline == -1) {
+
+		if (!isvsync_chipset()) {
+			events_reset_syncline();
+			return false;
+		}
+		// wait for vblank
+		audio_finish_pull();
+		int done = vsync_isdone(NULL);
+		if (done == -2) {
+			// if no vsync thread
+			int vp = target_get_display_scanline(-1);
+			if (vp < is_syncline_end)
+				done = 1;
+			else if (vp > is_syncline_end)
+				is_syncline_end = vp;
+		}
+		if (!done) {
+#ifdef WITH_PPC
+			if (ppc_state) {
+				uae_ppc_execute_quick();
+			}
+#endif
+			if (currprefs.cachesize)
+				pissoff = pissoff_value;
+			else
+				pissoff = pissoff_nojit_value;
+			return true;
+		}
+		vsync_clear();
+		vsync_event_done();
+
+	} else if (is_syncline == -2) {
+
+		if (!isvsync_chipset()) {
+			events_reset_syncline();
+			return false;
+		}
+		// wait for vblank or early vblank
+		audio_finish_pull();
+		int done = vsync_isdone(NULL);
+		if (done == -2)
+			done = 0;
+		int vp = target_get_display_scanline(-1);
+		if (vp < 0 || vp >= is_syncline_end)
+			done = 1;
+		if (!done) {
+#ifdef WITH_PPC
+			if (ppc_state) {
+				uae_ppc_execute_quick();
+			}
+#endif
+			if (currprefs.cachesize)
+				pissoff = pissoff_value;
+			else
+				pissoff = pissoff_nojit_value;
+			return true;
+		}
+		vsync_clear();
+		vsync_event_done();
+
+	} else if (is_syncline == -3) {
+		if (!isvsync_chipset()) {
+			events_reset_syncline();
+			return false;
+		}
+		// not vblank
+		audio_finish_pull();
+		int vp = target_get_display_scanline(-1);
+		if (vp <= 0) {
+#ifdef WITH_PPC
+			if (ppc_state) {
+				uae_ppc_execute_quick();
+			}
+#endif
+			if (currprefs.cachesize)
+				pissoff = pissoff_value;
+			else
+				pissoff = pissoff_nojit_value;
+			return true;
+		}
+		vsync_clear();
+		vsync_event_done();
+
+	} else if (is_syncline > 0) {
+
+		if (!isvsync_chipset()) {
+			events_reset_syncline();
+			return false;
+		}
+		audio_finish_pull();
+		// wait for specific scanline
+		int vp = target_get_display_scanline(-1);
+		if (vp < 0 || is_syncline > vp) {
+#ifdef WITH_PPC
+			if (ppc_state) {
+				uae_ppc_execute_check();
+			}
+#endif
+			if (currprefs.cachesize)
+				pissoff = pissoff_value;
+			else
+				pissoff = pissoff_nojit_value;
+			return true;
+		}
+		vsync_event_done();
+
+	}
+	else if (is_syncline <= -100) {
+
+		if (!isvsync_chipset()) {
+			events_reset_syncline();
+			return false;
+		}
+		audio_finish_pull();
+		// wait for specific scanline
+		int vp = target_get_display_scanline(-1);
+		if (vp < 0 || vp >= (-(is_syncline + 100))) {
+#ifdef WITH_PPC
+			if (ppc_state) {
+				uae_ppc_execute_check();
+			}
+#endif
+			if (currprefs.cachesize)
+				pissoff = pissoff_value;
+			else
+				pissoff = pissoff_nojit_value;
+			return true;
+		}
+		vsync_event_done();
+
+	} else if (is_syncline == -10) {
+
+		// wait is_syncline_end
+		if (event_wait) {
+			int rpt = read_processor_time();
+			int v = rpt - is_syncline_end;
+			if (v < 0) {
+#ifdef WITH_PPC
+				if (ppc_state) {
+					uae_ppc_execute_check();
+				}
+#endif
+				if (currprefs.cachesize)
+					pissoff = pissoff_value;
+				else
+					pissoff = pissoff_nojit_value;
+				return true;
+			}
+		}
+		events_reset_syncline();
+
+	} else if (is_syncline < -10) {
+
+		// wait is_syncline_end/vsyncmintime
+		if (event_wait) {
+			int rpt = read_processor_time();
+			int v = rpt - vsyncmintime;
+			int v2 = rpt - is_syncline_end;
+			if (v > vsynctimebase || v < -vsynctimebase) {
+				v = 0;
+			}
+			if (v < 0 && v2 < 0) {
+#ifdef WITH_PPC
+				if (ppc_state) {
+					if (is_syncline == -11) {
+						uae_ppc_execute_check();
+					} else {
+						uae_ppc_execute_quick();
+					}
+				}
+#endif
+				if (currprefs.cachesize)
+					pissoff = pissoff_value;
+				else
+					pissoff = pissoff_nojit_value;
+				return true;
+			}
+		}
+		events_reset_syncline();
+	}
+	return false;
+}
+
 void do_cycles_slow (unsigned long cycles_to_add)
 {
 #ifdef WITH_X86
+#if 0
 	if (x86_turbo_on) {
 		execute_other_cpu_single();
 	}
 #endif
+#endif
 
-	if ((pissoff -= cycles_to_add) >= 0)
-		return;
+	if (!currprefs.cpu_thread) {
+		if ((pissoff -= cycles_to_add) >= 0)
+			return;
 
-	cycles_to_add = -pissoff;
-	pissoff = 0;
+		cycles_to_add = -pissoff;
+		pissoff = 0;
+	} else {
+		pissoff = 0x40000000;
+	}
 
 	while ((nextevent - currcycle) <= cycles_to_add) {
-		int i;
 
-		/* Keep only CPU emulation running while waiting for sync point. */
 		if (is_syncline) {
-			if (!vblank_found_chipset) {
-				if (is_syncline > 0) {
-					int rpt = read_processor_time ();
-					int v = rpt - vsyncmintime;
-					int v2 = rpt - is_syncline_end;
-					if (v > vsynctimebase || v < -vsynctimebase) {
-						v = 0;
-					}
-					if (v < 0 && v2 < 0 && event_wait) {
-
-#ifdef WITH_PPC
-						if (ppc_state) {
-							if (is_syncline == 1) {
-								uae_ppc_execute_check();
-							} else {
-								uae_ppc_execute_quick();
-							}
-						}
-#endif
-						if (currprefs.cachesize)
-							pissoff = pissoff_value;
-						else
-							pissoff = pissoff_nojit_value;
-						return;
-					}
-				} else if (is_syncline < 0) {
-					int rpt = read_processor_time ();
-					int v = rpt - is_syncline_end;
-					if (v < 0 && event_wait) {
-
-#ifdef WITH_PPC
-						if (ppc_state) {
-							uae_ppc_execute_check();
-						}
-#endif
-						if (currprefs.cachesize)
-							pissoff = pissoff_value;
-						else
-							pissoff = pissoff_nojit_value;
-						return;
-					}
-				}
-			}
-			is_syncline = 0;
+			if (event_check_vsync())
+				return;
 		}
 
 		cycles_to_add -= nextevent - currcycle;
 		currcycle = nextevent;
 
-		for (i = 0; i < ev_max; i++) {
+		for (int i = 0; i < ev_max; i++) {
 			if (eventtab[i].active && eventtab[i].evtime == currcycle) {
 				if (eventtab[i].handler == NULL) {
 					gui_message(_T("eventtab[%d].handler is null!\n"), i);
@@ -210,6 +376,21 @@ void event2_newevent_xx (int no, evt t, uae_u32 data, evfunc2 func)
 	eventtab2[no].data = data;
 	MISC_handler ();
 }
+
+void event2_newevent_x_replace(evt t, uae_u32 data, evfunc2 func)
+{
+	for (int i = 0; i < ev2_max; i++) {
+		if (eventtab2[i].active && eventtab2[i].handler == func) {
+			eventtab2[i].active = false;
+		}
+	}
+	if (((int)t) <= 0) {
+		func(data);
+		return;
+	}
+	event2_newevent_xx(-1, t * CYCLE_UNIT, data, func);
+}
+
 
 int current_hpos (void)
 {

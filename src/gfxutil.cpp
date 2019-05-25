@@ -20,9 +20,10 @@
 #define gamma gamma_table
 #endif
 
-double getvsyncrate (double hz, int *mult)
+float getvsyncrate(int monid, float hz, int *mult)
 {
-	struct apmode *ap = picasso_on ? &currprefs.gfx_apmode[1] : &currprefs.gfx_apmode[0];
+	struct amigadisplay *ad = &adisplays[monid];
+	struct apmode *ap = ad->picasso_on ? &currprefs.gfx_apmode[1] : &currprefs.gfx_apmode[0];
 
 	if (hz < 0)
 		return 0;
@@ -142,74 +143,90 @@ static float video_gamma (float value, float gamma, float bri, float con)
 static uae_u32 gamma[256 * 3][3];
 static int lf, hf;
 
-static void video_calc_gammatable (void)
+static void video_calc_gammatable(int monid)
 {
-	float bri, con, gam, gams[3], v;
-	uae_u32 vi;
+	struct amigadisplay *ad = &adisplays[monid];
+	float bri, con, gam, gams[3];
 
 	bri = ((float)(currprefs.gfx_luminance)) * (128.0f / 1000.0f);
 	con = ((float)(currprefs.gfx_contrast + 1000)) / 1000.0f;
-	gam = ((float)(1000 - currprefs.gfx_gamma)) / 1000.0f;
+	gam = ((float)(1000 - currprefs.gfx_gamma)) / 1000.0f - 1.0;
 	gams[0] = gam + ((float)(1000 - currprefs.gfx_gamma_ch[0])) / 1000.0f;
 	gams[1] = gam + ((float)(1000 - currprefs.gfx_gamma_ch[1])) / 1000.0f;
 	gams[2] = gam + ((float)(1000 - currprefs.gfx_gamma_ch[2])) / 1000.0f;
 
-	lf = 64 * currprefs.gf[picasso_on].gfx_filter_blur / 1000;
+	lf = 64 * currprefs.gf[ad->picasso_on].gfx_filter_blur / 1000;
 	hf = 256 - lf * 2;
 
 	for (int i = 0; i < (256 * 3); i++) {
 		for (int j = 0; j < 3; j++) {
-			v = video_gamma((float)(i - 256), gams[j], bri, con);
+			float val = i - 256;
+			float v;
 
-			vi = (uae_u32)v;
-			if (vi > 255)
-				vi = 255;
+			if (currprefs.gfx_threebitcolors == 2) {
+				val *= 2;
+			} else if (currprefs.gfx_threebitcolors == 3) {
+				val = (val * 252.0) / 119.0;
+			} else if (currprefs.gfx_threebitcolors == 1) {
+				val = (val * 252.0) / 238.0;
+			}
 
-			if (currprefs.gfx_luminance == 0 && currprefs.gfx_contrast == 0 && currprefs.gfx_gamma == 0)
-				vi = i & 0xff;
+			if (currprefs.gfx_luminance == 0 && currprefs.gfx_contrast == 0 && currprefs.gfx_gamma == 0 &&
+				currprefs.gfx_gamma_ch[0] == 0 && currprefs.gfx_gamma_ch[1] == 0 && currprefs.gfx_gamma_ch[2] == 0) {
+				v = val;
+			} else {
+				v = video_gamma(val, gams[j], bri, con);
+			}
 
-			gamma[i][j] = vi;
+			if (v < 0.0)
+				v = 0.0;
+			if (v > 255.0)
+				v = 255.0;
+
+			gamma[i][j] = (uae_u32)(v + 0.5);
 		}
 	}
 }
 
-static uae_u32 limit256 (double v)
+static uae_u32 limit256(int monid, double v)
 {
-	v = v * (double)(currprefs.gf[picasso_on].gfx_filter_contrast + 1000) / 1000.0 + currprefs.gf[picasso_on].gfx_filter_luminance / 10.0;
+	struct amigadisplay *ad = &adisplays[monid];
+	v = v * (double)(currprefs.gf[ad->picasso_on].gfx_filter_contrast + 1000) / 1000.0 + currprefs.gf[ad->picasso_on].gfx_filter_luminance / 10.0;
 	if (v < 0)
 		v = 0;
 	if (v > 255)
 		v = 255;
 	return ((uae_u32)v) & 0xff;
 }
-static uae_u32 limit256rb (double v)
+static uae_u32 limit256rb(int monid, double v)
 {
-	v *= (double)(currprefs.gf[picasso_on].gfx_filter_saturation + 1000) / 1000.0;
+	struct amigadisplay *ad = &adisplays[monid];
+	v *= (double)(currprefs.gf[ad->picasso_on].gfx_filter_saturation + 1000) / 1000.0;
 	if (v < -128)
 		v = -128;
 	if (v > 127)
 		v = 127;
 	return ((uae_u32)v) & 0xff;
 }
-static double get_y (int r, int g, int b)
+static double get_y(int r, int g, int b)
 {
 	return 0.2989f * r + 0.5866f * g + 0.1145f * b;
 }
-static uae_u32 get_yh (int r, int g, int b)
+static uae_u32 get_yh(int monid, int r, int g, int b)
 {
-	return limit256 (get_y (r, g, b) * hf / 256);
+	return limit256(monid, get_y (r, g, b) * hf / 256);
 }
-static uae_u32 get_yl (int r, int g, int b)
+static uae_u32 get_yl(int monid, int r, int g, int b)
 {
-	return limit256 (get_y (r, g, b) * lf / 256);
+	return limit256(monid, get_y (r, g, b) * lf / 256);
 }
-static uae_u32 get_cb (int r, int g, int b)
+static uae_u32 get_cb(int monid, int r, int g, int b)
 {
-	return limit256rb (-0.168736f * r - 0.331264f * g + 0.5f * b);
+	return limit256rb(monid, -0.168736f * r - 0.331264f * g + 0.5f * b);
 }
-static uae_u32 get_cr (int r, int g, int b)
+static uae_u32 get_cr(int monid, int r, int g, int b)
 {
-	return limit256rb (0.5f * r - 0.418688f * g - 0.081312f * b);
+	return limit256rb(monid, 0.5f * r - 0.418688f * g - 0.081312f * b);
 }
 
 extern uae_s32 tyhrgb[65536];
@@ -225,7 +242,7 @@ static uae_u32 lowbits (int v, int shift, int lsize)
 	return v;
 }
 
-void alloc_colors_picasso (int rw, int gw, int bw, int rs, int gs, int bs, int rgbfmt)
+void alloc_colors_picasso (int rw, int gw, int bw, int rs, int gs, int bs, int rgbfmt, uae_u32 *rgbx16)
 {
 #ifdef PICASSO96
 	int byte_swap = 0;
@@ -259,6 +276,8 @@ void alloc_colors_picasso (int rw, int gw, int bw, int rs, int gs, int bs, int r
 		blue_shift = 0;
 		byte_swap = 1;
 		break;
+	case RGBFB_Y4U2V2:
+	case RGBFB_Y4U1V1:
 	case RGBFB_R5G5B5:
 		red_bits = green_bits = blue_bits = 5;
 		red_shift = 10;
@@ -294,7 +313,7 @@ void alloc_colors_picasso (int rw, int gw, int bw, int rs, int gs, int bs, int r
 	byte_swap = !byte_swap;
 #endif
 
-	memset (p96_rgbx16, 0, sizeof p96_rgbx16);
+	memset (rgbx16, 0, 65536 * sizeof(uae_u32));
 
 	if (red_bits) {
 		int lrbits = 8 - red_bits;
@@ -312,7 +331,7 @@ void alloc_colors_picasso (int rw, int gw, int bw, int rs, int gs, int bs, int r
 			c = doMask(r, rw, rs) | doMask(g, gw, gs) | doMask(b, bw, bs);
 			if (bpp <= 16)
 				c *= 0x00010001;
-			p96_rgbx16[i] = c;
+			rgbx16[i] = c;
 		}
 	}
 #endif
@@ -357,12 +376,12 @@ void alloc_colors_rgb (int rw, int gw, int bw, int rs, int gs, int bs, int aw, i
 	}
 }
 
-void alloc_colors64k (int rw, int gw, int bw, int rs, int gs, int bs, int aw, int as, int alpha, int byte_swap)
+void alloc_colors64k(int monid, int rw, int gw, int bw, int rs, int gs, int bs, int aw, int as, int alpha, int byte_swap, bool yuv)
 {
 	int bpp = rw + gw + bw + aw;
 	int i, j;
 
-	video_calc_gammatable ();
+	video_calc_gammatable(monid);
 	j = 256;
 	for (i = 0; i < 4096; i++) {
 		int r = ((i >> 8) << 4) | (i >> 8);
@@ -371,12 +390,13 @@ void alloc_colors64k (int rw, int gw, int bw, int rs, int gs, int bs, int aw, in
 		r = gamma[r + j][0];
 		g = gamma[g + j][1];
 		b = gamma[b + j][2];
-		xcolors[i] = doMask(r, rw, rs) | doMask(g, gw, gs) | doMask(b, bw, bs) | doAlpha (alpha, aw, as);
+		xcolors[i] = doMask(r, rw, rs) | doMask(g, gw, gs) | doMask(b, bw, bs) | doAlpha(alpha, aw, as);
 		if (byte_swap) {
-			if (bpp <= 16)
-				xcolors[i] = bswap_16 (xcolors[i]);
-			else
-				xcolors[i] = bswap_32 (xcolors[i]);
+			if (bpp <= 16) {
+				xcolors[i] = bswap_16(xcolors[i]);
+			} else {
+				xcolors[i] = bswap_32(xcolors[i]);
+			}
 		}
 		if (bpp <= 16) {
 			/* Fill upper 16 bits of each colour value
@@ -399,7 +419,7 @@ void alloc_colors64k (int rw, int gw, int bw, int rs, int gs, int bs, int aw, in
 		bluc[2 * 256 + i] = xbluecolors[255];
 	}
 #ifdef GFXFILTER
-	if (usedfilter && usedfilter->yuv) {
+	if (yuv) {
 		/* create internal 5:6:5 color tables */
 		for (i = 0; i < 256; i++) {
 			j = i + 256;
@@ -444,10 +464,10 @@ void alloc_colors64k (int rw, int gw, int bw, int rs, int gs, int bs, int aw, in
 			g = gamma[g + 256][1];
 			b = (((i >>  0) & 31) << 3) | lowbits (i,  0, 3);
 			b = gamma[b + 256][2];
-			tyhrgb[i] = get_yh (r, g, b) * 256 * 256;
-			tylrgb[i] = get_yl (r, g, b) * 256 * 256;
-			tcbrgb[i] = ((uae_s8)get_cb (r, g, b)) * 256;
-			tcrrgb[i] = ((uae_s8)get_cr (r, g, b)) * 256;
+			tyhrgb[i] = get_yh(monid, r, g, b) * 256 * 256;
+			tylrgb[i] = get_yl(monid, r, g, b) * 256 * 256;
+			tcbrgb[i] = ((uae_s8)get_cb(monid, r, g, b)) * 256;
+			tcrrgb[i] = ((uae_s8)get_cr(monid, r, g, b)) * 256;
 		}
 	}
 #endif

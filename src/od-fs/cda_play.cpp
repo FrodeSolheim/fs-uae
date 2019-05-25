@@ -5,6 +5,7 @@
 #include "audio.h"
 #include "options.h"
 #include "uae/fs.h"
+#include "uae.h"
 
 static int (*g_audio_callback)(int type, int16_t *buffer, int size) = NULL;
 
@@ -66,7 +67,7 @@ static void *audio_thread(void *cda_pointer) {
 }
 #endif
 
-cda_audio::cda_audio(int num_sectors, int sectorsize, int samplerate)
+cda_audio::cda_audio(int num_sectors, int sectorsize, int samplerate, bool internalmode)
 {
     write_log("cda_audio::cda_audio(num_sectors=%d)\n", num_sectors);
 #if 0
@@ -89,6 +90,10 @@ cda_audio::cda_audio(int num_sectors, int sectorsize, int samplerate)
         buffers[i] = xcalloc (uae_u8, num_sectors * ((bufsize + 4095) & ~4095));
     }
     this->num_sectors = num_sectors;
+
+	if (internalmode)
+		return;
+
     active = true;
     playing = true;
 

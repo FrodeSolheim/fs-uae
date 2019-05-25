@@ -3,23 +3,23 @@
 
 #include "autoconf.h"
 #include "debug.h"
+#include "disk.h"
+#include "drawing.h"
 #include "enforcer.h"
+#include "ethernet.h"
 #include "filesys.h"
 #include "fsdb.h"
 #include "gui.h"
+#include "inputdevice.h"
 #include "newcpu.h"
 #include "options.h"
 #include "rommgr.h"
 #include "sampler.h"
+#include "sana2.h"
 #include "savestate.h"
 #include "scsidev.h"
 #include "uae.h"
 #include "xwin.h"
-
-void graphics_reset(bool force)
-{
-    LOG_STUB("force=%d", force);
-}
 
 void gui_lock (void)
 {
@@ -73,11 +73,7 @@ void update_debug_info(void) {
     // not a console application).
 }
 
-void debugger_change (int mode) {
-    STUB("mode=%d", mode);
-}
-
-void screenshot (int mode, int doprepare) {
+void screenshot(int monid, int mode, int doprepare) {
     STUB("mode=%d doprepare=%d", mode, doprepare);
 }
 
@@ -127,11 +123,6 @@ uae_u8 *target_load_keyfile (struct uae_prefs *p, const TCHAR *path, int *sizep,
     return NULL;
 }
 
-bool vsync_switchmode (int hz) {
-    STUB("hz=%d", hz);
-    return 0;
-}
-
 #ifndef AHI
 
 #include "uae/ahi.h"
@@ -153,7 +144,8 @@ void refreshtitle (void) {
     STUB("");
 }
 
-void updatedisplayarea (void) {
+void updatedisplayarea(int monid)
+{
     LOG_STUB("");
 }
 
@@ -161,15 +153,7 @@ void filesys_addexternals(void) {
     LOG_STUB("");
 }
 
-void machdep_free (void) {
-    LOG_STUB("");
-}
-
 void target_run (void) {
-    LOG_STUB("");
-}
-
-void target_reset (void) {
     LOG_STUB("");
 }
 
@@ -226,4 +210,56 @@ bool my_issamepath(const TCHAR *path1, const TCHAR *path2)
 {
         LOG_STUB_MAX(3, "");
         return false;
+}
+
+static struct netdriverdata *ndd[MAX_TOTAL_NET_DEVICES + 1];
+static int net_enumerated;
+
+struct netdriverdata **target_ethernet_enumerate(void)
+{
+	STUB("");
+	if (net_enumerated)
+		return ndd;
+	ethernet_enumerate(ndd, 0);
+	net_enumerated = 1;
+	return ndd;
+}
+
+bool gui_ask_disk(int drv, TCHAR *name)
+{
+    STUB("");
+    return false;
+}
+
+void target_inputdevice_unacquire(void)
+{
+    STUB("");
+}
+void target_inputdevice_acquire(void)
+{
+    STUB("");
+}
+
+int is_touch_lightpen(void) {
+    return 0;
+}
+
+void target_getdate(int *y, int *m, int *d)
+{
+    STUB("");
+    *y = 2019;
+    *m = 5;
+    *d = 8;
+}
+
+uae_u8 *save_screenshot(int monid, int *len)
+{
+    STUB("");
+    return NULL;
+}
+
+/* Stub function for avioutput */
+bool frame_drawn (int monid)
+{
+    return false;
 }

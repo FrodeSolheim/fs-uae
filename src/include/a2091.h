@@ -5,6 +5,12 @@
 
 #define WD_STATUS_QUEUE 2
 
+struct status_data
+{
+	volatile uae_u8 status;
+	volatile int irq;
+};
+
 struct wd_chip_state {
 
 	volatile uae_u8 sasr, scmd, auxstatus;
@@ -14,11 +20,13 @@ struct wd_chip_state {
 	volatile int wd_dataoffset;
 	volatile uae_u8 wd_data[32];
 	uae_u8 wdregs[32];
-	volatile uae_u8 scsidelay_status[WD_STATUS_QUEUE];
 	volatile int queue_index;
-	volatile int scsidelay_irq[WD_STATUS_QUEUE];
+	volatile uae_u16 intmask;
+	struct status_data status[WD_STATUS_QUEUE];
 	struct scsi_data *scsi;
 	int wd33c93_ver;// 0 or 1
+	bool resetnodelay;
+	bool resetnodelay_active;
 };
 
 #define COMMODORE_8727 0
@@ -26,6 +34,7 @@ struct wd_chip_state {
 #define COMMODORE_SDMAC 2
 #define GVP_DMAC_S2 3
 #define GVP_DMAC_S1 4
+#define COMSPEC_CHIP 6
 
 struct commodore_dmac
 {
@@ -38,7 +47,7 @@ struct commodore_dmac
 
 	uae_u8 xt_control;
 	uae_u8 xt_status;
-	uae_u16 xt_cyls, xt_heads, xt_sectors;
+	uae_u16 xt_cyls[2], xt_heads[2], xt_sectors[2];
 
 	bool xt_irq;
 	int xt_offset;
@@ -47,16 +56,17 @@ struct commodore_dmac
 	uae_u8 xt_statusbyte;
 
 	uae_u8 c8727_pcss;
+	uae_u8 c8727_pcsd;
 	uae_u8 c8727_ctl;
 	uae_u8 c8727_wrcbp;
-	uae_u16 c8727_st506_cb;
+	uae_u32 c8727_st506_cb;
 };
 struct gvp_dmac
 {
 	uae_u16 cntr;
 	uae_u32 addr;
 	uae_u16 len;
-	uae_u16 bank;
+	uae_u8 bank;
 	int dma_on;
 	uae_u8 version;
 	bool use_version;
@@ -67,19 +77,27 @@ struct gvp_dmac
 	int s1_rammask;
 	uae_u8 *buffer;
 	int bufoffset;
+	uae_u8 *bank_ptr;
+};
+
+struct comspec_chip
+{
+	uae_u8 status;
 };
 
 struct wd_state {
+	int id;
 	bool enabled;
 	int configured;
 	bool autoconfig;
-	uae_u8 dmacmemory[100];
-	uae_u8 *rom;
+	bool threaded;
+	uae_u8 dmacmemory[128];
+	uae_u8 *rom, *rom2;
 	int board_mask;
-	uaecptr baseaddress;
+	uaecptr baseaddress, baseaddress2;
 	int rombankswitcher, rombank;
 	int rom_size, rom_mask;
-	addrbank *bank;
+	int rom2_size, rom2_mask;
 	struct romconfig *rc;
 	struct wd_state **self_ptr;
 
@@ -96,6 +114,10 @@ struct wd_state {
 	struct wd_chip_state wc;
 	struct commodore_dmac cdmac;
 	struct gvp_dmac gdmac;
+	struct comspec_chip comspec;
+	addrbank bank;
+	addrbank bank2;
+	void *userdata;
 };
 extern wd_state *wd_cdtv;
 
@@ -103,21 +125,26 @@ extern void init_wd_scsi (struct wd_state*);
 extern void scsi_dmac_a2091_start_dma (struct wd_state*);
 extern void scsi_dmac_a2091_stop_dma (struct wd_state*);
 
-extern addrbank *a2090_init (struct romconfig*);
+extern bool a2090_init (struct autoconfig_info *aci);
+extern bool a2090b_init (struct autoconfig_info *aci);
+extern bool a2090b_preinit (struct autoconfig_info *aci);
 
-extern addrbank *a2091_init (struct romconfig*);
+extern bool a2091_init (struct autoconfig_info *aci);
 extern void a2091_free(void);
 extern void a2091_reset (void);
 
-extern addrbank *gvp_init_s1(struct romconfig*);
-extern addrbank *gvp_init_s2(struct romconfig*);
-extern addrbank *gvp_init_accelerator(struct romconfig*);
+extern bool gvp_init_s1(struct autoconfig_info *aci);
+extern bool gvp_init_s2(struct autoconfig_info *aci);
+extern bool gvp_init_accelerator(struct autoconfig_info *aci);
 extern void gvp_free(void);
 extern void gvp_reset (void);
+void gvp_accelerator_set_dma_bank(uae_u8 v);
 
-extern void a3000scsi_init (void);
+extern bool comspec_init (struct autoconfig_info *aci);
+extern bool comspec_preinit (struct autoconfig_info *aci);
+
+extern bool a3000scsi_init(struct autoconfig_info *aci);
 extern void a3000scsi_free (void);
-extern void a3000scsi_reset (void);
 extern void rethink_a2091 (void);
 
 extern void wdscsi_put (struct wd_chip_state*, wd_state*, uae_u8);
@@ -141,6 +168,7 @@ extern void gvp_s1_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct r
 extern void gvp_s2_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct romconfig *rc);
 extern void gvp_s2_add_accelerator_scsi_unit(int ch, struct uaedev_config_info *ci, struct romconfig *rc);
 extern void a3000_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct romconfig *rc);
+extern void comspec_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct romconfig *rc);
 
 extern int add_wd_scsi_hd (struct wd_state *wd, int ch, struct hd_hardfiledata *hfd, struct uaedev_config_info *ci, int scsi_level);
 extern int add_wd_scsi_cd (struct wd_state *wd, int ch, int unitnum);

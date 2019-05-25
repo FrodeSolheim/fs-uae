@@ -1,3 +1,4 @@
+
 #include "sysconfig.h"
 #include "sysdeps.h"
 
@@ -10,8 +11,11 @@
 #endif
 #include "threaddep/thread.h"
 #include "options.h"
+#include "traps.h"
 #include "sana2.h"
 #include "uae/slirp.h"
+#include "gui.h"
+#include "rommgr.h"
 
 #ifndef HAVE_INET_ATON
 static int inet_aton(const char *cp, struct in_addr *ia)
@@ -45,7 +49,8 @@ static struct netdriverdata slirpd =
 	UAENET_SLIRP,
 	_T("slirp"), _T("SLIRP User Mode NAT"),
 	1500,
-	{ 0x00,0x00,0x00,50,51,52 },
+	{ 0x00, 0x00, 0x00, 50, 51, 52 },
+	{ 0x00, 0x00, 0x00, 50, 51, 52 },
 	1
 };
 static struct netdriverdata slirpd2 =
@@ -53,7 +58,8 @@ static struct netdriverdata slirpd2 =
 	UAENET_SLIRP_INBOUND,
 	_T("slirp_inbound"), _T("SLIRP + Open ports (21-23,80)"),
 	1500,
-	{ 0x00,0x00,0x00,50,51,52 },
+	{ 0x00, 0x00, 0x00, 50, 51, 52 },
+	{ 0x00, 0x00, 0x00, 50, 51, 52 },
 	1
 };
 
@@ -61,6 +67,7 @@ void slirp_output (const uint8_t *pkt, int pkt_len)
 {
 	if (!slirp_data)
 		return;
+	gui_flicker_led(LED_NET, 0, gui_data.net | 1);
 	uae_sem_wait (&slirp_sem1);
 	slirp_data->gotfunc (slirp_data->userdata, pkt, pkt_len);
 	uae_sem_post (&slirp_sem1);
@@ -70,6 +77,7 @@ void ethernet_trigger (struct netdriverdata *ndd, void *vsd)
 {
 	if (!ndd)
 		return;
+	gui_flicker_led(LED_NET, 0, gui_data.net | 2);
 	switch (ndd->type)
 	{
 #ifdef WITH_SLIRP
@@ -101,7 +109,7 @@ void ethernet_trigger (struct netdriverdata *ndd, void *vsd)
 	}
 }
 
-int ethernet_open (struct netdriverdata *ndd, void *vsd, void *user, ethernet_gotfunc *gotfunc, ethernet_getfunc *getfunc, int promiscuous)
+int ethernet_open (struct netdriverdata *ndd, void *vsd, void *user, ethernet_gotfunc *gotfunc, ethernet_getfunc *getfunc, int promiscuous, const uae_u8 *mac)
 {
 	switch (ndd->type)
 	{
@@ -156,7 +164,7 @@ int ethernet_open (struct netdriverdata *ndd, void *vsd, void *user, ethernet_go
 #endif
 #ifdef WITH_UAENET_PCAP
 		case UAENET_PCAP:
-		if (uaenet_open (vsd, ndd, user, gotfunc, getfunc, promiscuous)) {
+		if (uaenet_open (vsd, ndd, user, gotfunc, getfunc, promiscuous, mac)) {
 			netmode = ndd->type;
 			return 1;
 		}
@@ -198,10 +206,18 @@ void ethernet_enumerate_free (void)
 #endif
 }
 
-bool ethernet_enumerate (struct netdriverdata **nddp, const TCHAR *name)
+bool ethernet_enumerate (struct netdriverdata **nddp, int romtype)
 {
 	int j;
 	struct netdriverdata *nd;
+	const TCHAR *name = NULL;
+	
+	if (romtype) {
+		struct romconfig *rc = get_device_romconfig(&currprefs, romtype, 0);
+		name = ethernet_getselectionname(rc ? rc->device_settings : 0);
+	}
+
+	gui_flicker_led(LED_NET, 0, 0);
 	if (name) {
 		netmode = 0;
 		*nddp = NULL;
@@ -263,4 +279,23 @@ int ethernet_getdatalenght (struct netdriverdata *ndd)
 #endif
 	}
 	return 0;
+}
+
+bool ethernet_getmac(uae_u8 *m, const TCHAR *mac)
+{
+	if (!mac)
+		return false;
+	if (_tcslen(mac) != 3 * 5 + 2)
+		return false;
+	for (int i = 0; i < 6; i++) {
+		TCHAR *endptr;
+		if (mac[0] == 0 || mac[1] == 0)
+			return false;
+		if (i < 5 && (mac[2] != '.' && mac[2] != ':'))
+			return false;
+		uae_u8 v = (uae_u8)_tcstol(mac, &endptr, 16);
+		mac += 3;
+		m[i] = v;
+	}
+	return true;
 }

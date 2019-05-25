@@ -236,6 +236,7 @@ libuae_a_SOURCES = \
 	src/blkdev_cdimage.cpp \
 	src/bsdsocket.cpp \
 	src/calc.cpp \
+	src/casablanca.cpp \
 	src/cd32_fmv.cpp \
 	src/cd32_fmv_genlock.cpp \
 	src/cdrom.cpp \
@@ -251,59 +252,13 @@ libuae_a_SOURCES = \
 	src/custom.cpp \
 	src/debug.cpp \
 	src/debuginfo.cpp \
+	src/debugmem.cpp \
 	src/def_icons.cpp \
 	src/devices.cpp \
 	src/disk.cpp \
 	src/diskutil.cpp \
 	src/dlopen.cpp \
 	src/dongle.cpp \
-	src/dosbox/callback.h \
-	src/dosbox/cmos.cpp \
-	src/dosbox/core_full/ea_lookup.h \
-	src/dosbox/core_full/load.h \
-	src/dosbox/core_full/loadwrite.h \
-	src/dosbox/core_full/op.h \
-	src/dosbox/core_full/optable.h \
-	src/dosbox/core_full/save.h \
-	src/dosbox/core_full/string.h \
-	src/dosbox/core_full/support.h \
-	src/dosbox/core_full.cpp \
-	src/dosbox/core_normal/helpers.h \
-	src/dosbox/core_normal/prefix_0f.h \
-	src/dosbox/core_normal/prefix_66_0f.h \
-	src/dosbox/core_normal/prefix_66.h \
-	src/dosbox/core_normal/prefix_none.h \
-	src/dosbox/core_normal/string.h \
-	src/dosbox/core_normal/support.h \
-	src/dosbox/core_normal/table_ea.h \
-	src/dosbox/core_normal.cpp \
-	src/dosbox/core_simple.cpp \
-	src/dosbox/cpu.cpp \
-	src/dosbox/cpu.h \
-	src/dosbox/db_memory.cpp \
-	src/dosbox/dosbox.h \
-	src/dosbox/flags.cpp \
-	src/dosbox/fpu.cpp \
-	src/dosbox/fpu.h \
-	src/dosbox/fpu_instructions.h \
-	src/dosbox/fpu_instructions_x86.h \
-	src/dosbox/inout.h \
-	src/dosbox/instructions.h \
-	src/dosbox/keyboard.cpp \
-	src/dosbox/lazyflags.h \
-	src/dosbox/logging.h \
-	src/dosbox/mem.h \
-	src/dosbox/modrm.cpp \
-	src/dosbox/modrm.h \
-	src/dosbox/paging.cpp \
-	src/dosbox/paging.h \
-	src/dosbox/pic.cpp \
-	src/dosbox/pic.h \
-	src/dosbox/regs.h \
-	src/dosbox/setup.h \
-	src/dosbox/support.h \
-	src/dosbox/timer.cpp \
-	src/dosbox/timer.h \
 	src/drawing.cpp \
 	src/driveclick.cpp \
 	src/enforcer.cpp \
@@ -315,6 +270,9 @@ libuae_a_SOURCES = \
 	src/filesys.cpp \
 	src/flashrom.cpp \
 	src/fpp.cpp \
+	src/fpp_native.cpp \
+	src/fpp_softfloat.cpp \
+	src/framebufferboards.cpp \
 	src/fsdb.cpp \
 	src/fsusage.cpp \
 	src/gayle.cpp \
@@ -337,6 +295,7 @@ libuae_a_SOURCES = \
 	src/include/blkdev.h \
 	src/include/bsdsocket.h \
 	src/include/calc.h \
+	src/include/casablanca.h \
 	src/include/catweasel.h \
 	src/include/cd32_fmv.h \
 	src/include/cdtv.h \
@@ -352,6 +311,7 @@ libuae_a_SOURCES = \
 	src/include/crc32.h \
 	src/include/custom.h \
 	src/include/debug.h \
+	src/include/debugmem.h \
 	src/include/devices.h \
 	src/include/disk.h \
 	src/include/diskutil.h \
@@ -369,10 +329,12 @@ libuae_a_SOURCES = \
 	src/include/fdi2raw.h \
 	src/include/filesys.h \
 	src/include/flashrom.h \
+	src/include/fpp.h \
 	src/include/fpp-ieee-be.h \
 	src/include/fpp-unknown.h \
 	src/include/fsdb.h \
 	src/include/fsusage.h \
+	src/include/framebufferboards.h \
 	src/include/gayle.h \
 	src/include/genblitter.h \
 	src/include/gensound.h \
@@ -382,6 +344,7 @@ libuae_a_SOURCES = \
 	src/include/ide.h \
 	src/include/idecontrollers.h \
 	src/include/identify.h \
+	src/include/ini.h \
 	src/include/inputdevice.h \
 	src/include/inputrecord.h \
 	src/include/isofs.h \
@@ -406,6 +369,7 @@ libuae_a_SOURCES = \
 	src/include/picasso96.h \
 	src/include/readcpu.h \
 	src/include/rommgr.h \
+	src/include/rtc.h \
 	src/include/rtgmodes.h \
 	src/include/sampler.h \
 	src/include/sana2.h \
@@ -463,10 +427,12 @@ libuae_a_SOURCES = \
 	src/include/uaeserial.h \
 	src/include/uni_common.h \
 	src/include/unpacked.h \
+	src/include/videograb.h \
 	src/include/x86.h \
 	src/include/xwin.h \
 	src/include/zarchive.h \
 	src/include/zfile.h \
+	src/ini.cpp \
 	src/inputdevice.cpp \
 	src/isofs.cpp \
 	src/jit/codegen_udis86.h \
@@ -496,13 +462,12 @@ libuae_a_SOURCES = \
 	src/od-fs/ahidsound_new.h \
 	src/od-fs/audio.cpp \
 	src/od-fs/blkdev-linux.cpp \
-	src/od-fs/bsdsocket_host.cpp \
+	src/od-fs/bsdsocket_posix.cpp \
 	src/od-fs/callbacks.h \
 	src/od-fs/cda_play.cpp \
 	src/od-fs/cda_play.h \
 	src/od-fs/cdimage_stubs.cpp \
 	src/od-fs/charset.cpp \
-	src/od-fs/clipboard.cpp \
 	src/od-fs/clock.cpp \
 	src/od-fs/defines.h \
 	src/od-fs/driveclick.cpp \
@@ -516,7 +481,6 @@ libuae_a_SOURCES = \
 	src/od-fs/include/resource.h \
 	src/od-fs/include/uae/uae.h \
 	src/od-fs/include/uae/uae_inputevents_def.h \
-	src/od-fs/include/win32gfx.h \
 	src/od-fs/include/win32gui.h \
 	src/od-fs/input.cpp \
 	src/od-fs/inputrecord.cpp \
@@ -525,7 +489,6 @@ libuae_a_SOURCES = \
 	src/od-fs/joystick.cpp \
 	src/od-fs/keyboard.cpp \
 	src/od-fs/libamiga.cpp \
-	src/od-fs/logging.cpp \
 	src/od-fs/machdep/arm/maccess.h \
 	src/od-fs/machdep/generic/maccess.h \
 	src/od-fs/machdep/m68k.h \
@@ -541,6 +504,7 @@ libuae_a_SOURCES = \
 	src/od-fs/paths.cpp \
 	src/od-fs/roms.cpp \
 	src/od-fs/sleep.h \
+	src/od-fs/spin.cpp \
 	src/od-fs/sounddep/sound.h \
 	src/od-fs/statusline.cpp \
 	src/od-fs/stubs.cpp \
@@ -553,13 +517,17 @@ libuae_a_SOURCES = \
 	src/od-fs/uae_host.cpp \
 	src/od-fs/uaemisc.cpp \
 	src/od-fs/video.cpp \
+	src/od-fs/videograb_fs.cpp \
 	src/od-fs/vpar.cpp \
 	src/od-fs/vpar.h \
 	src/od-fs/winuae_compat.h \
+	src/od-fs/writelog_fs.cpp \
+	src/od-win32/bsdsock.cpp \
 	src/od-win32/caps/CapsAPI.h \
 	src/od-win32/caps/Comtype.h \
 	src/od-win32/caps/caps_win32.cpp \
 	src/od-win32/caps/caps_win32.h \
+	src/od-win32/clipboard_win32.cpp \
 	src/od-win32/debug_win32.h \
 	src/od-win32/dxwrap.h \
 	src/od-win32/md-fpp.h \
@@ -567,8 +535,30 @@ libuae_a_SOURCES = \
 	src/od-win32/picasso96_win.cpp \
 	src/od-win32/picasso96_win.h \
 	src/od-win32/serial_win32.cpp \
+	src/od-win32/win32gfx.h \
 	src/od-win32/win32_uaenet.cpp \
 	src/patch.cpp \
+	src/pcem/codegen.h \
+	src/pcem/codegen_x86-64.h \
+	src/pcem/cpu.h \
+	src/pcem/dma.h \
+	src/pcem/ibm.h \
+	src/pcem/keyboard.h \
+	src/pcem/keyboard_at.h \
+	src/pcem/mem.h \
+	src/pcem/model.h \
+	src/pcem/mouse.h \
+	src/pcem/mouse_serial.h \
+	src/pcem/nvr.h \
+	src/pcem/pcemglue.h \
+	src/pcem/pic.h \
+	src/pcem/pit.h \
+	src/pcem/sound.h \
+	src/pcem/sound_cms.h \
+	src/pcem/sound_speaker.h \
+	src/pcem/timer.h \
+	src/pcem/x86.h \
+	src/pcem/x86_ops.h \
 	src/pci.cpp \
 	src/ppc/pixman-stubs.cpp \
 	src/ppc/ppc.cpp \
@@ -598,6 +588,7 @@ libuae_a_SOURCES = \
 	src/random.cpp \
 	src/readcpu.cpp \
 	src/rommgr.cpp \
+	src/rtc.cpp \
 	src/sana2.cpp \
 	src/savestate.cpp \
 	src/scp.cpp \
@@ -606,6 +597,16 @@ libuae_a_SOURCES = \
 	src/scsitape.cpp \
 	src/segtracker.cpp \
 	src/slirp_uae.cpp \
+	src/softfloat/softfloat.cpp \
+	src/softfloat/softfloat_decimal.cpp \
+	src/softfloat/softfloat_fpsp.cpp \
+	src/softfloat/softfloat_fpsp_tables.h \
+	src/softfloat/softfloat.h \
+	src/softfloat/softfloat-macros.h \
+	src/softfloat/softfloat-specialize.h \
+	src/softfloat/softfloat.cpp \
+	src/softfloat/softfloat_decimal.cpp \
+	src/softfloat/softfloat_fpsp.cpp \
 	src/specialmonitors.cpp \
 	src/statusline.cpp \
 	src/support/socket.cpp \
@@ -648,6 +649,8 @@ nodist_libcpuemu_a_SOURCES = \
         gen/cpuemu_31.cpp \
         gen/cpuemu_32.cpp \
         gen/cpuemu_33.cpp \
+        gen/cpuemu_34.cpp \
+        gen/cpuemu_35.cpp \
         gen/cpuemu_40.cpp \
         gen/cpuemu_50.cpp
 BUILT_SOURCES += $(nodist_libcpuemu_a_SOURCES)
@@ -857,6 +860,137 @@ libpearpc_a_SOURCES = \
 	src/ppc/pearpc/tools/snprintf.h \
 	src/ppc/pearpc/tracers.h \
 	src/ppc/pearpc/uaeglue.cpp
+endif
+
+if WITH_X86
+noinst_LIBRARIES += libpcem.a
+# AM_CPPFLAGS += -I$(s)/src/ppc/pearpc
+fs_uae_LDADD += libpcem.a
+libpcem_a_SOURCES = \
+src/pcem/386_common.h \
+src/pcem/386.cpp \
+src/pcem/386_dynarec.cpp \
+src/pcem/386.h \
+src/pcem/386_ops.h \
+src/pcem/808x.cpp \
+src/pcem/codegen.h \
+src/pcem/codegen_x86-64.h \
+src/pcem/codegen_x86.h \
+src/pcem/config.h \
+src/pcem/cpu.cpp \
+src/pcem/cpu.h \
+src/pcem/device.h \
+src/pcem/dma.cpp \
+src/pcem/dma.h \
+src/pcem/dosbox/dbopl.cpp \
+src/pcem/dosbox/dbopl.h \
+src/pcem/dosbox/nukedopl.cpp \
+src/pcem/dosbox/nukedopl.h \
+src/pcem/fdc.h \
+src/pcem/filters.h \
+src/pcem/ibm.h \
+src/pcem/io.h \
+src/pcem/keyboard_at.cpp \
+src/pcem/keyboard_at.h \
+src/pcem/keyboard.cpp \
+src/pcem/keyboard.h \
+src/pcem/mca.h \
+src/pcem/mem.cpp \
+src/pcem/mem.h \
+src/pcem/model.h \
+src/pcem/mouse.h \
+src/pcem/mouse_ps2.cpp \
+src/pcem/mouse_ps2.h \
+src/pcem/mouse_serial.cpp \
+src/pcem/mouse_serial.h \
+src/pcem/nmi.h \
+src/pcem/nvr.h \
+src/pcem/nvr_tc8521.h \
+src/pcem/paths.h \
+src/pcem/pcemglue.cpp \
+src/pcem/pcemglue.h \
+src/pcem/pcemnvr.cpp \
+src/pcem/pcemrtc.cpp \
+src/pcem/pci.h \
+src/pcem/pic.cpp \
+src/pcem/pic.h \
+src/pcem/pit.cpp \
+src/pcem/pit.h \
+src/pcem/plat-keyboard.h \
+src/pcem/plat-midi.h \
+src/pcem/plat-mouse.h \
+src/pcem/ps2_mca.h \
+src/pcem/rom.h \
+src/pcem/rtc.h \
+src/pcem/serial.cpp \
+src/pcem/serial.h \
+src/pcem/sound_cms.cpp \
+src/pcem/sound_cms.h \
+src/pcem/sound_dbopl.cpp \
+src/pcem/sound_dbopl.h \
+src/pcem/sound_emu8k.h \
+src/pcem/sound.h \
+src/pcem/sound_mpu401_uart.cpp \
+src/pcem/sound_mpu401_uart.h \
+src/pcem/sound_opl.cpp \
+src/pcem/sound_opl.h \
+src/pcem/sound_sb.cpp \
+src/pcem/sound_sb_dsp.cpp \
+src/pcem/sound_sb_dsp.h \
+src/pcem/sound_sb.h \
+src/pcem/sound_speaker.cpp \
+src/pcem/sound_speaker.h \
+src/pcem/t1000.h \
+src/pcem/t3100e.h \
+src/pcem/timer.cpp \
+src/pcem/timer.h \
+src/pcem/video.h \
+src/pcem/x86_flags.h \
+src/pcem/x86.h \
+src/pcem/x86_ops_arith.h \
+src/pcem/x86_ops_atomic.h \
+src/pcem/x86_ops_bcd.h \
+src/pcem/x86_ops_bit.h \
+src/pcem/x86_ops_bitscan.h \
+src/pcem/x86_ops_call.h \
+src/pcem/x86_ops_flag.h \
+src/pcem/x86_ops_fpu.h \
+src/pcem/x86_ops.h \
+src/pcem/x86_ops_inc_dec.h \
+src/pcem/x86_ops_int.h \
+src/pcem/x86_ops_io.h \
+src/pcem/x86_ops_jump.h \
+src/pcem/x86_ops_misc.h \
+src/pcem/x86_ops_mmx_arith.h \
+src/pcem/x86_ops_mmx_cmp.h \
+src/pcem/x86_ops_mmx.h \
+src/pcem/x86_ops_mmx_logic.h \
+src/pcem/x86_ops_mmx_mov.h \
+src/pcem/x86_ops_mmx_pack.h \
+src/pcem/x86_ops_mmx_shift.h \
+src/pcem/x86_ops_mov_ctrl.h \
+src/pcem/x86_ops_mov.h \
+src/pcem/x86_ops_mov_seg.h \
+src/pcem/x86_ops_movx.h \
+src/pcem/x86_ops_msr.h \
+src/pcem/x86_ops_mul.h \
+src/pcem/x86_ops_pmode.h \
+src/pcem/x86_ops_prefix.h \
+src/pcem/x86_ops_rep.h \
+src/pcem/x86_ops_ret.h \
+src/pcem/x86_ops_set.h \
+src/pcem/x86_ops_shift.h \
+src/pcem/x86_ops_stack.h \
+src/pcem/x86_ops_string.h \
+src/pcem/x86_ops_xchg.h \
+src/pcem/x86seg.cpp \
+src/pcem/x87.cpp \
+src/pcem/x87.h \
+src/pcem/x87_ops_arith.h \
+src/pcem/x87_ops.h \
+src/pcem/x87_ops_loadstore.h \
+src/pcem/x87_ops_misc.h \
+src/pcem/xi8088.h
 endif
 
 if WITH_PPC
@@ -1097,29 +1231,29 @@ libprowizard_a_SOURCES = \
 	prowizard/r/ZenPacker.c
 endif
 
-if WITH_SOFTFLOAT
-noinst_LIBRARIES += libsoftfloat.a
-AM_CPPFLAGS += -I$(s)/softfloat
-fs_uae_LDADD += libsoftfloat.a
-libsoftfloat_a_SOURCES = \
-	softfloat/softfloat-uae.h \
-	softfloat/fprem.cc \
-	softfloat/fpu_constant.h \
-	softfloat/fsincos.cc \
-	softfloat/poly.cc \
-	softfloat/softfloat16.cc \
-	softfloat/softfloat.cc \
-	softfloat/softfloat-compare.h \
-	softfloat/softfloat.h \
-	softfloat/softfloat-macros.h \
-	softfloat/softfloat-muladd.cc \
-	softfloat/softfloat-round-pack.cc \
-	softfloat/softfloat-round-pack.h \
-	softfloat/softfloat-specialize.cc \
-	softfloat/softfloat-specialize.h \
-	softfloat/softfloatx80.cc \
-	softfloat/softfloatx80.h
-endif
+#if WITH_SOFTFLOAT
+#noinst_LIBRARIES += libsoftfloat.a
+#AM_CPPFLAGS += -I$(s)/softfloat
+#fs_uae_LDADD += libsoftfloat.a
+#libsoftfloat_a_SOURCES = \
+#	softfloat/softfloat-uae.h \
+#	softfloat/fprem.cc \
+#	softfloat/fpu_constant.h \
+#	softfloat/fsincos.cc \
+#	softfloat/poly.cc \
+#	softfloat/softfloat16.cc \
+#	softfloat/softfloat.cc \
+#	softfloat/softfloat-compare.h \
+#	softfloat/softfloat.h \
+#	softfloat/softfloat-macros.h \
+#	softfloat/softfloat-muladd.cc \
+#	softfloat/softfloat-round-pack.cc \
+#	softfloat/softfloat-round-pack.h \
+#	softfloat/softfloat-specialize.cc \
+#	softfloat/softfloat-specialize.h \
+#	softfloat/softfloatx80.cc \
+#	softfloat/softfloatx80.h
+#endif
 
 if BUILTIN_LIBMPEG2
 SUBDIRS += libmpeg2
@@ -1234,6 +1368,7 @@ EXTRA_DIST = $(TESTS) $(EXTRA_TESTS) \
 	licenses/lua.txt \
 	licenses/zlib.txt \
 	po \
+	src/aks.def \
 	src/filesys_bootrom.cpp \
 	src/fs-uae/fs-uae.rc.in \
 	src/inputevents.def \
@@ -1246,8 +1381,6 @@ EXTRA_DIST = $(TESTS) $(EXTRA_TESTS) \
 	src/mame/tm34010/34010ops.c \
 	src/mame/tm34010/34010ops.h \
 	src/mame/tm34010/34010gfx.c \
-	src/od-fs/bsdsocket_posix.cpp \
-	src/od-win32/bsdsock.cpp \
         src/od-win32/mman.cpp \
 	src/p96_blit.cpp \
 	src/sinctable.cpp \
@@ -1305,6 +1438,10 @@ gen/cpuemu_31.cpp: gen/cpuemu_0.cpp
 gen/cpuemu_32.cpp: gen/cpuemu_0.cpp
 
 gen/cpuemu_33.cpp: gen/cpuemu_0.cpp
+
+gen/cpuemu_34.cpp: gen/cpuemu_0.cpp
+
+gen/cpuemu_35.cpp: gen/cpuemu_0.cpp
 
 gen/cpuemu_40.cpp: gen/cpuemu_0.cpp
 

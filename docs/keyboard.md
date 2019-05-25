@@ -56,7 +56,7 @@ Emulation control:
 * Use <kbd>Mod</kbd>+<kbd>R</kbd> to perform a soft reset.
 * Use <kbd>Mod</kbd>+<kbd>T</kbd> to perform a hard reset.
 * Use <kbd>Mod</kbd>+<kbd>P</kbd> or <kbd>Pause</kbd> to toggle pause mode.
-* Use <kbd>Mod</kbd>+<kbd>A</kbd> to activate cartridge (Action Replay, ...).
+* Use <kbd>Mod</kbd>+<kbd>C</kbd> to activate cartridge (Action Replay, ...).
 
 Volume control:
 
@@ -71,6 +71,12 @@ Disk swapper:
 * Use <kbd>Next</kbd> (multimedia key) to go forward through the swap list.
 * Use <kbd>Play</kbd> (multimedia key) to insert the currently selected
   swap list entry into `DF0`.
+
+RTG graphics control (shortcuts are subject to change)
+
+* Use <kbd>Mod</kbd>+<kbd>F9</kbd> to toggle chipset/RTG display.
+~~* Use <kbd>Mod</kbd>+<kbd>1</kbd> to switch to chipset display.~~
+~~* Use <kbd>Mod</kbd>+<kbd>2</kbd> to switch to RTG display (if any).~~
 
 FIXME:
 

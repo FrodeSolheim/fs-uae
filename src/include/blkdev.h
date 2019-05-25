@@ -73,6 +73,7 @@ struct device_info {
 	bool open;
     int type;
     int media_inserted;
+	int audio_playing;
     int removable;
     int write_protected;
     int cylinders;
@@ -118,13 +119,13 @@ typedef uae_u8* (*execscsicmd_in_func)(int, uae_u8*, int, int*);
 typedef int (*execscsicmd_direct_func)(int, struct amigascsi*);
 
 typedef void (*play_subchannel_callback)(uae_u8*, int);
-typedef int (*play_status_callback)(int);
+typedef int (*play_status_callback)(int, int);
 
 typedef int (*pause_func)(int, int);
 typedef int (*stop_func)(int);
 typedef int (*play_func)(int, int, int, int, play_status_callback, play_subchannel_callback);
 typedef uae_u32 (*volume_func)(int, uae_u16, uae_u16);
-typedef int (*qcode_func)(int, uae_u8*, int);
+typedef int (*qcode_func)(int, uae_u8*, int, bool);
 typedef int (*toc_func)(int, struct cd_toc_head*);
 typedef int (*read_func)(int, uae_u8*, int, int);
 typedef int (*rawread_func)(int, uae_u8*, int, int, int, uae_u32);
@@ -162,6 +163,7 @@ struct device_functions {
 };
 
 extern int device_func_init(int flags);
+extern void device_func_free(void);
 extern void device_func_reset(void);
 extern int sys_command_open (int unitnum);
 extern int sys_command_open_tape (int unitnum, const TCHAR *tape_directory, bool readonly);
@@ -173,7 +175,7 @@ extern void sys_command_cd_stop (int unitnum);
 extern int sys_command_cd_play (int unitnum, int startlsn, int endlsn, int);
 extern int sys_command_cd_play (int unitnum, int startlsn, int endlsn, int scan, play_status_callback statusfunc, play_subchannel_callback subfunc);
 extern uae_u32 sys_command_cd_volume (int unitnum, uae_u16 volume_left, uae_u16 volume_right);
-extern int sys_command_cd_qcode (int unitnum, uae_u8*);
+extern int sys_command_cd_qcode (int unitnum, uae_u8*, int lsn, bool all);
 extern int sys_command_cd_toc (int unitnum, struct cd_toc_head*);
 extern int sys_command_cd_read (int unitnum, uae_u8 *data, int block, int size);
 extern int sys_command_cd_rawread (int unitnum, uae_u8 *data, int sector, int size, int sectorsize);
@@ -181,7 +183,7 @@ int sys_command_cd_rawread (int unitnum, uae_u8 *data, int sector, int size, int
 extern int sys_command_read (int unitnum, uae_u8 *data, int block, int size);
 extern int sys_command_write (int unitnum, uae_u8 *data, int block, int size);
 extern int sys_command_scsi_direct_native (int unitnum, int type, struct amigascsi *as);
-extern int sys_command_scsi_direct (int unitnum, int type, uaecptr request);
+extern int sys_command_scsi_direct(TrapContext *ctx, int unitnum, int type, uaecptr request);
 extern int sys_command_ismedia (int unitnum, int quick);
 extern struct device_info *sys_command_info_session (int unitnum, struct device_info *di, int, int);
 extern bool blkdev_get_info (struct uae_prefs *p, int unitnum, struct device_info *di);
@@ -209,6 +211,7 @@ extern void blkdev_default_prefs (struct uae_prefs *p);
 extern void blkdev_fix_prefs (struct uae_prefs *p);
 extern int isaudiotrack (struct cd_toc_head*, int block);
 extern int isdatatrack (struct cd_toc_head*, int block);
+extern int cdtracknumber(struct cd_toc_head *th, int block);
 void sub_to_interleaved (const uae_u8 *s, uae_u8 *d);
 void sub_to_deinterleaved (const uae_u8 *s, uae_u8 *d);
 

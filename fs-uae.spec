@@ -14,8 +14,8 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 %define name fs-uae
-%define version 2.9.8dev3
-%define unmangled_version 2.9.8dev3
+%define version 2.9.10dev
+%define unmangled_version 2.9.10dev
 %define release 1%{?dist}
 
 %undefine _hardened_build
@@ -28,6 +28,11 @@ URL: http://fs-uae.net/
 Source0: %{name}-%{unmangled_version}.tar.gz
 License: GPL-2.0+
 Group: System/Emulators/Other
+%if 0%{?suse_version}
+%else
+# For joystick support in Fedora
+Requires: kernel-modules-extra
+%endif
 %if 0%{?suse_version}
 BuildRequires: fdupes
 %endif

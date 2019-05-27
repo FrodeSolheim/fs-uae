@@ -1,5 +1,9 @@
 Version 2.9.11dev:
 
+* Linux: Automatically uses Feral GameMode daemon if available.
+* New option game_mode = 0 to disable above mentioned feature.
+* Linux: Warn if running with a CPU governor other than performance.
+* New option governor_warning = to to disable above mentioned warning.
 * Fixed support for multiple mice also on Windows.
 
 Version 2.9.9dev:

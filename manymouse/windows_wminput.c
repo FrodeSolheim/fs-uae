@@ -345,6 +345,23 @@ static LRESULT CALLBACK RawWndProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lP
     return pDefWindowProcA(hWnd, Msg, wParam, lParam);
 } /* RawWndProc */
 
+#ifdef FSUAE
+
+#include <SDL.h>
+#include <SDL_syswm.h>
+
+extern SDL_Window *g_fs_ml_window;
+static WNDPROC OldWndProc;
+
+static LRESULT CALLBACK NewWndProc(HWND hwnd, UINT Msg, WPARAM wParam, LPARAM lParam)
+{
+    if (Msg == WM_INPUT)
+        wminput_handler(wParam, lParam);
+
+    return CallWindowProc(OldWndProc, hwnd, Msg, wParam, lParam);
+}
+
+#endif
 
 static int init_event_queue(void)
 {
@@ -378,6 +395,18 @@ static int init_event_queue(void)
     rid.usUsage = 2; /* GeneralDestop Mouse usage. */
     rid.dwFlags = RIDEV_INPUTSINK;
     rid.hwndTarget = raw_hwnd;
+
+#ifdef FSUAE
+    if (g_fs_ml_window) {
+        SDL_SysWMinfo wmInfo;
+        SDL_VERSION(&wmInfo.version);
+        SDL_GetWindowWMInfo(g_fs_ml_window, &wmInfo);
+        HWND hwnd = wmInfo.info.win.window;
+        rid.hwndTarget = hwnd;
+        OldWndProc = (WNDPROC) SetWindowLongPtr(hwnd, GWLP_WNDPROC, (LONG_PTR)&NewWndProc);
+    }
+#endif
+
     if (!pRegisterRawInputDevices(&rid, 1, sizeof (rid)))
     {
         pDeleteCriticalSection(&mutex);
@@ -557,7 +586,6 @@ static void init_mouse(const RAWINPUTDEVICELIST *dev)
     mouse->handle = dev->hDevice;
     available_mice++;
 } /* init_mouse */
-
 
 static int windows_wminput_init(void)
 {

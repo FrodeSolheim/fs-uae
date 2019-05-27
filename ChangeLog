@@ -1,3 +1,7 @@
+Version 2.9.11dev:
+
+* Fixed support for multiple mice also on Windows.
+
 Version 2.9.9dev:
 
 * Added 8BitDo controller configurations, updated dualshock 3 for Linux.

@@ -1223,7 +1223,9 @@ int main(int argc, char *argv[])
 #ifdef LINUX
     if (fs_config_get_boolean(OPTION_GAME_MODE) != 0) {
         if (gamemode_request_start() < 0) {
-            fs_log("gamemode request failed: %s\n", gamemode_error_string());
+            fs_log("GameMode: Request failed: %s\n", gamemode_error_string());
+        } else {
+            fs_log("GameMode: Enabled game mode\n");
         }
     }
     check_linux_cpu_governor();

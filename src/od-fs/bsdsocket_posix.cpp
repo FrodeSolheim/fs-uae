@@ -469,12 +469,6 @@ STATIC_INLINE int bsd_amigaside_FD_ISSET (int n, uae_u32 set)
 	return 0;
 }
 
-STATIC_INLINE void bsd_amigaside_FD_ZERO (uae_u32 set)
-{
-	put_long (set, 0);
-	put_long (set + 4, 0);
-}
-
 STATIC_INLINE void bsd_amigaside_FD_SET (int n, uae_u32 set)
 {
 	set = set + (n / 32);
@@ -1415,11 +1409,11 @@ uae_u32 host_IoctlSocket(TrapContext *ctx, SB, uae_u32 sd, uae_u32 request, uae_
 	DEBUG_LOG ("Ioctl code is %x, flags are %ld\n", request, flags);
 
 	switch (request) {
-	case 0x8004667B: /* FIOGETOWN */
+	case 0x8004667C: /* FIOSETOWN */
 		sb->ownertask = get_long (arg);
 		return 0;
 
-	case 0x8004667C: /* FIOSETOWN */
+	case 0x8004667B: /* FIOGETOWN */
 		put_long (arg,sb->ownertask);
 		return 0;
 	case 0x8004667D: /* FIOASYNC */
@@ -1544,7 +1538,7 @@ uae_u32 bsdthr_WaitSelect (SB)
 			r = 0;
 			for (set = 0; set < 3; set++)
 			if (sb->sets [set] != 0)
-			bsd_amigaside_FD_ZERO (sb->sets [set]);
+				fd_zero (ctx, sb->sets [set], sb->nfds);
 			clearsockabort (sb);
 		}
 	else
@@ -1552,7 +1546,7 @@ uae_u32 bsdthr_WaitSelect (SB)
 		for (set = 0; set < 3; set++) {
 			a_set = sb->sets [set];
 			if (a_set != 0) {
-				bsd_amigaside_FD_ZERO (a_set);
+				fd_zero (ctx, a_set, sb->nfds);
 				for (i = 0; i < sb->nfds; i++) {
 					a_s = getsock(ctx, sb, i + 1);
 					if (a_s != -1) {
@@ -1568,7 +1562,7 @@ uae_u32 bsdthr_WaitSelect (SB)
 	} else if (r == 0) {         /* Timeout. I think we're supposed to clear the sets.. */
 		for (set = 0; set < 3; set++)
 		if (sb->sets [set] != 0)
-		bsd_amigaside_FD_ZERO (sb->sets [set]);
+			fd_zero (ctx, sb->sets [set], sb->nfds);
 	}
 	DEBUG_LOG ("WaitSelect: r=%d errno=%d\n", r, errno);
 	return r;

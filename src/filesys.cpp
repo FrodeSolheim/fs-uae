@@ -4739,8 +4739,10 @@ static int action_examine_all(TrapContext *ctx, Unit *unit, dpacket *packet)
 			doserr = ERROR_OBJECT_WRONG_TYPE;
 			goto fail;
 		}
-		if (!action_examine_all_do(ctx, unit, lock, eak, exalldata, exalldatasize, type, control))
-			goto fail;
+		if (!action_examine_all_do(ctx, unit, lock, eak, exalldata, exalldatasize, type, control)) {
+			if (get_long (control + 0) == 0)
+				goto fail;
+		}
 		if (trap_get_long(ctx, control + 0) == 0) {
 			/* uh, no space for first entry.. */
 			doserr = ERROR_NO_FREE_STORE;
@@ -4764,8 +4766,10 @@ static int action_examine_all(TrapContext *ctx, Unit *unit, dpacket *packet)
 			goto fail;
 		eak->dirhandle = d;
 		trap_put_long(ctx, control + 4, eak->id);
-		if (!action_examine_all_do(ctx, unit, lock, eak, exalldata, exalldatasize, type, control))
-			goto fail;
+		if (!action_examine_all_do(ctx, unit, lock, eak, exalldata, exalldatasize, type, control)) {
+			if (get_long (control + 0) == 0)
+				goto fail;
+		}
 		if (trap_get_long(ctx, control + 0) == 0) {
 			/* uh, no space for first entry.. */
 			doserr = ERROR_NO_FREE_STORE;

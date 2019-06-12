@@ -59,6 +59,7 @@ LIBS += @OPENGL_LIBS@
 # LIBS += @OS_LIBS@
 LIBS += @PNG_LIBS@
 LIBS += @QT_LIBS@
+LIBS += @MIDI_LIBS@
 LIBS += @SDL2_LIBS@
 LIBS += @X11_LIBS@
 LIBS += @ZLIB_LIBS@
@@ -534,6 +535,8 @@ libuae_a_SOURCES = \
 	src/od-fs/machdep/ppc/maccess.h \
 	src/od-fs/machdep/rpt.h \
 	src/od-fs/machdep/x86/maccess.h \
+	src/od-fs/midi.cpp \
+	src/od-fs/midi.h \
 	src/od-fs/mman.cpp \
 	src/od-fs/mouse.cpp \
 	src/od-fs/mp3decoder.h \

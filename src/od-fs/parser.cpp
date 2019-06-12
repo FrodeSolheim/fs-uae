@@ -52,6 +52,7 @@
 #include "xwin.h"
 #include "drawing.h"
 #include "vpar.h"
+#include "midi.h"
 
 #ifdef POSIX_SERIAL
 #include <termios.h>
@@ -83,6 +84,10 @@ struct termios tios;
 int parallel_mode = 0;
 static uae_socket parallel_tcp_listener = UAE_SOCKET_INVALID;
 static uae_socket parallel_tcp = UAE_SOCKET_INVALID;
+
+#ifdef WITH_MIDI
+static int midi_ready = 0;
+#endif
 
 static bool parallel_tcp_connected(void)
 {
@@ -341,12 +346,6 @@ void uaeser_close (void *vsd)
 	STUB("");
 }
 
-#ifdef FSUAE
-/* No MIDI support. */
-#else
-#define WITH_MIDI
-#endif
-
 #ifdef _WIN32
 static HANDLE hCom = INVALID_HANDLE_VALUE;
 static DCB dcb;
@@ -460,6 +459,16 @@ void closeser (void)
 		closetcp ();
 		tcpserial = FALSE;
 	}
+#ifdef WITH_MIDI
+	if (midi_ready) {
+		midi_close();
+		midi_ready = 0;
+		//need for camd Midi Stuff(it close midi and reopen it but serial.c think the baudrate
+		//is the same and do not open midi), so setting serper to different value helps
+		extern uae_u16 serper;
+		serper = 0x30;
+	}
+#endif
 #ifdef POSIX_SERIAL
 	write_log("serial: close fd=%d\n", ser_fd);
 	if (valid_serial_handle()) {
@@ -503,8 +512,7 @@ void writeser (int c)
 		}
 #ifdef WITH_MIDI
 	} else if (midi_ready) {
-		BYTE outchar = (BYTE)c;
-		Midi_Parse (midi_output, &outchar);
+		midi_send_byte((uint8_t)c);
 #endif
 	} else {
 		if (!valid_serial_handle() || !currprefs.use_serial)
@@ -562,7 +570,7 @@ int readseravail (void)
 		return 0;
 #ifdef WITH_MIDI
 	} else if (midi_ready) {
-		if (ismidibyte ())
+		if (midi_has_byte())
 			return 1;
 #endif
 	} else {
@@ -615,10 +623,10 @@ int readser (int *buffer)
 		return 0;
 #ifdef WITH_MIDI
 	} else if (midi_ready) {
-		*buffer = getmidibyte ();
-		if (*buffer < 0)
-			return 0;
-		return 1;
+		uae_u8 ch;
+		int res = midi_recv_byte(&ch);
+		*buffer = ch;
+		return res;
 #endif
 	} else {
 		if (!currprefs.use_serial)
@@ -785,6 +793,29 @@ int setbaud (long baud)
 	if (!currprefs.use_serial) {
 		return 1;
 	}
+
+#ifdef WITH_MIDI
+	if(baud == 31400) {
+		/* MIDI baud-rate */
+		if (!midi_ready) {
+			/* any config given? */
+			const char *midi_cfg = NULL;
+			if (_tcsnicmp(currprefs.sername, "midi:", 5) == 0) {
+				midi_cfg = currprefs.sername + 5;
+			}
+			/* try to open midi devices */
+			if (midi_open(midi_cfg)) {
+				midi_ready = 1;
+			}
+		}
+		return 1;
+	} else {
+		if (midi_ready) {
+			midi_close();
+			midi_ready = 0;
+		}
+	}
+#endif
 
 #if defined POSIX_SERIAL
 	int pspeed;

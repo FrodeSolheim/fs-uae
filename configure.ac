@@ -248,8 +248,11 @@ PKG_CHECK_MODULES([OPENAL], [openal], [
 		OPENAL_LIBS="-framework OpenAL"
 	],
 	[
-		AC_MSG_NOTICE([Assuming -lopenal works])
-		OPENAL_LIBS="-lopenal"
+		AC_CHECK_LIB([openal], [alcOpenDevice], [
+			OPENAL_LIBS="-lopenal"
+		], [
+			AC_MSG_FAILURE([OpenAL not found])
+		])
 	])
 	AC_SUBST([OPENAL_CFLAGS])
 	AC_SUBST([OPENAL_LIBS])

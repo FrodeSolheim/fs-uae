@@ -1,5 +1,11 @@
+Version 2.9.13dev:
+
+* Show error during configure if OpenAL is not found.
+* More controller configs.
+
 Version 2.9.12dev:
 
+* Added controller config for DualShock 4 v2.
 * Change default for bezel option to 0 (off).
 
 Version 2.9.11dev:

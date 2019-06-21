@@ -121,6 +121,7 @@ BUILT_SOURCES = \
 nodist_fs_uae_SOURCES =
 
 fs_uae_SOURCES = \
+        gamemode/lib/gamemode_client.h \
         src/fs-uae/config.c \
 	src/fs-uae/config-accelerator.c \
 	src/fs-uae/config-accelerator.h \
@@ -1359,6 +1360,8 @@ EXTRA_DIST = $(TESTS) $(EXTRA_TESTS) \
 	flac/include/FLAC/ordinals.h \
 	flac/include/FLAC/stream_decoder.h \
 	flac/include/FLAC/stream_encoder.h \
+	gamemode/LICENSE.txt \
+	gamemode/README.md \
 	fs-uae.spec \
 	icon/fs-uae.ico \
 	glad/include/glad/glad.h \

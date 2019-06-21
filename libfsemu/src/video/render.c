@@ -17,7 +17,7 @@ static double g_scale_x = -1.0;
 static double g_scale_y = -1.0;
 static double g_align_x = 0.5;
 static double g_align_y = 0.5;
-static bool g_render_frame = true;
+static bool g_render_bezel = false;
 static double g_force_aspect = 0.0;
 
 int fse_stretch_mode(void)
@@ -203,7 +203,7 @@ void fse_calculate_video_rectangle(
 
 void fse_render_frame(void)
 {
-    if (!g_render_frame) {
+    if (!g_render_bezel) {
         return;
     }
     if (fse_render.view_w == 0 || fse_render.view_h == 0) {
@@ -293,8 +293,8 @@ void fse_init_render(void)
     }
     fse_set_scale_mode(scale_mode);
 
-    if (fs_config_false(OPTION_BEZEL)) {
-        g_render_frame = false;
+    if (fs_config_true(OPTION_BEZEL)) {
+        g_render_bezel = true;
     }
 
     g_force_aspect = fs_config_get_double("force_aspect");

@@ -72,9 +72,7 @@ static void *manymouse_thread(void* data)
     ManyMouseEvent event;
     fs_ml_event *new_event;
     while (!fs_ml_is_quitting()) {
-        // printf("..\n");
         while (ManyMouse_PollEvent(&event)) {
-            // printf(" -- event type %d -- \n", event.type);
             if (event.type == MANYMOUSE_EVENT_RELMOTION) {
                 // printf("MANYMOUSE_EVENT_RELMOTION\n");
                 new_event = fs_ml_alloc_event();

@@ -24,6 +24,8 @@
 #define OPTION_FLOPPY_DRIVE_VOLUME_EMPTY "floppy_drive_volume_empty"
 #define OPTION_FPU "fpu"
 #define OPTION_FREEZER_CARTRIDGE "freezer_cartridge"
+#define OPTION_GAME_MODE "game_mode"
+#define OPTION_GOVERNOR_WARNING "governor_warning"
 #define OPTION_GRAPHICS_CARD "graphics_card"
 #define OPTION_GRAPHICS_CARD_ROM "graphics_card_rom"
 #define OPTION_GRAPHICS_CARD_MEMORY "graphics_card_memory"

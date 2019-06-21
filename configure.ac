@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.67])
-AC_INIT([FS-UAE], [2.9.8dev3],
+AC_INIT([FS-UAE], [2.9.12dev],
         [frode@fs-uae.net], [fs-uae], [https://fs-uae.net])
 AC_CONFIG_AUX_DIR([.])
 AC_CANONICAL_HOST
@@ -248,8 +248,11 @@ PKG_CHECK_MODULES([OPENAL], [openal], [
 		OPENAL_LIBS="-framework OpenAL"
 	],
 	[
-		AC_MSG_NOTICE([Assuming -lopenal works])
-		OPENAL_LIBS="-lopenal"
+		AC_CHECK_LIB([openal], [alcOpenDevice], [
+			OPENAL_LIBS="-lopenal"
+		], [
+			AC_MSG_FAILURE([OpenAL not found])
+		])
 	])
 	AC_SUBST([OPENAL_CFLAGS])
 	AC_SUBST([OPENAL_LIBS])

@@ -38,9 +38,11 @@
 #include <fs/emu/cef.h>
 #endif
 #include <fs/emu/hacks.h>
-
 #ifdef USE_NFD
 #include "nfd.h"
+#endif
+#ifdef LINUX
+#include "../../gamemode/lib/gamemode_client.h"
 #endif
 
 static int fs_uae_argc;
@@ -1025,6 +1027,32 @@ static bool check_extension(const char *path, const char *ext)
     return result;
 }
 
+#ifdef LINUX
+static void check_linux_cpu_governor()
+{
+    gchar *governor;
+    if (!g_file_get_contents(
+            "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor",
+            &governor, NULL, NULL)) {
+        return;
+    }
+    g_strstrip(governor);
+    fs_log("CPU scaling governor: '%s'\n", governor);
+    if (fs_config_get_boolean(OPTION_GOVERNOR_WARNING) == 0) {
+        return;
+    }
+    if (strcmp(governor, "performance") != 0) {
+        fs_emu_warning(
+            _("CPU scaling governor is '%s', not '%s'"),
+            governor,
+            "performance"
+        );
+        fs_emu_warning(_("Emulation frame rate may suffer"));
+    }
+    g_free(governor);
+}
+#endif
+
 static const char *overlay_names[] = {
     "df0_led",     // 0
     "df1_led",     // 1
@@ -1209,6 +1237,17 @@ int main(int argc, char *argv[])
         fs_emu_warning(_("Expected FS-UAE version %s, got %s"),
                        expect_version, PACKAGE_VERSION);
     }
+
+#ifdef LINUX
+    if (fs_config_get_boolean(OPTION_GAME_MODE) != 0) {
+        if (gamemode_request_start() < 0) {
+            fs_log("GameMode: Request failed: %s\n", gamemode_error_string());
+        } else {
+            fs_log("GameMode: Enabled game mode\n");
+        }
+    }
+    check_linux_cpu_governor();
+#endif
 
     fs_log("\n");
     fs_log(LOG_LINE);

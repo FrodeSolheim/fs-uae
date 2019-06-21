@@ -1,5 +1,6 @@
 Version 3.1.0dev:
 
+* Experimental floppy file picker dialogs (--enable-libnfd).
 * New shortcut Mod+F9 to toggle between chipset and RTG display.
 * Bridgeboard & VGA available and works with custom uae_* options.
 * Fixed mouse integration.

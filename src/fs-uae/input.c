@@ -469,6 +469,7 @@ static fs_emu_action g_actions[] = {
 #else
     { INPUTEVENT_SPC_ENTERDEBUGGER, "action_enter_debugger", 0 },
 #endif
+    { FS_UAE_ACTION_DRIVE_0_BROWSE, "action_drive_0_browse", 0 },
 
     { 65536, "action_none", 0 },
     { 0, 0, 0 },

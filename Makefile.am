@@ -8,6 +8,7 @@ CM_CFLAGS =
 CM_CFLAGS += @FREETYPE_CFLAGS@
 CM_CFLAGS += @GLEW_CFLAGS@
 CM_CFLAGS += @GLIB_CFLAGS@
+CM_CFLAGS += @GTK3_CFLAGS@
 CM_CFLAGS += @LUA_CFLAGS@
 CM_CFLAGS += @MIR_CFLAGS@
 CM_CFLAGS += @OPENAL_CFLAGS@
@@ -52,6 +53,7 @@ LIBS += @CARBON_LIBS@
 LIBS += @FREETYPE_LIBS@
 LIBS += @GLEW_LIBS@
 LIBS += @GLIB_LIBS@
+LIBS += @GTK3_LIBS@
 LIBS += @IOKIT_LIBS@
 # LIBS += @MIR_LIBS@
 LIBS += @OPENAL_LIBS@
@@ -726,6 +728,7 @@ libfsemu_a_SOURCES = \
 	libfsemu/src/emu/menu.h \
 	libfsemu/src/emu/netplay.c \
 	libfsemu/src/emu/netplay.h \
+	libfsemu/src/emu/performance.c \
 	libfsemu/src/emu/render.c \
 	libfsemu/src/emu/render.h \
 	libfsemu/src/emu/scanlines.c \
@@ -1265,6 +1268,13 @@ else
 CM_CFLAGS += @LIBMPEG2_CFLAGS@
 LIBS += @LIBMPEG2_LIBS@
 endif
+
+if USE_NFD
+SUBDIRS += libnfd
+AM_CPPFLAGS += -I$(s)/libnfd/src/include
+fs_uae_LDADD += libnfd.a
+endif
+
 
 noinst_LIBRARIES += libdummy.a
 nodist_libdummy_a_SOURCES = \

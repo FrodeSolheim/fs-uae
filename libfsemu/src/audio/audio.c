@@ -53,6 +53,9 @@ void fse_set_audio_paused(int stream, bool paused)
 
 int fse_queue_audio_buffer(int stream, int16_t *buffer, int size)
 {
+    static int64_t frame_counter;
+    frame_counter += size / 4; // 2 channels * 2 bytes per channel
+    fsemu_performance_log("AFCT", frame_counter);
     return fse_audio.queue_buffer(stream, buffer, size);
 }
 

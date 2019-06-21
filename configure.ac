@@ -322,6 +322,8 @@ AC_SUBST([OS_NAME])
 AC_SUBST([OS_NAME_2])
 AC_SUBST([OS_NAME_3])
 AC_SUBST([PACKAGE_ARCH])
+AC_SUBST([HOST_OS], $host_os)
+AC_SUBST([HOST_CPU], $host_cpu)
 AS_CASE([$host_os],
 [mingw*], [
     OS_NAME="windows"
@@ -703,6 +705,7 @@ DIS_FEATURE([FSE_DRIVERS], [drivers], [drivers],
             [multiple driver backends (experimental)])
 OPT_FEATURE([GFXBOARD], [gfxboard], [gfxboard],
             [GFX hardware boards])
+
 AC_ARG_ENABLE([jit], [AS_HELP_STRING([--disable-jit], [JIT compiler])])
 AS_IF([test "x$enable_jit" != xno], [
     AC_TRY_COMPILE([
@@ -733,6 +736,15 @@ OPT_FEATURE([WITH_NETPLAY], [netplay], [netplay],
             [netplay support])
 OPT_FEATURE([NCR], [ncr], [ncr],
             [A4000T/A4091, 53C710/53C770 SCSI])
+
+DIS_FEATURE([USE_NFD], [libnfd], [libnfd],
+            [native file dialogs])
+AS_IF([test "x$enable_libnfd" != xno], [
+    PKG_CHECK_MODULES([GTK3], [gtk+-3.0])
+    AC_SUBST([GTK3_CFLAGS])
+    AC_SUBST([GTK3_LIBS])
+])
+
 OPT_FEATURE([NCR9X], [ncr9x], [ncr9x],
             [53C9X SCSI])
 OPT_FEATURE([PARALLEL_PORT], [parallel_port], [parallel-port],
@@ -797,6 +809,7 @@ AC_CONFIG_FILES([
     dist/steamos/Makefile
     dist/windows/fs-uae.iss
     dist/windows/Makefile
+    libnfd/Makefile
     src/fs-uae/fs-uae.rc
     Makefile
 ])

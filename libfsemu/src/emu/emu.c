@@ -8,6 +8,7 @@
 #include <fs/emu/benchmark.h>
 #include <fs/emu/input.h>
 #include <fs/emu/options.h>
+#include <fsemu/performance.h>
 #include <fs/emu/video.h>
 
 #include <stdio.h>
@@ -333,6 +334,7 @@ void fse_init(int options)
     fse_init_hud_after_config();
 
     fse_init_theme();
+    fsemu_performance_init();
 
 #ifdef WITH_NETPLAY
     //g_random_set_seed(time(NULL));
@@ -532,6 +534,9 @@ static int wait_for_frame_no_netplay(void)
 
 int fs_emu_wait_for_frame(int frame)
 {
+    // We flush the performance log once per video frame
+    fsemu_performance_flush();
+
 #ifdef WITH_NETPLAY
     if (!fs_emu_netplay_enabled()) {
 #endif

@@ -111,6 +111,15 @@ void fs_uae_toggle_auto_zoom(void);
 
 extern int g_fs_uae_frame;
 
+#include <uae/uae.h>
+
+enum {
+    FS_UAE_ACTION_DRIVE_0_BROWSE = INPUTEVENT_SPC_LAST + 1,
+    FS_UAE_ACTION_DRIVE_1_BROWSE,
+    FS_UAE_ACTION_DRIVE_2_BROWSE,
+    FS_UAE_ACTION_DRIVE_3_BROWSE,
+};
+
 #include <fs/emu/actions.h>
 
 enum {

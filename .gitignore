@@ -117,6 +117,7 @@ libfsemu/out
 /libmpeg2/test/Makefile.in
 /libmpeg2/vc++/Makefile
 /libmpeg2/vc++/Makefile.in
+/libnfd/Makefile
 /libs/
 libuae/od-win32/lib
 *.lo
@@ -166,3 +167,6 @@ xxx*
 *.zip
 merge.stage
 .vscode/ipch
+/perf.csv
+/perf.png
+/perf.rrd

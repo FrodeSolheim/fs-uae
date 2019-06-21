@@ -195,6 +195,13 @@ static fs_emu_key_translation g_default_keymap[] = {
     // { FS_ML_KEY_1,            MOD, INPUTEVENT_SPC_RTG_C },
     // { FS_ML_KEY_2,            MOD, INPUTEVENT_SPC_RTG_0 },
 
+#ifdef USE_NFD
+    { FS_ML_KEY_F1,           MOD, FS_UAE_ACTION_DRIVE_0_BROWSE },
+    { FS_ML_KEY_F2,           MOD, FS_UAE_ACTION_DRIVE_1_BROWSE },
+    { FS_ML_KEY_F3,           MOD, FS_UAE_ACTION_DRIVE_2_BROWSE },
+    { FS_ML_KEY_F4,           MOD, FS_UAE_ACTION_DRIVE_3_BROWSE },
+#endif
+
     { FS_ML_KEY_F4,           MOD, FS_EMU_ACTION_QUIT },
     { FS_ML_KEY_F9,           MOD, INPUTEVENT_SPC_TOGGLERTG },
     { FS_ML_KEY_F11,           -1, FS_UAE_ACTION_TOGGLE_AUTO_ZOOM },

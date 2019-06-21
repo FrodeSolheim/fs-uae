@@ -39,6 +39,10 @@
 #endif
 #include <fs/emu/hacks.h>
 
+#ifdef USE_NFD
+#include "nfd.h"
+#endif
+
 static int fs_uae_argc;
 static char **fs_uae_argv;
 static int g_warn_about_missing_config_file;
@@ -138,6 +142,19 @@ void fs_uae_process_input_event(int line, int action, int state, int playback)
     if (action == INPUTEVENT_KEY_RETURN) {
         printf("FIXME: ignoring RETURN event for now\n");
         return;
+    }
+#endif
+
+#ifdef USE_NFD
+    if (action == FS_UAE_ACTION_DRIVE_0_BROWSE && state) {
+        printf("FS_UAE_ACTION_DRIVE_0_BROWSE test\n");
+        nfdchar_t *out = malloc(1024);
+        nfdresult_t result = NFD_OpenDialog("*", "/home", &out);
+        printf("nfdresult: %d\n", result);
+        if (result == NFD_OKAY) {
+            printf("%s\n", out);
+        }
+        free(out);
     }
 #endif
 

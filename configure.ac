@@ -742,11 +742,11 @@ OPT_FEATURE([NCR], [ncr], [ncr],
 
 DIS_FEATURE([USE_NFD], [libnfd], [libnfd],
             [native file dialogs])
-AS_IF([test "x$enable_libnfd" != xno], [
-    PKG_CHECK_MODULES([GTK3], [gtk+-3.0])
-    AC_SUBST([GTK3_CFLAGS])
-    AC_SUBST([GTK3_LIBS])
-])
+# AS_IF([test "x$enable_libnfd" == xyes], [
+#     PKG_CHECK_MODULES([GTK3], [gtk+-3.0])
+#     AC_SUBST([GTK3_CFLAGS])
+#     AC_SUBST([GTK3_LIBS])
+# ])
 
 OPT_FEATURE([NCR9X], [ncr9x], [ncr9x],
             [53C9X SCSI])

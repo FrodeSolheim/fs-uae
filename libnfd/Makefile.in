@@ -15,3 +15,6 @@ endif
 
 clean:
 	rm -Rf build/bin build/lib build/obj
+
+distdir:
+	true

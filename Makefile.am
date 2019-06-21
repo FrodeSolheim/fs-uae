@@ -669,19 +669,19 @@ libfsemu_a_SOURCES = \
 	libfsemu/include/fs/defines.h \
 	libfsemu/include/fs/emu.h \
 	libfsemu/include/fs/emu/actions.h \
-        libfsemu/include/fs/emu/audio.h \
-        libfsemu/include/fs/emu/benchmark.h \
-        libfsemu/include/fs/emu/buffer.h \
-        libfsemu/include/fs/emu/cef.h \
-        libfsemu/include/fs/emu/dialog.h \
+	libfsemu/include/fs/emu/audio.h \
+	libfsemu/include/fs/emu/benchmark.h \
+	libfsemu/include/fs/emu/buffer.h \
+	libfsemu/include/fs/emu/cef.h \
+	libfsemu/include/fs/emu/dialog.h \
 	libfsemu/include/fs/emu/hacks.h \
 	libfsemu/include/fs/emu/log.h \
 	libfsemu/include/fs/emu/input.h \
 	libfsemu/include/fs/emu/monitor.h \
 	libfsemu/include/fs/emu/options.h \
-        libfsemu/include/fs/emu/path.h \
-        libfsemu/include/fs/emu/render.h \
-        libfsemu/include/fs/emu/video.h \
+	libfsemu/include/fs/emu/path.h \
+	libfsemu/include/fs/emu/render.h \
+	libfsemu/include/fs/emu/video.h \
 	libfsemu/include/fs/endian.h \
 	libfsemu/include/fs/eventlog.h \
 	libfsemu/include/fs/filesys.h \
@@ -702,17 +702,18 @@ libfsemu_a_SOURCES = \
 	libfsemu/include/fs/thread.h \
 	libfsemu/include/fs/time.h \
 	libfsemu/include/fs/util.h \
-        libfsemu/src/audio/alsa-audio.c \
-        libfsemu/src/audio/audio.c \
-        libfsemu/src/audio/dummy-audio.c \
-        libfsemu/src/audio/openal-audio.c \
-        libfsemu/src/audio/sdl-audio.c \
-        libfsemu/src/base.c \
+	libfsemu/include/fsemu/performance.h \
+	libfsemu/src/audio/alsa-audio.c \
+	libfsemu/src/audio/audio.c \
+	libfsemu/src/audio/dummy-audio.c \
+	libfsemu/src/audio/openal-audio.c \
+	libfsemu/src/audio/sdl-audio.c \
+	libfsemu/src/base.c \
 	libfsemu/src/conf.c \
 	libfsemu/src/data.c \
 	libfsemu/src/emu/actions.c \
 	libfsemu/src/emu/audio.h \
-        libfsemu/src/emu/cef.cpp \
+	libfsemu/src/emu/cef.cpp \
 	libfsemu/src/emu/dialog.c \
 	libfsemu/src/emu/dialog.h \
 	libfsemu/src/emu/emu.c \
@@ -777,19 +778,19 @@ libfsemu_a_SOURCES = \
 	libfsemu/src/ml/windows.c \
 	libfsemu/src/ml/x11.c \
 	libfsemu/src/opengl.c \
-        libfsemu/src/path.c \
-        libfsemu/src/ref.c \
+	libfsemu/src/path.c \
+	libfsemu/src/ref.c \
 	libfsemu/src/thread.c \
 	libfsemu/src/time.c \
-        libfsemu/src/video/dummy-video.c \
-        libfsemu/src/video/legacy-video.c \
-        libfsemu/src/video/opengl-render.c \
-        libfsemu/src/video/render.c \
-        libfsemu/src/video/sdl-video.c \
-        libfsemu/src/video/sdl-video-common.c \
-        libfsemu/src/video/sdl-video-software.c \
-        libfsemu/src/video/video.c \
-        libfsemu/src/video/video-buffer.c
+	libfsemu/src/video/dummy-video.c \
+	libfsemu/src/video/legacy-video.c \
+	libfsemu/src/video/opengl-render.c \
+	libfsemu/src/video/render.c \
+	libfsemu/src/video/sdl-video.c \
+	libfsemu/src/video/sdl-video-common.c \
+	libfsemu/src/video/sdl-video-software.c \
+	libfsemu/src/video/video.c \
+	libfsemu/src/video/video-buffer.c
 
 if BUILTIN_CEF
 AM_CPPFLAGS += -I$(s)/cef
@@ -1370,6 +1371,69 @@ EXTRA_DIST = $(TESTS) $(EXTRA_TESTS) \
 	libinih/ini.c \
 	libinih/ini.h \
 	libinih/LICENSE.txt \
+	libnfd/build/dont_run_premake.txt \
+	libnfd/build/gmake_linux/Makefile \
+	libnfd/build/gmake_linux/nfd.make \
+	libnfd/build/gmake_linux/test_opendialog.make \
+	libnfd/build/gmake_linux/test_opendialogmultiple.make \
+	libnfd/build/gmake_linux/test_pickfolder.make \
+	libnfd/build/gmake_linux/test_savedialog.make \
+	libnfd/build/gmake_linux_zenity/Makefile \
+	libnfd/build/gmake_linux_zenity/nfd.make \
+	libnfd/build/gmake_linux_zenity/test_opendialog.make \
+	libnfd/build/gmake_linux_zenity/test_opendialogmultiple.make \
+	libnfd/build/gmake_linux_zenity/test_pickfolder.make \
+	libnfd/build/gmake_linux_zenity/test_savedialog.make \
+	libnfd/build/gmake_macosx/Makefile \
+	libnfd/build/gmake_macosx/nfd.make \
+	libnfd/build/gmake_macosx/test_opendialog.make \
+	libnfd/build/gmake_macosx/test_opendialogmultiple.make \
+	libnfd/build/gmake_macosx/test_pickfolder.make \
+	libnfd/build/gmake_macosx/test_savedialog.make \
+	libnfd/build/gmake_windows/Makefile \
+	libnfd/build/gmake_windows/nfd.make \
+	libnfd/build/gmake_windows/test_opendialog.make \
+	libnfd/build/gmake_windows/test_opendialogmultiple.make \
+	libnfd/build/gmake_windows/test_pickfolder.make \
+	libnfd/build/gmake_windows/test_savedialog.make \
+	libnfd/build/premake5.lua \
+	libnfd/build/vs2010/NativeFileDialog.sln \
+	libnfd/build/vs2010/nfd.vcxproj \
+	libnfd/build/vs2010/nfd.vcxproj.filters \
+	libnfd/build/vs2010/test_opendialogmultiple.vcxproj \
+	libnfd/build/vs2010/test_opendialog.vcxproj \
+	libnfd/build/vs2010/test_pickfolder.vcxproj \
+	libnfd/build/vs2010/test_savedialog.vcxproj \
+	libnfd/build/xcode4/NativeFileDialog.xcworkspace/contents.xcworkspacedata \
+	libnfd/build/xcode4/nfd.xcodeproj/project.pbxproj \
+	libnfd/build/xcode4/test_opendialogmultiple.xcodeproj/project.pbxproj \
+	libnfd/build/xcode4/test_opendialog.xcodeproj/project.pbxproj \
+	libnfd/build/xcode4/test_pickfolder.xcodeproj/project.pbxproj \
+	libnfd/build/xcode4/test_savedialog.xcodeproj/project.pbxproj \
+	libnfd/docs/build.md \
+	libnfd/docs/submitting_pull_requests.md \
+	libnfd/.gitignore \
+	libnfd/LICENSE \
+	libnfd/Makefile.in \
+	libnfd/README.md \
+	libnfd/screens/open_cocoa.png \
+	libnfd/screens/open_gtk3.png \
+	libnfd/screens/open_win.png \
+	libnfd/src/common.h \
+	libnfd/src/include/nfd.h \
+	libnfd/src/nfd_cocoa.m \
+	libnfd/src/nfd_common.c \
+	libnfd/src/nfd_common.h \
+	libnfd/src/nfd_gtk.c \
+	libnfd/src/nfd_win.cpp \
+	libnfd/src/nfd_zenity.c \
+	libnfd/src/SConstruct \
+	libnfd/src/simple_exec.h \
+	libnfd/test/SConstruct \
+	libnfd/test/test_opendialog.c \
+	libnfd/test/test_opendialogmultiple.c \
+	libnfd/test/test_pickfolder.c \
+	libnfd/test/test_savedialog.c \
 	libudis86/README \
 	licenses/fs-uae.txt \
 	licenses/glib.txt \

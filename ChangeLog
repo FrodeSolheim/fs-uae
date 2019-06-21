@@ -9,10 +9,11 @@ Version 3.1.0dev:
 * Lots of fixes to restore functionality after the merge.
 * Updated emulation core from WinUAE 4210 (big merge).
 
-Version 2.9.13dev:
+Version 3.0.0dev:
 
 * Show error during configure if OpenAL is not found.
 * More controller configs.
+* Imported updated translations from crowdin.com.
 
 Version 2.9.12dev:
 

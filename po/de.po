@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: fs-uae\n"
 "Report-Msgid-Bugs-To: frode@fs-uae.net\n"
-"POT-Creation-Date: 2019-05-25 13:30+0200\n"
-"PO-Revision-Date: 2019-05-25 11:31\n"
+"POT-Creation-Date: 2019-05-27 23:21+0200\n"
+"PO-Revision-Date: 2019-06-21 16:09\n"
 "Last-Translator: Frode Solheim (FrodeSolheim)\n"
 "Language-Team: German\n"
 "Language: de_DE\n"
@@ -246,4 +246,11 @@ msgstr "[ Anschluss 0 ] Auf Joystick-Modus umgestellt"
 
 msgid "[ Port 0 ] Switched to mouse mode"
 msgstr "[ Anschluss 0 ] Auf Maus-Modus umgestellt"
+
+#, c-format
+msgid "CPU scaling governor is '%s', not '%s'"
+msgstr ""
+
+msgid "Emulation frame rate may suffer"
+msgstr ""
 

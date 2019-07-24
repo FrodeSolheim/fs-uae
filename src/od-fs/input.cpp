@@ -195,10 +195,23 @@ void gui_gameport_button_change (int port, int button, int onoff) {
 #include <Windows.h>
 #endif
 
+/**
+ * Called from:
+ * - inputdevice_read
+ *   - maybe_read_input
+ * - inputdevice_hsync (vpos = 0)
+ */
 int handle_msgpump (void) {
-    if (g_libamiga_callbacks.event) {
-        // g_libamiga_callbacks.event(hsync_counter);
-        g_libamiga_callbacks.event(vpos);
+    // FIXME: call g_libamiga_callbacks.event from hsync handler instead?
+    static int last_vpos;
+    if (vpos == last_vpos) {
+        uae_log("Ignoring call to handle_msgpump\n");
+    } else {
+        if (g_libamiga_callbacks.event) {
+            // g_libamiga_callbacks.event(hsync_counter);
+            g_libamiga_callbacks.event(vpos);
+        }
+        last_vpos = vpos;
     }
 #ifdef WINDOWS
     // this message queue is used to dispatch messages for bsdsocket emulation

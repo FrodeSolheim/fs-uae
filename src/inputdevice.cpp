@@ -3280,17 +3280,19 @@ static void maybe_read_input(void)
 		// read / played back on same vpos as when it was recorded.
 	//	cnt = 0;
 	//}
-		if ((vpos & 63) == 63 ) {
-			inputdevice_read();
-		}
+		// if ((vpos & 63) == 63 ) {		
+	if (inputread >= 0 && vpos == inputread) {
+		return;
+	}
+		// }
 		// also effectively disable inputdelay here, don't seem to be essential,
 		// and it easier (for deterministic behavior) to leave it out.
 #else
 	if (inputread >= 0 && (vpos - inputread) <= maxvpos_display / 3)
 		return;
+#endif
 	inputread = vpos;
 	inputdevice_read();
-#endif
 }
 
 static uae_u16 getjoystate (int joy)

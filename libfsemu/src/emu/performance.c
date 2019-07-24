@@ -2,7 +2,7 @@
 #include "config.h"
 #endif
 
-#define FSE_INTERNAL_API
+#define FSEMU_INTERNAL
 #include <fsemu/performance.h>
 
 #include <fs/emu/path.h>

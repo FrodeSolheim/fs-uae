@@ -158,7 +158,15 @@ AC_SUBST([CARBON_LIBS])
 AS_CASE([$host_os],
 [darwin*], [
 	AC_MSG_NOTICE([Using Carbon.framework])
-	CARBON_LIBS="-framework Carbon"
+	CARBON_LIBS="-framework Carbon -framework Cocoa"
+])
+
+AC_ARG_WITH(alsa, AS_HELP_STRING(
+    [--with-alsa], [use ALSA library]))
+AS_IF([test "x$with_alsa" = xyes], [
+    PKG_CHECK_MODULES([ALSA], [alsa])
+    AC_DEFINE([WITH_ALSA], [1], [Define to 1 to use ALSA])
+    AC_DEFINE([FSEMU_ALSA], [1], [Define to 1 to use ALSA])
 ])
 
 AC_ARG_WITH(cef, AS_HELP_STRING(
@@ -291,6 +299,8 @@ AC_DEFINE([USE_SDL2], [1], [Define to 1 to use SDL 2.0])
 PKG_CHECK_MODULES([SDL2], [sdl2])
 AC_DEFINE([USE_SDL_VIDEO], [1], [Define to 1 to use SDL for video])
 AC_DEFINE([USE_SDL_INPUT], [1], [Define to 1 to use SDL for input])
+
+PKG_CHECK_MODULES([SDL2_TTF], [SDL2_ttf])
 
 AS_CASE([$host_os],
 [mingw*], [],
@@ -706,6 +716,8 @@ REQ_FEATURE([FPUEMU], [fpuemu], [fpuemu],
             [FPU emulation])
 DIS_FEATURE([FSE_DRIVERS], [drivers], [drivers],
             [multiple driver backends (experimental)])
+REQ_FEATURE([FSEMU], [fsemu], [fsemu],
+            [new FSEMU backend (experimental)])
 OPT_FEATURE([GFXBOARD], [gfxboard], [gfxboard],
             [GFX hardware boards])
 
@@ -813,7 +825,7 @@ AC_CONFIG_FILES([
     dist/windows/fs-uae.iss
     dist/windows/Makefile
     libnfd/Makefile
-    src/fs-uae/fs-uae.rc
+    src/fsuae/fs-uae.rc
     Makefile
 ])
 AC_OUTPUT

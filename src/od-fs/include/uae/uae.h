@@ -73,7 +73,7 @@ int amiga_enable_parallel_port(const char *parallel_name);
 void amiga_set_save_image_dir(const char *path);
 void amiga_set_module_ripper_dir(const char *path);
 
-int amiga_set_min_first_line(int line, int ntsc);
+// int amiga_set_min_first_line(int line, int ntsc);
 
 enum {
     AMIGA_FLOPPY_DRIVE_NONE,
@@ -187,6 +187,9 @@ int amiga_set_cd_audio_callback(audio_callback func);
 
 int amiga_set_audio_buffer_size(int size);
 int amiga_set_audio_frequency(int frequency);
+void amiga_set_audio_frequency_adjust(double adjust);
+
+void amiga_flush_audio(void);
 
 int amiga_set_option(const char *option, const char *value);
 

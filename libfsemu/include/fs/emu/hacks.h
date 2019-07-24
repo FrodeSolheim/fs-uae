@@ -1,6 +1,8 @@
 #ifndef FS_EMU_HACKS_H
 #define FS_EMU_HACKS_H
 
+extern int fsemu;
+
 /* These variables should ideally be hidden, and a proper API designed
  * instead. */
 

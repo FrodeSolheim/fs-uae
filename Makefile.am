@@ -5,6 +5,7 @@ SUBDIRS =
 WARNINGS =
 
 CM_CFLAGS =
+CM_CFLAGS += @ALSA_CFLAGS@
 CM_CFLAGS += @FREETYPE_CFLAGS@
 CM_CFLAGS += @GLEW_CFLAGS@
 CM_CFLAGS += @GLIB_CFLAGS@
@@ -17,6 +18,7 @@ CM_CFLAGS += @OPENGL_CFLAGS@
 CM_CFLAGS += @PNG_CFLAGS@
 CM_CFLAGS += @QT_CFLAGS@
 CM_CFLAGS += @SDL2_CFLAGS@
+CM_CFLAGS += @SDL2_TTF_CFLAGS@
 # CM_CFLAGS += @X11_CFLAGS@
 CM_CFLAGS += @ZLIB_CFLAGS@
 CM_CFLAGS += $(WARNINGS)
@@ -49,6 +51,7 @@ AM_CPPFLAGS =
 AM_CPPFLAGS += @OS_CPPFLAGS@
 AM_CPPFLAGS += -DUAE -DFSUAE
 
+LIBS += @ALSA_LIBS@
 LIBS += @CARBON_LIBS@
 LIBS += @FREETYPE_LIBS@
 LIBS += @GLEW_LIBS@
@@ -62,6 +65,7 @@ LIBS += @OPENGL_LIBS@
 LIBS += @PNG_LIBS@
 LIBS += @QT_LIBS@
 LIBS += @SDL2_LIBS@
+LIBS += @SDL2_TTF_LIBS@
 LIBS += @X11_LIBS@
 LIBS += @ZLIB_LIBS@
 
@@ -122,42 +126,40 @@ nodist_fs_uae_SOURCES =
 
 fs_uae_SOURCES = \
         gamemode/lib/gamemode_client.h \
-        src/fs-uae/config.c \
-	src/fs-uae/config-accelerator.c \
-	src/fs-uae/config-accelerator.h \
-	src/fs-uae/config-common.c \
-	src/fs-uae/config-common.h \
-	src/fs-uae/config-drives.c \
-	src/fs-uae/config-drives.h \
-	src/fs-uae/config-graphics.c \
-	src/fs-uae/config-graphics.h \
-	src/fs-uae/config-hardware.c \
-	src/fs-uae/config-hardware.h \
-	src/fs-uae/config-model.c \
-	src/fs-uae/config-model.h \
-	src/fs-uae/config-paths.c \
-	src/fs-uae/config-sound.c \
-	src/fs-uae/config-sound.h \
-	src/fs-uae/fs-uae.h \
-	src/fs-uae/input.c \
-	src/fs-uae/joystick.c \
-	src/fs-uae/keyboard.c \
-	src/fs-uae/main.c \
-	src/fs-uae/menu.c \
-	src/fs-uae/mouse.c \
-	src/fs-uae/options.h \
-	src/fs-uae/paths.c \
-	src/fs-uae/paths.h \
-	src/fs-uae/plugins.c \
-	src/fs-uae/plugins.h \
-	src/fs-uae/recording.c \
-	src/fs-uae/recording.h \
-	src/fs-uae/uae_config.c \
-	src/fs-uae/video.c
+	src/fsuae/fsuae-accelerator.c \
+	src/fsuae/fsuae-accelerator.h \
+	src/fsuae/fsuae-config.c \
+	src/fsuae/fsuae-config.h \
+	src/fsuae/fsuae-drives.c \
+	src/fsuae/fsuae-drives.h \
+	src/fsuae/fsuae-graphics.c \
+	src/fsuae/fsuae-graphics.h \
+	src/fsuae/fsuae-hardware.c \
+	src/fsuae/fsuae-hardware.h \
+	src/fsuae/fsuae-model.c \
+	src/fsuae/fsuae-model.h \
+	src/fsuae/fsuae-sound.c \
+	src/fsuae/fsuae-sound.h \
+	src/fsuae/fsuae-fs-uae.h \
+	src/fsuae/fsuae-input.c \
+	src/fsuae/fsuae-joystick.c \
+	src/fsuae/fsuae-keyboard.c \
+	src/fsuae/fsuae-main.c \
+	src/fsuae/fsuae-menu.c \
+	src/fsuae/fsuae-mouse.c \
+	src/fsuae/fsuae.options.h \
+	src/fsuae/fsuae-paths.c \
+	src/fsuae/fsuae-paths.h \
+	src/fsuae/fsuae-plugins.c \
+	src/fsuae/fsuae-plugins.h \
+	src/fsuae/fsuae-recording.c \
+	src/fsuae/fsuae-recording.h \
+	src/fsuae/uae_config.c \
+	src/fsuae/fsuae-video.c
 
 
 if WINDOWS
-nodist_fs_uae_SOURCES += src/fs-uae/fs-uae.rc
+nodist_fs_uae_SOURCES += src/fsuae/fs-uae.rc
 .rc.o:
 	windres $< -o $@ -I$(s)
 endif
@@ -165,8 +167,7 @@ endif
 fs_uae_LDADD =
 
 fs_uae_device_helper_SOURCES = \
-	src/fs-uae/device-helper.c \
-	src/fs-uae/paths.c
+	src/fsuae/fsuae-device-helper.c
 
 fs_uae_device_helper_LDADD =
 
@@ -463,7 +464,6 @@ libuae_a_SOURCES = \
 	src/od-fs/ahidsound.h \
 	src/od-fs/ahidsound_new.cpp \
 	src/od-fs/ahidsound_new.h \
-	src/od-fs/audio.cpp \
 	src/od-fs/blkdev-linux.cpp \
 	src/od-fs/bsdsocket_posix.cpp \
 	src/od-fs/callbacks.h \
@@ -507,6 +507,7 @@ libuae_a_SOURCES = \
 	src/od-fs/paths.cpp \
 	src/od-fs/roms.cpp \
 	src/od-fs/sleep.h \
+	src/od-fs/sound_fs.cpp \
 	src/od-fs/spin.cpp \
 	src/od-fs/sounddep/sound.h \
 	src/od-fs/statusline.cpp \
@@ -519,7 +520,7 @@ libuae_a_SOURCES = \
 	src/od-fs/threading.cpp \
 	src/od-fs/uae_host.cpp \
 	src/od-fs/uaemisc.cpp \
-	src/od-fs/video.cpp \
+	src/od-fs/video_fs.cpp \
 	src/od-fs/videograb_fs.cpp \
 	src/od-fs/vpar.cpp \
 	src/od-fs/vpar.h \
@@ -672,7 +673,6 @@ libfsemu_a_SOURCES = \
 	libfsemu/include/fs/emu/audio.h \
 	libfsemu/include/fs/emu/benchmark.h \
 	libfsemu/include/fs/emu/buffer.h \
-	libfsemu/include/fs/emu/cef.h \
 	libfsemu/include/fs/emu/dialog.h \
 	libfsemu/include/fs/emu/hacks.h \
 	libfsemu/include/fs/emu/log.h \
@@ -713,7 +713,6 @@ libfsemu_a_SOURCES = \
 	libfsemu/src/data.c \
 	libfsemu/src/emu/actions.c \
 	libfsemu/src/emu/audio.h \
-	libfsemu/src/emu/cef.cpp \
 	libfsemu/src/emu/dialog.c \
 	libfsemu/src/emu/dialog.h \
 	libfsemu/src/emu/emu.c \
@@ -791,6 +790,15 @@ libfsemu_a_SOURCES = \
 	libfsemu/src/video/sdl-video-software.c \
 	libfsemu/src/video/video.c \
 	libfsemu/src/video/video-buffer.c
+
+if FSEMU
+noinst_LIBRARIES += libfsemu2.a
+# AM_CPPFLAGS += -I$(s)/libfsemu/include
+fs_uae_LDADD += libfsemu2.a
+# fs_uae_device_helper_LDADD += libfsemu2.a
+libfsemu2_a_SOURCES = \
+	src/fsemu/fsemu-all.c
+endif
 
 if BUILTIN_CEF
 AM_CPPFLAGS += -I$(s)/cef
@@ -1139,7 +1147,7 @@ liblua_a_SOURCES = \
 	lua/src/lzio.c \
 	lua/src/lzio.h
 fs_uae_SOURCES += \
-	src/fs-uae/luascript.c \
+	src/fsuae/fsuae-luascript.c \
 	src/luascript.cpp
 libfsemu_a_SOURCES += \
 	libfsemu/src/emu/emu_lua.c
@@ -1447,7 +1455,7 @@ EXTRA_DIST = $(TESTS) $(EXTRA_TESTS) \
 	po \
 	src/aks.def \
 	src/filesys_bootrom.cpp \
-	src/fs-uae/fs-uae.rc.in \
+	src/fsuae/fs-uae.rc.in \
 	src/inputevents.def \
 	src/jit/codegen_x86.cpp \
 	src/jit/compemu_midfunc_x86.cpp \

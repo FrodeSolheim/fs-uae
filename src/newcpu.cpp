@@ -64,6 +64,11 @@ static int _tclen(const char *s) {
 /* Need to have these somewhere */
 bool check_prefs_changed_comp (bool checkonly) { return false; }
 #endif
+
+#ifdef FSUAE // NL
+#include <fs/emu/hacks.h>
+#endif
+
 /* For faster JIT cycles handling */
 uae_s32 pissoff = 0;
 
@@ -1968,6 +1973,9 @@ static void update_68k_cycles (void)
 		if (currprefs.cpu_model >= 68040)
 			cpucycleunit /= 2;
 	} else if (currprefs.cpu_frequency) {
+#ifdef FSUAE
+		// FIXME: overflow when calculating CYCLE_UNIT * baseclock ?
+#endif
 		cpucycleunit = CYCLE_UNIT * baseclock / currprefs.cpu_frequency;
 	} else if (currprefs.cpu_memory_cycle_exact && currprefs.cpu_clock_multiplier == 0) {
 		if (currprefs.cpu_model >= 68040) {
@@ -4587,6 +4595,11 @@ void safe_interrupt_set(int num, int id, bool i6)
 
 int cpu_sleep_millis(int ms)
 {
+#ifdef FSUAE
+	if (fsemu) {
+		printf("cpu_sleep_millis %d\n", ms);
+	}
+#endif
 	int ret = 0;
 #ifdef WITH_PPC
 	int state = ppc_state;

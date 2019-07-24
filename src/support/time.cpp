@@ -5,6 +5,24 @@
 #include "events.h"
 #include "uae.h"
 
+#if defined(USE_GLIB)
+
+#include <glib.h>
+
+static gint64 epoch;
+
+uae_time_t uae_time(void)
+{
+	return (uae_time_t) g_get_monotonic_time();
+}
+
+void uae_time_calibrate(void)
+{
+
+}
+
+#else
+
 #ifdef _WIN32
 
 #include <process.h>
@@ -163,21 +181,7 @@ void uae_time_use_rdtsc(bool enable)
 	userdtsc = enable;
 }
 
-#elif defined(USE_GLIB)
-
-#include <glib.h>
-
-static gint64 epoch;
-
-uae_time_t uae_time(void)
-{
-	return (uae_time_t) g_get_monotonic_time();
-}
-
-void uae_time_calibrate(void)
-{
-
-}
+#endif // _WIN32
 
 #endif
 

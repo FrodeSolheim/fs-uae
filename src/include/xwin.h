@@ -55,7 +55,7 @@ extern void flush_line(struct vidbuffer*, int);
 extern void flush_block(struct vidbuffer*, int, int);
 extern void flush_screen(struct vidbuffer*, int, int);
 extern void flush_clear_screen(struct vidbuffer*);
-extern bool render_screen(int monid, int, bool);
+extern bool render_screen(int monid, int mode, bool immediate);
 extern void show_screen(int monid, int mode);
 extern bool show_screen_maybe(int monid, bool);
 

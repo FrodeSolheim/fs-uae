@@ -1,6 +1,6 @@
-# Notes for macOS Users
+# Notes for macOS users
 
-## Fullscreen Spaces
+## Fullscreen spaces
 
 Fullscreen mode does not use an OS X fullscreen spaces by default, but you
 can enable this with the following environment variable:

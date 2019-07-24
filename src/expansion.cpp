@@ -6485,8 +6485,7 @@ const struct cpuboardtype cpuboards[] = {
 	}
 };
 
-const struct memoryboardtype memoryboards[]
-{
+const struct memoryboardtype memoryboards[] = {
 	// z2
 	{
 		_T("UAE"), _T("0xf00000 RAM"),

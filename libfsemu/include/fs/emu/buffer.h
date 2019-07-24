@@ -23,7 +23,7 @@ void fs_emu_buffer_configure(int width, int height);
 fs_emu_buffer *fs_emu_buffer_get(void);
 void fs_emu_buffer_finish(fs_emu_buffer *buffer);
 
-#ifdef FSE_INTERNAL_API
+#ifdef FSEMU_INTERNAL
 
 void fs_emu_buffer_init(void);
 
@@ -39,7 +39,7 @@ void fs_emu_buffer_unlock(void);
 
 int fs_emu_buffer_wait(int number, int timeout);
 
-#endif /* FSE_INTERNAL_API */
+#endif /* FSEMU_INTERNAL */
 
 /* Old functions */
 

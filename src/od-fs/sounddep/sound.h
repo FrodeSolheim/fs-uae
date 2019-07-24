@@ -7,7 +7,9 @@
   */
 
 #define SOUNDSTUFF 1
-#define AUDIO_NAME "sdl"
+
+#include "fsemu/fsemu-audio-buffer.h"
+#define AUDIO_NAME "fsuae"
 
 extern uae_u16 paula_sndbuffer[];
 extern uae_u16 *paula_sndbufpt;
@@ -38,14 +40,26 @@ extern void master_sound_volume (int);
 
 STATIC_INLINE void set_sound_buffers (void)
 {
+#ifdef FSEMU_XXX
+    paula_sndbufpt = (uae_u16 *) fsemu_audio_buffer.write;
+#else
 #if SOUNDSTUFF > 1
     paula_sndbufpt_prev = paula_sndbufpt_start;
     paula_sndbufpt_start = paula_sndbufpt;
+#endif
 #endif
 }
 
 STATIC_INLINE void check_sound_buffers (void)
 {
+#ifdef FSEMU_XXX
+    if ((uint8_t *) paula_sndbufpt == (uint8_t *) fsemu_audio_buffer.end) {
+        fsemu_audio_buffer.write = fsemu_audio_buffer;
+    } else {
+        // fsemu_audio_buffer.write = (uint8_t *) paula_sndbufpt;
+    }
+#else
+
 #if SOUNDSTUFF > 1
     int len;
 #endif
@@ -92,27 +106,32 @@ STATIC_INLINE void check_sound_buffers (void)
         }
     }
 #endif
+#endif
 }
 
 STATIC_INLINE void clear_sound_buffers (void)
 {
+#ifdef FSEMU_XXX
+    fsemu_audio_buffer_clear();
+#else
     memset (paula_sndbuffer, 0, paula_sndbufsize);
     paula_sndbufpt = paula_sndbuffer;
+#endif
 }
 
 #define PUT_SOUND_WORD(b) do { *(uae_u16 *)paula_sndbufpt = b; paula_sndbufpt = (uae_u16 *)(((uae_u8 *)paula_sndbufpt) + 2); } while (0)
 #define PUT_SOUND_WORD_LEFT(b) do { if (currprefs.sound_filter) b = filter (b, &sound_filter_state[0]); PUT_SOUND_WORD(b); } while (0)
-#define PUT_SOUND_WORD_RIGHT(b) do { if (currprefs.sound_filter) b = filter (b, &sound_filter_state[1]); PUT_SOUND_WORD(b); } while (0)
-#define PUT_SOUND_WORD_LEFT2(b) do { if (currprefs.sound_filter) b = filter (b, &sound_filter_state[2]); PUT_SOUND_WORD(b); } while (0)
-#define PUT_SOUND_WORD_RIGHT2(b) do { if (currprefs.sound_filter) b = filter (b, &sound_filter_state[3]); PUT_SOUND_WORD(b); } while (0)
+// #define PUT_SOUND_WORD_RIGHT(b) do { if (currprefs.sound_filter) b = filter (b, &sound_filter_state[1]); PUT_SOUND_WORD(b); } while (0)
+// #define PUT_SOUND_WORD_LEFT2(b) do { if (currprefs.sound_filter) b = filter (b, &sound_filter_state[2]); PUT_SOUND_WORD(b); } while (0)
+// #define PUT_SOUND_WORD_RIGHT2(b) do { if (currprefs.sound_filter) b = filter (b, &sound_filter_state[3]); PUT_SOUND_WORD(b); } while (0)
 
 #define PUT_SOUND_WORD_MONO(b) PUT_SOUND_WORD_LEFT(b)
 #define SOUND16_BASE_VAL 0
 #define SOUND8_BASE_VAL 128
 
 #define DEFAULT_SOUND_MAXB 16384
-#define DEFAULT_SOUND_MINB 16384
-#define DEFAULT_SOUND_BITS 16
+// #define DEFAULT_SOUND_MINB 16384
+// #define DEFAULT_SOUND_BITS 16
 #define DEFAULT_SOUND_FREQ 44100
 #define HAVE_STEREO_SUPPORT
 

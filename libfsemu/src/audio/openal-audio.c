@@ -6,7 +6,7 @@
 
 #ifdef WITH_OPENAL
 
-#define FSE_INTERNAL_API
+#define FSEMU_INTERNAL
 #include <fs/emu/audio.h>
 #include <fs/emu/benchmark.h>
 #include <fs/emu.h>

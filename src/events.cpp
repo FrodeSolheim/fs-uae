@@ -64,8 +64,19 @@ void events_schedule (void)
 
 extern int vsync_activeheight;
 
+#ifdef FSUAE
+#include "fsemu/fsemu-frame.h"
+#include "fsemu/fsemu-time.h"
+extern int64_t is_syncline_end64;
+extern int64_t line_started_at;
+extern int64_t line_ended_at;
+#endif
+
 static bool event_check_vsync(void)
 {
+#ifdef FSUAE
+	// uae_log("event_check_vsync is_syncline %d event_wait %d\n", is_syncline, event_wait);
+#endif
 	/* Keep only CPU emulation running while waiting for sync point. */
 	if (is_syncline == -1) {
 
@@ -218,6 +229,38 @@ static bool event_check_vsync(void)
 			}
 		}
 		events_reset_syncline();
+
+#ifdef FSUAE // NL
+	} else if (is_syncline == -99) {
+		int64_t now = fsemu_time_micros();
+
+		if (event_wait) {
+			int64_t v = now - is_syncline_end64;
+			// uae_log("%lld\n", (long long) v);			
+			if (v < 0) {
+#ifdef WITH_PPC
+				if (ppc_state) {
+					uae_ppc_execute_check();
+				}
+#endif
+				if (currprefs.cachesize)
+					pissoff = pissoff_value;
+				else
+					pissoff = pissoff_nojit_value;
+				
+				// fsemu_frame_extra_duration += now - line_ended_at;
+				// line_started_at = now;
+				return true;
+			}
+		}
+
+		// int64_t now = fsemu_time_micros();
+		fsemu_frame_extra_duration += now - line_ended_at;
+		line_started_at = now;
+
+		// uae_log("reset_syncline\n");
+		events_reset_syncline();
+#endif
 
 	} else if (is_syncline < -10) {
 

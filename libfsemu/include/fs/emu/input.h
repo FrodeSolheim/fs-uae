@@ -23,7 +23,9 @@ void fs_emu_input_action_execute(fs_emu_action_id action, int state);
 
 #endif
 
-#ifdef FSE_INTERNAL_API
+#ifdef FSEMU_INTERNAL
+
+#include <SDL.h>
 
 void fse_init_input(void);
 
@@ -36,6 +38,7 @@ void fs_emu_input_sdl_init(void);
 void fs_emu_input_action_init(void);
 
 int fs_ml_event_loop(void);
+void fs_ml_event_loop_iteration(SDL_Event* event);
 
 typedef struct fse_input {
     int (*input_handler)(void);
@@ -43,6 +46,6 @@ typedef struct fse_input {
 
 extern fse_input_t fse_input;
 
-#endif /* FSE_INTERNAL_API */
+#endif /* FSEMU_INTERNAL */
 
 #endif /* FS_EMU_INPUT_H */

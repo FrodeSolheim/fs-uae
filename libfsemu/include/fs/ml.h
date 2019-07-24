@@ -78,6 +78,8 @@ void fs_ml_usleep(int usec);
 void fs_ml_init(void);
 void fs_ml_init_2(void);
 
+void fs_ml_input_init(void);
+
 void fs_ml_stop();
 
 int fs_ml_main_loop(void);

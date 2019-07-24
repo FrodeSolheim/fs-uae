@@ -82,7 +82,7 @@ void fs_emu_set_audio_buffer_frequency(int stream, int frequency);
 double fs_emu_audio_get_measured_avg_buffer_fill(int stream);
 double fs_emu_audio_get_measured_output_frequency();
 
-#if 1 // def FSE_INTERNAL_API
+#if 1 // def FSEMU_INTERNAL
 
 void fse_init_audio(void);
 
@@ -102,6 +102,6 @@ typedef struct fse_audio {
 
 extern fse_audio_t fse_audio;
 
-#endif /* FSE_INTERNAL_API*/
+#endif /* FSEMU_INTERNAL*/
 
 #endif /* FS_EMU_AUDIO_H */

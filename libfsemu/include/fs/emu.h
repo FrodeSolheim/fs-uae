@@ -35,6 +35,9 @@
 extern "C" {
 #endif
 
+// Whether we are using the new fsemu system or not
+extern int fsemu;
+
 #ifdef WITH_LUA
 #include <lauxlib.h>
 lua_State *fs_emu_get_lua_state(void);

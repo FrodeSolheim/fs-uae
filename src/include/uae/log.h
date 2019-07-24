@@ -24,6 +24,10 @@ void UAECALL uae_log(const char *format, ...) UAE_PRINTF_FORMAT(1, 2);
 extern uae_log_function uae_log;
 #endif
 
+#ifdef FSUAE // NL
+void UAECALL uae_log_reset_timestamp(void);
+#endif
+
 #if 0
 void uae_warning(const char *format, ...) UAE_PRINTF_FORMAT(1, 2);
 void uae_error(const char *format, ...) UAE_PRINTF_FORMAT(1, 2);

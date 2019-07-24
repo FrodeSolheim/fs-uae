@@ -12,6 +12,8 @@
 #include "uae/fs.h"
 #include "../od-win32/debug_win32.h"
 
+#include <fs/emu/hacks.h>
+
 #ifndef PICASSO96
 // just to make ncr_scsi compile. it will not work, of course,
 // so do not try to use functions in ncr_scsi
@@ -75,6 +77,10 @@ int target_sleep_nanos(int nanos)
 
 static int sleep_millis2 (int ms, bool main)
 {
+    if (fsemu) {
+        // printf("sleep_millis2 %d (main: %d)\n", ms, main);
+    }
+
     /* FIXME: Check sleep_millis2 against od-win32/win32.cpp implementation. */
     // FIXME: HOW EXACT MUST THE SLEEP BE?
     //printf("sleep_millis %d\n", ms);
@@ -91,15 +97,24 @@ static int sleep_millis2 (int ms, bool main)
 
 int sleep_millis_main (int ms)
 {
+    if (fsemu) {
+        printf("sleep_millis_main %d\n", ms);
+    }
 	return sleep_millis2(ms, true);
 }
 int sleep_millis (int ms)
 {
+    if (fsemu) {
+        // printf("sleep_millis %d\n", ms);
+    }
 	return sleep_millis2(ms, false);
 }
 
 int sleep_millis_amiga(int ms)
 {
+    if (fsemu) {
+        printf("sleep_millis_amiga %d\n", ms);
+    }
 	int ret = sleep_millis_main(ms);
 	return ret;
 }

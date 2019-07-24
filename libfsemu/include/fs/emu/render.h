@@ -50,7 +50,7 @@ void fse_render_image_with_size(int image, int x, int y, int w, int h);
 //        int image, int x, int y, int w, int h, int alpha);
 
 
-#ifdef FSE_INTERNAL_API
+#ifdef FSEMU_INTERNAL
 
 typedef struct fse_render {
     int width;
@@ -66,7 +66,7 @@ typedef struct fse_render {
 
 extern fse_render_t fse_render;
 
-#endif /* FSE_INTERNAL_API */
+#endif /* FSEMU_INTERNAL */
 
 #ifdef __cplusplus
 }

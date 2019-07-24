@@ -69,7 +69,7 @@ static inline int fs_emu_video_texture_format(void)
 
 #endif
 
-#ifdef FSE_INTERNAL_API
+#ifdef FSEMU_INTERNAL
 
 // FIXME: move
 int fs_emu_main_loop(void);
@@ -100,7 +100,7 @@ typedef struct fse_video {
 extern fse_video_t fse_video;
 extern int (*fse_main_loop)(void);
 
-#endif /* FSE_INTERNAL_API */
+#endif /* FSEMU_INTERNAL */
 
 #ifdef __cplusplus
 }

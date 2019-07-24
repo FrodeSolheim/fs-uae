@@ -483,8 +483,7 @@ static uae_u32 REGPARAM2 fb_lget(uaecptr addr)
 	return v;
 }
 
-addrbank generic_fb_bank
-{
+addrbank generic_fb_bank = {
 	fb_lget, fb_wget, fb_bget,
 	fb_lput, fb_wput, fb_bput,
 	default_xlate, default_check, NULL, NULL, _T("FRAMEBUFFER BOARD"),
@@ -492,8 +491,7 @@ addrbank generic_fb_bank
 	ABFLAG_IO, S_READ, S_WRITE
 };
 
-struct gfxboard_func harlequin_func
-{
+struct gfxboard_func harlequin_func = {
 	harlequin_init,
 	harlequin_free,
 	harlequin_reset,

@@ -4,7 +4,7 @@
 
 #ifdef FSE_DRIVERS
 
-#define FSE_INTERNAL_API
+#define FSEMU_INTERNAL
 #include <fs/emu/input.h>
 #include <fs/log.h>
 #include <stdio.h>

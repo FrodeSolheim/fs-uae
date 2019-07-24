@@ -12,6 +12,10 @@ ifeq (${os},linux)
 	make -C build/gmake_linux_zenity nfd config=release_${nfd_arch}
 	@cp -u build/lib/Release/${nfd_arch}/libnfd.a ..
 endif
+ifeq (${os},macos)
+	make -C build/gmake_macosx nfd config=release_${nfd_arch}
+	@cp -p build/lib/Release/${nfd_arch}/libnfd.a ..
+endif
 
 clean:
 	rm -Rf build/bin build/lib build/obj

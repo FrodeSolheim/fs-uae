@@ -2,7 +2,7 @@
 #include "config.h"
 #endif
 
-#define FSE_INTERNAL_API
+#define FSEMU_INTERNAL
 #include <fs/emu.h>
 #include <fs/emu/input.h>
 #include <fs/emu/options.h>
@@ -175,7 +175,7 @@ void fs_emu_set_keyboard_translation(fs_emu_key_translation *keymap)
 void fs_emu_configure_mouse(const char* name, int horiz, int vert, int left,
         int middle, int right, int wheel_axis)
 {
-    fs_log("fs_emu_configure_mouse (device: %s)\n", name);
+    fs_log("[INPUT] fs_emu_configure_mouse (device: %s)\n", name);
 
     fs_ml_input_device device;
     for (int i = 0; i < FS_ML_INPUT_DEVICES_MAX; i++) {
@@ -185,10 +185,10 @@ void fs_emu_configure_mouse(const char* name, int horiz, int vert, int left,
         if (device.name == NULL || (
                 (g_ascii_strcasecmp(device.name, name) != 0) &&
                 (g_ascii_strcasecmp(device.alias, name) != 0))) {
-            fs_log("did not match device #%d (%s)\n", i, device.name);
+            fs_log("[INPUT] did not match device #%d (%s)\n", i, device.name);
             continue;
         }
-        fs_log("matched device #%d\n", i);
+        fs_log("[INPUT] matched device #%d\n", i);
         // if (out_name) {
         //     strncpy(out_name, device.name, out_name_len);
         // }
@@ -777,6 +777,10 @@ int fs_emu_get_input_event()
 
 void fs_emu_queue_input_event_internal(int input_event)
 {
+    if (fsemu) {
+        printf("fs_emu_queue_input_event_internal %d\n", input_event);
+    }
+
     if (input_event == 0) {
         fs_log("WARNING: tried to queue input event 0\n");
         return;
@@ -828,6 +832,10 @@ static bool fs_emu_handle_local_input_event(int input_event)
 
 void fs_emu_queue_input_event(int input_event)
 {
+    if (fsemu) {
+        printf("fs_emu_queue_input_event %d\n", input_event);
+    }
+
     if (fs_emu_handle_local_input_event(input_event))
         return;
 #ifdef WITH_NETPLAY
@@ -1144,7 +1152,7 @@ int fs_emu_configure_joystick(
         const char *name, const char *type, fs_emu_input_mapping *mapping,
         int usage, char *out_name, int out_name_len, bool reuse)
 {
-    fs_log("configure joystick \"%s\" for \"%s\"\n", name, type);
+    fs_log("[INPUT] Configure joystick \"%s\" for \"%s\"\n", name, type);
     if (name == NULL || name[0] == '\0') {
         return 0;
     }
@@ -1226,7 +1234,10 @@ static int process_input_event(fs_ml_event *event)
 {
     int handled = 0;
 
-    //fs_log("process_input_event type %d (%d)\n", event->type, FS_ML_JOYBUTTONDOWN);
+    if (fsemu) {
+        fs_log("process_input_event type %d (%d)\n", event->type, FS_ML_JOYBUTTONDOWN);
+    }
+
     int joystick = event->jbutton.which;
 
     int state = 0;
@@ -1638,6 +1649,11 @@ int fs_emu_mouse_absolute_y = 0;
 
 static int input_function(fs_ml_event *event)
 {
+    if (fsemu) {
+        printf("input_function...\n");
+        g_fs_log_input = 1;
+    }
+
     if (event->type == FS_ML_MOUSEMOTION) {
         if (g_ignore_next_motion) {
             g_ignore_next_motion = 0;
@@ -1757,7 +1773,7 @@ static int input_function(fs_ml_event *event)
 
         int state = event->button.state;
         if (g_fs_log_input) {
-            fs_log(" => mouse button %d, %d\n", event->button.button, state);
+            fs_log(" => input mouse button %d, %d\n", event->button.button, state);
         }
         if (event->button.button == FS_ML_BUTTON_WHEELUP) {
             state = state * 1;

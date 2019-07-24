@@ -973,8 +973,7 @@ void standard_irq_callback(int level)
 	a2410_rethink(data);
 }
 
-struct gfxboard_func a2410_func
-{
+struct gfxboard_func a2410_func = {
 	tms_init,
 	tms_free,
 	tms_reset,

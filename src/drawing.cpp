@@ -2781,6 +2781,22 @@ static void setbplmode(void)
 		bplmode = CMODE_NORMAL;
 }
 
+#ifdef FSUAE // NL
+
+#include <fs/emu/hacks.h>
+
+STATIC_INLINE void do_flush_line (struct vidbuffer *vb, int lineno)
+{
+	if (vb) {
+		if (fsemu) {
+			// printf("- flush_line %d (vpos %d)\n", lineno, vpos);
+		}
+		flush_line(vb, lineno);
+	}
+}
+
+#endif
+
 /* We only save hardware registers during the hardware frame. Now, when
 * drawing the frame, we expand the data into a slightly more useful
 * form. */
@@ -3274,6 +3290,9 @@ static void pfield_draw_line (struct vidbuffer *vb, int lineno, int gfx_ypos, in
 		if (dh == dh_emerg)
 			memcpy (row_map[gfx_ypos], xlinebuffer + linetoscr_x_adjust_pixbytes, vidinfo->drawbuffer.pixbytes * vidinfo->drawbuffer.inwidth);
 
+#ifdef FSUAE
+		do_flush_line(vb, gfx_ypos);
+#endif
 		if (do_double) {
 			if (dh == dh_emerg)
 				memcpy (row_map[follow_ypos], xlinebuffer + linetoscr_x_adjust_pixbytes, vidinfo->drawbuffer.pixbytes * vidinfo->drawbuffer.inwidth);
@@ -3281,6 +3300,9 @@ static void pfield_draw_line (struct vidbuffer *vb, int lineno, int gfx_ypos, in
 				memcpy (row_map[follow_ypos], row_map[gfx_ypos], vidinfo->drawbuffer.pixbytes * vidinfo->drawbuffer.inwidth);
 			if (need_genlock_data)
 				memcpy(row_map_genlock[follow_ypos], row_map_genlock[gfx_ypos], vidinfo->drawbuffer.inwidth);
+#ifdef FSUAE
+			do_flush_line(vb, follow_ypos);
+#endif
 		}
 
 		if (dip_for_drawing->nr_sprites)
@@ -3313,6 +3335,9 @@ static void pfield_draw_line (struct vidbuffer *vb, int lineno, int gfx_ypos, in
 				fill_line_border(lineno);
 			}
 
+#ifdef FSUAE
+			do_flush_line(vb, gfx_ypos);
+#endif
 			if (do_double) {
 				if (dh == dh_buf) {
 					xlinebuffer = row_map[follow_ypos] - linetoscr_x_adjust_pixbytes;
@@ -3321,6 +3346,9 @@ static void pfield_draw_line (struct vidbuffer *vb, int lineno, int gfx_ypos, in
 				}
 				/* If dh == dh_line, do_flush_line will re-use the rendered line
 				* from linemem.  */
+#ifdef FSUAE
+				do_flush_line(vb, follow_ypos);
+#endif
 			}
 			return;
 		}
@@ -3347,6 +3375,9 @@ static void pfield_draw_line (struct vidbuffer *vb, int lineno, int gfx_ypos, in
 
 		if (dh == dh_emerg)
 			memcpy (row_map[gfx_ypos], xlinebuffer + linetoscr_x_adjust_pixbytes, vidinfo->drawbuffer.pixbytes * vidinfo->drawbuffer.inwidth);
+#ifdef FSUAE
+		do_flush_line(vb, gfx_ypos);
+#endif
 		if (do_double) {
 			if (dh == dh_emerg)
 				memcpy (row_map[follow_ypos], xlinebuffer + linetoscr_x_adjust_pixbytes, vidinfo->drawbuffer.pixbytes * vidinfo->drawbuffer.inwidth);
@@ -3354,6 +3385,9 @@ static void pfield_draw_line (struct vidbuffer *vb, int lineno, int gfx_ypos, in
 				memcpy (row_map[follow_ypos], row_map[gfx_ypos], vidinfo->drawbuffer.pixbytes * vidinfo->drawbuffer.inwidth);
 			if (need_genlock_data)
 				memcpy(row_map_genlock[follow_ypos], row_map_genlock[gfx_ypos], vidinfo->drawbuffer.inwidth);
+#ifdef FSUAE
+			do_flush_line(vb, follow_ypos);
+#endif
 		}
 
 	} else {
@@ -3363,6 +3397,9 @@ static void pfield_draw_line (struct vidbuffer *vb, int lineno, int gfx_ypos, in
 		hposblank = 1;
 		fill_line_border(lineno);
 		hposblank = tmp;
+#ifdef FSUAE
+		do_flush_line(vb, gfx_ypos);
+#endif
 
 	}
 }

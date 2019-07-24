@@ -15,6 +15,8 @@
 #endif
 
 #ifdef _WIN32
+#elif defined(__APPLE__)
+#include <libkern/OSByteOrder.h>
 #else
 #include <byteswap.h>
 #endif
@@ -45,6 +47,8 @@ STATIC_INLINE void do_put_mem_quad(uae_u64 *a, uae_u64 v)
 {
 #ifdef _WIN32
 	*a = _byteswap_uint64(v);
+#elif defined(__APPLE__)
+	*a = OSSwapInt64(v);
 #else
 	*a = bswap_64(v);
 #endif

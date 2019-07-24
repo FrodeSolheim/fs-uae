@@ -27,7 +27,6 @@ Version 2.9.11dev:
 * Linux: Warn if running with a CPU governor other than performance.
 * New option governor_warning = 0 to to disable above mentioned warning.
 * Fixed support for multiple mice also on Windows.
->>>>>>> origin/fs-uae-3.0
 
 Version 2.9.9dev:
 

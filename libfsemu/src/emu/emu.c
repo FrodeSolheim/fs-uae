@@ -2,7 +2,7 @@
 #include "config.h"
 #endif
 
-#define FSE_INTERNAL_API
+#define FSEMU_INTERNAL
 #include <fs/emu.h>
 #include <fs/emu/audio.h>
 #include <fs/emu/benchmark.h>
@@ -39,6 +39,8 @@
 #include "netplay.h"
 #include "theme.h"
 #include "video.h"
+
+int fsemu = 0;
 
 char *g_fs_emu_title = NULL;
 char *g_fs_emu_sub_title = NULL;
@@ -342,7 +344,9 @@ void fse_init(int options)
 #endif
 
 #ifdef FSE_DRIVERS
-    fse_init_video();
+    if (options & FS_EMU_INIT_VIDEO) {
+        fse_init_video();
+    }
 #else
     if (options & FS_EMU_INIT_VIDEO) {
         fse_init_video();
@@ -363,6 +367,7 @@ void fse_init(int options)
     fs_ml_set_quit_function(on_quit);
 
     if (options & FS_EMU_INIT_INPUT) {
+        fs_ml_input_init();
         fse_init_input();
     }
     if (options & FS_EMU_INIT_AUDIO) {
@@ -445,6 +450,11 @@ int fs_emu_run(fs_emu_main_function function)
         fse_log("[FSE] Error starting emulation thread\n");
         // FIXME: ERROR MESSAGE HERE
         // FIXME: FATAL
+    }
+
+    if (fsemu) {
+        // Returning early, fsemu no longer runs the main loop
+        return 0;
     }
 
     int result = fse_main_loop();
@@ -534,6 +544,10 @@ static int wait_for_frame_no_netplay(void)
 
 int fs_emu_wait_for_frame(int frame)
 {
+    if (fsemu) {
+        printf("fs_emu_wait_for_frame\n");
+    }
+
     // We flush the performance log once per video frame
     fsemu_performance_flush();
 

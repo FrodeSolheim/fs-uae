@@ -26,7 +26,7 @@
 #include <fs/fs.h>
 #include <fs/log.h>
 #include <fs/ml/opengl.h>
-#define FSE_INTERNAL_API
+#define FSEMU_INTERNAL
 #include <fs/emu/render.h>
 
 #ifdef USE_OPENGL

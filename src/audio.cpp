@@ -24,6 +24,7 @@
 #include "audio.h"
 #include "sounddep/sound.h"
 #include "events.h"
+#include "fpp.h"
 #include "savestate.h"
 #include "driveclick.h"
 #include "zfile.h"
@@ -256,7 +257,7 @@ void audio_sampleripper (int mode)
 				cfgfile_resolve_path_load(name, sizeof(name) / sizeof(TCHAR), type);
 			namesplit (name);
 			_tcscpy (extension, _T("wav"));
-			_stprintf (filename, _T("%s%s%s%03d.%s"), path, name, underline, cnt, extension);
+			_sntprintf (filename, MAX_DPATH, _T("%s%s%s%03d.%s"), path, name, underline, cnt, extension);
 			wavfile = zfile_fopen (filename, _T("wb"), 0);
 			if (wavfile) {
 				int freq = rs->per > 0 ? (currprefs.ntscmode ? 3579545 : 3546895 / rs->per) : 8000;
@@ -1815,8 +1816,6 @@ static int sound_prefs_changed (void)
 		return -1;
 	return 0;
 }
-
-double softfloat_tan(double v);
 
 /* This computes the 1st order low-pass filter term b0.
 * The a1 term is 1.0 - b0. The center frequency marks the -3 dB point. */

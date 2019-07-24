@@ -30,6 +30,7 @@ typedef struct cms_t
         int pos;
 } cms_t;
 
+static
 void cms_update(cms_t *cms)
 {
         for (; cms->pos < sound_pos_global; cms->pos++)
@@ -88,6 +89,7 @@ void cms_update(cms_t *cms)
         }
 }
 
+static
 void cms_get_buffer(int32_t *buffer, int len, void *p)
 {
         cms_t *cms = (cms_t *)p;
@@ -102,6 +104,7 @@ void cms_get_buffer(int32_t *buffer, int len, void *p)
         cms->pos = 0;
 }
 
+static
 void cms_write(uint16_t addr, uint8_t val, void *p)
 {
         cms_t *cms = (cms_t *)p;
@@ -155,6 +158,7 @@ void cms_write(uint16_t addr, uint8_t val, void *p)
         }
 }
 
+static
 uint8_t cms_read(uint16_t addr, void *p)
 {
         cms_t *cms = (cms_t *)p;
@@ -185,6 +189,7 @@ void *cms_init()
         return cms;
 }
 
+static
 void cms_close(void *p)
 {
         cms_t *cms = (cms_t *)p;

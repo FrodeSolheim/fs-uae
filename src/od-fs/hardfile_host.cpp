@@ -743,7 +743,8 @@ int hdf_getnumharddrives (void)
     return num_drives;
 }
 
-TCHAR *hdf_getnameharddrive (int index, int flags, int *sectorsize, int *dangerousdrive)
+#if 0
+TCHAR *hdf_getnameharddrive (int index, int flags, int *sectorsize, int *dangerousdrive, uae_u32 *outflags);
 {
     static char name[512];
     char tmp[32];
@@ -817,3 +818,4 @@ TCHAR *hdf_getnameharddrive (int index, int flags, int *sectorsize, int *dangero
         return uae_drives[index].device_path;
     return uae_drives[index].device_name;
 }
+#endif

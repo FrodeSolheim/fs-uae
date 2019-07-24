@@ -37,6 +37,7 @@ typedef struct mouse_ps2_t
         uint8_t last_data[6];
 } mouse_ps2_t;
 
+static
 void mouse_ps2_write(uint8_t val, void *p)
 {
         mouse_ps2_t *mouse = (mouse_ps2_t *)p;
@@ -228,6 +229,7 @@ void *mouse_intellimouse_init()
         return mouse;
 }
 
+static
 void mouse_ps2_close(void *p)
 {
         mouse_ps2_t *mouse = (mouse_ps2_t *)p;

@@ -134,7 +134,7 @@ void keyboard_at_poll()
 	keyboard_at_poll(NULL);
 }
 
-
+static
 void keyboard_at_adddata(uint8_t val)
 {
         key_ctrl_queue[key_ctrl_queue_end] = val;
@@ -147,6 +147,7 @@ void keyboard_at_adddata(uint8_t val)
         }
 }
 
+static
 void keyboard_at_adddata_keyboard(uint8_t val)
 {
 /*        if (val == 0x1c)
@@ -191,8 +192,6 @@ void keyboard_at_adddata_mouse(uint8_t val)
 //        pclog("keyboard_at : %02X added to mouse queue\n", val);
         return;
 }
-
-uint8_t x86_get_jumpers(void);
 
 void keyboard_at_write(uint16_t port, uint8_t val, void *priv)
 {

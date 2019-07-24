@@ -48,6 +48,7 @@
 #include "native2amiga_api.h"
 #include "ini.h"
 #include "specialmonitors.h"
+#include "ide.h"
 
 #ifdef FSUAE
 #include <uae/fs.h>
@@ -4710,9 +4711,6 @@ static bool parse_geo (const TCHAR *tname, struct uaedev_config_info *uci, struc
 		xfree(out);
 		ret = true;
 	}
-
-	void ata_parse_identity(uae_u8 *out, struct uaedev_config_info *uci, bool *lba, bool *lba48, int *max_multiple);
-	bool ata_get_identity(struct ini_data *ini, uae_u8 *out, bool overwrite);
 
 	uae_u8 ident[512];
 	if (ata_get_identity(ini, ident, true)) {

@@ -3,12 +3,14 @@
 #include "pic.h"
 #include "pit.h"
 #include "video.h"
+#include "x86.h"
 
 extern int output;
 int intclear;
 int keywaiting=0;
 int pic_intpending;
 
+static
 void pic_updatepending()
 {
         if ((pic2.pend&~pic2.mask)&~pic2.mask2)
@@ -40,6 +42,7 @@ void pic_reset()
         pic2.level_sensitive = 0;
 }
 
+static
 void pic_update_mask(uint8_t *mask, uint8_t ins)
 {
         int c;
@@ -74,8 +77,7 @@ static void pic_autoeoi()
         }
 }
 
-void x86_ack_keyboard(void);
-
+static
 void pic_write(uint16_t addr, uint8_t val, void *priv)
 {
         int c;
@@ -174,6 +176,7 @@ void pic_write(uint16_t addr, uint8_t val, void *priv)
         }
 }
 
+static
 uint8_t pic_read(uint16_t addr, void *priv)
 {
         if (addr&1) { /*pclog("Read PIC mask %02X\n",pic.mask);*/ return pic.mask; }
@@ -204,6 +207,7 @@ static void pic2_autoeoi()
         }
 }
 
+static
 void pic2_write(uint16_t addr, uint8_t val, void *priv)
 {
         int c;
@@ -275,6 +279,7 @@ void pic2_write(uint16_t addr, uint8_t val, void *priv)
         }
 }
 
+static
 uint8_t pic2_read(uint16_t addr, void *priv)
 {
         if (addr&1) { /*pclog("Read PIC2 mask %02X %04X:%08X\n",pic2.mask,CS,pc);*/ return pic2.mask; }
@@ -324,6 +329,7 @@ void pic_init_elcrx()
         io_sethandler(0x04d0, 0x0002, pic_elcrx_read, NULL, NULL, pic_elcrx_write, NULL, NULL, NULL);
 }
 
+static
 void clearpic()
 {
         pic.pend=pic.ins=0;

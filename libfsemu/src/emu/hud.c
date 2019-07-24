@@ -23,14 +23,15 @@
 #include "hud.h"
 #include <fs/emu.h>
 #include <fs/emu/options.h>
+#include <fs/emu/render.h>
 #include <fs/emu/video.h>
 #include <fs/conf.h>
 #include <fs/glib.h>
 #include <fs/thread.h>
 #include "libfsemu.h"
-#include "render.h"
 #include "menu.h"
 #include "font.h"
+#include "render.h"
 #include <string.h>
 #include <stdlib.h>
 

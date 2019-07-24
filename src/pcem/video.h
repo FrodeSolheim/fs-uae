@@ -9,12 +9,16 @@ extern BITMAP *screen;
 
 BITMAP *create_bitmap(int w, int h);
 
+#ifndef PCEMGLUE
+
 typedef struct
 {
         uint8_t r, g, b;
 } RGB;
         
 typedef RGB PALETTE[256];
+
+#endif
 
 #define makecol(r, g, b)    ((b) | ((g) << 8) | ((r) << 16))
 #define makecol32(r, g, b)  ((b) | ((g) << 8) | ((r) << 16))

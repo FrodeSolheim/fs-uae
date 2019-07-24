@@ -55,6 +55,7 @@ void opl_init(void (*timer_callback)(void *param, int timer, int64_t period), vo
 	}
 }
 
+static
 void opl_status_update(int nr)
 {
         if (opl[nr].status & (STATUS_TIMER_1 | STATUS_TIMER_2) & opl[nr].status_mask)

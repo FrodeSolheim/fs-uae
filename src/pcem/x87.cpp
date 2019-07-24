@@ -62,6 +62,7 @@ void x87_dumpregs()
         pclog("Status = %04X  Control = %04X  Tag = %04X\n", cpu_state.npxs, cpu_state.npxc, x87_gettag());
 }
 
+static
 void x87_print()
 {
         if (cpu_state.ismmx)

@@ -277,6 +277,8 @@ extern int romlist_count (void);
 extern struct romlist *romlist_getit (void);
 extern int configure_rom (struct uae_prefs *p, const int *rom, int msg);
 
+void dumpromlist(void);
+
 int is_device_rom(struct uae_prefs *p, int romtype, int devnum);
 struct zfile *read_device_rom(struct uae_prefs *p, int romtype, int devnum, int *roms);
 struct romconfig *get_device_romconfig(struct uae_prefs *p, int romtype, int devnum);

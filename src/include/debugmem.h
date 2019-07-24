@@ -30,3 +30,5 @@ bool debugmem_illg(uae_u16);
 extern uae_u32 debugmem_chiplimit;
 extern uae_u32 debugmem_chiphit(uaecptr addr, uae_u32 v, int size);
 extern bool debugmem_extinvalidmem(uaecptr addr, uae_u32 v, int size);
+
+struct zfile *read_executable_rom(struct zfile*, int size, int blocks);

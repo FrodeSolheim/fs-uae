@@ -24,6 +24,7 @@ void serial_reset()
         serial2.fifo_read = serial2.fifo_write = 0;
 }
 
+static
 void serial_update_ints(SERIAL *serial)
 {
         int stat = 0;
@@ -70,6 +71,7 @@ void serial_write_fifo(SERIAL *serial, uint8_t dat)
         }
 }
 
+static
 uint8_t serial_read_fifo(SERIAL *serial)
 {
         if (serial->fifo_read != serial->fifo_write)
@@ -80,6 +82,7 @@ uint8_t serial_read_fifo(SERIAL *serial)
         return serial->dat;
 }
 
+static
 void serial_write(uint16_t addr, uint8_t val, void *p)
 {
         SERIAL *serial = (SERIAL *)p;
@@ -166,6 +169,7 @@ void serial_write(uint16_t addr, uint8_t val, void *p)
         }
 }
 
+static
 uint8_t serial_read(uint16_t addr, void *p)
 {
         SERIAL *serial = (SERIAL *)p;
@@ -234,6 +238,7 @@ uint8_t serial_read(uint16_t addr, void *p)
         return temp;
 }
 
+static
 void serial_recieve_callback(void *p)
 {
         SERIAL *serial = (SERIAL *)p;

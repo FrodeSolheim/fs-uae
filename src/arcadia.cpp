@@ -137,7 +137,7 @@ static int load_rom8 (const TCHAR *xpath, uae_u8 *mem, int extra, const TCHAR *e
 
 	extra &= 3;
 	memset (tmp, 0xff, 131072);
-	_stprintf (path, _T("%s%s%s"), xpath, extra == 3 ? _T("-hi") : (extra == 2 ? _T("hi") : (extra == 1 ? _T("h") : _T(""))), bin);
+	_sntprintf (path, MAX_DPATH, _T("%s%s%s"), xpath, extra == 3 ? _T("-hi") : (extra == 2 ? _T("hi") : (extra == 1 ? _T("h") : _T(""))), bin);
 	if (ext)
 		_tcscat(path, ext);
 	if (exts) {
@@ -152,7 +152,7 @@ static int load_rom8 (const TCHAR *xpath, uae_u8 *mem, int extra, const TCHAR *e
 	if (zfile_fread (tmp, 65536, 1, zf) == 0)
 		goto end;
 	zfile_fclose (zf);
-	_stprintf (path, _T("%s%s%s"), xpath, extra == 3 ? _T("-lo") : (extra == 2 ? _T("lo") : (extra == 1 ? _T("l") : _T(""))), bin);
+	_sntprintf (path, MAX_DPATH, _T("%s%s%s"), xpath, extra == 3 ? _T("-lo") : (extra == 2 ? _T("lo") : (extra == 1 ? _T("l") : _T(""))), bin);
 	if (ext)
 		_tcscat(path, ext);
 	if (exts)
@@ -238,7 +238,7 @@ static int load_roms (struct arcadiarom *rom)
 	i = 0;
 	for (;;) {
 		if (rom->extra & 4)
-			_stprintf (path, _T("%s%d"), xpath, i + 1);
+			_sntprintf (path, MAX_DPATH, _T("%s%d"), xpath, i + 1);
 		else
 			_tcscpy (path, xpath);
 		if (!load_rom8 (path, arbmemory + 2 * 65536 * i + offset, rom->extra, rom->ext, rom->exts && rom->exts[0] ? &rom->exts[i * 2] : NULL)) {
@@ -1293,10 +1293,10 @@ static void cubo_write_pic(uae_u8 v)
 			int offset = cubo_pic_bit_cnt / 8;
 			if (offset < sizeof(cubo_pic_key)) {
 				cubo_pic_key[offset] = cubo_pic_byte;
-				write_log(_T("Cubo PIC received %02x (%d/%d)\n"), cubo_pic_byte, offset, sizeof(cubo_pic_key));
+				write_log(_T("Cubo PIC received %02x (%d/%d)\n"), cubo_pic_byte, offset, (int) sizeof(cubo_pic_key));
 			}
 			if (offset == sizeof(cubo_pic_key) - 1) {
-				write_log(_T("Cubo PIC key in: "), cubo_key);
+				write_log(_T("Cubo PIC key in: "));
 				for (int i = 0; i < 8; i++) {
 					write_log(_T("%02x "), cubo_pic_key[i + 2]);
 				}

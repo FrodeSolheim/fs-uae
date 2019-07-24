@@ -113,6 +113,8 @@ int8_t floatx80_internal_mode = float_round_nearest_even;
  | Functions for storing sign, exponent and significand of extended
  | double-precision floating-point intermediate result for external use.
  *----------------------------------------------------------------------------*/
+
+static
 floatx80 roundSaveFloatx80Internal( int8_t roundingPrecision, flag zSign, int32_t zExp, uint64_t zSig0, uint64_t zSig1, float_status *status )
 {
     int64_t roundIncrement, roundMask, roundBits;
@@ -223,6 +225,7 @@ static void saveFloat32Internal( flag zSign, int16_t zExp, uint32_t zSig, float_
  | double-precision floating-point intermediate result for external use.
  *----------------------------------------------------------------------------*/
 
+static
 void getRoundedFloatInternal( int8_t roundingPrecision, flag *pzSign, int32_t *pzExp, uint64_t *pzSig )
 {
     int64_t roundIncrement, roundMask, roundBits;
@@ -1495,6 +1498,7 @@ precision80:
 #endif
 
 #ifdef SOFTFLOAT_68K // 21-01-2017: Added for Previous
+static
 floatx80 roundSigAndPackFloatx80( int8_t roundingPrecision, flag zSign, int32_t zExp, uint64_t zSig0, uint64_t zSig1, float_status *status )
 {
     int8_t roundingMode;

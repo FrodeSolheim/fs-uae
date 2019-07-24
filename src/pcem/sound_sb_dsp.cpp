@@ -148,8 +148,7 @@ static void recalc_sb16_filter(int playback_freq)
                 low_fir_sb16_coef[n] /= gain;
 }        
 
-
-
+static
 void sb_irq(sb_dsp_t *dsp, int irq8)
 {
 //        pclog("IRQ %i %02X\n",irq8,pic.mask);
@@ -157,6 +156,8 @@ void sb_irq(sb_dsp_t *dsp, int irq8)
         else      dsp->sb_irq16 = 1;
         picint(1 << dsp->sb_irqnum);
 }
+
+static
 void sb_irqc(sb_dsp_t *dsp, int irq8)
 {
         if (irq8) dsp->sb_irq8  = 0;
@@ -164,6 +165,7 @@ void sb_irqc(sb_dsp_t *dsp, int irq8)
         picintc(1 << dsp->sb_irqnum);
 }
 
+static
 void sb_dsp_reset(sb_dsp_t *dsp)
 {
         dsp->sbenable = dsp->sb_enable_i = 0;
@@ -201,6 +203,7 @@ void sb_dsp_reset(sb_dsp_t *dsp)
         #endif
 }
 
+static
 void sb_doreset(sb_dsp_t *dsp)
 {
         int c;
@@ -229,6 +232,7 @@ void sb_dsp_speed_changed(sb_dsp_t *dsp)
                 dsp->sblatchi = (int)(TIMER_USEC * (1000000.0f / (float)(dsp->sb_timei - 256)));
 }
 
+static
 void sb_add_data(sb_dsp_t *dsp, uint8_t v)
 {
         dsp->sb_read_data[dsp->sb_read_wp++] = v;
@@ -239,6 +243,7 @@ void sb_add_data(sb_dsp_t *dsp, uint8_t v)
 #define ADPCM_26 2
 #define ADPCM_2  3
 
+static
 void sb_start_dma(sb_dsp_t *dsp, int dma8, int autoinit, uint8_t format, int len)
 {
         dsp->sb_pausetime = -1;
@@ -274,6 +279,7 @@ void sb_start_dma(sb_dsp_t *dsp, int dma8, int autoinit, uint8_t format, int len
         }
 }
 
+static
 void sb_start_dma_i(sb_dsp_t *dsp, int dma8, int autoinit, uint8_t format, int len)
 {
         if (dma8)
@@ -330,10 +336,13 @@ void sb_start_dma_i(sb_dsp_t *dsp, int dma8, int autoinit, uint8_t format, int l
 
 }
 
+static
 int sb_8_read_dma(sb_dsp_t *dsp)
 {
         return dma_channel_read(dsp->sb_8_dmanum);
 }
+
+static
 void sb_8_write_dma(sb_dsp_t *dsp, uint8_t val)
 {
         dma_channel_write(dsp->sb_8_dmanum, val);
@@ -342,10 +351,14 @@ void sb_8_write_dma(sb_dsp_t *dsp, uint8_t val)
         fwrite(&val,1,1,soundf);
 #endif
 }
+
+static
 int sb_16_read_dma(sb_dsp_t *dsp)
 {
         return dma_channel_read(dsp->sb_16_dmanum);
 }
+
+static
 int sb_16_write_dma(sb_dsp_t *dsp, uint16_t val)
 {
         int ret = dma_channel_write(dsp->sb_16_dmanum, val);
@@ -370,6 +383,8 @@ void sb_dsp_setdma16(sb_dsp_t *dsp, int dma)
 {
         dsp->sb_16_dmanum = dma;
 }
+
+static
 void sb_exec_command(sb_dsp_t *dsp)
 {
         int temp,c;
@@ -672,7 +687,8 @@ void sb_exec_command(sb_dsp_t *dsp)
                 
         }
 }
-        
+
+static
 void sb_write(uint16_t a, uint8_t v, void *priv)
 {
         sb_dsp_t *dsp = (sb_dsp_t *)priv;
@@ -720,6 +736,7 @@ void sb_write(uint16_t a, uint8_t v, void *priv)
         }
 }
 
+static
 uint8_t sb_read(uint16_t a, void *priv)
 {
         sb_dsp_t *dsp = (sb_dsp_t *)priv;

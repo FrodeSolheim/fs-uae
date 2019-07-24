@@ -103,6 +103,7 @@ void opl3_update2(opl_t *opl)
         }
 }
 
+static
 void ym3812_timer_set_0(void *param, int timer, int64_t period)
 {
         opl_t *opl = (opl_t *)param;
@@ -111,6 +112,8 @@ void ym3812_timer_set_0(void *param, int timer, int64_t period)
         if (!opl->timers[0][timer]) opl->timers[0][timer] = 1;
         opl->timers_enable[0][timer] = period ? 1 : 0;
 }
+
+static
 void ym3812_timer_set_1(void *param, int timer, int64_t period)
 {
         opl_t *opl = (opl_t *)param;
@@ -120,6 +123,7 @@ void ym3812_timer_set_1(void *param, int timer, int64_t period)
         opl->timers_enable[1][timer] = period ? 1 : 0;
 }
 
+static
 void ymf262_timer_set(void *param, int timer, int64_t period)
 {
         opl_t *opl = (opl_t *)param;

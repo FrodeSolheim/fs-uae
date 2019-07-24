@@ -733,7 +733,6 @@ static int debugmem_free(uaecptr addr, uae_u32 size)
 	return 0;
 }
 
-
 static uae_u32 REGPARAM2 debugmem_chipmem_lget(uaecptr addr)
 {
 	uae_u32 *m;
@@ -767,6 +766,7 @@ static uae_u32 REGPARAM2 debugmem_chipmem_bget(uaecptr addr)
 	return v;
 }
 
+static
 void REGPARAM2 debugmem_chipmem_lput(uaecptr addr, uae_u32 l)
 {
 	if (addr < debugmem_chiplimit) {
@@ -779,6 +779,7 @@ void REGPARAM2 debugmem_chipmem_lput(uaecptr addr, uae_u32 l)
 	}
 }
 
+static
 void REGPARAM2 debugmem_chipmem_wput(uaecptr addr, uae_u32 w)
 {
 	if (addr < debugmem_chiplimit) {
@@ -791,6 +792,7 @@ void REGPARAM2 debugmem_chipmem_wput(uaecptr addr, uae_u32 w)
 	}
 }
 
+static
 void REGPARAM2 debugmem_chipmem_bput(uaecptr addr, uae_u32 b)
 {
 	if (addr < debugmem_chiplimit) {

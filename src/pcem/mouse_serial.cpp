@@ -4,6 +4,7 @@
 #include "pic.h"
 #include "serial.h"
 #include "timer.h"
+#include "mouse_serial.h"
 
 typedef struct mouse_serial_t
 {
@@ -47,6 +48,7 @@ void mouse_serial_poll(int x, int y, int z, int b, void *p)
         }
 }
 
+static
 void mouse_serial_rcr(struct SERIAL *serial, void *p)
 {
         mouse_serial_t *mouse = (mouse_serial_t *)p;
@@ -55,6 +57,7 @@ void mouse_serial_rcr(struct SERIAL *serial, void *p)
         mouse->mousedelay = 5000 * (1 << TIMER_SHIFT);
 }
         
+static
 void mousecallback(void *p)
 {
         mouse_serial_t *mouse = (mouse_serial_t *)p;
@@ -80,6 +83,7 @@ void *mouse_serial_init()
         return mouse;
 }
 
+static
 void mouse_serial_close(void *p)
 {
         mouse_serial_t *mouse = (mouse_serial_t *)p;

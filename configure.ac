@@ -114,6 +114,18 @@ AX_CHECK_COMPILE_FLAG(-Wmissing-declarations,
 AM_CONDITIONAL([W_MISSING_DECLARATIONS],
 [test x$w_missing_declarations = xyes])
 
+AX_CHECK_COMPILE_FLAG(-Werror=missing-declarations,
+[w_error_missing_declarations=yes],
+[w_error_missing_declarations=no])
+AM_CONDITIONAL([W_ERROR_MISSING_DECLARATIONS],
+[test x$w_error_missing_declarations = xyes])
+
+AX_CHECK_COMPILE_FLAG(-Wno-format-truncation,
+[w_no_format_truncation=yes],
+[w_no_format_truncation=no])
+AM_CONDITIONAL([W_NO_FORMAT_TRUNCATION],
+[test x$w_no_format_truncation = xyes])
+
 AX_CHECK_COMPILE_FLAG(-Waddress,
 [w_address=yes],
 [w_address=no])

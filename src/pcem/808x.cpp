@@ -47,6 +47,8 @@ void writememll(uint32_t seg, uint32_t addr, uint32_t val);
 
 #undef readmemb
 #undef readmemw
+
+static
 uint8_t readmemb(uint32_t a)
 {
         if (a!=(cs+cpu_state.pc)) memcycs+=4;
@@ -54,12 +56,14 @@ uint8_t readmemb(uint32_t a)
         else return *(uint8_t *)(readlookup2[(a) >> 12] + (a));
 }
 
+static
 uint8_t readmembf(uint32_t a)
 {
         if (readlookup2[(a)>>12]==-1) return readmembl(a);
         else return *(uint8_t *)(readlookup2[(a) >> 12] + (a));
 }
 
+static
 uint16_t readmemw(uint32_t s, uint16_t a)
 {
         if (a!=(cs+cpu_state.pc)) memcycs+=(8>>is8086);
@@ -76,21 +80,23 @@ void refreshread() { /*pclog("Refreshread\n"); */FETCHCOMPLETE(); memcycs+=4; }
                     cpu_rm=rmdat&7;                   \
                     if (cpu_mod!=3) fetcheal(); }
 
-void writemembl(uint32_t addr, uint8_t val);
+static
 void writememb(uint32_t a, uint8_t v)
 {
         memcycs+=4;
         if (writelookup2[(a)>>12]==-1) writemembl(a,v);
         else *(uint8_t *)(writelookup2[a >> 12] + a) = v;
 }
-void writememwl(uint32_t seg, uint32_t addr, uint16_t val);
+
+static
 void writememw(uint32_t s, uint32_t a, uint16_t v)
 {
         memcycs+=(8>>is8086);
         if (writelookup2[((s)+(a))>>12]==-1 || (s)==0xFFFFFFFF) writememwl(s,a,v);
         else *(uint16_t *)(writelookup2[(s + a) >> 12] + s + a) = v;
 }
-void writememll(uint32_t seg, uint32_t addr, uint32_t val);
+
+static
 void writememl(uint32_t s, uint32_t a, uint32_t v)
 {
         if (writelookup2[((s)+(a))>>12]==-1 || (s)==0xFFFFFFFF) writememll(s,a,v);
@@ -351,6 +357,7 @@ uint32_t *mod1seg[8];
 
 int slowrm[8];
 
+static
 void makemod1table()
 {
         mod1add[0][0]=&BX; mod1add[0][1]=&BX; mod1add[0][2]=&BP; mod1add[0][3]=&BP;
@@ -444,6 +451,7 @@ static inline void seteaw(uint16_t val)
 uint8_t znptable8[256];
 uint16_t znptable16[65536];
 
+static
 void makeznptable()
 {
         int c,d;
@@ -833,6 +841,8 @@ static void setsbc16(uint16_t a, uint16_t b)
 }
 
 int current_diff = 0;
+
+static
 void clockhardware()
 {
         int diff = cycdiff - cycles - current_diff;
@@ -847,6 +857,7 @@ static int takeint = 0;
 
 int firstrepcycle=1;
 
+static
 void rep(int fv)
 {
         uint8_t temp;

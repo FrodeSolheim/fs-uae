@@ -38,6 +38,8 @@ extern int output;
   GPF is INT 0D*/
 
 FILE *pclogf;
+
+static
 void x86abort(const char *format, ...)
 {
         char buf[256];
@@ -173,18 +175,24 @@ void x86gpf(char *s, uint16_t error)
         cpu_state.abrt = ABRT_GPF;
         abrt_error = error;
 }
+
+static
 void x86ss(char *s, uint16_t error)
 {
 //        pclog("SS %04X\n", error);
         cpu_state.abrt = ABRT_SS;
         abrt_error = error;
 }
+
+static
 void x86ts(char *s, uint16_t error)
 {
 //        pclog("TS %04X\n", error);
         cpu_state.abrt = ABRT_TS;
         abrt_error = error;
 }
+
+static
 void x86np(char *s, uint16_t error)
 {
 //        pclog("NP %04X : %s\n", error, s);
@@ -858,6 +866,7 @@ void loadcsjmp(uint16_t seg, uint32_t oxpc)
         }
 }
 
+static
 void PUSHW(uint16_t v)
 {
 //        if (output==3) pclog("PUSHW %04X to %08X\n",v,ESP-4);
@@ -875,6 +884,8 @@ void PUSHW(uint16_t v)
                 SP-=2;
         }
 }
+
+static
 void PUSHL(uint32_t v)
 {
 //        if (output==3) pclog("PUSHL %08X to %08X\n",v,ESP-4);
@@ -891,6 +902,8 @@ void PUSHL(uint32_t v)
                 SP-=4;
         }
 }
+
+static
 uint16_t POPW()
 {
         uint16_t tempw;
@@ -908,6 +921,8 @@ uint16_t POPW()
         }
         return tempw;
 }
+
+static
 uint32_t POPL()
 {
         uint32_t templ;
@@ -1663,6 +1678,7 @@ void pmoderetf(int is32, uint16_t off)
         }
 }
 
+static
 void restore_stack()
 {
         ss=oldss; _ss.limit=oldsslimit;

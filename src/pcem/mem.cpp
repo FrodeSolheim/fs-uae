@@ -18,6 +18,7 @@
 #include "x86_ops.h"
 #include "codegen.h"
 #include "xi8088.h"
+#include "pcemglue.h"
 
 page_t *pages;
 page_t **page_lookup;
@@ -1036,18 +1037,23 @@ void mem_write_raml(uint32_t addr, uint32_t val, void *priv)
 
 static uint32_t remap_start_addr;
 
+static
 uint8_t mem_read_remapped(uint32_t addr, void *priv)
 {
         addr = 0xA0000 + (addr - remap_start_addr);
         addreadlookup(mem_logical_addr, addr);
         return ram[addr];
 }
+
+static
 uint16_t mem_read_remappedw(uint32_t addr, void *priv)
 {
         addr = 0xA0000 + (addr - remap_start_addr);
         addreadlookup(mem_logical_addr, addr);
         return *(uint16_t *)&ram[addr];
 }
+
+static
 uint32_t mem_read_remappedl(uint32_t addr, void *priv)
 {
         addr = 0xA0000 + (addr - remap_start_addr);
@@ -1055,6 +1061,7 @@ uint32_t mem_read_remappedl(uint32_t addr, void *priv)
         return *(uint32_t *)&ram[addr];
 }
 
+static
 void mem_write_remapped(uint32_t addr, uint8_t val, void *priv)
 {
         uint32_t oldaddr = addr;
@@ -1062,6 +1069,8 @@ void mem_write_remapped(uint32_t addr, uint8_t val, void *priv)
         addwritelookup(mem_logical_addr, addr);
         mem_write_ramb_page(addr, val, &pages[oldaddr >> 12]);
 }
+
+static
 void mem_write_remappedw(uint32_t addr, uint16_t val, void *priv)
 {
         uint32_t oldaddr = addr;
@@ -1069,6 +1078,8 @@ void mem_write_remappedw(uint32_t addr, uint16_t val, void *priv)
         addwritelookup(mem_logical_addr, addr);
         mem_write_ramw_page(addr, val, &pages[oldaddr >> 12]);
 }
+
+static
 void mem_write_remappedl(uint32_t addr, uint32_t val, void *priv)
 {
         uint32_t oldaddr = addr;
@@ -1097,10 +1108,12 @@ uint8_t mem_read_romext(uint32_t addr, void *priv)
 {
         return romext[addr & 0x7fff];
 }
+
 uint16_t mem_read_romextw(uint32_t addr, void *priv)
 {
         return *(uint16_t *)&romext[addr & 0x7fff];
 }
+
 uint32_t mem_read_romextl(uint32_t addr, void *priv)
 {
         return *(uint32_t *)&romext[addr & 0x7fff];

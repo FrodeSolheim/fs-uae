@@ -66,10 +66,14 @@
 #include "pcem/sound_cms.h"
 #include "pcem/mouse.h"
 #include "pcem/mouse_serial.h"
+#include "pcem/io.h"
+#include "pcem/mouse_ps2.h"
+#include "pcem/mouse_serial.h"
+#include "pcem/sound_cms.h"
+#include "pcem/sound_sb.h"
+
 extern int cpu;
 extern int nvrmask;
-void keyboard_at_write(uint16_t port, uint8_t val, void *priv);
-
 
 #define MAX_IO_PORT 0x400
 
@@ -739,6 +743,7 @@ void x86_ack_keyboard(void)
 	set_interrupt(bridges[0], 4);
 }
 
+static
 void x86_clearirq(uint8_t irqnum)
 {
 	struct x86_bridge *xb = bridges[0];
@@ -3502,14 +3507,6 @@ void x86_xt_ide_bios(struct zfile *z, struct romconfig *rc)
 	mem_mapping_add(&bios_mapping[5], addr, 0x4000, mem_read_romext2, mem_read_romextw2, mem_read_romextl2, mem_write_null, mem_write_nullw, mem_write_nulll, xtiderom, MEM_MAPPING_EXTERNAL | MEM_MAPPING_ROM, 0);
 }
 
-void *sb_1_init();
-void *sb_15_init();
-void *sb_2_init();
-void *sb_pro_v1_init();
-void *sb_pro_v2_init();
-void *sb_16_init();
-void *cms_init();
-
 static int x86_global_settings;
 
 int device_get_config_int(char *s)
@@ -3693,9 +3690,6 @@ static void set_vga(struct x86_bridge *xb)
 	}
 }
 
-void mouse_serial_poll(int x, int y, int z, int b, void *p);
-void mouse_ps2_poll(int x, int y, int z, int b, void *p);
-
 void x86_mouse(int port, int x, int y, int z, int b)
 {
 	struct x86_bridge *xb = bridges[0];
@@ -3714,9 +3708,6 @@ void x86_mouse(int port, int x, int y, int z, int b)
 	}
 }
 
-void *mouse_serial_init();
-void *mouse_ps2_init();
-void *mouse_intellimouse_init();
 void serial1_init(uint16_t addr, int irq);
 void serial_reset();
 
@@ -3752,6 +3743,7 @@ static void set_mouse(struct x86_bridge *xb)
 static const uae_u8 a1060_autoconfig[16] = { 0xc4, 0x01, 0x80, 0x00, 0x02, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
 static const uae_u8 a2386_autoconfig[16] = { 0xc4, 0x67, 0x80, 0x00, 0x02, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
 
+static
 bool x86_bridge_init(struct autoconfig_info *aci, uae_u32 romtype, int type)
 {
 	const uae_u8 *ac;

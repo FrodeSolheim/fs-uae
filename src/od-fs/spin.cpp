@@ -2,6 +2,7 @@
 #include "sysdeps.h"
 
 #include "uae.h"
+#include "xwin.h"
 
 static uae_u64 spincount;
 

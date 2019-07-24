@@ -56,6 +56,7 @@ FILE *nvrfopen(char *fn, char *mode)
 }
 #endif
 
+static
 void getnvrtime()
 {
 	time_get(nvrram);
@@ -70,6 +71,7 @@ void nvr_recalc()
         if (rtctime>newrtctime) rtctime=newrtctime;
 }
 
+static
 void nvr_rtc(void *p)
 {
         int c;
@@ -95,6 +97,7 @@ int nvr_update_status = 0;
 
 #define ALARM_DONTCARE	0xc0
 
+static
 int nvr_check_alarm(int nvraddr)
 {
         return (nvrram[nvraddr + 1] == nvrram[nvraddr] || (nvrram[nvraddr + 1] & ALARM_DONTCARE) == ALARM_DONTCARE);
@@ -102,6 +105,7 @@ int nvr_check_alarm(int nvraddr)
 
 int nvr_update_end_count = 0;
 
+static
 void nvr_update_end(void *p)
 {
         if (!(nvrram[RTC_REGB] & RTC_SET))
@@ -136,6 +140,7 @@ void nvr_update_end(void *p)
         nvr_update_end_count = 0;
 }
 
+static
 void nvr_onesec(void *p)
 {
         nvr_onesec_cnt++;
@@ -153,6 +158,7 @@ void nvr_onesec(void *p)
         nvr_onesec_time += (int)(10000 * TIMER_USEC);
 }
 
+static
 void writenvr(uint16_t addr, uint8_t val, void *priv)
 {
         int c, old;
@@ -224,6 +230,7 @@ void writenvr(uint16_t addr, uint8_t val, void *priv)
         }
 }
 
+static
 uint8_t readnvr(uint16_t addr, void *priv)
 {
         uint8_t temp;

@@ -66,6 +66,7 @@ void pit_reset(PIT *pit)
         pit->using_timer[0] = pit->using_timer[1] = pit->using_timer[2] = 1;
 }
 
+static
 void clearpit()
 {
         pit.c[0]=(pit.l[0]<<2);
@@ -147,6 +148,7 @@ static void pit_load(PIT *pit, int t)
 //        pclog("pit_load: t=%i running=%i thit=%i enabled=%i m=%i l=%x c=%g gate=%i\n", t, pit.running[t], pit.thit[t], pit.enabled[t], pit.m[t], pit.l[t], pit.c[t], pit.gate[t]);
 }
 
+static
 void pit_set_gate_no_timer(PIT *pit, int t, int gate)
 {
         int l = pit->l[t] ? pit->l[t] : 0x10000;
@@ -291,6 +293,7 @@ static void pit_over(PIT *pit, int t)
         pit->running[t] = pit->enabled[t] && pit->using_timer[t] && !pit->disabled[t];
 }
 
+static
 int pit_get_timer_0()
 {
         int read = (int)((pit.c[0] + ((1 << TIMER_SHIFT) - 1)) / PITCONST) >> TIMER_SHIFT;
@@ -327,7 +330,8 @@ static int pit_read_timer(PIT *pit, int t)
                 return pit->count[t] + 1;
         return pit->count[t];
 }
-        
+
+static
 void pit_write(uint16_t addr, uint8_t val, void *p)
 {
         PIT *pit = (PIT *)p;
@@ -451,6 +455,7 @@ void pit_write(uint16_t addr, uint8_t val, void *p)
         }
 }
 
+static
 uint8_t pit_read(uint16_t addr, void *p)
 {
         PIT *pit = (PIT *)p;
@@ -508,6 +513,7 @@ uint8_t pit_read(uint16_t addr, void *p)
         return temp;
 }
 
+static
 void pit_timer_over(void *p)
 {
         PIT_nr *pit_nr = (PIT_nr *)p;
@@ -572,6 +578,7 @@ void pit_irq0_timer_pcjr(int new_out, int old_out)
                 picintc(1);
 }
 
+static
 void pit_irq0_ps2(int new_out, int old_out)
 {
         //pclog("pit_irq0_ps2 %i %i\n", new_out, old_out);
@@ -612,6 +619,7 @@ void pit_speaker_timer(int new_out, int old_out)
         ppispeakon = new_out;
 }
 
+static
 void pit_nmi_ps2(int new_out, int old_out)
 {
         nmi = new_out;

@@ -2537,6 +2537,9 @@ static void unmap_linear_vram(CirrusVGAState *s)
 }
 
 /* Compute the memory access functions */
+#ifdef FSUAE
+// FIXME: Put in header
+#endif
 extern void x86_map_lfb(int);
 static void cirrus_update_memory_access(CirrusVGAState *s)
 {

@@ -28,6 +28,7 @@
 #include "ncr9x_scsi.h"
 #include "autoconf.h"
 #include "devices.h"
+#include "x86.h"
 
 #define DEBUG_IDE 0
 #define DEBUG_IDE_GVP 0
@@ -2745,7 +2746,6 @@ void tandem_add_ide_unit(int ch, struct uaedev_config_info *ci, struct romconfig
 
 #ifdef WITH_X86
 
-extern void x86_xt_ide_bios(struct zfile*, struct romconfig*);
 static bool x86_at_hd_init(struct autoconfig_info *aci, int type)
 {
 	static const int parent[] = { ROMTYPE_A1060, ROMTYPE_A2088, ROMTYPE_A2088T, ROMTYPE_A2286, ROMTYPE_A2386, 0 };

@@ -26,6 +26,10 @@
 #include "midi.h"
 #endif
 
+// ibm.h defines a macro printf to redirect to pclog. This interferes
+// with some GNU attributes used when importing UAE config files.
+#undef printf
+
 #include "pcemglue.h"
 
 #include "sysconfig.h"

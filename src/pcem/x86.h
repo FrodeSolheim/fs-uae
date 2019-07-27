@@ -97,7 +97,7 @@ extern int inscounts[256];
 void x86illegal();
 
 void x86seg_reset();
-void x86gpf(char *s, uint16_t error);
+void x86gpf(const char *s, uint16_t error);
 
 extern uint16_t zero;
 

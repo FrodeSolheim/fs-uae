@@ -21,18 +21,23 @@ typedef struct {
     int mavg;
 } fsemu_mavgi_t;
 
-static void fsemu_mavgi_clear(fsemu_mavgi_t *mavg)
+static inline void fsemu_mavgi_clear(fsemu_mavgi_t *mavg)
 {
     mavg->size = 0;
     mavg->offset = 0;
     mavg->mavg = 0;
 }
 
-static int fsemu_mavgi(fsemu_mavgi_t *mavg, int *values, int size, int value)
+static inline int fsemu_mavgi(fsemu_mavgi_t *mavg,
+                              int *values,
+                              int size,
+                              int value)
 {
     if (mavg->size < size) {
         values[mavg->size++] = value;
         mavg->mavg += value;
+        // printf("mavg + %d : %d %d = %d\n", value, mavg->mavg, mavg->size,
+        // mavg->mavg / mavg->size);
     } else {
         mavg->mavg -= values[mavg->offset];
         values[mavg->offset] = value;

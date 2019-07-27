@@ -217,11 +217,15 @@ typedef uae_u32 uaecptr;
 #endif
 #endif
 
+#ifdef FSUAE
+#include "uae/atomic.h"
+#else
 uae_atomic atomic_and(volatile uae_atomic *p, uae_u32 v);
 uae_atomic atomic_or(volatile uae_atomic *p, uae_u32 v);
 uae_atomic atomic_inc(volatile uae_atomic *p);
 uae_atomic atomic_dec(volatile uae_atomic *p);
 uae_u32 atomic_bit_test_and_reset(volatile uae_atomic *p, uae_u32 v);
+#endif
 
 #ifdef HAVE_STRDUP
 #define my_strdup _tcsdup
@@ -592,6 +596,16 @@ extern void xfree (const void*);
 #define NOWARN_UNUSED(x) __attribute__((unused)) x
 #else
 #define NOWARN_UNUSED(x) x
+#endif
+
+#ifdef FSUAE // NL
+#ifdef __cplusplus
+extern "C" {
+#endif
+extern int fsemu;
+#ifdef __cplusplus
+}
+#endif
 #endif
 
 #endif /* UAE_SYSDEPS_H */

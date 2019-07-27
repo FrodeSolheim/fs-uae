@@ -98,6 +98,15 @@ uae_u32 uaesrand (uae_u32 seed)
 
 uae_u32 uaerand (void)
 {
+#if 1
+	static uae_u32 fakerand;
+	if (fakerand == 0) {
+		// Due to performance issues. Replace with lookup table or something.
+		printf("WARNING: Not using random numbers at the moment\n");
+	}
+	fakerand += 1826165701;
+	return fakerand;
+#else
 	int new_seed = g_uae_vsync_counter + vpos;
 	if (old_seed != new_seed) {
 		rand_set_seed (&g_rand_context, new_seed ^ randseed);
@@ -108,6 +117,7 @@ uae_u32 uaerand (void)
 		write_log (_T("rand=%08x\n"), r);
 	}
 	return r;
+#endif
 }
 
 uae_u32 uaerandgetseed (void)

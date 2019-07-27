@@ -80,7 +80,7 @@ static int fsemu_audio_alsa_write(void *buffer, int bytes)
 static void fsemu_audio_alsa_callback(snd_pcm_sframes_t want_frames)
 {
     static int64_t last_time;
-    int64_t now = fsemu_time_micros();
+    int64_t now = fsemu_time_us();
 #if 0
     printf("[FSEMU] Audio buffer: %3d ms (dt %2d ms) want %5d B (%4d frames)\n",
            fsemu_audio_buffer_fill_ms(),

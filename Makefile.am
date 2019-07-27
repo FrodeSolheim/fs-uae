@@ -485,6 +485,7 @@ libuae_a_SOURCES = \
 	src/od-fs/filesys_host.cpp \
 	src/od-fs/fsdb_host.cpp \
 	src/od-fs/fsdb_host.h \
+	src/od-fs/fsvideo.cpp \
 	src/od-fs/gui.cpp \
 	src/od-fs/hardfile_host.cpp \
 	src/od-fs/include/direct3d.h \
@@ -528,7 +529,6 @@ libuae_a_SOURCES = \
 	src/od-fs/threading.cpp \
 	src/od-fs/uae_host.cpp \
 	src/od-fs/uaemisc.cpp \
-	src/od-fs/video_fs.cpp \
 	src/od-fs/videograb_fs.cpp \
 	src/od-fs/vpar.cpp \
 	src/od-fs/vpar.h \

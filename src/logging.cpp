@@ -21,12 +21,11 @@ static int64_t g_timestamp;
 void UAECALL uae_log(const char *format, ...)
 {
 #ifdef FSUAE
-	if (fsemu) {
-		if (g_timestamp) {
-			double diff_ms = (fsemu_time_micros() - g_timestamp) / 1000.0;
-			// write_log("[%4.1f] ", diff_ms);
-			write_log("%03d:%03d[+%5.2f] ", (int) (vsync_counter % 1000), vpos, diff_ms);
-		}
+	if (g_timestamp) {
+		double diff_ms = (fsemu_time_us() - g_timestamp) / 1000.0;
+		write_log("[UAE] %03d:%03d +%5.2f ", (int) (vsync_counter % 1000), vpos, diff_ms);
+	} else {
+		write_log("[UAE] %03d:%03d        ", (int) (vsync_counter % 1000), vpos);
 	}
 #endif
 	/* Redirect UAE_LOG_VA_ARGS_FULL to use write_log instead */
@@ -39,7 +38,7 @@ void UAECALL uae_log(const char *format, ...)
 
 void UAECALL uae_log_reset_timestamp(void)
 {
-	g_timestamp = fsemu_time_micros();
+	g_timestamp = fsemu_time_us();
 }
 
 #endif

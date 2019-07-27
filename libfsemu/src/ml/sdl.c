@@ -209,6 +209,7 @@ void fs_ml_show_cursor(int show, int immediate)
 {
     if (fsemu) {
         printf("[FSEMU] WARNING: fs_ml_show_cursor disabled\n");
+        return;
     }
 
     if (immediate) {

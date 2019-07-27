@@ -91,4 +91,11 @@ extern void getrtgfilterrect2(int monid, RECT *sr, RECT *dr, RECT *zr, int dst_w
 
 #endif /* GFXFILTER */
 
+extern uae_u32 redc[3 * 256], grec[3 * 256], bluc[3 * 256];
+
+extern uae_s32 tyhrgb[65536];
+extern uae_s32 tylrgb[65536];
+extern uae_s32 tcbrgb[65536];
+extern uae_s32 tcrrgb[65536];
+
 #endif /* UAE_GFXFILTER_H */

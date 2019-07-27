@@ -2,6 +2,7 @@
 #include "fsemu/fsemu-perfgui.h"
 
 #include "fsemu/fsemu-audio.h"
+#include "fsemu/fsemu-frame.h"
 #include "fsemu/fsemu-gui.h"
 #include "fsemu/fsemu-image.h"
 #include "fsemu/fsemu-video.h"
@@ -56,15 +57,15 @@ static void fsemu_perfgui_init_items(void)
 {
     fsemu_gui_image(&fsemu_perfgui.audio_item,
                     1920 - 256,
-                    0, // 56,
+                    0,  // 56,
                     256,
-                    1080, // 1024,
+                    1080,  // 1024,
                     &fsemu_perfgui.audio_image);
     fsemu_gui_image(&fsemu_perfgui.video_item,
                     0,
-                    0, // 56,
+                    0,  // 56,
                     256,
-                    1080, // 1024,
+                    1080,  // 1024,
                     &fsemu_perfgui.video_image);
     fsemu_gui_item_set_visible(&fsemu_perfgui.audio_item, true);
     fsemu_gui_item_set_visible(&fsemu_perfgui.video_item, true);
@@ -88,13 +89,8 @@ void fsemu_perfgui_init(void)
     fsemu_perfgui_init_items();
 }
 
-static void fsemu_perfgui_update_audio(void)
+static void fsemu_perfgui_update_audio(int frame)
 {
-    // FIXME: frame counter from frame
-    static int frame_counter = 0;
-    frame_counter += 1;
-    int frame = frame_counter - 1;
-
     fsemu_audio_frame_stats_t stats;
     fsemu_audio_frame_stats(frame, &stats);
     // printf("levels %d (frame %d)\n", stats.buffer_bytes, frame);
@@ -102,8 +98,9 @@ static void fsemu_perfgui_update_audio(void)
     // (128 px = 40 ms)
     int us = fsemu_audio_bytes_to_us(stats.buffer_bytes - stats.recent_bytes);
     int level1 = us * 128 / (40 * 1000);
-    us =  fsemu_audio_bytes_to_us(stats.buffer_bytes);
-    int level2 = us * 128 / (40 * 1000);;
+    us = fsemu_audio_bytes_to_us(stats.buffer_bytes);
+    int level2 = us * 128 / (40 * 1000);
+    ;
     us += fsemu_audio_bytes_to_us(stats.inflight_bytes);
     int level3 = us * 128 / (40 * 1000);
 
@@ -116,7 +113,7 @@ static void fsemu_perfgui_update_audio(void)
         level1_color = FSEMU_RGB(0xff0000);
         level1 = level1 < 2 ? 2 : level1;
     }
-#endif 
+#endif
 
     int y = 2 * (frame % 256);
     uint8_t *row =
@@ -173,13 +170,8 @@ static void fsemu_perfgui_update_audio(void)
     }
 }
 
-static void fsemu_perfgui_update_video(void)
+static void fsemu_perfgui_update_video(int frame)
 {
-    // FIXME: frame counter from frame
-    static int frame_counter = 0;
-    frame_counter += 1;
-    int frame = frame_counter - 1;
-
     fsemu_video_frame_stats_t stats;
     fsemu_video_frame_stats(frame, &stats);
     // printf("levels %d (frame %d)\n", stats.buffer_bytes, frame);
@@ -194,9 +186,9 @@ static void fsemu_perfgui_update_video(void)
     int level1 = us * 128 / (40 * 1000);
     us += stats.emu_us;
     int level2 = us * 128 / (40 * 1000);
-    us += stats.sleep_us;
-    int level3 = us * 128 / (40 * 1000);
     us += stats.extra_us;
+    int level3 = us * 128 / (40 * 1000);
+    us += stats.sleep_us;
     int level4 = us * 128 / (40 * 1000);
     us += stats.other_us;
     int level5 = us * 128 / (40 * 1000);
@@ -208,17 +200,17 @@ static void fsemu_perfgui_update_video(void)
     for (int i = 0; i < 2; i++) {
         for (int x = 0; x < 116; x++) {
             if (x < level1) {
-                ((uint32_t *) row)[x] = FSEMU_RGB(0x202020);
+                ((uint32_t *) row)[x] = FSEMU_RGB(0x202020);  // wait
             } else if (x < level2) {
-                ((uint32_t *) row)[x] = FSEMU_RGB(0xaa2828);
+                ((uint32_t *) row)[x] = FSEMU_RGB(0x288828);  // emu
             } else if (x < level3) {
-                ((uint32_t *) row)[x] = FSEMU_RGB(0x661818);
+                ((uint32_t *) row)[x] = FSEMU_RGB(0x186818);  // extra
             } else if (x < level4) {
-                ((uint32_t *) row)[x] = FSEMU_RGB(0x664428);
+                ((uint32_t *) row)[x] = FSEMU_RGB(0x282828);  // sleep
             } else if (x < level5) {
-                ((uint32_t *) row)[x] = FSEMU_RGB(0x282828);
+                ((uint32_t *) row)[x] = FSEMU_RGB(0x444444);  // other
             } else {
-                ((uint32_t *) row)[x] = FSEMU_RGB(0x0c0c0c);
+                ((uint32_t *) row)[x] = FSEMU_RGB(0x0c0c0c);  // background
             }
         }
         row += fsemu_perfgui.video_image.stride;
@@ -237,6 +229,17 @@ static void fsemu_perfgui_update_video(void)
 
 void fsemu_perfgui_update(void)
 {
-    fsemu_perfgui_update_audio();
-    fsemu_perfgui_update_video();
+    static int next_frame;
+    int frame = fsemu_frame_counter();
+    int f = next_frame;
+    if (frame - f > 256) {
+        f = frame - 256;
+    }
+    // Not inclusive frame is on purpose.
+    while (f < frame) {
+        fsemu_perfgui_update_audio(f);
+        fsemu_perfgui_update_video(f);
+        f += 1;
+    }
+    next_frame = f;
 }

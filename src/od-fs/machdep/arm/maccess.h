@@ -25,6 +25,11 @@ static __inline__ uint8_t do_get_mem_byte(uint8_t *a)
     return *a;
 }
 
+static __inline__ void do_put_mem_quad(uae_u64 *a, uae_u64 v)
+{
+    *a = bswap_64(v);
+}
+
 static __inline__ void do_put_mem_long(uint32_t *a, uint32_t v)
 {
     uint8_t *b = (uint8_t *)a;

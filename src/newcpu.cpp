@@ -6693,10 +6693,15 @@ void m68k_go (int may_quit)
 
 			if (!restored || hsync_counter == 0)
 				savestate_check ();
+#ifdef FSUAE
+#else
 			if (input_record == INPREC_RECORD_START)
 				input_record = INPREC_RECORD_NORMAL;
+#endif
 			statusline_clear();
 		} else {
+#ifdef FSUAE
+#else
 			if (input_record == INPREC_RECORD_START) {
 				input_record = INPREC_RECORD_NORMAL;
 				savestate_init ();
@@ -6704,6 +6709,7 @@ void m68k_go (int may_quit)
 				vsync_counter = 0;
 				savestate_check ();
 			}
+#endif
 		}
 
 		if (changed_prefs.inprecfile[0] && input_record)

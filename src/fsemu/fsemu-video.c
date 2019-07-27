@@ -6,20 +6,24 @@
 #include "fsemu/fsemu-image.h"
 #include "fsemu/fsemu-sdlwindow.h"
 #include "fsemu/fsemu-time.h"
+#include "fsemu/fsemu-types.h"
+#include "fsemu/fsemu-util.h"
 
 #include <glib.h>
 
-#define FSEMU_VIDEO_MAX_FRAME_STATS 128
+#define FSEMU_VIDEO_MAX_FRAME_STATS (1 << 8)  // 256
 
 static struct {
     fsemu_video_frame_stats_t stats[FSEMU_VIDEO_MAX_FRAME_STATS];
+    fsemu_rect_t rect;
+    int ready;
+    int emu_us_avg;
 } fsemu_video;
 
 static GAsyncQueue *fsemu_video_frame_queue;
 static SDL_Renderer *renderer;
 static SDL_Texture *textures[2];
 static int current_texture;
-static int ready;
 
 void fsemu_video_init(int flags)
 {
@@ -29,11 +33,14 @@ void fsemu_video_init(int flags)
 
     fsemu_video_frame_queue = g_async_queue_new();
 
-    renderer = SDL_CreateRenderer(
-        fsemu_sdlwindow_window(), -1, SDL_RENDERER_ACCELERATED);
+    int renderer_flags = SDL_RENDERER_ACCELERATED;
+    // renderer_flags |= SDL_RENDERER_PRESENTVSYNC;
+
+    SDL_Window *window = fsemu_sdlwindow_window();
+    renderer = SDL_CreateRenderer(window, -1, renderer_flags);
     // renderer = SDL_CreateRenderer(fsemu_sdlwindow_window(), -1, 0);
-    printf("[FSEMU] %p\n", fsemu_sdlwindow_window());
-    printf("[FSEMU] %p\n", renderer);
+    fsemu_video_log("%p\n", window);
+    fsemu_video_log("%p\n", renderer);
 
     // SDL_SetRenderDrawColor(renderer, 0x10, 0x10, 0x10, 0xff);
     // SDL_SetRenderDrawColor(renderer, 0x0a, 0x0a, 0x0a, 0xff);
@@ -72,23 +79,85 @@ void fsemu_video_work(int timeout_us)
     if (!frame) {
         return;
     }
-    printf("got frame! (%dx%d)\n", frame->width, frame->height);
+    fsemu_video_log(" ---------------- draw got frame! (%dx%d) partial? %d\n",
+                    frame->width,
+                    frame->height,
+                    frame->partial);
     SDL_Rect rect;
     rect.x = 0;
     rect.y = 0;
     rect.w = frame->width;
     rect.h = frame->height;
     uint8_t *pixels = frame->buffer;
+
     // FIXME: support for partial
     int y = 0;
-    pixels += y * frame->stride;
-    rect.h = rect.h - y;
+
+    static int last_y;
+    // static int last_x;
+    if (frame->partial) {
+        if (frame->partial <= last_y) {
+            y = 0;
+            // last_x = 0;
+        } else {
+            y = last_y;
+        }
+        rect.y = y;
+        rect.h = frame->partial - y;
+        pixels += y * frame->stride;
+
+        // rect.x = last_x;
+        // if (last_x == 0) {
+        //     last_x = 32;
+        // } else {
+        //     last_x = 0;
+        // }
+
+        last_y = frame->partial;
+    }
+
+    // rect.y = y;
+    // rect.h = rect.h - y;
+
+    fsemu_video_log(" draw ___________ y %d -> %d %d %d %d \n",
+                    y,
+                    rect.x,
+                    rect.y,
+                    rect.w,
+                    rect.h);
+
     SDL_UpdateTexture(textures[current_texture], &rect, pixels, frame->stride);
-    ready = true;
+
+#if 1
+    static uint8_t *greenline;
+    if (greenline == NULL) {
+        greenline = (uint8_t *) malloc(2048 * 4);
+        for (int i = 0; i < 2048; i++) {
+            ((int32_t *) greenline)[i] = FSEMU_RGB(0x00ff00);
+        }
+    }
+
+    rect.h = 1;
+    SDL_UpdateTexture(textures[current_texture], &rect, greenline, 2048 * 4);
+#endif
+
+    if (frame->partial > 0 && frame->partial != frame->height) {
+        return;
+    }
+
+    fsemu_video_log(" draw ___________ READY______________ \n");
+
+    // FIXME: Locked access for main/video thread separation?
+    // fsemu_video.rect.x = 0;
+    // fsemu_video.rect.y = 0;
+    fsemu_video.rect.w = frame->width;
+    fsemu_video.rect.h = frame->height;
+
+    fsemu_video.ready = true;
 
     static int64_t last;
-    int64_t now = fsemu_time_micros();
-    printf("%ld\n", (now - last));
+    int64_t now = fsemu_time_us();
+    fsemu_video_log("_______draw _______diff __________ %ld\n", (now - last));
     last = now;
 
     static int framecount;
@@ -97,7 +166,7 @@ void fsemu_video_work(int timeout_us)
     static int64_t framecount_time = 0;
     if (framecount_time == 0) {
         framecount = 0;
-        framecount_time = fsemu_time_micros();
+        framecount_time = fsemu_time_us();
     }
     if (now - framecount_time > 1000000) {
         double fps = framecount * 1000000.0 / (now - framecount_time);
@@ -111,19 +180,19 @@ void fsemu_video_work(int timeout_us)
 
 bool fsemu_video_ready(void)
 {
-    return ready;
+    return fsemu_video.ready;
 }
 
 void fsemu_video_render(void)
 {
-    printf("Render!\n");
+    fsemu_video_log("--- render --- [draw]\n");
     SDL_Rect src;
     src.x = 0;
     src.y = 0;
-    src.w = 752;
-    src.h = 572;
-    src.w = 692;
-    src.h = 540;
+    src.w = fsemu_video.rect.w;
+    src.h = fsemu_video.rect.h;
+    // src.w = 692;
+    // src.h = 540;
 
     fsemu_layout_set_video_size(src.w, src.h);
     fsemu_layout_set_pixel_aspect(((double) src.w / src.h) / (4.0 / 3.0));
@@ -131,13 +200,13 @@ void fsemu_video_render(void)
     SDL_Rect dst;
     fsemu_layout_video_rect(&dst);
     SDL_RenderCopy(renderer, textures[current_texture], &src, &dst);
-    ready = false;
+    fsemu_video.ready = false;
     // SDL_RenderDrawRect(renderer, &dst);
 }
 
 void fsemu_video_display(void)
 {
-    printf("Display!\n");
+    fsemu_video_log("--- display --- [draw]\n");
     // SDL_RenderClear(renderer);
 
     // SDL_SetRenderDrawColor(renderer, 0xff, 0x00, 0x00, 0x00);
@@ -297,7 +366,15 @@ void fsemu_video_render_gui(fsemu_gui_item_t *items)
 static void fsemu_video_update_stats(void)
 {
     static int64_t last;
-    int64_t now = fsemu_time_micros();
+    int64_t now = fsemu_time_us();
+#if 0
+    if (last == 0) {  // if (fsemu_frame_emu_duration > 100000) {
+        fsemu_video_log("FIXME: first timing is off...\n");
+        last = now;
+        return;
+    }
+#endif
+
     fsemu_video_frame_stats_t *stats =
         &fsemu_video
              .stats[fsemu_frame_counter_mod(FSEMU_VIDEO_MAX_FRAME_STATS)];
@@ -309,7 +386,24 @@ static void fsemu_video_update_stats(void)
         stats->other_us = (now - last) - stats->wait_us - stats->emu_us -
                           stats->sleep_us - stats->extra_us;
     }
+
+    static fsemu_mavgi_t emu_us_mavgi;
+    static int emu_us_mavgi_values[FSEMU_VIDEO_MAX_FRAME_STATS];
+    // stats->emu_us_mavg = fsemu_mavgi(
+    //     &emu_us_mavgi, emu_us_mavgi_values, 60, stats->emu_us);
+    fsemu_video.emu_us_avg = fsemu_mavgi(&emu_us_mavgi,
+                                         emu_us_mavgi_values,
+                                         FSEMU_VIDEO_MAX_FRAME_STATS,
+                                         stats->emu_us);
+
     last = now;
+}
+
+// FIXME: Should probably be fsemu_frame_emutime_avg_us
+// FIXME: move
+int fsemu_frame_emutime_avg_us(void)
+{
+    return fsemu_video.emu_us_avg;
 }
 
 void fsemu_video_end_frame(void)

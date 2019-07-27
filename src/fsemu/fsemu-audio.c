@@ -5,6 +5,9 @@
 #include "fsemu/fsemu-frame.h"
 #include "fsemu/fsemu-log.h"
 #ifdef FSEMU_ALSA
+#include "fsemu/fsemu-audio-alsa.h"
+#endif
+#ifdef FSEMU_SDL
 #include "fsemu/fsemu-sdlaudio.h"
 #endif
 #include "fsemu/fsemu-thread.h"
@@ -15,7 +18,7 @@
 // volatile uint8_t *volatile fsemu_audio_buffer.read;
 // volatile uint8_t *volatile fsemu_audio_buffer.write;
 
-#define FSEMU_AUDIO_MAX_FRAME_STATS 128
+#define FSEMU_AUDIO_MAX_FRAME_STATS (1 << 8)  // 256
 
 static struct {
     fsemu_mutex_t *mutex;
@@ -124,7 +127,7 @@ void fsemu_audio_register_data_sent(int size,
 
 void fsemu_audio_log_inflight_estimate(void)
 {
-    int64_t now = fsemu_time_micros();
+    int64_t now = fsemu_time_us();
 
     fsemu_audio_lock();
     int sent_size = fsemu_audio.sent_size;
@@ -151,7 +154,7 @@ static void fsemu_audio_update_stats(void)
     // fsemu_audio_log("Audio: Frame %d\n", number);
     int bufferred = fsemu_audio_buffer_fill();
 
-    int64_t now = fsemu_time_micros();
+    int64_t now = fsemu_time_us();
 
     fsemu_audio_lock();
     int sent_size = fsemu_audio.sent_size;

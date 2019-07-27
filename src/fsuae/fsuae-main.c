@@ -389,11 +389,13 @@ static void event_handler(int line)
     //static int idle = 0;
     //static int64_t last_time = 0;
 
+#if 0
     if (fsemu) {
         amiga_flush_audio();
         // fsemu_audio_end_frame(g_fs_uae_frame);
         fsemu_frame_end();
     }
+#endif
 
     g_fs_uae_frame = g_fs_uae_frame + 1;
 

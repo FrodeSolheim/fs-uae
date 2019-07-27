@@ -167,8 +167,16 @@ void target_quit (void)
     printf("UAE: Stopping\n");
 }
 
-void target_fixup_options (struct uae_prefs *p) {
-    LOG_STUB("");
+// FIXME: No longer a stub
+void target_fixup_options(struct uae_prefs *p)
+{
+    uae_log("target_fixup_options\n");
+    // We set gfx_api here so we can keep some if-statement code similar
+    // to WinUAE (in WinUAE gfx_api non-null means Direct3D, as opposed to
+    // older DirectDraw code). FS-UAE code looks more similar to Direct3D
+    // code.
+    uae_log("Set gfx_api = 1\n");
+    p->gfx_api = 1;
 }
 
 int debuggable (void) {

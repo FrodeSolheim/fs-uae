@@ -15,7 +15,10 @@ typedef struct {
     int partial;  // how much of the height is valid
     double frequency;
     fsemu_rect limits;
+    int flags;
 } fsemu_video_frame_t;
+
+#define FSEMU_FRAME_FLAG_TURBO (1 << 0)
 
 typedef struct {
     int wait_us;

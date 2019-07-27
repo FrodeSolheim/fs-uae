@@ -3,6 +3,7 @@
 
 #ifdef FSEMU_SDL
 
+#include "fsemu/fsemu-frame.h"
 #include "fsemu/fsemu-layout.h"
 #include "fsemu/fsemu-mouse.h"
 #include "fsemu/fsemu-quit.h"
@@ -54,6 +55,17 @@ void fsemu_sdlwindow_update(void)
         // SDL_ShowCursor(want_mouse_captured ? SDL_DISABLE : SDL_ENABLE);
         SDL_SetRelativeMouseMode(want_mouse_captured);
         fsemu_sdlwindow.mouse_captured = want_mouse_captured;
+    }
+
+    static int counter;
+    if (fsemu_frame_counter_mod(50) == 0 && fsemu_frame_emutime_avg_us()) {
+        char title[512];
+        // snprintf(title, 512, "FSEMU [%d us]", fsemu_frame_emutime_avg_us());
+        snprintf(title,
+                 512,
+                 "FSEMU [%d fps max]",
+                 1000000 / fsemu_frame_emutime_avg_us());
+        SDL_SetWindowTitle(fsemu_sdlwindow.window, title);
     }
 }
 

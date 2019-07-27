@@ -45,7 +45,7 @@
     initialized = true;
 
 #define fsemu_init_once(var) \
-    if (*(var)) {              \
+    if (*(var)) {            \
         return;              \
     }                        \
     *(var) = true;

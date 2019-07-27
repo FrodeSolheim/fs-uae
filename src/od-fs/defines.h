@@ -53,18 +53,18 @@ extern FILE *g_fs_uae_sync_debug_file;
 // is needed by code
 
 #define ECS_DENISE
-//#define ENFORCER
+// #define ENFORCER
 #define GFXFILTER
 
 #define MMU
 #define MMUEMU /* Aranym 68040 MMU */
-//#define MULTIDISPLAY 1
+// #define MULTIDISPLAY 1
 #define NATMEM_OFFSET natmem_offset
 #define FULLMMU /* Aranym 68040 MMU */
 #define SUPPORT_THREADS
 #define UAE_FILESYS_THREADS
-//#define UAE_FILESYS_ASYNCHRONOUS
-//#define USE_SDL
+// #define UAE_FILESYS_ASYNCHRONOUS
+// #define USE_SDL
 
 #ifdef LINUX
 #define WITH_SCSI_IOCTL

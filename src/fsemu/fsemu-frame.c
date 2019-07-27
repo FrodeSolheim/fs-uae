@@ -6,11 +6,10 @@
 #include "fsemu/fsemu-util.h"
 #include "fsemu/fsemu-video.h"
 
-#include <inttypes.h>
-
 static struct {
     bool initialized;
-    int64_t counter;
+    // Will not overflow for over a year @60 Hz
+    int counter;
 } fsemu_frame;
 
 int64_t fsemu_frame_begin_at = 0;
@@ -35,11 +34,10 @@ void fsemu_frame_end(void)
 
     // Advance the frame counter after updating stats for the current frame
     fsemu_frame.counter += 1;
-    fsemu_frame_log("Advanced frame counter to %" PRId64 "d\n",
-                    fsemu_frame.counter);
+    fsemu_frame_log("Advanced frame counter to %d\n", fsemu_frame.counter);
 }
 
-int64_t fsemu_frame_counter(void)
+int fsemu_frame_counter(void)
 {
     return fsemu_frame.counter;
 }
@@ -49,12 +47,19 @@ int fsemu_frame_counter_mod(int modulus)
     return fsemu_frame.counter % modulus;
 }
 
-void fsemu_frame_update_timing(double hz)
+// FIXME: WHEN USING TURBO MODE, FRAME STATS GETS CONFUSED / PROBABLY RELATED
+// TO FRAME COUNTER DRIFING AWAY AND RING BUFFER GETTING WRONG POSITION
+
+void fsemu_frame_update_timing(double hz, bool turbo)
 {
     static int64_t target = 0;
-    int64_t now = fsemu_time_micros();
+    int64_t now = fsemu_time_us();
     if (target == 0) {
-        // target = fsemu_time_micros();
+        // target = fsemu_time_us();
+        target = now;
+    }
+    if (turbo) {
+        // Without this, we will get too "far behind" on time.
         target = now;
     }
     target = target + (1000000 / hz);

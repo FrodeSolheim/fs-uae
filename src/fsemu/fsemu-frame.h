@@ -13,11 +13,13 @@ void fsemu_frame_init(void);
 
 void fsemu_frame_end(void);
 
-int64_t fsemu_frame_counter(void);
+int fsemu_frame_counter(void);
 
 int fsemu_frame_counter_mod(int modulus);
 
-void fsemu_frame_update_timing(double hz);
+void fsemu_frame_update_timing(double hz, bool turbo);
+
+int fsemu_frame_emutime_avg_us(void);
 
 extern int64_t fsemu_frame_begin_at;
 extern int64_t fsemu_frame_end_at;

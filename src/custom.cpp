@@ -66,7 +66,10 @@
 extern uae_u16 serper;
 
 #ifdef FSUAE // NL
+#include "uae/fs.h"
+
 #include "fsemu/fsemu-frame.h"
+#include "fsemu/fsemu-quit.h"
 #include "fsemu/fsemu-time.h"
 #include <fs/emu/hacks.h>
 int g_frame_debug_logging = 0;
@@ -76,6 +79,9 @@ int g_frame_debug_logging = 0;
 
 // int g_uae_min_first_line_pal = VBLANK_ENDLINE_PAL;
 // int g_uae_min_first_line_ntsc = VBLANK_ENDLINE_NTSC;
+
+// #define uae_log(...)
+// #define printf(...)
 
 #endif
 
@@ -4690,6 +4696,11 @@ static bool changed_chipset_refresh (void)
 
 void compute_framesync(void)
 {
+#ifdef FSUAE
+#ifdef FSUAE_FRAME_DEBUG
+	printf("compute_framesync [cycles]\n");
+#endif
+#endif
 	struct vidbuf_description *vidinfo = &adisplays[0].gfxvidinfo;
 	struct amigadisplay *ad = &adisplays[0];
 	int islace = interlace_seen ? 1 : 0;
@@ -4869,6 +4880,11 @@ void compute_framesync(void)
 	if (target_graphics_buffer_update(0)) {
 		reset_drawing ();
 	}
+#ifdef FSUAE
+	if (fsemu) {
+		// set_custom_limits(100, 100, 100, 100);
+	}
+#endif
 }
 
 /* set PAL/NTSC or custom timing variables */
@@ -5068,6 +5084,11 @@ static void init_hz (bool checkvposw)
 	hpos_offset = 0;
 	eventtab[ev_hsync].oldcycles = get_cycles ();
 	eventtab[ev_hsync].evtime = get_cycles () + HSYNCTIME;
+#ifdef FSUAE
+#ifdef FSUAE_FRAME_DEBUG
+	printf("init_hz get_cycles() = %ld hsync at %ld\n", get_cycles(), get_cycles () + HSYNCTIME);
+#endif
+#endif
 	events_schedule ();
 	if (hzc) {
 		interlace_seen = islace;
@@ -8009,12 +8030,37 @@ static int mavg (struct mavg_data *md, int newval, int size)
 extern int log_vsync, debug_vsync_min_delay, debug_vsync_forced_delay;
 
 #ifdef FSUAE // NL
-static bool framewait_2 (void)
-#else
-static bool framewait (void)
+static bool framewait_fsuae_old (void);
 #endif
+
+static bool framewait (void)
 {
 	struct amigadisplay *ad = &adisplays[0];
+#ifdef FSUAE
+#ifdef FSUAE_FRAME_DEBUG
+	uae_log("framewait m68k_speed = %d vsynctimebase = %d\n",
+		currprefs.m68k_speed, vsynctimebase);
+#endif
+	if (fsemu) {
+		if (!frame_rendered && !ad->picasso_on) {
+			frame_rendered = render_screen(0, 1, false);
+		}
+		// FIXME: hack: don't show frame if picasso is enabled
+		if (!frame_shown && !ad->picasso_on) {
+	#ifdef DEBUG_SHOW_SCREEN
+			uae_log("framewait -> show_screen(0)\n");
+	#endif
+			show_screen(0, 0);
+			frame_shown = true;
+		}
+
+		return true;
+	}
+
+	if (currprefs.m68k_speed != -1) {
+		return framewait_fsuae_old();
+	}
+#endif
 	frame_time_t curr_time;
 	frame_time_t start;
 	int vs = isvsync_chipset ();
@@ -8195,10 +8241,6 @@ static bool framewait (void)
 		else if (vsynctimeperline > vstb / 3)
 			vsynctimeperline = vstb / 3;
 		
-		if (fsemu) {
-			vsynctimeperline = 0;
-		}
-
 		frame_shown = true;
 
 	}
@@ -8207,17 +8249,22 @@ static bool framewait (void)
 
 #ifdef FSUAE // NL
 
-static bool framewait (void)
+static bool framewait_fsuae_old (void)
 {
 	struct amigadisplay *ad = &adisplays[0];
+#if 0
 	if (fsemu) {
-	uae_log("framewait m68k_speed = %d vsynctimebase = %d\n",
-		currprefs.m68k_speed, vsynctimebase);
+#ifdef FSUAE_FRAME_DEBUG
+		uae_log("framewait m68k_speed = %d vsynctimebase = %d\n",
+			currprefs.m68k_speed, vsynctimebase);
+#endif
+		// return 0;
 	} else {
 		if (currprefs.m68k_speed == -1) {
 			return framewait_2();
 		}
 	}
+#endif
 
     if (!frame_rendered && !ad->picasso_on) {
         frame_rendered = render_screen(0, 1, false);
@@ -8252,11 +8299,6 @@ static bool framewait (void)
 	// If the user has requested to use less time for emulating the frame.
 	if (fs_emu_frame_wait > 0 && !currprefs.turbo_emulation) {
 		cpu_sleep_millis(fs_emu_frame_wait);
-	}
-
-	if (fsemu) {
-		// don't need the rest of the variables
-		return 1;
 	}
 
     //uae_log("%lld\n", vsynctimebase);
@@ -8356,13 +8398,18 @@ static void fpscounter (bool frameok)
 #endif
 }
 
+#ifdef FSUAE
+static int display_slices = 4;
+#endif
+
 // vsync functions that are not hardware timing related
 static void vsync_handler_pre (void)
 {
-	if (fsemu) {
-		uae_log("vsync_handler_pre\n");
-	}
-
+#ifdef FSUAE
+#ifdef FSUAE_FRAME_DEBUG
+	uae_log("vsync_handler_pre [draw] [cycles]\n");
+#endif
+#endif
 	struct amigadisplay *ad = &adisplays[0];
 
 #if 1
@@ -8414,7 +8461,26 @@ static void vsync_handler_pre (void)
 	if (!vsync_rendered) {
 		frame_time_t start, end;
 		start = read_processor_time ();
+#ifdef FSUAE
+		if (fsemu) {
+			// draw_lines(312, 999);
+			// draw_lines(max_ypos_thisframe, 999);
+			if (display_slices > 0) {
+				draw_remaining_lines();
+			}
+			// We may already have drawn lines in linesync_fsemu
+#ifdef FSUAE_FRAME_DEBUG
+			printf("-----\n");
+#endif
+			// vsync_handle_redraw(lof_store, lof_changed, bplcon0, bplcon3, true);
+			// vsync_handle_redraw(lof_store, lof_changed, bplcon0, bplcon3, frame_rendered == false);
+			vsync_handle_redraw(lof_store, lof_changed, bplcon0, bplcon3, display_slices == 0);
+		} else {
+			vsync_handle_redraw(lof_store, lof_changed, bplcon0, bplcon3, isvsync_chipset() >= 0);
+		}
+#else
 		vsync_handle_redraw(lof_store, lof_changed, bplcon0, bplcon3, isvsync_chipset() >= 0);
+#endif
 		vsync_rendered = true;
 		end = read_processor_time ();
 		frameskiptime += end - start;
@@ -8441,15 +8507,23 @@ static void vsync_handler_pre (void)
 		}
 	}
 
+#ifdef FSUAE
+	if (fsemu) {
+		amiga_flush_audio();
+		// fsemu_audio_end_frame(g_fs_uae_frame);
+		fsemu_frame_end();
+	}
+#endif
+
 	// GUI check here, must be after frame rendering
 	devices_vsync_pre();
 
 	fpscounter (frameok);
 
 #ifdef FSUAE
-	if (fsemu) {
-		uae_log("calling handle_events\n");
-	}
+#ifdef FSUAE_FRAME_DEBUG
+	uae_log("calling handle_events\n");
+#endif
 #endif
 	bool waspaused = false;
 	while (handle_events()) {
@@ -8467,9 +8541,9 @@ static void vsync_handler_pre (void)
 		config_check_vsync();
 	}
 #ifdef FSUAE
-	if (fsemu) {
-		uae_log("after handle_events\n");
-	}
+#ifdef FSUAE_FRAME_DEBUG
+	uae_log("after handle_events\n");
+#endif
 #endif
 
 	if (quit_program > 0) {
@@ -8492,10 +8566,12 @@ static void vsync_handler_pre (void)
 	//checklacecount (bplcon0_interlace_seen || lof_lace);
 #ifdef FSUAE
 	if (fsemu) {
-		printf("\n");
+		// FIXME: MOVE to linesync ?
 		uae_log_reset_timestamp();
-		uae_log("[%6ld] vsync_handler_pre done\n", vsync_counter);
 	}
+#ifdef FSUAE_FRAME_DEBUG
+	uae_log("[%6ld] vsync_handler_pre done\n", vsync_counter);
+#endif
 #endif
 }
 
@@ -8503,10 +8579,10 @@ static void vsync_handler_pre (void)
 static void vsync_handler_post (void)
 {
 #ifdef FSUAE
-	if (fsemu) {
-		uae_log("[%6ld] vsync_handler_post [gfx_vsync %d]\n",
-			vsync_counter, currprefs.gfx_apmode[0].gfx_vsync);
-	}
+#ifdef FSUAE_FRAME_DEBUG
+	uae_log("[%6ld] vsync_handler_post [draw] [cycles] [gfx_vsync %d]\n",
+	        vsync_counter, currprefs.gfx_apmode[0].gfx_vsync);
+#endif
 #if 0
     if (g_frame_debug_logging) {
         write_log("%6d  vsync_handler_post  %08x\n", vsync_counter,
@@ -8530,9 +8606,9 @@ static void vsync_handler_post (void)
 	prevtime = read_processor_time ();
 
 #ifdef FSUAE
-	if (fsemu) {
-		uae_log("a\n");
-	}
+#ifdef FSUAE_FRAME_DEBUG
+	uae_log("a\n");
+#endif
 #endif
 
 #if CUSTOM_DEBUG > 1
@@ -8644,8 +8720,10 @@ static void vsync_handler_post (void)
 
 #ifdef FSUAE
 	if (fsemu) {
+#ifdef FSUAE_FRAME_DEBUG
 		uae_log("vblank_hz = %0.2f\n", vblank_hz);
-		fsemu_frame_update_timing(vblank_hz);
+#endif
+		fsemu_frame_update_timing(vblank_hz, currprefs.turbo_emulation);
 	}
 #endif
 
@@ -8662,9 +8740,9 @@ static void vsync_handler_post (void)
 	vsync_cycles = get_cycles ();
 
 #ifdef FSUAE
-	if (fsemu) {
-		uae_log("[%6ld] vsync_handler_post done\n", vsync_counter);
-	}
+#ifdef FSUAE_FRAME_DEBUG
+	uae_log("[%6ld] vsync_handler_post done\n", vsync_counter);
+#endif
 #endif
 }
 
@@ -8922,6 +9000,11 @@ static bool do_display_slice(void)
 
 static void set_hpos (void)
 {
+#ifdef FSUAE
+#ifdef FSUAE_FRAME_DEBUG
+	printf("set_hpos get_cycles() = %ld hsync at %ld\n", get_cycles(), get_cycles () + HSYNCTIME);
+#endif
+#endif
 	maxhpos = maxhpos_short + lol;
 	hpos_offset = 0;
 	eventtab[ev_hsync].evtime = get_cycles () + HSYNCTIME;
@@ -8932,13 +9015,14 @@ static void set_hpos (void)
 static void hsync_handler_pre (bool onvsync)
 {
 	int hpos = current_hpos ();
-	if (fsemu) {
-		if (vpos == 0 || vpos == maxvpos / 2 || onvsync) {
-			uae_log("hsync_handler_pre  %d (hpos %d) %s\n", 
-			        vpos, hpos, onvsync ? " VSYNC" : "");
-		}
+#ifdef FSUAE
+#ifdef FSUAE_FRAME_DEBUG
+	if (true || vpos == 0 || vpos == maxvpos / 2 || onvsync) {
+		uae_log("hsync_handler_pre [cycles %ld] vpos %d (hpos %d) %s\n", 
+				get_cycles(), vpos, hpos, onvsync ? " VSYNC" : "");
 	}
-
+#endif
+#endif
 	if (!nocustom ()) {
 		sync_copper_with_cpu (maxhpos, 0);
 
@@ -9025,6 +9109,8 @@ STATIC_INLINE bool is_last_line (void)
 	return vpos + 1 == maxvpos + lof_store;
 }
 
+#ifdef FSUAE
+#else
 // low latency vsync
 
 #define LLV_DEBUG 0
@@ -9042,10 +9128,6 @@ static bool sync_timeout_check(frame_time_t max)
 extern int busywait;
 static void scanlinesleep(int currline, int nextline)
 {
-	if (fsemu) {
-		uae_log("scanlinesleep currline %d nextline %d\n", currline, nextline);
-	}
-
 	if (currline < 0)
 		return;
 	if (currline >= nextline)
@@ -9068,12 +9150,31 @@ static void scanlinesleep(int currline, int nextline)
 		target_sleep_nanos(500);
 }
 
+#endif
+
 static void linesync_first_last_line(int *first, int *last)
 {
 	int x, y, w, h;
 	*first = minfirstline;
 	*last = maxvpos_display;
 	get_custom_raw_limits(&w, &h, &x, &y);
+#ifdef FSUAE
+	// if (fsemu) {
+	// 	if (y > 0) {
+	// 		uae_log("draw get_custom_raw_limits y %d -> %d\n", minfirstline, minfirstline + y);
+	// 	}
+	// }
+#endif
+	// TL;DR: There is some confusion about whether this function should use
+	// "vpos" units or visible line units; FIXME!
+	// Something is wrong here, get_custom_raw_limits uses min_ypos_for_screen
+	// (among other things) to determine y. However, min_ypos_for_screen is
+	// (by default) already simply minfirstline * 2. So by adding to *first, we
+	// not only add numbers in different coordinate systems, they shouldn't
+	// be added in the first place (?).
+#ifdef FSUAE
+	return;
+#endif
 	if (y > 0)
 		*first += y;
 	//write_log(_T("y=%d h=%d mfl=%d maxvpos=%d\n"), y, h, minfirstline, maxvpos_display);
@@ -9084,9 +9185,318 @@ static int vsyncnextscanline_add;
 static int nextwaitvpos;
 static int display_slice_cnt;
 static int display_slice_lines;
+#ifdef FSUAE
+// Moved further up
+#else
 static int display_slices;
+#endif
 static bool display_rendered;
 static int vsyncnextstep;
+
+#ifdef FSUAE // NL
+
+// FIXME: Put in fsuae / od-fs header
+int64_t is_syncline_end64;
+static int64_t line_started_at;
+static int64_t line_ended_at;
+
+// ---------------------------------------------------------------------------
+
+static int64_t linesleep_fsemu(int64_t now, int64_t until)
+{
+#if 0
+	// FIXME: use busywait option?
+	if (now < until) {
+		int64_t sleep_start = now;
+		while (now < until) {
+			now = fsemu_time_us();
+		}
+		fsemu_frame_sleep_duration += now - sleep_start;
+	}
+#else
+	if (until - now > 1000) {
+		int64_t sleep_start = now;
+		fsemu_sleep_us(until - now);
+		now = fsemu_time_us();
+		fsemu_frame_sleep_duration += now - sleep_start;
+	}
+#endif
+	return now;
+}
+
+// ---------------------------------------------------------------------------
+
+static void linesync_fsemu(void)
+{
+	// const bool input_read_done = false;
+
+	// False when linesync_fsemu is run from hsync_handler, and true when
+	// being called from event_check_vsync/vsync_event_done after doing
+	// extra CPU time.
+	const bool was_syncline = is_syncline != 0;
+
+	// Counts how many times we have done extra CPU (or sleep) this frame
+	// when running in fastest-possible mode.
+	static int extra_counter;
+
+	// How seldom we should sleep instead of doing extra CPU cycles.
+	// FIXME: Better name. (possibly use currprefs.cpu_idle?)
+	const int sleep_mod = 0; // 4;
+
+	events_reset_syncline();
+
+	int64_t now = fsemu_time_us();
+
+	if (vpos == 0 && !was_syncline) {
+#ifdef FSUAE_FRAME_DEBUG
+		printf("\n--------------------------------------------------------------------------------\n");
+		uae_log("linesync_fsemu vpos == 0 -> NEW FRAME\n");
+		printf("--------------------------------------------------------------------------------\n\n");
+#endif
+		extra_counter = 0;
+		//if (vs) {
+			// FIXME:
+			// FIXME:
+			// FIXME: Check timing related to events.cpp also updating line_started_at
+			// handle vpos 0 / last vpos differently?
+			line_started_at = now;
+		//}
+	}
+
+	if (was_syncline) {
+		fsemu_frame_extra_duration += now - line_ended_at;
+		line_started_at = now;
+		return;
+	}
+
+	// FIXME: Is this *after* the hsync line?
+	// if so, add 1 to vpos? (and also maxvpos)
+
+	// if (currprefs.m68k_speed < 0) {
+
+	// FIXME: Handle stuff like:
+	// if (!is_syncline && linecounter >= 10 &&
+	// (!regs.stopped || !currprefs.cpu_idle)) {
+	// !cpu_sleepmode
+	// sleeps_remaining = (165 - currprefs.cpu_idle) / 6; ?
+
+
+
+	// static bool do_render_slice(int mode, int slicecnt, int lastline)
+	// {
+	// 	draw_lines(lastline, slicecnt);
+	// 	render_screen(0, mode, true);
+	// 	return true;
+	// }
+
+	// static bool do_display_slice(void)
+	// {
+	// 	show_screen(0, -1);
+	// 	inputdevice_hsync(true);
+	// 	return true;
+	// }
+
+	// ntsc: 0 -> 480
+	// pal: 0 -> 572
+
+
+	// static int firstline, lastline;
+	// if (vpos == 0) {
+	// }
+	// const int num_slices = 4;
+
+	// printf("draw_frame2\n");
+#if LARGEST_LINE_DEBUG
+	int largest = 0;
+#endif
+#if 0
+	static int line_i;
+
+	int min_ypos_for_screen = minfirstline << linedbl;
+
+	int i1 = line_i + min_ypos_for_screen;
+	int line = line_i + thisframe_y_adjust_real;
+
+	for (int i = 0; i < max_ypos_thisframe; i++) {
+		int i1 = i + min_ypos_for_screen;
+		int line = i + thisframe_y_adjust_real;
+		int whereline = amiga2aspect_line_map[i1];
+		int wherenext = amiga2aspect_line_map[i1 + 1];
+
+		if (whereline >= vbin->inheight)
+			break;
+		if (whereline < 0)
+			continue;
+
+#if LARGEST_LINE_DEBUG
+		if (largest < whereline)
+			largest = whereline;
+#endif
+
+		hposblank = 0;
+		pfield_draw_line(vbout, line, whereline, wherenext);
+	}
+
+#if LARGEST_LINE_DEBUG
+	write_log (_T("%d\n"), largest);
+#endif
+#endif
+
+#if 1
+	bool draw_lines_done = false;
+	if (vpos % 10 == 0) {
+		draw_lines(vpos, -1);
+		draw_lines_done = true;
+
+		now = fsemu_time_us();
+	}
+#endif
+
+#if 0
+	if (vpos == 2) {
+		static int countdown = 3;
+		if (--countdown == 0) {
+			// uae_quit();
+			// fsemu_quit_maybe();
+			printf("\ndebug quit\n\n");
+			abort();
+		}
+	}
+#endif
+
+# if 0
+	int i, where;
+	/* l is the line that has been finished for drawing. */
+	i = lineno - thisframe_y_adjust_real;
+	if (i >= 0 && i < max_ypos_thisframe) {
+	    where = amiga2aspect_line_map[i+min_ypos_for_screen];
+	    if (where < gfxvidinfo.height && where != -1)
+		pfield_draw_line (lineno, where, amiga2aspect_line_map[i+min_ypos_for_screen+1]);
+	}
+#endif
+
+	line_ended_at = now;
+	fsemu_frame_emu_duration += line_ended_at - line_started_at;
+
+	if (display_slices > 0) {
+		bool render_slice = false;
+
+
+		// FIXME: calculate once, at start of frame
+		int firstline, lastline;
+		linesync_first_last_line(&firstline, &lastline);
+#ifdef FSUAE_FRAME_DEBUG
+		uae_log("draw firstline: %d\n", firstline);
+#endif
+		// FIXME: calculate once, at start of frame
+		display_slice_lines = (lastline - firstline) / display_slices;
+
+
+		static int current_slice;
+		static int current_slice_end;
+		if (vpos == 0) {
+			current_slice = 0;
+			if (current_slice == display_slices - 1) {  // last slice
+				current_slice_end = -1;
+			} else {
+				current_slice_end = firstline + display_slice_lines;
+			}
+		}
+
+		if (vpos == current_slice_end) {
+			render_slice = true;
+			current_slice += 1;
+			if (current_slice == display_slices - 1) {  // last slice
+				// for the last slice, we want to wait for last vpos
+				current_slice_end = -1;
+			} else {
+				current_slice_end += display_slice_lines;
+			}
+		}
+
+		if (is_last_line() && display_slices > 1) {
+			// rendering in vsync_handler_pre
+			// render_slice = true;
+		}
+
+		if (render_slice) {
+#ifdef FSUAE_FRAME_DEBUG
+			uae_log("minfirstline %d draw first last %d %d display_slice_lines %d\n",
+					minfirstline, firstline, lastline, display_slice_lines);
+#endif
+			// slicecnt / sections argument is only used for debugging, send 0.
+			// draw_lines(vpos, 0);
+			// int mode = is_last_line() ? 1 : 2;
+			// render_screen(0, mode, true);
+
+			// do_render_slice(is_last_line() ? 1 : 2, 0, vpos);
+			// draw_lines(vpos > 100 ? 100 : vpos, 0);
+			if (!draw_lines_done) {
+				draw_lines(vpos, -1);
+			}
+			render_screen(0, is_last_line() ? 1 : 2, true);
+
+			if (is_last_line()) {
+				show_screen(0, -1);
+				// When rendering slices, we need to prevent the frame from being
+				// rendered in the framewait function.
+				frame_rendered = true;
+				frame_shown = true;
+			}
+
+			// reset line_ended_at
+			// FIXME: Register drawing time??
+			now = fsemu_time_us();
+			line_ended_at = now;
+		}
+	}
+
+	if (currprefs.turbo_emulation) {
+		line_started_at = now;
+		return;
+	}
+
+	int64_t until = fsemu_frame_begin_at + \
+		(fsemu_frame_end_at - fsemu_frame_begin_at) * vpos / maxvpos;
+
+	// FIXME: How to best handle idle / sleep when emulating
+	// PPC / AmigaOS4? Just sleeping will prevent stuff from working.
+
+	// FIXME: Makes sense to check event_wait here?
+	if (currprefs.m68k_speed < 0 && event_wait) {
+		// We are in fastest-possible mode.
+		if (until - now > 1000) {
+			// We are now 1 ms "behind" and will either run extra CPU cycles
+			// or sleep (to throttle a bit and use less resources).
+			if (sleep_mod && extra_counter++ % sleep_mod == 0) {
+				// We sleep before doing extra cycles, to ensure that we get
+				// some sleep since we do want to throttle when sleep_mod > 0.
+				now = linesleep_fsemu(now, until);
+				line_started_at = now;
+			} else {
+				// Extra CPU cycles until is_syncline_end64. line_started_at
+				// will be updated when extra emulation is done.
+				is_syncline = -99;
+				is_syncline_end64 = until;
+			}
+		} else {
+			// Not enough time saved up, just start emulating the next line
+			// normally.
+			line_started_at = now;
+		}
+	} else {
+		// Cycle-exact or approximate mode, emulating a fixed number of
+		// cycles per vpos.
+		now = linesleep_fsemu(now, until);
+		line_started_at = now;
+	}
+
+	// return input_read_done;
+}
+
+// ---------------------------------------------------------------------------
+
+#else
 
 static bool linesync_beam_single_dual(void)
 {
@@ -9672,9 +10082,16 @@ static bool linesync_beam_vrr(void)
 	return input_read_done;
 }
 
+#endif
+
 // called when extra CPU wait is done
 void vsync_event_done(void)
 {
+#ifdef FSUAE
+	if (fsemu) {
+		linesync_fsemu();
+	}
+#else	
 	if (!isvsync_chipset()) {
 		events_reset_syncline();
 		return;
@@ -9692,24 +10109,19 @@ void vsync_event_done(void)
 		else
 			linesync_beam_multi_single();
 	}
-}
-
-#ifdef FSUAE
-// FIXME: Put in fsuae / od-fs header
-int64_t is_syncline_end64;
-int64_t line_started_at;
-int64_t line_ended_at;
 #endif
+}
 
 // this prepares for new line
 static void hsync_handler_post (bool onvsync)
 {
 #ifdef FSUAE
-	if (fsemu) {
-		if (vpos == 0 || onvsync) {
-			uae_log("hsync_handler_post %d %s\n", vpos, onvsync ? " VSYNC" : "");
-		}
+#ifdef FSUAE_FRAME_DEBUG
+	if (vpos == 0 || onvsync || true) {
+		uae_log("hsync_handler_post [cycles %ld] vpos %d last_line %d %s\n",
+				get_cycles(), vpos, is_last_line(), onvsync ? " VSYNC" : "");
 	}
+#endif
 #endif
 	last_copper_hpos = 0;
 #ifdef CPUEMU_13
@@ -9860,87 +10272,12 @@ static void hsync_handler_post (bool onvsync)
 
 #ifdef FSUAE
 	} else if (fsemu) {
+		// input_read_done = linesync_fsemu();
+		linesync_fsemu();
 
-		// FIXME: Is this *after* the hsync line?
-		// if so, add 1 to vpos? (and also maxvpos)
-
-		// if (currprefs.m68k_speed < 0) {
-		
-		// FIXME: Handle stuff like:
-		// if (!is_syncline && linecounter >= 10 &&
-		// (!regs.stopped || !currprefs.cpu_idle)) {
-		// !cpu_sleepmode
-		// sleeps_remaining = (165 - currprefs.cpu_idle) / 6; ?
-
-		// FIXME: Makes sense to check event_wait here?
-		if (currprefs.m68k_speed < 0 && event_wait) {
-		
-			// vsyncmintime = vsyncmaxtime; /* emulate if still time left */
-			// is_syncline_end = read_processor_time () + vsynctimebase; /* far enough in future, we never wait that long */
-			// is_syncline = -11;
-			// is_syncline = -11;
-			/* limit extra time */
-			// frame_time_t rpt = read_processor_time ();
-			// is_syncline_end = rpt + vsynctimeperline;
-			// is_syncline_end = read_processor_time () + vsynctimebase; /* far enough in future, we never wait that long */
-			// linecounter = 0;
-
-			// is_syncline = -99;
-			// is_syncline_end64 = frame_begin_at + (frame_end_at - frame_begin_at) * vpos / maxvpos;
-
-			int64_t now = fsemu_time_micros();
-			line_ended_at = now;
-
-			fsemu_frame_emu_duration += line_ended_at - line_started_at;
-
-			// line_started_at is updated in events.cpp related to
-			// is_syncline_end64
-
-			if (vpos % 1 == 0) {
-				is_syncline = -99;
-				is_syncline_end64 = fsemu_frame_begin_at + (fsemu_frame_end_at - fsemu_frame_begin_at) * vpos / maxvpos;
-			}
-
-		} else {
-			int64_t until = fsemu_frame_begin_at + (fsemu_frame_end_at - fsemu_frame_begin_at) * vpos / maxvpos;
-			int64_t now = fsemu_time_micros();
-			line_ended_at = now;
-
-			// static int64_t ref_time;
-			if (false) {
-			//if (vpos == 0) {
-				// ref_time = now;
-			} else {
-				// FIXME: Maybe not include the last vpos (?)
-				// if time spent in vsync_handler_post is included?
-				// Actually, we probably want that included anyway
-				fsemu_frame_emu_duration += line_ended_at - line_started_at;
-			}
-
-			if (now < until) {
-				int64_t sleep_start = now;
-				while (now < until) {
-					// FIXME: Proper sleep and not stupid loop
-					// fsemu_sleep_millis(1);
-					now = fsemu_time_micros();
-				}
-				int64_t sleep_end = now;
-				fsemu_frame_sleep_duration += sleep_end - sleep_start;
-			}
-
-
-			// FIXME: Also set by hsync_handler for (vs is true)
-			line_started_at = now;
-		}
-		// FSTIME1
-		// uae_log("...\n");
-#endif
-
+	// Lagless vsync code for WinUAE
+#else
 	} else if (isvsync_chipset() < 0) {
-#ifdef FSUAE
-		// Lagless vsync code for WinUAE
-#endif
-
 		if (currprefs.gfx_display_sections <= 1) {
 			if (vsync_vblank >= 85)
 				input_read_done = linesync_beam_single_dual();
@@ -9954,6 +10291,7 @@ static void hsync_handler_post (bool onvsync)
 			else
 				input_read_done = linesync_beam_multi_single();
 		}
+#endif
 
 	} else if (!currprefs.cpu_thread && !cpu_sleepmode && currprefs.m68k_speed < 0 && !currprefs.cpu_memory_cycle_exact) {
 #ifdef FSUAE
@@ -10204,10 +10542,9 @@ static void hsync_handler_post (bool onvsync)
 static void hsync_handler (void)
 {
 #ifdef FSUAE
-	if (fsemu) {
-		// FIXME: Maybe line_ended_at = now ?
-		// line_ended_at = fsemu_time_micros();
-	}
+#ifdef FSUAE_FRAME_DEBUG
+	printf("hsync_handler  cycles = %ld                vpos %d\n", get_cycles(), vpos);
+#endif
 #endif
 	bool vs = is_custom_vsync ();
 	hsync_handler_pre (vs);
@@ -10222,19 +10559,15 @@ static void hsync_handler (void)
 #endif
 	}
 	hsync_handler_post (vs);
-#ifdef FSUAE
-	if (fsemu) {
-		if (vs) {
-			// FIXME: Check timing related to events.cpp also updating line_started_at
-			// handle vpos 0 / last vpos differently?
-			line_started_at = fsemu_time_micros();
-		}
-	}
-#endif
 }
 
 void init_eventtab (void)
 {
+#ifdef FSUAE
+	if (fsemu) {
+		printf("init_eventtab get_cycles() = %ld hsync at %ld\n", get_cycles(), get_cycles () + HSYNCTIME);
+	}
+#endif
 	int i;
 
 	nextevent = 0;
@@ -10261,6 +10594,11 @@ void init_eventtab (void)
 
 void custom_prepare (void)
 {
+#ifdef FSUAE
+#ifdef FSUAE_FRAME_DEBUG
+	printf("custom_prepare [cycles]\n");
+#endif
+#endif
 	set_hpos ();
 	hsync_handler_post (true);
 }

@@ -47,9 +47,29 @@ extern int vsync_isdone(frame_time_t*);
 extern void doflashscreen (void);
 extern int flashscreen;
 extern void updatedisplayarea(int monid);
-extern int isvsync_chipset (void);
-extern int isvsync_rtg (void);
-extern int isvsync (void);
+
+#ifdef FSUAE
+
+static inline int isvsync_chipset (void)
+{
+	return 0;
+}
+
+static inline int isvsync_rtg (void)
+{
+	return 0;
+}
+
+static inline int isvsync (void)
+{
+	return 0;
+}
+
+#else
+int isvsync_chipset (void);
+int isvsync_rtg (void);
+int isvsync (void);
+#endif
 
 extern void flush_line(struct vidbuffer*, int);
 extern void flush_block(struct vidbuffer*, int, int);
@@ -59,8 +79,8 @@ extern bool render_screen(int monid, int mode, bool immediate);
 extern void show_screen(int monid, int mode);
 extern bool show_screen_maybe(int monid, bool);
 
-extern int lockscr(struct vidbuffer*, bool, bool);
-extern void unlockscr(struct vidbuffer*, int, int);
+int lockscr(struct vidbuffer *vb, bool fullupdate, bool first);
+void unlockscr(struct vidbuffer *vb, int y_start, int y_end);
 extern bool target_graphics_buffer_update(int monid);
 extern float target_adjust_vblank_hz(int monid, float);
 extern int target_get_display_scanline(int displayindex);

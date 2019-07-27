@@ -229,6 +229,7 @@ static uae_u32 get_cr(int monid, int r, int g, int b)
 	return limit256rb(monid, 0.5f * r - 0.418688f * g - 0.081312f * b);
 }
 
+// FIXME: Remove (moved to gfxfilter.h header)
 extern uae_s32 tyhrgb[65536];
 extern uae_s32 tylrgb[65536];
 extern uae_s32 tcbrgb[65536];

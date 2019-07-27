@@ -1882,13 +1882,19 @@ retry2:
 
 	if (firstcapture) {
 		savestate_memorysave ();
+#ifdef FSUAE
+#else
 		input_record++;
+#endif
 		for (i = 0; i < 4; i++) {
 			bool wp = true;
 			DISK_validate_filename (&currprefs, currprefs.floppyslots[i].df, NULL, false, &wp, NULL, NULL);
 			inprec_recorddiskchange (i, currprefs.floppyslots[i].df, wp);
 		}
+#ifdef FSUAE
+#else
 		input_record--;
+#endif
 	}
 
 

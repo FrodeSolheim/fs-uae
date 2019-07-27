@@ -16,18 +16,27 @@ extern "C" {
 
 // int64_t fsemu_time_nanos();
 
-static inline int64_t fsemu_time_micros()
+static inline int64_t fsemu_time_us()
 {
 #ifdef FSEMU_GLIB
     return g_get_monotonic_time();
 #else
-#error Missing implementation of fsemu_time_micros
+#error Missing implementation of fsemu_time_us
 #endif
 }
 
 static inline int64_t fsemu_time_millis()
 {
-    return fsemu_time_micros() / 1000;
+    return fsemu_time_us() / 1000;
+}
+
+static inline void fsemu_sleep_us(int us)
+{
+#ifdef FSEMU_GLIB
+    g_usleep(us);
+#else
+#error Missing implementation of fsemu_sleep_millis
+#endif
 }
 
 static inline void fsemu_sleep_millis(int millis)

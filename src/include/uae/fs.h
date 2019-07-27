@@ -1,5 +1,5 @@
-#ifndef UAE_FS_H
-#define UAE_FS_H
+#ifndef UAE_FS_H_
+#define UAE_FS_H_
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -57,4 +57,4 @@ extern int g_uae_min_first_line_ntsc;
 
 void od_fs_update_leds(void);
 
-#endif /* UAE_FS_H */
+#endif  // UAE_FS_H_

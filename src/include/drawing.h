@@ -14,6 +14,10 @@
 #include "xwin.h"
 #endif
 
+#ifdef FSUAE // NL
+// #define FSUAE_FRAME_DEBUG 1
+#endif
+
 #define SMART_UPDATE 1
 
 #ifdef SUPPORT_PENGUINS
@@ -327,6 +331,10 @@ extern void hsync_record_line_state (int lineno, enum nln_how, int changed);
 extern void vsync_handle_redraw (int long_field, int lof_changed, uae_u16, uae_u16, bool drawlines);
 extern bool vsync_handle_check (void);
 extern void draw_lines(int end, int section);
+#ifdef FSUAE
+void draw_available_lines(void);
+void draw_remaining_lines(void);
+#endif
 extern void init_hardware_for_drawing_frame (void);
 extern void reset_drawing (void);
 extern void drawing_init (void);

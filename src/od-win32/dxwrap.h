@@ -215,9 +215,10 @@ void DirectDraw_FillPrimary (void);
 bool DD_getvblankpos (int *vpos);
 void DD_vblank_reset (double freq);
 
+#endif
+
 void dx_check (void);
 int dx_islost (void);
-#endif
 
 #define DDFORCED_NONLOCAL 0
 #define DDFORCED_DEFAULT 1

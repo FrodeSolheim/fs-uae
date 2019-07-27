@@ -233,7 +233,7 @@ void fixup_prefs_dimensions (struct uae_prefs *prefs)
 void fixup_cpu (struct uae_prefs *p)
 {
 #ifdef FSUAE
-	write_log("fixup_cpu\n");
+	uae_log("fixup_cpu\n");
 #endif
 	if (p->cpu_frequency == 1000000)
 		p->cpu_frequency = 0;
@@ -386,6 +386,9 @@ void fixup_cpu (struct uae_prefs *p)
 
 void fixup_prefs (struct uae_prefs *p, bool userconfig)
 {
+#ifdef FSUAE
+	uae_log("fixup_prefs\n");
+#endif
 	int err = 0;
 
 	built_in_chipset_prefs (p);

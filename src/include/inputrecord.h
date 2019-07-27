@@ -35,7 +35,12 @@ extern int inputrecord_debug;
 #define INPREC_PLAY_NORMAL 1
 #define INPREC_PLAY_RERECORD 2
 
+#ifdef FSUAE
+const int input_record = 0;
+const int input_play = 0;
+#else
 extern int input_record, input_play;
+#endif
 extern void inprec_close (bool);
 extern void inprec_save (const TCHAR*, const TCHAR*);
 extern int inprec_open (const TCHAR*, const TCHAR*);

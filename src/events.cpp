@@ -232,10 +232,11 @@ static bool event_check_vsync(void)
 
 #ifdef FSUAE // NL
 	} else if (is_syncline == -99) {
-		int64_t now = fsemu_time_micros();
+		// int64_t now = fsemu_time_us();
 
 		if (event_wait) {
-			int64_t v = now - is_syncline_end64;
+			// int64_t v = now - is_syncline_end64;
+			int64_t v = fsemu_time_us() - is_syncline_end64;
 			// uae_log("%lld\n", (long long) v);			
 			if (v < 0) {
 #ifdef WITH_PPC
@@ -254,12 +255,15 @@ static bool event_check_vsync(void)
 			}
 		}
 
-		// int64_t now = fsemu_time_micros();
-		fsemu_frame_extra_duration += now - line_ended_at;
-		line_started_at = now;
+		// int64_t now = fsemu_time_us();
+		// fsemu_frame_extra_duration += now - line_ended_at;
+		// line_started_at = now;
 
 		// uae_log("reset_syncline\n");
-		events_reset_syncline();
+		// events_reset_syncline();
+
+		// vsync_event_done calls events_reset_syncline
+		vsync_event_done();
 #endif
 
 	} else if (is_syncline < -10) {
@@ -433,15 +437,3 @@ void event2_newevent_x_replace(evt t, uae_u32 data, evfunc2 func)
 	}
 	event2_newevent_xx(-1, t * CYCLE_UNIT, data, func);
 }
-
-
-int current_hpos (void)
-{
-	int hp = current_hpos_safe ();
-	if (hp < 0 || hp > 256) {
-		gui_message(_T("hpos = %d!?\n"), hp);
-		hp = 0;
-	}
-	return hp;
-}
-

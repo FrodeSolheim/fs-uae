@@ -459,6 +459,12 @@ void get_custom_topedge (int *xp, int *yp, bool max)
 
 static void reset_custom_limits (void)
 {
+#ifdef FSUAE
+	// reset_custom_limits is called by compute_framesync
+	if (fsemu) {
+		uae_log("reset_custom_limits\n");
+	}
+#endif
 	gclow = gcloh = gclox = gcloy = 0;
 	gclorealh = -1;
 	center_reset = true;
@@ -484,6 +490,12 @@ void get_custom_raw_limits (int *pw, int *ph, int *pdx, int *pdy)
 		*ph = stored_height;
 		*pdx = stored_left_start;
 		*pdy = stored_top_start;
+#ifdef FSUAE
+#ifdef FSUAE_FRAME_DEBUG
+		printf("draw stored_width/height %dx%d,  y -> %d\n",
+				stored_width, stored_height, stored_top_start);
+#endif
+#endif
 	} else {
 		int x = visible_left_border;
 		if (x < visible_left_start)
@@ -494,6 +506,14 @@ void get_custom_raw_limits (int *pw, int *ph, int *pdx, int *pdy)
 			x2 = visible_right_stop;
 		*pw = x2 - x;
 		int y = min_ypos_for_screen;
+#ifdef FSUAE
+#ifdef FSUAE_FRAME_DEBUG
+		printf("draw min_ypos_for_screen %d\n", min_ypos_for_screen);
+		if (y < visible_top_start) {
+			printf("draw y %d < visible_top_start %d\n", y, visible_top_start);
+		}
+#endif
+#endif
 		if (y < visible_top_start)
 			y = visible_top_start;
 		*pdy = y;
@@ -532,6 +552,11 @@ void check_custom_limits(void)
 
 void set_custom_limits (int w, int h, int dx, int dy)
 {
+#ifdef FSUAE
+	if (fsemu) {
+		uae_log("set_custom_limits %d %d %d %d\n", dx, dy, w, h);
+	}
+#endif
 	struct gfx_filterdata *fd = &currprefs.gf[0];
 	int vls = visible_left_start;
 	int vrs = visible_right_stop;
@@ -2656,6 +2681,11 @@ static void pfield_doline (int lineno)
 
 void init_row_map(void)
 {
+#ifdef FSUAE
+	if (fsemu) {
+		uae_log("[DRAWING] init_row_map (maybe)\n");
+	}
+#endif
 	struct vidbuf_description *vidinfo = &adisplays[0].gfxvidinfo;
 	static uae_u8 *oldbufmem;
 	static int oldheight, oldpitch;
@@ -2677,6 +2707,11 @@ void init_row_map(void)
 		oldgenlock == init_genlock_data &&
 		oldburst == (row_map_color_burst_buffer ? 1 : 0))
 		return;
+#ifdef FSUAE
+	if (fsemu) {
+		uae_log("[DRAWING] init_row_map!\n");
+	}
+#endif
 	xfree(row_map_genlock_buffer);
 	row_map_genlock_buffer = NULL;
 	if (init_genlock_data) {
@@ -2709,6 +2744,9 @@ void init_row_map(void)
 
 static void init_aspect_maps(void)
 {
+#ifdef FSUAE
+	uae_log("[DRAWING] init_aspect_maps\n");
+#endif
 	struct vidbuf_description *vidinfo = &adisplays[0].gfxvidinfo;
 	int i, maxl, h;
 
@@ -2781,7 +2819,7 @@ static void setbplmode(void)
 		bplmode = CMODE_NORMAL;
 }
 
-#ifdef FSUAE // NL
+#ifdef FSUAE_XXX // NL
 
 #include <fs/emu/hacks.h>
 
@@ -3155,6 +3193,13 @@ enum double_how {
 
 static void pfield_draw_line (struct vidbuffer *vb, int lineno, int gfx_ypos, int follow_ypos)
 {
+#ifdef FSUAE
+#ifdef FSUAE_FRAME_DEBUG
+	if (1 || lineno < 128 || lineno % 32 == 0 || lineno > 620) {
+		printf("... pfield_draw_line %d (vpos %d)\n", lineno, vpos);
+	}
+#endif
+#endif
 	struct vidbuf_description *vidinfo = &adisplays[0].gfxvidinfo;
 	static int warned = 0;
 	int border = 0;
@@ -3290,7 +3335,7 @@ static void pfield_draw_line (struct vidbuffer *vb, int lineno, int gfx_ypos, in
 		if (dh == dh_emerg)
 			memcpy (row_map[gfx_ypos], xlinebuffer + linetoscr_x_adjust_pixbytes, vidinfo->drawbuffer.pixbytes * vidinfo->drawbuffer.inwidth);
 
-#ifdef FSUAE
+#ifdef FSUAE_XXX
 		do_flush_line(vb, gfx_ypos);
 #endif
 		if (do_double) {
@@ -3300,7 +3345,7 @@ static void pfield_draw_line (struct vidbuffer *vb, int lineno, int gfx_ypos, in
 				memcpy (row_map[follow_ypos], row_map[gfx_ypos], vidinfo->drawbuffer.pixbytes * vidinfo->drawbuffer.inwidth);
 			if (need_genlock_data)
 				memcpy(row_map_genlock[follow_ypos], row_map_genlock[gfx_ypos], vidinfo->drawbuffer.inwidth);
-#ifdef FSUAE
+#ifdef FSUAE_XXX
 			do_flush_line(vb, follow_ypos);
 #endif
 		}
@@ -3335,7 +3380,7 @@ static void pfield_draw_line (struct vidbuffer *vb, int lineno, int gfx_ypos, in
 				fill_line_border(lineno);
 			}
 
-#ifdef FSUAE
+#ifdef FSUAE_XXX
 			do_flush_line(vb, gfx_ypos);
 #endif
 			if (do_double) {
@@ -3346,7 +3391,7 @@ static void pfield_draw_line (struct vidbuffer *vb, int lineno, int gfx_ypos, in
 				}
 				/* If dh == dh_line, do_flush_line will re-use the rendered line
 				* from linemem.  */
-#ifdef FSUAE
+#ifdef FSUAE_XXX
 				do_flush_line(vb, follow_ypos);
 #endif
 			}
@@ -3375,7 +3420,7 @@ static void pfield_draw_line (struct vidbuffer *vb, int lineno, int gfx_ypos, in
 
 		if (dh == dh_emerg)
 			memcpy (row_map[gfx_ypos], xlinebuffer + linetoscr_x_adjust_pixbytes, vidinfo->drawbuffer.pixbytes * vidinfo->drawbuffer.inwidth);
-#ifdef FSUAE
+#ifdef FSUAE_XXX
 		do_flush_line(vb, gfx_ypos);
 #endif
 		if (do_double) {
@@ -3385,7 +3430,7 @@ static void pfield_draw_line (struct vidbuffer *vb, int lineno, int gfx_ypos, in
 				memcpy (row_map[follow_ypos], row_map[gfx_ypos], vidinfo->drawbuffer.pixbytes * vidinfo->drawbuffer.inwidth);
 			if (need_genlock_data)
 				memcpy(row_map_genlock[follow_ypos], row_map_genlock[gfx_ypos], vidinfo->drawbuffer.inwidth);
-#ifdef FSUAE
+#ifdef FSUAE_XXX
 			do_flush_line(vb, follow_ypos);
 #endif
 		}
@@ -3397,7 +3442,7 @@ static void pfield_draw_line (struct vidbuffer *vb, int lineno, int gfx_ypos, in
 		hposblank = 1;
 		fill_line_border(lineno);
 		hposblank = tmp;
-#ifdef FSUAE
+#ifdef FSUAE_XXX
 		do_flush_line(vb, gfx_ypos);
 #endif
 
@@ -3406,6 +3451,11 @@ static void pfield_draw_line (struct vidbuffer *vb, int lineno, int gfx_ypos, in
 
 static void center_image (void)
 {
+#ifdef FSUAE
+#ifdef FSUAE_FRAME_DEBUG
+	printf("> [draw] center_image <\n");
+#endif
+#endif
 	struct amigadisplay *ad = &adisplays[0];
 	struct vidbuf_description *vidinfo = &ad->gfxvidinfo;
 	int prev_x_adjust = visible_left_border;
@@ -3939,6 +3989,11 @@ static void refresh_indicator_update(struct vidbuffer *vb)
 
 static void draw_frame2(struct vidbuffer *vbin, struct vidbuffer *vbout)
 {
+#ifdef FSUAE
+#ifdef FSUAE_FRAME_DEBUG
+	printf("> draw_frame2 < \n");
+#endif
+#endif
 #if LARGEST_LINE_DEBUG
 	int largest = 0;
 #endif
@@ -4001,6 +4056,11 @@ extern bool beamracer_debug;
 
 void draw_lines(int end, int section)
 {
+#ifdef FSUAE
+#ifdef FSUAE_FRAME_DEBUG
+	printf("UAE draw_lines %d section %d\n", end, section);
+#endif
+#endif
 	int monid = 0;
 	struct vidbuf_description *vidinfo = &adisplays[monid].gfxvidinfo;
 	struct vidbuffer *vb = &vidinfo->drawbuffer;
@@ -4023,6 +4083,14 @@ void draw_lines(int end, int section)
 			return;
 	}
 
+#if 0
+#ifdef FSUAE
+	if (end > max_ypos_thisframe) {
+		end = max_ypos_thisframe;
+	}
+#endif
+#endif
+
 	int section_color_cnt = 4;
 
 	vidinfo->outbuffer = vb;
@@ -4032,6 +4100,9 @@ void draw_lines(int end, int section)
 		int i = vb->last_drawn_line;
 		int i1 = i + min_ypos_for_screen;
 		int line = i + thisframe_y_adjust_real;
+#ifdef FSUAE
+		// printf("draw i %d end %d i1 %d line %d\n", i, end, i1, line);
+#endif
 		int whereline = amiga2aspect_line_map[i1];
 		int wherenext = amiga2aspect_line_map[i1 + 1];
 		if (whereline >= vb->inheight) {
@@ -4039,7 +4110,14 @@ void draw_lines(int end, int section)
 			break;
 		}
 		if (whereline < 0)
+#ifdef FSUAE
+		{
+			// printf("draw whereline %d\n", whereline);
+			break;
+		}
+#else
 			continue;
+#endif
 		if (y_start < 0) {
 			y_start = whereline;
 		}
@@ -4068,12 +4146,38 @@ void draw_lines(int end, int section)
 			y_end = whereline;
 		}
 	}
+#ifdef FSUAE
+#ifdef FSUAE_FRAME_DEBUG
+	printf("UAE vb->last_drawn_line = %d\n", vb->last_drawn_line);
+#endif
+#endif
 	draw_frame_extras(vb, y_start, y_end + 1);
 	unlockscr(vb, y_start, y_end + 1);
 }
 
+#ifdef FSUAE
+
+void draw_available_lines(void)
+{
+
+}
+
+void draw_remaining_lines(void)
+{
+	// uae_log("draw_remaining_lines max_ypos_thisframe=%d\n", max_ypos_thisframe);
+	// draw_lines(max_ypos_thisframe, -1);
+	draw_lines(999, -1);
+}
+
+#endif
+
 bool draw_frame (struct vidbuffer *vb)
 {
+#ifdef FSUAE
+#ifdef FSUAE_FRAME_DEBUG
+	printf("> draw_frame <\n");
+#endif
+#endif
 	struct vidbuf_description *vidinfo = &adisplays[vb->monitor_id].gfxvidinfo;
 	uae_u8 oldstate[LINESTATE_SIZE];
 	struct vidbuffer oldvb;
@@ -4136,6 +4240,11 @@ static void setspecialmonitorpos(struct vidbuffer *vb)
 
 static void finish_drawing_frame(bool drawlines)
 {
+#ifdef FSUAE
+#ifdef FSUAE_FRAME_DEBUG
+	uae_log("finish_drawing_frame drawlines=%d\n", drawlines);
+#endif
+#endif
 	int monid = 0;
 	struct amigadisplay *ad = &adisplays[monid];
 	struct vidbuf_description *vidinfo = &ad->gfxvidinfo;
@@ -4147,6 +4256,11 @@ static void finish_drawing_frame(bool drawlines)
 	if (!drawlines) {
 		return;
 	}
+
+#ifdef FSUAE // NL
+	// FIXME: Add timing code to locksr / drawframe section
+	// FIXME: what about cd32fmv when using slices?
+#endif
 
 	if (!lockscr(vb, false, true)) {
 		notice_screen_contents_lost(monid);
@@ -4353,6 +4467,11 @@ bool vsync_handle_check (void)
 
 void vsync_handle_redraw(int long_field, int lof_changed, uae_u16 bplcon0p, uae_u16 bplcon3p, bool drawlines)
 {
+#ifdef FSUAE
+#ifdef FSUAE_FRAME_DEBUG
+	uae_log("vsync_handle_redraw drawlines=%d\n", drawlines);
+#endif
+#endif
 	int monid = 0;
 	struct amigadisplay *ad = &adisplays[monid];
 	last_redraw_point++;
@@ -4661,6 +4780,10 @@ void drawing_init (void)
 	reset_drawing ();
 }
 
+#ifdef FSUAE
+	// isvsync is always 0 for FS-UAE. Use static inline in header files.
+#else
+
 int isvsync_chipset(void)
 {
 	struct amigadisplay *ad = &adisplays[0];
@@ -4693,3 +4816,5 @@ int isvsync(void)
 	else
 		return isvsync_chipset ();
 }
+
+#endif

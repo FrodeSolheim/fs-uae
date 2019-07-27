@@ -911,6 +911,7 @@ static void rtg_render(void)
 	struct amigadisplay *ad = &adisplays[monid];
 
 #ifdef FSUAE
+	// No D3D here
 #else
 	if (D3D_restore)
 		D3D_restore(monid, true);

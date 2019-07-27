@@ -96,7 +96,7 @@ void fsemu_sdlaudio_init(void)
 void fsemu_sdlaudio_callback(void *data, Uint8 *stream, int want_bytes)
 {
     static int64_t last_time;
-    int64_t now = fsemu_time_micros();
+    int64_t now = fsemu_time_us();
 #if 0
     printf(
         "[FSEMU] Audio buffer: %3d ms (dt %2d ms) want %5d B (%4d frames)\n",

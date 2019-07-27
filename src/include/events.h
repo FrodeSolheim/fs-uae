@@ -15,6 +15,7 @@
 #include "uae/types.h"
 #ifdef FSUAE
 #include "uae/inline.h"
+#include "uae/likely.h"
 #include "options.h"
 // FIXME: move CYCLE_UNIT define here instead
 #include "uae/cycleunit.h"
@@ -126,7 +127,15 @@ STATIC_INLINE int current_hpos_safe (void)
 	return hp;
 }
 
-extern int current_hpos(void);
+static inline int current_hpos(void)
+{
+	int hp = current_hpos_safe();
+	if (unlikely(hp < 0 || hp > 256)) {
+		gui_message(_T("hpos = %d!?\n"), hp);
+		hp = 0;
+	}
+	return hp;
+}
 
 STATIC_INLINE bool cycles_in_range (unsigned long endcycles)
 {

@@ -12,11 +12,11 @@ AC_CONFIG_HEADERS([config.h])
 # AC_CONFIG_MACRO_DIRS requires newer autoconf/automake than is found in
 # Debian 7.0
 # AC_CONFIG_MACRO_DIRS([m4])
-m4_include([m4/ax_c___builtin_expect.m4])
 m4_include([m4/ax_check_compile_flag.m4])
 m4_include([m4/ax_check_link_flag.m4])
-m4_include([m4/ax_gcc_var_attribute.m4])
+m4_include([m4/ax_gcc_builtin.m4])
 m4_include([m4/ax_gcc_func_attribute.m4])
+m4_include([m4/ax_gcc_var_attribute.m4])
 
 AM_INIT_AUTOMAKE([tar-ustar subdir-objects])
 
@@ -162,7 +162,6 @@ AM_CONDITIONAL([NO_PIE],
 # AM_CONDITIONAL([WL_TDATA],
 # [test x$wl_tdata = xyes])
 
-AX_C___BUILTIN_EXPECT
 
 # Checks for libraries.
 
@@ -425,6 +424,15 @@ AC_DEFINE_UNQUOTED([OS_NAME_2], ["$OS_NAME_2"],
 
 AC_DEFINE_UNQUOTED([OS_NAME_3], ["$OS_NAME_3"],
 [New name identifier for the operating system, "Linux".])
+
+
+# Checks for builtins
+
+AX_GCC_BUILTIN(__builtin_bswap16)
+AX_GCC_BUILTIN(__builtin_bswap32)
+AX_GCC_BUILTIN(__builtin_bswap64)
+AX_GCC_BUILTIN(__builtin_expect)
+
 
 # Checks for header files.
 

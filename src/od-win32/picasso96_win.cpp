@@ -86,6 +86,7 @@ int debug_rtg_blitter = 3;
 
 // #define DEBUG_PICASSO96
 
+#include "uae/byteswap.h"
 #include "uae/fs.h"
 #include "picasso96.h"
 
@@ -96,35 +97,33 @@ int debug_rtg_blitter = 3;
 // FIXME: justing setting static value here -FS
 int default_freq = 50;
 
+#define  _byteswap_ushort uae_bswap_16
+#define _byteswap_ulong uae_bswap_32
+
 #ifdef _WIN32
 
 #else
 
 typedef int CRITICAL_SECTION;
 
-static void InitializeCriticalSection(CRITICAL_SECTION*) {
+static void InitializeCriticalSection(CRITICAL_SECTION*)
+{
 	// FIMXE: Implementation needed
 	STUB("");
 }
 
-static void EnterCriticalSection(CRITICAL_SECTION*) {
+static void EnterCriticalSection(CRITICAL_SECTION*)
+{
 	// FIMXE: Implementation needed
 }
 
-static void LeaveCriticalSection(CRITICAL_SECTION*) {
+static void LeaveCriticalSection(CRITICAL_SECTION*)
+{
 	// FIMXE: Implementation needed
 }
 
-static uint16_t _byteswap_ushort(uint16_t val) {
-        return bswap_16(val);
-}
-
-static uint32_t _byteswap_ulong(uint32_t val) {
-        return bswap_32(val);
-}
-
-#endif // _WIN32
-#endif
+#endif  // _WIN32
+#endif  // FSUAE
 
 static int hwsprite = 0;
 static int picasso96_BT = BT_uaegfx;

@@ -157,7 +157,7 @@ void fsemu_video_work(int timeout_us)
 
     static int64_t last;
     int64_t now = fsemu_time_us();
-    fsemu_video_log("_______draw _______diff __________ %ld\n", (now - last));
+    fsemu_video_log("_______draw _______diff __________ %lld\n", lld(now - last));
     last = now;
 
     static int framecount;

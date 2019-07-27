@@ -20,6 +20,10 @@ void fsemu_audio_init(int flags);
 
 int fsemu_audio_frequency(void);
 
+/** If you want to set the frequency, you need to do it before calling
+ * fsemu_audio_init. */
+void fsemu_audio_set_frequency(int frequency);
+
 void fsemu_audio_pause(void);
 void fsemu_audio_resume(void);
 

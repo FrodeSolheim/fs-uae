@@ -697,8 +697,7 @@ static void on_init(void)
     amiga_set_option("sound_auto", "false");
 
     if (fsemu) {
-        printf("[FSEMU] Setting audio frequency to 48000 (FIXME)\n");
-        amiga_set_audio_frequency(48000);
+        amiga_set_audio_frequency(fsemu_audio_frequency());
     } else {
         amiga_set_audio_frequency(fs_emu_audio_output_frequency());
     }

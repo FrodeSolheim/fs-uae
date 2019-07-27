@@ -30,4 +30,15 @@ typedef struct fsemu_size {
 
 typedef struct fsemu_size fsemu_size_t;
 
+#ifdef FSEMU_INTERNAL
+
+/** Makes it easier to use the %lld format specifier without using the ugly
+ * PRI64 defines, casts or getting compiler warnings. */
+static inline long long lld(int64_t value)
+{
+    return value;
+}
+
+#endif  // FSEMU_INTERNAL
+
 #endif  // FSEMU_TYPES_H_

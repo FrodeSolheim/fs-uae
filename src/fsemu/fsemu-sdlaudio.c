@@ -76,11 +76,12 @@ void fsemu_sdlaudio_init(void)
         return;
     }
 
-    fsemu_log("[FSEMU] SDL: Opened audio device\n");
-    fsemu_log("[FSEMU] SDL format: AUDIO_S16LSB: %d\n", have.format);
-    fsemu_log("[FSEMU] SDL channels: %d\n", have.channels);
-    fsemu_log("[FSEMU] SDL samples(?): %d\n", have.samples);
-    fsemu_log("[FSEMU] Buffer(?): %d\n", have.size);
+    fsemu_audio_log("[SDL] Opened audio device\n");
+    fsemu_audio_log("[SDL] Frequency: %d\n", have.freq);
+    fsemu_audio_log("[SDL] Format: AUDIO_S16LSB (%d)\n", have.format);
+    fsemu_audio_log("[SDL] Channels: %d\n", have.channels);
+    fsemu_audio_log("[SDL] Samples(?): %d\n", have.samples);
+    fsemu_audio_log("[SDL] Buffer(?): %d\n", have.size);
 
     int buffer = 1000 * have.size / have.freq / 4;
     fsemu_log("[FSEMU] SDL buffer: %d ms\n", buffer);
@@ -97,11 +98,11 @@ void fsemu_sdlaudio_callback(void *data, Uint8 *stream, int want_bytes)
 {
     static int64_t last_time;
     int64_t now = fsemu_time_us();
-#if 0
+#if 1
     printf(
-        "[FSEMU] Audio buffer: %3d ms (dt %2d ms) want %5d B (%4d frames)\n",
+        "[FSEMU] Audio buffer: %3d ms (dt %0.1f ms) want %5d B (%4d frames)\n",
         fsemu_audio_buffer_fill_ms(),
-        (int) ((now - last_time) / 1000),
+        ((now - last_time) / 1000.0),
         want_bytes,
         want_bytes / 4);
 #endif

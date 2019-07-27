@@ -21,6 +21,7 @@
 #define FSEMU_AUDIO_MAX_FRAME_STATS (1 << 8)  // 256
 
 static struct {
+    int frequency;
     fsemu_mutex_t *mutex;
     int sent_size;
     int64_t sent_when;
@@ -45,6 +46,12 @@ static void fsemu_audio_unlock()
 static void fsemu_audio_init_driver(void)
 {
     fsemu_audio_log("Initialize driver...\n");
+
+    // FIXME: Bug in SDL or in macOS? When requesting 48000 Hz, the callback
+    // rate is 44100, but "have" struct return from SDL_OpenAudio says
+    // 48000...
+
+    fsemu_audio.frequency = 44100;
 
     // const char *driver = fsemu_config_string("audio_driver");
     const char *driver = "sdl";
@@ -95,8 +102,15 @@ void fsemu_audio_init(int flags)
 
 int fsemu_audio_frequency(void)
 {
-    return 48000;
+    return fsemu_audio.frequency;
 }
+
+void fsemu_audio_set_frequency(int frequency)
+{
+    fsemu_audio_log("Frequency is now %d Hz\n", frequency);
+    fsemu_audio.frequency = frequency;
+}
+
 
 void fsemu_audio_pause(void)
 {

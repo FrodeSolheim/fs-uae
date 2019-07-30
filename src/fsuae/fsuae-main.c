@@ -275,11 +275,6 @@ static int input_handler_loop(int line)
         last_frame = g_fs_uae_frame;
     }
 
-    // FIXME: Move to another place?
-#ifdef WITH_CLIPBOARD
-    uae_clipboard_update();
-#endif
-
     int action;
     //int reconfigure_input = 0;
     while ((action = fs_emu_get_input_event()) != 0) {
@@ -368,11 +363,13 @@ static void pause_throttle(void)
 
 static void event_handler(int line)
 {
+#if 0
     if (fsemu) {
         if (line <= 1) {
             printf("input : event_handler line %d\n", line);
         }
     }
+#endif
 
     // FIXME: Check at what time this is called. Ideally *before* doing the
     // first line of a frame, but I suspect otherwise..
@@ -474,11 +471,11 @@ static void event_handler(int line)
     } else {
         fs_emu_wait_for_frame(g_fs_uae_frame);
     }
-
+#if 0
     if (fsemu) {
         printf("[INPUT] g_fs_uae_frame = %d\n", g_fs_uae_frame);
     }
-
+#endif
     if (g_fs_uae_frame == 1) {
         if (!fs_emu_netplay_enabled()) {
             if (fs_config_true(OPTION_WARP_MODE)) {
@@ -1261,18 +1258,12 @@ int main(int argc, char *argv[])
     fs_set_prgname("fs-uae");
     fs_set_application_name("Amiga Emulator");
 
-    amiga_set_log_function(log_to_libfsemu);
-
-    //result = parse_options(argc, argv);
-
     printf(COPYRIGHT_NOTICE, PACKAGE_VERSION, OS_NAME_2, ARCH_NAME_2);
     fs_log(COPYRIGHT_NOTICE, PACKAGE_VERSION, OS_NAME_2, ARCH_NAME_2);
 
     char *current_dir = g_get_current_dir();
     fs_log("current directory is %s\n", current_dir);
     g_free(current_dir);
-
-    amiga_init();
 
 #ifdef MACOSX
     /* Can be overriden via environment variable (or launcher setting):
@@ -1337,6 +1328,9 @@ int main(int argc, char *argv[])
     /* Then load the config file and set data dir */
     load_config_file();
     fs_set_data_dir(fs_uae_data_dir());
+
+    amiga_set_log_function(log_to_libfsemu);
+    amiga_init();
 
     if (fs_config_get_boolean("fsemu") == 1) {
         fsemu = 1;
@@ -1608,6 +1602,18 @@ int main(int argc, char *argv[])
                 fsemu_video_render_gui_early(snapshot);
 
                 new_host_frame = false;
+
+                char *clipboard_uae = uae_clipboard_get_text();
+                if (clipboard_uae) {
+                    SDL_SetClipboardText(clipboard_uae);
+                    uae_clipboard_free_text(clipboard_uae);
+                } else {
+                    // FIXME: Ideally, we would want to avoid this alloc/free
+                    // when the clipboard hasn't changed.
+                    char *clipboard_host = SDL_GetClipboardText();
+                    uae_clipboard_put_text(clipboard_host);
+                    SDL_free(clipboard_host);
+                }
             }
 
             // The SDL window subsystem will put input events into a queue

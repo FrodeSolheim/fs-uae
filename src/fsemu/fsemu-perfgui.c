@@ -175,12 +175,12 @@ static void fsemu_perfgui_update_video(int frame)
     fsemu_video_frame_stats_t stats;
     fsemu_video_frame_stats(frame, &stats);
     // printf("levels %d (frame %d)\n", stats.buffer_bytes, frame);
-
+#if 0
     printf("levels sleep %d emu %d (frame %d)\n",
            stats.sleep_us,
            stats.emu_us,
            frame);
-
+#endif
     // (128 px = 40 ms)
     int us = stats.wait_us;
     int level1 = us * 128 / (40 * 1000);

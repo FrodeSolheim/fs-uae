@@ -203,6 +203,7 @@ static fs_emu_key_translation g_default_keymap[] = {
 #endif
 
     { FS_ML_KEY_F4,           MOD, FS_EMU_ACTION_QUIT },
+    { FS_ML_KEY_F5,           MOD, INPUTEVENT_SPC_STATESAVE1 },
     { FS_ML_KEY_F9,           MOD, INPUTEVENT_SPC_TOGGLERTG },
     { FS_ML_KEY_F11,           -1, FS_UAE_ACTION_TOGGLE_AUTO_ZOOM },
     { FS_ML_KEY_F12,           -1, FS_EMU_ACTION_MENU_ALT },

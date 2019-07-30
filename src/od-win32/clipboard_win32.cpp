@@ -14,7 +14,12 @@
 #include "options.h"
 #include "traps.h"
 #ifdef FSUAE
-#else
+#ifndef _WIN32
+typedef int HWND;
+typedef int HDC;
+typedef int HGLOBAL;
+typedef unsigned int UINT;
+#endif
 #include "clipboard_win32.h"
 #endif
 #include "clipboard.h"
@@ -29,24 +34,18 @@
 #ifdef FSUAE
 
 #include "uae/uae.h"
-#ifdef USE_SDL2
-#include <SDL.h>
-#endif
-#ifdef USE_GLIB
-#include <glib.h>
-#endif
 
-#ifndef _WIN32
-typedef int HWND;
-typedef int HDC;
-typedef int HGLOBAL;
-typedef unsigned int UINT;
-#endif
+/** clipboard_read is called from both the main thread and uae thread
+ * (mousehack_done), so clipboard_from_host_text/changed and is protected with
+ * a mutex. */
+static fs_mutex *clipboard_from_host_mutex;
+static char *clipboard_from_host_text;
+static bool clipboard_from_host_changed;
 
-static fs_mutex *clipboard_mutex;
+static fs_mutex *clipboard_to_host_mutex;
 static char *clipboard_to_host_text;
 
-#endif
+#endif // FSUAE
 
 #define DEBUG_CLIP 0
 
@@ -118,6 +117,10 @@ static uae_u32 to_amiga_start_cb(TrapContext *ctx, void *ud)
 
 static void to_amiga_start(TrapContext *ctx)
 {
+#ifdef FSUAE
+	uae_log("clipboard: to_amiga_start initialized=%d clipboard_data=%d\n",
+	        initialized, clipboard_data);
+#endif
 	to_amiga_phase = 0;
 	if (!initialized)
 		return;
@@ -781,6 +784,11 @@ static void clipboard_read(TrapContext *ctx, HWND hwnd, bool keyboardinject)
 	UINT f;
 	int text = FALSE, bmp = FALSE;
 
+#ifdef FSUAE
+	uae_log("clipboard clip_disabled=%d hwnd=%d to_amiga=%d "
+	        "heartbeat=%d\n",
+	        clip_disabled, hwnd, to_amiga != NULL, filesys_heartbeat());
+#endif
 	if (clip_disabled || !hwnd)
 		return;
 	if (to_amiga) {
@@ -801,19 +809,20 @@ static void clipboard_read(TrapContext *ctx, HWND hwnd, bool keyboardinject)
 		return;
 #endif
 #ifdef FSUAE
-	static char *last_text;
-	char *lptstr = SDL_GetClipboardText();
-	if (lptstr) {
-		if (last_text && strcmp(lptstr, last_text) == 0) {
-			/* Unchanged */
+	char *lptstr;
+	fs_mutex_lock(clipboard_from_host_mutex);
+	if (clipboard_from_host_changed) {
+		if (clipboard_from_host_text) {
+			lptstr = strdup(clipboard_from_host_text);
 		} else {
-			text = TRUE;
+			lptstr = NULL;
 		}
-		if (last_text) {
-			SDL_free(last_text);
-		}
-		last_text = lptstr;
+		// lptstr = strdup(
+		//	clipboard_from_host_text ? clipboard_from_host_text : "");
+		text = true;
+		clipboard_from_host_changed = false;
 	}
+	fs_mutex_unlock(clipboard_from_host_mutex);
 #else
 	f = 0;
 	while (f = EnumClipboardFormats (f)) {
@@ -832,9 +841,6 @@ static void clipboard_read(TrapContext *ctx, HWND hwnd, bool keyboardinject)
 			TCHAR *lptstr = (TCHAR*)GlobalLock (hglb); 
 #endif
 			if (lptstr != NULL) {
-#ifdef FSUAE
-				fs_mutex_lock(clipboard_mutex);
-#endif
 #if DEBUG_CLIP > 0
 				write_log (_T("clipboard: CF_UNICODETEXT '%s'\n"), lptstr);
 #endif
@@ -844,7 +850,7 @@ static void clipboard_read(TrapContext *ctx, HWND hwnd, bool keyboardinject)
 					to_iff_text(ctx, lptstr);
 				}
 #ifdef FSUAE
-				fs_mutex_unlock(clipboard_mutex);
+				free(lptstr);
 #else
 				GlobalUnlock (hglb);
 #endif
@@ -884,8 +890,6 @@ static void clipboard_free_delayed (void)
 	clipboard_delayed_size = 0;
 }
 
-#ifdef FSUAE
-#else
 void clipboard_changed (HWND hwnd)
 {
 #if DEBUG_CLIP > 0
@@ -903,7 +907,6 @@ void clipboard_changed (HWND hwnd)
 	}
 	clipboard_read(NULL, hwnd, false);
 }
-#endif
 
 #ifdef FSUAE
 #else
@@ -928,18 +931,19 @@ static int clipboard_put_bmp_real (HBITMAP hbmp)
 
 static int clipboard_put_text_real (const TCHAR *txt)
 {
-	HGLOBAL hglb;
-	int ret = FALSE;
-
 #ifdef FSUAE
-	fs_mutex_lock(clipboard_mutex);
+	fs_mutex_lock(clipboard_to_host_mutex);
 	if (clipboard_to_host_text != NULL) {
 		free(clipboard_to_host_text);
 		clipboard_to_host_text = NULL;
 	}
 	clipboard_to_host_text = strdup(txt);
-	fs_mutex_unlock(clipboard_mutex);
+	fs_mutex_unlock(clipboard_to_host_mutex);
+	return true;
 #else
+	HGLOBAL hglb;
+	int ret = FALSE;
+
 	if (!OpenClipboard (chwnd)) 
 		return ret;
 	clipopen++;
@@ -957,18 +961,22 @@ static int clipboard_put_text_real (const TCHAR *txt)
 #if DEBUG_CLIP > 0
 	write_log (_T("clipboard: text written to windows clipboard\n"));
 #endif
-#endif
 	return ret;
+#endif
 }
 
 static int clipboard_put_text (const TCHAR *txt)
 {
+#ifdef FSUAE
+	return clipboard_put_text_real (txt);
+#else
 	if (!clipactive)
 		return clipboard_put_text_real (txt);
 	clipboard_free_delayed ();
 	clipboard_delayed_data = my_strdup (txt);
 	clipboard_delayed_size = -1;
 	return 1;
+#endif
 }
 
 #ifdef FSUAE
@@ -1025,6 +1033,9 @@ void amiga_clipboard_got_data(TrapContext *ctx, uaecptr data, uae_u32 size, uae_
 
 int amiga_clipboard_want_data(TrapContext *ctx)
 {
+#ifdef FSUAE
+	uae_log("amiga_clipboard_want_data\n");
+#endif
 	uae_u32 addr, size;
 
 	addr = trap_get_long(ctx, clipboard_data + 4);
@@ -1111,6 +1122,15 @@ void clipboard_vsync(void)
 		trap_callback(to_amiga_start_cb, NULL);
 	}
 
+#ifdef FSUAE
+#if 0
+	if (clipboard_from_host_changed) {
+		uae_log("clipboard_vsync, new data from host\n");
+		// clipboard_read(NULL, chwnd, false);
+		clipboard_changed(chwnd);
+	}
+#endif
+#endif
 }
 
 void clipboard_reset(void)
@@ -1137,7 +1157,12 @@ void clipboard_init (void)
 {
 	chwnd = 1; // fake window handle
 	write_log(_T("clipboard_init\n"));
-	clipboard_mutex = fs_mutex_create();
+	clipboard_from_host_mutex = fs_mutex_create();
+	clipboard_from_host_text = strdup("");
+	clipboard_to_host_mutex = fs_mutex_create();
+	// Activate clipboard functionality (let UAE think we are in the
+	// foreground).
+	clipactive = 1;
 #else
 void clipboard_init (HWND hwnd)
 {
@@ -1148,6 +1173,9 @@ void clipboard_init (HWND hwnd)
 
 void target_paste_to_keyboard(void)
 {
+#ifdef FSUAE
+	uae_log("target_paste_to_keyboard (clipboard)\n");
+#endif
 	clipboard_read(NULL, chwnd, true);
 }
 
@@ -1160,19 +1188,116 @@ void clipboard_unsafeperiod(void)
 }
 
 #ifdef FSUAE // NL
-UAE_EXTERN_C void uae_clipboard_update(void)
+
+UAE_EXTERN_C
+char *uae_clipboard_get_text()
 {
-	clipboard_read(NULL, chwnd, false);
-	fs_mutex_lock(clipboard_mutex);
-	if (clipboard_to_host_text) {
-		write_log("[CLIPBOARD] Set host clipboard to \"%s\"\n",
-				  clipboard_to_host_text);
-		SDL_SetClipboardText(clipboard_to_host_text);
-		free(clipboard_to_host_text);
+	fs_mutex_lock(clipboard_to_host_mutex);
+	char *text = clipboard_to_host_text;
+	if (text) {
 		clipboard_to_host_text = NULL;
 	}
-	fs_mutex_unlock(clipboard_mutex);
+	fs_mutex_unlock(clipboard_to_host_mutex);
+	return text;
 }
+
+UAE_EXTERN_C
+void uae_clipboard_free_text(char *text)
+{
+	if (text) {
+		free(clipboard_to_host_text);
+	} else {
+		uae_log("WARNING: uae_clipboard_free_text called with NULL pointer\n");
+	}
+}
+
+UAE_EXTERN_C
+void uae_clipboard_put_text(const char *text)
+{
+#if 0
+	static char *last;
+	if (text == NULL) {
+		fs_mutex_lock(clipboard_mutex);
+		if (last) {
+			free(last);
+		}
+		clipboard_from_host_text = NULL;
+		clipboard_from_host_changed = true;
+		last = NULL;
+		fs_mutex_unlock(clipboard_mutex);
+		return;
+	}
 #endif
+	if (!clipboard_from_host_text) {
+		// clipboard_init not called yet
+		return;
+	}
+	if (!text) {
+		text = "";
+	}
+	if (strcmp(clipboard_from_host_text, text) == 0) {
+		return;
+	}
+	fs_mutex_lock(clipboard_from_host_mutex);
+	if (clipboard_from_host_text) {
+		free(clipboard_from_host_text);
+	}
+	clipboard_from_host_text = strdup(text);
+	clipboard_from_host_changed = true;
+	fs_mutex_unlock(clipboard_from_host_mutex);
+
+#if 0
+	if (last == NULL && text == NULL) {
+		return;
+	}
+	if (last && text && strcmp(last, text) == 0) {
+		return;
+	}
+
+	if (last) {
+		free(last);
+	}
+	fs_mutex_lock(clipboard_mutex);
+	if (clipboard_from_host_text) {
+		free(clipboard_from_host_text);
+	}
+	if (text) {
+		uae_log("Clipboard: New data from host: %s\n", text);
+		clipboard_from_host_text = strdup(text);
+		clipboard_from_host_changed = true;
+	} else {
+		uae_log("Clipboard: New data from host: (NULL)\n");
+		clipboard_from_host_text = NULL;
+		clipboard_from_host_changed = true;
+	}
+	fs_mutex_unlock(clipboard_mutex);
+
+	if (text) {
+		last = strdup(text);
+	} else {
+		last = NULL;
+	}
+#endif
+	// FIXME: We can call clipboard_changed directly, and so, we do not
+	// really need the locks (all access to clipboard_from_host* is from
+	// main thread.
+
+	// FIXME: Replace last with global clipboard_from_host_text data, this
+	// can hold the last clipboard data indefinitively, in case we want to
+	// read again, we just use clipboard_from_host_changed to signal new data
+	// anyway
+
+	// Edit, actually, clipboard_read is called from filesys handler / trap
+	// mousehack thinghy? (UAE thread)
+#if 1
+	//if (clipboard_from_host_changed) {
+	uae_log("clipboard new data from host, calling clipboard_changed\n");
+	// clipboard_read(NULL, chwnd, false);
+	clipboard_changed(chwnd);
+	//}
+#endif
+}
+
+#endif  // FSUAE
 
 #endif  // WITH_CLIPBOARD

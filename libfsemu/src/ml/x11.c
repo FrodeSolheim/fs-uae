@@ -26,6 +26,7 @@ extern SDL_Window* g_fs_ml_window;
 
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
+#include <X11/Xatom.h>
 #ifdef USE_X11_XTEST
 #include <X11/extensions/XTest.h>
 #endif

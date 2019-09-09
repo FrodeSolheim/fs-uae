@@ -578,6 +578,11 @@ typedef enum {
     FS_ML_KEY_AUDIOSTOP,
     FS_ML_KEY_AUDIOPLAY,
 
+    FS_ML_KEY_F16,
+    FS_ML_KEY_F17,
+    FS_ML_KEY_F18,
+    FS_ML_KEY_F19,
+
     FS_ML_KEY_LAST
 } fs_ml_key;
 

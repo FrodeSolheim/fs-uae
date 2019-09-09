@@ -385,9 +385,13 @@ F9           | `keyboard_key_f9`           |
 F10          | `keyboard_key_f10`          |
 F11          | `keyboard_key_f11`          |
 F12          | `keyboard_key_f12`          |
-PRINT        | `keyboard_key_print`        |
-SCROLLOCK    | `keyboard_key_scrollock`    |
-PAUSE        | `keyboard_key_print`        |
+PRINT        | `keyboard_key_print`        | Mac with Apple A1243 keyboard F13
+SCROLLOCK    | `keyboard_key_scrollock`    | Mac with Apple A1243 keyboard F14
+PAUSE        | `keyboard_key_print`        | Mac with Apple A1243 keyboard F15
+F16          | `keyboard_key_f16`          | Mac with Apple A1243 keyboard
+F17          | `keyboard_key_f17`          | Mac with Apple A1243 keyboard
+F18          | `keyboard_key_f18`          | Mac with Apple A1243 keyboard
+F19          | `keyboard_key_f19`          | Mac with Apple A1243 keyboard
 -            |                             | **Number row**
 BACKQUOTE    | `keyboard_key_backquote`    |
 1            | `keyboard_key_1`            |

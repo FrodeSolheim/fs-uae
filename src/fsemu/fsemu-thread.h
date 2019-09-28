@@ -1,6 +1,9 @@
 #ifndef FSEMU_THREAD_H_
 #define FSEMU_THREAD_H_
 
+#include <stdbool.h>
+#include <stdint.h>
+
 struct fsemu_thread;
 typedef struct fsemu_thread fsemu_thread_t;
 typedef uintptr_t fsemu_thread_id_t;

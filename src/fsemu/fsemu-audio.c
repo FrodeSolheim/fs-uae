@@ -10,6 +10,7 @@
 #ifdef FSEMU_SDL
 #include "fsemu/fsemu-sdlaudio.h"
 #endif
+#include "fsemu/fsemu-time.h"
 #include "fsemu/fsemu-thread.h"
 
 // int fsemu_audio_buffer.size;

@@ -3,6 +3,10 @@
 
 #include "fsemu/fsemu-audio.h"
 
+#ifndef MIN
+#define MIN(a,b) (((a) < (b)) ? (a) : (b))
+#endif
+
 /*
 int fsemu_audio_buffer.size;
 volatile uint8_t *fsemu_audio_buffer;

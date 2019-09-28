@@ -2,6 +2,7 @@
 #define FSEMU_WINDOW_H_
 
 #include "fsemu/fsemu-common.h"
+#include "fsemu/fsemu-log.h"
 #include "fsemu/fsemu-types.h"
 
 #ifdef __cplusplus

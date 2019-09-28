@@ -5,6 +5,10 @@
 #include "config.h"
 #endif
 
+#include "fsemu/fsemu-common.h"
+#include "fsemu/fsemu-log.h"
+#include "fsemu/fsemu-util.h"
+
 #include <fs/base.h>
 #include <fs/log.h>
 #include <fs/thread.h>

@@ -2,6 +2,9 @@
 #define FSEMU_IMAGE_H_
 
 #include "fsemu/fsemu-common.h"
+#include "fsemu/fsemu-log.h"
+
+#include <stdint.h>
 
 typedef struct {
     uint8_t *data;

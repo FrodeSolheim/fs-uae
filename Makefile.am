@@ -148,14 +148,14 @@ fs_uae_SOURCES = \
 	src/fsuae/fsuae-model.h \
 	src/fsuae/fsuae-sound.c \
 	src/fsuae/fsuae-sound.h \
-	src/fsuae/fsuae-fs-uae.h \
+	src/fsuae/fs-uae.h \
 	src/fsuae/fsuae-input.c \
 	src/fsuae/fsuae-joystick.c \
 	src/fsuae/fsuae-keyboard.c \
 	src/fsuae/fsuae-main.c \
 	src/fsuae/fsuae-menu.c \
 	src/fsuae/fsuae-mouse.c \
-	src/fsuae/fsuae.options.h \
+	src/fsuae/fsuae-options.h \
 	src/fsuae/fsuae-paths.c \
 	src/fsuae/fsuae-paths.h \
 	src/fsuae/fsuae-plugins.c \
@@ -401,7 +401,9 @@ libuae_a_SOURCES = \
 	src/include/uae/api.h \
 	src/include/uae/asm.h \
 	src/include/uae/assert.h \
+	src/include/uae/atomic.h \
 	src/include/uae/attributes.h \
+	src/include/uae/byteswap.h \
 	src/include/uae/caps.h \
 	src/include/uae/cdrom.h \
 	src/include/uae/cycleunit.h \
@@ -418,6 +420,7 @@ libuae_a_SOURCES = \
 	src/include/uae/likely.h \
 	src/include/uae/limits.h \
 	src/include/uae/log.h \
+	src/include/uae/maccess.h \
 	src/include/uae/memory.h \
 	src/include/uae/mman.h \
 	src/include/uae/parser.h \
@@ -540,6 +543,7 @@ libuae_a_SOURCES = \
 	src/od-win32/caps/caps_win32.cpp \
 	src/od-win32/caps/caps_win32.h \
 	src/od-win32/clipboard_win32.cpp \
+	src/od-win32/clipboard_win32.h \
 	src/od-win32/debug_win32.h \
 	src/od-win32/dxwrap.h \
 	src/od-win32/md-fpp.h \
@@ -547,6 +551,7 @@ libuae_a_SOURCES = \
 	src/od-win32/picasso96_win.cpp \
 	src/od-win32/picasso96_win.h \
 	src/od-win32/serial_win32.cpp \
+	src/od-win32/win32.h \
 	src/od-win32/win32gfx.h \
 	src/od-win32/win32_uaenet.cpp \
 	src/patch.cpp \
@@ -805,7 +810,71 @@ noinst_LIBRARIES += libfsemu2.a
 fs_uae_LDADD += libfsemu2.a
 # fs_uae_device_helper_LDADD += libfsemu2.a
 libfsemu2_a_SOURCES = \
-	src/fsemu/fsemu-all.c
+	src/fsemu/fsemu-all.h \
+	src/fsemu/fsemu-audio-alsa.c \
+	src/fsemu/fsemu-audio-alsa.h \
+	src/fsemu/fsemu-audio-buffer.c \
+	src/fsemu/fsemu-audio-buffer.h \
+	src/fsemu/fsemu-audio.c \
+	src/fsemu/fsemu-audio.h \
+	src/fsemu/fsemu-common.h \
+	src/fsemu/fsemu-compat.h \
+	src/fsemu/fsemu-config.c \
+	src/fsemu/fsemu-config.h \
+	src/fsemu/fsemu-events.c \
+	src/fsemu/fsemu-events.h \
+	src/fsemu/fsemu-font.c \
+	src/fsemu/fsemu-font.h \
+	src/fsemu/fsemu-frame.c \
+	src/fsemu/fsemu-frame.h \
+	src/fsemu/fsemu-gamemode.c \
+	src/fsemu/fsemu-gamemode.h \
+	src/fsemu/fsemu-gui.c \
+	src/fsemu/fsemu-gui.h \
+	src/fsemu/fsemu-image.c \
+	src/fsemu/fsemu-image.h \
+	src/fsemu/fsemu-inifile.c \
+	src/fsemu/fsemu-inifile.h \
+	src/fsemu/fsemu-input.c \
+	src/fsemu/fsemu-input.h \
+	src/fsemu/fsemu-keyboard.h \
+	src/fsemu/fsemu-layout.c \
+	src/fsemu/fsemu-layout.h \
+	src/fsemu/fsemu-log.c \
+	src/fsemu/fsemu-log.h \
+	src/fsemu/fsemu-mouse.c \
+	src/fsemu/fsemu-mouse.h \
+	src/fsemu/fsemu-option.h \
+	src/fsemu/fsemu-perfgui.c \
+	src/fsemu/fsemu-perfgui.h \
+	src/fsemu/fsemu-quit.c \
+	src/fsemu/fsemu-quit.h \
+	src/fsemu/fsemu-render.c \
+	src/fsemu/fsemu-render.h \
+	src/fsemu/fsemu-sdlaudio.c \
+	src/fsemu/fsemu-sdlaudio.h \
+	src/fsemu/fsemu-sdlinput.c \
+	src/fsemu/fsemu-sdlinput.h \
+	src/fsemu/fsemu-sdlvideo.c \
+	src/fsemu/fsemu-sdlvideo.h \
+	src/fsemu/fsemu-sdlwindow.c \
+	src/fsemu/fsemu-sdlwindow.h \
+	src/fsemu/fsemu-thread.c \
+	src/fsemu/fsemu-thread.h \
+	src/fsemu/fsemu-time.c \
+	src/fsemu/fsemu-time.h \
+	src/fsemu/fsemu-titlebar.c \
+	src/fsemu/fsemu-titlebar.h \
+	src/fsemu/fsemu-types.h \
+	src/fsemu/fsemu-util.c \
+	src/fsemu/fsemu-util.h \
+	src/fsemu/fsemu-video.c \
+	src/fsemu/fsemu-video.h \
+	src/fsemu/fsemu-window.c \
+	src/fsemu/fsemu-window.h \
+	src/fsemu/fsemu-xmlshader.c \
+	src/fsemu/fsemu-xmlshader.h \
+	src/fsemu/gamemode_client.h
 endif
 
 if BUILTIN_CEF

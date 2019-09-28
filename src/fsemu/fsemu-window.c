@@ -3,6 +3,7 @@
 
 #include "fsemu/fsemu-config.h"
 #include "fsemu/fsemu-layout.h"
+#include "fsemu/fsemu-mouse.h"
 #include "fsemu/fsemu-option.h"
 #include "fsemu/fsemu-sdlwindow.h"
 #include "fsemu/fsemu-types.h"

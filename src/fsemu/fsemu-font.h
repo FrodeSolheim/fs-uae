@@ -2,6 +2,7 @@
 #define FSEMU_FONT_H_
 
 #include "fsemu/fsemu-common.h"
+#include "fsemu/fsemu-log.h"
 
 typedef struct {
 } fsemu_font_t;

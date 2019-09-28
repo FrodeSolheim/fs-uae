@@ -4,12 +4,14 @@
 #include "fsemu/fsemu-common.h"
 #include "fsemu/fsemu-font.h"
 #include "fsemu/fsemu-image.h"
+#include "fsemu/fsemu-types.h"
 
 #ifdef FSEMU_SDL
 #include <SDL.h>
 #endif
 
 #include <stdbool.h>
+#include <stdint.h>
 
 struct fsemu_gui_item_struct;
 typedef struct fsemu_gui_item_struct fsemu_gui_item_t;

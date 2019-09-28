@@ -1,6 +1,8 @@
 #define FSEMU_INTERNAL
 #include "fsemu/fsemu-mouse.h"
 
+#include "fsemu/fsemu-config.h"
+#include "fsemu/fsemu-log.h"
 #include "fsemu/fsemu-option.h"
 #include "fsemu/fsemu-thread.h"
 #include "fsemu/fsemu-titlebar.h"

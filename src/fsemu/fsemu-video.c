@@ -4,10 +4,12 @@
 #include "fsemu/fsemu-frame.h"
 #include "fsemu/fsemu-gui.h"
 #include "fsemu/fsemu-image.h"
+#include "fsemu/fsemu-layout.h"
 #include "fsemu/fsemu-sdlwindow.h"
 #include "fsemu/fsemu-time.h"
 #include "fsemu/fsemu-types.h"
 #include "fsemu/fsemu-util.h"
+#include "fsemu/fsemu-window.h"
 
 #include <glib.h>
 

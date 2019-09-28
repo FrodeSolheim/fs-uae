@@ -2,10 +2,9 @@
 #define FSEMU_SDLWINDOW_H_
 
 #include "fsemu/fsemu-common.h"
+#include "fsemu/fsemu-sdl.h"
 
 #ifdef FSEMU_SDL
-
-#include <SDL.h>
 
 #ifdef __cplusplus
 extern "C" {

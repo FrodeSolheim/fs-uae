@@ -95,6 +95,7 @@ void fsemu_set_window_fullscreen(bool fullscreen)
          * for the window without border, but SDL_SetWindowPositions
          * sets the position of the top-left border coordinate.
          * Compensating. */
+#if SDL_VERSION_ATLEAST(2, 0, 5)
         int wbt, wbl;
         if (SDL_GetWindowBordersSize(
                 fsemu_sdl_window, &wbt, &wbl, NULL, NULL) == 0) {
@@ -102,6 +103,9 @@ void fsemu_set_window_fullscreen(bool fullscreen)
             fsemu_window_rect.x -= wbl;
             fsemu_window_rect.y -= wbt;
         }
+#else
+        fsemu_window_log("Cannot compensate for window borders size (SDL < 2.0.5)");
+#endif
         SDL_GetWindowSize(
             fsemu_sdl_window, &fsemu_window_rect.w, &fsemu_window_rect.h);
         printf("[FSEMU] Window dimensions were %dx%d +%d+%d\n",

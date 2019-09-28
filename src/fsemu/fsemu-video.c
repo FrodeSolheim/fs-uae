@@ -5,6 +5,7 @@
 #include "fsemu/fsemu-gui.h"
 #include "fsemu/fsemu-image.h"
 #include "fsemu/fsemu-layout.h"
+#include "fsemu/fsemu-sdl.h"
 #include "fsemu/fsemu-sdlwindow.h"
 #include "fsemu/fsemu-time.h"
 #include "fsemu/fsemu-types.h"
@@ -14,14 +15,6 @@
 #include <glib.h>
 
 #define FSEMU_VIDEO_MAX_FRAME_STATS (1 << 8)  // 256
-
-#if !SDL_VERSION_ATLEAST(2, 0, 5)
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-#define SDL_PIXELFORMAT_BGRA32 SDL_PIXELFORMAT_BGRA8888
-#else
-#define SDL_PIXELFORMAT_BGRA32 SDL_PIXELFORMAT_ARGB8888
-#endif
-#endif
 
 static struct {
     fsemu_video_frame_stats_t stats[FSEMU_VIDEO_MAX_FRAME_STATS];

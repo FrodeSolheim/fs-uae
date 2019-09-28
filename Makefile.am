@@ -851,6 +851,7 @@ libfsemu2_a_SOURCES = \
 	src/fsemu/fsemu-quit.h \
 	src/fsemu/fsemu-render.c \
 	src/fsemu/fsemu-render.h \
+	src/fsemu/fsemu-sdl.h \
 	src/fsemu/fsemu-sdlaudio.c \
 	src/fsemu/fsemu-sdlaudio.h \
 	src/fsemu/fsemu-sdlinput.c \

@@ -191,8 +191,12 @@ void uae_time_init(void)
 	if (initialized) {
 		return;
 	}
+#if defined(USE_GLIB)
+	// Doesn't need system info
+#else
 #ifdef _WIN32
 	GetSystemInfo(&si);
+#endif
 #endif
 	uae_time_calibrate();
 	initialized = true;

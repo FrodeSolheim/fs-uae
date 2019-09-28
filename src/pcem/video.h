@@ -1,3 +1,11 @@
+#ifdef FSUAE
+#ifdef _WIN32
+// Avoid conflict with windows BITMAP definition
+#include <Windows.h>
+#define BITMAP PCEM_BITMAP
+#endif
+#endif // NL
+
 typedef struct
 {
         int w, h;

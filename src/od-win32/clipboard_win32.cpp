@@ -1155,7 +1155,7 @@ void clipboard_reset(void)
 #ifdef FSUAE
 void clipboard_init (void)
 {
-	chwnd = 1; // fake window handle
+	chwnd = (HWND) 1; // fake window handle
 	write_log(_T("clipboard_init\n"));
 	clipboard_from_host_mutex = fs_mutex_create();
 	clipboard_from_host_text = strdup("");

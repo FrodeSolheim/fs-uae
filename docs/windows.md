@@ -2,12 +2,21 @@
 
 This document has some information specific to the Windows version of FS-UAE.
 
+
+## Performance
+
+To ensure best and most stable performance, go to Control Panel, and
+in Power Options, change power plan to `High performance` (might be found
+under `Show additional plans`.
+
+
 ## Amiga Forever
 
 FS-UAE Launcher should automatically find Amiga [kickstarts](kickstarts.md)
 from [Amiga Forever](amiga-forever.md) if you have that installed. If not,
 please report it. Remember that you may have to start the Amiga Forever
 Player at least one in order for the `rom.key` file to be written to disk.
+
 
 ## OpenGL Drivers
 
@@ -31,6 +40,7 @@ an issue with the OpenGL drivers. The aforementioned GLView program didn't
 even start (aborted with a System.AccessViolationException error). A
 reinstall of current display drivers fixed the problem for both GLView and
 FS-UAE.
+
 
 ## Conflicting Software
 

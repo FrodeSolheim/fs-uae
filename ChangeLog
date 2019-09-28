@@ -1,5 +1,6 @@
 Version 3.1.0dev:
 
+* Support for F13-F19 keys on Apple Extended keyboard [immutable].
 * Better clipboard sharing integration.
 * New fsemu backend (work in progress).
 * Experimental floppy file picker dialogs (--enable-libnfd).

@@ -34,6 +34,10 @@ void fsemu_sdlwindow_init(void)
     // SDL_Init(SDL_INIT_VIDEO);
     fsemu_window_log("SDL_Init(SDL_INIT_EVERYTHING\n");
     SDL_Init(SDL_INIT_EVERYTHING);
+
+    // Do not minimize SDL_Window if it loses key focus in fullscreen mode
+    // FIXME: Make optional (maybe environment variable is good enough?)
+    SDL_SetHint(SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "0");
 }
 
 // ---------------------------------------------------------------------------

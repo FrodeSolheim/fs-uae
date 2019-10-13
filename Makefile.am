@@ -821,6 +821,8 @@ libfsemu2_a_SOURCES = \
 	src/fsemu/fsemu-compat.h \
 	src/fsemu/fsemu-config.c \
 	src/fsemu/fsemu-config.h \
+	src/fsemu/fsemu-data.c \
+	src/fsemu/fsemu-data.h \
 	src/fsemu/fsemu-events.c \
 	src/fsemu/fsemu-events.h \
 	src/fsemu/fsemu-font.c \
@@ -829,6 +831,10 @@ libfsemu2_a_SOURCES = \
 	src/fsemu/fsemu-frame.h \
 	src/fsemu/fsemu-gamemode.c \
 	src/fsemu/fsemu-gamemode.h \
+	src/fsemu/fsemu-glib.h \
+	src/fsemu/fsemu-opengl.h \
+	src/fsemu/fsemu-glvideo.c \
+	src/fsemu/fsemu-glvideo.h \
 	src/fsemu/fsemu-gui.c \
 	src/fsemu/fsemu-gui.h \
 	src/fsemu/fsemu-image.c \
@@ -842,9 +848,15 @@ libfsemu2_a_SOURCES = \
 	src/fsemu/fsemu-layout.h \
 	src/fsemu/fsemu-log.c \
 	src/fsemu/fsemu-log.h \
+	src/fsemu/fsemu-monitor.c \
+	src/fsemu/fsemu-monitor.h \
 	src/fsemu/fsemu-mouse.c \
 	src/fsemu/fsemu-mouse.h \
+	src/fsemu/fsemu-opengl.c \
+	src/fsemu/fsemu-opengl.h \
+	src/fsemu/fsemu-option.c \
 	src/fsemu/fsemu-option.h \
+	src/fsemu/fsemu-options.h \
 	src/fsemu/fsemu-perfgui.c \
 	src/fsemu/fsemu-perfgui.h \
 	src/fsemu/fsemu-quit.c \
@@ -860,6 +872,8 @@ libfsemu2_a_SOURCES = \
 	src/fsemu/fsemu-sdlvideo.h \
 	src/fsemu/fsemu-sdlwindow.c \
 	src/fsemu/fsemu-sdlwindow.h \
+	src/fsemu/fsemu-startupinfo.c \
+	src/fsemu/fsemu-startupinfo.h \
 	src/fsemu/fsemu-thread.c \
 	src/fsemu/fsemu-thread.h \
 	src/fsemu/fsemu-time.c \

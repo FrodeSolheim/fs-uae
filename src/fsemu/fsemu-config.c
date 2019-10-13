@@ -1,5 +1,5 @@
 #define FSEMU_INTERNAL
-#include "fsemu/fsemu-config.h"
+#include "fsemu-config.h"
 
 #ifdef FSUAE
 #include <fs/conf.h>
@@ -17,5 +17,7 @@ int fsemu_config_read_bool_default(const char *name,
         *result = res != 0;
     }
     return *result;
+#else
+    return 0;
 #endif
 }

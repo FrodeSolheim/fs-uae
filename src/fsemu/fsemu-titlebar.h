@@ -1,9 +1,9 @@
 #ifndef FSEMU_TITLEBAR_H_
 #define FSEMU_TITLEBAR_H_
 
-#include "fsemu/fsemu-common.h"
-#include "fsemu/fsemu-mouse.h"
-#include "fsemu/fsemu-render.h"
+#include "fsemu-common.h"
+#include "fsemu-mouse.h"
+#include "fsemu-render.h"
 
 #ifdef __cplusplus
 extern "C" {

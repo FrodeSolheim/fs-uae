@@ -1,9 +1,9 @@
 #define FSEMU_INTERNAL
-#include "fsemu/fsemu-titlebar.h"
+#include "fsemu-titlebar.h"
 
-#include "fsemu/fsemu-gui.h"
-#include "fsemu/fsemu-video.h"
-#include "fsemu/fsemu-window.h"
+#include "fsemu-gui.h"
+#include "fsemu-video.h"
+#include "fsemu-window.h"
 
 // ---------------------------------------------------------------------------
 
@@ -51,9 +51,9 @@ void fsemu_titlebar_init(void)
 
 void fsemu_titlebar_update(void)
 {
-    fsemu_size window_size;
+    fsemu_size_t window_size;
     fsemu_window_size(&window_size);
-    fsemu_titlebar_log("Width %d\n", window_size.w);
+    // fsemu_titlebar_log("Width %d\n", window_size.w);
     fsemu_titlebar_set_width(window_size.w);
 
     if (fsemu_titlebar.visible) {
@@ -97,7 +97,7 @@ static void fsemu_titlebar_set_visible(bool visible)
 
 bool fsemu_titlebar_handle_mouse(fsemu_mouse_event_t *event)
 {
-    bool is_open = fsemu_titlebar.visible;
+    // bool is_open = fsemu_titlebar.visible;
     // FIXME: Check mouse grab / relative mode
 
     bool cursor_visible = true;

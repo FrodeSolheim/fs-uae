@@ -424,7 +424,7 @@ static void event_handler(int line)
         // Latency information is now updated
         
         // int current = fsemu_audio_latency_us();
-
+#if 0
         static fsemu_mavgi_t latency_mavg;
         static int latency_values[16];
         int latency = fsemu_mavgi(
@@ -468,6 +468,9 @@ static void event_handler(int line)
             was_outside = false;
             amiga_set_audio_frequency_adjust(0.0);
         }
+#endif
+        double adjust =  fsemu_audio_buffer_calculate_adjustment();
+        amiga_set_audio_frequency_adjust(adjust);
     } else {
         fs_emu_wait_for_frame(g_fs_uae_frame);
     }
@@ -1571,9 +1574,9 @@ int main(int argc, char *argv[])
     if (fsemu) {
         // fsemu_audio_init(0);
         // fsemu_window_init(FSEMU_FLAG_NONE);
-        fsemu_video_init(FSEMU_FLAG_NONE);
+        fsemu_video_init();
         fsemu_input_init(FSEMU_FLAG_NONE);
-        fsemu_audio_init(FSEMU_FLAG_NONE);
+        fsemu_audio_init();
 
         fsemu_perfgui_init();
         fsemu_titlebar_update();

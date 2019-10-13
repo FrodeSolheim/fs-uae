@@ -1,7 +1,7 @@
 #define FSEMU_INTERNAL
-#include "fsemu/fsemu-quit.h"
+#include "fsemu-quit.h"
 
-#include "fsemu/fsemu-log.h"
+#include "fsemu-log.h"
 
 static struct {
     volatile bool quit;

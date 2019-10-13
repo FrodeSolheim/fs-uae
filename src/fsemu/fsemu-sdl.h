@@ -1,11 +1,18 @@
 #ifndef FSEMU_SDL_H_
 #define FSEMU_SDL_H_
 
-#include "fsemu/fsemu-common.h"
+#include "fsemu-common.h"
 
 #ifdef FSEMU_SDL
 
-#include <SDL.h>
+#ifdef FSEMU_OPENGL
+// Must make sure glew.h is included before gl.h
+#include "fsemu-opengl.h"
+#endif
+
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
+// #include <SDL.h>
 
 #if !SDL_VERSION_ATLEAST(2, 0, 5)
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN

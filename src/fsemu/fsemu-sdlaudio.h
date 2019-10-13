@@ -1,8 +1,8 @@
-#ifndef fsemu_sdlaudio_H_
-#define fsemu_sdlaudio_H_
+#ifndef FSEMU_SDLAUDIO_H_
+#define FSEMU_SDLAUDIO_H_
 
-#include "fsemu/fsemu-common.h"
-#include "fsemu/fsemu-sdl.h"
+#include "fsemu-common.h"
+#include "fsemu-sdl.h"
 
 #ifdef FSEMU_SDL
 
@@ -18,4 +18,4 @@ void fsemu_sdlaudio_init(void);
 
 #endif  // FSEMU_SDL
 
-#endif  // fsemu_sdlaudio_H_
+#endif  // FSEMU_SDLAUDIO_H_

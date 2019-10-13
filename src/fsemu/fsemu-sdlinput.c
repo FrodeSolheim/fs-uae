@@ -1,5 +1,5 @@
 #define FSEMU_INTERNAL
-#include "fsemu/fsemu-sdlinput.h"
+#include "fsemu-sdlinput.h"
 
 #ifdef FSEMU_SDL
 

@@ -1,15 +1,17 @@
 #define FSEMU_INTERNAL
-#include "fsemu/fsemu-input.h"
+#include "fsemu-input.h"
 
-#include "fsemu/fsemu-mouse.h"
-#include "fsemu/fsemu-sdlinput.h"
+#include "fsemu-mouse.h"
+#include "fsemu-sdlinput.h"
 
 #ifdef FSUAE
 #include <fs/ml.h>
 #endif
 
+/*
 static struct {
 } fsemu_input;
+*/
 
 void fsemu_input_init(int flags)
 {

@@ -1,8 +1,8 @@
 #ifndef FSEMU_SDLINPUT_H_
 #define FSEMU_SDLINPUT_H_
 
-#include "fsemu/fsemu-common.h"
-#include "fsemu/fsemu-sdl.h"
+#include "fsemu-common.h"
+#include "fsemu-sdl.h"
 
 #ifdef __cplusplus
 extern "C" {

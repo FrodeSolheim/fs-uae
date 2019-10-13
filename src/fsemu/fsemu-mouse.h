@@ -1,7 +1,7 @@
 #ifndef FSEMU_MOUSE_H_
 #define FSEMU_MOUSE_H_
 
-#include "fsemu/fsemu-common.h"
+#include "fsemu-common.h"
 
 #include <stdbool.h>
 
@@ -27,6 +27,7 @@ bool fsemu_mouse_captured(void);
  * actual capture/release if needed.
  */
 void fsemu_mouse_set_captured(bool captured);
+void fsemu_mouse_toggle_captured(void);
 
 #ifdef FSEMU_INTERNAL
 

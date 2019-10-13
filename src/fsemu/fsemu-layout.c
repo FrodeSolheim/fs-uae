@@ -1,9 +1,11 @@
 #define FSEMU_INTERNAL
-#include "fsemu/fsemu-layout.h"
+#include "fsemu-layout.h"
 
+#include "fsemu-option.h"
+#include "fsemu-options.h"
 // FIXME: Maybe we want to remove this dependency and have the
 // window depend on/update the layout when it changes size?
-#include "fsemu/fsemu-window.h"
+#include "fsemu-window.h"
 
 static struct {
     int width;
@@ -12,11 +14,32 @@ static struct {
     int video_height;
     // double video_aspect;
     double pixel_aspect;
+    bool nonsquare_pixels;
+    int stretch_mode;
 } fsemu_layout;
 
 static int g_fsemu_client_margins[4];
 
-void fsemu_layout_set_size(int width, int height)
+static void fsemu_layout_read_options(void)
+{
+    int stretch_mode;
+    if (fsemu_option_read_int(FSEMU_OPTION_STRETCH_MODE, &stretch_mode)) {
+        fsemu_layout_set_stretch_mode(stretch_mode);
+    }
+}
+
+void fsemu_layout_init(void)
+{
+    fsemu_return_if_already_initialized();
+    fsemu_layout_read_options();
+}
+
+void fsemu_layout_set_size(fsemu_size_t *size)
+{
+    fsemu_layout_set_size_2(size->w, size->h);
+}
+
+void fsemu_layout_set_size_2(int width, int height)
 {
     fsemu_layout.width = width;
     fsemu_layout.height = height;
@@ -35,6 +58,46 @@ void fsemu_layout_set_video_size(int width, int height)
     fsemu_layout.video_height = height;
 }
 
+int fsemu_layout_stretch_mode(void)
+{
+    return fsemu_layout.stretch_mode;
+}
+
+int fsemu_layout_cycle_stretch_mode(void)
+{
+    if (++fsemu_layout.stretch_mode == FSEMU_STRETCH_MODE_MAX) {
+        fsemu_layout.stretch_mode = 0;
+    }
+    // Temporary
+    if (fsemu_layout.stretch_mode == FSEMU_STRETCH_MODE_SQUARE_PIXELS) {
+        /*
+        if (fsemu_layout.pixel_aspect == 0) {
+            fsemu_log("(Unknown pixels aspect ratio)\n");
+            fsemu_layout.stretch_mode = 0;
+        }
+        if (abs(fsemu_layout.pixel_aspect - 1.0) < 0.01) {
+            fsemu_log("(Aspect correct pixels are already square)\n");
+            fsemu_layout.stretch_mode = 0;
+        }
+        */
+        if (fsemu_layout.nonsquare_pixels == 0) {
+            fsemu_log("Ignoring square pixels mode (using display aspect)\n");
+            fsemu_layout.stretch_mode = 0;
+        }
+    }
+    fsemu_log("stretch_mode %d\n", fsemu_layout.stretch_mode);
+    return fsemu_layout.stretch_mode;
+}
+
+void fsemu_layout_set_stretch_mode(int stretch_mode)
+{
+    if (stretch_mode < 0 || stretch_mode >= FSEMU_STRETCH_MODE_MAX) {
+        fsemu_log("WARNING: Invalid stretch mode\n");
+        return;
+    }
+    fsemu_layout.stretch_mode = stretch_mode;
+}
+
 #if 0
 void fsemu_layout_set_video_aspect(double aspect)
 {
@@ -45,6 +108,11 @@ void fsemu_layout_set_video_aspect(double aspect)
 void fsemu_layout_set_pixel_aspect(double aspect)
 {
     fsemu_layout.pixel_aspect = aspect;
+    if (abs(fsemu_layout.pixel_aspect - 1.0) > 0.01) {
+        fsemu_layout.nonsquare_pixels = true;
+    } else {
+        fsemu_layout.nonsquare_pixels = false;
+    }
 }
 
 double fsemu_layout_pixel_aspect(void)
@@ -55,9 +123,9 @@ double fsemu_layout_pixel_aspect(void)
     return fsemu_layout.pixel_aspect;
 }
 
-void fsemu_layout_client_rect(fsemu_rect *rect)
+void fsemu_layout_client_rect(fsemu_rect_t *rect)
 {
-    fsemu_size size;
+    // fsemu_size size;
     // fsemu_window_size(&size);
     rect->x = 0;
     rect->y = 0;
@@ -65,9 +133,9 @@ void fsemu_layout_client_rect(fsemu_rect *rect)
     rect->h = fsemu_layout.height;
 }
 
-void fsemu_layout_video_rect(fsemu_rect *rect)
+void fsemu_layout_video_rect(fsemu_rect_t *rect)
 {
-    fsemu_rect client_rect;
+    fsemu_rect_t client_rect;
     fsemu_layout_client_rect(&client_rect);
 
     double scale_x = 1.0;

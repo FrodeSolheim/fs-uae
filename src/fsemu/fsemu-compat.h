@@ -1,5 +1,5 @@
-#include "fsemu/fsemu-common.h"
-#include "fsemu/fsemu-time.h"
+#include "fsemu-common.h"
+#include "fsemu-time.h"
 
 #ifdef FSEMU_MACOS
 

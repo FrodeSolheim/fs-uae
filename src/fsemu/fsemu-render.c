@@ -1,10 +1,10 @@
 #if 0
 
 #define FSEMU_INTERNAL
-#include "fsemu/fsemu-render.h"
+#include "fsemu-render.h"
 
-#include "fsemu/fsemu-titlebar.h"
-#include "fsemu/fsemu-types.h"
+#include "fsemu-titlebar.h"
+#include "fsemu-types.h"
 
 // ---------------------------------------------------------------------------
 

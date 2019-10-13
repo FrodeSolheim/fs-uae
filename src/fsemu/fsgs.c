@@ -1365,7 +1365,7 @@ void fsgs_init_window_overrides(void)
 #define USE_PNG 1
 #define USE_SDL 1
 
-#include <glib.h>
+#include "fsemu-glib.h"
 
 #ifdef __cplusplus
 extern "C" {

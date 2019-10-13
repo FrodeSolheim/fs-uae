@@ -1,8 +1,9 @@
 #ifndef FSEMU_AUDIO_BUFFER_H_
 #define FSEMU_AUDIO_BUFFER_H_
 
-#include "fsemu/fsemu-common.h"
-#include "fsemu/fsemu-types.h"
+#include "fsemu-common.h"
+#include "fsemu-config.h"
+#include "fsemu-types.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -15,9 +16,16 @@ int fsemu_audio_buffer_fill(void);
 int fsemu_audio_buffer_fill_ms(void);
 int64_t fsemu_audio_buffer_fill_us(void);
 
-void fsemu_audio_buffer_update(void *data, int size);
+void fsemu_audio_buffer_update(const void *data, int size);
 void fsemu_audio_buffer_write_silence(int size);
 void fsemu_audio_buffer_write_silence_ms(int ms);
+
+#ifdef FSEMU_SAMPLERATE
+double fsemu_audio_buffer_adjustment(void);
+void fsemu_audio_buffer_set_adjustment(double adjustment);
+#endif
+
+double fsemu_audio_buffer_calculate_adjustment(void);
 
 /*
 extern int fsemu_audio_buffer.size;

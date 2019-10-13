@@ -1,17 +1,17 @@
 #define FSEMU_INTERNAL
-#include "fsemu/fsemu-audio.h"
+#include "fsemu-audio.h"
 
-#include "fsemu/fsemu-audio-buffer.h"
-#include "fsemu/fsemu-frame.h"
-#include "fsemu/fsemu-log.h"
+#include "fsemu-audio-buffer.h"
+#include "fsemu-frame.h"
+#include "fsemu-log.h"
 #ifdef FSEMU_ALSA
-#include "fsemu/fsemu-audio-alsa.h"
+#include "fsemu-audio-alsa.h"
 #endif
 #ifdef FSEMU_SDL
-#include "fsemu/fsemu-sdlaudio.h"
+#include "fsemu-sdlaudio.h"
 #endif
-#include "fsemu/fsemu-time.h"
-#include "fsemu/fsemu-thread.h"
+#include "fsemu-thread.h"
+#include "fsemu-time.h"
 
 // int fsemu_audio_buffer.size;
 // volatile uint8_t *fsemu_audio_buffer;
@@ -91,7 +91,7 @@ static void fsemu_audio_init_driver(void)
     */
 }
 
-void fsemu_audio_init(int flags)
+void fsemu_audio_init(void)
 {
     fsemu_return_if_already_initialized();
     fsemu_frame_init();
@@ -111,7 +111,6 @@ void fsemu_audio_set_frequency(int frequency)
     fsemu_audio_log("Frequency is now %d Hz\n", frequency);
     fsemu_audio.frequency = frequency;
 }
-
 
 void fsemu_audio_pause(void)
 {
@@ -147,9 +146,9 @@ void fsemu_audio_log_inflight_estimate(void)
     fsemu_audio_lock();
     int sent_size = fsemu_audio.sent_size;
     int64_t sent_when = fsemu_audio.sent_when;
-    int64_t sent_when_prev = fsemu_audio.sent_when_prev;
-    uint8_t *sent_read = fsemu_audio.sent_read;
-    uint8_t *sent_write = fsemu_audio.sent_write;
+    // int64_t sent_when_prev = fsemu_audio.sent_when_prev;
+    // uint8_t *sent_read = fsemu_audio.sent_read;
+    // uint8_t *sent_write = fsemu_audio.sent_write;
     fsemu_audio_unlock();
 
     int frequency = fsemu_audio_frequency();
@@ -167,14 +166,14 @@ void fsemu_audio_log_inflight_estimate(void)
 static void fsemu_audio_update_stats(void)
 {
     // fsemu_audio_log("Audio: Frame %d\n", number);
-    int bufferred = fsemu_audio_buffer_fill();
+    // int buffered = fsemu_audio_buffer_fill();
 
     int64_t now = fsemu_time_us();
 
     fsemu_audio_lock();
     int sent_size = fsemu_audio.sent_size;
     int64_t sent_when = fsemu_audio.sent_when;
-    int64_t sent_when_prev = fsemu_audio.sent_when_prev;
+    // int64_t sent_when_prev = fsemu_audio.sent_when_prev;
     uint8_t *sent_read = fsemu_audio.sent_read;
     uint8_t *sent_write = fsemu_audio.sent_write;
     int underruns = fsemu_audio.underruns;

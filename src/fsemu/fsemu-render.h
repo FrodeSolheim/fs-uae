@@ -3,7 +3,7 @@
 #ifndef FSEMU_RENDER_H_
 #define FSEMU_RENDER_H_
 
-#include "fsemu/fsemu-common.h"
+#include "fsemu-common.h"
 
 typedef struct fsemu_render {
     void (*rectangle)(int x, int y, int w, int h, int c);

@@ -1,27 +1,42 @@
 #define FSEMU_INTERNAL
-#include "fsemu/fsemu-thread.h"
+#include "fsemu-thread.h"
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
 
-#include "fsemu/fsemu-common.h"
-#include "fsemu/fsemu-log.h"
-#include "fsemu/fsemu-util.h"
+#include "fsemu-common.h"
+#include "fsemu-log.h"
+#include "fsemu-util.h"
 
-#include <fs/base.h>
-#include <fs/log.h>
-#include <fs/thread.h>
+// #include <fs/base.h>
+// #include <fs/log.h>
+// #include <fs/thread.h>
+
+#ifdef FSEMU_SDL
+#ifndef USE_SDL2
+#define USE_SDL2
+#endif
+#endif
+
+#ifdef FSEMU_GLIB
+#ifndef USE_GLIB
+#define USE_GLIB
+#endif
+#endif
+
 #include <stdlib.h>
 #ifdef USE_GLIB
-#include <glib.h>
+#include "fsemu-glib.h"
 #endif
 #ifdef USE_SDL2
+#ifndef USE_SDL
 #define USE_SDL
 #endif
+#endif
 #ifdef USE_SDL
-#include <SDL.h>
-#include <SDL_thread.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_thread.h>
 #endif
 #ifdef USE_PTHREADS
 #include <pthread.h>
@@ -105,7 +120,7 @@ fsemu_thread_id_t fsemu_thread_id(void)
 }
 
 fsemu_thread_t *fsemu_thread_create(const char *name,
-                                    fs_thread_function fn,
+                                    fsemu_thread_function_t fn,
                                     void *data)
 {
     fsemu_thread_t *thread =
@@ -384,7 +399,7 @@ int fs_semaphore_wait_timeout_ms(fs_semaphore *semaphore, int timeout)
 	if (result == SDL_MUTEX_TIMEDOUT) {
 		return FS_SEMAPHORE_TIMEOUT;
 	}
-	fs_log("WARNING: uae_sem_trywait_delay failed\n");
+	fsemu_log("WARNING: uae_sem_trywait_delay failed\n");
 	return -3;
 #else
 #error no thread support
@@ -406,15 +421,16 @@ void fsemu_thread_set_priority(void)
 #define TIMERR_NOERROR 0
 #endif
     if (timeBeginPeriod(1) == TIMERR_NOERROR) {
-        fs_log("successfully set timeBeginPeriod(1)\n");
+        fsemu_log("successfully set timeBeginPeriod(1)\n");
     } else {
-        fs_log("error setting timeBeginPeriod(1)\n");
+        fsemu_log("error setting timeBeginPeriod(1)\n");
     }
     if (SetPriorityClass(GetCurrentProcess(), ABOVE_NORMAL_PRIORITY_CLASS)) {
-        fs_log("set process priority class to ABOVE_NORMAL_PRIORITY_CLASS\n");
+        fsemu_log(
+            "set process priority class to ABOVE_NORMAL_PRIORITY_CLASS\n");
     } else {
         int dwError = GetLastError();
-        fs_log("Failed to set process priority class (%d)\n", dwError);
+        fsemu_log("Failed to set process priority class (%d)\n", dwError);
     }
 #endif
 
@@ -436,13 +452,13 @@ void fsemu_thread_set_priority(void)
     // params.sched_priority = sched_get_priority_min(SCHED_FIFO);
     params.sched_priority = sched_get_priority_max(SCHED_FIFO);
     // params.sched_priority = 50;
-    fs_log("[FSEMU] Trying to set priority to %d\n", params.sched_priority);
+    fsemu_log("[FSEMU] Trying to set priority to %d\n", params.sched_priority);
     int result = sched_setscheduler(0, SCHED_FIFO, &params);
     if (result == 0) {
-        fs_log("[FSEMU] Has set real time priority\n");
+        fsemu_log("[FSEMU] Has set real time priority\n");
     } else {
-        fs_log("[FSEMU] Could not set real time priority, errno = %d\n",
-               errno);
+        fsemu_log("[FSEMU] Could not set real time priority, errno = %d\n",
+                  errno);
     }
 #endif
 }

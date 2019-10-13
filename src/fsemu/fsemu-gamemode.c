@@ -1,14 +1,14 @@
 #define FSEMU_INTERNAL
-#include "fsemu/fsemu-gamemode.h"
+#include "fsemu-gamemode.h"
 
-#include "fsemu/fsemu-config.h"
-#include "fsemu/fsemu-log.h"
+#include "fsemu-config.h"
+#include "fsemu-log.h"
 
 #ifdef FSEMU_LINUX
-#include "fsemu/gamemode_client.h"
+#include "gamemode_client.h"
 #endif
 
-#include <glib.h>
+#include "fsemu-glib.h"
 
 static bool gamemode_enabled;
 static bool gamemode_suspended;

@@ -1,9 +1,36 @@
 #ifndef FSEMU_COMMON_H_
 #define FSEMU_COMMON_H_
 
-#ifdef FSEMU_INTERNAL
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
-#include "fsemu-config.h"
+#ifdef __WIN32__
+#define FSEMU_WINDOWS
+#endif
+
+#ifdef __APPLE__
+#define FSEMU_MACOS
+#endif
+
+#ifdef __linux__
+#define FSEMU_LINUX
+#endif
+
+#define FSEMU_FLAG_NONE 0
+
+#define FSEMU_GLIB
+#define FSEMU_SDL
+
+/*
+#ifdef FSEMU_LINUX
+#ifndef FSEMU_ALSA
+#define FSEMU_ALSA
+#endif
+#endif
+*/
+
+#ifdef FSEMU_INTERNAL
 
 #include <stdbool.h>
 

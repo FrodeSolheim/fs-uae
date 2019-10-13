@@ -1,7 +1,7 @@
 #ifndef FSEMU_UTIL_H_
 #define FSEMU_UTIL_H_
 
-#include "fsemu/fsemu-common.h"
+#include "fsemu-common.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -13,7 +13,7 @@ extern "C" {
 #endif
 
 const char *fsemu_getenv(const char *name);
-const char *fsemu_read_env(const char *name);
+const char *fsemu_read_env_option(const char *name);
 
 typedef struct {
     int size;

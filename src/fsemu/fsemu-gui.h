@@ -1,14 +1,11 @@
 #ifndef FSEMU_GUI_H_
 #define FSEMU_GUI_H_
 
-#include "fsemu/fsemu-common.h"
-#include "fsemu/fsemu-font.h"
-#include "fsemu/fsemu-image.h"
-#include "fsemu/fsemu-types.h"
-
-#ifdef FSEMU_SDL
-#include <SDL.h>
-#endif
+#include "fsemu-common.h"
+#include "fsemu-font.h"
+#include "fsemu-image.h"
+#include "fsemu-sdl.h"
+#include "fsemu-types.h"
 
 #include <stdbool.h>
 #include <stdint.h>

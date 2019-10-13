@@ -1,8 +1,8 @@
 #ifndef FSEMU_EVENTS_H_
 #define FSEMU_EVENTS_H_
 
-#include "fsemu/fsemu-common.h"
-#include "fsemu/fsemu-types.h"
+#include "fsemu-common.h"
+#include "fsemu-types.h"
 
 #ifdef __cplusplus
 extern "C" {

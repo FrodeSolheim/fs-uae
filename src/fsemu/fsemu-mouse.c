@@ -1,11 +1,11 @@
 #define FSEMU_INTERNAL
-#include "fsemu/fsemu-mouse.h"
+#include "fsemu-mouse.h"
 
-#include "fsemu/fsemu-config.h"
-#include "fsemu/fsemu-log.h"
-#include "fsemu/fsemu-option.h"
-#include "fsemu/fsemu-thread.h"
-#include "fsemu/fsemu-titlebar.h"
+#include "fsemu-config.h"
+#include "fsemu-log.h"
+#include "fsemu-options.h"
+#include "fsemu-thread.h"
+#include "fsemu-titlebar.h"
 
 // ---------------------------------------------------------------------------
 
@@ -71,6 +71,11 @@ void fsemu_mouse_set_captured(bool captured)
     fsemu_mouse.captured = captured;
 }
 
+void fsemu_mouse_toggle_captured(void)
+{
+    fsemu_mouse_set_captured(!fsemu_mouse_captured());
+}
+
 // ---------------------------------------------------------------------------
 #if 0
 void fsemu_mouse_handle_position(int window_x, int window_y)
@@ -126,7 +131,7 @@ bool fsemu_mouse_handle_mouse(fsemu_mouse_event_t *event)
 
         if (event->state) {
             if (event->button == 2) {
-                fsemu_mouse_set_captured(!fsemu_mouse_captured());
+                fsemu_mouse_toggle_captured();
             } else {
                 if (fsemu_mouse.automatic_grab && !fsemu_mouse_captured()) {
                     fsemu_mouse_set_captured(true);
@@ -134,7 +139,7 @@ bool fsemu_mouse_handle_mouse(fsemu_mouse_event_t *event)
             }
         }
     } else {
-        fsemu_mouse_log("%d,%d\n", event->x, event->y);
+        // fsemu_mouse_log("%d,%d\n", event->x, event->y);
 #if 0
         if (y == 0) { // FIXME: CHECK GRAB?
             fsemu_titlebar_handle_mouse(x, y, button, state);

@@ -1,11 +1,11 @@
 #define FSEMU_INTERNAL
-#include "fsemu/fsemu-audio-alsa.h"
+#include "fsemu-audio-alsa.h"
 
-#include "fsemu/fsemu-audio-buffer.h"
-#include "fsemu/fsemu-audio.h"
-#include "fsemu/fsemu-log.h"
-#include "fsemu/fsemu-thread.h"
-#include "fsemu/fsemu-time.h"
+#include "fsemu-audio-buffer.h"
+#include "fsemu-audio.h"
+#include "fsemu-log.h"
+#include "fsemu-thread.h"
+#include "fsemu-time.h"
 
 #ifdef FSEMU_ALSA
 

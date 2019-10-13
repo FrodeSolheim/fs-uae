@@ -1,8 +1,8 @@
 #ifndef FSEMU_AUDIO_H_
 #define FSEMU_AUDIO_H_
 
-#include "fsemu/fsemu-common.h"
-#include "fsemu/fsemu-types.h"
+#include "fsemu-common.h"
+#include "fsemu-types.h"
 
 typedef struct {
     int buffer_bytes;
@@ -16,7 +16,7 @@ typedef struct {
 extern "C" {
 #endif
 
-void fsemu_audio_init(int flags);
+void fsemu_audio_init(void);
 
 int fsemu_audio_frequency(void);
 
@@ -67,6 +67,6 @@ void fsemu_audio_end_frame(void);
 #endif
 
 #define fsemu_audio_log(format, ...) \
-    fsemu_log("[FSEMU] [AUDIO] " format, ##__VA_ARGS__)
+    fsemu_log_null("[FSEMU] [AUDIO] " format, ##__VA_ARGS__)
 
 #endif  // FSEMU_AUDIO_H_

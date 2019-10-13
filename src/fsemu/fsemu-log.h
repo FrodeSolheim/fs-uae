@@ -1,7 +1,7 @@
 #ifndef FSEMU_LOG_H_
 #define FSEMU_LOG_H_
 
-#include "fsemu/fsemu-common.h"
+#include "fsemu-common.h"
 
 #include <stdio.h>
 
@@ -12,6 +12,8 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+
+void fsemu_log_null(const char *format, ...);
 
 #define fsemu_log printf
 #define fsemu_warning printf

@@ -1,7 +1,7 @@
 #ifndef FSEMU_INPUT_H_
 #define FSEMU_INPUT_H_
 
-#include "fsemu/fsemu-common.h"
+#include "fsemu-common.h"
 
 #ifdef __cplusplus
 extern "C" {

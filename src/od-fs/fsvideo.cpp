@@ -1697,7 +1697,7 @@ int graphics_init(bool mousecapture)
 	//amiga_set_option("gfx_vsyncmode", "busywait");
 
 	if (fsemu) {
-		uae_fsvideo_log("Telling UAE that we are not using vsync");
+		uae_fsvideo_log("Telling UAE that we are not using vsync\n");
 		currprefs.gfx_apmode[0].gfx_vsync = 0;
 		currprefs.gfx_apmode[1].gfx_vsync = 0;
 	}

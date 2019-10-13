@@ -7,7 +7,7 @@
 struct fsemu_thread;
 typedef struct fsemu_thread fsemu_thread_t;
 typedef uintptr_t fsemu_thread_id_t;
-typedef void *(*fs_thread_function_t)(void *);
+typedef void *(*fsemu_thread_function_t)(void *);
 
 struct fsemu_mutex;
 typedef struct fsemu_mutex fsemu_mutex_t;
@@ -22,7 +22,7 @@ void fsemu_thread_assert_main(void);
 
 fsemu_thread_id_t fsemu_thread_id(void);
 fsemu_thread_t *fsemu_thread_create(const char *name,
-                                    fs_thread_function_t fn,
+                                    fsemu_thread_function_t fn,
                                     void *data);
 
 void fsemu_thread_set_priority(void);

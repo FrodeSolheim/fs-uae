@@ -1,12 +1,12 @@
 #define FSEMU_INTERNAL
-#include "fsemu/fsemu-gui.h"
+#include "fsemu-gui.h"
 
-#include "fsemu/fsemu-thread.h"
-#include "fsemu/fsemu-titlebar.h"
-#include "fsemu/fsemu-types.h"
-#include "fsemu/fsemu-util.h"
+#include "fsemu-thread.h"
+#include "fsemu-titlebar.h"
+#include "fsemu-types.h"
+#include "fsemu-util.h"
 
-#include <glib.h>
+#include "fsemu-glib.h"
 
 static struct {
     GList *items;

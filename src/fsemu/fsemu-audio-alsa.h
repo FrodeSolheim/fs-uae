@@ -1,7 +1,7 @@
 #ifndef FSEMU_AUDIO_ALSA_H_
 #define FSEMU_AUDIO_ALSA_H_
 
-#include "fsemu/fsemu-common.h"
+#include "fsemu-common.h"
 
 #ifdef FSEMU_ALSA
 

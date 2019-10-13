@@ -1,5 +1,4 @@
-FS-UAE README
-=============
+# FS-UAE README
 
 FS-UAE is an Amiga emulator for Windows, Linux and Mac OS X based on
 UAE/WinUAE, with a focus on emulating games.
@@ -18,15 +17,14 @@ and requires a moderately fast computer with accelerated graphics (OpenGL)
 to work. A game pad or joystick is recommended, but not required (FS-UAE
 can emulate a joystick using the cursor keys and right ctrl/alt keys).
 
-The official home page of FS-UAE is:
-http://fs-uae.net/
+The official home page of FS-UAE is https://fs-uae.net/
 
 Thank you for your interest in FS-UAE :)
 
+## Important information
 
-IMPORTANT INFORMATION
-=====================
 FS-UAE itself does not include a configuration UI, so you must either:
+
 * Run FS-UAE via the configuration program FS-UAE Launcher.
 * Create a configuration file before the emulator will be usable. This is
   fairly easy, please read on for more information.
@@ -34,9 +32,8 @@ FS-UAE itself does not include a configuration UI, so you must either:
 
 Please report any errors found in the documentation to frode@fs-uae.net.
 
+## Configuration file
 
-CONFIGURATION FILE
-==================
 You will also need to create a configuration file for FS-UAE.  The important
 things you need to configure is what floppy disks to use, and where the
 Kickstart ROMs are stored. Documentation (and examples) is available here:
@@ -61,17 +58,16 @@ a configuration file in top of the FS-UAE application/executable.
 (you can see in the log file exactly what path FS-UAE tries to load the
 default configuration from on your system)
 
+## Kickstart
 
-KICKSTART
-=========
-You will need Kickstart ROMs for the Amigas you want to emulate. One source
-for this is your real Amiga, but you can also purchase the Kickstart ROMs
-in file format from Cloanto - they are bundled with their Amiga Forever
-product.
+You will need Kickstart ROMs for the Amigas you want to emulate for best
+compatibility. One source for this is your real Amiga, but you can also
+purchase the Kickstart ROMs in file format from Cloanto - they are bundled
+with their Amiga Forever product. See [docs/kickstarts.md] for more
+information about kickstarts and the kickstart replacement included in FS-UAE.
 
+## Joysticks
 
-JOYSTICKS
-=========
 If you have a recognized joystick connected, FS-UAE will automatically try
 to use this as the primary Amiga joystick. Otherwise, keyboard joystick
 emulation will be enabled, where the cursor keys and the right control (right
@@ -84,34 +80,26 @@ or gamepad.
 You can specify which joystick to use for each Amiga joystick port in the
 configuration file, and you can also change this during runtime from the
 FS-UAE menu. 
-Information about supported controllers here:
-http://fs-uae.net/controllers
 
-If your joystick is not recognized by FS-UAE (you can see this in the log
-file), you can create a configuration file for it. See
-http://fs-uae.net/custom-controller-configuration
+If your joystick is not correctly configurated automatically by FS-UAE,
+you can create a configuration file for it, or use FS-UAE Launcher to do this
+for you with an easy-to-use GUI.
 
-If you create a configuration file, I would appreciate it if you would
-send a copy to frode@fs-uae.net with the producer and model name of
-the joystick/gamepad (for inclusing in future versions of FS-UAE). 
+## Emulator menu
 
-
-EMULATOR MENU
-=============
 While running the emulator, you press F12 to enter and exit the emulator menu.
-From here, you can load and save states, and swap floppy disks. On Mac OS X,
-you can use Cmd+F12 instead (Possibly even Fn+Cmd+F12).
+From here, you can load and save states, and swap floppy disks. On macOS,
+you can use Cmd+F12 instead (Or Fn+Cmd+F12).
 
 With gamepads, you enter the menu either by using the dedicated "menu" button,
 if the gamepad has one, or you press and hold "start" and "selected" at the
-same time (or equivalent buttons).
-
-You use the same key/button to dismiss the menu.
+same time (or equivalent buttons). Use the same key/button to close the menu.
 
 In the menu, you use the following keys for navigation:
-Cursor keys
-Enter (choose item, enter sub-menu)
-Back-space (leave sub-menu)
+
+* Cursor keys
+* Enter (choose item, enter sub-menu)
+* Back-space (leave sub-menu)
 
 On the game pad, you can use either the hat or the primary analog stick
 for navigation. You choose items and enter sub-menus with the "primary"
@@ -119,47 +107,49 @@ button on the game pad. This is generally the "south" button on the right
 side of the controller. The back button is the "east" button (Just like
 you would navigate on the Xbox).
 
+## Screenshots
 
-SCREENSHOTS
-===========
 Press the "Print Scrn" key on the keyboard to save a screenshot of the
 running game to the desktop. Alternatively, you can use F12+s if you don't
 have this key.
 
+## Keyboard shortcuts
 
-KEYBOARD SHORTCUTS
-==================
-F12 (or Cmd+F12) -Enter/exit GUI.
-F12+G or Middle mouse click – release input grab.
-Alt+Tab (or Cmd+Tab) – switch to another window / release input grab.
-F12+F (or Alt+Enter / Cmd+Enter) – toggle fullscreen mode.
-F11 (or Cmd+F11) – cycle through zoom settings.
-Shift + F11 – zoom out a bit (pad the viewport on all sides).
+See [docs/keyboard.md] for a complete list of shortcuts as well as
+instructions on how to configure shortcuts for additional actions. Here
+are some of the most important ones:
 
+* F12 (or Cmd+F12) -Enter/exit GUI.
+* Alt+Q / Cmd+Q or F12+g – quit FS-UAE.
+* Alt+G / Cmd+G, F12+g or Middle mouse click – release input grab.
+* Alt+Tab / Cmd+Tab – switch to another window and release input grab.
+* Alt+Enter / Cmd+Enter or F12+g – toggle fullscreen mode.
 
-PROGRAM ARGUMENTS
-=================
+Remember that on some computers, you also need to press the Fn key to use
+the F12 key.
+
+## Program arguments
+
 <path>               Use a custom configuration file instead of Default.fs-uae
-
-You can also specify any configuration option with --key=value
-(e.g --floppy-drive-0=/path/to/adf)
 
 Some options commonly used as program arguments:
 
 --fullscreen         Start in fullscreen mode instead of windowed mode
 --stdout             Also log to stdout (not on Windows)
 
+You can also specify any configuration option with `--option=value`.
+Underscores in the option name can be replaced with hyphens (e.g
+`--floppy-drive-0=/path/to/adf`).
 
-LOG FILE AND REPORTING PROBLEMS
-===============================
-A log file is stored as (My) Documents/FS-UAE/Logs/FS-UAE.log
+## Log file and bug reports
+
+A log file is stored as `Documents/FS-UAE/Cache/Logs/FS-UAE.log`.
 
 When reporting a problem, you should include this log file with you error
 report.
 
+## Floppy disks
 
-FLOPPY DISKS
-============
 New data is always saved to overlay ADF files (.sdf). As an example, if you
 have floppy.adf insert into df0 and the Amiga writes to df0, the data is
 written to floppy.sdf instead of modifying floppy.adf itself. You need both
@@ -174,10 +164,10 @@ can be inserted at startup time (specified in the configuration file), and
 FS-UAE maintains a list of available floppy images to insert (also specified
 in the configuration file). See example.conf for more information.
 
+## Supported Amiga models
 
-SUPPORTED AMIGA MODELS
-======================
 The following Amiga models are supported:
+
 - A1000 - Amiga 1000
 - A500 - Amiga 500 (Default)
 - A500+ - Amiga 500+
@@ -191,9 +181,8 @@ The following Amiga models are supported:
 The default configurations corresponds to the quickstarts in WinUAE for
 these systems, on the most compatible setting (cycle-exact mode). 
 
+## Display refresh rate and resolution
 
-DISPLAY REFRESH RATE AND RESOLUTION
-===================================
 For really smooth scrolling in games, your display MUST run at the same
 refresh rate as the Amiga: 50Hz (PAL). Many monitors and TVs with 1920x1080
 resolution supports this refresh rate. If FS-UAE detects that you display is
@@ -215,17 +204,20 @@ will assume that you have square pixels. The Amiga image will be scaled
 to fit the display, and you can choose whether to stretch to fill the entire
 screen, or scale up while maintaining the original aspect ratio.
 
+## Supported host operating systems
 
-SUPPORTED HOST OPERATING SYSTEM
-===============================
+FS-UAE can be compiled for the following operating systems.
+
 - Linux
 - Windows XP or newer
 - Mac OS X 10.6 or newer
 - FreeBSD (Other Unices will probably also work just fine)
 
+The official FS-UAE binaries may require newer versions of these operating
+systems.
 
-DEBUGGING SUPPORT
-=================
+## Debugging support
+
 FS-UAE does not include a graphical debugger for debugging Amiga programs. It
 is possible to use the internal UAE debugger from the console.
 
@@ -240,9 +232,8 @@ work perfectly. You can override this behaviour in the configuration file.
 Also, you can press CTRL+F11 when running to visually see the entire amiga
 output with the crop rectangle.
 
+## Known issues
 
-KNOWN ISSUES / TODO
-===================
 Amiga mouse must currently be emulated with a native mouse device. A nice
 feature would be to be able to emulate the mouse with gamepads - analogue
 controls for instance.
@@ -253,15 +244,14 @@ be nice, and is planned for a future version.
 Floppy list UI does not support scrolling, so if you have many floppy images
 in the floppy list, some may be obscured.
 
+## Copyright and credits
 
-COPYRIGHT AND CREDITS
-=====================
 FS-UAE is Copyright (c) 2011-2019, Frode Solheim
 Large portions are copyrighted by other individuals.
 
 FS-UAE is based on the fantastic work of the original UAE authors, the authors
 of WinUAE, contributions from external contributors as well as some code
-from E-UAE and P-UAE. See http://fs-uae.net/contributions for an
+from E-UAE (and maybe P-UAE). See http://fs-uae.net/contributions for an
 updated list of people having contributed patches, translations and donations.
 
 UAE was created by Bernd Schmidt, with the help of a host of volunteer
@@ -270,13 +260,15 @@ contributors (see the UAE distribution for full credits).
 WinUAE has been developed and maintained by Mathias Ortmann and Toni Wilen.
 Toni Wilen has developed WinUAE for the last years and is the current
 maintainer. E-UAE was developed by Richard Drummond (no longer maintained),
-and P-UAE is developed by Mustafa "GnoStiC" TUFAN (no longer maintained).
+and P-UAE was developed by Mustafa "GnoStiC" TUFAN (no longer maintained).
 
-http://www.winuae.net/
-http://www.rcdrummond.net/uae/
-http://www.softpres.org/
+The libfsemu library is Copyright (c) 2011-2019, Frode Solheim
 
-libfsemu is Copyright (c) 2011-2019, Frode Solheim
-
-IPF decoder library is Copyright (c) 2001-2011 by István Fábián with
+The IPF decoder library is Copyright (c) 2001-2011 by István Fábián with
 additional work by Christian Sauer.
+
+Some relevant links:
+
+* http://www.winuae.net/
+* http://www.rcdrummond.net/uae/
+* http://www.softpres.org/

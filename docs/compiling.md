@@ -15,9 +15,9 @@ Run bootstrap (only when building from git repo):
 
 Install dependencies for building FS-UAE:
 
-    sudo apt install libsdl2-dev libglib2.0-dev libpng-dev gettext \
-    libfreetype6-dev build-essential libopenal-dev libxi-dev zip \
-    libmpeg2-4-dev libsdl2-ttf-dev
+    sudo apt install build-essential libsdl2-dev libglib2.0-dev \
+    libopenal-dev gettext libfreetype6-dev libxi-dev libpng-dev zlib1g-dev \
+    libmpeg2-4-dev zip libjpeg-dev libglew-dev libxtst-dev libsdl2-ttf-dev
 
 ## Set up a build environment on openSUSE
 

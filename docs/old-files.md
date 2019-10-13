@@ -5,11 +5,11 @@
 The following files are not used anymore, but may be lying around from
 older FS-UAE (Launcher) versions:
 
-* Cache/Amiga.sqlite
-* Cache/Files.sqlite
-* Cache/Locker.sqlite
-* Data/Launcher.sqlite
+- Cache/Amiga.sqlite
+- Cache/Files.sqlite
+- Cache/Locker.sqlite
+- Data/Launcher.sqlite
 
-##  Old Directories
+## Old Directories
 
-* Cache/Images
+- Cache/Images

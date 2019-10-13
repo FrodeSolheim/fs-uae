@@ -6,8 +6,8 @@ specific examples of how it can be used, or link to tutorials.
 Use the [freezer_cartridge](options/freezer-cartridge.md) option to enable
 one of:
 
-* Action Replay Mk II v2.14
-* Action Replay Mk III v3.17
+- Action Replay Mk II v2.14
+- Action Replay Mk III v3.17
 
 This option can be visually configured in FS-UAE Launcher. In order to use
 Action Replay, you need a ROM file. See further below for more information.
@@ -39,7 +39,7 @@ But the SHA-1 checksum of the file must match one of the supported ROMs.
 
 ## Related Options
 
-* [freezer_cartridge](options/freezer-cartridge.md)
-* [modifier_key](options/modifier-key.md)
-* [uae_cart](options/uae-cart.md)
-* [uae_cart_file](options/uae-cart-file.md)
+- [freezer_cartridge](options/freezer-cartridge.md)
+- [modifier_key](options/modifier-key.md)
+- [uae_cart](options/uae-cart.md)
+- [uae_cart_file](options/uae-cart-file.md)

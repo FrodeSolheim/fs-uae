@@ -14,12 +14,12 @@ is basically the system cursor, and most likely, all connected mice will
 affect this host device in FS-UAE.
 
 If the support for multiple mice works on your system, you will have one
-*additional* specific host device for each mouse connected. So with two
+_additional_ specific host device for each mouse connected. So with two
 Microsoft Intellimouse devices connected, you might see these devices:
 
-* `Mouse` - This is controllable by both the physical mice
-* `Microsoft Microsoft 5-Button Mouse with IntelliEye(TM)`
-* `Microsoft Microsoft 5-Button Mouse with IntelliEye(TM)`
+- `Mouse` - This is controllable by both the physical mice
+- `Microsoft Microsoft 5-Button Mouse with IntelliEye(TM)`
+- `Microsoft Microsoft 5-Button Mouse with IntelliEye(TM)`
 
 There might be some specific things you should be aware of, depending on your
 operating system. Read on for more information!
@@ -28,7 +28,7 @@ operating system. Read on for more information!
 
 The old `Mouse` device is subject to acceleration settings, while
 direct hardware access to specific mouse devices is not. You may therefore
-want to use the new *specific mouse devices* for more pleasant mouse
+want to use the new _specific mouse devices_ for more pleasant mouse
 emulation regardless of the number of mice you have. You may even find that
 there is less input lag with the new mouse devices.
 
@@ -50,7 +50,7 @@ permission to read from the devices, you will only get access to the
 old/single `Mouse` host device.
 
 You can run this simple command to easily enable FS-UAE to open the mouse
-devices (*after* the mice are connected), though remember
+devices (_after_ the mice are connected), though remember
 that this can have security implications if other people have remote access
 to the computer:
 
@@ -98,6 +98,7 @@ Try to google information about udev rules on your distribution if you
 have problems.
 
 ### Evdev vs XInput2
+
 The ManyMouse library really supports two drivers for Linux: XInput2 and
 Linux evdev interface. Normally, ManyMouse tries XInput2 first, and if that
 works, it will not use Linux evdev. In FS-UAE, I have reversed this order,

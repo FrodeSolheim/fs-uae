@@ -21,7 +21,7 @@ A WHDLoad game archive is an archive (`.zip` or `.lha`) containing a single
 WHDLoad-installed game.
 
 Please note that the archives available from [whdload.de](http://whdload.de/)
-are *installers*, not game archives. In order to create a game archive you
+are _installers_, not game archives. In order to create a game archive you
 run to run the WHDLoad installer for a game, and then create a `.zip` or
 `.lha` archive containing the destination directory where you installed the
 game.
@@ -66,15 +66,14 @@ FIXME: Write about launching games using game / variant UUIDs.
 
 ## Saving Games
 
-* WHDLoad quit key
-* State dir name
-* Unsafe save states
-
+- WHDLoad quit key
+- State dir name
+- Unsafe save states
 
 ## Related Options
 
-* [whdload_quit_key](options/whdload-quit-key.md)
-* [whdload_preload](options/whdload-preload.md)
-* [whdload_splash_delay](options/whdload-splash-delay.md)
-* [x_whdload_args](options/x_whdload-args.md)
-* [x_whdload_version](options/x_whdload-version.md)
+- [whdload_quit_key](options/whdload-quit-key.md)
+- [whdload_preload](options/whdload-preload.md)
+- [whdload_splash_delay](options/whdload-splash-delay.md)
+- [x_whdload_args](options/x_whdload-args.md)
+- [x_whdload_version](options/x_whdload-version.md)

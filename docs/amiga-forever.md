@@ -6,9 +6,9 @@ supported Amiga models.
 
 There are two versions which contains all Kickstart ROMs:
 
-* [Plus](https://www.amigaforever.com/plus/): Gives you access to a
+- [Plus](https://www.amigaforever.com/plus/): Gives you access to a
   downloadable .msi installer.
-* [Premium](https://www.amigaforever.com/premium/): Physical media,
+- [Premium](https://www.amigaforever.com/premium/): Physical media,
   plus access to the plus edition .msi installer.
 
 > **Note:** There is also a
@@ -48,8 +48,8 @@ be `~/FS-UAE` instead of `~/Documents/FS-UAE`, depending on your setup.
 
 If you have an .iso image of the Amiga Forever Plus edition, you can either:
 
-* Mount this as a virtual DVD (depends on your system), or
-* Burn the .iso image to a physical DVD.
+- Mount this as a virtual DVD (depends on your system), or
+- Burn the .iso image to a physical DVD.
 
 Then proceed with the instructions in the next section.
 
@@ -89,18 +89,19 @@ installation there.
 
 When you have installed Amiga Forever on a Windows computer, you have
 several options:
-* Start Amiga Forever and create a DVD .iso image (Tools -> Build Image...),
+
+- Start Amiga Forever and create a DVD .iso image (Tools -> Build Image...),
   and then follow the instructions for installing from a DVD.
-* Start Amiga Forever and export to a directory (Tools -> Build Image...),
+- Start Amiga Forever and export to a directory (Tools -> Build Image...),
   exporting to an USB hard drive, for example.
-* Copy the installed files to your computer using any appropriate method.
+- Copy the installed files to your computer using any appropriate method.
 
 If you want to manually copy files, you will find the Amiga Forever files
 in the "Shared Documents" directory. The exact location of this directory
 may vary depending on Windows version, often one of:
 
-* `C:\Documents and Settings\All Users\Documents`
-* `C:\Users\Public\Documents`
+- `C:\Documents and Settings\All Users\Documents`
+- `C:\Users\Public\Documents`
 
 Just transfer the entire `Amiga Files` directory to
 `Documents/FS-UAE/Amiga Forever`, so you end up with

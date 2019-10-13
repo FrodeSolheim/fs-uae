@@ -5,7 +5,7 @@ Maintainer: Frode Solheim <fs-uae@fengestad.no>
 Build-Depends: debhelper (>= 9), libsdl2-dev, libglib2.0-dev, libopenal-dev, gettext, libfreetype6-dev, libxi-dev, libpng-dev, zlib1g-dev, libmpeg2-4-dev, zip, libjpeg-dev, libglew-dev, libxtst-dev, libsdl2-ttf-dev
 Build-Conflicts: libroar-dev
 Standards-Version: 3.9.4
-Homepage: http://fs-uae.net/
+Homepage: https://fs-uae.net/
 
 Package: fs-uae
 Architecture: any

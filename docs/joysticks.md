@@ -1,8 +1,3 @@
-
-
-
-
-
 ## Built-in joystick emulation
 
 To disable the built-in Joystick keyboard emulation, make sure the following

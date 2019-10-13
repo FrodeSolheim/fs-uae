@@ -32,14 +32,14 @@ the JIT before running games, for better compatibility.
 
 TODO: Links to option reference:
 
-* jit_compiler
-* jit_mempory
+- jit_compiler
+- jit_mempory
 
 Additional low-level options:
 
-* uae_cachesize
-* uae_comp_trustbyte
-* uae_comp_trustword
-* uae_comp_trustnaddr
-* uae_comp_trustlong
-* uae_compfpu
+- uae_cachesize
+- uae_comp_trustbyte
+- uae_comp_trustword
+- uae_comp_trustnaddr
+- uae_comp_trustlong
+- uae_compfpu

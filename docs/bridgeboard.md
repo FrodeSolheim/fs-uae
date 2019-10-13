@@ -14,14 +14,14 @@ VGA: CL-GD5426 or CL-GD5429
 
 Notes:
 
-* Needs VGA bios (for example 5420.vbi or vgabios-0.7a.cirrus.bin)
-* BIOS setting should not matter but you must set both mono and color options
+- Needs VGA bios (for example 5420.vbi or vgabios-0.7a.cirrus.bin)
+- BIOS setting should not matter but you must set both mono and color options
   in pcprefs to OFF.
-* VGA mode should be active very soon after binddrivers has run, END+F9 press
-  is required to switch screens, it does not autoswitch. 
-* With VGA enabled, both PCMono and PCColor screens are always blank (but
+- VGA mode should be active very soon after binddrivers has run, END+F9 press
+  is required to switch screens, it does not autoswitch.
+- With VGA enabled, both PCMono and PCColor screens are always blank (but
   remember to still have either one open if you want working keyboard or
-  mouse input..) 
+  mouse input..)
 
 ## Example Configuration
 

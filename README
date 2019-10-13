@@ -25,35 +25,32 @@ Thank you for your interest in FS-UAE :)
 
 FS-UAE itself does not include a configuration UI, so you must either:
 
-* Run FS-UAE via the configuration program FS-UAE Launcher.
-* Create a configuration file before the emulator will be usable. This is
+- Run FS-UAE via the configuration program FS-UAE Launcher.
+- Create a configuration file before the emulator will be usable. This is
   fairly easy, please read on for more information.
-* Run FS-UAE from a third-party configuration interface / frontend.
+- Run FS-UAE from a third-party configuration interface / frontend.
 
 Please report any errors found in the documentation to frode@fs-uae.net.
 
 ## Configuration file
 
-You will also need to create a configuration file for FS-UAE.  The important
+You will also need to create a configuration file for FS-UAE. The important
 things you need to configure is what floppy disks to use, and where the
 Kickstart ROMs are stored. Documentation (and examples) is available here:
-http://fs-uae.net/documentation
+https://fs-uae.net/documentation
 
 You have several options for where to store the configuration file:
 
 1. In the same directory as the FS-UAE executable, as Config.fs-uae. FS-UAE
-will always try to load this file first.
-
+   will always try to load this file first.
 2. As a per-user configuration file:
-(My) Documents/FS-UAE/Configurations/Default.fs-uae
-
+   (My) Documents/FS-UAE/Configurations/Default.fs-uae
 3. You can also store the file anywhere you want, and invoke FS-UAE with
-the config file as a parameter (fs-uae /path/to/config-file.fs-uae)
-
+   the config file as a parameter (fs-uae /path/to/config-file.fs-uae)
 4. In graphical shells (Windows Explorer, Mac OS Finder), you can also
-select a configuration file, and then choose to open it in FS-UAE (you
-may need to browse to find the program), or you may also drag and drop
-a configuration file in top of the FS-UAE application/executable.
+   select a configuration file, and then choose to open it in FS-UAE (you
+   may need to browse to find the program), or you may also drag and drop
+   a configuration file in top of the FS-UAE application/executable.
 
 (you can see in the log file exactly what path FS-UAE tries to load the
 default configuration from on your system)
@@ -79,7 +76,7 @@ or gamepad.
 
 You can specify which joystick to use for each Amiga joystick port in the
 configuration file, and you can also change this during runtime from the
-FS-UAE menu. 
+FS-UAE menu.
 
 If your joystick is not correctly configurated automatically by FS-UAE,
 you can create a configuration file for it, or use FS-UAE Launcher to do this
@@ -97,9 +94,9 @@ same time (or equivalent buttons). Use the same key/button to close the menu.
 
 In the menu, you use the following keys for navigation:
 
-* Cursor keys
-* Enter (choose item, enter sub-menu)
-* Back-space (leave sub-menu)
+- Cursor keys
+- Enter (choose item, enter sub-menu)
+- Back-space (leave sub-menu)
 
 On the game pad, you can use either the hat or the primary analog stick
 for navigation. You choose items and enter sub-menus with the "primary"
@@ -119,23 +116,23 @@ See [docs/keyboard.md] for a complete list of shortcuts as well as
 instructions on how to configure shortcuts for additional actions. Here
 are some of the most important ones:
 
-* F12 (or Cmd+F12) -Enter/exit GUI.
-* Alt+Q / Cmd+Q or F12+g – quit FS-UAE.
-* Alt+G / Cmd+G, F12+g or Middle mouse click – release input grab.
-* Alt+Tab / Cmd+Tab – switch to another window and release input grab.
-* Alt+Enter / Cmd+Enter or F12+g – toggle fullscreen mode.
+- F12 (or Cmd+F12) -Enter/exit GUI.
+- Alt+Q / Cmd+Q or F12+g – quit FS-UAE.
+- Alt+G / Cmd+G, F12+g or Middle mouse click – release input grab.
+- Alt+Tab / Cmd+Tab – switch to another window and release input grab.
+- Alt+Enter / Cmd+Enter or F12+g – toggle fullscreen mode.
 
 Remember that on some computers, you also need to press the Fn key to use
 the F12 key.
 
 ## Program arguments
 
-<path>               Use a custom configuration file instead of Default.fs-uae
+`<path>`: Use a custom configuration file instead of Default.fs-uae
 
 Some options commonly used as program arguments:
 
---fullscreen         Start in fullscreen mode instead of windowed mode
---stdout             Also log to stdout (not on Windows)
+`--fullscreen`: Start in fullscreen mode instead of windowed mode
+`--stdout`: Also log to stdout (not on Windows)
 
 You can also specify any configuration option with `--option=value`.
 Underscores in the option name can be replaced with hyphens (e.g
@@ -179,7 +176,7 @@ The following Amiga models are supported:
 - CDTV - Commodore CDTV
 
 The default configurations corresponds to the quickstarts in WinUAE for
-these systems, on the most compatible setting (cycle-exact mode). 
+these systems, on the most compatible setting (cycle-exact mode).
 
 ## Display refresh rate and resolution
 
@@ -251,7 +248,7 @@ Large portions are copyrighted by other individuals.
 
 FS-UAE is based on the fantastic work of the original UAE authors, the authors
 of WinUAE, contributions from external contributors as well as some code
-from E-UAE (and maybe P-UAE). See http://fs-uae.net/contributions for an
+from E-UAE (and maybe P-UAE). See https://fs-uae.net/contributions for an
 updated list of people having contributed patches, translations and donations.
 
 UAE was created by Bernd Schmidt, with the help of a host of volunteer
@@ -269,6 +266,6 @@ additional work by Christian Sauer.
 
 Some relevant links:
 
-* http://www.winuae.net/
-* http://www.rcdrummond.net/uae/
-* http://www.softpres.org/
+- http://www.winuae.net/
+- http://www.rcdrummond.net/uae/
+- http://www.softpres.org/

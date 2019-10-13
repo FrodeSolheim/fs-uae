@@ -5,7 +5,7 @@ This page contains answers to some frequently asked questions.
 ## Can I donate towards FS-UAE development?
 
 You do not have to, but I have put up a donation page if you want to:
-[https://fs-uae.net/donate](https://fs-uae.net/donate)  :)
+[https://fs-uae.net/donate](https://fs-uae.net/donate) :)
 
 ## Do joysticks work with FS-UAE on Fedora Linux?
 
@@ -69,8 +69,8 @@ double-click on your device to start configuring it.
 If you've tried combining <kbd>F12</kbd> with <kbd>Fn</kbd> and/or
 <kbd>Cmd</kbd>, and it still does not work, you can either:
 
-* Bind the menu action to another key combination, or
-* Toggle the menu with a controller (menu button or start + select together).
+- Bind the menu action to another key combination, or
+- Toggle the menu with a controller (menu button or start + select together).
 
 To bind the menu action to a key combination, you can add the following
 to advanced settings:
@@ -90,11 +90,11 @@ See the documentation page for FS-UAE Launcher.
 I have received several questions regarding whether I will port FS-UAE to
 other systems, including:
 
-* Android
-* iOS
-* AROS / MorphOs / AmigaOS
-* Windows RT (Microsoft Surface)
-* Pandora
+- Android
+- iOS
+- AROS / MorphOs / AmigaOS
+- Windows RT (Microsoft Surface)
+- Pandora
 
 I am sure porting to many of these systems could be an interesting challenge,
 but in the end, it comes down to this: I can choose to spend (much) time on

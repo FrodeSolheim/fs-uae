@@ -47,6 +47,6 @@ the Amiga:
 In your host terminal you should see the CLI prompt and you can start using
 this host-based Amiga shell.
 
-> ***Note:*** You may need to first enable the aux device within AmigaOS.
+> **_Note:_** You may need to first enable the aux device within AmigaOS.
 > To do this, copy or move the `AUX` icon from `Storage/DOSDrivers` to
 > `Devs/DOSDrivers`.

@@ -24,7 +24,7 @@ Summary: Amiga emulator with on-screen GUI and online play support
 Name: %{name}
 Version: %{version}
 Release: %{release}
-URL: http://fs-uae.net/
+URL: https://fs-uae.net/
 Source0: %{name}-%{unmangled_version}.tar.gz
 License: GPL-2.0+
 Group: System/Emulators/Other

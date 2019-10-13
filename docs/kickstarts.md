@@ -12,8 +12,8 @@ licensed versions of Kickstart ROMs for all supported Amiga models.
 
 There are two versions which contains all Kickstart ROMs:
 
-* Plus: Gives you access to a downloadable .msi installer.
-* Premium: Physical media, plus access to the plus edition .msi installer. 
+- Plus: Gives you access to a downloadable .msi installer.
+- Premium: Physical media, plus access to the plus edition .msi installer.
 
 There is also a value edition, but this only provides kickstart ROM for
 Amiga 500 (and possibly a few other models depending on the Amiga Forever
@@ -28,9 +28,9 @@ This information is only provided as a convenience to the users of FS-UAE.
 By using a tool such as Transrom or Grabkick, you can extract the ROM from
 your own Amiga and copy it over to your computer. Here are some guides:
 
-* http://www.pcguru.plus.com/uae_transfer.html (web.archive.org)
-* http://ale.emuunlim.com/guides/get-kick-rom.shtml
-* https://help.ubuntu.com/community/EUAEAmigaEmulator
+- http://www.pcguru.plus.com/uae_transfer.html (web.archive.org)
+- http://ale.emuunlim.com/guides/get-kick-rom.shtml
+- https://help.ubuntu.com/community/EUAEAmigaEmulator
 
 Please note that I don’t provide support for extracting / transferring
 Amiga ROM files, but you can probably get help on the
@@ -40,9 +40,9 @@ Amiga ROM files, but you can probably get help on the
 
 FS-UAE will automatically use the replacement AROS ROM when:
 
-* The preferred kickstart rom for the Amiga model in use was not found,
+- The preferred kickstart rom for the Amiga model in use was not found,
   and no kickstart file was explicitly specified, or
-* When kickstart_file is specified as “internal”
+- When kickstart_file is specified as “internal”
 
 FS-UAE Launcher behaves a bit differently and will refuse to start the
 emulation if the preferred kickstart ROM is not found. You must change the

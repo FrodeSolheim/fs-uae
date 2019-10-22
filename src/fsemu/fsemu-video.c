@@ -7,6 +7,8 @@
 #include "fsemu-gui.h"
 #include "fsemu-image.h"
 #include "fsemu-layout.h"
+#include "fsemu-option.h"
+#include "fsemu-options.h"
 #include "fsemu-sdl.h"
 #include "fsemu-sdlvideo.h"
 #include "fsemu-sdlwindow.h"
@@ -28,6 +30,8 @@ static struct {
     int rendered_frame;
 } fsemu_video;
 
+bool fsemu_video_log_enabled = false;
+
 static GAsyncQueue *fsemu_video_frame_queue;
 
 void fsemu_video_set_renderer(int renderer)
@@ -42,6 +46,8 @@ void fsemu_video_init(void)
     fsemu_layout_init();
     fsemu_frame_init();
 
+    fsemu_option_read_bool_default(
+        FSEMU_OPTION_LOG_VIDEO, &fsemu_video_log_enabled, false);
     fsemu_video_frame_queue = g_async_queue_new();
 
     // fsemu_video.renderer = FSEMU_VIDEO_RENDERER_OPENGL;
@@ -208,6 +214,8 @@ static void fsemu_video_update_stats(void)
     }
 #endif
 
+    // printf("fsemu_video_update_stats frame %d\n", fsemu_frame_counter());
+
     fsemu_video_frame_stats_t *stats =
         &fsemu_video
              .stats[fsemu_frame_counter_mod(FSEMU_VIDEO_MAX_FRAME_STATS)];
@@ -260,9 +268,13 @@ void fsemu_video_set_frame_began_at(int frame, int64_t began_at)
 
 void fsemu_video_set_frame_rendered_at(int frame, int64_t rendered_at)
 {
+    // printf("set rendered at for frame %d to %lld\n", frame, (long long)
+    // rendered_at);
     fsemu_video.rendered_frame = frame;
     fsemu_video.stats[frame % FSEMU_VIDEO_MAX_FRAME_STATS].rendered_at =
         rendered_at;
+    // printf("%d:%lld\n", frame, (long long) fsemu_video.stats[frame %
+    // FSEMU_VIDEO_MAX_FRAME_STATS].rendered_at);
 }
 
 void fsemu_video_set_frame_swapped_at(int frame, int64_t swapped_at)
@@ -280,6 +292,8 @@ void fsemu_video_end_frame(void)
 
 void fsemu_video_frame_stats(int frame, fsemu_video_frame_stats_t *stats)
 {
+    // printf("%d:%lld\n", frame, (long long) fsemu_video.stats[frame %
+    // FSEMU_VIDEO_MAX_FRAME_STATS].rendered_at);
     memcpy(stats,
            &fsemu_video.stats[frame % FSEMU_VIDEO_MAX_FRAME_STATS],
            sizeof(fsemu_video_frame_stats_t));

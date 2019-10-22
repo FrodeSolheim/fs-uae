@@ -3,12 +3,14 @@
 
 #ifdef FSEMU_SDL
 
+#include "fsemu-control.h"
 #include "fsemu-frame.h"
 #include "fsemu-layout.h"
 #include "fsemu-monitor.h"
 #include "fsemu-mouse.h"
 #include "fsemu-perfgui.h"
 #include "fsemu-quit.h"
+#include "fsemu-screenshot.h"
 #include "fsemu-startupinfo.h"
 #include "fsemu-time.h"
 #include "fsemu-types.h"
@@ -373,13 +375,31 @@ static bool fsemu_sdlwindow_handle_keyboard_shortcut(SDL_Event *event)
         fsemu_window_log("SDLK_q (quit)\n");
         fsemu_quit_maybe();
         return true;
+    } else if (event->key.keysym.sym == SDLK_s) {
+        fsemu_window_log("SDLK_s (screenshot)\n");
+        fsemu_screenshot_capture();
+        return true;
     } else if (event->key.keysym.sym == SDLK_v) {
         fsemu_window_log("SDLK_v (toggle v-sync)\n");
         fsemu_video_toggle_vsync();
         return true;
+    } else if (event->key.keysym.sym == SDLK_w) {
+        fsemu_window_log("SDLK_w (toggle warp mode)\n");
+        fsemu_control_toggle_warp();
+        return true;
     } else if (event->key.keysym.sym == SDLK_RETURN) {
         fsemu_window_log("SDLK_RETURN (toggle fullscreen)\n");
         fsemu_window_toggle_fullscreen();
+        return true;
+    }
+    return false;
+}
+
+static bool fsemu_sdlwindow_prevent_modifier_pollution(SDL_Event *event)
+{
+    if (!fsemu_sdlwindow.full_keyboard_emulation &&
+        event->key.keysym.scancode == FSEMU_KMOD_SCANCODE) {
+        // For now, also prevent the modifier from being sent at all
         return true;
     }
     return false;
@@ -410,9 +430,15 @@ bool fsemu_sdlwindow_handle_event(SDL_Event *event)
                 return true;
             }
         }
+        if (fsemu_sdlwindow_prevent_modifier_pollution(event)) {
+            return true;
+        }
     } else if (event->type == SDL_KEYUP) {
         if (event->key.keysym.scancode == SDL_SCANCODE_F12) {
             fsemu_sdlwindow.f12_pressed = false;
+        }
+        if (fsemu_sdlwindow_prevent_modifier_pollution(event)) {
+            return true;
         }
     }
 

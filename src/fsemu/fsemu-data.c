@@ -78,10 +78,10 @@ static int fs_get_application_exe_path(char *buffer, int size)
 
 #if defined(FSEMU_WINDOWS)
 
-    wchar_t *temp_buf = g_malloc(sizeof(wchar_t) * PATH_MAX);
+    wchar_t *temp_buf = g_malloc(sizeof(wchar_t) * FSEMU_PATH_MAX);
     /* len is the number of characters NOT including the terminating null
      * character. */
-    int len = GetModuleFileNameW(NULL, temp_buf, PATH_MAX);
+    int len = GetModuleFileNameW(NULL, temp_buf, FSEMU_PATH_MAX);
     /* Specify size - 1 to reserve space for a null-terminating byte. */
     int result = WideCharToMultiByte(
         CP_UTF8, 0, temp_buf, len, buffer, size - 1, NULL, NULL);
@@ -176,18 +176,41 @@ static inline int fs_path_exists(const char *path)
 static char *fs_get_data_file(const char *relative)
 {
     static int initialized = 0;
-    static char executable_dir[PATH_MAX];
+    static char executable_dir[FSEMU_PATH_MAX];
     if (!initialized) {
-        fs_get_application_exe_dir(executable_dir, PATH_MAX);
+        fs_get_application_exe_dir(executable_dir, FSEMU_PATH_MAX);
         fsemu_data_log("Application exe dir: %s\n", executable_dir);
         initialized = 1;
     }
     char *path;
+    // Check the same directory as the executable first
     path = g_build_filename(executable_dir, relative, NULL);
     if (fs_path_exists(path)) {
         return path;
     }
+    // Check in the data.fs dir (during development and testing)
+    path = g_build_filename(executable_dir, "data.fs", relative, NULL);
+    if (fs_path_exists(path)) {
+        return path;
+    }
+    // Check in the plugin data dir
+#ifdef FSEMU_MACOS
+    // Need to go further up in the hierarchy due to being bundled inside
+    // an application bundle.
+    path = g_build_filename(
+        executable_dir, "..", "..", "..", "..", "..", "Data", relative, NULL);
+    if (fs_path_exists(path)) {
+        return path;
+    }
+#else
+    path =
+        g_build_filename(executable_dir, "..", "..", "Data", relative, NULL);
+    if (fs_path_exists(path)) {
+        return path;
+    }
+#endif
     g_free(path);
+#if 0
     path = g_build_filename(executable_dir, "share", relative, NULL);
     if (fs_path_exists(path)) {
         return path;
@@ -198,10 +221,11 @@ static char *fs_get_data_file(const char *relative)
         return path;
     }
     g_free(path);
+#endif
 
 #ifdef FSEMU_MACOS
-    char buffer[FS_PATH_MAX];
-    fs_get_application_exe_dir(buffer, FS_PATH_MAX);
+    char buffer[FSEMU_PATH_MAX];
+    fs_get_application_exe_dir(buffer, FSEMU_PATH_MAX);
     path = g_build_filename(buffer, "..", "Resources", relative, NULL);
     if (fs_path_exists(path)) {
         return path;
@@ -209,6 +233,7 @@ static char *fs_get_data_file(const char *relative)
     g_free(path);
 #endif
 
+#if 0
 #ifdef FSEMU_GLIB
     const char *user_dir = g_get_user_data_dir();
     path = g_build_filename(user_dir, relative, NULL);
@@ -226,6 +251,7 @@ static char *fs_get_data_file(const char *relative)
         g_free(path);
         dirs++;
     }
+#endif
 #endif
 
     return NULL;

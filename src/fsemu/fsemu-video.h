@@ -35,12 +35,12 @@ typedef struct {
     int64_t swapped_at;
 } fsemu_video_frame_stats_t;
 
+#define FSEMU_VIDEO_RENDERER_SDL 0
+#define FSEMU_VIDEO_RENDERER_OPENGL 1
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#define FSEMU_VIDEO_RENDERER_SDL 0
-#define FSEMU_VIDEO_RENDERER_OPENGL 1
 
 /** This - if called - must be called before fsemu_video_init. */
 void fsemu_video_set_renderer(int renderer);
@@ -108,8 +108,11 @@ void fsemu_video_end_frame(void);
 }
 #endif
 
-#define fsemu_video_log(format, ...) \
-    fsemu_log("[FSEMU] [VIDEO] " format, ##__VA_ARGS__)
+extern bool fsemu_video_log_enabled;
+#define fsemu_video_log(format, ...)                         \
+    if (fsemu_video_log_enabled) {                           \
+        fsemu_log("[FSEMU] [VIDEO] " format, ##__VA_ARGS__); \
+    }
 
 // #define FSEMU_RGB(c) ((((uint32_t) c) >> 8) | (0xff - (c & 0xff)) << 24)
 #define FSEMU_RGB(c)                                                    \

@@ -239,7 +239,7 @@ static void fsemu_glvideo_convert_coordinates(fsemu_drect_t *out,
         out->y = 1.0 - 2.0 * in->y / window_size.h - out->h;
 
     } else if (coordinates == FSEMU_COORD_1080P) {
-        double scale_x = window_size.h / 1080.0;
+        double scale_x = window_size.w / 1920.0;
         double scale_y = window_size.h / 1080.0;
 
         out->w = 2.0 * (in->w * scale_x) / window_size.w;

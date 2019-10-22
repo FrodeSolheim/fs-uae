@@ -1363,7 +1363,7 @@ int main(int argc, char *argv[])
     }
 
     if (fsemu) {
-        fsemu_gamemode_init(0);
+        fsemu_gamemode_init();
     } else {
 #ifdef LINUX
         if (fs_config_get_boolean(OPTION_GAME_MODE) != 0) {

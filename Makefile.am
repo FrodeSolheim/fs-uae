@@ -821,6 +821,8 @@ libfsemu2_a_SOURCES = \
 	src/fsemu/fsemu-compat.h \
 	src/fsemu/fsemu-config.c \
 	src/fsemu/fsemu-config.h \
+	src/fsemu/fsemu-control.c \
+	src/fsemu/fsemu-control.h \
 	src/fsemu/fsemu-data.c \
 	src/fsemu/fsemu-data.h \
 	src/fsemu/fsemu-events.c \
@@ -863,6 +865,8 @@ libfsemu2_a_SOURCES = \
 	src/fsemu/fsemu-quit.h \
 	src/fsemu/fsemu-render.c \
 	src/fsemu/fsemu-render.h \
+	src/fsemu/fsemu-screenshot.c \
+	src/fsemu/fsemu-screenshot.h \
 	src/fsemu/fsemu-sdl.h \
 	src/fsemu/fsemu-sdlaudio.c \
 	src/fsemu/fsemu-sdlaudio.h \
@@ -1452,6 +1456,37 @@ EXTRA_DIST = $(TESTS) $(EXTRA_TESTS) \
 	dist/windows/clib.py \
 	dist/windows/iscc.py \
 	dist/windows/sign.py \
+	docs/action-replay.md \
+	docs/amiga-forever.md \
+	docs/amigaos-4-1.md \
+	docs/amikit.md \
+	docs/bridgeboard.md \
+	docs/compiling.md \
+	docs/cyberstorm-ppc.md \
+	docs/examples \
+	docs/examples/Default.fs-uae \
+	docs/examples/Keyboard.ini \
+	docs/faq.md \
+	docs/getting-started.md \
+	docs/g-sync.md \
+	docs/issues.md \
+	docs/jit-compiler.md \
+	docs/joysticks.md \
+	docs/keyboard.md \
+	docs/kickstarts.md \
+	docs/linux.md \
+	docs/macos.md \
+	docs/mouse.md \
+	docs/old-files.md \
+	docs/portable.md \
+	docs/serial-port.md \
+	docs/to-do.md \
+	docs/variable-refresh-rate.md \
+	docs/vpar.md \
+	docs/vsync.md \
+	docs/whdload.md \
+	docs/windows.md \
+	docs/x-arcade.md \
 	flac/include/FLAC/all.h \
 	flac/include/FLAC/assert.h \
 	flac/include/FLAC/callback.h \

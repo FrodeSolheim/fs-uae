@@ -132,9 +132,11 @@ bool fsemu_mouse_handle_mouse(fsemu_mouse_event_t *event)
         if (event->state) {
             if (event->button == 2) {
                 fsemu_mouse_toggle_captured();
+                return true;
             } else {
                 if (fsemu_mouse.automatic_grab && !fsemu_mouse_captured()) {
                     fsemu_mouse_set_captured(true);
+                    return true;
                 }
             }
         }

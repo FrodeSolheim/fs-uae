@@ -13,6 +13,8 @@ void fsemu_perfgui_cycle(void);
 
 #ifdef FSEMU_INTERNAL
 
+int fsemu_perfgui_mode(void);
+
 #endif  // FSEMU_INTERNAL
 
 #ifdef __cplusplus

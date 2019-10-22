@@ -17,7 +17,7 @@ extern "C" {
 
 // int64_t fsemu_time_nanos();
 
-static inline int64_t fsemu_time_us()
+static inline int64_t fsemu_time_us(void)
 {
 #ifdef FSEMU_GLIB
     return g_get_monotonic_time();
@@ -26,7 +26,7 @@ static inline int64_t fsemu_time_us()
 #endif
 }
 
-static inline int64_t fsemu_time_millis()
+static inline int64_t fsemu_time_millis(void)
 {
     return fsemu_time_us() / 1000;
 }

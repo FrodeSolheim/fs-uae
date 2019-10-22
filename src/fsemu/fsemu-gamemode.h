@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-void fsemu_gamemode_init(int flags);
+void fsemu_gamemode_init(void);
 void fsemu_gamemode_suspend(void);
 void fsemu_gamemode_resume(void);
 void fsemu_gamemode_check_linux_cpu_governor(void);

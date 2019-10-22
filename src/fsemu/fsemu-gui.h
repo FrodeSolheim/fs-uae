@@ -34,7 +34,7 @@ void fsemu_gui_image(
 
 void fsemu_gui_add_item(fsemu_gui_item_t *item);
 
-fsemu_gui_item_t *fsemu_gui_snapshot();
+fsemu_gui_item_t *fsemu_gui_snapshot(void);
 void fsemu_gui_free_snapshot(fsemu_gui_item_t *snapshot);
 
 #ifdef FSEMU_INTERNAL

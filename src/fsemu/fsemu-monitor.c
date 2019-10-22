@@ -83,7 +83,7 @@ void fsemu_monitor_init(void)
     }
 }
 
-int fsemu_monitor_count()
+int fsemu_monitor_count(void)
 {
     return g_fs_emu_monitor_count;
 }

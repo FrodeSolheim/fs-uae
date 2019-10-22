@@ -64,8 +64,6 @@ void fsemu_startupinfo_init(void)
     fsemu_startupinfo.background.coordinates = FSEMU_COORD_1080P;
     fsemu_gui_add_item(&fsemu_startupinfo.background);
 
-    fsemu_gui_item_set_visible(&fsemu_startupinfo.background, true);
-
     fsemu_font_t *font = fsemu_font_load("SairaCondensed-Bold.ttf", 56);
     fsemu_font_t *font_2 = fsemu_font_load("SairaCondensed-Bold.ttf", 32);
     fsemu_font_t *font_3 = fsemu_font_load("SairaCondensed-Bold.ttf", 24);
@@ -101,7 +99,6 @@ void fsemu_startupinfo_init(void)
             // printf("ccc\n");
             item->coordinates = FSEMU_COORD_1080P_LEFT;
             fsemu_gui_add_item(item);
-            fsemu_gui_item_set_visible(item, true);
         }
     }
 
@@ -112,7 +109,6 @@ void fsemu_startupinfo_init(void)
             item, x + 25, y + 25 - 2, image->width, image->height, image);
         item->coordinates = FSEMU_COORD_1080P_LEFT;
         fsemu_gui_add_item(item);
-        fsemu_gui_item_set_visible(item, true);
     }
 
     // FIXME: Consider joining platform, year, companies into one
@@ -126,7 +122,6 @@ void fsemu_startupinfo_init(void)
         fsemu_gui_image(item, x2, y + 93, image->width, image->height, image);
         item->coordinates = FSEMU_COORD_1080P_LEFT;
         fsemu_gui_add_item(item);
-        fsemu_gui_item_set_visible(item, true);
 
         x2 += image->width + 25;
     }
@@ -139,7 +134,6 @@ void fsemu_startupinfo_init(void)
         fsemu_gui_image(item, x2, y + 93, image->width, image->height, image);
         item->coordinates = FSEMU_COORD_1080P_LEFT;
         fsemu_gui_add_item(item);
-        fsemu_gui_item_set_visible(item, true);
 
         x2 += image->width + 50;
     }
@@ -152,7 +146,6 @@ void fsemu_startupinfo_init(void)
         fsemu_gui_image(item, x2, y + 93, image->width, image->height, image);
         item->coordinates = FSEMU_COORD_1080P_LEFT;
         fsemu_gui_add_item(item);
-        fsemu_gui_item_set_visible(item, true);
     }
 
     if ((string = fsemu_startupinfo.emulator_name)) {
@@ -171,7 +164,6 @@ void fsemu_startupinfo_init(void)
                         image);
         item->coordinates = FSEMU_COORD_1080P_RIGHT;
         fsemu_gui_add_item(item);
-        fsemu_gui_item_set_visible(item, true);
     }
 
     if ((string = fsemu_startupinfo.fork_info)) {
@@ -188,7 +180,6 @@ void fsemu_startupinfo_init(void)
                         image);
         item->coordinates = FSEMU_COORD_1080P_RIGHT;
         fsemu_gui_add_item(item);
-        fsemu_gui_item_set_visible(item, true);
 
         item = &fsemu_startupinfo.fork_2_item;
         image = fsemu_font_render_text_to_image(
@@ -203,7 +194,6 @@ void fsemu_startupinfo_init(void)
                         image);
         item->coordinates = FSEMU_COORD_1080P_RIGHT;
         fsemu_gui_add_item(item);
-        fsemu_gui_item_set_visible(item, true);
     }
 }
 

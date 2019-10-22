@@ -13,7 +13,7 @@
 static bool gamemode_enabled;
 static bool gamemode_suspended;
 
-void fsemu_gamemode_init(int flags)
+void fsemu_gamemode_init(void)
 {
 #ifdef FSEMU_LINUX
     if (fsemu_config_boolean("game_mode") != 0) {

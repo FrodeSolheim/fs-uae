@@ -8,6 +8,7 @@
 #include "fsemu-gui.h"
 #include "fsemu-image.h"
 #include "fsemu-layout.h"
+#include "fsemu-perfgui.h"
 #include "fsemu-sdl.h"
 #include "fsemu-sdlwindow.h"
 #include "fsemu-time.h"
@@ -135,12 +136,14 @@ void fsemu_sdlvideo_work(int timeout_us)
             ((int32_t *) greenline)[i] = FSEMU_RGB(0x00ff00);
         }
     }
-
-    rect.h = 1;
-    SDL_UpdateTexture(fsemu_sdlvideo.textures[fsemu_sdlvideo.current_texture],
-                      &rect,
-                      greenline,
-                      2048 * 4);
+    if (fsemu_perfgui_mode() == 2) {
+        rect.h = 1;
+        SDL_UpdateTexture(
+            fsemu_sdlvideo.textures[fsemu_sdlvideo.current_texture],
+            &rect,
+            greenline,
+            2048 * 4);
+    }
 #endif
 
     if (frame->partial > 0 && frame->partial != frame->height) {
@@ -232,6 +235,15 @@ static void fsemu_sdlvideo_convert_coordinates(SDL_Rect *out,
         out->h = in->h;
         out->x = in->x;
         out->y = in->y;
+    } else if (coordinates == FSEMU_COORD_1080P) {
+        double scale_x = window_size.w / 1920.0;
+        double scale_y = window_size.h / 1080.0;
+
+        out->w = in->w * scale_x;
+        out->h = in->h * scale_y;
+        out->x = in->x * scale_x;
+        out->y = in->y * scale_y;
+
     } else if (coordinates == FSEMU_COORD_1080P_LEFT) {
         double scale = window_size.h / 1080.0;
 
@@ -265,8 +277,18 @@ static void fsemu_sdlvideo_render_image(fsemu_gui_item_t *item)
                                                     0x0000ff00,
                                                     0x00ff0000,
                                                     0xff000000);
+    if (surface == NULL) {
+        fprintf(stderr, "CreateRGBSurface failed: %s\n", SDL_GetError());
+        exit(1);
+    }
+
     SDL_Texture *texture =
         SDL_CreateTextureFromSurface(fsemu_sdlvideo.renderer, surface);
+    if (texture == NULL) {
+        fprintf(
+            stderr, "CreateTextureFromSurface failed: %s\n", SDL_GetError());
+        exit(1);
+    }
     SDL_FreeSurface(surface);
 
     SDL_Rect src_rect;
@@ -290,7 +312,8 @@ static void fsemu_sdlvideo_render_image(fsemu_gui_item_t *item)
 
 static void fsemu_sdlvideo_render_rectangle(fsemu_gui_item_t *item)
 {
-    SDL_Rect dr = item->rect;
+    SDL_Rect dr;
+    fsemu_sdlvideo_convert_coordinates(&dr, &item->rect, item->coordinates);
 
     // uint8_t b = item->color & 0xff;
     // uint8_t g = (item->color & 0xff00) >> 8;
@@ -304,12 +327,15 @@ static void fsemu_sdlvideo_render_rectangle(fsemu_gui_item_t *item)
 
     SDL_SetRenderDrawColor(fsemu_sdlvideo.renderer, r, g, b, a);
     SDL_RenderFillRect(fsemu_sdlvideo.renderer, &dr);
+    fsemu_video_log("Render rect to %d,%d %dx%d\n", dr.x, dr.y, dr.w, dr.h);
 }
 
 static void fsemu_sdlvideo_render_item(fsemu_gui_item_t *item)
 {
     if (item->visible) {
         if (item->image) {
+            // item->color = 0xff0000ff;
+            // fsemu_sdlvideo_render_rectangle(item);
             fsemu_sdlvideo_render_image(item);
         } else {
             fsemu_sdlvideo_render_rectangle(item);
@@ -320,6 +346,7 @@ static void fsemu_sdlvideo_render_item(fsemu_gui_item_t *item)
 void fsemu_sdlvideo_render_gui_early(fsemu_gui_item_t *items)
 {
     fsemu_video_log("fsemu_sdlvideo_render_gui_early\n");
+#if 0
     SDL_SetRenderDrawBlendMode(fsemu_sdlvideo.renderer, SDL_BLENDMODE_BLEND);
     fsemu_gui_item_t *item = items;
     while (item) {
@@ -327,12 +354,13 @@ void fsemu_sdlvideo_render_gui_early(fsemu_gui_item_t *items)
         item = item->next;
     }
     SDL_SetRenderDrawBlendMode(fsemu_sdlvideo.renderer, SDL_BLENDMODE_NONE);
+#endif
 }
 
 void fsemu_sdlvideo_render_gui(fsemu_gui_item_t *items)
 {
     fsemu_video_log("fsemu_sdlvideo_render_gui\n");
-#if 0
+#if 1
     SDL_SetRenderDrawBlendMode(fsemu_sdlvideo.renderer, SDL_BLENDMODE_BLEND);
     fsemu_gui_item_t *item = items;
     while (item) {

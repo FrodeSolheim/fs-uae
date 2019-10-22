@@ -12,7 +12,9 @@ extern "C" {
 #define fsemu_assert SDL_assert
 #endif
 
+/** Always returns a string (empty if not set) */
 const char *fsemu_getenv(const char *name);
+
 const char *fsemu_read_env_option(const char *name);
 
 typedef struct {

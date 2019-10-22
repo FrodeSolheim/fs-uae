@@ -148,6 +148,8 @@ void fsemu_perfgui_init(void)
     fsemu_perfgui_init_images();
     fsemu_perfgui_init_items();
     fsemu_perfgui_set_colors(1);
+
+    fsemu_perfgui.mode = 1;
 }
 
 static void fsemu_perfgui_draw_line(uint8_t *row)
@@ -175,27 +177,34 @@ static void fsemu_perfgui_update_audio(int frame)
 
     fsemu_audio_frame_stats_t stats;
     fsemu_audio_frame_stats(frame, &stats);
-    // printf("levels %d (frame %d)\n", stats.buffer_bytes, frame);
 
-    // (128 px = 40 ms)
-    // int us = fsemu_audio_bytes_to_us(stats.buffer_bytes -
-    // stats.recent_bytes);
-    int us = fsemu_audio_bytes_to_us(stats.recent_bytes);
-    int level1 = us * 128 / (scale * 1000);
-    us = fsemu_audio_bytes_to_us(stats.buffer_bytes);
-    int level2 = us * 128 / (scale * 1000);
-    us += fsemu_audio_bytes_to_us(stats.inflight_bytes);
-    int level3 = us * 128 / (scale * 1000);
+    int level1, level2, level3;
 
-    // FIXME: Check mednafen - level3 < level2 (inflight bytes negative)
-    // Seems to happen if other programs have PulseAudio connections
-    // (browsers?)
+    if (fsemu_audio_frequency()) {
+        // (128 px = 40 ms)
+        // int us = fsemu_audio_bytes_to_us(stats.buffer_bytes -
+        // stats.recent_bytes);
+        int us = fsemu_audio_bytes_to_us(stats.recent_bytes);
+        level1 = us * 128 / (scale * 1000);
+        us = fsemu_audio_bytes_to_us(stats.buffer_bytes);
+        level2 = us * 128 / (scale * 1000);
+        us += fsemu_audio_bytes_to_us(stats.inflight_bytes);
+        level3 = us * 128 / (scale * 1000);
 
-    // int buffer_fill = fsemu_audio_buffer_fill_us();
-    // printf("levels %d %d %d\n", level1, level2, level3);
+        // FIXME: Check mednafen - level3 < level2 (inflight bytes negative)
+        // Seems to happen if other programs have PulseAudio connections
+        // (browsers?)
 
-    // int us = fsemu_audio_bytes_to_us(stats.buffer_bytes +
-    // stats.inflight_bytes); int level0 = us * 128 / (scale * 1000);
+        // int buffer_fill = fsemu_audio_buffer_fill_us();
+        // printf("levels %d %d %d\n", level1, level2, level3);
+
+        // int us = fsemu_audio_bytes_to_us(stats.buffer_bytes +
+        // stats.inflight_bytes); int level0 = us * 128 / (scale * 1000);
+    } else {
+        level1 = -1;
+        level2 = -1;
+        level3 = -1;
+    }
 
     uint32_t level1_color = fsemu_perfgui.colors.audio_1;
 #if 0
@@ -246,7 +255,10 @@ static void fsemu_perfgui_update_video(int frame)
 
     fsemu_video_frame_stats_t stats;
     fsemu_video_frame_stats(frame, &stats);
-    // printf("levels %d (frame %d)\n", stats.buffer_bytes, frame);
+    // printf("get frame stats for frame %d\n", frame);
+    // printf("%lld %lld\n", (long long) stats.rendered_at, (long long)
+    // stats.origin_at); printf("levels %d (frame %d)\n", stats.buffer_bytes,
+    // frame);
 #if 0
     printf("levels sleep %d emu %d (frame %d)\n",
            stats.sleep_us,
@@ -276,7 +288,10 @@ static void fsemu_perfgui_update_video(int frame)
         fsemu_perfgui.video_image.data + y * fsemu_perfgui.video_image.stride;
 
     // FIXME: improve this check, also make dependent on hz
+    // FIXME: Underrun - swap too late
     bool problem = (stats.swapped_at - stats.origin_at) > 30000;
+    // FIXME: Overun - too many emulated frames
+    bool problem_2 = (stats.rendered_at < stats.origin_at);
 
     for (int i = 0; i < 2; i++) {
         for (int x = 0; x < 116; x++) {
@@ -303,6 +318,11 @@ static void fsemu_perfgui_update_video(int frame)
             ((uint32_t *) row)[1] = FSEMU_RGB(0xff0000);
             ((uint32_t *) row)[2] = FSEMU_RGB(0xff0000);
             ((uint32_t *) row)[3] = FSEMU_RGB(0xff0000);
+        } else if (problem_2) {
+            ((uint32_t *) row)[0] = FSEMU_RGB(0xff00ff);
+            ((uint32_t *) row)[1] = FSEMU_RGB(0xff00ff);
+            ((uint32_t *) row)[2] = FSEMU_RGB(0xff00ff);
+            ((uint32_t *) row)[3] = FSEMU_RGB(0xff00ff);
         }
         row += fsemu_perfgui.video_image.stride;
         y += 1;
@@ -361,4 +381,9 @@ void fsemu_perfgui_cycle(void)
     if (fsemu_perfgui.mode > 0) {
         fsemu_perfgui_set_colors(fsemu_perfgui.mode);
     }
+}
+
+int fsemu_perfgui_mode(void)
+{
+    return fsemu_perfgui.mode;
 }

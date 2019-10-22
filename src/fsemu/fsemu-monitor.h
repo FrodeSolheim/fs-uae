@@ -23,7 +23,7 @@ extern "C" {
 #endif
 
 void fsemu_monitor_init(void);
-int fsemu_monitor_count();
+int fsemu_monitor_count(void);
 bool fsemu_monitor_get_by_index(int index, fsemu_monitor_t *monitor);
 bool fsemu_monitor_get_by_flag(int flag, fsemu_monitor_t *monitor);
 

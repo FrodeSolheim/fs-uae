@@ -34,14 +34,18 @@ static struct {
     fsemu_audio_frame_stats_t stats[FSEMU_AUDIO_MAX_FRAME_STATS];
 } fsemu_audio;
 
-static void fsemu_audio_lock()
+static void fsemu_audio_lock(void)
 {
-    fsemu_mutex_lock(fsemu_audio.mutex);
+    if (fsemu_audio.mutex) {
+        fsemu_mutex_lock(fsemu_audio.mutex);
+    }
 }
 
-static void fsemu_audio_unlock()
+static void fsemu_audio_unlock(void)
 {
-    fsemu_mutex_unlock(fsemu_audio.mutex);
+    if (fsemu_audio.mutex) {
+        fsemu_mutex_unlock(fsemu_audio.mutex);
+    }
 }
 
 static void fsemu_audio_init_driver(void)
@@ -231,7 +235,12 @@ static void fsemu_audio_update_stats(void)
     stats->dt = dt;
     stats->underruns = underruns;
 
-    fsemu_audio.latency_us = (int64_t) total / 4 * 1000000LL / frequency;
+    if (frequency) {
+        fsemu_audio.latency_us = (int64_t) total / 4 * 1000000LL / frequency;
+    } else {
+        // For when audio subsystem is not initialized.
+        fsemu_audio.latency_us = 0;
+    }
 }
 
 void fsemu_audio_end_frame(void)

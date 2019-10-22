@@ -21,6 +21,18 @@ int fsemu_option_read_bool_default(const char *name,
     }
     return *result;
 #else
+    const char *value = fsemu_read_env_option(name);
+    if (value[0]) {
+        if (strcasecmp(value, "1") == 0 || strcasecmp(value, "true") == 0) {
+            *result = true;
+            return 1;
+        }
+        if (strcasecmp(value, "0") == 0 || strcasecmp(value, "false") == 0) {
+            *result = false;
+            return 1;
+        }
+    }
+    *result = default_value;
     return 0;
 #endif
 }

@@ -19,6 +19,8 @@
 
 #define FSEMU_OPTION_INITIAL_INPUT_GRAB "initial_input_grab"
 
+#define FSEMU_OPTION_LOG_VIDEO "log_video"
+
 #define FSEMU_OPTION_MIDDLE_CLICK_UNGRAB "middle_click_ungrab"
 
 #define FSEMU_OPTION_STRETCH_MODE "stretch_mode"

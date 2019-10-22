@@ -100,7 +100,7 @@ bool fsemu_titlebar_handle_mouse(fsemu_mouse_event_t *event)
     // bool is_open = fsemu_titlebar.visible;
     // FIXME: Check mouse grab / relative mode
 
-    bool cursor_visible = true;
+    bool cursor_visible = !fsemu_mouse_captured();
 
     if (fsemu_titlebar.mouse_trapped) {
         return true;

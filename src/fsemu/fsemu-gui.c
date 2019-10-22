@@ -100,7 +100,7 @@ void fsemu_gui_add_item(fsemu_gui_item_t *item)
     fsemu_gui.items = g_list_append(fsemu_gui.items, item);
 }
 
-fsemu_gui_item_t *fsemu_gui_snapshot()
+fsemu_gui_item_t *fsemu_gui_snapshot(void)
 {
     // fsemu_gui_assert_locked();
     fsemu_gui_lock();

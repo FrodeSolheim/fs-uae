@@ -37,6 +37,7 @@ void fsemu_frame_update_timing(double hz, bool turbo);
 
 int fsemu_frame_emutime_avg_us(void);
 
+extern int64_t fsemu_frame_origin_at;
 extern int64_t fsemu_frame_begin_at;
 extern int64_t fsemu_frame_end_at;
 extern int64_t fsemu_frame_wait_duration;
@@ -45,8 +46,6 @@ extern int64_t fsemu_frame_sleep_duration;
 extern int64_t fsemu_frame_extra_duration;
 
 #ifdef FSEMU_INTERNAL
-
-extern int64_t fsemu_frame_origin_at;
 
 /** Initializes the frame module (not a single frame). */
 void fsemu_frame_init(void);

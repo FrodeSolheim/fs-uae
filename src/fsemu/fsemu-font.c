@@ -66,6 +66,7 @@ fsemu_image_t *fsemu_font_render_text_to_image(fsemu_font_t *font,
     image->width = surface->w;
     image->height = surface->h;
     image->data = surface->pixels;
+    image->depth = 32;
     image->stride = surface->pitch;
 
     // Do not delete the surface here (or rather, the image data) since

@@ -253,7 +253,7 @@ double fsemu_audio_buffer_calculate_adjustment(void)
     // printf("[FSEMU] %0.1f\n", (latency + 500) / 1000.0);
 
     // FIXME: Depend on emulation hz?
-    int64_t target = 20 * 1000;
+    int64_t target = 30 * 1000;
     int diff = latency - target;
     // printf("[FSEMU] Diff %d\n", diff);
     static bool was_outside;

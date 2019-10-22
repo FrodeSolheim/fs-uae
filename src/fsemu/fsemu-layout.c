@@ -140,22 +140,25 @@ void fsemu_layout_video_rect(fsemu_rect_t *rect)
 
     double scale_x = 1.0;
     double scale_y = 1.0;
-    // if (fsgs_stretch() == FSGS_STRETCH_FILL_SCREEN) {
-    // } else {
-    double pixel_aspect = 1.0;
-    // if (fsgs_stretch() == FSGS_STRETCH_ASPECT) {
-    pixel_aspect = fsemu_layout_pixel_aspect();
-    // }
-    double initial_aspect = (double) client_rect.w / client_rect.h;
-    double aspect =
-        ((double) fsemu_layout.video_width / fsemu_layout.video_height) /
-        pixel_aspect;
-    if (aspect < initial_aspect) {
-        scale_x = aspect / initial_aspect;
+
+    int stretch_mode = fsemu_layout_stretch_mode();
+
+    if (stretch_mode == FSEMU_STRETCH_MODE_FILL_SCREEN) {
     } else {
-        scale_y = initial_aspect / aspect;
+        double pixel_aspect = 1.0;
+        // if (fsgs_stretch() == FSGS_STRETCH_ASPECT) {
+        pixel_aspect = fsemu_layout_pixel_aspect();
+        // }
+        double initial_aspect = (double) client_rect.w / client_rect.h;
+        double aspect =
+            ((double) fsemu_layout.video_width / fsemu_layout.video_height) /
+            pixel_aspect;
+        if (aspect < initial_aspect) {
+            scale_x = aspect / initial_aspect;
+        } else {
+            scale_y = initial_aspect / aspect;
+        }
     }
-    // }
 
     rect->w = client_rect.w * scale_x;
     rect->h = client_rect.h * scale_y;

@@ -1,23 +1,26 @@
-#ifndef FSEMU_GUI_H_
-#define FSEMU_GUI_H_
+#ifndef FSEMU_HUD_H_
+#define FSEMU_HUD_H_
 
 #include "fsemu-common.h"
-#include "fsemu-font.h"
-#include "fsemu-image.h"
-#include "fsemu-sdl.h"
-#include "fsemu-types.h"
+// #include "fsemu-font.h"
+// #include "fsemu-image.h"
+// #include "fsemu-sdl.h"
+// #include "fsemu-types.h"
 
-#include <stdbool.h>
-#include <stdint.h>
+// #include <stdbool.h>
+// #include <stdint.h>
 
-struct fsemu_gui_item_struct;
-typedef struct fsemu_gui_item_struct fsemu_gui_item_t;
+// struct fsemu_gui_item_struct;
+// typedef struct fsemu_gui_item_struct fsemu_gui_item_t;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void fsemu_gui_init(void);
+void fsemu_hud_init(void);
+void fsemu_hud_update(void);
+
+/*
 void fsemu_gui_lock(void);
 void fsemu_gui_unlock(void);
 
@@ -36,11 +39,14 @@ void fsemu_gui_add_item(fsemu_gui_item_t *item);
 
 fsemu_gui_item_t *fsemu_gui_snapshot(void);
 void fsemu_gui_free_snapshot(fsemu_gui_item_t *snapshot);
+*/
 
 #ifdef FSEMU_INTERNAL
 
-#define fsemu_gui_log(format, ...) \
-    fsemu_log("[FSEMU] [ GUI ] " format, ##__VA_ARGS__)
+#define fsemu_hud_log(format, ...) \
+    fsemu_log("[FSEMU] [ HUD ] " format, ##__VA_ARGS__)
+
+/*
 
 // void fsemu_gui_item_hide(fsemu_gui_item_t* item);
 
@@ -62,17 +68,16 @@ typedef struct fsemu_gui_item_struct {
     bool dirty;
     bool visible;
     uint32_t flags;
-    int z_index;
     fsemu_gui_item_t *next;
 #ifdef FSEMU_SDL
     SDL_Texture *texture;
 #endif
 } fsemu_gui_item_t;
-
+*/
 #endif  // FSEMU_INTERNAL
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif  // FSEMU_GUI_H_
+#endif  // FSEMU_HUD_H_

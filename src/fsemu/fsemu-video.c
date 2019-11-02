@@ -59,6 +59,13 @@ void fsemu_video_init(void)
     }
 }
 
+void fsemu_video_set_size_2(int width, int height)
+{
+    if (fsemu_video.renderer == FSEMU_VIDEO_RENDERER_OPENGL) {
+        fsemu_glvideo_set_size_2(width, height);
+    }
+}
+
 int fsemu_video_vsync(void)
 {
     return fsemu_video.vsync;
@@ -123,7 +130,7 @@ void fsemu_video_set_ready(bool ready)
 
 void fsemu_video_display(void)
 {
-    // fsemu_video_log("--- display --- [draw]\n");
+    // fsemu_video_log("fsemu_video_display\n");
     if (fsemu_video.renderer == FSEMU_VIDEO_RENDERER_OPENGL) {
         fsemu_glvideo_display();
     } else {

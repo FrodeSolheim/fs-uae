@@ -46,7 +46,7 @@ void fsemu_opengl_blend(bool blend)
     if (fsemu_opengl.blend != blend) {
         fsemu_opengl_enable(GL_BLEND, blend);
         fsemu_opengl.blend = blend;
-        if (!blend_func_set) {
+        if (!blend_func_set || true) {
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             blend_func_set = true;
         }

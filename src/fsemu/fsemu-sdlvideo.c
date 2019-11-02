@@ -12,6 +12,7 @@
 #include "fsemu-sdl.h"
 #include "fsemu-sdlwindow.h"
 #include "fsemu-time.h"
+#include "fsemu-titlebar.h"
 #include "fsemu-types.h"
 #include "fsemu-util.h"
 #include "fsemu-video.h"
@@ -230,35 +231,42 @@ static void fsemu_sdlvideo_convert_coordinates(SDL_Rect *out,
     fsemu_size_t window_size;
     fsemu_window_size(&window_size);
 
+    int titlebar = fsemu_titlebar_static_height();
+    fsemu_size_t client_size;
+    client_size.w = window_size.w;
+    client_size.h = window_size.h - titlebar;
+    double yoff = titlebar;
+    // printf("%d %f\n", titlebar, yoff);
+
     if (coordinates == FSEMU_COORD_REAL) {
         out->w = in->w;
         out->h = in->h;
         out->x = in->x;
         out->y = in->y;
     } else if (coordinates == FSEMU_COORD_1080P) {
-        double scale_x = window_size.w / 1920.0;
-        double scale_y = window_size.h / 1080.0;
+        double scale_x = client_size.w / 1920.0;
+        double scale_y = client_size.h / 1080.0;
 
         out->w = in->w * scale_x;
         out->h = in->h * scale_y;
         out->x = in->x * scale_x;
-        out->y = in->y * scale_y;
+        out->y = in->y * scale_y + yoff;
 
     } else if (coordinates == FSEMU_COORD_1080P_LEFT) {
-        double scale = window_size.h / 1080.0;
+        double scale = client_size.h / 1080.0;
 
         out->w = in->w * scale;
         out->h = in->h * scale;
         out->x = in->x * scale;
-        out->y = in->y * scale;
+        out->y = in->y * scale + yoff;
 
     } else if (coordinates == FSEMU_COORD_1080P_RIGHT) {
-        double scale = window_size.h / 1080.0;
+        double scale = client_size.h / 1080.0;
 
         out->w = in->w * scale;
         out->h = in->h * scale;
         out->x = window_size.w - (1920 - in->x) * scale;
-        out->y = in->y * scale;
+        out->y = in->y * scale + yoff;
     }
 }
 
@@ -346,11 +354,13 @@ static void fsemu_sdlvideo_render_item(fsemu_gui_item_t *item)
 void fsemu_sdlvideo_render_gui_early(fsemu_gui_item_t *items)
 {
     fsemu_video_log("fsemu_sdlvideo_render_gui_early\n");
-#if 0
+#if 1
     SDL_SetRenderDrawBlendMode(fsemu_sdlvideo.renderer, SDL_BLENDMODE_BLEND);
     fsemu_gui_item_t *item = items;
     while (item) {
-        fsemu_sdlvideo_render_item(item);
+        if (item->z_index < 0) {
+            fsemu_sdlvideo_render_item(item);
+        }
         item = item->next;
     }
     SDL_SetRenderDrawBlendMode(fsemu_sdlvideo.renderer, SDL_BLENDMODE_NONE);
@@ -364,7 +374,9 @@ void fsemu_sdlvideo_render_gui(fsemu_gui_item_t *items)
     SDL_SetRenderDrawBlendMode(fsemu_sdlvideo.renderer, SDL_BLENDMODE_BLEND);
     fsemu_gui_item_t *item = items;
     while (item) {
-        fsemu_sdlvideo_render_item(item);
+        if (item->z_index >= 0) {
+            fsemu_sdlvideo_render_item(item);
+        }
         item = item->next;
     }
     SDL_SetRenderDrawBlendMode(fsemu_sdlvideo.renderer, SDL_BLENDMODE_NONE);

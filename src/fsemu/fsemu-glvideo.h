@@ -10,6 +10,7 @@ extern "C" {
 #endif
 
 void fsemu_glvideo_init(void);
+void fsemu_glvideo_set_size_2(int width, int height);
 
 void fsemu_glvideo_work(int timeout_us);
 

@@ -43,8 +43,14 @@ void fsemu_mouse_handle_click(int button,
 #endif
 
 typedef struct fsemu_mouse_event {
+    int pressed;
+    int released;
+    bool moved;
     int x;
     int y;
+
+    // bool buttons[4];
+    // deprecated:
     int button;
     int state;
 } fsemu_mouse_event_t;

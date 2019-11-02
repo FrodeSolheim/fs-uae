@@ -46,6 +46,10 @@
 #include <semaphore.h>
 #endif
 
+#ifdef FSEMU_WINDOWS
+#include <Windows.h>
+#endif
+
 #ifdef FSEMU_LINUX
 #include <errno.h>
 #endif

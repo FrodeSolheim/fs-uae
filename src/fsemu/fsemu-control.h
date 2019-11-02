@@ -9,6 +9,12 @@
 extern "C" {
 #endif
 
+void fsemu_control_quit(void);
+
+bool fsemu_control_paused(void);
+void fsemu_control_set_paused(bool paused);
+void fsemu_control_toggle_paused(void);
+
 bool fsemu_control_warp(void);
 void fsemu_control_set_warp(bool warp);
 void fsemu_control_toggle_warp(void);

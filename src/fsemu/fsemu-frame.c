@@ -2,6 +2,7 @@
 #include "fsemu-frame.h"
 
 #include "fsemu-audio.h"
+#include "fsemu-control.h"
 #include "fsemu-time.h"
 #include "fsemu-util.h"
 #include "fsemu-video.h"
@@ -176,6 +177,14 @@ void fsemu_frame_update_timing(double hz, bool turbo)
 
     // FIXME: Set to previous target instead?
     fsemu_frame_origin_at = fsemu_frame_end_at - (1000000 / hz);
+
+    if (fsemu_control_warp()) {
+        // Without this, we will get too "far behind" on time.
+        target = now;
+        fsemu_frame_origin_at = now;
+        fsemu_frame_begin_at = now;
+        fsemu_frame_end_at = now;
+    }
 
     fsemu_frame_wait_duration = 0;
     fsemu_frame_emu_duration = 0;

@@ -1,11 +1,25 @@
 #ifndef FSEMU_COMMON_H_
 #define FSEMU_COMMON_H_
 
-#ifdef FSEMU_INTERNAL
-
 #include "fsemu-config.h"
 
 #include <stdbool.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/** This must be called before init functions to be guaranteed to have an
+ * effect. */
+void fsemu_set_emulator_name(const char *emulator_name);
+
+const char *fsemu_emulator_name(void);
+
+#ifdef __cplusplus
+}
+#endif
+
+#ifdef FSEMU_INTERNAL
 
 // FIXME: Temporarily disabled translations
 #define _(x) x
@@ -23,6 +37,6 @@
     }                        \
     *(var) = true;
 
-#endif
+#endif  // FSEMU_INTERNAL
 
 #endif  // FSEMU_COMMON_H_

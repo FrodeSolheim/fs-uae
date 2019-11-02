@@ -7,8 +7,7 @@
 extern "C" {
 #endif
 
-/** This must be called before fsemu_startupinfo_init. The string
- *  must remain valid after the call. */
+/** This must be called before fsemu_startupinfo_init. */
 void fsemu_startupinfo_set_emulator_name(const char *emulator_name);
 
 /** This must be called before fsemu_startupinfo_init. The string

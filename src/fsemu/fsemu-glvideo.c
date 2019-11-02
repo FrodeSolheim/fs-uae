@@ -10,6 +10,7 @@
 #include "fsemu-sdl.h"
 #include "fsemu-sdlwindow.h"
 #include "fsemu-time.h"
+#include "fsemu-titlebar.h"
 #include "fsemu-types.h"
 #include "fsemu-util.h"
 #include "fsemu-video.h"
@@ -60,6 +61,15 @@ void fsemu_glvideo_init(void)
                                     SDL_TEXTUREACCESS_STREAMING,
                                     1024,
                                     1024);
+#endif
+}
+
+void fsemu_glvideo_set_size_2(int width, int height)
+{
+#if 0
+    printf("fsemu_glvideo_set_size_2: glViewport(0, 0, %d, %d);\n",
+    width, height);
+    glViewport(0, 0, width, height);
 #endif
 }
 
@@ -204,6 +214,7 @@ static int64_t fsemu_glvideo_wait_for_swap(void)
 void fsemu_glvideo_display(void)
 {
     // fsemu_video_log("--- display --- [draw]\n");
+    // printf("swap\n");
     SDL_Window *window = fsemu_sdlwindow_window();
     SDL_GL_SwapWindow(window);
 
@@ -221,7 +232,22 @@ void fsemu_glvideo_display(void)
     // fsemu_video_background_color_rgb(&r, &g, &b);
     // glClearColorf
 
+    // glClearColor(0.0, 0.0, 0.0, 1.0);
+    // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     glClear(GL_COLOR_BUFFER_BIT);
+
+#if 1
+    // On my Linux laptop (Intel graphics) at least, it is not (always)
+    // sufficient to run glViewport in response to resize event. When
+    // opening in fullscreen window, the viewport becomes slightly smaller
+    // than fullscreen, even though the last glViewport in response the the
+    // last resize event used correct coordinates.
+    // Workaround here is to run glViewport before every frame...
+    fsemu_size_t window_size;
+    fsemu_window_size(&window_size);
+    glViewport(0, 0, window_size.w, window_size.h);
+#endif
 }
 
 static void fsemu_glvideo_convert_coordinates(fsemu_drect_t *out,
@@ -232,6 +258,12 @@ static void fsemu_glvideo_convert_coordinates(fsemu_drect_t *out,
     fsemu_size_t window_size;
     fsemu_window_size(&window_size);
 
+    int titlebar = fsemu_titlebar_static_height();
+    fsemu_size_t client_size;
+    client_size.w = window_size.w;
+    client_size.h = window_size.h - titlebar;
+    double yoff = 2.0 * titlebar / window_size.h;
+
     if (coordinates == FSEMU_COORD_REAL) {
         out->w = 2.0 * in->w / window_size.w;
         out->h = 2.0 * in->h / window_size.h;
@@ -239,30 +271,30 @@ static void fsemu_glvideo_convert_coordinates(fsemu_drect_t *out,
         out->y = 1.0 - 2.0 * in->y / window_size.h - out->h;
 
     } else if (coordinates == FSEMU_COORD_1080P) {
-        double scale_x = window_size.w / 1920.0;
-        double scale_y = window_size.h / 1080.0;
+        double scale_x = client_size.w / 1920.0;
+        double scale_y = client_size.h / 1080.0;
 
         out->w = 2.0 * (in->w * scale_x) / window_size.w;
         out->h = 2.0 * (in->h * scale_y) / window_size.h;
         out->x = -1.0 + 2.0 * (in->x * scale_y) / window_size.w;
-        out->y = 1.0 - 2.0 * (in->y * scale_y) / window_size.h - out->h;
+        out->y = 1.0 - 2.0 * (in->y * scale_y) / window_size.h - out->h - yoff;
 
     } else if (coordinates == FSEMU_COORD_1080P_LEFT) {
-        double scale = window_size.h / 1080.0;
+        double scale = client_size.h / 1080.0;
 
         out->w = 2.0 * (in->w * scale) / window_size.w;
         out->h = 2.0 * (in->h * scale) / window_size.h;
         out->x = -1.0 + 2.0 * (in->x * scale) / window_size.w;
-        out->y = 1.0 - 2.0 * (in->y * scale) / window_size.h - out->h;
+        out->y = 1.0 - 2.0 * (in->y * scale) / window_size.h - out->h - yoff;
 
     } else if (coordinates == FSEMU_COORD_1080P_RIGHT) {
-        double scale = window_size.h / 1080.0;
+        double scale = client_size.h / 1080.0;
 
         out->w = 2.0 * (in->w * scale) / window_size.w;
         out->h = 2.0 * (in->h * scale) / window_size.h;
         out->x = -1.0 + 2.0 * (window_size.w - (1920 - in->x) * scale) /
                             window_size.w;
-        out->y = 1.0 - 2.0 * (in->y * scale) / window_size.h - out->h;
+        out->y = 1.0 - 2.0 * (in->y * scale) / window_size.h - out->h - yoff;
     }
 }
 
@@ -270,6 +302,11 @@ static void fsemu_glvideo_render_image(fsemu_gui_item_t *item)
 {
     fsemu_drect_t dr;
     fsemu_glvideo_convert_coordinates(&dr, &item->rect, item->coordinates);
+
+    uint8_t r = item->color & 0xff;
+    uint8_t g = (item->color & 0xff00) >> 8;
+    uint8_t b = (item->color & 0xff0000) >> 16;
+    uint8_t a = (item->color & 0xff000000) >> 24;
 
     GLuint texture;
     glGenTextures(1, &texture);
@@ -304,7 +341,8 @@ static void fsemu_glvideo_render_image(fsemu_gui_item_t *item)
     }
 
     fsemu_opengl_blend(true);
-    fsemu_opengl_color4f(1.0f, 1.0f, 1.0f, 1.0f);
+    // fsemu_opengl_color4f(1.0f, 1.0f, 1.0f, 1.0f);
+    fsemu_opengl_color4f(r / 255.0, g / 255.0, b / 255.0, a / 255.0);
     fsemu_opengl_depth_test(false);
     fsemu_opengl_texture_2d(true);
 
@@ -365,10 +403,12 @@ void fsemu_glvideo_render_gui_early(fsemu_gui_item_t *items)
 {
     // fsemu_video_log("fsemu_glvideo_render_gui_early\n");
     // SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
-#if 0
+#if 1
     fsemu_gui_item_t *item = items;
     while (item) {
-        fsemu_glvideo_render_item(item);
+        if (item->z_index < 0) {
+            fsemu_glvideo_render_item(item);
+        }
         item = item->next;
     }
 #endif
@@ -381,7 +421,9 @@ void fsemu_glvideo_render_gui(fsemu_gui_item_t *items)
 #if 1
     fsemu_gui_item_t *item = items;
     while (item) {
-        fsemu_glvideo_render_item(item);
+        if (item->z_index >= 0) {
+            fsemu_glvideo_render_item(item);
+        }
         item = item->next;
     }
 #endif

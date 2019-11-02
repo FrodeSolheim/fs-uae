@@ -14,6 +14,7 @@
 // ---------------------------------------------------------------------------
 
 static struct fsemu_window {
+    bool active;
     // True if the window (or will be) shown fullscreen.
     bool fullscreen;
     char title[FSEMU_WINDOW_TITLE_MAX];
@@ -85,6 +86,16 @@ void fsemu_window_initial_fullscreen_rect(fsemu_rect_t *rect)
 }
 
 // ---------------------------------------------------------------------------
+
+bool fsemu_window_active(void)
+{
+    return fsemu_window.active;
+}
+
+void fsemu_window_set_active(bool active)
+{
+    fsemu_window.active = active;
+}
 
 void fsemu_window_size(fsemu_size_t *size)
 {

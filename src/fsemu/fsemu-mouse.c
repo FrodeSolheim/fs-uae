@@ -43,6 +43,12 @@ void fsemu_mouse_init(void)
     fsemu_config_read_bool_default(FSEMU_OPTION_INITIAL_INPUT_GRAB,
                                    &fsemu_mouse.initial_grab,
                                    fsemu_mouse.automatic_grab);
+
+    // FIXME: For now, inital grab is always off. TODO: Default to true when
+    // emulator needs the mouse. Perhaps have tri-state option:
+    // on / off / on-demand.
+    fsemu_mouse.initial_grab = false;
+
     fsemu_config_read_bool_default(FSEMU_OPTION_MIDDLE_CLICK_UNGRAB,
                                    &fsemu_mouse.middle_click_ungrab,
                                    true);
@@ -122,7 +128,7 @@ bool fsemu_mouse_handle_mouse(fsemu_mouse_event_t *event)
         return true;
     }
 
-    if (event->button >= 0) {
+    if (event->button > 0) {
         fsemu_mouse_log("Button %d clicked (%d) at %d,%d\n",
                         event->button,
                         event->state,

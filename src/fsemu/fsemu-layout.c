@@ -1,11 +1,21 @@
 #define FSEMU_INTERNAL
 #include "fsemu-layout.h"
 
+#include "fsemu-common.h"
 #include "fsemu-option.h"
 #include "fsemu-options.h"
+#include "fsemu-titlebar.h"
 // FIXME: Maybe we want to remove this dependency and have the
 // window depend on/update the layout when it changes size?
 #include "fsemu-window.h"
+
+#include <math.h>
+
+/*
+ * FIXME: TOOD: When performance GUI is enabled, the video display area
+ * must be shrunkfrom the sides so the performance GUI is visible without
+ * overlaying the game display?
+ */
 
 static struct {
     int width;
@@ -75,7 +85,7 @@ int fsemu_layout_cycle_stretch_mode(void)
             fsemu_log("(Unknown pixels aspect ratio)\n");
             fsemu_layout.stretch_mode = 0;
         }
-        if (abs(fsemu_layout.pixel_aspect - 1.0) < 0.01) {
+        if (fabs(fsemu_layout.pixel_aspect - 1.0) < 0.01) {
             fsemu_log("(Aspect correct pixels are already square)\n");
             fsemu_layout.stretch_mode = 0;
         }
@@ -108,7 +118,7 @@ void fsemu_layout_set_video_aspect(double aspect)
 void fsemu_layout_set_pixel_aspect(double aspect)
 {
     fsemu_layout.pixel_aspect = aspect;
-    if (abs(fsemu_layout.pixel_aspect - 1.0) > 0.01) {
+    if (fabs(fsemu_layout.pixel_aspect - 1.0) > 0.01) {
         fsemu_layout.nonsquare_pixels = true;
     } else {
         fsemu_layout.nonsquare_pixels = false;
@@ -127,16 +137,37 @@ void fsemu_layout_client_rect(fsemu_rect_t *rect)
 {
     // fsemu_size size;
     // fsemu_window_size(&size);
+    int titlebar = fsemu_titlebar_static_height();
+
     rect->x = 0;
-    rect->y = 0;
+    rect->y = titlebar;
     rect->w = fsemu_layout.width;
-    rect->h = fsemu_layout.height;
+    rect->h = fsemu_layout.height - titlebar;
+
+    // printf("%d %d (layout)\n", fsemu_layout.width, fsemu_layout.height);
+}
+
+void fsemu_layout_client_offset_scale(double *ox,
+                                      double *oy,
+                                      double *sx,
+                                      double *sy)
+{
+    fsemu_rect_t rect;
+    fsemu_layout_client_rect(&rect);
+    // printf("client rect %d %d %d %d (%d %d)\n", rect.x, rect.y, rect.w,
+    // rect.h, fsemu_layout.width, fsemu_layout.height);
+    *ox = (double) rect.x / fsemu_layout.width;
+    *oy = -(double) rect.y / fsemu_layout.height;
+    *sx = (double) rect.w / fsemu_layout.width;
+    *sy = (double) rect.h / fsemu_layout.height;
 }
 
 void fsemu_layout_video_rect(fsemu_rect_t *rect)
 {
     fsemu_rect_t client_rect;
     fsemu_layout_client_rect(&client_rect);
+    // printf("layoyt client rect %d %d %d %d\n",
+    //        client_rect.x, client_rect.y, client_rect.w, client_rect.h);
 
     double scale_x = 1.0;
     double scale_y = 1.0;
@@ -145,10 +176,12 @@ void fsemu_layout_video_rect(fsemu_rect_t *rect)
 
     if (stretch_mode == FSEMU_STRETCH_MODE_FILL_SCREEN) {
     } else {
-        double pixel_aspect = 1.0;
-        // if (fsgs_stretch() == FSGS_STRETCH_ASPECT) {
-        pixel_aspect = fsemu_layout_pixel_aspect();
-        // }
+        double pixel_aspect;
+        if (stretch_mode == FSEMU_STRETCH_MODE_SQUARE_PIXELS) {
+            pixel_aspect = 1.0;
+        } else {
+            pixel_aspect = fsemu_layout_pixel_aspect();
+        }
         double initial_aspect = (double) client_rect.w / client_rect.h;
         double aspect =
             ((double) fsemu_layout.video_width / fsemu_layout.video_height) /
@@ -162,8 +195,11 @@ void fsemu_layout_video_rect(fsemu_rect_t *rect)
 
     rect->w = client_rect.w * scale_x;
     rect->h = client_rect.h * scale_y;
-    rect->x = (client_rect.w - rect->w) / 2;
-    rect->y = (client_rect.h - rect->h) / 2;
+    rect->x = client_rect.x + (client_rect.w - rect->w) / 2;
+    rect->y = client_rect.y + (client_rect.h - rect->h) / 2;
+
+    // printf("layout video rect %d %d %d %d\n",
+    //        rect->x, rect->y, rect->w, rect->h);
 
     /*
     fsemu_size size;

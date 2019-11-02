@@ -22,6 +22,8 @@ void fsemu_font_init(void)
 
 fsemu_font_t *fsemu_font_load(const char *name, int size)
 {
+    fsemu_font_init();
+
     // FIXME: Implement shared fonts
     fsemu_font_t *font = (fsemu_font_t *) malloc(sizeof(fsemu_font_t));
 

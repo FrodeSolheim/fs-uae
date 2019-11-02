@@ -6,6 +6,14 @@
 #include "fsemu-video.h"
 #include "fsemu-window.h"
 
+#ifdef FSEMU_WINDOWS
+#include <Windows.h>
+#endif
+
+#ifdef __APPLE__
+#include <mach-o/dyld.h>
+#endif
+
 // ---------------------------------------------------------------------------
 
 /*
@@ -101,7 +109,7 @@ static int fs_get_application_exe_path(char *buffer, int size)
     if (result == 0) {
         return 1;
     } else {
-        fs_log("_NSGetExecutablePath failed with result %d\n", result);
+        fsemu_data_log("_NSGetExecutablePath failed with result %d\n", result);
         buffer[0] = '\0';
         return 0;
     }

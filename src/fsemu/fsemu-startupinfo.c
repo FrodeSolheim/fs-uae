@@ -27,13 +27,16 @@ static struct {
     fsemu_gui_item_t cover_item;
     // int height;
     // int width;
-    const char *emulator_name;
+    char *emulator_name;
     const char *fork_info;
 } fsemu_startupinfo;
 
 void fsemu_startupinfo_set_emulator_name(const char *emulator_name)
 {
-    fsemu_startupinfo.emulator_name = emulator_name;
+    if (fsemu_startupinfo.emulator_name) {
+        free(fsemu_startupinfo.emulator_name);
+    }
+    fsemu_startupinfo.emulator_name = strdup(emulator_name);
 }
 
 void fsemu_startupinfo_set_emulator_fork_info(const char *fork_info)
@@ -50,19 +53,17 @@ void fsemu_startupinfo_init(void)
     fsemu_gui_init();
     fsemu_window_init();
 
-    fsemu_startupinfo.duration = 5 * 1000 * 1000;
+    fsemu_startupinfo.duration = 10 * 1000 * 1000;
 
     int height = 180;
     int y = 1080 - 180;
 
-    fsemu_gui_rectangle(&fsemu_startupinfo.background,
-                        0,
-                        y,
-                        1920,
-                        height,
-                        FSEMU_RGBA(0x000000c0));
-    fsemu_startupinfo.background.coordinates = FSEMU_COORD_1080P;
-    fsemu_gui_add_item(&fsemu_startupinfo.background);
+    fsemu_gui_item_t *item;
+    item = &fsemu_startupinfo.background;
+    fsemu_gui_rectangle(item, 0, y, 1920, height, FSEMU_RGBA(0x000000c0));
+    item->coordinates = FSEMU_COORD_1080P;
+    item->z_index = 5000;
+    fsemu_gui_add_item(item);
 
     fsemu_font_t *font = fsemu_font_load("SairaCondensed-Bold.ttf", 56);
     fsemu_font_t *font_2 = fsemu_font_load("SairaCondensed-Bold.ttf", 32);
@@ -75,8 +76,6 @@ void fsemu_startupinfo_init(void)
     uint32_t white = FSEMU_RGB(0xffffff);
     uint32_t white_2 = FSEMU_RGBA(0xffffffd0);
     uint32_t white_3 = FSEMU_RGBA(0xffffffc0);
-
-    fsemu_gui_item_t *item;
 
     if (fsemu_option_read_const_string(FSEMU_OPTION_GAME_COVER, &string)) {
         item = &fsemu_startupinfo.cover_item;
@@ -98,6 +97,7 @@ void fsemu_startupinfo_init(void)
                             image);
             // printf("ccc\n");
             item->coordinates = FSEMU_COORD_1080P_LEFT;
+            item->z_index = 5001;
             fsemu_gui_add_item(item);
         }
     }
@@ -108,6 +108,7 @@ void fsemu_startupinfo_init(void)
         fsemu_gui_image(
             item, x + 25, y + 25 - 2, image->width, image->height, image);
         item->coordinates = FSEMU_COORD_1080P_LEFT;
+        item->z_index = 5001;
         fsemu_gui_add_item(item);
     }
 
@@ -121,6 +122,7 @@ void fsemu_startupinfo_init(void)
         image = fsemu_font_render_text_to_image(font_2, string, white);
         fsemu_gui_image(item, x2, y + 93, image->width, image->height, image);
         item->coordinates = FSEMU_COORD_1080P_LEFT;
+        item->z_index = 5001;
         fsemu_gui_add_item(item);
 
         x2 += image->width + 25;
@@ -133,6 +135,7 @@ void fsemu_startupinfo_init(void)
         g_free(string_2);
         fsemu_gui_image(item, x2, y + 93, image->width, image->height, image);
         item->coordinates = FSEMU_COORD_1080P_LEFT;
+        item->z_index = 5001;
         fsemu_gui_add_item(item);
 
         x2 += image->width + 50;
@@ -145,6 +148,7 @@ void fsemu_startupinfo_init(void)
         g_free(string_2);
         fsemu_gui_image(item, x2, y + 93, image->width, image->height, image);
         item->coordinates = FSEMU_COORD_1080P_LEFT;
+        item->z_index = 5001;
         fsemu_gui_add_item(item);
     }
 
@@ -163,6 +167,7 @@ void fsemu_startupinfo_init(void)
                         image->height,
                         image);
         item->coordinates = FSEMU_COORD_1080P_RIGHT;
+        item->z_index = 5001;
         fsemu_gui_add_item(item);
     }
 
@@ -179,6 +184,7 @@ void fsemu_startupinfo_init(void)
                         image->height,
                         image);
         item->coordinates = FSEMU_COORD_1080P_RIGHT;
+        item->z_index = 5001;
         fsemu_gui_add_item(item);
 
         item = &fsemu_startupinfo.fork_2_item;
@@ -193,6 +199,7 @@ void fsemu_startupinfo_init(void)
                         image->height,
                         image);
         item->coordinates = FSEMU_COORD_1080P_RIGHT;
+        item->z_index = 5001;
         fsemu_gui_add_item(item);
     }
 }

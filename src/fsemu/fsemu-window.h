@@ -26,6 +26,8 @@ void fsemu_window_toggle_fullscreen(void);
 
 void fsemu_assert_window(void);
 
+bool fsemu_window_active(void);
+
 void fsemu_window_size(fsemu_size_t *size);
 void fsemu_window_set_size(fsemu_size_t *size);
 void fsemu_window_set_size_2(int width, int height);
@@ -37,6 +39,8 @@ void fsemu_window_set_size_2(int width, int height);
 // SDL_Window *fsemu_create_sdl_window(const char *title);
 
 #ifdef FSEMU_INTERNAL
+
+void fsemu_window_set_active(bool active);
 
 #define fsemu_window_log(format, ...) \
     fsemu_log("[FSEMU] [WINDW] " format, ##__VA_ARGS__)

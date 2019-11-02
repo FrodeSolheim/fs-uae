@@ -23,6 +23,11 @@ void fsemu_layout_set_pixel_aspect(double aspect);
 double fsemu_layout_pixel_aspect(void);
 
 void fsemu_layout_client_rect(fsemu_rect_t *rect);
+void fsemu_layout_client_offset_scale(double *ox,
+                                      double *oy,
+                                      double *sx,
+                                      double *sy);
+
 void fsemu_layout_video_rect(fsemu_rect_t *rect);
 
 int fsemu_layout_stretch_mode(void);

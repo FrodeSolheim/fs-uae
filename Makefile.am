@@ -817,6 +817,7 @@ libfsemu2_a_SOURCES = \
 	src/fsemu/fsemu-audio-buffer.h \
 	src/fsemu/fsemu-audio.c \
 	src/fsemu/fsemu-audio.h \
+	src/fsemu/fsemu-common.c \
 	src/fsemu/fsemu-common.h \
 	src/fsemu/fsemu-compat.h \
 	src/fsemu/fsemu-config.c \
@@ -839,6 +840,10 @@ libfsemu2_a_SOURCES = \
 	src/fsemu/fsemu-glvideo.h \
 	src/fsemu/fsemu-gui.c \
 	src/fsemu/fsemu-gui.h \
+	src/fsemu/fsemu-helper.c \
+	src/fsemu/fsemu-helper.h \
+	src/fsemu/fsemu-hud.c \
+	src/fsemu/fsemu-hud.h \
 	src/fsemu/fsemu-image.c \
 	src/fsemu/fsemu-image.h \
 	src/fsemu/fsemu-inifile.c \

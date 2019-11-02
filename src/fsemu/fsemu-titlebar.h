@@ -4,12 +4,28 @@
 #include "fsemu-common.h"
 #include "fsemu-mouse.h"
 #include "fsemu-render.h"
+#include "fsemu-window.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 void fsemu_titlebar_init(void);
+
+bool fsemu_titlebar_use_system(void);
+
+bool fsemu_titlebar_visible(void);
+int fsemu_titlebar_height(void);
+
+static inline bool fsemu_titlebar_static(void)
+{
+    return !fsemu_window_fullscreen() && !fsemu_titlebar_use_system();
+}
+
+static inline int fsemu_titlebar_static_height(void)
+{
+    return fsemu_titlebar_static() ? fsemu_titlebar_height() : 0;
+}
 
 void fsemu_titlebar_update(void);
 
@@ -21,6 +37,7 @@ void fsemu_titlebar_set_width(int w);
 #define fsemu_titlebar_log(format, ...) \
     fsemu_log("[FSEMU] [TITLE] " format, ##__VA_ARGS__)
 
+bool fsemu_titlebar_want_cursor(void);
 bool fsemu_titlebar_handle_mouse(fsemu_mouse_event_t *event);
 
 #endif  // FSEMU_INTERNAL

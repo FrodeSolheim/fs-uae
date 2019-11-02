@@ -5,8 +5,8 @@
 
 #ifdef FSEMU_GLIB
 
-#include <glib-2.0/glib.h>
-#include <glib-2.0/glib/gstdio.h>
+#include <glib.h>
+#include <glib/gstdio.h>
 
 #endif
 

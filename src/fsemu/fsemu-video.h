@@ -50,6 +50,8 @@ void fsemu_video_set_vsync(int vsync);
 
 void fsemu_video_init(void);
 
+void fsemu_video_set_size_2(int width, int height);
+
 int fsemu_video_vsync(void);
 void fsemu_video_toggle_vsync(void);
 
@@ -122,5 +124,9 @@ extern bool fsemu_video_log_enabled;
 #define FSEMU_RGBA(c)                                     \
     (((c & 0xff000000) >> 24) | ((c & 0x00ff0000) >> 8) | \
      ((c & 0x0000ff00) << 8) | ((c & 0x000000ff) << 24))
+
+#define FSEMU_RGB_A(c, a)                                               \
+    (((c & 0xff0000) >> 16) | (c & 0x00ff00) | ((c & 0x0000ff) << 16) | \
+     ((a & 0x000000ff) << 24))
 
 #endif  // FSEMU_VIDEO_H_

@@ -1,12 +1,28 @@
 #define FSEMU_INTERNAL
 #include "fsemu-gui.h"
 
+#include "fsemu-glib.h"
 #include "fsemu-thread.h"
 #include "fsemu-titlebar.h"
 #include "fsemu-types.h"
 #include "fsemu-util.h"
+#include "fsemu-video.h"
 
-#include "fsemu-glib.h"
+/*
+Z-indices:
+...  - -10000 :
+-9999 - -1000 : Reserved for FSEMU under the game display
+-1            : Game display
+0-999         :
+1000 - 9999   : Reserved for FSEMU overlaying the game display
+10000 - ...   :
+
+-9xxx: performance gui
+
+5xxx : notifications
+7xxx : game information
+9xxx : titlebar
+*/
 
 static struct {
     GList *items;
@@ -68,7 +84,7 @@ void fsemu_gui_rectangle(
     fsemu_gui_item_t *item, int x, int y, int w, int h, int c)
 {
     fsemu_thread_assert_main();
-    memset(item, 0, sizeof(fsemu_gui_item_t));
+    // memset(item, 0, sizeof(fsemu_gui_item_t));
     item->rect.x = x;
     item->rect.y = y;
     item->rect.w = w;
@@ -80,7 +96,8 @@ void fsemu_gui_image(
     fsemu_gui_item_t *item, int x, int y, int w, int h, fsemu_image_t *image)
 {
     fsemu_thread_assert_main();
-    memset(item, 0, sizeof(fsemu_gui_item_t));
+    // memset(item, 0, sizeof(fsemu_gui_item_t));
+    item->color = FSEMU_RGBA(0xffffffff);
     item->rect.x = x;
     item->rect.y = y;
     item->rect.w = w;
@@ -100,6 +117,13 @@ void fsemu_gui_add_item(fsemu_gui_item_t *item)
     fsemu_gui.items = g_list_append(fsemu_gui.items, item);
 }
 
+static gint fsemu_gui_item_compare(gconstpointer a, gconstpointer b)
+{
+    fsemu_gui_item_t *a_item = (fsemu_gui_item_t *) a;
+    fsemu_gui_item_t *b_item = (fsemu_gui_item_t *) b;
+    return a_item->z_index - b_item->z_index;
+}
+
 fsemu_gui_item_t *fsemu_gui_snapshot(void)
 {
     // fsemu_gui_assert_locked();
@@ -107,6 +131,11 @@ fsemu_gui_item_t *fsemu_gui_snapshot(void)
     fsemu_gui_item_t *snapshot = NULL;
     fsemu_gui_item_t *last_item = NULL;
     GList *items = fsemu_gui.items;
+    items = g_list_sort(fsemu_gui.items, fsemu_gui_item_compare);
+    fsemu_gui.items = items;
+
+    // GList *items = fsemu_gui.items;
+
     while (items) {
         fsemu_gui_item_t *new_item = malloc(sizeof(fsemu_gui_item_t));
         memcpy(new_item, items->data, sizeof(fsemu_gui_item_t));

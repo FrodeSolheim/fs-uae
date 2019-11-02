@@ -13,6 +13,7 @@
 #include "fsemu-screenshot.h"
 #include "fsemu-startupinfo.h"
 #include "fsemu-time.h"
+#include "fsemu-titlebar.h"
 #include "fsemu-types.h"
 #include "fsemu-util.h"
 #include "fsemu-video.h"
@@ -28,15 +29,27 @@ static struct {
     SDL_Window *window;
     fsemu_rect_t rect;
     bool fullscreen;
-    bool mouse_captured;
-    bool no_event_polling;
     int swap_interval;
     bool was_fullscreen_initially;
     bool was_borderless_initially;
-    bool cursor_visible;
-    int64_t last_cursor_motion_at;
+
     bool f12_pressed;
     bool full_keyboard_emulation;
+
+    // FIXME: Might have to separate between mouse captured and
+    // mouse captured+relative.
+    bool mouse_captured;
+    bool cursor_visible;
+    int64_t last_cursor_motion_at;
+
+    SDL_Cursor *current_cursor;
+    SDL_Cursor *default_cursor;
+    SDL_Cursor *size_we_cursor;
+    SDL_Cursor *size_ns_cursor;
+    SDL_Cursor *size_nesw_cursor;
+    SDL_Cursor *size_nwse_cursor;
+
+    bool no_event_polling;
 } fsemu_sdlwindow;
 
 // ---------------------------------------------------------------------------
@@ -50,11 +63,35 @@ void fsemu_sdlwindow_init(void)
     fsemu_window_log("SDL_Init(SDL_INIT_EVERYTHING)\n");
     SDL_Init(SDL_INIT_EVERYTHING);
 
+    fsemu_titlebar_init();
     fsemu_monitor_init();
+
+    fsemu_sdlwindow.default_cursor = SDL_GetDefaultCursor();
+    // SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
+    fsemu_sdlwindow.size_we_cursor =
+        SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZEWE);
+    fsemu_sdlwindow.size_ns_cursor =
+        SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZENS);
+    fsemu_sdlwindow.size_nesw_cursor =
+        SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZENESW);
+    fsemu_sdlwindow.size_nwse_cursor =
+        SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZENWSE);
+    fsemu_sdlwindow.current_cursor = fsemu_sdlwindow.default_cursor;
 
     // Do not minimize SDL_Window if it loses key focus in fullscreen mode
     // FIXME: Make optional (maybe environment variable is good enough?)
     SDL_SetHint(SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "0");
+}
+
+/** Wrapper function in case SDL_SetCursor is not optimized for the case
+ * where you set the same cursor as the existing one. */
+static void fsemu_sdlwindow_set_cursor(SDL_Cursor *cursor)
+{
+    if (fsemu_sdlwindow.current_cursor == cursor) {
+        return;
+    }
+    SDL_SetCursor(cursor);
+    fsemu_sdlwindow.current_cursor = cursor;
 }
 
 bool fsemu_sdlwindow_no_event_polling(void)
@@ -122,7 +159,10 @@ static void fsemu_sdlwindow_set_mouse_captured(int mouse_captured)
 static bool fsemu_sdlwindow_want_cursor(int64_t now)
 {
     bool want_cursor = false;
-    if (now - fsemu_sdlwindow.last_cursor_motion_at < 1500000) {
+    if (fsemu_sdlwindow.current_cursor != fsemu_sdlwindow.default_cursor) {
+        // When we're showing resize cursors, we want it to remain visible.
+        want_cursor = true;
+    } else if (now - fsemu_sdlwindow.last_cursor_motion_at < 1500000) {
         want_cursor = true;
     }
     return want_cursor;
@@ -131,6 +171,9 @@ static bool fsemu_sdlwindow_want_cursor(int64_t now)
 void fsemu_sdlwindow_update(void)
 {
     int64_t now = fsemu_time_us();
+
+    // FIXME: The cursor-visible code should be moved to fsemu_window
+    // or fsemu_mouse..
 
     bool want_fullscreen = fsemu_window_fullscreen();
     fsemu_sdlwindow_set_fullscreen(want_fullscreen);
@@ -142,6 +185,13 @@ void fsemu_sdlwindow_update(void)
     fsemu_sdlwindow_set_swap_interval(want_swap_interval);
 
     bool want_cursor = fsemu_sdlwindow_want_cursor(now);
+    if (fsemu_titlebar_want_cursor()) {
+        want_cursor = true;
+        // So we get the nice delay after we no longer want the cursor for
+        // the titlebar. Actually, that doesn't make sense, the delay must
+        // be calculated from when we no longer want the cursor.
+        // fsemu_sdlwindow.last_cursor_motion_at = now;
+    }
     fsemu_sdlwindow_set_cursor_visible(want_cursor);
 
     if (fsemu_frame_counter_mod(50) == 0 && fsemu_frame_emutime_avg_us()) {
@@ -155,7 +205,57 @@ void fsemu_sdlwindow_update(void)
     }
 }
 
-// ---------------------------------------------------------------------------
+static SDL_HitTestResult fsemu_sdlwindow_hit_test_2(SDL_Window *window,
+                                                    int x,
+                                                    int y)
+{
+    Uint32 flags = SDL_GetWindowFlags(window);
+    int window_w, window_h;
+    SDL_GetWindowSize(window, &window_w, &window_h);
+    bool fullscreen =
+        flags & (SDL_WINDOW_FULLSCREEN | SDL_WINDOW_FULLSCREEN_DESKTOP);
+    if (fullscreen) {
+        return SDL_HITTEST_NORMAL;
+    }
+    if (fsemu_mouse_captured()) {
+        return SDL_HITTEST_NORMAL;
+    }
+    int titlebar_height = fsemu_titlebar_height();
+    int corner_size = 40;
+    int edge_width = 10;
+    if (y < titlebar_height) {
+        // FIXME: Call into titlebar module for button hit test
+        if (x < window_w - 120) {
+            return SDL_HITTEST_DRAGGABLE;
+        }
+    } else if (x < edge_width) {
+        if (y >= window_h - corner_size) {
+            return SDL_HITTEST_RESIZE_BOTTOMLEFT;
+        }
+        return SDL_HITTEST_RESIZE_LEFT;
+    } else if (x >= window_w - edge_width) {
+        if (y >= window_h - corner_size) {
+            return SDL_HITTEST_RESIZE_BOTTOMRIGHT;
+        }
+        return SDL_HITTEST_RESIZE_RIGHT;
+    } else if (y >= window_h - edge_width) {
+        if (x < corner_size) {
+            return SDL_HITTEST_RESIZE_BOTTOMLEFT;
+        } else if (x >= window_w - corner_size) {
+            return SDL_HITTEST_RESIZE_BOTTOMRIGHT;
+        }
+        return SDL_HITTEST_RESIZE_BOTTOM;
+    }
+    return SDL_HITTEST_NORMAL;
+}
+
+static SDL_HitTestResult fsemu_sdlwindow_hit_test(SDL_Window *window,
+                                                  const SDL_Point *point,
+                                                  void *data)
+{
+    fsemu_window_log("Hit test x=%d y=%d\n", point->x, point->y);
+    return fsemu_sdlwindow_hit_test_2(window, point->x, point->y);
+}
 
 SDL_Window *fsemu_sdlwindow_create(void)
 {
@@ -198,15 +298,31 @@ SDL_Window *fsemu_sdlwindow_create(void)
     fsemu_window_log(
         "Initial window rect: %dx%d +%d+%d\n", rect.w, rect.h, rect.x, rect.y);
 
-    // FIXME: initial mouse capture
+    if (!fsemu_titlebar_use_system()) {
+        fsemu_window_log("System titlebar is false: borderless window\n");
+        flags |= SDL_WINDOW_BORDERLESS;
+        if (fsemu_window_fullscreen()) {
+        } else {
+            rect.h += fsemu_titlebar_height();
+            fsemu_window_log("Initial window rect (final): %dx%d +%d+%d\n",
+                             rect.w,
+                             rect.h,
+                             rect.x,
+                             rect.y);
+        }
+    }
+
+    // FIXME: Initial input grab?
 
     SDL_Window *window = SDL_CreateWindow(
         fsemu_window_title(), rect.x, rect.y, rect.w, rect.h, flags);
     fsemu_window_log("Window %p\n", window);
     fsemu_sdlwindow_set_window(window);
-    if (fsemu_custom_frame()) {
-        SDL_SetWindowBordered(window, SDL_FALSE);
-    }
+    /*
+        if (fsemu_custom_frame()) {
+            SDL_SetWindowBordered(window, SDL_FALSE);
+        }
+    */
     fsemu_sdlwindow.rect.x = rect.x;
     fsemu_sdlwindow.rect.y = rect.y;
     fsemu_sdlwindow.rect.w = rect.w;
@@ -215,7 +331,19 @@ SDL_Window *fsemu_sdlwindow_create(void)
     fsemu_window_set_size_2(rect.w, rect.h);
     fsemu_layout_set_size_2(rect.w, rect.h);
 
+    if (SDL_SetWindowHitTest(window, fsemu_sdlwindow_hit_test, NULL) == -1) {
+        fsemu_window_log("SDL_SetWindowHitTest failed: %s\n", SDL_GetError());
+    }
+    int min_width = 1920 / 4;
+    int min_height = 1080 / 4;
+    if (!fsemu_titlebar_use_system()) {
+        min_height += fsemu_titlebar_height();
+    }
+    SDL_SetWindowMinimumSize(window, min_width, min_height);
+
     // FIXME: Only if using OpenGL
+    SDL_GL_CreateContext(fsemu_sdlwindow_window());
+    glViewport(0, 0, rect.w, rect.h);
     fsemu_sdlwindow_set_swap_interval(fsemu_video_vsync());
 
     return window;
@@ -311,9 +439,7 @@ void fsemu_sdlwindow_set_fullscreen(bool fullscreen)
     fsemu_sdlwindow.fullscreen = fullscreen;
 
     if (!fullscreen) {
-        if (fsemu_custom_frame()) {
-            // We do not want to add border
-        } else {
+        if (fsemu_titlebar_use_system()) {
             // If we opened a fullscreen window borderless, we want
             // to add in borders now.
             // FIXME: Only once, and only if we opened fullscreen without
@@ -331,6 +457,8 @@ void fsemu_sdlwindow_set_fullscreen(bool fullscreen)
             // SDL_SetWindowPosition(fsemu_sdlwindow.window, 100, 100);
 
             fsemu_sdlwindow_fullscreen_to_window();
+        } else {
+            // We do not want to add border
         }
     }
 }
@@ -371,6 +499,10 @@ static bool fsemu_sdlwindow_handle_keyboard_shortcut(SDL_Event *event)
         fsemu_window_log("SDLK_o (cycle performance overlay)\n");
         fsemu_perfgui_cycle();
         return true;
+    } else if (event->key.keysym.sym == SDLK_p) {
+        fsemu_window_log("SDLK_w (toggle paused)\n");
+        fsemu_control_toggle_paused();
+        return true;
     } else if (event->key.keysym.sym == SDLK_q) {
         fsemu_window_log("SDLK_q (quit)\n");
         fsemu_quit_maybe();
@@ -403,6 +535,27 @@ static bool fsemu_sdlwindow_prevent_modifier_pollution(SDL_Event *event)
         return true;
     }
     return false;
+}
+
+/** Called on mouse motion events when using custom window frame. */
+static void fsemu_sdlwindow_handle_cursor(fsemu_mouse_event_t *event)
+{
+    // return;
+    // FIXME: Maybe not needed on all platforms? Needed on Linux/X11 at least.
+    SDL_HitTestResult hit_test =
+        fsemu_sdlwindow_hit_test_2(fsemu_sdlwindow.window, event->x, event->y);
+    if (hit_test == SDL_HITTEST_RESIZE_LEFT ||
+        hit_test == SDL_HITTEST_RESIZE_RIGHT) {
+        fsemu_sdlwindow_set_cursor(fsemu_sdlwindow.size_we_cursor);
+    } else if (hit_test == SDL_HITTEST_RESIZE_BOTTOM) {
+        fsemu_sdlwindow_set_cursor(fsemu_sdlwindow.size_ns_cursor);
+    } else if (hit_test == SDL_HITTEST_RESIZE_BOTTOMLEFT) {
+        fsemu_sdlwindow_set_cursor(fsemu_sdlwindow.size_nesw_cursor);
+    } else if (hit_test == SDL_HITTEST_RESIZE_BOTTOMRIGHT) {
+        fsemu_sdlwindow_set_cursor(fsemu_sdlwindow.size_nwse_cursor);
+    } else {
+        fsemu_sdlwindow_set_cursor(fsemu_sdlwindow.default_cursor);
+    }
 }
 
 bool fsemu_sdlwindow_handle_event(SDL_Event *event)
@@ -447,8 +600,15 @@ bool fsemu_sdlwindow_handle_event(SDL_Event *event)
     switch (event->type) {
         case SDL_MOUSEBUTTONDOWN:
         case SDL_MOUSEBUTTONUP:
+            mouse_event.pressed =
+                event->button.state ? event->button.button : 0;
+            mouse_event.released =
+                event->button.state ? 0 : event->button.button;
+            mouse_event.moved = false;
             mouse_event.x = event->button.x;
             mouse_event.y = event->button.y;
+            // mouse_event.buttons[0] = 0;
+            // mouse_event.buttons[1] = event->button.
             mouse_event.button = event->button.button;
             mouse_event.state = event->button.state;
             if (fsemu_mouse_handle_mouse(&mouse_event)) {
@@ -457,10 +617,18 @@ bool fsemu_sdlwindow_handle_event(SDL_Event *event)
             break;
         case SDL_MOUSEMOTION:
             // fsemu_mouse_handle_position(event->motion.x, event->motion.y);
-            mouse_event.x = event->button.x;
-            mouse_event.y = event->button.y;
-            mouse_event.button = -1;
+            mouse_event.pressed = 0;
+            mouse_event.released = 0;
+            mouse_event.moved = true;
+            mouse_event.x = event->motion.x;
+            mouse_event.y = event->motion.y;
+            // mouse_event.buttons[0] = 0;
+            mouse_event.button = 0;
             mouse_event.state = 0;
+
+            if (!fsemu_titlebar_use_system()) {
+                fsemu_sdlwindow_handle_cursor(&mouse_event);
+            }
             if (fsemu_mouse_handle_mouse(&mouse_event)) {
                 return true;
             }
@@ -538,6 +706,7 @@ bool fsemu_sdlwindow_handle_window_event(SDL_Event *event)
                 {
                     int w = event->window.data1;
                     int h = event->window.data2;
+
 #if 0
                     // FIXME: Don't do OpenGL stuff here
                     glViewport(0, 0, w, h);
@@ -547,6 +716,7 @@ bool fsemu_sdlwindow_handle_window_event(SDL_Event *event)
                     glMatrixMode(GL_MODELVIEW);
 #endif
                     fsemu_window_set_size_2(w, h);
+                    fsemu_video_set_size_2(w, h);
                     fsemu_layout_set_size_2(w, h);
 
                     /*
@@ -583,10 +753,12 @@ bool fsemu_sdlwindow_handle_window_event(SDL_Event *event)
             case SDL_WINDOWEVENT_FOCUS_GAINED:
                 fsemu_window_log("Window %d gained keyboard focus\n",
                                  event->window.windowID);
+                fsemu_window_set_active(true);
                 break;
             case SDL_WINDOWEVENT_FOCUS_LOST:
                 fsemu_window_log("Window %d lost keyboard focus\n",
                                  event->window.windowID);
+                fsemu_window_set_active(false);
                 break;
             case SDL_WINDOWEVENT_CLOSE:
                 fsemu_window_log("Window %d closed\n", event->window.windowID);

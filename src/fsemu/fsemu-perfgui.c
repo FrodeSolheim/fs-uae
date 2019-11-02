@@ -5,6 +5,8 @@
 #include "fsemu-frame.h"
 #include "fsemu-gui.h"
 #include "fsemu-image.h"
+#include "fsemu-option.h"
+#include "fsemu-options.h"
 #include "fsemu-video.h"
 
 #include <stdint.h>
@@ -75,23 +77,30 @@ static void fsemu_perfgui_init_images(void)
 
 static void fsemu_perfgui_init_items(void)
 {
-    fsemu_gui_image(&fsemu_perfgui.audio_item,
+    fsemu_gui_item_t *item;
+    item = &fsemu_perfgui.audio_item;
+    fsemu_gui_image(item,
                     1920 - 256,
                     0,  // 56,
                     256,
                     1080,  // 1024,
                     &fsemu_perfgui.audio_image);
-    fsemu_gui_image(&fsemu_perfgui.video_item,
+    item->z_index = -9500;
+    item->visible = true;
+    // fsemu_gui_item_set_visible(item, true);
+    fsemu_gui_add_item(item);
+
+    item = &fsemu_perfgui.video_item;
+    fsemu_gui_image(item,
                     0,
                     0,  // 56,
                     256,
                     1080,  // 1024,
                     &fsemu_perfgui.video_image);
-    fsemu_gui_item_set_visible(&fsemu_perfgui.audio_item, true);
-    fsemu_gui_item_set_visible(&fsemu_perfgui.video_item, true);
-
-    fsemu_gui_add_item(&fsemu_perfgui.audio_item);
-    fsemu_gui_add_item(&fsemu_perfgui.video_item);
+    item->z_index = -9500;
+    item->visible = true;
+    // fsemu_gui_item_set_visible(item, true);
+    fsemu_gui_add_item(item);
 
     fsemu_perfgui.audio_item.flags = FSEMU_GUI_FLAG_FLIP_X;
     fsemu_perfgui.audio_item.coordinates = FSEMU_COORD_1080P_RIGHT;
@@ -149,7 +158,13 @@ void fsemu_perfgui_init(void)
     fsemu_perfgui_init_items();
     fsemu_perfgui_set_colors(1);
 
-    fsemu_perfgui.mode = 1;
+    fsemu_perfgui.mode = 0;
+    fsemu_option_read_int(FSEMU_OPTION_PERFORMANCE_GUI, &fsemu_perfgui.mode);
+    if (fsemu_perfgui.mode < 0 || fsemu_perfgui.mode > 2) {
+        fsemu_log("WARNING: Invalid valid for " FSEMU_OPTION_PERFORMANCE_GUI
+                  "\n");
+        fsemu_perfgui.mode = 0;
+    }
 }
 
 static void fsemu_perfgui_draw_line(uint8_t *row)

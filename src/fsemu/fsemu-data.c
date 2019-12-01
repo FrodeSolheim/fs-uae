@@ -145,7 +145,7 @@ static int fs_get_application_exe_path(char *buffer, int size)
         g_free(current_dir);
     }
 
-    if (strlen(result) > size - 1) {
+    if ((int) strlen(result) > size - 1) {
         buffer[0] = '\0';
         g_free(result);
         return 0;
@@ -196,7 +196,12 @@ static char *fs_get_data_file(const char *relative)
     if (fs_path_exists(path)) {
         return path;
     }
-    // Check in the data.fs dir (during development and testing)
+    // Check in the fsemu/data dir (during development and testing)
+    path = g_build_filename(executable_dir, "fsemu", "data", relative, NULL);
+    if (fs_path_exists(path)) {
+        return path;
+    }
+    // DEPRECATED: Check in the data.fs dir (during development and testing)
     path = g_build_filename(executable_dir, "data.fs", relative, NULL);
     if (fs_path_exists(path)) {
         return path;
@@ -271,11 +276,11 @@ void fsemu_data_load(const char *name, void **data, int *data_size)
     *data = NULL;
     *data_size = 0;
     char *path = fs_get_data_file(name);
-    fsemu_data_log("Path: %s\n", path);
     if (!path) {
         fsemu_data_log("No path!\n");
         return;
     }
+    fsemu_data_log("Path: %s\n", path);
 
     FILE *f = g_fopen(path, "rb");
     g_free(path);

@@ -9,6 +9,7 @@
 #include "fsemu-control.h"
 #include "fsemu-data.h"
 #include "fsemu-events.h"
+#include "fsemu-fade.h"
 #include "fsemu-font.h"
 #include "fsemu-frame.h"
 #include "fsemu-gamemode.h"

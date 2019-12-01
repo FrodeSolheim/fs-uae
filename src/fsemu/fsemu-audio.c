@@ -1,17 +1,20 @@
 #define FSEMU_INTERNAL
 #include "fsemu-audio.h"
 
-#include "fsemu-audio-buffer.h"
-#include "fsemu-frame.h"
-#include "fsemu-log.h"
 #ifdef FSEMU_ALSA
 #include "fsemu-audio-alsa.h"
 #endif
+#include "fsemu-audio-buffer.h"
+#include "fsemu-frame.h"
+#include "fsemu-log.h"
+#include "fsemu-option.h"
+#include "fsemu-options.h"
 #ifdef FSEMU_SDL
 #include "fsemu-sdlaudio.h"
 #endif
 #include "fsemu-thread.h"
 #include "fsemu-time.h"
+#include "fsemu-util.h"
 
 // int fsemu_audio_buffer.size;
 // volatile uint8_t *fsemu_audio_buffer;
@@ -33,6 +36,8 @@ static struct {
     int64_t latency_us;
     fsemu_audio_frame_stats_t stats[FSEMU_AUDIO_MAX_FRAME_STATS];
 } fsemu_audio;
+
+int fsemu_audio_log_level = 1;
 
 static void fsemu_audio_lock(void)
 {
@@ -100,6 +105,9 @@ void fsemu_audio_init(void)
     fsemu_return_if_already_initialized();
     fsemu_frame_init();
 
+    fsemu_audio_log("Init\n");
+    fsemu_option_read_int(FSEMU_OPTION_LOG_AUDIO, &fsemu_audio_log_level);
+
     fsemu_audio.mutex = fsemu_mutex_create();
     fsemu_audio_buffer_init();
     fsemu_audio_init_driver();
@@ -159,10 +167,10 @@ void fsemu_audio_log_inflight_estimate(void)
     double consumption = frequency * 4.0 / 1000000;
     int64_t dt = now - sent_when;
     int inflight = sent_size - dt * consumption;
-    fsemu_audio_log("+ %2d (sent, dt %5d cons %0.1f))\n",
-                    inflight / 4 * 1000 / frequency,
-                    (int) dt,
-                    consumption);
+    fsemu_audio_log_trace("+ %2d (sent, dt %5d cons %0.1f))\n",
+                          inflight / 4 * 1000 / frequency,
+                          (int) dt,
+                          consumption);
 }
 
 // static int fsemu_audio_frame_number;
@@ -215,7 +223,7 @@ static void fsemu_audio_update_stats(void)
 
     int inflight = sent_size - dt * consumption;
     if (inflight < 0) {
-        fsemu_audio_log(
+        fsemu_audio_log_trace(
             "Inflight %d < 0 (consumes %0.1f B/us)\n", inflight, consumption);
         // When using SDL with Pulseaudio for example, inflight can be
         // negative. We do not know how big the internal buffer in Pulseaudio
@@ -241,6 +249,16 @@ static void fsemu_audio_update_stats(void)
         // For when audio subsystem is not initialized.
         fsemu_audio.latency_us = 0;
     }
+
+    static fsemu_mavgi_t latency_mavg;
+#define PID_LATENCY_VALUES 64
+    static int latency_values[PID_LATENCY_VALUES];
+    int latency_avg = fsemu_mavgi(&latency_mavg,
+                                  latency_values,
+                                  PID_LATENCY_VALUES,
+                                  fsemu_audio.latency_us);
+
+    stats->avg_latency_us = latency_avg;
 }
 
 void fsemu_audio_end_frame(void)
@@ -252,6 +270,14 @@ void fsemu_audio_end_frame(void)
     if (fsemu_audio_frame_number % 1 == 0) {
     }
 #endif
+
+    // Clear data for the next frame *before* incrementing the frame counter.
+    // This is important since threads may fetch the frame counter and then
+    // start updating frame statistics, in some cases adding to stat counters
+    // which should already be cleared.
+
+    int next_frame = (fsemu_frame_counter() + 1) % FSEMU_AUDIO_MAX_FRAME_STATS;
+    fsemu_audio.stats[next_frame].min_buffer_bytes = 0;
 }
 
 #if 0
@@ -273,8 +299,13 @@ int fsemu_audio_log_buffer_stats(void)
              .stats[fsemu_frame_counter_mod(FSEMU_AUDIO_MAX_FRAME_STATS)];
     int total = stats->buffer_bytes + stats->inflight_bytes;
     int frequency = fsemu_audio_frequency();
+    // FIXME: Perhaps easier to make fsemu_audio_frequency always return
+    // something sane even if audio is not enabled
+    if (!frequency) {
+        return 0;
+    }
     double consumption = frequency * 4.0 / 1000000;
-    fsemu_audio_log(
+    fsemu_audio_log_trace(
         "[%6d] Buffer %2d ms (%2d (+%2d) +%2d (est. dt %5d cons "
         "%0.1f))\n",
         (int) fsemu_frame_counter(),
@@ -314,4 +345,24 @@ void fsemu_audio_register_underrun(void)
     fsemu_audio_lock();
     fsemu_audio.underruns += 1;
     fsemu_audio_unlock();
+}
+
+void fsemu_audio_update_min_fill(uint8_t volatile *read,
+                                 uint8_t volatile *write)
+{
+    int bytes;
+    if (write >= read) {
+        bytes = write - read;
+    } else {
+        bytes = (fsemu_audio_buffer.end - read) +
+                (write - fsemu_audio_buffer.data);
+    }
+    int frame = fsemu_frame_counter_mod(FSEMU_AUDIO_MAX_FRAME_STATS);
+    // There is a small chance that the min level is registered on the "wrong"
+    // frame due to race conditions, and therefore might not show up properly
+    // in the graphs. Minor problem, might fix with locking.
+    int existing_min = fsemu_audio.stats[frame].min_buffer_bytes;
+    if (existing_min == 0 || existing_min > bytes) {
+        fsemu_audio.stats[frame].min_buffer_bytes = bytes;
+    }
 }

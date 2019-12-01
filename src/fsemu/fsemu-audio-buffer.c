@@ -2,6 +2,7 @@
 #include "fsemu-audio-buffer.h"
 
 #include "fsemu-audio.h"
+#include "fsemu-frame.h"
 #include "fsemu-util.h"
 
 #ifdef FSEMU_SAMPLERATE
@@ -10,6 +11,10 @@
 
 #ifndef MIN
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
+#endif
+
+#ifndef MAX
+#define MAX(a, b) (((a) > (b)) ? (a) : (b))
 #endif
 
 /*
@@ -137,7 +142,7 @@ void fsemu_audio_buffer_update(const void *data, int size)
             *floatdata_p = *intdata_p / 32
         }
         */
-        src_short_to_float_array(data, floatdata, samples);
+        src_short_to_float_array((const short *) data, floatdata, samples);
 
         SRC_DATA src_data;
         // data_in       : A pointer to the input data samples.
@@ -234,6 +239,91 @@ void fsemu_audio_buffer_set_adjustment(double adjustment)
 
 #endif
 
+#if 0
+#define KP 0.000000250
+#define KI 0.000000001
+#define KD 0.000000000
+#endif
+
+#if 0
+#define KP (0.000001750 / 2)
+#define KI (0.0000000035)
+#define KD (0.00001)
+#endif
+
+#define KP 0.000000100
+#define KI 0.000000001
+#define KD 0.000000000
+
+static double pid_controller_step(int *error_out, int *error_sum_out)
+{
+#if 1
+    int latency = fsemu_audio_latency_us();
+
+    static fsemu_mavgi_t latency_mavg;
+#define PID_LATENCY_VALUES 64
+    static int latency_values[PID_LATENCY_VALUES];
+    int latency_avg_2 = fsemu_mavgi(
+        &latency_mavg, latency_values, PID_LATENCY_VALUES, latency);
+#endif
+
+    // fsemu_audio_frame_stats_t *stats =
+    //     &fsemu_audio
+    //          .stats[fsemu_frame_counter())];
+
+    fsemu_audio_frame_stats_t stats;
+    fsemu_audio_frame_stats(fsemu_frame_counter() - 1, &stats);
+
+#if 1
+    if (stats.avg_latency_us != latency_avg_2) {
+        printf(
+            "WARNING: Adjust %d vs %d\n", stats.avg_latency_us, latency_avg_2);
+    }
+#endif
+
+    int64_t target_latency = 30 * 1000;
+    int error = target_latency - stats.avg_latency_us;
+
+    static fsemu_mavgi_t error_mavg;
+#define PID_ERROR_VALUES 128
+    static int error_values[PID_ERROR_VALUES];
+    fsemu_mavgi(&error_mavg, error_values, PID_ERROR_VALUES, error);
+    int error_sum = error_mavg.sum;
+
+#if 0
+    static int64_t last_last_time;
+    static int64_t last_time;
+    static int last_last_error;
+    static int last_error;
+    int64_t now = fsemu_time_us();
+
+    if (last_last_time == 0) {
+        last_time = now;
+        last_last_time = now;
+    }
+    int dt = (int) (now - last_last_time);
+    double derivative;
+    if (dt > 0) {
+        derivative = (last_last_error - error) / dt;
+    } else {
+        derivative = 0;
+    }
+    last_last_error = last_error;
+    last_last_time = last_time;
+    last_error = error;
+    last_time = now;
+#else
+    double derivative = 0;
+#endif
+
+    double output = KP * error + KI * error_sum + KD * derivative;
+
+    *error_out = error;
+    *error_sum_out = error_sum;
+
+    return MAX(-0.5, MIN(0.5, output));
+}
+
 double fsemu_audio_buffer_calculate_adjustment(void)
 {
     // printf("wait for frame\n");
@@ -245,9 +335,12 @@ double fsemu_audio_buffer_calculate_adjustment(void)
     // int current = fsemu_audio_latency_us();
 
     static fsemu_mavgi_t latency_mavg;
-    static int latency_values[16];
-    int latency = fsemu_mavgi(
-        &latency_mavg, latency_values, 16, fsemu_audio_latency_us());
+#define LATENCY_VALUES 128
+    static int latency_values[LATENCY_VALUES];
+    int latency = fsemu_mavgi(&latency_mavg,
+                              latency_values,
+                              LATENCY_VALUES,
+                              fsemu_audio_latency_us());
 
     // int latency = FSEMU_MAVGI(8, fsemu_audio_latency_us());
     // printf("[FSEMU] %0.1f\n", (latency + 500) / 1000.0);
@@ -260,41 +353,54 @@ double fsemu_audio_buffer_calculate_adjustment(void)
 
     // diff = 0;
 
+    double adjust;
+
     if (diff > 1000 || (was_outside && diff > 250)) {
         was_outside = true;
         if (diff > 3000) {
-            // amiga_set_audio_frequency_adjust(-0.01);
-            return -0.01;
+            adjust = -0.01;
         } else if (diff > 2000) {
-            // amiga_set_audio_frequency_adjust(-0.002);
-            return -0.002;
+            adjust = -0.002;
         } else if (diff > 1000) {
-            // amiga_set_audio_frequency_adjust(-0.001);
-            return -0.001;
+            adjust = -0.001;
         } else {
             // was_outside
-            // amiga_set_audio_frequency_adjust(-0.0005);
-            return -0.0005;
+            adjust = -0.0005;
         }
     } else if (diff < -1000 || (was_outside && diff < -250)) {
         was_outside = true;
         if (diff < -3000) {
-            // amiga_set_audio_frequency_adjust(0.01);
-            return 0.01;
+            adjust = 0.01;
         } else if (diff < -2000) {
-            // amiga_set_audio_frequency_adjust(0.002);
-            return 0.002;
+            adjust = 0.002;
         } else if (diff < -1000) {
-            // amiga_set_audio_frequency_adjust(0.001);
-            return 0.001;
+            adjust = 0.001;
         } else {
             // was_outside
-            // amiga_set_audio_frequency_adjust(0.0005);
-            return 0.0005;
+            adjust = 0.0005;
         }
     } else {
         was_outside = false;
-        // amiga_set_audio_frequency_adjust(0.0);
-        return 0.0;
+        adjust = 0.0;
     }
+    // adjust = 0.0;
+    // adjust = 44100.0 / 44000.0 - 1.0 + adjust;
+    // adjust = 44100.0 / 44000.0 - 1.0;
+    double frame_rate_adjust = 20000 / 19950.0 - 1.0;
+    // frame_rate_adjust = 0.0;
+
+    int error, error_sum;
+    double pid_adjust = pid_controller_step(&error, &error_sum);
+
+    adjust = frame_rate_adjust + pid_adjust;
+
+    fsemu_audio_log_trace(
+        "%0.1f Adjust %0.5f (%0.5f + PID %0.5f) Err %d sum %d\n",
+        latency / 1000.0,
+        adjust,
+        frame_rate_adjust,
+        pid_adjust,
+        error,
+        error_sum);
+    return adjust;
 }

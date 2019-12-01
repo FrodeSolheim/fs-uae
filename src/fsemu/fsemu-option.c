@@ -1,9 +1,9 @@
 #define FSEMU_INTERNAL
 #include "fsemu-option.h"
 
-#include "fsemu-util.h"
-
 #include <stdio.h>
+
+#include "fsemu-util.h"
 #ifdef FSUAE
 #include <fs/conf.h>
 #endif

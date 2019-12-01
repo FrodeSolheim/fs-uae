@@ -6,6 +6,7 @@
 #include "fsemu-option.h"
 #include "fsemu-options.h"
 #include "fsemu-sdlwindow.h"
+#include "fsemu-titlebar.h"
 #include "fsemu-types.h"
 #include "fsemu-util.h"
 
@@ -71,6 +72,11 @@ void fsemu_window_init(void)
     fsemu_sdlwindow_init();
     fsemu_sdlwindow_create();
     fsemu_sdlwindow_show();
+
+    // Assume window is active upon startup, to avoid a single frame of
+    // flickering on the titlebar due to inactive frame being rendered before
+    // window activation event occurs.
+    fsemu_window.active = true;
 }
 
 // ---------------------------------------------------------------------------
@@ -78,11 +84,31 @@ void fsemu_window_init(void)
 void fsemu_window_initial_rect(fsemu_rect_t *rect)
 {
     *rect = fsemu_window.initial_rect;
+    if (rect->w == 0 || rect->h == 0) {
+        rect->x = -1;
+        rect->y = -1;
+        rect->w = 960;
+        rect->h = 540;
+    }
+    if (!fsemu_titlebar_use_system()) {
+        fsemu_window_log(
+            "System titlebar is false: increase initial window rect\n");
+        rect->h += fsemu_titlebar_height();
+    }
 }
 
 void fsemu_window_initial_fullscreen_rect(fsemu_rect_t *rect)
 {
     *rect = fsemu_window.initial_fullscreen_rect;
+    if (rect->w == 0 || rect->h == 0) {
+#if 0
+        // FIXME... get via monitor module?
+        rect->x = -1;
+        rect->y = -1;
+        rect->w = 960;
+        rect->h = 540;
+#endif
+    }
 }
 
 // ---------------------------------------------------------------------------

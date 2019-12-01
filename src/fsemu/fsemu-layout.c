@@ -7,9 +7,9 @@
 #include "fsemu-titlebar.h"
 // FIXME: Maybe we want to remove this dependency and have the
 // window depend on/update the layout when it changes size?
-#include "fsemu-window.h"
-
 #include <math.h>
+
+#include "fsemu-window.h"
 
 /*
  * FIXME: TOOD: When performance GUI is enabled, the video display area

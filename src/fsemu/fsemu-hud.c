@@ -1,16 +1,19 @@
 #define FSEMU_INTERNAL
 #include "fsemu-hud.h"
 
+#include "fsemu-control.h"
 #include "fsemu-glib.h"
 #include "fsemu-gui.h"
 #include "fsemu-image.h"
 #include "fsemu-keyboard.h"
+#include "fsemu-option.h"
+#include "fsemu-options.h"
 #include "fsemu-thread.h"
+#include "fsemu-time.h"
 #include "fsemu-titlebar.h"
 #include "fsemu-types.h"
 #include "fsemu-util.h"
-
-#include "fsemu-glib.h"
+#include "fsemu-video.h"
 
 typedef struct {
     char *icon;
@@ -43,15 +46,26 @@ static struct {
     fsemu_hud_notice_t warp_notice;
     fsemu_hud_notice_t pause_notice;
     bool mouse_was_captured;
-    fsemu_gui_item_t startup_fade_item;
+    int vsync_refresh_mismatch;
 } fsemu_hud;
 
 static void fsemu_hud_init_notice(fsemu_hud_notice_t *notice)
 {
+    int notice_x = 20;
+    // 440 is a nice size because the notice is symmetrically positioned on the
+    // 4:3 video edge on a 16:9 display. But a bit short.
+    // int notice_width = 440;
+    int notice_width = 512;
+    int notice_height = 120;
+
     fsemu_gui_item_t *item;
     item = &notice->background_item;
-    fsemu_gui_rectangle(
-        item, 20, 0, 440, 120, fsemu_hud.notice_background_color);
+    fsemu_gui_rectangle(item,
+                        notice_x,
+                        0,
+                        notice_width,
+                        notice_height,
+                        fsemu_hud.notice_background_color);
     item->coordinates = FSEMU_COORD_1080P_LEFT;
     item->z_index = 5000;
     fsemu_gui_add_item(item);
@@ -152,7 +166,8 @@ void fsemu_hud_init(void)
     fsemu_hud.notice_subtitle_font =
         fsemu_font_load("SairaCondensed-Medium.ttf", 28);
 
-    fsemu_hud.notice_background_color = FSEMU_RGBA(0x202020c0);
+    // fsemu_hud.notice_background_color = FSEMU_RGBA(0x202020c0);
+    fsemu_hud.notice_background_color = FSEMU_RGBA(0x404040c0);
     fsemu_hud.notice_title_color = FSEMU_RGBA(0xffffffff);
     fsemu_hud.notice_subtitle_color = FSEMU_RGBA(0xffffffaa);
 
@@ -173,10 +188,25 @@ void fsemu_hud_init(void)
     fsemu_hud.quitkey_notice.icon = strdup("NotificationInfo.png");
     fsemu_hud.quitkey_notice.title =
         g_strdup_printf("Quit key is %s+Q", FSEMU_KEYBOARD_MOD_NAME);
-    fsemu_hud.quitkey_notice.subtitle = g_strdup_printf(
-        "%s+F1 to view more shortcuts", FSEMU_KEYBOARD_MOD_NAME);
+    // fsemu_hud.quitkey_notice.subtitle = g_strdup_printf(
+    //     "%s+F1 to view more shortcuts", FSEMU_KEYBOARD_MOD_NAME);
+    fsemu_hud.quitkey_notice.subtitle =
+        g_strdup_printf("[FIXME] to view more shortcuts");
     fsemu_hud_init_and_add_notice(&fsemu_hud.quitkey_notice);
     // fsemu_hud.quitkey_notice.visible_until = now + 10 * 1000 * 1000;
+
+    fsemu_option_read_int(FSEMU_OPTION_VSYNC_REFRESH_MISMATCH,
+                          &fsemu_hud.vsync_refresh_mismatch);
+
+    fsemu_hud.vsync_notice.icon = strdup("NotificationWarning.png");
+    fsemu_hud.vsync_notice.title = strdup("Vsync disabled");
+    if (fsemu_hud.vsync_refresh_mismatch) {
+        fsemu_hud.vsync_notice.subtitle = g_strdup_printf(
+            "Desktop refresh rate is %d Hz", fsemu_hud.vsync_refresh_mismatch);
+    } else {
+        fsemu_hud.vsync_notice.subtitle = strdup("Vsync support coming later");
+    }
+    fsemu_hud_init_and_add_notice(&fsemu_hud.vsync_notice);
 
     fsemu_hud.cursor_notice.icon = strdup("NotificationCursor.png");
     fsemu_hud.cursor_notice.title = strdup("Mouse cursor captured");
@@ -184,17 +214,6 @@ void fsemu_hud_init(void)
         "Middle click or %s+G to release", FSEMU_KEYBOARD_MOD_NAME);
     fsemu_hud_init_and_add_notice(&fsemu_hud.cursor_notice);
 
-    fsemu_hud.vsync_notice.icon = strdup("NotificationWarning.png");
-    fsemu_hud.vsync_notice.title = strdup("Vsync disabled");
-    fsemu_hud.vsync_notice.subtitle = strdup("Vsync support coming later");
-    fsemu_hud_init_and_add_notice(&fsemu_hud.vsync_notice);
-
-    fsemu_gui_rectangle(
-        &fsemu_hud.startup_fade_item, 0, 0, 1920, 1080, FSEMU_RGB(0x000000));
-    fsemu_gui_item_set_visible(&fsemu_hud.startup_fade_item, true);
-    fsemu_hud.startup_fade_item.coordinates = FSEMU_COORD_1080P;
-    fsemu_hud.startup_fade_item.z_index = 8999;
-    fsemu_gui_add_item(&fsemu_hud.startup_fade_item);
     // fsemu_hud.vsync_notice.visible_until = now + 10 * 1000 * 1000;
 }
 
@@ -256,6 +275,15 @@ void fsemu_hud_update(void)
         }
     }
 
+    if (fsemu_video_vsync_prevented() || fsemu_hud.vsync_refresh_mismatch) {
+        if (fsemu_hud.vsync_notice.visible_until == 0) {
+            // Initially show after a small delay
+            if (now - first_update_at > 2500 * 1000) {
+                fsemu_hud.vsync_notice.visible_until = now + 7500 * 1000;
+            }
+        }
+    }
+
     if (fsemu_mouse_captured()) {
         // Initially show cursor notice after a small delay
         if (now - first_update_at > 3000 * 1000) {
@@ -285,17 +313,4 @@ void fsemu_hud_update(void)
                                      fsemu_control_warp());
     }
     fsemu_hud_update_notice_positions();
-
-    if (fsemu_hud.startup_fade_item.visible) {
-        int64_t dt = now - first_update_at;
-        int alpha = 255 * (1.0 - dt / (1.0 * 1000 * 1000));
-        printf("alpha %d\n", alpha);
-        if (alpha <= 0) {
-            fsemu_hud.startup_fade_item.visible = false;
-        } else {
-            fsemu_hud.startup_fade_item.color = FSEMU_RGB_A(0x000000, alpha);
-            // fsemu_hud.startup_fade_item.color = FSEMU_RGBA(0xff000080);
-            // fsemu_hud.startup_fade_item.color = FSEMU_RGBA(alpha);
-        }
-    }
 }

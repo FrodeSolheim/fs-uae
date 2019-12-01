@@ -9,6 +9,8 @@
 extern "C" {
 #endif
 
+#ifdef FSEMU_INTERNAL
+
 void fsemu_sdlvideo_init(void);
 
 void fsemu_sdlvideo_work(int timeout_us);
@@ -18,6 +20,8 @@ void fsemu_sdlvideo_render(void);
 void fsemu_sdlvideo_render_gui(fsemu_gui_item_t *items);
 
 void fsemu_sdlvideo_display(void);
+
+#endif  // FSEMU_INTERNAL
 
 #ifdef __cplusplus
 }

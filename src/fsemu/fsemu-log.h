@@ -1,9 +1,9 @@
 #ifndef FSEMU_LOG_H_
 #define FSEMU_LOG_H_
 
-#include "fsemu-common.h"
-
 #include <stdio.h>
+
+#include "fsemu-common.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -2,6 +2,7 @@
 #define FSEMU_AUDIO_H_
 
 #include "fsemu-common.h"
+#include "fsemu-log.h"
 #include "fsemu-types.h"
 
 typedef struct {
@@ -10,6 +11,8 @@ typedef struct {
     int inflight_bytes;
     int dt;
     int underruns;
+    int avg_latency_us;
+    int min_buffer_bytes;
 } fsemu_audio_frame_stats_t;
 
 #ifdef __cplusplus
@@ -60,13 +63,32 @@ void fsemu_audio_register_underrun(void);
 
 void fsemu_audio_end_frame(void);
 
+void fsemu_audio_update_min_fill(uint8_t volatile *read,
+                                 uint8_t volatile *write);
+
 #endif
+
+extern int fsemu_audio_log_level;
+
+#if 0
+#define fsemu_audio_log_with_level(level, format, ...)       \
+    if (fsemu_audio_log_level >= level) {                    \
+        fsemu_log("[FSEMU] [AUDIO] " format, ##__VA_ARGS__); \
+    }
+#endif
+
+#define fsemu_audio_log(format, ...)                         \
+    if (fsemu_audio_log_level >= 1) {                        \
+        fsemu_log("[FSEMU] [AUDIO] " format, ##__VA_ARGS__); \
+    }
+
+#define fsemu_audio_log_trace(format, ...)                   \
+    if (fsemu_audio_log_level >= 2) {                        \
+        fsemu_log("[FSEMU] [AUDIO] " format, ##__VA_ARGS__); \
+    }
 
 #ifdef __cplusplus
 }
 #endif
-
-#define fsemu_audio_log(format, ...) \
-    fsemu_log_null("[FSEMU] [AUDIO] " format, ##__VA_ARGS__)
 
 #endif  // FSEMU_AUDIO_H_

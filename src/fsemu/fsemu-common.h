@@ -1,9 +1,9 @@
 #ifndef FSEMU_COMMON_H_
 #define FSEMU_COMMON_H_
 
-#include "fsemu-config.h"
-
 #include <stdbool.h>
+
+#include "fsemu-config.h"
 
 #ifdef __cplusplus
 extern "C" {

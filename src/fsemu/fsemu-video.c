@@ -28,6 +28,8 @@ static struct {
     int vsync;
     int64_t vsync_time;
     int rendered_frame;
+    // 1 - disallow vsync, 2 - tried (and refused) to enable vsync
+    int disallow_vsync;
 } fsemu_video;
 
 bool fsemu_video_log_enabled = false;
@@ -42,9 +44,9 @@ void fsemu_video_set_renderer(int renderer)
 void fsemu_video_init(void)
 {
     fsemu_return_if_already_initialized();
-
     fsemu_layout_init();
     fsemu_frame_init();
+    fsemu_log("[FSEMU][VIDEO] Initialize\n");
 
     fsemu_option_read_bool_default(
         FSEMU_OPTION_LOG_VIDEO, &fsemu_video_log_enabled, false);
@@ -71,8 +73,25 @@ int fsemu_video_vsync(void)
     return fsemu_video.vsync;
 }
 
+void fsemu_video_disallow_vsync(int disallow_vsync)
+{
+    fsemu_video.disallow_vsync = disallow_vsync;
+}
+
+bool fsemu_video_vsync_prevented(void)
+{
+    return fsemu_video.disallow_vsync == 2;
+}
+
 void fsemu_video_set_vsync(int vsync)
 {
+    // fsemu_log("Set vsync=%d\n", vsync);
+    if (vsync && fsemu_video.disallow_vsync) {
+        // fsemu_log("Set vsync=%d disabled\n", vsync);
+        fsemu_video_log("Wanted to enable vsync, but disabled by emulator");
+        fsemu_video.disallow_vsync = 2;
+        return;
+    }
     fsemu_video.vsync = vsync;
 }
 
@@ -201,7 +220,10 @@ void fsemu_video_render_gui_early(fsemu_gui_item_t *items)
 
 void fsemu_video_render_gui(fsemu_gui_item_t *items)
 {
+#if 0
     // fsemu_video_log("render_gui\n");
+    printf("fsemu_video_render_gui %p\n", items);
+#endif
     if (fsemu_video.renderer == FSEMU_VIDEO_RENDERER_OPENGL) {
         fsemu_glvideo_render_gui(items);
     } else {
@@ -231,14 +253,16 @@ static void fsemu_video_update_stats(void)
     stats->sleep_us = fsemu_frame_sleep_duration;
     stats->extra_us = fsemu_frame_extra_duration;
 
+    stats->gui_us = fsemu_frame_gui_duration;
+    stats->render_us = fsemu_frame_render_duration;
+
     stats->origin_at = fsemu_frame_origin_at;
     stats->began_at = fsemu_frame_begin_at;
-    stats->rendered_at = 0;
-    stats->swapped_at = 0;
 
     if (last != 0) {
         stats->other_us = (now - last) - stats->wait_us - stats->emu_us -
-                          stats->sleep_us - stats->extra_us;
+                          stats->sleep_us - stats->extra_us - stats->gui_us -
+                          stats->render_us;
     }
 
     static fsemu_mavgi_t emu_us_mavgi;
@@ -264,7 +288,7 @@ int fsemu_frame_emutime_avg_us(void)
 
 int fsemu_video_rendered_frame(void)
 {
-    // Currently onlyy set via fsemu_video_set_frame_rendered_at
+    // Currently only set via fsemu_video_set_frame_rendered_at
     return fsemu_video.rendered_frame;
 }
 
@@ -295,6 +319,10 @@ void fsemu_video_set_frame_swapped_at(int frame, int64_t swapped_at)
 void fsemu_video_end_frame(void)
 {
     fsemu_video_update_stats();
+
+    int next_frame = (fsemu_frame_counter() + 1) % FSEMU_VIDEO_MAX_FRAME_STATS;
+    fsemu_video.stats[next_frame].rendered_at = 0;
+    fsemu_video.stats[next_frame].swapped_at = 0;
 }
 
 void fsemu_video_frame_stats(int frame, fsemu_video_frame_stats_t *stats)
@@ -305,3 +333,30 @@ void fsemu_video_frame_stats(int frame, fsemu_video_frame_stats_t *stats)
            &fsemu_video.stats[frame % FSEMU_VIDEO_MAX_FRAME_STATS],
            sizeof(fsemu_video_frame_stats_t));
 }
+
+#if 0
+void fsemu_video_fix_right_edge(uint8_t *pixels, int vy, int vw, int vh, int tw, int wh)
+{
+    if (vw >= tw) {
+        if (vw > tw) {
+            printf("WARNING: vw > tw\n");
+        }
+        return;
+    }
+    // int pitch = tw * 4;
+    pixels += (tw * 4) * vy + vw * 4;
+    for (int i = vy; i < vh; i++) {
+        pixels[4] = pixels[0];
+        pixels[5] = pixels[1];
+        pixels[6] = pixels[2];
+        pixels[7] = pixels[3];
+        pixels += tw * 4;
+    }
+}
+
+void fsemu_video_fix_bottom_edge(uint8_t *pixels, int vw, int vh, int tw, int wh)
+{
+
+}
+
+#endif

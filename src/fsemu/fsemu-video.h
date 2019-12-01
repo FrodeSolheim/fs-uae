@@ -29,6 +29,11 @@ typedef struct {
     int sleep_us;
     int extra_us;
     int other_us;
+
+    // These are only used when emulation thread and video thread are the same
+    int gui_us;
+    int render_us;
+
     int64_t origin_at;
     int64_t began_at;
     int64_t rendered_at;
@@ -46,6 +51,9 @@ extern "C" {
 void fsemu_video_set_renderer(int renderer);
 
 /** Can be called before fsemu_video_init and fsemu_window_init. */
+void fsemu_video_disallow_vsync(int disallow_vsync);
+
+/** Can be called before fsemu_video_init and fsemu_window_init. */
 void fsemu_video_set_vsync(int vsync);
 
 void fsemu_video_init(void);
@@ -54,6 +62,7 @@ void fsemu_video_set_size_2(int width, int height);
 
 int fsemu_video_vsync(void);
 void fsemu_video_toggle_vsync(void);
+bool fsemu_video_vsync_prevented(void);
 
 int64_t fsemu_video_vsync_time(void);
 void fsemu_video_set_vsync_time(int64_t vsync_time);
@@ -104,6 +113,10 @@ void fsemu_video_post_frame(fsemu_video_frame_t *frame);
  */
 void fsemu_video_end_frame(void);
 
+// void fsemu_video_fix_right_edge(uint8_t *pixels, int vy, int vw, int vh, int
+// tw, int wh); void fsemu_video_fix_bottom_edge(uint8_t *pixels, int vw, int
+// vh, int tw, int wh);
+
 #endif
 
 #ifdef __cplusplus
@@ -115,6 +128,8 @@ extern bool fsemu_video_log_enabled;
     if (fsemu_video_log_enabled) {                           \
         fsemu_log("[FSEMU] [VIDEO] " format, ##__VA_ARGS__); \
     }
+
+// FIXME: Move to some color module?
 
 // #define FSEMU_RGB(c) ((((uint32_t) c) >> 8) | (0xff - (c & 0xff)) << 24)
 #define FSEMU_RGB(c)                                                    \
@@ -128,5 +143,10 @@ extern bool fsemu_video_log_enabled;
 #define FSEMU_RGB_A(c, a)                                               \
     (((c & 0xff0000) >> 16) | (c & 0x00ff00) | ((c & 0x0000ff) << 16) | \
      ((a & 0x000000ff) << 24))
+
+static inline void fsemu_color_set_alpha(uint32_t *color, int alpha)
+{
+    *color = (*color & 0xffffff) | ((alpha & 0x000000ff) << 24);
+}
 
 #endif  // FSEMU_VIDEO_H_

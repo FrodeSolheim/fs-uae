@@ -55,7 +55,8 @@ fsemu_gui_item_t *fsemu_gui_create_item(void)
     // fsemu_gui_item_t *item = &fsemu_gui.items[fsemu_gui.num_items];
     // fsemu_gui.num_items += 1;
     // return item;
-    fsemu_gui_item_t *item = malloc(sizeof(fsemu_gui_item_t));
+    fsemu_gui_item_t *item =
+        (fsemu_gui_item_t *) malloc(sizeof(fsemu_gui_item_t));
     memset(item, 0, sizeof(fsemu_gui_item_t));
     return item;
 }
@@ -119,8 +120,8 @@ void fsemu_gui_add_item(fsemu_gui_item_t *item)
 
 static gint fsemu_gui_item_compare(gconstpointer a, gconstpointer b)
 {
-    fsemu_gui_item_t *a_item = (fsemu_gui_item_t *) a;
-    fsemu_gui_item_t *b_item = (fsemu_gui_item_t *) b;
+    const fsemu_gui_item_t *a_item = (const fsemu_gui_item_t *) a;
+    const fsemu_gui_item_t *b_item = (const fsemu_gui_item_t *) b;
     return a_item->z_index - b_item->z_index;
 }
 
@@ -137,7 +138,8 @@ fsemu_gui_item_t *fsemu_gui_snapshot(void)
     // GList *items = fsemu_gui.items;
 
     while (items) {
-        fsemu_gui_item_t *new_item = malloc(sizeof(fsemu_gui_item_t));
+        fsemu_gui_item_t *new_item =
+            (fsemu_gui_item_t *) malloc(sizeof(fsemu_gui_item_t));
         memcpy(new_item, items->data, sizeof(fsemu_gui_item_t));
 
         if (snapshot == NULL) {
@@ -150,11 +152,17 @@ fsemu_gui_item_t *fsemu_gui_snapshot(void)
     }
 
     fsemu_gui_unlock();
+#if 0
+    printf("created gui snapshot %p\n", snapshot);
+#endif
     return snapshot;
 }
 
 void fsemu_gui_free_snapshot(fsemu_gui_item_t *snapshot)
 {
+#if 0
+    printf("fsemu_gui_free_snapshot %p\n", snapshot);
+#endif
     // fsemu_gui_lock();
     fsemu_gui_item_t *item = snapshot;
     while (item) {

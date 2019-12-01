@@ -20,6 +20,8 @@ static struct fsemu_mouse {
     bool middle_click_ungrab;
 } fsemu_mouse;
 
+int fsemu_mouse_log_level = 0;
+
 // ---------------------------------------------------------------------------
 
 void fsemu_mouse_init(void)
@@ -28,7 +30,7 @@ void fsemu_mouse_init(void)
     fsemu_thread_init();
     fsemu_titlebar_init();
 
-    fsemu_mouse_log("Initializing mouse subsystem\n");
+    fsemu_mouse_log(1, "Initializing mouse subsystem\n");
 #if 0
     fsemu_mouse.initial_grab = true;
     fsemu_config_read_bool(
@@ -53,10 +55,11 @@ void fsemu_mouse_init(void)
                                    &fsemu_mouse.middle_click_ungrab,
                                    true);
 
-    fsemu_mouse_log("Initial grab:        %d\n", fsemu_mouse.initial_grab);
-    fsemu_mouse_log("Automatic grab:      %d\n", fsemu_mouse.automatic_grab);
-    fsemu_mouse_log("Middle-click ungrab: %d\n",
-                    fsemu_mouse.middle_click_ungrab);
+    fsemu_mouse_log(1, "Initial grab:        %d\n", fsemu_mouse.initial_grab);
+    fsemu_mouse_log(
+        1, "Automatic grab:      %d\n", fsemu_mouse.automatic_grab);
+    fsemu_mouse_log(
+        1, "Middle-click ungrab: %d\n", fsemu_mouse.middle_click_ungrab);
 
     // Set the desired state of mouse capture (to be handled by window update
     // or creation function
@@ -129,7 +132,8 @@ bool fsemu_mouse_handle_mouse(fsemu_mouse_event_t *event)
     }
 
     if (event->button > 0) {
-        fsemu_mouse_log("Button %d clicked (%d) at %d,%d\n",
+        fsemu_mouse_log(2,
+                        "Button %d clicked (%d) at %d,%d\n",
                         event->button,
                         event->state,
                         event->x,

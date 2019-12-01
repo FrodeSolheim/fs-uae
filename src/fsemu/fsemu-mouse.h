@@ -1,9 +1,9 @@
 #ifndef FSEMU_MOUSE_H_
 #define FSEMU_MOUSE_H_
 
-#include "fsemu-common.h"
-
 #include <stdbool.h>
+
+#include "fsemu-common.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -29,10 +29,20 @@ bool fsemu_mouse_captured(void);
 void fsemu_mouse_set_captured(bool captured);
 void fsemu_mouse_toggle_captured(void);
 
+extern int fsemu_mouse_log_level;
+
 #ifdef FSEMU_INTERNAL
 
+#if 0
 #define fsemu_mouse_log(format, ...) \
     fsemu_log("[FSEMU] [MOUSE] " format, ##__VA_ARGS__)
+#endif
+
+#define fsemu_mouse_log(level, format, ...)                  \
+    if (fsemu_mouse_log_level >= level) {                    \
+        fsemu_log("[FSEMU] [AUDIO] " format, ##__VA_ARGS__); \
+    }
+
 #if 0
 
 void fsemu_mouse_handle_position(int window_x, int window_y);

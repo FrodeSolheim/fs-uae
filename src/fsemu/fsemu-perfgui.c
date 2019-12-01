@@ -1,6 +1,8 @@
 #define FSEMU_INTERNAL
 #include "fsemu-perfgui.h"
 
+#include <stdint.h>
+
 #include "fsemu-audio.h"
 #include "fsemu-frame.h"
 #include "fsemu-gui.h"
@@ -9,13 +11,14 @@
 #include "fsemu-options.h"
 #include "fsemu-video.h"
 
-#include <stdint.h>
-
 static struct {
     int mode;
     int color_set;
     bool refresh;
     struct {
+        uint32_t audio_avg;
+        uint32_t audio_min;
+        uint32_t audio_target;
         uint32_t audio_0;
         uint32_t audio_1;
         uint32_t audio_2;
@@ -26,6 +29,8 @@ static struct {
         uint32_t video_rendered_at;
         uint32_t video_wait;
         uint32_t video_emu;
+        uint32_t video_gui;
+        uint32_t video_render;
         uint32_t video_extra;
         uint32_t video_sleep;
         uint32_t video_other;
@@ -42,19 +47,19 @@ static struct {
 
 static void fsemu_perfgui_init_images(void)
 {
-    fsemu_perfgui.audio_image.data = malloc(4 * 128 * 512);
+    fsemu_perfgui.audio_image.data = (uint8_t *) malloc(4 * 128 * 512);
     fsemu_perfgui.audio_image.width = 128;
     fsemu_perfgui.audio_image.height = 512;
     fsemu_perfgui.audio_image.depth = 32;
     fsemu_perfgui.audio_image.stride = 4 * 128;
 
-    fsemu_perfgui.video_image.data = malloc(4 * 128 * 512);
+    fsemu_perfgui.video_image.data = (uint8_t *) malloc(4 * 128 * 512);
     fsemu_perfgui.video_image.width = 128;
     fsemu_perfgui.video_image.height = 512;
     fsemu_perfgui.video_image.depth = 32;
     fsemu_perfgui.video_image.stride = 4 * 128;
 
-    uint32_t *row = malloc(4 * 128);
+    uint32_t *row = (uint32_t *) malloc(4 * 128);
     for (int x = 0; x < 128; x++) {
         if (x >= 116) {
             row[x] = FSEMU_RGBA(0x0c0c0c00);
@@ -113,6 +118,10 @@ static void fsemu_perfgui_set_colors(int color_set)
         return;
     }
     if (color_set == 1) {
+        // Dim colors
+        fsemu_perfgui.colors.audio_avg = FSEMU_RGB(0x303030);
+        fsemu_perfgui.colors.audio_min = FSEMU_RGB(0x303030);
+        fsemu_perfgui.colors.audio_target = FSEMU_RGB(0x202020);
         fsemu_perfgui.colors.audio_0 = FSEMU_RGB(0x282828);
         fsemu_perfgui.colors.audio_1 = FSEMU_RGB(0x141414);
         fsemu_perfgui.colors.audio_2 = FSEMU_RGB(0x141414);
@@ -121,13 +130,19 @@ static void fsemu_perfgui_set_colors(int color_set)
         fsemu_perfgui.colors.video_vsync_at = FSEMU_RGB(0x505050);
         fsemu_perfgui.colors.video_rendered_at = FSEMU_RGB(0x303030);
         fsemu_perfgui.colors.video_wait = FSEMU_RGB(0x141414);
+        fsemu_perfgui.colors.video_gui = FSEMU_RGB(0x000000);
         fsemu_perfgui.colors.video_emu = FSEMU_RGB(0x202020);
-        fsemu_perfgui.colors.video_extra = FSEMU_RGB(0x186818);
+        fsemu_perfgui.colors.video_render = FSEMU_RGB(0x000000);
+        fsemu_perfgui.colors.video_extra = FSEMU_RGB(0x1c1c1c);
         fsemu_perfgui.colors.video_sleep = FSEMU_RGB(0x141414);
         fsemu_perfgui.colors.video_other = FSEMU_RGB(0x1c1c1c);
     } else {
+        // Bright colors used for debugging
+        fsemu_perfgui.colors.audio_avg = FSEMU_RGB(0x00ff00);
+        fsemu_perfgui.colors.audio_min = FSEMU_RGB(0x0099ff);
+        fsemu_perfgui.colors.audio_target = FSEMU_RGB(0xee8800);
         fsemu_perfgui.colors.audio_0 = FSEMU_RGB(0x505050);
-        fsemu_perfgui.colors.audio_1 = FSEMU_RGB(0x284428);
+        fsemu_perfgui.colors.audio_1 = FSEMU_RGB(0x383838);
         fsemu_perfgui.colors.audio_2 = FSEMU_RGB(0x282828);
         fsemu_perfgui.colors.audio_3 = FSEMU_RGB(0x181818);
         // fsemu_perfgui.colors.line = FSEMU_RGB(0x606060);
@@ -135,7 +150,9 @@ static void fsemu_perfgui_set_colors(int color_set)
         fsemu_perfgui.colors.video_vsync_at = FSEMU_RGB(0xff00ff);
         fsemu_perfgui.colors.video_rendered_at = FSEMU_RGB(0xff9900);
         fsemu_perfgui.colors.video_wait = FSEMU_RGB(0x202020);
+        fsemu_perfgui.colors.video_gui = FSEMU_RGB(0xffff44);
         fsemu_perfgui.colors.video_emu = FSEMU_RGB(0x288828);
+        fsemu_perfgui.colors.video_render = FSEMU_RGB(0x440044);
         fsemu_perfgui.colors.video_extra = FSEMU_RGB(0x186818);
         fsemu_perfgui.colors.video_sleep = FSEMU_RGB(0x282828);
         fsemu_perfgui.colors.video_other = FSEMU_RGB(0x444444);
@@ -188,23 +205,35 @@ static void fsemu_perfgui_draw_line(uint8_t *row)
 
 static void fsemu_perfgui_update_audio(int frame)
 {
-    const int scale = 40;  // 40 ms scale
+    // const int scale = 40;  // 40 ms scale
+    // FIXME: Dynamically retrieve target
+    int target_us = 30000;
+    int scale = 2 * target_us / 1000;
 
     fsemu_audio_frame_stats_t stats;
     fsemu_audio_frame_stats(frame, &stats);
 
-    int level1, level2, level3;
+    int level1, level2, level3, target, avg, min_level;
 
     if (fsemu_audio_frequency()) {
         // (128 px = 40 ms)
         // int us = fsemu_audio_bytes_to_us(stats.buffer_bytes -
         // stats.recent_bytes);
+
         int us = fsemu_audio_bytes_to_us(stats.recent_bytes);
         level1 = us * 128 / (scale * 1000);
+
         us = fsemu_audio_bytes_to_us(stats.buffer_bytes);
         level2 = us * 128 / (scale * 1000);
+
         us += fsemu_audio_bytes_to_us(stats.inflight_bytes);
         level3 = us * 128 / (scale * 1000);
+
+        us = fsemu_audio_bytes_to_us(stats.min_buffer_bytes);
+        min_level = us * 128 / (scale * 1000);
+
+        target = target_us * 128 / (scale * 1000);
+        avg = stats.avg_latency_us * 128 / (scale * 1000);
 
         // FIXME: Check mednafen - level3 < level2 (inflight bytes negative)
         // Seems to happen if other programs have PulseAudio connections
@@ -219,6 +248,9 @@ static void fsemu_perfgui_update_audio(int frame)
         level1 = -1;
         level2 = -1;
         level3 = -1;
+        target = -1;
+        avg = -1;
+        min_level = -1;
     }
 
     uint32_t level1_color = fsemu_perfgui.colors.audio_1;
@@ -235,7 +267,13 @@ static void fsemu_perfgui_update_audio(int frame)
 
     for (int i = 0; i < 2; i++) {
         for (int x = 0; x < 116; x++) {
-            if (x == level3) {
+            if (x == avg) {
+                ((uint32_t *) row)[x] = fsemu_perfgui.colors.audio_avg;
+            } else if (x == min_level) {
+                ((uint32_t *) row)[x] = fsemu_perfgui.colors.audio_min;
+            } else if (x == target) {
+                ((uint32_t *) row)[x] = fsemu_perfgui.colors.audio_target;
+            } else if (x == level3) {
                 ((uint32_t *) row)[x] = fsemu_perfgui.colors.audio_0;
             } else if (x < level1) {
                 ((uint32_t *) row)[x] = level1_color;
@@ -281,16 +319,29 @@ static void fsemu_perfgui_update_video(int frame)
            frame);
 #endif
     // (128 px = 40 ms)
-    int us = stats.wait_us;
-    int level1 = us * 128 / (scale * 1000);
+
+    int us = 0;
+
+    us += stats.wait_us;
+    int wait_level = us * 128 / (scale * 1000);
+
     us += stats.emu_us;
-    int level2 = us * 128 / (scale * 1000);
+    int emu_level = us * 128 / (scale * 1000);
+
+    us += stats.render_us;
+    int render_level = us * 128 / (scale * 1000);
+
     us += stats.extra_us;
-    int level3 = us * 128 / (scale * 1000);
+    int extra_level = us * 128 / (scale * 1000);
+
     us += stats.sleep_us;
-    int level4 = us * 128 / (scale * 1000);
+    int sleep_level = us * 128 / (scale * 1000);
+
     us += stats.other_us;
-    int level5 = us * 128 / (scale * 1000);
+    int other_level = us * 128 / (scale * 1000);
+
+    us += stats.gui_us;
+    int gui_level = us * 128 / (scale * 1000);
 
     // printf("%lld %lld %lld\n", (int64_t) stats.began_at, (int64_t)
     // stats.rendered_at, (int64_t) stats.swapped_at);
@@ -303,9 +354,13 @@ static void fsemu_perfgui_update_video(int frame)
         fsemu_perfgui.video_image.data + y * fsemu_perfgui.video_image.stride;
 
     // FIXME: improve this check, also make dependent on hz
+
     // FIXME: Underrun - swap too late
     bool problem = (stats.swapped_at - stats.origin_at) > 30000;
-    // FIXME: Overun - too many emulated frames
+
+    // FIXME: Overrun - too many emulated frames
+    // printf("Origin at   %lld\n", (long long) stats.origin_at);
+    // printf("Rendered at %lld\n", (long long) stats.rendered_at);
     bool problem_2 = (stats.rendered_at < stats.origin_at);
 
     for (int i = 0; i < 2; i++) {
@@ -314,16 +369,20 @@ static void fsemu_perfgui_update_video(int frame)
                 ((uint32_t *) row)[x] = fsemu_perfgui.colors.video_vsync_at;
             } else if (x == rendered) {
                 ((uint32_t *) row)[x] = fsemu_perfgui.colors.video_rendered_at;
-            } else if (x < level1) {
+            } else if (x < wait_level) {
                 ((uint32_t *) row)[x] = fsemu_perfgui.colors.video_wait;
-            } else if (x < level2) {
+            } else if (x < emu_level) {
                 ((uint32_t *) row)[x] = fsemu_perfgui.colors.video_emu;
-            } else if (x < level3) {
+            } else if (x < render_level) {
+                ((uint32_t *) row)[x] = fsemu_perfgui.colors.video_render;
+            } else if (x < extra_level) {
                 ((uint32_t *) row)[x] = fsemu_perfgui.colors.video_extra;
-            } else if (x < level4) {
+            } else if (x < sleep_level) {
                 ((uint32_t *) row)[x] = fsemu_perfgui.colors.video_sleep;
-            } else if (x < level5) {
+            } else if (x < other_level) {
                 ((uint32_t *) row)[x] = fsemu_perfgui.colors.video_other;
+            } else if (x < gui_level) {
+                ((uint32_t *) row)[x] = fsemu_perfgui.colors.video_gui;
             } else {
                 ((uint32_t *) row)[x] = fsemu_perfgui.colors.video_bg;
             }

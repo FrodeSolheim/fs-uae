@@ -2,6 +2,7 @@
 #define FSEMU_LAYOUT_H_
 
 #include <stdbool.h>
+
 #include "fsemu-common.h"
 #include "fsemu-types.h"
 

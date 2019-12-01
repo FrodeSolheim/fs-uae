@@ -36,6 +36,8 @@ static struct fsemu_titlebar {
     int hover_button;
     int width;
     int height;
+    // True if we want to keep the status bar visible. Note, it can be visible
+    // also when this is false, see fsemu_titlebar_visible function.
     bool visible;
     bool mouse_trapped;
     bool want_cursor;
@@ -151,6 +153,11 @@ void fsemu_titlebar_init(void)
     fsemu_titlebar_update();
 }
 
+uint32_t fsemu_titlebar_background_color(void)
+{
+    return fsemu_titlebar.background_color;
+}
+
 bool fsemu_titlebar_use_system(void)
 {
     return fsemu_titlebar.use_system;
@@ -172,13 +179,18 @@ void fsemu_titlebar_update(void)
 {
     fsemu_size_t window_size;
     fsemu_window_size(&window_size);
-    // fsemu_titlebar_log("Width %d\n", window_size.w);
     fsemu_titlebar_set_width(window_size.w);
 
     int y = 0;
     bool is_visible = fsemu_titlebar.visible;
     bool is_static = fsemu_titlebar_static();
     bool window_is_active = fsemu_window_active();
+
+    // fsemu_titlebar_log("Update width=%d visible=%d static=%d active=%d\n",
+    //                    window_size.w,
+    //                    is_visible,
+    //                    is_static,
+    //                    window_is_active);
 
     uint32_t opacity_color =
         FSEMU_RGB_A(0xffffff,
@@ -328,7 +340,7 @@ static void fsemu_titlebar_capture_mouse(bool capture)
     fsemu_titlebar.mouse_trapped = capture;
     // Breaking the abstraction here, but might be important to do
     // this synchronously/now.
-    SDL_CaptureMouse(capture);
+    SDL_CaptureMouse(capture ? SDL_TRUE : SDL_FALSE);
     fsemu_titlebar.mouse_trapped = capture;
 }
 
@@ -434,7 +446,10 @@ bool fsemu_titlebar_handle_mouse(fsemu_mouse_event_t *event)
     }
 
     if (event->y == 0 && !event->button) {
-        fsemu_titlebar_log("Opening title bar\n");
+        fsemu_titlebar_log("Opening title bar (x=%d y=%d button=%d)\n",
+                           event->x,
+                           event->x,
+                           event->button);
         fsemu_titlebar_set_visible(true);
         fsemu_titlebar.want_cursor = true;
         return true;
@@ -446,6 +461,11 @@ bool fsemu_titlebar_handle_mouse(fsemu_mouse_event_t *event)
     }
 
     fsemu_titlebar.want_cursor = false;
+
+    if (event->moved && event->x == -1 && event->y == -1) {
+        fsemu_titlebar_log("Mouse left window, stopping propagation\n");
+        return true;
+    }
     return false;
 #if 0
     if (event->button >= 0) {

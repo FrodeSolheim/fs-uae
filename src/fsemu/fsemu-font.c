@@ -63,11 +63,11 @@ fsemu_image_t *fsemu_font_render_text_to_image(fsemu_font_t *font,
         return NULL;
     }
 
-    fsemu_image_t *image = malloc(sizeof(fsemu_image_t));
+    fsemu_image_t *image = (fsemu_image_t *) malloc(sizeof(fsemu_image_t));
 
     image->width = surface->w;
     image->height = surface->h;
-    image->data = surface->pixels;
+    image->data = (uint8_t *) surface->pixels;
     image->depth = 32;
     image->stride = surface->pitch;
 

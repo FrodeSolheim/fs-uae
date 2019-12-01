@@ -86,7 +86,7 @@ void fsemu_sdlvideo_work(int timeout_us)
     rect.y = 0;
     rect.w = frame->width;
     rect.h = frame->height;
-    uint8_t *pixels = frame->buffer;
+    uint8_t *pixels = (uint8_t *) frame->buffer;
 
     // FIXME: support for partial
     int y = 0;
@@ -206,6 +206,11 @@ void fsemu_sdlvideo_render(void)
                    &src,
                    &dst);
     // SDL_RenderDrawRect(fsemu_sdlvideo.renderer, &dst);
+
+    // FIXME:...
+    static int framecount;
+    fsemu_video_set_frame_rendered_at(framecount, fsemu_time_us());
+    framecount += 1;
 }
 
 void fsemu_sdlvideo_display(void)
@@ -305,9 +310,9 @@ static void fsemu_sdlvideo_render_image(fsemu_gui_item_t *item)
     src_rect.w = image->width;
     src_rect.h = image->height;
 
-    int flip = 0;
+    SDL_RendererFlip flip = SDL_FLIP_NONE;
     if (item->flags & FSEMU_GUI_FLAG_FLIP_X) {
-        flip |= SDL_FLIP_HORIZONTAL;
+        flip = (SDL_RendererFlip)(flip | SDL_FLIP_HORIZONTAL);
     }
 
     // SDL_RenderCopy(fsemu_sdlvideo.renderer, texture, &src_rect, &dr);

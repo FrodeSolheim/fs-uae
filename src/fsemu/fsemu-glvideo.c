@@ -7,6 +7,7 @@
 #include "fsemu-image.h"
 #include "fsemu-layout.h"
 #include "fsemu-opengl.h"
+#include "fsemu-perfgui.h"
 #include "fsemu-sdl.h"
 #include "fsemu-sdlwindow.h"
 #include "fsemu-time.h"
@@ -16,13 +17,12 @@
 #include "fsemu-video.h"
 #include "fsemu-window.h"
 
-/*
 static struct {
+    GLuint textures[2];
+    int current_texture;
     fsemu_rect_t rect;
-} fsemu_glvideo;
 
-static int current_texture;
-*/
+} fsemu_glvideo;
 
 void fsemu_glvideo_init(void)
 {
@@ -30,38 +30,61 @@ void fsemu_glvideo_init(void)
     // fsemu_opengl_init();
     fsemu_video_log("Initializing OpenGL video renderer\n");
 
+#if 0
     SDL_Window *window = fsemu_sdlwindow_window();
     // renderer = SDL_CreateRenderer(window, -1, renderer_flags);
     // renderer = SDL_CreateRenderer(fsemu_sdlwindow_window(), -1, 0);
     fsemu_video_log("%p\n", window);
     // fsemu_video_log("%p\n", renderer);
+#endif
+
+    // fsemu_video_log("Setting clear color to #000000\n");
 
     int r, g, b;
     fsemu_video_background_color_rgb(&r, &g, &b);
+    glClearColor(r / 255.0, g / 255.0, b / 255.0, 1.0);
 #if 0
-    SDL_SetRenderDrawColor(renderer, r, g, b, 0xff);
-    SDL_RenderClear(renderer);
-
-    SDL_RenderPresent(renderer);
-
-    SDL_SetRenderDrawColor(renderer, r, g, b, 0xff);
-    SDL_RenderClear(renderer);
+    glClearColor(1.0, 0.0, 0.0, 1.0);
+    printf("%d\n", glGetError());
 #endif
 
-#if 0
-    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
+    glGenTextures(2, fsemu_glvideo.textures);
+    printf("%d\n", glGetError());
 
-    textures[0] = SDL_CreateTexture(renderer,
-                                    SDL_PIXELFORMAT_BGRA32,
-                                    SDL_TEXTUREACCESS_STREAMING,
-                                    1024,
-                                    1024);
-    textures[1] = SDL_CreateTexture(renderer,
-                                    SDL_PIXELFORMAT_BGRA32,
-                                    SDL_TEXTUREACCESS_STREAMING,
-                                    1024,
-                                    1024);
+    uint8_t *data = (uint8_t *) malloc(1024 * 1024 * 4);
+#if 0
+    memset(data, 0x00, 1024 * 1024 * 4);
+#else
+    // Setting color to 0xff here to debug "bleed issues" with linear filtering
+    memset(data, 0xff, 1024 * 1024 * 4);
+#if 0
+    for (int i = 0; i < 1024 * 1024 * 4; i+=4) {
+        data[i] = 0xff;
+    }
 #endif
+#endif
+    // FIXME:
+    glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+
+    for (int i = 0; i < 2; i++) {
+        glBindTexture(GL_TEXTURE_2D, fsemu_glvideo.textures[i]);
+        printf("%d\n", glGetError());
+        glTexImage2D(GL_TEXTURE_2D,
+                     0,
+                     GL_RGBA,
+                     1024,
+                     1024,
+                     0,
+                     GL_RGBA,
+                     GL_UNSIGNED_BYTE,
+                     data);
+        printf("%d\n", glGetError());
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    }
+    free(data);
 }
 
 void fsemu_glvideo_set_size_2(int width, int height)
@@ -79,7 +102,7 @@ void fsemu_glvideo_work(int timeout_us)
     if (!frame) {
         return;
     }
-#if 0
+#if 1
     fsemu_video_log(" ---------------- draw got frame! (%dx%d) partial? %d\n",
                     frame->width,
                     frame->height,
@@ -89,7 +112,7 @@ void fsemu_glvideo_work(int timeout_us)
     rect.y = 0;
     rect.w = frame->width;
     rect.h = frame->height;
-    uint8_t *pixels = frame->buffer;
+    uint8_t *pixels = (uint8_t *) frame->buffer;
 
     // FIXME: support for partial
     int y = 0;
@@ -127,7 +150,69 @@ void fsemu_glvideo_work(int timeout_us)
                     rect.w,
                     rect.h);
 
-    SDL_UpdateTexture(textures[current_texture], &rect, pixels, frame->stride);
+    if (rect.w == 0 || rect.h == 0) {
+        fsemu_video_log("Invalid rect\n");
+        return;
+    }
+
+    // fsemu_opengl_texture_2d(true);
+    glBindTexture(GL_TEXTURE_2D,
+                  fsemu_glvideo.textures[fsemu_glvideo.current_texture]);
+    // printf("glGetError %d\n", glGetError());
+    // SDL_UpdateTexture(fsemu_glvideo.textures[fsemu_glvideo.current_texture],
+    //                   &rect,
+    //                   pixels,
+    //                   frame->stride);
+
+    // FIXME:
+    // glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+    // glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+    // FIXME: stride!!
+
+    // for (int i = 0; i < rect.w * rect.h * 4; i++) {
+    //     pixels[i] = i % 256;
+    // }
+    // pixels = (void *) 0xffff0000;
+
+    // FIXME: Replace constants
+    int tw = 1024;
+    int th = 1024;
+    // fsemu_video_fix_right_edge(pixels, rect.y, rect.w, rect.h, 1024, 1024);
+
+    // FIXME: Internal format vs format vs type, make sure to use efficient
+    // combos!
+    GLenum format = GL_BGRA;
+    GLenum type = GL_UNSIGNED_BYTE;
+
+    glTexSubImage2D(GL_TEXTURE_2D,
+                    0,
+                    rect.x,
+                    rect.y,
+                    rect.w,
+                    rect.h,
+                    format,
+                    type,
+                    pixels);
+
+    // Duplicate right (and later, bottom) edge to remove bleed effect from
+    // unused pixels in the texture when doing bilinear filtering.
+    if (rect.w < tw) {
+        // FIXME: Wrapper call via fsemu-opengl ?
+        glPixelStorei(GL_UNPACK_ROW_LENGTH, rect.w);
+        glTexSubImage2D(GL_TEXTURE_2D,
+                        0,
+                        rect.w,
+                        rect.y,
+                        1,
+                        rect.h,
+                        format,
+                        type,
+                        pixels + (rect.w * 4 * rect.y) + (rect.w - 1) * 4);
+        glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+    }
+
+    // printf("glGetError %d\n", glGetError());
 
 #if 1
     static uint8_t *greenline;
@@ -137,20 +222,63 @@ void fsemu_glvideo_work(int timeout_us)
             ((int32_t *) greenline)[i] = FSEMU_RGB(0x00ff00);
         }
     }
-
-    rect.h = 1;
-    SDL_UpdateTexture(textures[current_texture], &rect, greenline, 2048 * 4);
+    if (fsemu_perfgui_mode() == 2) {
+        rect.h = 1;
+        /*
+        SDL_UpdateTexture(
+            fsemu_sdlvideo.textures[fsemu_sdlvideo.current_texture],
+            &rect,
+            greenline,
+            2048 * 4);
+        */
+        glTexSubImage2D(GL_TEXTURE_2D,
+                        0,
+                        rect.x,
+                        rect.y,
+                        rect.w,
+                        rect.h,
+                        GL_RGBA,
+                        GL_UNSIGNED_BYTE,
+                        greenline);
+    }
 #endif
 
     if (frame->partial > 0 && frame->partial != frame->height) {
         return;
     }
 
+    // Only draw bottom border duplicate line for last slice, and only if
+    // there is space for it in the texture
+    if (rect.h < th) {
+        glTexSubImage2D(GL_TEXTURE_2D,
+                        0,
+                        0,
+                        rect.h,
+                        rect.w,
+                        1,
+                        format,
+                        type,
+                        pixels + (rect.w * 4 * (rect.h - 1)));
+        // Draw corner pixel if room for it
+        if (rect.w < tw) {
+            glTexSubImage2D(GL_TEXTURE_2D,
+                            0,
+                            rect.w,
+                            rect.h,
+                            1,
+                            1,
+                            format,
+                            type,
+                            pixels + (rect.w * rect.h - 1) * 4);
+            glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+        }
+    }
+
     fsemu_video_log(" draw ___________ READY______________ \n");
 
     // FIXME: Locked access for main/video thread separation?
-    // fsemu_glvideo.rect.x = 0;
-    // fsemu_glvideo.rect.y = 0;
+    // fsemu_sdlvideo.rect.x = 0;
+    // fsemu_sdlvideo.rect.y = 0;
     fsemu_glvideo.rect.w = frame->width;
     fsemu_glvideo.rect.h = frame->height;
 
@@ -158,7 +286,8 @@ void fsemu_glvideo_work(int timeout_us)
 
     static int64_t last;
     int64_t now = fsemu_time_us();
-    fsemu_video_log("_______draw _______diff __________ %lld\n", lld(now - last));
+    fsemu_video_log("_______draw _______diff __________ %lld\n",
+                    lld(now - last));
     last = now;
 
     static int framecount;
@@ -170,83 +299,14 @@ void fsemu_glvideo_work(int timeout_us)
         framecount_time = fsemu_time_us();
     }
     if (now - framecount_time > 1000000) {
-        double fps = framecount * 1000000.0 / (now - framecount_time);
+        // double fps = framecount * 1000000.0 / (now - framecount_time);
         framecount = 0;
         framecount_time = now;
         // g_printerr("FPS: %0.2f\n", fps);
     }
 
     // FIXME: Free frame if it is a partial frame, otherwise save for render...
-#endif
-}
 
-void fsemu_glvideo_render(void)
-{
-    fsemu_video_log("--- render --- [draw]\n");
-#if 0
-    SDL_Rect src;
-    src.x = 0;
-    src.y = 0;
-    src.w = fsemu_glvideo.rect.w;
-    src.h = fsemu_glvideo.rect.h;
-    // src.w = 692;
-    // src.h = 540;
-
-    fsemu_layout_set_video_size(src.w, src.h);
-    fsemu_layout_set_pixel_aspect(((double) src.w / src.h) / (4.0 / 3.0));
-
-    SDL_Rect dst;
-    fsemu_layout_video_rect(&dst);
-    SDL_RenderCopy(renderer, textures[current_texture], &src, &dst);
-    // SDL_RenderDrawRect(renderer, &dst);
-#endif
-}
-
-static int64_t fsemu_glvideo_wait_for_swap(void)
-{
-    // printf("wait for swap\n");
-    // FIXME: IMPROVE!
-    glFinish();
-    int64_t vsync_time = fsemu_time_us();
-    return vsync_time;
-}
-
-void fsemu_glvideo_display(void)
-{
-    // fsemu_video_log("--- display --- [draw]\n");
-    // printf("swap\n");
-    SDL_Window *window = fsemu_sdlwindow_window();
-    SDL_GL_SwapWindow(window);
-
-    if (fsemu_video_vsync()) {
-        static int64_t last;
-        int64_t vsync_time = fsemu_glvideo_wait_for_swap();
-        fsemu_video_set_vsync_time(vsync_time);
-        if (last != 0) {
-            // printf("dt %d\n", (int) (vsync_time - last));
-        }
-        last = vsync_time;
-    }
-
-    // int r, g, b;
-    // fsemu_video_background_color_rgb(&r, &g, &b);
-    // glClearColorf
-
-    // glClearColor(0.0, 0.0, 0.0, 1.0);
-    // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    glClear(GL_COLOR_BUFFER_BIT);
-
-#if 1
-    // On my Linux laptop (Intel graphics) at least, it is not (always)
-    // sufficient to run glViewport in response to resize event. When
-    // opening in fullscreen window, the viewport becomes slightly smaller
-    // than fullscreen, even though the last glViewport in response the the
-    // last resize event used correct coordinates.
-    // Workaround here is to run glViewport before every frame...
-    fsemu_size_t window_size;
-    fsemu_window_size(&window_size);
-    glViewport(0, 0, window_size.w, window_size.h);
 #endif
 }
 
@@ -296,6 +356,125 @@ static void fsemu_glvideo_convert_coordinates(fsemu_drect_t *out,
                             window_size.w;
         out->y = 1.0 - 2.0 * (in->y * scale) / window_size.h - out->h - yoff;
     }
+}
+
+void fsemu_glvideo_render(void)
+{
+    fsemu_video_log("--- render --- [draw]\n");
+
+    SDL_Rect src;
+    src.x = 0;
+    src.y = 0;
+    src.w = fsemu_glvideo.rect.w;
+    src.h = fsemu_glvideo.rect.h;
+    // src.w = 692;
+    // src.h = 540;
+
+#if 0
+    // To debug the duplicate right & bottom edges
+    src.w += 1;
+    src.h += 1;
+#endif
+
+    fsemu_layout_set_video_size(src.w, src.h);
+    fsemu_layout_set_pixel_aspect(((double) src.w / src.h) / (4.0 / 3.0));
+
+    SDL_Rect dst;
+    fsemu_layout_video_rect(&dst);
+
+    // dst.x = 0;
+    // dst.y = 0;
+    // dst.w = 800;
+    // dst.h = 500;
+
+    fsemu_drect_t dr;
+    fsemu_glvideo_convert_coordinates(&dr, &dst, FSEMU_COORD_REAL);
+
+    // printf("%d %d %d %d -> %0.2f %0.2f %0.2f %0.2f\n",
+    //        dst.x,
+    //        dst.y,
+    //        dst.w,
+    //        dst.h,
+    //        dr.x,
+    //        dr.y,
+    //        dr.w,
+    //        dr.h);
+
+    // SDL_RenderCopy(fsemu_sdlvideo.renderer,
+    //                fsemu_sdlvideo.textures[fsemu_sdlvideo.current_texture],
+    //                &src,
+    //                &dst);
+    // SDL_RenderDrawRect(fsemu_sdlvideo.renderer, &dst);
+
+    // FIXME: Remove 1024 constants
+    float tx1 = 0.0f, tx2 = src.w / 1024.0;
+    float ty1 = src.h / 1024.0, ty2 = 0.0f;
+
+    fsemu_opengl_blend(false);
+    fsemu_opengl_color4f(1.0f, 1.0f, 1.0f, 1.0f);
+    fsemu_opengl_depth_test(false);
+    fsemu_opengl_texture_2d(true);
+
+    glBindTexture(GL_TEXTURE_2D,
+                  fsemu_glvideo.textures[fsemu_glvideo.current_texture]);
+
+    glBegin(GL_QUADS);
+    glTexCoord2f(tx1, ty1);
+    glVertex3f(dr.x, dr.y, 0);
+    glTexCoord2f(tx2, ty1);
+    glVertex3f(dr.x + dr.w, dr.y, 0);
+    glTexCoord2f(tx2, ty2);
+    glVertex3f(dr.x + dr.w, dr.y + dr.h, 0);
+    glTexCoord2f(tx1, ty2);
+    glVertex3f(dr.x, dr.y + dr.h, 0);
+    glEnd();
+
+    // FIXME:...
+    static int framecount;
+    fsemu_video_set_frame_rendered_at(framecount, fsemu_time_us());
+    framecount += 1;
+}
+
+static int64_t fsemu_glvideo_wait_for_swap(void)
+{
+    // printf("wait for swap\n");
+    // FIXME: IMPROVE!
+    glFinish();
+    int64_t vsync_time = fsemu_time_us();
+    return vsync_time;
+}
+
+void fsemu_glvideo_display(void)
+{
+    // fsemu_video_log("--- display --- [draw]\n");
+    // printf("swap\n");
+    SDL_Window *window = fsemu_sdlwindow_window();
+    SDL_GL_SwapWindow(window);
+
+    if (fsemu_video_vsync()) {
+        static int64_t last;
+        int64_t vsync_time = fsemu_glvideo_wait_for_swap();
+        fsemu_video_set_vsync_time(vsync_time);
+        if (last != 0) {
+            // printf("dt %d\n", (int) (vsync_time - last));
+        }
+        last = vsync_time;
+    }
+
+    // glClearColor(0.0, 0.0, 1.0, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+#if 1
+    // On my Linux laptop (Intel graphics) at least, it is not (always)
+    // sufficient to run glViewport in response to resize event. When
+    // opening in fullscreen window, the viewport becomes slightly smaller
+    // than fullscreen, even though the last glViewport in response the the
+    // last resize event used correct coordinates.
+    // Workaround here is to run glViewport before every frame...
+    fsemu_size_t window_size;
+    fsemu_window_size(&window_size);
+    glViewport(0, 0, window_size.w, window_size.h);
+#endif
 }
 
 static void fsemu_glvideo_render_image(fsemu_gui_item_t *item)

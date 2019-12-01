@@ -3,6 +3,8 @@
 
 #include "fsemu-audio.h"
 #include "fsemu-control.h"
+#include "fsemu-option.h"
+#include "fsemu-options.h"
 #include "fsemu-time.h"
 #include "fsemu-util.h"
 #include "fsemu-video.h"
@@ -13,6 +15,8 @@ static struct {
     int counter;
     int emulation_duration;
     int render_duration;
+    // Helper variable to store time for duration registration
+    int64_t timer;
 } fsemu_frame;
 
 int64_t fsemu_frame_origin_at = 0;
@@ -23,10 +27,19 @@ int64_t fsemu_frame_emu_duration = 0;
 int64_t fsemu_frame_sleep_duration = 0;
 int64_t fsemu_frame_extra_duration = 0;
 
+int64_t fsemu_frame_gui_duration;
+int64_t fsemu_frame_render_duration;
+
+int64_t fsemu_frame_epoch_at = 0;
+
+int fsemu_frame_log_level = 1;
+
 void fsemu_frame_init(void)
 {
     fsemu_init_once(&fsemu_frame.initialized);
     fsemu_frame_log("Init\n");
+
+    fsemu_option_read_int(FSEMU_OPTION_LOG_FRAME, &fsemu_frame_log_level);
 
     // fsemu_frame.emulation_duration = 10000;
     // fsemu_frame.render_duration = 5000;
@@ -36,16 +49,91 @@ void fsemu_frame_init(void)
     // something to do with how/when buffer fill is calculated.
 }
 
+int64_t fsemu_frame_epoch(void)
+{
+    return fsemu_frame_epoch_at;
+}
+
+void fsemu_frame_reset_epoch(void)
+{
+    fsemu_frame_epoch_at = fsemu_time_us();
+}
+
 void fsemu_frame_end(void)
 {
     fsemu_assert(fsemu_frame.initialized);
+
+    fsemu_frame_reset_epoch();
 
     fsemu_audio_end_frame();
     fsemu_video_end_frame();
 
     // Advance the frame counter after updating stats for the current frame
+    // (and possibly clearing status for the next frame).
     fsemu_frame.counter += 1;
     // fsemu_frame_log("Advanced frame counter to %d\n", fsemu_frame.counter);
+
+    // Reset duration counters
+    fsemu_frame_wait_duration = 0;
+    fsemu_frame_emu_duration = 0;
+    fsemu_frame_sleep_duration = 0;
+    fsemu_frame_extra_duration = 0;
+    fsemu_frame_gui_duration = 0;
+    fsemu_frame_render_duration = 0;
+
+    // Reset duration timer so we can begin calling the add_*_timer functions
+    // without having to call reset timer after calling fsemu_frame_end.
+    fsemu_frame.timer = fsemu_time_us();
+}
+
+void fsemu_frame_reset_timer(int64_t t)
+{
+    int64_t now = t ? t : fsemu_time_us();
+    // Register diff time to unknown duration? Probably not necessary, since
+    // this will be caught and registered as "other".
+    fsemu_frame.timer = now;
+}
+
+void fsemu_frame_add_framewait_time(int64_t t)
+{
+    int64_t now = t ? t : fsemu_time_us();
+    fsemu_frame_wait_duration += now - fsemu_frame.timer;
+    fsemu_frame.timer = now;
+}
+
+void fsemu_frame_add_emulation_time(int64_t t)
+{
+    int64_t now = t ? t : fsemu_time_us();
+    fsemu_frame_emu_duration += now - fsemu_frame.timer;
+    fsemu_frame.timer = now;
+}
+
+void fsemu_frame_add_sleep_time(int64_t t)
+{
+    int64_t now = t ? t : fsemu_time_us();
+    fsemu_frame_sleep_duration += now - fsemu_frame.timer;
+    fsemu_frame.timer = now;
+}
+
+void fsemu_frame_add_render_time(int64_t t)
+{
+    int64_t now = t ? t : fsemu_time_us();
+    fsemu_frame_render_duration += now - fsemu_frame.timer;
+    fsemu_frame.timer = now;
+}
+
+void fsemu_frame_add_gui_time(int64_t t)
+{
+    int64_t now = t ? t : fsemu_time_us();
+    fsemu_frame_gui_duration += now - fsemu_frame.timer;
+    fsemu_frame.timer = now;
+}
+
+void fsemu_frame_add_extra_time(int64_t t)
+{
+    int64_t now = t ? t : fsemu_time_us();
+    fsemu_frame_extra_duration += now - fsemu_frame.timer;
+    fsemu_frame.timer = now;
 }
 
 /** Affects when the frame starts emulating. */
@@ -186,8 +274,11 @@ void fsemu_frame_update_timing(double hz, bool turbo)
         fsemu_frame_end_at = now;
     }
 
-    fsemu_frame_wait_duration = 0;
-    fsemu_frame_emu_duration = 0;
-    fsemu_frame_sleep_duration = 0;
-    fsemu_frame_extra_duration = 0;
+    if (fsemu_frame_log_level >= 2) {
+        printf("\n");
+    }
+    fsemu_frame_log_trace("%d\n", fsemu_frame.counter);
+    fsemu_frame_log_trace("Frame ends at %lld (+%d)\n",
+                          (long long) fsemu_frame_end_at,
+                          (int) (fsemu_frame_end_at - fsemu_frame_epoch_at));
 }

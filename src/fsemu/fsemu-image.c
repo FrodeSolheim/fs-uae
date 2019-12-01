@@ -1,13 +1,18 @@
 #define FSEMU_INTERNAL
 #include "fsemu-image.h"
 
+#include <stdlib.h>
+
 #include "fsemu-data.h"
 #include "fsemu-glib.h"
 
-#include <stdlib.h>
-
 #ifdef FSEMU_PNG
+#ifdef SDLMAME_SDL2
+// Hack for MAME, which includes its own png.h
+#include <libpng16/png.h>
+#else
 #include <png.h>
+#endif
 #endif
 
 void fsemu_image_init(void)
@@ -57,7 +62,7 @@ static void fsemu_image_read_data_memory(png_structp png_ptr,
 fsemu_image_t *fsemu_image_load_png_from_data(void *data, int data_size)
 {
 #ifdef FSEMU_PNG
-    fsemu_image_t *image = malloc(sizeof(fsemu_image_t));
+    fsemu_image_t *image = (fsemu_image_t *) malloc(sizeof(fsemu_image_t));
     // FIXME: zero image struct?
 
     if (data_size < 8) {
@@ -201,7 +206,7 @@ fsemu_image_t *fsemu_image_load_png_from_data(void *data, int data_size)
 fsemu_image_t *fsemu_image_load_png_file(const char *path)
 {
 #ifdef FSEMU_PNG
-    fsemu_image_t *image = malloc(sizeof(fsemu_image_t));
+    fsemu_image_t *image = (fsemu_image_t *) malloc(sizeof(fsemu_image_t));
     // FIXME: zero image struct?
 
     int y;

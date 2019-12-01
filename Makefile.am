@@ -547,6 +547,7 @@ libuae_a_SOURCES = \
 	src/od-win32/debug_win32.h \
 	src/od-win32/dxwrap.h \
 	src/od-win32/md-fpp.h \
+	src/od-win32/midi.h \
 	src/od-win32/parser.h \
 	src/od-win32/picasso96_win.cpp \
 	src/od-win32/picasso96_win.h \
@@ -828,6 +829,8 @@ libfsemu2_a_SOURCES = \
 	src/fsemu/fsemu-data.h \
 	src/fsemu/fsemu-events.c \
 	src/fsemu/fsemu-events.h \
+	src/fsemu/fsemu-fade.c \
+	src/fsemu/fsemu-fade.h \
 	src/fsemu/fsemu-font.c \
 	src/fsemu/fsemu-font.h \
 	src/fsemu/fsemu-frame.c \
@@ -1605,7 +1608,8 @@ EXTRA_DIST = $(TESTS) $(EXTRA_TESTS) \
 	share/applications \
 	share/fs-uae \
 	share/icons \
-	share/mime
+	share/mime \
+	standalone.fs
 
 CLEANFILES = $(BUILT_SOURCES)
 

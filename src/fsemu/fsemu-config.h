@@ -3,11 +3,9 @@
 
 #include "fsemu-common.h"
 
-/*
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-*/
+// #ifdef HAVE_CONFIG_H
+// #include "config.h"
+// #endif
 
 #ifdef __WIN32__
 #define FSEMU_WINDOWS 1

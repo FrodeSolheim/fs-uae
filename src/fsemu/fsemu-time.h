@@ -1,11 +1,11 @@
 #ifndef FSEMU_TIME_H_
 #define FSEMU_TIME_H_
 
-#include "fsemu-common.h"
-#include "fsemu-config.h"
-
 #include <stdint.h>
 #include <time.h>
+
+#include "fsemu-common.h"
+#include "fsemu-config.h"
 
 #ifdef FSEMU_GLIB
 #include "fsemu-glib.h"

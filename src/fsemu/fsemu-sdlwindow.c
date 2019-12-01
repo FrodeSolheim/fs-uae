@@ -41,6 +41,12 @@ static struct {
     bool mouse_captured;
     bool cursor_visible;
     int64_t last_cursor_motion_at;
+    // When switching to fullscreen (on Linux at least) without moving the
+    // mouse first, we get a motion event with x=0 y=0 xrel=0 yrel=0 right
+    // after to switching to fullscreen. This does not reflect the true
+    // location of the cursor. For now, we ignore this. Later, we might want
+    // to construct a synthentic event based on the true location.
+    bool ignore_motion_after_fullscreen;
 
     SDL_Cursor *current_cursor;
     SDL_Cursor *default_cursor;
@@ -58,8 +64,6 @@ void fsemu_sdlwindow_init(void)
 {
     fsemu_return_if_already_initialized();
 
-    // fsemu_window_log("SDL_Init(SDL_INIT_VIDEO)\n");
-    // SDL_Init(SDL_INIT_VIDEO);
     fsemu_window_log("SDL_Init(SDL_INIT_EVERYTHING)\n");
     SDL_Init(SDL_INIT_EVERYTHING);
 
@@ -67,7 +71,6 @@ void fsemu_sdlwindow_init(void)
     fsemu_monitor_init();
 
     fsemu_sdlwindow.default_cursor = SDL_GetDefaultCursor();
-    // SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
     fsemu_sdlwindow.size_we_cursor =
         SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZEWE);
     fsemu_sdlwindow.size_ns_cursor =
@@ -78,13 +81,20 @@ void fsemu_sdlwindow_init(void)
         SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZENWSE);
     fsemu_sdlwindow.current_cursor = fsemu_sdlwindow.default_cursor;
 
-    // Do not minimize SDL_Window if it loses key focus in fullscreen mode
-    // FIXME: Make optional (maybe environment variable is good enough?)
+    // Do not minimize SDL_Window if it loses key focus in fullscreen mode.
+    // Override with environment variable SDL_VIDEO_MINIMIZE_ON_FOCUS_LOSS=1
     SDL_SetHint(SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "0");
+
+    // Bogus initial value to ensure swap interval is set at least once.
+    // One would think the default value was 0 already, but this does not
+    // seem to always be the case.
+    fsemu_sdlwindow.swap_interval = -1337;
 }
 
-/** Wrapper function in case SDL_SetCursor is not optimized for the case
- * where you set the same cursor as the existing one. */
+// ---------------------------------------------------------------------------
+
+// Wrapper function in case SDL_SetCursor is not optimized for the case
+// where you set the same cursor as the existing one.
 static void fsemu_sdlwindow_set_cursor(SDL_Cursor *cursor)
 {
     if (fsemu_sdlwindow.current_cursor == cursor) {
@@ -94,21 +104,27 @@ static void fsemu_sdlwindow_set_cursor(SDL_Cursor *cursor)
     fsemu_sdlwindow.current_cursor = cursor;
 }
 
+// ---------------------------------------------------------------------------
+
 bool fsemu_sdlwindow_no_event_polling(void)
 {
     return fsemu_sdlwindow.no_event_polling;
 }
+
+// ---------------------------------------------------------------------------
 
 void fsemu_sdlwindow_set_no_event_polling(bool no_event_polling)
 {
     fsemu_sdlwindow.no_event_polling = no_event_polling;
 }
 
-void fsemu_sdlwindow_work(int timeout)
+// ---------------------------------------------------------------------------
+
+void fsemu_sdlwindow_work(int timeout_ms)
 {
     if (!fsemu_sdlwindow_no_event_polling()) {
         SDL_Event event;
-        if (SDL_WaitEventTimeout(&event, timeout)) {
+        if (SDL_WaitEventTimeout(&event, timeout_ms)) {
             fsemu_sdlwindow_handle_event(&event);
         }
         while (SDL_PollEvent(&event)) {
@@ -117,9 +133,7 @@ void fsemu_sdlwindow_work(int timeout)
     }
 }
 
-// ---------------------------------------------------------------------------
-
-/** Internal function called by fsemu_sdlwindow_update. */
+// Internal function called by fsemu_sdlwindow_update.
 static void fsemu_sdlwindow_set_cursor_visible(int cursor_visible)
 {
     if (fsemu_sdlwindow.cursor_visible == cursor_visible) {
@@ -129,7 +143,7 @@ static void fsemu_sdlwindow_set_cursor_visible(int cursor_visible)
     fsemu_sdlwindow.cursor_visible = cursor_visible;
 }
 
-/** Internal function called by fsemu_sdlwindow_update. */
+// Internal function called by fsemu_sdlwindow_update.
 static void fsemu_sdlwindow_set_swap_interval(int swap_interval)
 {
     if (fsemu_sdlwindow.swap_interval == swap_interval) {
@@ -140,22 +154,22 @@ static void fsemu_sdlwindow_set_swap_interval(int swap_interval)
     fsemu_sdlwindow.swap_interval = swap_interval;
 }
 
-/** Internal function called by fsemu_sdlwindow_update. */
+// Internal function called by fsemu_sdlwindow_update.
 static void fsemu_sdlwindow_set_mouse_captured(int mouse_captured)
 {
     if (mouse_captured == fsemu_sdlwindow.mouse_captured) {
         return;
     }
     if (mouse_captured) {
-        fsemu_mouse_log("Capturing mouse\n");
+        fsemu_mouse_log(1, "Capturing mouse\n");
     } else {
-        fsemu_mouse_log("Releasing mouse capture\n");
+        fsemu_mouse_log(1, "Releasing mouse capture\n");
     }
-    SDL_SetRelativeMouseMode(mouse_captured);
+    SDL_SetRelativeMouseMode(mouse_captured ? SDL_TRUE : SDL_FALSE);
     fsemu_sdlwindow.mouse_captured = mouse_captured;
 }
 
-/** Internal function called by fsemu_sdlwindow_update. */
+// Internal function called by fsemu_sdlwindow_update.
 static bool fsemu_sdlwindow_want_cursor(int64_t now)
 {
     bool want_cursor = false;
@@ -196,7 +210,6 @@ void fsemu_sdlwindow_update(void)
 
     if (fsemu_frame_counter_mod(50) == 0 && fsemu_frame_emutime_avg_us()) {
         char title[512];
-        // snprintf(title, 512, "FSEMU [%d us]", fsemu_frame_emutime_avg_us());
         snprintf(title,
                  512,
                  "FSEMU [%d fps max]",
@@ -205,6 +218,9 @@ void fsemu_sdlwindow_update(void)
     }
 }
 
+// See if mouse should interact with a special area. Factored out into a
+// separate function so this can be called directly and also from SDL
+// hit test callback.
 static SDL_HitTestResult fsemu_sdlwindow_hit_test_2(SDL_Window *window,
                                                     int x,
                                                     int y)
@@ -249,6 +265,7 @@ static SDL_HitTestResult fsemu_sdlwindow_hit_test_2(SDL_Window *window,
     return SDL_HITTEST_NORMAL;
 }
 
+// Called by SDL to see if mouse should interact with a special area.
 static SDL_HitTestResult fsemu_sdlwindow_hit_test(SDL_Window *window,
                                                   const SDL_Point *point,
                                                   void *data)
@@ -261,55 +278,57 @@ SDL_Window *fsemu_sdlwindow_create(void)
 {
     fsemu_assert(fsemu_sdlwindow.window == NULL);
 
+    // In case we want to start with the cursor not visible, we hide it before
+    // window creation to avoid having the cursor flicker.
     SDL_ShowCursor(SDL_DISABLE);
 
-    fsemu_rect_t rect;
     int flags = 0;
-
     // If we want to have an OpenGL-powered renderer later on, it is better to
     // specify SDL_WINDOW_OPENGL right now, to avoid "flickering" due to window
     // being recreated later (?) by SDL.
     flags |= SDL_WINDOW_OPENGL;
-
+    // We always want a resizable window. Annoying for users without.
     flags |= SDL_WINDOW_RESIZABLE;
-    // flags |= SDL_WINDOW_HIDDEN;
+#if 1
+    // Create the window hidden initially, and then show later via
+    // fsemu_sdlwindow_show.
+    flags |= SDL_WINDOW_HIDDEN;
+#endif
 
+    fsemu_rect_t rect;
     if (fsemu_window_fullscreen()) {
         flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
         fsemu_sdlwindow.fullscreen = true;
         fsemu_sdlwindow.was_fullscreen_initially = true;
-
+#if 0
         // Using borderless window here to make the fullscreen window appear
         // more smoothly and without resizing animation.
-        // flags |= SDL_WINDOW_BORDERLESS;
-        // fsemu_sdlwindow.was_borderless_initially = true;
-
+        flags |= SDL_WINDOW_BORDERLESS;
+        fsemu_sdlwindow.was_borderless_initially = true;
+#endif
         fsemu_window_initial_fullscreen_rect(&rect);
     } else {
         fsemu_window_initial_rect(&rect);
-        if (rect.w == 0 || rect.h == 0) {
+        if (rect.x == -1 && rect.y == -1) {
             rect.x = SDL_WINDOWPOS_CENTERED;
             rect.y = SDL_WINDOWPOS_CENTERED;
-            rect.w = 960;
-            rect.h = 540;
         }
     }
-
     fsemu_window_log(
         "Initial window rect: %dx%d +%d+%d\n", rect.w, rect.h, rect.x, rect.y);
 
     if (!fsemu_titlebar_use_system()) {
         fsemu_window_log("System titlebar is false: borderless window\n");
         flags |= SDL_WINDOW_BORDERLESS;
-        if (fsemu_window_fullscreen()) {
-        } else {
-            rect.h += fsemu_titlebar_height();
-            fsemu_window_log("Initial window rect (final): %dx%d +%d+%d\n",
-                             rect.w,
-                             rect.h,
-                             rect.x,
-                             rect.y);
-        }
+        // if (fsemu_window_fullscreen()) {
+        // } else {
+        //     rect.h += fsemu_titlebar_height();
+        //     fsemu_window_log("Initial window rect (final): %dx%d +%d+%d\n",
+        //                      rect.w,
+        //                      rect.h,
+        //                      rect.x,
+        //                      rect.y);
+        // }
     }
 
     // FIXME: Initial input grab?
@@ -362,20 +381,26 @@ void fsemu_sdlwindow_show(void)
 #endif
 }
 
+// Called by FSEMU internally after then window has transitioned from
+// fullscreen to  window, in order to work around shortcomings in SDL
+// and restore window size properly the first time this happens.
 static void fsemu_sdlwindow_fullscreen_to_window(void)
 {
     if (!fsemu_sdlwindow.was_fullscreen_initially) {
         return;
     }
-    printf("\nfsemu_sdlwindow_fullscreen_to_window\n\n");
+    // The rest of the code only runs first time we switch to windowed mode,
+    // and only if the started the emulation in fullscreen mode. We do this
+    // so we can set a sane window size. Otherwise, we often end up with a
+    // maximized window, and SDL forgets the window dimentions we wanted for
+    // the window in window mode.
+    fsemu_window_log("First fullscren -> window transition\n\n");
     fsemu_sdlwindow.was_fullscreen_initially = false;
     fsemu_rect_t rect;
     fsemu_window_initial_rect(&rect);
-    if (rect.w == 0 || rect.h == 0) {
+    if (rect.x == -1 && rect.h == -1) {
         rect.x = SDL_WINDOWPOS_CENTERED;
         rect.y = SDL_WINDOWPOS_CENTERED;
-        rect.w = 960;
-        rect.h = 540;
     }
 
     if (fsemu_sdlwindow.was_borderless_initially) {
@@ -389,10 +414,12 @@ static void fsemu_sdlwindow_fullscreen_to_window(void)
     SDL_SetWindowSize(fsemu_sdlwindow.window, rect.w, rect.h);
     SDL_SetWindowPosition(fsemu_sdlwindow.window, rect.x, rect.y);
 
+#if 0
     // On Linux / GNOME, for some reason, when returning from initial
     // fullscreen mode to window mode, the window kind of loses focus.
     // FIXME: Only when using borderless fullscreen window hack
-    // SDL_RaiseWindow(fsemu_sdlwindow.window);
+    SDL_RaiseWindow(fsemu_sdlwindow.window);
+#endif
 }
 
 void fsemu_sdlwindow_set_window(SDL_Window *window)
@@ -438,28 +465,25 @@ void fsemu_sdlwindow_set_fullscreen(bool fullscreen)
     SDL_SetWindowFullscreen(fsemu_sdlwindow.window, fullscreen_mode);
     fsemu_sdlwindow.fullscreen = fullscreen;
 
-    if (!fullscreen) {
+    if (fullscreen) {
+        fsemu_sdlwindow.ignore_motion_after_fullscreen = true;
+    } else {
         if (fsemu_titlebar_use_system()) {
             // If we opened a fullscreen window borderless, we want
             // to add in borders now.
             // FIXME: Only once, and only if we opened fullscreen without
+            // FIXME: Handled by fsemu_sdlwindow_fullscreen_to_window now??
+            // FIXME: Remove this?
             SDL_SetWindowBordered(fsemu_sdlwindow.window, SDL_TRUE);
             // FIXME: Also specify a window size explicitly to avoid
             // getting a big fullscreen-ish window when we originally opened
             // a fullscreen window.
-
-            // FIXME: When starting in fullscreen, the window size is not
-            // correct when restoring. It apparently does not work to set
-            // the size/position immediately after switching back to window
-            // mode. Try changing to "initial" window pos/size when getting
-            // a window resized callback (first time switching to window mode).
-            // SDL_SetWindowSize(fsemu_sdlwindow.window, 960, 540);
-            // SDL_SetWindowPosition(fsemu_sdlwindow.window, 100, 100);
-
-            fsemu_sdlwindow_fullscreen_to_window();
         } else {
             // We do not want to add border
         }
+        // When starting in fullscreen, the window size is not correct when
+        // restoring. Calling workaround function.
+        fsemu_sdlwindow_fullscreen_to_window();
     }
 }
 
@@ -489,7 +513,7 @@ static bool fsemu_sdlwindow_handle_keyboard_shortcut(SDL_Event *event)
         return true;
     } else if (event->key.keysym.sym == SDLK_k) {
         fsemu_window_log("SDLK_k (keyboard)\n");
-        // FIXME: Not fully implement, only affects modifier key right now
+        // FIXME: Not fully implement, only affects modifier key right now.
         fsemu_sdlwindow.full_keyboard_emulation =
             !fsemu_sdlwindow.full_keyboard_emulation;
         fsemu_window_log("Full keyboard emulation: %d\n",
@@ -531,17 +555,19 @@ static bool fsemu_sdlwindow_prevent_modifier_pollution(SDL_Event *event)
 {
     if (!fsemu_sdlwindow.full_keyboard_emulation &&
         event->key.keysym.scancode == FSEMU_KMOD_SCANCODE) {
-        // For now, also prevent the modifier from being sent at all
+        // For now, also prevent the modifier from being sent at all.
         return true;
     }
     return false;
 }
 
-/** Called on mouse motion events when using custom window frame. */
+// Called on mouse motion events when using custom window frame.
 static void fsemu_sdlwindow_handle_cursor(fsemu_mouse_event_t *event)
 {
-    // return;
-    // FIXME: Maybe not needed on all platforms? Needed on Linux/X11 at least.
+    // At least on Linux/X11, the SDL hit test function works, but only on
+    // mouse clicks - so we do not get the resize cursors when hovering over
+    // the edges of the Window. We therefore implement this manually here.
+    // FIXME: Maybe not needed on all platforms?
     SDL_HitTestResult hit_test =
         fsemu_sdlwindow_hit_test_2(fsemu_sdlwindow.window, event->x, event->y);
     if (hit_test == SDL_HITTEST_RESIZE_LEFT ||
@@ -558,6 +584,8 @@ static void fsemu_sdlwindow_handle_cursor(fsemu_mouse_event_t *event)
     }
 }
 
+// Returns true if the sdlwindow module handled this event, and the event
+// should not propagate further.
 bool fsemu_sdlwindow_handle_event(SDL_Event *event)
 {
     if (fsemu_sdlwindow_handle_window_event(event)) {
@@ -596,15 +624,21 @@ bool fsemu_sdlwindow_handle_event(SDL_Event *event)
     }
 
     fsemu_mouse_event_t mouse_event;
+    memset(&mouse_event, 0, sizeof(fsemu_mouse_event_t));
 
     switch (event->type) {
         case SDL_MOUSEBUTTONDOWN:
         case SDL_MOUSEBUTTONUP:
+            fsemu_mouse_log(1,
+                            "%s button=%d\n",
+                            event->button.state ? "SDL_MOUSEBUTTONDOWN"
+                                                : "SDL_MOUSEBUTTONUP",
+                            event->button.button);
             mouse_event.pressed =
                 event->button.state ? event->button.button : 0;
             mouse_event.released =
                 event->button.state ? 0 : event->button.button;
-            mouse_event.moved = false;
+            // mouse_event.moved = false;
             mouse_event.x = event->button.x;
             mouse_event.y = event->button.y;
             // mouse_event.buttons[0] = 0;
@@ -616,15 +650,30 @@ bool fsemu_sdlwindow_handle_event(SDL_Event *event)
             }
             break;
         case SDL_MOUSEMOTION:
+            fsemu_mouse_log(2,
+                            "SDL_MOUSEMOTION x=%d y=%d xrel=%d yrel=%d\n",
+                            event->motion.x,
+                            event->motion.y,
+                            event->motion.xrel,
+                            event->motion.yrel);
             // fsemu_mouse_handle_position(event->motion.x, event->motion.y);
-            mouse_event.pressed = 0;
-            mouse_event.released = 0;
+            // mouse_event.pressed = 0;
+            // mouse_event.released = 0;
+            if (fsemu_sdlwindow.ignore_motion_after_fullscreen) {
+                if (event->motion.x == 0 && event->motion.y == 0 &&
+                    event->motion.xrel == 0 && event->motion.yrel == 0) {
+                    fsemu_mouse_log(1,
+                                    "Ignoring bogus event after switching to "
+                                    "fullscreen\n");
+                    return true;
+                }
+            }
             mouse_event.moved = true;
             mouse_event.x = event->motion.x;
             mouse_event.y = event->motion.y;
             // mouse_event.buttons[0] = 0;
-            mouse_event.button = 0;
-            mouse_event.state = 0;
+            // mouse_event.button = 0;
+            // mouse_event.state = 0;
 
             if (!fsemu_titlebar_use_system()) {
                 fsemu_sdlwindow_handle_cursor(&mouse_event);
@@ -633,6 +682,7 @@ bool fsemu_sdlwindow_handle_event(SDL_Event *event)
                 return true;
             }
 
+            fsemu_sdlwindow.ignore_motion_after_fullscreen = false;
             // FIXME: Move to mouse/window modules?
             fsemu_sdlwindow.last_cursor_motion_at = fsemu_time_us();
 
@@ -749,6 +799,24 @@ bool fsemu_sdlwindow_handle_window_event(SDL_Event *event)
             case SDL_WINDOWEVENT_LEAVE:
                 fsemu_window_log("Mouse left window %d\n",
                                  event->window.windowID);
+                // Sending fake mouse event (outside window) when mouse
+                // leaves the window, useful for GUI hovering effects.
+                // FIXME: Might need to make sure these events do not
+                // reach the emulation layer...
+                // Handled by fsemu-titlebar module currently, but might want
+                // to do this in a better way
+                fsemu_mouse_event_t mouse_event;
+                memset(&mouse_event, 0, sizeof(fsemu_mouse_event_t));
+                mouse_event.moved = true;
+                mouse_event.x = -1;
+                mouse_event.y = -1;
+                if (!fsemu_titlebar_use_system()) {
+                    fsemu_sdlwindow_handle_cursor(&mouse_event);
+                }
+                if (fsemu_mouse_handle_mouse(&mouse_event)) {
+                    return true;
+                }
+
                 break;
             case SDL_WINDOWEVENT_FOCUS_GAINED:
                 fsemu_window_log("Window %d gained keyboard focus\n",

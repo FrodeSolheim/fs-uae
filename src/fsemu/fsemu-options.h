@@ -19,6 +19,8 @@
 
 #define FSEMU_OPTION_INITIAL_INPUT_GRAB "initial_input_grab"
 
+#define FSEMU_OPTION_LOG_AUDIO "log_audio"
+#define FSEMU_OPTION_LOG_FRAME "log_frame"
 #define FSEMU_OPTION_LOG_VIDEO "log_video"
 
 #define FSEMU_OPTION_MIDDLE_CLICK_UNGRAB "middle_click_ungrab"
@@ -28,6 +30,8 @@
 #define FSEMU_OPTION_STRETCH_MODE "stretch_mode"
 
 #define FSEMU_OPTION_SYSTEM_TITLEBAR "system_titlebar"
+
+#define FSEMU_OPTION_VSYNC_REFRESH_MISMATCH "vsync_refresh_mismatch"
 
 #define FSEMU_OPTION_WINDOW_H "window_h"
 #define FSEMU_OPTION_WINDOW_W "window_w"

@@ -1,10 +1,10 @@
 #ifndef FSEMU_IMAGE_H_
 #define FSEMU_IMAGE_H_
 
+#include <stdint.h>
+
 #include "fsemu-common.h"
 #include "fsemu-log.h"
-
-#include <stdint.h>
 
 typedef struct {
     uint8_t *data;

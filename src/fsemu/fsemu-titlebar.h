@@ -14,6 +14,8 @@ void fsemu_titlebar_init(void);
 
 bool fsemu_titlebar_use_system(void);
 
+uint32_t fsemu_titlebar_background_color(void);
+
 bool fsemu_titlebar_visible(void);
 int fsemu_titlebar_height(void);
 

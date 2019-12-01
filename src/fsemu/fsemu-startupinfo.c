@@ -28,7 +28,7 @@ static struct {
     // int height;
     // int width;
     char *emulator_name;
-    const char *fork_info;
+    char *fork_info;
 } fsemu_startupinfo;
 
 void fsemu_startupinfo_set_emulator_name(const char *emulator_name)
@@ -41,7 +41,10 @@ void fsemu_startupinfo_set_emulator_name(const char *emulator_name)
 
 void fsemu_startupinfo_set_emulator_fork_info(const char *fork_info)
 {
-    fsemu_startupinfo.fork_info = fork_info;
+    if (fsemu_startupinfo.fork_info) {
+        free(fsemu_startupinfo.fork_info);
+    }
+    fsemu_startupinfo.fork_info = strdup(fork_info);
 }
 
 // ---------------------------------------------------------------------------
@@ -60,7 +63,8 @@ void fsemu_startupinfo_init(void)
 
     fsemu_gui_item_t *item;
     item = &fsemu_startupinfo.background;
-    fsemu_gui_rectangle(item, 0, y, 1920, height, FSEMU_RGBA(0x000000c0));
+    // fsemu_gui_rectangle(item, 0, y, 1920, height, FSEMU_RGBA(0x000000c0));
+    fsemu_gui_rectangle(item, 0, y, 1920, height, FSEMU_RGBA(0x101010c0));
     item->coordinates = FSEMU_COORD_1080P;
     item->z_index = 5000;
     fsemu_gui_add_item(item);
@@ -155,8 +159,10 @@ void fsemu_startupinfo_init(void)
     if ((string = fsemu_startupinfo.emulator_name)) {
         item = &fsemu_startupinfo.emulator_item;
         gchar *string_2 = g_utf8_strup(string, -1);
-        gchar *string_3 = g_strdup_printf(
-            "%s%s EMULATOR", string_2, fsemu_startupinfo.fork_info ? "*" : "");
+        // gchar *string_3 = g_strdup_printf(
+        //     "%s%s EMULATOR", string_2, fsemu_startupinfo.fork_info ? "*" :
+        //     "");
+        gchar *string_3 = g_strdup_printf("%s", string_2);
         g_free(string_2);
         image = fsemu_font_render_text_to_image(font_3, string_3, white_2);
         g_free(string_3);
@@ -173,8 +179,10 @@ void fsemu_startupinfo_init(void)
 
     if ((string = fsemu_startupinfo.fork_info)) {
         item = &fsemu_startupinfo.fork_item;
+        // gchar *string_2 =
+        //     g_strdup_printf("* Fork of %s with modifications", string);
         gchar *string_2 =
-            g_strdup_printf("* Fork of %s with modifications", string);
+            g_strdup_printf("This is a modified version of %s", string);
         image = fsemu_font_render_text_to_image(font_4, string_2, white_3);
         g_free(string_2);
         fsemu_gui_image(item,
@@ -190,7 +198,7 @@ void fsemu_startupinfo_init(void)
         item = &fsemu_startupinfo.fork_2_item;
         image = fsemu_font_render_text_to_image(
             font_4,
-            "Do not send bug reports upstream without testing on original",
+            "Don't send bug reports upstream without testing original",
             white_3);
         fsemu_gui_image(item,
                         1920 - 49 - image->width,

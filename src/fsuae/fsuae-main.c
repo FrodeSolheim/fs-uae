@@ -882,6 +882,9 @@ static void main_function()
     amiga_main();
     fs_log("[CORE] Return from amiga_main\n");
     fs_uae_write_recorded_session();
+    if (fsemu) {
+        fsemu_quit_maybe();
+    }
 }
 
 #ifdef WINDOWS
@@ -1341,7 +1344,48 @@ int main(int argc, char *argv[])
 
     if (fsemu) {
         // fsemu_audio_init(0);
+        // fsemu_window_init();
+
+#if 0
+        // fsemu_audio_init(0);
         fsemu_window_init();
+        fsemu_video_init();
+        fsemu_titlebar_init();
+
+        fsemu_audio_init();
+
+        fsemu_perfgui_init();
+        fsemu_titlebar_update();
+#endif
+
+        fsemu_set_emulator_name("FS-UAE");
+        fsemu_window_set_title("FS-UAE");
+        // fsemu_video_set_renderer(renderer);
+        // fsemu_startupinfo_set_emulator_name("FS-UAE");
+        // fsemu_startupinfo_set_emulator_fork_info("Mednafen");
+#if 0
+        // FIXME: Review
+        if (fullscreen == 1) {
+            fsemu_window_set_fullscreen(true);
+        }
+        // FIXME: Review
+        if (vsync == 1) {
+            fsemu_video_set_vsync(1);
+        }
+#endif
+        fsemu_window_init();
+        fsemu_video_init();
+        fsemu_fade_init();
+        fsemu_titlebar_init();
+
+        fsemu_helper_startup_loop();
+
+        fsemu_hud_init();
+        fsemu_perfgui_init();
+        fsemu_startupinfo_init();
+
+        fsemu_audio_init();
+        fsemu_input_init(FSEMU_FLAG_NONE);
     }
 
     init_i18n();
@@ -1571,16 +1615,49 @@ int main(int argc, char *argv[])
         }
     }
 
+#if 0
     if (fsemu) {
+#if 0
         // fsemu_audio_init(0);
-        // fsemu_window_init(FSEMU_FLAG_NONE);
+        fsemu_window_init();
         fsemu_video_init();
-        fsemu_input_init(FSEMU_FLAG_NONE);
+        fsemu_titlebar_init();
+
         fsemu_audio_init();
 
         fsemu_perfgui_init();
         fsemu_titlebar_update();
+#endif
+
+        fsemu_set_emulator_name("FS-UAE");
+        fsemu_window_set_title("FS-UAE");
+        // fsemu_video_set_renderer(renderer);
+        fsemu_startupinfo_set_emulator_name("FS-UAE");
+        // fsemu_startupinfo_set_emulator_fork_info("Mednafen");
+#if 0
+        // FIXME: Review
+        if (fullscreen == 1) {
+            fsemu_window_set_fullscreen(true);
+        }
+        // FIXME: Review
+        if (vsync == 1) {
+            fsemu_video_set_vsync(1);
+        }
+#endif
+        fsemu_window_init();
+        fsemu_video_init();
+        fsemu_titlebar_init();
+
+//        fsemu_helper_startup_loop();
+
+        fsemu_perfgui_init();
+//        fsemu_startupinfo_init();
+//        fsemu_hud_init();
+
+        fsemu_audio_init();
+        fsemu_input_init(FSEMU_FLAG_NONE);
     }
+#endif
 
     fs_emu_run(main_function);
 
@@ -1594,7 +1671,10 @@ int main(int argc, char *argv[])
             static int64_t old_frame = 0;
             int64_t frame = fsemu_frame_counter();
             if (frame != old_frame) {
+                fsemu_fade_update();
+                fsemu_hud_update();
                 fsemu_perfgui_update();
+                fsemu_startupinfo_update();
                 fsemu_titlebar_update();
                 old_frame = frame;
             }

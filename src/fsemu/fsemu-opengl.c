@@ -2,7 +2,7 @@
 #include "fsemu-opengl.h"
 
 struct {
-    bool blend;
+    int blend;
     bool depth_test;
     struct {
         float r;
@@ -10,7 +10,7 @@ struct {
         float b;
         float a;
     } color4f;
-    bool texture_2d;
+    int texture_2d;
 } fsemu_opengl;
 
 void fsemu_opengl_init(void)
@@ -29,6 +29,9 @@ void fsemu_opengl_init(void)
     glLoadIdentity();
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
+
+    fsemu_opengl.blend = -1;
+    fsemu_opengl.texture_2d = -1;
 }
 
 static inline void fsemu_opengl_enable(int what, bool enable)
@@ -51,6 +54,26 @@ void fsemu_opengl_blend(bool blend)
             blend_func_set = true;
         }
     }
+}
+
+void fsemu_opengl_assume_blend(bool blend)
+{
+    fsemu_opengl.blend = blend;
+}
+
+void fsemu_opengl_assume_texture_2d(bool texture_2d)
+{
+    fsemu_opengl.texture_2d = texture_2d;
+}
+
+void fsemu_opengl_forget_blend(void)
+{
+    fsemu_opengl.blend = -1;
+}
+
+void fsemu_opengl_forget_texture_2d(void)
+{
+    fsemu_opengl.texture_2d = -1;
 }
 
 void fsemu_opengl_color4f(float r, float g, float b, float a)

@@ -72,12 +72,10 @@ POSSIBILITY OF SUCH DAMAGE.
  * these calls in performance critical code
  */
 
+#include <dlfcn.h>
 #include <stdbool.h>
 #include <stdio.h>
-
-#include <dlfcn.h>
 #include <string.h>
-
 #include <sys/types.h>
 
 static char internal_gamemode_client_error_string[512] = {0};

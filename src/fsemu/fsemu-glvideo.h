@@ -9,6 +9,8 @@
 extern "C" {
 #endif
 
+#ifdef FSEMU_INTERNAL
+
 void fsemu_glvideo_init(void);
 void fsemu_glvideo_set_size_2(int width, int height);
 
@@ -19,6 +21,8 @@ void fsemu_glvideo_render(void);
 void fsemu_glvideo_render_gui(fsemu_gui_item_t *items);
 
 void fsemu_glvideo_display(void);
+
+#endif  // FSEMU_INTERNAL
 
 #ifdef __cplusplus
 }

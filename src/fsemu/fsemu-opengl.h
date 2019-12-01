@@ -17,6 +17,12 @@ void fsemu_opengl_color4f(float r, float g, float b, float a);
 void fsemu_opengl_depth_test(bool depth_test);
 void fsemu_opengl_texture_2d(bool texture_2d);
 
+void fsemu_opengl_assume_blend(bool blend);
+void fsemu_opengl_assume_texture_2d(bool texture_2d);
+
+void fsemu_opengl_forget_blend(void);
+void fsemu_opengl_forget_texture_2d(void);
+
 #ifdef __cplusplus
 }
 #endif

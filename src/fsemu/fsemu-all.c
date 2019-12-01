@@ -10,6 +10,7 @@ extern "C" {
 #include "fsemu-control.c"
 #include "fsemu-data.c"
 #include "fsemu-events.c"
+#include "fsemu-fade.c"
 #include "fsemu-font.c"
 #include "fsemu-frame.c"
 #include "fsemu-gamemode.c"

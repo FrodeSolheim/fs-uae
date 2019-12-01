@@ -1,14 +1,14 @@
 #ifndef FSEMU_GUI_H_
 #define FSEMU_GUI_H_
 
+#include <stdbool.h>
+#include <stdint.h>
+
 #include "fsemu-common.h"
 #include "fsemu-font.h"
 #include "fsemu-image.h"
 #include "fsemu-sdl.h"
 #include "fsemu-types.h"
-
-#include <stdbool.h>
-#include <stdint.h>
 
 struct fsemu_gui_item_struct;
 typedef struct fsemu_gui_item_struct fsemu_gui_item_t;

@@ -1,11 +1,11 @@
 #define FSEMU_INTERNAL
 #include "fsemu-screenshot.h"
 
+#include <time.h>
+
 #include "fsemu-config.h"
 #include "fsemu-log.h"
 #include "fsemu-util.h"
-
-#include <time.h>
 
 static struct {
     bool capture;

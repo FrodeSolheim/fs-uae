@@ -114,6 +114,12 @@ AX_CHECK_COMPILE_FLAG(-Wmissing-declarations,
 AM_CONDITIONAL([W_MISSING_DECLARATIONS],
 [test x$w_missing_declarations = xyes])
 
+AX_CHECK_COMPILE_FLAG(-Wpointer-arith,
+[w_pointer_arith=yes],
+[w_pointer_arith=no])
+AM_CONDITIONAL([W_POINTER_ARITH],
+[test x$w_pointer_arith = xyes])
+
 AX_CHECK_COMPILE_FLAG(-Werror=missing-declarations,
 [w_error_missing_declarations=yes],
 [w_error_missing_declarations=no])

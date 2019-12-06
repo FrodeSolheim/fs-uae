@@ -4,6 +4,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "fsemu-config.h"
+
 struct fsemu_thread;
 typedef struct fsemu_thread fsemu_thread_t;
 typedef uintptr_t fsemu_thread_id_t;

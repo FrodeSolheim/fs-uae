@@ -7,7 +7,7 @@
 // #include "config.h"
 // #endif
 
-#ifdef __WIN32__
+#ifdef _WIN32
 #define FSEMU_WINDOWS 1
 #endif
 

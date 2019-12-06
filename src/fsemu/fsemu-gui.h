@@ -51,7 +51,7 @@ void fsemu_gui_free_snapshot(fsemu_gui_item_t *snapshot);
 
 #define FSEMU_GUI_FLAG_FLIP_X (1 << 0)
 
-typedef struct fsemu_gui_item_struct {
+struct fsemu_gui_item_struct {
     fsemu_rect_t rect;
     int coordinates;
     bool translucent;
@@ -67,7 +67,7 @@ typedef struct fsemu_gui_item_struct {
 #ifdef FSEMU_SDL
     SDL_Texture *texture;
 #endif
-} fsemu_gui_item_t;
+};
 
 #endif  // FSEMU_INTERNAL
 

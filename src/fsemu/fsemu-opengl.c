@@ -76,6 +76,11 @@ void fsemu_opengl_forget_texture_2d(void)
     fsemu_opengl.texture_2d = -1;
 }
 
+void fsemu_opengl_color3f(float r, float g, float b)
+{
+    fsemu_opengl_color4f(r, g, b, 1.0);
+}
+
 void fsemu_opengl_color4f(float r, float g, float b, float a)
 {
     if (fsemu_opengl.color4f.r != r || fsemu_opengl.color4f.g != g ||

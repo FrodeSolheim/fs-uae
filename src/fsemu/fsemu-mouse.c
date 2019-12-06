@@ -20,7 +20,7 @@ static struct fsemu_mouse {
     bool middle_click_ungrab;
 } fsemu_mouse;
 
-int fsemu_mouse_log_level = 0;
+int fsemu_mouse_log_level = 1;
 
 // ---------------------------------------------------------------------------
 
@@ -30,7 +30,8 @@ void fsemu_mouse_init(void)
     fsemu_thread_init();
     fsemu_titlebar_init();
 
-    fsemu_mouse_log(1, "Initializing mouse subsystem\n");
+    fsemu_mouse_log(1, "Init\n");
+    fsemu_option_read_int(FSEMU_OPTION_LOG_MOUSE, &fsemu_mouse_log_level);
 #if 0
     fsemu_mouse.initial_grab = true;
     fsemu_config_read_bool(

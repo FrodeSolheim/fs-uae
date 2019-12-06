@@ -13,6 +13,7 @@ extern "C" {
 void fsemu_opengl_init(void);
 
 void fsemu_opengl_blend(bool blend);
+void fsemu_opengl_color3f(float r, float g, float b);
 void fsemu_opengl_color4f(float r, float g, float b, float a);
 void fsemu_opengl_depth_test(bool depth_test);
 void fsemu_opengl_texture_2d(bool texture_2d);

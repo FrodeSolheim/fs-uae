@@ -86,7 +86,7 @@ static int fs_get_application_exe_path(char *buffer, int size)
 
 #if defined(FSEMU_WINDOWS)
 
-    wchar_t *temp_buf = g_malloc(sizeof(wchar_t) * FSEMU_PATH_MAX);
+    wchar_t *temp_buf = (wchar_t *) g_malloc(sizeof(wchar_t) * FSEMU_PATH_MAX);
     /* len is the number of characters NOT including the terminating null
      * character. */
     int len = GetModuleFileNameW(NULL, temp_buf, FSEMU_PATH_MAX);

@@ -21,7 +21,9 @@ static struct {
     GLuint textures[2];
     int current_texture;
     fsemu_rect_t rect;
-
+    // Drawable size is the real pixel size, which is not necessary the same
+    // as screen coordinates with high-DPI windows on some systems.
+    fsemu_size_t drawable_size;
 } fsemu_glvideo;
 
 void fsemu_glvideo_init(void)
@@ -89,11 +91,27 @@ void fsemu_glvideo_init(void)
 
 void fsemu_glvideo_set_size_2(int width, int height)
 {
-#if 0
-    printf("fsemu_glvideo_set_size_2: glViewport(0, 0, %d, %d);\n",
-    width, height);
-    glViewport(0, 0, width, height);
-#endif
+    // This function will be called from the UI thread, which is not
+    // necessarily the same as the video thread, so we register the new
+    // glViewport dimensions here, but defer changing it so the video thread
+    // can change it when starting on a new thread.
+
+    // FIXME: Ideally use locking to ensure both dimensions are updated
+    // atomatically, probably not that important though since it will be
+    // correct one frame later in all cases.
+
+    // FIXME: Make sure this is called initially on Window creation?
+
+    fsemu_video_log("Got resize callback from window subsystem\n");
+    int draw_w, draw_h;
+    SDL_GL_GetDrawableSize(fsemu_sdlwindow_window(), &draw_w, &draw_h);
+    fsemu_video_log("Window size %dx%d : drawable size %dx%d\n",
+                    width,
+                    height,
+                    draw_w,
+                    draw_h);
+    fsemu_glvideo.drawable_size.w = draw_w;
+    fsemu_glvideo.drawable_size.h = draw_h;
 }
 
 void fsemu_glvideo_work(int timeout_us)
@@ -461,9 +479,6 @@ void fsemu_glvideo_display(void)
         last = vsync_time;
     }
 
-    // glClearColor(0.0, 0.0, 1.0, 1.0);
-    glClear(GL_COLOR_BUFFER_BIT);
-
 #if 1
     // On my Linux laptop (Intel graphics) at least, it is not (always)
     // sufficient to run glViewport in response to resize event. When
@@ -471,9 +486,40 @@ void fsemu_glvideo_display(void)
     // than fullscreen, even though the last glViewport in response the the
     // last resize event used correct coordinates.
     // Workaround here is to run glViewport before every frame...
-    fsemu_size_t window_size;
-    fsemu_window_size(&window_size);
-    glViewport(0, 0, window_size.w, window_size.h);
+
+    // fsemu_size_t window_size;
+    // fsemu_window_size(&window_size);
+    // printf("glViewport 0, 0, %d, %d\n", window_size.w, window_size.h);
+    // fflush(stdout);
+    // int flags = SDL_GetWindowFlags(fsemu_sdlwindow_window());
+    // printf("glViewport? flags %d\n", flags & SDL_WINDOW_ALLOW_HIGHDPI);
+    // glViewport(0, 0, window_size.w, window_size.h);
+
+    if (fsemu_glvideo.drawable_size.w > 0 &&
+        fsemu_glvideo.drawable_size.h > 0) {
+        glViewport(0,
+                   0,
+                   fsemu_glvideo.drawable_size.w,
+                   fsemu_glvideo.drawable_size.h);
+    } else {
+        // FIXME: log_warning
+        fsemu_video_log("Not a valid drawable size for glViewport\n");
+    }
+
+#endif
+
+    // glClearColor(0.0, 0.0, 1.0, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT);
+#ifdef FSEMU_WINDOWS_XXX
+    fsemu_opengl_blend(false);
+    fsemu_opengl_texture_2d(false);
+    glBegin(GL_QUADS);
+    fsemu_opengl_color3f(0.0, 1.0, 0.0);
+    glVertex2f(-1.0, -1.0);
+    glVertex2f(1.0, -1.0);
+    glVertex2f(1.0, 1.0);
+    glVertex2f(-1.0, 1.0);
+    glEnd();
 #endif
 }
 

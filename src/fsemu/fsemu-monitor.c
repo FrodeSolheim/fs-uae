@@ -11,8 +11,8 @@ static GArray *g_fs_emu_monitors;
 
 static gint fsemu_monitor_compare(gconstpointer a, gconstpointer b)
 {
-    fsemu_monitor_t *am = (fsemu_monitor_t *) a;
-    fsemu_monitor_t *bm = (fsemu_monitor_t *) b;
+    const fsemu_monitor_t *am = (const fsemu_monitor_t *) a;
+    const fsemu_monitor_t *bm = (const fsemu_monitor_t *) b;
 
     return am->rect.x - bm->rect.x;
 }

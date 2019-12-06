@@ -45,6 +45,9 @@ endif
 if W_ERROR_MISSING_DECLARATIONS
 CM_CFLAGS += -Werror=missing-declarations
 endif
+if W_POINTER_ARITH
+CM_CFLAGS += -Wpointer-arith
+endif
 
 
 CM_CFLAGS += -fvisibility=hidden

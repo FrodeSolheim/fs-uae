@@ -18,10 +18,6 @@ progdir:
 
 	make -C ../..
 
-        # For qemu-uae on Windows (todo, instead, embed pixman
-	# statically into qemu-uae.so).
-	python3 clib.py libpixman-1-0.dll $(fs_uae_dir)
-
 	cp -a ../../fs-uae.exe $(fs_uae_dir)/
 	cp -a ../../fs-uae-device-helper.exe $(fs_uae_dir)/
 

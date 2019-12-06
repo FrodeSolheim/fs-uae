@@ -21,6 +21,7 @@
 
 #define FSEMU_OPTION_LOG_AUDIO "log_audio"
 #define FSEMU_OPTION_LOG_FRAME "log_frame"
+#define FSEMU_OPTION_LOG_MOUSE "log_mouse"
 #define FSEMU_OPTION_LOG_VIDEO "log_video"
 
 #define FSEMU_OPTION_MIDDLE_CLICK_UNGRAB "middle_click_ungrab"

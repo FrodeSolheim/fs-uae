@@ -1,18 +1,44 @@
-ver = @PACKAGE_VERSION@
+version = @PACKAGE_VERSION@
 os = macos
 arch = $(strip $(shell python3 ../arch.py))
 
 os_arch = $(os)_$(arch)
-ver_os_arch = $(ver)_$(os_arch)
+ver_os_arch = $(version)_$(os_arch)
 dname = fs-uae_$(ver_os_arch)
 
 all: bindist
 
 clean:
-	rm -Rf ../macos/fs-uae*
+	rm -Rf ../macos/fs-uae* FS-UAE
 
 bindist: bundle
 	tar Jcfv ../../$(dname).tar.xz FS-UAE.app
+
+plugin_dir = FS-UAE
+os_arch_dir = ${plugin_dir}/macOS/${arch}
+data_dir = ${plugin_dir}/Data
+licenses_dir = ${plugin_dir}/Licenses
+
+plugin: bundle
+	rm -Rf FS-UAE
+	mkdir -p FS-UAE/macOS/$(arch)
+
+	rm -Rf FS-UAE
+	mkdir -p ${plugin_dir}
+	echo ${version} > ${plugin_dir}/Version.txt
+	cp ../../README ${plugin_dir}/ReadMe.txt
+
+	mkdir -p ${os_arch_dir}
+	echo ${version} > ${os_arch_dir}/Version.txt
+	mv FS-UAE.app FS-UAE/macOS/$(arch)/
+
+	# mkdir -p ${licenses_dir}
+
+	# FIXME: Move locale and fs-uae.dat out of .app and into Data
+	# mkdir -p ${data_dir}
+	# cp -a fsemu/data/* ${data_dir}/
+
+	tar Jcfv ../../FS-UAE_${version}_macOS_$(arch).tar.xz FS-UAE
 
 bundle:
 	make -C ../..

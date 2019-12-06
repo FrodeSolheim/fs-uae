@@ -242,7 +242,10 @@ def fix_macos_binary(path, frameworks_dir):
         p = subprocess.Popen(args)
         assert p.wait() == 0
     if strip:
-        command = "strip '{}'".format(path)
+        if path.endswith(".dylib") or path.endswith(".so"):
+            command = "strip -x '{}'".format(path)
+        else:
+            command = "strip '{}'".format(path)
         print(command)
         os.system(command)
     return changes
@@ -285,6 +288,8 @@ def macos_main():
 
 windows_system_dlls = [
     "advapi32.dll",
+    "dsound.dll",
+    "dwmapi.dll",
     "gdi32.dll",
     "imm32.dll",
     "kernel32.dll",
@@ -296,12 +301,15 @@ windows_system_dlls = [
     "rpcrt4.dll",
     "setupapi.dll",
     "shell32.dll",
+    "shlwapi.dll",
     "user32.dll",
     "userenv.dll",
     "usp10.dll",
+    "uxtheme.dll",
     "version.dll",
     "winmm.dll",
     "ws2_32.dll",
+    "wsock32.dll",
 ]
 
 

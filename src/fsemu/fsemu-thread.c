@@ -424,11 +424,14 @@ void fsemu_thread_set_priority(void)
 #ifndef TIMERR_NOERROR
 #define TIMERR_NOERROR 0
 #endif
+#if 0
     if (timeBeginPeriod(1) == TIMERR_NOERROR) {
         fsemu_log("successfully set timeBeginPeriod(1)\n");
     } else {
         fsemu_log("error setting timeBeginPeriod(1)\n");
     }
+#endif
+#if 0
     if (SetPriorityClass(GetCurrentProcess(), ABOVE_NORMAL_PRIORITY_CLASS)) {
         fsemu_log(
             "set process priority class to ABOVE_NORMAL_PRIORITY_CLASS\n");
@@ -436,6 +439,7 @@ void fsemu_thread_set_priority(void)
         int dwError = GetLastError();
         fsemu_log("Failed to set process priority class (%d)\n", dwError);
     }
+#endif
 #endif
 
 #ifdef FSEMU_LINUX

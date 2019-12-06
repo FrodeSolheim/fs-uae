@@ -117,8 +117,11 @@ static void fsemu_audio_buffer_update_2(const void *data, int size)
 }
 #endif
 
-void fsemu_audio_buffer_update(const void *data, int size)
+void fsemu_audio_buffer_update(const void *void_data, int size)
 {
+    // Casting to char pointer to be able to do byte pointer arithmetic.
+    const uint8_t *data = (const uint8_t *) void_data;
+
     int add_silence = fsemu_audio_buffer.add_silence;
     if (add_silence) {
         fsemu_audio_buffer.add_silence = 0;

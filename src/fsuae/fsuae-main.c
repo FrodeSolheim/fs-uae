@@ -43,17 +43,17 @@
 #include "nfd.h"
 #endif
 
-#include "fsemu/fsemu-all.h"
+#include "fsemu-all.h"
 
-#include "fsemu/fsemu-audio.h"
-#include "fsemu/fsemu-gamemode.h"
-#include "fsemu/fsemu-gui.h"
-#include "fsemu/fsemu-input.h"
-#include "fsemu/fsemu-quit.h"
-#include "fsemu/fsemu-time.h"
-#include "fsemu/fsemu-util.h"
-#include "fsemu/fsemu-video.h"
-#include "fsemu/fsemu-window.h"
+#include "fsemu-audio.h"
+#include "fsemu-gamemode.h"
+#include "fsemu-gui.h"
+#include "fsemu-input.h"
+#include "fsemu-quit.h"
+#include "fsemu-time.h"
+#include "fsemu-util.h"
+#include "fsemu-video.h"
+#include "fsemu-window.h"
 
 #ifdef LINUX
 #include "../../gamemode/lib/gamemode_client.h"

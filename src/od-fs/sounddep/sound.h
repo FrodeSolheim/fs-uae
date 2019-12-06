@@ -8,7 +8,7 @@
 
 #define SOUNDSTUFF 1
 
-#include "fsemu/fsemu-audio-buffer.h"
+#include "fsemu-audio-buffer.h"
 #define AUDIO_NAME "fsuae"
 
 extern uae_u16 paula_sndbuffer[];

@@ -68,9 +68,9 @@ extern uae_u16 serper;
 #ifdef FSUAE // NL
 #include "uae/fs.h"
 
-#include "fsemu/fsemu-frame.h"
-#include "fsemu/fsemu-quit.h"
-#include "fsemu/fsemu-time.h"
+#include "fsemu-frame.h"
+#include "fsemu-quit.h"
+#include "fsemu-time.h"
 #include <fs/emu/hacks.h>
 int g_frame_debug_logging = 0;
 

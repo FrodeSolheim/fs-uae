@@ -65,8 +65,8 @@ void events_schedule (void)
 extern int vsync_activeheight;
 
 #ifdef FSUAE
-#include "fsemu/fsemu-frame.h"
-#include "fsemu/fsemu-time.h"
+#include "fsemu-frame.h"
+#include "fsemu-time.h"
 extern int64_t is_syncline_end64;
 extern int64_t line_started_at;
 extern int64_t line_ended_at;

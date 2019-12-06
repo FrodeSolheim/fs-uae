@@ -2134,7 +2134,7 @@ void toggle_fullscreen(int monid, int mode)
 	STUB("");
 }
 
-#include "fsemu/fsemu-video.h"
+#include "fsemu-video.h"
 
 bool uae_fsvideo_renderframe(int monid, int mode, bool immediate)
 {

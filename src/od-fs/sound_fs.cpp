@@ -9,8 +9,8 @@
 
 #include <fs/emu/hacks.h>
 
-#include "fsemu/fsemu-audio.h"
-#include "fsemu/fsemu-audio-buffer.h"
+#include "fsemu-audio.h"
+#include "fsemu-audio-buffer.h"
 
 int have_sound = 0;
 

@@ -14,7 +14,7 @@
 
 #ifdef FSUAE
 #include <fs/emu/hacks.h>
-#include "fsemu/fsemu-time.h"
+#include "fsemu-time.h"
 static int64_t g_timestamp;
 #endif
 

@@ -308,6 +308,8 @@ static PmMessage out_msg;
 static int out_msg_bits;
 static int out_msg_bytes;
 
+static char out_msg_last_command;
+
 static PmMessage out_sysex_msg;
 static int out_sysex_mode;
 static int out_sysex_bits;
@@ -373,6 +375,7 @@ void midi_send_byte(uint8_t ch)
 			out_msg_bytes = param_len[ch & 0x7f];
 			// prepare msg
 			out_msg = ch;
+			out_msg_last_command = ch;
 			// setup bit shift for next byte
 			out_msg_bits = 8;
 			// send single byte msg
@@ -398,9 +401,20 @@ void midi_send_byte(uint8_t ch)
 		else if(out_sysex_mode) {
 			out_add_sysex_byte(ch);
 		} 
-		// hmm.. unexpected bytes
+
+		// unexpected data bytes after complete message, so repeat last command
 		else {
-			write_log(_T("MIDI OUT: stray data: %02x!\n"), ch);
+			// initialize message with last command
+			out_msg = out_msg_last_command &0xff;
+
+			// add current byte to message
+			out_msg |= ch << 8;
+
+			// set current number of bits
+			out_msg_bits = 16;
+
+			// set remaining number of bytes according to last command
+			out_msg_bytes = param_len[out_msg_last_command & 0x7f] - 1;
 		}
 	}
 }

@@ -55,7 +55,6 @@ static SDL_threadID g_emulation_thread_id;
 void uae_register_main_thread(void)
 {
     g_main_thread_id = SDL_ThreadID();
-
 }
 
 bool uae_is_main_thread(void)
@@ -65,7 +64,10 @@ bool uae_is_main_thread(void)
 
 bool is_mainthread(void)
 {
-    return uae_is_main_thread();
+    // Was a bit of misunderstanding here, is_mainthread should return true
+    // if it is the *main emulation thread*. Fixed now. FIXME: Doublecheck
+    // that "mainthread" in WinUAE is infact the emulation thread.
+    return uae_is_emulation_thread();
 }
 
 uae_thread_id uae_thread_get_id(void)

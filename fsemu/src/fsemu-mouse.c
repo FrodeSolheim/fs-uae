@@ -3,6 +3,7 @@
 
 #include "fsemu-config.h"
 #include "fsemu-log.h"
+#include "fsemu-option.h"
 #include "fsemu-options.h"
 #include "fsemu-thread.h"
 #include "fsemu-titlebar.h"

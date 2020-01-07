@@ -83,11 +83,11 @@ def fix_linux_binary(path):
 
 
 def ignore_linux_library(name):
-    if os.getenv("LIBGPG_ERROR_CHECK", "") != "0":
-        if name.startswith("libgpg-error.so"):
-            raise Exception(
-                "Bundling libgpg-error (libgcrypt?) breaks Intel GL driver"
-            )
+    # if os.getenv("LIBGPG_ERROR_CHECK", "") != "0":
+    #     if name.startswith("libgpg-error.so"):
+    #         raise Exception(
+    #             "Bundling libgpg-error (libgcrypt?) breaks Intel GL driver"
+    #         )
 
     if name.startswith("linux-gate.so"):
         return True
@@ -162,7 +162,7 @@ def ignore_linux_library(name):
 def linux_iteration(app):
     binaries = []
     binaries_dir = app
-    for name in os.listdir(binaries_dir):
+    for name in sorted(os.listdir(binaries_dir)):
         binaries.append(os.path.join(binaries_dir, name))
     changes = 0
     for binary in binaries:
@@ -187,7 +187,7 @@ def linux_main():
         changes = linux_iteration(app)
         if changes == 0:
             break
-    for name in os.listdir(app):
+    for name in sorted(os.listdir(app)):
         if name.endswith(".standalone"):
             os.remove(os.path.join(app, name))
 
@@ -257,11 +257,11 @@ def macos_iteration(app):
         # mac_os_dir = os.path.join(app, "Contents", "MacOS")
         frameworks_dir = app
         # frameworks_dir = os.path.join(app, "Contents", "Frameworks")
-        # for name in os.listdir(mac_os_dir):
+        # for name in sorted(os.listdir(mac_os_dir)):
         #    binaries.append(os.path.join(mac_os_dir, name))
         # for name in os.listdir(frameworks_dir):
         #    binaries.append(os.path.join(frameworks_dir, name))
-        for name in os.listdir(app):
+        for name in sorted(os.listdir(app)):
             binaries.append(os.path.join(app, name))
     else:
         binaries.append(app)
@@ -364,7 +364,7 @@ def fix_windows_binary(path, app_dir):
 def windows_iteration(app):
     binaries = []
     if os.path.isdir(app):
-        for name in os.listdir(app):
+        for name in sorted(os.listdir(app)):
             binaries.append(os.path.join(app, name))
     # else:
     #     binaries.append(app)

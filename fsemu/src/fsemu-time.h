@@ -15,8 +15,6 @@
 extern "C" {
 #endif
 
-// int64_t fsemu_time_nanos();
-
 static inline int64_t fsemu_time_us(void)
 {
 #ifdef FSEMU_GLIB
@@ -26,26 +24,29 @@ static inline int64_t fsemu_time_us(void)
 #endif
 }
 
-static inline int64_t fsemu_time_millis(void)
+static inline void fsemu_sleep_us(int sleep_us)
+{
+#ifdef FSEMU_GLIB
+    g_usleep(sleep_us);
+#else
+#error Missing implementation of fsemu_sleep_us
+#endif
+}
+
+int64_t fsemu_time_wait_until_us(int64_t until_us);
+int64_t fsemu_time_wait_until_us_2(int64_t until_us, int64_t now);
+
+static inline int64_t fsemu_time_ms(void)
 {
     return fsemu_time_us() / 1000;
 }
 
-static inline void fsemu_sleep_us(int us)
+static inline void fsemu_sleep_ms(int sleep_ms)
 {
 #ifdef FSEMU_GLIB
-    g_usleep(us);
+    g_usleep(sleep_ms * 1000);
 #else
-#error Missing implementation of fsemu_sleep_millis
-#endif
-}
-
-static inline void fsemu_sleep_millis(int millis)
-{
-#ifdef FSEMU_GLIB
-    g_usleep(millis * 1000);
-#else
-#error Missing implementation of fsemu_sleep_millis
+#error Missing implementation of fsemu_sleep_ms
 #endif
 }
 

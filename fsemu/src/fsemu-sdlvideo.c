@@ -25,6 +25,7 @@ static struct {
     SDL_Texture *textures[2];
     int current_texture;
     fsemu_rect_t rect;
+    fsemu_rect_t limits_rect;
 } fsemu_sdlvideo;
 
 void fsemu_sdlvideo_init(void)
@@ -151,6 +152,8 @@ void fsemu_sdlvideo_work(int timeout_us)
         return;
     }
 
+    fsemu_sdlvideo.limits_rect = frame->limits;
+
     fsemu_video_log(" draw ___________ READY______________ \n");
 
     // FIXME: Locked access for main/video thread separation?
@@ -195,6 +198,11 @@ void fsemu_sdlvideo_render(void)
     src.h = fsemu_sdlvideo.rect.h;
     // src.w = 692;
     // src.h = 540;
+
+    src.x = fsemu_sdlvideo.limits_rect.x;
+    src.y = fsemu_sdlvideo.limits_rect.y;
+    src.w = fsemu_sdlvideo.limits_rect.w;
+    src.h = fsemu_sdlvideo.limits_rect.h;
 
     fsemu_layout_set_video_size(src.w, src.h);
     fsemu_layout_set_pixel_aspect(((double) src.w / src.h) / (4.0 / 3.0));

@@ -1385,7 +1385,7 @@ int main(int argc, char *argv[])
         fsemu_startupinfo_init();
 
         fsemu_audio_init();
-        fsemu_input_init(FSEMU_FLAG_NONE);
+        fsemu_input_init();
     }
 
     init_i18n();

@@ -129,6 +129,7 @@ void fsemu_video_work(int timeout_us)
 
 void fsemu_video_render(void)
 {
+    fsemu_frame_log_epoch("Render\n");
     if (fsemu_video.renderer == FSEMU_VIDEO_RENDERER_OPENGL) {
         fsemu_glvideo_render();
     } else {
@@ -149,7 +150,7 @@ void fsemu_video_set_ready(bool ready)
 
 void fsemu_video_display(void)
 {
-    // fsemu_video_log("fsemu_video_display\n");
+    fsemu_frame_log_epoch("Display\n");
     if (fsemu_video.renderer == FSEMU_VIDEO_RENDERER_OPENGL) {
         fsemu_glvideo_display();
     } else {
@@ -210,6 +211,11 @@ static void fsemu_video_convert_coordinates(SDL_Rect *out,
 
 void fsemu_video_render_gui_early(fsemu_gui_item_t *items)
 {
+    fsemu_frame_log_epoch("Render GUI (early)\n");
+    if (items == NULL) {
+        printf("WARNING: fsemu_video_render_gui_early items=NULL\n");
+        return;
+    }
     // fsemu_video_log("render_gui_early\n");
     if (fsemu_video.renderer == FSEMU_VIDEO_RENDERER_OPENGL) {
         fsemu_glvideo_render_gui_early(items);
@@ -220,6 +226,11 @@ void fsemu_video_render_gui_early(fsemu_gui_item_t *items)
 
 void fsemu_video_render_gui(fsemu_gui_item_t *items)
 {
+    fsemu_frame_log_epoch("Render GUI\n");
+    if (items == NULL) {
+        printf("WARNING: fsemu_video_render_gui items=NULL\n");
+        return;
+    }
 #if 0
     // fsemu_video_log("render_gui\n");
     printf("fsemu_video_render_gui %p\n", items);
@@ -248,21 +259,25 @@ static void fsemu_video_update_stats(void)
     fsemu_video_frame_stats_t *stats =
         &fsemu_video
              .stats[fsemu_frame_counter_mod(FSEMU_VIDEO_MAX_FRAME_STATS)];
+
+    stats->frame_hz = fsemu_frame_hz;
+    stats->frame_warp = fsemu_frame_warp;
+
+    stats->overshoot_us = fsemu_frame_overshoot_duration;
     stats->wait_us = fsemu_frame_wait_duration;
+    stats->gui_us = fsemu_frame_gui_duration;
     stats->emu_us = fsemu_frame_emu_duration;
+    stats->render_us = fsemu_frame_render_duration;
     stats->sleep_us = fsemu_frame_sleep_duration;
     stats->extra_us = fsemu_frame_extra_duration;
-
-    stats->gui_us = fsemu_frame_gui_duration;
-    stats->render_us = fsemu_frame_render_duration;
 
     stats->origin_at = fsemu_frame_origin_at;
     stats->began_at = fsemu_frame_begin_at;
 
     if (last != 0) {
-        stats->other_us = (now - last) - stats->wait_us - stats->emu_us -
-                          stats->sleep_us - stats->extra_us - stats->gui_us -
-                          stats->render_us;
+        stats->other_us = (now - last) - stats->overshoot_us - stats->wait_us -
+                          stats->emu_us - stats->sleep_us - stats->extra_us -
+                          stats->gui_us - stats->render_us;
     }
 
     static fsemu_mavgi_t emu_us_mavgi;

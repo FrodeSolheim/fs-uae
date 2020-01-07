@@ -1,8 +1,10 @@
 #define FSEMU_INTERNAL
 #include "fsemu-gui.h"
 
+#include "fsemu-frame.h"
 #include "fsemu-glib.h"
 #include "fsemu-thread.h"
+#include "fsemu-time.h"
 #include "fsemu-titlebar.h"
 #include "fsemu-types.h"
 #include "fsemu-util.h"
@@ -127,6 +129,7 @@ static gint fsemu_gui_item_compare(gconstpointer a, gconstpointer b)
 
 fsemu_gui_item_t *fsemu_gui_snapshot(void)
 {
+    fsemu_frame_log_epoch("Snapshot GUI\n");
     // fsemu_gui_assert_locked();
     fsemu_gui_lock();
     fsemu_gui_item_t *snapshot = NULL;

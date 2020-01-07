@@ -35,30 +35,46 @@ int fsemu_frame_counter(void);
 
 int fsemu_frame_counter_mod(int modulus);
 
+// It is important to use as close to real (emulated) Hz as possible here, so
+// that the audio system knows how much data to expect and can correct if
+// video output rate deviates from the emulated frame rate.
+void fsemu_frame_start(double hz);
+
+// Returns the frame rate as given to fsemu_frame_start. Should probably only
+// be called from the same thread as fsemu_frame_start.
+double fsemu_frame_rate_hz(void);
+
+// Deprecated; use fsemu_frame_start instead
 void fsemu_frame_update_timing(double hz, bool turbo);
 
 int fsemu_frame_emutime_avg_us(void);
 
 void fsemu_frame_reset_timer(int64_t t);
+
+void fsemu_frame_add_overshoot_time(int64_t t);
 void fsemu_frame_add_framewait_time(int64_t t);
-void fsemu_frame_add_emulation_time(int64_t t);
-void fsemu_frame_add_sleep_time(int64_t t);
-void fsemu_frame_add_render_time(int64_t t);
 void fsemu_frame_add_gui_time(int64_t t);
+void fsemu_frame_add_emulation_time(int64_t t);
+void fsemu_frame_add_render_time(int64_t t);
+void fsemu_frame_add_sleep_time(int64_t t);
 void fsemu_frame_add_extra_time(int64_t t);
 
-extern int64_t fsemu_frame_origin_at;
-extern int64_t fsemu_frame_begin_at;
-extern int64_t fsemu_frame_end_at;
-extern int64_t fsemu_frame_wait_duration;
-extern int64_t fsemu_frame_emu_duration;
-extern int64_t fsemu_frame_sleep_duration;
-extern int64_t fsemu_frame_extra_duration;
-
-extern int64_t fsemu_frame_gui_duration;
-extern int64_t fsemu_frame_render_duration;
+extern double fsemu_frame_hz;
+extern bool fsemu_frame_warp;
 
 extern int64_t fsemu_frame_epoch_at;
+extern int64_t fsemu_frame_origin_at;
+
+extern int64_t fsemu_frame_begin_at;
+extern int64_t fsemu_frame_end_at;
+
+extern int64_t fsemu_frame_overshoot_duration;
+extern int64_t fsemu_frame_wait_duration;
+extern int64_t fsemu_frame_gui_duration;
+extern int64_t fsemu_frame_emu_duration;
+extern int64_t fsemu_frame_render_duration;
+extern int64_t fsemu_frame_sleep_duration;
+extern int64_t fsemu_frame_extra_duration;
 
 // void fsemu_frame_set_began_at(int frame, int64_t began_at);
 // void fsemu_frame_set_rendered_at(int frame, int64_t rendered_at);

@@ -25,8 +25,11 @@ static struct {
         uint32_t audio_3;
         uint32_t audio_bg;
         uint32_t line;
+        uint32_t video_actual;
+        uint32_t video_target;
         uint32_t video_vsync_at;
         uint32_t video_rendered_at;
+        uint32_t video_overshoot;
         uint32_t video_wait;
         uint32_t video_emu;
         uint32_t video_gui;
@@ -127,8 +130,11 @@ static void fsemu_perfgui_set_colors(int color_set)
         fsemu_perfgui.colors.audio_2 = FSEMU_RGB(0x141414);
         fsemu_perfgui.colors.audio_3 = FSEMU_RGB(0x1c1c1c);
         fsemu_perfgui.colors.line = FSEMU_RGB(0x404040);
+        fsemu_perfgui.colors.video_actual = FSEMU_RGB(0x303030);
+        fsemu_perfgui.colors.video_target = FSEMU_RGB(0x202020);
         fsemu_perfgui.colors.video_vsync_at = FSEMU_RGB(0x505050);
         fsemu_perfgui.colors.video_rendered_at = FSEMU_RGB(0x303030);
+        fsemu_perfgui.colors.video_overshoot = FSEMU_RGB(0x0c0c0c);
         fsemu_perfgui.colors.video_wait = FSEMU_RGB(0x141414);
         fsemu_perfgui.colors.video_gui = FSEMU_RGB(0x000000);
         fsemu_perfgui.colors.video_emu = FSEMU_RGB(0x202020);
@@ -147,8 +153,11 @@ static void fsemu_perfgui_set_colors(int color_set)
         fsemu_perfgui.colors.audio_3 = FSEMU_RGB(0x181818);
         // fsemu_perfgui.colors.line = FSEMU_RGB(0x606060);
         fsemu_perfgui.colors.line = FSEMU_RGB(0x0099ff);
+        fsemu_perfgui.colors.video_actual = FSEMU_RGB(0x00ff00);
+        fsemu_perfgui.colors.video_target = FSEMU_RGB(0xee8800);
         fsemu_perfgui.colors.video_vsync_at = FSEMU_RGB(0xff00ff);
-        fsemu_perfgui.colors.video_rendered_at = FSEMU_RGB(0xff9900);
+        fsemu_perfgui.colors.video_rendered_at = FSEMU_RGB(0x0099ff);
+        fsemu_perfgui.colors.video_overshoot = FSEMU_RGB(0x282888);
         fsemu_perfgui.colors.video_wait = FSEMU_RGB(0x202020);
         fsemu_perfgui.colors.video_gui = FSEMU_RGB(0xffff44);
         fsemu_perfgui.colors.video_emu = FSEMU_RGB(0x288828);
@@ -173,20 +182,31 @@ void fsemu_perfgui_init(void)
     fsemu_log("Initializing perfgui\n");
     fsemu_perfgui_init_images();
     fsemu_perfgui_init_items();
-    fsemu_perfgui_set_colors(1);
 
-    fsemu_perfgui.mode = 0;
+    // Default to 1 for now
+    fsemu_perfgui.mode = 1;
+
     fsemu_option_read_int(FSEMU_OPTION_PERFORMANCE_GUI, &fsemu_perfgui.mode);
     if (fsemu_perfgui.mode < 0 || fsemu_perfgui.mode > 2) {
         fsemu_log("WARNING: Invalid valid for " FSEMU_OPTION_PERFORMANCE_GUI
                   "\n");
         fsemu_perfgui.mode = 0;
     }
+
+    if (fsemu_perfgui.mode) {
+        fsemu_perfgui_set_colors(fsemu_perfgui.mode);
+    }
 }
 
 static void fsemu_perfgui_draw_line(uint8_t *row)
 {
     if (fsemu_perfgui.color_set == 1) {
+#if 1
+        for (int x = 0; x < 116; x++) {
+            // ((uint32_t *) row)[x] = FSEMU_RGB(0x000000);
+            ((uint32_t *) row)[x] = fsemu_perfgui.colors.video_bg;
+        }
+#else
         uint8_t *p = row + 116 * 4 - 1;
         uint8_t c = 0x0c;
         for (int x = 0; x < 116; x++) {
@@ -196,6 +216,7 @@ static void fsemu_perfgui_draw_line(uint8_t *row)
             *p-- = c;
             c += 1;
         }
+#endif
     } else {
         for (int x = 0; x < 116; x++) {
             ((uint32_t *) row)[x] = fsemu_perfgui.colors.line;
@@ -205,13 +226,15 @@ static void fsemu_perfgui_draw_line(uint8_t *row)
 
 static void fsemu_perfgui_update_audio(int frame)
 {
-    // const int scale = 40;  // 40 ms scale
-    // FIXME: Dynamically retrieve target
-    int target_us = 30000;
-    int scale = 2 * target_us / 1000;
-
     fsemu_audio_frame_stats_t stats;
     fsemu_audio_frame_stats(frame, &stats);
+
+    int target_us = stats.target_latency_us;
+    int scale = 2 * target_us / 1000;
+    if (scale == 0) {
+        printf("WARNING: fsemu_perfgui_update_audio: scale is 0\n");
+        scale = 40;
+    }
 
     int level1, level2, level3, target, avg, min_level;
 
@@ -304,10 +327,13 @@ static void fsemu_perfgui_update_audio(int frame)
 
 static void fsemu_perfgui_update_video(int frame)
 {
-    const int scale = 40;  // 40 ms scale
-
     fsemu_video_frame_stats_t stats;
     fsemu_video_frame_stats(frame, &stats);
+
+    // int scale = 1000 / stats.frame_hz;
+    int target_us = 1000000 / stats.frame_hz;
+    int scale_us = 2 * 1000000 / stats.frame_hz;
+
     // printf("get frame stats for frame %d\n", frame);
     // printf("%lld %lld\n", (long long) stats.rendered_at, (long long)
     // stats.origin_at); printf("levels %d (frame %d)\n", stats.buffer_bytes,
@@ -322,32 +348,44 @@ static void fsemu_perfgui_update_video(int frame)
 
     int us = 0;
 
+    us += stats.overshoot_us;
+    int overshoot_level = us * 128 / scale_us;
+
     us += stats.wait_us;
-    int wait_level = us * 128 / (scale * 1000);
-
-    us += stats.emu_us;
-    int emu_level = us * 128 / (scale * 1000);
-
-    us += stats.render_us;
-    int render_level = us * 128 / (scale * 1000);
-
-    us += stats.extra_us;
-    int extra_level = us * 128 / (scale * 1000);
-
-    us += stats.sleep_us;
-    int sleep_level = us * 128 / (scale * 1000);
-
-    us += stats.other_us;
-    int other_level = us * 128 / (scale * 1000);
+    int wait_level = us * 128 / scale_us;
 
     us += stats.gui_us;
-    int gui_level = us * 128 / (scale * 1000);
+    int gui_level = us * 128 / scale_us;
+
+    us += stats.emu_us;
+    int emu_level = us * 128 / scale_us;
+
+    us += stats.render_us;
+    int render_level = us * 128 / scale_us;
+
+    us += stats.extra_us;
+    int extra_level = us * 128 / scale_us;
+
+    us += stats.sleep_us;
+    int sleep_level = us * 128 / scale_us;
+
+    us += stats.other_us;
+    int other_level = us * 128 / scale_us;
+    int actual = us * 128 / scale_us;
+
+    // FIXME: If vsync, maybe set actual to swapped?
+
+    int target;
+    if (stats.frame_warp) {
+        target = -1;
+    } else {
+        target = target_us * 128 / scale_us;
+    }
 
     // printf("%lld %lld %lld\n", (int64_t) stats.began_at, (int64_t)
     // stats.rendered_at, (int64_t) stats.swapped_at);
-    int rendered =
-        (stats.rendered_at - stats.origin_at) * 128 / (scale * 1000);
-    int swapped = (stats.swapped_at - stats.origin_at) * 128 / (scale * 1000);
+    int rendered = (stats.rendered_at - stats.origin_at) * 128 / scale_us;
+    int swapped = (stats.swapped_at - stats.origin_at) * 128 / scale_us;
 
     int y = 2 * (frame % 256);
     uint8_t *row =
@@ -369,8 +407,16 @@ static void fsemu_perfgui_update_video(int frame)
                 ((uint32_t *) row)[x] = fsemu_perfgui.colors.video_vsync_at;
             } else if (x == rendered) {
                 ((uint32_t *) row)[x] = fsemu_perfgui.colors.video_rendered_at;
+            } else if (x == actual) {
+                ((uint32_t *) row)[x] = fsemu_perfgui.colors.video_actual;
+            } else if (x == target) {
+                ((uint32_t *) row)[x] = fsemu_perfgui.colors.video_target;
+            } else if (x < overshoot_level) {
+                ((uint32_t *) row)[x] = fsemu_perfgui.colors.video_overshoot;
             } else if (x < wait_level) {
                 ((uint32_t *) row)[x] = fsemu_perfgui.colors.video_wait;
+            } else if (x < gui_level) {
+                ((uint32_t *) row)[x] = fsemu_perfgui.colors.video_gui;
             } else if (x < emu_level) {
                 ((uint32_t *) row)[x] = fsemu_perfgui.colors.video_emu;
             } else if (x < render_level) {
@@ -381,8 +427,6 @@ static void fsemu_perfgui_update_video(int frame)
                 ((uint32_t *) row)[x] = fsemu_perfgui.colors.video_sleep;
             } else if (x < other_level) {
                 ((uint32_t *) row)[x] = fsemu_perfgui.colors.video_other;
-            } else if (x < gui_level) {
-                ((uint32_t *) row)[x] = fsemu_perfgui.colors.video_gui;
             } else {
                 ((uint32_t *) row)[x] = fsemu_perfgui.colors.video_bg;
             }
@@ -448,8 +492,8 @@ void fsemu_perfgui_update(void)
 
 void fsemu_perfgui_cycle(void)
 {
-    if (++fsemu_perfgui.mode == 3) {
-        fsemu_perfgui.mode = 0;
+    if (--fsemu_perfgui.mode == -1) {
+        fsemu_perfgui.mode = 2;
     }
 
     if (fsemu_perfgui.mode > 0) {

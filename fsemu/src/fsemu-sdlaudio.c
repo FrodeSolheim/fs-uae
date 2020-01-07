@@ -123,22 +123,22 @@ void fsemu_sdlaudio_init(void)
         fsemu_audio_log(
             "Didn't get desired audio specs, retrying with SDL conversion\n");
         SDL_CloseAudioDevice(fsemu_sdlaudio.device);
-    }
 
-    fsemu_sdlaudio.device = SDL_OpenAudioDevice(NULL, 0, &want, &have, 0);
-    if (fsemu_sdlaudio.device == 0) {
-        fsemu_audio_log("Failed to open audio: %s\n", SDL_GetError());
-        return;
-    }
+        fsemu_sdlaudio.device = SDL_OpenAudioDevice(NULL, 0, &want, &have, 0);
+        if (fsemu_sdlaudio.device == 0) {
+            fsemu_audio_log("Failed to open audio: %s\n", SDL_GetError());
+            return;
+        }
 
-    fsemu_audio_log("[SDL] Opened audio device\n");
-    fsemu_audio_log("[SDL] Frequency: %d\n", have.freq);
-    fsemu_audio_log("[SDL] Format: %s (%d)d\n",
-                    fsemu_sdlaudio_format_name(have.format),
-                    have.format);
-    fsemu_audio_log("[SDL] Channels: %d\n", have.channels);
-    fsemu_audio_log("[SDL] Samples(?): %d\n", have.samples);
-    fsemu_audio_log("[SDL] Buffer(?): %d\n", have.size);
+        fsemu_audio_log("[SDL] Opened audio device\n");
+        fsemu_audio_log("[SDL] Frequency: %d\n", have.freq);
+        fsemu_audio_log("[SDL] Format: %s (%d)d\n",
+                        fsemu_sdlaudio_format_name(have.format),
+                        have.format);
+        fsemu_audio_log("[SDL] Channels: %d\n", have.channels);
+        fsemu_audio_log("[SDL] Samples(?): %d\n", have.samples);
+        fsemu_audio_log("[SDL] Buffer(?): %d\n", have.size);
+    }
 
     int buffer = 1000 * have.size / have.freq / 4;
     fsemu_audio_log("SDL buffer: %d ms\n", buffer);
@@ -210,7 +210,13 @@ void fsemu_sdlaudio_callback(void *data, Uint8 *stream, int want_bytes)
 
     // int error = fsemu_audio_alsa_write((void *) read, bytes);
     // FIXME: Check for underrun
+#if 1
+    for (int i = 0; i < bytes; i++) {
+        stream[i] = read[i];
+    }
+#else
     memcpy(stream, (void *) read, bytes);
+#endif
     stream += bytes;
 
     want_bytes -= bytes;
@@ -227,7 +233,13 @@ void fsemu_sdlaudio_callback(void *data, Uint8 *stream, int want_bytes)
             }
             // error = fsemu_audio_alsa_write((void *) read, bytes);
             // FIXME: Check for underrun
+#if 1
+            for (int i = 0; i < bytes; i++) {
+                stream[i] = read[i];
+            }
+#else
             memcpy(stream, (void *) read, bytes);
+#endif
             stream += bytes;
 
             want_bytes -= bytes;
@@ -239,7 +251,8 @@ void fsemu_sdlaudio_callback(void *data, Uint8 *stream, int want_bytes)
 #if 1
     if (want_bytes > 0) {
         memset(stream, 0, want_bytes);
-        fsemu_audio_log("%d bytes short of refilling SDL :(\n", want_bytes);
+        // FIXME: Re-enable with log level
+        // fsemu_audio_log("%d bytes short of refilling SDL :(\n", want_bytes);
         fsemu_audio_buffer.add_silence = 1;
     }
 #endif
@@ -248,13 +261,14 @@ void fsemu_sdlaudio_callback(void *data, Uint8 *stream, int want_bytes)
         fsemu_sdlaudio.buffer_bytes - wanted_bytes + bytes_written;
 
     fsemu_audio_register_data_sent(
-        buffered_bytes, now, (uint8_t *) read, (uint8_t *) write);
+        buffered_bytes, now, (uintptr_t) read, (uintptr_t) write);
 
     last_time = now;
     fsemu_audio_buffer.read = read;
 
     if (bytes_written != wanted_bytes) {
-        fsemu_audio_log("written_bytes != wanted_bytes\n");
+        // FIXME: Re-enable with log level
+        // fsemu_audio_log("written_bytes != wanted_bytes\n");
         fsemu_audio_register_underrun();
     }
 

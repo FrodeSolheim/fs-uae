@@ -3,6 +3,7 @@
 
 #include "fsemu-audio.h"
 #include "fsemu-frame.h"
+#include "fsemu-time.h"
 #include "fsemu-util.h"
 
 #ifdef FSEMU_SAMPLERATE
@@ -27,6 +28,7 @@ volatile uint8_t *volatile fsemu_audio_buffer.write;
 fsemu_audio_buffer_t fsemu_audio_buffer;
 
 static struct {
+    int bytes_for_frame;
 #ifdef FSEMU_SAMPLERATE
     SRC_STATE *src_state;
     double adjustment;
@@ -61,7 +63,13 @@ void fsemu_audio_buffer_init(void)
 
 void fsemu_audio_buffer_clear(void)
 {
+#if 1
+    for (int i = 0; i < fsemu_audio_buffer.size; i++) {
+        fsemu_audio_buffer.data[i] = 0;
+    }
+#else
     memset((void *) fsemu_audio_buffer.data, 0, fsemu_audio_buffer.size);
+#endif
 }
 
 int fsemu_audio_buffer_fill(void)
@@ -122,6 +130,8 @@ void fsemu_audio_buffer_update(const void *void_data, int size)
     // Casting to char pointer to be able to do byte pointer arithmetic.
     const uint8_t *data = (const uint8_t *) void_data;
 
+    fsemu_audiobuffer_extra.bytes_for_frame += size;
+
     int add_silence = fsemu_audio_buffer.add_silence;
     if (add_silence) {
         fsemu_audio_buffer.add_silence = 0;
@@ -171,9 +181,16 @@ void fsemu_audio_buffer_update(const void *void_data, int size)
         ptrdiff_t available =
             fsemu_audio_buffer.end - fsemu_audio_buffer.write;
         if (available < size_out) {
-            // memcpy((void *) fsemu_audio_buffer.write, data, available);
+#if 1
+            for (int i = 0; i < available / 2; i++) {
+                int16_t value = (int16_t)(floatdata[i] * 32767);
+                fsemu_audio_buffer.write[i * 2] = value & 0xff;
+                fsemu_audio_buffer.write[i * 2 + 1] = (value >> 8) & 0xff;
+            }
+#else
             src_float_to_short_array(
                 floatdata, (short *) fsemu_audio_buffer.write, available / 2);
+#endif
             fsemu_audio_buffer.write = fsemu_audio_buffer.data;
             data += available;
             size_out -= available;
@@ -181,9 +198,16 @@ void fsemu_audio_buffer_update(const void *void_data, int size)
             floatdata += available / 2;
         }
         if (size_out) {
-            // memcpy((void *) fsemu_audio_buffer.write, data, size);
+#if 1
+            for (int i = 0; i < size_out / 2; i++) {
+                int16_t value = (int16_t)(floatdata[i] * 32767);
+                fsemu_audio_buffer.write[i * 2] = value & 0xff;
+                fsemu_audio_buffer.write[i * 2 + 1] = (value >> 8) & 0xff;
+            }
+#else
             src_float_to_short_array(
                 floatdata, (short *) fsemu_audio_buffer.write, size_out / 2);
+#endif
             fsemu_audio_buffer.write += size_out;
         }
         return;
@@ -192,15 +216,36 @@ void fsemu_audio_buffer_update(const void *void_data, int size)
 
     ptrdiff_t available = fsemu_audio_buffer.end - fsemu_audio_buffer.write;
     if (available < size) {
+#if 1
+        for (int i = 0; i < available; i++) {
+            fsemu_audio_buffer.write[i] = data[i];
+        }
+#else
         memcpy((void *) fsemu_audio_buffer.write, data, available);
+#endif
         fsemu_audio_buffer.write = fsemu_audio_buffer.data;
         data += available;
         size -= available;
     }
     if (size) {
+#if 1
+        for (int i = 0; i < size; i++) {
+            fsemu_audio_buffer.write[i] = data[i];
+        }
+#else
         memcpy((void *) fsemu_audio_buffer.write, data, size);
+#endif
         fsemu_audio_buffer.write += size;
     }
+}
+
+void fsemu_audio_buffer_frame_done(void)
+{
+    int samples = fsemu_audiobuffer_extra.bytes_for_frame / 2;
+    int frames = samples / 2;
+    fsemu_frame_log_epoch(
+        "Audio done for frame: %d samples / 2 = %d frames\n", samples, frames);
+    fsemu_audiobuffer_extra.bytes_for_frame = 0;
 }
 
 void fsemu_audio_buffer_write_silence(int size)
@@ -237,10 +282,29 @@ double fsemu_audio_buffer_adjustment(void)
 
 void fsemu_audio_buffer_set_adjustment(double adjustment)
 {
+    fsemu_frame_log_epoch(
+        "Audio %s%0.5f\n", adjustment >= 0 ? "+" : "", adjustment);
     fsemu_audiobuffer_extra.adjustment = adjustment;
 }
 
 #endif
+
+int fsemu_audio_buffer_calculate_target(void)
+{
+    // FIXME: We can do better. We don't need 20 ms of buffer at the *end*
+    // of a frame if the frame was done generating after 2ms from frame
+    // begin; then we really only need a few ms of buffer, since we will
+    // soon get more data. So, we should probably take (moving average)
+    // time to generate frame into account.
+    // return 10000;
+
+    // Using one frame
+    int target_latency_us = 1000000 / fsemu_frame_rate_hz();
+
+    // Using one frame + 20% for audio buffer target
+    // int target_latency_us = 1000000 / fsemu_frame_rate_hz() * 1.2;
+    return target_latency_us;
+}
 
 #if 0
 #define KP 0.000000250
@@ -258,7 +322,9 @@ void fsemu_audio_buffer_set_adjustment(double adjustment)
 #define KI 0.000000001
 #define KD 0.000000000
 
-static double pid_controller_step(int *error_out, int *error_sum_out)
+static double pid_controller_step(int *error_out,
+                                  int *error_sum_out,
+                                  int *latency_out)
 {
 #if 1
     int latency = fsemu_audio_latency_us();
@@ -268,6 +334,9 @@ static double pid_controller_step(int *error_out, int *error_sum_out)
     static int latency_values[PID_LATENCY_VALUES];
     int latency_avg_2 = fsemu_mavgi(
         &latency_mavg, latency_values, PID_LATENCY_VALUES, latency);
+    if (latency_out) {
+        *latency_out = latency;
+    }
 #endif
 
     // fsemu_audio_frame_stats_t *stats =
@@ -284,8 +353,8 @@ static double pid_controller_step(int *error_out, int *error_sum_out)
     }
 #endif
 
-    int64_t target_latency = 30 * 1000;
-    int error = target_latency - stats.avg_latency_us;
+    int target_latency_us = fsemu_audio_buffer_calculate_target();
+    int error = target_latency_us - stats.avg_latency_us;
 
     static fsemu_mavgi_t error_mavg;
 #define PID_ERROR_VALUES 128
@@ -329,73 +398,14 @@ static double pid_controller_step(int *error_out, int *error_sum_out)
 
 double fsemu_audio_buffer_calculate_adjustment(void)
 {
-    // printf("wait for frame\n");
-    // fs_emu_wait_for_frame(g_fs_uae_frame);
+    double frame_rate_adjust = 0.0;
 
-    // fsemu_audio_start_frame(g_fs_uae_frame);
-    // Latency information is now updated
-
-    // int current = fsemu_audio_latency_us();
-
-    static fsemu_mavgi_t latency_mavg;
-#define LATENCY_VALUES 128
-    static int latency_values[LATENCY_VALUES];
-    int latency = fsemu_mavgi(&latency_mavg,
-                              latency_values,
-                              LATENCY_VALUES,
-                              fsemu_audio_latency_us());
-
-    // int latency = FSEMU_MAVGI(8, fsemu_audio_latency_us());
-    // printf("[FSEMU] %0.1f\n", (latency + 500) / 1000.0);
-
-    // FIXME: Depend on emulation hz?
-    int64_t target = 30 * 1000;
-    int diff = latency - target;
-    // printf("[FSEMU] Diff %d\n", diff);
-    static bool was_outside;
-
-    // diff = 0;
-
-    double adjust;
-
-    if (diff > 1000 || (was_outside && diff > 250)) {
-        was_outside = true;
-        if (diff > 3000) {
-            adjust = -0.01;
-        } else if (diff > 2000) {
-            adjust = -0.002;
-        } else if (diff > 1000) {
-            adjust = -0.001;
-        } else {
-            // was_outside
-            adjust = -0.0005;
-        }
-    } else if (diff < -1000 || (was_outside && diff < -250)) {
-        was_outside = true;
-        if (diff < -3000) {
-            adjust = 0.01;
-        } else if (diff < -2000) {
-            adjust = 0.002;
-        } else if (diff < -1000) {
-            adjust = 0.001;
-        } else {
-            // was_outside
-            adjust = 0.0005;
-        }
-    } else {
-        was_outside = false;
-        adjust = 0.0;
-    }
-    // adjust = 0.0;
-    // adjust = 44100.0 / 44000.0 - 1.0 + adjust;
-    // adjust = 44100.0 / 44000.0 - 1.0;
-    double frame_rate_adjust = 20000 / 19950.0 - 1.0;
     // frame_rate_adjust = 0.0;
 
-    int error, error_sum;
-    double pid_adjust = pid_controller_step(&error, &error_sum);
+    int error, error_sum, latency;
+    double pid_adjust = pid_controller_step(&error, &error_sum, &latency);
 
-    adjust = frame_rate_adjust + pid_adjust;
+    double adjust = frame_rate_adjust + pid_adjust;
 
     fsemu_audio_log_trace(
         "%0.1f Adjust %0.5f (%0.5f + PID %0.5f) Err %d sum %d\n",

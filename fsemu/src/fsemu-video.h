@@ -24,15 +24,17 @@ typedef struct {
 #define FSEMU_FRAME_FLAG_TURBO (1 << 0)
 
 typedef struct {
+    double frame_hz;
+    bool frame_warp;
+
+    int overshoot_us;
     int wait_us;
+    int gui_us;  // Only used when emulation thread == video thread
     int emu_us;
+    int render_us;  // Only used when emulation thread == video thread
     int sleep_us;
     int extra_us;
     int other_us;
-
-    // These are only used when emulation thread and video thread are the same
-    int gui_us;
-    int render_us;
 
     int64_t origin_at;
     int64_t began_at;
@@ -124,6 +126,7 @@ void fsemu_video_end_frame(void);
 #endif
 
 extern bool fsemu_video_log_enabled;
+
 #define fsemu_video_log(format, ...)                         \
     if (fsemu_video_log_enabled) {                           \
         fsemu_log("[FSEMU] [VIDEO] " format, ##__VA_ARGS__); \

@@ -2305,6 +2305,14 @@ bool uae_fsvideo_renderframe(int monid, int mode, bool immediate)
 		frame->buffer = frame_copy;
 #endif
 
+		// { "704x540", NULL, 42, 22, 704, 540 },
+		// { "692x540", NULL, 48, 22, 692, 540 },
+
+		frame->limits.x = 48;
+		frame->limits.y = 22;
+		frame->limits.w = 692;
+		frame->limits.h = 540;
+
 		// fsemu_video_post_partial_frame(avidinfo->);
 		fsemu_video_post_frame(frame);
 		// notice_screen_contents_lost(monid);

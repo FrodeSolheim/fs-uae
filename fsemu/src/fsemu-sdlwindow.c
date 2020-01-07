@@ -67,6 +67,12 @@ void fsemu_sdlwindow_init(void)
     fsemu_window_log("SDL_Init(SDL_INIT_EVERYTHING)\n");
     SDL_Init(SDL_INIT_EVERYTHING);
 
+#ifdef FSEMU_MACOS
+    // Default to off for smoother transitions, can enable with environment
+    // SDL_HINT_VIDEO_MACOS_FULLSCREEN_SPACES=1
+    SDL_SetHint(SDL_HINT_VIDEO_MAC_FULLSCREEN_SPACES, "0");
+#endif
+
     fsemu_titlebar_init();
     fsemu_monitor_init();
 
@@ -807,6 +813,10 @@ bool fsemu_sdlwindow_handle_event(SDL_Event *event)
             break;
     }
 
+    if (fsemu_sdlinput_handle_event(event)) {
+        return true;
+    }
+
     return false;
 }
 
@@ -996,6 +1006,7 @@ bool fsemu_sdlwindow_handle_window_event(SDL_Event *event)
                              event->window.event);
             break;
     }
+
     return true;
 }
 

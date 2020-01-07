@@ -30,8 +30,8 @@ static struct {
     int sent_size;
     int64_t sent_when;
     int64_t sent_when_prev;
-    uint8_t *sent_read;
-    uint8_t *sent_write;
+    uintptr_t sent_read;
+    uintptr_t sent_write;
     int underruns;
     int64_t latency_us;
     fsemu_audio_frame_stats_t stats[FSEMU_AUDIO_MAX_FRAME_STATS];
@@ -138,8 +138,8 @@ void fsemu_audio_resume(void)
 
 void fsemu_audio_register_data_sent(int size,
                                     int64_t when,
-                                    uint8_t *read,
-                                    uint8_t *write)
+                                    uintptr_t read,
+                                    uintptr_t write)
 {
     fsemu_audio_lock();
     // FIXME: Average sent_when / sent bytes per time unit
@@ -186,8 +186,8 @@ static void fsemu_audio_update_stats(void)
     int sent_size = fsemu_audio.sent_size;
     int64_t sent_when = fsemu_audio.sent_when;
     // int64_t sent_when_prev = fsemu_audio.sent_when_prev;
-    uint8_t *sent_read = fsemu_audio.sent_read;
-    uint8_t *sent_write = fsemu_audio.sent_write;
+    uintptr_t sent_read = fsemu_audio.sent_read;
+    uintptr_t sent_write = fsemu_audio.sent_write;
     int underruns = fsemu_audio.underruns;
     fsemu_audio.underruns = 0;
     fsemu_audio_unlock();
@@ -199,11 +199,11 @@ static void fsemu_audio_update_stats(void)
     if (sent_write >= sent_read) {
         buffer_fill = sent_write - sent_read;
     } else {
-        buffer_fill = (fsemu_audio_buffer.end - sent_read) +
-                      (sent_write - fsemu_audio_buffer.data);
+        buffer_fill = ((uintptr_t) fsemu_audio_buffer.end - sent_read) +
+                      (sent_write - (uintptr_t) fsemu_audio_buffer.data);
     }
 
-    intptr_t newly_written = write - sent_write;
+    intptr_t newly_written = (uintptr_t) write - sent_write;
     if (newly_written < 0) {
         newly_written += fsemu_audio_buffer.size;
     }
@@ -237,6 +237,7 @@ static void fsemu_audio_update_stats(void)
         &fsemu_audio
              .stats[fsemu_frame_counter_mod(FSEMU_AUDIO_MAX_FRAME_STATS)];
 
+    stats->target_latency_us = fsemu_audio_buffer_calculate_target();
     stats->buffer_bytes = buffer_fill + newly_written;
     stats->recent_bytes = newly_written;
     stats->inflight_bytes = inflight;

@@ -181,7 +181,7 @@ static inline int fs_path_exists(const char *path)
     return g_file_test(path, G_FILE_TEST_EXISTS);
 }
 
-static char *fs_get_data_file(const char *relative)
+char *fsemu_data_file_path(const char *relative)
 {
     static int initialized = 0;
     static char executable_dir[FSEMU_PATH_MAX];
@@ -275,7 +275,7 @@ void fsemu_data_load(const char *name, void **data, int *data_size)
     fsemu_data_log("Load %s\n", name);
     *data = NULL;
     *data_size = 0;
-    char *path = fs_get_data_file(name);
+    char *path = fsemu_data_file_path(name);
     if (!path) {
         fsemu_data_log("No path!\n");
         return;

@@ -12,6 +12,7 @@
 static struct {
     bool initialized;
     // Will not overflow for over a year @60 Hz
+    double rate_hz;
     int counter;
     int emulation_duration;
     int render_duration;
@@ -19,18 +20,22 @@ static struct {
     int64_t timer;
 } fsemu_frame;
 
+double fsemu_frame_hz = 0;
+bool fsemu_frame_warp = 0;
+
+int64_t fsemu_frame_epoch_at = 0;
 int64_t fsemu_frame_origin_at = 0;
+
 int64_t fsemu_frame_begin_at = 0;
 int64_t fsemu_frame_end_at = 0;
+
+int64_t fsemu_frame_overshoot_duration = 0;
 int64_t fsemu_frame_wait_duration = 0;
 int64_t fsemu_frame_emu_duration = 0;
 int64_t fsemu_frame_sleep_duration = 0;
 int64_t fsemu_frame_extra_duration = 0;
-
-int64_t fsemu_frame_gui_duration;
-int64_t fsemu_frame_render_duration;
-
-int64_t fsemu_frame_epoch_at = 0;
+int64_t fsemu_frame_gui_duration = 0;
+int64_t fsemu_frame_render_duration = 0;
 
 int fsemu_frame_log_level = 1;
 
@@ -61,8 +66,10 @@ void fsemu_frame_reset_epoch(void)
 
 void fsemu_frame_end(void)
 {
+    fsemu_frame_log_epoch("Frame end\n");
     fsemu_assert(fsemu_frame.initialized);
 
+    // Note; this is probably overriden in fsemu_frame_update_timing now.
     fsemu_frame_reset_epoch();
 
     fsemu_audio_end_frame();
@@ -74,6 +81,7 @@ void fsemu_frame_end(void)
     // fsemu_frame_log("Advanced frame counter to %d\n", fsemu_frame.counter);
 
     // Reset duration counters
+    fsemu_frame_overshoot_duration = 0;
     fsemu_frame_wait_duration = 0;
     fsemu_frame_emu_duration = 0;
     fsemu_frame_sleep_duration = 0;
@@ -94,10 +102,24 @@ void fsemu_frame_reset_timer(int64_t t)
     fsemu_frame.timer = now;
 }
 
+void fsemu_frame_add_overshoot_time(int64_t t)
+{
+    int64_t now = t ? t : fsemu_time_us();
+    fsemu_frame_overshoot_duration += now - fsemu_frame.timer;
+    fsemu_frame.timer = now;
+}
+
 void fsemu_frame_add_framewait_time(int64_t t)
 {
     int64_t now = t ? t : fsemu_time_us();
     fsemu_frame_wait_duration += now - fsemu_frame.timer;
+    fsemu_frame.timer = now;
+}
+
+void fsemu_frame_add_gui_time(int64_t t)
+{
+    int64_t now = t ? t : fsemu_time_us();
+    fsemu_frame_gui_duration += now - fsemu_frame.timer;
     fsemu_frame.timer = now;
 }
 
@@ -108,13 +130,6 @@ void fsemu_frame_add_emulation_time(int64_t t)
     fsemu_frame.timer = now;
 }
 
-void fsemu_frame_add_sleep_time(int64_t t)
-{
-    int64_t now = t ? t : fsemu_time_us();
-    fsemu_frame_sleep_duration += now - fsemu_frame.timer;
-    fsemu_frame.timer = now;
-}
-
 void fsemu_frame_add_render_time(int64_t t)
 {
     int64_t now = t ? t : fsemu_time_us();
@@ -122,10 +137,10 @@ void fsemu_frame_add_render_time(int64_t t)
     fsemu_frame.timer = now;
 }
 
-void fsemu_frame_add_gui_time(int64_t t)
+void fsemu_frame_add_sleep_time(int64_t t)
 {
     int64_t now = t ? t : fsemu_time_us();
-    fsemu_frame_gui_duration += now - fsemu_frame.timer;
+    fsemu_frame_sleep_duration += now - fsemu_frame.timer;
     fsemu_frame.timer = now;
 }
 
@@ -160,11 +175,98 @@ int fsemu_frame_counter_mod(int modulus)
     return fsemu_frame.counter % modulus;
 }
 
+static int64_t fsemu_frame_framewait(double hz)
+{
+    return 0;
+}
+
 // FIXME: WHEN USING TURBO MODE, FRAME STATS GETS CONFUSED / PROBABLY RELATED
 // TO FRAME COUNTER DRIFING AWAY AND RING BUFFER GETTING WRONG POSITION
 
+static void fsemu_frame_update_timing_timer_based(double hz)
+{
+    static int late_frames;
+
+    int64_t now = fsemu_time_us();
+    if (fsemu_frame_origin_at == 0) {
+        fsemu_frame_origin_at = now;
+    } else {
+        fsemu_frame_origin_at += (1000000 / hz);
+    }
+
+    if ((now - fsemu_frame_origin_at) > (1000000 / 2 / hz)) {
+        // More than half a frame has already passed since origin. Assume
+        // that we are behind scedule and might need to catch up. We avoid
+        // doing it immediately since we might be able to catch up, thus
+        // keeping the correct average frame rate.
+        late_frames += 1;
+    } else {
+        late_frames = 0;
+    }
+
+    if (late_frames >= 10) {
+        // We might not be able to catch up normally, so we reset origin.
+        fsemu_frame_origin_at = now;
+        printf("\n--------------------------------\n\n");
+        // FIXME: REGISTER THIS AS AN UNDERRUN EVENT
+    }
+
+    fsemu_frame_end_at = fsemu_frame_origin_at + (1000000 / hz);
+
+    fsemu_frame_begin_at = fsemu_frame_origin_at + fsemu_frame_framewait(hz);
+    if (fsemu_frame_begin_at < now) {
+        fsemu_frame_begin_at = now;
+    }
+
+    if (fsemu_control_warp()) {
+        // Without this, we will get too "far behind" on time.
+        fsemu_frame_origin_at = now;
+        fsemu_frame_begin_at = now;
+        fsemu_frame_end_at = now;
+    }
+
+    fsemu_frame_epoch_at = fsemu_frame_origin_at;
+}
+
+static void fsemu_frame_update_timing_vsync_based(double hz)
+{
+}
+
 void fsemu_frame_update_timing(double hz, bool turbo)
 {
+    static double last_hz;
+    if (hz != last_hz) {
+        fsemu_log("[FSEMU] Emulation frame rate %f Hz\n", hz);
+        last_hz = hz;
+    }
+
+    fsemu_frame_hz = hz;
+    fsemu_frame_warp = fsemu_control_warp();
+
+    if (fsemu_video_vsync()) {
+        fsemu_frame_update_timing_vsync_based(hz);
+    } else {
+        fsemu_frame_update_timing_timer_based(hz);
+    }
+
+    if (fsemu_frame_log_level >= 2) {
+        printf(
+            "----------------------------------------"
+            "---------------------------------------\n");
+        fflush(stdout);
+    }
+    fsemu_frame_log_epoch("Frame %16d        ends at %16lld (+%d)\n",
+                          fsemu_frame.counter,
+                          (long long) fsemu_frame_end_at,
+                          (int) (fsemu_frame_end_at - fsemu_frame_epoch_at));
+    // fsemu_frame_log_trace("Frame ends at %lld (+%d)\n",
+    //                       (long long) fsemu_frame_end_at,
+    //                       (int) (fsemu_frame_end_at -
+    //                       fsemu_frame_epoch_at));
+
+#if 0
+
+
     static int64_t target = 0;
     int64_t now = fsemu_time_us();
 
@@ -210,10 +312,15 @@ void fsemu_frame_update_timing(double hz, bool turbo)
         // target = fsemu_time_us();
         target = now;
     }
+
+#if 0
+    // FIXME: Turbo mode should be read from FSEMU instead?
     if (turbo) {
         // Without this, we will get too "far behind" on time.
         target = now;
     }
+#endif
+
     target = target + (1000000 / hz);
     if (target < now + (1000000 / hz) / 2) {
         target = now + (1000000 / hz);
@@ -273,12 +380,23 @@ void fsemu_frame_update_timing(double hz, bool turbo)
         fsemu_frame_begin_at = now;
         fsemu_frame_end_at = now;
     }
+#endif
+}
 
-    if (fsemu_frame_log_level >= 2) {
-        printf("\n");
-    }
-    fsemu_frame_log_trace("%d\n", fsemu_frame.counter);
-    fsemu_frame_log_trace("Frame ends at %lld (+%d)\n",
-                          (long long) fsemu_frame_end_at,
-                          (int) (fsemu_frame_end_at - fsemu_frame_epoch_at));
+void fsemu_frame_start(double hz)
+{
+    fsemu_frame.rate_hz = hz;
+    fsemu_frame_update_timing(hz, false);
+    // We have now a new value for the (ideal) origin time for the new frame.
+    // We use this as basis for duration logging during the coming fram, and
+    // start by registering time spent since (ideal) origin until now as
+    // "overshoot" time.
+    fsemu_frame_reset_timer(fsemu_frame_origin_at);
+    fsemu_frame_add_overshoot_time(0);
+    // fsemu_frame_reset_epoch() FIXME: Maybe reset epoch to same time here?
+}
+
+double fsemu_frame_rate_hz(void)
+{
+    return fsemu_frame.rate_hz;
 }

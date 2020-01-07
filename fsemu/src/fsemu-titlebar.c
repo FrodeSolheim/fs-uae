@@ -203,27 +203,20 @@ void fsemu_titlebar_update(void)
     } else if (fsemu_titlebar.visible) {
         if (fsemu_titlebar.background_item.rect.y < 0) {
             y = fsemu_titlebar.background_item.rect.y + 5;
-            printf("xxxy -> %d\n", y);
-            // fsemu_titlebar.background_item.rect.y += 5;
-            // fsemu_titlebar.close_bg_item.rect.y += 5;
-            // fsemu_titlebar.background_item.dirty = true;
         }
     } else {
         y = -fsemu_titlebar.height;
-        printf("xxxy -> %d\n", y);
     }
 
-    if (fsemu_titlebar.background_item.rect.y != y) {
-        fsemu_titlebar.background_item.rect.y = y;
-        fsemu_titlebar.background_ws_item.rect.y = y;
-        fsemu_titlebar.title_item.rect.y = y + 5;
-        fsemu_titlebar.minimize_bg_item.rect.y = y;
-        fsemu_titlebar.minimize_item.rect.y = y;
-        fsemu_titlebar.maximize_bg_item.rect.y = y;
-        fsemu_titlebar.maximize_item.rect.y = y;
-        fsemu_titlebar.close_bg_item.rect.y = y;
-        fsemu_titlebar.close_item.rect.y = y;
-    }
+    fsemu_titlebar.background_item.rect.y = y;
+    fsemu_titlebar.background_ws_item.rect.y = y;
+    fsemu_titlebar.title_item.rect.y = y + 5;
+    fsemu_titlebar.minimize_bg_item.rect.y = y;
+    fsemu_titlebar.minimize_item.rect.y = y;
+    fsemu_titlebar.maximize_bg_item.rect.y = y;
+    fsemu_titlebar.maximize_item.rect.y = y;
+    fsemu_titlebar.close_bg_item.rect.y = y;
+    fsemu_titlebar.close_item.rect.y = y;
 
     int active = fsemu_titlebar.active_button;
     int hover = fsemu_titlebar.hover_button;

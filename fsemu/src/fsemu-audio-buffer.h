@@ -17,6 +17,9 @@ int fsemu_audio_buffer_fill_ms(void);
 int64_t fsemu_audio_buffer_fill_us(void);
 
 void fsemu_audio_buffer_update(const void *data, int size);
+
+void fsemu_audio_buffer_frame_done(void);
+
 void fsemu_audio_buffer_write_silence(int size);
 void fsemu_audio_buffer_write_silence_ms(int ms);
 
@@ -24,6 +27,8 @@ void fsemu_audio_buffer_write_silence_ms(int ms);
 double fsemu_audio_buffer_adjustment(void);
 void fsemu_audio_buffer_set_adjustment(double adjustment);
 #endif
+
+int fsemu_audio_buffer_calculate_target(void);
 
 double fsemu_audio_buffer_calculate_adjustment(void);
 

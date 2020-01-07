@@ -2,6 +2,7 @@
 #include "fsemu-helper.h"
 
 #include "fsemu-fade.h"
+#include "fsemu-frame.h"
 #include "fsemu-hud.h"
 #include "fsemu-perfgui.h"
 // FIXME: Ideally, remove this dependency
@@ -181,4 +182,84 @@ void fsemu_helper_set_gui(fsemu_gui_item_t *gui)
     }
 #endif
     fsemu_helper.gui = gui;
+}
+
+void fsemu_helper_sleep_display_end_start(double hz)
+{
+    int64_t now = fsemu_time_wait_until_us(fsemu_frame_end_at);
+    fsemu_frame_add_sleep_time(now);
+
+    fsemu_video_display();
+    // fsemu_video_set_frame_displayed_at(current_frame_no, fsemu_time_us());
+
+    // printf("WARNING WARNING WARNING: REMEMBER TO REMOVE SLEEP\n");
+    // fsemu_sleep_us(g_random_int_range(1000, 2000));
+
+    fsemu_frame_end();
+
+    fsemu_frame_start(hz);
+
+#ifdef FSEMU_SAMPLERATE
+    // FIXME: Move?
+    fsemu_audio_buffer_set_adjustment(
+        fsemu_audio_buffer_calculate_adjustment());
+#endif
+
+    fsemu_frame_log_epoch("Frame begin\n");
+}
+
+void fsemu_helper_render_sleep_display_end_start(double hz)
+{
+    // printf("fsemu_helper_render_sleep_display_end_start\n");
+    fsemu_video_render();
+    fsemu_video_render_gui(fsemu_helper_gui());
+    fsemu_gui_free_snapshot(fsemu_helper_gui());
+    fsemu_helper_set_gui(NULL);
+    fsemu_frame_log_epoch("Rendered\n");
+
+    // Add time spent uploading, rendering and rendering the UI
+    // (FIXME: Should we glFinish, or similar here?)
+    // FIXME: At least glFlush?
+
+    fsemu_frame_add_render_time(0);
+
+    static int current_frame_no = 0;
+    fsemu_video_set_frame_rendered_at(current_frame_no, fsemu_time_us());
+    current_frame_no += 1;
+
+    fsemu_helper_sleep_display_end_start(hz);
+}
+
+void fsemu_helper_update(void)
+{
+    fsemu_frame_log_epoch("Update (helper)\n");
+    fsemu_fade_update();
+    fsemu_hud_update();
+    fsemu_perfgui_update();
+    fsemu_startupinfo_update();
+    fsemu_titlebar_update();
+    fsemu_helper_set_gui(fsemu_gui_snapshot());
+    fsemu_frame_add_gui_time(0);
+}
+
+void fsemu_helper_update_render_early(void)
+{
+    fsemu_helper_update();
+
+    fsemu_video_render_gui_early(fsemu_helper_gui());
+    fsemu_frame_add_render_time(0);
+}
+
+void fsemu_helper_framewait(void)
+{
+    int64_t now = fsemu_time_us();
+    int dt = fsemu_frame_begin_at - now;
+    fsemu_frame_log_epoch("Wait %d us until emulation begins\n", dt);
+    if (dt > 0) {
+        // fsemu_frame_log_epoch("Wait %d us until emulation begins", dt);
+        fsemu_time_wait_until_us_2(fsemu_frame_begin_at, now);
+        fsemu_frame_add_framewait_time(0);
+    } else {
+        // fsemu_frame_log_epoch("Wait 0 us until emulation begins");
+    }
 }

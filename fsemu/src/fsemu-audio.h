@@ -6,6 +6,7 @@
 #include "fsemu-types.h"
 
 typedef struct {
+    int target_latency_us;
     int buffer_bytes;
     int recent_bytes;
     int inflight_bytes;
@@ -47,8 +48,8 @@ int64_t fsemu_audio_latency_us(void);
 
 void fsemu_audio_register_data_sent(int size,
                                     int64_t when,
-                                    uint8_t *read,
-                                    uint8_t *write);
+                                    uintptr_t read,
+                                    uintptr_t write);
 
 int fsemu_audio_log_buffer_stats(void);
 void fsemu_audio_log_inflight_estimate(void);

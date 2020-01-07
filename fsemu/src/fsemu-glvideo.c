@@ -21,6 +21,7 @@ static struct {
     GLuint textures[2];
     int current_texture;
     fsemu_rect_t rect;
+    fsemu_rect_t limits_rect;
     // Drawable size is the real pixel size, which is not necessary the same
     // as screen coordinates with high-DPI windows on some systems.
     fsemu_size_t drawable_size;
@@ -241,20 +242,12 @@ void fsemu_glvideo_work(int timeout_us)
         }
     }
     if (fsemu_perfgui_mode() == 2) {
-        rect.h = 1;
-        /*
-        SDL_UpdateTexture(
-            fsemu_sdlvideo.textures[fsemu_sdlvideo.current_texture],
-            &rect,
-            greenline,
-            2048 * 4);
-        */
         glTexSubImage2D(GL_TEXTURE_2D,
                         0,
                         rect.x,
                         rect.y,
                         rect.w,
-                        rect.h,
+                        1,
                         GL_RGBA,
                         GL_UNSIGNED_BYTE,
                         greenline);
@@ -264,6 +257,8 @@ void fsemu_glvideo_work(int timeout_us)
     if (frame->partial > 0 && frame->partial != frame->height) {
         return;
     }
+
+    fsemu_glvideo.limits_rect = frame->limits;
 
     // Only draw bottom border duplicate line for last slice, and only if
     // there is space for it in the texture
@@ -387,6 +382,13 @@ void fsemu_glvideo_render(void)
     src.h = fsemu_glvideo.rect.h;
     // src.w = 692;
     // src.h = 540;
+
+    src.x = fsemu_glvideo.limits_rect.x;
+    src.y = fsemu_glvideo.limits_rect.y;
+    src.w = fsemu_glvideo.limits_rect.w;
+    src.h = fsemu_glvideo.limits_rect.h;
+
+    // printf("------------------------ glvideo -------------------\n");
 
 #if 0
     // To debug the duplicate right & bottom edges

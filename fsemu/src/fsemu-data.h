@@ -10,6 +10,8 @@ extern "C" {
 void fsemu_data_init(void);
 void fsemu_data_load(const char *name, void **data, int *data_size);
 
+char *fsemu_data_file_path(const char *relative);
+
 #ifdef __cplusplus
 }
 #endif

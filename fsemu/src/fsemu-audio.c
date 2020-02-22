@@ -7,12 +7,12 @@
 #include "fsemu-audio-buffer.h"
 #include "fsemu-frame.h"
 #include "fsemu-log.h"
+#include "fsemu-mutex.h"
 #include "fsemu-option.h"
 #include "fsemu-options.h"
 #ifdef FSEMU_SDL
 #include "fsemu-sdlaudio.h"
 #endif
-#include "fsemu-thread.h"
 #include "fsemu-time.h"
 #include "fsemu-util.h"
 

@@ -16,6 +16,7 @@
 #include "fsemu-types.h"
 #include "fsemu-util.h"
 #include "fsemu-video.h"
+#include "fsemu-widget.h"
 #include "fsemu-window.h"
 
 #define fsemu_sdlvideo_MAX_FRAME_STATS (1 << 8)  // 256
@@ -319,7 +320,7 @@ static void fsemu_sdlvideo_render_image(fsemu_gui_item_t *item)
     src_rect.h = image->height;
 
     SDL_RendererFlip flip = SDL_FLIP_NONE;
-    if (item->flags & FSEMU_GUI_FLAG_FLIP_X) {
+    if (item->flags & FSEMU_WIDGET_FLAG_FLIPX) {
         flip = (SDL_RendererFlip)(flip | SDL_FLIP_HORIZONTAL);
     }
 

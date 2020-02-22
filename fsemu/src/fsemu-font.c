@@ -50,9 +50,9 @@ fsemu_image_t *fsemu_font_render_text_to_image(fsemu_font_t *font,
                                                const char *text,
                                                uint32_t color)
 {
-    uint8_t r = color & 0xff;
+    uint8_t b = color & 0xff;
     uint8_t g = (color & 0xff00) >> 8;
-    uint8_t b = (color & 0xff0000) >> 16;
+    uint8_t r = (color & 0xff0000) >> 16;
     uint8_t a = (color & 0xff000000) >> 24;
     SDL_Color sdl_color = {r, g, b, a};
 

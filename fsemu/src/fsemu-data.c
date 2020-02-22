@@ -310,3 +310,15 @@ void fsemu_data_load(const char *name, void **data, int *data_size)
     *data = result;
     *data_size = file_size;
 }
+
+fsemu_stream_t *fsemu_data_stream(const char *name)
+{
+    char *path = fsemu_data_file_path(name);
+    if (!path) {
+        fsemu_data_log("No path!\n");
+        return fsemu_stream_null();
+    }
+
+    fsemu_stream_t *stream = fsemu_stream_from_path(path, "rw");
+    return stream;
+}

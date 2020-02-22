@@ -3,6 +3,7 @@
 
 #include "fsemu-frame.h"
 #include "fsemu-glib.h"
+#include "fsemu-mutex.h"
 #include "fsemu-thread.h"
 #include "fsemu-time.h"
 #include "fsemu-titlebar.h"
@@ -93,6 +94,12 @@ void fsemu_gui_rectangle(
     item->rect.w = w;
     item->rect.h = h;
     item->color = c;
+
+    // Hack, remove when fully merged into fsemu-widget
+    item->first_child = NULL;
+    item->last_child = NULL;
+    item->name = NULL;
+    item->next = NULL;
 }
 
 void fsemu_gui_image(
@@ -106,6 +113,12 @@ void fsemu_gui_image(
     item->rect.w = w;
     item->rect.h = h;
     item->image = image;
+
+    // Hack, remove when fully merged into fsemu-widget
+    item->first_child = NULL;
+    item->last_child = NULL;
+    item->name = NULL;
+    item->next = NULL;
 }
 
 static void fsemu_gui_assert_locked(void)
@@ -127,6 +140,31 @@ static gint fsemu_gui_item_compare(gconstpointer a, gconstpointer b)
     return a_item->z_index - b_item->z_index;
 }
 
+static void fsemu_gui_snapshot_children(fsemu_gui_item_t *new_item,
+                                        fsemu_gui_item_t *old_item)
+{
+    new_item->first_child = NULL;
+    new_item->last_child = NULL;
+
+    for (fsemu_gui_item_t *old_child = old_item->first_child; old_child;
+         old_child = old_child->next) {
+        fsemu_gui_item_t *new_child =
+            (fsemu_gui_item_t *) malloc(sizeof(fsemu_gui_item_t));
+        memcpy(new_child, old_child, sizeof(fsemu_gui_item_t));
+        new_child->parent = new_item;
+        new_child->next = NULL;
+        if (new_item->last_child) {
+            new_item->last_child->next = new_child;
+            new_item->last_child = new_child;
+        } else {
+            new_item->first_child = new_child;
+            new_item->last_child = new_child;
+        }
+
+        fsemu_gui_snapshot_children(new_child, old_child);
+    }
+}
+
 fsemu_gui_item_t *fsemu_gui_snapshot(void)
 {
     fsemu_frame_log_epoch("Snapshot GUI\n");
@@ -141,9 +179,14 @@ fsemu_gui_item_t *fsemu_gui_snapshot(void)
     // GList *items = fsemu_gui.items;
 
     while (items) {
+        fsemu_gui_item_t *old_item = items->data;
+        // FIXME: Also need proper widget copy function, properly doing
+        // string copies.
         fsemu_gui_item_t *new_item =
             (fsemu_gui_item_t *) malloc(sizeof(fsemu_gui_item_t));
-        memcpy(new_item, items->data, sizeof(fsemu_gui_item_t));
+        memcpy(new_item, old_item, sizeof(fsemu_gui_item_t));
+
+        fsemu_gui_snapshot_children(new_item, old_item);
 
         if (snapshot == NULL) {
             snapshot = new_item;
@@ -161,6 +204,8 @@ fsemu_gui_item_t *fsemu_gui_snapshot(void)
     return snapshot;
 }
 
+// void fsemu_gui_free_snapshot(fsemu_gui_item_t *snapshot)
+
 void fsemu_gui_free_snapshot(fsemu_gui_item_t *snapshot)
 {
 #if 0
@@ -169,7 +214,16 @@ void fsemu_gui_free_snapshot(fsemu_gui_item_t *snapshot)
     // fsemu_gui_lock();
     fsemu_gui_item_t *item = snapshot;
     while (item) {
+        fsemu_gui_item_t *child = item->first_child;
+        while (child) {
+            fsemu_gui_item_t *temp = child;
+            child = child->next;
+            // FIXME: Need proper free function
+            free(temp);
+        }
+
         fsemu_gui_item_t *next = item->next;
+        // FIXME: Need proper free function
         free(item);
         item = next;
     }

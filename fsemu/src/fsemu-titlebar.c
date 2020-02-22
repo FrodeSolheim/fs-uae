@@ -47,7 +47,9 @@ static struct fsemu_titlebar {
     uint32_t background_color;
     uint32_t background_color_inactive;
     fsemu_gui_item_t background_ws_item;
+    fsemu_image_t *background_ws_image;
     fsemu_gui_item_t title_item;
+    fsemu_image_t *title_image;
     uint32_t title_color;
     // uint32_t title_color_inactive;
     int title_opacity_inactive;
@@ -74,7 +76,7 @@ void fsemu_titlebar_init(void)
     // fsemu_titlebar.use_system = false;
 
     fsemu_titlebar.width = 640;  // FIXME
-    fsemu_titlebar.height = 40;
+    fsemu_titlebar.height = fsemu_titlebar_unscaled_height();
 
     fsemu_titlebar.background_color = FSEMU_RGBA(0x202020ff);
     fsemu_titlebar.background_color_inactive = FSEMU_RGBA(0x303030ff);
@@ -104,21 +106,31 @@ void fsemu_titlebar_init(void)
 
     // With shadow
     item = &fsemu_titlebar.background_ws_item;
-    image = fsemu_image_load("TitleBarWithShadow.png");
-    fsemu_gui_image(item, 0, 0, 1000, image->height, image);
+    fsemu_titlebar.background_ws_image =
+        fsemu_image_load("TitleBarWithShadow.png");
+    fsemu_gui_image(item,
+                    0,
+                    0,
+                    1000,
+                    fsemu_titlebar.background_ws_image->height,
+                    fsemu_titlebar.background_ws_image);
     item->z_index = 9000;
     fsemu_gui_add_item(item);
 
+#if 0
+    double ui_scale = fsemu_window_ui_scale();
+
     item = &fsemu_titlebar.title_item;
     // FIXME: Semi-bold ?
-    fsemu_font_t *font = fsemu_font_load("SairaCondensed-SemiBold.ttf", 19);
+    fsemu_font_t *font = fsemu_font_load("SairaCondensed-SemiBold.ttf", 19 * ui_scale);
     // 0xcc is the same alpha value as used by the window control icons
     // for the custom frame.
     image = fsemu_font_render_text_to_image(
         font, fsemu_emulator_name(), fsemu_titlebar.title_color);
-    fsemu_gui_image(item, 20, 0, image->width, image->height, image);
+    fsemu_gui_image(item, 20 * ui_scale, 0, image->width, image->height, image);
     item->z_index = 9001;
     fsemu_gui_add_item(item);
+#endif
 
     item = &fsemu_titlebar.minimize_bg_item;
     fsemu_gui_rectangle(item, 0, 0, 40, 40, 0);
@@ -163,6 +175,11 @@ bool fsemu_titlebar_use_system(void)
     return fsemu_titlebar.use_system;
 }
 
+int fsemu_titlebar_unscaled_height(void)
+{
+    return 40;
+}
+
 int fsemu_titlebar_height(void)
 {
     return fsemu_titlebar.height;
@@ -180,6 +197,63 @@ void fsemu_titlebar_update(void)
     fsemu_size_t window_size;
     fsemu_window_size(&window_size);
     fsemu_titlebar_set_width(window_size.w);
+
+    double ui_scale = fsemu_window_ui_scale();
+    fsemu_titlebar.height = 40 * ui_scale;
+
+    // We need to create the title image after ui scale is known, which is why
+    // we didn't initialize this in fsemu_titlebar_init. Not entirely happy
+    // with how this works now, but it's fair enough.
+    if (!fsemu_titlebar.title_item.image && ui_scale > 0) {
+        fsemu_gui_item_t *item;
+        item = &fsemu_titlebar.title_item;
+        // FIXME: Semi-bold ?
+        fsemu_font_t *font =
+            fsemu_font_load("SairaCondensed-SemiBold.ttf", 19 * ui_scale);
+        // 0xcc is the same alpha value as used by the window control icons
+        // for the custom frame.
+        fsemu_titlebar.title_image = fsemu_font_render_text_to_image(
+            font, fsemu_emulator_name(), fsemu_titlebar.title_color);
+#if 0
+        int y = (fsemu_titlebar.height - image->height) / 2;
+        // Hand-tuned y offset for common ui scales for better text centering.
+        if (ui_scale == 1.0) {
+            y = 0;
+        } else if (ui_scale == 2.0) {
+            y = 20;
+        }
+#endif
+        fsemu_gui_image(item,
+                        20 * ui_scale,
+                        0,
+                        fsemu_titlebar.title_image->width,
+                        fsemu_titlebar.title_image->height,
+                        fsemu_titlebar.title_image);
+        item->z_index = 9001;
+        fsemu_gui_add_item(item);
+    }
+
+    // printf("%d %0.2f\n", fsemu_titlebar.height, fsemu_window_ui_scale());
+
+    fsemu_titlebar.background_item.rect.h = fsemu_titlebar.height;
+    fsemu_titlebar.background_ws_item.rect.h =
+        fsemu_titlebar.background_ws_image->height * ui_scale;
+
+    fsemu_titlebar.minimize_bg_item.rect.h = fsemu_titlebar.height;
+    fsemu_titlebar.minimize_bg_item.rect.w = fsemu_titlebar.height;
+    fsemu_titlebar.minimize_item.rect.h = fsemu_titlebar.height;
+    fsemu_titlebar.minimize_item.rect.w = fsemu_titlebar.height;
+
+    fsemu_titlebar.maximize_bg_item.rect.h = fsemu_titlebar.height;
+    fsemu_titlebar.maximize_bg_item.rect.w = fsemu_titlebar.height;
+    fsemu_titlebar.maximize_item.rect.h = fsemu_titlebar.height;
+    fsemu_titlebar.maximize_item.rect.w = fsemu_titlebar.height;
+
+    fsemu_titlebar.close_bg_item.rect.h = fsemu_titlebar.height;
+    fsemu_titlebar.close_bg_item.rect.w = fsemu_titlebar.height;
+    fsemu_titlebar.close_item.rect.h = fsemu_titlebar.height;
+    fsemu_titlebar.close_item.rect.w = fsemu_titlebar.height;
+    // FIXME: set dirty flags?
 
     int y = 0;
     bool is_visible = fsemu_titlebar.visible;
@@ -202,7 +276,7 @@ void fsemu_titlebar_update(void)
         is_visible = true;
     } else if (fsemu_titlebar.visible) {
         if (fsemu_titlebar.background_item.rect.y < 0) {
-            y = fsemu_titlebar.background_item.rect.y + 5;
+            y = fsemu_titlebar.background_item.rect.y + 5 * ui_scale;
         }
     } else {
         y = -fsemu_titlebar.height;
@@ -210,7 +284,18 @@ void fsemu_titlebar_update(void)
 
     fsemu_titlebar.background_item.rect.y = y;
     fsemu_titlebar.background_ws_item.rect.y = y;
-    fsemu_titlebar.title_item.rect.y = y + 5;
+
+    if (fsemu_titlebar.title_image) {
+        int title_y =
+            (fsemu_titlebar.height - fsemu_titlebar.title_image->height) / 2;
+        // Hand-tuned y offset for common ui scales for better text centering.
+        if (ui_scale == 1.0) {
+            // FIXME: Mayne not needed, doublecheck
+            title_y = 5;
+        }
+        fsemu_titlebar.title_item.rect.y = y + title_y;
+    }
+
     fsemu_titlebar.minimize_bg_item.rect.y = y;
     fsemu_titlebar.minimize_item.rect.y = y;
     fsemu_titlebar.maximize_bg_item.rect.y = y;
@@ -275,14 +360,14 @@ void fsemu_titlebar_set_width(int w)
     fsemu_titlebar.background_ws_item.rect.w = w;
     fsemu_titlebar.background_ws_item.dirty = true;
 
-    fsemu_titlebar.minimize_bg_item.rect.x = w - 120;
-    fsemu_titlebar.minimize_item.rect.x = w - 120;
+    fsemu_titlebar.minimize_bg_item.rect.x = w - fsemu_titlebar.height * 3;
+    fsemu_titlebar.minimize_item.rect.x = w - fsemu_titlebar.height * 3;
 
-    fsemu_titlebar.maximize_bg_item.rect.x = w - 80;
-    fsemu_titlebar.maximize_item.rect.x = w - 80;
+    fsemu_titlebar.maximize_bg_item.rect.x = w - fsemu_titlebar.height * 2;
+    fsemu_titlebar.maximize_item.rect.x = w - fsemu_titlebar.height * 2;
 
-    fsemu_titlebar.close_bg_item.rect.x = w - 40;
-    fsemu_titlebar.close_item.rect.x = w - 40;
+    fsemu_titlebar.close_bg_item.rect.x = w - fsemu_titlebar.height * 1;
+    fsemu_titlebar.close_item.rect.x = w - fsemu_titlebar.height * 1;
 }
 
 // ---------------------------------------------------------------------------
@@ -304,13 +389,13 @@ static void fsemu_titlebar_set_visible(bool visible)
 static int fsemu_titlebar_button_test(fsemu_mouse_event_t *event)
 {
     if (event->y >= 0 && event->y < fsemu_titlebar.height) {
-        if (event->x > fsemu_titlebar.width - 40) {
+        if (event->x > fsemu_titlebar.width - fsemu_titlebar.height * 1) {
             return FSEMU_TITLEBAR_CLOSE;
         }
-        if (event->x > fsemu_titlebar.width - 80) {
+        if (event->x > fsemu_titlebar.width - fsemu_titlebar.height * 2) {
             return FSEMU_TITLEBAR_MAXIMIZE;
         }
-        if (event->x > fsemu_titlebar.width - 120) {
+        if (event->x > fsemu_titlebar.width - fsemu_titlebar.height * 3) {
             return FSEMU_TITLEBAR_MINIMIZE;
         }
     }

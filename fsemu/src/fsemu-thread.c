@@ -63,15 +63,15 @@ struct fsemu_thread {
 #endif
 };
 
-struct fsemu_mutex {
-#if defined(USE_PTHREADS)
-    pthread_mutex_t mutex;
-#elif defined(USE_GLIB)
-    GMutex mutex;
-#elif defined(USE_SDL)
-    SDL_mutex *mutex;
-#endif
-};
+// struct fsemu_mutex {
+// #if defined(USE_PTHREADS)
+//     pthread_mutex_t mutex;
+// #elif defined(USE_GLIB)
+//     GMutex mutex;
+// #elif defined(USE_SDL)
+//     SDL_mutex *mutex;
+// #endif
+// };
 
 struct fs_condition {
 #if defined(USE_PTHREADS)
@@ -184,64 +184,65 @@ void fs_thread_free(fs_thread *thread)
 
 #endif
 
-fsemu_mutex_t *fsemu_mutex_create(void)
-{
-    fsemu_mutex_t *mutex = (fsemu_mutex_t *) g_malloc(sizeof(fsemu_mutex_t));
-#if defined(USE_PTHREADS)
-    pthread_mutex_init(&mutex->mutex, NULL);
-#elif defined(USE_GLIB)
-    g_mutex_init(&mutex->mutex);
-#elif defined(USE_SDL)
-    mutex->mutex = SDL_CreateMutex();
-#else
-#error no thread support
-#endif
-    return mutex;
-}
+// fsemu_mutex_t *fsemu_mutex_create(void)
+// {
+//     fsemu_mutex_t *mutex = (fsemu_mutex_t *)
+//     g_malloc(sizeof(fsemu_mutex_t));
+// #if defined(USE_PTHREADS)
+//     pthread_mutex_init(&mutex->mutex, NULL);
+// #elif defined(USE_GLIB)
+//     g_mutex_init(&mutex->mutex);
+// #elif defined(USE_SDL)
+//     mutex->mutex = SDL_CreateMutex();
+// #else
+// #error no thread support
+// #endif
+//     return mutex;
+// }
 
-#if 0
-void fsemu_mutex_destroy(fsemu_mutex_t *mutex)
-{
-#if defined(USE_PTHREADS)
-    pthread_mutex_destroy(&mutex->mutex);
-#elif defined(USE_GLIB)
-    g_mutex_clear(&mutex->mutex);
-#elif defined(USE_SDL)
-    SDL_DestroyMutex(mutex->mutex);
-#else
-#error no thread support
-#endif
-    g_free(mutex);
-}
-#endif
+// #if 0
+// void fsemu_mutex_destroy(fsemu_mutex_t *mutex)
+// {
+// #if defined(USE_PTHREADS)
+//     pthread_mutex_destroy(&mutex->mutex);
+// #elif defined(USE_GLIB)
+//     g_mutex_clear(&mutex->mutex);
+// #elif defined(USE_SDL)
+//     SDL_DestroyMutex(mutex->mutex);
+// #else
+// #error no thread support
+// #endif
+//     g_free(mutex);
+// }
+// #endif
 
-int fsemu_mutex_lock(fsemu_mutex_t *mutex)
-{
-#if defined(USE_PTHREADS)
-    return pthread_mutex_lock(&mutex->mutex);
-#elif defined(USE_GLIB)
-    g_mutex_lock(&mutex->mutex);
-    return 0;
-#elif defined(USE_SDL)
-    return SDL_mutexP(mutex->mutex);
-#else
-#error no thread support
-#endif
-}
+// int fsemu_mutex_lock(fsemu_mutex_t *mutex)
+// {
+// #if defined(USE_PTHREADS)
+//     return pthread_mutex_lock(&mutex->mutex);
+// #elif defined(USE_GLIB)
+//     g_mutex_lock(&mutex->mutex);
+//     return 0;
+// #elif defined(USE_SDL)
+//     return SDL_mutexP(mutex->mutex);
+// #else
+// #error no thread support
+// #endif
+// }
 
-int fsemu_mutex_unlock(fsemu_mutex_t *mutex)
-{
-#if defined(USE_PTHREADS)
-    return pthread_mutex_unlock(&mutex->mutex);
-#elif defined(USE_GLIB)
-    g_mutex_unlock(&mutex->mutex);
-    return 0;
-#elif defined(USE_SDL)
-    return SDL_mutexV(mutex->mutex);
-#else
-#error no thread support
-#endif
-}
+// int fsemu_mutex_unlock(fsemu_mutex_t *mutex)
+// {
+// #if defined(USE_PTHREADS)
+//     return pthread_mutex_unlock(&mutex->mutex);
+// #elif defined(USE_GLIB)
+//     g_mutex_unlock(&mutex->mutex);
+//     return 0;
+// #elif defined(USE_SDL)
+//     return SDL_mutexV(mutex->mutex);
+// #else
+// #error no thread support
+// #endif
+// }
 
 #if 0
 fs_condition *fs_condition_create(void)

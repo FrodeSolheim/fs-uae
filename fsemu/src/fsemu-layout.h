@@ -23,17 +23,26 @@ void fsemu_layout_set_pixel_aspect(double aspect);
 
 double fsemu_layout_pixel_aspect(void);
 
-void fsemu_layout_client_rect(fsemu_rect_t *rect);
+void fsemu_layout_client_area(fsemu_rect_t *rect);
+
+// FIXME: Deprecated
+#define fsemu_layout_client_rect fsemu_layout_client_area
+
 void fsemu_layout_client_offset_scale(double *ox,
                                       double *oy,
                                       double *sx,
                                       double *sy);
 
+void fsemu_layout_video_area(fsemu_rect_t *rect);
 void fsemu_layout_video_rect(fsemu_rect_t *rect);
 
 int fsemu_layout_stretch_mode(void);
 int fsemu_layout_cycle_stretch_mode(void);
 void fsemu_layout_set_stretch_mode(int stretch_mode);
+
+int fsemu_layout_zoom_mode(void);
+int fsemu_layout_cycle_zoom_mode(void);
+void fsemu_layout_set_zoom_mode(int zoom_mode);
 
 int fsemu_scale_mode(void);
 void fsemu_set_scale_mode(int scale_mode);

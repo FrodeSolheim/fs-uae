@@ -10,6 +10,7 @@
 #include "fsemu-option.h"
 #include "fsemu-options.h"
 #include "fsemu-video.h"
+#include "fsemu-widget.h"
 
 static struct {
     int mode;
@@ -45,7 +46,12 @@ static struct {
 
     fsemu_gui_item_t audio_item;
     fsemu_gui_item_t video_item;
-
+#if 0
+    // fsemu_gui_item_t vsync_test_item;
+    fsemu_gui_item_t vsync_test_item_bg;
+    fsemu_gui_item_t vsync_test_item_a;
+    fsemu_gui_item_t vsync_test_item_b;
+#endif
 } fsemu_perfgui;
 
 static void fsemu_perfgui_init_images(void)
@@ -64,11 +70,15 @@ static void fsemu_perfgui_init_images(void)
 
     uint32_t *row = (uint32_t *) malloc(4 * 128);
     for (int x = 0; x < 128; x++) {
+#if 1
+        row[x] = FSEMU_RGBA(0x00000000);
+#else
         if (x >= 116) {
             row[x] = FSEMU_RGBA(0x0c0c0c00);
         } else {
             row[x] = FSEMU_RGB(0x0c0c0c);
         }
+#endif
     }
 
     uint8_t *dst_a = fsemu_perfgui.audio_image.data;
@@ -110,9 +120,41 @@ static void fsemu_perfgui_init_items(void)
     // fsemu_gui_item_set_visible(item, true);
     fsemu_gui_add_item(item);
 
-    fsemu_perfgui.audio_item.flags = FSEMU_GUI_FLAG_FLIP_X;
+    fsemu_perfgui.audio_item.flags = FSEMU_WIDGET_FLAG_FLIPX;
     fsemu_perfgui.audio_item.coordinates = FSEMU_COORD_1080P_RIGHT;
     fsemu_perfgui.video_item.coordinates = FSEMU_COORD_1080P_LEFT;
+
+#if 0
+    fsemu_font_t *font = fsemu_font_load("SairaCondensed-Bold.ttf", 40);
+    fsemu_image_t *image;
+
+    item = &fsemu_perfgui.vsync_test_item_a;
+    image =
+        fsemu_font_render_text_to_image(font, "V-SYNC", FSEMU_RGB(0xff8080));
+    fsemu_gui_image(item, 10, 210, image->width, image->height, image);
+    item->z_index = -9300;
+    // item->visible = true;
+    fsemu_gui_add_item(item);
+
+    item = &fsemu_perfgui.vsync_test_item_b;
+    image =
+        fsemu_font_render_text_to_image(font, "V-SYNC", FSEMU_RGB(0x80ffff));
+    fsemu_gui_image(item, 10, 210, image->width, image->height, image);
+    item->z_index = -9300;
+    // item->visible = true;
+    fsemu_gui_add_item(item);
+
+    item = &fsemu_perfgui.vsync_test_item_bg;
+    fsemu_gui_rectangle(item,
+                        0,
+                        200,
+                        image->width + 20,
+                        image->height + 20,
+                        FSEMU_RGB(0xe0e0e0));
+    item->z_index = -9400;
+    item->visible = true;
+    fsemu_gui_add_item(item);
+#endif
 }
 
 static void fsemu_perfgui_set_colors(int color_set)
@@ -122,6 +164,33 @@ static void fsemu_perfgui_set_colors(int color_set)
     }
     if (color_set == 1) {
         // Dim colors
+#if 1
+        fsemu_perfgui.colors.audio_avg = FSEMU_RGBA(0xffffff30);
+        fsemu_perfgui.colors.audio_min = FSEMU_RGBA(0xffffff30);
+        fsemu_perfgui.colors.audio_target = FSEMU_RGBA(0xffffff20);
+        fsemu_perfgui.colors.audio_0 = FSEMU_RGBA(0xffffff28);
+        fsemu_perfgui.colors.audio_1 = FSEMU_RGBA(0xffffff14);
+        fsemu_perfgui.colors.audio_2 = FSEMU_RGBA(0xffffff14);
+        fsemu_perfgui.colors.audio_3 = FSEMU_RGBA(0xffffff1c);
+
+        fsemu_perfgui.colors.video_actual = FSEMU_RGBA(0xffffff30);
+        fsemu_perfgui.colors.video_target = FSEMU_RGBA(0xffffff20);
+        fsemu_perfgui.colors.video_vsync_at = FSEMU_RGBA(0xffffff50);
+        fsemu_perfgui.colors.video_rendered_at = FSEMU_RGBA(0xffffff30);
+
+        fsemu_perfgui.colors.video_overshoot = FSEMU_RGBA(0xffffff0c);
+        fsemu_perfgui.colors.video_wait = FSEMU_RGBA(0xffffff14);
+        fsemu_perfgui.colors.video_gui = FSEMU_RGBA(0xffffff10);
+        fsemu_perfgui.colors.video_emu = FSEMU_RGBA(0xffffff20);
+        fsemu_perfgui.colors.video_render = FSEMU_RGBA(0xffffff10);
+        fsemu_perfgui.colors.video_extra = FSEMU_RGBA(0xffffff1c);
+        fsemu_perfgui.colors.video_sleep = FSEMU_RGBA(0xffffff14);
+        fsemu_perfgui.colors.video_other = FSEMU_RGBA(0xffffff1c);
+
+        fsemu_perfgui.colors.line = FSEMU_RGBA(0xffffff80);
+        fsemu_perfgui.colors.audio_bg = FSEMU_RGBA(0x00000000);
+        fsemu_perfgui.colors.video_bg = FSEMU_RGBA(0x00000000);
+#else
         fsemu_perfgui.colors.audio_avg = FSEMU_RGB(0x303030);
         fsemu_perfgui.colors.audio_min = FSEMU_RGB(0x303030);
         fsemu_perfgui.colors.audio_target = FSEMU_RGB(0x202020);
@@ -129,7 +198,6 @@ static void fsemu_perfgui_set_colors(int color_set)
         fsemu_perfgui.colors.audio_1 = FSEMU_RGB(0x141414);
         fsemu_perfgui.colors.audio_2 = FSEMU_RGB(0x141414);
         fsemu_perfgui.colors.audio_3 = FSEMU_RGB(0x1c1c1c);
-        fsemu_perfgui.colors.line = FSEMU_RGB(0x404040);
         fsemu_perfgui.colors.video_actual = FSEMU_RGB(0x303030);
         fsemu_perfgui.colors.video_target = FSEMU_RGB(0x202020);
         fsemu_perfgui.colors.video_vsync_at = FSEMU_RGB(0x505050);
@@ -142,6 +210,11 @@ static void fsemu_perfgui_set_colors(int color_set)
         fsemu_perfgui.colors.video_extra = FSEMU_RGB(0x1c1c1c);
         fsemu_perfgui.colors.video_sleep = FSEMU_RGB(0x141414);
         fsemu_perfgui.colors.video_other = FSEMU_RGB(0x1c1c1c);
+
+        fsemu_perfgui.colors.line = FSEMU_RGB(0x404040);
+        fsemu_perfgui.colors.audio_bg = FSEMU_RGB(0x0c0c0c);
+        fsemu_perfgui.colors.video_bg = FSEMU_RGB(0x0c0c0c);
+#endif
     } else {
         // Bright colors used for debugging
         fsemu_perfgui.colors.audio_avg = FSEMU_RGB(0x00ff00);
@@ -151,7 +224,6 @@ static void fsemu_perfgui_set_colors(int color_set)
         fsemu_perfgui.colors.audio_1 = FSEMU_RGB(0x383838);
         fsemu_perfgui.colors.audio_2 = FSEMU_RGB(0x282828);
         fsemu_perfgui.colors.audio_3 = FSEMU_RGB(0x181818);
-        // fsemu_perfgui.colors.line = FSEMU_RGB(0x606060);
         fsemu_perfgui.colors.line = FSEMU_RGB(0x0099ff);
         fsemu_perfgui.colors.video_actual = FSEMU_RGB(0x00ff00);
         fsemu_perfgui.colors.video_target = FSEMU_RGB(0xee8800);
@@ -165,10 +237,12 @@ static void fsemu_perfgui_set_colors(int color_set)
         fsemu_perfgui.colors.video_extra = FSEMU_RGB(0x186818);
         fsemu_perfgui.colors.video_sleep = FSEMU_RGB(0x282828);
         fsemu_perfgui.colors.video_other = FSEMU_RGB(0x444444);
+
+        // fsemu_perfgui.colors.line = FSEMU_RGB(0x606060);
+        fsemu_perfgui.colors.audio_bg = FSEMU_RGB(0x0c0c0c);
+        fsemu_perfgui.colors.video_bg = FSEMU_RGB(0x0c0c0c);
     }
 
-    fsemu_perfgui.colors.audio_bg = FSEMU_RGB(0x0c0c0c);
-    fsemu_perfgui.colors.video_bg = FSEMU_RGB(0x0c0c0c);
     fsemu_perfgui.color_set = color_set;
     fsemu_perfgui.refresh = true;
 }
@@ -467,9 +541,11 @@ void fsemu_perfgui_update(void)
     if (fsemu_perfgui.refresh) {
         fsemu_log("Need refreshing perfgui (colors changed)\n");
         next_frame = frame - 256;
+#if 1
         if (next_frame < 0) {
             next_frame = 0;
         }
+#endif
         fsemu_perfgui.refresh = false;
     }
 
@@ -488,6 +564,15 @@ void fsemu_perfgui_update(void)
     bool visible = fsemu_perfgui.mode > 0;
     fsemu_gui_item_set_visible(&fsemu_perfgui.audio_item, visible);
     fsemu_gui_item_set_visible(&fsemu_perfgui.video_item, visible);
+
+#if 0
+    static int alternating = 0;
+    alternating = !alternating;
+    fsemu_gui_item_set_visible(&fsemu_perfgui.vsync_test_item_a,
+                               visible && alternating);
+    fsemu_gui_item_set_visible(&fsemu_perfgui.vsync_test_item_b,
+                               visible && !alternating);
+#endif
 }
 
 void fsemu_perfgui_cycle(void)

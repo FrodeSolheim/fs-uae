@@ -40,4 +40,7 @@
 #define FSEMU_OPTION_WINDOW_X "window_x"
 #define FSEMU_OPTION_WINDOW_Y "window_y"
 
+#define FSEMU_OPTION_WINDOW_CENTER_X "window_center_x"
+#define FSEMU_OPTION_WINDOW_CENTER_Y "window_center_y"
+
 #endif  // FSEMU_OPTIONS_H_

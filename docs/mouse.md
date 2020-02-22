@@ -38,7 +38,12 @@ Support for multiple mice seems to work just fine on Windows out of the box.
 
 ## OS X
 
-Support for multiple mice seems to work just fine on OS X out of the box.
+Support for multiple mice seems to work just fine on macOS out of the box
+on older macOS versions.
+
+In macOS 10.15, in order to see individual mouse devices, you may have to go
+to  Preferences -> Security & Privacy -> Input Monitoring, and allow access
+for FS-UAE, FS-UAE Launcher and FS-UAE Arcade.
 
 ### Mouse Buttons on OS X
 

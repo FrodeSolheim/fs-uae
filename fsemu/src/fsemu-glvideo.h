@@ -9,6 +9,14 @@
 extern "C" {
 #endif
 
+// FIXME: Temporary hack
+void fsemu_glvideo_set_rect_temp(double left,
+                                 double top,
+                                 double right,
+                                 double bottom);
+
+void fsemu_glvideo_set_frame_rendered_externally(void);
+
 #ifdef FSEMU_INTERNAL
 
 void fsemu_glvideo_init(void);
@@ -18,6 +26,7 @@ void fsemu_glvideo_work(int timeout_us);
 
 void fsemu_glvideo_render_gui_early(fsemu_gui_item_t *items);
 void fsemu_glvideo_render(void);
+
 void fsemu_glvideo_render_gui(fsemu_gui_item_t *items);
 
 void fsemu_glvideo_display(void);

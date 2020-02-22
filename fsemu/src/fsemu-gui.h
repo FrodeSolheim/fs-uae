@@ -10,12 +10,25 @@
 #include "fsemu-sdl.h"
 #include "fsemu-types.h"
 
-struct fsemu_gui_item_struct;
-typedef struct fsemu_gui_item_struct fsemu_gui_item_t;
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+struct fsemu_gui_item_struct;
+typedef struct fsemu_gui_item_struct fsemu_gui_item_t;
+
+enum {
+    FSEMU_GUI_NAVIGATE_NONE,
+    FSEMU_GUI_NAVIGATE_UP,
+    FSEMU_GUI_NAVIGATE_RIGHT,
+    FSEMU_GUI_NAVIGATE_DOWN,
+    FSEMU_GUI_NAVIGATE_LEFT,
+    FSEMU_GUI_NAVIGATE_PRIMARY,
+    FSEMU_GUI_NAVIGATE_SECONDARY,
+    FSEMU_GUI_NAVIGATE_TERTIARY,
+    FSEMU_GUI_NAVIGATE_BACK,
+    FSEMU_GUI_NAVIGATE_CLOSE,
+};
 
 void fsemu_gui_init(void);
 void fsemu_gui_lock(void);
@@ -49,7 +62,10 @@ void fsemu_gui_free_snapshot(fsemu_gui_item_t *snapshot);
 #define FSEMU_COORD_1080P_LEFT 2
 #define FSEMU_COORD_1080P_RIGHT 3
 
-#define FSEMU_GUI_FLAG_FLIP_X (1 << 0)
+typedef struct fsemu_gui_coord {
+    int anchor;
+    double offset;
+} fsemu_gui_coord_t;
 
 struct fsemu_gui_item_struct {
     fsemu_rect_t rect;
@@ -59,14 +75,26 @@ struct fsemu_gui_item_struct {
     const char *text;
     fsemu_font_t *font;
     fsemu_image_t *image;
+    // bool image_owner;
     bool dirty;
     bool visible;
     uint32_t flags;
     int z_index;
-    fsemu_gui_item_t *next;
 #ifdef FSEMU_SDL
     SDL_Texture *texture;
 #endif
+
+    fsemu_gui_coord_t left;
+    fsemu_gui_coord_t top;
+    fsemu_gui_coord_t right;
+    fsemu_gui_coord_t bottom;
+    fsemu_drect_t render_rect;
+
+    char *name;
+    fsemu_gui_item_t *parent;
+    fsemu_gui_item_t *next;
+    fsemu_gui_item_t *first_child;
+    fsemu_gui_item_t *last_child;
 };
 
 #endif  // FSEMU_INTERNAL

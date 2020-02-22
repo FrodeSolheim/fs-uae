@@ -1,13 +1,18 @@
 #define FSEMU_INTERNAL
 #include "fsemu-helper.h"
 
+#include "fsemu-background.h"
+#include "fsemu-controller.h"
 #include "fsemu-fade.h"
 #include "fsemu-frame.h"
+#include "fsemu-gamemode.h"
 #include "fsemu-hud.h"
+#include "fsemu-oskeyboard.h"
 #include "fsemu-perfgui.h"
 // FIXME: Ideally, remove this dependency
 #include "fsemu-sdlwindow.h"
 #include "fsemu-startupinfo.h"
+#include "fsemu-theme.h"
 #include "fsemu-time.h"
 #include "fsemu-titlebar.h"
 #include "fsemu-video.h"
@@ -24,6 +29,10 @@ void fsemu_helper_init_emulator(const char *emulator_name,
                                 int vsync)
 {
     fsemu_log("[HELPR] Init emulator vsync=%d\n", vsync);
+
+    fsemu_gamemode_init();
+    // FIXME: Check (on Linux) if CPU governor is now set to performance.
+
     fsemu_set_emulator_name(emulator_name);
     fsemu_window_set_title(emulator_name);
     if (external_events) {
@@ -49,9 +58,15 @@ void fsemu_helper_init_emulator(const char *emulator_name,
 
     fsemu_helper_startup_loop();
 
+    fsemu_background_init();
     fsemu_hud_init();
+    fsemu_oskeyboard_init();
     fsemu_perfgui_init();
     fsemu_startupinfo_init();
+    fsemu_theme_module_init();
+
+    // FIXME: Maybe temporary
+    fsemu_controller_init();
 }
 
 static void fsemu_helper_startup_update(void)
@@ -73,7 +88,7 @@ static void fsemu_helper_poll_and_sleep(void)
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
         if (fsemu_sdlwindow_handle_event(&event)) {
-            printf("[FSEMU] Not passing on event to emulator\n");
+            // printf("[FSEMU] Not passing on event to emulator\n");
             continue;
         }
     }
@@ -235,9 +250,14 @@ void fsemu_helper_update(void)
     fsemu_frame_log_epoch("Update (helper)\n");
     fsemu_fade_update();
     fsemu_hud_update();
+    fsemu_oskeyboard_update();
     fsemu_perfgui_update();
     fsemu_startupinfo_update();
     fsemu_titlebar_update();
+
+    // FIXME: Maybe temporary
+    fsemu_controller_update();
+
     fsemu_helper_set_gui(fsemu_gui_snapshot());
     fsemu_frame_add_gui_time(0);
 }

@@ -1,6 +1,7 @@
 #define FSEMU_INTERNAL
 #include "fsemu-common.h"
 
+#include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -23,4 +24,12 @@ void fsemu_set_emulator_name(const char *emulator_name)
         free(fsemu_common.emulator_name);
     }
     fsemu_common.emulator_name = strdup(emulator_name);
+}
+
+void fsemu_error_2(const char *msg, ...)
+{
+    va_list ap;
+    va_start(ap, msg);
+    vprintf(msg, ap);
+    va_end(ap);
 }

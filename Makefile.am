@@ -815,12 +815,18 @@ fs_uae_LDADD += libfsemu2.a
 # fs_uae_device_helper_LDADD += libfsemu2.a
 libfsemu2_a_SOURCES = \
 	fsemu/src/fsemu-all.h \
+	fsemu/src/fsemu-button.h \
+	fsemu/src/fsemu-action.c \
+	fsemu/src/fsemu-action.h \
 	fsemu/src/fsemu-audio-alsa.c \
 	fsemu/src/fsemu-audio-alsa.h \
 	fsemu/src/fsemu-audio-buffer.c \
 	fsemu/src/fsemu-audio-buffer.h \
 	fsemu/src/fsemu-audio.c \
 	fsemu/src/fsemu-audio.h \
+	fsemu/src/fsemu-axis.h \
+	fsemu/src/fsemu-background.c \
+	fsemu/src/fsemu-background.h \
 	fsemu/src/fsemu-common.c \
 	fsemu/src/fsemu-common.h \
 	fsemu/src/fsemu-compat.h \
@@ -828,6 +834,8 @@ libfsemu2_a_SOURCES = \
 	fsemu/src/fsemu-config.h \
 	fsemu/src/fsemu-control.c \
 	fsemu/src/fsemu-control.h \
+	fsemu/src/fsemu-controller.c \
+	fsemu/src/fsemu-controller.h \
 	fsemu/src/fsemu-data.c \
 	fsemu/src/fsemu-data.h \
 	fsemu/src/fsemu-events.c \
@@ -842,6 +850,8 @@ libfsemu2_a_SOURCES = \
 	fsemu/src/fsemu-gamemode.h \
 	fsemu/src/fsemu-glib.h \
 	fsemu/src/fsemu-opengl.h \
+	fsemu/src/fsemu-oskeyboard.c \
+	fsemu/src/fsemu-oskeyboard.h \
 	fsemu/src/fsemu-glvideo.c \
 	fsemu/src/fsemu-glvideo.h \
 	fsemu/src/fsemu-gui.c \
@@ -856,24 +866,42 @@ libfsemu2_a_SOURCES = \
 	fsemu/src/fsemu-inifile.h \
 	fsemu/src/fsemu-input.c \
 	fsemu/src/fsemu-input.h \
+	fsemu/src/fsemu-inputdevice.c \
+	fsemu/src/fsemu-inputdevice.h \
+	fsemu/src/fsemu-inputmode.c \
+	fsemu/src/fsemu-inputmode.h \
+	fsemu/src/fsemu-inputport.c \
+	fsemu/src/fsemu-inputport.h \
+	fsemu/src/fsemu-key.h \
 	fsemu/src/fsemu-keyboard.h \
+	fsemu/src/fsemu-layer.h \
 	fsemu/src/fsemu-layout.c \
 	fsemu/src/fsemu-layout.h \
 	fsemu/src/fsemu-log.c \
 	fsemu/src/fsemu-log.h \
+	fsemu/src/fsemu-menu.c \
+	fsemu/src/fsemu-menu.h \
 	fsemu/src/fsemu-monitor.c \
 	fsemu/src/fsemu-monitor.h \
 	fsemu/src/fsemu-mouse.c \
 	fsemu/src/fsemu-mouse.h \
+	fsemu/src/fsemu-mutex.c \
+	fsemu/src/fsemu-mutex.h \
 	fsemu/src/fsemu-opengl.c \
 	fsemu/src/fsemu-opengl.h \
 	fsemu/src/fsemu-option.c \
 	fsemu/src/fsemu-option.h \
 	fsemu/src/fsemu-options.h \
+	fsemu/src/fsemu-oskeyboard.c \
+	fsemu/src/fsemu-oskeyboard.h \
+	fsemu/src/fsemu-osmenu.c \
+	fsemu/src/fsemu-osmenu.h \
 	fsemu/src/fsemu-perfgui.c \
 	fsemu/src/fsemu-perfgui.h \
 	fsemu/src/fsemu-quit.c \
 	fsemu/src/fsemu-quit.h \
+	fsemu/src/fsemu-refable.c \
+	fsemu/src/fsemu-refable.h \
 	fsemu/src/fsemu-render.c \
 	fsemu/src/fsemu-render.h \
 	fsemu/src/fsemu-screenshot.c \
@@ -881,14 +909,22 @@ libfsemu2_a_SOURCES = \
 	fsemu/src/fsemu-sdl.h \
 	fsemu/src/fsemu-sdlaudio.c \
 	fsemu/src/fsemu-sdlaudio.h \
+	fsemu/src/fsemu-sdlgamecontrollerdb.c \
+	fsemu/src/fsemu-sdlgamecontrollerdb.h \
 	fsemu/src/fsemu-sdlinput.c \
 	fsemu/src/fsemu-sdlinput.h \
 	fsemu/src/fsemu-sdlvideo.c \
 	fsemu/src/fsemu-sdlvideo.h \
 	fsemu/src/fsemu-sdlwindow.c \
 	fsemu/src/fsemu-sdlwindow.h \
+	fsemu/src/fsemu-shader.c \
+	fsemu/src/fsemu-shader.h \
 	fsemu/src/fsemu-startupinfo.c \
 	fsemu/src/fsemu-startupinfo.h \
+	fsemu/src/fsemu-stream.c \
+	fsemu/src/fsemu-stream.h \
+	fsemu/src/fsemu-theme.c \
+	fsemu/src/fsemu-theme.h \
 	fsemu/src/fsemu-thread.c \
 	fsemu/src/fsemu-thread.h \
 	fsemu/src/fsemu-time.c \
@@ -900,6 +936,10 @@ libfsemu2_a_SOURCES = \
 	fsemu/src/fsemu-util.h \
 	fsemu/src/fsemu-video.c \
 	fsemu/src/fsemu-video.h \
+	fsemu/src/fsemu-videothread.c \
+	fsemu/src/fsemu-videothread.h \
+	fsemu/src/fsemu-widget.c \
+	fsemu/src/fsemu-widget.h \
 	fsemu/src/fsemu-window.c \
 	fsemu/src/fsemu-window.h \
 	fsemu/src/fsemu-xmlshader.c \

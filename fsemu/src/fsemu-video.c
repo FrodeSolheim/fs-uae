@@ -15,9 +15,19 @@
 #include "fsemu-time.h"
 #include "fsemu-types.h"
 #include "fsemu-util.h"
+#include "fsemu-videothread.h"
 #include "fsemu-window.h"
 
 #define FSEMU_VIDEO_MAX_FRAME_STATS (1 << 8)  // 256
+
+#if 0
+struct fsemu_video_thread_data {
+    fsemu_size_t window_size;
+    fsemu_rect_t client_area;
+    fsemu_rect_t video_area;
+    fsemu_rect_t video_rect;
+};
+#endif
 
 static struct {
     fsemu_video_frame_stats_t stats[FSEMU_VIDEO_MAX_FRAME_STATS];
@@ -30,6 +40,20 @@ static struct {
     int rendered_frame;
     // 1 - disallow vsync, 2 - tried (and refused) to enable vsync
     int disallow_vsync;
+
+    // Drawable size, used for layout and rendering. Not necessarily the same
+    // as window size (for high-DPI windows on some platforms). Note, this
+    // variable is not for the renderer. The video thread has its own copy.
+    fsemu_size_t drawable_size;
+
+#if 0
+    // Mutex used to copy consistent data from UI thread over to video thread.
+    fsemu_mutex_t *ui_video_mutex;
+    // Data from UI thread
+    struct fsemu_video_thread_data ui_thread_d;
+    // Data (copy) for UI thread
+    struct fsemu_video_thread_data thread_d;
+#endif
 } fsemu_video;
 
 bool fsemu_video_log_enabled = false;
@@ -46,6 +70,7 @@ void fsemu_video_init(void)
     fsemu_return_if_already_initialized();
     fsemu_layout_init();
     fsemu_frame_init();
+    fsemu_videothread_init();
     fsemu_log("[FSEMU][VIDEO] Initialize\n");
 
     fsemu_option_read_bool_default(
@@ -59,7 +84,68 @@ void fsemu_video_init(void)
     } else {
         fsemu_sdlvideo_init();
     }
+#if 0
+    fsemu_video.ui_video_mutex = fsemu_mutex_create();
+#endif
 }
+
+// ---------------------------------------------------------------------------
+
+void fsemu_video_drawable_size(fsemu_size_t *size)
+{
+    *size = fsemu_video.drawable_size;
+}
+
+void fsemu_video_set_drawable_size(fsemu_size_t *size)
+{
+    fsemu_video.drawable_size = *size;
+    // Also automatically set layout size to drawable size?
+    fsemu_layout_set_size(size);
+}
+
+// ---------------------------------------------------------------------------
+#if 0
+void fsemu_video_set_data_from_ui_thread(fsemu_size_t *window_size,
+                                         fsemu_rect_t *client_area,
+                                         fsemu_rect_t *video_area,
+                                         fsemu_rect_t *video_rect)
+{
+    fsemu_mutex_lock(fsemu_video.ui_video_mutex);
+    fsemu_video.ui_thread_d.window_size = *window_size;
+    fsemu_video.ui_thread_d.client_area = *client_area;
+    fsemu_video.ui_thread_d.video_area = *video_area;
+    fsemu_video.ui_thread_d.video_rect = *video_rect;
+    fsemu_mutex_unlock(fsemu_video.ui_video_mutex);
+}
+
+static void fsemu_video_copy_thread_data(void)
+{
+    fsemu_mutex_lock(fsemu_video.ui_video_mutex);
+    fsemu_video.thread_d = fsemu_video.ui_thread_d;
+    fsemu_mutex_unlock(fsemu_video.ui_video_mutex);
+}
+
+void fsemu_video_thread_window_size(fsemu_size_t *size)
+{
+    *size = fsemu_video.thread_d.window_size;
+}
+
+void fsemu_video_thread_client_area(fsemu_rect_t *rect)
+{
+    *rect = fsemu_video.thread_d.client_area;
+}
+
+void fsemu_video_thread_video_area(fsemu_rect_t *rect)
+{
+    *rect = fsemu_video.thread_d.video_area;
+}
+
+void fsemu_video_thread_video_rect(fsemu_rect_t *rect)
+{
+    *rect = fsemu_video.thread_d.video_rect;
+}
+#endif
+// ---------------------------------------------------------------------------
 
 void fsemu_video_set_size_2(int width, int height)
 {
@@ -212,6 +298,10 @@ static void fsemu_video_convert_coordinates(SDL_Rect *out,
 void fsemu_video_render_gui_early(fsemu_gui_item_t *items)
 {
     fsemu_frame_log_epoch("Render GUI (early)\n");
+
+    // FIXME: Consider moving this elsewhere.
+    fsemu_videothread_copy_thread_data();
+
     if (items == NULL) {
         printf("WARNING: fsemu_video_render_gui_early items=NULL\n");
         return;

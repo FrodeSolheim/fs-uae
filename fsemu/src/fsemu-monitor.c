@@ -5,9 +5,23 @@
 #include "fsemu-sdl.h"
 #include "fsemu-window.h"
 
-static int g_fs_emu_monitor_count;
-// static fsemu_monitor_t g_fs_emu_monitors[FS_EMU_MONITOR_MAX_COUNT];
-static GArray *g_fs_emu_monitors;
+#ifdef FSEMU_LINUX
+#include <dlfcn.h>
+#endif
+
+typedef struct {
+    int x;
+    int y;
+    int w;
+    int h;
+    double scale;
+} fsemu_monitor_scale;
+
+static struct {
+    int count;
+    GArray *list;
+    fsemu_monitor_scale scales[FSEMU_MONITOR_MAX_COUNT];
+} fsemu_monitor;
 
 static gint fsemu_monitor_compare(gconstpointer a, gconstpointer b)
 {
@@ -17,11 +31,105 @@ static gint fsemu_monitor_compare(gconstpointer a, gconstpointer b)
     return am->rect.x - bm->rect.x;
 }
 
+#ifdef FSEMU_LINUX
+
+typedef struct {
+    int x, y;
+    int width, height;
+} fsemu_monitor_GdkRectangle;
+
+static void *fsemu_monitor_dlsym(void *handle, const char *name)
+{
+    void *result = dlsym(handle, name);
+    if (!result) {
+        printf("[DSPLY] [MONITOR] Could not load %s\n", name);
+        dlclose(handle);
+        return NULL;
+    }
+    return result;
+}
+
+static void fsemu_monitor_read_scale_via_gdk(void)
+{
+    void (*gdk_init)(int *argc, char ***argv);
+    void *(*gdk_display_get_default)(void);
+    int (*gdk_display_get_n_monitors)(void *display);
+    void *(*gdk_display_get_monitor)(void *display, int monitor_num);
+    void (*gdk_monitor_get_geometry)(void *monitor,
+                                     fsemu_monitor_GdkRectangle *geometry);
+    int (*gdk_monitor_get_scale_factor)(void *monitor);
+    void *handle = dlopen("libgdk-3.so.0", RTLD_GLOBAL | RTLD_LAZY);
+    if (!handle) {
+        printf("[DSPLY] [MONITOR] Could not open libgdk-3.so.0: %s\n",
+               dlerror());
+        return;
+    }
+    if (!(gdk_init = fsemu_monitor_dlsym(handle, "gdk_init"))) {
+        return;
+    }
+    if (!(gdk_display_get_default =
+              fsemu_monitor_dlsym(handle, "gdk_display_get_default"))) {
+        return;
+    }
+    if (!(gdk_display_get_n_monitors =
+              fsemu_monitor_dlsym(handle, "gdk_display_get_n_monitors"))) {
+        return;
+    }
+    if (!(gdk_display_get_monitor =
+              fsemu_monitor_dlsym(handle, "gdk_display_get_monitor"))) {
+        return;
+    }
+    if (!(gdk_monitor_get_geometry =
+              fsemu_monitor_dlsym(handle, "gdk_monitor_get_geometry"))) {
+        return;
+    }
+    if (!(gdk_monitor_get_scale_factor =
+              fsemu_monitor_dlsym(handle, "gdk_monitor_get_scale_factor"))) {
+        return;
+    }
+    char *argv[] = {NULL};
+    char **args = argv;
+    gdk_init(0, &args);
+    void *display = gdk_display_get_default();
+    if (!display) {
+        printf("[DSPLY] [MONITOR] Could not get default display\n");
+    }
+    int monitor_count = gdk_display_get_n_monitors(display);
+    for (int i = 0; i < monitor_count; i++) {
+        void *monitor = gdk_display_get_monitor(display, i);
+        if (monitor == NULL) {
+            continue;
+        }
+        fsemu_monitor_GdkRectangle rect;
+        gdk_monitor_get_geometry(monitor, &rect);
+        int scale = gdk_monitor_get_scale_factor(monitor);
+        printf("[DSPLY] %d %d %d %d: scale %d\n",
+               rect.x,
+               rect.y,
+               rect.width,
+               rect.height,
+               scale);
+        if (i < FSEMU_MONITOR_MAX_COUNT) {
+            fsemu_monitor.scales[i].x = rect.x * scale;
+            fsemu_monitor.scales[i].y = rect.y * scale;
+            fsemu_monitor.scales[i].w = rect.width * scale;
+            fsemu_monitor.scales[i].h = rect.height * scale;
+            fsemu_monitor.scales[i].scale = scale;
+        }
+    }
+    dlclose(handle);
+}
+
+#endif
+
 void fsemu_monitor_init(void)
 {
     fsemu_return_if_already_initialized();
 
-    g_fs_emu_monitors = g_array_new(false, true, sizeof(fsemu_monitor_t));
+#ifdef FSEMU_LINUX
+    fsemu_monitor_read_scale_via_gdk();
+#endif
+    fsemu_monitor.list = g_array_new(false, true, sizeof(fsemu_monitor_t));
 
     // FIXME: Move SDL-specific code to sdlwindow module (later)
 
@@ -54,43 +162,71 @@ void fsemu_monitor_init(void)
             monitor.rect.h = rect.h;
             monitor.refresh_rate = mode.refresh_rate;
         }
-        fsemu_window_log("[DISPLAY] %d: %dx%d+%d+%d @%d\n",
+
+        monitor.scale = 1.0;
+#ifdef FSEMU_LINUX
+        for (int i = 0; i < FSEMU_MONITOR_MAX_COUNT; i++) {
+            if (monitor.rect.x == fsemu_monitor.scales[i].x &&
+                monitor.rect.y == fsemu_monitor.scales[i].y &&
+                monitor.rect.w == fsemu_monitor.scales[i].w &&
+                monitor.rect.h == fsemu_monitor.scales[i].h) {
+                monitor.scale = fsemu_monitor.scales[i].scale;
+                fsemu_window_log(
+                    "[DSPLY] Found scale factor for monitor: %0.2f\n",
+                    monitor.scale);
+                break;
+            }
+        }
+#endif
+#if 0
+        float ddpi, hdpi, vdpi;
+        if (SDL_GetDisplayDPI(display_index, &ddpi, &hdpi, &vdpi) == 0) {
+            fsemu_window_log("[DSPLY] %d: %f %f %f\n",
+                            display_index,
+                            ddpi, hdpi, vdpi);
+        } else {
+
+        }
+#endif
+
+        fsemu_window_log("[DSPLY] %d: %dx%d+%d+%d %d Hz Scale %0.2f\n",
                          display_index,
                          monitor.rect.w,
                          monitor.rect.h,
                          monitor.rect.x,
                          monitor.rect.y,
-                         monitor.refresh_rate);
-        g_array_append_val(g_fs_emu_monitors, monitor);
+                         monitor.refresh_rate,
+                         monitor.scale);
+        g_array_append_val(fsemu_monitor.list, monitor);
         display_index += 1;
     }
-    g_fs_emu_monitor_count = display_index;
+    fsemu_monitor.count = display_index;
 
-    g_array_sort(g_fs_emu_monitors, fsemu_monitor_compare);
-    for (int i = 0; i < g_fs_emu_monitor_count; i++) {
-        g_array_index(g_fs_emu_monitors, fsemu_monitor_t, i).index = i;
+    g_array_sort(fsemu_monitor.list, fsemu_monitor_compare);
+    for (int i = 0; i < fsemu_monitor.count; i++) {
+        g_array_index(fsemu_monitor.list, fsemu_monitor_t, i).index = i;
         /* Set physical position flags (left, m-left, m-right, right) */
         int flags = 0;
         for (int j = 0; j < 4; j++) {
-            int pos = (g_fs_emu_monitor_count - 1.0) * j / 3.0 + 0.5;
+            int pos = (fsemu_monitor.count - 1.0) * j / 3.0 + 0.5;
             fsemu_window_log("Monitor - j %d pos %d\n", j, pos);
             if (pos == i) {
                 flags |= (1 << j);
             }
         }
         fsemu_window_log("Monitor index %d flags %d\n", i, flags);
-        g_array_index(g_fs_emu_monitors, fsemu_monitor_t, i).flags = flags;
+        g_array_index(fsemu_monitor.list, fsemu_monitor_t, i).flags = flags;
     }
 }
 
 int fsemu_monitor_count(void)
 {
-    return g_fs_emu_monitor_count;
+    return fsemu_monitor.count;
 }
 
 bool fsemu_monitor_get_by_index(int index, fsemu_monitor_t *monitor)
 {
-    if (index < 0 || index >= g_fs_emu_monitor_count) {
+    if (index < 0 || index >= fsemu_monitor.count) {
         monitor->index = -1;
         monitor->flags = 0;
         monitor->rect.x = 0;
@@ -102,17 +238,37 @@ bool fsemu_monitor_get_by_index(int index, fsemu_monitor_t *monitor)
     }
     SDL_assert(monitor != NULL);
     memcpy(monitor,
-           &g_array_index(g_fs_emu_monitors, fsemu_monitor_t, index),
+           &g_array_index(fsemu_monitor.list, fsemu_monitor_t, index),
            sizeof(fsemu_monitor_t));
     return true;
 }
 
 bool fsemu_monitor_get_by_flag(int flag, fsemu_monitor_t *monitor)
 {
-    for (int i = 0; i < g_fs_emu_monitor_count; i++) {
-        if ((g_array_index(g_fs_emu_monitors, fsemu_monitor_t, i).flags &
+    for (int i = 0; i < fsemu_monitor.count; i++) {
+        if ((g_array_index(fsemu_monitor.list, fsemu_monitor_t, i).flags &
              flag) == flag) {
             fsemu_window_log("Monitor: found index %d for flag %d\n", i, flag);
+            return fsemu_monitor_get_by_index(i, monitor);
+        }
+    }
+    fsemu_monitor_get_by_index(0, monitor);
+    return false;
+}
+
+bool fsemu_monitor_get_by_rect(fsemu_rect_t *rect, fsemu_monitor_t *monitor)
+{
+    for (int i = 0; i < fsemu_monitor.count; i++) {
+        fsemu_monitor_t *m =
+            &g_array_index(fsemu_monitor.list, fsemu_monitor_t, i);
+        if (m->rect.x == rect->x && m->rect.y == rect->y &&
+            m->rect.w == rect->w && m->rect.h == rect->h) {
+            fsemu_window_log("Monitor: found index %d for rect %d,%d,%d,%d\n",
+                             i,
+                             rect->x,
+                             rect->y,
+                             rect->w,
+                             rect->h);
             return fsemu_monitor_get_by_index(i, monitor);
         }
     }

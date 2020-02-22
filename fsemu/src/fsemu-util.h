@@ -12,6 +12,9 @@ extern "C" {
 #define fsemu_assert SDL_assert
 #endif
 
+#define FSEMU_UTIL_MALLOC(t) (t *) malloc(sizeof(t));
+#define FSEMU_UTIL_MALLOC0(t) (t *) calloc(1, sizeof(t));
+
 /** Always returns a string (empty if not set) */
 const char *fsemu_getenv(const char *name);
 

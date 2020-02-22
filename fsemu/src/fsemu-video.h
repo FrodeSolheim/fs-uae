@@ -49,16 +49,47 @@ typedef struct {
 extern "C" {
 #endif
 
-/** This - if called - must be called before fsemu_video_init. */
+// This - if called - must be called before fsemu_video_init.
 void fsemu_video_set_renderer(int renderer);
 
-/** Can be called before fsemu_video_init and fsemu_window_init. */
+// Can be called before fsemu_video_init and fsemu_window_init.
 void fsemu_video_disallow_vsync(int disallow_vsync);
 
-/** Can be called before fsemu_video_init and fsemu_window_init. */
+// Can be called before fsemu_video_init and fsemu_window_init.
 void fsemu_video_set_vsync(int vsync);
 
+// Initialize the video subsystem. Can safely be called more than once.
 void fsemu_video_init(void);
+
+// ---------------------------------------------------------------------------
+
+// This is not for the renderer. The video thread has its own copy.
+
+void fsemu_video_drawable_size(fsemu_size_t *size);
+
+void fsemu_video_set_drawable_size(fsemu_size_t *size);
+
+// ---------------------------------------------------------------------------
+#if 0
+// Copy of window size, safe to call from the video thread.
+void fsemu_video_thread_window_size(fsemu_size_t *size);
+
+// Copy of client area, safe to call from the video thread.
+void fsemu_video_thread_client_area(fsemu_rect_t *rect);
+
+// Copy of video area, safe to call from the video thread.
+void fsemu_video_thread_video_area(fsemu_rect_t *rect);
+
+// Copy of video rect, safe to call from the video thread. This is the video
+// output rectangle in window coordinates.
+void fsemu_video_thread_video_rect(fsemu_rect_t *rect);
+
+void fsemu_video_set_data_from_ui_thread(fsemu_size_t *window_size,
+                                         fsemu_rect_t *client_area,
+                                         fsemu_rect_t *video_area,
+                                         fsemu_rect_t *video_rect);
+#endif
+// ---------------------------------------------------------------------------
 
 void fsemu_video_set_size_2(int width, int height);
 

@@ -214,6 +214,11 @@ void fsemu_startupinfo_init(void)
 
 static void fsemu_startupinfo_set_visible(bool visible)
 {
+#if 1
+    // FIXME: Temporarily disabled
+    visible = false;
+#endif
+
     fsemu_gui_item_set_visible(&fsemu_startupinfo.background, visible);
     fsemu_gui_item_set_visible(&fsemu_startupinfo.cover_item, visible);
     fsemu_gui_item_set_visible(&fsemu_startupinfo.title_item, visible);

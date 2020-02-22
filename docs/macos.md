@@ -9,3 +9,9 @@ can enable this with the following environment variable:
 
 You can specify this in FS-UAE Launcher Settings: Advanced Settings.
 Remember to write it as shown above in all caps.
+
+## Input monitoring
+
+In order to see individual mouse devices, you may have to go to 
+Preferences -> Security & Privacy -> Input Monitoring, and allow access
+for FS-UAE, FS-UAE Launcher and FS-UAE Arcade.

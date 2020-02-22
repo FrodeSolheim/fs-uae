@@ -9,6 +9,8 @@
 #include "fsemu-titlebar.h"
 #include "fsemu-types.h"
 #include "fsemu-util.h"
+#include "fsemu-video.h"
+#include "fsemu-videothread.h"
 
 #define FSEMU_WINDOW_TITLE_MAX 128
 
@@ -23,6 +25,8 @@ static struct fsemu_window {
     fsemu_size_t size;
     fsemu_rect_t initial_fullscreen_rect;
     fsemu_rect_t initial_rect;
+    fsemu_point_t initial_center;
+    double ui_scale;
 } fsemu_window;
 
 // static SDL_Window *fsemu_sdl_window;
@@ -43,6 +47,11 @@ static void fsemu_window_read_options(void)
                      rect->y,
                      rect->w,
                      rect->h);
+
+    fsemu_point_t *point = &fsemu_window.initial_center;
+    fsemu_option_read_int(FSEMU_OPTION_WINDOW_CENTER_X, &point->x);
+    fsemu_option_read_int(FSEMU_OPTION_WINDOW_CENTER_Y, &point->y);
+    fsemu_window_log("Initial window center: %d %d\n", point->x, point->y);
 
     rect = &fsemu_window.initial_fullscreen_rect;
     fsemu_option_read_int(FSEMU_OPTION_FULLSCREEN_X, &rect->x);
@@ -69,6 +78,11 @@ void fsemu_window_init(void)
 
     fsemu_window_read_options();
 
+    // Set default value for ui_scale, it is only changed if a specific scale
+    // factor can be deduced for Linux. Must be set _before_
+    // fsemu_sdlwindow_create is called.
+    fsemu_window.ui_scale = 1.0;
+
     fsemu_sdlwindow_init();
     fsemu_sdlwindow_create();
     fsemu_sdlwindow_show();
@@ -81,19 +95,25 @@ void fsemu_window_init(void)
 
 // ---------------------------------------------------------------------------
 
-void fsemu_window_initial_rect(fsemu_rect_t *rect)
+void fsemu_window_initial_rect(fsemu_rect_t *rect, double ui_scale)
 {
     *rect = fsemu_window.initial_rect;
     if (rect->w == 0 || rect->h == 0) {
         rect->x = -1;
         rect->y = -1;
-        rect->w = 960;
-        rect->h = 540;
+        rect->w = 960 * ui_scale;
+        rect->h = 540 * ui_scale;
+        if (fsemu_window.initial_center.x) {
+            rect->x = fsemu_window.initial_center.x - rect->w / 2;
+        }
+        if (fsemu_window.initial_center.y) {
+            rect->y = fsemu_window.initial_center.y - rect->h / 2;
+        }
     }
     if (!fsemu_titlebar_use_system()) {
         fsemu_window_log(
             "System titlebar is false: increase initial window rect\n");
-        rect->h += fsemu_titlebar_height();
+        rect->h += fsemu_titlebar_unscaled_height() * ui_scale;
     }
 }
 
@@ -112,6 +132,16 @@ void fsemu_window_initial_fullscreen_rect(fsemu_rect_t *rect)
 }
 
 // ---------------------------------------------------------------------------
+
+double fsemu_window_ui_scale(void)
+{
+    return fsemu_window.ui_scale;
+}
+
+void fsemu_window_set_ui_scale(double ui_scale)
+{
+    fsemu_window.ui_scale = ui_scale;
+}
 
 bool fsemu_window_active(void)
 {
@@ -158,6 +188,29 @@ void fsemu_window_set_title(const char *title)
     fsemu_window.title[FSEMU_WINDOW_TITLE_MAX - 1] = '\0';
 }
 
+// FIXME: Move/refactor
+static void fsemu_window_sync_data_to_video_thread(void)
+{
+    // FIXME: ui / video sync point - not very elegantly put here, do it
+    // elsewhere?
+    fsemu_size_t window_size;
+    fsemu_size_t drawable_size;
+    fsemu_rect_t client_area;
+    fsemu_rect_t video_area;
+    fsemu_rect_t video_rect;
+
+    fsemu_window_size(&window_size);
+    fsemu_video_drawable_size(&drawable_size);
+    fsemu_layout_client_area(&client_area);
+    fsemu_layout_video_area(&video_area);
+    fsemu_layout_video_rect(&video_rect);
+
+    fsemu_videothread_lock();
+    fsemu_videothread_set_data_from_ui_thread(
+        &window_size, &drawable_size, &client_area, &video_area, &video_rect);
+    fsemu_videothread_unlock();
+}
+
 // ---------------------------------------------------------------------------
 
 void fsemu_window_work(int timeout)
@@ -166,6 +219,11 @@ void fsemu_window_work(int timeout)
 
     // Perform periodic updates, check if fullscreen should be toggled, etc.
     fsemu_sdlwindow_update();
+
+    // printf("fsemu_window_work\n");
+
+    // FIXME: Move/refactor
+    fsemu_window_sync_data_to_video_thread();
 }
 
 // ---------------------------------------------------------------------------

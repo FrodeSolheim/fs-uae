@@ -14,6 +14,12 @@
 #include "fs-uae.h"
 #include "fsuae-options.h"
 
+#define AMIGA_WIDTH_MAX (752 / 2)
+#define AMIGA_HEIGHT_MAX (576 / 2)
+
+#define AMIGA_WIDTH (2 * AMIGA_WIDTH_MAX) // 752
+#define AMIGA_HEIGHT (2 * AMIGA_HEIGHT_MAX) // 576
+
 typedef struct zoom_mode {
     char *name;
     char *cname;
@@ -27,7 +33,8 @@ static zoom_mode g_zoom_modes[] = {
     /// TRANSLATORS: In context "Zoom: Auto"
     { N_("Auto"), NULL, 0, 0, 0, 0 },
     /// TRANSLATORS: In context "Zoom: Full Frame"
-    { N_("Full Frame"), "full", 0, 0, 752, 572 },
+    { N_("Full Frame"), "full", 0, 0, AMIGA_WIDTH, AMIGA_HEIGHT },
+    { "720x576", NULL, 16, 0, 720, 576 },
     { "720x568", NULL, 16, 3, 720, 568 },
     { "724x566", NULL, 2, 6, 724, 566 },
     { "704x566", NULL, 42, 6, 704, 566 },
@@ -753,9 +760,6 @@ static void toggle_zoom(int flags)
         g_last_non_auto_zoom_mode = g_zoom_mode;
     }
 }
-
-#define AMIGA_WIDTH 752
-#define AMIGA_HEIGHT 572
 
 #include <fs/emu/render.h>
 

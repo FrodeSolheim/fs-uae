@@ -110,7 +110,7 @@ void fsemu_sdlaudio_init(void)
 
     fsemu_audio_log("[SDL] Opened audio device\n");
     fsemu_audio_log("[SDL] Frequency: %d\n", have.freq);
-    fsemu_audio_log("[SDL] Format: %s (%d)d\n",
+    fsemu_audio_log("[SDL] Format: %s (%d)\n",
                     fsemu_sdlaudio_format_name(have.format),
                     have.format);
     fsemu_audio_log("[SDL] Channels: %d\n", have.channels);

@@ -3,6 +3,7 @@
 
 #ifdef FSEMU_SDL
 
+#include "fsemu-action.h"
 #include "fsemu-control.h"
 #include "fsemu-frame.h"
 #include "fsemu-layout.h"
@@ -11,6 +12,7 @@
 #include "fsemu-perfgui.h"
 #include "fsemu-quit.h"
 #include "fsemu-screenshot.h"
+#include "fsemu-sdlinput.h"
 #include "fsemu-startupinfo.h"
 #include "fsemu-time.h"
 #include "fsemu-titlebar.h"
@@ -69,7 +71,7 @@ void fsemu_sdlwindow_init(void)
 
 #ifdef FSEMU_MACOS
     // Default to off for smoother transitions, can enable with environment
-    // SDL_HINT_VIDEO_MACOS_FULLSCREEN_SPACES=1
+    // SDL_VIDEO_MACOS_FULLSCREEN_SPACES=1
     SDL_SetHint(SDL_HINT_VIDEO_MAC_FULLSCREEN_SPACES, "0");
 #endif
 
@@ -264,7 +266,7 @@ static SDL_HitTestResult fsemu_sdlwindow_hit_test_2(SDL_Window *window,
     int edge_width = 10;
     if (y < titlebar_height) {
         // FIXME: Call into titlebar module for button hit test
-        if (x < window_w - 120) {
+        if (x < window_w - 120 * fsemu_window_ui_scale()) {
             if (y < edge_width) {
                 return SDL_HITTEST_RESIZE_TOP;
             }
@@ -322,6 +324,24 @@ SDL_Window *fsemu_sdlwindow_create(void)
     flags |= SDL_WINDOW_HIDDEN;
 #endif
 
+    // Since we do not (necessarily) know what monitor the window will be
+    // displayed on (?), we for now try to find display scale only for
+    // monitor 0 for determinining window size
+    SDL_Rect display_bounds;
+    double ui_scale = 1.0;
+    if (SDL_GetDisplayBounds(0, &display_bounds) == 0) {
+        fsemu_monitor_t monitor;
+        if (fsemu_monitor_get_by_rect(&display_bounds, &monitor)) {
+            // rect.w *= monitor.scale;
+            // rect.h *= monitor.scale;
+            ui_scale = monitor.scale;
+            // fsemu_window_log("Scale window size by %0.2f => %dx%d\n",
+            //                  monitor.scale,
+            //                  rect.w,
+            //                  rect.h);
+        }
+    }
+
     fsemu_rect_t rect;
     if (fsemu_window_fullscreen()) {
         flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
@@ -335,7 +355,7 @@ SDL_Window *fsemu_sdlwindow_create(void)
 #endif
         fsemu_window_initial_fullscreen_rect(&rect);
     } else {
-        fsemu_window_initial_rect(&rect);
+        fsemu_window_initial_rect(&rect, ui_scale);
         if (rect.x == -1 && rect.y == -1) {
             rect.x = SDL_WINDOWPOS_CENTERED;
             rect.y = SDL_WINDOWPOS_CENTERED;
@@ -368,11 +388,26 @@ SDL_Window *fsemu_sdlwindow_create(void)
     flags |= SDL_WINDOW_ALLOW_HIGHDPI;
 
     // TODO: Test (and enable?) on Windows as well?
+#else
+    flags |= SDL_WINDOW_ALLOW_HIGHDPI;
 #endif
 
     SDL_Window *window = SDL_CreateWindow(
         fsemu_window_title(), rect.x, rect.y, rect.w, rect.h, flags);
     fsemu_window_log("Window %p\n", window);
+
+#if 1
+    // FIXME: Should find correct ui_scale now?
+    int display_index = SDL_GetWindowDisplayIndex(window);
+    if (SDL_GetDisplayBounds(display_index, &display_bounds) == 0) {
+        fsemu_monitor_t monitor;
+        if (fsemu_monitor_get_by_rect(&display_bounds, &monitor)) {
+            fsemu_window_log("Using scale %0.2f\n", monitor.scale);
+            fsemu_window_set_ui_scale(monitor.scale);
+        }
+    }
+#endif
+
     fsemu_sdlwindow_set_window(window);
     /*
         if (fsemu_custom_frame()) {
@@ -432,16 +467,27 @@ void fsemu_sdlwindow_show(void)
 static void fsemu_sdlwindow_fullscreen_to_window(void)
 {
 #ifdef FSEMU_MACOS
-    if (fsemu_titlebar_use_system()) {
+#if 1
+    if (!fsemu_titlebar_use_system()) {
         // On macOS 10.14, going back to windowed mode seems to ignore the
         // bordered status (we get a titlebar) , and on macOS 10.15, it does
         // kind of work, but we get a rounded bordless window instead. In both
         // cases, we enable/disable borders to work around this.
         fsemu_window_log(
             "Workaround fullscreen->window borderless on macOS\n");
-        SDL_SetWindowBordered(fsemu_sdlwindow.window, SDL_TRUE);
+
+        // fsemu_rect_t rect;
+        // SDL_GetWindowPosition(fsemu_sdlwindow.window, &rect.x, &rect.y);
+        // SDL_GetWindowSize(fsemu_sdlwindow.window, &rect.w, &rect.h);
+
+        // SDL_SetWindowBordered(fsemu_sdlwindow.window, SDL_TRUE);
         SDL_SetWindowBordered(fsemu_sdlwindow.window, SDL_FALSE);
+
+        // SDL_SetWindowPosition(fsemu_sdlwindow.window, rect.x, rect.y);
+        // SDL_SetWindowSize(fsemu_sdlwindow.window, rect.w, rect.h);
+        // fsemu_window_log("Window size is now %dx%d\n", rect.w, rect.h);
     }
+#endif
 #endif
     if (!fsemu_sdlwindow.was_fullscreen_initially) {
         return;
@@ -454,7 +500,7 @@ static void fsemu_sdlwindow_fullscreen_to_window(void)
     fsemu_window_log("First fullscren -> window transition\n\n");
     fsemu_sdlwindow.was_fullscreen_initially = false;
     fsemu_rect_t rect;
-    fsemu_window_initial_rect(&rect);
+    fsemu_window_initial_rect(&rect, fsemu_window_ui_scale());
     if (rect.x == -1 && rect.y == -1) {
         rect.x = SDL_WINDOWPOS_CENTERED;
         rect.y = SDL_WINDOWPOS_CENTERED;
@@ -516,6 +562,19 @@ void fsemu_sdlwindow_set_fullscreen(bool fullscreen)
     }
     fsemu_window_log("fsemu_sdlwindow_set_fullscreen %d\n", fullscreen);
     int fullscreen_mode = 0;
+#ifdef FSEMU_MACOS
+    if (!fsemu_titlebar_use_system() && fullscreen) {
+        // On macOS 10.14, going back to windowed mode seems to ignore the
+        // bordered status (we get a titlebar) , and on macOS 10.15, it does
+        // kind of work, but we get a rounded bordless window instead. In both
+        // cases, we enable + disable borders now to work around this.
+        fsemu_window_log(
+            "macOS workaround to avoid titlebar when restoring\n"
+        );
+        SDL_SetWindowBordered(fsemu_sdlwindow.window, SDL_TRUE);
+        SDL_SetWindowBordered(fsemu_sdlwindow.window, SDL_FALSE);
+    }
+#endif
     if (fullscreen) {
         fullscreen_mode = SDL_WINDOW_FULLSCREEN_DESKTOP;
         // FIXME: Support for legacy fullscreen?
@@ -600,6 +659,10 @@ static bool fsemu_sdlwindow_handle_keyboard_shortcut(SDL_Event *event)
     } else if (event->key.keysym.sym == SDLK_w) {
         fsemu_window_log("SDLK_w (toggle warp mode)\n");
         fsemu_control_toggle_warp();
+        return true;
+    } else if (event->key.keysym.sym == SDLK_z) {
+        fsemu_window_log("SDLK_z (cycle zoom mode)\n");
+        fsemu_layout_cycle_zoom_mode();
         return true;
     } else if (event->key.keysym.sym == SDLK_RETURN) {
         fsemu_window_log("SDLK_RETURN (toggle fullscreen)\n");
@@ -697,11 +760,21 @@ bool fsemu_sdlwindow_handle_event(SDL_Event *event)
         return true;
     }
 
+    static bool mod_press_only;
+
     if (event->type == SDL_KEYDOWN) {
+        mod_press_only = false;
         // fsemu_window_log("SDL_KEYDOWN\n");
         if (event->key.keysym.scancode == SDL_SCANCODE_F12) {
             fsemu_sdlwindow.f12_pressed = event->key.state != 0;
         }
+
+        if (!fsemu_sdlwindow.full_keyboard_emulation &&
+            event->key.keysym.scancode == FSEMU_KMOD_SCANCODE) {
+            fsemu_window_log("MOD key pressed\n");
+            mod_press_only = true;
+        }
+
         bool shortcut = false;
         if (fsemu_sdlwindow.f12_pressed) {
             fsemu_window_log("F12 key held down\n");
@@ -715,6 +788,9 @@ bool fsemu_sdlwindow_handle_event(SDL_Event *event)
             if (fsemu_sdlwindow_handle_keyboard_shortcut(event)) {
                 return true;
             }
+            // EDIT: Changed so we always avoid propagating key press when MOD
+            // is held.
+            return true;
         }
         if (fsemu_sdlwindow_prevent_modifier_pollution(event)) {
             return true;
@@ -723,7 +799,24 @@ bool fsemu_sdlwindow_handle_event(SDL_Event *event)
         if (event->key.keysym.scancode == SDL_SCANCODE_F12) {
             fsemu_sdlwindow.f12_pressed = false;
         }
+#if 0
+        if (!fsemu_sdlwindow.full_keyboard_emulation &&
+            event->key.keysym.scancode == FSEMU_KMOD_SCANCODE) {
+            if (mod_press_only) {
+                fsemu_window_log("MOD key press/release\n");
+            }
+            return true;
+        }
+#endif
         if (fsemu_sdlwindow_prevent_modifier_pollution(event)) {
+            if (mod_press_only) {
+                // Modifier key was pressed and released without any
+                // intervening key strokes. In this case, we open the menu.
+                fsemu_window_log("MOD key press/release\n");
+                fsemu_input_process_action(FSEMU_ACTION_OSMENU,
+                                           FSEMU_ACTION_STATE_MAX);
+                fsemu_input_process_action(FSEMU_ACTION_OSMENU, 0);
+            }
             return true;
         }
     }

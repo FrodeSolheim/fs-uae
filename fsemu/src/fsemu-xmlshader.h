@@ -7,6 +7,8 @@
 extern "C" {
 #endif
 
+void fsemu_xmlshader_module_init(void);
+
 #ifdef __cplusplus
 }
 #endif

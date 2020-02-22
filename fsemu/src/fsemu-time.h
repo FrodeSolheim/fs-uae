@@ -24,8 +24,16 @@ static inline int64_t fsemu_time_us(void)
 #endif
 }
 
+static inline int64_t fsemu_time_ms(void)
+{
+    return fsemu_time_us() / 1000;
+}
+
+// FIXME: Rename fsemu_time_sleep_us
 static inline void fsemu_sleep_us(int sleep_us)
 {
+    // FIXME: Consider using nanosleep (or check if g_usleep is good enough).
+    // Or even better: clock_nanosleep with CLOCK_MONOTONIC
 #ifdef FSEMU_GLIB
     g_usleep(sleep_us);
 #else
@@ -33,22 +41,15 @@ static inline void fsemu_sleep_us(int sleep_us)
 #endif
 }
 
+static inline void fsemu_time_sleep_ms(int sleep_ms)
+{
+    return fsemu_sleep_us(sleep_ms * 1000);
+}
+
+// FIXME: fsemu_time_sleep_until_us
+
 int64_t fsemu_time_wait_until_us(int64_t until_us);
 int64_t fsemu_time_wait_until_us_2(int64_t until_us, int64_t now);
-
-static inline int64_t fsemu_time_ms(void)
-{
-    return fsemu_time_us() / 1000;
-}
-
-static inline void fsemu_sleep_ms(int sleep_ms)
-{
-#ifdef FSEMU_GLIB
-    g_usleep(sleep_ms * 1000);
-#else
-#error Missing implementation of fsemu_sleep_ms
-#endif
-}
 
 #ifdef __cplusplus
 }
@@ -64,7 +65,7 @@ static inline void fsemu_sleep_ms(int sleep_ms)
 #define CLOCK_MONOTONIC 0
 #endif
 
-static inline int fsemu_clock_gettime(int clk_id, struct timespec *t)
+static inline int fsemu_time_clock_gettime_mach(int clk_id, struct timespec *t)
 {
     SDL_assert(clk_id == CLOCK_MONOTONIC);
     static mach_timebase_info_data_t timebase;
@@ -83,7 +84,8 @@ static inline int fsemu_clock_gettime(int clk_id, struct timespec *t)
     return 0;
 }
 
-#define clock_gettime fsemu_clock_gettime
+#define fsemu_time_clock_gettime fsemu_time_clock_gettime_mach
+#define clock_gettime fsemu_time_clock_gettime_mach
 
 #endif  // __MACH__
 

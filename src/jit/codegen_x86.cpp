@@ -106,10 +106,6 @@
 #endif
 
 #if defined(CPU_x86_64)
-/* Register R12 (and ESP) cannot be used with simple [r/m + disp32] addressing,
- * since r/m bits 100 implies SIB byte. Simplest fix is to not use these
- * registers. Also note that these registers are listed in the freescratch
- * function as well. */
 #ifdef UAE
 /* Register R12 (and ESP) cannot be used with simple [r/m + disp32] addressing,
  * since r/m bits 100 implies SIB byte. Simplest fix is to not use these
@@ -3393,10 +3389,12 @@ static __inline__ void raw_flags_set_zero_FLAGREG(int s, int tmp)
 {
 	raw_mov_l_rr(tmp,s);
 	raw_lahf(s); /* flags into ah */
+	SETOr(X86_AL); /* V flag into al */
 	raw_and_l_ri(s,0xffffbfff);
 	raw_and_l_ri(tmp,0x00004000);
 	raw_xor_l_ri(tmp,0x00004000);
 	raw_or_l(s,tmp);
+	raw_cmp_b_ri(X86_AL,-127); /* set V */
 	raw_sahf(s);
 }
 
@@ -4809,15 +4807,15 @@ LOWFUNC(NONE,NONE,2,raw_ftan_rr,(FW d, FR s))
 LENDFUNC(NONE,NONE,2,raw_ftan_rr,(FW d, FR s))
 
 #ifdef CPU_x86_64
-#define REX64 emit_byte(0x48);
+#define REX64() emit_byte(0x48)
 #else
-#define REX64
+#define REX64()
 #endif
 
 LOWFUNC(NONE,NONE,1,raw_fcuts_r,(FRW r))
 {
 	make_tos(r);     /* TOS = r */
-	REX64
+	REX64();
 	emit_byte(0x83);
 	emit_byte(0xc4);
 	emit_byte(0xfc); /* add -4 to esp */
@@ -4828,7 +4826,7 @@ LOWFUNC(NONE,NONE,1,raw_fcuts_r,(FRW r))
 	emit_byte(0x04);
 	emit_byte(0x24); /* fld load r as SINGLE from [esp] */
 	emit_byte(0x9b); /* let the CPU wait on FPU exceptions */
-	REX64
+	REX64();
 	emit_byte(0x83);
 	emit_byte(0xc4);
 	emit_byte(0x04); /* add +4 to esp */
@@ -4838,7 +4836,7 @@ LENDFUNC(NONE,NONE,1,raw_fcuts_r,(FRW r))
 LOWFUNC(NONE,NONE,1,raw_fcut_r,(FRW r))
 {
 	make_tos(r);     /* TOS = r */
-	REX64
+	REX64();
 	emit_byte(0x83);
 	emit_byte(0xc4);
 	emit_byte(0xf8); /* add -8 to esp */
@@ -4849,7 +4847,7 @@ LOWFUNC(NONE,NONE,1,raw_fcut_r,(FRW r))
 	emit_byte(0x04);
 	emit_byte(0x24); /* fld load r as DOUBLE from [esp] */
 	emit_byte(0x9b); /* let the CPU wait on FPU exceptions */
-	REX64
+	REX64();
 	emit_byte(0x83);
 	emit_byte(0xc4);
 	emit_byte(0x08); /* add +8 to esp */
@@ -5061,7 +5059,7 @@ LOWFUNC(NONE,NONE,2,raw_fatanh_rr,(FW d, FR s))
 	emit_byte(0xde);
 	emit_byte(0xf9);    /* fdivp (1+x)/(1-x) */
 	emit_byte(0xd9);
-	emit_byte(0xed);    /* fldl2e logN(2) */
+	emit_byte(0xed);    /* fldln2 logN(2) */
 	emit_byte(0xd9);
 	emit_byte(0xc9);    /* fxch swap logN(2) with (1+x)/(1-x) */
 	emit_byte(0xd9);
@@ -5101,7 +5099,7 @@ LOWFUNC(NONE,NONE,2,raw_fsinh_rr,(FW d, FR s))
 	if (tr>=0) {
 		emit_byte(0xd9);
 		emit_byte(0xca); /* fxch swap with temp-reg */
-		REX64
+		REX64();
 		emit_byte(0x83);
 		emit_byte(0xc4);
 		emit_byte(0xf4); /* add -12 to esp */
@@ -5149,7 +5147,7 @@ LOWFUNC(NONE,NONE,2,raw_fsinh_rr,(FW d, FR s))
 		emit_byte(0xca); /* fxch swap temp-reg with e^-x in tr */
 		emit_byte(0xde);
 		emit_byte(0xe9); /* fsubp (e^x)-(e^-x) */
-		REX64
+		REX64();
 		emit_byte(0x83);
 		emit_byte(0xc4);
 		emit_byte(0x0c); /* delayed add +12 to esp */
@@ -5194,7 +5192,7 @@ LOWFUNC(NONE,NONE,2,raw_fcosh_rr,(FW d, FR s))
 	if (tr>=0) {
 		emit_byte(0xd9);
 		emit_byte(0xca); /* fxch swap with temp-reg */
-		REX64
+		REX64();
 		emit_byte(0x83);
 		emit_byte(0xc4);
 		emit_byte(0xf4); /* add -12 to esp */
@@ -5240,7 +5238,7 @@ LOWFUNC(NONE,NONE,2,raw_fcosh_rr,(FW d, FR s))
 		emit_byte(0x24); /* fld load temp-reg from [esp] */
 		emit_byte(0xd9);
 		emit_byte(0xca); /* fxch swap temp-reg with e^-x in tr */
-		REX64
+		REX64();
 		emit_byte(0x83);
 		emit_byte(0xc4);
 		emit_byte(0x0c); /* delayed add +12 to esp */
@@ -5283,7 +5281,7 @@ LOWFUNC(NONE,NONE,2,raw_ftanh_rr,(FW d, FR s))
 	if (tr>=0) {
 		emit_byte(0xd9);
 		emit_byte(0xca); /* fxch swap with temp-reg */
-		REX64
+		REX64();
 		emit_byte(0x83);
 		emit_byte(0xc4);
 		emit_byte(0xf4); /* add -12 to esp */
@@ -5337,7 +5335,7 @@ LOWFUNC(NONE,NONE,2,raw_ftanh_rr,(FW d, FR s))
 		emit_byte(0xca); /* fxch swap temp-reg with e^-x in tr */
 		emit_byte(0xde);
 		emit_byte(0xf9); /* fdivp ((e^x)-(e^-x))/((e^x)+(e^-x)) */
-		REX64
+		REX64();
 		emit_byte(0x83);
 		emit_byte(0xc4);
 		emit_byte(0x0c); /* delayed add +12 to esp */

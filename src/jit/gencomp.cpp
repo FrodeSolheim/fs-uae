@@ -92,17 +92,16 @@
 #define DISABLE_I_FSCC
 #define DISABLE_I_MOVE16
 */
-
-#ifdef FSUAE // NL
-char *ua (const char *s) {
-	return strdup(s);
-}
-#endif
 #endif /* UAE */
 
 #ifdef UAE
 #define JIT_PATH "jit/"
 #ifdef FSUAE
+
+char *ua (const char *s) {
+    return strdup(s);
+}
+
 #define GEN_PATH "gen/"
 #else
 #define GEN_PATH "jit/"
@@ -3121,7 +3120,11 @@ generate_includes (FILE * f)
 	fprintf (f, "#include \"sysdeps.h\"\n");
 #ifdef UAE
 	fprintf (f, "#include \"options.h\"\n");
+#ifdef FSUAE
 	fprintf (f, "#include \"uae/memory.h\"\n");
+#else
+	fprintf (f, "#include \"memory.h\"\n");
+#endif
 #else
 	fprintf (f, "#include \"m68k.h\"\n");
 	fprintf (f, "#include \"memory-uae.h\"\n");

@@ -570,8 +570,7 @@ void fsemu_sdlwindow_set_fullscreen(bool fullscreen)
         // kind of work, but we get a rounded bordless window instead. In both
         // cases, we enable + disable borders now to work around this.
         fsemu_window_log(
-            "macOS workaround to avoid titlebar when restoring\n"
-        );
+            "macOS workaround to avoid titlebar when restoring\n");
         SDL_SetWindowBordered(fsemu_sdlwindow.window, SDL_TRUE);
         SDL_SetWindowBordered(fsemu_sdlwindow.window, SDL_FALSE);
     }

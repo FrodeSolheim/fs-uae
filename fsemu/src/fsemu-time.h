@@ -6,10 +6,10 @@
 
 #include "fsemu-common.h"
 #include "fsemu-config.h"
-
 #ifdef FSEMU_GLIB
 #include "fsemu-glib.h"
 #endif
+#include "fsemu-sdl.h"
 
 #ifdef __cplusplus
 extern "C" {

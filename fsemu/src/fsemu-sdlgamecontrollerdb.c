@@ -109,7 +109,7 @@ const char *fsemu_sdlgamecontrollerdb_mappings[] = {
 "Twin USB PS2 Adapter,"
 "a:b2,b:b1,back:b8,dpdown:h0.4,dpleft:h0.8,dpright:h0.2,dpup:h0.1,leftshoulder:b6,leftstick:b10,lefttrigger:b4,leftx:a0,lefty:a1,rightshoulder:b7,rightstick:b11,righttrigger:b5,rightx:a3,righty:a2,start:b9,x:b3,y:b0,",
 "030000001008000001e5000010010000,"
-"NEXT SNES Controller,"
+"Generic SNES Controller,"
 "a:b2,b:b1,back:b8,dpdown:+a1,dpleft:-a0,dpright:+a0,dpup:-a1,leftshoulder:b4,rightshoulder:b6,start:b9,x:b3,y:b0,",
 "03000000100800000300000010010000,"
 "USB Gamepad,"
@@ -484,14 +484,17 @@ const char *fsemu_sdlgamecontrollerdb_mappings[] = {
 "USB gamepad,"
 "a:b2,b:b1,back:b8,dpdown:h0.4,dpleft:h0.8,dpright:h0.2,dpup:h0.1,leftshoulder:b4,leftstick:b10,lefttrigger:b6,leftx:a0,lefty:a1,rightshoulder:b5,rightstick:b11,righttrigger:b7,rightx:a3,righty:a4,start:b9,x:b3,y:b0,",
 "03000000790000000600000010010000,"
-"DragonRise Inc. Generic USB Joystick,"
-"a:b2,b:b1,back:b8,dpdown:h0.4,dpleft:h0.8,dpright:h0.2,dpup:h0.1,leftshoulder:b4,leftstick:b10,lefttrigger:b6,leftx:a0,lefty:a1,rightshoulder:b5,rightstick:b11,righttrigger:b7,rightx:a3,righty:a4,start:b9,x:b3,y:b0,",
+"Retro-Bit GameCube Controller,"
+"a:b2,b:b3,dpdown:h0.4,dpleft:h0.8,dpright:h0.2,dpup:h0.1,lefttrigger:b4,leftx:a0,lefty:a1,rightshoulder:b6,righttrigger:b5,rightx:a3,righty:a4,start:b9,x:b0,y:b1,",
 "03000000790000001100000000010000,"
 "USB Gamepad1,"
 "a:b2,b:b1,back:b8,dpdown:a0,dpleft:a1,dpright:a2,dpup:a4,start:b9,",
 "03000000790000001100000010010000,"
 "Retrolink SNES Controller,"
 "a:b2,b:b1,back:b8,dpdown:+a1,dpleft:-a0,dpright:+a0,dpup:-a1,leftshoulder:b4,rightshoulder:b5,start:b9,x:b3,y:b0,",
+"03000000790000001100000011010000,"
+"Retro-Bit Mega Drive - Saturn Controller,"
+"a:b1,b:b2,back:b8,dpdown:+a1,dpleft:-a0,dpright:+a0,dpup:-a1,leftshoulder:b5,lefttrigger:b6,rightshoulder:b4,righttrigger:b7,start:b9,x:b0,y:b3,",
 "03000000790000004318000010010000,"
 "Mayflash GameCube Controller Adapter,"
 "a:b1,b:b0,dpdown:h0.4,dpleft:h0.8,dpright:h0.2,dpup:h0.1,lefttrigger:a3,leftx:a0,lefty:a1,rightshoulder:b7,righttrigger:a4,rightx:a5,righty:a2,start:b9,x:b2,y:b3,",
@@ -500,7 +503,7 @@ const char *fsemu_sdlgamecontrollerdb_mappings[] = {
 "a:b1,b:b2,dpdown:b14,dpleft:b15,dpright:b13,dpup:b12,lefttrigger:a3,leftx:a0,lefty:a1,rightshoulder:b7,righttrigger:a4,rightx:a5,righty:a2,start:b9,x:b0,y:b3,",
 "0300000079000000ae18000011010000,"
 "Mayflash Mega Drive Adapter,"
-"+leftx:h0.2,+lefty:h0.4,-leftx:h0.8,-lefty:h0.1,a:b0,",
+"a:b0,b:b1,back:b7,dpdown:h0.4,dpleft:h0.8,dpright:h0.2,dpup:h0.1,leftshoulder:b6,rightshoulder:b2,start:b9,x:b3,y:b4,",
 "0300000079000000af18000001010000,"
 "Mayflash Mega Drive Adapter,"
 "+leftx:h0.2,+lefty:h0.4,-leftx:h0.8,-lefty:h0.1,a:b0,",
@@ -671,7 +674,7 @@ const char *fsemu_sdlgamecontrollerdb_mappings[] = {
 "a:b1,b:b0,back:b10,dpdown:h0.4,dpleft:h0.8,dpright:h0.2,dpup:h0.1,leftshoulder:b6,leftstick:b13,lefttrigger:a4,leftx:a0,lefty:a1,rightshoulder:b7,rightstick:b14,righttrigger:a5,rightx:a2,righty:a3,start:b11,x:b4,y:b3,",
 "03000000c82d00000260000011010000,"
 "8BitDo SN30 Pro+,"
-"a:b1,b:b0,back:b10,dpdown:h0.4,dpleft:h0.8,dpright:h0.2,dpup:h0.1,leftshoulder:b6,leftstick:b13,lefttrigger:b8,leftx:a0,lefty:a1,rightshoulder:b7,rightstick:b14,righttrigger:b9,rightx:a2,righty:a3,start:b11,x:b4,y:b3,",
+"a:b1,b:b0,back:b10,dpdown:h0.4,dpleft:h0.8,dpright:h0.2,dpup:h0.1,guide:b2,leftshoulder:b6,leftstick:b13,lefttrigger:b8,leftx:a0,lefty:a1,rightshoulder:b7,rightstick:b14,righttrigger:b9,rightx:a2,righty:a3,start:b11,x:b4,y:b3,",
 "03000000c82d00000310000011010000,"
 "8BitDo NES30,"
 "a:b0,b:b1,back:b10,dpdown:h0.4,dpleft:h0.8,dpright:h0.2,dpup:h0.1,leftshoulder:b7,lefttrigger:b6,rightshoulder:b9,righttrigger:b8,start:b11,x:b3,y:b4,",

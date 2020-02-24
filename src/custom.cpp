@@ -9149,7 +9149,9 @@ static int64_t line_ended_at;
 
 // ---------------------------------------------------------------------------
 
+#ifdef FSEMU_CPU_X86
 #include <emmintrin.h>
+#endif
 
 static int64_t linesleep_fsemu(int64_t now, int64_t until)
 {
@@ -9158,11 +9160,13 @@ static int64_t linesleep_fsemu(int64_t now, int64_t until)
 	if (now < until) {
 		int64_t sleep_start = now;
 		while (now < until) {
+#ifdef FSEMU_CPU_X86
 			// A bit uncertain about the effects of doing _mm_pause here, but
 			// it isn't likely to do any harm, and could have positive effects
 			// (lower power usage? yield some more to otherhyper threading
 			// core?). We haven't got any better thing to do...
 			_mm_pause();
+#endif
 			now = fsemu_time_us();
 		}
 		fsemu_frame_sleep_duration += now - sleep_start;

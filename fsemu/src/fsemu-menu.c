@@ -1,6 +1,7 @@
 #define FSEMU_INTERNAL
 #include "fsemu-menu.h"
 
+#include <stdlib.h>
 #include <string.h>
 
 #include "fsemu-refable.h"

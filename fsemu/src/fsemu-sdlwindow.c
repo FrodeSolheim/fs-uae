@@ -6,6 +6,7 @@
 #include "fsemu-action.h"
 #include "fsemu-control.h"
 #include "fsemu-frame.h"
+#include "fsemu-input.h"
 #include "fsemu-layout.h"
 #include "fsemu-monitor.h"
 #include "fsemu-mouse.h"

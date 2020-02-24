@@ -1,8 +1,11 @@
 #define FSEMU_INTERNAL
 #include "fsemu-theme.h"
 
+#include "fsemu-data.h"
 #include "fsemu-gui.h"
 #include "fsemu-image.h"
+#include "fsemu-stream.h"
+#include "fsemu-video.h"
 #include "fsemu-widget.h"
 
 static struct {

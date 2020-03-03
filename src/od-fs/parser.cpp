@@ -795,16 +795,11 @@ int setbaud (long baud)
 	}
 
 #ifdef WITH_MIDI
-	if(baud == 31400) {
+	if (baud == 31400) {
 		/* MIDI baud-rate */
 		if (!midi_ready) {
-			/* any config given? */
-			const char *midi_cfg = NULL;
-			if (_tcsnicmp(currprefs.sername, "midi:", 5) == 0) {
-				midi_cfg = currprefs.sername + 5;
-			}
 			/* try to open midi devices */
-			if (midi_open(midi_cfg)) {
+			if (midi_open()) {
 				midi_ready = 1;
 			}
 		}

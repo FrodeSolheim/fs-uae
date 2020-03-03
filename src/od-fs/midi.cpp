@@ -12,7 +12,7 @@
 #ifdef WITH_MIDI
 
 #include "midi.h"
-
+#include "options.h"
 #include "portmidi.h"
 #include "porttime.h"
 
@@ -235,7 +235,7 @@ static PortMidiStream *open_in_stream(void)
 	return NULL;
 }
 
-int midi_open(const char *cfg)
+static int midi_open_with_config(const char *cfg)
 {
 	write_log(_T("midi_open(%s)\n"), cfg);
 
@@ -272,6 +272,16 @@ int midi_open(const char *cfg)
 		write_log(_T("midi_open(): failed!\n"));
 		return 0;
 	}
+}
+
+int midi_open(void)
+{
+	/* any config given? */
+	const char *midi_cfg = NULL;
+	if (_tcsnicmp(currprefs.sername, "midi:", 5) == 0) {
+		midi_cfg = currprefs.sername + 5;
+	}
+	return midi_open_with_config(midi_cfg);
 }
 
 void midi_close(void)
@@ -522,6 +532,32 @@ int midi_recv_byte(uint8_t *ch)
 		TRACE((_T("midi_recv: %02x\n"), *ch));
 	}
 	return res;
+}
+
+// The following functions are added for compatibility with WinUAE / PCem code.
+// The Midi_Parse function has not been tested yet, so this might not work
+// correctly.
+
+int Midi_Open(void)
+{
+	return midi_open();
+}
+
+void Midi_Close(void)
+{
+	midi_close();
+}
+
+int Midi_Parse(midi_direction_e direction, uint8_t *c)
+{
+	// Result in WinUAE is always 0
+	int result = 0;
+	if (direction == midi_output) {
+		midi_send_byte(*c);
+	} else {
+		// FIXME: Log warning?
+	}
+	return result;
 }
 
 #endif /* WITH_MIDI */

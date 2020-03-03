@@ -306,7 +306,7 @@ AC_DEFINE([USE_PNG], [1], [Define to 1 to use libpng])
 PKG_CHECK_MODULES([PNG], [libpng])
 
 # midi support via PortMidi
-AC_ARG_WITH([midi], 
+AC_ARG_WITH([midi],
     [AS_HELP_STRING([--without-midi], [serial Midi support via PortMidi])])
 AS_IF([test "x$with_midi" != xno], [
     AC_CHECK_LIB([portmidi], [Pm_Initialize],[FOUND_PORTMIDI_LIB=yes])

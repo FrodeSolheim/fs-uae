@@ -23,8 +23,8 @@
 
 #ifdef _WIN32
 #include <windows.h>
-#include "midi.h"
 #endif
+#include "midi.h"
 
 // ibm.h defines a macro printf to redirect to pclog. This interferes
 // with some GNU attributes used when importing UAE config files.
@@ -271,13 +271,13 @@ int rom_present(char *s)
 {
 	return 0;
 }
-static int midi_open;
+static int midi_opened;
 
 void midi_write(uint8_t v)
 {
 #ifdef WITH_MIDI
-	if (!midi_open) {
-		midi_open = Midi_Open();
+	if (!midi_opened) {
+		midi_opened = Midi_Open();
 	}
 	Midi_Parse(midi_output, &v);
 #endif
@@ -286,10 +286,10 @@ void midi_write(uint8_t v)
 void pcem_close(void)
 {
 #ifdef WITH_MIDI
-	if (midi_open)
+	if (midi_opened)
 		Midi_Close();
 #endif
-	midi_open = 0;
+	midi_opened = 0;
 }
 
 // void (*code)() = (void(*)(void))&block->data[BLOCK_START];

@@ -326,10 +326,15 @@ static int out_sysex_bits;
 
 static void write_msg(PmMessage msg)
 {
+	static int last_result;
 	PmError err = Pm_WriteShort(out, 0, msg);
 	if(err != pmNoError) {
-		write_log(_T("MIDI OUT: write error: %d!\n"), err);
+		// Throttle the errors by not logging repeated identical errors.
+		if (err != last_result) {
+			write_log(_T("MIDI OUT: Write error: %d!\n"), err);
+		}
 	}
+	last_result = err;
 	TRACE((_T("-> midi_out: %04x\n"), msg));
 }
 

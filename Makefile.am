@@ -971,8 +971,7 @@ libfsemu2_a_SOURCES = \
 	fsemu/src/fsemu-window.c \
 	fsemu/src/fsemu-window.h \
 	fsemu/src/fsemu-xmlshader.c \
-	fsemu/src/fsemu-xmlshader.h \
-	fsemu/src/gamemode_client.h
+	fsemu/src/fsemu-xmlshader.h
 endif
 
 if BUILTIN_CEF
@@ -1575,8 +1574,8 @@ EXTRA_DIST = $(TESTS) $(EXTRA_TESTS) \
 	flac/include/FLAC/ordinals.h \
 	flac/include/FLAC/stream_decoder.h \
 	flac/include/FLAC/stream_encoder.h \
-	gamemode/LICENSE.txt \
-	gamemode/README.md \
+	fsemu/gamemode/LICENSE.txt \
+	fsemu/gamemode/README.md \
 	fs-uae.spec \
 	icon/fs-uae.ico \
 	glad/include/glad/glad.h \

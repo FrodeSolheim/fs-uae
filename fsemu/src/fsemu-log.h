@@ -16,6 +16,11 @@ extern "C" {
 void fsemu_log_null(const char *format, ...);
 
 #define fsemu_log printf
+#define fsemu_log_trace printf
+#define fsemu_log_debug printf
+#define fsemu_log_info printf
+#define fsemu_log_warning printf
+#define fsemu_log_error printf
 #define fsemu_warning printf
 
 #endif  // FSEMU_LOG_H_

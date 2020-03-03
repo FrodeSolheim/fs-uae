@@ -28,11 +28,12 @@
 char *g_fs_uae_config_file_path = "";
 char *g_fs_uae_config_dir_path = "";
 
-static void flush_stdout(void) {
+static void flush_stdout(void)
+{
     fflush(stdout);
 }
 
-static char *joystick_config_name(const char* name, int with_number)
+static char *joystick_config_name(const char *name, int with_number)
 {
     const char *in = name;
     char *result = malloc(strlen(name) + 1);
@@ -127,15 +128,14 @@ static void list_joysticks(void)
     }
     printf("# SDL_NumJoysticks(): %d\n", SDL_NumJoysticks());
     flush_stdout();
-    for(int i = 0; i < SDL_NumJoysticks(); i++) {
+    for (int i = 0; i < SDL_NumJoysticks(); i++) {
         SDL_Joystick *joystick = SDL_JoystickOpen(i);
 
 #ifdef USE_SDL2
-        char *name = fs_ml_input_fix_joystick_name(
-            SDL_JoystickName(joystick), 0);
+        char *name =
+            fs_ml_input_fix_joystick_name(SDL_JoystickName(joystick), 0);
 #else
-        char *name = fs_ml_input_fix_joystick_name(
-            SDL_JoystickName(i), 0);
+        char *name = fs_ml_input_fix_joystick_name(SDL_JoystickName(i), 0);
 #endif
         printf("J: %s\n", name);
         flush_stdout();
@@ -173,9 +173,11 @@ static void print_events(void)
     GList *iterator = list;
     int k = 0;
     while (iterator) {
-        printf("{\"type\": \"keyboard-device-added\", \"device\": %d, "
-               "\"name\": \"%s\"}\n",
-               k++, (const char *) iterator->data);
+        printf(
+            "{\"type\": \"keyboard-device-added\", \"device\": %d, \"name\": "
+            "\"%s\"}\n",
+            k++,
+            (const char *) iterator->data);
         flush_stdout();
         iterator = g_list_next(iterator);
     }
@@ -183,9 +185,11 @@ static void print_events(void)
 
     printf("# Mice:\n");
     flush_stdout();
-    printf("{\"type\": \"mouse-device-added\", \"device\": %d, "
-           "\"name\": \"%s\"}\n",
-           0, "Mouse");
+    printf(
+        "{\"type\": \"mouse-device-added\", \"device\": %d, \"name\": "
+        "\"%s\"}\n",
+        0,
+        "Mouse");
     flush_stdout();
 
     int count = ManyMouse_Init();
@@ -193,13 +197,17 @@ static void print_events(void)
         for (int i = 0; i < count; i++) {
             const char *name = ManyMouse_DeviceName(i);
             if (name[0] == 0 || g_ascii_strcasecmp(name, "mouse") == 0) {
-                printf("{\"type\": \"mouse-device-added\", \"device\": %d, "
-                       "\"name\": \"%s\"}\n",
-                       i + 1, "Unnamed Mouse");
+                printf(
+                    "{\"type\": \"mouse-device-added\", \"device\": %d, "
+                    "\"name\": \"%s\"}\n",
+                    i + 1,
+                    "Unnamed Mouse");
             } else {
-                printf("{\"type\": \"mouse-device-added\", \"device\": %d, "
-                       "\"name\": \"%s\"}\n",
-                       i + 1, ManyMouse_DeviceName(i));
+                printf(
+                    "{\"type\": \"mouse-device-added\", \"device\": %d, "
+                    "\"name\": \"%s\"}\n",
+                    i + 1,
+                    ManyMouse_DeviceName(i));
             }
             flush_stdout();
         }
@@ -221,79 +229,90 @@ static void print_events(void)
     while (do_quit == 0) {
         SDL_WaitEvent(&event);
         switch (event.type) {
-        case SDL_JOYBUTTONDOWN:
-        case SDL_JOYBUTTONUP:
-            printf("{\"type\": \"%s\", \"device\": %d, "
-                   "\"button\": %d, \"state\": %d}\n",
-                   event.type == SDL_JOYBUTTONDOWN ? "joy-button-down" :
-                   "joy-button-up", event.jbutton.which, event.jbutton.button,
-                   event.jbutton.state);
-            break;
-        case SDL_JOYHATMOTION:
-            printf("{\"type\": \"joy-hat-motion\", \"device\": %d, "
-                   "\"hat\": %d, \"state\": %d}\n",
-                   event.jbutton.which, event.jhat.hat, event.jhat.value);
-            break;
-        case SDL_JOYAXISMOTION:
-            if (startup > 0) {
-                if (fs_get_monotonic_time() - startup < 1000.0) {
-                    // at least on Linux, it has been observed that you get
-                    // a (full negative) axis motion event per axis on
-                    // startup.
-                    printf("# Ignored startup axis event\n");
-                    break;
-                } else {
-                    startup = 0;
+            case SDL_JOYBUTTONDOWN:
+            case SDL_JOYBUTTONUP:
+                printf(
+                    "{\"type\": \"%s\", \"device\": %d, \"button\": %d, "
+                    "\"state\": %d}\n",
+                    event.type == SDL_JOYBUTTONDOWN ? "joy-button-down"
+                                                    : "joy-button-up",
+                    event.jbutton.which,
+                    event.jbutton.button,
+                    event.jbutton.state);
+                break;
+            case SDL_JOYHATMOTION:
+                printf(
+                    "{\"type\": \"joy-hat-motion\", \"device\": %d, \"hat\": "
+                    "%d, \"state\": %d}\n",
+                    event.jbutton.which,
+                    event.jhat.hat,
+                    event.jhat.value);
+                break;
+            case SDL_JOYAXISMOTION:
+                if (startup > 0) {
+                    if (fs_get_monotonic_time() - startup < 1000.0) {
+                        // at least on Linux, it has been observed that you get
+                        // a (full negative) axis motion event per axis on
+                        // startup.
+                        printf("# Ignored startup axis event\n");
+                        break;
+                    } else {
+                        startup = 0;
+                    }
                 }
-            }
 #if 0
             if (event.jaxis.value > -2000 && event.jaxis.value < 2000) {
                 break;
             }
 #endif
-            printf("{\"type\": \"joy-axis-motion\", \"device\": %d, "
-                   "\"axis\": %d, \"state\": %d}\n",
-                   event.jbutton.which, event.jaxis.axis, event.jaxis.value);
-            break;
-        case SDL_JOYDEVICEADDED:
-            printf("# Joystick device added\n");
-            SDL_Joystick *joystick = SDL_JoystickOpen(event.jdevice.which);
+                printf(
+                    "{\"type\": \"joy-axis-motion\", \"device\": %d, "
+                    "\"axis\": %d, \"state\": %d}\n",
+                    event.jbutton.which,
+                    event.jaxis.axis,
+                    event.jaxis.value);
+                break;
+            case SDL_JOYDEVICEADDED:
+                printf("# Joystick device added\n");
+                SDL_Joystick *joystick = SDL_JoystickOpen(event.jdevice.which);
 
-            char *name = fs_ml_input_fix_joystick_name(
-                SDL_JoystickName(joystick), 0);
+                char *name = fs_ml_input_fix_joystick_name(
+                    SDL_JoystickName(joystick), 0);
 
-            char *name2 = strdup(name);
-            char *c = name2;
-            while (*c) {
-                // simple hack, replacing a couple of chars to (easily)
-                // make the name valid json.
-                if (*c == '\"') {
-                    *c = '\'';
+                char *name2 = strdup(name);
+                char *c = name2;
+                while (*c) {
+                    // simple hack, replacing a couple of chars to (easily)
+                    // make the name valid json.
+                    if (*c == '\"') {
+                        *c = '\'';
+                    }
+                    if (*c == '\\') {
+                        *c = '/';
+                    }
+                    c++;
                 }
-                if (*c == '\\') {
-                    *c = '/';
-                }
-                c++;
-            }
-            printf("{\"type\": \"joy-device-added\", \"device\": %d, "
-                   "\"name\": \"%s\", \"buttons\": %d, \"axes\": %d, "
-                   "\"hats\": %d, \"balls\": %d}\n",
-                   event.jdevice.which, name2,
-                   SDL_JoystickNumButtons(joystick),
-                   SDL_JoystickNumAxes(joystick),
-                   SDL_JoystickNumHats(joystick),
-                   SDL_JoystickNumBalls(joystick));
-            free(name2);
-            break;
-        case SDL_JOYDEVICEREMOVED:
-            printf("# Joystick device removed\n");
-            printf("{\"type\": \"joy-device-removed\", \"device\": %d}\n",
-                   event.jdevice.which);
-            break;
-        case SDL_QUIT:
-            printf("# Received quit signal\n");
-            do_quit = 1;
-            break;
+                printf(
+                    "{\"type\": \"joy-device-added\", \"device\": %d, "
+                    "\"name\": \"%s\", \"buttons\": %d, \"axes\": %d, "
+                    "\"hats\": %d, \"balls\": %d}\n",
+                    event.jdevice.which,
+                    name2,
+                    SDL_JoystickNumButtons(joystick),
+                    SDL_JoystickNumAxes(joystick),
+                    SDL_JoystickNumHats(joystick),
+                    SDL_JoystickNumBalls(joystick));
+                free(name2);
+                break;
+            case SDL_JOYDEVICEREMOVED:
+                printf("# Joystick device removed\n");
+                printf("{\"type\": \"joy-device-removed\", \"device\": %d}\n",
+                       event.jdevice.which);
+                break;
+            case SDL_QUIT:
+                printf("# Received quit signal\n");
+                do_quit = 1;
+                break;
         }
         flush_stdout();
     }
@@ -301,9 +320,8 @@ static void print_events(void)
 #endif
 }
 
-static void print_state(SDL_Joystick* joystick, const char* name)
+static void print_state(SDL_Joystick *joystick, const char *name)
 {
-
     int num_buttons = SDL_JoystickNumButtons(joystick);
     int num_hats = SDL_JoystickNumHats(joystick);
     int num_axes = SDL_JoystickNumAxes(joystick);
@@ -343,7 +361,8 @@ int g_fs_ml_ncmdshow;
 HINSTANCE g_fs_ml_hinstance;
 #endif
 
-static void print_usage(void) {
+static void print_usage(void)
+{
     printf("\nUsage:\n");
     printf("  fs-uae-device-helper --list\n");
     printf("  fs-uae-device-helper <device-name>\n");
@@ -351,7 +370,7 @@ static void print_usage(void) {
     printf("\n");
 }
 
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
     printf("# FS-UAE Device Helper %s\n", PACKAGE_VERSION);
     flush_stdout();
@@ -378,7 +397,7 @@ int main(int argc, char* argv[])
         return 0;
     }
 
-    char* compare_name = joystick_config_name(argv[1], 1);
+    char *compare_name = joystick_config_name(argv[1], 1);
 
     printf("# SDL_Init(SDL_INIT_JOYSTICK)\n");
     if (SDL_Init(SDL_INIT_JOYSTICK) < 0) {
@@ -390,17 +409,16 @@ int main(int argc, char* argv[])
     for (int i = 0; i < num_joysticks; i++) {
         SDL_Joystick *joystick = SDL_JoystickOpen(i);
 #ifdef USE_SDL2
-        char *name = fs_ml_input_fix_joystick_name(
-            SDL_JoystickName(joystick), 1);
+        char *name =
+            fs_ml_input_fix_joystick_name(SDL_JoystickName(joystick), 1);
 #else
-        char *name = fs_ml_input_fix_joystick_name(
-            SDL_JoystickName(i), 1);
+        char *name = fs_ml_input_fix_joystick_name(SDL_JoystickName(i), 1);
 #endif
         /* fs_ml_input_unique_device_name either returns name, or frees it
          * and return another name, so name must be malloced and owned by
          * caller. */
         name = fs_ml_input_unique_device_name(name);
-        char* config_name = joystick_config_name(name, 1);
+        char *config_name = joystick_config_name(name, 1);
         printf("# %s -- %s\n", config_name, compare_name);
         if (strcmp(config_name, compare_name) == 0) {
             print_state(joystick, config_name);

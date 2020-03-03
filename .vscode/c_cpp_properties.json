@@ -4,6 +4,7 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}",
+                "${workspaceFolder}/fsemu/src",
                 "${workspaceFolder}/gen",
                 "${workspaceFolder}/src",
                 "${workspaceFolder}/src/jit",

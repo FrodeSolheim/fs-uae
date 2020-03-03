@@ -47,20 +47,20 @@ static const char *fsemu_sdlaudio_format_name(SDL_AudioFormat format)
             return "S16LSB";
         case AUDIO_S16MSB:
             return "S16MSB";
-        // case AUDIO_S16SYS:
-        // return "S16SYS";
+            // case AUDIO_S16SYS:
+            // return "S16SYS";
         case AUDIO_U16LSB:
             return "U16LSB";
         case AUDIO_U16MSB:
             return "U16MSB";
-        // case AUDIO_U16SYS:
-        // return "U16SYS";
+            // case AUDIO_U16SYS:
+            // return "U16SYS";
         case AUDIO_S32LSB:
             return "S32LSB";
         case AUDIO_S32MSB:
             return "S32MSB";
-        // case AUDIO_S32SYS:
-        // return "S32SYS";
+            // case AUDIO_S32SYS:
+            // return "S32SYS";
         case AUDIO_F32LSB:
             return "F32LSB";
         case AUDIO_F32MSB:

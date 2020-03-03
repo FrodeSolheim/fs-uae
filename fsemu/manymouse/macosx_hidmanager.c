@@ -433,4 +433,3 @@ const ManyMouseDriver *ManyMouseDriver_hidmanager = 0;
 #endif  /* ifdef Mac OS X blocker */
 
 /* end of macosx_hidmanager.c ... */
-

@@ -2,16 +2,16 @@
 #include "config.h"
 #endif
 
-#include <uae/uae.h>
 #include <fs/conf.h>
 #include <fs/emu.h>
-#include <stdlib.h>
 #include <fs/i18n.h>
 #include <glib.h>
+#include <stdlib.h>
+#include <uae/uae.h>
 
-#include "fsuae-options.h"
-#include "fsuae-drives.h"
 #include "fs-uae.h"
+#include "fsuae-drives.h"
+#include "fsuae-options.h"
 
 static int next_uaehfi(void)
 {
@@ -87,7 +87,7 @@ void fs_uae_configure_cdrom(void)
     if (path) {
         path = fs_uae_expand_path_and_free(path);
         path = fs_uae_resolve_path_and_free(path, FS_UAE_CD_PATHS);
-        //set_default_dirs_from_file_path(path);
+        // set_default_dirs_from_file_path(path);
         // FIXME: can possibly remove temp / ,image now
         char *temp;
         if (fs_config_true("cdrom_drive_0_delay")) {
@@ -124,8 +124,8 @@ void fs_uae_configure_cdrom(void)
     if (is_cdtv_cd32()) {
         /* CDTV / CD32 models automatically get a CD-ROM drive */
     } else {
-        const char *controller = fs_config_get_const_string(
-            "cdrom_drive_0_controller");
+        const char *controller =
+            fs_config_get_const_string("cdrom_drive_0_controller");
         if (controller == NULL) {
             controller = get_default_cd_controller();
         }
@@ -133,8 +133,8 @@ void fs_uae_configure_cdrom(void)
 
         int hfi = next_uaehfi();
         char *uaekey = g_strdup_printf("uaehf%d", hfi);
-        char *uaeval = g_strdup_printf("cd0,ro,:,0,0,0,2048,0,,%s",
-                                       uae_controller);
+        char *uaeval =
+            g_strdup_printf("cd0,ro,:,0,0,0,2048,0,,%s", uae_controller);
         amiga_set_option(uaekey, uaeval);
         g_free(uaekey);
         g_free(uaeval);
@@ -158,22 +158,23 @@ void fs_uae_configure_cdrom(void)
     }
 }
 
-static void configure_hard_drive_directory(
-    int index, const char *path, const char *device, int read_only,
-    int boot_priority)
+static void configure_hard_drive_directory(int index,
+                                           const char *path,
+                                           const char *device,
+                                           int read_only,
+                                           int boot_priority)
 {
     char *type = g_strdup("dir");
 
     char *mount_name;
-    char *label_option_name = g_strdup_printf(
-        "hard_drive_%d_label", index);
+    char *label_option_name = g_strdup_printf("hard_drive_%d_label", index);
     char *label_option = fs_config_get_string(label_option_name);
     if (label_option) {
         mount_name = label_option;
     } else {
         mount_name = g_path_get_basename(path);
         int stop = 0;
-        for(int i = 0; mount_name[i]; i++) {
+        for (int i = 0; mount_name[i]; i++) {
             if (mount_name[i] == '(') {
                 stop = i;
                 break;
@@ -193,9 +194,12 @@ static void configure_hard_drive_directory(
     fs_emu_log("read only: %d\n", read_only);
     fs_emu_log("boot priority: %d\n", boot_priority);
 
-    char *filesystem2_value = g_strdup_printf(
-        "%s,%s:%s:%s,%d", read_only ? "ro" : "rw", device, mount_name, path,
-        boot_priority);
+    char *filesystem2_value = g_strdup_printf("%s,%s:%s:%s,%d",
+                                              read_only ? "ro" : "rw",
+                                              device,
+                                              mount_name,
+                                              path,
+                                              boot_priority);
     amiga_set_option("filesystem2", filesystem2_value);
 
     int hfi = next_uaehfi();
@@ -210,9 +214,11 @@ static void configure_hard_drive_directory(
     g_free(type);
 }
 
-static void configure_hard_drive_image(
-    int index, const char *path, const char *device, int read_only,
-    int boot_priority)
+static void configure_hard_drive_image(int index,
+                                       const char *path,
+                                       const char *device,
+                                       int read_only,
+                                       int boot_priority)
 {
     int rdb_mode = 0;
     char *key = NULL;
@@ -249,15 +255,14 @@ static void configure_hard_drive_image(
                 rdb_mode = 1;
             }
         } else {
-            fs_emu_log("WARNING: error reading 4 bytes from HD "
-                       "file\n");
+            fs_emu_log("WARNING: error reading 4 bytes from HD file\n");
         }
     }
     if (f != NULL) {
         fclose(f);
     }
 
-    //char *type = fs_strdup("hdf");
+    // char *type = fs_strdup("hdf");
     int sectors = 32;
     int surfaces = 1;
     int reserved = 2;
@@ -276,8 +281,7 @@ static void configure_hard_drive_image(
     }
     g_free(key);
     file_system = fs_uae_expand_path_and_free(file_system);
-    file_system = fs_uae_resolve_path_and_free(file_system,
-                                               FS_UAE_HD_PATHS);
+    file_system = fs_uae_resolve_path_and_free(file_system, FS_UAE_HD_PATHS);
     if (file_system[0] && !fs_path_exists(file_system)) {
         fs_emu_warning("file system handler \"%s\" not found", file_system);
         return;
@@ -304,10 +308,17 @@ static void configure_hard_drive_image(
     fs_emu_log("block size: %d\n", block_size);
     fs_emu_log("file system: %s\n", file_system);
 
-    char *hardfile2_value = g_strdup_printf(
-        "%s,%s:%s,%d,%d,%d,%d,%d,%s,%s", read_only ? "ro" : "rw", device, path,
-        sectors, surfaces, reserved, block_size, boot_priority, file_system,
-        uae_controller);
+    char *hardfile2_value = g_strdup_printf("%s,%s:%s,%d,%d,%d,%d,%d,%s,%s",
+                                            read_only ? "ro" : "rw",
+                                            device,
+                                            path,
+                                            sectors,
+                                            surfaces,
+                                            reserved,
+                                            block_size,
+                                            boot_priority,
+                                            file_system,
+                                            uae_controller);
     amiga_set_option("hardfile2", hardfile2_value);
 
     int hfi = next_uaehfi();
@@ -320,7 +331,7 @@ static void configure_hard_drive_image(
     free(hardfile2_value);
     free(uae_controller);
     free(file_system);
-    //free(type);
+    // free(type);
 }
 
 void fs_uae_configure_hard_drives()
@@ -363,23 +374,23 @@ void fs_uae_configure_hard_drives()
             virtual_hd = 1;
         } else if (g_str_has_suffix(path, ".zip")) {
             virtual_hd = 1;
-            //read_write = ro_string;
+            // read_write = ro_string;
             read_only = 1;
         }
 
         key = g_strdup_printf("hard_drive_%d_read_only", i);
         if (fs_config_get_boolean(key) == 1) {
-            //read_write = ro_string;
+            // read_write = ro_string;
             read_only = 1;
         }
         g_free(key);
 
         if (virtual_hd) {
-            configure_hard_drive_directory(i, path, device, read_only,
-                                           boot_priority);
+            configure_hard_drive_directory(
+                i, path, device, read_only, boot_priority);
         } else {
-            configure_hard_drive_image(i, path, device, read_only,
-                                       boot_priority);
+            configure_hard_drive_image(
+                i, path, device, read_only, boot_priority);
         }
 
         g_free(device);
@@ -409,7 +420,7 @@ void fs_uae_configure_floppies()
     char option_floppyxsound[] = "floppy0sound";
     char option_floppyxsoundext[] = "floppy0soundext";
     int auto_num_drives = cfg->default_floppy_drive_count;
-    for(int i = 0; i < 4; i++) {
+    for (int i = 0; i < 4; i++) {
         option_floppy_drive_x[13] = '0' + i;
         option_floppy_drive_x_sounds[13] = '0' + i;
         option_floppyx[6] = '0' + i;
@@ -425,13 +436,13 @@ void fs_uae_configure_floppies()
 
         if (path[0] != '\0') {
             if (g_str_has_prefix(path, "dat://")) {
-
             } else {
                 path = fs_uae_expand_path_and_free(path);
                 path = fs_uae_resolve_path_and_free(path, FS_UAE_FLOPPY_PATHS);
                 if (!g_file_test(path, G_FILE_TEST_EXISTS)) {
-                    fs_emu_warning("Not found: %s", fs_config_get_const_string(
-                                       option_floppy_drive_x));
+                    fs_emu_warning(
+                        "Not found: %s",
+                        fs_config_get_const_string(option_floppy_drive_x));
                 }
             }
             auto_num_drives = MAX(auto_num_drives, i + 1);
@@ -441,11 +452,11 @@ void fs_uae_configure_floppies()
                              cfg->default_floppy_drive_type);
         free(path);
 
-        const char *floppy_sounds = fs_config_get_const_string(
-            option_floppy_drive_x_sounds);
+        const char *floppy_sounds =
+            fs_config_get_const_string(option_floppy_drive_x_sounds);
         if (floppy_sounds) {
-            fs_log("custom floppy sounds for drive %d: %s\n", i,
-                   floppy_sounds);
+            fs_log(
+                "custom floppy sounds for drive %d: %s\n", i, floppy_sounds);
             amiga_set_option(option_floppyxsound, "-1");
             amiga_set_option(option_floppyxsoundext, floppy_sounds);
         }
@@ -475,8 +486,7 @@ void fs_uae_configure_floppies()
         amiga_set_option(option_floppyxtype, "-1");
     }
 
-    int volume = fs_config_get_int_clamped(
-                OPTION_FLOPPY_DRIVE_VOLUME, 0, 100);
+    int volume = fs_config_get_int_clamped(OPTION_FLOPPY_DRIVE_VOLUME, 0, 100);
     if (volume == FS_CONFIG_NONE) {
         volume = 20;
     }
@@ -489,8 +499,8 @@ void fs_uae_configure_floppies()
     }
     amiga_set_int_option("floppy_volume", 100 - volume);
 
-    volume = fs_config_get_int_clamped(
-                OPTION_FLOPPY_DRIVE_VOLUME_EMPTY, 0, 100);
+    volume =
+        fs_config_get_int_clamped(OPTION_FLOPPY_DRIVE_VOLUME_EMPTY, 0, 100);
     if (volume != FS_CONFIG_NONE) {
         for (int i = 0; i < 4; i++) {
             char *key = g_strdup_printf("floppy%dsoundvolume_empty", i);

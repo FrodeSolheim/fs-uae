@@ -22,9 +22,11 @@ void fsemu_menu_ref(fsemu_menu_t *menu);
 
 void fsemu_menu_unref(fsemu_menu_t *menu);
 
-int fsemu_menu_item_count(void);
+int fsemu_menu_count_items(fsemu_menu_t *menu);
 
-fsemu_menu_item_t *fsemu_menu_items(void);
+fsemu_menu_item_t *fsemu_menu_get_item(fsemu_menu_t *menu, int index);
+
+// fsemu_menu_item_t *fsemu_menu_items(void);
 
 // FIXME: Ownership to reference? Terminology; add vs assign?
 void fsemu_menu_add_item(fsemu_menu_t *menu, fsemu_menu_item_t *item);
@@ -55,13 +57,26 @@ void fsemu_menu_item_set_flag(fsemu_menu_item_t *item, uint32_t flag);
 bool fsemu_menu_item_heading(fsemu_menu_item_t *item);
 void fsemu_menu_item_set_heading(fsemu_menu_item_t *item, bool heading);
 
+bool fsemu_menu_item_selectable(fsemu_menu_item_t *item);
+
 bool fsemu_menu_item_enabled(fsemu_menu_item_t *item);
 void fsemu_menu_item_set_enabled(fsemu_menu_item_t *item, bool enabled);
+
+void *fsemu_menu_item_data(fsemu_menu_item_t *item);
+void fsemu_menu_item_set_data(fsemu_menu_item_t *item, void *data);
+
+typedef fsemu_menu_t *(*fsemu_menu_item_on_activate_f)(
+    fsemu_menu_item_t *item);
+
+void fsemu_menu_item_on_activate(fsemu_menu_item_t *item,
+                                 fsemu_menu_item_on_activate_f on_activate);
 
 typedef void (*fsemu_menu_item_activate_f)(void);
 
 void fsemu_menu_item_set_on_activate(fsemu_menu_item_t *item,
                                      fsemu_menu_item_activate_f on_activate);
+
+fsemu_menu_t *fsemu_menu_item_activate(fsemu_menu_item_t *item);
 
 #ifdef __cplusplus
 }

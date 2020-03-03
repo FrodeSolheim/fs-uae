@@ -14,6 +14,10 @@ extern "C" {
 
 void fsemu_font_init(void);
 
+void fsemu_font_ref(fsemu_font_t *font);
+
+void fsemu_font_unref(fsemu_font_t *font);
+
 fsemu_font_t *fsemu_font_load(const char *name, int size);
 
 fsemu_image_t *fsemu_font_render_text_to_image(fsemu_font_t *font,

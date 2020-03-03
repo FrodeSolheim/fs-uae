@@ -8,6 +8,7 @@
 #include "fsemu-frame.h"
 #include "fsemu-input.h"
 #include "fsemu-layout.h"
+#include "fsemu-module.h"
 #include "fsemu-monitor.h"
 #include "fsemu-mouse.h"
 #include "fsemu-perfgui.h"
@@ -22,13 +23,15 @@
 #include "fsemu-video.h"
 #include "fsemu-window.h"
 
-#ifdef FSUAE
-#include <fs/emu/input.h>
-#endif
+// #ifdef FSUAE
+// #include <fs/emu/input.h>
+// #endif
 
 // ---------------------------------------------------------------------------
 
 static struct {
+    bool initialized;
+
     SDL_Window *window;
     fsemu_rect_t rect;
     bool fullscreen;
@@ -37,7 +40,9 @@ static struct {
     bool was_borderless_initially;
 
     bool f12_pressed;
+    int64_t mod_press_release_at;
     bool full_keyboard_emulation;
+    SDL_GLContext gl_context;
 
     // FIXME: Might have to separate between mouse captured and
     // mouse captured+relative.
@@ -60,45 +65,6 @@ static struct {
 
     bool no_event_polling;
 } fsemu_sdlwindow;
-
-// ---------------------------------------------------------------------------
-
-void fsemu_sdlwindow_init(void)
-{
-    fsemu_return_if_already_initialized();
-
-    fsemu_window_log("SDL_Init(SDL_INIT_EVERYTHING)\n");
-    SDL_Init(SDL_INIT_EVERYTHING);
-
-#ifdef FSEMU_MACOS
-    // Default to off for smoother transitions, can enable with environment
-    // SDL_VIDEO_MACOS_FULLSCREEN_SPACES=1
-    SDL_SetHint(SDL_HINT_VIDEO_MAC_FULLSCREEN_SPACES, "0");
-#endif
-
-    fsemu_titlebar_init();
-    fsemu_monitor_init();
-
-    fsemu_sdlwindow.default_cursor = SDL_GetDefaultCursor();
-    fsemu_sdlwindow.size_we_cursor =
-        SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZEWE);
-    fsemu_sdlwindow.size_ns_cursor =
-        SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZENS);
-    fsemu_sdlwindow.size_nesw_cursor =
-        SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZENESW);
-    fsemu_sdlwindow.size_nwse_cursor =
-        SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZENWSE);
-    fsemu_sdlwindow.current_cursor = fsemu_sdlwindow.default_cursor;
-
-    // Do not minimize SDL_Window if it loses key focus in fullscreen mode.
-    // Override with environment variable SDL_VIDEO_MINIMIZE_ON_FOCUS_LOSS=1
-    SDL_SetHint(SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "0");
-
-    // Bogus initial value to ensure swap interval is set at least once.
-    // One would think the default value was 0 already, but this does not
-    // seem to always be the case.
-    fsemu_sdlwindow.swap_interval = -1337;
-}
 
 // ---------------------------------------------------------------------------
 
@@ -199,9 +165,43 @@ static bool fsemu_sdlwindow_want_cursor(int64_t now)
     return want_cursor;
 }
 
+static void fsemu_sdlwindow_open_menu(void)
+{
+    fsemu_input_process_action(FSEMU_ACTION_OSMENU, FSEMU_ACTION_STATE_MAX);
+    fsemu_input_process_action(FSEMU_ACTION_OSMENU, 0);
+}
+
+static void fsemu_sdlwindow_open_menu_delayed(void)
+{
+    // We need to wait a bit and see if this window looses focus in order
+    // to conclude whether Mod+Tab was pressed or not.
+    fsemu_sdlwindow.mod_press_release_at = fsemu_time_us();
+}
+
+static void fsemu_sdlwindow_open_menu_abort(void)
+{
+    printf("fsemu_sdlwindow_open_menu_abort\n");
+    fsemu_sdlwindow.mod_press_release_at = 0;
+}
+
+static inline void fsemu_sdlwindow_open_menu_maybe(int64_t now_us)
+{
+    if (fsemu_sdlwindow.mod_press_release_at) {
+        if (now_us - fsemu_sdlwindow.mod_press_release_at > 10 * 1000) {
+            printf("fsemu_sdlwindow_open_maybe -> yes\n");
+            // 50 ms has passed without the window having lost focus.
+            // Let's assume the modifier key was pressed/released alone.
+            fsemu_sdlwindow_open_menu();
+            fsemu_sdlwindow.mod_press_release_at = 0;
+        }
+    }
+}
+
 void fsemu_sdlwindow_update(void)
 {
-    int64_t now = fsemu_time_us();
+    int64_t now_us = fsemu_time_us();
+
+    fsemu_sdlwindow_open_menu_maybe(now_us);
 
     // FIXME: The cursor-visible code should be moved to fsemu_window
     // or fsemu_mouse..
@@ -215,7 +215,7 @@ void fsemu_sdlwindow_update(void)
     int want_swap_interval = fsemu_video_vsync() > 0;
     fsemu_sdlwindow_set_swap_interval(want_swap_interval);
 
-    bool want_cursor = fsemu_sdlwindow_want_cursor(now);
+    bool want_cursor = fsemu_sdlwindow_want_cursor(now_us);
     if (fsemu_titlebar_want_cursor()) {
         want_cursor = true;
         // So we get the nice delay after we no longer want the cursor for
@@ -436,7 +436,8 @@ SDL_Window *fsemu_sdlwindow_create(void)
     SDL_SetWindowMinimumSize(window, min_width, min_height);
 
     // FIXME: Only if using OpenGL
-    SDL_GL_CreateContext(fsemu_sdlwindow_window());
+    fsemu_sdlwindow.gl_context =
+        SDL_GL_CreateContext(fsemu_sdlwindow_window());
 
     // Don't need to set viewport? Seems we get a window-covering viewport.
     // printf("glViewport 0, 0, %d, %d\n", rect.w, rect.h);
@@ -734,6 +735,8 @@ static bool fsemu_sdlwindow_handle_mouse_motion(int x,
     mouse_event.moved = true;
     mouse_event.x = x;
     mouse_event.y = y;
+    mouse_event.rel_x = xrel;
+    mouse_event.rel_y = yrel;
     // mouse_event.buttons[0] = 0;
     // mouse_event.button = 0;
     // mouse_event.state = 0;
@@ -761,12 +764,15 @@ bool fsemu_sdlwindow_handle_event(SDL_Event *event)
     }
 
     static bool mod_press_only;
+    static bool f12_press_only;
 
     if (event->type == SDL_KEYDOWN) {
         mod_press_only = false;
+        f12_press_only = false;
         // fsemu_window_log("SDL_KEYDOWN\n");
         if (event->key.keysym.scancode == SDL_SCANCODE_F12) {
             fsemu_sdlwindow.f12_pressed = event->key.state != 0;
+            f12_press_only = true;
         }
 
         if (!fsemu_sdlwindow.full_keyboard_emulation &&
@@ -808,15 +814,24 @@ bool fsemu_sdlwindow_handle_event(SDL_Event *event)
             return true;
         }
 #endif
-        if (fsemu_sdlwindow_prevent_modifier_pollution(event)) {
-            if (mod_press_only) {
-                // Modifier key was pressed and released without any
-                // intervening key strokes. In this case, we open the menu.
-                fsemu_window_log("MOD key press/release\n");
-                fsemu_input_process_action(FSEMU_ACTION_OSMENU,
-                                           FSEMU_ACTION_STATE_MAX);
-                fsemu_input_process_action(FSEMU_ACTION_OSMENU, 0);
-            }
+
+        // Ideally, we would want to make these (Mod/F12) modifiers
+        // configurable, but they are not at this time.
+        if (f12_press_only) {
+            // F12 key was pressed and released without any intervening key
+            // strokes. In this case, we open the menu.
+            fsemu_window_log("F12 key press/release\n");
+            fsemu_sdlwindow_open_menu();
+            return true;
+        }
+        if (mod_press_only || f12_press_only) {
+            // Modifier key was pressed and released without any intervening
+            // key strokes. In this case, we open the menu.
+            fsemu_window_log("MOD key press/release (maybe)\n");
+            // Actually, if we've just alt-tabbed, the tab press might have
+            // been caught by the windowing system, so it looks to the emulator
+            // like a single mod press, but it really isn't...
+            fsemu_sdlwindow_open_menu_delayed();
             return true;
         }
     }
@@ -875,6 +890,7 @@ bool fsemu_sdlwindow_handle_event(SDL_Event *event)
             break;
     }
 
+#if 0
     switch (event->type) {
         case SDL_USEREVENT:
 
@@ -900,11 +916,12 @@ bool fsemu_sdlwindow_handle_event(SDL_Event *event)
         case SDL_MOUSEMOTION:
         case SDL_MOUSEWHEEL:
         case SDL_TEXTINPUT:
-#ifdef FSUAE
-            fs_ml_event_loop_iteration(event);
-#endif
+// #ifdef FSUAE
+//             fs_ml_event_loop_iteration(event);
+// #endif
             break;
     }
+#endif
 
     if (fsemu_sdlinput_handle_event(event)) {
         return true;
@@ -1076,6 +1093,10 @@ bool fsemu_sdlwindow_handle_window_event(SDL_Event *event)
             fsemu_window_set_active(true);
             break;
         case SDL_WINDOWEVENT_FOCUS_LOST:
+            // We lost focus and this might be due to a Mod+Alt key
+            // combination. In which case we do not want to open the
+            // on-screen menu.
+            fsemu_sdlwindow_open_menu_abort();
             fsemu_window_log("Window %d lost keyboard focus\n",
                              event->window.windowID);
             fsemu_window_set_active(false);
@@ -1101,6 +1122,65 @@ bool fsemu_sdlwindow_handle_window_event(SDL_Event *event)
     }
 
     return true;
+}
+
+// ---------------------------------------------------------------------------
+
+static void fsemu_sdlwindow_quit(void)
+{
+    fsemu_window_log("fsemu_sdlwindow_quit\n");
+    if (fsemu_sdlwindow.gl_context) {
+        fsemu_window_log("Deleting OpenGL context\n");
+        SDL_GL_DeleteContext(fsemu_sdlwindow.gl_context);
+    }
+    if (fsemu_sdlwindow.window) {
+        fsemu_window_log("Destroying SDL window\n");
+        SDL_DestroyWindow(fsemu_sdlwindow.window);
+    }
+    fsemu_window_log("SDL_Quit\n");
+    SDL_Quit();
+}
+
+void fsemu_sdlwindow_init(void)
+{
+    if (fsemu_sdlwindow.initialized) {
+        return;
+    }
+    fsemu_sdlwindow.initialized = true;
+    fsemu_titlebar_log("Initializing sdlwindow module\n");
+    fsemu_module_on_quit(fsemu_sdlwindow_quit);
+
+    fsemu_window_log("SDL_Init(SDL_INIT_EVERYTHING)\n");
+    SDL_Init(SDL_INIT_EVERYTHING);
+
+#ifdef FSEMU_MACOS
+    // Default to off for smoother transitions, can enable with environment
+    // SDL_VIDEO_MACOS_FULLSCREEN_SPACES=1
+    SDL_SetHint(SDL_HINT_VIDEO_MAC_FULLSCREEN_SPACES, "0");
+#endif
+
+    fsemu_titlebar_init();
+    fsemu_monitor_init();
+
+    fsemu_sdlwindow.default_cursor = SDL_GetDefaultCursor();
+    fsemu_sdlwindow.size_we_cursor =
+        SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZEWE);
+    fsemu_sdlwindow.size_ns_cursor =
+        SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZENS);
+    fsemu_sdlwindow.size_nesw_cursor =
+        SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZENESW);
+    fsemu_sdlwindow.size_nwse_cursor =
+        SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZENWSE);
+    fsemu_sdlwindow.current_cursor = fsemu_sdlwindow.default_cursor;
+
+    // Do not minimize SDL_Window if it loses key focus in fullscreen mode.
+    // Override with environment variable SDL_VIDEO_MINIMIZE_ON_FOCUS_LOSS=1
+    SDL_SetHint(SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "0");
+
+    // Bogus initial value to ensure swap interval is set at least once.
+    // One would think the default value was 0 already, but this does not
+    // seem to always be the case.
+    fsemu_sdlwindow.swap_interval = -1337;
 }
 
 #endif  // FSEMU_SDL

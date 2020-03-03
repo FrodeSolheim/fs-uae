@@ -5,7 +5,7 @@
 #include "fsemu-log.h"
 
 #ifdef FSEMU_LINUX
-#include "gamemode_client.h"
+#include "../gamemode/lib/gamemode_client.h"
 #endif
 
 #include "fsemu-glib.h"

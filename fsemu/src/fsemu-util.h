@@ -1,6 +1,8 @@
 #ifndef FSEMU_UTIL_H_
 #define FSEMU_UTIL_H_
 
+#include <stdint.h>
+
 #include "fsemu-common.h"
 
 #ifdef __cplusplus
@@ -62,6 +64,36 @@ static inline int fsemu_mavgi(fsemu_mavgi_t *mavg,
         fsemu_mavgi(&unnamed_mavg, unnamed_values, size, value); \
     };
 #endif
+
+// ----------------------------------------------------------------------------
+
+typedef struct fsemu_util_spring {
+    double current;
+    double friction;
+    double from;
+    int64_t last_us;
+    double mass;
+    bool stopped;
+    double target;
+    double tension;
+    double velocity;
+} fsemu_util_spring_t;
+
+void fsemu_util_spring_init(fsemu_util_spring_t *spring);
+// void fsemu_util_spring_init_with_params(fsemu_util_spring_t *spring, double
+// ...);
+void fsemu_util_spring_update(fsemu_util_spring_t *spring);
+void fsemu_util_spring_update_with_time(fsemu_util_spring_t *spring,
+                                        int64_t time_us);
+
+// Instantly finish current animation
+void fsemu_util_spring_finish(fsemu_util_spring_t *spring);
+
+void fsemu_util_spring_set_target(fsemu_util_spring_t *spring, double target);
+void fsemu_util_spring_set_tension(fsemu_util_spring_t *spring,
+                                   double tension);
+
+// ----------------------------------------------------------------------------
 
 #ifdef __cplusplus
 }

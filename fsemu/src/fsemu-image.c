@@ -5,6 +5,7 @@
 
 #include "fsemu-data.h"
 #include "fsemu-glib.h"
+#include "fsemu-util.h"
 
 #ifdef FSEMU_PNG
 #ifdef SDLMAME_SDL2
@@ -62,7 +63,7 @@ static void fsemu_image_read_data_memory(png_structp png_ptr,
 fsemu_image_t *fsemu_image_load_png_from_data(void *data, int data_size)
 {
 #ifdef FSEMU_PNG
-    fsemu_image_t *image = (fsemu_image_t *) malloc(sizeof(fsemu_image_t));
+    fsemu_image_t *image = fsemu_image_new();
     // FIXME: zero image struct?
 
     if (data_size < 8) {
@@ -188,6 +189,7 @@ fsemu_image_t *fsemu_image_load_png_from_data(void *data, int data_size)
 
     png_read_image(png_ptr, row_pointers);
     free(row_pointers);
+    png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
 
     // image->format = format;
     image->data = image_data;
@@ -205,7 +207,7 @@ fsemu_image_t *fsemu_image_load_png_from_data(void *data, int data_size)
 fsemu_image_t *fsemu_image_load_png_file(const char *path)
 {
 #ifdef FSEMU_PNG
-    fsemu_image_t *image = (fsemu_image_t *) malloc(sizeof(fsemu_image_t));
+    fsemu_image_t *image = fsemu_image_new();
     // FIXME: zero image struct?
 
     int y;
@@ -304,12 +306,12 @@ fsemu_image_t *fsemu_image_load_png_file(const char *path)
     fclose(fp);
 
     // image->format = format;
+    image->bpp = 4;
     image->data = data;
-    image->width = width;
+    image->depth = 32;
     image->height = height;
     image->stride = image->width * 4;
-    image->depth = 32;
-    image->bpp = 4;
+    image->width = width;
     // image->format = FSEMU_IMAGE_RGBA;
 
     return image;
@@ -321,26 +323,41 @@ fsemu_image_t *fsemu_image_load_png_file(const char *path)
 static void fsemu_image_init(fsemu_image_t *image)
 {
     memset(image, 0, sizeof(fsemu_image_t));
-    fsemu_refable_init(image);
 }
 
-static fsemu_image_t *fsemu_image_new(void)
+static void fsemu_image_finalize(void *object)
 {
-    fsemu_image_t *image = (fsemu_image_t *) malloc(sizeof(fsemu_image_t));
-    fsemu_image_init(image);
+#if 1
+    fsemu_image_t *image = (fsemu_image_t *) object;
+    fsemu_log("Finalizing image %p\n", image);
+    // FIXME
+    // fflush(stdout);
+    if (image->free_function) {
+        image->free_function(image->free_param);
+    } else if (image->data) {
+        free(image->data);
+    }
+    free(image);
+#endif
+}
+
+fsemu_image_t *fsemu_image_new(void)
+{
+    fsemu_image_t *image = FSEMU_UTIL_MALLOC0(fsemu_image_t);
+    // fsemu_image_init(image);
+    fsemu_refable_init_with_finalizer(image, fsemu_image_finalize);
     return image;
 }
 
 fsemu_image_t *fsemu_image_from_size(int width, int height)
 {
-    fsemu_image_t *image = (fsemu_image_t *) malloc(sizeof(fsemu_image_t));
-    fsemu_image_init(image);
-    image->width = width;
-    image->height = height;
-    image->data = malloc(image->width * image->height * 4);
-    image->stride = image->width * 4;
-    image->depth = 32;
+    fsemu_image_t *image = fsemu_image_new();
     image->bpp = 4;
+    image->data = malloc(width * height * 4);
+    image->depth = 32;
+    image->height = height;
+    image->stride = width * 4;
+    image->width = width;
     return image;
 }
 
@@ -508,7 +525,7 @@ static int fsemu_image_load_png_stream(fsemu_image_t *image,
     image->data = image_data;
     image->width = width;
     image->height = height;
-    image->stride = image->width * 4;
+    image->stride = width * 4;
     image->depth = 32;
     image->bpp = 4;
     // image->format = FSEMU_IMAGE_RGBA;

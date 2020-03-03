@@ -1,17 +1,22 @@
 #define FSEMU_INTERNAL
 #include "fsemu-opengl.h"
 
+#include "fsemu-log.h"
+
 struct {
     int blend;
-    bool depth_test;
     struct {
         float r;
         float g;
         float b;
         float a;
     } color4f;
+    bool depth_test;
     int texture_2d;
+    int unpack_row_length;
 } fsemu_opengl;
+
+bool fsemu_opengl_error_checking = false;
 
 void fsemu_opengl_init(void)
 {
@@ -32,6 +37,22 @@ void fsemu_opengl_init(void)
 
     fsemu_opengl.blend = -1;
     fsemu_opengl.texture_2d = -1;
+}
+
+void fsemu_opengl_unpack_row_length(int row_length)
+{
+    if (fsemu_opengl.unpack_row_length != row_length) {
+        glPixelStorei(GL_UNPACK_ROW_LENGTH, row_length);
+        fsemu_opengl.unpack_row_length = row_length;
+    }
+}
+
+void fsemu_opengl_log_error(void)
+{
+    int error = glGetError();
+    if (error) {
+        fsemu_log_error("glGetError() = %d\n\n", error);
+    }
 }
 
 static inline void fsemu_opengl_enable(int what, bool enable)

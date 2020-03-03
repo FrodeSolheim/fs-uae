@@ -10,6 +10,13 @@
 #include <stdlib.h>
 #include "manymouse.h"
 
+// ----------------------------------------------------------------------------
+
+#define e_drivers manymouse_e_drivers
+#define driver manymouse_driver
+
+// ----------------------------------------------------------------------------
+
 static const char *manymouse_copyright =
     "ManyMouse " MANYMOUSE_VERSION " copyright (c) 2005-2012 Ryan C. Gordon.";
 
@@ -96,5 +103,11 @@ int ManyMouse_PollEvent(ManyMouseEvent *event)
     return (driver) ? driver->poll(event) : 0;
 } /* ManyMouse_PollEvent */
 
-/* end of manymouse.c ... */
+// ----------------------------------------------------------------------------
 
+#undef drivers
+#undef driver
+
+// ----------------------------------------------------------------------------
+
+/* end of manymouse.c ... */

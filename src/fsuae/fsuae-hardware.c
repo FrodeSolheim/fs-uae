@@ -2,16 +2,16 @@
 #include "config.h"
 #endif
 
-#include <uae/uae.h>
 #include <fs/conf.h>
 #include <fs/emu.h>
 #include <fs/glib.h>
 #include <fs/i18n.h>
+#include <uae/uae.h>
 
-#include "fsuae-options.h"
 #include "fsuae-config.h"
-#include "fsuae-model.h"
 #include "fsuae-hardware.h"
+#include "fsuae-model.h"
+#include "fsuae-options.h"
 
 #define CPU_SPEED_REAL 0
 #define CPU_SPEED_MAX 1
@@ -30,9 +30,9 @@ static void configure_cpu(void)
     const char *uae_cpu_model = cfg->default_cpu;
     const char *uae_fpu_model = cfg->default_fpu;
     const char *uae_mmu_model = cfg->default_mmu;
-    //bool allow_6888x_fpu = false;
-    //bool allow_68040_fpu = false;
-    //bool allow_68060_fpu = false;
+    // bool allow_6888x_fpu = false;
+    // bool allow_68040_fpu = false;
+    // bool allow_68060_fpu = false;
 
     const char *cpu = fs_config_get_const_string(OPTION_CPU);
     if (cpu == NULL) {
@@ -55,7 +55,7 @@ static void configure_cpu(void)
         uae_cpu_model = "68020";
         uae_fpu_model = cfg->default_fpu_noninternal;
         uae_mmu_model = "0";
-        //allow_6888x_fpu = true;
+        // allow_6888x_fpu = true;
     } else if (fs_uae_values_matches(cpu, "68020")) {
         uae_cpu_24bit_addressing = false;
         uae_cpu_model = "68020";
@@ -121,15 +121,15 @@ static void configure_cpu(void)
     } else if (fs_uae_values_matches(fpu, "0")) {
         uae_fpu_model = "0";
     } else if (fs_uae_values_matches(fpu, "68881")) {
-        if (fs_uae_values_matches(uae_cpu_model, "68020")
-                || fs_uae_values_matches(uae_cpu_model, "68030")) {
+        if (fs_uae_values_matches(uae_cpu_model, "68020") ||
+            fs_uae_values_matches(uae_cpu_model, "68030")) {
             uae_fpu_model = "68881";
         } else {
             fs_emu_warning("68881 FPU must be paired with 68020/68030 CPU\n");
         }
     } else if (fs_uae_values_matches(fpu, "68882")) {
-        if (strcmp(uae_cpu_model, "68020") == 0
-                || strcmp(uae_cpu_model, "68030") == 0) {
+        if (strcmp(uae_cpu_model, "68020") == 0 ||
+            strcmp(uae_cpu_model, "68030") == 0) {
             uae_fpu_model = "68882";
         } else {
             fs_emu_warning("68882 FPU must be paired with 68020/68030 CPU\n");
@@ -205,8 +205,8 @@ static void configure_cpu(void)
     int cpu_speed = CPU_SPEED_REAL;
 
     if (strcmp(uae_cpu_model, "68030") == 0 ||
-            strcmp(uae_cpu_model, "68040") == 0 ||
-            strcmp(uae_cpu_model, "68060") == 0) {
+        strcmp(uae_cpu_model, "68040") == 0 ||
+        strcmp(uae_cpu_model, "68060") == 0) {
         cpu_speed = CPU_SPEED_MAX;
         cpu_mode = CPU_MODE_NONCOMPATIBLE;
     } else {
@@ -221,7 +221,7 @@ static void configure_cpu(void)
     }
 
     if (cpu_mode == CPU_MODE_CYCLE_EXACT &&
-            strcmp(uae_cpu_model, "68000") == 0) {
+        strcmp(uae_cpu_model, "68000") == 0) {
         blitter_mode = BLITTER_MODE_NORMAL;
     } else if (accuracy < 0) {
         blitter_mode = BLITTER_MODE_IMMEDIATE;
@@ -319,12 +319,12 @@ static void configure_memory()
     int z3_memory = fs_uae_read_memory_option(OPTION_ZORRO_III_MEMORY);
     if (z3_memory != FS_CONFIG_NONE) {
         if (z3_memory && !cfg->allow_z3_memory) {
-            fs_emu_warning(_("Option zorro_iii_memory needs a CPU "
-                             "with 32-bit addressing"));
+            fs_emu_warning(_(
+                "Option zorro_iii_memory needs a CPU with 32-bit addressing"));
         }
         if (z3_memory % 1024 != 0) {
-            fs_emu_warning(_("Option zorro_iii_memory must be a multiple "
-                             "of 1024"));
+            fs_emu_warning(
+                _("Option zorro_iii_memory must be a multiple of 1024"));
         }
         amiga_set_int_option("z3mem_size", z3_memory / 1024);
     }
@@ -332,14 +332,14 @@ static void configure_memory()
     int mb_ram = fs_uae_read_memory_option(OPTION_MOTHERBOARD_RAM);
     if (mb_ram != FS_CONFIG_NONE) {
         if (mb_ram && !cfg->allow_z3_memory) {
-            fs_emu_warning(_("Option motherboard_ram needs a CPU "
-                             "with 32-bit addressing"));
+            fs_emu_warning(_(
+                "Option motherboard_ram needs a CPU with 32-bit addressing"));
             mb_ram = 0;
         } else if (mb_ram % 1024 == 0) {
             amiga_set_int_option("a3000mem_size", mb_ram / 1024);
         } else {
-            fs_emu_warning(_("Option motherboard_ram must be a multiple "
-                             "of 1024"));
+            fs_emu_warning(
+                _("Option motherboard_ram must be a multiple of 1024"));
             mb_ram = 0;
         }
     } else {

@@ -57,7 +57,9 @@ void amiga_set_video_format(int format);
 void amiga_add_rtg_resolution(int width, int height);
 
 // must be called early
+#if 0
 void amiga_set_builtin_driveclick_path(const char *path);
+#endif
 // for custom floppy sound files
 void amiga_set_floppy_sounds_dir(const char *path);
 

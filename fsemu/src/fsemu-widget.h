@@ -3,7 +3,9 @@
 
 #include <stdbool.h>
 
+#include "fsemu-color.h"
 #include "fsemu-common.h"
+#include "fsemu-config.h"
 #include "fsemu-gui.h"
 #include "fsemu-image.h"
 
@@ -50,12 +52,16 @@ void fsemu_widget_module_init(void);
 fsemu_widget_t *fsemu_widget_new(void);
 fsemu_widget_t *fsemu_widget_new_with_name(const char *name);
 
+void fsemu_widget_ref(fsemu_widget_t *widget);
+void fsemu_widget_unref(fsemu_widget_t *widget);
+
 void fsemu_widget_init(fsemu_widget_t *widget);
 
 const char *fsemu_widget_name(fsemu_widget_t *widget);
 void fsemu_widget_set_name(fsemu_widget_t *widget, const char *name);
 
 void fsemu_widget_add_child(fsemu_widget_t *widget, fsemu_widget_t *child);
+void fsemu_widget_remove_child(fsemu_widget_t *widget, fsemu_widget_t *child);
 
 // Will increase image ref count
 void fsemu_widget_set_image(fsemu_widget_t *widget,
@@ -74,18 +80,23 @@ void fsemu_widget_set_color(fsemu_widget_t *widget, uint32_t color);
 void fsemu_widget_set_flag(fsemu_widget_t *widget, uint32_t flag);
 void fsemu_widget_clear_flag(fsemu_widget_t *widget, uint32_t flag);
 
-void fsemu_widget_set_left(fsemu_widget_t *widget,
-                           double offset_left,
-                           int anchor_left);
-void fsemu_widget_set_top(fsemu_widget_t *widget,
-                          double offset_top,
-                          int anchor_top);
-void fsemu_widget_set_right(fsemu_widget_t *widget,
-                            double offset_right,
-                            int anchor_right);
-void fsemu_widget_set_bottom(fsemu_widget_t *widget,
-                             double offset_bottom,
-                             int anchor_bottom);
+void fsemu_widget_set_top(fsemu_widget_t *widget, double offset_top);
+void fsemu_widget_set_right(fsemu_widget_t *widget, double offset_right);
+void fsemu_widget_set_bottom(fsemu_widget_t *widget, double offset_bottom);
+void fsemu_widget_set_left(fsemu_widget_t *widget, double offset_left);
+void fsemu_widget_set_top_2(fsemu_widget_t *widget,
+                            double offset_top,
+                            int anchor_top);
+void fsemu_widget_set_right_2(fsemu_widget_t *widget,
+                              double offset_right,
+                              int anchor_right);
+void fsemu_widget_set_bottom_2(fsemu_widget_t *widget,
+                               double offset_bottom,
+                               int anchor_bottom);
+void fsemu_widget_set_left_2(fsemu_widget_t *widget,
+                             double offset_left,
+                             int anchor_left);
+
 // FIXME: Change argument order, top, right, bottom, right (css style)
 void fsemu_widget_set_coordinates(fsemu_widget_t *widget,
                                   int anchor_left,
@@ -107,6 +118,19 @@ void fsemu_widget_set_coordinates_2(fsemu_widget_t *widget,
                                     double offset_bottom,
                                     int anchor_right,
                                     double offset_right);
+
+void fsemu_widget_set_text(fsemu_widget_t *widget, const char *text);
+void fsemu_widget_set_text_color(fsemu_widget_t *widget,
+                                 fsemu_color_t text_color);
+void fsemu_widget_set_text_valign(fsemu_widget_t *widget, float text_valign);
+#define FSEMU_WIDGET_TEXT_TRANSFORM_NONE 0
+#define FSEMU_WIDGET_TEXT_TRANSFORM_UPPERCASE 1
+void fsemu_widget_set_text_transform(fsemu_widget_t *widget,
+                                     int text_transform);
+void fsemu_widget_set_font_size(fsemu_widget_t *widget, int font_size);
+
+// Possibly temporary
+void fsemu_widget_update_text_image(fsemu_widget_t *widget);
 
 #ifdef __cplusplus
 }

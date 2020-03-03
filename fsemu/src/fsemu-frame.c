@@ -251,8 +251,8 @@ void fsemu_frame_update_timing(double hz, bool turbo)
 
     if (fsemu_frame_log_level >= 2) {
         printf(
-            "----------------------------------------"
-            "---------------------------------------\n");
+            "-----------------------------------------------------------------"
+            "--------------\n");
         fflush(stdout);
     }
     fsemu_frame_log_epoch("Frame %16d        ends at %16lld (+%d)\n",

@@ -8,6 +8,7 @@
 #include "fsemu-gamemode.h"
 #include "fsemu-hud.h"
 #include "fsemu-oskeyboard.h"
+#include "fsemu-osmenu.h"
 #include "fsemu-perfgui.h"
 // FIXME: Ideally, remove this dependency
 #include "fsemu-sdlwindow.h"
@@ -61,6 +62,7 @@ void fsemu_helper_init_emulator(const char *emulator_name,
     fsemu_background_init();
     fsemu_hud_init();
     fsemu_oskeyboard_init();
+    fsemu_osmenu_init();
     fsemu_perfgui_init();
     fsemu_startupinfo_init();
     fsemu_theme_module_init();
@@ -251,6 +253,7 @@ void fsemu_helper_update(void)
     fsemu_fade_update();
     fsemu_hud_update();
     fsemu_oskeyboard_update();
+    fsemu_osmenu_update();
     fsemu_perfgui_update();
     fsemu_startupinfo_update();
     fsemu_titlebar_update();

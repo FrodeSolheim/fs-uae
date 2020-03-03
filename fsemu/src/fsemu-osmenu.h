@@ -16,6 +16,8 @@ void fsemu_osmenu_update(void);
 
 bool fsemu_osmenu_open(void);
 
+int fsemu_osmenu_open_offset(void);
+
 void fsemu_osmenu_set_open(bool open);
 
 void fsemu_osmenu_toggle_open(void);

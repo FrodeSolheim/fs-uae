@@ -61,3 +61,15 @@ void fsemu_inputport_set_mode_index(fsemu_inputport_t *port, int mode_index)
 
 // void fsemu_inputport_set_mode(fsemu_inputport_t *port,
 //                             fsemu_inputmode_t *mode);  // FIXME: mode id?
+
+fsemu_inputmode_t *fsemu_inputport_mode(fsemu_inputport_t *port)
+{
+    fsemu_inputmode_t *mode = port->modes[port->mode_index];
+    return mode;
+}
+
+const char *fsemu_inputport_mode_name(fsemu_inputport_t *port)
+{
+    fsemu_inputmode_t *mode = fsemu_inputport_mode(port);
+    return fsemu_inputmode_name(mode);
+}

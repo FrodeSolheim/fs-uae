@@ -8,6 +8,7 @@
 #include "fsemu-inputdevice.h"
 #include "fsemu-key.h"
 #include "fsemu-mouse.h"
+#include "fsemu-mutex.h"
 #include "fsemu-option.h"
 #include "fsemu-options.h"
 #include "fsemu-oskeyboard.h"
@@ -30,6 +31,9 @@ static struct {
     fsemu_inputport_t *ports[FSEMU_INPUT_MAX_PORTS];
     int num_devices;
     fsemu_inputdevice_t *devices[FSEMU_INPUT_MAX_DEVICES];
+
+    // Emulation thread synchronization for fetching actions
+    fsemu_mutex_t *mutex;
 } fsemu_input;
 
 int fsemu_input_log_level = 0;
@@ -41,6 +45,7 @@ void fsemu_input_init(void)
     fsemu_sdlinput_init();
 
     fsemu_input_log("Init\n");
+    fsemu_input.mutex = fsemu_mutex_create();
 
     fsemu_option_read_int(FSEMU_OPTION_LOG_INPUT, &fsemu_input_log_level);
 
@@ -241,13 +246,75 @@ static int fsemu_input_keyboard_navigation(fsemu_key_t key)
     } else if (key == FSEMU_KEY_BACKSPACE) {
         return FSEMU_GUI_NAVIGATE_BACK;
     } else if (key == FSEMU_KEY_F11) {
-        // FIXME: Hackish, mapping both F11 and F12 to close for oskeyboard
-        // and osmenu. Should only close with the toggle key. OK for now.
+        // FIXME: Hackish, mapping both F11 and F12 to close oskeyboard and
+        // osmenu. Should only close with the toggle key. Fine for now.
         return FSEMU_GUI_NAVIGATE_CLOSE;
     } else if (key == FSEMU_KEY_F12) {
         return FSEMU_GUI_NAVIGATE_CLOSE;
     }
     return FSEMU_GUI_NAVIGATE_NONE;
+}
+
+static int fsemu_input_controller_navigation(int slot)
+{
+    if (slot == FSEMU_CONTROLLER_DPUP) {
+        return FSEMU_GUI_NAVIGATE_UP;
+    } else if (slot == FSEMU_CONTROLLER_DPRIGHT) {
+        return FSEMU_GUI_NAVIGATE_RIGHT;
+    } else if (slot == FSEMU_CONTROLLER_DPDOWN) {
+        return FSEMU_GUI_NAVIGATE_DOWN;
+    } else if (slot == FSEMU_CONTROLLER_DPLEFT) {
+        return FSEMU_GUI_NAVIGATE_LEFT;
+    } else if (slot == FSEMU_CONTROLLER_A) {
+        return FSEMU_GUI_NAVIGATE_PRIMARY;
+    } else if (slot == FSEMU_CONTROLLER_X) {
+        return FSEMU_GUI_NAVIGATE_SECONDARY;
+    } else if (slot == FSEMU_CONTROLLER_Y) {
+        return FSEMU_GUI_NAVIGATE_TERTIARY;
+    } else if (slot == FSEMU_CONTROLLER_B) {
+        return FSEMU_GUI_NAVIGATE_BACK;
+    } else if (slot == FSEMU_CONTROLLER_BACK) {
+        return FSEMU_GUI_NAVIGATE_CLOSE;
+    } else if (slot == FSEMU_CONTROLLER_START) {
+        return FSEMU_GUI_NAVIGATE_CLOSE;
+    } else if (slot == FSEMU_CONTROLLER_GUIDE) {
+        // FIXME: Hackish, mapping both BACK and GUIDE (and START) to close
+        // oskeyboard and osmenu. Should only close with the toggle key. Fine
+        // for now.
+        return FSEMU_GUI_NAVIGATE_CLOSE;
+    }
+    return FSEMU_GUI_NAVIGATE_NONE;
+}
+
+void fsemu_input_handle_controller(int device_index, int slot, int16_t state)
+{
+    printf(
+        "fsemu_input_handle_controller %d %d %d\n", device_index, slot, state);
+
+    // FIXME: Temporary hack to redirect input
+    if (fsemu_osmenu_open()) {
+        // FIXME: Analog to digital needed to support left analog stick
+        fsemu_osmenu_navigate(fsemu_input_controller_navigation(slot), state);
+        return;
+    }
+    if (fsemu_oskeyboard_open()) {
+        // FIXME: Analog to digital needed to support left analog stick
+        fsemu_oskeyboard_navigate(fsemu_input_controller_navigation(slot),
+                                  state);
+        return;
+    }
+
+    // FIXME: Verify
+    int input_index = FSEMU_INPUTDEVICE_CONTROLLER_OFFSET + slot;
+    int action_table_index =
+        fsemu_input_action_table_index_from_input(device_index, input_index);
+    // FIXME: action_table
+    int action = fsemu_input.action_table[action_table_index];  // .action;
+    printf(" input -> action table index %d action %d\n",
+           action_table_index,
+           action);
+
+    fsemu_input_process_action(action, state);
 }
 
 void fsemu_input_handle_keyboard(fsemu_key_t key, bool pressed)
@@ -282,50 +349,20 @@ void fsemu_input_handle_keyboard(fsemu_key_t key, bool pressed)
     fsemu_input_process_action(action, state);
 }
 
-static int fsemu_input_controller_navigation(int slot)
+void fsemu_input_handle_mouse(int device_index, int slot, int16_t state)
 {
-    if (slot == FSEMU_CONTROLLER_DPUP) {
-        return FSEMU_GUI_NAVIGATE_UP;
-    } else if (slot == FSEMU_CONTROLLER_DPRIGHT) {
-        return FSEMU_GUI_NAVIGATE_RIGHT;
-    } else if (slot == FSEMU_CONTROLLER_DPDOWN) {
-        return FSEMU_GUI_NAVIGATE_DOWN;
-    } else if (slot == FSEMU_CONTROLLER_DPLEFT) {
-        return FSEMU_GUI_NAVIGATE_LEFT;
-    } else if (slot == FSEMU_CONTROLLER_A) {
-        return FSEMU_GUI_NAVIGATE_PRIMARY;
-    } else if (slot == FSEMU_CONTROLLER_X) {
-        return FSEMU_GUI_NAVIGATE_SECONDARY;
-    } else if (slot == FSEMU_CONTROLLER_Y) {
-        return FSEMU_GUI_NAVIGATE_TERTIARY;
-    } else if (slot == FSEMU_CONTROLLER_B) {
-        return FSEMU_GUI_NAVIGATE_BACK;
-    } else if (slot == FSEMU_CONTROLLER_BACK) {
-        return FSEMU_GUI_NAVIGATE_CLOSE;
-    }
-    return FSEMU_GUI_NAVIGATE_NONE;
-}
-
-void fsemu_input_handle_controller(int device_index, int slot, int16_t state)
-{
-    printf(
-        "fsemu_input_handle_controller %d %d %d\n", device_index, slot, state);
+    printf("fsemu_input_handle_mouse %d %d %d\n", device_index, slot, state);
 
     // FIXME: Temporary hack to redirect input
     if (fsemu_osmenu_open()) {
-        // FIXME: Analog to digital needed to support left analog stick
-        fsemu_osmenu_navigate(fsemu_input_controller_navigation(slot), state);
         return;
     }
     if (fsemu_oskeyboard_open()) {
-        // FIXME: Analog to digital needed to support left analog stick
-        fsemu_oskeyboard_navigate(fsemu_input_controller_navigation(slot),
-                                  state);
         return;
     }
 
     // FIXME: Verify
-    int input_index = FSEMU_INPUTDEVICE_CONTROLLER_OFFSET + slot;
+    int input_index = FSEMU_INPUTDEVICE_MOUSE_OFFSET + slot;
     int action_table_index =
         fsemu_input_action_table_index_from_input(device_index, input_index);
     // FIXME: action_table
@@ -380,8 +417,10 @@ void fsemu_input_process_action(uint16_t action, int16_t state)
         fsemu_input_pack_action_state(action, state);
 
     if (action & FSEMU_ACTION_EMU_FLAG) {
+        fsemu_mutex_lock(fsemu_input.mutex);
         g_queue_push_tail(fsemu_input.action_queue,
                           GUINT_TO_POINTER(action_state));
+        fsemu_mutex_unlock(fsemu_input.mutex);
         printf("input pushed %04x %04x\n", action, state);
     } else {
         fsemu_action_process_non_emu(action, state);
@@ -390,7 +429,10 @@ void fsemu_input_process_action(uint16_t action, int16_t state)
 
 bool fsemu_input_next_action(uint16_t *action, int16_t *state)
 {
+    // FIXME: Double-locking?
+    fsemu_mutex_lock(fsemu_input.mutex);
     gpointer action_state_p = g_queue_pop_head(fsemu_input.action_queue);
+    fsemu_mutex_unlock(fsemu_input.mutex);
     if (action_state_p == NULL) {
         *action = 0;
         *state = 0;
@@ -423,7 +465,7 @@ void fsemu_input_add_actions(fsemu_input_action_t actions[])
     }
 }
 
-static fsemu_inputdevice_t *fsemu_input_find_available_device(void)
+static fsemu_inputdevice_t *fsemu_input_find_available_device(bool mouse)
 {
     // FIXME: If device_index is going to be persistent when other devices
     // are unplugged, then we get holes, and using num_devices to iterate
@@ -433,6 +475,12 @@ static fsemu_inputdevice_t *fsemu_input_find_available_device(void)
     for (int i = 0; i < FSEMU_INPUT_MAX_DEVICES; i++) {
         fsemu_inputdevice_t *device = fsemu_input.devices[i];
         if (device == NULL) {
+            continue;
+        }
+        if (mouse && device->type != FSEMU_INPUTDEVICE_TYPE_MOUSE) {
+            continue;
+        }
+        if (!mouse && device->type == FSEMU_INPUTDEVICE_TYPE_MOUSE) {
             continue;
         }
         if (device->port_index == -1) {
@@ -452,7 +500,16 @@ void fsemu_input_autofill_devices(void)
             // Already has device inserted
             continue;
         }
-        fsemu_inputdevice_t *device = fsemu_input_find_available_device();
+
+        bool mouse = false;
+        // printf("a\n");
+        // printf("%s\n", fsemu_inputport_mode_name(port));
+        // printf("b\n");
+        if (strcmp(fsemu_inputport_mode_name(port), "Mouse") == 0) {
+            mouse = true;
+        }
+
+        fsemu_inputdevice_t *device = fsemu_input_find_available_device(mouse);
         if (device) {
             printf("Found input device %d: (%s)\n",
                    device->index,
@@ -490,7 +547,7 @@ void fsemu_input_reconfigure(void)
         // }
 
         fsemu_inputmode_t *mode = port->modes[port->mode_index];
-        printf(" - mode: %s\n", fsemu_inputmode_name(mode));
+        printf(" - input mode: %s\n", fsemu_inputmode_name(mode));
 
         for (int j = 0; j < FSEMU_INPUTDEVICE_MAX; j++) {
             int action = mode->mapping[j];

@@ -8,15 +8,19 @@
 
 #include <fs/data.h>
 
+#if 0
 static const char *g_driveclick_path = "";
 //static char *g_driveclick_name = NULL;
+#endif
 
 extern "C" {
 
+#if 0
 void amiga_set_builtin_driveclick_path(const char *path)
 {
     g_driveclick_path = g_strdup(path);
 }
+#endif
 
 #if 0
 void amiga_set_drive_sound_name(const char *name)

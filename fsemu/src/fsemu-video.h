@@ -7,7 +7,7 @@
 
 typedef struct {
     int layer;
-    void *buffer;
+    uint8_t *buffer;
     int stride;
     int depth;
     int width;
@@ -132,9 +132,9 @@ static inline fsemu_video_frame_t *fsemu_video_alloc_frame(void)
 {
     return (fsemu_video_frame_t *) malloc(sizeof(fsemu_video_frame_t));
 }
-static inline fsemu_video_frame_t *fsemu_video_free_frame(void)
+static inline void fsemu_video_free_frame(fsemu_video_frame_t *frame)
 {
-    return (fsemu_video_frame_t *) malloc(sizeof(fsemu_video_frame_t));
+    free(frame);
 }
 
 void fsemu_video_post_frame(fsemu_video_frame_t *frame);
@@ -162,25 +162,5 @@ extern bool fsemu_video_log_enabled;
     if (fsemu_video_log_enabled) {                           \
         fsemu_log("[FSEMU] [VIDEO] " format, ##__VA_ARGS__); \
     }
-
-// FIXME: Move to some color module?
-
-// #define FSEMU_RGB(c) ((((uint32_t) c) >> 8) | (0xff - (c & 0xff)) << 24)
-#define FSEMU_RGB(c)                                                    \
-    (((c & 0xff0000) >> 16) | (c & 0x00ff00) | ((c & 0x0000ff) << 16) | \
-     0xff000000)
-
-#define FSEMU_RGBA(c)                                     \
-    (((c & 0xff000000) >> 24) | ((c & 0x00ff0000) >> 8) | \
-     ((c & 0x0000ff00) << 8) | ((c & 0x000000ff) << 24))
-
-#define FSEMU_RGB_A(c, a)                                               \
-    (((c & 0xff0000) >> 16) | (c & 0x00ff00) | ((c & 0x0000ff) << 16) | \
-     ((a & 0x000000ff) << 24))
-
-static inline void fsemu_color_set_alpha(uint32_t *color, int alpha)
-{
-    *color = (*color & 0xffffff) | ((alpha & 0x000000ff) << 24);
-}
 
 #endif  // FSEMU_VIDEO_H_

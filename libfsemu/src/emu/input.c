@@ -1521,6 +1521,11 @@ static void init_input_configs()
     fs_log("init_input_configs\n");
     g_input_config_paths = g_hash_table_new_full(g_str_hash, g_str_equal,
                                                  g_free, g_free);
+
+    if (fsemu) {
+        return;
+    }
+
     char *dir_name = fs_get_program_data_file("input");
     if (dir_name != NULL) {
         read_input_configs_from_dir(dir_name);
@@ -1865,6 +1870,10 @@ void fs_emu_input_init_2(void)
     g_input_event_queue = g_queue_new();
 
     init_input_configs();
+
+    if (fsemu) {
+        return;
+    }
 
     // reset all input mappings
     for (int i = 0; i < (MAX_DEVICES * SLOTS); i++) {

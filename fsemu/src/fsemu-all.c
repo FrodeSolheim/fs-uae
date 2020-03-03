@@ -2,6 +2,17 @@
 extern "C" {
 #endif
 
+// ----------------------------------------------------------------------------
+
+#include "../manymouse/linux_evdev.c"
+#include "../manymouse/macosx_hidmanager.c"
+#include "../manymouse/macosx_hidutilities.c"
+#include "../manymouse/manymouse.c"
+#include "../manymouse/windows_wminput.c"
+#include "../manymouse/x11_xinput2.c"
+
+// ----------------------------------------------------------------------------
+
 #include "fsemu-action.c"
 #include "fsemu-audio-alsa.c"
 #include "fsemu-audio-buffer.c"
@@ -12,9 +23,11 @@ extern "C" {
 #include "fsemu-control.c"
 #include "fsemu-controller.c"
 #include "fsemu-data.c"
+#include "fsemu-emuthread.c"
 #include "fsemu-events.c"
 #include "fsemu-fade.c"
 #include "fsemu-font.c"
+#include "fsemu-fontcache.c"
 #include "fsemu-frame.c"
 #include "fsemu-gamemode.c"
 #include "fsemu-glvideo.c"
@@ -29,7 +42,10 @@ extern "C" {
 #include "fsemu-inputport.c"
 #include "fsemu-layout.c"
 #include "fsemu-log.c"
+#include "fsemu-mainmenu.c"
+#include "fsemu-manymouse.c"
 #include "fsemu-menu.c"
+#include "fsemu-module.c"
 #include "fsemu-monitor.c"
 #include "fsemu-mouse.c"
 #include "fsemu-mutex.c"
@@ -40,6 +56,7 @@ extern "C" {
 #include "fsemu-perfgui.c"
 #include "fsemu-quit.c"
 #include "fsemu-refable.c"
+#include "fsemu-savestate.c"
 #include "fsemu-screenshot.c"
 #include "fsemu-sdlaudio.c"
 #include "fsemu-sdlgamecontrollerdb.c"
@@ -59,6 +76,8 @@ extern "C" {
 #include "fsemu-widget.c"
 #include "fsemu-window.c"
 #include "fsemu-xmlshader.c"
+
+// ----------------------------------------------------------------------------
 
 #ifdef __cplusplus
 }

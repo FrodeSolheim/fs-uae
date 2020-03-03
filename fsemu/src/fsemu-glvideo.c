@@ -52,13 +52,17 @@ void fsemu_glvideo_init(void)
     int r, g, b;
     fsemu_video_background_color_rgb(&r, &g, &b);
     glClearColor(r / 255.0, g / 255.0, b / 255.0, 1.0);
+    fsemu_opengl_log_error();
+
 #if 0
     glClearColor(1.0, 0.0, 0.0, 1.0);
-    printf("%d\n", glGetError());
+    fsemu_opengl_log_error();
 #endif
 
     glGenTextures(2, fsemu_glvideo.textures);
-    printf("%d\n", glGetError());
+    printf("fsemu_glvideo.textures[0] = %d\n", fsemu_glvideo.textures[0]);
+    printf("fsemu_glvideo.textures[1] = %d\n", fsemu_glvideo.textures[1]);
+    fsemu_opengl_log_error();
 
     uint8_t *data = (uint8_t *) malloc(1024 * 1024 * 4);
 #if 0
@@ -72,12 +76,14 @@ void fsemu_glvideo_init(void)
     }
 #endif
 #endif
-    // FIXME:
+    // FIXME: Shouldn't be necessary.
+    // FIXME: Make sure to synch opengl state instead?
     glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+    fsemu_opengl_log_error();
 
     for (int i = 0; i < 2; i++) {
         glBindTexture(GL_TEXTURE_2D, fsemu_glvideo.textures[i]);
-        printf("%d\n", glGetError());
+        fsemu_opengl_log_error();
         glTexImage2D(GL_TEXTURE_2D,
                      0,
                      GL_RGBA,
@@ -87,11 +93,15 @@ void fsemu_glvideo_init(void)
                      GL_RGBA,
                      GL_UNSIGNED_BYTE,
                      data);
-        printf("%d\n", glGetError());
+        fsemu_opengl_log_error();
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        fsemu_opengl_log_error();
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        fsemu_opengl_log_error();
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        fsemu_opengl_log_error();
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        fsemu_opengl_log_error();
     }
     free(data);
 }
@@ -126,17 +136,42 @@ void fsemu_glvideo_set_size_2(int width, int height)
     fsemu_video_set_drawable_size(&fsemu_glvideo.drawable_size);
 }
 
-void fsemu_glvideo_work(int timeout_us)
+static void fsemu_glvideo_handle_frame(fsemu_video_frame_t *frame)
 {
-    fsemu_video_frame_t *frame = fsemu_video_get_frame(timeout_us);
-    if (!frame) {
-        return;
-    }
-#if 1
     fsemu_video_log(" ---------------- draw got frame! (%dx%d) partial? %d\n",
                     frame->width,
                     frame->height,
                     frame->partial);
+#if 0
+    printf(
+        " ---------------- draw got frame! (%dx%d) partial? %d - %d %d %d "
+        "%d\n",
+        frame->width,
+        frame->height,
+        frame->partial,
+        frame->limits.x,
+        frame->limits.y,
+        frame->limits.w,
+        frame->limits.h
+
+    );
+#endif
+    // FIXME: 4
+    if (frame->partial) {
+        // Need to check frame->height before modifying it
+        if (frame->partial == frame->height) {
+            frame->partial = frame->limits.h;
+        } else {
+            frame->partial -= frame->limits.y;
+            if (frame->partial < 0) {
+                return;
+            }
+        }
+    }
+    frame->buffer += (frame->limits.y * frame->stride) + frame->limits.x * 4;
+    frame->width = frame->limits.w;
+    frame->height = frame->limits.h;
+
     SDL_Rect rect;
     rect.x = 0;
     rect.y = 0;
@@ -188,17 +223,18 @@ void fsemu_glvideo_work(int timeout_us)
     // fsemu_opengl_texture_2d(true);
     glBindTexture(GL_TEXTURE_2D,
                   fsemu_glvideo.textures[fsemu_glvideo.current_texture]);
-    // printf("glGetError %d\n", glGetError());
+    fsemu_opengl_log_error();
+
     // SDL_UpdateTexture(fsemu_glvideo.textures[fsemu_glvideo.current_texture],
     //                   &rect,
     //                   pixels,
     //                   frame->stride);
 
-    // FIXME:
-    // glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-    // glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    int row_length = frame->stride / 4;  // FIXME: 4 -> bpp
 
-    // FIXME: stride!!
+    // fsemu_opengl_unpack_row_length(frame->width == row_length ? 0 :
+    // row_length); fsemu_opengl_unpack_row_length(0);
+    fsemu_opengl_unpack_row_length(row_length);
 
     // for (int i = 0; i < rect.w * rect.h * 4; i++) {
     //     pixels[i] = i % 256;
@@ -215,6 +251,8 @@ void fsemu_glvideo_work(int timeout_us)
     GLenum format = GL_BGRA;
     GLenum type = GL_UNSIGNED_BYTE;
 
+    // printf("b x=%d y=%d size=%dx%d\n", rect.x, rect.y, rect.w, rect.h);
+
     glTexSubImage2D(GL_TEXTURE_2D,
                     0,
                     rect.x,
@@ -224,12 +262,15 @@ void fsemu_glvideo_work(int timeout_us)
                     format,
                     type,
                     pixels);
+    // FIXME: fsemu_opengl_maybe_log_error();
+    fsemu_opengl_log_error();
 
     // Duplicate right (and later, bottom) edge to remove bleed effect from
     // unused pixels in the texture when doing bilinear filtering.
     if (rect.w < tw) {
         // FIXME: Wrapper call via fsemu-opengl ?
-        glPixelStorei(GL_UNPACK_ROW_LENGTH, rect.w);
+        // fsemu_opengl_unpack_row_length(row_length);
+        // fsemu_opengl_log_error();
         glTexSubImage2D(GL_TEXTURE_2D,
                         0,
                         rect.w,
@@ -238,13 +279,14 @@ void fsemu_glvideo_work(int timeout_us)
                         rect.h,
                         format,
                         type,
-                        pixels + (rect.w * 4 * rect.y) + (rect.w - 1) * 4);
-        glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+                        // pixels + (rect.w * 4 * rect.y) + (rect.w - 1) * 4);
+                        pixels + (rect.w - 1) * 4);
+        fsemu_opengl_log_error();
+        // FIXME: Remove
+        // fsemu_opengl_unpack_row_length(0);
+        // fsemu_opengl_log_error();
     }
 
-    // printf("glGetError %d\n", glGetError());
-
-#if 1
     static uint8_t *greenline;
     if (greenline == NULL) {
         greenline = (uint8_t *) malloc(2048 * 4);
@@ -262,8 +304,8 @@ void fsemu_glvideo_work(int timeout_us)
                         GL_RGBA,
                         GL_UNSIGNED_BYTE,
                         greenline);
+        fsemu_opengl_log_error();
     }
-#endif
 
     if (frame->partial > 0 && frame->partial != frame->height) {
         return;
@@ -273,28 +315,29 @@ void fsemu_glvideo_work(int timeout_us)
 
     // Only draw bottom border duplicate line for last slice, and only if
     // there is space for it in the texture
-    if (rect.h < th) {
+    if (rect.y + rect.h < th) {
         glTexSubImage2D(GL_TEXTURE_2D,
                         0,
                         0,
-                        rect.h,
+                        rect.y + rect.h,
                         rect.w,
                         1,
                         format,
                         type,
                         pixels + (rect.w * 4 * (rect.h - 1)));
+        fsemu_opengl_log_error();
         // Draw corner pixel if room for it
         if (rect.w < tw) {
             glTexSubImage2D(GL_TEXTURE_2D,
                             0,
                             rect.w,
-                            rect.h,
+                            rect.y + rect.h,
                             1,
                             1,
                             format,
                             type,
                             pixels + (rect.w * rect.h - 1) * 4);
-            glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+            fsemu_opengl_log_error();
         }
     }
 
@@ -328,10 +371,16 @@ void fsemu_glvideo_work(int timeout_us)
         framecount_time = now;
         // g_printerr("FPS: %0.2f\n", fps);
     }
+}
 
-    // FIXME: Free frame if it is a partial frame, otherwise save for render...
-
-#endif
+void fsemu_glvideo_work(int timeout_us)
+{
+    fsemu_video_frame_t *frame = fsemu_video_get_frame(timeout_us);
+    if (frame) {
+        fsemu_glvideo_handle_frame(frame);
+        fsemu_video_free_frame(frame);
+        return;
+    }
 }
 
 static void fsemu_glvideo_convert_coordinates(fsemu_drect_t *out,
@@ -469,6 +518,14 @@ void fsemu_glvideo_render(void)
     float tx1 = 0.0f, tx2 = src.w / 1024.0;
     float ty1 = src.h / 1024.0, ty2 = 0.0f;
 
+    // printf("tx2 %f ty1 %f\n", tx2, ty1);
+#if 0
+    fsemu_opengl_blend(true);
+    fsemu_opengl_color4f(0.0f, 0.0f, 0.0f, 0.0f);
+    fsemu_opengl_depth_test(true);
+    fsemu_opengl_texture_2d(false);
+#endif
+
     fsemu_opengl_blend(false);
     fsemu_opengl_color4f(1.0f, 1.0f, 1.0f, 1.0f);
     fsemu_opengl_depth_test(false);
@@ -476,6 +533,7 @@ void fsemu_glvideo_render(void)
 
     glBindTexture(GL_TEXTURE_2D,
                   fsemu_glvideo.textures[fsemu_glvideo.current_texture]);
+    fsemu_opengl_log_error();
 
     glBegin(GL_QUADS);
     glTexCoord2f(tx1, ty1);
@@ -487,6 +545,7 @@ void fsemu_glvideo_render(void)
     glTexCoord2f(tx1, ty2);
     glVertex3f(dr.x, dr.y + dr.h, 0);
     glEnd();
+    fsemu_opengl_log_error();
 
     // FIXME: REMOVE
     fsemu_glvideo_rect_temp.left = dr.x;
@@ -539,6 +598,8 @@ static int64_t fsemu_glvideo_wait_for_swap(void)
     // printf("wait for swap\n");
     // FIXME: IMPROVE!
     glFinish();
+    fsemu_opengl_log_error();
+
     int64_t vsync_time = fsemu_time_us();
     return vsync_time;
 }
@@ -582,6 +643,7 @@ void fsemu_glvideo_display(void)
                    0,
                    fsemu_glvideo.drawable_size.w,
                    fsemu_glvideo.drawable_size.h);
+        fsemu_opengl_log_error();
     } else {
         // FIXME: log_warning
         fsemu_video_log("Not a valid drawable size for glViewport\n");
@@ -591,6 +653,7 @@ void fsemu_glvideo_display(void)
 
     // glClearColor(0.0, 0.0, 1.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT);
+    fsemu_opengl_log_error();
 #ifdef FSEMU_WINDOWS_XXX
     fsemu_opengl_blend(false);
     fsemu_opengl_texture_2d(false);
@@ -618,6 +681,8 @@ static void fsemu_glvideo_convert_coordinate_2(double *out,
     // double offset_scale_x = 1920;
     // double offset_scale_y = 1080 + client_top;
 
+    // FIXME: Do this calculation once for each pass through the render
+    // tree, not for every item...
     fsemu_size_t window_size;
     fsemu_window_size(&window_size);
 
@@ -773,40 +838,47 @@ static void fsemu_glvideo_render_rect(fsemu_drect_t *dr,
     }
 }
 
-static void fsemu_glvideo_render_image(fsemu_gui_item_t *widget)
+static void fsemu_glvideo_render_text(fsemu_gui_item_t *widget)
 {
     fsemu_drect_t dr;
-#if 0
-    if (item->left.anchor) {
-        fsemu_glvideo_convert_coordinates_2(&dr, item);
-
-        printf("Render image to %0.2f, %0.2f %0.2f x %0.2f\n",
-               dr.x,
-               dr.y,
-               dr.w,
-               dr.h);
-    } else {
-        fsemu_glvideo_convert_coordinates(&dr, &item->rect, item->coordinates);
-    }
-#endif
     fsemu_glvideo_render_rect(&dr, widget);
+    uint8_t r, g, b, a;
+    fsemu_color_decode(widget->color, &r, &g, &b, &a);
 
-    uint8_t r = widget->color & 0xff;
-    uint8_t g = (widget->color & 0xff00) >> 8;
-    uint8_t b = (widget->color & 0xff0000) >> 16;
-    uint8_t a = (widget->color & 0xff000000) >> 24;
+#if 1
+    // FIXME: Inefficient, temporary
+    fsemu_size_t window_size;
+    fsemu_window_size(&window_size);
+    int titlebar = fsemu_titlebar_static_height();
+    fsemu_size_t client_size;
+    client_size.w = window_size.w;
+    client_size.h = window_size.h - titlebar;
+#endif
 
+    // printf("dr.h = %0.1f\n", dr.h);
+    // Vertical text alignment
+    double text_h = (double) widget->textimage->height / 1080.0;
+    double text_w = (double) widget->textimage->width * client_size.h /
+                    client_size.w / 1080.0;
+    dr.y = dr.y + (dr.h - text_h) * (1.0 - widget->text_valign);
+    dr.h = text_h;
+    // FIXME: Clamp with to original dr.w plus adjust tx to achieve clipping?
+    dr.w = text_w;
+    // printf("dr.h = %0.1f\n", dr.h);
+    dr.w = text_w;
+
+    // FIXME: Inefficient
     GLuint texture;
     glGenTextures(1, &texture);
+    fsemu_opengl_log_error();
     glBindTexture(GL_TEXTURE_2D, texture);
+    fsemu_opengl_log_error();
 
-    fsemu_image_t *image = widget->image;
+    fsemu_image_t *image = widget->textimage;
     // image->depth,
     // image->stride,
 
-    // FIXME:
-    glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-
+    fsemu_opengl_unpack_row_length(0);
     glTexImage2D(GL_TEXTURE_2D,
                  0,
                  GL_RGBA,
@@ -816,10 +888,15 @@ static void fsemu_glvideo_render_image(fsemu_gui_item_t *widget)
                  GL_RGBA,
                  GL_UNSIGNED_BYTE,
                  image->data);
+    fsemu_opengl_log_error();
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    fsemu_opengl_log_error();
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    fsemu_opengl_log_error();
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    fsemu_opengl_log_error();
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    fsemu_opengl_log_error();
 
     float tx1 = 0.0f, tx2 = 1.0f;
     float ty1 = 1.0f, ty2 = 0.0f;
@@ -844,22 +921,102 @@ static void fsemu_glvideo_render_image(fsemu_gui_item_t *widget)
     glTexCoord2f(tx1, ty2);
     glVertex3f(dr.x, dr.y + dr.h, 0);
     glEnd();
+    fsemu_opengl_log_error();
 
     // fsemu_video_log("Render image to %0.2f,%0.2f %0.2fx%0.2f\n",
     //                 dr.x, dr.y, dr.w, dr.h);
     glDeleteTextures(1, &texture);
+    fsemu_opengl_log_error();
+}
+
+static void fsemu_glvideo_render_image(fsemu_gui_item_t *widget)
+{
+    fsemu_drect_t dr;
+#if 0
+    if (item->left.anchor) {
+        fsemu_glvideo_convert_coordinates_2(&dr, item);
+
+        printf("Render image to %0.2f, %0.2f %0.2f x %0.2f\n",
+               dr.x,
+               dr.y,
+               dr.w,
+               dr.h);
+    } else {
+        fsemu_glvideo_convert_coordinates(&dr, &item->rect, item->coordinates);
+    }
+#endif
+    fsemu_glvideo_render_rect(&dr, widget);
+    uint8_t r, g, b, a;
+    fsemu_color_decode(widget->color, &r, &g, &b, &a);
+
+    // FIXME: Inefficient
+    GLuint texture;
+    glGenTextures(1, &texture);
+    fsemu_opengl_log_error();
+    glBindTexture(GL_TEXTURE_2D, texture);
+    fsemu_opengl_log_error();
+
+    fsemu_image_t *image = widget->image;
+    // image->depth,
+    // image->stride,
+
+    fsemu_opengl_unpack_row_length(0);
+    glTexImage2D(GL_TEXTURE_2D,
+                 0,
+                 GL_RGBA,
+                 image->width,
+                 image->height,
+                 0,
+                 GL_RGBA,
+                 GL_UNSIGNED_BYTE,
+                 image->data);
+    fsemu_opengl_log_error();
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    fsemu_opengl_log_error();
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    fsemu_opengl_log_error();
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    fsemu_opengl_log_error();
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    fsemu_opengl_log_error();
+
+    float tx1 = 0.0f, tx2 = 1.0f;
+    float ty1 = 1.0f, ty2 = 0.0f;
+    if (widget->flags & FSEMU_WIDGET_FLAG_FLIPX) {
+        tx1 = 1.0f;
+        tx2 = 0.0f;
+    }
+
+    fsemu_opengl_blend(true);
+    // fsemu_opengl_color4f(1.0f, 1.0f, 1.0f, 1.0f);
+    fsemu_opengl_color4f(r / 255.0, g / 255.0, b / 255.0, a / 255.0);
+    fsemu_opengl_depth_test(false);
+    fsemu_opengl_texture_2d(true);
+
+    glBegin(GL_QUADS);
+    glTexCoord2f(tx1, ty1);
+    glVertex3f(dr.x, dr.y, 0);
+    glTexCoord2f(tx2, ty1);
+    glVertex3f(dr.x + dr.w, dr.y, 0);
+    glTexCoord2f(tx2, ty2);
+    glVertex3f(dr.x + dr.w, dr.y + dr.h, 0);
+    glTexCoord2f(tx1, ty2);
+    glVertex3f(dr.x, dr.y + dr.h, 0);
+    glEnd();
+    fsemu_opengl_log_error();
+
+    // fsemu_video_log("Render image to %0.2f,%0.2f %0.2fx%0.2f\n",
+    //                 dr.x, dr.y, dr.w, dr.h);
+    glDeleteTextures(1, &texture);
+    fsemu_opengl_log_error();
 }
 
 static void fsemu_glvideo_render_rectangle(fsemu_gui_item_t *widget)
 {
     fsemu_drect_t dr;
-    // fsemu_glvideo_convert_coordinates(&dr, &item->rect, item->coordinates);
     fsemu_glvideo_render_rect(&dr, widget);
-
-    uint8_t r = widget->color & 0xff;
-    uint8_t g = (widget->color & 0xff00) >> 8;
-    uint8_t b = (widget->color & 0xff0000) >> 16;
-    uint8_t a = (widget->color & 0xff000000) >> 24;
+    uint8_t r, g, b, a;
+    fsemu_color_decode(widget->color, &r, &g, &b, &a);
 
     if (a == 0) {
         // Optimization: No need to render fully transparent rectangle.
@@ -880,6 +1037,7 @@ static void fsemu_glvideo_render_rectangle(fsemu_gui_item_t *widget)
     glVertex3f(dr.x + dr.w, dr.y + dr.h, 0);
     glVertex3f(dr.x, dr.y + dr.h, 0);
     glEnd();
+    fsemu_opengl_log_error();
 }
 
 // void fsemu_glvideo_render_item(fsemu_gui_item_t *item);
@@ -903,7 +1061,9 @@ static void fsemu_glvideo_update_render_rect(fsemu_widget_t *widget)
 static void fsemu_glvideo_render_item(fsemu_gui_item_t *item)
 {
     if (item->visible) {
-        if (item->image) {
+        if (item->textimage) {
+            fsemu_glvideo_render_text(item);
+        } else if (item->image) {
             fsemu_glvideo_render_image(item);
         } else {
             fsemu_glvideo_render_rectangle(item);

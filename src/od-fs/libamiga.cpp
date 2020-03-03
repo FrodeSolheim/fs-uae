@@ -313,11 +313,12 @@ void amiga_main(void)
     keyboard_settrans();
 
     int argc = 1;
-    char *argv[4] = {
+    char *argv[] = {
             strdup("fs-uae"),
             NULL,
     };
     real_main(argc, argv);
+    free(argv[0]);
 #ifdef FILESYS
     write_log("real_main returned\n");
     write_log("calling filesys_flush_cache\n");

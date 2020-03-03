@@ -50,10 +50,10 @@ const char *fs_uae_cdroms_dir();
 const char *fs_uae_floppies_dir();
 const char *fs_uae_hard_drives_dir();
 const char *fs_uae_kickstarts_dir();
-//const char *fs_uae_flash_memory_dir();
-//const char *fs_uae_save_states_dir();
+// const char *fs_uae_flash_memory_dir();
+// const char *fs_uae_save_states_dir();
 const char *fs_uae_state_dir();
-//const char *fs_uae_floppy_overlays_dir();
+// const char *fs_uae_floppy_overlays_dir();
 const char *fs_uae_controllers_dir();
 const char *fs_uae_logs_dir();
 const char *fs_uae_module_ripper_dir();
@@ -93,7 +93,7 @@ char *fs_uae_resolve_path(const char *name, int type);
 char *fs_uae_resolve_path_and_free(char *name, int type);
 void fs_uae_set_uae_paths();
 
-//extern char *g_fs_uae_default_dir;
+// extern char *g_fs_uae_default_dir;
 extern char *g_fs_uae_config_file_path;
 extern char *g_fs_uae_config_dir_path;
 

@@ -201,6 +201,22 @@ void fsemu_layout_video_area(fsemu_rect_t *rect)
 {
     // fsemu_rect_t video_area;
     fsemu_layout_client_area(rect);
+#if 0
+    if (fsemu_osmenu_open()) {
+        // Displace the video rectangle when the menu is open, so we get both
+        // the entire video display and menu visible, with 4:3 video on a
+        // 16:9 display.
+        rect->x -= 240 * rect->h / 1080.0;
+    }
+#endif
+    int open_offset = fsemu_osmenu_open_offset();
+    if (open_offset) {
+        // Displace the video rectangle when the menu is open, so we get both
+        // the entire video display and menu visible, with 4:3 video on a
+        // 16:9 display. Note: we are displacing the video rectangle by half
+        // of the open menu width.
+        rect->x += fsemu_osmenu_open_offset() * rect->h / 1080.0 / 2;
+    }
 
     // fsemu_drect_t temp_drect;
     // temp_drect.x = client_area.x;
@@ -234,13 +250,6 @@ void fsemu_layout_video_area(fsemu_rect_t *rect)
     rect->w -= tleft + tright;
     rect->y += ttop;
     rect->h -= ttop + tbottom;
-
-    if (fsemu_osmenu_open()) {
-        // Displace the video rectangle when the menu is open, so we get both
-        // the entire video display and menu visible, with 4:3 video on a
-        // 16:9 display.
-        rect->x -= 240 * rect->h / 1080.0;
-    }
 
     // // FIXME: 1080 coordinates
     // // temp_drect.x += tleft; // FIXME

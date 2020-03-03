@@ -2,12 +2,11 @@
 #include "config.h"
 #endif
 
-#include <stdlib.h>
-#include <string.h>
-
-#include <uae/uae.h>
 #include <fs/emu.h>
 #include <fs/emu/actions.h>
+#include <stdlib.h>
+#include <string.h>
+#include <uae/uae.h>
 
 #include "fs-uae.h"
 #include "fsuae-config.h"
@@ -17,19 +16,23 @@ fs_uae_input_port g_fs_uae_input_ports[FS_UAE_NUM_INPUT_PORTS] = {};
 
 #define NO_ACTION 65536
 
-#define COMMON_ACTIONS \
+#define COMMON_ACTIONS                      \
     { "menu_alt", FS_EMU_ACTION_MENU_ALT }, \
-    { "pause", FS_EMU_ACTION_PAUSE }
+    {                                       \
+        "pause", FS_EMU_ACTION_PAUSE        \
+    }
 
-#define CUSTOM_ACTIONS \
-    { "left", NO_ACTION }, \
-    { "right", NO_ACTION }, \
-    { "up", NO_ACTION }, \
-    { "down", NO_ACTION }, \
-    { "1", NO_ACTION }, \
-    { "2", NO_ACTION }
+#define CUSTOM_ACTIONS                                                  \
+    { "left", NO_ACTION }, { "right", NO_ACTION }, { "up", NO_ACTION }, \
+        { "down", NO_ACTION }, { "1", NO_ACTION },                      \
+    {                                                                   \
+        "2", NO_ACTION                                                  \
+    }
 
-#define END_ACTIONS { NULL, 0 }
+#define END_ACTIONS \
+    {               \
+        NULL, 0     \
+    }
 
 static fs_emu_input_mapping g_joystick_port_0_mapping[] = {
     { "left", INPUTEVENT_JOY1_LEFT },
@@ -99,25 +102,17 @@ static fs_emu_input_mapping g_parallel_port_2nd_mapping[] = {
     END_ACTIONS
 };
 
-static fs_emu_input_mapping g_port_4_mapping[] = {
-    CUSTOM_ACTIONS,
-    END_ACTIONS
-};
+static fs_emu_input_mapping g_port_4_mapping[] = { CUSTOM_ACTIONS,
+                                                   END_ACTIONS };
 
-static fs_emu_input_mapping g_port_5_mapping[] = {
-    CUSTOM_ACTIONS,
-    END_ACTIONS
-};
+static fs_emu_input_mapping g_port_5_mapping[] = { CUSTOM_ACTIONS,
+                                                   END_ACTIONS };
 
-static fs_emu_input_mapping g_port_6_mapping[] = {
-    CUSTOM_ACTIONS,
-    END_ACTIONS
-};
+static fs_emu_input_mapping g_port_6_mapping[] = { CUSTOM_ACTIONS,
+                                                   END_ACTIONS };
 
-static fs_emu_input_mapping g_port_7_mapping[] = {
-    CUSTOM_ACTIONS,
-    END_ACTIONS
-};
+static fs_emu_input_mapping g_port_7_mapping[] = { CUSTOM_ACTIONS,
+                                                   END_ACTIONS };
 
 static fs_emu_input_mapping *g_joystick_mappings[] = {
     g_joystick_port_0_mapping,
@@ -136,7 +131,7 @@ void fs_uae_read_override_actions_for_port(int port)
     fs_log("fs_uae_read_override_actions_for_port %d\n", port);
     fs_emu_input_mapping *mapping = g_joystick_mappings[port];
     for (int i = 0; mapping[i].name != NULL; i++) {
-        const char* name = mapping[i].name;
+        const char *name = mapping[i].name;
         if (strcmp(name, "1") == 0) {
             name = "primary";
         } else if (strcmp(name, "2") == 0) {
@@ -145,6 +140,7 @@ void fs_uae_read_override_actions_for_port(int port)
         char *key = g_strdup_printf("joystick_port_%d_%s", port, name);
         const char *value = fs_config_get_const_string(key);
         if (value == NULL) {
+            g_free(key);
             continue;
         }
         fs_log("check %s = %s\n", key, value);
@@ -153,51 +149,75 @@ void fs_uae_read_override_actions_for_port(int port)
             fs_log("override %s => %s (%d)\n", key, value, action);
             mapping[i].action = action;
         }
-        free(key);
+        g_free(key);
     }
 }
 
 static void map_mouse(const char *device_name, int port)
 {
+    if (fsemu) {
+        return;
+    }
     fs_log("mapping mouse to port %d\n", port);
     if (port == 0) {
-        fs_emu_configure_mouse(device_name, INPUTEVENT_MOUSE1_HORIZ,
-                INPUTEVENT_MOUSE1_VERT, INPUTEVENT_JOY1_FIRE_BUTTON,
-                INPUTEVENT_JOY1_3RD_BUTTON, INPUTEVENT_JOY1_2ND_BUTTON,
-                INPUTEVENT_MOUSE1_WHEEL);
+        fs_emu_configure_mouse(device_name,
+                               INPUTEVENT_MOUSE1_HORIZ,
+                               INPUTEVENT_MOUSE1_VERT,
+                               INPUTEVENT_JOY1_FIRE_BUTTON,
+                               INPUTEVENT_JOY1_3RD_BUTTON,
+                               INPUTEVENT_JOY1_2ND_BUTTON,
+                               INPUTEVENT_MOUSE1_WHEEL);
     } else if (port == 1) {
-        fs_emu_configure_mouse(device_name, INPUTEVENT_MOUSE2_HORIZ,
-                INPUTEVENT_MOUSE2_VERT, INPUTEVENT_JOY2_FIRE_BUTTON,
-                INPUTEVENT_JOY2_3RD_BUTTON, INPUTEVENT_JOY2_2ND_BUTTON,
-                0);
-    }
-    else {
+        fs_emu_configure_mouse(device_name,
+                               INPUTEVENT_MOUSE2_HORIZ,
+                               INPUTEVENT_MOUSE2_VERT,
+                               INPUTEVENT_JOY2_FIRE_BUTTON,
+                               INPUTEVENT_JOY2_3RD_BUTTON,
+                               INPUTEVENT_JOY2_2ND_BUTTON,
+                               0);
+    } else {
         fs_log("WARNING: cannot map mouse to this port\n");
     }
 }
 
-static void auto_joystick(
-    fs_uae_input_port *p, int port, int mode, const char *type)
+static void auto_joystick(fs_uae_input_port *p,
+                          int port,
+                          int mode,
+                          const char *type)
 {
+    if (fsemu) {
+        return;
+    }
     fs_emu_log("[INPUT] Trying to auto-configure joystick in port %d\n", port);
     p->new_mode = mode;
-    int result = fs_emu_configure_joystick(
-            "JOYSTICK", type, g_joystick_mappings[port], 1,
-            g_fs_uae_input_ports[port].device, MAX_DEVICE_NAME_LEN, false);
+    int result = fs_emu_configure_joystick("JOYSTICK",
+                                           type,
+                                           g_joystick_mappings[port],
+                                           1,
+                                           g_fs_uae_input_ports[port].device,
+                                           MAX_DEVICE_NAME_LEN,
+                                           false);
     if (!result) {
-        result = fs_emu_configure_joystick(
-            "JOYSTICK #2", type, g_joystick_mappings[port], 1,
-            g_fs_uae_input_ports[port].device, MAX_DEVICE_NAME_LEN, false);
+        result = fs_emu_configure_joystick("JOYSTICK #2",
+                                           type,
+                                           g_joystick_mappings[port],
+                                           1,
+                                           g_fs_uae_input_ports[port].device,
+                                           MAX_DEVICE_NAME_LEN,
+                                           false);
     }
     if (!result) {
-        fs_emu_log("[INPUT] Could not auto-configure joystick, "
-                   "using keyboard emulation\n");
+        fs_emu_log(
+            "[INPUT] Could not auto-configure joystick, using keyboard "
+            "emulation\n");
         strcpy(p->device, "KEYBOARD");
     }
 }
 
-static void configure_joystick_port(
-    int port, const char *value, const char *port_name, const char *joy_dev)
+static void configure_joystick_port(int port,
+                                    const char *value,
+                                    const char *port_name,
+                                    const char *joy_dev)
 {
     fs_emu_log("[INPUT] Configuring joystick port %d (%s)\n", port, value);
     fs_uae_input_port *p = g_fs_uae_input_ports + port;
@@ -212,15 +232,15 @@ static void configure_joystick_port(
     const char *mode_string = fs_config_get_const_string(key);
     free(key);
 
-    if (g_ascii_strcasecmp(value, "nothing") == 0
-            || g_ascii_strcasecmp(value, "none") == 0) {
+    if (g_ascii_strcasecmp(value, "nothing") == 0 ||
+        g_ascii_strcasecmp(value, "none") == 0) {
         fs_emu_log("[INPUT] Nothing connected to port\n");
         strcpy(p->device, "");
         p->new_mode = AMIGA_JOYPORT_NONE;
     } else if (g_ascii_strcasecmp(value, "auto") == 0 && port < 2) {
         if (port == 0) {
-            if (!mode_string
-                    || g_ascii_strcasecmp(mode_string, "mouse") == 0) {
+            if (!mode_string ||
+                g_ascii_strcasecmp(mode_string, "mouse") == 0) {
                 fs_emu_log("[INPUT] Setting mode to mouse\n");
                 p->new_mode = AMIGA_JOYPORT_MOUSE;
                 strcpy(p->device, "MOUSE");
@@ -261,9 +281,13 @@ static void configure_joystick_port(
         p->new_mode = AMIGA_JOYPORT_DJOY;
     } else {
         p->new_mode = auto_mode;
-        fs_emu_configure_joystick(value, auto_type,
-                g_joystick_mappings[port], 1,
-                p->device, MAX_DEVICE_NAME_LEN, false);
+        fs_emu_configure_joystick(value,
+                                  auto_type,
+                                  g_joystick_mappings[port],
+                                  1,
+                                  p->device,
+                                  MAX_DEVICE_NAME_LEN,
+                                  false);
     }
 
     if (mode_string) {
@@ -347,8 +371,8 @@ void fs_uae_reconfigure_input_ports_amiga()
 {
     fs_emu_log("fs_uae_reconfigure_input_ports_amiga\n");
     int modes = INPUTEVENT_AMIGA_JOYPORT_MODE_0_LAST -
-            INPUTEVENT_AMIGA_JOYPORT_MODE_0_NONE + 1;
-    //for (int i = 0; i < FS_UAE_NUM_INPUT_PORTS; i++) {
+                INPUTEVENT_AMIGA_JOYPORT_MODE_0_NONE + 1;
+    // for (int i = 0; i < FS_UAE_NUM_INPUT_PORTS; i++) {
     // only the 4 real ports are reconfigured via input events, the 5th
     // custom joystick port is a local virtual joystick for mapping custom
     // input events only
@@ -356,14 +380,17 @@ void fs_uae_reconfigure_input_ports_amiga()
         fs_uae_input_port *port = g_fs_uae_input_ports + i;
         if (port->new_mode != port->mode) {
             fs_log("[INPUT] Sending event to set port %d to mode %d\n",
-                    i, port->new_mode);
-            int action = INPUTEVENT_AMIGA_JOYPORT_MODE_0_NONE + modes * i + \
-                    port->new_mode;
+                   i,
+                   port->new_mode);
+            int action = INPUTEVENT_AMIGA_JOYPORT_MODE_0_NONE + modes * i +
+                         port->new_mode;
             fs_emu_queue_action(action, 1);
         }
         if (port->new_autofire_mode != port->autofire_mode) {
-            fs_log("[INPUT] Sending event to set port %d to autofire mode %d\n",
-                    i, port->new_autofire_mode);
+            fs_log(
+                "[INPUT] Sending event to set port %d to autofire mode %d\n",
+                i,
+                port->new_autofire_mode);
             int action = INPUTEVENT_AMIGA_JOYPORT_0_AUTOFIRE + i;
             fs_emu_queue_action(action, 1);
         }
@@ -385,39 +412,44 @@ void fs_uae_reconfigure_input_ports_host()
         if (port->mode == AMIGA_JOYPORT_NONE) {
             fs_log("* nothing in port\n");
             fs_log("* FIXME\n");
-        }
-        else if (port->mode == AMIGA_JOYPORT_MOUSE) {
+        } else if (port->mode == AMIGA_JOYPORT_MOUSE) {
             fs_log("* amiga mouse\n");
             // if (strcmp(port->device, "MOUSE") == 0) {
-                // fs_log("* using host mouse\n");
-                fs_log("* using device %s\n", port->device);
-                map_mouse(port->device, i);
-                mouse_mapped_to_port = i;
+            // fs_log("* using host mouse\n");
+            fs_log("* using device %s\n", port->device);
+            map_mouse(port->device, i);
+            mouse_mapped_to_port = i;
             // }
             // else {
             //     fs_log("* not mapping host device to amiga mouse\n");
             // }
-        }
-        else if (port->mode == AMIGA_JOYPORT_DJOY) {
+        } else if (port->mode == AMIGA_JOYPORT_DJOY) {
             fs_log("* amiga joystick\n");
             if (strcmp(port->device, "MOUSE") == 0) {
                 fs_log("* cannot map mouse to joystick\n");
-            }
-            else {
+            } else {
                 fs_log("* using device %s\n", port->device);
-                fs_emu_configure_joystick(port->device, "amiga",
-                        g_joystick_mappings[i], 1, NULL, 0, true);
+                fs_emu_configure_joystick(port->device,
+                                          "amiga",
+                                          g_joystick_mappings[i],
+                                          1,
+                                          NULL,
+                                          0,
+                                          true);
             }
-        }
-        else if (port->mode == AMIGA_JOYPORT_CD32JOY) {
+        } else if (port->mode == AMIGA_JOYPORT_CD32JOY) {
             fs_log("* amiga cd32 gamepad\n");
             if (strcmp(port->device, "MOUSE") == 0) {
                 fs_log("* cannot map mouse to cd32 gamepad\n");
-            }
-            else {
+            } else {
                 fs_log("* using device %s\n", port->device);
-                fs_emu_configure_joystick(port->device, "cd32",
-                        g_joystick_mappings[i], 1, NULL, 0, true);
+                fs_emu_configure_joystick(port->device,
+                                          "cd32",
+                                          g_joystick_mappings[i],
+                                          1,
+                                          NULL,
+                                          0,
+                                          true);
             }
         }
     }
@@ -487,5 +519,8 @@ void fs_uae_reconfigure_input_ports_host()
     }
 #endif
 
-    fs_emu_map_custom_actions();
+    if (fsemu) {
+    } else {
+        fs_emu_map_custom_actions();
+    }
 }

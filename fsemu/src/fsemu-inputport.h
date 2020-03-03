@@ -27,6 +27,9 @@ void fsemu_inputport_set_mode(fsemu_inputport_t *port,
 
 void fsemu_inputport_set_mode_index(fsemu_inputport_t *port, int mode_index);
 
+fsemu_inputmode_t *fsemu_inputport_mode(fsemu_inputport_t *port);
+const char *fsemu_inputport_mode_name(fsemu_inputport_t *port);
+
 #ifdef FSEMU_INTERNAL
 
 #define FSEMU_INPUTPORT_MAX_MODES 16

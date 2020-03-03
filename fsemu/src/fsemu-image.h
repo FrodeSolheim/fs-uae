@@ -8,7 +8,7 @@
 #include "fsemu-refable.h"
 #include "fsemu-stream.h"
 
-typedef struct {
+typedef struct fsemu_image {
     FSEMU_REFABLE;
     int error;
     uint8_t *data;
@@ -18,6 +18,8 @@ typedef struct {
     int bpp;
     int stride;
     int format;
+    void (*free_function)(void *data);
+    void *free_param;
 } fsemu_image_t;
 
 #ifdef __cplusplus
@@ -25,6 +27,8 @@ extern "C" {
 #endif
 
 void fsemu_image_module_init(void);
+
+fsemu_image_t *fsemu_image_new(void);
 
 static inline void fsemu_image_ref(fsemu_image_t *image)
 {

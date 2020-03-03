@@ -115,7 +115,9 @@ void fsemu_thread_assert_main(void)
 fsemu_thread_id_t fsemu_thread_id(void)
 {
     fsemu_thread_id_t thread_id = 0;
-#if defined(USE_GLIB)
+#if defined(USE_PTHREADS)
+#error pthreads support must be updated
+#elif defined(FSEMU_GLIB)
     thread_id = (uintptr_t)(void *) g_thread_self();
 #else
 #error no thread support
@@ -127,13 +129,12 @@ fsemu_thread_t *fsemu_thread_create(const char *name,
                                     fsemu_thread_function_t fn,
                                     void *data)
 {
-    fsemu_thread_t *thread =
-        (fsemu_thread_t *) g_malloc(sizeof(fsemu_thread_t));
+    fsemu_thread_t *thread = FSEMU_UTIL_MALLOC0(fsemu_thread_t);
 #if defined(USE_PTHREADS)
     pthread_attr_init(&thread->attr);
     pthread_attr_setdetachstate(&thread->attr, PTHREAD_CREATE_JOINABLE);
     pthread_create(&thread->thread, &thread->attr, fn, data);
-#elif defined(USE_GLIB)
+#elif defined(FSEMU_GLIB)
     thread->thread = g_thread_new(name, fn, data);
 #else
 #error no thread support

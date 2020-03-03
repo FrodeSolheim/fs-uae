@@ -58,6 +58,8 @@ typedef struct fsemu_mouse_event {
     bool moved;
     int x;
     int y;
+    int rel_x;
+    int rel_y;
 
     // bool buttons[4];
     // deprecated:
@@ -66,6 +68,20 @@ typedef struct fsemu_mouse_event {
 } fsemu_mouse_event_t;
 
 bool fsemu_mouse_handle_mouse(fsemu_mouse_event_t *event);
+
+enum {
+    // Make sure to keep these in the same order as in fsemu-inputdevice.
+    FSEMU_MOUSE_BEFORE_FIRST_BUTTON,
+    FSEMU_MOUSE_LEFT,
+    FSEMU_MOUSE_MIDDLE,
+    FSEMU_MOUSE_RIGHT,
+    FSEMU_MOUSE_X,
+    FSEMU_MOUSE_XNEG,
+    FSEMU_MOUSE_XPOS,
+    FSEMU_MOUSE_Y,
+    FSEMU_MOUSE_YNEG,
+    FSEMU_MOUSE_YPOS,
+};
 
 #endif  // FSEMU_INTERNAL
 

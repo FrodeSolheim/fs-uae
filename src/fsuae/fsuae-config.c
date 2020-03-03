@@ -2,22 +2,21 @@
 #include "config.h"
 #endif
 
-#include <stdlib.h>
-#include <string.h>
-
-#include <uae/uae.h>
 #include <fs/emu.h>
 #include <fs/emu/render.h>
 #include <fs/i18n.h>
-#include "fs-uae.h"
+#include <stdlib.h>
+#include <string.h>
+#include <uae/uae.h>
 
-#include "fsuae-options.h"
-#include "fsuae-paths.h"
+#include "fs-uae.h"
 #include "fsuae-accelerator.h"
 #include "fsuae-config.h"
 #include "fsuae-graphics.h"
 #include "fsuae-hardware.h"
 #include "fsuae-model.h"
+#include "fsuae-options.h"
+#include "fsuae-paths.h"
 #include "fsuae-sound.h"
 
 #define LEN_MAX 1024
@@ -135,13 +134,12 @@ void fs_uae_configure_amiga_model()
     }
     if (config_model) {
         int i = 0;
-        for (amiga_config* c = g_fs_uae_amiga_configs; c->id; c++, i++) {
+        for (amiga_config *c = g_fs_uae_amiga_configs; c->id; c++, i++) {
             if (fs_uae_values_matches(config_model, c->id)) {
                 fs_emu_log("config match for \"%s\"\n", c->id);
                 g_fs_uae_amiga_config = i;
                 break;
             }
-
         }
     }
     if (g_fs_uae_amiga_config == -1) {
@@ -167,8 +165,7 @@ void fs_uae_configure_amiga_model()
 static void configure_roms(amiga_config *c)
 {
     char *path = fs_config_get_string("kickstart_file");
-    if (path == NULL ) {
-
+    if (path == NULL) {
     } else if (strcmp(path, "internal") == 0) {
         /* Do not load external kickstart */
         free(path);
@@ -218,9 +215,12 @@ void fs_uae_configure_amiga_hardware()
     }
     if (scan_kickstarts) {
         fs_uae_load_rom_files(fs_uae_kickstarts_dir());
-        gchar *scan_path = g_build_filename(
-            fs_uae_base_dir(), "AmigaForever", "Amiga Files", "Shared",
-            "rom", NULL);
+        gchar *scan_path = g_build_filename(fs_uae_base_dir(),
+                                            "AmigaForever",
+                                            "Amiga Files",
+                                            "Shared",
+                                            "rom",
+                                            NULL);
         if (g_file_test(scan_path, G_FILE_TEST_IS_DIR)) {
             fs_uae_load_rom_files(scan_path);
         }
@@ -273,8 +273,8 @@ void fs_uae_configure_amiga_hardware()
         amiga_enable_serial_port(serial_port);
     }
 
-    const char *parallel_port = fs_config_get_const_string(
-                OPTION_PARALLEL_PORT);
+    const char *parallel_port =
+        fs_config_get_const_string(OPTION_PARALLEL_PORT);
     if (parallel_port && g_ascii_strcasecmp(parallel_port, "none") != 0) {
         amiga_enable_parallel_port(parallel_port);
     }
@@ -325,8 +325,8 @@ void fs_uae_configure_amiga_hardware()
         amiga_set_option("gfx_lores", "true");
     }
 
-    int stereo_separation = fs_config_get_int_clamped(
-        OPTION_STEREO_SEPARATION, 0, 100);
+    int stereo_separation =
+        fs_config_get_int_clamped(OPTION_STEREO_SEPARATION, 0, 100);
     if (stereo_separation == FS_CONFIG_NONE) {
         stereo_separation = 70;
     }

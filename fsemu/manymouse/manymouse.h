@@ -60,4 +60,3 @@ int ManyMouse_PollEvent(ManyMouseEvent *event);
 #endif  /* !defined _INCLUDE_MANYMOUSE_H_ */
 
 /* end of manymouse.h ... */
-

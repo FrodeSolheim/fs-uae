@@ -1263,8 +1263,7 @@ static int read_window_override(int type, const char *s, int *pos)
     if (!read_window_override_int(s, pos, &dh))
         return 0;
     printf(
-        "[FSGS] Viewport transformation: %3d %3d %3d %3d "
-        "=> %3d %3d %3d %3d\n",
+        "[FSGS] Viewport transformation: %3d %3d %3d %3d => %3d %3d %3d %3d\n",
         sx,
         sy,
         sw,
@@ -1320,8 +1319,7 @@ static void init_window_overrides_2(int type, const char *s)
             break;
         } else {
             printf(
-                "[FSGS] Unexpected byte (%d) while parsing "
-                "viewport option\n",
+                "[FSGS] Unexpected byte (%d) while parsing viewport option\n",
                 c);
             return;
         }

@@ -1434,7 +1434,7 @@ static unsigned long  HIDQueueDevice (pRecDevice pDevice)
 			HIDREPORTERRORNUM ("HIDQueueDevice - Failed to stop queue.", result);
 
 		// queue element
-  //¥ pElement = HIDGetFirstDeviceElement (pDevice, kHIDElementTypeIO);
+  //ï¿½ pElement = HIDGetFirstDeviceElement (pDevice, kHIDElementTypeIO);
 		pElement = HIDGetFirstDeviceElement (pDevice, kHIDElementTypeInput | kHIDElementTypeFeature);
 
 		while (pElement)
@@ -1445,7 +1445,7 @@ static unsigned long  HIDQueueDevice (pRecDevice pDevice)
 				if (kIOReturnSuccess != result)
 					HIDREPORTERRORNUM ("HIDQueueDevice - Failed to add element to queue.", result);
 			}
-			//¥ pElement = HIDGetNextDeviceElement (pElement, kHIDElementTypeIO);
+			//ï¿½ pElement = HIDGetNextDeviceElement (pElement, kHIDElementTypeIO);
 			pElement = HIDGetNextDeviceElement (pElement, kHIDElementTypeInput | kHIDElementTypeFeature);
 		}
 
@@ -1725,4 +1725,3 @@ const ManyMouseDriver *ManyMouseDriver_hidutilities = 0;
 #endif  /* ifdef Mac OS X blocker */
 
 /* end of macosx_hidutilities.c ... */
-

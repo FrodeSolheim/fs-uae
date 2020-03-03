@@ -85,6 +85,32 @@ int amiga_send_input_event(int input_event, int state)
         write_log("amiga_send_input_event %d %d\n", input_event, state);
     }
 
+    // These MOUSEXNEG/POS events are > INPUTEVENT_PRIVATE_START, so we need
+    // to convert these to HORIZ/VERT input events before the check for
+    // private events below.
+    if (input_event == INPUTEVENT_JOYPORT0_MOUSEXNEG) {
+        input_event = INPUTEVENT_MOUSE1_HORIZ;
+        state = -state;
+    } else if (input_event == INPUTEVENT_JOYPORT0_MOUSEXPOS) {
+        input_event = INPUTEVENT_MOUSE1_HORIZ;
+        printf("converted into %d\n", input_event);
+    } else if (input_event == INPUTEVENT_JOYPORT0_MOUSEYNEG) {
+        input_event = INPUTEVENT_MOUSE1_VERT;
+        state = -state;
+    } else if (input_event == INPUTEVENT_JOYPORT0_MOUSEYPOS) {
+        input_event = INPUTEVENT_MOUSE1_VERT;
+    } else if (input_event == INPUTEVENT_JOYPORT1_MOUSEXNEG) {
+        input_event = INPUTEVENT_MOUSE2_HORIZ;
+        state = -state;
+    } else if (input_event == INPUTEVENT_JOYPORT1_MOUSEXPOS) {
+        input_event = INPUTEVENT_MOUSE2_HORIZ;
+    } else if (input_event == INPUTEVENT_JOYPORT1_MOUSEYNEG) {
+        input_event = INPUTEVENT_MOUSE2_VERT;
+        state = -state;
+    } else if (input_event == INPUTEVENT_JOYPORT1_MOUSEYPOS) {
+        input_event = INPUTEVENT_MOUSE2_VERT;
+    }
+
     if (input_event > INPUTEVENT_PRIVATE_START) {
         return handle_custom_action(input_event, state);
     }

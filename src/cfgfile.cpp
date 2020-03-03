@@ -926,8 +926,9 @@ void cfgfile_target_dwrite (struct zfile *f, const TCHAR *option, const TCHAR *f
 
 static void cfgfile_write_rom (struct zfile *f, struct multipath *mp, const TCHAR *romfile, const TCHAR *name)
 {
-	TCHAR *str = cfgfile_subst_path (mp->path[0], UNEXPANDED, romfile);
-	str = cfgfile_put_multipath (mp, str);
+	TCHAR *str0 = cfgfile_subst_path (mp->path[0], UNEXPANDED, romfile);
+	TCHAR *str = cfgfile_put_multipath (mp, str0);
+	xfree(str0);
 	cfgfile_write_str (f, name, str);
 	struct zfile *zf = zfile_fopen (str, _T("rb"), ZFD_ALL);
 	if (zf) {

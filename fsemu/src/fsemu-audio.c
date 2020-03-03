@@ -127,13 +127,17 @@ void fsemu_audio_set_frequency(int frequency)
 void fsemu_audio_pause(void)
 {
     fsemu_audio_log("Pause audio (FIXME!)\n");
+#if 0
     SDL_PauseAudio(1);
+#endif
 }
 
 void fsemu_audio_resume(void)
 {
     fsemu_audio_log("Resume audio (FIXME!)\n");
+#if 0
     SDL_PauseAudio(0);
+#endif
 }
 
 void fsemu_audio_register_data_sent(int size,
@@ -307,8 +311,7 @@ int fsemu_audio_log_buffer_stats(void)
     }
     double consumption = frequency * 4.0 / 1000000;
     fsemu_audio_log_trace(
-        "[%6d] Buffer %2d ms (%2d (+%2d) +%2d (est. dt %5d cons "
-        "%0.1f))\n",
+        "[%6d] Buffer %2d ms (%2d (+%2d) +%2d (est. dt %5d cons %0.1f))\n",
         (int) fsemu_frame_counter(),
         fsemu_audio_bytes_to_ms(total),
         fsemu_audio_bytes_to_ms(stats->buffer_bytes),

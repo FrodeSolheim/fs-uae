@@ -3,6 +3,7 @@
 
 #include "fsemu-glib.h"
 #include "fsemu-sdl.h"
+#include "fsemu-util.h"
 #include "fsemu-window.h"
 
 #ifdef FSEMU_LINUX
@@ -51,71 +52,93 @@ static void *fsemu_monitor_dlsym(void *handle, const char *name)
 
 static void fsemu_monitor_read_scale_via_gdk(void)
 {
-    void (*gdk_init)(int *argc, char ***argv);
+#if 1
+    // GDK allocates some stuff that will be counted as memory leaks, so when
+    // running the leak check, might as well skip using GDK.
+    if (strcmp(fsemu_getenv("FSEMU_LEAK_CHECK"), "1") == 0) {
+        return;
+    }
+#endif
+    bool (*gdk_init_check)(int *argc, char ***argv);
     void *(*gdk_display_get_default)(void);
     int (*gdk_display_get_n_monitors)(void *display);
     void *(*gdk_display_get_monitor)(void *display, int monitor_num);
     void (*gdk_monitor_get_geometry)(void *monitor,
                                      fsemu_monitor_GdkRectangle *geometry);
     int (*gdk_monitor_get_scale_factor)(void *monitor);
+
+    void (*gdk_display_close)(void *display);
     void *handle = dlopen("libgdk-3.so.0", RTLD_GLOBAL | RTLD_LAZY);
     if (!handle) {
         printf("[DSPLY] [MONITOR] Could not open libgdk-3.so.0: %s\n",
                dlerror());
         return;
     }
-    if (!(gdk_init = fsemu_monitor_dlsym(handle, "gdk_init"))) {
+    if (!(gdk_init_check = fsemu_monitor_dlsym(handle, "gdk_init_check"))) {
+        dlclose(handle);
         return;
     }
     if (!(gdk_display_get_default =
               fsemu_monitor_dlsym(handle, "gdk_display_get_default"))) {
+        dlclose(handle);
         return;
     }
     if (!(gdk_display_get_n_monitors =
               fsemu_monitor_dlsym(handle, "gdk_display_get_n_monitors"))) {
+        dlclose(handle);
         return;
     }
     if (!(gdk_display_get_monitor =
               fsemu_monitor_dlsym(handle, "gdk_display_get_monitor"))) {
+        dlclose(handle);
         return;
     }
     if (!(gdk_monitor_get_geometry =
               fsemu_monitor_dlsym(handle, "gdk_monitor_get_geometry"))) {
+        dlclose(handle);
         return;
     }
     if (!(gdk_monitor_get_scale_factor =
               fsemu_monitor_dlsym(handle, "gdk_monitor_get_scale_factor"))) {
+        dlclose(handle);
+        return;
+    }
+    if (!(gdk_display_close =
+              fsemu_monitor_dlsym(handle, "gdk_display_close"))) {
+        dlclose(handle);
         return;
     }
     char *argv[] = {NULL};
     char **args = argv;
-    gdk_init(0, &args);
+    gdk_init_check(0, &args);
     void *display = gdk_display_get_default();
-    if (!display) {
+    if (display) {
+        int monitor_count = gdk_display_get_n_monitors(display);
+        for (int i = 0; i < monitor_count; i++) {
+            void *monitor = gdk_display_get_monitor(display, i);
+            if (monitor == NULL) {
+                continue;
+            }
+            fsemu_monitor_GdkRectangle rect;
+            gdk_monitor_get_geometry(monitor, &rect);
+            int scale = gdk_monitor_get_scale_factor(monitor);
+            printf("[DSPLY] %d %d %d %d: scale %d\n",
+                   rect.x,
+                   rect.y,
+                   rect.width,
+                   rect.height,
+                   scale);
+            if (i < FSEMU_MONITOR_MAX_COUNT) {
+                fsemu_monitor.scales[i].x = rect.x * scale;
+                fsemu_monitor.scales[i].y = rect.y * scale;
+                fsemu_monitor.scales[i].w = rect.width * scale;
+                fsemu_monitor.scales[i].h = rect.height * scale;
+                fsemu_monitor.scales[i].scale = scale;
+            }
+        }
+        // gdk_display_close(display);
+    } else {
         printf("[DSPLY] [MONITOR] Could not get default display\n");
-    }
-    int monitor_count = gdk_display_get_n_monitors(display);
-    for (int i = 0; i < monitor_count; i++) {
-        void *monitor = gdk_display_get_monitor(display, i);
-        if (monitor == NULL) {
-            continue;
-        }
-        fsemu_monitor_GdkRectangle rect;
-        gdk_monitor_get_geometry(monitor, &rect);
-        int scale = gdk_monitor_get_scale_factor(monitor);
-        printf("[DSPLY] %d %d %d %d: scale %d\n",
-               rect.x,
-               rect.y,
-               rect.width,
-               rect.height,
-               scale);
-        if (i < FSEMU_MONITOR_MAX_COUNT) {
-            fsemu_monitor.scales[i].x = rect.x * scale;
-            fsemu_monitor.scales[i].y = rect.y * scale;
-            fsemu_monitor.scales[i].w = rect.width * scale;
-            fsemu_monitor.scales[i].h = rect.height * scale;
-            fsemu_monitor.scales[i].scale = scale;
-        }
     }
     dlclose(handle);
 }

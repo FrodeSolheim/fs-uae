@@ -2,22 +2,27 @@
 #include "config.h"
 #endif
 
-#include <uae/uae.h>
 #include <fs/conf.h>
 #include <fs/emu.h>
 #include <fs/i18n.h>
 #include <glib.h>
+#include <uae/uae.h>
 
-#include "fsuae-options.h"
+#include "fs-uae.h"
 #include "fsuae-graphics.h"
 #include "fsuae-model.h"
-#include "fs-uae.h"
+#include "fsuae-options.h"
 
 #define BUFFER_SIZE 32
 
-static bool check_card(amiga_config *c, const char **card, int *memory,
-                       const char *check, const char *z2, int m2,
-                       const char *z3, int m3)
+static bool check_card(amiga_config *c,
+                       const char **card,
+                       int *memory,
+                       const char *check,
+                       const char *z2,
+                       int m2,
+                       const char *z3,
+                       int m3)
 {
     int z = 0;
     char check2[BUFFER_SIZE];
@@ -62,8 +67,8 @@ static bool check_card(amiga_config *c, const char **card, int *memory,
     return true;
 }
 
-#define CHECK_CARD(check, z2, m2, z3, m3) \
-    if (card && !found) { \
+#define CHECK_CARD(check, z2, m2, z3, m3)                             \
+    if (card && !found) {                                             \
         found = check_card(c, &card, &memory, check, z2, m2, z3, m3); \
     }
 
@@ -78,12 +83,14 @@ void fs_uae_configure_graphics_card(amiga_config *c)
     } else {
         int uaegfx_card = fs_config_get_boolean(OPTION_UAEGFX_CARD);
         if (uaegfx_card != FS_CONFIG_NONE) {
-            fs_log("DEPRECATED: uaegfx_card is deprecated, use graphics_card "
-                   "instead\n");
+            fs_log(
+                "DEPRECATED: uaegfx_card is deprecated, use graphics_card "
+                "instead\n");
             if (uaegfx_card == 1) {
                 if (!c->allow_z3_memory) {
-                    fs_emu_warning(_("Option uaegfx.card needs a CPU with "
-                                     "32-bit addressing"));
+                    fs_emu_warning(
+                        _("Option uaegfx.card needs a CPU with 32-bit "
+                          "addressing"));
                 } else {
                     card = "ZorroIII";
                     memory = 32;
@@ -98,11 +105,11 @@ void fs_uae_configure_graphics_card(amiga_config *c)
         card = cfg->default_graphics_card;
     }
 
-    CHECK_CARD("none", NULL, 0, NULL, 0)
-    CHECK_CARD("uaegfx", "ZorroII", 8, "ZorroIII", 512)
-    CHECK_CARD("picasso-ii", "PicassoII", 2, NULL, 0)
-    CHECK_CARD("picasso-ii+", "PicassoII+", 2, NULL, 0)
-    CHECK_CARD("picasso-iv", "PicassoIV_Z2", 4, "PicassoIV_Z3", 4)
+    CHECK_CARD("none", NULL, 0, NULL, 0);
+    CHECK_CARD("uaegfx", "ZorroII", 8, "ZorroIII", 512);
+    CHECK_CARD("picasso-ii", "PicassoII", 2, NULL, 0);
+    CHECK_CARD("picasso-ii+", "PicassoII+", 2, NULL, 0);
+    CHECK_CARD("picasso-iv", "PicassoIV_Z2", 4, "PicassoIV_Z3", 4);
 
     if (card && !found) {
         fs_emu_warning("Unsupported graphics card: %s\n", card);

@@ -2,6 +2,7 @@
 #include "fsemu-option.h"
 
 #include <stdio.h>
+#include <strings.h>
 
 #include "fsemu-util.h"
 #ifdef FSUAE
@@ -12,15 +13,6 @@ int fsemu_option_read_bool_default(const char *name,
                                    bool *result,
                                    bool default_value)
 {
-#ifdef FSUAE
-    int res = fs_config_get_boolean(name);
-    if (res == FS_CONFIG_NONE) {
-        *result = default_value;
-    } else {
-        *result = res != 0;
-    }
-    return *result;
-#else
     const char *value = fsemu_read_env_option(name);
     if (value[0]) {
         if (strcasecmp(value, "1") == 0 || strcasecmp(value, "true") == 0) {
@@ -32,6 +24,15 @@ int fsemu_option_read_bool_default(const char *name,
             return 1;
         }
     }
+#ifdef FSUAE
+    int res = fs_config_get_boolean(name);
+    if (res == FS_CONFIG_NONE) {
+        *result = default_value;
+    } else {
+        *result = res != 0;
+    }
+    return *result;
+#else
     *result = default_value;
     return 0;
 #endif

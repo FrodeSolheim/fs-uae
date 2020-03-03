@@ -2,9 +2,9 @@
 #include "config.h"
 #endif
 
-#include <uae/uae.h>
 #include <fs/conf.h>
 #include <fs/glib.h>
+#include <uae/uae.h>
 
 #include "fs-uae.h"
 #include "fsuae-accelerator.h"
@@ -70,7 +70,7 @@ void fs_uae_configure_accelerator(void)
         } else if (fs_uae_values_matches(card, "cyberstorm-ppc")) {
             card = "CyberstormPPC";
             gchar *csppc_rom_path = g_build_filename(
-                        fs_uae_kickstarts_dir(), "cyberstormppc.rom", NULL);
+                fs_uae_kickstarts_dir(), "cyberstormppc.rom", NULL);
             if (fs_path_exists(csppc_rom_path)) {
                 rom = "cyberstormppc.rom";
                 fs_log("[ROM] Found cyberstormppc.rom\n");
@@ -94,8 +94,8 @@ void fs_uae_configure_accelerator(void)
 
     if (fs_config_get_boolean(OPTION_BLIZZARD_SCSI_KIT) == 1) {
         if (allow_scsi_kit) {
-            amiga_set_option(
-                "cpuboard_ext_rom_file", "Blizzard_SCSI_Kit_IV_v8.5.bin");
+            amiga_set_option("cpuboard_ext_rom_file",
+                             "Blizzard_SCSI_Kit_IV_v8.5.bin");
         } else {
             fs_emu_warning(
                 "Blizzard SCSI Kit cannot be used with this accelerator");

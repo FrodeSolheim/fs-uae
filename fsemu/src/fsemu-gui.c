@@ -204,7 +204,18 @@ fsemu_gui_item_t *fsemu_gui_snapshot(void)
     return snapshot;
 }
 
-// void fsemu_gui_free_snapshot(fsemu_gui_item_t *snapshot)
+static void fsemu_gui_free_recursive(fsemu_gui_item_t *item)
+{
+    fsemu_gui_item_t *child = item->first_child;
+    while (child) {
+        fsemu_gui_item_t *next = child->next;
+        fsemu_gui_free_recursive(child);
+        // FIXME: Need proper free function
+        // free(child);
+        child = next;
+    }
+    free(item);
+}
 
 void fsemu_gui_free_snapshot(fsemu_gui_item_t *snapshot)
 {
@@ -214,17 +225,8 @@ void fsemu_gui_free_snapshot(fsemu_gui_item_t *snapshot)
     // fsemu_gui_lock();
     fsemu_gui_item_t *item = snapshot;
     while (item) {
-        fsemu_gui_item_t *child = item->first_child;
-        while (child) {
-            fsemu_gui_item_t *temp = child;
-            child = child->next;
-            // FIXME: Need proper free function
-            free(temp);
-        }
-
         fsemu_gui_item_t *next = item->next;
-        // FIXME: Need proper free function
-        free(item);
+        fsemu_gui_free_recursive(item);
         item = next;
     }
     // fsemu_gui_unlock();

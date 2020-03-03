@@ -1,0 +1,50 @@
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:calloc
+   fun:pa_xmalloc0
+   fun:pa_context_new_with_proplist
+   fun:ConnectToPulseServer_Internal
+   fun:ConnectToPulseServer
+   fun:PULSEAUDIO_Init
+   fun:SDL_AudioInit_REAL
+   fun:SDL_InitSubSystem_REAL
+   ...
+}
+{
+   <PulseAudio via SDL>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:calloc
+   fun:pa_xmalloc0
+   fun:pa_context_new_with_proplist
+   fun:ConnectToPulseServer_Internal
+   fun:ConnectToPulseServer
+   fun:PULSEAUDIO_OpenDevice
+   fun:open_audio_device
+   ...
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:_XlcDefaultMapModifiers
+   fun:XSetLocaleModifiers
+   fun:X11_InitKeyboard
+   fun:X11_VideoInit
+   fun:SDL_VideoInit_REAL
+   fun:SDL_InitSubSystem_REAL
+   ...
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:*alloc
+   ...
+   obj:*libnvidia-glcore.so.*
+   ...
+   fun:_dl_open
+}

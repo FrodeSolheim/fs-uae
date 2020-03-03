@@ -5,6 +5,7 @@
 #include "fsemu-controller.h"
 #include "fsemu-input.h"
 #include "fsemu-key.h"
+#include "fsemu-sdlgamecontrollerdb.h"
 
 #ifdef FSEMU_SDL
 
@@ -101,7 +102,8 @@ static void fsemu_sdlinput_add_controllers(void)
     // FIXME: This is test quality code
     for (int i = 0; i < FSEMU_CONTROLLER_MAX_COUNT; i++) {
         printf("input Opening SDL game controller %d\n", i);
-        printf("input joystick %s\n", SDL_JoystickNameForIndex(i));
+        printf("input controller (joystick) name: %s\n",
+               SDL_JoystickNameForIndex(i));
         if (!SDL_IsGameController(i)) {
             printf("input - is not game controller\n");
             continue;
@@ -247,28 +249,6 @@ static bool fsemu_sdlinput_handle_joystick_removed(SDL_Event *event)
     return true;
 }
 
-void fsemu_sdlinput_init(void)
-{
-    if (fsemu_sdlinput.initialized) {
-        return;
-    }
-    fsemu_sdlinput.initialized = true;
-    fsemu_input_log("Initializing sdlinput module\n");
-
-    printf("SDLINPUT INIT\n");
-    SDL_InitSubSystem(SDL_INIT_JOYSTICK);
-    SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER);
-
-    for (int i = 0; i < FSEMU_INPUT_MAX_SDL_INSTANCE_IDS; i++) {
-        fsemu_sdlinput.sdl_instance_id_to_index[i] = -1;
-    }
-    for (int i = 0; i < FSEMU_INPUT_MAX_DEVICES; i++) {
-        fsemu_sdlinput.controllers[i].instance_id = -1;
-    }
-
-    fsemu_sdlinput_add_controllers();
-}
-
 void fsemu_sdlinput_work(void)
 {
 }
@@ -316,6 +296,40 @@ bool fsemu_sdlinput_handle_event(SDL_Event *event)
     }
 
     return false;
+}
+
+static void fsemu_sdlinput_add_controller_mappings(void)
+{
+    const char **mapping = fsemu_sdlgamecontrollerdb_mappings;
+    int count = 0;
+    while (*mapping) {
+        SDL_GameControllerAddMapping(*mapping);
+        mapping++;
+        count += 1;
+    }
+    fsemu_input_log("Game controller: Added %d mappings\n", count);
+}
+
+void fsemu_sdlinput_init(void)
+{
+    if (fsemu_sdlinput.initialized) {
+        return;
+    }
+    fsemu_sdlinput.initialized = true;
+    fsemu_input_log("Initializing sdlinput module\n");
+
+    SDL_InitSubSystem(SDL_INIT_JOYSTICK);
+    SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER);
+
+    for (int i = 0; i < FSEMU_INPUT_MAX_SDL_INSTANCE_IDS; i++) {
+        fsemu_sdlinput.sdl_instance_id_to_index[i] = -1;
+    }
+    for (int i = 0; i < FSEMU_INPUT_MAX_DEVICES; i++) {
+        fsemu_sdlinput.controllers[i].instance_id = -1;
+    }
+
+    fsemu_sdlinput_add_controller_mappings();
+    fsemu_sdlinput_add_controllers();
 }
 
 #endif  // FSEMU_SDL

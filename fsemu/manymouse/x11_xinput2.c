@@ -27,6 +27,18 @@
 #include <dlfcn.h>
 #include <X11/extensions/XInput2.h>
 
+// ----------------------------------------------------------------------------
+
+#define MouseStruct x11_xinput2_MouseStruct
+#define mice x11_xinput2_mice
+#define available_mice x11_xinput2_available_mice
+#define init_mouse x11_xinput2_init_mouse
+#define ManyMouseDriver_interface x11_xinput2_ManyMouseDriver_interface
+#define display x11_xinput2_display
+#define xi2_opcode x11_xinput2_xi2_opcode
+
+// ----------------------------------------------------------------------------
+
 /* 32 is good enough for now. */
 #define MAX_MICE 32
 #define MAX_AXIS 16
@@ -532,9 +544,20 @@ static const ManyMouseDriver ManyMouseDriver_interface =
 
 const ManyMouseDriver *ManyMouseDriver_xinput2 = &ManyMouseDriver_interface;
 
+// ----------------------------------------------------------------------------
+
+#undef MouseStruct
+#undef mice
+#undef available_mice
+#undef init_mouse
+#undef ManyMouseDriver_interface
+#undef display
+#undef xi2_opcode
+
+// ----------------------------------------------------------------------------
+
 #else
 const ManyMouseDriver *ManyMouseDriver_xinput2 = 0;
 #endif /* SUPPORT_XINPUT2 blocker */
 
 /* end of x11_xinput2.c ... */
-

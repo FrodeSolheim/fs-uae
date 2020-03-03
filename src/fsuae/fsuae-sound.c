@@ -2,15 +2,15 @@
 #include "config.h"
 #endif
 
-#include <uae/uae.h>
 #include <fs/conf.h>
 #include <fs/emu.h>
 #include <glib.h>
+#include <uae/uae.h>
 
 #include "fs-uae.h"
+#include "fsuae-model.h"
 #include "fsuae-options.h"
 #include "fsuae-sound.h"
-#include "fsuae-model.h"
 
 void fs_uae_configure_sound_card(amiga_config *c)
 {

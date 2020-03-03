@@ -4,38 +4,41 @@
 #include <math.h>
 #include <stdint.h>
 
+#include "fsemu-color.h"
 #include "fsemu-data.h"
 #include "fsemu-gui.h"
 #include "fsemu-image.h"
-#include "fsemu-video.h"  // for FSEMU_RGB_A
+#include "fsemu-module.h"
 #include "fsemu-widget.h"
 
+#define module fsemu_background
+
+// ----------------------------------------------------------------------------
+
 static struct {
-    // fsemu_widget_t background_w;
-    struct {
-        fsemu_widget_t left;
-        fsemu_widget_t top;
-        fsemu_widget_t right;
-        fsemu_widget_t bottom;
-
-        fsemu_widget_t left_2;
-        fsemu_widget_t right_2;
-
-        fsemu_widget_t shadow_w;
-        fsemu_widget_t shadow_nw;
-        fsemu_widget_t shadow_n;
-        fsemu_widget_t shadow_ne;
-        fsemu_widget_t shadow_e;
-        fsemu_widget_t shadow_se;
-        fsemu_widget_t shadow_s;
-        fsemu_widget_t shadow_sw;
-    } widgets;
     struct {
         uint8_t r;
         uint8_t g;
         uint8_t b;
     } color;
-} fsemu_background;
+    bool initialized;
+    struct {
+        fsemu_widget_t *top;
+        fsemu_widget_t *right;
+        fsemu_widget_t *right_2;
+        fsemu_widget_t *bottom;
+        fsemu_widget_t *left;
+        fsemu_widget_t *left_2;
+        fsemu_widget_t *shadow_n;
+        fsemu_widget_t *shadow_ne;
+        fsemu_widget_t *shadow_e;
+        fsemu_widget_t *shadow_se;
+        fsemu_widget_t *shadow_s;
+        fsemu_widget_t *shadow_sw;
+        fsemu_widget_t *shadow_w;
+        fsemu_widget_t *shadow_nw;
+    } widgets;
+} module;
 
 static void fsemu_background_create_side(fsemu_image_t *image,
                                          int width,
@@ -106,6 +109,7 @@ static void fsemu_background_create_side(fsemu_image_t *image,
     }
 
     free(line_debt);
+    free(next_debt);
 }
 
 static void fsemu_background_create_top(fsemu_image_t *image,
@@ -154,6 +158,7 @@ static void fsemu_background_create_top(fsemu_image_t *image,
     }
 
     free(line_debt);
+    free(next_debt);
 }
 
 static void fsemu_background_create_side_2(fsemu_image_t *image)
@@ -268,7 +273,7 @@ static void fsemu_background_stripe(fsemu_image_t *in,
 }
 #endif
 
-static void fsemu_background_setup_shadow_2(fsemu_widget_t *widget,
+static void fsemu_background_setup_shadow_2(fsemu_widget_t **widget_p,
                                             fsemu_image_t *image,
                                             int anchor_left,
                                             double offset_left,
@@ -279,7 +284,8 @@ static void fsemu_background_setup_shadow_2(fsemu_widget_t *widget,
                                             int anchor_bottom,
                                             double offset_bottom)
 {
-    fsemu_widget_init(widget);
+    *widget_p = fsemu_widget_new_with_name("fsemu:background:shadow");
+    fsemu_widget_t *widget = *widget_p;
     fsemu_widget_set_image(widget, image, false);
     // fsemu_widget_set_coordinates(
     //     widget, 320 - 32, 60 - 32, 64, 64, FSEMU_WIDGET_1080_LEFT);
@@ -293,7 +299,7 @@ static void fsemu_background_setup_shadow_2(fsemu_widget_t *widget,
                                  anchor_bottom,
                                  offset_bottom);
     fsemu_widget_set_z_index(widget, -9990);
-    fsemu_widget_set_color(widget, FSEMU_RGB_A(0xffffff, 0x80));
+    fsemu_widget_set_color(widget, FSEMU_COLOR_RGB_A(0xffffff, 0x80));
     fsemu_widget_set_visible(widget, true);
     fsemu_gui_add_item(widget);
 }
@@ -425,15 +431,8 @@ static void fsemu_background_create_corner_shadow(fsemu_image_t *image)
 }
 #endif
 
-void fsemu_background_init(void)
+static void fsemu_background_init_widgets(void)
 {
-    fsemu_return_if_already_initialized();
-    fsemu_log("[FSEMU][BACKG] Initializing background module\n");
-
-    fsemu_background.color.r = 0x0c;
-    fsemu_background.color.g = 0x0c;
-    fsemu_background.color.b = 0x0c;
-
     int margin = 60;
     int height = 1080;
     int overlap = 0;
@@ -474,8 +473,9 @@ void fsemu_background_init(void)
 
     fsemu_widget_t *widget;
 
-    widget = &fsemu_background.widgets.left_2;
-    fsemu_widget_init(widget);
+    fsemu_background.widgets.left_2 =
+        fsemu_widget_new_with_name("fsemu:background:left2");
+    widget = fsemu_background.widgets.left_2;
     fsemu_widget_set_image(widget, left_2_image, false);
     // fsemu_widget_set_coords(
     //     widget, 0, 0, left_width, height, FSEMU_WIDGET_1080_LEFT);
@@ -492,8 +492,9 @@ void fsemu_background_init(void)
     fsemu_widget_set_visible(widget, true);
     fsemu_gui_add_item(widget);
 
-    widget = &fsemu_background.widgets.left;
-    fsemu_widget_init(widget);
+    fsemu_background.widgets.left =
+        fsemu_widget_new_with_name("fsemu:background:left");
+    widget = fsemu_background.widgets.left;
     fsemu_widget_set_image(widget, left_image, false);
     // fsemu_widget_set_coords(
     //     widget, 0, 0, left_width, height, FSEMU_WIDGET_1080_LEFT);
@@ -510,8 +511,9 @@ void fsemu_background_init(void)
     fsemu_widget_set_visible(widget, true);
     fsemu_gui_add_item(widget);
 
-    widget = &fsemu_background.widgets.top;
-    fsemu_widget_init(widget);
+    fsemu_background.widgets.top =
+        fsemu_widget_new_with_name("fsemu:background:top");
+    widget = fsemu_background.widgets.top;
     fsemu_widget_set_image(widget, top_image, false);
     // FIXME: Hmmm, problem with coords here...
     // Maybe draw below sides, across the screen instead
@@ -531,8 +533,9 @@ void fsemu_background_init(void)
     fsemu_widget_set_visible(widget, true);
     fsemu_gui_add_item(widget);
 
-    widget = &fsemu_background.widgets.right;
-    fsemu_widget_init(widget);
+    fsemu_background.widgets.right =
+        fsemu_widget_new_with_name("fsemu:background:right");
+    widget = fsemu_background.widgets.right;
     fsemu_widget_set_image(widget, right_image, false);
     // fsemu_widget_set_coords(widget,
     //                         1920 - left_width,
@@ -553,8 +556,9 @@ void fsemu_background_init(void)
     fsemu_widget_set_visible(widget, true);
     fsemu_gui_add_item(widget);
 
-    widget = &fsemu_background.widgets.right_2;
-    fsemu_widget_init(widget);
+    fsemu_background.widgets.right_2 =
+        fsemu_widget_new_with_name("fsemu:background:right2");
+    widget = fsemu_background.widgets.right_2;
     fsemu_widget_set_image(widget, left_2_image, false);
     fsemu_widget_set_coordinates(widget,
                                  FSEMU_WIDGET_VIDEO_RIGHT,
@@ -569,11 +573,9 @@ void fsemu_background_init(void)
     fsemu_widget_set_visible(widget, true);
     fsemu_gui_add_item(widget);
 
-    // FIXME: Unref other images...
-    fsemu_image_unref(left_2_image);
-
-    widget = &fsemu_background.widgets.bottom;
-    fsemu_widget_init(widget);
+    fsemu_background.widgets.bottom =
+        fsemu_widget_new_with_name("fsemu:background:bottom");
+    widget = fsemu_background.widgets.bottom;
     fsemu_widget_set_image(widget, bottom_image, false);
     // FIXME: Hmmm, problem with coords here...
     // Maybe draw below sides, across the screen instead
@@ -763,59 +765,57 @@ fsemu_background_setup_shadow(&fsemu_background.widgets.shadow_n,
                                     32);
 #endif
 
-    // The widgets have references to these images now
-    fsemu_image_unref(shadow_w);
-    fsemu_image_unref(shadow_nw);
+    // The widgets have references to these images now.
+    fsemu_image_unref(top_image);
+    fsemu_image_unref(left_image);
+    fsemu_image_unref(left_2_image);
+    fsemu_image_unref(bottom_image);
+    fsemu_image_unref(right_image);
     fsemu_image_unref(shadow_n);
     fsemu_image_unref(shadow_ne);
     fsemu_image_unref(shadow_e);
     fsemu_image_unref(shadow_se);
     fsemu_image_unref(shadow_s);
     fsemu_image_unref(shadow_sw);
-
-    // fsemu_widget_t *widget, const char *name,
-    // int x_anchor, int left, int right,
-    // int y_anchor, int top, int bottom)
-
-#if 0
-    static fsemu_widget_t test_widget;
-    widget = &test_widget;
-    fsemu_widget_init(widget);
-    fsemu_widget_set_coordinates(widget,
-                                 FSEMU_WIDGET_VIDEO_LEFT,
-                                 10,
-                                 FSEMU_WIDGET_VIDEO_TOP,
-                                 10,
-                                 FSEMU_WIDGET_VIDEO_RIGHT,
-                                 -10,
-                                 FSEMU_WIDGET_VIDEO_BOTTOM,
-                                 -10);
-#if 0
-    fsemu_widget_set_coordinates(widget,
-                                 FSEMU_WIDGET_SCREEN_LEFT,
-                                 10,
-                                 FSEMU_WIDGET_SCREEN_TOP,
-                                 10,
-                                 FSEMU_WIDGET_SCREEN_RIGHT,
-                                 -10,
-                                 FSEMU_WIDGET_SCREEN_BOTTOM,
-                                 -10);
-#endif
-    fsemu_widget_set_z_index(widget, 9999);
-    fsemu_widget_set_visible(widget, true);
-    fsemu_gui_add_item(widget);
-#endif
+    fsemu_image_unref(shadow_w);
+    fsemu_image_unref(shadow_nw);
 }
 
-/*
-void fsemu_widget_init(fsemu_widget_t *widget)
+static void fsemu_background_quit(void)
 {
-    fsemu_gui_rectangle(widget, 0, 0, 0, 0, 0);
+    printf("[FSEMU] [BACKG] fsemu_background_quit\n");
+    fsemu_widget_unref(fsemu_background.widgets.top);
+    fsemu_widget_unref(fsemu_background.widgets.right);
+    fsemu_widget_unref(fsemu_background.widgets.right_2);
+    fsemu_widget_unref(fsemu_background.widgets.bottom);
+    fsemu_widget_unref(fsemu_background.widgets.left);
+    fsemu_widget_unref(fsemu_background.widgets.left_2);
+    fsemu_widget_unref(fsemu_background.widgets.shadow_n);
+    fsemu_widget_unref(fsemu_background.widgets.shadow_ne);
+    fsemu_widget_unref(fsemu_background.widgets.shadow_e);
+    fsemu_widget_unref(fsemu_background.widgets.shadow_se);
+    fsemu_widget_unref(fsemu_background.widgets.shadow_s);
+    fsemu_widget_unref(fsemu_background.widgets.shadow_sw);
+    fsemu_widget_unref(fsemu_background.widgets.shadow_w);
+    fsemu_widget_unref(fsemu_background.widgets.shadow_nw);
 }
 
-void fsemu_widget_set_image(fsemu_widget_t *widget, fsemu_image_t *image)
+void fsemu_background_init(void)
 {
-    widget->image = image;
-    widget->dirty = true;
+    if (module.initialized) {
+        return;
+    }
+    module.initialized = true;
+    fsemu_log("[FSEMU] [BACKG] Initializing background module\n");
+    fsemu_module_on_quit(fsemu_background_quit);
+
+    fsemu_background.color.r = 0x0c;
+    fsemu_background.color.g = 0x0c;
+    fsemu_background.color.b = 0x0c;
+
+    fsemu_background_init_widgets();
 }
-*/
+
+// ----------------------------------------------------------------------------
+
+#undef module

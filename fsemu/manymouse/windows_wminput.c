@@ -738,4 +738,3 @@ const ManyMouseDriver *ManyMouseDriver_windows = 0;
 #endif  /* ifdef Windows blocker */
 
 /* end of windows_wminput.c ... */
-

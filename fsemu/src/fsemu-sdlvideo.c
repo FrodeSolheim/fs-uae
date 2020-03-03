@@ -73,12 +73,8 @@ void fsemu_sdlvideo_init(void)
                                                    1024);
 }
 
-void fsemu_sdlvideo_work(int timeout_us)
+static void fsemu_sdlvideo_handle_frame(fsemu_video_frame_t *frame)
 {
-    fsemu_video_frame_t *frame = fsemu_video_get_frame(timeout_us);
-    if (!frame) {
-        return;
-    }
     fsemu_video_log(" ---------------- draw got frame! (%dx%d) partial? %d\n",
                     frame->width,
                     frame->height,
@@ -187,6 +183,16 @@ void fsemu_sdlvideo_work(int timeout_us)
     }
 
     // FIXME: Free frame if it is a partial frame, otherwise save for render...
+}
+
+void fsemu_sdlvideo_work(int timeout_us)
+{
+    fsemu_video_frame_t *frame = fsemu_video_get_frame(timeout_us);
+    if (frame) {
+        fsemu_sdlvideo_handle_frame(frame);
+        fsemu_video_free_frame(frame);
+        return;
+    }
 }
 
 void fsemu_sdlvideo_render(void)

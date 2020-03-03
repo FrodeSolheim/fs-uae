@@ -23,6 +23,16 @@
 
 #include <linux/input.h>  /* evdev interface...  */
 
+// ----------------------------------------------------------------------------
+
+#define MouseStruct linux_evdev_MouseStruct
+#define mice linux_evdev_mice
+#define available_mice linux_evdev_available_mice
+#define init_mouse linux_evdev_init_mouse
+#define ManyMouseDriver_interface linux_evdev_ManyMouseDriver_interface
+
+// ----------------------------------------------------------------------------
+
 #define test_bit(array, bit)    (array[bit/8] & (1<<(bit%8)))
 
 /* linux allows 32 evdev nodes currently. */
@@ -260,7 +270,7 @@ static int linux_evdev_init(void)
 
     while ((dent = readdir(dirp)) != NULL)
     {
-        char fname[128];
+        char fname[267];
         snprintf(fname, sizeof (fname), "/dev/input/%s", dent->d_name);
         if (open_if_mouse(fname))
             available_mice++;
@@ -331,9 +341,18 @@ static const ManyMouseDriver ManyMouseDriver_interface =
 
 const ManyMouseDriver *ManyMouseDriver_evdev = &ManyMouseDriver_interface;
 
+// ----------------------------------------------------------------------------
+
+#undef MouseStruct
+#undef mice
+#undef available_mice
+#undef init_mouse
+#undef ManyMouseDriver_interface
+
+// ----------------------------------------------------------------------------
+
 #else
 const ManyMouseDriver *ManyMouseDriver_evdev = 0;
 #endif  /* ifdef Linux blocker */
 
 /* end of linux_evdev.c ... */
-

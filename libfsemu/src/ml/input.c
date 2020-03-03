@@ -260,7 +260,11 @@ void fs_ml_input_init()
     g_list_free_full(list, g_free);
 
     g_fs_ml_input_device_count = k;
-    fs_ml_mouse_init();
+    if (fsemu) {
+        // Skipping
+    } else {
+        fs_ml_mouse_init();
+    }
     k = g_fs_ml_input_device_count;
 
     g_fs_ml_first_joystick_index = g_fs_ml_input_device_count;

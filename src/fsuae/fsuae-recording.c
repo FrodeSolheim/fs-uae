@@ -4,13 +4,13 @@
 #include "fsuae-recording.h"
 
 #define _GNU_SOURCE 1
+#include <fs/emu.h>
+#include <fs/filesys.h>
+#include <fs/glib.h>
+#include <fs/log.h>
 #include <stdlib.h>
 #include <string.h>
 #include <uae/uae.h>
-#include <fs/emu.h>
-#include <fs/log.h>
-#include <fs/glib.h>
-#include <fs/filesys.h>
 
 #include "fs-uae.h"
 
@@ -61,11 +61,10 @@ static void new_chunk(void)
 static uint32_t get_value(void)
 {
     if (g_playback_pos == g_recording_length) {
-        //printf("g_playback_pos == g_recording_length\n");
+        // printf("g_playback_pos == g_recording_length\n");
         return 0;
-    }
-    else if (g_playback_pos > g_recording_length) {
-        //printf("g_playback_pos > g_recording_length\n");
+    } else if (g_playback_pos > g_recording_length) {
+        // printf("g_playback_pos > g_recording_length\n");
         fs_log("g_playback_pos > g_recording_length\n");
         return 0;
     }
@@ -76,10 +75,9 @@ static uint32_t get_value(void)
     }
     uint32_t value = g_record_chunk[g_chunk_pos];
     // FIXME: only on little-endian
-    //printf("    -- %08x --\n", value);
-    value = (value & 0xff000000) >> 24 | \
-            (value & 0x00ff0000) >> 8 | (value & 0x0000ff00) << 8 | \
-            (value & 0x000000ff) << 24;
+    // printf("    -- %08x --\n", value);
+    value = (value & 0xff000000) >> 24 | (value & 0x00ff0000) >> 8 |
+            (value & 0x0000ff00) << 8 | (value & 0x000000ff) << 24;
     return value;
 }
 
@@ -126,7 +124,6 @@ static int write_recording(const char *path, int length)
 
 static void reset_recording(void)
 {
-
     fs_log("-- reset_recording --\n");
     GList *item = g_record_chunks;
     while (item) {
@@ -166,7 +163,7 @@ static int read_recording(const char *path, int end)
     }
 
     printf("read recording from %s\n", path);
-    char *buffer = (char*) g_malloc(CHUNK_BYTES);
+    char *buffer = (char *) g_malloc(CHUNK_BYTES);
     while (1) {
         int read_count = fread(buffer, 4, CHUNK_SIZE, f);
         printf("- read count: %d\n", read_count);
@@ -186,8 +183,7 @@ static int read_recording(const char *path, int end)
             memcpy(g_record_chunk, buffer, read_count * 4);
             g_recording_length += read_count;
             g_chunk_pos += read_count;
-        }
-        else {
+        } else {
             break;
         }
     }
@@ -261,14 +257,12 @@ static void on_save_state_finished(void *data)
     if (g_recording_enabled) {
         printf("- recording was enabled\n");
         write_recording(recording_path, g_playback_pos);
-    }
-    else {
+    } else {
         printf("checking if recording %s exists...\n", recording_path);
         if (fs_path_exists(recording_path)) {
             printf("- removing %s\n", recording_path);
             g_unlink(recording_path);
-        }
-        else {
+        } else {
             printf("- does not exist\n");
         }
     }
@@ -285,15 +279,14 @@ static void on_restore_state_finished(void *data)
         // FIXME: load recording
         if (read_recording(recording_path, 1)) {
             fse_notify(0, "State recording loaded");
-        }
-        else {
-            fs_emu_warning("Could not read state recording, disabling recording\n");
+        } else {
+            fs_emu_warning(
+                "Could not read state recording, disabling recording\n");
             // FIXME: disable recording so stuff won't break
             g_recording_enabled = 0;
         }
         g_free(recording_path);
-    }
-    else {
+    } else {
         // do nothing
     }
 }
@@ -318,8 +311,7 @@ void fs_uae_enable_recording(const char *record_file)
         if (f) {
             // ok, we could open the file for writing
             fclose(f);
-        }
-        else {
+        } else {
             fs_emu_warning("Could not open recording file for writing\n");
             return;
         }
@@ -329,12 +321,10 @@ void fs_uae_enable_recording(const char *record_file)
         g_recording_enabled = 1;
         if (g_recording_length > 0) {
             fse_notify(0, "Playing back recording");
-        }
-        else {
+        } else {
             fse_notify(0, "Recording mode enabled");
         }
-    }
-    else {
+    } else {
         fs_emu_warning("Warning: Recording is not enabled");
     }
 }
@@ -344,15 +334,15 @@ static void record_uint32(uint32_t value)
     // printf("record_uint32_t %08x\n", value);
     if (g_playback_pos != g_recording_length) {
         printf("WARNING: record_uint32 -- position %d not at end %d!\n",
-            g_playback_pos, g_recording_length);
+               g_playback_pos,
+               g_recording_length);
     }
     if (g_chunk_pos == CHUNK_SIZE) {
         new_chunk();
     }
     // FIXME: support for bigendian
-    value = (value & 0xff000000) >> 24 | \
-            (value & 0x00ff0000) >> 8 | (value & 0x0000ff00) << 8 | \
-            (value & 0x000000ff) << 24;
+    value = (value & 0xff000000) >> 24 | (value & 0x00ff0000) >> 8 |
+            (value & 0x0000ff00) << 8 | (value & 0x000000ff) << 24;
     g_record_chunk[g_chunk_pos] = value;
     g_chunk_pos += 1;
     g_recording_length += 1;
@@ -372,13 +362,15 @@ void fs_uae_record_frame(int frame)
             g_playback_frame = value & 0x7fffffff;
             g_playback_line = 0;
             if (g_playback_frame != frame) {
-                printf("frame: recorded %d -- fs-uae %d\n", g_playback_frame, frame);
-                fs_emu_warning("Unexpected frame number - recording disabled\n");
+                printf("frame: recorded %d -- fs-uae %d\n",
+                       g_playback_frame,
+                       frame);
+                fs_emu_warning(
+                    "Unexpected frame number - recording disabled\n");
                 g_recording_enabled = 0;
                 return;
             }
-        }
-        else {
+        } else {
             fs_emu_warning("Expected frame number - found %08x\n", value);
             invalidate_recording();
             return;
@@ -406,7 +398,8 @@ void fs_uae_record_frame(int frame)
         }
 
         printf("- %08x\n", (amiga_get_state_checksum() & 0x00ffffff));
-        if ((value & 0x00ffffff) != (amiga_get_state_checksum() & 0x00ffffff)) {
+        if ((value & 0x00ffffff) !=
+            (amiga_get_state_checksum() & 0x00ffffff)) {
             printf("X %08x\n", (value & 0x00ffffff));
 #ifdef DEBUG_MEM
             int data_size = 1 * 1024 * 1024;
@@ -430,7 +423,9 @@ void fs_uae_record_frame(int frame)
             for (int i = 0; i < data_size; i++) {
                 if (((char *) data)[i] != ((char *) data2)[i]) {
                     printf("0x%08x: playback %02x recording %02x\n",
-                           i, ((unsigned char *) data)[i], ((unsigned char *) data2)[i]);
+                           i,
+                           ((unsigned char *) data)[i],
+                           ((unsigned char *) data2)[i]);
                 }
             }
             printf("compare done!\n");
@@ -447,8 +442,7 @@ void fs_uae_record_frame(int frame)
         }
 
         next_value();
-    }
-    else {
+    } else {
         uint32_t value = 0x80000000 | frame;
         record_uint32(value);
 
@@ -463,7 +457,9 @@ void fs_uae_record_frame(int frame)
         int data_size = 0;
         void *data = NULL;
 #endif
-        value = 0x08000000 | (amiga_get_state_checksum_and_dump(data, data_size) & 0x00ffffff);
+        value =
+            0x08000000 |
+            (amiga_get_state_checksum_and_dump(data, data_size) & 0x00ffffff);
         record_uint32(value);
 #ifdef DEBUG_MEM
         char fname[PATH_MAX];
@@ -491,14 +487,19 @@ static void record_line_if_needed(int line)
 
 static int filter_input_event(int event)
 {
-    printf("%d (%d, %d)\n", event, INPUTEVENT_SPC_STATESAVE1, INPUTEVENT_SPC_STATESAVE9);
-    if (event >= INPUTEVENT_SPC_STATERESTORE1 && event <= INPUTEVENT_SPC_STATERESTORE9) {
+    printf("%d (%d, %d)\n",
+           event,
+           INPUTEVENT_SPC_STATESAVE1,
+           INPUTEVENT_SPC_STATESAVE9);
+    if (event >= INPUTEVENT_SPC_STATERESTORE1 &&
+        event <= INPUTEVENT_SPC_STATERESTORE9) {
         return 0;
     }
-    if (event >= INPUTEVENT_SPC_STATESAVE1 && event <= INPUTEVENT_SPC_STATESAVE9) {
+    if (event >= INPUTEVENT_SPC_STATESAVE1 &&
+        event <= INPUTEVENT_SPC_STATESAVE9) {
         return 0;
     }
-    switch(event) {
+    switch (event) {
         case INPUTEVENT_SPC_WARP:
             return 0;
         default:
@@ -516,7 +517,10 @@ void fs_uae_record_input_event(int line, int event, int state)
     if (!filter_input_event(event)) {
         return;
     }
-    printf("record input event, line: %d, event %d, state: %d\n", line, event, state);
+    printf("record input event, line: %d, event %d, state: %d\n",
+           line,
+           event,
+           state);
 
     if (g_playback_pos < g_recording_length) {
         fs_emu_warning("Truncating recording");
@@ -539,9 +543,12 @@ void fs_uae_record_input_event(int line, int event, int state)
     g_recording_modified = 1;
 }
 
-int fs_uae_get_recorded_input_event(int frame, int line, int *event, int *state)
+int fs_uae_get_recorded_input_event(int frame,
+                                    int line,
+                                    int *event,
+                                    int *state)
 {
-    //printf("fs_uae_get_recorded_input_event\n");
+    // printf("fs_uae_get_recorded_input_event\n");
     if (!g_recording_enabled || g_recording_invalid) {
         return 0;
     }
@@ -576,17 +583,19 @@ int fs_uae_get_recorded_input_event(int frame, int line, int *event, int *state)
                 (value & 0x00ff0000) >> 8 | (value & 0x0000ff00) << 8 | \
                 (value & 0x000000ff) << 24;
         */
-        //printf("%08x\n", value);
+        // printf("%08x\n", value);
 
-        //printf("%08x\n", value & 0x80000000);
+        // printf("%08x\n", value & 0x80000000);
         printf("%d/%d (%08x)\n", frame, line, value);
 
         if ((value & 0x80000000) == 0x80000000) {
             return 0;
-        }
-        else if ((value & 0xe0000000) == 0x20000000) {
+        } else if ((value & 0xe0000000) == 0x20000000) {
             printf("frame: %d playback frame %d line %d playback line %d\n",
-                frame, g_playback_frame, line, g_playback_line);
+                   frame,
+                   g_playback_frame,
+                   line,
+                   g_playback_line);
 
             if (frame == g_playback_frame && line == g_playback_line) {
                 // printf("event: %d\n", value & 0x0000ffff);
@@ -599,15 +608,13 @@ int fs_uae_get_recorded_input_event(int frame, int line, int *event, int *state)
                 return 1;
             }
             return 0;
-        }
-        else if ((value & 0xc0000000) == 0x40000000) {
+        } else if ((value & 0xc0000000) == 0x40000000) {
             g_playback_line = value & 0x00ffffff;
             next_value();
             // printf("line: %d\n", g_playback_line);
-        }
-        else {
+        } else {
             printf("WARNING: unexpected recording value\n");
-            next_value();            
+            next_value();
             return 0;
         }
     }

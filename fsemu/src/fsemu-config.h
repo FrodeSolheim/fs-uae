@@ -55,6 +55,7 @@
 #define FSEMU_OPENGL 1
 #define FSEMU_PNG 1
 #define FSEMU_SDL 1
+#define FSEMU_MANYMOUSE 1
 
 #ifdef FSUAE
 // FS-UAE adjusts audio frequency internally

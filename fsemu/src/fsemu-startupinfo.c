@@ -1,6 +1,7 @@
 #define FSEMU_INTERNAL
 #include "fsemu-startupinfo.h"
 
+#include "fsemu-fontcache.h"
 #include "fsemu-glib.h"
 #include "fsemu-gui.h"
 #include "fsemu-option.h"
@@ -69,10 +70,13 @@ void fsemu_startupinfo_init(void)
     item->z_index = 5000;
     fsemu_gui_add_item(item);
 
-    fsemu_font_t *font = fsemu_font_load("SairaCondensed-Bold.ttf", 56);
-    fsemu_font_t *font_2 = fsemu_font_load("SairaCondensed-Bold.ttf", 32);
-    fsemu_font_t *font_3 = fsemu_font_load("SairaCondensed-Bold.ttf", 24);
-    fsemu_font_t *font_4 = fsemu_font_load("SairaCondensed-Regular.ttf", 24);
+    // FIXME: May not need to cache these. Maybe use and throw away instead?
+    // Need to fint which font/sizes are reused throughout the app.
+    fsemu_font_t *font = fsemu_fontcache_font("SairaCondensed-Bold.ttf", 56);
+    fsemu_font_t *font_2 = fsemu_fontcache_font("SairaCondensed-Bold.ttf", 32);
+    fsemu_font_t *font_3 = fsemu_fontcache_font("SairaCondensed-Bold.ttf", 24);
+    fsemu_font_t *font_4 =
+        fsemu_fontcache_font("SairaCondensed-Regular.ttf", 24);
 
     int x = 240;
     const char *string;

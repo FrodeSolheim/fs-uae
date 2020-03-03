@@ -24,6 +24,26 @@ void fsemu_opengl_assume_texture_2d(bool texture_2d);
 void fsemu_opengl_forget_blend(void);
 void fsemu_opengl_forget_texture_2d(void);
 
+void fsemu_opengl_unpack_row_length(int row_length);
+
+void fsemu_opengl_log_error(void);
+
+extern bool fsemu_opengl_error_checking;
+
+static inline void fsemu_opengl_log_error_maybe(void)
+{
+    if (fsemu_opengl_error_checking) {
+        fsemu_opengl_log_error();
+    }
+}
+
+#ifdef FSEMU_INTERNAL
+
+#define fsemu_opengl_log(format, ...) \
+    fsemu_log("[FSEMU] [ OGL ] " format, ##__VA_ARGS__)
+
+#endif
+
 #ifdef __cplusplus
 }
 #endif
@@ -33,8 +53,5 @@ void fsemu_opengl_forget_texture_2d(void);
 #endif
 
 #endif  // FSEMU_OPENGL
-
-#define fsemu_opengl_log(format, ...) \
-    fsemu_log("[FSEMU] [OPNGL] " format, ##__VA_ARGS__)
 
 #endif  // FSEMU_OPENGL_H_

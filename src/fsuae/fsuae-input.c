@@ -2,12 +2,13 @@
 #include "config.h"
 #endif
 
-#include "fs-uae.h"
-#include <stdlib.h>
-#include <uae/uae.h>
 #include <fs/emu.h>
 #include <fs/emu/actions.h>
 #include <fs/i18n.h>
+#include <stdlib.h>
+#include <uae/uae.h>
+
+#include "fs-uae.h"
 
 static fs_emu_action g_actions[] = {
     { INPUTEVENT_MOUSE1_HORIZ, "action_mouse_0_horiz", 0 },
@@ -318,17 +319,29 @@ static fs_emu_action g_actions[] = {
     { INPUTEVENT_SPC_ARCADIA_PLAYER2, "action_arcadia_player_2", 0 },
     { INPUTEVENT_SPC_ARCADIA_COIN1, "action_arcadia_coin_1", 0 },
     { INPUTEVENT_SPC_ARCADIA_COIN2, "action_arcadia_coin_2", 0 },
-    { INPUTEVENT_SPC_CDTV_FRONT_PANEL_STOP, "action_cdtv_front_panel_stop", 0 },
-    { INPUTEVENT_SPC_CDTV_FRONT_PANEL_PLAYPAUSE, "action_cdtv_front_panel_playpause", 0 },
-    { INPUTEVENT_SPC_CDTV_FRONT_PANEL_PREV, "action_cdtv_front_panel_prev", 0 },
-    { INPUTEVENT_SPC_CDTV_FRONT_PANEL_NEXT, "action_cdtv_front_panel_next", 0 },
+    { INPUTEVENT_SPC_CDTV_FRONT_PANEL_STOP,
+      "action_cdtv_front_panel_stop",
+      0 },
+    { INPUTEVENT_SPC_CDTV_FRONT_PANEL_PLAYPAUSE,
+      "action_cdtv_front_panel_playpause",
+      0 },
+    { INPUTEVENT_SPC_CDTV_FRONT_PANEL_PREV,
+      "action_cdtv_front_panel_prev",
+      0 },
+    { INPUTEVENT_SPC_CDTV_FRONT_PANEL_NEXT,
+      "action_cdtv_front_panel_next",
+      0 },
     { INPUTEVENT_SPC_CDTV_FRONT_PANEL_REW, "action_cdtv_front_panel_rew", 0 },
     { INPUTEVENT_SPC_CDTV_FRONT_PANEL_FF, "action_cdtv_front_panel_ff", 0 },
 
     { INPUTEVENT_JOY1_AUTOFIRE_BUTTON, "action_joy_0_autofire_button", 0 },
     { INPUTEVENT_JOY2_AUTOFIRE_BUTTON, "action_joy_1_autofire_button", 0 },
-    { INPUTEVENT_PAR_JOY1_AUTOFIRE_BUTTON, "action_par_joy_0_autofire_button", 0 },
-    { INPUTEVENT_PAR_JOY2_AUTOFIRE_BUTTON, "action_par_joy_1_autofire_button", 0 },
+    { INPUTEVENT_PAR_JOY1_AUTOFIRE_BUTTON,
+      "action_par_joy_0_autofire_button",
+      0 },
+    { INPUTEVENT_PAR_JOY2_AUTOFIRE_BUTTON,
+      "action_par_joy_1_autofire_button",
+      0 },
 
     { INPUTEVENT_SPC_STATESAVE1, "action_save_state_1", 0 },
     { INPUTEVENT_SPC_STATESAVE2, "action_save_state_2", 0 },
@@ -429,37 +442,77 @@ static fs_emu_action g_actions[] = {
     { INPUTEVENT_SPC_DISKSWAPPER_3_18, "action_drive_3_insert_floppy_18", 0 },
     { INPUTEVENT_SPC_DISKSWAPPER_3_19, "action_drive_3_insert_floppy_19", 0 },
     { INPUTEVENT_AMIGA_JOYPORT_MODE_0_NONE, "action_joyport_0_mode_none", 0 },
-    { INPUTEVENT_AMIGA_JOYPORT_MODE_0_MOUSE, "action_joyport_0_mode_mouse", 0 },
+    { INPUTEVENT_AMIGA_JOYPORT_MODE_0_MOUSE,
+      "action_joyport_0_mode_mouse",
+      0 },
     { INPUTEVENT_AMIGA_JOYPORT_MODE_0_DJOY, "action_joyport_0_mode_djoy", 0 },
-    { INPUTEVENT_AMIGA_JOYPORT_MODE_0_GAMEPAD, "action_joyport_0_mode_gamepad", 0 },
+    { INPUTEVENT_AMIGA_JOYPORT_MODE_0_GAMEPAD,
+      "action_joyport_0_mode_gamepad",
+      0 },
     { INPUTEVENT_AMIGA_JOYPORT_MODE_0_AJOY, "action_joyport_0_mode_ajoy", 0 },
-    { INPUTEVENT_AMIGA_JOYPORT_MODE_0_CDTVJOY, "action_joyport_0_mode_cdtvjoy", 0 },
-    { INPUTEVENT_AMIGA_JOYPORT_MODE_0_CD32JOY, "action_joyport_0_mode_cd32joy", 0 },
-    { INPUTEVENT_AMIGA_JOYPORT_MODE_0_LIGHTPEN, "action_joyport_0_mode_lightpen", 0 },
+    { INPUTEVENT_AMIGA_JOYPORT_MODE_0_CDTVJOY,
+      "action_joyport_0_mode_cdtvjoy",
+      0 },
+    { INPUTEVENT_AMIGA_JOYPORT_MODE_0_CD32JOY,
+      "action_joyport_0_mode_cd32joy",
+      0 },
+    { INPUTEVENT_AMIGA_JOYPORT_MODE_0_LIGHTPEN,
+      "action_joyport_0_mode_lightpen",
+      0 },
     { INPUTEVENT_AMIGA_JOYPORT_MODE_1_NONE, "action_joyport_1_mode_none", 0 },
-    { INPUTEVENT_AMIGA_JOYPORT_MODE_1_MOUSE, "action_joyport_1_mode_mouse", 0 },
+    { INPUTEVENT_AMIGA_JOYPORT_MODE_1_MOUSE,
+      "action_joyport_1_mode_mouse",
+      0 },
     { INPUTEVENT_AMIGA_JOYPORT_MODE_1_DJOY, "action_joyport_1_mode_djoy", 0 },
-    { INPUTEVENT_AMIGA_JOYPORT_MODE_1_GAMEPAD, "action_joyport_1_mode_gamepad", 0 },
+    { INPUTEVENT_AMIGA_JOYPORT_MODE_1_GAMEPAD,
+      "action_joyport_1_mode_gamepad",
+      0 },
     { INPUTEVENT_AMIGA_JOYPORT_MODE_1_AJOY, "action_joyport_1_mode_ajoy", 0 },
-    { INPUTEVENT_AMIGA_JOYPORT_MODE_1_CDTVJOY, "action_joyport_1_mode_cdtvjoy", 0 },
-    { INPUTEVENT_AMIGA_JOYPORT_MODE_1_CD32JOY, "action_joyport_1_mode_cd32joy", 0 },
-    { INPUTEVENT_AMIGA_JOYPORT_MODE_1_LIGHTPEN, "action_joyport_1_mode_lightpen", 0 },
+    { INPUTEVENT_AMIGA_JOYPORT_MODE_1_CDTVJOY,
+      "action_joyport_1_mode_cdtvjoy",
+      0 },
+    { INPUTEVENT_AMIGA_JOYPORT_MODE_1_CD32JOY,
+      "action_joyport_1_mode_cd32joy",
+      0 },
+    { INPUTEVENT_AMIGA_JOYPORT_MODE_1_LIGHTPEN,
+      "action_joyport_1_mode_lightpen",
+      0 },
     { INPUTEVENT_AMIGA_JOYPORT_MODE_2_NONE, "action_joyport_2_mode_none", 0 },
-    { INPUTEVENT_AMIGA_JOYPORT_MODE_2_MOUSE, "action_joyport_2_mode_mouse", 0 },
+    { INPUTEVENT_AMIGA_JOYPORT_MODE_2_MOUSE,
+      "action_joyport_2_mode_mouse",
+      0 },
     { INPUTEVENT_AMIGA_JOYPORT_MODE_2_DJOY, "action_joyport_2_mode_djoy", 0 },
-    { INPUTEVENT_AMIGA_JOYPORT_MODE_2_GAMEPAD, "action_joyport_2_mode_gamepad", 0 },
+    { INPUTEVENT_AMIGA_JOYPORT_MODE_2_GAMEPAD,
+      "action_joyport_2_mode_gamepad",
+      0 },
     { INPUTEVENT_AMIGA_JOYPORT_MODE_2_AJOY, "action_joyport_2_mode_ajoy", 0 },
-    { INPUTEVENT_AMIGA_JOYPORT_MODE_2_CDTVJOY, "action_joyport_2_mode_cdtvjoy", 0 },
-    { INPUTEVENT_AMIGA_JOYPORT_MODE_2_CD32JOY, "action_joyport_2_mode_cd32joy", 0 },
-    { INPUTEVENT_AMIGA_JOYPORT_MODE_2_LIGHTPEN, "action_joyport_2_mode_lightpen", 0 },
+    { INPUTEVENT_AMIGA_JOYPORT_MODE_2_CDTVJOY,
+      "action_joyport_2_mode_cdtvjoy",
+      0 },
+    { INPUTEVENT_AMIGA_JOYPORT_MODE_2_CD32JOY,
+      "action_joyport_2_mode_cd32joy",
+      0 },
+    { INPUTEVENT_AMIGA_JOYPORT_MODE_2_LIGHTPEN,
+      "action_joyport_2_mode_lightpen",
+      0 },
     { INPUTEVENT_AMIGA_JOYPORT_MODE_3_NONE, "action_joyport_3_mode_none", 0 },
-    { INPUTEVENT_AMIGA_JOYPORT_MODE_3_MOUSE, "action_joyport_3_mode_mouse", 0 },
+    { INPUTEVENT_AMIGA_JOYPORT_MODE_3_MOUSE,
+      "action_joyport_3_mode_mouse",
+      0 },
     { INPUTEVENT_AMIGA_JOYPORT_MODE_3_DJOY, "action_joyport_3_mode_djoy", 0 },
-    { INPUTEVENT_AMIGA_JOYPORT_MODE_3_GAMEPAD, "action_joyport_3_mode_gamepad", 0 },
+    { INPUTEVENT_AMIGA_JOYPORT_MODE_3_GAMEPAD,
+      "action_joyport_3_mode_gamepad",
+      0 },
     { INPUTEVENT_AMIGA_JOYPORT_MODE_3_AJOY, "action_joyport_3_mode_ajoy", 0 },
-    { INPUTEVENT_AMIGA_JOYPORT_MODE_3_CDTVJOY, "action_joyport_3_mode_cdtvjoy", 0 },
-    { INPUTEVENT_AMIGA_JOYPORT_MODE_3_CD32JOY, "action_joyport_3_mode_cd32joy", 0 },
-    { INPUTEVENT_AMIGA_JOYPORT_MODE_3_LIGHTPEN, "action_joyport_3_mode_lightpen", 0 },
+    { INPUTEVENT_AMIGA_JOYPORT_MODE_3_CDTVJOY,
+      "action_joyport_3_mode_cdtvjoy",
+      0 },
+    { INPUTEVENT_AMIGA_JOYPORT_MODE_3_CD32JOY,
+      "action_joyport_3_mode_cd32joy",
+      0 },
+    { INPUTEVENT_AMIGA_JOYPORT_MODE_3_LIGHTPEN,
+      "action_joyport_3_mode_lightpen",
+      0 },
 
     { INPUTEVENT_UAE_MODULE_RIPPER, "action_module_ripper", 0 },
     { INPUTEVENT_UAE_MUTE_FLOPPY_SOUNDS, "action_mute_floppy_sounds", 0 },
@@ -482,35 +535,35 @@ static fs_emu_action g_actions[] = {
 static int hotkey_function(int action, int state)
 {
     printf("hotkey function %d %d\n", action, state);
-    switch(action) {
-    case FS_UAE_ACTION_ENTER_DEBUGGER:
-        if (state) {
-            fs_emu_log("hot key: enter debugger\n");
-            if (fs_config_get_boolean("console_debugger") == 1) {
-                fs_emu_warning(_("Activated debugger"));
-                fs_emu_queue_action(INPUTEVENT_SPC_ENTERDEBUGGER, 1);
-            } else {
-                fs_emu_warning(_("Option \"%s\" is not enabled"),
-                               "console_debugger");
+    switch (action) {
+        case FS_UAE_ACTION_ENTER_DEBUGGER:
+            if (state) {
+                fs_emu_log("hot key: enter debugger\n");
+                if (fs_config_get_boolean("console_debugger") == 1) {
+                    fs_emu_warning(_("Activated debugger"));
+                    fs_emu_queue_action(INPUTEVENT_SPC_ENTERDEBUGGER, 1);
+                } else {
+                    fs_emu_warning(_("Option \"%s\" is not enabled"),
+                                   "console_debugger");
+                }
             }
-        }
-        return 1;
-    case FS_UAE_ACTION_TOGGLE_AUTO_ZOOM:
-        fs_uae_toggle_auto_zoom();
-        return 1;
+            return 1;
+        case FS_UAE_ACTION_TOGGLE_AUTO_ZOOM:
+            fs_uae_toggle_auto_zoom();
+            return 1;
 #ifdef USE_NFD
-    case FS_UAE_ACTION_DRIVE_0_BROWSE:
-        if (state) {
-            printf("FS_UAE_ACTION_DRIVE_0_BROWSE test\n");
-            nfdchar_t *out = malloc(1024);
-            nfdresult_t result = NFD_OpenDialog("*", "/home", &out);
-            printf("nfdresult: %d\n", result);
-            if (result == NFD_OKAY) {
-                printf("%s\n", out);
+        case FS_UAE_ACTION_DRIVE_0_BROWSE:
+            if (state) {
+                printf("FS_UAE_ACTION_DRIVE_0_BROWSE test\n");
+                nfdchar_t *out = malloc(1024);
+                nfdresult_t result = NFD_OpenDialog("*", "/home", &out);
+                printf("nfdresult: %d\n", result);
+                if (result == NFD_OKAY) {
+                    printf("%s\n", out);
+                }
+                free(out);
             }
-            free(out);
-        }
-        return 1;
+            return 1;
 #endif
     }
     return 0;
@@ -518,6 +571,10 @@ static int hotkey_function(int action, int state)
 
 void fs_uae_configure_actions()
 {
+    if (fsemu) {
+        // FIXME: Should be able to disable this...
+        //   return;
+    }
     fs_log("fs_uae_configure_actions\n");
     fs_emu_set_actions(g_actions);
     for (int i = 0; i < FS_UAE_NUM_INPUT_PORTS; i++) {

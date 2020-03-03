@@ -212,4 +212,3 @@ Please see the file LICENSE in the source's root directory.
 This library was written by Ryan C. Gordon <icculus@icculus.org>.
 
 --ryan.
-

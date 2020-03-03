@@ -4,9 +4,11 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "fsemu-color.h"
 #include "fsemu-common.h"
 #include "fsemu-font.h"
 #include "fsemu-image.h"
+#include "fsemu-refable.h"
 #include "fsemu-sdl.h"
 #include "fsemu-types.h"
 
@@ -68,11 +70,11 @@ typedef struct fsemu_gui_coord {
 } fsemu_gui_coord_t;
 
 struct fsemu_gui_item_struct {
+    FSEMU_REFABLE;
     fsemu_rect_t rect;
     int coordinates;
     bool translucent;
     uint32_t color;
-    const char *text;
     fsemu_font_t *font;
     fsemu_image_t *image;
     // bool image_owner;
@@ -95,6 +97,17 @@ struct fsemu_gui_item_struct {
     fsemu_gui_item_t *next;
     fsemu_gui_item_t *first_child;
     fsemu_gui_item_t *last_child;
+
+    char *text;
+    fsemu_image_t *textimage;
+    // Default is 0.5 for centered vertically.
+    float text_valign;
+    // For example FSEMU_WIDGET_TEXT_TRANSFORM_UPPERCASE.
+    int text_transform;
+    fsemu_color_t text_color;
+    char *text_cached;
+    // FIXME: text_color_cached, text_font_cached
+    int font_size;
 };
 
 #endif  // FSEMU_INTERNAL

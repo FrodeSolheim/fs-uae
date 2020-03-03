@@ -79,11 +79,12 @@ void fsemu_oskeyboard_row_set_bottom_margin(fsemu_oskeyboard_row_t *row,
 // key = fsemu_oskeyboard_new_key_in_layout(layout, "A");
 // key = fsemu_oskeyboard_key_new_in_row(row, "A");
 
+void fsemu_oskeyboard_key_set_action(fsemu_oskeyboard_key_t *key,
+                                     fsemu_action_t action);
+void fsemu_oskeyboard_key_set_height(fsemu_oskeyboard_key_t *key, int height);
 void fsemu_oskeyboard_key_set_left_margin(fsemu_oskeyboard_key_t *key,
                                           int left_margin);
 void fsemu_oskeyboard_key_set_width(fsemu_oskeyboard_key_t *key, int width);
-void fsemu_oskeyboard_key_set_action(fsemu_oskeyboard_key_t *key,
-                                     fsemu_action_t action);
 
 #ifdef __cplusplus
 }

@@ -2,11 +2,11 @@
 #include "config.h"
 #endif
 
-#include "fsuae-model.h"
-
-#include <stddef.h>
 #include <fs/conf.h>
 #include <fs/emu.h>
+#include <stddef.h>
+
+#include "fsuae-model.h"
 
 amiga_config g_fs_uae_amiga_configs[CONFIG_LAST + 1] = {};
 amiga_config *g_fs_uae_config = NULL;
@@ -15,20 +15,22 @@ int g_fs_uae_ntsc_mode = 0;
 int g_fs_uae_amiga_model = 0;
 
 static const char *wb_disk_1_3_3 =
-        "Workbench v1.3.3 rev 34.34 (1990)(Commodore)(A500-A2000)"
-        "(Disk 1 of 2)(Workbench).adf";
+    "Workbench v1.3.3 rev 34.34 (1990)(Commodore)(A500-A2000)(Disk 1 of "
+    "2)(Workbench).adf";
 static const char *wb_disk_2_0_4 =
-        "Workbench v2.04 rev 37.67 (1991)(Commodore)"
-        "(Disk 1 of 4)(Workbench).adf";
+    "Workbench v2.04 rev 37.67 (1991)(Commodore)(Disk 1 of 4)(Workbench).adf";
 static const char *wb_disk_2_0_5 =
-        "Workbench v2.05 rev 37.71 (1992)(Commodore)"
-        "(Disk 1 of 4)(Workbench).adf";
+    "Workbench v2.05 rev 37.71 (1992)(Commodore)(Disk 1 of 4)(Workbench).adf";
 static const char *wb_disk_3_1_0 =
-        "Workbench v3.1 rev 40.42 (1994)(Commodore)(M10)"
-        "(Disk 2 of 6)(Workbench)[!].adf";
+    "Workbench v3.1 rev 40.42 (1994)(Commodore)(M10)(Disk 2 of "
+    "6)(Workbench)[!].adf";
 
-static void init_common(amiga_config *c, const char *id, const char *name,
-                        int model, int quickstart, int quickstart_config)
+static void init_common(amiga_config *c,
+                        const char *id,
+                        const char *name,
+                        int model,
+                        int quickstart,
+                        int quickstart_config)
 {
     c->id = id;
     c->name = name;
@@ -45,7 +47,9 @@ static void init_common(amiga_config *c, const char *id, const char *name,
     c->default_mmu = "0";
 }
 
-static void init_a1200(amiga_config *c, const char *id, const char *name,
+static void init_a1200(amiga_config *c,
+                       const char *id,
+                       const char *name,
                        int quickstart_config)
 {
     init_common(c, id, name, MODEL_A1200, 4, quickstart_config);
@@ -54,7 +58,9 @@ static void init_a1200(amiga_config *c, const char *id, const char *name,
     c->default_cpu = "68020";
 }
 
-static void init_cd32(amiga_config *c, const char *id, const char *name,
+static void init_cd32(amiga_config *c,
+                      const char *id,
+                      const char *name,
                       int quickstart_config)
 {
     init_common(c, id, name, MODEL_CD32, 8, quickstart_config);
@@ -62,7 +68,9 @@ static void init_cd32(amiga_config *c, const char *id, const char *name,
     c->default_cpu = "68020";
 }
 
-static void init_a3000(amiga_config *c, const char *id, const char *name,
+static void init_a3000(amiga_config *c,
+                       const char *id,
+                       const char *name,
                        int quickstart_config)
 {
     init_common(c, id, name, MODEL_A3000, 5, quickstart_config);
@@ -76,14 +84,16 @@ static void init_a3000(amiga_config *c, const char *id, const char *name,
     c->cpu_32bit_addressing = 1;
 }
 
-static void init_a4000(amiga_config *c, const char *id, const char *name,
+static void init_a4000(amiga_config *c,
+                       const char *id,
+                       const char *name,
                        int quickstart_config)
 {
     init_common(c, id, name, MODEL_A4000, 6, quickstart_config);
     c->allow_z3_memory = 1;
     c->enhanced_audio_filter = 1;
     c->wb_disk = wb_disk_3_1_0;
-    c->default_floppy_drive_type = 1; // 3.5" HD
+    c->default_floppy_drive_type = 1;  // 3.5" HD
     c->default_floppy_drive_count = 2;
     if (quickstart_config == 0) {
         c->default_cpu = "68030";
@@ -93,37 +103,41 @@ static void init_a4000(amiga_config *c, const char *id, const char *name,
     } else if (quickstart_config == 1) {
         c->default_cpu = "68040";
         c->default_fpu = "68040";
-        //c->default_mmu = "68040";
+        // c->default_mmu = "68040";
     } else {
         fs_emu_warning("Unknown A4000 quickstart model\n");
     }
     c->cpu_32bit_addressing = 1;
 }
 
-static void init_a1200_ppc(amiga_config *c, const char *id, const char *name,
+static void init_a1200_ppc(amiga_config *c,
+                           const char *id,
+                           const char *name,
                            int quickstart_config)
 {
     init_a1200(c, id, name, quickstart_config);
-    //c->cpu_model = "68060";
+    // c->cpu_model = "68060";
     c->cpu_idle = 0;
     c->z3realmapping = 0;
     c->accelerator = "blizzard-ppc";
-    //c->default_cpu = "68060";
-    //c->default_fpu = "68060";
-    //c->default_mmu = "68060";
+    // c->default_cpu = "68060";
+    // c->default_fpu = "68060";
+    // c->default_mmu = "68060";
 }
 
-static void init_a4000_ppc(amiga_config *c, const char *id, const char *name,
+static void init_a4000_ppc(amiga_config *c,
+                           const char *id,
+                           const char *name,
                            int quickstart_config)
 {
     init_a4000(c, id, name, quickstart_config);
-    //c->cpu_model = "68060";
+    // c->cpu_model = "68060";
     c->cpu_idle = 0;
     c->z3realmapping = 0;
     c->accelerator = "cyberstorm-ppc";
-    //c->default_cpu = "68060";
-    //c->default_fpu = "68060";
-    //c->default_mmu = "68060";
+    // c->default_cpu = "68060";
+    // c->default_fpu = "68060";
+    // c->default_mmu = "68060";
 }
 
 void fs_uae_init_configs()
@@ -169,7 +183,7 @@ void fs_uae_init_configs()
 
     c = g_fs_uae_amiga_configs + CONFIG_A1200_020;
     init_a1200(c, "A1200/020", "Amiga 1200 (68020)", 6);
-    //c->cpu_model = "68020";
+    // c->cpu_model = "68020";
     c->cpu_32bit_addressing = 1;
     c->allow_z3_memory = 1;
 
@@ -251,12 +265,12 @@ void fs_uae_init_configs()
     // FIXME:
     c->model = MODEL_A1200;
     c->name = "Amiga (Super)";
-    //c->quickstart = "A1200,,";
+    // c->quickstart = "A1200,,";
     c->quickstart_model = 11;
-    //c->cpu_model = "68020";
-    //c->cpu_32bit_addressing = 1;
+    // c->cpu_model = "68020";
+    // c->cpu_32bit_addressing = 1;
     c->allow_z3_memory = 1;
-    //c->z3mem_size = 64;
+    // c->z3mem_size = 64;
     c->warning = "SUPER is deprecated, use A4000/040 instead";
 
     c = g_fs_uae_amiga_configs + CONFIG_LAST;

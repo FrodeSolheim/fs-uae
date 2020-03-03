@@ -1,0 +1,22 @@
+BasedOnStyle: Google
+# BasedOnStyle: Mozilla
+# AlwaysBreakAfterDefinitionReturnType: None
+# AlwaysBreakAfterReturnType: None
+AllowShortBlocksOnASingleLine: false
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: false
+BinPackArguments: false
+BinPackParameters: false
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterExternBlock: false
+  AfterFunction: true
+ColumnLimit: 79
+Cpp11BracedListStyle: false
+DerivePointerAlignment: false
+IndentWidth: 4
+PointerAlignment: Right
+SortIncludes: true
+SpaceAfterCStyleCast: true
+SpacesBeforeTrailingComments: 2

@@ -196,16 +196,19 @@ char *fsemu_data_file_path(const char *relative)
     if (fs_path_exists(path)) {
         return path;
     }
+    g_free(path);
     // Check in the fsemu/data dir (during development and testing)
     path = g_build_filename(executable_dir, "fsemu", "data", relative, NULL);
     if (fs_path_exists(path)) {
         return path;
     }
+    g_free(path);
     // DEPRECATED: Check in the data.fs dir (during development and testing)
     path = g_build_filename(executable_dir, "data.fs", relative, NULL);
     if (fs_path_exists(path)) {
         return path;
     }
+    g_free(path);
     // Check in the plugin data dir
 #ifdef FSEMU_MACOS
     // Need to go further up in the hierarchy due to being bundled inside
@@ -215,6 +218,7 @@ char *fsemu_data_file_path(const char *relative)
     if (fs_path_exists(path)) {
         return path;
     }
+    g_free(path);
 #else
     path =
         g_build_filename(executable_dir, "..", "..", "Data", relative, NULL);

@@ -136,9 +136,12 @@ BUILT_SOURCES = \
 nodist_fs_uae_SOURCES =
 
 fs_uae_SOURCES = \
-        gamemode/lib/gamemode_client.h \
+	src/fsuae/fsuae.h \
+	src/fsuae/fs-uae.h \
 	src/fsuae/fsuae-accelerator.c \
 	src/fsuae/fsuae-accelerator.h \
+	src/fsuae/fsuae-action.c \
+	src/fsuae/fsuae-action.h \
 	src/fsuae/fsuae-config.c \
 	src/fsuae/fsuae-config.h \
 	src/fsuae/fsuae-drives.c \
@@ -147,26 +150,27 @@ fs_uae_SOURCES = \
 	src/fsuae/fsuae-graphics.h \
 	src/fsuae/fsuae-hardware.c \
 	src/fsuae/fsuae-hardware.h \
-	src/fsuae/fsuae-model.c \
-	src/fsuae/fsuae-model.h \
-	src/fsuae/fsuae-sound.c \
-	src/fsuae/fsuae-sound.h \
-	src/fsuae/fs-uae.h \
 	src/fsuae/fsuae-input.c \
+	src/fsuae/fsuae-inputport.c \
 	src/fsuae/fsuae-joystick.c \
 	src/fsuae/fsuae-keyboard.c \
 	src/fsuae/fsuae-main.c \
 	src/fsuae/fsuae-menu.c \
+	src/fsuae/fsuae-model.c \
+	src/fsuae/fsuae-model.h \
 	src/fsuae/fsuae-mouse.c \
 	src/fsuae/fsuae-options.h \
+	src/fsuae/fsuae-oskeyboard.c \
 	src/fsuae/fsuae-paths.c \
 	src/fsuae/fsuae-paths.h \
 	src/fsuae/fsuae-plugins.c \
 	src/fsuae/fsuae-plugins.h \
 	src/fsuae/fsuae-recording.c \
 	src/fsuae/fsuae-recording.h \
-	src/fsuae/uae_config.c \
-	src/fsuae/fsuae-video.c
+	src/fsuae/fsuae-sound.c \
+	src/fsuae/fsuae-sound.h \
+	src/fsuae/fsuae-video.c\
+	src/fsuae/uae_config.c
 
 
 if WINDOWS
@@ -812,8 +816,16 @@ if FSEMU
 noinst_LIBRARIES += libfsemu2.a
  AM_CPPFLAGS += -I$(s)/fsemu/src
 fs_uae_LDADD += libfsemu2.a
-# fs_uae_device_helper_LDADD += libfsemu2.a
+fs_uae_device_helper_LDADD += libfsemu2.a
 libfsemu2_a_SOURCES = \
+        fsemu/gamemode/lib/gamemode_client.h \
+        fsemu/manymouse/linux_evdev.c \
+        fsemu/manymouse/macosx_hidmanager.c \
+        fsemu/manymouse/macosx_hidutilities.c \
+        fsemu/manymouse/manymouse.c \
+        fsemu/manymouse/manymouse.h \
+        fsemu/manymouse/windows_wminput.c \
+        fsemu/manymouse/x11_xinput2.c \
 	fsemu/src/fsemu-all.h \
 	fsemu/src/fsemu-button.h \
 	fsemu/src/fsemu-action.c \
@@ -827,6 +839,7 @@ libfsemu2_a_SOURCES = \
 	fsemu/src/fsemu-axis.h \
 	fsemu/src/fsemu-background.c \
 	fsemu/src/fsemu-background.h \
+	fsemu/src/fsemu-color.h \
 	fsemu/src/fsemu-common.c \
 	fsemu/src/fsemu-common.h \
 	fsemu/src/fsemu-compat.h \
@@ -838,12 +851,16 @@ libfsemu2_a_SOURCES = \
 	fsemu/src/fsemu-controller.h \
 	fsemu/src/fsemu-data.c \
 	fsemu/src/fsemu-data.h \
+	fsemu/src/fsemu-emuthread.c \
+	fsemu/src/fsemu-emuthread.h \
 	fsemu/src/fsemu-events.c \
 	fsemu/src/fsemu-events.h \
 	fsemu/src/fsemu-fade.c \
 	fsemu/src/fsemu-fade.h \
 	fsemu/src/fsemu-font.c \
 	fsemu/src/fsemu-font.h \
+	fsemu/src/fsemu-fontcache.c \
+	fsemu/src/fsemu-fontcache.h \
 	fsemu/src/fsemu-frame.c \
 	fsemu/src/fsemu-frame.h \
 	fsemu/src/fsemu-gamemode.c \
@@ -879,8 +896,14 @@ libfsemu2_a_SOURCES = \
 	fsemu/src/fsemu-layout.h \
 	fsemu/src/fsemu-log.c \
 	fsemu/src/fsemu-log.h \
+	fsemu/src/fsemu-mainmenu.c \
+	fsemu/src/fsemu-mainmenu.h \
+	fsemu/src/fsemu-manymouse.c \
+	fsemu/src/fsemu-manymouse.h \
 	fsemu/src/fsemu-menu.c \
 	fsemu/src/fsemu-menu.h \
+	fsemu/src/fsemu-module.c \
+	fsemu/src/fsemu-module.h \
 	fsemu/src/fsemu-monitor.c \
 	fsemu/src/fsemu-monitor.h \
 	fsemu/src/fsemu-mouse.c \
@@ -904,6 +927,8 @@ libfsemu2_a_SOURCES = \
 	fsemu/src/fsemu-refable.h \
 	fsemu/src/fsemu-render.c \
 	fsemu/src/fsemu-render.h \
+	fsemu/src/fsemu-savestate.c \
+	fsemu/src/fsemu-savestate.h \
 	fsemu/src/fsemu-screenshot.c \
 	fsemu/src/fsemu-screenshot.h \
 	fsemu/src/fsemu-sdl.h \
@@ -953,18 +978,18 @@ fs_uae_LDADD += cef/libcef_dll/libcef_dll_wrapper.a -L $(s)/cef/Release -lcef
 endif
 
 if BUILTIN_MANYMOUSE
-noinst_LIBRARIES += libmanymouse.a
-AM_CPPFLAGS += -I$(s)/manymouse
-fs_uae_LDADD += libmanymouse.a
-fs_uae_device_helper_LDADD += libmanymouse.a
-libmanymouse_a_SOURCES = \
-	manymouse/linux_evdev.c \
-	manymouse/macosx_hidmanager.c \
-	manymouse/macosx_hidutilities.c \
-	manymouse/manymouse.c \
-	manymouse/manymouse.h \
-	manymouse/windows_wminput.c \
-	manymouse/x11_xinput2.c
+# noinst_LIBRARIES += libmanymouse.a
+# AM_CPPFLAGS += -I$(s)/manymouse
+# fs_uae_LDADD += libmanymouse.a
+# fs_uae_device_helper_LDADD += libmanymouse.a
+# libmanymouse_a_SOURCES = \
+# 	manymouse/linux_evdev.c \
+# 	manymouse/macosx_hidmanager.c \
+# 	manymouse/macosx_hidutilities.c \
+# 	manymouse/manymouse.c \
+# 	manymouse/manymouse.h \
+# 	manymouse/windows_wminput.c \
+# 	manymouse/x11_xinput2.c
 endif
 
 if WITH_GLAD

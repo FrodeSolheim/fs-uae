@@ -1,33 +1,33 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
-#include "fsuae-plugins.h"
-
 #include <fs/base.h>
 #include <fs/log.h>
-#include <uae/uae.h>
-#include "fsuae-paths.h"
-
-#include <string.h>
-#include <stdlib.h>
 #include <glib.h>
+#include <stdlib.h>
+#include <string.h>
+#include <uae/uae.h>
+
+#include "fsemu-module.h"
+#include "fsuae-paths.h"
+#include "fsuae-plugins.h"
 
 #define NEW_PLUGINS 1
 
 // FIXME: move to configure.ac / config.h
 #if defined(__x86_64__) || defined(_M_AMD64) || defined(_M_X64)
-    #define ARCH_NAME "x86-64"
-#elif defined(__i386__) || defined (_M_IX86)
-    #define ARCH_NAME "x86"
+#define ARCH_NAME "x86-64"
+#elif defined(__i386__) || defined(_M_IX86)
+#define ARCH_NAME "x86"
 #elif defined(__ppc__)
-    #define ARCH_NAME "ppc"
+#define ARCH_NAME "ppc"
 #else
-    #define ARCH_NAME "unknown"
+#define ARCH_NAME "unknown"
 #endif
 
 static GHashTable *provides;
 #define MAX_PLUGINS 256
-static gchar* g_plugin_ver_dirs[MAX_PLUGINS];
+static gchar *g_plugin_ver_dirs[MAX_PLUGINS];
 static int g_plugin_count;
 
 #ifndef NEW_PLUGINS
@@ -64,7 +64,7 @@ static const char *lookup_plugin(const char *name)
         g_free(module_name);
         // FIXME: resource leak if called more than once for the same
         // plugin, should cache the path
-        return (const char*) path;
+        return (const char *) path;
     }
     g_free(path);
 
@@ -73,17 +73,18 @@ static const char *lookup_plugin(const char *name)
     if (g_file_test(path, G_FILE_TEST_EXISTS)) {
         g_free(module_name);
         // FIXME: resource leak, should cache the path
-        return (const char*) path;
+        return (const char *) path;
     }
     g_free(path);
 
     // For development, try ../../plugin/plugin.ext as well
-    path = g_build_filename(executable_dir, "..", "..", name, module_name, NULL);
+    path =
+        g_build_filename(executable_dir, "..", "..", name, module_name, NULL);
     fs_log("[PLUGINS] Checking \"%s\"\n", path);
     if (g_file_test(path, G_FILE_TEST_EXISTS)) {
         g_free(module_name);
         // FIXME: resource leak, should cache the path
-        return (const char*) path;
+        return (const char *) path;
     }
     g_free(path);
 
@@ -92,7 +93,7 @@ static const char *lookup_plugin(const char *name)
     if (g_file_test(path, G_FILE_TEST_EXISTS)) {
         g_free(module_name);
         // FIXME: resource leak, should cache the path
-        return (const char*) path;
+        return (const char *) path;
     }
     g_free(path);
 
@@ -111,17 +112,17 @@ static const char *lookup_plugin(const char *name)
 
     for (int i = 0; i < g_plugin_count; i++) {
 #ifdef NEW_PLUGINS
-        path = g_build_filename(g_plugin_ver_dirs[i], OS_NAME_3, ARCH_NAME,
-                                module_name, NULL);
+        path = g_build_filename(
+            g_plugin_ver_dirs[i], OS_NAME_3, ARCH_NAME, module_name, NULL);
 #else
-        path = g_build_filename(g_plugin_ver_dirs[i], os_arch_name(),
-                                module_name, NULL);
+        path = g_build_filename(
+            g_plugin_ver_dirs[i], os_arch_name(), module_name, NULL);
 #endif
         fs_log("[PLUGINS] Checking \"%s\"\n", path);
         if (g_file_test(path, G_FILE_TEST_EXISTS)) {
             g_free(module_name);
             // FIXME: resource leak, should cache the path
-            return (const char*) path;
+            return (const char *) path;
         }
         g_free(path);
     }
@@ -134,7 +135,7 @@ static const char *lookup_plugin(const char *name)
         if (g_file_test(path, G_FILE_TEST_EXISTS)) {
             g_free(module_name);
             // FIXME: resource leak, should cache the path
-            return (const char*) path;
+            return (const char *) path;
         }
         g_free(path);
     }
@@ -144,22 +145,23 @@ static const char *lookup_plugin(const char *name)
 }
 
 #ifndef NEW_PLUGINS
-static void load_plugin_provides(const char *path, GKeyFile *key_file,
-                                 const char *group_name, int scan)
+static void load_plugin_provides(const char *path,
+                                 GKeyFile *key_file,
+                                 const char *group_name,
+                                 int scan)
 {
     gchar **keys = g_key_file_get_keys(key_file, group_name, NULL, NULL);
     if (keys) {
         for (gchar *key = *keys; *key; key++) {
-            gchar *value = g_key_file_get_string(key_file, group_name,
-                                                 key, NULL);
+            gchar *value =
+                g_key_file_get_string(key_file, group_name, key, NULL);
             if (value == NULL) {
                 continue;
             }
             gchar *p = g_build_filename(path, value, NULL);
             if (g_file_test(p, G_FILE_TEST_EXISTS)) {
                 g_hash_table_insert(provides, g_strdup(key), p);
-            }
-            else {
+            } else {
                 g_free(p);
             }
         }
@@ -188,11 +190,13 @@ static void load_plugin(const char *path, const char *ini_path)
     gchar *version_path = g_build_filename(path, NULL);
 #else
     GKeyFile *key_file = g_key_file_new();
-    if (!g_key_file_load_from_file(key_file, ini_path, G_KEY_FILE_NONE, NULL)) {
+    if (!g_key_file_load_from_file(
+            key_file, ini_path, G_KEY_FILE_NONE, NULL)) {
         fs_log("[PLUGINS] Could not load plugin.ini\n");
         return;
     }
-    gchar *version = g_key_file_get_string(key_file, "plugin", "version", NULL);
+    gchar *version =
+        g_key_file_get_string(key_file, "plugin", "version", NULL);
     if (version == NULL) {
         fs_log("[PLUGINS] Could not read plugin version\n");
         return;
@@ -241,10 +245,25 @@ static void load_plugins_from_dir(const char *plugins_dir)
     g_dir_close(dir);
 }
 
+static struct {
+    bool initialized;
+} module;
+
+static void fsuae_plugins_quit(void)
+{
+    g_hash_table_destroy(provides);
+}
+
 void fs_uae_plugins_init()
 {
+    if (module.initialized) {
+        return;
+    }
+    module.initialized = true;
     fs_log("[PLUGINS] Initializing\n");
-    provides = g_hash_table_new(g_str_hash, g_str_equal);
+    fsemu_module_on_quit(fsuae_plugins_quit);
+
+    provides = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, NULL);
     amiga_set_plugin_lookup_function(lookup_plugin);
 
     const char *plugins_dir = fs_uae_plugins_dir();
@@ -254,13 +273,12 @@ void fs_uae_plugins_init()
     char executable_dir[FS_PATH_MAX];
     fs_get_application_exe_dir(executable_dir, FS_PATH_MAX);
     path = g_build_filename(
-                executable_dir, "..", "lib", "fs-uae", "plugins", NULL);
+        executable_dir, "..", "lib", "fs-uae", "plugins", NULL);
     if (g_file_test(path, G_FILE_TEST_IS_DIR)) {
         load_plugins_from_dir(path);
     }
     g_free(path);
-    path = g_build_filename(
-                executable_dir, "..", "..", "..", "Plugins", NULL);
+    path = g_build_filename(executable_dir, "..", "..", "..", "Plugins", NULL);
     if (g_file_test(path, G_FILE_TEST_IS_DIR)) {
         load_plugins_from_dir(path);
     }

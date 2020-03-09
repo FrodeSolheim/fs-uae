@@ -46,6 +46,7 @@ core
 *.dll
 /*.dsc
 *.exe
+.env
 /fontconfig/
 /Frameworks/
 /fs-uae

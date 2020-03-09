@@ -1,3 +1,7 @@
+Version 3.0.1:
+
+* Fix video scaling when restoring from fullscreen on Windows.
+
 Version 3.0.0:
 
 * Show error during configure if OpenAL is not found.

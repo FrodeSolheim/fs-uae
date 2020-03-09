@@ -38,4 +38,5 @@ bundle:
 	# cp ./../../COPYING FS-UAE.app/Contents/Resources/
 	# cp ./../../README FS-UAE.app/Contents/Resources/
 	./standalone.py FS-UAE.app
-	python3 ./sign.py FS-UAE.app
+	./sign.py FS-UAE.app
+	./notarize.py FS-UAE.app no.fengestad.fs-uae

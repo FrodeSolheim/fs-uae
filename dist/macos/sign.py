@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import sys
 import time
 import subprocess
@@ -10,6 +12,9 @@ while do_sign:
         "codesign",
         "-f",
         "--deep",
+        "--options=runtime",
+        "--entitlements",
+        "Entitlements.plist",
         "-s",
         "Developer ID Application",
         sys.argv[1],

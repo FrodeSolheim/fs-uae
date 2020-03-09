@@ -899,7 +899,7 @@ int fs_ml_event_loop(void)
 #endif
             continue;
         case SDL_WINDOWEVENT:
-            if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
+            if (event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
                 on_resize(event.window.data1, event.window.data2);
             } else if (event.window.event == SDL_WINDOWEVENT_CLOSE) {
                 event.type = SDL_QUIT;

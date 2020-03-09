@@ -1199,8 +1199,10 @@ EXTRA_DIST = $(TESTS) $(EXTRA_TESTS) \
 	dist/linux/build.py \
 	dist/arch.py \
 	dist/linux/standalone-linux.py \
+	dist/macos/Entitlements.plist \
 	dist/macos/fs-uae-config.icns \
 	dist/macos/fs-uae.icns \
+	dist/macos/notarize.py \
 	dist/macos/PkgInfo \
 	dist/macos/sign.py \
 	dist/macos/standalone.py \

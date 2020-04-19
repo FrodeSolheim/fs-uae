@@ -14,16 +14,15 @@
 #include "fsemu-widget.h"
 #include "fsemu-window.h"
 
-/*
- * FIXME: Mouse cursor should not disappear while hovering on top of title bar.
- */
-
 enum {
     FSEMU_TITLEBAR_NONE,
     FSEMU_TITLEBAR_MINIMIZE,
     FSEMU_TITLEBAR_MAXIMIZE,
     FSEMU_TITLEBAR_CLOSE
 };
+
+#define FSEMU_TITLEBAR_BACKGROUND FSEMU_COLOR_RGBA(0x282828ff)
+#define FSEMU_TITLEBAR_BACKGROUND_INACTIVE FSEMU_COLOR_RGBA(0x303030ff)
 
 #define FSEMU_TITLEBAR_MINIMIZE_HOVER FSEMU_COLOR_RGBA(0x555555ff)
 #define FSEMU_TITLEBAR_MINIMIZE_ACTIVE FSEMU_COLOR_RGBA(0x777777ff)
@@ -185,7 +184,7 @@ void fsemu_titlebar_update(void)
     //                    is_static,
     //                    window_is_active);
 
-    uint32_t opacity_color = FSEMU_RGB_A(
+    uint32_t opacity_color = FSEMU_COLOR_RGB_A(
         0xffffff,
         window_is_active ? module.title_color : module.title_opacity_inactive);
 
@@ -567,7 +566,7 @@ static void fsemu_titlebar_init_widgets(void)
     fsemu_image_t *image;
 
     item = &module.background_item;
-    // titlebar_color = FSEMU_RGBA(0xff202080);
+    // titlebar_color = FSEMU_COLOR_RGBA(0xff202080);
     fsemu_gui_rectangle(item, 0, 0, 0, module.height, module.background_color);
     item->z_index = 9000;
     fsemu_gui_add_item(item);
@@ -688,13 +687,13 @@ void fsemu_titlebar_init(void)
     module.width = 640;  // FIXME
     module.height = fsemu_titlebar_unscaled_height();
 
-    module.background_color = FSEMU_RGBA(0x202020ff);
-    module.background_color_inactive = FSEMU_RGBA(0x303030ff);
+    module.background_color = FSEMU_TITLEBAR_BACKGROUND;
+    module.background_color_inactive = FSEMU_TITLEBAR_BACKGROUND_INACTIVE;
 
-    module.title_color = FSEMU_RGBA(0xffffffcc);
+    module.title_color = FSEMU_COLOR_RGBA(0xffffffcc);
     // FIXME: This does not have any effect yet, since text is only rendered
     // to image initially.
-    // module.title_color_inactive = FSEMU_RGBA(0xffffff99);
+    // module.title_color_inactive = FSEMU_COLOR_RGBA(0xffffff99);
     // Can use opacity though
     module.title_opacity_inactive = 0x80;
 

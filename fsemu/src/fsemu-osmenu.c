@@ -25,6 +25,12 @@
 
 // ----------------------------------------------------------------------------
 
+#define FSEMU_OSMENU_ITEM_FONTSIZE 36
+#define FSEMU_OSMENU_HEADING_FONTSIZE 28
+
+#define FSEMU_OSMENU_ITEM_INDENTATION 60
+#define FSEMU_OSMENU_HEADING_INDENTATION 40
+
 // #define FSEMU_OSMENU_START_OPEN
 #define FSEMU_OSMENU_WIDTH 480
 #define FSEMU_OSMENU_SHADOW_WIDTH 20
@@ -208,16 +214,16 @@ static void fsemu_osmenu_populate_widgets(fsemu_osmenu_t *osmenu)
         fsemu_widget_set_color(widget, FSEMU_COLOR_WHITE);
         fsemu_widget_set_visible(widget, true);
 
-        int leftoffset = 60;
-        int font_size = 72;
+        int leftoffset = FSEMU_OSMENU_ITEM_INDENTATION;
+        int font_size = FSEMU_OSMENU_ITEM_FONTSIZE;
         fsemu_color_t text_color;
         // Maybe we only need color? Also, right now, color effectively
         // modulates text_color. Maybe we don't want this...
         fsemu_widget_set_color(widget, FSEMU_COLOR_WHITE);
         if (fsemu_menu_item_heading(item)) {
-            font_size = 56;
+            font_size = FSEMU_OSMENU_HEADING_FONTSIZE;
             text_color = FSEMU_COLOR_RGB(0x888888);
-            leftoffset = 40;
+            leftoffset = FSEMU_OSMENU_HEADING_INDENTATION;
             fsemu_widget_set_text_valign(widget, 0.9);
         } else if (!fsemu_menu_item_enabled(item)) {
             text_color = FSEMU_COLOR_RGB(0x666666);

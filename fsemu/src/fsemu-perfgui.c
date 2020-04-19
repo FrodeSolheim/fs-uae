@@ -257,8 +257,8 @@ void fsemu_perfgui_init(void)
     fsemu_perfgui_init_images();
     fsemu_perfgui_init_items();
 
-    // Default to 1 for now
-    fsemu_perfgui.mode = 1;
+    // Default to 0 for now
+    fsemu_perfgui.mode = 0;
 
     fsemu_option_read_int(FSEMU_OPTION_PERFORMANCE_GUI, &fsemu_perfgui.mode);
     if (fsemu_perfgui.mode < 0 || fsemu_perfgui.mode > 2) {

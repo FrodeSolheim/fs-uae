@@ -83,6 +83,8 @@ void fsemu_util_spring_update_with_time(fsemu_util_spring_t *spring,
         spring->current = spring->current + spring->velocity / 1000;
     }
 
+    // Calculating last time based on numsteps unstead of using time_us, so the
+    // remaining fraction will be carried over.
     spring->last_us = spring->last_us + numsteps * 1000;
     // printf("%d %d\n", (int) spring->current, (int) spring->target);
 

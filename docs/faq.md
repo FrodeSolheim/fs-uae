@@ -4,8 +4,12 @@ This page contains answers to some frequently asked questions.
 
 ## Can I donate towards FS-UAE development?
 
-You do not have to, but I have put up a donation page if you want to:
+I have put up a donation page if you want to chip in and help cover expenses:
 [https://fs-uae.net/donate](https://fs-uae.net/donate) :)
+
+## What does FS stand for in FS-UAE?
+
+https://eab.abime.net/showthread.php?t=98922
 
 ## Do joysticks work with FS-UAE on Fedora Linux?
 

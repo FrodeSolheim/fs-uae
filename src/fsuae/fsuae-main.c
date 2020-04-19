@@ -56,7 +56,7 @@
 #include "fsemu-window.h"
 
 #ifdef LINUX
-#include "../../gamemode/lib/gamemode_client.h"
+#include "../../fsemu/gamemode/lib/gamemode_client.h"
 #endif
 
 static int fs_uae_argc;
@@ -1648,17 +1648,19 @@ int main(int argc, char *argv[])
     // fs_uae_init_keyboard();
     fs_uae_init_mouse();
     fs_uae_configure_menu();
-    fsuae_inputport_init();
-    fsuae_keyboard_init();
-    // fsuae_menu_init();
-    // fsuae_mouse_init();
-    fsuae_oskeyboard_init();
-    // fsuae_osmenu_init();
+    if (fsemu) {
+        fsuae_inputport_init();
+        fsuae_keyboard_init();
+        // fsuae_menu_init();
+        // fsuae_mouse_init();
+        fsuae_oskeyboard_init();
+        // fsuae_osmenu_init();
 
-    // FIXME: MOVE SOMEWHERE ELSE
-    fsemu_input_autofill_devices();
-    fsemu_input_reconfigure();
-    // FIXME: MOVE SOMEWHERE ELSE
+        // FIXME: MOVE SOMEWHERE ELSE
+        fsemu_input_autofill_devices();
+        fsemu_input_reconfigure();
+        // FIXME: MOVE SOMEWHERE ELSE
+    }
 
     const char *value = fs_config_get_const_string("whdload_quit_key");
     if (value) {

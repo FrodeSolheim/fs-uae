@@ -1,0 +1,38 @@
+app-id: net.fs_uae.FS-UAE
+runtime: org.freedesktop.Platform
+runtime-version: "19.08"
+sdk: org.freedesktop.Sdk
+command: fs-uae
+finish-args:
+  # For OpenGL, we need --device=dri. But using all for controllers. Ideally,
+  # there would be a better way to give access to joysticks. Also, this only
+  # works for controllers connected before starting the app.
+  - --device=all
+  # According to documentation, this can help X11 performance.
+  - --share=ipc
+  # For netplay support.
+  - --share=network
+  - --socket=pulseaudio
+  - --socket=wayland
+  - --socket=x11
+modules:
+  - name: libmpeg2
+    buildsystem: autotools
+    sources:
+      - type: archive
+        url: http://libmpeg2.sourceforge.net/files/libmpeg2-0.5.1.tar.gz
+        sha256: dee22e893cb5fc2b2b6ebd60b88478ab8556cb3b93f9a0d7ce8f3b61851871d4
+  - name: glew
+    buildsystem: simple
+    build-commands:
+      - make GLEW_PREFIX=/app GLEW_DEST=/app
+      - make install GLEW_PREFIX=/app GLEW_DEST=/app
+    sources:
+      - type: archive
+        url: https://freefr.dl.sourceforge.net/project/glew/glew/2.1.0/glew-2.1.0.tgz
+        sha256: 04de91e7e6763039bc11940095cd9c7f880baba82196a7765f727ac05a993c95
+  - name: fs-uae
+    buildsystem: autotools
+    sources:
+      - type: archive
+        path: fs-uae-3.1.0dev.tar.gz

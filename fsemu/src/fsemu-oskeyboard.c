@@ -568,7 +568,9 @@ void fsemu_oskeyboard_update(void)
         fsemu_widget_add_child(fsemu_oskeyboard.container_w, keyboard->widget);
 
         fsemu_widget_t *widget = keyboard->widget;
-        fsemu_widget_set_color(widget, FSEMU_RGBA(0xff000080));
+        fsemu_widget_set_color(widget, FSEMU_COLOR_TRANSPARENT);
+        // FIXME: Reconsider position/size of this. Enable debug color to see.
+        // fsemu_widget_set_color(widget, FSEMU_COLOR_RGBA(0xff000080));
 
 #if 1
         fsemu_widget_set_top_2(widget, 0, FSEMU_WIDGET_PARENT_TOP);
@@ -666,6 +668,7 @@ void fsemu_oskeyboard_init(void)
     }
     fsemu_oskeyboard.initialized = true;
     fsemu_log("Initializing oskeyboard module\n");
+    // FIXME: Cleanup function
     fsemu_oskeyboard_init_container();
     // This will update top and bottom coordinates. Positioned at bottom of
     // screen (top=false) by default).

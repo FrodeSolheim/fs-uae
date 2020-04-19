@@ -1,5 +1,10 @@
 # Amiga Forever
 
+TODO: Write about Amiga Forever 8 no longer using rom.key, and that it decrypts
+the ROMs on first startup!
+TODO: Also check when this change happened (Amiga Forever 8+?). Verified,
+the rom.key file is still used in Amiga Forever 7.
+
 You can purchase [Amiga Forever](https://www.amigaforever.com/) Plus or
 Premium edition in order to get licensed versions of Kickstart ROMs for all
 supported Amiga models.

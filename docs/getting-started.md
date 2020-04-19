@@ -19,11 +19,11 @@ Amiga Forever comes with a selection of software and games, and there are
 several web sites with legal Amiga downloads:
 
 - Full versions of many games:
-  [http://www.amigafuture.de/downloads.php?cat=6](http://www.amigafuture.de/downloads.php?cat=6)
+  [https://www.amigafuture.de/app.php/dlext/index?cat=6](https://www.amigafuture.de/app.php/dlext/index?cat=6)
 - [Team 17 games](http://www.dream17.info/downloads.php?cat=1)
 - [Gremlin games](http://gremlinworld.emuunlim.com/amiga.htm)
 - [Some Factor 5 games](http://www.factor5.de/downloads.shtml)
-- [List of downloadable games](https://openretro.org/reports/downloadable-games)
+- [List of downloadable games](https://openretro.org/reports/downloadable-games) on OpenRetro.org
 
 When you start FS-UAE Launcher, it should be quite straight-forward how to
 select the floppy disk images and start the emulation :)

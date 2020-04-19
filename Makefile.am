@@ -1859,11 +1859,11 @@ install-data-hook: mo fs-uae.dat
 	cp -R $(s)/share/mime/* $(DESTDIR)$(datadir)/mime
 
 uninstall-local:
-	rm -f $(DESTDIR)$(datadir)/applications/fs-uae.desktop
+	rm -f $(DESTDIR)$(datadir)/applications/net.fs_uae.FS-UAE.desktop
 	rm -Rf $(DESTDIR)$(datadir)/fs-uae
-	find $(DESTDIR)$(datadir)/icons/hicolor -name fs-uae.png -delete
+	find $(DESTDIR)$(datadir)/icons/hicolor -name net.fs_uae.FS-UAE.png -delete
 	find $(DESTDIR)$(datadir)/locale -name fs-uae.mo -delete
-	rm -f $(DESTDIR)$(datadir)/mime/packages/fs-uae.xml
+	rm -f $(DESTDIR)$(datadir)/mime/packages/net.fs_uae.FS-UAE.xml
 
 clean-local:
 	rm -f fs-uae.dat

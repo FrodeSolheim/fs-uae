@@ -1,4 +1,4 @@
-Summary: "Warn when CPU governor is not 'performance'"
+Summary: "Warn when not using performance CPU governor"
 Type: Boolean
 Default: 1
 Example: 0

@@ -1,4 +1,4 @@
-Summary: "Zorro III Fast Memory"
+Summary: Zorro III RAM
 Type: Choice
 Default:
 Example: 65536

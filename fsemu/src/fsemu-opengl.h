@@ -49,6 +49,7 @@ static inline void fsemu_opengl_log_error_maybe(void)
 #endif
 
 #ifdef FSEMU_INTERNAL
+#define GLEW_NO_GLU
 #include <GL/glew.h>
 #endif
 

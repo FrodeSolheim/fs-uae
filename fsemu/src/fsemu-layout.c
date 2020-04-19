@@ -53,6 +53,9 @@ void fsemu_layout_init(void)
 {
     fsemu_return_if_already_initialized();
     fsemu_theme_module_init();
+    
+    // Default to zoom mode 1 for now
+    fsemu_layout.zoom_mode = 1;
     fsemu_layout_read_options();
 }
 

@@ -97,23 +97,36 @@ void fsemu_window_init(void)
 
 void fsemu_window_initial_rect(fsemu_rect_t *rect, double ui_scale)
 {
+    int initial_w = 960;
+    int initial_h = 540;
+
+    initial_w = 720;
+    initial_h = 540;
+
+    // initial_w *= 1.5;
+    // initial_h *= 1.5;
+    // initial_h = (720 - 40 - 20);
+    // initial_w = initial_h * 4 / 3;
+    // initial_w = 880;
+    // initial_h = 660;
+
     *rect = fsemu_window.initial_rect;
     if (rect->w == 0 || rect->h == 0) {
         rect->x = -1;
         rect->y = -1;
-        rect->w = 960 * ui_scale;
-        rect->h = 540 * ui_scale;
-        if (fsemu_window.initial_center.x) {
-            rect->x = fsemu_window.initial_center.x - rect->w / 2;
-        }
-        if (fsemu_window.initial_center.y) {
-            rect->y = fsemu_window.initial_center.y - rect->h / 2;
-        }
+        rect->w = initial_w * ui_scale;
+        rect->h = initial_h * ui_scale;
     }
     if (!fsemu_titlebar_use_system()) {
         fsemu_window_log(
             "System titlebar is false: increase initial window rect\n");
         rect->h += fsemu_titlebar_unscaled_height() * ui_scale;
+    }
+    if (fsemu_window.initial_center.x) {
+        rect->x = fsemu_window.initial_center.x - rect->w / 2;
+    }
+    if (fsemu_window.initial_center.y) {
+        rect->y = fsemu_window.initial_center.y - rect->h / 2;
     }
 }
 

@@ -1,0 +1,7 @@
+For OpenGL, we need --device=dri. But using all for controllers. Ideally,
+there would be a better way to give access to joysticks. Also, this only
+works for controllers connected before starting the app.
+
+Maybe we can mount the entire dev or something to get hotplugging working?
+
+Sounds like the future is inputfd...

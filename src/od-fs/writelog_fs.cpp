@@ -666,6 +666,8 @@ void write_log (const TCHAR *format, ...)
 #endif
 
     log_function function = g_libamiga_callbacks.log;
+	// FIXME
+	function = NULL;
     if (function) {
         if (buffer2) {
             function(buffer2);

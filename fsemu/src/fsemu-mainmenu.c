@@ -169,11 +169,17 @@ static fsemu_menu_t *fsemu_mainmenu_create_menu(void)
     newitem = fsemu_menu_item_new_heading_with_title(_("Emulator Control"));
     fsemu_menu_add_item(newmenu, newitem);
 
+    // newitem = fsemu_menu_item_new_with_title(_("Resume"));
+    // fsemu_menu_item_on_activate(newitem, fsemu_mainmenu_on_pause);
+    // fsemu_menu_add_item(newmenu, newitem);
+
     newitem = fsemu_menu_item_new_with_title(_("Pause"));
     fsemu_menu_item_on_activate(newitem, fsemu_mainmenu_on_pause);
     fsemu_menu_add_item(newmenu, newitem);
-    // fsemu_menu_item_set_on_activate(item, vicefs_menu_on_pause);
-    // fs_emu_menu_item_set_activate_function(item, pause_function);
+
+    newitem = fsemu_menu_item_new_with_title(_("Fast Forward"));
+    fsemu_menu_item_on_activate(newitem, fsemu_mainmenu_on_pause);
+    fsemu_menu_add_item(newmenu, newitem);
 
     newitem = fsemu_menu_item_new_with_title(_("Savestates"));
     fsemu_menu_add_item(newmenu, newitem);

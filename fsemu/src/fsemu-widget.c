@@ -367,6 +367,7 @@ void fsemu_widget_update_text_image(fsemu_widget_t *widget)
         fsemu_fontcache_font("SairaCondensed-SemiBold.ttf", widget->font_size);
     fsemu_image_t *textimage =
         fsemu_font_render_text_to_image(font, text, widget->text_color);
+    printf("textimage size %dx%d for text %s\n", textimage->width, textimage->height, text);
     if (widget->textimage) {
         fsemu_image_unref(widget->textimage);
     }

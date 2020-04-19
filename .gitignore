@@ -12,6 +12,7 @@ build68k
 /build/linux-dist/Makefile
 /build/linux-dist/*-steamos-*
 /build/steamos-dist/Makefile
+/build-dir/
 /cef/
 /*.cfg
 /*.changes
@@ -44,10 +45,9 @@ core
 /dist/windows/fs-uae.iss
 /dist/windows/Makefile
 *.dll
-*.gcda
 /*.dsc
 *.exe
-*.lnk
+/.flatpak-builder
 /fontconfig/
 /Frameworks/
 /fs-uae
@@ -58,6 +58,7 @@ fs-uae-dbg-[0-9]*
 fs-uae-device-helper
 fs-uae.rc
 fs-uae-with-dat
+*.gcda
 /gen
 genblitter
 gencomp
@@ -118,11 +119,13 @@ libfsemu/out
 /libnfd/Makefile
 /libs/
 libuae/od-win32/lib
+*.lnk
 *.lo
 *.log
 log
 /Makefile
 /Makefile.in
+merge.stage
 /missing
 *.mo
 /natives_blob.bin
@@ -133,6 +136,9 @@ log
 /osc
 /*.out.*
 /out
+/perf.csv
+/perf.png
+/perf.rrd
 *.pot
 *.ppa.upload
 *.pyc
@@ -160,6 +166,7 @@ temp
 util/temp
 /VERSION
 .vscode/ipch
+.vscode/ipch
 /windows/fs-uae.iss
 /windows/fs-uae*_windows*
 /windows/Makefile
@@ -167,8 +174,3 @@ winuae-merge.txt
 winuae/od-win32/lib
 xxx*
 *.zip
-merge.stage
-.vscode/ipch
-/perf.csv
-/perf.png
-/perf.rrd

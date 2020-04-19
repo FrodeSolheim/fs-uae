@@ -2,28 +2,42 @@
 import os
 import html
 import shutil
+import sys
+
+if not os.path.exists("docs/scripts"):
+    print("Run this script from the project root directory")
+    sys.exit(1)
 
 IGNORED = [".gitignore", "Makefile", "build.py", "update.py"]
 
 option_names = set()
 
-if os.path.exists("dist"):
-    shutil.rmtree("dist")
+out_dir = "docs/html"
 
-for dir_path, dir_names, file_names in os.walk("../doc/options"):
+if os.path.exists(out_dir):
+    shutil.rmtree(out_dir)
+os.makedirs(out_dir)
+
+for dir_path, dir_names, file_names in os.walk("docs/options"):
     if "dist" in dir_names:
         dir_names.remove("dist")
     if "html" in dir_names:
         dir_names.remove("html")
+    if "internal" in dir_names:
+        dir_names.remove("internal")
+    if "scripts" in dir_names:
+        dir_names.remove("scripts")
+    if "todo" in dir_names:
+        dir_names.remove("todo")
     for file_name in file_names:
         if file_name in IGNORED:
             continue
         if file_name.startswith("int_"):
             continue
         src = os.path.join(dir_path, file_name)
-        assert src.startswith("../doc/options")
+        assert src.startswith("docs/options")
         print(src)
-        dst = "dist/" + src[7:]
+        dst = os.path.join(out_dir, src[5:])
         dst = dst.replace("_", "-")
         dst = dst + ".html"
         print("=>", dst)
@@ -52,26 +66,35 @@ for dir_path, dir_names, file_names in os.walk("../doc/options"):
                 f.write(data)
         option_names.add(option_path)
 
-for dir_path, dir_names, file_names in os.walk("."):
+for dir_path, dir_names, file_names in os.walk("docs"):
     if "dist" in dir_names:
         dir_names.remove("dist")
+    if "html" in dir_names:
+        dir_names.remove("html")
+    if "internal" in dir_names:
+        dir_names.remove("internal")
+    if "scripts" in dir_names:
+        dir_names.remove("scripts")
+    if "todo" in dir_names:
+        dir_names.remove("todo")
     for file_name in file_names:
         if file_name in IGNORED:
             continue
         src = os.path.join(dir_path, file_name)
-        assert src.startswith("./")
-        src = src[2:]
+        assert src.startswith("docs/")
         print(src)
-        dst = "dist/" + src
+        dst = os.path.join(out_dir, src[5:])
+        # dst = dst.replace("_", "-")
 
         if file_name.endswith(".md"):
             assert " " not in dst
-            assert "_" not in dst
+            # assert "_" not in dst
             assert dst.endswith(".md")
             dst = dst[:-3] + ".html"
         print("=>", dst)
         if not os.path.exists(os.path.dirname(dst)):
             os.makedirs(os.path.dirname(dst))
+
         if file_name.endswith(".md"):
             # assert os.system("markdown {} > {}".format(src, dst)) == 0
             assert os.system("github-markup {} > {}".format(src, dst)) == 0
@@ -81,8 +104,11 @@ for dir_path, dir_names, file_names in os.walk("."):
             data = data.replace(".md\">", "\">")
             with open(dst, "w", encoding="UTF-8") as f:
                 f.write(data)
+        elif "options" in src:
+            pass
         else:
             shutil.copy(src, dst)
+
         if src.startswith("options/"):
             option_name = src.split("/")[-1]
             if option_name.endswith(".md"):
@@ -91,7 +117,7 @@ for dir_path, dir_names, file_names in os.walk("."):
             option_names.add(option_name)
 
 
-with open("dist/options.html", "w") as f:
+with open(os.path.join(out_dir, "options.html"), "w") as f:
     f.write("<h1>Options</h1>\n")
     for option_name in sorted(option_names):
         if "/" in option_name:

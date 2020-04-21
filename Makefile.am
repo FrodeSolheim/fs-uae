@@ -1133,18 +1133,6 @@ CM_CFLAGS += @LIBMPEG2_CFLAGS@
 LIBS += @LIBMPEG2_LIBS@
 endif
 
-noinst_LIBRARIES += libdummy.a
-nodist_libdummy_a_SOURCES = \
-	gen/cdummy.c \
-	gen/cppdummy.cpp
-BUILT_SOURCES += $(nodist_libdummy_a_SOURCES)
-
-gen/cdummy.c:
-	echo "int cdummy;" > $(b)/gen/cdummy.c
-
-gen/cppdummy.cpp:
-	echo "int cppdummy;" > $(b)/gen/cppdummy.cpp
-
 gen_build68k_SOURCES = \
 	src/build68k.cpp \
 	src/writelog.cpp

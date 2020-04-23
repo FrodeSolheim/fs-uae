@@ -943,7 +943,11 @@ static void render_pass(shader_pass *pass, int first, int last)
 
         if (!pass->frame_buffer) {
             //debug_printf("[SHADERS] generating frame buffer\n");
-            glGenFramebuffers(1, &pass->frame_buffer);
+            if (glGenFramebuffers) {
+                glGenFramebuffers(1, &pass->frame_buffer);
+            } else {
+                glGenFramebuffersEXT(1, &pass->frame_buffer);
+            }
             CHECK_GL_ERROR();
         }
         frame_buffer = pass->frame_buffer;
@@ -957,16 +961,32 @@ static void render_pass(shader_pass *pass, int first, int last)
         debug_printf("%d %d\n", output_w, output_h);
         glViewport(0, 0, output_w, output_h);
 
-        glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
+        if (glBindFramebuffer) {
+            glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
+        } else {
+            glBindFramebufferEXT(GL_FRAMEBUFFER, frame_buffer);
+        }
         CHECK_GL_ERROR();
 
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                GL_TEXTURE_2D, output_texture, 0);
+        if (glFramebufferTexture2D) {
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                    GL_TEXTURE_2D, output_texture, 0);
+        } else {
+            glFramebufferTexture2DEXT(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                    GL_TEXTURE_2D, output_texture, 0);
+        }
         CHECK_GL_ERROR();
 
-        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) !=
-                GL_FRAMEBUFFER_COMPLETE) {
-            debug_printf("[SHADERS] fbo is not complete!\n");
+        if (glCheckFramebufferStatus) {
+            if (glCheckFramebufferStatus(GL_FRAMEBUFFER) !=
+                    GL_FRAMEBUFFER_COMPLETE) {
+                debug_printf("[SHADERS] fbo is not complete!\n");
+            }
+        } else {
+            if (glCheckFramebufferStatusEXT(GL_FRAMEBUFFER) !=
+                    GL_FRAMEBUFFER_COMPLETE) {
+                debug_printf("[SHADERS] fbo is not complete!\n");
+            }
         }
 
         glClear(GL_COLOR_BUFFER_BIT);
@@ -1103,7 +1123,11 @@ static void render_pass(shader_pass *pass, int first, int last)
         // Tell OpenGL not to use the frame-buffer object.
         debug_printf("[SHADERS] unbind framebuffer\n");
 
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        if (glBindFramebuffer) {
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        } else {
+            glBindFramebufferEXT(GL_FRAMEBUFFER, 0);
+        }
         CHECK_GL_ERROR();
 
         glViewport(0, 0, fs_ml_video_width(), fs_ml_video_height());

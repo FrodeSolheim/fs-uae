@@ -1,4 +1,5 @@
 #!/bin/sh
 set -e
-python3 -m glad --generator=c --out-path=glad \
---extensions=GL_NV_fence,GL_APPLE_fence
+glad --generator c --out-path glad \
+--api gl=3.2 --profile compatibility \
+--extensions GL_NV_fence,GL_APPLE_fence,GL_EXT_framebuffer_object

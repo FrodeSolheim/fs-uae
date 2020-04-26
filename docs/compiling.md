@@ -37,7 +37,7 @@ Install dependencies for running bootstrap:
 
 Install dependencies for building FS-UAE:
 
-    sudo dnf install SDL2-devel glib2-devel libpng-devel gettext   gcc gcc-c++ openal-devel libXi-devel zip libmpeg2-devel SDL2_ttf-devel.x86_64
+    sudo dnf install SDL2-devel glib2-devel libpng-devel gettext   gcc gcc-c++ openal-devel libXi-devel zip libmpeg2-devel SDL2_ttf-devel.x86_64 glew-devel
 
 ## Set up a build environment on Windows
 

@@ -1,4 +1,4 @@
-# Notes for Windows Users
+# Notes for Windows users
 
 This document has some information specific to the Windows version of FS-UAE.
 
@@ -15,7 +15,7 @@ from [Amiga Forever](amiga-forever.md) if you have that installed. If not,
 please report it. Remember that you may have to start the Amiga Forever
 Player at least one in order for the `rom.key` file to be written to disk.
 
-## OpenGL Drivers
+## OpenGL drivers
 
 FS-UAE requires working and accelerated OpenGL drivers (it does not use
 DirectX/Direct3D). OpenGL drivers are usually bundled with the display
@@ -38,7 +38,7 @@ even start (aborted with a System.AccessViolationException error). A
 reinstall of current display drivers fixed the problem for both GLView and
 FS-UAE.
 
-## Conflicting Software
+## Conflicting software
 
 The following software has been reported by users to cause problems for
 FS-UAE:

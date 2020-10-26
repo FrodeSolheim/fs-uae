@@ -58,10 +58,14 @@ for dir_path, dir_names, file_names in os.walk("docs/options"):
             with open(src, "r") as f:
                 data = f.read()
             data = data.split("Code:")[0]
-            data = "".join(["<h1>{}</h1>\n".format(html.escape(src.split("/")[-1])),
-                            "<pre>\n",
-                            html.escape(data),
-                            "</pre>\n"])
+            data = "".join(
+                [
+                    "<h1>{}</h1>\n".format(html.escape(src.split("/")[-1])),
+                    "<pre>\n",
+                    html.escape(data),
+                    "</pre>\n",
+                ]
+            )
             with open(dst, "w") as f:
                 f.write(data)
         option_names.add(option_path)
@@ -101,7 +105,7 @@ for dir_path, dir_names, file_names in os.walk("docs"):
             # assert os.system("python3 -m markdown {} > {}".format(src, dst)) == 0
             with open(dst, "r", encoding="UTF-8") as f:
                 data = f.read()
-            data = data.replace(".md\">", "\">")
+            data = data.replace('.md">', '">')
             with open(dst, "w", encoding="UTF-8") as f:
                 f.write(data)
         elif "options" in src:
@@ -118,10 +122,13 @@ for dir_path, dir_names, file_names in os.walk("docs"):
 
 
 with open(os.path.join(out_dir, "options.html"), "w") as f:
-    f.write("<h1>Options</h1>\n")
+    f.write("<h1>Configuration options</h1>\n")
     for option_name in sorted(option_names):
         if "/" in option_name:
             # Skip for now.
             continue
-        f.write("<a href=\"options/{}\">{}</a><br>\n".format(
-            option_name.replace("_", "-",), option_name))
+        f.write(
+            '<a href="options/{}">{}</a><br>\n'.format(
+                option_name.replace("_", "-",), option_name
+            )
+        )

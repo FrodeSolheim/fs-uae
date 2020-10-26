@@ -1,9 +1,9 @@
-# Portable Version
+# Portable version
 
 FS-UAE includes a portable mode where it can be completely self-contained
 within a single directory structure.
 
-## Upgrading
+## Upgrading the portable version
 
 You can generally upgrade to a new version by simple extracting the new
 version on top of the old one.
@@ -11,7 +11,7 @@ version on top of the old one.
 FIXME: Write about old files being left around, how to clean up, and/or
 how to upgrade "cleanly".
 
-## Mixed Host OS Support
+## Mixed host OS support
 
 You can combine the portable versions for all supported operating systems
 and CPU architectures. Just extract every portable version (the ones you
@@ -21,7 +21,7 @@ It is important that when you upgrade to a new version, that you upgrade
 every portable version you are using at the same time, since some files are
 shared.
 
-## Temp Files
+## Temporary files
 
 The portable version will still store temporary files in the system-provided
 temp directory. This is the only exception where FS-UAE (Launcher) writes

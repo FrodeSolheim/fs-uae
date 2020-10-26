@@ -10,7 +10,8 @@ sudo xcode-select -r
 
 else
 
-gem install github-markup
-gem install commonmarker
+sudo apt install ruby ruby-dev
+sudo gem install github-markup
+sudo gem install commonmarker
 
 fi

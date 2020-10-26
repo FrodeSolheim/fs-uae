@@ -1,10 +1,10 @@
 # Mouse
 
-## Middle Mouse Button
+## Middle mouse button
 
-## Mouse Wheel
+## Mouse wheel
 
-## Multiple Mice
+## Multiple mice
 
 FS-UAE supports multiple mice on many platforms through the ManyMouse library
 by Ryan C. Gordon.
@@ -24,7 +24,7 @@ Microsoft Intellimouse devices connected, you might see these devices:
 There might be some specific things you should be aware of, depending on your
 operating system. Read on for more information!
 
-## Mouse Speed and Acceleration
+## Mouse speed and acceleration
 
 The old `Mouse` device is subject to acceleration settings, while
 direct hardware access to specific mouse devices is not. You may therefore
@@ -32,11 +32,11 @@ want to use the new _specific mouse devices_ for more pleasant mouse
 emulation regardless of the number of mice you have. You may even find that
 there is less input lag with the new mouse devices.
 
-## Windows and OS X
+## Windows
 
 Support for multiple mice seems to work just fine on Windows out of the box.
 
-## OS X
+## macOS
 
 Support for multiple mice seems to work just fine on macOS out of the box
 on older macOS versions.
@@ -45,7 +45,7 @@ In macOS 10.15, in order to see individual mouse devices, you may have to go
 to  Preferences -> Security & Privacy -> Input Monitoring, and allow access
 for FS-UAE, FS-UAE Launcher and FS-UAE Arcade.
 
-### Mouse Buttons on OS X
+### Mouse buttons on macOS
 
 ## Linux
 
@@ -64,7 +64,7 @@ to the computer:
 A much better method is to tell the system to specifically make mouse event
 devices readable when they are plugged in:
 
-### Creating udev Rules for Readable Mice
+### Creating udev rules for readable mice
 
 Note that the following works perfectly for me on Ubuntu, and it is possible
 you must do it slightly differently depending on your Linux distribution.

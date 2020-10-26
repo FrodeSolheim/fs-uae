@@ -1,3 +1,5 @@
+# G-Sync
+
 FIXME:
 
 - Important to set desktop refresh rate above the emulation rate?

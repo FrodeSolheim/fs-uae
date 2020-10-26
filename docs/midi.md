@@ -1,4 +1,6 @@
-# MIDI support in FS-UAE
+# MIDI support
+
+> **Note:** This new MIDI support requires FS-UAE 3.9.0dev or newer.
 
 Tested on Linux.
 TODO: Test on macOS and Windows and document with some examples.

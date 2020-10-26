@@ -63,6 +63,44 @@ If you believe other applications might interfere, you can try closing them
 and see if it helps. You can also use the task monitor of your operating
 system to see what applications are using resources.
 
-## FIXME: Performance tips when insufficient host performance is the problem
+## Performance tips when insufficient host performance is the problem
 
-- ...
+You might recall running UAE on an old 200 Mhz Pentium processor, and wonder
+how it is possible that performance is even a topic in 2020! The emulation
+accuracy in modern UAE emulators is much better than it was 10-15 years ago,
+and this increased accuracy comes at the cost of requiring more powerful
+computers.
+
+Emulating the Amiga 1200 is especially demanding, since the CPU is clocked
+twice as high as the CPU Amiga 500, and the emulator spends most of its time
+emulating the CPU.
+
+### Use the slowest Amiga needed for the job
+
+Don’t emulate an Amiga 1200 if an Amiga 500 or an Amiga 600 will do. The CPU
+in Amiga 1200 is twice as fast as the one in Amiga 1000/500/500+/600, and you
+need a much more powerful computer to emulate A1200 at highest accuracy.
+
+For example, many people use Amiga 1200 settings when running WHDLoad-installed
+games. But for most games, an Amiga 600 with Kickstart 2.0 will work equally
+well (or better), but will require a lot less resources to emulate.
+
+### Avoid using unnecessary features
+
+FS-UAE requires more CPU and GPU performance when certain options are enabled.
+For example GPU performance will be affected when using
+[pixelshaders](shaders.md).
+
+### Disabling video sync
+
+FS-UAE will usually have higher performance with video sync turned off.
+
+### Reducing the color depth
+
+FS-UAE can use less color depth in the internal video buffers as well as in the
+textures uploaded to the video card. For slower/older computers, this can give
+a nice speed boost (but should not matter for modern PCs):
+
+    video_format = rgb565
+
+(This option will also automatically set texture_format = rgb5).

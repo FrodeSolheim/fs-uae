@@ -3,6 +3,8 @@ Default: auto
 Example: off
 Type: choice
 
+FIXME: Rename option to mouse-integration-cursor?
+
 This option controls whether the mouse cursor is shown or not when mouse
 integration is enabled. When mouse integration is disabled, the cursor
 is always hidden

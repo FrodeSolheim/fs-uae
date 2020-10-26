@@ -1,4 +1,4 @@
-# Bridgeboard Emulation
+# Bridgeboard emulation
 
 Options (not implemented yet):
 
@@ -10,7 +10,7 @@ Options (not implemented yet):
 A2386SX
 VGA: CL-GD5426 or CL-GD5429
 
-## VGA Adapter
+## VGA adapter
 
 Notes:
 
@@ -23,7 +23,7 @@ Notes:
   remember to still have either one open if you want working keyboard or
   mouse input..)
 
-## Example Configuration
+## Example configuration
 
 No offical options yet, but bridgeboard + VGA can be enabled with config
 similar to this:

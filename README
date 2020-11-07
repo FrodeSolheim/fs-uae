@@ -88,6 +88,10 @@ While running the emulator, you press F12 to enter and exit the emulator menu.
 From here, you can load and save states, and swap floppy disks. On macOS,
 you can use Cmd+F12 instead (Or Fn+Cmd+F12).
 
+By default the emulator will pause when you enter the menu and resume when you
+exit the menu. If you would like the emulator to continue running whilst you
+are in the menu then you should add the option `menu_dont_auto_pause = 1`
+
 With gamepads, you enter the menu either by using the dedicated "menu" button,
 if the gamepad has one, or you press and hold "start" and "selected" at the
 same time (or equivalent buttons). Use the same key/button to close the menu.

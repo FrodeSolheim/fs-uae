@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL
+#include "fsemu-internal.h"
 #include "fsemu-sdlwindow.h"
 
 #ifdef FSEMU_SDL
@@ -68,6 +68,10 @@ static struct {
 
 // ---------------------------------------------------------------------------
 
+#if defined(FSEMU_WINDOWS)
+#elif defined(FSEMU_MACOS)
+#else
+
 // Wrapper function in case SDL_SetCursor is not optimized for the case
 // where you set the same cursor as the existing one.
 static void fsemu_sdlwindow_set_cursor(SDL_Cursor *cursor)
@@ -78,6 +82,8 @@ static void fsemu_sdlwindow_set_cursor(SDL_Cursor *cursor)
     SDL_SetCursor(cursor);
     fsemu_sdlwindow.current_cursor = cursor;
 }
+
+#endif
 
 // ---------------------------------------------------------------------------
 
@@ -267,7 +273,7 @@ static SDL_HitTestResult fsemu_sdlwindow_hit_test_2(SDL_Window *window,
     int edge_width = 10;
     if (y < titlebar_height) {
         // FIXME: Call into titlebar module for button hit test
-        if (x < window_w - 120 * fsemu_window_ui_scale()) {
+        if (x > 40 && x < window_w - 120 * fsemu_window_ui_scale()) {
             if (y < edge_width) {
                 return SDL_HITTEST_RESIZE_TOP;
             }
@@ -611,6 +617,11 @@ SDL_Window *fsemu_sdlwindow_window(void)
     return fsemu_sdlwindow.window;
 }
 
+bool fsemu_sdlwindow_has_window(void)
+{
+    return fsemu_sdlwindow.window != NULL;
+}
+
 static bool fsemu_sdlwindow_handle_keyboard_shortcut(SDL_Event *event)
 {
     if (event->key.keysym.sym == SDLK_a) {
@@ -759,6 +770,11 @@ static bool fsemu_sdlwindow_handle_mouse_motion(int x,
 // should not propagate further.
 bool fsemu_sdlwindow_handle_event(SDL_Event *event)
 {
+    // FIXME: Missing a dirty frame system, so for now, always render at least
+    // 10 seconds after an event is received, so animations will have time
+    // to finish.
+    fsemu_video_must_render_frame_until(fsemu_time_us() + 10 * 1000 * 1000);
+
     if (fsemu_sdlwindow_handle_window_event(event)) {
         return true;
     }
@@ -1158,6 +1174,7 @@ void fsemu_sdlwindow_init(void)
     // SDL_VIDEO_MACOS_FULLSCREEN_SPACES=1
     SDL_SetHint(SDL_HINT_VIDEO_MAC_FULLSCREEN_SPACES, "0");
 #endif
+    SDL_SetHint(SDL_HINT_MOUSE_FOCUS_CLICKTHROUGH, "1");
 
     fsemu_titlebar_init();
     fsemu_monitor_init();

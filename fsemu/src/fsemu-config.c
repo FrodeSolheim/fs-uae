@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL
+#include "fsemu-internal.h"
 #include "fsemu-config.h"
 
 #include "fsemu-option.h"

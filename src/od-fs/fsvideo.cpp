@@ -504,11 +504,13 @@ void getgfxoffset(int monid, float *dxp, float *dyp, float *mxp, float *myp)
 	 * mouse coordinates to Amiga coordinates) */
 
 	// FIXME: fsemu support
-
+#warning getgfxoffset
+#ifdef FSUAE_LEGACY
 	*dxp = fs_emu_video_offset_x;
 	*dyp = fs_emu_video_offset_y;
 	*mxp = fs_emu_video_scale_x;
 	*myp = fs_emu_video_scale_y;
+#endif
 }
 
 int isfullscreen (void)
@@ -1600,6 +1602,10 @@ int machdep_init(void)
 	if (g_libamiga_callbacks.init) {
 		g_libamiga_callbacks.init();
 	}
+
+	// Now we can finally apply pending options
+	amiga_set_initialized_and_apply_options();
+
 #else
 	systray (hHiddenWnd, FALSE);
 #endif
@@ -2335,6 +2341,7 @@ bool uae_fsvideo_renderframe(int monid, int mode, bool immediate)
 		g_has_flushed_screen = 0;
 #endif
 
+#ifdef FSUAE_LEGACY
 		if (fse_drivers()) {
 			notice_screen_contents_lost(monid);
 		} else {
@@ -2342,6 +2349,9 @@ bool uae_fsvideo_renderframe(int monid, int mode, bool immediate)
 			// causes some slowdown, most likely
 			notice_screen_contents_lost(monid);
 		}
+#else
+	notice_screen_contents_lost(monid);
+#endif
 	}
 	return 1;
 }

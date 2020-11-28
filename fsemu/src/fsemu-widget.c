@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL
+#include "fsemu-internal.h"
 #include "fsemu-widget.h"
 
 #include "fsemu-color.h"
@@ -306,6 +306,10 @@ void fsemu_widget_set_text_color(fsemu_widget_t *widget,
                                  fsemu_color_t text_color)
 {
     widget->text_color = text_color;
+
+    // FIXME: We don't want to do this here, just doing it right now for
+    // simplicity
+    fsemu_widget_update_text_image(widget);
 }
 
 void fsemu_widget_set_text_transform(fsemu_widget_t *widget,
@@ -342,7 +346,8 @@ void fsemu_widget_update_text_image(fsemu_widget_t *widget)
         return;
     }
     if (widget->text_cached != NULL) {
-        if (strcmp(widget->text, widget->text_cached) == 0) {
+        if (strcmp(widget->text, widget->text_cached) == 0 &&
+            widget->text_color == widget->text_color_cached) {
             return;
         }
     }
@@ -362,12 +367,16 @@ void fsemu_widget_update_text_image(fsemu_widget_t *widget)
         widget->text_cached = text;
         free_text = false;
     }
+    widget->text_color_cached = widget->text_color;
 
-    fsemu_font_t *font =
-        fsemu_fontcache_font("SairaCondensed-SemiBold.ttf", widget->font_size);
+    fsemu_font_t *font = fsemu_fontcache_font(
+        "Fonts/SairaCondensed-SemiBold.ttf", widget->font_size);
     fsemu_image_t *textimage =
         fsemu_font_render_text_to_image(font, text, widget->text_color);
-    printf("textimage size %dx%d for text %s\n", textimage->width, textimage->height, text);
+    printf("textimage size %dx%d for text %s\n",
+           textimage->width,
+           textimage->height,
+           text);
     if (widget->textimage) {
         fsemu_image_unref(widget->textimage);
     }

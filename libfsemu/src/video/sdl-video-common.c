@@ -2,6 +2,8 @@
 #include "config.h"
 #endif
 
+#ifdef FSUAE_LEGACY
+
 #define FSEMU_INTERNAL
 #include <fs/emu/video.h>
 #include <fs/emu/input.h>
@@ -67,9 +69,11 @@ int fs_emu_main_loop(void)
     int buffer = 0;
     while (true) {
         while ((buffer = fs_emu_buffer_wait(buffer, 1000)) == -1) {
+#ifdef FSUAE_LEGACY
             if (fse_input.input_handler()) {
                 return 0;
             }
+#endif
         }
         buffer += 1;
         // printf("render\n");
@@ -81,3 +85,5 @@ int fs_emu_main_loop(void)
         }
     }
 }
+
+#endif  // FSUAE_LEGACY

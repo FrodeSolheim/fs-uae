@@ -2,6 +2,8 @@
 #include "config.h"
 #endif
 
+#ifdef FSUAE_LEGACY
+
 #include "font.h"
 
 #include <fs/emu.h>
@@ -650,3 +652,5 @@ fs_emu_font *fs_emu_font_new_from_file(const char *name)
     prepare_font(font);
     return font;
 }
+
+#endif  // FSUAE_LEGACY

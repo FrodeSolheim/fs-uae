@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL
+#include "fsemu-internal.h"
 #include "fsemu-font.h"
 
 #include "fsemu-color.h"

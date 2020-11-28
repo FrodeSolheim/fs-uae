@@ -10,6 +10,8 @@
 extern "C" {
 #endif
 
+#ifdef FSUAE_LEGACY
+
 bool fse_drivers(void);
 
 static inline int fs_emu_get_vblank_count(void)
@@ -42,6 +44,8 @@ static inline int fs_emu_get_windowed_height(void)
     return fs_ml_get_windowed_height();
 }
 
+#endif
+
 //#define FS_EMU_VIDEO_FORMAT_RGB  0x1907 // GL_RGB
 //#define FS_EMU_VIDEO_FORMAT_RGBA 0x1908 // GL_RGBA
 //#define FS_EMU_VIDEO_FORMAT_BGRA 0x80e1 // GL_BGRA
@@ -55,6 +59,8 @@ static inline int fs_emu_get_windowed_height(void)
 int fs_emu_get_video_format(void);
 int fs_emu_get_texture_format(void);
 
+#ifdef FSUAE_LEGACY
+
 static inline int fs_emu_buffer_format(void)
 {
     return fs_emu_get_video_format();
@@ -64,6 +70,8 @@ static inline int fs_emu_video_texture_format(void)
 {
     return fs_emu_get_texture_format();
 }
+
+#endif
 
 #ifdef FSE_DRIVERS
 

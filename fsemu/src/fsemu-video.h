@@ -2,8 +2,10 @@
 #define FSEMU_VIDEO_H_
 
 #include "fsemu-common.h"
+#include "fsemu-config.h"
 #include "fsemu-gui.h"
 #include "fsemu-types.h"
+#include "fsemu-util.h"
 
 typedef struct {
     int layer;
@@ -19,6 +21,8 @@ typedef struct {
     // This is the frame number, automatically set to the frame counter when
     // posting a frame. The "client" does not have to set it.
     int number;
+    // No actual frame data, used in pause mode
+    bool dummy;
 } fsemu_video_frame_t;
 
 #define FSEMU_FRAME_FLAG_TURBO (1 << 0)
@@ -130,7 +134,8 @@ fsemu_video_frame_t *fsemu_video_get_frame(int timeout_us);
 
 static inline fsemu_video_frame_t *fsemu_video_alloc_frame(void)
 {
-    return (fsemu_video_frame_t *) malloc(sizeof(fsemu_video_frame_t));
+    return FSEMU_UTIL_MALLOC0(fsemu_video_frame_t);
+    // return (fsemu_video_frame_t *) malloc(sizeof(fsemu_video_frame_t));
 }
 static inline void fsemu_video_free_frame(fsemu_video_frame_t *frame)
 {
@@ -149,6 +154,16 @@ void fsemu_video_end_frame(void);
 // void fsemu_video_fix_right_edge(uint8_t *pixels, int vy, int vw, int vh, int
 // tw, int wh); void fsemu_video_fix_bottom_edge(uint8_t *pixels, int vw, int
 // vh, int tw, int wh);
+
+// Use this to manually specify that something has been rendered, so that the
+// display function will actually display.
+// void fsemu_video_set_did_render();
+void fsemu_video_force_display(void);
+
+bool fsemu_video_can_skip_rendering_this_frame(void);
+
+void fsemu_video_must_render_frame(void);
+void fsemu_video_must_render_frame_until(int64_t until_us);
 
 #endif
 

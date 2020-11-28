@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL
+#include "fsemu-internal.h"
 #include "fsemu-input.h"
 
 #include "fsemu-action.h"
@@ -10,10 +10,10 @@
 #include "fsemu-mouse.h"
 #include "fsemu-mutex.h"
 #include "fsemu-option.h"
-#include "fsemu-options.h"
 #include "fsemu-oskeyboard.h"
 #include "fsemu-osmenu.h"
 #include "fsemu-sdlinput.h"
+#include "fsemu-thread.h"
 
 #ifdef FSUAE
 #include <fs/ml.h>
@@ -25,7 +25,11 @@ typedef struct {
 
 static struct {
     uint16_t action_table[1024 * 1024];  // FIXME
+    // Queued input actions pending input to emulator
     GQueue *action_queue;
+    // Queued command actions pending input to emulator
+    GQueue *command_queue;
+    bool initialized;
     keyboard_t keyboard[FSEMU_KEY_NUM_KEYS * FSEMU_KEYBOARD_NUM_MODS];
     int num_ports;
     fsemu_inputport_t *ports[FSEMU_INPUT_MAX_PORTS];
@@ -36,12 +40,50 @@ static struct {
     fsemu_mutex_t *mutex;
 } fsemu_input;
 
-int fsemu_input_log_level = 0;
+int fsemu_input_log_level = 1;
+
+// ----------------------------------------------------------------------------
+// FIXME: Move
+
+static void fsemu_keyboard_add_system_device(void)
+{
+    fsemu_mouse_log(1, "Adding system keyboard device\n");
+    fsemu_inputdevice_t *device = fsemu_inputdevice_new();
+    fsemu_inputdevice_set_type(device, FSEMU_INPUTDEVICE_TYPE_KEYBOARD);
+    fsemu_inputdevice_set_name(device, "Keyboard");
+    int error;
+    if ((error = fsemu_input_add_device(device)) != 0) {
+        printf("input - device could not be registered - error %d\n", error);
+        fsemu_inputdevice_unref(device);
+        return;
+    }
+    // fsemu_mouse.system_mouse = device;
+}
+
+void fsemu_keyboard_add_devices(void)
+{
+    fsemu_keyboard_add_system_device();
+}
+
+static void fsemu_keyboard_init(void)
+{
+}
+
+// ----------------------------------------------------------------------------
 
 void fsemu_input_init(void)
 {
-    fsemu_return_if_already_initialized();
+    if (fsemu_input.initialized) {
+        return;
+    }
+    fsemu_input.initialized = true;
+
     fsemu_mouse_init();
+    fsemu_keyboard_init();
+
+    fsemu_keyboard_add_devices();
+    fsemu_mouse_add_devices();
+
     fsemu_sdlinput_init();
 
     fsemu_input_log("Init\n");
@@ -49,11 +91,12 @@ void fsemu_input_init(void)
 
     fsemu_option_read_int(FSEMU_OPTION_LOG_INPUT, &fsemu_input_log_level);
 
-#ifdef FSUAE
+#ifdef FSUAE_LEGACY
     fs_ml_input_init();
 #endif
 
     fsemu_input.action_queue = g_queue_new();
+    fsemu_input.command_queue = g_queue_new();
 }
 
 void fsemu_input_add_port(fsemu_inputport_t *port)
@@ -68,6 +111,21 @@ void fsemu_input_add_port(fsemu_inputport_t *port)
     printf("[FSEMU] Added input port[%d] %s\n",
            port->index,
            fsemu_inputport_name(port));
+}
+
+int fsemu_input_port_count(void)
+{
+    fsemu_thread_assert_main();
+
+    return fsemu_input.num_ports;
+}
+
+fsemu_inputport_t *fsemu_input_port_by_index(int index)
+{
+    fsemu_thread_assert_main();
+    fsemu_assert(index >= 0 && index < fsemu_input.num_ports);
+
+    return fsemu_input.ports[index];
 }
 
 static void fsemu_input_log_port_summary(void)
@@ -323,7 +381,9 @@ void fsemu_input_handle_keyboard(fsemu_key_t key, bool pressed)
     int mod = 0;
     int32_t state = pressed ? FSEMU_ACTION_STATE_MAX : 0;
 
-    fsemu_input_log("Handle keyboard scancode=%d pressed=%d\n", key, pressed);
+    // FIXME: Increase log level
+    // fsemu_input_log("Handle keyboard scancode=%d pressed=%d\n", key,
+    // pressed);
 
     if (key >= FSEMU_KEY_NUM_KEYS) {
         // FIXME: WARNING
@@ -345,7 +405,10 @@ void fsemu_input_handle_keyboard(fsemu_key_t key, bool pressed)
 
     int action_table_index = fsemu_input_action_table_index_from_key(key, mod);
     // FIXME: action_table
-    int action = fsemu_input.keyboard[action_table_index].action;
+    printf("keyboard input action_table_index %d\n", action_table_index);
+    // int action = fsemu_input.keyboard[action_table_index].action;
+
+    int action = fsemu_input.action_table[action_table_index];
     fsemu_input_process_action(action, state);
 }
 
@@ -411,27 +474,48 @@ void fsemu_input_process_action(uint16_t action, int16_t state)
     }
 #endif
 
+    // FIXME: If we get a command such as (toggle) pause or warp mode, we
+    // should consider doing some preprocessing here, updating the main thread
+    // state so we know if toggling it again from UI should enable/disable it
+    // (the current command might come from an input device)
+    // So basically "commands" such be processed in two steps.
+    // - Firstly in main (immediate)
+    // - Secondly in emu thread (frame start)
+
     printf(".... %04x %04x\n", action, state);
 
     fsemu_action_and_state_t action_state =
         fsemu_input_pack_action_state(action, state);
 
-    if (action & FSEMU_ACTION_EMU_FLAG) {
+    if (action & FSEMU_ACTION_COMMAND_FLAG) {
+        fsemu_action_process_command_in_main(action, state);
+
+        fsemu_mutex_lock(fsemu_input.mutex);
+        g_queue_push_tail(fsemu_input.command_queue,
+                          GUINT_TO_POINTER(action_state));
+        fsemu_mutex_unlock(fsemu_input.mutex);
+        printf("(command) pushed %04x %04x\n", action, state);
+    } else if (action & FSEMU_ACTION_NONEMU_FLAG) {
+        fsemu_action_process_non_emu(action, state);
+    } else {
         fsemu_mutex_lock(fsemu_input.mutex);
         g_queue_push_tail(fsemu_input.action_queue,
                           GUINT_TO_POINTER(action_state));
         fsemu_mutex_unlock(fsemu_input.mutex);
-        printf("input pushed %04x %04x\n", action, state);
-    } else {
-        fsemu_action_process_non_emu(action, state);
+        printf("(input) pushed %04x %04x\n", action, state);
     }
 }
 
-bool fsemu_input_next_action(uint16_t *action, int16_t *state)
+static bool fsemu_input_next_from_queue(GQueue *queue,
+                                        uint16_t *action,
+                                        int16_t *state,
+                                        bool command)
 {
+    fsemu_assert(fsemu_input.initialized);
+
     // FIXME: Double-locking?
     fsemu_mutex_lock(fsemu_input.mutex);
-    gpointer action_state_p = g_queue_pop_head(fsemu_input.action_queue);
+    gpointer action_state_p = g_queue_pop_head(queue);
     fsemu_mutex_unlock(fsemu_input.mutex);
     if (action_state_p == NULL) {
         *action = 0;
@@ -444,8 +528,24 @@ bool fsemu_input_next_action(uint16_t *action, int16_t *state)
     // *action = (action_state & 0xffff);
     // *state = (int16_t)((action_state & 0xffff0000) >> 16);
     fsemu_input_unpack_action_state(action_state, action, state);
-    printf("fsemu_input_next_action %x %x\n", *action, *state);
+    if (command) {
+        printf("fsemu_input_next_command %04x %04x\n", *action, *state);
+    } else {
+        printf("fsemu_input_next_action %04x %04x\n", *action, *state);
+    }
     return true;
+}
+
+bool fsemu_input_next_action(uint16_t *action, int16_t *state)
+{
+    return fsemu_input_next_from_queue(
+        fsemu_input.action_queue, action, state, false);
+}
+
+bool fsemu_input_next_command(uint16_t *action, int16_t *state)
+{
+    return fsemu_input_next_from_queue(
+        fsemu_input.command_queue, action, state, true);
 }
 
 void fsemu_input_add_action(fsemu_input_action_t *action)
@@ -465,6 +565,14 @@ void fsemu_input_add_actions(fsemu_input_action_t actions[])
     }
 }
 
+fsemu_inputdevice_t *fsemu_input_get_device(int index)
+{
+    fsemu_thread_assert_main();
+    fsemu_assert(index >= 0 && index < FSEMU_INPUT_MAX_DEVICES);
+
+    return fsemu_input.devices[index];
+}
+
 static fsemu_inputdevice_t *fsemu_input_find_available_device(bool mouse)
 {
     // FIXME: If device_index is going to be persistent when other devices
@@ -473,7 +581,7 @@ static fsemu_inputdevice_t *fsemu_input_find_available_device(bool mouse)
 
     // for (int i = 0; i < fsemu_input.num_devices; i++) {
     for (int i = 0; i < FSEMU_INPUT_MAX_DEVICES; i++) {
-        fsemu_inputdevice_t *device = fsemu_input.devices[i];
+        fsemu_inputdevice_t *device = fsemu_input_get_device(i);
         if (device == NULL) {
             continue;
         }
@@ -483,7 +591,26 @@ static fsemu_inputdevice_t *fsemu_input_find_available_device(bool mouse)
         if (!mouse && device->type == FSEMU_INPUTDEVICE_TYPE_MOUSE) {
             continue;
         }
+        if (device->type == FSEMU_INPUTDEVICE_TYPE_KEYBOARD) {
+            // Ignore keyboard the first time through
+            // FIXME: Might want to only ignore the system keyboard device;
+            // devices such as X-Arcade "controllers" should perhaps be
+            // prioritized here.
+            continue;
+        }
         if (device->port_index == -1) {
+            return device;
+        }
+    }
+
+    if (mouse) {
+        return NULL;
+    }
+
+    // This time also allow for keyboard devices.
+    for (int i = 0; i < FSEMU_INPUT_MAX_DEVICES; i++) {
+        fsemu_inputdevice_t *device = fsemu_input_get_device(i);
+        if (device && device->port_index == -1) {
             return device;
         }
     }
@@ -492,10 +619,11 @@ static fsemu_inputdevice_t *fsemu_input_find_available_device(bool mouse)
 
 void fsemu_input_autofill_devices(void)
 {
-    printf("fsemu_input_autofill_devices\n");
+    fsemu_input_log("Autofill devices\n");
     for (int i = 0; i < fsemu_input.num_ports; i++) {
         fsemu_inputport_t *port = fsemu_input.ports[i];
-        printf("Input port %d: (%s)\n", i, fsemu_inputport_name(port));
+        fsemu_input_log(
+            "Input port %d: (%s)\n", i, fsemu_inputport_name(port));
         if (port->device_index >= 0) {
             // Already has device inserted
             continue;
@@ -511,9 +639,9 @@ void fsemu_input_autofill_devices(void)
 
         fsemu_inputdevice_t *device = fsemu_input_find_available_device(mouse);
         if (device) {
-            printf("Found input device %d: (%s)\n",
-                   device->index,
-                   fsemu_inputdevice_name(device));
+            fsemu_input_log("Found input device %d: (%s)\n",
+                            device->index,
+                            fsemu_inputdevice_name(device));
             port->device_index = device->index;
             device->port_index = port->index;
         } else {
@@ -524,6 +652,18 @@ void fsemu_input_autofill_devices(void)
 void fsemu_input_reconfigure(void)
 {
     printf("fsemu_input_reconfigure\n");
+
+    // FIXME: Do we need to clear the action table? Maybe...
+    memset(fsemu_input.action_table, 0, sizeof(fsemu_input.action_table));
+
+    printf("Add keyboard actions first\n");
+    printf("FIXME: Include mods as well (check!)\n");
+    // for (int i = 0; i > FSEMU_KEY_NUM_KEYS * FSEMU_KEYBOARD_NUM_MODS; i++) {
+    for (int i = 0; i < FSEMU_KEY_NUM_KEYS; i++) {
+        int action = fsemu_input.keyboard[i].action;
+        fsemu_input.action_table[i] = action;
+    }
+
     for (int i = 0; i < fsemu_input.num_ports; i++) {
         fsemu_inputport_t *port = fsemu_input.ports[i];
         printf("Input port %d: (%s)\n", i, fsemu_inputport_name(port));
@@ -555,7 +695,9 @@ void fsemu_input_reconfigure(void)
                 int action_table_index =
                     fsemu_input_action_table_index_from_input(device->index,
                                                               j);
-                printf(" - action table index: %d\n", action_table_index);
+                printf("[INPUT] - action table index: %d = %04x\n",
+                       action_table_index,
+                       action);
                 fsemu_input.action_table[action_table_index] = action;
             }
         }

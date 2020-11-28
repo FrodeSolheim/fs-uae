@@ -1,3 +1,6 @@
+#define FSUAE_INTERNAL
+#include "fsuae-hardware.h"
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -9,7 +12,6 @@
 #include <uae/uae.h>
 
 #include "fsuae-config.h"
-#include "fsuae-hardware.h"
 #include "fsuae-model.h"
 #include "fsuae-options.h"
 

@@ -2,6 +2,8 @@
 #include "config.h"
 #endif
 
+#ifdef FSUAE_LEGACY
+
 #include <fs/emu.h>
 #include <fs/emu/render.h>
 #include <fs/emu/video.h>
@@ -647,3 +649,5 @@ void fs_emu_render_texture_with_size(fs_emu_texture *texture, int x, int y,
 #endif
     CHECK_GL_ERROR();
 }
+
+#endif  // FSUAE_LEGACY

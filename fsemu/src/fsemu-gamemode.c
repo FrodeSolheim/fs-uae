@@ -1,22 +1,27 @@
-#define FSEMU_INTERNAL
+#include "fsemu-internal.h"
 #include "fsemu-gamemode.h"
 
 #include "fsemu-config.h"
+#include "fsemu-glib.h"
 #include "fsemu-log.h"
+#include "fsemu-option.h"
+#include "fsemu-options.h"
 
 #ifdef FSEMU_LINUX
-#include "../gamemode/lib/gamemode_client.h"
-#endif
 
-#include "fsemu-glib.h"
+#include "../gamemode/lib/gamemode_client.h"
 
 static bool gamemode_enabled;
 static bool gamemode_suspended;
 
+#endif
+
 void fsemu_gamemode_init(void)
 {
 #ifdef FSEMU_LINUX
-    if (fsemu_config_boolean("game_mode") != 0) {
+    if (fsemu_option_disabled(FSEMU_OPTION_GAME_MODE)) {
+        fsemu_log("GameMode: Explicitly disabled via option\n");
+    } else {
         if (gamemode_request_start() < 0) {
             fsemu_log("GameMode: Request failed: %s\n",
                       gamemode_error_string());
@@ -63,14 +68,15 @@ void fsemu_gamemode_check_linux_cpu_governor()
     }
     g_strstrip(governor);
     fsemu_log("CPU scaling governor: '%s'\n", governor);
-    if (fsemu_config_boolean("governor_warning") == 0) {
-        return;
-    }
     if (strcmp(governor, "performance") != 0) {
-        fsemu_warning(_("CPU scaling governor is '%s', not '%s'"),
-                      governor,
-                      "performance");
-        fsemu_warning(_("Emulation frame rate may suffer"));
+        if (fsemu_option_disabled(FSEMU_OPTION_GOVERNOR_WARNING)) {
+            fsemu_log("GameMode: Governor check/warning disabled\n");
+        } else {
+            fsemu_warning(_("CPU scaling governor is '%s', not '%s'"),
+                        governor,
+                        "performance");
+            fsemu_warning(_("Emulation frame rate may suffer"));
+        }
     }
     g_free(governor);
 #endif

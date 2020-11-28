@@ -4,7 +4,7 @@
 #include "fsemu-config.h"
 
 #ifdef FSEMU_SDL
-#include <SDL2/SDL.h>
+#include "fsemu-sdl.h"
 #endif
 
 #include <stdbool.h>

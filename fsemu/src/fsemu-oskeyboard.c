@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL
+#include "fsemu-internal.h"
 #include "fsemu-oskeyboard.h"
 
 #include "fsemu-action.h"
@@ -25,11 +25,14 @@
 // - Alternative: Let back button be mapped to the backspace equivalent on
 //   virtual keyboard, and close the keyboard with the open/close button
 //   instead of the back button.
-// - DONE: IMPORTANT: RELEASE THE SAME KEY AS THE OWN YOU HELD DOWN
+// - DONE: IMPORTANT: RELEASE THE SAME KEY AS THE ONE YOU HELD DOWN
 
 // ----------------------------------------------------------------------------
 
 // #define FSEMU_OSKEYBOARD_START_OPEN
+
+#define KEY_WIDTH 56
+#define KEY_HEIGHT 56
 
 // ----------------------------------------------------------------------------
 
@@ -244,9 +247,9 @@ static void fsemu_oskeyboard_update_keyboard_key(fsemu_oskeyboard_t *keyboard,
                                                  int x,
                                                  int y)
 {
-    int w = key->width * 64 / 100;
-    // int h = key->row->height * 64 / 100;
-    int h = key->height * 64 / 100;
+    int w = key->width * KEY_WIDTH / 100;
+    // int h = key->row->height * KEY_HEIGHT / 100;
+    int h = key->height * KEY_HEIGHT / 100;
     int p = 5;
 
     fsemu_widget_t *widget;
@@ -306,19 +309,19 @@ static void fsemu_oskeyboard_update_keyboard_keys(fsemu_oskeyboard_t *keyboard)
     y = 60;
     for (fsemu_oskeyboard_row_t *row = keyboard->first_row; row;
          row = row->next) {
-        y += row->bottom_margin * 64 / 100;
+        y += row->bottom_margin * KEY_HEIGHT / 100;
         int x = 0;
         // FIXME: Temp
-        // x = 240 + (1440 - keyboard->size.w * 64 / 100) / 2;
-        x = (1440 - keyboard->size.w * 64 / 100) / 2;
+        // x = 240 + (1440 - keyboard->size.w * KEY_WIDTH / 100) / 2;
+        x = (1440 - keyboard->size.w * KEY_WIDTH / 100) / 2;
         for (fsemu_oskeyboard_key_t *key = row->first_key; key;
              key = key->next) {
-            x += key->left_margin * 64 / 100;
+            x += key->left_margin * KEY_WIDTH / 100;
 
             fsemu_oskeyboard_update_keyboard_key(keyboard, key, x, y);
-            x += key->width * 64 / 100;
+            x += key->width * KEY_WIDTH / 100;
         }
-        y += row->height * 64 / 100;
+        y += row->height * KEY_HEIGHT / 100;
     }
 }
 
@@ -576,7 +579,8 @@ void fsemu_oskeyboard_update(void)
         fsemu_widget_set_top_2(widget, 0, FSEMU_WIDGET_PARENT_TOP);
         fsemu_widget_set_right_2(widget, -240, FSEMU_WIDGET_PARENT_RIGHT);
         fsemu_widget_set_bottom_2(widget, 0, FSEMU_WIDGET_PARENT_BOTTOM);
-        fsemu_widget_set_left_2(widget, 240, FSEMU_WIDGET_PARENT_LEFT);
+        // fsemu_widget_set_left_2(widget, 240, FSEMU_WIDGET_PARENT_LEFT);
+        fsemu_widget_set_left_2(widget, 0, FSEMU_WIDGET_PARENT_LEFT);
 #else
         fsemu_widget_set_top_2(widget, -540, FSEMU_WIDGET_SCREEN_BOTTOM);  //
         fsemu_widget_set_right_2(widget, 1440 + 240, FSEMU_WIDGET_SCREEN_LEFT);

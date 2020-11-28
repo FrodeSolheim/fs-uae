@@ -1,5 +1,6 @@
 Version 3.1.0dev:
 
+* fs-uae-device-helper now goes into libexec, not bin.
 * Add Midi Support to FS-UAE using the PortMidi library [cnvogelg].
 * Support for F13-F19 keys on Apple Extended keyboard [immutable].
 * Better clipboard sharing integration.
@@ -1430,10 +1431,10 @@ Version 2.1.4:
 * Updated translations: fr [Foul], sr [Milanchez].
 * Using directory prefix $BASE/ caused one character to be cut off.
 * Fixed Launcher-created joystick config when using 2+ of the same type.
-* Support environment variable FS_UAE_BASE_DIR.
+* Support environment variable fsuae_path_base_dir.
 * (Launcher) Fixed problem starting joystick configurator on Mac.
 * (Launcher) GUI setting for swap left/right ctrl keys.
-* (Launcher) Support environment variable FS_UAE_BASE_DIR.
+* (Launcher) Support environment variable fsuae_path_base_dir.
 * (Launcher) Fix for non-ASCII characters in joystick device names.
 * (Launcher) Can set option __netplay_state_dir_name with /set to force a
   specific state dir for net play, for persistent states.

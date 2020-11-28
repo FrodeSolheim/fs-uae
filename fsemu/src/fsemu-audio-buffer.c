@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL
+#include "fsemu-internal.h"
 #include "fsemu-audio-buffer.h"
 
 #include "fsemu-audio.h"
@@ -39,8 +39,8 @@ static struct {
 
 void fsemu_audio_buffer_init(void)
 {
-    int channels = 2;
 #ifdef FSEMU_SAMPLERATE
+    int channels = 2;
     int err;
     fsemu_audiobuffer_extra.src_state =
         src_new(SRC_SINC_BEST_QUALITY, channels, &err);
@@ -298,11 +298,14 @@ int fsemu_audio_buffer_calculate_target(void)
     // time to generate frame into account.
     // return 10000;
 
-    // Using one frame
+    // Using one video frame duration for audio latency
     int target_latency_us = 1000000 / fsemu_frame_rate_hz();
 
-    // Using one frame + 20% for audio buffer target
-    // int target_latency_us = 1000000 / fsemu_frame_rate_hz() * 1.2;
+#if 0
+    // Using one frame + 33% for audio buffer target
+    target_latency_us *= 1.33;
+#endif
+
     return target_latency_us;
 }
 

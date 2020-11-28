@@ -2,6 +2,7 @@
 #define FSEMU_ALL_H_
 
 #include "fsemu-action.h"
+#include "fsemu-actions.h"
 #include "fsemu-audio-alsa.h"
 #include "fsemu-audio-buffer.h"
 #include "fsemu-audio.h"
@@ -38,6 +39,7 @@
 #include "fsemu-log.h"
 #include "fsemu-mainmenu.h"
 #include "fsemu-manymouse.h"
+#include "fsemu-media.h"
 #include "fsemu-menu.h"
 #include "fsemu-module.h"
 #include "fsemu-monitor.h"
@@ -47,6 +49,7 @@
 #include "fsemu-options.h"
 #include "fsemu-oskeyboard.h"
 #include "fsemu-osmenu.h"
+#include "fsemu-path.h"
 #include "fsemu-perfgui.h"
 #include "fsemu-quit.h"
 #include "fsemu-refable.h"

@@ -1,3 +1,6 @@
+#define FSUAE_INTERNAL
+#include "fsuae-keyboard.h"
+
 #include "fsuae-action.h"
 #include "fsuae.h"
 
@@ -229,6 +232,8 @@ void fsuae_keyboard_init(void)
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
+
+#ifdef FSUAE_LEGACY
 
 #include <fs/emu.h>
 #include <fs/emu/actions.h>
@@ -464,3 +469,5 @@ void fs_uae_map_keyboard(void)
 {
     fs_emu_set_keyboard_translation(g_default_keymap);
 }
+
+#endif  // FSUAE_LEGACY

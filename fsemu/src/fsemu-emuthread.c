@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL
+#include "fsemu-internal.h"
 #include "fsemu-emuthread.h"
 
 #include "fsemu-mutex.h"
@@ -40,7 +40,23 @@ void fsemu_emuthread_unlock(void)
     fsemu_mutex_unlock(fsemu_emuthread.ui_emu_mutex);
 }
 
+void fsemu_emuthread_set_from_current(void)
+{
+    fsemu_thread_set_emu();
+}
+
 bool fsemu_emuthread_paused(void)
 {
+    fsemu_thread_assert_emu();
     return fsemu_emuthread.paused;
+}
+
+void fsemu_emuthread_check_load_state(int *slot)
+{
+    fsemu_thread_assert_emu();
+}
+
+void fsemu_emuthread_check_save_state(int *slot)
+{
+    fsemu_thread_assert_emu();
 }

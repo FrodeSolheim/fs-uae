@@ -17,6 +17,13 @@ void fsemu_mainmenu_update(void);
 
 fsemu_menu_t *fsemu_mainmenu_get_menu(void);
 
+// typedef void (*fsemu_mainmenu_reset_function_t)(void);
+
+// void fsemu_mainmenu_set_soft_reset_function(
+//     fsemu_mainmenu_reset_function_t function);
+// void fsemu_mainmenu_set_hard_reset_function(
+//     fsemu_mainmenu_reset_function_t function);
+
 #if 0
 bool fsemu_osmenu_open(void);
 

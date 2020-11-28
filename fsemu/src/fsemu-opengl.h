@@ -12,6 +12,8 @@ extern "C" {
 
 void fsemu_opengl_init(void);
 
+void fsemu_opengl_forget_state(void);
+
 void fsemu_opengl_blend(bool blend);
 void fsemu_opengl_color3f(float r, float g, float b);
 void fsemu_opengl_color4f(float r, float g, float b, float a);
@@ -23,6 +25,7 @@ void fsemu_opengl_assume_texture_2d(bool texture_2d);
 
 void fsemu_opengl_forget_blend(void);
 void fsemu_opengl_forget_texture_2d(void);
+void fsemu_opengl_forget_unpack_row_length(void);
 
 void fsemu_opengl_unpack_row_length(int row_length);
 

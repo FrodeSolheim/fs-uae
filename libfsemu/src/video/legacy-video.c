@@ -2,6 +2,8 @@
 #include "config.h"
 #endif
 
+#ifdef FSUAE_LEGACY
+
 #define FSEMU_INTERNAL
 #include <fs/emu/video.h>
 #include <fs/emu/buffer.h>
@@ -49,3 +51,5 @@ void fse_init_legacy_video(void)
 
     fs_ml_video_init();
 }
+
+#endif  // FSUAE_LEGACY

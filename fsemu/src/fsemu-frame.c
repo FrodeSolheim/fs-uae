@@ -1,10 +1,12 @@
-#define FSEMU_INTERNAL
+#include "fsemu-internal.h"
 #include "fsemu-frame.h"
 
+#include "fsemu-action.h"
 #include "fsemu-audio.h"
-#include "fsemu-control.h"
+// #include "fsemu-control.h"
+#include "fsemu-input.h"
 #include "fsemu-option.h"
-#include "fsemu-options.h"
+#include "fsemu-thread.h"
 #include "fsemu-time.h"
 #include "fsemu-util.h"
 #include "fsemu-video.h"
@@ -18,10 +20,19 @@ static struct {
     int render_duration;
     // Helper variable to store time for duration registration
     int64_t timer;
+
+    // Emulation is paused, as seen from the emulation thread. Main thread
+    // has a different pause state variable which may be slightly out of sync.
+    bool paused;
+    bool warping;
+    int load_state;
+    int save_state;
 } fsemu_frame;
 
 double fsemu_frame_hz = 0;
-bool fsemu_frame_warp = 0;
+
+// FIXME: Main thread thing? remove?
+// bool fsemu_frame_warp = 0;
 
 int64_t fsemu_frame_epoch_at = 0;
 int64_t fsemu_frame_origin_at = 0;
@@ -44,7 +55,11 @@ void fsemu_frame_init(void)
     fsemu_init_once(&fsemu_frame.initialized);
     fsemu_frame_log("Init\n");
 
-    fsemu_option_read_int(FSEMU_OPTION_LOG_FRAME, &fsemu_frame_log_level);
+    fsemu_frame_log_level = fsemu_option_int_default(FSEMU_OPTION_LOG_FRAME,
+                                                     fsemu_frame_log_level);
+
+    fsemu_frame.load_state = -1;
+    fsemu_frame.save_state = -1;
 
     // fsemu_frame.emulation_duration = 10000;
     // fsemu_frame.render_duration = 5000;
@@ -52,6 +67,42 @@ void fsemu_frame_init(void)
     // FIXME: When using a shorter emulation duration, Mednafen needs
     // a larger audio buffer to avoid underruns. Check why. Probably
     // something to do with how/when buffer fill is calculated.
+}
+
+bool fsemu_frame_check_load_state(int *slot)
+{
+    if (fsemu_frame.load_state != -1) {
+        *slot = fsemu_frame.load_state;
+        fsemu_frame.load_state = -1;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+bool fsemu_frame_check_save_state(int *slot)
+{
+    if (fsemu_frame.save_state != -1) {
+        *slot = fsemu_frame.save_state;
+        fsemu_frame.save_state = -1;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+bool fsemu_frame_paused(void)
+{
+    fsemu_thread_assert_emu();
+
+    return fsemu_frame.paused;
+}
+
+bool fsemu_frame_warping(void)
+{
+    fsemu_thread_assert_emu();
+
+    return fsemu_frame.warping;
 }
 
 int64_t fsemu_frame_epoch(void)
@@ -66,6 +117,7 @@ void fsemu_frame_reset_epoch(void)
 
 void fsemu_frame_end(void)
 {
+    fsemu_thread_assert_emu();
     fsemu_frame_log_epoch("Frame end\n");
     fsemu_assert(fsemu_frame.initialized);
 
@@ -96,62 +148,85 @@ void fsemu_frame_end(void)
 
 void fsemu_frame_reset_timer(int64_t t)
 {
+    fsemu_thread_assert_emu();
+
     int64_t now = t ? t : fsemu_time_us();
     // Register diff time to unknown duration? Probably not necessary, since
     // this will be caught and registered as "other".
     fsemu_frame.timer = now;
 }
 
+// FIXME: Maybe make inline function in header for performance
 void fsemu_frame_add_overshoot_time(int64_t t)
 {
+    fsemu_thread_assert_emu();
+
     int64_t now = t ? t : fsemu_time_us();
     fsemu_frame_overshoot_duration += now - fsemu_frame.timer;
     fsemu_frame.timer = now;
 }
 
+// FIXME: Maybe make inline function in header for performance
 void fsemu_frame_add_framewait_time(int64_t t)
 {
+    fsemu_thread_assert_emu();
+
     int64_t now = t ? t : fsemu_time_us();
     fsemu_frame_wait_duration += now - fsemu_frame.timer;
     fsemu_frame.timer = now;
 }
 
+// FIXME: Maybe make inline function in header for performance
 void fsemu_frame_add_gui_time(int64_t t)
 {
+    fsemu_thread_assert_emu();
+
     int64_t now = t ? t : fsemu_time_us();
     fsemu_frame_gui_duration += now - fsemu_frame.timer;
     fsemu_frame.timer = now;
 }
 
+// FIXME: Maybe make inline function in header for performance
 void fsemu_frame_add_emulation_time(int64_t t)
 {
+    fsemu_thread_assert_emu();
+
     int64_t now = t ? t : fsemu_time_us();
     fsemu_frame_emu_duration += now - fsemu_frame.timer;
     fsemu_frame.timer = now;
 }
 
+// FIXME: Maybe make inline function in header for performance
 void fsemu_frame_add_render_time(int64_t t)
 {
+    fsemu_thread_assert_emu();
+
     int64_t now = t ? t : fsemu_time_us();
     fsemu_frame_render_duration += now - fsemu_frame.timer;
     fsemu_frame.timer = now;
 }
 
+// FIXME: Maybe make inline function in header for performance
 void fsemu_frame_add_sleep_time(int64_t t)
 {
+    fsemu_thread_assert_emu();
+
     int64_t now = t ? t : fsemu_time_us();
     fsemu_frame_sleep_duration += now - fsemu_frame.timer;
     fsemu_frame.timer = now;
 }
 
+// FIXME: Maybe make inline function in header for performance
 void fsemu_frame_add_extra_time(int64_t t)
 {
+    fsemu_thread_assert_emu();
+
     int64_t now = t ? t : fsemu_time_us();
     fsemu_frame_extra_duration += now - fsemu_frame.timer;
     fsemu_frame.timer = now;
 }
 
-/** Affects when the frame starts emulating. */
+// Affects when the frame starts emulating.
 void fsemu_frame_set_emulation_duration_us(int emulation_duration_us)
 {
     fsemu_frame_log("Emulation duration set to %d us\n",
@@ -218,7 +293,7 @@ static void fsemu_frame_update_timing_timer_based(double hz)
         fsemu_frame_begin_at = now;
     }
 
-    if (fsemu_control_warp()) {
+    if (fsemu_frame_warping() && !fsemu_frame_paused()) {
         // Without this, we will get too "far behind" on time.
         fsemu_frame_origin_at = now;
         fsemu_frame_begin_at = now;
@@ -234,6 +309,8 @@ static void fsemu_frame_update_timing_vsync_based(double hz)
 
 void fsemu_frame_update_timing(double hz, bool turbo)
 {
+    fsemu_thread_assert_emu();
+
     static double last_hz;
     if (hz != last_hz) {
         fsemu_log("[FSEMU] Emulation frame rate %f Hz\n", hz);
@@ -241,7 +318,7 @@ void fsemu_frame_update_timing(double hz, bool turbo)
     }
 
     fsemu_frame_hz = hz;
-    fsemu_frame_warp = fsemu_control_warp();
+    // fsemu_frame_warp = fsemu_control_warp();
 
     if (fsemu_video_vsync()) {
         fsemu_frame_update_timing_vsync_based(hz);
@@ -383,9 +460,91 @@ void fsemu_frame_update_timing(double hz, bool turbo)
 #endif
 }
 
-void fsemu_frame_start(double hz)
+static void fsemu_frame_start_handle_command(fsemu_action_t action,
+                                             fsemu_action_state_t state)
+{
+    switch (action) {
+        case FSEMU_ACTION_PAUSE_DISABLE:
+            if (state) {
+                fsemu_frame_log("FSEMU_ACTION_PAUSE_DISABLE\n");
+                printf("FSEMU_ACTION_PAUSE_DISABLE\n");
+                fsemu_frame.paused = false;
+            }
+            break;
+
+        case FSEMU_ACTION_PAUSE_ENABLE:
+            if (state) {
+                fsemu_frame_log("FSEMU_ACTION_PAUSE_ENABLE\n");
+                printf("FSEMU_ACTION_PAUSE_ENABLE\n");
+                fsemu_frame.paused = true;
+            }
+            break;
+
+        case FSEMU_ACTION_WARP_DISABLE:
+            if (state) {
+                fsemu_frame_log("FSEMU_ACTION_WARP_DISABLE\n");
+                printf("FSEMU_ACTION_WARP_DISABLE\n");
+                fsemu_frame.warping = false;
+            }
+            break;
+
+        case FSEMU_ACTION_WARP_ENABLE:
+            if (state) {
+                fsemu_frame_log("FSEMU_ACTION_WARP_ENABLE\n");
+                printf("FSEMU_ACTION_WARP_ENABLE\n");
+                fsemu_frame.warping = true;
+            }
+            break;
+
+        case FSEMU_ACTION_LOADSTATE0:
+        case FSEMU_ACTION_LOADSTATE1:
+        case FSEMU_ACTION_LOADSTATE2:
+        case FSEMU_ACTION_LOADSTATE3:
+        case FSEMU_ACTION_LOADSTATE4:
+        case FSEMU_ACTION_LOADSTATE5:
+        case FSEMU_ACTION_LOADSTATE6:
+        case FSEMU_ACTION_LOADSTATE7:
+        case FSEMU_ACTION_LOADSTATE8:
+        case FSEMU_ACTION_LOADSTATE9:
+            if (state) {
+                fsemu_frame.load_state = action - FSEMU_ACTION_LOADSTATE0;
+            }
+            break;
+
+        case FSEMU_ACTION_SAVESTATE0:
+        case FSEMU_ACTION_SAVESTATE1:
+        case FSEMU_ACTION_SAVESTATE2:
+        case FSEMU_ACTION_SAVESTATE3:
+        case FSEMU_ACTION_SAVESTATE4:
+        case FSEMU_ACTION_SAVESTATE5:
+        case FSEMU_ACTION_SAVESTATE6:
+        case FSEMU_ACTION_SAVESTATE7:
+        case FSEMU_ACTION_SAVESTATE8:
+        case FSEMU_ACTION_SAVESTATE9:
+            if (state) {
+                fsemu_frame.save_state = action - FSEMU_ACTION_SAVESTATE0;
+            }
+            break;
+    }
+}
+
+static void fsemu_frame_start_handle_commands(void)
+{
+    fsemu_action_t action;
+    fsemu_action_state_t state;
+    while (fsemu_input_next_command(&action, &state)) {
+        printf(" ----- fsemu frame command %04x %04x\n", action, state);
+        fsemu_frame_start_handle_command(action, state);
+    }
+}
+
+static void fsemu_frame_start_2(double hz)
 {
     fsemu_frame.rate_hz = hz;
+
+    // FIXME: update timing depends on warp mode, so handle commands first?
+    fsemu_frame_start_handle_commands();
+
     fsemu_frame_update_timing(hz, false);
     // We have now a new value for the (ideal) origin time for the new frame.
     // We use this as basis for duration logging during the coming fram, and
@@ -394,6 +553,36 @@ void fsemu_frame_start(double hz)
     fsemu_frame_reset_timer(fsemu_frame_origin_at);
     fsemu_frame_add_overshoot_time(0);
     // fsemu_frame_reset_epoch() FIXME: Maybe reset epoch to same time here?
+}
+
+void fsemu_frame_start(double hz)
+{
+    fsemu_thread_assert_emu();
+
+    fsemu_frame_start_2(hz);
+
+    if (fsemu_frame_paused()) {
+        do {
+            // FIXME: Read and discard input events... ? Probably...
+            // But consider how frame counting and events are handled for
+            // netplay.
+            // FIXME: NETPLAY
+
+            // FIXME: AUDIO: Pause/resume audio as needed here
+
+            fsemu_video_frame_t *frame = fsemu_video_alloc_frame();
+            frame->dummy = true;
+            fsemu_video_post_frame(frame);
+            // fsemu_video_free_frame(frame);
+
+            fsemu_time_wait_until_us(fsemu_frame_end_at);
+
+            fsemu_frame_end();
+
+            fsemu_frame_start_2(hz);
+        } while (fsemu_frame_paused());
+        printf("RESUME\n");
+    }
 }
 
 double fsemu_frame_rate_hz(void)

@@ -3,7 +3,8 @@
 
 #include <stdint.h>
 
-#include "fsemu-common.h"
+#include "fsemu-config.h"
+#include "fsemu-time.h"
 
 // FIXME: Check / define order of
 // - fsemu_frame_end
@@ -17,6 +18,12 @@ extern "C" {
 
 int64_t fsemu_frame_epoch(void);
 void fsemu_frame_reset_epoch(void);
+
+bool fsemu_frame_paused(void);
+bool fsemu_frame_warping(void);
+
+bool fsemu_frame_check_load_state(int *slot);
+bool fsemu_frame_check_save_state(int *slot);
 
 // Affects when the frame starts emulating.
 // FIXME: In use?
@@ -60,7 +67,7 @@ void fsemu_frame_add_sleep_time(int64_t t);
 void fsemu_frame_add_extra_time(int64_t t);
 
 extern double fsemu_frame_hz;
-extern bool fsemu_frame_warp;
+// extern bool fsemu_frame_warp;
 
 extern int64_t fsemu_frame_epoch_at;
 extern int64_t fsemu_frame_origin_at;

@@ -1,3 +1,8 @@
+#define FSUAE_INTERNAL
+#include "fsuae-menu.h"
+
+#ifdef FSUAE_LEGACY
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -13,6 +18,7 @@
 #include "fs-uae.h"
 #include "fsuae-config.h"
 #include "fsuae-options.h"
+#include "fsuae-path.h"
 
 #define NUM_SAVE_SLOTS 9
 /// TRANSLATORS: This is a menu entry and must not be too long: If you struggle
@@ -458,8 +464,8 @@ static void insert_cdrom(int drive_index, int disk_index)
     if (path == NULL) {
         fs_emu_log("no CD at this index in CD-ROM list\n");
     }
-    path = fs_uae_expand_path_and_free(path);
-    path = fs_uae_resolve_path_and_free(path, FS_UAE_CD_PATHS);
+    path = fsuae_path_expand_and_free(path);
+    path = fsuae_path_resolve_and_free(path, FS_UAE_CD_PATHS);
     amiga_cdrom_set_file(drive_index, path);
     free(path);
 }
@@ -1165,3 +1171,5 @@ void fs_uae_configure_menu()
 
     fs_emu_menu_set_current(menu);
 }
+
+#endif  // FSUAE_LEGACY

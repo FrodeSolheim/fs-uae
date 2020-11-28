@@ -28,6 +28,8 @@
 extern "C" {
 #endif
 
+void fsemu_keyboard_add_devices(void);
+
 #define FSEMU_KEYBOARD_MOD_MOD 1
 #define FSEMU_KEYBOARD_MOD_SHIFT 2
 #define FSEMU_KEYBOARD_NUM_MODS 3

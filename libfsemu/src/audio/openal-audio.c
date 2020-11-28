@@ -2,6 +2,8 @@
 #include "config.h"
 #endif
 
+#ifdef FSUAE_LEGACY
+
 #if 1 // def FSE_DRIVERS
 
 #ifdef WITH_OPENAL
@@ -779,3 +781,5 @@ void fs_emu_audio_render_debug_info(uint32_t *texture)
 #endif /* WITH_OPENAL */
 
 #endif /* FSE_DRIVERS */
+
+#endif  // FSUAE_LEGACY

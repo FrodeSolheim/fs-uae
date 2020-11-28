@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL
+#include "fsemu-internal.h"
 #include "fsemu-helper.h"
 
 #include "fsemu-background.h"
@@ -7,6 +7,8 @@
 #include "fsemu-frame.h"
 #include "fsemu-gamemode.h"
 #include "fsemu-hud.h"
+#include "fsemu-input.h"
+#include "fsemu-option.h"
 #include "fsemu-oskeyboard.h"
 #include "fsemu-osmenu.h"
 #include "fsemu-perfgui.h"
@@ -14,6 +16,7 @@
 #include "fsemu-sdlwindow.h"
 #include "fsemu-startupinfo.h"
 #include "fsemu-theme.h"
+#include "fsemu-thread.h"
 #include "fsemu-time.h"
 #include "fsemu-titlebar.h"
 #include "fsemu-video.h"
@@ -31,11 +34,26 @@ void fsemu_helper_init_emulator(const char *emulator_name,
 {
     fsemu_log("[HELPR] Init emulator vsync=%d\n", vsync);
 
+    // This call will also register the main thread.
+    fsemu_thread_init();
+    // Register main thread as video thread also.
+    fsemu_thread_set_video();
+
+    fsemu_option_init();
+
     fsemu_gamemode_init();
     // FIXME: Check (on Linux) if CPU governor is now set to performance.
 
     fsemu_set_emulator_name(emulator_name);
-    fsemu_window_set_title(emulator_name);
+    const char *env_title = fsemu_read_env_option("WINDOW_TITLE");
+    // printf("%s\n", env_title);
+    // exit(1);
+    if (env_title && env_title[0]) {
+        fsemu_window_set_title(env_title);
+    } else {
+        fsemu_window_set_title(emulator_name);
+    }
+
     if (external_events) {
         fsemu_sdlwindow_set_no_event_polling(true);
     }
@@ -56,6 +74,7 @@ void fsemu_helper_init_emulator(const char *emulator_name,
     fsemu_video_init();
     fsemu_fade_init();
     fsemu_titlebar_init();
+    fsemu_input_init();
 
     fsemu_helper_startup_loop();
 
@@ -163,7 +182,9 @@ void fsemu_helper_startup_loop(void)
         fsemu_gui_free_snapshot(fsemu_helper.gui);
         // }
         // fsemu_video_render();
-        fsemu_video_display();
+        // fsemu_video_set_did_render();
+        // fsemu_video_display();
+        fsemu_video_force_display();
 
         fsemu_helper_startup_update();
         // fsemu_helper.gui = fsemu_gui_snapshot();

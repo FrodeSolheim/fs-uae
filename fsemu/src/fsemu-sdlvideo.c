@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL
+#include "fsemu-internal.h"
 #include "fsemu-sdlvideo.h"
 
 #ifdef FSEMU_SDL
@@ -75,6 +75,12 @@ void fsemu_sdlvideo_init(void)
 
 static void fsemu_sdlvideo_handle_frame(fsemu_video_frame_t *frame)
 {
+    if (frame->dummy) {
+        fsemu_video_set_ready(true);
+        return;
+    }
+    fsemu_video_must_render_frame();
+
     fsemu_video_log(" ---------------- draw got frame! (%dx%d) partial? %d\n",
                     frame->width,
                     frame->height,
@@ -230,6 +236,12 @@ void fsemu_sdlvideo_render(void)
 
 void fsemu_sdlvideo_display(void)
 {
+#if 0
+    if (fsemu_video_can_skip_rendering_this_frame()) {
+        return;
+    }
+#endif
+
     fsemu_video_log("--- display --- [draw]\n");
     // SDL_Window *window = fsemu_sdlwindow_window();
     // SDL_GL_SwapWindow(window);

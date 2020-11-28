@@ -1,10 +1,9 @@
-#define FSEMU_INTERNAL
+#include "fsemu-internal.h"
 #include "fsemu-window.h"
 
 #include "fsemu-layout.h"
 #include "fsemu-mouse.h"
 #include "fsemu-option.h"
-#include "fsemu-options.h"
 #include "fsemu-sdlwindow.h"
 #include "fsemu-titlebar.h"
 #include "fsemu-types.h"
@@ -100,8 +99,8 @@ void fsemu_window_initial_rect(fsemu_rect_t *rect, double ui_scale)
     int initial_w = 960;
     int initial_h = 540;
 
-    initial_w = 720;
-    initial_h = 540;
+    // initial_w = 720;
+    // initial_h = 540;
 
     // initial_w *= 1.5;
     // initial_h *= 1.5;
@@ -109,6 +108,9 @@ void fsemu_window_initial_rect(fsemu_rect_t *rect, double ui_scale)
     // initial_w = initial_h * 4 / 3;
     // initial_w = 880;
     // initial_h = 660;
+
+    initial_w = 864;
+    initial_h = 648;
 
     *rect = fsemu_window.initial_rect;
     if (rect->w == 0 || rect->h == 0) {

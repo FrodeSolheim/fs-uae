@@ -2,6 +2,8 @@
 #include "config.h"
 #endif
 
+#ifdef FSUAE_LEGACY
+
 #define _GNU_SOURCE 1
 #ifdef USE_X11
 #include <stdio.h>
@@ -449,3 +451,5 @@ int fs_ml_scancode_to_key(int scancode)
 int libfsemu_x11_dummy;
 
 #endif /* USE_X11 */
+
+#endif  // FSUAE_LEGACY

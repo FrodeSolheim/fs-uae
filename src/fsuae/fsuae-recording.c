@@ -1,7 +1,9 @@
+#define FSUAE_INTERNAL
+#include "fsuae-recording.h"
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
-#include "fsuae-recording.h"
 
 #define _GNU_SOURCE 1
 #include <fs/emu.h>

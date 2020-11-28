@@ -42,6 +42,9 @@ bool fsemu_sdlwindow_no_event_polling(void);
 // Return a pointer to the SDL_Window.
 SDL_Window *fsemu_sdlwindow_window(void);
 
+// Check if we have a valid SDL_Window.
+bool fsemu_sdlwindow_has_window(void);
+
 bool fsemu_sdlwindow_handle_event(SDL_Event *event);
 
 // Return true if the module believes the window is currently fullscreen.

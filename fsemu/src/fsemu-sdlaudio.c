@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL
+#include "fsemu-internal.h"
 #include "fsemu-sdlaudio.h"
 
 #include "fsemu-audio-buffer.h"
@@ -75,7 +75,7 @@ void fsemu_sdlaudio_init(void)
 {
     fsemu_return_if_already_initialized();
 
-    fsemu_audio_log("SDL_Init(SDL_INIT_AUDIO\n");
+    fsemu_audio_log("SDL_Init(SDL_INIT_AUDIO)\n");
     SDL_Init(SDL_INIT_AUDIO);
 
     const char *sdl_driver_name = SDL_GetCurrentAudioDriver();

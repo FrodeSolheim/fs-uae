@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL
+#include "fsemu-internal.h"
 #include "fsemu-image.h"
 
 #include <stdlib.h>
@@ -320,10 +320,12 @@ fsemu_image_t *fsemu_image_load_png_file(const char *path)
 #endif  // FSEMU_PNG
 }
 
+#if 0
 static void fsemu_image_init(fsemu_image_t *image)
 {
     memset(image, 0, sizeof(fsemu_image_t));
 }
+#endif
 
 static void fsemu_image_finalize(void *object)
 {

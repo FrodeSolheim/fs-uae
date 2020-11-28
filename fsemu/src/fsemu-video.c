@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL
+#include "fsemu-internal.h"
 #include "fsemu-video.h"
 
 #include "fsemu-frame.h"
@@ -8,10 +8,10 @@
 #include "fsemu-image.h"
 #include "fsemu-layout.h"
 #include "fsemu-option.h"
-#include "fsemu-options.h"
 #include "fsemu-sdl.h"
 #include "fsemu-sdlvideo.h"
 #include "fsemu-sdlwindow.h"
+#include "fsemu-thread.h"
 #include "fsemu-time.h"
 #include "fsemu-types.h"
 #include "fsemu-util.h"
@@ -45,6 +45,10 @@ static struct {
     // as window size (for high-DPI windows on some platforms). Note, this
     // variable is not for the renderer. The video thread has its own copy.
     fsemu_size_t drawable_size;
+
+    bool must_render_frame;
+    int64_t must_render_frame_until;
+    bool did_render_frame;
 
 #if 0
     // Mutex used to copy consistent data from UI thread over to video thread.
@@ -215,13 +219,21 @@ void fsemu_video_work(int timeout_us)
 
 void fsemu_video_render(void)
 {
-    fsemu_frame_log_epoch("Render\n");
-    if (fsemu_video.renderer == FSEMU_VIDEO_RENDERER_OPENGL) {
-        fsemu_glvideo_render();
+    if (fsemu_video_can_skip_rendering_this_frame()) {
+        fsemu_video.did_render_frame = false;
     } else {
-        fsemu_sdlvideo_render();
+        fsemu_frame_log_epoch("Render\n");
+        if (fsemu_video.renderer == FSEMU_VIDEO_RENDERER_OPENGL) {
+            fsemu_glvideo_render();
+        } else {
+            fsemu_sdlvideo_render();
+        }
+        fsemu_video.did_render_frame = true;
     }
     fsemu_video.ready = false;
+    // Reset this variable, will be set again if a new (actual) frame is
+    // posted.
+    fsemu_video.must_render_frame = false;
 }
 
 bool fsemu_video_ready(void)
@@ -236,6 +248,11 @@ void fsemu_video_set_ready(bool ready)
 
 void fsemu_video_display(void)
 {
+    if (!fsemu_video.did_render_frame) {
+        // Did not render frame, nothing to display
+        printf("No frame rendered, skipping display\n");
+        return;
+    }
     fsemu_frame_log_epoch("Display\n");
     if (fsemu_video.renderer == FSEMU_VIDEO_RENDERER_OPENGL) {
         fsemu_glvideo_display();
@@ -334,6 +351,8 @@ void fsemu_video_render_gui(fsemu_gui_item_t *items)
 
 static void fsemu_video_update_stats(void)
 {
+    fsemu_thread_assert_emu();
+
     static int64_t last;
     int64_t now = fsemu_time_us();
 #if 0
@@ -351,7 +370,8 @@ static void fsemu_video_update_stats(void)
              .stats[fsemu_frame_counter_mod(FSEMU_VIDEO_MAX_FRAME_STATS)];
 
     stats->frame_hz = fsemu_frame_hz;
-    stats->frame_warp = fsemu_frame_warp;
+    // stats->frame_warp = fsemu_frame_warp;
+    stats->frame_warp = fsemu_frame_warping();
 
     stats->overshoot_us = fsemu_frame_overshoot_duration;
     stats->wait_us = fsemu_frame_wait_duration;
@@ -465,3 +485,36 @@ void fsemu_video_fix_bottom_edge(uint8_t *pixels, int vw, int vh, int tw, int wh
 }
 
 #endif
+
+bool fsemu_video_can_skip_rendering_this_frame(void)
+{
+    if (fsemu_video.must_render_frame) {
+        // printf("must render frame\n");
+        return false;
+    }
+    if (fsemu_time_us() < fsemu_video.must_render_frame_until) {
+        printf("fsemu_time_us() < fsemu_video.must_render_frame_until\n");
+        return false;
+    }
+    // FIXME: Possible check state such as adaptive sync / v-sync / fullscreen
+    // window mode / focused / minimized in order to determine whether
+    // rendering is necessary.
+    printf("can skip!\n");
+    return true;
+}
+
+void fsemu_video_must_render_frame(void)
+{
+    fsemu_video.must_render_frame = true;
+}
+
+void fsemu_video_must_render_frame_until(int64_t until_us)
+{
+    fsemu_video.must_render_frame_until = until_us;
+}
+
+void fsemu_video_force_display(void)
+{
+    fsemu_video.did_render_frame = true;
+    fsemu_video_display();
+}

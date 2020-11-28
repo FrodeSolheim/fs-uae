@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL
+#include "fsemu-internal.h"
 #include "fsemu-inputdevice.h"
 
 static void fsemu_inputdevice_free(fsemu_inputdevice_t *device)

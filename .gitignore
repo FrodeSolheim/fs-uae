@@ -8,11 +8,7 @@ autom4te.cache
 *.autosave
 /base-dir
 build68k
-/build/linux-dist/*-linux-*
-/build/linux-dist/Makefile
-/build/linux-dist/*-steamos-*
-/build/steamos-dist/Makefile
-/build-dir/
+/build/
 /cef/
 /*.cfg
 /*.changes
@@ -32,6 +28,7 @@ build68k
 *.core
 core
 *.creator.user
+/data/
 *.dbg
 /*.deb
 /depcomp
@@ -156,6 +153,7 @@ src/od-win32/lib
 /state
 *-swp
 *.swp
+/t
 *.tar.gz
 *.tar.xz
 temp

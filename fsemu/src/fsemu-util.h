@@ -1,6 +1,7 @@
 #ifndef FSEMU_UTIL_H_
 #define FSEMU_UTIL_H_
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include "fsemu-common.h"
@@ -11,7 +12,9 @@ extern "C" {
 
 // #define fsemu_log SDL_Log
 #ifdef FSEMU_SDL
+#include "fsemu-sdl.h"
 #define fsemu_assert SDL_assert
+#define fsemu_assert_release SDL_assert_release
 #endif
 
 #define FSEMU_UTIL_MALLOC(t) (t *) malloc(sizeof(t));
@@ -27,6 +30,8 @@ typedef struct {
     int offset;
     int sum;
 } fsemu_mavgi_t;
+
+bool fsemu_path_exists(const char *path);
 
 static inline void fsemu_mavgi_clear(fsemu_mavgi_t *mavg)
 {

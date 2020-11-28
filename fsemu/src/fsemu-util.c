@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL
+#include "fsemu-internal.h"
 #include "fsemu-util.h"
 
 #include "fsemu-glib.h"
@@ -35,6 +35,11 @@ const char *fsemu_getenv(const char *name)
         return value;
     }
     return "";
+}
+
+bool fsemu_path_exists(const char *path)
+{
+    return g_file_test(path, G_FILE_TEST_EXISTS);
 }
 
 // ----------------------------------------------------------------------------

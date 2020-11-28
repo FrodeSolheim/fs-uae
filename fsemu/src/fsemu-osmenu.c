@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL
+#include "fsemu-internal.h"
 #include "fsemu-osmenu.h"
 
 #include "fsemu-control.h"
@@ -123,6 +123,30 @@ static void fsemu_osmenu_update_selected_w(fsemu_osmenu_t *osmenu,
     }
 }
 
+static void fsemu_osmenu_update_osmenu(fsemu_osmenu_t *osmenu)
+{
+    GList *ositems = osmenu->ositems;
+    while (ositems) {
+        fsemu_osmenu_item_t *ositem = ositems->data;
+        // fsemu_widget_set_text(ositem->title_w,
+        //                       fsemu_menu_item_title(ositem->item));
+
+        fsemu_color_t text_color;
+        if (fsemu_menu_item_heading(ositem->item)) {
+            text_color = FSEMU_COLOR_RGB(0x888888);
+        } else if (!fsemu_menu_item_enabled(ositem->item)) {
+            text_color = FSEMU_COLOR_RGB(0x666666);
+        } else {
+            text_color = FSEMU_COLOR_WHITE;
+        }
+        fsemu_widget_set_text_color(ositem->title_w, text_color);
+        fsemu_widget_set_text(ositem->title_w,
+                              fsemu_menu_item_title(ositem->item));
+
+        ositems = ositems->next;
+    }
+}
+
 static void fsemu_osmenu_populate_widgets(fsemu_osmenu_t *osmenu)
 {
     fsemu_widget_t *widget;
@@ -191,8 +215,11 @@ static void fsemu_osmenu_populate_widgets(fsemu_osmenu_t *osmenu)
                i,
                fsemu_menu_item_selectable(item),
                fsemu_menu_item_heading(item));
-        if (osmenu->selected_index == -1 && fsemu_menu_item_selectable(item)) {
-            osmenu->selected_index = i;
+        if (fsemu_menu_item_selectable(item)) {
+            if (osmenu->selected_index == -1 ||
+                fsemu_menu_item_selected_initially(item)) {
+                osmenu->selected_index = i;
+            }
         }
         // printf("%p\n", item);
         fsemu_osmenu_item_t *ositem = FSEMU_UTIL_MALLOC0(fsemu_osmenu_item_t);
@@ -216,32 +243,30 @@ static void fsemu_osmenu_populate_widgets(fsemu_osmenu_t *osmenu)
 
         int leftoffset = FSEMU_OSMENU_ITEM_INDENTATION;
         int font_size = FSEMU_OSMENU_ITEM_FONTSIZE;
-        fsemu_color_t text_color;
         // Maybe we only need color? Also, right now, color effectively
         // modulates text_color. Maybe we don't want this...
         fsemu_widget_set_color(widget, FSEMU_COLOR_WHITE);
         if (fsemu_menu_item_heading(item)) {
             font_size = FSEMU_OSMENU_HEADING_FONTSIZE;
-            text_color = FSEMU_COLOR_RGB(0x888888);
+            // text_color = FSEMU_COLOR_RGB(0x888888);
             leftoffset = FSEMU_OSMENU_HEADING_INDENTATION;
             fsemu_widget_set_text_valign(widget, 0.9);
-        } else if (!fsemu_menu_item_enabled(item)) {
-            text_color = FSEMU_COLOR_RGB(0x666666);
-        } else {
-            text_color = FSEMU_COLOR_WHITE;
         }
         fsemu_widget_set_font_size(widget, font_size);
         fsemu_widget_set_left(widget, leftoffset);
-        fsemu_widget_set_text_color(widget, text_color);
         fsemu_widget_set_text_transform(widget,
                                         FSEMU_WIDGET_TEXT_TRANSFORM_UPPERCASE);
 
         // FIXME: Or image stretch/centering attributes, i.e.
         // hstrech: 0 vstretch 0 halign 0 valign = center
-        fsemu_widget_set_text(widget, fsemu_menu_item_title(item));
 
+#if 0
+        // Moved to fsemu_menu_update_osmenu
+#endif
         y += 60;
     }
+
+    fsemu_osmenu_update_osmenu(osmenu);
 
     if (osmenu->selected_index == -1) {
         fsemu_warning("No item could be selected\n");
@@ -495,7 +520,9 @@ static void fsemu_osmenu_navigate_up_down(int navigate,
     int index = osmenu->selected_index;
     int length = fsemu_menu_count_items(osmenu->menu);
     if (navigate == FSEMU_GUI_NAVIGATE_UP) {
-        if (index == 0) {
+        // Index can be -1 already if no item at all was selected. This can
+        // happen if all items are disabled.
+        if (index <= 0) {
             return;
         }
         index -= 1;
@@ -538,11 +565,19 @@ static void fsemu_osmenu_navigate_primary(fsemu_action_state_t state)
         fsemu_warning("Tried to activate a disabled menu item\n");
         return;
     }
-    fsemu_menu_t *menu = fsemu_menu_item_activate(item);
-    if (menu) {
+    fsemu_menu_t *result = fsemu_menu_item_activate(item);
+    // printf("Result: %p\n", result);
+    if (FSEMU_MENU_RESULT_IS_MENU(result)) {
         // We now own the reference to this newly created menu. So we must not
         // ref it again here.
-        fsemu_osmenu_push_menu(menu);
+        fsemu_osmenu_push_menu(result);
+    } else if (result == FSEMU_MENU_RESULT_CLOSE) {
+        fsemu_osmenu_set_open(false);
+    } else if (result == FSEMU_MENU_RESULT_POP1) {
+        fsemu_osmenu_pop_menu();
+    } else if (result == FSEMU_MENU_RESULT_POP1_CLOSE) {
+        fsemu_osmenu_pop_menu();
+        fsemu_osmenu_set_open(false);
     }
 }
 
@@ -578,7 +613,7 @@ void fsemu_osmenu_navigate(int navigate, fsemu_action_state_t state)
     if (navigate == FSEMU_GUI_NAVIGATE_NONE) {
         return;
     }
-    printf("fsemu_osmenu_navigate %d %d\n", navigate, state);
+    // printf("fsemu_osmenu_navigate %d %d\n", navigate, state);
 
     if (navigate == FSEMU_GUI_NAVIGATE_UP) {
         fsemu_osmenu_navigate_up_down(navigate, state);
@@ -712,10 +747,14 @@ void fsemu_osmenu_update(void)
 
     fsemu_osmenu_update_main_animation();
 
-    int max_level = g_list_length(fsemu_osmenu.stack) - 1;
+    // int max_level = g_list_length(fsemu_osmenu.stack) - 1;
     GList *listitem = fsemu_osmenu.stack;
     while (listitem) {
         fsemu_osmenu_t *osmenu = (fsemu_osmenu_t *) listitem->data;
+        // The menu entries themselves may have changed, update menu first.
+        fsemu_menu_update(osmenu->menu);
+        // Then we may have to sync menu changes with on-screen representation.
+        fsemu_osmenu_update_osmenu(osmenu);
 
 #if 1
         fsemu_util_spring_update_with_time(&osmenu->open_spring, now_us);
@@ -740,8 +779,8 @@ void fsemu_osmenu_update(void)
         fsemu_widget_set_visible(osmenu->selected_w,
                                  osmenu->selected_index >= 0);
         // We can calculate position even with selected_index -1, no harm.
-        int h = fsemu_osmenu_item_height();
-        int y = 60 + osmenu->selected_index * h;
+        // int h = fsemu_osmenu_item_height();
+        // int y = 60 + osmenu->selected_index * h;
         // osmenu->selected_top_wanted = y;
 #if 1
         fsemu_util_spring_update(&osmenu->selected_spring);

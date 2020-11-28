@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL
+#include "fsemu-internal.h"
 #include "fsemu-background.h"
 
 #include <math.h>
@@ -40,18 +40,24 @@ static struct {
     } widgets;
 } module;
 
+// #define FSEMU_BACKGROUND_LEVEL 0x08
+// #define FSEMU_BACKGROUND_LEVEL_2 0x18
+
+#define FSEMU_BACKGROUND_LEVEL 0x0A
+#define FSEMU_BACKGROUND_LEVEL_2 0x20
+
 static void fsemu_background_create_side(fsemu_image_t *image,
                                          int width,
                                          int height,
                                          int overlap)
 {
     // Gradients
-    double left = 0x0a / 255.0;
+    // double left = 0x0c / 255.0;
+    // double right = 0x2c / 255.0;
+    double left = FSEMU_BACKGROUND_LEVEL / 255.0;
+    double right = FSEMU_BACKGROUND_LEVEL_2 / 255.0;
 
-    left = 0x0c / 255.0;
-
-    double right = 0x2c / 255.0;
-    double top = 0.5;
+    double top = 0.3;
 
     double xdiff = right - left;
     double ydiff = 1.0 - top;
@@ -77,9 +83,15 @@ static void fsemu_background_create_side(fsemu_image_t *image,
             if (d > 1.0) {
                 d = 1.0;
             }
+            // double gray_d = 255.0 * (left + xdiff * pow(d, 2.2)) *
+            //                     (top + ydiff * y / height) +
+            //                 line_debt[x + 0 + 1];
             double gray_d = 255.0 * (left + xdiff * pow(d, 2.2)) *
-                                (top + ydiff * y / height) +
-                            line_debt[x + 0 + 1];
+                    (top + ydiff * (1.0 - abs(y - height / 2.0) / (height / 2.0))) +
+                           line_debt[x + 0 + 1];
+            // double gray_d = 255.0 * (left + xdiff * pow(d, 2.2)) *
+            //         (top + ydiff * (abs(y - height / 2.0) / (height / 2.0))) +
+            //                 line_debt[x + 0 + 1];
 
             // gray_d = 255.0 * (0.0 + 0.05 * pow((double) x / width, 2.2))
             //  +line_debt[x + 0 + 1];
@@ -117,7 +129,8 @@ static void fsemu_background_create_top(fsemu_image_t *image,
                                         int height,
                                         int offset)
 {
-    double right = 0x2c / 255.0;
+    // double right = 0x2c / 255.0;
+    double right = FSEMU_BACKGROUND_LEVEL_2 / 255.0;
     double top = 0.5;
     double ydiff = 1.0 - top;
 
@@ -809,9 +822,9 @@ void fsemu_background_init(void)
     fsemu_log("[FSEMU] [BACKG] Initializing background module\n");
     fsemu_module_on_quit(fsemu_background_quit);
 
-    fsemu_background.color.r = 0x0c;
-    fsemu_background.color.g = 0x0c;
-    fsemu_background.color.b = 0x0c;
+    fsemu_background.color.r = FSEMU_BACKGROUND_LEVEL;
+    fsemu_background.color.g = FSEMU_BACKGROUND_LEVEL;
+    fsemu_background.color.b = FSEMU_BACKGROUND_LEVEL;
 
     fsemu_background_init_widgets();
 }

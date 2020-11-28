@@ -15,7 +15,6 @@
                 "${workspaceFolder}/src/od-win32/caps",
                 "${workspaceFolder}/libfsemu/include",
                 "${workspaceFolder}/libnfd/src/include",
-                "${workspaceFolder}/manymouse",
                 "${workspaceFolder}/libudis86/include",
                 "${workspaceFolder}/prowizard/include",
                 "/usr/include/glib-2.0",

@@ -1,5 +1,5 @@
-#ifndef FS_UAE_OPTIONS_H
-#define FS_UAE_OPTIONS_H
+#ifndef FSUAE_OPTIONS_H_
+#define FSUAE_OPTIONS_H_
 
 #define OPTION_ACCELERATOR "accelerator"
 #define OPTION_ACCELERATOR_ROM "accelerator_rom"
@@ -31,7 +31,9 @@
 #define OPTION_GRAPHICS_CARD_MEMORY "graphics_card_memory"
 #define OPTION_JIT_COMPILER "jit_compiler"
 #define OPTION_JIT_MEMORY "jit_memory"
+#define OPTION_JOYSTICK_PORT_0 "joystick_port_0"
 #define OPTION_JOYSTICK_PORT_0_AUTOSWITCH "joystick_port_0_autoswitch"
+#define OPTION_JOYSTICK_PORT_1 "joystick_port_1"
 #define OPTION_LINE_DOUBLING "line_doubling"
 #define OPTION_LOG_AUTOSCALE "log_autoscale"
 #define OPTION_LOG_BSDSOCKET "log_bsdsocket"
@@ -54,8 +56,8 @@
 #define OPTION_WORKBENCH_DISK "workbench_disk"
 #define OPTION_ZORRO_III_MEMORY "zorro_iii_memory"
 
-/* Deprecated options */
+// Deprecated options
 
 #define OPTION_UAEGFX_CARD "uaegfx_card"
 
-#endif /* FS_UAE_OPTIONS_H */
+#endif  // FS_UAE_OPTIONS_H_

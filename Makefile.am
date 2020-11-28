@@ -116,9 +116,9 @@ ZIP = @ZIP@
 s = $(srcdir)
 b = $(builddir)
 
-bin_PROGRAMS = \
-	fs-uae \
-	fs-uae-device-helper
+bin_PROGRAMS = fs-uae
+
+libexec_PROGRAMS = fs-uae-device-helper
 
 dist_doc_DATA = README COPYING
 
@@ -143,34 +143,46 @@ fs_uae_SOURCES = \
 	src/fsuae/fsuae-accelerator.h \
 	src/fsuae/fsuae-action.c \
 	src/fsuae/fsuae-action.h \
+	src/fsuae/fsuae-actions.h \
 	src/fsuae/fsuae-config.c \
 	src/fsuae/fsuae-config.h \
-	src/fsuae/fsuae-drives.c \
-	src/fsuae/fsuae-drives.h \
 	src/fsuae/fsuae-graphics.c \
 	src/fsuae/fsuae-graphics.h \
 	src/fsuae/fsuae-hardware.c \
 	src/fsuae/fsuae-hardware.h \
 	src/fsuae/fsuae-input.c \
+	src/fsuae/fsuae-input.h \
 	src/fsuae/fsuae-inputport.c \
+	src/fsuae/fsuae-inputport.h \
 	src/fsuae/fsuae-joystick.c \
+	src/fsuae/fsuae-joystick.h \
 	src/fsuae/fsuae-keyboard.c \
+	src/fsuae/fsuae-keyboard.h \
 	src/fsuae/fsuae-main.c \
+	src/fsuae/fsuae-main.h \
+	src/fsuae/fsuae-media.c \
+	src/fsuae/fsuae-media.h \
 	src/fsuae/fsuae-menu.c \
+	src/fsuae/fsuae-menu.h \
 	src/fsuae/fsuae-model.c \
 	src/fsuae/fsuae-model.h \
 	src/fsuae/fsuae-mouse.c \
+	src/fsuae/fsuae-mouse.h \
 	src/fsuae/fsuae-options.h \
 	src/fsuae/fsuae-oskeyboard.c \
-	src/fsuae/fsuae-paths.c \
-	src/fsuae/fsuae-paths.h \
+	src/fsuae/fsuae-oskeyboard.h \
+	src/fsuae/fsuae-path.c \
+	src/fsuae/fsuae-path.h \
 	src/fsuae/fsuae-plugins.c \
 	src/fsuae/fsuae-plugins.h \
 	src/fsuae/fsuae-recording.c \
 	src/fsuae/fsuae-recording.h \
+	src/fsuae/fsuae-savestate.c \
+	src/fsuae/fsuae-savestate.h \
 	src/fsuae/fsuae-sound.c \
 	src/fsuae/fsuae-sound.h \
 	src/fsuae/fsuae-video.c\
+	src/fsuae/fsuae-video.h\
 	src/fsuae/uae_config.c
 
 
@@ -183,7 +195,7 @@ endif
 fs_uae_LDADD =
 
 fs_uae_device_helper_SOURCES = \
-	src/fsuae/fsuae-device-helper.c
+	src/fsuae/device-helper.c
 
 fs_uae_device_helper_LDADD =
 
@@ -816,23 +828,25 @@ libfsemu_a_SOURCES = \
 	libfsemu/src/video/video-buffer.c
 
 if FSEMU
+
 noinst_LIBRARIES += libfsemu2.a
  AM_CPPFLAGS += -I$(s)/fsemu/src
 fs_uae_LDADD += libfsemu2.a
 fs_uae_device_helper_LDADD += libfsemu2.a
 libfsemu2_a_SOURCES = \
-        fsemu/gamemode/lib/gamemode_client.h \
-        fsemu/manymouse/linux_evdev.c \
-        fsemu/manymouse/macosx_hidmanager.c \
-        fsemu/manymouse/macosx_hidutilities.c \
-        fsemu/manymouse/manymouse.c \
-        fsemu/manymouse/manymouse.h \
-        fsemu/manymouse/windows_wminput.c \
-        fsemu/manymouse/x11_xinput2.c \
+	fsemu/gamemode/lib/gamemode_client.h \
+	fsemu/manymouse/linux_evdev.c \
+	fsemu/manymouse/macosx_hidmanager.c \
+	fsemu/manymouse/macosx_hidutilities.c \
+	fsemu/manymouse/manymouse.c \
+	fsemu/manymouse/manymouse.h \
+	fsemu/manymouse/windows_wminput.c \
+	fsemu/manymouse/x11_xinput2.c \
 	fsemu/src/fsemu-all.h \
 	fsemu/src/fsemu-button.h \
 	fsemu/src/fsemu-action.c \
 	fsemu/src/fsemu-action.h \
+	fsemu/src/fsemu-actions.h \
 	fsemu/src/fsemu-audio-alsa.c \
 	fsemu/src/fsemu-audio-alsa.h \
 	fsemu/src/fsemu-audio-buffer.c \
@@ -892,6 +906,7 @@ libfsemu2_a_SOURCES = \
 	fsemu/src/fsemu-inputmode.h \
 	fsemu/src/fsemu-inputport.c \
 	fsemu/src/fsemu-inputport.h \
+	fsemu/src/fsemu-internal.h \
 	fsemu/src/fsemu-key.h \
 	fsemu/src/fsemu-keyboard.h \
 	fsemu/src/fsemu-layer.h \
@@ -903,6 +918,8 @@ libfsemu2_a_SOURCES = \
 	fsemu/src/fsemu-mainmenu.h \
 	fsemu/src/fsemu-manymouse.c \
 	fsemu/src/fsemu-manymouse.h \
+	fsemu/src/fsemu-media.c \
+	fsemu/src/fsemu-media.h \
 	fsemu/src/fsemu-menu.c \
 	fsemu/src/fsemu-menu.h \
 	fsemu/src/fsemu-module.c \
@@ -922,6 +939,8 @@ libfsemu2_a_SOURCES = \
 	fsemu/src/fsemu-oskeyboard.h \
 	fsemu/src/fsemu-osmenu.c \
 	fsemu/src/fsemu-osmenu.h \
+	fsemu/src/fsemu-path.c \
+	fsemu/src/fsemu-path.h \
 	fsemu/src/fsemu-perfgui.c \
 	fsemu/src/fsemu-perfgui.h \
 	fsemu/src/fsemu-quit.c \
@@ -972,6 +991,42 @@ libfsemu2_a_SOURCES = \
 	fsemu/src/fsemu-window.h \
 	fsemu/src/fsemu-xmlshader.c \
 	fsemu/src/fsemu-xmlshader.h
+
+fsemu_data_files = \
+	fsemu/fonts/saira/SairaCondensed-Bold.ttf \
+	fsemu/fonts/saira/SairaCondensed-Medium.ttf \
+	fsemu/fonts/saira/SairaCondensed-Regular.ttf \
+	fsemu/fonts/saira/SairaCondensed-SemiBold.ttf \
+	fsemu/icons/fontawesome/NotificationCursor.png \
+	fsemu/icons/fontawesome/NotificationInfo.png \
+	fsemu/icons/fontawesome/NotificationKeyboard.png \
+	fsemu/icons/fontawesome/NotificationPause.png \
+	fsemu/icons/fontawesome/NotificationWarning.png \
+	fsemu/icons/fontawesome/NotificationWarp.png \
+	fsemu/images/TitleBarCloseIcon.png \
+	fsemu/images/TitleBarMaximizeIcon.png \
+	fsemu/images/TitleBarMenuIcon.png \
+	fsemu/images/TitleBarMinimizeIcon.png \
+	fsemu/images/TitleBarWithShadow.png
+
+# FIXME: EXTRA_DIST ?
+libfsemu2_a_SOURCES += $(fsemu_data_files)
+
+data/.fsemu: $(fsemu_data_files)
+	mkdir -p $(b)/data/Fonts
+	cp $(s)/fsemu/fonts/saira/* $(b)/data/Fonts/
+	mkdir -p $(b)/data/Icons
+	cp $(s)/fsemu/icons/fontawesome/* $(b)/data/Icons/
+	mkdir -p $(b)/data/Images
+	cp $(s)/fsemu/images/* $(b)/data/Images/
+	touch data/.fsemu
+
+fsemu-data: data/.fsemu
+
+else
+
+fsemu-data:
+
 endif
 
 if BUILTIN_CEF
@@ -1460,17 +1515,17 @@ fs_uae_LDADD += libnfd.a
 endif
 
 
-noinst_LIBRARIES += libdummy.a
-nodist_libdummy_a_SOURCES = \
-	gen/cdummy.c \
-	gen/cppdummy.cpp
-BUILT_SOURCES += $(nodist_libdummy_a_SOURCES)
-
-gen/cdummy.c:
-	echo "int cdummy;" > $(b)/gen/cdummy.c
-
-gen/cppdummy.cpp:
-	echo "int cppdummy;" > $(b)/gen/cppdummy.cpp
+#noinst_LIBRARIES += libdummy.a
+#nodist_libdummy_a_SOURCES = \
+#	gen/cdummy.c \
+#	gen/cppdummy.cpp
+#BUILT_SOURCES += $(nodist_libdummy_a_SOURCES)
+#
+#gen/cdummy.c:
+#	echo "int cdummy;" > $(b)/gen/cdummy.c
+#
+#gen/cppdummy.cpp:
+#	echo "int cppdummy;" > $(b)/gen/cppdummy.cpp
 
 gen_build68k_SOURCES = \
 	src/build68k.cpp \
@@ -1558,7 +1613,7 @@ EXTRA_DIST = $(TESTS) $(EXTRA_TESTS) \
 	docs/old-files.md \
 	docs/portable.md \
 	docs/serial-port.md \
-	docs/to-do.md \
+	docs/todo.md \
 	docs/variable-refresh-rate.md \
 	docs/vpar.md \
 	docs/vsync.md \
@@ -1671,7 +1726,7 @@ EXTRA_DIST = $(TESTS) $(EXTRA_TESTS) \
 	src/mame/tm34010/34010ops.c \
 	src/mame/tm34010/34010ops.h \
 	src/mame/tm34010/34010gfx.c \
-        src/od-win32/mman.cpp \
+	src/od-win32/mman.cpp \
 	src/p96_blit.cpp \
 	src/sinctable.cpp \
 	src/table68k \
@@ -1842,21 +1897,23 @@ fs-uae.dat: $(catalogs)
 	  ( cd $$d && $(ZIP) -X $(abs_builddir)/fs-uae.dat $$(find share | LC_ALL=C sort ) ) ; \
 	done
 
-all-local: mo fs-uae.dat
+all-local: mo fs-uae.dat fsemu-data
 
 install-data-hook: mo fs-uae.dat
-	chmod -R u+w $(s)/share/
+	chmod -R u+w $(s)/share  	# FIXME: Why?
+
 	mkdir -p $(DESTDIR)$(datadir)/applications
-	cp -R $(s)/share/applications/* $(DESTDIR)$(datadir)/applications
+	cp -R $(s)/share/applications/* $(DESTDIR)$(datadir)/applications/
 	mkdir -p $(DESTDIR)$(datadir)/fs-uae
 	touch $(DESTDIR)$(datadir)/fs-uae/share-dir
-	cp fs-uae.dat $(DESTDIR)$(datadir)/fs-uae
+	cp fs-uae.dat $(DESTDIR)$(datadir)/fs-uae/
+	cp -R data/* $(DESTDIR)$(datadir)/fs-uae/
 	mkdir -p $(DESTDIR)$(datadir)/icons
-	cp -R $(s)/share/icons/* $(DESTDIR)$(datadir)/icons
+	cp -R $(s)/share/icons/* $(DESTDIR)$(datadir)/icons/
 	mkdir -p $(DESTDIR)$(datadir)/locale
-	cp -R $(b)/share/locale/* $(DESTDIR)$(datadir)/locale
+	cp -R $(b)/share/locale/* $(DESTDIR)$(datadir)/locale/
 	mkdir -p $(DESTDIR)$(datadir)/mime
-	cp -R $(s)/share/mime/* $(DESTDIR)$(datadir)/mime
+	cp -R $(s)/share/mime/* $(DESTDIR)$(datadir)/mime/
 
 uninstall-local:
 	rm -f $(DESTDIR)$(datadir)/applications/net.fs_uae.FS-UAE.desktop
@@ -1867,6 +1924,10 @@ uninstall-local:
 
 clean-local:
 	rm -f fs-uae.dat
+	rm -Rf data/Fonts
+	rm -Rf data/Icons
+	rm -Rf data/Images
+	rm -f data/.fsemu
 	find share -name fs-uae.mo -delete
 
 fs-uae-dist:
@@ -1923,3 +1984,5 @@ if WINDOWS
 	mv fs-uae-@PACKAGE_VERSION@/fs-uae_@PACKAGE_VERSION@_windows_x86.tar.xz .
 endif
 	rm -Rf fs-uae-@PACKAGE_VERSION@
+
+.PHONY: fsemu-data

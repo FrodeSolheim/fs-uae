@@ -1,11 +1,39 @@
 #ifndef FSEMU_CONFIG_H_
 #define FSEMU_CONFIG_H_
 
-#include "fsemu-common.h"
-
 // #ifdef HAVE_CONFIG_H
 // #include "config.h"
 // #endif
+
+#define FSEMU_DEBUG 1
+
+#ifdef FSEMU_DEBUG
+//#define FSEMU_DEBUG_ALL_WARNINGS_ARE_ERRORS 1
+#ifdef FSEMU_INTERNAL
+#pragma GCC diagnostic error "-Wdiscarded-qualifiers"
+#pragma GCC diagnostic error "-Wformat"
+#pragma GCC diagnostic error "-Wincompatible-pointer-types"
+#pragma GCC diagnostic error "-Wall"
+#endif
+#endif
+
+#if defined(__GNUC__) || defined(__clang__)
+#define FSEMU_DEPRECATED __attribute__((deprecated))
+#elif defined(_MSC_VER)
+#define FSEMU_DEPRECATED __declspec(deprecated)
+#else
+#define FSEMU_DEPRECATED
+#endif
+
+#if 1  // def HAVE___BUILTIN_EXPECT
+#define FSEMU_LIKELY(x)   __builtin_expect(!!(x), 1)
+#define FSEMU_UNLIKELY(x) __builtin_expect(!!(x), 0)
+#else
+#define FSEMU_LIKELY(x)   x
+#define FSEMU_UNLIKELY(x) x
+#endif
+
+#include "fsemu-common.h"
 
 #ifdef _WIN32
 #define FSEMU_WINDOWS 1
@@ -72,34 +100,5 @@
 */
 
 #define FSEMU_PATH_MAX 4096
-
-// ---------------------------------------------------------------------------
-// FIXME: REMOVE START
-// ---------------------------------------------------------------------------
-
-#include <stdbool.h>
-
-#define FSEMU_CONFIG_NONE 0x12345678
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#ifdef __cplusplus
-}
-#endif
-
-static inline int fsemu_config_boolean(const char *name)
-{
-    return FSEMU_CONFIG_NONE;
-}
-
-int fsemu_config_read_bool_default(const char *name,
-                                   bool *result,
-                                   bool default_value);
-
-// ---------------------------------------------------------------------------
-// FIXME: REMOVE END
-// ---------------------------------------------------------------------------
 
 #endif  // FSEMU_CONFIG_H_

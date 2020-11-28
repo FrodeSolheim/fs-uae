@@ -2,6 +2,8 @@
 #include "config.h"
 #endif
 
+#ifdef FSUAE_LEGACY
+
 #include <fs/emu.h>
 #include <stdlib.h>
 #include <string.h>
@@ -296,3 +298,5 @@ void fse_init_video_options(void)
         fs_emu_frame_time = 0;
     }
 }
+
+#endif  // FSUAE_LEGACY

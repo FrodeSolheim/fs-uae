@@ -1,9 +1,26 @@
 #ifndef FSUAE_CONFIG_H_
 #define FSUAE_CONFIG_H_
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#define FSUAE_DEBUG 1
+
+#ifdef FSUAE_DEBUG
+#ifdef FSUAE_INTERNAL
+#pragma GCC diagnostic error "-Wdiscarded-qualifiers"
+#pragma GCC diagnostic error "-Wincompatible-pointer-types"
+#pragma GCC diagnostic error "-Wall"
+#endif
+#endif
+
 #include <stdbool.h>
 
+#include "fsemu-log.h"
 #include "fsuae-model.h"
+
+#define fsuae_log(format, ...) fsemu_log("[FSUAE] " format, ##__VA_ARGS__)
 
 bool fs_uae_values_matches(const char *s1, const char *s2);
 int fs_uae_read_memory_option(const char *name);

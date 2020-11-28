@@ -8272,10 +8272,12 @@ static bool framewait_fsuae_old (void)
 
     target_time = target_time + vsynctimebase;
 
+#ifdef FSUAE_LEGACY
 	// If the user has requested to use less time for emulating the frame.
 	if (fs_emu_frame_wait > 0 && !currprefs.turbo_emulation) {
 		cpu_sleep_millis(fs_emu_frame_wait);
 	}
+#endif
 
     //uae_log("%lld\n", vsynctimebase);
     //static frame_time_t last_time = curr_time;
@@ -8680,6 +8682,40 @@ static void vsync_handler_post (void)
 		// fsemu_frame_update_timing(vblank_hz, currprefs.turbo_emulation);
 		// printf("vblank_hz = %0.2f\n", vblank_hz);
 		fsemu_frame_start(vblank_hz);
+
+#if 0
+		// Now we sleep until the start of the next frame. Using the less
+		// accurate sleep function to use less system resources. Accuracy is
+		// not that important right here.
+		// int64_t before_us = fsemu_time_us();
+		// int64_t after_us = fsemu_time_sleep_until_us_2(
+		// 	fsemu_frame_begin_at, before_us);
+		// fsemu_frame_sleep_duration += after_us - before_us;
+		int64_t now_us = fsemu_time_sleep_until_us(fsemu_frame_begin_at);
+		fsemu_frame_add_sleep_time(now_us);
+#endif
+
+		int slot;
+		if (fsemu_frame_check_load_state(&slot)) {
+			fsemu_frame_log_epoch("Load state %d\n", slot);
+			if (slot == 0) {
+				printf("Slot 0 not supported yet\n");
+			} else {
+				amiga_send_input_event(INPUTEVENT_SPC_STATERESTORE1 - 1 + slot, 1);
+			}
+		}
+		if (fsemu_frame_check_save_state(&slot)) {
+			fsemu_frame_log_epoch("Load state %d\n", slot);
+			if (slot == 0) {
+				printf("Slot 0 not supported yet\n");
+			} else {
+				// FIXME: Going to save state; store state slot number in a
+				// global variable - this should signal that the video module
+				// should save a screenshot copy that can be saved together with
+				// the savestate.
+				amiga_send_input_event(INPUTEVENT_SPC_STATESAVE1 - 1 + slot, 1);
+			}
+		}
 	}
 #endif
 
@@ -9155,6 +9191,11 @@ static int64_t line_ended_at;
 
 static int64_t linesleep_fsemu(int64_t now, int64_t until)
 {
+#if 0
+	// For now, do not sleep at all.
+	return now;
+#endif
+
 #if 1
 	// FIXME: use busywait option?
 	if (now < until) {
@@ -9172,12 +9213,14 @@ static int64_t linesleep_fsemu(int64_t now, int64_t until)
 		fsemu_frame_sleep_duration += now - sleep_start;
 	}
 #else
-	if (until - now > 1000) {
+	//if (until - now > 1000) {
+	if (until - now > 0) {
 		int64_t sleep_start = now;
 		fsemu_sleep_us(until - now);
 		now = fsemu_time_us();
 		fsemu_frame_sleep_duration += now - sleep_start;
 	}
+	//}
 #endif
 	return now;
 }

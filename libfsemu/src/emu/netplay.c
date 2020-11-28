@@ -2,6 +2,8 @@
 #include "config.h"
 #endif
 
+#ifdef FSUAE_LEGACY
+
 #ifdef WINDOWS
 #define WINVER 0x0502
 #endif
@@ -864,3 +866,4 @@ void fs_emu_netplay_start() {
 
 #endif
 
+#endif  // FSUAE_LEGACY

@@ -72,6 +72,8 @@
 #include <fs/emu.h>
 #include <fs/emu/hacks.h>
 
+#include "fsemu-frame.h"
+
 #undef _WIN32
 
 #define NOTIFICATION_SWAPPER 0xc629ee2b
@@ -4263,6 +4265,9 @@ void target_paste_to_keyboard(void);
 
 static bool inputdevice_handle_inputcode2(int monid, int code, int state, const TCHAR *s)
 {
+#ifdef FSUAE
+	fsemu_frame_log_epoch("inputdevice_handle_inputcode2\n");
+#endif
 	static int swapperslot;
 	static int tracer_enable;
 	int newstate;
@@ -7455,6 +7460,15 @@ void inputdevice_updateconfig (struct uae_prefs *srcprefs, struct uae_prefs *dst
 	for (int i = 0; i < MAX_JPORTS; i++)
 		rp_update_gameport (i, -1, 0);
 #endif
+#ifdef FSUAE
+#if 0
+	printf("inputdevice_updateconfig\n");
+	// uae_main_post_event(UAE_EVENT_FLOPPY0PATH + unitnum, strdup(name));
+	for (int i = 0; i < MAX_JPORTS; i++) {
+		uae_main_post_event(UAE_EVENT_PORT0MODE + i, NULL, srcprefs->jports[i].mode);
+	}
+#endif
+#endif
 }
 
 /* called when devices get inserted or removed
@@ -9810,6 +9824,11 @@ static void amiga_set_joystick_port_mode_2 (int port, int mode)
             ip++;
         }
     }
+
+	// FIXME: We might to plug in this event even lower level, to account for
+	// changes outside of FS-UAE's control.
+	uae_main_post_event(UAE_EVENT_PORT0MODE + port, NULL, mode);
+
 #if 0
     changed_prefs.jports[port].mode = mode;
     config_changed = 1;

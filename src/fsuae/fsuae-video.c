@@ -1,3 +1,6 @@
+#define FSUAE_INTERNAL
+#include "fsuae-video.h"
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -79,7 +82,9 @@ static int g_last_non_auto_zoom_border = 0;
 
 static double g_last_refresh_rate = 0;
 static bool g_fs_log_autoscale = false;
+#ifdef FSUAE_LEGACY
 static int g_remember_last_screen = 0;
+#endif
 static int g_use_rtg_scanlines = 0;
 static int g_last_seen_mode_rtg = 0;
 static int g_frame_seq_no = 0;
@@ -210,8 +215,10 @@ static void init_window_overrides_2(int type, const char *s)
         } else if (c == '\0') {
             break;
         } else {
+#ifdef FSUAE_LEGACY
             fs_emu_warning(
                 "Unexpected byte (%d) while parsing viewport option\n", c);
+#endif
             return;
         }
     }
@@ -533,11 +540,13 @@ static void render_screen(RenderData *rd)
         }
     }
 
+#ifdef FSEMU_LEGACY
     if (fse_drivers()) {
     } else {
         memcpy(g_buffer->line, rd->line, AMIGA_MAX_LINES);
         fs_emu_video_buffer_update_lines(g_buffer);
     }
+#endif
 
     static int lastcx = 0, lastcy = 0, lastcw = 0, lastch = 0;
     static int lastsubscan = 0;
@@ -717,6 +726,7 @@ static void render_screen(RenderData *rd)
     g_last_refresh_rate = rd->refresh_rate;
 }
 
+#ifdef FSUAE_LEGACY
 static void *grow_buffer(int width, int height)
 {
     // printf("growing buffer: %p\n", g_buffer->data);
@@ -727,11 +737,13 @@ static void *grow_buffer(int width, int height)
     }
     return g_buffer->data;
 }
+#endif
 
 #define TURBO_FRAME_RATE 10000
 
 // char *temp = NULL;
 
+#ifdef FSUAE_LEGACY
 static void new_buffer(void)
 {
     if (fse_drivers()) {
@@ -751,6 +763,7 @@ static void new_buffer(void)
                                 grow_buffer);
     }
 }
+#endif
 
 static void display_screen()
 {
@@ -762,6 +775,7 @@ static void display_screen()
         //printf("%d\n", dt);
     }
 #endif
+#ifdef FSUAE_LEGACY
     if (fse_drivers()) {
         // if (temp == NULL) {
         //     temp = malloc(g_buffer->size);
@@ -784,6 +798,7 @@ static void display_screen()
     }
 
     new_buffer();
+#endif
 #if 0
     last_time = fs_emu_monotonic_time();
 #endif
@@ -792,19 +807,25 @@ static void display_screen()
 static void zoom_notification(void)
 {
     if (g_zoom_border) {
+#ifdef FSUAE_LEGACY
         fse_notify(1511162016,
                    _("Zoom: %s + Border"),
                    _(g_zoom_modes[g_zoom_mode].name));
+#endif
     } else {
+#ifdef FSUAE_LEGACY
         fse_notify(
             1511162016, _("Zoom: %s"), _(g_zoom_modes[g_zoom_mode].name));
+#endif
     }
 }
 
 void fs_uae_toggle_auto_zoom(void)
 {
     if (g_last_seen_mode_rtg) {
+#ifdef FSUAE_LEGACY
         fse_notify(1511162016, _("Zoom is disabled in RTG mode"));
+#endif
         return;
     }
     if (g_zoom_mode == 0) {
@@ -817,10 +838,13 @@ void fs_uae_toggle_auto_zoom(void)
     zoom_notification();
 }
 
+#ifdef FSUAE_LEGACY
 static void toggle_zoom(int flags)
 {
     if (g_last_seen_mode_rtg) {
+#ifdef FSUAE_LEGACY
         fse_notify(1511162016, _("Zoom is disabled in RTG mode"));
+#endif
         return;
     }
     if (flags == 1) {
@@ -838,6 +862,7 @@ static void toggle_zoom(int flags)
         g_last_non_auto_zoom_mode = g_zoom_mode;
     }
 }
+#endif
 
 #include <fs/emu/render.h>
 
@@ -845,12 +870,15 @@ void fs_uae_init_zoom_mode(void)
 {
     FSE_INIT_ONCE();
     // printf("fse_scale_mode %d\n", fse_scale_mode());
+    g_zoom_mode = DEFAULT_ZOOM_MODE;
+#ifdef FSUAE_LEGACY
     if (fse_scale_mode() == FSE_SCALE_LEGACY) {
         g_zoom_mode = 0;
     } else {
         /* New default */
         g_zoom_mode = DEFAULT_ZOOM_MODE;
     }
+#endif
 
     char *value = fs_config_get_string("zoom");
     if (value) {
@@ -889,6 +917,7 @@ void fs_uae_init_video(void)
     fs_log("fs_uae_init_video\n");
     init_window_overrides();
 
+#ifdef FSUAE_LEGACY
     if (fse_drivers()) {
         // FIXME
         fs_emu_buffer_configure(AMIGA_WIDTH, AMIGA_HEIGHT);
@@ -902,7 +931,9 @@ void fs_uae_init_video(void)
         // amiga_set_render_buffer(g_buffer->data, g_buffer->size,
         //         !g_remember_last_screen, grow_buffer);
     }
+
     new_buffer();
+#endif
 
     if (fsemu) {
         //
@@ -915,7 +946,10 @@ void fs_uae_init_video(void)
         g_use_rtg_scanlines = 1;
     }
 
+#ifdef FSUAE_LEGACY
     fs_emu_set_toggle_zoom_function(toggle_zoom);
+#endif
+
     fs_uae_init_zoom_mode();
 
     if (fs_config_get_boolean(OPTION_LOG_AUTOSCALE) == 1) {

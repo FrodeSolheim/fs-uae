@@ -29,6 +29,8 @@ bool fsemu_mouse_captured(void);
 void fsemu_mouse_set_captured(bool captured);
 void fsemu_mouse_toggle_captured(void);
 
+void fsemu_mouse_add_devices(void);
+
 extern int fsemu_mouse_log_level;
 
 #ifdef FSEMU_INTERNAL

@@ -11,9 +11,26 @@
 #endif
 #include "fsemu-sdl.h"
 
+#ifdef __MACH__
+#include <mach/mach_time.h>
+#ifndef CLOCK_REALTIME
+#define CLOCK_REALTIME 0
+#endif
+#ifndef CLOCK_MONOTONIC
+#define CLOCK_MONOTONIC 0
+#endif
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+typedef struct {
+    int32_t tv_sec;
+    int32_t tv_usec;
+} fsemu_time_val_t;
+
+void fsemu_time_init(void);
 
 static inline int64_t fsemu_time_us(void)
 {
@@ -46,24 +63,28 @@ static inline void fsemu_time_sleep_ms(int sleep_ms)
     return fsemu_sleep_us(sleep_ms * 1000);
 }
 
-// FIXME: fsemu_time_sleep_until_us
+FSEMU_DEPRECATED
+static inline void fsemu_sleep_ms(int sleep_ms)
+{
+    return fsemu_sleep_us(sleep_ms * 1000);
+}
+
+// This will always sleep, and is not guaranteed to be accurate. Use the
+// wait function instead if you need better accuracy.
+int64_t fsemu_time_sleep_until_us(int64_t until_us);
+int64_t fsemu_time_sleep_until_us_2(int64_t until_us, int64_t now_us);
 
 int64_t fsemu_time_wait_until_us(int64_t until_us);
-int64_t fsemu_time_wait_until_us_2(int64_t until_us, int64_t now);
+int64_t fsemu_time_wait_until_us_2(int64_t until_us, int64_t now_us);
 
-#ifdef __cplusplus
-}
-#endif
+struct tm *fsemu_time_localtime_r(const time_t *timep, struct tm *result);
+struct tm *fsemu_time_gmtime_r(const time_t *timep, struct tm *result);
+time_t fsemu_time_timegm(struct tm *tm);
+int fsemu_time_local_offset(time_t time);
+void fsemu_time_current(fsemu_time_val_t *result);
+int64_t fsemu_time_real(void);
 
 #ifdef __MACH__
-
-#include <mach/mach_time.h>
-#ifndef CLOCK_REALTIME
-#define CLOCK_REALTIME 0
-#endif
-#ifndef CLOCK_MONOTONIC
-#define CLOCK_MONOTONIC 0
-#endif
 
 static inline int fsemu_time_clock_gettime_mach(int clk_id, struct timespec *t)
 {
@@ -88,5 +109,9 @@ static inline int fsemu_time_clock_gettime_mach(int clk_id, struct timespec *t)
 #define clock_gettime fsemu_time_clock_gettime_mach
 
 #endif  // __MACH__
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  // FSEMU_TIME_H_

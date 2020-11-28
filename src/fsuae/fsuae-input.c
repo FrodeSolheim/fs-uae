@@ -1,3 +1,6 @@
+#define FSUAE_INTERNAL
+#include "fsuae-input.h"
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -9,6 +12,39 @@
 #include <uae/uae.h>
 
 #include "fs-uae.h"
+#include "fsemu-input.h"
+
+void fsuae_input_handle_uae_event(int event, void *data, int intdata)
+{
+    printf("fsuae_input_handle_uae_event %d (%d)\n", event, intdata);
+    int port_index, mode_index;
+    switch (event) {
+        case UAE_EVENT_PORT0MODE:
+        case UAE_EVENT_PORT1MODE:
+        case UAE_EVENT_PORT2MODE:
+        case UAE_EVENT_PORT3MODE:
+            port_index = event - UAE_EVENT_PORT0MODE;
+            if (port_index < 2) {
+                // FS-UAE inverts the first two ports for the GUI
+                port_index = 1 - port_index;
+            }
+            mode_index = intdata;
+            if (port_index >= fsemu_input_port_count()) {
+                printf(
+                    "WARNING: Ignoring event for port %d - port count is %d\n",
+                    port_index,
+                    fsemu_input_port_count());
+                return;
+            }
+            fsemu_inputport_t *port = fsemu_input_port_by_index(port_index);
+            fsemu_inputport_set_mode_index(port, mode_index);
+            break;
+    }
+}
+
+// ----------------------------------------------------------------------------
+
+#ifdef FSUAE_LEGACY
 
 static fs_emu_action g_actions[] = {
     { INPUTEVENT_MOUSE1_HORIZ, "action_mouse_0_horiz", 0 },
@@ -528,9 +564,13 @@ static fs_emu_action g_actions[] = {
     { 0, 0, 0 },
 };
 
+#endif  // FSUAE_LEGACY
+
 #ifdef USE_NFD
 #include "nfd.h"
 #endif
+
+#ifdef FSUAE_LEGACY
 
 static int hotkey_function(int action, int state)
 {
@@ -569,8 +609,11 @@ static int hotkey_function(int action, int state)
     return 0;
 }
 
+#endif  // FSUAE_LEGACY
+
 void fs_uae_configure_actions()
 {
+#ifdef FSUAE_LEGACY
     if (fsemu) {
         // FIXME: Should be able to disable this...
         //   return;
@@ -585,4 +628,5 @@ void fs_uae_configure_actions()
         printf("warp id does not match\n");
         exit(1);
     }
+#endif
 }

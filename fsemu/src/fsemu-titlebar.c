@@ -1,21 +1,23 @@
-#define FSEMU_INTERNAL
+#include "fsemu-internal.h"
 #include "fsemu-titlebar.h"
 
 #include "fsemu-color.h"
 #include "fsemu-common.h"
 #include "fsemu-control.h"
 #include "fsemu-fontcache.h"
+#include "fsemu-glib.h"
 #include "fsemu-gui.h"
 #include "fsemu-image.h"
 #include "fsemu-layer.h"
 #include "fsemu-module.h"
 #include "fsemu-option.h"
-#include "fsemu-options.h"
+#include "fsemu-osmenu.h"
 #include "fsemu-widget.h"
 #include "fsemu-window.h"
 
 enum {
     FSEMU_TITLEBAR_NONE,
+    FSEMU_TITLEBAR_MENU,
     FSEMU_TITLEBAR_MINIMIZE,
     FSEMU_TITLEBAR_MAXIMIZE,
     FSEMU_TITLEBAR_CLOSE
@@ -24,12 +26,20 @@ enum {
 #define FSEMU_TITLEBAR_BACKGROUND FSEMU_COLOR_RGBA(0x282828ff)
 #define FSEMU_TITLEBAR_BACKGROUND_INACTIVE FSEMU_COLOR_RGBA(0x303030ff)
 
-#define FSEMU_TITLEBAR_MINIMIZE_HOVER FSEMU_COLOR_RGBA(0x555555ff)
-#define FSEMU_TITLEBAR_MINIMIZE_ACTIVE FSEMU_COLOR_RGBA(0x777777ff)
-#define FSEMU_TITLEBAR_MAXIMIZE_HOVER FSEMU_COLOR_RGBA(0x555555ff)
-#define FSEMU_TITLEBAR_MAXIMIZE_ACTIVE FSEMU_COLOR_RGBA(0x777777ff)
 #define FSEMU_TITLEBAR_CLOSE_HOVER FSEMU_COLOR_RGBA(0x880000ff)
 #define FSEMU_TITLEBAR_CLOSE_ACTIVE FSEMU_COLOR_RGBA(0xaa0000ff)
+
+#define FSEMU_TITLEBAR_MAXIMIZE_HOVER FSEMU_COLOR_RGBA(0x555555ff)
+#define FSEMU_TITLEBAR_MAXIMIZE_ACTIVE FSEMU_COLOR_RGBA(0x777777ff)
+
+#define FSEMU_TITLEBAR_MENU_HOVER FSEMU_COLOR_RGBA(0x555555ff)
+#define FSEMU_TITLEBAR_MENU_ACTIVE FSEMU_COLOR_RGBA(0x777777ff)
+
+// Same as in FS-UAE Launcher
+#define FSEMU_TITLEBAR_MENU_SPACING 6
+
+#define FSEMU_TITLEBAR_MINIMIZE_HOVER FSEMU_COLOR_RGBA(0x555555ff)
+#define FSEMU_TITLEBAR_MINIMIZE_ACTIVE FSEMU_COLOR_RGBA(0x777777ff)
 
 // ---------------------------------------------------------------------------
 
@@ -47,25 +57,35 @@ static struct fsemu_titlebar {
     bool want_cursor;
     // Use system decorations
     bool use_system;
-    fsemu_gui_item_t background_item;
+
     uint32_t background_color;
     uint32_t background_color_inactive;
-    fsemu_gui_item_t background_ws_item;
+    fsemu_gui_item_t background_item;
     fsemu_image_t *background_ws_image;
-    fsemu_gui_item_t title_item;
-    fsemu_image_t *title_image;
+    fsemu_gui_item_t background_ws_item;
+
+    fsemu_gui_item_t close_bg_item;
     fsemu_image_t *close_icon;
-    fsemu_image_t *minimize_icon;
+    fsemu_gui_item_t close_item;
+
+    fsemu_gui_item_t maximize_bg_item;
     fsemu_image_t *maximize_icon;
+    fsemu_gui_item_t maximize_item;
+
+    fsemu_gui_item_t menu_bg_item;
+    fsemu_image_t *menu_icon;
+    fsemu_gui_item_t menu_item;
+
+    fsemu_gui_item_t minimize_bg_item;
+    fsemu_image_t *minimize_icon;
+    fsemu_gui_item_t minimize_item;
+
     uint32_t title_color;
     // uint32_t title_color_inactive;
+    fsemu_image_t *title_image;
+    fsemu_gui_item_t title_item;
     int title_opacity_inactive;
-    fsemu_gui_item_t maximize_bg_item;
-    fsemu_gui_item_t maximize_item;
-    fsemu_gui_item_t minimize_bg_item;
-    fsemu_gui_item_t minimize_item;
-    fsemu_gui_item_t close_bg_item;
-    fsemu_gui_item_t close_item;
+
     struct {
         fsemu_widget_t *container;
         fsemu_widget_t *close;
@@ -119,12 +139,16 @@ void fsemu_titlebar_update(void)
         fsemu_gui_item_t *item;
         item = &module.title_item;
         // FIXME: Semi-bold ?
-        fsemu_font_t *font =
-            fsemu_fontcache_font("SairaCondensed-SemiBold.ttf", 19 * ui_scale);
+        fsemu_font_t *font = fsemu_fontcache_font(
+            "Fonts/SairaCondensed-SemiBold.ttf", 19 * ui_scale);
         // 0xcc is the same alpha value as used by the window control icons
-        // for the custom frame.
+        // for the custom frame.       
+        // char *title_upper = g_utf8_strup(fsemu_emulator_name(), -1);
+        const char *title = fsemu_window_title();
+        char *title_upper = g_utf8_strup(title, -1);
         module.title_image = fsemu_font_render_text_to_image(
-            font, fsemu_emulator_name(), module.title_color);
+            font, title_upper, module.title_color);
+        free(title_upper);
 #if 0
         int y = (module.height - image->height) / 2;
         // Hand-tuned y offset for common ui scales for better text centering.
@@ -134,12 +158,14 @@ void fsemu_titlebar_update(void)
             y = 20;
         }
 #endif
-        fsemu_gui_image(item,
-                        20 * ui_scale,
-                        0,
-                        module.title_image->width,
-                        module.title_image->height,
-                        module.title_image);
+        fsemu_gui_image(
+            item,
+            // 20 * ui_scale
+            fsemu_titlebar_height() + FSEMU_TITLEBAR_MENU_SPACING * ui_scale,
+            0,
+            module.title_image->width,
+            module.title_image->height,
+            module.title_image);
         item->z_index = 9001;
         fsemu_gui_add_item(item);
     }
@@ -159,6 +185,11 @@ void fsemu_titlebar_update(void)
     module.maximize_bg_item.rect.w = module.height;
     module.maximize_item.rect.h = module.height;
     module.maximize_item.rect.w = module.height;
+
+    module.menu_bg_item.rect.h = module.height;
+    module.menu_bg_item.rect.w = module.height;
+    module.menu_item.rect.h = module.height;
+    module.menu_item.rect.w = module.height;
 
 #if 0
     module.widgets.close_bg->rect.h = module.height;
@@ -212,10 +243,14 @@ void fsemu_titlebar_update(void)
         module.title_item.rect.y = y + title_y;
     }
 
-    module.minimize_bg_item.rect.y = y;
-    module.minimize_item.rect.y = y;
     module.maximize_bg_item.rect.y = y;
     module.maximize_item.rect.y = y;
+
+    module.menu_bg_item.rect.y = y;
+    module.menu_item.rect.y = y;
+
+    module.minimize_bg_item.rect.y = y;
+    module.minimize_item.rect.y = y;
 
 #if 0
     module.widgets.close_bg->rect.y = y;
@@ -243,33 +278,41 @@ void fsemu_titlebar_update(void)
     //                      : module.title_color_inactive;
     module.title_item.color = opacity_color;
 
-    fsemu_gui_item_set_visible(&module.minimize_item, is_visible);
     fsemu_gui_item_set_visible(&module.maximize_item, is_visible);
+    fsemu_gui_item_set_visible(&module.menu_item, is_visible);
+    fsemu_gui_item_set_visible(&module.minimize_item, is_visible);
 #if 0
     fsemu_gui_item_set_visible(module.widgets.close, is_visible);
 #else
     fsemu_gui_item_set_visible(&module.close_item, is_visible);
 #endif
 
-    module.minimize_item.color = opacity_color;
     module.maximize_item.color = opacity_color;
+    module.menu_item.color = opacity_color;
+    module.minimize_item.color = opacity_color;
 #if 0
     module.widgets.close->color = opacity_color;
 #else
     module.close_item.color = opacity_color;
 #endif
 
-    fsemu_gui_item_set_visible(&module.minimize_bg_item,
-                               is_visible && hover == FSEMU_TITLEBAR_MINIMIZE);
-    module.minimize_bg_item.color = active == FSEMU_TITLEBAR_MINIMIZE
-                                        ? FSEMU_TITLEBAR_MINIMIZE_ACTIVE
-                                        : FSEMU_TITLEBAR_MINIMIZE_HOVER;
-
     fsemu_gui_item_set_visible(&module.maximize_bg_item,
                                is_visible && hover == FSEMU_TITLEBAR_MAXIMIZE);
     module.maximize_bg_item.color = active == FSEMU_TITLEBAR_MAXIMIZE
                                         ? FSEMU_TITLEBAR_MAXIMIZE_ACTIVE
                                         : FSEMU_TITLEBAR_MAXIMIZE_HOVER;
+
+    fsemu_gui_item_set_visible(&module.menu_bg_item,
+                               is_visible && hover == FSEMU_TITLEBAR_MENU);
+    module.menu_bg_item.color = active == FSEMU_TITLEBAR_MENU
+                                    ? FSEMU_TITLEBAR_MENU_ACTIVE
+                                    : FSEMU_TITLEBAR_MENU_HOVER;
+
+    fsemu_gui_item_set_visible(&module.minimize_bg_item,
+                               is_visible && hover == FSEMU_TITLEBAR_MINIMIZE);
+    module.minimize_bg_item.color = active == FSEMU_TITLEBAR_MINIMIZE
+                                        ? FSEMU_TITLEBAR_MINIMIZE_ACTIVE
+                                        : FSEMU_TITLEBAR_MINIMIZE_HOVER;
 
 #if 0
     fsemu_gui_item_set_visible(module.widgets.close_bg,
@@ -298,11 +341,14 @@ void fsemu_titlebar_set_width(int w)
     module.background_ws_item.rect.w = w;
     module.background_ws_item.dirty = true;
 
-    module.minimize_bg_item.rect.x = w - module.height * 3;
-    module.minimize_item.rect.x = w - module.height * 3;
-
     module.maximize_bg_item.rect.x = w - module.height * 2;
     module.maximize_item.rect.x = w - module.height * 2;
+
+    module.menu_bg_item.rect.x = 0;
+    module.menu_item.rect.x = 0;
+
+    module.minimize_bg_item.rect.x = w - module.height * 3;
+    module.minimize_item.rect.x = w - module.height * 3;
 
 #if 0
     module.widgets.close_bg->rect.x = w - module.height * 1;
@@ -332,6 +378,9 @@ static void fsemu_titlebar_set_visible(bool visible)
 static int fsemu_titlebar_button_test(fsemu_mouse_event_t *event)
 {
     if (event->y >= 0 && event->y < module.height) {
+        if (event->x < module.height * 1) {
+            return FSEMU_TITLEBAR_MENU;
+        }
         if (event->x > module.width - module.height * 1) {
             return FSEMU_TITLEBAR_CLOSE;
         }
@@ -360,6 +409,12 @@ static void fsemu_titlebar_capture_mouse(bool capture)
     // this synchronously/now.
     SDL_CaptureMouse(capture ? SDL_TRUE : SDL_FALSE);
     module.mouse_trapped = capture;
+}
+
+static void fsemu_titlebar_on_menu_button(void)
+{
+    printf("on menu\n");
+    fsemu_osmenu_toggle_open();
 }
 
 static void fsemu_titlebar_on_minimize_button(void)
@@ -431,14 +486,14 @@ bool fsemu_titlebar_handle_mouse(fsemu_mouse_event_t *event)
         } else if (event->released == 1) {
             int active = module.active_button;
             if (active && active == fsemu_titlebar_button_test(event)) {
-                if (active == FSEMU_TITLEBAR_MINIMIZE) {
-                    fsemu_titlebar_on_minimize_button();
-                }
-                if (active == FSEMU_TITLEBAR_MAXIMIZE) {
-                    fsemu_titlebar_on_maximize_button();
-                }
                 if (active == FSEMU_TITLEBAR_CLOSE) {
                     fsemu_titlebar_on_close_button();
+                } else if (active == FSEMU_TITLEBAR_MAXIMIZE) {
+                    fsemu_titlebar_on_maximize_button();
+                } else if (active == FSEMU_TITLEBAR_MENU) {
+                    fsemu_titlebar_on_menu_button();
+                } else if (active == FSEMU_TITLEBAR_MINIMIZE) {
+                    fsemu_titlebar_on_minimize_button();
                 }
             }
             // printf("release trap mode\n");
@@ -563,7 +618,7 @@ static void fsemu_titlebar_init_container(void)
 static void fsemu_titlebar_init_widgets(void)
 {
     fsemu_gui_item_t *item;
-    fsemu_image_t *image;
+    // fsemu_image_t *image;
 
     item = &module.background_item;
     // titlebar_color = FSEMU_COLOR_RGBA(0xff202080);
@@ -573,7 +628,8 @@ static void fsemu_titlebar_init_widgets(void)
 
     // With shadow
     item = &module.background_ws_item;
-    module.background_ws_image = fsemu_image_load("TitleBarWithShadow.png");
+    module.background_ws_image =
+        fsemu_image_load("Images/TitleBarWithShadow.png");
     fsemu_gui_image(item,
                     0,
                     0,
@@ -588,7 +644,7 @@ static void fsemu_titlebar_init_widgets(void)
 
     item = &module.title_item;
     // FIXME: Semi-bold ?
-    fsemu_font_t *font = fsemu_font_load("SairaCondensed-SemiBold.ttf", 19 * ui_scale);
+    fsemu_font_t *font = fsemu_font_load("Fonts/SairaCondensed-SemiBold.ttf", 19 * ui_scale);
     // 0xcc is the same alpha value as used by the window control icons
     // for the custom frame.
     image = fsemu_font_render_text_to_image(
@@ -598,12 +654,27 @@ static void fsemu_titlebar_init_widgets(void)
     fsemu_gui_add_item(item);
 #endif
 
+    item = &module.menu_bg_item;
+    fsemu_gui_rectangle(item, 0, 0, 40, 40, 0);
+    item->z_index = 9001;
+    fsemu_gui_add_item(item);
+    item = &module.menu_item;
+    module.menu_icon = fsemu_image_load("Images/TitleBarMenuIcon.png");
+    fsemu_gui_image(item,
+                    0,
+                    0,
+                    module.menu_icon->width,
+                    module.menu_icon->height,
+                    module.menu_icon);
+    item->z_index = 9002;
+    fsemu_gui_add_item(item);
+
     item = &module.minimize_bg_item;
     fsemu_gui_rectangle(item, 0, 0, 40, 40, 0);
     item->z_index = 9001;
     fsemu_gui_add_item(item);
     item = &module.minimize_item;
-    module.minimize_icon = fsemu_image_load("TitleBarMinimizeIcon.png");
+    module.minimize_icon = fsemu_image_load("Images/TitleBarMinimizeIcon.png");
     fsemu_gui_image(item,
                     0,
                     0,
@@ -618,7 +689,7 @@ static void fsemu_titlebar_init_widgets(void)
     item->z_index = 9001;
     fsemu_gui_add_item(item);
     item = &module.maximize_item;
-    module.maximize_icon = fsemu_image_load("TitleBarMaximizeIcon.png");
+    module.maximize_icon = fsemu_image_load("Images/TitleBarMaximizeIcon.png");
     fsemu_gui_image(item,
                     0,
                     0,
@@ -633,7 +704,7 @@ static void fsemu_titlebar_init_widgets(void)
 
     module.widgets.close = fsemu_widget_new_with_name("fsemu:titlebar:close");
     widget = module.widgets.close;
-    image = fsemu_image_load("TitleBarCloseIcon.png");
+    image = fsemu_image_load("Images/TitleBarCloseIcon.png");
     fsemu_gui_image(widget, 0, 0, image->width, image->height, image);
     fsemu_widget_set_z_index(widget, 9002);
     fsemu_gui_add_item(widget);
@@ -649,7 +720,7 @@ static void fsemu_titlebar_init_widgets(void)
     item->z_index = 9001;
     fsemu_gui_add_item(item);
     item = &module.close_item;
-    module.close_icon = fsemu_image_load("TitleBarCloseIcon.png");
+    module.close_icon = fsemu_image_load("Images/TitleBarCloseIcon.png");
     fsemu_gui_image(item,
                     0,
                     0,
@@ -664,11 +735,13 @@ static void fsemu_titlebar_init_widgets(void)
 static void fsemu_titlebar_quit(void)
 {
     fsemu_titlebar_log("fsemu_titlebar_quit\n");
+
     fsemu_image_unref(module.background_ws_image);
-    fsemu_image_unref(module.title_image);
     fsemu_image_unref(module.close_icon);
-    fsemu_image_unref(module.minimize_icon);
     fsemu_image_unref(module.maximize_icon);
+    fsemu_image_unref(module.menu_icon);
+    fsemu_image_unref(module.minimize_icon);
+    fsemu_image_unref(module.title_image);
 }
 
 void fsemu_titlebar_init(void)

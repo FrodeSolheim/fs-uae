@@ -2,6 +2,8 @@
 #include "config.h"
 #endif
 
+#ifdef FSUAE_LEGACY
+
 #define FSEMU_INTERNAL
 #include <fs/emu/audio.h>
 #include <fs/emu/options.h>
@@ -130,3 +132,5 @@ void fse_init_audio(void)
         }
     }
 }
+
+#endif  // FSUAE_LEGACY

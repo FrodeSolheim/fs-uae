@@ -1,3 +1,6 @@
+#define FSUAE_INTERNAL
+#include "fsuae-luascript.h"
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif

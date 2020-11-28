@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL
+#include "fsemu-internal.h"
 #include "fsemu-videothread.h"
 
 #include "fsemu-mutex.h"
@@ -61,6 +61,7 @@ void fsemu_videothread_copy_thread_data(void)
     fsemu_mutex_lock(fsemu_videothread.ui_video_mutex);
 
     fsemu_videothread.thread_d = fsemu_videothread.ui_thread_d;
+    // printf("HEIGHT IS NOW %d\n", fsemu_videothread.thread_d.video_rect.h);
 
     fsemu_mutex_unlock(fsemu_videothread.ui_video_mutex);
 }

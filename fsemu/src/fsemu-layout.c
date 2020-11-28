@@ -1,9 +1,8 @@
-#define FSEMU_INTERNAL
+#include "fsemu-internal.h"
 #include "fsemu-layout.h"
 
 #include "fsemu-common.h"
 #include "fsemu-option.h"
-#include "fsemu-options.h"
 #include "fsemu-osmenu.h"
 #include "fsemu-theme.h"
 #include "fsemu-titlebar.h"
@@ -53,7 +52,7 @@ void fsemu_layout_init(void)
 {
     fsemu_return_if_already_initialized();
     fsemu_theme_module_init();
-    
+
     // Default to zoom mode 1 for now
     fsemu_layout.zoom_mode = 1;
     fsemu_layout_read_options();
@@ -79,6 +78,14 @@ void fsemu_layout_set_client_margins(int margins[4])
 
 void fsemu_layout_set_video_size(int width, int height)
 {
+    if (width == 0 || height == 0) {
+        printf("WARNING: Zero layout video size %dx%d\n", width, height);
+        width = 4;
+        height = 3;
+    }
+    // fsemu_assert(width > 0);
+    // fsemu_assert(height > 0);
+
     fsemu_layout.video_width = width;
     fsemu_layout.video_height = height;
 }
@@ -354,6 +361,17 @@ void fsemu_layout_video_rect(fsemu_rect_t *rect)
     int video_w = fsemu_layout.video_width;
     int video_h = fsemu_layout.video_height;
 
+    if (video_w == 0 || video_h == 0) {
+        printf("WARNING: Layout video size not set\n");
+        video_w = 4;
+        video_h = 3;
+    }
+
+    // fsemu_assert(video_w > 0);
+    // fsemu_assert(video_h > 0);
+
+    // printf("--------------- %d %d\n", video_w, video_h);
+
     fsemu_rect_t src_crop;
     // C64
     src_crop.x = (768 - 640) / 2;
@@ -373,8 +391,15 @@ void fsemu_layout_video_rect(fsemu_rect_t *rect)
     // video_w = 320;
     // video_h = 200;
 
-    double video_a =
-        (double) fsemu_layout.video_width / fsemu_layout.video_height;
+    double video_a;
+    // if (FSEMU_LIKELY(fsemu_layout.video_height)) {
+        // video_a =
+        //     (double) fsemu_layout.video_width / fsemu_layout.video_height;
+        video_a = (double) video_w / video_h;
+        // printf("video_a = %0.2f\n", video_a);
+    // } else {
+    //     video_a = 1.0;
+    // }
 
     if (fsemu_layout.zoom_mode >= 2) {
         video_a = (double) src_crop.w / src_crop.h;
@@ -394,7 +419,12 @@ void fsemu_layout_video_rect(fsemu_rect_t *rect)
         } else {
             pixel_aspect = fsemu_layout_pixel_aspect();
         }
-        double initial_aspect = (double) video_area.w / video_area.h;
+        double initial_aspect;
+        // if (FSEMU_LIKELY(video_area.h)) {
+            initial_aspect = (double) video_area.w / video_area.h;
+        // } else {
+        //     initial_aspect = 1.0;
+        // }
         double aspect = video_a / pixel_aspect;
         if (aspect < initial_aspect) {
             scale_x = aspect / initial_aspect;
@@ -414,6 +444,9 @@ void fsemu_layout_video_rect(fsemu_rect_t *rect)
     // scale x 0,711111 y 1,000000
     // layout video rect 160 70 639 480
     // ---> 639 should be 640.
+
+    // printf("%d %f, %d %f\n", video_area.w, scale_x, video_area.h, scale_y);
+
 
     int scaled_w = video_area.w * scale_x;
     int scaled_h = video_area.h * scale_y;
@@ -468,6 +501,11 @@ void fsemu_layout_video_rect(fsemu_rect_t *rect)
         // can go outside the video_area, and also that we get bleed
         // effects from "border" pixels.
     }
+
+    // printf("%d %d\n", x_border, y_border);
+    // printf("%d %d %d %d\n", rect->x, rect->y, rect->w, rect->h);
+    // exit(1);
+    // printf("2 --------------- %d\n", video_h);
 }
 
 int fsemu_scale_mode(void)

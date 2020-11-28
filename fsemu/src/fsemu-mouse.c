@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL
+#include "fsemu-internal.h"
 #include "fsemu-mouse.h"
 
 #include "fsemu-config.h"
@@ -7,7 +7,7 @@
 #include "fsemu-log.h"
 #include "fsemu-manymouse.h"
 #include "fsemu-option.h"
-#include "fsemu-options.h"
+#include "fsemu-osmenu.h"
 #include "fsemu-thread.h"
 #include "fsemu-titlebar.h"
 
@@ -145,11 +145,21 @@ bool fsemu_mouse_handle_mouse(fsemu_mouse_event_t *event)
                         event->y);
 
         if (event->state) {
+            // if (fsemu_osmenu_open()) {
+            //     return true;
+            // } else
             if (event->button == 2) {
-                fsemu_mouse_toggle_captured();
+                if (fsemu_mouse_captured()) {
+                    fsemu_mouse_set_captured(false);
+                } else if (fsemu_osmenu_open()) {
+                    // Don't want to grab while menu is open
+                } else {
+                    fsemu_mouse_set_captured(true);
+                }
                 return true;
             } else {
-                if (fsemu_mouse.automatic_grab && !fsemu_mouse_captured()) {
+                if (fsemu_mouse.automatic_grab && !fsemu_mouse_captured() &&
+                    !fsemu_osmenu_open()) {
                     fsemu_mouse_set_captured(true);
                     return true;
                 }
@@ -164,7 +174,8 @@ bool fsemu_mouse_handle_mouse(fsemu_mouse_event_t *event)
 #endif
     }
 
-    int device_index = 0;
+    // FIXME: Hardcoded for now.. :-/
+    int device_index = 1;
     int slot = 0;
     int state = 0;
 
@@ -203,6 +214,11 @@ bool fsemu_mouse_handle_mouse(fsemu_mouse_event_t *event)
     return false;
 }
 
+void fsemu_mouse_add_devices(void)
+{
+    fsemu_mouse_add_system_device();
+}
+
 // ---------------------------------------------------------------------------
 
 void fsemu_mouse_init(void)
@@ -213,7 +229,6 @@ void fsemu_mouse_init(void)
 
     fsemu_mouse_log(1, "Init\n");
 
-    fsemu_mouse_add_system_device();
 #ifdef FSEMU_MANYMOUSE
     // FIXME: Or many put the dependency the other way around, and call
     // fsemu_manymouse_init from somewhere else.

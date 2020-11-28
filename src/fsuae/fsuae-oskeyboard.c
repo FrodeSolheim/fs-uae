@@ -1,3 +1,6 @@
+#define FSUAE_INTERNAL
+#include "fsuae-oskeyboard.h"
+
 #include "fsuae-action.h"
 #include "fsuae.h"
 

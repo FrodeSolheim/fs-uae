@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL
+#include "fsemu-internal.h"
 #include "fsemu-thread.h"
 
 // #ifdef HAVE_CONFIG_H
@@ -7,6 +7,7 @@
 
 #include "fsemu-common.h"
 #include "fsemu-log.h"
+#include "fsemu-time.h"
 #include "fsemu-util.h"
 
 // #include <fs/base.h>
@@ -91,25 +92,34 @@ struct fs_semaphore {
 #endif
 };
 
-static struct {
-    fsemu_thread_id_t main_thread_id;
-} fsemu_thread;
+// static struct {
+// } fsemu_thread;
+
+fsemu_thread_id_t fsemu_thread_emu_thread_id;
+fsemu_thread_id_t fsemu_thread_main_thread_id;
+fsemu_thread_id_t fsemu_thread_video_thread_id;
 
 void fsemu_thread_init(void)
 {
     fsemu_return_if_already_initialized();
+    fsemu_time_init();
 
-    fsemu_thread.main_thread_id = fsemu_thread_id();
+    fsemu_thread_set_main();
 }
 
-bool fsemu_thread_is_main(void)
+void fsemu_thread_set_emu(void)
 {
-    return fsemu_thread.main_thread_id == fsemu_thread_id();
+    fsemu_thread_emu_thread_id = fsemu_thread_id();
 }
 
-void fsemu_thread_assert_main(void)
+void fsemu_thread_set_main(void)
 {
-    fsemu_assert(fsemu_thread_is_main());
+    fsemu_thread_main_thread_id = fsemu_thread_id();
+}
+
+void fsemu_thread_set_video(void)
+{
+    fsemu_thread_video_thread_id = fsemu_thread_id();
 }
 
 fsemu_thread_id_t fsemu_thread_id(void)

@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL
+#include "fsemu-internal.h"
 #include "fsemu-sdlinput.h"
 
 #include "fsemu-action.h"
@@ -260,9 +260,10 @@ static bool fsemu_sdlinput_handle_key_event(SDL_Event *event)
                         event->key.keysym.scancode);
         return false;
     }
-    fsemu_input_log("Key %s scancode=%d\n",
-                    event->key.state ? "press" : "release",
-                    event->key.keysym.scancode);
+    // FIXME: Increase log level
+    // fsemu_input_log("Key %s scancode=%d\n",
+    //                 event->key.state ? "press" : "release",
+    //                 event->key.keysym.scancode);
     fsemu_key_t key = event->key.keysym.scancode;
     fsemu_input_handle_keyboard(key, event->key.state != 0);
     return false;

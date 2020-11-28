@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL
+#include "fsemu-internal.h"
 #include "fsemu-glvideo.h"
 
 #include "fsemu-frame.h"
@@ -84,8 +84,9 @@ void fsemu_glvideo_init(void)
 #endif
     // FIXME: Shouldn't be necessary.
     // FIXME: Make sure to synch opengl state instead?
-    glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-    fsemu_opengl_log_error_maybe();
+    // glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+    // fsemu_opengl_log_error_maybe();
+    fsemu_opengl_unpack_row_length(0);
 
     for (int i = 0; i < 2; i++) {
         glBindTexture(GL_TEXTURE_2D, fsemu_glvideo.textures[i]);
@@ -144,6 +145,12 @@ void fsemu_glvideo_set_size_2(int width, int height)
 
 static void fsemu_glvideo_handle_frame(fsemu_video_frame_t *frame)
 {
+    if (frame->dummy) {
+        fsemu_video_set_ready(true);
+        return;
+    }
+    fsemu_video_must_render_frame();
+
     fsemu_video_log(" ---------------- draw got frame! (%dx%d) partial? %d\n",
                     frame->width,
                     frame->height,
@@ -597,6 +604,7 @@ void fsemu_glvideo_set_frame_rendered_externally(void)
     fsemu_video_set_frame_rendered_at(fsemu_glvideo.frame_count,
                                       fsemu_time_us());
     fsemu_glvideo.frame_count += 1;
+    // fsemu_opengl_forget_state();
 }
 
 static int64_t fsemu_glvideo_wait_for_swap(void)
@@ -614,6 +622,17 @@ void fsemu_glvideo_display(void)
 {
     // fsemu_video_log("--- display --- [draw]\n");
     // printf("swap\n");
+#if 0
+    if (fsemu_video_can_skip_rendering_this_frame()) {
+        return;
+    }
+#endif
+#if 0
+    } else {
+        SDL_Window *window = fsemu_sdlwindow_window();
+        SDL_GL_SwapWindow(window);
+    }
+#endif
     SDL_Window *window = fsemu_sdlwindow_window();
     SDL_GL_SwapWindow(window);
 
@@ -911,6 +930,7 @@ static void fsemu_glvideo_render_text(fsemu_gui_item_t *widget)
         tx2 = 0.0f;
     }
 
+    // fsemu_opengl_blend(false);
     fsemu_opengl_blend(true);
     // fsemu_opengl_color4f(1.0f, 1.0f, 1.0f, 1.0f);
     fsemu_opengl_depth_test(false);
@@ -976,6 +996,7 @@ static void fsemu_glvideo_render_image(fsemu_gui_item_t *widget)
     // image->depth,
     // image->stride,
 
+    // fsemu_opengl_unpack_row_length(4);
     fsemu_opengl_unpack_row_length(0);
     glTexImage2D(GL_TEXTURE_2D,
                  0,
@@ -1003,6 +1024,7 @@ static void fsemu_glvideo_render_image(fsemu_gui_item_t *widget)
         tx2 = 0.0f;
     }
 
+    // fsemu_opengl_blend(false);
     fsemu_opengl_blend(true);
     // fsemu_opengl_color4f(1.0f, 1.0f, 1.0f, 1.0f);
     fsemu_opengl_color4f(r / 255.0, g / 255.0, b / 255.0, a / 255.0);

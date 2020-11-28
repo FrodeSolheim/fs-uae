@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL
+#include "fsemu-internal.h"
 #include "fsemu-manymouse.h"
 
 #ifdef FSEMU_MANYMOUSE

@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL
+#include "fsemu-internal.h"
 #include "fsemu-xmlshader.h"
 
 #include "fsemu-log.h"

@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL
+#include "fsemu-internal.h"
 #include "fsemu-perfgui.h"
 
 #include <stdint.h>
@@ -8,7 +8,6 @@
 #include "fsemu-gui.h"
 #include "fsemu-image.h"
 #include "fsemu-option.h"
-#include "fsemu-options.h"
 #include "fsemu-video.h"
 #include "fsemu-widget.h"
 
@@ -125,7 +124,7 @@ static void fsemu_perfgui_init_items(void)
     fsemu_perfgui.video_item.coordinates = FSEMU_COORD_1080P_LEFT;
 
 #if 0
-    fsemu_font_t *font = fsemu_font_load("SairaCondensed-Bold.ttf", 40);
+    fsemu_font_t *font = fsemu_font_load("Fonts/SairaCondensed-Bold.ttf", 40);
     fsemu_image_t *image;
 
     item = &fsemu_perfgui.vsync_test_item_a;
@@ -245,31 +244,6 @@ static void fsemu_perfgui_set_colors(int color_set)
 
     fsemu_perfgui.color_set = color_set;
     fsemu_perfgui.refresh = true;
-}
-
-void fsemu_perfgui_init(void)
-{
-    fsemu_return_if_already_initialized();
-
-    fsemu_gui_init();
-
-    fsemu_log("Initializing perfgui\n");
-    fsemu_perfgui_init_images();
-    fsemu_perfgui_init_items();
-
-    // Default to 0 for now
-    fsemu_perfgui.mode = 0;
-
-    fsemu_option_read_int(FSEMU_OPTION_PERFORMANCE_GUI, &fsemu_perfgui.mode);
-    if (fsemu_perfgui.mode < 0 || fsemu_perfgui.mode > 2) {
-        fsemu_log("WARNING: Invalid valid for " FSEMU_OPTION_PERFORMANCE_GUI
-                  "\n");
-        fsemu_perfgui.mode = 0;
-    }
-
-    if (fsemu_perfgui.mode) {
-        fsemu_perfgui_set_colors(fsemu_perfgui.mode);
-    }
 }
 
 static void fsemu_perfgui_draw_line(uint8_t *row)
@@ -589,4 +563,28 @@ void fsemu_perfgui_cycle(void)
 int fsemu_perfgui_mode(void)
 {
     return fsemu_perfgui.mode;
+}
+
+void fsemu_perfgui_init(void)
+{
+    fsemu_return_if_already_initialized();
+
+    fsemu_gui_init();
+
+    fsemu_log("Initializing perfgui\n");
+    fsemu_perfgui_init_images();
+    fsemu_perfgui_init_items();
+
+    // Default to 0 for now
+    fsemu_perfgui.mode =
+        fsemu_option_int_default(FSEMU_OPTION_PERFORMANCE_GUI, 0);
+    if (fsemu_perfgui.mode < 0 || fsemu_perfgui.mode > 2) {
+        fsemu_log("WARNING: Invalid valid for " FSEMU_OPTION_PERFORMANCE_GUI
+                  "\n");
+        fsemu_perfgui.mode = 0;
+    }
+
+    if (fsemu_perfgui.mode) {
+        fsemu_perfgui_set_colors(fsemu_perfgui.mode);
+    }
 }

@@ -1,5 +1,7 @@
-#define FSEMU_INTERNAL
+#include "fsemu-internal.h"
 #include "fsemu-inputmode.h"
+
+#include "fsemu-util.h"
 
 static fsemu_inputmode_t *fsemu_inputmode_alloc(void)
 {
@@ -26,14 +28,26 @@ const char *fsemu_inputmode_name(fsemu_inputmode_t *mode)
 
 void fsemu_inputmode_set_name(fsemu_inputmode_t *mode, const char *name)
 {
-    if (!name) {
-        printf("WARNING: Cannot set NULL name\n");
-        return;
-    }
+    fsemu_assert(name != NULL);
     if (mode->name) {
         free(mode->name);
     }
     mode->name = strdup(name);
+}
+
+const char *fsemu_inputmode_title(fsemu_inputmode_t *mode)
+{
+    return mode->title;
+}
+
+void fsemu_inputmode_set_title(fsemu_inputmode_t *mode, const char *title)
+{
+    fsemu_assert(title != NULL);
+
+    if (mode->title) {
+        free(mode->title);
+    }
+    mode->title = strdup(title);
 }
 
 void fsemu_inputmode_map(fsemu_inputmode_t *mode, int input, int action)

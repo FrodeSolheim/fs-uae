@@ -20,6 +20,8 @@
 #include "config.h"
 #endif
 
+#ifdef FSUAE_LEGACY
+
 #include "hud.h"
 #include <fs/emu.h>
 #include <fs/emu/options.h>
@@ -385,3 +387,5 @@ void fse_render_hud(void)
     fs_gl_ortho_hd();
     fse_render_hud_chat();
 }
+
+#endif  // FSUAE_LEGACY

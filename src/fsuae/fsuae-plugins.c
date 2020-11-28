@@ -1,6 +1,10 @@
+#define FSUAE_INTERNAL
+#include "fsuae-plugins.h"
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
+
 #include <fs/base.h>
 #include <fs/log.h>
 #include <glib.h>
@@ -9,8 +13,7 @@
 #include <uae/uae.h>
 
 #include "fsemu-module.h"
-#include "fsuae-paths.h"
-#include "fsuae-plugins.h"
+#include "fsuae-path.h"
 
 #define NEW_PLUGINS 1
 
@@ -88,7 +91,7 @@ static const char *lookup_plugin(const char *name)
     }
     g_free(path);
 
-    path = g_build_filename(fs_uae_plugins_dir(), module_name, NULL);
+    path = g_build_filename(fsuae_path_plugins_dir(), module_name, NULL);
     fs_log("[PLUGINS] Checking \"%s\"\n", path);
     if (g_file_test(path, G_FILE_TEST_EXISTS)) {
         g_free(module_name);
@@ -266,7 +269,7 @@ void fs_uae_plugins_init()
     provides = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, NULL);
     amiga_set_plugin_lookup_function(lookup_plugin);
 
-    const char *plugins_dir = fs_uae_plugins_dir();
+    const char *plugins_dir = fsuae_path_plugins_dir();
     load_plugins_from_dir(plugins_dir);
 
     gchar *path;

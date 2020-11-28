@@ -2,6 +2,8 @@
 #include "config.h"
 #endif
 
+#ifdef FSUAE_LEGACY
+
 #define FSEMU_INTERNAL
 #include <fs/emu.h>
 #include <fs/emu/audio.h>
@@ -39,8 +41,6 @@
 #include "netplay.h"
 #include "theme.h"
 #include "video.h"
-
-int fsemu = 0;
 
 char *g_fs_emu_title = NULL;
 char *g_fs_emu_sub_title = NULL;
@@ -563,3 +563,5 @@ int fs_emu_wait_for_frame(int frame)
     return fs_emu_netplay_wait_for_frame(frame);
 #endif
 }
+
+#endif  // FSUAE_LEGACY

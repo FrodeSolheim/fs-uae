@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL
+#include "fsemu-internal.h"
 #include "fsemu-audio-alsa.h"
 
 #include "fsemu-audio-buffer.h"

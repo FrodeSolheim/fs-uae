@@ -128,8 +128,10 @@ int amiga_send_input_event(int input_event, int state)
         if (magic_mouse) {
             //printf("magic mouse %d %d\n",
             //       fs_emu_mouse_absolute_x, fs_emu_mouse_absolute_y);
+#ifdef FSUAE_LEGACY
             uae_mousehack_helper(fs_emu_mouse_absolute_x,
                                  fs_emu_mouse_absolute_y);
+#endif
             return 1;
         }
     case INPUTEVENT_MOUSE1_WHEEL:

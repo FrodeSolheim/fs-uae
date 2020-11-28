@@ -2,6 +2,8 @@
 #include "config.h"
 #endif
 
+#ifdef FSUAE_LEGACY
+
 // FIXME: make libfsml independent of libfsmeu
 #include "../emu/util.h"
 #include "../emu/video.h"
@@ -711,3 +713,5 @@ void fs_ml_render_init(void)
         g_fs_ml_video_sync_low_latency = 1;
     }
 }
+
+#endif  // FSEMU_LEGACY

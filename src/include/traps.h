@@ -13,6 +13,11 @@
 #ifndef UAE_TRAPS_H
 #define UAE_TRAPS_H
 
+#ifdef FSUAE // NL
+#include "sysconfig.h"
+#include "sysdeps.h"
+#endif
+
 #include "uae/types.h"
 
 

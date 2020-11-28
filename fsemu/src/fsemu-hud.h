@@ -32,6 +32,10 @@ void fsemu_hud_show_notification(fsemu_hud_id_t notification_id,
 
 #endif  // FSEMU_INTERNAL
 
+void fse_notify(uint32_t type, const char *format, ...);
+void fs_emu_warning(const char *format, ...);
+void fs_emu_deprecated(const char *format, ...);
+
 #ifdef __cplusplus
 }
 #endif

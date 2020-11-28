@@ -3,9 +3,6 @@
 
 #include <stddef.h>
 #include <fs/thread.h>
-#ifdef USE_SDL2
-#include <SDL.h>
-#endif
 
 typedef fs_semaphore *uae_sem_t;
 

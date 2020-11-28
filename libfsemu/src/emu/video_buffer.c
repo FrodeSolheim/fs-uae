@@ -2,6 +2,8 @@
 #include "config.h"
 #endif
 
+#ifdef FSUAE_LEGACY
+
 #include <fs/emu.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -195,3 +197,5 @@ void fs_emu_video_buffer_set_current(fs_emu_video_buffer *buffer) {
     fs_ml_unlock_buffer_swap();
 */
 }
+
+#endif  // FSUAE_LEGACY

@@ -70,6 +70,107 @@
 
 #ifdef FSUAE // NL
 #include "uae/fs.h"
+#include "fsemu-savestate.h"
+
+static TCHAR savestate_base_dir[MAX_DPATH];
+static TCHAR savestate_home_dir[MAX_DPATH];
+static TCHAR savestate_run_dir[MAX_DPATH];
+
+extern "C" {
+
+static void uae_savestate_convert_slashes(char *path)
+{
+#ifdef _WIN32
+	int len = strlen(path);
+	for (int i = 0; i < len; i++) {
+		if (path[i] == '\\') {
+			path[i] = '/';
+		}
+	}
+#endif
+}
+
+static void uae_savestate_set_prefix_dir(char *dst, const char *value)
+{
+	// FIXME: Does not check for overflow...
+	_tcscpy(dst, value);
+	uae_savestate_convert_slashes(dst);
+	int len = strlen(value);
+	if (len > 0) {
+		// Make sure to suffix the path with a slash
+		if (dst[len - 1] != '/') {
+			dst[len] = '/';
+			dst[len + 1] = '\0';
+		}
+	}
+}
+
+void uae_savestate_set_base_dir(const char *base_dir)
+{
+	uae_savestate_set_prefix_dir(savestate_base_dir, base_dir);
+}
+
+void uae_savestate_set_home_dir(const char *home_dir)
+{
+	uae_savestate_set_prefix_dir(savestate_home_dir, home_dir);
+}
+
+void uae_savestate_set_run_dir(const char *run_dir)
+{
+	uae_savestate_set_prefix_dir(savestate_run_dir, run_dir);
+}
+
+static void generalize_path_2(TCHAR *path, const TCHAR *prefix, TCHAR *prefix_path)
+{
+	if (prefix_path[0] == '\0') {
+		return;
+	}
+	uae_savestate_convert_slashes(path);
+	int prefix_path_length = strlen(prefix_path);
+	if (strncmp(path, prefix_path, prefix_path_length) == 0) {
+		TCHAR tmp[MAX_DPATH];
+		strcpy(tmp, path);
+		// printf("path tmp: %s\n", tmp);
+		strcpy(path, prefix);
+		// printf("path path: %s\n", path);
+		// strcpy(path + prefix_path_length, "/");
+		strcpy(path + strlen(prefix), tmp + prefix_path_length);
+		// printf("path path: %s (%d)\n", path, prefix_path_length);
+	}
+}
+
+static void generalize_path(TCHAR *path)
+{
+	printf("generalize_path %s\n", path);
+	generalize_path_2(path, "$RUN/", savestate_run_dir);
+	generalize_path_2(path, "$BASE/", savestate_base_dir);
+	generalize_path_2(path, "$HOME/", savestate_home_dir);
+	printf("generalize_path -> %s\n", path);
+}
+
+static void expand_path_2(TCHAR *path, const TCHAR *prefix, TCHAR *prefix_path)
+{
+	int prefix_length = strlen(prefix);
+	printf("%d %s\n", prefix_length, prefix);
+	if (strncmp(path, prefix, prefix_length) == 0) {
+		TCHAR tmp[MAX_DPATH];
+		strcpy(tmp, path);
+		strcpy(path, prefix_path);
+		strcpy(path + strlen(prefix_path), tmp + prefix_length);
+	}
+}
+
+static void expand_path(TCHAR *path)
+{
+	printf("expand_path %s\n", path);
+	expand_path_2(path, "$RUN/", savestate_run_dir);
+	expand_path_2(path, "$BASE/", savestate_base_dir);
+	expand_path_2(path, "$HOME/", savestate_home_dir);
+	printf("expand_path -> %s\n", path);
+}
+
+} // extern C
+
 #endif
 
 int savestate_state = 0;
@@ -208,6 +309,12 @@ void save_string_func (uae_u8 **dstp, const TCHAR *from)
 }
 void save_path_func (uae_u8 **dstp, const TCHAR *from, int type)
 {
+#ifdef FSUAE
+	TCHAR path[MAX_DPATH];
+	_tcscpy(path, from ? from : _T(""));
+	generalize_path(path);
+	from = path;
+#endif
 	save_string_func (dstp, from);
 }
 void save_path_full_func(uae_u8 **dstp, const TCHAR *spath, int type)
@@ -216,9 +323,15 @@ void save_path_full_func(uae_u8 **dstp, const TCHAR *spath, int type)
 	save_u32_func(dstp, type);
 	_tcscpy(path, spath ? spath : _T(""));
 	fullpath(path, MAX_DPATH, false);
+#ifdef FSUAE
+	generalize_path(path);
+#endif
 	save_string_func(dstp, path);
 	_tcscpy(path, spath ? spath : _T(""));
 	fullpath(path, MAX_DPATH, true);
+#ifdef FSUAE
+	generalize_path(path);
+#endif
 	save_string_func(dstp, path);
 }
 
@@ -291,6 +404,16 @@ static TCHAR *state_resolve_path(TCHAR *s, int type, bool newmode)
 
 	if (s[0] == 0)
 		return s;
+#ifdef FSUAE
+	if (s[0] == '$') {
+		printf("path contains $\n");
+		_tcscpy(tmp, s);
+		expand_path(tmp);
+		xfree(s);
+		s = my_strdup(tmp);
+		// printf("path --- %s\n", s);
+	}
+#endif
 	if (!newmode && state_path_exists(s, type))
 		return s;
 	if (type == SAVESTATE_PATH_HD)
@@ -1261,11 +1384,7 @@ void savestate_quick (int slot, int save)
 #endif
 	int i, len = _tcslen (savestate_fname);
 	i = len - 1;
-#ifdef FSUAE
-	while (i >= 0 && savestate_fname[i] != ' ')
-#else
 	while (i >= 0 && savestate_fname[i] != '_')
-#endif
 		i--;
 	if (i < len - 6 || i <= 0) { /* "_?.uss" */
 		i = len - 1;
@@ -1278,17 +1397,12 @@ void savestate_quick (int slot, int save)
 	}
 	_tcscpy (savestate_fname + i, _T(".uss"));
 	if (slot > 0)
-#ifdef FSUAE
-		_stprintf (savestate_fname + i, _T(" %d.uss"), slot);
-#else
 		_stprintf (savestate_fname + i, _T("_%d.uss"), slot);
-#endif
 	if (save) {
 		write_log (_T("saving '%s'\n"), savestate_fname);
+		savestate_docompress = 1;
 #ifdef FSUAE
 		savestate_docompress = g_amiga_savestate_docompress;
-#else
-		savestate_docompress = 1;
 #endif
 		savestate_nodialogs = 1;
 		save_state (savestate_fname, _T(""));
@@ -1300,6 +1414,11 @@ void savestate_quick (int slot, int save)
 		savestate_state = STATE_DORESTORE;
 		write_log (_T("staterestore starting '%s'\n"), savestate_fname);
 	}
+#ifdef FSUAE
+	if (save && fsemu) {
+		fsemu_savestate_update_slot(slot);
+	}
+#endif
 }
 
 bool savestate_check (void)

@@ -23,7 +23,7 @@
 #endif
 
 #define DEVICE_HELPER
-#include "fsuae-paths.c"
+#include "fsuae-path.c"
 
 char *g_fs_uae_config_file_path = "";
 char *g_fs_uae_config_dir_path = "";
@@ -376,7 +376,7 @@ int main(int argc, char *argv[])
     flush_stdout();
 
     fs_set_argv(argc, argv);
-    fs_set_data_dir(fs_uae_data_dir());
+    fs_set_data_dir(fsuae_path_data_dir());
 
     if (argc < 2 || strcmp(argv[1], "--help") == 0) {
         print_usage();

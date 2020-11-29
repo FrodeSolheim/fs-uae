@@ -1163,7 +1163,7 @@ void fsemu_sdlwindow_init(void)
         return;
     }
     fsemu_sdlwindow.initialized = true;
-    fsemu_titlebar_log("Initializing sdlwindow module\n");
+    fsemu_window_log("Initializing sdlwindow module\n");
     fsemu_module_on_quit(fsemu_sdlwindow_quit);
 
     fsemu_window_log("SDL_Init(SDL_INIT_EVERYTHING)\n");
@@ -1174,7 +1174,13 @@ void fsemu_sdlwindow_init(void)
     // SDL_VIDEO_MACOS_FULLSCREEN_SPACES=1
     SDL_SetHint(SDL_HINT_VIDEO_MAC_FULLSCREEN_SPACES, "0");
 #endif
+
+#if SDL_VERSION_ATLEAST(2, 0, 5)
     SDL_SetHint(SDL_HINT_MOUSE_FOCUS_CLICKTHROUGH, "1");
+#else
+    fsemu_window_log(
+        "Failed to set SDL_HINT_MOUSE_FOCUS_CLICKTHROUGH (too old SDL)\n");
+#endif
 
     fsemu_titlebar_init();
     fsemu_monitor_init();

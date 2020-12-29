@@ -26,6 +26,7 @@
 #include <fs/emu/actions.h>
 #include <fs/emu/input.h>
 #include <fs/emu/video.h>
+#include <fs/emu/render.h>
 #include <fs/lazyness.h>
 #include <fs/glib.h>
 #include "video.h"

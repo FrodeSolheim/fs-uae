@@ -1904,7 +1904,7 @@ static BOOL doInit(struct AmigaMonitor *mon)
 	vidinfo->offset = 0;
 #endif
 	if (!scrlinebuf)
-		scrlinebuf = xmalloc (uae_u8, max_uae_width * 4);
+		scrlinebuf = xmalloc (uae_u8, max_uae_width * g_amiga_video_bpp);
 #endif
 
 	mon->screen_is_initialized = 1;
@@ -1920,7 +1920,7 @@ bool target_graphics_buffer_update(int monid)
 {
 #ifdef FSUAE
 	if (fsemu) {
-		// 
+		//
 	} else {
 		write_log("target_graphics_buffer_update - clearing buffer\n");
 		memset(g_renderdata.pixels, 0, \
@@ -2258,7 +2258,7 @@ bool uae_fsvideo_renderframe(int monid, int mode, bool immediate)
 		}
 		if (mon->screen_is_picasso) {
 			frame->buffer = uae_fsvideo.picasso_framebuffer;
-			frame->stride = uae_fsvideo.picasso_width * 4; // FIXME
+			frame->stride = uae_fsvideo.picasso_width * g_amiga_video_bpp; // FIXME
 			frame->width = uae_fsvideo.picasso_width;
 			frame->height = uae_fsvideo.picasso_height;
 			frame->partial = 0;
@@ -2274,7 +2274,8 @@ bool uae_fsvideo_renderframe(int monid, int mode, bool immediate)
 			                avidinfo->drawbuffer.last_drawn_line);
 #endif
 			frame->buffer = uae_fsvideo.chipset_framebuffer;
-			frame->stride = AMIGA_WIDTH * 4;
+			frame->stride = AMIGA_WIDTH * g_amiga_video_bpp;
+			// frame->stride = AMIGA_WIDTH * 4;
 			frame->width = AMIGA_WIDTH;
 			frame->height = AMIGA_HEIGHT;
 
@@ -2288,7 +2289,7 @@ bool uae_fsvideo_renderframe(int monid, int mode, bool immediate)
 
 			// { "692x540", NULL, 48, 22, 692, 540 },
 
-			// frame->buffer = uae_fsvideo.chipset_framebuffer; + 22 * frame->stride + 48 * 4;
+			// frame->buffer = uae_fsvideo.chipset_framebuffer; + 22 * frame->stride + 48 * g_amiga_video_bpp;
 			// frame->width = 692;
 			// frame->height = 540;
 
@@ -2296,6 +2297,11 @@ bool uae_fsvideo_renderframe(int monid, int mode, bool immediate)
 			frame->limits.y = cy;
 			frame->limits.w = cw;
 			frame->limits.h = ch;
+
+			frame->limits.x = 48;
+			frame->limits.y = 22;
+			frame->limits.w = 692;
+			frame->limits.h = 540;
 		}
 
 		frame->frequency = 0; // FIXME
@@ -2304,20 +2310,20 @@ bool uae_fsvideo_renderframe(int monid, int mode, bool immediate)
 		printf("FIXME: SENDING BUFFER COPY\n");
 		static void *frame_copy;
 		if (frame_copy == NULL) {
-			frame_copy = malloc(AMIGA_WIDTH * AMIGA_HEIGHT * 4);
+			frame_copy = malloc(AMIGA_WIDTH * AMIGA_HEIGHT * g_amiga_video_bpp);
 		}
-		memcpy(frame_copy, frame->buffer, AMIGA_WIDTH * AMIGA_HEIGHT * 4);
-		memset(frame->buffer, 0, AMIGA_WIDTH * AMIGA_HEIGHT * 4);
+		memcpy(frame_copy, frame->buffer, AMIGA_WIDTH * AMIGA_HEIGHT * g_amiga_video_bpp);
+		memset(frame->buffer, 0, AMIGA_WIDTH * AMIGA_HEIGHT * g_amiga_video_bpp);
 		frame->buffer = frame_copy;
 #endif
 
 		// { "704x540", NULL, 42, 22, 704, 540 },
 		// { "692x540", NULL, 48, 22, 692, 540 },
 
-		frame->limits.x = 48;
-		frame->limits.y = 22;
-		frame->limits.w = 692;
-		frame->limits.h = 540;
+		// frame->limits.x = 48;
+		// frame->limits.y = 22;
+		// frame->limits.w = 692;
+		// frame->limits.h = 540;
 
 		// fsemu_video_post_partial_frame(avidinfo->);
 		fsemu_video_post_frame(frame);

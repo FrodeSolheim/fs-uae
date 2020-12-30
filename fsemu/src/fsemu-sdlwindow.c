@@ -310,10 +310,31 @@ static SDL_HitTestResult fsemu_sdlwindow_hit_test(SDL_Window *window,
     return fsemu_sdlwindow_hit_test_2(window, point->x, point->y);
 }
 
+static bool fsemu_sdlwindow_kmsdrm(void)
+{
+    static bool result;
+    static int initialized;
+    if (!initialized) {
+        const char *driver = SDL_GetCurrentVideoDriver();
+        result = strcmp(driver, "KMSDRM") == 0;
+        // printf("%s %d\n", driver, result);
+        // exit(1);
+    }
+    return result;
+}
+
 SDL_Window *fsemu_sdlwindow_create(void)
 {
     fsemu_assert(fsemu_sdlwindow.window == NULL);
-
+#if 0
+    if (fsemu_sdlwindow_kmsdrm()) {
+        // Move cursor away from the top-left corner, we do not want to start
+        // with the drop-down titlebar visible.
+        // fsemu_sdlwindow_center_cursor();
+        // SDL_WarpMouseGlobal(rect.w / 2, rect.h / 2);
+        SDL_WarpMouseGlobal(100, 100);
+    }
+#endif
     // In case we want to start with the cursor not visible, we hide it before
     // window creation to avoid having the cursor flicker.
     SDL_ShowCursor(SDL_DISABLE);
@@ -347,6 +368,12 @@ SDL_Window *fsemu_sdlwindow_create(void)
             //                  rect.w,
             //                  rect.h);
         }
+    }
+
+    if (fsemu_sdlwindow_kmsdrm()) {
+        //flags &= ~SDL_WINDOW_FULLSCREEN_DESKTOP;
+        //flags |= SDL_WINDOW_FULLSCREEN;
+        fsemu_window_set_fullscreen(true);
     }
 
     fsemu_rect_t rect;
@@ -399,9 +426,31 @@ SDL_Window *fsemu_sdlwindow_create(void)
     flags |= SDL_WINDOW_ALLOW_HIGHDPI;
 #endif
 
+#if 0
+    flags &= ~SDL_WINDOW_FULLSCREEN_DESKTOP;
+    flags |= SDL_WINDOW_FULLSCREEN;
+#endif
+
+    fsemu_window_log("SDL_CreateWindow(..., %d, %d, %d, %d, flags=%d)\n",
+        rect.x, rect.y, rect.w, rect.h, flags);
     SDL_Window *window = SDL_CreateWindow(
         fsemu_window_title(), rect.x, rect.y, rect.w, rect.h, flags);
-    fsemu_window_log("Window %p\n", window);
+    fsemu_window_log("Window %p (Driver: %s)\n", window, SDL_GetCurrentVideoDriver());
+
+#if 1
+    if (fsemu_sdlwindow_kmsdrm()) {
+        // Switch to 50Hz mode on Raspberry PI.
+        // FIXME: Lookup correct mode, do not hardcode index
+        SDL_DisplayMode mode;
+        SDL_GetDisplayMode(0, 1, &mode);
+        int error = SDL_SetWindowDisplayMode(window, &mode);
+        if (error) {
+            printf("Error setting mode\n");
+        }
+        // Also setting vsync. FIXME: Unconditionally?
+        fsemu_video_set_vsync(true);
+    }
+#endif
 
 #if 1
     // FIXME: Should find correct ui_scale now?
@@ -432,14 +481,22 @@ SDL_Window *fsemu_sdlwindow_create(void)
     int min_width = 1920 / 4;
     int min_height = 1080 / 4;
     if (!fsemu_titlebar_use_system()) {
-        if (SDL_SetWindowHitTest(window, fsemu_sdlwindow_hit_test, NULL) ==
-            -1) {
-            fsemu_window_log("SDL_SetWindowHitTest failed: %s\n",
-                             SDL_GetError());
+        if (fsemu_sdlwindow_kmsdrm()) {
+            // SDL_SetWindowHitTest will fail (and is not needed)
+        } else {
+            int result = SDL_SetWindowHitTest(
+                window, fsemu_sdlwindow_hit_test, NULL);
+            if (result == -1) {
+                fsemu_window_log("SDL_SetWindowHitTest failed: %s\n",
+                                 SDL_GetError());
+            }
         }
         min_height += fsemu_titlebar_height();
     }
     SDL_SetWindowMinimumSize(window, min_width, min_height);
+
+    // FIXME: Needed?
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
     // FIXME: Only if using OpenGL
     fsemu_sdlwindow.gl_context =
@@ -452,20 +509,59 @@ SDL_Window *fsemu_sdlwindow_create(void)
 
     fsemu_sdlwindow_set_swap_interval(fsemu_video_vsync());
 
+#if 0
+    if (fsemu_sdlwindow_kmsdrm()) {
+        // Move cursor away from the top-left corner, we do not want to start
+        // with the drop-down titlebar visible.
+        // fsemu_sdlwindow_center_cursor();
+        // SDL_WarpMouseGlobal(rect.w / 2, rect.h / 2);
+        SDL_WarpMouseInWindow(window, rect.w / 2, rect.h / 2);
+    }
+#endif
+
     return window;
 }
 
 void fsemu_sdlwindow_show(void)
 {
+    static bool first = true;
     fsemu_assert(fsemu_sdlwindow.window != NULL);
     fsemu_window_log("Show window\n");
     SDL_ShowWindow(fsemu_sdlwindow.window);
+
+    // Get actual window position and size
+    SDL_GetWindowPosition(fsemu_sdlwindow.window, &fsemu_sdlwindow.rect.x, &fsemu_sdlwindow.rect.y);
+    SDL_GetWindowSize(fsemu_sdlwindow.window, &fsemu_sdlwindow.rect.w, &fsemu_sdlwindow.rect.h);
+    fsemu_window_log("Window rect is now: %d %d %d %d\n", fsemu_sdlwindow.rect.x, fsemu_sdlwindow.rect.y, fsemu_sdlwindow.rect.w, fsemu_sdlwindow.rect.h);
+
 #if 0
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
 
     }
 #endif
+    // if (first && fsemu_sdlwindow_kmsdrm()) {
+    if (first && fsemu_sdlwindow.fullscreen) {
+        // Move cursor away from the top-left corner, we do not want to start
+        // with the drop-down titlebar visible.
+        // fsemu_sdlwindow_center_cursor();
+        // SDL_WarpMouseGlobal(100, 100);
+        printf("%d %d\n", fsemu_sdlwindow.rect.y, fsemu_sdlwindow.rect.h);
+#if 1
+#if 1
+//        SDL_ShowCursor(SDL_ENABLE);
+        SDL_WarpMouseInWindow(
+            fsemu_sdlwindow.window,
+            fsemu_sdlwindow.rect.x + fsemu_sdlwindow.rect.w / 2,
+            fsemu_sdlwindow.rect.y + fsemu_sdlwindow.rect.h / 2
+        );
+#endif
+        // SDL_ShowCursor(SDL_DISABLE);
+//        SDL_ShowCursor(SDL_DISABLE);
+#endif
+        // exit(1);
+    }
+    first = false;
 }
 
 // Called by FSEMU internally after then window has transitioned from
@@ -1204,6 +1300,20 @@ void fsemu_sdlwindow_init(void)
     // One would think the default value was 0 already, but this does not
     // seem to always be the case.
     fsemu_sdlwindow.swap_interval = -1337;
+
+    fsemu_window_log("Listing display modes for display 0:\n");
+    // int display_count = 0;
+    int display_index = 0;
+    int mode_index = 0;
+    SDL_DisplayMode mode = {SDL_PIXELFORMAT_UNKNOWN, 0, 0, 0, 0};
+    while (1) {
+        int error = SDL_GetDisplayMode(display_index, mode_index, &mode);
+        if (error) {
+            break;
+        }
+        fsemu_window_log("Mode %d: %d %d %d\n", mode_index, mode.w, mode.h, mode.refresh_rate);
+        mode_index += 1;
+    }
 }
 
 #endif  // FSEMU_SDL

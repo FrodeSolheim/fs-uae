@@ -13,6 +13,9 @@
 
 #define module fsemu_background
 
+#define FSEMU_WITH_BACKGROUND 1
+#ifdef FSEMU_WITH_BACKGROUND
+
 // ----------------------------------------------------------------------------
 
 static struct {
@@ -813,12 +816,19 @@ static void fsemu_background_quit(void)
     fsemu_widget_unref(fsemu_background.widgets.shadow_nw);
 }
 
+#endif  // FSEMU_WITH_BACKGROUND
+
 void fsemu_background_init(void)
 {
+#ifdef FSEMU_WITH_BACKGROUND
     if (module.initialized) {
         return;
     }
     module.initialized = true;
+#ifdef FSEMU_LINUX_ARM
+    fsemu_log("[FSEMU] [BACKG] Not using background module (performance)\n");
+    return;
+#endif
     fsemu_log("[FSEMU] [BACKG] Initializing background module\n");
     fsemu_module_on_quit(fsemu_background_quit);
 
@@ -827,6 +837,7 @@ void fsemu_background_init(void)
     fsemu_background.color.b = FSEMU_BACKGROUND_LEVEL;
 
     fsemu_background_init_widgets();
+#endif
 }
 
 // ----------------------------------------------------------------------------

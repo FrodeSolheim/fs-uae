@@ -63,11 +63,19 @@
 #ifdef __aarch64__
 // #define FSEMU_ARM 1
 // #define FSEMU_ARM_64 1
+#define FSEMU_CPU_ARM 1
+#define FSEMU_CPU_ARM_64 1
 #define FSEMU_CPU_64BIT 1
 #elif defined(__arm__) || defined(__ARM_EABI__)
 // #define FSEMU_ARM 1
 // #define FSEMU_ARM_32 1
+#define FSEMU_CPU_ARM 1
+#define FSEMU_CPU_ARM_32 1
 #define FSEMU_CPU_32BIT 1
+#endif
+
+#if defined(FSEMU_CPU_ARM) && defined(FSEMU_OS_LINUX)
+#define FSEMU_LINUX_ARM 1
 #endif
 
 #ifdef __ppc__

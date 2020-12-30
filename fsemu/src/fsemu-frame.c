@@ -305,6 +305,12 @@ static void fsemu_frame_update_timing_timer_based(double hz)
 
 static void fsemu_frame_update_timing_vsync_based(double hz)
 {
+    // fsemu_frame_origin_at = fsemu_video_vsync_time() + (1000000 / hz) * 1.2;
+    fsemu_frame_origin_at = fsemu_video_vsync_time() + (1000000 / hz) * 0.2;
+    fsemu_frame_begin_at = fsemu_frame_origin_at;
+    fsemu_frame_end_at = fsemu_frame_begin_at + (1000000 / hz);
+
+    fsemu_frame_epoch_at = fsemu_frame_origin_at;
 }
 
 void fsemu_frame_update_timing(double hz, bool turbo)

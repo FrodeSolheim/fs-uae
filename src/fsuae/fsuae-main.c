@@ -1584,17 +1584,24 @@ int main(int argc, char *argv[])
         if (fullscreen == 1) {
             fsemu_window_set_fullscreen(true);
         }
+#endif
+#if 0
         // FIXME: Review
         if (vsync == 1) {
             fsemu_video_set_vsync(1);
         }
 #endif
+        // fsemu_video_set_vsync(1);
+
         fsemu_video_set_renderer(FSEMU_VIDEO_RENDERER_OPENGL);
 
         fsemu_control_set_soft_reset_allowed(true);
         fsemu_control_set_hard_reset_allowed(true);
 
         fsemu_window_init();
+
+        // fsemu_video_set_format(FSEMU_VIDEO_FORMAT_RGB565);
+
         fsemu_video_init();
 
         fsemu_fade_init();
@@ -1827,7 +1834,22 @@ int main(int argc, char *argv[])
 #endif
 
     // FS_EMU_VIDEO_FORMAT_BGRA
-    amiga_set_video_format(AMIGA_VIDEO_FORMAT_BGRA);
+    // amiga_set_video_format(AMIGA_VIDEO_FORMAT_BGRA);
+
+    amiga_set_video_format(fsemu_video_format());
+
+    int video_format = fsemu_video_format();
+    if (video_format == FSEMU_VIDEO_FORMAT_RGBA) {
+        amiga_set_video_format(AMIGA_VIDEO_FORMAT_RGBA);
+    } else if (video_format == FSEMU_VIDEO_FORMAT_BGRA) {
+        amiga_set_video_format(AMIGA_VIDEO_FORMAT_BGRA);
+    } else if (video_format == FSEMU_VIDEO_FORMAT_RGB565) {
+        amiga_set_video_format(AMIGA_VIDEO_FORMAT_R5G6B5);
+    // } else if (video_format == FSEMU_VIDEO_FORMAT_R5G5B5A1) {
+    //     amiga_set_video_format(AMIGA_VIDEO_FORMAT_R5G5B5A1);
+    } else {
+        fs_emu_warning("Unsupported video format requested");
+    }
 
 #ifdef FSUAE_LEGACY
     if (fs_emu_get_video_format() == FS_EMU_VIDEO_FORMAT_RGBA) {
@@ -1887,7 +1909,9 @@ int main(int argc, char *argv[])
 #if 0
         // fsemu_audio_init(0);
         fsemu_window_init();
+
         fsemu_video_init();
+
         fsemu_titlebar_init();
 
         fsemu_audio_init();

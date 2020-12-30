@@ -7,6 +7,18 @@
 #include "fsemu-types.h"
 #include "fsemu-util.h"
 
+enum {
+    FSEMU_VIDEO_FORMAT_UNKNOWN,
+    FSEMU_VIDEO_FORMAT_RGBA,
+    FSEMU_VIDEO_FORMAT_BGRA,
+    FSEMU_VIDEO_FORMAT_RGB565
+};
+
+int fsemu_video_format(void);
+
+/** This can be specified before fsemu_video_init. */
+void fsemu_video_set_format(int format);
+
 typedef struct {
     int layer;
     uint8_t *buffer;
@@ -25,6 +37,7 @@ typedef struct {
     bool dummy;
 } fsemu_video_frame_t;
 
+// FIXME: Move to fsemu-frame?
 #define FSEMU_FRAME_FLAG_TURBO (1 << 0)
 
 typedef struct {

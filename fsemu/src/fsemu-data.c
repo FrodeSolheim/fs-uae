@@ -198,6 +198,21 @@ char *fsemu_data_file_path(const char *relative)
         return path;
     }
     g_free(path);
+
+#ifdef FSEMU_MACOS
+    char buffer[FSEMU_PATH_MAX];
+    fs_get_application_exe_dir(buffer, FSEMU_PATH_MAX);
+    path = g_build_filename(buffer, "..", "Resources", relative, NULL);
+#else
+    // FIXME: Replace fs-uae with application name build c
+    path = g_build_filename(
+        executable_dir, "..", "share", "fs-uae", relative, NULL);
+#endif
+    if (fsemu_path_exists(path)) {
+        return path;
+    }
+    g_free(path);
+
     // FIXME: check development mode
     bool development_mode = true;
     if (development_mode) {
@@ -228,6 +243,7 @@ char *fsemu_data_file_path(const char *relative)
         }
         g_free(path);
     }
+
     // Check in the plugin data dir
     // FIXME: check plugin mode
     bool plugin_mode = true;
@@ -266,21 +282,6 @@ char *fsemu_data_file_path(const char *relative)
         g_free(path);
 #endif
     }
-
-    // FIXME: Move up?
-#ifdef FSEMU_MACOS
-    char buffer[FSEMU_PATH_MAX];
-    fs_get_application_exe_dir(buffer, FSEMU_PATH_MAX);
-    path = g_build_filename(buffer, "..", "Resources", relative, NULL);
-#else
-    // FIXME: Replace fs-uae with application name build c
-    path = g_build_filename(
-        executable_dir, "..", "share", "fs-uae", relative, NULL);
-#endif
-    if (fsemu_path_exists(path)) {
-        return path;
-    }
-    g_free(path);
 
 #if 0
 #ifdef FSEMU_GLIB

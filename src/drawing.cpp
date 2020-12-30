@@ -2709,7 +2709,7 @@ void init_row_map(void)
 		return;
 #ifdef FSUAE
 	if (fsemu) {
-		uae_log("[DRAWING] init_row_map!\n");
+		uae_log("[DRAWING] init_row_map rowbytes=%d\n", vidinfo->drawbuffer.rowbytes);
 	}
 #endif
 	xfree(row_map_genlock_buffer);

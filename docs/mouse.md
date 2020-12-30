@@ -123,3 +123,15 @@ grabbing the input.
 
 If you are using FreeBSD / OpenBSD and have tested this feature, please leave
 feedback on fs-uae.net!
+
+## Running FS-UAE over VNC (or similar)
+
+When FS-UAE is running over a remote desktop connection such as VNC, the
+mouse might not work correctly. This is due to FS-UAE trapping the mouse
+pointer and trying to read relative motion from it. This might be
+incompatible with for example VNC.
+
+A workaround is to disable the automatic grabbing of the pointer
+(`automatic_input_grab`). If you're running Workbench and system-friendly
+programs, you can also enable `mouse_integration`. With this enabled, the
+emulated mouse pointer will follow the host mouse cursor.

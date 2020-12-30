@@ -83,6 +83,8 @@ int g_frame_debug_logging = 0;
 // #define uae_log(...)
 // #define printf(...)
 
+static int display_slices = 4;
+
 #endif
 
 STATIC_INLINE bool nocustom (void)
@@ -8377,10 +8379,6 @@ static void fpscounter (bool frameok)
 #endif
 }
 
-#ifdef FSUAE // NL
-static int display_slices = 4;
-#endif
-
 // vsync functions that are not hardware timing related
 static void vsync_handler_pre (void)
 {
@@ -9192,8 +9190,10 @@ static int64_t line_ended_at;
 static int64_t linesleep_fsemu(int64_t now, int64_t until)
 {
 #if 0
-	// For now, do not sleep at all.
-	return now;
+	if (vpos > 0) {
+		// For now, do not sleep at all.
+		return now;
+	}
 #endif
 
 #if 1
@@ -9294,8 +9294,6 @@ static void linesync_fsemu(void)
 	// (!regs.stopped || !currprefs.cpu_idle)) {
 	// !cpu_sleepmode
 	// sleeps_remaining = (165 - currprefs.cpu_idle) / 6; ?
-
-
 
 	// static bool do_render_slice(int mode, int slicecnt, int lastline)
 	// {
@@ -10105,7 +10103,7 @@ void vsync_event_done(void)
 	if (fsemu) {
 		linesync_fsemu();
 	}
-#else	
+#else
 	if (!isvsync_chipset()) {
 		events_reset_syncline();
 		return;

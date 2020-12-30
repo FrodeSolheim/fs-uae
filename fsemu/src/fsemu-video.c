@@ -30,6 +30,7 @@ struct fsemu_video_thread_data {
 #endif
 
 static struct {
+    int format;
     fsemu_video_frame_stats_t stats[FSEMU_VIDEO_MAX_FRAME_STATS];
     fsemu_rect_t rect;
     int ready;
@@ -69,6 +70,25 @@ void fsemu_video_set_renderer(int renderer)
     fsemu_video.renderer = renderer;
 }
 
+int fsemu_video_format(void)
+{
+    return fsemu_video.format;
+}
+
+void fsemu_video_set_format(int format)
+{
+    fsemu_video.format = format;
+}
+
+static int fsemu_video_default_format(void)
+{
+#ifdef FSEMU_LINUX_ARM
+    return FSEMU_VIDEO_FORMAT_RGB565;
+#else
+    return FSEMU_VIDEO_FORMAT_BGRA;
+#endif
+}
+
 void fsemu_video_init(void)
 {
     fsemu_return_if_already_initialized();
@@ -82,6 +102,9 @@ void fsemu_video_init(void)
     fsemu_video_frame_queue = g_async_queue_new();
 
     // fsemu_video.renderer = FSEMU_VIDEO_RENDERER_OPENGL;
+    if (fsemu_video.format == FSEMU_VIDEO_FORMAT_UNKNOWN) {
+        fsemu_video.format = fsemu_video_default_format();
+    }
 
     if (fsemu_video.renderer == FSEMU_VIDEO_RENDERER_OPENGL) {
         fsemu_glvideo_init();

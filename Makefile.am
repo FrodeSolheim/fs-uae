@@ -1003,6 +1003,7 @@ fsemu_data_files = \
 	fsemu/icons/fontawesome/NotificationPause.png \
 	fsemu/icons/fontawesome/NotificationWarning.png \
 	fsemu/icons/fontawesome/NotificationWarp.png \
+	fsemu/images/ShortcutKeyAlt.png \
 	fsemu/images/TitleBarCloseIcon.png \
 	fsemu/images/TitleBarMaximizeIcon.png \
 	fsemu/images/TitleBarMenuIcon.png \

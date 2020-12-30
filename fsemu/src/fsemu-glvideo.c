@@ -34,8 +34,22 @@ static struct {
     // Drawable size is the real pixel size, which is not necessary the same
     // as screen coordinates with high-DPI windows on some systems.
     fsemu_size_t drawable_size;
+
     // Number of frames rendered by the OpenGL video renderer.
     int frame_count;
+
+    bool fix_bleed;
+
+    GLint iformat;
+    GLenum type;
+    GLenum format;
+    int bpp;
+
+    // Precalculated color lines for displaying slices and also for debugging
+    // vsync (alternating red and green should give a yellow-ish line).
+    uint8_t *red_line;
+    uint8_t *green_line;
+
 } fsemu_glvideo;
 
 void fsemu_glvideo_init(void)
@@ -44,6 +58,34 @@ void fsemu_glvideo_init(void)
     // fsemu_opengl_init();
     fsemu_video_log("Initializing OpenGL video renderer\n");
     fsemu_shader_module_init();
+
+    if (fsemu_video_format() == FSEMU_VIDEO_FORMAT_RGBA) {
+        fsemu_glvideo.iformat = GL_RGBA;
+        fsemu_glvideo.format = GL_RGBA;
+        fsemu_glvideo.type = GL_UNSIGNED_BYTE;
+        fsemu_glvideo.bpp = 4;
+    } else if (fsemu_video_format() == FSEMU_VIDEO_FORMAT_BGRA) {
+        fsemu_glvideo.iformat = GL_RGBA;
+        fsemu_glvideo.format = GL_BGRA;
+        fsemu_glvideo.type = GL_UNSIGNED_BYTE;
+        fsemu_glvideo.bpp = 4;
+    } else if (fsemu_video_format() == FSEMU_VIDEO_FORMAT_RGB565) {
+        fsemu_glvideo.iformat = GL_RGB565;
+        fsemu_glvideo.format = GL_RGB;
+        fsemu_glvideo.type = GL_UNSIGNED_SHORT_5_6_5;
+        fsemu_glvideo.bpp = 2;
+    }
+
+    // fsemu_glvideo.iformat = GL_RGB565;
+    // fsemu_glvideo.format = GL_RGB;
+    // fsemu_glvideo.type = GL_UNSIGNED_SHORT_5_6_5;
+    // fsemu_glvideo.bpp = 2;
+
+#ifdef FSEMU_LINUX_ARM
+    fsemu_glvideo.fix_bleed = false;
+#else
+    fsemu_glvideo.fix_bleed = true;
+#endif
 
 #if 0
     SDL_Window *window = fsemu_sdlwindow_window();
@@ -66,21 +108,24 @@ void fsemu_glvideo_init(void)
 #endif
 
     glGenTextures(2, fsemu_glvideo.textures);
-    printf("fsemu_glvideo.textures[0] = %d\n", fsemu_glvideo.textures[0]);
-    printf("fsemu_glvideo.textures[1] = %d\n", fsemu_glvideo.textures[1]);
+    fsemu_video_log("fsemu_glvideo.textures[0] = %d\n", fsemu_glvideo.textures[0]);
+    fsemu_video_log("fsemu_glvideo.textures[1] = %d\n", fsemu_glvideo.textures[1]);
     fsemu_opengl_log_error_maybe();
 
-    uint8_t *data = (uint8_t *) malloc(1024 * 1024 * 4);
+    uint8_t *data = (uint8_t *) malloc(1024 * 1024 * fsemu_glvideo.bpp);
 #if 0
-    memset(data, 0x00, 1024 * 1024 * 4);
+    memset(data, 0x00, 1024 * 1024 * fsemu_glvideo.bpp);
 #else
+
     // Setting color to 0xff here to debug "bleed issues" with linear filtering
-    memset(data, 0xff, 1024 * 1024 * 4);
+    // FIXME: Only works with RGBA / BGRA. Write for for bpp = 2 as well
+    memset(data, 0xff, 1024 * 1024 * fsemu_glvideo.bpp);
 #if 0
-    for (int i = 0; i < 1024 * 1024 * 4; i+=4) {
+    for (int i = 0; i < 1024 * 1024 * fsemu_glvideo.bpp; i+=4) {
         data[i] = 0xff;
     }
 #endif
+
 #endif
     // FIXME: Shouldn't be necessary.
     // FIXME: Make sure to synch opengl state instead?
@@ -93,12 +138,12 @@ void fsemu_glvideo_init(void)
         fsemu_opengl_log_error_maybe();
         glTexImage2D(GL_TEXTURE_2D,
                      0,
-                     GL_RGBA,
+                     fsemu_glvideo.iformat,
                      1024,
                      1024,
                      0,
-                     GL_RGBA,
-                     GL_UNSIGNED_BYTE,
+                     fsemu_glvideo.format,
+                     fsemu_glvideo.type,
                      data);
         fsemu_opengl_log_error_maybe();
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -111,6 +156,21 @@ void fsemu_glvideo_init(void)
         fsemu_opengl_log_error_maybe();
     }
     free(data);
+
+
+    fsemu_glvideo.green_line = (uint8_t *) malloc(2048 * fsemu_glvideo.bpp);
+    fsemu_glvideo.red_line = (uint8_t *) malloc(2048 * fsemu_glvideo.bpp);
+    if (fsemu_glvideo.bpp == 2) {
+        for (int i = 0; i < 2048; i++) {
+            ((uint16_t *) fsemu_glvideo.green_line)[i] = 63 << 5;
+            ((uint16_t *) fsemu_glvideo.red_line)[i] = 31 << 11;
+        }
+    } else {
+        for (int i = 0; i < 2048; i++) {
+            ((uint32_t *) fsemu_glvideo.green_line)[i] = FSEMU_RGB(0x00ff00);
+            ((uint32_t *) fsemu_glvideo.red_line)[i] = FSEMU_RGB(0xff0000);
+        }
+    }
 }
 
 // FIXME: Maybe rename to fsemu_glvideo_on_resize or something
@@ -181,7 +241,7 @@ static void fsemu_glvideo_handle_frame(fsemu_video_frame_t *frame)
             }
         }
     }
-    frame->buffer += (frame->limits.y * frame->stride) + frame->limits.x * 4;
+    frame->buffer += (frame->limits.y * frame->stride) + frame->limits.x * fsemu_glvideo.bpp;
     frame->width = frame->limits.w;
     frame->height = frame->limits.h;
 
@@ -243,7 +303,7 @@ static void fsemu_glvideo_handle_frame(fsemu_video_frame_t *frame)
     //                   pixels,
     //                   frame->stride);
 
-    int row_length = frame->stride / 4;  // FIXME: 4 -> bpp
+    int row_length = frame->stride / fsemu_glvideo.bpp;
 
     // fsemu_opengl_unpack_row_length(frame->width == row_length ? 0 :
     // row_length); fsemu_opengl_unpack_row_length(0);
@@ -261,8 +321,8 @@ static void fsemu_glvideo_handle_frame(fsemu_video_frame_t *frame)
 
     // FIXME: Internal format vs format vs type, make sure to use efficient
     // combos!
-    GLenum format = GL_BGRA;
-    GLenum type = GL_UNSIGNED_BYTE;
+    // GLenum format = GL_BGRA;
+    // GLenum type = GL_UNSIGNED_BYTE;
 
     // printf("b x=%d y=%d size=%dx%d\n", rect.x, rect.y, rect.w, rect.h);
 
@@ -272,15 +332,15 @@ static void fsemu_glvideo_handle_frame(fsemu_video_frame_t *frame)
                     rect.y,
                     rect.w,
                     rect.h,
-                    format,
-                    type,
+                    fsemu_glvideo.format,
+                    fsemu_glvideo.type,
                     pixels);
     // FIXME: fsemu_opengl_log_error_maybe();
     fsemu_opengl_log_error_maybe();
 
     // Duplicate right (and later, bottom) edge to remove bleed effect from
     // unused pixels in the texture when doing bilinear filtering.
-    if (rect.w < tw) {
+    if (fsemu_glvideo.fix_bleed && rect.w < tw) {
         // FIXME: Wrapper call via fsemu-opengl ?
         // fsemu_opengl_unpack_row_length(row_length);
         // fsemu_opengl_log_error_maybe();
@@ -290,33 +350,27 @@ static void fsemu_glvideo_handle_frame(fsemu_video_frame_t *frame)
                         rect.y,
                         1,
                         rect.h,
-                        format,
-                        type,
+                        fsemu_glvideo.format,
+                        fsemu_glvideo.type,
                         // pixels + (rect.w * 4 * rect.y) + (rect.w - 1) * 4);
-                        pixels + (rect.w - 1) * 4);
+                        pixels + (rect.w - 1) * fsemu_glvideo.bpp);
         fsemu_opengl_log_error_maybe();
         // FIXME: Remove
         // fsemu_opengl_unpack_row_length(0);
         // fsemu_opengl_log_error_maybe();
     }
 
-    static uint8_t *greenline;
-    if (greenline == NULL) {
-        greenline = (uint8_t *) malloc(2048 * 4);
-        for (int i = 0; i < 2048; i++) {
-            ((int32_t *) greenline)[i] = FSEMU_RGB(0x00ff00);
-        }
-    }
     if (fsemu_perfgui_mode() == 2) {
+        uint8_t *slice_line = fsemu_glvideo.frame_count % 2 == 0 ? fsemu_glvideo.green_line: fsemu_glvideo.red_line;
         glTexSubImage2D(GL_TEXTURE_2D,
                         0,
                         rect.x,
                         rect.y,
                         rect.w,
                         1,
-                        GL_RGBA,
-                        GL_UNSIGNED_BYTE,
-                        greenline);
+                        fsemu_glvideo.format,
+                        fsemu_glvideo.type,
+                        slice_line);
         fsemu_opengl_log_error_maybe();
     }
 
@@ -328,16 +382,16 @@ static void fsemu_glvideo_handle_frame(fsemu_video_frame_t *frame)
 
     // Only draw bottom border duplicate line for last slice, and only if
     // there is space for it in the texture
-    if (rect.y + rect.h < th) {
+    if (fsemu_glvideo.fix_bleed && rect.y + rect.h < th) {
         glTexSubImage2D(GL_TEXTURE_2D,
                         0,
                         0,
                         rect.y + rect.h,
                         rect.w,
                         1,
-                        format,
-                        type,
-                        pixels + (rect.w * 4 * (rect.h - 1)));
+                        fsemu_glvideo.format,
+                        fsemu_glvideo.type,
+                        pixels + (rect.w * fsemu_glvideo.bpp * (rect.h - 1)));
         fsemu_opengl_log_error_maybe();
         // Draw corner pixel if room for it
         if (rect.w < tw) {
@@ -347,9 +401,9 @@ static void fsemu_glvideo_handle_frame(fsemu_video_frame_t *frame)
                             rect.y + rect.h,
                             1,
                             1,
-                            format,
-                            type,
-                            pixels + (rect.w * rect.h - 1) * 4);
+                            fsemu_glvideo.format,
+                            fsemu_glvideo.type,
+                            pixels + (rect.w * rect.h - 1) * fsemu_glvideo.bpp);
             fsemu_opengl_log_error_maybe();
         }
     }
@@ -363,6 +417,7 @@ static void fsemu_glvideo_handle_frame(fsemu_video_frame_t *frame)
     fsemu_glvideo.rect.h = frame->height;
 
     fsemu_video_set_ready(true);
+    // printf("R %lld\n", fsemu_time_us() / 1000);
 
     static int64_t last;
     int64_t now = fsemu_time_us();
@@ -489,6 +544,8 @@ void fsemu_glvideo_render(void)
     src.w = fsemu_glvideo.limits_rect.w;
     src.h = fsemu_glvideo.limits_rect.h;
 
+    // printf("%d %d %d %d\n", src.x, src.y, src.w, src.h);
+
     // printf("------------------------ glvideo -------------------\n");
 
 #if 0
@@ -544,9 +601,17 @@ void fsemu_glvideo_render(void)
     fsemu_opengl_depth_test(false);
     fsemu_opengl_texture_2d(true);
 
+    // glDisable(GL_BLEND);
+    // glEnable(GL_TEXTURE_2D);
+
     glBindTexture(GL_TEXTURE_2D,
                   fsemu_glvideo.textures[fsemu_glvideo.current_texture]);
     fsemu_opengl_log_error_maybe();
+
+    //dr.x = 0.5;
+    //dr.w = 0.5;
+    //dr.y = 0.5;
+    //dr.h = 0.5;
 
     glBegin(GL_QUADS);
     glTexCoord2f(tx1, ty1);
@@ -635,6 +700,8 @@ void fsemu_glvideo_display(void)
 #endif
     SDL_Window *window = fsemu_sdlwindow_window();
     SDL_GL_SwapWindow(window);
+    // printf("S %lld\n", fsemu_time_us() / 1000);
+    // glFinish();
 
     if (fsemu_video_vsync()) {
         static int64_t last;

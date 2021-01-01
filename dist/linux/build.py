@@ -13,11 +13,11 @@ elif "x86-64" in exe_info:
 else:
     raise Exception("unrecognized arch " + repr(exe_info))
 
-if os.environ.get("STEAMOS", ""):
-    os_name = "steamos"
-else:
-    os_name = "linux"
-    os_name_pretty = "Linux"
+# if os.environ.get("STEAMOS", ""):
+#     os_name = "steamos"
+# else:
+os_name = "linux"
+os_name_pretty = "Linux"
 
 version = sys.argv[1]
 package_name = "fs-uae_{0}_{1}_{2}".format(version, os_name, arch)
@@ -93,9 +93,18 @@ s("cp -a ../../share/locale FS-UAE/Data/Locale")
 # s("mkdir -p {package_dir}/share/fs-uae")
 # s("touch {package_dir}/share/fs-uae/share-dir")
 
-s("cp -a ../../licenses FS-UAE/Licenses")
+s("mkdir FS-UAE/Docs")
+s("cp -a ../../licenses FS-UAE/Docs/Licenses")
+s("cp -a ../../ChangeLog FS-UAE/Docs/ChangeLog.txt")
 s("cp -a ../../README FS-UAE/ReadMe.txt")
-s("./standalone-linux.py --strip --rpath='$ORIGIN' {package_dir}")
+
+s("cp -a ../../data/* FS-UAE/Data/")
+
+if os.environ.get("STANDALONE") == "0":
+    pass
+else:
+    s("./standalone-linux.py --strip --rpath='$ORIGIN' {package_dir}")
+
 s("find {package_dir} -name '*.standalone' -delete")
 s("echo {version} > FS-UAE/Version.txt")
 s("echo {version} > {package_dir}/Version.txt")

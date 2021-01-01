@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.67])
-AC_INIT([FS-UAE], [3.1.0dev],
+AC_INIT([FS-UAE], [3.9.100dev],
         [frode@fs-uae.net], [fs-uae], [https://fs-uae.net])
 AC_CONFIG_AUX_DIR([.])
 AC_CANONICAL_HOST
@@ -696,8 +696,8 @@ REQ_FEATURE([AUTOCONFIG], [autoconfig], [autoconfig],
             [autoconfig support, fast ram, harddrives etc...])
 OPT_FEATURE([BSDSOCKET], [bsdsocket], [bsdsocket],
             [built-in bsdsocket.library])
-DIS_FEATURE([WITH_BUILTIN_SLIRP], [builtin_slirp], [builtin-slirp],
-            [built-in SLIRP implementation (unsupported)])
+OPT_FEATURE([WITH_BUILTIN_SLIRP], [builtin_slirp], [builtin-slirp],
+            [built-in SLIRP implementation])
 OPT_FEATURE([CAPS], [caps], [caps],
             [IPF support via libcapsimage])
 OPT_FEATURE([CD32], [cd32], [cd32],
@@ -827,7 +827,7 @@ OPT_FEATURE([WITH_SOFTFLOAT], [softfloat], [softfloat],
 OPT_FEATURE([WITH_QEMU_CPU], [qemu_cpu], [qemu-cpu],
             [use QEMU plugin for PPC emulation])
 OPT_FEATURE([WITH_QEMU_SLIRP], [qemu_slirp], [qemu-slirp],
-            [use QEMU plugin for SLIRP implementation])
+            [use QEMU plugin for SLIRP implementation (deprecated)])
 REQ_FEATURE([WITH_THREADED_CPU], [threaded_cpu], [threaded-cpu],
             [Threaded CPU emulation])
 REQ_FEATURE([WITH_TOCCATA], [toccata], [toccata],

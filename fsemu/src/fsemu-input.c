@@ -405,7 +405,7 @@ void fsemu_input_handle_keyboard(fsemu_key_t key, bool pressed)
 
     int action_table_index = fsemu_input_action_table_index_from_key(key, mod);
     // FIXME: action_table
-    printf("keyboard input action_table_index %d\n", action_table_index);
+    // printf("keyboard input action_table_index %d\n", action_table_index);
     // int action = fsemu_input.keyboard[action_table_index].action;
 
     int action = fsemu_input.action_table[action_table_index];
@@ -414,7 +414,7 @@ void fsemu_input_handle_keyboard(fsemu_key_t key, bool pressed)
 
 void fsemu_input_handle_mouse(int device_index, int slot, int16_t state)
 {
-    printf("fsemu_input_handle_mouse %d %d %d\n", device_index, slot, state);
+    // printf("fsemu_input_handle_mouse %d %d %d\n", device_index, slot, state);
 
     // FIXME: Temporary hack to redirect input
     if (fsemu_osmenu_open()) {
@@ -430,9 +430,9 @@ void fsemu_input_handle_mouse(int device_index, int slot, int16_t state)
         fsemu_input_action_table_index_from_input(device_index, input_index);
     // FIXME: action_table
     int action = fsemu_input.action_table[action_table_index];  // .action;
-    printf(" input -> action table index %d action %d\n",
-           action_table_index,
-           action);
+    // printf(" input -> action table index %d action %d\n",
+    //        action_table_index,
+    //        action);
 
     fsemu_input_process_action(action, state);
 }
@@ -482,7 +482,7 @@ void fsemu_input_process_action(uint16_t action, int16_t state)
     // - Firstly in main (immediate)
     // - Secondly in emu thread (frame start)
 
-    printf(".... %04x %04x\n", action, state);
+    // printf(".... %04x %04x\n", action, state);
 
     fsemu_action_and_state_t action_state =
         fsemu_input_pack_action_state(action, state);
@@ -494,7 +494,7 @@ void fsemu_input_process_action(uint16_t action, int16_t state)
         g_queue_push_tail(fsemu_input.command_queue,
                           GUINT_TO_POINTER(action_state));
         fsemu_mutex_unlock(fsemu_input.mutex);
-        printf("(command) pushed %04x %04x\n", action, state);
+        // printf("(command) pushed %04x %04x\n", action, state);
     } else if (action & FSEMU_ACTION_NONEMU_FLAG) {
         fsemu_action_process_non_emu(action, state);
     } else {
@@ -502,7 +502,7 @@ void fsemu_input_process_action(uint16_t action, int16_t state)
         g_queue_push_tail(fsemu_input.action_queue,
                           GUINT_TO_POINTER(action_state));
         fsemu_mutex_unlock(fsemu_input.mutex);
-        printf("(input) pushed %04x %04x\n", action, state);
+        // printf("(input) pushed %04x %04x\n", action, state);
     }
 }
 
@@ -528,11 +528,13 @@ static bool fsemu_input_next_from_queue(GQueue *queue,
     // *action = (action_state & 0xffff);
     // *state = (int16_t)((action_state & 0xffff0000) >> 16);
     fsemu_input_unpack_action_state(action_state, action, state);
+#if 0
     if (command) {
         printf("fsemu_input_next_command %04x %04x\n", *action, *state);
     } else {
         printf("fsemu_input_next_action %04x %04x\n", *action, *state);
     }
+#endif
     return true;
 }
 

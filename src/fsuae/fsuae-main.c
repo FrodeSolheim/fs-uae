@@ -166,6 +166,31 @@ static void fsuae_handle_media_action(int drive_index, int media_index)
         } else {
             fsemu_warning("Cannot deal with media index >= 20\n");
         }
+    } else if (type == FSEMU_MEDIA_DRIVE_TYPE_CDROM) {
+        // Only one CD-ROM drive supported currently.
+        if (type_index >= 1) {
+            fsemu_warning("Cannot deal with with CD-ROM driveindex >= 1\n");
+            return;
+        }
+        if (media_index < 0) {
+            amiga_cdrom_set_file(type_index, "");
+        } else if (media_index < 20) {
+            char *key = g_strdup_printf("cdrom_image_%d", media_index);
+            char *path = fs_config_get_string(key);
+            free(key);
+            if (path == NULL) {
+                fs_emu_log("no CD at this index in CD-ROM list\n");
+            }
+            path = fsuae_path_expand_and_free(path);
+            path = fsuae_path_resolve_and_free(path, FS_UAE_CD_PATHS);
+            amiga_cdrom_set_file(type_index, path);
+            free(path);
+        } else {
+            fsemu_warning("Cannot deal with media index >= 20\n");
+        }
+
+        // FIXME: Something similar to gui_disk_image_change /
+        // UAE_EVENT_CD0PATH, to update the currently inserted path
     } else {
         fsemu_warning("FIXME: Support this media type\n");
     }

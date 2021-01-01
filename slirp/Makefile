@@ -60,3 +60,7 @@ print-%:
 .SUFFIXES:
 
 -include $(DEPS)
+
+distdir:
+
+distclean: clean

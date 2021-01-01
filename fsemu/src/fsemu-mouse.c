@@ -188,7 +188,7 @@ bool fsemu_mouse_handle_mouse(fsemu_mouse_event_t *event)
         }
         fsemu_input_handle_mouse(device_index, slot, state);
     } else {
-        printf("%d,%d\n", event->rel_x, event->rel_y);
+        // printf("%d,%d\n", event->rel_x, event->rel_y);
         int x = event->rel_x;
         int y = event->rel_y;
 

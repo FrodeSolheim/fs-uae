@@ -18,12 +18,14 @@
 #include "fsuae-path.h"
 
 #define MAX_FLOPPY_DRIVES 4
+#define MAX_CDROM_DRIVES 1
 
 static struct {
     bool initialized;
     int floppy_drive_count;
     fsemu_media_drive_t *floppy_drives[MAX_FLOPPY_DRIVES];
     int cdrom_drive_count;
+    fsemu_media_drive_t *cdrom_drives[MAX_CDROM_DRIVES];
     // The index for the next configured HFx device.
     int hf_index;
 } module;
@@ -171,7 +173,66 @@ void fsuae_media_configure_cdrom(void)
         amiga_set_option("cdimage0", "");
     }
 
+    int count = 0;
+    int k = 0;
+    while (count < 20) {
+        char *config_key = g_strdup_printf("cdrom_image_%d", k);
+        const char *config_value = fs_config_get_const_string(config_key);
+        if (config_value) {
+            // FIXME: Add before or after expand/resolve?
+            fsemu_media_add_file(FSEMU_MEDIA_DRIVE_TYPE_CDROM, config_value);
+#if 0
+            char *option = g_strdup_printf("diskimage%d", count);
+            char *path = fsuae_path_expand(config_value);
+            path = fsuae_path_resolve_and_free(path, FS_UAE_FLOPPY_PATHS);
+            amiga_set_option(option, path);
+            free(path);
+            free(option);
+            count++;
+#endif
+        }
+        free(config_key);
+        if (k > 0 && !config_value) {
+            // Allow to start at floppy_image_0 or floppy_image_1
+            // FIXME: Hmm...
+            break;
+        }
+        k++;
+    }
+#if 0
+    while (count < 20) {
+        // Set the remaining floppy list entries to empty strings.
+        char *option = g_strdup_printf("diskimage%d", count);
+        amiga_set_option(option, "");
+        free(option);
+        count++;
+    }
+#endif
+
+    // Now we create the FSEMU drive entries and add file paths.
     module.cdrom_drive_count = num_drives;
+    for (int i = 0; i < module.cdrom_drive_count; i++) {
+        fsemu_media_drive_t *drive =
+            fsemu_media_drive_new_with_type(FSEMU_MEDIA_DRIVE_TYPE_CDROM);
+        fsemu_media_drive_assign_name(drive, g_strdup_printf("CD%d", i));
+        fsemu_media_drive_assign_title(
+            drive, g_strdup_printf("CD-ROM drive CD%d", i));
+#if 1
+#warning Not setting media drive file right now
+#else
+        // FIXME: Add before or after expand/resolve?
+        if (floppypaths[i][0] != '\0') {
+            fsemu_media_drive_set_file(drive, floppypaths[i]);
+        }
+#endif
+        fsemu_media_add_drive(drive);
+        module.cdrom_drives[i] = drive;
+    }
+
+    // Finally we can free the floppy paths.
+    // for (int i = 0; i < MAX_FLOPPY_DRIVES; i++) {
+    //     free(floppypaths[i]);
+    // }
 }
 
 static void configure_hard_drive_directory(int index,

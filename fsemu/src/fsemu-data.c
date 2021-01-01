@@ -167,6 +167,7 @@ static int fs_get_application_exe_path(char *buffer, int size)
 
 static int fs_get_application_exe_dir(char *buffer, int size)
 {
+    // FIXME: Cache result?
     int result = fs_get_application_exe_path(buffer, size);
     if (result == 0) {
         return 0;
@@ -192,8 +193,29 @@ char *fsemu_data_file_path(const char *relative)
         initialized = 1;
     }
     char *path;
+
+    const char *basename = relative;
+    const char *p = basename;
+    while (*p) {
+        if (*p == '/') {
+            basename = p + 1;
+        }
+        p++;
+    }
+
+    // Check the same directory as the executable first, basename only
+    if (basename != relative) {
+        path = g_build_filename(executable_dir, basename, NULL);
+        printf("Checking %s\n", path);
+        if (fsemu_path_exists(path)) {
+            return path;
+        }
+        g_free(path);
+    }
+
     // Check the same directory as the executable first
     path = g_build_filename(executable_dir, relative, NULL);
+    printf("Checking %s\n", path);
     if (fsemu_path_exists(path)) {
         return path;
     }

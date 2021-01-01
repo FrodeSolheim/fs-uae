@@ -1,5 +1,10 @@
-Version 3.1.0dev:
+Version 3.9.100dev:
 
+* Warning: This is a work in progress.
+* Several features from FS-UAE 3.x are still missing (TODO: List them).
+* FIXME: The changelog for this version is incomplete.
+* New built-in slirp implementation from QEMU 5.2.0 and reworked the slirp
+  support in FS-UAE. Fixes random crashes and corrupt network data.
 * fs-uae-device-helper now goes into libexec, not bin.
 * Add Midi Support to FS-UAE using the PortMidi library [cnvogelg].
 * Support for F13-F19 keys on Apple Extended keyboard [immutable].

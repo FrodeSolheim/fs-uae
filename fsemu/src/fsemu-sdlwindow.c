@@ -306,7 +306,7 @@ static SDL_HitTestResult fsemu_sdlwindow_hit_test(SDL_Window *window,
                                                   const SDL_Point *point,
                                                   void *data)
 {
-    fsemu_window_log("Hit test x=%d y=%d\n", point->x, point->y);
+    // fsemu_window_log("Hit test x=%d y=%d\n", point->x, point->y);
     return fsemu_sdlwindow_hit_test_2(window, point->x, point->y);
 }
 
@@ -1064,10 +1064,12 @@ bool fsemu_sdlwindow_handle_window_event(SDL_Event *event)
             fsemu_window_log("Window %d exposed\n", event->window.windowID);
             break;
         case SDL_WINDOWEVENT_MOVED:
+#if 0
             fsemu_window_log("Window %d moved to %d,%d\n",
                              event->window.windowID,
                              event->window.data1,
                              event->window.data2);
+#endif
             break;
         case SDL_WINDOWEVENT_RESIZED:
             // Window has been resized to data1xdata2; this event is

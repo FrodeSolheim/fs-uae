@@ -93,7 +93,7 @@ int amiga_send_input_event(int input_event, int state)
         state = -state;
     } else if (input_event == INPUTEVENT_JOYPORT0_MOUSEXPOS) {
         input_event = INPUTEVENT_MOUSE1_HORIZ;
-        printf("converted into %d\n", input_event);
+        // printf("converted into %d\n", input_event);
     } else if (input_event == INPUTEVENT_JOYPORT0_MOUSEYNEG) {
         input_event = INPUTEVENT_MOUSE1_VERT;
         state = -state;

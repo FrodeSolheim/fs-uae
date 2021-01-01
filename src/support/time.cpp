@@ -16,6 +16,18 @@ uae_time_t uae_time(void)
 	return (uae_time_t) g_get_monotonic_time();
 }
 
+int64_t uae_time_us(void)
+{
+	return g_get_monotonic_time();
+}
+
+int64_t uae_time_ns(void)
+{
+	struct timespec ts;
+	clock_gettime(CLOCK_MONOTONIC, &ts);
+	return ts.tv_sec * 1000000000LL + ts.tv_nsec;
+}
+
 void uae_time_calibrate(void)
 {
 

@@ -10,6 +10,8 @@ if "386" in exe_info:
     arch = "x86"
 elif "x86-64" in exe_info:
     arch = "x86-64"
+elif "ARM" in exe_info and "armhf" in exe_info:
+    arch = "ARMv8"
 else:
     raise Exception("unrecognized arch " + repr(exe_info))
 
@@ -20,7 +22,7 @@ os_name = "linux"
 os_name_pretty = "Linux"
 
 version = sys.argv[1]
-package_name = "fs-uae_{0}_{1}_{2}".format(version, os_name, arch)
+# package_name = "fs-uae_{0}_{1}_{2}".format(version, os_name, arch)
 package_name_2 = "FS-UAE_{0}_{1}_{2}".format(version, os_name_pretty, arch)
 package_dir = "../{}/FS-UAE/{}/{}".format(os_name, os_name_pretty, arch)
 
@@ -74,7 +76,10 @@ s("mkdir -p {package_dir}")
 if os.environ.get("BUILD") == "0":
     pass
 else:
-    s("cd ../.. && ./configure")
+    if os.environ.get("RPI4") == "1":
+        s("../rpi4/configure")
+    else:
+        s("cd ../.. && ./configure")
     s("make -C ../..")
 
 s("cp -a ../../fs-uae {package_dir}/fs-uae")
@@ -114,10 +119,10 @@ if os_name == "steamos":
     wrap("fs-uae-device-helper")
 
 # s("cd {package_dir} && tar Jcfv ../../../{package_name}.tar.xz *")
-s("tar Jcfv ../../{package_name}.tar.xz FS-UAE")
-print(package_name)
-s("cp ../../{package_name}.tar.xz ../../{package_name_2}.tar.xz")
+s("tar Jcfv ../../{package_name_2}.tar.xz FS-UAE")
 print(package_name_2)
+# s("cp ../../{package_name_2}.tar.xz ../../{package_name}.tar.xz")
+# print(package_name_2)
 print("OK")
 
 #s("rm -Rf {dbg_package_dir}")

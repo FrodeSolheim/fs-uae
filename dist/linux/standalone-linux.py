@@ -90,9 +90,11 @@ def ignore_library(name):
         return True
     if name.startswith("linux-vdso.so"):
         return True
-    if name.startswith("ld-linux.so.2"):
+    if name.startswith("ld-linux.so"):
         return True
     if name.startswith("ld-linux-x86-64.so"):
+        return True
+    if name.startswith("ld-linux-armhf.so"):
         return True
 
     if name.startswith("libc.so"):
@@ -125,6 +127,10 @@ def ignore_library(name):
     if name.startswith("libGLU.so"):
         return True
     if name.startswith("libEGL.so"):
+        return True
+
+    # Not really sure if this one should be skipped or not.
+    if name.startswith("libatomic.so"):
         return True
 
     if name.startswith("libasound.so"):

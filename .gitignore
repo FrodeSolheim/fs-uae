@@ -38,6 +38,7 @@ core
 /dist/linux/Makefile
 /dist/macos/Info.plist
 /dist/macos/Makefile
+/dist/rpi4/Makefile
 /dist/steamos/Makefile
 /dist/windows/fs-uae.iss
 /dist/windows/Makefile

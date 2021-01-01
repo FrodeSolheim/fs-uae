@@ -779,9 +779,11 @@ AS_IF([test "x$enable_jit" != xno], [
     ], [
         AC_DEFINE([JIT], [1], [Define to 1 to enable JIT compilation])
     ], [
-        if test "x$enable_jit" != xyes; then
+        if test "x$enable_jit" = xyes; then
             AC_MSG_FAILURE(
                 [JIT is not supported on $host])
+        else
+            enable_jit=no
         fi
     ])
 ])
@@ -849,8 +851,28 @@ OPT_FEATURE([WITH_UDIS86], [udis86], [udis86],
             [UDIS86 x86/x86-64 disassembler])
 OPT_FEATURE([WITH_VPAR], [vpar], [vpar],
             [vpar virtual parallel port])
-OPT_FEATURE([WITH_X86], [x86], [x86],
-            [x86 bridgeboard support])
+
+AC_ARG_ENABLE([x86], [AS_HELP_STRING([--disable-x86], [x86 bridgeboard support])])
+AS_IF([test "x$enable_x86" != xno], [
+    AC_TRY_COMPILE([
+    ], [
+        #if !defined(__i386__) && !defined(__x86_64__)
+        #error Bridgeboard is only supported on x86/x86-64
+        #endif
+    ], [
+        AC_DEFINE([WITH_X86], [1], [Define to 1 to enable x86 bridgeboard support])
+    ], [
+        if test "x$enable_x86" = xyes; then
+            AC_MSG_FAILURE(
+                [x86 bridgeboard is not supported on $host])
+        else
+            enable_x86=no
+        fi
+    ])
+])
+AM_CONDITIONAL([WITH_X86],
+[test x$enable_x86 != xno])
+
 OPT_FEATURE([WITH_XML_SHADER], [xml_shader], [xml-shader],
             [XML shader support])
 OPT_FEATURE([A_ZIP], [zip], [zip],
@@ -866,6 +888,7 @@ AC_CONFIG_FILES([
     dist/linux/Makefile
     dist/macos/Info.plist
     dist/macos/Makefile
+    dist/rpi4/Makefile
     dist/steamos/Makefile
     dist/windows/fs-uae.iss
     dist/windows/Makefile

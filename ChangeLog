@@ -1,5 +1,7 @@
 Version 3.9.101dev:
 
+* Configure flags --disable-jit and --disable-x86 must no longer be specified
+  for ARM builds, they will be automatically disabled.
 * macOS: Only use -pagezero_size for x86_64 (Fixes builds for M1 hardware).
 
 Version 3.9.100dev:

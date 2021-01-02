@@ -1,0 +1,20 @@
+Summary: Blitter
+
+Value: auto ("Auto")
+Value: normal ("Normal") ?
+Value: immediate ("Immediate")
+Value: wait ("Wait")
+Value: FIXME: more waiting modes?
+
+TODO: Implement!
+FIXME: Not implemented
+
+## See also
+
+[uae_immediate_blits]
+[uae_waiting_blits]
+
+## Links
+
+[Immediate Blitter & Wait for Blitter...]
+(https://eab.abime.net/showthread.php?t=95418)

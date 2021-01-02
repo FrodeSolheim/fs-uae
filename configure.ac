@@ -225,15 +225,12 @@ AS_IF([test "x$with_glew" = xyes], [
 ])
 
 AC_ARG_WITH(libmpeg2, AS_HELP_STRING(
-    [--without-libmpeg2], [or --with-libmpeg2=builtin to use included version]))
-AM_CONDITIONAL([BUILTIN_LIBMPEG2], [test x$with_libmpeg2 = xbuiltin])
+    [--without-libmpeg2], [Disable libmpeg2 usage]))
 AS_IF([test "x$with_libmpeg2" != xno], [
-    AS_IF([test "x$with_libmpeg2" = xbuiltin], [
-    ], [
-        PKG_CHECK_MODULES([LIBMPEG2], [libmpeg2 libmpeg2convert])
-    ])
+    PKG_CHECK_MODULES([LIBMPEG2], [libmpeg2 libmpeg2convert])
     AC_DEFINE([WITH_LIBMPEG2], [1], [Define to 1 to use libmpeg2])
 ])
+AM_CONDITIONAL([WITH_LIBMPEG2], [test x$with_libmpeg2 != xno])
 
 AM_CONDITIONAL([BUILTIN_MANYMOUSE], [true])
 
@@ -879,8 +876,6 @@ OPT_FEATURE([A_ZIP], [zip], [zip],
             [ZIP archive support])
 
 AC_DEFINE([FPU_UAE], [1], [Define to 1])
-
-AC_CONFIG_SUBDIRS([libmpeg2])
 
 # Write Makefile
 

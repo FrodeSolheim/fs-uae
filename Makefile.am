@@ -1558,13 +1558,7 @@ endif
 #	softfloat/softfloatx80.h
 #endif
 
-if BUILTIN_LIBMPEG2
-SUBDIRS += libmpeg2
-AM_CPPFLAGS += -I$(s)/libmpeg2/include
-fs_uae_LDADD += \
-	libmpeg2/libmpeg2/.libs/libmpeg2.a \
-	libmpeg2/libmpeg2/convert/.libs/libmpeg2convert.a
-else
+if WITH_LIBMPEG2
 CM_CFLAGS += @LIBMPEG2_CFLAGS@
 LIBS += @LIBMPEG2_LIBS@
 endif

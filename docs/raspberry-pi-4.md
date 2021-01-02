@@ -18,6 +18,7 @@ Amiga 500 cycle-exact emulation can be quite demanding.
 
 ## Set performance CPU governor
 
+    sudo apt install cpufrequtils
     sudo cpufreq-set -g performance
 
 You can then confirm with `cpufreq-info` that your Raspberry Pi runs at 2 Ghz.
@@ -42,3 +43,26 @@ Configure optimized version for Raspberry Pi 4:
 TODO: check if the neon flags actually does any good
 
 TODO: Test with profile-guide optimizations.
+
+## Distribution notes
+
+Needed:
+
+- libSDL2-2.0.so.0: Custom build)
+- libSDL2_ttf-2.0.so.0: Missing on default install
+
+Currently bundled libraries, but not strictly needed, since they seem to be
+present on the default Raspberry OS (debian-based) install:
+
+- libbsd.so.0
+- libfreetype.so.6
+- libglib-2.0.so.0
+- libgthread-2.0.so.0
+- libmpeg2convert.so.0
+- libmpeg2.so.0
+- libopenal.so.1
+- libpcre.so.3
+- libpng16.so.16
+- libportmidi.so.0
+- libsndio.so.7.0
+- libz.so.1

@@ -371,8 +371,8 @@ SDL_Window *fsemu_sdlwindow_create(void)
     }
 
     if (fsemu_sdlwindow_kmsdrm()) {
-        //flags &= ~SDL_WINDOW_FULLSCREEN_DESKTOP;
-        //flags |= SDL_WINDOW_FULLSCREEN;
+        flags &= ~SDL_WINDOW_FULLSCREEN_DESKTOP;
+        flags |= SDL_WINDOW_FULLSCREEN;
         fsemu_window_set_fullscreen(true);
     }
 
@@ -426,10 +426,21 @@ SDL_Window *fsemu_sdlwindow_create(void)
     flags |= SDL_WINDOW_ALLOW_HIGHDPI;
 #endif
 
-#if 0
-    flags &= ~SDL_WINDOW_FULLSCREEN_DESKTOP;
-    flags |= SDL_WINDOW_FULLSCREEN;
-#endif
+    SDL_DisplayMode mode = { 0 };
+
+    if (fsemu_sdlwindow_kmsdrm()) {
+        // We must use SDL_WINDOW_FULLSCREEN in order for mode switch to
+        // happen.
+        flags &= ~SDL_WINDOW_FULLSCREEN_DESKTOP;
+        flags |= SDL_WINDOW_FULLSCREEN;
+
+        // Switch to 50Hz mode on Raspberry PI.
+
+        // FIXME: Lookup correct mode, do not hardcode index
+        SDL_GetDisplayMode(0, 1, &mode);
+        // Also setting vsync. FIXME: Unconditionally?
+        fsemu_video_set_vsync(true);
+    }
 
     fsemu_window_log("SDL_CreateWindow(..., %d, %d, %d, %d, flags=%d)\n",
         rect.x, rect.y, rect.w, rect.h, flags);
@@ -438,17 +449,13 @@ SDL_Window *fsemu_sdlwindow_create(void)
     fsemu_window_log("Window %p (Driver: %s)\n", window, SDL_GetCurrentVideoDriver());
 
 #if 1
-    if (fsemu_sdlwindow_kmsdrm()) {
-        // Switch to 50Hz mode on Raspberry PI.
-        // FIXME: Lookup correct mode, do not hardcode index
-        SDL_DisplayMode mode;
-        SDL_GetDisplayMode(0, 1, &mode);
+    if (mode.w && mode.h) {
         int error = SDL_SetWindowDisplayMode(window, &mode);
+        fsemu_window_log("Switching to mode %dx%d@%d\n", mode.w, mode.h, mode.refresh_rate);
         if (error) {
-            printf("Error setting mode\n");
+             // FIXME: log_error or log_warning
+            fsemu_window_log("Error setting mode\n");
         }
-        // Also setting vsync. FIXME: Unconditionally?
-        fsemu_video_set_vsync(true);
     }
 #endif
 

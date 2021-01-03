@@ -129,7 +129,9 @@ def ignore_library(name):
     if name.startswith("libEGL.so"):
         return True
 
-    # Not really sure if this one should be skipped or not.
+    # Not really sure if this one should be skipped or not. It is linked to on
+    # Raspberry Pi 4, but might be a system library that should not be
+    # distributed.
     if name.startswith("libatomic.so"):
         return True
 

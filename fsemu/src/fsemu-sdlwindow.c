@@ -121,12 +121,12 @@ static void fsemu_sdlwindow_set_cursor_visible(int cursor_visible)
         return;
     }
     if (cursor_visible) {
-        fsemu_mouse_log(1, "Showing mouse cursor\n");
+        fsemu_mouse_log_debug("Showing mouse cursor\n");
     } else {
-        fsemu_mouse_log(1, "Hiding mouse cursor\n");
+        fsemu_mouse_log_debug("Hiding mouse cursor\n");
     }
 
-    printf("Mouse cursor set visible? %d\n", cursor_visible);
+    fsemu_mouse_log_debug("Cursor set visible? %d\n", cursor_visible);
     SDL_ShowCursor(cursor_visible);
     fsemu_sdlwindow.cursor_visible = cursor_visible;
 }
@@ -137,7 +137,7 @@ static void fsemu_sdlwindow_set_swap_interval(int swap_interval)
     if (fsemu_sdlwindow.swap_interval == swap_interval) {
         return;
     }
-    fsemu_window_log("SDL_GL_SetSwapInterval(%d)\n", swap_interval);
+    fsemu_window_log_debug("SDL_GL_SetSwapInterval(%d)\n", swap_interval);
     SDL_GL_SetSwapInterval(swap_interval);
     fsemu_sdlwindow.swap_interval = swap_interval;
 }
@@ -149,9 +149,9 @@ static void fsemu_sdlwindow_set_mouse_captured(int mouse_captured)
         return;
     }
     if (mouse_captured) {
-        fsemu_mouse_log(1, "Capturing mouse cursor\n");
+        fsemu_mouse_log_debug("Capturing mouse cursor\n");
     } else {
-        fsemu_mouse_log(1, "Releasing mouse cursor capture\n");
+        fsemu_mouse_log_debug("Releasing mouse cursor capture\n");
     }
     SDL_SetRelativeMouseMode(mouse_captured ? SDL_TRUE : SDL_FALSE);
     fsemu_sdlwindow.mouse_captured = mouse_captured;
@@ -186,7 +186,7 @@ static void fsemu_sdlwindow_open_menu_delayed(void)
 
 static void fsemu_sdlwindow_open_menu_abort(void)
 {
-    printf("fsemu_sdlwindow_open_menu_abort\n");
+    fsemu_window_log_debug("fsemu_sdlwindow_open_menu_abort\n");
     fsemu_sdlwindow.mod_press_release_at = 0;
 }
 
@@ -194,7 +194,7 @@ static inline void fsemu_sdlwindow_open_menu_maybe(int64_t now_us)
 {
     if (fsemu_sdlwindow.mod_press_release_at) {
         if (now_us - fsemu_sdlwindow.mod_press_release_at > 10 * 1000) {
-            printf("fsemu_sdlwindow_open_maybe -> yes\n");
+            fsemu_window_log_debug("fsemu_sdlwindow_open_maybe -> yes\n");
             // 50 ms has passed without the window having lost focus.
             // Let's assume the modifier key was pressed/released alone.
             fsemu_sdlwindow_open_menu();
@@ -442,7 +442,7 @@ SDL_Window *fsemu_sdlwindow_create(void)
         fsemu_video_set_vsync(true);
     }
 
-    fsemu_window_log("SDL_CreateWindow(..., %d, %d, %d, %d, flags=%d)\n",
+    fsemu_window_log_debug("SDL_CreateWindow(..., %d, %d, %d, %d, flags=%d)\n",
         rect.x, rect.y, rect.w, rect.h, flags);
     SDL_Window *window = SDL_CreateWindow(
         fsemu_window_title(), rect.x, rect.y, rect.w, rect.h, flags);
@@ -533,13 +533,13 @@ void fsemu_sdlwindow_show(void)
 {
     static bool first = true;
     fsemu_assert(fsemu_sdlwindow.window != NULL);
-    fsemu_window_log("Show window\n");
+    fsemu_window_log_debug("Show window\n");
     SDL_ShowWindow(fsemu_sdlwindow.window);
 
     // Get actual window position and size
     SDL_GetWindowPosition(fsemu_sdlwindow.window, &fsemu_sdlwindow.rect.x, &fsemu_sdlwindow.rect.y);
     SDL_GetWindowSize(fsemu_sdlwindow.window, &fsemu_sdlwindow.rect.w, &fsemu_sdlwindow.rect.h);
-    fsemu_window_log("Window rect is now: %d %d %d %d\n", fsemu_sdlwindow.rect.x, fsemu_sdlwindow.rect.y, fsemu_sdlwindow.rect.w, fsemu_sdlwindow.rect.h);
+    fsemu_window_log_debug("Window rect is now: %d %d %d %d\n", fsemu_sdlwindow.rect.x, fsemu_sdlwindow.rect.y, fsemu_sdlwindow.rect.w, fsemu_sdlwindow.rect.h);
 
 #if 0
     SDL_Event event;
@@ -553,7 +553,7 @@ void fsemu_sdlwindow_show(void)
         // with the drop-down titlebar visible.
         // fsemu_sdlwindow_center_cursor();
         // SDL_WarpMouseGlobal(100, 100);
-        printf("%d %d\n", fsemu_sdlwindow.rect.y, fsemu_sdlwindow.rect.h);
+        fsemu_window_log_debug("%d %d\n", fsemu_sdlwindow.rect.y, fsemu_sdlwindow.rect.h);
 #if 1
 #if 1
 //        SDL_ShowCursor(SDL_ENABLE);
@@ -608,7 +608,7 @@ static void fsemu_sdlwindow_fullscreen_to_window(void)
     // so we can set a sane window size. Otherwise, we often end up with a
     // maximized window, and SDL forgets the window dimentions we wanted for
     // the window in window mode.
-    fsemu_window_log("First fullscren -> window transition\n\n");
+    fsemu_window_log_debug("First fullscren -> window transition\n\n");
     fsemu_sdlwindow.was_fullscreen_initially = false;
     fsemu_rect_t rect;
     fsemu_window_initial_rect(&rect, fsemu_window_ui_scale());
@@ -626,7 +626,7 @@ static void fsemu_sdlwindow_fullscreen_to_window(void)
 
     SDL_RestoreWindow(fsemu_sdlwindow.window);
     SDL_SetWindowSize(fsemu_sdlwindow.window, rect.w, rect.h);
-    fsemu_window_log("Set position %d %d\n", rect.x, rect.y);
+    fsemu_window_log_debug("Set position %d %d\n", rect.x, rect.y);
     SDL_SetWindowPosition(fsemu_sdlwindow.window, rect.x, rect.y);
 
 #if 0
@@ -652,7 +652,7 @@ void fsemu_sdlwindow_set_window(SDL_Window *window)
     // FIXME: Also check for old SDL_WINDOW_FULLSCREEN?
     fsemu_sdlwindow.fullscreen = flags & SDL_WINDOW_FULLSCREEN_DESKTOP;
 
-    fsemu_window_log("Window is %p (%d %d %d %d) fullscreen %d\n",
+    fsemu_window_log_debug("Window is %p (%d %d %d %d) fullscreen %d\n",
                      fsemu_sdlwindow.window,
                      fsemu_sdlwindow.rect.x,
                      fsemu_sdlwindow.rect.y,
@@ -671,7 +671,7 @@ void fsemu_sdlwindow_set_fullscreen(bool fullscreen)
     if (fsemu_sdlwindow.fullscreen == fullscreen) {
         return;
     }
-    fsemu_window_log("fsemu_sdlwindow_set_fullscreen %d\n", fullscreen);
+    fsemu_window_log_debug("fsemu_sdlwindow_set_fullscreen %d\n", fullscreen);
     int fullscreen_mode = 0;
 #ifdef FSEMU_MACOS
     if (!fsemu_titlebar_use_system() && fullscreen) {
@@ -728,59 +728,59 @@ bool fsemu_sdlwindow_has_window(void)
 static bool fsemu_sdlwindow_handle_keyboard_shortcut(SDL_Event *event)
 {
     if (event->key.keysym.sym == SDLK_a) {
-        fsemu_window_log("SDLK_a (cycle aspect/stretch mode)\n");
+        fsemu_window_log_debug("SDLK_a (cycle aspect/stretch mode)\n");
         fsemu_layout_cycle_stretch_mode();
         return true;
     } else if (event->key.keysym.sym == SDLK_f) {
-        fsemu_window_log("SDLK_f (toggle fullscreen)\n");
+        fsemu_window_log_debug("SDLK_f (toggle fullscreen)\n");
         fsemu_window_toggle_fullscreen();
         return true;
     } else if (event->key.keysym.sym == SDLK_g) {
-        fsemu_window_log("SDLK_g (grab/ungrab mouse)\n");
+        fsemu_window_log_debug("SDLK_g (grab/ungrab mouse)\n");
         fsemu_mouse_toggle_captured();
         return true;
     } else if (event->key.keysym.sym == SDLK_i) {
-        fsemu_window_log("SDLK_i (toggle game information)\n");
+        fsemu_window_log_debug("SDLK_i (toggle game information)\n");
         fsemu_startupinfo_toggle();
         return true;
     } else if (event->key.keysym.sym == SDLK_k) {
-        fsemu_window_log("SDLK_k (keyboard)\n");
+        fsemu_window_log_debug("SDLK_k (keyboard)\n");
         // FIXME: Not fully implement, only affects modifier key right now.
         fsemu_sdlwindow.full_keyboard_emulation =
             !fsemu_sdlwindow.full_keyboard_emulation;
-        fsemu_window_log("Full keyboard emulation: %d\n",
+        fsemu_window_log_debug("Full keyboard emulation: %d\n",
                          fsemu_sdlwindow.full_keyboard_emulation);
         return true;
     } else if (event->key.keysym.sym == SDLK_o) {
-        fsemu_window_log("SDLK_o (cycle performance overlay)\n");
+        fsemu_window_log_debug("SDLK_o (cycle performance overlay)\n");
         fsemu_perfgui_cycle();
         return true;
     } else if (event->key.keysym.sym == SDLK_p) {
-        fsemu_window_log("SDLK_w (toggle paused)\n");
+        fsemu_window_log_debug("SDLK_w (toggle paused)\n");
         fsemu_control_toggle_paused();
         return true;
     } else if (event->key.keysym.sym == SDLK_q) {
-        fsemu_window_log("SDLK_q (quit)\n");
+        fsemu_window_log_debug("SDLK_q (quit)\n");
         fsemu_quit_maybe();
         return true;
     } else if (event->key.keysym.sym == SDLK_s) {
-        fsemu_window_log("SDLK_s (screenshot)\n");
+        fsemu_window_log_debug("SDLK_s (screenshot)\n");
         fsemu_screenshot_capture();
         return true;
     } else if (event->key.keysym.sym == SDLK_v) {
-        fsemu_window_log("SDLK_v (toggle v-sync)\n");
+        fsemu_window_log_debug("SDLK_v (toggle v-sync)\n");
         fsemu_video_toggle_vsync();
         return true;
     } else if (event->key.keysym.sym == SDLK_w) {
-        fsemu_window_log("SDLK_w (toggle warp mode)\n");
+        fsemu_window_log_debug("SDLK_w (toggle warp mode)\n");
         fsemu_control_toggle_warp();
         return true;
     } else if (event->key.keysym.sym == SDLK_z) {
-        fsemu_window_log("SDLK_z (cycle zoom mode)\n");
+        fsemu_window_log_debug("SDLK_z (cycle zoom mode)\n");
         fsemu_layout_cycle_zoom_mode();
         return true;
     } else if (event->key.keysym.sym == SDLK_RETURN) {
-        fsemu_window_log("SDLK_RETURN (toggle fullscreen)\n");
+        fsemu_window_log_debug("SDLK_RETURN (toggle fullscreen)\n");
         fsemu_window_toggle_fullscreen();
         return true;
     }
@@ -896,17 +896,17 @@ bool fsemu_sdlwindow_handle_event(SDL_Event *event)
 
         if (!fsemu_sdlwindow.full_keyboard_emulation &&
             event->key.keysym.scancode == FSEMU_KMOD_SCANCODE) {
-            fsemu_window_log("MOD key pressed\n");
+            fsemu_window_log_debug("MOD key pressed\n");
             mod_press_only = true;
         }
 
         bool shortcut = false;
         if (fsemu_sdlwindow.f12_pressed) {
-            fsemu_window_log("F12 key held down\n");
+            fsemu_window_log_debug("F12 key held down\n");
             shortcut = true;
         } else if (!fsemu_sdlwindow.full_keyboard_emulation &&
                    event->key.keysym.mod & FSEMU_KMOD_MOD) {
-            fsemu_window_log("MOD key held down\n");
+            fsemu_window_log_debug("MOD key held down\n");
             shortcut = true;
         }
         if (shortcut) {
@@ -939,14 +939,14 @@ bool fsemu_sdlwindow_handle_event(SDL_Event *event)
         if (f12_press_only) {
             // F12 key was pressed and released without any intervening key
             // strokes. In this case, we open the menu.
-            fsemu_window_log("F12 key press/release\n");
+            fsemu_window_log_debug("F12 key press/release\n");
             fsemu_sdlwindow_open_menu();
             return true;
         }
         if (mod_press_only || f12_press_only) {
             // Modifier key was pressed and released without any intervening
             // key strokes. In this case, we open the menu.
-            fsemu_window_log("MOD key press/release (maybe)\n");
+            fsemu_window_log_debug("MOD key press/release (maybe)\n");
             // Actually, if we've just alt-tabbed, the tab press might have
             // been caught by the windowing system, so it looks to the emulator
             // like a single mod press, but it really isn't...
@@ -961,7 +961,7 @@ bool fsemu_sdlwindow_handle_event(SDL_Event *event)
     switch (event->type) {
         case SDL_MOUSEBUTTONDOWN:
         case SDL_MOUSEBUTTONUP:
-            fsemu_mouse_log(1,
+            fsemu_mouse_log_debug(
                             "%s button=%d\n",
                             event->button.state ? "SDL_MOUSEBUTTONDOWN"
                                                 : "SDL_MOUSEBUTTONUP",
@@ -982,7 +982,7 @@ bool fsemu_sdlwindow_handle_event(SDL_Event *event)
             }
             break;
         case SDL_MOUSEMOTION:
-            fsemu_mouse_log(2,
+            fsemu_mouse_log_debug(
                             "SDL_MOUSEMOTION x=%d y=%d xrel=%d yrel=%d\n",
                             event->motion.x,
                             event->motion.y,
@@ -994,7 +994,7 @@ bool fsemu_sdlwindow_handle_event(SDL_Event *event)
             if (fsemu_sdlwindow.ignore_motion_after_fullscreen) {
                 if (event->motion.x == 0 && event->motion.y == 0 &&
                     event->motion.xrel == 0 && event->motion.yrel == 0) {
-                    fsemu_mouse_log(1,
+                    fsemu_mouse_log_debug(
                                     "Ignoring bogus event after switching to "
                                     "fullscreen\n");
                     return true;
@@ -1062,13 +1062,13 @@ bool fsemu_sdlwindow_handle_window_event(SDL_Event *event)
 
     switch (event->window.event) {
         case SDL_WINDOWEVENT_SHOWN:
-            fsemu_window_log("Window %d shown\n", event->window.windowID);
+            fsemu_window_log_debug("Window %d shown\n", event->window.windowID);
             break;
         case SDL_WINDOWEVENT_HIDDEN:
-            fsemu_window_log("Window %d hidden\n", event->window.windowID);
+            fsemu_window_log_debug("Window %d hidden\n", event->window.windowID);
             break;
         case SDL_WINDOWEVENT_EXPOSED:
-            fsemu_window_log("Window %d exposed\n", event->window.windowID);
+            fsemu_window_log_debug("Window %d exposed\n", event->window.windowID);
             break;
         case SDL_WINDOWEVENT_MOVED:
 #if 0
@@ -1081,7 +1081,7 @@ bool fsemu_sdlwindow_handle_window_event(SDL_Event *event)
         case SDL_WINDOWEVENT_RESIZED:
             // Window has been resized to data1xdata2; this event is
             // always preceded by SDL_WINDOWEVENT_SIZE_CHANGED.
-            fsemu_window_log("Window %d resized to %dx%d\n",
+            fsemu_window_log_debug("Window %d resized to %dx%d\n",
                              event->window.windowID,
                              event->window.data1,
                              event->window.data2);
@@ -1092,7 +1092,7 @@ bool fsemu_sdlwindow_handle_window_event(SDL_Event *event)
             // this event is followed by SDL_WINDOWEVENT_RESIZED if the
             // size was changed by an external event, i.e. the user or the
             // window manager.
-            fsemu_window_log("Window %d size changed to %dx%d\n",
+            fsemu_window_log_debug("Window %d size changed to %dx%d\n",
                              event->window.windowID,
                              event->window.data1,
                              event->window.data2);
@@ -1124,16 +1124,16 @@ bool fsemu_sdlwindow_handle_window_event(SDL_Event *event)
 
             break;
         case SDL_WINDOWEVENT_MINIMIZED:
-            fsemu_window_log("Window %d minimized\n", event->window.windowID);
+            fsemu_window_log_debug("Window %d minimized\n", event->window.windowID);
             break;
         case SDL_WINDOWEVENT_MAXIMIZED:
-            fsemu_window_log("Window %d maximized\n", event->window.windowID);
+            fsemu_window_log_debug("Window %d maximized\n", event->window.windowID);
             break;
         case SDL_WINDOWEVENT_RESTORED:
-            fsemu_window_log("Window %d restored\n", event->window.windowID);
+            fsemu_window_log_debug("Window %d restored\n", event->window.windowID);
             break;
         case SDL_WINDOWEVENT_ENTER:
-            fsemu_window_log("Mouse entered window %d\n",
+            fsemu_window_log_debug("Mouse entered window %d\n",
                              event->window.windowID);
 
 #if 0
@@ -1165,12 +1165,12 @@ bool fsemu_sdlwindow_handle_window_event(SDL_Event *event)
             {
                 int x, y, winx, winy;
                 SDL_GetGlobalMouseState(&x, &y);
-                fsemu_window_log(
+                fsemu_window_log_debug(
                     "Read mouse position manually (screen): %d %d\n", x, y);
                 SDL_GetWindowPosition(fsemu_sdlwindow.window, &winx, &winy);
                 x -= winx;
                 y -= winy;
-                fsemu_window_log(
+                fsemu_window_log_debug(
                     "Read mouse position manually: %d %d\n", x, y);
                 bool mouse_not_moved =
                     fsemu_sdlwindow.last_cursor_motion_at == 0;
@@ -1185,7 +1185,7 @@ bool fsemu_sdlwindow_handle_window_event(SDL_Event *event)
 
             break;
         case SDL_WINDOWEVENT_LEAVE:
-            fsemu_window_log("Mouse left window %d\n", event->window.windowID);
+            fsemu_window_log_debug("Mouse left window %d\n", event->window.windowID);
             // Sending fake mouse event (outside window) when mouse
             // leaves the window, useful for GUI hovering effects.
             // FIXME: Might need to make sure these events do not
@@ -1209,7 +1209,7 @@ bool fsemu_sdlwindow_handle_window_event(SDL_Event *event)
 
             break;
         case SDL_WINDOWEVENT_FOCUS_GAINED:
-            fsemu_window_log("Window %d gained keyboard focus\n",
+            fsemu_window_log_debug("Window %d gained keyboard focus\n",
                              event->window.windowID);
             fsemu_window_set_active(true);
             break;
@@ -1218,25 +1218,25 @@ bool fsemu_sdlwindow_handle_window_event(SDL_Event *event)
             // combination. In which case we do not want to open the
             // on-screen menu.
             fsemu_sdlwindow_open_menu_abort();
-            fsemu_window_log("Window %d lost keyboard focus\n",
+            fsemu_window_log_debug("Window %d lost keyboard focus\n",
                              event->window.windowID);
             fsemu_window_set_active(false);
             break;
         case SDL_WINDOWEVENT_CLOSE:
-            fsemu_window_log("Window %d closed\n", event->window.windowID);
+            fsemu_window_log_debug("Window %d closed\n", event->window.windowID);
             break;
 #if SDL_VERSION_ATLEAST(2, 0, 5)
         case SDL_WINDOWEVENT_TAKE_FOCUS:
-            fsemu_window_log("Window %d is offered a focus\n",
+            fsemu_window_log_debug("Window %d is offered a focus\n",
                              event->window.windowID);
             break;
         case SDL_WINDOWEVENT_HIT_TEST:
-            fsemu_window_log("Window %d has a special hit test\n",
+            fsemu_window_log_debug("Window %d has a special hit test\n",
                              event->window.windowID);
             break;
 #endif
         default:
-            fsemu_window_log("Window %d got unknown event %d\n",
+            fsemu_window_log_debug("Window %d got unknown event %d\n",
                              event->window.windowID,
                              event->window.event);
             break;
@@ -1249,7 +1249,7 @@ bool fsemu_sdlwindow_handle_window_event(SDL_Event *event)
 
 static void fsemu_sdlwindow_quit(void)
 {
-    fsemu_window_log("fsemu_sdlwindow_quit\n");
+    fsemu_window_log_debug("fsemu_sdlwindow_quit\n");
     if (fsemu_sdlwindow.gl_context) {
         fsemu_window_log("Deleting OpenGL context\n");
         SDL_GL_DeleteContext(fsemu_sdlwindow.gl_context);
@@ -1258,9 +1258,30 @@ static void fsemu_sdlwindow_quit(void)
         fsemu_window_log("Destroying SDL window\n");
         SDL_DestroyWindow(fsemu_sdlwindow.window);
     }
-    fsemu_window_log("SDL_Quit\n");
+    fsemu_window_log("Calling SDL_Quit\n");
     SDL_Quit();
 }
+
+// ---------------------------------------------------------------------------
+
+static void fsemu_sdlwindow_log_modes(void)
+{
+    fsemu_window_log("Listing display modes for display 0:\n");
+    // int display_count = 0;
+    int display_index = 0;
+    int mode_index = 0;
+    SDL_DisplayMode mode = {SDL_PIXELFORMAT_UNKNOWN, 0, 0, 0, 0};
+    while (1) {
+        int error = SDL_GetDisplayMode(display_index, mode_index, &mode);
+        if (error) {
+            break;
+        }
+        fsemu_window_log("Mode %d: %d %d %d\n", mode_index, mode.w, mode.h, mode.refresh_rate);
+        mode_index += 1;
+    }
+}
+
+// ---------------------------------------------------------------------------
 
 void fsemu_sdlwindow_init(void)
 {
@@ -1271,7 +1292,7 @@ void fsemu_sdlwindow_init(void)
     fsemu_window_log("Initializing sdlwindow module\n");
     fsemu_module_on_quit(fsemu_sdlwindow_quit);
 
-    fsemu_window_log("SDL_Init(SDL_INIT_EVERYTHING)\n");
+    fsemu_window_log_debug("SDL_Init(SDL_INIT_EVERYTHING)\n");
     SDL_Init(SDL_INIT_EVERYTHING);
 
 #ifdef FSEMU_MACOS
@@ -1283,6 +1304,7 @@ void fsemu_sdlwindow_init(void)
 #if SDL_VERSION_ATLEAST(2, 0, 5)
     SDL_SetHint(SDL_HINT_MOUSE_FOCUS_CLICKTHROUGH, "1");
 #else
+    // FIXME: log_warning
     fsemu_window_log(
         "Failed to set SDL_HINT_MOUSE_FOCUS_CLICKTHROUGH (too old SDL)\n");
 #endif
@@ -1310,19 +1332,7 @@ void fsemu_sdlwindow_init(void)
     // seem to always be the case.
     fsemu_sdlwindow.swap_interval = -1337;
 
-    fsemu_window_log("Listing display modes for display 0:\n");
-    // int display_count = 0;
-    int display_index = 0;
-    int mode_index = 0;
-    SDL_DisplayMode mode = {SDL_PIXELFORMAT_UNKNOWN, 0, 0, 0, 0};
-    while (1) {
-        int error = SDL_GetDisplayMode(display_index, mode_index, &mode);
-        if (error) {
-            break;
-        }
-        fsemu_window_log("Mode %d: %d %d %d\n", mode_index, mode.w, mode.h, mode.refresh_rate);
-        mode_index += 1;
-    }
+    fsemu_sdlwindow_log_modes();
 }
 
 #endif  // FSEMU_SDL

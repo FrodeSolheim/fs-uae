@@ -96,7 +96,7 @@ static char *resolve_controller(const char *controller)
 
 void fsuae_media_configure_cdrom(void)
 {
-    fsuae_log("configure_cdrom\n");
+    fsuae_log("[MEDIA] configure_cdrom\n");
 
     int auto_num_drives = 0;
     char *path = fs_config_get_string("cdrom_drive_0");
@@ -265,11 +265,11 @@ static void configure_hard_drive_directory(int index,
         }
     }
 
-    fsuae_log("hard drive mount: %s\n", path);
-    fsuae_log("device: %s\n", device);
-    fsuae_log("mount name: %s\n", mount_name);
-    fsuae_log("read only: %d\n", read_only);
-    fsuae_log("boot priority: %d\n", boot_priority);
+    fsuae_log("[MEDIA] hard drive mount: %s\n", path);
+    fsuae_log("[MEDIA] device: %s\n", device);
+    fsuae_log("[MEDIA] mount name: %s\n", mount_name);
+    fsuae_log("[MEDIA] read only: %d\n", read_only);
+    fsuae_log("[MEDIA] boot priority: %d\n", boot_priority);
 
     char *filesystem2_value = g_strdup_printf("%s,%s:%s:%s,%d",
                                               read_only ? "ro" : "rw",
@@ -302,14 +302,14 @@ static void configure_hard_drive_image(int index,
 
     FILE *f = g_fopen(path, "rb");
     if (f == NULL) {
-        fsuae_log("WARNING: could not open %s\n", path);
+        fsuae_log("[MEDIA] WARNING: could not open %s\n", path);
     }
 
     key = g_strdup_printf("hard_drive_%d_type", index);
     const char *hd_type = fs_config_get_const_string(key);
     free(key);
     if (hd_type && g_ascii_strcasecmp(hd_type, "rdb") == 0) {
-        fsuae_log("hard drive type explicitly set to rdb\n");
+        fsuae_log("[MEDIA] hard drive type explicitly set to rdb\n");
         rdb_mode = 1;
     }
 #if 0
@@ -332,7 +332,7 @@ static void configure_hard_drive_image(int index,
                 rdb_mode = 1;
             }
         } else {
-            fsuae_log("WARNING: error reading 4 bytes from HD file\n");
+            fsuae_log("[MEDIA] WARNING: error reading 4 bytes from HD file\n");
         }
     }
     if (f != NULL) {
@@ -373,17 +373,17 @@ static void configure_hard_drive_image(int index,
 
     char *uae_controller = resolve_controller(controller);
 
-    fsuae_log("hard drive file: %s\n", path);
-    fsuae_log("rdb mode: %d\n", rdb_mode);
-    fsuae_log("device: %s\n", device);
-    fsuae_log("read only: %d\n", read_only);
-    fsuae_log("boot priority: %d\n", boot_priority);
-    fsuae_log("surfaces: %d\n", surfaces);
-    fsuae_log("reserved: %d\n", reserved);
-    fsuae_log("hd controller: %s\n", uae_controller);
-    fsuae_log("sectors: %d\n", sectors);
-    fsuae_log("block size: %d\n", block_size);
-    fsuae_log("file system: %s\n", file_system);
+    fsuae_log("[MEDIA] hard drive file: %s\n", path);
+    fsuae_log("[MEDIA] rdb mode: %d\n", rdb_mode);
+    fsuae_log("[MEDIA] device: %s\n", device);
+    fsuae_log("[MEDIA] read only: %d\n", read_only);
+    fsuae_log("[MEDIA] boot priority: %d\n", boot_priority);
+    fsuae_log("[MEDIA] surfaces: %d\n", surfaces);
+    fsuae_log("[MEDIA] reserved: %d\n", reserved);
+    fsuae_log("[MEDIA] hd controller: %s\n", uae_controller);
+    fsuae_log("[MEDIA] sectors: %d\n", sectors);
+    fsuae_log("[MEDIA] block size: %d\n", block_size);
+    fsuae_log("[MEDIA] file system: %s\n", file_system);
 
     char *hardfile2_value = g_strdup_printf("%s,%s:%s,%d,%d,%d,%d,%d,%s,%s",
                                             read_only ? "ro" : "rw",
@@ -413,7 +413,7 @@ static void configure_hard_drive_image(int index,
 
 void fsuae_media_configure_hard_drives(void)
 {
-    fsuae_log("fs_uae_configure_hard_drives\n");
+    fsuae_log("[MEDIA] fs_uae_configure_hard_drives\n");
 
     const char *flags = fs_config_get_const_string("uaem_write_flags");
     if (flags != NULL) {
@@ -480,7 +480,7 @@ static void fsuae_media_init_floppy_drives(void)
         // FIXME: instead, just set default number of floppy drives to 0
         return;
     }
-    fsuae_log("Init floppy drives\n");
+    fsuae_log("[MEDIA] Init floppy drives\n");
 
     if (fs_config_get_int(OPTION_WORKBENCH_DISK) == 1) {
         if (cfg->wb_disk) {
@@ -510,7 +510,7 @@ static void fsuae_media_init_floppy_drives(void)
         option_floppyxsoundext[6] = '0' + i;
 
         char *path = fs_config_get_string(option_floppy_drive_x);
-        fsuae_log("value for option %s: %s\n", option_floppy_drive_x, path);
+        fsuae_log("[MEDIA] Value for option %s: %s\n", option_floppy_drive_x, path);
         if (!path) {
             path = strdup("");
         }

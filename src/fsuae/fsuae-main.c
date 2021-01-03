@@ -66,6 +66,8 @@
 #include "../../fsemu/gamemode/lib/gamemode_client.h"
 #endif
 
+int fsuae_log_level = FSEMU_LOG_INFO;
+
 int fsemu = 0;
 
 static int fs_uae_argc;
@@ -1005,9 +1007,6 @@ static int load_config_file(void)
 
 static void log_to_libfsemu(const char *message)
 {
-    /* UAE logs some messages char-for-char, so we need to buffer logging
-     * here if we want to log with [UAE] prefix. */
-    // fs_log("[UAE] %s", message);
     static bool initialized;
     static bool ignore;
     if (!initialized) {
@@ -1015,7 +1014,11 @@ static void log_to_libfsemu(const char *message)
         ignore = fs_config_false(OPTION_UAELOG);
     }
     if (!ignore) {
-        fs_log_string(message);
+        if (fsemu) {
+            fsemu_log_string(message);
+        } else {
+            fs_log_string(message);
+        }
     }
 }
 
@@ -1436,7 +1439,7 @@ static void *emulation_thread(void *data)
 
     // g_fs_emu_emulation_thread_running = 1;
     void (*main_function)() = data;
-    fsemu_log("[FSE] Run main function at %p\n", data);
+    fsemu_log("Run main function at %p\n", data);
     main_function();
 
     /* Call fs_ml_quit in case quit was not explicitly requested already. */
@@ -2034,7 +2037,7 @@ int main(int argc, char *argv[])
             void *data;
             int intdata;
             while (uae_main_next_event(&event, &data, &intdata)) {
-                printf("Main received event %d (data: %p)\n", event, data);
+                fsuae_log_debug("Main received event %d (data: %p)\n", event, data);
                 switch (event) {
                     case UAE_EVENT_FLOPPY0PATH:
                     case UAE_EVENT_FLOPPY1PATH:

@@ -19,6 +19,8 @@
 #include <fs/ml.h>
 #endif
 
+int fsemu_input_log_level = FSEMU_LOG_INFO;
+
 typedef struct {
     int16_t action;
 } keyboard_t;
@@ -40,20 +42,18 @@ static struct {
     fsemu_mutex_t *mutex;
 } fsemu_input;
 
-int fsemu_input_log_level = 1;
-
 // ----------------------------------------------------------------------------
 // FIXME: Move
 
 static void fsemu_keyboard_add_system_device(void)
 {
-    fsemu_mouse_log(1, "Adding system keyboard device\n");
+    fsemu_input_log("Adding system keyboard device\n");
     fsemu_inputdevice_t *device = fsemu_inputdevice_new();
     fsemu_inputdevice_set_type(device, FSEMU_INPUTDEVICE_TYPE_KEYBOARD);
     fsemu_inputdevice_set_name(device, "Keyboard");
     int error;
     if ((error = fsemu_input_add_device(device)) != 0) {
-        printf("input - device could not be registered - error %d\n", error);
+        fsemu_input_log("Device could not be registered - error %d\n", error);
         fsemu_inputdevice_unref(device);
         return;
     }

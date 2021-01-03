@@ -36,6 +36,8 @@
 
 #define FSEMU_OPTION_PERFORMANCE_GUI "performance_gui"
 
+#define FSEMU_OPTION_QUIT_AFTER_N_FRAMES "quit_after_n_frames"
+
 #define FSEMU_OPTION_STRETCH_MODE "stretch_mode"
 
 #define FSEMU_OPTION_SYSTEM_TITLEBAR "system_titlebar"

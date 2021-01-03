@@ -13,6 +13,10 @@
 
 // ---------------------------------------------------------------------------
 
+int fsemu_mouse_log_level = 1;
+
+// ---------------------------------------------------------------------------
+
 static struct fsemu_mouse {
     // True if the mouse cursor is (or will be) captured.
     bool captured;
@@ -25,13 +29,11 @@ static struct fsemu_mouse {
     fsemu_inputdevice_t *system_mouse;
 } fsemu_mouse;
 
-int fsemu_mouse_log_level = 1;
-
 // ---------------------------------------------------------------------------
 
 static void fsemu_mouse_add_system_device(void)
 {
-    fsemu_mouse_log(1, "Adding system mouse device\n");
+    fsemu_mouse_log("Adding system mouse device\n");
     fsemu_inputdevice_t *device = fsemu_inputdevice_new();
     fsemu_inputdevice_set_type(device, FSEMU_INPUTDEVICE_TYPE_MOUSE);
     fsemu_inputdevice_set_name(device, "Mouse");
@@ -137,7 +139,7 @@ bool fsemu_mouse_handle_mouse(fsemu_mouse_event_t *event)
     }
 
     if (event->button > 0) {
-        fsemu_mouse_log(2,
+        fsemu_mouse_log_debug(
                         "Button %d clicked (%d) at %d,%d\n",
                         event->button,
                         event->state,
@@ -181,7 +183,7 @@ bool fsemu_mouse_handle_mouse(fsemu_mouse_event_t *event)
 
     if (event->button > 0) {
         if (event->button > 3) {
-            printf("Mouse button %d not supported yet\n", event->button);
+            fsemu_mouse_log("Mouse button %d not supported yet\n", event->button);
         } else {
             slot = FSEMU_MOUSE_BEFORE_FIRST_BUTTON + event->button;
             state = event->state ? FSEMU_ACTION_STATE_MAX : 0;
@@ -227,7 +229,7 @@ void fsemu_mouse_init(void)
     fsemu_thread_init();
     fsemu_titlebar_init();
 
-    fsemu_mouse_log(1, "Init\n");
+    fsemu_mouse_log_debug("Init\n");
 
 #ifdef FSEMU_MANYMOUSE
     // FIXME: Or many put the dependency the other way around, and call
@@ -260,11 +262,11 @@ void fsemu_mouse_init(void)
                                    &fsemu_mouse.middle_click_ungrab,
                                    true);
 
-    fsemu_mouse_log(1, "Initial grab:        %d\n", fsemu_mouse.initial_grab);
+    fsemu_mouse_log("Initial grab:        %d\n", fsemu_mouse.initial_grab);
     fsemu_mouse_log(
-        1, "Automatic grab:      %d\n", fsemu_mouse.automatic_grab);
+        "Automatic grab:      %d\n", fsemu_mouse.automatic_grab);
     fsemu_mouse_log(
-        1, "Middle-click ungrab: %d\n", fsemu_mouse.middle_click_ungrab);
+        "Middle-click ungrab: %d\n", fsemu_mouse.middle_click_ungrab);
 
     // Set the desired state of mouse capture (to be handled by window update
     // or creation function

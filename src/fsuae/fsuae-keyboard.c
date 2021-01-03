@@ -218,7 +218,7 @@ static fsemu_input_configure_keyboard_t keyboard_shortcuts_mapping[] = {
 
 void fsuae_keyboard_init(void)
 {
-    printf("[FSUAE] fsuae_keyboard_init\n");
+    fsuae_log_debug("[INPUT] fsuae_keyboard_init\n");
     fsemu_input_configure_keyboard(keyboard_mapping);
     fsemu_input_configure_keyboard(keyboard_shortcuts_mapping);
 }

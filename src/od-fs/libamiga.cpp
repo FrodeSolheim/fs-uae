@@ -638,11 +638,11 @@ static int amiga_parse_option(const char *option, const char *value, int type)
         &currprefs, (char *) option, (char *) value2, type);
     free(value2);
     write_log(
-        "set option \"%s\" to \"%s\" (result: %d)\n", option, value, result);
+        "Set option %s = \"%s\"%s\n", option, value, result == 1 ? "" : " FAILED");
     if (result != 1) {
         gui_message("Option failed: %s = %s", option, value);
         amiga_log_warning(
-            "failed to set option \"%s\" to \"%s\" "
+            "Failed to set option \"%s\" to \"%s\" "
             "(result: %d)\n",
             option,
             value,
@@ -810,7 +810,7 @@ void uae_main_post_event(int event, void *data, int intdata)
     main_event->data = data;
     main_event->intdata = intdata;
     g_async_queue_push(module.main_queue, main_event);
-    printf("Posted main event %d (data: %p)\n", event, data);
+    // printf("Posted main event %d (data: %p)\n", event, data);
 }
 
 }  // extern "C"

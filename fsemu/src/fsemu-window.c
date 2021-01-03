@@ -11,6 +11,10 @@
 #include "fsemu-video.h"
 #include "fsemu-videothread.h"
 
+// ---------------------------------------------------------------------------
+
+int fsemu_window_log_level = FSEMU_LOG_INFO;
+
 #define FSEMU_WINDOW_TITLE_MAX 128
 
 // ---------------------------------------------------------------------------
@@ -121,7 +125,7 @@ void fsemu_window_initial_rect(fsemu_rect_t *rect, double ui_scale)
     }
     if (!fsemu_titlebar_use_system()) {
         fsemu_window_log(
-            "System titlebar is false: increase initial window rect\n");
+            "No system titlebar: Increasing initial height\n");
         rect->h += fsemu_titlebar_unscaled_height() * ui_scale;
     }
     if (fsemu_window.initial_center.x) {

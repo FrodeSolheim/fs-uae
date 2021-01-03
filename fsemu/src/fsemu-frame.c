@@ -6,10 +6,13 @@
 // #include "fsemu-control.h"
 #include "fsemu-input.h"
 #include "fsemu-option.h"
+#include "fsemu-quit.h"
 #include "fsemu-thread.h"
 #include "fsemu-time.h"
 #include "fsemu-util.h"
 #include "fsemu-video.h"
+
+// ---------------------------------------------------------------------------
 
 static struct {
     bool initialized;
@@ -24,9 +27,12 @@ static struct {
     // Emulation is paused, as seen from the emulation thread. Main thread
     // has a different pause state variable which may be slightly out of sync.
     bool paused;
+
     bool warping;
     int load_state;
     int save_state;
+
+    int quit_after_n_frames;
 } fsemu_frame;
 
 double fsemu_frame_hz = 0;
@@ -49,25 +55,6 @@ int64_t fsemu_frame_gui_duration = 0;
 int64_t fsemu_frame_render_duration = 0;
 
 int fsemu_frame_log_level = 1;
-
-void fsemu_frame_init(void)
-{
-    fsemu_init_once(&fsemu_frame.initialized);
-    fsemu_frame_log("Init\n");
-
-    fsemu_frame_log_level = fsemu_option_int_default(FSEMU_OPTION_LOG_FRAME,
-                                                     fsemu_frame_log_level);
-
-    fsemu_frame.load_state = -1;
-    fsemu_frame.save_state = -1;
-
-    // fsemu_frame.emulation_duration = 10000;
-    // fsemu_frame.render_duration = 5000;
-
-    // FIXME: When using a shorter emulation duration, Mednafen needs
-    // a larger audio buffer to avoid underruns. Check why. Probably
-    // something to do with how/when buffer fill is calculated.
-}
 
 bool fsemu_frame_check_load_state(int *slot)
 {
@@ -130,6 +117,41 @@ void fsemu_frame_end(void)
     // Advance the frame counter after updating stats for the current frame
     // (and possibly clearing status for the next frame).
     fsemu_frame.counter += 1;
+
+    static fsemu_mavgi_t emu_us_mavgi;
+    #define FSEMU_FRAME_MAX_FRAME_STATS 256
+    static int emu_us_mavgi_values[FSEMU_FRAME_MAX_FRAME_STATS];
+    int emu_us_avg = fsemu_mavgi(&emu_us_mavgi,
+                                 emu_us_mavgi_values,
+                                 FSEMU_FRAME_MAX_FRAME_STATS,
+                                 (int) fsemu_frame_emu_duration);
+    static int64_t emu_us_total;
+    emu_us_total += fsemu_frame_emu_duration;
+
+    static int64_t emu_us_avg_sum;
+    static int emu_us_avg_count;
+    static int emu_us_avg_max;
+
+    if (fsemu_frame.counter % FSEMU_FRAME_MAX_FRAME_STATS == 0) {
+        emu_us_avg_sum += emu_us_avg;
+        emu_us_avg_count += 1;
+    }
+    if (emu_us_avg > emu_us_avg_max) {
+        emu_us_avg_max = emu_us_avg;
+    }
+
+    printf("Frame count %d\n", fsemu_frame.counter);
+    if (fsemu_frame.counter == fsemu_frame.quit_after_n_frames) {
+        printf("----------------------------------------"
+               "----------------------------------------\n");
+        printf("Emu total: %0.3f s\n", emu_us_total / 1000000.0);
+        printf("Emu FPS (avg): %0.1f\n", 1000000.0 / (emu_us_avg_sum / emu_us_avg_count));
+        printf("Emu FPS (avg) min: %0.1f\n", 1000000.0 / emu_us_avg_max);
+        printf("----------------------------------------"
+               "----------------------------------------\n");
+        fsemu_quit_maybe();
+    }
+
     // fsemu_frame_log("Advanced frame counter to %d\n", fsemu_frame.counter);
 
     // Reset duration counters
@@ -319,7 +341,7 @@ void fsemu_frame_update_timing(double hz, bool turbo)
 
     static double last_hz;
     if (hz != last_hz) {
-        fsemu_log("[FSEMU] Emulation frame rate %f Hz\n", hz);
+        fsemu_frame_log("Emulation frame rate is now %f Hz\n", hz);
         last_hz = hz;
     }
 
@@ -594,4 +616,27 @@ void fsemu_frame_start(double hz)
 double fsemu_frame_rate_hz(void)
 {
     return fsemu_frame.rate_hz;
+}
+
+// ---------------------------------------------------------------------------
+
+void fsemu_frame_init(void)
+{
+    fsemu_init_once(&fsemu_frame.initialized);
+    fsemu_frame_log("Initializing frame module\n");
+
+    fsemu_frame_log_level = fsemu_option_int_default(FSEMU_OPTION_LOG_FRAME,
+                                                     fsemu_frame_log_level);
+
+    fsemu_frame.quit_after_n_frames = fsemu_option_int_default(FSEMU_OPTION_QUIT_AFTER_N_FRAMES, -1);
+
+    fsemu_frame.load_state = -1;
+    fsemu_frame.save_state = -1;
+
+    // fsemu_frame.emulation_duration = 10000;
+    // fsemu_frame.render_duration = 5000;
+
+    // FIXME: When using a shorter emulation duration, Mednafen needs
+    // a larger audio buffer to avoid underruns. Check why. Probably
+    // something to do with how/when buffer fill is calculated.
 }

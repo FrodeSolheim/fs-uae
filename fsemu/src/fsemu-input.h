@@ -85,9 +85,14 @@ void fsemu_input_work(int timeout);
 
 extern int fsemu_input_log_level;
 
-#define fsemu_input_log(format, ...)                         \
-    if (fsemu_input_log_level > 0) {                         \
-        fsemu_log("[FSEMU] [INPUT] " format, ##__VA_ARGS__); \
+#define fsemu_input_log(format, ...)                             \
+    if (FSEMU_LIKELY(fsemu_input_log_level >= FSEMU_LOG_INFO)) { \
+        fsemu_log("[FSEMU] [INPUT] " format, ##__VA_ARGS__);     \
+    }
+
+#define fsemu_input_log_debug(format, ...)                          \
+    if (FSEMU_UNLIKELY(fsemu_input_log_level >= FSEMU_LOG_DEBUG)) { \
+        fsemu_log("[FSEMU] [INPUT] " format, ##__VA_ARGS__);        \
     }
 
 #ifdef __cplusplus

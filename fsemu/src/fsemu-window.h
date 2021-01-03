@@ -45,10 +45,24 @@ void fsemu_window_set_ui_scale(double ui_scale);
 
 void fsemu_window_set_active(bool active);
 
+extern int fsemu_window_log_level;
+
+#define fsemu_window_log(format, ...)                             \
+    if (FSEMU_LIKELY(fsemu_window_log_level >= FSEMU_LOG_INFO)) { \
+        fsemu_log("[FSEMU] [WINDW] " format, ##__VA_ARGS__);      \
+    }
+
+#define fsemu_window_log_debug(format, ...)                          \
+    if (FSEMU_UNLIKELY(fsemu_window_log_level >= FSEMU_LOG_DEBUG)) { \
+        fsemu_log("[FSEMU] [WINDW] " format, ##__VA_ARGS__);         \
+    }
+
+/*
 #define fsemu_window_log(format, ...) \
     fsemu_log("[FSEMU] [WINDW] " format, ##__VA_ARGS__)
+*/
 
-#endif
+#endif  // FSEMU_INTERNAL
 
 #ifdef __cplusplus
 }

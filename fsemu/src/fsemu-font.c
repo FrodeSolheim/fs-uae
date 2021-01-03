@@ -8,24 +8,14 @@
 #include "fsemu-sdl.h"
 #include "fsemu-util.h"
 
+int fsemu_font_log_level = FSEMU_LOG_INFO;
+
 struct fsemu_font {
     FSEMU_REFABLE;
     TTF_Font *font;
     SDL_RWops *rwops;
     void *data;
 };
-
-void fsemu_font_init(void)
-{
-    fsemu_return_if_already_initialized();
-    fsemu_data_init();
-    fsemu_font_log("Initialize\n");
-
-    if (!TTF_WasInit() && TTF_Init() == -1) {
-        printf("TTF_Init: %s\n", TTF_GetError());
-        exit(1);
-    }
-}
 
 void fsemu_font_ref(fsemu_font_t *font)
 {
@@ -40,7 +30,7 @@ void fsemu_font_unref(fsemu_font_t *font)
 static void fsemu_font_finalize(void *object)
 {
     fsemu_font_t *font = (fsemu_font_t *) object;
-    fsemu_font_log("Finalizing font %p\n", font);
+    fsemu_font_log_debug("Finalizing font %p\n", font);
     if (font->font) {
         TTF_CloseFont(font->font);
     }
@@ -70,7 +60,7 @@ fsemu_font_t *fsemu_font_load(const char *name, int size)
         return NULL;
     }
 
-    fsemu_font_log("Loaded font %s size %d\n", name, data_size);
+    fsemu_font_log_debug("Read %s (%d bytes)\n", name, data_size);
 
     font->data = data;
     font->rwops = SDL_RWFromMem(data, data_size);
@@ -80,10 +70,12 @@ fsemu_font_t *fsemu_font_load(const char *name, int size)
     // free(data);
 
     if (!font->font) {
-        fsemu_font_log("TTF_OpenFontRW: %s\n", TTF_GetError());
+        fsemu_font_log_error("TTF_OpenFontRW: %s\n", TTF_GetError());
         fsemu_font_unref(font);
         return NULL;
     }
+
+    fsemu_font_log("Loaded %s (%d)\n", name, size);
 
     // FIXME: Never return null? Instead return a font which cannot render
     // anything? With a function to check if the font is OK...
@@ -115,8 +107,8 @@ fsemu_image_t *fsemu_font_render_text_to_image(fsemu_font_t *font,
     SDL_Surface *surface;
     if (!(surface = TTF_RenderUTF8_Blended(font->font, text, sdl_color))) {
         // handle error here, perhaps print TTF_GetError at least
-        fsemu_font_log("Error rendering text: %s\n", TTF_GetError());
-        fsemu_font_log("Text was: '%s'\n", text);
+        fsemu_font_log_error("Error rendering text: %s\n", TTF_GetError());
+        fsemu_font_log_debug("Text was: '%s'\n", text);
         fsemu_image_t *image = fsemu_image_from_size(1, 1);
         // FIXME: Make transparent pixel
         return image;
@@ -150,4 +142,19 @@ fsemu_image_t *fsemu_font_render_text_to_image(fsemu_font_t *font,
     // SDL_FreeSurface(text_surface);
 
     return image;
+}
+
+// ----------------------------------------------------------------------------
+
+void fsemu_font_init(void)
+{
+    fsemu_return_if_already_initialized();
+    fsemu_data_init();
+    fsemu_font_log("Initializing font module\n");
+
+    if (!TTF_WasInit() && TTF_Init() == -1) {
+        fsemu_log_error("TTF_Init: %s\n", TTF_GetError());
+        // FIXME: Do not quit..., instead just don't render text
+        exit(1);
+    }
 }

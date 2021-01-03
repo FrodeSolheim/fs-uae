@@ -114,4 +114,4 @@ enum {
     FS_UAE_ACTION_DRIVE_3_BROWSE,
 };
 
-#endif /* FS_UAE_FS_UAE_H */
+#endif  // FS_UAE_FS_UAE_H

@@ -362,7 +362,8 @@ void fsemu_layout_video_rect(fsemu_rect_t *rect)
     int video_h = fsemu_layout.video_height;
 
     if (video_w == 0 || video_h == 0) {
-        printf("WARNING: Layout video size not set\n");
+        // FIXME:
+        // printf("WARNING: Layout video size not set\n");
         video_w = 4;
         video_h = 3;
     }

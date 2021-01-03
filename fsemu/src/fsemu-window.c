@@ -20,6 +20,8 @@ int fsemu_window_log_level = FSEMU_LOG_INFO;
 // ---------------------------------------------------------------------------
 
 static struct fsemu_window {
+    fsemu_window_driver_t driver;
+
     bool active;
     // True if the window (or will be) shown fullscreen.
     bool fullscreen;
@@ -66,34 +68,6 @@ static void fsemu_window_read_options(void)
                      rect->y,
                      rect->w,
                      rect->h);
-}
-
-// ---------------------------------------------------------------------------
-
-void fsemu_window_init(void)
-{
-    fsemu_return_if_already_initialized();
-
-    fsemu_layout_init();
-    // FIXME: Consider running fsemu_mouse init from fsemu_window_init ?
-    // Running mouse init so initial input grab option is initialized
-    fsemu_mouse_init();
-
-    fsemu_window_read_options();
-
-    // Set default value for ui_scale, it is only changed if a specific scale
-    // factor can be deduced for Linux. Must be set _before_
-    // fsemu_sdlwindow_create is called.
-    fsemu_window.ui_scale = 1.0;
-
-    fsemu_sdlwindow_init();
-    fsemu_sdlwindow_create();
-    fsemu_sdlwindow_show();
-
-    // Assume window is active upon startup, to avoid a single frame of
-    // flickering on the titlebar due to inactive frame being rendered before
-    // window activation event occurs.
-    fsemu_window.active = true;
 }
 
 // ---------------------------------------------------------------------------
@@ -234,10 +208,12 @@ static void fsemu_window_sync_data_to_video_thread(void)
 
 void fsemu_window_work(int timeout)
 {
-    fsemu_sdlwindow_work(timeout);
-
-    // Perform periodic updates, check if fullscreen should be toggled, etc.
-    fsemu_sdlwindow_update();
+    if (fsemu_window.driver == FSEMU_WINDOW_DRIVER_SDL) {
+        fsemu_sdlwindow_work(timeout);
+        // Perform periodic updates, check if fullscreen should be toggled,
+        // etc.
+        fsemu_sdlwindow_update();
+    }
 
     // printf("fsemu_window_work\n");
 
@@ -385,3 +361,38 @@ static void read_initial_window_rect(fsemu_rect *rect)
     rect->h = size.h;
 }
 */
+
+// ---------------------------------------------------------------------------
+
+void fsemu_window_init(void)
+{
+    fsemu_return_if_already_initialized();
+
+    fsemu_video_decide_driver();
+    if (fsemu_video_driver() == FSEMU_VIDEO_DRIVER_SDL) {
+        fsemu_window.driver = FSEMU_WINDOW_DRIVER_SDL;
+    }
+
+    fsemu_layout_init();
+    // FIXME: Consider running fsemu_mouse init from fsemu_window_init ?
+    // Running mouse init so initial input grab option is initialized
+    fsemu_mouse_init();
+
+    fsemu_window_read_options();
+
+    // Set default value for ui_scale, it is only changed if a specific scale
+    // factor can be deduced for Linux. Must be set _before_
+    // fsemu_sdlwindow_create is called.
+    fsemu_window.ui_scale = 1.0;
+
+    if (fsemu_window.driver == FSEMU_WINDOW_DRIVER_SDL) {
+        fsemu_sdlwindow_init();
+        fsemu_sdlwindow_create();
+        fsemu_sdlwindow_show();
+    }
+
+    // Assume window is active upon startup, to avoid a single frame of
+    // flickering on the titlebar due to inactive frame being rendered before
+    // window activation event occurs.
+    fsemu_window.active = true;
+}

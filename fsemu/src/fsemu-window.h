@@ -9,6 +9,11 @@
 extern "C" {
 #endif
 
+typedef enum {
+    FSEMU_WINDOW_DRIVER_NULL,
+    FSEMU_WINDOW_DRIVER_SDL,
+} fsemu_window_driver_t;
+
 /** This can be called before fsemu_window_init. */
 void fsemu_window_set_title(const char *title);
 void fsemu_window_set_fullscreen(bool fullscreen);

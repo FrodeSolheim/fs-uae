@@ -42,6 +42,8 @@
 
 #define FSEMU_OPTION_SYSTEM_TITLEBAR "system_titlebar"
 
+#define FSEMU_OPTION_VIDEO_DRIVER "video_driver"
+
 #define FSEMU_OPTION_VOLUME "volume"
 
 #define FSEMU_OPTION_VSYNC_REFRESH_MISMATCH "vsync_refresh_mismatch"

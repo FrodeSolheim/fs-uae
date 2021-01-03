@@ -59,8 +59,19 @@ typedef struct {
     int64_t swapped_at;
 } fsemu_video_frame_stats_t;
 
-#define FSEMU_VIDEO_RENDERER_SDL 0
-#define FSEMU_VIDEO_RENDERER_OPENGL 1
+typedef enum {
+    FSEMU_VIDEO_DRIVER_NULL,
+    FSEMU_VIDEO_DRIVER_SDL
+} fsemu_video_driver_t;
+
+typedef enum {
+    FSEMU_VIDEO_RENDERER_NULL,
+    FSEMU_VIDEO_RENDERER_SDL,
+    FSEMU_VIDEO_RENDERER_GL
+} fsemu_video_renderer_t;
+
+// Deprecated name
+#define FSEMU_VIDEO_RENDERER_OPENGL FSEMU_VIDEO_RENDERER_GL
 
 #ifdef __cplusplus
 extern "C" {
@@ -158,6 +169,13 @@ static inline void fsemu_video_free_frame(fsemu_video_frame_t *frame)
 void fsemu_video_post_frame(fsemu_video_frame_t *frame);
 
 #ifdef FSEMU_INTERNAL
+
+// Called from fsemu_window_init in order to choose window driver based on
+// video driver.
+void fsemu_video_decide_driver(void);
+
+// Returns the video driver.
+fsemu_video_driver_t fsemu_video_driver(void);
 
 /**
  * Called from fsemu_frame_end (from emulation thread).

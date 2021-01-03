@@ -140,7 +140,7 @@ void fsemu_frame_end(void)
         emu_us_avg_max = emu_us_avg;
     }
 
-    printf("Frame count %d\n", fsemu_frame.counter);
+    // printf("Frame count %d\n", fsemu_frame.counter);
     if (fsemu_frame.counter == fsemu_frame.quit_after_n_frames) {
         printf("----------------------------------------"
                "----------------------------------------\n");

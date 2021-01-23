@@ -58,7 +58,7 @@ void fsemu_gui_free_snapshot(fsemu_gui_item_t *snapshot);
 #ifdef FSEMU_INTERNAL
 
 #define fsemu_gui_log(format, ...) \
-    fsemu_log("[FSEMU] [ GUI ] " format, ##__VA_ARGS__)
+    fsemu_log("[FSE] [GUI] " format, ##__VA_ARGS__)
 
 // void fsemu_gui_item_hide(fsemu_gui_item_t* item);
 

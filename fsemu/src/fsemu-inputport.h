@@ -27,7 +27,8 @@ const char *fsemu_inputport_name(fsemu_inputport_t *port);
 void fsemu_inputport_set_name(fsemu_inputport_t *port, const char *name);
 
 const char *fsemu_inputport_config_name(fsemu_inputport_t *port);
-void fsemu_inputport_set_config_name(fsemu_inputport_t *port, const char *config_name);
+void fsemu_inputport_set_config_name(fsemu_inputport_t *port,
+                                     const char *config_name);
 
 void fsemu_inputport_add_mode(fsemu_inputport_t *port,
                               fsemu_inputmode_t *mode);

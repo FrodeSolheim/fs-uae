@@ -1,11 +1,13 @@
-#include "fsemu-internal.h"
+#define FSEMU_INTERNAL 1
 #include "fsemu-glvideo.h"
 
 #include "fsemu-frame.h"
+#include "fsemu-frameinfo.h"
 #include "fsemu-glib.h"
 #include "fsemu-gui.h"
 #include "fsemu-image.h"
 #include "fsemu-layout.h"
+#include "fsemu-mutex.h"
 #include "fsemu-opengl.h"
 #include "fsemu-perfgui.h"
 #include "fsemu-sdl.h"
@@ -28,7 +30,13 @@
 
 static struct {
     GLuint textures[2];
-    int current_texture;
+    GLuint perfgui_textures[2];
+    volatile GLsync swap_sync[2];
+    // GLsync swap_sync[2];
+
+    volatile int swappable_frame_number;
+
+    // int current_texture;
     fsemu_rect_t rect;
     fsemu_rect_t limits_rect;
     // Drawable size is the real pixel size, which is not necessary the same
@@ -49,129 +57,10 @@ static struct {
     // vsync (alternating red and green should give a yellow-ish line).
     uint8_t *red_line;
     uint8_t *green_line;
-
+#ifdef VSYNCTHREAD
+    fsemu_mutex_t *swap_mutex;
+#endif
 } fsemu_glvideo;
-
-void fsemu_glvideo_init(void)
-{
-    fsemu_return_if_already_initialized();
-    // fsemu_opengl_init();
-    fsemu_video_log("Initializing OpenGL video renderer\n");
-    fsemu_shader_module_init();
-
-    if (fsemu_video_format() == FSEMU_VIDEO_FORMAT_RGBA) {
-        fsemu_glvideo.iformat = GL_RGBA;
-        fsemu_glvideo.format = GL_RGBA;
-        fsemu_glvideo.type = GL_UNSIGNED_BYTE;
-        fsemu_glvideo.bpp = 4;
-    } else if (fsemu_video_format() == FSEMU_VIDEO_FORMAT_BGRA) {
-        fsemu_glvideo.iformat = GL_RGBA;
-        fsemu_glvideo.format = GL_BGRA;
-        fsemu_glvideo.type = GL_UNSIGNED_BYTE;
-        fsemu_glvideo.bpp = 4;
-    } else if (fsemu_video_format() == FSEMU_VIDEO_FORMAT_RGB565) {
-        fsemu_glvideo.iformat = GL_RGB565;
-        fsemu_glvideo.format = GL_RGB;
-        fsemu_glvideo.type = GL_UNSIGNED_SHORT_5_6_5;
-        fsemu_glvideo.bpp = 2;
-    }
-
-    // fsemu_glvideo.iformat = GL_RGB565;
-    // fsemu_glvideo.format = GL_RGB;
-    // fsemu_glvideo.type = GL_UNSIGNED_SHORT_5_6_5;
-    // fsemu_glvideo.bpp = 2;
-
-#ifdef FSEMU_LINUX_ARM
-    fsemu_glvideo.fix_bleed = false;
-#else
-    fsemu_glvideo.fix_bleed = true;
-#endif
-
-#if 0
-    SDL_Window *window = fsemu_sdlwindow_window();
-    // renderer = SDL_CreateRenderer(window, -1, renderer_flags);
-    // renderer = SDL_CreateRenderer(fsemu_sdlwindow_window(), -1, 0);
-    fsemu_video_log("%p\n", window);
-    // fsemu_video_log("%p\n", renderer);
-#endif
-
-    // fsemu_video_log("Setting clear color to #000000\n");
-
-    int r, g, b;
-    fsemu_video_background_color_rgb(&r, &g, &b);
-    glClearColor(r / 255.0, g / 255.0, b / 255.0, 1.0);
-    fsemu_opengl_log_error_maybe();
-
-#if 0
-    glClearColor(1.0, 0.0, 0.0, 1.0);
-    fsemu_opengl_log_error_maybe();
-#endif
-
-    glGenTextures(2, fsemu_glvideo.textures);
-    fsemu_video_log("fsemu_glvideo.textures[0] = %d\n", fsemu_glvideo.textures[0]);
-    fsemu_video_log("fsemu_glvideo.textures[1] = %d\n", fsemu_glvideo.textures[1]);
-    fsemu_opengl_log_error_maybe();
-
-    uint8_t *data = (uint8_t *) malloc(1024 * 1024 * fsemu_glvideo.bpp);
-#if 0
-    memset(data, 0x00, 1024 * 1024 * fsemu_glvideo.bpp);
-#else
-
-    // Setting color to 0xff here to debug "bleed issues" with linear filtering
-    // FIXME: Only works with RGBA / BGRA. Write for for bpp = 2 as well
-    memset(data, 0xff, 1024 * 1024 * fsemu_glvideo.bpp);
-#if 0
-    for (int i = 0; i < 1024 * 1024 * fsemu_glvideo.bpp; i+=4) {
-        data[i] = 0xff;
-    }
-#endif
-
-#endif
-    // FIXME: Shouldn't be necessary.
-    // FIXME: Make sure to synch opengl state instead?
-    // glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-    // fsemu_opengl_log_error_maybe();
-    fsemu_opengl_unpack_row_length(0);
-
-    for (int i = 0; i < 2; i++) {
-        glBindTexture(GL_TEXTURE_2D, fsemu_glvideo.textures[i]);
-        fsemu_opengl_log_error_maybe();
-        glTexImage2D(GL_TEXTURE_2D,
-                     0,
-                     fsemu_glvideo.iformat,
-                     1024,
-                     1024,
-                     0,
-                     fsemu_glvideo.format,
-                     fsemu_glvideo.type,
-                     data);
-        fsemu_opengl_log_error_maybe();
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        fsemu_opengl_log_error_maybe();
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        fsemu_opengl_log_error_maybe();
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        fsemu_opengl_log_error_maybe();
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        fsemu_opengl_log_error_maybe();
-    }
-    free(data);
-
-
-    fsemu_glvideo.green_line = (uint8_t *) malloc(2048 * fsemu_glvideo.bpp);
-    fsemu_glvideo.red_line = (uint8_t *) malloc(2048 * fsemu_glvideo.bpp);
-    if (fsemu_glvideo.bpp == 2) {
-        for (int i = 0; i < 2048; i++) {
-            ((uint16_t *) fsemu_glvideo.green_line)[i] = 63 << 5;
-            ((uint16_t *) fsemu_glvideo.red_line)[i] = 31 << 11;
-        }
-    } else {
-        for (int i = 0; i < 2048; i++) {
-            ((uint32_t *) fsemu_glvideo.green_line)[i] = FSEMU_RGB(0x00ff00);
-            ((uint32_t *) fsemu_glvideo.red_line)[i] = FSEMU_RGB(0xff0000);
-        }
-    }
-}
 
 // FIXME: Maybe rename to fsemu_glvideo_on_resize or something
 void fsemu_glvideo_set_size_2(int width, int height)
@@ -189,14 +78,14 @@ void fsemu_glvideo_set_size_2(int width, int height)
 
     // FIXME: Make sure this is called initially on Window creation?
 
-    fsemu_video_log("Got resize callback from window subsystem\n");
+    fsemu_video_log_debug("Got resize callback from window subsystem\n");
     int draw_w, draw_h;
     SDL_GL_GetDrawableSize(fsemu_sdlwindow_window(), &draw_w, &draw_h);
-    fsemu_video_log("Window size %dx%d : drawable size %dx%d\n",
-                    width,
-                    height,
-                    draw_w,
-                    draw_h);
+    fsemu_video_log_debug("Window size %dx%d : drawable size %dx%d\n",
+                          width,
+                          height,
+                          draw_w,
+                          draw_h);
     fsemu_glvideo.drawable_size.w = draw_w;
     fsemu_glvideo.drawable_size.h = draw_h;
 
@@ -211,10 +100,11 @@ static void fsemu_glvideo_handle_frame(fsemu_video_frame_t *frame)
     }
     fsemu_video_must_render_frame();
 
-    fsemu_video_log(" ---------------- draw got frame! (%dx%d) partial? %d\n",
-                    frame->width,
-                    frame->height,
-                    frame->partial);
+    fsemu_video_log_debug(
+        " ---------------- draw got frame! (%dx%d) partial? %d\n",
+        frame->width,
+        frame->height,
+        frame->partial);
 #if 0
     printf(
         " ---------------- draw got frame! (%dx%d) partial? %d - %d %d %d "
@@ -241,7 +131,8 @@ static void fsemu_glvideo_handle_frame(fsemu_video_frame_t *frame)
             }
         }
     }
-    frame->buffer += (frame->limits.y * frame->stride) + frame->limits.x * fsemu_glvideo.bpp;
+    frame->buffer += (frame->limits.y * frame->stride) +
+                     frame->limits.x * fsemu_glvideo.bpp;
     frame->width = frame->limits.w;
     frame->height = frame->limits.h;
 
@@ -281,21 +172,23 @@ static void fsemu_glvideo_handle_frame(fsemu_video_frame_t *frame)
     // rect.y = y;
     // rect.h = rect.h - y;
 
-    fsemu_video_log(" draw ___________ y %d -> %d %d %d %d \n",
-                    y,
-                    rect.x,
-                    rect.y,
-                    rect.w,
-                    rect.h);
+    fsemu_video_log_debug(" draw ___________ y %d -> %d %d %d %d \n",
+                          y,
+                          rect.x,
+                          rect.y,
+                          rect.w,
+                          rect.h);
 
     if (rect.w == 0 || rect.h == 0) {
-        fsemu_video_log("Invalid rect\n");
+        // FIXME: Warning?
+        fsemu_video_log_debug("Invalid rect\n");
         return;
     }
 
+    int n = frame->number % 2;
+
     // fsemu_opengl_texture_2d(true);
-    glBindTexture(GL_TEXTURE_2D,
-                  fsemu_glvideo.textures[fsemu_glvideo.current_texture]);
+    glBindTexture(GL_TEXTURE_2D, fsemu_glvideo.textures[n]);
     fsemu_opengl_log_error_maybe();
 
     // SDL_UpdateTexture(fsemu_glvideo.textures[fsemu_glvideo.current_texture],
@@ -361,7 +254,9 @@ static void fsemu_glvideo_handle_frame(fsemu_video_frame_t *frame)
     }
 
     if (fsemu_perfgui_mode() == 2) {
-        uint8_t *slice_line = fsemu_glvideo.frame_count % 2 == 0 ? fsemu_glvideo.green_line: fsemu_glvideo.red_line;
+        uint8_t *slice_line = fsemu_glvideo.frame_count % 2 == 0
+                                  ? fsemu_glvideo.green_line
+                                  : fsemu_glvideo.red_line;
         glTexSubImage2D(GL_TEXTURE_2D,
                         0,
                         rect.x,
@@ -375,6 +270,7 @@ static void fsemu_glvideo_handle_frame(fsemu_video_frame_t *frame)
     }
 
     if (frame->partial > 0 && frame->partial != frame->height) {
+        // glFlush();
         return;
     }
 
@@ -395,20 +291,21 @@ static void fsemu_glvideo_handle_frame(fsemu_video_frame_t *frame)
         fsemu_opengl_log_error_maybe();
         // Draw corner pixel if room for it
         if (rect.w < tw) {
-            glTexSubImage2D(GL_TEXTURE_2D,
-                            0,
-                            rect.w,
-                            rect.y + rect.h,
-                            1,
-                            1,
-                            fsemu_glvideo.format,
-                            fsemu_glvideo.type,
-                            pixels + (rect.w * rect.h - 1) * fsemu_glvideo.bpp);
+            glTexSubImage2D(
+                GL_TEXTURE_2D,
+                0,
+                rect.w,
+                rect.y + rect.h,
+                1,
+                1,
+                fsemu_glvideo.format,
+                fsemu_glvideo.type,
+                pixels + (rect.w * rect.h - 1) * fsemu_glvideo.bpp);
             fsemu_opengl_log_error_maybe();
         }
     }
 
-    fsemu_video_log(" draw ___________ READY______________ \n");
+    fsemu_video_log_debug(" draw ___________ READY______________ \n");
 
     // FIXME: Locked access for main/video thread separation?
     // fsemu_sdlvideo.rect.x = 0;
@@ -416,13 +313,18 @@ static void fsemu_glvideo_handle_frame(fsemu_video_frame_t *frame)
     fsemu_glvideo.rect.w = frame->width;
     fsemu_glvideo.rect.h = frame->height;
 
+    // FIXME: Include in parameter to fsemu_video_set_ready?
+    fsemu_frame_number_posted = frame->number;
     fsemu_video_set_ready(true);
+
+    // fsemu_glvideo.current_texture = (fsemu_glvideo.current_texture + 1) % 2;
+
     // printf("R %lld\n", fsemu_time_us() / 1000);
 
     static int64_t last;
     int64_t now = fsemu_time_us();
-    fsemu_video_log("_______draw _______diff __________ %lld\n",
-                    lld(now - last));
+    fsemu_video_log_debug("_______draw _______diff __________ %lld\n",
+                          lld(now - last));
     last = now;
 
     static int framecount;
@@ -441,14 +343,56 @@ static void fsemu_glvideo_handle_frame(fsemu_video_frame_t *frame)
     }
 }
 
+#ifdef VSYNCTHREAD
+// Allow two frames to proceed to vsync stage
+volatile int allow_frame = 1;
+
+static void wait_for_swap(int n, int timeout_us)
+{
+    GLsync sync = NULL;
+    while (!sync) {
+        fsemu_mutex_lock(fsemu_glvideo.swap_mutex);
+        sync = fsemu_glvideo.swap_sync[n];
+        fsemu_mutex_unlock(fsemu_glvideo.swap_mutex);
+    }
+    if (sync) {
+        GLenum result = glClientWaitSync(sync, 0, timeout_us * 1000);
+
+        if (result == GL_TIMEOUT_EXPIRED) {
+            printf("glClientWaitSync -> GL_TIMEOUT_EXPIRED\n");
+            // OK
+        } else if (result == GL_CONDITION_SATISFIED) {
+            printf("glClientWaitSync -> GL_CONDITION_SATISFIED\n");
+            allow_frame += 1;
+            glDeleteSync(sync);
+            fsemu_glvideo.swap_sync[n] = NULL;
+        }
+
+        else if (result == GL_ALREADY_SIGNALED) {
+            printf("glClientWaitSync -> GL_ALREADY_SIGNALED\n");
+            allow_frame += 1;
+            glDeleteSync(sync);
+            fsemu_glvideo.swap_sync[n] = NULL;
+
+        } else if (result == GL_WAIT_FAILED) {
+            printf("glClientWaitSync -> GL_WAIT_FAILED\n");
+        }
+    }
+}
+#endif
+
 void fsemu_glvideo_work(int timeout_us)
 {
     fsemu_video_frame_t *frame = fsemu_video_get_frame(timeout_us);
     if (frame) {
         fsemu_glvideo_handle_frame(frame);
         fsemu_video_free_frame(frame);
-        return;
+        // return;
     }
+
+    // if (fsemu_glvideo.swap_sync) {
+    //     // wait_for_swap(0);
+    // }
 }
 
 static void fsemu_glvideo_convert_coordinates(fsemu_drect_t *out,
@@ -527,9 +471,75 @@ void fsemu_glvideo_set_rect_temp(double left,
     fsemu_glvideo_temp.video_rect.h = bottom - top;
 }
 
+static void fsemu_glvideo_upload_perfgui(void)
+{
+    // FIXME: fsemu_opengl_bind_texture_2d() ?
+    int n = fsemu_frame_number_rendering % 2;
+    glBindTexture(GL_TEXTURE_2D, fsemu_glvideo.perfgui_textures[n]);
+    fsemu_opengl_log_error_maybe();
+
+    fsemu_image_t *image = fsemu_perfgui_image();
+
+    fsemu_opengl_unpack_row_length(0);
+    // FIXME: Optimize and only uploaded the changed part!
+    // (Also taking into account texture cycling)
+    glTexSubImage2D(GL_TEXTURE_2D,
+                    0,
+                    0,
+                    0,
+                    FSEMU_PERFGUI_IMAGE_WIDTH,
+                    FSEMU_PERFGUI_IMAGE_HEIGHT,
+                    GL_RGBA,
+                    GL_UNSIGNED_BYTE,
+                    image->data);
+}
+
+static void fsemu_glvideo_render_perfgui(void)
+{
+    fsemu_opengl_blend(true);
+    fsemu_opengl_color4f(1.0f, 1.0f, 1.0f, 1.0f);
+    fsemu_opengl_depth_test(false);
+    fsemu_opengl_texture_2d(true);
+
+    int n = fsemu_frame_number_rendering % 2;
+    glBindTexture(GL_TEXTURE_2D, fsemu_glvideo.perfgui_textures[n]);
+    fsemu_opengl_log_error_maybe();
+
+    // FIXME: This is the inner edge, not w(idth)
+    double w = 0.75;
+
+    glBegin(GL_QUADS);
+
+    glTexCoord2f(0.0, 0.0);
+    glVertex3f(-1.0, 1.0, 0);
+    glTexCoord2f(0.5, 0.0);
+    glVertex3f(-w, 1.0, 0);
+    glTexCoord2f(0.5, 1.0);
+    glVertex3f(-w, -1.0, 0);
+    glTexCoord2f(0.0, 1.0);
+    glVertex3f(-1.0, -1.0, 0);
+
+    glTexCoord2f(0.5, 0.0);
+    glVertex3f(w, 1.0, 0);
+    glTexCoord2f(1.0, 0.0);
+    glVertex3f(1.0, 1.0, 0);
+    glTexCoord2f(1.0, 1.0);
+    glVertex3f(1.0, -1.0, 0);
+    glTexCoord2f(0.5, 1.0);
+    glVertex3f(w, -1.0, 0);
+
+    glEnd();
+}
+
 void fsemu_glvideo_render(void)
 {
-    fsemu_video_log("--- render --- [draw]\n");
+    fsemu_video_log_debug("--- render --- [draw]\n");
+
+    if (fsemu_perfgui_mode() != FSEMU_PERFGUI_MODE_OFF) {
+        fsemu_perfgui_update_image();
+        fsemu_glvideo_upload_perfgui();
+        fsemu_glvideo_render_perfgui();
+    }
 
     SDL_Rect src;
     src.x = 0;
@@ -604,14 +614,14 @@ void fsemu_glvideo_render(void)
     // glDisable(GL_BLEND);
     // glEnable(GL_TEXTURE_2D);
 
-    glBindTexture(GL_TEXTURE_2D,
-                  fsemu_glvideo.textures[fsemu_glvideo.current_texture]);
+    int n = fsemu_frame_number_rendering % 2;
+    glBindTexture(GL_TEXTURE_2D, fsemu_glvideo.textures[n]);
     fsemu_opengl_log_error_maybe();
 
-    //dr.x = 0.5;
-    //dr.w = 0.5;
-    //dr.y = 0.5;
-    //dr.h = 0.5;
+    // dr.x = 0.5;
+    // dr.w = 0.5;
+    // dr.y = 0.5;
+    // dr.h = 0.5;
 
     glBegin(GL_QUADS);
     glTexCoord2f(tx1, ty1);
@@ -644,8 +654,10 @@ void fsemu_glvideo_render(void)
            fsemu_glvideo_temp.video_rect.h);
 #endif
 
-    fsemu_video_set_frame_rendered_at(fsemu_glvideo.frame_count,
-                                      fsemu_time_us());
+    // fsemu_video_set_frame_rendered_at(fsemu_glvideo.frame_count,
+    //                                   fsemu_time_us());
+    // fsemu_video_set_frame_rendered_at(fsemu_frame_number_rendering,
+    //                                   fsemu_time_us());
     fsemu_glvideo.frame_count += 1;
 }
 
@@ -683,10 +695,24 @@ static int64_t fsemu_glvideo_wait_for_swap(void)
     return vsync_time;
 }
 
+extern int64_t laaaast_vsync_at;
+
 void fsemu_glvideo_display(void)
 {
-    // fsemu_video_log("--- display --- [draw]\n");
-    // printf("swap\n");
+    int n = fsemu_frame_number_displaying % 2;
+    fsemu_assert(n >= 0);
+    if (fsemu_glvideo.swap_sync[n]) {
+        while (fsemu_glvideo.swap_sync[n]) {
+            printf(
+                "Must wait for previous swap "
+                "(fsemu_frame_number_displaying=%d)\n",
+                fsemu_frame_number_displaying);
+            fsemu_sleep_us(10000);
+        }
+        //     // wait_for_swap(50000);
+    }
+
+    // fsemu_video_log_debug("--- display --- [draw]\n");
 #if 0
     if (fsemu_video_can_skip_rendering_this_frame()) {
         return;
@@ -698,19 +724,99 @@ void fsemu_glvideo_display(void)
         SDL_GL_SwapWindow(window);
     }
 #endif
+    glFinish();
+    // glFlush();
+    fsemu_video_set_frame_rendered_at(fsemu_frame_number_rendered,
+                                      fsemu_time_us());
+
+    fsemu_sleep_us(3000);
+
     SDL_Window *window = fsemu_sdlwindow_window();
     SDL_GL_SwapWindow(window);
+
+    // FIXME: Register swapped at
+
     // printf("S %lld\n", fsemu_time_us() / 1000);
     // glFinish();
 
     if (fsemu_video_vsync()) {
+#if 0
+        fsemu_mutex_lock(fsemu_glvideo.swap_mutex);
+        static int lasta;
+        if (fsemu_frame_number_displaying != lasta + 1) {
+            printf("WARNING: fsemu_frame_number_displaying >> 1\n");
+        }
+        lasta = fsemu_frame_number_displaying;
+        printf("glFenceSync for frame %d\n", fsemu_frame_number_displaying);
+        fsemu_glvideo.swap_sync[n] =
+            glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+        if (fsemu_glvideo.swap_sync[n] == 0) {
+            printf("WARNING: glFenceSync failed\n");
+        }
+        fsemu_mutex_unlock(fsemu_glvideo.swap_mutex);
+        glFlush();
+#endif
+#if 1
         static int64_t last;
-        int64_t vsync_time = fsemu_glvideo_wait_for_swap();
-        fsemu_video_set_vsync_time(vsync_time);
+
+        int frame = fsemu_frame_number_displaying;
+        int64_t vsync_estimated_at = FSEMU_FRAMEINFO(frame).vsync_estimated_at;
+        // FIXME: No hardcoded value here - half a frame duration
+#if 0
+        if (fsemu_time_us() < vsync_estimated_at - 10000) {
+            printf("Sleeping due to vsync_estimated_at\n");
+            fsemu_time_sleep_until_us(vsync_estimated_at - 10000);
+        }
+#endif
+        // int64_t ended_at = FSEMU_FRAMEINFO(frame).ended_at;
+        // if (fsemu_time_us() - ended_at < 5000) {
+        //     printf("Sleeping ended_at + 5000\n");
+        //     fsemu_time_sleep_until_us(ended_at + 5000);
+        // }
+
+        // fsemu_sleep_us(5000);
+
+        int64_t vsync_time_us = fsemu_glvideo_wait_for_swap();
+
+        // FSEMU_FRAMEINFO(frame + 3).vsync_allow_start_at = SDL_MAX_SINT64;
+        // FSEMU_FRAMEINFO(frame + 4).vsync_allow_start_at = SDL_MAX_SINT64;
+        // FSEMU_FRAMEINFO(frame + 5).vsync_allow_start_at = SDL_MAX_SINT64;
+        // FSEMU_FRAMEINFO(frame + 6).vsync_allow_start_at = SDL_MAX_SINT64;
+
+        FSEMU_FRAMEINFO(frame + 3).vsync_allow_start_at = 0;
+        FSEMU_FRAMEINFO(frame + 4).vsync_allow_start_at = 0;
+        FSEMU_FRAMEINFO(frame + 5).vsync_allow_start_at = 0;
+        FSEMU_FRAMEINFO(frame + 6).vsync_allow_start_at = 0;
+
+        // FSEMU_FRAMEINFO(frame + 1).vsync_allow_start_at = vsync_time_us -
+        // 10000; FSEMU_FRAMEINFO(frame + 2).vsync_allow_start_at =
+        // vsync_time_us + 10000; FSEMU_FRAMEINFO(frame +
+        // 3).vsync_allow_start_at = vsync_time_us + 30000;
+        // FSEMU_FRAMEINFO(frame + 3).vsync_allow_start_at = vsync_time_us +
+        // 50000;
+
+        FSEMU_FRAMEINFO(frame + 2).vsync_allow_start_at = vsync_time_us + 9000;
+        // FSEMU_FRAMEINFO(frame + 3).vsync_allow_start_at = vsync_time_us +
+        // 25000;
+
+        // allow_frame += 1;
+        // fsemu_video_frame_stats[fsemu_frame_number_displaying %
+        // FSEMU_VIDEO_MAX_FRAME_STATS]; fsemu_frame_number_displaying
+
+        fsemu_video_set_frame_vsync_at(frame, vsync_time_us);
+        if (vsync_time_us - laaaast_vsync_at > 25000) {
+            // printf("VSYNCDIFF %d\n", (int) (vsync_time_us -
+            // laaaast_vsync_at));
+        }
+        laaaast_vsync_at = vsync_time_us;
+        // int64_t estimate_error = FSEMU_FRAMEINFO(frame).vsync_at -
+        //                          vsync_estimated_at;
+        // printf("vsync estimate error: %lld\n", lld(estimate_error));
         if (last != 0) {
             // printf("dt %d\n", (int) (vsync_time - last));
         }
-        last = vsync_time;
+        last = vsync_time_us;
+#endif
     }
 
 #if 1
@@ -746,7 +852,7 @@ void fsemu_glvideo_display(void)
     // glClearColor(0.0, 0.0, 1.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT);
     fsemu_opengl_log_error_maybe();
-#ifdef FSEMU_WINDOWS_XXX
+#ifdef FSEMU_OS_WINDOWS_XXX
     fsemu_opengl_blend(false);
     fsemu_opengl_texture_2d(false);
     glBegin(GL_QUADS);
@@ -1026,7 +1132,7 @@ static void fsemu_glvideo_render_text(fsemu_gui_item_t *widget)
     glEnd();
     fsemu_opengl_log_error_maybe();
 
-    // fsemu_video_log("Render image to %0.2f,%0.2f %0.2fx%0.2f\n",
+    // fsemu_video_log_debug("Render image to %0.2f,%0.2f %0.2fx%0.2f\n",
     //                 dr.x, dr.y, dr.w, dr.h);
     glDeleteTextures(1, &texture);
     fsemu_opengl_log_error_maybe();
@@ -1110,7 +1216,7 @@ static void fsemu_glvideo_render_image(fsemu_gui_item_t *widget)
     glEnd();
     fsemu_opengl_log_error_maybe();
 
-    // fsemu_video_log("Render image to %0.2f,%0.2f %0.2fx%0.2f\n",
+    // fsemu_video_log_debug("Render image to %0.2f,%0.2f %0.2fx%0.2f\n",
     //                 dr.x, dr.y, dr.w, dr.h);
     glDeleteTextures(1, &texture);
     fsemu_opengl_log_error_maybe();
@@ -1233,4 +1339,177 @@ void fsemu_glvideo_render_gui_early(fsemu_gui_item_t *items)
 void fsemu_glvideo_render_gui(fsemu_gui_item_t *items)
 {
     fsemu_glvideo_render_gui_2(items, false);
+}
+
+void fsemu_glvideo_init_gl_state(void)
+{
+    int r, g, b;
+    fsemu_video_background_color_rgb(&r, &g, &b);
+
+    glClearColor(r / 255.0, g / 255.0, b / 255.0, 1.0);
+    fsemu_opengl_log_error_maybe();
+
+#if 0
+    glClearColor(1.0, 0.0, 0.0, 1.0);
+    fsemu_opengl_log_error_maybe();
+#endif
+
+    glGenTextures(2, fsemu_glvideo.textures);
+    fsemu_video_log_debug("fsemu_glvideo.textures[0] = %d\n",
+                          fsemu_glvideo.textures[0]);
+    fsemu_video_log_debug("fsemu_glvideo.textures[1] = %d\n",
+                          fsemu_glvideo.textures[1]);
+    fsemu_opengl_log_error_maybe();
+
+    uint8_t *data = (uint8_t *) malloc(1024 * 1024 * fsemu_glvideo.bpp);
+#if 0
+    memset(data, 0x00, 1024 * 1024 * fsemu_glvideo.bpp);
+#else
+
+    // Setting color to 0xff here to debug "bleed issues" with linear filtering
+    // FIXME: Only works with RGBA / BGRA. Write for for bpp = 2 as well
+    memset(data, 0xff, 1024 * 1024 * fsemu_glvideo.bpp);
+#if 0
+    for (int i = 0; i < 1024 * 1024 * fsemu_glvideo.bpp; i+=4) {
+        data[i] = 0xff;
+    }
+#endif
+
+#endif
+    // FIXME: Shouldn't be necessary.
+    // FIXME: Make sure to synch opengl state instead?
+    // glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+    // fsemu_opengl_log_error_maybe();
+    fsemu_opengl_unpack_row_length(0);
+
+    for (int i = 0; i < 2; i++) {
+        glBindTexture(GL_TEXTURE_2D, fsemu_glvideo.textures[i]);
+        fsemu_opengl_log_error_maybe();
+        glTexImage2D(GL_TEXTURE_2D,
+                     0,
+                     fsemu_glvideo.iformat,
+                     1024,
+                     1024,
+                     0,
+                     fsemu_glvideo.format,
+                     fsemu_glvideo.type,
+                     data);
+        fsemu_opengl_log_error_maybe();
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        fsemu_opengl_log_error_maybe();
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        fsemu_opengl_log_error_maybe();
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        fsemu_opengl_log_error_maybe();
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        fsemu_opengl_log_error_maybe();
+    }
+
+    glGenTextures(2, fsemu_glvideo.perfgui_textures);
+
+    for (int i = 0; i < 2; i++) {
+        glBindTexture(GL_TEXTURE_2D, fsemu_glvideo.perfgui_textures[i]);
+        fsemu_opengl_log_error_maybe();
+        glTexImage2D(GL_TEXTURE_2D,
+                     0,
+                     GL_RGBA,
+                     FSEMU_PERFGUI_IMAGE_WIDTH,
+                     FSEMU_PERFGUI_IMAGE_HEIGHT,
+                     0,
+                     GL_RGBA,
+                     GL_UNSIGNED_BYTE,
+                     data);
+        fsemu_opengl_log_error_maybe();
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        fsemu_opengl_log_error_maybe();
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        fsemu_opengl_log_error_maybe();
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        fsemu_opengl_log_error_maybe();
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        fsemu_opengl_log_error_maybe();
+    }
+
+    free(data);
+}
+
+#ifdef VSYNCTHREAD
+
+#include <fsemu-thread.h>
+
+static void *fsemu_vsyncthread_entry(void *data)
+{
+    fsemu_video_log("Start of vsync thread function\n");
+    SDL_GL_CreateContext(fsemu_sdlwindow_window());
+    int n = 0;
+    while (true) {
+        wait_for_swap(n, 1000000);
+        n = (n + 1) % 2;
+    }
+    fsemu_video_log("End of vsync thread function\n");
+    return NULL;
+}
+
+#endif
+
+// ----------------------------------------------------------------------------
+
+void fsemu_glvideo_init(void)
+{
+    fsemu_return_if_already_initialized();
+    // fsemu_opengl_init();
+    fsemu_video_log("Initializing OpenGL video renderer\n");
+    fsemu_shader_module_init();
+
+    if (fsemu_video_format() == FSEMU_VIDEO_FORMAT_RGBA) {
+        fsemu_glvideo.iformat = GL_RGBA;
+        fsemu_glvideo.format = GL_RGBA;
+        fsemu_glvideo.type = GL_UNSIGNED_BYTE;
+        fsemu_glvideo.bpp = 4;
+    } else if (fsemu_video_format() == FSEMU_VIDEO_FORMAT_BGRA) {
+        fsemu_glvideo.iformat = GL_RGBA;
+        fsemu_glvideo.format = GL_BGRA;
+        fsemu_glvideo.type = GL_UNSIGNED_BYTE;
+        fsemu_glvideo.bpp = 4;
+    } else if (fsemu_video_format() == FSEMU_VIDEO_FORMAT_RGB565) {
+        fsemu_glvideo.iformat = GL_RGB565;
+        fsemu_glvideo.format = GL_RGB;
+        fsemu_glvideo.type = GL_UNSIGNED_SHORT_5_6_5;
+        fsemu_glvideo.bpp = 2;
+    }
+
+    fsemu_glvideo.green_line = (uint8_t *) malloc(2048 * fsemu_glvideo.bpp);
+    fsemu_glvideo.red_line = (uint8_t *) malloc(2048 * fsemu_glvideo.bpp);
+    if (fsemu_glvideo.bpp == 2) {
+        for (int i = 0; i < 2048; i++) {
+            ((uint16_t *) fsemu_glvideo.green_line)[i] = 63 << 5;
+            ((uint16_t *) fsemu_glvideo.red_line)[i] = 31 << 11;
+        }
+    } else {
+        for (int i = 0; i < 2048; i++) {
+            ((uint32_t *) fsemu_glvideo.green_line)[i] = FSEMU_RGB(0x00ff00);
+            ((uint32_t *) fsemu_glvideo.red_line)[i] = FSEMU_RGB(0xff0000);
+        }
+    }
+
+    // fsemu_glvideo.iformat = GL_RGB565;
+    // fsemu_glvideo.format = GL_RGB;
+    // fsemu_glvideo.type = GL_UNSIGNED_SHORT_5_6_5;
+    // fsemu_glvideo.bpp = 2;
+
+#ifdef FSEMU_LINUX_ARM
+    fsemu_glvideo.fix_bleed = false;
+#else
+    fsemu_glvideo.fix_bleed = true;
+#endif
+
+    if (!fsemu_video_is_threaded()) {
+        fsemu_glvideo_init_gl_state();
+    }
+
+#ifdef VSYNCTHREAD
+    fsemu_glvideo.swap_mutex = fsemu_mutex_create();
+    fsemu_thread_create(
+        "fsemu-vsyncthread", fsemu_vsyncthread_entry, NULL);
+#endif
 }

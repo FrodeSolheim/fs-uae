@@ -12,6 +12,8 @@
 #include <sys/timeb.h>
 #include <stdio.h>
 
+#include "fsemu-mutex.h"
+
 int log_scsi = 0;
 int log_net = 0;
 
@@ -659,12 +661,12 @@ void write_log (const TCHAR *format, ...)
 	// a mutex to make this function somewhat thread-safe, but line buffering
 	// can still get mixed content from different threads. Should ideally
 	// use thread-local storage for line buffer.
-	static fs_mutex *mutex;
+	static fsemu_mutex *mutex;
 	if (mutex == NULL) {
-		mutex = fs_mutex_create();
+		mutex = fsemu_mutex_create();
 	}
 
-	fs_mutex_lock(mutex);
+	fsemu_mutex_lock(mutex);
 
     va_list args;
     va_start(args, format);
@@ -677,8 +679,8 @@ void write_log (const TCHAR *format, ...)
 		// strcpy(buffer, "[ UAE ] ");
 		// partial = 8;
 		// strcpy(buffer, "[ UAE ] [     ] ");
-		g_snprintf(buffer, 4096, "[ UAE ] [ %03d ] ", vpos);
-		partial = 16;
+		g_snprintf(buffer, 4096, "[UAE] [%03d] ", vpos);
+		partial = 12;
 	}
 
 	int result = g_vsnprintf(buffer + partial, MAX_LINE - partial, format, args);
@@ -692,7 +694,7 @@ void write_log (const TCHAR *format, ...)
 			buffer[MAX_LINE - 2] = '\n';
 		} else {
 			partial += len;
-			fs_mutex_unlock(mutex);
+			fsemu_mutex_unlock(mutex);
 			return;
 		}
 	}
@@ -724,7 +726,7 @@ void write_log (const TCHAR *format, ...)
     }
 
 	partial = 0;
-	fs_mutex_unlock(mutex);
+	fsemu_mutex_unlock(mutex);
 }
 
 void jit_abort (const TCHAR *format,...)

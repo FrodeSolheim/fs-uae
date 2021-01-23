@@ -92,23 +92,32 @@ extern int64_t fsemu_frame_extra_duration;
 // Initializes the frame module (not a single frame).
 void fsemu_frame_init(void);
 
+extern volatile int fsemu_frame_number_began;
+extern volatile int fsemu_frame_number_ended;
+extern volatile int fsemu_frame_number_posted;
+extern volatile int fsemu_frame_number_rendering;
+extern volatile int fsemu_frame_number_rendered;
+extern volatile int fsemu_frame_number_displaying;
+extern volatile int fsemu_frame_number_displayed;
+extern volatile int fsemu_frame_number_swapped;
+
 #endif  // FSEMU_INTERNAL
 
 extern int fsemu_frame_log_level;
 
-#define fsemu_frame_log(format, ...)                         \
-    if (fsemu_frame_log_level >= 1) {                        \
-        fsemu_log("[FSEMU] [FRAME] " format, ##__VA_ARGS__); \
+#define fsemu_frame_log(format, ...)                     \
+    if (fsemu_frame_log_level >= 1) {                    \
+        fsemu_log("[FSE] [FRM] " format, ##__VA_ARGS__); \
     }
 
-#define fsemu_frame_log_trace(format, ...)                   \
-    if (fsemu_frame_log_level >= 2) {                        \
-        fsemu_log("[FSEMU] [FRAME] " format, ##__VA_ARGS__); \
+#define fsemu_frame_log_trace(format, ...)               \
+    if (fsemu_frame_log_level >= 2) {                    \
+        fsemu_log("[FSE] [FRM] " format, ##__VA_ARGS__); \
     }
 
 #define fsemu_frame_log_epoch(format, ...)                        \
     if (fsemu_frame_log_level >= 2) {                             \
-        fsemu_log("[FSEMU] [%5d] " format,                        \
+        fsemu_log("[FSE] [%5d] " format,                          \
                   (int) (fsemu_time_us() - fsemu_frame_epoch_at), \
                   ##__VA_ARGS__);                                 \
     }

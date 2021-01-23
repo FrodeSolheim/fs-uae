@@ -102,7 +102,8 @@ uae_u32 uaerand (void)
 	static uae_u32 fakerand;
 	if (fakerand == 0) {
 		// Due to performance issues. Replace with lookup table or something.
-		printf("WARNING: Not using random numbers at the moment\n");
+		// FIXME
+		uae_log("WARNING: Not using random numbers at the moment\n");
 	}
 	fakerand += 1826165701;
 	return fakerand;

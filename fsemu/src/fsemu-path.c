@@ -1,20 +1,20 @@
-#include "fsemu-internal.h"
+#define FSEMU_INTERNAL 1
 #include "fsemu-path.h"
 
 #define _GNU_SOURCE 1
 // #include <fs/filesys.h>
 
-#ifdef FSEMU_LINUX
+#ifdef FSEMU_OS_LINUX
 #define HAVE_STRUCT_STAT_ST_BLOCKS 1
 #define HAVE_STRUCT_STAT_ST_MTIM_TV_NSEC 1
 #endif
 
-#ifdef FSEMU_MACOS
+#ifdef FSEMU_OS_MACOS
 #define HAVE_STRUCT_STAT_ST_BLOCKS 1
 #define HAVE_STRUCT_STAT_ST_MTIMESPEC_TV_NSEC 1
 #endif
 
-#ifdef FSEMU_WINDOWS
+#ifdef FSEMU_OS_WINDOWS
 #include <windows.h>
 #endif
 #ifdef HAVE_SYS_TYPES_H
@@ -44,7 +44,7 @@
 #include <errno.h>
 #include <libgen.h>
 #include <sys/types.h>
-#ifdef FSEMU_WINDOWS
+#ifdef FSEMU_OS_WINDOWS
 #define FS_IS_DIR_SEPARATOR(x) ((x) == '/' || (x) == '\\')
 #define FS_DIR_SEPARATOR '\\'
 #else
@@ -53,7 +53,7 @@
 #endif
 #endif
 
-#ifdef FSEMU_WINDOWS
+#ifdef FSEMU_OS_WINDOWS
 typedef struct _stati64 stat_type;
 #define wstat_function _wstati64
 #define fstat_function _fstati64
@@ -64,7 +64,7 @@ typedef struct stat stat_type;
 #define fstat_function fstat
 #endif
 
-#ifdef FSEMU_WINDOWS
+#ifdef FSEMU_OS_WINDOWS
 
 static wchar_t *wide(const char *utf8)
 {
@@ -229,7 +229,7 @@ int fsemu_path_stat(const char *path, fsemu_path_stat_t *buf)
         buf->atime_nsec = st.st_atime_nsec;
         buf->mtime_nsec = st.st_mtime_nsec;
         buf->ctime_nsec = st.st_ctime_nsec;
-#elif defined(FSEMU_WINDOWS)
+#elif defined(FSEMU_OS_WINDOWS)
         HANDLE h;
         DWORD flags;
         DWORD attr;

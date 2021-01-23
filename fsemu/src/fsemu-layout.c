@@ -1,4 +1,4 @@
-#include "fsemu-internal.h"
+#define FSEMU_INTERNAL 1
 #include "fsemu-layout.h"
 
 #include "fsemu-common.h"
@@ -393,11 +393,11 @@ void fsemu_layout_video_rect(fsemu_rect_t *rect)
     // video_h = 200;
 
     double video_a;
-    // if (FSEMU_LIKELY(fsemu_layout.video_height)) {
-        // video_a =
-        //     (double) fsemu_layout.video_width / fsemu_layout.video_height;
-        video_a = (double) video_w / video_h;
-        // printf("video_a = %0.2f\n", video_a);
+    // if (fsemu_likely(fsemu_layout.video_height)) {
+    // video_a =
+    //     (double) fsemu_layout.video_width / fsemu_layout.video_height;
+    video_a = (double) video_w / video_h;
+    // printf("video_a = %0.2f\n", video_a);
     // } else {
     //     video_a = 1.0;
     // }
@@ -421,8 +421,8 @@ void fsemu_layout_video_rect(fsemu_rect_t *rect)
             pixel_aspect = fsemu_layout_pixel_aspect();
         }
         double initial_aspect;
-        // if (FSEMU_LIKELY(video_area.h)) {
-            initial_aspect = (double) video_area.w / video_area.h;
+        // if (fsemu_likely(video_area.h)) {
+        initial_aspect = (double) video_area.w / video_area.h;
         // } else {
         //     initial_aspect = 1.0;
         // }
@@ -447,7 +447,6 @@ void fsemu_layout_video_rect(fsemu_rect_t *rect)
     // ---> 639 should be 640.
 
     // printf("%d %f, %d %f\n", video_area.w, scale_x, video_area.h, scale_y);
-
 
     int scaled_w = video_area.w * scale_x;
     int scaled_h = video_area.h * scale_y;

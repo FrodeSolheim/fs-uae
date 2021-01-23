@@ -1,4 +1,4 @@
-#include "fsemu-internal.h"
+#define FSEMU_INTERNAL 1
 #include "fsemu-control.h"
 
 #include "fsemu-action.h"
@@ -52,7 +52,7 @@ bool fsemu_control_warp(void)
 void fsemu_control_set_warp(bool warping)
 {
     if (fsemu_control_paused()) {
-        // For now at least, disable disable when enabling warp
+        // For now at least, disable pause when enabling warp
         fsemu_action_post_from_main(FSEMU_ACTION_PAUSE_DISABLE);
     }
     fsemu_action_post_from_main(warping ? FSEMU_ACTION_WARP_ENABLE

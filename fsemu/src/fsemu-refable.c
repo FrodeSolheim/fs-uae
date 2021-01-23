@@ -1,4 +1,4 @@
-#include "fsemu-internal.h"
+#define FSEMU_INTERNAL 1
 #include "fsemu-refable.h"
 
 #include <stdbool.h>
@@ -38,7 +38,7 @@ static bool fsemu_refable_check_magic(fsemu_refable_t *refable)
         return true;
     } else {
         // FIXME: Critical
-        printf("[FSEMU][ REF ] ERROR: Refable magic check failed\n");
+        printf("[FSE][ REF ] ERROR: Refable magic check failed\n");
         return false;
     }
 }
@@ -62,7 +62,7 @@ void fsemu_refable_unref_refable(fsemu_refable_t *refable)
         if (refable->cleanup_handler) {
             refable->cleanup_handler(refable);
         } else {
-            printf("[FSEMU][ REF ] WARNING: No cleanup handler\n");
+            printf("[FSE][ REF ] WARNING: No cleanup handler\n");
         }
     }
 }

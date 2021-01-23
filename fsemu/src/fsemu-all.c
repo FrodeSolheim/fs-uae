@@ -42,6 +42,7 @@ extern "C" {
 #include "fsemu-inputport.c"
 #include "fsemu-layout.c"
 #include "fsemu-log.c"
+#include "fsemu-main.c"
 #include "fsemu-mainmenu.c"
 #include "fsemu-manymouse.c"
 #include "fsemu-media.c"

@@ -1,4 +1,4 @@
-#include "fsemu-internal.h"
+#define FSEMU_INTERNAL 1
 #include "fsemu-screenshot.h"
 
 #include <time.h>
@@ -116,6 +116,6 @@ const char *fsemu_screenshot_path_for_type(const char *type)
         counter += 1;
         break;
     }
-    printf("[FSEMU] [SSHOT] Screenshot: %s\n", buffer);
+    printf("[FSE] [SSHOT] Screenshot: %s\n", buffer);
     return buffer;
 }

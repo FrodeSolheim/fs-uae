@@ -1,4 +1,4 @@
-#include "fsemu-internal.h"
+#define FSEMU_INTERNAL 1
 #include "fsemu-hud.h"
 
 #include "fsemu-control.h"
@@ -283,7 +283,7 @@ void fsemu_hud_show_notification(fsemu_hud_id_t notification_id,
                                  const char *icon_name,
                                  int64_t duration_us)
 {
-    printf("[FSEMU] Notification (%016llx) %s\n",
+    printf("[FSE] Notification (%016llx) %s\n",
            (long long) notification_id,
            title);
     // FIXME: When re-showing a notification that's already on screen,
@@ -377,7 +377,7 @@ void fsemu_hud_update(void)
 
 static void fsemu_hud_quit(void)
 {
-    fsemu_log("fsemu_hud_quit\n");
+    fsemu_hud_log("fsemu_hud_quit\n");
 
     GList *listitem = fsemu_hud.notices;
     while (listitem) {
@@ -413,7 +413,7 @@ void fsemu_hud_init(void)
         return;
     }
     fsemu_hud.initialized = true;
-    fsemu_log("Initializing hud module\n");
+    fsemu_hud_log("Initializing hud module\n");
     fsemu_module_on_quit(fsemu_hud_quit);
 
     // FIXME: Medium ?
@@ -435,7 +435,6 @@ void fsemu_hud_init(void)
 
 // ----------------------------------------------------------------------------
 
-
 void fse_notify(uint32_t type, const char *format, ...)
 {
     va_list ap;
@@ -447,7 +446,7 @@ void fse_notify(uint32_t type, const char *format, ...)
     if (len > 0 && buffer[len - 1] == '\n') {
         buffer[len - 1] = '\0';
     }
-    fsemu_log("%s\n", buffer);
+    fsemu_hud_log("%s\n", buffer);
 
 #if 0
     fs_mutex_lock(g_console_mutex);
@@ -489,8 +488,8 @@ void fs_emu_warning(const char *format, ...)
     if (len > 0 && buffer[len] == '\n') {
         buffer[len] = '\0';
     }
-    fsemu_log("WARNING: %s\n", buffer);
-    printf("WARNING: %s\n", buffer);
+    fsemu_log_warning("%s\n", buffer);
+    // printf("WARNING: %s\n", buffer);
     // fs_emu_hud_add_console_line(buffer, 0);
     g_free(buffer);
 }

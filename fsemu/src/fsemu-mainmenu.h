@@ -34,6 +34,36 @@ void fsemu_osmenu_toggle_open(void);
 void fsemu_osmenu_navigate(int navigate, fsemu_action_state_t state);
 #endif
 
+#ifdef FSEMU_INTERNAL
+
+// ----------------------------------------------------------------------------
+// Logging
+// ----------------------------------------------------------------------------
+
+extern int fsemu_mainmenu_log_level;
+
+#define fsemu_mainmenu_log(format, ...) \
+    FSEMU_LOG(mainmenu, "[FSE] [MMU]", format, ##__VA_ARGS__)
+
+#define fsemu_mainmenu_log_debug(format, ...) \
+    FSEMU_LOG_DEBUG(mainmenu, "[FSE] [MMU]", format, ##__VA_ARGS__)
+
+#define fsemu_mainmenu_log_error(format, ...) \
+    FSEMU_LOG_ERROR(mainmenu, "[FSE] [MMU]", format, ##__VA_ARGS__)
+
+#define fsemu_mainmenu_log_info(format, ...) \
+    FSEMU_LOG_INFO(mainmenu, "[FSE] [MMU]", format, ##__VA_ARGS__)
+
+#define fsemu_mainmenu_log_trace(format, ...) \
+    FSEMU_LOG_TRACE(mainmenu, "[FSE] [MMU]", format, ##__VA_ARGS__)
+
+#define fsemu_mainmenu_log_warning(format, ...) \
+    FSEMU_LOG_WARNING(mainmenu, "[FSE] [MMU]", format, ##__VA_ARGS__)
+
+// ----------------------------------------------------------------------------
+
+#endif  // FSEMU_INTERNAL
+
 #ifdef __cplusplus
 }
 #endif

@@ -1,8 +1,8 @@
-#include "fsemu-internal.h"
-#include "fsemu-audio-alsa.h"
+#define FSEMU_INTERNAL 1
+#include "fsemu-alsaaudio.h"
 
-#include "fsemu-audio-buffer.h"
 #include "fsemu-audio.h"
+#include "fsemu-audiobuffer.h"
 #include "fsemu-log.h"
 #include "fsemu-thread.h"
 #include "fsemu-time.h"
@@ -17,7 +17,7 @@
 
 static struct {
     int buffer_bytes;
-} fsemu_audio_alsa;
+} fsemu_alsaaudio;
 
 snd_pcm_t *playback_handle;
 
@@ -38,14 +38,14 @@ int playback_callback(snd_pcm_sframes_t nframes)
 }
 #endif
 
-static void fsemu_audio_alsa_handle_underrun(void)
+static void fsemu_alsaaudio_handle_underrun(void)
 {
     // fsemu_audio_log_inflight_estimate();
     fsemu_audio_log("----------\n");
     if (fsemu_audio_log_buffer_stats() <= 1) {
         // We ran out of data for realz (probably), so add some silence to
         // the buffer to aid in recovery.
-        fsemu_audio_buffer.add_silence = 1;
+        fsemu_audiobuffer.add_silence = 1;
 
         // FIXME: Get definitive information about underrun from ALSA ?
         fsemu_audio_register_underrun();
@@ -54,16 +54,16 @@ static void fsemu_audio_alsa_handle_underrun(void)
 
     // FIXME: Race condition (with emulation thread) on updating the write
     // buffer
-    // fsemu_audio_buffer_write_silence_ms(1);
+    // fsemu_audiobuffer_write_silence_ms(1);
 }
 
-static int fsemu_audio_alsa_write(void *buffer, int bytes)
+static int fsemu_alsaaudio_write(void *buffer, int bytes)
 {
     int err;
     if ((err = snd_pcm_writei(playback_handle, buffer, bytes / 4)) < 0) {
         fprintf(stderr, "write failed (%s)\n", snd_strerror(err));
 
-        fsemu_audio_alsa_handle_underrun();
+        fsemu_alsaaudio_handle_underrun();
 
         if (err = snd_pcm_recover(playback_handle, err, 0)) {
             fprintf(stderr, "snd_pcm_recover (%s)\n", snd_strerror(err));
@@ -77,13 +77,13 @@ static int fsemu_audio_alsa_write(void *buffer, int bytes)
     }
 }
 
-static void fsemu_audio_alsa_callback(snd_pcm_sframes_t want_frames)
+static void fsemu_alsaaudio_callback(snd_pcm_sframes_t want_frames)
 {
     static int64_t last_time;
     int64_t now = fsemu_time_us();
 #if 0
-    printf("[FSEMU] Audio buffer: %3d ms (dt %2d ms) want %5d B (%4d frames)\n",
-           fsemu_audio_buffer_fill_ms(),
+    printf("[FSE] Audio buffer: %3d ms (dt %2d ms) want %5d B (%4d frames)\n",
+           fsemu_audiobuffer_fill_ms(),
            (int)((now - last_time) / 1000),
            (int) want_frames * 4,
            (int) want_frames);
@@ -92,32 +92,32 @@ static void fsemu_audio_alsa_callback(snd_pcm_sframes_t want_frames)
 #if 0
 
     // -----------------------------------------------------------------------
-    if (fsemu_audio_buffer_fill() < want_bytes) {
+    if (fsemu_audiobuffer_fill() < want_bytes) {
         printf(
-            "[FSEMU] ---------------------- UNDERRUN "
+            "[FSE] ---------------------- UNDERRUN "
             "----------------------\n");
     }
 #endif
 
     // Temp hack
-    if (fsemu_audio_buffer_fill_ms() > 100) {
+    if (fsemu_audiobuffer_fill_ms() > 100) {
         fsemu_audio_log("----- reset -----\n");
         fsemu_audio_log_buffer_stats();
         fsemu_audio_log("-----------------\n");
         // int want = fsemu_audio_frequency() * 50 / 1000 * 4;
         int want = 8192;
         // int want = 0;
-        fsemu_audio_buffer.read = fsemu_audio_buffer.write - want;
-        if (fsemu_audio_buffer.read < fsemu_audio_buffer.data) {
-            fsemu_audio_buffer.read += fsemu_audio_buffer.size;
+        fsemu_audiobuffer.read = fsemu_audiobuffer.write - want;
+        if (fsemu_audiobuffer.read < fsemu_audiobuffer.data) {
+            fsemu_audiobuffer.read += fsemu_audiobuffer.size;
         }
     }
     // -----------------------------------------------------------------------
 
     int err;
 
-    uint8_t volatile *read = fsemu_audio_buffer.read;
-    uint8_t volatile *write = fsemu_audio_buffer.write;
+    uint8_t volatile *read = fsemu_audiobuffer.read;
+    uint8_t volatile *write = fsemu_audiobuffer.write;
 
     int bytes = 0;
     int bytes_written = 0;
@@ -126,16 +126,16 @@ static void fsemu_audio_alsa_callback(snd_pcm_sframes_t want_frames)
     if (write >= read) {
         bytes = write - read;
     } else {
-        bytes = fsemu_audio_buffer.end - read;
+        bytes = fsemu_audiobuffer.end - read;
         wrap = true;
     }
 
     if (bytes > want_bytes) {
         bytes = want_bytes;
     }
-    // printf("[FSEMU] bytes %d\n", bytes);
+    // printf("[FSE] bytes %d\n", bytes);
 
-    int error = fsemu_audio_alsa_write((void *) read, bytes);
+    int error = fsemu_alsaaudio_write((void *) read, bytes);
     // FIXME: Check for underrun
     want_bytes -= bytes;
     bytes_written += bytes;
@@ -143,12 +143,12 @@ static void fsemu_audio_alsa_callback(snd_pcm_sframes_t want_frames)
 
     if (want_bytes > 0) {
         if (wrap) {
-            read = fsemu_audio_buffer.data;
+            read = fsemu_audiobuffer.data;
             bytes = write - read;
             if (bytes > want_bytes) {
                 bytes = want_bytes;
             }
-            error = fsemu_audio_alsa_write((void *) read, bytes);
+            error = fsemu_alsaaudio_write((void *) read, bytes);
             // FIXME: Check for underrun
             want_bytes -= bytes;
             bytes_written += bytes;
@@ -159,7 +159,7 @@ static void fsemu_audio_alsa_callback(snd_pcm_sframes_t want_frames)
 #if 1
     // there isn't a buffer underrun until alsa says so
     if (want_bytes > 0) {
-        // printf("[FSEMU] %d bytes short of refilling ALSA\n", want_bytes);
+        // printf("[FSE] %d bytes short of refilling ALSA\n", want_bytes);
     }
 #endif
 
@@ -170,10 +170,10 @@ static void fsemu_audio_alsa_callback(snd_pcm_sframes_t want_frames)
         buffered_bytes, now, (void *) read, (void *) write);
 
     last_time = now;
-    fsemu_audio_buffer.read = read;
+    fsemu_audiobuffer.read = read;
 }
 
-static void *fsemu_audio_alsa_thread(void *data)
+static void *fsemu_alsaaudio_thread(void *data)
 {
     fsemu_thread_set_priority();
 
@@ -187,7 +187,7 @@ static void *fsemu_audio_alsa_thread(void *data)
         if ((err = snd_pcm_wait(playback_handle, 1000)) < 0) {
             fprintf(stderr, "poll failed %d (%s)\n", err, strerror(err));
 
-            fsemu_audio_alsa_handle_underrun();
+            fsemu_alsaaudio_handle_underrun();
 
             if (err = snd_pcm_recover(playback_handle, err, 0)) {
                 fprintf(stderr, "snd_pcm_recover (%s)\n", snd_strerror(err));
@@ -209,7 +209,7 @@ static void *fsemu_audio_alsa_thread(void *data)
                         err);
             }
 
-            fsemu_audio_alsa_handle_underrun();
+            fsemu_alsaaudio_handle_underrun();
 
             if (err = snd_pcm_recover(playback_handle, err, 0)) {
                 fprintf(stderr, "snd_pcm_recover (%s)\n", snd_strerror(err));
@@ -224,16 +224,16 @@ static void *fsemu_audio_alsa_thread(void *data)
 
         /* deliver the data */
         /*
-        if (fsemu_audio_alsa_callback(frames_to_deliver) != frames_to_deliver)
+        if (fsemu_alsaaudio_callback(frames_to_deliver) != frames_to_deliver)
         { fprintf(stderr, "playback callback failed\n"); break;
         }
         */
 
         /* We deliver as much data as we can, so the ALSA buffer is as full
            as possible. This makes estimating (combined) buffer fill easier. */
-        fsemu_audio_alsa_callback(frames_to_deliver);
+        fsemu_alsaaudio_callback(frames_to_deliver);
         // FIXME: period
-        // fsemu_audio_alsa_callback(128);
+        // fsemu_alsaaudio_callback(128);
     }
 
     snd_pcm_close(playback_handle);
@@ -241,7 +241,7 @@ static void *fsemu_audio_alsa_thread(void *data)
     return NULL;
 }
 
-void fsemu_audio_alsa_init(void)
+void fsemu_alsaaudio_init(void)
 {
     fsemu_audio_log("Initialize ALSA audio driver\n");
 
@@ -327,14 +327,14 @@ void fsemu_audio_alsa_init(void)
 
     if (err = snd_pcm_hw_params_get_period_size(
                   hw_params, &period_size, NULL) < 0) {
-        fsemu_warning("[FSEMU] Could not query ALSA period size\n");
+        fsemu_warning("[FSE] Could not query ALSA period size\n");
         snd_strerror(err);
     }
     fsemu_audio_log("ALSA period size: %ld frames\n", period_size);
 
     buffer_size = 0;
     if (err = snd_pcm_hw_params_get_buffer_size(hw_params, &buffer_size) < 0) {
-        fsemu_warning("[FSEMU] Could not query ALSA period size\n");
+        fsemu_warning("[FSE] Could not query ALSA period size\n");
         snd_strerror(err);
     }
     fsemu_audio_log("ALSA buffer size: %ld frames (%ld ms)\n",
@@ -394,7 +394,7 @@ void fsemu_audio_alsa_init(void)
         return;
     }
 
-    fsemu_thread_create("alsa", fsemu_audio_alsa_thread, NULL);
+    fsemu_thread_create("alsa", fsemu_alsaaudio_thread, NULL);
 }
 
 #endif  // FSEMU_ALSA

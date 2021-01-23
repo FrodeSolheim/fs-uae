@@ -1,4 +1,4 @@
-#include "fsemu-internal.h"
+#define FSEMU_INTERNAL 1
 #include "fsemu-option.h"
 
 #include <stdio.h>
@@ -211,7 +211,7 @@ void fsemu_option_load_from_argv(int argc, char **argv)
 }
 
 #if 0
-#ifdef FSEMU_WINDOWS
+#ifdef FSEMU_OS_WINDOWS
 // ...
 #else
 // extern char **environ;
@@ -253,7 +253,7 @@ static void fsemu_option_init_from_env(void)
     }
     g_strfreev(env);
 #if 0
-#ifdef FSEMU_WINDOWS
+#ifdef FSEMU_OS_WINDOWS
 
 #else
 #endif

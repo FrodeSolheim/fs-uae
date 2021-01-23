@@ -1,4 +1,4 @@
-#include "fsemu-internal.h"
+#define FSEMU_INTERNAL
 #include "fsemu-sdlwindow.h"
 
 #ifdef FSEMU_SDL
@@ -11,6 +11,7 @@
 #include "fsemu-module.h"
 #include "fsemu-monitor.h"
 #include "fsemu-mouse.h"
+#include "fsemu-opengl.h"
 #include "fsemu-perfgui.h"
 #include "fsemu-quit.h"
 #include "fsemu-screenshot.h"
@@ -27,7 +28,7 @@
 // #include <fs/emu/input.h>
 // #endif
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 static struct {
     bool initialized;
@@ -63,13 +64,16 @@ static struct {
     SDL_Cursor *size_nesw_cursor;
     SDL_Cursor *size_nwse_cursor;
 
+    uint32_t frame_rendered_event_type;
+    uint32_t quit_event_type;
+
     bool no_event_polling;
 } fsemu_sdlwindow;
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
-#if defined(FSEMU_WINDOWS)
-#elif defined(FSEMU_MACOS)
+#if defined(FSEMU_OS_WINDOWS)
+#elif defined(FSEMU_OS_MACOS)
 #else
 
 // Wrapper function in case SDL_SetCursor is not optimized for the case
@@ -85,24 +89,29 @@ static void fsemu_sdlwindow_set_cursor(SDL_Cursor *cursor)
 
 #endif
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 bool fsemu_sdlwindow_no_event_polling(void)
 {
     return fsemu_sdlwindow.no_event_polling;
 }
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 void fsemu_sdlwindow_set_no_event_polling(bool no_event_polling)
 {
     fsemu_sdlwindow.no_event_polling = no_event_polling;
 }
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 void fsemu_sdlwindow_work(int timeout_ms)
 {
+    if (timeout_ms == -1) {
+        timeout_ms = INT_MAX;
+    } else {
+        fsemu_assert(timeout_ms >= 0);
+    }
     if (!fsemu_sdlwindow_no_event_polling()) {
         SDL_Event event;
         if (SDL_WaitEventTimeout(&event, timeout_ms)) {
@@ -137,7 +146,9 @@ static void fsemu_sdlwindow_set_swap_interval(int swap_interval)
     if (fsemu_sdlwindow.swap_interval == swap_interval) {
         return;
     }
-    fsemu_window_log_debug("SDL_GL_SetSwapInterval(%d)\n", swap_interval);
+    fsemu_window_log("SDL_GL_SetSwapInterval(%d)%s\n",
+                     swap_interval,
+                     swap_interval ? " (vsync)" : "");
     SDL_GL_SetSwapInterval(swap_interval);
     fsemu_sdlwindow.swap_interval = swap_interval;
 }
@@ -260,7 +271,7 @@ static SDL_HitTestResult fsemu_sdlwindow_hit_test_2(SDL_Window *window,
         return SDL_HITTEST_NORMAL;
     }
     int titlebar_height = fsemu_titlebar_height();
-#ifdef FSEMU_MACOS
+#ifdef FSEMU_OS_MACOS
     // Resize controls are available by default, just need to add support for
     // dragging the title bar.
     if (y < titlebar_height) {
@@ -308,6 +319,32 @@ static SDL_HitTestResult fsemu_sdlwindow_hit_test(SDL_Window *window,
 {
     // fsemu_window_log("Hit test x=%d y=%d\n", point->x, point->y);
     return fsemu_sdlwindow_hit_test_2(window, point->x, point->y);
+}
+
+static void fsemu_sdlwindow_find_mode(int display_index, SDL_DisplayMode *mode)
+{
+    fsemu_window_log("Finding suitable mode for display %d:\n", display_index);
+    // int display_count = 0;
+    // int display_index = 0;
+    int mode_index = 0;
+    SDL_DisplayMode m = {SDL_PIXELFORMAT_UNKNOWN, 0, 0, 0, 0};
+    while (true) {
+        int error = SDL_GetDisplayMode(display_index, mode_index, &m);
+        if (error) {
+            break;
+        }
+        // fsemu_window_log("Mode %d: %d %d %d\n",
+        //                  mode_index,
+        //                  m.w,
+        //                  m.h,
+        //                  m.refresh_rate);
+        // FIXME: FSEMU needs to now the desired refresh rate...
+        // FIXME: float vs int (refresh rate)?
+        if (m.w == 1920 && m.h == 1080 && m.refresh_rate == 50) {
+            *mode = m;
+        }
+        mode_index += 1;
+    }
 }
 
 static bool fsemu_sdlwindow_kmsdrm(void)
@@ -414,7 +451,7 @@ SDL_Window *fsemu_sdlwindow_create(void)
 
     // FIXME: Initial input grab?
 
-#ifdef FSEMU_MACOS
+#ifdef FSEMU_OS_MACOS
     // Sometimes, it seems we get a high-DPI window even though we didn't
     // request it, causing problems for glViewport, and video output
     // being limited to a quarter of the display. So instead, we explicitly
@@ -426,35 +463,59 @@ SDL_Window *fsemu_sdlwindow_create(void)
     flags |= SDL_WINDOW_ALLOW_HIGHDPI;
 #endif
 
-    SDL_DisplayMode mode = { 0 };
+    SDL_DisplayMode fullscreen_mode = {0};
 
     if (fsemu_sdlwindow_kmsdrm()) {
         // We must use SDL_WINDOW_FULLSCREEN in order for mode switch to
-        // happen.
+        // happen. And no reason to not use SDL_WINDOW_FULLSCREN with KMSDRM.
         flags &= ~SDL_WINDOW_FULLSCREEN_DESKTOP;
         flags |= SDL_WINDOW_FULLSCREEN;
 
         // Switch to 50Hz mode on Raspberry PI.
 
         // FIXME: Lookup correct mode, do not hardcode index
-        SDL_GetDisplayMode(0, 1, &mode);
+        // SDL_GetDisplayMode(0, 1, &mode);
+        fsemu_sdlwindow_find_mode(0, &fullscreen_mode);
         // Also setting vsync. FIXME: Unconditionally?
+        if (fullscreen_mode.refresh_rate == 50) {
+            fsemu_video_set_vsync(true);
+        }
+    }
+
+    SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1);
+
+    if (fullscreen_mode.refresh_rate == 50) {
         fsemu_video_set_vsync(true);
+        rect.x = 0;
+        rect.y = 0;
+        rect.w = fullscreen_mode.w;
+        rect.h = fullscreen_mode.h;
     }
 
     fsemu_window_log_debug("SDL_CreateWindow(..., %d, %d, %d, %d, flags=%d)\n",
-        rect.x, rect.y, rect.w, rect.h, flags);
+                           rect.x,
+                           rect.y,
+                           rect.w,
+                           rect.h,
+                           flags);
     SDL_Window *window = SDL_CreateWindow(
         fsemu_window_title(), rect.x, rect.y, rect.w, rect.h, flags);
-    fsemu_window_log("Window %p (Driver: %s)\n", window, SDL_GetCurrentVideoDriver());
+    fsemu_window_log(
+        "Window %p (Driver: %s)\n", window, SDL_GetCurrentVideoDriver());
 
 #if 1
-    if (mode.w && mode.h) {
-        int error = SDL_SetWindowDisplayMode(window, &mode);
-        fsemu_window_log("Switching to mode %dx%d@%d\n", mode.w, mode.h, mode.refresh_rate);
+    if (fullscreen_mode.refresh_rate) {
+        fsemu_window_log("Switching to mode %dx%d@%d\n",
+                         fullscreen_mode.w,
+                         fullscreen_mode.h,
+                         fullscreen_mode.refresh_rate);
+        int error = SDL_SetWindowDisplayMode(window, &fullscreen_mode);
         if (error) {
-             // FIXME: log_error or log_warning
-            fsemu_window_log("Error setting mode\n");
+            // FIXME: log_error or log_warning
+            fsemu_window_log("Error setting mode %dx%d@%d\n",
+                             fullscreen_mode.w,
+                             fullscreen_mode.h,
+                             fullscreen_mode.refresh_rate);
         }
     }
 #endif
@@ -491,8 +552,8 @@ SDL_Window *fsemu_sdlwindow_create(void)
         if (fsemu_sdlwindow_kmsdrm()) {
             // SDL_SetWindowHitTest will fail (and is not needed)
         } else {
-            int result = SDL_SetWindowHitTest(
-                window, fsemu_sdlwindow_hit_test, NULL);
+            int result =
+                SDL_SetWindowHitTest(window, fsemu_sdlwindow_hit_test, NULL);
             if (result == -1) {
                 fsemu_window_log("SDL_SetWindowHitTest failed: %s\n",
                                  SDL_GetError());
@@ -502,12 +563,34 @@ SDL_Window *fsemu_sdlwindow_create(void)
     }
     SDL_SetWindowMinimumSize(window, min_width, min_height);
 
-    // FIXME: Needed?
-    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    // FIXME: Not sure if this is decided yet?
+    if (fsemu_video_get_renderer() == FSEMU_VIDEO_RENDERER_GL) {
+        // FIXME: Needed?
+        // SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
-    // FIXME: Only if using OpenGL
-    fsemu_sdlwindow.gl_context =
-        SDL_GL_CreateContext(fsemu_sdlwindow_window());
+        // We want context in main for startup rendering.
+#if 0
+        // FIXME: Don't think this is decided yet?
+        if (fsemu_video_is_threaded()) {
+            fsemu_window_log(
+                "Threaded video: Not creating GL context in main thread\n");
+        } else {
+#endif
+        fsemu_window_log("Creating OpenGL context from main/video thread\n");
+        // FIXME: Only if using OpenGL
+        fsemu_sdlwindow.gl_context =
+            SDL_GL_CreateContext(fsemu_sdlwindow_window());
+
+        // Check OpenGL properties
+        fsemu_window_log("Loading OpenGL symbols via GLAD\n");
+        gladLoadGLLoader(SDL_GL_GetProcAddress);
+        fsemu_window_log("OpenGL vendor:   %s\n", glGetString(GL_VENDOR));
+        fsemu_window_log("OpenGL renderer: %s\n", glGetString(GL_RENDERER));
+        fsemu_window_log("OpenGL version:  %s\n", glGetString(GL_VERSION));
+#if 0
+        }
+#endif
+    }
 
     // Don't need to set viewport? Seems we get a window-covering viewport.
     // printf("glViewport 0, 0, %d, %d\n", rect.w, rect.h);
@@ -537,9 +620,17 @@ void fsemu_sdlwindow_show(void)
     SDL_ShowWindow(fsemu_sdlwindow.window);
 
     // Get actual window position and size
-    SDL_GetWindowPosition(fsemu_sdlwindow.window, &fsemu_sdlwindow.rect.x, &fsemu_sdlwindow.rect.y);
-    SDL_GetWindowSize(fsemu_sdlwindow.window, &fsemu_sdlwindow.rect.w, &fsemu_sdlwindow.rect.h);
-    fsemu_window_log_debug("Window rect is now: %d %d %d %d\n", fsemu_sdlwindow.rect.x, fsemu_sdlwindow.rect.y, fsemu_sdlwindow.rect.w, fsemu_sdlwindow.rect.h);
+    SDL_GetWindowPosition(fsemu_sdlwindow.window,
+                          &fsemu_sdlwindow.rect.x,
+                          &fsemu_sdlwindow.rect.y);
+    SDL_GetWindowSize(fsemu_sdlwindow.window,
+                      &fsemu_sdlwindow.rect.w,
+                      &fsemu_sdlwindow.rect.h);
+    fsemu_window_log_debug("Window rect is now: %d %d %d %d\n",
+                           fsemu_sdlwindow.rect.x,
+                           fsemu_sdlwindow.rect.y,
+                           fsemu_sdlwindow.rect.w,
+                           fsemu_sdlwindow.rect.h);
 
 #if 0
     SDL_Event event;
@@ -553,15 +644,15 @@ void fsemu_sdlwindow_show(void)
         // with the drop-down titlebar visible.
         // fsemu_sdlwindow_center_cursor();
         // SDL_WarpMouseGlobal(100, 100);
-        fsemu_window_log_debug("%d %d\n", fsemu_sdlwindow.rect.y, fsemu_sdlwindow.rect.h);
+        fsemu_window_log_debug(
+            "%d %d\n", fsemu_sdlwindow.rect.y, fsemu_sdlwindow.rect.h);
 #if 1
 #if 1
-//        SDL_ShowCursor(SDL_ENABLE);
+        //        SDL_ShowCursor(SDL_ENABLE);
         SDL_WarpMouseInWindow(
             fsemu_sdlwindow.window,
             fsemu_sdlwindow.rect.x + fsemu_sdlwindow.rect.w / 2,
-            fsemu_sdlwindow.rect.y + fsemu_sdlwindow.rect.h / 2
-        );
+            fsemu_sdlwindow.rect.y + fsemu_sdlwindow.rect.h / 2);
 #endif
         // SDL_ShowCursor(SDL_DISABLE);
 //        SDL_ShowCursor(SDL_DISABLE);
@@ -577,7 +668,7 @@ void fsemu_sdlwindow_show(void)
 // a problem with restoring borderless windows on macOS.
 static void fsemu_sdlwindow_fullscreen_to_window(void)
 {
-#ifdef FSEMU_MACOS
+#ifdef FSEMU_OS_MACOS
 #if 1
     if (!fsemu_titlebar_use_system()) {
         // On macOS 10.14, going back to windowed mode seems to ignore the
@@ -653,12 +744,12 @@ void fsemu_sdlwindow_set_window(SDL_Window *window)
     fsemu_sdlwindow.fullscreen = flags & SDL_WINDOW_FULLSCREEN_DESKTOP;
 
     fsemu_window_log_debug("Window is %p (%d %d %d %d) fullscreen %d\n",
-                     fsemu_sdlwindow.window,
-                     fsemu_sdlwindow.rect.x,
-                     fsemu_sdlwindow.rect.y,
-                     fsemu_sdlwindow.rect.w,
-                     fsemu_sdlwindow.rect.h,
-                     fsemu_sdlwindow.fullscreen);
+                           fsemu_sdlwindow.window,
+                           fsemu_sdlwindow.rect.x,
+                           fsemu_sdlwindow.rect.y,
+                           fsemu_sdlwindow.rect.w,
+                           fsemu_sdlwindow.rect.h,
+                           fsemu_sdlwindow.fullscreen);
 }
 
 bool fsemu_sdlwindow_fullscreen(void)
@@ -673,7 +764,7 @@ void fsemu_sdlwindow_set_fullscreen(bool fullscreen)
     }
     fsemu_window_log_debug("fsemu_sdlwindow_set_fullscreen %d\n", fullscreen);
     int fullscreen_mode = 0;
-#ifdef FSEMU_MACOS
+#ifdef FSEMU_OS_MACOS
     if (!fsemu_titlebar_use_system() && fullscreen) {
         // On macOS 10.14, going back to windowed mode seems to ignore the
         // bordered status (we get a titlebar) , and on macOS 10.15, it does
@@ -720,6 +811,11 @@ SDL_Window *fsemu_sdlwindow_window(void)
     return fsemu_sdlwindow.window;
 }
 
+SDL_GLContext fsemu_sdlwindow_gl_context(void)
+{
+    return fsemu_sdlwindow.gl_context;
+}
+
 bool fsemu_sdlwindow_has_window(void)
 {
     return fsemu_sdlwindow.window != NULL;
@@ -749,11 +845,11 @@ static bool fsemu_sdlwindow_handle_keyboard_shortcut(SDL_Event *event)
         fsemu_sdlwindow.full_keyboard_emulation =
             !fsemu_sdlwindow.full_keyboard_emulation;
         fsemu_window_log_debug("Full keyboard emulation: %d\n",
-                         fsemu_sdlwindow.full_keyboard_emulation);
+                               fsemu_sdlwindow.full_keyboard_emulation);
         return true;
     } else if (event->key.keysym.sym == SDLK_o) {
         fsemu_window_log_debug("SDLK_o (cycle performance overlay)\n");
-        fsemu_perfgui_cycle();
+        fsemu_perfgui_cycle_mode();
         return true;
     } else if (event->key.keysym.sym == SDLK_p) {
         fsemu_window_log_debug("SDLK_w (toggle paused)\n");
@@ -804,9 +900,9 @@ static void fsemu_sdlwindow_handle_cursor(fsemu_mouse_event_t *event)
         // Bogus event sent by FSEMU when losing focus
         return;
     }
-#ifdef FSEMU_WINDOWS
+#ifdef FSEMU_OS_WINDOWS
     // Handled by Windows itself in response to hit testing.
-#elif defined(FSEMU_MACOS)
+#elif defined(FSEMU_OS_MACOS)
     // Also not needed on macOS
 #else
     if (fsemu_titlebar_use_system()) {
@@ -961,11 +1057,10 @@ bool fsemu_sdlwindow_handle_event(SDL_Event *event)
     switch (event->type) {
         case SDL_MOUSEBUTTONDOWN:
         case SDL_MOUSEBUTTONUP:
-            fsemu_mouse_log_debug(
-                            "%s button=%d\n",
-                            event->button.state ? "SDL_MOUSEBUTTONDOWN"
-                                                : "SDL_MOUSEBUTTONUP",
-                            event->button.button);
+            fsemu_mouse_log_debug("%s button=%d\n",
+                                  event->button.state ? "SDL_MOUSEBUTTONDOWN"
+                                                      : "SDL_MOUSEBUTTONUP",
+                                  event->button.button);
             mouse_event.pressed =
                 event->button.state ? event->button.button : 0;
             mouse_event.released =
@@ -983,11 +1078,11 @@ bool fsemu_sdlwindow_handle_event(SDL_Event *event)
             break;
         case SDL_MOUSEMOTION:
             fsemu_mouse_log_debug(
-                            "SDL_MOUSEMOTION x=%d y=%d xrel=%d yrel=%d\n",
-                            event->motion.x,
-                            event->motion.y,
-                            event->motion.xrel,
-                            event->motion.yrel);
+                "SDL_MOUSEMOTION x=%d y=%d xrel=%d yrel=%d\n",
+                event->motion.x,
+                event->motion.y,
+                event->motion.xrel,
+                event->motion.yrel);
             // fsemu_mouse_handle_position(event->motion.x, event->motion.y);
             // mouse_event.pressed = 0;
             // mouse_event.released = 0;
@@ -995,8 +1090,8 @@ bool fsemu_sdlwindow_handle_event(SDL_Event *event)
                 if (event->motion.x == 0 && event->motion.y == 0 &&
                     event->motion.xrel == 0 && event->motion.yrel == 0) {
                     fsemu_mouse_log_debug(
-                                    "Ignoring bogus event after switching to "
-                                    "fullscreen\n");
+                        "Ignoring bogus event after switching to "
+                        "fullscreen\n");
                     return true;
                 }
             }
@@ -1062,13 +1157,16 @@ bool fsemu_sdlwindow_handle_window_event(SDL_Event *event)
 
     switch (event->window.event) {
         case SDL_WINDOWEVENT_SHOWN:
-            fsemu_window_log_debug("Window %d shown\n", event->window.windowID);
+            fsemu_window_log_debug("Window %d shown\n",
+                                   event->window.windowID);
             break;
         case SDL_WINDOWEVENT_HIDDEN:
-            fsemu_window_log_debug("Window %d hidden\n", event->window.windowID);
+            fsemu_window_log_debug("Window %d hidden\n",
+                                   event->window.windowID);
             break;
         case SDL_WINDOWEVENT_EXPOSED:
-            fsemu_window_log_debug("Window %d exposed\n", event->window.windowID);
+            fsemu_window_log_debug("Window %d exposed\n",
+                                   event->window.windowID);
             break;
         case SDL_WINDOWEVENT_MOVED:
 #if 0
@@ -1082,9 +1180,9 @@ bool fsemu_sdlwindow_handle_window_event(SDL_Event *event)
             // Window has been resized to data1xdata2; this event is
             // always preceded by SDL_WINDOWEVENT_SIZE_CHANGED.
             fsemu_window_log_debug("Window %d resized to %dx%d\n",
-                             event->window.windowID,
-                             event->window.data1,
-                             event->window.data2);
+                                   event->window.windowID,
+                                   event->window.data1,
+                                   event->window.data2);
             break;
         case SDL_WINDOWEVENT_SIZE_CHANGED:
             // Window size has changed, either as a result of an API call
@@ -1093,9 +1191,9 @@ bool fsemu_sdlwindow_handle_window_event(SDL_Event *event)
             // size was changed by an external event, i.e. the user or the
             // window manager.
             fsemu_window_log_debug("Window %d size changed to %dx%d\n",
-                             event->window.windowID,
-                             event->window.data1,
-                             event->window.data2);
+                                   event->window.windowID,
+                                   event->window.data1,
+                                   event->window.data2);
             {
                 int w = event->window.data1;
                 int h = event->window.data2;
@@ -1124,17 +1222,20 @@ bool fsemu_sdlwindow_handle_window_event(SDL_Event *event)
 
             break;
         case SDL_WINDOWEVENT_MINIMIZED:
-            fsemu_window_log_debug("Window %d minimized\n", event->window.windowID);
+            fsemu_window_log_debug("Window %d minimized\n",
+                                   event->window.windowID);
             break;
         case SDL_WINDOWEVENT_MAXIMIZED:
-            fsemu_window_log_debug("Window %d maximized\n", event->window.windowID);
+            fsemu_window_log_debug("Window %d maximized\n",
+                                   event->window.windowID);
             break;
         case SDL_WINDOWEVENT_RESTORED:
-            fsemu_window_log_debug("Window %d restored\n", event->window.windowID);
+            fsemu_window_log_debug("Window %d restored\n",
+                                   event->window.windowID);
             break;
         case SDL_WINDOWEVENT_ENTER:
             fsemu_window_log_debug("Mouse entered window %d\n",
-                             event->window.windowID);
+                                   event->window.windowID);
 
 #if 0
             // Hmm, we don't even seem to be able to read the correct mouse
@@ -1185,7 +1286,8 @@ bool fsemu_sdlwindow_handle_window_event(SDL_Event *event)
 
             break;
         case SDL_WINDOWEVENT_LEAVE:
-            fsemu_window_log_debug("Mouse left window %d\n", event->window.windowID);
+            fsemu_window_log_debug("Mouse left window %d\n",
+                                   event->window.windowID);
             // Sending fake mouse event (outside window) when mouse
             // leaves the window, useful for GUI hovering effects.
             // FIXME: Might need to make sure these events do not
@@ -1210,7 +1312,7 @@ bool fsemu_sdlwindow_handle_window_event(SDL_Event *event)
             break;
         case SDL_WINDOWEVENT_FOCUS_GAINED:
             fsemu_window_log_debug("Window %d gained keyboard focus\n",
-                             event->window.windowID);
+                                   event->window.windowID);
             fsemu_window_set_active(true);
             break;
         case SDL_WINDOWEVENT_FOCUS_LOST:
@@ -1219,50 +1321,48 @@ bool fsemu_sdlwindow_handle_window_event(SDL_Event *event)
             // on-screen menu.
             fsemu_sdlwindow_open_menu_abort();
             fsemu_window_log_debug("Window %d lost keyboard focus\n",
-                             event->window.windowID);
+                                   event->window.windowID);
             fsemu_window_set_active(false);
             break;
         case SDL_WINDOWEVENT_CLOSE:
-            fsemu_window_log_debug("Window %d closed\n", event->window.windowID);
+            fsemu_window_log_debug("Window %d closed\n",
+                                   event->window.windowID);
             break;
 #if SDL_VERSION_ATLEAST(2, 0, 5)
         case SDL_WINDOWEVENT_TAKE_FOCUS:
             fsemu_window_log_debug("Window %d is offered a focus\n",
-                             event->window.windowID);
+                                   event->window.windowID);
             break;
         case SDL_WINDOWEVENT_HIT_TEST:
             fsemu_window_log_debug("Window %d has a special hit test\n",
-                             event->window.windowID);
+                                   event->window.windowID);
             break;
 #endif
         default:
             fsemu_window_log_debug("Window %d got unknown event %d\n",
-                             event->window.windowID,
-                             event->window.event);
+                                   event->window.windowID,
+                                   event->window.event);
             break;
     }
 
     return true;
 }
 
-// ---------------------------------------------------------------------------
-
-static void fsemu_sdlwindow_quit(void)
+void fsemu_sdlwindow_notify_frame_rendered_vt(void)
 {
-    fsemu_window_log_debug("fsemu_sdlwindow_quit\n");
-    if (fsemu_sdlwindow.gl_context) {
-        fsemu_window_log("Deleting OpenGL context\n");
-        SDL_GL_DeleteContext(fsemu_sdlwindow.gl_context);
-    }
-    if (fsemu_sdlwindow.window) {
-        fsemu_window_log("Destroying SDL window\n");
-        SDL_DestroyWindow(fsemu_sdlwindow.window);
-    }
-    fsemu_window_log("Calling SDL_Quit\n");
-    SDL_Quit();
+    SDL_Event event;
+    event.type = fsemu_sdlwindow.frame_rendered_event_type;
+    SDL_PushEvent(&event);
 }
 
-// ---------------------------------------------------------------------------
+void fsemu_sdlwindow_notify_quit(void)
+{
+    SDL_Event event;
+    event.type = fsemu_sdlwindow.quit_event_type;
+    SDL_PushEvent(&event);
+}
+
+// ----------------------------------------------------------------------------
 
 static void fsemu_sdlwindow_log_modes(void)
 {
@@ -1276,26 +1376,69 @@ static void fsemu_sdlwindow_log_modes(void)
         if (error) {
             break;
         }
-        fsemu_window_log("Mode %d: %d %d %d\n", mode_index, mode.w, mode.h, mode.refresh_rate);
+        fsemu_window_log("Mode %d: %d %d %d\n",
+                         mode_index,
+                         mode.w,
+                         mode.h,
+                         mode.refresh_rate);
         mode_index += 1;
     }
 }
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+static void fsemu_sdlwindow_quit(void)
+{
+    fsemu_window_log("Quit sdlwindow module\n");
+    if (fsemu_sdlwindow.gl_context) {
+        fsemu_window_log_debug("Deleting OpenGL context\n");
+        SDL_GL_DeleteContext(fsemu_sdlwindow.gl_context);
+        fsemu_sdlwindow.gl_context = NULL;
+    }
+    if (fsemu_sdlwindow.window) {
+        fsemu_window_log_debug("Destroying SDL window\n");
+        SDL_DestroyWindow(fsemu_sdlwindow.window);
+        fsemu_sdlwindow.window = NULL;
+    }
+    // FIXME: Move to fsemu-module or fsemu-main, run after all modules are
+    // shut down instead?
+    fsemu_window_log("Calling SDL_Quit\n");
+    SDL_Quit();
+}
+
+// ----------------------------------------------------------------------------
 
 void fsemu_sdlwindow_init(void)
 {
-    if (fsemu_sdlwindow.initialized) {
+    if (FSEMU_MODULE_INIT(sdlwindow)) {
         return;
     }
-    fsemu_sdlwindow.initialized = true;
-    fsemu_window_log("Initializing sdlwindow module\n");
+#if 0
+    if (fsemu_sdlwindow.init) {
+        return;
+    }
+    fsemu_sdlwindow.init = true;
+    fsemu_window_log("Init sdlwindow module\n");
     fsemu_module_on_quit(fsemu_sdlwindow_quit);
+#endif
+#if 0
+    if (fsemu_module_init(
+            "sdlwindow", &fsemu_sdlwindow.init, fsemu_sdlwindow_quit)) {
+        return;
+    }
+#endif
+#if 1
+#else
+    FSEMU_MODULE_INIT_ONCE(sdlwindow);
+#endif
+    fsemu_window_log_debug("SDL_Init(SDL_INIT_VIDEO)\n");
+    SDL_Init(SDL_INIT_VIDEO);
 
-    fsemu_window_log_debug("SDL_Init(SDL_INIT_EVERYTHING)\n");
-    SDL_Init(SDL_INIT_EVERYTHING);
+    uint32_t event_types_start = SDL_RegisterEvents(2);
+    fsemu_sdlwindow.frame_rendered_event_type = event_types_start + 0;
+    fsemu_sdlwindow.quit_event_type = event_types_start + 0;
 
-#ifdef FSEMU_MACOS
+#ifdef FSEMU_OS_MACOS
     // Default to off for smoother transitions, can enable with environment
     // SDL_VIDEO_MACOS_FULLSCREEN_SPACES=1
     SDL_SetHint(SDL_HINT_VIDEO_MAC_FULLSCREEN_SPACES, "0");

@@ -10,9 +10,14 @@ extern "C" {
 struct fsemu_mutex;
 typedef struct fsemu_mutex fsemu_mutex_t;
 
+void fsemu_mutex_init(fsemu_mutex_t *mutex);
+
 fsemu_mutex_t *fsemu_mutex_create(void);
-// void fsemu_mutex_destroy(fsemu_mutex_t *mutex);
+
+void fsemu_mutex_destroy(fsemu_mutex_t *mutex);
+
 int fsemu_mutex_lock(fsemu_mutex_t *mutex);
+
 int fsemu_mutex_unlock(fsemu_mutex_t *mutex);
 
 #ifdef __cplusplus

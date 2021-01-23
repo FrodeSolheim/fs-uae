@@ -20,7 +20,7 @@ void fs_uae_configure_mouse(void)
 {
 #ifdef FSUAE_LEGACY
     if (fs_emu_mouse_integration()) {
-        fs_log("INPUT: Mouse integration requested\n");
+        fsuae_log("INPUT: Mouse integration requested\n");
         amiga_set_option("magic_mouse", "yes");
         amiga_set_option("absolute_mouse", "mousehack");
     }

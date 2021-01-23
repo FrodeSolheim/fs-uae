@@ -1,4 +1,4 @@
-#include "fsemu-internal.h"
+#define FSEMU_INTERNAL 1
 #include "fsemu-inputport.h"
 
 #include "fsemu-input.h"
@@ -54,7 +54,8 @@ const char *fsemu_inputport_config_name(fsemu_inputport_t *port)
     return port->config_name;
 }
 
-void fsemu_inputport_set_config_name(fsemu_inputport_t *port, const char *config_name)
+void fsemu_inputport_set_config_name(fsemu_inputport_t *port,
+                                     const char *config_name)
 {
     fsemu_thread_assert_main();
     fsemu_assert(port != NULL);
@@ -68,23 +69,24 @@ void fsemu_inputport_set_config_name(fsemu_inputport_t *port, const char *config
 
 void fsemu_inputport_add_mode(fsemu_inputport_t *port, fsemu_inputmode_t *mode)
 {
-    printf("[FSEMU] Input port add mode\n");
+    fsemu_input_log("Input port add mode\n");
 
     if (port->num_modes == FSEMU_INPUTPORT_MAX_MODES) {
-        printf("FIXME: WARNING: Max port modes reached\n");
+        // FIXME
+        fsemu_input_log_warning("Max port modes reached\n");
         return;
     }
     port->modes[port->num_modes] = mode;
     port->num_modes++;
-    printf("[FSEMU] Added input port mode to port %s\n",
-           fsemu_inputport_name(port));
+    fsemu_input_log("Added input port mode to port %s\n",
+                    fsemu_inputport_name(port));
 }
 
 void fsemu_inputport_set_mode_index(fsemu_inputport_t *port, int mode_index)
 {
-    printf("[INPUT] fsemu_inputport_set_mode_index %d for port: %s\n",
-           mode_index,
-           port->name);
+    fsemu_input_log("fsemu_inputport_set_mode_index %d for port: %s\n",
+                    mode_index,
+                    port->name);
     port->mode_index = mode_index;
 }
 
@@ -151,9 +153,9 @@ void fsemu_inputport_set_device(fsemu_inputport_t *port,
 void fsemu_inputport_set_device_by_index(fsemu_inputport_t *port,
                                          int device_index)
 {
-    printf("[INPUT fsemu_inputport_set_device_by_index port %p device %d\n",
-           port,
-           device_index);
+    fsemu_input_log("fsemu_inputport_set_device_by_index port %p device %d\n",
+                    port,
+                    device_index);
     // FIXME: This functions basically operators on multiple ports and devices,
     // so it might make more sense to put this in `fsemu-input` instead.
     fsemu_thread_assert_main();
@@ -186,7 +188,6 @@ void fsemu_inputport_set_device_by_index(fsemu_inputport_t *port,
                 remove_device->port_index = -1;
             }
         }
-
     }
 
     port->device_index = device_index;

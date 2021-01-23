@@ -48,6 +48,13 @@ int fsemu_option_read_int(const char *name, int *result);
 // int fsemu_option_read_string(const char *name, int *result, int max_len);
 int fsemu_option_read_const_string(const char *name, const char **result);
 
+static inline bool fsemu_option_enabled(const char *name)
+{
+    bool result;
+    fsemu_option_read_bool_default(name, &result, false);
+    return result == true;
+}
+
 static inline bool fsemu_option_disabled(const char *name)
 {
     bool result;
@@ -60,9 +67,9 @@ static inline int fsemu_option_boolean(const char *name)
     return FSEMU_CONFIG_NONE;
 }
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // FIXME: REMOVE START
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 #include <stdbool.h>
 
@@ -84,14 +91,14 @@ int fsemu_config_read_bool_default(const char *name,
                                    bool *result,
                                    bool default_value);
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // FIXME: REMOVE END
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 #ifdef FSEMU_INTERNAL
 
 #define fsemu_option_log(format, ...) \
-    fsemu_log("[FSEMU] [ OPT ] " format, ##__VA_ARGS__)
+    fsemu_log("[FSE] [OPT] " format, ##__VA_ARGS__)
 
 #ifdef FSEMU_DEBUG
 #define fsemu_option_log_debug(format, ...) \

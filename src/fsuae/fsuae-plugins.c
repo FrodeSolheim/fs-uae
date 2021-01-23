@@ -41,7 +41,7 @@ static const char *os_arch_name()
 #ifdef LINUX
 #if 0
         if (getenv("STEAM_RUNTIME") && getenv("STEAM_RUNTIME")[0]) {
-            fs_log("os_arch_name: detected STEAM_RUNTIME, using steamos\n");
+            fsuae_log("os_arch_name: detected STEAM_RUNTIME, using steamos\n");
             name = "steamos_" ARCH_NAME;
             return name;
         }
@@ -55,14 +55,14 @@ static const char *os_arch_name()
 
 static const char *lookup_plugin(const char *name)
 {
-    fs_log("[PLUGINS] Looking up \"%s\"\n", name);
+    fsuae_log("[PLUGINS] Looking up \"%s\"\n", name);
     gchar *module_name = g_strconcat(name, LT_MODULE_EXT, NULL);
     char executable_dir[FS_PATH_MAX];
     fs_get_application_exe_dir(executable_dir, FS_PATH_MAX);
     gchar *path;
 
     path = g_build_filename(executable_dir, module_name, NULL);
-    fs_log("[PLUGINS] Checking \"%s\"\n", path);
+    fsuae_log("[PLUGINS] Checking \"%s\"\n", path);
     if (g_file_test(path, G_FILE_TEST_EXISTS)) {
         g_free(module_name);
         // FIXME: resource leak if called more than once for the same
@@ -72,7 +72,7 @@ static const char *lookup_plugin(const char *name)
     g_free(path);
 
     path = g_build_filename(executable_dir, "..", name, module_name, NULL);
-    fs_log("[PLUGINS] Checking \"%s\"\n", path);
+    fsuae_log("[PLUGINS] Checking \"%s\"\n", path);
     if (g_file_test(path, G_FILE_TEST_EXISTS)) {
         g_free(module_name);
         // FIXME: resource leak, should cache the path
@@ -83,7 +83,7 @@ static const char *lookup_plugin(const char *name)
     // For development, try ../../plugin/plugin.ext as well
     path =
         g_build_filename(executable_dir, "..", "..", name, module_name, NULL);
-    fs_log("[PLUGINS] Checking \"%s\"\n", path);
+    fsuae_log("[PLUGINS] Checking \"%s\"\n", path);
     if (g_file_test(path, G_FILE_TEST_EXISTS)) {
         g_free(module_name);
         // FIXME: resource leak, should cache the path
@@ -92,7 +92,7 @@ static const char *lookup_plugin(const char *name)
     g_free(path);
 
     path = g_build_filename(fsuae_path_plugins_dir(), module_name, NULL);
-    fs_log("[PLUGINS] Checking \"%s\"\n", path);
+    fsuae_log("[PLUGINS] Checking \"%s\"\n", path);
     if (g_file_test(path, G_FILE_TEST_EXISTS)) {
         g_free(module_name);
         // FIXME: resource leak, should cache the path
@@ -121,7 +121,7 @@ static const char *lookup_plugin(const char *name)
         path = g_build_filename(
             g_plugin_ver_dirs[i], os_arch_name(), module_name, NULL);
 #endif
-        fs_log("[PLUGINS] Checking \"%s\"\n", path);
+        fsuae_log("[PLUGINS] Checking \"%s\"\n", path);
         if (g_file_test(path, G_FILE_TEST_EXISTS)) {
             g_free(module_name);
             // FIXME: resource leak, should cache the path
@@ -134,7 +134,7 @@ static const char *lookup_plugin(const char *name)
 
     for (int i = 0; i < g_plugin_count; i++) {
         path = g_build_filename(g_plugin_ver_dirs[i], module_name, NULL);
-        fs_log("[PLUGINS] Checking \"%s\"\n", path);
+        fsuae_log("[PLUGINS] Checking \"%s\"\n", path);
         if (g_file_test(path, G_FILE_TEST_EXISTS)) {
             g_free(module_name);
             // FIXME: resource leak, should cache the path
@@ -180,7 +180,7 @@ static void load_plugin_provides(const char *path,
             }
             g_dir_close(dir);
         } else {
-            fs_log("[PLUGINS] Could not open plugin dir %s\n", path);
+            fsuae_log("[PLUGINS] Could not open plugin dir %s\n", path);
         }
     }
 }
@@ -188,24 +188,24 @@ static void load_plugin_provides(const char *path,
 
 static void load_plugin(const char *path, const char *ini_path)
 {
-    fs_log("[PLUGINS] Loading %s\n", path);
+    fsuae_log("[PLUGINS] Loading %s\n", path);
 #if NEW_PLUGINS
     gchar *version_path = g_build_filename(path, NULL);
 #else
     GKeyFile *key_file = g_key_file_new();
     if (!g_key_file_load_from_file(
             key_file, ini_path, G_KEY_FILE_NONE, NULL)) {
-        fs_log("[PLUGINS] Could not load plugin.ini\n");
+        fsuae_log("[PLUGINS] Could not load plugin.ini\n");
         return;
     }
     gchar *version =
         g_key_file_get_string(key_file, "plugin", "version", NULL);
     if (version == NULL) {
-        fs_log("[PLUGINS] Could not read plugin version\n");
+        fsuae_log("[PLUGINS] Could not read plugin version\n");
         return;
     }
     gchar *version_path = g_build_filename(path, version, NULL);
-    fs_log("[PLUGINS] -> %s\n", version_path);
+    fsuae_log("[PLUGINS] -> %s\n", version_path);
     load_plugin_provides(version_path, key_file, "provides", 0);
 
     load_plugin_provides(version_path, key_file, os_arch_name(), 1);
@@ -224,10 +224,10 @@ static void load_plugin(const char *path, const char *ini_path)
 
 static void load_plugins_from_dir(const char *plugins_dir)
 {
-    fs_log("[PLUGINS] Loading plugins from %s\n", plugins_dir);
+    fsuae_log("[PLUGINS] Loading plugins from %s\n", plugins_dir);
     GDir *dir = g_dir_open(plugins_dir, 0, NULL);
     if (!dir) {
-        fs_log("[PLUGINS] Could not open plugins dir %s\n", plugins_dir);
+        fsuae_log("[PLUGINS] Could not open plugins dir %s\n", plugins_dir);
         return;
     }
     const gchar *name;
@@ -238,7 +238,7 @@ static void load_plugins_from_dir(const char *plugins_dir)
 #else
         gchar *p2 = g_build_filename(p, "Plugin.ini", NULL);
 #endif
-        fs_log("[PLUGINS] Checking %s\n", p2);
+        fsuae_log("[PLUGINS] Checking %s\n", p2);
         if (g_file_test(p2, G_FILE_TEST_IS_REGULAR)) {
             load_plugin(p, p2);
         }
@@ -263,7 +263,7 @@ void fs_uae_plugins_init()
         return;
     }
     module.initialized = true;
-    fs_log("[PLUGINS] Initializing\n");
+    fsuae_log("[PLUGINS] Initializing\n");
     fsemu_module_on_quit(fsuae_plugins_quit);
 
     provides = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, NULL);

@@ -88,7 +88,7 @@ const char *fsemu_media_label(const char *file);
 // ----------------------------------------------------------------------------
 
 #define fsemu_media_log(format, ...) \
-    fsemu_log("[FSEMU] [MEDIA] " format, ##__VA_ARGS__)
+    fsemu_log("[FSE] [MED] " format, ##__VA_ARGS__)
 
 #ifdef __cplusplus
 }

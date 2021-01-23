@@ -1,4 +1,4 @@
-#include "fsemu-internal.h"
+#define FSEMU_INTERNAL 1
 #include "fsemu-emuthread.h"
 
 #include "fsemu-mutex.h"

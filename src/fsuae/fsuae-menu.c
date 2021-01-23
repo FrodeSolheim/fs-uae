@@ -715,16 +715,16 @@ static int input_device_function(fs_emu_menu_item *menu_item,
     port = port >> 8;
 
     if (index == 255) {
-        fs_log("[menu] port %d set device to \"%s\"\n", port, "");
+        fsuae_log("[menu] port %d set device to \"%s\"\n", port, "");
         set_input_port(port, "", 0);
     }
 #if 0
     else if (index == 254) {
-        fs_log("[menu] port %d set device to \"%s\"\n", port, "MOUSE");
+        fsuae_log("[menu] port %d set device to \"%s\"\n", port, "MOUSE");
         set_input_port(port, "MOUSE", 1);
     }
     else if (index == 253) {
-        fs_log("[menu] port %d set device to \"%s\"\n", port, "KEYBOARD");
+        fsuae_log("[menu] port %d set device to \"%s\"\n", port, "KEYBOARD");
         set_input_port(port, "KEYBOARD", 1);
     }
 #endif
@@ -733,7 +733,7 @@ static int input_device_function(fs_emu_menu_item *menu_item,
         if (!fs_ml_input_device_get(index, &device)) {
             return FS_EMU_MENU_RESULT_NONE;
         }
-        fs_log("[menu] port %d set device to %s\n", port, device.name);
+        fsuae_log("[menu] port %d set device to %s\n", port, device.name);
         set_input_port(port, device.name, 1);
     }
     fs_uae_reconfigure_input_ports_host();
@@ -824,7 +824,7 @@ static int input_type_function(fs_emu_menu_item *menu_item, void **result_data)
     int mode = port & 0xff;
     port = port >> 8;
     if (port < 4) {
-        fs_log("[menu] port %d set mode to %d\n", port, mode);
+        fsuae_log("[menu] port %d set mode to %d\n", port, mode);
         g_fs_uae_input_ports[port].new_mode = mode;
         fs_uae_reconfigure_input_ports_amiga();
     } else {
@@ -923,7 +923,7 @@ static int input_autofire_function(fs_emu_menu_item *menu_item,
     int port = fs_emu_menu_item_get_idata(menu_item);
     g_fs_uae_input_ports[port].new_autofire_mode =
         !g_fs_uae_input_ports[port].new_autofire_mode;
-    fs_log("[menu] port %d toggle autofire mode %d\n",
+    fsuae_log("[menu] port %d toggle autofire mode %d\n",
            port,
            g_fs_uae_input_ports[port].new_autofire_mode);
     fs_uae_reconfigure_input_ports_amiga();

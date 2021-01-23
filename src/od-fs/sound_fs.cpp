@@ -10,12 +10,13 @@
 #include <fs/emu/hacks.h>
 
 #include "fsemu-audio.h"
-#include "fsemu-audio-buffer.h"
+#include "fsemu-audiobuffer.h"
 
 int have_sound = 0;
 
 static float scaled_sample_evtime_orig;
 static int obtainedfreq;
+// FIXME: Maybe we can use this 
 static float sound_sync_multiplier = 1.0;
 
 /* Originally from sampler.cpp (not used in FS-UAE) */
@@ -237,7 +238,7 @@ static void send_sound (struct sound_data *sd, uae_u16 *sndbuffer)
 	}
 #endif
     if (fsemu) {
-        // fsemu_audio_buffer_update(paula_sndbuffer, paula_sndbufsize);
+        // fsemu_audiobuffer_update(paula_sndbuffer, paula_sndbufsize);
     } else {
         if (g_audio_callback) {
             g_audio_callback(0, (int16_t *) paula_sndbuffer, paula_sndbufsize);
@@ -251,7 +252,7 @@ void amiga_flush_audio(void)
         return;
     }
     finish_sound_buffer();
-    fsemu_audio_buffer_frame_done();
+    fsemu_audiobuffer_frame_done();
     // printf("%d\n", g_frequency);
 }
 
@@ -328,7 +329,7 @@ void finish_sound_buffer (void)
 	} else {
 #endif
     if (fsemu) {
-        fsemu_audio_buffer_update(paula_sndbuffer, bufsize);
+        fsemu_audiobuffer_update(paula_sndbuffer, bufsize);
     } else {
         send_sound(sdp, paula_sndbuffer);
     }

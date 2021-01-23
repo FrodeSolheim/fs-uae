@@ -163,8 +163,7 @@ void target_restart (void) {
 
 void target_quit (void)
 {
-    write_log("UAE: Stopping\n");
-    printf("UAE: Stopping\n");
+    uae_log("target_quit\n");
 }
 
 // FIXME: No longer a stub

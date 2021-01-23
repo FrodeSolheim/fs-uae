@@ -16,7 +16,8 @@
 
 void fsuae_input_handle_uae_event(int event, void *data, int intdata)
 {
-    printf("fsuae_input_handle_uae_event %d (%d)\n", event, intdata);
+    fsemu_input_log_debug(
+        "fsuae_input_handle_uae_event %d (%d)\n", event, intdata);
     int port_index, mode_index;
     switch (event) {
         case UAE_EVENT_PORT0MODE:
@@ -30,8 +31,8 @@ void fsuae_input_handle_uae_event(int event, void *data, int intdata)
             }
             mode_index = intdata;
             if (port_index >= fsemu_input_port_count()) {
-                printf(
-                    "WARNING: Ignoring event for port %d - port count is %d\n",
+                fsemu_input_log_warning(
+                    "Ignoring event for port %d - port count is %d\n",
                     port_index,
                     fsemu_input_port_count());
                 return;
@@ -618,7 +619,7 @@ void fs_uae_configure_actions()
         // FIXME: Should be able to disable this...
         //   return;
     }
-    fs_log("fs_uae_configure_actions\n");
+    fsuae_log("fs_uae_configure_actions\n");
     fs_emu_set_actions(g_actions);
     for (int i = 0; i < FS_UAE_NUM_INPUT_PORTS; i++) {
         fs_uae_read_override_actions_for_port(i);

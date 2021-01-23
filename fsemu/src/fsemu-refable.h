@@ -7,13 +7,13 @@
 extern "C" {
 #endif
 
-struct fsemu_refable {
+struct fsemu_refable_struct {
     char magic[4];
     int ref_count;
     void (*cleanup_handler)(void *);
 };
 
-typedef struct fsemu_refable fsemu_refable_t;
+typedef struct fsemu_refable_struct fsemu_refable_t;
 
 void fsemu_refable_init_refable(fsemu_refable_t *refable);
 void fsemu_refable_init_refable_with_finalizer(fsemu_refable_t *refable,

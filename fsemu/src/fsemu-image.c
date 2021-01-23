@@ -1,4 +1,4 @@
-#include "fsemu-internal.h"
+#define FSEMU_INTERNAL 1
 #include "fsemu-image.h"
 
 #include <stdlib.h>
@@ -17,7 +17,7 @@
 #endif
 #endif
 
-int fsemu_image_log_level = FSEMU_LOG_INFO;
+int fsemu_image_log_level = FSEMU_LOG_LEVEL_INFO;
 
 void fsemu_image_module_init(void)
 {
@@ -379,7 +379,8 @@ static void fsemu_image_png_read_fn(png_structp png_ptr,
                                     size_t length)
 {
     fsemu_stream_t *stream = (fsemu_stream_t *) png_get_io_ptr(png_ptr);
-    fsemu_image_log_debug("Read %d bytes from stream %p\n", (int) length, stream);
+    fsemu_image_log_debug(
+        "Read %d bytes from stream %p\n", (int) length, stream);
     if (fsemu_stream_read(stream, data, 1, length) != length) {
         png_error(png_ptr, "read error in fsemu_image_png_read_fn");
     }
@@ -390,7 +391,8 @@ static void fsemu_image_png_read_fn(png_structp png_ptr,
 static int fsemu_image_load_png_stream(fsemu_image_t *image,
                                        fsemu_stream_t *stream)
 {
-    fsemu_image_log_debug("fsemu_image_load_png_stream image=%p stream=%p\n", image, stream);
+    fsemu_image_log_debug(
+        "fsemu_image_load_png_stream image=%p stream=%p\n", image, stream);
 #ifdef FSEMU_PNG
     // FIXME: zero image struct?
     // FIME: Assume zeroed and not already used image...
@@ -549,7 +551,8 @@ static int fsemu_image_load_png_stream(fsemu_image_t *image,
 
 fsemu_image_t *fsemu_image_from_stream(fsemu_stream_t *stream, bool owner)
 {
-    fsemu_image_log_debug("fsemu_image_from_stream stream=%p owner=%d\n", stream, owner);
+    fsemu_image_log_debug(
+        "fsemu_image_from_stream stream=%p owner=%d\n", stream, owner);
     fsemu_image_t *image = fsemu_image_new();
     // printf("a\n");
     fsemu_image_load_png_stream(image, stream);

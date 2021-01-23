@@ -57,7 +57,7 @@ void fs_log_enable_stdout()
 
 void fs_config_set_log_file(const char *path)
 {
-    fs_log("switch to log file %s\n", path);
+    fs_log("Switching to log file %s\n", path);
     fs_mutex_lock(log_data.mutex);
     if (log_data.file) {
         fclose(log_data.file);

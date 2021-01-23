@@ -1,4 +1,4 @@
-#include "fsemu-internal.h"
+#define FSEMU_INTERNAL 1
 #include "fsemu-mainmenu.h"
 
 #include <stdlib.h>
@@ -13,9 +13,11 @@
 #include "fsemu-savestate.h"
 #include "fsemu-util.h"
 
-#define module fsemu_mainmenu
+int fsemu_mainmenu_log_level = FSEMU_LOG_LEVEL_INFO;
 
-static struct fsemu_mainmenu {
+static struct {
+    bool initialized;
+
     fsemu_menu_t *cached_menu;
 
     // fsemu_mainmenu_reset_function_t soft_reset_function;
@@ -24,8 +26,7 @@ static struct fsemu_mainmenu {
     // int first_drive_item_index;
     // int last_drive_item_index;
 
-    bool initialized;
-} module;
+} fsemu_mainmenu;
 
 #if 0
 typedef void (*fsemu_mainmenu_reset_function_t)(void);
@@ -33,13 +34,13 @@ typedef void (*fsemu_mainmenu_reset_function_t)(void);
 void fsemu_mainmenu_set_soft_reset_function(
     fsemu_mainmenu_reset_function_t function)
 {
-    module.soft_reset_function = function;
+    fsemu_mainmenu.soft_reset_function = function;
 }
 
 void fsemu_mainmenu_set_hard_reset_function(
     fsemu_mainmenu_reset_function_t function)
 {
-    module.hard_reset_function = function;
+    fsemu_mainmenu.hard_reset_function = function;
 }
 #endif
 
@@ -224,8 +225,8 @@ static fsemu_menu_t *fsemu_mainmenu_on_savestates(fsemu_menu_item_t *item)
 static fsemu_menu_t *fsemu_mainmenu_on_soft_reset(fsemu_menu_item_t *item)
 {
     // FIXME: Maybe use actions instead
-    //  if (module.soft_reset_function) {
-    //     module.soft_reset_function();
+    //  if (fsemu_mainmenu.soft_reset_function) {
+    //     fsemu_mainmenu.soft_reset_function();
     // }
 
     fsemu_action_post_from_main(FSEMU_ACTION_SOFTRESET);
@@ -235,8 +236,8 @@ static fsemu_menu_t *fsemu_mainmenu_on_soft_reset(fsemu_menu_item_t *item)
 static fsemu_menu_t *fsemu_mainmenu_on_hard_reset(fsemu_menu_item_t *item)
 {
     // FIXME: Maybe use actions instead
-    // if (module.hard_reset_function) {
-    //     module.hard_reset_function();
+    // if (fsemu_mainmenu.hard_reset_function) {
+    //     fsemu_mainmenu.hard_reset_function();
     // }
 
     fsemu_action_post_from_main(FSEMU_ACTION_HARDRESET);
@@ -809,14 +810,12 @@ static void fsemu_mainmenu_update_main(fsemu_menu_t *menu)
 
 static fsemu_menu_t *fsemu_mainmenu_create_menu(void)
 {
-    printf("fsemu_mainmenu_create_menu\n");
+    fsemu_mainmenu_log_debug("fsemu_mainmenu_create_menu\n");
     fsemu_menu_t *newmenu;
     fsemu_menu_item_t *newitem;
 
     newmenu = fsemu_menu_new();
     fsemu_menu_set_update_function(newmenu, fsemu_mainmenu_update_main);
-
-    printf("0\n");
 
     // item = fsemu_menu_item_new();
     // fsemu_menu_add_item(menu, item);
@@ -846,14 +845,14 @@ static fsemu_menu_t *fsemu_mainmenu_create_menu(void)
     fsemu_menu_add_item(newmenu, newitem);
 
     int drive_count = fsemu_media_drive_count();
-    // module.first_drive_item_index = fsemu_menu_count_items(newmenu);
+    // fsemu_mainmenu.first_drive_item_index = fsemu_menu_count_items(newmenu);
     for (int i = 0; i < drive_count; i++) {
         newitem = fsemu_menu_item_new();
         fsemu_menu_item_on_activate(newitem, fsemu_mainmenu_on_drive);
         fsemu_menu_item_set_data(newitem, fsemu_media_drive_at_index(i));
         fsemu_menu_add_item(newmenu, newitem);
     }
-    // module.last_drive_item_index = fsemu_menu_count_items(newmenu);
+    // fsemu_mainmenu.last_drive_item_index = fsemu_menu_count_items(newmenu);
 
     /*
     newitem = fsemu_menu_item_new_with_title(_("DF0: Empty"));
@@ -867,7 +866,7 @@ static fsemu_menu_t *fsemu_mainmenu_create_menu(void)
     fsemu_menu_add_item(newmenu, newitem);
 
     int port_count = fsemu_input_port_count();
-    // module.first_drive_item_index = fsemu_menu_count_items(newmenu);
+    // fsemu_mainmenu.first_drive_item_index = fsemu_menu_count_items(newmenu);
     for (int i = 0; i < port_count; i++) {
         newitem = fsemu_menu_item_new();
         fsemu_menu_item_on_activate(newitem, fsemu_mainmenu_on_port);
@@ -900,10 +899,10 @@ static fsemu_menu_t *fsemu_mainmenu_create_menu(void)
 
 fsemu_menu_t *fsemu_mainmenu_get_menu(void)
 {
-    if (!module.cached_menu) {
-        module.cached_menu = fsemu_mainmenu_create_menu();
+    if (!fsemu_mainmenu.cached_menu) {
+        fsemu_mainmenu.cached_menu = fsemu_mainmenu_create_menu();
     }
-    return module.cached_menu;
+    return fsemu_mainmenu.cached_menu;
 }
 
 // ----------------------------------------------------------------------------
@@ -912,11 +911,9 @@ fsemu_menu_t *fsemu_mainmenu_get_menu(void)
 
 void fsemu_mainmenu_init(void)
 {
-    if (module.initialized) {
+    if (fsemu_mainmenu.initialized) {
         return;
     }
-    module.initialized = true;
+    fsemu_mainmenu.initialized = true;
     fsemu_log("Initializing mainmenu module\n");
 }
-
-#undef module

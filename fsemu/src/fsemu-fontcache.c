@@ -1,4 +1,4 @@
-#include "fsemu-internal.h"
+#define FSEMU_INTERNAL 1
 #include "fsemu-fontcache.h"
 
 #include "fsemu-font.h"
@@ -56,7 +56,7 @@ void fsemu_fontcache_init(void)
         return;
     }
     module.initialized = true;
-    fsemu_log("[FSEMU] [FONT ] Initializing fontcache module\n");
+    fsemu_font_log("Initializing fontcache module\n");
     fsemu_module_on_quit(fsemu_fontcache_quit);
     module.hashtable =
         g_hash_table_new_full(g_str_hash, g_str_equal, g_free, NULL);

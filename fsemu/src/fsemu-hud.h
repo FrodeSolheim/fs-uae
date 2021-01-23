@@ -28,7 +28,7 @@ void fsemu_hud_show_notification(fsemu_hud_id_t notification_id,
 #ifdef FSEMU_INTERNAL
 
 #define fsemu_hud_log(format, ...) \
-    fsemu_log("[FSEMU] [ HUD ] " format, ##__VA_ARGS__)
+    fsemu_log("[FSE] [HUD] " format, ##__VA_ARGS__)
 
 #endif  // FSEMU_INTERNAL
 

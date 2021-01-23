@@ -87,7 +87,7 @@ void fs_uae_configure_graphics_card(amiga_config *c)
     } else {
         int uaegfx_card = fs_config_get_boolean(OPTION_UAEGFX_CARD);
         if (uaegfx_card != FS_CONFIG_NONE) {
-            fs_log(
+            fsuae_log(
                 "DEPRECATED: uaegfx_card is deprecated, use graphics_card "
                 "instead\n");
             if (uaegfx_card == 1) {
@@ -122,7 +122,7 @@ void fs_uae_configure_graphics_card(amiga_config *c)
     if (fs_config_get_const_string(OPTION_GRAPHICS_CARD_MEMORY)) {
         memory = fs_uae_read_memory_option(OPTION_GRAPHICS_CARD_MEMORY);
         memory /= 1024;
-        fs_log("CONFIG: Overriding graphics card memory: %d MB\n", memory);
+        fsuae_log("CONFIG: Overriding graphics card memory: %d MB\n", memory);
     }
 
     if (card != NULL) {

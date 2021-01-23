@@ -50,21 +50,24 @@ void fsemu_window_set_ui_scale(double ui_scale);
 
 void fsemu_window_set_active(bool active);
 
+void fsemu_window_notify_frame_rendered_vt(void);
+void fsemu_window_notify_quit(void);
+
 extern int fsemu_window_log_level;
 
 #define fsemu_window_log(format, ...)                             \
-    if (FSEMU_LIKELY(fsemu_window_log_level >= FSEMU_LOG_INFO)) { \
-        fsemu_log("[FSEMU] [WINDW] " format, ##__VA_ARGS__);      \
+    if (fsemu_likely(fsemu_window_log_level >= FSEMU_LOG_LEVEL_INFO)) { \
+        fsemu_log("[FSE] [WIN] " format, ##__VA_ARGS__);          \
     }
 
 #define fsemu_window_log_debug(format, ...)                          \
-    if (FSEMU_UNLIKELY(fsemu_window_log_level >= FSEMU_LOG_DEBUG)) { \
-        fsemu_log("[FSEMU] [WINDW] " format, ##__VA_ARGS__);         \
+    if (fsemu_unlikely(fsemu_window_log_level >= FSEMU_LOG_LEVEL_DEBUG)) { \
+        fsemu_log_debug("[FSE] [WIN] " format, ##__VA_ARGS__);       \
     }
 
 /*
 #define fsemu_window_log(format, ...) \
-    fsemu_log("[FSEMU] [WINDW] " format, ##__VA_ARGS__)
+    fsemu_log("[FSE] [WINDW] " format, ##__VA_ARGS__)
 */
 
 #endif  // FSEMU_INTERNAL

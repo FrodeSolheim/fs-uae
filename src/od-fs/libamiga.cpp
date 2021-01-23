@@ -143,8 +143,7 @@ void amiga_floppy_set_writable_images(int writable)
 
 int amiga_init(void)
 {
-    printf("UAE: Initializing core derived from %s\n", UAE_BASE_VERSION);
-    write_log("UAE: Initializing core derived from %s\n", UAE_BASE_VERSION);
+    uae_log("Initializing core derived from %s\n", UAE_BASE_VERSION);
 
     module.main_queue = g_async_queue_new();
 
@@ -728,7 +727,7 @@ int amiga_set_int_option(const char *option, int value)
 
 int amiga_quit()
 {
-    printf("UAE: Calling uae_quit\n");
+    uae_log("Calling uae_quit\n");
     uae_quit();
     return 1;
 }

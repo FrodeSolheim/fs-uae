@@ -50,13 +50,13 @@ fsemu_image_t *fsemu_image_from_size(int width, int height);
 extern int fsemu_image_log_level;
 
 #define fsemu_image_log(format, ...)                             \
-    if (FSEMU_LIKELY(fsemu_image_log_level >= FSEMU_LOG_INFO)) { \
-        fsemu_log("[FSEMU] [IMAGE] " format, ##__VA_ARGS__);     \
+    if (fsemu_likely(fsemu_image_log_level >= FSEMU_LOG_LEVEL_INFO)) { \
+        fsemu_log("[FSE] [IMG] " format, ##__VA_ARGS__);         \
     }
 
 #define fsemu_image_log_debug(format, ...)                          \
-    if (FSEMU_UNLIKELY(fsemu_image_log_level >= FSEMU_LOG_DEBUG)) { \
-        fsemu_log("[FSEMU] [IMAGE] " format, ##__VA_ARGS__);        \
+    if (fsemu_unlikely(fsemu_image_log_level >= FSEMU_LOG_LEVEL_DEBUG)) { \
+        fsemu_log("[FSE] [IMG] " format, ##__VA_ARGS__);            \
     }
 
 #ifdef __cplusplus

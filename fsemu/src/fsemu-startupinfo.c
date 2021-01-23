@@ -1,4 +1,4 @@
-#include "fsemu-internal.h"
+#define FSEMU_INTERNAL 1
 #include "fsemu-startupinfo.h"
 
 #include "fsemu-fontcache.h"
@@ -10,7 +10,7 @@
 #include "fsemu-video.h"
 #include "fsemu-window.h"
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 static struct {
     int duration;
@@ -56,7 +56,7 @@ void fsemu_startupinfo_set_emulator_fork_info(const char *fork_info)
     fsemu_startupinfo.fork_info = strdup(fork_info);
 }
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 void fsemu_startupinfo_init(void)
 {
@@ -144,8 +144,8 @@ void fsemu_startupinfo_init(void)
     // FIXME: Consider joining platform, year, companies into one
     // string / image for more efficient rendering.
 
-    //int x2 = x + 25 - 1;
-    int x2  = 60;
+    // int x2 = x + 25 - 1;
+    int x2 = 60;
 
     if (fsemu_option_read_const_string(FSEMU_OPTION_GAME_PLATFORM, &string)) {
         item = &fsemu_startupinfo.platform_item;
@@ -175,8 +175,14 @@ void fsemu_startupinfo_init(void)
     if (fsemu_option_read_const_string(FSEMU_OPTION_GAME_YEAR, &string)) {
         item = &fsemu_startupinfo.year_item;
         image = fsemu_font_render_text_to_image(font_2, string, white);
-        // fsemu_gui_image(item, x2, y + 93, image->width, image->height, image);
-        fsemu_gui_image(item, x2, (60 - image->height) / 2, image->width, image->height, image);
+        // fsemu_gui_image(item, x2, y + 93, image->width, image->height,
+        // image);
+        fsemu_gui_image(item,
+                        x2,
+                        (60 - image->height) / 2,
+                        image->width,
+                        image->height,
+                        image);
         item->coordinates = FSEMU_COORD_1080P_LEFT;
         item->z_index = 5001;
         fsemu_gui_add_item(item);
@@ -189,8 +195,14 @@ void fsemu_startupinfo_init(void)
         gchar *string_2 = g_utf8_strup(string, -1);
         image = fsemu_font_render_text_to_image(font_2, string_2, white);
         g_free(string_2);
-        // fsemu_gui_image(item, x2, y + 93, image->width, image->height, image);
-        fsemu_gui_image(item, x2, (60 - image->height) / 2, image->width, image->height, image);
+        // fsemu_gui_image(item, x2, y + 93, image->width, image->height,
+        // image);
+        fsemu_gui_image(item,
+                        x2,
+                        (60 - image->height) / 2,
+                        image->width,
+                        image->height,
+                        image);
         item->coordinates = FSEMU_COORD_1080P_LEFT;
         item->z_index = 5001;
         fsemu_gui_add_item(item);
@@ -255,7 +267,6 @@ void fsemu_startupinfo_init(void)
     }
 #endif
 
-
     x = 30;
 
     item = &fsemu_startupinfo.menu_shortcut_text_item;
@@ -283,7 +294,7 @@ void fsemu_startupinfo_init(void)
 
 static void fsemu_startupinfo_set_visible(bool visible)
 {
-#if 0
+#if 1
     // FIXME: Temporarily disabled
     visible = false;
 #endif
@@ -302,12 +313,13 @@ static void fsemu_startupinfo_set_visible(bool visible)
     fsemu_gui_item_set_visible(&fsemu_startupinfo.fork_item, visible);
     fsemu_gui_item_set_visible(&fsemu_startupinfo.fork_2_item, visible);
 #endif
-    fsemu_gui_item_set_visible(&fsemu_startupinfo.menu_shortcut_key_item, visible);
-    fsemu_gui_item_set_visible(&fsemu_startupinfo.menu_shortcut_text_item, visible);
-
+    fsemu_gui_item_set_visible(&fsemu_startupinfo.menu_shortcut_key_item,
+                               visible);
+    fsemu_gui_item_set_visible(&fsemu_startupinfo.menu_shortcut_text_item,
+                               visible);
 }
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 /*
 static void fsemu_startupinfo_remove(void)
 {
@@ -315,7 +327,7 @@ static void fsemu_startupinfo_remove(void)
     fsemu_startupinfo.done = true;
 }
 */
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 static bool fsemu_startupinfo_visible(void)
 {

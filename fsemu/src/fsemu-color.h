@@ -66,6 +66,6 @@ static inline void fsemu_color_decode(
 #endif
 
 #define fsemu_color_log(format, ...) \
-    fsemu_log("[FSEMU] [COLOR] " format, ##__VA_ARGS__)
+    fsemu_log("[FSE] [COL] " format, ##__VA_ARGS__)
 
 #endif  // FSEMU_COLOR_H_

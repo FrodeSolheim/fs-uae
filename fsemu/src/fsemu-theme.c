@@ -1,4 +1,4 @@
-#include "fsemu-internal.h"
+#define FSEMU_INTERNAL 1
 #include "fsemu-theme.h"
 
 #include "fsemu-data.h"
@@ -16,7 +16,7 @@ static struct {
 void fsemu_theme_module_init(void)
 {
     fsemu_return_if_already_initialized();
-    fsemu_log("[FSEMU][THEME] Initializing theme module\n");
+    fsemu_log("[FSE] [THM] Initializing theme module\n");
 
     return;
 

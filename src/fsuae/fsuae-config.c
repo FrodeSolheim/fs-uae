@@ -322,12 +322,12 @@ void fs_uae_configure_amiga_hardware()
     }
 
     if (fs_config_get_boolean(OPTION_LINE_DOUBLING) == 0) {
-        fs_log("disabling line doubling\n");
+        fsuae_log("disabling line doubling\n");
         amiga_set_option("gfx_linemode", "none");
     }
 
     if (fs_config_get_boolean(OPTION_LOW_RESOLUTION) == 1) {
-        fs_log("force low resolution\n");
+        fsuae_log("force low resolution\n");
         amiga_set_option("gfx_lores", "true");
     }
 

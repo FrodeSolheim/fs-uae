@@ -23,7 +23,7 @@ static char *fsuae_savestate_path(int slot)
     }
     free(state_base_name);
 
-    printf("SAVESTATE SLOT %d -> %s\n", slot, result);
+    fsuae_log_debug("SAVESTATE SLOT %d -> %s\n", slot, result);
     return result;
 }
 
@@ -39,9 +39,9 @@ static bool fsuae_savestate_screenshot_path(void)
 static void fsuae_savestate_rename(const char *src, const char *dst)
 {
     if (fsemu_path_exists(src)) {
-        fsemu_log("Renaming file %s to %s\n", src, dst);
+        fsemu_savestate_log("Renaming file %s to %s\n", src, dst);
         if (g_rename(src, dst) != NO_ERROR) {
-            fsemu_log("WARNING: renamed failed\n");
+            fsuae_log_warning("renamed failed\n");
         }
     }
 }
@@ -79,7 +79,7 @@ static void fsuae_savestate_rename_old(void)
 
 void fsuae_savestate_init(void)
 {
-    printf("[FSUAE] fsuae_savestate_init\n");
+    fsuae_log("[FSUAE] fsuae_savestate_init\n");
     // Force creation of state directories
     // fs_uae_flash_memory_dir();
     // fsuae_path_savestates_dir();

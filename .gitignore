@@ -7,6 +7,7 @@
 autom4te.cache
 *.autosave
 /base-dir
+/benchmark.txt
 /build/
 build68k
 /cef/

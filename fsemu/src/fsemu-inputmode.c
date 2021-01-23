@@ -1,4 +1,4 @@
-#include "fsemu-internal.h"
+#define FSEMU_INTERNAL 1
 #include "fsemu-inputmode.h"
 
 #include "fsemu-input.h"
@@ -56,7 +56,7 @@ void fsemu_inputmode_map(fsemu_inputmode_t *mode, int input, int action)
     fsemu_input_log_debug("Port map %d -> %d\n", input, action);
     if (input < 0 || input > FSEMU_INPUTDEVICE_MAX) {
         // FIXME: WARNING
-        fsemu_warning("[FSEMU] Input %d out of bounds\n", input);
+        fsemu_warning("[FSE] Input %d out of bounds\n", input);
         return;
     }
     mode->mapping[input] = action;

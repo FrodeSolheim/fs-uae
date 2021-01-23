@@ -25,6 +25,8 @@
 #define DEVICE_HELPER
 #include "fsuae-path.c"
 
+int fsuae_log_level = FSEMU_LOG_LEVEL_WARNING;
+
 char *g_fs_uae_config_file_path = "";
 char *g_fs_uae_config_dir_path = "";
 

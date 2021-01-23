@@ -10,6 +10,7 @@
 #include "fsemu-glib.h"
 #endif
 #include "fsemu-sdl.h"
+#include "fsemu-util.h"
 
 #ifdef __MACH__
 #include <mach/mach_time.h>
@@ -47,12 +48,13 @@ static inline int64_t fsemu_time_ms(void)
 }
 
 // FIXME: Rename fsemu_time_sleep_us
-static inline void fsemu_sleep_us(int sleep_us)
+static inline void fsemu_sleep_us(int64_t sleep_us)
 {
+    fsemu_assert(sleep_us > 0);
     // FIXME: Consider using nanosleep (or check if g_usleep is good enough).
     // Or even better: clock_nanosleep with CLOCK_MONOTONIC
 #ifdef FSEMU_GLIB
-    g_usleep(sleep_us);
+    g_usleep((gulong) sleep_us);
 #else
 #error Missing implementation of fsemu_sleep_us
 #endif
@@ -109,6 +111,23 @@ static inline int fsemu_time_clock_gettime_mach(int clk_id, struct timespec *t)
 #define clock_gettime fsemu_time_clock_gettime_mach
 
 #endif  // __MACH__
+
+extern int fsemu_time_log_level;
+
+#define fsemu_time_log(format, ...)                             \
+    if (fsemu_likely(fsemu_time_log_level >= FSEMU_LOG_LEVEL_INFO)) { \
+        fsemu_log("[FSE] [TME] " format, ##__VA_ARGS__);        \
+    }
+
+#define fsemu_time_log_debug(format, ...)                          \
+    if (fsemu_unlikely(fsemu_time_log_level >= FSEMU_LOG_LEVEL_DEBUG)) { \
+        fsemu_log_debug("[FSE] [TME] " format, ##__VA_ARGS__);     \
+    }
+
+#define fsemu_time_log_warning(format, ...)                        \
+    if (fsemu_likely(fsemu_time_log_level >= FSEMU_LOG_LEVEL_WARNING)) { \
+        fsemu_log_debug("[FSE] [TME] " format, ##__VA_ARGS__);     \
+    }
 
 #ifdef __cplusplus
 }

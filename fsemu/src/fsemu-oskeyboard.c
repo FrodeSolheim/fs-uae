@@ -1,4 +1,4 @@
-#include "fsemu-internal.h"
+#define FSEMU_INTERNAL 1
 #include "fsemu-oskeyboard.h"
 
 #include "fsemu-action.h"
@@ -35,6 +35,8 @@
 #define KEY_HEIGHT 56
 
 // ----------------------------------------------------------------------------
+
+int fsemu_oskeyboard_log_level = FSEMU_LOG_LEVEL_INFO;
 
 struct fsemu_oskeyboard {
     fsemu_oskeyboard_key_t *selected_key;
@@ -179,7 +181,8 @@ bool fsemu_oskeyboard_open(void)
 static void fsemu_oskeyboard_release_keys(fsemu_oskeyboard_t *keyboard)
 {
     // FIXME: Release currently held keys!
-    printf("\nFIXME: ON-SCREEN KEYBOARD - RELEASE PRESSED KEYS\n\n");
+    fsemu_oskeyboard_log_debug(
+        "\nFIXME: ON-SCREEN KEYBOARD - RELEASE PRESSED KEYS\n\n");
 }
 
 static void fsemu_oskeyboard_cannot_show(const char *message)
@@ -195,7 +198,7 @@ static void fsemu_oskeyboard_cannot_show(const char *message)
 
 void fsemu_oskeyboard_set_open(bool open)
 {
-    printf("fsemu_oskeyboard_set_open open=%d\n", open);
+    fsemu_oskeyboard_log_debug("fsemu_oskeyboard_set_open open=%d\n", open);
     if (!fsemu_oskeyboard.initialized) {
         fsemu_oskeyboard_cannot_show("Keyboard module was not initialized");
         return;
@@ -239,7 +242,7 @@ static void fsemu_oskeyboard_update_keyboard_size(fsemu_oskeyboard_t *keyboard)
     }
     keyboard->size.w = width;
     keyboard->size.h = height;
-    // printf("KEYBOARD %d x %d\n", width, height);
+    // fsemu_oskeyboard_log_debug("KEYBOARD %d x %d\n", width, height);
 }
 
 static void fsemu_oskeyboard_update_keyboard_key(fsemu_oskeyboard_t *keyboard,
@@ -377,7 +380,7 @@ void fsemu_oskeyboard_toggle_position(void)
 static void fsemu_oskeyboard_navigate_primary(fsemu_oskeyboard_t *keyboard,
                                               int32_t state)
 {
-    printf("\nprimary\n\n");
+    fsemu_oskeyboard_log_debug("\nprimary\n\n");
     // FIXME: We should register that we have "pressed this action" and
     // release the key action when we close the keyboard, if not already
     // released!
@@ -397,7 +400,7 @@ static void fsemu_oskeyboard_navigate_primary(fsemu_oskeyboard_t *keyboard,
 static void fsemu_oskeyboard_navigate_secondary(fsemu_oskeyboard_t *keyboard,
                                                 int32_t state)
 {
-    printf("\nsecondary\n\n");
+    fsemu_oskeyboard_log_debug("\nsecondary\n\n");
     fsemu_action_t action = keyboard->selected_key->action;
     // FIXME: We should register that we have "pressed this action" and
     // release the key action when we close the keyboard, if not already
@@ -417,7 +420,7 @@ static void fsemu_oskeyboard_navigate_tertiary(fsemu_oskeyboard_t *keyboard,
                                                int32_t state)
 {
     if (state) {
-        printf("\ntertiary\n\n");
+        fsemu_oskeyboard_log_debug("\ntertiary\n\n");
         fsemu_oskeyboard_toggle_position();
     }
 }
@@ -426,7 +429,7 @@ static void fsemu_oskeyboard_navigate_back(fsemu_oskeyboard_t *keyboard,
                                            int32_t state)
 {
     if (state) {
-        printf("\nback\n\n");
+        fsemu_oskeyboard_log_debug("\nback\n\n");
         fsemu_oskeyboard_set_open(false);
     }
 }
@@ -435,7 +438,7 @@ static void fsemu_oskeyboard_navigate_close(fsemu_oskeyboard_t *keyboard,
                                             int32_t state)
 {
     if (state) {
-        printf("\nclose\n\n");
+        fsemu_oskeyboard_log_debug("\nclose\n\n");
         fsemu_oskeyboard_set_open(false);
     }
 }
@@ -461,7 +464,7 @@ void fsemu_oskeyboard_navigate(int navigate, int32_t state)
         if (!state) {
             return;
         }
-        printf("\nup\n\n");
+        fsemu_oskeyboard_log_debug("\nup\n\n");
         // fsemu_oskeyboard_navigate_up();
         if (row_index == keyboard->last_row->index) {
             // return;
@@ -483,7 +486,7 @@ void fsemu_oskeyboard_navigate(int navigate, int32_t state)
         if (!state) {
             return;
         }
-        printf("\nright\n\n");
+        fsemu_oskeyboard_log_debug("\nright\n\n");
         // fsemu_oskeyboard_navigate_right();
         if (key_index == selected->row->last_key->index) {
             // return;
@@ -498,7 +501,7 @@ void fsemu_oskeyboard_navigate(int navigate, int32_t state)
         if (!state) {
             return;
         }
-        printf("\ndown\n\n");
+        fsemu_oskeyboard_log_debug("\ndown\n\n");
         if (row_index == 0) {
             // return;
             // Wrap around
@@ -513,14 +516,15 @@ void fsemu_oskeyboard_navigate(int navigate, int32_t state)
         if (key_index > row->last_key->index) {
             key_index = row->last_key->index;
         }
-        // printf("\ndown -> %d %d\n\n", row_index, key_index);
+        // fsemu_oskeyboard_log_debug("\ndown -> %d %d\n\n", row_index,
+        // key_index);
         keyboard->selected_key =
             fsemu_oskeyboard_find_key_by_index(keyboard, row_index, key_index);
     } else if (navigate == FSEMU_OSKEYBOARD_NAVIGATE_LEFT) {
         if (!state) {
             return;
         }
-        printf("\nleft\n\n");
+        fsemu_oskeyboard_log_debug("\nleft\n\n");
         if (key_index == 0) {
             // return;
             // Wrap around
@@ -671,7 +675,7 @@ void fsemu_oskeyboard_init(void)
         return;
     }
     fsemu_oskeyboard.initialized = true;
-    fsemu_log("Initializing oskeyboard module\n");
+    fsemu_oskeyboard_log("Initializing oskeyboard module\n");
     // FIXME: Cleanup function
     fsemu_oskeyboard_init_container();
     // This will update top and bottom coordinates. Positioned at bottom of

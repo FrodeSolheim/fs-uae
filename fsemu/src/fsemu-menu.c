@@ -1,4 +1,4 @@
-#include "fsemu-internal.h"
+#define FSEMU_INTERNAL 1
 #include "fsemu-menu.h"
 
 #include <stdio.h>
@@ -98,15 +98,15 @@ void fsemu_menu_add_item(fsemu_menu_t *menu, fsemu_menu_item_t *item)
             realloc(menu->items, allocate * sizeof(fsemu_menu_item_t *));
         menu->allocated_items = allocate;
     }
-    printf("bb\n");
+    // printf("bb\n");
     menu->items[menu->length] = item;
     menu->length += 1;
     item->parent = menu;
-    printf("cc\n");
+    // printf("cc\n");
 
     // FIXME: Or should reference be assigned over?
     fsemu_menu_item_ref(item);
-    printf("dd\n");
+    // printf("dd\n");
 
 #if 0
     if (menu->last_item) {

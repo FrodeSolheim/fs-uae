@@ -75,10 +75,10 @@ void fs_uae_configure_accelerator(void)
                 fsuae_path_kickstarts_dir(), "cyberstormppc.rom", NULL);
             if (fs_path_exists(csppc_rom_path)) {
                 rom = "cyberstormppc.rom";
-                fs_log("[ROM] Found cyberstormppc.rom\n");
+                fsuae_log("[ROM] Found cyberstormppc.rom\n");
             } else {
-                fs_log("[ROM] Did not find cyberstormppc.rom\n");
-                fs_log("[ROM] Trying ralphschmidt-cyberstorm-ppc-4471.rom\n");
+                fsuae_log("[ROM] Did not find cyberstormppc.rom\n");
+                fsuae_log("[ROM] Trying ralphschmidt-cyberstorm-ppc-4471.rom\n");
                 rom = "ralphschmidt-cyberstorm-ppc-4471.rom";
             }
             /* FIXME: TODO: Also try to find ROM in Amiga Forever roms dir.
@@ -91,7 +91,7 @@ void fs_uae_configure_accelerator(void)
     if (fs_config_get_const_string(OPTION_ACCELERATOR_MEMORY)) {
         memory = fs_uae_read_memory_option(OPTION_ACCELERATOR_MEMORY);
         memory /= 1024;
-        fs_log("CONFIG: Overriding accelerator memory: %d MB\n", memory);
+        fsuae_log("CONFIG: Overriding accelerator memory: %d MB\n", memory);
     }
 
     if (fs_config_get_boolean(OPTION_BLIZZARD_SCSI_KIT) == 1) {

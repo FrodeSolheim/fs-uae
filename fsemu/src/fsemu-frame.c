@@ -1,18 +1,25 @@
-#include "fsemu-internal.h"
+#define FSEMU_INTERNAL
 #include "fsemu-frame.h"
 
 #include "fsemu-action.h"
 #include "fsemu-audio.h"
-// #include "fsemu-control.h"
+#include "fsemu-control.h"
+#include "fsemu-frameinfo.h"
 #include "fsemu-input.h"
+#include "fsemu-module.h"
 #include "fsemu-option.h"
 #include "fsemu-quit.h"
+#include "fsemu-recording.h"
 #include "fsemu-thread.h"
 #include "fsemu-time.h"
 #include "fsemu-util.h"
 #include "fsemu-video.h"
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+#pragma GCC diagnostic warning "-Wconversion"
+
+// ----------------------------------------------------------------------------
 
 static struct {
     bool initialized;
@@ -34,6 +41,16 @@ static struct {
 
     int quit_after_n_frames;
 } fsemu_frame;
+
+volatile int fsemu_frame_number_began = -1;
+volatile int fsemu_frame_number_ended = -1;
+volatile int fsemu_frame_number_posted = -1;
+volatile int fsemu_frame_number_rendering = -1;
+volatile int fsemu_frame_number_rendered = -1;
+volatile int fsemu_frame_number_displaying = -1;
+volatile int fsemu_frame_number_displayed = -1;
+// FIXME: Used?
+volatile int fsemu_frame_number_swapped = -1;
 
 double fsemu_frame_hz = 0;
 
@@ -108,18 +125,28 @@ void fsemu_frame_end(void)
     fsemu_frame_log_epoch("Frame end\n");
     fsemu_assert(fsemu_frame.initialized);
 
+    int64_t now = fsemu_time_us();
+#if 0
+    while (now < fsemu_frame_end_at) {
+        now = fsemu_time_us();
+    }
+#endif
+    FSEMU_FRAMEINFO(fsemu_frame_number_began).ended_at = now;
+
     // Note; this is probably overriden in fsemu_frame_update_timing now.
     fsemu_frame_reset_epoch();
 
     fsemu_audio_end_frame();
     fsemu_video_end_frame();
 
+    fsemu_recording_end_frame(fsemu_frame.counter);
+
     // Advance the frame counter after updating stats for the current frame
     // (and possibly clearing status for the next frame).
     fsemu_frame.counter += 1;
 
     static fsemu_mavgi_t emu_us_mavgi;
-    #define FSEMU_FRAME_MAX_FRAME_STATS 256
+#define FSEMU_FRAME_MAX_FRAME_STATS 256
     static int emu_us_mavgi_values[FSEMU_FRAME_MAX_FRAME_STATS];
     int emu_us_avg = fsemu_mavgi(&emu_us_mavgi,
                                  emu_us_mavgi_values,
@@ -142,13 +169,23 @@ void fsemu_frame_end(void)
 
     // printf("Frame count %d\n", fsemu_frame.counter);
     if (fsemu_frame.counter == fsemu_frame.quit_after_n_frames) {
-        printf("----------------------------------------"
-               "----------------------------------------\n");
-        printf("Emu total: %0.3f s\n", emu_us_total / 1000000.0);
-        printf("Emu FPS (avg): %0.1f\n", 1000000.0 / (emu_us_avg_sum / emu_us_avg_count));
-        printf("Emu FPS (avg) min: %0.1f\n", 1000000.0 / emu_us_avg_max);
-        printf("----------------------------------------"
-               "----------------------------------------\n");
+        printf(
+            "----------------------------------------"
+            "----------------------------------------\n");
+        printf("Emu total: %0.3f s\n", (double) emu_us_total / 1000000.0);
+        printf("Emu FPS (avg): %0.1f\n",
+               1000000.0 / ((double) emu_us_avg_sum / emu_us_avg_count));
+        printf("Emu FPS (avg) min: %0.1f\n",
+               1000000.0 / (double) emu_us_avg_max);
+        printf(
+            "----------------------------------------"
+            "----------------------------------------\n");
+        printf(
+            "Benchmark: %7.1f    Avg fps: %7.1f    "
+            "Avg fps min: %7.1f\n",
+            (double) emu_us_total / 1000000.0,
+            1000000.0 / ((double) emu_us_avg_sum / emu_us_avg_count),
+            1000000.0 / (double) emu_us_avg_max);
         fsemu_quit_maybe();
     }
 
@@ -280,18 +317,18 @@ static int64_t fsemu_frame_framewait(double hz)
 // FIXME: WHEN USING TURBO MODE, FRAME STATS GETS CONFUSED / PROBABLY RELATED
 // TO FRAME COUNTER DRIFING AWAY AND RING BUFFER GETTING WRONG POSITION
 
-static void fsemu_frame_update_timing_timer_based(double hz)
+static void fsemu_frame_update_timing_timer_based(double hz,
+                                                  int64_t frame_duration)
 {
-    static int late_frames;
-
     int64_t now = fsemu_time_us();
     if (fsemu_frame_origin_at == 0) {
         fsemu_frame_origin_at = now;
     } else {
-        fsemu_frame_origin_at += (1000000 / hz);
+        fsemu_frame_origin_at += frame_duration;
     }
 
-    if ((now - fsemu_frame_origin_at) > (1000000 / 2 / hz)) {
+    static int late_frames;
+    if ((now - fsemu_frame_origin_at) > frame_duration / 2) {
         // More than half a frame has already passed since origin. Assume
         // that we are behind scedule and might need to catch up. We avoid
         // doing it immediately since we might be able to catch up, thus
@@ -308,7 +345,7 @@ static void fsemu_frame_update_timing_timer_based(double hz)
         // FIXME: REGISTER THIS AS AN UNDERRUN EVENT
     }
 
-    fsemu_frame_end_at = fsemu_frame_origin_at + (1000000 / hz);
+    fsemu_frame_end_at = fsemu_frame_origin_at + frame_duration;
 
     fsemu_frame_begin_at = fsemu_frame_origin_at + fsemu_frame_framewait(hz);
     if (fsemu_frame_begin_at < now) {
@@ -325,14 +362,315 @@ static void fsemu_frame_update_timing_timer_based(double hz)
     fsemu_frame_epoch_at = fsemu_frame_origin_at;
 }
 
-static void fsemu_frame_update_timing_vsync_based(double hz)
+int64_t laaaast_vsync_at = 0;
+
+static void fsemu_frame_update_timing_vsync_based(double hz,
+                                                  int64_t frame_duration)
 {
-    // fsemu_frame_origin_at = fsemu_video_vsync_time() + (1000000 / hz) * 1.2;
-    fsemu_frame_origin_at = fsemu_video_vsync_time() + (1000000 / hz) * 0.2;
+    hz = 50.0;
+    frame_duration = 20000;
+
+    int64_t now = fsemu_time_us();
+
+#if 1
+    fsemu_frame_origin_at = now;
     fsemu_frame_begin_at = fsemu_frame_origin_at;
-    fsemu_frame_end_at = fsemu_frame_begin_at + (1000000 / hz);
+    fsemu_frame_end_at = fsemu_frame_origin_at + frame_duration;
+    fsemu_frame_epoch_at = fsemu_frame_origin_at;
+
+    fsemu_frame_origin_at =
+        FSEMU_FRAMEINFO(fsemu_frame_number_began).vsync_allow_start_at;
+    fsemu_frame_end_at = fsemu_frame_origin_at + frame_duration;
+    fsemu_frame_begin_at = fsemu_frame_origin_at;
+    //
+    fsemu_frame_epoch_at = fsemu_frame_origin_at;
+
+    // fsemu_frame_begin_at
+#else
+
+    // static int late_frames;
+
+    int frame = fsemu_frame_number_began;
+
+    int64_t last_vsync_at = 0;
+    int64_t last = 0;
+    int64_t avgsum = 0;
+    int avgcnt = 0;
+    for (int i = 0; i < 256; i++) {
+        // FIXME: Maybe -2 since the previous frame is probably *not* done
+        if (FSEMU_FRAMEINFO(frame - 1 - i).vsync_at >
+            FSEMU_FRAMEINFO(frame - 1 - i).begins_at) {
+            if (last_vsync_at == 0) {
+                last_vsync_at = FSEMU_FRAMEINFO(frame - 1 - i).vsync_at;
+                printf("vsync %lld\n", lld(last_vsync_at));
+                last = last_vsync_at;
+                // continue;
+            }
+            int64_t diff = FSEMU_FRAMEINFO(frame - 1 - i).vsync_at - last;
+            last = FSEMU_FRAMEINFO(frame - 1 - i).vsync_at;
+            int64_t mod =
+                FSEMU_FRAMEINFO(frame - 1 - i).vsync_at % frame_duration;
+            printf("vsync %lld ( -%lld ) mod %lld\n",
+                   lld(FSEMU_FRAMEINFO(frame - 1 - i).vsync_at),
+                   lld(diff),
+                   lld(mod));
+            avgsum += mod;
+            avgcnt += 1;
+        }
+    }
+
+    int64_t b = 0;
+    if (avgcnt > 0) {
+        b = avgsum / avgcnt;
+    }
+    printf("intercept %d\n", (int) b);
+
+    int64_t a = 20000;
+    int64_t next_vsync_at = b + (int) (0.5 + ((double) now - b) / a) * a;
+    while (next_vsync_at - now < frame_duration * 1.0) {
+        next_vsync_at += frame_duration;
+    }
+    printf("next vsync at %lld (+%lld)\n",
+           lld(next_vsync_at),
+           lld(next_vsync_at - last_vsync_at));
+
+#if 0
+    int avgsum = 0;
+    int avgcnt = 0;
+    for (int i = 0; i < 32; i++) {
+        int diff = FSEMU_FRAMEINFO(frame - 1 - i).vsync_at -
+                       FSEMU_FRAMEINFO(frame - 1 - i).begins_at;
+        printf("-%d diff is %d\n", 1 + i, diff);
+        // Diff can be negative if vsync did not happen
+        if (diff > 0 && diff < 100000) {
+            avgsum += diff;
+            avgcnt += 1;
+        }
+    }
+    int avgdiff = 0;
+    if (avgcnt > 0) {
+        avgdiff = avgsum / avgcnt;
+    }
+    printf("avgdiff is %d\n", avgdiff);
+
+    avgsum = 0;
+    avgcnt = 0;
+    for (int i = 0; i < 32; i++) {
+        int diff = FSEMU_FRAMEINFO(frame - 1 - i).vsync_at -
+                       FSEMU_FRAMEINFO(frame - 1 - i).begins_at;
+        if (diff > 0 && diff <= avgdiff) {
+            avgsum += diff;
+            avgcnt += 1;
+        }
+    }
+    if (avgcnt > 0) {
+        avgdiff = avgsum / avgcnt;
+    }
+    printf("avgdiff (adjusted) is %d\n", avgdiff);
+
+    int wantavgdiff = frame_duration * 1.75;
+#endif
+#if 0
+    if (fsemu_frame_origin_at == 0) {
+        fsemu_frame_origin_at = now;
+    } else {
+        fsemu_frame_origin_at += frame_duration;
+    }
+#if 0
+    if (avgdiff - wantavgdiff > 50) {
+        fsemu_frame_origin_at += 50;
+    } else if (avgdiff - wantavgdiff < 50) {
+        fsemu_frame_origin_at -= 50;
+    }
+#endif
+    // fsemu_frame_origin_at += (wantavgdiff - avgdiff);
+
+    if ((now - fsemu_frame_origin_at) > frame_duration / 2) {
+        // More than half a frame has already passed since origin. Assume
+        // that we are behind scedule and might need to catch up. We avoid
+        // doing it immediately since we might be able to catch up, thus
+        // keeping the correct average frame rate.
+        late_frames += 1;
+    } else {
+        late_frames = 0;
+    }
+
+    if (late_frames >= 10) {
+        // We might not be able to catch up normally, so we reset origin.
+        fsemu_frame_origin_at = now;
+        printf("\n--------------------------------\n\n");
+        // FIXME: REGISTER THIS AS AN UNDERRUN EVENT
+    }
+#endif
+
+    FSEMU_FRAMEINFO(frame).vsync_estimated_at = next_vsync_at;
+
+#if 0
+    // int64_t now = fsemu_time_us();
+    if (fsemu_frame_origin_at == 0) {
+        fsemu_frame_origin_at = now;
+    } else {
+        fsemu_frame_origin_at += frame_duration;
+    }
+
+    int64_t origin_b = (b + 5000) % frame_duration;
+    int64_t b1 = fsemu_frame_origin_at % frame_duration;
+    // if (origin_b < b1) {
+    //     origin_b += frame_duration;
+    // }
+    printf("intercept %d vs ideal %d\n", (int) b1, (int) origin_b);
+    if (origin_b > b1 - 100) {
+        fsemu_frame_origin_at += (origin_b - b1) / 100;
+    }
+    if (origin_b < b1 - 100) {
+        fsemu_frame_origin_at -= (origin_b - b1) / 100;
+    }
+
+    // static int late_frames;
+    // if ((now - fsemu_frame_origin_at) > frame_duration / 2) {
+    //     // More than half a frame has already passed since origin. Assume
+    //     // that we are behind scedule and might need to catch up. We avoid
+    //     // doing it immediately since we might be able to catch up, thus
+    //     // keeping the correct average frame rate.
+    //     late_frames += 1;
+    // } else {
+    //     late_frames = 0;
+    // }
+
+    // if (late_frames >= 10) {
+    //     // We might not be able to catch up normally, so we reset origin.
+    //     fsemu_frame_origin_at += frame_duration;
+    //     printf("\n--------------------------------\n\n");
+    //     // FIXME: REGISTER THIS AS AN UNDERRUN EVENT
+    // }
+
+    while ((now - fsemu_frame_origin_at) > frame_duration / 2) {
+        fsemu_frame_origin_at += frame_duration;
+    }
+
+    fsemu_frame_end_at = fsemu_frame_origin_at + frame_duration;
+
+    fsemu_frame_begin_at = fsemu_frame_origin_at + fsemu_frame_framewait(hz);
+    if (fsemu_frame_begin_at < now) {
+        fsemu_frame_begin_at = now;
+    }
+
+    if (fsemu_frame_warping() && !fsemu_frame_paused()) {
+        // Without this, we will get too "far behind" on time.
+        fsemu_frame_origin_at = now;
+        fsemu_frame_begin_at = now;
+        fsemu_frame_end_at = now;
+    }
 
     fsemu_frame_epoch_at = fsemu_frame_origin_at;
+#endif
+
+#if 0
+    fsemu_frame_origin_at = next_vsync_at - frame_duration * 1.5;
+
+    fsemu_frame_end_at = fsemu_frame_origin_at + frame_duration;
+
+    fsemu_frame_begin_at = fsemu_frame_origin_at + fsemu_frame_framewait(hz);
+    if (fsemu_frame_begin_at < now) {
+        fsemu_frame_begin_at = now;
+    }
+
+    if (fsemu_frame_warping() && !fsemu_frame_paused()) {
+        // Without this, we will get too "far behind" on time.
+        fsemu_frame_origin_at = now;
+        fsemu_frame_begin_at = now;
+        fsemu_frame_end_at = now;
+    }
+
+    fsemu_frame_epoch_at = fsemu_frame_origin_at;
+#endif
+#if 0
+    // This is called (indirectly) by fsemu_frame_start when vsync is enabled.
+
+    // FIXME: Difference between epoch_at, origin_at and begin_at ?
+
+    // This is the frame number of the currently starting frame.
+    int frame = fsemu_frame_number_began;
+
+    // FIXME: Calculate once in fsemu_frame_start and pass on?
+
+    // For now; assume we need 1 frame duration to emulate + 0.5 frame
+    // durations to render and display.
+
+    // Find next vsync *at least* 1.5 frames ahead
+
+    static int64_t last_used_vsync;
+
+#if 0
+    int64_t last_vsync_at = FSEMU_FRAMEINFO(frame - 1).vsync_at;
+    if (now_us - last_vsync_at > 1000000) {
+        // More than one second ago, maybe not done yet / wraparound?
+        last_vsync_at = FSEMU_FRAMEINFO(frame - 2).vsync_at;
+        if (now_us - last_vsync_at > 1000000) {
+            last_vsync_at = FSEMU_FRAMEINFO(frame - 2).vsync_at;
+            if (now_us - last_vsync_at > 1000000) {
+                // Giving up
+                last_vsync_at = now_us;
+            }
+        }
+    }
+#else
+    int64_t last_vsync_at = laaaast_vsync_at;
+#endif
+    int64_t frame_duration = 1000000.0 / hz;
+    int64_t next_vsync_at = last_vsync_at;
+    int64_t now_us = fsemu_time_us();
+    // int64_t next_vsync_after = now_us + frame_duration * 1.5;
+#if 1
+    // while (next_vsync_at < next_vsync_after) {
+    //     next_vsync_at += frame_duration;
+    // }
+    if (next_vsync_at < now_us) {
+        next_vsync_at =
+            next_vsync_at +
+            ((int) (0.5 + ((next_vsync_at - now_us) / frame_duration))) *
+                frame_duration;
+    }
+    while (next_vsync_at <= last_used_vsync) {
+        next_vsync_at += frame_duration;
+    }
+    last_used_vsync = next_vsync_at;
+
+#else
+    next_vsync_at =
+        next_vsync_at +
+        ((int) (0.5 + ((next_vsync_after - now_us) / frame_duration))) *
+            frame_duration;
+#endif
+    fsemu_frame_origin_at = next_vsync_at - frame_duration * 1.5;
+
+    // fsemu_frame_origin_at = now_us;
+
+    // Find last v-sync...
+    // fsemu_frameinfo[frame & FSEMU_FRAMEINFO_COUNT];
+    // if (FSEMU_FRAMEINFO(frame - 1).vsync_at == now_us) {
+
+    // }
+
+    // fsemu_frame_origin_at = fsemu_video_vsync_time() + (1000000 / hz) * 1.2;
+    // fsemu_frame_origin_at =
+    //     fsemu_video_vsync_time() + (int64_t)(1000000 / hz * 0.2);
+    fsemu_frame_begin_at = fsemu_frame_origin_at;
+    fsemu_frame_end_at = fsemu_frame_begin_at + frame_duration;
+
+    fsemu_frame_epoch_at = fsemu_frame_origin_at;
+
+    // fsemu_frame_estimated_vsync_at = next_vsync_at;
+    static int64_t last_next_vsync_at;
+
+    printf("Estimated next vsync at %lld (+%lld)\n",
+           lld(next_vsync_at),
+           lld(next_vsync_at - last_next_vsync_at));
+    last_next_vsync_at = next_vsync_at;
+
+    FSEMU_FRAMEINFO(frame).vsync_estimated_at = next_vsync_at;
+#endif
+#endif
 }
 
 void fsemu_frame_update_timing(double hz, bool turbo)
@@ -348,10 +686,11 @@ void fsemu_frame_update_timing(double hz, bool turbo)
     fsemu_frame_hz = hz;
     // fsemu_frame_warp = fsemu_control_warp();
 
+    int64_t frame_duration = (int64_t)(1000000.0 / hz);
     if (fsemu_video_vsync()) {
-        fsemu_frame_update_timing_vsync_based(hz);
+        fsemu_frame_update_timing_vsync_based(hz, frame_duration);
     } else {
-        fsemu_frame_update_timing_timer_based(hz);
+        fsemu_frame_update_timing_timer_based(hz, frame_duration);
     }
 
     if (fsemu_frame_log_level >= 2) {
@@ -566,28 +905,103 @@ static void fsemu_frame_start_handle_commands(void)
     }
 }
 
+extern volatile int allow_frame;
+
 static void fsemu_frame_start_2(double hz)
 {
     fsemu_frame.rate_hz = hz;
+
+    // FIXME: Also for non-vsync we should make sure that we don't get more
+    // video frames than we can display. So limiting to 2 ahead or something
+    // makes sense there also.
+
+    // FIXME: Use a condition to wait on?
+    // (Plus also possibly sleep after allow start is known - for vsync)
+
+    // Adding one here because we haven't increased fsemu_frame_number_began
+    // yet.
+    // while (allow_frame < fsemu_frame_number_began + 1) {
+    //     fsemu_sleep_us(500);
+    // }
+
+    // FIXME: If vsync
+    // FIXME: Not here?
+
+    if (fsemu_video_vsync()) {
+        // FIXME: Can we avoid these quit checks here?
+        while (
+            FSEMU_FRAMEINFO(fsemu_frame_number_began + 1).vsync_allow_start_at ==
+            0) {
+            fsemu_sleep_us(1000);
+            if (fsemu_quit_check()) {
+                break;
+            }
+        }
+        if (!fsemu_quit_check() &&
+            FSEMU_FRAMEINFO(fsemu_frame_number_began + 1).vsync_allow_start_at >
+                fsemu_time_us()) {
+            fsemu_time_sleep_until_us(FSEMU_FRAMEINFO(fsemu_frame_number_began + 1)
+                                        .vsync_allow_start_at);
+        }
+    }
+
+    fsemu_frame_number_began += 1;
 
     // FIXME: update timing depends on warp mode, so handle commands first?
     fsemu_frame_start_handle_commands();
 
     fsemu_frame_update_timing(hz, false);
     // We have now a new value for the (ideal) origin time for the new frame.
-    // We use this as basis for duration logging during the coming fram, and
+    // We use this as basis for duration logging during the coming frame, and
     // start by registering time spent since (ideal) origin until now as
     // "overshoot" time.
+
+    FSEMU_FRAMEINFO(fsemu_frame_number_began).begins_at = fsemu_frame_begin_at;
+    FSEMU_FRAMEINFO(fsemu_frame_number_began).ends_at = fsemu_frame_end_at;
+    // FIXME: Clear future timers, e.g. vsync which might not happen
+    // ...
+    FSEMU_FRAMEINFO(fsemu_frame_number_began).vsync_at = 0;
+
+    // while (fsemu_time_us() < fsemu_frame_begin_at) {
+
+    // }
+
     fsemu_frame_reset_timer(fsemu_frame_origin_at);
     fsemu_frame_add_overshoot_time(0);
     // fsemu_frame_reset_epoch() FIXME: Maybe reset epoch to same time here?
 }
 
+// FIXME: Move hz to a separate function that can be called before start?
+// FIXME: Rename to fsemu_frame_begin?
 void fsemu_frame_start(double hz)
 {
     fsemu_thread_assert_emu();
 
     fsemu_frame_start_2(hz);
+    // printf("START_OR_POST start %d ------------------\n",
+    //        fsemu_frame_number_began);
+
+#if 0
+    static int first = true;
+    if (first && fsemu_video_vsync()) {
+        for (int i = 0; i < 100; i++) {
+            printf("Rendering dummy vsync frame %d ending at %lld\n",
+                   i,
+                   lld(fsemu_frame_end_at));
+            fsemu_video_frame_t *frame = fsemu_video_alloc_frame();
+            frame->dummy = true;
+            fsemu_video_post_frame(frame);
+
+            fsemu_time_wait_until_us(fsemu_frame_end_at);
+            fsemu_frame_end();
+            fsemu_frame_start_2(hz);
+
+            while (fsemu_frame_number_displayed != fsemu_frame_number_posted) {
+            }
+        }
+    }
+    first = false;
+#endif
 
     if (fsemu_frame_paused()) {
         do {
@@ -608,9 +1022,13 @@ void fsemu_frame_start(double hz)
             fsemu_frame_end();
 
             fsemu_frame_start_2(hz);
+
         } while (fsemu_frame_paused());
         printf("RESUME\n");
     }
+
+    // fsemu_recording_begin_frame(fsemu_frame.counter);
+    fsemu_recording_begin_frame();
 }
 
 double fsemu_frame_rate_hz(void)
@@ -618,20 +1036,32 @@ double fsemu_frame_rate_hz(void)
     return fsemu_frame.rate_hz;
 }
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+static void fsemu_frame_quit(void)
+{
+}
+
+// ----------------------------------------------------------------------------
 
 void fsemu_frame_init(void)
 {
-    fsemu_init_once(&fsemu_frame.initialized);
-    fsemu_frame_log("Initializing frame module\n");
+    if (FSEMU_MODULE_INIT(frame)) {
+        return;
+    }
 
     fsemu_frame_log_level = fsemu_option_int_default(FSEMU_OPTION_LOG_FRAME,
                                                      fsemu_frame_log_level);
 
-    fsemu_frame.quit_after_n_frames = fsemu_option_int_default(FSEMU_OPTION_QUIT_AFTER_N_FRAMES, -1);
+    fsemu_frame.quit_after_n_frames =
+        fsemu_option_int_default(FSEMU_OPTION_QUIT_AFTER_N_FRAMES, -1);
 
     fsemu_frame.load_state = -1;
     fsemu_frame.save_state = -1;
+
+    // Allow first two frames to start
+    FSEMU_FRAMEINFO(0).vsync_allow_start_at = 1;
+    FSEMU_FRAMEINFO(1).vsync_allow_start_at = 1;
 
     // fsemu_frame.emulation_duration = 10000;
     // fsemu_frame.render_duration = 5000;

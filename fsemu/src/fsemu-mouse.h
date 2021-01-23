@@ -37,22 +37,22 @@ extern int fsemu_mouse_log_level;
 
 /*
 #define fsemu_mouse_log(format, ...) \
-    fsemu_log("[FSEMU] [MOUSE] " format, ##__VA_ARGS__)
+    fsemu_log("[FSE] [MOUSE] " format, ##__VA_ARGS__)
 
 #define fsemu_mouse_log(level, format, ...)                  \
     if (fsemu_mouse_log_level >= level) {                    \
-        fsemu_log("[FSEMU] [AUDIO] " format, ##__VA_ARGS__); \
+        fsemu_log("[FSE] [AUD] " format, ##__VA_ARGS__); \
     }
 */
 
 #define fsemu_mouse_log(format, ...)                             \
-    if (FSEMU_LIKELY(fsemu_mouse_log_level >= FSEMU_LOG_INFO)) { \
-        fsemu_log("[FSEMU] [MOUSE] " format, ##__VA_ARGS__);      \
+    if (fsemu_likely(fsemu_mouse_log_level >= FSEMU_LOG_LEVEL_INFO)) { \
+        fsemu_log("[FSE] [MOU] " format, ##__VA_ARGS__);         \
     }
 
 #define fsemu_mouse_log_debug(format, ...)                          \
-    if (FSEMU_UNLIKELY(fsemu_mouse_log_level >= FSEMU_LOG_DEBUG)) { \
-        fsemu_log("[FSEMU] [MOUSE] " format, ##__VA_ARGS__);         \
+    if (fsemu_unlikely(fsemu_mouse_log_level >= FSEMU_LOG_LEVEL_DEBUG)) { \
+        fsemu_log("[FSE] [MOU] " format, ##__VA_ARGS__);            \
     }
 
 #if 0

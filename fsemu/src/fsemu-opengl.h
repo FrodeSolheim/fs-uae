@@ -43,7 +43,7 @@ static inline void fsemu_opengl_log_error_maybe(void)
 #ifdef FSEMU_INTERNAL
 
 #define fsemu_opengl_log(format, ...) \
-    fsemu_log("[FSEMU] [ OGL ] " format, ##__VA_ARGS__)
+    fsemu_log("[FSE] [OGL] " format, ##__VA_ARGS__)
 
 #endif
 
@@ -52,8 +52,9 @@ static inline void fsemu_opengl_log_error_maybe(void)
 #endif
 
 #ifdef FSEMU_INTERNAL
-#define GLEW_NO_GLU
-#include <GL/glew.h>
+// #define GLEW_NO_GLU
+// #include <GL/glew.h>
+#include "../../glad/include/glad/glad.h"
 #endif
 
 #endif  // FSEMU_OPENGL

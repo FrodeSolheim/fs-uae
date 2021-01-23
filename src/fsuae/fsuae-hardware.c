@@ -267,7 +267,7 @@ static void configure_cpu(void)
         cpu_idle = cfg->cpu_idle;
     }
     if (cpu_idle != FS_CONFIG_NONE) {
-        fs_log("Setting cpu_idle to %d\n", cpu_idle);
+        fsuae_log("Setting cpu_idle to %d\n", cpu_idle);
         amiga_set_cpu_idle(cpu_idle);
     }
 }
@@ -283,7 +283,7 @@ static void configure_memory()
         } else if (chip_memory % 512 == 0) {
             amiga_set_int_option("chipmem_size", chip_memory / 512);
             if (chip_memory >= 1024 && cfg->can_use_ecs_agnus) {
-                fs_log("[CONFIG] >= 1 MB chip RAM, enabling ECS Agnus\n");
+                fsuae_log("[CONFIG] >= 1 MB chip RAM, enabling ECS Agnus\n");
                 amiga_set_option("chipset", "ecs_agnus");
             }
         } else {

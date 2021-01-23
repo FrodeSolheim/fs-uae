@@ -16,7 +16,7 @@ typedef int fsemu_error_t;
 
 void fsemu_error_2(const char *msg, ...);
 
-#define fsemu_error(msg, ...) fsemu_error_2("[FSEMU][ERROR] " msg, __VA_ARGS__)
+#define fsemu_error(msg, ...) fsemu_error_2("[FSE] [ERR] " msg, __VA_ARGS__)
 
 /** This must be called before init functions to be guaranteed to have an
  * effect. */

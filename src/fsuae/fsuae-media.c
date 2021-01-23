@@ -71,11 +71,11 @@ static char *resolve_controller(const char *controller)
     } else if (strcasecmp(controller, "scsi_cpuboard") == 0) {
         controller = "scsi%d_cpuboard";
     } else {
-        fs_log("resolve_controller: \"%s\" not known\n", controller);
+        fsuae_log("resolve_controller: \"%s\" not known\n", controller);
         if (g_hash_table_lookup(in_use, controller)) {
             /* Only uae controllers can be used more than once */
             if (strcasecmp(controller, "uae") != 0) {
-                fs_log("controller already used: %s\n", controller);
+                fsuae_log("controller already used: %s\n", controller);
             }
         } else {
             g_hash_table_add(in_use, g_strdup(controller));
@@ -159,7 +159,7 @@ void fsuae_media_configure_cdrom(void)
             /* Setting scsi option enables uaescsi.device */
             amiga_set_option("scsi", "true");
             if (fs_config_get_boolean(OPTION_CDFS) == 0) {
-                fs_log("CDROM: CDFS option was excplicitly disabled\n");
+                fsuae_log("CDROM: CDFS option was excplicitly disabled\n");
             } else {
                 /* Enables win32_automount_cddrives */
                 amiga_map_cd_drives(1);
@@ -540,7 +540,7 @@ static void fsuae_media_init_floppy_drives(void)
         const char *floppy_sounds =
             fs_config_get_const_string(option_floppy_drive_x_sounds);
         if (floppy_sounds) {
-            fs_log(
+            fsuae_log(
                 "custom floppy sounds for drive %d: %s\n", i, floppy_sounds);
             amiga_set_option(option_floppyxsound, "-1");
             amiga_set_option(option_floppyxsoundext, floppy_sounds);

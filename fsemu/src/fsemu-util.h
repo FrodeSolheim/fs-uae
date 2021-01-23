@@ -20,6 +20,14 @@ extern "C" {
 #define FSEMU_UTIL_MALLOC(t) (t *) malloc(sizeof(t));
 #define FSEMU_UTIL_MALLOC0(t) (t *) calloc(1, sizeof(t));
 
+int fsemu_util_copy_file_with_size_limit(const char *src,
+                                         const char *dst,
+                                         int64_t size_limit);
+int fsemu_util_copy_file(const char *src, const char *dst);
+
+int fsemu_util_delete_file(const char *state_recording_path);
+int fsemu_util_delete_file_if_exists(const char *state_recording_path);
+
 /** Always returns a string (empty if not set) */
 const char *fsemu_getenv(const char *name);
 

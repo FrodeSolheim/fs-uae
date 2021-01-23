@@ -1,9 +1,9 @@
-#include "fsemu-internal.h"
+#define FSEMU_INTERNAL 1
 #include "fsemu-time.h"
 
-#include "fsemu-util.h"
-
 #include <stdio.h>
+
+#include "fsemu-util.h"
 
 // A bit uncertain about the effects of doing _mm_pause here, but
 // it isn't likely to do any harm, and could have positive effects
@@ -21,6 +21,8 @@
 #endif
 
 #include "fsemu-mutex.h"
+
+int fsemu_time_log_level = FSEMU_LOG_LEVEL_INFO;
 
 static struct {
     bool initialized;
@@ -101,7 +103,8 @@ int64_t fsemu_time_wait_until_us_2(int64_t until_us, int64_t now_us)
 #endif
 #endif
     if (now_us - until_us > 1000) {
-        printf("WARNNING: Overslept with %d us\n", (int) (now_us - until_us));
+        fsemu_time_log_warning("Overslept with %d us\n",
+                               (int) (now_us - until_us));
     }
     return now_us;
 }
@@ -119,8 +122,8 @@ struct tm *fsemu_time_localtime_r(const time_t *timep, struct tm *result)
     }
     struct tm *tm = localtime(timep);
     if (tm == NULL) {
-        fsemu_log("WARNING: localtime - invalid time_t (%ld)\n",
-                  (long) *timep);
+        fsemu_time_log_warning("localtime - invalid time_t (%ld)\n",
+                               (long) *timep);
     } else {
         *result = *tm;
     }
@@ -147,7 +150,8 @@ struct tm *fsemu_time_gmtime_r(const time_t *timep, struct tm *result)
     }
     struct tm *tm = gmtime(timep);
     if (tm == NULL) {
-        fsemu_log("WARNING: gmtime - invalid time_t (%ld)\n", (long) *timep);
+        fsemu_time_log_warning("gmtime - invalid time_t (%ld)\n",
+                               (long) *timep);
     } else {
         *result = *tm;
     }
@@ -169,7 +173,7 @@ time_t fsemu_time_timegm(struct tm *tm)
     time_t ret;
     // Code adapted from the man page of timegm.
     char *tz;
-#ifdef FSEMU_WINDOWS
+#ifdef FSEMU_OS_WINDOWS
     tz = getenv("TZ");
     if (tz) {
         tz = g_strdup_printf("TZ=%s", tz);
@@ -249,16 +253,15 @@ void fsemu_time_init(void)
 #endif
 
     time_t t = time(NULL);
-    fsemu_log("[TIME] current time() is: %d\n", (int) t);
+    fsemu_time_log("current time() is: %d\n", (int) t);
     struct tm tm;
     fsemu_time_localtime_r(&t, &tm);
-    fsemu_log("[TIME] localtime + timegm:  %ld\n",
-              (long) fsemu_time_timegm(&tm));
-    fsemu_log("[TIME] localtime + mktime:  %ld\n", (long) mktime(&tm));
+    fsemu_time_log("localtime + timegm:  %ld\n",
+                   (long) fsemu_time_timegm(&tm));
+    fsemu_time_log("localtime + mktime:  %ld\n", (long) mktime(&tm));
     fsemu_time_val_t tv;
     fsemu_time_current(&tv);
-    fsemu_log("[TIME] time of day:       %d + (%d / 1000000)\n",
-              tv.tv_sec,
-              tv.tv_usec);
-    fsemu_log("[TIME] localtime offset:  %d\n", fsemu_time_local_offset(t));
+    fsemu_time_log(
+        "time of day:       %d + (%d / 1000000)\n", tv.tv_sec, tv.tv_usec);
+    fsemu_time_log("localtime offset:  %d\n", fsemu_time_local_offset(t));
 }

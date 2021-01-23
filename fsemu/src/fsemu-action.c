@@ -1,4 +1,4 @@
-#include "fsemu-internal.h"
+#define FSEMU_INTERNAL 1
 #include "fsemu-action.h"
 
 #include <stdio.h>
@@ -9,6 +9,8 @@
 #include "fsemu-osmenu.h"
 #include "fsemu-savestate.h"
 #include "fsemu-thread.h"
+
+int fsemu_action_log_level = FSEMU_LOG_LEVEL_INFO;
 
 void fsemu_action_post_from_main(uint16_t action)
 {
@@ -29,7 +31,8 @@ void fsemu_action_process_non_emu(fsemu_action_t action,
 {
     fsemu_thread_assert_main();
 
-    printf("fsemu_action_process_non_emu %04x %04x\n", action, state);
+    fsemu_action_log_debug(
+        "fsemu_action_process_non_emu %04x %04x\n", action, state);
 
     if (action == FSEMU_ACTION_OSKEYBOARD) {
         if (state) {
@@ -58,19 +61,19 @@ void fsemu_action_process_command_in_main(fsemu_action_t action,
 
     switch (action) {
         case FSEMU_ACTION_PAUSE:
-            fsemu_action_log("[MAIN] FSEMU_ACTION_PAUSE\n");
+            fsemu_action_log_debug("FSEMU_ACTION_PAUSE\n");
             fsemu_control_set_paused_internal(state != 0);
             break;
 
         case FSEMU_ACTION_PAUSE_DISABLE:
-            fsemu_action_log("[MAIN] FSEMU_ACTION_PAUSE_DISABLE\n");
+            fsemu_action_log_debug("FSEMU_ACTION_PAUSE_DISABLE\n");
             if (state) {
                 fsemu_control_set_paused_internal(false);
             }
             break;
 
         case FSEMU_ACTION_PAUSE_ENABLE:
-            fsemu_action_log("[MAIN] FSEMU_ACTION_PAUSE_ENABLE\n");
+            fsemu_action_log_debug("FSEMU_ACTION_PAUSE_ENABLE\n");
             if (state) {
                 fsemu_control_set_paused_internal(true);
             }
@@ -81,7 +84,7 @@ void fsemu_action_process_command_in_main(fsemu_action_t action,
             // post a new event (or rewrite this one) based on previous pause
             // state and make the action explicit (enable or disable).
             // Otherwise we risk emu and main thread getting out of sync.
-            fsemu_action_log("[MAIN] FSEMU_ACTION_PAUSE_DISABLE\n");
+            fsemu_action_log_debug("FSEMU_ACTION_PAUSE_DISABLE\n");
             fsemu_warning("Pause toggle action not supported yet\n");
             // if (state) {
             //     fsemu_control_set_paused_internal(!fsemu_control_paused());
@@ -89,19 +92,19 @@ void fsemu_action_process_command_in_main(fsemu_action_t action,
             break;
 
         case FSEMU_ACTION_WARP:
-            fsemu_action_log("[MAIN] FSEMU_ACTION_WARP\n");
+            fsemu_action_log_debug("FSEMU_ACTION_WARP\n");
             fsemu_control_set_warp_internal(state != 0);
             break;
 
         case FSEMU_ACTION_WARP_DISABLE:
-            fsemu_action_log("[MAIN] FSEMU_ACTION_WARP_DISABLE\n");
+            fsemu_action_log_debug("FSEMU_ACTION_WARP_DISABLE\n");
             if (state) {
                 fsemu_control_set_warp_internal(false);
             }
             break;
 
         case FSEMU_ACTION_WARP_ENABLE:
-            fsemu_action_log("[MAIN] FSEMU_ACTION_WARP_ENABLE\n");
+            fsemu_action_log_debug("FSEMU_ACTION_WARP_ENABLE\n");
             if (state) {
                 fsemu_control_set_warp_internal(true);
             }
@@ -112,7 +115,7 @@ void fsemu_action_process_command_in_main(fsemu_action_t action,
             // post a new event (or rewrite this one) based on previous warp
             // state and make the action explicit (enable or disable).
             // Otherwise we risk emu and main thread getting out of sync.
-            fsemu_action_log("[MAIN] FSEMU_ACTION_WARP_DISABLE\n");
+            fsemu_action_log_debug("FSEMU_ACTION_WARP_DISABLE\n");
             fsemu_warning("Warp toggle action not supported yet\n");
             // if (state) {
             //     fsemu_control_set_paused_internal(!fsemu_control_paused());

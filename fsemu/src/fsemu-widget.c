@@ -1,4 +1,4 @@
-#include "fsemu-internal.h"
+#define FSEMU_INTERNAL 1
 #include "fsemu-widget.h"
 
 #include "fsemu-color.h"
@@ -9,6 +9,12 @@
 #include "fsemu-util.h"
 #include "fsemu-video.h"
 
+// ----------------------------------------------------------------------------
+
+int fsemu_widget_log_level = FSEMU_LOG_LEVEL_INFO;
+
+// ----------------------------------------------------------------------------
+
 /*
 static struct {
     fsemu_gui_item_t a;
@@ -18,7 +24,7 @@ static struct {
 void fsemu_widget_module_init(void)
 {
     fsemu_return_if_already_initialized();
-    fsemu_log("[FSEMU][WIDGT] Initializing widget module\n");
+    fsemu_widget_log("Initializing widget module\n");
 }
 
 void fsemu_widget_init(fsemu_widget_t *widget)
@@ -49,9 +55,9 @@ static void fsemu_widget_finalize(void *object)
 {
 #if 1
     fsemu_widget_t *widget = (fsemu_widget_t *) object;
-    fsemu_log("Finalizing widget %p \"%s\"\n",
-              widget,
-              widget->name ? widget->name : "unnamed");
+    fsemu_widget_log_debug("Finalizing widget %p \"%s\"\n",
+                           widget,
+                           widget->name ? widget->name : "unnamed");
 
     fsemu_widget_t *child = widget->first_child;
     while (child) {
@@ -61,12 +67,12 @@ static void fsemu_widget_finalize(void *object)
     }
 
     if (widget->image) {
-        printf("- Unrefing image...\n");
+        fsemu_widget_log_debug("- Unrefing image...\n");
         fsemu_image_unref(widget->image);
         // widget->image = NULL;
     }
     if (widget->textimage) {
-        printf("- Unrefing textimage...\n");
+        fsemu_widget_log_debug("- Unrefing textimage...\n");
         fsemu_image_unref(widget->textimage);
         // widget->image = NULL;
     }
@@ -373,14 +379,14 @@ void fsemu_widget_update_text_image(fsemu_widget_t *widget)
         "Fonts/SairaCondensed-SemiBold.ttf", widget->font_size);
     fsemu_image_t *textimage =
         fsemu_font_render_text_to_image(font, text, widget->text_color);
-    printf("textimage size %dx%d for text %s\n",
-           textimage->width,
-           textimage->height,
-           text);
+    fsemu_widget_log_debug("textimage size %dx%d for text %s\n",
+                           textimage->width,
+                           textimage->height,
+                           text);
     if (widget->textimage) {
         fsemu_image_unref(widget->textimage);
     }
-    // printf("teximage %p\n", textimage);
+    // fsemu_widget_log_debug("teximage %p\n", textimage);
     widget->textimage = textimage;
     widget->dirty = true;
     if (free_text) {

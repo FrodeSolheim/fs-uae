@@ -1,4 +1,4 @@
-#include "fsemu-internal.h"
+#define FSEMU_INTERNAL 1
 #include "fsemu-titlebar.h"
 
 #include "fsemu-color.h"
@@ -41,7 +41,9 @@ enum {
 #define FSEMU_TITLEBAR_MINIMIZE_HOVER FSEMU_COLOR_RGBA(0x555555ff)
 #define FSEMU_TITLEBAR_MINIMIZE_ACTIVE FSEMU_COLOR_RGBA(0x777777ff)
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+int fsemu_titlebar_log_level = FSEMU_LOG_LEVEL_INFO;
 
 #define module fsemu_titlebar
 
@@ -94,7 +96,7 @@ static struct fsemu_titlebar {
 
 } module;
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 uint32_t fsemu_titlebar_background_color(void)
 {
@@ -121,7 +123,7 @@ bool fsemu_titlebar_visible(void)
     return module.visible || fsemu_titlebar_static();
 }
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 void fsemu_titlebar_update(void)
 {
@@ -142,7 +144,7 @@ void fsemu_titlebar_update(void)
         fsemu_font_t *font = fsemu_fontcache_font(
             "Fonts/SairaCondensed-SemiBold.ttf", 19 * ui_scale);
         // 0xcc is the same alpha value as used by the window control icons
-        // for the custom frame.       
+        // for the custom frame.
         // char *title_upper = g_utf8_strup(fsemu_emulator_name(), -1);
         const char *title = fsemu_window_title();
         char *title_upper = g_utf8_strup(title, -1);
@@ -329,7 +331,7 @@ void fsemu_titlebar_update(void)
 #endif
 }
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 void fsemu_titlebar_set_width(int w)
 {
@@ -359,7 +361,7 @@ void fsemu_titlebar_set_width(int w)
 #endif
 }
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 static void fsemu_titlebar_set_visible(bool visible)
 {
@@ -373,7 +375,7 @@ static void fsemu_titlebar_set_visible(bool visible)
     */
 }
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 static int fsemu_titlebar_button_test(fsemu_mouse_event_t *event)
 {
@@ -413,7 +415,7 @@ static void fsemu_titlebar_capture_mouse(bool capture)
 
 static void fsemu_titlebar_on_menu_button(void)
 {
-    printf("on menu\n");
+    fsemu_titlebar_log_debug("fsemu_titlebar_on_menu_button\n");
     fsemu_osmenu_toggle_open();
 }
 
@@ -580,7 +582,7 @@ bool fsemu_titlebar_handle_mouse(fsemu_mouse_event_t *event)
 #endif
 }
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 #if 0
 void fsemu_titlebar_render(fsemu_render_t *render)
 {
@@ -588,7 +590,7 @@ void fsemu_titlebar_render(fsemu_render_t *render)
     render->rectangle(0, 0, 0, 0, color);
 }
 #endif
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 static void fsemu_titlebar_init_container(void)
 {

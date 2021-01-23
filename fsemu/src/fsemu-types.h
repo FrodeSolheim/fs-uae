@@ -39,12 +39,14 @@ typedef struct fsemu_drect {
 
 #ifdef FSEMU_INTERNAL
 
-/** Makes it easier to use the %lld format specifier without using the ugly
- * PRI64 defines, casts or getting compiler warnings. */
-static inline long long lld(int64_t value)
+// Makes it easier to use the %lld format specifier without using the ugly
+// PRI64 defines, casts or getting compiler warnings.
+static inline long long fsemu_lld(int64_t value)
 {
     return value;
 }
+
+#define lld(x) fsemu_lld(x)
 
 #endif  // FSEMU_INTERNAL
 

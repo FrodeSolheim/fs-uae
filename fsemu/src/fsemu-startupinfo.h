@@ -30,7 +30,7 @@ void fsemu_startupinfo_toggle(void);
 #ifdef FSEMU_INTERNAL
 
 #define fsemu_startupinfo_log(format, ...) \
-    fsemu_log("[FSEMU] [STINF] " format, ##__VA_ARGS__)
+    fsemu_log("[FSE] [STI] " format, ##__VA_ARGS__)
 
 #endif  // FSEMU_INTERNAL
 

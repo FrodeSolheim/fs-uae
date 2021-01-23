@@ -34,10 +34,10 @@ static const char *fsuae_path_home_dir(void)
     if (!path) {
         path = fs_get_home_dir();
         if (path == NULL) {
-            fs_log("WARNING: did not find home directory\n");
+            fsuae_log("WARNING: did not find home directory\n");
             path = g_strdup("");
         }
-        fs_log("- using home directory \"%s\"\n", path);
+        fsuae_log("- using home directory \"%s\"\n", path);
     }
     return path;
 }
@@ -51,7 +51,7 @@ const char *fsuae_path_exe_dir(void)
         char *p = g_strdup(app_dir);
         g_free(app_dir);
         path = p;
-        fs_log("- using $exe directory \"%s\"\n", path);
+        fsuae_log("- using $exe directory \"%s\"\n", path);
     }
     return path;
 }
@@ -82,7 +82,7 @@ static const char *fsuae_path_app_dir()
         }
         free(base_name);
 #endif
-        fs_log("- using $app directory \"%s\"\n", path);
+        fsuae_log("- using $app directory \"%s\"\n", path);
     }
     return path;
 }
@@ -93,7 +93,7 @@ static const char *fsuae_path_documents_dir()
     if (!path) {
         path = fs_get_documents_dir();
         if (path == NULL) {
-            fs_log("WARNING: did not find documents directory\n");
+            fsuae_log("WARNING: did not find documents directory\n");
             path = fsuae_path_home_dir();
         }
         int result = g_mkdir_with_parents(path, 0755);
@@ -101,7 +101,7 @@ static const char *fsuae_path_documents_dir()
             fs_emu_warning("Documents directory does not exist: %s", path);
             path = fsuae_path_home_dir();
         }
-        fs_log("- using documents directory \"%s\"\n", path);
+        fsuae_log("- using documents directory \"%s\"\n", path);
     }
     return path;
 }
@@ -110,12 +110,12 @@ static char *read_custom_path(const char *key)
 {
     char *key_path =
         g_build_filename(fse_user_config_dir(), "fs-uae", key, NULL);
-    fs_log("- checking %s\n", key_path);
+    fsuae_log("- checking %s\n", key_path);
     if (fs_path_is_file(key_path)) {
         FILE *f = fopen(key_path, "rb");
         g_free(key_path);
         if (f == NULL) {
-            fs_log("- file exists but could not open\n");
+            fsuae_log("- file exists but could not open\n");
             return NULL;
         }
         char *buffer = (char *) malloc(PATH_MAX + 1);
@@ -123,16 +123,16 @@ static char *read_custom_path(const char *key)
         int eof = feof(f);
         fclose(f);
         if (!eof) {
-            fs_log("- did not get EOF\n");
+            fsuae_log("- did not get EOF\n");
             free(buffer);
             return NULL;
         }
         buffer[read_bytes] = '\0';
         g_strchomp(buffer);
-        fs_log("- read from file: %s\n", buffer);
+        fsuae_log("- read from file: %s\n", buffer);
         char *result = fsuae_path_expand(buffer);
         free(buffer);
-        fs_log("- expanded path: %s\n", result);
+        fsuae_log("- expanded path: %s\n", result);
         return result;
     } else {
         g_free(key_path);
@@ -149,7 +149,7 @@ const char *fsuae_path_base_dir(void)
 
     path = fs_config_get_const_string("base_dir");
     if (path) {
-        fs_log("base specified via base_dir option\n");
+        fsuae_log("base specified via base_dir option\n");
         path = fsuae_path_expand(path);
     }
     if (path == NULL) {
@@ -157,7 +157,7 @@ const char *fsuae_path_base_dir(void)
         const char *env_path = getenv("fsuae_path_base_dir");
         if (env_path && env_path[0]) {
             path = env_path;
-            fs_log("base specified via fsuae_path_base_dir\n");
+            fsuae_log("base specified via fsuae_path_base_dir\n");
             fs_emu_deprecated("fsuae_path_base_dir is deprecated");
         }
     }
@@ -169,10 +169,10 @@ const char *fsuae_path_base_dir(void)
         char *orig = g_strdup(":INVALID;");
         while (strcmp(orig, next) != 0) {
             char *test = g_build_filename(next, "Portable.ini", NULL);
-            fs_log("checking %s\n", test);
+            fsuae_log("checking %s\n", test);
             if (fs_path_exists(test)) {
                 path = next;
-                fs_log("using portable base dir %s\n", path);
+                fsuae_log("using portable base dir %s\n", path);
                 g_free(orig);
                 break;
             }
@@ -186,7 +186,7 @@ const char *fsuae_path_base_dir(void)
         path = read_custom_path("base-dir");
     }
     if (path == NULL) {
-        fs_log("- using base dir $DOCUMENTS/FS-UAE\n");
+        fsuae_log("- using base dir $DOCUMENTS/FS-UAE\n");
         path = g_build_filename(fsuae_path_documents_dir(), "FS-UAE", NULL);
     }
 
@@ -195,7 +195,7 @@ const char *fsuae_path_base_dir(void)
         fs_emu_warning("Could not create base directory at %s", path);
         path = fsuae_path_documents_dir();
     }
-    fs_log("- using base ($BASE / $FSUAE) directory \"%s\"\n", path);
+    fsuae_log("- using base ($BASE / $FSUAE) directory \"%s\"\n", path);
     return path;
 }
 
@@ -236,7 +236,7 @@ static char *get_or_create_default_dir(const char *name,
             path = g_strdup(fsuae_path_base_dir());
         }
     }
-    fs_log("- using \"%s\" directory \"%s\"\n", name, path);
+    fsuae_log("- using \"%s\" directory \"%s\"\n", name, path);
     return path;
 }
 
@@ -301,17 +301,17 @@ static const char *fsuae_path_state_dir_path()
     char *free_state_dir_name = NULL;
     static const char *path;
     if (!path) {
-        fs_log("fsuae_path_state_dir:\n");
+        fsuae_log("fsuae_path_state_dir:\n");
         path = fs_config_get_const_string("state_dir");
         if (path && path[0]) {
-            fs_log("state_dir was explicitly set to: %s\n", path);
+            fsuae_log("state_dir was explicitly set to: %s\n", path);
             char *expanded_path = fsuae_path_expand(path);
             path = fsuae_path_resolve(expanded_path, FS_UAE_DIR_PATHS);
             free(expanded_path);
             return path;
         }
         const char *base = fsuae_path_savestates_dir();
-        fs_log("save_states_dir: %s\n", base);
+        fsuae_log("save_states_dir: %s\n", base);
         const char *state_dir_name =
             fs_config_get_const_string("state_dir_name");
         if (!state_dir_name || !state_dir_name[0]) {
@@ -330,7 +330,7 @@ static const char *fsuae_path_state_dir_path()
             if (!state_dir_name || !state_dir_name[0]) {
                 state_dir_name = "Default";
             }
-            fs_log("save_dir_name not set, using %s\n", state_dir_name);
+            fsuae_log("save_dir_name not set, using %s\n", state_dir_name);
         }
         path = g_build_filename(base, state_dir_name, NULL);
     }
@@ -347,15 +347,15 @@ const char *fsuae_path_state_dir()
         path = fsuae_path_state_dir_path();
         if (!path || !path[0]) {
             path = fsuae_path_base_dir();
-            fs_log("reverting state dir to: %s\n", path);
+            fsuae_log("reverting state dir to: %s\n", path);
         }
-        fs_log("- using state dir %s\n", path);
+        fsuae_log("- using state dir %s\n", path);
         int result = g_mkdir_with_parents(path, 0755);
         if (result == -1) {
             fs_emu_warning("Could not create state directory");
             path = fsuae_path_base_dir();
         }
-        fs_log("final state dir path: %s\n", path);
+        fsuae_log("final state dir path: %s\n", path);
     }
     return path;
 }
@@ -473,7 +473,7 @@ static const char *fsuae_path_temp_dir(void)
     static const char *path = NULL;
     if (path == NULL) {
         path = g_dir_make_tmp("fs-uae-TEMP-XXXXXX", NULL);
-        fs_log("FS-UAE $TEMP = %s\n", path);
+        fsuae_log("FS-UAE $TEMP = %s\n", path);
     }
     return path;
 }
@@ -560,30 +560,30 @@ static void fix_separators(char *path)
 char *fsuae_path_resolve(const char *name, int type)
 {
     if (name[0] == '\0') {
-        fs_log("resolve_path (empty string)\n");
+        fsuae_log("resolve_path (empty string)\n");
         return g_strdup("");
     } else if (g_path_is_absolute(name)) {
-        fs_log("resolve_path %s (absolute)\n", name);
+        fsuae_log("resolve_path %s (absolute)\n", name);
         char *path = g_strdup(name);
         fix_separators(path);
         return path;
     } else {
-        fs_log("resolve_path %s (relative)\n", name);
+        fsuae_log("resolve_path %s (relative)\n", name);
         for (int i = 0; i < MAX_PATHS; i++) {
             if (!g_paths[type].path[i] || g_paths[type].path[i][0] == '\0') {
                 continue;
             }
             char *path = g_build_filename(g_paths[type].path[i], name, NULL);
-            fs_log("checking %s\n", path);
+            fsuae_log("checking %s\n", path);
             if (fs_path_exists(path)) {
-                fs_log("- found %s\n", path);
+                fsuae_log("- found %s\n", path);
                 fix_separators(path);
                 return path;
             }
             free(path);
         }
     }
-    fs_log("WARNING: did not find path\n", name);
+    fsuae_log("WARNING: did not find path %s\n", name);
     char *path = g_strdup(name);
     fix_separators(path);
     return path;
@@ -674,7 +674,7 @@ void fs_uae_configure_directories(void)
 
     /*
     path = g_build_filename(fsuae_path_state_dir(), "Autoload State.uss",
-    NULL); if (fs_path_exists(path)) { fs_log("found autoload state at %s\n",
+    NULL); if (fs_path_exists(path)) { fsuae_log("found autoload state at %s\n",
     path); amiga_set_option("statefile", path);
     }
     free(path);
@@ -716,7 +716,7 @@ void fs_uae_configure_directories(void)
 
 void fs_uae_set_uae_paths(void)
 {
-    fs_log("fs_uae_set_uae_paths\n");
+    fsuae_log("fs_uae_set_uae_paths\n");
     amiga_set_paths(g_paths[FS_UAE_ROM_PATHS].path,
                     g_paths[FS_UAE_FLOPPY_PATHS].path,
                     g_paths[FS_UAE_CD_PATHS].path,
@@ -731,11 +731,11 @@ void fs_uae_set_uae_paths(void)
     // find path for built-in drive sounds
     char *path = fs_get_program_data_file("floppy_sounds");
     if (path) {
-        fs_log("found \"built-in\" driveclick directory at %s\n", path);
+        fsuae_log("found \"built-in\" driveclick directory at %s\n", path);
         amiga_set_builtin_driveclick_path(path);
         free(path);
     } else {
-        fs_log("did not find \"built-in\" driveclick directory\n");
+        fsuae_log("did not find \"built-in\" driveclick directory\n");
     }
 #endif
 

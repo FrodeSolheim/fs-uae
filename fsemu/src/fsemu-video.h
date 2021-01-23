@@ -4,20 +4,20 @@
 #include "fsemu-common.h"
 #include "fsemu-config.h"
 #include "fsemu-gui.h"
+#include "fsemu-log.h"
 #include "fsemu-types.h"
 #include "fsemu-util.h"
 
-enum {
+// ----------------------------------------------------------------------------
+// Types
+// ----------------------------------------------------------------------------
+
+typedef enum {
     FSEMU_VIDEO_FORMAT_UNKNOWN,
     FSEMU_VIDEO_FORMAT_RGBA,
     FSEMU_VIDEO_FORMAT_BGRA,
     FSEMU_VIDEO_FORMAT_RGB565
-};
-
-int fsemu_video_format(void);
-
-/** This can be specified before fsemu_video_init. */
-void fsemu_video_set_format(int format);
+} fsemu_video_format_t;
 
 typedef struct {
     int layer;
@@ -57,6 +57,8 @@ typedef struct {
     int64_t began_at;
     int64_t rendered_at;
     int64_t swapped_at;
+
+    int64_t vsync_at;
 } fsemu_video_frame_stats_t;
 
 typedef enum {
@@ -70,15 +72,29 @@ typedef enum {
     FSEMU_VIDEO_RENDERER_GL
 } fsemu_video_renderer_t;
 
-// Deprecated name
+#ifdef FSEMU_DEPRECATED
 #define FSEMU_VIDEO_RENDERER_OPENGL FSEMU_VIDEO_RENDERER_GL
+#endif
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+// ----------------------------------------------------------------------------
+// Pre-initialization
+// ----------------------------------------------------------------------------
+
+fsemu_video_format_t fsemu_video_format(void);
+
+// This can be specified before fsemu_video_init.
+void fsemu_video_set_format(fsemu_video_format_t format);
+
+// ----------------------------------------------------------------------------
+// Initialization functions
+// ----------------------------------------------------------------------------
+
 // This - if called - must be called before fsemu_video_init.
-void fsemu_video_set_renderer(int renderer);
+void fsemu_video_set_renderer(fsemu_video_renderer_t renderer);
 
 // Can be called before fsemu_video_init and fsemu_window_init.
 void fsemu_video_disallow_vsync(int disallow_vsync);
@@ -89,7 +105,38 @@ void fsemu_video_set_vsync(int vsync);
 // Initialize the video subsystem. Can safely be called more than once.
 void fsemu_video_init(void);
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+// Common functions
+// ----------------------------------------------------------------------------
+
+fsemu_video_renderer_t fsemu_video_get_renderer(void);
+
+// True if the video renderer is running in its own thread.
+bool fsemu_video_is_threaded(void);
+
+// ----------------------------------------------------------------------------
+// Main thread functions
+// ----------------------------------------------------------------------------
+
+// Used to signal to the video system that the video thread can take over
+// rendering.
+void fsemu_video_set_startup_done_mt(void);
+
+void fsemu_video_set_gui_snapshot_mt(fsemu_gui_item_t *snapshot);
+
+// ----------------------------------------------------------------------------
+// Video thread functions
+// ----------------------------------------------------------------------------
+
+#ifdef FSEMU_INTERNAL
+
+fsemu_gui_item_t *fsemu_video_get_gui_snapshot_vt(void);
+
+#endif  // FSEMU_INTERNAL
+
+// ----------------------------------------------------------------------------
+// Other/unsorted...
+// ----------------------------------------------------------------------------
 
 // This is not for the renderer. The video thread has its own copy.
 
@@ -97,7 +144,7 @@ void fsemu_video_drawable_size(fsemu_size_t *size);
 
 void fsemu_video_set_drawable_size(fsemu_size_t *size);
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 #if 0
 // Copy of window size, safe to call from the video thread.
 void fsemu_video_thread_window_size(fsemu_size_t *size);
@@ -117,7 +164,7 @@ void fsemu_video_set_data_from_ui_thread(fsemu_size_t *window_size,
                                          fsemu_rect_t *video_area,
                                          fsemu_rect_t *video_rect);
 #endif
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 void fsemu_video_set_size_2(int width, int height);
 
@@ -126,7 +173,8 @@ void fsemu_video_toggle_vsync(void);
 bool fsemu_video_vsync_prevented(void);
 
 int64_t fsemu_video_vsync_time(void);
-void fsemu_video_set_vsync_time(int64_t vsync_time);
+// FIXME: REMOVE?
+// void fsemu_video_set_vsync_time(int frame_number, int64_t vsync_time);
 
 void fsemu_video_work(int timeout_us);
 
@@ -147,6 +195,7 @@ int fsemu_video_rendered_frame(void);
 void fsemu_video_set_frame_began_at(int frame, int64_t began_at);
 void fsemu_video_set_frame_rendered_at(int frame, int64_t rendered_at);
 void fsemu_video_set_frame_swapped_at(int frame, int64_t swapped_at);
+void fsemu_video_set_frame_vsync_at(int frame, int64_t vsync_at);
 
 void fsemu_video_frame_stats(int frame, fsemu_video_frame_stats_t *stats);
 
@@ -196,17 +245,36 @@ bool fsemu_video_can_skip_rendering_this_frame(void);
 void fsemu_video_must_render_frame(void);
 void fsemu_video_must_render_frame_until(int64_t until_us);
 
-#endif
+// ----------------------------------------------------------------------------
+// Logging
+// ----------------------------------------------------------------------------
+
+extern int fsemu_video_log_level;
+
+#define fsemu_video_log(format, ...) \
+    FSEMU_LOG(video, "[FSE] [VID]", format, ##__VA_ARGS__)
+
+#define fsemu_video_log_debug(format, ...) \
+    FSEMU_LOG_DEBUG(video, "[FSE] [VID]", format, ##__VA_ARGS__)
+
+#define fsemu_video_log_error(format, ...) \
+    FSEMU_LOG_ERROR(video, "[FSE] [VID]", format, ##__VA_ARGS__)
+
+#define fsemu_video_log_info(format, ...) \
+    FSEMU_LOG_INFO(video, "[FSE] [VID]", format, ##__VA_ARGS__)
+
+#define fsemu_video_log_trace(format, ...) \
+    FSEMU_LOG_TRACE(video, "[FSE] [VID]", format, ##__VA_ARGS__)
+
+#define fsemu_video_log_warning(format, ...) \
+    FSEMU_LOG_WARNING(video, "[FSE] [VID]", format, ##__VA_ARGS__)
+
+// ----------------------------------------------------------------------------
+
+#endif // FSEMU_INTERNAL
 
 #ifdef __cplusplus
 }
 #endif
-
-extern bool fsemu_video_log_enabled;
-
-#define fsemu_video_log(format, ...)                         \
-    if (fsemu_video_log_enabled) {                           \
-        fsemu_log("[FSEMU] [VIDEO] " format, ##__VA_ARGS__); \
-    }
 
 #endif  // FSEMU_VIDEO_H_

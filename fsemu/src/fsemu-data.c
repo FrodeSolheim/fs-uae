@@ -1,4 +1,4 @@
-#include "fsemu-internal.h"
+#define FSEMU_INTERNAL 1
 #include "fsemu-data.h"
 
 #include "fsemu-glib.h"
@@ -6,7 +6,7 @@
 #include "fsemu-video.h"
 #include "fsemu-window.h"
 
-#ifdef FSEMU_WINDOWS
+#ifdef FSEMU_OS_WINDOWS
 #include <Windows.h>
 #endif
 
@@ -14,7 +14,7 @@
 #include <mach-o/dyld.h>
 #endif
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 /*
 static struct fsemu_titlebar {
@@ -22,15 +22,15 @@ static struct fsemu_titlebar {
 } fsemu_data;
 */
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 void fsemu_data_init(void)
 {
     fsemu_return_if_already_initialized();
 }
 
-#ifdef FSEMU_WINDOWS
-#elif defined(FSEMU_MACOS)
+#ifdef FSEMU_OS_WINDOWS
+#elif defined(FSEMU_OS_MACOS)
 #else
 
 static char *find_program_in_path(const char *prog)
@@ -90,7 +90,7 @@ static int fs_get_application_exe_path(char *buffer, int size)
     }
     buffer[0] = '\0';
 
-#if defined(FSEMU_WINDOWS)
+#if defined(FSEMU_OS_WINDOWS)
 
     wchar_t *temp_buf = (wchar_t *) g_malloc(sizeof(wchar_t) * FSEMU_PATH_MAX);
     /* len is the number of characters NOT including the terminating null
@@ -108,7 +108,7 @@ static int fs_get_application_exe_path(char *buffer, int size)
     buffer[result] = '\0';
     return 1;
 
-#elif defined(FSEMU_MACOS)
+#elif defined(FSEMU_OS_MACOS)
 
     unsigned int usize = size;
     int result = _NSGetExecutablePath(buffer, &usize);
@@ -206,7 +206,7 @@ char *fsemu_data_file_path(const char *relative)
     // Check the same directory as the executable first, basename only
     if (basename != relative) {
         path = g_build_filename(executable_dir, basename, NULL);
-        printf("Checking %s\n", path);
+        fsemu_data_log("Checking %s\n", path);
         if (fsemu_path_exists(path)) {
             return path;
         }
@@ -215,13 +215,13 @@ char *fsemu_data_file_path(const char *relative)
 
     // Check the same directory as the executable first
     path = g_build_filename(executable_dir, relative, NULL);
-    printf("Checking %s\n", path);
+    fsemu_data_log("Checking %s\n", path);
     if (fsemu_path_exists(path)) {
         return path;
     }
     g_free(path);
 
-#ifdef FSEMU_MACOS
+#ifdef FSEMU_OS_MACOS
     char buffer[FSEMU_PATH_MAX];
     fs_get_application_exe_dir(buffer, FSEMU_PATH_MAX);
     path = g_build_filename(buffer, "..", "Resources", relative, NULL);
@@ -270,7 +270,7 @@ char *fsemu_data_file_path(const char *relative)
     // FIXME: check plugin mode
     bool plugin_mode = true;
     if (plugin_mode) {
-#ifdef FSEMU_MACOS
+#ifdef FSEMU_OS_MACOS
         // Need to go further up in the hierarchy due to being bundled inside
         // an application bundle.
         path = g_build_filename(executable_dir,

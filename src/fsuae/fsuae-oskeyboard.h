@@ -3,4 +3,6 @@
 
 #include "fsuae-config.h"
 
+void fsuae_oskeyboard_init(void);
+
 #endif  // FSUAE_OSKEYBOARD_H_

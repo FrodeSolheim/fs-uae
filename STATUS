@@ -1,0 +1,89 @@
+# Status
+
+In general, the focus has been to make the core functionality better, i.e. to
+create a better foundation for FS-UAE going forward. This means that right
+now, FS-UAE it less configurable (*) than before, but also hopefully works
+better out of the box.
+
+(*) Amiga emulation-related options are still support. Only host options such
+as display, input and audio options are affected by this.
+
+If you want to try, please make sure to read the section "Things you cannot do
+right now" If there are any deal-breakers there for you, you might want to
+wait.
+
+## Notable changes
+
+- Rewritten video/audio/input system. Should be easier to understand and
+  extend with new features (at least for me).
+- Includes support for hotpluggable devices.
+- Can be more easily extended with other audio/video drivers (such as using
+  ALSA directly), but current version uses SDL for audio and SDL+OpenGL for
+  video.
+- Making better use of high-resolution timers to ensure the emulation runs
+  smoothly also in fastest-possible CPU mode. This allows for v-sync in
+  fastest possible mode and emulated CPU cycle count is much more stable.
+- Audio latency can also generally be lower due to timing improvements.
+- FS-UAE should work better with G-SYNC and FreeSync monitors.
+- New GUI look all over (not complete yet).
+- Truetype font rendering for better readability and internationalization.
+- Make the user interface adapt better to non-16:9 displays.
+- Better support for high-DPI displays.
+- New standard bezel which tries to frame the 4:3 output while being pleasant.
+- On-screen LEDs by default (TODO).
+- On-screen keyboard (F11 or SELECT to toggle) - Visual look not done yet.
+- New performance overlay (Alt/Cmd+O) which makes it easier to identify
+  performance issues.
+- Much improved support for Raspberry Pi 4.
+- Replaced QEMU-UAE-based slirp with latest libslirp from QEMU, and also
+  fixed a race condition causing crash or corrupt data transfer. This improves
+  the stabiliy of the A2065 emulation.
+- Integrated MIDI output support via portmidi (tested on Linux). Can use to
+  for example play Sierra games with an external MT-32 emulator.
+- Updated emulation code from WinUAE 4.2.1. Allows for use of UAE expansions
+  with AmigaOS 4.1 (for example directory hard drives). Also enabled
+  x86 bridgeboard emulation (tested and works, not officially supported yet).
+
+## Issues and things you cannot do right now!
+
+Video:
+
+- Only a fixed viewport / zoom is support for now.
+- Scaling / zoom options do not have any effect yet.
+- No shader support, only bilinear filtering (always on).
+- No support for themes right now.
+- Monitor selection does not work.
+
+Audio:
+
+- Audio buffer size and output frequency is not configurable right now.
+- CD audio does not work.
+
+Input:
+
+- Input mapping is not configurable at this time.
+- Most input-related options will have no effect at this point.
+- Not using Raw input on Windows right now; some keys may not be intercepted
+  properly on Windows for full keyboard emulation.
+- Support for multiple mice is not ready yet.
+- Joystick support may be limited to gamepad-like devices right now.
+
+Other:
+
+- Translations not supported at this time.
+- Net play support is not ready yet.
+- GUI rendering is not optimized yet, GUI element textures are created for
+  each frame and not reused. This can negatively affect performance on slower
+  systems when GUI elements are shown on-screen.
+
+## Raspberry Pi 4
+
+- Efficiency improvements related to rendering makes FS-UAE run better on the RPI4.
+- Official build supports running under both X11 and in console (KMSDRM).
+- Requires FKMS / experimental OpenGL support to be enabled on the Raspberry Pi.
+- Automatically switches to 1920x1080p @50Hz if the mode is available.
+- Overclocking to 2 Ghz is recommended (that's what I've been testing with).
+- Make sure the RPI4 can run cool enough constantly without throttling the CPU;
+  An active/passive cooling solution - or a Raspberry Pi 400 is recommended.
+- Run `sudo cpufreq-set -g performance` to make sure all cores run at full speed
+  while FS-UAE is running (install with `sudo apt install cpufrequtils`).

@@ -87,20 +87,20 @@ void fsemu_audio_update_min_fill(uint8_t volatile *read,
 extern int fsemu_audio_log_level;
 
 #if 0
-#define fsemu_audio_log_with_level(level, format, ...)       \
-    if (fsemu_audio_log_level >= level) {                    \
-        fsemu_log("[FSEMU] [AUDIO] " format, ##__VA_ARGS__); \
+#define fsemu_audio_log_with_level(level, format, ...)   \
+    if (fsemu_audio_log_level >= level) {                \
+        fsemu_log("[FSE] [AUD] " format, ##__VA_ARGS__); \
     }
 #endif
 
-#define fsemu_audio_log(format, ...)                         \
-    if (fsemu_audio_log_level >= 1) {                        \
-        fsemu_log("[FSEMU] [AUDIO] " format, ##__VA_ARGS__); \
+#define fsemu_audio_log(format, ...)                     \
+    if (fsemu_audio_log_level >= 1) {                    \
+        fsemu_log("[FSE] [AUD] " format, ##__VA_ARGS__); \
     }
 
-#define fsemu_audio_log_trace(format, ...)                   \
-    if (fsemu_audio_log_level >= 2) {                        \
-        fsemu_log("[FSEMU] [AUDIO] " format, ##__VA_ARGS__); \
+#define fsemu_audio_log_trace(format, ...)               \
+    if (fsemu_audio_log_level >= 2) {                    \
+        fsemu_log("[FSE] [AUD] " format, ##__VA_ARGS__); \
     }
 
 #ifdef __cplusplus

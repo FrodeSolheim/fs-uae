@@ -44,8 +44,31 @@ void fsemu_action_process_non_emu(fsemu_action_t action,
 void fsemu_action_process_command_in_main(fsemu_action_t action,
                                           int16_t state);
 
+// ----------------------------------------------------------------------------
+// Logging
+// ----------------------------------------------------------------------------
+
+extern int fsemu_action_log_level;
+
 #define fsemu_action_log(format, ...) \
-    fsemu_log("[FSEMU] [ACTION] " format, ##__VA_ARGS__)
+    FSEMU_LOG(action, "[FSE] [ACT]", format, ##__VA_ARGS__)
+
+#define fsemu_action_log_debug(format, ...) \
+    FSEMU_LOG_DEBUG(action, "[FSE] [ACT]", format, ##__VA_ARGS__)
+
+#define fsemu_action_log_error(format, ...) \
+    FSEMU_LOG_ERROR(action, "[FSE] [ACT]", format, ##__VA_ARGS__)
+
+#define fsemu_action_log_info(format, ...) \
+    FSEMU_LOG_INFO(action, "[FSE] [ACT]", format, ##__VA_ARGS__)
+
+#define fsemu_action_log_trace(format, ...) \
+    FSEMU_LOG_TRACE(action, "[FSE] [ACT]", format, ##__VA_ARGS__)
+
+#define fsemu_action_log_warning(format, ...) \
+    FSEMU_LOG_WARNING(action, "[FSE] [ACT]", format, ##__VA_ARGS__)
+
+// ----------------------------------------------------------------------------
 
 #ifdef __cplusplus
 }

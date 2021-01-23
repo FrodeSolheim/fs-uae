@@ -847,10 +847,10 @@ libfsemu2_a_SOURCES = \
 	fsemu/src/fsemu-action.c \
 	fsemu/src/fsemu-action.h \
 	fsemu/src/fsemu-actions.h \
-	fsemu/src/fsemu-audio-alsa.c \
-	fsemu/src/fsemu-audio-alsa.h \
-	fsemu/src/fsemu-audio-buffer.c \
-	fsemu/src/fsemu-audio-buffer.h \
+	fsemu/src/fsemu-alsaaudio.c \
+	fsemu/src/fsemu-alsaaudio.h \
+	fsemu/src/fsemu-audiobuffer.c \
+	fsemu/src/fsemu-audiobuffer.h \
 	fsemu/src/fsemu-audio.c \
 	fsemu/src/fsemu-audio.h \
 	fsemu/src/fsemu-axis.h \
@@ -880,6 +880,8 @@ libfsemu2_a_SOURCES = \
 	fsemu/src/fsemu-fontcache.h \
 	fsemu/src/fsemu-frame.c \
 	fsemu/src/fsemu-frame.h \
+	fsemu/src/fsemu-frameinfo.c \
+	fsemu/src/fsemu-frameinfo.h \
 	fsemu/src/fsemu-gamemode.c \
 	fsemu/src/fsemu-gamemode.h \
 	fsemu/src/fsemu-glib.h \
@@ -912,8 +914,14 @@ libfsemu2_a_SOURCES = \
 	fsemu/src/fsemu-layer.h \
 	fsemu/src/fsemu-layout.c \
 	fsemu/src/fsemu-layout.h \
+	fsemu/src/fsemu-led.c \
+	fsemu/src/fsemu-led.h \
+	fsemu/src/fsemu-leds.c \
+	fsemu/src/fsemu-leds.h \
 	fsemu/src/fsemu-log.c \
 	fsemu/src/fsemu-log.h \
+	fsemu/src/fsemu-main.c \
+	fsemu/src/fsemu-main.h \
 	fsemu/src/fsemu-mainmenu.c \
 	fsemu/src/fsemu-mainmenu.h \
 	fsemu/src/fsemu-manymouse.c \
@@ -945,6 +953,8 @@ libfsemu2_a_SOURCES = \
 	fsemu/src/fsemu-perfgui.h \
 	fsemu/src/fsemu-quit.c \
 	fsemu/src/fsemu-quit.h \
+	fsemu/src/fsemu-recording.c \
+	fsemu/src/fsemu-recording.h \
 	fsemu/src/fsemu-refable.c \
 	fsemu/src/fsemu-refable.h \
 	fsemu/src/fsemu-render.c \
@@ -964,6 +974,8 @@ libfsemu2_a_SOURCES = \
 	fsemu/src/fsemu-sdlvideo.h \
 	fsemu/src/fsemu-sdlwindow.c \
 	fsemu/src/fsemu-sdlwindow.h \
+	fsemu/src/fsemu-semaphore.c \
+	fsemu/src/fsemu-semaphore.h \
 	fsemu/src/fsemu-shader.c \
 	fsemu/src/fsemu-shader.h \
 	fsemu/src/fsemu-startupinfo.c \

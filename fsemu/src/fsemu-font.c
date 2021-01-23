@@ -1,4 +1,4 @@
-#include "fsemu-internal.h"
+#define FSEMU_INTERNAL 1
 #include "fsemu-font.h"
 
 #include "fsemu-color.h"
@@ -8,7 +8,7 @@
 #include "fsemu-sdl.h"
 #include "fsemu-util.h"
 
-int fsemu_font_log_level = FSEMU_LOG_INFO;
+int fsemu_font_log_level = FSEMU_LOG_LEVEL_INFO;
 
 struct fsemu_font {
     FSEMU_REFABLE;

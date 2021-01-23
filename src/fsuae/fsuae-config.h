@@ -20,21 +20,25 @@
 #include "fsemu-log.h"
 #include "fsuae-model.h"
 
-
-
 extern int fsuae_log_level;
 
-#define fsuae_log(format, ...)                             \
-    if (FSEMU_LIKELY(fsuae_log_level >= FSEMU_LOG_INFO)) { \
-        fsemu_log("[FSUAE] " format, ##__VA_ARGS__) ;      \
+#define fsuae_log(format, ...)                                           \
+    if (fsemu_likely(fsuae_log_level >= FSEMU_LOG_LEVEL_INFO)) {         \
+        fsemu_log_with_level(                                            \
+            FSEMU_LOG_LEVEL_INFO, "[FAE] [   ] " format, ##__VA_ARGS__); \
     }
 
-#define fsuae_log_debug(format, ...)                          \
-    if (FSEMU_UNLIKELY(fsuae_log_level >= FSEMU_LOG_DEBUG)) { \
-        fsemu_log("[FSUAE] " format, ##__VA_ARGS__);          \
+#define fsuae_log_debug(format, ...)                                      \
+    if (fsemu_unlikely(fsuae_log_level >= FSEMU_LOG_LEVEL_DEBUG)) {       \
+        fsemu_log_with_level(                                             \
+            FSEMU_LOG_LEVEL_DEBUG, "[FAE] [   ] " format, ##__VA_ARGS__); \
     }
 
-
+#define fsuae_log_warning(format, ...)                                      \
+    if (fsemu_likely(fsuae_log_level >= FSEMU_LOG_LEVEL_WARNING)) {         \
+        fsemu_log_with_level(                                               \
+            FSEMU_LOG_LEVEL_WARNING, "[FAE] [   ] " format, ##__VA_ARGS__); \
+    }
 
 bool fs_uae_values_matches(const char *s1, const char *s2);
 int fs_uae_read_memory_option(const char *name);

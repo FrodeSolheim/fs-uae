@@ -1,9 +1,11 @@
-#include "fsemu-internal.h"
+#define FSEMU_INTERNAL 1
 #include "fsemu-inputdevice.h"
+
+#include "fsemu-input.h"
 
 static void fsemu_inputdevice_free(fsemu_inputdevice_t *device)
 {
-    printf("%s device=%p\n", __func__, device);
+    fsemu_input_log_debug("%s device=%p\n", __func__, device);
     // FIXME: fsemu_refable_log("%s device=%p\n", __func__, device);
     free(device);
 }
@@ -31,7 +33,7 @@ static fsemu_inputdevice_t *fsemu_inputdevice_alloc(void)
 fsemu_inputdevice_t *fsemu_inputdevice_new(void)
 {
     fsemu_inputdevice_t *device = fsemu_inputdevice_alloc();
-    printf("%s device=%p\n", __func__, device);
+    fsemu_input_log_debug("%s device=%p\n", __func__, device);
     // FIXME: fsemu_refable_log("%s device=%p\n", __func__, device);
     fsemu_inputdevice_init(device);
     return device;

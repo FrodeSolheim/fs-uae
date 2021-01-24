@@ -54,6 +54,7 @@
 #include "fsemu-audio.h"
 #include "fsemu-gamemode.h"
 #include "fsemu-gui.h"
+#include "fsemu-helpbar.h"
 #include "fsemu-input.h"
 #include "fsemu-inputport.h"
 #include "fsemu-leds.h"
@@ -1864,6 +1865,7 @@ int main(int argc, char *argv[])
         fsemu_input_init();
 
         fsemu_leds_init();
+        fsemu_helpbar_init();
     }
 
     init_i18n();

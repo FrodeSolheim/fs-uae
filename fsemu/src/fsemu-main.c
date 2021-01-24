@@ -4,6 +4,7 @@
 #include "fsemu-fade.h"
 #include "fsemu-frame.h"
 #include "fsemu-gui.h"
+#include "fsemu-helpbar.h"
 #include "fsemu-hud.h"
 #include "fsemu-input.h"
 #include "fsemu-leds.h"
@@ -31,6 +32,7 @@ bool fsemu_main_is_running(void)
 void fsemu_main_update(void)
 {
     fsemu_fade_update();
+    fsemu_helpbar_update();
     fsemu_hud_update();
     fsemu_leds_update();
     fsemu_oskeyboard_update();

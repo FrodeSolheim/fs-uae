@@ -892,6 +892,8 @@ libfsemu2_a_SOURCES = \
 	fsemu/src/fsemu-glvideo.h \
 	fsemu/src/fsemu-gui.c \
 	fsemu/src/fsemu-gui.h \
+	fsemu/src/fsemu-helpbar.c \
+	fsemu/src/fsemu-helpbar.h \
 	fsemu/src/fsemu-helper.c \
 	fsemu/src/fsemu-helper.h \
 	fsemu/src/fsemu-hud.c \
@@ -1022,16 +1024,32 @@ fsemu_data_files = \
 	fsemu/images/TitleBarMinimizeIcon.png \
 	fsemu/images/TitleBarWithShadow.png
 
+fsuae_data_files = \
+	src/fsuae/images/DiskLed_On.png \
+	src/fsuae/images/DiskLed.png \
+	src/fsuae/images/FloppyLed_On.png \
+	src/fsuae/images/FloppyLed.png \
+	src/fsuae/images/KLockLed_On.png \
+	src/fsuae/images/KLockLed.png \
+	src/fsuae/images/MLockLed_On.png \
+	src/fsuae/images/MLockLed.png \
+	src/fsuae/images/PowerLed_On.png \
+	src/fsuae/images/PowerLed.png \
+	src/fsuae/images/VSyncLed_Alt.png \
+	src/fsuae/images/VSyncLed_On.png \
+	src/fsuae/images/VSyncLed.png
+
 # FIXME: EXTRA_DIST ?
 libfsemu2_a_SOURCES += $(fsemu_data_files)
 
-data/.fsemu: $(fsemu_data_files)
+data/.fsemu: $(fsemu_data_files) ${fsuae_data_files}
 	mkdir -p $(b)/data/Fonts
 	cp $(s)/fsemu/fonts/saira/* $(b)/data/Fonts/
 	mkdir -p $(b)/data/Icons
 	cp $(s)/fsemu/icons/fontawesome/* $(b)/data/Icons/
 	mkdir -p $(b)/data/Images
 	cp $(s)/fsemu/images/* $(b)/data/Images/
+	cp $(s)/src/fsuae/images/* $(b)/data/Images/
 	touch data/.fsemu
 
 fsemu-data: data/.fsemu
@@ -1643,6 +1661,7 @@ EXTRA_TESTS = \
 	tests/cppcheck-uae
 
 EXTRA_DIST = $(TESTS) $(EXTRA_TESTS) \
+	$(fsuae_data_files) \
 	debian/changelog \
 	debian/compat \
 	debian/control \

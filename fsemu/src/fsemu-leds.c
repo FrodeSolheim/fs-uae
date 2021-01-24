@@ -246,11 +246,13 @@ void fsemu_leds_init(void)
 
     fsemu_leds.mlock_led = fsemu_led_create();
     fsemu_led_set_id(fsemu_leds.mlock_led, "MLockLed");
-    fsemu_led_set_label(fsemu_leds.mlock_led, "M.LOCK");
+    // fsemu_led_set_label(fsemu_leds.mlock_led, "M.LOCK");
+    fsemu_led_set_label(fsemu_leds.mlock_led, "MOUSE");
     fsemu_leds_add_led_to_side(fsemu_leds.mlock_led, FSEMU_LEDS_SIDE_LEFT);
 
     fsemu_leds.klock_led = fsemu_led_create();
     fsemu_led_set_id(fsemu_leds.klock_led, "KLockLed");
     fsemu_led_set_label(fsemu_leds.klock_led, "K.LOCK");
+    // fsemu_led_set_label(fsemu_leds.klock_led, "KEYLOCK");
     fsemu_leds_add_led_to_side(fsemu_leds.klock_led, FSEMU_LEDS_SIDE_LEFT);
 }

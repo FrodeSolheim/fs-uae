@@ -90,7 +90,7 @@ void gui_led (int led, int state, int brightness)
     else if (led == LED_DF3) out_led = 3;
     else if (led == LED_POWER) {
         //printf("POWER %d b %d\n", state, gui_data.powerled_brightness);
-        printf("POWER LED %d b %d\n", state, brightness);
+        // printf("POWER LED %d b %d\n", state, brightness);
         out_led = 8;
     }
     else if (led == LED_HD) out_led = 9;

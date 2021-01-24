@@ -32,6 +32,7 @@ core
 /data/
 *.dbg
 /*.deb
+/demos
 /depcomp
 .deps
 /desktop/

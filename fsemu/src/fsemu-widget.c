@@ -169,8 +169,10 @@ void fsemu_widget_set_image(fsemu_widget_t *widget,
         fsemu_refable_unref(widget->image);
     }
     widget->image = image;
-    if (!image_owner) {
-        fsemu_refable_ref(widget->image);
+    if (widget->image) {
+        if (!image_owner) {
+            fsemu_refable_ref(widget->image);
+        }
     }
     // widget->image_owner = true;
     widget->dirty = true;

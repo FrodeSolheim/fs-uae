@@ -61,7 +61,8 @@ static struct {
 // 4:3 video edge on a 16:9 display. But a bit short.
 // int notice_width = 440;
 
-#define FSEMU_HUD_NOTICE_WIDTH 512
+// #define FSEMU_HUD_NOTICE_WIDTH 512
+#define FSEMU_HUD_NOTICE_WIDTH 480
 #define FSEMU_HUD_NOTICE_HEIGHT 120
 
 static void fsemu_hud_init_notice(fsemu_hud_notice_t *notice)
@@ -201,9 +202,9 @@ static void fsemu_hud_init_standard_notices(void)
     fsemu_hud_init_and_add_notice(&fsemu_hud.vsync_notice);
 
     fsemu_hud.cursor_notice.icon = strdup("Icons/NotificationCursor.png");
-    fsemu_hud.cursor_notice.title = strdup("Mouse cursor captured");
+    fsemu_hud.cursor_notice.title = strdup("Mouse cursor grabbed");
     fsemu_hud.cursor_notice.subtitle = g_strdup_printf(
-        "Middle click or %s+G to release", FSEMU_KEYBOARD_MOD_NAME);
+        "%s+G or middle-click to release", FSEMU_KEYBOARD_MOD_NAME);
     fsemu_hud_init_and_add_notice(&fsemu_hud.cursor_notice);
 
     // fsemu_hud.vsync_notice.visible_until = now + 10 * 1000 * 1000;
@@ -219,20 +220,21 @@ static void fsemu_hud_set_notice_position(fsemu_hud_notice_t *notice,
     notice->icon_item.rect.x = x + 20;
     notice->icon_item.rect.y = y + 20;
 
-    notice->title_item.rect.x = x + 80 + 20 + 20;
-    notice->title_item.rect.y = y + 18;
+    notice->title_item.rect.x = x + 20 + 80 + 10; // + 20;
+    notice->title_item.rect.y = y + 20; // y + 18;
 
-    notice->subtitle_item.rect.x = x + 80 + 20 + 20;
-    notice->subtitle_item.rect.y = y + 58;
+    notice->subtitle_item.rect.x = x + 20 + 80 + 10; // + 20;
+    notice->subtitle_item.rect.y = y + 59; // 58;
 }
 
 static void fsemu_hud_update_notice_positions(void)
 {
     // FIXME: titlebar height -- not when using custom frame in windowed mode
     // int first_y = 40 + 20;
-    // int x = 20;
-    int x = 1920 - FSEMU_HUD_NOTICE_WIDTH - 60;
+    int x = 60;
     int y = 60;
+    // int x = 1920 - FSEMU_HUD_NOTICE_WIDTH - 60;
+    // int y = 60;
     /*
     fsemu_hud_set_notice_position(&fsemu_hud.quitkey_notice, x, y);
     y += 120 + 20;
@@ -421,12 +423,14 @@ void fsemu_hud_init(void)
         fsemu_fontcache_font("Fonts/SairaCondensed-SemiBold.ttf", 32);
     // FIXME: Semi-bold ?
     fsemu_hud.notice_subtitle_font =
-        fsemu_fontcache_font("Fonts/SairaCondensed-Medium.ttf", 28);
+        fsemu_fontcache_font("Fonts/SairaCondensed-SemiBold.ttf", 24);
+        // fsemu_fontcache_font("Fonts/SairaCondensed-Medium.ttf", 24);
 
     // fsemu_hud.notice_background_color = FSEMU_RGBA(0x202020c0);
-    fsemu_hud.notice_background_color = FSEMU_RGBA(0x404040c0);
-    fsemu_hud.notice_title_color = FSEMU_RGBA(0xffffffff);
-    fsemu_hud.notice_subtitle_color = FSEMU_RGBA(0xffffffaa);
+    // fsemu_hud.notice_background_color = FSEMU_RGBA(0x404040c0);
+    fsemu_hud.notice_background_color = FSEMU_RGBA(0x333333d8);
+    fsemu_hud.notice_title_color = FSEMU_RGB(0xffffff);
+    fsemu_hud.notice_subtitle_color = FSEMU_RGB(0x999999);
 
     fsemu_hud_init_standard_notices();
 }

@@ -103,6 +103,8 @@ struct fsemu_gui_item_struct {
 
     char *text;
     fsemu_image_t *textimage;
+    // Default is 0.0 for left-aligned.
+    float text_halign;
     // Default is 0.5 for centered vertically.
     float text_valign;
     // For example FSEMU_WIDGET_TEXT_TRANSFORM_UPPERCASE.

@@ -203,7 +203,7 @@ typedef void (*log_function)(const char *msg);
 void amiga_set_log_function(log_function function);
 void amiga_set_gui_message_function(log_function function);
 
-typedef void (*amiga_led_function)(int led, int on);
+typedef void (*amiga_led_function)(int led, int on, int brightness);
 void amiga_set_led_function(amiga_led_function function);
 
 typedef void (*amiga_media_function)(int drive, const char *path);

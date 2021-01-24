@@ -122,6 +122,7 @@ void fsemu_widget_set_coordinates_2(fsemu_widget_t *widget,
 void fsemu_widget_set_text(fsemu_widget_t *widget, const char *text);
 void fsemu_widget_set_text_color(fsemu_widget_t *widget,
                                  fsemu_color_t text_color);
+void fsemu_widget_set_text_halign(fsemu_widget_t *widget, float text_halign);
 void fsemu_widget_set_text_valign(fsemu_widget_t *widget, float text_valign);
 #define FSEMU_WIDGET_TEXT_TRANSFORM_NONE 0
 #define FSEMU_WIDGET_TEXT_TRANSFORM_UPPERCASE 1

@@ -7,6 +7,7 @@
 extern "C" {
 #endif
 
+#define FSEMU_LAYER_LEDS -1000
 #define FSEMU_LAYER_VIDEO 0
 #define FSEMU_LAYER_OSMENU 8000
 #define FSEMU_LAYER_OSKEYBOARD 9000

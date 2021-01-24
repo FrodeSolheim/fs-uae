@@ -7,6 +7,9 @@
 extern "C" {
 #endif
 
+// FIXME: Define enum type
+#define FSEMU_REF_ASSIGN true
+
 struct fsemu_refable_struct {
     char magic[4];
     int ref_count;

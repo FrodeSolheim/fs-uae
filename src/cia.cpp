@@ -908,6 +908,10 @@ static void led_vsync (void)
 		v = 255;
 	if (v < 0)
 		v = 0;
+#ifdef FSUAE
+	// FIXME: Don't do this here
+	currprefs.power_led_dim = 128;
+#endif
 	if (currprefs.power_led_dim && v < currprefs.power_led_dim)
 		v = currprefs.power_led_dim;
 	if (v > 255)

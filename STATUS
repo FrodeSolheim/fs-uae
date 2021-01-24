@@ -30,8 +30,8 @@ wait.
 - Make the user interface adapt better to non-16:9 displays.
 - Better support for high-DPI displays.
 - New standard bezel which tries to frame the 4:3 output while being pleasant.
-- On-screen LEDs by default (TODO).
-- On-screen keyboard (F11 or SELECT to toggle) - Visual look not done yet.
+- New on-screen LEDs by default.
+- New On-screen keyboard (F11 or SELECT to toggle) - Visual look not done yet.
 - New performance overlay (Alt/Cmd+O) which makes it easier to identify
   performance issues.
 - Much improved support for Raspberry Pi 4.

@@ -11,17 +11,17 @@ extern "C" {
 
 typedef uint32_t fsemu_color_t;
 
-#define FSEMU_COLOR_RGB(c)                                              \
-    (((c & 0xff0000) >> 16) | (c & 0x00ff00) | ((c & 0x0000ff) << 16) | \
+#define FSEMU_COLOR_RGB(c)                                                 \
+    ((((c) &0xff0000) >> 16) | ((c) &0x00ff00) | (((c) &0x0000ff) << 16) | \
      0xff000000)
 
-#define FSEMU_COLOR_RGBA(c)                               \
-    (((c & 0xff000000) >> 24) | ((c & 0x00ff0000) >> 8) | \
-     ((c & 0x0000ff00) << 8) | ((c & 0x000000ff) << 24))
+#define FSEMU_COLOR_RGBA(c)                                 \
+    ((((c) &0xff000000) >> 24) | (((c) &0x00ff0000) >> 8) | \
+     (((c) &0x0000ff00) << 8) | (((c) &0x000000ff) << 24))
 
-#define FSEMU_COLOR_RGB_A(c, a)                                         \
-    (((c & 0xff0000) >> 16) | (c & 0x00ff00) | ((c & 0x0000ff) << 16) | \
-     ((a & 0x000000ff) << 24))
+#define FSEMU_COLOR_RGB_A(c, a)                                            \
+    ((((c) &0xff0000) >> 16) | ((c) &0x00ff00) | (((c) &0x0000ff) << 16) | \
+     (((a) &0x000000ff) << 24))
 
 #define FSEMU_COLOR_BLACK FSEMU_COLOR_RGB(0x000000)
 #define FSEMU_COLOR_BLUE FSEMU_COLOR_RGB(0x0000ff)

@@ -1058,7 +1058,9 @@ static void fsemu_glvideo_render_text(fsemu_gui_item_t *widget)
     double text_h = 2.0 * widget->textimage->height / 1080.0;
     double text_w = 2.0 * widget->textimage->width * client_size.h /
                     client_size.w / 1080.0;
+    dr.x = dr.x + (dr.w - text_w) * widget->text_halign;
     dr.y = dr.y + (dr.h - text_h) * (1.0 - widget->text_valign);
+
     dr.h = text_h;
     // FIXME: Clamp with to original dr.w plus adjust tx to achieve clipping?
     dr.w = text_w;

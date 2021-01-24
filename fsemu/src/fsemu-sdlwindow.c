@@ -70,6 +70,13 @@ static struct {
     bool no_event_polling;
 } fsemu_sdlwindow;
 
+// FIXME: Replace
+bool fsemu_sdlwindow_full_keyboard_emulation(void)
+{
+    return fsemu_sdlwindow.full_keyboard_emulation;
+}
+
+
 // ----------------------------------------------------------------------------
 
 #if defined(FSEMU_OS_WINDOWS)

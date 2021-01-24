@@ -56,6 +56,7 @@
 #include "fsemu-gui.h"
 #include "fsemu-input.h"
 #include "fsemu-inputport.h"
+#include "fsemu-leds.h"
 #include "fsemu-main.h"
 #include "fsemu-option.h"
 #include "fsemu-quit.h"
@@ -1108,7 +1109,17 @@ static void init_i18n(void)
 
 // ----------------------------------------------------------------------------
 
-static void led_function(int led, int state)
+#define LED_STATES_MAX 12
+
+static struct {
+    fsemu_led_t *power_led;
+    fsemu_led_t *floppy_led;
+    fsemu_led_t *disk_led;
+    int led_states[LED_STATES_MAX];
+    int led_brightness[LED_STATES_MAX];
+} leds;
+
+static void led_function(int led, int state, int brightness)
 {
 #ifdef FSUAE_LEGACY
     /* floppy led status is custom overlay 0..3 */
@@ -1119,6 +1130,10 @@ static void led_function(int led, int state)
 #endif
     fs_emu_set_custom_overlay_state(led, state);
 #endif
+    if (led < LED_STATES_MAX) {
+        leds.led_states[led] = state;
+        leds.led_brightness[led] = brightness;
+    }
 }
 
 static void on_update_leds(void *data)
@@ -1132,7 +1147,48 @@ static void on_update_leds(void *data)
         fs_emu_set_custom_overlay_state(led + 1, leds->df_t0[i]);
     }
 #endif
+    int floppy_state = 0;
+    for (int i = 1; i <= 4; i++) {
+    // for (int i = 0; i <= 3; i++) {
+        if (leds.led_states[i]) {
+            floppy_state = 1;
+        }
+    }
+    // FIXME: Power led should be dimmed and not completely off when audio
+    // filter is enabled (strictly speaking depending on model).
+    // FIXME: Support older model style of red power and green floppy led?
+    // For example when emulating Amiga 1000?
+
+    // FIXME: Use led numbers from UAE, not OD-FS ones
+    fsemu_led_set_state(leds.power_led, leds.led_states[0]);
+    fsemu_led_set_brightness(leds.power_led, leds.led_brightness[0]);
+    // fsemu_led_set_state(leds.power_led, leds.led_states[8]);
+    fsemu_led_set_state(leds.floppy_led, floppy_state);
+    fsemu_led_set_state(leds.disk_led, leds.led_states[5]);
+    // fsemu_led_set_state(leds.disk_led, leds.led_states[9]);
 }
+
+// ----------------------------------------------------------------------------
+
+static void fsuae_init_leds(void)
+{
+    leds.power_led = fsemu_led_create();
+    fsemu_led_set_id(leds.power_led, "PowerLed");
+    fsemu_led_set_label(leds.power_led, "POWER");
+    fsemu_leds_add_led(leds.power_led);
+
+    leds.floppy_led = fsemu_led_create();
+    fsemu_led_set_id(leds.floppy_led, "FloppyLed");
+    fsemu_led_set_label(leds.floppy_led, "FLOPPY");
+    fsemu_leds_add_led(leds.floppy_led);
+
+    leds.disk_led = fsemu_led_create();
+    fsemu_led_set_id(leds.disk_led, "DiskLed");
+    fsemu_led_set_label(leds.disk_led, "H.DISK");
+    fsemu_leds_add_led(leds.disk_led);
+}
+
+// ----------------------------------------------------------------------------
 
 static unsigned int whdload_quit_key = 0;
 
@@ -1806,9 +1862,12 @@ int main(int argc, char *argv[])
 
         fsemu_audio_init();
         fsemu_input_init();
+
+        fsemu_leds_init();
     }
 
     init_i18n();
+    fsuae_init_leds();
 
     if (g_fs_uae_disk_file_path) {
         fs_config_set_string(OPTION_FLOPPY_DRIVE_0, g_fs_uae_disk_file_path);

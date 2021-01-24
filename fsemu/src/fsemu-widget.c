@@ -37,6 +37,7 @@ void fsemu_widget_init(fsemu_widget_t *widget)
     widget->bottom.anchor = FSEMU_WIDGET_PARENT_BOTTOM;
     widget->left.anchor = FSEMU_WIDGET_PARENT_LEFT;
 
+    widget->text_halign = 0.0;
     widget->text_valign = 0.5;
     widget->font_size = 32;
 }
@@ -324,6 +325,11 @@ void fsemu_widget_set_text_transform(fsemu_widget_t *widget,
     widget->text_transform = text_transform;
 }
 
+void fsemu_widget_set_text_halign(fsemu_widget_t *widget, float text_halign)
+{
+    widget->text_halign = text_halign;
+}
+
 void fsemu_widget_set_text_valign(fsemu_widget_t *widget, float text_valign)
 {
     widget->text_valign = text_valign;
@@ -336,6 +342,11 @@ void fsemu_widget_set_font_size(fsemu_widget_t *widget, int font_size)
 
 void fsemu_widget_set_text(fsemu_widget_t *widget, const char *text)
 {
+    fsemu_assert(text != NULL);
+    if (widget->text && strcmp(text, widget->text) == 0) {
+        // Same text as before
+        return;
+    }
     if (widget->text) {
         free(widget->text);
     }

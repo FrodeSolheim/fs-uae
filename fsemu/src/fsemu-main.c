@@ -6,6 +6,7 @@
 #include "fsemu-gui.h"
 #include "fsemu-hud.h"
 #include "fsemu-input.h"
+#include "fsemu-leds.h"
 #include "fsemu-oskeyboard.h"
 #include "fsemu-osmenu.h"
 #include "fsemu-perfgui.h"
@@ -31,6 +32,7 @@ void fsemu_main_update(void)
 {
     fsemu_fade_update();
     fsemu_hud_update();
+    fsemu_leds_update();
     fsemu_oskeyboard_update();
     fsemu_osmenu_update();
     fsemu_perfgui_update();

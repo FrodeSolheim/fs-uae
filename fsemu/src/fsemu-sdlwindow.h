@@ -19,6 +19,9 @@
 extern "C" {
 #endif
 
+// FIXME: Replace
+bool fsemu_sdlwindow_full_keyboard_emulation(void);
+
 // This function can be called before fsemu_window_init and
 // fsemu_sdlwindow_init.
 void fsemu_sdlwindow_set_no_event_polling(bool no_event_polling);

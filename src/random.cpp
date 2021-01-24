@@ -6,13 +6,19 @@
 #include "uae.h"
 #include <stdint.h>
 
+// The random number generator is called fairly often by the emulation, so it
+// is important (on slow systems) that the generator is quite fast!
+
 // ----------------------------------------------------------------------------
 // Park-Miller RNG
-// Code from https://en.wikipedia.org/wiki/Lehmer_random_number_generator
+// Algorithm from https://en.wikipedia.org/wiki/Lehmer_random_number_generator
+
+#if 0
 
 static uint32_t lcg_parkmiller(uint32_t *state)
 {
 #if 1
+	// Probably slow on 32-bit CPUs
 	return *state = (uint64_t) *state * 48271 % 0x7fffffff;
 #else
 #if 0
@@ -38,6 +44,22 @@ static uint32_t lcg_parkmiller(uint32_t *state)
 	return *state = result;
 #endif
 #endif
+}
+
+#endif
+
+// ----------------------------------------------------------------------------
+// About twice as fast as lcg_parkmiller. This isn't a very good algorithm if
+// randomness is really important, but should be more than good enough to add
+// some "noise" in emulation.
+// Algorithm from https://en.wikipedia.org/wiki/Xorshift
+
+static uint32_t xorshift(uint32_t *state)
+{
+	*state ^= *state << 13;
+	*state ^= *state >> 17;
+	*state ^= *state << 5;
+	return *state;
 }
 
 // ----------------------------------------------------------------------------
@@ -84,9 +106,12 @@ uae_u32 uaerand (void)
 		// FIXME: strip away some bits of seed if necessary?
 		uae_random_state = 1 + new_seed + uae_random_seed;
 		old_seed = new_seed;
+		assert(uae_random_state > 0);
 	}
-
+#if 0
 	return lcg_parkmiller(&uae_random_state);
+#endif
+	return xorshift(&uae_random_state);
 }
 
 uae_u32 uaerandgetseed (void)

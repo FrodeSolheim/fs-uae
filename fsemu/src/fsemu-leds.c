@@ -102,8 +102,6 @@ static void fsemu_leds_init_led(int index)
     }
     // fsemu_widget_set_visible(w, true);
     fsemu_widget_add_child(fsemu_leds.led_w[index], w);
-
-    printf("init LED\n");
 }
 
 static void fsemu_leds_update_led(int index)

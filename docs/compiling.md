@@ -2,54 +2,37 @@
 
 First, you need to prepare your build environment
 
-## Set up an build environment on Ubuntu or Debian
+## Setting up a build environment
 
-Install dependencies for running bootstrap:
+### Debian / Ubuntu
 
-    sudo apt install autoconf automake libtool gettext
+Install dependencies for bootstrapping and building FS-UAE:
 
-Run bootstrap (only when building from git repo):
+    sudo apt install autoconf automake build-essential gettext \
+    libfreetype6-dev libglew-dev libglib2.0-dev libjpeg-dev libmpeg2-4-dev \
+    libopenal-dev libpng-dev libsdl2-dev libsdl2-ttf-dev libtool libxi-dev \
+    libxtst-dev zip zlib1g-dev
 
-    ./bootstrap
+### openSUSE
 
-Install dependencies for building FS-UAE:
+Install dependencies for bootstrapping and building FS-UAE:
 
-    sudo apt install build-essential libsdl2-dev libglib2.0-dev \
-    libopenal-dev gettext libfreetype6-dev libxi-dev libpng-dev zlib1g-dev \
-    libmpeg2-4-dev zip libjpeg-dev libglew-dev libxtst-dev libsdl2-ttf-dev
+    sudo zypper install autoconf automake freetype2-devel gcc gcc-c++ gettext \
+    glib2-devel libpng-devel libtool libXi-devel openal-devel SDL2-devel zip
 
-## Set up a build environment on openSUSE
-
-Install dependencies for running bootstrap:
-
-    sudo zypper install autoconf automake libtool gettext
-
-Install dependencies for building FS-UAE:
-
-    sudo zypper install SDL2-devel glib2-devel libpng-devel gettext \
-    freetype2-devel gcc gcc-c++ openal-devel libXi-devel zip
-
-## Set up a build environment on Windows
+### Windows
 
 Install latest msys2-x86_64 from www.msys2.org/ and follow the installation
 instructions to get an updated MSYS2 installation. Then start
 `MSYS2 MinGW 64-bit`.
 
-Install dependencies for bootstrapping from repository as well as checking
-out the repository from github (optional).
+Install dependencies for bootstrapping and building FS-UAE:
 
-    pacman -S autoconf automake gettext libtool nano openssh
-
-Run bootstrap (only when building from git repo):
-
-    ./bootstrap
-
-Install dependencies for building FS-UAE:
-
-    pacman -S gettext make mingw-w64-x86_64-freetype mingw-w64-x86_64-gcc \
-    mingw-w64-x86_64-glew mingw-w64-x86_64-glib2 mingw-w64-x86_64-openal \
-    mingw-w64-x86_64-libmpeg2 mingw-w64-x86_64-libpng mingw-w64-x86_64-SDL2 \
-    mingw-w64-x86_64-SDL2_ttf pkg-config zip
+    pacman -S autoconf automake gettext libtool make \
+    mingw-w64-x86_64-freetype mingw-w64-x86_64-gcc mingw-w64-x86_64-glew \
+    mingw-w64-x86_64-glib2 mingw-w64-x86_64-libmpeg2 mingw-w64-x86_64-libpng \
+    mingw-w64-x86_64-openal mingw-w64-x86_64-SDL2 mingw-w64-x86_64-SDL2_ttf \
+    pkg-config zip
 
 ## Configuring and building FS-UAE
 
@@ -70,7 +53,7 @@ You can now run fs-uae from the source folder without installation:
 
     ./fs-uae
 
-## Configuration options
+### Configuration options
 
 The configure script can be used to enable some additional features
 (but they might not work or even compile) and disable default features.
@@ -83,6 +66,5 @@ the cases where it happens to work ;-).
 Supported options:
 
 - `--prefix=...`: Installation prefix (defaults to /usr/local).
-- `--with-libmpeg=builtin`: For systems lacking libmpeg2.
 - `--disable-jit`: For platforms without UAE JIT support.
 - `--disable-x86`: Disable x86 bridgeboard emulation.

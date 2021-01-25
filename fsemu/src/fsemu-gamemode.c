@@ -7,6 +7,8 @@
 #include "fsemu-option.h"
 #include "fsemu-options.h"
 
+int fsemu_gamemode_log_level = FSEMU_LOG_LEVEL_INFO;
+
 #ifdef FSEMU_OS_LINUX
 
 #include "../gamemode/lib/gamemode_client.h"
@@ -20,13 +22,13 @@ void fsemu_gamemode_init(void)
 {
 #ifdef FSEMU_OS_LINUX
     if (fsemu_option_disabled(FSEMU_OPTION_GAME_MODE)) {
-        fsemu_log("GameMode: Explicitly disabled via option\n");
+        fsemu_gamemode_log("GameMode is explicitly disabled via option\n");
     } else {
         if (gamemode_request_start() < 0) {
-            fsemu_log("GameMode: Request failed: %s\n",
-                      gamemode_error_string());
+            fsemu_gamemode_log("GameMode request failed: %s\n",
+                               gamemode_error_string());
         } else {
-            fsemu_log("GameMode: Enabled game mode\n");
+            fsemu_gamemode_log("Enabled GameMode\n");
             gamemode_enabled = true;
         }
     }
@@ -67,15 +69,25 @@ void fsemu_gamemode_check_linux_cpu_governor()
         return;
     }
     g_strstrip(governor);
-    fsemu_log("CPU scaling governor: '%s'\n", governor);
+    fsemu_gamemode_log("Linux CPU governor: '%s'\n", governor);
     if (strcmp(governor, "performance") != 0) {
         if (fsemu_option_disabled(FSEMU_OPTION_GOVERNOR_WARNING)) {
-            fsemu_log("GameMode: Governor check/warning disabled\n");
+            fsemu_gamemode_log("CPU Governor check/warning disabled\n");
         } else {
-            fsemu_warning(_("CPU scaling governor is '%s', not '%s'"),
-                          governor,
-                          "performance");
-            fsemu_warning(_("Emulation frame rate may suffer"));
+            // fsemu_warning(_("CPU scaling governor is '%s', not '%s'"),
+            //               governor,
+            //               "performance");
+            // fsemu_warning(_("Emulation frame rate may suffer"));
+            // fsemu_warning_2(_("CPU is not in performance mode"),
+            //                 _("This can cause stuttering"));
+
+            char *message = g_strdup_printf(_("CPU governor is '%s'"), governor);
+            fsemu_warning_2(message,
+                            _("Switch to 'performance' to avoid stuttering"));
+            free(message);
+
+            // fsemu_warning_2(_("CPU is not in performance mode"),
+            //                 _("This can cause stuttering"));
         }
     }
     g_free(governor);

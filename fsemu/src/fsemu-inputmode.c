@@ -56,7 +56,7 @@ void fsemu_inputmode_map(fsemu_inputmode_t *mode, int input, int action)
     fsemu_input_log_debug("Port map %d -> %d\n", input, action);
     if (input < 0 || input > FSEMU_INPUTDEVICE_MAX) {
         // FIXME: WARNING
-        fsemu_warning("[FSE] Input %d out of bounds\n", input);
+        fsemu_input_log_warning("Input %d out of bounds\n", input);
         return;
     }
     mode->mapping[input] = action;

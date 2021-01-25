@@ -5,8 +5,8 @@
 // Diagnostics
 // ----------------------------------------------------------------------------
 
-#define FSEMU_DEBUG 1
-#define FSEMU_DEVELOPMENT 1
+// #define FSEMU_DEBUG 1
+// #define FSEMU_DEVELOPMENT 1
 
 #ifdef FSEMU_INTERNAL
 #pragma GCC diagnostic warning "-Wall"

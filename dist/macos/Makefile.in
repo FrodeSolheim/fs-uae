@@ -55,8 +55,8 @@ bundle:
 
 	mkdir -p FS-UAE.app/Contents/Resources/fs-uae
 	touch FS-UAE.app/Contents/Resources/fs-uae/share-dir
-	cp -pPR ../../share/locale FS-UAE.app/Contents/Resources
-	cp -pPR ../../Data/* FS-UAE.app/Contents/Resources
+	cp -pPR ../../share/locale FS-UAE.app/Contents/Resources/Locale
+	cp -pPR ../../data/* FS-UAE.app/Contents/Resources
 
 	strip FS-UAE.app/Contents/MacOS/*
 	cp ./fs-uae.icns FS-UAE.app/Contents/Resources/

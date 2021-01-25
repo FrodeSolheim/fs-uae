@@ -141,9 +141,20 @@ void amiga_floppy_set_writable_images(int writable)
     g_fs_uae_writable_disk_images = writable;
 }
 
+#include "fsemu-time.h"
+#include "fsemu-types.h"
+
 int amiga_init(void)
 {
     uae_log("Initializing core derived from %s\n", UAE_BASE_VERSION);
+
+#if 0
+    int64_t now_us = fsemu_time_us();
+	for (int i = 0; i < 1000000; i++) {
+		uaerand();
+	}
+    printf("RNG benchmark: %lld\n", fsemu_lld(fsemu_time_us() - now_us));
+#endif
 
     module.main_queue = g_async_queue_new();
 

@@ -64,7 +64,7 @@ void fs_config_set_log_file(const char *path)
     }
     log_data.file = g_fopen(path, "w");
     if (log_data.file) {
-        printf("LOG: %s\n", path);
+        fprintf(stderr, "LOGFILE: %s\n", path);
         if (log_data.initial_path) {
             FILE *f = g_fopen(log_data.initial_path, "r");
             if (f) {

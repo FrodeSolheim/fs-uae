@@ -30,7 +30,13 @@ if F_NO_STRICT_ALIASING
 CM_CFLAGS += -fno-strict-aliasing
 endif
 if W_NO_FORMAT_TRUNCATION
+if MACOS
+# For some reason clang on mac at least passes the configure test for
+# -Wno-format-truncation but annoyingly warns about unknown option. So
+# don't try to use this on macOS for now.
+else
 CM_CFLAGS += -Wno-format-truncation
+endif
 endif
 if W_ADDRESS
 CM_CFLAGS += -Waddress

@@ -24,6 +24,9 @@ void fsemu_set_emulator_name(const char *emulator_name);
 
 const char *fsemu_emulator_name(void);
 
+void fsemu_warning(const char *message);
+void fsemu_warning_2(const char *message, const char *sub);
+
 #ifdef __cplusplus
 }
 #endif

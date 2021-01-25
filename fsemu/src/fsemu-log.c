@@ -4,7 +4,9 @@
 #include <stdarg.h>
 
 #include "fsemu-glib.h"
+#include "fsemu-hud.h"
 #include "fsemu-option.h"
+#include "fsemu-time.h"
 
 // For now...
 #include <fs/log.h>
@@ -12,7 +14,19 @@
 static struct {
     bool initialized;
     bool stdout;
+    int64_t last_warning_at;
+    int64_t last_error_at;
 } fsemu_log;
+
+int64_t fsemu_log_last_warning_at(void)
+{
+    return fsemu_log.last_warning_at;
+}
+
+int64_t fsemu_log_last_error_at(void)
+{
+    return fsemu_log.last_error_at;
+}
 
 // void fsemu_log_null(const char *format, ...)
 // {
@@ -24,7 +38,10 @@ static struct {
 //     printf("%s", message);
 // }
 
-void fsemu_log_with_level(int level, const char *format, ...)
+void fsemu_log_with_level_and_flags(int level,
+                                    int flags,
+                                    const char *format,
+                                    ...)
 {
     va_list ap;
     if (level <= FSEMU_LOG_LEVEL_WARNING) {
@@ -45,6 +62,15 @@ void fsemu_log_with_level(int level, const char *format, ...)
     fs_log_string(buffer);
     g_free(buffer);
 #endif
+    if (level == FSEMU_LOG_LEVEL_WARNING) {
+        if (!(flags & FSEMU_LOG_FLAG_NO_LAST_UPDATE)) {
+            fsemu_log.last_warning_at = fsemu_time_us();
+        }
+    } else if (level == FSEMU_LOG_LEVEL_ERROR) {
+        if (!(flags & FSEMU_LOG_FLAG_NO_LAST_UPDATE)) {
+            fsemu_log.last_error_at = fsemu_time_us();
+        }
+    }
 }
 
 void fsemu_log_setup(void)

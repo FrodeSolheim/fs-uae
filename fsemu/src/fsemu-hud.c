@@ -51,6 +51,8 @@ static struct {
     fsemu_hud_notice_t cursor_notice;
     fsemu_hud_notice_t warp_notice;
     fsemu_hud_notice_t pause_notice;
+    fsemu_hud_notice_t warning_notice;
+    fsemu_hud_notice_t error_notice;
     bool mouse_was_captured;
     int vsync_refresh_mismatch;
 
@@ -61,8 +63,8 @@ static struct {
 // 4:3 video edge on a 16:9 display. But a bit short.
 // int notice_width = 440;
 
-// #define FSEMU_HUD_NOTICE_WIDTH 512
-#define FSEMU_HUD_NOTICE_WIDTH 480
+#define FSEMU_HUD_NOTICE_WIDTH 512
+// #define FSEMU_HUD_NOTICE_WIDTH 480
 #define FSEMU_HUD_NOTICE_HEIGHT 120
 
 static void fsemu_hud_init_notice(fsemu_hud_notice_t *notice)
@@ -166,6 +168,17 @@ static void fsemu_hud_init_and_add_notice(fsemu_hud_notice_t *notice)
 
 static void fsemu_hud_init_standard_notices(void)
 {
+    fsemu_hud.warning_notice.icon = strdup("Icons/NotificationWarning.png");
+    fsemu_hud.warning_notice.title = strdup("Warnings have been logged");
+    fsemu_hud.warning_notice.subtitle = strdup("See the log file for details");
+    fsemu_hud_init_and_add_notice(&fsemu_hud.warning_notice);
+
+    // FIXME: NotificationError?
+    fsemu_hud.error_notice.icon = strdup("Icons/NotificationWarning.png");
+    fsemu_hud.error_notice.title = strdup("Errors have been logged");
+    fsemu_hud.error_notice.subtitle = strdup("See the log file for details");
+    fsemu_hud_init_and_add_notice(&fsemu_hud.error_notice);
+
     fsemu_hud.pause_notice.icon = strdup("Icons/NotificationPause.png");
     fsemu_hud.pause_notice.title = strdup("Paused");
     fsemu_hud.pause_notice.subtitle =
@@ -220,11 +233,11 @@ static void fsemu_hud_set_notice_position(fsemu_hud_notice_t *notice,
     notice->icon_item.rect.x = x + 20;
     notice->icon_item.rect.y = y + 20;
 
-    notice->title_item.rect.x = x + 20 + 80 + 10; // + 20;
-    notice->title_item.rect.y = y + 20; // y + 18;
+    notice->title_item.rect.x = x + 20 + 80 + 10;  // + 20;
+    notice->title_item.rect.y = y + 20;            // y + 18;
 
-    notice->subtitle_item.rect.x = x + 20 + 80 + 10; // + 20;
-    notice->subtitle_item.rect.y = y + 59; // 58;
+    notice->subtitle_item.rect.x = x + 20 + 80 + 10;  // + 20;
+    notice->subtitle_item.rect.y = y + 59;            // 58;
 }
 
 static void fsemu_hud_update_notice_positions(void)
@@ -285,23 +298,28 @@ void fsemu_hud_show_notification(fsemu_hud_id_t notification_id,
                                  const char *icon_name,
                                  int64_t duration_us)
 {
-    printf("[FSE] Notification (%016llx) %s\n",
-           (long long) notification_id,
-           title);
+    fsemu_hud_log("Notification (%016llx) %s\n", llu(notification_id), title);
     // FIXME: When re-showing a notification that's already on screen,
     // maybe it could briefly flash? Maybe a parameter (flags?) to
     // fsemu_hud_show_notification? Also maybe a flag to flash a notification
     // the first time it appears as well?
 
-    GList *list_item = fsemu_hud.notices;
-    while (list_item) {
-        fsemu_hud_notice_t *notice = (fsemu_hud_notice_t *) list_item->data;
-        if (notice->id == notification_id) {
-            printf("Found existing notification; extending duration\n");
-            notice->visible_until = fsemu_time_us() + duration_us;
-            return;
+    if (notification_id != 0) {
+        GList *list_item = fsemu_hud.notices;
+        while (list_item) {
+            fsemu_hud_notice_t *notice =
+                (fsemu_hud_notice_t *) list_item->data;
+            if (notice->id == notification_id) {
+                printf("Found existing notification; extending duration\n");
+                notice->visible_until = fsemu_time_us() + duration_us;
+                return;
+            }
+            list_item = list_item->next;
         }
-        list_item = list_item->next;
+    }
+
+    if (sub_title == NULL) {
+        sub_title = "";
     }
 
     fsemu_hud_notice_t *notice = FSEMU_UTIL_MALLOC0(fsemu_hud_notice_t);
@@ -309,13 +327,19 @@ void fsemu_hud_show_notification(fsemu_hud_id_t notification_id,
     notice->id = notification_id;
     notice->icon = strdup("Icons/NotificationWarning.png");
     notice->title = strdup(title);
-    notice->subtitle = strdup(sub_title);
-    notice->visible_until = fsemu_time_us() + duration_us;
+    if (sub_title) {
+        notice->subtitle = strdup(sub_title);
+    }
+    int64_t now_us = fsemu_time_us();
+    // notice->visible_after = now_us;
+    notice->visible_until = now_us + duration_us;
     fsemu_hud_init_and_add_notice(notice);
 
     // fsemu_hud.notifications = g_list_append(fsemu_hud.notifications,
     // notice);
 }
+
+// ----------------------------------------------------------------------------
 
 void fsemu_hud_update(void)
 {
@@ -358,6 +382,11 @@ void fsemu_hud_update(void)
         fsemu_hud.mouse_was_captured = false;
     }
 
+    fsemu_hud.warning_notice.visible_until =
+        fsemu_log_last_warning_at() + 5 * 1000 * 1000;
+    fsemu_hud.error_notice.visible_until =
+        fsemu_log_last_error_at() + 5 * 1000 * 1000;
+
     GList *list_item = fsemu_hud.notices;
     while (list_item) {
         fsemu_hud_notice_t *notice = (fsemu_hud_notice_t *) list_item->data;
@@ -374,6 +403,7 @@ void fsemu_hud_update(void)
         fsemu_hud_set_notice_visible(&fsemu_hud.warp_notice,
                                      fsemu_control_warp());
     }
+
     fsemu_hud_update_notice_positions();
 }
 
@@ -424,7 +454,7 @@ void fsemu_hud_init(void)
     // FIXME: Semi-bold ?
     fsemu_hud.notice_subtitle_font =
         fsemu_fontcache_font("Fonts/SairaCondensed-SemiBold.ttf", 24);
-        // fsemu_fontcache_font("Fonts/SairaCondensed-Medium.ttf", 24);
+    // fsemu_fontcache_font("Fonts/SairaCondensed-Medium.ttf", 24);
 
     // fsemu_hud.notice_background_color = FSEMU_RGBA(0x202020c0);
     // fsemu_hud.notice_background_color = FSEMU_RGBA(0x404040c0);

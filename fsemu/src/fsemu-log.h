@@ -1,6 +1,7 @@
 #ifndef FSEMU_LOG_H_
 #define FSEMU_LOG_H_
 
+#include <stdint.h>
 #include <stdio.h>
 
 #include "fsemu-common.h"
@@ -19,11 +20,22 @@ typedef enum {
 
 void fsemu_log_setup(void);
 
+int64_t fsemu_log_last_warning_at(void);
+int64_t fsemu_log_last_error_at(void);
+
 // void fsemu_log_null(const char *format, ...);
 
 // void fsemu_log_string(const char *message);
 
-void fsemu_log_with_level(int level, const char *format, ...);
+#define FSEMU_LOG_FLAG_NO_LAST_UPDATE (1 << 0)
+
+void fsemu_log_with_level_and_flags(int level,
+                                    int flags,
+                                    const char *format,
+                                    ...);
+
+#define fsemu_log_with_level(level, format, ...) \
+    fsemu_log_with_level_and_flags(level, 0, format, ##__VA_ARGS__)
 
 #define fsemu_log(format, ...) \
     fsemu_log_with_level(FSEMU_LOG_LEVEL_INFO, format, ##__VA_ARGS__)
@@ -35,9 +47,6 @@ void fsemu_log_with_level(int level, const char *format, ...);
     fsemu_log_with_level(FSEMU_LOG_LEVEL_WARNING, format, ##__VA_ARGS__)
 #define fsemu_log_error(format, ...) \
     fsemu_log_with_level(FSEMU_LOG_LEVEL_ERROR, format, ##__VA_ARGS__)
-// FIXME
-#define fsemu_warning(format, ...) \
-    fsemu_log_with_level(FSEMU_LOG_LEVEL_WARNING, format, ##__VA_ARGS__)
 
 #define FSEMU_LOG(name, prefix, format, ...)                              \
     if (fsemu_likely(fsemu_##name##_log_level >= FSEMU_LOG_LEVEL_INFO)) { \

@@ -1,6 +1,6 @@
 #!/bin/sh -e
 
 cd ../..
-CFLAGS="-g -O2 -mcpu=cortex-a72 -mfloat-abi=hard -mfpu=neon-fp-armv8 -mneon-for-64bits" \
-CXXFLAGS="-g -O2 -mcpu=cortex-a72 -mfloat-abi=hard -mfpu=neon-fp-armv8 -mneon-for-64bits" \
+CFLAGS="-g -O3 -march=armv8-a" \
+CXXFLAGS="-g -O3 -march=armv8-a" \
 ./configure

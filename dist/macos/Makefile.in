@@ -50,12 +50,13 @@ bundle:
 	cp Info.plist FS-UAE.app/Contents/
 	cp ./PkgInfo FS-UAE.app/Contents/
 	cp ../../fs-uae FS-UAE.app/Contents/MacOS/
-	cp ../../fs-uae.dat FS-UAE.app/Contents/MacOS/
 	cp ../../fs-uae-device-helper FS-UAE.app/Contents/MacOS/
 
+	cp ../../fs-uae.dat FS-UAE.app/Contents/Resources/
 	mkdir -p FS-UAE.app/Contents/Resources/fs-uae
 	touch FS-UAE.app/Contents/Resources/fs-uae/share-dir
 	cp -pPR ../../share/locale FS-UAE.app/Contents/Resources/Locale
+
 	cp -pPR ../../data/* FS-UAE.app/Contents/Resources
 
 	strip FS-UAE.app/Contents/MacOS/*
@@ -65,4 +66,5 @@ bundle:
 	# cp ./../../COPYING FS-UAE.app/Contents/Resources/
 	# cp ./../../README FS-UAE.app/Contents/Resources/
 	./standalone.py FS-UAE.app
-	python3 ./sign.py FS-UAE.app
+	./sign.py FS-UAE.app
+	./notarize.py FS-UAE.app no.fengestad.fs-uae

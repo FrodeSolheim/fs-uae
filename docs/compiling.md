@@ -1,8 +1,16 @@
 # Compiling FS-UAE
 
-First, you need to prepare your build environment
+These instructions are for you if you want to build your own version of FS-UAE
+for any reason.
+
+Please note that the resulting build may not be built in a way that's suitable
+for distribution to other users. Often, you need to take additional steps to
+ensure that the packages work on systems with older operating system versions.
 
 ## Setting up a build environment
+
+First, you need to prepare your build environment. Instructions for several
+operating systems are listed below.
 
 ### Debian / Ubuntu
 
@@ -33,6 +41,19 @@ Install dependencies for bootstrapping and building FS-UAE:
     mingw-w64-x86_64-glib2 mingw-w64-x86_64-libmpeg2 mingw-w64-x86_64-libpng \
     mingw-w64-x86_64-openal mingw-w64-x86_64-SDL2 mingw-w64-x86_64-SDL2_ttf \
     pkg-config zip
+
+## macOS
+
+Install homebrew from https://brew.sh (follow their instructions) and then
+open a new terminal.
+
+Install dependencies for bootstrapping and building FS-UAE:
+
+    brew install autoconf automake freetype gettext glew glib jpeg libmpeg2 \
+    libpng libtool openal-soft pkg-config sdl2 sdl2_ttf zlib
+
+In order build FS-UAE itself, you need to have Apple's Xcode installed and
+command line tools for Xcode enabled.
 
 ## Configuring and building FS-UAE
 

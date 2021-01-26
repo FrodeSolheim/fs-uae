@@ -21,6 +21,12 @@
 
 // ----------------------------------------------------------------------------
 
+#ifdef FSFUSE
+int fsemu_frame_log_level = FSEMU_LOG_LEVEL_TRACE;
+#else
+int fsemu_frame_log_level = FSEMU_LOG_LEVEL_INFO;
+#endif
+
 static struct {
     bool initialized;
     // Will not overflow for over a year @60 Hz
@@ -71,8 +77,6 @@ int64_t fsemu_frame_extra_duration = 0;
 int64_t fsemu_frame_gui_duration = 0;
 int64_t fsemu_frame_render_duration = 0;
 
-int fsemu_frame_log_level = 1;
-
 bool fsemu_frame_check_load_state(int *slot)
 {
     if (fsemu_frame.load_state != -1) {
@@ -121,6 +125,7 @@ void fsemu_frame_reset_epoch(void)
 
 void fsemu_frame_end(void)
 {
+    fsemu_frame_log_trace("%s\n", __func__);
     fsemu_thread_assert_emu();
     fsemu_frame_log_epoch("Frame end\n");
     fsemu_assert(fsemu_frame.initialized);
@@ -975,6 +980,7 @@ static void fsemu_frame_start_2(double hz)
 // FIXME: Rename to fsemu_frame_begin?
 void fsemu_frame_start(double hz)
 {
+    fsemu_frame_log_trace("%s hz=%f\n", __func__, hz);
     fsemu_thread_assert_emu();
 
     fsemu_frame_start_2(hz);

@@ -700,15 +700,16 @@ extern int64_t laaaast_vsync_at;
 void fsemu_glvideo_display(void)
 {
     int n = fsemu_frame_number_displaying % 2;
-    fsemu_assert(n >= 0);
+    fsemu_assert_release(n >= 0);
     if (fsemu_glvideo.swap_sync[n]) {
+        printf(
+            "Must wait for previous swap "
+            "(fsemu_frame_number_displaying=%d)\n",
+            fsemu_frame_number_displaying);
         while (fsemu_glvideo.swap_sync[n]) {
-            printf(
-                "Must wait for previous swap "
-                "(fsemu_frame_number_displaying=%d)\n",
-                fsemu_frame_number_displaying);
             fsemu_sleep_us(10000);
         }
+        printf("Wait done\n");
         //     // wait_for_swap(50000);
     }
 

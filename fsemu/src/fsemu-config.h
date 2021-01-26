@@ -11,7 +11,11 @@
 #ifdef FSEMU_INTERNAL
 #pragma GCC diagnostic warning "-Wall"
 // #pragma GCC diagnostic warning "-Wconversion"
+#ifdef __APPLE__
+// Not supported?
+#else
 #pragma GCC diagnostic warning "-Wdiscarded-qualifiers"
+#endif
 #pragma GCC diagnostic warning "-Wformat"
 #pragma GCC diagnostic warning "-Wincompatible-pointer-types"
 #pragma GCC diagnostic warning "-Wnarrowing"
@@ -100,11 +104,12 @@
 // Feature defines
 // ----------------------------------------------------------------------------
 
+// #define FSEMU_GLAD 1
 #define FSEMU_GLIB 1
+#define FSEMU_MANYMOUSE 1
 #define FSEMU_OPENGL 1
 #define FSEMU_PNG 1
 #define FSEMU_SDL 1
-#define FSEMU_MANYMOUSE 1
 
 #ifdef FSUAE
 // FS-UAE adjusts audio frequency internally

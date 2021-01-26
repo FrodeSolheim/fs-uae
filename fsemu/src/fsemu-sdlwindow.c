@@ -589,8 +589,10 @@ SDL_Window *fsemu_sdlwindow_create(void)
             SDL_GL_CreateContext(fsemu_sdlwindow_window());
 
         // Check OpenGL properties
+#ifdef FSEMU_GLAD
         fsemu_window_log("Loading OpenGL symbols via GLAD\n");
         gladLoadGLLoader(SDL_GL_GetProcAddress);
+#endif
         fsemu_window_log("OpenGL vendor:   %s\n", glGetString(GL_VENDOR));
         fsemu_window_log("OpenGL renderer: %s\n", glGetString(GL_RENDERER));
         fsemu_window_log("OpenGL version:  %s\n", glGetString(GL_VERSION));

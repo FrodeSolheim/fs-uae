@@ -9,7 +9,11 @@
 
 #ifdef FSUAE_DEBUG
 #ifdef FSUAE_INTERNAL
+#ifdef __APPLE__
+// Not supported?
+#else
 #pragma GCC diagnostic error "-Wdiscarded-qualifiers"
+#endif
 #pragma GCC diagnostic error "-Wincompatible-pointer-types"
 #pragma GCC diagnostic error "-Wall"
 #endif

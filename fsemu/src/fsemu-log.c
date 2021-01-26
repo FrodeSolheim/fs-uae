@@ -8,8 +8,10 @@
 #include "fsemu-option.h"
 #include "fsemu-time.h"
 
+#ifdef FSUAE
 // For now...
 #include <fs/log.h>
+#endif
 
 static struct {
     bool initialized;

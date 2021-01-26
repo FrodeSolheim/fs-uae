@@ -23,6 +23,7 @@
 #include <fs/emu.h>
 #include <fs/emu/actions.h>
 #include <fs/emu/input.h>
+#include <fs/emu/render.h>
 #include <fs/emu/video.h>
 #include <fs/lazyness.h>
 #include <fs/glib.h>

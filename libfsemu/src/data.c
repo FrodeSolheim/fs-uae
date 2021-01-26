@@ -323,6 +323,15 @@ int fs_data_init(const char *app_name, const char *dat_name)
     }
 
 #ifdef MACOSX
+    // Find in .app/Contents/Resources/
+    if (g_dat_file == NULL) {
+        char *dat_path = g_build_filename(
+            exe_path, "..", "Resources", dat_name, NULL);
+        fs_log("checking dat file: %s\n", dat_path);
+        g_dat_file = g_fopen(dat_path, "rb");
+        free(dat_path);
+    }
+
     if (g_dat_file == NULL) {
         char *dat_path = g_build_filename(
             exe_path, "..", "..", "..", "..", "..", "Data", dat_name, NULL);

@@ -5,6 +5,16 @@ import sys
 import time
 import xml.etree.ElementTree as ET
 
+if os.environ.get("SIGN", "") == "0":
+    print("SIGN=0 via environment, skipping notarization step")
+    sys.exit(0)
+if os.environ.get("NOTARIZE", "") == "0":
+    print("NOTARIZE=0 via environment, skipping notarization step")
+    sys.exit(0)
+if not os.environ.get("APPLE_ID_USER", ""):
+    print("APPLE_ID_USER not specified, skipping notarization step")
+    sys.exit(0)
+
 app = sys.argv[1]
 app_id = sys.argv[2]
 

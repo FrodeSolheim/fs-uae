@@ -14,8 +14,8 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 %define name fs-uae
-%define version 3.0.4
-%define unmangled_version 3.0.4
+%define version 3.0.5u2
+%define unmangled_version 3.0.5u2
 %define release 1%{?dist}
 
 %undefine _hardened_build

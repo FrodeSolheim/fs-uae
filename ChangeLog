@@ -1,7 +1,12 @@
+Version 3.0.5:
+
+* Packaging change to satisfy Apple's changed notarization process (sigh).
+
 Version 3.0.4:
 
 * Fix compilation of sana2.cpp with GCC 10.
 * Fix OpenGL shaders with multiple passes on macOS.
+* Include compilation fix for "unknown" CPUs architectures.
 * Updated the GLAD OpenGL loader.
 
 Version 3.0.1:

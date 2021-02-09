@@ -1,5 +1,5 @@
-#ifndef FS_UAE_CONFIG_MODEL_H
-#define FS_UAE_CONFIG_MODEL_H
+#ifndef FSUAE_MODEL_H_
+#define FSUAE_MODEL_H_
 
 enum {
     CONFIG_A500,
@@ -83,4 +83,4 @@ void fs_uae_init_configs(void);
 
 #define NEW_ACCURACY_SYSTEM
 
-#endif /* FS_UAE_CONFIG_MODEL_H */
+#endif  // FSUAE_MODEL_H_

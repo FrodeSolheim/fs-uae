@@ -83,6 +83,8 @@ int g_frame_debug_logging = 0;
 // #define uae_log(...)
 // #define printf(...)
 
+static int display_slices = 4;
+
 #endif
 
 STATIC_INLINE bool nocustom (void)
@@ -8272,10 +8274,12 @@ static bool framewait_fsuae_old (void)
 
     target_time = target_time + vsynctimebase;
 
+#ifdef FSUAE_LEGACY
 	// If the user has requested to use less time for emulating the frame.
 	if (fs_emu_frame_wait > 0 && !currprefs.turbo_emulation) {
 		cpu_sleep_millis(fs_emu_frame_wait);
 	}
+#endif
 
     //uae_log("%lld\n", vsynctimebase);
     //static frame_time_t last_time = curr_time;
@@ -8374,10 +8378,6 @@ static void fpscounter (bool frameok)
 	}
 #endif
 }
-
-#ifdef FSUAE // NL
-static int display_slices = 4;
-#endif
 
 // vsync functions that are not hardware timing related
 static void vsync_handler_pre (void)
@@ -8680,6 +8680,40 @@ static void vsync_handler_post (void)
 		// fsemu_frame_update_timing(vblank_hz, currprefs.turbo_emulation);
 		// printf("vblank_hz = %0.2f\n", vblank_hz);
 		fsemu_frame_start(vblank_hz);
+
+#if 0
+		// Now we sleep until the start of the next frame. Using the less
+		// accurate sleep function to use less system resources. Accuracy is
+		// not that important right here.
+		// int64_t before_us = fsemu_time_us();
+		// int64_t after_us = fsemu_time_sleep_until_us_2(
+		// 	fsemu_frame_begin_at, before_us);
+		// fsemu_frame_sleep_duration += after_us - before_us;
+		int64_t now_us = fsemu_time_sleep_until_us(fsemu_frame_begin_at);
+		fsemu_frame_add_sleep_time(now_us);
+#endif
+
+		int slot;
+		if (fsemu_frame_check_load_state(&slot)) {
+			fsemu_frame_log_epoch("Load state %d\n", slot);
+			if (slot == 0) {
+				printf("Slot 0 not supported yet\n");
+			} else {
+				amiga_send_input_event(INPUTEVENT_SPC_STATERESTORE1 - 1 + slot, 1);
+			}
+		}
+		if (fsemu_frame_check_save_state(&slot)) {
+			fsemu_frame_log_epoch("Load state %d\n", slot);
+			if (slot == 0) {
+				printf("Slot 0 not supported yet\n");
+			} else {
+				// FIXME: Going to save state; store state slot number in a
+				// global variable - this should signal that the video module
+				// should save a screenshot copy that can be saved together with
+				// the savestate.
+				amiga_send_input_event(INPUTEVENT_SPC_STATESAVE1 - 1 + slot, 1);
+			}
+		}
 	}
 #endif
 
@@ -9155,6 +9189,13 @@ static int64_t line_ended_at;
 
 static int64_t linesleep_fsemu(int64_t now, int64_t until)
 {
+#if 0
+	if (vpos > 0) {
+		// For now, do not sleep at all.
+		return now;
+	}
+#endif
+
 #if 1
 	// FIXME: use busywait option?
 	if (now < until) {
@@ -9172,12 +9213,14 @@ static int64_t linesleep_fsemu(int64_t now, int64_t until)
 		fsemu_frame_sleep_duration += now - sleep_start;
 	}
 #else
-	if (until - now > 1000) {
+	//if (until - now > 1000) {
+	if (until - now > 0) {
 		int64_t sleep_start = now;
 		fsemu_sleep_us(until - now);
 		now = fsemu_time_us();
 		fsemu_frame_sleep_duration += now - sleep_start;
 	}
+	//}
 #endif
 	return now;
 }
@@ -9251,8 +9294,6 @@ static void linesync_fsemu(void)
 	// (!regs.stopped || !currprefs.cpu_idle)) {
 	// !cpu_sleepmode
 	// sleeps_remaining = (165 - currprefs.cpu_idle) / 6; ?
-
-
 
 	// static bool do_render_slice(int mode, int slicecnt, int lastline)
 	// {
@@ -9440,7 +9481,7 @@ static void linesync_fsemu(void)
 		if (until - now > 1000) {
 			// We are now 1 ms "behind" and will either run extra CPU cycles
 			// or sleep (to throttle a bit and use less resources).
-			if (sleep_mod && extra_counter++ % sleep_mod == 0) {
+			if (sleep_mod > 0 && extra_counter++ % sleep_mod == 0) {
 				// We sleep before doing extra cycles, to ensure that we get
 				// some sleep since we do want to throttle when sleep_mod > 0.
 				now = linesleep_fsemu(now, until);
@@ -10062,7 +10103,7 @@ void vsync_event_done(void)
 	if (fsemu) {
 		linesync_fsemu();
 	}
-#else	
+#else
 	if (!isvsync_chipset()) {
 		events_reset_syncline();
 		return;
@@ -10533,7 +10574,7 @@ void init_eventtab (void)
 {
 #ifdef FSUAE
 	if (fsemu) {
-		printf("init_eventtab get_cycles() = %ld hsync at %ld\n", get_cycles(), get_cycles () + HSYNCTIME);
+		// printf("init_eventtab get_cycles() = %ld hsync at %ld\n", get_cycles(), get_cycles () + HSYNCTIME);
 	}
 #endif
 	int i;

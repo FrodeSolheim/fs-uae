@@ -3,6 +3,8 @@
 #include "uae.h"
 #include <fs/thread.h>
 
+#include "fsemu-sdl.h"
+
 int uae_start_thread_fast (void *(*f)(void *), void *arg,
         uae_thread_id *thread)
 {

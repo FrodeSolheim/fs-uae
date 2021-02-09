@@ -12,6 +12,8 @@
 #include <sys/timeb.h>
 #include <stdio.h>
 
+#include "fsemu-mutex.h"
+
 int log_scsi = 0;
 int log_net = 0;
 
@@ -649,12 +651,53 @@ void write_logx(const char *format, ...)
     // FIXME
 }
 
+#include <glib/gprintf.h>
+#define MAX_LINE 4068
+
 void write_log (const TCHAR *format, ...)
 {
+	// write_log is sometimes called multiple times for a single line. We
+	// do line buffering here to get complete lines passed on further. We use
+	// a mutex to make this function somewhat thread-safe, but line buffering
+	// can still get mixed content from different threads. Should ideally
+	// use thread-local storage for line buffer.
+	static fsemu_mutex *mutex;
+	if (mutex == NULL) {
+		mutex = fsemu_mutex_create();
+	}
+
+	fsemu_mutex_lock(mutex);
+
     va_list args;
     va_start(args, format);
-    char *buffer = g_strdup_vprintf(format, args);
+    // char *buffer = g_strdup_vprintf(format, args);
+
+	static char buffer[MAX_LINE];
+	static int partial;
+
+	if (partial == 0) {
+		// strcpy(buffer, "[ UAE ] ");
+		// partial = 8;
+		// strcpy(buffer, "[ UAE ] [     ] ");
+		g_snprintf(buffer, 4096, "[UAE] [%03d] ", vpos);
+		partial = 12;
+	}
+
+	int result = g_vsnprintf(buffer + partial, MAX_LINE - partial, format, args);
     va_end(args);
+
+	int len = strlen(buffer + partial);
+	// printf("partial %d len %d: %s\n", partial, len, buffer);
+	if (len > 0 && buffer[partial + len - 1] != '\n') {
+		if (partial + len >= MAX_LINE - 1) {
+			// We need to flush this
+			buffer[MAX_LINE - 2] = '\n';
+		} else {
+			partial += len;
+			fsemu_mutex_unlock(mutex);
+			return;
+		}
+	}
 
     char *buffer2 = NULL;
 #if 0
@@ -667,7 +710,7 @@ void write_log (const TCHAR *format, ...)
 
     log_function function = g_libamiga_callbacks.log;
 	// FIXME
-	function = NULL;
+	// function = NULL;
     if (function) {
         if (buffer2) {
             function(buffer2);
@@ -677,10 +720,13 @@ void write_log (const TCHAR *format, ...)
     } else {
         printf("%s", buffer);
     }
-    free(buffer);
+    // free(buffer);
     if (buffer2) {
         free(buffer2);
     }
+
+	partial = 0;
+	fsemu_mutex_unlock(mutex);
 }
 
 void jit_abort (const TCHAR *format,...)

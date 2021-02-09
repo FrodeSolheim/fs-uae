@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL
+#define FSEMU_INTERNAL 1
 #include "fsemu-mouse.h"
 
 #include "fsemu-config.h"
@@ -7,11 +7,15 @@
 #include "fsemu-log.h"
 #include "fsemu-manymouse.h"
 #include "fsemu-option.h"
-#include "fsemu-options.h"
+#include "fsemu-osmenu.h"
 #include "fsemu-thread.h"
 #include "fsemu-titlebar.h"
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+int fsemu_mouse_log_level = 1;
+
+// ----------------------------------------------------------------------------
 
 static struct fsemu_mouse {
     // True if the mouse cursor is (or will be) captured.
@@ -25,13 +29,11 @@ static struct fsemu_mouse {
     fsemu_inputdevice_t *system_mouse;
 } fsemu_mouse;
 
-int fsemu_mouse_log_level = 1;
-
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 static void fsemu_mouse_add_system_device(void)
 {
-    fsemu_mouse_log(1, "Adding system mouse device\n");
+    fsemu_mouse_log("Adding system mouse device\n");
     fsemu_inputdevice_t *device = fsemu_inputdevice_new();
     fsemu_inputdevice_set_type(device, FSEMU_INPUTDEVICE_TYPE_MOUSE);
     fsemu_inputdevice_set_name(device, "Mouse");
@@ -44,14 +46,14 @@ static void fsemu_mouse_add_system_device(void)
     fsemu_mouse.system_mouse = device;
 }
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 bool fsemu_mouse_captured(void)
 {
     return fsemu_mouse.captured;
 }
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 void fsemu_mouse_set_captured(bool captured)
 {
@@ -63,7 +65,7 @@ void fsemu_mouse_toggle_captured(void)
     fsemu_mouse_set_captured(!fsemu_mouse_captured());
 }
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 #if 0
 void fsemu_mouse_handle_position(int window_x, int window_y)
 {
@@ -72,7 +74,7 @@ void fsemu_mouse_handle_position(int window_x, int window_y)
     fsemu_mouse_log("%d,%d\n", window_x, window_y);
 }
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 void fsemu_mouse_handle_click(int button,
                               int state,
@@ -98,7 +100,7 @@ void fsemu_mouse_handle_click(int button,
     }
 }
 #endif
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 static int g_fs_emu_mouse_speed = 100;
 
@@ -125,7 +127,7 @@ static void fsemu_mouse_adjust_movement(int mouse, int axis, int *movement)
     *movement = v;
 }
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 // void fsemu_mouse_handle_mouse(int x, int y, int button, int state)
 bool fsemu_mouse_handle_mouse(fsemu_mouse_event_t *event)
@@ -137,19 +139,28 @@ bool fsemu_mouse_handle_mouse(fsemu_mouse_event_t *event)
     }
 
     if (event->button > 0) {
-        fsemu_mouse_log(2,
-                        "Button %d clicked (%d) at %d,%d\n",
-                        event->button,
-                        event->state,
-                        event->x,
-                        event->y);
+        fsemu_mouse_log_debug("Button %d clicked (%d) at %d,%d\n",
+                              event->button,
+                              event->state,
+                              event->x,
+                              event->y);
 
         if (event->state) {
+            // if (fsemu_osmenu_open()) {
+            //     return true;
+            // } else
             if (event->button == 2) {
-                fsemu_mouse_toggle_captured();
+                if (fsemu_mouse_captured()) {
+                    fsemu_mouse_set_captured(false);
+                } else if (fsemu_osmenu_open()) {
+                    // Don't want to grab while menu is open
+                } else {
+                    fsemu_mouse_set_captured(true);
+                }
                 return true;
             } else {
-                if (fsemu_mouse.automatic_grab && !fsemu_mouse_captured()) {
+                if (fsemu_mouse.automatic_grab && !fsemu_mouse_captured() &&
+                    !fsemu_osmenu_open()) {
                     fsemu_mouse_set_captured(true);
                     return true;
                 }
@@ -164,20 +175,22 @@ bool fsemu_mouse_handle_mouse(fsemu_mouse_event_t *event)
 #endif
     }
 
-    int device_index = 0;
+    // FIXME: Hardcoded for now.. :-/
+    int device_index = 1;
     int slot = 0;
     int state = 0;
 
     if (event->button > 0) {
         if (event->button > 3) {
-            printf("Mouse button %d not supported yet\n", event->button);
+            fsemu_mouse_log("Mouse button %d not supported yet\n",
+                            event->button);
         } else {
             slot = FSEMU_MOUSE_BEFORE_FIRST_BUTTON + event->button;
             state = event->state ? FSEMU_ACTION_STATE_MAX : 0;
         }
         fsemu_input_handle_mouse(device_index, slot, state);
     } else {
-        printf("%d,%d\n", event->rel_x, event->rel_y);
+        // printf("%d,%d\n", event->rel_x, event->rel_y);
         int x = event->rel_x;
         int y = event->rel_y;
 
@@ -203,7 +216,12 @@ bool fsemu_mouse_handle_mouse(fsemu_mouse_event_t *event)
     return false;
 }
 
-// ---------------------------------------------------------------------------
+void fsemu_mouse_add_devices(void)
+{
+    fsemu_mouse_add_system_device();
+}
+
+// ----------------------------------------------------------------------------
 
 void fsemu_mouse_init(void)
 {
@@ -211,9 +229,8 @@ void fsemu_mouse_init(void)
     fsemu_thread_init();
     fsemu_titlebar_init();
 
-    fsemu_mouse_log(1, "Init\n");
+    fsemu_mouse_log_debug("Init\n");
 
-    fsemu_mouse_add_system_device();
 #ifdef FSEMU_MANYMOUSE
     // FIXME: Or many put the dependency the other way around, and call
     // fsemu_manymouse_init from somewhere else.
@@ -245,11 +262,10 @@ void fsemu_mouse_init(void)
                                    &fsemu_mouse.middle_click_ungrab,
                                    true);
 
-    fsemu_mouse_log(1, "Initial grab:        %d\n", fsemu_mouse.initial_grab);
-    fsemu_mouse_log(
-        1, "Automatic grab:      %d\n", fsemu_mouse.automatic_grab);
-    fsemu_mouse_log(
-        1, "Middle-click ungrab: %d\n", fsemu_mouse.middle_click_ungrab);
+    fsemu_mouse_log("Initial grab:        %d\n", fsemu_mouse.initial_grab);
+    fsemu_mouse_log("Automatic grab:      %d\n", fsemu_mouse.automatic_grab);
+    fsemu_mouse_log("Middle-click ungrab: %d\n",
+                    fsemu_mouse.middle_click_ungrab);
 
     // Set the desired state of mouse capture (to be handled by window update
     // or creation function

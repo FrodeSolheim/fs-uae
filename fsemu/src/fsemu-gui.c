@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL
+#define FSEMU_INTERNAL 1
 #include "fsemu-gui.h"
 
 #include "fsemu-frame.h"
@@ -35,8 +35,10 @@ static struct {
 
 void fsemu_gui_init(void)
 {
-    fsemu_thread_assert_main();
     fsemu_return_if_already_initialized();
+
+    fsemu_thread_init();
+    fsemu_thread_assert_main();
     fsemu_gui.mutex = fsemu_mutex_create();
 }
 
@@ -88,6 +90,7 @@ void fsemu_gui_rectangle(
     fsemu_gui_item_t *item, int x, int y, int w, int h, int c)
 {
     fsemu_thread_assert_main();
+
     // memset(item, 0, sizeof(fsemu_gui_item_t));
     item->rect.x = x;
     item->rect.y = y;
@@ -106,6 +109,7 @@ void fsemu_gui_image(
     fsemu_gui_item_t *item, int x, int y, int w, int h, fsemu_image_t *image)
 {
     fsemu_thread_assert_main();
+
     // memset(item, 0, sizeof(fsemu_gui_item_t));
     item->color = FSEMU_RGBA(0xffffffff);
     item->rect.x = x;
@@ -128,8 +132,16 @@ static void fsemu_gui_assert_locked(void)
 
 void fsemu_gui_add_item(fsemu_gui_item_t *item)
 {
+    fsemu_gui_lock();
+    fsemu_gui_add_item_unlocked(item);
+    fsemu_gui_unlock();
+}
+
+void fsemu_gui_add_item_unlocked(fsemu_gui_item_t *item)
+{
     fsemu_thread_assert_main();
     fsemu_gui_assert_locked();
+
     fsemu_gui.items = g_list_append(fsemu_gui.items, item);
 }
 

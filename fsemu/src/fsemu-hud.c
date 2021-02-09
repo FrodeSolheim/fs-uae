@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL
+#define FSEMU_INTERNAL 1
 #include "fsemu-hud.h"
 
 #include "fsemu-control.h"
@@ -9,7 +9,6 @@
 #include "fsemu-keyboard.h"
 #include "fsemu-module.h"
 #include "fsemu-option.h"
-#include "fsemu-options.h"
 #include "fsemu-thread.h"
 #include "fsemu-time.h"
 #include "fsemu-titlebar.h"
@@ -52,20 +51,27 @@ static struct {
     fsemu_hud_notice_t cursor_notice;
     fsemu_hud_notice_t warp_notice;
     fsemu_hud_notice_t pause_notice;
+    fsemu_hud_notice_t warning_notice;
+    fsemu_hud_notice_t error_notice;
     bool mouse_was_captured;
     int vsync_refresh_mismatch;
 
     // GList *notifications;
 } fsemu_hud;
 
+// 440 is a nice size because the notice is symmetrically positioned on the
+// 4:3 video edge on a 16:9 display. But a bit short.
+// int notice_width = 440;
+
+#define FSEMU_HUD_NOTICE_WIDTH 512
+// #define FSEMU_HUD_NOTICE_WIDTH 480
+#define FSEMU_HUD_NOTICE_HEIGHT 120
+
 static void fsemu_hud_init_notice(fsemu_hud_notice_t *notice)
 {
-    int notice_x = 20;
-    // 440 is a nice size because the notice is symmetrically positioned on the
-    // 4:3 video edge on a 16:9 display. But a bit short.
-    // int notice_width = 440;
-    int notice_width = 512;
-    int notice_height = 120;
+    int notice_x = 0;
+    int notice_width = FSEMU_HUD_NOTICE_WIDTH;
+    int notice_height = FSEMU_HUD_NOTICE_HEIGHT;
 
     fsemu_gui_item_t *item;
     item = &notice->background_item;
@@ -75,23 +81,23 @@ static void fsemu_hud_init_notice(fsemu_hud_notice_t *notice)
                         notice_width,
                         notice_height,
                         fsemu_hud.notice_background_color);
-    item->coordinates = FSEMU_COORD_1080P_LEFT;
-    item->z_index = 5000;
+    item->coordinates = FSEMU_COORD_1080P_RIGHT;
+    item->z_index = 6000;
     fsemu_gui_add_item(item);
 
     item = &notice->icon_item;
-    item->coordinates = FSEMU_COORD_1080P_LEFT;
-    item->z_index = 5001;
+    item->coordinates = FSEMU_COORD_1080P_RIGHT;
+    item->z_index = 6001;
     fsemu_gui_add_item(item);
 
     item = &notice->title_item;
-    item->coordinates = FSEMU_COORD_1080P_LEFT;
-    item->z_index = 5001;
+    item->coordinates = FSEMU_COORD_1080P_RIGHT;
+    item->z_index = 6001;
     fsemu_gui_add_item(item);
 
     item = &notice->subtitle_item;
-    item->coordinates = FSEMU_COORD_1080P_LEFT;
-    item->z_index = 5001;
+    item->coordinates = FSEMU_COORD_1080P_RIGHT;
+    item->z_index = 6001;
     fsemu_gui_add_item(item);
 }
 
@@ -162,19 +168,30 @@ static void fsemu_hud_init_and_add_notice(fsemu_hud_notice_t *notice)
 
 static void fsemu_hud_init_standard_notices(void)
 {
-    fsemu_hud.pause_notice.icon = strdup("NotificationPause.png");
+    fsemu_hud.warning_notice.icon = strdup("Icons/NotificationWarning.png");
+    fsemu_hud.warning_notice.title = strdup("Warnings have been logged");
+    fsemu_hud.warning_notice.subtitle = strdup("See the log file for details");
+    fsemu_hud_init_and_add_notice(&fsemu_hud.warning_notice);
+
+    // FIXME: NotificationError?
+    fsemu_hud.error_notice.icon = strdup("Icons/NotificationWarning.png");
+    fsemu_hud.error_notice.title = strdup("Errors have been logged");
+    fsemu_hud.error_notice.subtitle = strdup("See the log file for details");
+    fsemu_hud_init_and_add_notice(&fsemu_hud.error_notice);
+
+    fsemu_hud.pause_notice.icon = strdup("Icons/NotificationPause.png");
     fsemu_hud.pause_notice.title = strdup("Paused");
     fsemu_hud.pause_notice.subtitle =
         g_strdup_printf("%s+P to resume", FSEMU_KEYBOARD_MOD_NAME);
     fsemu_hud_init_and_add_notice(&fsemu_hud.pause_notice);
 
-    fsemu_hud.warp_notice.icon = strdup("NotificationWarp.png");
+    fsemu_hud.warp_notice.icon = strdup("Icons/NotificationWarp.png");
     fsemu_hud.warp_notice.title = strdup("Fast forwarding");
     fsemu_hud.warp_notice.subtitle = g_strdup_printf(
         "%s+W to resume normal speed", FSEMU_KEYBOARD_MOD_NAME);
     fsemu_hud_init_and_add_notice(&fsemu_hud.warp_notice);
 
-    fsemu_hud.quitkey_notice.icon = strdup("NotificationInfo.png");
+    fsemu_hud.quitkey_notice.icon = strdup("Icons/NotificationInfo.png");
     fsemu_hud.quitkey_notice.title =
         g_strdup_printf("Quit key is %s+Q", FSEMU_KEYBOARD_MOD_NAME);
     // fsemu_hud.quitkey_notice.subtitle = g_strdup_printf(
@@ -187,7 +204,7 @@ static void fsemu_hud_init_standard_notices(void)
     fsemu_option_read_int(FSEMU_OPTION_VSYNC_REFRESH_MISMATCH,
                           &fsemu_hud.vsync_refresh_mismatch);
 
-    fsemu_hud.vsync_notice.icon = strdup("NotificationWarning.png");
+    fsemu_hud.vsync_notice.icon = strdup("Icons/NotificationWarning.png");
     fsemu_hud.vsync_notice.title = strdup("Vsync disabled");
     if (fsemu_hud.vsync_refresh_mismatch) {
         fsemu_hud.vsync_notice.subtitle = g_strdup_printf(
@@ -197,10 +214,10 @@ static void fsemu_hud_init_standard_notices(void)
     }
     fsemu_hud_init_and_add_notice(&fsemu_hud.vsync_notice);
 
-    fsemu_hud.cursor_notice.icon = strdup("NotificationCursor.png");
-    fsemu_hud.cursor_notice.title = strdup("Mouse cursor captured");
+    fsemu_hud.cursor_notice.icon = strdup("Icons/NotificationCursor.png");
+    fsemu_hud.cursor_notice.title = strdup("Mouse cursor grabbed");
     fsemu_hud.cursor_notice.subtitle = g_strdup_printf(
-        "Middle click or %s+G to release", FSEMU_KEYBOARD_MOD_NAME);
+        "%s+G or middle-click to release", FSEMU_KEYBOARD_MOD_NAME);
     fsemu_hud_init_and_add_notice(&fsemu_hud.cursor_notice);
 
     // fsemu_hud.vsync_notice.visible_until = now + 10 * 1000 * 1000;
@@ -216,19 +233,21 @@ static void fsemu_hud_set_notice_position(fsemu_hud_notice_t *notice,
     notice->icon_item.rect.x = x + 20;
     notice->icon_item.rect.y = y + 20;
 
-    notice->title_item.rect.x = x + 80 + 20 + 20;
-    notice->title_item.rect.y = y + 18;
+    notice->title_item.rect.x = x + 20 + 80 + 10;  // + 20;
+    notice->title_item.rect.y = y + 20;            // y + 18;
 
-    notice->subtitle_item.rect.x = x + 80 + 20 + 20;
-    notice->subtitle_item.rect.y = y + 58;
+    notice->subtitle_item.rect.x = x + 20 + 80 + 10;  // + 20;
+    notice->subtitle_item.rect.y = y + 59;            // 58;
 }
 
 static void fsemu_hud_update_notice_positions(void)
 {
     // FIXME: titlebar height -- not when using custom frame in windowed mode
     // int first_y = 40 + 20;
-    int x = 20;
-    int y = 20;
+    int x = 60;
+    int y = 60;
+    // int x = 1920 - FSEMU_HUD_NOTICE_WIDTH - 60;
+    // int y = 60;
     /*
     fsemu_hud_set_notice_position(&fsemu_hud.quitkey_notice, x, y);
     y += 120 + 20;
@@ -267,7 +286,7 @@ static void fsemu_hud_update_notice_positions(void)
 
             fsemu_hud_set_notice_position(
                 notice, notice->position.x, notice->position.y);
-            y += 120 + 20;
+            y += FSEMU_HUD_NOTICE_HEIGHT + 20;
         }
         list_item = list_item->next;
     }
@@ -279,37 +298,48 @@ void fsemu_hud_show_notification(fsemu_hud_id_t notification_id,
                                  const char *icon_name,
                                  int64_t duration_us)
 {
-    printf("[FSEMU] Notification (%016llx) %s\n",
-           (long long) notification_id,
-           title);
+    fsemu_hud_log("Notification (%016llx) %s\n", llu(notification_id), title);
     // FIXME: When re-showing a notification that's already on screen,
     // maybe it could briefly flash? Maybe a parameter (flags?) to
     // fsemu_hud_show_notification? Also maybe a flag to flash a notification
     // the first time it appears as well?
 
-    GList *list_item = fsemu_hud.notices;
-    while (list_item) {
-        fsemu_hud_notice_t *notice = (fsemu_hud_notice_t *) list_item->data;
-        if (notice->id == notification_id) {
-            printf("Found existing notification; extending duration\n");
-            notice->visible_until = fsemu_time_us() + duration_us;
-            return;
+    if (notification_id != 0) {
+        GList *list_item = fsemu_hud.notices;
+        while (list_item) {
+            fsemu_hud_notice_t *notice =
+                (fsemu_hud_notice_t *) list_item->data;
+            if (notice->id == notification_id) {
+                printf("Found existing notification; extending duration\n");
+                notice->visible_until = fsemu_time_us() + duration_us;
+                return;
+            }
+            list_item = list_item->next;
         }
-        list_item = list_item->next;
+    }
+
+    if (sub_title == NULL) {
+        sub_title = "";
     }
 
     fsemu_hud_notice_t *notice = FSEMU_UTIL_MALLOC0(fsemu_hud_notice_t);
     // FIXME: Ignoring icon_name for now
     notice->id = notification_id;
-    notice->icon = strdup("NotificationWarning.png");
+    notice->icon = strdup("Icons/NotificationWarning.png");
     notice->title = strdup(title);
-    notice->subtitle = strdup(sub_title);
-    notice->visible_until = fsemu_time_us() + duration_us;
+    if (sub_title) {
+        notice->subtitle = strdup(sub_title);
+    }
+    int64_t now_us = fsemu_time_us();
+    // notice->visible_after = now_us;
+    notice->visible_until = now_us + duration_us;
     fsemu_hud_init_and_add_notice(notice);
 
     // fsemu_hud.notifications = g_list_append(fsemu_hud.notifications,
     // notice);
 }
+
+// ----------------------------------------------------------------------------
 
 void fsemu_hud_update(void)
 {
@@ -319,12 +349,14 @@ void fsemu_hud_update(void)
         first_update_at = now;
     }
 
+#if 0
     if (fsemu_hud.quitkey_notice.visible_until == 0) {
         // Initially show quit key notice after a small delay
         if (now - first_update_at > 2000 * 1000) {
             fsemu_hud.quitkey_notice.visible_until = now + 8000 * 1000;
         }
     }
+#endif
 
     if (fsemu_video_vsync_prevented() || fsemu_hud.vsync_refresh_mismatch) {
         if (fsemu_hud.vsync_notice.visible_until == 0) {
@@ -350,6 +382,11 @@ void fsemu_hud_update(void)
         fsemu_hud.mouse_was_captured = false;
     }
 
+    fsemu_hud.warning_notice.visible_until =
+        fsemu_log_last_warning_at() + 5 * 1000 * 1000;
+    fsemu_hud.error_notice.visible_until =
+        fsemu_log_last_error_at() + 5 * 1000 * 1000;
+
     GList *list_item = fsemu_hud.notices;
     while (list_item) {
         fsemu_hud_notice_t *notice = (fsemu_hud_notice_t *) list_item->data;
@@ -366,12 +403,13 @@ void fsemu_hud_update(void)
         fsemu_hud_set_notice_visible(&fsemu_hud.warp_notice,
                                      fsemu_control_warp());
     }
+
     fsemu_hud_update_notice_positions();
 }
 
 static void fsemu_hud_quit(void)
 {
-    fsemu_log("fsemu_hud_quit\n");
+    fsemu_hud_log("fsemu_hud_quit\n");
 
     GList *listitem = fsemu_hud.notices;
     while (listitem) {
@@ -407,20 +445,101 @@ void fsemu_hud_init(void)
         return;
     }
     fsemu_hud.initialized = true;
-    fsemu_log("Initializing hud module\n");
+    fsemu_hud_log("Initializing hud module\n");
     fsemu_module_on_quit(fsemu_hud_quit);
 
     // FIXME: Medium ?
     fsemu_hud.notice_title_font =
-        fsemu_fontcache_font("SairaCondensed-SemiBold.ttf", 32);
+        fsemu_fontcache_font("Fonts/SairaCondensed-SemiBold.ttf", 32);
     // FIXME: Semi-bold ?
     fsemu_hud.notice_subtitle_font =
-        fsemu_fontcache_font("SairaCondensed-Medium.ttf", 28);
+        fsemu_fontcache_font("Fonts/SairaCondensed-SemiBold.ttf", 24);
+    // fsemu_fontcache_font("Fonts/SairaCondensed-Medium.ttf", 24);
 
     // fsemu_hud.notice_background_color = FSEMU_RGBA(0x202020c0);
-    fsemu_hud.notice_background_color = FSEMU_RGBA(0x404040c0);
-    fsemu_hud.notice_title_color = FSEMU_RGBA(0xffffffff);
-    fsemu_hud.notice_subtitle_color = FSEMU_RGBA(0xffffffaa);
+    // fsemu_hud.notice_background_color = FSEMU_RGBA(0x404040c0);
+    fsemu_hud.notice_background_color = FSEMU_RGBA(0x333333d8);
+    fsemu_hud.notice_title_color = FSEMU_RGB(0xffffff);
+    fsemu_hud.notice_subtitle_color = FSEMU_RGB(0x999999);
 
     fsemu_hud_init_standard_notices();
+}
+
+// ----------------------------------------------------------------------------
+
+// ----------------------------------------------------------------------------
+
+void fse_notify(uint32_t type, const char *format, ...)
+{
+    va_list ap;
+    va_start(ap, format);
+    char *buffer = g_strdup_vprintf(format, ap);
+    va_end(ap);
+    int len = strlen(buffer);
+    // strip trailing newline, if any
+    if (len > 0 && buffer[len - 1] == '\n') {
+        buffer[len - 1] = '\0';
+    }
+    fsemu_hud_log("%s\n", buffer);
+
+#if 0
+    fs_mutex_lock(g_console_mutex);
+
+    if (type != 0) {
+       message_t *line = g_queue_peek_head(g_console_lines);
+       if (line && line->type == type) {
+           free(line->text);
+           line->text = buffer;
+           line->time = fs_emu_monotonic_time();
+           line->show_until = line->time + g_notification_duration;
+           g_last_line_time = MAX(line->show_until, line->show_until);
+           fs_mutex_unlock(g_console_mutex);
+           return;
+       }
+    }
+
+    message_t *line = malloc(sizeof(message_t));
+    //printf("new console line at %p\n", line);
+    line->type = type;
+    line->text = buffer;
+    line->time = fs_emu_monotonic_time();
+    line->show_until = line->time + g_notification_duration;
+    g_last_line_time = MAX(line->show_until, line->show_until);
+
+    g_queue_push_head(g_console_lines, line);
+    fs_mutex_unlock(g_console_mutex);
+#endif
+}
+
+void fs_emu_warning(const char *format, ...)
+{
+    va_list ap;
+    va_start(ap, format);
+    char *buffer = g_strdup_vprintf(format, ap);
+    va_end(ap);
+    int len = strlen(buffer);
+    // strip trailing newline, of any
+    if (len > 0 && buffer[len] == '\n') {
+        buffer[len] = '\0';
+    }
+    fsemu_log_warning("%s\n", buffer);
+    // printf("WARNING: %s\n", buffer);
+    // fs_emu_hud_add_console_line(buffer, 0);
+    g_free(buffer);
+}
+
+void fs_emu_deprecated(const char *format, ...)
+{
+    va_list ap;
+    va_start(ap, format);
+    char *buffer = g_strdup_vprintf(format, ap);
+    va_end(ap);
+    int len = strlen(buffer);
+    // strip trailing newline, if any
+    if (len > 0 && buffer[len - 1] == '\n') {
+        buffer[len - 1] = '\0';
+    }
+    fsemu_log("DEPRECATED: %s\n", buffer);
+    // fs_emu_hud_add_console_line(buffer, 0);
+    g_free(buffer);
 }

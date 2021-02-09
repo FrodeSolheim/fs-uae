@@ -49,13 +49,16 @@ void fsemu_gui_image(
 
 void fsemu_gui_add_item(fsemu_gui_item_t *item);
 
+// FIXME: Naming? Do not acquire lock, assert the lock is already taken.
+void fsemu_gui_add_item_unlocked(fsemu_gui_item_t *item);
+
 fsemu_gui_item_t *fsemu_gui_snapshot(void);
 void fsemu_gui_free_snapshot(fsemu_gui_item_t *snapshot);
 
 #ifdef FSEMU_INTERNAL
 
 #define fsemu_gui_log(format, ...) \
-    fsemu_log("[FSEMU] [ GUI ] " format, ##__VA_ARGS__)
+    fsemu_log("[FSE] [GUI] " format, ##__VA_ARGS__)
 
 // void fsemu_gui_item_hide(fsemu_gui_item_t* item);
 
@@ -100,14 +103,18 @@ struct fsemu_gui_item_struct {
 
     char *text;
     fsemu_image_t *textimage;
+    // Default is 0.0 for left-aligned.
+    float text_halign;
     // Default is 0.5 for centered vertically.
     float text_valign;
     // For example FSEMU_WIDGET_TEXT_TRANSFORM_UPPERCASE.
     int text_transform;
     fsemu_color_t text_color;
-    char *text_cached;
     // FIXME: text_color_cached, text_font_cached
     int font_size;
+
+    char *text_cached;
+    fsemu_color_t text_color_cached;
 };
 
 #endif  // FSEMU_INTERNAL

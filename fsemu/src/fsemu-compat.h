@@ -1,7 +1,7 @@
 #include "fsemu-common.h"
 #include "fsemu-time.h"
 
-#ifdef FSEMU_MACOS
+#ifdef FSEMU_OS_MACOS
 
 // FIXME: Maybe?
 

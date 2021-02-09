@@ -19,7 +19,7 @@ void fsemu_fade_force(bool force);
 #ifdef FSEMU_INTERNAL
 
 #define fsemu_fade_log(format, ...) \
-    fsemu_log("[FSEMU] [FADE ] " format, ##__VA_ARGS__)
+    fsemu_log("[FSE] [FAD] " format, ##__VA_ARGS__)
 
 #endif  // FSEMU_INTERNAL
 

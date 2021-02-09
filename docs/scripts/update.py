@@ -3,6 +3,7 @@
 import os
 import shutil
 import sys
+
 try:
     import markdown
 except ImportError:
@@ -75,7 +76,7 @@ def handle_option_data(name, data, option):
                 option["max"] = ma.strip()
                 continue
             elif key == "description":
-                if value.startswith("\""):
+                if value.startswith('"'):
                     value = value.strip('"')
                     option["summary_translation"] = True
                 else:
@@ -83,7 +84,7 @@ def handle_option_data(name, data, option):
                 option["summary"] = value
                 continue
             elif key == "summary":
-                if value.startswith("\""):
+                if value.startswith('"'):
                     value = value.strip('"')
                     option["summary_translation"] = True
                 else:
@@ -130,8 +131,7 @@ def handle_option_data(name, data, option):
     # text.append("\n<h2 id=\"{hname}\">"
     #             "{hname}<a name=\"{name}\"></a></h2>\n".format(
     #                 name=name, hname=h_name))
-    text.append("<h1>{hname}</h1>\n".format(
-                    name=name, hname=h_name))
+    text.append("<h1>{hname}</h1>\n".format(name=name, hname=h_name))
     if since:
         text.append("<p>")
         text.append("<i>Since {since}</i>.".format(since=since))
@@ -140,8 +140,7 @@ def handle_option_data(name, data, option):
             text.append(" ")
         else:
             text.append("<p>")
-        text.append("Default value: {default}".format(
-            default=default))
+        text.append("Default value: {default}".format(default=default))
     if example:
         if default:
             text.append(", ")
@@ -154,8 +153,11 @@ def handle_option_data(name, data, option):
         text.append("</p>\n")
 
     if example2:
-        text.append("<pre>Example: {hname} = {value}</pre>\n".format(
-                    name=name, hname=h_name, value=example2))
+        text.append(
+            "<pre>Example: {hname} = {value}</pre>\n".format(
+                name=name, hname=h_name, value=example2
+            )
+        )
 
     in_list = False
     # in_para = False
@@ -166,8 +168,9 @@ def handle_option_data(name, data, option):
         if not line.strip() and not has_started:
             continue
         has_started = True
-        if (line.startswith("*") or line.startswith("Value:")) or \
-                (in_list and line.startswith(" ")):
+        if (line.startswith("*") or line.startswith("Value:")) or (
+            in_list and line.startswith(" ")
+        ):
             started = False
             if not in_list:
                 started = True
@@ -213,8 +216,11 @@ def handle_option_data(name, data, option):
     if see:
         # text.append('\n<p>See <a href="#{see}">{see}</a></p>\n'.format(
         #     see=see))
-        text.append('\n<p>See <a href="{see_l}">{see}</a></p>\n'.format(
-            see=see, see_l=see.replace("_", "-")))
+        text.append(
+            '\n<p>See <a href="{see_l}">{see}</a></p>\n'.format(
+                see=see, see_l=see.replace("_", "-")
+            )
+        )
 
     t = "".join(text)
     t = t.replace("\n\n\n", "\n\n")
@@ -230,8 +236,11 @@ def handle_option_data(name, data, option):
             f.write(", ")
         else:
             f.write("\n\nSimilar options: ")
-        f.write("<a name=\"{name}\"></a><a name=\"{hname}\"></a>{hname}".format(
-                name=name, hname=h_name))
+        f.write(
+            '<a name="{name}"></a><a name="{hname}"></a>{hname}'.format(
+                name=name, hname=h_name
+            )
+        )
         last_main_option_added = True
     else:
         last_main_option = name
@@ -244,7 +253,6 @@ codes = {}
 
 
 class Code:
-
     def __init__(self):
         self.dependencies = None
         self.marked = False
@@ -307,7 +315,7 @@ def handle_option_file(name, path):
 def main():
     global f
     f.write("This page documents the options you can use in FS-UAE ")
-    f.write("<a href=\"/fs-uae/configuration-files\">configuration files</a>. ")
+    f.write('<a href="/fs-uae/configuration-files">configuration files</a>. ')
     f.write("The options are sorted in alphabetical order.")
     # f.write(" Both hyphens and ")
     # f.write("underscores can be used/mixed in option names.")
@@ -324,8 +332,9 @@ def main():
                 option_name, _ = os.path.splitext(name)
             options[option_name] = os.path.join("docs/options", name)
             # option_repl["[{0}]".format(name)] = "<a href=\"#{0}\">{0}</a>".format(name)
-            option_repl["[{0}]".format(name)] = "<a href=\"{0}\">{1}</a>".format(
-                name.replace("_", "-"), name)
+            option_repl["[{0}]".format(name)] = '<a href="{0}">{1}</a>'.format(
+                name.replace("_", "-"), name
+            )
 
     for name in os.listdir("docs/options/launcher"):
         if name.endswith("~"):
@@ -350,39 +359,45 @@ def main():
         handle_option_file(name, options[name])
         f.close()
 
-    with open("../fs-uae-launcher/fsgs/options/constants.py", "w",
-              encoding="UTF-8") as f:
-        f.write("""\
+    with open(
+        "../fs-uae-launcher/fsgs/options/constants.py", "w", encoding="UTF-8"
+    ) as f:
+        f.write(
+            """\
 # Automatically generated - do not edit by hand
 # noinspection SpellCheckingInspection
 
-""")
+"""
+        )
         for key in sorted(option_data_all.keys()):
             # Strip leading __ because that will invoke Python's
             # name mangling feature
-            f.write("{} = \"{}\"\n".format(
-                key.upper().strip("__"), key))
+            f.write('{} = "{}"\n'.format(key.upper().strip("__"), key))
 
-    with open("../fs-uae-launcher/fsgs/options/option.py", "w",
-              encoding="UTF-8") as f:
-        f.write("""\
+    with open(
+        "../fs-uae-launcher/fsgs/options/option.py", "w", encoding="UTF-8"
+    ) as f:
+        f.write(
+            """\
 # Automatically generated - do not edit by hand
 
 
 # noinspection SpellCheckingInspection
 class Option(object):
     \"\"\"Constants for option names.\"\"\"
-""")
+"""
+        )
 
         for key in sorted(option_data_all.keys()):
             # Strip leading __ because that will invoke Python's
             # name mangling feature
-            f.write("    {} = \"{}\"\n".format(
-                key.upper().strip("__"), key))
+            f.write('    {} = "{}"\n'.format(key.upper().strip("__"), key))
 
-    with open("../fs-uae-launcher/launcher/option.py", "w",
-              encoding="UTF-8") as f:
-        f.write("""\
+    with open(
+        "../fs-uae-launcher/launcher/option.py", "w", encoding="UTF-8"
+    ) as f:
+        f.write(
+            """\
 # Automatically generated - do not edit by hand
 
 from fsgs.options.option import Option as BaseOption
@@ -401,47 +416,48 @@ def N_(x):
 
 
 options = {
-""")
+"""
+        )
         for key in sorted(option_data.keys()):
             print(key)
             option = option_data[key]
             f.write("    Option.{0}: {{\n".format(key.upper()))
-            f.write("        \"default\": \"{0}\",\n".format(option["default"]))
+            f.write('        "default": "{0}",\n'.format(option["default"]))
             if len(option["summary"]) == 0:
-                f.write("        \"description\": \"\",\n")
+                f.write('        "description": "",\n')
             else:
                 if key.startswith("uae_"):
-                    f.write("        \"description\":")
+                    f.write('        "description":')
                     if len(option["summary"]) < 50:
                         f.write(" ")
                 else:
                     if option["summary_translation"]:
-                        f.write("        \"description\": N_(")
+                        f.write('        "description": N_(')
                     else:
-                        f.write("        \"description\": (")
+                        f.write('        "description": (')
                 if len(option["summary"]) >= 50:
                     f.write("\n            ")
                 if key.startswith("uae_"):
-                    f.write("\"{0}\",\n".format(option["summary"]))
+                    f.write('"{0}",\n'.format(option["summary"]))
                 else:
-                    f.write("\"{0}\"),\n".format(option["summary"]))
-            f.write("        \"type\": \"{0}\",\n".format(option["type"]))
+                    f.write('"{0}"),\n'.format(option["summary"]))
+            f.write('        "type": "{0}",\n'.format(option["type"]))
             if len(option["values"]) > 0:
-                f.write("        \"values\": [\n")
+                f.write('        "values": [\n')
                 for name, desc in option["values"]:
-                    if desc.startswith("\""):
+                    if desc.startswith('"'):
                         if key.startswith("uae_"):
                             desc = "{0}".format(desc)
                         else:
                             desc = "N_({0})".format(desc)
                     else:
-                        desc = "\"{0}\"".format(desc)
-                    f.write("            (\"{0}\", {1}),\n".format(name, desc))
+                        desc = '"{0}"'.format(desc)
+                    f.write('            ("{0}", {1}),\n'.format(name, desc))
                 f.write("        ]\n")
             if "min" in option:
-                f.write("        \"min\": {0},\n".format(option["min"]))
+                f.write('        "min": {0},\n'.format(option["min"]))
             if "max" in option:
-                f.write("        \"max\": {0},\n".format(option["max"]))
+                f.write('        "max": {0},\n'.format(option["max"]))
             f.write("    },\n")
 
         f.write("}\n")
@@ -478,14 +494,17 @@ def update_codes():
         f.write("\n")
         for option in sorted(codes.keys()):
             code = codes[option]
-            f.write("\n# noinspection PyUnusedLocal,"
-                    "SpellCheckingInspection,PyUnresolvedReferences\n")
+            f.write(
+                "\n# noinspection PyUnusedLocal,"
+                "SpellCheckingInspection,PyUnresolvedReferences\n"
+            )
             f.write("def _{0}(c, f):\n".format(option))
             if option.startswith("int_"):
                 f.write("    # noinspection PyUnresolvedReferences\n")
                 f.write("    if c.{0}.explicit:\n".format(option))
-                f.write("        f.fail(\"{0} was set explicitly\")\n".format(
-                    option))
+                f.write(
+                    '        f.fail("{0} was set explicitly")\n'.format(option)
+                )
             uses_value = False
             for line in code.lines:
                 if not line.strip():
@@ -495,11 +514,12 @@ def update_codes():
                 f.write("    {0}\n".format(line))
                 if line.strip().startswith("f.fail("):
                     f.write(line.split("f.fail(")[0])
-                    f.write("    raise Exception(\"Failed\")\n")
+                    f.write('    raise Exception("Failed")\n')
             if uses_value:
                 f.write("    c.{0} = value\n".format(option))
             f.write("\n")
-        f.write("""\
+        f.write(
+            """\
 
 class AbstractExpandFunctions:
 
@@ -519,13 +539,15 @@ class AbstractExpandFunctions:
     def lower(s):
         pass
 
-""")
+"""
+        )
         f.write("\ndef expand_config(c, f):\n")
         f.write("    assert isinstance(f, AbstractExpandFunctions)\n")
         for option in sorted(codes.keys()):
             write_option(f, option)
-    shutil.move("doc/options2.py",
-                "../fs-uae-launcher/launcher/ui/config/expand.py")
+    shutil.move(
+        "doc/options2.py", "../fs-uae-launcher/launcher/ui/config/expand.py"
+    )
 
 
 if __name__ == "__main__":

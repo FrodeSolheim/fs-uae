@@ -20,6 +20,8 @@
 #include "config.h"
 #endif
 
+#ifdef FSUAE_LEGACY
+
 #include <fs/emu.h>
 #include <fs/emu/actions.h>
 #include <fs/emu/input.h>
@@ -31,7 +33,7 @@
 #include "input.h"
 #include <stdlib.h>
 
-static const char* g_taunts[] = {
+static const char *g_taunts[] = {
     "You play like a dairy farmer!",
     "No one will ever catch ME playing as badly as you do!",
     "I once owned a dog that played better then you!",
@@ -68,7 +70,8 @@ static void special_function(void)
 
 static void switch_window(void)
 {
-    if (fs_ml_input_grab()) {
+    if (fs_ml_input_grab())
+    {
         fs_log("Switch window\n");
         fs_ml_set_input_grab(false);
         fs_ml_set_input_grab_on_activate(true);
@@ -81,9 +84,11 @@ void fs_emu_handle_libfsemu_action(int action, int state)
     if (g_fs_log_input)
         fs_log("fs_emu_handle_libfsemu_action %d %d\n", action, state);
 
-    switch (action) {
+    switch (action)
+    {
     case FS_EMU_ACTION_FULL_KEYBOARD:
-        if (state) {
+        if (state)
+        {
             fs_emu_set_full_keyboard_emulation(
                 !fs_emu_full_keyboard_emulation(), true);
         }
@@ -93,13 +98,17 @@ void fs_emu_handle_libfsemu_action(int action, int state)
             fs_emu_toggle_fullscreen();
         break;
     case FS_EMU_ACTION_GRAB_INPUT:
-        if (state) {
-            if (g_fs_emu_grab_input_on_mod_release) {
+        if (state)
+        {
+            if (g_fs_emu_grab_input_on_mod_release)
+            {
                 /* We had grapped the input, but is holding the modifier
                  * key. So we just don't ungrab on release. */
                 g_fs_emu_grab_input_on_mod_release = false;
                 fs_emu_show_cursor_msec(FS_EMU_MOUSE_DEFAULT_DURATION);
-            } else {
+            }
+            else
+            {
                 fs_emu_set_input_grab(!fs_emu_input_grab());
             }
         }
@@ -145,26 +154,32 @@ void fs_emu_handle_libfsemu_action(int action, int state)
             fs_emu_volume_control(-3);
         break;
     case FS_EMU_ACTION_WARP:
-        if (state) {
+        if (state)
+        {
             /* FIXME: UAE-specific hot key hack for warp function,
              * should be moved out of libfsemu. */
             fs_emu_queue_input_event(0x00010000 | FS_EMU_WARP_HACK);
         }
         break;
     case FS_EMU_ACTION_ZOOM:
-        if (state) {
+        if (state)
+        {
             fs_emu_toggle_zoom(0);
         }
         break;
     case FS_EMU_ACTION_ZOOM_BORDER:
-        if (state) {
+        if (state)
+        {
             fs_emu_toggle_zoom(1);
         }
         break;
     case FSE_ACTION_CYCLE_STRETCH_MODE:
-        if (state) {
+        if (state)
+        {
             fse_cycle_stretch_mode();
         }
         break;
     }
 }
+
+#endif // FSUAE_LEGACY

@@ -8,7 +8,7 @@
 
 #define SOUNDSTUFF 1
 
-#include "fsemu-audio-buffer.h"
+#include "fsemu-audiobuffer.h"
 #define AUDIO_NAME "fsuae"
 
 extern uae_u16 paula_sndbuffer[];
@@ -41,7 +41,7 @@ extern void master_sound_volume (int);
 STATIC_INLINE void set_sound_buffers (void)
 {
 #ifdef FSEMU_XXX
-    paula_sndbufpt = (uae_u16 *) fsemu_audio_buffer.write;
+    paula_sndbufpt = (uae_u16 *) fsemu_audiobuffer.write;
 #else
 #if SOUNDSTUFF > 1
     paula_sndbufpt_prev = paula_sndbufpt_start;
@@ -53,10 +53,10 @@ STATIC_INLINE void set_sound_buffers (void)
 STATIC_INLINE void check_sound_buffers (void)
 {
 #ifdef FSEMU_XXX
-    if ((uint8_t *) paula_sndbufpt == (uint8_t *) fsemu_audio_buffer.end) {
-        fsemu_audio_buffer.write = fsemu_audio_buffer;
+    if ((uint8_t *) paula_sndbufpt == (uint8_t *) fsemu_audiobuffer.end) {
+        fsemu_audiobuffer.write = fsemu_audiobuffer;
     } else {
-        // fsemu_audio_buffer.write = (uint8_t *) paula_sndbufpt;
+        // fsemu_audiobuffer.write = (uint8_t *) paula_sndbufpt;
     }
 #else
 
@@ -112,7 +112,7 @@ STATIC_INLINE void check_sound_buffers (void)
 STATIC_INLINE void clear_sound_buffers (void)
 {
 #ifdef FSEMU_XXX
-    fsemu_audio_buffer_clear();
+    fsemu_audiobuffer_clear();
 #else
     memset (paula_sndbuffer, 0, paula_sndbufsize);
     paula_sndbufpt = paula_sndbuffer;

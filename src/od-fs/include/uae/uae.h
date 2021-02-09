@@ -46,6 +46,26 @@ void amiga_init_lua_state(lua_State *L);
 int amiga_init(void);
 bool amiga_init_jit_compiler(void);
 
+// ----------------------------------------------------------------------------
+
+enum {
+    UAE_EVENT_FLOPPY0PATH,
+    UAE_EVENT_FLOPPY1PATH,
+    UAE_EVENT_FLOPPY2PATH,
+    UAE_EVENT_FLOPPY3PATH,
+
+    UAE_EVENT_PORT0MODE,
+    UAE_EVENT_PORT1MODE,
+    UAE_EVENT_PORT2MODE,
+    UAE_EVENT_PORT3MODE,
+};
+
+bool uae_main_next_event(int *event, void **data, int *intdata);
+void uae_main_post_event(int event, void *data, int intdata);
+void uae_main_free_event(int event, void *data);
+
+// ----------------------------------------------------------------------------
+
 int amiga_set_synchronization_log_file(const char *path);
 int amiga_quickstart(int model, int config, int accuracy);
 //int amiga_main(int argc, char** argv);
@@ -53,8 +73,13 @@ int amiga_quickstart(int model, int config, int accuracy);
 // must call before amiga_main
 void amiga_set_video_format(int format);
 
-// must be called before main_main
+// must be called before amiga_main
 void amiga_add_rtg_resolution(int width, int height);
+
+// Should be called before amiga_main
+void uae_savestate_set_base_dir(const char *base_dir);
+void uae_savestate_set_home_dir(const char *home_dir);
+void uae_savestate_set_run_dir(const char *run_dir);
 
 // must be called early
 #if 0
@@ -178,7 +203,7 @@ typedef void (*log_function)(const char *msg);
 void amiga_set_log_function(log_function function);
 void amiga_set_gui_message_function(log_function function);
 
-typedef void (*amiga_led_function)(int led, int on);
+typedef void (*amiga_led_function)(int led, int on, int brightness);
 void amiga_set_led_function(amiga_led_function function);
 
 typedef void (*amiga_media_function)(int drive, const char *path);
@@ -197,6 +222,7 @@ void amiga_set_audio_frequency_adjust(double adjust);
 
 void amiga_flush_audio(void);
 
+void amiga_set_initialized_and_apply_options(void);
 int amiga_set_option(const char *option, const char *value);
 
 typedef void (*amiga_free_function)(void* data);

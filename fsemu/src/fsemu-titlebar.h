@@ -37,11 +37,34 @@ void fsemu_titlebar_set_width(int w);
 
 #ifdef FSEMU_INTERNAL
 
-#define fsemu_titlebar_log(format, ...) \
-    fsemu_log("[FSEMU] [TITLE] " format, ##__VA_ARGS__)
-
 bool fsemu_titlebar_want_cursor(void);
 bool fsemu_titlebar_handle_mouse(fsemu_mouse_event_t *event);
+
+// ----------------------------------------------------------------------------
+// Logging
+// ----------------------------------------------------------------------------
+
+extern int fsemu_titlebar_log_level;
+
+#define fsemu_titlebar_log(format, ...) \
+    FSEMU_LOG(titlebar, "[FSE] [TBR]", format, ##__VA_ARGS__)
+
+#define fsemu_titlebar_log_debug(format, ...) \
+    FSEMU_LOG_DEBUG(titlebar, "[FSE] [TBR]", format, ##__VA_ARGS__)
+
+#define fsemu_titlebar_log_error(format, ...) \
+    FSEMU_LOG_ERROR(titlebar, "[FSE] [TBR]", format, ##__VA_ARGS__)
+
+#define fsemu_titlebar_log_info(format, ...) \
+    FSEMU_LOG_INFO(titlebar, "[FSE] [TBR]", format, ##__VA_ARGS__)
+
+#define fsemu_titlebar_log_trace(format, ...) \
+    FSEMU_LOG_TRACE(titlebar, "[FSE] [TBR]", format, ##__VA_ARGS__)
+
+#define fsemu_titlebar_log_warning(format, ...) \
+    FSEMU_LOG_WARNING(titlebar, "[FSE] [TBR]", format, ##__VA_ARGS__)
+
+// ----------------------------------------------------------------------------
 
 #endif  // FSEMU_INTERNAL
 

@@ -2,6 +2,8 @@
 #include "config.h"
 #endif
 
+#include "fsuae-config.h"
+
 #include <fs/fs.h>
 #include <stdlib.h>
 #include <string.h>
@@ -16,10 +18,10 @@ static void parse_option(char *key, char *value)
     if (key[0] == 'u' && key[1] == 'a' && key[2] == 'e' && key[3] == '_') {
         static int first = 1;
         if (first) {
-            fs_log(
+            fsuae_log(
                 "WARNING: custom uae_* options used! Your warranty is now "
                 "void! ;)\n");
-            fs_log("(not that there was any warranty before...)\n");
+            fsuae_log("(not that there was any warranty before...)\n");
             first = 0;
         }
         g_strchomp(value);
@@ -74,7 +76,7 @@ static void read_custom_uae_options_from_file(FILE *f)
 
 void fs_uae_read_custom_uae_options(int argc, char **argv)
 {
-    fs_log("read_custom_uae_options\n");
+    fsuae_log("read_custom_uae_options\n");
     if (g_fs_uae_config_file_path) {
         FILE *f = g_fopen(g_fs_uae_config_file_path, "rb");
         read_custom_uae_options_from_file(f);

@@ -22,3 +22,14 @@ When playing CD32 games with the keyboard emulating a gamepad, additional keys a
     Z – Rewind
     A – Forward
     Right Ctrl or Right Alt also controls the red button.
+
+## Emulating a second joystick with the keyboard
+
+FIXME: Missing documentation
+
+## Disabling the keyboard joystick device
+
+To disable the built-in joystick keyboard emulation, make sure the following
+(empty) file exists: `FS-UAE/Data/Devs/Keyboard.fs-device-disabled`. You might
+want to do this if you create other custom joystick keyboard emulation such as 
+[x-arcade](x-arcade.md).

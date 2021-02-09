@@ -29,6 +29,23 @@ bool fsemu_monitor_get_by_index(int index, fsemu_monitor_t *monitor);
 bool fsemu_monitor_get_by_flag(int flag, fsemu_monitor_t *monitor);
 bool fsemu_monitor_get_by_rect(fsemu_rect_t *rect, fsemu_monitor_t *monitor);
 
+extern int fsemu_monitor_log_level;
+
+#define fsemu_monitor_log(format, ...)                             \
+    if (fsemu_likely(fsemu_monitor_log_level >= FSEMU_LOG_LEVEL_INFO)) { \
+        fsemu_log("[FSE] [MON] " format, ##__VA_ARGS__);           \
+    }
+
+#define fsemu_monitor_log_debug(format, ...)                          \
+    if (fsemu_unlikely(fsemu_monitor_log_level >= FSEMU_LOG_LEVEL_DEBUG)) { \
+        fsemu_log("[FSE] [MON] " format, ##__VA_ARGS__);              \
+    }
+
+#define fsemu_monitor_log_warning(format, ...)                        \
+    if (fsemu_likely(fsemu_monitor_log_level >= FSEMU_LOG_LEVEL_WARNING)) { \
+        fsemu_log("[FSE] [MON] " format, ##__VA_ARGS__);              \
+    }
+
 #ifdef __cplusplus
 }
 #endif

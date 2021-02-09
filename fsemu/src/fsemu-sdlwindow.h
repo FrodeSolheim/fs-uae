@@ -7,7 +7,7 @@
 
 #include "fsemu-sdl.h"
 
-#ifdef FSEMU_MACOS
+#ifdef FSEMU_OS_MACOS
 #define FSEMU_KMOD_SCANCODE SDL_SCANCODE_LGUI
 #define FSEMU_KMOD_MOD KMOD_LGUI
 #else
@@ -18,6 +18,9 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+// FIXME: Replace
+bool fsemu_sdlwindow_full_keyboard_emulation(void);
 
 // This function can be called before fsemu_window_init and
 // fsemu_sdlwindow_init.
@@ -42,7 +45,14 @@ bool fsemu_sdlwindow_no_event_polling(void);
 // Return a pointer to the SDL_Window.
 SDL_Window *fsemu_sdlwindow_window(void);
 
+// Check if we have a valid SDL_Window.
+bool fsemu_sdlwindow_has_window(void);
+
 bool fsemu_sdlwindow_handle_event(SDL_Event *event);
+
+void fsemu_sdlwindow_notify_frame_rendered_vt(void);
+
+void fsemu_sdlwindow_notify_quit(void);
 
 // Return true if the module believes the window is currently fullscreen.
 bool fsemu_sdlwindow_fullscreen(void);
@@ -64,6 +74,13 @@ bool fsemu_sdlwindow_handle_window_event(SDL_Event *event);
 // Set the sdl window if created outside of FSEMU. Beware, might be tricky.
 // FIXME: Consider removing/deprecating this.
 void fsemu_sdlwindow_set_window(SDL_Window *window);
+
+#ifdef FSEMU_INTERNAL
+
+// Return a pointer to the OpenGL context, if any.
+SDL_GLContext fsemu_sdlwindow_gl_context(void);
+
+#endif  // FSEMU_INTERNAL
 
 #ifdef __cplusplus
 }

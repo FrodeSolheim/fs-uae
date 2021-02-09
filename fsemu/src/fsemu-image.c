@@ -1,10 +1,11 @@
-#define FSEMU_INTERNAL
+#define FSEMU_INTERNAL 1
 #include "fsemu-image.h"
 
 #include <stdlib.h>
 
 #include "fsemu-data.h"
 #include "fsemu-glib.h"
+#include "fsemu-log.h"
 #include "fsemu-util.h"
 
 #ifdef FSEMU_PNG
@@ -16,11 +17,13 @@
 #endif
 #endif
 
+int fsemu_image_log_level = FSEMU_LOG_LEVEL_INFO;
+
 void fsemu_image_module_init(void)
 {
     fsemu_return_if_already_initialized();
 
-    fsemu_image_log("Initialize\n");
+    fsemu_image_log("Initializing module\n");
 }
 
 fsemu_image_t *fsemu_image_load(const char *name)
@@ -54,7 +57,7 @@ static void fsemu_image_read_data_memory(png_structp png_ptr,
     fsemu_image_read_state *f =
         (fsemu_image_read_state *) png_get_io_ptr(png_ptr);
     if (length > (f->size - f->position)) {
-        png_error(png_ptr, "read error in read_data_memory (loadpng)");
+        png_error(png_ptr, "Read error in read_data_memory (loadpng)");
     }
     memcpy(data, f->buffer + f->position, length);
     f->position += length;
@@ -88,7 +91,7 @@ fsemu_image_t *fsemu_image_load_png_from_data(void *data, int data_size)
     if (png_sig_cmp((png_const_bytep) data, 0, 8)) {
 #endif
         fsemu_image_log(
-            "file %p[%d] is not recognized as a PNG file\n", data, data_size);
+            "File %p[%d] is not recognized as a PNG file\n", data, data_size);
         free(image);
         // return image;
         return NULL;
@@ -230,13 +233,13 @@ fsemu_image_t *fsemu_image_load_png_file(const char *path)
         return NULL;
     }
     if (fread(header, 1, 8, fp) != 8) {
-        fsemu_image_log("could not read 8 bytes from PNG file %s\n", path);
+        fsemu_image_log("Could not read 8 bytes from PNG file %s\n", path);
         free(image);
         fclose(fp);
         return NULL;
     }
     if (png_sig_cmp(header, 0, 8)) {
-        fsemu_image_log("file %s is not recognized as a PNG file\n", path);
+        fsemu_image_log("File %s is not recognized as a PNG file\n", path);
         free(image);
         fclose(fp);
         return NULL;
@@ -320,16 +323,18 @@ fsemu_image_t *fsemu_image_load_png_file(const char *path)
 #endif  // FSEMU_PNG
 }
 
+#if 0
 static void fsemu_image_init(fsemu_image_t *image)
 {
     memset(image, 0, sizeof(fsemu_image_t));
 }
+#endif
 
 static void fsemu_image_finalize(void *object)
 {
 #if 1
     fsemu_image_t *image = (fsemu_image_t *) object;
-    fsemu_log("Finalizing image %p\n", image);
+    fsemu_image_log_debug("Finalizing image %p\n", image);
     // FIXME
     // fflush(stdout);
     if (image->free_function) {
@@ -374,7 +379,8 @@ static void fsemu_image_png_read_fn(png_structp png_ptr,
                                     size_t length)
 {
     fsemu_stream_t *stream = (fsemu_stream_t *) png_get_io_ptr(png_ptr);
-    printf("Read %d bytes from stream %p\n", (int) length, stream);
+    fsemu_image_log_debug(
+        "Read %d bytes from stream %p\n", (int) length, stream);
     if (fsemu_stream_read(stream, data, 1, length) != length) {
         png_error(png_ptr, "read error in fsemu_image_png_read_fn");
     }
@@ -385,7 +391,8 @@ static void fsemu_image_png_read_fn(png_structp png_ptr,
 static int fsemu_image_load_png_stream(fsemu_image_t *image,
                                        fsemu_stream_t *stream)
 {
-    printf("fsemu_image_load_png_stream image=%p stream=%p\n", image, stream);
+    fsemu_image_log_debug(
+        "fsemu_image_load_png_stream image=%p stream=%p\n", image, stream);
 #ifdef FSEMU_PNG
     // FIXME: zero image struct?
     // FIME: Assume zeroed and not already used image...
@@ -417,18 +424,18 @@ static int fsemu_image_load_png_stream(fsemu_image_t *image,
     }
     */
 
-    printf("a0\n");
-    printf("a1 %lld\n", (long long) fsemu_stream_size(stream));
+    // printf("a0\n");
+    // printf("a1 %lld\n", (long long) fsemu_stream_size(stream));
     if (fsemu_stream_read(stream, header, 8, 1) != 1) {
-        fsemu_image_log("could not read 8 bytes from PNG file\n");
+        fsemu_image_log("Could not read 8 bytes from PNG file\n");
         return fsemu_image_set_error(image, 1);
     }
-    printf("b\n");
+    // printf("b\n");
     if (png_sig_cmp(header, 0, 8)) {
-        fsemu_image_log("file is not recognized as a PNG file\n");
+        fsemu_image_log("File is not recognized as a PNG file\n");
         return fsemu_image_set_error(image, 2);
     }
-    printf("c\n");
+    // printf("c\n");
 
     png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
     // FIXME: png_destroy_read_struct
@@ -450,7 +457,7 @@ static int fsemu_image_load_png_stream(fsemu_image_t *image,
 
     png_set_read_fn(png_ptr, stream, fsemu_image_png_read_fn);
 
-    printf("c1\n");
+    // printf("c1\n");
 
     png_set_sig_bytes(png_ptr, 8);
 
@@ -508,7 +515,7 @@ static int fsemu_image_load_png_stream(fsemu_image_t *image,
     }
 #endif
 
-    printf("c2\n");
+    // printf("c2\n");
 
     unsigned char *image_data =
         (unsigned char *) malloc(width * height * channels);
@@ -517,9 +524,9 @@ static int fsemu_image_load_png_stream(fsemu_image_t *image,
         row_pointers[y] = image_data + width * y * channels;
     }
 
-    printf("d\n");
+    // printf("d\n");
     png_read_image(png_ptr, row_pointers);
-    printf("e\n");
+    // printf("e\n");
 
     // image->format = format;
     image->data = image_data;
@@ -544,11 +551,12 @@ static int fsemu_image_load_png_stream(fsemu_image_t *image,
 
 fsemu_image_t *fsemu_image_from_stream(fsemu_stream_t *stream, bool owner)
 {
-    printf("fsemu_image_from_stream stream=%p owner=%d\n", stream, owner);
+    fsemu_image_log_debug(
+        "fsemu_image_from_stream stream=%p owner=%d\n", stream, owner);
     fsemu_image_t *image = fsemu_image_new();
-    printf("a\n");
+    // printf("a\n");
     fsemu_image_load_png_stream(image, stream);
-    printf("b\n");
+    // printf("b\n");
     if (owner) {
         fsemu_stream_unref(stream);
     }

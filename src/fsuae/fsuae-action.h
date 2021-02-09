@@ -1,7 +1,8 @@
-#ifndef FSUAE_ACTIONS_H_
-#define FSUAE_ACTIONS_H_
+#ifndef FSUAE_ACTION_H_
+#define FSUAE_ACTION_H_
 
-#include <uae/uae.h>
+#include "fsuae-config.h"
+#include "uae/uae.h"
 
 void fsuae_action_init(void);
 
@@ -192,4 +193,4 @@ DEFEVENT(AMIGA_JOYPORT_MODE_1_LIGHTPEN, _T(""), AM_K, 0, 0, 0)
 DEFEVENT(AMIGA_JOYPORT_MODE_1_LAST, _T(""), AM_K, 0, 0, 0)
 #endif
 
-#endif  // FSUAE_ACTIONS_H_
+#endif  // FSUAE_ACTION_H_

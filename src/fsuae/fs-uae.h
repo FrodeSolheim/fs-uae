@@ -11,7 +11,10 @@
 #endif
 #endif
 
+#ifdef FSUAE_LEGACY
 void fs_uae_configure_menu();
+#endif
+
 void fs_uae_configure_input();
 const char *fs_uae_get_state_base_name();
 void fs_uae_read_custom_uae_options(int argc, char **argv);
@@ -42,26 +45,6 @@ void fs_uae_configure_amiga_model();
 void fs_uae_configure_mouse(void);
 void fs_uae_load_rom_files(const char *path);
 
-char *fs_uae_expand_path(const char *path);
-char *fs_uae_expand_path_and_free(char *path);
-
-const char *fs_uae_configurations_dir();
-const char *fs_uae_cdroms_dir();
-const char *fs_uae_floppies_dir();
-const char *fs_uae_hard_drives_dir();
-const char *fs_uae_kickstarts_dir();
-// const char *fs_uae_flash_memory_dir();
-// const char *fs_uae_save_states_dir();
-const char *fs_uae_state_dir();
-// const char *fs_uae_floppy_overlays_dir();
-const char *fs_uae_controllers_dir();
-const char *fs_uae_logs_dir();
-const char *fs_uae_module_ripper_dir();
-const char *fs_uae_exe_dir();
-const char *fs_uae_themes_dir();
-const char *fs_uae_cache_dir(void);
-const char *fs_uae_kickstarts_cache_dir();
-
 #define FS_UAE_CONFIG_TYPE_JOYSTICK "amiga"
 #define FS_UAE_CONFIG_TYPE_MOUSE "amiga_mouse"
 
@@ -87,11 +70,6 @@ void fs_uae_reconfigure_input_ports_host();
 #define FS_UAE_CD_PATHS 2
 #define FS_UAE_ROM_PATHS 3
 #define FS_UAE_DIR_PATHS 4
-
-void fs_uae_init_path_resolver();
-char *fs_uae_resolve_path(const char *name, int type);
-char *fs_uae_resolve_path_and_free(char *name, int type);
-void fs_uae_set_uae_paths();
 
 // extern char *g_fs_uae_default_dir;
 extern char *g_fs_uae_config_file_path;
@@ -136,4 +114,4 @@ enum {
     FS_UAE_ACTION_DRIVE_3_BROWSE,
 };
 
-#endif /* FS_UAE_FS_UAE_H */
+#endif  // FS_UAE_FS_UAE_H

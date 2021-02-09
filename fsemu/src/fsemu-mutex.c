@@ -27,9 +27,8 @@ struct fsemu_mutex {
 #endif
 };
 
-fsemu_mutex_t *fsemu_mutex_create(void)
+void fsemu_mutex_init(fsemu_mutex_t *mutex)
 {
-    fsemu_mutex_t *mutex = (fsemu_mutex_t *) g_malloc(sizeof(fsemu_mutex_t));
 #if defined(FSEMU_PTHREADS)
     pthread_mutex_init(&mutex->mutex, NULL);
 #elif defined(FSEMU_GLIB)
@@ -39,10 +38,15 @@ fsemu_mutex_t *fsemu_mutex_create(void)
 #else
 #error no thread support
 #endif
+}
+
+fsemu_mutex_t *fsemu_mutex_create(void)
+{
+    fsemu_mutex_t *mutex = FSEMU_UTIL_MALLOC(fsemu_mutex_t);
+    fsemu_mutex_init(mutex);
     return mutex;
 }
 
-#if 0
 void fsemu_mutex_destroy(fsemu_mutex_t *mutex)
 {
 #if defined(FSEMU_PTHREADS)
@@ -54,9 +58,8 @@ void fsemu_mutex_destroy(fsemu_mutex_t *mutex)
 #else
 #error no thread support
 #endif
-    g_free(mutex);
+    free(mutex);
 }
-#endif
 
 int fsemu_mutex_lock(fsemu_mutex_t *mutex)
 {

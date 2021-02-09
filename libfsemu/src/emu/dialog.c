@@ -20,6 +20,8 @@
 #include "config.h"
 #endif
 
+#ifdef FSUAE_LEGACY
+
 #include "dialog.h"
 
 #include <fs/emu.h>
@@ -268,3 +270,5 @@ void fs_emu_dialog_render() {
         //tx -= 40;
     }
 }
+
+#endif  // FSUAE_LEGACY

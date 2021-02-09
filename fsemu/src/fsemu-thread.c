@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL
+#define FSEMU_INTERNAL 1
 #include "fsemu-thread.h"
 
 // #ifdef HAVE_CONFIG_H
@@ -7,6 +7,7 @@
 
 #include "fsemu-common.h"
 #include "fsemu-log.h"
+#include "fsemu-time.h"
 #include "fsemu-util.h"
 
 // #include <fs/base.h>
@@ -46,11 +47,11 @@
 #include <semaphore.h>
 #endif
 
-#ifdef FSEMU_WINDOWS
+#ifdef FSEMU_OS_WINDOWS
 #include <Windows.h>
 #endif
 
-#ifdef FSEMU_LINUX
+#ifdef FSEMU_OS_LINUX
 #include <errno.h>
 #endif
 
@@ -91,25 +92,34 @@ struct fs_semaphore {
 #endif
 };
 
-static struct {
-    fsemu_thread_id_t main_thread_id;
-} fsemu_thread;
+// static struct {
+// } fsemu_thread;
+
+fsemu_thread_id_t fsemu_thread_emu_thread_id;
+fsemu_thread_id_t fsemu_thread_main_thread_id;
+fsemu_thread_id_t fsemu_thread_video_thread_id;
 
 void fsemu_thread_init(void)
 {
     fsemu_return_if_already_initialized();
+    fsemu_time_init();
 
-    fsemu_thread.main_thread_id = fsemu_thread_id();
+    fsemu_thread_set_main();
 }
 
-bool fsemu_thread_is_main(void)
+void fsemu_thread_set_emu(void)
 {
-    return fsemu_thread.main_thread_id == fsemu_thread_id();
+    fsemu_thread_emu_thread_id = fsemu_thread_id();
 }
 
-void fsemu_thread_assert_main(void)
+void fsemu_thread_set_main(void)
 {
-    fsemu_assert(fsemu_thread_is_main());
+    fsemu_thread_main_thread_id = fsemu_thread_id();
+}
+
+void fsemu_thread_set_video(void)
+{
+    fsemu_thread_video_thread_id = fsemu_thread_id();
 }
 
 fsemu_thread_id_t fsemu_thread_id(void)
@@ -414,7 +424,7 @@ int fs_semaphore_wait_timeout_ms(fs_semaphore *semaphore, int timeout)
 
 #endif
 
-#ifdef FSEMU_LINUX
+#ifdef FSEMU_OS_LINUX
 #include <sched.h>
 #include <sys/resource.h>
 #include <sys/time.h>
@@ -422,7 +432,7 @@ int fs_semaphore_wait_timeout_ms(fs_semaphore *semaphore, int timeout)
 
 void fsemu_thread_set_priority(void)
 {
-#ifdef FSEMU_WINDOWS
+#ifdef FSEMU_OS_WINDOWS
 #ifndef TIMERR_NOERROR
 #define TIMERR_NOERROR 0
 #endif
@@ -444,10 +454,10 @@ void fsemu_thread_set_priority(void)
 #endif
 #endif
 
-#ifdef FSEMU_LINUX
+#ifdef FSEMU_OS_LINUX
     struct rlimit rlim;
     getrlimit(RLIMIT_RTPRIO, &rlim);
-    fsemu_log("[FSEMU] Thread priority current %d max %d\n",
+    fsemu_log("[FSE] Thread priority current %d max %d\n",
               (int) rlim.rlim_cur,
               (int) rlim.rlim_max);
     // rlim.rlim_cur = 10;
@@ -462,12 +472,12 @@ void fsemu_thread_set_priority(void)
     // params.sched_priority = sched_get_priority_min(SCHED_FIFO);
     params.sched_priority = sched_get_priority_max(SCHED_FIFO);
     // params.sched_priority = 50;
-    fsemu_log("[FSEMU] Trying to set priority to %d\n", params.sched_priority);
+    fsemu_log("[FSE] Trying to set priority to %d\n", params.sched_priority);
     int result = sched_setscheduler(0, SCHED_FIFO, &params);
     if (result == 0) {
-        fsemu_log("[FSEMU] Has set real time priority\n");
+        fsemu_log("[FSE] Has set real time priority\n");
     } else {
-        fsemu_log("[FSEMU] Could not set real time priority, errno = %d\n",
+        fsemu_log("[FSE] Could not set real time priority, errno = %d\n",
                   errno);
     }
 #endif

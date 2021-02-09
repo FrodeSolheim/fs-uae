@@ -1,7 +1,9 @@
-#define FSEMU_INTERNAL
+#define FSEMU_INTERNAL 1
 #include "fsemu-quit.h"
 
 #include "fsemu-log.h"
+#include "fsemu-thread.h"
+#include "fsemu-window.h"
 
 static struct {
     volatile bool quit;
@@ -19,6 +21,14 @@ void fsemu_quit_abort(void)
 
 void fsemu_quit_maybe(void)
 {
-    fsemu_log("[FSEMU] Quit (maybe)\n");
+    fsemu_log("[FSE] [...] Quit (maybe)\n");
     fsemu_quit.quit = true;
+
+#if 0
+    if (!fsemu_thread_is_main()) {
+        // SDL_Quit();
+        printf("%d\n", 1 / 0);
+    }
+#endif
+    fsemu_window_notify_quit();
 }

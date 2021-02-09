@@ -93,7 +93,7 @@ int amiga_send_input_event(int input_event, int state)
         state = -state;
     } else if (input_event == INPUTEVENT_JOYPORT0_MOUSEXPOS) {
         input_event = INPUTEVENT_MOUSE1_HORIZ;
-        printf("converted into %d\n", input_event);
+        // printf("converted into %d\n", input_event);
     } else if (input_event == INPUTEVENT_JOYPORT0_MOUSEYNEG) {
         input_event = INPUTEVENT_MOUSE1_VERT;
         state = -state;
@@ -128,8 +128,10 @@ int amiga_send_input_event(int input_event, int state)
         if (magic_mouse) {
             //printf("magic mouse %d %d\n",
             //       fs_emu_mouse_absolute_x, fs_emu_mouse_absolute_y);
+#ifdef FSUAE_LEGACY
             uae_mousehack_helper(fs_emu_mouse_absolute_x,
                                  fs_emu_mouse_absolute_y);
+#endif
             return 1;
         }
     case INPUTEVENT_MOUSE1_WHEEL:

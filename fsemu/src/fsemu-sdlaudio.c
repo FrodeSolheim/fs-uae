@@ -1,8 +1,8 @@
-#define FSEMU_INTERNAL
+#define FSEMU_INTERNAL 1
 #include "fsemu-sdlaudio.h"
 
-#include "fsemu-audio-buffer.h"
 #include "fsemu-audio.h"
+#include "fsemu-audiobuffer.h"
 #include "fsemu-log.h"
 #include "fsemu-time.h"
 
@@ -23,18 +23,18 @@
 // audio layer by interpolating the size sent and time passed (based on time
 // between callbacks)
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 static struct fsemu_sdlaudio {
     SDL_AudioDeviceID device;
     int buffer_bytes;
 } fsemu_sdlaudio;
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 void fsemu_sdlaudio_callback(void *data, Uint8 *stream, int want_bytes);
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 static const char *fsemu_sdlaudio_format_name(SDL_AudioFormat format)
 {
@@ -75,7 +75,7 @@ void fsemu_sdlaudio_init(void)
 {
     fsemu_return_if_already_initialized();
 
-    fsemu_audio_log("SDL_Init(SDL_INIT_AUDIO\n");
+    fsemu_audio_log("SDL_Init(SDL_INIT_AUDIO)\n");
     SDL_Init(SDL_INIT_AUDIO);
 
     const char *sdl_driver_name = SDL_GetCurrentAudioDriver();
@@ -149,7 +149,7 @@ void fsemu_sdlaudio_init(void)
     SDL_PauseAudioDevice(fsemu_sdlaudio.device, 0);
 }
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 void fsemu_sdlaudio_callback(void *data, Uint8 *stream, int want_bytes)
 {
@@ -158,7 +158,7 @@ void fsemu_sdlaudio_callback(void *data, Uint8 *stream, int want_bytes)
 #if 1
     fsemu_audio_log_trace(
         "Buffer: %3d ms (dt %0.1f ms) want %5d B (%4d frames)\n",
-        fsemu_audio_buffer_fill_ms(),
+        fsemu_audiobuffer_fill_ms(),
         ((now - last_time) / 1000.0),
         want_bytes,
         want_bytes / 4);
@@ -167,7 +167,7 @@ void fsemu_sdlaudio_callback(void *data, Uint8 *stream, int want_bytes)
     int wanted_bytes = want_bytes;
 
 #if 0
-    if (fsemu_audio_buffer_fill() < want_bytes) {
+    if (fsemu_audiobuffer_fill() < want_bytes) {
         fsemu_audio_log(
             "---------------------- UNDERRUN "
             "----------------------\n");
@@ -175,22 +175,22 @@ void fsemu_sdlaudio_callback(void *data, Uint8 *stream, int want_bytes)
 #endif
 
     // Temp hack
-    if (fsemu_audio_buffer_fill_ms() > 100) {
+    if (fsemu_audiobuffer_fill_ms() > 100) {
         fsemu_audio_log("----- reset -----\n");
         fsemu_audio_log_buffer_stats();
         fsemu_audio_log("-----------------\n");
         // int want = fsemu_audio_frequency() * 50 / 1000 * 4;
         int want = 8192;
         // int want = 0;
-        fsemu_audio_buffer.read = fsemu_audio_buffer.write - want;
-        if (fsemu_audio_buffer.read < fsemu_audio_buffer.data) {
-            fsemu_audio_buffer.read += fsemu_audio_buffer.size;
+        fsemu_audiobuffer.read = fsemu_audiobuffer.write - want;
+        if (fsemu_audiobuffer.read < fsemu_audiobuffer.data) {
+            fsemu_audiobuffer.read += fsemu_audiobuffer.size;
         }
     }
     // -----------------------------------------------------------------------
 
-    uint8_t volatile *read = fsemu_audio_buffer.read;
-    uint8_t volatile *write = fsemu_audio_buffer.write;
+    uint8_t volatile *read = fsemu_audiobuffer.read;
+    uint8_t volatile *write = fsemu_audiobuffer.write;
 
     int bytes = 0;
     int bytes_written = 0;
@@ -199,7 +199,7 @@ void fsemu_sdlaudio_callback(void *data, Uint8 *stream, int want_bytes)
     if (write >= read) {
         bytes = write - read;
     } else {
-        bytes = fsemu_audio_buffer.end - read;
+        bytes = fsemu_audiobuffer.end - read;
         wrap = true;
     }
 
@@ -226,7 +226,7 @@ void fsemu_sdlaudio_callback(void *data, Uint8 *stream, int want_bytes)
     if (want_bytes > 0) {
         // fsemu_audio_log("------------------------------------------ \n");
         if (wrap) {
-            read = fsemu_audio_buffer.data;
+            read = fsemu_audiobuffer.data;
             bytes = write - read;
             if (bytes > want_bytes) {
                 bytes = want_bytes;
@@ -253,7 +253,7 @@ void fsemu_sdlaudio_callback(void *data, Uint8 *stream, int want_bytes)
         memset(stream, 0, want_bytes);
         // FIXME: Re-enable with log level
         // fsemu_audio_log("%d bytes short of refilling SDL :(\n", want_bytes);
-        fsemu_audio_buffer.add_silence = 1;
+        fsemu_audiobuffer.add_silence = 1;
     }
 #endif
 
@@ -264,7 +264,7 @@ void fsemu_sdlaudio_callback(void *data, Uint8 *stream, int want_bytes)
         buffered_bytes, now, (uintptr_t) read, (uintptr_t) write);
 
     last_time = now;
-    fsemu_audio_buffer.read = read;
+    fsemu_audiobuffer.read = read;
 
     if (bytes_written != wanted_bytes) {
         // FIXME: Re-enable with log level
@@ -275,14 +275,14 @@ void fsemu_sdlaudio_callback(void *data, Uint8 *stream, int want_bytes)
     fsemu_audio_update_min_fill(read, write);
 
 #if 0
-    memcpy(stream, (void *) fsemu_audio_buffer.read, len);
-    fsemu_audio_buffer.read += len;
-    if (fsemu_audio_buffer.read == fsemu_audio_buffer.end) {
-        fsemu_audio_buffer.read = fsemu_audio_buffer.data;
+    memcpy(stream, (void *) fsemu_audiobuffer.read, len);
+    fsemu_audiobuffer.read += len;
+    if (fsemu_audiobuffer.read == fsemu_audiobuffer.end) {
+        fsemu_audiobuffer.read = fsemu_audiobuffer.data;
     }
 #endif
 }
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 #endif  // FSEMU_SDL

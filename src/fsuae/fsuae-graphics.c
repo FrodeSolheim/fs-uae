@@ -1,3 +1,6 @@
+#define FSUAE_INTERNAL
+#include "fsuae-graphics.h"
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -5,13 +8,14 @@
 #include <fs/conf.h>
 #include <fs/emu.h>
 #include <fs/i18n.h>
-#include <glib.h>
-#include <uae/uae.h>
 
 #include "fs-uae.h"
+#include "fsemu-glib.h"
 #include "fsuae-graphics.h"
 #include "fsuae-model.h"
 #include "fsuae-options.h"
+#include "fsuae-path.h"
+#include "uae/uae.h"
 
 #define BUFFER_SIZE 32
 
@@ -83,7 +87,7 @@ void fs_uae_configure_graphics_card(amiga_config *c)
     } else {
         int uaegfx_card = fs_config_get_boolean(OPTION_UAEGFX_CARD);
         if (uaegfx_card != FS_CONFIG_NONE) {
-            fs_log(
+            fsuae_log(
                 "DEPRECATED: uaegfx_card is deprecated, use graphics_card "
                 "instead\n");
             if (uaegfx_card == 1) {
@@ -118,7 +122,7 @@ void fs_uae_configure_graphics_card(amiga_config *c)
     if (fs_config_get_const_string(OPTION_GRAPHICS_CARD_MEMORY)) {
         memory = fs_uae_read_memory_option(OPTION_GRAPHICS_CARD_MEMORY);
         memory /= 1024;
-        fs_log("CONFIG: Overriding graphics card memory: %d MB\n", memory);
+        fsuae_log("CONFIG: Overriding graphics card memory: %d MB\n", memory);
     }
 
     if (card != NULL) {
@@ -130,8 +134,8 @@ void fs_uae_configure_graphics_card(amiga_config *c)
 
     char *path = fs_config_get_string(OPTION_GRAPHICS_CARD_ROM);
     if (path) {
-        path = fs_uae_expand_path_and_free(path);
-        path = fs_uae_resolve_path_and_free(path, FS_UAE_ROM_PATHS);
+        path = fsuae_path_expand_and_free(path);
+        path = fsuae_path_resolve_and_free(path, FS_UAE_ROM_PATHS);
         amiga_set_option("picassoiv_rom_file", path);
         g_free(path);
     }

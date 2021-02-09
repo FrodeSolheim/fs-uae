@@ -1,5 +1,22 @@
 # Keyboard mapping
 
+Not all Amiga keys are present on modern computer keyboards, and vice versa.
+Most keys are mapped like you would expect (F1 on your keyboard activates F1 on
+the emulated Amiga keyboard, etc).
+
+Here are some notable exceptions:
+* Amiga Help = End (Mac laptops: Fn + Right)
+* Amiga Delete = Delete (Mac laptops: Fn + Backspace)
+* Amiga Numpad Left Paren = Home (Mac laptops: Fn + Left)
+* Amiga Numpad Right Paren = Page Up (Mac laptops: Fn + Up)
+* Amiga Left A = Page Down or Right Menu / Right Windows key.
+* Amiga Right A = Left Menu / Left Windows key.
+* Amiga Ctrl = Left Ctrl
+* Amiga key to the left of Backspace = Insert
+
+Emulator [keyboard shortcuts](keyboard-shortcuts.md) are documented on a
+separate page.
+
 Keys in FS-UAE are (generally) mapped based on physical location and not by
 symbol. Trying to map symbols would require hack-ish workarounds, since one
 Amiga key can have its symbols spread over two or more host keys, depending

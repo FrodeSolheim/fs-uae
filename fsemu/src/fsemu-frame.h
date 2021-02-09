@@ -3,7 +3,8 @@
 
 #include <stdint.h>
 
-#include "fsemu-common.h"
+#include "fsemu-config.h"
+#include "fsemu-time.h"
 
 // FIXME: Check / define order of
 // - fsemu_frame_end
@@ -17,6 +18,12 @@ extern "C" {
 
 int64_t fsemu_frame_epoch(void);
 void fsemu_frame_reset_epoch(void);
+
+bool fsemu_frame_paused(void);
+bool fsemu_frame_warping(void);
+
+bool fsemu_frame_check_load_state(int *slot);
+bool fsemu_frame_check_save_state(int *slot);
 
 // Affects when the frame starts emulating.
 // FIXME: In use?
@@ -60,7 +67,7 @@ void fsemu_frame_add_sleep_time(int64_t t);
 void fsemu_frame_add_extra_time(int64_t t);
 
 extern double fsemu_frame_hz;
-extern bool fsemu_frame_warp;
+// extern bool fsemu_frame_warp;
 
 extern int64_t fsemu_frame_epoch_at;
 extern int64_t fsemu_frame_origin_at;
@@ -85,23 +92,32 @@ extern int64_t fsemu_frame_extra_duration;
 // Initializes the frame module (not a single frame).
 void fsemu_frame_init(void);
 
+extern volatile int fsemu_frame_number_began;
+extern volatile int fsemu_frame_number_ended;
+extern volatile int fsemu_frame_number_posted;
+extern volatile int fsemu_frame_number_rendering;
+extern volatile int fsemu_frame_number_rendered;
+extern volatile int fsemu_frame_number_displaying;
+extern volatile int fsemu_frame_number_displayed;
+extern volatile int fsemu_frame_number_swapped;
+
 #endif  // FSEMU_INTERNAL
 
 extern int fsemu_frame_log_level;
 
-#define fsemu_frame_log(format, ...)                         \
-    if (fsemu_frame_log_level >= 1) {                        \
-        fsemu_log("[FSEMU] [FRAME] " format, ##__VA_ARGS__); \
+#define fsemu_frame_log(format, ...)                     \
+    if (fsemu_frame_log_level >= 1) {                    \
+        fsemu_log("[FSE] [FRM] " format, ##__VA_ARGS__); \
     }
 
-#define fsemu_frame_log_trace(format, ...)                   \
-    if (fsemu_frame_log_level >= 2) {                        \
-        fsemu_log("[FSEMU] [FRAME] " format, ##__VA_ARGS__); \
+#define fsemu_frame_log_trace(format, ...)               \
+    if (fsemu_frame_log_level >= 2) {                    \
+        fsemu_log("[FSE] [FRM] " format, ##__VA_ARGS__); \
     }
 
 #define fsemu_frame_log_epoch(format, ...)                        \
     if (fsemu_frame_log_level >= 2) {                             \
-        fsemu_log("[FSEMU] [%5d] " format,                        \
+        fsemu_log("[FSE] [%5d] " format,                          \
                   (int) (fsemu_time_us() - fsemu_frame_epoch_at), \
                   ##__VA_ARGS__);                                 \
     }

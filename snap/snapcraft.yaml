@@ -1,0 +1,63 @@
+name: fs-uae
+base: core18
+version: '3.1.0dev2'
+summary: Cross-platform Amiga emulator based on UAE/WinUAE
+license: GPL-2.0
+description: |
+  FS-UAE is a cross-platform Amiga emulator based on updated emulation code
+  from WinUAE. FS-UAE uses SDL for input, OpenAL for audio and OpenGL
+  for graphics.
+
+grade: devel # must be 'stable' to release into candidate/stable channels
+confinement: devmode # use 'strict' once you have the right plugs and slots
+
+apps:
+  fs-uae:
+    command: desktop-launch fs-uae
+    plugs:
+      - desktop
+      - desktop-legacy
+      - home
+      - joystick
+      - opengl
+      - pulseaudio
+      - wayland
+      - x11
+
+parts:
+  # my-part:
+  #   # See 'snapcraft plugins'
+  #   plugin: nil
+
+  # libmpeg2:
+  #   source: http://libmpeg2.sourceforge.net/files/libmpeg2-0.5.1.tar.gz
+  #   plugin: autotools
+  # glew:
+  #   source: https://freefr.dl.sourceforge.net/project/glew/glew/2.1.0/glew-2.1.0.tgz
+  #   plugin: autotools
+  fs-uae:
+    source: fs-uae-3.1.0dev.tar.gz
+    plugin: autotools
+    build-packages:
+      - gettext
+      - libglew-dev
+      - libfreetype6-dev
+      - libglib2.0-dev
+      - libjpeg-dev
+      - libmpeg2-4-dev
+      - libopenal-dev
+      - libpng-dev
+      - libsdl2-dev
+      - libsdl2-ttf-dev
+      - libxi-dev
+      - pkg-config
+      - zip
+    stage-packages:
+      # - libgl1
+      # - libglx0
+      - libglu1-mesa
+      - libmpeg2-4
+      - libopenal1
+      - libpng16-16
+      - libsdl2-2.0-0
+      - libsdl2-ttf-2.0-0

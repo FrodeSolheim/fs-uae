@@ -2,6 +2,8 @@
 #include "config.h"
 #endif
 
+#ifdef FSUAE_LEGACY
+
 #include <fs/emu.h>
 #include "theme.h"
 
@@ -391,3 +393,5 @@ void fse_init_theme()
     load_defaults();
     load_theme();
 }
+
+#endif  // FSUAE_LEGACY

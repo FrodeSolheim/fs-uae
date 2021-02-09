@@ -1,9 +1,115 @@
-#define FSEMU_INTERNAL
+#define FSEMU_INTERNAL 1
 #include "fsemu-util.h"
 
 #include "fsemu-glib.h"
 #include "fsemu-time.h"
 
+// ----------------------------------------------------------------------------
+// File functions
+// ----------------------------------------------------------------------------
+
+bool fsemu_path_exists(const char *path)
+{
+    return g_file_test(path, G_FILE_TEST_EXISTS);
+}
+
+int fsemu_util_copy_file_with_size_limit(const char *src,
+                                         const char *dst,
+                                         int64_t size_limit)
+{
+    int error = 0;
+    FILE *src_f = NULL;
+    FILE *dst_f = NULL;
+    char *buffer = NULL;
+    int chunk_size;
+
+    src_f = g_fopen(src, "rb");
+    if (src_f == NULL) {
+        // return 1;
+        error = 1;
+        goto end;
+    }
+    dst_f = g_fopen(dst, "wb");
+    if (dst_f == NULL) {
+        // fclose(src_f);
+        // return 2;
+        error = 2;
+        goto end;
+    }
+    buffer = malloc(64 * 1024);
+    while (true) {
+        chunk_size = 64 * 1024;
+        if (size_limit != -1) {
+            chunk_size = MIN(size_limit, chunk_size);
+        }
+        int read = fread(buffer, 1, chunk_size, src_f);
+        if (read == 0) {
+            if (ferror(src_f)) {
+                // Read error
+                // fclose(src_f);
+                // fclose(dst_f);
+                // return 3;
+                error = 3;
+                goto end;
+            } else {
+                break;
+            }
+        }
+        int written = fwrite(buffer, 1, read, dst_f);
+        if (written != read) {
+            // Write error
+            // fclose(src_f);
+            // fclose(dst_f);
+            // return 4;
+            error = 4;
+            goto end;
+        }
+        if (size_limit != -1) {
+            if (size_limit == 0) {
+                // There was a size limit, and we've reached it.
+                break;
+            } else {
+                size_limit -= read;
+            }
+        }
+    }
+
+end:
+    if (src_f) {
+        fclose(src_f);
+    }
+    if (dst_f) {
+        fclose(dst_f);
+    }
+    if (buffer) {
+        free(buffer);
+    }
+    return error;
+}
+
+int fsemu_util_copy_file(const char *src, const char *dst)
+{
+    return fsemu_util_copy_file_with_size_limit(src, dst, -1);
+}
+
+int fsemu_util_delete_file(const char *path)
+{
+    return g_unlink(path);
+}
+
+int fsemu_util_delete_file_if_exists(const char *path)
+{
+    if (fsemu_path_exists(path)) {
+        return fsemu_util_delete_file(path);
+    }
+    return 0;
+}
+
+// ----------------------------------------------------------------------------
+// Environment functions
+// ----------------------------------------------------------------------------
+
+// FIXME: Belongs in fsemu-option module?
 const char *fsemu_read_env_option(const char *name)
 {
     gchar *key = g_strdup_printf("FSEMU_%s", name);
@@ -37,6 +143,8 @@ const char *fsemu_getenv(const char *name)
     return "";
 }
 
+// ----------------------------------------------------------------------------
+// Spring physics
 // ----------------------------------------------------------------------------
 
 // Same spring calculation and initial values as used by react-spring.

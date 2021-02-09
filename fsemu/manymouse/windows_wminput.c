@@ -397,6 +397,8 @@ static int init_event_queue(void)
     rid.hwndTarget = raw_hwnd;
 
 #ifdef FSUAE
+#warning manymouse wminput currently disabled
+#if 0
     if (g_fs_ml_window) {
         SDL_SysWMinfo wmInfo;
         SDL_VERSION(&wmInfo.version);
@@ -405,6 +407,7 @@ static int init_event_queue(void)
         rid.hwndTarget = hwnd;
         OldWndProc = (WNDPROC) SetWindowLongPtr(hwnd, GWLP_WNDPROC, (LONG_PTR)&NewWndProc);
     }
+#endif
 #endif
 
     if (!pRegisterRawInputDevices(&rid, 1, sizeof (rid)))

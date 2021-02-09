@@ -19,7 +19,7 @@ make sure to observe the following limitations:
 
 - [CyberStorm PPC](cyberstorm-ppc.md)
 
-## Related Options
+## Related options
 
 - [amiga_model](options/amiga-model.md)
 - [accelerator](options/accelerator.md)

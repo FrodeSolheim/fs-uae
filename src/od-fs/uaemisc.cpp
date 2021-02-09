@@ -247,7 +247,7 @@ void sleep_cpu_wakeup(void)
 
 void target_multipath_modified(struct uae_prefs *p)
 {
-    UAE_STUB("");
+    UAE_LOG_STUB("");
     /*
 	if (p != &workprefs)
 		return;

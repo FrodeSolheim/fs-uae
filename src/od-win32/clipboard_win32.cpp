@@ -33,16 +33,17 @@ typedef unsigned int UINT;
 
 #ifdef FSUAE
 
+#include "fsemu-mutex.h"
 #include "uae/uae.h"
 
 /** clipboard_read is called from both the main thread and uae thread
  * (mousehack_done), so clipboard_from_host_text/changed and is protected with
  * a mutex. */
-static fs_mutex *clipboard_from_host_mutex;
+static fsemu_mutex *clipboard_from_host_mutex;
 static char *clipboard_from_host_text;
 static bool clipboard_from_host_changed;
 
-static fs_mutex *clipboard_to_host_mutex;
+static fsemu_mutex *clipboard_to_host_mutex;
 static char *clipboard_to_host_text;
 
 #endif // FSUAE
@@ -810,7 +811,7 @@ static void clipboard_read(TrapContext *ctx, HWND hwnd, bool keyboardinject)
 #endif
 #ifdef FSUAE
 	char *lptstr;
-	fs_mutex_lock(clipboard_from_host_mutex);
+	fsemu_mutex_lock(clipboard_from_host_mutex);
 	if (clipboard_from_host_changed) {
 		if (clipboard_from_host_text) {
 			lptstr = strdup(clipboard_from_host_text);
@@ -822,7 +823,7 @@ static void clipboard_read(TrapContext *ctx, HWND hwnd, bool keyboardinject)
 		text = true;
 		clipboard_from_host_changed = false;
 	}
-	fs_mutex_unlock(clipboard_from_host_mutex);
+	fsemu_mutex_unlock(clipboard_from_host_mutex);
 #else
 	f = 0;
 	while (f = EnumClipboardFormats (f)) {
@@ -932,13 +933,13 @@ static int clipboard_put_bmp_real (HBITMAP hbmp)
 static int clipboard_put_text_real (const TCHAR *txt)
 {
 #ifdef FSUAE
-	fs_mutex_lock(clipboard_to_host_mutex);
+	fsemu_mutex_lock(clipboard_to_host_mutex);
 	if (clipboard_to_host_text != NULL) {
 		free(clipboard_to_host_text);
 		clipboard_to_host_text = NULL;
 	}
 	clipboard_to_host_text = strdup(txt);
-	fs_mutex_unlock(clipboard_to_host_mutex);
+	fsemu_mutex_unlock(clipboard_to_host_mutex);
 	return true;
 #else
 	HGLOBAL hglb;
@@ -1157,9 +1158,9 @@ void clipboard_init (void)
 {
 	chwnd = (HWND) 1; // fake window handle
 	write_log(_T("clipboard_init\n"));
-	clipboard_from_host_mutex = fs_mutex_create();
+	clipboard_from_host_mutex = fsemu_mutex_create();
 	clipboard_from_host_text = strdup("");
-	clipboard_to_host_mutex = fs_mutex_create();
+	clipboard_to_host_mutex = fsemu_mutex_create();
 	// Activate clipboard functionality (let UAE think we are in the
 	// foreground).
 	clipactive = 1;
@@ -1192,12 +1193,12 @@ void clipboard_unsafeperiod(void)
 UAE_EXTERN_C
 char *uae_clipboard_get_text()
 {
-	fs_mutex_lock(clipboard_to_host_mutex);
+	fsemu_mutex_lock(clipboard_to_host_mutex);
 	char *text = clipboard_to_host_text;
 	if (text) {
 		clipboard_to_host_text = NULL;
 	}
-	fs_mutex_unlock(clipboard_to_host_mutex);
+	fsemu_mutex_unlock(clipboard_to_host_mutex);
 	return text;
 }
 
@@ -1217,14 +1218,14 @@ void uae_clipboard_put_text(const char *text)
 #if 0
 	static char *last;
 	if (text == NULL) {
-		fs_mutex_lock(clipboard_mutex);
+		fsemu_mutex_lock(clipboard_mutex);
 		if (last) {
 			free(last);
 		}
 		clipboard_from_host_text = NULL;
 		clipboard_from_host_changed = true;
 		last = NULL;
-		fs_mutex_unlock(clipboard_mutex);
+		fsemu_mutex_unlock(clipboard_mutex);
 		return;
 	}
 #endif
@@ -1238,13 +1239,13 @@ void uae_clipboard_put_text(const char *text)
 	if (strcmp(clipboard_from_host_text, text) == 0) {
 		return;
 	}
-	fs_mutex_lock(clipboard_from_host_mutex);
+	fsemu_mutex_lock(clipboard_from_host_mutex);
 	if (clipboard_from_host_text) {
 		free(clipboard_from_host_text);
 	}
 	clipboard_from_host_text = strdup(text);
 	clipboard_from_host_changed = true;
-	fs_mutex_unlock(clipboard_from_host_mutex);
+	fsemu_mutex_unlock(clipboard_from_host_mutex);
 
 #if 0
 	if (last == NULL && text == NULL) {
@@ -1257,7 +1258,7 @@ void uae_clipboard_put_text(const char *text)
 	if (last) {
 		free(last);
 	}
-	fs_mutex_lock(clipboard_mutex);
+	fsemu_mutex_lock(clipboard_mutex);
 	if (clipboard_from_host_text) {
 		free(clipboard_from_host_text);
 	}
@@ -1270,7 +1271,7 @@ void uae_clipboard_put_text(const char *text)
 		clipboard_from_host_text = NULL;
 		clipboard_from_host_changed = true;
 	}
-	fs_mutex_unlock(clipboard_mutex);
+	fsemu_mutex_unlock(clipboard_mutex);
 
 	if (text) {
 		last = strdup(text);

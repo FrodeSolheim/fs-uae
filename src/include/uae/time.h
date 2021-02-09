@@ -10,6 +10,10 @@ void uae_time_init(void);
 void uae_time_calibrate(void);
 uae_time_t uae_time(void);
 
+int64_t uae_time_us(void);
+
+int64_t uae_time_ns(void);
+
 #ifdef _WIN32
 void uae_time_use_rdtsc(bool enable);
 uae_u32 read_system_time(void);

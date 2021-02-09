@@ -19,6 +19,9 @@ void fsemu_inputmode_init(fsemu_inputmode_t *mode);
 const char *fsemu_inputmode_name(fsemu_inputmode_t *mode);
 void fsemu_inputmode_set_name(fsemu_inputmode_t *mode, const char *name);
 
+const char *fsemu_inputmode_title(fsemu_inputmode_t *mode);
+void fsemu_inputmode_set_title(fsemu_inputmode_t *mode, const char *title);
+
 typedef struct fsemu_inputport_mapping {
     int device_type;   // keyboard, mouse, joystick or gamecontroller?
     int device_input;  // device type specific offset (key number, joystick
@@ -60,6 +63,7 @@ void fsemu_inputmode_map(fsemu_inputmode_t *mode, int input, int action);
 struct fsemu_inputmode {
     char *name;
     uint16_t mapping[FSEMU_INPUTDEVICE_MAX];
+    char *title;
 };
 
 #endif  // FSEMU_INTERNAL

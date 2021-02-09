@@ -5,6 +5,14 @@
 #include "fsemu-log.h"
 #include "fsemu-types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#define FSEMU_AUDIO_DRIVER_NULL 0
+#define FSEMU_AUDIO_DRIVER_SDL 1
+#define FSEMU_AUDIO_DRIVER_ALSA 2
+
 typedef struct {
     int target_latency_us;
     int buffer_bytes;
@@ -16,20 +24,27 @@ typedef struct {
     int min_buffer_bytes;
 } fsemu_audio_frame_stats_t;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 void fsemu_audio_init(void);
+
+void fsemu_audio_pause(void);
+
+void fsemu_audio_resume(void);
+
+bool fsemu_audio_muted(void);
+
+void fsemu_audio_set_muted(bool muted);
+
+int fsemu_audio_volume(void);
+
+void fsemu_audio_set_volume(int volume);
+
+int fsemu_audio_driver(void);
 
 int fsemu_audio_frequency(void);
 
 /** If you want to set the frequency, you need to do it before calling
  * fsemu_audio_init. */
 void fsemu_audio_set_frequency(int frequency);
-
-void fsemu_audio_pause(void);
-void fsemu_audio_resume(void);
 
 // void fsemu_audio_work(int timeout_us);
 
@@ -72,20 +87,20 @@ void fsemu_audio_update_min_fill(uint8_t volatile *read,
 extern int fsemu_audio_log_level;
 
 #if 0
-#define fsemu_audio_log_with_level(level, format, ...)       \
-    if (fsemu_audio_log_level >= level) {                    \
-        fsemu_log("[FSEMU] [AUDIO] " format, ##__VA_ARGS__); \
+#define fsemu_audio_log_with_level(level, format, ...)   \
+    if (fsemu_audio_log_level >= level) {                \
+        fsemu_log("[FSE] [AUD] " format, ##__VA_ARGS__); \
     }
 #endif
 
-#define fsemu_audio_log(format, ...)                         \
-    if (fsemu_audio_log_level >= 1) {                        \
-        fsemu_log("[FSEMU] [AUDIO] " format, ##__VA_ARGS__); \
+#define fsemu_audio_log(format, ...)                     \
+    if (fsemu_audio_log_level >= 1) {                    \
+        fsemu_log("[FSE] [AUD] " format, ##__VA_ARGS__); \
     }
 
-#define fsemu_audio_log_trace(format, ...)                   \
-    if (fsemu_audio_log_level >= 2) {                        \
-        fsemu_log("[FSEMU] [AUDIO] " format, ##__VA_ARGS__); \
+#define fsemu_audio_log_trace(format, ...)               \
+    if (fsemu_audio_log_level >= 2) {                    \
+        fsemu_log("[FSE] [AUD] " format, ##__VA_ARGS__); \
     }
 
 #ifdef __cplusplus

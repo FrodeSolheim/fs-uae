@@ -1,7 +1,7 @@
-## Built-in joystick emulation
+## Keyboard joystick emulation
 
-To disable the built-in Joystick keyboard emulation, make sure the following
-file exists: `FS-UAE/Data/Devs/Keyboard.fs-device-disabled`.
+If you don't have a joystick or gamepad attached to your computer, then you can
+use [keyboard joystick emulation](keyboard-joystick-emulation.md) instead.
 
 ## Adding custom keyboard joystick devices
 

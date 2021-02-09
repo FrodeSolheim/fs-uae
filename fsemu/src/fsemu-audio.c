@@ -1,30 +1,31 @@
-#define FSEMU_INTERNAL
+#define FSEMU_INTERNAL 1
 #include "fsemu-audio.h"
 
 #ifdef FSEMU_ALSA
-#include "fsemu-audio-alsa.h"
+#include "fsemu-alsaaudio.h"
 #endif
-#include "fsemu-audio-buffer.h"
+#include "fsemu-audiobuffer.h"
 #include "fsemu-frame.h"
 #include "fsemu-log.h"
 #include "fsemu-mutex.h"
+// #include "fsemu-nullaudio.h"
 #include "fsemu-option.h"
-#include "fsemu-options.h"
 #ifdef FSEMU_SDL
 #include "fsemu-sdlaudio.h"
 #endif
 #include "fsemu-time.h"
 #include "fsemu-util.h"
 
-// int fsemu_audio_buffer.size;
-// volatile uint8_t *fsemu_audio_buffer;
-// volatile uint8_t *fsemu_audio_buffer.end;
-// volatile uint8_t *volatile fsemu_audio_buffer.read;
-// volatile uint8_t *volatile fsemu_audio_buffer.write;
+// int fsemu_audiobuffer.size;
+// volatile uint8_t *fsemu_audiobuffer;
+// volatile uint8_t *fsemu_audiobuffer.end;
+// volatile uint8_t *volatile fsemu_audiobuffer.read;
+// volatile uint8_t *volatile fsemu_audiobuffer.write;
 
 #define FSEMU_AUDIO_MAX_FRAME_STATS (1 << 8)  // 256
 
 static struct {
+    int driver;
     int frequency;
     fsemu_mutex_t *mutex;
     int sent_size;
@@ -38,6 +39,14 @@ static struct {
 } fsemu_audio;
 
 int fsemu_audio_log_level = 1;
+
+// ----------------------------------------------------------------------------
+
+// static void fsemu_nullaudio_init(void)
+// {
+// }
+
+// ----------------------------------------------------------------------------
 
 static void fsemu_audio_lock(void)
 {
@@ -53,6 +62,11 @@ static void fsemu_audio_unlock(void)
     }
 }
 
+int fsemu_audio_driver(void)
+{
+    return fsemu_audio.driver;
+}
+
 static void fsemu_audio_init_driver(void)
 {
     fsemu_audio_log("Initialize driver...\n");
@@ -64,7 +78,11 @@ static void fsemu_audio_init_driver(void)
     fsemu_audio.frequency = 44100;
 
     // const char *driver = fsemu_config_string("audio_driver");
-    const char *driver = "sdl";
+    // const char *driver = "sdl";
+    const char *driver = fsemu_option_const_string(FSEMU_OPTION_AUDIO_DRIVER);
+    if (driver) {
+        fsemu_audio_log("Want audio driver: %s\n", driver);
+    }
     if (0) {
 #ifdef FSEMU_OPENAL
     } else if (!driver || strcmp(driver, "openal") == 0) {
@@ -83,34 +101,9 @@ static void fsemu_audio_init_driver(void)
         fsemu_sdlaudio_init();
 #endif
     } else {
+        // fsemu_nullaudio_init();
         // fse_init_dummy_audio();
     }
-    /*
-    for (int i = 0; i < FSE_MAX_AUDIO_STREAMS; i++) {
-        fse_audio.want_volume[i] = 1.0;
-    }
-    int volume = fs_config_get_int_clamped("volume", 0, 100);
-    if (volume != FS_CONFIG_NONE) {
-        if (volume == 0) {
-            fse_set_audio_muted(FS_EMU_AUDIO_MASTER, 1);
-        } else {
-            fse_set_set_audio_volume(FS_EMU_AUDIO_MASTER, volume);
-        }
-    }
-    */
-}
-
-void fsemu_audio_init(void)
-{
-    fsemu_return_if_already_initialized();
-    fsemu_frame_init();
-
-    fsemu_audio_log("Init\n");
-    fsemu_option_read_int(FSEMU_OPTION_LOG_AUDIO, &fsemu_audio_log_level);
-
-    fsemu_audio.mutex = fsemu_mutex_create();
-    fsemu_audio_buffer_init();
-    fsemu_audio_init_driver();
 }
 
 int fsemu_audio_frequency(void)
@@ -182,7 +175,7 @@ void fsemu_audio_log_inflight_estimate(void)
 static void fsemu_audio_update_stats(void)
 {
     // fsemu_audio_log("Audio: Frame %d\n", number);
-    // int buffered = fsemu_audio_buffer_fill();
+    // int buffered = fsemu_audiobuffer_fill();
 
     int64_t now = fsemu_time_us();
 
@@ -196,20 +189,20 @@ static void fsemu_audio_update_stats(void)
     fsemu_audio.underruns = 0;
     fsemu_audio_unlock();
 
-    // uint8_t volatile *read = fsemu_audio_buffer.read;
-    uint8_t volatile *write = fsemu_audio_buffer.write;
+    // uint8_t volatile *read = fsemu_audiobuffer.read;
+    uint8_t volatile *write = fsemu_audiobuffer.write;
 
     intptr_t buffer_fill;
     if (sent_write >= sent_read) {
         buffer_fill = sent_write - sent_read;
     } else {
-        buffer_fill = ((uintptr_t) fsemu_audio_buffer.end - sent_read) +
-                      (sent_write - (uintptr_t) fsemu_audio_buffer.data);
+        buffer_fill = ((uintptr_t) fsemu_audiobuffer.end - sent_read) +
+                      (sent_write - (uintptr_t) fsemu_audiobuffer.data);
     }
 
     intptr_t newly_written = (uintptr_t) write - sent_write;
     if (newly_written < 0) {
-        newly_written += fsemu_audio_buffer.size;
+        newly_written += fsemu_audiobuffer.size;
     }
     // Mint local_buffer_fill = buffer_fill;
 
@@ -241,7 +234,7 @@ static void fsemu_audio_update_stats(void)
         &fsemu_audio
              .stats[fsemu_frame_counter_mod(FSEMU_AUDIO_MAX_FRAME_STATS)];
 
-    stats->target_latency_us = fsemu_audio_buffer_calculate_target();
+    stats->target_latency_us = fsemu_audiobuffer_calculate_target();
     stats->buffer_bytes = buffer_fill + newly_written;
     stats->recent_bytes = newly_written;
     stats->inflight_bytes = inflight;
@@ -358,8 +351,8 @@ void fsemu_audio_update_min_fill(uint8_t volatile *read,
     if (write >= read) {
         bytes = write - read;
     } else {
-        bytes = (fsemu_audio_buffer.end - read) +
-                (write - fsemu_audio_buffer.data);
+        bytes = (fsemu_audiobuffer.end - read) +
+                (write - fsemu_audiobuffer.data);
     }
     int frame = fsemu_frame_counter_mod(FSEMU_AUDIO_MAX_FRAME_STATS);
     // There is a small chance that the min level is registered on the "wrong"
@@ -368,5 +361,65 @@ void fsemu_audio_update_min_fill(uint8_t volatile *read,
     int existing_min = fsemu_audio.stats[frame].min_buffer_bytes;
     if (existing_min == 0 || existing_min > bytes) {
         fsemu_audio.stats[frame].min_buffer_bytes = bytes;
+    }
+}
+
+bool fsemu_audio_muted(void)
+{
+    // FIXME
+    return false;
+}
+
+void fsemu_audio_set_muted(bool muted)
+{
+    fsemu_log("FIXME: Set volume not implemented yet\n");
+}
+
+int fsemu_audio_volume(void)
+{
+    // FIXME
+    return 100;
+}
+
+void fsemu_audio_set_volume(int volume)
+{
+    fsemu_log("FIXME: Set volume not implemented yet\n");
+}
+
+void fsemu_audio_init(void)
+{
+    fsemu_return_if_already_initialized();
+    fsemu_frame_init();
+
+    fsemu_audio_log("Init\n");
+    fsemu_audio_log_level =
+        fsemu_option_int_default(FSEMU_OPTION_LOG_AUDIO, 0);
+    // printf("%d\n", fsemu_audio_log_level);
+    // exit(1);
+
+    fsemu_audio.mutex = fsemu_mutex_create();
+    fsemu_audiobuffer_init();
+    fsemu_audio_init_driver();
+
+    /*
+    for (int i = 0; i < FSE_MAX_AUDIO_STREAMS; i++) {
+        fse_audio.want_volume[i] = 1.0;
+    }
+    int volume = fs_config_get_int_clamped("volume", 0, 100);
+    if (volume != FS_CONFIG_NONE) {
+        if (volume == 0) {
+            fse_set_audio_muted(FS_EMU_AUDIO_MASTER, 1);
+        } else {
+            fse_set_set_audio_volume(FS_EMU_AUDIO_MASTER, volume);
+        }
+    }
+    */
+
+    int volume =
+        fsemu_option_int_clamped_default(FSEMU_OPTION_VOLUME, 0, 100, 100);
+    if (volume == 0) {
+        fsemu_audio_set_muted(true);
+    } else {
+        fsemu_audio_set_volume(volume);
     }
 }

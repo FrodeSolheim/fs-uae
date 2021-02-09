@@ -1,5 +1,8 @@
-#define FSEMU_INTERNAL
+#define FSEMU_INTERNAL 1
 #include "fsemu-inputmode.h"
+
+#include "fsemu-input.h"
+#include "fsemu-util.h"
 
 static fsemu_inputmode_t *fsemu_inputmode_alloc(void)
 {
@@ -26,22 +29,34 @@ const char *fsemu_inputmode_name(fsemu_inputmode_t *mode)
 
 void fsemu_inputmode_set_name(fsemu_inputmode_t *mode, const char *name)
 {
-    if (!name) {
-        printf("WARNING: Cannot set NULL name\n");
-        return;
-    }
+    fsemu_assert(name != NULL);
     if (mode->name) {
         free(mode->name);
     }
     mode->name = strdup(name);
 }
 
+const char *fsemu_inputmode_title(fsemu_inputmode_t *mode)
+{
+    return mode->title;
+}
+
+void fsemu_inputmode_set_title(fsemu_inputmode_t *mode, const char *title)
+{
+    fsemu_assert(title != NULL);
+
+    if (mode->title) {
+        free(mode->title);
+    }
+    mode->title = strdup(title);
+}
+
 void fsemu_inputmode_map(fsemu_inputmode_t *mode, int input, int action)
 {
-    printf("[FSEMU] Input port map %d -> %d\n", input, action);
+    fsemu_input_log_debug("Port map %d -> %d\n", input, action);
     if (input < 0 || input > FSEMU_INPUTDEVICE_MAX) {
         // FIXME: WARNING
-        printf("[FSEMU] Input %d out of bounds\n", input);
+        fsemu_input_log_warning("Input %d out of bounds\n", input);
         return;
     }
     mode->mapping[input] = action;

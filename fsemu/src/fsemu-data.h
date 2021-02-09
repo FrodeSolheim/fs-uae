@@ -20,6 +20,6 @@ char *fsemu_data_file_path(const char *relative);
 #endif
 
 #define fsemu_data_log(format, ...) \
-    fsemu_log("[FSEMU] [DATA ] " format, ##__VA_ARGS__)
+    fsemu_log("[FSE] [DAT] " format, ##__VA_ARGS__)
 
 #endif  // FSEMU_DATA_H_

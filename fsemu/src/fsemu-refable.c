@@ -1,15 +1,18 @@
-#define FSEMU_INTERNAL
+#define FSEMU_INTERNAL 1
 #include "fsemu-refable.h"
 
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
 
+#include "fsemu-util.h"
+
 // FIXME: Might want to use atomatic incr/decr function to make these
 // operations thread-safe as well.
 
 void fsemu_refable_init_refable(fsemu_refable_t *refable)
 {
+    fsemu_assert(refable != NULL);
     refable->magic[0] = 'F';
     refable->magic[1] = 'R';
     refable->magic[2] = 'E';
@@ -38,21 +41,24 @@ static bool fsemu_refable_check_magic(fsemu_refable_t *refable)
         return true;
     } else {
         // FIXME: Critical
-        printf("[FSEMU][ REF ] ERROR: Refable magic check failed\n");
+        fprintf(stderr, "[FSE] [REF] ERROR: Refable magic check failed\n");
         return false;
     }
 }
 
 void fsemu_refable_ref_refable(fsemu_refable_t *refable)
 {
-    if (!fsemu_refable_check_magic(refable)) {
-        return;
-    }
+    fsemu_assert(refable != NULL);
+    fsemu_assert(fsemu_refable_check_magic(refable));
+    // if (!fsemu_refable_check_magic(refable)) {
+    //     return;
+    // }
     refable->ref_count += 1;
 }
 
 void fsemu_refable_unref_refable(fsemu_refable_t *refable)
 {
+    fsemu_assert(refable != NULL);
     if (!fsemu_refable_check_magic(refable)) {
         return;
     }
@@ -62,7 +68,7 @@ void fsemu_refable_unref_refable(fsemu_refable_t *refable)
         if (refable->cleanup_handler) {
             refable->cleanup_handler(refable);
         } else {
-            printf("[FSEMU][ REF ] WARNING: No cleanup handler\n");
+            fprintf(stderr, "[FSE] [REF] WARNING: No cleanup handler\n");
         }
     }
 }

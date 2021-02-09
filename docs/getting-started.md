@@ -1,4 +1,4 @@
-# Getting Started
+# Getting started
 
 This page will help you get started using FS-UAE. It is quite easy to get
 FS-UAE up and running with your favorite games, as long as you have access
@@ -35,7 +35,7 @@ you may need to press more than just <kbd>F12</kbd> alone, for example
 <kbd>Fn+F12</kbd> on some laptops, or even <kbd>Fn+Cmd+F12</kbd> on Mac
 laptops.
 
-## Starting FS-UAE for the First Time
+## Starting FS-UAE for the first time
 
 The following information is useful if you want to run FS-UAE manually
 without FS-UAE Launcher. If you are using FS-UAE Launcher, you do not need
@@ -65,7 +65,7 @@ If you want to play a game from a floppy disk image (ADF), copy the file
 > detailed documentation if you want to learn how to have the disk files
 > stored wherever you like.
 
-## Creating a Configuration File
+## Creating a configuration file
 
 The last thing you need to do is to create a configuration file for FS-UAE.
 Download [Default.fs-uae](https://fs-uae.net/files/Default.fs-uae)
@@ -93,7 +93,7 @@ change the line to read:
 
     floppy_drive_0 = Lotus Turbo Challenge 2 (1991)(Gremlin)[cr CPY].adf
 
-## Booting the Game
+## Booting the game
 
 When you now start FS-UAE, Lotus 2 (or the game you configured) should boot :)
 
@@ -106,7 +106,7 @@ If you do not have a joystick or gamepad connected, the cursor keys and
 right ctrl/alt key on your keyboard will be used to emulate the primary
 Amiga joystick.
 
-## Configuring a Multi-Disk Game
+## Configuring a multi-disk game
 
 When a game has multiple floppy disks, there are two ways to set this up in
 FS-UAE. One way is to use multiple floppy drives, and put one disk in
@@ -137,7 +137,7 @@ If not, you are welcome to post a question in the support forum. I monitor
 this forum myself, and everyone else there is nice and will help you if they
 can :)
 
-## More Information and Configuration Options
+## More information and configuration options
 
 Head over to the Documentation section on
 [https://fs-uae.net/docs](https://fs-uae.net/docs) if you want to explore

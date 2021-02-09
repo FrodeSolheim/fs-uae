@@ -1,5 +1,7 @@
-#ifndef FS_UAE_RECORDING_H
-#define FS_UAE_RECORDING_H
+#ifndef FSUAE_RECORDING_H_
+#define FSUAE_RECORDING_H_
+
+#include "fsuae-config.h"
 
 void fs_uae_init_recording(void);
 int fs_uae_is_recording_enabled(void);
@@ -13,4 +15,4 @@ int fs_uae_get_recorded_input_event(int frame,
                                     int *state);
 void fs_uae_write_recorded_session(void);
 
-#endif /* FS_UAE_RECORDING_H */
+#endif  // FS_UAE_RECORDING_H_

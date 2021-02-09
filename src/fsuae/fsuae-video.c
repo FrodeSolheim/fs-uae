@@ -1,3 +1,6 @@
+#define FSUAE_INTERNAL
+#include "fsuae-video.h"
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -79,7 +82,9 @@ static int g_last_non_auto_zoom_border = 0;
 
 static double g_last_refresh_rate = 0;
 static bool g_fs_log_autoscale = false;
+#ifdef FSUAE_LEGACY
 static int g_remember_last_screen = 0;
+#endif
 static int g_use_rtg_scanlines = 0;
 static int g_last_seen_mode_rtg = 0;
 static int g_frame_seq_no = 0;
@@ -156,7 +161,7 @@ static int read_window_override(int type, const char *s, int *pos)
         return 0;
     if (!read_window_override_int(s, pos, &dh))
         return 0;
-    fs_log("viewport transformation: %3d %3d %3d %3d => %3d %3d %3d %3d\n",
+    fsuae_log("viewport transformation: %3d %3d %3d %3d => %3d %3d %3d %3d\n",
            sx,
            sy,
            sw,
@@ -197,7 +202,7 @@ static void init_window_overrides_2(int type, const char *s)
     while (1) {
         int result = read_window_override(type, s, &pos);
         if (!result) {
-            fs_log("error parsing wiewport transformation\n");
+            fsuae_log("error parsing wiewport transformation\n");
         }
         while (s[pos] == ' ') {
             ++(pos);
@@ -210,8 +215,10 @@ static void init_window_overrides_2(int type, const char *s)
         } else if (c == '\0') {
             break;
         } else {
+#ifdef FSUAE_LEGACY
             fs_emu_warning(
                 "Unexpected byte (%d) while parsing viewport option\n", c);
+#endif
             return;
         }
     }
@@ -241,13 +248,13 @@ static int modify_coordinates(int *cx, int *cy, int *cw, int *ch)
 #if 0
     } else if (*cx == 114 && *cy == 96 && *cw == 560 && *ch == 384) {
         if (g_fs_log_autoscale) {
-            fs_log("* amiga 600 kickstart screen?\n");
+            fsuae_log("* amiga 600 kickstart screen?\n");
         }
         *cx = 74; *cy = 92; *cw = 640; *ch = 400; changed = 1;
 #endif
     } else if (*cx == 74 && *cy == 99 && *cw == 640 && *ch == 384) {
         if (g_fs_log_autoscale) {
-            fs_log("* amiga 600 kickstart screen (pre)?\n");
+            fsuae_log("* amiga 600 kickstart screen (pre)?\n");
         }
         *cx = 74;
         *cy = 92;
@@ -256,7 +263,7 @@ static int modify_coordinates(int *cx, int *cy, int *cw, int *ch)
         changed = 1;
     } else if (*cx == 6 && *cy == 99 && *cw == 724 && *ch == 384) {
         if (g_fs_log_autoscale) {
-            fs_log("* amiga 1200 kickstart screen (pre)?\n");
+            fsuae_log("* amiga 1200 kickstart screen (pre)?\n");
         }
         *cx = 74;
         *cy = 92;
@@ -265,7 +272,7 @@ static int modify_coordinates(int *cx, int *cy, int *cw, int *ch)
         changed = 1;
     } else if (*cx == 114 && *cy == 99 && *cw == 560 && *ch == 384) {
         if (g_fs_log_autoscale) {
-            fs_log("* amiga 600/1200 kickstart screen?\n");
+            fsuae_log("* amiga 600/1200 kickstart screen?\n");
         }
         *cx = 74;
         *cy = 92;
@@ -276,12 +283,12 @@ static int modify_coordinates(int *cx, int *cy, int *cw, int *ch)
     // The following interfered with autoscaling for Jim Power
     } else if (*cx == 74 && *cy == 30 && *cw == 640 && *ch == 518) {
         if (g_fs_log_autoscale) {
-            fs_log("* workbench 1.3/2.0 screen?\n");
+            fsuae_log("* workbench 1.3/2.0 screen?\n");
         }
         *cx = 74; *cy = 36; *cw = 640; *ch = 512; changed = 1;
     } else if (*cx == 74 && *cy == 28 && *cw == 640 && *ch == 520) {
         if (g_fs_log_autoscale) {
-            fs_log("* workbench 1.3/2.0 screen?\n");
+            fsuae_log("* workbench 1.3/2.0 screen?\n");
         }
         *cx = 74; *cy = 36; *cw = 640; *ch = 512; changed = 1;
     }
@@ -289,13 +296,13 @@ static int modify_coordinates(int *cx, int *cy, int *cw, int *ch)
 #if 0
     } else if (*cx == 6 && *cy == 36 && *cw == 724 && *ch == 512) {
         if (g_fs_log_autoscale) {
-            fs_log("* workbench screen with too much border?\n");
+            fsuae_log("* workbench screen with too much border?\n");
         }
         *cx = 74; *cy = 36; *cw = 640; *ch = 512; changed = 1;
 #endif
     } else if (*cx == 6 && *cy == 6 && *cw == 724 && *ch == 566) {
         if (g_fs_log_autoscale) {
-            fs_log("* workbench screen with overscan incorrectly placed?\n");
+            fsuae_log("* workbench screen with overscan incorrectly placed?\n");
         }
         *cx = 2;
         *cy = 6;
@@ -304,7 +311,7 @@ static int modify_coordinates(int *cx, int *cy, int *cw, int *ch)
         changed = 1;
     } else if (*cx == 10 && *cy == 7 && *cw == 716 && *ch == 566) {
         if (g_fs_log_autoscale) {
-            fs_log("* amiga cd32 boot screen?\n");
+            fsuae_log("* amiga cd32 boot screen?\n");
         }
         *cx = 16;
         *cy = 6;
@@ -313,7 +320,7 @@ static int modify_coordinates(int *cx, int *cy, int *cw, int *ch)
         changed = 1;
     } else if (*cx == 10 && *cy == 6 && *cw == 716 && *ch == 566) {
         if (g_fs_log_autoscale) {
-            fs_log("* amiga cd32 boot screen?\n");
+            fsuae_log("* amiga cd32 boot screen?\n");
         }
         *cx = 16;
         *cy = 6;
@@ -322,7 +329,7 @@ static int modify_coordinates(int *cx, int *cy, int *cw, int *ch)
         changed = 1;
     } else if (*cx == 6 && *cy == 96 && *cw == 724 && *ch == 476) {
         if (g_fs_log_autoscale) {
-            fs_log("* amiga cd32 boot screen (booting CD)\n");
+            fsuae_log("* amiga cd32 boot screen (booting CD)\n");
         }
         *cx = 16;
         *cy = 6;
@@ -331,7 +338,7 @@ static int modify_coordinates(int *cx, int *cy, int *cw, int *ch)
         changed = 1;
     } else if (*cx == 10 && *cy == 96 && *cw == 716 && *ch == 476) {
         if (g_fs_log_autoscale) {
-            fs_log("* amiga cd32 boot screen (booting CD)\n");
+            fsuae_log("* amiga cd32 boot screen (booting CD)\n");
         }
         *cx = 16;
         *cy = 6;
@@ -340,7 +347,7 @@ static int modify_coordinates(int *cx, int *cy, int *cw, int *ch)
         changed = 1;
     } else if (*cx == 6 && *cy == 82 && *cw == 724 && *ch == 490) {
         if (g_fs_log_autoscale) {
-            fs_log("* amiga cd32 boot screen (booting Arcade Pool CD)\n");
+            fsuae_log("* amiga cd32 boot screen (booting Arcade Pool CD)\n");
         }
         *cx = 16;
         *cy = 6;
@@ -349,7 +356,7 @@ static int modify_coordinates(int *cx, int *cy, int *cw, int *ch)
         changed = 1;
     } else if (*cx + *cw == 698 && *cy == 6 && *ch == 566) {
         if (g_fs_log_autoscale) {
-            fs_log("* amiga cd32 menu\n");
+            fsuae_log("* amiga cd32 menu\n");
         }
         *cx = 16;
         *cy = 6;
@@ -359,7 +366,7 @@ static int modify_coordinates(int *cx, int *cy, int *cw, int *ch)
     }
     if (changed) {
         if (g_fs_log_autoscale) {
-            fs_log("* %3d %3d %3d %3d [ %3d %3d %3d %3d ]\n",
+            fsuae_log("* %3d %3d %3d %3d [ %3d %3d %3d %3d ]\n",
                    *cx,
                    *cy,
                    *cw,
@@ -484,7 +491,7 @@ static void narrow_rect(RenderData *rd, int *nx, int *ny, int *nw, int *nh)
     static int px = 0, py = 0, pw = 0, ph = 0;
     if (x != px || y != py || w != pw || h != ph) {
         if (g_fs_log_autoscale) {
-            fs_log(" sub: %3d %3d %3d %3d\n", x, y, w, h);
+            fsuae_log(" sub: %3d %3d %3d %3d\n", x, y, w, h);
             printf(" sub: %3d %3d %3d %3d\n", x, y, w, h);
         }
         px = x;
@@ -533,11 +540,13 @@ static void render_screen(RenderData *rd)
         }
     }
 
+#ifdef FSEMU_LEGACY
     if (fse_drivers()) {
     } else {
         memcpy(g_buffer->line, rd->line, AMIGA_MAX_LINES);
         fs_emu_video_buffer_update_lines(g_buffer);
     }
+#endif
 
     static int lastcx = 0, lastcy = 0, lastcw = 0, lastch = 0;
     static int lastsubscan = 0;
@@ -575,7 +584,7 @@ static void render_screen(RenderData *rd)
 #endif
         if (cchange) {
             if (g_fs_log_autoscale) {
-                fs_log("auto: %3d %3d %3d %3d\n", cx, cy, cw, ch);
+                fsuae_log("auto: %3d %3d %3d %3d\n", cx, cy, cw, ch);
                 printf("auto: %3d %3d %3d %3d\n", cx, cy, cw, ch);
             }
         }
@@ -624,7 +633,7 @@ static void render_screen(RenderData *rd)
 #endif
                     /*
                      * if (g_fs_log_autoscale) {
-                        fs_log("%3d %3d %3d %3d [ %3d %3d %3d %3d ]\n",
+                        fsuae_log("%3d %3d %3d %3d [ %3d %3d %3d %3d ]\n",
                                 ucx, ucy, ucw, uch, cx, cy, cw, ch);
                         printf("%3d %3d %3d %3d [ %3d %3d %3d %3d ]\n",
                                 ucx, ucy, ucw, uch, cx, cy, cw, ch);
@@ -642,7 +651,7 @@ static void render_screen(RenderData *rd)
             uch = ch;
             /*
             if (g_fs_log_autoscale) {
-                fs_log("%3d %3d %3d %3d\n", ucx, ucy, ucw, uch);
+                fsuae_log("%3d %3d %3d %3d\n", ucx, ucy, ucw, uch);
                 printf("%3d %3d %3d %3d\n", ucx, ucy, ucw, uch);
             }
             */
@@ -650,7 +659,7 @@ static void render_screen(RenderData *rd)
         static int lucx = 0, lucy = 0, lucw = 0, luch = 0;
         if (ucx != lucx || ucy != lucy || ucw != lucw || uch != luch) {
             if (g_fs_log_autoscale) {
-                fs_log("    = %3d %3d %3d %3d\n", ucx, ucy, ucw, uch);
+                fsuae_log("    = %3d %3d %3d %3d\n", ucx, ucy, ucw, uch);
                 printf("    = %3d %3d %3d %3d\n", ucx, ucy, ucw, uch);
             }
             lucx = ucx;
@@ -717,6 +726,7 @@ static void render_screen(RenderData *rd)
     g_last_refresh_rate = rd->refresh_rate;
 }
 
+#ifdef FSUAE_LEGACY
 static void *grow_buffer(int width, int height)
 {
     // printf("growing buffer: %p\n", g_buffer->data);
@@ -727,11 +737,13 @@ static void *grow_buffer(int width, int height)
     }
     return g_buffer->data;
 }
+#endif
 
 #define TURBO_FRAME_RATE 10000
 
 // char *temp = NULL;
 
+#ifdef FSUAE_LEGACY
 static void new_buffer(void)
 {
     if (fse_drivers()) {
@@ -751,6 +763,7 @@ static void new_buffer(void)
                                 grow_buffer);
     }
 }
+#endif
 
 static void display_screen()
 {
@@ -762,6 +775,7 @@ static void display_screen()
         //printf("%d\n", dt);
     }
 #endif
+#ifdef FSUAE_LEGACY
     if (fse_drivers()) {
         // if (temp == NULL) {
         //     temp = malloc(g_buffer->size);
@@ -784,6 +798,7 @@ static void display_screen()
     }
 
     new_buffer();
+#endif
 #if 0
     last_time = fs_emu_monotonic_time();
 #endif
@@ -792,19 +807,25 @@ static void display_screen()
 static void zoom_notification(void)
 {
     if (g_zoom_border) {
+#ifdef FSUAE_LEGACY
         fse_notify(1511162016,
                    _("Zoom: %s + Border"),
                    _(g_zoom_modes[g_zoom_mode].name));
+#endif
     } else {
+#ifdef FSUAE_LEGACY
         fse_notify(
             1511162016, _("Zoom: %s"), _(g_zoom_modes[g_zoom_mode].name));
+#endif
     }
 }
 
 void fs_uae_toggle_auto_zoom(void)
 {
     if (g_last_seen_mode_rtg) {
+#ifdef FSUAE_LEGACY
         fse_notify(1511162016, _("Zoom is disabled in RTG mode"));
+#endif
         return;
     }
     if (g_zoom_mode == 0) {
@@ -817,10 +838,13 @@ void fs_uae_toggle_auto_zoom(void)
     zoom_notification();
 }
 
+#ifdef FSUAE_LEGACY
 static void toggle_zoom(int flags)
 {
     if (g_last_seen_mode_rtg) {
+#ifdef FSUAE_LEGACY
         fse_notify(1511162016, _("Zoom is disabled in RTG mode"));
+#endif
         return;
     }
     if (flags == 1) {
@@ -838,6 +862,7 @@ static void toggle_zoom(int flags)
         g_last_non_auto_zoom_mode = g_zoom_mode;
     }
 }
+#endif
 
 #include <fs/emu/render.h>
 
@@ -845,12 +870,15 @@ void fs_uae_init_zoom_mode(void)
 {
     FSE_INIT_ONCE();
     // printf("fse_scale_mode %d\n", fse_scale_mode());
+    g_zoom_mode = DEFAULT_ZOOM_MODE;
+#ifdef FSUAE_LEGACY
     if (fse_scale_mode() == FSE_SCALE_LEGACY) {
         g_zoom_mode = 0;
     } else {
         /* New default */
         g_zoom_mode = DEFAULT_ZOOM_MODE;
     }
+#endif
 
     char *value = fs_config_get_string("zoom");
     if (value) {
@@ -886,9 +914,10 @@ void fs_uae_init_zoom_mode(void)
 
 void fs_uae_init_video(void)
 {
-    fs_log("fs_uae_init_video\n");
+    fsuae_log("fs_uae_init_video\n");
     init_window_overrides();
 
+#ifdef FSUAE_LEGACY
     if (fse_drivers()) {
         // FIXME
         fs_emu_buffer_configure(AMIGA_WIDTH, AMIGA_HEIGHT);
@@ -902,7 +931,9 @@ void fs_uae_init_video(void)
         // amiga_set_render_buffer(g_buffer->data, g_buffer->size,
         //         !g_remember_last_screen, grow_buffer);
     }
+
     new_buffer();
+#endif
 
     if (fsemu) {
         //
@@ -915,7 +946,10 @@ void fs_uae_init_video(void)
         g_use_rtg_scanlines = 1;
     }
 
+#ifdef FSUAE_LEGACY
     fs_emu_set_toggle_zoom_function(toggle_zoom);
+#endif
+
     fs_uae_init_zoom_mode();
 
     if (fs_config_get_boolean(OPTION_LOG_AUTOSCALE) == 1) {

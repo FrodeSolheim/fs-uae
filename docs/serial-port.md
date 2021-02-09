@@ -1,9 +1,9 @@
-# Serial Port
+# Serial port
 
 FS-UAE includes emulation of the Amiga serial port. The emulation is at least
 good enough for debugging purposes.
 
-## Enabling TCP/IP Serial Port
+## Enabling TCP/IP serial port
 
 You can specify an IP address and a port to listen to, and FS-UAE will
 create a TCP/IP socket for the serial port. You can then connect to this
@@ -19,7 +19,7 @@ serial port output. Append /wait to the option value to enable this:
 
     serial_port = tcp://127.0.0.1:1234/wait
 
-## Connecting to a Serial Device
+## Connecting to a serial device
 
 On Linux and OS X (and other Unix-like systems, probably), you can use
 the following option to emulate an Amiga serial port using a real device:
@@ -36,7 +36,7 @@ And then set up FS-UAE to connect to this:
 
     serial_port = /tmp/virtual-serial-port
 
-### Getting an Amiga Shell in an External Terminal
+### Getting an Amiga shell in an external terminal
 
 If you have configured a virtual serial port using `socat` like in the
 above example, you should be able to run the following command from within

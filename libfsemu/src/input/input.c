@@ -2,6 +2,8 @@
 #include "config.h"
 #endif
 
+#ifdef FSUAE_LEGACY
+
 #define FSEMU_INTERNAL
 #include <fs/emu/input.h>
 #include <fs/emu/options.h>
@@ -18,3 +20,5 @@ void fse_init_input(void)
     fs_emu_input_sdl_init();
     fs_emu_input_init_2();
 }
+
+#endif // FSUAE_LEGACY

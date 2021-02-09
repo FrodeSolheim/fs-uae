@@ -1,5 +1,8 @@
 # FS-UAE README
 
+**Note:** Please note that the information in this file is probably slightly
+outdated. It should be update before the release of FS-UAE 4.0.
+
 FS-UAE is an Amiga emulator for Windows, Linux and Mac OS X based on
 UAE/WinUAE, with a focus on emulating games.
 
@@ -203,12 +206,14 @@ screen, or scale up while maintaining the original aspect ratio.
 
 ## Supported host operating systems
 
-FS-UAE can be compiled for the following operating systems.
+FS-UAE can be compiled for the following operating systems:
 
 - Linux
 - Windows XP or newer
 - Mac OS X 10.6 or newer
 - FreeBSD (Other Unices will probably also work just fine)
+
+See docs/compiling.md for building instructions.
 
 The official FS-UAE binaries may require newer versions of these operating
 systems.
@@ -243,7 +248,7 @@ in the floppy list, some may be obscured.
 
 ## Copyright and credits
 
-FS-UAE is Copyright (c) 2011-2019, Frode Solheim
+FS-UAE is Copyright (c) 2011-2021, Frode Solheim
 Large portions are copyrighted by other individuals.
 
 FS-UAE is based on the fantastic work of the original UAE authors, the authors

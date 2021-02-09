@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL
+#define FSEMU_INTERNAL 1
 #include "fsemu-widget.h"
 
 #include "fsemu-color.h"
@@ -9,6 +9,12 @@
 #include "fsemu-util.h"
 #include "fsemu-video.h"
 
+// ----------------------------------------------------------------------------
+
+int fsemu_widget_log_level = FSEMU_LOG_LEVEL_INFO;
+
+// ----------------------------------------------------------------------------
+
 /*
 static struct {
     fsemu_gui_item_t a;
@@ -18,7 +24,7 @@ static struct {
 void fsemu_widget_module_init(void)
 {
     fsemu_return_if_already_initialized();
-    fsemu_log("[FSEMU][WIDGT] Initializing widget module\n");
+    fsemu_widget_log("Initializing widget module\n");
 }
 
 void fsemu_widget_init(fsemu_widget_t *widget)
@@ -31,6 +37,7 @@ void fsemu_widget_init(fsemu_widget_t *widget)
     widget->bottom.anchor = FSEMU_WIDGET_PARENT_BOTTOM;
     widget->left.anchor = FSEMU_WIDGET_PARENT_LEFT;
 
+    widget->text_halign = 0.0;
     widget->text_valign = 0.5;
     widget->font_size = 32;
 }
@@ -49,9 +56,9 @@ static void fsemu_widget_finalize(void *object)
 {
 #if 1
     fsemu_widget_t *widget = (fsemu_widget_t *) object;
-    fsemu_log("Finalizing widget %p \"%s\"\n",
-              widget,
-              widget->name ? widget->name : "unnamed");
+    fsemu_widget_log_debug("Finalizing widget %p \"%s\"\n",
+                           widget,
+                           widget->name ? widget->name : "unnamed");
 
     fsemu_widget_t *child = widget->first_child;
     while (child) {
@@ -61,12 +68,12 @@ static void fsemu_widget_finalize(void *object)
     }
 
     if (widget->image) {
-        printf("- Unrefing image...\n");
+        fsemu_widget_log_debug("- Unrefing image...\n");
         fsemu_image_unref(widget->image);
         // widget->image = NULL;
     }
     if (widget->textimage) {
-        printf("- Unrefing textimage...\n");
+        fsemu_widget_log_debug("- Unrefing textimage...\n");
         fsemu_image_unref(widget->textimage);
         // widget->image = NULL;
     }
@@ -162,8 +169,10 @@ void fsemu_widget_set_image(fsemu_widget_t *widget,
         fsemu_refable_unref(widget->image);
     }
     widget->image = image;
-    if (!image_owner) {
-        fsemu_refable_ref(widget->image);
+    if (widget->image) {
+        if (!image_owner) {
+            fsemu_refable_ref(widget->image);
+        }
     }
     // widget->image_owner = true;
     widget->dirty = true;
@@ -306,12 +315,21 @@ void fsemu_widget_set_text_color(fsemu_widget_t *widget,
                                  fsemu_color_t text_color)
 {
     widget->text_color = text_color;
+
+    // FIXME: We don't want to do this here, just doing it right now for
+    // simplicity
+    fsemu_widget_update_text_image(widget);
 }
 
 void fsemu_widget_set_text_transform(fsemu_widget_t *widget,
                                      int text_transform)
 {
     widget->text_transform = text_transform;
+}
+
+void fsemu_widget_set_text_halign(fsemu_widget_t *widget, float text_halign)
+{
+    widget->text_halign = text_halign;
 }
 
 void fsemu_widget_set_text_valign(fsemu_widget_t *widget, float text_valign)
@@ -326,6 +344,11 @@ void fsemu_widget_set_font_size(fsemu_widget_t *widget, int font_size)
 
 void fsemu_widget_set_text(fsemu_widget_t *widget, const char *text)
 {
+    fsemu_assert(text != NULL);
+    if (widget->text && strcmp(text, widget->text) == 0) {
+        // Same text as before
+        return;
+    }
     if (widget->text) {
         free(widget->text);
     }
@@ -342,7 +365,8 @@ void fsemu_widget_update_text_image(fsemu_widget_t *widget)
         return;
     }
     if (widget->text_cached != NULL) {
-        if (strcmp(widget->text, widget->text_cached) == 0) {
+        if (strcmp(widget->text, widget->text_cached) == 0 &&
+            widget->text_color == widget->text_color_cached) {
             return;
         }
     }
@@ -362,16 +386,20 @@ void fsemu_widget_update_text_image(fsemu_widget_t *widget)
         widget->text_cached = text;
         free_text = false;
     }
+    widget->text_color_cached = widget->text_color;
 
-    fsemu_font_t *font =
-        fsemu_fontcache_font("SairaCondensed-SemiBold.ttf", widget->font_size);
+    fsemu_font_t *font = fsemu_fontcache_font(
+        "Fonts/SairaCondensed-SemiBold.ttf", widget->font_size);
     fsemu_image_t *textimage =
         fsemu_font_render_text_to_image(font, text, widget->text_color);
-    printf("textimage size %dx%d for text %s\n", textimage->width, textimage->height, text);
+    fsemu_widget_log_debug("textimage size %dx%d for text %s\n",
+                           textimage->width,
+                           textimage->height,
+                           text);
     if (widget->textimage) {
         fsemu_image_unref(widget->textimage);
     }
-    // printf("teximage %p\n", textimage);
+    // fsemu_widget_log_debug("teximage %p\n", textimage);
     widget->textimage = textimage;
     widget->dirty = true;
     if (free_text) {

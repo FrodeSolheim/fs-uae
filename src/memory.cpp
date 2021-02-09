@@ -1497,15 +1497,17 @@ static const uae_char *kickstring = "exec.library";
 
 static void log_kickstart(uae_u8 *mem, int size)
 {
+#if 0
 	uae_u32 crc32 = get_crc32(mem, size);
 	struct romdata *rd = getromdatabycrc(crc32);
 	if (rd) {
 		char tmp[MAX_DPATH];
 		getromname(rd, tmp);
-		printf("UAE: %s\n", tmp);
+		printf("ROM: %s\n", tmp);
 	} else {
-		printf("UAE: KS ROM %08x (%d bytes)\n", crc32, size);
+		printf("ROM: KS ROM %08x (%d bytes)\n", crc32, size);
 	}
+#endif
 }
 
 #endif

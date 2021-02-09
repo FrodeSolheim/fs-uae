@@ -1,5 +1,7 @@
 # WHDLoad
 
+FIXME: Move to fs-uae-launcher?
+
 [WHDLoad](http://whdload.de/) is a sofware solution used to (primarily)
 allow floppy-based games to be installed to an Amiga hard drive and run
 from Workbench. Custom WHDLoad "slaves" are written for each game, which
@@ -15,7 +17,7 @@ make it easy and convient to launch individual WHDLoad-based games. These
 convenience features are provided by **FS-UAE Launcher** (and Arcade), not
 FS-UAE itself.
 
-## WHDLoad Game Archives
+## WHDLoad game archives
 
 A WHDLoad game archive is an archive (`.zip` or `.lha`) containing a single
 WHDLoad-installed game.
@@ -26,7 +28,7 @@ run to run the WHDLoad installer for a game, and then create a `.zip` or
 `.lha` archive containing the destination directory where you installed the
 game.
 
-## Loading a WHDLoad Game Archive
+## Loading a WHDLoad game archive
 
 In FS-UAE Launcher, if you insert a `.zip` or `.lha` file into the primary
 hard drive slot, the Launcher will check if the archive is a WHDLoad game
@@ -34,7 +36,7 @@ archive. If it is, it will try to extract WHDLoad arguments from the archive
 and automatically set some options suitable for running the game (A1200
 model, 8 MB fast RAM).
 
-## WHDLoad Variants in the Game Database
+## WHDLoad variants in the game database
 
 The online game database contains information about (most) available
 WHDLoad games. In order for these to appear in FS-UAE Launcher, you need
@@ -48,7 +50,7 @@ each individual required file based on checksums, and create a temporary
 HD suitable for running the game. Any custom configuration needed for the
 game will be retrieved from the game database.
 
-## Running a WHDLoad Game Archive Directly
+## Running a WHDLoad game archive directly
 
 You can run fs-uae-launcher with the path to a WHDLoad game archive.
 The Launcher will then try to automatically create a config suited to run
@@ -64,13 +66,13 @@ the `--no-gui` parameter.
 
 FIXME: Write about launching games using game / variant UUIDs.
 
-## Saving Games
+## Saving games
 
 - WHDLoad quit key
 - State dir name
 - Unsafe save states
 
-## Related Options
+## Related options
 
 - [whdload_quit_key](options/whdload-quit-key.md)
 - [whdload_preload](options/whdload-preload.md)

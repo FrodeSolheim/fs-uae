@@ -2,6 +2,8 @@
 #include "config.h"
 #endif
 
+#ifdef FSUAE_LEGACY
+
 #include <fs/emu.h>
 #include <fs/emu/audio.h>
 #include <fs/emu/render.h>
@@ -766,3 +768,5 @@ void fs_emu_set_menu_mode(bool mode)
         leave_menu();
     }
 }
+
+#endif  // FSUAE_LEGACY

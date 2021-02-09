@@ -1,0 +1,9 @@
+*.[aod]
+*.gcda
+*.gcno
+*.gcov
+*.lib
+*.obj
+/TAGS
+/cscope*
+/tags

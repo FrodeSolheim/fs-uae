@@ -92,7 +92,7 @@ struct inputdevice_functions inputdevicefunc_keyboard = {
 
 int input_get_default_keyboard (int num)
 {
-	UAE_LOG_STUB ("num=%d return 0", num);
+	UAE_LOG_STUB_MAX(1, "num=%d return 0", num);
 	return 0;
 }
 

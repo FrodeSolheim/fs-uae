@@ -12,6 +12,8 @@ extern "C" {
 
 void fsemu_opengl_init(void);
 
+void fsemu_opengl_forget_state(void);
+
 void fsemu_opengl_blend(bool blend);
 void fsemu_opengl_color3f(float r, float g, float b);
 void fsemu_opengl_color4f(float r, float g, float b, float a);
@@ -23,6 +25,7 @@ void fsemu_opengl_assume_texture_2d(bool texture_2d);
 
 void fsemu_opengl_forget_blend(void);
 void fsemu_opengl_forget_texture_2d(void);
+void fsemu_opengl_forget_unpack_row_length(void);
 
 void fsemu_opengl_unpack_row_length(int row_length);
 
@@ -40,7 +43,7 @@ static inline void fsemu_opengl_log_error_maybe(void)
 #ifdef FSEMU_INTERNAL
 
 #define fsemu_opengl_log(format, ...) \
-    fsemu_log("[FSEMU] [ OGL ] " format, ##__VA_ARGS__)
+    fsemu_log("[FSE] [OGL] " format, ##__VA_ARGS__)
 
 #endif
 
@@ -49,8 +52,13 @@ static inline void fsemu_opengl_log_error_maybe(void)
 #endif
 
 #ifdef FSEMU_INTERNAL
-#define GLEW_NO_GLU
-#include <GL/glew.h>
+// #define GLEW_NO_GLU
+// #include <GL/glew.h>
+#if defined(FSEMU_GLAD)
+#include "../../glad/include/glad/glad.h"
+#elif defined(FSEMU_SDL)
+#include <SDL_opengl.h>
+#endif
 #endif
 
 #endif  // FSEMU_OPENGL

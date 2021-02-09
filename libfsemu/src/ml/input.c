@@ -201,8 +201,9 @@ GList *fs_ml_input_list_custom_keyboards(void)
 
 void fs_ml_input_init()
 {
+#ifdef FSUAE_LEGACY
     FS_ML_INIT_ONCE;
-
+ 
     SDL_Init(SDL_INIT_JOYSTICK);
 
     fs_log("[INPUT] fs_ml_input_init\n");
@@ -344,4 +345,5 @@ void fs_ml_input_init()
     g_fs_ml_input_device_count = k;
 
     fs_ml_initialize_keymap();
+#endif
 }

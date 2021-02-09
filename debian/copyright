@@ -1,11 +1,184 @@
-Upstream Project:
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: FS-UAE
+Upstream-Contact: Frode Solheim <frode@fs-uae.net>
+Source: https://fs-uae.net/download
 
-    Copyright (C) 2010-2017 Frode Solheim <frode@fs-uae.net>
-    Licensed under the GNU General Public License version 2,
-    see "/usr/share/common-licenses/GPL-2".
+# FIXME: Add more specific copyright / license information to subpackages
+# such as glad, and add copyright holder information to the main files
+# section
 
-Debian Packaging:
+Files: *
+License: GPL-2
 
-    Copyright (C) 2011-2017 Frode Solheim <frode@fs-uae.net>
-    Licensed under the GNU General Public License version 2,
-    see "/usr/share/common-licenses/GPL-2".
+Files: debian/*
+Copyright: 2011-2020 Frode Solheim
+License: GPL-2+
+
+Files: fsemu/*
+Copyright: 2011-2020 Frode Solheim
+License: GPL-2+
+
+Files: fsemu/fonts/saira/*
+License: FIXME
+
+Files: fsemu/gamemode/*
+Copyright: 2005-2012 2017-2020 Feral Interactive
+License: BSD-3-Clause
+
+Files: fsemu/icons/fontawesome/*
+License: FIXME
+
+Files: fsemu/manymouse/*
+Copyright: 2005-2012 Ryan C. Gordon and others
+License: manymouse-license
+
+Files: glad/*
+Copyright: 2013 David Herberth
+License: MIT
+
+Files: libmpeg2/*
+License: FIXME
+
+Files: libnfd/*
+License: FIXME
+
+Files: libudis86/*
+License: FIXME
+
+Files: prowizard/*
+Copyright: Nicolas Franck (Gryzor)
+           1997-2007 Sylvain "Asle" Chipaux and others
+License: GPL-2
+
+Files: src/fsuae/*
+Copyright: 2011-2020 Frode Solheim
+License: GPL-2+
+
+Files: src/mame/*
+License: GPL-2+
+
+Files: src/mame/tm34010/*
+License: BSD-3-Clause
+
+Files: src/pcem/*
+License: GPL-2
+
+Files: src/qemuvga/*
+License: GPL2 and LGPL
+
+Files: src/slirp/*
+Copyright: 1995,1996 Danny Gasparovski
+License: slirp-license
+
+Files: src/softfloat/*
+License: softfloat-2a-license and BSD and GPL-2+
+
+License: manymouse-license
+ Copyright (c) 2005-2012 Ryan C. Gordon and others.
+
+ This software is provided 'as-is', without any express or implied warranty.
+ In no event will the authors be held liable for any damages arising from
+ the use of this software.
+
+ Permission is granted to anyone to use this software for any purpose,
+ including commercial applications, and to alter it and redistribute it
+ freely, subject to the following restrictions:
+
+ 1. The origin of this software must not be misrepresented; you must not
+ claim that you wrote the original software. If you use this software in a
+ product, an acknowledgment in the product documentation would be
+ appreciated but is not required.
+
+ 2. Altered source versions must be plainly marked as such, and must not be
+ misrepresented as being the original software.
+
+ 3. This notice may not be removed or altered from any source distribution.
+
+     Ryan C. Gordon <icculus@icculus.org>
+
+License: slirp-license
+ Slirp was written by Danny Gasparovski.
+ Copyright (c), 1995,1996 All Rights Reserved.
+
+ Slirp is maintained by Kelly Price <tygris+slirp@erols.com>
+
+ Slirp is free software; "free" as in you don't have to pay for it, and you
+ are free to do whatever you want with it.  I do not accept any donations,
+ monetary or otherwise, for Slirp.  Instead, I would ask you to pass this
+ potential donation to your favorite charity.  In fact, I encourage
+ *everyone* who finds Slirp useful to make a small donation to their
+ favorite charity (for example, GreenPeace).  This is not a requirement, but
+ a suggestion from someone who highly values the service they provide.
+
+ The copyright terms and conditions:
+
+ ---BEGIN---
+
+  Copyright (c) 1995,1996 Danny Gasparovski.  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions
+  are met:
+  1. Redistributions of source code must retain the above copyright
+     notice, this list of conditions and the following disclaimer.
+  2. Redistributions in binary form must reproduce the above copyright
+     notice, this list of conditions and the following disclaimer in the
+     documentation and/or other materials provided with the distribution.
+
+  THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES,
+  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
+  AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL
+  DANNY GASPAROVSKI OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+  NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+ ---END---
+
+ This basically means you can do anything you want with the software, except
+ 1) call it your own, and 2) claim warranty on it.  There is no warranty for
+ this software.  None.  Nada.  If you lose a million dollars while using
+ Slirp, that's your loss not mine.  So, ***USE AT YOUR OWN RISK!***.
+
+ If these conditions cannot be met due to legal restrictions (E.g. where it
+ is against the law to give out Software without warranty), you must cease
+ using the software and delete all copies you have.
+
+ Slirp uses code that is copyrighted by the following people/organizations:
+
+ Juha Pirkola.
+ Gregory M. Christy.
+ The Regents of the University of California.
+ Carnegie Mellon University.
+ The Australian National University.
+ RSA Data Security, Inc.
+
+ Please read the top of each source file for the details on the various
+ copyrights.
+
+License: softfloat-2a-license
+ Arithmetic Package, Release 2a.
+
+ Written by John R. Hauser.  This work was made possible in part by the
+ International Computer Science Institute, located at Suite 600, 1947 Center
+ Street, Berkeley, California 94704.  Funding was partially provided by the
+ National Science Foundation under grant MIP-9311980.  The original version
+ of this code was written as part of a project to build a fixed-point vector
+ processor in collaboration with the University of California at Berkeley,
+ overseen by Profs. Nelson Morgan and John Wawrzynek.  More information
+ is available through the We b page `http://HTTP.CS.Berkeley.EDU/~jhauser/
+ arithmetic/SoftFloat.html'.
+
+ THIS SOFTWARE IS DISTRIBUTED AS IS, FOR FREE.  Although reasonable effort
+ has been made to avoid it, THIS SOFTWARE MAY CONTAIN FAULTS THAT WILL AT
+ TIMES RESULT IN INCORRECT BEHAVIOR.  USE OF THIS SOFTWARE IS RESTRICTED TO
+ PERSONS AND ORGANIZATIONS WHO CAN AND WILL TAKE FULL RESPONSIBILITY FOR ANY
+ AND ALL LOSSES, COSTS, OR OTHER PROBLEMS ARISING FROM ITS USE.
+
+ Derivative works are acceptable, even for commercial purposes, so long as
+ (1) they include prominent notice that the work is derivative, and (2) they
+ include prominent notice akin to these four paragraphs for those parts of
+ this code that are retained.

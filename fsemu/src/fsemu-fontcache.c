@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL
+#define FSEMU_INTERNAL 1
 #include "fsemu-fontcache.h"
 
 #include "fsemu-font.h"
@@ -37,15 +37,15 @@ static void fsemu_fontcache_quit_iterate(gpointer key_v,
 {
     const char *key = (const char *) key_v;
     fsemu_font_t *font = (fsemu_font_t *) value_v;
-    printf("[FSEMU] [FONT ] Font: %s\n", key);
+    fsemu_font_log_debug("Font: %s\n", key);
     // FIXME: Check if refcount is 1, and print warning if not?
     fsemu_font_unref(font);
 }
 
 static void fsemu_fontcache_quit(void)
 {
-    printf("[FSEMU] [FONT ] fsemu_fontcache_quit\n");
-    printf("[FSEMU] [FONT ] Font cache summary:\n");
+    fsemu_font_log_debug("fsemu_fontcache_quit\n");
+    fsemu_font_log_debug("Font cache summary:\n");
     g_hash_table_foreach(module.hashtable, fsemu_fontcache_quit_iterate, NULL);
     g_hash_table_destroy(module.hashtable);
 }
@@ -56,7 +56,7 @@ void fsemu_fontcache_init(void)
         return;
     }
     module.initialized = true;
-    fsemu_log("[FSEMU] [FONT ] Initializing fontcache module\n");
+    fsemu_font_log("Initializing fontcache module\n");
     fsemu_module_on_quit(fsemu_fontcache_quit);
     module.hashtable =
         g_hash_table_new_full(g_str_hash, g_str_equal, g_free, NULL);

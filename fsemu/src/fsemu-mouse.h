@@ -29,18 +29,30 @@ bool fsemu_mouse_captured(void);
 void fsemu_mouse_set_captured(bool captured);
 void fsemu_mouse_toggle_captured(void);
 
+void fsemu_mouse_add_devices(void);
+
 extern int fsemu_mouse_log_level;
 
 #ifdef FSEMU_INTERNAL
 
-#if 0
+/*
 #define fsemu_mouse_log(format, ...) \
-    fsemu_log("[FSEMU] [MOUSE] " format, ##__VA_ARGS__)
-#endif
+    fsemu_log("[FSE] [MOUSE] " format, ##__VA_ARGS__)
 
 #define fsemu_mouse_log(level, format, ...)                  \
     if (fsemu_mouse_log_level >= level) {                    \
-        fsemu_log("[FSEMU] [AUDIO] " format, ##__VA_ARGS__); \
+        fsemu_log("[FSE] [AUD] " format, ##__VA_ARGS__); \
+    }
+*/
+
+#define fsemu_mouse_log(format, ...)                             \
+    if (fsemu_likely(fsemu_mouse_log_level >= FSEMU_LOG_LEVEL_INFO)) { \
+        fsemu_log("[FSE] [MOU] " format, ##__VA_ARGS__);         \
+    }
+
+#define fsemu_mouse_log_debug(format, ...)                          \
+    if (fsemu_unlikely(fsemu_mouse_log_level >= FSEMU_LOG_LEVEL_DEBUG)) { \
+        fsemu_log("[FSE] [MOU] " format, ##__VA_ARGS__);            \
     }
 
 #if 0

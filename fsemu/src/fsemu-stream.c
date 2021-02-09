@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL
+#define FSEMU_INTERNAL 1
 #include "fsemu-stream.h"
 
 // typedef SDL_RWops fsemu_stream_t;

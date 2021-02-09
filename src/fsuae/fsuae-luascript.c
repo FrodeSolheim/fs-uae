@@ -1,3 +1,6 @@
+#define FSUAE_INTERNAL
+#include "fsuae-luascript.h"
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -56,7 +59,7 @@ static int l_fs_uae_get_rand_checksum(lua_State *L)
 
 void fs_uae_init_lua_state(lua_State *L)
 {
-    fs_log("fs_uae_lua_init_state %p\n", L);
+    fsuae_log("fs_uae_lua_init_state %p\n", L);
     lua_register(L, "fs_uae_get_input_event", l_fs_uae_get_input_event);
     lua_register(L, "fs_uae_set_input_event", l_fs_uae_set_input_event);
     lua_register(L, "fs_uae_send_input_event", l_fs_uae_send_input_event);

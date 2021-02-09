@@ -24,11 +24,25 @@ fsemu_image_t *fsemu_font_render_text_to_image(fsemu_font_t *font,
                                                const char *text,
                                                uint32_t color);
 
+extern int fsemu_font_log_level;
+
+#define fsemu_font_log(format, ...)                             \
+    if (fsemu_likely(fsemu_font_log_level >= FSEMU_LOG_LEVEL_INFO)) { \
+        fsemu_log("[FSE] [FNT] " format, ##__VA_ARGS__);        \
+    }
+
+#define fsemu_font_log_debug(format, ...)                          \
+    if (fsemu_unlikely(fsemu_font_log_level >= FSEMU_LOG_LEVEL_DEBUG)) { \
+        fsemu_log("[FSE] [FNT] " format, ##__VA_ARGS__);           \
+    }
+
+#define fsemu_font_log_error(format, ...)                        \
+    if (fsemu_likely(fsemu_font_log_level >= FSEMU_LOG_LEVEL_ERROR)) { \
+        fsemu_log("[FSE] [FNT] " format, ##__VA_ARGS__);         \
+    }
+
 #ifdef __cplusplus
 }
 #endif
-
-#define fsemu_font_log(format, ...) \
-    fsemu_log("[FSEMU] [FONT ] " format, ##__VA_ARGS__)
 
 #endif  // FSEMU_FONT_H_

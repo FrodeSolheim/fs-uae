@@ -2,8 +2,13 @@
 #define FSEMU_SDL_H_
 
 #include "fsemu-common.h"
+#include "fsemu-config.h"
 
 #ifdef FSEMU_SDL
+
+#ifdef FSEMU_DEBUG
+#define SDL_ASSERT_LEVEL 3
+#endif
 
 #ifdef FSEMU_OPENGL
 // Must make sure glew.h is included before gl.h

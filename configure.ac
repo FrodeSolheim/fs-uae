@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.67])
-AC_INIT([FS-UAE], [3.1.0dev],
+AC_INIT([FS-UAE], [3.9.100dev],
         [frode@fs-uae.net], [fs-uae], [https://fs-uae.net])
 AC_CONFIG_AUX_DIR([.])
 AC_CANONICAL_HOST
@@ -22,7 +22,7 @@ AM_INIT_AUTOMAKE([tar-ustar subdir-objects])
 
 AC_SUBST([PACKAGE_SERIES], [devel])
 
-AC_DEFINE_UNQUOTED([UAE_BASE_VERSION], ["WinUAE 4210"],
+AC_DEFINE_UNQUOTED([UAE_BASE_VERSION], ["WinUAE 4.2.1"],
 [Which UAE core this version is based on.])
 
 PACKAGE_MAJOR=`echo ${PACKAGE_VERSION} | sed -e 's,\(\.*\)\..*\..*,\1,g'`
@@ -225,15 +225,12 @@ AS_IF([test "x$with_glew" = xyes], [
 ])
 
 AC_ARG_WITH(libmpeg2, AS_HELP_STRING(
-    [--without-libmpeg2], [or --with-libmpeg2=builtin to use included version]))
-AM_CONDITIONAL([BUILTIN_LIBMPEG2], [test x$with_libmpeg2 = xbuiltin])
+    [--without-libmpeg2], [Disable libmpeg2 usage]))
 AS_IF([test "x$with_libmpeg2" != xno], [
-    AS_IF([test "x$with_libmpeg2" = xbuiltin], [
-    ], [
-        PKG_CHECK_MODULES([LIBMPEG2], [libmpeg2 libmpeg2convert])
-    ])
+    PKG_CHECK_MODULES([LIBMPEG2], [libmpeg2 libmpeg2convert])
     AC_DEFINE([WITH_LIBMPEG2], [1], [Define to 1 to use libmpeg2])
 ])
+AM_CONDITIONAL([WITH_LIBMPEG2], [test x$with_libmpeg2 != xno])
 
 AM_CONDITIONAL([BUILTIN_MANYMOUSE], [true])
 
@@ -397,7 +394,12 @@ AS_CASE([$host_os],
     OS_NAME_3="macOS"
     OS_CPPFLAGS="-DMACOSX -DMACOS"
     LOADABLE_MODULE_EXT=".so"
-    OS_LDFLAGS="-headerpad_max_install_names -pagezero_size 0x2000 -rpath @executable_path/../Frameworks"
+    AS_CASE([$host_cpu],
+    [x86_64], [
+        OS_LDFLAGS="-headerpad_max_install_names -pagezero_size 0x2000 -rpath @executable_path/../Frameworks"
+@    ], [
+        OS_LDFLAGS="-headerpad_max_install_names -rpath @executable_path/../Frameworks"
+    ])
 ],
 [freebsd*], [
     OS_NAME="freebsd"
@@ -696,8 +698,8 @@ REQ_FEATURE([AUTOCONFIG], [autoconfig], [autoconfig],
             [autoconfig support, fast ram, harddrives etc...])
 OPT_FEATURE([BSDSOCKET], [bsdsocket], [bsdsocket],
             [built-in bsdsocket.library])
-DIS_FEATURE([WITH_BUILTIN_SLIRP], [builtin_slirp], [builtin-slirp],
-            [built-in SLIRP implementation (unsupported)])
+OPT_FEATURE([WITH_BUILTIN_SLIRP], [builtin_slirp], [builtin-slirp],
+            [built-in SLIRP implementation])
 OPT_FEATURE([CAPS], [caps], [caps],
             [IPF support via libcapsimage])
 OPT_FEATURE([CD32], [cd32], [cd32],
@@ -774,9 +776,11 @@ AS_IF([test "x$enable_jit" != xno], [
     ], [
         AC_DEFINE([JIT], [1], [Define to 1 to enable JIT compilation])
     ], [
-        if test "x$enable_jit" != xyes; then
+        if test "x$enable_jit" = xyes; then
             AC_MSG_FAILURE(
                 [JIT is not supported on $host])
+        else
+            enable_jit=no
         fi
     ])
 ])
@@ -827,7 +831,7 @@ OPT_FEATURE([WITH_SOFTFLOAT], [softfloat], [softfloat],
 OPT_FEATURE([WITH_QEMU_CPU], [qemu_cpu], [qemu-cpu],
             [use QEMU plugin for PPC emulation])
 OPT_FEATURE([WITH_QEMU_SLIRP], [qemu_slirp], [qemu-slirp],
-            [use QEMU plugin for SLIRP implementation])
+            [use QEMU plugin for SLIRP implementation (deprecated)])
 REQ_FEATURE([WITH_THREADED_CPU], [threaded_cpu], [threaded-cpu],
             [Threaded CPU emulation])
 REQ_FEATURE([WITH_TOCCATA], [toccata], [toccata],
@@ -844,8 +848,28 @@ OPT_FEATURE([WITH_UDIS86], [udis86], [udis86],
             [UDIS86 x86/x86-64 disassembler])
 OPT_FEATURE([WITH_VPAR], [vpar], [vpar],
             [vpar virtual parallel port])
-OPT_FEATURE([WITH_X86], [x86], [x86],
-            [x86 bridgeboard support])
+
+AC_ARG_ENABLE([x86], [AS_HELP_STRING([--disable-x86], [x86 bridgeboard support])])
+AS_IF([test "x$enable_x86" != xno], [
+    AC_TRY_COMPILE([
+    ], [
+        #if !defined(__i386__) && !defined(__x86_64__)
+        #error Bridgeboard is only supported on x86/x86-64
+        #endif
+    ], [
+        AC_DEFINE([WITH_X86], [1], [Define to 1 to enable x86 bridgeboard support])
+    ], [
+        if test "x$enable_x86" = xyes; then
+            AC_MSG_FAILURE(
+                [x86 bridgeboard is not supported on $host])
+        else
+            enable_x86=no
+        fi
+    ])
+])
+AM_CONDITIONAL([WITH_X86],
+[test x$enable_x86 != xno])
+
 OPT_FEATURE([WITH_XML_SHADER], [xml_shader], [xml-shader],
             [XML shader support])
 OPT_FEATURE([A_ZIP], [zip], [zip],
@@ -853,14 +877,13 @@ OPT_FEATURE([A_ZIP], [zip], [zip],
 
 AC_DEFINE([FPU_UAE], [1], [Define to 1])
 
-AC_CONFIG_SUBDIRS([libmpeg2])
-
 # Write Makefile
 
 AC_CONFIG_FILES([
     dist/linux/Makefile
     dist/macos/Info.plist
     dist/macos/Makefile
+    dist/rpi4/Makefile
     dist/steamos/Makefile
     dist/windows/fs-uae.iss
     dist/windows/Makefile

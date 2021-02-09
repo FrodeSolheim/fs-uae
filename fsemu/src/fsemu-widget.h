@@ -122,6 +122,7 @@ void fsemu_widget_set_coordinates_2(fsemu_widget_t *widget,
 void fsemu_widget_set_text(fsemu_widget_t *widget, const char *text);
 void fsemu_widget_set_text_color(fsemu_widget_t *widget,
                                  fsemu_color_t text_color);
+void fsemu_widget_set_text_halign(fsemu_widget_t *widget, float text_halign);
 void fsemu_widget_set_text_valign(fsemu_widget_t *widget, float text_valign);
 #define FSEMU_WIDGET_TEXT_TRANSFORM_NONE 0
 #define FSEMU_WIDGET_TEXT_TRANSFORM_UPPERCASE 1
@@ -131,6 +132,18 @@ void fsemu_widget_set_font_size(fsemu_widget_t *widget, int font_size);
 
 // Possibly temporary
 void fsemu_widget_update_text_image(fsemu_widget_t *widget);
+
+extern int fsemu_widget_log_level;
+
+#define fsemu_widget_log(format, ...)                             \
+    if (fsemu_likely(fsemu_widget_log_level >= FSEMU_LOG_LEVEL_INFO)) { \
+        fsemu_log("[FSE] [WID] " format, ##__VA_ARGS__);          \
+    }
+
+#define fsemu_widget_log_debug(format, ...)                          \
+    if (fsemu_unlikely(fsemu_widget_log_level >= FSEMU_LOG_LEVEL_DEBUG)) { \
+        fsemu_log("[FSE] [WID] " format, ##__VA_ARGS__);             \
+    }
 
 #ifdef __cplusplus
 }

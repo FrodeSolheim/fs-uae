@@ -2,6 +2,8 @@
 #include "config.h"
 #endif
 
+#ifdef FSUAE_LEGACY
+
 #define FSEMU_INTERNAL
 #include <fs/conf.h>
 #include <fs/emu/buffer.h>
@@ -72,3 +74,5 @@ void fse_init_video(void)
     fse_log("[VIDEO] Creating window\n");
     fs_emu_video_create_window(752, 572);
 }
+
+#endif  // FSUAE_LEGACY

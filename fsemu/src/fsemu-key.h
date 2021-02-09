@@ -4,7 +4,7 @@
 #include "fsemu-common.h"
 // #include "fsemu-scancode.h"
 
-#ifdef FSEMU_MACOS
+#ifdef FSEMU_OS_MACOS
 #define FSEMU_KEY_MOD_NAME "Cmd"
 #else
 #define FSEMU_KEY_MOD_NAME "Alt"

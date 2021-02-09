@@ -4,7 +4,7 @@
 #include "fsemu-common.h"
 // #include "fsemu-scancode.h"
 
-#ifdef FSEMU_MACOS
+#ifdef FSEMU_OS_MACOS
 #define FSEMU_KEYBOARD_MOD_NAME "Cmd"
 #else
 #define FSEMU_KEYBOARD_MOD_NAME "Alt"
@@ -27,6 +27,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+void fsemu_keyboard_add_devices(void);
 
 #define FSEMU_KEYBOARD_MOD_MOD 1
 #define FSEMU_KEYBOARD_MOD_SHIFT 2

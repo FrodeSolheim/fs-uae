@@ -1,0 +1,6 @@
+#!/bin/sh -e
+
+cd ../..
+CFLAGS="-g -O3 -march=armv8-a" \
+CXXFLAGS="-g -O3 -march=armv8-a" \
+./configure

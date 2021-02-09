@@ -2,6 +2,8 @@
 #include "config.h"
 #endif
 
+#ifdef FSUAE_LEGACY
+
 #ifdef USE_SDL_VIDEO
 
 // FIXME: make libfsml independent of libfsemu
@@ -1244,3 +1246,5 @@ void fs_ml_video_init()
 }
 
 #endif
+
+#endif  // FSUAE_LEGACY

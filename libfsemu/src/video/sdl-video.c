@@ -157,7 +157,7 @@ static void sdl_video_render(void)
         SDL_UnlockTexture(texture);
     } else {
         SDL_UpdateTexture(texture, &src_rect,
-                          buffer->buffer.data + buffer->buffer.crop.y * \
+                          (uint8_t *) buffer->buffer.data + buffer->buffer.crop.y * \
                           buffer->buffer.stride + buffer->buffer.crop.x * \
                           buffer->buffer.bpp, buffer->buffer.stride);
         fs_emu_buffer_unlock();

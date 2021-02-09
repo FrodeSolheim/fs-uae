@@ -57,14 +57,14 @@ void fs_log_enable_stdout()
 
 void fs_config_set_log_file(const char *path)
 {
-    fs_log("switch to log file %s\n", path);
+    fs_log("Switching to log file %s\n", path);
     fs_mutex_lock(log_data.mutex);
     if (log_data.file) {
         fclose(log_data.file);
     }
     log_data.file = g_fopen(path, "w");
     if (log_data.file) {
-        printf("LOG: %s\n", path);
+        fprintf(stderr, "LOGFILE: %s\n", path);
         if (log_data.initial_path) {
             FILE *f = g_fopen(log_data.initial_path, "r");
             if (f) {

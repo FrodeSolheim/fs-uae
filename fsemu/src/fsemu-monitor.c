@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL
+#define FSEMU_INTERNAL 1
 #include "fsemu-monitor.h"
 
 #include "fsemu-glib.h"
@@ -6,9 +6,11 @@
 #include "fsemu-util.h"
 #include "fsemu-window.h"
 
-#ifdef FSEMU_LINUX
+#ifdef FSEMU_OS_LINUX
 #include <dlfcn.h>
 #endif
+
+int fsemu_monitor_log_level = FSEMU_LOG_LEVEL_INFO;
 
 typedef struct {
     int x;
@@ -32,7 +34,7 @@ static gint fsemu_monitor_compare(gconstpointer a, gconstpointer b)
     return am->rect.x - bm->rect.x;
 }
 
-#ifdef FSEMU_LINUX
+#ifdef FSEMU_OS_LINUX
 
 typedef struct {
     int x, y;
@@ -43,7 +45,7 @@ static void *fsemu_monitor_dlsym(void *handle, const char *name)
 {
     void *result = dlsym(handle, name);
     if (!result) {
-        printf("[DSPLY] [MONITOR] Could not load %s\n", name);
+        fsemu_monitor_log_warning("Could not load %s\n", name);
         dlclose(handle);
         return NULL;
     }
@@ -70,8 +72,8 @@ static void fsemu_monitor_read_scale_via_gdk(void)
     void (*gdk_display_close)(void *display);
     void *handle = dlopen("libgdk-3.so.0", RTLD_GLOBAL | RTLD_LAZY);
     if (!handle) {
-        printf("[DSPLY] [MONITOR] Could not open libgdk-3.so.0: %s\n",
-               dlerror());
+        fsemu_monitor_log_warning("Could not open libgdk-3.so.0: %s\n",
+                                  dlerror());
         return;
     }
     if (!(gdk_init_check = fsemu_monitor_dlsym(handle, "gdk_init_check"))) {
@@ -122,12 +124,12 @@ static void fsemu_monitor_read_scale_via_gdk(void)
             fsemu_monitor_GdkRectangle rect;
             gdk_monitor_get_geometry(monitor, &rect);
             int scale = gdk_monitor_get_scale_factor(monitor);
-            printf("[DSPLY] %d %d %d %d: scale %d\n",
-                   rect.x,
-                   rect.y,
-                   rect.width,
-                   rect.height,
-                   scale);
+            fsemu_monitor_log("%d %d %d %d: scale %d\n",
+                              rect.x,
+                              rect.y,
+                              rect.width,
+                              rect.height,
+                              scale);
             if (i < FSEMU_MONITOR_MAX_COUNT) {
                 fsemu_monitor.scales[i].x = rect.x * scale;
                 fsemu_monitor.scales[i].y = rect.y * scale;
@@ -138,7 +140,7 @@ static void fsemu_monitor_read_scale_via_gdk(void)
         }
         // gdk_display_close(display);
     } else {
-        printf("[DSPLY] [MONITOR] Could not get default display\n");
+        fsemu_monitor_log_warning("Could not get default display\n");
     }
     dlclose(handle);
 }
@@ -149,7 +151,7 @@ void fsemu_monitor_init(void)
 {
     fsemu_return_if_already_initialized();
 
-#ifdef FSEMU_LINUX
+#ifdef FSEMU_OS_LINUX
     fsemu_monitor_read_scale_via_gdk();
 #endif
     fsemu_monitor.list = g_array_new(false, true, sizeof(fsemu_monitor_t));
@@ -169,7 +171,7 @@ void fsemu_monitor_init(void)
         SDL_Rect rect;
         error = SDL_GetDisplayBounds(display_index, &rect);
         if (error) {
-            fsemu_window_log(
+            fsemu_monitor_log(
                 "Error retrieving display bounds for display %d: %s\n",
                 display_index,
                 SDL_GetError());
@@ -187,16 +189,15 @@ void fsemu_monitor_init(void)
         }
 
         monitor.scale = 1.0;
-#ifdef FSEMU_LINUX
+#ifdef FSEMU_OS_LINUX
         for (int i = 0; i < FSEMU_MONITOR_MAX_COUNT; i++) {
             if (monitor.rect.x == fsemu_monitor.scales[i].x &&
                 monitor.rect.y == fsemu_monitor.scales[i].y &&
                 monitor.rect.w == fsemu_monitor.scales[i].w &&
                 monitor.rect.h == fsemu_monitor.scales[i].h) {
                 monitor.scale = fsemu_monitor.scales[i].scale;
-                fsemu_window_log(
-                    "[DSPLY] Found scale factor for monitor: %0.2f\n",
-                    monitor.scale);
+                fsemu_monitor_log("Found scale factor for monitor: %0.2f\n",
+                                  monitor.scale);
                 break;
             }
         }
@@ -204,7 +205,7 @@ void fsemu_monitor_init(void)
 #if 0
         float ddpi, hdpi, vdpi;
         if (SDL_GetDisplayDPI(display_index, &ddpi, &hdpi, &vdpi) == 0) {
-            fsemu_window_log("[DSPLY] %d: %f %f %f\n",
+            fsemu_monitor_log("%d: %f %f %f\n",
                             display_index,
                             ddpi, hdpi, vdpi);
         } else {
@@ -212,14 +213,14 @@ void fsemu_monitor_init(void)
         }
 #endif
 
-        fsemu_window_log("[DSPLY] %d: %dx%d+%d+%d %d Hz Scale %0.2f\n",
-                         display_index,
-                         monitor.rect.w,
-                         monitor.rect.h,
-                         monitor.rect.x,
-                         monitor.rect.y,
-                         monitor.refresh_rate,
-                         monitor.scale);
+        fsemu_monitor_log("%d: %dx%d+%d+%d %d Hz Scale %0.2f\n",
+                          display_index,
+                          monitor.rect.w,
+                          monitor.rect.h,
+                          monitor.rect.x,
+                          monitor.rect.y,
+                          monitor.refresh_rate,
+                          monitor.scale);
         g_array_append_val(fsemu_monitor.list, monitor);
         display_index += 1;
     }
@@ -232,12 +233,12 @@ void fsemu_monitor_init(void)
         int flags = 0;
         for (int j = 0; j < 4; j++) {
             int pos = (fsemu_monitor.count - 1.0) * j / 3.0 + 0.5;
-            fsemu_window_log("Monitor - j %d pos %d\n", j, pos);
+            fsemu_monitor_log("Monitor - j %d pos %d\n", j, pos);
             if (pos == i) {
                 flags |= (1 << j);
             }
         }
-        fsemu_window_log("Monitor index %d flags %d\n", i, flags);
+        fsemu_monitor_log("Index %d flags %d\n", i, flags);
         g_array_index(fsemu_monitor.list, fsemu_monitor_t, i).flags = flags;
     }
 }
@@ -271,7 +272,7 @@ bool fsemu_monitor_get_by_flag(int flag, fsemu_monitor_t *monitor)
     for (int i = 0; i < fsemu_monitor.count; i++) {
         if ((g_array_index(fsemu_monitor.list, fsemu_monitor_t, i).flags &
              flag) == flag) {
-            fsemu_window_log("Monitor: found index %d for flag %d\n", i, flag);
+            fsemu_monitor_log("Found index %d for flag %d\n", i, flag);
             return fsemu_monitor_get_by_index(i, monitor);
         }
     }
@@ -286,12 +287,12 @@ bool fsemu_monitor_get_by_rect(fsemu_rect_t *rect, fsemu_monitor_t *monitor)
             &g_array_index(fsemu_monitor.list, fsemu_monitor_t, i);
         if (m->rect.x == rect->x && m->rect.y == rect->y &&
             m->rect.w == rect->w && m->rect.h == rect->h) {
-            fsemu_window_log("Monitor: found index %d for rect %d,%d,%d,%d\n",
-                             i,
-                             rect->x,
-                             rect->y,
-                             rect->w,
-                             rect->h);
+            fsemu_monitor_log("Found index %d for rect %d,%d,%d,%d\n",
+                              i,
+                              rect->x,
+                              rect->y,
+                              rect->w,
+                              rect->h);
             return fsemu_monitor_get_by_index(i, monitor);
         }
     }

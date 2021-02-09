@@ -1,10 +1,8 @@
-"virtual parallel port protocol" (vpar) for Amiga Emulators
-===========================================================
+# Virtual parallel port protocol (vpar) for Amiga Emulators
 
-written by Christian Vogelgsang <chris@vogelgsang.org>
+Written by Christian Vogelgsang <chris@vogelgsang.org>
 
-Introduction
-------------
+# Introduction
 
 The vpar protocol is an I/O mechanism to communicate the state of the Amiga
 parallel port (here emulated in FS-UAE) so that external applications can
@@ -26,8 +24,7 @@ via the vpar protocol. Depending on the direction of each pin the protocol
 allows to set all input pins with new values. Also the external application
 can trigger the ACK line if desired.
 
-Assumptions
------------
+## Assumptions
 
 It is assumed that both processes, the Amiga emulator and the device emulator
 are connected with a fast bi-directional link and that each of the protocol's
@@ -43,8 +40,7 @@ Note that parallel port signal changes have a max frequency of around 50 KHz.
 So a reasonable fast modern computer should handle them easily in real time
 emulation.
 
-Protocol
---------
+## Protocol
 
 ### 1. Amiga Updates State
 
@@ -148,8 +144,7 @@ of both control and data lines also via vpar to the device emulator. Currently,
 DDR masks are only handled inside the Amiga emulator and external changes from
 the device emulator only affects signals that are set to input in the DDR.
 
-Implementation
---------------
+## Implementation
 
 The transport channel used there is realized with a pseudo
 terminal (PTY) opened in the device emulator. This allows the FS-UAE to use 

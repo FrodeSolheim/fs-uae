@@ -2,6 +2,8 @@
 #include "config.h"
 #endif
 
+#ifdef FSUAE_LEGACY
+
 /* libfsml - a media library for video and input
  * Copyright (C) 2011 Frode Solheim <frode-code@fengestad.no>
  *
@@ -282,3 +284,5 @@ void fs_gl_perspective(void)
 }
 
 #endif // USE_OPENGL
+
+#endif  // FSUAE_LEGACY

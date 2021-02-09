@@ -1,8 +1,8 @@
-#ifndef FS_UAE_CONFIG_SOUND_H
-#define FS_UAE_CONFIG_SOUND_H
+#ifndef FSUAE_SOUND_H_
+#define FSUAE_SOUND_H_
 
 #include "fsuae-config.h"
 
 void fs_uae_configure_sound_card(amiga_config *c);
 
-#endif /* FS_UAE_CONFIG_SOUND_H */
+#endif  // FSUAE_SOUND_H_

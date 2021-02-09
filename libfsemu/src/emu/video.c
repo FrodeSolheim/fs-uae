@@ -2,6 +2,8 @@
 #include "config.h"
 #endif
 
+#ifdef FSUAE_LEGACY
+
 #define FSEMU_INTERNAL
 #include <fs/emu.h>
 #include <fs/emu/hacks.h>
@@ -414,12 +416,14 @@ void fs_emu_video_after_update() {
     fs_emu_video_buffer_unlock();
     int64_t t = fs_emu_monotonic_time();
 
+#ifdef FSUAE_LEGACY
     if (fs_emu_cursor_is_visible_to() > 0) {
         if (fs_emu_cursor_is_visible_to() < fs_emu_monotonic_time()) {
             //fs_log("%lld\n", fs_emu_monotonic_time());
             fs_emu_show_cursor(0);
         }
     }
+#endif
 
     update_leds(t);
 
@@ -437,3 +441,5 @@ void fs_emu_video_after_update() {
         }
     }
 }
+
+#endif  // FSUAE_LEGACY

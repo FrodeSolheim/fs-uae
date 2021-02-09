@@ -1,3 +1,6 @@
+#define FSUAE_INTERNAL
+#include "fsuae-model.h"
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -5,8 +8,6 @@
 #include <fs/conf.h>
 #include <fs/emu.h>
 #include <stddef.h>
-
-#include "fsuae-model.h"
 
 amiga_config g_fs_uae_amiga_configs[CONFIG_LAST + 1] = {};
 amiga_config *g_fs_uae_config = NULL;

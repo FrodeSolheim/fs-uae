@@ -2,6 +2,8 @@
 #include "config.h"
 #endif
 
+#ifdef FSUAE_LEGACY
+
 // FIXME: REMOVE
 #include "../emu/video.h"
 #ifdef WINDOWS
@@ -234,3 +236,5 @@ double fs_ml_get_refresh_rate(void)
 {
     return g_fs_emu_video_frame_rate_host;
 }
+
+#endif  // FSUAE_LEGACY

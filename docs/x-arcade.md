@@ -1,4 +1,4 @@
-# X-Arcade Controller
+# X-Arcade controllers
 
 If you have an X-Arcade controller, you need to install some special config
 files in order for it to be recognized. This is because the X-Arcade device

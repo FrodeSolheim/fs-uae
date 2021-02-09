@@ -1,0 +1,6 @@
+*.sh lf
+Makefile lf
+Makefile.in lf
+*.svg lf
+debian/rules lf
+configure.ac lf

@@ -2,6 +2,8 @@
 #include "config.h"
 #endif
 
+#ifdef FSUAE_LEGACY
+
 #define FSEMU_INTERNAL
 #include <fs/emu.h>
 #include <fs/emu/audio.h>
@@ -2540,3 +2542,5 @@ void fse_init_renderer()
     fs_emu_render_init_lua();
 #endif
 }
+
+#endif  // FSUAE_LEGACY

@@ -1,3 +1,6 @@
+#define FSUAE_INTERNAL
+#include "fsuae-config.h"
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -11,12 +14,11 @@
 
 #include "fs-uae.h"
 #include "fsuae-accelerator.h"
-#include "fsuae-config.h"
 #include "fsuae-graphics.h"
 #include "fsuae-hardware.h"
 #include "fsuae-model.h"
 #include "fsuae-options.h"
-#include "fsuae-paths.h"
+#include "fsuae-path.h"
 #include "fsuae-sound.h"
 
 #define LEN_MAX 1024
@@ -111,6 +113,7 @@ void fs_uae_configure_amiga_model()
     fs_emu_log("fs_uae_configure_amiga_model\n");
     fs_uae_init_configs();
 
+#ifdef FSUAE_LEGACY
     if (fs_config_get_boolean("ntsc_mode") == 1) {
         fs_emu_log("enabling NTSC mode (59.94Hz)\n");
         g_fs_uae_ntsc_mode = 1;
@@ -123,6 +126,7 @@ void fs_uae_configure_amiga_model()
          * for improved scaling quality. */
         // fse_set_pixel_aspect((4.0 / 3.0) / (640.0 / 512.0));
     }
+#endif
 
     g_fs_uae_amiga_config = -1;
     const char *config_model = fs_config_get_const_string(OPTION_AMIGA_MODEL);
@@ -151,12 +155,14 @@ void fs_uae_configure_amiga_model()
     g_fs_uae_config = c;
     g_fs_uae_amiga_model = c->model;
 
+#ifdef FSUAE_LEGACY
     if (!fs_emu_get_title()) {
         fs_emu_set_title("FS-UAE");
     }
     if (!fs_emu_get_sub_title()) {
         fs_emu_set_sub_title(c->name);
     }
+#endif
     if (c->warning) {
         fs_emu_warning(c->warning);
     }
@@ -170,15 +176,15 @@ static void configure_roms(amiga_config *c)
         /* Do not load external kickstart */
         free(path);
     } else {
-        path = fs_uae_expand_path_and_free(path);
-        path = fs_uae_resolve_path_and_free(path, FS_UAE_ROM_PATHS);
+        path = fsuae_path_expand_and_free(path);
+        path = fsuae_path_resolve_and_free(path, FS_UAE_ROM_PATHS);
         amiga_set_option("kickstart_rom_file", path);
         free(path);
 
         path = fs_config_get_string("kickstart_ext_file");
         if (path) {
-            path = fs_uae_expand_path_and_free(path);
-            path = fs_uae_resolve_path_and_free(path, FS_UAE_ROM_PATHS);
+            path = fsuae_path_expand_and_free(path);
+            path = fsuae_path_resolve_and_free(path, FS_UAE_ROM_PATHS);
             amiga_set_option("kickstart_ext_rom_file", path);
             free(path);
         }
@@ -214,8 +220,8 @@ void fs_uae_configure_amiga_hardware()
         free(path);
     }
     if (scan_kickstarts) {
-        fs_uae_load_rom_files(fs_uae_kickstarts_dir());
-        gchar *scan_path = g_build_filename(fs_uae_base_dir(),
+        fs_uae_load_rom_files(fsuae_path_kickstarts_dir());
+        gchar *scan_path = g_build_filename(fsuae_path_base_dir(),
                                             "AmigaForever",
                                             "Amiga Files",
                                             "Shared",
@@ -316,12 +322,12 @@ void fs_uae_configure_amiga_hardware()
     }
 
     if (fs_config_get_boolean(OPTION_LINE_DOUBLING) == 0) {
-        fs_log("disabling line doubling\n");
+        fsuae_log("disabling line doubling\n");
         amiga_set_option("gfx_linemode", "none");
     }
 
     if (fs_config_get_boolean(OPTION_LOW_RESOLUTION) == 1) {
-        fs_log("force low resolution\n");
+        fsuae_log("force low resolution\n");
         amiga_set_option("gfx_lores", "true");
     }
 

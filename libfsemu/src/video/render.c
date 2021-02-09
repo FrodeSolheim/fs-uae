@@ -2,6 +2,8 @@
 #include "config.h"
 #endif
 
+#ifdef FSUAE_LEGACY
+
 #define FSEMU_INTERNAL
 #include <fs/emu/log.h>
 #include <fs/emu/options.h>
@@ -302,3 +304,5 @@ void fse_init_render(void)
         g_force_aspect = 0;
     }
 }
+
+#endif  // FSUAE_LEGACY

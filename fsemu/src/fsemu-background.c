@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL
+#define FSEMU_INTERNAL 1
 #include "fsemu-background.h"
 
 #include <math.h>
@@ -12,6 +12,9 @@
 #include "fsemu-widget.h"
 
 #define module fsemu_background
+
+#define FSEMU_WITH_BACKGROUND 1
+#ifdef FSEMU_WITH_BACKGROUND
 
 // ----------------------------------------------------------------------------
 
@@ -40,18 +43,24 @@ static struct {
     } widgets;
 } module;
 
+// #define FSEMU_BACKGROUND_LEVEL 0x08
+// #define FSEMU_BACKGROUND_LEVEL_2 0x18
+
+#define FSEMU_BACKGROUND_LEVEL 0x0A
+#define FSEMU_BACKGROUND_LEVEL_2 0x20
+
 static void fsemu_background_create_side(fsemu_image_t *image,
                                          int width,
                                          int height,
                                          int overlap)
 {
     // Gradients
-    double left = 0x0a / 255.0;
+    // double left = 0x0c / 255.0;
+    // double right = 0x2c / 255.0;
+    double left = FSEMU_BACKGROUND_LEVEL / 255.0;
+    double right = FSEMU_BACKGROUND_LEVEL_2 / 255.0;
 
-    left = 0x0c / 255.0;
-
-    double right = 0x2c / 255.0;
-    double top = 0.5;
+    double top = 0.3;
 
     double xdiff = right - left;
     double ydiff = 1.0 - top;
@@ -77,14 +86,23 @@ static void fsemu_background_create_side(fsemu_image_t *image,
             if (d > 1.0) {
                 d = 1.0;
             }
+            // double gray_d = 255.0 * (left + xdiff * pow(d, 2.2)) *
+            //                     (top + ydiff * y / height) +
+            //                 line_debt[x + 0 + 1];
             double gray_d = 255.0 * (left + xdiff * pow(d, 2.2)) *
-                                (top + ydiff * y / height) +
+                                (top + ydiff * (1.0 - abs(y - height / 2.0) /
+                                                          (height / 2.0))) +
                             line_debt[x + 0 + 1];
+            // double gray_d = 255.0 * (left + xdiff * pow(d, 2.2)) *
+            //         (top + ydiff * (abs(y - height / 2.0) / (height / 2.0)))
+            //         +
+            //                 line_debt[x + 0 + 1];
 
             // gray_d = 255.0 * (0.0 + 0.05 * pow((double) x / width, 2.2))
             //  +line_debt[x + 0 + 1];
 
-            // printf("gray_d = %0.2f, error was %0.2f\n", gray_d, line_debt[x
+            // fsemu_background_log_debug("gray_d = %0.2f, error was %0.2f\n",
+            // gray_d, line_debt[x
             // + 0 + 1]);
             uint8_t gray = gray_d + 0.5;
             pixel[0] = gray;  // Red
@@ -117,7 +135,8 @@ static void fsemu_background_create_top(fsemu_image_t *image,
                                         int height,
                                         int offset)
 {
-    double right = 0x2c / 255.0;
+    // double right = 0x2c / 255.0;
+    double right = FSEMU_BACKGROUND_LEVEL_2 / 255.0;
     double top = 0.5;
     double ydiff = 1.0 - top;
 
@@ -438,7 +457,7 @@ static void fsemu_background_init_widgets(void)
     int overlap = 0;
     int video_width = (height - 2 * margin) * 4 / 3;
     int left_width = (1920 - video_width) / 2 + overlap;
-    fsemu_log("[FSEMU][BACKG] Side width: %d\n", left_width);
+    fsemu_background_log("Side width: %d\n", left_width);
 
     int middle_width = video_width;
     int middle_height = margin;
@@ -783,7 +802,7 @@ fsemu_background_setup_shadow(&fsemu_background.widgets.shadow_n,
 
 static void fsemu_background_quit(void)
 {
-    printf("[FSEMU] [BACKG] fsemu_background_quit\n");
+    fsemu_background_log("fsemu_background_quit\n");
     fsemu_widget_unref(fsemu_background.widgets.top);
     fsemu_widget_unref(fsemu_background.widgets.right);
     fsemu_widget_unref(fsemu_background.widgets.right_2);
@@ -800,20 +819,28 @@ static void fsemu_background_quit(void)
     fsemu_widget_unref(fsemu_background.widgets.shadow_nw);
 }
 
+#endif  // FSEMU_WITH_BACKGROUND
+
 void fsemu_background_init(void)
 {
+#ifdef FSEMU_WITH_BACKGROUND
     if (module.initialized) {
         return;
     }
     module.initialized = true;
-    fsemu_log("[FSEMU] [BACKG] Initializing background module\n");
+#ifdef FSEMU_LINUX_ARM
+    fsemu_background_log("Not using background module (performance)\n");
+    return;
+#endif
+    fsemu_background_log("Initializing background module\n");
     fsemu_module_on_quit(fsemu_background_quit);
 
-    fsemu_background.color.r = 0x0c;
-    fsemu_background.color.g = 0x0c;
-    fsemu_background.color.b = 0x0c;
+    fsemu_background.color.r = FSEMU_BACKGROUND_LEVEL;
+    fsemu_background.color.g = FSEMU_BACKGROUND_LEVEL;
+    fsemu_background.color.b = FSEMU_BACKGROUND_LEVEL;
 
     fsemu_background_init_widgets();
+#endif
 }
 
 // ----------------------------------------------------------------------------

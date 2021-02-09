@@ -1,7 +1,9 @@
+#define FSUAE_INTERNAL
+#include "fsuae-recording.h"
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
-#include "fsuae-recording.h"
 
 #define _GNU_SOURCE 1
 #include <fs/emu.h>
@@ -65,7 +67,7 @@ static uint32_t get_value(void)
         return 0;
     } else if (g_playback_pos > g_recording_length) {
         // printf("g_playback_pos > g_recording_length\n");
-        fs_log("g_playback_pos > g_recording_length\n");
+        fsuae_log("g_playback_pos > g_recording_length\n");
         return 0;
     }
     if (g_chunk_pos == CHUNK_SIZE) {
@@ -98,7 +100,7 @@ static int write_recording(const char *path, int length)
         fs_emu_warning("Could not open recording file for writing\n");
         return 0;
     }
-    fs_log("- writing recording to %s\n", path);
+    fsuae_log("- writing recording to %s\n", path);
     printf("- amiga vsync counter = %d\n", amiga_get_vsync_counter());
 
     GList *item = g_record_chunks;
@@ -124,7 +126,7 @@ static int write_recording(const char *path, int length)
 
 static void reset_recording(void)
 {
-    fs_log("-- reset_recording --\n");
+    fsuae_log("-- reset_recording --\n");
     GList *item = g_record_chunks;
     while (item) {
         free(item->data);
@@ -293,7 +295,7 @@ static void on_restore_state_finished(void *data)
 
 void fs_uae_init_recording(void)
 {
-    fs_log("fs_uae_init_recording\n");
+    fsuae_log("fs_uae_init_recording\n");
 
     amiga_on_restore_state_finished(on_restore_state_finished);
     amiga_on_save_state_finished(on_save_state_finished);
@@ -301,12 +303,12 @@ void fs_uae_init_recording(void)
 
 void fs_uae_enable_recording(const char *record_file)
 {
-    fs_log("enabling input recording\n");
+    fsuae_log("enabling input recording\n");
 
     g_record_path = strdup(record_file);
 
     if (!fs_path_exists(g_record_path)) {
-        fs_log("record file \"%s\" does not yet exist\n", record_file);
+        fsuae_log("record file \"%s\" does not yet exist\n", record_file);
         FILE *f = g_fopen(g_record_path, "wb");
         if (f) {
             // ok, we could open the file for writing
@@ -561,7 +563,7 @@ int fs_uae_get_recorded_input_event(int frame,
         }
         else if (g_playback_pos > g_recording_length) {
             //printf("g_playback_pos > g_recording_length\n");
-            fs_log("g_playback_pos > g_recording_length\n");
+            fsuae_log("g_playback_pos > g_recording_length\n");
             return 0;
         }
         if (g_chunk_pos == CHUNK_SIZE) {
@@ -625,15 +627,15 @@ void fs_uae_write_recorded_session(void)
     if (!g_recording_enabled) {
         return;
     }
-    fs_log("fs_uae_write_recorded_session\n");
+    fsuae_log("fs_uae_write_recorded_session\n");
     /*
     if (!g_recording_modified) {
-        fs_log("- recording was not modified, not writing\n");
+        fsuae_log("- recording was not modified, not writing\n");
         return;
     }
     */
     if (g_recording_invalid) {
-        fs_log("- recording was marked as invalid, not writing\n");
+        fsuae_log("- recording was marked as invalid, not writing\n");
         return;
     }
 

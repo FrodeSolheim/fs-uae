@@ -9,14 +9,10 @@
 extern "C" {
 #endif
 
-typedef fsemu_gui_item_t fsemu_widget_t;
-
 void fsemu_background_init(void);
 
-/*
-void fsemu_widget_init(fsemu_widget_t *widget);
-void fsemu_widget_set_image(fsemu_widget_t *widget, fsemu_image_t *image);
-*/
+#define fsemu_background_log(format, ...) \
+    fsemu_log("[FSE] [BCK] " format, ##__VA_ARGS__)
 
 #ifdef __cplusplus
 }

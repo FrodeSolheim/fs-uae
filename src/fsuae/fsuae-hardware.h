@@ -1,6 +1,6 @@
-#ifndef FS_UAE_CONFIG_HARDWARE_H
-#define FS_UAE_CONFIG_HARDWARE_H
+#ifndef FSUAE_HARDWARE_H_
+#define FSUAE_HARDWARE_H_
 
 void fs_uae_configure_hardware(void);
 
-#endif /* FS_UAE_CONFIG_HARDWARE_H */
+#endif  // FS_UAE_HARDWARE_H_

@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL
+#define FSEMU_INTERNAL 1
 #include "fsemu-sdlinput.h"
 
 #include "fsemu-action.h"
@@ -47,7 +47,7 @@ static int fsemu_sdlinput_device_index_from_instance_id(int instance_id)
 
 static void fsemu_sdlinput_add_controller(SDL_GameController *sdl_controller)
 {
-    // printf(
+    // fsemu_input_log_debug(
     //     "input Opening SDL game controller %d -> %p\n", i, sdl_controller);
     // fsemu_controller.sdl_controllers[i] = sdl_controller;
 
@@ -58,7 +58,7 @@ static void fsemu_sdlinput_add_controller(SDL_GameController *sdl_controller)
     if (device_index >= 0) {
         // Controller already added. This happens on startup, we scan for
         // devices on startup, and in addition we get add events from SDL.
-        printf(
+        fsemu_input_log(
             "input - game controller (instance %d) already seen (device index "
             "%d)\n",
             instance_id,
@@ -75,19 +75,20 @@ static void fsemu_sdlinput_add_controller(SDL_GameController *sdl_controller)
     fsemu_inputdevice_set_name(device, name);
     int error;
     if ((error = fsemu_input_add_device(device)) != 0) {
-        printf("input - device could not be registered - error %d\n", error);
+        fsemu_input_log_warning("Device could not be registered - error %d\n",
+                                error);
         fsemu_inputdevice_unref(device);
         return;
     }
     // The device index is now available, set by  fsemu_input_add_device.
     device_index = device->index;
-    printf("input - registered device - index %d\n", device->index);
+    fsemu_input_log_debug("Registered device - index %d\n", device->index);
     // The input module holds a reference to this one now.
     fsemu_inputdevice_unref(device);
 
     fsemu_sdlinput.controllers[device->index].instance_id = instance_id;
     if (instance_id < FSEMU_INPUT_MAX_SDL_INSTANCE_IDS) {
-        printf(
+        fsemu_input_log_debug(
             "sdl_instance_id_to_index[%d] <- %d\n", instance_id, device_index);
         fsemu_sdlinput.sdl_instance_id_to_index[instance_id] = device_index;
     }
@@ -101,17 +102,17 @@ static void fsemu_sdlinput_add_controllers(void)
 {
     // FIXME: This is test quality code
     for (int i = 0; i < FSEMU_CONTROLLER_MAX_COUNT; i++) {
-        printf("input Opening SDL game controller %d\n", i);
-        printf("input controller (joystick) name: %s\n",
-               SDL_JoystickNameForIndex(i));
+        fsemu_input_log_debug("Opening SDL game controller %d\n", i);
+        fsemu_input_log("Controller (joystick) name: %s\n",
+                        SDL_JoystickNameForIndex(i));
         if (!SDL_IsGameController(i)) {
-            printf("input - is not game controller\n");
+            fsemu_input_log("Is not game controller\n");
             continue;
         }
         // FIXME: Do not open controllers until they are used in a port?
         SDL_GameController *sdl_controller = SDL_GameControllerOpen(i);
-        printf("input gamecontroller? %s\n",
-               SDL_GameControllerName(sdl_controller));
+        fsemu_input_log_debug("input gamecontroller? %s\n",
+                              SDL_GameControllerName(sdl_controller));
         if (sdl_controller) {
             fsemu_sdlinput_add_controller(sdl_controller);
         }
@@ -131,10 +132,11 @@ static void fsemu_sdlinput_handle_controller_event_2(int instance_id,
         // State hasn't actually changed
         return;  // true;
     }
-    printf("state change slot %d: %d -> %d\n",
-           slot,
-           fsemu_sdlinput.controllers[device_index].history[slot],
-           state);
+    fsemu_input_log_debug(
+        "state change slot %d: %d -> %d\n",
+        slot,
+        fsemu_sdlinput.controllers[device_index].history[slot],
+        state);
     fsemu_sdlinput.controllers[device_index].history[slot] = state;
 
     if (state == -32768) {
@@ -181,14 +183,16 @@ static bool fsemu_sdlinput_handle_controller_event(SDL_Event *event)
         int instance_id = event->caxis.which;
         int slot = FSEMU_CONTROLLER_BEFORE_FIRST_AXIS + 1 + event->caxis.axis;
         int16_t state = event->caxis.value;
-        // printf("controller axis event instance id %d\n", instance_id);
+        // fsemu_input_log_debug("controller axis event instance id %d\n",
+        // instance_id);
         fsemu_sdlinput_handle_controller_event_2(instance_id, slot, state);
     } else {  // Button up/down event
         int instance_id = event->cbutton.which;
         int slot =
             FSEMU_CONTROLLER_BEFORE_FIRST_BUTTON + 1 + event->cbutton.button;
         int16_t state = event->cbutton.state ? FSEMU_ACTION_STATE_MAX : 0;
-        // printf("controller button event instance id %d\n", instance_id);
+        // fsemu_input_log_debug("controller button event instance id %d\n",
+        // instance_id);
         fsemu_sdlinput_handle_controller_event_2(instance_id, slot, state);
     }
     // FIXME: return true here?
@@ -197,28 +201,30 @@ static bool fsemu_sdlinput_handle_controller_event(SDL_Event *event)
 
 static bool fsemu_sdlinput_handle_controller_added(SDL_Event *event)
 {
-    printf(
-        "\n-------------------------------------------------------------------"
-        "-------------\n");
+    // printf(
+    //     "\n-------------------------------------------------------------------"
+    //     "-------------\n");
     int joystick_index = event->cdevice.which;
-    printf("input controller added joystick_index=%d\n", joystick_index);
+    fsemu_input_log_debug("input controller added joystick_index=%d\n",
+                          joystick_index);
     // We need to open the controller in order to get a
     // SDL_CONTROLLERDEVICEREMOVED event. Can we do without this event?
     // Iterate over devices instead when needing list of devices?
     SDL_GameController *sdl_controller =
         SDL_GameControllerOpen(joystick_index);
     fsemu_sdlinput_add_controller(sdl_controller);
-    printf("\n");
+    // printf("\n");
     return true;
 }
 
 static bool fsemu_sdlinput_handle_controller_removed(SDL_Event *event)
 {
-    printf(
-        "\n-------------------------------------------------------------------"
-        "-------------\n");
+    // printf(
+    //     "\n-------------------------------------------------------------------"
+    //     "-------------\n");
     int instance_id = event->cdevice.which;
-    printf("input controller removed instance_id=%d\n", instance_id);
+    fsemu_input_log_debug("input controller removed instance_id=%d\n",
+                          instance_id);
     int device_index =
         fsemu_sdlinput_device_index_from_instance_id(instance_id);
     // FIXME: Do we need to close the gamecontroller when it was removed?
@@ -230,21 +236,23 @@ static bool fsemu_sdlinput_handle_controller_removed(SDL_Event *event)
     } else {
         // Device was not used
     }
-    printf("\n");
+    // printf("\n");
     return true;
 }
 
 static bool fsemu_sdlinput_handle_joystick_added(SDL_Event *event)
 {
     int joystick_index = event->cdevice.which;
-    printf("input joystick added joystick_index=%d\n", joystick_index);
+    fsemu_input_log_debug("input joystick added joystick_index=%d\n",
+                          joystick_index);
     return true;
 }
 
 static bool fsemu_sdlinput_handle_joystick_removed(SDL_Event *event)
 {
     int instance_id = event->cdevice.which;
-    printf("input joystick removed instance_id=%d\n", instance_id);
+    fsemu_input_log_debug("input joystick removed instance_id=%d\n",
+                          instance_id);
     // FIXME: Do we need to close the joystick when it was removed?
     return true;
 }
@@ -256,13 +264,14 @@ void fsemu_sdlinput_work(void)
 static bool fsemu_sdlinput_handle_key_event(SDL_Event *event)
 {
     if (event->key.repeat) {
-        fsemu_input_log("(Ignoring repeated key press scancode=%d)\n",
-                        event->key.keysym.scancode);
+        fsemu_input_log_debug("(Ignoring repeated key press scancode=%d)\n",
+                              event->key.keysym.scancode);
         return false;
     }
-    fsemu_input_log("Key %s scancode=%d\n",
-                    event->key.state ? "press" : "release",
-                    event->key.keysym.scancode);
+    // FIXME: Increase log level
+    // fsemu_input_log("Key %s scancode=%d\n",
+    //                 event->key.state ? "press" : "release",
+    //                 event->key.keysym.scancode);
     fsemu_key_t key = event->key.keysym.scancode;
     fsemu_input_handle_keyboard(key, event->key.state != 0);
     return false;

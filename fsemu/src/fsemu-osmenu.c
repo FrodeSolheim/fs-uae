@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL
+#define FSEMU_INTERNAL 1
 #include "fsemu-osmenu.h"
 
 #include "fsemu-control.h"
@@ -49,6 +49,8 @@
 #endif
 
 // ----------------------------------------------------------------------------
+
+int fsemu_osmenu_log_level = FSEMU_LOG_LEVEL_INFO;
 
 typedef struct {
     fsemu_menu_item_t *item;
@@ -123,6 +125,30 @@ static void fsemu_osmenu_update_selected_w(fsemu_osmenu_t *osmenu,
     }
 }
 
+static void fsemu_osmenu_update_osmenu(fsemu_osmenu_t *osmenu)
+{
+    GList *ositems = osmenu->ositems;
+    while (ositems) {
+        fsemu_osmenu_item_t *ositem = ositems->data;
+        // fsemu_widget_set_text(ositem->title_w,
+        //                       fsemu_menu_item_title(ositem->item));
+
+        fsemu_color_t text_color;
+        if (fsemu_menu_item_heading(ositem->item)) {
+            text_color = FSEMU_COLOR_RGB(0x888888);
+        } else if (!fsemu_menu_item_enabled(ositem->item)) {
+            text_color = FSEMU_COLOR_RGB(0x666666);
+        } else {
+            text_color = FSEMU_COLOR_WHITE;
+        }
+        fsemu_widget_set_text_color(ositem->title_w, text_color);
+        fsemu_widget_set_text(ositem->title_w,
+                              fsemu_menu_item_title(ositem->item));
+
+        ositems = ositems->next;
+    }
+}
+
 static void fsemu_osmenu_populate_widgets(fsemu_osmenu_t *osmenu)
 {
     fsemu_widget_t *widget;
@@ -187,19 +213,22 @@ static void fsemu_osmenu_populate_widgets(fsemu_osmenu_t *osmenu)
     fsemu_menu_t *menu = osmenu->menu;
     for (int i = 0; i < fsemu_menu_count_items(menu); i++) {
         fsemu_menu_item_t *item = fsemu_menu_get_item(menu, i);
-        printf("%d selectable? %d %d\n",
-               i,
-               fsemu_menu_item_selectable(item),
-               fsemu_menu_item_heading(item));
-        if (osmenu->selected_index == -1 && fsemu_menu_item_selectable(item)) {
-            osmenu->selected_index = i;
+        fsemu_osmenu_log_debug("%d selectable? %d %d\n",
+                               i,
+                               fsemu_menu_item_selectable(item),
+                               fsemu_menu_item_heading(item));
+        if (fsemu_menu_item_selectable(item)) {
+            if (osmenu->selected_index == -1 ||
+                fsemu_menu_item_selected_initially(item)) {
+                osmenu->selected_index = i;
+            }
         }
-        // printf("%p\n", item);
+        // fsemu_osmenu_log_debug("%p\n", item);
         fsemu_osmenu_item_t *ositem = FSEMU_UTIL_MALLOC0(fsemu_osmenu_item_t);
         ositem->item = item;
-        // printf("aaa\n");
+        // fsemu_osmenu_log_debug("aaa\n");
         fsemu_menu_item_ref(item);
-        // printf("bbb\n");
+        // fsemu_osmenu_log_debug("bbb\n");
         osmenu->ositems = g_list_append(osmenu->ositems, ositem);
 
         ositem->title_w = fsemu_widget_new_with_name("osmenu:item:title_w");
@@ -216,32 +245,30 @@ static void fsemu_osmenu_populate_widgets(fsemu_osmenu_t *osmenu)
 
         int leftoffset = FSEMU_OSMENU_ITEM_INDENTATION;
         int font_size = FSEMU_OSMENU_ITEM_FONTSIZE;
-        fsemu_color_t text_color;
         // Maybe we only need color? Also, right now, color effectively
         // modulates text_color. Maybe we don't want this...
         fsemu_widget_set_color(widget, FSEMU_COLOR_WHITE);
         if (fsemu_menu_item_heading(item)) {
             font_size = FSEMU_OSMENU_HEADING_FONTSIZE;
-            text_color = FSEMU_COLOR_RGB(0x888888);
+            // text_color = FSEMU_COLOR_RGB(0x888888);
             leftoffset = FSEMU_OSMENU_HEADING_INDENTATION;
             fsemu_widget_set_text_valign(widget, 0.9);
-        } else if (!fsemu_menu_item_enabled(item)) {
-            text_color = FSEMU_COLOR_RGB(0x666666);
-        } else {
-            text_color = FSEMU_COLOR_WHITE;
         }
         fsemu_widget_set_font_size(widget, font_size);
         fsemu_widget_set_left(widget, leftoffset);
-        fsemu_widget_set_text_color(widget, text_color);
         fsemu_widget_set_text_transform(widget,
                                         FSEMU_WIDGET_TEXT_TRANSFORM_UPPERCASE);
 
         // FIXME: Or image stretch/centering attributes, i.e.
         // hstrech: 0 vstretch 0 halign 0 valign = center
-        fsemu_widget_set_text(widget, fsemu_menu_item_title(item));
 
+#if 0
+        // Moved to fsemu_menu_update_osmenu
+#endif
         y += 60;
     }
+
+    fsemu_osmenu_update_osmenu(osmenu);
 
     if (osmenu->selected_index == -1) {
         fsemu_warning("No item could be selected\n");
@@ -253,13 +280,13 @@ static void fsemu_osmenu_populate_widgets(fsemu_osmenu_t *osmenu)
 
 static void fsemu_osmenu_delete(fsemu_osmenu_t *osmenu)
 {
-    printf("osmenu delete %p\n", osmenu);
+    fsemu_osmenu_log_debug("osmenu delete %p\n", osmenu);
 
     GList *ositems = osmenu->ositems;
     while (ositems) {
         fsemu_osmenu_item_t *ositem = ositems->data;
 
-        printf("Unrefing title widget\n");
+        fsemu_osmenu_log_debug("Unrefing title widget\n");
         fsemu_widget_set_visible(ositem->title_w, false);
         // FIXME: Unlink from parent? unref?
         // fsemu_widget_unref(ositem->title_w);
@@ -267,7 +294,7 @@ static void fsemu_osmenu_delete(fsemu_osmenu_t *osmenu)
         fsemu_widget_remove_child(osmenu->container, ositem->title_w);
         fsemu_widget_unref(ositem->title_w);
 
-        printf("Unrefing menu item\n");
+        fsemu_osmenu_log_debug("Unrefing menu item\n");
         fsemu_menu_item_unref(ositem->item);
         free(ositem);
         ositems = ositems->next;
@@ -293,9 +320,9 @@ static void fsemu_osmenu_delete(fsemu_osmenu_t *osmenu)
     // FIXME: Unlink from parent? unref?
     // fsemu_widget_unref(osmenu->container);
 
-    printf("Unrefing menu\n");
+    fsemu_osmenu_log_debug("Unrefing menu\n");
     fsemu_menu_unref(osmenu->menu);
-    printf("Freeing osmenu\n");
+    fsemu_osmenu_log_debug("Freeing osmenu\n");
     free(osmenu);
 }
 
@@ -425,7 +452,12 @@ void fsemu_osmenu_set_open(bool open)
         return;
     }
 
-    fsemu_log(open ? "Open on-screen menu\n" : "Close on-screen menu\n");
+    if (open) {
+        fsemu_osmenu_log("Open on-screen menu\n");
+    } else {
+        fsemu_osmenu_log("Close on-screen menu\n");
+    }
+
 #if 0
     if (!open) {
         if (fsemu_osmenu.active) {
@@ -459,7 +491,7 @@ void fsemu_osmenu_set_open(bool open)
 
 void fsemu_osmenu_toggle_open(void)
 {
-    printf("fsemu_osmenu_toggle_open\n");
+    fsemu_osmenu_log_debug("fsemu_osmenu_toggle_open\n");
     fsemu_osmenu_set_open(!fsemu_osmenu_open());
 }
 
@@ -495,7 +527,9 @@ static void fsemu_osmenu_navigate_up_down(int navigate,
     int index = osmenu->selected_index;
     int length = fsemu_menu_count_items(osmenu->menu);
     if (navigate == FSEMU_GUI_NAVIGATE_UP) {
-        if (index == 0) {
+        // Index can be -1 already if no item at all was selected. This can
+        // happen if all items are disabled.
+        if (index <= 0) {
             return;
         }
         index -= 1;
@@ -526,7 +560,7 @@ static void fsemu_osmenu_navigate_primary(fsemu_action_state_t state)
     if (!state) {
         return;
     }
-    printf("[FSEMU][OMENU] Activate\n");
+    fsemu_osmenu_log_debug("Activate\n");
     fsemu_osmenu_t *osmenu = fsemu_osmenu_navigation_menu();
     if (!osmenu) {
         return;
@@ -538,11 +572,19 @@ static void fsemu_osmenu_navigate_primary(fsemu_action_state_t state)
         fsemu_warning("Tried to activate a disabled menu item\n");
         return;
     }
-    fsemu_menu_t *menu = fsemu_menu_item_activate(item);
-    if (menu) {
+    fsemu_menu_t *result = fsemu_menu_item_activate(item);
+    // fsemu_osmenu_log_debug("Result: %p\n", result);
+    if (FSEMU_MENU_RESULT_IS_MENU(result)) {
         // We now own the reference to this newly created menu. So we must not
         // ref it again here.
-        fsemu_osmenu_push_menu(menu);
+        fsemu_osmenu_push_menu(result);
+    } else if (result == FSEMU_MENU_RESULT_CLOSE) {
+        fsemu_osmenu_set_open(false);
+    } else if (result == FSEMU_MENU_RESULT_POP1) {
+        fsemu_osmenu_pop_menu();
+    } else if (result == FSEMU_MENU_RESULT_POP1_CLOSE) {
+        fsemu_osmenu_pop_menu();
+        fsemu_osmenu_set_open(false);
     }
 }
 
@@ -551,13 +593,13 @@ static void fsemu_osmenu_navigate_back(fsemu_action_state_t state)
     if (!state) {
         return;
     }
-    printf("[FSEMU][OMENU] Back\n");
+    fsemu_osmenu_log_debug("Back\n");
     fsemu_osmenu_t *osmenu = fsemu_osmenu_navigation_menu();
     if (!osmenu) {
         return;
     }
     if (g_list_length(fsemu_osmenu.stack) == 1) {
-        printf("[FSEMU][OMENU] Only outer menu left, closing menu\n");
+        fsemu_osmenu_log_debug("Only outer menu left, closing menu\n");
         fsemu_osmenu_set_open(false);
         return;
     }
@@ -578,7 +620,8 @@ void fsemu_osmenu_navigate(int navigate, fsemu_action_state_t state)
     if (navigate == FSEMU_GUI_NAVIGATE_NONE) {
         return;
     }
-    printf("fsemu_osmenu_navigate %d %d\n", navigate, state);
+    // fsemu_osmenu_log_debug("fsemu_osmenu_navigate %d %d\n", navigate,
+    // state);
 
     if (navigate == FSEMU_GUI_NAVIGATE_UP) {
         fsemu_osmenu_navigate_up_down(navigate, state);
@@ -608,7 +651,7 @@ static void fsemu_osmenu_update_main_animation(void)
     fsemu_util_spring_update_with_time(&fsemu_osmenu.open_spring, now_us);
 
     int position = fsemu_osmenu.open_spring.current;
-    // printf("%d\n", position);
+    // fsemu_osmenu_log_debug("%d\n", position);
     fsemu_widget_set_left_2(
         fsemu_osmenu.widgets.container, position, FSEMU_WIDGET_SCREEN_RIGHT);
     fsemu_widget_set_right_2(fsemu_osmenu.widgets.container,
@@ -628,7 +671,7 @@ static void fsemu_osmenu_update_main_animation(void)
     } else if (fsemu_osmenu.offset > fsemu_osmenu.offset_wanted) {
         fsemu_osmenu.offset -= 40;
     }
-    // printf("%d\n", fsemu_osmenu.offset);
+    // fsemu_osmenu_log_debug("%d\n", fsemu_osmenu.offset);
     fsemu_widget_set_left_2(fsemu_osmenu.widgets.container,
                             fsemu_osmenu.offset,
                             FSEMU_WIDGET_SCREEN_RIGHT);
@@ -683,7 +726,7 @@ static void fsemu_osmenu_update_main_animation(void)
     }
 
     last_us = now_us;
-    printf("%d %d\n", (int) position, (int) to);
+    fsemu_osmenu_log_debug("%d %d\n", (int) position, (int) to);
 
     fsemu_widget_set_left_2(
         fsemu_osmenu.widgets.container, position, FSEMU_WIDGET_SCREEN_RIGHT);
@@ -708,19 +751,23 @@ void fsemu_osmenu_update(void)
     }
 
     int64_t now_us = fsemu_time_us();
-    // printf("fsemu_osmenu_update\n");
+    // fsemu_osmenu_log_debug("fsemu_osmenu_update\n");
 
     fsemu_osmenu_update_main_animation();
 
-    int max_level = g_list_length(fsemu_osmenu.stack) - 1;
+    // int max_level = g_list_length(fsemu_osmenu.stack) - 1;
     GList *listitem = fsemu_osmenu.stack;
     while (listitem) {
         fsemu_osmenu_t *osmenu = (fsemu_osmenu_t *) listitem->data;
+        // The menu entries themselves may have changed, update menu first.
+        fsemu_menu_update(osmenu->menu);
+        // Then we may have to sync menu changes with on-screen representation.
+        fsemu_osmenu_update_osmenu(osmenu);
 
 #if 1
         fsemu_util_spring_update_with_time(&osmenu->open_spring, now_us);
         int position = osmenu->open_spring.current;
-        // printf("position %d stopped %d\n", position,
+        // fsemu_osmenu_log_debug("position %d stopped %d\n", position,
         // osmenu->open_spring.stopped);
         fsemu_widget_set_left(osmenu->container, position);
         fsemu_widget_set_right(osmenu->container, position);
@@ -740,8 +787,8 @@ void fsemu_osmenu_update(void)
         fsemu_widget_set_visible(osmenu->selected_w,
                                  osmenu->selected_index >= 0);
         // We can calculate position even with selected_index -1, no harm.
-        int h = fsemu_osmenu_item_height();
-        int y = 60 + osmenu->selected_index * h;
+        // int h = fsemu_osmenu_item_height();
+        // int y = 60 + osmenu->selected_index * h;
         // osmenu->selected_top_wanted = y;
 #if 1
         fsemu_util_spring_update(&osmenu->selected_spring);
@@ -778,7 +825,7 @@ void fsemu_osmenu_update(void)
         fsemu_widget_set_right(osmenu->container, position);
 
         if (osmenu->open_spring.stopped) {
-            printf("Deleting osmenu\n");
+            fsemu_osmenu_log_debug("Deleting osmenu\n");
             fsemu_osmenu_delete(osmenu);
             GList *deleteitem = listitem;
             listitem = listitem->next;
@@ -796,7 +843,7 @@ void fsemu_osmenu_update(void)
         }
 
         if (osmenu->left >= FSEMU_OSMENU_WIDTH_WITH_SHADOW) {
-            printf("Deleting osmenu\n");
+            fsemu_osmenu_log_debug("Deleting osmenu\n");
             fsemu_osmenu_delete(osmenu);
             GList *deleteitem = listitem;
             listitem = listitem->next;
@@ -811,7 +858,7 @@ void fsemu_osmenu_update(void)
 
         listitem = listitem->next;
     }
-    // printf("fsemu_osmenu_update\n");
+    // fsemu_osmenu_log_debug("fsemu_osmenu_update\n");
 }
 
 static void fsemu_osmenu_init_container(void)
@@ -898,7 +945,7 @@ static fsemu_image_t *fsemu_osmenu_create_drop_shadow(void)
 
 static void fsemu_osmenu_quit(void)
 {
-    printf("[FSEMU] [OMENU] fsemu_osmenu_quit\n");
+    fsemu_osmenu_log("fsemu_osmenu_quit\n");
     GList *listitem;
 
     listitem = fsemu_osmenu.stack;
@@ -931,7 +978,7 @@ void fsemu_osmenu_init(void)
         return;
     }
     fsemu_osmenu.initialized = true;
-    fsemu_log("[FSEMU] [OMENU] Initializing osmenu module\n");
+    fsemu_osmenu_log("Initializing osmenu module\n");
     fsemu_module_on_quit(fsemu_osmenu_quit);
 
     fsemu_osmenu.drop_shadow = fsemu_osmenu_create_drop_shadow();

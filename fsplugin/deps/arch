@@ -1,0 +1,17 @@
+autoconf
+automake
+gcc
+gettext
+glib2
+libmpeg2
+libpng
+libsamplerate
+libtool
+libxi
+make
+openal
+pkg-config
+sdl2
+sdl2_ttf
+zip
+zlib

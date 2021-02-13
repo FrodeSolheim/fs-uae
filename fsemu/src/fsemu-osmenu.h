@@ -26,14 +26,14 @@ void fsemu_osmenu_navigate(int navigate, fsemu_action_state_t state);
 
 extern int fsemu_osmenu_log_level;
 
-#define fsemu_osmenu_log(format, ...)                             \
+#define fsemu_osmenu_log(format, ...)                                   \
     if (fsemu_likely(fsemu_osmenu_log_level >= FSEMU_LOG_LEVEL_INFO)) { \
-        fsemu_log("[FSE] [OSM] " format, ##__VA_ARGS__);          \
+        fsemu_log("[FSE] [OSM] " format, ##__VA_ARGS__);                \
     }
 
-#define fsemu_osmenu_log_debug(format, ...)                          \
+#define fsemu_osmenu_log_debug(format, ...)                                \
     if (fsemu_unlikely(fsemu_osmenu_log_level >= FSEMU_LOG_LEVEL_DEBUG)) { \
-        fsemu_log("[FSE] [OSM] " format, ##__VA_ARGS__);             \
+        fsemu_log("[FSE] [OSM] " format, ##__VA_ARGS__);                   \
     }
 
 #ifdef __cplusplus

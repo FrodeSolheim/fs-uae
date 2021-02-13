@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL 1
+#define FSEMU_INTERNAL
 #include "fsemu-oskeyboard.h"
 
 #include "fsemu-action.h"
@@ -11,10 +11,10 @@
 
 // FIXME: Improvements needed:
 // - Key and button repeat to make navigation more efficient
-// - Up and down nagivation should go to nearest key based on screen distance
+// - Up and down navigation should go to nearest key based on screen distance
 //   between key centers, and not key index.
 // - Pressed and held keys must be released when the keyboard is closed (?)
-// - Support for moving keyboard up / down
+//[x] Support for moving keyboard up / down
 // - Support for holding shift (etc) keys down while pressing other keys
 // - Support for mouse input (hovering, clicking, right-clicking to hold)
 // - Indicating pressed state for keys
@@ -62,6 +62,7 @@ struct fsemu_oskeyboard_row {
 };
 
 struct fsemu_oskeyboard_key {
+    char *name;
     fsemu_action_t action;
     // Index of key in row (left key is 0)
     int height;
@@ -127,6 +128,7 @@ fsemu_oskeyboard_key_t *fsemu_oskeyboard_row_new_key_with_name(
     fsemu_oskeyboard_row_t *row, const char *name)
 {
     fsemu_oskeyboard_key_t *key = fsemu_oskeyboard_key_new();
+    key->name = strdup(name);
     key->row = row;
     if (row->last_key) {
         key->index = row->last_key->index + 1;
@@ -254,6 +256,10 @@ static void fsemu_oskeyboard_update_keyboard_key(fsemu_oskeyboard_t *keyboard,
     // int h = key->row->height * KEY_HEIGHT / 100;
     int h = key->height * KEY_HEIGHT / 100;
     int p = 5;
+#ifdef FSFUSE
+    // FIXME: This should be added to keys themselves
+    p = 0;
+#endif
 
     fsemu_widget_t *widget;
     if (key->widget == NULL) {
@@ -262,7 +268,7 @@ static void fsemu_oskeyboard_update_keyboard_key(fsemu_oskeyboard_t *keyboard,
         // fsemu_gui_add_item(key->widget);
 
         widget = key->widget;
-        fsemu_widget_set_color(widget, FSEMU_RGBA(0xffffff80));
+        fsemu_widget_set_color(widget, FSEMU_RGBA(0xffffffcc));
 #if 1
         fsemu_widget_set_top_2(
             widget, -(y + h - p), FSEMU_WIDGET_PARENT_BOTTOM);
@@ -281,6 +287,17 @@ static void fsemu_oskeyboard_update_keyboard_key(fsemu_oskeyboard_t *keyboard,
         fsemu_widget_set_z_index(widget, FSEMU_LAYER_OSKEYBOARD + 2);
         // FIXME: Not needed for widget?
         fsemu_widget_set_visible(widget, true);
+
+        fsemu_widget_t *text_widget = fsemu_widget_new();
+        fsemu_widget_set_font_size(text_widget, 24);
+        fsemu_widget_set_text(text_widget, key->name);
+        // fsemu_widget_set_top(text_widget, 10);
+        // fsemu_widget_set_left(text_widget, 10);
+        fsemu_widget_set_text_halign(text_widget, 0.5);
+        fsemu_widget_set_text_valign(text_widget, 0.5);
+        // fsemu_widget_set_text_color(text_widget, FSEMU_COLOR_WHITE);
+        fsemu_widget_add_child(widget, text_widget);
+        fsemu_widget_set_visible(text_widget, true);
 
         // FIXME: Temp
         static int count = 0;
@@ -309,7 +326,11 @@ static void fsemu_oskeyboard_update_keyboard_keys(fsemu_oskeyboard_t *keyboard)
 {
     int y = 0;
     // FIXME: Temp
-    y = 60;
+    // y = 60;
+
+    // Center vertically on the keyboard container which is half the screen
+    // height. Using normalized 1080p coordinates.
+    y = ((1080 / 2) - keyboard->size.h) / 2;
     for (fsemu_oskeyboard_row_t *row = keyboard->first_row; row;
          row = row->next) {
         y += row->bottom_margin * KEY_HEIGHT / 100;
@@ -579,18 +600,10 @@ void fsemu_oskeyboard_update(void)
         // FIXME: Reconsider position/size of this. Enable debug color to see.
         // fsemu_widget_set_color(widget, FSEMU_COLOR_RGBA(0xff000080));
 
-#if 1
-        fsemu_widget_set_top_2(widget, 0, FSEMU_WIDGET_PARENT_TOP);
-        fsemu_widget_set_right_2(widget, -240, FSEMU_WIDGET_PARENT_RIGHT);
-        fsemu_widget_set_bottom_2(widget, 0, FSEMU_WIDGET_PARENT_BOTTOM);
-        // fsemu_widget_set_left_2(widget, 240, FSEMU_WIDGET_PARENT_LEFT);
-        fsemu_widget_set_left_2(widget, 0, FSEMU_WIDGET_PARENT_LEFT);
-#else
-        fsemu_widget_set_top_2(widget, -540, FSEMU_WIDGET_SCREEN_BOTTOM);  //
-        fsemu_widget_set_right_2(widget, 1440 + 240, FSEMU_WIDGET_SCREEN_LEFT);
-        fsemu_widget_set_bottom_2(widget, 0, FSEMU_WIDGET_SCREEN_BOTTOM);
-        fsemu_widget_set_left_2(widget, 240, FSEMU_WIDGET_SCREEN_LEFT);
-#endif
+        // fsemu_widget_set_top_2(widget, 0, FSEMU_WIDGET_PARENT_TOP);
+        // fsemu_widget_set_bottom_2(widget, 0, FSEMU_WIDGET_PARENT_BOTTOM);
+        fsemu_widget_set_left_2(widget, -720, FSEMU_WIDGET_PARENT_CENTER);
+        fsemu_widget_set_right_2(widget, 720, FSEMU_WIDGET_PARENT_CENTER);
 
         fsemu_widget_set_z_index(widget, FSEMU_LAYER_OSKEYBOARD + 1);
         // FIXME: Not needed for widget?
@@ -600,19 +613,22 @@ void fsemu_oskeyboard_update(void)
         // fsemu_gui_add_item(w);
     }
 
+    static bool added;
     if (keyboard->selected_w == NULL) {
         keyboard->selected_w =
             fsemu_widget_new_with_name("fsemu_oskeyboard_selected_key");
-        fsemu_widget_add_child(keyboard->widget, keyboard->selected_w);
+        // fsemu_widget_add_child(keyboard->widget, keyboard->selected_w);
 
         fsemu_widget_t *widget = keyboard->selected_w;
-        fsemu_widget_set_color(widget, FSEMU_RGBA(0x0000ff80));
+        // fsemu_widget_set_color(widget, FSEMU_RGBA(0x0000ff80));
+        fsemu_widget_set_color(widget, FSEMU_RGBA(0xff9900cc));
+        // fsemu_widget_set_color(widget, FSEMU_RGB(0xff0000));
         // fsemu_widget_set_top_2(w, -540, FSEMU_WIDGET_SCREEN_BOTTOM);  //
         // FIXME: fsemu_widget_set_right_2(w, 1440 + 240,
         // FSEMU_WIDGET_SCREEN_LEFT); fsemu_widget_set_bottom_2(w, 0,
         // FSEMU_WIDGET_SCREEN_BOTTOM); fsemu_widget_set_left_2(w, 240,
         // FSEMU_WIDGET_SCREEN_LEFT);
-        fsemu_widget_set_z_index(widget, FSEMU_LAYER_OSKEYBOARD + 2);
+        fsemu_widget_set_z_index(widget, FSEMU_LAYER_OSKEYBOARD + 3);
         // FIXME: Not needed for widget?
         fsemu_widget_set_visible(widget, true);
         // FIXME: Add to fsemu_oskeyboard.background_w instead?
@@ -627,6 +643,13 @@ void fsemu_oskeyboard_update(void)
 
     fsemu_oskeyboard_update_keyboard_size(keyboard);
     fsemu_oskeyboard_update_keyboard_keys(keyboard);
+
+    if (!added) {
+        // Hack because z-index isn't properly working in widget hierarchies.
+        // So we make sure the selected widget is added last.
+        fsemu_widget_add_child(keyboard->widget, keyboard->selected_w);
+        added = true;
+    }
 }
 
 static void fsemu_oskeyboard_init_container(void)
@@ -642,7 +665,7 @@ static void fsemu_oskeyboard_init_container(void)
 
     // Transparent container widget. Only used to provide position/size and
     // visibility toggling for children.
-    fsemu_widget_set_color(widget, FSEMU_RGBA(0x00000000));
+    fsemu_widget_set_color(widget, FSEMU_COLOR_TRANSPARENT);
     // The on-screen keyboard container determinies whether the entire keyboard
     // is visible. Initially hidden.
     fsemu_widget_set_visible(widget, false);
@@ -657,11 +680,16 @@ static void fsemu_oskeyboard_init_background(void)
     fsemu_widget_t *widget = fsemu_oskeyboard.background_w;
 
     fsemu_widget_add_child(fsemu_oskeyboard.container_w, widget);
-    fsemu_widget_set_color(widget, FSEMU_RGBA(0x0080ff80));
-    fsemu_widget_set_top_2(widget, 0, FSEMU_WIDGET_PARENT_TOP);
-    fsemu_widget_set_right_2(widget, 0, FSEMU_WIDGET_PARENT_RIGHT);
-    fsemu_widget_set_bottom_2(widget, 0, FSEMU_WIDGET_PARENT_BOTTOM);
-    fsemu_widget_set_left_2(widget, 0, FSEMU_WIDGET_PARENT_LEFT);
+    // fsemu_widget_set_color(widget, FSEMU_RGBA(0x0080ff80));
+
+    // fsemu_widget_set_color(widget, FSEMU_RGBA(0x333333d8));
+    fsemu_widget_set_color(widget, FSEMU_RGBA(0x111111ee));
+
+    // fsemu_widget_set_top_2(widget, 0, FSEMU_WIDGET_PARENT_TOP);
+    // fsemu_widget_set_right_2(widget, 0, FSEMU_WIDGET_PARENT_RIGHT);
+    // fsemu_widget_set_bottom_2(widget, 0, FSEMU_WIDGET_PARENT_BOTTOM);
+    // fsemu_widget_set_left_2(widget, 0, FSEMU_WIDGET_PARENT_LEFT);
+
     fsemu_widget_set_z_index(widget, FSEMU_LAYER_OSKEYBOARD);
     // FIXME: Not needed for widget?
     fsemu_widget_set_visible(widget, true);

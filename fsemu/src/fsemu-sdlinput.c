@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL 1
+#define FSEMU_INTERNAL
 #include "fsemu-sdlinput.h"
 
 #include "fsemu-action.h"
@@ -272,7 +272,10 @@ static bool fsemu_sdlinput_handle_key_event(SDL_Event *event)
     // fsemu_input_log("Key %s scancode=%d\n",
     //                 event->key.state ? "press" : "release",
     //                 event->key.keysym.scancode);
-    fsemu_key_t key = event->key.keysym.scancode;
+
+    // This cast works because fsemu_key_t values are the same - or a
+    // superset - of SDL_Scancode.
+    fsemu_key_t key = (fsemu_key_t)event->key.keysym.scancode;
     fsemu_input_handle_keyboard(key, event->key.state != 0);
     return false;
 }

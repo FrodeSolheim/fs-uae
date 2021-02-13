@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL 1
+#define FSEMU_INTERNAL
 #include "fsemu-widget.h"
 
 #include "fsemu-color.h"
@@ -389,7 +389,7 @@ void fsemu_widget_update_text_image(fsemu_widget_t *widget)
     widget->text_color_cached = widget->text_color;
 
     fsemu_font_t *font = fsemu_fontcache_font(
-        "Fonts/SairaCondensed-SemiBold.ttf", widget->font_size);
+        "SairaCondensed-SemiBold.ttf", widget->font_size);
     fsemu_image_t *textimage =
         fsemu_font_render_text_to_image(font, text, widget->text_color);
     fsemu_widget_log_debug("textimage size %dx%d for text %s\n",

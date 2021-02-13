@@ -11,7 +11,7 @@ struct fs_ini_file {
 };
 
 #define INI_MAX_LINE 1024
-#include "../libinih/ini.c"
+#include "../libinih/ini.h"
 
 static void free_group(void *data)
 {

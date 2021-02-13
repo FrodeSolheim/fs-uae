@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL 1
+#define FSEMU_INTERNAL
 #include "fsemu-gamemode.h"
 
 #include "fsemu-config.h"
@@ -17,24 +17,6 @@ static bool gamemode_enabled;
 static bool gamemode_suspended;
 
 #endif
-
-void fsemu_gamemode_init(void)
-{
-#ifdef FSEMU_OS_LINUX
-    if (fsemu_option_disabled(FSEMU_OPTION_GAME_MODE)) {
-        fsemu_gamemode_log("GameMode is explicitly disabled via option\n");
-    } else {
-        if (gamemode_request_start() < 0) {
-            fsemu_gamemode_log("GameMode request failed: %s\n",
-                               gamemode_error_string());
-        } else {
-            fsemu_gamemode_log("Enabled GameMode\n");
-            gamemode_enabled = true;
-        }
-    }
-    fsemu_gamemode_check_linux_cpu_governor();
-#endif
-}
 
 void fsemu_gamemode_suspend(void)
 {
@@ -59,6 +41,7 @@ void fsemu_gamemode_resume(void)
 
 void fsemu_gamemode_check_linux_cpu_governor()
 {
+    // fsemu_warning_2("Test", "Test");
 #ifdef FSEMU_OS_LINUX
     gchar *governor;
     if (!g_file_get_contents(
@@ -81,7 +64,8 @@ void fsemu_gamemode_check_linux_cpu_governor()
             // fsemu_warning_2(_("CPU is not in performance mode"),
             //                 _("This can cause stuttering"));
 
-            char *message = g_strdup_printf(_("CPU governor is '%s'"), governor);
+            char *message =
+                g_strdup_printf(_("CPU governor is '%s'"), governor);
             fsemu_warning_2(message,
                             _("Switch to 'performance' to avoid stuttering"));
             free(message);
@@ -91,5 +75,25 @@ void fsemu_gamemode_check_linux_cpu_governor()
         }
     }
     g_free(governor);
+#endif
+}
+
+// ----------------------------------------------------------------------------
+
+void fsemu_gamemode_init(void)
+{
+#ifdef FSEMU_OS_LINUX
+    if (fsemu_option_disabled(FSEMU_OPTION_GAME_MODE)) {
+        fsemu_gamemode_log("GameMode is explicitly disabled via option\n");
+    } else {
+        if (gamemode_request_start() < 0) {
+            fsemu_gamemode_log("GameMode request failed: %s\n",
+                               gamemode_error_string());
+        } else {
+            fsemu_gamemode_log("Enabled GameMode\n");
+            gamemode_enabled = true;
+        }
+    }
+    fsemu_gamemode_check_linux_cpu_governor();
 #endif
 }

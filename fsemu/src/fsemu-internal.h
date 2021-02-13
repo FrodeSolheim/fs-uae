@@ -1,7 +1,7 @@
 #ifndef FSEMU_INTERNAL_H_
 #define FSEMU_INTERNAL_H_
 
-#define FSEMU_INTERNAL 1
+#define FSEMU_INTERNAL
 
 #define __USE_MINGW_ANSI_STDIO 1
 

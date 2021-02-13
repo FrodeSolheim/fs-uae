@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL 1
+#define FSEMU_INTERNAL
 #include "fsemu-log.h"
 
 #include <stdarg.h>
@@ -15,7 +15,7 @@
 
 static struct {
     bool initialized;
-    bool stdout;
+    bool stdout_logging;
     int64_t last_warning_at;
     int64_t last_error_at;
 } fsemu_log;
@@ -50,7 +50,7 @@ void fsemu_log_with_level_and_flags(int level,
         va_start(ap, format);
         vfprintf(stderr, format, ap);
         va_end(ap);
-    } else if (fsemu_log.stdout) {
+    } else if (fsemu_log.stdout_logging) {
         va_start(ap, format);
         vprintf(format, ap);
         va_end(ap);
@@ -82,10 +82,10 @@ void fsemu_log_setup(void)
     }
     fsemu_log.initialized = true;
     if (fsemu_option_enabled(FSEMU_OPTION_STDOUT_LOGGING)) {
-        fsemu_log.stdout = true;
+        fsemu_log.stdout_logging = true;
     }
     // Deprecated
     if (fsemu_option_enabled(FSEMU_OPTION_STDOUT)) {
-        fsemu_log.stdout = true;
+        fsemu_log.stdout_logging = true;
     }
 }

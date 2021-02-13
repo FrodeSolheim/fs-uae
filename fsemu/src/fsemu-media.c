@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL 1
+#define FSEMU_INTERNAL
 #include "fsemu-media.h"
 
 #include "fsemu-glib.h"
@@ -299,7 +299,7 @@ const char *fsemu_media_label(const char *file)
     g_match_info_free(match_info);
 
     if (label == NULL) {
-        int len = strlen(file);
+        size_t len = strlen(file);
         // FIXME:
         if (len > 24) {
             label = strdup(file + len - 24);

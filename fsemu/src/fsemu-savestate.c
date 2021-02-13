@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL 1
+#define FSEMU_INTERNAL
 #include "fsemu-savestate.h"
 
 #include <stdio.h>
@@ -30,6 +30,11 @@ void fsemu_savestate_set_path_function(
     fsuae_savestate_path_function_t function)
 {
     fsemu_savestate.path_function = function;
+}
+
+bool fsemu_savestate_available(void)
+{
+    return fsemu_savestate.path_function != NULL;
 }
 
 uintptr_t fsemu_savestate_on_load_finished(void *data)

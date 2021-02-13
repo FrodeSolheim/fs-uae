@@ -2,7 +2,7 @@
 // FSEMU library; Copyright (c) 2011-2021 Frode Solheim. See the file COPYING.
 // ----------------------------------------------------------------------------
 
-#define FSEMU_INTERNAL 1
+#define FSEMU_INTERNAL
 #include "fsemu-perfgui.h"
 
 #include <stdint.h>
@@ -43,6 +43,7 @@ static struct {
         uint32_t line;
         uint32_t video_actual;
         uint32_t video_target;
+        uint32_t video_swapped_at;
         uint32_t video_vsync_at;
         uint32_t video_rendered_at;
         uint32_t video_overshoot;
@@ -171,7 +172,7 @@ static void fsemu_perfgui_init_items(void)
     fsemu_perfgui.video_item.coordinates = FSEMU_COORD_1080P_LEFT;
 #endif
 #if 0
-    fsemu_font_t *font = fsemu_font_load("Fonts/SairaCondensed-Bold.ttf", 40);
+    fsemu_font_t *font = fsemu_font_load("SairaCondensed-Bold.ttf", 40);
     fsemu_image_t *image;
 
     item = &fsemu_perfgui.vsync_test_item_a;
@@ -221,8 +222,10 @@ static void fsemu_perfgui_set_colors(int color_set)
 
         fsemu_perfgui.colors.video_actual = FSEMU_RGBA(0xffffff30);
         fsemu_perfgui.colors.video_target = FSEMU_RGBA(0xffffff20);
-        fsemu_perfgui.colors.video_vsync_at = FSEMU_RGBA(0xffffff50);
+
         fsemu_perfgui.colors.video_rendered_at = FSEMU_RGBA(0xffffff30);
+        fsemu_perfgui.colors.video_swapped_at = FSEMU_RGBA(0xffffff30);
+        fsemu_perfgui.colors.video_vsync_at = FSEMU_RGBA(0xffffff30);
 
         fsemu_perfgui.colors.video_overshoot = FSEMU_RGBA(0xffffff0c);
         fsemu_perfgui.colors.video_wait = FSEMU_RGBA(0xffffff14);
@@ -272,11 +275,16 @@ static void fsemu_perfgui_set_colors(int color_set)
         fsemu_perfgui.colors.audio_3 = FSEMU_RGB(0x181818);
         // fsemu_perfgui.colors.line = FSEMU_RGB(0x0099ff);
         fsemu_perfgui.colors.line = FSEMU_RGB(0xaaaaaa);
+
         fsemu_perfgui.colors.video_actual = FSEMU_RGB(0x00ff00);
         fsemu_perfgui.colors.video_target = FSEMU_RGB(0xee8800);
-        fsemu_perfgui.colors.video_vsync_at = FSEMU_RGB(0xff00ff);
+
         fsemu_perfgui.colors.video_rendered_at = FSEMU_RGB(0x0099ff);
-        fsemu_perfgui.colors.video_overshoot = FSEMU_RGB(0x282888);
+        fsemu_perfgui.colors.video_swapped_at = FSEMU_RGB(0xff88ff);
+        fsemu_perfgui.colors.video_vsync_at = FSEMU_RGB(0xff00ff);
+        // fsemu_perfgui.colors.video_vsync_at = FSEMU_RGBA(0xffffff50);
+
+        fsemu_perfgui.colors.video_overshoot = FSEMU_RGB(0xffff00);
         fsemu_perfgui.colors.video_wait = FSEMU_RGB(0x202020);
         fsemu_perfgui.colors.video_gui = FSEMU_RGB(0xffff44);
         fsemu_perfgui.colors.video_emu = FSEMU_RGB(0x288828);
@@ -455,12 +463,16 @@ static void fsemu_perfgui_update_audio(int frame)
 
 static void fsemu_perfgui_update_video(int frame)
 {
-    fsemu_video_frame_stats_t stats;
-    fsemu_video_frame_stats(frame, &stats);
+    fsemu_frameinfo_t *frameinfo = &FSEMU_FRAMEINFO(frame);
+
+    // fsemu_video_frame_stats_t stats;
+    // fsemu_video_frame_stats(frame, &stats);
 
     // int scale = 1000 / stats.frame_hz;
-    int target_us = 1000000 / stats.frame_hz;
-    int scale_us = 2 * 1000000 / stats.frame_hz;
+    // int target_us = 1000000 / stats.frame_hz;
+    // int scale_us = 2 * 1000000 / stats.frame_hz;
+    int target_us = 1000000 / frameinfo->frame_hz;
+    int scale_us = 2 * 1000000 / frameinfo->frame_hz;
 
     // printf("get frame stats for frame %d\n", frame);
     // printf("%lld %lld\n", (long long) stats.rendered_at, (long long)
@@ -476,35 +488,35 @@ static void fsemu_perfgui_update_video(int frame)
 
     int us = 0;
 
-    us += stats.overshoot_us;
+    us += frameinfo->overshoot_us;
     int overshoot_level = us * 128 / scale_us;
 
-    us += stats.wait_us;
+    us += frameinfo->wait_us;
     int wait_level = us * 128 / scale_us;
 
-    us += stats.gui_us;
+    us += frameinfo->gui_us;
     int gui_level = us * 128 / scale_us;
 
-    us += stats.emu_us;
+    us += frameinfo->emu_us;
     int emu_level = us * 128 / scale_us;
 
-    us += stats.render_us;
+    us += frameinfo->render_us;
     int render_level = us * 128 / scale_us;
 
-    us += stats.extra_us;
+    us += frameinfo->extra_us;
     int extra_level = us * 128 / scale_us;
 
-    us += stats.sleep_us;
+    us += frameinfo->sleep_us;
     int sleep_level = us * 128 / scale_us;
 
-    us += stats.other_us;
+    us += frameinfo->other_us;
     int other_level = us * 128 / scale_us;
     int actual = us * 128 / scale_us;
 
     // FIXME: If vsync, maybe set actual to swapped?
 
     int target;
-    if (stats.frame_warp) {
+    if (frameinfo->frame_warp) {
         target = -1;
     } else {
         target = target_us * 128 / scale_us;
@@ -512,9 +524,11 @@ static void fsemu_perfgui_update_video(int frame)
 
     // printf("%lld %lld %lld\n", (int64_t) stats.began_at, (int64_t)
     // stats.rendered_at, (int64_t) stats.swapped_at);
-    int rendered = (stats.rendered_at - stats.origin_at) * 128 / scale_us;
-    int swapped = (stats.swapped_at - stats.origin_at) * 128 / scale_us;
-    int vsync = (stats.vsync_at - stats.origin_at) * 128 / scale_us;
+    int rendered =
+        (frameinfo->rendered_at - frameinfo->origin_at) * 128 / scale_us;
+    int swapped =
+        (frameinfo->swapped_at - frameinfo->origin_at) * 128 / scale_us;
+    int vsync = (frameinfo->vsync_at - frameinfo->origin_at) * 128 / scale_us;
 
     // printf("rendered_diff %lld - %lld = %lld -> %d\n",
     //        lld(stats.rendered_at),
@@ -537,12 +551,12 @@ static void fsemu_perfgui_update_video(int frame)
     // FIXME: improve this check, also make dependent on hz
 
     // FIXME: Underrun - swap too late
-    bool problem = (stats.swapped_at - stats.origin_at) > 30000;
+    bool problem = (frameinfo->swapped_at - frameinfo->origin_at) > 30000;
 
     // FIXME: Overrun - too many emulated frames
     // printf("Origin at   %lld\n", (long long) stats.origin_at);
     // printf("Rendered at %lld\n", (long long) stats.rendered_at);
-    bool problem_2 = (stats.rendered_at < stats.origin_at);
+    bool problem_2 = (frameinfo->rendered_at < frameinfo->origin_at);
 
     // FIXME: Replace 2nd iteration with memcpy
 
@@ -551,7 +565,7 @@ static void fsemu_perfgui_update_video(int frame)
             if (x == vsync) {
                 ((uint32_t *) row)[x] = fsemu_perfgui.colors.video_vsync_at;
             } else if (x == swapped) {
-                ((uint32_t *) row)[x] = fsemu_perfgui.colors.video_vsync_at;
+                ((uint32_t *) row)[x] = fsemu_perfgui.colors.video_swapped_at;
             } else if (x == rendered) {
                 ((uint32_t *) row)[x] = fsemu_perfgui.colors.video_rendered_at;
             } else if (x == actual) {
@@ -624,10 +638,34 @@ static void fsemu_perfgui_update_video(int frame)
 void fsemu_perfgui_update_image(void)
 {
     // Current frame.
-    int frame = fsemu_frame_number_rendering;
-    // However, we want to update the stats for the previous frame, which is
-    // complete - in contrast to the current one which is still being handled.
-    frame -= 1;
+    // int frame = fsemu_frame_number_rendering;
+    // // However, we want to update the stats for the previous frame, which is
+    // // complete - in contrast to the current one which is still being
+    // handled. frame -= 1;
+
+    static int next_frame;
+
+    // FIXME: HACK TO FORCE REFRESH FOR NOW
+    // fsemu_perfgui.refresh = 1;
+    int frame = fsemu_frame_number_displayed;
+
+    if (fsemu_perfgui.refresh) {
+        fsemu_log("Need refreshing perfgui (colors changed)\n");
+        next_frame = frame - 256;
+        if (next_frame < 0) {
+            next_frame = 0;
+        }
+        fsemu_perfgui.refresh = false;
+    }
+
+    int f = next_frame;
+    while (f <= frame) {
+        fsemu_perfgui_update_audio(f);
+        fsemu_perfgui_update_video(f);
+        f += 1;
+    }
+    next_frame = frame;
+#if 0
 #if 0
     static int next_frame;
 
@@ -658,10 +696,11 @@ void fsemu_perfgui_update_image(void)
     next_frame = f;
 #else
     // frame = frame % FSEMU_FRAMEINFO_COUNT;
-    if (frame > 0) {
+    if (frame >= 0) {
         fsemu_perfgui_update_video(frame);
         fsemu_perfgui_update_audio(frame);
     }
+#endif
 #endif
 }
 

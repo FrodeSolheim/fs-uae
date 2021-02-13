@@ -36,8 +36,8 @@ static void add_mouse_mode(fsemu_inputport_t *port, int num)
         MAP(DPRIGHT, ACTION_MOUSE1_RIGHT);
         MAP(DPDOWN, ACTION_MOUSE1_DOWN);
         MAP(DPLEFT, ACTION_MOUSE1_LEFT);
-        MAP(SOUTH, ACTION_JOYSTICK1_FIRE);
-        MAP(EAST, ACTION_MOUSE1_UP);
+        MAP(BUTTON_A, ACTION_JOYSTICK1_FIRE);
+        MAP(BUTTON_B, ACTION_MOUSE1_UP);
         // MAP(RIGHTSTICK, ACTION_MOUSE0_FIRE);
 
         MAP(MOUSEYNEG, ACTION_MOUSE1_UP);
@@ -51,8 +51,8 @@ static void add_mouse_mode(fsemu_inputport_t *port, int num)
         MAP(DPRIGHT, ACTION_MOUSE0_RIGHT);
         MAP(DPDOWN, ACTION_MOUSE0_DOWN);
         MAP(DPLEFT, ACTION_MOUSE0_LEFT);
-        MAP(SOUTH, ACTION_JOYSTICK0_FIRE);
-        MAP(EAST, ACTION_MOUSE0_UP);
+        MAP(BUTTON_A, ACTION_JOYSTICK0_FIRE);
+        MAP(BUTTON_B, ACTION_MOUSE0_UP);
 
         MAP(MOUSEYNEG, ACTION_MOUSE0_UP);
         MAP(MOUSEXPOS, ACTION_MOUSE0_RIGHT);
@@ -170,16 +170,16 @@ static void add_joystick_mode(fsemu_inputport_t *port, int num)
         MAP(DPRIGHT, ACTION_JOYSTICK1_RIGHT);
         MAP(DPDOWN, ACTION_JOYSTICK1_DOWN);
         MAP(DPLEFT, ACTION_JOYSTICK1_LEFT);
-        MAP(SOUTH, ACTION_JOYSTICK1_FIRE);
-        MAP(EAST, ACTION_JOYSTICK1_UP);
+        MAP(BUTTON_A, ACTION_JOYSTICK1_FIRE);
+        MAP(BUTTON_B, ACTION_JOYSTICK1_UP);
         MAP(RIGHTSTICK, ACTION_JOYSTICK0_FIRE);
     } else {
         MAP(DPUP, ACTION_JOYSTICK0_UP);
         MAP(DPRIGHT, ACTION_JOYSTICK0_RIGHT);
         MAP(DPDOWN, ACTION_JOYSTICK0_DOWN);
         MAP(DPLEFT, ACTION_JOYSTICK0_LEFT);
-        MAP(SOUTH, ACTION_JOYSTICK0_FIRE);
-        MAP(EAST, ACTION_JOYSTICK0_UP);
+        MAP(BUTTON_A, ACTION_JOYSTICK0_FIRE);
+        MAP(BUTTON_B, ACTION_JOYSTICK0_UP);
     }
 
     if (num == 1) {
@@ -198,11 +198,10 @@ static void add_joystick_mode(fsemu_inputport_t *port, int num)
         MAP(RALT, ACTION_JOYSTICK0_FIRE);
     }
 
+    // FIXME: These should maybe be pre-initialized by FSEMU, unless overridden?
     MAP(GUIDE, FSEMU_ACTION_OSMENU);
     MAP(START, FSEMU_ACTION_OSMENU);
     MAP(BACK, FSEMU_ACTION_OSKEYBOARD);
-
-    fsemu_input_add_port(port);
 }
 
 static void add_cd32_mode(fsemu_inputport_t *port, int num)
@@ -230,6 +229,8 @@ static void configure_joystick_port(fsemu_inputport_t *port, int num)
     add_mouse_mode(port, num);
     add_joystick_mode(port, num);
     add_cd32_mode(port, num);
+
+    fsemu_input_add_port(port);
 }
 
 enum {

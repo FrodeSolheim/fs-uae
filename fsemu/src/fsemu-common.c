@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL 1
+#define FSEMU_INTERNAL
 #include "fsemu-common.h"
 
 #include <stdarg.h>
@@ -10,11 +10,12 @@
 #include "fsemu-log.h"
 #include "fsemu-util.h"
 
-static struct {
-    char *emulator_name;
-    // const char *fork_info;
-} fsemu_common;
+// static struct {
+//     char *emulator_name;
+//     // const char *fork_info;
+// } fsemu_common;
 
+/*
 const char *fsemu_emulator_name(void)
 {
     if (!fsemu_common.emulator_name) {
@@ -30,6 +31,7 @@ void fsemu_set_emulator_name(const char *emulator_name)
     }
     fsemu_common.emulator_name = strdup(emulator_name);
 }
+*/
 
 void fsemu_error_2(const char *msg, ...)
 {

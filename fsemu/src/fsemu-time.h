@@ -114,20 +114,39 @@ static inline int fsemu_time_clock_gettime_mach(int clk_id, struct timespec *t)
 
 extern int fsemu_time_log_level;
 
-#define fsemu_time_log(format, ...)                             \
+#define fsemu_time_log(format, ...)                                   \
     if (fsemu_likely(fsemu_time_log_level >= FSEMU_LOG_LEVEL_INFO)) { \
-        fsemu_log("[FSE] [TME] " format, ##__VA_ARGS__);        \
+        fsemu_log("[FSE] [TME] " format, ##__VA_ARGS__);              \
     }
 
-#define fsemu_time_log_debug(format, ...)                          \
+#define fsemu_time_log_debug(format, ...)                                \
     if (fsemu_unlikely(fsemu_time_log_level >= FSEMU_LOG_LEVEL_DEBUG)) { \
-        fsemu_log_debug("[FSE] [TME] " format, ##__VA_ARGS__);     \
+        fsemu_log_debug("[FSE] [TME] " format, ##__VA_ARGS__);           \
     }
 
-#define fsemu_time_log_warning(format, ...)                        \
+#define fsemu_time_log_warning(format, ...)                              \
     if (fsemu_likely(fsemu_time_log_level >= FSEMU_LOG_LEVEL_WARNING)) { \
-        fsemu_log_debug("[FSE] [TME] " format, ##__VA_ARGS__);     \
+        fsemu_log_debug("[FSE] [TME] " format, ##__VA_ARGS__);           \
     }
+
+#ifdef FSEMU_INTERNAL
+
+// A bit uncertain about the effects of doing _mm_pause here, but
+// it isn't likely to do any harm, and could have positive effects
+// (lower power usage? yield some more to otherhyper threading
+// core?). We haven't got any better thing to do...
+#ifdef FSEMU_CPU_X86
+#define FSEMU_USE_MM_PAUSE
+#endif
+
+#ifdef FSEMU_USE_MM_PAUSE
+#include <emmintrin.h>
+#define fsemu_time_mm_pause() _mm_pause()
+#else
+#define fsemu_time_mm_pause()
+#endif
+
+#endif  // FSEMU_INTERNAL
 
 #ifdef __cplusplus
 }

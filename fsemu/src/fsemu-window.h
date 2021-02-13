@@ -55,14 +55,14 @@ void fsemu_window_notify_quit(void);
 
 extern int fsemu_window_log_level;
 
-#define fsemu_window_log(format, ...)                             \
+#define fsemu_window_log(format, ...)                                   \
     if (fsemu_likely(fsemu_window_log_level >= FSEMU_LOG_LEVEL_INFO)) { \
-        fsemu_log("[FSE] [WIN] " format, ##__VA_ARGS__);          \
+        fsemu_log("[FSE] [WIN] " format, ##__VA_ARGS__);                \
     }
 
-#define fsemu_window_log_debug(format, ...)                          \
+#define fsemu_window_log_debug(format, ...)                                \
     if (fsemu_unlikely(fsemu_window_log_level >= FSEMU_LOG_LEVEL_DEBUG)) { \
-        fsemu_log_debug("[FSE] [WIN] " format, ##__VA_ARGS__);       \
+        fsemu_log_debug("[FSE] [WIN] " format, ##__VA_ARGS__);             \
     }
 
 /*

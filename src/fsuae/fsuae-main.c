@@ -610,11 +610,13 @@ static void event_handler(int line)
     fsemu_assert(line == -1);
 
     // printf("line %d\n", line);
+#ifdef FSEMU
+    // FIXME: Move away from event handler!
     // FIXME: Move somewhere else??
     // Move to custom.cpp after/when starting new frame?
-#ifdef FSEMU
-    double adjust = fsemu_audiobuffer_calculate_adjustment();
-    amiga_set_audio_frequency_adjust(adjust);
+    // EDIT: YES
+    // double adjust = fsemu_audiobuffer_calculate_adjustment();
+    //amiga_set_audio_frequency_adjust(adjust);
     // printf("[INPUT] g_fs_uae_frame = %d\n", g_fs_uae_frame);
 #else
     fs_emu_wait_for_frame(g_fs_uae_frame);
@@ -1677,6 +1679,8 @@ int main(int argc, char *argv[])
     cef_init(argc, argv);
 #endif
 
+    fsemu_hud_init_early();
+
     char **arg;
     arg = argv + 1;
     while (arg && *arg) {
@@ -1866,6 +1870,8 @@ int main(int argc, char *argv[])
 
         fsemu_leds_init();
         fsemu_helpbar_init();
+
+        fsemu_action_init();
     }
 
     init_i18n();
@@ -2141,8 +2147,8 @@ int main(int argc, char *argv[])
 
         // FIXME: MOVE SOMEWHERE ELSE
         fsemu_input_autofill_devices();
-        fsemu_input_reconfigure();
         // FIXME: MOVE SOMEWHERE ELSE
+        fsemu_input_reconfigure();
     }
 
     const char *value = fs_config_get_const_string("whdload_quit_key");

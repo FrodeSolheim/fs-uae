@@ -4,6 +4,7 @@
 #include "fsemu-action.h"
 #include "fsemu-actions.h"
 #include "fsemu-alsaaudio.h"
+#include "fsemu-application.h"
 #include "fsemu-audio.h"
 #include "fsemu-audiobuffer.h"
 #include "fsemu-axis.h"
@@ -80,5 +81,6 @@
 #include "fsemu-widget.h"
 #include "fsemu-window.h"
 #include "fsemu-xmlshader.h"
+#include "fsemu.h"
 
 #endif  // FSEMU_ALL_H_

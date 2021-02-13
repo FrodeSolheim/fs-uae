@@ -39,6 +39,9 @@ void fsemu_log_with_level_and_flags(int level,
 
 #define fsemu_log(format, ...) \
     fsemu_log_with_level(FSEMU_LOG_LEVEL_INFO, format, ##__VA_ARGS__)
+
+#define fsemu_log_trace(format, ...) \
+    fsemu_log_with_level(FSEMU_LOG_LEVEL_TRACE, format, ##__VA_ARGS__)
 #define fsemu_log_debug(format, ...) \
     fsemu_log_with_level(FSEMU_LOG_LEVEL_DEBUG, format, ##__VA_ARGS__)
 #define fsemu_log_info(format, ...) \

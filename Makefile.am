@@ -848,6 +848,8 @@ libfsemu2_a_SOURCES = \
 	fsemu/manymouse/manymouse.h \
 	fsemu/manymouse/windows_wminput.c \
 	fsemu/manymouse/x11_xinput2.c \
+	fsemu/src/fsemu.c \
+	fsemu/src/fsemu.h \
 	fsemu/src/fsemu-all.h \
 	fsemu/src/fsemu-button.h \
 	fsemu/src/fsemu-action.c \
@@ -1049,13 +1051,11 @@ fsuae_data_files = \
 libfsemu2_a_SOURCES += $(fsemu_data_files)
 
 data/.fsemu: $(fsemu_data_files) ${fsuae_data_files}
-	mkdir -p $(b)/data/Fonts
-	cp $(s)/fsemu/fonts/saira/* $(b)/data/Fonts/
-	mkdir -p $(b)/data/Icons
-	cp $(s)/fsemu/icons/fontawesome/* $(b)/data/Icons/
-	mkdir -p $(b)/data/Images
-	cp $(s)/fsemu/images/* $(b)/data/Images/
-	cp $(s)/src/fsuae/images/* $(b)/data/Images/
+	mkdir -p $(b)/data/
+	cp $(s)/fsemu/fonts/saira/* $(b)/data/
+	cp $(s)/fsemu/icons/fontawesome/* $(b)/data/
+	cp $(s)/fsemu/images/* $(b)/data/
+	cp $(s)/src/fsuae/images/* $(b)/data/
 	touch data/.fsemu
 
 fsemu-data: data/.fsemu
@@ -1731,14 +1731,14 @@ EXTRA_DIST = $(TESTS) $(EXTRA_TESTS) \
 	flac/include/FLAC/stream_encoder.h \
 	fsemu/gamemode/LICENSE.txt \
 	fsemu/gamemode/README.md \
+	fsemu/libinih/ini.c \
+	fsemu/libinih/ini.h \
+	fsemu/libinih/LICENSE.txt \
 	fs-uae.spec \
 	icon/fs-uae.ico \
 	glad/include/glad/glad.h \
 	glad/include/KHR/khrplatform.h \
 	glad/LICENSE \
-	libinih/ini.c \
-	libinih/ini.h \
-	libinih/LICENSE.txt \
 	libnfd/build/dont_run_premake.txt \
 	libnfd/build/gmake_linux/Makefile \
 	libnfd/build/gmake_linux/nfd.make \

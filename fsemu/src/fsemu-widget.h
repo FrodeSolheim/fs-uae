@@ -40,6 +40,7 @@ enum {
     FSEMU_WIDGET_PARENT_TOP,
     FSEMU_WIDGET_PARENT_RIGHT,
     FSEMU_WIDGET_PARENT_BOTTOM,
+    FSEMU_WIDGET_PARENT_CENTER,
 };
 
 #define FSEMU_WIDGET_FLAG_FLIPX (1 << 0)
@@ -135,14 +136,14 @@ void fsemu_widget_update_text_image(fsemu_widget_t *widget);
 
 extern int fsemu_widget_log_level;
 
-#define fsemu_widget_log(format, ...)                             \
+#define fsemu_widget_log(format, ...)                                   \
     if (fsemu_likely(fsemu_widget_log_level >= FSEMU_LOG_LEVEL_INFO)) { \
-        fsemu_log("[FSE] [WID] " format, ##__VA_ARGS__);          \
+        fsemu_log("[FSE] [WID] " format, ##__VA_ARGS__);                \
     }
 
-#define fsemu_widget_log_debug(format, ...)                          \
+#define fsemu_widget_log_debug(format, ...)                                \
     if (fsemu_unlikely(fsemu_widget_log_level >= FSEMU_LOG_LEVEL_DEBUG)) { \
-        fsemu_log("[FSE] [WID] " format, ##__VA_ARGS__);             \
+        fsemu_log("[FSE] [WID] " format, ##__VA_ARGS__);                   \
     }
 
 #ifdef __cplusplus

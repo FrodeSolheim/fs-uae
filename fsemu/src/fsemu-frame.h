@@ -19,6 +19,8 @@ extern "C" {
 int64_t fsemu_frame_epoch(void);
 void fsemu_frame_reset_epoch(void);
 
+double fsemu_frame_rate_multiplier(void);
+
 bool fsemu_frame_paused(void);
 bool fsemu_frame_warping(void);
 
@@ -32,6 +34,8 @@ void fsemu_frame_set_emulation_duration_us(int emulation_duration_us);
 // Affects when the frame starts rendering before vsync.
 // FIXME: In use?
 void fsemu_frame_set_render_duration_us(int render_duration_us);
+
+void fsemu_frame_wait_until(int64_t until_us);
 
 // Registers the currently emulated frame as done.
 void fsemu_frame_end(void);
@@ -52,11 +56,15 @@ void fsemu_frame_start(double hz);
 double fsemu_frame_rate_hz(void);
 
 // Deprecated; use fsemu_frame_start instead
-void fsemu_frame_update_timing(double hz, bool turbo);
+// void fsemu_frame_update_timing(double hz, bool turbo);
 
 int fsemu_frame_emutime_avg_us(void);
 
 void fsemu_frame_reset_timer(int64_t t);
+
+void fsemu_frame_toggle_sleep_busywait(void);
+void fsemu_frame_wait_until(int64_t until_us);
+void fsemu_frame_wait_until_frame_end(void);
 
 void fsemu_frame_add_overshoot_time(int64_t t);
 void fsemu_frame_add_framewait_time(int64_t t);
@@ -106,17 +114,17 @@ extern volatile int fsemu_frame_number_swapped;
 extern int fsemu_frame_log_level;
 
 #define fsemu_frame_log(format, ...)                     \
-    if (fsemu_frame_log_level >= 1) {                    \
+    if (fsemu_frame_log_level >= FSEMU_LOG_LEVEL_INFO) { \
         fsemu_log("[FSE] [FRM] " format, ##__VA_ARGS__); \
     }
 
-#define fsemu_frame_log_trace(format, ...)               \
-    if (fsemu_frame_log_level >= 2) {                    \
-        fsemu_log("[FSE] [FRM] " format, ##__VA_ARGS__); \
+#define fsemu_frame_log_trace(format, ...)                \
+    if (fsemu_frame_log_level >= FSEMU_LOG_LEVEL_TRACE) { \
+        fsemu_log("[FSE] [FRM] " format, ##__VA_ARGS__);  \
     }
 
 #define fsemu_frame_log_epoch(format, ...)                        \
-    if (fsemu_frame_log_level >= 2) {                             \
+    if (fsemu_frame_log_level >= FSEMU_LOG_LEVEL_TRACE) {         \
         fsemu_log("[FSE] [%5d] " format,                          \
                   (int) (fsemu_time_us() - fsemu_frame_epoch_at), \
                   ##__VA_ARGS__);                                 \

@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL 1
+#define FSEMU_INTERNAL
 #include "fsemu-gui.h"
 
 #include "fsemu-frame.h"
@@ -87,7 +87,7 @@ fsemu_gui_item_t *fsemu_gui_create_rectangle(int x, int y, int w, int h, int c)
 #endif
 
 void fsemu_gui_rectangle(
-    fsemu_gui_item_t *item, int x, int y, int w, int h, int c)
+    fsemu_gui_item_t *item, int x, int y, int w, int h, uint32_t c)
 {
     fsemu_thread_assert_main();
 

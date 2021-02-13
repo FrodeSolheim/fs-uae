@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL 1
+#define FSEMU_INTERNAL
 #include "fsemu-background.h"
 
 #include <math.h>
@@ -90,7 +90,7 @@ static void fsemu_background_create_side(fsemu_image_t *image,
             //                     (top + ydiff * y / height) +
             //                 line_debt[x + 0 + 1];
             double gray_d = 255.0 * (left + xdiff * pow(d, 2.2)) *
-                                (top + ydiff * (1.0 - abs(y - height / 2.0) /
+                                (top + ydiff * (1.0 - fabs(y - height / 2.0) /
                                                           (height / 2.0))) +
                             line_debt[x + 0 + 1];
             // double gray_d = 255.0 * (left + xdiff * pow(d, 2.2)) *

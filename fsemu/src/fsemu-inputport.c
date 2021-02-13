@@ -1,7 +1,9 @@
-#define FSEMU_INTERNAL 1
+#define FSEMU_INTERNAL
 #include "fsemu-inputport.h"
 
+#include "fsemu-glib.h"
 #include "fsemu-input.h"
+#include "fsemu-option.h"
 #include "fsemu-thread.h"
 #include "fsemu-util.h"
 
@@ -67,6 +69,67 @@ void fsemu_inputport_set_config_name(fsemu_inputport_t *port,
     port->config_name = strdup(config_name);
 }
 
+static void fsemu_inputport_map_custom_action(fsemu_inputmode_t *mode,
+                                              const char *prefix,
+                                              const char *suffix,
+                                              int input_event)
+{
+    char option_name[128];
+    g_snprintf(option_name, 128, "%s_%s", prefix, suffix);
+
+    // char *option_name = g_strdup_printf("%s_%s", prefix, suffix);
+    // printf("option: %s\n", option_name);
+    const char *action_name = fsemu_option_const_string(option_name);
+    // printf("action: %s\n", action_name);
+    if (action_name == NULL) {
+        // goto end;
+        return;
+    }
+    int action = fsemu_action_from_name(action_name);
+    printf("%s -> %s = %d\n", option_name, action_name, action);
+    if (action) {
+        fsemu_inputmode_map(mode, input_event, action);
+    }
+    // end:
+    // g_free(option_name);
+}
+
+static void fsemu_inputport_map_custom_actions(fsemu_inputmode_t *mode,
+                                               const char *prefix)
+{
+    printf("fsemu_inputport_map_custom_actions prefix=%s\n", prefix);
+    fsemu_inputport_map_custom_action(
+        mode, prefix, "button_a", FSEMU_INPUTDEVICE_BUTTON_A);
+    fsemu_inputport_map_custom_action(
+        mode, prefix, "button_b", FSEMU_INPUTDEVICE_BUTTON_B);
+    fsemu_inputport_map_custom_action(
+        mode, prefix, "button_x", FSEMU_INPUTDEVICE_BUTTON_X);
+    fsemu_inputport_map_custom_action(
+        mode, prefix, "button_y", FSEMU_INPUTDEVICE_BUTTON_Y);
+    fsemu_inputport_map_custom_action(
+        mode, prefix, "button_back", FSEMU_INPUTDEVICE_BACK);
+    fsemu_inputport_map_custom_action(
+        mode, prefix, "button_guide", FSEMU_INPUTDEVICE_GUIDE);
+    fsemu_inputport_map_custom_action(
+        mode, prefix, "button_start", FSEMU_INPUTDEVICE_START);
+    fsemu_inputport_map_custom_action(
+        mode, prefix, "button_leftstick", FSEMU_INPUTDEVICE_LEFTSTICK);
+    fsemu_inputport_map_custom_action(
+        mode, prefix, "button_rightstick", FSEMU_INPUTDEVICE_RIGHTSTICK);
+    fsemu_inputport_map_custom_action(
+        mode, prefix, "button_leftshoulder", FSEMU_INPUTDEVICE_LEFTSHOULDER);
+    fsemu_inputport_map_custom_action(
+        mode, prefix, "button_rightshoulder", FSEMU_INPUTDEVICE_RIGHTSHOULDER);
+    fsemu_inputport_map_custom_action(
+        mode, prefix, "button_dpup", FSEMU_INPUTDEVICE_DPUP);
+    fsemu_inputport_map_custom_action(
+        mode, prefix, "button_dpdown", FSEMU_INPUTDEVICE_DPDOWN);
+    fsemu_inputport_map_custom_action(
+        mode, prefix, "button_dpleft", FSEMU_INPUTDEVICE_DPLEFT);
+    fsemu_inputport_map_custom_action(
+        mode, prefix, "button_dpright", FSEMU_INPUTDEVICE_DPRIGHT);
+}
+
 void fsemu_inputport_add_mode(fsemu_inputport_t *port, fsemu_inputmode_t *mode)
 {
     fsemu_input_log("Input port add mode\n");
@@ -78,6 +141,20 @@ void fsemu_inputport_add_mode(fsemu_inputport_t *port, fsemu_inputmode_t *mode)
     }
     port->modes[port->num_modes] = mode;
     port->num_modes++;
+
+    // Prefix for looking up input mapping, e.g. "zxs_port_a_custom".
+    char prefix[64];
+    g_snprintf(prefix,
+               64,
+               "%s_%s",
+               fsemu_inputport_config_name(port),
+               fsemu_inputmode_config_name(mode));
+    // const char *prefix = g_strdup_printf("%s_%s",
+    //                                      fsemu_inputport_config_name(port),
+    //                                      fsemu_inputmode_config_name(mode));
+    fsemu_inputport_map_custom_actions(mode, prefix);
+    // g_free(prefix);
+
     fsemu_input_log("Added input port mode to port %s\n",
                     fsemu_inputport_name(port));
 }

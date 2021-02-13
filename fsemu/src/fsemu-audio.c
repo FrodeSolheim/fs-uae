@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL 1
+#define FSEMU_INTERNAL
 #include "fsemu-audio.h"
 
 #ifdef FSEMU_ALSA
@@ -351,8 +351,8 @@ void fsemu_audio_update_min_fill(uint8_t volatile *read,
     if (write >= read) {
         bytes = write - read;
     } else {
-        bytes = (fsemu_audiobuffer.end - read) +
-                (write - fsemu_audiobuffer.data);
+        bytes =
+            (fsemu_audiobuffer.end - read) + (write - fsemu_audiobuffer.data);
     }
     int frame = fsemu_frame_counter_mod(FSEMU_AUDIO_MAX_FRAME_STATS);
     // There is a small chance that the min level is registered on the "wrong"

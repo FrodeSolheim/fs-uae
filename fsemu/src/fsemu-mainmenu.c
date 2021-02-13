@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL 1
+#define FSEMU_INTERNAL
 #include "fsemu-mainmenu.h"
 
 #include <stdlib.h>
@@ -839,6 +839,7 @@ static fsemu_menu_t *fsemu_mainmenu_create_menu(void)
 
     newitem = fsemu_menu_item_new_with_title(_("Savestates"));
     fsemu_menu_add_item(newmenu, newitem);
+    fsemu_menu_item_set_enabled(newitem, fsemu_savestate_available());
     fsemu_menu_item_on_activate(newitem, fsemu_mainmenu_on_savestates);
 
     newitem = fsemu_menu_item_new_heading_with_title(_("Removable media"));

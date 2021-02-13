@@ -1,0 +1,16 @@
+autoconf
+automake
+gettext
+libtool
+make
+mingw-w64-x86_64-gcc
+mingw-w64-x86_64-glib2
+mingw-w64-x86_64-libmpeg2
+mingw-w64-x86_64-libpng
+mingw-w64-x86_64-libsamplerate
+mingw-w64-x86_64-openal
+mingw-w64-x86_64-pkg-config
+mingw-w64-x86_64-SDL2
+mingw-w64-x86_64-SDL2_ttf
+mingw-w64-x86_64-zlib
+zip

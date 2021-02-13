@@ -85,24 +85,24 @@ void fsemu_input_work(int timeout);
 
 extern int fsemu_input_log_level;
 
-#define fsemu_input_log(format, ...)                             \
+#define fsemu_input_log(format, ...)                                   \
     if (fsemu_likely(fsemu_input_log_level >= FSEMU_LOG_LEVEL_INFO)) { \
-        fsemu_log("[FSE] [INP] " format, ##__VA_ARGS__);         \
+        fsemu_log("[FSE] [INP] " format, ##__VA_ARGS__);               \
     }
 
-#define fsemu_input_log_debug(format, ...)                          \
+#define fsemu_input_log_debug(format, ...)                                \
     if (fsemu_unlikely(fsemu_input_log_level >= FSEMU_LOG_LEVEL_DEBUG)) { \
-        fsemu_log("[FSE] [INP] " format, ##__VA_ARGS__);            \
+        fsemu_log("[FSE] [INP] " format, ##__VA_ARGS__);                  \
     }
 
-#define fsemu_input_log_warning(format, ...)                        \
+#define fsemu_input_log_warning(format, ...)                              \
     if (fsemu_likely(fsemu_input_log_level >= FSEMU_LOG_LEVEL_WARNING)) { \
-        fsemu_log("[FSE] [INP] WARNING: " format, ##__VA_ARGS__);   \
+        fsemu_log("[FSE] [INP] WARNING: " format, ##__VA_ARGS__);         \
     }
 
-#define fsemu_input_log_error(format, ...)                        \
+#define fsemu_input_log_error(format, ...)                              \
     if (fsemu_likely(fsemu_input_log_level >= FSEMU_LOG_LEVEL_ERROR)) { \
-        fsemu_log("[FSE] [INP] ERROR: " format, ##__VA_ARGS__);   \
+        fsemu_log("[FSE] [INP] ERROR: " format, ##__VA_ARGS__);         \
     }
 
 #ifdef __cplusplus

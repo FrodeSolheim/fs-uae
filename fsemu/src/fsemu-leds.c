@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL 1
+#define FSEMU_INTERNAL
 #include "fsemu-leds.h"
 
 #include "fsemu-glib.h"
@@ -16,7 +16,10 @@
 
 static struct {
     bool initialized;
+
     fsemu_widget_t *container_w;
+    fsemu_widget_t *sides_w[2];
+
     fsemu_led_t *leds[FSEMU_LEDS_MAX_LEDS];
     int side[FSEMU_LEDS_MAX_LEDS];
     fsemu_image_t *images[FSEMU_LEDS_MAX_LEDS][FSEMU_LED_MAX_STATES];
@@ -42,7 +45,15 @@ static void fsemu_leds_init_led(int index)
     w = fsemu_leds.led_w[index] = fsemu_widget_new_with_name("led-container");
     fsemu_widget_set_color(w, FSEMU_COLOR_TRANSPARENT);
     fsemu_widget_set_visible(w, true);
-    fsemu_widget_add_child(fsemu_leds.container_w, w);
+    // fsemu_widget_add_child(fsemu_leds.container_w, w);
+
+    fsemu_widget_add_child(fsemu_leds.sides_w[side], w);
+    if (side == FSEMU_LEDS_SIDE_LEFT) {
+        fsemu_widget_set_right(w, 0);
+    } else {
+        fsemu_widget_set_left(w, 0);
+    }
+
 
     w = fsemu_leds.label_w[index] = fsemu_widget_new_with_name("led-label");
     // fsemu_widget_set_font_name()
@@ -58,9 +69,12 @@ static void fsemu_leds_init_led(int index)
     fsemu_widget_add_child(fsemu_leds.led_w[index], w);
 
     // fsemu_image_t *image = fsemu_image_load_png
-    char *image_name = g_strdup_printf("Images/%s.png", fsemu_led_id(led));
+    char *image_name = g_strdup_printf("%s.png", fsemu_led_id(led));
     fsemu_image_t *image = fsemu_image_load(image_name);
     free(image_name);
+    if (image == NULL) {
+        image = fsemu_image_load("Led.png");
+    }
 
     w = fsemu_leds.base_w[index] = fsemu_widget_new_with_name("led-base");
     fsemu_widget_set_image(w, image, FSEMU_REF_ASSIGN);
@@ -73,15 +87,21 @@ static void fsemu_leds_init_led(int index)
     fsemu_widget_set_visible(w, true);
     fsemu_widget_add_child(fsemu_leds.led_w[index], w);
 
-    image_name = g_strdup_printf("Images/%s_On.png", fsemu_led_id(led));
+    image_name = g_strdup_printf("%s_On.png", fsemu_led_id(led));
     image = fsemu_image_load(image_name);
     free(image_name);
+    if (image == NULL) {
+        image = fsemu_image_load("Led_On.png");
+    }
 
     fsemu_leds.images[index][1] = image;
 
-    image_name = g_strdup_printf("Images/%s_Alt.png", fsemu_led_id(led));
+    image_name = g_strdup_printf("%s_Alt.png", fsemu_led_id(led));
     image = fsemu_image_load(image_name);
     free(image_name);
+    if (image == NULL) {
+        image = fsemu_image_load("Led_Alt.png");
+    }
     fsemu_leds.images[index][2] = image;
 
     w = fsemu_leds.overlay_w[index] =
@@ -191,13 +211,13 @@ void fsemu_leds_update(void)
 
         // FIXME: For later; we want to anchor this to the right of the video
         // rectangle.
-        if (side == FSEMU_LEDS_SIDE_LEFT) {
-            fsemu_widget_set_right_2(
-                fsemu_leds.led_w[i], 200, FSEMU_WIDGET_PARENT_LEFT);
-        } else {
-            fsemu_widget_set_left_2(
-                fsemu_leds.led_w[i], -200, FSEMU_WIDGET_PARENT_RIGHT);
-        }
+        // if (side == FSEMU_LEDS_SIDE_LEFT) {
+        //     fsemu_widget_set_right_2(
+        //         fsemu_leds.led_w[i], 200, FSEMU_WIDGET_PARENT_LEFT);
+        // } else {
+        //     fsemu_widget_set_left_2(
+        //         fsemu_leds.led_w[i], -200, FSEMU_WIDGET_PARENT_RIGHT);
+        // }
         // fsemu_widget_set_right(fsemu_leds.led_w[i], left + 200);
         fsemu_widget_set_top(fsemu_leds.led_w[i], top[side]);
         fsemu_widget_set_bottom(fsemu_leds.led_w[i], top[side] + 60);
@@ -228,14 +248,52 @@ void fsemu_leds_init(void)
     fsemu_widget_set_color(w, FSEMU_COLOR_TRANSPARENT);
     // FIXME: Check what z-index to use (below video)
 
-    fsemu_widget_set_left_2(w, 0, FSEMU_WIDGET_SCREEN_LEFT);
+    // FIXME: We should be able to set these without causing bugs
     // fsemu_widget_set_top_2(w, 0, FSEMU_WIDGET_SCREEN_TOP);
-    fsemu_widget_set_right_2(w, 0, FSEMU_WIDGET_SCREEN_RIGHT);
     // fsemu_widget_set_bottom_2(w, 0, FSEMU_WIDGET_SCREEN_BOTTOM);
+
+    fsemu_widget_set_left_2(w, 0, FSEMU_WIDGET_SCREEN_LEFT);
+    fsemu_widget_set_right_2(w, 0, FSEMU_WIDGET_SCREEN_RIGHT);
+
     fsemu_widget_set_z_index(w, FSEMU_LAYER_LEDS);
     fsemu_widget_set_visible(w, true);
     // fsemu_widget_set_right(w,
     fsemu_gui_add_item(w);
+
+
+    w = fsemu_leds.sides_w[0] = fsemu_widget_new_with_name("leds-left");
+    // FIXME: Make sure that this is optimized and not attempted rendering.
+    fsemu_widget_set_color(w, FSEMU_COLOR_TRANSPARENT);
+    // fsemu_widget_set_color(w, FSEMU_COLOR_RGBA(0xFF000044));
+    // FIXME: Check what z-index to use (below video)
+
+    fsemu_widget_set_right_2(w, -40, FSEMU_WIDGET_VIDEO_LEFT);
+
+/*
+    fsemu_widget_set_left_2(w, 0, FSEMU_WIDGET_SCREEN_LEFT);
+    fsemu_widget_set_top_2(w, 0, FSEMU_WIDGET_SCREEN_TOP);
+    fsemu_widget_set_right_2(w, 0, FSEMU_WIDGET_SCREEN_RIGHT);
+    fsemu_widget_set_bottom_2(w, 0, FSEMU_WIDGET_SCREEN_BOTTOM);
+*/
+    fsemu_widget_set_z_index(w, FSEMU_LAYER_LEDS);
+    fsemu_widget_set_visible(w, true);
+    // fsemu_widget_set_right(w,
+    fsemu_widget_add_child(fsemu_leds.container_w, w);
+
+
+
+    w = fsemu_leds.sides_w[1] = fsemu_widget_new_with_name("leds-right");
+    // FIXME: Make sure that this is optimized and not attempted rendering.
+    fsemu_widget_set_color(w, FSEMU_COLOR_TRANSPARENT);
+    // fsemu_widget_set_color(w, FSEMU_COLOR_RGBA(0x0000FF44));
+    // FIXME: Check what z-index to use (below video)
+    fsemu_widget_set_left_2(w, 40, FSEMU_WIDGET_VIDEO_RIGHT);
+    fsemu_widget_set_z_index(w, FSEMU_LAYER_LEDS);
+    fsemu_widget_set_visible(w, true);
+    fsemu_widget_add_child(fsemu_leds.container_w, w);
+
+
+
 
     fsemu_leds.vsync_led = fsemu_led_create();
     fsemu_led_set_id(fsemu_leds.vsync_led, "VSyncLed");

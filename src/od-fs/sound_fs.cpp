@@ -93,6 +93,7 @@ static int g_clk = 0;
 
 void amiga_set_audio_frequency_adjust(double adjust)
 {
+    // sdp->obtainedfreq = g_frequency / adjust;
     sdp->obtainedfreq = g_frequency + adjust * g_frequency;
     update_sound(g_clk);
 }

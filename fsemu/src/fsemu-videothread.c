@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL 1
+#define FSEMU_INTERNAL
 #include "fsemu-videothread.h"
 
 #include "fsemu-glvideo.h"

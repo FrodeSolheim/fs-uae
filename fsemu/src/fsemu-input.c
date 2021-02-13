@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL 1
+#define FSEMU_INTERNAL
 #include "fsemu-input.h"
 
 #include "fsemu-action.h"
@@ -20,7 +20,11 @@
 #include <fs/ml.h>
 #endif
 
+#ifdef FSFUSE
+int fsemu_input_log_level = FSEMU_LOG_LEVEL_DEBUG;
+#else
 int fsemu_input_log_level = FSEMU_LOG_LEVEL_INFO;
+#endif
 
 typedef struct {
     int16_t action;
@@ -244,6 +248,8 @@ void fsemu_input_configure_keyboard(fsemu_input_configure_keyboard_t mapping[])
         fsemu_input.keyboard[item->mod * FSEMU_KEY_NUM_KEYS + item->key]
             .action = item->action;
     }
+
+    fsemu_input_reconfigure();
 }
 
 static int fsemu_input_action_table_index_from_key(fsemu_key_t key, int mod)
@@ -353,15 +359,15 @@ void fsemu_input_handle_keyboard(fsemu_key_t key, bool pressed)
     int mod = 0;
     int32_t state = pressed ? FSEMU_ACTION_STATE_MAX : 0;
 
-    // FIXME: Increase log level
-    // fsemu_input_log("Handle keyboard scancode=%d pressed=%d\n", key,
-    // pressed);
+    fsemu_input_log_debug(
+        "Handle keyboard scancode=%d pressed=%d\n", key, pressed);
 
     if (key >= FSEMU_KEY_NUM_KEYS) {
         // FIXME: WARNING
-        fsemu_input_log("Key (%d) >= FSEMU_KEY_NUM_KEYS (%d); ignoring\n",
-                        key,
-                        FSEMU_KEY_NUM_KEYS);
+        fsemu_input_log_warning(
+            "Key (%d) >= FSEMU_KEY_NUM_KEYS (%d); ignoring\n",
+            key,
+            FSEMU_KEY_NUM_KEYS);
         return;
     }
 
@@ -377,11 +383,13 @@ void fsemu_input_handle_keyboard(fsemu_key_t key, bool pressed)
 
     int action_table_index = fsemu_input_action_table_index_from_key(key, mod);
     // FIXME: action_table
-    // fsemu_input_log_debug("keyboard input action_table_index %d\n",
-    // action_table_index); int action =
+    // int action =
     // fsemu_input.keyboard[action_table_index].action;
 
     int action = fsemu_input.action_table[action_table_index];
+    fsemu_input_log_debug("keyboard input action_table_index %d => %d\n",
+                          action_table_index,
+                          action);
     fsemu_input_process_action(action, state);
 }
 

@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-#define FSEMU_MEDIA_TYPE_COUNT 5
+#define FSEMU_MEDIA_TYPE_COUNT 6
 
 // This cannot be increased without also adding support for additional actions.
 #define FSEMU_MEDIA_DRIVE_MAX_COUNT 10
@@ -22,6 +22,7 @@ enum {
     FSEMU_MEDIA_DRIVE_TYPE_CDROM,
     FSEMU_MEDIA_DRIVE_TYPE_HD,
     FSEMU_MEDIA_DRIVE_TYPE_CARTRIDGE,
+    FSEMU_MEDIA_DRIVE_TYPE_TAPE,
     FSEMU_MEDIA_DRIVE_TYPE_AFTER_LAST,
 };
 

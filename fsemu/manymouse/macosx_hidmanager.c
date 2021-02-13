@@ -367,7 +367,7 @@ static void macosx_hidmanager_quit(void)
 
 static int macosx_hidmanager_init(void)
 {
-    if (IOHIDManagerCreate == NULL)
+    if (&IOHIDManagerCreate == NULL)
         return -1;  /* weak symbol is NULL...we don't have OS X >= 10.5.0 */
 
     macosx_hidmanager_quit();  /* just in case... */

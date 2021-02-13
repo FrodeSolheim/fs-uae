@@ -76,7 +76,6 @@ bool fsemu_sdlwindow_full_keyboard_emulation(void)
     return fsemu_sdlwindow.full_keyboard_emulation;
 }
 
-
 // ----------------------------------------------------------------------------
 
 #if defined(FSEMU_OS_WINDOWS)
@@ -830,8 +829,24 @@ bool fsemu_sdlwindow_has_window(void)
     return fsemu_sdlwindow.window != NULL;
 }
 
+static bool fsemu_sdlwindow_handle_keyboard_ctrl_shortcut(SDL_Event *event)
+{
+    printf("fsemu_sdlwindow_handle_keyboard_ctrl_shortcut\n");
+    int sym = event->key.keysym.sym;
+    if (sym == SDLK_s) {
+        fsemu_frame_toggle_sleep_busywait();
+    }
+    return true;
+}
+
+// This should be replaced with actions triggered by the keyboard shortcut
+// system.
 static bool fsemu_sdlwindow_handle_keyboard_shortcut(SDL_Event *event)
 {
+    if (event->key.keysym.mod & KMOD_CTRL) {
+        return fsemu_sdlwindow_handle_keyboard_ctrl_shortcut(event);
+    }
+
     if (event->key.keysym.sym == SDLK_a) {
         fsemu_window_log_debug("SDLK_a (cycle aspect/stretch mode)\n");
         fsemu_layout_cycle_stretch_mode();
@@ -1013,6 +1028,11 @@ bool fsemu_sdlwindow_handle_event(SDL_Event *event)
                    event->key.keysym.mod & FSEMU_KMOD_MOD) {
             fsemu_window_log_debug("MOD key held down\n");
             shortcut = true;
+        }
+        if (event->key.keysym.scancode == SDL_SCANCODE_PRINTSCREEN) {
+            fsemu_window_log_debug("SDL_SCANCODE_PRINTSCREEN\n");
+            fsemu_screenshot_capture();
+            return true;            
         }
         if (shortcut) {
             if (fsemu_sdlwindow_handle_keyboard_shortcut(event)) {

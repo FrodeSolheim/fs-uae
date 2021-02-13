@@ -39,14 +39,14 @@ fsemu_image_t *fsemu_perfgui_image(void);
 
 extern int fsemu_perfgui_log_level;
 
-#define fsemu_perfgui_log(format, ...)                             \
+#define fsemu_perfgui_log(format, ...)                                   \
     if (fsemu_likely(fsemu_perfgui_log_level >= FSEMU_LOG_LEVEL_INFO)) { \
-        fsemu_log("[FSE] [PFG] " format, ##__VA_ARGS__);           \
+        fsemu_log("[FSE] [PFG] " format, ##__VA_ARGS__);                 \
     }
 
-#define fsemu_perfgui_log_debug(format, ...)                          \
+#define fsemu_perfgui_log_debug(format, ...)                                \
     if (fsemu_unlikely(fsemu_perfgui_log_level >= FSEMU_LOG_LEVEL_DEBUG)) { \
-        fsemu_log_debug("[FSE] [PFG] " format, ##__VA_ARGS__);        \
+        fsemu_log_debug("[FSE] [PFG] " format, ##__VA_ARGS__);              \
     }
 
 #ifdef __cplusplus

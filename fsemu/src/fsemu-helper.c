@@ -1,6 +1,8 @@
-#define FSEMU_INTERNAL 1
+#define FSEMU_INTERNAL
 #include "fsemu-helper.h"
 
+#include "fsemu-action.h"
+#include "fsemu-application.h"
 #include "fsemu-background.h"
 #include "fsemu-controller.h"
 #include "fsemu-fade.h"
@@ -8,10 +10,14 @@
 #include "fsemu-gamemode.h"
 #include "fsemu-hud.h"
 #include "fsemu-input.h"
+#include "fsemu-leds.h"
+#include "fsemu-log.h"
 #include "fsemu-option.h"
 #include "fsemu-oskeyboard.h"
 #include "fsemu-osmenu.h"
 #include "fsemu-perfgui.h"
+#include "fsemu.h"
+#include "fsemu-screenshot.h"
 // FIXME: Ideally, remove this dependency
 #include "fsemu-sdlwindow.h"
 #include "fsemu-startupinfo.h"
@@ -33,19 +39,29 @@ void fsemu_helper_init_emulator(const char *emulator_name,
                                 int fullscreen,
                                 int vsync)
 {
-    fsemu_log("[HELPR] Init emulator vsync=%d\n", vsync);
+    fsemu_boot_log("fsemu_init_with_args");
+    fsemu_log("[FSE] [HLP] Init emulator vsync=%d\n", vsync);
 
-    // This call will also register the main thread.
+    // Make sure warnings can be safely logged and scheduled for later
+    // displaying via an async queue.
+    fsemu_hud_init_early();
+
+    fsemu_warning_2("Early development preview",
+                    "Some features are not fully developed");
+
+    fsemu_boot_log("before fsemu_thread_init");
+    // This call will also register the main thread
     fsemu_thread_init();
-    // Register main thread as video thread also.
+    // Register main thread as video thread also
     fsemu_thread_set_video();
 
+    fsemu_boot_log("before fsemu_log_setup");
+    fsemu_log_setup();
+
+    fsemu_boot_log("before fsemu_option_init");
     fsemu_option_init();
 
-    fsemu_gamemode_init();
-    // FIXME: Check (on Linux) if CPU governor is now set to performance.
-
-    fsemu_set_emulator_name(emulator_name);
+    // fsemu_set_emulator_name(emulator_name);
     const char *env_title = fsemu_read_env_option("WINDOW_TITLE");
     // printf("%s\n", env_title);
     // exit(1);
@@ -71,23 +87,56 @@ void fsemu_helper_init_emulator(const char *emulator_name,
         fsemu_video_set_vsync(1);
     }
 
+    fsemu_boot_log("before fsemu_window_init");
     fsemu_window_init();
+    fsemu_boot_log("before fsemu_video_init");
     fsemu_video_init();
+    fsemu_boot_log("before fsemu_fade_init");
     fsemu_fade_init();
+    fsemu_boot_log("before fsemu_titlebar_init");
     fsemu_titlebar_init();
+    // Hmm, necessary?
+    fsemu_boot_log("before fsemu_input_init");
     fsemu_input_init();
 
+    // Now, open the window and render the decorations
+
+    fsemu_boot_log("before fsemu_helper_startup_loop");
     fsemu_helper_startup_loop();
 
+    // Continue with initialization
+
+    fsemu_application_init();
+    fsemu_screenshot_init();
+
+    fsemu_boot_log("before fsemu_action_init");
+    fsemu_action_init();
+    fsemu_boot_log("before fsemu_background_init");
     fsemu_background_init();
+
+    fsemu_boot_log("before fsemu_hud_init");
     fsemu_hud_init();
+
+    // FIXME: Postpone this until after the window is shown?
+    fsemu_boot_log("before fsemu_gamemode_init");
+    fsemu_gamemode_init();
+    // FIXME: Check (on Linux) if CPU governor is now set to performance
+
+    fsemu_boot_log("before fsemu_leds_init");
+    fsemu_leds_init();
+    fsemu_boot_log("before fsemu_oskeyboard_init");
     fsemu_oskeyboard_init();
+    fsemu_boot_log("before fsemu_osmenu_init");
     fsemu_osmenu_init();
+    fsemu_boot_log("before fsemu_perfgui_init");
     fsemu_perfgui_init();
+    fsemu_boot_log("before fsemu_startupinfo_init");
     fsemu_startupinfo_init();
+    fsemu_boot_log("before fsemu_theme_module_init");
     fsemu_theme_module_init();
 
     // FIXME: Maybe temporary
+    fsemu_boot_log("before fsemu_controller_init");
     fsemu_controller_init();
 }
 
@@ -208,7 +257,7 @@ void fsemu_helper_startup_loop(void)
         fsemu_helper_poll_and_sleep();
     }
 
-    // Resetting these to avoid confusion the frame timing system.
+    // Resetting these to avoid confusion the frame timing system
     fsemu_frame_number_rendering = -1;
     fsemu_frame_number_rendered = -1;
     fsemu_frame_number_displaying = -1;
@@ -265,8 +314,7 @@ void fsemu_helper_sleep_display_end_start(double hz)
 
 #ifdef FSEMU_SAMPLERATE
     // FIXME: Move?
-    fsemu_audiobuffer_set_adjustment(
-        fsemu_audiobuffer_calculate_adjustment());
+    fsemu_audiobuffer_set_adjustment(fsemu_audiobuffer_calculate_adjustment());
 #endif
 
     fsemu_frame_log_epoch("Frame begin\n");

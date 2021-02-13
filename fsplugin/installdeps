@@ -1,0 +1,51 @@
+#!/bin/sh
+set -e
+
+if [ -e /etc/os-release ]; then
+. /etc/os-release
+fi
+
+if [ -e /etc/debian_version ]; then
+
+echo "Installing dependencies for Debian"
+echo sudo apt install `grep . fsplugin/deps/debian | grep -v '#'`
+sudo apt install `grep . fsplugin/deps/debian | grep -v '#'`
+
+elif [ -e /etc/fedora-release ]; then
+
+echo "Installing dependencies for Fedora"
+echo sudo dnf install `grep . fsplugin/deps/fedora | grep -v '#'`
+sudo dnf install `grep . fsplugin/deps/fedora | grep -v '#'`
+
+elif [ -e /etc/arch-release ]; then
+
+echo "Installing dependencies for Arch Linux"
+echo sudo pacman -S `grep . fsplugin/deps/arch | grep -v '#'`
+sudo pacman -S `grep . fsplugin/deps/arch | grep -v '#'`
+
+elif echo "$ID_LIKE" | grep -q "opensuse"; then
+
+echo "Installing dependencies for openSUSE"
+echo sudo zypper install `grep . fsplugin/deps/opensuse | grep -v '#'`
+sudo zypper install `grep . fsplugin/deps/opensuse | grep -v '#'`
+
+elif [ "`uname -s`" = "Darwin" ]; then
+
+echo "Installing dependencies for macOS (Homebrew)"
+echo "(You need to have Homebrew (https://brew.sh/) install for this to work)"
+echo brew install `grep . fsplugin/deps/homebrew | grep -v '#'`
+brew install `grep . fsplugin/deps/homebrew | grep -v '#'`
+
+elif [ "`uname -o`" = "Msys" ]; then
+
+echo "Installing dependencies for Windows (MSYS2)"
+echo "(You need to run this from within the MSYS MinGW 64-bit shell)"
+echo pacman -S `grep . fsplugin/deps/msys2 | grep -v '#'`
+pacman -S `grep . fsplugin/deps/msys2 | grep -v '#'`
+else
+
+echo "This script does not support installing dependencies for you system"
+echo "automatically. You need to do this manually instead."
+exit 1
+
+fi

@@ -20,13 +20,11 @@
 #include "fsemu-util.h"
 #include "fsemu-videothread.h"
 #include "fsemu-window.h"
+#include "fsemu.h"
 
 int fsemu_video_log_level = FSEMU_LOG_LEVEL_INFO;
 
 #define FSEMU_VIDEO_MAX_FRAME_STATS (1 << 8)  // 256
-
-#define FSEMU_VIDEO_FRAME_STATS(x) \
-    fsemu_video.stats[(x) % FSEMU_VIDEO_MAX_FRAME_STATS]
 
 #if 0
 struct fsemu_video_thread_data {
@@ -45,13 +43,12 @@ static struct {
     bool threaded;
 
     fsemu_video_format_t format;
-    fsemu_video_frame_stats_t stats[FSEMU_VIDEO_MAX_FRAME_STATS];
     fsemu_rect_t rect;
     int ready;
     int emu_us_avg;
     int vsync;
     int64_t vsync_time;
-    int rendered_frame;
+    // int rendered_frame;
     // 1 - disallow vsync, 2 - tried (and refused) to enable vsync
     int disallow_vsync;
 
@@ -66,6 +63,16 @@ static struct {
 
     fsemu_gui_item_t *gui_snapshot;
     fsemu_mutex_t *gui_snapshot_mutex;
+
+    double vsync_interval_avg;
+    int vsync_intervals_count;
+    GList *vsync_intervals;
+    GList *vsync_intervals_sorted;
+
+    // Used with fsemu_video_frame_queue
+    int last_posted_frame;
+    int last_retrieved_frame;
+    // FIXME: Move fsemu_video_frame_queue here
 
 #if 0
     // Mutex used to copy consistent data from UI thread over to video thread.
@@ -111,6 +118,14 @@ static int fsemu_video_default_format(void)
 #else
     return FSEMU_VIDEO_FORMAT_BGRA;
 #endif
+}
+
+void fsemu_video_finalize_and_free_frame(fsemu_video_frame_t *frame)
+{
+    if (frame->finalize) {
+        frame->finalize(frame);
+    }
+    free(frame);
 }
 
 // ----------------------------------------------------------------------------
@@ -247,6 +262,8 @@ void fsemu_video_work(int timeout_us)
 void fsemu_video_render(void)
 {
     fsemu_frame_number_rendering = fsemu_frame_number_posted;
+    fsemu_video_log_trace("fsemu_video_render frame_number_rendering=%d\n",
+                          fsemu_frame_number_rendering);
 
     if (fsemu_video_vsync()) {
         // printf("fsemu_video_render (vsync)\n");
@@ -314,17 +331,68 @@ void fsemu_video_display(void)
 
 void fsemu_video_post_frame(fsemu_video_frame_t *frame)
 {
-    static int64_t last;
-    int64_t t = fsemu_time_us();
+    // FIXME: There is currently an issue with fast-forward; the queue will
+    // build up, and rendering might not be able to catch up. This is
+    // especially bad if clients also allocate memory for each frame which
+    // means fast-forwarding can use a lot of memory, quickly.
+    // Should be able to throw away old frames here...
+
+    // static int64_t last;
+    // int64_t t = fsemu_time_us();
     // printf("START_OR_POST post %d %d + %lld\n", frame->partial,
     // frame->height, lld((t - last) / 1000));
-    last = t;
+    // last = t;
     // fsemu_assert(fsemu_frame_number_posted == fsemu_frame_number_began - 1);
 
     // FIXME: fsemu_frame_counter conflict with new vars
     // frame->number = fsemu_frame_counter();
-    frame->number = fsemu_frame_number_began;
-    g_async_queue_push(fsemu_video_frame_queue, frame);
+
+    int frame_number = fsemu_frame_number_began;
+
+    frame->number = frame_number;
+
+    g_async_queue_lock(fsemu_video_frame_queue);
+
+    // if (fsemu_video.last_posted_frame > fsemu_video.last_retrieved_frame) {
+
+    // }
+
+    static int last_skipped_frame;
+
+    if (frame->number > fsemu_video.last_posted_frame &&
+        frame->number > fsemu_video.last_retrieved_frame + 1) {
+        // while (frame =
+        GList *keep = NULL;
+        fsemu_video_frame_t *f;
+        while ((f = g_async_queue_try_pop_unlocked(fsemu_video_frame_queue))) {
+            if (f->number == fsemu_video.last_retrieved_frame) {
+                // Need to keep this
+                keep = g_list_append(keep, f);
+            } else {
+                fsemu_video_finalize_and_free_frame(f);
+            }
+        }
+        GList *item = g_list_last(keep);
+        while (item) {
+            g_async_queue_push_front_unlocked(fsemu_video_frame_queue, f);
+            item = item->prev;
+        }
+        g_list_free(keep);
+        // fsemu_assert(frame);
+
+        int from = MAX(last_skipped_frame, fsemu_video.last_retrieved_frame + 1);
+        for (int i = from; i < frame->number; i++) {
+            printf("SKIPPED FRAME %d\n", i);
+            last_skipped_frame = i;
+            FSEMU_FRAMEINFO(i).render_skipped = true;
+        }
+    }
+
+    g_async_queue_push_unlocked(fsemu_video_frame_queue, frame);
+    fsemu_video.last_posted_frame = frame_number;
+    g_async_queue_unlock(fsemu_video_frame_queue);
+
+    // g_async_queue_push(fsemu_video_frame_queue, frame);
 
     // if (frame->partial == 0 || frame->partial == frame->height) {
     //     fsemu_frame_number_posted = fsemu_frame_number_began;
@@ -335,14 +403,45 @@ fsemu_video_frame_t *fsemu_video_get_frame(int timeout_us)
 {
     fsemu_assert(timeout_us >= -1);
     fsemu_video_frame_t *frame;
+
+    g_async_queue_lock(fsemu_video_frame_queue);
     if (timeout_us == 0) {
         // Maybe not necessary, but did not test timeout 0
-        frame = g_async_queue_try_pop(fsemu_video_frame_queue);
+        frame = g_async_queue_try_pop_unlocked(fsemu_video_frame_queue);
     } else if (timeout_us == -1) {
-        frame = g_async_queue_pop(fsemu_video_frame_queue);
+        frame = g_async_queue_pop_unlocked(fsemu_video_frame_queue);
     } else {
-        frame = g_async_queue_timeout_pop(fsemu_video_frame_queue, timeout_us);
+        frame = g_async_queue_timeout_pop_unlocked(fsemu_video_frame_queue,
+                                                   timeout_us);
     }
+
+    if (frame == NULL) {
+        g_async_queue_unlock(fsemu_video_frame_queue);
+        return NULL;
+    }
+
+    // if (frame->number > fsemu_video.last_retrieved_frame) {
+    //     // We want to start processing a new frame, but check if we are too
+    //     // far behind
+    //     while (frame->number < fsemu_video.last_posted_frame) {
+
+    //     }
+    // }
+
+    fsemu_video.last_retrieved_frame = frame->number;
+
+    g_async_queue_unlock(fsemu_video_frame_queue);
+
+    // if (timeout_us == 0) {
+    //     // Maybe not necessary, but did not test timeout 0
+    //     frame = g_async_queue_try_pop(fsemu_video_frame_queue);
+    // } else if (timeout_us == -1) {
+    //     frame = g_async_queue_pop(fsemu_video_frame_queue);
+    // } else {
+    //     frame = g_async_queue_timeout_pop(fsemu_video_frame_queue,
+    //     timeout_us);
+    // }
+
 #if 0
     // See if there are more events, and only consider the last one.
     fsemu_video_frame_t *frame2;
@@ -353,6 +452,12 @@ fsemu_video_frame_t *fsemu_video_get_frame(int timeout_us)
         frame = frame2;
     }
 #endif
+    if (frame->partial == 0 || frame->partial == frame->height) {
+        if (fsemu_screenshot_should_capture()) {
+            fsemu_screenshot_capture_video_frame(frame);
+        }
+    }
+
     return frame;
 }
 
@@ -431,53 +536,20 @@ static void fsemu_video_update_stats(void)
 {
     fsemu_thread_assert_emu();
 
-    static int64_t last;
-    int64_t now = fsemu_time_us();
-#if 0
-    if (last == 0) {  // if (fsemu_frame_emu_duration > 100000) {
-        fsemu_video_log_debug("FIXME: first timing is off...\n");
-        last = now;
-        return;
-    }
-#endif
-
-    // printf("fsemu_video_update_stats frame %d\n", fsemu_frame_counter());
-
-    fsemu_video_frame_stats_t *stats =
-        &fsemu_video
-             .stats[fsemu_frame_counter_mod(FSEMU_VIDEO_MAX_FRAME_STATS)];
-
-    stats->frame_hz = fsemu_frame_hz;
-    // stats->frame_warp = fsemu_frame_warp;
-    stats->frame_warp = fsemu_frame_warping();
-
-    stats->overshoot_us = fsemu_frame_overshoot_duration;
-    stats->wait_us = fsemu_frame_wait_duration;
-    stats->gui_us = fsemu_frame_gui_duration;
-    stats->emu_us = fsemu_frame_emu_duration;
-    stats->render_us = fsemu_frame_render_duration;
-    stats->sleep_us = fsemu_frame_sleep_duration;
-    stats->extra_us = fsemu_frame_extra_duration;
-
-    stats->origin_at = fsemu_frame_origin_at;
-    stats->began_at = fsemu_frame_begin_at;
-
-    if (last != 0) {
-        stats->other_us = (now - last) - stats->overshoot_us - stats->wait_us -
-                          stats->emu_us - stats->sleep_us - stats->extra_us -
-                          stats->gui_us - stats->render_us;
-    }
+    // static int64_t last;
+    // int64_t now = fsemu_time_us();
 
     static fsemu_mavgi_t emu_us_mavgi;
     static int emu_us_mavgi_values[FSEMU_VIDEO_MAX_FRAME_STATS];
     // stats->emu_us_mavg = fsemu_mavgi(
     //     &emu_us_mavgi, emu_us_mavgi_values, 60, stats->emu_us);
-    fsemu_video.emu_us_avg = fsemu_mavgi(&emu_us_mavgi,
-                                         emu_us_mavgi_values,
-                                         FSEMU_VIDEO_MAX_FRAME_STATS,
-                                         stats->emu_us);
+    fsemu_video.emu_us_avg =
+        fsemu_mavgi(&emu_us_mavgi,
+                    emu_us_mavgi_values,
+                    FSEMU_VIDEO_MAX_FRAME_STATS,
+                    FSEMU_FRAMEINFO(fsemu_frame_number_began).emu_us);
 
-    last = now;
+    // last = now;
 }
 
 // FIXME: Should probably be fsemu_frame_emutime_avg_us
@@ -489,39 +561,137 @@ int fsemu_frame_emutime_avg_us(void)
 
 #if 1
 
-int fsemu_video_rendered_frame(void)
-{
-    // Currently only set via fsemu_video_set_frame_rendered_at
-    return fsemu_video.rendered_frame;
-}
+// int fsemu_video_rendered_frame(void)
+// {
+//     // Currently only set via fsemu_video_set_frame_rendered_at
+//     return fsemu_video.rendered_frame;
+// }
 
-void fsemu_video_set_frame_began_at(int frame, int64_t began_at)
-{
-    fsemu_video.stats[frame % FSEMU_VIDEO_MAX_FRAME_STATS].began_at = began_at;
-}
+// void fsemu_video_set_frame_began_at(int frame, int64_t began_at)
+// {
+//     fsemu_video.stats[frame % FSEMU_VIDEO_MAX_FRAME_STATS].began_at =
+//     began_at;
+// }
 
 void fsemu_video_set_frame_rendered_at(int frame, int64_t rendered_at)
 {
-    // printf("set rendered at for frame %d to %lld\n", frame, (long long)
-    // rendered_at);
-    fsemu_video.rendered_frame = frame;
-    fsemu_video.stats[frame % FSEMU_VIDEO_MAX_FRAME_STATS].rendered_at =
-        rendered_at;
-    // printf("%d:%lld\n", frame, (long long) fsemu_video.stats[frame %
-    // FSEMU_VIDEO_MAX_FRAME_STATS].rendered_at);
-}
-
-void fsemu_video_set_frame_vsync_at(int frame, int64_t vsync_at)
-{
-    // FSEMU_VIDEO_FRAME_STATS(frame).vsync_at = vsync_at;
-    FSEMU_FRAMEINFO(frame).vsync_at = vsync_at;
+    FSEMU_FRAMEINFO(frame).rendered_at = rendered_at;
 }
 
 void fsemu_video_set_frame_swapped_at(int frame, int64_t swapped_at)
 {
-    FSEMU_VIDEO_FRAME_STATS(frame).swapped_at = swapped_at;
-
     FSEMU_FRAMEINFO(frame).swapped_at = swapped_at;
+}
+
+static gint fsemu_video_compare_vsync_intervals(gconstpointer a,
+                                                gconstpointer b)
+{
+    return GPOINTER_TO_INT(a) - GPOINTER_TO_INT(b);
+}
+
+static void fsemu_video_update_vsync_interval(int vsync_interval)
+{
+    const int target_count = 512;
+    if (fsemu_video.vsync_intervals_count == target_count) {
+        int remove_vsync_interval =
+            GPOINTER_TO_INT(g_list_first(fsemu_video.vsync_intervals)->data);
+        fsemu_video.vsync_intervals =
+            g_list_remove(fsemu_video.vsync_intervals,
+                          GINT_TO_POINTER(remove_vsync_interval));
+        fsemu_video.vsync_intervals_sorted =
+            g_list_remove(fsemu_video.vsync_intervals_sorted,
+                          GINT_TO_POINTER(remove_vsync_interval));
+        // fsemu_video.vsync_intervals_count -= 1;
+    } else {
+        fsemu_video.vsync_intervals_count += 1;
+    }
+    fsemu_video.vsync_intervals = g_list_append(
+        fsemu_video.vsync_intervals, GINT_TO_POINTER(vsync_interval));
+    fsemu_video.vsync_intervals_sorted =
+        g_list_insert_sorted(fsemu_video.vsync_intervals_sorted,
+                             GINT_TO_POINTER(vsync_interval),
+                             fsemu_video_compare_vsync_intervals);
+    // fsemu_video.vsync_intervals_count += 1;
+
+    // Only consider the middle part of the sorted list to remove noise
+    int start_index = fsemu_video.vsync_intervals_count / 4;
+    int include_count = fsemu_video.vsync_intervals_count / 2;
+    // int end_index = start_index + count / 2;  // not inclusive
+    GList *it = fsemu_video.vsync_intervals_sorted;
+    int k = 0;
+    while (it && k < start_index) {
+        it = it->next;
+        k += 1;
+    }
+
+    int sum = 0;
+
+    k = 0;
+    while (it && k < include_count) {
+        sum += GPOINTER_TO_INT(it->data);
+        it = it->next;
+        k += 1;
+    }
+
+    if (include_count == 0) {
+        // FIXME: Calculate from monitor refresh or just use dummy value?
+        fsemu_video.vsync_interval_avg = 16667;
+    } else {
+        fsemu_video.vsync_interval_avg = (double) sum / include_count;
+    }
+    // printf("vsync_interval (%d) = %.1f => %0.2f Hz\n",
+    //        fsemu_video.vsync_intervals_count,
+    //        fsemu_video.vsync_interval_avg,
+    //        1000000.0 / fsemu_video.vsync_interval_avg);
+}
+
+int fsemu_video_vsync_interval(void)
+{
+    return (int) fsemu_video.vsync_interval_avg;
+}
+
+int fsemu_video_vsync_frequency(void)
+{
+    return 1000000.0 / fsemu_video.vsync_interval_avg;
+}
+
+void fsemu_video_set_frame_vsync_at(int frame, int64_t vsync_at)
+{
+    static int64_t last_vsync_at = 0;
+
+    FSEMU_FRAMEINFO(frame).vsync_at = vsync_at;
+
+    // FSEMU_FRAMEINFO(frame + 3).vsync_allow_start_at = SDL_MAX_SINT64;
+    // FSEMU_FRAMEINFO(frame + 4).vsync_allow_start_at = SDL_MAX_SINT64;
+    // FSEMU_FRAMEINFO(frame + 5).vsync_allow_start_at = SDL_MAX_SINT64;
+    // FSEMU_FRAMEINFO(frame + 6).vsync_allow_start_at = SDL_MAX_SINT64;
+
+    FSEMU_FRAMEINFO(frame + 3).vsync_allow_start_at = 0;
+    // FSEMU_FRAMEINFO(frame + 4).vsync_allow_start_at = 0;
+    // FSEMU_FRAMEINFO(frame + 5).vsync_allow_start_at = 0;
+    // FSEMU_FRAMEINFO(frame + 6).vsync_allow_start_at = 0;
+
+    // FSEMU_FRAMEINFO(frame + 1).vsync_allow_start_at = vsync_time_us -
+    // 10000; FSEMU_FRAMEINFO(frame + 2).vsync_allow_start_at =
+    // vsync_time_us + 10000; FSEMU_FRAMEINFO(frame +
+    // 3).vsync_allow_start_at = vsync_time_us + 30000;
+    // FSEMU_FRAMEINFO(frame + 3).vsync_allow_start_at = vsync_time_us +
+    // 50000;
+
+    FSEMU_FRAMEINFO(frame + 2).vsync_allow_start_at = vsync_at + 9000;
+    // FSEMU_FRAMEINFO(frame + 3).vsync_allow_start_at = vsync_time_us +
+    // 25000;
+    if (last_vsync_at > 0) {
+        int vsync_interval = (int) (vsync_at - last_vsync_at);
+        // Small hack here; assume we have missed a vblank, so we divide by
+        // two in order to try avoiding a feedback effect where emulation
+        // length is increased, thereby missing more vblank intervals.
+        if (vsync_interval > 30000) {
+            vsync_interval = vsync_interval / 2;
+        }
+        fsemu_video_update_vsync_interval(vsync_interval);
+    }
+    last_vsync_at = vsync_at;
 }
 
 #endif
@@ -530,18 +700,13 @@ void fsemu_video_end_frame(void)
 {
     fsemu_video_update_stats();
 
-    int next_frame = (fsemu_frame_counter() + 1) % FSEMU_VIDEO_MAX_FRAME_STATS;
-    fsemu_video.stats[next_frame].rendered_at = 0;
-    fsemu_video.stats[next_frame].swapped_at = 0;
-}
+    // FIXME
+    // int next_frame = (fsemu_frame_counter() + 1) %
+    // FSEMU_VIDEO_MAX_FRAME_STATS;
 
-void fsemu_video_frame_stats(int frame, fsemu_video_frame_stats_t *stats)
-{
-    // printf("%d:%lld\n", frame, (long long) fsemu_video.stats[frame %
-    // FSEMU_VIDEO_MAX_FRAME_STATS].rendered_at);
-    memcpy(stats,
-           &fsemu_video.stats[frame % FSEMU_VIDEO_MAX_FRAME_STATS],
-           sizeof(fsemu_video_frame_stats_t));
+    // FIXME
+    // fsemu_video.stats[next_frame].rendered_at = 0;
+    // fsemu_video.stats[next_frame].swapped_at = 0;
 }
 
 #if 0
@@ -713,7 +878,26 @@ void fsemu_video_init(void)
 
     // fsemu_video.renderer = FSEMU_VIDEO_RENDERER_GL;
     if (fsemu_video.format == FSEMU_VIDEO_FORMAT_UNKNOWN) {
-        fsemu_video.format = fsemu_video_default_format();
+        int default_format = fsemu_video_default_format();
+        int format_flags = fsemu_video_format_flags();
+        if (format_flags == 0) {
+            fsemu_video_log("No format flags, setting default format\n");
+            fsemu_video.format = default_format;
+        } else {
+            if (format_flags & (1 << default_format)) {
+                fsemu_video_log("Default format allowed in format flags\n");
+                fsemu_video.format = default_format;
+            } else if (format_flags & FSEMU_VIDEO_FORMAT_FLAG_BGRA) {
+                fsemu_video_log("Format flags allow BGRA\n");
+                fsemu_video.format = FSEMU_VIDEO_FORMAT_BGRA;
+            } else if (format_flags & FSEMU_VIDEO_FORMAT_FLAG_RGBA) {
+                fsemu_video_log("Format flags allow RGBA\n");
+                fsemu_video.format = FSEMU_VIDEO_FORMAT_RGBA;
+            } else if (format_flags & FSEMU_VIDEO_FORMAT_FLAG_RGB565) {
+                fsemu_video_log("Format flags allow RGB565\n");
+                fsemu_video.format = FSEMU_VIDEO_FORMAT_RGB565;
+            }
+        }
     }
 
     if (fsemu_video.driver == FSEMU_VIDEO_DRIVER_NULL) {

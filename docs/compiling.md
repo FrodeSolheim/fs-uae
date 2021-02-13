@@ -28,7 +28,7 @@ Install dependencies for bootstrapping and building FS-UAE:
     sudo zypper install autoconf automake freetype2-devel gcc gcc-c++ gettext \
     glib2-devel libpng-devel libtool libXi-devel openal-devel SDL2-devel zip
 
-## Fedora
+### Fedora
 
 Install dependencies for running bootstrap:
 
@@ -38,7 +38,7 @@ Install dependencies for building FS-UAE:
 
     sudo dnf install SDL2-devel glib2-devel libpng-devel gcc gcc-c++ openal-devel libXi-devel zip libmpeg2-devel SDL2_ttf-devel glew-devel zlib-devel freetype-devel hicolor-icon-theme
 
-## Windows
+### Windows
 
 Install latest msys2-x86_64 from www.msys2.org/ and follow the installation
 instructions to get an updated MSYS2 installation. Then start

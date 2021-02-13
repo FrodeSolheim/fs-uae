@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL 1
+#define FSEMU_INTERNAL
 #include "fsemu-sdlvideo.h"
 
 #ifdef FSEMU_SDL
@@ -196,7 +196,8 @@ void fsemu_sdlvideo_work(int timeout_us)
     fsemu_video_frame_t *frame = fsemu_video_get_frame(timeout_us);
     if (frame) {
         fsemu_sdlvideo_handle_frame(frame);
-        fsemu_video_free_frame(frame);
+        // fsemu_video_free_frame(frame);
+        fsemu_video_finalize_and_free_frame(frame);
         return;
     }
 }

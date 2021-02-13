@@ -10,10 +10,10 @@ extern "C" {
 #endif
 
 struct fsemu_helpbar_t;
-typedef struct fsemu_led_t fsemu_helpbar_t;
+typedef struct fsemu_helpbar_t fsemu_helpbar_t;
 
 struct fsemu_helpbar_command_t;
-typedef struct fsemu_led_t fsemu_helpbar_command_t;
+typedef struct fsemu_helpbar_command_t fsemu_helpbar_command_t;
 
 fsemu_helpbar_t *fsemu_helpbar_create(void);
 

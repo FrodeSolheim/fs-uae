@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL 1
+#define FSEMU_INTERNAL
 #include "fsemu-startupinfo.h"
 
 #include "fsemu-fontcache.h"
@@ -72,7 +72,7 @@ void fsemu_startupinfo_init(void)
     int y = 1080 - height;
 #endif
     fsemu_image_t *image =
-        fsemu_image_load("Images/InfoBackgroundGradient.png");
+        fsemu_image_load("InfoBackgroundGradient.png");
 
     fsemu_gui_item_t *item;
     item = &fsemu_startupinfo.background;
@@ -86,14 +86,14 @@ void fsemu_startupinfo_init(void)
     // FIXME: May not need to cache these. Maybe use and throw away instead?
     // Need to fint which font/sizes are reused throughout the app.
     fsemu_font_t *font =
-        fsemu_fontcache_font("Fonts/SairaCondensed-Bold.ttf", 56);
+        fsemu_fontcache_font("SairaCondensed-Bold.ttf", 56);
     fsemu_font_t *font_2 =
-        fsemu_fontcache_font("Fonts/SairaCondensed-Bold.ttf", 32);
+        fsemu_fontcache_font("SairaCondensed-Bold.ttf", 32);
     fsemu_font_t *font_3 =
-        fsemu_fontcache_font("Fonts/SairaCondensed-Bold.ttf", 24);
+        fsemu_fontcache_font("SairaCondensed-Bold.ttf", 24);
 #if 0
     fsemu_font_t *font_4 =
-        fsemu_fontcache_font("Fonts/SairaCondensed-Regular.ttf", 24);
+        fsemu_fontcache_font("SairaCondensed-Regular.ttf", 24);
 #endif
 
     int x = 240;
@@ -285,7 +285,7 @@ void fsemu_startupinfo_init(void)
     x += 15;
 
     item = &fsemu_startupinfo.menu_shortcut_key_item;
-    image = fsemu_image_load("Images/ShortcutKeyAlt.png");
+    image = fsemu_image_load("ShortcutKeyAlt.png");
     fsemu_gui_image(item, x, 1080 - 60, image->width, image->height, image);
     item->coordinates = FSEMU_COORD_1080P_LEFT;
     item->z_index = 5001;

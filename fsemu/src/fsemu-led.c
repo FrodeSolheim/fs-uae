@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL 1
+#define FSEMU_INTERNAL
 #include "fsemu-led.h"
 
 #include <stddef.h>
@@ -82,7 +82,7 @@ void fsemu_led_set_state(fsemu_led_t *led, fsemu_led_state_t state)
     if (state == led->state) {
         return;
     }
-    fsemu_assert (state >= 0 && state < FSEMU_LED_MAX_STATES);
+    fsemu_assert(state >= 0 && state < FSEMU_LED_MAX_STATES);
     led->state = state;
     // printf("LED \"%s\" -> state %d\n", led->label, state);
     led->changed = true;

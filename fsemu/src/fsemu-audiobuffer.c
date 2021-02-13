@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL 1
+#define FSEMU_INTERNAL
 #include "fsemu-audiobuffer.h"
 
 #include "fsemu-audio.h"
@@ -178,8 +178,7 @@ void fsemu_audiobuffer_update(const void *void_data, int size)
         // float *floatdata_p = fsemu_audiobuffer_extra.src_out;
         floatdata = fsemu_audiobuffer_extra.src_out;
 
-        ptrdiff_t available =
-            fsemu_audiobuffer.end - fsemu_audiobuffer.write;
+        ptrdiff_t available = fsemu_audiobuffer.end - fsemu_audiobuffer.write;
         if (available < size_out) {
 #if 1
             for (int i = 0; i < available / 2; i++) {
@@ -402,6 +401,8 @@ static double pid_controller_step(int *error_out,
 double fsemu_audiobuffer_calculate_adjustment(void)
 {
     double frame_rate_adjust = 0.0;
+    // frame_rate_adjust = fsemu_frame_rate_multiplier();
+    // frame_rate_adjust = 60 / 50.0;
 
     // frame_rate_adjust = 0.0;
 
@@ -409,7 +410,16 @@ double fsemu_audiobuffer_calculate_adjustment(void)
     double pid_adjust = pid_controller_step(&error, &error_sum, &latency);
 
     double adjust = frame_rate_adjust + pid_adjust;
-
+    // double adjust = frame_rate_adjust;
+#if 0
+    printf("%0.1f Adjust %0.5f (%0.5f + PID %0.5f) Err %d sum %d\n",
+           latency / 1000.0,
+           adjust,
+           frame_rate_adjust,
+           pid_adjust,
+           error,
+           error_sum);
+#endif
     fsemu_audio_log_trace(
         "%0.1f Adjust %0.5f (%0.5f + PID %0.5f) Err %d sum %d\n",
         latency / 1000.0,

@@ -1,0 +1,16 @@
+autoconf
+automake
+gcc
+gcc-c++
+gettext-tools
+glib2-devel
+libmpeg2-devel
+libpng-devel
+libsamplerate-devel
+libtool
+libXi-devel
+openal-soft-devel
+libSDL2-devel
+libSDL2_ttf-devel
+zip
+zlib-devel

@@ -8,6 +8,9 @@
 extern "C" {
 #endif
 
+// FIXME: MOVE
+int fsemu_application_exe_path(char *buffer, int size);
+
 void fsemu_data_init(void);
 void fsemu_data_load(const char *name, void **data, int *data_size);
 

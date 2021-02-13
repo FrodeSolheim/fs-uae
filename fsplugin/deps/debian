@@ -1,0 +1,15 @@
+autoconf
+automake
+g++
+gcc
+gettext
+libglib2.0-dev
+libmpeg2-4-dev
+libopenal-dev
+libpng-dev
+libsamplerate0-dev
+libsdl2-dev
+libsdl2-ttf-dev
+libtool
+zip
+zlib1g-dev

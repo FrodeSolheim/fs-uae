@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL 1
+#define FSEMU_INTERNAL
 #include "fsemu-osmenu.h"
 
 #include "fsemu-control.h"
@@ -59,11 +59,6 @@ typedef struct {
 } fsemu_osmenu_item_t;
 
 typedef struct {
-    fsemu_widget_t *background;
-    // Container widget for this particular menu representation. Not to be
-    // confused with fsemu_osmenu.container which contains the entire os-screen
-    // menu stack, including this container.
-    fsemu_widget_t *container;
     // int left;
     // int left_wanted;
     // Position in the menu stack, 0 being the most "main" menu.
@@ -74,10 +69,18 @@ typedef struct {
     // Index of the select item.
     int selected_index;
     fsemu_util_spring_t selected_spring;
+
+    fsemu_widget_t *background_w;
+    // Top-level menu has a close/quit button
+    fsemu_widget_t *close_w;
+    fsemu_widget_t *close_icon_w;
+    // Container widget for this particular menu representation. Not to be
+    // confused with fsemu_osmenu.container which contains the entire os-screen
+    // menu stack, including this container.
+    fsemu_widget_t *container_w;
     fsemu_widget_t *selected_w;
-    // int selected_y;
-    // int selected_y_wanted;
     fsemu_widget_t *shadow_w;
+
 } fsemu_osmenu_t;
 
 // ----------------------------------------------------------------------------
@@ -97,9 +100,10 @@ static struct {
     bool visible;
     // bool was_open;
     struct {
-        fsemu_widget_t *container;
-        fsemu_widget_t *background;
+        fsemu_widget_t *container_w;
+        fsemu_widget_t *background_w;
     } widgets;
+    fsemu_image_t *close_icon;
 } fsemu_osmenu;
 
 // ----------------------------------------------------------------------------
@@ -114,9 +118,9 @@ static int fsemu_osmenu_item_height(void)
 static void fsemu_osmenu_update_selected_w(fsemu_osmenu_t *osmenu,
                                            bool instant)
 {
-    // If selected_index is -1, this means no item is selected.
-    fsemu_widget_set_visible(osmenu->selected_w, osmenu->selected_index >= 0);
-    // We can calculate position even with selected_index -1, no harm.
+    // If selected_index is -2, this means no item is selected.
+    fsemu_widget_set_visible(osmenu->selected_w, osmenu->selected_index >= -1);
+    // We can calculate position even with selected_index -2, no harm.
     int y = 60 + osmenu->selected_index * fsemu_osmenu_item_height();
     // osmenu->selected_y_wanted = y;
     fsemu_util_spring_set_target(&osmenu->selected_spring, y);
@@ -153,9 +157,9 @@ static void fsemu_osmenu_populate_widgets(fsemu_osmenu_t *osmenu)
 {
     fsemu_widget_t *widget;
 
-    osmenu->container = fsemu_widget_new_with_name("fsemu:osmenu_t:container");
-    widget = osmenu->container;
-    fsemu_widget_add_child(fsemu_osmenu.widgets.container, widget);
+    widget = osmenu->container_w =
+        fsemu_widget_new_with_name("fsemu:osmenu_t:container_w");
+    fsemu_widget_add_child(fsemu_osmenu.widgets.container_w, widget);
 
     // fsemu_widget_set_top(widget, 0);
     // fsemu_widget_set_right(widget, 0);
@@ -165,24 +169,23 @@ static void fsemu_osmenu_populate_widgets(fsemu_osmenu_t *osmenu)
 
     // Transparent container widget. Only used to provide position/size and
     // visibility toggling for children.
-    fsemu_widget_set_color(widget, FSEMU_COLOR_RED);
+    fsemu_widget_set_color(widget, FSEMU_COLOR_TRANSPARENT);
     fsemu_widget_set_visible(widget, true);
     // This widget is added to the top level.
     // fsemu_gui_add_item(widget);
 
-    osmenu->shadow_w = fsemu_widget_new_with_name("fsemu:osmenu_t:shadow_w");
-    widget = osmenu->shadow_w;
-    fsemu_widget_add_child(osmenu->container, widget);
+    widget = osmenu->shadow_w =
+        fsemu_widget_new_with_name("fsemu:osmenu_t:shadow_w");
+    fsemu_widget_add_child(osmenu->container_w, widget);
     fsemu_widget_set_left(widget, -FSEMU_OSMENU_SHADOW_WIDTH);
     fsemu_widget_set_right_2(
         widget, FSEMU_OSMENU_SHADOW_WIDTH_2, FSEMU_WIDGET_PARENT_LEFT);
     fsemu_widget_set_image(widget, fsemu_osmenu.drop_shadow, false);
     fsemu_widget_set_visible(widget, true);
 
-    osmenu->background =
-        fsemu_widget_new_with_name("fsemu:osmenu_t:background");
-    widget = osmenu->background;
-    fsemu_widget_add_child(osmenu->container, widget);
+    widget = osmenu->background_w =
+        fsemu_widget_new_with_name("fsemu:osmenu_t:background_w");
+    fsemu_widget_add_child(osmenu->container_w, widget);
 
     // fsemu_widget_set_top_2(widget, 0, FSEMU_WIDGET_PARENT_TOP);
     // fsemu_widget_set_right_2(widget, 0, FSEMU_WIDGET_PARENT_RIGHT);
@@ -198,17 +201,28 @@ static void fsemu_osmenu_populate_widgets(fsemu_osmenu_t *osmenu)
     // fsemu_gui_add_item(w);
 
     // Create widget for indicating selection in this menu
-    osmenu->selected_w =
+    widget = osmenu->selected_w =
         fsemu_widget_new_with_name("fsemu:osmenu_t:selected_w");
-    widget = osmenu->selected_w;
-    fsemu_widget_add_child(osmenu->container, widget);
+    fsemu_widget_add_child(osmenu->container_w, widget);
     // fsemu_widget_set_right_2(widget, 0, FSEMU_WIDGET_PARENT_RIGHT);
     // fsemu_widget_set_left_2(widget, 0, FSEMU_WIDGET_PARENT_LEFT);
     fsemu_widget_set_color(widget, FSEMU_COLOR_RGB(0x808080));
     fsemu_widget_set_visible(widget, true);
 
+    // Close button
+    if (osmenu->level == 0) {
+        widget = osmenu->close_w =
+            fsemu_widget_new_with_name("fsemu:osmenu_t:close_w");
+        fsemu_widget_set_left_2(widget, -60, FSEMU_WIDGET_PARENT_RIGHT);
+        fsemu_widget_set_bottom_2(widget, 60, FSEMU_WIDGET_PARENT_TOP);
+        // fsemu_widget_set_color(widget, FSEMU_COLOR_RGB(0xff0000));
+        fsemu_widget_add_child(osmenu->container_w, widget);
+        fsemu_widget_set_visible(widget, true);
+        fsemu_widget_set_image(widget, fsemu_osmenu.close_icon, false);
+    }
+
     int y = 60;
-    osmenu->selected_index = -1;
+    osmenu->selected_index = -2;
 
     fsemu_menu_t *menu = osmenu->menu;
     for (int i = 0; i < fsemu_menu_count_items(menu); i++) {
@@ -218,7 +232,7 @@ static void fsemu_osmenu_populate_widgets(fsemu_osmenu_t *osmenu)
                                fsemu_menu_item_selectable(item),
                                fsemu_menu_item_heading(item));
         if (fsemu_menu_item_selectable(item)) {
-            if (osmenu->selected_index == -1 ||
+            if (osmenu->selected_index == -2 ||
                 fsemu_menu_item_selected_initially(item)) {
                 osmenu->selected_index = i;
             }
@@ -231,9 +245,9 @@ static void fsemu_osmenu_populate_widgets(fsemu_osmenu_t *osmenu)
         // fsemu_osmenu_log_debug("bbb\n");
         osmenu->ositems = g_list_append(osmenu->ositems, ositem);
 
-        ositem->title_w = fsemu_widget_new_with_name("osmenu:item:title_w");
-        widget = ositem->title_w;
-        fsemu_widget_add_child(osmenu->container, widget);
+        widget = ositem->title_w =
+            fsemu_widget_new_with_name("osmenu:item:title_w");
+        fsemu_widget_add_child(osmenu->container_w, widget);
         fsemu_widget_set_top_2(widget, y, FSEMU_WIDGET_PARENT_TOP);
         // FIXME: AUTO ? (Size to text?)
         fsemu_widget_set_right_2(widget, 0, FSEMU_WIDGET_PARENT_RIGHT);
@@ -270,7 +284,7 @@ static void fsemu_osmenu_populate_widgets(fsemu_osmenu_t *osmenu)
 
     fsemu_osmenu_update_osmenu(osmenu);
 
-    if (osmenu->selected_index == -1) {
+    if (osmenu->selected_index == -2) {
         fsemu_warning("No item could be selected\n");
     }
     // And now set the position of the selection widget since selected_index
@@ -291,7 +305,7 @@ static void fsemu_osmenu_delete(fsemu_osmenu_t *osmenu)
         // FIXME: Unlink from parent? unref?
         // fsemu_widget_unref(ositem->title_w);
 
-        fsemu_widget_remove_child(osmenu->container, ositem->title_w);
+        fsemu_widget_remove_child(osmenu->container_w, ositem->title_w);
         fsemu_widget_unref(ositem->title_w);
 
         fsemu_osmenu_log_debug("Unrefing menu item\n");
@@ -301,24 +315,24 @@ static void fsemu_osmenu_delete(fsemu_osmenu_t *osmenu)
     }
     g_list_free(osmenu->ositems);
 
-    fsemu_widget_remove_child(osmenu->container, osmenu->background);
-    fsemu_widget_unref(osmenu->background);
-    fsemu_widget_remove_child(osmenu->container, osmenu->selected_w);
+    fsemu_widget_remove_child(osmenu->container_w, osmenu->background_w);
+    fsemu_widget_unref(osmenu->background_w);
+    fsemu_widget_remove_child(osmenu->container_w, osmenu->selected_w);
     fsemu_widget_unref(osmenu->selected_w);
-    fsemu_widget_remove_child(osmenu->container, osmenu->shadow_w);
+    fsemu_widget_remove_child(osmenu->container_w, osmenu->shadow_w);
     fsemu_widget_unref(osmenu->shadow_w);
 
-    fsemu_widget_remove_child(fsemu_osmenu.widgets.container,
-                              osmenu->container);
-    fsemu_widget_unref(osmenu->container);
+    fsemu_widget_remove_child(fsemu_osmenu.widgets.container_w,
+                              osmenu->container_w);
+    fsemu_widget_unref(osmenu->container_w);
 
-    // fsemu_widget_set_visible(osmenu->background, false);
+    // fsemu_widget_set_visible(osmenu->background_w, false);
     // FIXME: Unlink from parent? unref?
-    // fsemu_widget_unref(osmenu->background);
+    // fsemu_widget_unref(osmenu->background_w);
 
-    // fsemu_widget_set_visible(osmenu->container, false);
+    // fsemu_widget_set_visible(osmenu->container_w, false);
     // FIXME: Unlink from parent? unref?
-    // fsemu_widget_unref(osmenu->container);
+    // fsemu_widget_unref(osmenu->container_w);
 
     fsemu_osmenu_log_debug("Unrefing menu\n");
     fsemu_menu_unref(osmenu->menu);
@@ -368,8 +382,8 @@ static void fsemu_osmenu_update_left_positions(void)
         // osmenu->left_wanted = offset;
         fsemu_util_spring_set_target(&osmenu->open_spring, offset);
 
-        // fsemu_widget_set_left(osmenu->container, offset);
-        // fsemu_widget_set_right(osmenu->container, offset);
+        // fsemu_widget_set_left(osmenu->container_w, offset);
+        // fsemu_widget_set_right(osmenu->container_w, offset);
 
         stack = stack->next;
     }
@@ -466,10 +480,10 @@ void fsemu_osmenu_set_open(bool open)
     }
 #endif
     fsemu_osmenu.open = open;
-    // fsemu_widget_set_visible(fsemu_osmenu.widgets.container, open);
+    // fsemu_widget_set_visible(fsemu_osmenu.widgets.container_w, open);
     if (open) {
         fsemu_osmenu.visible = true;
-        fsemu_widget_set_visible(fsemu_osmenu.widgets.container, true);
+        fsemu_widget_set_visible(fsemu_osmenu.widgets.container_w, true);
         // fsemu_osmenu.offset_wanted = -FSEMU_OSMENU_WIDTH;
         fsemu_util_spring_set_target(&fsemu_osmenu.open_spring,
                                      -FSEMU_OSMENU_WIDTH);
@@ -499,6 +513,9 @@ void fsemu_osmenu_toggle_open(void)
 
 static bool fsemu_osmenu_selectable_item(fsemu_osmenu_t *osmenu, int index)
 {
+    if (osmenu->level == 0 && index == -1) {
+        return true;
+    }
     return fsemu_menu_item_selectable(
         fsemu_menu_get_item(osmenu->menu, index));
 }
@@ -524,16 +541,18 @@ static void fsemu_osmenu_navigate_up_down(int navigate,
     if (!osmenu) {
         return;
     }
+    int min_index = osmenu->level == 0 ? -1 : 0;
     int index = osmenu->selected_index;
     int length = fsemu_menu_count_items(osmenu->menu);
     if (navigate == FSEMU_GUI_NAVIGATE_UP) {
-        // Index can be -1 already if no item at all was selected. This can
+        // Index can be -2 already if no item at all was selected. This can
         // happen if all items are disabled.
-        if (index <= 0) {
+        if (index <= min_index) {
             return;
         }
         index -= 1;
-        while (index > 0 && !fsemu_osmenu_selectable_item(osmenu, index)) {
+        while (index > min_index &&
+               !fsemu_osmenu_selectable_item(osmenu, index)) {
             index -= 1;
         }
     } else {
@@ -548,7 +567,7 @@ static void fsemu_osmenu_navigate_up_down(int navigate,
     }
     if (index != osmenu->selected_index) {
         if (fsemu_osmenu_selectable_item(osmenu, index)) {
-            fsemu_assert(index >= 0 && index < length);
+            fsemu_assert(index >= min_index && index < length);
             osmenu->selected_index = index;
             fsemu_osmenu_update_selected_w(osmenu, false);
         }
@@ -563,6 +582,13 @@ static void fsemu_osmenu_navigate_primary(fsemu_action_state_t state)
     fsemu_osmenu_log_debug("Activate\n");
     fsemu_osmenu_t *osmenu = fsemu_osmenu_navigation_menu();
     if (!osmenu) {
+        return;
+    }
+
+    if (osmenu->selected_index == -1) {
+        // Close button
+        printf("Close button\n");
+        fsemu_control_quit();
         return;
     }
 
@@ -653,14 +679,14 @@ static void fsemu_osmenu_update_main_animation(void)
     int position = fsemu_osmenu.open_spring.current;
     // fsemu_osmenu_log_debug("%d\n", position);
     fsemu_widget_set_left_2(
-        fsemu_osmenu.widgets.container, position, FSEMU_WIDGET_SCREEN_RIGHT);
-    fsemu_widget_set_right_2(fsemu_osmenu.widgets.container,
+        fsemu_osmenu.widgets.container_w, position, FSEMU_WIDGET_SCREEN_RIGHT);
+    fsemu_widget_set_right_2(fsemu_osmenu.widgets.container_w,
                              position + FSEMU_OSMENU_WIDTH,
                              FSEMU_WIDGET_SCREEN_RIGHT);
     if (!fsemu_osmenu.open && fsemu_osmenu.open_spring.stopped) {
         // Closing animation is done.
         fsemu_osmenu.visible = false;
-        fsemu_widget_set_visible(fsemu_osmenu.widgets.container, false);
+        fsemu_widget_set_visible(fsemu_osmenu.widgets.container_w, false);
     }
 
 #else
@@ -672,10 +698,10 @@ static void fsemu_osmenu_update_main_animation(void)
         fsemu_osmenu.offset -= 40;
     }
     // fsemu_osmenu_log_debug("%d\n", fsemu_osmenu.offset);
-    fsemu_widget_set_left_2(fsemu_osmenu.widgets.container,
+    fsemu_widget_set_left_2(fsemu_osmenu.widgets.container_w,
                             fsemu_osmenu.offset,
                             FSEMU_WIDGET_SCREEN_RIGHT);
-    fsemu_widget_set_right_2(fsemu_osmenu.widgets.container,
+    fsemu_widget_set_right_2(fsemu_osmenu.widgets.container_w,
                              fsemu_osmenu.offset + FSEMU_OSMENU_WIDTH,
                              FSEMU_WIDGET_SCREEN_RIGHT);
 
@@ -683,7 +709,7 @@ static void fsemu_osmenu_update_main_animation(void)
         fsemu_osmenu.offset >= fsemu_osmenu.offset_wanted) {
         // Closing animation is done.
         fsemu_osmenu.visible = false;
-        fsemu_widget_set_visible(fsemu_osmenu.widgets.container, false);
+        fsemu_widget_set_visible(fsemu_osmenu.widgets.container_w, false);
     }
 #endif
 #if 0
@@ -697,10 +723,10 @@ static void fsemu_osmenu_update_main_animation(void)
     int64_t now_us = fsemu_time_us();
     fsemu_util_spring_update(&spring, now_us);
 
-    fsemu_widget_set_left_2(fsemu_osmenu.widgets.container,
+    fsemu_widget_set_left_2(fsemu_osmenu.widgets.container_w,
                             spring.current,
                             FSEMU_WIDGET_SCREEN_RIGHT);
-    fsemu_widget_set_right_2(fsemu_osmenu.widgets.container,
+    fsemu_widget_set_right_2(fsemu_osmenu.widgets.container_w,
                              spring.current + FSEMU_OSMENU_WIDTH,
                              FSEMU_WIDGET_SCREEN_RIGHT);
 
@@ -729,8 +755,8 @@ static void fsemu_osmenu_update_main_animation(void)
     fsemu_osmenu_log_debug("%d %d\n", (int) position, (int) to);
 
     fsemu_widget_set_left_2(
-        fsemu_osmenu.widgets.container, position, FSEMU_WIDGET_SCREEN_RIGHT);
-    fsemu_widget_set_right_2(fsemu_osmenu.widgets.container,
+        fsemu_osmenu.widgets.container_w, position, FSEMU_WIDGET_SCREEN_RIGHT);
+    fsemu_widget_set_right_2(fsemu_osmenu.widgets.container_w,
                              position + FSEMU_OSMENU_WIDTH,
                              FSEMU_WIDGET_SCREEN_RIGHT);
 #endif
@@ -769,8 +795,8 @@ void fsemu_osmenu_update(void)
         int position = osmenu->open_spring.current;
         // fsemu_osmenu_log_debug("position %d stopped %d\n", position,
         // osmenu->open_spring.stopped);
-        fsemu_widget_set_left(osmenu->container, position);
-        fsemu_widget_set_right(osmenu->container, position);
+        fsemu_widget_set_left(osmenu->container_w, position);
+        fsemu_widget_set_right(osmenu->container_w, position);
 #else
         // Crude animation
         if (osmenu->left < osmenu->left_wanted) {
@@ -779,14 +805,14 @@ void fsemu_osmenu_update(void)
             osmenu->left -= 20;
         }
 
-        fsemu_widget_set_left(osmenu->container, osmenu->left);
-        fsemu_widget_set_right(osmenu->container, osmenu->left);
+        fsemu_widget_set_left(osmenu->container_w, osmenu->left);
+        fsemu_widget_set_right(osmenu->container_w, osmenu->left);
 #endif
 
-        // If selected_index is -1, this means no item is selected.
+        // If selected_index is -2, this means no item is selected.
         fsemu_widget_set_visible(osmenu->selected_w,
-                                 osmenu->selected_index >= 0);
-        // We can calculate position even with selected_index -1, no harm.
+                                 osmenu->selected_index >= -1);
+        // We can calculate position even with selected_index -2, no harm.
         // int h = fsemu_osmenu_item_height();
         // int y = 60 + osmenu->selected_index * h;
         // osmenu->selected_top_wanted = y;
@@ -821,8 +847,8 @@ void fsemu_osmenu_update(void)
 #if 1
         fsemu_util_spring_update_with_time(&osmenu->open_spring, now_us);
         int position = osmenu->open_spring.current;
-        fsemu_widget_set_left(osmenu->container, position);
-        fsemu_widget_set_right(osmenu->container, position);
+        fsemu_widget_set_left(osmenu->container_w, position);
+        fsemu_widget_set_right(osmenu->container_w, position);
 
         if (osmenu->open_spring.stopped) {
             fsemu_osmenu_log_debug("Deleting osmenu\n");
@@ -852,8 +878,8 @@ void fsemu_osmenu_update(void)
             continue;
         }
 
-        fsemu_widget_set_left(osmenu->container, osmenu->left);
-        fsemu_widget_set_right(osmenu->container, osmenu->left);
+        fsemu_widget_set_left(osmenu->container_w, osmenu->left);
+        fsemu_widget_set_right(osmenu->container_w, osmenu->left);
 #endif
 
         listitem = listitem->next;
@@ -863,9 +889,9 @@ void fsemu_osmenu_update(void)
 
 static void fsemu_osmenu_init_container(void)
 {
-    fsemu_osmenu.widgets.container =
-        fsemu_widget_new_with_name("fsemu:osmenu:container");
-    fsemu_widget_t *widget = fsemu_osmenu.widgets.container;
+    fsemu_osmenu.widgets.container_w =
+        fsemu_widget_new_with_name("fsemu:osmenu:container_w");
+    fsemu_widget_t *widget = fsemu_osmenu.widgets.container_w;
 
     fsemu_widget_set_top_2(widget, 0, FSEMU_WIDGET_SCREEN_TOP);
 
@@ -895,11 +921,11 @@ static void fsemu_osmenu_init_background(void)
 {
     // FIXME: This might not be needed (separate backgrounds per
     // fsemu_osmenu_t)
-    fsemu_osmenu.widgets.background =
-        fsemu_widget_new_with_name("fsemu:osmenu:background");
-    fsemu_widget_t *widget = fsemu_osmenu.widgets.background;
+    fsemu_osmenu.widgets.background_w =
+        fsemu_widget_new_with_name("fsemu:osmenu:background_w");
+    fsemu_widget_t *widget = fsemu_osmenu.widgets.background_w;
 
-    fsemu_widget_add_child(fsemu_osmenu.widgets.container, widget);
+    fsemu_widget_add_child(fsemu_osmenu.widgets.container_w, widget);
     // fsemu_widget_set_top(widget, 0);
     // fsemu_widget_set_right(widget, 0);
     // fsemu_widget_set_bottom(widget, 0);
@@ -964,11 +990,11 @@ static void fsemu_osmenu_quit(void)
     }
     g_list_free(fsemu_osmenu.remove_stack);
 
-    // fsemu_widget_unref(fsemu_osmenu.widgets.background);
+    // fsemu_widget_unref(fsemu_osmenu.widgets.background_w);
 
     // In theory, this should unref all children?
     // EDIT: Actually, only as long as we have unrefed local references.
-    fsemu_widget_unref(fsemu_osmenu.widgets.container);
+    fsemu_widget_unref(fsemu_osmenu.widgets.container_w);
     fsemu_image_unref(fsemu_osmenu.drop_shadow);
 }
 
@@ -1001,4 +1027,7 @@ void fsemu_osmenu_init(void)
         fsemu_osmenu.leakcheck = true;
         fsemu_osmenu_set_open(true);
     }
+
+    // FIXME
+    fsemu_osmenu.close_icon = fsemu_image_load("TitleBarCloseIcon.png");
 }

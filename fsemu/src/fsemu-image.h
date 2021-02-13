@@ -47,16 +47,24 @@ fsemu_image_t *fsemu_image_load_png_from_data(void *data, int data_size);
 fsemu_image_t *fsemu_image_from_stream(fsemu_stream_t *stream, bool owner);
 fsemu_image_t *fsemu_image_from_size(int width, int height);
 
+int fsemu_image_save_png_file_from_data(
+    const char *path, void *buffer, int width, int height, int bpp);
+
+int fsemu_image_save_png_file_from_rgba_data(const char *path,
+                                        void *buffer,
+                                        int width,
+                                        int height);
+
 extern int fsemu_image_log_level;
 
-#define fsemu_image_log(format, ...)                             \
+#define fsemu_image_log(format, ...)                                   \
     if (fsemu_likely(fsemu_image_log_level >= FSEMU_LOG_LEVEL_INFO)) { \
-        fsemu_log("[FSE] [IMG] " format, ##__VA_ARGS__);         \
+        fsemu_log("[FSE] [IMG] " format, ##__VA_ARGS__);               \
     }
 
-#define fsemu_image_log_debug(format, ...)                          \
+#define fsemu_image_log_debug(format, ...)                                \
     if (fsemu_unlikely(fsemu_image_log_level >= FSEMU_LOG_LEVEL_DEBUG)) { \
-        fsemu_log("[FSE] [IMG] " format, ##__VA_ARGS__);            \
+        fsemu_log("[FSE] [IMG] " format, ##__VA_ARGS__);                  \
     }
 
 #ifdef __cplusplus

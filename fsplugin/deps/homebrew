@@ -1,0 +1,13 @@
+autoconf
+automake
+gettext
+glib
+libmpeg2
+libpng
+libsamplerate
+libtool
+openal-soft
+pkg-config
+sdl2
+sdl2_ttf
+zip

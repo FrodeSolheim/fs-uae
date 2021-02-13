@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL 1
+#define FSEMU_INTERNAL
 #include "fsemu-helpbar.h"
 
 #include "fsemu-layer.h"
@@ -32,7 +32,8 @@ void fsemu_helpbar_init(void)
         return;
     }
 
-    w = fsemu_helpbar.container_w = fsemu_widget_new_with_name("leds-container");
+    w = fsemu_helpbar.container_w =
+        fsemu_widget_new_with_name("leds-container");
     // FIXME: Make sure that this is optimized and not attempted rendering.
     fsemu_widget_set_color(w, FSEMU_COLOR_TRANSPARENT);
     // FIXME: Check what z-index to use (below video)

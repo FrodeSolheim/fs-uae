@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL 1
+#define FSEMU_INTERNAL
 #include "fsemu-option.h"
 
 #include <stdio.h>
@@ -6,6 +6,7 @@
 #include <strings.h>
 
 #include "fsemu-glib.h"
+#include "fsemu-inifile.h"
 #include "fsemu-log.h"
 #include "fsemu-thread.h"
 #include "fsemu-util.h"
@@ -15,10 +16,22 @@
 #include <fs/conf.h>
 #endif
 
+int fsemu_option_log_level = FSEMU_LOG_LEVEL_INFO;
+
 static struct {
     bool initialized;
     GHashTable *hash_table;
 } fsemu_option;
+
+const char **fsemu_option_keys(void)
+{
+    return (const char **) g_hash_table_get_keys_as_array(fsemu_option.hash_table, NULL);
+}
+
+void fsemu_option_keys_free(const char **keys)
+{
+    g_free(keys);
+}
 
 int fsemu_option_read_bool_default(const char *name,
                                    bool *result,
@@ -162,11 +175,13 @@ static void fsemu_option_process_key_value(const char *key,
     // g_hash_table_lookup, since that also checks for empty strings, which
     // should be treated as non-existing keys.
     if (!force && fsemu_option_const_string(key_lower)) {
+        printf("%s = %s (ignored)\n", key_lower, value);
         fsemu_option_log("%s = %s (ignored)\n", key_lower, value);
         g_free(key_lower);
         g_free(value);
     } else {
         g_strstrip(value);
+        printf("%s = %s\n", key_lower, value);
         fsemu_option_log("%s = %s\n", key_lower, value);
         // Hash table now owns both key_lower and value.
         g_hash_table_insert(fsemu_option.hash_table, key_lower, value);
@@ -260,6 +275,78 @@ static void fsemu_option_init_from_env(void)
 #endif
 }
 
+#if 0
+static void fsemu_option_process_key_value(const char *key, char *value, int force)
+{
+    char *key_lower = g_ascii_strdown(key, -1);
+    g_strdelimit (key_lower, "-", '_');
+    /* Using fs_config_get_const_string here instead of just
+     * g_hash_table_lookup, since that also checks for empty strings, which
+     * should be treated as non-existing keys. */
+    if (!force && fs_config_get_const_string(key_lower)) {
+        fs_log("%s = %s (ignored)\n", key_lower, value);
+        g_free(key_lower);
+        g_free(value);
+    } else {
+        g_strstrip(value);
+        fs_log("%s = %s\n", key_lower, value);
+        /* Hash table now owns both key_lower and value. */
+        g_hash_table_insert(fsemu_option.hash_table, key_lower, value);
+    }
+}
+#endif
+
+static void fsemu_option_parse_inifile(fsemu_inifile_t *inifile, int force)
+{
+    printf("Parse ini file\n");
+
+    char **groups = fsemu_inifile_get_groups(inifile, NULL);
+    for (char **group = groups; *group; group++) {
+        const char *prefix = "";
+#if 0
+        if (strcmp(*group, "theme") == 0) {
+            prefix = "theme_";
+        }
+#endif
+        char **keys = fsemu_inifile_get_keys(inifile, *group, NULL);
+        for (char **key = keys; *key; key++) {
+            char *value = fsemu_inifile_get_value(inifile, *group, *key);
+            if (value) {
+                char *key2 = g_strconcat(prefix, *key, NULL);
+                fsemu_option_process_key_value(key2, value, force);
+                g_free(key2);
+            }
+        }
+        g_strfreev(keys);
+    }
+    g_strfreev(groups);
+}
+
+fsemu_error_t fsemu_option_read_config_file(const char *path)
+{
+    fsemu_option_log("Load config file: %s\n", path);
+    if (!fsemu_path_exists(path)) {
+        fsemu_option_log_info("Config file does not exist\n");
+        return 1;
+    }
+
+    fsemu_inifile *inifile = fsemu_inifile_open(path);
+    if (inifile == NULL) {
+        fsemu_option_log_error("Error loading config file\n");
+        return 2;
+    }
+    bool force = false;
+    fsemu_option_parse_inifile(inifile, force);
+    fsemu_inifile_destroy(inifile);
+    return 0;
+}
+
+void fsemu_option_init_from_argv(int argc, char **argv)
+{
+    fsemu_option_init();
+    fsemu_option_load_from_argv(argc, argv);
+}
+
 void fsemu_option_init(void)
 {
     if (fsemu_option.initialized) {
@@ -271,10 +358,4 @@ void fsemu_option_init(void)
     fsemu_option.hash_table =
         g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
     fsemu_option_init_from_env();
-}
-
-void fsemu_option_init_from_argv(int argc, char **argv)
-{
-    fsemu_option_init();
-    fsemu_option_load_from_argv(argc, argv);
 }

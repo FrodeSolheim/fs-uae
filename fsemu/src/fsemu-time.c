@@ -1,24 +1,9 @@
-#define FSEMU_INTERNAL 1
+#define FSEMU_INTERNAL
 #include "fsemu-time.h"
 
 #include <stdio.h>
 
 #include "fsemu-util.h"
-
-// A bit uncertain about the effects of doing _mm_pause here, but
-// it isn't likely to do any harm, and could have positive effects
-// (lower power usage? yield some more to otherhyper threading
-// core?). We haven't got any better thing to do...
-#ifdef FSEMU_CPU_X86
-#define FSEMU_USE_MM_PAUSE
-#endif
-
-#ifdef FSEMU_USE_MM_PAUSE
-#include <emmintrin.h>
-#define fsemu_time_mm_pause() _mm_pause()
-#else
-#define fsemu_time_mm_pause()
-#endif
 
 #include "fsemu-mutex.h"
 
@@ -36,10 +21,43 @@ int64_t fsemu_time_sleep_until_us(int64_t until_us)
 
 int64_t fsemu_time_sleep_until_us_2(int64_t until_us, int64_t now_us)
 {
-    if (until_us > now_us) {
-        fsemu_sleep_us(until_us - now_us);
+    if (now_us >= until_us) {
+        // printf("fsemu_time_sleep_until_us_2 - already reached target\n");
+        return now_us;
     }
-    return fsemu_time_us();
+#if 0
+    // Warning, g_usleep is using Sleep (1 ms precision) on Windows, and
+    // nanosleep elsewhere.
+    // FIXME: Try clock_nanosleep instead?
+
+    now_us = fsemu_time_us();
+#if 1
+    while (now_us < until_us - 2000) {
+        g_usleep(1000);
+
+        int64_t t = fsemu_time_us();
+        int overslept_ms = (int) (t - (now_us + 1000)) / 1000;
+        if (overslept_ms >= 1) {
+            printf("WARNING: Overslept 1ms sleep in loop by %d ms\n",
+                   overslept_ms);
+        }
+        now_us = t;
+    }
+#endif
+    while (now_us < until_us) {
+        fsemu_time_mm_pause();
+        now_us = fsemu_time_us();
+    }
+
+#else
+    fsemu_sleep_us(until_us - now_us);
+#endif
+    int64_t t = fsemu_time_us();
+    if (t > until_us + 1000) {
+        int overslept_ms = (int) (t - until_us) / 1000;
+        printf("WARNING: Overslept by %d ms\n", overslept_ms);
+    }
+    return t;
 }
 
 int64_t fsemu_time_wait_until_us(int64_t until_us)

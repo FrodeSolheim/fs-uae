@@ -43,7 +43,7 @@ fsemu_gui_item_t *fsemu_gui_create_item(void);
 void fsemu_gui_item_set_visible(fsemu_gui_item_t *item, bool visible);
 
 void fsemu_gui_rectangle(
-    fsemu_gui_item_t *item, int x, int y, int w, int h, int c);
+    fsemu_gui_item_t *item, int x, int y, int w, int h, uint32_t c);
 void fsemu_gui_image(
     fsemu_gui_item_t *item, int x, int y, int w, int h, fsemu_image_t *image);
 

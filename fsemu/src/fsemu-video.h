@@ -19,7 +19,9 @@ typedef enum {
     FSEMU_VIDEO_FORMAT_RGB565
 } fsemu_video_format_t;
 
-typedef struct {
+struct fsemu_video_frame_t;
+
+typedef struct fsemu_video_frame_t {
     int layer;
     uint8_t *buffer;
     int stride;
@@ -35,31 +37,13 @@ typedef struct {
     int number;
     // No actual frame data, used in pause mode
     bool dummy;
+
+    void (*finalize)(struct fsemu_video_frame_t *frame);
+    void *finalize_data;
 } fsemu_video_frame_t;
 
 // FIXME: Move to fsemu-frame?
 #define FSEMU_FRAME_FLAG_TURBO (1 << 0)
-
-typedef struct {
-    double frame_hz;
-    bool frame_warp;
-
-    int overshoot_us;
-    int wait_us;
-    int gui_us;  // Only used when emulation thread == video thread
-    int emu_us;
-    int render_us;  // Only used when emulation thread == video thread
-    int sleep_us;
-    int extra_us;
-    int other_us;
-
-    int64_t origin_at;
-    int64_t began_at;
-    int64_t rendered_at;
-    int64_t swapped_at;
-
-    int64_t vsync_at;
-} fsemu_video_frame_stats_t;
 
 typedef enum {
     FSEMU_VIDEO_DRIVER_NULL,
@@ -176,6 +160,9 @@ int64_t fsemu_video_vsync_time(void);
 // FIXME: REMOVE?
 // void fsemu_video_set_vsync_time(int frame_number, int64_t vsync_time);
 
+int fsemu_video_vsync_interval(void);
+int fsemu_video_vsync_frequency(void);
+
 void fsemu_video_work(int timeout_us);
 
 void fsemu_video_background_color_rgb(int *r, int *g, int *b);
@@ -189,15 +176,13 @@ void fsemu_video_render_gui_early(fsemu_gui_item_t *items);
 void fsemu_video_render(void);
 void fsemu_video_render_gui(fsemu_gui_item_t *items);
 
-/** Returns the frame number of the latest rendered frame. */
-int fsemu_video_rendered_frame(void);
+// Returns the frame number of the latest rendered frame.
+// int fsemu_video_rendered_frame(void);
 
-void fsemu_video_set_frame_began_at(int frame, int64_t began_at);
+// void fsemu_video_set_frame_began_at(int frame, int64_t began_at);
 void fsemu_video_set_frame_rendered_at(int frame, int64_t rendered_at);
 void fsemu_video_set_frame_swapped_at(int frame, int64_t swapped_at);
 void fsemu_video_set_frame_vsync_at(int frame, int64_t vsync_at);
-
-void fsemu_video_frame_stats(int frame, fsemu_video_frame_stats_t *stats);
 
 // From main or video thread
 
@@ -210,10 +195,13 @@ static inline fsemu_video_frame_t *fsemu_video_alloc_frame(void)
     return FSEMU_UTIL_MALLOC0(fsemu_video_frame_t);
     // return (fsemu_video_frame_t *) malloc(sizeof(fsemu_video_frame_t));
 }
-static inline void fsemu_video_free_frame(fsemu_video_frame_t *frame)
-{
-    free(frame);
-}
+
+// static inline void fsemu_video_free_frame(fsemu_video_frame_t *frame)
+// {
+//     free(frame);
+// }
+
+void fsemu_video_finalize_and_free_frame(fsemu_video_frame_t *frame);
 
 void fsemu_video_post_frame(fsemu_video_frame_t *frame);
 
@@ -271,7 +259,7 @@ extern int fsemu_video_log_level;
 
 // ----------------------------------------------------------------------------
 
-#endif // FSEMU_INTERNAL
+#endif  // FSEMU_INTERNAL
 
 #ifdef __cplusplus
 }

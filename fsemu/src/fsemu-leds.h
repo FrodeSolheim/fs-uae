@@ -2,7 +2,6 @@
 #define FSEMU_LEDS_H_
 
 #include "fsemu-config.h"
-
 #include "fsemu-led.h"
 
 #ifdef __cplusplus

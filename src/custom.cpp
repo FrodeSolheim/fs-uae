@@ -8680,6 +8680,8 @@ static void vsync_handler_post (void)
 		// fsemu_frame_update_timing(vblank_hz, currprefs.turbo_emulation);
 		// printf("vblank_hz = %0.2f\n", vblank_hz);
 		fsemu_frame_start(vblank_hz);
+                 double adjust = fsemu_audiobuffer_calculate_adjustment();
+                 amiga_set_audio_frequency_adjust(adjust);
 
 #if 0
 		// Now we sleep until the start of the next frame. Using the less

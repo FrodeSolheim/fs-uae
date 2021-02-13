@@ -1,4 +1,4 @@
-#define FSEMU_INTERNAL 1
+#define FSEMU_INTERNAL
 #include "fsemu-main.h"
 
 #include "fsemu-fade.h"
@@ -31,6 +31,7 @@ bool fsemu_main_is_running(void)
 
 void fsemu_main_update(void)
 {
+    fsemu_action_update();
     fsemu_fade_update();
     fsemu_helpbar_update();
     fsemu_hud_update();

@@ -16,6 +16,10 @@ fsemu_inputmode_t *fsemu_inputmode_new(void);
 // fsemu_inputmode_t *fsemu_inputmode_alloc(void);
 void fsemu_inputmode_init(fsemu_inputmode_t *mode);
 
+const char *fsemu_inputmode_config_name(fsemu_inputmode_t *mode);
+void fsemu_inputmode_set_config_name(fsemu_inputmode_t *mode,
+                                     const char *name);
+
 const char *fsemu_inputmode_name(fsemu_inputmode_t *mode);
 void fsemu_inputmode_set_name(fsemu_inputmode_t *mode, const char *name);
 
@@ -56,12 +60,15 @@ typedef void (*fsemu_inputmode_map_f)(fsemu_inputmode_t *, int, int, int);
 //                          int device_input,
 //                          int action);
 
+void fsemu_inputmode_map_defaults(fsemu_inputmode_t *mode);
+
 void fsemu_inputmode_map(fsemu_inputmode_t *mode, int input, int action);
 
 #ifdef FSEMU_INTERNAL
 
 struct fsemu_inputmode {
     char *name;
+    char *config_name;
     uint16_t mapping[FSEMU_INPUTDEVICE_MAX];
     char *title;
 };

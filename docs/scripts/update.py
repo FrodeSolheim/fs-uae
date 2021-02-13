@@ -360,7 +360,7 @@ def main():
         f.close()
 
     with open(
-        "../fs-uae-launcher/fsgs/options/constants.py", "w", encoding="UTF-8"
+        "../fs-uae-launcher-private/fsgamesys/options/constants.py", "w", encoding="UTF-8"
     ) as f:
         f.write(
             """\
@@ -375,7 +375,7 @@ def main():
             f.write('{} = "{}"\n'.format(key.upper().strip("__"), key))
 
     with open(
-        "../fs-uae-launcher/fsgs/options/option.py", "w", encoding="UTF-8"
+        "../fs-uae-launcher-private/fsgamesys/options/option.py", "w", encoding="UTF-8"
     ) as f:
         f.write(
             """\
@@ -394,13 +394,13 @@ class Option(object):
             f.write('    {} = "{}"\n'.format(key.upper().strip("__"), key))
 
     with open(
-        "../fs-uae-launcher/launcher/option.py", "w", encoding="UTF-8"
+        "../fs-uae-launcher-private/launcher/option.py", "w", encoding="UTF-8"
     ) as f:
         f.write(
             """\
 # Automatically generated - do not edit by hand
 
-from fsgs.options.option import Option as BaseOption
+from fsgamesys.options.option import Option as BaseOption
 
 
 # noinspection PyClassHasNoInit
@@ -546,7 +546,7 @@ class AbstractExpandFunctions:
         for option in sorted(codes.keys()):
             write_option(f, option)
     shutil.move(
-        "doc/options2.py", "../fs-uae-launcher/launcher/ui/config/expand.py"
+        "doc/options2.py", "../fs-uae-launcher-private/launcher/ui/config/expand.py"
     )
 
 

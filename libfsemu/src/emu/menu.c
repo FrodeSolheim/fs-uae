@@ -735,7 +735,10 @@ static void enter_menu(void)
         go_back_in_menu_stack();
     }
 
-    //fs_emu_pause(1);
+    // Automatically pause emulation
+    if (fs_config_get_boolean("menu_auto_pause") == 1)
+        fs_emu_pause(1);
+
     g_fs_emu_menu_mode = 1;
     if (g_menu) {
         if (g_menu->update) {
@@ -751,6 +754,10 @@ static void leave_menu(void)
     fs_emu_log("EMU: Leave menu\n");
     g_fs_emu_menu_mode = 0;
     fs_emu_set_input_grab(did_have_input_grab_before_menu);
+	
+    // Automatically unpause emulation
+    if (fs_config_get_boolean("menu_auto_pause") == 1)
+        fs_emu_pause(-1);
 }
 
 bool fs_emu_menu_mode(void)

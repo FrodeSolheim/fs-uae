@@ -1,6 +1,8 @@
 #define FSEMU_INTERNAL
 #include "fsemu-gamemode.h"
 
+#include <stdlib.h>
+
 #include "fsemu-config.h"
 #include "fsemu-glib.h"
 #include "fsemu-log.h"

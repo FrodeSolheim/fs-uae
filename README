@@ -95,6 +95,11 @@ With gamepads, you enter the menu either by using the dedicated "menu" button,
 if the gamepad has one, or you press and hold "start" and "selected" at the
 same time (or equivalent buttons). Use the same key/button to close the menu.
 
+By default, the emulator will continue to run whilst the menu is being displayed.
+If you would like to change this so that it's automatically paused when you enter
+the menu and resumes when you exit then you should add the option
+`menu_auto_pause = 1`.
+
 In the menu, you use the following keys for navigation:
 
 - Cursor keys

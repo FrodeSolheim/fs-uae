@@ -652,7 +652,7 @@ int fsemu_image_save_png_file_from_data(
     data = buffer;
     for (i = 0; i < height; i++) {
         row_pointers[i] = (unsigned char *) data;
-        data = data + row_stride;
+        data = (uint8_t *) data + row_stride;
     }
     png_set_rows(png_ptr, info_ptr, row_pointers);
     png_write_png(png_ptr, info_ptr, PNG_TRANSFORM_IDENTITY, NULL);

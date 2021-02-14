@@ -857,6 +857,8 @@ libfsemu2_a_SOURCES = \
 	fsemu/src/fsemu-actions.h \
 	fsemu/src/fsemu-alsaaudio.c \
 	fsemu/src/fsemu-alsaaudio.h \
+	fsemu/src/fsemu-application.c \
+	fsemu/src/fsemu-application.h \
 	fsemu/src/fsemu-audiobuffer.c \
 	fsemu/src/fsemu-audiobuffer.h \
 	fsemu/src/fsemu-audio.c \
@@ -2027,9 +2029,8 @@ uninstall-local:
 
 clean-local:
 	rm -f fs-uae.dat
-	rm -Rf data/Fonts
-	rm -Rf data/Icons
-	rm -Rf data/Images
+	rm -f data/*.ttf
+	rm -f data/*.png
 	rm -f data/.fsemu
 	find share -name fs-uae.mo -delete
 

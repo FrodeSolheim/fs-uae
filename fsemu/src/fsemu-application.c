@@ -4,6 +4,7 @@
 #include "fsemu-glib.h"
 #include "fsemu-log.h"
 #include "fsemu-module.h"
+#include "fsemu-util.h"
 
 // ----------------------------------------------------------------------------
 

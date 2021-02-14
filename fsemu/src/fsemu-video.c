@@ -11,6 +11,7 @@
 #include "fsemu-module.h"
 #include "fsemu-mutex.h"
 #include "fsemu-option.h"
+#include "fsemu-screenshot.h"
 #include "fsemu-sdl.h"
 #include "fsemu-sdlvideo.h"
 #include "fsemu-sdlwindow.h"

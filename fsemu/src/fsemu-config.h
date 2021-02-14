@@ -40,6 +40,8 @@
 // #pragma GCC diagnostic warning "-Wsign-conversion"
 #endif  // FSEMU_DEVELOPMENT
 
+#pragma GCC diagnostic error "-Wimplicit-function-declaration"
+
 #endif  // FSEMU_INTERNAL
 
 // ----------------------------------------------------------------------------

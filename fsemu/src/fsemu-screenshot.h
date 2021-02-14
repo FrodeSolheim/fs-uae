@@ -11,7 +11,7 @@ extern "C" {
 
 void fsemu_screenshot_init(void);
 
-const char *fsemu_screenshots_dir(void);
+const char *fsemu_screenshot_dir(void);
 
 void fsemu_screenshot_capture(void);
 bool fsemu_screenshot_should_capture(void);

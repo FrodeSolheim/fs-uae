@@ -1,5 +1,6 @@
 Version 3.9.101dev:
 
+* Fixed crash in nname_to_aname [PowderedToastMan].
 * New option video_driver (can be sdl or null).
 * Configure flags --disable-jit and --disable-x86 must no longer be specified
   for ARM builds, they will be automatically disabled.

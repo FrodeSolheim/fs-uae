@@ -1,3 +1,7 @@
+Version 3.0.6:
+
+* Fixed crash in nname_to_aname [PowderedToastMan].
+
 Version 3.0.5:
 
 * Packaging change to satisfy Apple's changed notarization process (sigh).

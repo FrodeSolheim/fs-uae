@@ -313,7 +313,6 @@ int same_aname (const char *an1, const char *an2)
 static char *nname_to_aname(const char *nname, int noconvert)
 {
     char *cresult;
-    int len = strlen(nname);
     if (noconvert) {
         cresult = strdup(nname);
     } else {
@@ -327,6 +326,7 @@ static char *nname_to_aname(const char *nname, int noconvert)
     }
 
     char *result = strdup(cresult);
+    int len = strlen(cresult);
     unsigned char *p = (unsigned char *) result;
     for (int i = 0; i < len; i++) {
         unsigned char c = cresult[i];

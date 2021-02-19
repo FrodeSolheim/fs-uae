@@ -1,5 +1,6 @@
 Version 3.0.6:
 
+* SCP floppy image doesn't wrap to revolution #0 cleanly [keirf].
 * Fixed crash in nname_to_aname [PowderedToastMan].
 
 Version 3.0.5:

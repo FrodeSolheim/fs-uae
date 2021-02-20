@@ -37,6 +37,24 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
 
+    - name: Install dependencies
+      run: |
+        sudo apt install autoconf \
+        automake \
+        g++ \
+        gcc \
+        gettext \
+        libglib2.0-dev \
+        libmpeg2-4-dev \
+        libopenal-dev \
+        libpng-dev \
+        libsamplerate0-dev \
+        libsdl2-dev \
+        libsdl2-ttf-dev \
+        libtool \
+        zip \
+        zlib1g-dev
+
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v1

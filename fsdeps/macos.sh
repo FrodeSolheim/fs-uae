@@ -34,7 +34,7 @@ sha256:c77d0da3102aec9c07f43671e60611ebff89a996ef159497ce8e59d075786b12
 rm -Rf _build && mkdir _build && cd _build
 tar xf ../_sources/gettext-0.21.tar.gz
 cd gettext-0.21
-./configure --prefix=$FSDEPS_PREFIX
+./configure --prefix=$FSDEPS_PREFIX --disable-java
 make
 make install
 cd ../..

@@ -13,6 +13,23 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - name: Import signing certificate into keychain
+      run: |
+        KEYCHAIN_FILE=default.keychain
+        KEYCHAIN_PASSWORD=anypasswordwilldo
+        security create-keychain -p $KEYCHAIN_PASSWORD $KEYCHAIN_FILE
+        security default-keychain -s $KEYCHAIN_FILE
+        security unlock-keychain -p $KEYCHAIN_PASSWORD $KEYCHAIN_FILE
+        security import <(echo $SIGNING_CERTIFICATE_P12_DATA | base64 --decode) \
+                        -f pkcs12 \
+                        -k $KEYCHAIN_FILE \
+                        -P $SIGNING_CERTIFICATE_PASSWORD \
+                        -T /usr/bin/codesign
+        security set-key-partition-list -S apple-tool:,apple: -s -k $KEYCHAIN_PASSWORD $KEYCHAIN_FILE
+      env:
+        SIGNING_CERTIFICATE_P12_DATA: ${{ secrets.MACOS_CERTIFICATE_P12_DATA }}
+        SIGNING_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+
     - name: Install extra tools via brew
       run: brew install autoconf automake meson
 

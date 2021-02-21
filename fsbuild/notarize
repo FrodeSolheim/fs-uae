@@ -1,4 +1,78 @@
-#!/bin/sh
-set -e
+#!/usr/bin/env python3
 
-make
+import os
+import sys
+import time
+import xml.etree.ElementTree as ET
+
+app_name = "FS-UAE"
+app_id = "no.fengestad.fs-uae"
+
+apple_id_user = os.environ.get("NOTARIZATION_USERNAME", "")
+itc_provider = os.environ.get("NOTARIZATION_PROVIDER", "")
+
+if os.path.exists(".env"):
+    f = open(".env", "r")
+    for line in f:
+        line = line.strip()
+        if not line:
+            continue
+        key, value = line.split("=")
+        os.environ[key] = value
+        if key == "APPLE_ID_USER":
+            apple_id_user = value
+        if key == "ITC_PROVIDER":
+            itc_provider = value
+
+
+def shell(cmd):
+    print(cmd)
+    return os.popen(cmd).read()
+
+
+def main():
+    app = app_name
+    arch = "x86-64"  # FIXME
+    app_path = f"fsbuild/_build/{app}/macOS/{arch}/{app}.app"
+    shell("rm -f fsbuild/_build/Notarize.zip")
+    shell("cd fsbuild/_build && zip -r Notarize.zip \"{}\"".format(app))
+    result = shell(
+       "xcrun altool --notarize-app -t osx " \
+       "-f fsbuild/_build/Notarize.zip " \
+       "--primary-bundle-id {app_id} " \
+       "-u {apple_id_user} " \
+       "-p @env:NOTARIZATION_PASSWORD " \
+       "-itc_provider {itc_provider} " \
+       "--output-format xml".format(
+           app_id=app_id, apple_id_user=apple_id_user,
+           itc_provider=itc_provider))
+
+    print(result)
+    root = ET.fromstring(result)
+    dict = root.find("dict")
+    print(dict)
+    request_uuid = dict.find("dict").find("string").text
+    print(request_uuid)
+
+    for i in range(60):
+        time.sleep(10.0)
+        result = shell(
+            "xcrun altool --notarization-info {} " \
+            "-u {} -p @env:NOTARIZATION_PASSWORD " \
+            "-itc_provider {} --output-format xml".format(
+            request_uuid, apple_id_user, itc_provider))
+        if "<string>success</string>" in result:
+            break
+        elif "<string>in progress</string>" in result:
+            print("in progress...")
+            continue
+        else:
+            print(result)
+            raise Exception("...")
+
+    print("xcrun stapler staple \"{}\"".format(app_path))
+    assert os.system("xcrun stapler staple \"{}\"".format(app_path)) == 0
+
+
+if __name__ == "__main__":
+    main()

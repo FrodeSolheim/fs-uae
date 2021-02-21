@@ -55,3 +55,9 @@ jobs:
 
     - name: Bundle
       run: fsbuild/bundle
+
+    - name: Sign
+      run: fsbuild/sign
+
+    - name: Notarize
+      run: fsbuild/notarize

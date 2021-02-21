@@ -19,7 +19,7 @@ def plugin_arch():
 def macos_app_bundle():
     plugin = plugin_name()
     arch = plugin_arch()
-    return f"fsbuild/{plugin}/macOS/{arch}/{plugin}.app"
+    return f"fsbuild/_build/{plugin}/macOS/{arch}/{plugin}.app"
 
 
 def q(arg):

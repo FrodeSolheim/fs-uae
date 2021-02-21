@@ -19,11 +19,13 @@ jobs:
 
     - name: Cache dependencies
       uses: actions/cache@v2
+      id: fsdeps_cache
       with:
         path: ~/.fsdeps
         key: fsdeps_${{ hashFiles('fsdeps/**/*') }}_${{ runner.os }}
 
     - name: Build dependencies
+      if: steps.fsdeps_cache.outputs.cache-hit != 'true'
       run: fsdeps/build
 
     - name: Bootstrap

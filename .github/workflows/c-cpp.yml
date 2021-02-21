@@ -1,0 +1,33 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: macos-10.15
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Cache dependencies
+      uses: actions/cache@v2
+      with:
+        path: ~/.fsdeps
+        key: fsdeps_${{ hashFiles('fsdeps/**/*') }}_${{ runner.os }}
+
+    - name: Build dependencies
+      run: fsdeps/build
+
+    - name: Bootstrap
+      run: fsdeps/use fsbuild/bootstrap
+
+    - name: Configure
+      run: fsdeps/use fsbuild/configure
+
+    - name: Make
+      run: fsdeps/use fsbuild/make

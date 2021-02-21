@@ -21,4 +21,8 @@ jobs:
       id: fsdeps_cache
       with:
         path: ~/.fsdeps
-        key: fsdeps_${{ hashFiles('fsdeps/**/*') }}_${{ runner.os }}
+        key: fsdeps_${{ hashFiles('fsdeps/**/*') }}_${{ runner.os }}_2
+
+    - name: Build dependencies
+      if: steps.fsdeps_cache.outputs.cache-hit != 'true'
+      run: fsdeps/build

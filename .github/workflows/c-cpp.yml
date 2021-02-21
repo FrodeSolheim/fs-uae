@@ -15,17 +15,12 @@ jobs:
 
     - name: Import signing certificate into keychain
       run: |
-        KEYCHAIN_FILE=default.keychain
-        KEYCHAIN_PASSWORD=anypasswordwilldo
-        security create-keychain -p $KEYCHAIN_PASSWORD $KEYCHAIN_FILE
-        security default-keychain -s $KEYCHAIN_FILE
-        security unlock-keychain -p $KEYCHAIN_PASSWORD $KEYCHAIN_FILE
-        security import <(echo $SIGNING_CERTIFICATE_P12_DATA | base64 --decode) \
-                        -f pkcs12 \
-                        -k $KEYCHAIN_FILE \
-                        -P $SIGNING_CERTIFICATE_PASSWORD \
-                        -T /usr/bin/codesign
-        security set-key-partition-list -S apple-tool:,apple: -s -k $KEYCHAIN_PASSWORD $KEYCHAIN_FILE
+        echo $SIGNING_CERTIFICATE_P12_DATA | base64 —decode > certificate.p12
+        security create-keychain -p keychain-password build.keychain security default-keychain -s build.keychain
+        security unlock-keychain -p keychain-password build.keychain
+        security import certificate.p12 -k build.keychain -P $MACOS_CERTIFICATE_PWD -T /usr/bin/codesign
+        security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k keychain-password build.keychain
+
       env:
         SIGNING_CERTIFICATE_P12_DATA: ${{ secrets.MACOS_CERTIFICATE_P12_DATA }}
         SIGNING_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}

@@ -38,7 +38,7 @@ jobs:
       id: fsdeps_cache
       with:
         path: ~/.fsdeps
-        key: fsdeps_${{ hashFiles('fsdeps/**/*') }}_${{ runner.os }}_2
+        key: fsdeps_${{ hashFiles('fsdeps/**/*') }}_${{ runner.os }}
 
     - name: Build dependencies
       if: steps.fsdeps_cache.outputs.cache-hit != 'true'
@@ -55,6 +55,3 @@ jobs:
 
     - name: Bundle
       run: fsbuild/bundle
-
-    - name: Sign
-      run: fsbuild/sign

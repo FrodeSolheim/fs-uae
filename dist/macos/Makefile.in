@@ -19,7 +19,10 @@ os_arch_dir = ${plugin_dir}/macOS/${arch}
 data_dir = ${plugin_dir}/Data
 licenses_dir = ${plugin_dir}/Licenses
 
-plugin: bundle
+plugin: plugin-no-archive
+	tar Jcfv ../../FS-UAE_${version}_macOS_$(arch).tar.xz FS-UAE
+
+plugin-no-archive: bundle
 	rm -Rf FS-UAE
 	mkdir -p FS-UAE/macOS/$(arch)
 
@@ -37,8 +40,6 @@ plugin: bundle
 	# FIXME: Move locale and fs-uae.dat out of .app and into Data
 	# mkdir -p ${data_dir}
 	# cp -a fsemu/data/* ${data_dir}/
-
-	tar Jcfv ../../FS-UAE_${version}_macOS_$(arch).tar.xz FS-UAE
 
 bundle:
 	make -C ../..

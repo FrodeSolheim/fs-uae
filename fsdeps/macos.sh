@@ -19,7 +19,9 @@ sha256:86a854d8905b19698bbc8f23b860bc104246ce4854dcea8e3b0fb21284f75784
 rm -Rf _build && mkdir _build && cd _build
 tar xf ../_sources/freetype-2.10.4.tar.xz
 cd freetype-2.10.4
-./configure --prefix=$FSDEPS_PREFIX --enable-freetype-config
+./configure --prefix=$FSDEPS_PREFIX \
+--enable-freetype-config \
+--with-brotli=no
 make
 make install
 cd ../..

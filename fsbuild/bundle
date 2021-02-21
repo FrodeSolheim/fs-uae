@@ -1,0 +1,11 @@
+#!/bin/sh
+set -e
+
+cd fsbuild
+rm -Rf FS-UAE
+cd ..
+
+cd dist/macos
+SIGN=0 NOTARIZE=0 make plugin-no-archive
+mv FS-UAE ../../fsbuild
+cd ../..

@@ -194,5 +194,8 @@ jobs:
       if: steps.fsdeps_cache.outputs.cache-hit != 'true'
       run: fsdeps/dep/zlib
 
+    - name: Test
+      run: find $HOME/.fsdeps
+
     - name: Bootstrap
       run: fsdeps/use fsbuild/bootstrap

@@ -100,7 +100,15 @@ jobs:
       with:
         update: true
         install: >-
+          autoconf
+          automake
           base-devel
+          gettext
+          libtool
+          make
+          mingw-w64-x86_64-gcc
+          mingw-w64-x86_64-pkg-config
+          zip
           git
 
     - uses: actions/checkout@v2

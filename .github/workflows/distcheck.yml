@@ -1,0 +1,33 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install deb packages
+      run: sudo apt install build-essential libsdl2-dev libglib2.0-dev libopenal-dev gettext libfreetype6-dev libxi-dev libpng-dev zlib1g-dev libmpeg2-4-dev zip libjpeg-dev libglew-dev libxtst-dev libsdl2-ttf-dev
+
+    - name: Run bootstrap
+      run: ./bootstrap
+
+    - name: Run configure
+      run: ./configure
+
+    - name: Run make
+      run: make
+
+    - name: Run make check
+      run: make check
+
+    - name: Run make distcheck
+      run: make distcheck

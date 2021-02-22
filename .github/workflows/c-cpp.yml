@@ -32,6 +32,10 @@ jobs:
       if: steps.fsdeps_cache.outputs.cache-hit != 'true'
       run: fsdeps/make
 
+    - name: Testbuild SDL
+      run: |
+        FSDEPS_REINSTALL=1 fsdeps/dep/SDL2
+
     - name: Bootstrap
       run: fsdeps/use fsbuild/bootstrap
 
@@ -153,6 +157,10 @@ jobs:
     - name: Build dependencies
       if: steps.fsdeps_cache.outputs.cache-hit != 'true'
       run: fsdeps/make
+
+    - name: Testbuild SDL
+      run: |
+        FSDEPS_REINSTALL=1 fsdeps/dep/SDL2
 
     - name: Test
       run: |

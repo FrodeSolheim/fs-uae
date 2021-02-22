@@ -11,8 +11,8 @@ jobs:
     runs-on: ubuntu-18.04
 
     steps:
-#    - name: Install deb packages
-#      run: sudo apt install meson
+    - name: Install deb packages
+      run: sudo apt install python3-setuptools
 
     - name: Install pip3 packages
       run: pip3 install meson

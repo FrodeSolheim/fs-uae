@@ -22,16 +22,16 @@ jobs:
 
     - name: Build dependencies
       if: steps.fsdeps_cache.outputs.cache-hit != 'true'
-      run: fsdeps/build
+      run: fsdeps/make
 
   macOS_x86-64:
     runs-on: macos-10.15
 
     steps:
-    - uses: actions/checkout@v2
-
-    - name: Install extra tools via brew
+    - name: Install brew packages
       run: brew install autoconf automake meson
+
+    - uses: actions/checkout@v2
 
     - name: Cache dependencies
       uses: actions/cache@v2
@@ -42,7 +42,7 @@ jobs:
 
     - name: Build dependencies
       if: steps.fsdeps_cache.outputs.cache-hit != 'true'
-      run: fsdeps/build
+      run: fsdeps/make
 
     - name: Bootstrap
       run: fsdeps/use fsbuild/bootstrap
@@ -82,7 +82,18 @@ jobs:
   Windows_x86-64:
     runs-on: windows-2016
 
+    defaults:
+      run:
+        shell: msys2 {0}
+
     steps:
+    - uses: msys2/setup-msys2@v2
+      with:
+        update: true
+        install: >-
+          base-devel
+          git
+
     - uses: actions/checkout@v2
 
     - name: Cache dependencies
@@ -94,4 +105,4 @@ jobs:
 
     - name: Build dependencies
       if: steps.fsdeps_cache.outputs.cache-hit != 'true'
-      run: fsdeps/build
+      run: fsdeps/make

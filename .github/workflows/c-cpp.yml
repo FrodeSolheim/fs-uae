@@ -12,7 +12,39 @@ jobs:
 
     steps:
     - name: Install deb packages
-      run: sudo apt install dos2unix gettext libasound2-dev libgl-dev libopenal-dev libxi-dev
+      run: >-
+        sudo apt install
+        dos2unix
+        gettext
+        libasound2-dev
+        libao-dev
+        libpulse-dev
+        libgl-dev
+        libgbm-dev
+        libopenal-dev
+        libevdev-dev
+        libudev-dev
+        libx11-dev
+        libxext-dev
+        libxfixes-dev
+        libxi-dev
+        libxrender-dev
+        libxcb1-dev
+        libx11-xcb-dev
+        libxcb-glx0-dev
+        libxcb-keysyms1-dev
+        libxcb-image0-dev
+        libxcb-shm0-dev
+        libxcb-icccm4-dev
+        libxcb-sync0-dev
+        libxcb-xfixes0-dev
+        libxcb-shape0-dev
+        libxcb-randr0-dev
+        libxcb-render-util0-dev
+        libxcb-xinerama0-dev
+        x11proto-dev
+        xa65
+        intltool
 
     - name: Install pip packages
       run: |

@@ -12,7 +12,7 @@ jobs:
 
     steps:
     - name: Install deb packages
-      run: sudo apt install dos2unix libasound2-dev
+      run: sudo apt install dos2unix gettext libasound2-dev
 
     - name: Install pip packages
       run: |

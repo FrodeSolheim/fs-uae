@@ -15,7 +15,7 @@ jobs:
 #      run: sudo apt install meson
 
     - name: Install pip3 packages
-      run: sudo pip3 install meson
+      run: pip3 install meson
 
     - uses: actions/checkout@v2
 

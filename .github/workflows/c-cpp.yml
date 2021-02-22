@@ -187,8 +187,8 @@ jobs:
       uses: actions/cache@v2
       id: fsdeps_cache
       with:
-        path: ~/.fsdeps
-        key: fsdeps_${{ hashFiles('fsdeps/**/*') }}_${{ runner.os }}_v3
+        path: $HOME/.fsdeps
+        key: fsdeps_${{ hashFiles('fsdeps/**/*') }}_${{ runner.os }}_v4
 
     - name: Build dependencies
       if: steps.fsdeps_cache.outputs.cache-hit != 'true'
@@ -199,24 +199,6 @@ jobs:
         env
         which pkg-config
         ls -l $HOME/.fsdeps/fs-uae/lib/pkgconfig
+        echo TILDE: ~
+        echo HOME: $HOME
         pkg-config --libs glib-2.0
-
-    - name: Bootstrap
-      run: fsdeps/use fsbuild/bootstrap
-
-    - name: Configure
-      run: fsdeps/use fsbuild/configure
-
-    - name: Make
-      run: fsdeps/use fsbuild/make
-
-    - name: Bundle
-      run: fsbuild/bundle
-
-    - name: Archive
-      run: fsbuild/archive
-
-    - uses: actions/upload-artifact@v2
-      with:
-        name: Windows_x86-64
-        path: fsbuild/_build/*.tar.xz

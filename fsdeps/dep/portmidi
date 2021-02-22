@@ -5,9 +5,6 @@ PACKAGE=portmidi-217
 CHECKSUM=08e9a892bd80bdb1115213fb72dc29a7bf2ff108b378180586aa65f3cfd42e0f
 REVISION=2
 
-# Depends on libasound (deb: libasound2-dev) on Linux. Maybe this should be
-# considered a system library and not built/included.
-
 . fsdeps/dep.sh
 
 python3 fsdeps/download.py \

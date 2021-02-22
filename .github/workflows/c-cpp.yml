@@ -12,7 +12,7 @@ jobs:
 
     steps:
     - name: Install deb packages
-      run: sudo apt install dos2unix gettext libasound2-dev libopenal-dev libxi-dev
+      run: sudo apt install dos2unix gettext libasound2-dev libgl-dev libopenal-dev libxi-dev
 
     - name: Install pip packages
       run: |

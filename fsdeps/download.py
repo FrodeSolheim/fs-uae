@@ -27,7 +27,9 @@ def verify():
     return result
 
 archive = url.split("/")[-1]
-archive = os.path.join("_sources", archive)
+if not os.path.exists("fsdeps/_sources"):
+    os.makedirs("fsdeps/_sources")
+archive = os.path.join("fsdeps/_sources", archive)
 
 if os.path.exists(archive):
     if verify():
@@ -36,7 +38,7 @@ if os.path.exists(archive):
     os.remove(archive)
 
 # FIXME: Replace use of wget, just use python instead
-if os.system(f"cd _sources && wget {url}") != 0:
+if os.system(f"cd fsdeps/_sources && wget {url}") != 0:
     print("Failed to download")
     sys.exit(1)
 

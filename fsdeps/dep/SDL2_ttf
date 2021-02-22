@@ -1,0 +1,36 @@
+#!/bin/sh
+set -e
+
+fsdeps/dep/freetype
+fsdeps/dep/SDL2
+
+PACKAGE=SDL2_ttf-2.0.15
+CHECKSUM=a9eceb1ad88c1f1545cd7bd28e7cbc0b2c14191d40238f531a15b01b1b22cd33
+REVISION=0
+
+. fsdeps/dep.sh
+
+if [ "`uname -o`" = "Msys" ]; then
+CHECKSUM=cdb72b5b1c3b27795fa128af36f369fee5d3e38a96c350855da0b81880555dbc
+python3 fsdeps/download.py \
+https://www.libsdl.org/projects/SDL_ttf/release/$PACKAGE.zip \
+sha256:$CHECKSUM
+else
+python3 fsdeps/download.py \
+https://www.libsdl.org/projects/SDL_ttf/release/$PACKAGE.tar.gz \
+sha256:$CHECKSUM
+fi
+
+rm -Rf fsdeps/_build && mkdir fsdeps/_build && cd fsdeps/_build
+if [ "`uname -o`" = "Msys" ]; then
+unzip ../_sources/$PACKAGE.zip
+else
+tar xf ../_sources/$PACKAGE.tar.gz
+fi
+cd $PACKAGE
+
+./configure --prefix=$PREFIX
+make
+make install
+
+touch $INSTALLED

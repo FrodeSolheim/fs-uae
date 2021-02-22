@@ -1,0 +1,32 @@
+#!/bin/sh
+set -e
+
+PACKAGE=zlib-1.2.11
+CHECKSUM=4ff941449631ace0d4d203e3483be9dbc9da454084111f97ea0a2114e19bf066
+REVISION=0
+
+. fsdeps/dep.sh
+
+python3 fsdeps/download.py \
+https://zlib.net/$PACKAGE.tar.xz \
+sha256:$CHECKSUM
+
+rm -Rf fsdeps/_build && mkdir fsdeps/_build && cd fsdeps/_build
+tar xf ../_sources/$PACKAGE.tar.xz
+cd $PACKAGE
+
+if [ "`uname -o`" = "Msys" ]; then
+make -f win32/Makefile.gcc
+make -f win32/Makefile.gcc \
+BINARY_PATH=$PREFIX/bin \
+INCLUDE_PATH=$PREFIX/include \
+LIBRARY_PATH=$PREFIX/lib \
+SHARED_MODE=1 \
+install
+else
+./configure --prefix=$PREFIX
+make
+make install
+fi
+
+touch $INSTALLED

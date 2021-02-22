@@ -1,0 +1,43 @@
+#!/bin/sh
+set -e
+
+PACKAGE=libmpeg2-0.5.1
+CHECKSUM=dee22e893cb5fc2b2b6ebd60b88478ab8556cb3b93f9a0d7ce8f3b61851871d4
+REVISION=0
+
+. fsdeps/dep.sh
+
+python3 fsdeps/download.py \
+https://libmpeg2.sourceforge.io/files/$PACKAGE.tar.gz \
+sha256:$CHECKSUM
+
+rm -Rf fsdeps/_build && mkdir fsdeps/_build && cd fsdeps/_build
+tar xf ../_sources/$PACKAGE.tar.gz
+cd $PACKAGE
+
+# python3 ../../replace.py \
+# Makefile.am \
+# "SUBDIRS = libmpeg2 include libvo src test vc++" \
+# "SUBDIRS = libmpeg2 include"
+# automake
+
+# Using -std=gnu89 to avoid some inline problems causing linker errors
+./configure --prefix=$PREFIX CFLAGS="-std=gnu89 -O2"
+# make
+cd libmpeg2
+make
+cd ..
+# Make libmpeg2.a build deterministically by sorting objects
+mkdir temp
+cd temp
+ar x ../libmpeg2/.libs/libmpeg2.a
+ar cru libmpeg2.a `ls *.o | sort`
+ranlib libmpeg2.a
+mv libmpeg2.a ../libmpeg2/.libs/libmpeg2.a
+cd ..
+cd libmpeg2
+make install
+cd ../include
+make install
+
+touch $INSTALLED

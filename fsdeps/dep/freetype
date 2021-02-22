@@ -1,0 +1,35 @@
+#!/bin/sh
+set -e
+
+# FIXME: Use libharfbuzz for freetype?
+fsdeps/dep/libpng
+fsdeps/dep/zlib
+
+PACKAGE=freetype-2.10.4
+CHECKSUM=86a854d8905b19698bbc8f23b860bc104246ce4854dcea8e3b0fb21284f75784
+REVISION=0
+
+. fsdeps/dep.sh
+
+python3 fsdeps/download.py \
+https://download.savannah.gnu.org/releases/freetype/$PACKAGE.tar.xz \
+sha256:$CHECKSUM
+
+rm -Rf fsdeps/_build && mkdir fsdeps/_build && cd fsdeps/_build
+tar xf ../_sources/$PACKAGE.tar.xz
+cd $PACKAGE
+
+./configure --prefix=$PREFIX \
+--with-brotli=no \
+--with-bzip2=no \
+--with-harfbuzz=no \
+--with-png=yes \
+--with-zlib=yes
+if [ "`uname -o`" = "Msys" ]; then
+make PLATFORM=windows
+else
+make
+fi
+make install
+
+touch $INSTALLED

@@ -1,6 +1,8 @@
 #!/bin/sh
 set -e
 
-. fsdeps/env
+. fsdeps/env.sh
 
-$1
+COMMAND=$1
+shift
+$COMMAND "$@"

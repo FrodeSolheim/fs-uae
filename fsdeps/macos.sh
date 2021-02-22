@@ -1,30 +1,32 @@
 #!/bin/sh
 set -e
 
-. ./env
+. fsdeps/env.sh
 
 # FIXME: Use libharfbuzz for freetype?
 
 # rm -Rf _build
 # mkdir -p _build
-mkdir -p _sources
+mkdir -p fsdeps/_sources
 
 # ----------------------------------------------------------------------------
 # freetype
 # ----------------------------------------------------------------------------
 
-python3 download.py \
-https://download.savannah.gnu.org/releases/freetype/freetype-2.10.4.tar.xz \
-sha256:86a854d8905b19698bbc8f23b860bc104246ce4854dcea8e3b0fb21284f75784
-rm -Rf _build && mkdir _build && cd _build
-tar xf ../_sources/freetype-2.10.4.tar.xz
-cd freetype-2.10.4
-./configure --prefix=$FSDEPS_PREFIX \
---enable-freetype-config \
---with-brotli=no
-make
-make install
-cd ../..
+# python3 download.py \
+# https://download.savannah.gnu.org/releases/freetype/freetype-2.10.4.tar.xz \
+# sha256:86a854d8905b19698bbc8f23b860bc104246ce4854dcea8e3b0fb21284f75784
+# rm -Rf _build && mkdir _build && cd _build
+# tar xf ../_sources/freetype-2.10.4.tar.xz
+# cd freetype-2.10.4
+# ./configure --prefix=$FSDEPS_PREFIX \
+# --enable-freetype-config \
+# --with-brotli=no
+# make
+# make install
+# cd ../..
+
+fsdeps/dep/freetype
 
 # ----------------------------------------------------------------------------
 # gettext

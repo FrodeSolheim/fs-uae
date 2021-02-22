@@ -1,0 +1,25 @@
+#!/bin/sh
+set -e
+
+fsdeps/dep/zlib
+
+PACKAGE=libpng-1.6.37
+CHECKSUM=505e70834d35383537b6491e7ae8641f1a4bed1876dbfe361201fc80868d88ca
+REVISION=0
+
+. fsdeps/dep.sh
+
+python3 fsdeps/download.py \
+https://downloads.sourceforge.net/project/libpng/libpng16/\
+1.6.37/$PACKAGE.tar.xz \
+sha256:$CHECKSUM
+
+rm -Rf fsdeps/_build && mkdir fsdeps/_build && cd fsdeps/_build
+tar xf ../_sources/$PACKAGE.tar.xz
+cd $PACKAGE
+
+./configure --prefix=$PREFIX
+make
+make install
+
+touch $INSTALLED

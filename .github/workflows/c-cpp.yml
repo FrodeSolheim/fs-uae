@@ -103,13 +103,14 @@ jobs:
           automake
           base-devel
           gettext
+          git
           libtool
           make
           mingw-w64-x86_64-gcc
           mingw-w64-x86_64-meson
           mingw-w64-x86_64-pkg-config
+          unzip
           zip
-          git
 
     - uses: actions/checkout@v2
 

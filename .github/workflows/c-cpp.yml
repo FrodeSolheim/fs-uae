@@ -187,12 +187,11 @@ jobs:
       run: |
         env
         which pkg-config
-        ls -l $HOME/.fsdeps/fs-uae/lib/pkgconfig
         echo TILDE: ~
         echo HOME: $HOME
         mount
+        ls -l $HOME/.fsdeps/fs-uae/lib/pkgconfig
         pkg-config --libs glib-2.0
-
 
     - name: Cache dependencies
       uses: actions/cache@v2
@@ -209,7 +208,7 @@ jobs:
       run: |
         env
         which pkg-config
-        ls -l $HOME/.fsdeps/fs-uae/lib/pkgconfig
         echo TILDE: ~
         echo HOME: $HOME
+        ls -l $HOME/.fsdeps/fs-uae/lib/pkgconfig
         pkg-config --libs glib-2.0

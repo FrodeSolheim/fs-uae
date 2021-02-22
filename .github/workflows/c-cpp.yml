@@ -32,6 +32,25 @@ jobs:
       if: steps.fsdeps_cache.outputs.cache-hit != 'true'
       run: fsdeps/make
 
+    - name: Bootstrap
+      run: fsdeps/use fsbuild/bootstrap
+
+    - name: Configure
+      run: fsdeps/use fsbuild/configure
+
+    - name: Make
+      run: fsdeps/use fsbuild/make
+
+    - name: Bundle
+      run: fsbuild/bundle
+
+    - name: Archive
+      run: fsbuild/archive
+
+    - uses: actions/upload-artifact@v2
+      with:
+        path: fsbuild/_build/*.tar.xz
+
   macOS_x86-64:
     runs-on: macos-10.15
 
@@ -86,6 +105,13 @@ jobs:
         NOTARIZATION_PASSWORD: ${{ secrets.MACOS_NOTARIZATION_PASSWORD }}
         NOTARIZATION_PROVIDER: ${{ secrets.MACOS_NOTARIZATION_PROVIDER }}
         NOTARIZATION_USERNAME: ${{ secrets.MACOS_NOTARIZATION_USERNAME }}
+
+    - name: Archive
+      run: fsbuild/archive
+
+    - uses: actions/upload-artifact@v2
+      with:
+        path: fsbuild/_build/*.tar.xz
 
   Windows_x86-64:
     runs-on: windows-2016

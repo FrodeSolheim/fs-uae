@@ -16,35 +16,39 @@ jobs:
         sudo apt install
         dos2unix
         gettext
-        libasound2-dev
+        intltool
         libao-dev
-        libpulse-dev
-        libgl-dev
-        libgbm-dev
-        libopenal-dev
+        libasound2-dev
         libevdev-dev
+        libgbm-dev
+        libgl-dev
+        libopenal-dev
+        libpulse-dev
         libudev-dev
+        libusb-1.0-0-dev
         libx11-dev
+        libx11-xcb-dev
+        libxcb1-dev
+        libxcb-glx0-dev
+        libxcb-icccm4-dev
+        libxcb-image0-dev
+        libxcb-keysyms1-dev
+        libxcb-randr0-dev
+        libxcb-render-util0-dev
+        libxcb-shape0-dev
+        libxcb-shm0-dev
+        libxcb-sync0-dev
+        libxcb-xfixes0-dev
+        libxcb-xinerama0-dev
+        libxcursor-dev
         libxext-dev
         libxfixes-dev
         libxi-dev
+        libxinerama-dev
+        libxrandr-dev
         libxrender-dev
-        libxcb1-dev
-        libx11-xcb-dev
-        libxcb-glx0-dev
-        libxcb-keysyms1-dev
-        libxcb-image0-dev
-        libxcb-shm0-dev
-        libxcb-icccm4-dev
-        libxcb-sync0-dev
-        libxcb-xfixes0-dev
-        libxcb-shape0-dev
-        libxcb-randr0-dev
-        libxcb-render-util0-dev
-        libxcb-xinerama0-dev
         x11proto-dev
         xa65
-        intltool
 
     - name: Install pip packages
       run: |
@@ -189,3 +193,30 @@ jobs:
     - name: Build dependencies
       if: steps.fsdeps_cache.outputs.cache-hit != 'true'
       run: fsdeps/make
+
+    - name: Test
+      run: |
+        env
+        which pkg-config
+        ls -l $HOME/.fsdeps/fs-uae/lib/pkgconfig
+        pkg-config --libs glib-2.0
+
+    - name: Bootstrap
+      run: fsdeps/use fsbuild/bootstrap
+
+    - name: Configure
+      run: fsdeps/use fsbuild/configure
+
+    - name: Make
+      run: fsdeps/use fsbuild/make
+
+    - name: Bundle
+      run: fsbuild/bundle
+
+    - name: Archive
+      run: fsbuild/archive
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: Windows_x86-64
+        path: fsbuild/_build/*.tar.xz

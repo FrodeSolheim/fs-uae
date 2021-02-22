@@ -1,0 +1,15 @@
+#!/bin/sh
+set -e
+
+. fsbuild/common.sh
+
+cd fsbuild/_build
+
+if [ "$OS" = "Windows" ]; then
+ARCHIVE=${PACKAGE}_${VERSION}_${OS}_${ARCH}.zip
+zip -r $ARCHIVE ${PACKAGE}
+else
+ARCHIVE=${PACKAGE}_${VERSION}_${OS}_${ARCH}.tar.xz
+tar cfJv $ARCHIVE ${PACKAGE}
+fi
+echo $ARCHIVE

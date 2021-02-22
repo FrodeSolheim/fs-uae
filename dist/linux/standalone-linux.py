@@ -45,9 +45,9 @@ def fix_binary(path):
         # print(line)
         if not line.startswith("NEEDED"):
             continue
-        print(line)
+        print(os.path.basename(path), line)
         library = line.split(" ")[-1]
-        print(library)
+        # print(library)
         if ignore_library(library):
             continue
         library_source = library_locations[library]
@@ -63,7 +63,7 @@ def fix_binary(path):
             continue
         dst = os.path.join(os.path.dirname(path), library)
         if not os.path.exists(dst):
-            print("copying", library)
+            print("COPYLIB", library_source)
             shutil.copy(library_source, dst)
             os.chmod(dst, 0o644)
             changes += 1

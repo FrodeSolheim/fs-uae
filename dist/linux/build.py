@@ -88,22 +88,21 @@ s("cp -a ../../fs-uae {package_dir}/fs-uae")
 #   "python3 -m fspy.zipfile deterministic {package_dir}/fs-uae.dat")
 s("cp -a ../../fs-uae-device-helper {package_dir}/fs-uae-device-helper")
 
-s("mkdir FS-UAE/Data")
-s("cp -a ../../fs-uae.dat FS-UAE/Data/fs-uae.dat")
-s("PYTHONPATH=../../../fs-uae-launcher:../../../../fs-uae-launcher "
-  "python3 -m fspy.zipfile deterministic FS-UAE/Data/fs-uae.dat")
-# s("mkdir -p {package_dir}/share")
-# s("cp -a ../../share/locale {package_dir}/share/locale")
-s("cp -a ../../share/locale FS-UAE/Data/Locale")
-# s("mkdir -p {package_dir}/share/fs-uae")
-# s("touch {package_dir}/share/fs-uae/share-dir")
+# data_dir = "FS-UAE/Data"
+data_dir = package_dir
+
+s(f"mkdir -p {data_dir}")
+s(f"cp -a ../../fs-uae.dat {data_dir}/fs-uae.dat")
+s(f"PYTHONPATH=../../../fs-uae-launcher:../../../../fs-uae-launcher "
+  f"python3 -m fspy.zipfile deterministic {data_dir}/fs-uae.dat")
+s(f"cp -a ../../data/* {data_dir}/")
+
+s(f"cp -a ../../share/locale FS-UAE/Locale")
 
 s("mkdir FS-UAE/Docs")
 s("cp -a ../../licenses FS-UAE/Docs/Licenses")
 s("cp -a ../../ChangeLog FS-UAE/Docs/ChangeLog.txt")
 s("cp -a ../../README FS-UAE/ReadMe.txt")
-
-s("cp -a ../../data/* FS-UAE/Data/")
 
 if os.environ.get("STANDALONE") == "0":
     pass
@@ -118,11 +117,12 @@ if os_name == "steamos":
     wrap("fs-uae")
     wrap("fs-uae-device-helper")
 
-# s("cd {package_dir} && tar Jcfv ../../../{package_name}.tar.xz *")
-s("tar Jcfv ../../{package_name_2}.tar.xz FS-UAE")
-print(package_name_2)
-# s("cp ../../{package_name_2}.tar.xz ../../{package_name}.tar.xz")
-# print(package_name_2)
+if os.environ.get("PACKAGE", "") != "0":
+    # s("cd {package_dir} && tar Jcfv ../../../{package_name}.tar.xz *")
+    s("tar Jcfv ../../{package_name_2}.tar.xz FS-UAE")
+    print(package_name_2)
+    # s("cp ../../{package_name_2}.tar.xz ../../{package_name}.tar.xz")
+    # print(package_name_2)
 print("OK")
 
 #s("rm -Rf {dbg_package_dir}")

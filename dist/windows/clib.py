@@ -2,14 +2,26 @@
 
 import os
 import sys
-import subprocess
+# import subprocess
+import shutil
 
 if os.getenv("MSYSTEM") == "MINGW32":
-    mingw_dir = "/mingw32"
+    prefix = "/mingw32"
 elif os.getenv("MSYSTEM") == "MINGW64":
-    mingw_dir = "/mingw64"
+    prefix = "/mingw64"
 
-p = subprocess.Popen([
-    "sh", "-c",
-    "cp {}/bin/{} {}".format(mingw_dir, sys.argv[1], sys.argv[2])])
-sys.exit(p.wait())
+dll = sys.argv[1]
+dst = sys.argv[2]
+
+src = f"../../fsdeps/_dlls/{dll}"
+print(src)
+if os.path.exists(src):
+    shutil.copy(src, dst)
+else:
+    src = f"{prefix}/bin/{dll}"
+    shutil.copy(src, dst)
+
+# p = subprocess.Popen([
+#     "sh", "-c",
+#     "cp {}/bin/{} {}".format(prefix, sys.argv[1], sys.argv[2])])
+# sys.exit(p.wait())

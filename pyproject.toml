@@ -1,0 +1,9 @@
+[tool.black]
+line-length = 79
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+skip_gitignore = true
+line_length = 79
+case_sensitive = false

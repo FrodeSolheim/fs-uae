@@ -1,4 +1,68 @@
-#!/bin/sh
-set -e
+#!/usr/bin/env python3
 
-exec python3 fsbuild/sign.py
+import os
+import sys
+import time
+import subprocess
+
+_package_name = None
+
+
+def get_package():
+    global _package_name
+    if _package_name is None:
+        with open("fsdeps/PACKAGE", "r") as f:
+            _package_name = f.read().strip()
+    return _package_name
+
+
+def get_arch():
+    # FIXME: Detect properly
+    return "x86-64"
+
+
+def macos_app_bundle():
+    package = get_package()
+    arch = get_arch()
+    return f"fsbuild/_build/{package}/macOS/{arch}/{package}.app"
+
+
+def q(arg):
+    if " " in arg:
+        return f'"{arg}"'
+    return arg
+
+
+def macos_sign():
+    # Signing sometimes fails due to Apple errors (timeouts, etc). So we try
+    # multiple times before giving up.
+    for i in range(20):
+        args = [
+            "codesign",
+            "-f",
+            "--deep",
+            "--options=runtime",
+            "--entitlements",
+            "fsbuild/Entitlements.plist",
+            "-s",
+            "Developer ID Application",
+            macos_app_bundle(),
+        ]
+        print(" ".join(f"{q(a)}" for a in args))
+        p = subprocess.Popen(args)
+        if p.wait() == 0:
+            break
+        time.sleep(1.0 * i)
+        print("Attempt", i + 2)
+    else:
+        print("Giving up")
+        sys.exit(1)
+
+
+def main():
+    if sys.platform == "darwin":
+        macos_sign()
+
+
+if __name__ == "__main__":
+    main()

@@ -32,7 +32,7 @@ def fix_binary(path, frameworks_dir):
         new = old.replace(old, "@executable_path/../Frameworks/" + name)
         dst = os.path.join(frameworks_dir, os.path.basename(old))
         if not os.path.exists(dst):
-            print("copying", old)
+            print("COPYLIB", old)
             shutil.copy(old, dst)
             os.chmod(dst, 0o644)
             changes += 1

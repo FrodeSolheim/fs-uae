@@ -498,16 +498,40 @@ SDL_Window *fsemu_sdlwindow_create(void)
         rect.h = fullscreen_mode.h;
     }
 
-    fsemu_window_log_debug("SDL_CreateWindow(..., %d, %d, %d, %d, flags=%d)\n",
-                           rect.x,
-                           rect.y,
-                           rect.w,
-                           rect.h,
-                           flags);
-    SDL_Window *window = SDL_CreateWindow(
-        fsemu_window_title(), rect.x, rect.y, rect.w, rect.h, flags);
+    // FIXME: There seems to be a bug (?) with SDL on X11. If you specify
+    // fullscreen desktop window *without decorations*, the position seems to
+    // ignored and it always opens on the same monitor (for me, always the
+    // right-most one).
+    // bool borderless_fullscreen_workaround = false;
+    // if ((flags & SDL_WINDOW_FULLSCREEN_DESKTOP) && (flags &
+    // SDL_WINDOW_BORDERLESS)) {
+    //     flags = flags & ~SDL_WINDOW_BORDERLESS;
+    //     // borderless_fullscreen_workaround = true;
+    // }
+
+    const char *title = fsemu_window_title();
+    fsemu_window_log("SDL_CreateWindow(\"%s\", %d, %d, %d, %d, flags=%d)\n",
+                     title,
+                     rect.x,
+                     rect.y,
+                     rect.w,
+                     rect.h,
+                     flags);
+    // flags = flags & ~SDL_WINDOW_FULLSCREEN_DESKTOP;
+
+    SDL_Window *window =
+        SDL_CreateWindow(title, rect.x, rect.y, rect.w, rect.h, flags);
     fsemu_window_log(
         "Window %p (Driver: %s)\n", window, SDL_GetCurrentVideoDriver());
+
+    // if (borderless_fullscreen_workaround) {
+    //     SDL_SetWindowBordered(window, SDL_FALSE);
+    // }
+
+    // SDL_SetWindowPosition(window, 1, 1);
+    // SDL_SetWindowPosition(window, 0, 0);
+    // SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+    // SDL_SetWindowSize(window, 1918, 1080);
 
 #if 1
     if (fullscreen_mode.refresh_rate) {
@@ -698,6 +722,7 @@ static void fsemu_sdlwindow_fullscreen_to_window(void)
         // fsemu_window_log("Window size is now %dx%d\n", rect.w, rect.h);
     }
 #endif
+#else
 #endif
     if (!fsemu_sdlwindow.was_fullscreen_initially) {
         return;
@@ -724,6 +749,18 @@ static void fsemu_sdlwindow_fullscreen_to_window(void)
     }
 
     SDL_RestoreWindow(fsemu_sdlwindow.window);
+
+    // We might have opened a fullscreen window with borders in order to
+    // workaround a bug where the window is not opened on the correct monitor.
+    // If so, make sure the borders are removed now.
+    // EDIT: This seems to cause memory corruption and/or crash. Another
+    // bug in SDL? Maybe a bit unusual use of SDL...
+    // if (!fsemu_titlebar_use_system()) {
+    //     fsemu_window_log(
+    //         "Workaround fullscreen->window borderless\n");
+    //     SDL_SetWindowBordered(fsemu_sdlwindow.window, SDL_FALSE);
+    // }
+
     SDL_SetWindowSize(fsemu_sdlwindow.window, rect.w, rect.h);
     fsemu_window_log_debug("Set position %d %d\n", rect.x, rect.y);
     SDL_SetWindowPosition(fsemu_sdlwindow.window, rect.x, rect.y);
@@ -1032,7 +1069,7 @@ bool fsemu_sdlwindow_handle_event(SDL_Event *event)
         if (event->key.keysym.scancode == SDL_SCANCODE_PRINTSCREEN) {
             fsemu_window_log_debug("SDL_SCANCODE_PRINTSCREEN\n");
             fsemu_screenshot_capture();
-            return true;            
+            return true;
         }
         if (shortcut) {
             if (fsemu_sdlwindow_handle_keyboard_shortcut(event)) {

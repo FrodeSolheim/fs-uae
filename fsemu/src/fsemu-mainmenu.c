@@ -776,6 +776,7 @@ static void fsemu_mainmenu_update_main(fsemu_menu_t *menu)
     int port_count = fsemu_input_port_count();
     for (int i = 0; i < port_count; i++) {
         item = fsemu_menu_get_item(menu, item_index++);
+        SDL_assert(item);
         fsemu_inputport_t *port = fsemu_input_port_by_index(i);
         const char *mode_name = fsemu_inputport_mode_name(port);
         fsemu_assert_release(mode_name);
@@ -803,6 +804,10 @@ static void fsemu_mainmenu_update_main(fsemu_menu_t *menu)
         char *title = g_strdup_printf("%s%s", mode_desc, device_name);
 #endif
         char *title = g_strdup_printf("[ %c ] %s", mode_name[0], device_name);
+        if (item == NULL) {
+            printf("ERROR: item is NULL (port count %d)\n", port_count);
+            continue;
+        }
         fsemu_menu_item_set_title(item, title);
         free(title);
     }

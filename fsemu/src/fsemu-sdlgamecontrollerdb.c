@@ -930,6 +930,9 @@ const char *fsemu_sdlgamecontrollerdb_mappings[] = {
 "06000000adde0000efbe000002010000,"
 "Hidromancer Game Controller,"
 "a:b0,b:b1,back:b6,dpdown:h0.4,dpleft:h0.8,dpright:h0.2,dpup:h0.1,guide:b8,leftshoulder:b4,leftstick:b9,lefttrigger:a2,leftx:a0,lefty:a1,rightshoulder:b5,rightstick:b10,righttrigger:a5,rightx:a3,righty:a4,start:b7,x:b2,y:b3,",
+"15000000010000000100000000010000,"
+"PiBoy DMG Controller,"
+"a:b1,b:b0,back:b8,dpdown:b11,dpleft:b13,dpright:b14,dpup:b12,leftshoulder:b5,leftstick:b10,lefttrigger:b7,leftx:a0,lefty:a1,rightshoulder:b3,righttrigger:b6,start:b9,x:b2,y:b4,",
 #endif
 #ifdef FSEMU_OS_MACOS
 "0300000000f00000f100000000000000,"

@@ -339,14 +339,17 @@ def fix_windows_binary(path, app_dir):
         src = line
         if src.lower() in windows_system_dlls:
             continue
-        print(src)
-        src = os.environ["MINGW_PREFIX"] + "/bin/" + src
-        print(src)
+        dll_name = src
+        print(dll_name)
 
         if True:
             dst = os.path.join(app_dir, os.path.basename(src))
             if not os.path.exists(dst):
-                print("copying", src)
+                src = os.path.join("fsdeps", "_dlls", dll_name)
+                if not os.path.exists(src):
+                    src = os.environ["MINGW_PREFIX"] + "/bin/" + dll_name
+                print(src)
+                print("COPYLIB", src)
                 shutil.copy(src, dst)
                 os.chmod(dst, 0o644)
                 changes += 1

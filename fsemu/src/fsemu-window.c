@@ -59,6 +59,9 @@ static void fsemu_window_read_options(void)
     fsemu_option_read_int(FSEMU_OPTION_WINDOW_CENTER_Y, &point->y);
     fsemu_window_log("Initial window center: %d %d\n", point->x, point->y);
 
+    // FIXME: Support reading the monitor option and calculating these
+    // coordinates if not explicitly specified.
+
     rect = &fsemu_window.initial_fullscreen_rect;
     fsemu_option_read_int(FSEMU_OPTION_FULLSCREEN_X, &rect->x);
     fsemu_option_read_int(FSEMU_OPTION_FULLSCREEN_Y, &rect->y);

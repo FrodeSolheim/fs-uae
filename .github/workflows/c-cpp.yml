@@ -193,13 +193,3 @@ jobs:
     - name: Build dependencies
       if: steps.fsdeps_cache.outputs.cache-hit != 'true'
       run: fsdeps/make
-
-    - name: Test
-      run: |
-        env
-        which pkg-config
-        echo TILDE: ~
-        echo HOME: $HOME
-        ls -l $HOME/.fsdeps/fs-uae/lib/pkgconfig
-        pkg-config --libs glib-2.0
-        ls /d/a/_temp/msys/msys64/home/runneradmin/.fsdeps

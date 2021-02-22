@@ -11,8 +11,11 @@ jobs:
     runs-on: ubuntu-18.04
 
     steps:
-    - name: Install deb packages
-      run: sudo apt install meson
+#    - name: Install deb packages
+#      run: sudo apt install meson
+
+    - name: Install pip3 packages
+      run: sudo pip3 install meson
 
     - uses: actions/checkout@v2
 

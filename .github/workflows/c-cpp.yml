@@ -196,20 +196,3 @@ jobs:
 
     - name: Bootstrap
       run: fsdeps/use fsbuild/bootstrap
-
-    - name: Configure
-      run: fsdeps/use fsbuild/configure
-
-    - name: Make
-      run: fsdeps/use fsbuild/make
-
-    - name: Bundle
-      run: fsbuild/bundle
-
-    - name: Archive
-      run: fsbuild/archive
-
-    - uses: actions/upload-artifact@v2
-      with:
-        name: Windows_x86-64
-        path: fsbuild/_build/*.tar.xz

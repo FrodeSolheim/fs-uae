@@ -14,6 +14,9 @@ jobs:
     - name: Install deb packages
       run: sudo apt install python3-setuptools
 
+    - name: Update pip and setuptools
+      run: install –-upgrade pip setuptools
+
     - name: Install pip3 packages
       run: pip3 install meson
 
@@ -24,7 +27,7 @@ jobs:
       id: fsdeps_cache
       with:
         path: ~/.fsdeps
-        key: fsdeps_${{ hashFiles('fsdeps/**/*') }}_${{ runner.os }}
+        key: fsdeps_${{ hashFiles('fsdeps/**/*') }}_${{ runner.os }}_v2
 
     - name: Build dependencies
       if: steps.fsdeps_cache.outputs.cache-hit != 'true'

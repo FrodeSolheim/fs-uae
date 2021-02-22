@@ -15,7 +15,7 @@ jobs:
       run: sudo apt install python3-setuptools
 
     - name: Update pip and setuptools
-      run: install –-upgrade pip setuptools
+      run: pip3 install –-upgrade pip setuptools
 
     - name: Install pip3 packages
       run: pip3 install meson
@@ -38,7 +38,7 @@ jobs:
 
     steps:
     - name: Install brew packages
-      run: brew install autoconf automake meson
+      run: brew install autoconf automake dos2unix meson
 
     - uses: actions/checkout@v2
 
@@ -47,7 +47,7 @@ jobs:
       id: fsdeps_cache
       with:
         path: ~/.fsdeps
-        key: fsdeps_${{ hashFiles('fsdeps/**/*') }}_${{ runner.os }}
+        key: fsdeps_${{ hashFiles('fsdeps/**/*') }}_${{ runner.os }}_v2
 
     - name: Build dependencies
       if: steps.fsdeps_cache.outputs.cache-hit != 'true'
@@ -110,7 +110,7 @@ jobs:
       id: fsdeps_cache
       with:
         path: ~/.fsdeps
-        key: fsdeps_${{ hashFiles('fsdeps/**/*') }}_${{ runner.os }}
+        key: fsdeps_${{ hashFiles('fsdeps/**/*') }}_${{ runner.os }}_v2
 
     - name: Build dependencies
       if: steps.fsdeps_cache.outputs.cache-hit != 'true'

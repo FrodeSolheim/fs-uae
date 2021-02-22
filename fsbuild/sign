@@ -11,7 +11,7 @@ _package_name = None
 def get_package():
     global _package_name
     if _package_name is None:
-        with open("fsbuild/PACKAGE", "r") as f:
+        with open("fsdeps/PACKAGE", "r") as f:
             _package_name = f.read().strip()
     return _package_name
 

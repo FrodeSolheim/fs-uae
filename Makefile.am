@@ -1719,7 +1719,6 @@ EXTRA_DIST = $(TESTS) $(EXTRA_TESTS) \
 	docs/variable-refresh-rate.md \
 	docs/vpar.md \
 	docs/vsync.md \
-	docs/whdload.md \
 	docs/windows.md \
 	docs/x-arcade.md \
 	flac/include/FLAC/all.h \

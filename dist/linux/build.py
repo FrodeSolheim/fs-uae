@@ -93,9 +93,8 @@ data_dir = package_dir
 
 s(f"mkdir -p {data_dir}")
 s(f"cp -a ../../fs-uae.dat {data_dir}/fs-uae.dat")
-# FIXME: Disabled for now since it references another project
-# s(f"PYTHONPATH=../../../fs-uae-launcher:../../../../fs-uae-launcher "
-#   f"python3 -m fspy.zipfile deterministic {data_dir}/fs-uae.dat")
+s(f"PYTHONPATH=../../../fs-uae-launcher:../../../../fs-uae-launcher "
+  f"python3 -m fspy.zipfile deterministic {data_dir}/fs-uae.dat")
 s(f"cp -a ../../data/* {data_dir}/")
 
 s(f"cp -a ../../share/locale FS-UAE/Locale")

@@ -18,7 +18,7 @@ rm -Rf fsdeps/_build && mkdir fsdeps/_build && cd fsdeps/_build
 tar xf ../_sources/$PACKAGE.tar.gz
 cd $PACKAGE
 
-if [ "`uname`" == "Darwin" ]; then
+if [ "`uname`" = "Darwin" ]; then
 python3 ../../replace.py \
 src/video/cocoa/SDL_cocoaevents.m \
 "keyEquivalent:@\"q\"];" \
@@ -45,7 +45,16 @@ src/video/cocoa/SDL_cocoaevents.m \
 "keyEquivalent:@\"\"];"
 fi
 
-./configure --prefix=$PREFIX
+if [ "`uname`" = "Linux" ]; then
+./configure \
+    --prefix=$PREFIX \
+    --disable-sndio \
+    --enable-video-wayland \
+    --enable-video-kmsdrm
+else
+./configure \
+    --prefix=$PREFIX
+fi
 make
 make install
 

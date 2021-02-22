@@ -1,5 +1,6 @@
 export FSDEPS_NAME=fs-uae
-export FSDEPS_PREFIX=$HOME/.fsdeps/$FSDEPS_NAME
+# export FSDEPS_PREFIX=$HOME/.fsdeps/$FSDEPS_NAME
+export FSDEPS_PREFIX="`pwd`/fsdeps/_prefix"
 
 export C_INCLUDE_PATH=$FSDEPS_PREFIX/include
 export CPLUS_INCLUDE_PATH=$FSDEPS_PREFIX/include

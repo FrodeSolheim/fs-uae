@@ -11,11 +11,11 @@ jobs:
     runs-on: ubuntu-18.04
 
     steps:
-    - name: Install deb packages
-      run: sudo apt install python3-setuptools
+#    - name: Install deb packages
+#      run: sudo apt install python3-setuptools
 
-    - name: Update pip and setuptools
-      run: pip3 install –-upgrade pip setuptools
+    - name: Install pip and setuptools
+      run: pip3 install pip setuptools
 
     - name: Install pip3 packages
       run: pip3 install meson

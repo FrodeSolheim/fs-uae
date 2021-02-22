@@ -194,16 +194,6 @@ jobs:
       if: steps.fsdeps_cache.outputs.cache-hit != 'true'
       run: fsdeps/dep/zlib
 
-    - name: Test
-      run: |
-        env
-        which pkg-config
-        echo TILDE: ~
-        echo HOME: $HOME
-        ls -l $HOME/.fsdeps/fs-uae/lib/pkgconfig
-        ls /d/a/_temp/msys/msys64/home/runneradmin/.fsdeps
-        fsdeps/use pkg-config --libs glib-2.0
-
     - name: Bootstrap
       run: fsdeps/use fsbuild/bootstrap
 

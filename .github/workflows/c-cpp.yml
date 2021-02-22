@@ -184,39 +184,8 @@ jobs:
       id: fsdeps_cache
       with:
         path: ~/.fsdeps
-        key: fsdeps_${{ hashFiles('fsdeps/**/*') }}_${{ runner.os }}_v2
+        key: fsdeps_${{ hashFiles('fsdeps/**/*') }}_${{ runner.os }}_v3
 
     - name: Build dependencies
       if: steps.fsdeps_cache.outputs.cache-hit != 'true'
       run: fsdeps/make
-
-    - name: Testbuild SDL
-      run: |
-        FSDEPS_REINSTALL=1 fsdeps/dep/SDL2
-
-    - name: Test
-      run: |
-        env
-        which pkg-config
-        ls -l $HOME/.fsdeps/fs-uae/lib/pkgconfig
-        pkg-config --libs glib-2.0
-
-    - name: Bootstrap
-      run: fsdeps/use fsbuild/bootstrap
-
-    - name: Configure
-      run: fsdeps/use fsbuild/configure
-
-    - name: Make
-      run: fsdeps/use fsbuild/make
-
-    - name: Bundle
-      run: fsbuild/bundle
-
-    - name: Archive
-      run: fsbuild/archive
-
-    - uses: actions/upload-artifact@v2
-      with:
-        name: Windows_x86-64
-        path: fsbuild/_build/*.tar.xz

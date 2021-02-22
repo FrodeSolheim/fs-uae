@@ -154,6 +154,13 @@ jobs:
       if: steps.fsdeps_cache.outputs.cache-hit != 'true'
       run: fsdeps/make
 
+    - name: Test
+      run: |
+        env
+        which pkg-config
+        ls -l $HOME/.fsdeps/fs-uae/lib/pkgconfig
+        pkg-config --libs glib-2.0
+
     - name: Bootstrap
       run: fsdeps/use fsbuild/bootstrap
 

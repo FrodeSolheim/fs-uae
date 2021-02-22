@@ -14,11 +14,10 @@ jobs:
 #    - name: Install deb packages
 #      run: sudo apt install python3-setuptools
 
-    - name: Install pip and setuptools
-      run: sudo python3 -m pip install setuptools
-
-    - name: Install pip3 packages
-      run: sudo python3 -m pip install meson
+    - name: Install pip packages
+      run: |
+        sudo python3 -m pip install setuptools pip
+        sudo python3 -m pip install meson ninja
 
     - uses: actions/checkout@v2
 

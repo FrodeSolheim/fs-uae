@@ -128,11 +128,11 @@ jobs:
           autoconf
           automake
           base-devel
-          cmake
           gettext
           git
           libtool
           make
+          mingw-w64-x86_64-cmake
           mingw-w64-x86_64-gcc
           mingw-w64-x86_64-meson
           mingw-w64-x86_64-pkg-config

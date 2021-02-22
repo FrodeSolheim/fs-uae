@@ -193,3 +193,33 @@ jobs:
     - name: Build dependencies
       if: steps.fsdeps_cache.outputs.cache-hit != 'true'
       run: fsdeps/make
+
+    - name: Test
+      run: |
+        env
+        which pkg-config
+        echo TILDE: ~
+        echo HOME: $HOME
+        ls -l $HOME/.fsdeps/fs-uae/lib/pkgconfig
+        ls /d/a/_temp/msys/msys64/home/runneradmin/.fsdeps
+        fsdeps/use pkg-config --libs glib-2.0
+
+    - name: Bootstrap
+      run: fsdeps/use fsbuild/bootstrap
+
+    - name: Configure
+      run: fsdeps/use fsbuild/configure
+
+    - name: Make
+      run: fsdeps/use fsbuild/make
+
+    - name: Bundle
+      run: fsbuild/bundle
+
+    - name: Archive
+      run: fsbuild/archive
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: Windows_x86-64
+        path: fsbuild/_build/*.tar.xz

@@ -1,4 +1,4 @@
-name: C/C++ CI
+name: Build
 
 on:
   push:
@@ -62,7 +62,7 @@ jobs:
       id: fsdeps_cache
       with:
         path: fsdeps/_prefix
-        key: fsdeps_${{ hashFiles('fsdeps/**/*') }}_${{ runner.os }}_v2
+        key: fsdeps_${{ hashFiles('fsdeps/**/*') }}_${{ runner.os }}
 
     - name: Build dependencies
       if: steps.fsdeps_cache.outputs.cache-hit != 'true'
@@ -90,7 +90,7 @@ jobs:
     - uses: actions/upload-artifact@v2
       with:
         name: Linux_x86-64
-        path: fsbuild/_build/*.tar.xz
+        path: fsbuild/_dist/*
 
   macOS_x86-64:
     runs-on: macos-10.15
@@ -106,7 +106,7 @@ jobs:
       id: fsdeps_cache
       with:
         path: fsdeps/_prefix
-        key: fsdeps_${{ hashFiles('fsdeps/**/*') }}_${{ runner.os }}_v2
+        key: fsdeps_${{ hashFiles('fsdeps/**/*') }}_${{ runner.os }}
 
     - name: Build dependencies
       if: steps.fsdeps_cache.outputs.cache-hit != 'true'
@@ -153,7 +153,7 @@ jobs:
     - uses: actions/upload-artifact@v2
       with:
         name: macOS_x86-64
-        path: fsbuild/_build/*.tar.xz
+        path: fsbuild/_dist/*
 
   Windows_x86-64:
     runs-on: windows-2016
@@ -189,7 +189,7 @@ jobs:
       id: fsdeps_cache
       with:
         path: fsdeps/_prefix
-        key: fsdeps_${{ hashFiles('fsdeps/**/*') }}_${{ runner.os }}_v7
+        key: fsdeps_${{ hashFiles('fsdeps/**/*') }}_${{ runner.os }}
 
     - name: Build dependencies
       if: steps.fsdeps_cache.outputs.cache-hit != 'true'
@@ -216,4 +216,4 @@ jobs:
     - uses: actions/upload-artifact@v2
       with:
         name: Windows_x86-64
-        path: fsbuild/_build/*.tar.xz
+        path: fsbuild/_dist/*

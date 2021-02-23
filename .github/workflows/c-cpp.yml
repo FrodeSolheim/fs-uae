@@ -194,3 +194,6 @@ jobs:
     - name: Build dependencies
       if: steps.fsdeps_cache.outputs.cache-hit != 'true'
       run: fsdeps/make
+
+    - name: Find
+      run: find .

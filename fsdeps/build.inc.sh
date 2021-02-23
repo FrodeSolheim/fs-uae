@@ -1,6 +1,3 @@
-#!/bin/sh
-set -e
-
 fsdeps/dep/gettext
 fsdeps/dep/glib
 fsdeps/dep/libmpeg2

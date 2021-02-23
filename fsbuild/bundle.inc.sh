@@ -1,6 +1,3 @@
-#!/bin/sh
-set -e
-
 cd fsbuild
 rm -Rf _build
 mkdir -p _build

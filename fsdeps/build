@@ -15,7 +15,9 @@ fi
 sh fsdeps/build.inc.sh
 
 if [ "$SYSTEM" = "Windows" ]; then
+echo "mkdir -p fsdeps/_dll"
 mkdir -p fsdeps/_dll
+echo "cp $FSDEPS_PREFIX/bin/*.dll fsdeps/_dll"
 cp $FSDEPS_PREFIX/bin/*.dll fsdeps/_dll
 fi
 

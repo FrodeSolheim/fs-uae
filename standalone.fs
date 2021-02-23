@@ -358,9 +358,11 @@ def fix_windows_binary(path, app_dir):
         if True:
             dst = os.path.join(app_dir, os.path.basename(src))
             if not os.path.exists(dst):
-                src = os.path.join("fsdeps", "_dll", dll_name)
+                src = os.path.join("fsdeps", "_prefix", "bin", dll_name)
+                print("Checking", src)
                 if not os.path.exists(src):
                     src = os.environ["MINGW_PREFIX"] + "/bin/" + dll_name
+                    print("Checking", src)
                 print(src)
                 print("COPYLIB", src)
                 shutil.copy(src, dst)

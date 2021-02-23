@@ -1,18 +1,4 @@
 #!/bin/sh
 set -e
 
-. fsdeps/env.sh
-
-echo FSDEPS_PREFIX=$FSDEPS_PREFIX
-echo LIBRARY_PATH=$LIBRARY_PATH
-echo PKG_CONFIG_PATH=$PKG_CONFIG_PATH
-if [ "`uname`" = "Darwin" ]; then
-echo MACOSX_DEPLOYMENT_TARGET=$MACOSX_DEPLOYMENT_TARGET
-fi
-
-sh fsdeps/make.sh
-
-if [ "`uname -o`" = "Msys" ]; then
-mkdir -p fsdeps/_dlls
-cp $FSDEPS_PREFIX/bin/*.dll fsdeps/_dlls
-fi
+fsdeps/build

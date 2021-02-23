@@ -1,4 +1,10 @@
 #!/bin/sh
 set -e
 
+if [ -f fsbuild/make.inc.sh ]; then
+. fsbuild/make.inc.sh
+elif [ -f fsplugin/Makefile ]; then
+make -C fsplugin "$@"
+elif [ -f ./Makefile ]; then
 make "$@"
+fi

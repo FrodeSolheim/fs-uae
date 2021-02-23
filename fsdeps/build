@@ -1,6 +1,22 @@
 #!/bin/sh
 set -e
 
-cd fsdeps
-sh macos.sh
+. fsdeps/env.sh
+. fsdeps/system.sh
+. fsdeps/arch.sh
 
+echo FSDEPS_PREFIX=$FSDEPS_PREFIX
+echo LIBRARY_PATH=$LIBRARY_PATH
+echo PKG_CONFIG_PATH=$PKG_CONFIG_PATH
+if [ "`uname`" = "Darwin" ]; then
+echo MACOSX_DEPLOYMENT_TARGET=$MACOSX_DEPLOYMENT_TARGET
+fi
+
+sh fsdeps/build.inc.sh
+
+if [ "$SYSTEM" = "Windows" ]; then
+mkdir -p fsdeps/_dll
+cp $FSDEPS_PREFIX/bin/*.dll fsdeps/_dll
+fi
+
+echo "Built fsdeps for ${SYSTEM}_${ARCH}"

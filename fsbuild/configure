@@ -1,4 +1,10 @@
 #!/bin/sh
 set -e
 
+if [ -f fsbuild/configure.inc.sh ]; then
+. fsbuild/configure.inc.sh
+elif [ -f fsplugin/Makefile ]; then
+make -C fsplugin configure
+elif [ -f ./configure ]; then
 ./configure
+fi

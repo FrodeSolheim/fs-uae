@@ -64,7 +64,7 @@ def fix_linux_binary(path):
             continue
         dst = os.path.join(os.path.dirname(path), library)
         if not os.path.exists(dst):
-            print("copying", library)
+            print("COPYLIB", library)
             shutil.copy(library_source, dst)
             os.chmod(dst, 0o644)
             changes += 1
@@ -83,12 +83,13 @@ def fix_linux_binary(path):
 
 
 def ignore_linux_library(name):
-    # if os.getenv("LIBGPG_ERROR_CHECK", "") != "0":
-    #     if name.startswith("libgpg-error.so"):
-    #         raise Exception(
-    #             "Bundling libgpg-error (libgcrypt?) breaks Intel GL driver"
-    #         )
+    if os.getenv("LIBGPG_ERROR_CHECK", "") != "0":
+        if name.startswith("libgpg-error.so"):
+            raise Exception(
+                "Bundling libgpg-error (libgcrypt?) breaks Intel GL driver"
+            )
 
+    # Skip the dynamic linker for all known architectures
     if name.startswith("linux-gate.so"):
         return True
     if name.startswith("linux-vdso.so"):
@@ -97,16 +98,14 @@ def ignore_linux_library(name):
         return True
     if name.startswith("ld-linux-x86-64.so"):
         return True
+    if name.startswith("ld-linux-armhf.so.3"):
+        return True
 
+    # Bundling the C library is a no-no (causes issues)
     if name.startswith("libc.so"):
         return True
-    if name.startswith("libstdc++.so"):
-        # Including libstdc++.sp breaks libGL loading with Intel on Ubuntu 16.10
-        # libGL error: unable to load driver: i965_dri.so
-        return True
-    if name.startswith("libgcc_s.so"):
-        # Might as well skip this one also, to avoid potential similar problems.
-        return True
+
+    # These are also system and/or libc libraries that we want to skip
     if name.startswith("libpthread.so"):
         return True
     if name.startswith("libm.so"):
@@ -119,10 +118,22 @@ def ignore_linux_library(name):
         return True
     if name.startswith("libutil.so"):
         return True
+
+    # Including libstdc++.sp breaks libGL loading with Intel on Ubuntu 16.10
+    # libGL error: unable to load driver: i965_dri.so
+    if name.startswith("libstdc++.so"):
+        return True
+
+    # Might as well skip this one also, to avoid potential problems. This
+    # probably requires that we compile with a not-too-recent GCC version.
+    if name.startswith("libgcc_s.so"):
+        return True
+
+    # Problem with OpenAL on Ubuntu 16.04 if this is included
     # if name.startswith("libpcre.so"):
-    #     # Problem with OpenAL on Ubuntu 16.04 if this is included.
     #     return True
 
+    # OpenGL libraries should definitively not be distributed
     if name.startswith("libGL.so"):
         return True
     if name.startswith("libGLU.so"):
@@ -130,11 +141,12 @@ def ignore_linux_library(name):
     if name.startswith("libEGL.so"):
         return True
 
+    # Alsa library is in LSB, looks like only "old" interfaces likely to exist
+    # on all system are used by SDL2.
     if name.startswith("libasound.so"):
-        # Alsa library is in LSB, looks like only "old" interfaces are used
-        # by SDL2.
         return True
 
+    # X libraries are assumed to exist on the host system
     if name.startswith("libX11.so"):
         return True
     if name.startswith("libXext.so"):
@@ -151,6 +163,7 @@ def ignore_linux_library(name):
         return True
     if name.startswith("libXxf86vm.so"):
         return True
+    # FIXME: Why was this commented out?
     # if name.startswith("libxkbcommon.so"):
     #     return True
     if name.startswith("libxcb.so"):
@@ -230,7 +243,7 @@ def fix_macos_binary(path, frameworks_dir):
         else:
             dst = os.path.join(frameworks_dir, os.path.basename(old))
             if not os.path.exists(dst):
-                print("copying", old)
+                print("COPYLIB", old)
                 shutil.copy(old, dst)
                 os.chmod(dst, 0o644)
                 changes += 1
@@ -345,7 +358,7 @@ def fix_windows_binary(path, app_dir):
         if True:
             dst = os.path.join(app_dir, os.path.basename(src))
             if not os.path.exists(dst):
-                src = os.path.join("fsdeps", "_dlls", dll_name)
+                src = os.path.join("fsdeps", "_dll", dll_name)
                 if not os.path.exists(src):
                     src = os.environ["MINGW_PREFIX"] + "/bin/" + dll_name
                 print(src)

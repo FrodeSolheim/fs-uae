@@ -1,4 +1,4 @@
-export FSDEPS_NAME=fs-uae
+# export FSDEPS_NAME=project-name
 # export FSDEPS_PREFIX=$HOME/.fsdeps/$FSDEPS_NAME
 export FSDEPS_PREFIX="`pwd`/fsdeps/_prefix"
 

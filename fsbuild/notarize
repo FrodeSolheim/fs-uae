@@ -5,7 +5,9 @@ import sys
 import time
 import xml.etree.ElementTree as ET
 
+# FIXME: MACOS_APP_NAME
 app_name = "FS-UAE"
+# FIXME: MACOS_APP_ID
 app_id = "no.fengestad.fs-uae"
 
 apple_id_user = os.environ.get("NOTARIZATION_USERNAME", "")

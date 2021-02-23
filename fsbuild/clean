@@ -1,0 +1,12 @@
+#!/bin/sh
+set -e
+
+rm -Rf fsbuild/_*
+
+if [ -f fsbuild/clean.inc.sh ]; then
+. fsbuild/clean.inc.sh
+elif [ -f fsplugin/Makefile ]; then
+make -C fsplugin clean
+elif [ -f ./Makefile ]; then
+make clean
+fi

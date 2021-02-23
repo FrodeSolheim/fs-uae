@@ -68,10 +68,6 @@ jobs:
       if: steps.fsdeps_cache.outputs.cache-hit != 'true'
       run: fsdeps/make
 
-    - name: Testbuild SDL
-      run: |
-        FSDEPS_REINSTALL=1 fsdeps/dep/SDL2
-
     - name: Bootstrap
       run: fsdeps/use fsbuild/bootstrap
 
@@ -124,7 +120,7 @@ jobs:
     - name: Bundle
       run: fsbuild/bundle
 
-    - name: Import signing certificate into keychain
+    - name: Prepare signing certificate
       run: |
         echo $SIGNING_CERTIFICATE_P12_DATA | base64 --decode > certificate.p12
         security create-keychain -p $KEYCHAIN_PASSWORD build.keychain
@@ -194,9 +190,6 @@ jobs:
     - name: Build dependencies
       if: steps.fsdeps_cache.outputs.cache-hit != 'true'
       run: fsdeps/make
-
-    - name: Find
-      run: find .
 
     - name: Bootstrap
       run: fsdeps/use fsbuild/bootstrap

@@ -56,6 +56,8 @@ jobs:
         sudo python3 -m pip install meson ninja
 
     - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
 
     - name: Cache dependencies
       uses: actions/cache@v2
@@ -69,7 +71,7 @@ jobs:
       run: fsdeps/make
 
     - name: Update version
-      run: python3 fsbuild/version.py --update --auto
+      run: fsbuild/version --update --auto
 
     - name: Bootstrap
       run: fsdeps/use fsbuild/bootstrap
@@ -89,7 +91,16 @@ jobs:
     - uses: actions/upload-artifact@v2
       with:
         name: Linux_x86-64
+
         path: fsbuild/_dist/*
+
+    - name: Install dropbox package
+      run: python3 -m pip install dropbox
+
+    - name: Upload build to Dropbox folder
+      run: fsbuild/upload
+      env:
+        DROPBOX_ACCESS_TOKEN: ${{ secrets.DROPBOX_ACCESS_TOKEN }}
 
   macOS_x86-64:
     runs-on: macos-10.15
@@ -99,6 +110,8 @@ jobs:
       run: brew install autoconf automake dos2unix meson
 
     - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
 
     - name: Cache dependencies
       uses: actions/cache@v2
@@ -112,7 +125,7 @@ jobs:
       run: fsdeps/make
 
     - name: Update version
-      run: python3 fsbuild/version.py --update --auto
+      run: fsbuild/version --update --auto
 
     - name: Bootstrap
       run: fsdeps/use fsbuild/bootstrap
@@ -157,6 +170,14 @@ jobs:
         name: macOS_x86-64
         path: fsbuild/_dist/*
 
+    - name: Install dropbox package
+      run: python3 -m pip install dropbox
+
+    - name: Upload build to Dropbox folder
+      run: fsbuild/upload
+      env:
+        DROPBOX_ACCESS_TOKEN: ${{ secrets.DROPBOX_ACCESS_TOKEN }}
+
   Windows_x86-64:
     runs-on: windows-2016
 
@@ -181,10 +202,14 @@ jobs:
           mingw-w64-x86_64-meson
           mingw-w64-x86_64-openal
           mingw-w64-x86_64-pkg-config
+          mingw-w64-x86_64-python
+          mingw-w64-x86_64-python-pip
           unzip
           zip
 
     - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
 
     - name: Cache dependencies
       uses: actions/cache@v2
@@ -198,7 +223,7 @@ jobs:
       run: fsdeps/make
 
     - name: Update version
-      run: python3 fsbuild/version.py --update --auto
+      run: fsbuild/version --update --auto
 
     - name: Bootstrap
       run: fsdeps/use fsbuild/bootstrap
@@ -219,3 +244,11 @@ jobs:
       with:
         name: Windows_x86-64
         path: fsbuild/_dist/*
+
+    - name: Install dropbox package
+      run: python3 -m pip install dropbox
+
+    - name: Upload build to Dropbox folder
+      run: fsbuild/upload
+      env:
+        DROPBOX_ACCESS_TOKEN: ${{ secrets.DROPBOX_ACCESS_TOKEN }}

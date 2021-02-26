@@ -2,6 +2,7 @@
 #define FSEMU_DATA_H_
 
 #include "fsemu-config.h"
+#include "fsemu-log.h"
 #include "fsemu-stream.h"
 
 #ifdef __cplusplus
@@ -23,11 +24,34 @@ fsemu_stream_t *fsemu_data_stream(const char *name);
 
 char *fsemu_data_file_path(const char *relative);
 
+// ----------------------------------------------------------------------------
+// Logging
+// ----------------------------------------------------------------------------
+
+extern int fsemu_data_log_level;
+
+#define fsemu_data_log(format, ...) \
+    FSEMU_LOG(data, "[FSE] [DAT]", format, ##__VA_ARGS__)
+
+#define fsemu_data_log_debug(format, ...) \
+    FSEMU_LOG_DEBUG(data, "[FSE] [DAT]", format, ##__VA_ARGS__)
+
+#define fsemu_data_log_error(format, ...) \
+    FSEMU_LOG_ERROR(data, "[FSE] [DAT]", format, ##__VA_ARGS__)
+
+#define fsemu_data_log_info(format, ...) \
+    FSEMU_LOG_INFO(data, "[FSE] [DAT]", format, ##__VA_ARGS__)
+
+#define fsemu_data_log_trace(format, ...) \
+    FSEMU_LOG_TRACE(data, "[FSE] [DAT]", format, ##__VA_ARGS__)
+
+#define fsemu_data_log_warning(format, ...) \
+    FSEMU_LOG_WARNING(data, "[FSE] [DAT]", format, ##__VA_ARGS__)
+
+// ----------------------------------------------------------------------------
+
 #ifdef __cplusplus
 }
 #endif
-
-#define fsemu_data_log(format, ...) \
-    fsemu_log("[FSE] [DAT] " format, ##__VA_ARGS__)
 
 #endif  // FSEMU_DATA_H_

@@ -1823,8 +1823,7 @@ EXTRA_DIST = $(TESTS) $(EXTRA_TESTS) \
 	share/applications \
 	share/fs-uae \
 	share/icons \
-	share/mime \
-	standalone.fs
+	share/mime
 
 CLEANFILES = $(BUILT_SOURCES)
 

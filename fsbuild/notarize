@@ -43,6 +43,9 @@ def shell(cmd):
 
 
 def main():
+    if sys.platform != "darwin":
+        print("Skipping notarize step (Not a macOS build)")
+        return
     app_dir = f"fsbuild/_build/{package_name_pretty}/macOS/{arch}"
     app_path = f"{app_dir}/{app}"
     shell("rm -f fsbuild/_build/Notarize.zip")

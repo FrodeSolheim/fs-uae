@@ -1,4 +1,5 @@
 version = $(strip $(shell . ../../PACKAGE.FS; echo $$PACKAGE_VERSION))
+version_3 = $(strip $(shell . ../../PACKAGE.FS; echo $$PACKAGE_VERSION_MAJOR.$$PACKAGE_VERSION_MINOR.$$PACKAGE_VERSION_REVISION))
 
 os = macos
 arch = $(strip $(shell python3 ../arch.py))
@@ -49,7 +50,8 @@ bundle:
 	mkdir -p FS-UAE.app/Contents/MacOS
 	mkdir -p FS-UAE.app/Contents/Resources
 	mkdir -p FS-UAE.app/Contents/
-	cp Info.plist FS-UAE.app/Contents/
+	sed s/@PACKAGE_MAJOR@.@PACKAGE_MINOR@.@PACKAGE_REVISION@/${version_3}/g \
+		Info.plist.in > FS-UAE.app/Contents/Info.plist
 	cp ./PkgInfo FS-UAE.app/Contents/
 	cp ../../fs-uae FS-UAE.app/Contents/MacOS/
 	cp ../../fs-uae-device-helper FS-UAE.app/Contents/MacOS/

@@ -71,6 +71,8 @@ def macos_sign():
 def main():
     if sys.platform == "darwin":
         macos_sign()
+    else:
+        print("Skipping sign step (No signatures for this platform")
 
 
 if __name__ == "__main__":

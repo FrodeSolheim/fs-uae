@@ -78,9 +78,11 @@ def fix_linux_binary(path):
         if no_copy:
             print("no_copy is set")
             continue
-        included_libraries.setdefault(library_source, set()).add(path)
+        # included_libraries.setdefault(library_source, set()).add(path)
         dst = os.path.join(os.path.dirname(path), library)
         if not os.path.exists(dst):
+            # For now, only add the dependent causing this to be copied
+            included_libraries.setdefault(library_source, set()).add(path)
             print("[FSBUILD] Copy", library_source)
             print("Needed by:", path)
             shutil.copy(library_source, dst)
@@ -288,6 +290,7 @@ def fix_macos_binary(path, frameworks_dir):
             dst = os.path.join(frameworks_dir, os.path.basename(old))
             if not os.path.exists(dst):
                 print("[FSBUILD] Copy", old)
+                print("Needed by:", path)
                 shutil.copy(old, dst)
                 os.chmod(dst, 0o644)
                 changes += 1
@@ -355,7 +358,8 @@ def fix_macos_binary_2(path, frameworks_dir):
         new = old.replace(old, "@executable_path/../Frameworks/" + name)
         dst = os.path.join(frameworks_dir, os.path.basename(old))
         if not os.path.exists(dst):
-            print("COPYLIB", old)
+            print("[FSBUILD] Copy", old)
+            print("Needed by:", path)
             shutil.copy(old, dst)
             os.chmod(dst, 0o644)
             changes += 1
@@ -411,6 +415,7 @@ windows_system_dlls = [
     "dsound.dll",
     "dwmapi.dll",
     "gdi32.dll",
+    "iphlpapi.dll",
     "imm32.dll",
     "kernel32.dll",
     "msvcrt.dll",
@@ -434,8 +439,11 @@ windows_system_dlls = [
 
 
 def fix_windows_binary(path, app_dir):
-    if path.endswith(".txt"):
+    name, ext = os.path.splitext(os.path.basename(path))
+    if ext.lower() not in [".dll", ".exe"]:
         return 0
+    # if path.endswith(".txt"):
+    #     return 0
     print("fixing", path)
     fix_dll_name = os.path.basename(path).lower()
     changes = 0
@@ -481,6 +489,7 @@ def fix_windows_binary(path, app_dir):
             dst = os.path.join(app_dir, os.path.basename(src))
             if not os.path.exists(dst):
                 print("[FSBUILD] Copy", src)
+                print("Needed by:", path)
                 shutil.copy(src, dst)
                 os.chmod(dst, 0o644)
                 changes += 1

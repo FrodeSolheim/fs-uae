@@ -120,7 +120,7 @@ if os.environ.get("STANDALONE") == "0":
     pass
 else:
     # s("./standalone-linux.py --strip --rpath='$ORIGIN' {package_dir}")
-    s("cd ../.. && python3 standalone.fs --strip --rpath='$ORIGIN' dist/linux/{package_dir}")
+    s("cd ../.. && python3 fsbuild/standalone.py --strip --rpath='$ORIGIN' dist/linux/{package_dir}")
 
 s("find {package_dir} -name '*.standalone' -delete")
 s("echo {version} > FS-UAE/Version.txt")

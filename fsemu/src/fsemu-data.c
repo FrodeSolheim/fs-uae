@@ -16,6 +16,8 @@
 
 // ----------------------------------------------------------------------------
 
+int fsemu_data_log_level = FSEMU_LOG_LEVEL_INFO;
+
 /*
 static struct fsemu_titlebar {
 
@@ -221,7 +223,13 @@ size_t fsemu_data_dir_strlcpy(char *path, size_t size)
 {
     fs_get_application_exe_dir(path, size);
     if (fsemu_data_development_mode()) {
-        return g_strlcat(path, "data", size);
+        return g_strlcat(path, "/data", size);
+    } else {
+#ifdef FSEMU_OS_MACOS
+        return g_strlcat(path, "/../Resources/Data", size);
+#else
+        // Pass
+#endif
     }
 
     // Return value is not entirely compatible with strlcpy if there was not
@@ -278,7 +286,7 @@ char *fsemu_data_file_path(const char *relative)
 #ifdef FSEMU_OS_MACOS
     char buffer[FSEMU_PATH_MAX];
     fs_get_application_exe_dir(buffer, FSEMU_PATH_MAX);
-    path = g_build_filename(buffer, "..", "Resources", relative, NULL);
+    path = g_build_filename(buffer, "..", "Resources", "Data", relative, NULL);
 #else
     // FIXME: Replace fs-uae with application name build c
     path = g_build_filename(
@@ -381,7 +389,7 @@ void fsemu_data_load(const char *name, void **data, int *data_size)
     *data_size = 0;
     char *path = fsemu_data_file_path(name);
     if (!path) {
-        fsemu_data_log("No path!\n");
+        fsemu_data_log_warning("Could not find data file '%s'\n", name);
         return;
     }
     fsemu_data_log("Path: %s\n", path);

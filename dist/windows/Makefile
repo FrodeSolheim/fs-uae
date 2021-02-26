@@ -39,7 +39,7 @@ progdir:
 
 	# strip $(fs_uae_dir)/*.exe
 	# strip $(fs_uae_dir)/*.dll
-	cd ../.. && ./standalone.fs dist/windows/${fs_uae_dir}
+	cd ../.. && python3 fsbuild/standalone.py dist/windows/${fs_uae_dir}
 
 	python3 sign.py $(fs_uae_dir)/*.exe
 

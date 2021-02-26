@@ -17,10 +17,9 @@ fi
 sh fsdeps/build.sh
 
 if [ "$SYSTEM" = "Windows" ]; then
-echo "mkdir -p fsdeps/_dll"
-mkdir -p fsdeps/_dll
-echo "cp $FSDEPS_PREFIX/bin/*.dll fsdeps/_dll"
-cp $FSDEPS_PREFIX/bin/*.dll fsdeps/_dll
+# Copy DLL files to root directory for running executables during development
+echo "cp $FSDEPS_PREFIX/bin/*.dll ."
+cp $FSDEPS_PREFIX/bin/*.dll .
 fi
 
 echo "Built fsdeps for ${SYSTEM}_${ARCH}"

@@ -4,6 +4,17 @@ import sys
 import platform
 import subprocess
 
+package = {}
+with open("../../PACKAGE.FS", "r") as f:
+    for line in f:
+        try:
+            key, value = line.strip().split("=", 1)
+            package[key] = value
+        except ValueError:
+            pass
+
+version = package["PACKAGE_VERSION"]
+
 p = subprocess.Popen(["file", "-L", "/bin/sh"], stdout=subprocess.PIPE)
 exe_info = p.stdout.read().decode("UTF-8")
 if "386" in exe_info:
@@ -108,7 +119,8 @@ s("cp -a ../../README FS-UAE/ReadMe.txt")
 if os.environ.get("STANDALONE") == "0":
     pass
 else:
-    s("./standalone-linux.py --strip --rpath='$ORIGIN' {package_dir}")
+    # s("./standalone-linux.py --strip --rpath='$ORIGIN' {package_dir}")
+    s("cd ../.. && python3 standalone.fs --strip --rpath='$ORIGIN' dist/linux/{package_dir}")
 
 s("find {package_dir} -name '*.standalone' -delete")
 s("echo {version} > FS-UAE/Version.txt")

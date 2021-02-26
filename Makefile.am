@@ -1677,20 +1677,6 @@ EXTRA_DIST = $(TESTS) $(EXTRA_TESTS) \
 	debian/rules \
 	debian/source \
 	debian/source/format \
-	dist/arch.py \
-	dist/linux/build.py \
-	dist/linux/standalone-linux.py \
-	dist/macos/Entitlements.plist \
-	dist/macos/fs-uae-config.icns \
-	dist/macos/fs-uae.icns \
-	dist/macos/notarize.py \
-	dist/macos/PkgInfo \
-	dist/macos/sign.py \
-	dist/macos/standalone.py \
-	dist/rpi4/configure \
-	dist/windows/clib.py \
-	dist/windows/iscc.py \
-	dist/windows/sign.py \
 	docs/action-replay.md \
 	docs/amiga-forever.md \
 	docs/amigaos-4-1.md \
@@ -2032,60 +2018,5 @@ clean-local:
 	rm -f data/*.png
 	rm -f data/.fsemu
 	find share -name fs-uae.mo -delete
-
-fs-uae-dist:
-	$(MAKE) -C dist/@OS_NAME@
-
-standalone: fs-uae$(EXEEXT) fs-uae.dat
-	@echo "Stripping fs-uae$(EXEEXT)"
-	strip fs-uae$(EXEEXT)
-	@echo "Appending fs-uae.dat"
-	cat fs-uae.dat >> fs-uae$(EXEEXT)
-	@echo "Correcting zip offsets"
-	zip -A fs-uae$(EXEEXT)
-
-bindist:
-	make distdir
-if LINUX
-	cd fs-uae-@PACKAGE_VERSION@ && fs-sdk-bionic-x86-64 ./configure
-	fs-sdk-bionic-x86-64 make -C fs-uae-@PACKAGE_VERSION@ -j4
-	fs-sdk-bionic-x86-64 make -C fs-uae-@PACKAGE_VERSION@/dist/linux
-	mv fs-uae-@PACKAGE_VERSION@/FS-UAE_@PACKAGE_VERSION@_Linux_x86-64.tar.xz .
-endif
-if MACOS
-	cd fs-uae-@PACKAGE_VERSION@ && ./configure
-	make -C fs-uae-@PACKAGE_VERSION@ -j4
-	make -C fs-uae-@PACKAGE_VERSION@/dist/macos
-	mv fs-uae-@PACKAGE_VERSION@/fs-uae_@PACKAGE_VERSION@_macos_x86-64.tar.xz .
-endif
-if WINDOWS
-	cd fs-uae-@PACKAGE_VERSION@ && ./configure
-	make -C fs-uae-@PACKAGE_VERSION@ -j2
-	make -C fs-uae-@PACKAGE_VERSION@/dist/windows tar.xz
-	mv fs-uae-@PACKAGE_VERSION@/fs-uae_@PACKAGE_VERSION@_windows_x86-64.tar.xz .
-endif
-	rm -Rf fs-uae-@PACKAGE_VERSION@
-
-bindist-x86:
-	make distdir
-if LINUX
-	cd fs-uae-@PACKAGE_VERSION@ && fs-sdk-bionic-x86 ./configure
-	fs-sdk-bionic-x86 make -C fs-uae-@PACKAGE_VERSION@ -j4
-	fs-sdk-bionic-x86 make -C fs-uae-@PACKAGE_VERSION@/dist/linux
-	mv fs-uae-@PACKAGE_VERSION@/fs-uae_@PACKAGE_VERSION@_linux_x86.tar.xz .
-endif
-if MACOS
-	cd fs-uae-@PACKAGE_VERSION@ && ./configure
-	make -C fs-uae-@PACKAGE_VERSION@ -j4
-	make -C fs-uae-@PACKAGE_VERSION@/dist/macos
-	mv fs-uae-@PACKAGE_VERSION@/fs-uae_@PACKAGE_VERSION@_macos_x86.tar.xz .
-endif
-if WINDOWS
-	cd fs-uae-@PACKAGE_VERSION@ && ./configure
-	make -C fs-uae-@PACKAGE_VERSION@ -j2
-	make -C fs-uae-@PACKAGE_VERSION@/dist/windows tar.xz
-	mv fs-uae-@PACKAGE_VERSION@/fs-uae_@PACKAGE_VERSION@_windows_x86.tar.xz .
-endif
-	rm -Rf fs-uae-@PACKAGE_VERSION@
 
 .PHONY: fsemu-data

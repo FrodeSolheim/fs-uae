@@ -3,12 +3,10 @@
 
 set -e
 
-rm -Rf fsbuild/_*
-
-if [ -f fsbuild/clean.sh ]; then
-. fsbuild/clean.sh
+if [ -f fsbuild/build.sh ]; then
+. fsbuild/build.sh
 elif [ -f fsplugin/Makefile ]; then
-make -C fsplugin clean
+make -C fsplugin "$@"
 elif [ -f ./Makefile ]; then
-make clean
+make "$@"
 fi

@@ -8,8 +8,13 @@
 extern "C" {
 #endif
 
+size_t fsemu_data_dir_strlcpy(char *path, size_t size);
+
 // FIXME: MOVE
 int fsemu_application_exe_path(char *buffer, int size);
+size_t fsemu_application_exe_dir_strlcpy(char *path, size_t size);
+
+bool fsemu_data_development_mode(void);
 
 void fsemu_data_init(void);
 void fsemu_data_load(const char *name, void **data, int *data_size);

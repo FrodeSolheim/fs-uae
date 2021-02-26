@@ -1,4 +1,4 @@
-version = @PACKAGE_VERSION@
+version = 4.0.2-dev
 
 all:
 	./build.py $(version)

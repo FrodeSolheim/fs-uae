@@ -1,4 +1,5 @@
-ver = @PACKAGE_VERSION@
+version = $(strip $(shell . ../../PACKAGE.FS; echo $$PACKAGE_VERSION))
+
 os = windows
 arch = $(strip $(shell python3 ../arch.py))
 fs_uae_dir = FS-UAE/Windows/$(arch)

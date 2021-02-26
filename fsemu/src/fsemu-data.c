@@ -188,7 +188,7 @@ static int fs_get_application_exe_dir(char *buffer, int size)
     return 0;
 }
 
-static bool fsemu_data_development_mode(void)
+bool fsemu_data_development_mode(void)
 {
     static bool initialized;
     static bool development_mode;
@@ -206,6 +206,28 @@ static bool fsemu_data_development_mode(void)
         fsemu_data_log("Development mode: %d\n", development_mode);
     }
     return development_mode;
+}
+
+size_t fsemu_application_exe_dir_strlcpy(char *path, size_t size)
+{
+    fs_get_application_exe_dir(path, size);
+    // Return value is not entirely compatible with strlcpy if there was not
+    // enough room.
+    // FIXME: Allocate exe dir path in init, and g_strlcpy here
+    return strlen(path);
+}
+
+size_t fsemu_data_dir_strlcpy(char *path, size_t size)
+{
+    fs_get_application_exe_dir(path, size);
+    if (fsemu_data_development_mode()) {
+        return g_strlcat(path, "data", size);
+    }
+
+    // Return value is not entirely compatible with strlcpy if there was not
+    // enough room.
+    // FIXME: Allocate exe dir path in init, and g_strlcpy here
+    return strlen(path);
 }
 
 static bool fsemu_data_path_exists_or_free(char *path)

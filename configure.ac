@@ -2,12 +2,32 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.67])
-AC_INIT([FS-UAE], [3.9.101dev],
+
+m4_define([fsbuild_version], [4.0.2-dev])
+m4_define([fsbuild_version_major], [4])
+m4_define([fsbuild_version_minor], [0])
+m4_define([fsbuild_version_revision], [2])
+m4_define([fsbuild_commit], [])
+
+AC_INIT([FS-UAE], [fsbuild_version],
         [frode@fs-uae.net], [fs-uae], [https://fs-uae.net])
 AC_CONFIG_AUX_DIR([.])
 AC_CANONICAL_HOST
 AC_CONFIG_SRCDIR([src/main.cpp])
 AC_CONFIG_HEADERS([config.h])
+
+AC_DEFINE([FSBUILD_VERSION], ["fsbuild_version"], [Version])
+AC_DEFINE_UNQUOTED([FSBUILD_VERSION_MAJOR], [4], [Major])
+AC_DEFINE_UNQUOTED([FSBUILD_VERSION_MINOR], [fsbuild_version_minor], [Minor])
+AC_DEFINE_UNQUOTED(
+    [FSBUILD_VERSION_REVISION], [fsbuild_version_revision], [Revision])
+AC_DEFINE_UNQUOTED([FSBUILD_COMMIT], ["fsbuild_commit"], [Commit])
+
+AC_SUBST(FSBUILD_VERSION)
+AC_SUBST(FSBUILD_VERSION_MAJOR)
+AC_SUBST(FSBUILD_VERSION_MINOR)
+AC_SUBST(FSBUILD_VERSION_REVISION)
+AC_SUBST(FSBUILD_COMMIT)
 
 # AC_CONFIG_MACRO_DIRS requires newer autoconf/automake than is found in
 # Debian 7.0
@@ -880,14 +900,6 @@ AC_DEFINE([FPU_UAE], [1], [Define to 1])
 # Write Makefile
 
 AC_CONFIG_FILES([
-    dist/linux/Makefile
-    dist/macos/Info.plist
-    dist/macos/Makefile
-    dist/rpi4/Makefile
-    dist/steamos/Makefile
-    dist/windows/fs-uae.iss
-    dist/windows/Makefile
-    libnfd/Makefile
     src/fsuae/fs-uae.rc
     Makefile
 ])
@@ -898,6 +910,7 @@ AC_OUTPUT
 echo ""
 echo "Configuration summary for FS-UAE:"
 echo ""
+echo "  Version:           $PACKAGE_VERSION"
 echo "  Building for OS:   $host_os (\"$OS_NAME\")"
 echo "  Building for CPU:  $host_cpu"
 echo "  Module extension:  $LOADABLE_MODULE_EXT"

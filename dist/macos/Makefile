@@ -1,4 +1,5 @@
-version = @PACKAGE_VERSION@
+version = $(strip $(shell . ../../PACKAGE.FS; echo $$PACKAGE_VERSION))
+
 os = macos
 arch = $(strip $(shell python3 ../arch.py))
 

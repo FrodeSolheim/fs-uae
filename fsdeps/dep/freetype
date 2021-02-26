@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-# FIXME: Use libharfbuzz for freetype?
+# FIXME: Use harfbuzz for freetype?
 fsdeps/dep/libpng
 fsdeps/dep/zlib
 
@@ -20,12 +20,12 @@ tar xf ../_sources/$PACKAGE.tar.xz
 cd $PACKAGE
 
 ./configure --prefix=$PREFIX \
---with-brotli=no \
---with-bzip2=no \
---with-harfbuzz=no \
---with-png=yes \
---with-zlib=yes
-if [ "`uname -o`" = "Msys" ]; then
+--without-brotli \
+--without-bzip2 \
+--without-harfbuzz \
+--with-png \
+--with-zlib
+if [ "$SYSTEM" = "Windows" ]; then
 make PLATFORM=windows
 else
 make

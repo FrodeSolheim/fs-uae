@@ -19,7 +19,7 @@ def upload(dbx, package, version, path):
     name = os.path.basename(path)
     assert package in name
     assert version in name
-    dst = f"/{package}/{version}/{name}"
+    dst = f"/Builds/CI/{package}/{version}/{name}"
     with open(path, "rb") as f:
         dbx.files_upload(f.read(), dst)
     print("Uploaded ->", dst)

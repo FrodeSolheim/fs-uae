@@ -37,8 +37,16 @@ def upload(dbx, package, version, path):
     print("Uploaded ->", dst)
     if os.getenv("DISCORD_WEBHOOK_URL"):
         result = dbx.sharing_list_shared_links(f"/Builds/CI/{package}")
-        link = result.links[0].url
-        execute_discord_webhook(name, link)
+        for link in result.links:
+            if link.path_lower == f"/Builds/CI/{package}".lower():
+                url = link.url
+                print("Found Dropbox shared link:", url)
+                break
+        else:
+            # Fallback URL, use first result returned
+            url = result.links[0].url
+            print("Found Dropbox shared (fallback) link:", url)
+        execute_discord_webhook(name, url)
 
 
 def main():

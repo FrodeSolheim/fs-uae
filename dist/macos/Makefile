@@ -56,12 +56,13 @@ bundle:
 	cp ../../fs-uae FS-UAE.app/Contents/MacOS/
 	cp ../../fs-uae-device-helper FS-UAE.app/Contents/MacOS/
 
-	cp ../../fs-uae.dat FS-UAE.app/Contents/Resources/
 	mkdir -p FS-UAE.app/Contents/Resources/fs-uae
 	touch FS-UAE.app/Contents/Resources/fs-uae/share-dir
 	cp -pPR ../../share/locale FS-UAE.app/Contents/Resources/Locale
 
-	cp -pPR ../../data/* FS-UAE.app/Contents/Resources
+	mkdir -p FS-UAE.app/Contents/Resources/Data/
+	cp ../../fs-uae.dat FS-UAE.app/Contents/Resources/Data/
+	cp -pPR ../../data/* FS-UAE.app/Contents/Resources/Data/
 
 	strip FS-UAE.app/Contents/MacOS/*
 	cp ./fs-uae.icns FS-UAE.app/Contents/Resources/

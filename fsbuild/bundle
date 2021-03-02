@@ -5,30 +5,13 @@ set -e
 
 . ./PACKAGE.FS
 
-if [ "$PACKAGE_TYPE" = "fsemu-plugin" ]; then
-
-. fsbuild/plugin.sh
-
-rm -Rf $PLUGIN_DIR
+if [ -f fsbuild/bundle.sh ]; then
 
 . fsbuild/bundle.sh
 
-if [ "$SYSTEM" = "macOS" ]; then
-if [ -d "$PLUGIN_BIN_DIR/$PACKAGE_NAME_PRETTY.app" ]; then
-echo "App bundle already exists"
-else
-EXECUTABLE=$PACKAGE_NAME
-sh fsbuild/appify.sh $PLUGIN_BIN_DIR $PACKAGE_NAME_PRETTY \
-$EXECUTABLE $PACKAGE_MACOS_BUNDLE_ID
-fi
-fi
+elif [ -f bundle.sh ]; then
 
-python3 fsbuild/standalone.py $PLUGIN_BIN_DIR
-# fsbuild/appify $PLUGIN_BIN_DIR
-
-elif [ -f fsbuild/bundle.sh ]; then
-
-. fsbuild/bundle.sh
+. ./bundle.sh
 
 elif [ -f fsplugin/Makefile ]; then
 # make -C fsplugin fsemu-plugin-prep
@@ -42,5 +25,5 @@ mv fsplugin/build/$PACKAGE_NAME_PRETTY fsbuild/_build/$PACKAGE_NAME_PRETTY
 fi
 
 echo -------------------------------------------------------------------------\
-------
-echo "[FSBUILD] Bundled fsbuild/_build/$PACKAGE_NAME_PRETTY"
+-------
+echo "[FSBUILD] fsbuild/_build/$PACKAGE_NAME_PRETTY"

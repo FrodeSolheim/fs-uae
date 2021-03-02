@@ -4,20 +4,20 @@
 set -e
 
 . ./PACKAGE.FS
-. fsbuild/common.sh
+. fsbuild/system.sh
 
 mkdir -p fsbuild/_dist
 
 cd fsbuild/_build
 
-if [ "$SYSTEM" = "Windows" ]; then
-ARCHIVE=${PACKAGE_NAME_PRETTY}_${PACKAGE_VERSION}_${OS}_${ARCH}.zip
+if [ "$SYSTEM_OS" = "Windows" ]; then
+ARCHIVE=${PACKAGE_NAME_PRETTY}_${PACKAGE_VERSION}_${SYSTEM_OS}_${SYSTEM_ARCH}.zip
 zip -r ../_dist/$ARCHIVE ${PACKAGE_NAME_PRETTY}
 else
-ARCHIVE=${PACKAGE_NAME_PRETTY}_${PACKAGE_VERSION}_${OS}_${ARCH}.tar.xz
+ARCHIVE=${PACKAGE_NAME_PRETTY}_${PACKAGE_VERSION}_${SYSTEM_OS}_${SYSTEM_ARCH}.tar.xz
 tar cfJv ../_dist/$ARCHIVE ${PACKAGE_NAME_PRETTY}
 fi
 
 echo -------------------------------------------------------------------------\
-------
+-------
 echo "[FSBUILD] Archived fsbuild/_dist/$ARCHIVE"

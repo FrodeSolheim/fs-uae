@@ -22,6 +22,7 @@ jobs:
         libevdev-dev
         libgbm-dev
         libgl-dev
+        libglu-dev
         libopenal-dev
         libpulse-dev
         libudev-dev
@@ -83,7 +84,7 @@ jobs:
       run: fsdeps/use fsbuild/make
 
     - name: Bundle
-      run: fsbuild/bundle
+      run: fsdeps/use fsbuild/bundle
 
     - name: Archive
       run: fsbuild/archive

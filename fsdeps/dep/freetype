@@ -25,7 +25,7 @@ cd $PACKAGE
 --without-harfbuzz \
 --with-png \
 --with-zlib
-if [ "$SYSTEM" = "Windows" ]; then
+if [ "$SYSTEM_OS" = "Windows" ]; then
 make PLATFORM=windows
 else
 make

@@ -19,21 +19,8 @@ package_name_pretty = package["PACKAGE_NAME_PRETTY"]
 bundle_id = package["PACKAGE_MACOS_BUNDLE_ID"]
 app = package_name_pretty + ".app"
 arch = "x86-64"  # FIXME
-
 apple_id_user = os.environ.get("NOTARIZATION_USERNAME", "")
 itc_provider = os.environ.get("NOTARIZATION_PROVIDER", "")
-# if os.path.exists(".env"):
-#     f = open(".env", "r")
-#     for line in f:
-#         line = line.strip()
-#         if not line:
-#             continue
-#         key, value = line.split("=")
-#         os.environ[key] = value
-#         if key == "APPLE_ID_USER":
-#             apple_id_user = value
-#         if key == "ITC_PROVIDER":
-#             itc_provider = value
 
 
 def shell(cmd):

@@ -53,8 +53,8 @@ jobs:
 
     - name: Install pip packages
       run: |
-        sudo python3 -m pip install setuptools pip
-        sudo python3 -m pip install meson ninja
+        sudo python3 -m pip install -U pip setuptools
+        sudo python3 -m pip install -U meson ninja
 
     - uses: actions/checkout@v2
       with:

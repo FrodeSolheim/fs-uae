@@ -19,6 +19,7 @@ package_name_pretty = package["PACKAGE_NAME_PRETTY"]
 bundle_id = package["PACKAGE_MACOS_BUNDLE_ID"]
 app = package_name_pretty + ".app"
 arch = "x86-64"  # FIXME
+
 apple_id_user = os.environ.get("NOTARIZATION_USERNAME", "")
 itc_provider = os.environ.get("NOTARIZATION_PROVIDER", "")
 
@@ -35,11 +36,12 @@ def main():
         return
     app_dir = f"fsbuild/_build/{package_name_pretty}/macOS/{arch}"
     app_path = f"{app_dir}/{app}"
-    shell("rm -f fsbuild/_build/Notarize.zip")
-    shell(f'cd {app_dir} && zip -r ../../../Notarize.zip "{app}"')
+    shell("rm -f fsbuild/_build/notarize.zip")
+    zip = "../../../notarize.zip"
+    shell(f'cd {app_dir} && ditto -c -k --keepParent "{app}" "{zip}"')
     result = shell(
         "xcrun altool --notarize-app -t osx "
-        "-f fsbuild/_build/Notarize.zip "
+        "-f fsbuild/_build/notarize.zip "
         "--primary-bundle-id {bundle_id} "
         "-u {apple_id_user} "
         "-p @env:NOTARIZATION_PASSWORD "

@@ -3,6 +3,7 @@
 
 #include "fsemu-common.h"
 
+#define FSEMU_OPTION_AUDIO_DEVICE "audio_device"
 #define FSEMU_OPTION_AUDIO_DRIVER "audio_driver"
 #define FSEMU_OPTION_AUTOMATIC_INPUT_GRAB "automatic_input_grab"
 

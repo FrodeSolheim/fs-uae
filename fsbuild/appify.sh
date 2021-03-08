@@ -20,7 +20,9 @@ mv $DIR/$EXECUTABLE $TEMP_APP/Contents/MacOS/
 
 echo "Move $DIR/\* -> $TEMP_APP/Contents/Resources/Data"
 mkdir -p $TEMP_APP/Contents/Resources/Data
+if [ "`find $DIR -maxdepth 1 -mindepth 1`" != "" ]; then
 mv $DIR/* $TEMP_APP/Contents/Resources/Data/
+fi
 
 echo "Writing Info.plist"
 

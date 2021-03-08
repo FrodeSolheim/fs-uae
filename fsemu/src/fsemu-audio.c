@@ -38,7 +38,7 @@ static struct {
     fsemu_audio_frame_stats_t stats[FSEMU_AUDIO_MAX_FRAME_STATS];
 } fsemu_audio;
 
-int fsemu_audio_log_level = 1;
+int fsemu_audio_log_level = FSEMU_LOG_LEVEL_INFO;
 
 // ----------------------------------------------------------------------------
 
@@ -69,7 +69,7 @@ int fsemu_audio_driver(void)
 
 static void fsemu_audio_init_driver(void)
 {
-    fsemu_audio_log("Initialize driver...\n");
+    fsemu_audio_log_info("Initialize driver...\n");
 
     // FIXME: Bug in SDL or in macOS? When requesting 48000 Hz, the callback
     // rate is 44100, but "have" struct return from SDL_OpenAudio says
@@ -81,7 +81,7 @@ static void fsemu_audio_init_driver(void)
     // const char *driver = "sdl";
     const char *driver = fsemu_option_const_string(FSEMU_OPTION_AUDIO_DRIVER);
     if (driver) {
-        fsemu_audio_log("Want audio driver: %s\n", driver);
+        fsemu_audio_log_info("Want audio driver: %s\n", driver);
     }
     if (0) {
 #ifdef FSEMU_OPENAL
@@ -113,7 +113,7 @@ int fsemu_audio_frequency(void)
 
 void fsemu_audio_set_frequency(int frequency)
 {
-    fsemu_audio_log("Frequency is now %d Hz\n", frequency);
+    fsemu_audio_log_info("Frequency is now %d Hz\n", frequency);
     fsemu_audio.frequency = frequency;
 }
 
@@ -391,11 +391,9 @@ void fsemu_audio_init(void)
     fsemu_return_if_already_initialized();
     fsemu_frame_init();
 
-    fsemu_audio_log("Init\n");
+    fsemu_audio_log_info("Init\n");
     fsemu_audio_log_level =
-        fsemu_option_int_default(FSEMU_OPTION_LOG_AUDIO, 0);
-    // printf("%d\n", fsemu_audio_log_level);
-    // exit(1);
+        fsemu_option_int_default(FSEMU_OPTION_LOG_AUDIO, FSEMU_LOG_LEVEL_INFO);
 
     fsemu_audio.mutex = fsemu_mutex_create();
     fsemu_audiobuffer_init();

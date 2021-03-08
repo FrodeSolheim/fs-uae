@@ -4,6 +4,7 @@
 #include "fsuae-action.h"
 #include "fsuae.h"
 
+// FIXME: ALL/ANY is actually -1
 #define ALL 0
 
 static fsemu_input_configure_keyboard_t keyboard_mapping[] = {
@@ -148,6 +149,7 @@ static fsemu_input_configure_keyboard_t keyboard_mapping[] = {
 };
 
 static fsemu_input_configure_keyboard_t keyboard_shortcuts_mapping[] = {
+    { FSEMU_KEYBOARD_PAUSE, -1, FSEMU_ACTION_PAUSE },
     { FSEMU_KEYBOARD_F11, 0, FSEMU_ACTION_OSKEYBOARD },
 #if 0
     { FSEMU_KEYBOARD_F12, 0, FSEMU_ACTION_OSMENU },
@@ -200,7 +202,6 @@ static fsemu_input_configure_keyboard_t keyboard_shortcuts_mapping[] = {
     { FSEMU_KEYBOARD_AUDIOPREV,     -1, INPUTEVENT_SPC_DISKSWAPPER_PREV },
     { FSEMU_KEYBOARD_COMMA,        MOD, FS_EMU_ACTION_VOLUME_DOWN },
     { FSEMU_KEYBOARD_MUTE,          -1, FS_EMU_ACTION_VOLUME_MUTE },
-    { FSEMU_KEYBOARD_PAUSE,         -1, FS_EMU_ACTION_PAUSE },
     { FSEMU_KEYBOARD_PERIOD,       MOD, FS_EMU_ACTION_VOLUME_UP },
     { FSEMU_KEYBOARD_PRINT,         -1, FS_EMU_ACTION_SCREENSHOT },
     { FSEMU_KEYBOARD_RETURN,       MOD, FS_EMU_ACTION_FULLSCREEN },
@@ -454,7 +455,6 @@ static fs_emu_key_translation g_default_keymap[] = {
     { FS_ML_KEY_AUDIOPREV, -1, INPUTEVENT_SPC_DISKSWAPPER_PREV },
     { FS_ML_KEY_COMMA, MOD, FS_EMU_ACTION_VOLUME_DOWN },
     { FS_ML_KEY_MUTE, -1, FS_EMU_ACTION_VOLUME_MUTE },
-    { FS_ML_KEY_PAUSE, -1, FS_EMU_ACTION_PAUSE },
     { FS_ML_KEY_PERIOD, MOD, FS_EMU_ACTION_VOLUME_UP },
     { FS_ML_KEY_PRINT, -1, FS_EMU_ACTION_SCREENSHOT },
     { FS_ML_KEY_RETURN, MOD, FS_EMU_ACTION_FULLSCREEN },

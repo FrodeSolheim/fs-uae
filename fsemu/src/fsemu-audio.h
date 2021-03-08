@@ -82,26 +82,34 @@ void fsemu_audio_end_frame(void);
 void fsemu_audio_update_min_fill(uint8_t volatile *read,
                                  uint8_t volatile *write);
 
-#endif
+
+// ----------------------------------------------------------------------------
+// Logging
+// ----------------------------------------------------------------------------
 
 extern int fsemu_audio_log_level;
 
-#if 0
-#define fsemu_audio_log_with_level(level, format, ...)   \
-    if (fsemu_audio_log_level >= level) {                \
-        fsemu_log("[FSE] [AUD] " format, ##__VA_ARGS__); \
-    }
-#endif
+#define fsemu_audio_log(format, ...) \
+    FSEMU_LOG(audio, "[FSE] [AUD]", format, ##__VA_ARGS__)
 
-#define fsemu_audio_log(format, ...)                     \
-    if (fsemu_audio_log_level >= 1) {                    \
-        fsemu_log("[FSE] [AUD] " format, ##__VA_ARGS__); \
-    }
+#define fsemu_audio_log_debug(format, ...) \
+    FSEMU_LOG_DEBUG(audio, "[FSE] [AUD]", format, ##__VA_ARGS__)
 
-#define fsemu_audio_log_trace(format, ...)               \
-    if (fsemu_audio_log_level >= 2) {                    \
-        fsemu_log("[FSE] [AUD] " format, ##__VA_ARGS__); \
-    }
+#define fsemu_audio_log_error(format, ...) \
+    FSEMU_LOG_ERROR(audio, "[FSE] [AUD]", format, ##__VA_ARGS__)
+
+#define fsemu_audio_log_info(format, ...) \
+    FSEMU_LOG_INFO(audio, "[FSE] [AUD]", format, ##__VA_ARGS__)
+
+#define fsemu_audio_log_trace(format, ...) \
+    FSEMU_LOG_TRACE(audio, "[FSE] [AUD]", format, ##__VA_ARGS__)
+
+#define fsemu_audio_log_warning(format, ...) \
+    FSEMU_LOG_WARNING(audio, "[FSE] [AUD]", format, ##__VA_ARGS__)
+
+// ----------------------------------------------------------------------------
+
+#endif  // FSEMU_INTERNAL
 
 #ifdef __cplusplus
 }

@@ -245,8 +245,16 @@ void fsemu_input_configure_keyboard(fsemu_input_configure_keyboard_t mapping[])
                 FSEMU_KEYBOARD_NUM_MODS);
             continue;
         }
-        fsemu_input.keyboard[item->mod * FSEMU_KEY_NUM_KEYS + item->key]
-            .action = item->action;
+        if (item->mod == -1) {
+            // Using -1 for any/all modifiers. This could be done nicer.
+            for (int i = 0; i < FSEMU_KEYBOARD_NUM_MODS; i++) {
+                fsemu_input.keyboard[i * FSEMU_KEY_NUM_KEYS + item->key]
+                    .action = item->action;
+            }
+        } else {
+            fsemu_input.keyboard[item->mod * FSEMU_KEY_NUM_KEYS + item->key]
+                .action = item->action;
+        }
     }
 
     fsemu_input_reconfigure();

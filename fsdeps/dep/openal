@@ -1,0 +1,34 @@
+#!/bin/sh
+set -e
+
+fsdeps/dep/gettext
+
+PACKAGE=openal-soft-1.21.1
+URL=https://openal-soft.org/openal-releases/$PACKAGE.tar.bz2
+SHA256=c8ad767e9a3230df66756a21cc8ebf218a9d47288f2514014832204e666af5d8
+REVISION=1
+
+. fsdeps/dep.sh
+
+python3 fsdeps/download.py "$URL" sha256:$SHA256
+
+rm -Rf fsdeps/_build && mkdir fsdeps/_build && cd fsdeps/_build
+tar xf ../_sources/$PACKAGE.tar.bz2
+cd $PACKAGE
+
+if [ "$SYSTEM_OS" = "Windows" ]; then
+cmake \
+-G "MSYS Makefiles" \
+-DCMAKE_INSTALL_PREFIX="$PREFIX" \
+-DALSOFT_EXAMPLES=0 \
+-DALSOFT_TESTS=0
+else
+cmake \
+-DCMAKE_INSTALL_PREFIX="$PREFIX" \
+-DALSOFT_EXAMPLES=0 \
+-DALSOFT_TESTS=0
+fi
+make VERBOSE=1
+make install
+
+touch $INSTALLED

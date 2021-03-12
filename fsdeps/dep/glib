@@ -1,0 +1,38 @@
+#!/bin/sh
+set -e
+
+# libffi?
+# libiconv?
+
+fsdeps/dep/gettext
+
+PACKAGE=glib-2.66.7
+CHECKSUM=09f158769f6f26b31074e15b1ac80ec39b13b53102dfae66cfe826fb2cc65502
+REVISION=1
+
+. fsdeps/dep.sh
+
+# FIXME: Would be nice to extract 2.66 from PACKAGE
+python3 fsdeps/download.py \
+https://download.gnome.org/sources/glib/2.66/$PACKAGE.tar.xz \
+sha256:$CHECKSUM
+
+rm -Rf fsdeps/_build && mkdir fsdeps/_build && cd fsdeps/_build
+tar xf ../_sources/$PACKAGE.tar.xz
+cd $PACKAGE
+
+python3 ../../replace.py \
+gio/tests/meson.build \
+"if not meson.is_cross_build() or meson.has_exe_wrapper()" \
+"if false"
+
+# replace meson.build "subdir('po')" ""
+meson \
+--prefix $PREFIX \
+--libdir lib \
+-Dinternal_pcre=true \
+_build 
+ninja -C _build
+ninja -C _build install
+
+touch $INSTALLED

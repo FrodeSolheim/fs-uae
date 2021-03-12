@@ -1,0 +1,61 @@
+#!/bin/sh
+set -e
+
+# Dependency: pulseaudio?
+# Dependency: wayland?
+
+PACKAGE=SDL2-2.0.14
+CHECKSUM=d8215b571a581be1332d2106f8036fcb03d12a70bae01e20f424976d275432bc
+REVISION=0
+
+. fsdeps/dep.sh
+
+python3 fsdeps/download.py \
+https://www.libsdl.org/release/$PACKAGE.tar.gz \
+sha256:$CHECKSUM
+
+rm -Rf fsdeps/_build && mkdir fsdeps/_build && cd fsdeps/_build
+tar xf ../_sources/$PACKAGE.tar.gz
+cd $PACKAGE
+
+if [ "`uname`" = "Darwin" ]; then
+python3 ../../replace.py \
+src/video/cocoa/SDL_cocoaevents.m \
+"keyEquivalent:@\"q\"];" \
+"keyEquivalent:@\"\"];"
+python3 ../../replace.py \
+src/video/cocoa/SDL_cocoaevents.m \
+"keyEquivalent:@\"h\"];" \
+"keyEquivalent:@\"\"];"
+python3 ../../replace.py \
+src/video/cocoa/SDL_cocoaevents.m \
+"keyEquivalent:@\"m\"];" \
+"keyEquivalent:@\"\"];"
+python3 ../../replace.py \
+src/video/cocoa/SDL_cocoaevents.m \
+"keyEquivalent:@\"f\"];" \
+"keyEquivalent:@\"\"];"
+python3 ../../replace.py \
+src/video/cocoa/SDL_cocoaevents.m \
+"keyEquivalent:@\"w\"];" \
+"keyEquivalent:@\"\"];"
+python3 ../../replace.py \
+src/video/cocoa/SDL_cocoaevents.m \
+"keyEquivalent:@\",\"];" \
+"keyEquivalent:@\"\"];"
+fi
+
+if [ "`uname`" = "Linux" ]; then
+./configure \
+    --prefix=$PREFIX \
+    --disable-sndio \
+    --enable-video-wayland \
+    --enable-video-kmsdrm
+else
+./configure \
+    --prefix=$PREFIX
+fi
+make
+make install
+
+touch $INSTALLED

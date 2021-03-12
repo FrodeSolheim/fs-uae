@@ -104,11 +104,12 @@ if os_name == "steamos":
     wrap("fs-uae")
     wrap("fs-uae-device-helper")
 
-# s("cd {package_dir} && tar Jcfv ../../../{package_name}.tar.xz *")
-s("tar Jcfv ../../{package_name}.tar.xz FS-UAE")
-print(package_name)
-s("cp ../../{package_name}.tar.xz ../../{package_name_2}.tar.xz")
-print(package_name_2)
+if os.environ.get("PACKAGE", "") != "0":
+    # s("cd {package_dir} && tar Jcfv ../../../{package_name}.tar.xz *")
+    s("tar Jcfv ../../{package_name}.tar.xz FS-UAE")
+    print(package_name)
+    s("cp ../../{package_name}.tar.xz ../../{package_name_2}.tar.xz")
+    print(package_name_2)
 print("OK")
 
 #s("rm -Rf {dbg_package_dir}")

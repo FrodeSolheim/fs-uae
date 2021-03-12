@@ -45,6 +45,7 @@ core
 /dist/windows/Makefile
 *.dll
 /*.dsc
+.DS_Store
 *.exe
 .env
 /fontconfig/

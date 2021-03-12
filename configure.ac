@@ -2,7 +2,14 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.67])
-AC_INIT([FS-UAE], [3.0.5u2],
+
+m4_define([fsbuild_version], [3.1.0])
+m4_define([fsbuild_version_major], [3])
+m4_define([fsbuild_version_minor], [1])
+m4_define([fsbuild_version_revision], [0])
+m4_define([fsbuild_commit], [])
+
+AC_INIT([FS-UAE], [fsbuild_version],
         [frode@fs-uae.net], [fs-uae], [https://fs-uae.net])
 AC_CONFIG_AUX_DIR([.])
 AC_CANONICAL_HOST

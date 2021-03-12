@@ -101,13 +101,14 @@ jobs:
 
         path: fsbuild/_dist/*
 
-    - name: Install dropbox package
-      if: github.ref == 'refs/heads/master'
-      run: python3 -m pip install dropbox
-
     - name: Upload build to Dropbox folder
-      if: github.ref == 'refs/heads/master'
-      run: fsbuild/upload
+      if: >-
+        github.ref == 'refs/heads/master' ||
+        github.ref == 'refs/heads/dev' ||
+        github.ref == 'refs/heads/stable'
+      run: |
+        python3 -m pip install dropbox
+        fsbuild/upload
       env:
         DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         DROPBOX_ACCESS_TOKEN: ${{ secrets.DROPBOX_ACCESS_TOKEN }}
@@ -180,13 +181,14 @@ jobs:
         name: macOS_x86-64
         path: fsbuild/_dist/*
 
-    - name: Install dropbox package
-      if: github.ref == 'refs/heads/master'
-      run: python3 -m pip install dropbox
-
     - name: Upload build to Dropbox folder
-      if: github.ref == 'refs/heads/master'
-      run: fsbuild/upload
+      if: >-
+        github.ref == 'refs/heads/master' ||
+        github.ref == 'refs/heads/dev' ||
+        github.ref == 'refs/heads/stable'
+      run: |
+        python3 -m pip install dropbox
+        fsbuild/upload
       env:
         DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         DROPBOX_ACCESS_TOKEN: ${{ secrets.DROPBOX_ACCESS_TOKEN }}
@@ -258,13 +260,14 @@ jobs:
         name: Windows_x86-64
         path: fsbuild/_dist/*
 
-    - name: Install dropbox package
-      if: github.ref == 'refs/heads/master'
-      run: python3 -m pip install dropbox
-
     - name: Upload build to Dropbox folder
-      if: github.ref == 'refs/heads/master'
-      run: fsbuild/upload
+      if: >-
+        github.ref == 'refs/heads/master' ||
+        github.ref == 'refs/heads/dev' ||
+        github.ref == 'refs/heads/stable'
+      run: |
+        python3 -m pip install dropbox
+        fsbuild/upload
       env:
         DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         DROPBOX_ACCESS_TOKEN: ${{ secrets.DROPBOX_ACCESS_TOKEN }}

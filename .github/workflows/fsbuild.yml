@@ -2,9 +2,15 @@ name: Build
 
 on:
   push:
-    branches: [ master ]
+    branches:
+      - master
+      - dev
+      - stable
   pull_request:
-    branches: [ master ]
+    branches:
+      - master
+      - dev
+      - stable
 
 jobs:
   Linux_x86-64:
@@ -49,7 +55,6 @@ jobs:
         libxrandr-dev
         libxrender-dev
         x11proto-dev
-        xa65
 
     - name: Install pip packages
       run: |
@@ -95,13 +100,14 @@ jobs:
 
         path: fsbuild/_dist/*
 
-    - name: Install dropbox package
-      if: github.ref == 'refs/heads/master'
-      run: python3 -m pip install dropbox
-
     - name: Upload build to Dropbox folder
-      if: github.ref == 'refs/heads/master'
-      run: fsbuild/upload
+      if: >-
+        github.ref == 'refs/heads/master' ||
+        github.ref == 'refs/heads/dev' ||
+        github.ref == 'refs/heads/stable'
+      run: |
+        python3 -m pip install dropbox
+        fsbuild/upload
       env:
         DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         DROPBOX_ACCESS_TOKEN: ${{ secrets.DROPBOX_ACCESS_TOKEN }}
@@ -174,13 +180,14 @@ jobs:
         name: macOS_x86-64
         path: fsbuild/_dist/*
 
-    - name: Install dropbox package
-      if: github.ref == 'refs/heads/master'
-      run: python3 -m pip install dropbox
-
     - name: Upload build to Dropbox folder
-      if: github.ref == 'refs/heads/master'
-      run: fsbuild/upload
+      if: >-
+        github.ref == 'refs/heads/master' ||
+        github.ref == 'refs/heads/dev' ||
+        github.ref == 'refs/heads/stable'
+      run: |
+        python3 -m pip install dropbox
+        fsbuild/upload
       env:
         DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         DROPBOX_ACCESS_TOKEN: ${{ secrets.DROPBOX_ACCESS_TOKEN }}
@@ -206,11 +213,13 @@ jobs:
           make
           mingw-w64-x86_64-cmake
           mingw-w64-x86_64-gcc
+          mingw-w64-x86_64-icoutils
           mingw-w64-x86_64-meson
           mingw-w64-x86_64-openal
           mingw-w64-x86_64-pkg-config
           mingw-w64-x86_64-python
           mingw-w64-x86_64-python-pip
+          mingw-w64-x86_64-python2
           unzip
           zip
 
@@ -252,13 +261,14 @@ jobs:
         name: Windows_x86-64
         path: fsbuild/_dist/*
 
-    - name: Install dropbox package
-      if: github.ref == 'refs/heads/master'
-      run: python3 -m pip install dropbox
-
     - name: Upload build to Dropbox folder
-      if: github.ref == 'refs/heads/master'
-      run: fsbuild/upload
+      if: >-
+        github.ref == 'refs/heads/master' ||
+        github.ref == 'refs/heads/dev' ||
+        github.ref == 'refs/heads/stable'
+      run: |
+        python3 -m pip install dropbox
+        fsbuild/upload
       env:
         DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         DROPBOX_ACCESS_TOKEN: ${{ secrets.DROPBOX_ACCESS_TOKEN }}

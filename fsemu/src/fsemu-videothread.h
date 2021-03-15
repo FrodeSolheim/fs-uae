@@ -14,8 +14,6 @@
 extern "C" {
 #endif
 
-#ifdef FSEMU_INTERNAL
-
 // Initialize the videothread subsystem. Can safely be called more than once.
 // Will be called from fsemu_video_init, so no reason to call this from other
 // contexts.
@@ -55,8 +53,6 @@ void fsemu_videothread_set_data_from_ui_thread(fsemu_size_t *window_size,
                                                fsemu_rect_t *client_area,
                                                fsemu_rect_t *video_area,
                                                fsemu_rect_t *video_rect);
-
-#endif  // FSEMU_INTERNAL
 
 #ifdef __cplusplus
 }

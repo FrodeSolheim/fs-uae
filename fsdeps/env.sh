@@ -5,6 +5,8 @@
 # export FSDEPS_PREFIX=$HOME/.fsdeps/$FSDEPS_NAME
 export FSDEPS_PREFIX="`pwd`/fsdeps/_prefix"
 
+export CMAKE_PREFIX_PATH=$FSDEPS_PREFIX
+
 export C_INCLUDE_PATH=$FSDEPS_PREFIX/include
 export CPLUS_INCLUDE_PATH=$FSDEPS_PREFIX/include
 export LIBRARY_PATH=$FSDEPS_PREFIX/lib

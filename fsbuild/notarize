@@ -15,13 +15,27 @@ with open("PACKAGE.FS", "r") as f:
             package[key] = value
         except ValueError:
             pass
+if package["PACKAGE_TYPE"] == "fs-data-plugin":
+    print("Not signing data plugin")
+    sys.exit(0)
 package_name_pretty = package["PACKAGE_NAME_PRETTY"]
 bundle_id = package["PACKAGE_MACOS_BUNDLE_ID"]
 app = package_name_pretty + ".app"
+framework = package_name_pretty + ".framework"
 arch = "x86-64"  # FIXME
 
 apple_id_user = os.environ.get("NOTARIZATION_USERNAME", "")
 itc_provider = os.environ.get("NOTARIZATION_PROVIDER", "")
+
+
+def macos_bundle_path():
+    path = f"fsbuild/_build/{package_name_pretty}/macOS/{arch}/{app}"
+    if os.path.exists(path):
+        return path
+    path = f"fsbuild/_build/{package_name_pretty}/macOS/{arch}/{framework}"
+    if os.path.exists(path):
+        return path
+    raise Exception("Could not find any app or framework bundle")
 
 
 def shell(cmd):
@@ -34,11 +48,12 @@ def main():
     if sys.platform != "darwin":
         print("Skipping notarize step (Not a macOS build)")
         return
-    app_dir = f"fsbuild/_build/{package_name_pretty}/macOS/{arch}"
-    app_path = f"{app_dir}/{app}"
+    bundle_path = macos_bundle_path()
+    bundle = os.path.basename(bundle_path)
+    bundle_parent_dir = os.path.dirname(bundle_path)
     shell("rm -f fsbuild/_build/notarize.zip")
     zip = "../../../notarize.zip"
-    shell(f'cd {app_dir} && ditto -c -k --keepParent "{app}" "{zip}"')
+    shell(f'cd {bundle_parent_dir} && ditto -c -k --keepParent "{bundle}" "{zip}"')
     result = shell(
         "xcrun altool --notarize-app -t osx "
         "-f fsbuild/_build/notarize.zip "
@@ -78,8 +93,13 @@ def main():
             print(result)
             raise Exception("...")
 
-    print('xcrun stapler staple "{}"'.format(app_path))
-    assert os.system('xcrun stapler staple "{}"'.format(app_path)) == 0
+    if bundle_path.endswith(".framework"):
+        print("Does not seem to be possible to staple tickets to frameworks? (error 73)")
+        print("Exiting...")
+        sys.exit(0)
+
+    print('xcrun stapler staple "{}"'.format(bundle_path))
+    assert os.system('xcrun stapler staple "{}"'.format(bundle_path)) == 0
 
 
 if __name__ == "__main__":

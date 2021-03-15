@@ -11,5 +11,13 @@ esac
 # FIXME: Remove hardcoded value
 SYSTEM_ARCH=x86-64
 
+if [ $SYSTEM_OS = "Windows" ]; then
+SYSTEM_EXE=.exe
+SYSTEM_DLL=.dll
+else
+SYSTEM_EXE=
+SYSTEM_DLL=.so
+fi
+
 # FIXME: Deprecated alias
 SYSTEM=$SYSTEM_OS

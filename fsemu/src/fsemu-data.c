@@ -16,7 +16,7 @@
 
 // ----------------------------------------------------------------------------
 
-int fsemu_data_log_level = FSEMU_LOG_LEVEL_INFO;
+int fsemu_data_log_level = FSEMU_LOG_LEVEL_DEBUG;
 
 /*
 static struct fsemu_titlebar {
@@ -257,6 +257,7 @@ char *fsemu_data_file_path(const char *relative)
         fsemu_data_log("Application exe dir: %s\n", executable_dir);
         initialized = 1;
     }
+    fsemu_data_log_debug("fsemu_data_file_path relative=%s\n", relative);
     char *path;
 
     // FIXME: Can remove basename checks now that dirs have been stripped from

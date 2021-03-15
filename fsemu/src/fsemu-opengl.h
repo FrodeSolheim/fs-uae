@@ -57,7 +57,7 @@ static inline void fsemu_opengl_log_error_maybe(void)
 #if defined(FSEMU_GLAD)
 #include "../../glad/include/glad/glad.h"
 #elif defined(FSEMU_SDL)
-#include <SDL_opengl.h>
+#include <SDL2/SDL_opengl.h>
 #endif
 #endif
 

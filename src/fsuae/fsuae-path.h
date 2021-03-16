@@ -29,6 +29,7 @@ const char *fsuae_path_cache_dir(void);
 const char *fsuae_path_kickstartcache_dir();
 const char *fsuae_path_base_dir(void);
 const char *fsuae_path_plugins_dir(void);
+const char *fsuae_path_system_dir(void);
 const char *fsuae_path_data_dir(void);
 
 void fs_uae_init_path_resolver();

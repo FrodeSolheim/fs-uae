@@ -468,6 +468,15 @@ const char *fsuae_path_plugins_dir(void)
     return path;
 }
 
+const char *fsuae_path_system_dir(void)
+{
+    static const char *path;
+    if (!path) {
+        path = get_default_dir("System", "system_dir", NULL, "system-dir");
+    }
+    return path;
+}
+
 static const char *fsuae_path_temp_dir(void)
 {
     static const char *path = NULL;

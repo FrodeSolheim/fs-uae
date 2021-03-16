@@ -1,3 +1,5 @@
+. ./PACKAGE.FS
+
 cd fsbuild
 rm -Rf _build
 mkdir -p _build
@@ -19,3 +21,10 @@ make progdir
 mv FS-UAE ../../fsbuild/_build
 cd ../..
 fi
+
+PLUGIN_DIR=fsbuild/_build/$PACKAGE_NAME_PRETTY
+
+echo "[plugin]" > $PLUGIN_DIR/Plugin.ini
+echo "name = $PACKAGE_NAME_PRETTY" >> $PLUGIN_DIR/Plugin.ini
+echo "version = $PACKAGE_VERSION" >> $PLUGIN_DIR/Plugin.ini
+unix2dos $PLUGIN_DIR/Plugin.ini

@@ -14,8 +14,12 @@ with open("PACKAGE.FS", "r") as f:
             package[key] = value
         except ValueError:
             pass
+if package["PACKAGE_TYPE"] == "fs-data-plugin":
+    print("Not signing data plugin")
+    sys.exit(0)
 package_name_pretty = package["PACKAGE_NAME_PRETTY"]
 app = package_name_pretty + ".app"
+framework = package_name_pretty + ".framework"
 arch = "x86-64"  # FIXME
 
 # def get_package():
@@ -31,8 +35,14 @@ arch = "x86-64"  # FIXME
 #     return "x86-64"
 
 
-def macos_app_bundle_path():
-    return f"fsbuild/_build/{package_name_pretty}/macOS/{arch}/{app}"
+def macos_bundle_path():
+    path = f"fsbuild/_build/{package_name_pretty}/macOS/{arch}/{app}"
+    if os.path.exists(path):
+        return path
+    path = f"fsbuild/_build/{package_name_pretty}/macOS/{arch}/{framework}"
+    if os.path.exists(path):
+        return path
+    raise Exception("Could not find any app or framework bundle")
 
 
 def q(arg):
@@ -55,7 +65,7 @@ def macos_sign():
         ]
         if os.path.exists("fsbuild/Entitlements.plist"):
             args.extend(["--entitlements", "fsbuild/Entitlements.plist"])
-        args.append(macos_app_bundle_path())
+        args.append(macos_bundle_path())
 
         print(" ".join(f"{q(a)}" for a in args))
         p = subprocess.Popen(args)

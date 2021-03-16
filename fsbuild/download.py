@@ -39,7 +39,7 @@ if os.path.exists(archive):
     os.remove(archive)
 
 # FIXME: Replace use of wget, just use python instead
-if os.system(f"cd fsbuild/_sources && wget {url}") != 0:
+if os.system(f"cd fsbuild/_sources && wget \"{url}\"") != 0:
     print("Failed to download")
     sys.exit(1)
 

@@ -3,7 +3,10 @@
 
 set -e
 
-fsbuild/clean
 fsbuild/bootstrap
 fsbuild/configure
-fsbuild/make "$@"
+fsbuild/make
+fsbuild/bundle
+fsbuild/sign
+fsbuild/notarize
+fsbuild/archive

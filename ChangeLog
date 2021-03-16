@@ -1,3 +1,10 @@
+Version 3.1:
+
+* Changes to how plugins are looked up.
+* Ide patch
+* SCP floppy image doesn't wrap to revolution #0 cleanly [keirf]
+* Fixed crash in nname_to_aname [PowderedToastMan]
+
 Version 3.0.6:
 
 * SCP floppy image doesn't wrap to revolution #0 cleanly [keirf].

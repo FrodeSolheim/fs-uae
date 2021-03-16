@@ -450,6 +450,16 @@ const char *fs_uae_plugins_dir(void)
     return path;
 }
 
+const char *fs_uae_system_dir(void)
+{
+    static const char *path;
+    if (!path) {
+        path = get_default_dir("System", "system_dir", NULL,
+                "system-dir");
+    }
+    return path;
+}
+
 static const char *fs_uae_temp_dir(void)
 {
     static const char *path = NULL;

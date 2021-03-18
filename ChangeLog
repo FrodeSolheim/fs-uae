@@ -1,5 +1,6 @@
 Version 4.0.0dev:
 * New fsemu backend (work in progress).
+* Use RTLD_DEEPBIND with dlopen on Linux when loading plugins.
 * SCP floppy image doesn't wrap to revolution #0 cleanly [keirf].
 * Fixed crash in nname_to_aname [PowderedToastMan].
 * New option video_driver (can be sdl or null).

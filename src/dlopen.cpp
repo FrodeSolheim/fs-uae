@@ -22,6 +22,8 @@ UAE_DLHANDLE uae_dlopen(const TCHAR *path)
 	}
 #ifdef _WIN32
 	result = LoadLibrary(path);
+#elif defined(LINUX)
+	result = dlopen(path, RTLD_NOW | RTLD_DEEPBIND);
 #else
 	result = dlopen(path, RTLD_NOW);
 	const char *error = dlerror();

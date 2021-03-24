@@ -35,6 +35,7 @@ static int g_top_menu_focus = 0;
 int g_fs_emu_menu_mode = 0;
 
 static int g_update_current_menu = 0;
+int g_fs_emu_resume_on_menu_exit = 0;
 
 void fs_emu_menu_update_current()
 {
@@ -735,7 +736,13 @@ static void enter_menu(void)
         go_back_in_menu_stack();
     }
 
-    //fs_emu_pause(1);
+    // Automatically pause emulation if not already paused and configured
+    if (!fs_emu_is_paused() && fs_config_get_boolean("menu_auto_pause") == 1)
+	{
+        fs_emu_pause(1);
+		g_fs_emu_resume_on_menu_exit = 1;  // Force resume on exit
+	}
+
     g_fs_emu_menu_mode = 1;
     if (g_menu) {
         if (g_menu->update) {
@@ -751,6 +758,11 @@ static void leave_menu(void)
     fs_emu_log("EMU: Leave menu\n");
     g_fs_emu_menu_mode = 0;
     fs_emu_set_input_grab(did_have_input_grab_before_menu);
+	
+    // Automatically unpause emulation - but only if it was automatically
+	// paused when we first entered the menu (and hasn't changed since)	
+    if (g_fs_emu_resume_on_menu_exit == 1 && fs_emu_is_paused() && fs_config_get_boolean("menu_auto_pause") == 1)
+        fs_emu_pause(0);
 }
 
 bool fs_emu_menu_mode(void)

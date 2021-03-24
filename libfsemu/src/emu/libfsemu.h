@@ -63,5 +63,5 @@ extern int g_fs_emu_scanlines_dark;
 extern int g_fs_emu_scanlines_light;
 
 extern fs_emu_texture *g_fs_emu_overlay_texture;
-
+extern int g_fs_emu_resume_on_menu_exit;
 #endif

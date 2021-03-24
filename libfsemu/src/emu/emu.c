@@ -236,6 +236,7 @@ void fs_emu_pause(int pause)
     //fs_emu_grab_input(g_pause_mode == 1);
     g_pause_mode = pause;
     g_pause_function(pause);
+	g_fs_emu_resume_on_menu_exit = 0;  // Don't resume emulation
 }
 
 int fs_emu_is_paused()

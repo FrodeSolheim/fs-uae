@@ -10581,7 +10581,7 @@ void hsync_handler (void)
 			write_log("RRDEBUG SAVE @ %ld?\n", vsync_counter);
 			savestate_quick(save_slot, 1);
 			uae_callback(uae_on_save_state_finished, (void *) (intptr_t) save_slot);
-			uae_savestate_save_2 = save_slot + 1;
+			uae_savestate_save_2 = save_slot;
 		}
 		int load_slot;
 		if (fsemu_frame_check_load_state(&load_slot)) {
@@ -10589,7 +10589,7 @@ void hsync_handler (void)
 			// savestate_quick(load_slot, 0);
 			// uae_savestate_save_2 = save_slot + 1;
 			// FIXME: Slot?
-			uae_savestate_load = 1;
+			uae_savestate_load = load_slot;
 		}
 #endif
 

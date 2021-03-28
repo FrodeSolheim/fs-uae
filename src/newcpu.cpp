@@ -76,7 +76,6 @@ extern int uae_savestate_load;
 extern int uae_savestate_save;
 extern int uae_savestate_load_2;
 extern int uae_savestate_save_2;
-static int uae_savestate_load_3;
 int uae_savestate_vsync_counter;
 extern int uae_savestate_compare;
 extern bool uae_savestate_trace;
@@ -5294,9 +5293,13 @@ cont:
 
 #ifdef FSUAE_RECORDING
 				if (uae_savestate_save_2) {
-					uae_savestate_save_restore_fs("a.fss", true);
+					char fss_path[PATH_MAX];
+					strcpy(fss_path, savestate_fname);
+					fss_path[strlen(savestate_fname) - 4] = 0;
+					strcat(fss_path, ".fss");
+					uae_savestate_save_restore_fs(fss_path, true);
 
-					save_state ("a.uss", _T(""));
+					// save_state ("a.uss", _T(""));
 
 					int save_slot = uae_savestate_save_2;
 					write_log("save 2 %d?\n", save_slot);
@@ -5306,12 +5309,9 @@ cont:
 					if (save_slot == 0) {
 						printf("Slot 0 not supported yet\n");
 					} else {
-						// FIXME: Going to save state; store state slot number in a
-						// global variable - this should signal that the video module
-						// should save a screenshot copy that can be saved together with
-						// the savestate.
-						// amiga_send_input_event(INPUTEVENT_SPC_STATESAVE1 - 1 + slot, 1);
+						uae_savestate_extra = ".ess";
 						savestate_quick(save_slot, 1);
+						uae_savestate_extra = NULL;
 					}
 					write_log("save 2 done %d?\n", save_slot);
 					// custom_prepare();
@@ -5346,7 +5346,7 @@ cont:
 					}
 
 					uae_savestate_load = 0;
-					uae_savestate_load_2 = 2;
+					uae_savestate_load_2 = load_slot;
 
 					exit = true;
 				}
@@ -6842,16 +6842,23 @@ void m68k_go (int may_quit)
 		if (uae_savestate_load_2) {
 			//int spcflags_copy = regs.spcflags;
 
+			// Calculate fss_path before savestate_quick with extra
+			char fss_path[PATH_MAX];
+			strcpy(fss_path, savestate_fname);
+			fss_path[strlen(savestate_fname) - 4] = 0;
+			strcat(fss_path, ".fss");
+
+			uae_savestate_extra = ".ess";
 			savestate_quick(uae_savestate_load_2, 0);
+			uae_savestate_extra = NULL;
+
 			restore_state(savestate_fname);
 
 			uae_memory_restore_now();
 
 			savestate_restore_finish();
-			save_state ("a2.uss", _T(""));
+			// save_state ("a2.uss", _T(""));
 			uae_savestate_load_2 = 0;
-
-			uae_savestate_load_3 = 1;
 /*
 			if (debug_dma) {
 				record_dma_reset ();
@@ -6875,16 +6882,18 @@ void m68k_go (int may_quit)
 
 			//regs.spcflags = spcflags_copy;
 
-			uae_savestate_save_restore_fs("b.fss", true);
+			// uae_savestate_save_restore_fs("b.fss", true);
 			// load a.fss
-			uae_savestate_save_restore_fs("a.fss", false);
+			// uae_savestate_save_restore_fs("a.fss", false);
+			uae_savestate_save_restore_fs(fss_path, false);
+
 			// We may already have drawn some random number(s) after the new
 			// frame number was initialized; we need to undo/reset this!
 			// or... maybe save random state in the savestate file.
 			uae_random_reset();
 			// save_state ("b.uss", _T(""));
 
-			save_state ("a1.uss", _T(""));
+			// save_state ("a1.uss", _T(""));
 		}
 #endif  // FSUAE_RECORDING
 

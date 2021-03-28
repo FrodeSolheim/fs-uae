@@ -106,6 +106,7 @@ jobs:
       if: >-
         github.ref == 'refs/heads/master' ||
         github.ref == 'refs/heads/dev' ||
+        github.ref == 'refs/heads/recording' ||
         github.ref == 'refs/heads/stable'
       run: |
         python3 -m pip install dropbox
@@ -186,6 +187,7 @@ jobs:
       if: >-
         github.ref == 'refs/heads/master' ||
         github.ref == 'refs/heads/dev' ||
+        github.ref == 'refs/heads/recording' ||
         github.ref == 'refs/heads/stable'
       run: |
         python3 -m pip install dropbox
@@ -268,6 +270,7 @@ jobs:
       if: >-
         github.ref == 'refs/heads/master' ||
         github.ref == 'refs/heads/dev' ||
+        github.ref == 'refs/heads/recording' ||
         github.ref == 'refs/heads/stable'
       run: |
         python3 -m pip install dropbox

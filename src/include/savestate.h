@@ -341,6 +341,8 @@ void motordelay_func (uae_u32 v);
 
 // The last used savestate slot.
 extern int uae_savestate_slot;
+
+extern const char *uae_savestate_extra;
 // Currently saving a secondary save state
 // extern bool uae_savestate_extra_saving_extra;
 

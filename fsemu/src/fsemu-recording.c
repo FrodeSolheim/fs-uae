@@ -1047,18 +1047,27 @@ void fsemu_recording_init(void)
 
     fsemu_recording.next_frame_number = -1;
 
-    // FIXME: Temporary.
-    fsemu_recording.path = strdup("recording.fs-uae-rec");
+    const char *recording_file =
+        fsemu_option_const_string("recording_file");
+    if (recording_file != NULL) {
+        fsemu_recording.path = strdup(recording_file);
+    }
 
-    bool record;
-    bool play;
+    bool record = false;
+    bool play = false;
 
-    fsemu_option_read_bool_default("record", &record, false);
-    fsemu_option_read_bool_default("playback", &play, false);
-
-    // if (fsemu_recording.record || fsemu_recording.playback) {
-    //     fsemu_recording_init_recording();
-    // }
+    const char *recording_mode =
+        fsemu_option_const_string("recording_mode");
+    if (recording_mode != NULL) {
+        if (strcmp(recording_mode, "record") == 0) {
+            record = true;
+        } else if (strcmp(recording_mode, "play") == 0) {
+            play = true;
+        } else if (strcmp(recording_mode, "rerecord") == 0) {
+            play = true;
+            record = true;
+        }
+    }
 
     if (play) {
         fsemu_recording.mode = FSEMU_RECORDING_MODE_PLAY;

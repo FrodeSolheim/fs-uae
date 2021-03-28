@@ -77,6 +77,7 @@ static TCHAR savestate_home_dir[MAX_DPATH];
 static TCHAR savestate_run_dir[MAX_DPATH];
 
 int uae_savestate_slot = 0;
+const char *uae_savestate_extra = NULL;
 // FIXME: Can get rid of this?
 bool g_uae_savestate_saving = false;
 // bool uae_savestate_extra_saving_extra = false;
@@ -1448,6 +1449,13 @@ void savestate_quick (int slot, int save)
 	_tcscpy (savestate_fname + i, _T(".uss"));
 	if (slot > 0)
 		_stprintf (savestate_fname + i, _T("_%d.uss"), slot);
+#ifdef FSUAE
+	if (uae_savestate_extra) {
+		int fslen = strlen(savestate_fname);
+		savestate_fname[fslen - 4] = 0;
+		strcat(savestate_fname, uae_savestate_extra);
+	}
+#endif
 	if (save) {
 		write_log (_T("saving '%s'\n"), savestate_fname);
 		savestate_docompress = 1;

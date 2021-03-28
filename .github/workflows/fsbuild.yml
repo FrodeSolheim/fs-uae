@@ -6,11 +6,13 @@ on:
       - master
       - dev
       - stable
+      - recording
   pull_request:
     branches:
       - master
       - dev
       - stable
+      - recording
 
 jobs:
   Linux_x86-64:

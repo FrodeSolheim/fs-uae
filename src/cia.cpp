@@ -133,7 +133,7 @@ static void ICR (uae_u32 data)
 	safe_interrupt_set(IRQ_SOURCE_CIA, 0, (data & 0x2000) != 0);
 }
 
-static void ICRA (uae_u32 dummy)
+void ICRA (uae_u32 dummy)
 {
 	if (ciaaicr & 0x80)
 		ciaaicr |= 0x40;
@@ -150,7 +150,7 @@ static void ICRA (uae_u32 dummy)
 	ICR (0x0008);
 }
 
-static void ICRB (uae_u32 dummy)
+void ICRB (uae_u32 dummy)
 {
 	if (ciabicr & 0x80)
 		ciabicr |= 0x40;
@@ -773,7 +773,7 @@ static void CIAB_tod_inc (bool irq)
 	ciab_checkalarm (true, irq);
 }
 
-static void CIAB_tod_inc_event (uae_u32 v)
+void CIAB_tod_inc_event (uae_u32 v)
 {
 	if (ciab_tod_event_state != 2)
 		return;
@@ -963,7 +963,7 @@ void CIA_vsync_prehandler (void)
 	}
 }
 
-static void CIAA_tod_handler (uae_u32 v)
+void CIAA_tod_handler (uae_u32 v)
 {
 	ciaatod++;
 	ciaatod &= 0xFFFFFF;
@@ -2432,6 +2432,11 @@ static void REGPARAM2 clock_bput (uaecptr addr, uae_u32 value)
 
 static void save_cia_prepare (void)
 {
+#ifdef FSUAE_RECORDING
+	if (uae_recording_mode) {
+		return;
+	}
+#endif
 	CIA_update_check ();
 	CIA_calctimers ();
 	compute_passed_time ();
@@ -2507,6 +2512,7 @@ uae_u8 *restore_cia (int num, uae_u8 *src)
 	l |= restore_u8 () << 8;
 	l |= restore_u8 () << 16;
 	if (num) ciabalarm = l; else ciaaalarm = l;
+
 	b = restore_u8 ();
 	if (num) ciabtlatch = b & 1; else ciaatlatch = b & 1;	/* is TOD latched? */
 	if (num) ciabtodon = b & 2; else ciaatodon = b & 2;		/* is TOD stopped? */
@@ -2636,3 +2642,136 @@ uae_u8 *restore_keyboard (uae_u8 *src)
 }
 
 #endif /* SAVESTATE */
+
+#ifdef FSUAE_RECORDING
+
+void uae_cia_save_state_fs(uae_savestate_context_t *ctx)
+{
+	// uae_savestate_uint(ctx, "ciaapra", &ciaapra);
+	// uae_savestate_uint(ctx, "ciaaprb", &ciaaprb);
+	// uae_savestate_uint(ctx, "ciaadra", &ciaadra);
+	// uae_savestate_uint(ctx, "ciaadrb", &ciaadrb);
+	// uae_savestate_ulong(ctx, "ciaata", &ciaata);
+	// uae_savestate_ulong(ctx, "ciaata_passed", &ciaata_passed);
+	// uae_savestate_ulong(ctx, "ciaatb", &ciaatb);
+	// uae_savestate_ulong(ctx, "ciaatb_passed", &ciaatb_passed);
+	// uae_savestate_ulong(ctx, "ciaatod", &ciaatod);
+	// uae_savestate_uint(ctx, "ciaasdr", &ciaasdr);
+	// uae_savestate_uint(ctx, "ciaaicr", &ciaaicr);
+	// uae_savestate_uint(ctx, "ciaacra", &ciaacra);
+	// uae_savestate_uint(ctx, "ciaacrb", &ciaacrb);
+	// uae_savestate_uint(ctx, "ciaaimask", &ciaaimask);
+	// uae_savestate_ulong(ctx, "ciaala", &ciaala);
+	// uae_savestate_ulong(ctx, "ciaalb", &ciaalb);
+	// uae_savestate_ulong(ctx, "ciaatol", &ciaatol);
+	// uae_savestate_ulong(ctx, "ciaaalarm", &ciaaalarm);
+	// uae_savestate_int(ctx, "ciaatlatch", &ciaatlatch);
+	// uae_savestate_int(ctx, "ciaatodon", &ciaatodon);
+	// uae_savestate_uint(ctx, "ciaasdr_cnt", &ciaasdr_cnt);
+	// uae_savestate_uint(ctx, "ciaastarta", &ciaastarta);
+	// uae_savestate_uint(ctx, "ciaastartb", &ciaastartb);
+	// uae_savestate_uint(ctx, "ciabpra", &ciabpra);
+	// uae_savestate_uint(ctx, "ciabprb", &ciabprb);
+	// uae_savestate_uint(ctx, "ciabdra", &ciabdra);
+	// uae_savestate_uint(ctx, "ciabdrb", &ciabdrb);
+	// uae_savestate_ulong(ctx, "ciabta", &ciabta);
+	// uae_savestate_ulong(ctx, "ciabta_passed", &ciabta_passed);
+	// uae_savestate_ulong(ctx, "ciabtb", &ciabtb);
+	// uae_savestate_ulong(ctx, "ciabtb_passed", &ciabtb_passed);
+	// uae_savestate_ulong(ctx, "ciabtod", &ciabtod);
+	// uae_savestate_uint(ctx, "ciabsdr", &ciabsdr);
+	// uae_savestate_uint(ctx, "ciabicr", &ciabicr);
+	// uae_savestate_uint(ctx, "ciabcra", &ciabcra);
+	// uae_savestate_uint(ctx, "ciabcrb", &ciabcrb);
+	// uae_savestate_uint(ctx, "ciabimask", &ciabimask);
+	// uae_savestate_ulong(ctx, "ciabla", &ciabla);
+	// uae_savestate_ulong(ctx, "ciablb", &ciablb);
+	// uae_savestate_ulong(ctx, "ciabtol", &ciabtol);
+	// uae_savestate_ulong(ctx, "ciabalarm", &ciabalarm);
+	// uae_savestate_int(ctx, "ciabtlatch", &ciabtlatch);
+	// uae_savestate_int(ctx, "ciabtodon", &ciabtodon);
+	// uae_savestate_uint(ctx, "ciabsdr_cnt", &ciabsdr_cnt);
+	// uae_savestate_uint(ctx, "ciabstarta", &ciabstarta);
+	// uae_savestate_uint(ctx, "ciabstartb", &ciabstartb);
+	// uae_savestate_int(ctx, "div10", &div10);
+
+	sr_ulong(ciaaalarm);
+	sr_uint(ciaacra);
+	sr_uint(ciaacrb);
+	sr_uint(ciaadra);
+	sr_uint(ciaadrb);
+	sr_uint(ciaaicr);
+	sr_uint(ciaaimask);
+	sr_ulong(ciaala);
+	sr_ulong(ciaalb);
+	sr_uint(ciaapra);
+	sr_uint(ciaaprb);
+	sr_uint(ciaasdr);
+	sr_uint(ciaasdr_cnt);
+	sr_uint(ciaastarta);
+	sr_uint(ciaastartb);
+	sr_ulong(ciaata);
+	sr_ulong(ciaata_passed);
+	sr_ulong(ciaatb);
+	sr_ulong(ciaatb_passed);
+	sr_int(ciaatlatch);
+	sr_ulong(ciaatod);
+	sr_int(ciaatodon);
+	sr_ulong(ciaatol);
+	sr_ulong(ciabalarm);
+	sr_uint(ciabcra);
+	sr_uint(ciabcrb);
+	sr_uint(ciabdra);
+	sr_uint(ciabdrb);
+	sr_uint(ciabicr);
+	sr_uint(ciabimask);
+	sr_ulong(ciabla);
+	sr_ulong(ciablb);
+	sr_uint(ciabpra);
+	sr_uint(ciabprb);
+	sr_uint(ciabsdr);
+	sr_uint(ciabsdr_cnt);
+	sr_uint(ciabstarta);
+	sr_uint(ciabstartb);
+	sr_ulong(ciabta);
+	sr_ulong(ciabta_passed);
+	sr_ulong(ciabtb);
+	sr_ulong(ciabtb_passed);
+	sr_int(ciabtlatch);
+	sr_ulong(ciabtod);
+	sr_int(ciab_tod_event_state);
+	sr_int(ciab_tod_hoffset);
+	sr_int(ciabtodon);
+	sr_ulong(ciabtol);
+	sr_int(cia_interrupt_delay);
+	sr_int(cia_interrupt_disabled);
+	sr_int(div10);
+	sr_int(heartbeat_cnt);
+	sr_uint8(kbcode);
+	sr_ulong(kbhandshakestart);
+	sr_int(kblostsynccnt);
+	sr_int(kbstate);
+	sr_bool(led);
+	sr_ulong(led_cycle);
+	sr_ulong(led_cycles_off);
+	sr_ulong(led_cycles_on);
+	sr_int(led_old_brightness);
+	sr_bool(oldcd32mute);
+	sr_bool(oldovl);
+	sr_int(resetwarning_phase);
+	sr_int(resetwarning_timer);
+	// FIXME
+	// sr_uint(rtc_msm);
+	// sr_uint(rtc_ricoh);
+	sr_uint8(serbits);
+	sr_int(tod_diff_cnt);
+	sr_int(tod_hack_delay);
+	sr_int(tod_hack_enabled);
+	// FIXME
+	sr_uint64(tod_hack_tod);
+	sr_uint64(tod_hack_tod_last);
+	sr_uint64(tod_hack_tv);
+	sr_int(warned);
+}
+
+#endif  // FSUAE_RECORDING

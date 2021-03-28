@@ -85,6 +85,28 @@ void write_log (const TCHAR *, ...) UAE_WPRINTF_FORMAT(1, 2);
 void write_logx(const TCHAR *, ...);
 #endif
 
+#ifdef FSUAE
+
+void uae_frametrace_init(void);
+void uae_frametrace_enable(void);
+
+#include "uae/likely.h"
+
+extern int uae_frametrace_log_enabled;
+void uae_frametrace_log_impl(const char *format, ...) UAE_PRINTF_FORMAT(1, 2);
+
+#include <stdarg.h>
+
+void uae_frametrace_log_va_args(const char *format, va_list args);
+
+#define uae_frametrace_log(format, ...) { \
+	if (uae_unlikely(uae_frametrace_log_enabled)) { \
+		uae_frametrace_log_impl(format, ##__VA_ARGS__); \
+	} \
+}
+
+#endif
+
 #endif
 
 /* Deprecated defines */

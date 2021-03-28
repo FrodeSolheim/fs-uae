@@ -274,4 +274,87 @@ extern void savestate_listrewind (void);
 extern void statefile_save_recording (const TCHAR*);
 extern void savestate_capture_request (void);
 
+#ifdef FSUAE // NL
+
+extern bool g_uae_savestate_saving;
+
+struct uae_savestate_context;
+
+struct uae_savestate_context {
+	bool load;
+	bool save;
+	struct zfile *zf;
+};
+
+typedef struct uae_savestate_context uae_savestate_context_t;
+
+void uae_savestate_save_restore_fs(const char *path, bool save);
+
+void uae_custom_save_state_fs(uae_savestate_context_t *ctx);
+void uae_newcpu_save_state_fs(uae_savestate_context_t *ctx);
+void uae_cia_save_state_fs(uae_savestate_context_t *ctx);
+void uae_events_save_state_fs(uae_savestate_context_t *ctx);
+void uae_audio_save_state_fs(uae_savestate_context_t *ctx);
+void uae_disk_save_state_fs(uae_savestate_context_t *ctx);
+void uae_blitter_save_state_fs(uae_savestate_context_t *ctx);
+void uae_inputdevice_save_state_fs(uae_savestate_context_t *ctx);
+// void uae_memory_save_state_fs(uae_savestate_context_t *ctx);
+
+void uae_memory_restore_now(void);
+
+void uae_savestate_bool(uae_savestate_context_t *ctx, const char *name, bool *value);
+
+void uae_savestate_int(uae_savestate_context_t *ctx, const char *name, int *value);
+void uae_savestate_int16(uae_savestate_context_t *ctx, const char *name, int16_t *value);
+
+void uae_savestate_uint(uae_savestate_context_t *ctx, const char *name, unsigned int *value);
+void uae_savestate_uint8(uae_savestate_context_t *ctx, const char *name, uint8_t *value);
+void uae_savestate_uint16(uae_savestate_context_t *ctx, const char *name, uint16_t *value);
+void uae_savestate_uint32(uae_savestate_context_t *ctx, const char *name, uint32_t *value);
+void uae_savestate_uint64(uae_savestate_context_t *ctx, const char *name, uae_u64 *value);
+
+void uae_savestate_long(uae_savestate_context_t *ctx, const char *name, long *value);
+
+void uae_savestate_ulong(uae_savestate_context_t *ctx, const char *name, unsigned long *value);
+
+void uae_events_trace_log(void);
+
+// FIXME: Needed for eventtab2 restoration
+void action_replay_cia_access_delay(uae_u32 v);
+void audio_setirq_event(uae_u32 nr);
+void ICRA (uae_u32 dummy);
+void ICRB (uae_u32 dummy);
+void CIAB_tod_inc_event (uae_u32 v);
+void CIAA_tod_handler (uae_u32 v);
+void send_interrupt_do (uae_u32 v);
+void send_intena_do (uae_u32 v);
+void send_intreq_do (uae_u32 v);
+void lightpen_trigger_func(uae_u32 v);
+void breakfunc(uae_u32 v);
+void blitter_handler (uae_u32 data);
+void DISK_handler (uae_u32 data);
+void subcode_interrupt (uae_u32 v);
+void copper_write (uae_u32 v);
+void dmal_func (uae_u32 v);
+void dmal_func2 (uae_u32 v);
+void motordelay_func (uae_u32 v);
+
+// The last used savestate slot.
+extern int uae_savestate_slot;
+// Currently saving a secondary save state
+// extern bool uae_savestate_extra_saving_extra;
+
+#define sr_bool(x) uae_savestate_bool(ctx, #x, &(x));
+#define sr_int(x) uae_savestate_int(ctx, #x, &(x));
+#define sr_int16(x) uae_savestate_int16(ctx, #x, &(x));
+#define sr_uint(x) uae_savestate_uint(ctx, #x, &(x));
+#define sr_uint8(x) uae_savestate_uint8(ctx, #x, &(x));
+#define sr_uint16(x) uae_savestate_uint16(ctx, #x, &(x));
+#define sr_uint32(x) uae_savestate_uint32(ctx, #x, &(x));
+#define sr_uint64(x) uae_savestate_uint64(ctx, #x, &(x));
+#define sr_long(x) uae_savestate_long(ctx, #x, &(x));
+#define sr_ulong(x) uae_savestate_ulong(ctx, #x, &(x));
+
+#endif  // FSUAE
+
 #endif /* UAE_SAVESTATE_H */

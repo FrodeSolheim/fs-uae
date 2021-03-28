@@ -16,6 +16,9 @@
 
 #include "fs-uae.h"
 
+// FIXME: Most of the code in this module is now unused, replaced by code in
+// fsemu-recording instead. Some glue code may remain here? (Maybe not)
+
 // FIXME: increase to much more, e.g. 1 MB
 #define CHUNK_SIZE 1024
 #define CHUNK_BYTES (CHUNK_SIZE * 4)
@@ -238,6 +241,7 @@ static int read_recording(const char *path, int end)
     return 1;
 }
 
+#if 0
 static char *get_state_recording_path(const char *p)
 {
     char *temp = strdup(p);
@@ -249,23 +253,25 @@ static char *get_state_recording_path(const char *p)
     free(temp);
     return path;
 }
+#endif
 
+#if 0
 static void on_save_state_finished(void *data)
 {
     const char *path = (const char *) data;
-    printf("on_save_state_finished path = %s\n", path);
+    // printf("on_save_state_finished path = %s\n", path);
 
     char *recording_path = get_state_recording_path(path);
     if (g_recording_enabled) {
         printf("- recording was enabled\n");
         write_recording(recording_path, g_playback_pos);
     } else {
-        printf("checking if recording %s exists...\n", recording_path);
+        // printf("checking if recording %s exists...\n", recording_path);
         if (fs_path_exists(recording_path)) {
             printf("- removing %s\n", recording_path);
             g_unlink(recording_path);
         } else {
-            printf("- does not exist\n");
+            // printf("- does not exist\n");
         }
     }
     g_free(recording_path);
@@ -292,13 +298,16 @@ static void on_restore_state_finished(void *data)
         // do nothing
     }
 }
+#endif
+
+#include "fsemu-savestate.h"
 
 void fs_uae_init_recording(void)
 {
     fsuae_log("fs_uae_init_recording\n");
 
-    amiga_on_restore_state_finished(on_restore_state_finished);
-    amiga_on_save_state_finished(on_save_state_finished);
+    amiga_on_load_state_finished(fsemu_savestate_on_load_finished);
+    amiga_on_save_state_finished(fsemu_savestate_on_save_finished);
 }
 
 void fs_uae_enable_recording(const char *record_file)

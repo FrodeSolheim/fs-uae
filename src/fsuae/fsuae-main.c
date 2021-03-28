@@ -61,6 +61,7 @@
 #include "fsemu-main.h"
 #include "fsemu-option.h"
 #include "fsemu-quit.h"
+#include "fsemu-recording.h"
 #include "fsemu-time.h"
 #include "fsemu-util.h"
 #include "fsemu-video.h"
@@ -444,7 +445,7 @@ static int input_handler_loop(int line)
 #endif
         uint16_t action;
         int16_t state;
-        while (fsemu_input_next_action(&action, &state)) {
+        while (fsemu_recording_next_action(line, &action, &state)) {
             // int input_event = action & ~FSEMU_ACTION_EMU_FLAG;
 
             g_fs_uae_last_input_event = action;
@@ -1139,7 +1140,7 @@ static void led_function(int led, int state, int brightness)
     }
 }
 
-static void on_update_leds(void *data)
+static uintptr_t on_update_leds(void *data)
 {
 #ifdef FSUAE_LEGACY
     amiga_led_data *leds = (amiga_led_data *) data;
@@ -1169,6 +1170,7 @@ static void on_update_leds(void *data)
     fsemu_led_set_state(leds.floppy_led, floppy_state);
     fsemu_led_set_state(leds.disk_led, leds.led_states[5]);
     // fsemu_led_set_state(leds.disk_led, leds.led_states[9]);
+    return 0;
 }
 
 // ----------------------------------------------------------------------------
@@ -1863,6 +1865,7 @@ int main(int argc, char *argv[])
         fsemu_oskeyboard_init();
         fsemu_osmenu_init();
         fsemu_perfgui_init();
+        fsemu_recording_init();
         fsemu_startupinfo_init();
 
         fsemu_audio_init();
@@ -1936,6 +1939,9 @@ int main(int argc, char *argv[])
     fs_emu_set_quit_function(quit_function);
 #endif
 
+    fsemu_recording_set_checksum_function(amiga_get_state_checksum);
+    fsemu_recording_set_rand_function(amiga_get_rand_checksum);
+
     // force creation of some recommended default directories
     fsuae_path_kickstarts_dir();
     fsuae_path_configs_dir();
@@ -1993,12 +1999,18 @@ int main(int argc, char *argv[])
     }
 #endif
 
+    int deterministic_mode = 0;
+
+    amiga_on_load_state_finished(fsemu_savestate_on_load_finished);
+    amiga_on_save_state_finished(fsemu_savestate_on_save_finished);
+
+
+#if 0
     // We initialize the recording module whether it is used or not, so it
     // can delete state-specific recordings (if necessary) when states are
     // saved.
     fs_uae_init_recording();
 
-    int deterministic_mode = 0;
     const char *record_file = fs_config_get_const_string("record");
     if (record_file) {
         fsuae_log("record file specified: %s, forcing deterministic mode\n",
@@ -2008,12 +2020,18 @@ int main(int argc, char *argv[])
     } else {
         fsuae_log("not running in record mode\n");
     }
+#endif
 
     if (
 #ifdef FSUAE_LEGACY
         fs_emu_netplay_enabled() ||
 #endif
         fs_config_get_boolean(OPTION_DETERMINISTIC) == 1) {
+        deterministic_mode = 1;
+    }
+
+    if (fsemu_recording_enabled()) {
+        uae_set_recording_mode();
         deterministic_mode = 1;
     }
     if (deterministic_mode) {

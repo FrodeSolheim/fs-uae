@@ -11,6 +11,8 @@
 #include "config.h"
 #endif
 
+#include "uae/fs.h"
+
 /* src/sysconfig.h.  Generated from sysconfig.h.in by configure.  */
 /* src/sysconfig.h.in.  Generated from configure.in by autoheader.  */
 

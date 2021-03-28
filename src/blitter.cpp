@@ -1895,6 +1895,12 @@ uae_u8 *restore_blitter (uae_u8 *src)
 
 uae_u8 *save_blitter (int *len, uae_u8 *dstptr)
 {
+#ifdef FSUAE_RECORDING
+	if (uae_recording_mode) {
+		*len = 0;
+		return dstptr;
+	}
+#endif
 	uae_u8 *dstbak,*dst;
 	int forced;
 
@@ -2082,3 +2088,458 @@ uae_u8 *save_blitter_new (int *len, uae_u8 *dstptr)
 }
 
 #endif /* SAVESTATE */
+
+#ifdef FSUAE_RECORDING
+
+void uae_blitter_save_state_fs(uae_savestate_context_t *ctx)
+{
+	sr_int(blitter_cycle_exact);
+	sr_int(immediate_blits);
+	sr_int(blt_statefile_type);
+
+	sr_uint16(bltcon0);
+	sr_uint16(bltcon1);
+	sr_uint32(bltapt);
+	sr_uint32(bltbpt);
+	sr_uint32(bltcpt);
+	sr_uint32(bltdpt);
+	sr_uint32(bltptx);
+
+	sr_int(bltptxpos);
+	sr_int(bltptxc);
+	sr_int(blitter_nasty);
+	sr_int(blitter_dangerous_bpl);
+
+	sr_int(original_ch);
+	sr_int(original_fill);
+	sr_int(original_line);
+
+	sr_int(blinea_shift);
+	sr_uint16(blinea);
+	sr_uint16(blineb);
+	sr_int(blitline);
+	sr_int(blitfc);
+	sr_int(blitfill);
+	sr_int(blitife);
+	sr_int(blitsing);
+	sr_int(blitdesc);
+	sr_int(blitline_started);
+	sr_int(blitonedot);
+	sr_int(blitsign);
+	sr_int(blitlinepixel);
+	sr_int(blit_add);
+	sr_int(blit_modadda);
+	sr_int(blit_modaddb);
+	sr_int(blit_modaddc);
+	sr_int(blit_modaddd);
+	sr_int(blit_ch);
+
+	sr_int(blitter_dontdo);
+	sr_int(blitter_delayed_debug);
+#ifdef BLITTER_SLOWDOWNDEBUG
+static int blitter_slowdowndebug;
+#endif
+
+struct bltinfo blt_info;
+
+
+    sr_int(blt_info.blitzero);
+    sr_int(blt_info.blitashift);
+	sr_int(blt_info.blitbshift);
+	sr_int(blt_info.blitdownashift);
+	sr_int(blt_info.blitdownbshift);
+    sr_uint16(blt_info.bltadat);
+	sr_uint16(blt_info.bltbdat);
+	sr_uint16(blt_info.bltcdat);
+	sr_uint16(blt_info.bltddat);
+    sr_uint16(blt_info.bltaold);
+	sr_uint16(blt_info.bltahold);
+	sr_uint16(blt_info.bltbold);
+	sr_uint16(blt_info.bltbhold);
+	sr_uint16(blt_info.bltafwm);
+	sr_uint16(blt_info.bltalwm);
+    sr_int(blt_info.vblitsize);
+	sr_int(blt_info.hblitsize);
+    sr_int(blt_info.bltamod);
+	sr_int(blt_info.bltbmod);
+	sr_int(blt_info.bltcmod);
+	sr_int(blt_info.bltdmod);
+    sr_int(blt_info.got_cycle);
+
+	char name[32 + 1];
+
+	for (int i = 0; i < 256; i++) {
+		for (int j = 0; j < 4; j++) {
+			for (int k = 0; k < 2; k++) {
+				sprintf(name, "blit_filltable[%d][%d][%d]", i, j, k);
+				uae_u32 blit_masktable[BLITTER_MAX_WORDS];
+				uae_savestate_uint8(ctx, name, &blit_filltable[i][j][k]);
+			}
+		}
+	}
+
+	for (int i = 0; i < BLITTER_MAX_WORDS; i++) {
+		sprintf(name, "blit_masktable[%d]", i);
+		uae_savestate_uint32(ctx, name, &blit_masktable[i]);
+	}
+
+	int bltstate_int = bltstate;
+	uae_savestate_int(ctx, "bltstate", &bltstate_int);
+	if (ctx->load) {
+		bltstate = (blitter_states) bltstate_int;
+	}
+
+	sr_int(blit_cyclecounter);
+	sr_int(blit_waitcyclecounter);
+	sr_uint32(blit_waitpc);
+	sr_int(blit_maxcyclecounter);
+	sr_int(blit_slowdown);
+	sr_int(blit_totalcyclecounter);
+	sr_int(blit_startcycles);
+	sr_int(blit_misscyclecounter);
+
+	sr_long(blit_firstline_cycles);
+	sr_long(blit_first_cycle);
+	sr_int(blit_last_cycle);
+	sr_int(blit_dmacount);
+	sr_int(blit_dmacount2);
+	sr_int(blit_linecycles);
+	sr_int(blit_extracycles);
+	sr_int(blit_nod);
+
+	// FIXME: Check?
+	// static const int *blit_diag;
+
+	sr_int(blit_frozen);
+	sr_int(blit_faulty);
+	sr_int(blit_final);
+	sr_int(blt_delayed_irq);
+	sr_uint16(ddat1);
+	sr_uint16(ddat2);
+	sr_int(ddat1use);
+	sr_int(ddat2use);
+
+	sr_int(blit_interrupt);
+
+	sr_int(last_blitter_hpos);
+
+	sr_uint16(debug_bltcon0);
+	sr_uint16(debug_bltcon1);
+
+	sr_uint32(debug_bltapt);
+	sr_uint32(debug_bltbpt);
+	sr_uint32(debug_bltcpt);
+	sr_uint32(debug_bltdpt);
+	sr_uint16(debug_bltamod);
+	sr_uint16(debug_bltbmod);
+	sr_uint16(debug_bltcmod);
+	sr_uint16(debug_bltdmod);
+	sr_uint32(debug_bltafwm);
+	sr_uint32(debug_bltalwm);
+	sr_uint32(debug_bltpc);
+	
+	sr_int(debug_bltcop);
+
+	sr_uint16(debug_bltsizev);
+	sr_uint16(debug_bltsizeh);
+	sr_uint16(debug_bltadat);
+	sr_uint16(debug_bltbdat)
+	sr_uint16(debug_bltcdat);
+
+	sr_int(blitter_cyclecounter);
+	sr_int(blitter_hcounter1);
+	sr_int(blitter_hcounter2);
+	sr_int(blitter_vcounter1);
+	sr_int(blitter_vcounter2);
+
+// 	uae_savestate_uint(ctx, "currprefs.chipset_mask", &currprefs.chipset_mask);
+	
+	
+// // 	SW (0);					/* 000 BLTDDAT */
+// 	uae_savestate_uint16(ctx, "dmacon", &dmacon);
+// // 	SW (VPOSR ());			/* 004 VPOSR */
+// // 	SW (VHPOSR ());			/* 006 VHPOSR */
+// // 	SW (0);					/* 008 DSKDATR */
+// // 	SW (JOYGET (0));		/* 00A JOY0DAT */
+// // 	SW (JOYGET (1));		/* 00C JOY1DAT */
+// 	uae_savestate_uint(ctx, "clxdat", &clxdat);
+// // 	SW (ADKCONR ());		/* 010 ADKCONR */
+// // 	SW (POT0DAT ());		/* 012 POT0DAT */
+// // 	SW (POT1DAT ());		/* 014 POT1DAT */
+// // 	SW (0)	;				/* 016 POTINP * */
+// // 	SW (0);					/* 018 SERDATR * */
+// // 	SW (dskbytr);			/* 01A DSKBYTR */
+// //	uae_savestate_uint(ctx, "dskbytr", &dskbytr);
+// // 	SW (INTENAR ());		/* 01C INTENAR */
+// // 	SW (INTREQR ());		/* 01E INTREQR */
+// // 	SL (dskpt);				/* 020-023 DSKPT */
+// // 	SW (dsklen);			/* 024 DSKLEN */
+// // 	SW (0);					/* 026 DSKDAT */
+// 	uae_savestate_uint16(ctx, "refptr", &refptr);
+// // 	SW ((lof_store ? 0x8001 : 0) | (lol ? 0x0080 : 0));/* 02A VPOSW */
+// // 	SW (0);					/* 02C VHPOSW */
+// 	uae_savestate_uint32(ctx, "copcon", &copcon);
+// 	uae_savestate_uint16(ctx, "serdat", &serdat);
+// 	uae_savestate_uint16(ctx, "serper", &potgo_value);
+// // 	SW (0);					/* 036 JOYTEST * */
+// // 	SW (0);					/* 038 STREQU */
+// // 	SW (0);					/* 03A STRVBL */
+// // 	SW (0);					/* 03C STRHOR */
+// // 	SW (0);					/* 03E STRLONG */
+// 	uae_savestate_uint16(ctx, "bltcon0", &bltcon0);
+// 	uae_savestate_uint16(ctx, "bltcon1", &bltcon1);
+// 	uae_savestate_uint16(ctx, "blt_info.bltafwm", &blt_info.bltafwm);
+// 	uae_savestate_uint16(ctx, "blt_info.bltalwm", &blt_info.bltalwm);
+// 	uae_savestate_uint32(ctx, "bltcpt", &bltcpt);
+// 	uae_savestate_uint32(ctx, "bltbpt", &bltbpt);
+// 	uae_savestate_uint32(ctx, "bltapt", &bltapt);
+// 	uae_savestate_uint32(ctx, "bltdpt", &bltdpt);
+
+// // 	SW (0);					/* 058 BLTSIZE */
+// // 	SW (0);					/* 05A BLTCON0L (use BLTCON0 instead) */
+
+// 	uae_savestate_int(ctx, "blt_info.vblitsize", &blt_info.vblitsize);
+// 	uae_savestate_int(ctx, "blt_info.hblitsize", &blt_info.hblitsize);
+// 	uae_savestate_int(ctx, "blt_info.bltcmod", &blt_info.bltcmod);
+// 	uae_savestate_int(ctx, "blt_info.bltbmod", &blt_info.bltbmod);
+// 	uae_savestate_int(ctx, "blt_info.bltamod", &blt_info.bltamod);
+// 	uae_savestate_int(ctx, "blt_info.bltdmod", &blt_info.bltdmod);
+
+// // 	SW (0);					/* 068 ? */
+// // 	SW (0);					/* 06A ? */
+// // 	SW (0);					/* 06C ? */
+// // 	SW (0);					/* 06E ? */
+
+// 	uae_savestate_uint16(ctx, "blt_info.bltcdat", &blt_info.bltcdat);
+// 	uae_savestate_uint16(ctx, "blt_info.bltbdat", &blt_info.bltbdat);
+// 	uae_savestate_uint16(ctx, "blt_info.bltadat", &blt_info.bltadat);
+
+// // 	SW (0);					/* 076 ? */
+// // 	SW (0);					/* 078 ? */
+// // 	SW (0);					/* 07A ? */
+// // 	SW (DENISEID (&dummy));	/* 07C DENISEID/LISAID */
+// // 	SW (dsksync);			/* 07E DSKSYNC */
+
+// 	uae_savestate_uint32(ctx, "cop1lc", &cop1lc);
+// 	uae_savestate_uint32(ctx, "cop2lc", &cop2lc);
+
+// // 	SW (0);					/* 088 ? */
+// // 	SW (0);					/* 08A ? */
+// // 	SW (0);					/* 08C ? */
+
+// 	uae_savestate_int(ctx, "diwstrt", &diwstrt);
+// 	uae_savestate_int(ctx, "diwstop", &diwstop);
+// 	uae_savestate_int(ctx, "ddfstrt", &ddfstrt);
+// 	uae_savestate_int(ctx, "ddfstop", &ddfstop);
+// 	uae_savestate_uint16(ctx, "dmacon", &dmacon);
+// 	uae_savestate_uint32(ctx, "clxcon", &clxcon);
+// 	uae_savestate_uint16(ctx, "intena", &intena);
+// 	uae_savestate_uint16(ctx, "intreq", &intreq);
+// 	uae_savestate_uint16(ctx, "adkcon", &adkcon);
+
+// // 	SW ();			/* 08E DIWSTRT */
+// // 	SW ();			/* 090 DIWSTOP */
+// // 	SW ();			/* 092 DDFSTRT */
+// // 	SW ();			/* 094 DDFSTOP */
+// // 	SW ();			/* 096 DMACON */
+// // 	SW ();			/* 098 CLXCON */
+// // 	SW ();			/* 09A INTENA */
+// // 	SW ();			/* 09C INTREQ */
+// // 	SW ();			/* 09E ADKCON */
+// // 	for (i = 0; full && i < 32; i++)
+// // 		SW (0);
+
+// 	uae_savestate_uint32(ctx, "bplpt[0]", bplpt + 0);
+// 	uae_savestate_uint32(ctx, "bplpt[1]", bplpt + 1);
+// 	uae_savestate_uint32(ctx, "bplpt[2]", bplpt + 2);
+// 	uae_savestate_uint32(ctx, "bplpt[3]", bplpt + 3);
+// 	uae_savestate_uint32(ctx, "bplpt[4]", bplpt + 4);
+// 	uae_savestate_uint32(ctx, "bplpt[5]", bplpt + 5);
+// 	uae_savestate_uint32(ctx, "bplpt[6]", bplpt + 6);
+// 	uae_savestate_uint32(ctx, "bplpt[7]", bplpt + 7);
+
+// 	uae_savestate_uint16(ctx, "bplcon0", &bplcon0);
+// 	uae_savestate_uint16(ctx, "bplcon1", &bplcon1);
+// 	uae_savestate_uint16(ctx, "bplcon2", &bplcon2);
+// 	uae_savestate_uint16(ctx, "bplcon3", &bplcon3);
+
+// 	uae_savestate_int16(ctx, "bpl1mod", &bpl1mod);
+// 	uae_savestate_int16(ctx, "bpl2mod", &bpl2mod);
+// 	uae_savestate_uint16(ctx, "bplcon4", &bplcon4);
+// 	uae_savestate_uint(ctx, "clxcon2", &clxcon2);
+
+// 	uae_savestate_uint16(ctx, "fetched[0]", fetched + 0);
+// 	uae_savestate_uint16(ctx, "fetched[1]", fetched + 1);
+// 	uae_savestate_uint16(ctx, "fetched[2]", fetched + 2);
+// 	uae_savestate_uint16(ctx, "fetched[3]", fetched + 3);
+// 	uae_savestate_uint16(ctx, "fetched[4]", fetched + 4);
+// 	uae_savestate_uint16(ctx, "fetched[5]", fetched + 5);
+// 	uae_savestate_uint16(ctx, "fetched[6]", fetched + 6);
+// 	uae_savestate_uint16(ctx, "fetched[7]", fetched + 7);
+
+// 	uae_savestate_uint32(ctx, "spr[0].pt", &spr[0].pt);
+// 	uae_savestate_uint16(ctx, "spr[0].pos", &spr[0].pos);
+// 	uae_savestate_uint16(ctx, "spr[0].ctl", &spr[0].ctl);
+// 	uae_savestate_uint16(ctx, "spr[0].data[0]", &spr[0].data[0]);
+// 	uae_savestate_uint16(ctx, "spr[0].datb[0]", &spr[0].datb[0]);
+
+// 	uae_savestate_uint32(ctx, "spr[1].pt", &spr[1].pt);
+// 	uae_savestate_uint16(ctx, "spr[1].pos", &spr[1].pos);
+// 	uae_savestate_uint16(ctx, "spr[1].ctl", &spr[1].ctl);
+// 	uae_savestate_uint16(ctx, "spr[1].data[0]", &spr[1].data[0]);
+// 	uae_savestate_uint16(ctx, "spr[1].datb[0]", &spr[1].datb[0]);
+
+// 	uae_savestate_uint32(ctx, "spr[2].pt", &spr[2].pt);
+// 	uae_savestate_uint16(ctx, "spr[2].pos", &spr[2].pos);
+// 	uae_savestate_uint16(ctx, "spr[2].ctl", &spr[2].ctl);
+// 	uae_savestate_uint16(ctx, "spr[2].data[0]", &spr[2].data[0]);
+// 	uae_savestate_uint16(ctx, "spr[2].datb[0]", &spr[2].datb[0]);
+
+// 	uae_savestate_uint32(ctx, "spr[3].pt", &spr[3].pt);
+// 	uae_savestate_uint16(ctx, "spr[3].pos", &spr[3].pos);
+// 	uae_savestate_uint16(ctx, "spr[3].ctl", &spr[3].ctl);
+// 	uae_savestate_uint16(ctx, "spr[3].data[0]", &spr[3].data[0]);
+// 	uae_savestate_uint16(ctx, "spr[3].datb[0]", &spr[3].datb[0]);
+
+// 	uae_savestate_uint32(ctx, "spr[4].pt", &spr[4].pt);
+// 	uae_savestate_uint16(ctx, "spr[4].pos", &spr[4].pos);
+// 	uae_savestate_uint16(ctx, "spr[4].ctl", &spr[4].ctl);
+// 	uae_savestate_uint16(ctx, "spr[4].data[0]", &spr[4].data[0]);
+// 	uae_savestate_uint16(ctx, "spr[4].datb[0]", &spr[4].datb[0]);
+
+// 	uae_savestate_uint32(ctx, "spr[5].pt", &spr[5].pt);
+// 	uae_savestate_uint16(ctx, "spr[5].pos", &spr[5].pos);
+// 	uae_savestate_uint16(ctx, "spr[5].ctl", &spr[5].ctl);
+// 	uae_savestate_uint16(ctx, "spr[5].data[0]", &spr[5].data[0]);
+// 	uae_savestate_uint16(ctx, "spr[5].datb[0]", &spr[5].datb[0]);
+
+// 	uae_savestate_uint32(ctx, "spr[6].pt", &spr[6].pt);
+// 	uae_savestate_uint16(ctx, "spr[6].pos", &spr[6].pos);
+// 	uae_savestate_uint16(ctx, "spr[6].ctl", &spr[6].ctl);
+// 	uae_savestate_uint16(ctx, "spr[6].data[0]", &spr[6].data[0]);
+// 	uae_savestate_uint16(ctx, "spr[6].datb[0]", &spr[6].datb[0]);
+
+// 	uae_savestate_uint32(ctx, "spr[7].pt", &spr[7].pt);
+// 	uae_savestate_uint16(ctx, "spr[7].pos", &spr[7].pos);
+// 	uae_savestate_uint16(ctx, "spr[7].ctl", &spr[7].ctl);
+// 	uae_savestate_uint16(ctx, "spr[7].data[0]", &spr[7].data[0]);
+// 	uae_savestate_uint16(ctx, "spr[7].datb[0]", &spr[7].datb[0]);
+
+// // 	if (full) {
+// // 		for (i = 0; i < 8; i++) {
+// // 			SL (spr[i].pt);	/* 120-13E SPRxPT */
+// // 		}
+// // 		for (i = 0; i < 8; i++) {
+// // 			struct sprite *s = &spr[i];
+// // 			SW (s->pos);	/* 1x0 SPRxPOS */
+// // 			SW (s->ctl);	/* 1x2 SPRxPOS */
+// // 			SW (s->data[0]);	/* 1x4 SPRxDATA */
+// // 			SW (s->datb[0]);	/* 1x6 SPRxDATB */
+// // 		}
+// // 	}
+// // 	for (i = 0; i < 32; i++) {
+// // 		if (0) {
+// // #ifdef AGA
+// // 		} else if (currprefs.chipset_mask & CSMASK_AGA) {
+// // 			uae_u32 v = current_colors.color_regs_aga[i];
+// // 			uae_u16 v2;
+// // 			v &= 0x00f0f0f0;
+// // 			v2 = (v >> 4) & 15;
+// // 			v2 |= ((v >> 12) & 15) << 4;
+// // 			v2 |= ((v >> 20) & 15) << 8;
+// // 			SW (v2);
+// // #endif
+// // 		} else {
+// // 			uae_u16 v = current_colors.color_regs_ecs[i];
+// // 			if (color_regs_genlock[i])
+// // 				v |= 0x8000;
+// // 			SW (v); /* 180-1BE COLORxx */
+// // 		}
+// // 	}
+
+// 	uae_savestate_uint16(ctx, "htotal", &htotal);
+// 	uae_savestate_uint16(ctx, "hsstop", &hsstop);
+// 	uae_savestate_uint16(ctx, "hbstrt", &hbstrt);
+// 	uae_savestate_uint16(ctx, "hbstop", &hbstop);
+// 	uae_savestate_uint16(ctx, "vtotal", &vtotal);
+// 	uae_savestate_uint16(ctx, "vsstop", &vsstop);
+// 	uae_savestate_uint16(ctx, "vbstrt", &vbstrt);
+// 	uae_savestate_uint16(ctx, "vbstop", &vbstop);
+
+// // 	SW (0);			/* 1D0 */
+// // 	SW (0);			/* 1D2 */
+// // 	SW (0);			/* 1D4 */
+// // 	SW (0);			/* 1D6 */
+// // 	SW (0);			/* 1D8 */
+// // 	SW (0);			/* 1DA */
+
+// 	uae_savestate_uint16(ctx, "beamcon0", &beamcon0);
+// 	uae_savestate_uint16(ctx, "hsstrt", &hsstrt);
+// 	uae_savestate_uint16(ctx, "vsstrt", &vsstrt);
+// 	uae_savestate_uint16(ctx, "hcenter", &hcenter);
+
+// 	uae_savestate_int(ctx, "diwhigh", &diwhigh);
+// 	uae_savestate_int(ctx, "diwhigh_written", &diwhigh_written);
+// 	int hdiwstate_temp = hdiwstate;
+// 	uae_savestate_int(ctx, "hdiwstate", &hdiwstate_temp);
+// 	if (ctx->load) {
+// 		hdiwstate = (diw_states) hdiwstate_temp;
+// 	}
+// 	// uae_savestate_int(ctx, "currprefs.ntscmode", &currprefs.ntscmode);
+// 	uae_savestate_int(ctx, "fmode", &fmode);
+// 	uae_savestate_uint32(ctx, "last_custom_value1", &last_custom_value1);
+
+// // 	SW (diwhigh | (diwhigh_written ? 0x8000 : 0) | (hdiwstate == DIW_waiting_stop ? 0x4000 : 0)); /* 1E4 DIWHIGH */
+// // 	SW (0);			/* 1E6 */
+// // 	SW (0);			/* 1E8 */
+// // 	SW (0);			/* 1EA */
+// // 	SW (0);			/* 1EC */
+// // 	SW (0);			/* 1EE */
+// // 	SW (0);			/* 1F0 */
+// // 	SW (0);			/* 1F2 */
+// // 	SW (0);			/* 1F4 */
+// // 	SW (0);			/* 1F6 */
+// // 	SW (0);			/* 1F8 */
+// // 	SW (0x8000 | (currprefs.ntscmode ? 1 : 0));			/* 1FA (re-used for NTSC) */
+// // 	SW (fmode);			/* 1FC FMODE */
+// // 	SW (last_custom_value1);	/* 1FE */
+
+// 		// if (!(bplcon0 & 4) && lof_togglecnt_lace > 0 && lof_togglecnt_lace < LOF_TOGGLES_NEEDED && !interlace_seen) {
+// 		// 	// if (!(bplcon0 & 4)) {
+// 		// 	// 	printf("!(bplcon0 & 4) -> lof_changed\n");
+// 		// 	// }
+// 		// 	// if (!(bplcon0 & 4)) {
+// 		// 	// 	printf("!(bplcon0 & 4) -> lof_changed\n");
+// 		// 	// }
+// 		// 	// if (!(bplcon0 & 4)) {
+// 		// 	// 	printf("!(bplcon0 & 4) -> lof_changed\n");
+// 		// 	// }
+// 		// 	printf("lof_changed = 1 (vsync_handler_post)\n");
+
+// 		// 	lof_changed = 1;
+// 		// }
+// 		// lof_togglecnt_nlace = LOF_TOGGLES_NEEDED;
+// 		// lof_togglecnt_lace = 0;
+
+// 	uae_savestate_int(ctx, "interlace_seen", &interlace_seen);
+// 	uae_savestate_int(ctx, "lof_togglecnt_lace", &lof_togglecnt_lace);
+// 	uae_savestate_int(ctx, "lof_togglecnt_nlace", &lof_togglecnt_nlace);
+// 	uae_savestate_int(ctx, "lof_changed", &lof_changed);
+// 	uae_savestate_bool(ctx, "lof_prev_lastline", &lof_prev_lastline);
+// 	uae_savestate_bool(ctx, "lof_lastline", &lof_lastline);
+
+// 	// vposcount 
+// 	// Important, this affects when the next vsync happens!
+// 	uae_savestate_int(ctx, "vpos_count", &vpos_count);
+
+// 	// Important for deterministic runs
+// 	uae_savestate_ulong(ctx, "vsync_counter", &vsync_counter);
+
+// 	// Cycles
+
+// 	// save_u32 (CYCLE_UNIT);
+// 	uae_savestate_ulong(ctx, "currcycle", &currcycle);
+// 	uae_savestate_int(ctx, "extra_cycle", &extra_cycle);
+}
+
+#endif  // FSUAE_RECORDING

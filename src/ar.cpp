@@ -1110,7 +1110,7 @@ void action_replay_reset (bool hardreset, bool keyboardreset)
 	}
 }
 
-static void action_replay_cia_access_delay(uae_u32 v)
+void action_replay_cia_access_delay(uae_u32 v)
 {
 	if (v) {
 		armode_read = ARMODE_WRITE_BFD100;

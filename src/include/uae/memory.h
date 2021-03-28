@@ -816,7 +816,7 @@ extern void memcpyah (uae_u8 *dst, uaecptr src, int size);
 #define UAE_MEMORY_REGION_MIRROR (1 << 2)
 
 #ifdef FSUAE // NL
-int uae_get_memory_checksum(void *data, int size);
+uint32_t uae_get_memory_checksum(void *data, int size);
 #endif
 
 /* Get a list of memory regions in the Amiga address space */

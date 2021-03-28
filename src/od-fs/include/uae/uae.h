@@ -21,11 +21,11 @@ void uae_set_uaem_write_flags_from_string(const char *flags);
 int amiga_get_vsync_counter();
 void amiga_set_vsync_counter(int vsync_counter);
 
-typedef void (uae_callback_function)(void *data);
+typedef uintptr_t (uae_callback_function)(void *data);
 // old name
-typedef void (amiga_callback_function)(void *data);
+typedef uintptr_t (amiga_callback_function)(void *data);
 void amiga_on_save_state_finished(uae_callback_function *function);
-void amiga_on_restore_state_finished(uae_callback_function *function);
+void amiga_on_load_state_finished(uae_callback_function *function);
 
 #ifdef WITH_LUA
 #include <lauxlib.h>
@@ -94,7 +94,8 @@ int amiga_pause(int pause);
 int amiga_cpu_get_speed();
 int amiga_cpu_set_speed(int speed);
 
-void amiga_set_deterministic_mode();
+void amiga_set_deterministic_mode(void);
+void uae_set_recording_mode(void);
 
 void amiga_set_save_state_compression(int compress);
 
@@ -114,8 +115,9 @@ enum {
     AMIGA_FLOPPY_DRIVE_DRIVE_35_DD_ESCOM,
 };
 
-int amiga_get_rand_checksum();
-int amiga_get_state_checksum(void);
+uint32_t amiga_get_rand_checksum();
+uint32_t amiga_get_state_checksum(void);
+
 int amiga_get_state_checksum_and_dump(void *data, int size);
 
 void amiga_floppy_set_writable_images(int writable);

@@ -149,6 +149,8 @@ static fsemu_input_configure_keyboard_t keyboard_mapping[] = {
 };
 
 static fsemu_input_configure_keyboard_t keyboard_shortcuts_mapping[] = {
+    { FSEMU_KEYBOARD_F5, 0, FSEMU_ACTION_SAVESTATE1 },
+    { FSEMU_KEYBOARD_F7, 0, FSEMU_ACTION_LOADSTATE1 },
     { FSEMU_KEYBOARD_PAUSE, -1, FSEMU_ACTION_PAUSE },
     { FSEMU_KEYBOARD_F11, 0, FSEMU_ACTION_OSKEYBOARD },
 #if 0

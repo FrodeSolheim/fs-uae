@@ -391,11 +391,33 @@ void MISC_handler (void)
 	recursive--;
 }
 
+#ifdef FSUAE_RECORDING
+
+#include "savestate.h"
+
+void uae_events_trace_log(void)
+{
+	for (int i = 0; i < ev_max; i++) {
+		printf("eventtab[%d] %d %lu %lu\n", i, eventtab[i].active, eventtab[i].evtime, eventtab[i].oldcycles);
+	}
+	for (int i = 0; i < ev2_max; i++) {
+		printf("eventtab2[%d] %d %lu %08x\n", i, eventtab2[i].active, eventtab2[i].evtime, eventtab2[i].data);
+	}
+}
+
+static int next_event_no = ev2_misc;
+#define next next_event_no
+#endif
 
 void event2_newevent_xx (int no, evt t, uae_u32 data, evfunc2 func)
 {
 	evt et;
+#ifdef FSUAE_RECORDING
+	// Moved to global scope so we can save/restore this value, to ensure that
+	// events are performed in the right order.
+#else
 	static int next = ev2_misc;
+#endif
 
 	et = t + get_cycles ();
 	if (no < 0) {
@@ -437,3 +459,257 @@ void event2_newevent_x_replace(evt t, uae_u32 data, evfunc2 func)
 	}
 	event2_newevent_xx(-1, t * CYCLE_UNIT, data, func);
 }
+
+#ifdef FSUAE_RECORDING
+
+#include <savestate.h>
+#include <cia.h>
+#include <custom.h>
+
+extern void hsync_handler (void);
+
+static uint8_t handler_to_int(evfunc handler)
+{
+	if (handler == NULL) {
+		return 0;
+	}
+	if (handler == CIA_handler) {
+		return 1;
+	}
+	if (handler == hsync_handler) {
+		return 2;
+	}
+	if (handler == MISC_handler) {
+		return 3;
+	}
+	if (handler == audio_evhandler) {
+		return 4;
+	}
+	printf("WARNING: Unrecognized handler when saving\n");
+	return 0xFF;
+}
+
+static evfunc int_to_handler(uint8_t handler)
+{
+	if (handler == 0) {
+		return NULL;
+	}
+	if (handler == 1) {
+		return CIA_handler;
+	}
+	if (handler == 2) {
+		return hsync_handler;
+	}
+	if (handler == 3) {
+		return MISC_handler;
+	}
+	if (handler == 4) {
+		return audio_evhandler;
+	}
+	printf("WARNING: Unrecognized handler when restoring\n");
+	return NULL;
+}
+
+static uint8_t handler2_to_int(evfunc2 handler)
+{
+	if (handler == NULL) {
+		return 0;
+	}
+	if (handler == action_replay_cia_access_delay) {
+		return 1;
+	}
+	if (handler == audio_setirq_event) {
+		return 2;
+	}
+	if (handler == ICRA) {
+		return 3;
+	}
+	if (handler == ICRB) {
+		return 4;
+	}
+	if (handler == CIAB_tod_inc_event) {
+		return 5;
+	}
+	if (handler == CIAA_tod_handler) {
+		return 6;
+	}
+	if (handler == send_interrupt_do) {
+		return 7;
+	}
+	if (handler == send_intena_do) {
+		return 8;
+	}
+	if (handler == send_intreq_do) {
+		return 9;
+	}
+	if (handler == lightpen_trigger_func) {
+		return 10;
+	}
+	if (handler == breakfunc) {
+		return 11;
+	}
+	if (handler == blitter_handler) {
+		return 12;
+	}
+	if (handler == DISK_handler) {
+		return 13;
+	}
+	if (handler == subcode_interrupt) {
+		return 14;
+	}
+	if (handler == copper_write) {
+		return 15;
+	}
+	if (handler == dmal_func) {
+		return 16;
+	}
+	if (handler == dmal_func2) {
+		return 17;
+	}
+	if (handler == motordelay_func) {
+		return 18;
+	}
+
+// subcode_interrupt
+// copper_write
+// dmal_func
+// dmal_func2
+// motordelay_func
+	// if (handler == sersend_c) {
+	// 	return ;
+	// }
+
+	printf("WARNING: Unrecognized handler2 (%p) when saving\n", handler);
+	return 0xFF;
+}
+
+// FIXME
+// evtfunc (ahi_v2)
+// evtfunc (ahidsound_new2)
+// evtfunc (ahidsoundx_new)
+// sersend_ce
+
+static evfunc2 int_to_handler2(uint8_t handler)
+{
+	if (handler == 0) {
+		return NULL;
+	}
+	if (handler == 1) {
+		return action_replay_cia_access_delay;
+	}
+	if (handler == 2) {
+		return audio_setirq_event;
+	}
+	if (handler == 3) {
+		return ICRA;
+	}
+	if (handler == 4) {
+		return ICRB;
+	}
+	if (handler == 5) {
+		return CIAB_tod_inc_event;
+	}
+	if (handler == 6) {
+		return CIAA_tod_handler;
+	}
+	if (handler == 7) {
+		return send_interrupt_do;
+	}
+	if (handler == 8) {
+		return send_intena_do;
+	}
+	if (handler == 9) {
+		return send_intreq_do;
+	}
+	if (handler == 10) {
+		return lightpen_trigger_func;
+	}
+	if (handler == 11) {
+		return breakfunc;
+	}
+	if (handler == 12) {
+		return blitter_handler;
+	}
+	if (handler == 13) {
+		return DISK_handler;
+	}
+	if (handler == 14) {
+		return subcode_interrupt;
+	}
+	if (handler == 15) {
+		return copper_write;
+	}
+	if (handler == 16) {
+		return dmal_func;
+	}
+	if (handler == 17) {
+		return dmal_func2;
+	}
+	if (handler == 18) {
+		return motordelay_func;
+	}
+	// if (handler == sersend_c) {
+	// 	return ;
+	// }
+	printf("WARNING: Unrecognized handler2 when restoring\n");
+	return NULL;
+}
+
+void uae_events_save_state_fs(uae_savestate_context_t *ctx)
+{
+	char name[32 + 1];
+
+	// int is_syncline, is_syncline_end;
+	// bool event_wait;
+
+	uae_savestate_ulong(ctx, "event_cycles", &event_cycles);
+	uae_savestate_ulong(ctx, "nextevent", &nextevent);
+	uae_savestate_ulong(ctx, "currcycle", &currcycle);
+	uae_savestate_long(ctx, "cycles_to_next_event", &cycles_to_next_event);
+	uae_savestate_long(ctx, "max_cycles_to_next_event", &max_cycles_to_next_event);
+	uae_savestate_long(ctx, "cycles_to_hsync_event", &cycles_to_hsync_event);
+	uae_savestate_ulong(ctx, "start_cycles", &start_cycles);
+
+	uae_savestate_int(ctx, "next_event_no", &next_event_no);
+
+	for (int i = 0; i < ev_max; i++) {
+		sprintf(name, "eventtab[%d].active", i);
+		uae_savestate_bool(ctx, name, &eventtab[i].active);
+		sprintf(name, "eventtab[%d].evtime", i);
+		uae_savestate_ulong(ctx, name, &eventtab[i].evtime);
+		sprintf(name, "eventtab[%d].oldcycles", i);
+		uae_savestate_ulong(ctx, name, &eventtab[i].oldcycles);
+		sprintf(name, "eventtab[%d].handler", i);
+		uint8_t handler = handler_to_int(eventtab[i].handler);
+		uae_savestate_uint8(ctx, name, &handler);
+		if (ctx->load) {
+			eventtab[i].handler = int_to_handler(handler);
+		}
+	}
+
+	for (int i = 0; i < ev2_max; i++) {
+		sprintf(name, "eventtab2[%d].active", i);
+		uae_savestate_bool(ctx, name, &eventtab2[i].active);
+		sprintf(name, "eventtab2[%d].evtime", i);
+		uae_savestate_ulong(ctx, name, &eventtab2[i].evtime);
+		sprintf(name, "eventtab2[%d].handler", i);
+		uint8_t handler = handler2_to_int(eventtab2[i].handler);
+		uae_savestate_uint8(ctx, name, &handler);
+		if (ctx->load) {
+			eventtab2[i].handler = int_to_handler2(handler);
+		}
+		sprintf(name, "eventtab2[%d].data", i);
+		uae_savestate_uint32(ctx, name, &eventtab2[i].data);
+	}
+
+    bool active;
+    evt evtime;
+    uae_u32 data;
+    evfunc2 handler;
+
+	struct ev eventtab[ev_max];
+	struct ev2 eventtab2[ev2_max];
+
+}
+
+#endif  // FSUAE_RECORDING

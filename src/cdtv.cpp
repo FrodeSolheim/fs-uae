@@ -932,7 +932,7 @@ static uae_u8 subtransferbuf[SUB_CHANNEL_SIZE];
 #define SUBCODE_CYCLES (2 * maxhpos)
 static int subcode_activecnt;
 
-static void subcode_interrupt (uae_u32 v)
+void subcode_interrupt (uae_u32 v)
 {
 	subcode_activecnt--;
 	if (subcode_activecnt > 0) {

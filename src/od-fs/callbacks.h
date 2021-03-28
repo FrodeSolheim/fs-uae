@@ -1,7 +1,7 @@
 #ifndef FS_UAE_OD_FS_CALLBACKS_H
 #define FS_UAE_OD_FS_CALLBACKS_H
 
-typedef void (uae_callback_function)(void *data);
+typedef uintptr_t (uae_callback_function)(void *data);
 
 static inline void uae_callback(uae_callback_function function,
 	    const void *data) {

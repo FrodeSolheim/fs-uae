@@ -31,6 +31,7 @@ libamiga_callbacks g_libamiga_callbacks = {};
 log_function g_amiga_gui_message_function = NULL;
 amiga_media_function g_amiga_media_function = NULL;
 
+bool uae_recording_mode = false;
 int g_uae_deterministic_mode = 0;
 int g_amiga_paused = 0;
 bool g_fs_uae_jit_compiler;
@@ -89,7 +90,7 @@ void amiga_set_vsync_counter(int vsync_counter)
     g_uae_vsync_counter = vsync_counter;
 }
 
-void amiga_on_restore_state_finished(amiga_callback_function *function)
+void amiga_on_load_state_finished(amiga_callback_function *function)
 {
     uae_on_restore_state_finished = function;
 }
@@ -160,6 +161,11 @@ int amiga_init(void)
 
     uae_register_main_thread();
     uae_time_init();
+
+    if (g_getenv("UAE_FRAMETRACE_PREFIX") && g_getenv("UAE_FRAMETRACE_PREFIX")[0]) {
+        uae_frametrace_init();
+        uae_frametrace_enable();
+    }
 
     /*
 #ifdef DEBUG_SYNC
@@ -232,8 +238,14 @@ void amiga_map_cd_drives(int enable)
 
 void amiga_set_deterministic_mode()
 {
-    write_log("libamiga enabling net play mode\n");
+    write_log("libamiga enabling deterministic mode\n");
     g_uae_deterministic_mode = 1;
+}
+
+void uae_set_recording_mode(void)
+{
+    write_log("libamiga enabling recording mode\n");
+    uae_recording_mode = 1;
 }
 
 void amiga_write_uae_config(const char *path)
@@ -323,18 +335,17 @@ int amiga_quickstart(int quickstart_model, int quickstart_config, int accuracy)
                           quickstart_romcheck);
 }
 
-int amiga_get_rand_checksum()
+uint32_t amiga_get_state_checksum(void)
 {
-    return uaerand() & 0x00ffffff;
-}
-
-int amiga_get_state_checksum(void)
-{
+#if 1
+    return uae_get_memory_checksum(NULL, 0);
+#else
     int checksum = uae_get_memory_checksum(NULL, 0);
 #ifdef DEBUG_SYNC
     write_sync_log("memcheck: %08x\n", checksum);
 #endif
     return checksum & 0x00ffffff;
+#endif
 }
 
 int amiga_get_state_checksum_and_dump(void *data, int size)

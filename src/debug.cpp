@@ -4666,7 +4666,7 @@ static void show_exec_lists (TCHAR *t)
 	}
 }
 
-static void breakfunc(uae_u32 v)
+void breakfunc(uae_u32 v)
 {
 	write_log(_T("Cycle breakpoint hit\n"));
 	debugging = 1;

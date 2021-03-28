@@ -686,6 +686,12 @@ void write_log (const TCHAR *format, ...)
 	int result = g_vsnprintf(buffer + partial, MAX_LINE - partial, format, args);
     va_end(args);
 
+	if (uae_unlikely(uae_frametrace_log_enabled)) {
+		va_start(args, format);
+		uae_frametrace_log_va_args(format, args);
+		va_end(args);
+	}
+
 	int len = strlen(buffer + partial);
 	// printf("partial %d len %d: %s\n", partial, len, buffer);
 	if (len > 0 && buffer[partial + len - 1] != '\n') {

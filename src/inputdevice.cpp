@@ -3275,6 +3275,11 @@ static void inputdevice_read(void)
 static void maybe_read_input(void)
 {
 #ifdef FSUAE
+	if (g_uae_savestate_saving) {
+		// We do not want to read input devices when in the middle of
+		// saving a state.
+		return;
+	}
 	/* FIXME: May need update after merge. */
 	//if (vpos == 0) {
 		// we do this so inputdevice_read is called predictably, this is
@@ -5298,6 +5303,7 @@ void inputdevice_vsync (void)
 		}
 	}
 	inputdevice_checkconfig ();
+	// printf("inputdevice_vsync done\n");
 }
 
 void inputdevice_reset (void)
@@ -9904,4 +9910,59 @@ int amiga_handle_input_event (int nr, int state, int max,
     return handle_input_event (nr, state, max, flags);
 }
 
-#endif // FS-UAE
+#endif  // FS-UAE
+
+#ifdef FSUAE_RECORDING
+
+void uae_inputdevice_save_state_fs(uae_savestate_context_t *ctx)
+{
+	char name[32 + 1];
+
+	for (int i = 0; i < MAX_JPORTS; i++) {
+		sprintf(name, "joydir[%d]", i);
+		uae_savestate_int(ctx, name, &joydir[i]);
+
+		sprintf(name, "joybutton[%d]", i);
+		uae_savestate_int(ctx, name, &joybutton[i]);
+
+		sprintf(name, "otop[%d]", i);
+		uae_savestate_int(ctx, name, &otop[i]);
+
+		sprintf(name, "obot[%d]", i);
+		uae_savestate_int(ctx, name, &obot[i]);
+
+		sprintf(name, "oleft[%d]", i);
+		uae_savestate_int(ctx, name, &oleft[i]);
+
+		sprintf(name, "oright[%d]", i);
+		uae_savestate_int(ctx, name, &oright[i]);
+	}
+	for (int i = 0; i < NORMAL_JPORTS; i++) {
+		sprintf(name, "cd32_shifter[%d]", i);
+		uae_savestate_int(ctx, name, &cd32_shifter[i]);
+
+		for (int j = 0; j < 2; j++) {
+			sprintf(name, "pot_cap[%d][%d]", i, j);
+			uae_savestate_int(ctx, name, &pot_cap[i][j]);
+
+			sprintf(name, "joydirpot[%d][%d]", i, j);
+			uae_savestate_int(ctx, name, &joydirpot[i][j]);
+		}
+	}
+	for (int i = 0; i < NORMAL_JPORTS; i++) {
+		for (int j = 0; j < MOUSE_AXIS_TOTAL; j++) {
+			sprintf(name, "mouse_delta[%d][%d]", i, j);
+			uae_savestate_int16(ctx, name, &mouse_delta[i][j]);
+
+			sprintf(name, "mouse_deltanoreset[%d][%d]", i, j);
+			uae_savestate_int16(ctx, name, &mouse_deltanoreset[i][j]);
+		}
+		sprintf(name, "mouse_frame_x[%d]", i);
+		uae_savestate_int16(ctx, name, &mouse_frame_x[i]);
+
+		sprintf(name, "mouse_frame_y[%d]", i);
+		uae_savestate_int16(ctx, name, &mouse_frame_y[i]);
+	}
+}
+
+#endif  // FSUAE_RECORDING

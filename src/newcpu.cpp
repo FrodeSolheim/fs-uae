@@ -66,7 +66,22 @@ bool check_prefs_changed_comp (bool checkonly) { return false; }
 #endif
 
 #ifdef FSUAE // NL
+
 #include <fs/emu/hacks.h>
+#include "od-fs/callbacks.h"
+
+#ifdef FSUAE_RECORDING
+#include "fsemu-recording.h"
+extern int uae_savestate_load;
+extern int uae_savestate_save;
+extern int uae_savestate_load_2;
+extern int uae_savestate_save_2;
+static int uae_savestate_load_3;
+int uae_savestate_vsync_counter;
+extern int uae_savestate_compare;
+extern bool uae_savestate_trace;
+#endif  // FSUAE_RECORDING
+
 #endif
 
 /* For faster JIT cycles handling */
@@ -5276,6 +5291,67 @@ cont:
 
 				if (!currprefs.cpu_cycle_exact || currprefs.cpu_model > 68010)
 					exit = true;
+
+#ifdef FSUAE_RECORDING
+				if (uae_savestate_save_2) {
+					uae_savestate_save_restore_fs("a.fss", true);
+
+					save_state ("a.uss", _T(""));
+
+					int save_slot = uae_savestate_save_2;
+					write_log("save 2 %d?\n", save_slot);
+
+					// currcycle -= 3072;
+
+					if (save_slot == 0) {
+						printf("Slot 0 not supported yet\n");
+					} else {
+						// FIXME: Going to save state; store state slot number in a
+						// global variable - this should signal that the video module
+						// should save a screenshot copy that can be saved together with
+						// the savestate.
+						// amiga_send_input_event(INPUTEVENT_SPC_STATESAVE1 - 1 + slot, 1);
+						savestate_quick(save_slot, 1);
+					}
+					write_log("save 2 done %d?\n", save_slot);
+					// custom_prepare();
+					// Important to reset this after calling custom_prepare.
+					// uae_savestate_load_2 = uae_savestate_save_2;
+					uae_savestate_save_2 = 0;
+				}
+				if (uae_savestate_load) {
+					uae_savestate_vsync_counter = vsync_counter;
+					// first = false;
+					// doload = false;
+
+					int load_slot = uae_savestate_load;
+					write_log("load %d?\n", load_slot);
+					if (load_slot == 0) {
+						printf("Slot 0 not supported yet\n");
+					} else {
+						// amiga_send_input_event(INPUTEVENT_SPC_STATERESTORE1 - 1 + slot, 1);
+						// savestate_capture()
+						savestate_quick(load_slot, 0);
+					}
+					write_log("load done %d?\n", load_slot);
+					if (savestate_check ()) {
+						uae_reset (0, 0);
+					}
+
+					if (quit_program == -UAE_RESET) {
+						write_log("quit_program = -quit_program\n");
+						quit_program = -quit_program;
+						// set_inhibit_frame(monid, IHF_QUIT_PROGRAM);
+						set_special(SPCFLAG_BRK | SPCFLAG_MODE_CHANGE);
+					}
+
+					uae_savestate_load = 0;
+					uae_savestate_load_2 = 2;
+
+					exit = true;
+				}
+#endif
+
 			}
 		} CATCH (prb) {
 			bus_error();
@@ -6651,7 +6727,17 @@ void m68k_go (int may_quit)
 			if (savestate_state == STATE_DORESTORE)
 				savestate_state = STATE_RESTORE;
 			if (savestate_state == STATE_RESTORE)
+#ifdef FSUAE
+			{
+#endif
 				restore_state (savestate_fname);
+#ifdef FSUAE
+#ifdef FSUAE_RECORDING
+				fsemu_recording_set_next_frame_number(vsync_counter);
+#endif
+				uae_callback(uae_on_restore_state_finished, (void *) (intptr_t) uae_savestate_slot);
+			}
+#endif
 			else if (savestate_state == STATE_REWIND)
 				savestate_rewind ();
 #endif
@@ -6752,6 +6838,55 @@ void m68k_go (int may_quit)
 		startup = 0;
 		event_wait = true;
 		unset_special(SPCFLAG_MODE_CHANGE);
+#ifdef FSUAE_RECORDING
+		if (uae_savestate_load_2) {
+			//int spcflags_copy = regs.spcflags;
+
+			savestate_quick(uae_savestate_load_2, 0);
+			restore_state(savestate_fname);
+
+			uae_memory_restore_now();
+
+			savestate_restore_finish();
+			save_state ("a2.uss", _T(""));
+			uae_savestate_load_2 = 0;
+
+			uae_savestate_load_3 = 1;
+/*
+			if (debug_dma) {
+				record_dma_reset ();
+				record_dma_reset ();
+			}
+			savestate_restore_finish ();
+			memory_map_dump ();
+*/
+/*
+			if (currprefs.mmu_model == 68030) {
+				mmu030_decode_tc (tc_030, true);
+			} else if (currprefs.mmu_model >= 68040) {
+				mmu_set_tc (regs.tcr);
+			}
+*/
+			// printf("savestate startup = 1\n");
+			// startup = 1;
+			// restored = 1;
+
+			protect_roms (true);
+
+			//regs.spcflags = spcflags_copy;
+
+			uae_savestate_save_restore_fs("b.fss", true);
+			// load a.fss
+			uae_savestate_save_restore_fs("a.fss", false);
+			// We may already have drawn some random number(s) after the new
+			// frame number was initialized; we need to undo/reset this!
+			// or... maybe save random state in the savestate file.
+			uae_random_reset();
+			// save_state ("b.uss", _T(""));
+
+			save_state ("a1.uss", _T(""));
+		}
+#endif  // FSUAE_RECORDING
 
 		if (!regs.halted) {
 			// check that PC points to something that looks like memory.
@@ -11489,3 +11624,223 @@ void dfc_nommu_put_long(uaecptr addr, uae_u32 v)
 	if (!cpuboard_fc_check(addr, &v, 2, true))
 		x_put_long(addr, v);
 }
+
+#ifdef FSUAE_RECORDING
+
+void uae_newcpu_save_state_fs(uae_savestate_context_t *ctx)
+{
+	// int model, khz;
+	// if (dstptr)
+	// dstbak = dst = dstptr;
+	// else
+	// 	dstbak = dst = xmalloc (uae_u8, 1000 + 30000);
+	// model = currprefs.cpu_model;
+
+	uae_savestate_int(ctx, "model", &currprefs.cpu_model);
+
+	// save_u32(0x80000000 | 0x40000000 | 0x20000000 | 0x10000000 | 0x8000000 | 0x4000000 | (currprefs.address_space_24 ? 1 : 0)); /* FLAGS */
+	// for (int i = 0;i < 15; i++)
+	//	printf("reg %d val %08x\n", i, regs.regs[i]);
+
+	uae_savestate_uint32(ctx, "regs.d0", regs.regs + 0);
+	uae_savestate_uint32(ctx, "regs.d1", regs.regs + 1);
+	uae_savestate_uint32(ctx, "regs.d2", regs.regs + 2);
+	uae_savestate_uint32(ctx, "regs.d3", regs.regs + 3);
+	uae_savestate_uint32(ctx, "regs.d4", regs.regs + 4);
+	uae_savestate_uint32(ctx, "regs.d5", regs.regs + 5);
+	uae_savestate_uint32(ctx, "regs.d6", regs.regs + 6);
+	uae_savestate_uint32(ctx, "regs.d7", regs.regs + 7);
+	uae_savestate_uint32(ctx, "regs.a0", regs.regs + 8);
+	uae_savestate_uint32(ctx, "regs.a1", regs.regs + 9);
+	uae_savestate_uint32(ctx, "regs.a2", regs.regs + 10);
+	uae_savestate_uint32(ctx, "regs.a3", regs.regs + 11);
+	uae_savestate_uint32(ctx, "regs.a4", regs.regs + 12);
+	uae_savestate_uint32(ctx, "regs.a5", regs.regs + 13);
+	uae_savestate_uint32(ctx, "regs.a6", regs.regs + 14);
+
+	// uae_savestate_uint32(ctx, "regs.a6", regs.regs + 14);
+
+	// FIXME Must use m68k_getpc to get JIT position?
+	// save_u32 (m68k_getpc ());			/* PC */
+	uae_savestate_uint32(ctx, "regs.pc", &regs.pc);
+	if (ctx->load) {
+		m68k_setpc(regs.pc);
+	}
+
+	uae_savestate_uint16(ctx, "regs.irc", &regs.irc);
+	uae_savestate_uint16(ctx, "regs.ir", &regs.ir);
+
+	// save_u16 (regs.irc);				/* prefetch */
+	// save_u16 (regs.ir);					/* instruction prefetch */
+
+	int spcflags = regs.spcflags;
+	uae_savestate_int(ctx, "regs.spcflags", &spcflags);
+	if (ctx->load) {
+		regs.spcflags = spcflags;
+	}
+
+	MakeSR ();
+
+	uae_savestate_uint32(ctx, "regs.regs[15]", regs.regs + 15);
+
+	uae_savestate_uint8(ctx, "regs.t0", &regs.t0);
+	uae_savestate_uint8(ctx, "regs.t1", &regs.t1);
+	uae_savestate_uint8(ctx, "regs.s", &regs.s);
+	uae_savestate_uint8(ctx, "regs.m", &regs.m);
+	uae_savestate_int(ctx, "regs.intmask", &regs.intmask);
+
+	uae_savestate_uint(ctx, "regflags.x", &regflags.x);
+	uae_savestate_uint(ctx, "regflags.cznv", &regflags.cznv);
+
+	// FIXME: Combination of the above?
+	uae_savestate_uint16(ctx, "regs.sr", &regs.sr);
+
+	uae_savestate_uint32(ctx, "regs.usp", &regs.usp);
+	uae_savestate_uint32(ctx, "regs.isp", &regs.isp);
+	uae_savestate_uint8(ctx, "regs.stopped", &regs.stopped);
+
+	// regs.sr = ((regs.t1 << 15) | (regs.t0 << 14)
+	// 	| (regs.s << 13) | (regs.m << 12) | (regs.intmask << 8)
+	// 	| (GET_XFLG () << 4) | (GET_NFLG () << 3)
+	// 	| (GET_ZFLG () << 2) | (GET_VFLG () << 1)
+	// 	|  GET_CFLG ());
+	// save_u32 (!regs.s ? regs.regs[15] : regs.usp);	/* USP */
+	// save_u32 (regs.s ? regs.regs[15] : regs.isp);	/* ISP */
+	// save_u16 (regs.sr);								/* SR/CCR */
+	// save_u32 (regs.stopped ? CPUMODE_HALT : 0);		/* flags */
+
+	// if (model >= 68010) {
+	// 	save_u32 (regs.dfc);			/* DFC */
+	// 	save_u32 (regs.sfc);			/* SFC */
+	// 	save_u32 (regs.vbr);			/* VBR */
+	// }
+	// if (model >= 68020) {
+	// 	save_u32 (regs.caar);			/* CAAR */
+	// 	save_u32 (regs.cacr);			/* CACR */
+	// 	save_u32 (regs.msp);			/* MSP */
+	// }
+	// if (model >= 68030) {
+	// 	if (currprefs.mmu_model) {
+	// 		save_u64 (crp_030);				/* CRP */
+	// 		save_u64 (srp_030);				/* SRP */
+	// 		save_u32 (tt0_030);				/* TT0/AC0 */
+	// 		save_u32 (tt1_030);				/* TT1/AC1 */
+	// 		save_u32 (tc_030);				/* TCR */
+	// 		save_u16 (mmusr_030);			/* MMUSR/ACUSR */
+	// 	} else {
+	// 		save_u64 (fake_crp_030);		/* CRP */
+	// 		save_u64 (fake_srp_030);		/* SRP */
+	// 		save_u32 (fake_tt0_030);		/* TT0/AC0 */
+	// 		save_u32 (fake_tt1_030);		/* TT1/AC1 */
+	// 		save_u32 (fake_tc_030);			/* TCR */
+	// 		save_u16 (fake_mmusr_030);		/* MMUSR/ACUSR */
+	// 	}
+	// }
+	// if (model >= 68040) {
+	// 	save_u32 (regs.itt0);			/* ITT0 */
+	// 	save_u32 (regs.itt1);			/* ITT1 */
+	// 	save_u32 (regs.dtt0);			/* DTT0 */
+	// 	save_u32 (regs.dtt1);			/* DTT1 */
+	// 	save_u32 (regs.tcr);			/* TCR */
+	// 	save_u32 (regs.urp);			/* URP */
+	// 	save_u32 (regs.srp);			/* SRP */
+	// }
+	// if (model >= 68060) {
+	// 	save_u32 (regs.buscr);			/* BUSCR */
+	// 	save_u32 (regs.pcr);			/* PCR */
+	// }
+	// khz = -1;
+	// if (currprefs.m68k_speed == 0) {
+	// 	khz = currprefs.ntscmode ? 715909 : 709379;
+	// 	if (currprefs.cpu_model >= 68020)
+	// 		khz *= 2;
+	// }
+	// save_u32 (khz); // clock rate in KHz: -1 = fastest possible
+	// save_u32 (0); // spare
+	// if (model == 68020) {
+	// 	for (int i = 0; i < CACHELINES020; i++) {
+	// 		save_u32 (caches020[i].data);
+	// 		save_u32 (caches020[i].tag);
+	// 		save_u8 (caches020[i].valid ? 1 : 0);
+	// 	}
+	// 	save_u32 (regs.prefetch020addr);
+	// 	save_u32 (regs.cacheholdingaddr020);
+	// 	save_u32 (regs.cacheholdingdata020);
+	// 	for (int i = 0; i < CPU_PIPELINE_MAX; i++)
+	// 		save_u32 ((regs.prefetch020[i] << 16) | (regs.prefetch020_valid[i] ? 1 : 0));
+	// } else if (model == 68030) {
+	// 	for (int i = 0; i < CACHELINES030; i++) {
+	// 		for (int j = 0; j < 4; j++) {
+	// 			save_u32 (icaches030[i].data[j]);
+	// 			save_u8 (icaches030[i].valid[j] ? 1 : 0);
+	// 		}
+	// 		save_u32 (icaches030[i].tag);
+	// 	}
+	// 	for (int i = 0; i < CACHELINES030; i++) {
+	// 		for (int j = 0; j < 4; j++) {
+	// 			save_u32 (dcaches030[i].data[j]);
+	// 			save_u8 (dcaches030[i].valid[j] ? 1 : 0);
+	// 		}
+	// 		save_u32 (dcaches030[i].tag);
+	// 	}
+	// 	save_u32 (regs.prefetch020addr);
+	// 	save_u32 (regs.cacheholdingaddr020);
+	// 	save_u32 (regs.cacheholdingdata020);
+	// 	for (int i = 0; i < CPU_PIPELINE_MAX; i++)
+	// 		save_u32 (regs.prefetch020[i]);
+	// } else if (model >= 68040) {
+	// 	for (int i = 0; i < (model == 68060 ? CACHESETS060 : CACHESETS040); i++) {
+	// 		for (int j = 0; j < CACHELINES040; j++) {
+	// 			struct cache040 *c = &icaches040[i];
+	// 			save_u32(c->data[j][0]);
+	// 			save_u32(c->data[j][1]);
+	// 			save_u32(c->data[j][2]);
+	// 			save_u32(c->data[j][3]);
+	// 			save_u32(c->tag[j]);
+	// 			save_u16(c->valid[j] ? 1 : 0);
+	// 		}
+	// 	}
+	// 	save_u32(regs.prefetch020addr);
+	// 	save_u32(regs.cacheholdingaddr020);
+	// 	save_u32(regs.cacheholdingdata020);
+	// 	for (int i = 0; i < CPU_PIPELINE_MAX; i++) {
+	// 		save_u32(regs.prefetch040[i]);
+	// 	}
+	// 	for (int i = 0; i < (model == 68060 ? CACHESETS060 : CACHESETS040); i++) {
+	// 		for (int j = 0; j < CACHELINES040; j++) {
+	// 			struct cache040 *c = &dcaches040[i];
+	// 			save_u32(c->data[j][0]);
+	// 			save_u32(c->data[j][1]);
+	// 			save_u32(c->data[j][2]);
+	// 			save_u32(c->data[j][3]);
+	// 			save_u32(c->tag[j]);
+	// 			uae_u16 v = c->valid[j] ? 1 : 0;
+	// 			v |= c->dirty[j][0] ? 0x10 : 0;
+	// 			v |= c->dirty[j][1] ? 0x20 : 0;
+	// 			v |= c->dirty[j][2] ? 0x40 : 0;
+	// 			v |= c->dirty[j][3] ? 0x80 : 0;
+	// 			save_u16(v);
+	// 		}
+	// 	}
+	// }
+	// if (currprefs.cpu_model >= 68020) {
+	// 	save_u32 (0); //save_u32 (regs.ce020memcycles);
+	// 	save_u32 (0);
+	// }
+
+	// save_u32 (regs.chipset_latch_rw);
+	// save_u32 (regs.chipset_latch_read);
+	// save_u32 (regs.chipset_latch_write);
+	uae_savestate_uint32(ctx, "regs.chipset_latch_rw", &regs.chipset_latch_rw);
+	uae_savestate_uint32(ctx, "regs.chipset_latch_read", &regs.chipset_latch_read);
+	uae_savestate_uint32(ctx, "regs.chipset_latch_write", &regs.chipset_latch_write);
+
+	// if (currprefs.cpu_model == 68020) {
+	// 	save_u16(regs.pipeline_pos);
+	// 	save_u16(regs.pipeline_r8[0]);
+	// 	save_u16(regs.pipeline_r8[1]);
+	// 	save_u16(regs.pipeline_stop);
+	// }
+}
+
+#endif  // FSUAE_RECORDING

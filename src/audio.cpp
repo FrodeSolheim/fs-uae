@@ -1413,7 +1413,7 @@ static int isirq (int nr)
 	return INTREQR () & (0x80 << nr);
 }
 
-static void audio_setirq_event(uae_u32 nr)
+void audio_setirq_event(uae_u32 nr)
 {
 	INTREQ_0 (0x8000 | (0x80 << nr));
 }
@@ -2657,3 +2657,107 @@ void audio_cda_new_buffer(struct cd_audio_state *cas, uae_s16 *buffer, int lengt
 	if (cas->cda_streamid > 0)
 		audio_activate();
 }
+
+#ifdef FSUAE_RECORDING
+
+void uae_audio_save_state_fs(uae_savestate_context_t *ctx)
+{
+	char name[32 + 1];
+
+	// sr_float(a500e_filter1_a0);
+	// sr_float(a500e_filter2_a0);
+
+	for (int i = 0; i < 4; i++) {
+		sprintf(name, "audio_channel[%d].state", i);
+		uae_savestate_int(ctx, name, &audio_channel[i].state);
+
+		sprintf(name, "audio_channel[%d].data.audvol", i);
+		uae_savestate_int(ctx, name, &audio_channel[i].data.audvol);
+
+		sprintf(name, "audio_channel[%d].intreq2", i);
+		uae_savestate_bool(ctx, name, &audio_channel[i].intreq2);
+
+		sprintf(name, "audio_channel[%d].dr", i);
+		uae_savestate_bool(ctx, name, &audio_channel[i].dr);
+
+		sprintf(name, "audio_channel[%d].dsr", i);
+		uae_savestate_bool(ctx, name, &audio_channel[i].dsr);
+
+		sprintf(name, "audio_channel[%d].len", i);
+		uae_savestate_int(ctx, name, &audio_channel[i].len);
+
+		sprintf(name, "audio_channel[%d].wlen", i);
+		uae_savestate_int(ctx, name, &audio_channel[i].wlen);
+
+		sprintf(name, "audio_channel[%d].per", i);
+		uae_savestate_int(ctx, name, &audio_channel[i].per);
+
+		sprintf(name, "audio_channel[%d].dat", i);
+		uae_savestate_uint16(ctx, name, &audio_channel[i].dat);
+
+		sprintf(name, "audio_channel[%d].lc", i);
+		uae_savestate_uint32(ctx, name, &audio_channel[i].lc);
+
+		sprintf(name, "audio_channel[%d].pt", i);
+		uae_savestate_uint32(ctx, name, &audio_channel[i].pt);
+
+		sprintf(name, "audio_channel[%d].evtime", i);
+		uae_savestate_uint(ctx, name, &audio_channel[i].evtime);
+
+		sprintf(name, "audio_channel[%d].drhpos", i);
+		uae_savestate_int(ctx, name, &audio_channel[i].drhpos);
+	}
+
+	sr_int(audio_channel_mask);
+	// audio_data
+	sr_int(audio_extra_streams[0]);
+	sr_int(audio_extra_streams[1]);
+	sr_int(audio_extra_streams[2]);
+	sr_int(audio_extra_streams[3]);
+	sr_int(audio_extra_streams[4]);
+	sr_int(audio_extra_streams[5]);
+	sr_int(audio_extra_streams[6]);
+	sr_int(audio_extra_streams[7]);
+	sr_int(audio_extra_streams[8]);
+	// audio_stream
+	sr_int(audio_total_extra_streams);
+	sr_int(audio_work_to_do);
+	sr_uint(cda_evt);
+	// sr_bool(cd_audio_mode_changed);
+	sr_int(doublesample);
+	// dummy_buffer
+	sr_int(extrasamples);
+	// firmem
+	// float filter_a0
+	sr_ulong(last_cycles);
+	sr_int(led_filter_forced);
+	sr_int(led_filter_on);
+	// left2_word_saved
+	// left_word_saved
+	sr_int(mixed_mul1);
+	sr_int(mixed_mul2);
+	sr_int(mixed_on);
+	sr_int(mixed_stereo_size);
+	// next_sample_evtime
+	sr_int(outputsample);
+	sr_int(previous_volcnt_update);
+	// right2_word_saved
+	// right_word_saved
+	// ripped_samples
+	sr_int(samplecnt);
+	// sample_evtime
+	sr_int(sampleripper_enabled);
+	sr_int(saved_ptr);
+	sr_int(saved_ptr2);
+	// scaled_sample_evtime
+	sr_int(sound_available);
+	sr_int(sound_cd_volume[0]);
+	sr_int(sound_cd_volume[1]);
+	// sound_filter_state
+	sr_int(sound_paula_volume[0]);
+	sr_int(sound_paula_volume[1]);
+	sr_int(sound_use_filter);
+	sr_int(sound_use_filter_sinc);
+}
+
+#endif  // FSUAE_RECORDING

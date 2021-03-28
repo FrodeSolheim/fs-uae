@@ -76,6 +76,11 @@ static TCHAR savestate_base_dir[MAX_DPATH];
 static TCHAR savestate_home_dir[MAX_DPATH];
 static TCHAR savestate_run_dir[MAX_DPATH];
 
+int uae_savestate_slot = 0;
+// FIXME: Can get rid of this?
+bool g_uae_savestate_saving = false;
+// bool uae_savestate_extra_saving_extra = false;
+
 extern "C" {
 
 static void uae_savestate_convert_slashes(char *path)
@@ -169,9 +174,9 @@ static void expand_path(TCHAR *path)
 	printf("expand_path -> %s\n", path);
 }
 
-} // extern C
+}  // extern C
 
-#endif
+#endif  // FSUAE
 
 int savestate_state = 0;
 
@@ -705,6 +710,30 @@ static void restore_header (uae_u8 *src)
 
 /* restore all subsystems */
 
+#ifdef FSUAE // NL
+
+static uae_u8 *save_fsuae (int *len, uae_u8 *dstptr)
+{
+	uae_u8 *dstbak, *dst;
+
+	if (dstptr)
+		dstbak = dst = dstptr;
+	else
+		dstbak = dst = xmalloc (uae_u8, 4);
+
+	save_u32 (vsync_counter);
+	*len = dst - dstbak;
+	return dstbak;
+}
+
+static uae_u8 *restore_fsuae (uae_u8 *src)
+{
+	vsync_counter = restore_u32 ();
+	return src;
+}
+
+#endif
+
 void restore_state (const TCHAR *filename)
 {
 #ifdef FSUAE
@@ -932,6 +961,10 @@ void restore_state (const TCHAR *filename)
 			end = restore_configuration (chunk);
 		else if (!_tcscmp (name, _T("LOG ")))
 			end = restore_log (chunk);
+#ifdef FSUAE
+		else if (!_tcscmp (name, _T("FSUA")))
+			end = restore_fsuae (chunk);
+#endif
 		else {
 			end = chunk + len;
 			write_log (_T("unknown chunk '%s' size %d bytes\n"), name, len);
@@ -993,7 +1026,7 @@ void savestate_restore_finish (void)
 	init_hz_normal();
 	audio_activate();
 #ifdef FSUAE
-    uae_callback(uae_on_restore_state_finished, savestate_fname);
+    // uae_callback(uae_on_restore_state_finished, savestate_fname);
 #endif
 }
 
@@ -1301,6 +1334,14 @@ static int save_state_internal (struct zfile *f, const TCHAR *description, int c
 		xfree(dst);
 	}
 
+#ifdef FSUAE // NL
+	dst = save_fsuae(&len, NULL);
+	if (dst) {
+		save_chunk(f, dst, len, _T("FSUA"), 0);
+		xfree(dst);
+	}
+#endif
+
 	/* add fake END tag, makes it easy to strip CONF and LOG hunks */
 	/* move this if you want to use CONF or LOG hunks when restoring state */
 	zfile_fwrite (endhunk, 1, 8, f);
@@ -1325,7 +1366,10 @@ static int save_state_internal (struct zfile *f, const TCHAR *description, int c
 int save_state (const TCHAR *filename, const TCHAR *description)
 {
 #ifdef FSUAE
-	printf("save_state %s\n", filename);
+	// FIXME: Can move to custom.cpp where this is initiated from?
+	write_log("save_state %s\n", filename);
+	g_uae_savestate_saving = true;
+	savestate_nodialogs = 1;
 #endif
 	struct zfile *f;
 	int comp = savestate_docompress;
@@ -1372,7 +1416,13 @@ int save_state (const TCHAR *filename, const TCHAR *description)
 	DISK_history_add(filename, -1, HISTORY_STATEFILE, 0);
 	savestate_state = 0;
 #ifdef FSUAE
-    uae_callback(uae_on_save_state_finished, filename);
+	// FIXME: Can move to custom.cpp where this is initiated from?
+	// FIXME: Not necessary, can use savestate_state instead?
+	g_uae_savestate_saving = false;
+    // uae_callback(uae_on_save_state_finished, filename)
+	// if (!uae_savestate_extra_save) {
+	//	uae_callback(uae_on_save_state_finished, (void *) (intptr_t) uae_savestate_slot);
+	//}
 #endif	
 	return v;
 }
@@ -1415,6 +1465,7 @@ void savestate_quick (int slot, int save)
 		write_log (_T("staterestore starting '%s'\n"), savestate_fname);
 	}
 #ifdef FSUAE
+	uae_savestate_slot = slot;
 	if (save && fsemu) {
 		fsemu_savestate_update_slot(slot);
 	}
@@ -2370,3 +2421,264 @@ misc:
 */
 
 #endif /* SAVESTATE */
+
+#ifdef FSUAE_RECORDING
+
+static bool uae_savestate_field(uae_savestate_context_t *ctx, const char *name)
+{
+	if (ctx->save) {
+		zfile_fputs(ctx->zf, name);
+		zfile_putc('\n', ctx->zf);
+	} else {
+		char buffer[128];
+		zfile_fgets(buffer, 128, ctx->zf);
+		if (strcmp(name, buffer) == 0) {
+			write_log("WARNING: Expected %s\n", name);
+			return false;
+		}
+	}
+	return true;
+}
+
+static long long unsigned uae_savestate_value(uae_savestate_context_t *ctx)
+{
+	char buffer[17];
+	zfile_fgets(buffer, 17, ctx->zf);
+	zfile_getc(ctx->zf);
+	// assert zfile_getc() == '\n';
+	long long unsigned value;
+	sscanf(buffer, "%llX\n", &value);
+	return value;
+}
+
+void uae_savestate_bool(uae_savestate_context_t *ctx, const char *name, bool *value)
+{
+	if (!uae_savestate_field(ctx, name)) {
+		return;
+	}
+	char buffer[10];
+	if (ctx->save) {
+		snprintf(buffer, 10, "%01X\n", *value);
+		zfile_fwrite(buffer, 1, 2, ctx->zf);
+	} else {
+		bool new_value = (bool) uae_savestate_value(ctx);
+		if (*value != new_value) {
+			write_log("%s %X -> %X\n", name, *value, new_value);
+			*value = new_value;
+		}
+	}
+}
+
+void uae_savestate_uint8(uae_savestate_context_t *ctx, const char *name, uint8_t *value)
+{
+	if (!uae_savestate_field(ctx, name)) {
+		return;
+	}
+	char buffer[10];
+	if (ctx->save) {
+		snprintf(buffer, 10, "%02X\n", *value);
+		zfile_fwrite(buffer, 1, 3, ctx->zf);
+	} else {
+		uint8_t new_value = (uint8_t) uae_savestate_value(ctx);
+		if (*value != new_value) {
+			write_log("%s %X -> %X\n", name, *value, new_value);
+			*value = new_value;
+		}
+	}
+}
+
+void uae_savestate_int16(uae_savestate_context_t *ctx, const char *name, int16_t *value)
+{
+	if (!uae_savestate_field(ctx, name)) {
+		return;
+	}
+	char buffer[10];
+	if (ctx->save) {
+		snprintf(buffer, 10, "%04X\n", (uint16_t) *value);
+		zfile_fwrite(buffer, 1, 5, ctx->zf);
+	} else {
+		int16_t new_value = (int16_t) (uint16_t) uae_savestate_value(ctx);
+		if (*value != new_value) {
+			write_log("%s %X -> %X\n", name, *value, new_value);
+			*value = new_value;
+		}
+	}
+}
+
+void uae_savestate_uint16(uae_savestate_context_t *ctx, const char *name, uint16_t *value)
+{
+	if (!uae_savestate_field(ctx, name)) {
+		return;
+	}
+	char buffer[10];
+	if (ctx->save) {
+		snprintf(buffer, 10, "%04X\n", *value);
+		zfile_fwrite(buffer, 1, 5, ctx->zf);
+	} else {
+		uint16_t new_value = (uint16_t) uae_savestate_value(ctx);
+		if (*value != new_value) {
+			write_log("%s %X -> %X\n", name, *value, new_value);
+			*value = new_value;
+		}
+	}
+}
+
+void uae_savestate_uint32(uae_savestate_context_t *ctx, const char *name, uint32_t *value)
+{
+	if (!uae_savestate_field(ctx, name)) {
+		return;
+	}
+	char buffer[10];
+	if (ctx->save) {
+		snprintf(buffer, 10, "%08X\n", *value);
+		zfile_fwrite(buffer, 1, 9, ctx->zf);
+	} else {
+		uint32_t new_value = (uint32_t) uae_savestate_value(ctx);
+		if (*value != new_value) {
+			write_log("%s %X -> %X\n", name, *value, new_value);
+			*value = new_value;
+		}
+	}
+}
+
+void uae_savestate_uint(uae_savestate_context_t *ctx, const char *name, unsigned int *value)
+{
+	if (!uae_savestate_field(ctx, name)) {
+		return;
+	}
+	char buffer[10];
+	if (ctx->save) {
+		snprintf(buffer, 10, "%08X\n", *value);
+		zfile_fwrite(buffer, 1, 9, ctx->zf);
+	} else {
+		unsigned int new_value = (unsigned int) uae_savestate_value(ctx);
+		if (*value != new_value) {
+			write_log("%s %X -> %X\n", name, *value, new_value);
+			*value = new_value;
+		}
+	}
+}
+
+void uae_savestate_int(uae_savestate_context_t *ctx, const char *name, int *value)
+{
+	if (!uae_savestate_field(ctx, name)) {
+		return;
+	}
+	char buffer[10];
+	if (ctx->save) {
+		snprintf(buffer, 10, "%08X\n", (uint32_t) *value);
+		zfile_fwrite(buffer, 1, 9, ctx->zf);
+	} else {
+		int new_value = (int) (unsigned int) uae_savestate_value(ctx);
+		if (*value != new_value) {
+			write_log("%s %X -> %X\n", name, *value, new_value);
+			*value = new_value;
+		}
+	}
+}
+
+void uae_savestate_long(uae_savestate_context_t *ctx, const char *name, long *value)
+{
+	if (!uae_savestate_field(ctx, name)) {
+		return;
+	}
+	char buffer[18];
+	if (ctx->save) {
+		snprintf(buffer, 18, "%016lX\n", *value);
+		zfile_fwrite(buffer, 1, 17, ctx->zf);
+	} else {
+		long new_value = (long) (unsigned long) uae_savestate_value(ctx);
+		if (*value != new_value) {
+			write_log("%s %lX -> %lX\n", name, *value, new_value);
+			*value = new_value;
+		}
+	}
+}
+
+void uae_savestate_ulong(uae_savestate_context_t *ctx, const char *name, unsigned long *value)
+{
+	if (!uae_savestate_field(ctx, name)) {
+		return;
+	}
+	char buffer[18];
+	if (ctx->save) {
+		snprintf(buffer, 18, "%016lX\n", *value);
+		zfile_fwrite(buffer, 1, 17, ctx->zf);
+	} else {
+		unsigned long new_value = (unsigned long) uae_savestate_value(ctx);
+		if (*value != new_value) {
+			write_log("%s %lX -> %lX\n", name, *value, new_value);
+			*value = new_value;
+		}
+	}
+}
+
+// void uae_savestate_uint64(uae_savestate_context_t *ctx, const char *name, uint64_t *value)
+void uae_savestate_uint64(uae_savestate_context_t *ctx, const char *name, uae_u64 *value)
+{
+	if (!uae_savestate_field(ctx, name)) {
+		return;
+	}
+	char buffer[18];
+	if (ctx->save) {
+		snprintf(buffer, 18, "%016llX\n", *value);
+		zfile_fwrite(buffer, 1, 17, ctx->zf);
+	} else {
+		uint64_t new_value = (uint64_t) uae_savestate_value(ctx);
+		if (*value != new_value) {
+			write_log("%s %llX -> %llX\n", name, (long long ) *value, (long long unsigned) new_value);
+			*value = new_value;
+		}
+	}
+}
+
+void uae_savestate_save_restore_fs(const char *path, bool save)
+{
+	write_log("uae_savestate_save_restore_fs path=%s save=%d\n", path, save);
+	uae_savestate_context_t ctx;
+	if (save) {
+		ctx.zf = zfile_fopen(path, _T("wb"), 0);
+	} else {
+		ctx.zf = zfile_fopen(path, _T("rb"), 0);
+	}
+	if (ctx.zf == NULL) {
+		return;
+	}
+	ctx.save = save;
+	ctx.load = !save;
+
+	uae_newcpu_save_state_fs(&ctx);
+	uae_custom_save_state_fs(&ctx);
+	uae_cia_save_state_fs(&ctx);
+	uae_events_save_state_fs(&ctx);
+	uae_audio_save_state_fs(&ctx);
+	uae_disk_save_state_fs(&ctx);
+	uae_blitter_save_state_fs(&ctx);
+	uae_inputdevice_save_state_fs(&ctx);
+	// uae_memory_save_state_fs(&ctx);
+
+	/*
+	if (savestate_specialdump) {
+		size_t pos;
+		if (savestate_specialdump == 2)
+			write_wavheader (f, 0, 22050);
+		pos = zfile_ftell (f);
+		save_rams (f, -1);
+		if (savestate_specialdump == 2) {
+			int len, len2, i;
+			uae_u8 *tmp;
+			len = zfile_ftell (f) - pos;
+			tmp = xmalloc (uae_u8, len);
+			zfile_fseek(f, pos, SEEK_SET);
+			len2 = zfile_fread (tmp, 1, len, f);
+			for (i = 0; i < len2; i++)
+				tmp[i] += 0x80;
+			write_wavheader (f, len, 22050);
+			zfile_fwrite (tmp, len2, 1, f);
+			xfree (tmp);
+		}
+	*/
+	zfile_fclose(ctx.zf);
+}
+
+#endif  // FSUAE_RECORDING

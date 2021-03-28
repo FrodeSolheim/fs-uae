@@ -1555,9 +1555,19 @@ static int drive_insert (drive * drv, struct uae_prefs *p, int dnum, const TCHAR
 	openwritefile (p, drv, 0);
 	drive_settype_id (drv); /* Set DD or HD drive */
 	drive_fill_bigbuf (drv, 1);
+#ifdef FSUAE
+	if (savestate_state == STATE_RESTORE) {
+		// We avoid calling uaerand here for deterministic behavior. mfmpos
+		// will be restored from state after this anyway.
+		printf("CHECK NOT calling uaerand\n");
+	} else {
+#endif
 	drv->mfmpos = uaerand ();
 	drv->mfmpos |= (uaerand () << 16);
 	drv->mfmpos %= drv->tracklen;
+#ifdef FSUAE
+	}
+#endif
 	drv->prevtracklen = 0;
 	if (!fake) {
 #ifdef FSUAE
@@ -1689,7 +1699,7 @@ static int drive_running (drive * drv)
 	return !drv->motoroff;
 }
 
-static void motordelay_func (uae_u32 v)
+void motordelay_func (uae_u32 v)
 {
 	floppy[v].motordelay = 0;
 }
@@ -5187,3 +5197,98 @@ void disk_reserved_reset_disk_change(int num)
 		drv->dskchange = false;
 	}
 }
+
+#ifdef FSUAE_RECORDING
+
+void uae_disk_save_state_fs(uae_savestate_context_t *ctx)
+{
+	char name[32 + 1];
+
+	// int is_syncline, is_syncline_end;
+	// bool event_wait;
+
+	sr_int(dskdmaen);
+	sr_int(dsklength);
+	sr_int(dsklength2);
+	sr_int(dsklen);
+	sr_uint16(dskbytr_val);
+	sr_uint32(dskpt);
+	sr_bool(fifo_filled);
+	// static uae_u16 fifo[3];
+	// static int fifo_inuse[3];
+	sr_int(dma_enable);
+	sr_int(bitoffset);
+	sr_int(syncoffset);
+	sr_uint16(word);
+	sr_uint16(dsksync);
+	sr_ulong(dsksync_cycles);
+	sr_int(disk_hpos);
+	sr_int(disk_jitter);
+	sr_int(indexdecay);
+	sr_uint8(prev_data);
+	sr_int(prev_step);
+	sr_bool(initial_disk_statusline);
+	//static struct diskinfo disk_info_data = { 0 };
+	sr_bool(amax_enabled);
+
+	uae_savestate_uint32(ctx, "dskpt", &dskpt);
+	uae_savestate_int(ctx, "dsklen", &dsklen);
+	uae_savestate_uint16(ctx, "dsksync", &dsksync);
+	uae_savestate_uint16(ctx, "dskbytr_val", &dskbytr_val);
+
+	uae_savestate_uint16(ctx, "fifo[0]", &fifo[0]);
+	uae_savestate_uint16(ctx, "fifo[1]", &fifo[1]);
+	uae_savestate_uint16(ctx, "fifo[2]", &fifo[2]);
+
+	uae_savestate_bool(ctx, "fifo_filled", &fifo_filled);
+
+	uae_savestate_int(ctx, "fifo_inuse[0]", &fifo_inuse[0]);
+	uae_savestate_int(ctx, "fifo_inuse[1]", &fifo_inuse[1]);
+	uae_savestate_int(ctx, "fifo_inuse[2]", &fifo_inuse[2]);
+
+	uae_savestate_int(ctx, "disk_jitter", &disk_jitter);
+
+	uae_savestate_uint8(ctx, "disabled", &disabled);
+	uae_savestate_int(ctx, "side", &side);
+
+	for (int i = 0; i < 4; i++) {
+		sprintf(name, "floppy[%d].drive_id", i);
+		uae_savestate_ulong(ctx, name, &floppy[i].drive_id);
+
+		sprintf(name, "floppy[%d].motoroff", i);
+		uae_savestate_bool(ctx, name, &floppy[i].motoroff);
+
+		sprintf(name, "floppy[%d].idbit", i);
+		uae_savestate_int(ctx, name, &floppy[i].idbit);
+
+		sprintf(name, "floppy[%d].dskchange", i);
+		uae_savestate_bool(ctx, name, &floppy[i].dskchange);
+
+		sprintf(name, "floppy[%d].wrprot", i);
+		uae_savestate_bool(ctx, name, &floppy[i].wrprot);
+
+		sprintf(name, "floppy[%d].cyl", i);
+		uae_savestate_int(ctx, name, &floppy[i].cyl);
+
+		sprintf(name, "floppy[%d].dskready", i);
+		uae_savestate_bool(ctx, name, &floppy[i].dskready);
+
+		sprintf(name, "floppy[%d].drive_id_scnt", i);
+		uae_savestate_int(ctx, name, &floppy[i].drive_id_scnt);
+
+		sprintf(name, "floppy[%d].mfmpos", i);
+		uae_savestate_int(ctx, name, &floppy[i].mfmpos);
+
+		sprintf(name, "floppy[%d].dskready_up_time", i);
+		uae_savestate_int(ctx, name, &floppy[i].dskready_up_time);
+
+		sprintf(name, "floppy[%d].dskready_down_time", i);
+		uae_savestate_int(ctx, name, &floppy[i].dskready_down_time);
+
+		sprintf(name, "floppy[%d].floppybitcounter", i);
+		uae_savestate_int(ctx, name, &floppy[i].floppybitcounter);
+
+	}
+}
+
+#endif  // FSUAE_RECORDING

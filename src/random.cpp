@@ -97,7 +97,11 @@ uae_u32 uaesrand (uae_u32 seed)
 #endif
 }
 
-// #include <signal.h>
+void uae_random_reset(void)
+{
+	old_seed = -1;
+}
+
 uae_u32 uaerand (void)
 {
 	int new_seed = vsync_counter;
@@ -105,16 +109,30 @@ uae_u32 uaerand (void)
 		// Seed must be > 0 and < 0x7fffffff
 		// FIXME: strip away some bits of seed if necessary?
 		uae_random_state = 1 + new_seed + uae_random_seed;
+		uae_frametrace_log("new random state: %08x\n", uae_random_state);
 		old_seed = new_seed;
 		assert(uae_random_state > 0);
 	}
 #if 0
-	return lcg_parkmiller(&uae_random_state);
+	uae_u32 result = lcg_parkmiller(&uae_random_state);
 #endif
-	return xorshift(&uae_random_state);
+	uae_u32 result = xorshift(&uae_random_state);
+	uae_frametrace_log("random: %08x\n", result);
+	return result;
 }
 
 uae_u32 uaerandgetseed (void)
 {
 	return uae_random_seed;
 }
+
+#ifdef FSUAE
+
+#include "uae/uae.h"
+
+uint32_t amiga_get_rand_checksum(void)
+{
+    return uae_random_state;
+}
+
+#endif

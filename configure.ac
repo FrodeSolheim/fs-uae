@@ -3,10 +3,10 @@
 
 AC_PREREQ([2.67])
 
-m4_define([fsbuild_version], [4.0.19-dev])
+m4_define([fsbuild_version], [4.0.15-dev])
 m4_define([fsbuild_version_major], [4])
 m4_define([fsbuild_version_minor], [0])
-m4_define([fsbuild_version_revision], [19])
+m4_define([fsbuild_version_revision], [15])
 m4_define([fsbuild_commit], [])
 
 AC_INIT([FS-UAE], [fsbuild_version],
@@ -726,6 +726,8 @@ OPT_FEATURE([CD32], [cd32], [cd32],
             [CD32 emulation])
 OPT_FEATURE([CDTV], [cdtv], [cdtv],
             [CDTV emulation])
+DIS_FEATURE([WITH_CHD], [chd], [chd],
+            [CHD disk/CD image support])
 OPT_FEATURE([WITH_CLIPBOARD], [clipboard], [clipboard],
             [clipboard integration])
 OPT_FEATURE([CODEGEN], [codegen], [codegen],

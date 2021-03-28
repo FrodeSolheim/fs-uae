@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-%define fsbuild_version 4.0.19-dev
+%define fsbuild_version 4.0.15-dev
 
 %define name fs-uae
 %define version %{fsbuild_version}

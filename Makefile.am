@@ -224,21 +224,6 @@ libuae_a_SOURCES = \
 	src/amax.cpp \
 	src/ar.cpp \
 	src/arcadia.cpp \
-	src/archivers/chd/astring.h \
-	src/archivers/chd/bitstream.h \
-	src/archivers/chd/chd.h \
-	src/archivers/chd/chdcd.h \
-	src/archivers/chd/chdcdrom.h \
-	src/archivers/chd/chdcodec.h \
-	src/archivers/chd/chdtypes.h \
-	src/archivers/chd/corefile.h \
-	src/archivers/chd/coretmpl.h \
-	src/archivers/chd/flac.h \
-	src/archivers/chd/hashing.h \
-	src/archivers/chd/huffman.h \
-	src/archivers/chd/md5.h \
-	src/archivers/chd/osdcore.h \
-	src/archivers/chd/sha1.h \
 	src/archivers/dms/cdata.h \
 	src/archivers/dms/crc_csum.cpp \
 	src/archivers/dms/crc_csum.h \
@@ -1141,6 +1126,30 @@ libpearpc_a_SOURCES = \
 	src/ppc/pearpc/tools/snprintf.h \
 	src/ppc/pearpc/tracers.h \
 	src/ppc/pearpc/uaeglue.cpp
+endif
+
+if WITH_CHD
+noinst_LIBRARIES += libchd.a
+# AM_CPPFLAGS += -I$(s)/src/ppc/pearpc
+fs_uae_LDADD += libchd.a
+libchd_a_SOURCES = \
+	src/archivers/chd/astring.h \
+	src/archivers/chd/bitstream.h \
+	src/archivers/chd/chd.h \
+	src/archivers/chd/chdcd.cpp \
+	src/archivers/chd/chdcd.h \
+	src/archivers/chd/chdcdrom.cpp \
+	src/archivers/chd/chdcdrom.h \
+	src/archivers/chd/chdcodec.h \
+	src/archivers/chd/chdtypes.h \
+	src/archivers/chd/corefile.h \
+	src/archivers/chd/coretmpl.h \
+	src/archivers/chd/flac.h \
+	src/archivers/chd/hashing.h \
+	src/archivers/chd/huffman.h \
+	src/archivers/chd/md5.h \
+	src/archivers/chd/osdcore.h \
+	src/archivers/chd/sha1.h
 endif
 
 if WITH_X86

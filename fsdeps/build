@@ -26,9 +26,14 @@ fi
 
 if [ $SYSTEM_OS = "Windows" ]; then
 if [ -d $FSDEPS_PREFIX/bin ]; then
+FIND_DLLS="`find $FSDEPS_PREFIX/bin -maxdepth 1 -mindepth 1 -name '*.dll'`"
+if [ "$FIND_DLLS" != "" ]; then
 # Copy DLL files to root directory for running executables during development
 echo "cp $FSDEPS_PREFIX/bin/*.dll ."
 cp $FSDEPS_PREFIX/bin/*.dll .
+else
+echo "No DLL files to copy from $FSDEPS_PREFIX/bin"
+fi
 fi
 fi
 

@@ -14,6 +14,7 @@ if checksum.startswith("sha256:"):
 else:
     raise Exception("Unknown hash function")
 
+
 def verify():
     with open(archive, "rb") as f:
         actual_checksum = h(f.read()).hexdigest()
@@ -26,6 +27,7 @@ def verify():
         print("But got:", actual_checksum)
 
     return result
+
 
 archive = url.split("/")[-1]
 if not os.path.exists("fsdeps/_sources"):

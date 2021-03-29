@@ -285,6 +285,8 @@ enum {
 
     FSEMU_INPUTDEVICE_AFTER_LAST_KEY,
 
+    // FSEMU_INPUTDEVICE_MAKE_ROOM_FOR_MODS = FSEMU_INPUTDEVICE_AFTER_LAST_KEY * 3,
+
     // Section for scancodes + modifier
     // FSEMU_NUM_SCANCODES_2__ = FSEMU_INPUTDEVICE_NUM_KEYS * 2,
     // Section for scancodes + modifier + shift

@@ -57,7 +57,7 @@ void fsemu_input_configure_keyboard(
     fsemu_input_configure_keyboard_t mapping[]);
 
 void fsemu_input_handle_controller(int device_index, int slot, int16_t state);
-void fsemu_input_handle_keyboard(fsemu_key_t scancode, bool pressed);
+void fsemu_input_handle_keyboard(fsemu_key_t scancode, bool pressed, int mod);
 void fsemu_input_handle_mouse(int device_index, int slot, int16_t state);
 
 void fsemu_input_init(void);

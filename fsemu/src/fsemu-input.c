@@ -268,7 +268,10 @@ static int fsemu_input_action_table_index_from_key(fsemu_key_t key, int mod)
 static int fsemu_input_action_table_index_from_input(int device_index,
                                                      int input_index)
 {
-    return device_index * FSEMU_INPUTDEVICE_MAX + input_index;
+    // FIXME: Hack for now, multiplying with FSEMU_KEYBOARD_NUM_MODS
+    // to make sure keyboard modifier actions are not overwritten, even
+    // though modifiers do not make sense for all input types.
+    return device_index * FSEMU_INPUTDEVICE_MAX * FSEMU_KEYBOARD_NUM_MODS + input_index;
 }
 
 static int fsemu_input_keyboard_navigation(fsemu_key_t key)
@@ -361,10 +364,10 @@ void fsemu_input_handle_controller(int device_index, int slot, int16_t state)
     fsemu_input_process_action(action, state);
 }
 
-void fsemu_input_handle_keyboard(fsemu_key_t key, bool pressed)
+void fsemu_input_handle_keyboard(fsemu_key_t key, bool pressed, int mod)
 {
     // FIXME: modifier!
-    int mod = 0;
+    // int mod = 0;
     int32_t state = pressed ? FSEMU_ACTION_STATE_MAX : 0;
 
     fsemu_input_log_debug(
@@ -389,12 +392,16 @@ void fsemu_input_handle_keyboard(fsemu_key_t key, bool pressed)
         return;
     }
 
+    printf("KEY %d MOD %d\n", key, mod);
     int action_table_index = fsemu_input_action_table_index_from_key(key, mod);
     // FIXME: action_table
     // int action =
     // fsemu_input.keyboard[action_table_index].action;
 
     int action = fsemu_input.action_table[action_table_index];
+    printf("keyboard input action_table_index %d => %d\n",
+                          action_table_index,
+                          action);
     fsemu_input_log_debug("keyboard input action_table_index %d => %d\n",
                           action_table_index,
                           action);
@@ -641,33 +648,33 @@ void fsemu_input_autofill_devices(void)
 
 void fsemu_input_reconfigure(void)
 {
-    fsemu_input_log_debug("fsemu_input_reconfigure\n");
+    fsemu_input_log("fsemu_input_reconfigure\n");
 
     // FIXME: Do we need to clear the action table? Maybe...
     memset(fsemu_input.action_table, 0, sizeof(fsemu_input.action_table));
 
     fsemu_input_log_debug("Add keyboard actions first\n");
     // FIXME: Include mods as well (check!)
-    // for (int i = 0; i > FSEMU_KEY_NUM_KEYS * FSEMU_KEYBOARD_NUM_MODS; i++) {
-    for (int i = 0; i < FSEMU_KEY_NUM_KEYS; i++) {
+    for (int i = 0; i < FSEMU_KEY_NUM_KEYS * FSEMU_KEYBOARD_NUM_MODS; i++) {
+    // for (int i = 0; i < FSEMU_KEY_NUM_KEYS; i++) {
         int action = fsemu_input.keyboard[i].action;
         fsemu_input.action_table[i] = action;
     }
 
     for (int i = 0; i < fsemu_input.num_ports; i++) {
         fsemu_inputport_t *port = fsemu_input.ports[i];
-        fsemu_input_log_debug(
+        fsemu_input_log(
             "Input port %d: (%s)\n", i, fsemu_inputport_name(port));
         if (port->device_index == -1) {
             // No device in port
-            fsemu_input_log_debug(" - no input device\n");
+            fsemu_input_log(" - no input device\n");
             continue;
         }
         fsemu_inputdevice_t *device = fsemu_input.devices[port->device_index];
         // if (device == NULL) {
         //     continue;
         // }
-        fsemu_input_log_debug(" - input device %d: (%s) with mode index %d\n",
+        fsemu_input_log(" - input device %d: (%s) with mode index %d\n",
                               device->index,
                               fsemu_inputdevice_name(device),
                               port->mode_index);

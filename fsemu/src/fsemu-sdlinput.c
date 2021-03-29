@@ -275,8 +275,12 @@ static bool fsemu_sdlinput_handle_key_event(SDL_Event *event)
 
     // This cast works because fsemu_key_t values are the same - or a
     // superset - of SDL_Scancode.
+    int mod = 0;
     fsemu_key_t key = (fsemu_key_t)event->key.keysym.scancode;
-    fsemu_input_handle_keyboard(key, event->key.state != 0);
+    if (event->key.keysym.mod & KMOD_LSHIFT) {
+        mod = FSEMU_KEYBOARD_MOD_SHIFT;
+    }
+    fsemu_input_handle_keyboard(key, event->key.state != 0, mod);
     return false;
 }
 

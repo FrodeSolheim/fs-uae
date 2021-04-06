@@ -110,14 +110,29 @@ bool fsemu_recording_enabled(void)
     return fsemu_recording.enabled;
 }
 
-static bool fsemu_recording_is_recording(void)
+bool fsemu_recording_is_recording(void)
 {
     return fsemu_recording.mode == FSEMU_RECORDING_MODE_RECORD;
 }
 
-static bool fsemu_recording_is_playing(void)
+bool fsemu_recording_is_playing(void)
 {
     return fsemu_recording.mode == FSEMU_RECORDING_MODE_PLAY;
+}
+
+bool fsemu_recording_is_sync(void)
+{
+    return fsemu_recording.desync == false;
+}
+
+bool fsemu_recording_is_desync(void)
+{
+    return fsemu_recording.desync == true;
+}
+
+int fsemu_recording_frame_number(void)
+{
+    return fsemu_recording.frame_number;
 }
 
 static void fsemu_recording_close(void)

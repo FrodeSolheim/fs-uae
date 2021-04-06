@@ -12,6 +12,8 @@
 #include "fsemu-osmenu.h"
 #include "fsemu-perfgui.h"
 #include "fsemu-quit.h"
+#include "fsemu-recording.h"
+#include "fsemu-recordingui.h"
 #include "fsemu-startupinfo.h"
 #include "fsemu-titlebar.h"
 #include "fsemu-video.h"
@@ -39,6 +41,8 @@ void fsemu_main_update(void)
     fsemu_oskeyboard_update();
     fsemu_osmenu_update();
     fsemu_perfgui_update();
+    fsemu_recording_update();
+    fsemu_recordingui_update();
     fsemu_startupinfo_update();
     fsemu_titlebar_update();
 }

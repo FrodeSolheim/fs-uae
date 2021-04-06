@@ -62,6 +62,7 @@
 #include "fsemu-option.h"
 #include "fsemu-quit.h"
 #include "fsemu-recording.h"
+#include "fsemu-recordingui.h"
 #include "fsemu-time.h"
 #include "fsemu-util.h"
 #include "fsemu-video.h"
@@ -1866,6 +1867,7 @@ int main(int argc, char *argv[])
         fsemu_osmenu_init();
         fsemu_perfgui_init();
         fsemu_recording_init();
+        fsemu_recordingui_init();
         fsemu_startupinfo_init();
 
         fsemu_audio_init();

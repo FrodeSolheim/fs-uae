@@ -952,6 +952,8 @@ libfsemu2_a_SOURCES = \
 	fsemu/src/fsemu-quit.h \
 	fsemu/src/fsemu-recording.c \
 	fsemu/src/fsemu-recording.h \
+	fsemu/src/fsemu-recordingui.c \
+	fsemu/src/fsemu-recordingui.h \
 	fsemu/src/fsemu-refable.c \
 	fsemu/src/fsemu-refable.h \
 	fsemu/src/fsemu-render.c \

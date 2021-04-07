@@ -166,6 +166,7 @@ static void add_joystick_mode(fsemu_inputport_t *port, int num)
 #endif
 
     if (num == 1) {
+/*
         MAP(DPUP, ACTION_JOYSTICK1_UP);
         MAP(DPRIGHT, ACTION_JOYSTICK1_RIGHT);
         MAP(DPDOWN, ACTION_JOYSTICK1_DOWN);
@@ -173,6 +174,21 @@ static void add_joystick_mode(fsemu_inputport_t *port, int num)
         MAP(BUTTON_A, ACTION_JOYSTICK1_FIRE);
         MAP(BUTTON_B, ACTION_JOYSTICK1_UP);
         MAP(RIGHTSTICK, ACTION_JOYSTICK0_FIRE);
+*/
+        // Hack for Turrican II
+        MAP(DPUP, ACTION_JOYSTICK1_UP);
+        MAP(DPRIGHT, ACTION_JOYSTICK1_RIGHT);
+        MAP(DPDOWN, ACTION_JOYSTICK1_DOWN);
+        MAP(DPLEFT, ACTION_JOYSTICK1_LEFT);
+
+        MAP(BUTTON_A, ACTION_JOYSTICK1_UP);
+        MAP(BUTTON_B, ACTION_KEY_LALT);
+        MAP(BUTTON_X, ACTION_JOYSTICK1_FIRE);
+        MAP(BUTTON_Y, ACTION_KEY_SPACE);
+
+        MAP(LEFTSHOULDER, FSEMU_ACTION_LOADSTATE1);
+        MAP(RIGHTSHOULDER, FSEMU_ACTION_SAVESTATE1);
+
     } else {
         MAP(DPUP, ACTION_JOYSTICK0_UP);
         MAP(DPRIGHT, ACTION_JOYSTICK0_RIGHT);

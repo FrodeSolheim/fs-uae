@@ -739,6 +739,10 @@ bool fsemu_recording_next_action(int line, uint16_t *action, int16_t *state)
         return false;
     } else {
         if (fsemu_recording.mode == FSEMU_RECORDING_MODE_RECORD) {
+            if (line == 0) {
+                // printf("Skipping reading action for line 0\n");
+                return false;
+            }
             if (fsemu_recording.resume_action) {
                 // Using cached resume action
                 *action = fsemu_recording.resume_action;

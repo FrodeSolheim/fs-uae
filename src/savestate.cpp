@@ -2663,6 +2663,7 @@ void uae_savestate_save_restore_fs(const char *path, bool save)
 	uae_disk_save_state_fs(&ctx);
 	uae_blitter_save_state_fs(&ctx);
 	uae_inputdevice_save_state_fs(&ctx);
+	uae_keybuf_save_state_fs(&ctx);
 	// uae_memory_save_state_fs(&ctx);
 
 	/*

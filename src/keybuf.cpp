@@ -299,3 +299,23 @@ void keybuf_inject(const uae_char *txt)
 	keyinject_offset = 0;
 	keyinject = newbuf;
 }
+
+#ifdef FSUAE_RECORDING
+
+void uae_keybuf_save_state_fs(uae_savestate_context_t *ctx)
+{
+	for (int i = 0; i < KEYBUF_SIZE; i++) {
+		sr_int(keybuf[i]);
+	}
+	sr_int(kpb_first);
+	sr_int(kpb_last);
+
+	// Do not think these are used in FS-UAE
+	// static uae_char *keyinject;
+	// static bool keyinject_do;
+	// static int keyinject_offset;
+	// static uae_u8 keyinject_previous;
+	// static bool keyinject_state;
+}
+
+#endif  // FSUAE_RECORDING

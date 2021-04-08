@@ -298,6 +298,7 @@ void uae_audio_save_state_fs(uae_savestate_context_t *ctx);
 void uae_disk_save_state_fs(uae_savestate_context_t *ctx);
 void uae_blitter_save_state_fs(uae_savestate_context_t *ctx);
 void uae_inputdevice_save_state_fs(uae_savestate_context_t *ctx);
+void uae_keybuf_save_state_fs(uae_savestate_context_t *ctx);
 // void uae_memory_save_state_fs(uae_savestate_context_t *ctx);
 
 void uae_memory_restore_now(void);

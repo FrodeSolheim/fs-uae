@@ -290,15 +290,16 @@ typedef struct uae_savestate_context uae_savestate_context_t;
 
 void uae_savestate_save_restore_fs(const char *path, bool save);
 
-void uae_custom_save_state_fs(uae_savestate_context_t *ctx);
-void uae_newcpu_save_state_fs(uae_savestate_context_t *ctx);
-void uae_cia_save_state_fs(uae_savestate_context_t *ctx);
+void uae_blitter_save_extended_state(uae_savestate_context_t *ctx);
+void uae_cia_save_extended_state(uae_savestate_context_t *ctx);
+void uae_custom_save_extended_state(uae_savestate_context_t *ctx);
+void uae_disk_save_extended_state(uae_savestate_context_t *ctx);
+void uae_inputdevice_save_extended_state(uae_savestate_context_t *ctx);
+void uae_keybuf_save_extended_state(uae_savestate_context_t *ctx);
+void uae_newcpu_save_extended_state(uae_savestate_context_t *ctx);
+
 void uae_events_save_state_fs(uae_savestate_context_t *ctx);
 void uae_audio_save_state_fs(uae_savestate_context_t *ctx);
-void uae_disk_save_state_fs(uae_savestate_context_t *ctx);
-void uae_blitter_save_state_fs(uae_savestate_context_t *ctx);
-void uae_inputdevice_save_state_fs(uae_savestate_context_t *ctx);
-void uae_keybuf_save_state_fs(uae_savestate_context_t *ctx);
 // void uae_memory_save_state_fs(uae_savestate_context_t *ctx);
 
 void uae_memory_restore_now(void);
@@ -357,6 +358,13 @@ extern const char *uae_savestate_extra;
 #define sr_uint64(x) uae_savestate_uint64(ctx, #x, &(x));
 #define sr_long(x) uae_savestate_long(ctx, #x, &(x));
 #define sr_ulong(x) uae_savestate_ulong(ctx, #x, &(x));
+
+#define sr_enum(v, t) \
+	int v##_enum = v; \
+	sr_int(v##_enum); \
+	if (ctx->load) { \
+		v = (t) v##_enum; \
+	}
 
 #endif  // FSUAE
 

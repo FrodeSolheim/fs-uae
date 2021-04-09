@@ -9914,7 +9914,7 @@ int amiga_handle_input_event (int nr, int state, int max,
 
 #ifdef FSUAE_RECORDING
 
-void uae_inputdevice_save_state_fs(uae_savestate_context_t *ctx)
+void uae_inputdevice_save_extended_state(uae_savestate_context_t *ctx)
 {
 	char name[32 + 1];
 
@@ -9962,6 +9962,13 @@ void uae_inputdevice_save_state_fs(uae_savestate_context_t *ctx)
 
 		sprintf(name, "mouse_frame_y[%d]", i);
 		uae_savestate_int16(ctx, name, &mouse_frame_y[i]);
+	}
+
+	for (int i = 0; i < MAX_JPORTS; i++) {
+		sr_int16(mouse_x[i]);
+	}
+	for (int i = 0; i < MAX_JPORTS; i++) {
+		sr_int16(mouse_y[i]);
 	}
 }
 

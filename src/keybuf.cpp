@@ -302,7 +302,7 @@ void keybuf_inject(const uae_char *txt)
 
 #ifdef FSUAE_RECORDING
 
-void uae_keybuf_save_state_fs(uae_savestate_context_t *ctx)
+void uae_keybuf_save_extended_state(uae_savestate_context_t *ctx)
 {
 	for (int i = 0; i < KEYBUF_SIZE; i++) {
 		sr_int(keybuf[i]);

@@ -11636,7 +11636,7 @@ void dfc_nommu_put_long(uaecptr addr, uae_u32 v)
 
 #ifdef FSUAE_RECORDING
 
-void uae_newcpu_save_state_fs(uae_savestate_context_t *ctx)
+void uae_newcpu_save_extended_state(uae_savestate_context_t *ctx)
 {
 	// int model, khz;
 	// if (dstptr)
@@ -11676,12 +11676,6 @@ void uae_newcpu_save_state_fs(uae_savestate_context_t *ctx)
 		m68k_setpc(regs.pc);
 	}
 
-	uae_savestate_uint16(ctx, "regs.irc", &regs.irc);
-	uae_savestate_uint16(ctx, "regs.ir", &regs.ir);
-
-	// save_u16 (regs.irc);				/* prefetch */
-	// save_u16 (regs.ir);					/* instruction prefetch */
-
 	int spcflags = regs.spcflags;
 	uae_savestate_int(ctx, "regs.spcflags", &spcflags);
 	if (ctx->load) {
@@ -11691,22 +11685,6 @@ void uae_newcpu_save_state_fs(uae_savestate_context_t *ctx)
 	MakeSR ();
 
 	uae_savestate_uint32(ctx, "regs.regs[15]", regs.regs + 15);
-
-	uae_savestate_uint8(ctx, "regs.t0", &regs.t0);
-	uae_savestate_uint8(ctx, "regs.t1", &regs.t1);
-	uae_savestate_uint8(ctx, "regs.s", &regs.s);
-	uae_savestate_uint8(ctx, "regs.m", &regs.m);
-	uae_savestate_int(ctx, "regs.intmask", &regs.intmask);
-
-	uae_savestate_uint(ctx, "regflags.x", &regflags.x);
-	uae_savestate_uint(ctx, "regflags.cznv", &regflags.cznv);
-
-	// FIXME: Combination of the above?
-	uae_savestate_uint16(ctx, "regs.sr", &regs.sr);
-
-	uae_savestate_uint32(ctx, "regs.usp", &regs.usp);
-	uae_savestate_uint32(ctx, "regs.isp", &regs.isp);
-	uae_savestate_uint8(ctx, "regs.stopped", &regs.stopped);
 
 	// regs.sr = ((regs.t1 << 15) | (regs.t0 << 14)
 	// 	| (regs.s << 13) | (regs.m << 12) | (regs.intmask << 8)
@@ -11837,19 +11815,31 @@ void uae_newcpu_save_state_fs(uae_savestate_context_t *ctx)
 	// 	save_u32 (0);
 	// }
 
-	// save_u32 (regs.chipset_latch_rw);
-	// save_u32 (regs.chipset_latch_read);
-	// save_u32 (regs.chipset_latch_write);
-	uae_savestate_uint32(ctx, "regs.chipset_latch_rw", &regs.chipset_latch_rw);
-	uae_savestate_uint32(ctx, "regs.chipset_latch_read", &regs.chipset_latch_read);
-	uae_savestate_uint32(ctx, "regs.chipset_latch_write", &regs.chipset_latch_write);
-
 	// if (currprefs.cpu_model == 68020) {
 	// 	save_u16(regs.pipeline_pos);
 	// 	save_u16(regs.pipeline_r8[0]);
 	// 	save_u16(regs.pipeline_r8[1]);
 	// 	save_u16(regs.pipeline_stop);
 	// }
+
+	sr_int(cpu_last_stop_vpos);
+	sr_int(cpu_stopped_lines);
+	sr_uint(regflags.cznv);
+	sr_uint(regflags.x);
+	sr_uint32(regs.chipset_latch_read);
+	sr_uint32(regs.chipset_latch_rw);
+	sr_uint32(regs.chipset_latch_write);
+	sr_int(regs.intmask);
+	sr_uint16(regs.ir);
+	sr_uint16(regs.irc);
+	sr_uint32(regs.isp);
+	sr_uint8(regs.m);
+	sr_uint8(regs.s);
+	sr_uint16(regs.sr);
+	sr_uint8(regs.stopped);
+	sr_uint8(regs.t0);
+	sr_uint8(regs.t1);
+	sr_uint32(regs.usp);
 }
 
 #endif  // FSUAE_RECORDING

@@ -2645,7 +2645,7 @@ uae_u8 *restore_keyboard (uae_u8 *src)
 
 #ifdef FSUAE_RECORDING
 
-void uae_cia_save_state_fs(uae_savestate_context_t *ctx)
+void uae_cia_save_extended_state(uae_savestate_context_t *ctx)
 {
 	// uae_savestate_uint(ctx, "ciaapra", &ciaapra);
 	// uae_savestate_uint(ctx, "ciaaprb", &ciaaprb);

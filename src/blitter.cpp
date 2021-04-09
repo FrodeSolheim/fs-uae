@@ -2091,7 +2091,7 @@ uae_u8 *save_blitter_new (int *len, uae_u8 *dstptr)
 
 #ifdef FSUAE_RECORDING
 
-void uae_blitter_save_state_fs(uae_savestate_context_t *ctx)
+void uae_blitter_save_extended_state(uae_savestate_context_t *ctx)
 {
 	sr_int(blitter_cycle_exact);
 	sr_int(immediate_blits);
@@ -2140,31 +2140,28 @@ void uae_blitter_save_state_fs(uae_savestate_context_t *ctx)
 static int blitter_slowdowndebug;
 #endif
 
-struct bltinfo blt_info;
-
-
-    sr_int(blt_info.blitzero);
+    sr_uint16(blt_info.bltadat);
+	sr_uint16(blt_info.bltafwm);
+	sr_uint16(blt_info.bltahold);
+	sr_uint16(blt_info.bltalwm);
+    sr_int(blt_info.bltamod);
+    sr_uint16(blt_info.bltaold);
     sr_int(blt_info.blitashift);
+	sr_uint16(blt_info.bltbdat);
+	sr_uint16(blt_info.bltbhold);
+	sr_int(blt_info.bltbmod);
+	sr_uint16(blt_info.bltbold);
 	sr_int(blt_info.blitbshift);
+	sr_uint16(blt_info.bltcdat);
+	sr_int(blt_info.bltcmod);
+	sr_uint16(blt_info.bltddat);
+	sr_int(blt_info.bltdmod);
 	sr_int(blt_info.blitdownashift);
 	sr_int(blt_info.blitdownbshift);
-    sr_uint16(blt_info.bltadat);
-	sr_uint16(blt_info.bltbdat);
-	sr_uint16(blt_info.bltcdat);
-	sr_uint16(blt_info.bltddat);
-    sr_uint16(blt_info.bltaold);
-	sr_uint16(blt_info.bltahold);
-	sr_uint16(blt_info.bltbold);
-	sr_uint16(blt_info.bltbhold);
-	sr_uint16(blt_info.bltafwm);
-	sr_uint16(blt_info.bltalwm);
-    sr_int(blt_info.vblitsize);
-	sr_int(blt_info.hblitsize);
-    sr_int(blt_info.bltamod);
-	sr_int(blt_info.bltbmod);
-	sr_int(blt_info.bltcmod);
-	sr_int(blt_info.bltdmod);
+    sr_int(blt_info.blitzero);
     sr_int(blt_info.got_cycle);
+	sr_int(blt_info.hblitsize);
+    sr_int(blt_info.vblitsize);
 
 	char name[32 + 1];
 

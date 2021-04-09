@@ -2655,15 +2655,16 @@ void uae_savestate_save_restore_fs(const char *path, bool save)
 	ctx.save = save;
 	ctx.load = !save;
 
-	uae_newcpu_save_state_fs(&ctx);
-	uae_custom_save_state_fs(&ctx);
-	uae_cia_save_state_fs(&ctx);
+	uae_blitter_save_extended_state(&ctx);
+	uae_cia_save_extended_state(&ctx);
+	uae_custom_save_extended_state(&ctx);
+	uae_disk_save_extended_state(&ctx);
+	uae_inputdevice_save_extended_state(&ctx);
+	uae_keybuf_save_extended_state(&ctx);
+	uae_newcpu_save_extended_state(&ctx);
+
 	uae_events_save_state_fs(&ctx);
 	uae_audio_save_state_fs(&ctx);
-	uae_disk_save_state_fs(&ctx);
-	uae_blitter_save_state_fs(&ctx);
-	uae_inputdevice_save_state_fs(&ctx);
-	uae_keybuf_save_state_fs(&ctx);
 	// uae_memory_save_state_fs(&ctx);
 
 	/*

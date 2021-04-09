@@ -2036,6 +2036,7 @@ int main(int argc, char *argv[])
         uae_set_recording_mode();
         deterministic_mode = 1;
     }
+
     if (deterministic_mode) {
         amiga_set_deterministic_mode();
     }

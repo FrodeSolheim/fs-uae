@@ -18,13 +18,13 @@ mkdir -p fsbuild/_dist
 
 cd fsbuild/_build
 
-if [ "$SYSTEM_OS" = "Windows" ]; then
-ARCHIVE=${PACKAGE_NAME_PRETTY}_${PACKAGE_VERSION}_${OS}_${ARCH}.zip
-zip -r ../_dist/$ARCHIVE ${PACKAGE_NAME_PRETTY}
-else
+# if [ "$SYSTEM_OS" = "Windows" ]; then
+# ARCHIVE=${PACKAGE_NAME_PRETTY}_${PACKAGE_VERSION}_${OS}_${ARCH}.zip
+# zip -r ../_dist/$ARCHIVE ${PACKAGE_NAME_PRETTY}
+# else
 ARCHIVE=${PACKAGE_NAME_PRETTY}_${PACKAGE_VERSION}_${OS}_${ARCH}.tar.xz
 tar cfJv ../_dist/$ARCHIVE ${PACKAGE_NAME_PRETTY}
-fi
+# fi
 
 echo -------------------------------------------------------------------------\
 -------

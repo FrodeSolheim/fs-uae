@@ -1,5 +1,6 @@
 Version 3.1:
 
+* Option to automatically pause on menu screen [mrsilver76].
 * Use RTLD_DEEPBIND with dlopen on Linux when loading plugins.
 * Changes to how plugins are looked up.
 * Ide patch.

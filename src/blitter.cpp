@@ -251,7 +251,7 @@ static const int *set_cycle_diagram_type (uae_u8 diag)
 	if (diag >= 0x00 && diag <= 0x0f)
 		return &blit_cycle_diagram[diag][0];
 	if (diag >= 0x40 && diag <= 0x4f)
-		return &blit_cycle_diagram_fill[diag][0];
+		return &blit_cycle_diagram_fill[diag - 0x40][0];
 	if (diag == 0x80)
 		return blit_cycle_diagram_line;
 	if (diag == 0x81)

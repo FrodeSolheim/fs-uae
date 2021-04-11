@@ -29,13 +29,13 @@ def execute_discord_webhook(name, link):
 
 def upload_branch_name():
     ref = os.getenv("GITHUB_REF", "")
-    if ref == "refs/heads/master":
-        return "Master"
-    elif ref == "refs/heads/dev":
-        return "Dev"
-    elif ref == "refs/heads/stable":
-        return "Stable"
-    return None
+    try:
+        branch = ref.split("refs/heads/", 1)[1]
+    except IndexError:
+        return None
+    if "/" in branch:
+        return None
+    return branch[0].upper() + branch[1:]
 
 
 def upload(dbx, package, version, path):

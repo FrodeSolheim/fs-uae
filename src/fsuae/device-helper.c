@@ -357,11 +357,63 @@ static void print_state(SDL_Joystick *joystick, const char *name)
     }
 }
 
+#ifdef WITH_MIDI
+
+#include "portmidi.h"
+
+static void print_name_escaped(const char *value)
+{
+    const char *c = value;
+    while (*c) {
+        if (*c == '\n') {
+            fputs("%0a", stdout);
+        } else if (*c == '\"') {
+            fputs("%22", stdout);
+        } else {
+            putchar(*c);
+        }
+        c++;
+    }
+}
+
+static void list_portmidi_devices(void)
+{
+    printf("# Calling Pm_Initialize\n");
+    PmError error = Pm_Initialize();
+    if (error) {
+        printf("# PortMidi error %d\n", error);
+        return;
+    }
+    int count = Pm_CountDevices();
+    printf("# PortMidi reports %d devices:\n\n", count);
+    for (int i = 0; i < count; i++) {
+        const PmDeviceInfo *info = Pm_GetDeviceInfo(i);
+        if (info != NULL) {
+            // printf("\"%s\"", info->name);
+            putchar('"');
+            print_name_escaped(info->name);
+            putchar('"');
+            if (info->input) {
+                fputs(" IN", stdout);
+            }
+            if (info->output) {
+                fputs(" OUT", stdout);
+            }
+            printf(" (%s)\n", info->interf);
+        }
+    }
+    printf("\n");
+}
+
+#endif  // WITH_MIDI
+
 #ifdef WINDOWS
 // FIXME fix the main macro instead
 int g_fs_ml_ncmdshow;
 HINSTANCE g_fs_ml_hinstance;
 #endif
+
+
 
 static void print_usage(void)
 {
@@ -369,8 +421,12 @@ static void print_usage(void)
     printf("  fs-uae-device-helper --list\n");
     printf("  fs-uae-device-helper <device-name>\n");
     printf("  fs-uae-device-helper --events\n");
+#ifdef WITH_MIDI
+    printf("  fs-uae-device-helper list-portmidi-devices\n");
+#endif
     printf("\n");
 }
+
 
 int main(int argc, char *argv[])
 {
@@ -392,6 +448,14 @@ int main(int argc, char *argv[])
         flush_stdout();
         return 0;
     }
+#ifdef WITH_MIDI
+    if (strcmp(argv[1], "list-portmidi-devices") == 0) {
+        list_portmidi_devices();
+        printf("# End\n");
+        flush_stdout();
+        return 0;
+    }
+#endif
     if (strcmp(argv[1], "--events") == 0) {
         print_events();
         printf("# End\n");

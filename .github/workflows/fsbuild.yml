@@ -17,7 +17,10 @@ jobs:
     runs-on: ubuntu-18.04
 
     steps:
-    - name: Install deb packages
+    - name: Update package repositories
+      run: >-
+        sudo apt update
+
       run: >-
         sudo apt install
         dos2unix

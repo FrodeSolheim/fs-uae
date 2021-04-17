@@ -21,6 +21,7 @@ jobs:
       run: >-
         sudo apt update
 
+    - name: Install deb packages
       run: >-
         sudo apt install
         dos2unix

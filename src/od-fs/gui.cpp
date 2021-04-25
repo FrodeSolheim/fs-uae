@@ -81,6 +81,13 @@ void gui_flicker_led (int led, int unitnum, int status) {
 void gui_led (int led, int state, int brightness)
 {
     //STUB("led %d state %d", led, state);
+
+    if (led == LED_POWER && brightness > 0) {
+        // Workaround because of state and brightness being too entangled
+        // in UAE core
+        state = 1;
+    }
+
     int out_led = -1;
     int out_state = state;
 

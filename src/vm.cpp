@@ -329,6 +329,7 @@ static void *try_reserve(uintptr_t try_addr, uae_u32 size, int flags)
 	int va_protect = protect_to_native(UAE_VM_NO_ACCESS);
 	address = VirtualAlloc((void *) try_addr, size, va_type, va_protect);
 	if (address == NULL) {
+		uae_log("VM: VirtualAlloc failed (GetLastError -> %d)\n", GetLastError());
 		return NULL;
 	}
 #else
@@ -356,6 +357,69 @@ static void *try_reserve(uintptr_t try_addr, uae_u32 size, int flags)
 	return address;
 }
 
+#ifdef _WIN32
+static void *find_free_region(uae_u32 size)
+{
+	uint64_t found_size = (uint64_t) -1;
+	void *found_addr = NULL;
+
+	uae_log("VM: Find free region for size %X:\n", size);
+
+	// int page_size = uae_vm_page_size();
+	// We don't want any page at 0x00
+	// VirtualQuery(page_size);
+	MEMORY_BASIC_INFORMATION meminfo;
+	void *address = 0x0;
+	int result = VirtualQuery(address, &meminfo, sizeof(meminfo));
+	while (result) {
+		if (address != meminfo.BaseAddress) {
+			uae_log("Unexpected BaseAddress\n");
+		}
+		const char *statedesc;
+		if (meminfo.State == MEM_FREE) {
+			statedesc = "FREE";
+		}
+		else if (meminfo.State == MEM_COMMIT) {
+			statedesc = "COMMIT";
+		}
+		else if (meminfo.State == MEM_RESERVE) {
+			statedesc = "RESERVE";
+		}
+		else {
+			statedesc = "UNKNOWN";
+		}
+		uae_log(
+			"VM: %08X - %08X  %4d MB  %s\n",
+		    address, (uintptr_t) address + meminfo.RegionSize, meminfo.RegionSize / (1024 * 1024), statedesc
+		);
+		ptrdiff_t usable_size = meminfo.RegionSize;
+		if ((uintptr_t) meminfo.BaseAddress + meminfo.RegionSize > 0x100000000) {
+			usable_size = 0x100000000 - (uintptr_t) meminfo.BaseAddress;
+		}
+		if (meminfo.State == MEM_FREE && usable_size >= size) {
+			if (meminfo.RegionSize < found_size) {
+				found_size = usable_size;
+				found_addr = meminfo.BaseAddress;
+			}
+		}
+		address = (void *) ((uintptr_t) address + meminfo.RegionSize);
+		result = VirtualQuery(address, &meminfo, sizeof(meminfo));
+		if (address >= (void*) 0x100000000) {
+			break;
+		}
+	}
+	if (found_addr) {
+		uae_log(
+			"VM: Found region with size %u (>= %u) at %08X\n",
+			found_size, size, found_addr
+		);
+	} else {
+		uae_log("VM: Did not find suitable region\n");
+	}
+	return found_addr;
+}
+#endif
+
 void *uae_vm_reserve(uae_u32 size, int flags)
 {
 #if 0
@@ -365,7 +429,16 @@ void *uae_vm_reserve(uae_u32 size, int flags)
 #endif
 	void *address = NULL;
 #ifdef _WIN32
-	address = try_reserve(0x80000000, size, flags);
+	uae_log("VM: Reserve  0x%-8x bytes\n", size);
+	if (flags & UAE_VM_32BIT) {
+		address = find_free_region(size);
+		if (address != NULL) {
+			address = try_reserve((uintptr_t) address, size, flags);
+		}
+	}
+	if (address == NULL) {
+		address = try_reserve(0x80000000, size, flags);
+	}
 	if (address == NULL && (flags & UAE_VM_32BIT)) {
 		if (size <= 768 * 1024 * 1024) {
 			address = try_reserve(0x78000000 - size, size, flags);

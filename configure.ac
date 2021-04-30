@@ -393,7 +393,7 @@ AS_CASE([$host_os],
     OS_CPPFLAGS="-DWINDOWS"
     AS_CASE([$host_cpu],
     [x86_64], [
-        OS_LDFLAGS="-mwindows"
+        OS_LDFLAGS="-mwindows -Wl,--image-base=0x400000"
         PACKAGE_ARCH="x86-64"
     ], [
         OS_LDFLAGS="-mwindows -Wl,--large-address-aware"

@@ -64,6 +64,7 @@ extern "C" {
 #include "fsemu-perfgui.c"
 #include "fsemu-quit.c"
 #include "fsemu-recording.c"
+#include "fsemu-recordingui.c"
 #include "fsemu-refable.c"
 #include "fsemu-savestate.c"
 #include "fsemu-screenshot.c"

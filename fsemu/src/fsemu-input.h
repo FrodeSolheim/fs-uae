@@ -83,6 +83,8 @@ void fsemu_input_unpack_action_state(fsemu_action_and_state_t action_and_state,
 
 void fsemu_input_work(int timeout);
 
+void fsemu_input_sync(void);
+
 extern int fsemu_input_log_level;
 
 #define fsemu_input_log(format, ...)                                   \

@@ -32,6 +32,8 @@ typedef struct {
 
 static struct {
     uint16_t action_table[1024 * 1024];  // FIXME
+    int16_t input_state[1024 * 1024];    // FIXME:
+    // GHashTable *action_reverse_table;
     // Queued input actions pending input to emulator
     GQueue *action_queue;
     // Queued command actions pending input to emulator
@@ -46,6 +48,62 @@ static struct {
     // Emulation thread synchronization for fetching actions
     fsemu_mutex_t *mutex;
 } fsemu_input;
+
+// ----------------------------------------------------------------------------
+
+static int fsemu_input_action_table_index_from_key(fsemu_key_t key, int mod)
+{
+    return mod * FSEMU_KEY_NUM_KEYS + key;
+}
+
+static int fsemu_input_action_table_index_from_input(int device_index,
+                                                     int input_index)
+{
+    // FIXME: Hack for now, multiplying with FSEMU_KEYBOARD_NUM_MODS
+    // to make sure keyboard modifier actions are not overwritten, even
+    // though modifiers do not make sense for all input types.
+    return device_index * FSEMU_INPUTDEVICE_MAX * FSEMU_KEYBOARD_NUM_MODS +
+           input_index;
+}
+
+// ----------------------------------------------------------------------------
+
+static void *g_action_reverse_table[FSEMU_ACTION_REAL_MAX_COUNT];
+
+static void fsemu_input_clear_reverse_actions(void)
+{
+    for (int i = 0; i < FSEMU_ACTION_REAL_MAX_COUNT; i++) {
+        GList *list = g_action_reverse_table[i];
+        g_list_free(list);
+    }
+}
+
+static GList *fsemu_input_get_reverse_actions(int action)
+{
+    action = action & FSEMU_ACTION_REAL_MASK;
+    return g_action_reverse_table[action];
+}
+
+static void fsemu_input_add_reverse_action(int action, int input_table_index)
+{
+    action = action & FSEMU_ACTION_REAL_MASK;
+    g_action_reverse_table[action] = g_list_append(
+        g_action_reverse_table[action], GINT_TO_POINTER(input_table_index));
+}
+
+// ----------------------------------------------------------------------------
+
+static void fsemu_input_clear_state_for_device_index(int device_index)
+{
+    // FIXME: This happens from the main thread. But the state table is
+    // also accessed from the emu thread (fsemu_input_sync). Should probably
+    // be protected by a mutex. The same applies to g_action_reverse_table.
+    int from = fsemu_input_action_table_index_from_input(device_index, 0);
+    int to = fsemu_input_action_table_index_from_input(device_index + 1, 0);
+    for (int i = from; i < to; i++) {
+        fsemu_input.input_state[i] = 0;
+    }
+}
 
 // ----------------------------------------------------------------------------
 // FIXME: Move
@@ -148,6 +206,8 @@ fsemu_error_t fsemu_input_add_device(fsemu_inputdevice_t *device)
                           fsemu_inputdevice_name(device));
     fsemu_inputdevice_ref(device);
 
+    fsemu_input_clear_state_for_device_index(device_index);
+
     // FIXME: Maybe postpone to module update
     fsemu_input_autofill_devices();
     fsemu_input_reconfigure();
@@ -198,6 +258,8 @@ void fsemu_input_remove_device(fsemu_inputdevice_t *device)
             fsemu_input_log("Removing input device from port[%d]\n", i);
         }
     }
+
+    fsemu_input_clear_state_for_device_index(device_index);
 
     // if (device->port_index) {
     //     fsemu_inputport_t *port = fsemu_input.ports[device->port_index];
@@ -258,20 +320,6 @@ void fsemu_input_configure_keyboard(fsemu_input_configure_keyboard_t mapping[])
     }
 
     fsemu_input_reconfigure();
-}
-
-static int fsemu_input_action_table_index_from_key(fsemu_key_t key, int mod)
-{
-    return mod * FSEMU_KEY_NUM_KEYS + key;
-}
-
-static int fsemu_input_action_table_index_from_input(int device_index,
-                                                     int input_index)
-{
-    // FIXME: Hack for now, multiplying with FSEMU_KEYBOARD_NUM_MODS
-    // to make sure keyboard modifier actions are not overwritten, even
-    // though modifiers do not make sense for all input types.
-    return device_index * FSEMU_INPUTDEVICE_MAX * FSEMU_KEYBOARD_NUM_MODS + input_index;
 }
 
 static int fsemu_input_keyboard_navigation(fsemu_key_t key)
@@ -361,6 +409,7 @@ void fsemu_input_handle_controller(int device_index, int slot, int16_t state)
                           action_table_index,
                           action);
 
+    fsemu_input.input_state[action_table_index] = state;
     fsemu_input_process_action(action, state);
 }
 
@@ -400,11 +449,13 @@ void fsemu_input_handle_keyboard(fsemu_key_t key, bool pressed, int mod)
 
     int action = fsemu_input.action_table[action_table_index];
     printf("keyboard input action_table_index %d => %d\n",
-                          action_table_index,
-                          action);
+           action_table_index,
+           action);
     fsemu_input_log_debug("keyboard input action_table_index %d => %d\n",
                           action_table_index,
                           action);
+
+    fsemu_input.input_state[action_table_index] = state;
     fsemu_input_process_action(action, state);
 }
 
@@ -431,6 +482,7 @@ void fsemu_input_handle_mouse(int device_index, int slot, int16_t state)
     //        action_table_index,
     //        action);
 
+    fsemu_input.input_state[action_table_index] = state;
     fsemu_input_process_action(action, state);
 }
 
@@ -653,10 +705,12 @@ void fsemu_input_reconfigure(void)
     // FIXME: Do we need to clear the action table? Maybe...
     memset(fsemu_input.action_table, 0, sizeof(fsemu_input.action_table));
 
+    fsemu_input_clear_reverse_actions();
+
     fsemu_input_log_debug("Add keyboard actions first\n");
     // FIXME: Include mods as well (check!)
     for (int i = 0; i < FSEMU_KEY_NUM_KEYS * FSEMU_KEYBOARD_NUM_MODS; i++) {
-    // for (int i = 0; i < FSEMU_KEY_NUM_KEYS; i++) {
+        // for (int i = 0; i < FSEMU_KEY_NUM_KEYS; i++) {
         int action = fsemu_input.keyboard[i].action;
         fsemu_input.action_table[i] = action;
     }
@@ -675,9 +729,9 @@ void fsemu_input_reconfigure(void)
         //     continue;
         // }
         fsemu_input_log(" - input device %d: (%s) with mode index %d\n",
-                              device->index,
-                              fsemu_inputdevice_name(device),
-                              port->mode_index);
+                        device->index,
+                        fsemu_inputdevice_name(device),
+                        port->mode_index);
         // if (device) {
         //     port->device_index = device->index;
         //     device->port_index = port->index;
@@ -698,11 +752,49 @@ void fsemu_input_reconfigure(void)
                                       action_table_index,
                                       action);
                 fsemu_input.action_table[action_table_index] = action;
+                fsemu_input_add_reverse_action(action, action_table_index);
             }
         }
     }
 
     fsemu_input_log_port_summary();
+}
+
+// ----------------------------------------------------------------------------
+
+static void fsemu_input_sync_hack(int action)
+{
+    GList *list = fsemu_input_get_reverse_actions(action);
+    int state = 0;
+    while (list) {
+        int input_table_index = GPOINTER_TO_INT(list->data);
+        int s = fsemu_input.input_state[input_table_index];
+        if (s > 0 && s > state) {
+            state = s;
+        } else if (s < 0 && s < state) {
+            state = s;
+        }
+        list = list->next;
+    }
+    fsemu_input_process_action(action, state);
+}
+
+void fsemu_input_sync(void)
+{
+    // This is currently called from the emu thread when loading state and/or
+    // resuming recording.
+    fsemu_thread_assert_emu();
+
+#ifdef FSUAE
+    // Amiga joystick 1 directions
+    fsemu_input_sync_hack(60);
+    fsemu_input_sync_hack(61);
+    fsemu_input_sync_hack(62);
+    fsemu_input_sync_hack(63);
+    // Amiga joystick 1 buttons
+    fsemu_input_sync_hack(68);
+    fsemu_input_sync_hack(69);
+#endif
 }
 
 // ----------------------------------------------------------------------------
@@ -733,6 +825,8 @@ void fsemu_input_init(void)
 
     fsemu_input.action_queue = g_queue_new();
     fsemu_input.command_queue = g_queue_new();
+    // fsemu_input.action_reverse_table = g_hash_table_new(
+    //     g_direct_hash, g_direct_equal);
 
     // Initial warp mode is enabled here because the input system needs to be
     // initialized before calling fseme_control_set_warp.

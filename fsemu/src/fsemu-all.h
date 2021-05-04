@@ -59,6 +59,7 @@
 #include "fsemu-perfgui.h"
 #include "fsemu-quit.h"
 #include "fsemu-recording.h"
+#include "fsemu-recordingui.h"
 #include "fsemu-refable.h"
 #include "fsemu-savestate.h"
 #include "fsemu-screenshot.h"

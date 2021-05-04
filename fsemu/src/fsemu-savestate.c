@@ -5,6 +5,7 @@
 
 #include "fsemu-action.h"
 #include "fsemu-glib.h"
+#include "fsemu-input.h"
 #include "fsemu-path.h"
 #include "fsemu-recording.h"
 #include "fsemu-thread.h"
@@ -50,6 +51,7 @@ uintptr_t fsemu_savestate_on_load_finished(void *data)
         return 1;
     }
 
+    fsemu_input_sync();
     fsemu_recording_on_load_state_finished(slot, path);
     return 0;
 }

@@ -9,6 +9,9 @@
 extern "C" {
 #endif
 
+#define FSEMU_ACTION_REAL_MAX_COUNT 4096
+#define FSEMU_ACTION_REAL_MASK (FSEMU_ACTION_REAL_MAX_COUNT - 1)
+
 typedef uint16_t fsemu_action_t;
 typedef int16_t fsemu_action_state_t;
 typedef int32_t fsemu_action_and_state_t;

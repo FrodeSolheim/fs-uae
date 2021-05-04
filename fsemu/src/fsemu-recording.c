@@ -538,6 +538,9 @@ static void fsemu_recording_resume_recording(void)
 
     // Finally switch to recording mode.
     fsemu_recording.mode = FSEMU_RECORDING_MODE_RECORD;
+    // Make sure we sync the state of input actions to the current state of
+    // the input devices. For example cancel motion.
+    fsemu_input_sync();
 }
 
 // void fsemu_recording_begin_frame(int frame_number)
@@ -696,10 +699,11 @@ bool fsemu_recording_next_action(int line, uint16_t *action, int16_t *state)
 
         if (fsemu_recording.resume_action == 0) {
             while (fsemu_input_next_action(action, state)) {
+
                 // FIXME: Hard-coding Amiga joystick fire (port 1) here for
                 // now.
-
                 if (fsemu_recording.re_record && *action == 68) {
+
                     // FIXME: Or; save action, keep for next frame, and resume
                     // then! Either that or ..
                     fsemu_recording.resume_action = *action;

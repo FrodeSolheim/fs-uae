@@ -12726,6 +12726,11 @@ void uae_custom_save_extended_state(uae_savestate_context_t *ctx)
 	sr_int(curr_diagram_fetchmode);
 	sr_int(current_change_set);
 	sr_int(cycle_diagram_shift);
+
+	for (int i = 0; i < 256 + 1; i++) {
+		sr_uint8(cycle_line[i]);
+	}
+
 	sr_int16(dbpl1mod);
 	sr_int(dbpl1mod_on);
 	sr_int16(dbpl2mod);
@@ -13104,6 +13109,42 @@ void uae_custom_save_extended_state(uae_savestate_context_t *ctx)
 		}
 	}
 
+	sr_bytes(sprite_entries, sizeof(sprite_entries));
+
+	int curr_sprite_entries_offset = -1;
+	if (curr_sprite_entries) {
+		curr_sprite_entries_offset = curr_sprite_entries - &sprite_entries[0][0];
+	}
+	sr_int(curr_sprite_entries_offset);
+	if (ctx->load) {
+		if (curr_sprite_entries_offset == -1) {
+			curr_sprite_entries = NULL;
+		} else {
+			curr_sprite_entries = &sprite_entries[0][0] + curr_sprite_entries_offset;
+		}
+	}
+
+	int prev_sprite_entries_offset = -1;
+	if (prev_sprite_entries) {
+		prev_sprite_entries_offset = prev_sprite_entries - &sprite_entries[0][0];
+	}
+	sr_int(prev_sprite_entries_offset);
+	if (ctx->load) {
+		if (prev_sprite_entries_offset == -1) {
+			prev_sprite_entries = NULL;
+		} else {
+			prev_sprite_entries = &sprite_entries[0][0] + prev_sprite_entries_offset;
+		}
+	}
+
+	// To avoid a crash, not sure if the sprite entries needs to be perfectly
+	// saved/restored, or if this is only used for drawing, not emulation.
+	// curr_sprite_entries = 0;
+	// prev_sprite_entries = 0;
+	// sprite_entries[0][0].first_pixel = 0;
+	// sprite_entries[1][0].first_pixel = MAX_SPR_PIXELS;
+	// sprite_entries[0][1].first_pixel = 0;
+	// sprite_entries[1][1].first_pixel = MAX_SPR_PIXELS;
 #if 0
 	// static int vsyncnextscanline;
 	// static int vsyncnextscanline_add;
@@ -13119,7 +13160,7 @@ void uae_custom_save_extended_state(uae_savestate_context_t *ctx)
 	static uae_u8 color_regs_genlock[256];
 	static uae_u16 cregs[256];
 	static struct chipset_refresh *stored_chipset_refresh;
-	uae_u8 cycle_line[256 + 1];
+
 	static uaecptr prevbpl[2][MAXVPOS][8];
 	static struct color_entry current_colors;
 	static struct sprite_entry sprite_entries[2][MAX_SPR_PIXELS / 16];

@@ -9184,7 +9184,16 @@ uae_u8 *save_cpu (int *len, uae_u8 *dstptr)
 	save_u32 (m68k_getpc ());			/* PC */
 	save_u16 (regs.irc);				/* prefetch */
 	save_u16 (regs.ir);					/* instruction prefetch */
+#ifdef FSUAE_RECORDING
+	if (uae_recording_mode) {
+		// Pass
+		// This causes desync, if vsync / savestate happens in exception handler
+	} else {
+		MakeSR ();
+	}
+#else
 	MakeSR ();
+#endif
 	save_u32 (!regs.s ? regs.regs[15] : regs.usp);	/* USP */
 	save_u32 (regs.s ? regs.regs[15] : regs.isp);	/* ISP */
 	save_u16 (regs.sr);								/* SR/CCR */
@@ -11638,190 +11647,17 @@ void dfc_nommu_put_long(uaecptr addr, uae_u32 v)
 
 void uae_newcpu_save_extended_state(uae_savestate_context_t *ctx)
 {
-	// int model, khz;
-	// if (dstptr)
-	// dstbak = dst = dstptr;
-	// else
-	// 	dstbak = dst = xmalloc (uae_u8, 1000 + 30000);
-	// model = currprefs.cpu_model;
-
 	uae_savestate_int(ctx, "model", &currprefs.cpu_model);
 
-	// save_u32(0x80000000 | 0x40000000 | 0x20000000 | 0x10000000 | 0x8000000 | 0x4000000 | (currprefs.address_space_24 ? 1 : 0)); /* FLAGS */
-	// for (int i = 0;i < 15; i++)
-	//	printf("reg %d val %08x\n", i, regs.regs[i]);
-
-	uae_savestate_uint32(ctx, "regs.d0", regs.regs + 0);
-	uae_savestate_uint32(ctx, "regs.d1", regs.regs + 1);
-	uae_savestate_uint32(ctx, "regs.d2", regs.regs + 2);
-	uae_savestate_uint32(ctx, "regs.d3", regs.regs + 3);
-	uae_savestate_uint32(ctx, "regs.d4", regs.regs + 4);
-	uae_savestate_uint32(ctx, "regs.d5", regs.regs + 5);
-	uae_savestate_uint32(ctx, "regs.d6", regs.regs + 6);
-	uae_savestate_uint32(ctx, "regs.d7", regs.regs + 7);
-	uae_savestate_uint32(ctx, "regs.a0", regs.regs + 8);
-	uae_savestate_uint32(ctx, "regs.a1", regs.regs + 9);
-	uae_savestate_uint32(ctx, "regs.a2", regs.regs + 10);
-	uae_savestate_uint32(ctx, "regs.a3", regs.regs + 11);
-	uae_savestate_uint32(ctx, "regs.a4", regs.regs + 12);
-	uae_savestate_uint32(ctx, "regs.a5", regs.regs + 13);
-	uae_savestate_uint32(ctx, "regs.a6", regs.regs + 14);
-
-	// uae_savestate_uint32(ctx, "regs.a6", regs.regs + 14);
-
-	// FIXME Must use m68k_getpc to get JIT position?
-	// save_u32 (m68k_getpc ());			/* PC */
-	uae_savestate_uint32(ctx, "regs.pc", &regs.pc);
-	if (ctx->load) {
-		m68k_setpc(regs.pc);
-	}
-
-	int spcflags = regs.spcflags;
-	uae_savestate_int(ctx, "regs.spcflags", &spcflags);
-	if (ctx->load) {
-		regs.spcflags = spcflags;
-	}
-
-	MakeSR ();
-
-	uae_savestate_uint32(ctx, "regs.regs[15]", regs.regs + 15);
-
-	// regs.sr = ((regs.t1 << 15) | (regs.t0 << 14)
-	// 	| (regs.s << 13) | (regs.m << 12) | (regs.intmask << 8)
-	// 	| (GET_XFLG () << 4) | (GET_NFLG () << 3)
-	// 	| (GET_ZFLG () << 2) | (GET_VFLG () << 1)
-	// 	|  GET_CFLG ());
-	// save_u32 (!regs.s ? regs.regs[15] : regs.usp);	/* USP */
-	// save_u32 (regs.s ? regs.regs[15] : regs.isp);	/* ISP */
-	// save_u16 (regs.sr);								/* SR/CCR */
-	// save_u32 (regs.stopped ? CPUMODE_HALT : 0);		/* flags */
-
-	// if (model >= 68010) {
-	// 	save_u32 (regs.dfc);			/* DFC */
-	// 	save_u32 (regs.sfc);			/* SFC */
-	// 	save_u32 (regs.vbr);			/* VBR */
-	// }
-	// if (model >= 68020) {
-	// 	save_u32 (regs.caar);			/* CAAR */
-	// 	save_u32 (regs.cacr);			/* CACR */
-	// 	save_u32 (regs.msp);			/* MSP */
-	// }
-	// if (model >= 68030) {
-	// 	if (currprefs.mmu_model) {
-	// 		save_u64 (crp_030);				/* CRP */
-	// 		save_u64 (srp_030);				/* SRP */
-	// 		save_u32 (tt0_030);				/* TT0/AC0 */
-	// 		save_u32 (tt1_030);				/* TT1/AC1 */
-	// 		save_u32 (tc_030);				/* TCR */
-	// 		save_u16 (mmusr_030);			/* MMUSR/ACUSR */
-	// 	} else {
-	// 		save_u64 (fake_crp_030);		/* CRP */
-	// 		save_u64 (fake_srp_030);		/* SRP */
-	// 		save_u32 (fake_tt0_030);		/* TT0/AC0 */
-	// 		save_u32 (fake_tt1_030);		/* TT1/AC1 */
-	// 		save_u32 (fake_tc_030);			/* TCR */
-	// 		save_u16 (fake_mmusr_030);		/* MMUSR/ACUSR */
-	// 	}
-	// }
-	// if (model >= 68040) {
-	// 	save_u32 (regs.itt0);			/* ITT0 */
-	// 	save_u32 (regs.itt1);			/* ITT1 */
-	// 	save_u32 (regs.dtt0);			/* DTT0 */
-	// 	save_u32 (regs.dtt1);			/* DTT1 */
-	// 	save_u32 (regs.tcr);			/* TCR */
-	// 	save_u32 (regs.urp);			/* URP */
-	// 	save_u32 (regs.srp);			/* SRP */
-	// }
-	// if (model >= 68060) {
-	// 	save_u32 (regs.buscr);			/* BUSCR */
-	// 	save_u32 (regs.pcr);			/* PCR */
-	// }
-	// khz = -1;
-	// if (currprefs.m68k_speed == 0) {
-	// 	khz = currprefs.ntscmode ? 715909 : 709379;
-	// 	if (currprefs.cpu_model >= 68020)
-	// 		khz *= 2;
-	// }
-	// save_u32 (khz); // clock rate in KHz: -1 = fastest possible
-	// save_u32 (0); // spare
-	// if (model == 68020) {
-	// 	for (int i = 0; i < CACHELINES020; i++) {
-	// 		save_u32 (caches020[i].data);
-	// 		save_u32 (caches020[i].tag);
-	// 		save_u8 (caches020[i].valid ? 1 : 0);
-	// 	}
-	// 	save_u32 (regs.prefetch020addr);
-	// 	save_u32 (regs.cacheholdingaddr020);
-	// 	save_u32 (regs.cacheholdingdata020);
-	// 	for (int i = 0; i < CPU_PIPELINE_MAX; i++)
-	// 		save_u32 ((regs.prefetch020[i] << 16) | (regs.prefetch020_valid[i] ? 1 : 0));
-	// } else if (model == 68030) {
-	// 	for (int i = 0; i < CACHELINES030; i++) {
-	// 		for (int j = 0; j < 4; j++) {
-	// 			save_u32 (icaches030[i].data[j]);
-	// 			save_u8 (icaches030[i].valid[j] ? 1 : 0);
-	// 		}
-	// 		save_u32 (icaches030[i].tag);
-	// 	}
-	// 	for (int i = 0; i < CACHELINES030; i++) {
-	// 		for (int j = 0; j < 4; j++) {
-	// 			save_u32 (dcaches030[i].data[j]);
-	// 			save_u8 (dcaches030[i].valid[j] ? 1 : 0);
-	// 		}
-	// 		save_u32 (dcaches030[i].tag);
-	// 	}
-	// 	save_u32 (regs.prefetch020addr);
-	// 	save_u32 (regs.cacheholdingaddr020);
-	// 	save_u32 (regs.cacheholdingdata020);
-	// 	for (int i = 0; i < CPU_PIPELINE_MAX; i++)
-	// 		save_u32 (regs.prefetch020[i]);
-	// } else if (model >= 68040) {
-	// 	for (int i = 0; i < (model == 68060 ? CACHESETS060 : CACHESETS040); i++) {
-	// 		for (int j = 0; j < CACHELINES040; j++) {
-	// 			struct cache040 *c = &icaches040[i];
-	// 			save_u32(c->data[j][0]);
-	// 			save_u32(c->data[j][1]);
-	// 			save_u32(c->data[j][2]);
-	// 			save_u32(c->data[j][3]);
-	// 			save_u32(c->tag[j]);
-	// 			save_u16(c->valid[j] ? 1 : 0);
-	// 		}
-	// 	}
-	// 	save_u32(regs.prefetch020addr);
-	// 	save_u32(regs.cacheholdingaddr020);
-	// 	save_u32(regs.cacheholdingdata020);
-	// 	for (int i = 0; i < CPU_PIPELINE_MAX; i++) {
-	// 		save_u32(regs.prefetch040[i]);
-	// 	}
-	// 	for (int i = 0; i < (model == 68060 ? CACHESETS060 : CACHESETS040); i++) {
-	// 		for (int j = 0; j < CACHELINES040; j++) {
-	// 			struct cache040 *c = &dcaches040[i];
-	// 			save_u32(c->data[j][0]);
-	// 			save_u32(c->data[j][1]);
-	// 			save_u32(c->data[j][2]);
-	// 			save_u32(c->data[j][3]);
-	// 			save_u32(c->tag[j]);
-	// 			uae_u16 v = c->valid[j] ? 1 : 0;
-	// 			v |= c->dirty[j][0] ? 0x10 : 0;
-	// 			v |= c->dirty[j][1] ? 0x20 : 0;
-	// 			v |= c->dirty[j][2] ? 0x40 : 0;
-	// 			v |= c->dirty[j][3] ? 0x80 : 0;
-	// 			save_u16(v);
-	// 		}
-	// 	}
-	// }
-	// if (currprefs.cpu_model >= 68020) {
-	// 	save_u32 (0); //save_u32 (regs.ce020memcycles);
-	// 	save_u32 (0);
-	// }
-
-	// if (currprefs.cpu_model == 68020) {
-	// 	save_u16(regs.pipeline_pos);
-	// 	save_u16(regs.pipeline_r8[0]);
-	// 	save_u16(regs.pipeline_r8[1]);
-	// 	save_u16(regs.pipeline_stop);
-	// }
-
+	sr_enum_2(regs.t0, flagtype, regs_t0);
+	sr_enum_2(regs.t1, flagtype, regs_t1);
+	sr_enum_2(regs.s, flagtype, regs_s);
+	sr_enum_2(regs.m, flagtype, regs_m);
+	sr_int(regs.ipl);
+	sr_int(regs.ipl_pin);
+	sr_int(regs.intmask);
+	sr_uint(regflags.cznv);
+	sr_uint(regflags.x);
 	sr_int(cpu_last_stop_vpos);
 	sr_int(cpu_stopped_lines);
 	sr_uint(regflags.cznv);
@@ -11834,7 +11670,26 @@ void uae_newcpu_save_extended_state(uae_savestate_context_t *ctx)
 	sr_uint16(regs.irc);
 	sr_uint32(regs.isp);
 	sr_uint8(regs.m);
+
+	// FIXME Must use m68k_getpc to get JIT position?
+	// save_u32 (m68k_getpc ());			/* PC */
+	uae_savestate_uint32(ctx, "regs.pc", &regs.pc);
+	if (ctx->load) {
+		m68k_setpc(regs.pc);
+	}
+
+	for (int i = 0; i < 16; i++) {
+		sr_uint32(regs.regs[i]);
+	}
+
 	sr_uint8(regs.s);
+
+	int spcflags = regs.spcflags;
+	uae_savestate_int(ctx, "regs.spcflags", &spcflags);
+	if (ctx->load) {
+		regs.spcflags = spcflags;
+	}
+
 	sr_uint16(regs.sr);
 	sr_uint8(regs.stopped);
 	sr_uint8(regs.t0);

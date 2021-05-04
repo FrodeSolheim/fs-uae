@@ -2640,6 +2640,20 @@ void uae_savestate_uint64(uae_savestate_context_t *ctx, const char *name, uae_u6
 	}
 }
 
+void uae_savestate_bytes(uae_savestate_context_t *ctx, const char *name, void *data, int size)
+{
+	if (!uae_savestate_field(ctx, name)) {
+		return;
+	}
+	if (ctx->save) {
+		zfile_fwrite(data, 1, size, ctx->zf);
+		zfile_putc('\n', ctx->zf);
+	} else {
+		zfile_fread(data, 1, size, ctx->zf);
+		zfile_getc(ctx->zf);
+	}
+}
+
 void uae_savestate_save_restore_fs(const char *path, bool save)
 {
 	write_log("uae_savestate_save_restore_fs path=%s save=%d\n", path, save);

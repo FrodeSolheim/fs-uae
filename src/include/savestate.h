@@ -319,6 +319,8 @@ void uae_savestate_long(uae_savestate_context_t *ctx, const char *name, long *va
 
 void uae_savestate_ulong(uae_savestate_context_t *ctx, const char *name, unsigned long *value);
 
+void uae_savestate_bytes(uae_savestate_context_t *ctx, const char *name, void *data, int size);
+
 void uae_events_trace_log(void);
 
 // FIXME: Needed for eventtab2 restoration
@@ -358,12 +360,20 @@ extern const char *uae_savestate_extra;
 #define sr_uint64(x) uae_savestate_uint64(ctx, #x, &(x));
 #define sr_long(x) uae_savestate_long(ctx, #x, &(x));
 #define sr_ulong(x) uae_savestate_ulong(ctx, #x, &(x));
+#define sr_bytes(v, s) uae_savestate_bytes(ctx, #v, &(v), s);
 
 #define sr_enum(v, t) \
 	int v##_enum = v; \
 	sr_int(v##_enum); \
 	if (ctx->load) { \
 		v = (t) v##_enum; \
+	}
+
+#define sr_enum_2(v, t, n) \
+	int n##_enum = v; \
+	uae_savestate_int(ctx, #v, &(n##_enum)); \
+	if (ctx->load) { \
+		v = (t) n##_enum; \
 	}
 
 #endif  // FSUAE

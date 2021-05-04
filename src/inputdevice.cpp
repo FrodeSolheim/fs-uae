@@ -9949,7 +9949,7 @@ void uae_inputdevice_save_extended_state(uae_savestate_context_t *ctx)
 			uae_savestate_int(ctx, name, &joydirpot[i][j]);
 		}
 	}
-	for (int i = 0; i < NORMAL_JPORTS; i++) {
+	for (int i = 0; i < MAX_JPORTS; i++) {
 		for (int j = 0; j < MOUSE_AXIS_TOTAL; j++) {
 			sprintf(name, "mouse_delta[%d][%d]", i, j);
 			uae_savestate_int16(ctx, name, &mouse_delta[i][j]);
@@ -9970,6 +9970,9 @@ void uae_inputdevice_save_extended_state(uae_savestate_context_t *ctx)
 	for (int i = 0; i < MAX_JPORTS; i++) {
 		sr_int16(mouse_y[i]);
 	}
+
+	sr_int(input_vpos);
+	sr_int(input_frame);
 }
 
 #endif  // FSUAE_RECORDING

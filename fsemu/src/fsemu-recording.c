@@ -1137,6 +1137,7 @@ void fsemu_recording_init(void)
             // FIXME: Notification
         } else {
             fsemu_recording.mode = FSEMU_RECORDING_MODE_RECORD;
+            fsemu_recording.writable = true;
             fsemu_recording.enabled = true;
         }
     }

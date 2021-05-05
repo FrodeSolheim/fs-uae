@@ -69,6 +69,8 @@ static struct {
     fsemu_recording_mode_t mode;
     int frame_number;
     int next_frame_number;
+    // bool write_protect;
+    bool writable;
     // bool record;
     // bool playback;
     bool re_record;
@@ -105,6 +107,16 @@ void fsemu_recording_set_rand_function(
 
 // ---------------------------------------------------------------------------
 
+bool fsemu_recording_is_writable(void)
+{
+    return fsemu_recording.writable;
+}
+
+void fsemu_recording_toggle_writable(void)
+{
+    fsemu_recording.writable = !fsemu_recording.writable;
+}
+
 bool fsemu_recording_enabled(void)
 {
     return fsemu_recording.enabled;
@@ -118,6 +130,11 @@ bool fsemu_recording_is_recording(void)
 bool fsemu_recording_is_playing(void)
 {
     return fsemu_recording.mode == FSEMU_RECORDING_MODE_PLAY;
+}
+
+bool fsemu_recording_is_stopped(void)
+{
+    return fsemu_recording.mode == FSEMU_RECORDING_MODE_OFF;
 }
 
 bool fsemu_recording_is_sync(void)
@@ -154,8 +171,9 @@ static void fsemu_recording_free_frame(fsemu_recording_frame_t *frame)
 
 // FIXME: Support setting specific error
 
-static fsemu_error_t fsemu_recording_set_error(void)
+static fsemu_error_t fsemu_recording_set_error(const char *message)
 {
+    printf("ERROR: %s\n", message);
     printf("ERROR - STOPPING RECORDING\n");
     fsemu_recording_close();
     if (fsemu_recording.frame) {
@@ -206,7 +224,7 @@ static fsemu_error_t fsemu_recording_write_frame(
     FILE *f, fsemu_recording_frame_t *frame)
 {
     if (fwrite("FRAM", 4, 1, f) != 1) {
-        return fsemu_recording_set_error();
+        return fsemu_recording_set_error("Error writing FRAM");
     }
 
     int bytes = 4 + frame->num_events * 8 + 4 + 4 + 4;
@@ -237,7 +255,7 @@ static fsemu_error_t fsemu_recording_write_frame(
 static fsemu_error_t fsemu_recording_write_header_to_file(FILE *f)
 {
     if (fwrite("FREC", 4, 1, f) != 1) {
-        return fsemu_recording_set_error();
+        return fsemu_recording_set_error("Error writing FREC");
     }
     const int header_length = 4;
     fsemu_recording_write_uint32(f, header_length);
@@ -279,12 +297,12 @@ static fsemu_error_t fsemu_recording_open(fsemu_recording_open_mode_t mode)
     }
 
     if (fsemu_recording.file == NULL) {
-        return fsemu_recording_set_error();
+        return fsemu_recording_set_error("Recording is NULL");
     }
 
     if (mode == FSEMU_RECORDING_OPEN_MODE_READ_END) {
         if (fseek(fsemu_recording.file, 0, SEEK_END) == -1) {
-            return fsemu_recording_set_error();
+            return fsemu_recording_set_error("Could not seek to end");
         }
     }
 
@@ -318,15 +336,15 @@ static int fsemu_recording_read_header_from_file(FILE *f)
     uint8_t data[4];
     if (fread(data, 4, 1, f) != 1) {
         printf("READ ERROR\n");
-        return fsemu_recording_set_error();
+        return fsemu_recording_set_error("Error reading header");
     }
     if (fread(data, 4, 1, f) != 1) {
         printf("READ ERROR\n");
-        return fsemu_recording_set_error();
+        return fsemu_recording_set_error("Error reading header (2)");
     }
     if (fread(data, 4, 1, f) != 1) {
         printf("READ ERROR\n");
-        return fsemu_recording_set_error();
+        return fsemu_recording_set_error("Error reading header (3)");
     }
     // FIXME: Check header
     // FIXME: Check header_length
@@ -343,7 +361,7 @@ static int fsemu_recording_read_header_from_file(FILE *f)
 static int fsemu_recording_read_header(void)
 {
     if (fsemu_recording.file == NULL) {
-        return fsemu_recording_set_error();
+        return fsemu_recording_set_error("Recording is null (2)");
     }
     return fsemu_recording_read_header_from_file(fsemu_recording.file);
 }
@@ -382,7 +400,7 @@ static bool fsemu_recording_read_frame_from_file(
         }
     } else if (read != 4) {
         printf("READ ERROR\n");
-        fsemu_recording_set_error();
+        fsemu_recording_set_error("Error reading 4 bytes");
         return false;
     }
     if (strncmp(data, "FRAM", 4) != 0) {
@@ -392,13 +410,13 @@ static bool fsemu_recording_read_frame_from_file(
                data[1],
                data[2],
                data[3]);
-        fsemu_recording_set_error();
+        fsemu_recording_set_error("Did not get expected FRAM header");
         return false;
     }
 
     uint32_t chunk_size;
     if (fsemu_recording_read_uint32_from_file(f, &chunk_size) != 0) {
-        fsemu_recording_set_error();
+        fsemu_recording_set_error("Error reading chunk size");
         return false;
     }
 
@@ -406,7 +424,7 @@ static bool fsemu_recording_read_frame_from_file(
     // by adding actions to the frame.
     uint32_t num_events = 0;
     if (fsemu_recording_read_uint32_from_file(f, &num_events) != 0) {
-        fsemu_recording_set_error();
+        fsemu_recording_set_error("Error reading num events");
         return false;
     }
     // printf("read frame num_events: %d\n", num_events);
@@ -415,12 +433,12 @@ static bool fsemu_recording_read_frame_from_file(
         uint32_t line;
         uint32_t action_with_state;
         if (fsemu_recording_read_uint32_from_file(f, &line) != 0) {
-            fsemu_recording_set_error();
+            fsemu_recording_set_error("Error reading line");
             return false;
         }
         if (fsemu_recording_read_uint32_from_file(f, &action_with_state) !=
             0) {
-            fsemu_recording_set_error();
+            fsemu_recording_set_error("Error reading action");
             return false;
         }
         uint16_t action = action_with_state >> 16;
@@ -436,17 +454,17 @@ static bool fsemu_recording_read_frame_from_file(
 
     // FIXME: Check for errors
     if (fsemu_recording_read_uint32_from_file(f, &frame->random_number) != 0) {
-        fsemu_recording_set_error();
+        fsemu_recording_set_error("Error reading random number");
         return false;
     }
     if (fsemu_recording_read_uint32_from_file(f, &frame->frame_number) != 0) {
-        fsemu_recording_set_error();
+        fsemu_recording_set_error("Error reading frame number");
         return false;
     }
     printf("read frame number: %d\n", frame->frame_number);
 
     if (fsemu_recording_read_uint32_from_file(f, &frame->checksum) != 0) {
-        fsemu_recording_set_error();
+        fsemu_recording_set_error("Error reading frame checksum");
         return false;
     }
 
@@ -532,7 +550,7 @@ static void fsemu_recording_resume_recording(void)
 #endif
     if (error) {
         printf("Failed to truncate file\n");
-        fsemu_recording_set_error();
+        fsemu_recording_set_error("Error truncating file");
         return;
     }
 
@@ -652,7 +670,7 @@ void fsemu_recording_end_frame(void)
 
     if (fsemu_recording.frame == NULL) {
         printf("WARNING: fsemu_recording_end_frame frame == NULL\n");
-        fsemu_recording_set_error();
+        fsemu_recording_set_error("Frame is null");
         return;
     }
 
@@ -690,7 +708,7 @@ bool fsemu_recording_next_action(int line, uint16_t *action, int16_t *state)
     if (fsemu_recording.mode == FSEMU_RECORDING_MODE_PLAY) {
         if (fsemu_recording.frame == NULL) {
             printf("WARNING: fsemu_recording.frame == NULL\n");
-            fsemu_recording_set_error();
+            fsemu_recording_set_error("Frame is null (2)");
             return false;
         }
 
@@ -909,7 +927,7 @@ static void fsemu_recording_open_for_reading_from_offset(int offset)
     fsemu_recording_open(FSEMU_RECORDING_OPEN_MODE_READ);
     if (fseek(fsemu_recording.file, offset, SEEK_SET) == -1) {
         printf("Failed to seek to resume position\n");
-        fsemu_recording_set_error();
+        fsemu_recording_set_error("Failed to seek to resume position");
     }
 }
 
@@ -920,6 +938,7 @@ static void fsemu_recording_open_for_reading_from_offset(int offset)
 void fsemu_recording_on_load_state_finished(int slot, const char *path)
 {
     if (fsemu_recording.mode == FSEMU_RECORDING_MODE_OFF) {
+    if (fsemu_recording.enabled == false)
         return;
     }
     printf("fsemu_recording_on_load_state_finished slot=%d path=%s\n",
@@ -937,11 +956,35 @@ void fsemu_recording_on_load_state_finished(int slot, const char *path)
         int offset;
         bool is_ancestor =
             fsemu_recording_is_ancestor(state_recording_path, &offset);
-        int mode = fsemu_recording.mode;
+        // int mode = fsemu_recording.mode;
         printf("Loaded state is ancestor? %d\n", is_ancestor);
 
         // FIXME: Must rewind current recording and compare that
 
+        if (is_ancestor && !fsemu_recording.writable) {
+            printf("REC: Loaded state is an ancestor of current state\n");
+            printf("REC: Continue playing with current recording\n");
+            fsemu_recording_open_for_reading_from_offset(offset);
+            fsemu_recording.mode = FSEMU_RECORDING_MODE_PLAY;
+        } else {
+            printf("REC: Switching to recording from state\n");
+            fsemu_recording_close();
+            printf("REC: Copying %s -> %s\n",
+                   state_recording_path,
+                   fsemu_recording.path);
+            fsemu_util_copy_file(state_recording_path, fsemu_recording.path);
+            if (fsemu_recording.writable) {
+                fsemu_recording_open(FSEMU_RECORDING_OPEN_MODE_APPEND);
+                fsemu_recording.mode = FSEMU_RECORDING_MODE_RECORD;
+            } else {
+                // Playback mode, but at end of recording...?
+                fsemu_recording_open(FSEMU_RECORDING_OPEN_MODE_READ_END);
+                fsemu_recording.mode = FSEMU_RECORDING_MODE_PLAY;
+                // Recording mode will automatically go to off after this
+            }
+        }
+
+#if 0
         if (is_ancestor && mode == FSEMU_RECORDING_MODE_PLAY) {
             printf("Loaded state is an ancestor of current state\n");
             printf("Continue playing with current recording\n");
@@ -966,8 +1009,9 @@ void fsemu_recording_on_load_state_finished(int slot, const char *path)
             }
             // Playback mode, but at end of recording.
         }
+#endif
     } else {
-        printf("No state recording to continue from\n");
+        printf("REC: No state recording to continue from\n");
         // No recording to continue from, so no option except to stop.
         fsemu_recording_close();
         // FIXME: Show notice
@@ -1009,7 +1053,7 @@ void fsemu_recording_on_save_state_finished(int slot, const char *path)
     // FIXME: 64-bit
     file_position = ftell(fsemu_recording.file);
     if (file_position == -1) {
-        fsemu_recording_set_error();
+        fsemu_recording_set_error("Failed to get file position");
         return;
     }
     // }
@@ -1034,7 +1078,7 @@ void fsemu_recording_on_save_state_finished(int slot, const char *path)
             // FIXME: 64-bit
             if (fseek(fsemu_recording.file, file_position, SEEK_SET) != 0) {
                 printf("Could not seek to previous pos\n");
-                fsemu_recording_set_error();
+                fsemu_recording_set_error("Could not seek to previous pos");
             }
         }
     } else {
@@ -1071,10 +1115,40 @@ void fsemu_recording_init(void)
     fsemu_recording.next_frame_number = -1;
 
     const char *recording_file =
+        // FIXME: Move to header as constant
         fsemu_option_const_string("recording_file");
     if (recording_file != NULL) {
         fsemu_recording.path = strdup(recording_file);
     }
+
+    if (fsemu_path_exists(fsemu_recording.path)) {
+        fsemu_recording_open(FSEMU_RECORDING_OPEN_MODE_READ);
+        fsemu_recording_read_header();
+        if (fsemu_recording.error) {
+            // FIXME: Notification
+        } else {
+            fsemu_recording.mode = FSEMU_RECORDING_MODE_PLAY;
+            fsemu_recording.enabled = true;
+        }
+    } else {
+        fsemu_recording_open(FSEMU_RECORDING_OPEN_MODE_WRITE);
+        fsemu_recording_write_header();
+        if (fsemu_recording.error) {
+            // FIXME: Notification
+        } else {
+            fsemu_recording.mode = FSEMU_RECORDING_MODE_RECORD;
+            fsemu_recording.enabled = true;
+        }
+    }
+
+#if 0
+    const char *recording_file =
+        // FIXME: Move to header as constant
+        fsemu_option_const_string("recording_");
+    if (recording_file != NULL) {
+        fsemu_recording.path = strdup(recording_file);
+    }
+
 
     bool record = false;
     bool play = false;
@@ -1135,6 +1209,7 @@ void fsemu_recording_init(void)
     if (play || record) {
         fsemu_recording.enabled = true;
     }
+#endif
 }
 
 // ---------------------------------------------------------------------------

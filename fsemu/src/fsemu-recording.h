@@ -17,8 +17,12 @@ void fsemu_recording_init(void);
 void fsemu_recording_update(void);
 void fsemu_recording_shutdown(void);
 
+bool fsemu_recording_is_writable(void);
+void fsemu_recording_toggle_writable(void);
+
 bool fsemu_recording_is_playing(void);
 bool fsemu_recording_is_recording(void);
+bool fsemu_recording_is_stopped(void);
 bool fsemu_recording_is_sync(void);
 bool fsemu_recording_is_desync(void);
 int fsemu_recording_frame_number(void);

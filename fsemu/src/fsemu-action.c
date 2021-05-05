@@ -9,6 +9,7 @@
 #include "fsemu-module.h"
 #include "fsemu-oskeyboard.h"
 #include "fsemu-osmenu.h"
+#include "fsemu-recording.h"
 #include "fsemu-savestate.h"
 #include "fsemu-thread.h"
 
@@ -195,6 +196,11 @@ void fsemu_action_process_command_in_main(fsemu_action_t action,
             fsemu_inputport_set_mode_index(port,
                                            action - FSEMU_ACTION_PORT1TYPE0);
             fsemu_action.reconfigure_input = true;
+            break;
+        case FSEMU_ACTION_RECORDING_TOGGLE_WRITABLE:
+            if (state) {
+                fsemu_recording_toggle_writable();
+            }
             break;
     }
 }

@@ -56,6 +56,10 @@ double fsemu_frame_hz = 0;
 
 // ----------------------------------------------------------------------------
 
+bool fsemu_frame_slowdown_hack = false;
+
+// ----------------------------------------------------------------------------
+
 volatile int fsemu_frame_number_began = -1;
 volatile int fsemu_frame_number_ended = -1;
 volatile int fsemu_frame_number_posted = -1;
@@ -796,6 +800,9 @@ static void fsemu_frame_update_timing(int frame_number, double hz, bool turbo)
     // fsemu_frame_warp = fsemu_control_warp();
 
     int64_t frame_duration = (int64_t)(1000000.0 / hz);
+    if (fsemu_frame_slowdown_hack) {
+        frame_duration *= 2;
+    }
     if (fsemu_video_vsync()) {
         double vsync_hz = fsemu_video_vsync_frequency();
         fsemu_frame.frame_rate_multiplier = vsync_hz / hz;

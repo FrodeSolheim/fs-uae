@@ -109,6 +109,8 @@ extern volatile int fsemu_frame_number_displaying;
 extern volatile int fsemu_frame_number_displayed;
 extern volatile int fsemu_frame_number_swapped;
 
+extern bool fsemu_frame_slowdown_hack;
+
 #endif  // FSEMU_INTERNAL
 
 extern int fsemu_frame_log_level;

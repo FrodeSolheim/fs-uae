@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 #include "fsemu-control.h"
+#include "fsemu-frame.h"
 #include "fsemu-glib.h"
 #include "fsemu-input.h"
 #include "fsemu-module.h"
@@ -200,6 +201,11 @@ void fsemu_action_process_command_in_main(fsemu_action_t action,
         case FSEMU_ACTION_RECORDING_TOGGLE_WRITABLE:
             if (state) {
                 fsemu_recording_toggle_writable();
+            }
+            break;
+        case FSEMU_ACTION_TOGGLE_SLOWDOWN_HACK:
+            if (state) {
+                fsemu_frame_slowdown_hack = !fsemu_frame_slowdown_hack;
             }
             break;
     }

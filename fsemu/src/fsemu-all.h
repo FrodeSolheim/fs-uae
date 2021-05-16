@@ -50,6 +50,7 @@
 #include "fsemu-module.h"
 #include "fsemu-monitor.h"
 #include "fsemu-mouse.h"
+#include "fsemu-movie.h"
 #include "fsemu-mutex.h"
 #include "fsemu-option.h"
 #include "fsemu-options.h"

@@ -1863,6 +1863,7 @@ int main(int argc, char *argv[])
 
         fsemu_background_init();
         fsemu_hud_init();
+        fsemu_movie_init();
         fsemu_oskeyboard_init();
         fsemu_osmenu_init();
         fsemu_perfgui_init();

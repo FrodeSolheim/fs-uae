@@ -17,6 +17,7 @@ CM_CFLAGS += @OPENGL_CFLAGS@
 # CM_CFLAGS += @OS_CFLAGS@
 CM_CFLAGS += @PNG_CFLAGS@
 CM_CFLAGS += @QT_CFLAGS@
+CM_CFLAGS += @SAMPLERATE_CFLAGS@
 CM_CFLAGS += @SDL2_CFLAGS@
 CM_CFLAGS += @SDL2_TTF_CFLAGS@
 # CM_CFLAGS += @X11_CFLAGS@
@@ -82,6 +83,7 @@ LIBS += @OPENGL_LIBS@
 LIBS += @PNG_LIBS@
 LIBS += @QT_LIBS@
 LIBS += @MIDI_LIBS@
+LIBS += @SAMPLERATE_LIBS@
 LIBS += @SDL2_LIBS@
 LIBS += @SDL2_TTF_LIBS@
 LIBS += @X11_LIBS@
@@ -933,6 +935,8 @@ libfsemu2_a_SOURCES = \
 	fsemu/src/fsemu-monitor.h \
 	fsemu/src/fsemu-mouse.c \
 	fsemu/src/fsemu-mouse.h \
+	fsemu/src/fsemu-movie.c \
+	fsemu/src/fsemu-movie.h \
 	fsemu/src/fsemu-mutex.c \
 	fsemu/src/fsemu-mutex.h \
 	fsemu/src/fsemu-opengl.c \

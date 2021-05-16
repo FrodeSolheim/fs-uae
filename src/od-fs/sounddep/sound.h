@@ -114,6 +114,7 @@ STATIC_INLINE void clear_sound_buffers (void)
 #ifdef FSEMU_XXX
     fsemu_audiobuffer_clear();
 #else
+    // FIXME: Unnecessary?
     memset (paula_sndbuffer, 0, paula_sndbufsize);
     paula_sndbufpt = paula_sndbuffer;
 #endif

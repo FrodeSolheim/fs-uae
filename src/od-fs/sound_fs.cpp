@@ -5,12 +5,14 @@
 #include "include/options.h"
 #include "gensound.h"
 #include "audio.h"
+#include "custom.h"
 #include "uae/fs.h"
 
 #include <fs/emu/hacks.h>
 
 #include "fsemu-audio.h"
 #include "fsemu-audiobuffer.h"
+#include "fsemu-movie.h"
 
 int have_sound = 0;
 
@@ -93,6 +95,7 @@ static int g_clk = 0;
 
 void amiga_set_audio_frequency_adjust(double adjust)
 {
+    // printf("MOVIE adjust %f\n", adjust);
     // sdp->obtainedfreq = g_frequency / adjust;
     sdp->obtainedfreq = g_frequency + adjust * g_frequency;
     update_sound(g_clk);
@@ -102,6 +105,13 @@ void update_sound (double clk)
 {
 	if (!have_sound)
 		return;
+    if (fsemu_movie_is_enabled()) {
+        // printf("MOVIE update_sound clk=%f fake_vblank_hz=%f\n", clk, fake_vblank_hz);
+        // sound_sync_multiplier = 50.0 / fake_vblank_hz;
+        sdp->obtainedfreq = g_frequency * fake_vblank_hz / 50.0;
+        // sdp->obtainedfreq = g_frequency * 50.0 / fake_vblank_hz;
+        // printf("MOVIE freq: %d -- %d\n", g_frequency, sdp->obtainedfreq);
+    }
 	scaled_sample_evtime_orig = clk * CYCLE_UNIT * sound_sync_multiplier / sdp->obtainedfreq;
 	scaled_sample_evtime = scaled_sample_evtime_orig;
 	sampler_evtime = clk * CYCLE_UNIT * sound_sync_multiplier;
@@ -249,12 +259,10 @@ static void send_sound (struct sound_data *sd, uae_u16 *sndbuffer)
 
 void amiga_flush_audio(void)
 {
-    if (paula_sndbufpt == paula_sndbuffer) {
-        return;
-    }
-    finish_sound_buffer();
+    if (paula_sndbufpt != paula_sndbuffer) {
+        finish_sound_buffer();
+    }   
     fsemu_audiobuffer_frame_done();
-    // printf("%d\n", g_frequency);
 }
 
 void finish_sound_buffer (void)

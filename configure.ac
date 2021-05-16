@@ -228,6 +228,8 @@ AC_CHECK_LIB([gdi32], [main])
 AC_DEFINE([USE_GLIB], [1], [Define to 1 to use GLib])
 PKG_CHECK_MODULES([GLIB], [glib-2.0 >= 2.32 gthread-2.0])
 
+PKG_CHECK_MODULES([SAMPLERATE], [samplerate])
+
 AC_CHECK_LIB([Iphlpapi], [main])
 
 AC_ARG_WITH(glad, AS_HELP_STRING(

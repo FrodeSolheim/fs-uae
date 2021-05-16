@@ -9,6 +9,7 @@
 #include "fsemu-image.h"
 #include "fsemu-layout.h"
 #include "fsemu-module.h"
+#include "fsemu-movie.h"
 #include "fsemu-mutex.h"
 #include "fsemu-option.h"
 #include "fsemu-screenshot.h"
@@ -347,6 +348,12 @@ void fsemu_video_post_frame(fsemu_video_frame_t *frame)
 
     // FIXME: fsemu_frame_counter conflict with new vars
     // frame->number = fsemu_frame_counter();
+
+    if (fsemu_movie_is_enabled()) {
+        if (frame->partial == 0 || frame->partial == frame->height) {
+            fsemu_movie_add_video_frame(frame);
+        }
+    }
 
     int frame_number = fsemu_frame_number_began;
 

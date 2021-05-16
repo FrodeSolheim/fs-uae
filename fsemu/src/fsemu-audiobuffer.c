@@ -3,6 +3,7 @@
 
 #include "fsemu-audio.h"
 #include "fsemu-frame.h"
+#include "fsemu-movie.h"
 #include "fsemu-time.h"
 #include "fsemu-util.h"
 
@@ -36,6 +37,10 @@ static struct {
     float src_out[8192];  // FIXME: suitable size?
 #endif
 } fsemu_audiobuffer_extra;
+
+#define FSEMU_AUDIOBUFFER_MOVIE_SIZE 8192
+static float fsemu_audiobuffer_movie[FSEMU_AUDIOBUFFER_MOVIE_SIZE];
+static int fsemu_audiobuffer_movie_pos;
 
 void fsemu_audiobuffer_init(void)
 {
@@ -125,14 +130,31 @@ static void fsemu_audiobuffer_update_2(const void *data, int size)
 }
 #endif
 
+// static int movie_frame_start_pos = -1;
+
 void fsemu_audiobuffer_update(const void *void_data, int size)
 {
     // Casting to char pointer to be able to do byte pointer arithmetic.
     const uint8_t *data = (const uint8_t *) void_data;
 
+    if (fsemu_movie_is_enabled()) {
+        const int16_t *ip = (const int16_t *) data;
+        float *op = fsemu_audiobuffer_movie + fsemu_audiobuffer_movie_pos;
+        int samples = size / 2;
+        for (int i = 0; i < samples; i++) {
+            // FIXME: Does not handle exact range of positive/negative numbers
+            *op++ = *ip++ / 32768.0;
+        }
+        fsemu_audiobuffer_movie_pos += samples;
+    }
+
     fsemu_audiobuffer_extra.bytes_for_frame += size;
 
     int add_silence = fsemu_audiobuffer.add_silence;
+    // if (fsemu_movie_is_enabled()) {
+    //     add_silence = 0;
+    // }
+
     if (add_silence) {
         fsemu_audiobuffer.add_silence = 0;
         fsemu_audiobuffer_write_silence_ms(add_silence);
@@ -244,6 +266,25 @@ void fsemu_audiobuffer_frame_done(void)
     int frames = samples / 2;
     fsemu_frame_log_epoch(
         "Audio done for frame: %d samples / 2 = %d frames\n", samples, frames);
+
+    // if (fsemu_movie_is_enabled()) {
+    //     int ring_buffer_size = fsemu_audiobuffer.end - fsemu_audiobuffer.data;
+    //     volatile uint8_t *p = fsemu_audiobuffer.write - fsemu_audiobuffer_extra.bytes_for_frame;
+    //     if (p < fsemu_audiobuffer.data) {
+    //         p += ring_buffer_size;
+    //     }
+    //     fsemu_movie_add_audio_frame_from_ring_buffer(
+    //         (const uint8_t *) fsemu_audiobuffer.data,
+    //         ring_buffer_size,
+    //         p,
+    //         fsemu_audiobuffer_extra.bytes_for_frame);
+    // }
+
+    if (fsemu_movie_is_enabled()) {
+        fsemu_movie_add_audio_frame_f32(fsemu_audiobuffer_movie, fsemu_audiobuffer_movie_pos);
+        fsemu_audiobuffer_movie_pos = 0;
+    }
+
     fsemu_audiobuffer_extra.bytes_for_frame = 0;
 }
 
@@ -400,6 +441,10 @@ static double pid_controller_step(int *error_out,
 
 double fsemu_audiobuffer_calculate_adjustment(void)
 {
+    if (fsemu_movie_is_enabled()) {
+        return 0.0;
+    }
+
     double frame_rate_adjust = 0.0;
     // frame_rate_adjust = fsemu_frame_rate_multiplier();
     // frame_rate_adjust = 60 / 50.0;

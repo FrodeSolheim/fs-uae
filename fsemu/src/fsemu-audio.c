@@ -7,6 +7,7 @@
 #include "fsemu-audiobuffer.h"
 #include "fsemu-frame.h"
 #include "fsemu-log.h"
+#include "fsemu-movie.h"
 #include "fsemu-mutex.h"
 // #include "fsemu-nullaudio.h"
 #include "fsemu-option.h"
@@ -76,6 +77,9 @@ static void fsemu_audio_init_driver(void)
     // 48000...
 
     fsemu_audio.frequency = 44100;
+    if (fsemu_movie_is_enabled()) {
+        fsemu_audio.frequency = 48000;
+    }
 
     // const char *driver = fsemu_config_string("audio_driver");
     // const char *driver = "sdl";
@@ -390,6 +394,7 @@ void fsemu_audio_init(void)
 {
     fsemu_return_if_already_initialized();
     fsemu_frame_init();
+    fsemu_movie_init();
 
     fsemu_audio_log_info("Init\n");
     fsemu_audio_log_level =

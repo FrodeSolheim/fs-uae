@@ -55,6 +55,7 @@ extern "C" {
 #include "fsemu-module.c"
 #include "fsemu-monitor.c"
 #include "fsemu-mouse.c"
+#include "fsemu-movie.c"
 #include "fsemu-mutex.c"
 #include "fsemu-opengl.c"
 #include "fsemu-option.c"

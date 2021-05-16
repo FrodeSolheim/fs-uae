@@ -4,6 +4,7 @@
 
 #include "fsemu-glib.h"
 #include "fsemu-input.h"
+#include "fsemu-movie.h"
 #include "fsemu-option.h"
 #include "fsemu-util.h"
 
@@ -394,7 +395,11 @@ static bool fsemu_recording_read_frame_from_file(
                 // fclose(fsemu_recording.file);
                 // fsemu_recording.file = NULL;
                 printf("Stopped playback\n");
-                // FIXME: Better stop fuinction fsemu_recording_stop ?
+                // FIXME: Better stop function fsemu_recording_stop ?
+
+                if (fsemu_movie_is_enabled()) {
+                    fsemu_movie_end();
+                }
                 return false;
             }
         }

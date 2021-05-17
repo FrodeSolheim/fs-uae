@@ -146,14 +146,20 @@ void fsemu_audiobuffer_update(const void *void_data, int size)
             *op++ = *ip++ / 32768.0;
         }
         fsemu_audiobuffer_movie_pos += samples;
+        fsemu_audio_log_debug(
+            "SOUNDDBG fsemu_audiobuffer_update size=%d samples=%d "
+            "fsemu_audiobuffer_movie_pos=%d\n",
+            size,
+            samples,
+            fsemu_audiobuffer_movie_pos);
     }
 
     fsemu_audiobuffer_extra.bytes_for_frame += size;
 
     int add_silence = fsemu_audiobuffer.add_silence;
-    // if (fsemu_movie_is_enabled()) {
-    //     add_silence = 0;
-    // }
+    if (fsemu_movie_is_enabled()) {
+        add_silence = 0;
+    }
 
     if (add_silence) {
         fsemu_audiobuffer.add_silence = 0;
@@ -268,8 +274,9 @@ void fsemu_audiobuffer_frame_done(void)
         "Audio done for frame: %d samples / 2 = %d frames\n", samples, frames);
 
     // if (fsemu_movie_is_enabled()) {
-    //     int ring_buffer_size = fsemu_audiobuffer.end - fsemu_audiobuffer.data;
-    //     volatile uint8_t *p = fsemu_audiobuffer.write - fsemu_audiobuffer_extra.bytes_for_frame;
+    //     int ring_buffer_size = fsemu_audiobuffer.end -
+    //     fsemu_audiobuffer.data; volatile uint8_t *p =
+    //     fsemu_audiobuffer.write - fsemu_audiobuffer_extra.bytes_for_frame;
     //     if (p < fsemu_audiobuffer.data) {
     //         p += ring_buffer_size;
     //     }
@@ -281,7 +288,12 @@ void fsemu_audiobuffer_frame_done(void)
     // }
 
     if (fsemu_movie_is_enabled()) {
-        fsemu_movie_add_audio_frame_f32(fsemu_audiobuffer_movie, fsemu_audiobuffer_movie_pos);
+        fsemu_audio_log_debug(
+            "SOUNDDBG fsemu_movie_add_audio_frame_f32 "
+            "fsemu_audiobuffer_movie_pos=%d\n",
+            fsemu_audiobuffer_movie_pos);
+        fsemu_movie_add_audio_frame_f32(fsemu_audiobuffer_movie,
+                                        fsemu_audiobuffer_movie_pos);
         fsemu_audiobuffer_movie_pos = 0;
     }
 

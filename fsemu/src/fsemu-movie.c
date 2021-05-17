@@ -1950,7 +1950,8 @@ void fsemu_movie_add_video_frame(fsemu_video_frame_t *frame)
     int png_compression_level = 3;
 
     static int framenumber = 1;
-    char *filename = g_strdup_printf("%s/%06d.png", fsemu_movie.path, framenumber);
+    char *filename =
+        g_strdup_printf("%s/%06d.png", fsemu_movie.path, framenumber);
     FILE *fp = fopen(filename, "wb");
     ScreenSnapShot_SavePNG_ToFile(surface,
                                   752,
@@ -2014,7 +2015,13 @@ void fsemu_movie_add_audio_frame_f32(float *data, int samples)
     // Try to make sure we end up with 960 * 2 + EXTRA_BUFFER
     int out_samples = 960 * 2 + EXTRA_BUFFER - float_out_count;
 
-    printf("MOVIE: %d inout - in %d out %d samples in %d out %d\n", samples, float_in_count, float_out_count, in_samples, out_samples);
+    fsemu_movie_log_debug(
+        "SOUNDDBG: %d inout - in %d out %d samples in %d out %d\n",
+        samples,
+        float_in_count,
+        float_out_count,
+        in_samples,
+        out_samples);
 
     fsemu_assert_release(float_out_count >= 0);
 
@@ -2038,14 +2045,14 @@ void fsemu_movie_add_audio_frame_f32(float *data, int samples)
 
     src_process(fsemu_movie.src_state, &src_data);
 
-    printf(
+    fsemu_movie_log_debug(
         "MOVIE AUDIO FRAMES %d -> %ld\n", frames, src_data.output_frames_gen);
 
     float_out_count += src_data.output_frames_gen * 2;
 
-    printf("MOVIE ... %ld -> %ld\n",
-           src_data.input_frames_used,
-           src_data.output_frames_gen);
+    fsemu_movie_log_debug("MOVIE ... %ld -> %ld\n",
+                          src_data.input_frames_used,
+                          src_data.output_frames_gen);
 
     // input_frames_used
 
@@ -2054,9 +2061,9 @@ void fsemu_movie_add_audio_frame_f32(float *data, int samples)
 
     static int video_frame = 1;
     if (src_data.output_frames_gen != sample_length) {
-        printf("MOVIE WARNING: %ld audio frames (video frame %d)\n",
-               src_data.output_frames_gen,
-               video_frame);
+        fsemu_movie_log("MOVIE WARNING: %ld audio frames (video frame %d)\n",
+                        src_data.output_frames_gen,
+                        video_frame);
     }
     video_frame += 1;
 
@@ -2112,7 +2119,8 @@ void fsemu_movie_add_audio_frame_f32(float *data, int samples)
     float_out_count = move_samples;
     fsemu_assert(float_out_count >= 0);
 
-    // printf("MOVIE: %d inout - in %d out %d\n", samples, float_in_count, float_out_count);
+    // printf("MOVIE: %d inout - in %d out %d\n", samples, float_in_count,
+    // float_out_count);
 
 #if 0
     static int count = 0;
@@ -2222,6 +2230,47 @@ void fsemu_movie_add_audio_frame_from_ring_buffer(const uint8_t *buffer,
 }
 #endif
 
+static void fsemu_movie_write_uint16_le(FILE *f, uint32_t value)
+{
+    fputc(value & 0xff, f);
+    fputc((value >> 8) & 0xff, f);
+}
+
+static void fsemu_movie_write_uint32_le(FILE *f, uint32_t value)
+{
+    fputc(value & 0xff, f);
+    fputc((value >> 8) & 0xff, f);
+    fputc((value >> 16) & 0xff, f);
+    fputc((value >> 24) & 0xff, f);
+}
+
+static void fsemu_movie_write_wav_header(FILE *f)
+{
+    fwrite("RIFF", 4, 1, f);                        // ChunkID
+    fsemu_movie_write_uint32_le(f, 0);              // ChunkSize
+    fwrite("WAVE", 4, 1, f);                        // Format
+    fwrite("fmt ", 4, 1, f);                        // Subchunk1ID
+    fsemu_movie_write_uint32_le(f, 16);             // Subchunk1Size
+    fsemu_movie_write_uint16_le(f, 1);              // AudioFormat
+    fsemu_movie_write_uint16_le(f, 2);              // NumChannels
+    fsemu_movie_write_uint32_le(f, 48000);          // SampleRate
+    fsemu_movie_write_uint32_le(f, 48000 * 2 * 2);  // ByteRate
+    fsemu_movie_write_uint16_le(f, 2 * 2);          // BlockAlign
+    fsemu_movie_write_uint16_le(f, 16);             // BitsPerSample
+    fwrite("data", 4, 1, f);                        // Subchunk2ID
+    fsemu_movie_write_uint32_le(f, 0);              // Subchunk2Size
+}
+
+static void fsemu_movie_update_wav_header(FILE *f)
+{
+    long size = ftell(f);
+
+    fseek(f, 4, SEEK_SET);
+    fsemu_movie_write_uint32_le(f, size - 8);
+    fseek(f, 40, SEEK_SET);
+    fsemu_movie_write_uint32_le(f, size - 44);
+}
+
 void fsemu_movie_end(void)
 {
     if (fsemu_movie.enabled == false) {
@@ -2233,6 +2282,7 @@ void fsemu_movie_end(void)
 #endif
 
     if (fsemu_movie.pcm_file != NULL) {
+        fsemu_movie_update_wav_header(fsemu_movie.pcm_file);
         fclose(fsemu_movie.pcm_file);
     }
 
@@ -2312,11 +2362,13 @@ void fsemu_movie_init(void)
 #else
     bool error = false;
     g_mkdir_with_parents(fsemu_movie.path, 0755);
-    char *filename = g_strdup_printf("%s/audio.pcm", fsemu_movie.path);
+    char *filename = g_strdup_printf("%s/audio.wav", fsemu_movie.path);
     fsemu_movie.pcm_file = fopen(filename, "wb");
     if (fsemu_movie.pcm_file == NULL) {
         fsemu_log_warning("Could not open %s for writing\n", fsemu_movie.path);
         error = true;
+    } else {
+        fsemu_movie_write_wav_header(fsemu_movie.pcm_file);
     }
     free(filename);
 #endif

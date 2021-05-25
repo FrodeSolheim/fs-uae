@@ -95,11 +95,11 @@
 #endif
 
 #if defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-#define FSEMU_CPU_BIG_ENDIAN 1
+#define FSEMU_CPU_BIGENDIAN 1
 #elif defined(__BIG_ENDIAN__) || defined(__BIG_ENDIAN) || defined(_BIG_ENDIAN)
-#define FSEMU_CPU_BIG_ENDIAN 1
+#define FSEMU_CPU_BIGENDIAN 1
 #else
-#define FSEMU_CPU_LITTLE_ENDIAN 1
+#define FSEMU_CPU_LITTLEENDIAN 1
 #endif
 
 // ----------------------------------------------------------------------------

@@ -33,14 +33,24 @@ const char *fsemu_application_name(void)
     return fsemu_application.name;
 }
 
+void fsemu_application_set_base_dir(const char *dir_path)
+{
+    fsemu_assert(dir_path == NULL);
+    fsemu_assert(fsemu_application.base_dir == NULL);
+    fsemu_application.base_dir = strdup(dir_path);
+}
+
 void fsemu_application_set_base_dir_name(const char *dir_name)
 {
     fsemu_assert_release(dir_name != NULL);
+    fsemu_assert(fsemu_application.base_dir_name == NULL);
+#if 0
     if (fsemu_application.base_dir_name) {
         fsemu_application_log(
             "Changing base dir name might not work in practice\n");
         free(fsemu_application.base_dir_name);
     }
+#endif
     fsemu_application.base_dir_name = strdup(dir_name);
 }
 

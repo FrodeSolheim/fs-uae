@@ -364,12 +364,16 @@ static void fsemu_hud_do_show_notification_new(fsemu_hud_notice_info_t *info)
                 if (strcmp(info->title, notice->title) != 0) {
                     free(notice->title);
                     notice->title = info->title;
+                    fsemu_image_unref(notice->title_image);
+                    notice->title_image = NULL;
                 } else {
                     free(info->title);
                 }
                 if (strcmp(info->sub_title, notice->subtitle) != 0) {
                     free(notice->subtitle);
                     notice->subtitle = info->sub_title;
+                    fsemu_image_unref(notice->subtitle_image);
+                    notice->subtitle_image = NULL;
                 } else {
                     free(info->sub_title);
                 }
@@ -378,6 +382,7 @@ static void fsemu_hud_do_show_notification_new(fsemu_hud_notice_info_t *info)
                 // TODO: Change widget text!
                 // fsemu_widget_ notice->title_item
 
+                fsemu_hud_update_notice(notice);
                 notice->visible_until = fsemu_time_us() + info->duration_us;
                 return;
             }
@@ -526,6 +531,8 @@ void fsemu_hud_update(void)
     while (list_item) {
         fsemu_hud_notice_t *notice = (fsemu_hud_notice_t *) list_item->data;
         fsemu_hud_set_notice_visible(notice, notice->visible_until > now);
+
+        // notice->title
 
         // FIXME: Delete dynamically allocated notices
 

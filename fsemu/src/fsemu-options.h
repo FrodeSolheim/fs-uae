@@ -39,6 +39,8 @@
 
 #define FSEMU_OPTION_QUIT_AFTER_N_FRAMES "quit_after_n_frames"
 
+#define FSEMU_OPTION_SCREENSHOTS_OUTPUT_PREFIX "screenshots_output_prefix"
+
 #define FSEMU_OPTION_STDOUT "stdout"
 #define FSEMU_OPTION_STDOUT_LOGGING "stdout_logging"
 

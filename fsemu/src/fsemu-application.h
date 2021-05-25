@@ -12,7 +12,11 @@ extern "C" {
 void fsemu_application_set_name(const char *name);
 
 // Can be called before fsemu_application_init
+void fsemu_application_set_base_dir(const char *dir_path);
+
+// Can be called before fsemu_application_init
 void fsemu_application_set_base_dir_name(const char *dir_name);
+
 
 void fsemu_application_init(void);
 

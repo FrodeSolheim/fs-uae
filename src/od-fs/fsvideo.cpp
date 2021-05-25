@@ -32,9 +32,9 @@
 // #define DEBUG_SHOW_SCREEN
 
 #define AMIGA_WIDTH (AMIGA_WIDTH_MAX * 2)
-//#define AMIGA_HEIGHT (AMIGA_HEIGHT_MAX * 2)
+#define AMIGA_HEIGHT (AMIGA_HEIGHT_MAX * 2)
 //#define AMIGA_HEIGHT 574
-#define AMIGA_HEIGHT 572
+// #define AMIGA_HEIGHT 572
 
 #define SET_FLAG(x, y) ((x) |= (y))
 #define CLEAR_FLAG(x, y) ((x) &= ~(y))
@@ -2253,6 +2253,7 @@ bool uae_fsvideo_renderframe(int monid, int mode, bool immediate)
 		fsemu_video_frame_t *frame = fsemu_video_alloc_frame();
 		frame->layer = 0;
 		frame->flags = 0;
+		frame->depth = g_amiga_video_bpp * 8;
 		if (currprefs.turbo_emulation) {
 			frame->flags |= FSEMU_FRAME_FLAG_TURBO;
 		}

@@ -925,16 +925,16 @@ static bool fsemu_sdlwindow_handle_keyboard_shortcut(SDL_Event *event)
         fsemu_screenshot_capture();
         return true;
     } else if (event->key.keysym.sym == SDLK_v) {
-        fsemu_window_log_debug("SDLK_v (toggle v-sync)\n");
-        fsemu_video_toggle_vsync();
+        // fsemu_window_log_debug("SDLK_v (toggle v-sync)\n");
+        // fsemu_video_toggle_vsync();
         return true;
     } else if (event->key.keysym.sym == SDLK_w) {
         fsemu_window_log_debug("SDLK_w (toggle warp mode)\n");
         fsemu_control_toggle_warp();
         return true;
     } else if (event->key.keysym.sym == SDLK_z) {
-        fsemu_window_log_debug("SDLK_z (cycle zoom mode)\n");
-        fsemu_layout_cycle_zoom_mode();
+        // fsemu_window_log_debug("SDLK_z (cycle zoom mode)\n");
+        // fsemu_layout_cycle_zoom_mode();
         return true;
     } else if (event->key.keysym.sym == SDLK_RETURN) {
         fsemu_window_log_debug("SDLK_RETURN (toggle fullscreen)\n");

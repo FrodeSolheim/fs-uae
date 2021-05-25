@@ -10,6 +10,7 @@
 #include "fsemu-log.h"
 #include "fsemu-module.h"
 #include "fsemu-mutex.h"
+#include "fsemu-option.h"
 #include "fsemu-util.h"
 
 int fsemu_screenshot_log_level = FSEMU_LOG_LEVEL_INFO;
@@ -27,6 +28,7 @@ static struct {
 
 static void fsemu_screenshot_lock(void)
 {
+    fsemu_assert(fsemu_screenshot.initialized);
     fsemu_mutex_lock(fsemu_screenshot.mutex);
 }
 
@@ -209,22 +211,41 @@ const char *fsemu_screenshot_path_for_type(const char *type)
 // FIXME: Move to fsemu-video
 static SDL_Surface *fsemu_video_surface_from_frame(fsemu_video_frame_t *frame)
 {
+    printf("depth: %d\n", frame->depth);
     fsemu_assert(frame->depth == 16 || frame->depth == 32);
+    // FIXME: Get pitch from frame?
     int pitch = frame->width * frame->depth / 8;
     // FIXME: We should definitively have frame->format!
     Uint32 format;
     if (frame->depth == 16) {
         format = SDL_PIXELFORMAT_RGB565;
     } else if (frame->depth == 32) {
+#ifdef FSEMU_CPU_BIGENDIAN
+        uint32_t set_alpha = 0x000000ff;
+#else
+        uint32_t set_alpha = 0xff000000;
+#endif
         if (fsemu_video_format() == FSEMU_VIDEO_FORMAT_BGRA) {
             format = SDL_PIXELFORMAT_BGRA32;
         } else {
             format = SDL_PIXELFORMAT_RGBA32;
         }
+        // We're really using RGBx, not RGBA, so make sure to set alpha value
+        // to full intensity.
+        uint32_t *pixels = (uint32_t *) frame->buffer;
+        for (int y = 0; y < frame->height; y++) {
+            for (int x = 0; x < frame->width; x++) {
+                pixels[x] |= set_alpha;
+            }
+            pixels += pitch / 4;
+        }
     } else {
+        fsemu_assert(false);
         // Should not happen, depth should be either 16 or 32
         return NULL;
     }
+
+    printf("width %d height %d depth %d pitch %d format %d\n", frame->width, frame->height, frame->depth, pitch, format);
     SDL_Surface *surface = SDL_CreateRGBSurfaceWithFormatFrom(frame->buffer,
                                                               frame->width,
                                                               frame->height,
@@ -243,7 +264,10 @@ void fsemu_screenshot_capture_video_frame(fsemu_video_frame_t *frame)
     // For simplicity (?) we always generate 32-bit PNG screenshots
     SDL_Surface *dst = SDL_CreateRGBSurfaceWithFormat(
         0, frame->width, frame->height, 32, SDL_PIXELFORMAT_RGBA32);
+    // SDL_Surface *dst = SDL_CreateRGBSurfaceWithFormat(
+    //      0, frame->width, frame->height, 32, SDL_PIXELFORMAT_RGBX8888);
     SDL_Surface *src = fsemu_video_surface_from_frame(frame);
+    printf("src %p\n", src);
     SDL_Rect rect = {0, 0, frame->width, frame->height};
     SDL_BlitSurface(src, &rect, dst, &rect);
 
@@ -284,6 +308,18 @@ void fsemu_screenshot_init(void)
     fsemu_application_init();
 
     fsemu_screenshot.mutex = fsemu_mutex_create();
+
+    const char *prefix =
+        fsemu_option_const_string(FSEMU_OPTION_SCREENSHOTS_OUTPUT_PREFIX);
+    if (prefix) {
+        fsemu_screenshot.prefix = g_strdup(prefix);
+    } else {
+#ifdef FSUAE
+        fsemu_screenshot.prefix = strdup("FS-UAE");
+#else
+        fsemu_screenshot.prefix = strdup("FSEMU");
+#endif
+    }
 
     // if (fsemu_getenv("FSEMU_SCREENSHOTS_DIR")[0]) {
     //     fsemu_screenshot.screenshots_dir =

@@ -16,6 +16,11 @@
 #include "fsemu-sdlinput.h"
 #include "fsemu-thread.h"
 
+// TODO: If You press a shortcut, e.g. Alt+O, but press and release in this
+// order: press Alt, press O, release Alt, release O, then make sure that the
+// the final release of O is not seen by emulation. The Alt modifier should
+// be "sticky" as long as O is kept pressed
+
 #ifdef FSUAE
 #include <fs/ml.h>
 #endif

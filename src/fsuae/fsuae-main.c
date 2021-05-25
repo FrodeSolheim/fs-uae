@@ -1792,87 +1792,84 @@ int main(int argc, char *argv[])
     amiga_set_log_function(log_to_libfsemu);
     amiga_init();
 
-    if (fs_config_get_boolean("legacy") == 1) {
-        fsemu = 0;
-    } else {
-        fsemu = 1;
+    fsemu = 1;
+
+    // This call will also register the main thread.
+    fsemu_thread_init();
+    // Register main thread as video thread also.
+    fsemu_thread_set_video();
+
+    fsemu_option_init_from_argv(argc, argv);
+
+
+    fsemu_log_setup();
+    // fsemu_audio_init(0);
+    // fsemu_window_init();
+
+#if 0
+    // fsemu_audio_init(0);
+    fsemu_window_init();
+    fsemu_video_init();
+    fsemu_titlebar_init();
+
+    fsemu_audio_init();
+
+    fsemu_perfgui_init();
+    fsemu_titlebar_update();
+#endif
+
+    fsemu_set_emulator_name("FS-UAE");
+    fsemu_window_set_title("FS-UAE");
+    // fsemu_video_set_renderer(renderer);
+    // fsemu_startupinfo_set_emulator_name("FS-UAE");
+    // fsemu_startupinfo_set_emulator_fork_info("Mednafen");
+#if 0
+    // FIXME: Review
+    if (fullscreen == 1) {
+        fsemu_window_set_fullscreen(true);
     }
-
-    if (fsemu) {
-        // This call will also register the main thread.
-        fsemu_thread_init();
-        // Register main thread as video thread also.
-        fsemu_thread_set_video();
-
-        fsemu_option_init_from_argv(argc, argv);
-
-
-        fsemu_log_setup();
-        // fsemu_audio_init(0);
-        // fsemu_window_init();
-
-#if 0
-        // fsemu_audio_init(0);
-        fsemu_window_init();
-        fsemu_video_init();
-        fsemu_titlebar_init();
-
-        fsemu_audio_init();
-
-        fsemu_perfgui_init();
-        fsemu_titlebar_update();
-#endif
-
-        fsemu_set_emulator_name("FS-UAE");
-        fsemu_window_set_title("FS-UAE");
-        // fsemu_video_set_renderer(renderer);
-        // fsemu_startupinfo_set_emulator_name("FS-UAE");
-        // fsemu_startupinfo_set_emulator_fork_info("Mednafen");
-#if 0
-        // FIXME: Review
-        if (fullscreen == 1) {
-            fsemu_window_set_fullscreen(true);
-        }
 #endif
 #if 0
-        // FIXME: Review
-        if (vsync == 1) {
-            fsemu_video_set_vsync(1);
-        }
-#endif
-        // fsemu_video_set_vsync(1);
-
-        fsemu_video_set_renderer(FSEMU_VIDEO_RENDERER_OPENGL);
-
-        fsemu_control_set_soft_reset_allowed(true);
-        fsemu_control_set_hard_reset_allowed(true);
-
-        fsemu_window_init();
-
-        // fsemu_video_set_format(FSEMU_VIDEO_FORMAT_RGB565);
-
-        fsemu_video_init();
-
-        fsemu_fade_init();
-        fsemu_titlebar_init();
-
-        fsemu_helper_startup_loop();
-
-        fsemu_background_init();
-        fsemu_hud_init();
-        fsemu_oskeyboard_init();
-        fsemu_osmenu_init();
-        fsemu_perfgui_init();
-        fsemu_startupinfo_init();
-
-        fsemu_audio_init();
-        fsemu_input_init();
-
-        fsemu_leds_init();
-        fsemu_helpbar_init();
-
-        fsemu_action_init();
+    // FIXME: Review
+    if (vsync == 1) {
+        fsemu_video_set_vsync(1);
     }
+#endif
+    // fsemu_video_set_vsync(1);
+
+    fsemu_application_set_base_dir(fsuae_path_base_dir());
+
+    fsemu_video_set_renderer(FSEMU_VIDEO_RENDERER_OPENGL);
+
+    fsemu_control_set_soft_reset_allowed(true);
+    fsemu_control_set_hard_reset_allowed(true);
+
+    fsemu_window_init();
+
+    // fsemu_video_set_format(FSEMU_VIDEO_FORMAT_RGB565);
+
+    fsemu_video_init();
+
+    fsemu_fade_init();
+    fsemu_titlebar_init();
+
+    fsemu_helper_startup_loop();
+
+    fsemu_background_init();
+    fsemu_hud_init();
+    fsemu_oskeyboard_init();
+    fsemu_osmenu_init();
+    fsemu_perfgui_init();
+    fsemu_screenshot_init();
+    fsemu_startupinfo_init();
+
+    fsemu_audio_init();
+    fsemu_input_init();
+
+    fsemu_leds_init();
+    fsemu_helpbar_init();
+
+    fsemu_action_init();
 
     init_i18n();
     fsuae_init_leds();

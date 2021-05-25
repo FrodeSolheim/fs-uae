@@ -30,6 +30,8 @@ static inline int uae_deterministic_mode()
 	return g_uae_deterministic_mode;
 }
 
+void uae_deterministic_amiga_time(int *days, int *mins, int *ticks);
+
 uint8_t *uae_get_render_buffer();
 
 #endif /* UAE_OD_FS_TARGET_H */

@@ -154,7 +154,7 @@ void fsdb_init_file_info(fsdb_file_info *info)
     info->mode = A_FIBF_READ | A_FIBF_WRITE | A_FIBF_EXECUTE | A_FIBF_DELETE;
 
     if (uae_deterministic_mode()) {
-        // leave time at 0, 0, 0
+        uae_deterministic_amiga_time(&info->days, &info->mins, &info->ticks);
     } else {
         fs_time_val tv;
         fs_get_current_time(&tv);
@@ -557,14 +557,8 @@ static int fsdb_get_file_info(const char *nname, fsdb_file_info *info)
 
     if (!read_time) {
         if (uae_deterministic_mode()) {
-            // this is not a very good solution. For instance, WB 1.3 does
-            // not update .info files correctly when the file date/time is
-            // constant.
-            info->days = 0;
-            info->mins = 0;
-            info->ticks = 0;
-        }
-        else {
+            uae_deterministic_amiga_time(&info->days, &info->mins, &info->ticks);
+        } else {
             struct fs_stat buf;
             if (fs_stat(nname, &buf) != 0) {
                 if (g_fsdb_debug) {
@@ -836,12 +830,16 @@ bool my_utime(const char *name, struct mytimeval *tv)
     int ticks = 0;
 
     if (tv == NULL) {
-        fs_time_val tv;
-        fs_get_current_time(&tv);
-        struct mytimeval mtv;
-        mtv.tv_sec = tv.tv_sec + fs_get_local_time_offset(tv.tv_sec);
-        mtv.tv_usec = tv.tv_usec;
-        timeval_to_amiga (&mtv, &days, &mins, &ticks, 50);
+        if (uae_deterministic_mode()) {
+            uae_deterministic_amiga_time(&days, &mins, &ticks);
+        } else {
+            fs_time_val tv;
+            fs_get_current_time(&tv);
+            struct mytimeval mtv;
+            mtv.tv_sec = tv.tv_sec + fs_get_local_time_offset(tv.tv_sec);
+            mtv.tv_usec = tv.tv_usec;
+            timeval_to_amiga (&mtv, &days, &mins, &ticks, 50);
+        }
     }
     else {
         struct mytimeval mtv2;

@@ -154,9 +154,6 @@ struct mystat
 	uae_s64 size;
 	uae_u32 mode;
 	struct mytimeval mtime;
-#ifdef FSUAE
-	uae_s64 st_blocks;
-#endif
 };
 extern void timeval_to_amiga (struct mytimeval *tv, int* days, int* mins, int* ticks, int tickcount);
 extern void amiga_to_timeval (struct mytimeval *tv, int days, int mins, int ticks, int tickcount);

@@ -48,11 +48,20 @@ bool my_stat (const TCHAR *name, struct mystat *ms) {
         write_log("my_stat: stat on file %s failed\n", name);
         return false;
     }
-    if (g_fsdb_debug) {
-        write_log("fs_stat returned size %jd\n", sonuc.size);
+    if (S_ISDIR(sonuc.mode)) {
+        if (g_fsdb_debug) {
+            write_log("my_stat return 512 as stat size for directory\n");
+        }
+        ms->size = 0;
+    } else {
+        if (g_fsdb_debug) {
+            write_log("fs_stat returned size %jd\n", sonuc.size);
+        }
+        ms->size = sonuc.size;
     }
-    ms->size = sonuc.size;
     // FIXME: read mode more accurately
+    // FIXME: Mode and mtime are not used by filesys in FS-UAE
+    // (but disk.cpp might use it)
     ms->mode = 0;
     if (sonuc.mode & S_IRUSR) {
         ms->mode |= FILEFLAG_READ;
@@ -62,9 +71,6 @@ bool my_stat (const TCHAR *name, struct mystat *ms) {
     }
     ms->mtime.tv_sec = sonuc.mtime;
     ms->mtime.tv_usec = 0;
-#ifdef HAVE_STRUCT_STAT_ST_BLOCKS
-    ms->st_blocks = sonuc.blocks;
-#endif
     return true;
 }
 

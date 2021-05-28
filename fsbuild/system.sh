@@ -8,8 +8,11 @@ case "`uname`" in
     *)       SYSTEM_OS=Unknown;;
 esac
 
-# FIXME: Remove hardcoded value
-SYSTEM_ARCH=x86-64
+case "`uname -m`" in
+    x86_64*) SYSTEM_ARCH=x86-64;;
+    arm64*)  SYSTEM_ARCH=ARM64;;
+    *)       SYSTEM_ARCH=Unknown;;
+esac
 
 if [ $SYSTEM_OS = "Windows" ]; then
 SYSTEM_EXE=.exe

@@ -21,6 +21,11 @@ cd $PACKAGE
 # "SUBDIRS = libmpeg2 include"
 # automake
 
+if [ "$SYSTEM_OS-$SYSTEM_ARCH" = "macOS-ARM64" ]; then
+# Requires more up2date config.sub to detect platform
+automake --add-missing --copy --force-missing || true
+fi
+
 # Using -std=gnu89 to avoid some inline problems causing linker errors
 ./configure --prefix=$PREFIX CFLAGS="-std=gnu89 -O2"
 # make

@@ -185,15 +185,36 @@ const char *fsuae_path_base_dir(void)
     if (path == NULL) {
         path = read_custom_path("base-dir");
     }
+
     if (path == NULL) {
-        fsuae_log("- using base dir $DOCUMENTS/FS-UAE\n");
-        path = g_build_filename(fsuae_path_documents_dir(), "FS-UAE", NULL);
+        char *p = g_build_filename(fsuae_path_home_dir(), "FS-UAE", NULL);
+        if (fs_path_exists(p)) {
+            fsuae_log("- using base dir $HOME/FS-UAE\n");
+            path = p;
+        } else {
+            g_free(p);
+        }
+    }
+
+    if (path == NULL) {
+        char *p = g_build_filename(fsuae_path_documents_dir(), "FS-UAE", NULL);
+        if (fs_path_exists(p)) {
+            fsuae_log("- using base dir $DOCUMENTS/FS-UAE\n");
+            path = p;
+        } else {
+            g_free(p);
+        }
+    }
+
+    if (path == NULL) {
+        fsuae_log("- using base dir $HOME/FS-UAE\n");
+        path = g_build_filename(fsuae_path_home_dir(), "FS-UAE", NULL);
     }
 
     int result = g_mkdir_with_parents(path, 0755);
     if (result == -1) {
         fs_emu_warning("Could not create base directory at %s", path);
-        path = fsuae_path_documents_dir();
+        path = fsuae_path_home_dir();
     }
     fsuae_log("- using base ($BASE / $FSUAE) directory \"%s\"\n", path);
     return path;

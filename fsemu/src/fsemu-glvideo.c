@@ -83,7 +83,7 @@ void fsemu_glvideo_set_size_2(int width, int height)
     fsemu_video_log_debug("Got resize callback from window subsystem\n");
     int draw_w, draw_h;
     SDL_GL_GetDrawableSize(fsemu_sdlwindow_window(), &draw_w, &draw_h);
-    fsemu_video_log_debug("Window size %dx%d : drawable size %dx%d\n",
+    fsemu_video_log_info("Window size %dx%d : drawable size %dx%d\n",
                           width,
                           height,
                           draw_w,

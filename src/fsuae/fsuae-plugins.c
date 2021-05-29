@@ -24,7 +24,11 @@
 #elif defined(__i386__) || defined(_M_IX86)
 #define ARCH_NAME "x86"
 #elif defined(__ppc__)
-#define ARCH_NAME "ppc"
+#define ARCH_NAME "PPC"
+#elif defined(__aarch64__)
+#define ARCH_NAME "ARM64"
+#elif defined(__arm__)
+#define ARCH_NAME "ARM32"
 #else
 #define ARCH_NAME "unknown"
 #endif

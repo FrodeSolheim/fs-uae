@@ -98,15 +98,14 @@ void fsemu_window_initial_rect(fsemu_rect_t *rect, double ui_scale)
     initial_h = 720;
 
     *rect = fsemu_window.initial_rect;
+    fsemu_window_log(
+        "Initial window rect: %d %d %d %d (UI scale %0.1f)\n",
+        rect->x, rect->y, rect->w, rect->h, ui_scale);
     if (rect->w == 0 || rect->h == 0) {
         rect->x = -1;
         rect->y = -1;
         rect->w = initial_w * ui_scale;
         rect->h = initial_h * ui_scale;
-    }
-    if (!fsemu_titlebar_use_system()) {
-        fsemu_window_log("No system titlebar: Increasing initial height\n");
-        rect->h += fsemu_titlebar_unscaled_height() * ui_scale;
     }
     if (fsemu_window.initial_center.x) {
         rect->x = fsemu_window.initial_center.x - rect->w / 2;
@@ -114,6 +113,17 @@ void fsemu_window_initial_rect(fsemu_rect_t *rect, double ui_scale)
     if (fsemu_window.initial_center.y) {
         rect->y = fsemu_window.initial_center.y - rect->h / 2;
     }
+    if (!fsemu_titlebar_use_system()) {
+        fsemu_window_log("No system titlebar: Increasing initial height\n");
+        int titlebar_height = fsemu_titlebar_unscaled_height() * ui_scale;
+        rect->h += titlebar_height;
+        if (rect->y != -1) {
+            rect->y -= titlebar_height;
+        }
+    }
+    fsemu_window_log(
+        "Initial window rect after correcting for centering: %d %d %d %d\n",
+        rect->x, rect->y, rect->w, rect->h);
 }
 
 void fsemu_window_initial_fullscreen_rect(fsemu_rect_t *rect)

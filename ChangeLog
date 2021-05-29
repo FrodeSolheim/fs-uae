@@ -1,5 +1,7 @@
 Version 4.0.x:
 
+* Temporarily disable manymouse in device helper (fixes misleading security
+  warning in macOS about listening to keyboard).
 * Fixed screenshot function (Mod+S).
 * Disabled some non-working shortcuts.
 

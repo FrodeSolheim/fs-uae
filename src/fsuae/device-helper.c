@@ -86,6 +86,7 @@ static void list_joysticks(void)
     printf("# Mice:\n");
     printf("M: Mouse\n");
     flush_stdout();
+#if 0
     int count = ManyMouse_Init();
     if (count >= 0) {
         for (int i = 0; i < count; i++) {
@@ -100,6 +101,7 @@ static void list_joysticks(void)
         }
         ManyMouse_Quit();
     }
+#endif
     printf("# Joysticks:\n");
     flush_stdout();
     if (getenv("FSGS_FAKE_JOYSTICKS")) {
@@ -194,6 +196,7 @@ static void print_events(void)
         "Mouse");
     flush_stdout();
 
+#if 0
     int count = ManyMouse_Init();
     if (count >= 0) {
         for (int i = 0; i < count; i++) {
@@ -215,6 +218,7 @@ static void print_events(void)
         }
         ManyMouse_Quit();
     }
+#endif
 
     printf("# SDL_Init(SDL_INIT_JOYSTICK | SDL_INIT_EVENTS))\n");
     flush_stdout();

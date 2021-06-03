@@ -1,5 +1,9 @@
 Version 3.1:
 
+* Added support for more physical keys (when using rawinput).
+* Compilation fixes for Apple M1 hardware.
+* Netplay desync fixes related to file system (directory hard drives).
+* Better virtual memory reservation algorithm.
 * Option to automatically pause on menu screen [mrsilver76].
 * Use RTLD_DEEPBIND with dlopen on Linux when loading plugins.
 * Changes to how plugins are looked up.

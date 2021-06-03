@@ -532,6 +532,19 @@ static void init_key_mapping(void)
 
     g_key_mapping[VK_OEM_5] = FS_ML_KEY_BACKQUOTE;
     //g_key_mapping[VK_OEM_5] = FS_ML_KEY_BACKQUOTE;
+
+    g_key_mapping[VK_VOLUME_UP] = FS_ML_KEY_VOLUMEUP;
+    g_key_mapping[VK_VOLUME_DOWN] = FS_ML_KEY_VOLUMEDOWN;
+    g_key_mapping[VK_VOLUME_MUTE] = FS_ML_KEY_MUTE;
+
+    g_key_mapping[VK_MEDIA_PLAY_PAUSE] = FS_ML_KEY_AUDIOPLAY;
+    g_key_mapping[VK_MEDIA_STOP] = FS_ML_KEY_AUDIOSTOP;
+    g_key_mapping[VK_MEDIA_NEXT_TRACK] = FS_ML_KEY_AUDIONEXT;
+    g_key_mapping[VK_MEDIA_PREV_TRACK] = FS_ML_KEY_AUDIOPREV;
+
+    g_key_mapping[VK_LAUNCH_APP1] = FS_ML_KEY_MUTE;
+    g_key_mapping[VK_LAUNCH_APP2] = FS_ML_KEY_MUTE;
+
 #endif
 }
 

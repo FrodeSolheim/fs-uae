@@ -68,9 +68,6 @@ def upload(dbx, package, version, path):
 def main():
     dist_dir = "fsbuild/_dist"
     upload_items = os.listdir(dist_dir)
-    # Require there to be exactly one dist file for now
-    assert len(upload_items) == 1
-
     dbx = dropbox.Dropbox(os.getenv("DROPBOX_ACCESS_TOKEN"))
     package = package_data["PACKAGE_NAME_PRETTY"]
     version = package_data["PACKAGE_VERSION"]

@@ -11,6 +11,9 @@ if machine in ["x86_64", "amd64", "i386", "i486", "i585", "i686"]:
         sys.exit(0)
 if machine.startswith("power"):
     if platform.architecture()[0] == "32bit":
-        print("ppc")
+        print("PPC")
         sys.exit(0)
-raise Exception("Unknown platform")
+if machine == "arm64":
+    print("ARM64")
+    sys.exit(0)
+raise Exception(f"Unknown platform for machine {machine}")

@@ -21,10 +21,14 @@
 #include <SDL_syswm.h>
 
 #define NUM_VKEYS 256
-#define MAX_VKEY (3 * NUM_VKEYS - 1)
+#define MAX_KEYS (6 * NUM_VKEYS)
+
+#define MAX_VKEY (MAX_KEYS - 1)
 // first NUM_VKEYS entries contain vkeys, then vkeys for E0 and E1
 #define E0 NUM_VKEYS
 #define E1 (NUM_VKEYS * 2)
+// First entry of the vkey part of the table, after makecodes
+#define VKEY (NUM_VKEYS * 3)
 
 #ifndef MAPVK_VK_TO_CHAR
 #define MAPVK_VK_TO_CHAR 2
@@ -32,10 +36,10 @@
 
 #define USE_MAKECODES
 
-static char g_key_state[3 * NUM_VKEYS] = {};
-static int16_t g_key_mapping[3 * NUM_VKEYS] = {};
+static char g_key_state[MAX_KEYS] = {};
+static int16_t g_key_mapping[MAX_KEYS] = {};
 static char g_is_modifier_key[FS_ML_KEY_LAST] = {};
-//static int16_t g_key_mapping[3 * NUM_VKEYS] = {};
+//static int16_t g_key_mapping[MAX_KEYS] = {};
 
 static HWND g_window = 0;
 //static HGLRC g_hglrc = 0;
@@ -81,7 +85,14 @@ static void process_keyboard_input(LPRAWINPUT raw_input)
                 (flags & RI_KEY_E0) != 0, (flags & RI_KEY_E1) != 0);
     }
 #ifdef USE_MAKECODES
-    vkey = make_code;
+    if (make_code == 0 && vkey != 0) {
+        if (g_fs_log_input) {
+            fs_log("use vkey %d + %d\n", VKEY, vkey);
+        }
+        vkey = VKEY + vkey;
+    } else {
+        vkey = make_code;
+    }
     if (flags & RI_KEY_E0) {
         vkey += NUM_VKEYS;
     }
@@ -430,6 +441,20 @@ static void init_key_mapping(void)
     g_is_modifier_key[FS_ML_KEY_LSUPER] = 1;
     g_is_modifier_key[FS_ML_KEY_RSUPER] = 1;
 
+    g_key_mapping[VKEY + E0 + VK_VOLUME_UP] = FS_ML_KEY_VOLUMEUP;
+    g_key_mapping[VKEY + E0 + VK_VOLUME_DOWN] = FS_ML_KEY_VOLUMEDOWN;
+    g_key_mapping[VKEY + E0 + VK_VOLUME_MUTE] = FS_ML_KEY_MUTE;
+    g_key_mapping[VKEY + E0 + VK_MEDIA_PLAY_PAUSE] = FS_ML_KEY_AUDIOPLAY;
+    g_key_mapping[VKEY + E0 + VK_MEDIA_STOP] = FS_ML_KEY_AUDIOSTOP;
+    g_key_mapping[VKEY + E0 + VK_MEDIA_NEXT_TRACK] = FS_ML_KEY_AUDIONEXT;
+    g_key_mapping[VKEY + E0 + VK_MEDIA_PREV_TRACK] = FS_ML_KEY_AUDIOPREV;
+    g_key_mapping[VKEY + E0 + VK_LAUNCH_APP1] = FS_ML_KEY_APP1;
+    g_key_mapping[VKEY + E0 + VK_LAUNCH_APP2] = FS_ML_KEY_APP2;
+    g_key_mapping[VKEY + E0 + VK_BROWSER_HOME] = FS_ML_KEY_ACHOME;
+    g_key_mapping[VKEY + E0 + VK_LAUNCH_MAIL] = FS_ML_KEY_MAIL;
+    g_key_mapping[VKEY + E0 + VK_BROWSER_SEARCH] = FS_ML_KEY_ACSEARCH;
+    g_key_mapping[VKEY + E0 + VK_LAUNCH_MEDIA_SELECT] = FS_ML_KEY_MEDIASELECT;
+
 #else
     g_key_mapping[VK_BACK] = FS_ML_KEY_BACKSPACE;
     g_key_mapping[VK_TAB] = FS_ML_KEY_TAB;
@@ -542,8 +567,8 @@ static void init_key_mapping(void)
     g_key_mapping[VK_MEDIA_NEXT_TRACK] = FS_ML_KEY_AUDIONEXT;
     g_key_mapping[VK_MEDIA_PREV_TRACK] = FS_ML_KEY_AUDIOPREV;
 
-    g_key_mapping[VK_LAUNCH_APP1] = FS_ML_KEY_MUTE;
-    g_key_mapping[VK_LAUNCH_APP2] = FS_ML_KEY_MUTE;
+    g_key_mapping[VK_LAUNCH_APP1] = FS_ML_KEY_APP1;
+    g_key_mapping[VK_LAUNCH_APP2] = FS_ML_KEY_APP2;
 
 #endif
 }

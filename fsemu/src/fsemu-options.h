@@ -49,11 +49,11 @@
 #define FSEMU_OPTION_SYSTEM_TITLEBAR "system_titlebar"
 
 #define FSEMU_OPTION_VIDEO_DRIVER "video_driver"
+#define FSEMU_OPTION_VIDEO_SYNC "video_sync"  // Legacy option?
 #define FSEMU_OPTION_VIDEO_THREAD "video_thread"
 
 #define FSEMU_OPTION_VOLUME "volume"
 
-// FIXME: Also support legacy vide-sync option?
 #define FSEMU_OPTION_VSYNC "vsync"
 #define FSEMU_OPTION_VSYNC_REFRESH_MISMATCH "vsync_refresh_mismatch"
 

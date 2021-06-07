@@ -915,7 +915,10 @@ void fsemu_video_init(void)
     }
 
     if (fsemu_option_enabled(FSEMU_OPTION_VSYNC)) {
-        fsemu_video_log("Enabling vsync (via option)\n");
+        fsemu_video_log("Enabling vsync (via vsync option)\n");
+        fsemu_video_set_vsync(true);
+    } else if (fsemu_option_enabled(FSEMU_OPTION_VIDEO_SYNC)) {
+        fsemu_video_log("Enabling vsync (via video_sync option)\n");
         fsemu_video_set_vsync(true);
     }
 

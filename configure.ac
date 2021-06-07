@@ -417,7 +417,7 @@ AS_CASE([$host_os],
     AS_CASE([$host_cpu],
     [x86_64], [
         OS_LDFLAGS="-headerpad_max_install_names -pagezero_size 0x2000 -rpath @executable_path/../Frameworks"
-@    ], [
+    ], [
         OS_LDFLAGS="-headerpad_max_install_names -rpath @executable_path/../Frameworks"
     ])
 ],

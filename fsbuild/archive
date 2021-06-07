@@ -10,10 +10,11 @@ if [ $PACKAGE_TYPE = "fs-data-plugin" ]; then
 OS=Any
 ARCH=Any
 else
-OS=$SYSTEM_OS
-ARCH=$SYSTEM_ARCH
+OS=$SYSTEM_OS_DIST
+ARCH=$SYSTEM_ARCH_DIST
 fi
 
+rm -Rf fsbuild/_dist
 mkdir -p fsbuild/_dist
 
 cd fsbuild/_build

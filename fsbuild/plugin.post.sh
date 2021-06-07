@@ -16,10 +16,10 @@ if [ "$EXECUTABLE" = "" ]; then
 EXECUTABLE=$PACKAGE_NAME
 fi
 if [ $PACKAGE_TYPE = "fs-library-plugin" ]; then
-sh fsbuild/frameworkify.sh $PLUGIN_BINDIR $PACKAGE_NAME_PRETTY \
+sh fsbuild/frameworkify.sh "$PLUGIN_BINDIR" $PACKAGE_NAME_PRETTY \
 $EXECUTABLE $PACKAGE_MACOS_BUNDLE_ID
 else
-sh fsbuild/appify.sh $PLUGIN_BINDIR $PACKAGE_NAME_PRETTY \
+sh fsbuild/appify.sh "$PLUGIN_BINDIR" $PACKAGE_NAME_PRETTY \
 $EXECUTABLE $PACKAGE_MACOS_BUNDLE_ID
 fi
 fi
@@ -31,18 +31,18 @@ elif [ "$PLUGIN_SKIP_STANDALONE" = "1" ]; then
 echo "Skip standalone"
 else
 # python3 fsbuild/standalone.py $PLUGIN_BINDIR
-LIBGPG_ERROR_CHECK=0 python3 fsbuild/standalone.py $PLUGIN_BINDIR
+LIBGPG_ERROR_CHECK=0 python3 fsbuild/standalone.py "$PLUGIN_BINDIR"
 fi
 
-echo "[plugin]" > $PLUGIN_DIR/Plugin.ini
-echo "name = $PACKAGE_NAME_PRETTY" >> $PLUGIN_DIR/Plugin.ini
-echo "version = $PACKAGE_VERSION" >> $PLUGIN_DIR/Plugin.ini
-unix2dos $PLUGIN_DIR/Plugin.ini
+echo "[plugin]" > "$PLUGIN_DIR/Plugin.ini"
+echo "name = $PACKAGE_NAME_PRETTY" >> "$PLUGIN_DIR/Plugin.ini"
+echo "version = $PACKAGE_VERSION" >> "$PLUGIN_DIR/Plugin.ini"
+unix2dos "$PLUGIN_DIR/Plugin.ini"
 
-echo "$PACKAGE_VERSION" > $PLUGIN_DIR/Version.txt
-unix2dos $PLUGIN_DIR/Version.txt
+echo "$PACKAGE_VERSION" > "$PLUGIN_DIR/Version.txt"
+unix2dos "$PLUGIN_DIR/Version.txt"
 
-if [ -d $PLUGIN_BINDIR ]; then
-echo "$PACKAGE_VERSION" > $PLUGIN_BINDIR/Version.txt
-unix2dos $PLUGIN_BINDIR/Version.txt
+if [ -d "$PLUGIN_BINDIR" ]; then
+echo "$PACKAGE_VERSION" > "$PLUGIN_BINDIR/Version.txt"
+unix2dos "$PLUGIN_BINDIR/Version.txt"
 fi

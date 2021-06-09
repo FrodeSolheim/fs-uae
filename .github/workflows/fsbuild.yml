@@ -120,8 +120,12 @@ jobs:
     runs-on: macos-10.15
 
     steps:
-    - name: Install brew packages
+    - name: Install Homebrew packages
       run: brew install autoconf automake dos2unix meson
+
+    - name: Install Node packages
+      run: |
+        npm install -g appdmg
 
     - uses: actions/checkout@v2
       with:

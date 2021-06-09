@@ -3,7 +3,7 @@ set -e
 
 PACKAGE=portmidi-217
 CHECKSUM=08e9a892bd80bdb1115213fb72dc29a7bf2ff108b378180586aa65f3cfd42e0f
-REVISION=2
+REVISION=5
 
 # Depends on libasound (deb: libasound2-dev) on Linux. Maybe this should be
 # considered a system library and not built/included.
@@ -431,6 +431,99 @@ index 0000000..01d67a7
 +    ARCHIVE DESTINATION "\${CMAKE_INSTALL_LIBDIR}")
 +endif(UNIX)
 EOF
+
+# -----------------------------------------------------------------------------
+# Patch to fix crash on 64-bit Windows
+# "Please find enclosed a patch on PortMIDI regarding a crash on 64bits
+# version of Windows." - Olivier Tristan
+# https://www.mail-archive.com/media_api@create.ucsb.edu/msg00513.html
+
+patch -p0 << EOF
+
+Index: pm_win/pmwinmm.c
+===================================================================
+--- pm_win/pmwinmm.c    (revision 227)
++++ pm_win/pmwinmm.c    (working copy)
+@@ -38,11 +38,11 @@
+
+ /* callback routines */
+ static void CALLBACK winmm_in_callback(HMIDIIN hMidiIn,
+-                                       WORD wMsg, DWORD dwInstance, 
+-                                       DWORD dwParam1, DWORD dwParam2);
++                                       UINT wMsg, DWORD_PTR dwInstance,
++                                       DWORD_PTR dwParam1, DWORD_PTR dwParam2);
+ static void CALLBACK winmm_streamout_callback(HMIDIOUT hmo, UINT wMsg,
+-                                              DWORD dwInstance, DWORD dwParam1, 
+-                                              DWORD dwParam2);
++                                              DWORD_PTR dwInstance, DWORD_PTR dwParam1,
++                                              DWORD_PTR dwParam2);
+ #ifdef USE_SYSEX_BUFFERS
+ static void CALLBACK winmm_out_callback(HMIDIOUT hmo, UINT wMsg,
+                                         DWORD dwInstance, DWORD dwParam1, 
+@@ -666,10 +666,10 @@
+ /* Callback function executed via midiInput SW interrupt (via midiInOpen). */
+ static void FAR PASCAL winmm_in_callback(
+     HMIDIIN hMidiIn,    /* midiInput device Handle */
+-    WORD wMsg,          /* midi msg */
+-    DWORD dwInstance,   /* application data */
+-    DWORD dwParam1,     /* MIDI data */
+-    DWORD dwParam2)    /* device timestamp (wrt most recent midiInStart) */
++    UINT wMsg,          /* midi msg */
++    DWORD_PTR dwInstance,   /* application data */
++    DWORD_PTR dwParam1,     /* MIDI data */
++    DWORD_PTR dwParam2) /* device timestamp (wrt most recent midiInStart) */
+ {
+     static int entry = 0;
+     PmInternal *midi = (PmInternal *) dwInstance;
+@@ -688,7 +688,6 @@
+          * hardware interrupt? -- but I've seen reentrant behavior 
+          * using a debugger, so it happens.
+          */
+-        long new_driver_time;
+         EnterCriticalSection(&m->lock);
+
+         /* dwParam1 is MIDI data received, packed into DWORD w/ 1st byte of
+@@ -697,8 +696,6 @@
+             in [ms] from when midiInStart called.
+            each message is expanded to include the status byte */
+
+-        new_driver_time = dwParam2;
+-
+         if ((dwParam1 & 0x80) == 0) {
+             /* not a status byte -- ignore it. This happened running the
+                sysex.c test under Win2K with MidiMan USB 1x1 interface,
+@@ -709,8 +706,8 @@
+             PmEvent event;
+             if (midi->time_proc)
+                 dwParam2 = (*midi->time_proc)(midi->time_info);
+-            event.timestamp = dwParam2;
+-            event.message = dwParam1;
++            event.timestamp = (PmTimestamp)dwParam2;
++            event.message = (PmMessage)dwParam1;
+             pm_read_short(midi, &event);
+         }
+         LeaveCriticalSection(&m->lock);
+@@ -731,7 +728,7 @@
+         /* assume yes and iterate through them */
+         while (remaining > 0) {
+             unsigned int amt = pm_read_bytes(midi, data + processed, 
+-                                             remaining, dwParam2);
++                                             remaining, (PmTimestamp)dwParam2);
+             remaining -= amt;
+             processed += amt;
+         }
+@@ -1328,7 +1325,7 @@
+
+ /* winmm_streamout_callback -- unprepare (free) buffer header */
+ static void CALLBACK winmm_streamout_callback(HMIDIOUT hmo, UINT wMsg,
+-        DWORD dwInstance, DWORD dwParam1, DWORD dwParam2)
++        DWORD_PTR dwInstance, DWORD_PTR dwParam1, DWORD_PTR dwParam2)
+ {
+     PmInternal *midi = (PmInternal *) dwInstance;
+     midiwinmm_type m = (midiwinmm_type) midi->descriptor;
+EOF
+
+# -----------------------------------------------------------------------------
 
 if [ "`uname -o`" = "Msys" ]; then
 cmake \

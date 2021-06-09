@@ -17,6 +17,10 @@ jobs:
     runs-on: ubuntu-18.04
 
     steps:
+    - name: Update package repositories
+      run: >-
+        sudo apt update
+
     - name: Install deb packages
       run: >-
         sudo apt install

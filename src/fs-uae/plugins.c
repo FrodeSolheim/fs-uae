@@ -16,13 +16,17 @@
 
 // FIXME: move to configure.ac / config.h
 #if defined(__x86_64__) || defined(_M_AMD64) || defined(_M_X64)
-    #define ARCH_NAME "x86-64"
-#elif defined(__i386__) || defined (_M_IX86)
-    #define ARCH_NAME "x86"
+#define ARCH_NAME "x86-64"
+#elif defined(__i386__) || defined(_M_IX86)
+#define ARCH_NAME "x86"
 #elif defined(__ppc__)
-    #define ARCH_NAME "ppc"
+#define ARCH_NAME "PPC"
+#elif defined(__aarch64__)
+#define ARCH_NAME "ARM64"
+#elif defined(__arm__)
+#define ARCH_NAME "ARM32"
 #else
-    #define ARCH_NAME "unknown"
+#define ARCH_NAME "unknown"
 #endif
 
 static GHashTable *provides;

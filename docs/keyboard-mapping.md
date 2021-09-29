@@ -275,14 +275,14 @@ which has these physical keys:
 | KP3          | `keyboard_key_kp3`          |
 | KP_ENTER     | `keyboard_key_kp_enter`     |
 | -            |                             | **Bottom row**                |
-| LCTRL        | `keyboard_key_kp_lctrl`     |
-| LSUPER       | `keyboard_key_kp_lsuper`    | Left "Windows" key or "Cmd"   |
-| LALT         | `keyboard_key_kp_lalt`      | Different phys. pos. on Mac   |
-| SPACE        | `keyboard_key_kp_space`     |
-| RALT         | `keyboard_key_kp_ralt`      | Different phys. pos. on Mac   |
-| RSUPER       | `keyboard_key_kp_rsuper`    | Right "Windows" key or "Cmd"  |
-| MENU         | `keyboard_key_kp_menu`      |
-| RCTRL        | `keyboard_key_kp_rctrl`     |
+| LCTRL        | `keyboard_key_lctrl`        |
+| LSUPER       | `keyboard_key_lsuper`       | Left "Windows" key or "Cmd"   |
+| LALT         | `keyboard_key_lalt`         | Different phys. pos. on Mac   |
+| SPACE        | `keyboard_key_space`        |
+| RALT         | `keyboard_key_ralt`         | Different phys. pos. on Mac   |
+| RSUPER       | `keyboard_key_rsuper`       | Right "Windows" key or "Cmd"  |
+| MENU         | `keyboard_key_menu`         |
+| RCTRL        | `keyboard_key_rctrl`        |
 | LEFT         | `keyboard_key_left`         |
 | DOWN         | `keyboard_key_down`         |
 | RIGHT        | `keyboard_key_right`        |

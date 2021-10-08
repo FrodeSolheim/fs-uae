@@ -11,11 +11,6 @@ Version 3.1:
 * SCP floppy image doesn't wrap to revolution #0 cleanly [keirf].
 * Fixed crash in nname_to_aname [PowderedToastMan].
 
-Version 3.0.6:
-
-* SCP floppy image doesn't wrap to revolution #0 cleanly [keirf].
-* Fixed crash in nname_to_aname [PowderedToastMan].
-
 Version 3.0.5:
 
 * Packaging change to satisfy Apple's changed notarization process (sigh).

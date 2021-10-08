@@ -151,8 +151,8 @@ def update_debian_changelog(version):
             elif line.startswith(" -- ") and first_line_changed:
                 # Only update date if version was changed
                 author, date = line.split("  ")
-                date = datetime.datetime.now().strftime(
-                    "%a, %e %b %Y %H:%M:%S %z"
+                date = datetime.datetime.utcnow().strftime(
+                    "%a, %e %b %Y %H:%M:%S +00:00"
                 )
                 lines.append("{}  {}\n".format(author, date))
             else:

@@ -120,12 +120,8 @@ jobs:
     runs-on: macos-10.15
 
     steps:
-    - name: Install Homebrew packages
+    - name: Install brew packages
       run: brew install autoconf automake dos2unix meson
-
-    - name: Install Node packages
-      run: |
-        npm install -g appdmg
 
     - uses: actions/checkout@v2
       with:
@@ -182,32 +178,6 @@ jobs:
 
     - name: Archive
       run: fsbuild/archive
-
-    - name: Build DMG
-      if: hashFiles('fsbuild/dmg') != ''
-      run: fsbuild/dmg --build
-
-    - name: Unlock keychain again
-      if: hashFiles('fsbuild/dmg') != ''
-      run: |
-        echo $SIGNING_CERTIFICATE_P12_DATA | base64 --decode > certificate.p12
-        security unlock-keychain -p $KEYCHAIN_PASSWORD build.keychain
-      env:
-        KEYCHAIN_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
-        SIGNING_CERTIFICATE_P12_DATA: ${{ secrets.MACOS_CERTIFICATE_P12_DATA }}
-        SIGNING_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
-
-    - name: Sign DMG
-      if: hashFiles('fsbuild/dmg') != ''
-      run: fsbuild/dmg --sign
-
-    - name: Notarize DMG
-      if: hashFiles('fsbuild/dmg') != ''
-      run: fsbuild/dmg --notarize
-      env:
-        NOTARIZATION_PASSWORD: ${{ secrets.MACOS_NOTARIZATION_PASSWORD }}
-        NOTARIZATION_PROVIDER: ${{ secrets.MACOS_NOTARIZATION_PROVIDER }}
-        NOTARIZATION_USERNAME: ${{ secrets.MACOS_NOTARIZATION_USERNAME }}
 
     - uses: actions/upload-artifact@v2
       with:

@@ -1212,13 +1212,14 @@ int main(int argc, char *argv[])
     if (g_warn_about_missing_config_file) {
         fs_emu_warning(_("No configuration file was found"));
     }
-
+#if 0
     const char *expect_version = fs_config_get_const_string(
                 OPTION_EXPECT_VERSION);
     if (expect_version && strcmp(expect_version, PACKAGE_VERSION) != 0) {
         fs_emu_warning(_("Expected FS-UAE version %s, got %s"),
                        expect_version, PACKAGE_VERSION);
     }
+#endif
 
 #ifdef LINUX
     if (fs_config_get_boolean(OPTION_GAME_MODE) != 0) {

@@ -1,5 +1,6 @@
 Version 3.1:
 
+* Disable expect_version option (no longer synchronized with launcher).
 * Added support for more physical keys (when using rawinput).
 * Compilation fixes for Apple M1 hardware.
 * Netplay desync fixes related to file system (directory hard drives).

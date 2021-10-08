@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
+#include <fs/conf.h>
 #include <fs/lazyness.h>
 #include <fs/log.h>
 #include <fs/thread.h>
@@ -189,5 +190,11 @@ void fs_ml_mouse_init(void)
     k += 1;
     g_fs_ml_input_device_count = k;
 
-    init_manymouse();
+#ifdef MACOSX
+    if (fs_config_get_boolean("multiple_mice") == 1) {
+#endif
+        init_manymouse();
+#ifdef MACOSX
+    }
+#endif
 }

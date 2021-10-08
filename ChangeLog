@@ -1,5 +1,7 @@
 Version 3.1:
 
+* Support for multiple mice disabled by default on macOS due to security
+  warning. Use option multiple_mice = 1 to enable.
 * Disable expect_version option (no longer synchronized with launcher).
 * Added support for more physical keys (when using rawinput).
 * Compilation fixes for Apple M1 hardware.

@@ -65,6 +65,11 @@ static char *joystick_config_name(const char* name, int with_number)
 int ManyMouse_Init(void);
 void ManyMouse_Quit(void);
 const char *ManyMouse_DeviceName(unsigned int index);
+#ifdef MACOSX
+int multiple_mice = 0;
+#else
+int multiple_mice = 1;
+#endif
 
 static void list_joysticks(void)
 {
@@ -81,19 +86,23 @@ static void list_joysticks(void)
     printf("# Mice:\n");
     printf("M: Mouse\n");
     flush_stdout();
-    int count = ManyMouse_Init();
-    if (count >= 0) {
-        for (int i = 0; i < count; i++) {
-            const char *name = ManyMouse_DeviceName(i);
-            if (name[0] == 0 || g_ascii_strcasecmp(name, "mouse") == 0) {
-                printf("M: Mouse: Unnamed Mouse\n");
-                flush_stdout();
-            } else {
-                printf("M: Mouse: %s\n", ManyMouse_DeviceName(i));
-                flush_stdout();
+    if (multiple_mice) {
+        int count = ManyMouse_Init();
+        if (count >= 0) {
+            for (int i = 0; i < count; i++) {
+                const char *name = ManyMouse_DeviceName(i);
+                if (name[0] == 0 || g_ascii_strcasecmp(name, "mouse") == 0) {
+                    printf("M: Mouse: Unnamed Mouse\n");
+                    flush_stdout();
+                } else {
+                    printf("M: Mouse: %s\n", ManyMouse_DeviceName(i));
+                    flush_stdout();
+                }
             }
+            ManyMouse_Quit();
         }
-        ManyMouse_Quit();
+    } else {
+        printf("# Support for multiple mice not enabled\n");
     }
     printf("# Joysticks:\n");
     flush_stdout();
@@ -364,6 +373,9 @@ int main(int argc, char* argv[])
     }
 
     if (strcmp(argv[1], "--list") == 0 || strcmp(argv[1], "list") == 0) {
+        if (argc >= 3 && strcmp(argv[2], "--multiple-mice") == 0) {
+            multiple_mice = 1;
+        }
         list_joysticks();
         printf("# End\n");
         flush_stdout();

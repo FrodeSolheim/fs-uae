@@ -229,16 +229,17 @@ def calculate_version(
     auto_revision=False, increment_revision=False, include_commit=False
 ):
     # with open("fsbuild/VERSION") as f:
-    #     # with open("VERSION.FS") as f:
-    #     version_str = f.read().strip()
-    with open("PACKAGE.FS") as f:
-        for line in f:
-            if line.startswith("PACKAGE_VERSION="):
-                version_str = line[16:].strip()
+    with open("BASEVERSION.FS") as f:
+        version_str = f.read().strip()
+    if version_str.startswith("BASEVERSION_FS="):
+        version_str = version_str[len("BASEVERSION_FS="):].strip()
+    # with open("PACKAGE.FS") as f:
+    #     for line in f:
+    #         if line.startswith("PACKAGE_VERSION="):
+    #             version_str = line[16:].strip()
     version = Version(version_str)
     if auto_revision:
-        # version_commit = find_last_commit_for_file("VERSION.FS")
-        version_commit = find_last_commit_for_file("PACKAGE.FS")
+        version_commit = find_last_commit_for_file("BASEVERSION.FS")
         increment = num_commits_since(version_commit)
         if increment_revision:
             increment += 1
@@ -248,6 +249,23 @@ def calculate_version(
             version.revision += increment
     if "--commit" in sys.argv:
         version.commit = find_last_commit()
+
+    if True:
+        branch = None
+        githubRef = os.environ.get("GITHUB_REF")
+        if githubRef is not None:
+            if githubRef.startswith("refs/heads/"):
+                branch = githubRef[len("refs/heads/"):]
+        if not branch:
+            branch = subprocess.check_output(["git", "branch", "--show-current"], encoding="UTF-8").strip()
+
+        if branch == "stable":
+            version.tag = ""
+        elif branch:
+            version.tag = f"-{branch}"
+        else:
+            raise Exception("Cannot calculate version tag from git ref")
+
     return version
 
 
@@ -271,9 +289,11 @@ def main():
     # For date/time formatting
     locale.setlocale(locale.LC_TIME, "C")
 
-    auto_revision = "--auto" in sys.argv
+    # auto_revision = "--auto" in sys.argv
+    auto_revision = True
     increment_revision = "--next" in sys.argv
-    include_commit = "--commit" in sys.argv
+    # include_commit = "--commit" in sys.argv
+    include_commit = True
     # if "--auto-next" in sys.argv:
     #     auto_revision = True
     #     increment_revision = True

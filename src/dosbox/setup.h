@@ -54,6 +54,12 @@ public:
    
 };
 
+#ifdef FSUAE
+// Work around an incompatibility with C++17. It does not seem like these
+// functions are used anyway.
+#define throw(...) throw()
+#endif
+
 class Value {
 /* 
  * Multitype storage container that is aware of the currently stored type in it.
@@ -112,6 +118,11 @@ private:
 	void set_string(std::string const& in);
 	void set_double(std::string const& in);
 };
+
+#ifdef FSUAE
+#undef throw
+#endif
+
 
 class Property {
 public:

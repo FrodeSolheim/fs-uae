@@ -1,0 +1,9 @@
+#!/bin/sh
+
+set -e
+
+. ./PACKAGE.FS
+
+mkdir -p fsbuild/_dist
+make distcheck
+mv fs-uae-$PACKAGE_VERSION.tar.gz fsbuild/_dist

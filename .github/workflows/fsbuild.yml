@@ -101,7 +101,6 @@ jobs:
     - uses: actions/upload-artifact@v2
       with:
         name: Linux_x86-64
-
         path: fsbuild/_dist/*
 
     - name: Upload build to Dropbox folder

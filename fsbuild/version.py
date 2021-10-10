@@ -256,6 +256,8 @@ def calculate_version(
         if githubRef is not None:
             if githubRef.startswith("refs/heads/"):
                 branch = githubRef[len("refs/heads/"):]
+            if githubRef.startswith("refs/pull/"):
+                branch = "pull" + githubRef[len("refs/pull/"):].replace("/", "")
         if not branch:
             branch = subprocess.check_output(["git", "branch", "--show-current"], encoding="UTF-8").strip()
 

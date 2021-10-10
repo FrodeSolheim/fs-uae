@@ -13,9 +13,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+%define fsbuild_version 0.0.0
+
 %define name fs-uae
-%define version 3.0.5u2
-%define unmangled_version 3.0.5u2
+%define version %{fsbuild_version}
+%define unmangled_version %{fsbuild_version}
 %define release 1%{?dist}
 
 %undefine _hardened_build

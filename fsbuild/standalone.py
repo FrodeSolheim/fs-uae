@@ -5,6 +5,7 @@ import os
 import shutil
 import subprocess
 import sys
+from typing import Dict, List, Set
 
 strip = False
 rpath = False
@@ -14,11 +15,11 @@ no_copy = False
 steam_runtime = False
 
 
-excluded_libraries = {}
-included_libraries = {}
+excluded_libraries: Dict[str, Set[str]] = {}
+included_libraries: Dict[str, Set[str]] = {}
 
 
-def fix_linux_binary(path):
+def fix_linux_binary(path: str):
     changes = 0
     if os.path.exists(path + ".standalone"):
         return changes
@@ -41,7 +42,7 @@ def fix_linux_binary(path):
         return 0
     data = p.stdout.decode("UTF-8")
     print("fixing", path, "no_copy =", no_copy)
-    library_locations = {}
+    library_locations: Dict[str, str] = {}
     for line in data.split("\n"):
         line = line.strip()
         if "=>" not in line:
@@ -128,7 +129,7 @@ manylinux2014_whitelist = set(
 )
 
 
-def ignore_linux_library(name):
+def ignore_linux_library(name: str):
     if os.getenv("LIBGPG_ERROR_CHECK", "") != "0":
         if name.startswith("libgpg-error.so"):
             raise Exception(
@@ -218,8 +219,8 @@ def ignore_linux_library(name):
     return False
 
 
-def linux_iteration(app):
-    binaries = []
+def linux_iteration(app: str):
+    binaries: List[str] = []
     binaries_dir = app
     for name in sorted(os.listdir(binaries_dir)):
         binaries.append(os.path.join(binaries_dir, name))
@@ -251,7 +252,7 @@ def linux_main():
             os.remove(os.path.join(app, name))
 
 
-def fix_macos_binary(path, frameworks_dir):
+def fix_macos_binary(path: str, frameworks_dir: str):
     if path.endswith(".txt"):
         return 0
     print("fixing", path)
@@ -278,7 +279,7 @@ def fix_macos_binary(path, frameworks_dir):
         if "Contents" in old:
             continue
         print(old)
-        old_dir, name = os.path.split(old)
+        _, name = os.path.split(old)
         # new = old.replace(old, "@executable_path/../Frameworks/" + name)
         if rpath:
             new = old.replace(old, "@rpath/" + name)
@@ -311,8 +312,8 @@ def fix_macos_binary(path, frameworks_dir):
     return changes
 
 
-def macos_iteration(app):
-    binaries = []
+def macos_iteration(app: str):
+    binaries: List[str] = []
     if os.path.isdir(app):
         # mac_os_dir = os.path.join(app, "Contents", "MacOS")
         frameworks_dir = app
@@ -331,7 +332,7 @@ def macos_iteration(app):
     return changes
 
 
-def fix_macos_binary_2(path, frameworks_dir):
+def fix_macos_binary_2(path: str, frameworks_dir: str):
     print("fixing", path)
     changes = 0
     if not os.path.exists(path):
@@ -354,7 +355,7 @@ def fix_macos_binary_2(path, frameworks_dir):
         if "Contents" in old:
             continue
         print(old)
-        old_dir, name = os.path.split(old)
+        _, name = os.path.split(old)
         new = old.replace(old, "@executable_path/../Frameworks/" + name)
         dst = os.path.join(frameworks_dir, os.path.basename(old))
         if not os.path.exists(dst):
@@ -373,8 +374,8 @@ def fix_macos_binary_2(path, frameworks_dir):
     return changes
 
 
-def macos_iteration_2(app):
-    binaries = []
+def macos_iteration_2(app: str):
+    binaries: List[str] = []
     mac_os_dir = os.path.join(app, "Contents", "MacOS")
     frameworks_dir = os.path.join(app, "Contents", "Frameworks")
     if not os.path.exists(frameworks_dir):
@@ -438,8 +439,8 @@ windows_system_dlls = [
 ]
 
 
-def fix_windows_binary(path, app_dir):
-    name, ext = os.path.splitext(os.path.basename(path))
+def fix_windows_binary(path: str, app_dir: str):
+    _, ext = os.path.splitext(os.path.basename(path))
     if ext.lower() not in [".dll", ".exe"]:
         return 0
     # if path.endswith(".txt"):
@@ -502,8 +503,8 @@ def fix_windows_binary(path, app_dir):
     return changes
 
 
-def windows_iteration(app):
-    binaries = []
+def windows_iteration(app: str):
+    binaries: List[str] = []
     if os.path.isdir(app):
         for name in sorted(os.listdir(app)):
             binaries.append(os.path.join(app, name))

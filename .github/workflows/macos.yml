@@ -1,0 +1,94 @@
+name: macOS
+
+on:
+  push:
+    branches:
+      - master
+      - beta
+      - stable
+  pull_request:
+    branches:
+      - master
+      - beta
+      - stable
+
+jobs:
+  macOS_x86-64:
+    runs-on: macos-10.15
+
+    steps:
+    - name: Install brew packages
+      run: brew install autoconf automake dos2unix meson
+
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: Cache dependencies
+      uses: actions/cache@v2
+      id: fsdeps_cache
+      with:
+        path: fsdeps/_prefix
+        key: fsdeps_${{ hashFiles('fsdeps/**/*') }}_${{ runner.os }}
+
+    - name: Build dependencies
+      if: steps.fsdeps_cache.outputs.cache-hit != 'true'
+      run: fsdeps/make
+
+    - name: Update version
+      run: fsbuild/version --update --auto
+
+    - name: Bootstrap
+      run: fsdeps/use fsbuild/bootstrap
+
+    - name: Configure
+      run: fsdeps/use fsbuild/configure
+
+    - name: Make
+      run: fsdeps/use fsbuild/make
+
+    - name: Bundle
+      run: fsbuild/bundle
+
+    - name: Prepare signing certificate
+      run: |
+        echo $SIGNING_CERTIFICATE_P12_DATA | base64 --decode > certificate.p12
+        security create-keychain -p $KEYCHAIN_PASSWORD build.keychain
+        security default-keychain -s build.keychain
+        security unlock-keychain -p $KEYCHAIN_PASSWORD build.keychain
+        security import certificate.p12 -k build.keychain -P $SIGNING_CERTIFICATE_PASSWORD -T /usr/bin/codesign
+        security set-key-partition-list -S apple-tool:,apple: -s -k $KEYCHAIN_PASSWORD build.keychain
+      env:
+        KEYCHAIN_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+        SIGNING_CERTIFICATE_P12_DATA: ${{ secrets.MACOS_CERTIFICATE_P12_DATA }}
+        SIGNING_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+
+    - name: Sign
+      run: fsbuild/sign
+
+    - name: Notarize
+      run: fsbuild/notarize
+      env:
+        NOTARIZATION_PASSWORD: ${{ secrets.MACOS_NOTARIZATION_PASSWORD }}
+        NOTARIZATION_PROVIDER: ${{ secrets.MACOS_NOTARIZATION_PROVIDER }}
+        NOTARIZATION_USERNAME: ${{ secrets.MACOS_NOTARIZATION_USERNAME }}
+
+    - name: Archive
+      run: fsbuild/archive
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: macOS_x86-64
+        path: fsbuild/_dist/*
+
+    - name: Upload build to Dropbox folder
+      if: >-
+        github.ref == 'refs/heads/master' ||
+        github.ref == 'refs/heads/dev' ||
+        github.ref == 'refs/heads/stable'
+      run: |
+        python3 -m pip install dropbox
+        fsbuild/upload
+      env:
+        DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        DROPBOX_ACCESS_TOKEN: ${{ secrets.DROPBOX_ACCESS_TOKEN }}

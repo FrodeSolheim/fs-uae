@@ -220,10 +220,12 @@ static void print_events(void)
     }
 #endif
 
-    printf("# SDL_Init(SDL_INIT_JOYSTICK | SDL_INIT_EVENTS))\n");
+    // With recent SDL2 versions (SDL 2.0.14+?), it seems that the video
+    // subsystem must be initialized to get events from xinput controllers.
+    printf("# SDL_Init(SDL_INIT_EVERYTHING)\n");
     flush_stdout();
-    if (SDL_Init(SDL_INIT_JOYSTICK | SDL_INIT_EVENTS) < 0) {
-        printf("# SDL_Init(SDL_INIT_JOYSTICK | SDL_INIT_EVENTS)) < 0\n");
+    if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
+        printf("# SDL_Init(SDL_INIT_EVERYTHING) < 0\n");
         flush_stdout();
         return;
     }
@@ -469,9 +471,12 @@ int main(int argc, char *argv[])
 
     char *compare_name = joystick_config_name(argv[1], 1);
 
-    printf("# SDL_Init(SDL_INIT_JOYSTICK)\n");
-    if (SDL_Init(SDL_INIT_JOYSTICK) < 0) {
-        printf("# SDL_Init(SDL_INIT_JOYSTICK) < 0\n");
+    // With recent SDL2 versions (SDL 2.0.14+?), it seems that the video
+    // subsystem must be initialized to get events from xinput controllers.
+    printf("# SDL_Init(SDL_INIT_EVERYTHING)\n");
+    flush_stdout();
+    if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
+        printf("# SDL_Init(SDL_INIT_EVERYTHING) < 0\n");
         flush_stdout();
         return 2;
     }

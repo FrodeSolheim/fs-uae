@@ -17,7 +17,7 @@ AC_CONFIG_SRCDIR([src/main.cpp])
 AC_CONFIG_HEADERS([config.h])
 
 AC_DEFINE([FSBUILD_VERSION], ["fsbuild_version"], [Version])
-AC_DEFINE_UNQUOTED([FSBUILD_VERSION_MAJOR], [4], [Major])
+AC_DEFINE_UNQUOTED([FSBUILD_VERSION_MAJOR], [fsbuild_version_major], [Major])
 AC_DEFINE_UNQUOTED([FSBUILD_VERSION_MINOR], [fsbuild_version_minor], [Minor])
 AC_DEFINE_UNQUOTED(
     [FSBUILD_VERSION_REVISION], [fsbuild_version_revision], [Revision])

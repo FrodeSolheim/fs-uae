@@ -1,5 +1,6 @@
 Version 4.0.x:
 
+* Fix device helper for xinput devices with recent SDL2 versions.
 * Support for looking for ARM64 plugins.
 * Prefer $HOME/FS-UAE over Documents/FS-UAE.
 * Temporarily disable manymouse in device helper (fixes misleading security

@@ -41,7 +41,7 @@ def upload_branch_name():
 def upload(dbx, package, version, path):
     print("Upload", path)
     name = os.path.basename(path)
-    assert package in name
+    assert package.lower() in name.lower()
     assert version in name
     branch = upload_branch_name()
     if not branch:

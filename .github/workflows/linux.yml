@@ -16,6 +16,9 @@ jobs:
   Linux_x86-64:
     runs-on: ubuntu-18.04
 
+    env:
+      UPLOAD_ENABLED: ${{ secrets.DROPBOX_ACCESS_TOKEN }}
+
     steps:
     - name: Update package repositories
       run: >-
@@ -105,9 +108,11 @@ jobs:
 
     - name: Upload build to Dropbox folder
       if: >-
+        env.UPLOAD_ENABLED != null && (
         github.ref == 'refs/heads/master' ||
         github.ref == 'refs/heads/dev' ||
         github.ref == 'refs/heads/stable'
+        )
       run: |
         python3 -m pip install dropbox
         fsbuild/upload

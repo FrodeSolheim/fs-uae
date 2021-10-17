@@ -16,6 +16,9 @@ jobs:
   Windows_x86-64:
     runs-on: windows-2016
 
+    env:
+      UPLOAD_ENABLED: ${{ secrets.DROPBOX_ACCESS_TOKEN }}
+
     defaults:
       run:
         shell: msys2 {0}
@@ -34,6 +37,7 @@ jobs:
           make
           mingw-w64-x86_64-cmake
           mingw-w64-x86_64-gcc
+          mingw-w64-x86_64-ducible
           mingw-w64-x86_64-icoutils
           mingw-w64-x86_64-meson
           mingw-w64-x86_64-openal
@@ -85,9 +89,11 @@ jobs:
 
     - name: Upload build to Dropbox folder
       if: >-
+        env.UPLOAD_ENABLED != null && (
         github.ref == 'refs/heads/master' ||
         github.ref == 'refs/heads/dev' ||
         github.ref == 'refs/heads/stable'
+        )
       run: |
         python3 -m pip install dropbox
         fsbuild/upload

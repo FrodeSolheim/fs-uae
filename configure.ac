@@ -831,14 +831,6 @@ OPT_FEATURE([WITH_NETPLAY], [netplay], [netplay],
 OPT_FEATURE([NCR], [ncr], [ncr],
             [A4000T/A4091, 53C710/53C770 SCSI])
 
-DIS_FEATURE([USE_NFD], [libnfd], [libnfd],
-            [native file dialogs])
-# AS_IF([test "x$enable_libnfd" == xyes], [
-#     PKG_CHECK_MODULES([GTK3], [gtk+-3.0])
-#     AC_SUBST([GTK3_CFLAGS])
-#     AC_SUBST([GTK3_LIBS])
-# ])
-
 OPT_FEATURE([NCR9X], [ncr9x], [ncr9x],
             [53C9X SCSI])
 OPT_FEATURE([PARALLEL_PORT], [parallel_port], [parallel-port],

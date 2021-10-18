@@ -1615,13 +1615,6 @@ endif
 # fs_uae_LDADD += slirp/libslirp.a
 # endif
 
-if USE_NFD
-SUBDIRS += libnfd
-AM_CPPFLAGS += -I$(s)/libnfd/src/include
-fs_uae_LDADD += libnfd.a
-endif
-
-
 #noinst_LIBRARIES += libdummy.a
 #nodist_libdummy_a_SOURCES = \
 #	gen/cdummy.c \
@@ -1735,69 +1728,6 @@ EXTRA_DIST = $(TESTS) $(EXTRA_TESTS) \
 	glad/include/glad/glad.h \
 	glad/include/KHR/khrplatform.h \
 	glad/LICENSE \
-	libnfd/build/dont_run_premake.txt \
-	libnfd/build/gmake_linux/Makefile \
-	libnfd/build/gmake_linux/nfd.make \
-	libnfd/build/gmake_linux/test_opendialog.make \
-	libnfd/build/gmake_linux/test_opendialogmultiple.make \
-	libnfd/build/gmake_linux/test_pickfolder.make \
-	libnfd/build/gmake_linux/test_savedialog.make \
-	libnfd/build/gmake_linux_zenity/Makefile \
-	libnfd/build/gmake_linux_zenity/nfd.make \
-	libnfd/build/gmake_linux_zenity/test_opendialog.make \
-	libnfd/build/gmake_linux_zenity/test_opendialogmultiple.make \
-	libnfd/build/gmake_linux_zenity/test_pickfolder.make \
-	libnfd/build/gmake_linux_zenity/test_savedialog.make \
-	libnfd/build/gmake_macosx/Makefile \
-	libnfd/build/gmake_macosx/nfd.make \
-	libnfd/build/gmake_macosx/test_opendialog.make \
-	libnfd/build/gmake_macosx/test_opendialogmultiple.make \
-	libnfd/build/gmake_macosx/test_pickfolder.make \
-	libnfd/build/gmake_macosx/test_savedialog.make \
-	libnfd/build/gmake_windows/Makefile \
-	libnfd/build/gmake_windows/nfd.make \
-	libnfd/build/gmake_windows/test_opendialog.make \
-	libnfd/build/gmake_windows/test_opendialogmultiple.make \
-	libnfd/build/gmake_windows/test_pickfolder.make \
-	libnfd/build/gmake_windows/test_savedialog.make \
-	libnfd/build/premake5.lua \
-	libnfd/build/vs2010/NativeFileDialog.sln \
-	libnfd/build/vs2010/nfd.vcxproj \
-	libnfd/build/vs2010/nfd.vcxproj.filters \
-	libnfd/build/vs2010/test_opendialogmultiple.vcxproj \
-	libnfd/build/vs2010/test_opendialog.vcxproj \
-	libnfd/build/vs2010/test_pickfolder.vcxproj \
-	libnfd/build/vs2010/test_savedialog.vcxproj \
-	libnfd/build/xcode4/NativeFileDialog.xcworkspace/contents.xcworkspacedata \
-	libnfd/build/xcode4/nfd.xcodeproj/project.pbxproj \
-	libnfd/build/xcode4/test_opendialogmultiple.xcodeproj/project.pbxproj \
-	libnfd/build/xcode4/test_opendialog.xcodeproj/project.pbxproj \
-	libnfd/build/xcode4/test_pickfolder.xcodeproj/project.pbxproj \
-	libnfd/build/xcode4/test_savedialog.xcodeproj/project.pbxproj \
-	libnfd/docs/build.md \
-	libnfd/docs/submitting_pull_requests.md \
-	libnfd/.gitignore \
-	libnfd/LICENSE \
-	libnfd/Makefile.in \
-	libnfd/README.md \
-	libnfd/screens/open_cocoa.png \
-	libnfd/screens/open_gtk3.png \
-	libnfd/screens/open_win.png \
-	libnfd/src/common.h \
-	libnfd/src/include/nfd.h \
-	libnfd/src/nfd_cocoa.m \
-	libnfd/src/nfd_common.c \
-	libnfd/src/nfd_common.h \
-	libnfd/src/nfd_gtk.c \
-	libnfd/src/nfd_win.cpp \
-	libnfd/src/nfd_zenity.c \
-	libnfd/src/SConstruct \
-	libnfd/src/simple_exec.h \
-	libnfd/test/SConstruct \
-	libnfd/test/test_opendialog.c \
-	libnfd/test/test_opendialogmultiple.c \
-	libnfd/test/test_pickfolder.c \
-	libnfd/test/test_savedialog.c \
 	libudis86/README \
 	licenses/fs-uae.txt \
 	licenses/glib.txt \

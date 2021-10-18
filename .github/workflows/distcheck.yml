@@ -14,6 +14,11 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    steps:
+    - name: Update package repositories
+      run: >-
+        sudo apt update
+
     - name: Install deb packages
       run: sudo apt install build-essential libsdl2-dev libglib2.0-dev libopenal-dev gettext libfreetype6-dev libxi-dev libpng-dev zlib1g-dev libmpeg2-4-dev zip libjpeg-dev libglew-dev libxtst-dev libsdl2-ttf-dev
 

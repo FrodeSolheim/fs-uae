@@ -655,6 +655,11 @@ AC_CHECK_FUNCS([gettimeofday])
 AC_CHECK_DECLS([CLOCK_MONOTONIC], [], [], [#include <time.h>])
 
 
+# RTLD_DEEPBIND is not supported by all C libraries.
+
+AC_CHECK_DECLS([RTLD_DEEPBIND], [], [], [#include <dlfcn.h>])
+
+
 # Check for POSIX support.
 
 AS_CASE([$host_os],

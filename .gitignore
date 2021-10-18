@@ -3,6 +3,7 @@
 /aclocal.m4
 /*.adf
 /amiga/
+/ar-lib
 /autom4te.cache/
 autom4te.cache
 *.autosave
@@ -48,9 +49,9 @@ core
 /fontconfig/
 /Frameworks/
 /fs-uae
-/FS-UAE.app/
 fs-uae-[0-9]*
 fs-uae_[0-9]*
+/FS-UAE.app/
 fs-uae.dat
 fs-uae-dbg-[0-9]*
 fs-uae-device-helper

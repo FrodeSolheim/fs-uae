@@ -37,6 +37,10 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
 
+    - name: Update package repositories
+      run: >-
+        sudo apt update
+
     - name: Install dependencies
       run: |
         sudo apt install autoconf \

@@ -281,25 +281,28 @@ PKG_CHECK_MODULES([MIR], [mirclient], [
 	AC_SUBST([MIR_CFLAGS])
 ])
 
-# AC_SUBST([USE_OPENAL], [1])
-AC_DEFINE([WITH_OPENAL], [1], [Define to 1 to use OpenAL])
-PKG_CHECK_MODULES([OPENAL], [openal], [
-], [
-        AS_CASE([$host_os],
-	[darwin*], [
-		AC_MSG_NOTICE([Using OpenAL.framework])
-		OPENAL_LIBS="-framework OpenAL"
-	],
-	[
-		AC_CHECK_LIB([openal], [alcOpenDevice], [
-			OPENAL_LIBS="-lopenal"
-		], [
-			AC_MSG_FAILURE([OpenAL not found])
-		])
-	])
-	AC_SUBST([OPENAL_CFLAGS])
-	AC_SUBST([OPENAL_LIBS])
-
+AC_ARG_WITH(openal, AS_HELP_STRING(
+    [--without-openal], [Disable OpenAL audio usage]))
+AS_IF([test "x$with_openal" != xno], [
+    # AC_SUBST([USE_OPENAL], [1])
+    AC_DEFINE([WITH_OPENAL], [1], [Define to 1 to use OpenAL])
+    PKG_CHECK_MODULES([OPENAL], [openal], [
+    ], [
+          AS_CASE([$host_os],
+          [darwin*], [
+                  AC_MSG_NOTICE([Using OpenAL.framework])
+                  OPENAL_LIBS="-framework OpenAL"
+          ],
+          [
+                  AC_CHECK_LIB([openal], [alcOpenDevice], [
+                          OPENAL_LIBS="-lopenal"
+                  ], [
+                          AC_MSG_FAILURE([OpenAL not found])
+                  ])
+          ])
+          AC_SUBST([OPENAL_CFLAGS])
+          AC_SUBST([OPENAL_LIBS])
+    ])
 ])
 
 # AC_SUBST([USE_OPENGL], [1])
@@ -355,11 +358,15 @@ AS_CASE([$host_os],
 [mingw*], [],
 [darwin*], [],
 [
-    X11_LIBS="-lX11"
-    AC_DEFINE([USE_X11], [1], [Define to 1 to use X11])
+    AC_ARG_WITH(x11, AS_HELP_STRING(
+        [--without-x11], [Disable X11 video usage]))
+    AS_IF([test "x$with_x11" != xno], [
+        X11_LIBS="-lX11"
+        AC_DEFINE([USE_X11], [1], [Define to 1 to use X11])
 
-#    X11_LIBS="$X11_LIBS -lXtst"
-#    AC_DEFINE([USE_X11_XTEST], [1], [Define to 1 to use X11 XTEST extension])
+        #    X11_LIBS="$X11_LIBS -lXtst"
+        #    AC_DEFINE([USE_X11_XTEST], [1], [Define to 1 to use X11 XTEST extension])
+    ])
 ])
 AC_SUBST([X11_LIBS])
 

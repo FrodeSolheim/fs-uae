@@ -318,7 +318,7 @@ void fs_uae_configure_amiga_hardware()
     }
 
     if (fs_config_get_boolean(OPTION_UAENATIVE_LIBRARY) == 1) {
-        amiga_set_option("bsdsocket_emu", "yes");
+        amiga_set_option("native_code", "yes");
     }
 
     if (fs_config_get_boolean(OPTION_LINE_DOUBLING) == 0) {

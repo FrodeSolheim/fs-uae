@@ -27,8 +27,10 @@
 #define ARCH_NAME "PPC"
 #elif defined(__aarch64__)
 #define ARCH_NAME "ARM64"
+#elif defined(__ARM_ARCH_8A__)
+#define ARCH_NAME "ARMv8"
 #elif defined(__arm__)
-#define ARCH_NAME "ARM32"
+#define ARCH_NAME "ARM"
 #else
 #define ARCH_NAME "unknown"
 #endif

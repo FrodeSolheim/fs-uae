@@ -1,4 +1,5 @@
 . ./PACKAGE.FS
+. fsbuild/system.sh
 
 cd fsbuild
 rm -Rf _build
@@ -7,7 +8,7 @@ cd ..
 
 if [ "`uname`" = "Linux" ]; then
 cd dist/linux
-BUILD=0 PACKAGE=0 make
+BUILD=0 PACKAGE=0 SYSTEM_ARCH="$SYSTEM_ARCH" make
 mv FS-UAE ../../fsbuild/_build
 cd ../..
 elif [ "`uname`" = "Darwin" ]; then

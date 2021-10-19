@@ -14,17 +14,7 @@ with open("../../PACKAGE.FS", "r") as f:
             pass
 
 version = package["PACKAGE_VERSION"]
-
-p = subprocess.Popen(["file", "-L", "/bin/sh"], stdout=subprocess.PIPE)
-exe_info = p.stdout.read().decode("UTF-8")
-if "386" in exe_info:
-    arch = "x86"
-elif "x86-64" in exe_info:
-    arch = "x86-64"
-elif "ARM" in exe_info and "armhf" in exe_info:
-    arch = "ARMv8"
-else:
-    raise Exception("unrecognized arch " + repr(exe_info))
+arch = os.environ["SYSTEM_ARCH"]
 
 # if os.environ.get("STEAMOS", ""):
 #     os_name = "steamos"

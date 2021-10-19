@@ -1437,10 +1437,14 @@ static const char *overlay_names[] = {
 #define ARCH_NAME_2 "x86"
 #elif defined(__ppc__)
 #define ARCH_NAME_2 "PPC"
+#elif defined(__aarch64__)
+#define ARCH_NAME_2 "ARM64"
+#elif defined(__ARM_ARCH_8A__)
+#define ARCH_NAME_2 "ARMv8"
 #elif defined(__arm__)
 #define ARCH_NAME_2 "ARM"
 #else
-#define ARCH_NAME_2 "?"
+#define ARCH_NAME_2 "Unknown"
 #endif
 
 // clang-format off

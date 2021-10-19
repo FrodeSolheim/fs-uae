@@ -54,6 +54,7 @@ if [ "`uname`" = "Linux" ]; then
 ./configure \
     --prefix=$PREFIX \
     --disable-sndio \
+    --disable-video-rpi \
     --enable-video-wayland \
     --enable-video-kmsdrm
 else

@@ -1,20 +1,27 @@
 # Raspberry Pi 4
 
 FS-UAE now runs quite well on Raspberry Pi 4, especially if you overclock it
-to 2 GHz. Of course, how much raw power you need depend on what you emulate.
+to 2.0 GHz. Of course, how much raw power you need depend on what you emulate.
 Amiga 500 cycle-exact emulation can be quite demanding.
 
 ## Recommended setup
 
-* Overclock your Raspberry Pi 4 to 2 Ghz.
+* Overclock your Raspberry Pi 4 to 2.0 Ghz.
 * Use a cooling solution which allows you to run at full speed over time.
 * Make sure the CPU is running at full speed always, and not on demand.
 * Run FS-UAE from the console for best performance.
 * Connect to an HDMI display capable of 1920x1080@50Hz for smooth scrolling.
 
+## Notes
+
+* The background (bezel) is disabled by default to improve performance.
+* 16-bit color is used by defaut to improve performance.
+* Some "color bleed" can be seen at the edges of the emulated screen.
+  Currently left this way to improve performance (will be fixed).
+
 ## Overclocking to 2 Ghz
 
-By overclocking your Pi to 2 Ghz, you can run most Amiga 500 (and 68000)
+By overclocking your Pi to 2.0 Ghz, you can run most Amiga 500 (and 68000)
 software in cycle exact mode without slowdown. You can of course use the Pi
 with a lower clock speed if it runs fast enough for you.
 
@@ -48,6 +55,10 @@ vsync).
 Run FS-UAE from the console for best performance. When running under X11, 
 tearing can be observed even when using v-sync, and there are also stuttering
 (missed v-blanks) occurring quite often with X11 (about every second?).
+
+UPDATE 2021-10.21: The situation seems much better with updated
+Raspberry Pi OS. Tearing seems to be gone? However, there is still some
+occasional stuttering compared to running from console.
 
 ## Note about v-sync and smooth scrolling
 

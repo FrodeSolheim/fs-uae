@@ -1,5 +1,7 @@
 Version 4.0.x:
 
+* Device helper is updated to work with new hotplug functionality in
+  FS-UAE Launcher.
 * Fix device helper for xinput devices with recent SDL2 versions.
 * Support for looking for ARM64 plugins.
 * Prefer $HOME/FS-UAE over Documents/FS-UAE.

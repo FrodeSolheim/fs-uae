@@ -125,6 +125,7 @@ static void list_joysticks(void)
 #ifdef USE_SDL
     printf("# SDL_Init(SDL_INIT_JOYSTICK)\n");
     flush_stdout();
+
     if (SDL_Init(SDL_INIT_JOYSTICK) < 0) {
         printf("# SDL_Init(SDL_INIT_JOYSTICK) < 0\n");
         flush_stdout();
@@ -220,6 +221,8 @@ static void print_events(void)
     }
 #endif
 
+    SDL_SetHint(SDL_HINT_VIDEO_ALLOW_SCREENSAVER, "1");
+
     // With recent SDL2 versions (SDL 2.0.14+?), it seems that the video
     // subsystem must be initialized to get events from xinput controllers.
     printf("# SDL_Init(SDL_INIT_EVERYTHING)\n");
@@ -240,18 +243,20 @@ static void print_events(void)
             case SDL_JOYBUTTONDOWN:
             case SDL_JOYBUTTONUP:
                 printf(
-                    "{\"type\": \"%s\", \"device\": %d, \"button\": %d, "
-                    "\"state\": %d}\n",
+                    "{\"type\": \"%s\", \"device\": %d, "
+                    "\"sdlInstanceId\": %d, \"button\": %d, \"state\": %d}\n",
                     event.type == SDL_JOYBUTTONDOWN ? "joy-button-down"
                                                     : "joy-button-up",
+                    event.jbutton.which,
                     event.jbutton.which,
                     event.jbutton.button,
                     event.jbutton.state);
                 break;
             case SDL_JOYHATMOTION:
                 printf(
-                    "{\"type\": \"joy-hat-motion\", \"device\": %d, \"hat\": "
-                    "%d, \"state\": %d}\n",
+                    "{\"type\": \"joy-hat-motion\", \"device\": %d, "
+                    "\"sdlInstanceId\": %d, \"hat\": %d, \"state\": %d}\n",
+                    event.jbutton.which,
                     event.jbutton.which,
                     event.jhat.hat,
                     event.jhat.value);
@@ -275,7 +280,8 @@ static void print_events(void)
 #endif
                 printf(
                     "{\"type\": \"joy-axis-motion\", \"device\": %d, "
-                    "\"axis\": %d, \"state\": %d}\n",
+                    "\"sdlInstanceId\": %d, \"axis\": %d, \"state\": %d}\n",
+                    event.jbutton.which,
                     event.jbutton.which,
                     event.jaxis.axis,
                     event.jaxis.value);
@@ -283,6 +289,9 @@ static void print_events(void)
             case SDL_JOYDEVICEADDED:
                 printf("# Joystick device added\n");
                 SDL_Joystick *joystick = SDL_JoystickOpen(event.jdevice.which);
+
+                char guid[33];
+                SDL_JoystickGetGUIDString(SDL_JoystickGetGUID(joystick), guid, 33);
 
                 char *name = fs_ml_input_fix_joystick_name(
                     SDL_JoystickName(joystick), 0);
@@ -300,21 +309,44 @@ static void print_events(void)
                     }
                     c++;
                 }
+
+                char *name3 = strdup(SDL_JoystickName(joystick));
+                // FIXME: Properly escape name
+                c = name3;
+                while (*c) {
+                    // simple hack, replacing a couple of chars to (easily)
+                    // make the name valid json.
+                    if (*c == '\"') {
+                        *c = '\'';
+                    }
+                    if (*c == '\\') {
+                        *c = '/';
+                    }
+                    c++;
+                }
+
                 printf(
                     "{\"type\": \"joy-device-added\", \"device\": %d, "
                     "\"name\": \"%s\", \"buttons\": %d, \"axes\": %d, "
-                    "\"hats\": %d, \"balls\": %d}\n",
+                    "\"hats\": %d, \"balls\": %d, \"sdlInstanceId\": %d, "
+                    "\"sdlGuid\": \"%s\", \"sdlName\": \"%s\"}\n",
                     event.jdevice.which,
                     name2,
                     SDL_JoystickNumButtons(joystick),
                     SDL_JoystickNumAxes(joystick),
                     SDL_JoystickNumHats(joystick),
-                    SDL_JoystickNumBalls(joystick));
+                    SDL_JoystickNumBalls(joystick),
+                    SDL_JoystickInstanceID(joystick),
+                    guid,
+                    name3);
                 free(name2);
+                free(name3);
                 break;
             case SDL_JOYDEVICEREMOVED:
                 printf("# Joystick device removed\n");
-                printf("{\"type\": \"joy-device-removed\", \"device\": %d}\n",
+                printf("{\"type\": \"joy-device-removed\", \"device\": %d, "
+                       "\"sdlInstanceId\": %d}\n",
+                       event.jdevice.which,
                        event.jdevice.which);
                 break;
             case SDL_QUIT:

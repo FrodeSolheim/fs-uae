@@ -39,6 +39,10 @@ jobs:
       if: steps.fsdeps_cache.outputs.cache-hit != 'true'
       run: fsdeps/make
 
+    - name: Install Node dependencies
+      run: |
+        npm install -g appdmg
+
     - name: Update version
       run: fsbuild/version --update --auto
 

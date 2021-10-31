@@ -354,20 +354,20 @@ AC_DEFINE([USE_SDL_INPUT], [1], [Define to 1 to use SDL for input])
 
 PKG_CHECK_MODULES([SDL2_TTF], [SDL2_ttf])
 
-AS_CASE([$host_os],
-[mingw*], [],
-[darwin*], [],
-[
-    AC_ARG_WITH(x11, AS_HELP_STRING(
-        [--without-x11], [Disable X11 video usage]))
-    AS_IF([test "x$with_x11" != xno], [
-        X11_LIBS="-lX11"
-        AC_DEFINE([USE_X11], [1], [Define to 1 to use X11])
-
-        #    X11_LIBS="$X11_LIBS -lXtst"
-        #    AC_DEFINE([USE_X11_XTEST], [1], [Define to 1 to use X11 XTEST extension])
-    ])
-])
+# AS_CASE([$host_os],
+# [mingw*], [],
+# [darwin*], [],
+# [
+#     AC_ARG_WITH(x11, AS_HELP_STRING(
+#         [--without-x11], [Disable X11 video usage]))
+#     AS_IF([test "x$with_x11" != xno], [
+#         X11_LIBS="-lX11"
+#         AC_DEFINE([USE_X11], [1], [Define to 1 to use X11])
+#
+#         #    X11_LIBS="$X11_LIBS -lXtst"
+#         #    AC_DEFINE([USE_X11_XTEST], [1], [Define to 1 to use X11 XTEST extension])
+#     ])
+# ])
 AC_SUBST([X11_LIBS])
 
 AC_DEFINE([USE_ZLIB], [1], [Define to 1 to use zlib])

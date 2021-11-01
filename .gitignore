@@ -3,6 +3,7 @@
 /aclocal.m4
 /*.adf
 /amiga/
+/ar-lib
 /autom4te.cache/
 autom4te.cache
 *.autosave
@@ -17,7 +18,6 @@ build68k
 /*.changes
 /chrome-sandbox
 /compile
-/*.conf
 /confdefs.h
 /config.guess
 /config.h

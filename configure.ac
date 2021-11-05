@@ -316,7 +316,7 @@ PKG_CHECK_MODULES([OPENGL], [gl], [
 
 	],
 	[
-		AC_CHECK_LIB([GL], [glViewport])
+		AC_CHECK_LIB([OpenGL], [glViewport], [OPENGL_LIBS=-lOpenGL])
 		AC_CHECK_LIB([OpenGL32], [main], [OPENGL_LIBS=-lOpenGL32])
 	])
 	AC_SUBST([OPENGL_CFLAGS])

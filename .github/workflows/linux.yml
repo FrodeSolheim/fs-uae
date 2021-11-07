@@ -84,7 +84,7 @@ jobs:
       run: fsdeps/make
 
     - name: Update version
-      run: fsbuild/version --update --auto
+      run: fsbuild/version
 
     - name: Bootstrap
       run: fsdeps/use fsbuild/bootstrap

@@ -45,7 +45,7 @@ def main():
     elif isMacOS():
         notarizeForMacOS()
     else:
-        print("Skipping sign step (No signatures for this platform")
+        print("Skipping sign step (no signatures for this platform)")
 
 
 if __name__ == "__main__":

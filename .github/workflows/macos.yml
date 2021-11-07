@@ -44,7 +44,7 @@ jobs:
         npm install -g appdmg
 
     - name: Update version
-      run: fsbuild/version --update --auto
+      run: fsbuild/version
 
     - name: Bootstrap
       run: fsdeps/use fsbuild/bootstrap

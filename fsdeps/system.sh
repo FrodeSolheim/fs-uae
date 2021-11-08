@@ -9,9 +9,10 @@ case "`uname`" in
 esac
 
 case "`uname -m`" in
-    x86_64*) SYSTEM_ARCH=x86-64;;
-    arm64*)  SYSTEM_ARCH=ARM64;;
-    *)       SYSTEM_ARCH=Unknown;;
+    x86_64*)  SYSTEM_ARCH=x86-64;;
+    arm64*)   SYSTEM_ARCH=ARM64;;
+    armv7l*)  SYSTEM_ARCH=ARM;;
+    *)        SYSTEM_ARCH=Unknown;;
 esac
 
 # FIXME: Deprecated alias

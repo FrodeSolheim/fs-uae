@@ -7,7 +7,7 @@ if [ -f fsbuild/version.pre.sh ]; then
 . fsbuild/version.pre.sh
 fi
 
-python3 fsbuild/version.py "$@"
+python3 fsbuild/__init__.py version "$@"
 
 if [ -f fsbuild/version.post.sh ]; then
 . fsbuild/version.post.sh

@@ -1,15 +1,15 @@
 . fsdeps/system.sh
 
-fsdeps/dep/gettext
-fsdeps/dep/glib
-fsdeps/dep/libmpeg2
-fsdeps/dep/libpng
-fsdeps/dep/libsamplerate
+fsdeps/packages/gettext
+fsdeps/packages/glib
+fsdeps/packages/libmpeg2
+fsdeps/packages/libpng
+fsdeps/packages/libsamplerate
 if [ "$SYSTEM_OS" = "macOS" ]; then
 echo "Skipping OpenGL on macOS"
 else
-fsdeps/dep/openal
+fsdeps/packages/openal
 fi
-fsdeps/dep/portmidi
-fsdeps/dep/SDL2
-fsdeps/dep/SDL2_ttf
+fsdeps/packages/portmidi
+fsdeps/packages/SDL2
+fsdeps/packages/SDL2_ttf

@@ -27,7 +27,7 @@ def main():
         args.append(getBundlePath())
         runCodeSign(args)
     else:
-        print("Skipping sign step (No signatures for this platform")
+        print("Skipping sign step (no signatures for this platform)")
 
 
 if __name__ == "__main__":

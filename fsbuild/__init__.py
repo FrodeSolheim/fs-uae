@@ -554,6 +554,118 @@ def versionMain() -> None:
         updateVersion(version)
 
 
+def buildDmg():
+    if not isMacOS():
+        print("Not building DMG on non-macOS platform")
+        return
+    dmgPath = getDmgPath()
+    bundlePath = getBundlePath()
+    packageInformation = getPackageInformation()
+    print(f"Building {path.basename(dmgPath)}")
+    if not path.exists(path.dirname(dmgPath)):
+        os.makedirs(path.dirname(dmgPath))
+    if os.path.exists(dmgPath):
+        os.unlink(dmgPath)
+    tool = "appdmg"
+    if tool == "appdmg":
+        bundlePath = getBundlePath(prefix="")
+        settingsPath = "fsbuild/_build/appdmg.json"
+        with open(settingsPath, "w", encoding="UTF-8") as f:
+            json.dump(
+                {
+                    "title": packageInformation.displayName,
+                    "contents": [
+                        {
+                            "x": 192,
+                            "y": 344,
+                            "type": "file",
+                            "path": bundlePath,
+                        },
+                        {
+                            "x": 448,
+                            "y": 344,
+                            "type": "link",
+                            "path": "/Applications",
+                        },
+                    ],
+                },
+                f,
+            )
+        subprocess.check_call(
+            [
+                "appdmg",
+                settingsPath,
+                dmgPath,
+            ]
+        )
+    elif tool == "dmgbuild":  # type: ignore
+        bundlePath = getBundlePath()
+        settingsPath = "fsbuild/_build/dmgbuild-settings.py"
+        with open(settingsPath, "w", encoding="UTF-8") as f:
+            f.write("format = 'UDZO'\n")
+            f.write("files = [\n")
+            f.write(f"    '{bundlePath}',\n")
+            f.write("]\n")
+            f.write("symlinks = { 'Applications': '/Applications' }\n")
+            f.write("badge_icon = 'icon/fs-uae-launcher.icns'\n")
+        subprocess.check_call(
+            [
+                "dmgbuild",
+                "-s",
+                settingsPath,
+                "FS-UAE-Launcher",
+                dmgPath,
+            ]
+        )
+    else:
+        raise Exception("Unknown dmg builder")
+
+
+def signDmg():
+    if not isMacOS():
+        print("Not signing DMG on non-macOS platform")
+        return
+    args = [
+        "codesign",
+        "--force",
+        "--sign",
+        "Developer ID Application",
+        "--digest-algorithm=sha1,sha256",
+    ]
+    args.append(getDmgPath())
+    runCodeSign(args)
+
+
+def notarizeDmg():
+    if not isMacOS():
+        print("Not notarizing DMG on non-macOS platform")
+        return
+    packageInformation = getPackageInformation()
+    bundleId = packageInformation.bundleId
+    dmgPath = getDmgPath()
+    assert path.exists(dmgPath)
+    requestUuid = notarizeApp(dmgPath, bundleId)
+    checkNotarizationResult(requestUuid)
+
+    print('xcrun stapler staple "{}"'.format(dmgPath))
+    assert os.system('xcrun stapler staple "{}"'.format(dmgPath)) == 0
+
+    print("-" * 80)
+    print(f"[FSBUILD] Notarized {dmgPath}")
+
+
 if __name__ == "__main__":
-    if sys.argv[1] == "version":
+    if len(sys.argv) < 2:
+        print("Missing command")
+        sys.exit(1)
+    elif sys.argv[1] == "version":
         versionMain()
+    elif sys.argv[1] == "build-dmg":
+        buildDmg()
+    elif sys.argv[1] == "sign-dmg":
+        signDmg()
+    elif sys.argv[1] == "notarize-dmg":
+        notarizeDmg()
+    else:
+        print("Unknown command")
+        sys.exit(1)

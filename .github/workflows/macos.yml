@@ -39,10 +39,6 @@ jobs:
       if: steps.fsdeps_cache.outputs.cache-hit != 'true'
       run: fsdeps/make
 
-    - name: Install Node dependencies
-      run: |
-        npm install -g appdmg
-
     - name: Update version
       run: fsbuild/version
 
@@ -88,9 +84,11 @@ jobs:
       run: fsbuild/archive
 
     - name: Build DMG
-      run: fsbuild/dmg --build
+      if: hashFiles('fsbuild/build-dmg') != '' && env.SIGNING_ENABLED != null
+      run: fsbuild/build-dmg
 
     - name: Unlock keychain again
+      if: env.SIGNING_ENABLED != null
       run: |
         echo $SIGNING_CERTIFICATE_P12_DATA | base64 --decode > certificate.p12
         security unlock-keychain -p $KEYCHAIN_PASSWORD build.keychain
@@ -100,10 +98,12 @@ jobs:
         SIGNING_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
 
     - name: Sign DMG
-      run: fsbuild/dmg --sign
+      if: hashFiles('fsbuild/sign-dmg') != '' && env.SIGNING_ENABLED != null
+      run: fsbuild/sign-dmg
 
     - name: Notarize DMG
-      run: fsbuild/dmg --notarize
+      if: hashFiles('fsbuild/notarize-dmg') != '' && env.SIGNING_ENABLED != null
+      run: fsbuild/notarize-dmg
       env:
         NOTARIZATION_PASSWORD: ${{ secrets.MACOS_NOTARIZATION_PASSWORD }}
         NOTARIZATION_PROVIDER: ${{ secrets.MACOS_NOTARIZATION_PROVIDER }}

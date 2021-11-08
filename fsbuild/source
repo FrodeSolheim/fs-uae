@@ -3,6 +3,6 @@ set -e
 
 . ./PACKAGE.FS
 
+make dist-xz
 mkdir -p fsbuild/_dist
-make distcheck
 mv fs-uae-$PACKAGE_VERSION.tar.xz fsbuild/_dist

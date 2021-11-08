@@ -89,6 +89,9 @@ jobs:
     - name: Configure
       run: fsdeps/use fsbuild/configure
 
+    - name: Distcheck
+      run: fsdeps/use fsbuild/distcheck
+
     - name: Source
       run: fsdeps/use fsbuild/source
 

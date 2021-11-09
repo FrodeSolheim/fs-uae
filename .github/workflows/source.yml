@@ -16,6 +16,9 @@ jobs:
   Source:
     runs-on: ubuntu-18.04
 
+    env:
+      UPLOAD_ENABLED: ${{ secrets.DROPBOX_ACCESS_TOKEN }}
+
     steps:
       - name: Update package repositories
         run: >-

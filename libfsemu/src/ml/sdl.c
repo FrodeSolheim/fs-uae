@@ -1208,7 +1208,8 @@ int fs_ml_main_loop(void)
     while (g_fs_ml_running) {
         fs_ml_event_loop();
         process_video_events();
-        fs_ml_prevent_power_saving();
+        // Handled by SDL2
+        // fs_ml_prevent_power_saving();
         fs_ml_render_iteration();
     }
     post_main_loop();

@@ -1,46 +1,60 @@
 # Mouse
 
-## Middle Mouse Button
+## Middle mouse button
 
-## Mouse Wheel
+## Mouse wheel
 
-## Multiple Mice
+## Multiple mice
 
 FS-UAE supports multiple mice on many platforms through the ManyMouse library
 by Ryan C. Gordon.
+
+**Note: FS-UAE 4 does not support multiple mice yet.** The rest of the this
+section applies to FS-UAE 3 only, for now.
 
 The old `Mouse` host device is still present and works like before - this
 is basically the system cursor, and most likely, all connected mice will
 affect this host device in FS-UAE.
 
 If the support for multiple mice works on your system, you will have one
-*additional* specific host device for each mouse connected. So with two
+_additional_ specific host device for each mouse connected. So with two
 Microsoft Intellimouse devices connected, you might see these devices:
 
-* `Mouse` - This is controllable by both the physical mice
-* `Microsoft Microsoft 5-Button Mouse with IntelliEye(TM)`
-* `Microsoft Microsoft 5-Button Mouse with IntelliEye(TM)`
+- `Mouse` - This is controllable by both the physical mice
+- `Microsoft Microsoft 5-Button Mouse with IntelliEye(TM)`
+- `Microsoft Microsoft 5-Button Mouse with IntelliEye(TM)`
 
 There might be some specific things you should be aware of, depending on your
 operating system. Read on for more information!
 
-## Mouse Speed and Acceleration
+## Mouse speed and acceleration
 
 The old `Mouse` device is subject to acceleration settings, while
 direct hardware access to specific mouse devices is not. You may therefore
-want to use the new *specific mouse devices* for more pleasant mouse
+want to use the new _specific mouse devices_ for more pleasant mouse
 emulation regardless of the number of mice you have. You may even find that
 there is less input lag with the new mouse devices.
 
-## Windows and OS X
+## Windows
 
 Support for multiple mice seems to work just fine on Windows out of the box.
+Note that with FS-UAE on modern Windows version, all devices seem to be named
+"HID-compliant mouse" instead of the actual device name, which makes a bit
+awkward to select the desired mouse device.
 
-## OS X
+## macOS
 
-Support for multiple mice seems to work just fine on OS X out of the box.
+**Note: Multiple mice are currently disabled on macOS**. This is due to
+annoying security warnings that I need to find a workaround for.
 
-### Mouse Buttons on OS X
+Support for multiple mice seems to work just fine on macOS out of the box
+on older macOS versions.
+
+In macOS 10.15, in order to see individual mouse devices, you may have to go
+to  Preferences -> Security & Privacy -> Input Monitoring, and allow access
+for FS-UAE, FS-UAE Launcher and FS-UAE Arcade.
+
+### Mouse buttons on macOS
 
 ## Linux
 
@@ -50,7 +64,7 @@ permission to read from the devices, you will only get access to the
 old/single `Mouse` host device.
 
 You can run this simple command to easily enable FS-UAE to open the mouse
-devices (*after* the mice are connected), though remember
+devices (_after_ the mice are connected), though remember
 that this can have security implications if other people have remote access
 to the computer:
 
@@ -59,7 +73,7 @@ to the computer:
 A much better method is to tell the system to specifically make mouse event
 devices readable when they are plugged in:
 
-### Creating udev Rules for Readable Mice
+### Creating udev rules for readable mice
 
 Note that the following works perfectly for me on Ubuntu, and it is possible
 you must do it slightly differently depending on your Linux distribution.
@@ -81,13 +95,13 @@ reconnect them for the changes to work.
 To verify that it works, reconnect your mouse/mice if you haven't already
 and type:
 
-    ls -l /dev/input/mouse*
+    ls -l /dev/input/event*
 
 All files listed should now have read permissions for all users, something
 like this:
 
-    crw-r--r-- 1 root root 13, 32 aug.  20 17:30 /dev/input/mouse0
-    crw-r--r-- 1 root root 13, 33 aug.  20 17:30 /dev/input/mouse1
+    crw-rw-r-- 1 root input 13, 64 aug.  20 17:30 /dev/input/event0
+    crw-rw-r-- 1 root input 13, 65 aug.  20 17:30 /dev/input/event1
 
 If it did not work, you have to do additional steps to activate the rules.
 Perhaps a command to reinitialize udev, such as as `sudo udevstart`,
@@ -98,6 +112,7 @@ Try to google information about udev rules on your distribution if you
 have problems.
 
 ### Evdev vs XInput2
+
 The ManyMouse library really supports two drivers for Linux: XInput2 and
 Linux evdev interface. Normally, ManyMouse tries XInput2 first, and if that
 works, it will not use Linux evdev. In FS-UAE, I have reversed this order,
@@ -117,3 +132,15 @@ grabbing the input.
 
 If you are using FreeBSD / OpenBSD and have tested this feature, please leave
 feedback on fs-uae.net!
+
+## Running FS-UAE over VNC (or similar)
+
+When FS-UAE is running over a remote desktop connection such as VNC, the
+mouse might not work correctly. This is due to FS-UAE trapping the mouse
+pointer and trying to read relative motion from it. This might be
+incompatible with for example VNC.
+
+A workaround is to disable the automatic grabbing of the pointer
+(`automatic_input_grab`). If you're running Workbench and system-friendly
+programs, you can also enable `mouse_integration`. With this enabled, the
+emulated mouse pointer will follow the host mouse cursor.

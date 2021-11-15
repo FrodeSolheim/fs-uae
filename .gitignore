@@ -33,6 +33,7 @@ core
 *.creator.user
 *.dbg
 /*.deb
+/demos/
 /depcomp
 .deps
 /desktop/
@@ -58,6 +59,7 @@ fs-uae-dbg-[0-9]*
 fs-uae-device-helper
 fs-uae.rc
 fs-uae-with-dat
+/games/
 /gen
 genblitter
 gencomp

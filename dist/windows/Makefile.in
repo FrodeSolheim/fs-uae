@@ -26,7 +26,8 @@ progdir:
 
 	mkdir -p FS-UAE/Data
 	cp -a ../../fs-uae.dat FS-UAE/Data
-	cp -a ../../share/locale FS-UAE/Data/Locale
+	mkdir -p FS-UAE/Locale
+	cp -a ../../share/locale/* FS-UAE/Locale
 
 	cp -a ../../licenses FS-UAE/Licenses
 	cp -a ../../README FS-UAE/ReadMe.txt

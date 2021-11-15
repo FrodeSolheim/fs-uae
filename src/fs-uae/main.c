@@ -790,7 +790,8 @@ static void init_i18n(void)
     char executable_dir[FS_PATH_MAX];
     fs_get_application_exe_dir(executable_dir, FS_PATH_MAX);
     char *locale_base = g_build_filename(
-        executable_dir, "..", "..", "Data", "Locale", NULL);
+        executable_dir, "..", "..", "Locale", NULL);
+    fs_log("[I18N] Checking locale dir \"%s\"\n", locale_base);
     if (g_file_test(locale_base, G_FILE_TEST_IS_DIR)) {
         fs_log("[I18N] Using locale dir \"%s\"\n", locale_base);
         bindtextdomain("fs-uae", locale_base);

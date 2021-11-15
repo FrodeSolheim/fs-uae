@@ -33,7 +33,7 @@ core
 /data/
 *.dbg
 /*.deb
-/demos
+/demos/
 /depcomp
 .deps
 /desktop/
@@ -58,6 +58,7 @@ fs-uae-device-helper
 /FS-UAE.geany
 fs-uae.rc
 fs-uae-with-dat
+/games/
 *.gcda
 /gen
 genblitter

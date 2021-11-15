@@ -9,6 +9,9 @@
 FS-UAE supports multiple mice on many platforms through the ManyMouse library
 by Ryan C. Gordon.
 
+**Note: FS-UAE 4 does not support multiple mice yet.** The rest of the this
+section applies to FS-UAE 3 only, for now.
+
 The old `Mouse` host device is still present and works like before - this
 is basically the system cursor, and most likely, all connected mice will
 affect this host device in FS-UAE.
@@ -35,8 +38,14 @@ there is less input lag with the new mouse devices.
 ## Windows
 
 Support for multiple mice seems to work just fine on Windows out of the box.
+Note that with FS-UAE on modern Windows version, all devices seem to be named
+"HID-compliant mouse" instead of the actual device name, which makes a bit
+awkward to select the desired mouse device.
 
 ## macOS
+
+**Note: Multiple mice are currently disabled on macOS**. This is due to
+annoying security warnings that I need to find a workaround for.
 
 Support for multiple mice seems to work just fine on macOS out of the box
 on older macOS versions.
@@ -86,13 +95,13 @@ reconnect them for the changes to work.
 To verify that it works, reconnect your mouse/mice if you haven't already
 and type:
 
-    ls -l /dev/input/mouse*
+    ls -l /dev/input/event*
 
 All files listed should now have read permissions for all users, something
 like this:
 
-    crw-r--r-- 1 root root 13, 32 aug.  20 17:30 /dev/input/mouse0
-    crw-r--r-- 1 root root 13, 33 aug.  20 17:30 /dev/input/mouse1
+    crw-rw-r-- 1 root input 13, 64 aug.  20 17:30 /dev/input/event0
+    crw-rw-r-- 1 root input 13, 65 aug.  20 17:30 /dev/input/event1
 
 If it did not work, you have to do additional steps to activate the rules.
 Perhaps a command to reinitialize udev, such as as `sudo udevstart`,

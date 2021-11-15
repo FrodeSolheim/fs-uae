@@ -158,22 +158,22 @@ void fsemu_monitor_init(void)
 
     // FIXME: Move SDL-specific code to sdlwindow module (later)
 
-    int display_index = 0;
-    while (true) {
+    int num_displays = SDL_GetNumVideoDisplays();
+    for (int i = 0; i < num_displays; i++) {
         SDL_DisplayMode mode;
-        int error = SDL_GetDesktopDisplayMode(display_index, &mode);
+        int error = SDL_GetDesktopDisplayMode(i, &mode);
         if (error) {
             break;
         }
 
         fsemu_monitor_t monitor;
-        monitor.index = display_index;
+        monitor.index = i;
         SDL_Rect rect;
-        error = SDL_GetDisplayBounds(display_index, &rect);
+        error = SDL_GetDisplayBounds(i, &rect);
         if (error) {
             fsemu_monitor_log(
                 "Error retrieving display bounds for display %d: %s\n",
-                display_index,
+                i,
                 SDL_GetError());
             monitor.rect.x = 0;
             monitor.rect.y = 0;
@@ -214,7 +214,7 @@ void fsemu_monitor_init(void)
 #endif
 
         fsemu_monitor_log("%d: %dx%d+%d+%d %d Hz Scale %0.2f\n",
-                          display_index,
+                          i,
                           monitor.rect.w,
                           monitor.rect.h,
                           monitor.rect.x,
@@ -222,9 +222,8 @@ void fsemu_monitor_init(void)
                           monitor.refresh_rate,
                           monitor.scale);
         g_array_append_val(fsemu_monitor.list, monitor);
-        display_index += 1;
     }
-    fsemu_monitor.count = display_index;
+    fsemu_monitor.count = num_displays;
 
     g_array_sort(fsemu_monitor.list, fsemu_monitor_compare);
     for (int i = 0; i < fsemu_monitor.count; i++) {

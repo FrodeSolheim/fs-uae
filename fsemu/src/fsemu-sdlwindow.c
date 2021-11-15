@@ -330,26 +330,29 @@ static SDL_HitTestResult fsemu_sdlwindow_hit_test(SDL_Window *window,
 static void fsemu_sdlwindow_find_mode(int display_index, SDL_DisplayMode *mode)
 {
     fsemu_window_log("Finding suitable mode for display %d:\n", display_index);
-    // int display_count = 0;
-    // int display_index = 0;
-    int mode_index = 0;
     SDL_DisplayMode m = {SDL_PIXELFORMAT_UNKNOWN, 0, 0, 0, 0};
-    while (true) {
-        int error = SDL_GetDisplayMode(display_index, mode_index, &m);
+    int num_display_modes = SDL_GetNumDisplayModes(display_index);
+    // Hack - Try to find an 1080p@50 and use that
+    for (int i = 0; i < num_display_modes; i++) {
+        int error = SDL_GetDisplayMode(display_index, i, &m);
         if (error) {
             break;
         }
-        // fsemu_window_log("Mode %d: %d %d %d\n",
-        //                  mode_index,
-        //                  m.w,
-        //                  m.h,
-        //                  m.refresh_rate);
-        // FIXME: FSEMU needs to now the desired refresh rate...
-        // FIXME: float vs int (refresh rate)?
         if (m.w == 1920 && m.h == 1080 && m.refresh_rate == 50) {
             *mode = m;
+            return;
         }
-        mode_index += 1;
+    }
+    // Hack (2) - fallback to 720p@50 if found
+    for (int i = 0; i < num_display_modes; i++) {
+        int error = SDL_GetDisplayMode(display_index, i, &m);
+        if (error) {
+            break;
+        }
+        if (m.w == 1280 && m.h == 720 && m.refresh_rate == 50) {
+            *mode = m;
+            return;
+        }
     }
 }
 

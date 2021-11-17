@@ -19,7 +19,7 @@ rm -Rf fsdeps/_build && mkdir fsdeps/_build && cd fsdeps/_build
 tar xf ../_sources/$PACKAGE.tar.gz
 cd $PACKAGE
 
-if [ "`uname`" = "Darwin" ]; then
+if [ "`uname`" = "xxx-Darwin" ]; then
 patch -p1 <<EOF
 diff --git a/src/hidapi/mac/hid.c b/src/hidapi/mac/hid.c
 index 1ad042d49..9ab934cab 100644
@@ -117,6 +117,10 @@ if [ "`uname`" = "Linux" ]; then
     --disable-video-rpi \
     --enable-video-wayland \
     --enable-video-kmsdrm
+elif [ "`uname`" = "Darwin" ]; then
+./configure \
+	--prefix=$PREFIX \
+	--disable-joystick-mfi
 else
 ./configure \
     --prefix=$PREFIX

@@ -5,13 +5,8 @@ set -e
 # Dependency: pulseaudio?
 # Dependency: wayland?
 
-if [ "`uname`" = "Darwin" ]; then
-PACKAGE=SDL2-2.0.14
-CHECKSUM=d8215b571a581be1332d2106f8036fcb03d12a70bae01e20f424976d275432bc
-else
 PACKAGE=SDL2-2.0.16
 CHECKSUM=65be9ff6004034b5b2ce9927b5a4db1814930f169c4b2dae0a1e4697075f287b
-fi
 REVISION=0
 
 . fsdeps/dep.sh
@@ -23,6 +18,70 @@ sha256:$CHECKSUM
 rm -Rf fsdeps/_build && mkdir fsdeps/_build && cd fsdeps/_build
 tar xf ../_sources/$PACKAGE.tar.gz
 cd $PACKAGE
+
+if [ "`uname`" = "Darwin" ]; then
+patch -p1 <<EOF
+diff --git a/src/hidapi/mac/hid.c b/src/hidapi/mac/hid.c
+index 1ad042d49..9ab934cab 100644
+--- a/src/hidapi/mac/hid.c
++++ b/src/hidapi/mac/hid.c
+@@ -399,6 +399,28 @@ static void hid_device_removal_callback(void *context, IOReturn result,
+ 	}
+ }
+ 
++static CFDictionaryRef CreateHIDDeviceMatchDictionary(const int page, const int usage)
++{
++	CFDictionaryRef retval = NULL;
++	CFNumberRef pageNumRef = CFNumberCreate(kCFAllocatorDefault, kCFNumberIntType, &page);
++	CFNumberRef usageNumRef = CFNumberCreate(kCFAllocatorDefault, kCFNumberIntType, &usage);
++	const void *keys[2] = { (void *) CFSTR(kIOHIDDeviceUsagePageKey), (void *) CFSTR(kIOHIDDeviceUsageKey) };
++	const void *vals[2] = { (void *) pageNumRef, (void *) usageNumRef };
++
++	if (pageNumRef && usageNumRef) {
++		retval = CFDictionaryCreate(kCFAllocatorDefault, keys, vals, 2, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
++	}
++
++	if (pageNumRef) {
++		CFRelease(pageNumRef);
++	}
++	if (usageNumRef) {
++		CFRelease(usageNumRef);
++	}
++
++	return retval;
++}
++
+ /* Initialize the IOHIDManager. Return 0 for success and -1 for failure. */
+ static int init_hid_manager(void)
+ {
+@@ -406,7 +428,24 @@ static int init_hid_manager(void)
+ 	/* Initialize all the HID Manager Objects */
+ 	hid_mgr = IOHIDManagerCreate(kCFAllocatorDefault, kIOHIDOptionsTypeNone);
+ 	if (hid_mgr) {
+-		IOHIDManagerSetDeviceMatching(hid_mgr, NULL);
++
++		/* Enumerating all HID devices results in macOS asking permission for the SDL
++		 application to monitor all keystrokes! Therefore we need to enumerate only the
++		 types of devices we need. */
++		const void *device_types[] = {
++			(void *) CreateHIDDeviceMatchDictionary(kHIDPage_GenericDesktop, kHIDUsage_GD_Joystick),
++			(void *) CreateHIDDeviceMatchDictionary(kHIDPage_GenericDesktop, kHIDUsage_GD_GamePad),
++			(void *) CreateHIDDeviceMatchDictionary(kHIDPage_GenericDesktop, kHIDUsage_GD_MultiAxisController),
++		};
++		CFArrayRef array = CFArrayCreate(kCFAllocatorDefault, device_types, 3, &kCFTypeArrayCallBacks);
++
++		IOHIDManagerSetDeviceMatchingMultiple(hid_mgr, array);
++
++		CFRelease(array);
++		CFRelease(device_types[0]);
++		CFRelease(device_types[1]);
++		CFRelease(device_types[2]);
++
+ 		IOHIDManagerScheduleWithRunLoop(hid_mgr, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
+ 		IOHIDManagerRegisterDeviceRemovalCallback(hid_mgr, hid_device_removal_callback, NULL);
+ 		return 0;
+EOF
+fi
 
 if [ "`uname`" = "Darwin" ]; then
 python3 ../../replace.py \

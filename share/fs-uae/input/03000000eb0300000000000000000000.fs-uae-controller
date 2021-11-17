@@ -1,0 +1,19 @@
+[fs-uae-controller]
+name = NeGcon USB Adapter
+platform = linux
+
+[default]
+include = universal_gamepad
+axis_1_neg = lstick_left
+axis_1_pos = lstick_right
+axis_2_pos = south_button
+axis_3_pos = west_button
+axis_4_pos = left_trigger
+button_11 = right_trigger
+button_12 = north_button
+button_13 = east_button
+button_3 = start_button
+button_4 = dpad_up
+button_5 = dpad_right
+button_6 = dpad_down
+button_7 = dpad_left

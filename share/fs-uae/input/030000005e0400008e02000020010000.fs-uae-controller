@@ -1,18 +1,6 @@
 [fs-uae-controller]
-name = Microsoft X-Box 360 pad
+name = 8BitDo Wireless Adapter (XInput)
 platform = linux
-
-[device]
-make = 8BitDo
-model = Wireless USB Adapter
-type = gamepad
-
-[sdl]
-guid = 030000005e0400008e02000020010000
-buttons = 11
-hats = 1
-axes = 6
-balls = 0
 
 [default]
 include = universal_gamepad

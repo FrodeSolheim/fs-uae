@@ -1,0 +1,18 @@
+[fs-uae-controller]
+name = Astro City Mini
+platform = linux
+
+[default]
+include = universal_gamepad
+axis_0_neg = lstick_left
+axis_0_pos = lstick_right
+axis_1_neg = lstick_up
+axis_1_pos = lstick_down
+button_0 = north_button
+button_1 = east_button
+button_2 = south_button
+button_3 = west_button
+button_4 = right_shoulder
+button_5 = right_trigger
+button_8 = select_button
+button_9 = start_button

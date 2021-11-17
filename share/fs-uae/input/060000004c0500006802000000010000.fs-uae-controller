@@ -1,31 +1,19 @@
 [fs-uae-controller]
-name = PLAYSTATION(R)3 Controller (00:24:33:3D:1F:9C)
+name = PS3 Controller
 platform = linux
-
-[device]
-make = Sony
-model = DualShock 3
-type = gamepad
-
-[sdl]
-guid = 060000004c0500006802000000010000
-buttons = 17
-hats = 0
-axes = 29
-balls = 0
 
 [default]
 include = universal_gamepad
 axis_0_neg = lstick_left
 axis_0_pos = lstick_right
 axis_1_neg = lstick_up
-axis_1_pos = lstick_button
+axis_1_pos = lstick_down
 axis_2_neg = rstick_left
 axis_2_pos = rstick_right
 axis_3_neg = rstick_up
 axis_3_pos = rstick_down
 button_0 = select_button
-button_1 = lstick_down
+button_1 = lstick_button
 button_10 = left_shoulder
 button_11 = right_shoulder
 button_12 = north_button

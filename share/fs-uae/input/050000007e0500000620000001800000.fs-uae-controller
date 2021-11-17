@@ -1,0 +1,19 @@
+[fs-uae-controller]
+name = Nintendo Switch Left Joy-Con
+platform = linux
+
+[default]
+include = universal_gamepad
+axis_0_neg = lstick_up
+axis_0_pos = lstick_down
+axis_1_neg = lstick_left
+axis_1_pos = lstick_right
+button_0 = start_button
+button_10 = north_button
+button_2 = left_shoulder
+button_4 = right_shoulder
+button_5 = select_button
+button_6 = lstick_button
+button_7 = west_button
+button_8 = east_button
+button_9 = south_button

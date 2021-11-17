@@ -1,18 +1,6 @@
 [fs-uae-controller]
-name = USB,2-axis 8-button gamepad
+name = iBuffalo SNES Controller
 platform = linux
-
-[device]
-make = iBuffalo
-model = SNES Controller
-type = gamepad
-
-[sdl]
-guid = 03000000830500006020000010010000
-buttons = 8
-hats = 0
-axes = 2
-balls = 0
 
 [default]
 include = universal_gamepad

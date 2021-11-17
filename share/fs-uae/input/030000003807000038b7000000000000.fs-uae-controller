@@ -1,0 +1,20 @@
+[fs-uae-controller]
+name = FightStick TE
+platform = linux
+
+[default]
+include = universal_gamepad
+button_0 = south_button
+button_1 = east_button
+button_2 = west_button
+button_3 = north_button
+button_4 = left_shoulder
+button_5 = right_shoulder
+button_6 = select_button
+button_7 = start_button
+button_8 = left_trigger
+button_9 = right_trigger
+hat_0_down = dpad_down
+hat_0_left = dpad_left
+hat_0_right = dpad_right
+hat_0_up = dpad_up

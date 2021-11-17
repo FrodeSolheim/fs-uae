@@ -1,18 +1,6 @@
 [fs-uae-controller]
-name = Generic X-Box pad
+name = PowerA Mini Pro Ex
 platform = linux
-
-[device]
-make = PowerA
-model = Mini Pro EX
-type = gamepad
-
-[sdl]
-guid = 03000000c62400001a53000000010000
-buttons = 11
-hats = 1
-axes = 6
-balls = 0
 
 [default]
 include = universal_gamepad

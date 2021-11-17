@@ -1,0 +1,30 @@
+[fs-uae-controller]
+name = Horipad Switch
+platform = linux
+
+[default]
+include = universal_gamepad
+axis_0_neg = lstick_left
+axis_0_pos = lstick_right
+axis_1_neg = lstick_up
+axis_1_pos = lstick_down
+axis_2_pos = left_trigger
+axis_3_neg = rstick_left
+axis_3_pos = rstick_right
+axis_4_neg = rstick_up
+axis_4_pos = rstick_down
+axis_5_pos = right_trigger
+button_0 = south_button
+button_1 = east_button
+button_2 = west_button
+button_3 = north_button
+button_4 = left_shoulder
+button_5 = right_shoulder
+button_6 = select_button
+button_7 = start_button
+button_8 = lstick_button
+button_9 = rstick_button
+hat_0_down = dpad_down
+hat_0_left = dpad_left
+hat_0_right = dpad_right
+hat_0_up = dpad_up

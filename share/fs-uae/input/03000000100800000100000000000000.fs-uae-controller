@@ -1,0 +1,30 @@
+[fs-uae-controller]
+name = Twin USB Joystick
+platform = linux
+
+[default]
+include = universal_gamepad
+axis_0_neg = lstick_left
+axis_0_pos = lstick_right
+axis_2_neg = lstick_up
+axis_2_pos = lstick_down
+axis_4_neg = rstick_up
+axis_4_pos = rstick_down
+axis_6_neg = rstick_left
+axis_6_pos = rstick_right
+button_0 = north_button
+button_10 = right_trigger
+button_12 = left_shoulder
+button_14 = right_shoulder
+button_16 = select_button
+button_18 = start_button
+button_2 = east_button
+button_20 = lstick_button
+button_22 = rstick_button
+button_4 = south_button
+button_6 = west_button
+button_8 = left_trigger
+hat_0_down = dpad_down
+hat_0_left = dpad_left
+hat_0_right = dpad_right
+hat_0_up = dpad_up

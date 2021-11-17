@@ -1,18 +1,6 @@
 [fs-uae-controller]
-name = 8Bitdo Zero GamePad
+name = 8BitDo Zero Gamepad
 platform = linux
-
-[device]
-make = 8BitDo
-model = Zero
-type = gamepad
-
-[sdl]
-guid = 05000000a00500003232000009010000
-buttons = 16
-hats = 1
-axes = 6
-balls = 0
 
 [default]
 include = universal_gamepad

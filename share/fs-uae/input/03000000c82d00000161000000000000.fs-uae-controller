@@ -1,18 +1,6 @@
 [fs-uae-controller]
-name = Bluetooth Wireless Controller
-platform = windows
-
-[device]
-make = 8BitDo
-model = SN30 Pro
-type = gamepad
-
-[sdl]
-guid = 03000000c82d00000161000000000000
-buttons = 16
-hats = 1
-axes = 6
-balls = 0
+name = 8BitDo SN30 Pro
+platform = linux
 
 [default]
 include = universal_gamepad
@@ -30,7 +18,6 @@ button_10 = select_button
 button_11 = start_button
 button_13 = lstick_button
 button_14 = rstick_button
-button_2 = menu_button
 button_3 = north_button
 button_4 = west_button
 button_6 = left_shoulder

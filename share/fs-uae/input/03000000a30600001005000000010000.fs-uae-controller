@@ -1,0 +1,18 @@
+[fs-uae-controller]
+name = Saitek P150
+platform = linux
+
+[default]
+include = universal_gamepad
+axis_0_neg = dpad_left
+axis_0_pos = dpad_right
+axis_1_neg = dpad_up
+axis_1_pos = dpad_down
+button_0 = south_button
+button_1 = east_button
+button_2 = right_shoulder
+button_3 = west_button
+button_4 = north_button
+button_5 = right_trigger
+button_6 = left_trigger
+button_7 = left_shoulder

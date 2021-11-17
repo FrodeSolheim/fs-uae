@@ -1,0 +1,30 @@
+[fs-uae-controller]
+name = Steam Controller
+platform = linux
+
+[default]
+include = universal_gamepad
+axis_0_neg = lstick_left
+axis_0_pos = lstick_right
+axis_1_neg = lstick_up
+axis_1_pos = lstick_down
+axis_2_neg = rstick_left
+axis_2_pos = rstick_right
+axis_3_neg = rstick_up
+axis_3_pos = rstick_down
+button_10 = select_button
+button_11 = start_button
+button_12 = menu_button
+button_13 = lstick_button
+button_17 = dpad_up
+button_18 = dpad_down
+button_19 = dpad_left
+button_2 = south_button
+button_20 = dpad_right
+button_3 = east_button
+button_4 = west_button
+button_5 = north_button
+button_6 = left_shoulder
+button_7 = right_shoulder
+button_8 = left_trigger
+button_9 = right_trigger

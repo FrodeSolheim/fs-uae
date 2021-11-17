@@ -1,18 +1,6 @@
 [fs-uae-controller]
-name = 8Bitdo SN30 Pro
+name = Xbox One Wireless Controller
 platform = linux
-
-[device]
-make = 8BitDo
-model = SN30 Pro
-type = gamepad
-
-[sdl]
-guid = 050000005e040000e002000003090000
-buttons = 11
-hats = 1
-axes = 6
-balls = 0
 
 [default]
 include = universal_gamepad

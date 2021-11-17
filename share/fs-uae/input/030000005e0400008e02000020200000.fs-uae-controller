@@ -1,18 +1,6 @@
 [fs-uae-controller]
-name = Microsoft X-Box 360 pad
+name = SpeedLink Xeox Pro Analog Gamepad pad
 platform = linux
-
-[device]
-make = Speed-Link
-model = XEOX Pro Analog
-type = gamepad
-
-[sdl]
-guid = 030000005e0400008e02000020200000
-buttons = 11
-hats = 1
-axes = 6
-balls = 0
 
 [default]
 include = universal_gamepad

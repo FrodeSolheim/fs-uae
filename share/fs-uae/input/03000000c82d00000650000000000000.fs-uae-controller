@@ -1,0 +1,23 @@
+[fs-uae-controller]
+name = 8BitDo M30
+platform = linux
+
+[default]
+include = universal_gamepad
+axis_0_neg = lstick_left
+axis_0_pos = lstick_right
+axis_1_neg = lstick_up
+axis_1_pos = lstick_down
+axis_4_pos = left_shoulder
+axis_5_pos = left_trigger
+button_0 = south_button
+button_1 = east_button
+button_11 = start_button
+button_3 = west_button
+button_4 = north_button
+button_6 = right_shoulder
+button_7 = right_trigger
+hat_0_down = dpad_down
+hat_0_left = dpad_left
+hat_0_right = dpad_right
+hat_0_up = dpad_up

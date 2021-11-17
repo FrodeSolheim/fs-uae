@@ -1,0 +1,31 @@
+[fs-uae-controller]
+name = Wii U Pro Controller
+platform = linux
+
+[default]
+include = universal_gamepad
+axis_0_neg = lstick_left
+axis_0_pos = lstick_right
+axis_1_neg = lstick_up
+axis_1_pos = lstick_down
+axis_2_neg = rstick_left
+axis_2_pos = rstick_right
+axis_3_neg = rstick_up
+axis_3_pos = rstick_down
+button_11 = dpad_up
+button_12 = dpad_down
+button_13 = dpad_left
+button_14 = dpad_right
+button_15 = east_button
+button_16 = south_button
+button_17 = north_button
+button_18 = west_button
+button_19 = left_shoulder
+button_20 = right_shoulder
+button_21 = left_trigger
+button_22 = right_trigger
+button_23 = lstick_button
+button_24 = rstick_button
+button_6 = start_button
+button_7 = select_button
+button_8 = menu_button

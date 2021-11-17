@@ -1,0 +1,17 @@
+[fs-uae-controller]
+name = TWCS Throttle
+platform = linux
+
+[default]
+include = universal_gamepad
+axis_0_neg = lstick_left
+axis_0_pos = lstick_right
+axis_1_neg = lstick_up
+axis_1_pos = lstick_down
+axis_5_neg = left_trigger
+axis_5_pos = right_trigger
+button_5 = lstick_button
+button_6 = dpad_up
+button_7 = dpad_right
+button_8 = dpad_down
+button_9 = dpad_left

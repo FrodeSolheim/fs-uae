@@ -1,18 +1,6 @@
 [fs-uae-controller]
-name = 8Bitdo SN30 Pro
+name = 8BitDo SN30 Pro
 platform = linux
-
-[device]
-make = 8BitDo
-model = SN30 Pro
-type = gamepad
-
-[sdl]
-guid = 05000000c82d00000161000000010000
-buttons = 16
-hats = 1
-axes = 6
-balls = 0
 
 [default]
 include = universal_gamepad

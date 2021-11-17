@@ -1,0 +1,18 @@
+[fs-uae-controller]
+name = Battalife Joystick
+platform = linux
+
+[default]
+include = universal_gamepad
+axis_0_neg = lstick_left
+axis_0_pos = lstick_right
+axis_1_neg = lstick_up
+axis_1_pos = lstick_down
+button_0 = left_shoulder
+button_1 = right_shoulder
+button_2 = select_button
+button_3 = start_button
+button_4 = west_button
+button_5 = north_button
+button_6 = south_button
+button_7 = east_button

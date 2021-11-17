@@ -1,18 +1,6 @@
 [fs-uae-controller]
-name = Logitech Logitech Cordless RumblePad 2
+name = Logitech F710 Gamepad (DInput)
 platform = linux
-
-[device]
-make = Logitech
-model = F710
-type = gamepad
-
-[sdl]
-guid = 030000006d04000019c2000011010000
-buttons = 12
-hats = 1
-axes = 4
-balls = 0
 
 [default]
 include = universal_gamepad

@@ -1,0 +1,18 @@
+[fs-uae-controller]
+name = Raphnet Technologies NES USB Adapter
+platform = linux
+
+[default]
+include = universal_gamepad
+axis_0_neg = lstick_left
+axis_0_pos = lstick_right
+axis_1_neg = lstick_up
+axis_1_pos = lstick_down
+button_4 = start_button
+button_5 = select_button
+button_6 = east_button
+button_7 = south_button
+hat_0_down = dpad_down
+hat_0_left = dpad_left
+hat_0_right = dpad_right
+hat_0_up = dpad_up

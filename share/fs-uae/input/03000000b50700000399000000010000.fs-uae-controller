@@ -1,0 +1,22 @@
+[fs-uae-controller]
+name = Thrustmaster Firestorm Digital 2
+platform = linux
+
+[default]
+include = universal_gamepad
+axis_0_neg = lstick_left
+axis_0_pos = lstick_right
+axis_1_neg = lstick_up
+axis_1_pos = lstick_down
+button_0 = rstick_button
+button_1 = start_button
+button_10 = lstick_button
+button_11 = select_button
+button_2 = south_button
+button_3 = west_button
+button_4 = east_button
+button_5 = north_button
+button_6 = left_shoulder
+button_7 = left_trigger
+button_8 = right_shoulder
+button_9 = right_trigger

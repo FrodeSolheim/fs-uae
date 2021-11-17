@@ -1,0 +1,14 @@
+[fs-uae-controller]
+name = 3DRUDDER
+platform = linux
+
+[default]
+include = universal_gamepad
+axis_0_neg = lstick_left
+axis_0_pos = lstick_right
+axis_1_neg = lstick_up
+axis_1_pos = lstick_down
+axis_2_neg = rstick_up
+axis_2_pos = rstick_down
+axis_5_neg = rstick_left
+axis_5_pos = rstick_right

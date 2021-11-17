@@ -1,0 +1,20 @@
+[fs-uae-controller]
+name = 8BitDo NES30
+platform = linux
+
+[default]
+include = universal_gamepad
+button_0 = south_button
+button_1 = east_button
+button_10 = select_button
+button_11 = start_button
+button_3 = west_button
+button_4 = north_button
+button_6 = left_trigger
+button_7 = left_shoulder
+button_8 = right_trigger
+button_9 = right_shoulder
+hat_0_down = dpad_down
+hat_0_left = dpad_left
+hat_0_right = dpad_right
+hat_0_up = dpad_up

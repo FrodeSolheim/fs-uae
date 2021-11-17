@@ -1,18 +1,6 @@
 [fs-uae-controller]
-name = XEOX Gamepad SL-6556-BK
+name = XEOX Gamepad SL6556 BK
 platform = linux
-
-[device]
-make = Speed-Link
-model = XEOX Pro Analog
-type = gamepad
-
-[sdl]
-guid = 03000000450c00002043000010010000
-buttons = 12
-hats = 1
-axes = 4
-balls = 0
 
 [default]
 include = universal_gamepad

@@ -1,0 +1,21 @@
+[fs-uae-controller]
+name = Raphnet Technologies Dreamcast USB Adapter
+platform = linux
+
+[default]
+include = universal_gamepad
+axis_0_neg = lstick_left
+axis_0_pos = lstick_right
+axis_1_neg = rstick_up
+axis_1_pos = rstick_down
+axis_2_pos = left_trigger
+axis_3_pos = right_trigger
+button_1 = east_button
+button_10 = west_button
+button_2 = south_button
+button_3 = start_button
+button_4 = dpad_up
+button_5 = dpad_down
+button_6 = dpad_left
+button_7 = dpad_right
+button_9 = north_button

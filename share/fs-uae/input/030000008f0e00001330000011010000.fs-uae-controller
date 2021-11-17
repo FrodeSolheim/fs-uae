@@ -1,0 +1,18 @@
+[fs-uae-controller]
+name = HuiJia SNES Controller
+platform = linux
+
+[default]
+include = universal_gamepad
+axis_0_neg = dpad_left
+axis_0_pos = dpad_right
+axis_2_neg = dpad_up
+axis_2_pos = dpad_down
+button_0 = north_button
+button_12 = left_shoulder
+button_14 = right_shoulder
+button_16 = select_button
+button_18 = start_button
+button_2 = east_button
+button_4 = south_button
+button_6 = west_button

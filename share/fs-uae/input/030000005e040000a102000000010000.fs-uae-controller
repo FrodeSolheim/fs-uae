@@ -1,18 +1,6 @@
 [fs-uae-controller]
-name = Xbox 360 Wireless Receiver
+name = Xbox 360 Wireless Controller
 platform = linux
-
-[device]
-make = Microsoft
-model = Xbox 360 Controller
-type = gamepad
-
-[sdl]
-guid = 030000005e040000a102000000010000
-buttons = 15
-hats = 1
-axes = 6
-balls = 0
 
 [default]
 include = universal_gamepad

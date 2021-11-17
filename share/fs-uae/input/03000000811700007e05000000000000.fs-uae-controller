@@ -1,0 +1,23 @@
+[fs-uae-controller]
+name = Sega Saturn
+platform = linux
+
+[default]
+include = universal_gamepad
+axis_0_neg = lstick_left
+axis_0_pos = lstick_right
+axis_2_neg = lstick_up
+axis_2_pos = lstick_down
+axis_4_pos = right_trigger
+axis_5_pos = left_trigger
+button_0 = west_button
+button_13 = start_button
+button_14 = dpad_right
+button_15 = dpad_left
+button_16 = dpad_down
+button_17 = dpad_up
+button_2 = south_button
+button_4 = east_button
+button_6 = north_button
+button_8 = left_shoulder
+button_9 = right_shoulder

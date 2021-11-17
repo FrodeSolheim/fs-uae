@@ -1,0 +1,14 @@
+[fs-uae-controller]
+name = NES Controller
+platform = linux
+
+[default]
+include = universal_gamepad
+axis_0_neg = lstick_left
+axis_0_pos = lstick_right
+axis_1_neg = lstick_up
+axis_1_pos = lstick_down
+button_0 = east_button
+button_1 = south_button
+button_2 = select_button
+button_3 = start_button

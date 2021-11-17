@@ -1,0 +1,26 @@
+[fs-uae-controller]
+name = Mayflash GameCube Controller
+platform = linux
+
+[default]
+include = universal_gamepad
+axis_0_neg = lstick_left
+axis_0_pos = lstick_right
+axis_1_neg = lstick_up
+axis_1_pos = lstick_down
+axis_2_neg = rstick_up
+axis_2_pos = rstick_down
+axis_3_pos = left_trigger
+axis_4_pos = right_trigger
+axis_5_neg = rstick_left
+axis_5_pos = rstick_right
+button_0 = east_button
+button_1 = south_button
+button_12 = dpad_up
+button_13 = dpad_right
+button_14 = dpad_down
+button_15 = dpad_left
+button_2 = west_button
+button_3 = north_button
+button_7 = right_shoulder
+button_9 = start_button

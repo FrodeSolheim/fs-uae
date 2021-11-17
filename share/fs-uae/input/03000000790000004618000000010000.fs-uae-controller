@@ -1,0 +1,26 @@
+[fs-uae-controller]
+name = GameCube Controller Adapter
+platform = linux
+
+[default]
+include = universal_gamepad
+axis_0_neg = lstick_left
+axis_0_pos = lstick_right
+axis_12_pos = left_trigger
+axis_16_pos = right_trigger
+axis_20_neg = rstick_left
+axis_20_pos = rstick_right
+axis_4_neg = lstick_up
+axis_4_pos = lstick_down
+axis_8_neg = rstick_up
+axis_8_pos = rstick_down
+button_0 = east_button
+button_12 = north_button
+button_28 = right_shoulder
+button_36 = start_button
+button_4 = south_button
+button_48 = dpad_up
+button_52 = dpad_right
+button_56 = dpad_down
+button_60 = dpad_left
+button_8 = west_button

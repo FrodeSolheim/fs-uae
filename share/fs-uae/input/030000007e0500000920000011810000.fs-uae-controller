@@ -1,0 +1,31 @@
+[fs-uae-controller]
+name = Nintendo Switch Pro Controller
+platform = linux
+
+[default]
+include = universal_gamepad
+axis_0_neg = lstick_left
+axis_0_pos = lstick_right
+axis_1_neg = lstick_up
+axis_1_pos = lstick_down
+axis_2_neg = rstick_left
+axis_2_pos = rstick_right
+axis_3_neg = rstick_up
+axis_3_pos = rstick_down
+button_0 = south_button
+button_1 = east_button
+button_10 = start_button
+button_11 = menu_button
+button_12 = lstick_button
+button_13 = rstick_button
+button_2 = north_button
+button_3 = west_button
+button_5 = left_shoulder
+button_6 = right_shoulder
+button_7 = left_trigger
+button_8 = right_trigger
+button_9 = select_button
+hat_0_down = dpad_down
+hat_0_left = dpad_left
+hat_0_right = dpad_right
+hat_0_up = dpad_up

@@ -1,0 +1,23 @@
+[fs-uae-controller]
+name = Wii Remote
+platform = linux
+
+[default]
+include = universal_gamepad
+axis_0_neg = lstick_left
+axis_0_pos = lstick_right
+axis_1_neg = lstick_up
+axis_1_pos = lstick_down
+button_0 = dpad_left
+button_1 = dpad_right
+button_10 = west_button
+button_11 = left_shoulder
+button_12 = left_trigger
+button_2 = dpad_up
+button_3 = dpad_down
+button_4 = south_button
+button_5 = east_button
+button_6 = start_button
+button_7 = select_button
+button_8 = menu_button
+button_9 = north_button

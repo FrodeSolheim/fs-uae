@@ -1,0 +1,14 @@
+[fs-uae-controller]
+name = 8BitDo Dogbone Modkit
+platform = linux
+
+[default]
+include = universal_gamepad
+button_0 = east_button
+button_1 = south_button
+button_10 = select_button
+button_11 = start_button
+hat_0_down = dpad_down
+hat_0_left = dpad_left
+hat_0_right = dpad_right
+hat_0_up = dpad_up

@@ -1,0 +1,26 @@
+[fs-uae-controller]
+name = Dual Power
+platform = linux
+
+[default]
+include = universal_gamepad
+axis_0_neg = lstick_left
+axis_0_pos = lstick_right
+axis_1_neg = lstick_up
+axis_1_pos = lstick_down
+button_0 = dpad_up
+button_1 = dpad_down
+button_10 = west_button
+button_11 = north_button
+button_12 = right_shoulder
+button_13 = left_shoulder
+button_14 = left_trigger
+button_15 = right_trigger
+button_2 = dpad_left
+button_3 = dpad_right
+button_4 = select_button
+button_5 = start_button
+button_6 = lstick_button
+button_7 = rstick_button
+button_8 = south_button
+button_9 = east_button

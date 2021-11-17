@@ -1,0 +1,18 @@
+[fs-uae-controller]
+name = 8Bitdo SFC30 GamePad
+platform = linux
+
+[default]
+include = universal_gamepad
+axis_0_neg = dpad_left
+axis_0_pos = dpad_right
+axis_1_neg = dpad_up
+axis_1_pos = dpad_down
+button_0 = north_button
+button_1 = east_button
+button_2 = south_button
+button_3 = west_button
+button_4 = left_shoulder
+button_5 = right_shoulder
+button_6 = select_button
+button_7 = start_button

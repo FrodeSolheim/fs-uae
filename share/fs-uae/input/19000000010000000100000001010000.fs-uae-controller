@@ -1,0 +1,26 @@
+[fs-uae-controller]
+name = odroidgo2 joypad
+platform = linux
+
+[default]
+include = universal_gamepad
+axis_0_neg = lstick_left
+axis_0_pos = lstick_right
+axis_1_neg = lstick_up
+axis_1_pos = lstick_down
+button_0 = east_button
+button_1 = south_button
+button_10 = menu_button
+button_11 = left_trigger
+button_12 = lstick_button
+button_13 = rstick_button
+button_14 = right_trigger
+button_15 = start_button
+button_2 = west_button
+button_3 = north_button
+button_4 = left_shoulder
+button_5 = right_shoulder
+button_6 = dpad_up
+button_7 = dpad_down
+button_8 = dpad_left
+button_9 = dpad_right

@@ -1,18 +1,6 @@
 [fs-uae-controller]
-name = SAITEK P880
+name = Saitek P880
 platform = linux
-
-[device]
-make = Saitek
-model = P880
-type = gamepad
-
-[sdl]
-guid = 03000000a30600000901000000010000
-buttons = 12
-hats = 1
-axes = 4
-balls = 0
 
 [default]
 include = universal_gamepad
@@ -28,10 +16,10 @@ button_0 = west_button
 button_1 = north_button
 button_2 = south_button
 button_3 = east_button
-button_4 = select_button
-button_5 = start_button
-button_6 = left_shoulder
-button_7 = right_shoulder
+button_4 = left_shoulder
+button_5 = right_shoulder
+button_6 = left_trigger
+button_7 = right_trigger
 button_8 = lstick_button
 button_9 = rstick_button
 hat_0_down = dpad_down

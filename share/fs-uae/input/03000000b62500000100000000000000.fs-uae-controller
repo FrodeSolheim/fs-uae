@@ -1,0 +1,17 @@
+[fs-uae-controller]
+name = Gametel GT004 01
+platform = linux
+
+[default]
+include = universal_gamepad
+button_0 = east_button
+button_1 = west_button
+button_10 = dpad_down
+button_11 = dpad_up
+button_2 = north_button
+button_3 = south_button
+button_4 = left_shoulder
+button_5 = right_shoulder
+button_7 = start_button
+button_8 = dpad_right
+button_9 = dpad_left

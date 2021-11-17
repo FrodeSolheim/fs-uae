@@ -1,0 +1,11 @@
+[fs-uae-controller]
+name = Retro-Bit Atari Adapter
+platform = linux
+
+[default]
+include = universal_gamepad
+axis_0_neg = lstick_left
+axis_0_pos = lstick_right
+axis_1_neg = lstick_up
+axis_1_pos = lstick_down
+button_0 = south_button

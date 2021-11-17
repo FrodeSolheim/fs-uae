@@ -1,0 +1,7 @@
+[fs-uae-controller]
+name = Mayflash Mega Drive Adapter
+platform = linux
+
+[default]
+include = universal_gamepad
+button_0 = south_button

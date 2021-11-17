@@ -1,0 +1,14 @@
+[fs-uae-controller]
+name = USB Gamepad1
+platform = linux
+
+[default]
+include = universal_gamepad
+axis_0_pos = dpad_down
+axis_1_pos = dpad_left
+axis_2_pos = dpad_right
+axis_4_pos = dpad_up
+button_1 = east_button
+button_2 = south_button
+button_8 = select_button
+button_9 = start_button

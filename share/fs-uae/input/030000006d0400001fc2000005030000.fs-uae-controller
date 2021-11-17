@@ -1,18 +1,6 @@
 [fs-uae-controller]
-name = Logitech Gamepad F710
+name = Logitech F710 Gamepad (XInput)
 platform = linux
-
-[device]
-make = Logitech
-model = F710
-type = gamepad
-
-[sdl]
-guid = 030000006d0400001fc2000005030000
-buttons = 11
-hats = 1
-axes = 6
-balls = 0
 
 [default]
 include = universal_gamepad
@@ -35,6 +23,7 @@ button_4 = left_shoulder
 button_5 = right_shoulder
 button_6 = select_button
 button_7 = start_button
+button_8 = menu_button
 button_9 = lstick_button
 hat_0_down = dpad_down
 hat_0_left = dpad_left

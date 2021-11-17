@@ -1,32 +1,20 @@
 [fs-uae-controller]
-name = Goodbetterbest Ltd Gioteck VX2 Wired Controller
+name = GT VX2
 platform = linux
-
-[device]
-make = Gioteck
-model = VX-2 Wired PS3
-type = gamepad
-
-[sdl]
-guid = 03000000f0250000c383000010010000
-buttons = 16
-hats = 1
-axes = 5
-balls = 0
 
 [default]
 include = universal_gamepad
 axis_0_neg = lstick_left
 axis_0_pos = lstick_right
 axis_1_neg = lstick_up
-axis_1_pos = lstick_button
+axis_1_pos = lstick_down
 axis_2_neg = rstick_left
 axis_2_pos = rstick_right
 axis_3_neg = rstick_up
 axis_3_pos = rstick_down
 button_0 = north_button
 button_1 = east_button
-button_10 = lstick_down
+button_10 = lstick_button
 button_11 = rstick_button
 button_2 = south_button
 button_3 = west_button

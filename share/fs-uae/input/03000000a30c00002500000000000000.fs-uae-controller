@@ -1,0 +1,14 @@
+[fs-uae-controller]
+name = Sega Genesis Mini 3B Controller
+platform = linux
+
+[default]
+include = universal_gamepad
+axis_3_neg = dpad_left
+axis_3_pos = dpad_right
+axis_4_neg = dpad_up
+axis_4_pos = dpad_down
+button_1 = east_button
+button_2 = south_button
+button_5 = right_trigger
+button_9 = start_button

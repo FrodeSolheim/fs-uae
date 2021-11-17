@@ -1,18 +1,6 @@
 [fs-uae-controller]
-name = Wireless Controller
+name = PS4 Controller
 platform = linux
-
-[device]
-make = Sony
-model = DualShock 4 v2
-type = gamepad
-
-[sdl]
-guid = 050000004c050000cc09000000810000
-buttons = 13
-hats = 1
-axes = 6
-balls = 0
 
 [default]
 include = universal_gamepad
@@ -20,10 +8,12 @@ axis_0_neg = lstick_left
 axis_0_pos = lstick_right
 axis_1_neg = lstick_up
 axis_1_pos = lstick_down
+axis_2_pos = left_trigger
 axis_3_neg = rstick_left
 axis_3_pos = rstick_right
 axis_4_neg = rstick_up
 axis_4_pos = rstick_down
+axis_5_pos = right_trigger
 button_0 = south_button
 button_1 = east_button
 button_10 = menu_button
@@ -33,8 +23,6 @@ button_2 = north_button
 button_3 = west_button
 button_4 = left_shoulder
 button_5 = right_shoulder
-button_6 = left_trigger
-button_7 = right_trigger
 button_8 = select_button
 button_9 = start_button
 hat_0_down = dpad_down

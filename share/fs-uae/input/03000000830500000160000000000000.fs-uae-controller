@@ -1,0 +1,21 @@
+[fs-uae-controller]
+name = Arcade
+platform = linux
+
+[default]
+include = universal_gamepad
+axis_0_neg = lstick_left
+axis_0_pos = lstick_right
+axis_1_neg = lstick_up
+axis_1_pos = lstick_down
+button_0 = south_button
+button_1 = east_button
+button_2 = right_shoulder
+button_3 = right_trigger
+button_4 = north_button
+button_6 = left_shoulder
+button_7 = left_trigger
+hat_0_down = dpad_down
+hat_0_left = dpad_left
+hat_0_right = dpad_right
+hat_0_up = dpad_up

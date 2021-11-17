@@ -1,0 +1,31 @@
+[fs-uae-controller]
+name = NVIDIA Controller v01.04
+platform = linux
+
+[default]
+include = universal_gamepad
+axis_0_neg = lstick_left
+axis_0_pos = lstick_right
+axis_1_neg = lstick_up
+axis_1_pos = lstick_down
+axis_3_neg = rstick_left
+axis_3_pos = rstick_right
+axis_4_pos = left_trigger
+axis_5_pos = right_trigger
+axis_6_neg = rstick_up
+axis_6_pos = rstick_down
+button_10 = east_button
+button_11 = south_button
+button_12 = menu_button
+button_13 = select_button
+button_3 = start_button
+button_4 = rstick_button
+button_5 = lstick_button
+button_6 = right_shoulder
+button_7 = left_shoulder
+button_8 = north_button
+button_9 = west_button
+hat_0_down = dpad_down
+hat_0_left = dpad_left
+hat_0_right = dpad_right
+hat_0_up = dpad_up

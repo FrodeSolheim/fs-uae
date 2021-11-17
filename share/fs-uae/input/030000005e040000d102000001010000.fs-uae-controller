@@ -1,18 +1,6 @@
 [fs-uae-controller]
-name = Microsoft X-Box One pad
+name = Microsoft Xbox One pad
 platform = linux
-
-[device]
-make = Microsoft
-model = Xbox One Controller
-type = gamepad
-
-[sdl]
-guid = 030000005e040000d102000001010000
-buttons = 11
-hats = 1
-axes = 6
-balls = 0
 
 [default]
 include = universal_gamepad

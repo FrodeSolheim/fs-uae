@@ -1,0 +1,30 @@
+[fs-uae-controller]
+name = Serial/Keyboard/Mouse/Joystick
+platform = linux
+
+[default]
+include = universal_gamepad
+axis_0_neg = lstick_up
+axis_0_pos = lstick_down
+axis_1_neg = lstick_left
+axis_1_pos = lstick_right
+axis_2_neg = rstick_left
+axis_2_pos = rstick_right
+axis_3_neg = rstick_up
+axis_3_pos = rstick_down
+button_0 = dpad_up
+button_1 = dpad_right
+button_10 = east_button
+button_11 = north_button
+button_12 = south_button
+button_13 = west_button
+button_14 = lstick_button
+button_15 = rstick_button
+button_2 = dpad_down
+button_3 = dpad_left
+button_4 = select_button
+button_5 = start_button
+button_6 = left_trigger
+button_7 = right_trigger
+button_8 = right_shoulder
+button_9 = left_shoulder

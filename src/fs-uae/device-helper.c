@@ -377,6 +377,8 @@ int main(int argc, char* argv[])
         return 1;
     }
 
+    SDL_SetHint(SDL_HINT_MAC_BACKGROUND_APP, "1");
+
     if (strcmp(argv[1], "--list") == 0 || strcmp(argv[1], "list") == 0) {
         if (argc >= 3 && strcmp(argv[2], "--multiple-mice") == 0) {
             multiple_mice = 1;

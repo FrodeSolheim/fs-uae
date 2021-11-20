@@ -176,6 +176,15 @@ const char* fs_uae_base_dir(void)
         path = read_custom_path("base-dir");
     }
     if (path == NULL) {
+        gchar *path2 = g_build_filename(fs_uae_home_dir(), "FS-UAE", NULL);
+        if (fs_path_exists(path2)) {
+            fs_log("- using base dir $HOME/FS-UAE\n");
+            path = path2;
+        } else {
+            g_free(path2);
+        }
+    }
+    if (path == NULL) {
         fs_log("- using base dir $DOCUMENTS/FS-UAE\n");
         path = g_build_filename(fs_uae_documents_dir(), "FS-UAE", NULL);
     }

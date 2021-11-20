@@ -1,5 +1,6 @@
 Version 3.1.x:
 
+* Prefer $HOME/FS-UAE if it exists, otherwise use $DOCUMENTS/FS-UAE.
 * Support joystick_port_[port]_[gamepadinput] input mapping.
 * Read [guid].fs-uae-controller controller configs.
 * Fixed uaenative_library option.

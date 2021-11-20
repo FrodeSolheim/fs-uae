@@ -182,11 +182,13 @@ static void auto_joystick(
     p->new_mode = mode;
     int result = fs_emu_configure_joystick(
             "JOYSTICK", type, g_joystick_mappings[port], 1,
-            g_fs_uae_input_ports[port].device, MAX_DEVICE_NAME_LEN, false);
+            g_fs_uae_input_ports[port].device, MAX_DEVICE_NAME_LEN, false,
+            port);
     if (!result) {
         result = fs_emu_configure_joystick(
             "JOYSTICK #2", type, g_joystick_mappings[port], 1,
-            g_fs_uae_input_ports[port].device, MAX_DEVICE_NAME_LEN, false);
+            g_fs_uae_input_ports[port].device, MAX_DEVICE_NAME_LEN, false,
+            port);
     }
     if (!result) {
         fs_emu_log("could not auto-configure joystick,"
@@ -261,7 +263,8 @@ static void configure_joystick_port(
         p->new_mode = auto_mode;
         fs_emu_configure_joystick(value, auto_type,
                 g_joystick_mappings[port], 1,
-                p->device, MAX_DEVICE_NAME_LEN, false);
+                p->device, MAX_DEVICE_NAME_LEN, false,
+                port);
     }
 
     if (mode_string) {
@@ -403,7 +406,7 @@ void fs_uae_reconfigure_input_ports_host()
             else {
                 fs_log("* using device %s\n", port->device);
                 fs_emu_configure_joystick(port->device, "amiga",
-                        g_joystick_mappings[i], 1, NULL, 0, true);
+                        g_joystick_mappings[i], 1, NULL, 0, true, i);
             }
         }
         else if (port->mode == AMIGA_JOYPORT_CD32JOY) {
@@ -414,7 +417,7 @@ void fs_uae_reconfigure_input_ports_host()
             else {
                 fs_log("* using device %s\n", port->device);
                 fs_emu_configure_joystick(port->device, "cd32",
-                        g_joystick_mappings[i], 1, NULL, 0, true);
+                        g_joystick_mappings[i], 1, NULL, 0, true, i);
             }
         }
     }

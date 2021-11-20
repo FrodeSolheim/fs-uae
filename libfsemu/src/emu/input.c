@@ -638,6 +638,9 @@ static void map_custom_gamepad_actions(
         int index = button_index(-1, joy, config[j].axis, config[j].hat,
                 config[j].button, config[j].value);
         int action = fs_emu_input_action_from_string(config_value);
+        if (g_fs_log_input) {
+            fs_log("[INPUT] -> index %d action %d\n", index, action);
+        }
         if (action >= 0) {
             g_input_action_table[index] = action;
         }
@@ -1172,9 +1175,11 @@ static input_config_item *get_config(
 
 int fs_emu_configure_joystick(
         const char *name, const char *type, fs_emu_input_mapping *mapping,
-        int usage, char *out_name, int out_name_len, bool reuse)
+        int usage, char *out_name, int out_name_len, bool reuse,
+        int port_index)
 {
-    fs_log("configure joystick \"%s\" for \"%s\"\n", name, type);
+    fs_log("configure joystick \"%s\" for \"%s\" (port index %d\n",
+        name, type, port_index);
     if (name == NULL || name[0] == '\0') {
         return 0;
     }
@@ -1211,6 +1216,10 @@ int fs_emu_configure_joystick(
             map_joystick(i, config + j, mapping, g_input_action_table,
                     NULL, NULL);
         }
+
+        char *config_name = g_strdup_printf("joystick_port_%d", port_index);
+        map_custom_gamepad_actions(i, config_name, &device);
+        free(config_name);
 
         fs_ml_input_device *devices = fs_ml_get_input_devices(NULL);
         devices[i].usage = usage;

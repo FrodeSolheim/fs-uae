@@ -191,7 +191,8 @@ fs_emu_input_device *fs_emu_get_input_devices(int* count);
 
 int fs_emu_configure_joystick(
     const char *name, const char *type, fs_emu_input_mapping *mapping,
-        int usage, char *out_name, int out_name_len, bool reuse);
+        int usage, char *out_name, int out_name_len, bool reuse,
+        int port_index);
 
 void fs_emu_configure_mouse(const char *name, int horiz, int vert, int left,
         int middle, int right, int wheel_axis);

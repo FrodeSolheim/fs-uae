@@ -286,6 +286,8 @@ void fs_ml_input_init()
             continue;
         }
 
+        g_fs_ml_input_devices[k].guid = g_strdup(guid_str);
+
         SDL_Joystick *joystick = SDL_JoystickOpen(i);
         fs_log("[INPUT] SDL_JoystickOpen(%d)\n", i);
 

@@ -300,6 +300,7 @@ typedef struct fs_ml_input_device {
     int hats;
     int usage;
     int balls;
+    char *guid;
 } fs_ml_input_device;
 
 int fs_ml_input_device_count();

@@ -1,5 +1,9 @@
-Version 3.1:
+Version 3.1.x:
 
+* Read [guid].fs-uae-controller controller configs.
+* Fixed uaenative_library option.
+* Added lots of game controller configs.
+* Set SDL_HINT_MAC_BACKGROUND_APP in device helper.
 * Allow screensaver with SDL_VIDEO_ALLOW_SCREENSAVER=1.
 * Fix device helper for xinput devices with recent SDL2 versions.
 * Support for multiple mice disabled by default on macOS due to security

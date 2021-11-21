@@ -680,6 +680,10 @@ static void map_custom_joystick_actions()
                     device.hats, device.buttons);
             map_custom_gamepad_actions(i, config_name, &device);
             g_free(config_name);
+
+            // Input mapping for all controllers
+            map_custom_gamepad_actions(i, "controller", &device);
+
             joystick_index += 1;
         }
     }
@@ -1217,7 +1221,9 @@ int fs_emu_configure_joystick(
                     NULL, NULL);
         }
 
-        char *config_name = g_strdup_printf("joystick_port_%d", port_index);
+        // Input mapping for controller in port
+        char *config_name = g_strdup_printf(
+            "joystick_port_%d_controller", port_index);
         map_custom_gamepad_actions(i, config_name, &device);
         free(config_name);
 

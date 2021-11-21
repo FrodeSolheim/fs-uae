@@ -1,5 +1,5 @@
 [fs-uae-controller]
-name = Logitech F710 Gamepad (XInput)
+name = Logitech F710
 platform = linux
 
 [default]

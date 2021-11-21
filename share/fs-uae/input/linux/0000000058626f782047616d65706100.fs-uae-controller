@@ -1,5 +1,5 @@
 [fs-uae-controller]
-name = Xbox Gamepad
+name = Xbox Gamepad (userspace driver)
 platform = linux
 
 [default]

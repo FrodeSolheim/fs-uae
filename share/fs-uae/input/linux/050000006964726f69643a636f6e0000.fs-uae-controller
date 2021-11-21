@@ -1,5 +1,5 @@
 [fs-uae-controller]
-name = idroidcon Controller
+name = idroid:con
 platform = linux
 
 [default]

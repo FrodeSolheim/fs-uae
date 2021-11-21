@@ -1,5 +1,5 @@
 [fs-uae-controller]
-name = Retronic Adapter
+name = Retronic Joystick Adapter
 platform = linux
 
 [default]

@@ -1,5 +1,5 @@
 [fs-uae-controller]
-name = Nintendo Switch Pro Controller
+name = Switch Pro Controller
 platform = linux
 
 [default]

@@ -1,5 +1,5 @@
 [fs-uae-controller]
-name = Retrolink USB Super SNES Classic Controller
+name = Nintendo Retrolink USB Super SNES Classic Controller
 platform = linux
 
 [default]

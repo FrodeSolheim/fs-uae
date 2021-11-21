@@ -1,5 +1,5 @@
 [fs-uae-controller]
-name = 8BitDo Wireless Adapter (XInput)
+name = 8BitDo Receiver
 platform = linux
 
 [default]

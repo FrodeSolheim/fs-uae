@@ -1,5 +1,5 @@
 [fs-uae-controller]
-name = NVIDIA Virtual Gamepad
+name = SHIELD Controller
 platform = linux
 
 [default]

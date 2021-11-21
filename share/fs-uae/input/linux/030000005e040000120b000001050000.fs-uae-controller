@@ -1,5 +1,5 @@
 [fs-uae-controller]
-name = Xbox Series Controller
+name = Xbox Controller
 platform = linux
 
 [default]

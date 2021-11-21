@@ -1,5 +1,5 @@
 [fs-uae-controller]
-name = Logitech F310 Gamepad (XInput)
+name = Logitech F310
 platform = linux
 
 [default]

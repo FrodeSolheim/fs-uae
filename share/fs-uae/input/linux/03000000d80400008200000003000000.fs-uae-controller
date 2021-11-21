@@ -1,5 +1,5 @@
 [fs-uae-controller]
-name = IMS PCU0 Gamepad
+name = IMS PCU
 platform = linux
 
 [default]

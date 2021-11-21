@@ -1,5 +1,5 @@
 [fs-uae-controller]
-name = Xbox 360 Controller
+name = X360 Controller
 platform = linux
 
 [default]

@@ -1,5 +1,5 @@
 [fs-uae-controller]
-name = HuiJia GameCube Controller Adpater
+name = GameCube {HuiJia USB box}
 platform = linux
 
 [default]

@@ -1,5 +1,5 @@
 [fs-uae-controller]
-name = Xbox Controller
+name = Generic X-Box pad
 platform = linux
 
 [default]

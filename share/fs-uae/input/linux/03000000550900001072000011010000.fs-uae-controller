@@ -1,5 +1,5 @@
 [fs-uae-controller]
-name = NVIDIA Controller
+name = SHIELD Controller
 platform = linux
 
 [default]
@@ -16,7 +16,8 @@ axis_4_pos = right_trigger
 axis_5_pos = left_trigger
 button_0 = south_button
 button_1 = east_button
-button_13 = menu_button
+button_14 = select_button
+button_15 = menu_button
 button_2 = west_button
 button_3 = north_button
 button_4 = left_shoulder

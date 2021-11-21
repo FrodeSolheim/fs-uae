@@ -1,5 +1,5 @@
 [fs-uae-controller]
-name = Precision Controller
+name = Logitech Cordless Precision
 platform = linux
 
 [default]
@@ -16,6 +16,7 @@ button_0 = west_button
 button_1 = south_button
 button_10 = lstick_button
 button_11 = rstick_button
+button_12 = menu_button
 button_2 = east_button
 button_3 = north_button
 button_4 = left_shoulder

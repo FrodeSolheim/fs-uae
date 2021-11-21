@@ -1,5 +1,5 @@
 [fs-uae-controller]
-name = DragonRise Inc. Generic USB Joystick
+name = Retro-Bit GameCube Controller
 platform = linux
 
 [default]
@@ -12,17 +12,13 @@ axis_3_neg = rstick_left
 axis_3_pos = rstick_right
 axis_4_neg = rstick_up
 axis_4_pos = rstick_down
-button_0 = north_button
-button_1 = east_button
-button_10 = lstick_button
-button_11 = rstick_button
+button_0 = west_button
+button_1 = north_button
 button_2 = south_button
-button_3 = west_button
-button_4 = left_shoulder
-button_5 = right_shoulder
-button_6 = left_trigger
-button_7 = right_trigger
-button_8 = select_button
+button_3 = east_button
+button_4 = left_trigger
+button_5 = right_trigger
+button_6 = right_shoulder
 button_9 = start_button
 hat_0_down = dpad_down
 hat_0_left = dpad_left

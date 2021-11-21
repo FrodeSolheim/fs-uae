@@ -1,5 +1,5 @@
 [fs-uae-controller]
-name = Hori
+name = hori
 platform = linux
 
 [default]
@@ -9,6 +9,10 @@ button_1 = west_button
 button_10 = menu_button
 button_2 = north_button
 button_3 = left_shoulder
+button_4_neg = lstick_left
+button_4_pos = lstick_right
+button_5_neg = lstick_up
+button_5_pos = lstick_down
 button_6 = east_button
 button_7 = right_shoulder
 button_8 = select_button

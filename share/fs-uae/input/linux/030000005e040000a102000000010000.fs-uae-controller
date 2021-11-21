@@ -1,5 +1,5 @@
 [fs-uae-controller]
-name = Xbox 360 Wireless Controller
+name = Xbox 360 Controller
 platform = linux
 
 [default]
@@ -17,10 +17,6 @@ axis_5_pos = right_trigger
 button_0 = south_button
 button_1 = east_button
 button_10 = rstick_button
-button_11 = dpad_left
-button_12 = dpad_right
-button_13 = dpad_up
-button_14 = dpad_down
 button_2 = west_button
 button_3 = north_button
 button_4 = left_shoulder
@@ -29,3 +25,7 @@ button_6 = select_button
 button_7 = start_button
 button_8 = menu_button
 button_9 = lstick_button
+hat_0_down = dpad_down
+hat_0_left = dpad_left
+hat_0_right = dpad_right
+hat_0_up = dpad_up

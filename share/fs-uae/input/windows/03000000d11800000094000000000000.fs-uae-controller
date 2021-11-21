@@ -1,5 +1,5 @@
 [fs-uae-controller]
-name = Stadia Controller
+name = Google Stadia Controller
 platform = linux
 
 [default]

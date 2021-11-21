@@ -1,5 +1,5 @@
 [fs-uae-controller]
-name = USB Vibration Joystick
+name = USB Vibration Joystick (BM)
 platform = linux
 
 [default]

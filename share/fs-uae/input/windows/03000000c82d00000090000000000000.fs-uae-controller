@@ -18,7 +18,6 @@ button_10 = select_button
 button_11 = start_button
 button_13 = lstick_button
 button_14 = rstick_button
-button_2 = menu_button
 button_3 = north_button
 button_4 = west_button
 button_6 = left_shoulder

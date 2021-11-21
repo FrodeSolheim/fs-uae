@@ -1,5 +1,5 @@
 [fs-uae-controller]
-name = Xbox One Wireless Controller (Model 1708)
+name = Xbox One Controller
 platform = linux
 
 [default]

@@ -1,5 +1,5 @@
 [fs-uae-controller]
-name = Asus Gamepad
+name = ASUS TV500BG
 platform = linux
 
 [default]
@@ -21,7 +21,6 @@ button_2 = west_button
 button_3 = north_button
 button_4 = left_shoulder
 button_5 = right_shoulder
-button_6 = menu_button
 button_7 = lstick_button
 button_8 = rstick_button
 button_9 = select_button

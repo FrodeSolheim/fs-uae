@@ -1,5 +1,5 @@
 [fs-uae-controller]
-name = GS gamepad
+name = GS Gamepad
 platform = linux
 
 [default]

@@ -1,5 +1,5 @@
 [fs-uae-controller]
-name = USB Game Controller
+name = USB 4-Axis 12-Button Gamepad
 platform = linux
 
 [default]

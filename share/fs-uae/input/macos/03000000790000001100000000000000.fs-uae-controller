@@ -1,20 +1,18 @@
 [fs-uae-controller]
-name = Retro Controller
+name = Retrolink Classic Controller
 platform = linux
 
 [default]
 include = universal_gamepad
-axis_3_neg = dpad_left
-axis_3_pos = dpad_right
-axis_4_neg = dpad_up
-axis_4_pos = dpad_down
-button_0 = west_button
-button_1 = south_button
-button_2 = east_button
-button_3 = north_button
-button_4 = right_shoulder
-button_5 = right_trigger
-button_6 = left_shoulder
-button_7 = left_trigger
+axis_3_neg = lstick_left
+axis_3_pos = lstick_right
+axis_4_neg = lstick_up
+axis_4_pos = lstick_down
+button_0 = north_button
+button_1 = east_button
+button_2 = south_button
+button_3 = west_button
+button_4 = left_shoulder
+button_5 = right_shoulder
 button_8 = select_button
 button_9 = start_button

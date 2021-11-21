@@ -1,5 +1,5 @@
 [fs-uae-controller]
-name = Joy-Con (L)
+name = Switch Joy-Con (L)
 platform = linux
 
 [default]
@@ -7,9 +7,9 @@ include = universal_gamepad
 button_0 = south_button
 button_1 = east_button
 button_10 = lstick_button
-button_13 = select_button
+button_13 = start_button
 button_2 = west_button
 button_3 = north_button
 button_4 = left_shoulder
 button_5 = right_shoulder
-button_8 = start_button
+button_8 = select_button

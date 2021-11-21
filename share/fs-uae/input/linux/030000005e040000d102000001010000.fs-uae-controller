@@ -1,5 +1,5 @@
 [fs-uae-controller]
-name = Microsoft Xbox One pad
+name = Xbox One Controller
 platform = linux
 
 [default]

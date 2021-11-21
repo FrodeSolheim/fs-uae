@@ -1,5 +1,5 @@
 [fs-uae-controller]
-name = 8Bitdo SFC30 GamePad Joystick
+name = 8BitDo SFC30 Gamepad
 platform = linux
 
 [default]

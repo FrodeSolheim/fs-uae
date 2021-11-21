@@ -1,5 +1,5 @@
 [fs-uae-controller]
-name = VR Box Controller
+name = VR-BOX
 platform = linux
 
 [default]

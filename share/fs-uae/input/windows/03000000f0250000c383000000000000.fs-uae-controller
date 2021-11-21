@@ -1,5 +1,5 @@
 [fs-uae-controller]
-name = Gioteck VX2 Controller
+name = Gioteck VX2
 platform = linux
 
 [default]

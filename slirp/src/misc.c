@@ -142,7 +142,7 @@ static void fork_exec_child_setup(gpointer data)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-#if !GLIB_CHECK_VERSION(2, 58, 0)
+#if 1
 typedef struct SlirpGSpawnFds {
     GSpawnChildSetupFunc child_setup;
     gpointer user_data;
@@ -169,7 +169,7 @@ g_spawn_async_with_fds_slirp(const gchar *working_directory, gchar **argv,
                              gpointer user_data, GPid *child_pid, gint stdin_fd,
                              gint stdout_fd, gint stderr_fd, GError **error)
 {
-#if GLIB_CHECK_VERSION(2, 58, 0)
+#if 0
     return g_spawn_async_with_fds(working_directory, argv, envp, flags,
                                   child_setup, user_data, child_pid, stdin_fd,
                                   stdout_fd, stderr_fd, error);

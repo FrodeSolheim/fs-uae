@@ -6,5 +6,4 @@
 *.obj
 /TAGS
 /cscope*
-/src/libslirp-version.h
 /tags

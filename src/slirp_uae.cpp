@@ -83,7 +83,8 @@ static void uae_slirp_guest_error(const char *msg, void *opaque)
 
 static int64_t uae_slirp_clock_get_ns(void *opaque)
 {
-	return uae_time_ns();
+	// Don't think we need nanosecond precision here.
+	return uae_time_us() * 1000;
 }
 
 static void *uae_slirp_timer_new(SlirpTimerCb cb,

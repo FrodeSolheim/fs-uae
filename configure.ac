@@ -657,7 +657,7 @@ REQ_FEATURE([AUTOCONFIG], [autoconfig], [autoconfig],
             [autoconfig support, fast ram, harddrives etc...])
 OPT_FEATURE([BSDSOCKET], [bsdsocket], [bsdsocket],
             [built-in bsdsocket.library])
-DIS_FEATURE([WITH_BUILTIN_SLIRP], [builtin_slirp], [builtin-slirp],
+OPT_FEATURE([WITH_BUILTIN_SLIRP], [builtin_slirp], [builtin-slirp],
             [built-in SLIRP implementation (unsupported)])
 OPT_FEATURE([CAPS], [caps], [caps],
             [IPF support via libcapsimage])

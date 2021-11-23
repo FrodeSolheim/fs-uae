@@ -1,3 +1,7 @@
+Version 3.2.x:
+
+* Backported builtin slirp from FS-UAE 4 (fixes A2065 instability).
+
 Version 3.1.x:
 
 * Support controller_[event] input mapping for matching all controllers.

@@ -872,45 +872,63 @@ noinst_LIBRARIES += libslirp.a
 AM_CPPFLAGS += -I$(s)/src/slirp/include
 fs_uae_LDADD += libslirp.a
 libslirp_a_SOURCES = \
-	src/slirp/bootp.cpp \
-	src/slirp/bootp.h \
-	src/slirp/cksum.cpp \
-	src/slirp/ctl.h \
-	src/slirp/debug.h \
-	src/slirp/icmp_var.h \
-	src/slirp/if.cpp \
-	src/slirp/if.h \
-	src/slirp/ip.h \
-	src/slirp/ip_icmp.cpp \
-	src/slirp/ip_icmp.h \
-	src/slirp/ip_input.cpp \
-	src/slirp/ip_output.cpp \
-	src/slirp/libslirp.h \
-	src/slirp/main.h \
-	src/slirp/mbuf.cpp \
-	src/slirp/mbuf.h \
-	src/slirp/misc.cpp \
-	src/slirp/misc.h \
-	src/slirp/sbuf.cpp \
-	src/slirp/sbuf.h \
-	src/slirp/slirp.cpp \
-	src/slirp/slirp.h \
-	src/slirp/slirp_config.h \
-	src/slirp/slirpdebug.cpp \
-	src/slirp/socket.cpp \
-	src/slirp/socket.h \
-	src/slirp/tcp.h \
-	src/slirp/tcp_input.cpp \
-	src/slirp/tcp_output.cpp \
-	src/slirp/tcp_subr.cpp \
-	src/slirp/tcp_timer.cpp \
-	src/slirp/tcp_timer.h \
-	src/slirp/tcp_var.h \
-	src/slirp/tcpip.h \
-	src/slirp/tftp.cpp \
-	src/slirp/tftp.h \
-	src/slirp/udp.cpp \
-	src/slirp/udp.h
+	slirp/src/arp_table.c \
+	slirp/src/bootp.c \
+	slirp/src/bootp.h \
+	slirp/src/cksum.c \
+	slirp/src/debug.h \
+	slirp/src/dhcpv6.c \
+	slirp/src/dhcpv6.h \
+	slirp/src/dnssearch.c \
+	slirp/src/if.c \
+	slirp/src/if.h \
+	slirp/src/ip6.h \
+	slirp/src/ip6_icmp.c \
+	slirp/src/ip6_icmp.h \
+	slirp/src/ip6_input.c \
+	slirp/src/ip6_output.c \
+	slirp/src/ip.h \
+	slirp/src/ip_icmp.c \
+	slirp/src/ip_icmp.h \
+	slirp/src/ip_input.c \
+	slirp/src/ip_output.c \
+	slirp/src/libslirp.h \
+	slirp/src/libslirp-version.h \
+	slirp/src/main.h \
+	slirp/src/mbuf.c \
+	slirp/src/mbuf.h \
+	slirp/src/misc.c \
+	slirp/src/misc.h \
+	slirp/src/ncsi.c \
+	slirp/src/ncsi-pkt.h \
+	slirp/src/ndp_table.c \
+	slirp/src/sbuf.c \
+	slirp/src/sbuf.h \
+	slirp/src/slirp.c \
+	slirp/src/slirp.h \
+	slirp/src/socket.c \
+	slirp/src/socket.h \
+	slirp/src/state.c \
+	slirp/src/stream.c \
+	slirp/src/stream.h \
+	slirp/src/tcp.h \
+	slirp/src/tcp_input.c \
+	slirp/src/tcpip.h \
+	slirp/src/tcp_output.c \
+	slirp/src/tcp_subr.c \
+	slirp/src/tcp_timer.c \
+	slirp/src/tcp_timer.h \
+	slirp/src/tcp_var.h \
+	slirp/src/tftp.c \
+	slirp/src/tftp.h \
+	slirp/src/udp6.c \
+	slirp/src/udp.c \
+	slirp/src/udp.h \
+	slirp/src/util.c \
+	slirp/src/util.h \
+	slirp/src/version.c \
+	slirp/src/vmstate.c \
+	slirp/src/vmstate.h
 endif
 endif
 
@@ -1227,6 +1245,9 @@ EXTRA_DIST = $(TESTS) $(EXTRA_TESTS) \
 	licenses/lua.txt \
 	licenses/zlib.txt \
 	po \
+	slirp/CHANGELOG.md \
+	slirp/COPYRIGHT \
+	slirp/README.md \
 	src/filesys_bootrom.cpp \
 	src/fs-uae/fs-uae.rc.in \
 	src/inputevents.def \
@@ -1241,7 +1262,7 @@ EXTRA_DIST = $(TESTS) $(EXTRA_TESTS) \
 	src/mame/tm34010/34010gfx.c \
 	src/od-fs/bsdsocket_posix.cpp \
 	src/od-win32/bsdsock.cpp \
-        src/od-win32/mman.cpp \
+	src/od-win32/mman.cpp \
 	src/p96_blit.cpp \
 	src/sinctable.cpp \
 	src/table68k \

@@ -126,8 +126,8 @@ void fs_emu_warning(const char *format, ...)
     if (len > 0 && buffer[len] == '\n') {
         buffer[len] = '\0';
     }
-    fs_log("WARNING: %s\n", buffer);
     printf("WARNING: %s\n", buffer);
+    fs_log("WARNING: %s\n", buffer);
     fs_emu_hud_add_console_line(buffer, 0);
     g_free(buffer);
 }

@@ -23,6 +23,7 @@
 #include "hud.h"
 #include <fs/emu.h>
 #include <fs/emu/options.h>
+#include <fs/emu/render.h>
 #include <fs/emu/video.h>
 #include <fs/conf.h>
 #include <fs/glib.h>
@@ -130,6 +131,11 @@ void fse_notify(uint32_t type, const char *format, ...)
 
 void fs_emu_hud_add_console_line(const char *text, int flags)
 {
+    if (g_console_mutex == NULL) {
+        // Console is not initialized. Can happen if warnings are issued from
+        // device helper.
+        return;
+    }
     message_t *line = malloc(sizeof(message_t));
     line->type = 0;
     line->text = g_strdup(text);
@@ -137,7 +143,6 @@ void fs_emu_hud_add_console_line(const char *text, int flags)
     line->show_until = line->time + DEFAULT_DURATION;
     g_last_line_time = MAX(line->show_until, line->show_until);
 
-    // assert(g_console_mutex != NULL);
     fs_mutex_lock(g_console_mutex);
     g_queue_push_head(g_console_lines, line);
     fs_mutex_unlock(g_console_mutex);

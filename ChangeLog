@@ -1,5 +1,6 @@
 Version 3.1.x:
 
+* Fix mouse grab on startup on macOS.
 * Support controller_[event] input mapping for matching all controllers.
 * Prefer $HOME/FS-UAE if it exists, otherwise use $DOCUMENTS/FS-UAE.
 * Support joystick_port_[port]_controller_[event] input mapping.

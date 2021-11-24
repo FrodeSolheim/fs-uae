@@ -265,10 +265,10 @@ static void set_video_mode()
     int x = g_window_x, y = g_window_y;
     int w = -1, h = -1;
 
-//    if (g_initial_input_grab) {
-//        flags |= SDL_WINDOW_INPUT_GRABBED;
-//        g_has_input_grab = 1;
-//    }
+    if (g_initial_input_grab) {
+        flags |= SDL_WINDOW_INPUT_GRABBED;
+        g_has_input_grab = 1;
+    }
 
     if (g_fs_emu_video_fullscreen == 1) {
         w = g_fullscreen_width;
@@ -350,6 +350,9 @@ static void set_video_mode()
     fs_log("[SDL] CreateWindow(x=%d, y=%d, w=%d, h=%d, flags=%d)\n",
            x, y, w, h, flags);
     g_fs_ml_window = SDL_CreateWindow(g_window_title, x, y, w, h, flags);
+    if (g_initial_input_grab) {
+        SDL_SetRelativeMouseMode(SDL_TRUE);
+    }
 
     int assume_refresh_rate = fs_config_get_int("assume_refresh_rate");
     if (assume_refresh_rate != FS_CONFIG_NONE) {

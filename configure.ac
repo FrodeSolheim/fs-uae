@@ -333,6 +333,7 @@ AC_SUBST([OS_NAME])
 AC_SUBST([OS_NAME_2])
 AC_SUBST([OS_NAME_3])
 AC_SUBST([PACKAGE_ARCH])
+AC_SUBST([SLIRP_LIBS])
 AS_CASE([$host_os],
 [mingw*], [
     OS_NAME="windows"
@@ -368,6 +369,7 @@ AS_CASE([$host_os],
     ], [
         OS_LDFLAGS="-headerpad_max_install_names -rpath @executable_path/../Frameworks"
     ])
+    SLIRP_LIBS="-lresolv"
 ],
 [freebsd*], [
     OS_NAME="freebsd"

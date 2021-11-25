@@ -1,5 +1,6 @@
 Version 3.2.x:
 
+* Upgrade libslirp to version 4.6.1.
 * Backported builtin slirp from FS-UAE 4 (fixes A2065 instability).
 * Use g_get_monotonic_time() for high-resolution time on Windows as well.
 

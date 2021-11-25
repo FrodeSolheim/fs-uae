@@ -871,6 +871,7 @@ if WITH_BUILTIN_SLIRP
 noinst_LIBRARIES += libslirp.a
 AM_CPPFLAGS += -I$(s)/src/slirp/include
 fs_uae_LDADD += libslirp.a
+LIBS += @SLIRP_LIBS@
 libslirp_a_SOURCES = \
 	slirp/src/arp_table.c \
 	slirp/src/bootp.c \

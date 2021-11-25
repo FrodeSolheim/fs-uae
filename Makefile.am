@@ -1292,49 +1292,8 @@ endif
 if WITH_SLIRP
 if WITH_BUILTIN_SLIRP
 noinst_LIBRARIES += libslirp.a
-# AM_CPPFLAGS += -I$(s)/src/slirp/include
 fs_uae_LDADD += libslirp.a
-# libslirp_a_SOURCES = \
-# 	src/slirp/bootp.cpp \
-# 	src/slirp/bootp.h \
-# 	src/slirp/cksum.cpp \
-# 	src/slirp/ctl.h \
-# 	src/slirp/debug.h \
-# 	src/slirp/icmp_var.h \
-# 	src/slirp/if.cpp \
-# 	src/slirp/if.h \
-# 	src/slirp/ip.h \
-# 	src/slirp/ip_icmp.cpp \
-# 	src/slirp/ip_icmp.h \
-# 	src/slirp/ip_input.cpp \
-# 	src/slirp/ip_output.cpp \
-# 	src/slirp/libslirp.h \
-# 	src/slirp/main.h \
-# 	src/slirp/mbuf.cpp \
-# 	src/slirp/mbuf.h \
-# 	src/slirp/misc.cpp \
-# 	src/slirp/misc.h \
-# 	src/slirp/sbuf.cpp \
-# 	src/slirp/sbuf.h \
-# 	src/slirp/slirp.cpp \
-# 	src/slirp/slirp.h \
-# 	src/slirp/slirp_config.h \
-# 	src/slirp/slirpdebug.cpp \
-# 	src/slirp/socket.cpp \
-# 	src/slirp/socket.h \
-# 	src/slirp/tcp.h \
-# 	src/slirp/tcp_input.cpp \
-# 	src/slirp/tcp_output.cpp \
-# 	src/slirp/tcp_subr.cpp \
-# 	src/slirp/tcp_timer.cpp \
-# 	src/slirp/tcp_timer.h \
-# 	src/slirp/tcp_var.h \
-# 	src/slirp/tcpip.h \
-# 	src/slirp/tftp.cpp \
-# 	src/slirp/tftp.h \
-# 	src/slirp/udp.cpp \
-# 	src/slirp/udp.h
-
+LIBS += @SLIRP_LIBS@
 libslirp_a_SOURCES = \
 	slirp/src/arp_table.c \
 	slirp/src/bootp.c \

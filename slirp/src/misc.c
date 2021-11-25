@@ -136,13 +136,21 @@ static void fork_exec_child_setup(gpointer data)
 {
 #ifndef _WIN32
     setsid();
+
+    /* Unblock all signals and leave our exec()-ee to block what it wants */
+    sigset_t ss;
+    sigemptyset(&ss);
+    sigprocmask(SIG_SETMASK, &ss, NULL);
+
+    /* POSIX is obnoxious about SIGCHLD specifically across exec() */
+    signal(SIGCHLD, SIG_DFL);
 #endif
 }
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-#if !GLIB_CHECK_VERSION(2, 58, 0)
+#if 1
 typedef struct SlirpGSpawnFds {
     GSpawnChildSetupFunc child_setup;
     gpointer user_data;
@@ -169,7 +177,7 @@ g_spawn_async_with_fds_slirp(const gchar *working_directory, gchar **argv,
                              gpointer user_data, GPid *child_pid, gint stdin_fd,
                              gint stdout_fd, gint stderr_fd, GError **error)
 {
-#if GLIB_CHECK_VERSION(2, 58, 0)
+#if 0
     return g_spawn_async_with_fds(working_directory, argv, envp, flags,
                                   child_setup, user_data, child_pid, stdin_fd,
                                   stdout_fd, stderr_fd, error);
@@ -364,6 +372,48 @@ char *slirp_connection_info(Slirp *slirp)
                                                      "*");
         g_string_append_printf(str, "%15s  -    %5d %5d\n", inet_ntoa(dst_addr),
                                so->so_rcv.sb_cc, so->so_snd.sb_cc);
+    }
+
+    return g_string_free(str, FALSE);
+}
+
+char *slirp_neighbor_info(Slirp *slirp)
+{
+    GString *str = g_string_new(NULL);
+    ArpTable *arp_table = &slirp->arp_table;
+    NdpTable *ndp_table = &slirp->ndp_table;
+    char ip_addr[INET6_ADDRSTRLEN];
+    char eth_addr[ETH_ADDRSTRLEN];
+    const char *ip;
+
+    g_string_append_printf(str, "  %5s  %-17s  %s\n",
+                           "Table", "MacAddr", "IP Address");
+
+    for (int i = 0; i < ARP_TABLE_SIZE; ++i) {
+        struct in_addr addr;
+        addr.s_addr = arp_table->table[i].ar_sip;
+        if (!addr.s_addr) {
+            continue;
+        }
+        ip = inet_ntop(AF_INET, &addr, ip_addr, sizeof(ip_addr));
+        g_assert(ip != NULL);
+        g_string_append_printf(str, "  %5s  %-17s  %s\n", "ARP",
+                               slirp_ether_ntoa(arp_table->table[i].ar_sha,
+                                                eth_addr, sizeof(eth_addr)),
+                               ip);
+    }
+
+    for (int i = 0; i < NDP_TABLE_SIZE; ++i) {
+        if (in6_zero(&ndp_table->table[i].ip_addr)) {
+            continue;
+        }
+        ip = inet_ntop(AF_INET6, &ndp_table->table[i].ip_addr, ip_addr,
+                       sizeof(ip_addr));
+        g_assert(ip != NULL);
+        g_string_append_printf(str, "  %5s  %-17s  %s\n", "NDP",
+                               slirp_ether_ntoa(ndp_table->table[i].eth_addr,
+                                                eth_addr, sizeof(eth_addr)),
+                               ip);
     }
 
     return g_string_free(str, FALSE);

@@ -5,25 +5,24 @@ within a single directory structure.
 
 ## Upgrading the portable version
 
-You can generally upgrade to a new version by simple extracting the new
-version on top of the old one.
+You can generally upgrade to a new version by simple extracting the new version
+on top of the old one.
 
-FIXME: Write about old files being left around, how to clean up, and/or
-how to upgrade "cleanly".
+FIXME: Write about old files being left around, how to clean up, and/or how to
+upgrade "cleanly".
 
 ## Mixed host OS support
 
-You can combine the portable versions for all supported operating systems
-and CPU architectures. Just extract every portable version (the ones you
-want) on top of each other.
+You can combine the portable versions for all supported operating systems and
+CPU architectures. Just extract every portable version (the ones you want) on
+top of each other.
 
-It is important that when you upgrade to a new version, that you upgrade
-every portable version you are using at the same time, since some files are
-shared.
+It is important that when you upgrade to a new version, that you upgrade every
+portable version you are using at the same time, since some files are shared.
 
 ## Temporary files
 
 The portable version will still store temporary files in the system-provided
-temp directory. This is the only exception where FS-UAE (Launcher) writes
-files outside the portable directory (except also if you specifically use
-floppy / HD media from outside the portable directory of course).
+temp directory. This is the only exception where FS-UAE (Launcher) writes files
+outside the portable directory (except also if you specifically use floppy / HD
+media from outside the portable directory of course).

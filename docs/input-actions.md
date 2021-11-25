@@ -6,8 +6,8 @@ identifiers.
 
 Please note that not all actions are supported, and only digital actions are
 support for now (you cannot yet control the Amiga mouse properly with custom
-input mapping). The list will be updated later with more description (and
-actions that are not supported will be purged).
+input mapping). The list will be updated later with more descriptions, and
+actions that are not supported will eventually be purged from this list.
 
     action_none
 

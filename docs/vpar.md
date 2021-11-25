@@ -16,13 +16,13 @@ Amiga parallel port to the device emulator and has also communicate changes of
 inputs driven by the device emulator back to the Amiga emulator.
 
 The parallel port consits of the 8 data lines and the control lines including
-SELECT, POUT, and BUSY. Also the control signals STROBE and ACK with fixed 
+SELECT, POUT, and BUSY. Also the control signals STROBE and ACK with fixed
 direction are supported.
 
 An external application can alter the state of input lines by sending commands
 via the vpar protocol. Depending on the direction of each pin the protocol
-allows to set all input pins with new values. Also the external application
-can trigger the ACK line if desired.
+allows to set all input pins with new values. Also the external application can
+trigger the ACK line if desired.
 
 ## Assumptions
 
@@ -53,9 +53,9 @@ nybble and some vpar flags in the upper nybble. The second byte holds the
 current value of all 8 data lines of the parallel port.
 
             FS-UAE ---[ cb , db ]--> devemu
-   
-   * **cb**: control byte
-   * **db**: data byte (value of data on parallel port)
+
+- **cb**: control byte
+- **db**: data byte (value of data on parallel port)
 
 The control byte has the following bits:
 
@@ -67,14 +67,15 @@ The control byte has the following bits:
                 0x20 5 = not used -> 0
                 0x40 6 = VPAR_INIT: Amiga emulator is starting (first msg of session)
                 0x80 7 = VPAR_EXIT: Amiga emulator is shutting down (last msg of session)
-   
+
 The `VPAR_REPLY` bit is only set if the byte message is reply to a devemu
 trigger (see section 2). In an Amiga update this bit is never set.
 
 `VPAR_INIT` is sent on the first Amiga update whenever the emulation starts. If
 the virtual Amiga is reset then the `VPAR_INIT` is re-sent on next startup.
 
-`VPAR_EXIT` is sent as a last update right before the Amiga emulator is shut down.
+`VPAR_EXIT` is sent as a last update right before the Amiga emulator is shut
+down.
 
 A device emulator can use `VPAR_INIT` and `VPAR_EXIT` to restart or quit its
 operation in sync with the Amiga emulator.
@@ -120,7 +121,8 @@ bits 0-2, the `VPAR_SET_CTL` and `VPAR_CLR_CTL` only set/clear the bits set to
 one in bits 0-2 of the control byte. The latter ones are most useful if you
 want to toggle a single line of the port only.
 
-Bit 3 is special and always triggers an ACK in the Amiga emulation if it is set.
+Bit 3 is special and always triggers an ACK in the Amiga emulation if it is
+set.
 
 Note: You can use this device trigger and send a pair of zero bytes (00, 00) to
 query the state of the parallel port in the Amiga emulation without altering
@@ -139,16 +141,17 @@ generated as a response to the device emulator change trigger.
 
 ### 3. Remarks
 
-- It might be sensible to propagate changes in the data direction registers
-of both control and data lines also via vpar to the device emulator. Currently,
-DDR masks are only handled inside the Amiga emulator and external changes from
-the device emulator only affects signals that are set to input in the DDR.
+- It might be sensible to propagate changes in the data direction registers of
+  both control and data lines also via vpar to the device emulator. Currently,
+  DDR masks are only handled inside the Amiga emulator and external changes
+  from the device emulator only affects signals that are set to input in the
+  DDR.
 
 ## Implementation
 
-The transport channel used there is realized with a pseudo
-terminal (PTY) opened in the device emulator. This allows the FS-UAE to use 
-the simple file API for input/output.
+The transport channel used there is realized with a pseudo terminal (PTY)
+opened in the device emulator. This allows the FS-UAE to use the simple file
+API for input/output.
 
 The first device emulator using this protocol is a SW emulator of the plipbox
 PLIP-to-Ethernet device written in Python for the [plipbox][2] project.

@@ -1,8 +1,8 @@
 # Keyboard
 
-This document explains how to use keyboard shortcuts in FS-UAE, how FS-UAE
-and system keyboard shortcuts can interfere, and how the emulated Amiga
-keyboard works.
+This document explains how to use keyboard shortcuts in FS-UAE, how FS-UAE and
+system keyboard shortcuts can interfere, and how the emulated Amiga keyboard
+works.
 
 **FIXME** Keyboard joystick emulation doc
 
@@ -25,18 +25,17 @@ use [keyboard joystick emulation](keyboard-joystick-emulation.md) instead.
 
 ## Input grab
 
-Grabbing the input means that FS-UAE asks the operating system to lock
-the mouse to the FS-UAE window, and to send as many key presses as possible
+Grabbing the input means that FS-UAE asks the operating system to lock the
+mouse to the FS-UAE window, and to send as many key presses as possible
 directly to FS-UAE. This is necessary in order to:
 
 - Allow the Amiga mouse to work properly, because relative mouse motion is
   needed.
 - Allow full use of the emulated Amiga keyboard.
 
-So, when input is grabbed, most key pressed are sent directly to FS-UAE and
-is not intercepted by the operating system. This is especially true when
-running FS-UAE in full-screen mode, but it also depends on the operating
-system.
+So, when input is grabbed, most key pressed are sent directly to FS-UAE and is
+not intercepted by the operating system. This is especially true when running
+FS-UAE in full-screen mode, but it also depends on the operating system.
 
 > **Note:** If you do _not_ want to grab as many keyboard keys as possible you
 > can disable the option [keyboard_input_grab](options/keyboard_input_grab.md).
@@ -44,16 +43,16 @@ system.
 
 ### Multimedia keys and desktop shortcuts
 
-Since most key presses are sent directly to FS-UAE when input is grabbed,
-most desktop shortcuts and multimedia keys will not work. This means that you
-will not be able to (for example) use the volume controls on your keyboard
--- if you have those -- while FS-UAE has grabbed the input.
+Since most key presses are sent directly to FS-UAE when input is grabbed, most
+desktop shortcuts and multimedia keys will not work. This means that you will
+not be able to (for example) use the volume controls on your keyboard -- if you
+have those -- while FS-UAE has grabbed the input.
 
 In order to use such keys or keyboard shortcuts, you can do one of the
 following:
 
-- Enter the FS-UAE menu. The input grab is released while the menu is open.
-  You can then use the keyboard shortcuts you want, and close the FS-UAE menu
+- Enter the FS-UAE menu. The input grab is released while the menu is open. You
+  can then use the keyboard shortcuts you want, and close the FS-UAE menu
   afterwards.
 - Release the input grab using <kbd>Mod</kbd>+<kbd>G</kbd>. You can re-acquire
   the input grab with the same key combination.
@@ -63,10 +62,10 @@ following:
 
 ### Alt-tab behavior (window switching)
 
-When keyboard input is grabbed, on some operating systems (Linux, BSD),
-Alt-Tab while generally not work, since the key presses are sent directly to
-FS-UAE. In order to still allow Alt-Tab to work on these platforms, FS-UAE
-does the following:
+When keyboard input is grabbed, on some operating systems (Linux, BSD), Alt-Tab
+while generally not work, since the key presses are sent directly to FS-UAE. In
+order to still allow Alt-Tab to work on these platforms, FS-UAE does the
+following:
 
 - When <kbd>Mod</kbd> is pressed, the input grab is temporarily released.
 - When <kbd>Mod</kbd> is released, the input grab is taken again, unless
@@ -74,15 +73,14 @@ does the following:
 
 Since the input grab is released when you press <kbd>Mod</kbd>, the operating
 system will be able to intercept <kbd>Alt</kbd>+<kbd>Tab</kbd> when you
-subsequently press <kbd>Tab</kbd> while still holding <kbd>Alt</kbd> as long
-as <kbd>Alt</kbd> is the modifier key in FS-UAE. If the system uses another
+subsequently press <kbd>Tab</kbd> while still holding <kbd>Alt</kbd> as long as
+<kbd>Alt</kbd> is the modifier key in FS-UAE. If the system uses another
 modifier key for window switching, this workaround will not work unless FS-UAE
 is also configured to use the same modifier key.
 
 > **Note:** On Windows and OS X, the operating system always intercepts
-> <kbd>Alt</kbd>+<kbd>Tab</kbd> and <kbd>Cmd</kbd>+<kbd>Tab</kbd>
-> respectively, so window switching should always works regardless of input
-> grab in FS-UAE.
+> <kbd>Alt</kbd>+<kbd>Tab</kbd> and <kbd>Cmd</kbd>+<kbd>Tab</kbd> respectively,
+> so window switching should always works regardless of input grab in FS-UAE.
 
 ### Host quit keys interfering with Alt+F4 and Cmd+Q
 
@@ -103,19 +101,19 @@ to a separate file. You can also read about custom keyboard mapping there.
 
 ## Additional shortcuts
 
-The following shortcuts work, but you should be aware that the
-<kbd>Ctrl</kbd> key press will be sent to the emulated Amiga before you have
-completed the shortcut combination, so the key press may have side effects
-on the emulated Amiga:
+The following shortcuts work, but you should be aware that the <kbd>Ctrl</kbd>
+key press will be sent to the emulated Amiga before you have completed the
+shortcut combination, so the key press may have side effects on the emulated
+Amiga:
 
 **FIXME** Remove items from this list which is listed elsewhere:
 
-- <kbd>Alt</kbd>+<kbd>Tab</kbd> (or <kbd>Cmd</kbd>+<kbd>Tab</kbd>) – Switch
-  to another window / release input grab.
+- <kbd>Alt</kbd>+<kbd>Tab</kbd> (or <kbd>Cmd</kbd>+<kbd>Tab</kbd>) – Switch to
+  another window / release input grab.
 - <kbd>Alt</kbd>+<kbd>F4</kbd> – Quit the emulator.
 - <kbd>Ctrl</kbd>+<kbd>F10</kbd> – Toggle performance graphs / FPS display
-  (There are two FPS numbers shown, SYS: actual video output frame rate.
-  EMU: emulated video frame rate).
+  (There are two FPS numbers shown, SYS: actual video output frame rate. EMU:
+  emulated video frame rate).
 
 ### Additional Shortcuts in Net Play Mode
 
@@ -132,10 +130,9 @@ If you create a custom shortcut, for example:
 
     keyboard_key_ctrl_p = action_pause
 
-Then you should be aware that the emulated Amiga will see the
-<kbd>Ctrl</kbd> key press before you have pressed <kbd>P</kbd>. The Amiga
-will not see the <kbd>P</kbd> key press however, since this triggers the
-shortcut instead.
+Then you should be aware that the emulated Amiga will see the <kbd>Ctrl</kbd>
+key press before you have pressed <kbd>P</kbd>. The Amiga will not see the
+<kbd>P</kbd> key press however, since this triggers the shortcut instead.
 
 This may or may not be a problem for you. But it isn't possible to avoid
 automatically because FS-UAE cannot know if you are going to press a key
@@ -153,11 +150,11 @@ you also map another host key (combination) to Amiga "Ctrl", for example:
 
 ### Remapping the Extra Key on the Number Row
 
-The number row of the Amiga has one more key than on PC keyboards. By
-default, this key is moved to the key left of <kbd>Return</kbd>
-(two rows down), and this key again is moved to the <kb>Insert</kbd> key.
-If you want to, you can change the mapping so the extra key is moved directly
-to the Insert key, while leaving the one next to Return alone:
+The number row of the Amiga has one more key than on PC keyboards. By default,
+this key is moved to the key left of <kbd>Return</kbd> (two rows down), and
+this key again is moved to the <kb>Insert</kbd> key. If you want to, you can
+change the mapping so the extra key is moved directly to the Insert key, while
+leaving the one next to Return alone:
 
     keyboard_key_insert = action_key_backslash
     keyboard_key_backslash = action_key_2b

@@ -8,6 +8,7 @@ Options (not implemented yet):
 - bridgeboard_vga_rom=5420.vbi
 
 A2386SX
+
 VGA: CL-GD5426 or CL-GD5429
 
 ## VGA adapter
@@ -20,8 +21,8 @@ Notes:
 - VGA mode should be active very soon after binddrivers has run, END+F9 press
   is required to switch screens, it does not autoswitch.
 - With VGA enabled, both PCMono and PCColor screens are always blank (but
-  remember to still have either one open if you want working keyboard or
-  mouse input..)
+  remember to still have either one open if you want working keyboard or mouse
+  input..)
 
 ## Example configuration
 

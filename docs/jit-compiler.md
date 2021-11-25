@@ -2,8 +2,8 @@
 
 FS-UAE includes a Just-in-Time (JIT) compiler for x86 and x86-64. The JIT
 compiler is used to speed up emulation dramatically, at the expense of some
-compatibility. The JIT compiler can only be used with 68020 or higher
-emulated CPUs, and is not compatible with MMU emulation.
+compatibility. The JIT compiler can only be used with 68020 or higher emulated
+CPUs, and is not compatible with MMU emulation.
 
 ## Enabling the JIT Compiler
 
@@ -18,9 +18,9 @@ To enable the JIT compiler, use the following option:
 
 ## Toggling JIT on/off
 
-It is possible to toggle the JIT compiler on/off during emulation. One
-use case for this is to speed up your Workbench experience, but disable
-the JIT before running games, for better compatibility.
+It is possible to toggle the JIT compiler on/off during emulation. One use case
+for this is to speed up your Workbench experience, but disable the JIT before
+running games, for better compatibility.
 
 **TODO: Write how**
 

@@ -3,11 +3,11 @@
 When it comes to using emulated hard drives in FS-UAE, you have several
 choices:
 
-* You can mount directories on your system as Amiga volumes ("directory hard
+- You can mount directories on your system as Amiga volumes ("directory hard
   drives").
-* You can use hard drive images (HDF files).
-* You can mount zip files as Amiga volumes.
-* You can in some cases use a real Amiga hard drive / compact flash card.
+- You can use hard drive images (HDF files).
+- You can mount zip files as Amiga volumes.
+- You can in some cases use a real Amiga hard drive / compact flash card.
 
 The best choice depends on how you want to use it. The most convenient is
 directory hard drives, and I recommend to use this unless you have a good
@@ -19,12 +19,12 @@ permission and metadata was added.
 The advantages of using directory hard drives compared with other approaches
 are:
 
-* It will work with all Amiga models, with no Amiga-side setup needed. The
+- It will work with all Amiga models, with no Amiga-side setup needed. The
   volumes (directories) will automatically be accessible from the Amiga.
-* You’ll have “unlimited” Amiga storage capacity (as long as you have enough
+- You’ll have “unlimited” Amiga storage capacity (as long as you have enough
   free space on your system), and you don’t have to allocate space upfront as
   you must do with HDFs.
-* You can also access the files directly from the host system, and you can
+- You can also access the files directly from the host system, and you can
   easily add new files to your Amiga drive from the host system.
 
 > **Note:** You should be somewhat careful about modifying the directory hard
@@ -48,7 +48,7 @@ For example, the following file name is valid on the amiga: `Foo\Bar`. This is
 not valid on Windows however, so the file name is escaped and stored as
 `Foo%5cBar`. The Amiga will see a file called Foo\Bar when it accesses a
 directory with a host file called `Foo%5cBar`. Since `Foo\Bar` is not allowed
-on Windows, the file is stored as `Foo%5cBar` on *all* platforms. This makes
+on Windows, the file is stored as `Foo%5cBar` on _all_ platforms. This makes
 the directory hard drives portable across multiple operating systems.
 
 See also "Extracting Amiga archives" for more relevant information.
@@ -63,24 +63,24 @@ When a file has an accompanying metadata file, date/time, file permissions and
 comment are read from the metadata file. If a metadata file does not exist,
 then:
 
-* The file will get the default permissions: `----rwed`.
-* The file date/time will be read from the last modified timestamp of the host
+- The file will get the default permissions: `----rwed`.
+- The file date/time will be read from the last modified timestamp of the host
   file.
-* The file will have no file comment.
+- The file will have no file comment.
 
 When files are created/modified from within the Amiga, the host file mtime
 (last modified time) is updated based on the Amiga file date/time. FS-UAE then
 decides if it needs to store more information about the file in a metadata
 file:
 
-* If the file has a file comment, FS-UAE will create a metadata file.
-* If the file has non-default file permissions, FS-UAE will create a metadata
+- If the file has a file comment, FS-UAE will create a metadata file.
+- If the file has non-default file permissions, FS-UAE will create a metadata
   file.
-* FS-UAE reads back the last modified time from the host file, and checks that
+- FS-UAE reads back the last modified time from the host file, and checks that
   the time was stored with high enough precision (Amiga files are stored with
   1/50s precision). If the time could not be stored accurately, FS-UAE will
   create a metadata file.
-* If the file already has a metadata file, FS-UAE will always update the
+- If the file already has a metadata file, FS-UAE will always update the
   metadata file.
 
 Additional metadata is stored in files with .uaem extension. If the original
@@ -99,18 +99,18 @@ a file comment):
 If you have an .lha archive with Amiga software, you have two choices when you
 want to extract it:
 
-* Extract the .lha archive to the directory hard drive from the host system.
-* Copy the .lha archive to the a directory hard drive or otherwise make it
+- Extract the .lha archive to the directory hard drive from the host system.
+- Copy the .lha archive to the a directory hard drive or otherwise make it
   available to to the virtual Amiga. Start FS-UAE and extract te archive with
   the `lha` program (or similar) inside the Amiga.
 
 In many cases, both approaches will work well, but there are some cases where
 you should extract the archive from inside the emulated Amiga:
 
-* If the archive contains Amiga file names which are illegal on the host file
+- If the archive contains Amiga file names which are illegal on the host file
   system, you’ll not be able to extract the archive correctly on the host
   system.
-* The archive can contain file metadata (date/time, file permissions, comment),
+- The archive can contain file metadata (date/time, file permissions, comment),
   and if you extract the archive on the host system, information will be lost
   (the files will get the default file permissions `----rwed`).
 
@@ -126,10 +126,10 @@ means that the Amiga manages the file system.
 
 There are two common variants of HDF files:
 
-* A full HDF image of a hard drive, often referred to as HDF files in RDB
+- A full HDF image of a hard drive, often referred to as HDF files in RDB
   (Rigid Disk Block) format. This HDF file must be partitioned, like a real
   hard drive, before that Amiga can use it.
-* A HDF file which only contains a single partition. Behind the scenes, FS-UAE
+- A HDF file which only contains a single partition. Behind the scenes, FS-UAE
   will fake a full HDF image with the content of the HDF file as the single
   partition in the drive.
 
@@ -155,10 +155,10 @@ it, for example by running the command:
 
 Alternatively, if you emulate an Amiga 600 or Amiga 1200, you can attach the
 drives to an emulated IDE controller instead (see hard_drive_x_controller).
-When you use this controller, you can only use hard drive images which are
-less than 4 GB. The uaehf.device does not have this limitation, so using the
-default uaehf.device is recommended unless you have a very good reason not to
-use it. Additionally, `uaehf.device` is likely more efficient (faster) to use.
+When you use this controller, you can only use hard drive images which are less
+than 4 GB. The uaehf.device does not have this limitation, so using the default
+uaehf.device is recommended unless you have a very good reason not to use it.
+Additionally, `uaehf.device` is likely more efficient (faster) to use.
 
 After you have partitioned the file, you may need to restart the Amiga. Then
 you can proceed to format the partition(s).
@@ -184,14 +184,14 @@ a read-only directory hard drive.
 When you mount ZIP files and start FS-UAE via FS-UAE Launcher, the ZIP file is
 handled differently:
 
-* The ZIP file is extracted to a temporary directory
-* This temporary directory is mounted as a directory hard drive in FS-UAE
-* When FS-UAE is done running, the Launcher scans the temporary directory for
+- The ZIP file is extracted to a temporary directory
+- This temporary directory is mounted as a directory hard drive in FS-UAE
+- When FS-UAE is done running, the Launcher scans the temporary directory for
   changes and saves the changes to the state folder, and when you run the same
   configuration later, the changed files are merged with the content from the
   zip file.
 
-Via FS-UAE Launcher, ZIP files work more like a hard drive *template*, and you
+Via FS-UAE Launcher, ZIP files work more like a hard drive _template_, and you
 get support for metadata files and get a writable file system. The ZIP file
 itself will remain untouched.
 
@@ -201,8 +201,8 @@ itself will remain untouched.
 > here because it works on some platforms. This does not work on MS Windows.
 
 On Unix-like systems, devices can be accessed like files. This means that you
-can mount a block device (for example a real hard drive or a compact flash
-(CF) card) as a hard drive, and FS-UAE will use it like it was a HDF file.
+can mount a block device (for example a real hard drive or a compact flash (CF)
+card) as a hard drive, and FS-UAE will use it like it was a HDF file.
 
 You need to make sure FS-UAE have read and write access to the device (you may
 need to chmod it and/or change device ownership), and also that you use the

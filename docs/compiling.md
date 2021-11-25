@@ -54,14 +54,14 @@ Install dependencies for bootstrapping and building FS-UAE:
 
 ## macOS
 
-FIXME: Write new instructions for the fsdeps/ fsbuild scripts. Some
-build-time dependencies must be installed separately, for example via Homebrew:
+FIXME: Write new instructions for the fsdeps/ fsbuild scripts. Some build-time
+dependencies must be installed separately, for example via Homebrew:
 
     brew install autoconf automake cmake dos2unix libtool m4 meson pkg-config \
     wget
 
-Install homebrew from https://brew.sh (follow their instructions) and then
-open a new terminal.
+Install homebrew from https://brew.sh (follow their instructions) and then open
+a new terminal.
 
 Install dependencies for bootstrapping and building FS-UAE:
 
@@ -73,8 +73,8 @@ command line tools for Xcode enabled.
 
 ## Configuring and building FS-UAE
 
-If you are using the git repository, you need to bootstrap with
-(skip if using source tarball):
+If you are using the git repository, you need to bootstrap with (skip if using
+source tarball):
 
     ./bootstrap
 
@@ -92,13 +92,13 @@ You can now run fs-uae from the source folder without installation:
 
 ### Configuration options
 
-The configure script can be used to enable some additional features
-(but they might not work or even compile) and disable default features.
+The configure script can be used to enable some additional features (but they
+might not work or even compile) and disable default features.
 
-Please note, the only _supported_ configuration is to build with the
-default option set or the ones listed below. Other options are provided
-for testing and debugging purposes - and also for your convenience, in
-the cases where it happens to work ;-).
+Please note, the only _supported_ configuration is to build with the default
+option set or the ones listed below. Other options are provided for testing and
+debugging purposes - and also for your convenience, in the cases where it
+happens to work ;-).
 
 Supported options:
 

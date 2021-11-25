@@ -68,8 +68,8 @@ By default, changes to floppy drives are not written back to the original
 files. The changes are instead saved in overlay floppy files. FS-UAE stores
 these files by default in Documents/FS-UAE/Floppy Overlays.
 
-**FIXME: "Documents/FS-UAE/Floppy Overlays" is no longer the correct**
-**FIXME: update the documentation.**
+**FIXME: "Documents/FS-UAE/Floppy Overlays" is no longer the correct** **FIXME:
+update the documentation.**
 
 If you want to, you can use the option
 [writable_floppy_images](options/writable-floppy-images.md) to enable writing

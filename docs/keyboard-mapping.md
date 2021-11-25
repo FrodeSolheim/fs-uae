@@ -5,50 +5,50 @@ Most keys are mapped like you would expect (F1 on your keyboard activates F1 on
 the emulated Amiga keyboard, etc).
 
 Here are some notable exceptions:
-* Amiga Help = End (Mac laptops: Fn + Right)
-* Amiga Delete = Delete (Mac laptops: Fn + Backspace)
-* Amiga Numpad Left Paren = Home (Mac laptops: Fn + Left)
-* Amiga Numpad Right Paren = Page Up (Mac laptops: Fn + Up)
-* Amiga Left A = Page Down or Right Menu / Right Windows key.
-* Amiga Right A = Left Menu / Left Windows key.
-* Amiga Ctrl = Left Ctrl
-* Amiga key to the left of Backspace = Insert
+
+- Amiga Help = End (Mac laptops: Fn + Right)
+- Amiga Delete = Delete (Mac laptops: Fn + Backspace)
+- Amiga Numpad Left Paren = Home (Mac laptops: Fn + Left)
+- Amiga Numpad Right Paren = Page Up (Mac laptops: Fn + Up)
+- Amiga Left A = Page Down or Right Menu / Right Windows key.
+- Amiga Right A = Left Menu / Left Windows key.
+- Amiga Ctrl = Left Ctrl
+- Amiga key to the left of Backspace = Insert
 
 Emulator [keyboard shortcuts](keyboard-shortcuts.md) are documented on a
 separate page.
 
 Keys in FS-UAE are (generally) mapped based on physical location and not by
 symbol. Trying to map symbols would require hack-ish workarounds, since one
-Amiga key can have its symbols spread over two or more host keys, depending
-on keyboard layout.
+Amiga key can have its symbols spread over two or more host keys, depending on
+keyboard layout.
 
 To to understand how to use the emulated Amiga keyboard, it is useful to
-visualize that you have printed stickers for Amiga keys, and pasted them
-on top of your keyboard keys, in the corresponding physical location.
+visualize that you have printed stickers for Amiga keys, and pasted them on top
+of your keyboard keys, in the corresponding physical location.
 
 Please note the following **important information**:
 
-- Amiga key names are based on what the _physical_ key location is called
-  on an US/UK Amiga keyboard.
-- Similarly, host key names are based on what the _physical_ key location
-  is called on an US/UK Amiga keyboard.
+- Amiga key names are based on what the _physical_ key location is called on an
+  US/UK Amiga keyboard.
+- Similarly, host key names are based on what the _physical_ key location is
+  called on an US/UK Amiga keyboard.
 
-If you have a non-English keyboard, you need to compare your keyboard
-to an English one to find out what a key in a given physical location is
-called. Likewise, you must use an English Amiga keyboard as reference to
-understand what a specific Amiga key is named.
+If you have a non-English keyboard, you need to compare your keyboard to an
+English one to find out what a key in a given physical location is called.
+Likewise, you must use an English Amiga keyboard as reference to understand
+what a specific Amiga key is named.
 
-> **Note:** Since the Amiga keys are listed in row order, you can also
-> use this order to figure out the correct name for non-English keys. For
-> host keys, you can refer to the separate table in the "Host Key names"
-> section.
+> **Note:** Since the Amiga keys are listed in row order, you can also use this
+> order to figure out the correct name for non-English keys. For host keys, you
+> can refer to the separate table in the "Host Key names" section.
 
 ## Amiga keys
 
-The Amiga keys are listed in row order, top row first. The listed action
-names in the table are for use with custom [input mapping](input-mapping.md).
-The host key name is printed in **bold letters** when the physical location
-of the host key differs from the Amiga key.
+The Amiga keys are listed in row order, top row first. The listed action names
+in the table are for use with custom [input mapping](input-mapping.md). The
+host key name is printed in **bold letters** when the physical location of the
+host key differs from the Amiga key.
 
 | Amiga Key    | Input Mapping Action      | Default Host Key(s)............ |
 | ------------ | ------------------------- | ------------------------------- |
@@ -162,12 +162,12 @@ which has these physical keys:
 - Amiga key code `0x2B` is the key between SINGLEQUOTE and RETURN.
 - Amiga key code `0x30` is the key between LSHIFT and Z.
 
-> **Note:** It is often possible to change the keyboard layout in Workbench
-> (or other programs) running in the emulated Amiga. This will _not_ affect
-> the names of the keys used in input mapping. In fact, FS-UAE will be unaware
-> of such a setting, and it will work just like it would with a real Amiga
-> and a real Amiga keyboard. I.e. if you change keyboard layout in Amiga
-> emulation you can get a different symbol when you press a given key.
+> **Note:** It is often possible to change the keyboard layout in Workbench (or
+> other programs) running in the emulated Amiga. This will _not_ affect the
+> names of the keys used in input mapping. In fact, FS-UAE will be unaware of
+> such a setting, and it will work just like it would with a real Amiga and a
+> real Amiga keyboard. I.e. if you change keyboard layout in Amiga emulation
+> you can get a different symbol when you press a given key.
 
 ## Host key names
 

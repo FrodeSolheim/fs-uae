@@ -2,13 +2,13 @@
 
 > **Note:** This new MIDI support requires FS-UAE 4.0.0 or newer.
 
-You currently need to specify the MIDI device you want to connect to using
-the `serial_port` option and the "name" of the sequencer, like this:
+You currently need to specify the MIDI device you want to connect to using the
+`serial_port` option and the "name" of the sequencer, like this:
 
     serial_port = midi:<name>
 
 > **Note:** The method of configuring MIDI and/or choosing MIDI device might
-change in future versions of FS-UAE!
+> change in future versions of FS-UAE!
 
 ## Finding the MIDI device name
 
@@ -44,13 +44,13 @@ Example output while having both fluidsynth and munt/mt32 running:
     client 128: 'FLUID Synth (11883)' [type=user,pid=11883]
         0 'Synth input port (11883:0)'
     client 129: 'Munt MT-32' [type=user,pid=11907]
-        0 'Standard  
+        0 'Standard
 
-The names you need to use with the `serial_port` option *with this exact setup*
+The names you need to use with the `serial_port` option _with this exact setup_
 is 'Synth input port (11883:0)' and 'Standard'.
 
-Note, you can now also use `fs-uae-device-helper list-portmidi-devices` to
-find the device names.
+Note, you can now also use `fs-uae-device-helper list-portmidi-devices` to find
+the device names.
 
 ## Fluidsynth
 

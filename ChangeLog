@@ -1,5 +1,7 @@
 Version 3.1.x:
 
+* macOS: Do not simulate right/middle mouse buttons in full keyboard emulation.
+* Potential fix for crash if warning is issued from device helper.
 * Fix mouse grab on startup on macOS.
 * Support controller_[event] input mapping for matching all controllers.
 * Prefer $HOME/FS-UAE if it exists, otherwise use $DOCUMENTS/FS-UAE.

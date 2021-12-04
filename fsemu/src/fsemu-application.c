@@ -82,6 +82,7 @@ const char *fsemu_application_base_dir(void)
         }
     }
 
+    fsemu_assert_release(fsemu_application.base_dir != NULL);
     return fsemu_application.base_dir;
 }
 

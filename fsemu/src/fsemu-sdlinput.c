@@ -2,10 +2,13 @@
 #include "fsemu-sdlinput.h"
 
 #include "fsemu-action.h"
+#include "fsemu-application.h"
 #include "fsemu-controller.h"
+#include "fsemu-glib.h"
 #include "fsemu-input.h"
 #include "fsemu-key.h"
 #include "fsemu-sdlgamecontrollerdb.h"
+#include "fsemu-util.h"
 
 #ifdef FSEMU_SDL
 
@@ -275,7 +278,7 @@ static bool fsemu_sdlinput_handle_key_event(SDL_Event *event)
 
     // This cast works because fsemu_key_t values are the same - or a
     // superset - of SDL_Scancode.
-    fsemu_key_t key = (fsemu_key_t)event->key.keysym.scancode;
+    fsemu_key_t key = (fsemu_key_t) event->key.keysym.scancode;
     fsemu_input_handle_keyboard(key, event->key.state != 0);
     return false;
 }
@@ -310,16 +313,43 @@ bool fsemu_sdlinput_handle_event(SDL_Event *event)
     return false;
 }
 
-static void fsemu_sdlinput_add_controller_mappings(void)
+static void fsemu_sdlinput_add_builtin_controller_mappings(void)
 {
-    const char **mapping = fsemu_sdlgamecontrollerdb_mappings;
     int count = 0;
+    const char **mapping = fsemu_sdlgamecontrollerdb_mappings;
     while (*mapping) {
         SDL_GameControllerAddMapping(*mapping);
         mapping++;
         count += 1;
     }
-    fsemu_input_log("Game controller: Added %d mappings\n", count);
+    fsemu_input_log_info("Added %d built-in game controller mappings\n",
+                         count);
+}
+
+static void fsemu_sdlinput_add_database_controller_mappings(void)
+{
+    char *db_file =
+        g_strdup_printf("%s/Data/Devs/Controllers/gamecontrollerdb.txt",
+                        fsemu_application_base_dir());
+    if (fsemu_path_exists(db_file)) {
+        int count = SDL_GameControllerAddMappingsFromFile(db_file);
+        if (count == -1) {
+            fsemu_warning("Error adding mappings from gamecontrollerdb.txt\n");
+        } else {
+            fsemu_input_log_info(
+                "Added %d mappings from gamecontrollerdb.txt\n", count);
+            fsemu_input_log_info("Found at %s\n", db_file);
+        }
+    } else {
+        fsemu_input_log("No gamecontrollerdb.txt found\n", db_file);
+    }
+    g_free(db_file);
+}
+
+static void fsemu_sdlinput_add_controller_mappings(void)
+{
+    fsemu_sdlinput_add_builtin_controller_mappings();
+    fsemu_sdlinput_add_database_controller_mappings();
 }
 
 void fsemu_sdlinput_init(void)

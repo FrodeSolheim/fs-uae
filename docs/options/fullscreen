@@ -1,4 +1,4 @@
-Description: "Start FS-UAE in fullscreen mode"
+Description: "Start emulator in fullscreen mode"
 Default: 0
 Example: 1
 Type: boolean

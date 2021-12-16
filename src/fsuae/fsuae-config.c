@@ -13,6 +13,7 @@
 #include <uae/uae.h>
 
 #include "fs-uae.h"
+#include "fsemu-config.h"
 #include "fsuae-accelerator.h"
 #include "fsuae-graphics.h"
 #include "fsuae-hardware.h"
@@ -204,7 +205,178 @@ static void fs_uae_configure_network_card(amiga_config *c)
     }
 }
 
-void fs_uae_configure_amiga_hardware()
+#ifdef WITH_MIDI
+
+#include "portmidi.h"
+
+#define MIDI_DEVICE_NAME_MAX 128
+
+static bool check_midi_device(
+    const char *name, bool partial, char *result, bool in, bool out)
+{
+    int count = Pm_CountDevices();
+    for (int i = 0; i < count; i++) {
+        const PmDeviceInfo *info = Pm_GetDeviceInfo(i);
+        if (info != NULL) {
+            if (info->output != out) {
+                continue;
+            }
+            if (partial) {
+                int len = strlen(name);
+                if (strncmp(info->name, name, len) != 0) {
+                    continue;
+                }
+            } else {
+                if (strcmp(info->name, name) != 0) {
+                    continue;
+                }
+            }
+            fs_emu_log("[MIDI] Found '%s' for '%s' (in: %d, out: %d)\n",
+                       info->name,
+                       name,
+                       in,
+                       out);
+            strncpy(result, info->name, MIDI_DEVICE_NAME_MAX - 1);
+            result[MIDI_DEVICE_NAME_MAX - 1] = '\0';
+            return true;
+        }
+    }
+    fs_emu_log("[MIDI] Did not find '%s' (out: %d, in: %d)\n", name, in, out);
+    return false;
+}
+
+static void enable_midi(const char *in_option,
+                        const char *out_option,
+                        bool mt32)
+{
+    fs_emu_log("[MIDI] Calling Pm_Initialize\n");
+    PmError error = Pm_Initialize();
+    if (error) {
+        fs_emu_log("[MIDI] PortMidi error %d\n", error);
+        return;
+    }
+    int count = Pm_CountDevices();
+    fs_emu_log("[MIDI] PortMidi reports %d devices:\n\n", count);
+    for (int i = 0; i < count; i++) {
+        const PmDeviceInfo *info = Pm_GetDeviceInfo(i);
+        if (info != NULL) {
+            fs_emu_log("[MIDI] %i: %s\n\n", i, info->name);
+        }
+    }
+
+    char in_device[MIDI_DEVICE_NAME_MAX];
+    in_device[0] = '\0';
+    if (in_option != NULL) {
+        const char *value = fs_config_get_const_string(in_option);
+        if (value != NULL) {
+            if (strcmp(value, "none") == 0) {
+                fs_emu_log("MIDI in device is 'none'\n");
+            } else if (check_midi_device(
+                           value, false, in_device, true, false)) {
+                //
+            }
+        } else {
+            fs_emu_log("Finding first MIDI input device\n");
+            check_midi_device("", true, in_device, true, false);
+        }
+    }
+
+    char out_device[MIDI_DEVICE_NAME_MAX];
+    out_device[0] = '\0';
+    if (out_option != NULL) {
+        const char *value = fs_config_get_const_string(out_option);
+        if (value != NULL) {
+            if (strcmp(value, "none") == 0) {
+                fs_emu_log("MIDI device is 'none'\n");
+            } else if (check_midi_device(
+                           value, false, out_device, false, true)) {
+                //
+            }
+        } else {
+            if (mt32) {
+                if (false) {
+                }
+#if defined(FSEMU_OS_WINDOWS)
+                else if (check_midi_device("MT-32 Synth Emulator",
+                                           false,
+                                           out_device,
+                                           false,
+                                           true)) {
+                }
+#elif defined(FSEMU_OS_MACOS)
+                else if (check_midi_device(
+                             "Mt32EmuPort", false, out_device, false, true)) {
+                }
+#else
+                else if (check_midi_device(
+                             "Standard", false, out_device, false, true)) {
+                }
+#endif
+            } else {
+                if (false) {
+                }
+#if defined(FSEMU_OS_WINDOWS)
+#elif defined(FSEMU_OS_MACOS)
+                else if (check_midi_device("FluidSynth virtual port (",
+                                           true,
+                                           out_device,
+                                           false,
+                                           true)) {
+                }
+#else
+                else if (check_midi_device("Synth input port (",
+                                           true,
+                                           out_device,
+                                           false,
+                                           true)) {
+                }
+#endif
+            }
+        }
+    }
+    gchar *serial_port = NULL;
+    if (in_device[0] && out_device[0]) {
+        serial_port = g_strdup_printf("midi:%s,%s", out_device, in_device);
+    } else if (in_device[0]) {
+        serial_port = g_strdup_printf("midi:,%s", in_device);
+    } else if (out_device[0]) {
+        serial_port = g_strdup_printf("midi:%s", out_device);
+    } else {
+        fs_emu_log("Serial port cannot be configured for MIDI\n");
+    }
+    if (serial_port != NULL) {
+        amiga_enable_serial_port(serial_port);
+        g_free(serial_port);
+    }
+}
+
+#endif
+
+static void fsuae_configure_serial_port(void)
+{
+    const char *serial_port = fs_config_get_const_string(OPTION_SERIAL_PORT);
+    if (serial_port == NULL) {
+        // Nothing to configure
+    } else if (g_ascii_strcasecmp(serial_port, "none") == 0) {
+        // Specifically set to none
+    }
+#ifdef WITH_MIDI
+    else if (g_ascii_strcasecmp(serial_port, "midi:") == 0) {
+        enable_midi(OPTION_MIDI_IN_DEVICE, OPTION_MIDI_OUT_DEVICE, false);
+    } else if (g_ascii_strcasecmp(serial_port, "midi://in") == 0) {
+        enable_midi(OPTION_MIDI_IN_DEVICE, NULL, false);
+    } else if (g_ascii_strcasecmp(serial_port, "midi://out") == 0) {
+        enable_midi(NULL, OPTION_MIDI_OUT_DEVICE, false);
+    } else if (g_ascii_strcasecmp(serial_port, "midi://mt32") == 0) {
+        enable_midi(NULL, OPTION_MIDI_MT32_DEVICE, true);
+    }
+#endif
+    else {
+        amiga_enable_serial_port(serial_port);
+    }
+}
+
+void fs_uae_configure_amiga_hardware(void)
 {
     amiga_config *c = g_fs_uae_amiga_configs + g_fs_uae_amiga_config;
     char *path;
@@ -273,11 +445,7 @@ void fs_uae_configure_amiga_hardware()
     fs_uae_configure_graphics_card(c);
     fs_uae_configure_sound_card(c);
     fs_uae_configure_network_card(c);
-
-    const char *serial_port = fs_config_get_const_string(OPTION_SERIAL_PORT);
-    if (serial_port && g_ascii_strcasecmp(serial_port, "none") != 0) {
-        amiga_enable_serial_port(serial_port);
-    }
+    fsuae_configure_serial_port();
 
     const char *parallel_port =
         fs_config_get_const_string(OPTION_PARALLEL_PORT);

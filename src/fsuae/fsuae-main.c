@@ -19,6 +19,7 @@
 #include <fs/data.h>
 #include <fs/emu.h>
 #include <fs/emu/audio.h>
+#include <fs/emu/options.h>
 #include <fs/emu/path.h>
 #include <fs/emu/video.h>
 #include <fs/glib.h>
@@ -1789,9 +1790,17 @@ int main(int argc, char *argv[])
     fse_init_early();
 #endif
 
+    if (fs_config_true(OPTION_STDOUT)) {
+        fs_log_enable_stdout();
+    }
+
     /* Then load the config file and set data dir */
     load_config_file();
     fs_set_data_dir(fsuae_path_data_dir());
+
+    if (fs_config_true(OPTION_STDOUT)) {
+        fs_log_enable_stdout();
+    }
 
     amiga_set_log_function(log_to_libfsemu);
     amiga_init();

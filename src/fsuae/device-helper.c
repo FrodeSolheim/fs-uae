@@ -1,3 +1,6 @@
+// #define DEVICE_HELPER_MANYMOUSE
+#define DEVICE_HELPER_PORTMIDI 1
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -35,6 +38,28 @@ static void flush_stdout(void)
     fflush(stdout);
 }
 
+enum {
+    SUCCESS,
+    ERROR_INIT_SDL2,
+};
+
+static bool initialize_sdl2(void)
+{
+    SDL_SetHint(SDL_HINT_VIDEO_ALLOW_SCREENSAVER, "1");
+    SDL_SetHint(SDL_HINT_MAC_BACKGROUND_APP, "1");
+
+    // With recent SDL2 versions (SDL 2.0.14+?), it seems that the video
+    // subsystem must be initialized to get events from xinput controllers.
+    printf("# SDL_Init(SDL_INIT_EVERYTHING)\n");
+    flush_stdout();
+    if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
+        printf("# SDL_Init(SDL_INIT_EVERYTHING) < 0\n");
+        flush_stdout();
+        return ERROR_INIT_SDL2;
+    }
+    return SUCCESS;
+}
+
 static char *joystick_config_name(const char *name, int with_number)
 {
     const char *in = name;
@@ -67,12 +92,70 @@ static char *joystick_config_name(const char *name, int with_number)
     return result;
 }
 
+#ifdef DEVICE_HELPER_MANYMOUSE
 int ManyMouse_Init(void);
 void ManyMouse_Quit(void);
 const char *ManyMouse_DeviceName(unsigned int index);
+#endif
 
-static void list_joysticks(void)
+static void get_joystick_info(SDL_Joystick *joystick,
+                              int index,
+                              int *axes,
+                              int *balls,
+                              int *buttons,
+                              int *hats,
+                              int *instanceId,
+                              const char **sdl_name,
+                              char guid_string[])
 {
+    *axes = 0;
+    *balls = 0;
+    *buttons = 0;
+    *hats = 0;
+    *instanceId = -1;
+    SDL_JoystickGUID sdl_guid = {};
+    if (joystick == NULL) {
+        // Observed this case with an 8BitDo controller in Switch
+        // mode with HIDAPI (SDL 2.0.16).
+        printf("WARNING: Could not open added joystick\n");
+        sdl_guid = SDL_JoystickGetDeviceGUID(index);
+        *sdl_name = SDL_JoystickNameForIndex(index);
+        *instanceId = SDL_JoystickGetDeviceInstanceID(index);
+    } else {
+        sdl_guid = SDL_JoystickGetGUID(joystick);
+        *sdl_name = SDL_JoystickName(joystick);
+        *instanceId = SDL_JoystickInstanceID(joystick);
+        *buttons = SDL_JoystickNumButtons(joystick);
+        *axes = SDL_JoystickNumAxes(joystick);
+        *hats = SDL_JoystickNumHats(joystick);
+        *balls = SDL_JoystickNumBalls(joystick);
+    }
+    SDL_JoystickGetGUIDString(sdl_guid, guid_string, 33);
+}
+
+#if 0
+int xx()
+{
+    SDL_Joystick *joystick = SDL_JoystickOpen(index);
+    int axes, balls, buttons, hats, instanceId;
+    const char *sdl_name;
+    char guid_string[33];
+    get_joystick_info(joystick,
+                      0,
+                      &axes,
+                      &balls,
+                      &buttons,
+                      &hats,
+                      &instanceId,
+                      &sdl_name,
+                      guid_string);
+}
+#endif
+
+static int list_joysticks(void)
+{
+    int error;
+
     printf("# Keyboards:\n");
     flush_stdout();
     GList *list = fs_ml_input_list_custom_keyboards();
@@ -86,7 +169,7 @@ static void list_joysticks(void)
     printf("# Mice:\n");
     printf("M: Mouse\n");
     flush_stdout();
-#if 0
+#ifdef DEVICE_HELPER_MANYMOUSE
     int count = ManyMouse_Init();
     if (count >= 0) {
         for (int i = 0; i < count; i++) {
@@ -123,41 +206,39 @@ static void list_joysticks(void)
     flush_stdout();
 #endif
 #ifdef USE_SDL
-    printf("# SDL_Init(SDL_INIT_JOYSTICK)\n");
-    flush_stdout();
-
-    if (SDL_Init(SDL_INIT_JOYSTICK) < 0) {
-        printf("# SDL_Init(SDL_INIT_JOYSTICK) < 0\n");
-        flush_stdout();
-        return;
+    error = initialize_sdl2();
+    if (error) {
+        return error;
     }
+
     printf("# SDL_NumJoysticks(): %d\n", SDL_NumJoysticks());
     flush_stdout();
     for (int i = 0; i < SDL_NumJoysticks(); i++) {
         SDL_Joystick *joystick = SDL_JoystickOpen(i);
-
-#ifdef USE_SDL2
+        int axes, balls, buttons, hats, instanceId;
+        const char *sdl_name;
+        char guid_string[33];
+        get_joystick_info(joystick,
+                            i,
+                            &axes,
+                            &balls,
+                            &buttons,
+                            &hats,
+                            &instanceId,
+                            &sdl_name,
+                            guid_string);
         char *name =
-            fs_ml_input_fix_joystick_name(SDL_JoystickName(joystick), 0);
-#else
-        char *name = fs_ml_input_fix_joystick_name(SDL_JoystickName(i), 0);
-#endif
+            fs_ml_input_fix_joystick_name(sdl_name, 0);
         printf("J: %s\n", name);
         flush_stdout();
         g_free(name);
-
-        char guid_str[33];
-        SDL_JoystickGUID guid = SDL_JoystickGetGUID(joystick);
-        SDL_JoystickGetGUIDString(guid, guid_str, 33);
-        guid_str[32] = '\0';
-
         printf("   Buttons: %d Hats: %d Axes: %d Balls: %d GUID: %s\n",
-               SDL_JoystickNumButtons(joystick),
-               SDL_JoystickNumHats(joystick),
-               SDL_JoystickNumAxes(joystick),
-               SDL_JoystickNumBalls(joystick),
-               guid_str);
-        printf("   SDLName: \"%s\"\n", SDL_JoystickName(joystick));
+               buttons,
+               hats,
+               axes,
+               balls,
+               guid_string);
+        printf("   SDLName: \"%s\"\n", sdl_name);
         flush_stdout();
         SDL_JoystickClose(joystick);
     }
@@ -165,11 +246,13 @@ static void list_joysticks(void)
     printf("# USE_SDL is not defined\n");
     flush_stdout();
 #endif
+    return SUCCESS;
 }
 
-static void print_events(void)
+static int print_events(void)
 {
-#ifdef USE_SDL2
+    int error;
+
     printf("# Printing events\n");
 
     printf("# Keyboards:\n");
@@ -197,7 +280,7 @@ static void print_events(void)
         "Mouse");
     flush_stdout();
 
-#if 0
+#ifdef DEVICE_HELPER_MANYMOUSE
     int count = ManyMouse_Init();
     if (count >= 0) {
         for (int i = 0; i < count; i++) {
@@ -221,20 +304,14 @@ static void print_events(void)
     }
 #endif
 
-    SDL_SetHint(SDL_HINT_VIDEO_ALLOW_SCREENSAVER, "1");
-
-    // With recent SDL2 versions (SDL 2.0.14+?), it seems that the video
-    // subsystem must be initialized to get events from xinput controllers.
-    printf("# SDL_Init(SDL_INIT_EVERYTHING)\n");
-    flush_stdout();
-    if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
-        printf("# SDL_Init(SDL_INIT_EVERYTHING) < 0\n");
-        flush_stdout();
-        return;
+    error = initialize_sdl2();
+    if (error) {
+        return error;
     }
 
     int64_t startup = fs_get_monotonic_time();
 
+    int index;
     SDL_Event event;
     int do_quit = 0;
     while (do_quit == 0) {
@@ -287,17 +364,24 @@ static void print_events(void)
                     event.jaxis.value);
                 break;
             case SDL_JOYDEVICEADDED:
-                printf("# Joystick device added\n");
-                SDL_Joystick *joystick = SDL_JoystickOpen(event.jdevice.which);
-
-                char guid[33];
-                SDL_JoystickGetGUIDString(SDL_JoystickGetGUID(joystick), guid, 33);
-
-                char *name = fs_ml_input_fix_joystick_name(
-                    SDL_JoystickName(joystick), 0);
-
-                char *name2 = strdup(name);
-                char *c = name2;
+                index = event.jdevice.which;
+                printf("# Joystick device added (which/index=%d)\n",
+                       index);
+                SDL_Joystick *joystick = SDL_JoystickOpen(index);
+                int axes, balls, buttons, hats, instanceId;
+                const char *sdl_name;
+                char guid_string[33];
+                get_joystick_info(joystick,
+                                  index,
+                                  &axes,
+                                  &balls,
+                                  &buttons,
+                                  &hats,
+                                  &instanceId,
+                                  &sdl_name,
+                                  guid_string);
+                char *name = fs_ml_input_fix_joystick_name(sdl_name, 0);
+                char *c = name;
                 while (*c) {
                     // simple hack, replacing a couple of chars to (easily)
                     // make the name valid json.
@@ -309,10 +393,9 @@ static void print_events(void)
                     }
                     c++;
                 }
-
-                char *name3 = strdup(SDL_JoystickName(joystick));
+                char *name2 = strdup(sdl_name);
                 // FIXME: Properly escape name
-                c = name3;
+                c = name2;
                 while (*c) {
                     // simple hack, replacing a couple of chars to (easily)
                     // make the name valid json.
@@ -324,30 +407,31 @@ static void print_events(void)
                     }
                     c++;
                 }
-
                 printf(
                     "{\"type\": \"joy-device-added\", \"device\": %d, "
                     "\"name\": \"%s\", \"buttons\": %d, \"axes\": %d, "
                     "\"hats\": %d, \"balls\": %d, \"sdlInstanceId\": %d, "
                     "\"sdlGuid\": \"%s\", \"sdlName\": \"%s\"}\n",
-                    event.jdevice.which,
-                    name2,
-                    SDL_JoystickNumButtons(joystick),
-                    SDL_JoystickNumAxes(joystick),
-                    SDL_JoystickNumHats(joystick),
-                    SDL_JoystickNumBalls(joystick),
-                    SDL_JoystickInstanceID(joystick),
-                    guid,
-                    name3);
+                    index,
+                    name,
+                    buttons,
+                    axes,
+                    hats,
+                    balls,
+                    instanceId,
+                    guid_string,
+                    name2);
+                free(name);
                 free(name2);
-                free(name3);
                 break;
             case SDL_JOYDEVICEREMOVED:
-                printf("# Joystick device removed\n");
-                printf("{\"type\": \"joy-device-removed\", \"device\": %d, "
-                       "\"sdlInstanceId\": %d}\n",
-                       event.jdevice.which,
+                printf("# Joystick device removed (which/instanceId=%d)\n",
                        event.jdevice.which);
+                printf(
+                    "{\"type\": \"joy-device-removed\", \"device\": %d, "
+                    "\"sdlInstanceId\": %d}\n",
+                    event.jdevice.which,
+                    event.jdevice.which);
                 break;
             case SDL_QUIT:
                 printf("# Received quit signal\n");
@@ -356,8 +440,7 @@ static void print_events(void)
         }
         flush_stdout();
     }
-
-#endif
+    return SUCCESS;
 }
 
 static void print_state(SDL_Joystick *joystick, const char *name)
@@ -395,6 +478,7 @@ static void print_state(SDL_Joystick *joystick, const char *name)
     }
 }
 
+#ifdef DEVICE_HELPER_PORTMIDI
 #ifdef WITH_MIDI
 
 #include "portmidi.h"
@@ -404,9 +488,11 @@ static void print_name_escaped(const char *value)
     const char *c = value;
     while (*c) {
         if (*c == '\n') {
-            fputs("%0a", stdout);
+            // fputs("%0a", stdout);
+            fputs("\\n", stdout);
         } else if (*c == '\"') {
-            fputs("%22", stdout);
+            // fputs("%22", stdout);
+            fputs("\\\"", stdout);
         } else {
             putchar(*c);
         }
@@ -428,22 +514,25 @@ static void list_portmidi_devices(void)
         const PmDeviceInfo *info = Pm_GetDeviceInfo(i);
         if (info != NULL) {
             // printf("\"%s\"", info->name);
-            putchar('"');
+            fputs("{\"name\": \"", stdout);
+            // putchar('"');
             print_name_escaped(info->name);
-            putchar('"');
-            if (info->input) {
-                fputs(" IN", stdout);
-            }
-            if (info->output) {
-                fputs(" OUT", stdout);
-            }
-            printf(" (%s)\n", info->interf);
+            // putchar('"');
+            // fputs("\", \"direction\": \"", stdout);
+            fputs("\", \"output\": ", stdout);
+            fputs(info->output ? "true" : "false", stdout);
+            fputs(", \"input\": ", stdout);
+            fputs(info->input ? "true" : "false", stdout);
+            fputs(", \"driver\": \"", stdout);
+            print_name_escaped(info->interf);
+            fputs("\"}\n", stdout);
         }
     }
     printf("\n");
 }
 
 #endif  // WITH_MIDI
+#endif  // DEVICE_HELPER_PORTMIDI
 
 #ifdef WINDOWS
 // FIXME fix the main macro instead
@@ -451,23 +540,24 @@ int g_fs_ml_ncmdshow;
 HINSTANCE g_fs_ml_hinstance;
 #endif
 
-
-
 static void print_usage(void)
 {
     printf("\nUsage:\n");
     printf("  fs-uae-device-helper --list\n");
     printf("  fs-uae-device-helper <device-name>\n");
     printf("  fs-uae-device-helper --events\n");
+#ifdef DEVICE_HELPER_PORTMIDI
 #ifdef WITH_MIDI
     printf("  fs-uae-device-helper list-portmidi-devices\n");
+#endif
 #endif
     printf("\n");
 }
 
-
 int main(int argc, char *argv[])
 {
+    int error;
+
     printf("# FS-UAE Device Helper %s\n", PACKAGE_VERSION);
     flush_stdout();
 
@@ -479,8 +569,6 @@ int main(int argc, char *argv[])
         flush_stdout();
         return 1;
     }
-
-    SDL_SetHint(SDL_HINT_MAC_BACKGROUND_APP, "1");
 
     if (strcmp(argv[1], "--list") == 0 || strcmp(argv[1], "list") == 0) {
         list_joysticks();
@@ -497,32 +585,27 @@ int main(int argc, char *argv[])
     }
 #endif
     if (strcmp(argv[1], "--events") == 0) {
-        print_events();
+        error = print_events();
         printf("# End\n");
         flush_stdout();
-        return 0;
+        return error;
     }
 
     char *compare_name = joystick_config_name(argv[1], 1);
 
-    // With recent SDL2 versions (SDL 2.0.14+?), it seems that the video
-    // subsystem must be initialized to get events from xinput controllers.
-    printf("# SDL_Init(SDL_INIT_EVERYTHING)\n");
-    flush_stdout();
-    if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
-        printf("# SDL_Init(SDL_INIT_EVERYTHING) < 0\n");
-        flush_stdout();
-        return 2;
+    error = initialize_sdl2();
+    if (error) {
+        return error;
     }
     int num_joysticks = SDL_NumJoysticks();
     for (int i = 0; i < num_joysticks; i++) {
         SDL_Joystick *joystick = SDL_JoystickOpen(i);
-#ifdef USE_SDL2
+        if (joystick == NULL) {
+            printf("# Error opening joystick\n");
+            continue;
+        }
         char *name =
             fs_ml_input_fix_joystick_name(SDL_JoystickName(joystick), 1);
-#else
-        char *name = fs_ml_input_fix_joystick_name(SDL_JoystickName(i), 1);
-#endif
         /* fs_ml_input_unique_device_name either returns name, or frees it
          * and return another name, so name must be malloced and owned by
          * caller. */

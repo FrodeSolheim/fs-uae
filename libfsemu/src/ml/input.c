@@ -73,6 +73,10 @@ int fs_ml_post_event(fs_ml_event* event)
 
 char *fs_ml_input_fix_joystick_name(const char *name, int upper)
 {
+    if (name == NULL) {
+        return g_strdup("NULL");
+    }
+
     char *n, *temp;
     n = g_strdup(name);
     g_strstrip(n);

@@ -327,6 +327,8 @@ static int out_sysex_bits;
 static void write_msg(PmMessage msg)
 {
 	static int last_result;
+	// FIXME: Should we use timestamps here? Calculate when a midi events based
+	// on frame start time + active line (fraction of frame time)?
 	PmError err = Pm_WriteShort(out, 0, msg);
 	if(err != pmNoError) {
 		// Throttle the errors by not logging repeated identical errors.

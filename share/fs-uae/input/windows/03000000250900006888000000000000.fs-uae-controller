@@ -1,5 +1,5 @@
 [fs-uae-controller]
-name = PS2 Controllera:b2
+name = PS2 Controller
 platform = linux
 
 [default]
@@ -16,6 +16,7 @@ button_0 = north_button
 button_1 = east_button
 button_10 = lstick_button
 button_11 = rstick_button
+button_2 = south_button
 button_3 = west_button
 button_4 = left_trigger
 button_5 = left_shoulder

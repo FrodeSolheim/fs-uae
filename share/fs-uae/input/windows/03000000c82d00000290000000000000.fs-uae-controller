@@ -1,5 +1,5 @@
 [fs-uae-controller]
-name = Retrobit 64
+name = 8Bitdo N64
 platform = linux
 
 [default]
@@ -8,16 +8,12 @@ axis_0_neg = lstick_left
 axis_0_pos = lstick_right
 axis_1_neg = lstick_up
 axis_1_pos = lstick_down
-button_0 = left_trigger
-button_1 = select_button
-button_10 = right_trigger
+button_0 = south_button
+button_1 = east_button
+button_10 = left_trigger
 button_11 = start_button
-button_3 = south_button
-button_4 = west_button
 button_6 = left_shoulder
 button_7 = right_shoulder
-button_8 = north_button
-button_9 = east_button
 hat_0_down = dpad_down
 hat_0_left = dpad_left
 hat_0_right = dpad_right

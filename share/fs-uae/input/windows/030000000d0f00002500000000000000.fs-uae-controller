@@ -1,13 +1,13 @@
 [fs-uae-controller]
-name = Nintendo Switch Online Controller
+name = Hori Fighting Commander 3
 platform = linux
 
 [default]
 include = universal_gamepad
-button_0 = south_button
-button_1 = east_button
+button_0 = west_button
+button_1 = south_button
 button_12 = menu_button
-button_2 = west_button
+button_2 = east_button
 button_3 = north_button
 button_4 = left_shoulder
 button_5 = right_shoulder

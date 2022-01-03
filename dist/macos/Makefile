@@ -11,7 +11,7 @@ dname = fs-uae_$(ver_os_arch)
 all: bindist
 
 clean:
-	rm -Rf ../macos/fs-uae* FS-UAE
+	rm -Rf FS-UAE*
 
 bindist: bundle
 	tar Jcfv ../../$(dname).tar.xz FS-UAE.app

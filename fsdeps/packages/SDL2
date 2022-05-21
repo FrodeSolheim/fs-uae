@@ -5,8 +5,8 @@ set -e
 # Dependency: pulseaudio?
 # Dependency: wayland?
 
-PACKAGE=SDL2-2.0.18
-CHECKSUM=94d40cd73dbfa10bb6eadfbc28f355992bb2d6ef6761ad9d4074eff95ee5711c
+PACKAGE=SDL2-2.0.20
+CHECKSUM=c56aba1d7b5b0e7e999e4a7698c70b63a3394ff9704b5f6e1c57e0c16f04dd06
 REVISION=0
 
 . fsdeps/dep.sh

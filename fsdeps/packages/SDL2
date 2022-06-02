@@ -7,7 +7,7 @@ set -e
 
 PACKAGE=SDL2-2.0.22
 CHECKSUM=fe7cbf3127882e3fc7259a75a0cb585620272c51745d3852ab9dd87960697f2e
-REVISION=0
+REVISION=1
 
 . fsdeps/dep.sh
 
@@ -18,6 +18,25 @@ sha256:$CHECKSUM
 rm -Rf fsdeps/_build && mkdir fsdeps/_build && cd fsdeps/_build
 tar xf ../_sources/$PACKAGE.tar.gz
 cd $PACKAGE
+
+patch -p1 <<EOF
+diff --git a/src/joystick/windows/SDL_windows_gaming_input.c b/src/joystick/windows/SDL_windows_gaming_input.c
+index 8b552bb7dad..c1608a797ae 100644
+--- a/src/joystick/windows/SDL_windows_gaming_input.c
++++ b/src/joystick/windows/SDL_windows_gaming_input.c
+@@ -34,6 +34,11 @@
+ #include <cfgmgr32.h>
+ #include <roapi.h>
+ 
++#ifdef __MINGW32__
++#define __FIReference_1_int __FIReference_1_INT32
++#define __FIReference_1_int_get_Value __FIReference_1_INT32_get_Value
++#define __FIReference_1_int_Release __FIReference_1_INT32_Release
++#endif
+ 
+ struct joystick_hwdata
+ {
+EOF
 
 if [ "`uname`" = "Darwin" ]; then
 python3 ../../replace.py \

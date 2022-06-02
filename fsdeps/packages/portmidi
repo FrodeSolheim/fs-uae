@@ -45,7 +45,7 @@ index 4919b78..c329001 100644
  set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO "" CACHE INTERNAL "Unused")
  
 -set(CMAKE_OSX_ARCHITECTURES i386 ppc x86_64 CACHE STRING "change to needed architecture for a smaller library" FORCE)
-+set(CMAKE_OSX_ARCHITECTURES x86_64 CACHE STRING "change to needed architecture for a smaller library" FORCE)
++# set(CMAKE_OSX_ARCHITECTURES i386 ppc x86_64 CACHE STRING "change to needed architecture for a smaller library" FORCE)
  
  PROJECT(portmidi)
  

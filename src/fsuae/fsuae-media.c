@@ -246,6 +246,7 @@ static void configure_hard_drive_directory(int index,
     char *mount_name;
     char *label_option_name = g_strdup_printf("hard_drive_%d_label", index);
     char *label_option = fs_config_get_string(label_option_name);
+    g_free(label_option_name);
     if (label_option) {
         mount_name = label_option;
     } else {
@@ -264,6 +265,14 @@ static void configure_hard_drive_directory(int index,
             mount_name[stop] = '\0';
         }
     }
+
+    char *device_option_name = g_strdup_printf(
+        "hard_drive_%d_device", index);
+    const char *device_option = fs_config_get_const_string(device_option_name);
+    if (device_option) {
+        device = device_option;
+    }
+    g_free(device_option_name);
 
     fsuae_log("[MEDIA] hard drive mount: %s\n", path);
     fsuae_log("[MEDIA] device: %s\n", device);

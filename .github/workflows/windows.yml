@@ -14,7 +14,7 @@ on:
 
 jobs:
   Windows_x86-64:
-    runs-on: windows-2016
+    runs-on: windows-2019
 
     env:
       UPLOAD_ENABLED: ${{ secrets.DROPBOX_ACCESS_TOKEN }}

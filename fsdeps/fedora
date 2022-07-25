@@ -1,0 +1,22 @@
+# SDL2-devel is not itself needed, but it pulls in other useful dependencies
+# FIXME: Should libdecor be an external dependency? Looks like it only uses
+# the header files (dynamic loading).
+
+sudo dnf install \
+	alsa-lib-devel \
+	autoconf \
+	automake \
+	gcc \
+	gettext \
+	libdecor-devel \
+	libdrm-devel \
+	libgbm-devel \
+	libtool \
+	libXext-devel \
+	libXi-devel \
+	libxkbcommon-devel \
+	meson \
+	patchelf \
+	SDL2-devel \
+	wayland-devel \
+	zip

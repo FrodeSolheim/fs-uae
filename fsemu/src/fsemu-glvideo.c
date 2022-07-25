@@ -1084,7 +1084,11 @@ static void fsemu_glvideo_render_text(fsemu_gui_item_t *widget)
     // image->depth,
     // image->stride,
 
-    fsemu_opengl_unpack_row_length(0);
+    if (image->stride == image->width * 4) {
+        fsemu_opengl_unpack_row_length(0);
+    } else {
+        fsemu_opengl_unpack_row_length(image->stride / 4);
+    }
     glTexImage2D(GL_TEXTURE_2D,
                  0,
                  GL_RGBA,
@@ -1178,7 +1182,11 @@ static void fsemu_glvideo_render_image(fsemu_gui_item_t *widget)
     // image->stride,
 
     // fsemu_opengl_unpack_row_length(4);
-    fsemu_opengl_unpack_row_length(0);
+    if (image->stride == image->width * 4) {
+        fsemu_opengl_unpack_row_length(0);
+    } else {
+        fsemu_opengl_unpack_row_length(image->stride / 4);
+    }
     glTexImage2D(GL_TEXTURE_2D,
                  0,
                  GL_RGBA,

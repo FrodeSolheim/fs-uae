@@ -69,6 +69,8 @@ typedef struct {
     // Index of the select item.
     int selected_index;
     fsemu_util_spring_t selected_spring;
+    fsemu_util_spring_t scroll_spring;
+    int scroll_y;
 
     fsemu_widget_t *background_w;
     // Top-level menu has a close/quit button
@@ -113,6 +115,11 @@ static int fsemu_osmenu_item_height(void)
     return 60;
 }
 
+static const int fsemu_osmenu_max_visible(void)
+{
+    return 18;
+}
+
 // After selected_index is changed, this functions needs to be called to update
 // the position of the widget indicating the selection.
 static void fsemu_osmenu_update_selected_w(fsemu_osmenu_t *osmenu,
@@ -121,7 +128,8 @@ static void fsemu_osmenu_update_selected_w(fsemu_osmenu_t *osmenu,
     // If selected_index is -2, this means no item is selected.
     fsemu_widget_set_visible(osmenu->selected_w, osmenu->selected_index >= -1);
     // We can calculate position even with selected_index -2, no harm.
-    int y = 60 + osmenu->selected_index * fsemu_osmenu_item_height();
+    int y = (1 + osmenu->selected_index) *
+        fsemu_osmenu_item_height() - osmenu->scroll_spring.target;
     // osmenu->selected_y_wanted = y;
     fsemu_util_spring_set_target(&osmenu->selected_spring, y);
     if (instant) {
@@ -399,6 +407,9 @@ static void fsemu_osmenu_push_menu(fsemu_menu_t *menu)
     fsemu_util_spring_set_tension(&osmenu->open_spring, 250.0);
     fsemu_util_spring_init(&osmenu->selected_spring);
     fsemu_util_spring_set_tension(&osmenu->selected_spring, 500.0);
+    fsemu_util_spring_init(&osmenu->scroll_spring);
+    fsemu_util_spring_set_tension(&osmenu->scroll_spring, 500.0);
+    osmenu->scroll_y = osmenu->scroll_spring.current;
 
     osmenu->menu = menu;
     osmenu->level = g_list_length(fsemu_osmenu.stack);
@@ -531,6 +542,35 @@ static fsemu_osmenu_t *fsemu_osmenu_navigation_menu(void)
     return osmenu;
 }
 
+static void fsemu_osmenu_update_scroll(fsemu_osmenu_t *osmenu)
+{
+    fsemu_osmenu_log_debug("osmenu update scroll %p\n", osmenu);
+
+    fsemu_util_spring_update(&osmenu->scroll_spring);
+
+    if (osmenu->scroll_y != osmenu->scroll_spring.current)
+    {
+        osmenu->scroll_y = osmenu->scroll_spring.current;
+
+        GList *ositems = osmenu->ositems;
+
+        int y = osmenu->level == 0 ? 0 : fsemu_osmenu_item_height()
+            - osmenu->scroll_y;
+
+        while (ositems) {
+            fsemu_osmenu_item_t *ositem = ositems->data;
+            fsemu_widget_t *widget = ositem->title_w;
+
+            fsemu_widget_set_top_2(widget, y, FSEMU_WIDGET_PARENT_TOP);
+            fsemu_widget_set_bottom_2(widget, y + fsemu_osmenu_item_height(),
+                FSEMU_WIDGET_PARENT_TOP);
+
+            ositems = ositems->next;
+            y += fsemu_osmenu_item_height();
+        }
+    }
+}
+
 static void fsemu_osmenu_navigate_up_down(int navigate,
                                           fsemu_action_state_t state)
 {
@@ -569,6 +609,14 @@ static void fsemu_osmenu_navigate_up_down(int navigate,
         if (fsemu_osmenu_selectable_item(osmenu, index)) {
             fsemu_assert(index >= min_index && index < length);
             osmenu->selected_index = index;
+
+            int selected_y = (1 + index) * fsemu_osmenu_item_height();
+            if (selected_y < osmenu->scroll_y)
+                fsemu_util_spring_set_target(&osmenu->scroll_spring, selected_y);
+            else if (selected_y > osmenu->scroll_y + (fsemu_osmenu_max_visible() - 1) * fsemu_osmenu_item_height())
+                fsemu_util_spring_set_target(&osmenu->scroll_spring, selected_y
+                    - (fsemu_osmenu_max_visible() - 1) * fsemu_osmenu_item_height());
+
             fsemu_osmenu_update_selected_w(osmenu, false);
         }
     }
@@ -836,6 +884,7 @@ void fsemu_osmenu_update(void)
             osmenu->selected_y + fsemu_osmenu_item_height(),
             FSEMU_WIDGET_PARENT_TOP);
 #endif
+        fsemu_osmenu_update_scroll(osmenu);
         listitem = listitem->next;
     }
     // Now we animate all the osmenus that have been dismissed, and then

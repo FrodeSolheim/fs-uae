@@ -4083,7 +4083,8 @@ static int cfgfile_parse_host (struct uae_prefs *p, TCHAR *option, TCHAR *value)
 		_tcscpy (p->statefile, tmpbuf);
 		_tcscpy (savestate_fname, tmpbuf);
 		if (zfile_exists (savestate_fname)) {
-			savestate_state = STATE_DORESTORE;
+			// GB: Prevent restore on startup
+			//savestate_state = STATE_DORESTORE;
 		} else {
 			int ok = 0;
 #ifdef FSUAE

@@ -1689,7 +1689,7 @@ int main(int argc, char *argv[])
     arg = argv + 1;
     while (arg && *arg) {
         if (strcmp(*arg, "--version") == 0) {
-            printf("%s\n", PACKAGE_VERSION);
+            printf("%s-remote_debug.0\n", PACKAGE_VERSION);
             exit(0);
         } else if (strcmp(*arg, "--help") == 0) {
             printf(COPYRIGHT_NOTICE,

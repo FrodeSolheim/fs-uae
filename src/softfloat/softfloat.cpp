@@ -113,8 +113,6 @@ int8_t floatx80_internal_mode = float_round_nearest_even;
  | Functions for storing sign, exponent and significand of extended
  | double-precision floating-point intermediate result for external use.
  *----------------------------------------------------------------------------*/
-
-static
 floatx80 roundSaveFloatx80Internal( int8_t roundingPrecision, flag zSign, int32_t zExp, uint64_t zSig0, uint64_t zSig1, float_status *status )
 {
     int64_t roundIncrement, roundMask, roundBits;
@@ -180,7 +178,8 @@ precision80:
             ++zExp;
             zSig0 = LIT64( 0x8000000000000000 );
         } else {
-            zSig0 &= ~ ( ( (uint64_t) ( zSig1<<1 ) == 0 ) & ( status->float_rounding_mode == float_round_nearest_even ) );
+            if ((zSig1 << 1) == 0 && status->float_rounding_mode == float_round_nearest_even)
+                zSig0 &= ~1;
         }
     } else {
         if ( zSig0 == 0 ) zExp = 0;
@@ -225,7 +224,6 @@ static void saveFloat32Internal( flag zSign, int16_t zExp, uint32_t zSig, float_
  | double-precision floating-point intermediate result for external use.
  *----------------------------------------------------------------------------*/
 
-static
 void getRoundedFloatInternal( int8_t roundingPrecision, flag *pzSign, int32_t *pzExp, uint64_t *pzSig )
 {
     int64_t roundIncrement, roundMask, roundBits;
@@ -300,7 +298,8 @@ precision80:
             ++zExp;
             zSig0 = LIT64( 0x8000000000000000 );
         } else {
-            zSig0 &= ~ ( ( (uint64_t) ( zSig1<<1 ) == 0 ) & ( floatx80_internal_mode == float_round_nearest_even ) );
+            if ((zSig1 << 1) == 0 && floatx80_internal_mode == float_round_nearest_even)
+                zSig0 &= ~1;
         }
     } else {
         if ( zSig0 == 0 ) zExp = 0;
@@ -501,7 +500,7 @@ static int32_t roundAndPackInt32(flag zSign, uint64_t absZ, float_status *status
     roundBits = absZ & 0x7F;
     absZ = ( absZ + roundIncrement )>>7;
     absZ &= ~ ( ( ( roundBits ^ 0x40 ) == 0 ) & roundNearestEven );
-    z = absZ;
+    z = (int32_t)absZ;
     if ( zSign ) z = - z;
     if ( ( absZ>>32 ) || ( z && ( ( z < 0 ) ^ zSign ) ) ) {
         float_raise(float_flag_invalid, status);
@@ -543,7 +542,7 @@ static int16_t roundAndPackInt16( flag zSign, uint64_t absZ, float_status *statu
     roundBits = absZ & 0x7F;
     absZ = ( absZ + roundIncrement )>>7;
     absZ &= ~ ( ( ( roundBits ^ 0x40 ) == 0 ) & roundNearestEven );
-    z = absZ;
+    z = (int16_t)absZ;
     if ( zSign ) z = - z;
     z = (int16_t) z;
     if ( ( absZ>>16 ) || ( z && ( ( z < 0 ) ^ zSign ) ) ) {
@@ -582,7 +581,7 @@ static int8_t roundAndPackInt8( flag zSign, uint64_t absZ, float_status *status 
     roundBits = absZ & 0x7F;
     absZ = ( absZ + roundIncrement )>>7;
     absZ &= ~ ( ( ( roundBits ^ 0x40 ) == 0 ) & roundNearestEven );
-    z = absZ;
+    z = (int8_t)absZ;
     if ( zSign ) z = - z;
     z = (int8_t) z;
     if ( ( absZ>>8 ) || ( z && ( ( z < 0 ) ^ zSign ) ) ) {
@@ -1498,7 +1497,6 @@ precision80:
 #endif
 
 #ifdef SOFTFLOAT_68K // 21-01-2017: Added for Previous
-static
 floatx80 roundSigAndPackFloatx80( int8_t roundingPrecision, flag zSign, int32_t zExp, uint64_t zSig0, uint64_t zSig1, float_status *status )
 {
     int8_t roundingMode;
@@ -1877,7 +1875,7 @@ int32_t floatx80_to_int32_round_to_zero(floatx80 a, float_status *status)
     shiftCount = 0x403E - aExp;
     savedASig = aSig;
     aSig >>= shiftCount;
-    z = aSig;
+    z = (int32_t)aSig;
     if ( aSign ) z = - z;
     if ( ( z < 0 ) ^ aSign ) {
  invalid:
@@ -1968,7 +1966,7 @@ float32 floatx80_to_float32(floatx80 a, float_status *status)
     shift64RightJamming( aSig, 33, &aSig );
     if ( aExp || aSig ) aExp -= 0x3F81;
 #endif
-    return roundAndPackFloat32(aSign, aExp, aSig, status);
+    return roundAndPackFloat32(aSign, aExp, (uint32_t)aSig, status);
 
 }
 
@@ -2140,7 +2138,7 @@ floatx80 floatx80_normalize( floatx80 a )
     
     shiftCount = countLeadingZeros64( aSig );
     
-    if ( shiftCount > aExp ) shiftCount = aExp;
+    if ( shiftCount > aExp ) shiftCount = (int8_t)aExp;
     
     aExp -= shiftCount;
     aSig <<= shiftCount;
@@ -2881,87 +2879,84 @@ floatx80 floatx80_rem(floatx80 a, floatx80 b, float_status *status)
 
 }
 #else // 09-01-2017: Modified version for Previous
-floatx80 floatx80_rem( floatx80 a, floatx80 b, uint64_t *q, flag *s, float_status *status )
+floatx80 floatx80_rem(floatx80 a, floatx80 b, uint64_t *q, flag *s, float_status *status)
 {
     flag aSign, bSign, zSign;
     int32_t aExp, bExp, expDiff;
     uint64_t aSig0, aSig1, bSig;
     uint64_t qTemp, term0, term1, alternateASig0, alternateASig1;
-    
-    aSig0 = extractFloatx80Frac( a );
-    aExp = extractFloatx80Exp( a );
-    aSign = extractFloatx80Sign( a );
-    bSig = extractFloatx80Frac( b );
-    bExp = extractFloatx80Exp( b );
-    bSign = extractFloatx80Sign( b );
 
-	if ( aExp == 0x7FFF ) {
-        if (    (uint64_t) ( aSig0<<1 )
-            || ( ( bExp == 0x7FFF ) && (uint64_t) ( bSig<<1 ) ) ) {
-            return propagateFloatx80NaN( a, b, status );
+    aSig0 = extractFloatx80Frac(a);
+    aExp = extractFloatx80Exp(a);
+    aSign = extractFloatx80Sign(a);
+    bSig = extractFloatx80Frac(b);
+    bExp = extractFloatx80Exp(b);
+    bSign = extractFloatx80Sign(b);
+
+    *s = 0;
+    *q = 0;
+
+    if (aExp == 0x7FFF) {
+        if ((uint64_t)(aSig0 << 1)
+            || ((bExp == 0x7FFF) && (uint64_t)(bSig << 1))) {
+            return propagateFloatx80NaN(a, b, status);
         }
         goto invalid;
     }
-    if ( bExp == 0x7FFF ) {
-        if ( (uint64_t) ( bSig<<1 ) ) return propagateFloatx80NaN( a, b, status );
+    if (bExp == 0x7FFF) {
+        if ((uint64_t)(bSig << 1)) return propagateFloatx80NaN(a, b, status);
         *s = (aSign != bSign);
-        *q = 0;
-        return a;
+        return normalizeRoundAndPackFloatx80(status->floatx80_rounding_precision, aSign, aExp, aSig0, 0, status);
     }
-    if ( bExp == 0 ) {
-        if ( bSig == 0 ) {
+    if (bExp == 0) {
+        if (bSig == 0) {
         invalid:
-            float_raise( float_flag_invalid, status );
-			return floatx80_default_nan(status);
+            float_raise(float_flag_invalid, status);
+            return floatx80_default_nan(status);
         }
-        normalizeFloatx80Subnormal( bSig, &bExp, &bSig );
+        normalizeFloatx80Subnormal(bSig, &bExp, &bSig);
     }
-    if ( aExp == 0 ) {
-#ifdef SOFTFLOAT_68K
-        if ( aSig0 == 0 ) {
+    if (aExp == 0) {
+        if (aSig0 == 0) {
             *s = (aSign != bSign);
-            *q = 0;
             return a;
         }
-#else
-        if ( (uint64_t) ( aSig0<<1 ) == 0 ) return a;
-#endif
-        normalizeFloatx80Subnormal( aSig0, &aExp, &aSig0 );
+        normalizeFloatx80Subnormal(aSig0, &aExp, &aSig0);
     }
-    bSig |= LIT64( 0x8000000000000000 );
+    bSig |= LIT64(0x8000000000000000);
     zSign = aSign;
     expDiff = aExp - bExp;
     *s = (aSign != bSign);
     aSig1 = 0;
-    if ( expDiff < 0 ) {
-        if ( expDiff < -1 ) return a;
-        shift128Right( aSig0, 0, 1, &aSig0, &aSig1 );
+    if (expDiff < 0) {
+        if (expDiff < -1) return a;
+        shift128Right(aSig0, 0, 1, &aSig0, &aSig1);
         expDiff = 0;
     }
-    qTemp = ( bSig <= aSig0 );
-    if ( qTemp ) aSig0 -= bSig;
-    *q = ( expDiff > 63 ) ? 0 : ( qTemp<<expDiff );
+    qTemp = (bSig <= aSig0);
+    if (qTemp) aSig0 -= bSig;
+    *q = (expDiff > 63) ? 0 : (qTemp << expDiff);
     expDiff -= 64;
-    while ( 0 < expDiff ) {
-        qTemp = estimateDiv128To64( aSig0, aSig1, bSig );
-        qTemp = ( 2 < qTemp ) ? qTemp - 2 : 0;
-        mul64To128( bSig, qTemp, &term0, &term1 );
-        sub128( aSig0, aSig1, term0, term1, &aSig0, &aSig1 );
-        shortShift128Left( aSig0, aSig1, 62, &aSig0, &aSig1 );
-        *q = ( expDiff > 63 ) ? 0 : ( qTemp<<expDiff );
+    while (0 < expDiff) {
+        qTemp = estimateDiv128To64(aSig0, aSig1, bSig);
+        qTemp = (2 < qTemp) ? qTemp - 2 : 0;
+        mul64To128(bSig, qTemp, &term0, &term1);
+        sub128(aSig0, aSig1, term0, term1, &aSig0, &aSig1);
+        shortShift128Left(aSig0, aSig1, 62, &aSig0, &aSig1);
+        *q = (expDiff > 63) ? 0 : (qTemp << expDiff);
         expDiff -= 62;
     }
     expDiff += 64;
-    if ( 0 < expDiff ) {
-        qTemp = estimateDiv128To64( aSig0, aSig1, bSig );
-        qTemp = ( 2 < qTemp ) ? qTemp - 2 : 0;
+    if (0 < expDiff) {
+        qTemp = estimateDiv128To64(aSig0, aSig1, bSig);
+        qTemp = (2 < qTemp) ? qTemp - 2 : 0;
         qTemp >>= 64 - expDiff;
-        mul64To128( bSig, qTemp<<( 64 - expDiff ), &term0, &term1 );
-        sub128( aSig0, aSig1, term0, term1, &aSig0, &aSig1 );
-        shortShift128Left( 0, bSig, 64 - expDiff, &term0, &term1 );
-        while ( le128( term0, term1, aSig0, aSig1 ) ) {
+        mul64To128(bSig, qTemp << (64 - expDiff), &term0, &term1);
+        sub128(aSig0, aSig1, term0, term1, &aSig0, &aSig1);
+        shortShift128Left(0, bSig, 64 - expDiff, &term0, &term1);
+        while (le128(term0, term1, aSig0, aSig1)) {
             ++qTemp;
-            sub128( aSig0, aSig1, term0, term1, &aSig0, &aSig1 );
+            sub128(aSig0, aSig1, term0, term1, &aSig0, &aSig1);
         }
         *q += qTemp;
     }
@@ -2969,23 +2964,22 @@ floatx80 floatx80_rem( floatx80 a, floatx80 b, uint64_t *q, flag *s, float_statu
         term1 = 0;
         term0 = bSig;
     }
-    sub128( term0, term1, aSig0, aSig1, &alternateASig0, &alternateASig1 );
-    if (    lt128( alternateASig0, alternateASig1, aSig0, aSig1 )
-        || (    eq128( alternateASig0, alternateASig1, aSig0, aSig1 )
-            && ( qTemp & 1 ) )
+    sub128(term0, term1, aSig0, aSig1, &alternateASig0, &alternateASig1);
+    if (lt128(alternateASig0, alternateASig1, aSig0, aSig1)
+        || (eq128(alternateASig0, alternateASig1, aSig0, aSig1)
+            && (qTemp & 1))
         ) {
         aSig0 = alternateASig0;
         aSig1 = alternateASig1;
-        zSign = ! zSign;
-        ++*q;
+        zSign = !zSign;
+        ++* q;
     }
     return
-    normalizeRoundAndPackFloatx80(
-                                  80, zSign, bExp + expDiff, aSig0, aSig1, status );
-    
+        normalizeRoundAndPackFloatx80(status->floatx80_rounding_precision,
+            zSign, bExp + expDiff, aSig0, aSig1, status);
+
 }
 #endif // End of modification
-
 
 #ifdef SOFTFLOAT_68K // 08-01-2017: Added for Previous
 /*----------------------------------------------------------------------------
@@ -2993,93 +2987,89 @@ floatx80 floatx80_rem( floatx80 a, floatx80 b, uint64_t *q, flag *s, float_statu
  | value `a' with respect to the corresponding value `b'.
  *----------------------------------------------------------------------------*/
 
-floatx80 floatx80_mod( floatx80 a, floatx80 b, uint64_t *q, flag *s, float_status *status )
+floatx80 floatx80_mod(floatx80 a, floatx80 b, uint64_t *q, flag *s, float_status *status)
 {
     flag aSign, bSign, zSign;
     int32_t aExp, bExp, expDiff;
     uint64_t aSig0, aSig1, bSig;
     uint64_t qTemp, term0, term1;
-    
-    aSig0 = extractFloatx80Frac( a );
-    aExp = extractFloatx80Exp( a );
-    aSign = extractFloatx80Sign( a );
-    bSig = extractFloatx80Frac( b );
-    bExp = extractFloatx80Exp( b );
-    bSign = extractFloatx80Sign( b );
 
-	if ( aExp == 0x7FFF ) {
-        if (    (uint64_t) ( aSig0<<1 )
-            || ( ( bExp == 0x7FFF ) && (uint64_t) ( bSig<<1 ) ) ) {
-            return propagateFloatx80NaN( a, b, status );
+    aSig0 = extractFloatx80Frac(a);
+    aExp = extractFloatx80Exp(a);
+    aSign = extractFloatx80Sign(a);
+    bSig = extractFloatx80Frac(b);
+    bExp = extractFloatx80Exp(b);
+    bSign = extractFloatx80Sign(b);
+
+    *s = 0;
+    *q = 0;
+
+    if (aExp == 0x7FFF) {
+        if ((uint64_t)(aSig0 << 1)
+            || ((bExp == 0x7FFF) && (uint64_t)(bSig << 1))) {
+            return propagateFloatx80NaN(a, b, status);
         }
         goto invalid;
     }
-    if ( bExp == 0x7FFF ) {
-        if ( (uint64_t) ( bSig<<1 ) ) return propagateFloatx80NaN( a, b, status );
+    if (bExp == 0x7FFF) {
+        if ((uint64_t)(bSig << 1)) return propagateFloatx80NaN(a, b, status);
         *s = (aSign != bSign);
-        *q = 0;
-        return a;
+        return normalizeRoundAndPackFloatx80(status->floatx80_rounding_precision, aSign, aExp, aSig0, 0, status);
     }
-    if ( bExp == 0 ) {
-        if ( bSig == 0 ) {
+    if (bExp == 0) {
+        if (bSig == 0) {
         invalid:
-            float_raise( float_flag_invalid, status );
-			return floatx80_default_nan(status);
-		}
-        normalizeFloatx80Subnormal( bSig, &bExp, &bSig );
+            float_raise(float_flag_invalid, status);
+            return floatx80_default_nan(status);
+        }
+        normalizeFloatx80Subnormal(bSig, &bExp, &bSig);
     }
-    if ( aExp == 0 ) {
-#ifdef SOFTFLOAT_68K
-        if ( aSig0 == 0 ) {
+    if (aExp == 0) {
+        if (aSig0 == 0) {
             *s = (aSign != bSign);
-            *q = 0;
             return a;
         }
-#else
-        if ( (uint64_t) ( aSig0<<1 ) == 0 ) return a;
-#endif
-        normalizeFloatx80Subnormal( aSig0, &aExp, &aSig0 );
+        normalizeFloatx80Subnormal(aSig0, &aExp, &aSig0);
     }
-    bSig |= LIT64( 0x8000000000000000 );
+    bSig |= LIT64(0x8000000000000000);
     zSign = aSign;
     expDiff = aExp - bExp;
     *s = (aSign != bSign);
     aSig1 = 0;
-    if ( expDiff < 0 ) return a;
-    qTemp = ( bSig <= aSig0 );
-    if ( qTemp ) aSig0 -= bSig;
-    *q = ( expDiff > 63 ) ? 0 : ( qTemp<<expDiff );
+    if (expDiff < 0) return roundAndPackFloatx80(status->floatx80_rounding_precision, aSign, aExp, aSig0, 0, status);
+    qTemp = (bSig <= aSig0);
+    if (qTemp) aSig0 -= bSig;
+    *q = (expDiff > 63) ? 0 : (qTemp << expDiff);
     expDiff -= 64;
-    while ( 0 < expDiff ) {
-        qTemp = estimateDiv128To64( aSig0, aSig1, bSig );
-        qTemp = ( 2 < qTemp ) ? qTemp - 2 : 0;
-        mul64To128( bSig, qTemp, &term0, &term1 );
-        sub128( aSig0, aSig1, term0, term1, &aSig0, &aSig1 );
-        shortShift128Left( aSig0, aSig1, 62, &aSig0, &aSig1 );
-        *q = ( expDiff > 63 ) ? 0 : ( qTemp<<expDiff );
-		expDiff -= 62;
+    while (0 < expDiff) {
+        qTemp = estimateDiv128To64(aSig0, aSig1, bSig);
+        qTemp = (2 < qTemp) ? qTemp - 2 : 0;
+        mul64To128(bSig, qTemp, &term0, &term1);
+        sub128(aSig0, aSig1, term0, term1, &aSig0, &aSig1);
+        shortShift128Left(aSig0, aSig1, 62, &aSig0, &aSig1);
+        *q = (expDiff > 63) ? 0 : (qTemp << expDiff);
+        expDiff -= 62;
     }
     expDiff += 64;
-    if ( 0 < expDiff ) {
-        qTemp = estimateDiv128To64( aSig0, aSig1, bSig );
-        qTemp = ( 2 < qTemp ) ? qTemp - 2 : 0;
+    if (0 < expDiff) {
+        qTemp = estimateDiv128To64(aSig0, aSig1, bSig);
+        qTemp = (2 < qTemp) ? qTemp - 2 : 0;
         qTemp >>= 64 - expDiff;
-        mul64To128( bSig, qTemp<<( 64 - expDiff ), &term0, &term1 );
-        sub128( aSig0, aSig1, term0, term1, &aSig0, &aSig1 );
-        shortShift128Left( 0, bSig, 64 - expDiff, &term0, &term1 );
-        while ( le128( term0, term1, aSig0, aSig1 ) ) {
+        mul64To128(bSig, qTemp << (64 - expDiff), &term0, &term1);
+        sub128(aSig0, aSig1, term0, term1, &aSig0, &aSig1);
+        shortShift128Left(0, bSig, 64 - expDiff, &term0, &term1);
+        while (le128(term0, term1, aSig0, aSig1)) {
             ++qTemp;
-            sub128( aSig0, aSig1, term0, term1, &aSig0, &aSig1 );
+            sub128(aSig0, aSig1, term0, term1, &aSig0, &aSig1);
         }
         *q += qTemp;
     }
     return
-        normalizeRoundAndPackFloatx80(
-            80, zSign, bExp + expDiff, aSig0, aSig1, status );
-    
+        normalizeRoundAndPackFloatx80(status->floatx80_rounding_precision,
+            zSign, bExp + expDiff, aSig0, aSig1, status);
+
 }
 #endif // end of addition for Previous
-
 
 /*----------------------------------------------------------------------------
 | Returns the square root of the extended double-precision floating-point
@@ -3178,8 +3168,8 @@ floatx80 floatx80_getman( floatx80 a, float_status *status)
         if ( aSig == 0 ) return packFloatx80( aSign, 0, 0 );
         normalizeFloatx80Subnormal( aSig, &aExp, &aSig );
     }
-    
-    return roundAndPackFloatx80(status->floatx80_rounding_precision, aSign, 0x3FFF, aSig, 0, status);
+
+    return packFloatx80(aSign, 0x3fff, aSig);
 }
 
 /*----------------------------------------------------------------------------
@@ -3246,11 +3236,14 @@ floatx80 floatx80_scale(floatx80 a, floatx80 b, float_status *status)
     }
     if ( aExp == 0 ) {
         if ( aSig == 0 ) return packFloatx80( aSign, 0, 0);
-        if ( bExp < 0x3FFF ) return a;
+        if (bExp < 0x3FFF) return normalizeRoundAndPackFloatx80(status->floatx80_rounding_precision, aSign, aExp, aSig, 0, status);
         normalizeFloatx80Subnormal( aSig, &aExp, &aSig );
     }
     
-    if ( bExp < 0x3FFF ) return a;
+    if (bExp < 0x3FFF) {
+        return roundAndPackFloatx80(
+            status->floatx80_rounding_precision, aSign, aExp, aSig, 0, status);
+    }
     
     if ( 0x400F < bExp ) {
         aExp = bSign ? -0x6001 : 0xE000;
@@ -3260,7 +3253,7 @@ floatx80 floatx80_scale(floatx80 a, floatx80 b, float_status *status)
     
     shiftCount = 0x403E - bExp;
     bSig >>= shiftCount;
-    aExp = bSign ? ( aExp - bSig ) : ( aExp + bSig );
+    aExp = (int32_t)(bSign ? ( aExp - bSig ) : ( aExp + bSig ));
     
     return roundAndPackFloatx80(
                 status->floatx80_rounding_precision, aSign, aExp, aSig, 0, status);

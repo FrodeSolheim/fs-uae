@@ -186,7 +186,7 @@ static void *uaenet_trap_thread (void *arg)
 }
 #endif
 
-static void *uaenet_trap_threadr (void *arg)
+static void uaenet_trap_threadr (void *arg)
 {
 	struct uaenetdatawin32 *sd = (struct uaenetdatawin32*)arg;
 	struct pcap_pkthdr *header;
@@ -210,10 +210,9 @@ static void *uaenet_trap_threadr (void *arg)
 	}
 	sd->threadactiver = 0;
 	uae_sem_post (&sd->sync_semr);
-	return 0;
 }
 
-static void *uaenet_trap_threadw (void *arg)
+static void uaenet_trap_threadw (void *arg)
 {
 	struct uaenetdatawin32 *sd = (struct uaenetdatawin32*)arg;
 
@@ -244,7 +243,6 @@ static void *uaenet_trap_threadw (void *arg)
 	}
 	sd->threadactivew = 0;
 	uae_sem_post (&sd->sync_semw);
-	return 0;
 }
 
 void uaenet_trigger (void *vsd)
@@ -378,7 +376,6 @@ struct netdriverdata *uaenet_enumerate (const TCHAR *name)
 	TCHAR *ss;
 	bool npcap = true;
 	TCHAR sname[MAX_DPATH];
-	int isdll;
 
 	if (enumerated) {
 		return enumit (name);
@@ -392,14 +389,12 @@ struct netdriverdata *uaenet_enumerate (const TCHAR *name)
 	}
 	wpcap = LoadLibrary(_T("wpcap.dll"));
 	packet = LoadLibrary(_T("packet.dll"));
-	isdll = isdllversion(_T("wpcap.dll"), 4, 0, 0, 0);
 	SetDllDirectory(_T(""));
 	if (wpcap == NULL) {
 		FreeLibrary(packet);
 		int err = GetLastError();
 		wpcap = LoadLibrary (_T("wpcap.dll"));
 		packet = LoadLibrary(_T("packet.dll"));
-		isdll = isdllversion(_T("wpcap.dll"), 4, 0, 0, 0);
 		if (wpcap == NULL) {
 			write_log (_T("uaenet: npcap/winpcap not installed (wpcap.dll)\n"));
 			return NULL;
@@ -410,11 +405,6 @@ struct netdriverdata *uaenet_enumerate (const TCHAR *name)
 		write_log (_T("uaenet: npcap/winpcap not installed (packet.dll)\n"));
 		FreeLibrary(wpcap);
 		wpcap = NULL;
-		return NULL;
-	}
-
-	if (!isdll) {
-		write_log (_T("uaenet: too old npcap/winpcap, v4 or newer required\n"));
 		return NULL;
 	}
 
@@ -431,6 +421,13 @@ struct netdriverdata *uaenet_enumerate (const TCHAR *name)
 	pPacketOpenAdapter = (PACKETOPENADAPTER)GetProcAddress(packet, "PacketOpenAdapter");
 	pPacketCloseAdapter = (PACKETCLOSEADAPTER)GetProcAddress(packet, "PacketCloseAdapter");
 	pPacketRequest = (PACKETREQUEST)GetProcAddress(packet, "PacketRequest");
+
+	if (!ppcap_lib_version || !ppcap_findalldevs_ex || !ppcap_freealldevs ||
+		!ppcap_open || !ppcap_close || !ppcap_datalink || !ppcap_sendpacket ||
+		!ppcap_next_ex || !pPacketOpenAdapter || !pPacketCloseAdapter || !pPacketRequest) {
+		write_log(_T("uaenet: too old npcap/winpcap, missing function(s).\n"));
+		return NULL;
+	}
 
 	ss = au (ppcap_lib_version());
 	if (!done)

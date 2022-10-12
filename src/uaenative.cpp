@@ -38,7 +38,7 @@
 #include <dlfcn.h>
 #endif
 
-static double syncdivisor;
+static float syncdivisor;
 
 #define SIGBIT 8 // SIGB_DOS
 
@@ -219,7 +219,7 @@ static void set_library_globals(void *dl)
 
 static uae_u32 open_library (const char *name, uae_u32 min_version)
 {
-    syncdivisor = (3580000.0 * CYCLE_UNIT) / (double) syncbase;
+    syncdivisor = (3580000.0f * CYCLE_UNIT) / (float) syncbase;
 
     for (const char *c = name; *c; c++) {
         if (*c == '/' || *c == '\\' || *c == ':') {
@@ -274,7 +274,7 @@ static uae_u32 open_library (const char *name, uae_u32 min_version)
 uae_u32 uaenative_open_library (TrapContext *ctx, int flags)
 {
     char namebuf[256];
-	
+
 	if (!currprefs.native_code) {
         write_log(_T("uni: tried to open native library, but native code ")
                   _T("is not enabled\n"));
@@ -339,7 +339,7 @@ static uae_u32 get_function_handle (uae_u32 handle, const char *name)
 uae_u32 uaenative_get_function (TrapContext *ctx, int flags)
 {
 	char namebuf[256];
-	
+
 	if (!currprefs.native_code) {
         return UNI_ERROR_NOT_ENABLED;
     }
@@ -359,7 +359,7 @@ uae_u32 uaenative_get_function (TrapContext *ctx, int flags)
     }
 
 	trap_get_string(ctx, namebuf, name, sizeof namebuf);
-	
+
 	uae_u32 result = get_function_handle (library, namebuf);
 
     if ((flags & UNI_FLAG_COMPAT) && !(result & 0x80000000)) {
@@ -419,7 +419,7 @@ static void do_call_function (struct uni *uni)
 {
     printf("uni: calling native function %p\n", uni->native_function);
 
-    unsigned long start_time;
+    frame_time_t start_time;
     const int flags = uni->flags;
     if ((flags & UNI_FLAG_ASYNCHRONOUS) == 0) {
         start_time = read_processor_time ();
@@ -440,11 +440,11 @@ static void do_call_function (struct uni *uni)
     }
 
     if ((flags & UNI_FLAG_ASYNCHRONOUS) == 0) {
-        unsigned long time_diff = read_processor_time () - start_time;
-        double v = syncdivisor * time_diff;
+        frame_time_t time_diff = read_processor_time () - start_time;
+        float v = syncdivisor * time_diff;
         if (v > 0) {
-            if (v > 1000000 * CYCLE_UNIT) {
-                v = 1000000 * CYCLE_UNIT;
+            if (v > 1000000.0f * CYCLE_UNIT) {
+                v = 1000000.0f * CYCLE_UNIT;
             }
             // compensate for the time spent in the native function
             do_extra_cycles ((unsigned long) (syncdivisor * time_diff));
@@ -452,7 +452,7 @@ static void do_call_function (struct uni *uni)
     }
 }
 
-static void *uaenative_thread(void *arg)
+static void uaenative_thread(void *arg)
 {
     struct library_data *library_data = (struct library_data *) arg;
 
@@ -471,7 +471,6 @@ static void *uaenative_thread(void *arg)
 
     write_log (_T("uni: uaenative_thread exiting\n"));
     free_library_data(library_data);
-    return NULL;
 }
 
 uae_u32 uaenative_call_function (TrapContext *ctx, int flags)

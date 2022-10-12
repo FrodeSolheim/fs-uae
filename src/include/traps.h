@@ -100,6 +100,7 @@ void call_hardware_trap(uae_u8*, uaecptr, int);
 void trap_set_background(TrapContext *ctx);
 void trap_background_set_complete(TrapContext *ctx);
 bool trap_valid_address(TrapContext *ctx, uaecptr addr, uae_u32 size);
+bool trap_valid_string(TrapContext *ctx, uaecptr addr, uae_u32 maxsize);
 bool trap_is_indirect(void);
 void trap_dos_active(void);
 void trap_reset(void);
@@ -120,6 +121,7 @@ void trap_set_areg(TrapContext *ctx, int reg, uae_u32 v);
 
 void trap_put_quad(TrapContext *ctx, uaecptr addr, uae_u64 v);
 void trap_put_long(TrapContext *ctx, uaecptr addr, uae_u32 v);
+void trap_put_longt(TrapContext *ctx, uaecptr addr, size_t v);
 void trap_put_word(TrapContext *ctx, uaecptr addr, uae_u16 v);
 void trap_put_byte(TrapContext *ctx, uaecptr addr, uae_u8 v);
 

@@ -191,6 +191,15 @@ void to_upper (TCHAR *s, int len) {
     }
 }
 
+int uaestrlen(const char* s)
+{
+	return (int)strlen(s);
+}
+int uaetcslen(const TCHAR* s)
+{
+	return (int)_tcslen(s);
+}
+
 TCHAR *target_expand_environment (const TCHAR *path, TCHAR *out, int maxlen)
 {
 	if (!path)

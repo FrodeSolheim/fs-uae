@@ -18,7 +18,6 @@
 
 #include "options.h"
 #include "uae/memory.h"
-#include "a2091.h"
 #include "zfile.h"
 #include "rommgr.h"
 #include "autoconf.h"
@@ -36,10 +35,6 @@
 #include "scsi.h"
 #include "cpummu030.h"
 #include "devices.h"
-
-#ifdef FSUAE // NL
-#include "uae/fs.h"
-#endif
 
 // ROM expansion board diagrom call
 // 00F83B7C 3.1 A4000
@@ -116,7 +111,7 @@
 #define	P5_MAGIC3			0x30
 #define	P5_MAGIC4			0x70
 // when cleared, another CPU gets either stopped or can't access memory until set again.
-#define P5_LOCK_CPU			0x01 
+#define P5_LOCK_CPU			0x01
 
 /* REG_INT 0x28 */
 // 0x40 always set
@@ -174,8 +169,6 @@ static int csmk2_flashaddressing;
 static bool blizzardmaprom_bank_mapped, blizzardmaprom2_bank_mapped;
 static bool cpuboard_non_byte_ea;
 static uae_u16 a2630_io;
-
-#ifdef WITH_PPC
 
 static bool ppc_irq_pending;
 
@@ -248,8 +241,6 @@ bool ppc_interrupt(int new_m68k_ipl)
 
 	return m68kint;
 }
-
-#endif /* WITH_PPC */
 
 static bool mapromconfigured(void)
 {
@@ -364,6 +355,10 @@ static bool is_falcon40(struct uae_prefs *p)
 static bool is_tqm(struct uae_prefs *p)
 {
 	return ISCPUBOARDP(p, BOARD_HARDITAL, BOARD_HARDITAL_SUB_TQM);
+}
+static bool is_a1230s1(struct uae_prefs *p)
+{
+	return ISCPUBOARDP(p, BOARD_GVP, BOARD_GVP_SUB_A1230SI);
 }
 static bool is_a1230s2(struct uae_prefs *p)
 {
@@ -590,15 +585,15 @@ MEMORY_XLATE(blizzardmaprom);
 
 static void REGPARAM2 blizzardmaprom_lput(uaecptr addr, uae_u32 l)
 {
+#if MAPROM_DEBUG
+	write_log(_T("MAPROM LPUT %08x %08x %d %08x\n"), addr, l, maprom_state, M68K_GETPC);
+#endif
 	uae_u32 *m;
 	if (is_blizzard2060(&currprefs) && !maprom_state)
 		return;
 	addr &= blizzardmaprom_bank.mask;
 	m = (uae_u32 *)(blizzardmaprom_bank.baseaddr + addr);
 	do_put_mem_long(m, l);
-#if MAPROM_DEBUG
-	write_log(_T("LPUT %08x %08x %d %08x\n"), addr, l, maprom_state, M68K_GETPC);
-#endif
 	if (maprom_state > 0 && !(addr & 0x80000)) {
 		no_rom_protect();
 		m = (uae_u32 *)(kickmem_bank.baseaddr + addr);
@@ -607,15 +602,15 @@ static void REGPARAM2 blizzardmaprom_lput(uaecptr addr, uae_u32 l)
 }
 static void REGPARAM2 blizzardmaprom_wput(uaecptr addr, uae_u32 w)
 {
+#if MAPROM_DEBUG
+	write_log(_T("MAPROM WPUT %08x %08x %d\n"), addr, w, maprom_state);
+#endif
 	uae_u16 *m;
 	if (is_blizzard2060(&currprefs) && !maprom_state)
 		return;
 	addr &= blizzardmaprom_bank.mask;
 	m = (uae_u16 *)(blizzardmaprom_bank.baseaddr + addr);
 	do_put_mem_word(m, w);
-#if MAPROM_DEBUG
-	write_log(_T("WPUT %08x %08x %d\n"), addr, w, maprom_state);
-#endif
 	if (maprom_state > 0 && !(addr & 0x80000)) {
 		no_rom_protect();
 		m = (uae_u16 *)(kickmem_bank.baseaddr + addr);
@@ -624,13 +619,13 @@ static void REGPARAM2 blizzardmaprom_wput(uaecptr addr, uae_u32 w)
 }
 static void REGPARAM2 blizzardmaprom_bput(uaecptr addr, uae_u32 b)
 {
+#if MAPROM_DEBUG
+	write_log(_T("MAPROM LPUT %08x %08x %d\n"), addr, b, maprom_state);
+#endif
 	if (is_blizzard2060(&currprefs) && !maprom_state)
 		return;
 	addr &= blizzardmaprom_bank.mask;
 	blizzardmaprom_bank.baseaddr[addr] = b;
-#if MAPROM_DEBUG
-	write_log(_T("LPUT %08x %08x %d\n"), addr, b, maprom_state);
-#endif
 	if (maprom_state > 0 && !(addr & 0x80000)) {
 		no_rom_protect();
 		kickmem_bank.baseaddr[addr] = b;
@@ -672,10 +667,6 @@ static uae_u32 REGPARAM2 blizzardf0_bget(uaecptr addr)
 			return flash_read(flashrom, addr);
 		}
 	} else if (is_csmk2(&currprefs)) {
-		addr &= 65535;
-		addr += 65536;
-		return flash_read(flashrom, addr);
-	} else if (is_csmk1(&currprefs)) {
 		addr &= 65535;
 		addr += 65536;
 		return flash_read(flashrom, addr);
@@ -732,10 +723,6 @@ static void REGPARAM2 blizzardf0_bput(uaecptr addr, uae_u32 b)
 		addr += 65536;
 		addr &= ~3;
 		addr |= csmk2_flashaddressing;
-		flash_write(flashrom, addr, b);
-	} else if (is_csmk1(&currprefs)) {
-		addr &= 65535;
-		addr += 65536;
 		flash_write(flashrom, addr, b);
 	} else if (is_dkb_wildfire(&currprefs)) {
 		if (flash_unlocked) {
@@ -808,13 +795,10 @@ static uae_u32 REGPARAM2 blizzardea_bget(uaecptr addr)
 		else
 			v = blizzardea_bank.baseaddr[addr];
 	} else if (is_csmk1(&currprefs)) {
-		if (addr >= CYBERSTORM_MK1_SCSI_OFFSET) {
+		if (addr >= CYBERSTORM_MK1_SCSI_OFFSET)
 			v = cpuboard_ncr9x_scsi_get(addr);
-		} else if (flash_active(flashrom, addr)) {
-			v = flash_read(flashrom, addr);
-		} else {
+		else
 			v = blizzardea_bank.baseaddr[addr];
-		}
 	} else if (is_csmk2(&currprefs)) {
 		if (addr >= CYBERSTORM_MK2_SCSI_OFFSET) {
 			v = cpuboard_ncr9x_scsi_get(addr);
@@ -822,28 +806,6 @@ static uae_u32 REGPARAM2 blizzardea_bget(uaecptr addr)
 			v = flash_read(flashrom, addr);
 		} else {
 			v = blizzardea_bank.baseaddr[addr];
-		}
-	} else if (is_mtec_ematrix530(&currprefs) || is_dce_typhoon2(&currprefs)) {
-		v = blizzardea_bank.baseaddr[addr];
-		if ((addr & 0xf800) == 0xe800) {
-			if ((addr & 3) < 2) {
-				map_banks(&dummy_bank, 0x10000000 >> 16, 0x8000000 >> 16, 0);
-				if (cpuboardmem1_bank.allocated_size) {
-					map_banks(&cpuboardmem1_bank, (0x18000000 - cpuboardmem1_bank.allocated_size) >> 16, cpuboardmem1_bank.allocated_size >> 16, 0);
-					if (cpuboardmem1_bank.allocated_size < 128 * 1024 * 1024) {
-						map_banks(&cpuboardmem1_bank, (0x18000000 - 2 * cpuboardmem1_bank.allocated_size) >> 16, cpuboardmem1_bank.allocated_size >> 16, 0);
-					}
-				}
-			}
-			if ((addr & 3) >= 2) {
-				map_banks(&dummy_bank, 0x18000000 >> 16, 0x8000000 >> 16, 0);
-				if (cpuboardmem2_bank.allocated_size) {
-					map_banks(&cpuboardmem2_bank, 0x18000000 >> 16, cpuboardmem2_bank.allocated_size >> 16, 0);
-					if (cpuboardmem2_bank.allocated_size < 128 * 1024 * 1024) {
-						map_banks(&cpuboardmem2_bank, (0x18000000 + cpuboardmem2_bank.allocated_size) >> 16, cpuboardmem2_bank.allocated_size >> 16, 0);
-					}
-				}
-			}
 		}
 	} else {
 		v = blizzardea_bank.baseaddr[addr];
@@ -887,8 +849,6 @@ static void REGPARAM2 blizzardea_bput(uaecptr addr, uae_u32 b)
 	} else if (is_csmk1(&currprefs)) {
 		if (addr >= CYBERSTORM_MK1_SCSI_OFFSET) {
 			cpuboard_ncr9x_scsi_put(addr, b);
-		} else {
-			flash_write(flashrom, addr, b);
 		}
 	} else if (is_csmk2(&currprefs)) {
 		if (addr >= CYBERSTORM_MK2_SCSI_OFFSET) {
@@ -899,17 +859,11 @@ static void REGPARAM2 blizzardea_bput(uaecptr addr, uae_u32 b)
 			flash_write(flashrom, addr, b);
 		}
 	} else if (is_mtec_ematrix530(&currprefs) || is_dce_typhoon2(&currprefs)) {
-		if ((addr & 0xf800) == 0xe800) {
-			if ((addr & 3) < 2) {
-				map_banks(&dummy_bank, 0x10000000 >> 16, 0x8000000 >> 16, 0);
-				if (cpuboardmem1_bank.allocated_size)
-					map_banks(&cpuboardmem1_bank, (0x18000000 - cpuboardmem1_bank.allocated_size) >> 16, cpuboardmem1_bank.allocated_size >> 16, 0);
-			}
-			if ((addr & 3) >= 2) {
-				map_banks(&dummy_bank, 0x18000000 >> 16, 0x8000000 >> 16, 0);
-				if (cpuboardmem2_bank.allocated_size)
-					map_banks(&cpuboardmem2_bank, 0x18000000 >> 16, cpuboardmem2_bank.allocated_size >> 16, 0);
-			}
+		if (cpuboardmem1_bank.allocated_size < 128 * 1024 * 1024 / 2) {
+			if (cpuboardmem2_bank.allocated_size)
+				map_banks(&cpuboardmem2_bank, (0x18000000 + cpuboardmem1_bank.allocated_size) >> 16, cpuboardmem2_bank.allocated_size >> 16, 0);
+			else
+				map_banks(&dummy_bank, (0x18000000 + cpuboardmem1_bank.allocated_size) >> 16, cpuboardmem1_bank.allocated_size >> 16, 0);
 		}
 	}
 }
@@ -990,9 +944,6 @@ static void cyberstorm_copymaprom(void)
 	} else if (blizzardmaprom_bank.baseaddr) {
 		uae_u8 *src = blizzardmaprom_bank.baseaddr;
 		uae_u8 *dst = kickmem_bank.baseaddr;
-#ifdef FSUAE
-		write_log("cyberstorm_copymaprom src=%p dst=%p\n", src, dst);
-#endif
 		protect_roms(false);
 		memcpy(dst, src, 524288);
 		protect_roms(true);
@@ -1036,6 +987,49 @@ static void csamagnum40_domaprom(void)
 	}
 }
 
+static const uae_u32 gvp_a530_maprom[7] =
+{
+	0, 0, 0,
+	0x280000,
+	0x580000,
+	0x380000,
+	0x980000
+};
+
+void cpuboard_gvpmaprom(int b)
+{
+	if (!ISCPUBOARDP(&currprefs, BOARD_GVP, BOARD_GVP_SUB_A530) &&
+		!ISCPUBOARDP(&currprefs, BOARD_GVP, BOARD_GVP_SUB_GFORCE030) &&
+		!ISCPUBOARDP(&currprefs, BOARD_GVP, BOARD_GVP_SUB_GFORCE040))
+		return;
+
+	write_log(_T("GVP MAPROM=%d\n"), b);
+	if (b < 0 || b > 7)
+		return;
+	if (!b) {
+		if (maprom_state)
+			reload_roms();
+		maprom_state = 0;
+	} else {
+		const uae_u32* addrp = 0;
+		maprom_state = b;
+		if (ISCPUBOARDP(&currprefs, BOARD_GVP, BOARD_GVP_SUB_A530)) {
+			addrp = gvp_a530_maprom;
+		}
+		if (addrp) {
+			uae_u32 addr = addrp[b];
+			if (addr) {
+				uae_u8 *src = get_real_address(addr);
+				uae_u8 *dst = kickmem_bank.baseaddr;
+				protect_roms(false);
+				memcpy(dst, src, 524288);
+				protect_roms(true);
+				set_roms_modified();
+			}
+		}
+	}
+}
+
 bool cpuboard_is_ppcboard_irq(void)
 {
 	if (is_csmk3(&currprefs) || is_blizzardppc(&currprefs)) {
@@ -1064,10 +1058,8 @@ void cpuboard_rethink(void)
 		} else {
 			atomic_and(&uae_int_requested, ~0x010000);
 		}
-#ifdef WITH_PPC
 		check_ppc_int_lvl();
 		ppc_interrupt(intlev());
-#endif
 	}
 }
 
@@ -1178,7 +1170,9 @@ void blizzardppc_irq(int id, int level)
 static uae_u32 REGPARAM2 blizzardio_bget(uaecptr addr)
 {
 	uae_u8 v = 0;
-	//write_log(_T("CS IO XBGET %08x=%02X PC=%08x\n"), addr, v & 0xff, M68K_GETPC);
+#if CPUBOARD_IO_LOG > 1
+	write_log(_T("CS IO XBGET %08x=%02X PC=%08x\n"), addr, v & 0xff, M68K_GETPC);
+#endif
 	if (is_magnum40(&currprefs)) {
 		if ((addr & 0xff0f) == 0x0c0c) {
 			int reg = (addr >> 4) & 7;
@@ -1229,6 +1223,9 @@ static uae_u32 REGPARAM2 blizzardio_bget(uaecptr addr)
 }
 static uae_u32 REGPARAM2 blizzardio_wget(uaecptr addr)
 {
+#if CPUBOARD_IO_LOG > 1
+	write_log(_T("CS IO XWGET %08x PC=%08x\n"), addr, M68K_GETPC);
+#endif
 	if (is_csmk3(&currprefs) || is_blizzardppc(&currprefs)) {
 		;//write_log(_T("CS IO WGET %08x\n"), addr);
 		//activate_debugger();
@@ -1272,7 +1269,9 @@ static uae_u32 REGPARAM2 blizzardio_wget(uaecptr addr)
 }
 static uae_u32 REGPARAM2 blizzardio_lget(uaecptr addr)
 {
+#if CPUBOARD_IO_LOG > 1
 	write_log(_T("CS IO LGET %08x PC=%08x\n"), addr, M68K_GETPC);
+#endif
 	if (is_blizzard2060(&currprefs) && mapromconfigured()) {
 		if (addr & 0x10000000) {
 			maprom_state = 0;
@@ -1359,15 +1358,11 @@ static void REGPARAM2 blizzardio_bput(uaecptr addr, uae_u32 v)
 					flash_unlocked &= ~2;
 				if (v & P5_LOCK_CPU) {
 					if (v & 0x80) {
-#ifdef WITH_PPC
 						if (uae_ppc_cpu_unlock())
-#endif
 							regval |= P5_LOCK_CPU;
 					} else {
-#ifdef WITH_PPC
 						if (!(regval & P5_LOCK_CPU))
 							uae_ppc_cpu_lock();
-#endif
 						regval &= ~P5_LOCK_CPU;
 					}
 #if CPUBOARD_IO_LOG > 0
@@ -1413,13 +1408,9 @@ static void REGPARAM2 blizzardio_bput(uaecptr addr, uae_u32 v)
 					}
 					if (!(io_reg[CSIII_REG_SHADOW] & P5_SELF_RESET) || uae_self_is_ppc() == false) {
 						if ((oldval & P5_PPC_RESET) && !(regval & P5_PPC_RESET)) {
-#ifdef WITH_PPC
 							uae_ppc_cpu_stop();
-#endif
 						} else if (!(oldval & P5_PPC_RESET) && (regval & P5_PPC_RESET)) {
-#ifdef WITH_PPC
 							uae_ppc_cpu_reboot();
-#endif
 						}
 					} else {
 						io_reg[CSIII_REG_RESET] &= ~P5_PPC_RESET;
@@ -1445,9 +1436,7 @@ static void REGPARAM2 blizzardio_bput(uaecptr addr, uae_u32 v)
 					}
 					if (!(io_reg[CSIII_REG_SHADOW] & P5_SELF_RESET)) {
 						if (!(regval & P5_AMIGA_RESET)) {
-#ifdef WITH_PPC
 							uae_ppc_cpu_stop();
-#endif
 							uae_reset(0, 0);
 							write_log(_T("CS: Amiga Reset\n"));
 							io_reg[addr] |= P5_AMIGA_RESET;
@@ -1461,11 +1450,8 @@ static void REGPARAM2 blizzardio_bput(uaecptr addr, uae_u32 v)
 					regval &= ~P5_M68k_IPL_MASK;
 					regval |= oldval & P5_M68k_IPL_MASK;
 					bool active = (regval & P5_DISABLE_INT) == 0;
-					if (!active) {
-#ifdef WITH_PPC
+					if (!active)
 						clear_ppc_interrupt();
-#endif
-					}
 					io_reg[addr] = regval;
 #if CPUBOARD_IRQ_LOG > 0
 					if ((regval & P5_DISABLE_INT) != (oldval & P5_DISABLE_INT))
@@ -1512,10 +1498,12 @@ static void REGPARAM2 blizzardio_bput(uaecptr addr, uae_u32 v)
 }
 static void REGPARAM2 blizzardio_wput(uaecptr addr, uae_u32 v)
 {
+#if CPUBOARD_IO_LOG > 1
+	write_log(_T("CS IO WPUT %08x %04x PC=%08x\n"), addr, v, M68K_GETPC);
+#endif
 	if (is_fusionforty(&currprefs)) {
 		write_log(_T("FusionForty IO WPUT %08x %04x %08x\n"), addr, v, M68K_GETPC);
 	} else if (is_blizzard(&currprefs)) {
-		write_log(_T("CS IO WPUT %08x %04x\n"), addr, v);
 		if((addr & 65535) == (BLIZZARD_BOARD_DISABLE & 65535)) {
 			if (v != 0xcafe)
 				return;
@@ -1533,13 +1521,16 @@ static void REGPARAM2 blizzardio_wput(uaecptr addr, uae_u32 v)
 			cpu_fallback(0);
 		}
 	} else if (is_a1230s2(&currprefs)) {
+		extern void gvp_accelerator_set_dma_bank(uae_u8);
 		io_reg[0] = v & 0xff;
 		gvp_accelerator_set_dma_bank((v >> 4) & 3);
 	}
 }
 static void REGPARAM2 blizzardio_lput(uaecptr addr, uae_u32 v)
 {
+#if CPUBOARD_IO_LOG > 1
 	write_log(_T("CPU IO LPUT %08x %08x\n"), addr, v);
+#endif
 	if (is_csmk1(&currprefs)) {
 		if (addr == 0x80f80000) {
 			maprom_state = 1;
@@ -1555,19 +1546,17 @@ static void REGPARAM2 blizzardio_lput(uaecptr addr, uae_u32 v)
 	}
 }
 
-void cpuboard_hsync(void)
+static void cpuboard_hsync(void)
 {
 	// we should call check_ppc_int_lvl() immediately
 	// after PPC CPU's interrupt flag is cleared but this
 	// should be fast enough for now
 	if (is_csmk3(&currprefs) || is_blizzardppc(&currprefs)) {
-#ifdef WITH_PPC
 		check_ppc_int_lvl();
-#endif
 	}
 }
 
-void cpuboard_vsync(void)
+static void cpuboard_vsync(void)
 {
 	if (delayed_rom_protect <= 0)
 		return;
@@ -1578,9 +1567,6 @@ void cpuboard_vsync(void)
 
 void cpuboard_map(void)
 {
-#ifdef FSUAE
-    write_log("cpuboard_map currprefs.cpuboard_type = %d\n", currprefs.cpuboard_type);
-#endif
 	if (!currprefs.cpuboard_type)
 		return;
 
@@ -1670,6 +1656,9 @@ void cpuboard_map(void)
 	if (is_apollo(&currprefs)) {
 		map_banks(&blizzardf0_bank, 0xf00000 >> 16, 131072 >> 16, 0);
 	}
+	if (is_a1230s1(&currprefs)) {
+		map_banks(&blizzardf0_bank, 0xf00000 >> 16, 65536 >> 16, 0);
+	}
 	if (is_dkb_wildfire(&currprefs)) {
 		map_banks(&blizzardf0_bank, 0xf00000 >> 16, 0x80000 >> 16, 0);
 	}
@@ -1697,10 +1686,16 @@ void cpuboard_map(void)
 
 	if (is_mtec_ematrix530(&currprefs) || is_sx32pro(&currprefs) || is_apollo(&currprefs) || is_dce_typhoon2(&currprefs)) {
 		if (cpuboardmem1_bank.allocated_size) {
-			map_banks(&cpuboardmem1_bank, cpuboardmem1_bank.start >> 16, cpuboardmem1_bank.allocated_size >> 16, 0);
+			map_banks(&cpuboardmem1_bank, cpuboardmem1_bank.start >> 16, 0x08000000 >> 16, cpuboardmem1_bank.allocated_size >> 16);
 		}
-		if (cpuboardmem2_bank.allocated_size) {
+		if (cpuboardmem2_bank.allocated_size && cpuboardmem2_bank.start < 0x18000000) {
 			map_banks(&cpuboardmem2_bank, cpuboardmem2_bank.start >> 16, cpuboardmem2_bank.allocated_size >> 16, 0);
+		}
+	}
+
+	if (is_a1230s1(&currprefs)) {
+		if (cpuboardmem1_bank.allocated_size) {
+			map_banks(&cpuboardmem1_bank, cpuboardmem1_bank.start >> 16, cpuboardmem1_bank.allocated_size >> 16, cpuboardmem1_bank.allocated_size >> 16);
 		}
 	}
 
@@ -1713,16 +1708,23 @@ void cpuboard_map(void)
 	}
 }
 
-void cpuboard_reset(void)
+bool cpuboard_forced_hardreset(void)
 {
-	bool hardreset = is_hardreset();
+	if (is_blizzardppc(&currprefs)) {
+		return true;
+	}
+	return false;
+}
+
+void cpuboard_reset(int hardreset)
+{
 #if 0
 	if (is_blizzard() || is_blizzardppc())
 		canbang = 0;
 #endif
 	configured = false;
 	delayed_rom_protect = 0;
-	currprefs.cpuboardmem1_size = changed_prefs.cpuboardmem1_size;
+	currprefs.cpuboardmem1.size = changed_prefs.cpuboardmem1.size;
 	maprom_unwriteprotect();
 	if (hardreset || (!mapromconfigured() && (is_blizzard(&currprefs) || is_blizzard2060(&currprefs))))
 		maprom_state = 0;
@@ -1736,6 +1738,7 @@ void cpuboard_reset(void)
 	}
 	if (hardreset || is_keyboardreset())
 		a2630_io = 0;
+
 	flash_unlocked = 0;
 	cpuboard_non_byte_ea = false;
 
@@ -1815,8 +1818,8 @@ static void memory_mirror_bank(addrbank *bank, uaecptr end_addr)
 
 static void cpuboard_custom_memory(uaecptr addr, int max, bool swap, bool alias)
 {
-	int size1 = swap ? currprefs.cpuboardmem2_size : currprefs.cpuboardmem1_size;
-	int size2 = swap ? currprefs.cpuboardmem1_size : currprefs.cpuboardmem2_size;
+	int size1 = swap ? currprefs.cpuboardmem2.size : currprefs.cpuboardmem1.size;
+	int size2 = swap ? currprefs.cpuboardmem1.size : currprefs.cpuboardmem2.size;
 	int size_low = size1;
 	max *= 1024 * 1024;
 	if (size_low > max)
@@ -1841,7 +1844,7 @@ static void cpuboard_init_2(void)
 	if (!currprefs.cpuboard_type)
 		return;
 
-	cpuboard_size = currprefs.cpuboardmem1_size;
+	cpuboard_size = currprefs.cpuboardmem1.size;
 	cpuboardmem1_bank.reserved_size = 0;
 	cpuboardmem2_bank.reserved_size = 0;
 
@@ -1852,11 +1855,38 @@ static void cpuboard_init_2(void)
 		mapped_malloc(&blizzardea_bank);
 
 		if (is_mtec_ematrix530(&currprefs) || is_sx32pro(&currprefs) || is_dce_typhoon2(&currprefs)) {
-			cpuboardmem1_bank.start = 0x18000000 - cpuboard_size;
-			cpuboardmem1_bank.reserved_size = cpuboard_size;
-			cpuboardmem1_bank.mask = cpuboardmem1_bank.reserved_size - 1;
-			mapped_malloc(&cpuboardmem1_bank);
+			if (cpuboard_size == 2 * 1024 * 1024 || cpuboard_size == 8 * 1024 * 1024 || cpuboard_size == 32 * 1024 * 1024) {
+				cpuboardmem1_bank.start = 0x18000000;
+				cpuboardmem1_bank.reserved_size = cpuboard_size / 2;
+				cpuboardmem1_bank.mask = cpuboardmem1_bank.reserved_size - 1;
+				mapped_malloc(&cpuboardmem1_bank);
+				cpuboardmem2_bank.start = 0x18000000 + cpuboard_size / 2;
+				cpuboardmem2_bank.reserved_size = cpuboard_size / 2;
+				cpuboardmem2_bank.mask = cpuboardmem2_bank.reserved_size - 1;
+				mapped_malloc(&cpuboardmem2_bank);
+			} else if (cpuboard_size == 128 * 1024 * 1024) {
+				cpuboardmem1_bank.start = 0x18000000;
+				cpuboardmem1_bank.reserved_size = cpuboard_size / 2;
+				cpuboardmem1_bank.mask = cpuboardmem1_bank.reserved_size - 1;
+				mapped_malloc(&cpuboardmem1_bank);
+				cpuboardmem2_bank.start = 0x18000000 - cpuboard_size / 2;
+				cpuboardmem2_bank.reserved_size = cpuboard_size / 2;
+				cpuboardmem2_bank.mask = cpuboardmem2_bank.reserved_size - 1;
+				mapped_malloc(&cpuboardmem2_bank);
+			} else {
+				cpuboardmem1_bank.start = 0x18000000;
+				cpuboardmem1_bank.reserved_size = cpuboard_size;
+				cpuboardmem1_bank.mask = cpuboardmem1_bank.reserved_size - 1;
+				mapped_malloc(&cpuboardmem1_bank);
+			}
 		}
+
+	} else if (is_a1230s1(&currprefs)) {
+
+		blizzardf0_bank.start = 0x00f00000;
+		blizzardf0_bank.reserved_size = 65536;
+		blizzardf0_bank.mask = blizzardf0_bank.reserved_size - 1;
+		mapped_malloc(&blizzardf0_bank);
 
 	} else if (is_aca500(&currprefs)) {
 
@@ -2049,8 +2079,8 @@ static void cpuboard_init_2(void)
 		blizzardf0_bank.mask = blizzardf0_bank.reserved_size - 1;
 		mapped_malloc(&blizzardf0_bank);
 
-		blizzardea_bank.reserved_size = 2 * 65536;
-		blizzardea_bank.mask = 65535 - 1;
+		blizzardea_bank.reserved_size = 65536;
+		blizzardea_bank.mask = blizzardea_bank.reserved_size - 1;
 		mapped_malloc(&blizzardea_bank);
 
 		blizzardmaprom_bank.reserved_size = 524288;
@@ -2070,12 +2100,14 @@ static void cpuboard_init_2(void)
 		blizzardf0_bank.mask = blizzardf0_bank.reserved_size - 1;
 		mapped_malloc(&blizzardf0_bank);
 
-		blizzardmaprom_bank.baseaddr = a3000hmem_bank.baseaddr + a3000hmem_bank.reserved_size - 524288;
-		blizzardmaprom_bank.start = a3000hmem_bank.start + a3000hmem_bank.reserved_size - 524288;
-		blizzardmaprom_bank.reserved_size = 524288;
-		blizzardmaprom_bank.mask = 524288 - 1;
-		blizzardmaprom_bank.flags |= ABFLAG_INDIRECT | ABFLAG_NOALLOC;
-		mapped_malloc(&blizzardmaprom_bank);
+		if (a3000hmem_bank.baseaddr) {
+			blizzardmaprom_bank.baseaddr = a3000hmem_bank.baseaddr + a3000hmem_bank.reserved_size - 524288;
+			blizzardmaprom_bank.start = a3000hmem_bank.start + a3000hmem_bank.reserved_size - 524288;
+			blizzardmaprom_bank.reserved_size = 524288;
+			blizzardmaprom_bank.mask = 524288 - 1;
+			blizzardmaprom_bank.flags |= ABFLAG_INDIRECT | ABFLAG_NOALLOC;
+			mapped_malloc(&blizzardmaprom_bank);
+		}
 
 	} else if (is_csmk3(&currprefs)) {
 
@@ -2085,7 +2117,7 @@ static void cpuboard_init_2(void)
 		mapped_malloc(&blizzardf0_bank);
 
 	} else if (is_ivsvector(&currprefs)) {
-	
+
 		cpuboardmem1_bank.start = 0x02000000;
 		cpuboardmem1_bank.reserved_size = 32 * 1024 * 1024;
 		cpuboardmem1_bank.mask = cpuboardmem1_bank.reserved_size - 1;
@@ -2127,7 +2159,7 @@ void cpuboard_init(void)
 	if (!currprefs.cpuboard_type)
 		return;
 
-	if (cpuboard_size == currprefs.cpuboardmem1_size)
+	if (cpuboard_size == currprefs.cpuboardmem1.size)
 		return;
 
 	cpuboard_cleanup();
@@ -2159,6 +2191,16 @@ void cpuboard_clear(void)
 // Adds resource resident that CSPPC/BPPC flash updater checks.
 
 #define FAKEPPCROM_OFFSET 32
+static const uae_u8 fakeppcromstart[] = {
+	0x11, 0x11,
+	// moveq #2,d0
+	0x70, 0x02,
+	// movec d0,pcr
+	0x4e, 0x7b, 0x08, 0x08,
+	// jmp (a5)
+	0x4e, 0xd5
+};
+
 static const uae_u8 fakeppcrom[] = {
 	// struct Resident
 	0x4a, 0xfc,
@@ -2168,14 +2210,21 @@ static const uae_u8 fakeppcrom[] = {
 	0x00, 0xf0, 0x00, FAKEPPCROM_OFFSET + 30,
 	0x00, 0xf0, 0x00, FAKEPPCROM_OFFSET + 30,
 	0x00, 0xf0, 0x00, FAKEPPCROM_OFFSET + 26,
-	// moveq #0,d0; rts
-	0x70, 0x00, 0x4e, 0x75
+	// moveq #0,d0
+	0x70, 0x00,
+	// rts
+	0x4e, 0x75,
 };
 static const char fakeppcromtxt_cs[] = { "CyberstormPPC.IDTag" };
 static const char fakeppcromtxt_bz[] = { "BlizzardPPC.IDTag" };
 
 static void makefakeppcrom(uae_u8 *rom, int type)
 {
+	memset(rom, 0, FAKEPPCROM_OFFSET);
+	// 68060: disable FPU because we don't have ROM that handles it.
+	if (currprefs.fpu_model == 68060) {
+		memcpy(rom, fakeppcromstart, sizeof fakeppcromstart);
+	}
 	memcpy(rom + FAKEPPCROM_OFFSET, fakeppcrom, sizeof fakeppcrom);
 	const char *txt = type ? fakeppcromtxt_bz : fakeppcromtxt_cs;
 	memcpy(rom + FAKEPPCROM_OFFSET + sizeof fakeppcrom, txt, strlen(txt) + 1);
@@ -2401,16 +2450,10 @@ static void fixserial(struct uae_prefs *p, uae_u8 *rom, int size)
 static struct zfile *board_rom_open(int romtype, const TCHAR *name)
 {
 	struct zfile *zf = NULL;
-#ifdef FSUAE
-	write_log("board_rom_open roms=... name=%s\n", name ? name : "(null)");
-#endif
 	struct romlist *rl = getromlistbyromtype(romtype, name);
 	if (rl)
 		zf = read_rom(rl->rd);
 	if (!zf && name) {
-#ifdef FSUAE
-	write_log("zfile_fopen %s\n", name);
-#endif
 		zf = zfile_fopen(name, _T("rb"), ZFD_NORMAL);
 		if (zf) {
 			return zf;
@@ -2418,9 +2461,6 @@ static struct zfile *board_rom_open(int romtype, const TCHAR *name)
 		TCHAR path[MAX_DPATH];
 		fetch_rompath(path, sizeof path / sizeof(TCHAR));
 		_tcscat(path, name);
-#ifdef FSUAE
-	write_log("zfile_fopen %s\n", path);
-#endif
 		zf = zfile_fopen(path, _T("rb"), ZFD_NORMAL);
 	}
 	return zf;
@@ -2443,6 +2483,7 @@ bool cpuboard_autoconfig_init(struct autoconfig_info *aci)
 	struct boardromconfig *brc;
 	bool autoconf = true;
 	bool autoconf_stop = false;
+	bool autoconfig_nomandatory = false;
 	const TCHAR *defaultromname = NULL;
 	const TCHAR *romname = NULL;
 	bool isflashrom = false;
@@ -2450,7 +2491,6 @@ bool cpuboard_autoconfig_init(struct autoconfig_info *aci)
 	const TCHAR *boardname;
 	struct uae_prefs *p = aci->prefs;
 	uae_u32 romtype = 0, romtype2 = 0;
-	bool cpucheck = false;
 
 	boardname = cpuboards[p->cpuboard_type].subtypes[p->cpuboard_subtype].name;
 	aci->label = boardname;
@@ -2459,6 +2499,8 @@ bool cpuboard_autoconfig_init(struct autoconfig_info *aci)
 	brc = get_device_rom(p, ROMTYPE_CPUBOARD, 0, &idx);
 	if (brc)
 		romname = brc->roms[idx].romfile;
+
+	device_add_reset(cpuboard_reset);
 
 	cpuboard_non_byte_ea = false;
 	int boardid = cpuboards[p->cpuboard_type].id;
@@ -2565,13 +2607,14 @@ bool cpuboard_autoconfig_init(struct autoconfig_info *aci)
 			break;
 		}
 		break;
-	
+
 		case BOARD_GVP:
 		switch(p->cpuboard_subtype)
 		{
 			case BOARD_GVP_SUB_A530:
 			case BOARD_GVP_SUB_A1230SII:
 			case BOARD_GVP_SUB_GFORCE030:
+			case BOARD_GVP_SUB_GFORCE040:
 				aci->addrbank = &expamem_null;
 				return true;
 			case BOARD_GVP_SUB_A3001SI:
@@ -2584,6 +2627,9 @@ bool cpuboard_autoconfig_init(struct autoconfig_info *aci)
 			case BOARD_GVP_SUB_QUIKPAK:
 				romtype = romtype = ROMTYPE_CB_QUIKPAK;
 				break;
+			case BOARD_GVP_SUB_A1230SI:
+				romtype = romtype = ROMTYPE_CB_A1230S1;
+				break;
 		}
 		break;
 
@@ -2592,8 +2638,8 @@ bool cpuboard_autoconfig_init(struct autoconfig_info *aci)
 		{
 			case BOARD_CYBERSTORM_SUB_MK1:
 				romtype = ROMTYPE_CB_CSMK1;
-				cpucheck = true;
-				isflashrom = true;
+				romtype2 = ROMTYPE_CSMK1SCSI;
+				autoconfig_nomandatory = true;
 				break;
 			case BOARD_CYBERSTORM_SUB_MK2:
 				romtype = ROMTYPE_CB_CSMK2;
@@ -2633,7 +2679,6 @@ bool cpuboard_autoconfig_init(struct autoconfig_info *aci)
 				break;
 			case BOARD_BLIZZARD_SUB_PPC:
 				romtype = ROMTYPE_CB_BLIZPPC;
-				cpucheck = true;
 				isflashrom = true;
 				break;
 		}
@@ -2712,19 +2757,21 @@ bool cpuboard_autoconfig_init(struct autoconfig_info *aci)
 			return false;
 		}
 	}
-	
-	if (!autoconfig_rom && romtype) {
-		if (aci->doinit)
-			romwarning(romtype);
-		write_log (_T("ROM id %08X not found for CPUBoard '%s' emulation\n"), romtype, boardname);
-		return false;
-	}
-	if (!autoconfig_rom) {
-		write_log(_T("Couldn't open CPUBoard '%s' rom '%s'\n"), boardname, defaultromname);
-		return false;
-	}
 
-	write_log(_T("CPUBoard '%s' ROM '%s' %lld loaded\n"), boardname, zfile_getname(autoconfig_rom), zfile_size(autoconfig_rom));
+	if (!autoconfig_nomandatory) {
+		if (!autoconfig_rom && romtype) {
+			if (aci->doinit)
+				romwarning(romtype);
+			write_log(_T("ROM id %08X not found for CPUBoard '%s' emulation\n"), romtype, boardname);
+			return false;
+		}
+		if (!autoconfig_rom) {
+			write_log(_T("Couldn't open CPUBoard '%s' rom '%s'\n"), boardname, defaultromname);
+			return false;
+		}
+
+		write_log(_T("CPUBoard '%s' ROM '%s' %lld loaded\n"), boardname, zfile_getname(autoconfig_rom), zfile_size(autoconfig_rom));
+	}
 
 	uae_u8 *blizzardea_tmp = blizzardea_bank.baseaddr;
 	uae_u8 *blizzardf0_tmp = blizzardf0_bank.baseaddr;
@@ -2798,6 +2845,12 @@ bool cpuboard_autoconfig_init(struct autoconfig_info *aci)
 		autoconf = false;
 		aci->start = 0xf00000;
 		aci->size = f0rom_size;
+	} else if (is_a1230s1(p)) {
+		f0rom_size = 65536;
+		zfile_fread(blizzardf0_bank.baseaddr, 1, 32768, autoconfig_rom);
+		autoconf = false;
+		aci->start = 0xf00000;
+		aci->size = f0rom_size;
 	} else if (is_fusionforty(p)) {
 		f0rom_size = 262144;
 		zfile_fread(blizzardf0_bank.baseaddr, 1, 131072, autoconfig_rom);
@@ -2836,25 +2889,35 @@ bool cpuboard_autoconfig_init(struct autoconfig_info *aci)
 			blizzardea_bank.baseaddr[i * 2 + 0] = b;
 		}
 	} else if (is_csmk1(p)) {
-		earom_size = 131072; // really 64k but ea and f0 use same space
+		earom_size = 65536;
 		f0rom_size = 65536;
-		for (int i = 0; i < 32768; i++) {
-			uae_u8 b = 0xff;
-			zfile_fread(&b, 1, 1, autoconfig_rom);
-			blizzardea_bank.baseaddr[i * 2 + 0] = b;
-			blizzardea_bank.baseaddr[i * 2 + 1] = 0xff;
-		}
-		zfile_fread(blizzardea_bank.baseaddr + 65536, 65536, 1, autoconfig_rom);
-		if (zfile_needwrite(autoconfig_rom)) {
-			flashrom_file = autoconfig_rom;
+		aci->start = 0xf00000;
+		aci->size = f0rom_size;
+		if (autoconfig_rom) {
+			zfile_fread(blizzardf0_bank.baseaddr, 1, f0rom_size, autoconfig_rom);
+			zfile_fclose(autoconfig_rom);
 			autoconfig_rom = NULL;
 		}
-		flashrom = flash_new(blizzardea_bank.baseaddr, earom_size, earom_size, 0x01, 0x20, flashrom_file, 0);
-		memcpy(blizzardf0_bank.baseaddr, blizzardea_bank.baseaddr + 65536, 65536);
+		if (romtype2) {
+			int idx2;
+			struct boardromconfig *brc2 = get_device_rom(p, romtype2, 0, &idx2);
+			if (brc2 && brc2->roms[idx2].romfile[0])
+				autoconfig_rom = board_rom_open(romtype2, brc2->roms[idx2].romfile);
+			if (autoconfig_rom) {
+				memset(blizzardea_bank.baseaddr, 0xff, 65536);
+				for (int i = 0; i < 32768; i++) {
+					uae_u8 b = 0xff;
+					zfile_fread(&b, 1, 1, autoconfig_rom);
+					blizzardea_bank.baseaddr[i * 2 + 0] = b;
+				}
+			}
+		} else {
+			autoconf = false;
+		}
 	} else if (is_csmk2(p)) {
 		earom_size = 131072;
 		f0rom_size = 65536;
-		zfile_fread(blizzardea_bank.baseaddr, earom_size, 1, autoconfig_rom);
+		zfile_fread(blizzardea_bank.baseaddr, 1,earom_size, autoconfig_rom);
 		if (zfile_needwrite(autoconfig_rom)) {
 			flashrom_file = autoconfig_rom;
 			autoconfig_rom = NULL;
@@ -2867,7 +2930,7 @@ bool cpuboard_autoconfig_init(struct autoconfig_info *aci)
 		if (is_blizzardppc(p)) {
 			flashtype = 0xa4;
 			f0rom_size = 524288;
-			aci->last_high_ram = BLIZZARDMK4_RAM_BASE_48 + p->cpuboardmem1_size / 2;
+			aci->last_high_ram = BLIZZARDMK4_RAM_BASE_48 + p->cpuboardmem1.size / 2;
 		} else {
 			flashtype = 0x20;
 			f0rom_size = 131072;
@@ -2916,7 +2979,7 @@ bool cpuboard_autoconfig_init(struct autoconfig_info *aci)
 				zfile_fread(blizzardea_bank.baseaddr + 0x10000, 32768, 1, autoconfig_rom);
 			}
 		}
-		aci->last_high_ram = BLIZZARDMK4_RAM_BASE_48 + p->cpuboardmem1_size / 2;
+		aci->last_high_ram = BLIZZARDMK4_RAM_BASE_48 + p->cpuboardmem1.size / 2;
 	} else if (is_blizzard1230mk2(p)) {
 		earom_size = 131072;
 		for (int i = 0; i < 32768; i++) {
@@ -3011,5 +3074,43 @@ bool cpuboard_autoconfig_init(struct autoconfig_info *aci)
 			map_banks(&blizzardf0_bank, 0xf00000 >> 16, (f0rom_size > 262144 ? 262144 : f0rom_size) >> 16, 0);
 		}
 	}
+
+	device_add_vsync_pre(cpuboard_vsync);
+	device_add_hsync(cpuboard_hsync);
+
 	return true;
+}
+
+void cpuboard_set_cpu(struct uae_prefs *p)
+{
+	if (!p->cpuboard_type)
+		return;
+
+	const struct cpuboardsubtype *cbt = &cpuboards[p->cpuboard_type].subtypes[p->cpuboard_subtype];
+
+	// Lower to higher model
+	if (p->cpu_model < cbt->cputype * 10 + 68000) {
+		p->cpu_model = cbt->cputype * 10 + 68000;
+		if ((p->fpu_model == 68881 || p->fpu_model == 68882) && cbt->cputype >= 4) {
+			p->fpu_model = cbt->cputype * 10 + 68000;
+		}
+		if (p->mmu_model && p->cpu_model >= 68030) {
+			p->mmu_model = p->cpu_model;
+		} else {
+			p->mmu_model = 0;
+		}
+	}
+	// 68040/060 to 68020/030
+	if (p->cpu_model >= 68040 && cbt->cputype < 4) {
+		p->cpu_model = cbt->cputype * 10 + 68000;
+		if (p->fpu_model == 68040 || p->fpu_model == 68060) {
+			p->fpu_model = 68882;
+		}
+		if (p->mmu_model && p->cpu_model == 68030) {
+			p->mmu_model = 68030;
+		} else {
+			p->mmu_model = 0;
+		}
+	}
+	p->address_space_24 = false;
 }

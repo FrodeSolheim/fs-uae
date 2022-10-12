@@ -55,7 +55,8 @@ static void round128to64(flag aSign, int32_t *aExp, uint64_t *aSig0, uint64_t *a
 			++zExp;
 			zSig0 = LIT64(0x8000000000000000);
 		} else {
-			zSig0 &= ~ (((uint64_t) (zSig1<<1) == 0) & (status->float_rounding_mode == float_round_nearest_even));
+			if ((zSig1 << 1) == 0 && status->float_rounding_mode == float_round_nearest_even)
+				zSig0 &= ~1;
 		}
 	} else {
 		if ( zSig0 == 0 ) zExp = 0;
@@ -325,7 +326,7 @@ static int32_t getDecimalExponent(int32_t aExp, uint64_t aSig)
 		zSig0 &= ~(((int64_t)(zSig1<<1) == 0) & 1);
 	}
 	
-	zExp = zSign ? -zSig0 : zSig0;
+	zExp = (int32_t)(zSign ? (0 - zSig0) : zSig0);
 
 	return zExp;
 }

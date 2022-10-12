@@ -886,7 +886,7 @@ static uae_u8 *gfx_lock_picasso2(int monid, bool fullupdate)
 #endif
 }
 
-uae_u8 *gfx_lock_picasso(int monid, bool fullupdate, bool doclear)
+uae_u8 *gfx_lock_picasso(int monid, bool fullupdate)
 {
 #ifdef FSUAE
 #ifdef DEBUG_PICASSO96
@@ -908,13 +908,6 @@ uae_u8 *gfx_lock_picasso(int monid, bool fullupdate, bool doclear)
 		gfx_unlock();
 	} else {
 		mon->rtg_locked = true;
-		if (doclear) {
-			uae_u8 *p2 = p;
-			for (int h = 0; h < vidinfo->height; h++) {
-				memset (p2, 0, vidinfo->width * vidinfo->pixbytes);
-				p2 += vidinfo->rowbytes;
-			}
-		}
 	}
 #ifdef FSUAE
 #ifdef DEBUG_PICASSO96
@@ -2130,7 +2123,7 @@ bool toggle_rtg (int monid, int mode)
 		return false;
 }
 
-void close_rtg(int monid)
+void close_rtg(int monid, bool reset)
 {
 	STUB("");
 }
@@ -2361,4 +2354,22 @@ bool uae_fsvideo_renderframe(int monid, int mode, bool immediate)
 #endif
 	}
 	return 1;
+}
+
+fsemu_video_frame_t *uae_fsvideo_getframe()
+{
+	struct AmigaMonitor *mon = &AMonitors[0];
+	fsemu_video_frame_t *frame = fsemu_video_alloc_frame();
+	frame->depth = g_amiga_video_bpp * 8;
+	if (mon->screen_is_picasso) {
+		frame->buffer = uae_fsvideo.picasso_framebuffer;
+		frame->width = uae_fsvideo.picasso_width;
+		frame->height = uae_fsvideo.picasso_height;
+
+	} else {
+		frame->buffer = uae_fsvideo.chipset_framebuffer;
+		frame->width = AMIGA_WIDTH;
+		frame->height = AMIGA_HEIGHT;
+	}
+	return frame;
 }

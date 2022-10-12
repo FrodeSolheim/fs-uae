@@ -326,7 +326,7 @@ static inline int8_t inf_clear_intbit(float_status *status)
 | Routine to raise any or all of the software IEC/IEEE floating-point
 | exception flags.
 *----------------------------------------------------------------------------*/
-static inline void float_raise(uint8_t flags, float_status *status);
+void float_raise(uint8_t flags, float_status *status);
 
 
 /*----------------------------------------------------------------------------
@@ -426,7 +426,6 @@ flag floatx80_le( floatx80, floatx80, float_status *status);
 flag floatx80_lt( floatx80, floatx80, float_status *status);
 
 #ifdef SOFTFLOAT_68K
-
 // functions are in softfloat.c
 floatx80 floatx80_move( floatx80 a, float_status *status );
 floatx80 floatx80_abs( floatx80 a, float_status *status );
@@ -460,6 +459,7 @@ floatx80 floatx80_tan(floatx80 a, float_status *status);
 floatx80 floatx80_tanh(floatx80 a, float_status *status);
 floatx80 floatx80_tentox(floatx80 a, float_status *status);
 floatx80 floatx80_twotox(floatx80 a, float_status *status);
+floatx80 floatx80_sincos(floatx80 a, floatx80 *c, float_status *status);
 #endif
 
 // functions originally internal to softfloat.c

@@ -7,7 +7,7 @@
 #include "options.h"
 #include "threaddep/thread.h"
 #include "machdep/rpt.h"
-#include "memory.h"
+#include "uae/memory.h"
 #include "cpuboard.h"
 #include "debug.h"
 #include "custom.h"
@@ -18,6 +18,7 @@
 #include "uae/log.h"
 #include "uae/ppc.h"
 #include "uae/qemu.h"
+#include "devices.h"
 
 #define SPINLOCK_DEBUG 0
 #define PPC_ACCESS_LOG 0
@@ -618,7 +619,7 @@ static void uae_ppc_cpu_reset(void)
 	ppc_state = PPC_STATE_ACTIVE;
 }
 
-static void *ppc_thread(void *v)
+static void ppc_thread(void *v)
 {
 	if (using_qemu()) {
 		write_log(_T("PPC: Warning - ppc_thread started with QEMU impl\n"));
@@ -631,7 +632,6 @@ static void *ppc_thread(void *v)
 		write_log(_T("ppc_cpu_run() exited.\n"));
 		ppc_thread_running = false;
 	}
-	return NULL;
 }
 
 void uae_ppc_execute_check(void)
@@ -820,6 +820,21 @@ bool UAECALL uae_ppc_io_mem_read64(uint32_t addr, uint64_t *data)
 	return true;
 }
 
+static void uae_ppc_hsync_handler(void)
+{
+	if (ppc_state == PPC_STATE_INACTIVE)
+		return;
+	if (using_pearpc()) {
+		if (ppc_state != PPC_STATE_SLEEP)
+			return;
+		if (impl.get_dec() == 0) {
+			uae_ppc_wakeup();
+		} else {
+			impl.do_dec(ppc_cycle_count);
+		}
+	}
+}
+
 void uae_ppc_cpu_stop(void)
 {
 	if (ppc_state == PPC_STATE_INACTIVE)
@@ -849,6 +864,8 @@ void uae_ppc_cpu_reboot(void)
 	TRACE(_T("uae_ppc_cpu_reboot\n"));
 
 	initialize();
+
+	device_add_hsync(uae_ppc_hsync_handler);
 
 	if (!ppc_thread_running) {
 		write_log(_T("Starting PPC thread.\n"));
@@ -955,21 +972,6 @@ void uae_ppc_crash(void)
 	ppc_state = PPC_STATE_CRASH;
 	if (impl.stop) {
 		impl.stop();
-	}
-}
-
-void uae_ppc_hsync_handler(void)
-{
-	if (ppc_state == PPC_STATE_INACTIVE)
-		return;
-	if (using_pearpc()) {
-		if (ppc_state != PPC_STATE_SLEEP)
-			return;
-		if (impl.get_dec() == 0) {
-			uae_ppc_wakeup();
-		} else {
-			impl.do_dec(ppc_cycle_count);
-		}
 	}
 }
 

@@ -12,7 +12,6 @@
 #include "sysdeps.h"
 
 #include "options.h"
-#include "custom.h"
 #include "events.h"
 #include "memory.h"
 #include "newcpu.h"
@@ -20,20 +19,22 @@
 #include "xwin.h"
 #include "x86.h"
 #include "audio.h"
+#include "cia.h"
 
 static const int pissoff_nojit_value = 256 * CYCLE_UNIT;
 
-unsigned long int event_cycles, nextevent, currcycle;
-int is_syncline, is_syncline_end;
-long cycles_to_next_event;
-long max_cycles_to_next_event;
-long cycles_to_hsync_event;
-unsigned long start_cycles;
+evt_t event_cycles, nextevent, currcycle;
+int is_syncline;
+frame_time_t is_syncline_end;
+int cycles_to_next_event;
+int max_cycles_to_next_event;
+int cycles_to_hsync_event;
+evt_t start_cycles;
 bool event_wait;
 
 frame_time_t vsyncmintime, vsyncmintimepre;
 frame_time_t vsyncmaxtime, vsyncwaittime;
-int vsynctimebase;
+frame_time_t vsynctimebase;
 int event2_count;
 
 static void events_fast(void)
@@ -47,21 +48,26 @@ void events_reset_syncline(void)
 	events_fast();
 }
 
-void events_schedule (void)
+void events_schedule(void)
 {
 	int i;
 
-	unsigned long int mintime = ~0L;
+	evt_t mintime = EVT_MAX;
 	for (i = 0; i < ev_max; i++) {
 		if (eventtab[i].active) {
-			unsigned long int eventtime = eventtab[i].evtime - currcycle;
+			evt_t eventtime = eventtab[i].evtime - currcycle;
 			if (eventtime < mintime)
 				mintime = eventtime;
 		}
 	}
-	nextevent = currcycle + mintime;
+	if (mintime < EVT_MAX) {
+		nextevent = currcycle + mintime;
+	} else {
+		nextevent = EVT_MAX;
+	}
 }
 
+extern void vsync_event_done(void);
 extern int vsync_activeheight;
 
 #ifdef FSUAE
@@ -213,8 +219,8 @@ static bool event_check_vsync(void)
 
 		// wait is_syncline_end
 		if (event_wait) {
-			int rpt = read_processor_time();
-			int v = rpt - is_syncline_end;
+			frame_time_t rpt = read_processor_time();
+			frame_time_t v = rpt - is_syncline_end;
 			if (v < 0) {
 #ifdef WITH_PPC
 				if (ppc_state) {
@@ -237,7 +243,7 @@ static bool event_check_vsync(void)
 		if (event_wait) {
 			// int64_t v = now - is_syncline_end64;
 			int64_t v = fsemu_time_us() - is_syncline_end64;
-			// uae_log("%lld\n", (long long) v);			
+			// uae_log("%lld\n", (long long) v);
 			if (v < 0) {
 #ifdef WITH_PPC
 				if (ppc_state) {
@@ -248,7 +254,7 @@ static bool event_check_vsync(void)
 					pissoff = pissoff_value;
 				else
 					pissoff = pissoff_nojit_value;
-				
+
 				// fsemu_frame_extra_duration += now - line_ended_at;
 				// line_started_at = now;
 				return true;
@@ -270,9 +276,9 @@ static bool event_check_vsync(void)
 
 		// wait is_syncline_end/vsyncmintime
 		if (event_wait) {
-			int rpt = read_processor_time();
-			int v = rpt - vsyncmintime;
-			int v2 = rpt - is_syncline_end;
+			frame_time_t rpt = read_processor_time();
+			frame_time_t v = rpt - vsyncmintime;
+			frame_time_t v2 = rpt - is_syncline_end;
 			if (v > vsynctimebase || v < -vsynctimebase) {
 				v = 0;
 			}
@@ -298,7 +304,7 @@ static bool event_check_vsync(void)
 	return false;
 }
 
-void do_cycles_slow (unsigned long cycles_to_add)
+void do_cycles_slow(int cycles_to_add)
 {
 #ifdef WITH_X86
 #if 0
@@ -325,7 +331,7 @@ void do_cycles_slow (unsigned long cycles_to_add)
 				return;
 		}
 
-		cycles_to_add -= nextevent - currcycle;
+		cycles_to_add -= (int)(nextevent - currcycle);
 		currcycle = nextevent;
 
 		for (int i = 0; i < ev_max; i++) {
@@ -338,20 +344,19 @@ void do_cycles_slow (unsigned long cycles_to_add)
 				}
 			}
 		}
-		events_schedule ();
-
+		events_schedule();
 
 	}
 	currcycle += cycles_to_add;
 }
 
-void MISC_handler (void)
+void MISC_handler(void)
 {
 	static bool dorecheck;
 	bool recheck;
 	int i;
-	evt mintime;
-	evt ct = get_cycles ();
+	evt_t mintime;
+	evt_t ct = get_cycles();
 	static int recursive;
 
 	if (recursive) {
@@ -363,41 +368,41 @@ void MISC_handler (void)
 	recheck = true;
 	while (recheck) {
 		recheck = false;
-		mintime = ~0L;
+		mintime = EVT_MAX;
 		for (i = 0; i < ev2_max; i++) {
 			if (eventtab2[i].active) {
 				if (eventtab2[i].evtime == ct) {
 					eventtab2[i].active = false;
 					event2_count--;
-					eventtab2[i].handler (eventtab2[i].data);
+					eventtab2[i].handler(eventtab2[i].data);
 					if (dorecheck || eventtab2[i].active) {
 						recheck = true;
 						dorecheck = false;
 					}
 				} else {
-					evt eventtime = eventtab2[i].evtime - ct;
+					evt_t eventtime = eventtab2[i].evtime - ct;
 					if (eventtime < mintime)
 						mintime = eventtime;
 				}
 			}
 		}
 	}
-	if (mintime != ~0UL) {
+	if (mintime < EVT_MAX) {
 		eventtab[ev_misc].active = true;
 		eventtab[ev_misc].oldcycles = ct;
 		eventtab[ev_misc].evtime = ct + mintime;
-		events_schedule ();
+		events_schedule();
 	}
 	recursive--;
 }
 
 
-void event2_newevent_xx (int no, evt t, uae_u32 data, evfunc2 func)
+void event2_newevent_xx (int no, evt_t t, uae_u32 data, evfunc2 func)
 {
-	evt et;
+	evt_t et;
 	static int next = ev2_misc;
 
-	et = t + get_cycles ();
+	et = t + get_cycles();
 	if (no < 0) {
 		no = next;
 		for (;;) {
@@ -412,7 +417,24 @@ void event2_newevent_xx (int no, evt t, uae_u32 data, evfunc2 func)
 				no = ev2_misc;
 			if (no == next) {
 				write_log (_T("out of event2's!\n"));
-				return;
+				// execute most recent event immediately
+				evt_t mintime = EVT_MAX;
+				int minevent = -1;
+				evt_t ct = get_cycles();
+				for (int i = 0; i < ev2_max; i++) {
+					if (eventtab2[i].active) {
+						evt_t eventtime = eventtab2[i].evtime - ct;
+						if (eventtime < mintime) {
+							mintime = eventtime;
+							minevent = i;
+						}
+					}
+				}
+				if (minevent >= 0) {
+					eventtab2[minevent].active = false;
+					eventtab2[minevent].handler(eventtab2[minevent].data);
+				}
+				continue;
 			}
 		}
 		next = no;
@@ -421,19 +443,78 @@ void event2_newevent_xx (int no, evt t, uae_u32 data, evfunc2 func)
 	eventtab2[no].evtime = et;
 	eventtab2[no].handler = func;
 	eventtab2[no].data = data;
-	MISC_handler ();
+	MISC_handler();
 }
 
-void event2_newevent_x_replace(evt t, uae_u32 data, evfunc2 func)
+void event2_newevent_x_replace(evt_t t, uae_u32 data, evfunc2 func)
 {
 	for (int i = 0; i < ev2_max; i++) {
 		if (eventtab2[i].active && eventtab2[i].handler == func) {
 			eventtab2[i].active = false;
 		}
 	}
-	if (((int)t) <= 0) {
+	if (t <= 0) {
 		func(data);
 		return;
 	}
 	event2_newevent_xx(-1, t * CYCLE_UNIT, data, func);
+}
+
+
+/*
+int current_hpos(void)
+{
+	int hp = current_hpos_safe();
+	if (hp < 0 || hp > 256) {
+		gui_message(_T("hpos = %d!?\n"), hp);
+		hp = 0;
+	}
+	return hp;
+}
+*/
+
+// emulate VPOSHW writes changing cycle counter
+void modify_eventcounter(int diff)
+{
+
+	int hpos = current_hpos();
+
+	if (hpos + diff < 0) {
+		return;
+	}
+	if (hpos + diff >= maxhpos) {
+		return;
+	}
+
+	int cdiff = diff * CYCLE_UNIT;
+	if (cdiff < 0) {
+		if (currcycle >= cdiff) {
+			currcycle -= cdiff;
+		} else {
+			cdiff = -(int)currcycle;
+			currcycle = 0;
+		}
+	} else {
+		currcycle += cdiff;
+	}
+
+	int hp1 = current_hpos();
+
+	cia_adjust_eclock_phase(diff);
+
+	// adjust all existing timers
+	for (int i = 0; i < ev_max; i++) {
+		if (i != ev_hsync && i != ev_hsynch) {
+			eventtab[i].evtime += cdiff;
+			eventtab[i].oldcycles += cdiff;
+		}
+	}
+
+	for (int i = 0; i < ev2_max; i++) {
+		eventtab2[i].evtime += cdiff;
+	}
+
+	int hp2 = current_hpos();
+
+	events_schedule();
 }

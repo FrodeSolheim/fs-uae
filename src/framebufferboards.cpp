@@ -12,7 +12,7 @@
 
 #include "options.h"
 #include "debug.h"
-#include "memory.h"
+#include "uae/memory.h"
 #include "custom.h"
 #include "picasso96.h"
 #include "gfxboard.h"
@@ -40,7 +40,7 @@ struct fb_struct
 	int width, height;
 	bool lace;
 	RGBFTYPE rgbtype;
-	
+
 	int fb_offset;
 	int fb_offset_limit;
 	int fb_vram_mask;
@@ -67,15 +67,9 @@ static struct fb_struct *fb_last;
 static bool fb_get_surface(struct fb_struct *data)
 {
 	struct amigadisplay *ad = &adisplays[data->monitor_id];
-	bool gotsurf = false;
 	if (ad->picasso_on) {
 		if (data->surface == NULL) {
-			data->surface = gfx_lock_picasso(data->monitor_id, false, false);
-			gotsurf = true;
-		}
-		if (data->surface && gotsurf) {
-			if (softstatusline())
-				picasso_statusline(data->monitor_id, data->surface);
+			data->surface = gfx_lock_picasso(data->monitor_id, false);
 		}
 	}
 	return data->surface != NULL;
@@ -217,7 +211,7 @@ static bool harlequin_init(struct autoconfig_info *aci)
 	struct fb_struct *data = xcalloc(struct fb_struct, 1);
 	data->devnum = aci->devnum;
 	fb_data[data->devnum] = data;
-	
+
 	data->bget = harlequin_bget;
 	data->wget = harlequin_wget;
 	data->bput = harlequin_bput;
@@ -355,10 +349,12 @@ static bool harlequin_vsync(void *userdata, struct gfxboard_mode *mode)
 	}
 
 	if (data->visible) {
-		
+
 		mode->width = data->width;
 		mode->height = data->height;
 		mode->mode = data->rgbtype;
+		mode->hlinedbl = 1;
+		mode->vlinedbl = 1;
 
 		if (fb_get_surface(data)) {
 			if (data->fb_modified || data->modechanged || mode->redraw_required) {
@@ -371,9 +367,9 @@ static bool harlequin_vsync(void *userdata, struct gfxboard_mode *mode)
 			fb_free_surface(data);
 			rendered = true;
 		}
-	
+
 	}
-	
+
 	return rendered;
 }
 
@@ -483,7 +479,8 @@ static uae_u32 REGPARAM2 fb_lget(uaecptr addr)
 	return v;
 }
 
-addrbank generic_fb_bank = {
+addrbank generic_fb_bank
+{
 	fb_lget, fb_wget, fb_bget,
 	fb_lput, fb_wput, fb_bput,
 	default_xlate, default_check, NULL, NULL, _T("FRAMEBUFFER BOARD"),
@@ -491,7 +488,8 @@ addrbank generic_fb_bank = {
 	ABFLAG_IO, S_READ, S_WRITE
 };
 
-struct gfxboard_func harlequin_func = {
+struct gfxboard_func harlequin_func
+{
 	harlequin_init,
 	harlequin_free,
 	harlequin_reset,

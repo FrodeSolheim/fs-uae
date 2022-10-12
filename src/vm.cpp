@@ -132,52 +132,6 @@ int uae_vm_page_size(void)
 	return page_size;
 }
 
-static void *try_alloc_32bit(uae_u32 size, int native_flags, int native_protect,
-							uae_u8 *p, uae_u8 *p_end)
-{
-	if (p_end <= p) {
-		return NULL;
-	}
-	if ((uintptr_t) p % uae_vm_page_size() != 0) {
-		/* Round up to the nearest page size */
-		p += uae_vm_page_size() - (uintptr_t) p % uae_vm_page_size();
-	}
-	void *address = NULL;
-	int step = uae_vm_page_size();
-	if (size > 1024 * 1024) {
-		/* Reserve some space for smaller allocations */
-		p += 32 * 1024 * 1024;
-		step = 1024 * 1024;
-	}
-#ifdef HAVE_MAP_32BIT
-	address = mmap(0, size, native_protect, native_flags | MAP_32BIT, -1, 0);
-	if (address == MAP_FAILED) {
-		address = NULL;
-	}
-#endif
-	while (address == NULL) {
-		if (p > p_end) {
-			break;
-		}
-#ifdef _WIN32
-		address = VirtualAlloc(p, size, native_flags, native_protect);
-#else
-		address = mmap(p, size, native_protect, native_flags, -1, 0);
-#ifdef LOG_ALLOCATIONS
-		write_log("VM: trying %p step is 0x%x = %p\n", p, step, address);
-#endif
-		if (address == MAP_FAILED) {
-			address = NULL;
-		} else if (((uintptr_t) address) + size > (uintptr_t) 0xffffffff) {
-			munmap(address, size);
-			address = NULL;
-		}
-#endif
-		p += step;
-	}
-	return address;
-}
-
 static void *uae_vm_alloc_with_flags(uae_u32 size, int flags, int protect)
 {
 	void *address = NULL;
@@ -193,14 +147,14 @@ static void *uae_vm_alloc_with_flags(uae_u32 size, int flags, int protect)
 #endif
 
 #ifdef _WIN32
-	int native_flags = MEM_COMMIT | MEM_RESERVE;
+	int va_type = MEM_COMMIT | MEM_RESERVE;
 	if (flags & UAE_VM_WRITE_WATCH) {
-		native_flags |= MEM_WRITE_WATCH;
+		va_type |= MEM_WRITE_WATCH;
 	}
-	int native_protect = protect_to_native(protect);
+	int va_protect = protect_to_native(protect);
 #else
-	int native_flags = MAP_PRIVATE | MAP_ANON;
-	int native_protect = protect_to_native(protect);
+	int mmap_flags = MAP_PRIVATE | MAP_ANON;
+	int mmap_prot = protect_to_native(protect);
 #endif
 
 #ifndef CPU_64_BIT
@@ -209,32 +163,43 @@ static void *uae_vm_alloc_with_flags(uae_u32 size, int flags, int protect)
 	if (flags & UAE_VM_32BIT) {
 		/* Stupid algorithm to find available space, but should
 		 * work well enough when there is not a lot of allocations. */
-		/* FIXME: Consider allocating a bigger chunk of memory, and manually
-		 * keep track of allocations. */
-#if 1
-		if (!address) {
-			address = try_alloc_32bit(
-						size, native_flags, native_protect,
-						(uae_u8 *) 0x40000000, natmem_reserved - size);
+		int step = uae_vm_page_size();
+		uae_u8 *p = (uae_u8 *) 0x40000000;
+		uae_u8 *p_end = natmem_reserved - size;
+		if (size > 1024 * 1024) {
+			/* Reserve some space for smaller allocations */
+			p += 32 * 1024 * 1024;
+			step = 1024 * 1024;
+		}
+#ifdef HAVE_MAP_32BIT
+		address = mmap(0, size, mmap_prot, mmap_flags | MAP_32BIT, -1, 0);
+		if (address == MAP_FAILED) {
+			address = NULL;
 		}
 #endif
-		if (!address && natmem_reserved < (uae_u8 *) 0x60000000) {
-			address = try_alloc_32bit(
-						size, native_flags, native_protect,
-						(uae_u8 *) natmem_reserved + natmem_reserved_size,
-						(uae_u8 *) 0xffffffff - size + 1);
-		}
-		if (!address) {
-			address = try_alloc_32bit(
-						size, native_flags, native_protect,
-						(uae_u8 *) 0x20000000,
-						min((uae_u8 *) 0x40000000, natmem_reserved - size));
+		while (address == NULL) {
+			if (p > p_end) {
+				break;
+			}
+#ifdef _WIN32
+			address = VirtualAlloc(p, size, va_type, va_protect);
+#else
+			address = mmap(p, size, mmap_prot, mmap_flags, -1, 0);
+			// write_log("VM: trying %p step is 0x%x = %p\n", p, step, address);
+			if (address == MAP_FAILED) {
+				address = NULL;
+			} else if (((uintptr_t) address) + size > (uintptr_t) 0xffffffff) {
+				munmap(address, size);
+				address = NULL;
+			}
+#endif
+			p += step;
 		}
 	} else {
 #ifdef _WIN32
-		address = VirtualAlloc(NULL, size, native_flags, native_protect);
+		address = VirtualAlloc(NULL, size, va_type, va_protect);
 #else
-		address = mmap(0, size, native_protect, native_flags, -1, 0);
+		address = mmap(0, size, mmap_prot, mmap_flags, -1, 0);
 		if (address == MAP_FAILED) {
 			address = NULL;
 		}
@@ -329,7 +294,6 @@ static void *try_reserve(uintptr_t try_addr, uae_u32 size, int flags)
 	int va_protect = protect_to_native(UAE_VM_NO_ACCESS);
 	address = VirtualAlloc((void *) try_addr, size, va_type, va_protect);
 	if (address == NULL) {
-		uae_log("VM: VirtualAlloc failed (GetLastError -> %d)\n", GetLastError());
 		return NULL;
 	}
 #else
@@ -357,88 +321,11 @@ static void *try_reserve(uintptr_t try_addr, uae_u32 size, int flags)
 	return address;
 }
 
-#ifdef _WIN32
-static void *find_free_region(uae_u32 size)
-{
-	uint64_t found_size = (uint64_t) -1;
-	void *found_addr = NULL;
-
-	uae_log("VM: Find free region for size %X:\n", size);
-
-	// int page_size = uae_vm_page_size();
-	// We don't want any page at 0x00
-	// VirtualQuery(page_size);
-	MEMORY_BASIC_INFORMATION meminfo;
-	void *address = 0x0;
-	int result = VirtualQuery(address, &meminfo, sizeof(meminfo));
-	while (result) {
-		if (address != meminfo.BaseAddress) {
-			uae_log("Unexpected BaseAddress\n");
-		}
-		const char *statedesc;
-		if (meminfo.State == MEM_FREE) {
-			statedesc = "FREE";
-		}
-		else if (meminfo.State == MEM_COMMIT) {
-			statedesc = "COMMIT";
-		}
-		else if (meminfo.State == MEM_RESERVE) {
-			statedesc = "RESERVE";
-		}
-		else {
-			statedesc = "UNKNOWN";
-		}
-		uae_log(
-			"VM: %08X - %08X  %4d MB  %s\n",
-		    address, (uintptr_t) address + meminfo.RegionSize, meminfo.RegionSize / (1024 * 1024), statedesc
-		);
-		ptrdiff_t usable_size = meminfo.RegionSize;
-		if ((uintptr_t) meminfo.BaseAddress + meminfo.RegionSize > 0x100000000) {
-			usable_size = 0x100000000 - (uintptr_t) meminfo.BaseAddress;
-		}
-		if (meminfo.State == MEM_FREE && usable_size >= size) {
-			if (meminfo.RegionSize < found_size) {
-				found_size = usable_size;
-				found_addr = meminfo.BaseAddress;
-			}
-		}
-		address = (void *) ((uintptr_t) address + meminfo.RegionSize);
-		result = VirtualQuery(address, &meminfo, sizeof(meminfo));
-		if (address >= (void*) 0x100000000) {
-			break;
-		}
-	}
-	if (found_addr) {
-		uae_log(
-			"VM: Found region with size %u (>= %u) at %08X\n",
-			found_size, size, found_addr
-		);
-	} else {
-		uae_log("VM: Did not find suitable region\n");
-	}
-	return found_addr;
-}
-#endif
-
 void *uae_vm_reserve(uae_u32 size, int flags)
 {
-#if 0
-	if (size > 768 * 1024 * 1024) {
-		return NULL;
-	}
-#endif
 	void *address = NULL;
 #ifdef _WIN32
-	uae_log("VM: Reserve  0x%-8x bytes\n", size);
-	if (flags & UAE_VM_32BIT) {
-		address = find_free_region(size);
-		if (address != NULL) {
-			address = try_reserve((uintptr_t) address, size, flags);
-		}
-	}
-	if (address == NULL) {
-		address = try_reserve(0x80000000, size, flags);
-	}
+	address = try_reserve(0x80000000, size, flags);
 	if (address == NULL && (flags & UAE_VM_32BIT)) {
 		if (size <= 768 * 1024 * 1024) {
 			address = try_reserve(0x78000000 - size, size, flags);
@@ -453,7 +340,7 @@ void *uae_vm_reserve(uae_u32 size, int flags)
 #else
 	if (true) {
 #endif
-		uintptr_t try_addr = 0xffffffff - size + 1;
+		uintptr_t try_addr = 0x80000000;
 		while (address == NULL) {
 			address = try_reserve(try_addr, size, flags);
 			if (address == NULL) {

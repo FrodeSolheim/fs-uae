@@ -196,7 +196,7 @@ void cms_close(void *p)
         
         free(cms);
 }
-#if 0
+
 device_t cms_device =
 {
         "Creative Music System / Game Blaster",
@@ -208,4 +208,3 @@ device_t cms_device =
         NULL,
         NULL
 };
-#endif

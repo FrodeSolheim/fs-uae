@@ -1475,7 +1475,7 @@ FILE *g_state_log_file = NULL;
 #ifdef FSUAE_LEGACY
 #else
 
-static void *emulation_thread(void *data)
+static void emulation_thread(void *data)
 {
     fsemu_assert_release(data != NULL);
 
@@ -1513,7 +1513,6 @@ static void *emulation_thread(void *data)
     /* With this set, and fs_ml_quit being called, the frame render
      * function will call fs_ml_stop when the fadeout effect is done. */
     // g_fs_emu_emulation_thread_stopped = 1;
-    return NULL;
 }
 
 static fs_thread *g_emulation_thread;

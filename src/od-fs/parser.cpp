@@ -555,7 +555,13 @@ int checkserwrite(int spaceneeded)
 	return 1;
 }
 
-int readseravail (void)
+// Stub
+void flushser(void)
+{
+	return;
+}
+
+int readseravail (bool *breakcond)
 {
 	if (tcpserial) {
 		if (tcp_is_connected ()) {

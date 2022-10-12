@@ -23,6 +23,7 @@
 
 #include <stddef.h>
 #include <process.h>
+#include <iphlpapi.h>
 
 #include "options.h"
 #include "uae/memory.h"
@@ -42,7 +43,7 @@
 #include "native2amiga.h"
 #ifdef FSUAE
 #else
-#include "win32gui.h"
+  #include "win32gui.h"
 #endif
 #include "wininet.h"
 #include "mmsystem.h"
@@ -50,7 +51,6 @@
 #else
 #include "win32.h"
 #endif
-#include "dxwrap.h"
 
 #ifdef FSUAE // NL
 
@@ -134,6 +134,17 @@ static unsigned int __stdcall sock_thread(void *);
 #define FIOSETOWN _IOW('f', 124, long)   /* set owner (struct Task *) */
 #define FIOGETOWN _IOR('f', 123, long)   /* get owner (struct Task *) */
 
+#define _IOWR(x,y,t)     (IOC_OUT|IOC_IN|(((long)(t)&IOCPARM_MASK)<<16)|((x)<<8)|(y))
+
+#define SIOCGIFADDR		_IOWR('i', 33, 16)		/* get ifnet address */
+#define SIOCGIFFLAGS	_IOWR('i', 17, 32)		/* get ifnet flags */
+#define SIOCGIFBRDADDR	_IOWR('i', 35, 16)		/* get broadcast addr */
+#define SIOCGIFCONF		_IOWR('i', 36, 8)		/* get ifnet list */
+#define SIOCGIFNETMASK	_IOWR('i', 37, 16)		/* get net addr mask */
+#define SIOCGIFMETRIC	_IOWR('i', 23, 32)		/* get IF metric */
+#define SIOCGIFMTU		_IOWR('i', 51, 32)		/* get IF mtu */
+#define SIOCGIFPHYS		_IOWR('i', 53, 32)		/* get IF wire */
+
 #define BEGINBLOCKING if (sb->ftable[sd - 1] & SF_BLOCKING) sb->ftable[sd - 1] |= SF_BLOCKINGINPROGRESS
 #define ENDBLOCKING sb->ftable[sd - 1] &= ~SF_BLOCKINGINPROGRESS
 
@@ -151,6 +162,7 @@ static LRESULT CALLBACK SocketWindowProc(HWND hwnd, UINT message, WPARAM wParam,
 #define SF_RAW_RICMP	0x02000000
 #define SF_RAW_HDR		0x01000000
 
+#if 0
 typedef	struct ip_option_information {
 	u_char Ttl;		/* Time To Live (used for traceroute) */
 	u_char Tos; 	/* Type Of Service (usually 0) */
@@ -158,6 +170,7 @@ typedef	struct ip_option_information {
 	u_char OptionsSize; /* Size of options data (usually 0, max 40) */
 	u_char FAR *OptionsData;   /* Options data buffer */
 } IPINFO, *PIPINFO, FAR *LPIPINFO;
+#endif
 
 static void bsdsetpriority (HANDLE thread)
 {
@@ -174,6 +187,9 @@ static int mySockStartup(void)
 
 	if (!bsd) {
 		bsd = xcalloc (struct bsdsockdata, 1);
+		if (!bsd) {
+			return 0;
+		}
 		for (i = 0; i < MAX_GET_THREADS; i++)
 			threadindextable[i] = i;
 	}
@@ -218,6 +234,8 @@ int init_socket_layer (void)
 	deinit_socket_layer ();
 	if (currprefs.socket_emu) {
 		if((result = mySockStartup())) {
+			if (!bsd)
+				return 0;
 			if(bsd->hSockThread == NULL) {
 				WNDCLASS wc;    // Set up an invisible window and dummy wndproc
 
@@ -305,7 +323,7 @@ void deinit_socket_layer(void)
 		DeleteCriticalSection(&bsd->SockThreadCS);
 		bsd->hSockThread = NULL;
 		SetEvent (bsd->hSockReq);
-		WaitForSingleObject(bsd->hSockThread, INFINITE);
+		WaitForSingleObject(t, INFINITE);
 		CloseHandle(t);
 		CloseHandle(bsd->hSockReq);
 		CloseHandle(bsd->hSockReqHandled);
@@ -402,8 +420,11 @@ void host_sbcleanup(SB)
 			bsd->asyncsb[(sb->mtable[i] - 0xb000) / 2] = NULL;
 	}
 
-	shutdown(sb->sockAbort, 1);
-	closesocket(sb->sockAbort);
+	if (sb->sockAbort != INVALID_SOCKET) {
+		shutdown(sb->sockAbort, 1);
+		closesocket(sb->sockAbort);
+		sb->sockAbort = INVALID_SOCKET;
+	}
 
 	free(sb->mtable);
 	sb->mtable = NULL;
@@ -837,7 +858,9 @@ typedef enum
 	connect_req,
 	recvfrom_req,
 	sendto_req,
+#if 0
 	abort_req,
+#endif
 	last_req
 } threadsock_e;
 
@@ -916,15 +939,30 @@ static BOOL HandleStuff(void)
 					sockreq.sb->resultval = recv(sockreq.s, sockreq.params.recvfrom_s.realpt, sockreq.params.recvfrom_s.len,
 						sockreq.params.recvfrom_s.flags);
 				}
+				//  WinSock UDP WSAEMSGSIZE workaround
+				if (sockreq.sb->resultval == -1 && WSAGetLastError() == WSAEMSGSIZE) {
+					int v = 0, len = sizeof(v);
+					if (!getsockopt(sockreq.s, SOL_SOCKET, SO_TYPE, (char*)&v, &len)) {
+						if (v == SOCK_DGRAM) {
+							sockreq.sb->resultval = sockreq.params.recvfrom_s.len;
+						}
+					}
+					if (sockreq.sb->resultval == -1) {
+						WSASetLastError(WSAEMSGSIZE);
+					}
+				}
 				break;
+#if 0 /* unused */
 			case abort_req:
 				*(sockreq.params.abort_s.newsock) = socket(AF_INET,SOCK_STREAM,IPPROTO_TCP);
 				if (*(sockreq.params.abort_s.newsock) != sb->sockAbort) {
 					shutdown(sb->sockAbort, 1);
 					closesocket(sb->sockAbort);
+					sb->sockAbort = INVALID_SOCKET;
 				}
 				handled = FALSE; /* Don't bother the SETERRNO section after the switch() */
 				break;
+#endif
 			case last_req:
 			default:
 				write_log (_T("BSDSOCK: Invalid sock-thread request!\n"));
@@ -1242,6 +1280,7 @@ void host_sendto (TrapContext *ctx, SB, uae_u32 sd, uae_u32 msg, uae_u8 *hmsg, u
 			} else {
 				realpt += sb->resultval;
 				len -= sb->resultval;
+				sb->bytestransmitted += sb->resultval;
 				if (len <= 0)
 					break;
 				else
@@ -1350,6 +1389,7 @@ void host_recvfrom(TrapContext *ctx, SB, uae_u32 sd, uae_u32 msg, uae_u8 *hmsg, 
 					int l = sb->resultval;
 					realpt += l;
 					len -= l;
+					sb->bytesreceived += l;
 					waitallgot += l;
 					if (len <= 0) {
 						sb->resultval = waitallgot;
@@ -1639,6 +1679,93 @@ uae_u32 host_getpeername(TrapContext *ctx, SB, uae_u32 sd, uae_u32 name, uae_u32
 	return -1;
 }
 
+#define MAX_NET_INTERFACES 30
+struct bsdsock_interface_info {
+	bool inuse;
+	int mtu;
+	int metric;
+	uae_u8 mac[6];
+	bool hasmac;
+};
+static INTERFACE_INFO *net_interfaces;
+static bsdsock_interface_info *net_interfaces2;
+static int net_interfaces_num;
+
+static void get_net_if_extra(void)
+{
+	xfree(net_interfaces2);
+	net_interfaces2 = NULL;
+	DWORD ret = 16 * 1024;
+	DWORD gaaFlags = GAA_FLAG_SKIP_ANYCAST | GAA_FLAG_SKIP_MULTICAST | GAA_FLAG_SKIP_FRIENDLY_NAME | GAA_FLAG_SKIP_DNS_SERVER | GAA_FLAG_INCLUDE_GATEWAYS;
+	IP_ADAPTER_ADDRESSES *ipaa = (IP_ADAPTER_ADDRESSES*)malloc(ret);
+	if (GetAdaptersAddresses(AF_INET, gaaFlags, NULL, ipaa, &ret) == ERROR_BUFFER_OVERFLOW) {
+		xfree(ipaa);
+		ipaa = (IP_ADAPTER_ADDRESSES*)malloc(ret);
+		if (GetAdaptersAddresses(AF_INET, gaaFlags, NULL, ipaa, &ret) != ERROR_SUCCESS) {
+			xfree(ipaa);
+			ipaa = NULL;
+		}
+	}
+	if (ipaa) {
+		net_interfaces2 = xcalloc(struct bsdsock_interface_info, MAX_NET_INTERFACES);
+		if (net_interfaces2) {
+			for (int i = 0; i < net_interfaces_num; i++) {
+				INTERFACE_INFO* ii = &net_interfaces[i];
+				struct bsdsock_interface_info *ii2 = &net_interfaces2[i];
+				IP_ADAPTER_ADDRESSES *ipa = ipaa;
+				while (ipa && ii2->inuse == false) {
+					if (ipa->Ipv4Enabled && (ipa->IfType == IF_TYPE_ETHERNET_CSMACD || ipa->IfType == IF_TYPE_IEEE80211)) {
+						PIP_ADAPTER_UNICAST_ADDRESS pua = ipa->FirstUnicastAddress;
+						while (pua) {
+							if (pua->Address.iSockaddrLength == 16 && !memcmp(pua->Address.lpSockaddr, &ii->iiAddress.Address, 16)) {
+								ii2->mtu = ipa->Mtu;
+								if (ipa->PhysicalAddressLength == 6) {
+									memcpy(ii2->mac, ipa->PhysicalAddress, 6);
+									ii2->hasmac = true;
+								}
+								ii2->metric = ipa->Ipv4Metric;
+								ii2->inuse = true;
+							}
+							pua = pua->Next;
+						}
+					}
+					ipa = ipa->Next;
+				}
+			}
+		}
+		xfree(ipaa);
+	}
+}
+
+static int get_net_if(TrapContext *ctx, uaecptr addr, bool extra)
+{
+	char name[17];
+	trap_get_bytes(ctx, name, addr, 16);
+	name[16] = 0;
+	if (name[0] == 'l' && name[1] == 'o' && name[2] == 0) {
+		for (int i = 0; i < net_interfaces_num; i++) {
+			if (net_interfaces[i].iiFlags & IFF_LOOPBACK) {
+				return i;
+			}
+		}
+	}
+	if (name[0] == 'e' && name[1] == 't' && name[2] == 'h') {
+		int num = atoi(name + 3);
+		if (num == 0 && name[3] != '0') {
+			return -1;
+		}
+		if (num >= net_interfaces_num) {
+			return -1;
+		}
+		// query extra information only if needed (MTU, Metric, MAC)
+		if (extra && !net_interfaces2) {
+			get_net_if_extra();
+		}
+		return num;
+	}
+	return -1;
+}
+
 uae_u32 host_IoctlSocket(TrapContext *ctx, SB, uae_u32 sd, uae_u32 request, uae_u32 arg)
 {
 	SOCKET s;
@@ -1674,7 +1801,7 @@ uae_u32 host_IoctlSocket(TrapContext *ctx, SB, uae_u32 sd, uae_u32 request, uae_
 		case FIONREAD:
 			ioctlsocket(s,request,(u_long *)&data);
 			BSDTRACE((_T("[FIONREAD] -> %d\n"),data));
-			trap_put_long(ctx, arg,data);
+			trap_put_long(ctx, arg, data);
 			success = 0;
 			break;
 		case FIOASYNC:
@@ -1694,6 +1821,121 @@ uae_u32 host_IoctlSocket(TrapContext *ctx, SB, uae_u32 sd, uae_u32 request, uae_
 
 			success = -1;
 			break;
+
+		case SIOCGIFFLAGS:
+			{
+				int idx = get_net_if(ctx, arg, false);
+				if (idx >= 0) {
+					INTERFACE_INFO *ii = &net_interfaces[idx];
+					uae_u16 flags = 0;
+					if (ii->iiFlags & IFF_UP) {
+						flags |= 1;
+						flags |= 0x40; // IFF_RUNNING
+					}
+					if (ii->iiFlags & IFF_BROADCAST) {
+						flags |= 2;
+					}
+					if (ii->iiFlags & IFF_LOOPBACK) {
+						flags |= 8;
+					}
+					if (ii->iiFlags & IFF_POINTTOPOINT) {
+						flags |= 0x10;
+					}
+					if (ii->iiFlags & IFF_MULTICAST) {
+						flags |= 0x8000;
+					}
+					trap_put_word(ctx, arg + 16, flags);
+					success = 0;
+				}
+			}
+		break;
+		case SIOCGIFMTU:
+		case SIOCGIFMETRIC:
+		case SIOCGIFPHYS:
+			{
+				int idx = get_net_if(ctx, arg, true);
+				if (idx >= 0) {
+					struct bsdsock_interface_info *ii2 = &net_interfaces2[idx];
+					if (ii2->inuse) {
+						if (request == SIOCGIFMETRIC) {
+							trap_put_long(ctx, arg + 16, ii2->metric);
+							success = 0;
+						} else if (request == SIOCGIFMTU) {
+							trap_put_long(ctx, arg + 16, ii2->mtu);
+							success = 0;
+						} else if (request == SIOCGIFPHYS) {
+							if (ii2->hasmac) {
+								trap_put_bytes(ctx, ii2->mac, arg + 16, 6);
+								success = 0;
+							}
+						}
+					}
+				}
+			}
+		break;
+		case SIOCGIFADDR:
+		case SIOCGIFNETMASK:
+		case SIOCGIFBRDADDR:
+			{
+				int idx = get_net_if(ctx, arg, false);
+				if (idx >= 0) {
+					INTERFACE_INFO *ii = &net_interfaces[idx];
+					sockaddr_gen *sa = &ii->iiAddress;
+					if (request == SIOCGIFNETMASK) {
+						sa = &ii->iiNetmask;
+					} else if (request == SIOCGIFBRDADDR) {
+						sa = &ii->iiBroadcastAddress;
+					}
+					trap_put_byte(ctx, arg + 16, 16);
+					trap_put_byte(ctx, arg + 17, (uae_u8)sa->Address.sa_family);
+					trap_put_bytes(ctx, sa->Address.sa_data, arg + 16 + 2, 14);
+					success = 0;
+				}
+			}
+		break;
+		case SIOCGIFCONF:
+			{
+				xfree(net_interfaces);
+				xfree(net_interfaces2);
+				net_interfaces2 = NULL;
+				net_interfaces_num = 0;
+				net_interfaces = xcalloc(INTERFACE_INFO, MAX_NET_INTERFACES);
+				if (net_interfaces) {
+					DWORD ret;
+					if (WSAIoctl(s, SIO_GET_INTERFACE_LIST, NULL, 0, (LPVOID*)net_interfaces, MAX_NET_INTERFACES * sizeof(INTERFACE_INFO), &ret, NULL, NULL) != SOCKET_ERROR) {
+						net_interfaces_num = ret / sizeof(INTERFACE_INFO);
+						int cnt = 0;
+						int bytes = trap_get_long(ctx, arg);
+						uaecptr ptr = trap_get_long(ctx, arg + 4);
+						int ethcnt = 0;
+						int bytecnt = 0;
+						for (int i = 0; i < net_interfaces_num; i++) {
+							INTERFACE_INFO *ii = &net_interfaces[i];
+							if (bytes < 32) {
+								break;
+							}
+							// fake names
+							if (ii->iiFlags & IFF_LOOPBACK) {
+								trap_put_string(ctx, "lo", ptr, 16);
+							} else {
+								char tmp[10];
+								sprintf(tmp, "eth%d", ethcnt++);
+								trap_put_string(ctx, tmp, ptr, 16);
+							}
+							trap_put_byte(ctx, ptr + 16, 16);
+							trap_put_byte(ctx, ptr + 17, (uae_u8)ii->iiAddress.Address.sa_family);
+							trap_put_bytes(ctx, ii->iiAddress.Address.sa_data, ptr + 16 + 2, 14);
+							ptr += 32;
+							bytes -= 32;
+							bytecnt += 32;
+						}
+						trap_put_long(ctx, arg, bytecnt);
+						success = 0;
+					}
+				}
+			}
+			break;
+
 		default:
 			write_log (_T("BSDSOCK: WARNING - Unknown IoctlSocket request: 0x%08lx\n"), request);
 			bsdsocklib_seterrno(ctx, sb, 22); // EINVAL
@@ -2207,33 +2449,6 @@ uae_u32 host_inet_addr(TrapContext *ctx, uae_u32 cp)
 	return addr;
 }
 
-int isfullscreen (void);
-static BOOL CheckOnline(SB)
-{
-	struct AmigaMonitor *mon = &AMonitors[0];
-	DWORD dwFlags;
-	BOOL bReturn = TRUE;
-
-#ifdef FSUAE
-	// We don't mess with the dialer in FS-UAE
-#else
-	hAmigaSockWnd = mon->hAmigaWnd;
-	if (InternetGetConnectedState(&dwFlags,0) == FALSE) { // Internet is offline
-		if (InternetAttemptConnect(0) != ERROR_SUCCESS) { // Show Dialer window
-			sb->sb_errno = 10001;
-			sb->sb_herrno = 1;
-			bReturn = FALSE;
-			// No success or aborted
-		}
-		if (isfullscreen() > 0) {
-			ShowWindow(mon->hAmigaWnd, SW_RESTORE);
-			SetActiveWindow(mon->hAmigaWnd);
-		}
-	}
-#endif
-	return bReturn;
-}
-
 #define GET_STATE_FREE 0
 #define GET_STATE_ACTIVE 1
 #define GET_STATE_CANCEL 2
@@ -2241,6 +2456,9 @@ static BOOL CheckOnline(SB)
 #define GET_STATE_DONE 4
 #define GET_STATE_REALLY_DONE 5
 
+#ifdef FSUAE
+	// We don't mess with the dialer in FS-UAE
+#else
 static unsigned int thread_get2 (void *indexp)
 {
 	int index = *((int*)indexp);
@@ -2254,6 +2472,7 @@ static unsigned int thread_get2 (void *indexp)
 	SB;
 	TrapContext *ctx = NULL;
 
+#endif
 	while (bsd->hGetEvents[index]) {
 
 		if (WaitForSingleObject(bsd->hGetEvents[index], INFINITE) == WAIT_ABANDONED)
@@ -2281,25 +2500,22 @@ static unsigned int thread_get2 (void *indexp)
 				else
 					name_rp = "";
 
-				if (strchr (name_rp, '.') == 0 || CheckOnline(sb) == TRUE) {
-					// Local Address or Internet Online ?
-					BSDTRACE((_T("tg2_0a %d:%d -> "),addrtype,wscnt));
-					if (addrtype == -1) {
-						host = gethostbyname (name_rp);
+				BSDTRACE((_T("tg2_0a %d:%d -> "),addrtype,wscnt));
+				if (addrtype == -1) {
+					host = gethostbyname (name_rp);
+				} else {
+					host = gethostbyaddr (name_rp, namelen, addrtype);
+				}
+				BSDTRACE((_T("tg2_0b %d -> "), wscnt));
+				if (bsd->threadGetargs_inuse[index] != GET_STATE_CANCEL) {
+					// No CTRL-C Signal
+					if (host == 0) {
+						// Error occurred
+						SETERRNO;
+						BSDTRACE((_T("tg2_0 failed %d:%d -> "), sb->sb_errno,wscnt));
 					} else {
-						host = gethostbyaddr (name_rp, namelen, addrtype);
-					}
-					BSDTRACE((_T("tg2_0b %d -> "), wscnt));
-					if (bsd->threadGetargs_inuse[index] != GET_STATE_CANCEL) {
-						// No CTRL-C Signal
-						if (host == 0) {
-							// Error occurred
-							SETERRNO;
-							BSDTRACE((_T("tg2_0 failed %d:%d -> "), sb->sb_errno,wscnt));
-						} else {
-							bsdsocklib_seterrno(ctx, sb, 0);
-							memcpy((void*)args->buf, host, sizeof(HOSTENT));
-						}
+						bsdsocklib_seterrno(ctx, sb, 0);
+						memcpy((void*)args->buf, host, sizeof(HOSTENT));
 					}
 				}
 
@@ -2549,11 +2765,11 @@ kludge:
 		// compute total size of hostent
 		size = 28;
 		if (h->h_name != NULL)
-			size += strlen(h->h_name) + 1;
+			size += uaestrlen(h->h_name) + 1;
 
 		if (h->h_aliases != NULL)
 			while (h->h_aliases[numaliases])
-				size += strlen(h->h_aliases[numaliases++]) + 5;
+				size += uaestrlen(h->h_aliases[numaliases++]) + 5;
 
 		if (h->h_addr_list != NULL) {
 			while (h->h_addr_list[numaddr]) numaddr++;
@@ -2653,11 +2869,11 @@ void host_getprotobyname(TrapContext *ctx, SB, uae_u32 name)
 		// compute total size of protoent
 		size = 16;
 		if (p->p_name != NULL)
-			size += strlen(p->p_name)+1;
+			size += uaestrlen(p->p_name)+1;
 
 		if (p->p_aliases != NULL)
 			while (p->p_aliases[numaliases])
-				size += strlen(p->p_aliases[numaliases++])+5;
+				size += uaestrlen(p->p_aliases[numaliases++])+5;
 
 		if (sb->protoent) {
 			uae_FreeMem(ctx, sb->protoent, sb->protoentsize, sb->sysbase);
@@ -2761,13 +2977,13 @@ void host_getservbynameport(TrapContext *ctx, SB, uae_u32 nameport, uae_u32 prot
 		// compute total size of servent
 		size = 20;
 		if (s->s_name != NULL)
-			size += strlen(s->s_name)+1;
+			size += uaestrlen(s->s_name)+1;
 		if (s->s_proto != NULL)
-			size += strlen(s->s_proto)+1;
+			size += uaestrlen(s->s_proto)+1;
 
 		if (s->s_aliases != NULL)
 			while (s->s_aliases[numaliases])
-				size += strlen(s->s_aliases[numaliases++])+5;
+				size += uaestrlen(s->s_aliases[numaliases++])+5;
 
 		if (sb->servent) {
 			uae_FreeMem(ctx, sb->servent, sb->serventsize, sb->sysbase);

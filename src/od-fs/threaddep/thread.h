@@ -13,8 +13,8 @@ typedef fs_thread *uae_thread_id;
 
 #define uae_set_thread_priority(thread_id, pri)
 
-//typedef int (*uae_thread_function) (void *);
-typedef fs_thread_function uae_thread_function;
+typedef void uae_thread_function(void *);
+// typedef fs_thread_function uae_thread_function;
 int uae_start_thread (const char *name, uae_thread_function fn, void *arg,
         uae_thread_id *tid);
 int uae_wait_thread (uae_thread_id thread);

@@ -206,7 +206,7 @@ extern int inputdevice_get_widget_type (int devnum, int num, TCHAR *name, bool i
 extern int send_input_event (int nr, int state, int max, int autofire);
 
 extern int input_get_default_mouse (struct uae_input_device *uid, int num, int port, int af, bool gp, bool wheel, bool joymouseswap);
-extern int input_get_default_lightpen (struct uae_input_device *uid, int num, int port, int af, bool gp, bool joymouseswap);
+extern int input_get_default_lightpen (struct uae_input_device *uid, int num, int port, int af, bool gp, bool joymouseswap, int submode);
 extern int input_get_default_joystick (struct uae_input_device *uid, int num, int port, int af, int mode, bool gp, bool joymouseswap);
 extern int input_get_default_joystick_analog (struct uae_input_device *uid, int num, int port, int af, bool gp, bool joymouseswap);
 extern int input_get_default_keyboard (int num);
@@ -222,7 +222,7 @@ INPUTEVENT_END
 #undef DEFEVENT2
 
 extern void handle_cd32_joystick_cia (uae_u8, uae_u8);
-extern uae_u8 handle_parport_joystick (int port, uae_u8 pra, uae_u8 dra);
+extern uae_u8 handle_parport_joystick (int port, uae_u8 data);
 extern uae_u8 handle_joystick_buttons (uae_u8, uae_u8);
 
 #define MAGICMOUSE_BOTH 0
@@ -240,6 +240,7 @@ extern void mousehack_wakeup(void);
 extern void mousehack_write(int reg, uae_u16 val);
 extern void setmouseactive(int monid, int);
 extern bool ismouseactive(void);
+extern void inputdevice_read_msg(bool);
 
 extern void setmousebuttonstateall (int mouse, uae_u32 buttonbits, uae_u32 buttonmask);
 extern void setjoybuttonstateall (int joy, uae_u32 buttonbits, uae_u32 buttonmask);
@@ -295,8 +296,8 @@ extern void inputdevice_reset (void);
 extern void write_inputdevice_config (struct uae_prefs *p, struct zfile *f);
 extern void read_inputdevice_config (struct uae_prefs *p, const TCHAR *option, TCHAR *value);
 extern void reset_inputdevice_config (struct uae_prefs *pr, bool reset);
-extern int inputdevice_joyport_config(struct uae_prefs *p, const TCHAR *value1, const TCHAR *value2, int portnum, int mode, int type, bool candefault);
-extern void inputdevice_joyport_config_store(struct uae_prefs *p, const TCHAR *value, int portnum, int mode, int type);
+extern int inputdevice_joyport_config(struct uae_prefs *p, const TCHAR *value1, const TCHAR *value2, int portnum, int mode, int submode, int type, bool candefault);
+extern void inputdevice_joyport_config_store(struct uae_prefs *p, const TCHAR *value, int portnum, int mode, int submode, int type);
 extern int inputdevice_getjoyportdevice (int port, int val);
 extern void inputdevice_validate_jports (struct uae_prefs *p, int changedport, bool *fixedports);
 extern void inputdevice_fix_prefs(struct uae_prefs *p, bool userconfig);

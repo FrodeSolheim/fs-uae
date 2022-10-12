@@ -4,10 +4,7 @@
 
 #include "ethernet.h"
 #ifdef _WIN32
-#ifdef FSUAE
-#else
 #include "win32_uaenet.h"
-#endif
 #endif
 #include "threaddep/thread.h"
 #include "options.h"
@@ -80,7 +77,6 @@ void ethernet_trigger (struct netdriverdata *ndd, void *vsd)
 	gui_flicker_led(LED_NET, 0, gui_data.net | 2);
 	switch (ndd->type)
 	{
-#ifdef WITH_SLIRP
 		case UAENET_SLIRP:
 		case UAENET_SLIRP_INBOUND:
 		{
@@ -100,7 +96,6 @@ void ethernet_trigger (struct netdriverdata *ndd, void *vsd)
 			}
 		}
 		return;
-#endif
 #ifdef WITH_UAENET_PCAP
 		case UAENET_PCAP:
 		uaenet_trigger (vsd);
@@ -113,7 +108,6 @@ int ethernet_open (struct netdriverdata *ndd, void *vsd, void *user, ethernet_go
 {
 	switch (ndd->type)
 	{
-#ifdef WITH_SLIRP
 		case UAENET_SLIRP:
 		case UAENET_SLIRP_INBOUND:
 		{
@@ -161,7 +155,6 @@ int ethernet_open (struct netdriverdata *ndd, void *vsd, void *user, ethernet_go
 			uae_slirp_start ();
 		}
 		return 1;
-#endif
 #ifdef WITH_UAENET_PCAP
 		case UAENET_PCAP:
 		if (uaenet_open (vsd, ndd, user, gotfunc, getfunc, promiscuous, mac)) {
@@ -180,7 +173,6 @@ void ethernet_close (struct netdriverdata *ndd, void *vsd)
 		return;
 	switch (ndd->type)
 	{
-#ifdef WITH_SLIRP
 		case UAENET_SLIRP:
 		case UAENET_SLIRP_INBOUND:
 		if (slirp_data) {
@@ -191,7 +183,6 @@ void ethernet_close (struct netdriverdata *ndd, void *vsd)
 			uae_sem_destroy (&slirp_sem2);
 		}
 		return;
-#endif
 #ifdef WITH_UAENET_PCAP
 		case UAENET_PCAP:
 		return uaenet_close (vsd);
@@ -241,7 +232,8 @@ bool ethernet_enumerate (struct netdriverdata **nddp, int romtype)
 #ifdef WITH_UAENET_PCAP
 	nd = uaenet_enumerate (NULL);
 	if (nd) {
-		for (int i = 0; i < MAX_TOTAL_NET_DEVICES; i++) {
+		int last = MAX_TOTAL_NET_DEVICES - 1 - j;
+		for (int i = 0; i < last; i++) {
 			if (nd[i].active)
 				nddp[j++] = &nd[i];
 		}

@@ -27,7 +27,7 @@
 
 #include "options.h"
 #include "crc32.h"
-#include "memory.h"
+#include "uae/memory.h"
 #include "autoconf.h"
 #include "rommgr.h"
 #include "flashrom.h"
@@ -68,7 +68,7 @@ typedef struct NICConf {
 } NICConf;
 
 #include "ethernet.h"
-#include "memory.h"
+#include "uae/memory.h"
 #include "pci_hw.h"
 
 #define qemu_get_nic_opaque(x) ((x)->ne2000state)
@@ -330,7 +330,7 @@ static bool ne2000_canreceive(NetClientState *nc, const uint8_t *buf)
 static ssize_t ne2000_receive(NetClientState *nc, const uint8_t *buf, size_t size_)
 {
     NE2000State *s = qemu_get_nic_opaque(nc);
-    int size = size_;
+    int size = (int)size_;
     uint8_t *p;
     unsigned int total_len, next, avail, len, index;
     uint8_t buf1[60];
@@ -414,7 +414,7 @@ static ssize_t ne2000_receive(NetClientState *nc, const uint8_t *buf, size_t siz
     s->isr |= ENISR_RX;
     ne2000_update_irq(s);
 
-    return size_;
+    return (ssize_t)size_;
 }
 
 static void ne2000_ioport_write(void *opaque, uint32_t addr, uint32_t val)
@@ -1001,9 +1001,10 @@ static uint64_t ne2000_read(void *opaque, hwaddr addr, unsigned size)
 	return v;
 }
 
-static void ne2000_write(void *opaque, hwaddr addr, uint64_t data, unsigned size)
+static void ne2000_write(void *opaque, hwaddr addr, uint64_t data64, unsigned size)
 {
     NE2000State *s = (NE2000State*)opaque;
+	uint32_t data = (uint32_t)data64;
 
 #if defined(DEBUG_NE2000)
 	write_log(_T("NE2000_WRITE %08x %08x %d\n"), addr, (uae_u32)data, size);
@@ -1173,7 +1174,7 @@ static void gotfunc(void *devv, const uae_u8 *databuf, int len)
 	if (!ne2000_canreceive(&ncs, databuf))
 		return;
 	ne2000_receive_check();
-	if (len > MAX_PACKET_SIZE) 
+	if (len > MAX_PACKET_SIZE)
 		return;
 	uae_sem_wait(&ne2000_sem);
 	int nextwrite = (receive_buffer_write + 1) & (MAX_RECEIVE_BUFFER_INDEX - 1);
@@ -1187,7 +1188,7 @@ static void gotfunc(void *devv, const uae_u8 *databuf, int len)
 	receive_buffer_write++;
 	receive_buffer_write &= (MAX_RECEIVE_BUFFER_INDEX - 1);
 	uae_sem_post(&ne2000_sem);
-}	
+}
 
 static void ne2000_hsync_handler(struct pci_board_state *pcibs)
 {
@@ -1208,17 +1209,17 @@ static void REGPARAM2 ne2000_lput(struct pci_board_state *pcibs, uaecptr addr, u
 }
 static uae_u32 REGPARAM2 ne2000_bget(struct pci_board_state *pcibs, uaecptr addr)
 {
-	uae_u32 v = ne2000_read(ncs.ne2000state, addr, 1);
+	uae_u32 v = (uae_u32)ne2000_read(ncs.ne2000state, addr, 1);
 	return v;
 }
 static uae_u32 REGPARAM2 ne2000_wget(struct pci_board_state *pcibs, uaecptr addr)
 {
-	uae_u32 v = ne2000_read(ncs.ne2000state, addr, 2);
+	uae_u32 v = (uae_u32)ne2000_read(ncs.ne2000state, addr, 2);
 	return v;
 }
 static uae_u32 REGPARAM2 ne2000_lget(struct pci_board_state *pcibs, uaecptr addr)
 {
-	uae_u32 v = ne2000_read(ncs.ne2000state, addr, 4);
+	uae_u32 v = (uae_u32)ne2000_read(ncs.ne2000state, addr, 4);
 	return v;
 }
 
@@ -1600,7 +1601,7 @@ static uae_u8 isapnp_read_data(struct isapnp *pnp)
 		default:
 		write_log(_T("ISAPNP READ REG %d\n"), pnp->address);
 		break;
-	}	
+	}
 	return 0;
 }
 
@@ -1893,7 +1894,7 @@ static void REGPARAM2 ariadne2_lput(uaecptr addr, uae_u32 l)
 	}
 }
 
-void rethink_ne2000(void)
+static void rethink_ne2000(void)
 {
 	struct ne2000_s *ne = getne2k(0);
 	if (!ne->ariadne2_board_state)
@@ -1903,7 +1904,7 @@ void rethink_ne2000(void)
 	}
 }
 
-void ne2000_hsync(void)
+static void ne2000_hsync(void)
 {
 	struct ne2000_s *ne = getne2k(0);
 	if (!ne->ariadne2_board_state)
@@ -1929,12 +1930,7 @@ static addrbank ariadne2_bank = {
 	ABFLAG_IO | ABFLAG_PPCIOSPACE, S_READ, S_WRITE
 };
 
-void ne2000_free(void)
-{
-	ne2000_reset();
-}
-
-void ne2000_reset(void)
+static void ne2000_reset(int hardreset)
 {
 	struct ne2000_s *ne = getne2k(0);
 	ne->ariadne2_irq = false;
@@ -1942,6 +1938,19 @@ void ne2000_reset(void)
 		ne2000_pci_board.free(ne->ariadne2_board_state);
 	xfree(ne->ariadne2_board_state);
 	ne->ariadne2_board_state = NULL;
+}
+
+static void ne2000_free(void)
+{
+	ne2000_reset(1);
+}
+
+static void init(void)
+{
+	device_add_exit(ne2000_free);
+	device_add_reset(ne2000_reset);
+	device_add_hsync(ne2000_hsync);
+	device_add_rethink(rethink_ne2000);
 }
 
 bool ariadne2_init(struct autoconfig_info *aci)
@@ -1956,6 +1965,7 @@ bool ariadne2_init(struct autoconfig_info *aci)
 	aci->autoconfigp = ert->autoconfig;
 	aci->addrbank = &ariadne2_bank;
 	aci->autoconfig_automatic = true;
+	device_add_reset(ne2000_reset);
 	if (!aci->doinit)
 		return true;
 
@@ -1964,6 +1974,8 @@ bool ariadne2_init(struct autoconfig_info *aci)
 	if (!ne2000_init_2(ne->ariadne2_board_state, ne->ne2000_romtype, aci->rc->configtext))
 		return false;
 	ne2000_byteswapsupported(&ne2000state);
+
+	init();
 
 	return true;
 }
@@ -1980,6 +1992,7 @@ bool hydra_init(struct autoconfig_info *aci)
 	aci->autoconfigp = ert->autoconfig;
 	aci->addrbank = &ariadne2_bank;
 	aci->autoconfig_automatic = true;
+	device_add_reset(ne2000_reset);
 	if (!aci->doinit)
 		return true;
 
@@ -1988,6 +2001,8 @@ bool hydra_init(struct autoconfig_info *aci)
 	if (!ne2000_init_2(ne->ariadne2_board_state, ne->ne2000_romtype, aci->rc->configtext))
 		return false;
 	ne2000_setisdp8390(&ne2000state);
+
+	init();
 
 	return true;
 }
@@ -2004,6 +2019,7 @@ bool lanrover_init(struct autoconfig_info *aci)
 	aci->autoconfigp = ert->autoconfig;
 	aci->addrbank = &ariadne2_bank;
 	aci->autoconfig_automatic = true;
+	device_add_reset(ne2000_reset);
 	if (!aci->doinit)
 		return true;
 
@@ -2013,6 +2029,8 @@ bool lanrover_init(struct autoconfig_info *aci)
 		return false;
 	ne2000_setisdp8390(&ne2000state);
 	ne->level6 = (aci->rc->device_settings & 1) != 0;
+
+	init();
 
 	return true;
 }
@@ -2029,6 +2047,7 @@ bool xsurf_init(struct autoconfig_info *aci)
 	aci->autoconfigp = ert->autoconfig;
 	aci->addrbank = &ariadne2_bank;
 	aci->autoconfig_automatic = true;
+	device_add_reset(ne2000_reset);
 	if (!aci->doinit)
 		return true;
 
@@ -2039,6 +2058,8 @@ bool xsurf_init(struct autoconfig_info *aci)
 	isapnp_init(&ne->pnp, rtl8019as_pnpdata, sizeof rtl8019as_pnpdata, rt_pnp_init_key, 32);
 	ne2000_byteswapsupported(&ne2000state);
 	ne2000_setident(&ne2000state, 0x50, 0x70);
+
+	init();
 
 	return true;
 }
@@ -2055,6 +2076,7 @@ bool xsurf100_init(struct autoconfig_info *aci)
 	aci->autoconfigp = ert->autoconfig;
 	aci->addrbank = &ariadne2_bank;
 	aci->autoconfig_automatic = true;
+	device_add_reset(ne2000_reset);
 	if (!aci->doinit)
 		return true;
 
@@ -2063,6 +2085,8 @@ bool xsurf100_init(struct autoconfig_info *aci)
 	if (!ne2000_init_2(ne->ariadne2_board_state, ne->ne2000_romtype, aci->rc->configtext))
 		return false;
 	ne2000_setident(&ne2000state, 0x50, 0x70);
+
+	init();
 
 	return true;
 }

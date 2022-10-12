@@ -17,6 +17,30 @@
 int log_scsi = 0;
 int log_net = 0;
 
+// Store output written to console so we can return it from remote debugger
+char capture_buffer[1024 * 32];
+bool capturing = false;
+char *capture_p;
+
+void capture_start() {
+	memset(capture_buffer, 0, 1);
+	capturing = true;
+	capture_p = capture_buffer;
+}
+
+void capture_write(const TCHAR *txt) {
+	if (capturing) {
+		int len = strlen(txt);
+		strncpy(capture_p, txt, len);
+		capture_p += len;
+	}
+}
+
+TCHAR *capture_end() {
+	capturing = false;
+	return capture_buffer;
+}
+
 void gui_message (const char *format,...)
 {
     va_list args;
@@ -428,6 +452,7 @@ TCHAR *setconsolemode (TCHAR *buffer, int maxlen)
 
 static void console_put (const TCHAR *buffer)
 {
+	capture_write(buffer);
 	if (console_buffer) {
 		if (_tcslen (console_buffer) + _tcslen (buffer) < console_buffer_size)
 			_tcscat (console_buffer, buffer);
@@ -479,6 +504,11 @@ void console_out_f (const TCHAR *format,...)
 #else
     va_list arg_ptr;
     va_start(arg_ptr, format);
+	if (capturing) {
+		va_list arg_ptr1;
+		va_copy(arg_ptr1, arg_ptr);
+		capture_p += vsprintf(capture_p, format, arg_ptr1);
+	}
     vprintf(format, arg_ptr);
     va_end(arg_ptr);
 
@@ -490,6 +520,7 @@ void console_out (const TCHAR *txt)
 #ifdef _WIN32
 	console_put (txt);
 #else
+	capture_write(txt);
 	printf("%s", txt);
 #endif
 }

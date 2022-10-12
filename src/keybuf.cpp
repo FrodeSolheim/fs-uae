@@ -32,6 +32,10 @@ static int keyinject_offset;
 static uae_u8 keyinject_previous;
 static bool keyinject_state;
 static bool keyinject_do;
+static bool ignore_next_release;
+static int delayed_released_code;
+static int delayed_released_time;
+
 
 struct kbtab
 {
@@ -238,8 +242,28 @@ int get_next_key (void)
 	key = keybuf[kpb_last];
 	if (++kpb_last == KEYBUF_SIZE)
 		kpb_last = 0;
+
+	// send release immediately in warp mode if not qualifier key
+	delayed_released_time = 0;
+	if (currprefs.turbo_emulation && !(key & 0x01) && (key >> 1) < 0x60) {
+		if (!keys_available()) {
+			delayed_released_code = key | 0x01;
+			delayed_released_time = 5;
+		}
+	}
+
 	//write_log (_T("%02x:%d\n"), key >> 1, key & 1);
 	return key;
+}
+
+void keybuf_vsync(void)
+{
+	if (delayed_released_time > 0) {
+		delayed_released_time--;
+		if (delayed_released_time == 0) {
+			record_key(delayed_released_code);
+		}
+	}
 }
 
 int record_key (int kc)
@@ -252,8 +276,16 @@ int record_key (int kc)
 int record_key_direct (int kc)
 {
 	int kpb_next = kpb_first + 1;
+	int kcd = (kc << 7) | (kc >> 1);
 
-	//write_log (_T("got kc %02X\n"), ((kc << 7) | (kc >> 1)) & 0xff);
+	if (ignore_next_release) {
+		ignore_next_release = false;
+		if (kcd & 0x80) {
+			return 0;
+		}
+	}
+
+	//write_log (_T("got kc %02X\n"), kcd & 0xff);
 	if (kpb_next == KEYBUF_SIZE)
 		kpb_next = 0;
 	if (kpb_next == kpb_last) {
@@ -271,7 +303,14 @@ void keybuf_init (void)
 	keyinject_offset = 0;
 	xfree(keyinject);
 	keyinject = NULL;
+	delayed_released_code = -1;
+	delayed_released_time = 0;
 	inputdevice_updateconfig (&changed_prefs, &currprefs);
+}
+
+void keybuf_ignore_next_release(void)
+{
+	ignore_next_release = true;
 }
 
 void keybuf_inject(const uae_char *txt)

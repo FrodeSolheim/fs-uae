@@ -64,6 +64,7 @@ DECLARE_MIDFUNC(rol_w_ri(RW2 r, IMM i));
 DECLARE_MIDFUNC(rol_l_rr(RW4 d, RR1 r));
 DECLARE_MIDFUNC(rol_w_rr(RW2 d, RR1 r));
 DECLARE_MIDFUNC(rol_b_rr(RW1 d, RR1 r));
+DECLARE_MIDFUNC(rol_l_ri(RW4 r, IMM i));
 DECLARE_MIDFUNC(shll_l_rr(RW4 d, RR1 r));
 DECLARE_MIDFUNC(shll_w_rr(RW2 d, RR1 r));
 DECLARE_MIDFUNC(shll_b_rr(RW1 d, RR1 r));
@@ -98,6 +99,7 @@ DECLARE_MIDFUNC(sign_extend_16_rr(W4 d, RR2 s));
 DECLARE_MIDFUNC(sign_extend_8_rr(W4 d, RR1 s));
 DECLARE_MIDFUNC(zero_extend_16_rr(W4 d, RR2 s));
 DECLARE_MIDFUNC(zero_extend_8_rr(W4 d, RR1 s));
+DECLARE_MIDFUNC(simulate_bsf(W4 tmp, RW4 s));
 DECLARE_MIDFUNC(imul_64_32(RW4 d, RW4 s));
 DECLARE_MIDFUNC(mul_64_32(RW4 d, RW4 s));
 DECLARE_MIDFUNC(imul_32_32(RW4 d, RR4 s));
@@ -175,6 +177,7 @@ DECLARE_MIDFUNC(start_needflags(void));
 DECLARE_MIDFUNC(end_needflags(void));
 DECLARE_MIDFUNC(make_flags_live(void));
 DECLARE_MIDFUNC(forget_about(W4 r));
+DECLARE_MIDFUNC(nop(void));
 
 DECLARE_MIDFUNC(f_forget_about(FW r));
 

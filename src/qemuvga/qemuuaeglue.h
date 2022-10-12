@@ -8,6 +8,10 @@
 #include <stddef.h>
 #endif
 
+#ifdef __cplusplus
+#define typeof decltype
+#endif
+
 extern void activate_debugger(void);
 
 //#define DEBUG_VGA_REG
@@ -283,8 +287,8 @@ struct CirrusVGAState {
     uint32_t cirrus_bank_base[2];
     uint32_t cirrus_bank_limit[2];
     uint8_t cirrus_hidden_palette[48];
-    uint32_t hw_cursor_x;
-    uint32_t hw_cursor_y;
+    int32_t hw_cursor_x;
+    int32_t hw_cursor_y;
     int cirrus_blt_pixelwidth;
     int cirrus_blt_width;
     int cirrus_blt_height;

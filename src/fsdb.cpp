@@ -23,11 +23,6 @@
 #include "fsdb.h"
 #include "uae/io.h"
 
-#ifdef FSUAE // NL
-#include "uae/fs.h"
-#undef _WIN32
-#endif
-
 /* The on-disk format is as follows:
 * Offset 0, 1 byte, valid
 * Offset 1, 4 bytes, mode
@@ -306,9 +301,6 @@ static void write_aino (FILE *f, a_inode *aino)
 
 void fsdb_dir_writeback (a_inode *dir)
 {
-#ifdef FSUAE
-	// .uaem files are used instead of fsdb
-#else
 	FILE *f;
 	int changes_needed = 0;
 	int entries_needed = 0;
@@ -401,5 +393,4 @@ void fsdb_dir_writeback (a_inode *dir)
 	TRACE ((_T("end\n")));
 	fclose (f);
 	xfree (tmpbuf);
-#endif
 }

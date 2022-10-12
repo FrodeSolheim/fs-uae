@@ -30,6 +30,7 @@
 #include "statusline.h"
 #include "rommgr.h"
 #include "flashrom.h"
+#include "devices.h"
 
 #define CUBO_DEBUG 1
 
@@ -137,7 +138,7 @@ static int load_rom8 (const TCHAR *xpath, uae_u8 *mem, int extra, const TCHAR *e
 
 	extra &= 3;
 	memset (tmp, 0xff, 131072);
-	_sntprintf (path, MAX_DPATH, _T("%s%s%s"), xpath, extra == 3 ? _T("-hi") : (extra == 2 ? _T("hi") : (extra == 1 ? _T("h") : _T(""))), bin);
+	_stprintf (path, _T("%s%s%s"), xpath, extra == 3 ? _T("-hi") : (extra == 2 ? _T("hi") : (extra == 1 ? _T("h") : _T(""))), bin);
 	if (ext)
 		_tcscat(path, ext);
 	if (exts) {
@@ -152,7 +153,7 @@ static int load_rom8 (const TCHAR *xpath, uae_u8 *mem, int extra, const TCHAR *e
 	if (zfile_fread (tmp, 65536, 1, zf) == 0)
 		goto end;
 	zfile_fclose (zf);
-	_sntprintf (path, MAX_DPATH, _T("%s%s%s"), xpath, extra == 3 ? _T("-lo") : (extra == 2 ? _T("lo") : (extra == 1 ? _T("l") : _T(""))), bin);
+	_stprintf (path, _T("%s%s%s"), xpath, extra == 3 ? _T("-lo") : (extra == 2 ? _T("lo") : (extra == 1 ? _T("l") : _T(""))), bin);
 	if (ext)
 		_tcscat(path, ext);
 	if (exts)
@@ -238,7 +239,7 @@ static int load_roms (struct arcadiarom *rom)
 	i = 0;
 	for (;;) {
 		if (rom->extra & 4)
-			_sntprintf (path, MAX_DPATH, _T("%s%d"), xpath, i + 1);
+			_stprintf (path, _T("%s%d"), xpath, i + 1);
 		else
 			_tcscpy (path, xpath);
 		if (!load_rom8 (path, arbmemory + 2 * 65536 * i + offset, rom->extra, rom->ext, rom->exts && rom->exts[0] ? &rom->exts[i * 2] : NULL)) {
@@ -477,6 +478,28 @@ static void nvram_read (void)
 	zfile_fclose (f);
 }
 
+static void alg_vsync(void);
+static void cubo_vsync(void);
+static void arcadia_vsync(void)
+{
+	if (alg_flag)
+		alg_vsync();
+	if (cubo_enabled)
+		cubo_vsync();
+
+	if (arcadia_bios) {
+		static int cnt;
+		cnt--;
+		if (cnt > 0)
+			return;
+		cnt = 50;
+		if (!nvwrite)
+			return;
+		nvram_write();
+		nvwrite = 0;
+	}
+}
+
 void arcadia_unmap (void)
 {
 	xfree (arbmemory);
@@ -504,29 +527,8 @@ int arcadia_map_banks (void)
 	nvram_read ();
 	multigame (0);
 	map_banks (&arcadia_boot_bank, 0xf0, 8, 0);
+	device_add_vsync_pre(arcadia_vsync);
 	return 1;
-}
-
-void alg_vsync(void);
-void cubo_vsync(void);
-void arcadia_vsync (void)
-{
-	if (alg_flag)
-		alg_vsync();
-	if (cubo_enabled)
-		cubo_vsync();
-
-	if (arcadia_bios) {
-		static int cnt;
-		cnt--;
-		if (cnt > 0)
-			return;
-		cnt = 50;
-		if (!nvwrite)
-			return;
-		nvram_write ();
-		nvwrite = 0;
-	}
 }
 
 uae_u8 arcadia_parport (int port, uae_u8 pra, uae_u8 dra)
@@ -548,25 +550,25 @@ uae_u8 arcadia_parport (int port, uae_u8 pra, uae_u8 dra)
 	return v;
 }
 
-struct romdata *scan_arcadia_rom (TCHAR *path, int cnt)
+struct romdata *scan_arcadia_rom(TCHAR *path, int cnt)
 {
 	struct romdata *rd = 0;
 	struct romlist **arc_rl;
 	struct arcadiarom *arcadia_rom;
 	int i;
 
-	arcadia_rom = is_arcadia (path, cnt);
+	arcadia_rom = is_arcadia(path, cnt);
 	if (arcadia_rom) {
-		arc_rl = getarcadiaroms();
+		arc_rl = getarcadiaroms(0);
 		for (i = 0; arc_rl[i]; i++) {
 			if (arc_rl[i]->rd->id == arcadia_rom->romid) {
 				rd = arc_rl[i]->rd;
-				_tcscat (path, FSDB_DIR_SEPARATOR_S);
-				_tcscat (path, arcadia_rom->romid1);
+				_tcscat(path, FSDB_DIR_SEPARATOR_S);
+				_tcscat(path, arcadia_rom->romid1);
 				break;
 			}
 		}
-		xfree (arc_rl);
+		xfree(arc_rl);
 	}
 	return rd;
 }
@@ -828,6 +830,14 @@ static void sony_serial_read(uae_u16 w)
 	if (log_ld)
 		write_log(_T("LD: INDEX OFF\n"));
 	break;
+	case 0x56: // CL
+	ld_mode = LD_MODE_STILL;
+	ld_direction = 0;
+	pausevideograb(1);
+	ack();
+	if (log_ld)
+		write_log(_T("LD: CL\n"));
+	break;
 	case 0x60: // ADDR INQ '`'
 	{
 		if (isvideograb() && ld_direction == 0) {
@@ -861,7 +871,7 @@ bool alg_ld_active(void)
 	return ld_mode == LD_MODE_PLAY || ld_mode == LD_MODE_STILL;
 }
 
-void alg_vsync(void)
+static void alg_vsync(void)
 {
 	ld_wait_ack = 0;
 	ld_vsync++;
@@ -1020,6 +1030,22 @@ uae_u8 alg_joystick_buttons(uae_u8 pra, uae_u8 dra, uae_u8 v)
 	return v;
 }
 
+struct romdata *get_alg_rom(const TCHAR *name)
+{
+	struct romdata *rd = getromdatabypath(name);
+	if (!rd) {
+		return NULL;
+	}
+	if (!(rd->type & ROMTYPE_ALG)) {
+		return NULL;
+	}
+	/* find parent node */
+	while (rd[-1].id == rd->id) {
+		rd--;
+	}
+	return rd;
+}
+
 void alg_map_banks(void)
 {
 	alg_flag = 1;
@@ -1027,13 +1053,22 @@ void alg_map_banks(void)
 		alg_nvram_read();
 		algmemory_initialized = 1;
 	}
-	map_banks(&alg_ram_bank, 0xf4, 4, 0);
+	struct romdata *rd = get_alg_rom(currprefs.romextfile);
+	if (rd->id == 182 || rd->id == 273 || rd->size < 0x40000) {
+		map_banks(&alg_ram_bank, 0xf5, 1, 0);
+	} else {
+		map_banks(&alg_ram_bank, 0xf7, 1, 0);
+	}
 	pausevideograb(1);
 	ld_audio = 0;
 	ld_mode = 0;
 	ld_wait_ack = 0;
 	ld_direction = 0;
 	ser_buf_offset = 0;
+	device_add_vsync_pre(arcadia_vsync);
+	if (!currprefs.genlock) {
+		currprefs.genlock = changed_prefs.genlock = 1;
+	}
 }
 
 static TCHAR cubo_pic_settings[ROMCONFIG_CONFIGTEXT_LEN];
@@ -1151,6 +1186,7 @@ void touch_serial_read(uae_u16 w)
 		}
 	}
 }
+
 
 static const uae_u8 cubo_pic_secret_base[] = {
 	0x7c, 0xf9, 0x56, 0xf7, 0x58, 0x18, 0x22, 0x54, 0x38, 0xcd, 0x3d, 0x94, 0x09, 0xe6, 0x8e, 0x0d,
@@ -1293,10 +1329,10 @@ static void cubo_write_pic(uae_u8 v)
 			int offset = cubo_pic_bit_cnt / 8;
 			if (offset < sizeof(cubo_pic_key)) {
 				cubo_pic_key[offset] = cubo_pic_byte;
-				write_log(_T("Cubo PIC received %02x (%d/%d)\n"), cubo_pic_byte, offset, (int) sizeof(cubo_pic_key));
+				write_log(_T("Cubo PIC received %02x (%d/%d)\n"), cubo_pic_byte, offset, sizeof(cubo_pic_key));
 			}
 			if (offset == sizeof(cubo_pic_key) - 1) {
-				write_log(_T("Cubo PIC key in: "));
+				write_log(_T("Cubo PIC key in: "), cubo_key);
 				for (int i = 0; i < 8; i++) {
 					write_log(_T("%02x "), cubo_pic_key[i + 2]);
 				}
@@ -1586,7 +1622,7 @@ void cubo_function(int v)
 	dip_delay[c] = 5;
 }
 
-void cubo_vsync(void)
+static void cubo_vsync(void)
 {
 	for (int i = 0; i < 16; i++) {
 		if (dip_delay[i] >= 3) {
@@ -1608,18 +1644,7 @@ static addrbank cubo_bank = {
 	NULL, 0x3fffff, 0x600000, 0x600000
 };
 
-bool cubo_init(struct autoconfig_info *aci)
-{
-	aci->start = 0x00600000;
-	aci->size  = 0x00400000;
-	if (!aci->doinit)
-		return true;
-	map_banks(&cubo_bank, aci->start >> 16, aci->size >> 16, 0);
-	aci->addrbank = &cubo_bank;
-	return true;
-}
-
-void arcadia_reset(void)
+static void arcadia_reset(int hardreset)
 {
 	cubo_enabled = is_board_enabled(&currprefs, ROMTYPE_CUBO, 0);
 	i2c_free(cubo_rtc);
@@ -1631,7 +1656,7 @@ void arcadia_reset(void)
 	cubo_pic_settings[0] = 0;
 }
 
-void check_arcadia_prefs_changed(void)
+static void check_arcadia_prefs_changed(void)
 {
 	if (!config_changed)
 		return;
@@ -1642,6 +1667,20 @@ void check_arcadia_prefs_changed(void)
 		return;
 	cubo_settings = brc->roms[0].device_settings;
 	_tcscpy(cubo_pic_settings, brc->roms[0].configtext);
+}
+
+bool cubo_init(struct autoconfig_info *aci)
+{
+	aci->start = 0x00600000;
+	aci->size  = 0x00400000;
+	device_add_reset(arcadia_reset);
+	if (!aci->doinit)
+		return true;
+	map_banks(&cubo_bank, aci->start >> 16, aci->size >> 16, 0);
+	aci->addrbank = &cubo_bank;
+	device_add_check_config(check_arcadia_prefs_changed);
+	device_add_vsync_pre(arcadia_vsync);
+	return true;
 }
 
 #endif /* ARCADIA */

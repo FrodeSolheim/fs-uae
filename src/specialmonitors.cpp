@@ -8,7 +8,7 @@
 #include "xwin.h"
 #include "custom.h"
 #include "drawing.h"
-#include "memory.h"
+#include "uae/memory.h"
 #include "specialmonitors.h"
 #include "debug.h"
 #include "zfile.h"
@@ -567,7 +567,7 @@ static bool dctv(struct vidbuffer *src, struct vidbuffer *dst, bool doublelines,
 		int prevtval = 0;
 		uae_s8 *chrbuf_w = NULL, *chrbuf_r1 = NULL, *chrbuf_r2 = NULL;
 		uae_u8 *lumabuf1 = dctv_luma, *lumabuf2 = dctv_luma;
-	
+
 		ycnt++;
 
 #if DCTV_SIGNATURE_DEBUG
@@ -798,7 +798,7 @@ static bool firecracker24(struct vidbuffer *src, struct vidbuffer *dst, bool dou
 
 	xaddfc = (1 << 1) / hdbl; // 0=lores,1=hires,2=shres
 	xadd = xaddfc * src->pixbytes;
-	
+
 
 	ystart = isntsc ? VBLANK_ENDLINE_NTSC : VBLANK_ENDLINE_PAL;
 	yend = isntsc ? MAXVPOS_NTSC : MAXVPOS_PAL;
@@ -820,7 +820,7 @@ static bool firecracker24(struct vidbuffer *src, struct vidbuffer *dst, bool dou
 		default:
 		return false;
 	}
-	
+
 	if (fc24_xmult >= xaddfc) {
 		fc24_xadd = fc24_xmult - xaddfc;
 		fc24_dx = 0;
@@ -1249,7 +1249,7 @@ static bool avideo(struct vidbuffer *src, struct vidbuffer *dst, bool doubleline
 	bool av24;
 	int doublebuffer = -1;
 	uae_u16 fmode;
-	
+
 	fmode = avideo_previous_fmode[lof];
 
 	if (currprefs.monitoremu == MONITOREMU_AUTO) {
@@ -1399,11 +1399,11 @@ static bool avideo(struct vidbuffer *src, struct vidbuffer *dst, bool doubleline
 					}
 
 					if (fmode & 0x08) { // Red (high)
-						
+
 						v = (((val[0] >> 2) & 1) << 4);
 						rval &= ~(0x10);
 						rval |= v;
-						
+
 						v = (((val[1] >> 1) & 1) << 4);
 						gval &= ~(0x10);
 						gval |= v;
@@ -1954,7 +1954,7 @@ static bool graffiti(struct vidbuffer *src, struct vidbuffer *dst)
 
 		x = xstart;
 		while (x < xend) {
-			
+
 			uae_u8 mask = 0x80;
 			uae_u8 chunky[4] = { 0, 0, 0, 0 };
 			while (mask) {
@@ -2018,15 +2018,15 @@ static bool graffiti(struct vidbuffer *src, struct vidbuffer *dst)
 				dstp += dst->pixbytes * 4 * 2;
 
 			} else if (waitline) {
-			
+
 				memset(dstp, 0, dst->pixbytes * 4 * 2);
 				dstp += dst->pixbytes * 4 * 2;
-			
+
 			} else {
 
 				for (int pix = 0; pix < 4; pix++) {
 					uae_u8 r, g, b, c;
-					
+
 					c = chunky[pix] & read_mask;
 					r = graffiti_palette[c * 4 + 0];
 					g = graffiti_palette[c * 4 + 1];
@@ -2035,7 +2035,7 @@ static bool graffiti(struct vidbuffer *src, struct vidbuffer *dst)
 					dstp += dst->pixbytes;
 					PRGB(dst, dstp, r, g, b);
 					dstp += dst->pixbytes;
-					
+
 					if (avidinfo->xchange == 1 && !hires) {
 						PRGB(dst, dstp, r, g, b);
 						dstp += dst->pixbytes;
@@ -2081,7 +2081,7 @@ static bool a2024(struct vidbuffer *src, struct vidbuffer *dst)
 	bool hires, ntsc, found;
 	int idline;
 	int total_width, total_height;
-	
+
 	dbl = avidinfo->ychange == 1 ? 2 : 1;
 	doff = (128 * 2 / avidinfo->xchange) * src->pixbytes;
 	found = false;
@@ -2183,7 +2183,7 @@ static bool a2024(struct vidbuffer *src, struct vidbuffer *dst)
 			panel_width_draw -= 16;
 	}
 	total_height = panel_height * dbl;
-	
+
 	srcbuf = src->bufmem + (((44 << VRES_MAX) - src->yoffset) / avidinfo->ychange) * src->rowbytes + (((srcxoffset << RES_MAX) - src->xoffset) / avidinfo->xchange) * src->pixbytes;
 	dstbuf = dst->bufmem + py * (panel_height / avidinfo->ychange) * dst->rowbytes + px * ((panel_width * 2) / avidinfo->xchange) * dst->pixbytes;
 
@@ -2292,15 +2292,10 @@ static uae_u8 get_noise(void)
 struct png_cb
 {
 	uae_u8 *ptr;
-	int size;
+	size_t size;
 };
 
-#ifdef FSUAE
-// FIXME
-static void readcallback(png_structp png_ptr, png_bytep out, png_size_t count)
-#else
 static void __cdecl readcallback(png_structp png_ptr, png_bytep out, png_size_t count)
-#endif
 {
 	png_voidp io_ptr = png_get_io_ptr(png_ptr);
 
@@ -2381,9 +2376,9 @@ static bool load_genlock_image(void)
 	genlock_image_height = height;
 
 	row_pp = new png_bytep[height];
-	
+
 	genlock_image_data = xcalloc(uae_u8, width * height * 4);
-	
+
 	for (int i = 0; i < height; i++) {
 		row_pp[i] = (png_bytep) &genlock_image_data[i * genlock_image_pitch];
 	}
@@ -2575,7 +2570,7 @@ skip:
 	if (deltax && deltay) {
 		offsetx = (aw - genlock_image_width * 65536 / deltax) / 2;
 		offsety = (ah - genlock_image_height * 65536 / deltay) / 2;
-	
+
 		if (currprefs.genlock_aspect) {
 			if (deltax < deltay) {
 				offsetx = (aw - genlock_image_width * 65536 / deltay) / 2;
@@ -2596,6 +2591,7 @@ skip:
 			continue;
 
 		uae_u8 *line = src->bufmem + yoff * src->rowbytes;
+		uae_u8 *lineprev = yoff > 0 ? src->bufmem + (yoff - 1) * src->rowbytes : NULL;
 		uae_u8 *dstline = dst->bufmem + ((y * 2 + oddlines) - dst->yoffset) * dst->rowbytes;
 		uae_u8 *line_genlock = row_map_genlock[yoff];
 		int gy = ((y * 2 + oddlines) - src->yoffset - offsety) * deltay / 65536;
@@ -2605,13 +2601,12 @@ skip:
 		r = g = b;
 		a = amix1;
 		noise_add = (quickrand() & 15) | 1;
+		uae_u8 *s = line;
+		uae_u8 *d = dstline;
+		uae_u8 *s_genlock = line_genlock;
 		for (x = 0; x < src->inwidth; x++) {
-			uae_u8 *s = line + x * src->pixbytes;
-			uae_u8 *d = dstline + x * dst->pixbytes;
-			uae_u8 *s_genlock = line_genlock + x;
 			uae_u8 *s2 = s + src->rowbytes;
 			uae_u8 *d2 = d + dst->rowbytes;
-
 			if (is_transparent(*s_genlock)) {
 				a = amix2;
 				if (genlock_error) {
@@ -2642,6 +2637,9 @@ skip:
 			} else {
 				PUT_AMIGARGBA(d, s, d2, s2, dst, 0, doublelines, false);
 			}
+			s += src->pixbytes;
+			d += dst->pixbytes;
+			s_genlock++;
 		}
 	}
 
@@ -2772,7 +2770,7 @@ ColorBurst control line:
  2	VALID2		must be a 0 for a CBurst frame
  1	VALID1		must be a 1 for a CBurst frame
  0	VALID0		must be a 0 for a CBurst frame
- 
+
  ColorBurst CoPro:
  7	AddressLoad*	loads the Video Address counters when low
  6	S1 				Video mode control
@@ -3303,7 +3301,7 @@ static bool opalvision(struct vidbuffer *src, struct vidbuffer *dst, bool double
 						}
 					}
 				}
-				
+
 				if (ydisp >= 0) {
 
 					if (pixcnt < opal->rowbytes) {
@@ -3324,7 +3322,7 @@ static bool opalvision(struct vidbuffer *src, struct vidbuffer *dst, bool double
 				}
 
 				if (opal->control_y && y >= opal->control_y) {
-				
+
 					if (opal_debug & 2)
 						write_log(_T("%02x."), val);
 
@@ -3358,7 +3356,7 @@ static bool opalvision(struct vidbuffer *src, struct vidbuffer *dst, bool double
 						} else {
 
 							if (y == opal->control_y) {
-	
+
 								if (pixcnt == 5) {
 									opal->palette_load = val;
 									if (val)
@@ -3398,7 +3396,7 @@ static bool opalvision(struct vidbuffer *src, struct vidbuffer *dst, bool double
 					}
 					if (pixcnt >= 0)
 						pixcnt++;
-				
+
 				}
 				prevbyte = val;
 			}

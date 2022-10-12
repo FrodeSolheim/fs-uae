@@ -8,7 +8,8 @@
 * 8088 x86 and PC support chip emulation from Fake86.
 * 80286+ CPU and AT support chip emulation from DOSBox.
 *
-* 2018: Replaced Fake86 and DOSBox with PCem.
+* 2018: Replaced Fake86 and DOSBox with PCem v14.
+* 2020: PCem v16.
 *
 */
 
@@ -32,7 +33,7 @@
 
 #include "options.h"
 #include "custom.h"
-#include "memory.h"
+#include "uae/memory.h"
 #include "debug.h"
 #include "x86.h"
 #include "newcpu.h"
@@ -66,14 +67,10 @@
 #include "pcem/sound_cms.h"
 #include "pcem/mouse.h"
 #include "pcem/mouse_serial.h"
-#include "pcem/io.h"
-#include "pcem/mouse_ps2.h"
-#include "pcem/mouse_serial.h"
-#include "pcem/sound_cms.h"
-#include "pcem/sound_sb.h"
-
+#include "pcem/serial.h"
 extern int cpu;
 extern int nvrmask;
+void keyboard_at_write(uint16_t port, uint8_t val, void *priv);
 
 #define MAX_IO_PORT 0x400
 
@@ -85,12 +82,14 @@ static void(*port_outw[MAX_IO_PORT])(uint16_t addr, uint16_t val, void *priv);
 static void(*port_outl[MAX_IO_PORT])(uint16_t addr, uint32_t val, void *priv);
 static void *port_priv[MAX_IO_PORT];
 
-static double x86_base_event_clock;
+static float x86_base_event_clock;
 static int x86_sndbuffer_playpos;
 static int x86_sndbuffer_playindex;
 static int sound_handlers_num;
-int sound_poll_time = 0, sound_poll_latch;
+static uint64_t sound_poll_latch;
+static pc_timer_t sound_poll_timer;
 void sound_poll(void *priv);
+void sound_speed_changed(bool);
 
 #define TYPE_SIDECAR 0
 #define TYPE_2088 1
@@ -101,6 +100,7 @@ void sound_poll(void *priv);
 void x86_doirq(uint8_t irqnum);
 
 bool x86_cpu_active;
+extern int cpu_multiplier;
 
 static int x86_vga_mode;
 static int x86_vga_board;
@@ -199,6 +199,8 @@ struct x86_bridge
 	uae_u8 vlsi_regs[0x100];
 	uae_u16 vlsi_regs_ems[64];
 	bool vlsi_config;
+	int a2386flipper;
+	bool a2386_amigapcdrive;
 };
 static int x86_found;
 
@@ -396,6 +398,7 @@ static uae_u8 x86_bridge_put_io(struct x86_bridge *xb, uaecptr addr, uae_u8 v)
 			v |= 2;
 		else if (!(v & 2))
 			v |= 1;
+		xb->a2386flipper = (v >> 5) & 3;
 #if X86_DEBUG_BRIDGE_IO
 		write_log(_T("IO_CONTROL_REGISTER %02X -> %02x\n"), old, v);
 #endif
@@ -436,8 +439,13 @@ static uae_u8 x86_bridge_put_io(struct x86_bridge *xb, uaecptr addr, uae_u8 v)
 			xb->a2386_default_video = v & 1;
 			write_log(_T("A2386 Default mode = %s\n"), xb->a2386_default_video ? _T("MDA") : _T("CGA"));
 		}
-		if (v == 6 || v == 7)
+		if (v == 6 || v == 7) {
 			xb->pc_speaker = (v & 1) != 0;
+		}
+		if (v == 10 || v == 11) {
+			xb->a2386_amigapcdrive = (v & 1) != 0;
+			write_log(_T("A2386 Flipper mode = %s\n"), xb->a2386_amigapcdrive ? _T("PC") : _T("Amiga"));
+		}
 		break;
 
 		default:
@@ -502,6 +510,7 @@ static uae_u8 x86_bridge_get_io(struct x86_bridge *xb, uaecptr addr)
 	return v;
 }
 
+static void x86_bridge_rethink(void);
 static void set_interrupt(struct x86_bridge *xb, int bit)
 {
 	if (xb->amiga_io[IO_AMIGA_INTERRUPT_STATUS] & (1 << bit))
@@ -513,237 +522,11 @@ static void set_interrupt(struct x86_bridge *xb, int bit)
 	devices_rethink_all(x86_bridge_rethink);
 }
 
-#if 0
-/* 8237 and 8253 from fake86 with small modifications */
-
-struct dmachan_s {
-	uint32_t page;
-	uint32_t addr;
-	uint32_t reload;
-	uint32_t count;
-	uint8_t direction;
-	uint8_t autoinit;
-	uint8_t writemode;
-	uint8_t modeselect;
-	uint8_t masked;
-	uint8_t verifymode;
-};
-
-static struct dmachan_s dmachan[2 * 4];
-static uae_u8 dmareg[2 * 16];
-static uint8_t flipflop = 0;
-
-static int write8237(struct x86_bridge *xb, uint8_t channel, uint8_t data)
-{
-	if (dmachan[channel].masked)
-		return 0;
-	if (dmachan[channel].autoinit && (dmachan[channel].count > dmachan[channel].reload))
-		dmachan[channel].count = 0;
-	if (dmachan[channel].count > dmachan[channel].reload)
-		return 0;
-	//if (dmachan[channel].direction) ret = RAM[dmachan[channel].page + dmachan[channel].addr + dmachan[channel].count];
-	//	else ret = RAM[dmachan[channel].page + dmachan[channel].addr - dmachan[channel].count];
-	if (!dmachan[channel].verifymode) {
-		xb->pc_ram[dmachan[channel].page + dmachan[channel].addr] = data;
-		if (dmachan[channel].direction == 0) {
-			dmachan[channel].addr++;
-		} else {
-			dmachan[channel].addr--;
-		}
-		dmachan[channel].addr &= 0xffff;
-	}
-	dmachan[channel].count++;
-	if (dmachan[channel].count > dmachan[channel].reload)
-		return -1;
-	return 1;
-}
-
-static uint8_t read8237(struct x86_bridge *xb, uint8_t channel, bool *end)
-{
-	uint8_t ret = 128;
-	*end = false;
-	if (dmachan[channel].masked) {
-		*end = true;
-		return ret;
-	}
-	if (dmachan[channel].autoinit && (dmachan[channel].count > dmachan[channel].reload))
-		dmachan[channel].count = 0;
-	if (dmachan[channel].count > dmachan[channel].reload) {
-		*end = true;
-		return ret;
-	}
-	//if (dmachan[channel].direction) ret = RAM[dmachan[channel].page + dmachan[channel].addr + dmachan[channel].count];
-	//	else ret = RAM[dmachan[channel].page + dmachan[channel].addr - dmachan[channel].count];
-	if (!dmachan[channel].verifymode) {
-		ret = xb->pc_ram[dmachan[channel].page + dmachan[channel].addr];
-		if (dmachan[channel].direction == 0) {
-			dmachan[channel].addr++;
-		} else {
-			dmachan[channel].addr--;
-		}
-		dmachan[channel].addr &= 0xffff;
-	}
-	dmachan[channel].count++;
-	if (dmachan[channel].count > dmachan[channel].reload)
-		*end = true;
-	return ret;
-}
-
-static void out8237(uint16_t addr, uint8_t value)
-{
-	uint8_t channel;
-	int chipnum = 0;
-	int reg = -1;
-#if DEBUG_DMA
-	write_log("out8237(0x%X, %X);\n", addr, value);
-#endif
-	if (addr >= 0x80 && addr <= 0x8f) {
-		dmareg[addr & 0xf] = value;
-		reg = addr;
-	} else if (addr >= 0xc0 && addr <= 0xdf) {
-		reg = (addr - 0xc0) / 2;
-		chipnum = 4;
-	} else if (addr <= 0x0f) {
-		reg = addr;
-		chipnum = 0;
-	}
-	switch (reg) {
-		case 0x0:
-		case 0x2: //channel 1 address register
-		case 0x4:
-		case 0x6:
-		channel = reg / 2 + chipnum;
-		if (flipflop == 1)
-			dmachan[channel].addr = (dmachan[channel].addr & 0x00FF) | ((uint32_t)value << 8);
-		else
-			dmachan[channel].addr = (dmachan[channel].addr & 0xFF00) | value;
-#if DEBUG_DMA
-		if (flipflop == 1) write_log("[NOTICE] DMA channel %d address register = %04X\n", channel, dmachan[channel].addr);
-#endif
-		flipflop = ~flipflop & 1;
-		break;
-		case 0x1:
-		case 0x3: //channel 1 count register
-		case 0x5:
-		case 0x7:
-		channel = reg / 2 + chipnum;
-		if (flipflop == 1)
-			dmachan[channel].reload = (dmachan[channel].reload & 0x00FF) | ((uint32_t)value << 8);
-		else
-			dmachan[channel].reload = (dmachan[channel].reload & 0xFF00) | value;
-		if (flipflop == 1) {
-			if (dmachan[channel].reload == 0)
-				dmachan[channel].reload = 65536;
-			dmachan[channel].count = 0;
-#if DEBUG_DMA
-			write_log("[NOTICE] DMA channel %d reload register = %04X\n", channel, dmachan[channel].reload);
-#endif
-		}
-		flipflop = ~flipflop & 1;
-		break;
-		case 0xA: //write single mask register
-		channel = (value & 3) + chipnum;
-		dmachan[channel].masked = (value >> 2) & 1;
-#if DEBUG_DMA
-		write_log("[NOTICE] DMA channel %u masking = %u\n", channel, dmachan[channel].masked);
-#endif
-		break;
-		case 0xB: //write mode register
-		channel = (value & 3) + chipnum;
-		dmachan[channel].direction = (value >> 5) & 1;
-		dmachan[channel].autoinit = (value >> 4) & 1;
-		dmachan[channel].modeselect = (value >> 6) & 3;
-		dmachan[channel].writemode = (value >> 2) & 1; //not quite accurate
-		dmachan[channel].verifymode = ((value >> 2) & 3) == 0;
-#if DEBUG_DMA
-		write_log("[NOTICE] DMA channel %u write mode reg: direction = %u, autoinit = %u, write mode = %u, verify mode = %u, mode select = %u\n",
-			   channel, dmachan[channel].direction, dmachan[channel].autoinit, dmachan[channel].writemode, dmachan[channel].verifymode, dmachan[channel].modeselect);
-#endif
-		break;
-		case 0xC: //clear byte pointer flip-flop
-#if DEBUG_DMA
-		write_log("[NOTICE] DMA cleared byte pointer flip-flop\n");
-#endif
-		flipflop = 0;
-		break;
-		case 0x89: // 6
-		case 0x8a: // 7
-		case 0x8b: // 5
-		case 0x81: // 2
-		case 0x82: // 3
-		case 0x83: // DMA channel 1 page register
-		// Original PC design. It can't get any more stupid.
-		if ((addr & 3) == 1)
-			channel = 2;
-		else if ((addr & 3) == 2)
-			channel = 3;
-		else
-			channel = 1;
-		if (addr >= 0x84)
-			channel += 4;
-		dmachan[channel].page = (uint32_t)value << 16;
-#if DEBUG_DMA
-		write_log("[NOTICE] DMA channel %d page base = %05X\n", channel, dmachan[channel].page);
-#endif
-		break;
-	}
-}
-
-static uint8_t in8237(uint16_t addr)
-{
-	struct x86_bridge *xb = bridges[0];
-	uint8_t channel;
-	int reg = -1;
-	int chipnum = addr >= 0xc0 ? 4 : 0;
-	uint8_t out = 0;
-
-	if (addr >= 0xc0 && addr <= 0xdf) {
-		reg = (addr - 0xc0) / 2;
-		chipnum = 4;
-	} else if (addr <= 0x0f) {
-		reg = addr;
-		chipnum = 0;
-	}
-	switch (reg) {
-		case 0x0:
-		case 0x2: //channel 1 address register
-		case 0x4:
-		case 0x6:
-		channel = reg / 2 + chipnum;
-		flipflop = ~flipflop & 1;
-		if (flipflop == 0)
-			out = dmachan[channel].addr >> 8;
-		else
-			out = dmachan[channel].addr;
-		break;
-		case 0x1:
-		case 0x3: //channel 1 count register
-		case 0x5:
-		case 0x7:
-		channel = reg / 2 + chipnum;
-		flipflop = ~flipflop & 1;
-		if (flipflop == 0)
-			out = dmachan[channel].reload >> 8;
-		else
-			out = dmachan[channel].reload;
-		break;
-	}
-	if (addr >= 0x80 && addr <= 0x8f)
-		out = dmareg[addr & 0xf];
-
-#if DEBUG_DMA
-	write_log("in8237(0x%X = %02x);\n", addr, out);
-#endif
-	return out;
-}
-#endif
-
 void x86_ack_keyboard(void)
 {
 	set_interrupt(bridges[0], 4);
 }
 
-static
 void x86_clearirq(uint8_t irqnum)
 {
 	struct x86_bridge *xb = bridges[0];
@@ -926,9 +709,9 @@ static int floppy_selected(void)
 static bool floppy_valid_rate(struct floppy_reserved *fr)
 {
 	struct x86_bridge *xb = bridges[0];
-	// A2386 BIOS sets 720k data rate for both 720k and 1.4M drives
+	// A2386 BIOS sets 720k data rate for 720k, 1.2M and 1.4M drives
 	// probably because it thinks Amiga half-speed drive is connected?
-	if (xb->type == TYPE_2386 && fr->rate == 0 && floppy_rate == 2)
+	if (xb->type == TYPE_2386 && fr->rate == 0 && (floppy_rate == 1 || floppy_rate == 2))
 		return true;
 	return fr->rate == floppy_rate || floppy_rate < 0;
 }
@@ -1436,7 +1219,8 @@ static uae_u8 infloppy(struct x86_bridge *xb, int portnum)
 
 static void set_cpu_turbo(struct x86_bridge *xb)
 {
-	cpu_set((int)currprefs.x86_speed_throttle);
+	cpu_multiplier = (int)currprefs.x86_speed_throttle;
+	cpu_set();
 	cpu_update_waitstates();
 	cpu_set_turbo(0);
 	cpu_set_turbo(1);
@@ -1895,7 +1679,7 @@ static uae_u8 vlsi_in(struct x86_bridge *xb, int portnum)
 		v = xb->scamp_idx1 | 0x80;
 		break;
 		case 0xea:
-		v = xb->vlsi_regs_ems[xb->scamp_idx1 & 0x3f];
+		v = (uae_u8)xb->vlsi_regs_ems[xb->scamp_idx1 & 0x3f];
 		break;
 		case 0xeb:
 		v = xb->vlsi_regs_ems[xb->scamp_idx1 & 0x3f] >> 8;
@@ -1949,7 +1733,7 @@ void portout(uint16_t portnum, uint8_t v)
 	{
 		case 0x60:
 		if (xb->type >= TYPE_2286) {
-			keyboard_at_write(portnum, v, NULL);
+			keyboard_at_write(portnum, v, &pit);
 		} else {
 			aio = 0x41f;
 		}
@@ -1957,10 +1741,10 @@ void portout(uint16_t portnum, uint8_t v)
 		case 0x61:
 		//write_log(_T("OUT Port B %02x\n"), v);
 		if (xb->type >= TYPE_2286) {
-			keyboard_at_write(portnum, v, NULL);
+			keyboard_at_write(portnum, v, &pit);
 		} else {
 			timer_process();
-			timer_update_outstanding();
+			//timer_update_outstanding();
 			speaker_update();
 			speaker_gated = v & 1;
 			speaker_enable = v & 2;
@@ -2014,7 +1798,7 @@ void portout(uint16_t portnum, uint8_t v)
 		break;
 		case 0x64:
 		if (xb->type >= TYPE_2286) {
-			keyboard_at_write(portnum, v, NULL);
+			keyboard_at_write(portnum, v, &pit);
 		}
 		break;
 
@@ -2300,7 +2084,7 @@ void portout16(uint16_t portnum, uint16_t value)
 		if (port_outw[portnum]) {
 			port_outw[portnum](portnum, value, port_priv[portnum]);
 		} else {
-			portout(portnum, value);
+			portout(portnum, (uae_u8)value);
 			portout(portnum + 1, value >> 8);
 		}
 		break;
@@ -2610,7 +2394,7 @@ uint8_t portin(uint16_t portnum)
 		case 0x176:
 		case 0x177:
 		case 0x376:
-		v = x86_ide_hd_get(portnum, 0);
+		v = (uae_u8)x86_ide_hd_get(portnum, 0);
 		break;
 		// at ide 0
 		case 0x1f0:
@@ -2622,7 +2406,7 @@ uint8_t portin(uint16_t portnum)
 		case 0x1f6:
 		case 0x1f7:
 		case 0x3f6:
-		v = x86_ide_hd_get(portnum, 0);
+		v = (uae_u8)x86_ide_hd_get(portnum, 0);
 		break;
 
 		// universal xt bios
@@ -2642,7 +2426,7 @@ uint8_t portin(uint16_t portnum)
 		case 0x30d:
 		case 0x30e:
 		case 0x30f:
-		v = x86_ide_hd_get(portnum, 0);
+		v = (uae_u8)x86_ide_hd_get(portnum, 0);
 		break;
 
 		// led debug (a2286 bios uses this)
@@ -3047,7 +2831,7 @@ static void vga_writeb(uint32_t addr, uint8_t val, void *priv)
 }
 static void vga_writew(uint32_t addr, uint16_t val, void *priv)
 {
-	vga_ram_put(x86_vga_board, addr, val);
+	vga_ram_put(x86_vga_board, addr, (uae_u8)val);
 	vga_ram_put(x86_vga_board, addr + 1, val >> 8);
 }
 static void vga_writel(uint32_t addr, uint32_t val, void *priv)
@@ -3076,7 +2860,7 @@ static void vgalfb_writeb(uint32_t addr, uint8_t val, void *priv)
 }
 static void vgalfb_writew(uint32_t addr, uint16_t val, void *priv)
 {
-	vgalfb_ram_put(x86_vga_board, addr, val);
+	vgalfb_ram_put(x86_vga_board, addr, (uae_u8)val);
 	vgalfb_ram_put(x86_vga_board, addr + 1, val >> 8);
 }
 static void vgalfb_writel(uint32_t addr, uint32_t val, void *priv)
@@ -3166,7 +2950,7 @@ static void mem_write_romextw3(uint32_t addr, uint16_t val, void *priv)
 	} else if (addr >= 0x3800) {
 		int reg = to53c400reg(addr + 0, true);
 		if (reg >= 0)
-			x86_rt1000_bput(reg, val);
+			x86_rt1000_bput(reg, (uae_u8)val);
 		reg = to53c400reg(addr + 1, true);
 		if (reg >= 0)
 			x86_rt1000_bput(reg, val >> 8);
@@ -3192,7 +2976,7 @@ static uint32_t mem_read_romextl2(uint32_t addr, void *priv)
 	return *(uint32_t *)&xtiderom[addr & 0x3fff];
 }
 
-void x86_bridge_rethink(void)
+static void x86_bridge_rethink(void)
 {
 	struct x86_bridge *xb = bridges[0];
 	if (!xb)
@@ -3208,13 +2992,7 @@ void x86_bridge_rethink(void)
 	}
 }
 
-void x86_bridge_free(void)
-{
-	x86_bridge_reset();
-	x86_found = 0;
-}
-
-void x86_bridge_reset(void)
+static void x86_bridge_reset(int hardreset)
 {
 	for (int i = 0; i < X86_BRIDGE_MAX; i++) {
 		struct x86_bridge *xb = bridges[i];
@@ -3254,6 +3032,12 @@ void x86_bridge_reset(void)
 		memset(port_outw, 0, sizeof(port_outw));
 		memset(port_outl, 0, sizeof(port_outl));
 	}
+}
+
+static void x86_bridge_free(void)
+{
+	x86_bridge_reset(1);
+	x86_found = 0;
 }
 
 static void check_floppy_delay(void)
@@ -3338,7 +3122,7 @@ void x86_bridge_sync_change(void)
 		return;
 }
 
-void x86_bridge_vsync(void)
+static void x86_bridge_vsync(void)
 {
 	struct x86_bridge *xb = bridges[0];
 	if (!xb)
@@ -3351,10 +3135,10 @@ void x86_bridge_vsync(void)
 	if (rc) {
 		xb->mouse_port = (rc->device_settings & 3) + 1;
 	}
-	xb->audeventtime = x86_base_event_clock * CYCLE_UNIT / currprefs.sound_freq + 1;
+	xb->audeventtime = (int)(x86_base_event_clock * CYCLE_UNIT / currprefs.sound_freq + 1);
 }
 
-void x86_bridge_hsync(void)
+static void x86_bridge_hsync(void)
 {
 	static float totalcycles;
 	struct x86_bridge *xb = bridges[0];
@@ -3366,9 +3150,10 @@ void x86_bridge_hsync(void)
 		xb->sound_initialized = true;
 		if (xb->sound_emu) {
 			write_log(_T("x86 sound init\n"));
-			xb->audeventtime = x86_base_event_clock * CYCLE_UNIT / currprefs.sound_freq + 1;
-			timer_add(sound_poll, &sound_poll_time, TIMER_ALWAYS_ENABLED, NULL);
+			xb->audeventtime = (int)(x86_base_event_clock * CYCLE_UNIT / currprefs.sound_freq + 1);
+			timer_add(&sound_poll_timer, sound_poll, NULL, 0);
 			xb->audstream = audio_enable_stream(true, -1, 2, audio_state_sndboard_x86, NULL);
+			sound_speed_changed(true);
 		}
 	}
 
@@ -3411,6 +3196,8 @@ static void bridge_reset(struct x86_bridge *xb)
 	xb->pc_irq3a = xb->pc_irq3b = xb->pc_irq7 = false;
 	xb->mode_register = -1;
 	xb->video_initialized = false;
+	xb->a2386flipper = 0;
+	xb->a2386_amigapcdrive = false;
 	x86_cpu_active = false;
 	memset(xb->amiga_io, 0, 0x50000);
 	memset(xb->io_ports, 0, 0x10000);
@@ -3507,10 +3294,48 @@ void x86_xt_ide_bios(struct zfile *z, struct romconfig *rc)
 	mem_mapping_add(&bios_mapping[5], addr, 0x4000, mem_read_romext2, mem_read_romextw2, mem_read_romextl2, mem_write_null, mem_write_nullw, mem_write_nulll, xtiderom, MEM_MAPPING_EXTERNAL | MEM_MAPPING_ROM, 0);
 }
 
+void *sb_1_init();
+void *sb_15_init();
+void *sb_2_init();
+void *sb_pro_v1_init();
+void *sb_pro_v2_init();
+void *sb_16_init();
+void *cms_init();
+
 static int x86_global_settings;
 
-int device_get_config_int(char *s)
+int device_get_config_int(const char *s)
 {
+	if (!strcmp(s, "bilinear")) {
+		return 1;
+	}
+	if (!strcmp(s, "dithering")) {
+		return 1;
+	}
+	if (!strcmp(s, "dacfilter")) {
+		return 1;
+	}
+	if (!strcmp(s, "recompiler")) {
+		return 1;
+	}
+	if (!strcmp(s, "memory")) {
+		return pcem_getvramsize() >> 20;
+	}
+	if (!strcmp(s, "render_threads")) {
+#ifdef _WIN32
+		SYSTEM_INFO si;
+		GetSystemInfo(&si);
+		if (si.dwNumberOfProcessors >= 8)
+			return 4;
+		if (si.dwNumberOfProcessors >= 4)
+			return 2;
+		return 1;
+#else
+		return 4;
+#endif
+	}
+
+
 	if (x86_global_settings < 0)
 		return 0;
 	if (!strcmp(s, "addr")) {
@@ -3665,7 +3490,7 @@ static void load_vga_bios(void)
 		return;
 	struct zfile *zf = read_device_rom(&currprefs, ROMTYPE_x86_VGA, 0, NULL);
 	if (zf) {
-		int size = zfile_fread(romext, 1, 32768, zf);
+		int size = (int)zfile_fread(romext, 1, 32768, zf);
 		write_log(_T("X86 VGA BIOS '%s' loaded, %08x %d bytes\n"), zfile_getname(zf), 0xc0000, size);
 		zfile_fclose(zf);
 		mem_mapping_add(&bios_mapping[4], 0xc0000, 0x8000, mem_read_romext, mem_read_romextw, mem_read_romextl, mem_write_null, mem_write_nullw, mem_write_nulll, romext, MEM_MAPPING_EXTERNAL | MEM_MAPPING_ROM, 0);
@@ -3677,7 +3502,7 @@ static void set_vga(struct x86_bridge *xb)
 	// load vga bios
 	xb->vgaboard = -1;
 	for (int i = 0; i < MAX_RTG_BOARDS; i++) {
-		if (currprefs.rtgboards[i].rtgmem_type == GFXBOARD_VGA) {
+		if (currprefs.rtgboards[i].rtgmem_type == GFXBOARD_ID_VGA) {
 			xb->vgaboard = i;
 			x86_vga_board = i;
 			xb->vgaboard_vram = currprefs.rtgboards[i].rtgmem_size;
@@ -3689,6 +3514,9 @@ static void set_vga(struct x86_bridge *xb)
 		}
 	}
 }
+
+void mouse_serial_poll(int x, int y, int z, int b, void *p);
+void mouse_ps2_poll(int x, int y, int z, int b, void *p);
 
 void x86_mouse(int port, int x, int y, int z, int b)
 {
@@ -3708,15 +3536,16 @@ void x86_mouse(int port, int x, int y, int z, int b)
 	}
 }
 
-void serial1_init(uint16_t addr, int irq);
-void serial_reset();
+void *mouse_serial_init();
+void *mouse_ps2_init();
+void *mouse_intellimouse_init();
 
 static void set_mouse(struct x86_bridge *xb)
 {
+	ps2_mouse_supported = false;
 	if (!is_board_enabled(&currprefs, ROMTYPE_X86MOUSE, 0))
 		return;
 	struct romconfig *rc = get_device_romconfig(&currprefs, ROMTYPE_X86MOUSE, 0);
-	ps2_mouse_supported = false;
 	if (rc) {
 		xb->mouse_port = (rc->device_settings & 3) + 1;
 		xb->mouse_type = (rc->device_settings >> 2) & 3;
@@ -3724,7 +3553,7 @@ static void set_mouse(struct x86_bridge *xb)
 		{
 			case 0:
 			default:
-			serial1_init(0x3f8, 4);
+			serial1_init(0x3f8, 4, 1);
 			serial_reset();
 			xb->mouse_base = mouse_serial_init();
 			break;
@@ -3743,12 +3572,12 @@ static void set_mouse(struct x86_bridge *xb)
 static const uae_u8 a1060_autoconfig[16] = { 0xc4, 0x01, 0x80, 0x00, 0x02, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
 static const uae_u8 a2386_autoconfig[16] = { 0xc4, 0x67, 0x80, 0x00, 0x02, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
 
-static
 bool x86_bridge_init(struct autoconfig_info *aci, uae_u32 romtype, int type)
 {
 	const uae_u8 *ac;
 	struct romconfig *rc = aci->rc;
 
+	device_add_reset(x86_bridge_reset);
 	if (type >= TYPE_2286) {
 		ac = type >= TYPE_2386 ? a2386_autoconfig : a1060_autoconfig;
 	}
@@ -3817,8 +3646,8 @@ bool x86_bridge_init(struct autoconfig_info *aci, uae_u32 romtype, int type)
 	}
 
 	romset = ROM_GENXT;
-	shadowbios = 0;
 	enable_sync = 1;
+	fpu_type = 0;
 
 	switch (xb->type)
 	{
@@ -3826,26 +3655,31 @@ bool x86_bridge_init(struct autoconfig_info *aci, uae_u32 romtype, int type)
 		model = 0;
 		cpu_manufacturer = 0;
 		cpu = 0; // 4.77MHz
+		fpu_type = (xb->settings  & (1 << 19)) ? FPU_8087 : FPU_NONE;
 		break;
 	case TYPE_2088:
 		model = 0;
 		cpu_manufacturer = 0;
 		cpu = 0; // 4.77MHz
+		fpu_type = (xb->settings & (1 << 19)) ? FPU_8087 : FPU_NONE;
 		break;
 	case TYPE_2088T:
 		model = 0;
 		cpu_manufacturer = 0;
 		cpu = 0; // 4.77MHz
+		fpu_type = (xb->settings & (1 << 19)) ? FPU_8087 : FPU_NONE;
 		break;
 	case TYPE_2286:
 		model = 1;
 		cpu_manufacturer = 0;
 		cpu = 1; // 8MHz
+		fpu_type = (xb->settings & (1 << 19)) ? FPU_287 : FPU_NONE;
 		break;
 	case TYPE_2386:
 		model = 2;
 		cpu_manufacturer = 0;
 		cpu = 2; // 25MHz
+		fpu_type = (xb->settings & (1 << 19)) ? FPU_387 : FPU_NONE;
 		break;
 	}
 	if (rc->configtext[0]) {
@@ -3854,11 +3688,23 @@ bool x86_bridge_init(struct autoconfig_info *aci, uae_u32 romtype, int type)
 		while (m->cpu[mannum].cpus) {
 			CPU *cpup = m->cpu[mannum].cpus;
 			int cpunum = 0;
-			while(cpup[cpunum].cpu_type >= 0) {
+			while (cpup[cpunum].cpu_type >= 0) {
 				TCHAR *cpuname = au(cpup[cpunum].name);
-				if (!_tcsicmp(rc->configtext, cpuname)) {
+				if (_tcsstr(rc->configtext, cpuname)) {
+					int cputype = cpup[cpunum].cpu_type;
 					cpu_manufacturer = mannum;
 					cpu = cpunum;
+					if (cputype == CPU_i486SX) {
+						fpu_type = FPU_NONE;
+					} else if (cputype == CPU_i486DX) {
+						fpu_type = FPU_BUILTIN;
+					} else if ((cputype == CPU_386DX || cputype == CPU_386SX) && fpu_type != FPU_NONE) {
+						fpu_type = FPU_387;
+					} else if (cputype == CPU_286 && fpu_type != FPU_NONE) {
+						fpu_type = FPU_287;
+					} else if (cputype == CPU_8088 && fpu_type != FPU_NONE) {
+						fpu_type = FPU_8087;
+					}
 					write_log(_T("CPU override = %s\n"), cpuname);
 				}
 				xfree(cpuname);
@@ -3868,7 +3714,8 @@ bool x86_bridge_init(struct autoconfig_info *aci, uae_u32 romtype, int type)
 		}
 	}
 
-	cpu_set(0);
+	cpu_multiplier = (int)currprefs.x86_speed_throttle;
+	cpu_set();
 	if (xb->type >= TYPE_2286) {
 		mem_size = (1024 * 1024) << ((xb->settings >> 16) & 7);
 	} else {
@@ -3876,6 +3723,7 @@ bool x86_bridge_init(struct autoconfig_info *aci, uae_u32 romtype, int type)
 	}
 	mem_size /= 1024;
 	mem_init();
+	mem_alloc();
 	xb->pc_ram = ram;
 	if (xb->type < TYPE_2286) {
 		mem_set_704kb();
@@ -3884,12 +3732,20 @@ bool x86_bridge_init(struct autoconfig_info *aci, uae_u32 romtype, int type)
 	bridge_reset(xb);
 
 	timer_reset();
+
+	// SB setup must come before DMA init
+	sound_reset();
+	speaker_init();
+	set_sb_emu(xb);
+	sound_pos_global = xb->sound_emu ? 0 : -1;
+
 	dma_init();
 	pit_init();
 	pic_init();
+
 	if (xb->type >= TYPE_2286) {
 		AT = 1;
-		nvr_init();
+		nvr_device.init();
 		TCHAR path[MAX_DPATH];
 		cfgfile_resolve_path_out_load(currprefs.flashfile, path, MAX_DPATH, PATH_ROM);
 		xb->cmossize = xb->type == TYPE_2386 ? 192 : 64;
@@ -3935,7 +3791,7 @@ bool x86_bridge_init(struct autoconfig_info *aci, uae_u32 romtype, int type)
 		mem_mapping_add(&bios_mapping[1], 0xe8000, 0x08000, mem_read_bios, mem_read_biosw, mem_read_biosl, mem_write_null, mem_write_nullw, mem_write_nulll, rom + (0x8000 & biosmask), MEM_MAPPING_EXTERNAL | MEM_MAPPING_ROM, 0);
 		mem_mapping_add(&bios_mapping[2], 0xf0000, 0x08000, mem_read_bios, mem_read_biosw, mem_read_biosl, mem_write_null, mem_write_nullw, mem_write_nulll, rom + (0x10000 & biosmask), MEM_MAPPING_EXTERNAL | MEM_MAPPING_ROM, 0);
 		mem_mapping_add(&bios_mapping[3], 0xf8000, 0x08000, mem_read_bios, mem_read_biosw, mem_read_biosl, mem_write_null, mem_write_nullw, mem_write_nulll, rom + (0x18000 & biosmask), MEM_MAPPING_EXTERNAL | MEM_MAPPING_ROM, 0);
-		
+
 		mem_mapping_add(&bios_high_mapping[0], (AT && cpu_16bitbus) ? 0xfe0000 : 0xfffe0000, 0x08000, mem_read_bios, mem_read_biosw, mem_read_biosl, mem_write_null, mem_write_nullw, mem_write_nulll, rom, MEM_MAPPING_ROM, 0);
 		mem_mapping_add(&bios_high_mapping[1], (AT && cpu_16bitbus) ? 0xfe8000 : 0xfffe8000, 0x08000, mem_read_bios, mem_read_biosw, mem_read_biosl, mem_write_null, mem_write_nullw, mem_write_nulll, rom + (0x8000 & biosmask), MEM_MAPPING_ROM, 0);
 		mem_mapping_add(&bios_high_mapping[2], (AT && cpu_16bitbus) ? 0xff0000 : 0xffff0000, 0x08000, mem_read_bios, mem_read_biosw, mem_read_biosl, mem_write_null, mem_write_nullw, mem_write_nulll, rom + (0x10000 & biosmask), MEM_MAPPING_ROM, 0);
@@ -3992,17 +3848,17 @@ bool x86_bridge_init(struct autoconfig_info *aci, uae_u32 romtype, int type)
 		vlsi_init_mapping(xb);
 	}
 
-	sound_reset();
-	sound_speed_changed();
-	speaker_init();
-	set_sb_emu(xb);
-	sound_pos_global = xb->sound_emu ? 0 : -1;
-
 	set_mouse(xb);
 
 	xb->bank = &x86_bridge_bank;
 
 	aci->addrbank = xb->bank;
+
+	device_add_hsync(x86_bridge_hsync);
+	device_add_vsync_pre(x86_bridge_vsync);
+	device_add_exit(x86_bridge_free);
+	device_add_rethink(x86_bridge_rethink);
+
 	return true;
 }
 
@@ -4098,16 +3954,19 @@ void sound_add_handler(void(*get_buffer)(int32_t *buffer, int len, void *p), voi
 	sound_handlers_num++;
 }
 
-void sound_speed_changed()
+void sound_speed_changed(bool enable)
 {
-	sound_poll_latch = (int)((double)TIMER_USEC * (1000000.0 / currprefs.sound_freq));
+	if (sound_poll_timer.enabled || enable) {
+		sound_poll_latch = (uae_u64)((float)TIMER_USEC * (1000000.0f / currprefs.sound_freq));
+		timer_set_delay_u64(&sound_poll_timer, sound_poll_latch);
+	}
 }
 
 void sound_poll(void *priv)
 {
 	struct x86_bridge *xb = bridges[0];
 
-	sound_poll_time += sound_poll_latch;
+	timer_advance_u64(&sound_poll_timer, sound_poll_latch);
 
 	if (x86_sndbuffer_filled[x86_sndbuffer_index]) {
 		return;
@@ -4142,13 +4001,13 @@ void sound_set_cd_volume(unsigned int l, unsigned int r)
 
 }
 
-void x86_update_sound(double clk)
+void x86_update_sound(float clk)
 {
 	struct x86_bridge *xb = bridges[0];
 	x86_base_event_clock = clk;
 	if (xb) {
-		xb->audeventtime = x86_base_event_clock * CYCLE_UNIT / currprefs.sound_freq + 1;
-		sound_speed_changed();
+		xb->audeventtime = (int)(x86_base_event_clock * CYCLE_UNIT / currprefs.sound_freq + 1);
+		sound_speed_changed(false);
 	}
 }
 

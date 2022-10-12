@@ -3,7 +3,7 @@
 *
 * PCI Bridge board emulation
 *
-* Copyright 2015 Toni Wilen
+* Copyright 2015-2020 Toni Wilen
 * Hardware information by Radoslaw Kujawa
 *
 */
@@ -12,13 +12,14 @@
 #define PCI_DEBUG_MEMORY 0
 #define PCI_DEBUG_CONFIG 1
 #define PCI_DEBUG_BRIDGE 0
+#define PCI_DEBUG_IO_MISS 0
 
 #include "sysconfig.h"
 #include "sysdeps.h"
 
 #include "options.h"
 #include "custom.h"
-#include "memory.h"
+#include "uae/memory.h"
 #include "debug.h"
 #include "pci_hw.h"
 #include "pci.h"
@@ -38,8 +39,8 @@
 #define PCI_BRIDGE_GREX (PCI_BRIDGE_WILDFIRE + 1)
 #define PCI_BRIDGE_XVISION (PCI_BRIDGE_GREX + 1)
 #define PCI_BRIDGE_PROMETHEUS (PCI_BRIDGE_XVISION + 1)
-#define PCI_BRIDGE_MEDIATOR (PCI_BRIDGE_PROMETHEUS * MAX_DUPLICATE_EXPANSION_BOARDS)
-#define PCI_BRIDGE_MAX (PCI_BRIDGE_MEDIATOR * MAX_DUPLICATE_EXPANSION_BOARDS + 1)
+#define PCI_BRIDGE_MEDIATOR (PCI_BRIDGE_PROMETHEUS + MAX_DUPLICATE_EXPANSION_BOARDS)
+#define PCI_BRIDGE_MAX (PCI_BRIDGE_MEDIATOR + MAX_DUPLICATE_EXPANSION_BOARDS + 1)
 
 static struct pci_bridge *bridges[PCI_BRIDGE_MAX + 1];
 static int last_bridge_index;
@@ -86,6 +87,15 @@ static struct pci_bridge *pci_bridge_alloc_zorro(int offset, struct romconfig *r
 	return NULL;
 }
 
+struct pci_bridge *pci_bridge_get(void)
+{
+	// FIXME!
+	for (int i = 0; i < PCI_BRIDGE_MAX; i++) {
+		if (bridges[i])
+			return bridges[i];
+	}
+	return NULL;
+}
 
 static void pci_bridge_free(struct pci_bridge *pcib)
 {
@@ -106,18 +116,35 @@ static struct pci_board *pci_board_alloc(struct pci_config *config)
 	return pci;
 }
 
-static void pci_board_add(struct pci_bridge *pcib, const struct pci_board *pci, int slot, int func, struct autoconfig_info *aci)
+struct pci_board_state *pci_board_add(struct pci_bridge *pcib, const struct pci_board *pci, int slot, int func, struct autoconfig_info *aci, void *userdata)
 {
-	struct pci_board_state *pcibs = &pcib->boards[pcib->slot_cnt];
-	pcib->slot_cnt++;
+	struct pci_board_state *pcibs = &pcib->boards[pcib->log_slot_cnt];
+	pcib->log_slot_cnt++;
+	if (!func)
+		pcib->phys_slot_cnt++;
 	pcibs->board = pci;
-	pcibs->slot = slot;
+	pcibs->slot = slot < 0 ? pcib->phys_slot_cnt : slot;
 	pcibs->func = func;
 	pcibs->bridge = pcib;
 	pcibs->irq_callback = pci_irq_callback;
+	pcibs->userdata = userdata;
 	memset(pcibs->config_data, 0, sizeof pcibs->config_data);
+	if (pci->pci_get_config) {
+		struct pci_config *config = &pcibs->dynamic_config;
+		config->vendor = (pci->pci_get_config(1) << 8) | pci->pci_get_config(0);
+		config->device = (pci->pci_get_config(3) << 8) | pci->pci_get_config(2);
+		config->deviceclass = (pci->pci_get_config(10) << 16) | (pci->pci_get_config(9) << 8) | pci->pci_get_config(8);
+		config->revision = pci->pci_get_config(11);
+		config->subsystem = (pci->pci_get_config(0x2d) << 8) | pci->pci_get_config(0x2c);
+		config->subsystenvendor = (pci->pci_get_config(0x2f) << 8) | pci->pci_get_config(0x2e);
+		config->max_latency = pci->pci_get_config(0x3f);
+		config->min_grant = pci->pci_get_config(0x3e);
+		config->interruptpin = pci->pci_get_config(0x3d);
+	} else {
+		memcpy(&pcibs->dynamic_config, pci->config, sizeof(struct pci_config));
+	}
 	for (int i = 0; i < MAX_PCI_BARS; i++) {
-		pcibs->bar_size[i] = pci->config->bars[i];
+		pcibs->bar_size[i] = pcibs->dynamic_config.bars[i];
 	}
 	if (pci->init)
 		pci->init(pcibs, aci);
@@ -129,9 +156,10 @@ static void pci_board_add(struct pci_bridge *pcib, const struct pci_board *pci, 
 			}
 		}
 	}
+	return pcibs;
 }
 
-void pci_free(void)
+static void pci_free(void)
 {
 	for (int i = 0; i < PCI_BRIDGE_MAX; i++) {
 		pci_bridge_free(bridges[i]);
@@ -141,12 +169,12 @@ void pci_free(void)
 		hsyncs[i] = NULL;
 	}
 }
-void pci_reset(void)
+static void pci_reset(int hardreset)
 {
 	pci_free();
 }
 
-void pci_hsync(void)
+static void pci_hsync(void)
 {
 	for (int i = 0; i < MAX_PCI_BOARDS; i++) {
 		if (hsyncs[i])
@@ -154,28 +182,34 @@ void pci_hsync(void)
 	}
 }
 
-void pci_rethink(void)
+static void pci_rethink(void)
 {
+	static int bridgenum;
+
 	for (int i = 0; i < PCI_BRIDGE_MAX; i++) {
-		struct pci_bridge *pcib = bridges[i];
+		struct pci_bridge *pcib = bridges[(i + bridgenum) % PCI_BRIDGE_MAX];
 		if (!pcib)
 			continue;
 		pcib->irq = 0;
+		bridgenum = i;
 		for (int j = 0; j < MAX_PCI_BOARDS; j++) {
 			struct pci_board_state *pcibs = &pcib->boards[j];
 			if (pcibs->board) {
-				const struct pci_config *c = pcibs->board->config;
+				const struct pci_config *c = &pcibs->dynamic_config;
 				if (c->interruptpin) {
 					if ((pcibs->config_data[5] & (1 << 3)) && !(pcibs->config_data[6] & (1 << (10 - 8)))) {
-						uae_u8 irq = 1 << (c->interruptpin - 1);;
+						uae_u8 pin = (c->interruptpin - 1 + pcibs->slot) & 3;
+						uae_u8 irq = 1 << pin;
 						pcib->irq |= irq;
 						if (irq & pcib->intena) {
+							//write_log(_T("%02x %02x %s\n"), pin, pcib->irq, pcibs->board->label);
 							safe_interrupt_set(IRQ_SOURCE_PCI, i, (pcib->intreq_mask & 0x2000) != 0);
 						}
 					}
 				}
 			}
 		}
+		break;
 	}
 }
 
@@ -190,13 +224,13 @@ static void set_pci_irq(struct pci_bridge *pcib, struct pci_board_state *pcibs, 
 static void create_config_data(struct pci_board_state *s)
 {
 	uae_u8 *d = s->config_data;
-	const struct pci_config *c = s->board->config;
+	const struct pci_config *c = &s->dynamic_config;
 
 	// big endian, get/put functions will swap if needed.
 	d[0] = c->device >> 8;
-	d[1] = c->device;
+	d[1] = (uae_u8)c->device;
 	d[2] = c->vendor >> 8;
-	d[3] = c->vendor;
+	d[3] = (uae_u8)c->vendor;
 
 	d[8] = c->deviceclass >> 16;
 	d[9] = c->deviceclass >> 8;
@@ -214,9 +248,9 @@ static void create_config_data(struct pci_board_state *s)
 	}
 
 	d[0x2c] = c->subsystem >> 8;
-	d[0x2d] = c->subsystem;
+	d[0x2d] = (uae_u8)c->subsystem;
 	d[0x2e] = c->subsystenvendor >> 8;
-	d[0x2f] = c->subsystenvendor;
+	d[0x2f] = (uae_u8)c->subsystenvendor;
 
 	d[0x3c] = c->max_latency;
 	d[0x3d] = c->min_grant;
@@ -295,11 +329,16 @@ static struct pci_board_state *get_pci_board_state_config(struct pci_bridge *pci
 
 static int stored_board, stored_bar;
 
-static struct pci_board_state *get_pci_board_state(struct pci_bridge *pcib, uaecptr addr, int *bar)
+static struct pci_board_state *get_pci_board_state(struct pci_bridge *pcib, uaecptr addr, bool io, int *bar)
 {
-	uaecptr addr2 = addr - pcib->io_offset;
+	uaecptr addr2 = addr;
+	if (io) {
+		addr2 -= pcib->io_offset;
+	} else {
+		addr2 -= pcib->memory_start_offset;
+	}
 	struct pci_board_state *pcibs2 = &pcib->boards[stored_board];
-	if (pcibs2) {
+	if (pcibs2 && stored_bar < MAX_PCI_BARS) {
 		if (pcibs2->bar_enabled[stored_bar] && addr2 >= pcibs2->bar_start[stored_bar] && addr2 <= pcibs2->bar_end[stored_bar]) {
 			*bar = stored_bar;
 			return pcibs2;
@@ -316,6 +355,17 @@ static struct pci_board_state *get_pci_board_state(struct pci_bridge *pcib, uaec
 			}
 		}
 	}
+	if (io && addr2 < 0x400) {
+		for (int i = 0; i < MAX_PCI_BOARDS; i++) {
+			struct pci_board_state *pcibs = &pcib->boards[i];
+			if (pcibs->board->bars[MAX_PCI_BARS].bget) {
+				stored_board = i;
+				stored_bar = MAX_PCI_BARS;
+				*bar = stored_bar;
+				return pcibs;
+			}
+		}
+	}
 	return NULL;
 }
 
@@ -326,16 +376,18 @@ static const pci_addrbank *get_pci_io(uaecptr *addrp, struct pci_board_state **p
 	struct pci_bridge *pcib = get_pci_bridge(addr);
 	if (!pcib)
 		return NULL;
-	struct pci_board_state *pcibs = get_pci_board_state(pcib, addr, &bar);
+	struct pci_board_state *pcibs = get_pci_board_state(pcib, addr, true, &bar);
 	if (!pcibs)
 		return NULL;
 	*pcibsp = pcibs;
 	pcibs->selected_bar = bar;
 	*endianswap = pcib->endian_swap_io;
 	addr -= pcib->io_offset;
-	addr &= (pcibs->bar_size[bar] & ~1) - 1;
+	if (!pcibs->board->dont_mask_io && bar < MAX_PCI_BARS) {
+		addr &= (pcibs->bar_size[bar] & ~1) - 1;
+	}
 #if PCI_DEBUG_IO
-	write_log(_T("get_pci_io %08x=%08x %c:%d PC=%08x "), *addrp, addr, size < 0 ? 'W' : 'R', size < 0 ? -size : size, M68K_GETPC);
+	write_log(_T("get_pci_io %08x=%08x %c:%d PC=%08x\n"), *addrp, addr, size < 0 ? 'W' : 'R', size < 0 ? -size : size, M68K_GETPC);
 #endif
 	*addrp = addr;
 	return &pcibs->board->bars[bar];
@@ -351,14 +403,13 @@ static const pci_addrbank *get_pci_mem(uaecptr *addrp, struct pci_board_state **
 	struct pci_bridge *pcib = get_pci_bridge(addr);
 	if (!pcib)
 		return NULL;
-	struct pci_board_state *pcibs = get_pci_board_state(pcib, addr, &bar);
+	struct pci_board_state *pcibs = get_pci_board_state(pcib, addr, false, &bar);
 	if (!pcibs)
 		return NULL;
 	*pcibsp = pcibs;
 	pcibs->selected_bar = bar;
 	*endianswap = pcib->endian_swap_memory;
-	addr &= pcibs->bar_size[bar] - 1;
-	addr -= pcib->memory_offset;
+	addr -= pcibs->bridge->memory_start_offset;
 	*addrp = addr;
 	return &pcibs->board->bars[bar];
 }
@@ -385,7 +436,33 @@ static uae_u8 *get_pci_config(uaecptr addr, int size, uae_u32 v, int *endianswap
 #if PCI_DEBUG_CONFIG
 	write_log(_T("- Board %d/%d (%s)\n"), pcibs->slot, pcibs->func, pcibs->board->label);
 #endif
-	create_config_data(pcibs);
+	if (pcibs->board->pci_get_config) {
+		int off = addr & 0xff;
+		uae_u8 *c = pcibs->config_data;
+		if (size == 4 || size == -4) {
+			c[off + 3] = pcibs->board->pci_get_config(off + 0);
+			c[off + 2] = pcibs->board->pci_get_config(off + 1);
+			c[off + 1] = pcibs->board->pci_get_config(off + 2);
+			c[off + 0] = pcibs->board->pci_get_config(off + 3);
+		} else if (size == 2 || size == -2) {
+			if (pcib->endian_swap_config < 0) {
+				c[(off ^ 2) + 0] = pcibs->board->pci_get_config(off + 0);
+				c[(off ^ 2) + 1] = pcibs->board->pci_get_config(off + 1);
+			} else if (pcib->endian_swap_config > 0) {
+				c[off + 0] = pcibs->board->pci_get_config(off + 0);
+				c[off + 1] = pcibs->board->pci_get_config(off + 1);
+			} else {
+				c[off + 1] = pcibs->board->pci_get_config((off ^ 2) + 0);
+				c[off + 0] = pcibs->board->pci_get_config((off ^ 2) + 1);
+			}
+			*endianswap = 0;
+		} else {
+			c[off] = pcibs->board->pci_get_config(off ^ 3);
+			*endianswap = 0;
+		}
+	} else {
+		create_config_data(pcibs);
+	}
 	return pcibs->config_data;
 }
 
@@ -419,7 +496,7 @@ static void map_pci_banks(struct pci_board_state *pcibs, int type, bool enable)
 	}
 }
 
-static void update_pci_config(uaecptr addr)
+static void update_pci_config(uaecptr addr, int size)
 {
 	struct pci_bridge *pcib = get_pci_bridge(addr);
 	if (!pcib)
@@ -428,32 +505,98 @@ static void update_pci_config(uaecptr addr)
 	if (!pcibs)
 		return;
 	uae_u8 *d = pcibs->config_data;
-	const struct pci_config *c = pcibs->board->config;
+	bool config_changed = false;
 	for (int i = 0; i < MAX_PCI_BARS; i++) {
 		int off = i == MAX_PCI_BARS - 1 ? 0x30 : 0x10 + i * 4;
 		if (pcibs->bar_size[i]) {
+			uae_u32 obar = pcibs->bar[i];
 			pcibs->bar[i] = d[off + 0] << 24;
 			pcibs->bar[i] |= d[off + 1] << 16;
 			pcibs->bar[i] |= d[off + 2] <<  8;
 			pcibs->bar[i] |= d[off + 3] <<  0;
 			pcibs->bar[i] &= ~((pcibs->bar_size[i] & ~1) - 1);
 			pcibs->bar[i] |= (pcibs->bar_size[i] & 1);
+			if (pcibs->bar[i] != obar) {
+				if ((pcibs->io_map_active && (pcibs->bar[i] & 1)) || (pcibs->memory_map_active && !(pcibs->bar[i] & 1))) {
+					config_changed = true;
+				}
+			}
 		} else {
 			pcibs->bar[i] = 0;
 		}
 	}
-	create_config_data(pcibs);
-	pcibs->io_map_active = (d[7] & 1) != 0;
-	pcibs->memory_map_active = (d[7] & 2) != 0;
+	if (pcibs->board->pci_put_config) {
+		int off = addr & 0xff;
+		if (size == 4) {
+			pcibs->board->pci_put_config(off + 3, d[off + 0]);
+			pcibs->board->pci_put_config(off + 2, d[off + 1]);
+			pcibs->board->pci_put_config(off + 1, d[off + 2]);
+			pcibs->board->pci_put_config(off + 0, d[off + 3]);
+		} else if (size == 2) {
+			if (pcib->endian_swap_config < 0) {
+				pcibs->board->pci_put_config((off ^ 2) + 0, d[off + 0]);
+				pcibs->board->pci_put_config((off ^ 2) + 1, d[off + 1]);
+			} else if (pcib->endian_swap_config > 0) {
+				pcibs->board->pci_put_config(off + 0, d[off + 0]);
+				pcibs->board->pci_put_config(off + 1, d[off + 1]);
+			} else {
+				pcibs->board->pci_put_config(off + 0, d[off + 0]);
+				pcibs->board->pci_put_config(off + 1, d[off + 1]);
+			}
+		} else {
+			pcibs->board->pci_put_config(off + 0, d[off + 0]);
+		}
+		if ((off >= 0x10 && off < 0x10 + (MAX_PCI_BARS - 1) * 4) || (off >= 0x30 && off < 0x34)) {
+			int index;
+			if (off >= 0x30) {
+				index = MAX_PCI_BARS - 1;
+			} else {
+				index = (off - 0x10) / 4;
+			}
+			uae_u32 obar = pcibs->bar[index];
+			pcibs->bar[index] = pcibs->board->pci_get_config(off + 3) << 24;
+			pcibs->bar[index] |= pcibs->board->pci_get_config(off + 2) << 16;
+			pcibs->bar[index] |= pcibs->board->pci_get_config(off + 1) << 8;
+			pcibs->bar[index] |= pcibs->board->pci_get_config(off + 0) << 0;
+			if (d[off + 0] == 0xff && d[off + 1] == 0xff && d[off + 2] == 0xff && (d[off + 3] & 0xfe) == 0xfe) {
+				pcibs->bar_size[index] = ~((pcibs->bar[index] & ~1) - 1);
+				if (pcibs->board->config->bars[index] & 1) {
+					pcibs->bar_size[index] |= 1;
+				}
+			}
+			if (pcibs->bar[index] != obar) {
+				if ((pcibs->io_map_active && (pcibs->bar[index] & 1)) || (pcibs->memory_map_active && !(pcibs->bar[index] & 1))) {
+					config_changed = true;
+				}
+			}
+		}
+
+
+	} else {
+		create_config_data(pcibs);
+	}
+	bool o_io = pcibs->io_map_active;
+	bool o_mm = pcibs->memory_map_active;
+	uae_u8 map;
+	if (pcibs->board->pci_get_config) {
+		map = pcibs->board->pci_get_config(7 ^ 3);
+	} else {
+		map = d[7];
+	}
+	pcibs->io_map_active = (map & 1) != 0;
+	pcibs->memory_map_active = (map & 2) != 0;
 	map_pci_banks(pcibs, 1, pcibs->io_map_active);
 	map_pci_banks(pcibs, 0, pcibs->memory_map_active);
+	if ((o_io != pcibs->io_map_active || o_mm != pcibs->memory_map_active || config_changed) && pcibs->board->pci_change_config) {
+		pcibs->board->pci_change_config(pcibs);
+	}
 }
 
 
 static uaecptr beswap(int endianswap, uaecptr addr)
 {
 	if (endianswap > 0)
-		return (addr & ~3) | (3 - (addr & 3));
+		return addr ^ 3;
 	return addr;
 }
 
@@ -476,7 +619,7 @@ static uae_u32 REGPARAM2 pci_config_lget(uaecptr addr)
 			v |= config[offset + 0] << 0;
 		}
 #if PCI_DEBUG_CONFIG
-		write_log(_T("- %08x\n"), v);
+		write_log(_T("-> %08x\n"), v);
 #endif
 	}
 	return v;
@@ -496,7 +639,7 @@ static uae_u32 REGPARAM2 pci_config_wget(uaecptr addr)
 			v |= config[(offset ^ (endianswap > 0 ? 2 : 0)) + 0] << 0;
 		}
 #if PCI_DEBUG_CONFIG
-		write_log(_T("- %04x\n"), v);
+		write_log(_T("-> %04x\n"), v);
 #endif
 	}
 	return v;
@@ -514,7 +657,7 @@ static uae_u32 REGPARAM2 pci_config_bget(uaecptr addr)
 			v = config[beswap(endianswap, offset)];
 		}
 #if PCI_DEBUG_CONFIG
-		write_log(_T("- %02x\n"), v);
+		write_log(_T("-> %02x\n"), v);
 #endif
 	}
 	return v;
@@ -536,7 +679,7 @@ static void REGPARAM2 pci_config_lput(uaecptr addr, uae_u32 b)
 			config[offset + 1] = b >> 8;
 			config[offset + 0] = b >> 0;
 		}
-		update_pci_config(addr);
+		update_pci_config(addr, 4);
 	}
 }
 static void REGPARAM2 pci_config_wput(uaecptr addr, uae_u32 b)
@@ -552,7 +695,7 @@ static void REGPARAM2 pci_config_wput(uaecptr addr, uae_u32 b)
 			config[(offset ^ (endianswap > 0 ? 2 : 0)) + 1] = b >> 8;
 			config[(offset ^ (endianswap > 0 ? 2 : 0)) + 0] = b >> 0;
 		}
-		update_pci_config(addr);
+		update_pci_config(addr, 2);
 	}
 }
 static void REGPARAM2 pci_config_bput(uaecptr addr, uae_u32 b)
@@ -566,19 +709,8 @@ static void REGPARAM2 pci_config_bput(uaecptr addr, uae_u32 b)
 		} else {
 			config[beswap(endianswap, offset)] = b;
 		}
-		update_pci_config(addr);
+		update_pci_config(addr, 1);
 	}
-}
-
-static uae_u32 endianswap_long(uae_u32 v)
-{
-	v = (v >> 24) | ((v >> 8) & 0x0000ff00) | ((v << 8) & 0x00ff0000) | (v << 24);
-	return v;
-}
-static uae_u16 endianswap_word(uae_u16 v)
-{
-	v = (v >> 8) | (v << 8);
-	return v;
 }
 
 static uae_u32 REGPARAM2 pci_io_lget(uaecptr addr)
@@ -593,9 +725,9 @@ static uae_u32 REGPARAM2 pci_io_lget(uaecptr addr)
 		write_log(_T("-> %08x\n"), v);
 #endif
 		if (endianswap)
-			v = endianswap_long(v);
-	} else {
+			v = do_byteswap_32(v);
 #if PCI_DEBUG_IO
+	} else {
 		write_log(_T("-> X\n"), v);
 #endif
 	}
@@ -610,19 +742,19 @@ static uae_u32 REGPARAM2 pci_io_wget(uaecptr addr)
 	if (a && a->wget) {
 		if (endianswap) {
 			v = a->wget(pcibs, addr ^ (endianswap > 0 ? 2 : 0));
-#if PCI_DEBUG_IO
+#if PCI_DEBUG_IO > 1
 			write_log(_T("-> %04x\n"), v);
 #endif
-			v = endianswap_word(v);
+			v = do_byteswap_16(v);
 		} else {
 			v = a->wget(pcibs, addr);
-#if PCI_DEBUG_IO
+#if PCI_DEBUG_IO > 1
 			write_log(_T("-> %04x\n"), v);
 #endif
 		}
-	} else {
 #if PCI_DEBUG_IO
-		write_log(_T("-> X\n"), v);
+	} else {
+		write_log(_T("!-> %02x\n"), v);
 #endif
 	}
 	return v;
@@ -636,18 +768,18 @@ static uae_u32 REGPARAM2 pci_io_bget(uaecptr addr)
 	if (a && a->bget) {
 		if (endianswap) {
 			v = a->bget(pcibs, beswap(endianswap, addr));
-#if PCI_DEBUG_IO
+#if PCI_DEBUG_IO > 1
 			write_log(_T("-> %02x\n"), v);
 #endif
 		} else {
 			v = a->bget(pcibs, addr);
-#if PCI_DEBUG_IO
+#if PCI_DEBUG_IO > 1
 			write_log(_T("-> %02x\n"), v);
 #endif
 		}
-	} else {
 #if PCI_DEBUG_IO
-		write_log(_T("-> X\n"), v);
+	} else {
+		write_log(_T("!-> %02x"), v);
 #endif
 	}
 	return v;
@@ -656,11 +788,21 @@ static void REGPARAM2 pci_io_lput(uaecptr addr, uae_u32 b)
 {
 	int endianswap;
 	struct pci_board_state *pcibs;
+	uaecptr addr2 = addr;
 	const pci_addrbank *a = get_pci_io(&addr, &pcibs, &endianswap, -4);
-	if (a && a->lput) {
-		if (endianswap)
-			b = endianswap_long(b);
-		a->lput(pcibs, addr, b);
+	if (a) {
+#if PCI_DEBUG_IO > 1
+		write_log(_T("pci_io_lput %08x = %08x = %08x\n"), addr, addr2, b);
+#endif
+		if (a->lput) {
+			if (endianswap)
+				b = do_byteswap_32(b);
+			a->lput(pcibs, addr, b);
+		}
+#if PCI_DEBUG_IO_MISS
+	} else {
+		write_log(_T("pci_io_lput %08x\n"), addr);
+#endif
 	}
 #if PCI_DEBUG_IO
 	write_log(_T("<- %08x\n"), b);
@@ -671,13 +813,19 @@ static void REGPARAM2 pci_io_wput(uaecptr addr, uae_u32 b)
 	int endianswap;
 	struct pci_board_state *pcibs;
 	const pci_addrbank *a = get_pci_io(&addr, &pcibs, &endianswap, -2);
-	if (a && a->wput) {
-		if (endianswap) {
-			b = endianswap_word(b);
-			a->wput(pcibs, addr ^ (endianswap > 0 ? 2 : 0), b);
-		} else {
-			a->wput(pcibs, addr, b);
+	if (a) {
+		if (a->wput) {
+			if (endianswap) {
+				b = do_byteswap_16(b);
+				a->wput(pcibs, addr ^ (endianswap > 0 ? 2 : 0), b);
+			} else {
+				a->wput(pcibs, addr, b);
+			}
 		}
+#if PCI_DEBUG_IO_MISS
+	} else {
+		write_log(_T("pci_io_wput %08x\n"), addr);
+#endif
 	}
 #if PCI_DEBUG_IO
 	write_log(_T("<- %04x\n"), b);
@@ -688,12 +836,18 @@ static void REGPARAM2 pci_io_bput(uaecptr addr, uae_u32 b)
 	int endianswap;
 	struct pci_board_state *pcibs;
 	const pci_addrbank *a = get_pci_io(&addr, &pcibs, &endianswap, -1);
-	if (a && a->bput) {
-		if (endianswap) {
-			a->bput(pcibs, beswap(endianswap, addr), b);
-		} else {
-			a->bput(pcibs, addr, b);
+	if (a) {
+		if (a->bput) {
+			if (endianswap) {
+				a->bput(pcibs, beswap(endianswap, addr), b);
+			} else {
+				a->bput(pcibs, addr, b);
+			}
 		}
+#if PCI_DEBUG_IO_MISS
+	} else {
+		write_log(_T("pci_io_bput %08x\n"), addr);
+#endif
 	}
 #if PCI_DEBUG_IO
 	write_log(_T("<- %02x\n"), b);
@@ -709,7 +863,7 @@ static uae_u32 REGPARAM2 pci_mem_lget(uaecptr addr)
 	if (a && a->lget) {
 		v = a->lget(pcibs, addr);
 		if (endianswap)
-			v = endianswap_long(v);
+			v = do_byteswap_32(v);
 	}
 	return v;
 }
@@ -722,7 +876,7 @@ static uae_u32 REGPARAM2 pci_mem_wget(uaecptr addr)
 	if (a && a->wget) {
 		if (endianswap) {
 			v = a->wget(pcibs, addr ^ (endianswap > 0 ? 2 : 0));
-			v = endianswap_word(v);
+			v = do_byteswap_16(v);
 		} else {
 			v = a->wget(pcibs, addr);
 		}
@@ -735,12 +889,18 @@ static uae_u32 REGPARAM2 pci_mem_bget(uaecptr addr)
 	int endianswap;
 	struct pci_board_state *pcibs;
 	const pci_addrbank *a = get_pci_mem(&addr, &pcibs, &endianswap);
-	if (a && a->bget) {
-		if (endianswap) {
-			v = a->bget(pcibs, beswap(endianswap, addr));
-		} else {
-			v = a->bget(pcibs, addr);
+	if (a) {
+		if (a->bget) {
+			if (endianswap) {
+				v = a->bget(pcibs, beswap(endianswap, addr));
+			} else {
+				v = a->bget(pcibs, addr);
+			}
 		}
+#if PCI_DEBUG_IO_MISS
+	} else {
+		write_log(_T("pci_mem_bget %08x\n", addr));
+#endif
 	}
 	return v;
 }
@@ -748,11 +908,21 @@ static void REGPARAM2 pci_mem_lput(uaecptr addr, uae_u32 b)
 {
 	int endianswap;
 	struct pci_board_state *pcibs;
+	uaecptr addr2 = addr;
 	const pci_addrbank *a = get_pci_mem(&addr, &pcibs, &endianswap);
-	if (a && a->lput) {
-		if (endianswap)
-			b = endianswap_long(b);
-		a->lput(pcibs, addr, b);
+#if PCI_DEBUG_IO > 1
+	write_log(_T("pci_mem_lput %08x = %08x = %08x\n"), addr, addr2, b);
+#endif
+	if (a) {
+		if (a->lput) {
+			if (endianswap)
+				b = do_byteswap_32(b);
+			a->lput(pcibs, addr, b);
+		}
+#if PCI_DEBUG_IO_MISS
+	} else {
+		write_log(_T("pci_mem_lput %08x\n"), addr);
+#endif
 	}
 }
 static void REGPARAM2 pci_mem_wput(uaecptr addr, uae_u32 b)
@@ -760,13 +930,19 @@ static void REGPARAM2 pci_mem_wput(uaecptr addr, uae_u32 b)
 	int endianswap;
 	struct pci_board_state *pcibs;
 	const pci_addrbank *a = get_pci_mem(&addr, &pcibs, &endianswap);
-	if (a && a->wput) {
-		if (endianswap) {
-			b = endianswap_word(b);
-			a->wput(pcibs, addr ^ (endianswap > 0 ? 2 : 0), b);
-		} else {
-			a->wput(pcibs, addr, b);
+	if (a) {
+		if (a->wput) {
+			if (endianswap) {
+				b = do_byteswap_16(b);
+				a->wput(pcibs, addr ^ (endianswap > 0 ? 2 : 0), b);
+			} else {
+				a->wput(pcibs, addr, b);
+			}
 		}
+#if PCI_DEBUG_IO_MISS
+	} else {
+		write_log(_T("pci_mem_wput %08x\n"), addr);
+#endif
 	}
 }
 static void REGPARAM2 pci_mem_bput(uaecptr addr, uae_u32 b)
@@ -774,12 +950,18 @@ static void REGPARAM2 pci_mem_bput(uaecptr addr, uae_u32 b)
 	int endianswap;
 	struct pci_board_state *pcibs;
 	const pci_addrbank *a = get_pci_mem(&addr, &pcibs, &endianswap);
-	if (a && a->bput) {
-		if (endianswap) {
-			a->bput(pcibs, beswap(endianswap, addr), b);
-		} else {
-			a->bput(pcibs, addr, b);
+	if (a) {
+		if (a->bput) {
+			if (endianswap) {
+				a->bput(pcibs, beswap(endianswap, addr), b);
+			} else {
+				a->bput(pcibs, addr, b);
+			}
 		}
+#if PCI_DEBUG_IO
+	} else {
+		write_log(_T("pci_mem_bput %08x\n"), addr);
+#endif
 	}
 }
 
@@ -892,6 +1074,7 @@ static void REGPARAM2 pci_bridge_wput(uaecptr addr, uae_u32 b)
 					}
 					pcib->baseaddress_offset = pcib->baseaddress;
 					pcib->io_offset = expamem_board_pointer;
+					pcib->memory_start_offset = expamem_board_pointer;
 				} else if (pcib->type == PCI_BRIDGE_MEDIATOR) {
 					map_banks_z3(&pci_mem_bank, expamem_board_pointer >> 16, expamem_board_size >> 16);
 					pcib->baseaddress_offset = 0;
@@ -924,7 +1107,7 @@ static void REGPARAM2 pci_bridge_bput(uaecptr addr, uae_u32 b)
 			{
 				case 0x48:
 				// Mediator 1200
-				map_banks_z2(&pci_mem_bank, b, expamem_board_size >> 16);			
+				map_banks_z2(&pci_mem_bank, b, expamem_board_size >> 16);
 				pcib->baseaddress = b << 16;
 				pcib->board_size = expamem_board_size;
 				pcib->baseaddress_end = pcib->baseaddress + pcib->board_size;
@@ -955,24 +1138,25 @@ static void REGPARAM2 pci_bridge_bput(uaecptr addr, uae_u32 b)
 
 static void mediator_set_window_offset(struct pci_bridge *pcib, uae_u16 v)
 {
-	uae_u32 offset = pcib->memory_offset;
+	uae_u32 offset;
+	v = do_byteswap_16(v);
 	if (pcib->bank_2_zorro == 3) {
 		// 4000
 		uae_u8 mask = pcib->board_size == 256 * 1024 * 1024 ? 0xf0 : 0xe0;
 		pcib->window = v & mask;
-		pcib->memory_offset = pcib->window << 18;
+		pcib->memory_start_offset = pcib->window << 18;
+		offset = pcib->memory_start_offset;
 	} else {
 		// 1200
 		uae_u16 mask = pcib->board_size == 4 * 1024 * 1024 ? 0xffc0 : 0xff80;
 		pcib->window = v & mask;
-		pcib->memory_offset = pcib->window << 16;
+		pcib->memory_start_offset = pcib->window << 16;
+		offset = pcib->memory_start_offset;
+		pcib->memory_start_offset -= pcib->baseaddress;
+		pcib->memory_start_offset = 0 - pcib->memory_start_offset;
 	}
-	pcib->memory_offset -= pcib->baseaddress;
-#if PCI_DEBUG_BRIDGE
-	if (pcib->memory_offset != offset) {
-		write_log(_T("Mediator window: %08x offset: %08x\n"),
-			pcib->memory_offset + pcib->baseaddress, pcib->memory_offset);
-	}
+#if 0
+	write_log(_T"Mediator window: %08x %04x PC=%08x\n"), offset, v, M68K_GETPC);
 #endif
 }
 
@@ -991,7 +1175,7 @@ static uae_u32 REGPARAM2 pci_bridge_bget_2(uaecptr addr)
 		if (pcib->bank_2_zorro == 3) {
 			int offset = addr & 0x7fffff;
 			if (offset == 0) {
-				v = pcib->window;
+				v = (uae_u8)pcib->window;
 				v |= 8; // id
 			}
 			if (offset == 4) {
@@ -1026,7 +1210,7 @@ static uae_u32 REGPARAM2 pci_bridge_wget_2(uaecptr addr)
 			int offset = addr & 0x1f;
 			v = 0;
 			if (offset == 2) {
-				v = 0x2080; // id
+				v = 0x2000 | do_byteswap_16(pcib->window); // id + window
 			} else if (offset == 10) {
 				v = pcib->irq | (pcib->intena << 4);
 			}
@@ -1084,6 +1268,7 @@ static void REGPARAM2 pci_bridge_bput_2(uaecptr addr, uae_u32 b)
 			if (offset == 7) {
 				// config/io mapping
 				if (b & 0x20) {
+					map_banks_z2(&dummy_bank, (pcib->baseaddress_2 + 0x10000) >> 16, 0x10000 >> 16);
 					if (b & 0x80) {
 						map_banks_z2(&pci_config_bank, (pcib->baseaddress_2 + 0x10000) >> 16, 0x10000 >> 16);
 					} else {
@@ -1092,6 +1277,7 @@ static void REGPARAM2 pci_bridge_bput_2(uaecptr addr, uae_u32 b)
 				} else {
 					map_banks_z2(&dummy_bank, (pcib->baseaddress_2 + 0x10000) >> 16, 0x10000 >> 16);
 				}
+				memory_map_dump();
 			} else if (offset == 11) {
 				pcib->intena = b >> 4;
 			} else if (offset == 0x40) {
@@ -1198,9 +1384,37 @@ addrbank pci_bridge_bank_2 = {
 	ABFLAG_IO | ABFLAG_SAFE, S_READ, S_WRITE
 };
 
-static bool validate_pci_dma(struct pci_board_state *pcibs, uaecptr addr, int size)
+static int validate_dma_last_board;
+static int validate_dma_last_bridge;
+
+static bool validate_pci_dma(struct pci_board_state *pcibs, uaecptr addr, int size, struct pci_board_state **pcibsp, int *bar)
 {
 	struct pci_bridge *pcib = pcibs->bridge;
+	if (pcib->pcipcidma) {
+		for (int i = 0; i < PCI_BRIDGE_MAX; i++) {
+			struct pci_bridge *pcib = bridges[(i + validate_dma_last_bridge) % PCI_BRIDGE_MAX];
+			if (!pcib)
+				continue;
+			for (int j = 0; j < MAX_PCI_BOARDS; j++) {
+				struct pci_board_state *pcibs = &pcib->boards[(j + validate_dma_last_board) % MAX_PCI_BOARDS];
+				if (pcibs->board) {
+					for (int k = 0; k < MAX_PCI_BARS - 1; k++) {
+						if (pcibs->bar_enabled[k] && addr >= pcibs->bar[k] && addr < pcibs->bar[k] + pcibs->bar_size[k] && !(pcibs->bar_size[k] & 1)) {
+							if (pcibs->board->bars[k].bget && pcibs->board->bars[k].bput) {
+								*bar = k;
+								*pcibsp = pcibs;
+								validate_dma_last_board = j;
+								validate_dma_last_bridge = i;
+								return true;
+							} else {
+								return false;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
 	addrbank *ab = &get_mem_bank(addr);
 	if (ab == &dummy_bank)
 		return false;
@@ -1217,11 +1431,21 @@ static bool validate_pci_dma(struct pci_board_state *pcibs, uaecptr addr, int si
 
 void pci_write_dma(struct pci_board_state *pcibs, uaecptr addr, uae_u8 *p, int size)
 {
-	if (validate_pci_dma(pcibs, addr, size)) {
-		while (size > 0) {
-			put_byte(addr, *p++);
-			addr++;
-			size--;
+	struct pci_board_state *pcibs2 = NULL;
+	int bar;
+	if (validate_pci_dma(pcibs, addr, size, &pcibs2, &bar)) {
+		if (pcibs2) {
+			while (size > 0) {
+				pcibs2->board->bars[bar].bput(pcibs2, addr, *p++);
+				addr++;
+				size--;
+			}
+		} else {
+			while (size > 0) {
+				put_byte(addr, *p++);
+				addr++;
+				size--;
+			}
 		}
 	} else {
 		write_log(_T("pci_write_dma invalid address %08x, size %d\n"), addr, size);
@@ -1234,11 +1458,21 @@ void pci_write_dma(struct pci_board_state *pcibs, uaecptr addr, uae_u8 *p, int s
 }
 void pci_read_dma(struct pci_board_state *pcibs, uaecptr addr, uae_u8 *p, int size)
 {
-	if (validate_pci_dma(pcibs, addr, size)) {
-		while (size > 0) {
-			*p++ = get_byte(addr);
-			addr++;
-			size--;
+	struct pci_board_state *pcibs2 = NULL;
+	int bar;
+	if (validate_pci_dma(pcibs, addr, size, &pcibs2, &bar)) {
+		if (pcibs2) {
+			while (size > 0) {
+				*p++ = pcibs2->board->bars[bar].bget(pcibs2, addr);
+				addr++;
+				size--;
+			}
+		} else {
+			while (size > 0) {
+				*p++ = get_byte(addr);
+				addr++;
+				size--;
+			}
 		}
 	} else {
 		write_log(_T("pci_read_dma invalid address %08x, size %d\n"), addr, size);
@@ -1308,8 +1542,9 @@ void pci_dump(int log)
 				if (pcibs && pcibs != oldpcibs) {
 					const struct pci_board *pci = pcibs->board;
 					if (pcibs->board) {
+						const struct pci_config *cfg = &pcibs->dynamic_config;
 						_stprintf(txt, _T(" - %08x Card %d/%d: [%04X/%04X] %s IO=%d MEM=%d\n"),
-							start, pcibs->slot, pcibs->func, pci->config->vendor, pci->config->device, pci->label,
+							start, pcibs->slot, pcibs->func, cfg->vendor, cfg->device, pci->label,
 							pcibs->io_map_active, pcibs->memory_map_active);
 					} else {
 						int idx = pcib->get_index(start);
@@ -1465,23 +1700,54 @@ static const struct pci_board ncr_53c815_pci_board =
 	}
 };
 
+bool pci_validate_address(uaecptr addr, uae_u32 size, bool io)
+{
+	struct pci_bridge *pcib = get_pci_bridge(addr);
+	if (!pcib)
+		return false;
+	const pci_addrbank *ab1 = NULL, *ab2 = NULL;
+	int endianswap1, endianswap2;
+	struct pci_board_state* pcibs;
+	uaecptr addr1 = addr, addr2 = addr + size - 1;
+	if (io) {
+		ab1 = get_pci_io(&addr1, &pcibs, &endianswap1, 4);
+		ab2 = get_pci_io(&addr2, &pcibs, &endianswap2, 4);
+	} else {
+		ab1 = get_pci_mem(&addr1, &pcibs, &endianswap1);
+		ab2 = get_pci_mem(&addr2, &pcibs, &endianswap2);
+	}
+	if (!ab1 || !ab2)
+		return false;
+	if (ab1 != ab2)
+		return false;
+	return true;
+}
+
 static void add_pci_devices(struct pci_bridge *pcib, struct autoconfig_info *aci)
 {
 	int slot = 0;
 
 	if (is_device_rom(&currprefs, ROMTYPE_NE2KPCI, 0) >= 0) {
-		pci_board_add(pcib, &ne2000_pci_board, slot++, 0, aci);
+		pci_board_add(pcib, &ne2000_pci_board, slot++, 0, aci, NULL);
 	}
 
 	if (is_device_rom(&currprefs, ROMTYPE_FM801, 0) >= 0) {
-		pci_board_add(pcib, &fm801_pci_board, slot, 0, aci);
-		pci_board_add(pcib, &fm801_pci_board_func1, slot, 1, aci);
+		pci_board_add(pcib, &fm801_pci_board, slot, 0, aci, NULL);
+		pci_board_add(pcib, &fm801_pci_board_func1, slot, 1, aci, NULL);
 		slot++;
 	}
 
 	if (is_device_rom(&currprefs, ROMTYPE_ES1370, 0) >= 0) {
-		pci_board_add(pcib, &es1370_pci_board, slot++, 0, aci);
+		pci_board_add(pcib, &es1370_pci_board, slot++, 0, aci, NULL);
 	}
+}
+
+static void pci_init(void)
+{
+	device_add_reset(pci_reset);
+	device_add_rethink(pci_rethink);
+	device_add_exit(pci_free);
+	device_add_hsync(pci_hsync);
 }
 
 // Wildfire
@@ -1496,6 +1762,7 @@ bool dkb_wildfire_pci_init(struct autoconfig_info *aci)
 {
 	struct pci_bridge *pcib = pci_bridge_alloc();
 
+	device_add_reset(pci_reset);
 	if (!aci->doinit) {
 		return true;
 	}
@@ -1513,13 +1780,14 @@ bool dkb_wildfire_pci_init(struct autoconfig_info *aci)
 	pcib->configured = -1;
 	pcib->pcipcidma = true;
 	pcib->amigapicdma = true;
-	pci_board_add(pcib, &ncr_53c815_pci_board, 0, 0, aci);
+	pci_board_add(pcib, &ncr_53c815_pci_board, 0, 0, aci, NULL);
 	map_banks(&pci_config_bank, 0x80000000 >> 16, 0x10000000 >> 16, 0);
 	map_banks(&pci_mem_bank, 0x90000000 >> 16, 0x30000000 >> 16, 0);
 	map_banks(&pci_io_bank, 0xc0000000 >> 16, 0x30000000 >> 16, 0);
 	map_banks(&pci_bridge_bank, 0xffff0000 >> 16, 0x10000 >> 16, 0);
 	pcib->data = xcalloc(uae_u8, 32768);
 	aci->addrbank = &expamem_null;
+	pci_init();
 	return true;
 }
 
@@ -1554,6 +1822,7 @@ static int prometheus_get_index(uaecptr addr)
 
 static bool prometheus_pci_init(struct autoconfig_info *aci)
 {
+	device_add_reset(pci_reset);
 	if (!aci->doinit) {
 		for (int i = 0; i < sizeof prometheus_autoconfig; i++) {
 			ew(aci->autoconfig_raw, i * 4, prometheus_autoconfig[i]);
@@ -1584,6 +1853,7 @@ static bool prometheus_pci_init(struct autoconfig_info *aci)
 		ew(pcib->acmemory, i * 4, prometheus_autoconfig[i]);
 	}
 	aci->addrbank = pcib->bank;
+	pci_init();
 	return true;
 }
 
@@ -1611,6 +1881,7 @@ static bool grex_pci_init(struct autoconfig_info *aci)
 	aci->start = 0x80000000;
 	aci->size = 0x80000000;
 
+	device_add_reset(pci_reset);
 	if (!aci->doinit) {
 		return true;
 	}
@@ -1633,7 +1904,7 @@ static bool grex_pci_init(struct autoconfig_info *aci)
 	map_banks(&pci_io_bank, 0xfffa0000 >> 16, 0x20000 >> 16, 0);
 	map_banks(&pci_bridge_bank, 0xfffe0000 >> 16, 0x10000 >> 16, 0);
 	pcib->io_offset = 0xfffa0000;
-
+	pci_init();
 	return true;
 }
 
@@ -1669,6 +1940,7 @@ static bool cbvision(struct autoconfig_info *aci)
 	pcib->io_offset = 0xfffa0000;
 	aci->zorro = 0;
 	aci->parent_of_previous = true;
+	pci_init();
 	return true;
 }
 
@@ -1768,6 +2040,7 @@ static void mediator_pci_init_1200(struct pci_bridge *pcib)
 
 static addrbank *mediator_pci_init_1200_1(struct autoconfig_info *aci, struct romconfig *rc, struct mediator_autoconfig *m_ac)
 {
+	device_add_reset(pci_reset);
 	if (!aci->doinit) {
 		for (int i = 0; i < 16; i++) {
 			ew(aci->autoconfig_raw, i * 4, m_ac->io[i]);
@@ -1791,11 +2064,13 @@ static addrbank *mediator_pci_init_1200_1(struct autoconfig_info *aci, struct ro
 	for (int i = 0; i < 16; i++) {
 		ew(pcib->acmemory_2, i * 4, m_ac->io[i]);
 	}
+	pci_init();
 	return &pci_bridge_bank_2;
 }
 
 static addrbank *mediator_pci_init_1200_2(struct autoconfig_info *aci, struct romconfig *rc, struct mediator_autoconfig *m_ac)
 {
+	device_add_reset(pci_reset);
 	if (!aci->doinit) {
 		const uae_u8 *ac = (rc->device_settings & 2) ? m_ac->mem_large : m_ac->mem_small;
 		for (int i = 0; i < 16; i++) {
@@ -1822,6 +2097,7 @@ static addrbank *mediator_pci_init_1200_2(struct autoconfig_info *aci, struct ro
 	for (int i = 0; i < 16; i++) {
 		ew(pcib->acmemory, i * 4, ac[i]);
 	}
+	pci_init();
 	return &pci_bridge_bank;
 }
 
@@ -1846,6 +2122,7 @@ static void mediator_pci_init_4000(struct pci_bridge *pcib)
 
 static addrbank *mediator_pci_init_4000_1(struct autoconfig_info *aci, struct romconfig *rc, struct mediator_autoconfig *m_ac)
 {
+	device_add_reset(pci_reset);
 	if (!aci->doinit) {
 		aci->autoconfigp = m_ac->io;
 		return &pci_bridge_bank_2;
@@ -1867,10 +2144,12 @@ static addrbank *mediator_pci_init_4000_1(struct autoconfig_info *aci, struct ro
 	for (int i = 0; i < 16; i++) {
 		ew(pcib->acmemory_2, i * 4, m_ac->io[i]);
 	}
+	pci_init();
 	return &pci_bridge_bank_2;
 }
 static addrbank *mediator_pci_init_4000_2(struct autoconfig_info *aci, struct romconfig *rc, struct mediator_autoconfig *m_ac)
 {
+	device_add_reset(pci_reset);
 	if (!aci->doinit) {
 		aci->autoconfigp = (rc->device_settings & 2) ? m_ac->mem_large : m_ac->mem_small;
 		return &pci_bridge_bank;
@@ -1895,6 +2174,7 @@ static addrbank *mediator_pci_init_4000_2(struct autoconfig_info *aci, struct ro
 	for (int i = 0; i < 16; i++) {
 		ew(pcib->acmemory, i * 4, ac[i]);
 	}
+	pci_init();
 	return &pci_bridge_bank;
 }
 

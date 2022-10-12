@@ -16,7 +16,7 @@
 #define USE_HOST_ROUNDING 1
 
 #include "options.h"
-#include "memory.h"
+#include "uae/memory.h"
 #include "newcpu.h"
 #include "fpp.h"
 #include "uae/attributes.h"
@@ -676,6 +676,14 @@ static void fp_acos(fpdata *a, fpdata *b)
 	xfp_acos(&a->rfp, &b->rfp);
 	xfp_resetnormal(a);
 }
+static void fp_sincos(fpdata *a, fpdata *b, fpdata *c)
+{
+	xfp_setnormal();
+	xfp_cos(&c->rfp, &b->rfp);
+	xfp_sin(&a->rfp, &b->rfp);
+	xfp_resetnormal(a);
+	xfp_resetnormal(c);
+}
 
 static void fp_intrz(fpdata *a, fpdata *b)
 {
@@ -856,7 +864,7 @@ static void fp_from_pack (fpdata *src, uae_u32 *wrd, int kfactor)
 	fp_normal_prec();
 
 	sprintf (str, "%#.17e", fp);
-	
+
 	// get exponent
 	cp = str;
 	while (*cp != 'e') {
@@ -910,7 +918,7 @@ static void fp_from_pack (fpdata *src, uae_u32 *wrd, int kfactor)
 	strp[1] = strp[0];
 	strp++;
 	// add trailing zeros
-	i = strlen (strp);
+	i = uaestrlen(strp);
 	cp = strp + i;
 	while (i < ndigits) {
 		*cp++ = '0';
@@ -1109,6 +1117,7 @@ void fp_init_native_80(void)
 	fpp_neg = fp_neg;
 	fpp_acos = fp_acos;
 	fpp_cos = fp_cos;
+	fpp_sincos = fp_sincos;
 	fpp_getexp = fp_getexp;
 	fpp_getman = fp_getman;
 	fpp_div = fp_div;

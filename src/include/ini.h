@@ -10,6 +10,7 @@ struct ini_data
 {
 	struct ini_line **inidata;
 	int inilines;
+	bool modified;
 };
 
 struct ini_context
@@ -26,6 +27,7 @@ bool ini_save(struct ini_data *ini, const TCHAR *path);
 void ini_initcontext(struct ini_data *ini, struct ini_context *ctx);
 void ini_setlast(struct ini_data *ini, const TCHAR *section, const TCHAR *key, struct ini_context *ctx);
 void ini_setlastasstart(struct ini_data *ini, struct ini_context *ctx);
+void ini_setnextasstart(struct ini_data *ini, struct ini_context *ctx);
 void ini_setcurrentasstart(struct ini_data *ini, struct ini_context *ctx);
 
 void ini_addnewstring(struct ini_data *ini, const TCHAR *section, const TCHAR *key, const TCHAR *val);
@@ -42,6 +44,7 @@ bool ini_getval_multi(struct ini_data *ini, const TCHAR *section, const TCHAR *k
 bool ini_getdata(struct ini_data *ini, const TCHAR *section, const TCHAR *key, uae_u8 **out, int *size);
 bool ini_getdata_multi(struct ini_data *ini, const TCHAR *section, const TCHAR *key, uae_u8 **out, int *size, struct ini_context*);
 bool ini_getsectionstring(struct ini_data *ini, const TCHAR *section, int idx, TCHAR **keyout, TCHAR **valout);
+bool ini_getsection(struct ini_data *ini, int idx, TCHAR **section);
 
 bool ini_addstring(struct ini_data *ini, const TCHAR *section, const TCHAR *key, const TCHAR *val);
 bool ini_delete(struct ini_data *ini, const TCHAR *section, const TCHAR *key);

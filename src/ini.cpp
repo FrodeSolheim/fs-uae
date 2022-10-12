@@ -89,6 +89,8 @@ void ini_addnewcomment(struct ini_data *ini, const TCHAR *section, const TCHAR *
 void ini_addnewstring(struct ini_data *ini, const TCHAR *section, const TCHAR *key, const TCHAR *val)
 {
 	struct ini_line *il = xcalloc(struct ini_line, 1);
+	if (!il)
+		return;
 	il->section = my_strdup(section);
 	if (!_tcsicmp(section, _T("WinUAE")))
 		il->section_order = 1;
@@ -105,12 +107,19 @@ void ini_addnewstring(struct ini_data *ini, const TCHAR *section, const TCHAR *k
 	if (cnt == ini->inilines) {
 		ini->inilines += 10;
 		ini->inidata = xrealloc(struct ini_line*, ini->inidata, ini->inilines);
+		if (!ini->inidata) {
+			xfree(il->key);
+			xfree(il->value);
+			xfree(il);
+			return;
+		}
 		int cnt2 = cnt;
 		while (cnt2 < ini->inilines) {
 			ini->inidata[cnt2++] = NULL;
 		}
 	}
 	ini->inidata[cnt] = il;
+	ini->modified = true;
 }
 
 void ini_addnewval(struct ini_data *ini, const TCHAR *section, const TCHAR *key, uae_u32 v)
@@ -130,6 +139,8 @@ void ini_addnewval64(struct ini_data *ini, const TCHAR *section, const TCHAR *ke
 void ini_addnewdata(struct ini_data *ini, const TCHAR *section, const TCHAR *key, const uae_u8 *data, int len)
 {
 	TCHAR *s = xcalloc(TCHAR, len * 3);
+	if (!s)
+		return;
 	_tcscpy(s, _T("\\\n"));
 	int w = 32;
 	for (int i = 0; i < len; i += w) {
@@ -167,7 +178,7 @@ struct ini_data *ini_load(const TCHAR *path, bool sort)
 	FILE *f = _tfopen(path, _T("rb"));
 	if (!f)
 		return NULL;
-	int v = fread(tmp, 1, sizeof tmp, f);
+	size_t v = fread(tmp, 1, sizeof tmp, f);
 	fclose (f);
 	if (v == 3 && tmp[0] == 0xef && tmp[1] == 0xbb && tmp[2] == 0xbf) {
 		f = _tfopen (path, _T("rt, ccs=UTF-8"));
@@ -244,7 +255,10 @@ struct ini_data *ini_load(const TCHAR *path, bool sort)
 	if (sort)
 		ini_sort(&ini);
 	struct ini_data *iniout = xcalloc(ini_data, 1);
-	memcpy(iniout, &ini, sizeof(struct ini_data));
+	if (iniout) {
+		memcpy(iniout, &ini, sizeof(struct ini_data));
+		iniout->modified = false;
+	}
 	return iniout;
 }
 
@@ -290,6 +304,7 @@ bool ini_save(struct ini_data *ini, const TCHAR *path)
 		}
 	}
 	fclose(f);
+	ini->modified = false;
 	return true;
 }
 
@@ -353,7 +368,14 @@ bool ini_getval_multi(struct ini_data *ini, const TCHAR *section, const TCHAR *k
 	TCHAR *out2 = NULL;
 	if (!ini_getstring_multi(ini, section, key, &out2, ctx))
 		return false;
-	*v = _tstol(out2);
+	if (out2[0] == 0)
+		return false;
+	if (_tcslen(out2) > 2 && out2[0] == '0' && _totupper(out2[1]) == 'X') {
+		TCHAR *endptr;
+		*v = _tcstol(out2 + 2, &endptr, 16);
+	} else {
+		*v = _tstol(out2);
+	}
 	xfree(out2);
 	return true;
 }
@@ -387,14 +409,16 @@ bool ini_getdata_multi(struct ini_data *ini, const TCHAR *section, const TCHAR *
 	uae_u8 *outp = NULL;
 	int len;
 	bool quoted = false;
+	int j = 0;
 
 	if (!ini_getstring_multi(ini, section, key, &out2, ctx))
 		return false;
 
-	len = _tcslen(out2);
+	len = uaetcslen(out2);
 	outp = xcalloc(uae_u8, len);
+	if (!outp)
+		goto err;
 
-	int j = 0;
 	for (int i = 0; i < len; ) {
 		TCHAR c1 = _totupper(out2[i + 0]);
 		if (c1 == '\"') {
@@ -445,6 +469,30 @@ bool ini_getdata(struct ini_data *ini, const TCHAR *section, const TCHAR *key, u
 	return ini_getdata_multi(ini, section, key, out, size, NULL);
 }
 
+bool ini_getsection(struct ini_data *ini, int idx, TCHAR **section)
+{
+	const TCHAR *sptr = NULL;
+	for (int c = 0; c < ini->inilines; c++) {
+		struct ini_line *il = ini->inidata[c];
+		if (il) {
+			if (!sptr) {
+				sptr = il->section;
+			}
+			if (!sptr)
+				continue;
+			if (_tcsicmp(sptr, il->section)) {
+				idx--;
+				if (idx < 0) {
+					*section = my_strdup(il->section);
+					return true;
+				}
+				sptr = il->section;
+			}
+		}
+	}
+	return false;
+}
+
 bool ini_getsectionstring(struct ini_data *ini, const TCHAR *section, int idx, TCHAR **keyout, TCHAR **valout)
 {
 	for (int c = 0; c < ini->inilines; c++) {
@@ -468,6 +516,11 @@ bool ini_getsectionstring(struct ini_data *ini, const TCHAR *section, int idx, T
 void ini_setcurrentasstart(struct ini_data *ini, struct ini_context *ctx)
 {
 	ctx->start = ctx->lastpos;
+}
+
+void ini_setnextasstart(struct ini_data *ini, struct ini_context *ctx)
+{
+	ctx->start = ctx->lastpos + 1;
 }
 
 void ini_setlast(struct ini_data *ini, const TCHAR *section, const TCHAR *key, struct ini_context *ctx)
@@ -501,13 +554,18 @@ bool ini_addstring(struct ini_data *ini, const TCHAR *section, const TCHAR *key,
 			if (il->key == NULL)
 				return true;
 			if (!_tcsicmp(key, il->key)) {
+				const TCHAR *v = val ? val : _T("");
+				if (il->value && !_tcscmp(il->value, v))
+					return true;
 				xfree(il->value);
-				il->value = my_strdup(val ? val : _T(""));
+				il->value = my_strdup(v);
+				ini->modified = true;
 				return true;
 			}
 		}
 	}
 	ini_addnewstring(ini, section, key, val);
+	ini->modified = true;
 	return true;
 }
 
@@ -521,6 +579,7 @@ bool ini_delete(struct ini_data *ini, const TCHAR *section, const TCHAR *key)
 			xfree(il->value);
 			xfree(il);
 			ini->inidata[c] = NULL;
+			ini->modified = true;
 			return true;
 		}
 	}

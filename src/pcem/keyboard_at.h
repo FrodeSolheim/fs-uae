@@ -9,5 +9,6 @@ void keyboard_at_adddata_mouse(uint8_t val);
 uint8_t keyboard_at_read(uint16_t port, void *priv);
 void keyboard_at_write(uint16_t port, uint8_t val, void *priv);
 
+extern uint8_t mouse_queue[16];
 extern int mouse_queue_start, mouse_queue_end;
 extern int mouse_scan;

@@ -250,6 +250,16 @@ void fetch_rompath(TCHAR *out, int size)
 	uae_tcslcpy(out, currprefs.path_rom.path[k], size);
 }
 
+void fetch_nvrampath(TCHAR *out, int size)
+{
+	fetch_path(_T("NVRAMPath"), out, size);
+}
+
+void fetch_videopath(TCHAR* out, int size)
+{
+	fetch_path(_T("VideoPath"), out, size);
+}
+
 extern "C" {
 
 void amiga_set_native_library_dirs(const char **library_dirs)

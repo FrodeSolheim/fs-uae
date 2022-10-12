@@ -11,7 +11,7 @@
 #include "sysdeps.h"
 
 #include "options.h"
-#include "memory.h"
+#include "uae/memory.h"
 #include "cd32_fmv.h"
 #include "xwin.h"
 

@@ -24,7 +24,7 @@
 #include "sysdeps.h"
 #include "options.h"
 #include "audio.h"
-#include "memory.h"
+#include "uae/memory.h"
 #include "events.h"
 #include "custom.h"
 #include "uae/memory.h"
@@ -155,18 +155,18 @@ struct AHIAudioCtrlDrv
 #define ahiac_Sounds ahiac_Channels + 2
 #define ahiac_DriverData ahiac_Sounds + 2
 #define ahiac_MixerFunc ahiac_DriverData + 4
-#define ahiac_SamplerFunc ahiac_MixerFunc + 4 
-#define ahiac_Obsolete ahiac_SamplerFunc + 4 
-#define ahiac_BuffSamples ahiac_Obsolete + 4 
-#define ahiac_MinBuffSamples ahiac_BuffSamples + 4 
-#define ahiac_MaxBuffSamples ahiac_MinBuffSamples + 4 
-#define ahiac_BuffSize ahiac_MaxBuffSamples + 4 
-#define ahiac_BuffType ahiac_BuffSize + 4 
-#define ahiac_PreTimer ahiac_BuffType + 4 
-#define ahiac_PostTimer ahiac_PreTimer + 4 
-#define ahiac_AntiClickSamples ahiac_PostTimer + 4 
-#define ahiac_PreTimerFunc ahiac_AntiClickSamples + 4 
-#define ahiac_PostTimerFunc ahiac_PreTimerFunc + 4 
+#define ahiac_SamplerFunc ahiac_MixerFunc + 4
+#define ahiac_Obsolete ahiac_SamplerFunc + 4
+#define ahiac_BuffSamples ahiac_Obsolete + 4
+#define ahiac_MinBuffSamples ahiac_BuffSamples + 4
+#define ahiac_MaxBuffSamples ahiac_MinBuffSamples + 4
+#define ahiac_BuffSize ahiac_MaxBuffSamples + 4
+#define ahiac_BuffType ahiac_BuffSize + 4
+#define ahiac_PreTimer ahiac_BuffType + 4
+#define ahiac_PostTimer ahiac_PreTimer + 4
+#define ahiac_AntiClickSamples ahiac_PostTimer + 4
+#define ahiac_PreTimerFunc ahiac_AntiClickSamples + 4
+#define ahiac_PostTimerFunc ahiac_PreTimerFunc + 4
 
 /* AHIsub_AllocAudio return flags */
 #define AHISF_ERROR		(1<<0)

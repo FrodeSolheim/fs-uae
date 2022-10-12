@@ -48,9 +48,9 @@ endif
 # if W_MISSING_DECLARATIONS
 # CM_CFLAGS += -Wmissing-declarations
 # endif
-if W_ERROR_MISSING_DECLARATIONS
-CM_CFLAGS += -Werror=missing-declarations
-endif
+# if W_ERROR_MISSING_DECLARATIONS
+# CM_CFLAGS += -Werror=missing-declarations
+# endif
 if W_POINTER_ARITH
 CM_CFLAGS += -Wpointer-arith
 endif
@@ -62,7 +62,7 @@ AM_CFLAGS =
 AM_CFLAGS += $(CM_CFLAGS) -std=gnu99
 
 AM_CXXFLAGS =
-AM_CXXFLAGS += $(CM_CFLAGS)
+AM_CXXFLAGS += $(CM_CFLAGS) -std=c++17 -fms-extensions
 
 AM_CPPFLAGS =
 AM_CPPFLAGS += @OS_CPPFLAGS@
@@ -278,6 +278,7 @@ libuae_a_SOURCES = \
 	src/debugmem.cpp \
 	src/def_icons.cpp \
 	src/devices.cpp \
+	src/disasm.cpp \
 	src/disk.cpp \
 	src/diskutil.cpp \
 	src/dlopen.cpp \
@@ -292,6 +293,8 @@ libuae_a_SOURCES = \
 	src/fdi2raw.cpp \
 	src/filesys.cpp \
 	src/flashrom.cpp \
+	src/floppybridge/floppybridge_lib.cpp \
+	src/floppybridge/floppybridge_lib.h \
 	src/fpp.cpp \
 	src/fpp_native.cpp \
 	src/fpp_softfloat.cpp \
@@ -336,6 +339,7 @@ libuae_a_SOURCES = \
 	src/include/debug.h \
 	src/include/debugmem.h \
 	src/include/devices.h \
+	src/include/disasm.h \
 	src/include/disk.h \
 	src/include/diskutil.h \
 	src/include/dongle.h \
@@ -569,27 +573,137 @@ libuae_a_SOURCES = \
 	src/od-win32/win32gfx.h \
 	src/od-win32/win32_uaenet.cpp \
 	src/patch.cpp \
+	src/pcem/386_common.h \
+	src/pcem/386_ops.h \
+	src/pcem/8087.h \
 	src/pcem/codegen.h \
-	src/pcem/codegen_x86-64.h \
+	src/pcem/codegen_backend.h \
+	src/pcem/codegen_backend_x86-64.h \
+	src/pcem/codegen_backend_x86-64_defs.h \
+	src/pcem/codegen_backend_x86.h \
+	src/pcem/codegen_backend_x86_defs.h \
+	src/pcem/config.h \
 	src/pcem/cpu.h \
+	src/pcem/device.h \
 	src/pcem/dma.h \
+	src/pcem/dosbox/dbopl.h \
+	src/pcem/dosbox/nukedopl.h \
+	src/pcem/f82c710_upc.h \
+	src/pcem/fdc.h \
+	src/pcem/filters.h \
+	src/pcem/i440bx.h \
 	src/pcem/ibm.h \
+	src/pcem/io.h \
 	src/pcem/keyboard.h \
 	src/pcem/keyboard_at.h \
+	src/pcem/mca.h \
 	src/pcem/mem.h \
 	src/pcem/model.h \
 	src/pcem/mouse.h \
+	src/pcem/mouse_ps2.h \
 	src/pcem/mouse_serial.h \
+	src/pcem/nmi.h \
 	src/pcem/nvr.h \
+	src/pcem/nvr_tc8521.h \
+	src/pcem/paths.h \
 	src/pcem/pcemglue.h \
+	src/pcem/pci.h \
 	src/pcem/pic.h \
 	src/pcem/pit.h \
+	src/pcem/plat-keyboard.h \
+	src/pcem/plat-midi.h \
+	src/pcem/plat-mouse.h \
+	src/pcem/ps2_mca.h \
+	src/pcem/rom.h \
+	src/pcem/rtc.h \
+	src/pcem/serial.h \
 	src/pcem/sound.h \
 	src/pcem/sound_cms.h \
+	src/pcem/sound_dbopl.h \
+	src/pcem/sound_emu8k.h \
+	src/pcem/sound_mpu401_uart.h \
+	src/pcem/sound_opl.h \
+	src/pcem/sound_sb.h \
+	src/pcem/sound_sb_dsp.h \
 	src/pcem/sound_speaker.h \
+	src/pcem/t1000.h \
+	src/pcem/t3100e.h \
+	src/pcem/thread.h \
 	src/pcem/timer.h \
+	src/pcem/vid_cl5429.h \
+	src/pcem/vid_ddc.h \
+	src/pcem/vid_s3.h \
+	src/pcem/vid_s3_virge.h \
+	src/pcem/vid_sdac_ramdac.h \
+	src/pcem/vid_svga.h \
+	src/pcem/vid_svga_render.h \
+	src/pcem/vid_svga_render_remap.h \
+	src/pcem/vid_unk_ramdac.h \
+	src/pcem/vid_vga.h \
+	src/pcem/vid_voodoo.h \
+	src/pcem/vid_voodoo_banshee.h \
+	src/pcem/vid_voodoo_banshee_blitter.h \
+	src/pcem/vid_voodoo_blitter.h \
+	src/pcem/vid_voodoo_codegen_x86-64.h \
+	src/pcem/vid_voodoo_codegen_x86.h \
+	src/pcem/vid_voodoo_common.h \
+	src/pcem/vid_voodoo_display.h \
+	src/pcem/vid_voodoo_dither.h \
+	src/pcem/vid_voodoo_fb.h \
+	src/pcem/vid_voodoo_fifo.h \
+	src/pcem/vid_voodoo_reg.h \
+	src/pcem/vid_voodoo_regs.h \
+	src/pcem/vid_voodoo_render.h \
+	src/pcem/vid_voodoo_setup.h \
+	src/pcem/vid_voodoo_texture.h \
+	src/pcem/video.h \
 	src/pcem/x86.h \
+	src/pcem/x86_flags.h \
 	src/pcem/x86_ops.h \
+	src/pcem/x86_ops_3dnow.h \
+	src/pcem/x86_ops_arith.h \
+	src/pcem/x86_ops_atomic.h \
+	src/pcem/x86_ops_bcd.h \
+	src/pcem/x86_ops_bit.h \
+	src/pcem/x86_ops_bitscan.h \
+	src/pcem/x86_ops_call.h \
+	src/pcem/x86_ops_cyrix.h \
+	src/pcem/x86_ops_flag.h \
+	src/pcem/x86_ops_fpu.h \
+	src/pcem/x86_ops_inc_dec.h \
+	src/pcem/x86_ops_int.h \
+	src/pcem/x86_ops_io.h \
+	src/pcem/x86_ops_jump.h \
+	src/pcem/x86_ops_misc.h \
+	src/pcem/x86_ops_mmx.h \
+	src/pcem/x86_ops_mmx_arith.h \
+	src/pcem/x86_ops_mmx_cmp.h \
+	src/pcem/x86_ops_mmx_logic.h \
+	src/pcem/x86_ops_mmx_mov.h \
+	src/pcem/x86_ops_mmx_pack.h \
+	src/pcem/x86_ops_mmx_shift.h \
+	src/pcem/x86_ops_mov.h \
+	src/pcem/x86_ops_mov_ctrl.h \
+	src/pcem/x86_ops_mov_seg.h \
+	src/pcem/x86_ops_movx.h \
+	src/pcem/x86_ops_msr.h \
+	src/pcem/x86_ops_mul.h \
+	src/pcem/x86_ops_pmode.h \
+	src/pcem/x86_ops_prefix.h \
+	src/pcem/x86_ops_rep.h \
+	src/pcem/x86_ops_ret.h \
+	src/pcem/x86_ops_set.h \
+	src/pcem/x86_ops_shift.h \
+	src/pcem/x86_ops_stack.h \
+	src/pcem/x86_ops_string.h \
+	src/pcem/x86_ops_xchg.h \
+	src/pcem/x87.h \
+	src/pcem/x87_ops.h \
+	src/pcem/x87_ops_arith.h \
+	src/pcem/x87_ops_loadstore.h \
+	src/pcem/x87_ops_misc.h \
+	src/pcem/x87_timings.h \
+	src/pcem/xi8088.h \
 	src/pci.cpp \
 	src/ppc/pixman-stubs.cpp \
 	src/ppc/ppc.cpp \
@@ -622,6 +736,7 @@ libuae_a_SOURCES = \
 	src/rtc.cpp \
 	src/sana2.cpp \
 	src/savestate.cpp \
+	src/serial.cpp \
 	src/scp.cpp \
 	src/scsi.cpp \
 	src/scsiemul.cpp \
@@ -643,6 +758,7 @@ libuae_a_SOURCES = \
 	src/support/socket.cpp \
 	src/support/time.cpp \
 	src/test_card.cpp \
+	src/tinyxml2.cpp \
 	src/traps.cpp \
 	src/uaeexe.cpp \
 	src/uaelib.cpp \
@@ -1157,130 +1273,185 @@ noinst_LIBRARIES += libpcem.a
 # AM_CPPFLAGS += -I$(s)/src/ppc/pearpc
 fs_uae_LDADD += libpcem.a
 libpcem_a_SOURCES = \
-src/pcem/386_common.h \
-src/pcem/386.cpp \
-src/pcem/386_dynarec.cpp \
-src/pcem/386.h \
-src/pcem/386_ops.h \
-src/pcem/808x.cpp \
-src/pcem/codegen.h \
-src/pcem/codegen_x86-64.h \
-src/pcem/codegen_x86.h \
-src/pcem/config.h \
-src/pcem/cpu.cpp \
-src/pcem/cpu.h \
-src/pcem/device.h \
-src/pcem/dma.cpp \
-src/pcem/dma.h \
-src/pcem/dosbox/dbopl.cpp \
-src/pcem/dosbox/dbopl.h \
-src/pcem/dosbox/nukedopl.cpp \
-src/pcem/dosbox/nukedopl.h \
-src/pcem/fdc.h \
-src/pcem/filters.h \
-src/pcem/ibm.h \
-src/pcem/io.h \
-src/pcem/keyboard_at.cpp \
-src/pcem/keyboard_at.h \
-src/pcem/keyboard.cpp \
-src/pcem/keyboard.h \
-src/pcem/mca.h \
-src/pcem/mem.cpp \
-src/pcem/mem.h \
-src/pcem/model.h \
-src/pcem/mouse.h \
-src/pcem/mouse_ps2.cpp \
-src/pcem/mouse_ps2.h \
-src/pcem/mouse_serial.cpp \
-src/pcem/mouse_serial.h \
-src/pcem/nmi.h \
-src/pcem/nvr.h \
-src/pcem/nvr_tc8521.h \
-src/pcem/paths.h \
-src/pcem/pcemglue.cpp \
-src/pcem/pcemglue.h \
-src/pcem/pcemnvr.cpp \
-src/pcem/pcemrtc.cpp \
-src/pcem/pci.h \
-src/pcem/pic.cpp \
-src/pcem/pic.h \
-src/pcem/pit.cpp \
-src/pcem/pit.h \
-src/pcem/plat-keyboard.h \
-src/pcem/plat-midi.h \
-src/pcem/plat-mouse.h \
-src/pcem/ps2_mca.h \
-src/pcem/rom.h \
-src/pcem/rtc.h \
-src/pcem/serial.cpp \
-src/pcem/serial.h \
-src/pcem/sound_cms.cpp \
-src/pcem/sound_cms.h \
-src/pcem/sound_dbopl.cpp \
-src/pcem/sound_dbopl.h \
-src/pcem/sound_emu8k.h \
-src/pcem/sound.h \
-src/pcem/sound_mpu401_uart.cpp \
-src/pcem/sound_mpu401_uart.h \
-src/pcem/sound_opl.cpp \
-src/pcem/sound_opl.h \
-src/pcem/sound_sb.cpp \
-src/pcem/sound_sb_dsp.cpp \
-src/pcem/sound_sb_dsp.h \
-src/pcem/sound_sb.h \
-src/pcem/sound_speaker.cpp \
-src/pcem/sound_speaker.h \
-src/pcem/t1000.h \
-src/pcem/t3100e.h \
-src/pcem/timer.cpp \
-src/pcem/timer.h \
-src/pcem/video.h \
-src/pcem/x86_flags.h \
-src/pcem/x86.h \
-src/pcem/x86_ops_arith.h \
-src/pcem/x86_ops_atomic.h \
-src/pcem/x86_ops_bcd.h \
-src/pcem/x86_ops_bit.h \
-src/pcem/x86_ops_bitscan.h \
-src/pcem/x86_ops_call.h \
-src/pcem/x86_ops_flag.h \
-src/pcem/x86_ops_fpu.h \
-src/pcem/x86_ops.h \
-src/pcem/x86_ops_inc_dec.h \
-src/pcem/x86_ops_int.h \
-src/pcem/x86_ops_io.h \
-src/pcem/x86_ops_jump.h \
-src/pcem/x86_ops_misc.h \
-src/pcem/x86_ops_mmx_arith.h \
-src/pcem/x86_ops_mmx_cmp.h \
-src/pcem/x86_ops_mmx.h \
-src/pcem/x86_ops_mmx_logic.h \
-src/pcem/x86_ops_mmx_mov.h \
-src/pcem/x86_ops_mmx_pack.h \
-src/pcem/x86_ops_mmx_shift.h \
-src/pcem/x86_ops_mov_ctrl.h \
-src/pcem/x86_ops_mov.h \
-src/pcem/x86_ops_mov_seg.h \
-src/pcem/x86_ops_movx.h \
-src/pcem/x86_ops_msr.h \
-src/pcem/x86_ops_mul.h \
-src/pcem/x86_ops_pmode.h \
-src/pcem/x86_ops_prefix.h \
-src/pcem/x86_ops_rep.h \
-src/pcem/x86_ops_ret.h \
-src/pcem/x86_ops_set.h \
-src/pcem/x86_ops_shift.h \
-src/pcem/x86_ops_stack.h \
-src/pcem/x86_ops_string.h \
-src/pcem/x86_ops_xchg.h \
-src/pcem/x86seg.cpp \
-src/pcem/x87.cpp \
-src/pcem/x87.h \
-src/pcem/x87_ops_arith.h \
-src/pcem/x87_ops.h \
-src/pcem/x87_ops_loadstore.h \
-src/pcem/x87_ops_misc.h \
-src/pcem/xi8088.h
+	src/pcem/386.cpp \
+	src/pcem/386_common.cpp \
+	src/pcem/386_common.h \
+	src/pcem/386_dynarec.cpp \
+	src/pcem/386_dynarec_ops.cpp \
+	src/pcem/386_ops.h \
+	src/pcem/8087.h \
+	src/pcem/808x.cpp \
+	src/pcem/codegen.h \
+	src/pcem/codegen_backend.h \
+	src/pcem/codegen_backend_x86-64.h \
+	src/pcem/codegen_backend_x86-64_defs.h \
+	src/pcem/codegen_backend_x86.h \
+	src/pcem/codegen_backend_x86_defs.h \
+	src/pcem/config.h \
+	src/pcem/cpu.cpp \
+	src/pcem/cpu.h \
+	src/pcem/device.h \
+	src/pcem/dma.cpp \
+	src/pcem/dma.h \
+	src/pcem/dosbox/dbopl.cpp \
+	src/pcem/dosbox/dbopl.h \
+	src/pcem/dosbox/nukedopl.cpp \
+	src/pcem/dosbox/nukedopl.h \
+	src/pcem/f82c710_upc.h \
+	src/pcem/fdc.h \
+	src/pcem/filters.h \
+	src/pcem/i440bx.h \
+	src/pcem/ibm.h \
+	src/pcem/io.h \
+	src/pcem/keyboard.cpp \
+	src/pcem/keyboard.h \
+	src/pcem/keyboard_at.cpp \
+	src/pcem/keyboard_at.h \
+	src/pcem/mca.h \
+	src/pcem/mem.cpp \
+	src/pcem/mem.h \
+	src/pcem/model.h \
+	src/pcem/mouse.h \
+	src/pcem/mouse_ps2.cpp \
+	src/pcem/mouse_ps2.h \
+	src/pcem/mouse_serial.cpp \
+	src/pcem/mouse_serial.h \
+	src/pcem/nmi.h \
+	src/pcem/nvr.cpp \
+	src/pcem/nvr.h \
+	src/pcem/nvr_tc8521.h \
+	src/pcem/paths.h \
+	src/pcem/pcemglue.cpp \
+	src/pcem/pcemglue.h \
+	src/pcem/pcemrtc.cpp \
+	src/pcem/pci.h \
+	src/pcem/pic.cpp \
+	src/pcem/pic.h \
+	src/pcem/pit.cpp \
+	src/pcem/pit.h \
+	src/pcem/plat-keyboard.h \
+	src/pcem/plat-midi.h \
+	src/pcem/plat-mouse.h \
+	src/pcem/ps2_mca.h \
+	src/pcem/rom.h \
+	src/pcem/rtc.h \
+	src/pcem/serial.cpp \
+	src/pcem/serial.h \
+	src/pcem/sound.h \
+	src/pcem/sound_cms.cpp \
+	src/pcem/sound_cms.h \
+	src/pcem/sound_dbopl.cpp \
+	src/pcem/sound_dbopl.h \
+	src/pcem/sound_emu8k.h \
+	src/pcem/sound_mpu401_uart.cpp \
+	src/pcem/sound_mpu401_uart.h \
+	src/pcem/sound_opl.cpp \
+	src/pcem/sound_opl.h \
+	src/pcem/sound_sb.cpp \
+	src/pcem/sound_sb.h \
+	src/pcem/sound_sb_dsp.cpp \
+	src/pcem/sound_sb_dsp.h \
+	src/pcem/sound_speaker.cpp \
+	src/pcem/sound_speaker.h \
+	src/pcem/t1000.h \
+	src/pcem/t3100e.h \
+	src/pcem/thread.h \
+	src/pcem/timer.cpp \
+	src/pcem/timer.h \
+	src/pcem/vid_cl5429.cpp \
+	src/pcem/vid_cl5429.h \
+	src/pcem/vid_ddc.h \
+	src/pcem/vid_s3.cpp \
+	src/pcem/vid_s3.h \
+	src/pcem/vid_s3_virge.cpp \
+	src/pcem/vid_s3_virge.h \
+	src/pcem/vid_sdac_ramdac.cpp \
+	src/pcem/vid_sdac_ramdac.h \
+	src/pcem/vid_svga.cpp \
+	src/pcem/vid_svga.h \
+	src/pcem/vid_svga_render.cpp \
+	src/pcem/vid_svga_render.h \
+	src/pcem/vid_svga_render_remap.h \
+	src/pcem/vid_unk_ramdac.h \
+	src/pcem/vid_vga.h \
+	src/pcem/vid_voodoo.cpp \
+	src/pcem/vid_voodoo.h \
+	src/pcem/vid_voodoo_banshee.cpp \
+	src/pcem/vid_voodoo_banshee.h \
+	src/pcem/vid_voodoo_banshee_blitter.cpp \
+	src/pcem/vid_voodoo_banshee_blitter.h \
+	src/pcem/vid_voodoo_blitter.cpp \
+	src/pcem/vid_voodoo_blitter.h \
+	src/pcem/vid_voodoo_codegen_x86-64.h \
+	src/pcem/vid_voodoo_codegen_x86.h \
+	src/pcem/vid_voodoo_common.h \
+	src/pcem/vid_voodoo_display.cpp \
+	src/pcem/vid_voodoo_display.h \
+	src/pcem/vid_voodoo_dither.h \
+	src/pcem/vid_voodoo_fb.cpp \
+	src/pcem/vid_voodoo_fb.h \
+	src/pcem/vid_voodoo_fifo.cpp \
+	src/pcem/vid_voodoo_fifo.h \
+	src/pcem/vid_voodoo_reg.cpp \
+	src/pcem/vid_voodoo_reg.h \
+	src/pcem/vid_voodoo_regs.h \
+	src/pcem/vid_voodoo_render.cpp \
+	src/pcem/vid_voodoo_render.h \
+	src/pcem/vid_voodoo_setup.cpp \
+	src/pcem/vid_voodoo_setup.h \
+	src/pcem/vid_voodoo_texture.cpp \
+	src/pcem/vid_voodoo_texture.h \
+	src/pcem/video.h \
+	src/pcem/x86.h \
+	src/pcem/x86_flags.h \
+	src/pcem/x86_ops.h \
+	src/pcem/x86_ops_3dnow.h \
+	src/pcem/x86_ops_arith.h \
+	src/pcem/x86_ops_atomic.h \
+	src/pcem/x86_ops_bcd.h \
+	src/pcem/x86_ops_bit.h \
+	src/pcem/x86_ops_bitscan.h \
+	src/pcem/x86_ops_call.h \
+	src/pcem/x86_ops_cyrix.h \
+	src/pcem/x86_ops_flag.h \
+	src/pcem/x86_ops_fpu.h \
+	src/pcem/x86_ops_inc_dec.h \
+	src/pcem/x86_ops_int.h \
+	src/pcem/x86_ops_io.h \
+	src/pcem/x86_ops_jump.h \
+	src/pcem/x86_ops_misc.h \
+	src/pcem/x86_ops_mmx.h \
+	src/pcem/x86_ops_mmx_arith.h \
+	src/pcem/x86_ops_mmx_cmp.h \
+	src/pcem/x86_ops_mmx_logic.h \
+	src/pcem/x86_ops_mmx_mov.h \
+	src/pcem/x86_ops_mmx_pack.h \
+	src/pcem/x86_ops_mmx_shift.h \
+	src/pcem/x86_ops_mov.h \
+	src/pcem/x86_ops_mov_ctrl.h \
+	src/pcem/x86_ops_mov_seg.h \
+	src/pcem/x86_ops_movx.h \
+	src/pcem/x86_ops_msr.h \
+	src/pcem/x86_ops_mul.h \
+	src/pcem/x86_ops_pmode.h \
+	src/pcem/x86_ops_prefix.h \
+	src/pcem/x86_ops_rep.h \
+	src/pcem/x86_ops_ret.h \
+	src/pcem/x86_ops_set.h \
+	src/pcem/x86_ops_shift.h \
+	src/pcem/x86_ops_stack.h \
+	src/pcem/x86_ops_string.h \
+	src/pcem/x86_ops_xchg.h \
+	src/pcem/x86seg.cpp \
+	src/pcem/x87.cpp \
+	src/pcem/x87.h \
+	src/pcem/x87_ops.h \
+	src/pcem/x87_ops_arith.h \
+	src/pcem/x87_ops_loadstore.h \
+	src/pcem/x87_ops_misc.h \
+	src/pcem/x87_timings.cpp \
+	src/pcem/x87_timings.h \
+	src/pcem/xi8088.h
 endif
 
 if WITH_PPC

@@ -67,6 +67,7 @@ struct gvp_dmac
 	uae_u32 addr;
 	uae_u16 len;
 	uae_u8 bank;
+	uae_u8 maprom;
 	int dma_on;
 	uae_u8 version;
 	bool use_version;
@@ -118,10 +119,11 @@ struct wd_state {
 	addrbank bank;
 	addrbank bank2;
 	void *userdata;
+	uae_u32 dma_mask;
 };
 extern wd_state *wd_cdtv;
 
-extern void init_wd_scsi (struct wd_state*);
+extern void init_wd_scsi (struct wd_state*, bool);
 extern void scsi_dmac_a2091_start_dma (struct wd_state*);
 extern void scsi_dmac_a2091_stop_dma (struct wd_state*);
 
@@ -130,29 +132,21 @@ extern bool a2090b_init (struct autoconfig_info *aci);
 extern bool a2090b_preinit (struct autoconfig_info *aci);
 
 extern bool a2091_init (struct autoconfig_info *aci);
-extern void a2091_free(void);
-extern void a2091_reset (void);
 
 extern bool gvp_init_s1(struct autoconfig_info *aci);
 extern bool gvp_init_s2(struct autoconfig_info *aci);
 extern bool gvp_init_accelerator(struct autoconfig_info *aci);
-extern void gvp_free(void);
-extern void gvp_reset (void);
-void gvp_accelerator_set_dma_bank(uae_u8 v);
 
 extern bool comspec_init (struct autoconfig_info *aci);
+void gvp_accelerator_set_dma_bank(uae_u8 v);
 extern bool comspec_preinit (struct autoconfig_info *aci);
 
 extern bool a3000scsi_init(struct autoconfig_info *aci);
-extern void a3000scsi_free (void);
-extern void rethink_a2091 (void);
 
 extern void wdscsi_put (struct wd_chip_state*, wd_state*, uae_u8);
 extern uae_u8 wdscsi_get (struct wd_chip_state*, struct wd_state*);
 extern uae_u8 wdscsi_getauxstatus (struct wd_chip_state*);
 extern void wdscsi_sasr (struct wd_chip_state*, uae_u8);
-
-extern void scsi_hsync (void);
 
 #define WDTYPE_A2091 0
 #define WDTYPE_A2091_2 1

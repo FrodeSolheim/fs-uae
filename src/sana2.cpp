@@ -32,6 +32,7 @@
 #endif
 #include "execio.h"
 #include "debug.h"
+#include "devices.h"
 
 #ifdef SANA2
 
@@ -125,7 +126,7 @@ static int uaenet_getdata (void *dev, uae_u8 *d, int *len);
 #define SANA2OPF_MINE   (1<<SANA2OPB_MINE)
 #define SANA2OPB_PROM   1
 #define SANA2OPF_PROM   (1<<SANA2OPB_PROM)
-#define SANA2IOB_RAW    7 
+#define SANA2IOB_RAW    7
 #define SANA2IOF_RAW    (1<<SANA2IOB_RAW)
 #define SANA2IOB_BCAST  6
 #define SANA2IOF_BCAST  (1<<SANA2IOB_BCAST)
@@ -256,7 +257,7 @@ static struct s2devstruct *gets2devstruct (int unit)
 static struct priv_s2devstruct *getps2devstruct(TrapContext *ctx, uae_u8 *iobuf, uaecptr request)
 {
 	int idx;
-	
+
 	if (iobuf) {
 		idx = get_long_host(iobuf + 24);
 	} else {
@@ -269,7 +270,7 @@ static struct priv_s2devstruct *getps2devstruct(TrapContext *ctx, uae_u8 *iobuf,
 	return &pdevst[idx];
 }
 
-static void *dev_thread (void *devs);
+static void dev_thread (void *devs);
 static int start_thread (struct s2devstruct *dev)
 {
 	if (dev->thread_running)
@@ -432,7 +433,7 @@ static uae_u32 REGPARAM2 dev_open_2 (TrapContext *ctx)
 	if (i == MAX_OPEN_DEVICES)
 		return openfail(ctx, ioreq, IOERR_UNITBUSY);
 
-	trap_put_long(ctx, ioreq + 24, pdev - pdevst);
+	trap_put_longt(ctx, ioreq + 24, pdev - pdevst);
 	pdev->unit = unit;
 	pdev->flags = flags;
 	pdev->inuse = 1;
@@ -1155,7 +1156,7 @@ static int dev_do_io_2 (TrapContext *ctx, struct s2devstruct *dev, uae_u8 *reque
 		dev->flush_timeout_cnt = 0;
 		dev->flush_timeout = FLUSH_TIMEOUT;
 		if (log_net)
-			write_log (_T("CMD_FLUSH started %p\n"), request);
+			write_log (_T("CMD_FLUSH started %08x\n"), request);
 		uae_sem_wait (&async_sem);
 		flush(ctx, pdev);
 		uae_sem_post (&async_sem);
@@ -1351,7 +1352,7 @@ static int dev_do_io (TrapContext *ctx, struct s2devstruct *dev, uae_u8 *request
 
 	put_byte_host(request + 31, 0);
 	if (!pdev) {
-		write_log (_T("%s unknown iorequest %p\n"), getdevname (), request);
+		write_log (_T("%s unknown iorequest %08x\n"), getdevname (), request);
 		return 0;
 	}
 	if (command == NSCMD_DEVICEQUERY) {
@@ -1444,13 +1445,13 @@ static uae_u32 REGPARAM2 dev_beginio (TrapContext *ctx)
 
 	put_byte_host(request + 8, NT_MESSAGE);
 	if (!pdev) {
-		write_log (_T("%s unknown iorequest (1) %p\n"), getdevname (), request);
+		write_log (_T("%s unknown iorequest (1) %08x\n"), getdevname (), request);
 		err = 32;
 		goto err;
 	}
 	dev = gets2devstruct (pdev->unit);
 	if (!dev) {
-		write_log (_T("%s unknown iorequest (2) %p\n"), getdevname (), request);
+		write_log (_T("%s unknown iorequest (2) %08x\n"), getdevname (), request);
 		err =  32;
 		goto err;
 	}
@@ -1503,7 +1504,7 @@ err:
 	return err;
 }
 
-static void *dev_thread (void *devs)
+static void dev_thread (void *devs)
 {
 	struct s2devstruct *dev = (struct s2devstruct*)devs;
 
@@ -1520,7 +1521,7 @@ static void *dev_thread (void *devs)
 			uae_sem_post (&dev->sync_sem);
 			uae_sem_post (&change_sem);
 			write_log (_T("%s: dev_thread killed\n"), getdevname ());
-			return 0;
+			return;
 		}
 		struct priv_s2devstruct *pdev = getps2devstruct(ctx, iobuf, request);
 		asyncreq *ar = get_async_request (dev, request, 1);
@@ -1543,7 +1544,6 @@ static void *dev_thread (void *devs)
 		trap_background_set_complete(ctx);
 		uae_sem_post (&change_sem);
 	}
-	return 0;
 }
 
 static uae_u32 REGPARAM2 dev_init_2 (TrapContext *ctx)
@@ -1797,7 +1797,7 @@ static uae_u32 REGPARAM2 uaenet_int_handler(TrapContext *ctx)
 	}
 }
 
-void uaenet_vsync(void)
+static void uaenet_vsync(void)
 {
 	if (!irq_init)
 		return;
@@ -1863,14 +1863,31 @@ static void dev_reset (void)
 
 }
 
+static void netdev_start_threads(void)
+{
+	if (!currprefs.sana2)
+		return;
+	if (log_net)
+		write_log(_T("netdev_start_threads()\n"));
+	uae_sem_init(&change_sem, 0, 1);
+	uae_sem_init(&pipe_sem, 0, 1);
+	uae_sem_init(&async_sem, 0, 1);
+}
+
+static void netdev_reset(int hardreset)
+{
+	uaenet_signal_state = 1;
+	netdev_start_threads();
+	if (!currprefs.sana2)
+		return;
+	dev_reset();
+}
+
 uaecptr netdev_startup(TrapContext *ctx, uaecptr resaddr)
 {
 	if (!currprefs.sana2)
 		return resaddr;
-#ifdef FSUAE
-#else
 	if (log_net)
-#endif
 		write_log (_T("netdev_startup(0x%x)\n"), resaddr);
 	/* Build a struct Resident. This will set up and initialize
 	* the uaenet.device */
@@ -1897,14 +1914,11 @@ void netdev_install (void)
 
 	if (!currprefs.sana2)
 		return;
-#ifdef FSUAE
-#else
 	if (log_net)
-#endif
 		write_log (_T("netdev_install(): 0x%x\n"), here ());
 
 	ethernet_enumerate_free ();
-	ethernet_enumerate (td, 0);
+	ethernet_enumerate (td, NULL);
 
 	ROM_netdev_resname = ds (getdevname());
 	ROM_netdev_resid = ds (_T("UAE net.device 0.2"));
@@ -1997,25 +2011,8 @@ void netdev_install (void)
 	dw (NSCMD_DEVICEQUERY);
 	dw (0);
 
-}
-
-void netdev_start_threads (void)
-{
-	if (!currprefs.sana2)
-		return;
-	if (log_net)
-		write_log (_T("netdev_start_threads()\n"));
-	uae_sem_init(&change_sem, 0, 1);
-	uae_sem_init(&pipe_sem, 0, 1);
-	uae_sem_init(&async_sem, 0, 1);
-}
-
-void netdev_reset (void)
-{
-	uaenet_signal_state = 1;
-	if (!currprefs.sana2)
-		return;
-	dev_reset ();
+	device_add_vsync_pre(uaenet_vsync);
+	device_add_reset(netdev_reset);
 }
 
 #endif /* SANA2 */

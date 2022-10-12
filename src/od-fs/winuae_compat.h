@@ -1,7 +1,8 @@
 #ifndef UAE_OD_FS_WINUAE_COMPAT_H
 #define UAE_OD_FS_WINUAE_COMPAT_H
 
-#ifdef WINDOWS
+//#ifdef WINDOWS
+#if 0
 
 // Include windef.h now to get RECT and DWORD defined (and not collide with
 // later includes of windows.h
@@ -23,6 +24,7 @@
 // use char functions instead of wchar string functions.
 
 #include "uae/string.h"
+#include "uae/fs.h"
 
 #define stricmp strcasecmp
 #define strnicmp strncasecmp

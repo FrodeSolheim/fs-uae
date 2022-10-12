@@ -16,8 +16,8 @@
 
 #include <math.h>
 
-#ifdef FSUAE // NL
-#define gamma gamma_table
+#ifdef FSUAE
+bool gfx_hdr;
 #endif
 
 float getvsyncrate(int monid, float hz, int *mult)
@@ -46,13 +46,9 @@ float getvsyncrate(int monid, float hz, int *mult)
 #define GRN	1
 #define BLU	2
 
-unsigned int doMask (int p, int bits, int shift)
+uae_u32 doMask(uae_u32 p, int bits, int shift)
 {
 	/* scale to 0..255, shift to align msb with mask, and apply mask */
-#ifdef FSUAE
-	// using uae_u32 here instead of long is important for 64-bit archs
-	// on non-Windows systems
-#endif
 	uae_u32 val;
 
 	if (flashscreen)
@@ -88,41 +84,42 @@ int mask_shift (unsigned long mask)
 	return n;
 }
 
-unsigned int doMask256 (int p, int bits, int shift)
+uae_u32 doMask256 (int p, int bits, int shift)
 {
 	/* p is a value from 0 to 255 (Amiga color value)
 	* shift to align msb with mask, and apply mask */
 
-	unsigned long val = p * 0x01010101UL;
+	uae_u32 val = p;
 	if (bits == 0)
 		return 0;
+	val <<= 24;
 	val >>= (32 - bits);
 	val <<= shift;
 
 	return val;
 }
 
-static unsigned int doColor (int i, int bits, int shift)
+static uae_u32 doColor (int i, int bits, int shift)
 {
 	int shift2;
 
 	if (flashscreen)
 		i ^= 0xffffffff;
-	if(bits >= 8)
+	if (bits >= 8)
 		shift2 = 0;
 	else
 		shift2 = 8 - bits;
 	return (i >> shift2) << shift;
 }
 
-static unsigned int doAlpha (int alpha, int bits, int shift)
+static uae_u32 doAlpha (int alpha, int bits, int shift)
 {
 	return (alpha & ((1 << bits) - 1)) << shift;
 }
 
 static float video_gamma (float value, float gamma, float bri, float con)
 {
-	double factor;
+	float factor;
 	float ret;
 
 	value += bri;
@@ -131,7 +128,7 @@ static float video_gamma (float value, float gamma, float bri, float con)
 	if (value <= 0.0f)
 		return 0.0f;
 
-	factor = pow(255.0f, 1.0f - gamma);
+	factor = (float)pow(255.0f, 1.0f - gamma);
 	ret = (float)(factor * pow(value, gamma));
 
 	if (ret < 0.0f)
@@ -140,17 +137,25 @@ static float video_gamma (float value, float gamma, float bri, float con)
 	return ret;
 }
 
-static uae_u32 gamma[256 * 3][3];
+static uae_u32 _gamma[256 * 3][3];
 static int lf, hf;
 
 static void video_calc_gammatable(int monid)
 {
 	struct amigadisplay *ad = &adisplays[monid];
 	float bri, con, gam, gams[3];
+	float max = 255;
 
-	bri = ((float)(currprefs.gfx_luminance)) * (128.0f / 1000.0f);
-	con = ((float)(currprefs.gfx_contrast + 1000)) / 1000.0f;
-	gam = ((float)(1000 - currprefs.gfx_gamma)) / 1000.0f - 1.0;
+	if (gfx_hdr) {
+		bri = 0.0;
+		con = 1.0;
+		gam = 0.0;
+	} else {
+		bri = ((float)(currprefs.gfx_luminance)) * (128.0f / 1000.0f);
+		con = ((float)(currprefs.gfx_contrast + 1000)) / 1000.0f;
+		gam = ((float)(1000 - currprefs.gfx_gamma)) / 1000.0f - 1.0f;
+	}
+
 	gams[0] = gam + ((float)(1000 - currprefs.gfx_gamma_ch[0])) / 1000.0f;
 	gams[1] = gam + ((float)(1000 - currprefs.gfx_gamma_ch[1])) / 1000.0f;
 	gams[2] = gam + ((float)(1000 - currprefs.gfx_gamma_ch[2])) / 1000.0f;
@@ -160,19 +165,19 @@ static void video_calc_gammatable(int monid)
 
 	for (int i = 0; i < (256 * 3); i++) {
 		for (int j = 0; j < 3; j++) {
-			float val = i - 256;
+			float val = i - 256.0f;
 			float v;
 
 			if (currprefs.gfx_threebitcolors == 2) {
 				val *= 2;
 			} else if (currprefs.gfx_threebitcolors == 3) {
-				val = (val * 252.0) / 119.0;
+				val = (float)((val * 252.0) / 119.0);
 			} else if (currprefs.gfx_threebitcolors == 1) {
-				val = (val * 252.0) / 238.0;
+				val = (float)((val * 252.0) / 238.0);
 			}
 
-			if (currprefs.gfx_luminance == 0 && currprefs.gfx_contrast == 0 && currprefs.gfx_gamma == 0 &&
-				currprefs.gfx_gamma_ch[0] == 0 && currprefs.gfx_gamma_ch[1] == 0 && currprefs.gfx_gamma_ch[2] == 0) {
+			if (gfx_hdr || (currprefs.gfx_luminance == 0 && currprefs.gfx_contrast == 0 && currprefs.gfx_gamma == 0 &&
+				currprefs.gfx_gamma_ch[0] == 0 && currprefs.gfx_gamma_ch[1] == 0 && currprefs.gfx_gamma_ch[2] == 0)) {
 				v = val;
 			} else {
 				v = video_gamma(val, gams[j], bri, con);
@@ -180,35 +185,39 @@ static void video_calc_gammatable(int monid)
 
 			if (v < 0.0)
 				v = 0.0;
-			if (v > 255.0)
-				v = 255.0;
+			if (v > max)
+				v = max;
 
-			gamma[i][j] = (uae_u32)(v + 0.5);
+			_gamma[i][j] = (uae_u32)(v + 0.5);
 		}
 	}
 }
 
-static uae_u32 limit256(int monid, double v)
+static uae_u32 limit256(int monid, float v)
 {
 	struct amigadisplay *ad = &adisplays[monid];
-	v = v * (double)(currprefs.gf[ad->picasso_on].gfx_filter_contrast + 1000) / 1000.0 + currprefs.gf[ad->picasso_on].gfx_filter_luminance / 10.0;
+	if (!gfx_hdr) {
+		v = v * (float)(currprefs.gf[ad->picasso_on].gfx_filter_contrast + 1000) / 1000.0f + currprefs.gf[ad->picasso_on].gfx_filter_luminance / 10.0f;
+	}
 	if (v < 0)
 		v = 0;
 	if (v > 255)
 		v = 255;
-	return ((uae_u32)v) & 0xff;
+	return (uae_u32)v;
 }
-static uae_u32 limit256rb(int monid, double v)
+static uae_s32 limit256rb(int monid, float v)
 {
 	struct amigadisplay *ad = &adisplays[monid];
-	v *= (double)(currprefs.gf[ad->picasso_on].gfx_filter_saturation + 1000) / 1000.0;
+	if (!gfx_hdr) {
+		v *= (float)(currprefs.gf[ad->picasso_on].gfx_filter_saturation + 1000) / 1000.0f;
+	}
 	if (v < -128)
 		v = -128;
 	if (v > 127)
 		v = 127;
-	return ((uae_u32)v) & 0xff;
+	return (uae_s32)v;
 }
-static double get_y(int r, int g, int b)
+static float get_y(int r, int g, int b)
 {
 	return 0.2989f * r + 0.5866f * g + 0.1145f * b;
 }
@@ -220,16 +229,15 @@ static uae_u32 get_yl(int monid, int r, int g, int b)
 {
 	return limit256(monid, get_y (r, g, b) * lf / 256);
 }
-static uae_u32 get_cb(int monid, int r, int g, int b)
+static uae_s32 get_cb(int monid, int r, int g, int b)
 {
 	return limit256rb(monid, -0.168736f * r - 0.331264f * g + 0.5f * b);
 }
-static uae_u32 get_cr(int monid, int r, int g, int b)
+static uae_s32 get_cr(int monid, int r, int g, int b)
 {
 	return limit256rb(monid, 0.5f * r - 0.418688f * g - 0.081312f * b);
 }
 
-// FIXME: Remove (moved to gfxfilter.h header)
 extern uae_s32 tyhrgb[65536];
 extern uae_s32 tylrgb[65536];
 extern uae_s32 tcbrgb[65536];
@@ -346,16 +354,17 @@ void alloc_colors_rgb (int rw, int gw, int bw, int rs, int gs, int bs, int aw, i
 	for(i = 0; i < 256; i++) {
 		int j;
 
-		if (currprefs.gfx_blackerthanblack) {
+		if (!gfx_hdr && currprefs.gfx_blackerthanblack) {
 			j = i * 15 / 16 + 15;
-		} else {  
+		} else {
 			j = i;
 		}
 		j += 256;
 
-		rc[i] = doColor (gamma[j][0], rw, rs) | doAlpha (alpha, aw, as);
-		gc[i] = doColor (gamma[j][1], gw, gs) | doAlpha (alpha, aw, as);
-		bc[i] = doColor (gamma[j][2], bw, bs) | doAlpha (alpha, aw, as);
+		rc[i] = doColor(_gamma[j][0], rw, rs) | doAlpha(alpha, aw, as);
+		gc[i] = doColor(_gamma[j][1], gw, gs) | doAlpha(alpha, aw, as);
+		bc[i] = doColor(_gamma[j][2], bw, bs) | doAlpha(alpha, aw, as);
+
 		if (byte_swap) {
 			if (bpp <= 16) {
 				rc[i] = bswap_16 (rc[i]);
@@ -388,9 +397,15 @@ void alloc_colors64k(int monid, int rw, int gw, int bw, int rs, int gs, int bs, 
 		int r = ((i >> 8) << 4) | (i >> 8);
 		int g = (((i >> 4) & 0xf) << 4) | ((i >> 4) & 0x0f);
 		int b = ((i & 0xf) << 4) | (i & 0x0f);
-		r = gamma[r + j][0];
-		g = gamma[g + j][1];
-		b = gamma[b + j][2];
+
+		if (!gfx_hdr && currprefs.gfx_blackerthanblack) {
+			r = (r * (255 - 8) / 255) + 8;
+			g = (g * (255 - 8) / 255) + 8;
+			b = (b * (255 - 8) / 255) + 8;
+		}
+		r = _gamma[r + j][0];
+		g = _gamma[g + j][1];
+		b = _gamma[b + j][2];
 		xcolors[i] = doMask(r, rw, rs) | doMask(g, gw, gs) | doMask(b, bw, bs) | doAlpha(alpha, aw, as);
 		if (byte_swap) {
 			if (bpp <= 16) {
@@ -405,6 +420,11 @@ void alloc_colors64k(int monid, int rw, int gw, int bw, int rs, int gs, int bs, 
 			xcolors[i] |= xcolors[i] * 0x00010001;
 		}
 	}
+	fullblack = 0;
+	if (gfx_hdr) {
+		fullblack = doAlpha(1, aw, as);
+	}
+
 #if defined(AGA) || defined(GFXFILTER)
 	alloc_colors_rgb (rw, gw, bw, rs, gs, bs, aw, as, alpha, byte_swap, xredcolors, xgreencolors, xbluecolors);
 	/* copy original color table */
@@ -424,9 +444,9 @@ void alloc_colors64k(int monid, int rw, int gw, int bw, int rs, int gs, int bs, 
 		/* create internal 5:6:5 color tables */
 		for (i = 0; i < 256; i++) {
 			j = i + 256;
-			xredcolors[i] = doColor (gamma[j][0], 5, 11);
-			xgreencolors[i] = doColor (gamma[j][1], 6, 5);
-			xbluecolors[i] = doColor (gamma[j][2], 5, 0);
+			xredcolors[i] = doColor (_gamma[j][0], 5, 11);
+			xgreencolors[i] = doColor (_gamma[j][1], 6, 5);
+			xbluecolors[i] = doColor (_gamma[j][2], 5, 0);
 			if (bpp <= 16) {
 				/* Fill upper 16 bits of each colour value with
 				* a copy of the colour. */
@@ -439,9 +459,16 @@ void alloc_colors64k(int monid, int rw, int gw, int bw, int rs, int gs, int bs, 
 			int r = ((i >> 8) << 4) | (i >> 8);
 			int g = (((i >> 4) & 0xf) << 4) | ((i >> 4) & 0x0f);
 			int b = ((i & 0xf) << 4) | (i & 0x0f);
-			r = gamma[r + 256][0];
-			g = gamma[g + 256][1];
-			b = gamma[b + 256][2];
+			r = _gamma[r + 256][0];
+			g = _gamma[g + 256][1];
+			b = _gamma[b + 256][2];
+
+			if (currprefs.gfx_blackerthanblack) {
+				r = (r * (255 - 8) / 255) + 8;
+				g = (g * (255 - 8) / 255) + 8;
+				b = (b * (255 - 8) / 255) + 8;
+			}
+
 			xcolors[i] = doMask(r, 5, 11) | doMask(g, 6, 5) | doMask(b, 5, 0);
 			if (byte_swap) {
 				if (bpp <= 16)
@@ -460,11 +487,11 @@ void alloc_colors64k(int monid, int rw, int gw, int bw, int rs, int gs, int bs, 
 		for (i = 0; i < 65536; i++) {
 			uae_u32 r, g, b;
 			r = (((i >> 11) & 31) << 3) | lowbits (i, 11, 3);
-			r = gamma[r + 256][0];
+			r = _gamma[r + 256][0];
 			g = (((i >>  5) & 63) << 2) | lowbits (i,  5, 2);
-			g = gamma[g + 256][1];
+			g = _gamma[g + 256][1];
 			b = (((i >>  0) & 31) << 3) | lowbits (i,  0, 3);
-			b = gamma[b + 256][2];
+			b = _gamma[b + 256][2];
 			tyhrgb[i] = get_yh(monid, r, g, b) * 256 * 256;
 			tylrgb[i] = get_yl(monid, r, g, b) * 256 * 256;
 			tcbrgb[i] = ((uae_s8)get_cb(monid, r, g, b)) * 256;
@@ -480,7 +507,7 @@ void alloc_colors64k(int monid, int rw, int gw, int bw, int rs, int gs, int bs, 
 	xredcolor_s = rs;
 	xgreencolor_s = gs;
 	xbluecolor_s = bs;
-	xredcolor_m = ((1 << rw) - 1) << xredcolor_s;
-	xgreencolor_m = ((1 << gw) - 1) << xgreencolor_s;
-	xbluecolor_m = ((1 << bw) - 1) << xbluecolor_s;
+	xredcolor_m = (1 << rw) - 1;
+	xgreencolor_m = (1 << gw) - 1;
+	xbluecolor_m = (1 << bw) - 1;
 }

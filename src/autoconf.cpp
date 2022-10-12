@@ -25,6 +25,7 @@
 #include "native2amiga.h"
 #include "inputdevice.h"
 #include "uae/ppc.h"
+#include "devices.h"
 
 /* Commonly used autoconfig strings */
 
@@ -82,7 +83,7 @@ static bool istrapwait(void)
 	return false;
 }
 
-bool rethink_traps(void)
+static bool rethink_traps2(void)
 {
 	if (currprefs.uaeboard < 2)
 		return false;
@@ -95,6 +96,12 @@ bool rethink_traps(void)
 		return false;
 	}
 }
+
+static void rethink_traps(void)
+{
+	rethink_traps2();
+}
+
 
 #define RTAREA_WRITEOFFSET 0xfff0
 
@@ -192,7 +199,7 @@ static uae_u32 REGPARAM2 rtarea_bget (uaecptr addr)
 	} else if (addr == RTAREA_INTREQ + 1) {
 		rtarea_bank.baseaddr[addr] = hwtrap_waiting != 0;
 	} else if (addr == RTAREA_INTREQ + 2) {
-		if (rethink_traps()) {
+		if (rethink_traps2()) {
 			rtarea_bank.baseaddr[addr] = 1;
 		} else {
 			rtarea_bank.baseaddr[addr] = 0;
@@ -380,16 +387,16 @@ uae_u8 dbg (uaecptr addr)
 * backward.  store pointer at current address
 */
 
-uae_u32 ds_ansi (const uae_char *str)
+uae_u32 ds_ansi(const uae_char *str)
 {
 	int len;
 
 	if (!str)
-		return addr (rt_straddr);
-	len = strlen (str) + 1;
+		return addr(rt_straddr);
+	len = uaestrlen(str) + 1;
 	rt_straddr -= len;
-	strcpy ((uae_char*)rtarea_bank.baseaddr + rt_straddr, str);
-	return addr (rt_straddr);
+	strcpy((uae_char*)rtarea_bank.baseaddr + rt_straddr, str);
+	return addr(rt_straddr);
 }
 
 uae_u32 ds (const TCHAR *str)
@@ -411,7 +418,7 @@ uae_u32 ds_bstr_ansi (const uae_char *str)
 {
 	int len;
  
-	len = strlen (str) + 2;
+	len = uaestrlen(str) + 2;
 	rt_straddr -= len;
 	while (rt_straddr & 3)
 		rt_straddr--;
@@ -487,7 +494,7 @@ uae_u32 boot_rom_copy(TrapContext *ctx, uaecptr rombase, int mode)
 	} else {
 		rtarea_write_enabled = false;
 		protect_roms(true);
-		write_log(_T("ROMBASE changed (%d)\n"), absolute_rom_address);
+		write_log(_T("ROMBASE changed.\n"), absolute_rom_address);
 		reloc = 1;
 	}
 	return reloc;
@@ -642,6 +649,10 @@ void rtarea_init(void)
 
 	org (RTAREA_TRAPS | rtarea_base);
 	init_extended_traps ();
+
+	if (currprefs.uaeboard >= 2) {
+		device_add_rethink(rethink_traps);
+	}
 }
 
 volatile uae_atomic uae_int_requested = 0;

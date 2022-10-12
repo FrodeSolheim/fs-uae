@@ -15,7 +15,7 @@
 #include "blkdev.h"
 #include "zfile.h"
 #include "debug.h"
-#include "memory.h"
+#include "uae/memory.h"
 #include "scsi.h"
 #include "autoconf.h"
 #include "rommgr.h"
@@ -23,7 +23,6 @@
 #include "custom.h"
 #include "gayle.h"
 #include "cia.h"
-#include "x86.h"
 #include "devices.h"
 #include "flashrom.h"
 #include "gui.h"
@@ -77,7 +76,11 @@
 #define NCR5380_12GAUGE 41
 #define NCR5380_OVERDRIVE 42
 #define NCR5380_TRUMPCARD 43
-#define NCR_LAST 44
+#define OMTI_ALF2 44
+#define NCR5380_SYNTHESIS 45 // clone of ICD AdSCSI
+#define NCR5380_FIREBALL 46
+#define OMTI_HD20 47
+#define NCR_LAST 48
 
 extern int log_scsiemu;
 
@@ -164,7 +167,7 @@ bool scsi_emulate_analyze (struct scsi_data *sd)
 		}
 	break;
 	case 0x06: // FORMAT TRACK
-	case 0x07: // FORMAT BAD TRACK 
+	case 0x07: // FORMAT BAD TRACK
 		if (sd->device_type == UAEDEV_CD)
 			goto nocmd;
 		sd->direction = 0;
@@ -817,6 +820,7 @@ struct soft_scsi
 	uae_u8 scratch_400[64];
 	int c400_count;
 	bool c400;
+	bool dp8490v;
 	uae_u8 aic_reg;
 	struct raw_scsi rscsi;
 	bool irq;
@@ -842,6 +846,7 @@ struct soft_scsi
 	bool dma_controller;
 	bool dma_drq;
 	bool dma_autodack;
+	uae_u32 dma_mask;
 	struct romconfig *rc;
 	struct soft_scsi **self_ptr;
 
@@ -936,14 +941,6 @@ static struct soft_scsi *allocscsi(struct soft_scsi **ncr, struct romconfig *rc,
 	return *ncr;
 }
 
-static struct soft_scsi *getscsi(struct romconfig *rc)
-{
-	if (rc->unitdata)
-		return (struct soft_scsi*)rc->unitdata;
-	return NULL;
-}
-
-
 static struct soft_scsi *getscsiboard(uaecptr addr)
 {
 	for (int i = 0; soft_scsi_devices[i]; i++) {
@@ -989,6 +986,7 @@ static struct soft_scsi *generic_soft_scsi_add(int ch, struct uaedev_config_info
 	ss->bank = &soft_bank_generic;
 	ss->subtype = rc->subtype;
 	ss->intena = false;
+	ss->dma_mask = 0xffffffff;
 	if (boardsize > 0) {
 		ss->board_size = boardsize;
 		ss->board_mask = ss->board_size - 1;
@@ -1013,7 +1011,7 @@ static struct soft_scsi *generic_soft_scsi_add(int ch, struct uaedev_config_info
 		const uae_u8 *ac = NULL;
 		if (ert->subtypes)
 			ac = ert->subtypes[rc->subtype].autoconfig;
-		else 
+		else
 			ac = ert->autoconfig;
 		if (ac[0]) {
 			for (int i = 0; i < 16; i++) {
@@ -1086,26 +1084,26 @@ static void raw_scsi_set_signal_phase(struct raw_scsi *rs, bool busy, bool selec
 		if (busy && !select && !rs->databusoutput) {
 			if (countbits(rs->data_write) != 1) {
 #if RAW_SCSI_DEBUG
-				write_log(_T("raw_scsi: invalid arbitration scsi id mask! (%02x)\n"), rs->data_write);
+				write_log(_T("raw_scsi: invalid arbitration scsi id mask! (%02x) %08x\n"), rs->data_write, M68K_GETPC);
 #endif
 				return;
 			}
 			rs->bus_phase = SCSI_SIGNAL_PHASE_ARBIT;
 			rs->initiator_id = getbit(rs->data_write);
 #if RAW_SCSI_DEBUG
-			write_log(_T("raw_scsi: arbitration initiator id %d (%02x)\n"), rs->initiator_id, rs->data_write);
+			write_log(_T("raw_scsi: arbitration initiator id %d (%02x) %08x\n"), rs->initiator_id, rs->data_write, M68K_GETPC);
 #endif
 		} else if (!busy && select) {
 			if (countbits(rs->data_write) > 2 || rs->data_write == 0) {
 #if RAW_SCSI_DEBUG
-				write_log(_T("raw_scsi: invalid scsi id selected mask (%02x)\n"), rs->data_write);
+				write_log(_T("raw_scsi: invalid scsi id selected mask (%02x) %08x\n"), rs->data_write, M68K_GETPC);
 #endif
 				return;
 			}
 			rs->initiator_id = -1;
 			rs->bus_phase = SCSI_SIGNAL_PHASE_SELECT_1;
 #if RAW_SCSI_DEBUG
-			write_log(_T("raw_scsi: selected scsi id mask (%02x)\n"), rs->data_write);
+			write_log(_T("raw_scsi: selected scsi id mask (%02x) %08x\n"), rs->data_write, M68K_GETPC);
 #endif
 			raw_scsi_set_signal_phase(rs, busy, select, atn);
 		}
@@ -1129,7 +1127,7 @@ static void raw_scsi_set_signal_phase(struct raw_scsi *rs, bool busy, bool selec
 					rs->target_id = i;
 					rs->target = rs->device[rs->target_id];
 #if RAW_SCSI_DEBUG
-					write_log(_T("raw_scsi: selected id %d\n"), rs->target_id);
+					write_log(_T("raw_scsi: selected id %d %08x\n"), rs->target_id, M68K_GETPC);
 #endif
 					rs->io |= SCSI_IO_BUSY;
 				}
@@ -1140,7 +1138,7 @@ static void raw_scsi_set_signal_phase(struct raw_scsi *rs, bool busy, bool selec
 					if (i == rs->initiator_id)
 						continue;
 					if ((rs->data_write & (1 << i)) && !rs->device[i]) {
-						write_log(_T("raw_scsi: selected non-existing id %d\n"), i);
+						write_log(_T("raw_scsi: selected non-existing id %d %08x\n"), i, M68K_GETPC);
 					}
 				}
 			}
@@ -1186,14 +1184,14 @@ static uae_u8 raw_scsi_get_data_2(struct raw_scsi *rs, bool next, bool nodebug)
 		break;
 		case SCSI_SIGNAL_PHASE_ARBIT:
 #if RAW_SCSI_DEBUG
-		write_log(_T("raw_scsi: arbitration\n"));
+		write_log(_T("raw_scsi: arbitration %08x\n"), M68K_GETPC);
 #endif
 		v = rs->data_write;
 		break;
 		case SCSI_SIGNAL_PHASE_DATA_IN:
 #if RAW_SCSI_DEBUG > 2
 		scsi_receive_data(sd, &v, false);
-		write_log(_T("raw_scsi: read data byte %02x (%d/%d)\n"), v, sd->offset, sd->data_len);
+		write_log(_T("raw_scsi: read data byte %02x (%d/%d) %08x\n"), v, sd->offset, sd->data_len, M68K_GETPC);
 #endif
 		if (scsi_receive_data(sd, &v, next)) {
 #if RAW_SCSI_DEBUG
@@ -1205,7 +1203,7 @@ static uae_u8 raw_scsi_get_data_2(struct raw_scsi *rs, bool next, bool nodebug)
 		case SCSI_SIGNAL_PHASE_STATUS:
 #if RAW_SCSI_DEBUG
 		if (!nodebug || next)
-			write_log(_T("raw_scsi: status byte read %02x. Next=%d\n"), sd->status, next);
+			write_log(_T("raw_scsi: status byte read %02x. Next=%d PC=%08x\n"), sd->status, next, M68K_GETPC);
 #endif
 		v = sd->status;
 		if (next) {
@@ -1216,7 +1214,7 @@ static uae_u8 raw_scsi_get_data_2(struct raw_scsi *rs, bool next, bool nodebug)
 		case SCSI_SIGNAL_PHASE_MESSAGE_IN:
 #if RAW_SCSI_DEBUG
 		if (!nodebug || next)
-			write_log(_T("raw_scsi: message byte read %02x. Next=%d\n"), sd->status, next);
+			write_log(_T("raw_scsi: message byte read %02x. Next=%d PC=%08x\n"), sd->status, next, M68K_GETPC);
 #endif
 		v = sd->status;
 		rs->status = v;
@@ -1226,7 +1224,7 @@ static uae_u8 raw_scsi_get_data_2(struct raw_scsi *rs, bool next, bool nodebug)
 		break;
 		default:
 #if RAW_SCSI_DEBUG
-		write_log(_T("raw_scsi_get_data but bus phase is %d!\n"), rs->bus_phase);
+		write_log(_T("raw_scsi_get_data but bus phase is %d %08x!\n"), rs->bus_phase, M68K_GETPC);
 #endif
 		break;
 	}
@@ -1267,7 +1265,7 @@ static void raw_scsi_write_data(struct raw_scsi *rs, uae_u8 data)
 		sd->cmd[sd->offset++] = data;
 		len = scsicmdsizes[sd->cmd[0] >> 5];
 #if RAW_SCSI_DEBUG > 1
-		write_log(_T("raw_scsi: got command byte %02x (%d/%d)\n"), data, sd->offset, len);
+		write_log(_T("raw_scsi: got command byte %02x (%d/%d) %08x\n"), data, sd->offset, len, M68K_GETPC);
 #endif
 		if (sd->offset >= len) {
 			if (rs->msglun >= 0) {
@@ -1305,7 +1303,7 @@ static void raw_scsi_write_data(struct raw_scsi *rs, uae_u8 data)
 		break;
 		case SCSI_SIGNAL_PHASE_DATA_OUT:
 #if RAW_SCSI_DEBUG > 2
-		write_log(_T("raw_scsi: write data byte %02x (%d/%d)\n"), data, sd->offset, sd->data_len);
+		write_log(_T("raw_scsi: write data byte %02x (%d/%d) %08x\n"), data, sd->offset, sd->data_len, M68K_GETPC);
 #endif
 		if (scsi_send_data(sd, data)) {
 #if RAW_SCSI_DEBUG
@@ -1319,7 +1317,7 @@ static void raw_scsi_write_data(struct raw_scsi *rs, uae_u8 data)
 		sd->msgout[sd->offset++] = data;
 		len = getmsglen(sd->msgout, sd->offset);
 #if RAW_SCSI_DEBUG
-		write_log(_T("raw_scsi_put_data got message %02x (%d/%d)\n"), data, sd->offset, len);
+		write_log(_T("raw_scsi_put_data got message %02x (%d/%d) %08x\n"), data, sd->offset, len, M68K_GETPC);
 #endif
 		if (sd->offset >= len) {
 #if RAW_SCSI_DEBUG
@@ -1451,9 +1449,9 @@ static void supra_do_dma(struct soft_scsi *ncr)
 	int len = ncr->dmac_length;
 	for (int i = 0; i < len; i++) {
 		if (ncr->dmac_direction < 0) {
-			x_put_byte(ncr->dmac_address, ncr5380_bget(ncr, 0));
+			dma_put_byte(ncr->dmac_address & ncr->dma_mask, ncr5380_bget(ncr, 0));
 		} else if (ncr->dmac_direction > 0) {
-			ncr5380_bput(ncr, 0, x_get_byte(ncr->dmac_address));
+			ncr5380_bput(ncr, 0, dma_get_byte(ncr->dmac_address & ncr->dma_mask));
 		}
 		ncr->dmac_length--;
 		ncr->dmac_address++;
@@ -1472,9 +1470,9 @@ static void hardframe_do_dma(struct soft_scsi *ncr)
 			uae_u8 v = aic_bget_dma(ncr, &phaseerr);
 			if (phaseerr)
 				break;
-			x_put_byte(ncr->dmac_address, v);
+			dma_put_byte(ncr->dmac_address & ncr->dma_mask, v);
 		} else if (ncr->dmac_direction > 0) {
-			uae_u8 v = x_get_byte(ncr->dmac_address);
+			uae_u8 v = dma_get_byte(ncr->dmac_address & ncr->dma_mask);
 			aic_bput_dma(ncr, v, &phaseerr);
 			if (phaseerr)
 				break;
@@ -1489,9 +1487,9 @@ static void xebec_do_dma(struct soft_scsi *ncr)
 	struct raw_scsi *rs = &ncr->rscsi;
 	while (rs->bus_phase == SCSI_SIGNAL_PHASE_DATA_OUT || rs->bus_phase == SCSI_SIGNAL_PHASE_DATA_IN) {
 		if (rs->bus_phase == SCSI_SIGNAL_PHASE_DATA_IN) {
-			x_put_byte(ncr->dmac_address, ncr5380_bget(ncr, 8));
+			dma_put_byte(ncr->dmac_address & ncr->dma_mask, ncr5380_bget(ncr, 8));
 		} else if (rs->bus_phase == SCSI_SIGNAL_PHASE_DATA_OUT) {
-			ncr5380_bput(ncr, 8, x_get_byte(ncr->dmac_address));
+			ncr5380_bput(ncr, 8, dma_get_byte(ncr->dmac_address & ncr->dma_mask));
 		}
 	}
 }
@@ -1501,13 +1499,27 @@ static void overdrive_do_dma(struct soft_scsi *ncr)
 	struct raw_scsi *rs = &ncr->rscsi;
 	while ((rs->bus_phase == SCSI_SIGNAL_PHASE_DATA_OUT || rs->bus_phase == SCSI_SIGNAL_PHASE_DATA_IN) && ncr->dmac_length > 0) {
 		if (rs->bus_phase == SCSI_SIGNAL_PHASE_DATA_IN) {
-			x_put_byte(ncr->dmac_address, ncr5380_bget(ncr, 8));
+			dma_put_byte(ncr->dmac_address & ncr->dma_mask, ncr5380_bget(ncr, 8));
 			ncr->dmac_address++;
 			ncr->dmac_length--;
 		} else if (rs->bus_phase == SCSI_SIGNAL_PHASE_DATA_OUT) {
-			ncr5380_bput(ncr, 8, x_get_byte(ncr->dmac_address));
+			ncr5380_bput(ncr, 8, dma_get_byte(ncr->dmac_address & ncr->dma_mask));
 			ncr->dmac_address++;
 			ncr->dmac_length--;
+		}
+	}
+}
+
+static void fireball_do_dma(struct soft_scsi* ncr)
+{
+	struct raw_scsi* rs = &ncr->rscsi;
+	while (rs->bus_phase == SCSI_SIGNAL_PHASE_DATA_OUT || rs->bus_phase == SCSI_SIGNAL_PHASE_DATA_IN) {
+		if (rs->bus_phase == SCSI_SIGNAL_PHASE_DATA_IN) {
+			dma_put_byte(ncr->dmac_address & ncr->dma_mask, ncr5380_bget(ncr, 8));
+			ncr->dmac_address++;
+		} else if (rs->bus_phase == SCSI_SIGNAL_PHASE_DATA_OUT) {
+			ncr5380_bput(ncr, 8, dma_get_byte(ncr->dmac_address & ncr->dma_mask));
+			ncr->dmac_address++;
 		}
 	}
 }
@@ -1529,7 +1541,7 @@ static void dma_check(struct soft_scsi *ncr)
 		}
 
 		if (ncr->type == NCR5380_XEBEC) {
-		
+
 			xebec_do_dma(ncr);
 
 		}
@@ -1546,7 +1558,32 @@ static void dma_check(struct soft_scsi *ncr)
 
 		}
 
+		if (ncr->type == NCR5380_FIREBALL) {
+
+			fireball_do_dma(ncr);
+
+		}
+
 		ncr->dmac_active = 0;
+	}
+}
+
+void x86_doirq(uint8_t irqnum);
+static void ncr80_rethink(void)
+{
+	for (int i = 0; soft_scsi_devices[i]; i++) {
+		struct soft_scsi *s = soft_scsi_devices[i];
+		if (s->irq && s->intena && (
+			(s->c400 && (s->regs_400[0] & 0x10) && !s->c400_count) ||
+			(s->dp8490v && (s->regs[18] & 0x20)) ||
+			(!s->c400 && !s->dp8490v)))
+		{
+			if (soft_scsi_devices[i] == x86_hd_data) {
+				;// x86_doirq(5);
+			} else {
+				safe_interrupt_set(IRQ_SOURCE_SCSI, i, soft_scsi_devices[i]->level6);
+			}
+		}
 	}
 }
 
@@ -1591,7 +1628,7 @@ static uae_u8 aic_bget_reg(struct soft_scsi *scsi)
 	return scsi->aic_reg & 15;
 }
 
-uae_u8 aic_bget_dma(struct soft_scsi *scsi, bool *phaseerr)
+static uae_u8 aic_bget_dma(struct soft_scsi *scsi, bool *phaseerr)
 {
 	struct raw_scsi *r = &scsi->rscsi;
 	if (!scsi->dma_direction)
@@ -1701,7 +1738,7 @@ static void aic_bput_reg(struct soft_scsi *scsi, uae_u8 v)
 	scsi->aic_reg = v & 15;
 }
 
-void aic_bput_dma(struct soft_scsi *scsi, uae_u8 v, bool *phaseerr)
+static void aic_bput_dma(struct soft_scsi *scsi, uae_u8 v, bool *phaseerr)
 {
 	struct raw_scsi *r = &scsi->rscsi;
 	if (!scsi->dma_direction)
@@ -1798,23 +1835,6 @@ static void aic_bput_data(struct soft_scsi *scsi, uae_u8 v)
 
 // NCR 53C80/MISC SCSI-LIKE
 
-void x86_doirq(uint8_t irqnum);
-void ncr80_rethink(void)
-{
-	for (int i = 0; soft_scsi_devices[i]; i++) {
-		struct soft_scsi *s = soft_scsi_devices[i];
-		if (s->irq && s->intena && ((s->c400 && (s->regs_400[0] & 0x10) && !s->c400_count) || !s->c400)) {
-			if (soft_scsi_devices[i] == x86_hd_data) {
-#ifdef WITH_X86
-				;// x86_doirq(5);
-#endif
-			} else {
-				safe_interrupt_set(IRQ_SOURCE_SCSI, i, soft_scsi_devices[i]->level6);
-			}
-		}
-	}
-}
-
 static void ncr5380_set_irq(struct soft_scsi *scsi)
 {
 	if (scsi->irq)
@@ -1862,7 +1882,13 @@ static void ncr5380_reset(struct soft_scsi *scsi, bool busreset)
 {
 	struct raw_scsi *r = &scsi->rscsi;
 
-	memset(scsi->regs, 0, sizeof scsi->regs);
+	if (scsi->dp8490v) {
+		// DP8490V manual says all registers are reset but that can't work
+		// with Fireball driver. It assumes IMR is not reset.
+		memset(scsi->regs, 0, 16);
+	} else {
+		memset(scsi->regs, 0, sizeof scsi->regs);
+	}
 	if (busreset) {
 		raw_scsi_reset_bus(scsi);
 		scsi->regs[1] = 0x80;
@@ -1874,6 +1900,14 @@ uae_u8 ncr5380_bget(struct soft_scsi *scsi, int reg)
 {
 	if (reg > 8)
 		return 0;
+
+	if (scsi->dp8490v) {
+		if ((scsi->regs[1] & 0x40) && reg == 7) {
+			reg = 17;
+		}
+	}
+
+
 	uae_u8 v = scsi->regs[reg];
 	struct raw_scsi *r = &scsi->rscsi;
 	switch(reg)
@@ -1946,6 +1980,26 @@ uae_u8 ncr5380_bget(struct soft_scsi *scsi, int reg)
 		case 7:
 		scsi->irq = false;
 		break;
+
+		case 17: // DP8490V MODE_E
+		{
+			int efr = (scsi->regs[17] >> 1) & 3;
+			if (efr == 3) {
+				v = 0;
+				uae_u8 t = raw_scsi_get_signal_phase(r);
+				// End of DMA -> DMA Phase Mismatch
+				if (scsi->regs[5] & 0x80) {
+					v = 0x10;
+				}
+				// Any Phase Mismatch
+				if (r->bus_phase == (scsi->regs[3] & 7)) {
+					v |= 0x20;
+				}
+				scsi->regs[17] &= ~(3 << 1);
+			}
+		}
+		break;
+
 		case 8: // fake dma port
 		v = raw_scsi_get_data(r, true);
 		ncr5380_check_phase(scsi);
@@ -1959,6 +2013,13 @@ void ncr5380_bput(struct soft_scsi *scsi, int reg, uae_u8 v)
 {
 	if (reg > 8)
 		return;
+
+	if (scsi->dp8490v) {
+		if ((scsi->regs[1] & 0x40) && reg == 7) {
+			reg = 17;
+		}
+	}
+
 	bool dataoutput = (scsi->regs[1] & 1) != 0;
 	struct raw_scsi *r = &scsi->rscsi;
 	uae_u8 old = scsi->regs[reg];
@@ -1997,6 +2058,10 @@ void ncr5380_bput(struct soft_scsi *scsi, int reg, uae_u8 v)
 			}
 			if (v & 0x80) { // RST
 				ncr5380_reset(scsi, true);
+			}
+			if (scsi->dp8490v) {
+				scsi->regs[reg] &= ~0x40;
+				scsi->regs[reg] |= v & 0x40;
 			}
 		}
 		break;
@@ -2044,11 +2109,40 @@ void ncr5380_bput(struct soft_scsi *scsi, int reg, uae_u8 v)
 			scsi->dma_active = true;
 			scsi->dma_started = true;
 			dma_check(scsi);
-		}
 #if NCR5380_DEBUG
-		write_log(_T("DMA initiator recv PC=%08x\n"), M68K_GETPC);
+			write_log(_T("DMA initiator recv PC=%08x\n"), M68K_GETPC);
 #endif
+		}
 		break;
+
+		case 17: // DP8490V MODE_E
+		{
+			int efr = (old >> 1) & 3;
+			if (efr == 3) {
+				scsi->regs[18] = v;
+				scsi->regs[17] &= ~(3 << 1);
+			} else {
+				int efr = (v >> 1) & 3;
+				if (efr == 1) {
+					scsi->irq = false;
+				} else if (efr == 2) {
+					if (scsi->regs[2] & 2) {
+						// start DMA initiator receive
+						scsi->dma_direction = -1;
+						scsi->dma_active = true;
+						scsi->dma_started = true;
+						dma_check(scsi);
+						scsi->dmac_address = 0xffffffff;
+#if NCR5380_DEBUG
+						write_log(_T("DMA8490 initiator recv PC=%08x\n"), M68K_GETPC);
+#endif
+					}
+				}
+			}
+		}
+		break;
+
+
 		case 8: // fake dma port
 		if (r->bus_phase == (scsi->regs[3] & 7)) {
 			raw_scsi_put_data(r, v, true);
@@ -2492,7 +2586,7 @@ static int xebec_reg(struct soft_scsi *ncr, uaecptr addr)
 		return -1;
 	}
 	if ((addr & 0x180000) == 0x100000) {
-		
+
 		ncr->dmac_active = 1;
 
 	} else if ((addr & 0x180000) == 0x180000) {
@@ -2541,6 +2635,18 @@ static int alf1_reg(struct soft_scsi *ncr, uaecptr addr, bool write)
 {
 	if ((addr & 0x7ff9) != 0x0641)
 		return -1;
+	addr >>= 1;
+	addr &= 3;
+	return addr;
+}
+
+static int alf2_reg(struct soft_scsi *ncr, uaecptr addr, bool write)
+{
+	if (!(addr & 0x10000))
+		return -1;
+	addr &= 0xffff;
+	if ((addr & 0x7ff9) != 0x0641)
+		return -2;
 	addr >>= 1;
 	addr &= 3;
 	return addr;
@@ -2754,6 +2860,13 @@ static int overdrive_reg(struct soft_scsi *ncr, uaecptr addr)
 	if ((addr & 0x7000) == 0x6000)
 		return 8;
 	return -1;
+}
+
+static int fireball_reg(struct soft_scsi* ncr, uaecptr addr)
+{
+	if ((addr & 0xc000) != 0x4000)
+		return -1;
+	return (addr >> 1) & 7;
 }
 
 static uae_u8 read_684xx_dma(struct soft_scsi *ncr, uaecptr addr)
@@ -3208,7 +3321,8 @@ static uae_u32 ncr80_bget2(struct soft_scsi *ncr, uaecptr addr, int size)
 			v = ncr->rom[addr];
 		}
 
-	} else if (ncr->type == NCR5380_ADSCSI) {
+	} else if (ncr->type == NCR5380_ADSCSI || ncr->type == NCR5380_SYNTHESIS) {
+
 
 		struct raw_scsi *rs = &ncr->rscsi;
 		if (ncr->configured)
@@ -3336,6 +3450,15 @@ static uae_u32 ncr80_bget2(struct soft_scsi *ncr, uaecptr addr, int size)
 		if (reg >= 0)
 			v = omti_bget(ncr, reg);
 
+	} else if (ncr->type == OMTI_ALF2 || ncr->type == OMTI_HD20) {
+
+		reg = alf2_reg(ncr, origaddr, false);
+		if (reg >= 0) {
+			v = omti_bget(ncr, reg);
+		} else if (reg == -1) {
+			v = ncr->rom[addr & 32767];
+		}
+
 	} else if (ncr->type == OMTI_PROMIGOS) {
 
 		reg = promigos_reg(ncr, addr, size, false);
@@ -3348,7 +3471,7 @@ static uae_u32 ncr80_bget2(struct soft_scsi *ncr, uaecptr addr, int size)
 		if (reg >= 0) {
 			v = omti_bget(ncr, reg);
 		}
-		
+
 	} else if (ncr->type == OMTI_SYSTEM2000) {
 
 		reg = system2000_reg(ncr, addr, size, false);
@@ -3478,10 +3601,21 @@ static uae_u32 ncr80_bget2(struct soft_scsi *ncr, uaecptr addr, int size)
 			v = ncr->rom[addr & 0x3fff];
 		}
 
+	} else if (ncr->type == NCR5380_FIREBALL) {
+
+		reg = fireball_reg(ncr, addr);
+		if (reg >= 0) {
+			v = ncr5380_bget(ncr, reg);
+		} else if ((addr & 0xc000) == 0xc000) {
+			v = ncr->rom[addr & 0x3fff];
+		} else if (addr < 128) {
+			v = ncr->acmemory[addr];
+		}
+
 	}
 
 #if NCR5380_DEBUG > 1
-	if (0 || origaddr < 0x8000)
+	if (0 || (origaddr & 0xffff) <= 0x8100)
 		write_log(_T("GET %08x %02x %d %08x %d\n"), origaddr, v, reg, M68K_GETPC, regs.intmask);
 #endif
 
@@ -3530,7 +3664,7 @@ static void ncr80_bput2(struct soft_scsi *ncr, uaecptr addr, uae_u32 val, int si
 		}
 
 	} else if (ncr->type == NONCR_HARDFRAME) {
-		
+
 		if (addr == 0xc0) {
 			aic_bput_reg(ncr, val);
 		} else if (addr == 0xc2) {
@@ -3542,7 +3676,7 @@ static void ncr80_bput2(struct soft_scsi *ncr, uaecptr addr, uae_u32 val, int si
 		}
 
 	} else if (ncr->type == NONCR_INMATE) {
-		
+
 		if (addr == 0x80) {
 			aic_bput_reg(ncr, val);
 		} else if (addr == 0x82) {
@@ -3674,7 +3808,7 @@ static void ncr80_bput2(struct soft_scsi *ncr, uaecptr addr, uae_u32 val, int si
 			}
 		}
 
-	} else if (ncr->type == NCR5380_ADSCSI) {
+	} else if (ncr->type == NCR5380_ADSCSI || ncr->type == NCR5380_SYNTHESIS) {
 
 		if (ncr->configured)
 			reg = adscsi_reg(ncr, addr, true);
@@ -3785,6 +3919,12 @@ static void ncr80_bput2(struct soft_scsi *ncr, uaecptr addr, uae_u32 val, int si
 		if (reg >= 0)
 			omti_bput(ncr, reg, val);
 
+	} else if (ncr->type == OMTI_ALF2 || ncr->type == OMTI_HD20) {
+
+		reg = alf2_reg(ncr, origaddr, true);
+		if (reg >= 0)
+			omti_bput(ncr, reg, val);
+
 	} else if (ncr->type == OMTI_PROMIGOS) {
 
 		reg = promigos_reg(ncr, addr, size, true);
@@ -3889,10 +4029,60 @@ static void ncr80_bput2(struct soft_scsi *ncr, uaecptr addr, uae_u32 val, int si
 			else
 				ncr5380_bput(ncr, reg, val);
 		}
+
+	} else if (ncr->type == NCR5380_FIREBALL) {
+
+		if ((addr & 0xc000) == 0x8000) {
+			// this is strange way to set up DMA address..
+			if (val & 0x40) {
+				ncr->dmac_address = 0x00777777;
+				ncr->dmac_length = 1;
+				ncr->dmac_active = 1;
+			} else if (ncr->dmac_length == 1) {
+				ncr->dmac_length++;
+				return;
+			}
+			if (!(val & 0xc0) && ncr->dmac_length > 1 && ncr->dmac_length <= 9 && !(addr & 2)) {
+				// nybbles, value 0 to 6
+				for (int i = 0; i < 6; i++) {
+					int shift = i * 4;
+					int bm = 1 << i;
+					if (!(val & bm)) {
+						uae_u8 n = (ncr->dmac_length - 2) & 0x0f;
+						uae_u8 v = (ncr->dmac_address >> shift) & 0x0f;
+						if (v > n)
+							v = n;
+						ncr->dmac_address &= ~(0x0f << shift);
+						ncr->dmac_address |= (v & 0x0f) << shift;
+					}
+				}
+				ncr->dmac_length++;
+			}
+			if (ncr->dmac_length > 9 && !(val & 0xc0) && !(addr & 2)) {
+				// nybbles, value 8 to 15..
+				for (int i = 0; i < 6; i++) {
+					int bm = 1 << i;
+					if (val & bm) {
+						int shift = i * 4;
+						uae_u8 v = (ncr->dmac_address >> shift) & 0x0f;
+						v++;
+						ncr->dmac_address &= ~(0x0f << shift);
+						ncr->dmac_address |= (v & 0x0f) << shift;
+					}
+				}
+			}
+			ncr->dmac_direction = (val & 0x80) != 0;
+		} else {
+			reg = fireball_reg(ncr, addr);
+			if (reg >= 0) {
+				ncr5380_bput(ncr, reg, val);
+			}
+		}
+
 	}
 
 #if NCR5380_DEBUG > 1
-	if (origaddr < 0x8000)
+	if ((origaddr & 0xffff) <= 0x8100)
 		write_log(_T("PUT %08x %02x %d %08x %d\n"), origaddr, val, reg, M68K_GETPC, regs.intmask);
 #endif
 }
@@ -3973,7 +4163,6 @@ static uae_u32 REGPARAM2 ncr80_bget(struct soft_scsi *ncr, uaecptr addr)
 {
 	bool iaa = isautoconfigaddr(addr);
 	uae_u32 v;
-	addr &= ncr->board_mask;
 	if (!ncr->configured && iaa) {
 		addr &= 65535;
 		if (addr >= sizeof ncr->acmemory)
@@ -4007,7 +4196,6 @@ static void REGPARAM2 ncr80_bput(struct soft_scsi *ncr, uaecptr addr, uae_u32 b)
 {
 	bool iaa = isautoconfigaddr(addr);
 	b &= 0xff;
-	addr &= ncr->board_mask;
 	if (!ncr->configured && iaa) {
 		addr &= 65535;
 		switch (addr)
@@ -4115,7 +4303,7 @@ uae_u32 soft_scsi_get(uaecptr addr, int size)
 	return v;
 }
 
-void soft_scsi_free(void)
+static void soft_scsi_free(void)
 {
 	parallel_port_scsi = false;
 	parallel_port_scsi_data = NULL;
@@ -4126,11 +4314,26 @@ void soft_scsi_free(void)
 	}
 }
 
-void soft_scsi_reset(void)
+static void soft_scsi_reset(int hardreset)
 {
 	for (int i = 0; soft_scsi_devices[i]; i++) {
 		raw_scsi_reset(&soft_scsi_devices[i]->rscsi);
 	}
+}
+
+static struct soft_scsi *getscsi(struct romconfig *rc)
+{
+	device_add_rethink(ncr80_rethink);
+	device_add_reset(soft_scsi_reset);
+	device_add_exit(soft_scsi_free);
+	if (rc->unitdata)
+		return (struct soft_scsi *)rc->unitdata;
+	return NULL;
+}
+
+static void scsi_add_reset(void)
+{
+	device_add_reset(soft_scsi_reset);
 }
 
 /*
@@ -4152,6 +4355,7 @@ bool supra_init(struct autoconfig_info *aci)
 {
 	const struct expansionromtype *ert = get_device_expansion_rom(ROMTYPE_SUPRA);
 	aci->autoconfigp = ert->subtypes[aci->rc->subtype].autoconfig;
+	scsi_add_reset();
 	if (!aci->doinit)
 		return true;
 
@@ -4181,12 +4385,13 @@ void supra_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct romconfig
 
 bool golem_init(struct autoconfig_info *aci)
 {
+	scsi_add_reset();
 	if (!aci->doinit) {
 		load_rom_rc(aci->rc, ROMTYPE_GOLEM, 8192, aci->rc->autoboot_disabled ? 8192 : 0, aci->autoconfig_raw, 128, 0);
 		return true;
 	}
 
-	struct soft_scsi *scsi = getscsi(aci->rc);	
+	struct soft_scsi *scsi = getscsi(aci->rc);
 	if (!scsi)
 		return false;
 
@@ -4208,10 +4413,11 @@ bool stardrive_init(struct autoconfig_info *aci)
 {
 	const struct expansionromtype *ert = get_device_expansion_rom(ROMTYPE_STARDRIVE);
 	aci->autoconfigp = ert->autoconfig;
+	scsi_add_reset();
 	if (!aci->doinit)
 		return true;
 
-	struct soft_scsi *scsi = getscsi(aci->rc);	
+	struct soft_scsi *scsi = getscsi(aci->rc);
 	if (!scsi)
 		return false;
 
@@ -4230,11 +4436,12 @@ void stardrive_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct romco
 
 bool kommos_init(struct autoconfig_info *aci)
 {
+	scsi_add_reset();
 	if (!aci->doinit)
 		return true;
 
 	struct soft_scsi *scsi = getscsi(aci->rc);
-	
+
 	if (!scsi)
 		return false;
 
@@ -4257,6 +4464,7 @@ void kommos_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct romconfi
 
 bool vector_init(struct autoconfig_info *aci)
 {
+	scsi_add_reset();
 	if (!aci->doinit) {
 		load_rom_rc(aci->rc, ROMTYPE_VECTOR, 32768, 0, aci->autoconfig_raw, 128, 0);
 		return true;
@@ -4264,7 +4472,7 @@ bool vector_init(struct autoconfig_info *aci)
 
 	struct soft_scsi *scsi = getscsi(aci->rc);
 	int roms[2];
-	
+
 	if (!scsi)
 		return false;
 
@@ -4289,6 +4497,7 @@ void vector_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct romconfi
 
 bool protar_init(struct autoconfig_info *aci)
 {
+	scsi_add_reset();
 	if (!aci->doinit) {
 		load_rom_rc(aci->rc, ROMTYPE_PROTAR, 32768, 0x200, aci->autoconfig_raw, 128, LOADROM_EVENONLY_ODDONE);
 		return true;
@@ -4311,6 +4520,7 @@ void protar_add_ide_unit(int ch, struct uaedev_config_info *ci, struct romconfig
 
 bool add500_init(struct autoconfig_info *aci)
 {
+	scsi_add_reset();
 	if (!aci->doinit) {
 		load_rom_rc(aci->rc, ROMTYPE_ADD500, 16384, 0, aci->autoconfig_raw, 128, LOADROM_EVENONLY_ODDONE | LOADROM_FILL);
 		return true;
@@ -4340,29 +4550,30 @@ static uae_u8 kronos_eeprom[32] =
 bool kronos_init(struct autoconfig_info *aci)
 {
 	const struct expansionromtype *ert = get_device_expansion_rom(ROMTYPE_KRONOS);
+	scsi_add_reset();
 	aci->autoconfigp = ert->autoconfig;
 	if (!aci->doinit)
 		return true;
 
-	struct soft_scsi *scsi = getscsi(aci->rc);	
+	struct soft_scsi *scsi = getscsi(aci->rc);
 	if (!scsi)
 		return false;
 
 	scsi->databuffer_size = 1024;
 	scsi->databufferptr = xcalloc(uae_u8, scsi->databuffer_size);
 
-	uae_u16 sum = 0, xor_ = 0;
+	uae_u16 sum = 0, xorv = 0;
 	for (int i = 0; i < 16 - 2; i++) {
 		uae_u16 v = (kronos_eeprom[i * 2 + 0] << 8) | (kronos_eeprom[i * 2 + 1]);
 		sum += v;
-		xor_ ^= v;
+		xorv ^= v;
 	}
 	sum = 0 - sum;
 	kronos_eeprom[14 * 2 + 0] = sum >> 8;
 	kronos_eeprom[14 * 2 + 1] = (uae_u8)sum;
-	xor_ ^= sum;
-	kronos_eeprom[15 * 2 + 0] = xor_ >> 8;
-	kronos_eeprom[15 * 2 + 1] = (uae_u8)xor_;
+	xorv ^= sum;
+	kronos_eeprom[15 * 2 + 0] = xorv >> 8;
+	kronos_eeprom[15 * 2 + 1] = (uae_u8)xorv;
 
 	scsi->eeprom = eeprom93xx_new(kronos_eeprom, 16, NULL);
 
@@ -4378,12 +4589,13 @@ void kronos_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct romconfi
 
 bool adscsi_init(struct autoconfig_info *aci)
 {
+	scsi_add_reset();
 	if (!aci->doinit) {
 		load_rom_rc(aci->rc, ROMTYPE_ADSCSI, 32768, 0, aci->autoconfig_raw, 128, LOADROM_EVENONLY_ODDONE | LOADROM_FILL);
 		return true;
 	}
 
-	struct soft_scsi *scsi = getscsi(aci->rc);	
+	struct soft_scsi *scsi = getscsi(aci->rc);
 	if (!scsi)
 		return false;
 
@@ -4398,9 +4610,65 @@ void adscsi_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct romconfi
 	generic_soft_scsi_add(ch, ci, rc, NCR5380_ADSCSI, 65536, 65536, ROMTYPE_ADSCSI);
 }
 
+bool synthesis_init(struct autoconfig_info* aci)
+{
+	scsi_add_reset();
+	if (!aci->doinit) {
+		load_rom_rc(aci->rc, ROMTYPE_SYNTHESIS, 32768, 0, aci->autoconfig_raw, 128, LOADROM_EVENONLY_ODDONE | LOADROM_FILL);
+		return true;
+	}
+
+	struct soft_scsi* scsi = getscsi(aci->rc);
+	if (!scsi)
+		return false;
+
+	load_rom_rc(aci->rc, ROMTYPE_SYNTHESIS, 32768, 0, scsi->rom, 65536, LOADROM_EVENONLY_ODDONE | LOADROM_FILL);
+	memcpy(scsi->acmemory, scsi->rom, sizeof scsi->acmemory);
+	aci->addrbank = scsi->bank;
+	return true;
+}
+
+void synthesis_add_scsi_unit(int ch, struct uaedev_config_info* ci, struct romconfig* rc)
+{
+	generic_soft_scsi_add(ch, ci, rc, NCR5380_SYNTHESIS, 65536, 65536, ROMTYPE_SYNTHESIS);
+}
+
+bool fireball_init(struct autoconfig_info* aci)
+{
+	const struct expansionromtype* ert = get_device_expansion_rom(ROMTYPE_MASTFB);
+	scsi_add_reset();
+	aci->autoconfigp = ert->autoconfig;
+	if (!aci->doinit)
+		return true;
+
+	struct soft_scsi* scsi = getscsi(aci->rc);
+	if (!scsi)
+		return false;
+
+	scsi->dp8490v = true;
+	scsi->intena = true;
+	scsi->dma_controller = true;
+
+	load_rom_rc(aci->rc, ROMTYPE_MASTFB, 8192, 0, scsi->rom, 16384, LOADROM_EVENONLY_ODDONE | LOADROM_FILL);
+
+	for (int i = 0; i < 16; i++) {
+		uae_u8 b = ert->autoconfig[i];
+		ew(scsi, i * 4, b);
+	}
+	aci->addrbank = scsi->bank;
+	return true;
+}
+
+void fireball_add_scsi_unit(int ch, struct uaedev_config_info* ci, struct romconfig* rc)
+{
+	generic_soft_scsi_add(ch, ci, rc, NCR5380_FIREBALL, 65536, 32768, ROMTYPE_MASTFB);
+}
+
+
 bool trumpcardpro_init(struct autoconfig_info *aci)
 {
 	const struct expansionromtype *ert = get_device_expansion_rom(ROMTYPE_IVSTPRO);
+	scsi_add_reset();
 	aci->autoconfigp = ert->autoconfig;
 	if (!aci->doinit)
 		return true;
@@ -4423,12 +4691,13 @@ bool trumpcardpro_init(struct autoconfig_info *aci)
 
 void trumpcardpro_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct romconfig *rc)
 {
-	generic_soft_scsi_add(ch, ci, rc, NCR5380_TRUMPCARDPRO, 65536, 32768, NCR5380_TRUMPCARDPRO);
+	generic_soft_scsi_add(ch, ci, rc, NCR5380_TRUMPCARDPRO, 65536, 32768, ROMTYPE_IVSTPRO);
 }
 
 bool trumpcard_init(struct autoconfig_info *aci)
 {
 	const struct expansionromtype *ert = get_device_expansion_rom(ROMTYPE_IVSTC);
+	scsi_add_reset();
 	aci->autoconfigp = ert->autoconfig;
 	if (!aci->doinit)
 		return true;
@@ -4437,10 +4706,14 @@ bool trumpcard_init(struct autoconfig_info *aci)
 	if (!scsi)
 		return false;
 
-	scsi->intena = true;
-	scsi->dma_autodack = true;
-
 	load_rom_rc(aci->rc, ROMTYPE_IVSTC, 16384, 0, scsi->rom, 32768, LOADROM_EVENONLY_ODDONE | LOADROM_FILL);
+	if (aci->rc->device_settings & 1) {
+		scsi->intena = true;
+		scsi->dma_autodack = true;
+	} else {
+		scsi->intena = false;
+		scsi->dma_autodack = false;
+	}
 
 	for (int i = 0; i < 16; i++) {
 		uae_u8 b = ert->autoconfig[i];
@@ -4483,6 +4756,7 @@ void idescsi_scsi_put(uaecptr addr, uae_u8 v)
 bool cltda1000scsi_init(struct autoconfig_info *aci)
 {
 	const struct expansionromtype *ert = get_device_expansion_rom(ROMTYPE_CLTDSCSI);
+	scsi_add_reset();
 	aci->autoconfigp = ert->autoconfig;
 	if (!aci->doinit)
 		return true;
@@ -4511,6 +4785,7 @@ void cltda1000scsi_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct r
 bool ptnexus_init(struct autoconfig_info *aci)
 {
 	const struct expansionromtype *ert = get_device_expansion_rom(ROMTYPE_PTNEXUS);
+	scsi_add_reset();
 	if (!aci->doinit) {
 		aci->autoconfigp = ert->autoconfig;
 		return true;
@@ -4539,6 +4814,7 @@ void ptnexus_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct romconf
 
 bool dataflyer_init(struct autoconfig_info *aci)
 {
+	scsi_add_reset();
 	if (!aci->doinit)
 		return true;
 
@@ -4615,6 +4891,7 @@ bool tecmar_init(struct autoconfig_info *aci)
 {
 	static const uae_u8 ac[16] = { 0x40, 0x00, 0, 0, 1001 >> 8, (uae_u8)1001 };
 
+	scsi_add_reset();
 	aci->hardwired = true;
 	if (!aci->doinit) {
 		aci->zorro = 1;
@@ -4657,6 +4934,7 @@ bool microforge_init(struct autoconfig_info *aci)
 	aci->start = 0xef0000;
 	aci->size = 0x10000;
 	aci->zorro = 0;
+	scsi_add_reset();
 	if (!aci->doinit)
 		return true;
 
@@ -4680,6 +4958,7 @@ bool xebec_init(struct autoconfig_info *aci)
 {
 	aci->start = 0x600000;
 	aci->size = 0x800000 - aci->start;
+	scsi_add_reset();
 	if (!aci->doinit)
 		return true;
 
@@ -4707,6 +4986,7 @@ void xebec_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct romconfig
 
 bool paradox_init(struct autoconfig_info *aci)
 {
+	scsi_add_reset();
 	if (!aci->doinit)
 		return true;
 
@@ -4730,6 +5010,7 @@ bool hda506_init(struct autoconfig_info *aci)
 {
 	const struct expansionromtype *ert = get_device_expansion_rom(ROMTYPE_HDA506);
 
+	scsi_add_reset();
 	if (!aci->doinit) {
 		aci->autoconfigp = ert->autoconfig;
 		return true;
@@ -4758,6 +5039,7 @@ bool alf1_init(struct autoconfig_info *aci)
 {
 	aci->start = 0xef0000;
 	aci->size = 0x10000;
+	scsi_add_reset();
 	if (!aci->doinit)
 		return true;
 
@@ -4777,10 +5059,73 @@ void alf1_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct romconfig 
 	generic_soft_scsi_add(ch, ci, rc, OMTI_ALF1, 65536, 0, ROMTYPE_ALF1);
 }
 
+bool alf2_init(struct autoconfig_info *aci)
+{
+	aci->start = 0xef0000;
+	aci->size = 0x20000;
+	scsi_add_reset();
+	if (!aci->doinit)
+		return true;
+
+	struct soft_scsi *scsi = getscsi(aci->rc);
+	if (!scsi)
+		return false;
+
+	load_rom_rc(aci->rc, ROMTYPE_ALF2, 32768, 32768, scsi->rom, 32768, 0);
+
+	scsi->baseaddress = 0xf00000;
+	scsi->baseaddress2 = 0xef0000;
+	scsi->board_mask = 65535;
+
+	map_banks(scsi->bank, scsi->baseaddress >> 16, 1, 0);
+	map_banks(scsi->bank, scsi->baseaddress2 >> 16, 1, 0);
+
+	scsi->configured = 1;
+	aci->addrbank = scsi->bank;
+	return true;
+}
+
+void alf2_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct romconfig *rc)
+{
+	generic_soft_scsi_add(ch, ci, rc, OMTI_ALF2, 65536, 32768, ROMTYPE_ALF2);
+}
+
+bool hd20_init(struct autoconfig_info *aci)
+{
+	aci->start = 0xf00000;
+	aci->size = 0x10000;
+	scsi_add_reset();
+	if (!aci->doinit)
+		return true;
+
+	struct soft_scsi *scsi = getscsi(aci->rc);
+	if (!scsi)
+		return false;
+
+	load_rom_rc(aci->rc, ROMTYPE_HD20A, 32768, 0, scsi->rom, 32768, 0);
+
+	scsi->baseaddress = 0xf00000;
+	scsi->baseaddress2 = 0x810000;
+	scsi->board_mask = 65535;
+
+	map_banks(scsi->bank, scsi->baseaddress >> 16, 1, 0);
+	map_banks(scsi->bank, scsi->baseaddress2 >> 16, 1, 0);
+
+	scsi->configured = 1;
+	aci->addrbank = scsi->bank;
+	return true;
+}
+
+void hd20_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct romconfig *rc)
+{
+	generic_soft_scsi_add(ch, ci, rc, OMTI_HD20, 65536, 32768, ROMTYPE_HD20A);
+}
+
 bool promigos_init(struct autoconfig_info *aci)
 {
 	aci->start = 0xf40000;
 	aci->size = 0x10000;
+	scsi_add_reset();
 	if (!aci->doinit)
 		return true;
 
@@ -4806,7 +5151,7 @@ bool system2000_init(struct autoconfig_info *aci)
 {
 	aci->start = 0xf00000;
 	aci->size = 0x10000;
-
+	scsi_add_reset();
 	if (!aci->doinit)
 		return true;
 
@@ -4844,7 +5189,7 @@ bool wedge_init(struct autoconfig_info *aci)
 {
 	aci->start = 0xea0000;
 	aci->size = 0x10000;
-
+	scsi_add_reset();
 	if (!aci->doinit)
 		return true;
 
@@ -4879,7 +5224,7 @@ bool omtiadapter_init(struct autoconfig_info *aci)
 {
 	aci->start = 0x8f0000;
 	aci->size = 0x10000;
-
+	scsi_add_reset();
 	if (!aci->doinit)
 		return true;
 
@@ -4895,13 +5240,14 @@ bool omtiadapter_init(struct autoconfig_info *aci)
 	return true;
 }
 
-void omtiadapter_scsi_unit(int ch, struct uaedev_config_info *ci, struct romconfig *rc)
+void omtiadapter_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct romconfig *rc)
 {
 	generic_soft_scsi_add(ch, ci, rc, OMTI_ADAPTER, 65536, 0, ROMTYPE_OMTIADAPTER);
 }
 
 bool phoenixboard_init(struct autoconfig_info *aci)
 {
+	scsi_add_reset();
 	if (!aci->doinit) {
 		load_rom_rc(aci->rc, ROMTYPE_PHOENIXB, 8192, aci->rc->autoboot_disabled ? 0 : 8192, aci->autoconfig_raw, 128, LOADROM_EVENONLY_ODDONE | LOADROM_FILL);
 		return true;
@@ -4933,6 +5279,7 @@ void twelvegauge_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct rom
 bool twelvegauge_init(struct autoconfig_info *aci)
 {
 	const struct expansionromtype *ert = get_device_expansion_rom(ROMTYPE_CB_12GAUGE);
+	scsi_add_reset();
 	if (!aci->doinit) {
 		load_rom_rc(aci->rc, ROMTYPE_CB_12GAUGE, 32768, 0, aci->autoconfig_raw, 128, 0);
 		return true;
@@ -4961,6 +5308,7 @@ void ivsvector_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct romco
 bool ivsvector_init(struct autoconfig_info *aci)
 {
 	const struct expansionromtype *ert = get_device_expansion_rom(ROMTYPE_CB_VECTOR);
+	scsi_add_reset();
 	if (!aci->doinit) {
 		load_rom_rc(aci->rc, ROMTYPE_CB_VECTOR, 65536, 0x300, aci->autoconfig_raw, 128, 0);
 		return true;
@@ -4991,6 +5339,7 @@ bool ivsvector_init(struct autoconfig_info *aci)
 bool scram5380_init(struct autoconfig_info *aci)
 {
 	const struct expansionromtype *ert = get_device_expansion_rom(ROMTYPE_SCRAM5380);
+	scsi_add_reset();
 	if (!aci->doinit) {
 		aci->autoconfigp = ert->autoconfig;
 		return true;
@@ -5019,6 +5368,7 @@ void scram5380_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct romco
 bool ossi_init(struct autoconfig_info *aci)
 {
 	const struct expansionromtype *ert = get_device_expansion_rom(ROMTYPE_OSSI);
+	scsi_add_reset();
 	if (!aci->doinit) {
 		if (!load_rom_rc(aci->rc, ROMTYPE_OSSI, 32768, aci->rc->autoboot_disabled ? 16384 : 0, aci->autoconfig_raw, 128, 0))
 			aci->autoconfigp = ert->autoconfig;
@@ -5062,6 +5412,7 @@ void dataflyerplus_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct r
 
 bool hardframe_init(struct autoconfig_info *aci)
 {
+	scsi_add_reset();
 	if (!aci->doinit) {
 		load_rom_rc(aci->rc, ROMTYPE_HARDFRAME, 32768, aci->rc->autoboot_disabled ? 64 : 0, aci->autoconfig_raw, 128, LOADROM_EVENONLY_ODDONE);
 		return true;
@@ -5086,6 +5437,7 @@ void hardframe_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct romco
 
 bool inmate_init(struct autoconfig_info *aci)
 {
+	scsi_add_reset();
 	if (!aci->doinit) {
 		load_rom_rc(aci->rc, ROMTYPE_INMATE, 32768, 0, aci->autoconfig_raw, 128, LOADROM_EVENONLY_ODDONE);
 		return true;
@@ -5109,6 +5461,7 @@ void inmate_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct romconfi
 bool malibu_init(struct autoconfig_info *aci)
 {
 	const struct expansionromtype *ert = get_device_expansion_rom(ROMTYPE_MALIBU);
+	scsi_add_reset();
 	if (!aci->doinit) {
 		aci->autoconfigp = ert->autoconfig;
 		return true;
@@ -5137,6 +5490,7 @@ void malibu_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct romconfi
 bool addhard_init(struct autoconfig_info *aci)
 {
 	const struct expansionromtype *ert = get_device_expansion_rom(ROMTYPE_ADDHARD);
+	scsi_add_reset();
 	if (!aci->doinit) {
 		aci->autoconfigp = ert->autoconfig;
 		return true;
@@ -5164,6 +5518,7 @@ void addhard_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct romconf
 bool emplant_init(struct autoconfig_info *aci)
 {
 	const struct expansionromtype *ert = get_device_expansion_rom(ROMTYPE_EMPLANT);
+	scsi_add_reset();
 	if (!aci->doinit) {
 		aci->autoconfigp = ert->autoconfig;
 		return true;
@@ -5191,6 +5546,7 @@ bool hd3000_init(struct autoconfig_info *aci)
 {
 	const struct expansionromtype *ert = get_device_expansion_rom(ROMTYPE_GOLEMHD3000);
 
+	scsi_add_reset();
 	if (!aci->doinit) {
 		load_rom_rc(aci->rc, ROMTYPE_GOLEMHD3000, 8192, !aci->rc->autoboot_disabled ? 0 : 8192, aci->autoconfig_raw, 128, 0);
 		return true;
@@ -5213,6 +5569,7 @@ void hd3000_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct romconfi
 
 bool eveshamref_init(struct autoconfig_info *aci)
 {
+	scsi_add_reset();
 	if (!aci->doinit) {
 		load_rom_rc(aci->rc, ROMTYPE_EVESHAMREF, 65536, aci->rc->autoboot_disabled ? 0x1000 : 0, aci->autoconfig_raw, 128, LOADROM_EVENONLY_ODDONE);
 		return true;
@@ -5237,6 +5594,7 @@ bool profex_init(struct autoconfig_info *aci)
 {
 	const struct expansionromtype *ert = get_device_expansion_rom(ROMTYPE_PROFEX);
 
+	scsi_add_reset();
 	if (!aci->doinit) {
 		load_rom_rc(aci->rc, ROMTYPE_PROFEX, 8192, 0, aci->autoconfig_raw, 128, LOADROM_EVENONLY_ODDONE);
 		if (aci->rc->autoboot_disabled)
@@ -5268,6 +5626,7 @@ void profex_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct romconfi
 
 bool fasttrak_init(struct autoconfig_info *aci)
 {
+	scsi_add_reset();
 	if (!aci->doinit) {
 		load_rom_rc(aci->rc, ROMTYPE_FASTTRAK, 65536, aci->rc->autoboot_disabled ? 0x4000 : 0x6000, aci->autoconfig_raw, 128, LOADROM_EVENONLY_ODDONE);
 		return true;
@@ -5291,6 +5650,7 @@ void fasttrak_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct romcon
 bool overdrive_init(struct autoconfig_info *aci)
 {
 	const struct expansionromtype *ert = get_device_expansion_rom(ROMTYPE_OVERDRIVE);
+	scsi_add_reset();
 	if (!aci->doinit) {
 		aci->autoconfigp = ert->autoconfig;
 		return true;
@@ -5320,8 +5680,6 @@ void overdrive_add_scsi_unit(int ch, struct uaedev_config_info *ci, struct romco
 	generic_soft_scsi_add(ch, ci, rc, NCR5380_OVERDRIVE, 65536, 32768, ROMTYPE_OVERDRIVE);
 }
 
-#ifdef WITH_X86
-
 // x86 bridge scsi rancho rt1000
 void x86_rt1000_bput(int portnum, uae_u8 v)
 {
@@ -5346,10 +5704,12 @@ uae_u8 x86_rt1000_bget(int portnum)
 	return v;
 }
 
+extern void x86_rt1000_bios(struct zfile*, struct romconfig *rc);
 bool x86_rt1000_init(struct autoconfig_info *aci)
 {
 	static const int parent[] = { ROMTYPE_A1060, ROMTYPE_A2088, ROMTYPE_A2088T, ROMTYPE_A2286, ROMTYPE_A2386, 0 };
 	aci->parent_romtype = parent;
+	scsi_add_reset();
 	if (!aci->doinit)
 		return true;
 
@@ -5373,5 +5733,3 @@ void x86_rt1000_add_unit(int ch, struct uaedev_config_info *ci, struct romconfig
 {
 	generic_soft_scsi_add(ch, ci, rc, NCR5380_X86_RT1000, 0, 0, ROMTYPE_X86_RT1000);
 }
-
-#endif // WITH_X86

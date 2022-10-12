@@ -40,13 +40,17 @@ using namespace std;
 #define UAE
 #endif
 
-#if defined(__x86_64__) || defined(_M_AMD64)
+#if defined(__arm__) || defined(_M_ARM) || defined(_M_ARM64) || defined(_M_ARM64EC)
+#define CPU_arm 1
+#define ARM_ASSEMBLY 1
+#elif defined(__x86_64__) || defined(_M_AMD64)
 #define CPU_x86_64 1
 #define CPU_64_BIT 1
+#define X86_64_ASSEMBLY 1
 #elif defined(__i386__) || defined(_M_IX86)
 #define CPU_i386 1
-#elif defined(__arm__) || defined(_M_ARM)
-#define CPU_arm 1
+#define X86_ASSEMBLY 1
+#define SAHF_SETO_PROFITABLE
 #elif defined(__powerpc__) || defined(__ppc__) || defined(_M_PPC)
 #define CPU_powerpc 1
 #else
@@ -250,23 +254,11 @@ extern TCHAR *utf8u (const char *s);
 extern void unicode_init (void);
 extern void to_lower (TCHAR *s, int len);
 extern void to_upper (TCHAR *s, int len);
+extern int uaestrlen(const char*);
+extern int uaetcslen(const TCHAR*);
 
-/* We can only rely on GNU C getting enums right. Mickeysoft VSC++ is known
- * to have problems, and it's likely that other compilers choke too. */
-#ifdef __GNUC__
 #define ENUMDECL typedef enum
 #define ENUMNAME(name) name
-
-/* While we're here, make abort more useful.  */
-#define abort() \
-  do { \
-    write_log ("Internal error; file %s, line %d\n", __FILE__, __LINE__); \
-    (abort) (); \
-} while (0)
-#else
-#define ENUMDECL enum
-#define ENUMNAME(name) ; typedef int name
-#endif
 
 /*
  * Porters to weird systems, look! This is the preferred way to get
@@ -443,7 +435,8 @@ extern void mallocemu_free (void *ptr);
 #include "uae/asm.h"
 #else
 #ifdef X86_ASSEMBLY
-#define ASM_SYM_FOR_FUNC(a) __asm__(a)
+//#define ASM_SYM_FOR_FUNC(a) __asm__(a)
+#define ASM_SYM_FOR_FUNC(a)
 #else
 #define ASM_SYM_FOR_FUNC(a)
 #endif
@@ -492,6 +485,7 @@ extern void logging_init (void);
 extern FILE *log_open (const TCHAR *name, int append, int bootlog, TCHAR*);
 extern void log_close (FILE *f);
 extern TCHAR *write_log_get_ts(void);
+extern bool is_console_open(void);
 
 extern bool use_long_double;
 

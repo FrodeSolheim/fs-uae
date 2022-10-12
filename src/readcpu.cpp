@@ -16,39 +16,39 @@ int nr_cpuop_funcs;
 
 struct mnemolookup lookuptab[] = {
 	{ i_ILLG, _T("ILLEGAL"), NULL, 0 },
-	{ i_OR, _T("OR"), NULL, 1 },
+	{ i_OR, _T("OR"), NULL, 1 | MNEMOFLAG_LOOPMODE },
 	{ i_CHK, _T("CHK"), NULL, 0 },
 	{ i_CHK2, _T("CHK2"), NULL, 0 },
-	{ i_AND, _T("AND"), NULL, 1 },
-	{ i_EOR, _T("EOR"), NULL, 1 },
+	{ i_AND, _T("AND"), NULL, 1 | MNEMOFLAG_LOOPMODE },
+	{ i_EOR, _T("EOR"), NULL, 1 | MNEMOFLAG_LOOPMODE },
 	{ i_ORSR, _T("ORSR"), _T("OR"), 0 },
 	{ i_ANDSR, _T("ANDSR"), _T("AND"), 0 },
 	{ i_EORSR, _T("EORSR"), _T("EOR"), 0 },
-	{ i_SUB, _T("SUB"), NULL, 1 },
-	{ i_SUBA, _T("SUBA"), NULL, 1 },
-	{ i_SUBX, _T("SUBX"), NULL, 0 },
-	{ i_SBCD, _T("SBCD"), NULL, 0 },
-	{ i_ADD, _T("ADD"), NULL, 1 },
-	{ i_ADDA, _T("ADDA"), NULL, 1 },
-	{ i_ADDX, _T("ADDX"), NULL, 0 },
-	{ i_ABCD, _T("ABCD"), NULL, 0 },
-	{ i_NEG, _T("NEG"), NULL, 1 },
-	{ i_NEGX, _T("NEGX"), NULL, 1 },
-	{ i_NBCD, _T("NBCD"), NULL, 0 },
-	{ i_CLR, _T("CLR"), NULL, 1 },
-	{ i_NOT, _T("NOT"), NULL, 1 },
-	{ i_TST, _T("TST"), NULL, 1 },
+	{ i_SUB, _T("SUB"), NULL, 1 | MNEMOFLAG_LOOPMODE },
+	{ i_SUBA, _T("SUBA"), NULL, 1 | MNEMOFLAG_LOOPMODE },
+	{ i_SUBX, _T("SUBX"), NULL, 0 | MNEMOFLAG_LOOPMODE },
+	{ i_SBCD, _T("SBCD"), NULL, 0 | MNEMOFLAG_LOOPMODE },
+	{ i_ADD, _T("ADD"), NULL, 1 | MNEMOFLAG_LOOPMODE },
+	{ i_ADDA, _T("ADDA"), NULL, 1 | MNEMOFLAG_LOOPMODE },
+	{ i_ADDX, _T("ADDX"), NULL, 0 | MNEMOFLAG_LOOPMODE },
+	{ i_ABCD, _T("ABCD"), NULL, 0 | MNEMOFLAG_LOOPMODE },
+	{ i_NEG, _T("NEG"), NULL, 1 | MNEMOFLAG_LOOPMODE },
+	{ i_NEGX, _T("NEGX"), NULL, 1 | MNEMOFLAG_LOOPMODE },
+	{ i_NBCD, _T("NBCD"), NULL, 0 | MNEMOFLAG_LOOPMODE },
+	{ i_CLR, _T("CLR"), NULL, 1 | MNEMOFLAG_LOOPMODE },
+	{ i_NOT, _T("NOT"), NULL, 1 | MNEMOFLAG_LOOPMODE },
+	{ i_TST, _T("TST"), NULL, 1 | MNEMOFLAG_LOOPMODE },
 	{ i_BTST, _T("BTST"), NULL, 1 },
 	{ i_BCHG, _T("BCHG"), NULL, 1 },
 	{ i_BCLR, _T("BCLR"), NULL, 1 },
 	{ i_BSET, _T("BSET"), NULL, 1 },
-	{ i_CMP, _T("CMP"), NULL, 1 },
-	{ i_CMPM, _T("CMPM"), NULL, 1 },
-	{ i_CMPA, _T("CMPA"), NULL, 1 },
+	{ i_CMP, _T("CMP"), NULL, 1 | MNEMOFLAG_LOOPMODE },
+	{ i_CMPM, _T("CMPM"), NULL, 1 | MNEMOFLAG_LOOPMODE },
+	{ i_CMPA, _T("CMPA"), NULL, 1 | MNEMOFLAG_LOOPMODE },
 	{ i_MVPRM, _T("MVPRM"), _T("MOVEP"), 0 },
 	{ i_MVPMR, _T("MVPMR"), _T("MOVEP"), 0 },
-	{ i_MOVE, _T("MOVE"), NULL, 1 },
-	{ i_MOVEA, _T("MOVEA"), NULL, 1 },
+	{ i_MOVE, _T("MOVE"), NULL, 1 | MNEMOFLAG_LOOPMODE },
+	{ i_MOVEA, _T("MOVEA"), NULL, 1 | MNEMOFLAG_LOOPMODE },
 	{ i_MVSR2, _T("MVSR2"), _T("MOVE"), 0 },
 	{ i_MV2SR, _T("MV2SR"), _T("MOVE"), 0 },
 	{ i_SWAP, _T("SWAP"), NULL, 0 },
@@ -89,14 +89,14 @@ struct mnemolookup lookuptab[] = {
 	{ i_ROR, _T("ROR"), NULL, 0 },
 	{ i_ROXL, _T("ROXL"), NULL, 1 },
 	{ i_ROXR, _T("ROXR"), NULL, 1 },
-	{ i_ASRW, _T("ASRW"), _T("ASR"), 1 },
-	{ i_ASLW, _T("ASLW"), _T("ASL"), 1 },
-	{ i_LSRW, _T("LSRW"), _T("LSR"), 1 },
-	{ i_LSLW, _T("LSLW"), _T("LSL"), 1 },
-	{ i_ROLW, _T("ROLW"), _T("ROL"), 1 },
-	{ i_RORW, _T("RORW"), _T("ROR"), 1 },
-	{ i_ROXLW, _T("ROXLW"), _T("ROXL"), 1 },
-	{ i_ROXRW, _T("ROXRW"), _T("ROXR"), 1 },
+	{ i_ASRW, _T("ASRW"), _T("ASR"), 1 | MNEMOFLAG_LOOPMODE },
+	{ i_ASLW, _T("ASLW"), _T("ASL"), 1 | MNEMOFLAG_LOOPMODE },
+	{ i_LSRW, _T("LSRW"), _T("LSR"), 1 | MNEMOFLAG_LOOPMODE },
+	{ i_LSLW, _T("LSLW"), _T("LSL"), 1 | MNEMOFLAG_LOOPMODE },
+	{ i_ROLW, _T("ROLW"), _T("ROL"), 1 | MNEMOFLAG_LOOPMODE },
+	{ i_RORW, _T("RORW"), _T("ROR"), 1 | MNEMOFLAG_LOOPMODE },
+	{ i_ROXLW, _T("ROXLW"), _T("ROXL"), 1 | MNEMOFLAG_LOOPMODE },
+	{ i_ROXRW, _T("ROXRW"), _T("ROXR"), 1 | MNEMOFLAG_LOOPMODE },
 
 	{ i_MOVE2C, _T("MOVE2C"), _T("MOVEC"), 0 },
 	{ i_MOVEC2, _T("MOVEC2"), _T("MOVEC"), 0 },
@@ -128,7 +128,6 @@ struct mnemolookup lookuptab[] = {
 	{ i_FScc, _T("FScc"), NULL, 0 },
 	{ i_FTRAPcc, _T("FTRAPcc"), NULL, 0 },
 	{ i_FBcc, _T("FBcc"), NULL, 0 },
-	{ i_FBcc, _T("FBcc"), NULL, 0 },
 	{ i_FSAVE, _T("FSAVE"), NULL, 0 },
 	{ i_FRESTORE, _T("FRESTORE"), NULL, 0 },
 
@@ -152,6 +151,8 @@ struct mnemolookup lookuptab[] = {
 	{ i_PTESTW, _T("PTESTW"), NULL, 0 },
 
 	{ i_LPSTOP, _T("LPSTOP"), NULL, 0 },
+	{ i_HALT, _T("HALT"), NULL, 0 },
+	{ i_PULSE, _T("PULSE"), NULL, 0 },
 	{ i_ILLG, _T(""), NULL, 0 },
 };
 
@@ -172,7 +173,7 @@ static amodes mode_from_str (const TCHAR *str)
 	if (_tcsncmp (str, _T("PC8r"), 4) == 0) return PC8r;
 	if (_tcsncmp (str, _T("Immd"), 4) == 0) return imm;
 	abort ();
-	return 0;
+	return Dreg;
 }
 
 STATIC_INLINE amodes mode_from_mr (int mode, int reg)
@@ -198,37 +199,48 @@ STATIC_INLINE amodes mode_from_mr (int mode, int reg)
 		}
 	}
 	abort ();
-	return 0;
+	return Dreg;
 }
 
 static void build_insn (int insn)
 {
 	int find = -1;
 	int variants;
-	int isjmp = 0;
 	struct instr_def id;
 	const TCHAR *opcstr;
-	int i;
+	int i, n;
 
 	int flaglive = 0, flagdead = 0;
+	int cflow = 0;
 
 	id = defs68k[insn];
 
-	/* Note: We treat anything with unknown flags as a jump. That
-	is overkill, but "the programmer" was lazy quite often, and
-	*this* programmer can't be bothered to work out what can and
-	can't trap. Usually, this will be overwritten with the gencomp
-	based information, anyway. */
+	// Control flow information
+	cflow = id.cflow;
+
+	// Mask of flags set/used
+	unsigned char flags_set = 0, flags_used = 0;
+
+	for (i = 0, n = 4; i < 5; i++, n--) {
+		switch (id.flaginfo[i].flagset) {
+		case fa_unset: case fa_isjmp: break;
+		default: flags_set |= (1 << n);
+		}
+
+		switch (id.flaginfo[i].flaguse) {
+		case fu_unused: case fu_isjmp: break;
+		default: flags_used |= (1 << n);
+		}
+	}
 
 	for (i = 0; i < 5; i++) {
-		switch (id.flaginfo[i].flagset){
+		switch (id.flaginfo[i].flagset) {
 		case fa_unset: break;
-		case fa_isjmp: isjmp = 1; break;
-		case fa_isbranch: isjmp = 1; break;
+		case fa_isjmp: break;
 		case fa_zero: flagdead |= 1 << i; break;
 		case fa_one: flagdead |= 1 << i; break;
 		case fa_dontcare: flagdead |= 1 << i; break;
-		case fa_unknown: isjmp = 1; flagdead = -1; goto out1;
+		case fa_unknown: flagdead = -1; goto out1;
 		case fa_set: flagdead |= 1 << i; break;
 		}
 	}
@@ -237,12 +249,13 @@ out1:
 	for (i = 0; i < 5; i++) {
 		switch (id.flaginfo[i].flaguse) {
 		case fu_unused: break;
-		case fu_isjmp: isjmp = 1; flaglive |= 1 << i; break;
-		case fu_maybecc: isjmp = 1; flaglive |= 1 << i; break;
-		case fu_unknown: isjmp = 1; flaglive |= 1 << i; break;
+		case fu_isjmp: flaglive |= 1 << i; break;
+		case fu_maybecc: flaglive |= 1 << i; break;
+		case fu_unknown: flaglive = -1; goto out2;
 		case fu_used: flaglive |= 1 << i; break;
 		}
 	}
+out2:
 
 	opcstr = id.opcstr;
 	for (variants = 0; variants < (1 << id.n_variable); variants++) {
@@ -264,12 +277,14 @@ out1:
 		int usesrc = 0, usedst = 0;
 		int srctype = 0;
 		int srcpos = -1, dstpos = -1;
+		int usecc = 0;
 
 		amodes srcmode = am_unknown, destmode = am_unknown;
 		int srcreg = -1, destreg = -1;
 
-		for (i = 0; i < lastbit; i++)
+		for (i = 0; i < lastbit; i++) {
 			bitcnt[i] = bitval[i] = 0;
+		}
 
 		vmsk = 1 << id.n_variable;
 
@@ -285,6 +300,8 @@ out1:
 				bitcnt[currbit]++;
 				bitval[currbit] <<= 1;
 				bitval[currbit] |= bit_set;
+				if (currbit == bitC || currbit == bitc)
+					usecc = 1;
 			}
 		}
 
@@ -348,6 +365,7 @@ out1:
 
 		/* parse the source address */
 		usesrc = 1;
+
 		switch (opcstr[pos++]) {
 		case 'D':
 			srcmode = Dreg;
@@ -360,6 +378,7 @@ out1:
 		case 'A':
 			srcmode = Areg;
 			switch (opcstr[pos++]) {
+			case 'l': srcmode = absl; break;
 			case 'r': srcreg = bitval[bitr]; srcgather = 1; srcpos = bitpos[bitr]; break;
 			case 'R': srcreg = bitval[bitR]; srcgather = 1; srcpos = bitpos[bitR]; break;
 			default: abort();
@@ -369,9 +388,6 @@ out1:
 			case 'P': srcmode = Aipi; pos++; break;
 			case 'a': srcmode = Aind; pos++; break;
 			}
-			break;
-		case 'L':
-			srcmode = absl;
 			break;
 		case '#':
 			switch (opcstr[pos++]) {
@@ -418,8 +434,16 @@ out1:
 					srcpos = bitpos[bitK];
 				}
 				break;
+			case 'E': srcmode = immi; srcreg = bitval[bitE];
+				if (CPU_EMU_SIZE < 5) { // gb-- what is CPU_EMU_SIZE used for ??
+					/* 1..255 */
+					srcgather = 1;
+					srctype = 6;
+					srcpos = bitpos[bitE];
+				}
+				break;
 			case 'p': srcmode = immi; srcreg = bitval[bitK];
-				if (CPU_EMU_SIZE < 5) {
+				if (CPU_EMU_SIZE < 5) { // gb-- what is CPU_EMU_SIZE used for ??
 					/* 0..3 */
 					srcgather = 1;
 					srctype = 7;
@@ -556,20 +580,16 @@ out1:
 		case 'A':
 			destmode = Areg;
 			switch (opcstr[pos++]) {
+			case 'l': destmode = absl; break;
 			case 'r': destreg = bitval[bitr]; dstgather = 1; dstpos = bitpos[bitr]; break;
 			case 'R': destreg = bitval[bitR]; dstgather = 1; dstpos = bitpos[bitR]; break;
 			case 'x': destreg = 0; dstgather = 0; dstpos = 0; break;
 			default: abort();
 			}
-			if (dstpos < 0 || dstpos >= 32)
-				abort ();
 			switch (opcstr[pos]) {
 			case 'p': destmode = Apdi; pos++; break;
 			case 'P': destmode = Aipi; pos++; break;
 			}
-			break;
-		case 'L':
-			destmode = absl;
 			break;
 		case '#':
 			switch (opcstr[pos++]) {
@@ -701,8 +721,8 @@ out1:
 #endif
 endofline:
 		/* now, we have a match */
-		if (table68k[opc].mnemo != i_ILLG)
-			;//write_log (_T("Double match: %x: %s\n"), opc, opcstr);
+		//if (table68k[opc].mnemo != i_ILLG)
+		//	write_log (_T("Double match: %x: %s\n"), opc, opcstr);
 		if (find == -1) {
 			for (find = 0;; find++) {
 				if (_tcscmp (mnemonic, lookuptab[find].name) == 0) {
@@ -717,6 +737,8 @@ endofline:
 			table68k[opc].mnemo = lookuptab[find].mnemo;
 		}
 		table68k[opc].cc = bitval[bitc];
+		table68k[opc].ccuse = usecc != 0;
+
 		mnemo = table68k[opc].mnemo;
 		if (mnemo == i_BTST
 			|| mnemo == i_BSET
@@ -756,27 +778,47 @@ endofline:
 			table68k[opc].flaginfo[i].flaguse = id.flaginfo[i].flaguse;
 		}
 #endif
+
+		// Fix flags used information for Scc, Bcc, TRAPcc, DBcc instructions
+		if (table68k[opc].mnemo == i_Scc
+			|| table68k[opc].mnemo == i_Bcc
+			|| table68k[opc].mnemo == i_DBcc
+			|| table68k[opc].mnemo == i_TRAPcc
+			) {
+			switch (table68k[opc].cc) {
+				// CC mask:	XNZVC
+				// 			 8421
+			case 0: flags_used = 0x00; break;	/*  T */
+			case 1: flags_used = 0x00; break;	/*  F */
+			case 2: flags_used = 0x05; break;	/* HI */
+			case 3: flags_used = 0x05; break;	/* LS */
+			case 4: flags_used = 0x01; break;	/* CC */
+			case 5: flags_used = 0x01; break;	/* CS */
+			case 6: flags_used = 0x04; break;	/* NE */
+			case 7: flags_used = 0x04; break;	/* EQ */
+			case 8: flags_used = 0x02; break;	/* VC */
+			case 9: flags_used = 0x02; break;	/* VS */
+			case 10:flags_used = 0x08; break;	/* PL */
+			case 11:flags_used = 0x08; break;	/* MI */
+			case 12:flags_used = 0x0A; break;	/* GE */
+			case 13:flags_used = 0x0A; break;	/* LT */
+			case 14:flags_used = 0x0E; break;	/* GT */
+			case 15:flags_used = 0x0E; break;	/* LE */
+			}
+		}
+
+#if 1
+		/* gb-- flagdead and flaglive would not have correct information */
+		table68k[opc].flagdead = flags_set;
+		table68k[opc].flaglive = flags_used;
+#else
 		table68k[opc].flagdead = flagdead;
 		table68k[opc].flaglive = flaglive;
-		table68k[opc].isjmp = isjmp;
-nomatch:
+#endif
+		table68k[opc].cflow = cflow;
+
+	nomatch:
 		/* FOO! */;
-	}
-}
-
-
-void read_table68k (void)
-{
-	int i;
-
-	free (table68k);
-	table68k = xmalloc (struct instr, 65536);
-	for (i = 0; i < 65536; i++) {
-		table68k[i].mnemo = i_ILLG;
-		table68k[i].handler = -1;
-	}
-	for (i = 0; i < n_defs68k; i++) {
-		build_insn (i);
 	}
 }
 
@@ -805,6 +847,8 @@ static void handle_merges (long int opcode)
 			smsk = 7; sbitdst = 8; break;
 		case 5:
 			smsk = 63; sbitdst = 64; break;
+		case 6:
+			smsk = 255; sbitdst = 256; break;
 		case 7:
 			smsk = 3; sbitdst = 4; break;
 		default:
@@ -874,4 +918,64 @@ void do_merges (void)
 int get_no_mismatches (void)
 {
 	return imismatch;
+}
+
+static int isreg(amodes mode)
+{
+	if (mode == Dreg || mode == Areg)
+		return 1;
+	return 0;
+}
+
+bool opcode_loop_mode(uae_u16 opcode)
+{
+	struct instr *c = &table68k[opcode];
+	bool loopmode = false;
+	int i;
+	for (i = 0; lookuptab[i].name[0]; i++) {
+		if (c->mnemo == lookuptab[i].mnemo)
+			break;
+	}
+	if (lookuptab[i].flags & MNEMOFLAG_LOOPMODE) {
+		// Source is Dn,An,(An),(An)+,-(An)
+		// Destination is Dn,An,(An),(An)+,-(An)
+		// Both source and destination must not be Dn or An.
+		// RMW instruction must not be Dn or An
+		if (((isreg(c->smode) || c->smode == Aind || c->smode == Apdi || c->smode == Aipi)) &&
+			((!c->duse && !isreg(c->smode)) || (c->duse && (isreg(c->dmode) || c->dmode == Aind || c->dmode == Apdi || c->dmode == Aipi))) &&
+			(!c->duse || (isreg(c->smode) && !isreg(c->dmode)) || (!isreg(c->smode) && isreg(c->dmode)) || (!isreg(c->smode) && !isreg(c->dmode)))) {
+			loopmode = true;
+		}
+		if (c->mnemo == i_MOVE || c->mnemo == i_MOVEA) {
+			// move x,reg: not supported
+			if (isreg(c->dmode))
+				loopmode = false;
+			// move reg,-(an): not supported
+			if (isreg(c->smode) && c->dmode == Apdi)
+				loopmode = false;
+		}
+	}
+	return loopmode;
+}
+
+void init_table68k(void)
+{
+	int i;
+
+	free(table68k);
+	table68k = xmalloc(struct instr, 65536);
+	for (i = 0; i < 65536; i++) {
+		table68k[i].mnemo = i_ILLG;
+		table68k[i].handler = -1;
+	}
+	for (i = 0; i < n_defs68k; i++) {
+		build_insn(i);
+	}
+	do_merges();
+}
+
+void exit_table68k(void)
+{
+	free(table68k);
+	table68k = NULL;
 }

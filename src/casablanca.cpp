@@ -3,7 +3,7 @@
 
 #include "options.h"
 #include "uae.h"
-#include "memory.h"
+#include "uae/memory.h"
 #include "newcpu.h"
 #include "casablanca.h"
 

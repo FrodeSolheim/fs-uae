@@ -15,7 +15,7 @@ typedef struct fs_thread fs_thread;
 typedef uintptr_t fs_thread_id_t;
 fs_thread_id_t fs_thread_id(void);
 
-typedef void *(*fs_thread_function)(void *);
+typedef void fs_thread_function(void *);
 fs_thread *fs_thread_create(
         const char *name, fs_thread_function fn, void *data);
 #if 0

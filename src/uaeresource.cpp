@@ -57,9 +57,6 @@ static uae_u32 REGPARAM2 res_getfunc (TrapContext *ctx)
 
 static uae_u32 REGPARAM2 res_initcode (TrapContext *ctx)
 {
-#ifdef FSUAE
-    printf("res_initcode context = %p\n", ctx);
-#endif
 	uaecptr rb;
 	base = trap_get_dreg (ctx, 0);
 	rb = base + SIZEOF_LIBRARY;

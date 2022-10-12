@@ -30,7 +30,7 @@
 #include "qemuaudio.h"
 
 #include "options.h"
-#include "memory.h"
+#include "uae/memory.h"
 #include "pci_hw.h"
 
 #ifdef __GNUC__
@@ -498,7 +498,7 @@ static void es1370_update_voices (ES1370State *s, uint32_t ctl, uint32_t sctl)
 			// Without this fix upper half of scount contained value from
 			// last playback, breaking buffer switch sync in next playback.
 			d->scount = (d->scount & 0xffff) | ((d->scount & 0xffff) << 16);
-			
+
 			if (i == ADC_CHANNEL) {
                 AUD_set_active_in (s->adc_voice, on);
             } else {
@@ -836,7 +836,7 @@ static void es1370_transfer_audio (ES1370State *s, struct chan *d, int loop_sel,
     int left = ((size - cnt + 1) << 2) + d->leftover;
     int transferred = 0;
     int temp = audio_MIN (max, audio_MIN (left, csc_bytes));
-    int index = d - &s->chan[0];
+    int index = (int)(d - &s->chan[0]);
 
     addr += (cnt << 2) + d->leftover;
 
@@ -968,9 +968,10 @@ static uint64_t es1370_read(void *opaque, hwaddr addr,
     }
 }
 
-static void es1370_write(void *opaque, hwaddr addr, uint64_t val,
+static void es1370_write(void *opaque, hwaddr addr, uint64_t val64,
                       unsigned size)
 {
+    uint32_t val = (uint32_t)val64;
     switch (size) {
     case 1:
         es1370_writeb(opaque, addr, val);
@@ -1207,7 +1208,8 @@ const struct pci_board es1370_pci_board =
 		{ NULL },
 		{ NULL },
 		{ NULL },
-		{ NULL },
-		{ NULL },
-	}
+        { NULL },
+        { NULL },
+        { NULL }
+    }
 };

@@ -156,11 +156,12 @@ extern int my_readdir (struct my_opendir_s*, TCHAR*);
 
 extern int my_rmdir (const TCHAR*);
 extern int my_mkdir (const TCHAR*);
-extern int my_unlink (const TCHAR*);
+extern int my_unlink (const TCHAR*, bool);
 extern int my_rename (const TCHAR*, const TCHAR*);
 extern int my_setcurrentdir (const TCHAR *curdir, TCHAR *oldcur);
 bool my_isfilehidden (const TCHAR *path);
 void my_setfilehidden (const TCHAR *path, bool hidden);
+int my_readonlyfile(const TCHAR *path);
 
 extern struct my_openfile_s *my_open (const TCHAR*, int);
 extern void my_close (struct my_openfile_s*);

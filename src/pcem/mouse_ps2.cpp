@@ -4,6 +4,8 @@
 #include "mouse.h"
 #include "mouse_ps2.h"
 #include "plat-mouse.h"
+#include "x86.h"
+#include "f82c710_upc.h"
 
 int mouse_scan = 0;
 
@@ -97,6 +99,27 @@ void mouse_ps2_write(uint8_t val, void *p)
                         keyboard_at_adddata_mouse(mouse->sample_rate);
                         break;
                         
+                        case 0xeb: /*Get mouse data*/
+                        keyboard_at_adddata_mouse(0xfa);
+
+                        temp = 0;
+                        if (mouse->x < 0)
+                                temp |= 0x10;
+                        if (mouse->y < 0)
+                                temp |= 0x20;
+                        if (mouse_buttons & 1)
+                                temp |= 1;
+                        if (mouse_buttons & 2)
+                                temp |= 2;
+                        if ((mouse_buttons & 4) && (mouse_get_type(mouse_type) & MOUSE_TYPE_3BUTTON))
+                                temp |= 4;
+                        keyboard_at_adddata_mouse(temp);
+                        keyboard_at_adddata_mouse(mouse->x & 0xff);
+                        keyboard_at_adddata_mouse(mouse->y & 0xff);
+                        if (mouse->intellimouse_mode)
+                                keyboard_at_adddata_mouse(mouse->z);
+                        break;
+                        
                         case 0xf2: /*Read ID*/
                         keyboard_at_adddata_mouse(0xfa);
                         if (mouse->intellimouse_mode)
@@ -124,6 +147,7 @@ void mouse_ps2_write(uint8_t val, void *p)
                         mouse->mode  = MOUSE_STREAM;
                         mouse->flags = 0;
                         mouse->intellimouse_mode = 0;
+                        mouse_queue_start = mouse_queue_end = 0;
                         keyboard_at_adddata_mouse(0xfa);
                         keyboard_at_adddata_mouse(0xaa);
                         keyboard_at_adddata_mouse(0x00);
@@ -154,7 +178,7 @@ void mouse_ps2_poll(int x, int y, int z, int b, void *p)
 {
         mouse_ps2_t *mouse = (mouse_ps2_t *)p;
         uint8_t packet[3] = {0x08, 0, 0};
-        
+
         if (!x && !y && !z && b == mouse->b)
                 return;        
 
@@ -215,8 +239,11 @@ void *mouse_ps2_init()
         mouse->flags = 0;
         mouse->mode = MOUSE_STREAM;
         
-        keyboard_at_set_mouse(mouse_ps2_write, mouse);
-        
+        if(romset == ROM_PC5086)
+                upc_set_mouse(mouse_ps2_write, mouse);
+        else
+                keyboard_at_set_mouse(mouse_ps2_write, mouse);
+
         return mouse;
 }
 

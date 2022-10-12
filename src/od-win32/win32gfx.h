@@ -8,7 +8,7 @@ typedef int HCURSOR;
 typedef int HDC;
 #endif
 #else
-#include <ddraw.h>
+  #include <ddraw.h>
 #endif
 
 #define RTG_MODE_SCALE 1

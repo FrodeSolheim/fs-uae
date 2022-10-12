@@ -360,7 +360,7 @@ void setvolumevideograb(int volume)
 {
 	if (!audio)
 		return;
-	long vol = log10((float)volume / 100.0) * 4000.0;
+	long vol = (long)(log10((float)volume / 100.0) * 4000.0);
 	audio->put_Volume(vol);
 }
 
@@ -442,5 +442,8 @@ void isvideograb_status(void)
 			break;
 		mediaEvent->FreeEventParams(EventCode, lParam1, lParam2);
 		write_log(_T("VIDEOGRAB EVENT %08X %08X %08X\n"), EventCode, lParam1, lParam2);
+		if (EventCode == EC_COMPLETE) {
+			getsetpositionvideograb(0);
+		}
 	}
 }

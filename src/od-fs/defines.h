@@ -140,7 +140,7 @@ int GetDriveType(TCHAR* vol);
 //void sleep_millis(int ms);
 //void install_driver(int flags);
 
-extern int uae_start_thread_fast (void *(*f)(void *), void *arg,
+extern int uae_start_thread_fast (uae_thread_function f, void *arg,
         uae_thread_id *thread);
 
 #ifdef WINDOWS

@@ -1,6 +1,7 @@
 #if 1
 
 #include "uae/maccess.h"
+#include "sysdeps.h"
 
 #else
 #ifdef __ARM_EABI__
@@ -13,3 +14,13 @@
 #include "machdep/generic/maccess.h"
 #endif
 #endif
+
+STATIC_INLINE uae_u32 do_byteswap_32(uae_u32 v)
+{
+	return bswap_32(v);
+}
+
+STATIC_INLINE uae_u16 do_byteswap_16(uae_u16 v)
+{
+	return bswap_16(v);
+}

@@ -1,7 +1,7 @@
 static int opINT3(uint32_t fetchdat)
 {
         int cycles_old = cycles; UNUSED(cycles_old);
-        if ((cr0 & 1) && (eflags & VM_FLAG) && (IOPL != 3))
+        if ((cr0 & 1) && (cpu_state.eflags & VM_FLAG) && (IOPL != 3))
         {
                 x86gpf(NULL,0);
                 return 1;
@@ -15,7 +15,7 @@ static int opINT3(uint32_t fetchdat)
 static int opINT1(uint32_t fetchdat)
 {
         int cycles_old = cycles; UNUSED(cycles_old);
-        if ((cr0 & 1) && (eflags & VM_FLAG) && (IOPL != 3))
+        if ((cr0 & 1) && (cpu_state.eflags & VM_FLAG) && (IOPL != 3))
         {
                 x86gpf(NULL,0);
                 return 1;
@@ -31,7 +31,7 @@ static int opINT(uint32_t fetchdat)
         int cycles_old = cycles; UNUSED(cycles_old);
         uint8_t temp = getbytef();
 
-        if ((cr0 & 1) && (eflags & VM_FLAG) && (IOPL != 3))
+        if ((cr0 & 1) && (cpu_state.eflags & VM_FLAG) && (IOPL != 3))
         {
                 if (cr4 & CR4_VME)
                 {
@@ -59,7 +59,7 @@ static int opINT(uint32_t fetchdat)
                                 }
                         }
                 }
-                x86gpf(NULL,0);
+                x86gpf_expected(NULL,0);
                 return 1;
         }
 //        /*if (temp == 0x10 && AH == 0xe) */pclog("INT %02X : %04X %04X %04X %04X   %c   %04X:%04X\n", temp, AX, BX, CX, DX, (AL < 32) ? ' ' : AL, CS, pc);
@@ -104,7 +104,7 @@ static int opINTO(uint32_t fetchdat)
 {
         int cycles_old = cycles; UNUSED(cycles_old);
         
-        if ((cr0 & 1) && (eflags & VM_FLAG) && (IOPL != 3))
+        if ((cr0 & 1) && (cpu_state.eflags & VM_FLAG) && (IOPL != 3))
         {
                 x86gpf(NULL,0);
                 return 1;

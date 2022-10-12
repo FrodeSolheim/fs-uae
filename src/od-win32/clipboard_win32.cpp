@@ -24,7 +24,7 @@ typedef unsigned int UINT;
 #endif
 #include "clipboard.h"
 #include "keybuf.h"
-#include "memory.h"
+#include "uae/memory.h"
 #include "autoconf.h"
 
 #include "threaddep/thread.h"
@@ -136,8 +136,8 @@ static uae_char *pctoamiga (const uae_char *txt)
 	uae_char *txt2;
 	int i, j;
 
-	len = strlen (txt) + 1;
-	txt2 = xmalloc (uae_char, len);
+	len = uaestrlen(txt) + 1;
+	txt2 = xmalloc(uae_char, len);
 	j = 0;
 	for (i = 0; i < len; i++) {
 		uae_char c = txt[i];
@@ -215,7 +215,7 @@ static void to_iff_text(TrapContext *ctx, const TCHAR *pctxt)
 
 	s = ua (pctxt);
 	txt = pctoamiga (s);
-	txtlen = strlen (txt);
+	txtlen = uaestrlen(txt);
 	xfree (to_amiga);
 	size = txtlen + sizeof b + (txtlen & 1) - 8;
 	b[4] = size >> 24;
@@ -454,7 +454,7 @@ static void to_iff_ilbm(TrapContext *ctx, HBITMAP hbmp)
 		}
 	}
 
-	tsize = p - iff - 8;
+	tsize = (int)(p - iff - 8);
 	p = iff + 4;
 	p[0] = tsize >> 24;
 	p[1] = tsize >> 16;
@@ -837,9 +837,9 @@ static void clipboard_read(TrapContext *ctx, HWND hwnd, bool keyboardinject)
 #ifdef FSUAE
 		if (true) {
 #else
-		hglb = GetClipboardData (CF_UNICODETEXT); 
-		if (hglb != NULL) { 
-			TCHAR *lptstr = (TCHAR*)GlobalLock (hglb); 
+		hglb = GetClipboardData (CF_UNICODETEXT);
+		if (hglb != NULL) {
+			TCHAR *lptstr = (TCHAR*)GlobalLock (hglb);
 #endif
 			if (lptstr != NULL) {
 #if DEBUG_CLIP > 0
@@ -915,11 +915,11 @@ static int clipboard_put_bmp_real (HBITMAP hbmp)
 {
 	int ret = FALSE;
 
-	if (!OpenClipboard (chwnd)) 
+	if (!OpenClipboard (chwnd))
 		return ret;
 	clipopen++;
 	EmptyClipboard ();
-	SetClipboardData (CF_BITMAP, hbmp); 
+	SetClipboardData (CF_BITMAP, hbmp);
 	ret = TRUE;
 	CloseClipboard ();
 	clipopen--;
@@ -945,16 +945,16 @@ static int clipboard_put_text_real (const TCHAR *txt)
 	HGLOBAL hglb;
 	int ret = FALSE;
 
-	if (!OpenClipboard (chwnd)) 
+	if (!OpenClipboard (chwnd))
 		return ret;
 	clipopen++;
-	EmptyClipboard (); 
+	EmptyClipboard ();
 	hglb = GlobalAlloc (GMEM_MOVEABLE, (_tcslen (txt) + 1) * sizeof (TCHAR));
 	if (hglb) {
 		TCHAR *lptstr = (TCHAR*)GlobalLock (hglb);
 		_tcscpy (lptstr, txt);
 		GlobalUnlock (hglb);
-		SetClipboardData (CF_UNICODETEXT, hglb); 
+		SetClipboardData (CF_UNICODETEXT, hglb);
 		ret = TRUE;
 	}
 	CloseClipboard ();

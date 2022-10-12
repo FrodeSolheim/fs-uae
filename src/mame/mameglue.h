@@ -36,7 +36,9 @@ typedef unsigned long offs_t;
 #define UINT64 uint64_t
 #else
 #define FALSE 0
+#ifndef TRUE
 #define TRUE 1
+#endif
 #endif
 
 #define TIMER_CALLBACK_MEMBER(x) int x(void *p, int param, int param2)

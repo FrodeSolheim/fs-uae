@@ -5,7 +5,9 @@
 #include "uae/types.h"
 #endif
 
-extern int decode_cloanto_rom_do (uae_u8 *mem, int size, int real_size);
+#define MAX_ROMMGR_ROMS 300
+
+extern int decode_cloanto_rom_do(uae_u8 *mem, int size, int real_size);
 
 #define ROMTYPE_SUB_MASK    0x000000ff
 #define ROMTYPE_GROUP_MASK  0x003fff00
@@ -55,6 +57,7 @@ extern int decode_cloanto_rom_do (uae_u8 *mem, int size, int real_size);
 #define ROMTYPE_CB_QUIKPAK	0x0004001e
 #define ROMTYPE_CB_12GAUGE	0x0004001f
 #define ROMTYPE_CB_HARMS3KP	0x00040020
+#define ROMTYPE_CB_A1230S1	0x00040021
 
 #define ROMTYPE_FREEZER		0x00080000
 #define ROMTYPE_AR			0x00080001
@@ -191,6 +194,21 @@ extern int decode_cloanto_rom_do (uae_u8 *mem, int size, int real_size);
 #define ROMTYPE_PRELUDE		0x0010007c
 #define ROMTYPE_PRELUDE1200	0x0010007d
 #define ROMTYPE_TANDEM		0x0010007e
+#define ROMTYPE_ARCHOSHD	0x0010007f
+#define ROMTYPE_PCMCIASRAM	0x00100080
+#define ROMTYPE_PCMCIAIDE	0x00100081
+#define ROMTYPE_SSQUIRREL	0x00100082
+#define ROMTYPE_MASTERCARD	0x00100083
+#define ROMTYPE_DOTTO		0x00100084
+#define ROMTYPE_ALF2		0x00100085
+#define ROMTYPE_SYNTHESIS	0x00100086
+#define ROMTYPE_MASTFB		0x00100087
+#define ROMTYPE_VOODOO3		0x00100088
+#define ROMTYPE_S3VIRGE		0x00100089
+#define ROMTYPE_VOODOO5		0x0010008a
+#define ROMTYPE_HD20A		0x0010008b
+#define ROMTYPE_DEVHD		0x0010008c
+#define ROMTYPE_CSMK1SCSI	0x0010008d
 
 #define ROMTYPE_NOT			0x00800000
 #define ROMTYPE_QUAD		0x01000000
@@ -228,6 +246,7 @@ struct romdata {
 	uae_u32 sha1[5];
 	const TCHAR *configname;
 	const TCHAR *defaultfilename;
+	int sortpriority;
 };
 
 struct romlist {
@@ -244,7 +263,7 @@ extern struct romdata *getromdatabytype (int romtype);
 extern struct romdata *getromdatabyidgroup (int id, int group, int subitem);
 extern struct romdata *getromdatabyzfile (struct zfile *f);
 extern struct romdata *getfrombydefaultname(const TCHAR *name, int size);
-extern struct romlist **getarcadiaroms (void);
+extern struct romlist **getarcadiaroms(int);
 extern struct romdata *getarcadiarombyname (const TCHAR *name);
 extern struct romlist **getromlistbyident (int ver, int rev, int subver, int subrev, const TCHAR *model, int romflags, bool all);
 extern void getromname (const struct romdata*, TCHAR*);

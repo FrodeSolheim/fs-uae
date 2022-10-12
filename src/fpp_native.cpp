@@ -21,7 +21,7 @@
 #define SOFTFLOAT_CONVERSIONS 1
 
 #include "options.h"
-#include "memory.h"
+#include "uae/memory.h"
 #include "newcpu.h"
 #include "fpp.h"
 #include "uae/attributes.h"
@@ -145,7 +145,7 @@ static void set_fpucw_x87(uae_u32 m68k_cw)
 	x87_cw = x87_cw_tab[(m68k_cw >> 4) & 0xf];
 #if defined(X86_MSVC_ASSEMBLY) && 0
 	__asm { fldcw word ptr x87_cw }
-#elif defined(__GNUC__)
+#elif defined(__GNUC__) && 0
 	__asm__("fldcw %0" : : "m" (*&x87_cw));
 #else
 	((x87_fldcw_function) x87_fldcw_code)();
@@ -293,7 +293,7 @@ static void fp_to_single(fpdata *fpd, uae_u32 wrd1)
         float f;
         uae_u32 u;
     } val;
-    
+
     val.u = wrd1;
     fpd->fp = (fptype) val.f;
 }
@@ -303,7 +303,7 @@ static uae_u32 fp_from_single(fpdata *fpd)
         float f;
         uae_u32 u;
     } val;
-    
+
     val.f = (float) fpd->fp;
     return val.u;
 }
@@ -314,7 +314,7 @@ static void fp_to_double(fpdata *fpd, uae_u32 wrd1, uae_u32 wrd2)
         double d;
         uae_u32 u[2];
     } val;
-    
+
 #ifdef WORDS_BIGENDIAN
     val.u[0] = wrd1;
     val.u[1] = wrd2;
@@ -330,7 +330,7 @@ static void fp_from_double(fpdata *fpd, uae_u32 *wrd1, uae_u32 *wrd2)
         double d;
         uae_u32 u[2];
     } val;
-    
+
     val.d = (double) fpd->fp;
 #ifdef WORDS_BIGENDIAN
     *wrd1 = val.u[0];
@@ -365,7 +365,7 @@ static void fp_from_exten(fpdata *fpd, uae_u32 *wrd1, uae_u32 *wrd2, uae_u32 *wr
         long double ld;
         uae_u32 u[3];
     } val;
-    
+
     val.ld = fpd->fp;
 #if WORDS_BIGENDIAN
     *wrd1 = val.u[0] & 0xffff0000;
@@ -415,7 +415,7 @@ static void fp_from_exten(fpdata *fpd, uae_u32 *wrd1, uae_u32 *wrd2, uae_u32 *wr
     int expon;
     double frac;
     fptype v;
-    
+
     if (fp_is_zero(fpd)) {
         *wrd1 = signbit(fpd->fp) ? 0x80000000 : 0;
         *wrd2 = 0;
@@ -701,9 +701,8 @@ static void fp_getexp(fpdata *a, fpdata *b)
     int expon;
 	fp_normal_prec();
 	frexpl(b->fp, &expon);
-    a->fp = (fptype) (expon - 1);
+	a->fp = (fptype)expon - 1;
 	fp_reset_normal_prec();
-	fp_round(a);
 }
 static void fp_getman(fpdata *a, fpdata *b)
 {
@@ -711,7 +710,6 @@ static void fp_getman(fpdata *a, fpdata *b)
 	fp_normal_prec();
 	a->fp = frexpl(b->fp, &expon) * 2.0;
 	fp_reset_normal_prec();
-	fp_round(a);
 }
 static void fp_div(fpdata *a, fpdata *b, int prec)
 {
@@ -918,6 +916,16 @@ static void fp_cos(fpdata *a, fpdata *b)
 	fp_reset_normal_prec();
 	fp_round(a);
 }
+static void fp_sincos(fpdata *a, fpdata *b, fpdata *c)
+{
+	fp_normal_prec();
+	c->fp = cosl(b->fp);
+	a->fp = sinl(b->fp);
+	fp_reset_normal_prec();
+	fp_round(a);
+	fp_round(c);
+}
+
 static void fp_sub(fpdata *a, fpdata *b, int prec)
 {
 	fp_set_prec(prec);
@@ -953,7 +961,7 @@ static void fp_sgldiv(fpdata *a, fpdata *b)
     float mant;
     int expon;
     z = a->fp / b->fp;
-    
+
     mant = (float)(frexpl(z, &expon) * 2.0);
     a->fp = ldexpl((fptype)mant, expon - 1);
 }
@@ -1089,7 +1097,7 @@ static void fp_from_pack (fpdata *src, uae_u32 *wrd, int kfactor)
 #else
 	sprintf (str, "%#.17e", fp);
 #endif
-	
+
 	// get exponent
 	cp = str;
 	while (*cp != 'e') {
@@ -1143,7 +1151,7 @@ static void fp_from_pack (fpdata *src, uae_u32 *wrd, int kfactor)
 	strp[1] = strp[0];
 	strp++;
 	// add trailing zeros
-	i = strlen (strp);
+	i = uaestrlen(strp);
 	cp = strp + i;
 	while (i < ndigits) {
 		*cp++ = '0';
@@ -1343,6 +1351,7 @@ void fp_init_native(void)
 	fpp_neg = fp_neg;
 	fpp_acos = fp_acos;
 	fpp_cos = fp_cos;
+	fpp_sincos = fp_sincos;
 	fpp_getexp = fp_getexp;
 	fpp_getman = fp_getman;
 	fpp_div = fp_div;

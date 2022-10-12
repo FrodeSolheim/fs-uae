@@ -96,6 +96,7 @@ int main(int argc, char **argv)
 		char opcstr[256];
 		int bitpos[16];
 		int flagset[5], flaguse[5];
+		char cflow;
 
 		unsigned int bitmask,bitpattern;
 		int n_variable;
@@ -224,6 +225,26 @@ int main(int argc, char **argv)
 		while (isspace(nextch))
 			getnextch();
 
+		if (nextch != ':')                        /* Get control flow information */
+			abort();
+
+		cflow = 0;
+		for (i = 0; i < 2; i++) {
+			getnextch();
+			switch (nextch) {
+			case '-': break;
+			case 'R': cflow |= fl_return; break;
+			case 'B': cflow |= fl_branch; break;
+			case 'J': cflow |= fl_jump; break;
+			case 'T': cflow |= fl_trap; break;
+			default: abort();
+			}
+		}
+
+		getnextch();
+		while (isspace(nextch))
+			getnextch();
+
 		if (nextch != ':')                        /* Get source/dest usage information */
 			abort();
 
@@ -305,12 +326,12 @@ int main(int argc, char **argv)
 		char tmp[100], *p;
 		int slen = 0;
 
-		while (isspace(*opstrp))
+		while (isspace((unsigned char)*opstrp))
 			opstrp++;
 
 		osendp = opstrp;
 		while (*osendp) {
-			if (!isspace (*osendp))
+			if (!isspace ((unsigned char)*osendp))
 				slen = osendp - opstrp + 1;
 			osendp++;
 		}
@@ -322,7 +343,7 @@ int main(int argc, char **argv)
 		strcpy (tmp, opstrp);
 		strcat (tmp, " ");
 		p = tmp;
-		while (!isspace(*p++));
+		while (!isspace((unsigned char)*p++));
 		*p = 0;
 		printf("/* %s */\n", tmp);
 		printf("{0x%04X,%2d,{", bitpattern, n_variable);
@@ -335,7 +356,7 @@ int main(int argc, char **argv)
 		for(i = 0; i < 5; i++) {
 			printf("{%d,%d}%s", flaguse[i], flagset[i], i == 4 ? "" : ",");
 		}
-		printf("},0x%02x,_T(\"%s\"),%2d,%2d,%2d,%2d}", sduse, opstrp, head, tail, clocks, fetchmode);
+		printf("},0x%02x,0x%02x,_T(\"%s\"),%2d,%2d,%2d,%2d}", cflow, sduse, opstrp, head, tail, clocks, fetchmode);
     }
     printf("};\nint n_defs68k = %d;\n", no_insns);
     return 0;

@@ -1,0 +1,142 @@
+name: Release
+
+on: [push]
+
+jobs:
+  release:
+    name: Create single release for all builds
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+    steps:
+      - name: Create a release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: true
+          prerelease: true
+    if: startsWith(github.ref, 'refs/tags/')
+
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      # Linux
+      - name: Update packages (Linux)
+        run: sudo apt update
+        if: matrix.os == 'ubuntu-latest'
+      - name: Install Dependencies (Linux)
+        run: >-
+          sudo apt install
+          autoconf
+          automake
+          build-essential
+          gettext
+          libfreetype6-dev
+          libglew-dev
+          libglib2.0-dev
+          libjpeg-dev
+          libmpeg2-4-dev
+          libopenal-dev
+          libpng-dev
+          libsdl2-dev
+          libsdl2-ttf-dev
+          libtool
+          libxi-dev
+          libxtst-dev
+          zip
+          zlib1g-dev
+        if: matrix.os == 'ubuntu-latest'
+
+      # Mac
+      - name: Install Dependencies (Mac)
+        run: brew install autoconf automake freetype gettext glew glib jpeg libmpeg2 libpng libtool openal-soft pkg-config sdl2 sdl2_ttf zlib
+        if: matrix.os == 'macos-latest'
+
+      # Windows:
+      - name: Install Dependencies (Windows)
+        uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          install: >-
+            autoconf
+            automake
+            gettext
+            libtool
+            make
+            mingw-w64-x86_64-freetype
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-glew
+            mingw-w64-x86_64-glib2
+            mingw-w64-x86_64-libmpeg2
+            mingw-w64-x86_64-libpng
+            mingw-w64-x86_64-openal
+            mingw-w64-x86_64-SDL2
+            mingw-w64-x86_64-SDL2_ttf
+            pkg-config
+            zip
+        if: matrix.os == 'windows-latest'
+
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Make (Windows)
+        shell: msys2 {0}
+        run: |
+          ./bootstrap
+          ./configure
+          make
+        if: matrix.os == 'windows-latest'
+
+      - name: Make (non-Windows)
+        run: |
+          ./bootstrap
+          ./configure
+          make
+        if: matrix.os != 'windows-latest'
+
+      - name: Dist (Windows)
+        shell: msys2 {0}
+        run: |
+          strip fs-uae.exe
+          mkdir -p fs-uae-${{ matrix.os }}
+          mv fs-uae.exe fs-uae-${{ matrix.os }}/
+          mv fs-uae.dat fs-uae-${{ matrix.os }}/
+          cp -r data fs-uae-${{ matrix.os }}/data
+          zip -r fs-uae-${{ matrix.os }}.zip fs-uae-${{ matrix.os }}
+        if: matrix.os == 'windows-latest'
+
+      - name: Dist (non-Windows)
+        run: |
+          strip fs-uae
+          mkdir -p fs-uae-${{ matrix.os }}
+          mv fs-uae fs-uae-${{ matrix.os }}/
+          mv fs-uae.dat fs-uae-${{ matrix.os }}/
+          cp -r data fs-uae-${{ matrix.os }}/data
+          zip -r fs-uae-${{ matrix.os }}.zip fs-uae-${{ matrix.os }}
+        if: matrix.os != 'windows-latest'
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: fs-uae-${{ matrix.os }}
+          path: fs-uae-${{ matrix.os }}
+
+      - name: Upload release asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.once.outputs.upload_url }}
+          asset_path: ${{ github.workspace }}/Release/fs-uae-${{ matrix.os }}.zip
+          asset_name: fs-uae-${{ matrix.os }}.zip
+          asset_content_type: application/octet-stream
+        if: startsWith(github.ref, 'refs/tags/')

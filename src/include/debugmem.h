@@ -28,6 +28,19 @@ bool debugmem_enable_stackframe(bool enable);
 bool debugmem_illg(uae_u16);
 void debugmem_flushcache(uaecptr, int);
 
+// Stack frame functions
+struct debugstackframe
+{
+	uaecptr current_pc;
+	uaecptr branch_pc;
+	uaecptr next_pc;
+	uaecptr stack;
+	uae_u32 regs[16];
+	uae_u16 sr;
+};
+extern struct debugstackframe* debugmem_find_traceframe(bool super, int num, int* tfnump);
+extern int debugmem_get_traceframe_count(bool super);
+
 extern uae_u32 debugmem_chiplimit;
 extern uae_u32 debugmem_chiphit(uaecptr addr, uae_u32 v, int size);
 extern bool debugmem_extinvalidmem(uaecptr addr, uae_u32 v, int size);

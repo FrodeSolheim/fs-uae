@@ -103,6 +103,7 @@
 #include "fsdb.h"
 #include "uae/time.h"
 #include "specialmonitors.h"
+#include "barto_gdbserver.h"
 #include "debug.h"
 #include "disasm.h"
 
@@ -3124,6 +3125,7 @@ bool handle_events (void)
 #ifdef RETROPLATFORM
 		rp_vsync ();
 #endif
+		barto_gdbserver::vsync();
 		cnt1 = 0;
 		while (checkIPC (globalipc, &currprefs));
 //		if (quit_program)

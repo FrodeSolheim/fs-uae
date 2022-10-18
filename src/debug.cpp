@@ -53,6 +53,7 @@
 #include "readcpu.h"
 #include "cputbl.h"
 #include "keybuf.h"
+#include "barto_gdbserver.h"
 
 #define TRACE_SKIP_INS 1
 #define TRACE_MATCH_PC 2
@@ -60,6 +61,7 @@
 #define TRACE_RANGE_PC 4
 #define TRACE_SKIP_LINE 5
 #define TRACE_RAM_PC 6
+#define TRACE_NRANGE_PC 7 //BARTO
 #define TRACE_CHECKONLY 10
 
 #ifdef _WIN32
@@ -71,12 +73,16 @@
 #define _countof(array) (sizeof(array) / sizeof(array[0]))
 #endif
 
-static int trace_mode;
-static uae_u32 trace_param[3];
+// BARTO
+/*static*/ int trace_mode;
+/*static*/ uae_u32 trace_param[3];
+
+// BARTO
+int debug_barto = 0;
 
 int debugger_active;
 static int debug_rewind;
-static int memwatch_triggered;
+/*static*/ int memwatch_triggered; // BARTO
 static int inside_debugger;
 int debugger_used;
 int memwatch_access_validator;
@@ -99,8 +105,9 @@ static int last_vpos1, last_vpos2;
 static int last_frame = -1;
 static evt_t last_cycles1, last_cycles2;
 
-static uaecptr processptr;
-static uae_char *processname;
+//BARTO
+/*static*/ uaecptr processptr;
+/*static*/ uae_char *processname;
 
 static uaecptr debug_copper_pc;
 
@@ -144,6 +151,9 @@ void activate_debugger (void)
 	if (debugger_active) {
 		// already in debugger but some break point triggered
 		// during disassembly etc..
+
+		if(!(currprefs.debugging_features & (1 << 2))) // BARTO "gdb_server"
+			write_log(_T("Debugger already active!?\n"));
 		return;
 	}
 	debug_cycles(1);
@@ -1328,6 +1338,9 @@ static int nr_cop_records[2], curr_cop_set, selected_cop_set;
 static struct dma_rec *dma_record[2];
 static int dma_record_toggle, dma_record_frame[2];
 
+// BARTO
+struct dma_rec* get_dma_records() { return dma_record[dma_record_toggle]; }
+
 void record_dma_reset (void)
 {
 	int v, h;
@@ -1573,6 +1586,259 @@ static void debug_draw_heatmap(uae_u8 *buf, int bpp, int line, int width, int he
 	}
 }
 
+// BARTO START
+static constexpr int barto_buf_width = 768;
+static constexpr int barto_buf_height = 576;
+static uint32_t barto_buf[barto_buf_width * barto_buf_height]{};
+// 0xAARRGGBB
+void barto_buf_clear() {
+	debug_barto = 0;
+	memset(barto_buf, 0, sizeof(barto_buf));
+}
+void barto_buf_pixel(int x, int y, uint32_t color) {
+	debug_barto = 1;
+	if(x >= 0 && x < barto_buf_width && y >= 0 && y < barto_buf_height) {
+		barto_buf[y * barto_buf_width + x] = color | 0xff000000;
+	}
+}
+
+static constexpr int barto_font_width = 768 / 8;
+static constexpr char barto_font_first_char = '!';
+static const uint8_t barto_font[] = {
+  0xe7, 0x93, 0x93, 0xef, 0x9f, 0x8f, 0xe7, 0xe7, 0xcf, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xe7, 0x83, 0xc3, 0xe7, 0x07, 0x8f, 0x01, 0x87, 0x87, 0xff, 0xff, 0xff, 0xff, 0xff, 0x83, 0xc7, 0x87, 0x07, 0x87, 0x07, 0x01, 0x01, 0xc7, 0x39, 0x81, 0xf1, 0x39, 0x3f, 0x39, 0x39, 0x87, 0x07, 0x87, 0x07, 0x87, 0x81, 0x39, 0x39, 0x39, 0x39, 0x39, 0x01, 0xc7, 0xff, 0xc7, 0xef, 0xff, 0xe7, 0xff, 0x3f, 0xff, 0xf9, 0xff, 0xc7, 0xff, 0x3f, 0xe7, 0xf3, 0x3f, 0xc7, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xcf, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xf3, 0xe7, 0xcf, 0x8d, 0xc7, 0x01,
+  0xe7, 0x93, 0x93, 0x83, 0x69, 0x27, 0xe7, 0xcf, 0xe7, 0x93, 0xe7, 0xff, 0xff, 0xff, 0xf9, 0x87, 0xe7, 0xf9, 0xf9, 0xe7, 0x3f, 0x3f, 0xf9, 0x33, 0x33, 0xe7, 0xe7, 0xe7, 0xff, 0xcf, 0x39, 0x93, 0x33, 0x33, 0x33, 0x33, 0x3f, 0x3f, 0x9f, 0x39, 0xe7, 0xf9, 0x33, 0x3f, 0x11, 0x19, 0x33, 0x33, 0x33, 0x33, 0x3f, 0xe7, 0x39, 0x39, 0x39, 0x93, 0x39, 0xf3, 0xcf, 0x3f, 0xe7, 0xc7, 0xff, 0xe7, 0xc3, 0x07, 0x87, 0xc1, 0x87, 0x93, 0x81, 0x07, 0xff, 0xff, 0x33, 0xe7, 0x3b, 0x07, 0x87, 0x07, 0xc1, 0x03, 0x87, 0x83, 0x39, 0x39, 0x39, 0x39, 0x39, 0x01, 0xe7, 0xe7, 0xe7, 0x63, 0x8f, 0x39,
+  0xe7, 0xdb, 0x01, 0x2f, 0x83, 0x8f, 0xf7, 0x9f, 0xf3, 0xc7, 0xe7, 0xff, 0xff, 0xff, 0xf3, 0x33, 0xc7, 0xc3, 0xe3, 0xcf, 0x03, 0x03, 0xf3, 0x83, 0x39, 0xe7, 0xe7, 0xcf, 0x83, 0xe7, 0xf9, 0x21, 0x39, 0x03, 0x3f, 0x39, 0x03, 0x03, 0x3f, 0x39, 0xe7, 0xf9, 0x27, 0x3f, 0x01, 0x09, 0x39, 0x39, 0x39, 0x39, 0x83, 0xe7, 0x39, 0x39, 0x39, 0xc7, 0x39, 0xe7, 0xcf, 0x9f, 0xe7, 0x93, 0xff, 0xef, 0xf9, 0x33, 0x33, 0x99, 0x33, 0x9f, 0x39, 0x33, 0xc7, 0xe3, 0x27, 0xe7, 0x11, 0x33, 0x33, 0x33, 0x99, 0x39, 0x3f, 0xcf, 0x39, 0x39, 0x29, 0x93, 0x39, 0xf3, 0xe7, 0xe7, 0xe7, 0xff, 0x1f, 0x39,
+  0xe7, 0xff, 0x93, 0x83, 0xe7, 0x09, 0xef, 0x9f, 0xf3, 0x01, 0x81, 0xff, 0x83, 0xff, 0xe7, 0x21, 0xe7, 0x9f, 0xf9, 0x93, 0xf9, 0x39, 0xe7, 0x39, 0x39, 0xff, 0xff, 0x9f, 0xff, 0xf3, 0xc3, 0x09, 0x01, 0x39, 0x3f, 0x39, 0x3f, 0x3f, 0x31, 0x01, 0xe7, 0xf9, 0x0f, 0x3f, 0x29, 0x21, 0x39, 0x39, 0x39, 0x39, 0xf9, 0xe7, 0x39, 0x93, 0x29, 0xc7, 0x83, 0xcf, 0xcf, 0xcf, 0xe7, 0xff, 0xff, 0xf7, 0x81, 0x39, 0x3f, 0x39, 0x03, 0x87, 0x39, 0x39, 0xe7, 0xf3, 0x0f, 0xe7, 0x01, 0x39, 0x39, 0x39, 0x39, 0x3f, 0x83, 0xcf, 0x39, 0x93, 0x01, 0xc7, 0x39, 0xe7, 0xcf, 0xe7, 0xf3, 0xff, 0x3e, 0x39,
+  0xe7, 0xff, 0x01, 0xe9, 0xcf, 0x23, 0xff, 0x9f, 0xf3, 0xc7, 0xe7, 0xe7, 0xff, 0xff, 0xcf, 0x09, 0xe7, 0x3f, 0xb9, 0x33, 0xb9, 0x39, 0xe7, 0x39, 0x81, 0xff, 0xff, 0xcf, 0x83, 0xe7, 0xcf, 0x21, 0x39, 0x39, 0x3f, 0x39, 0x3f, 0x3f, 0x39, 0x39, 0xe7, 0x39, 0x27, 0x3f, 0x39, 0x31, 0x39, 0x03, 0x39, 0x03, 0xb9, 0xe7, 0x39, 0x93, 0x01, 0x93, 0xf3, 0x9f, 0xcf, 0xe7, 0xe7, 0xff, 0xff, 0xff, 0x39, 0x39, 0x3f, 0x39, 0x3f, 0x9f, 0x39, 0x39, 0xe7, 0xf3, 0x27, 0xe7, 0x29, 0x39, 0x39, 0x39, 0x39, 0x3f, 0xf9, 0xcf, 0x39, 0x93, 0x83, 0xc7, 0x39, 0xcf, 0xe7, 0xe7, 0xe7, 0xff, 0x7c, 0x39,
+  0xff, 0xff, 0x93, 0xe9, 0x93, 0x27, 0xff, 0xcf, 0xe7, 0x93, 0xe7, 0xe7, 0xff, 0xe7, 0x9f, 0x19, 0xe7, 0x3f, 0x39, 0x01, 0x33, 0x33, 0xe7, 0x33, 0xf9, 0xe7, 0xe7, 0xe7, 0xff, 0xcf, 0xff, 0x3f, 0x39, 0x33, 0x39, 0x39, 0x3f, 0x3f, 0x39, 0x39, 0xe7, 0x39, 0x33, 0x3f, 0x39, 0x39, 0x39, 0x3f, 0x29, 0x27, 0x39, 0xe7, 0x39, 0xc7, 0x11, 0x39, 0xf3, 0x3f, 0xcf, 0xf3, 0xe7, 0xff, 0xff, 0xff, 0x39, 0x39, 0x39, 0x39, 0x39, 0x9f, 0x81, 0x39, 0xe7, 0xf3, 0x33, 0xe7, 0x39, 0x39, 0x39, 0x39, 0x39, 0x3f, 0x39, 0xcd, 0x39, 0xc7, 0x93, 0x93, 0x81, 0x9f, 0xe7, 0xe7, 0xe7, 0xff, 0xf8, 0x39,
+  0xe7, 0xff, 0x93, 0x83, 0x2d, 0x83, 0xff, 0xe7, 0xcf, 0xff, 0xff, 0xf7, 0xff, 0xe7, 0x3f, 0x83, 0x81, 0x01, 0x83, 0xf3, 0x87, 0x87, 0xe7, 0x87, 0xe3, 0xe7, 0xf7, 0xff, 0xff, 0xff, 0xcf, 0x99, 0x39, 0x07, 0x83, 0x03, 0x01, 0x3f, 0x81, 0x39, 0x81, 0x83, 0x39, 0x01, 0x39, 0x39, 0x83, 0x3f, 0x83, 0x33, 0x83, 0xe7, 0x83, 0xc7, 0x39, 0x39, 0xf3, 0x01, 0xc7, 0xf9, 0xc7, 0xff, 0xff, 0xff, 0x81, 0x03, 0x83, 0x81, 0x83, 0x9f, 0xf9, 0x39, 0x81, 0xb3, 0x39, 0x81, 0x39, 0x39, 0x83, 0x03, 0x81, 0x3f, 0x83, 0xe3, 0x81, 0xc7, 0xbb, 0x39, 0xf9, 0x01, 0xf3, 0xe7, 0xcf, 0xff, 0xf1, 0x01,
+  0xff, 0xff, 0xff, 0xef, 0xf3, 0xf9, 0xff, 0xff, 0xff, 0xff, 0xff, 0xef, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xef, 0xff, 0xff, 0xff, 0xff, 0xc3, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xf9, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xf3, 0xf9, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x01, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x9f, 0x83, 0xff, 0xff, 0xc7, 0xff, 0xff, 0xff, 0xff, 0xff, 0x3f, 0xf9, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x83, 0xff, 0xff, 0xe7, 0xff, 0xff, 0xe3, 0xff,
+};
+
+void barto_buf_text(int left, int top, const unsigned char* text, uint32_t color)
+{
+	int x = left;
+	int y = top;
+	while(int c = *text++) {
+		if(c == ' ') {
+			x += 8;
+			continue;
+		}
+		if(c == '\n') {
+			x = left;
+			y += 8;
+			continue;
+		}
+		if(c <= barto_font_first_char || c >= barto_font_first_char + barto_font_width)
+			continue;
+
+		for(int yy = 0; yy < 8; yy++) {
+			auto f = barto_font[yy * barto_font_width + (c - barto_font_first_char)];
+			for(int xx = 0; xx < 8; xx++) {
+				if(f & (1 << (7 - xx)))
+					continue;
+				barto_buf_pixel(x + xx, y + yy, color);
+			}
+		}
+		x += 8;
+	}
+}
+
+void barto_buf_rect(int16_t left, int16_t top, int16_t right, int16_t bottom, uint32_t color) {
+	for(int x = left; x <= right; x++)
+		barto_buf_pixel(x, top, color);
+	for(int x = left; x <= right; x++)
+		barto_buf_pixel(x, bottom, color);
+	for(int y = top; y <= bottom; y++)
+		barto_buf_pixel(left, y, color);
+	for(int y = top; y <= bottom; y++)
+		barto_buf_pixel(right, y, color);
+}
+
+void barto_buf_rect_filled(int16_t left, int16_t top, int16_t right, int16_t bottom, uint32_t color) {
+	for(int y = top; y <= bottom; y++)
+		for(int x = left; x <= right; x++)
+			barto_buf_pixel(x, y, color);
+}
+
+// must match gcc8_c_support.cpp
+enum barto_cmd {
+	barto_cmd_clear,
+	barto_cmd_rect,
+	barto_cmd_filled_rect,
+	barto_cmd_text,
+	barto_cmd_register_resource,
+	barto_cmd_set_idle,
+	barto_cmd_unregister_resource,
+	barto_cmd_load,
+	barto_cmd_save
+};
+
+enum debug_resource_type {
+	debug_resource_type_bitmap,
+	debug_resource_type_palette,
+	debug_resource_type_copperlist,
+};
+
+enum debug_resource_flags {
+	debug_resource_bitmap_interleaved = 1 << 0,
+};
+
+int barto_debug_resources_count{ 0 };
+barto_debug_resource barto_debug_resources[1024];
+
+bool barto_debug_idle_flag = false;
+unsigned int barto_debug_idle_stack_count{ 0 };
+bool barto_debug_idle_stack[16];
+
+unsigned int barto_debug_idle_count{ 0 };
+uint32_t barto_debug_idle[1024]; // top bit: idle, other bits: cycle
+
+extern int debug_barto_cmd(TrapContext* ctx, uae_u32 arg1, uae_u32 arg2, uae_u32 arg3, uae_u32 arg4, uae_u32 arg5) {
+	switch((barto_cmd)arg1) {
+	case barto_cmd_clear:
+		barto_buf_clear();
+		return 1;
+	case barto_cmd_rect: {
+		int16_t left = arg2 >> 16;
+		int16_t top = arg2 & 0xffff;
+		int16_t right = arg3 >> 16;
+		int16_t bottom = arg3 & 0xffff;
+		uint32_t color = arg4;
+		barto_buf_rect(left, top, right, bottom, color);
+		return 1;
+	}
+	case barto_cmd_filled_rect: {
+		int16_t left = arg2 >> 16;
+		int16_t top = arg2 & 0xffff;
+		int16_t right = arg3 >> 16;
+		int16_t bottom = arg3 & 0xffff;
+		uint32_t color = arg4;
+		barto_buf_rect_filled(left, top, right, bottom, color);
+		return 1;
+	}
+	case barto_cmd_text: {
+		int16_t left = arg2 >> 16;
+		int16_t top = arg2 & 0xffff;
+		unsigned char text[512];
+		trap_get_string(ctx, text, arg3, sizeof(text));
+		uint32_t color = arg4;
+		barto_buf_text(left, top, text, color);
+		return 1;
+	}
+	case barto_cmd_register_resource: {
+		if(barto_debug_resources_count >= _countof(barto_debug_resources))
+			return 1;
+
+		auto& resource = barto_debug_resources[barto_debug_resources_count++];
+		resource = {};
+		trap_get_bytes(ctx, &resource, arg2, sizeof(resource));
+		resource.address = bswap_32(resource.address);
+		resource.size = bswap_32(resource.size);
+		resource.type = bswap_16(resource.type);
+		resource.flags = bswap_16(resource.flags);
+		switch(resource.type) {
+		case debug_resource_type_bitmap:
+			resource.bitmap.width = bswap_16(resource.bitmap.width);
+			resource.bitmap.height = bswap_16(resource.bitmap.height);
+			resource.bitmap.numPlanes = bswap_16(resource.bitmap.numPlanes);
+			break;
+		case debug_resource_type_palette:
+			resource.palette.numEntries = bswap_16(resource.palette.numEntries);
+			break;
+		}
+
+		return 1;
+	}
+	case barto_cmd_unregister_resource:
+		for(int i = barto_debug_resources_count - 1; i >= 0; i--) {
+			if(barto_debug_resources[i].address == arg2 || arg2 == 0) { // 0: unregister all resources
+				barto_debug_resources_count--;
+				if(barto_debug_resources_count > 0) // move last entry into hole
+					barto_debug_resources[i] = barto_debug_resources[barto_debug_resources_count];
+			}
+		}
+		return 1;
+	case barto_cmd_set_idle:
+		if(barto_debug_idle_count >= _countof(barto_debug_idle))
+			return 1;
+
+		if(arg2) {
+			if(barto_debug_idle_stack_count < _countof(barto_debug_idle_stack) - 1) {
+				barto_debug_idle_stack[barto_debug_idle_stack_count++] = barto_debug_idle_flag;
+			}
+			barto_debug_idle_flag = true;
+		} else {
+			if(barto_debug_idle_stack_count > 0) {
+				barto_debug_idle_flag = barto_debug_idle_stack[--barto_debug_idle_stack_count];
+			} else {
+				barto_debug_idle_flag = false;
+			}
+		}
+
+		if(barto_debug_idle_count >= _countof(barto_debug_idle))
+			return 1;
+
+		barto_debug_idle[barto_debug_idle_count++] = static_cast<uint32_t>(get_cycles() / cpucycleunit) | ((barto_debug_idle_flag ? 1 : 0) << 31);
+		return 1;
+	case barto_cmd_load: {
+		barto_debug_resource resource{};
+		trap_get_bytes(ctx, &resource, arg2, sizeof(resource));
+		unsigned int address = bswap_32(resource.address);
+		std::string fn = std::string("debug\\") + resource.name;
+		if(auto f = fopen(fn.c_str(), "rb")) {
+			fseek(f, 0, SEEK_END);
+			auto size = ftell(f);
+			fseek(f, 0, SEEK_SET);
+			resource.size = bswap_32(size);
+			auto data = new char[size]();
+			fread(data, 1, size, f);
+			trap_put_bytes(ctx, data, address, size);
+			delete[] data;
+			fclose(f);
+		} else {
+			resource.size = 0;
+		}
+		trap_put_bytes(ctx, &resource, arg2, sizeof(resource));
+		return 1;
+	}
+	case barto_cmd_save: {
+		barto_debug_resource resource{};
+		trap_get_bytes(ctx, &resource, arg2, sizeof(resource));
+		unsigned int address = bswap_32(resource.address);
+		unsigned int size = bswap_32(resource.size);
+		std::filesystem::create_directory("debug");
+		std::string fn = std::string("debug/") + resource.name;
+		if(auto f = fopen(fn.c_str(), "wb")) {
+			auto data = new char[size]();
+			trap_get_bytes(ctx, data, address, size);
+			fwrite(data, 1, size, f);
+			delete[] data;
+			fclose(f);
+		}
+		return 1;
+	}
+	} // switch
+
+	return 0;
+}
+
+static void debug_draw_barto(uae_u8* buf, int bpp, int line, int width, int height, uae_u32* xredcolors, uae_u32* xgreencolors, uae_u32* xbluescolors)
+{
+	if(bpp != 4)
+		return;
+
+	if(!(line >= 0 && line < barto_buf_height))
+		return;
+
+	for(int x = 0; x < min(width, barto_buf_width); x++) {
+		uae_u32 c = barto_buf[line * barto_buf_width + x];
+		if(c & 0xff000000)
+			putpixel(buf, bpp, x, c);
+	}
+}
+// BARTO END
+
 void debug_draw(uae_u8 *buf, int bpp, int line, int width, int height, uae_u32 *xredcolors, uae_u32 *xgreencolors, uae_u32 *xbluescolors)
 {
 	if (!heatmap_debug_colors) {
@@ -1592,9 +1858,14 @@ void debug_draw(uae_u8 *buf, int bpp, int line, int width, int height, uae_u32 *
 		}
 	}
 
+	// BARTO
+	if (debug_barto) {
+		debug_draw_barto(buf, bpp, line, width, height, xredcolors, xgreencolors, xbluecolors);
+	}
+
 	if (heatmap) {
 		debug_draw_heatmap(buf, bpp, line, width, height, xredcolors, xgreencolors, xbluecolors);
-	} else if (dma_record[0]) {
+	} else if (debug_dma > 1 && dma_record[0]) { // BARTO
 		debug_draw_cycles(buf, bpp, line, width, height, xredcolors, xgreencolors, xbluecolors);
 	}
 }
@@ -3066,7 +3337,7 @@ static addrbank **debug_mem_banks;
 static addrbank *debug_mem_area;
 struct memwatch_node mwnodes[MEMWATCH_TOTAL];
 static int mwnodes_start, mwnodes_end;
-static struct memwatch_node mwhit;
+/*static*/ struct memwatch_node mwhit; // BARTO
 
 #define MUNGWALL_SLOTS 16
 struct mungwall_data
@@ -3233,7 +3504,7 @@ static void smc_free (void)
 	smc_table = NULL;
 }
 
-static void initialize_memwatch(int mode);
+/*static*/ void initialize_memwatch(int mode); // BARTO
 static void smc_detect_init(TCHAR **c)
 {
 	int v;
@@ -4042,7 +4313,7 @@ static void memwatch_remap (uaecptr addr)
 	}
 }
 
-static void memwatch_setup(void)
+/*static*/ void memwatch_setup(void) // BARTO
 {
 	memwatch_reset();
 	mwnodes_start = MEMWATCH_TOTAL - 1;
@@ -4085,7 +4356,7 @@ static int deinitialize_memwatch (void)
 	return oldmode;
 }
 
-static void initialize_memwatch (int mode)
+/*static*/ void initialize_memwatch (int mode) // BARTO
 {
 	membank_total = currprefs.address_space_24 ? 256 : 65536;
 	deinitialize_memwatch ();
@@ -6861,29 +7132,31 @@ void debug (void)
 				if ((processptr || processname) && notinrom()) {
 					uaecptr execbase = get_long_debug (4);
 					uaecptr activetask = get_long_debug (execbase + 276);
-					int process = get_byte_debug (activetask + 8) == 13 ? 1 : 0;
-					char *name = (char*)get_real_address_debug(get_long_debug (activetask + 10));
-					if (process) {
-						uaecptr cli = BPTR2APTR(get_long_debug (activetask + 172));
-						uaecptr seglist = 0;
+					if(activetask) { // BARTO
+						int process = get_byte_debug (activetask + 8) == 13 ? 1 : 0;
+						char *name = (char*)get_real_address_debug(get_long_debug (activetask + 10));
+						if (process) {
+							uaecptr cli = BPTR2APTR(get_long_debug (activetask + 172));
+							uaecptr seglist = 0;
 
-						uae_char *command = NULL;
-						if (cli) {
-							if (processname)
-								command = (char*)get_real_address_debug(BPTR2APTR(get_long_debug (cli + 16)));
-							seglist = BPTR2APTR(get_long_debug (cli + 60));
-						} else {
-							seglist = BPTR2APTR(get_long_debug (activetask + 128));
-							seglist = BPTR2APTR(get_long_debug (seglist + 12));
-						}
-						if (activetask == processptr || (processname && (!stricmp (name, processname) || (command && command[0] && !strnicmp (command + 1, processname, ((uae_u8*)command)[0]) && processname[command[0]] == 0)))) {
-							while (seglist) {
-								uae_u32 size = get_long_debug (seglist - 4) - 4;
-								if (pc >= (seglist + 4) && pc < (seglist + size)) {
-									bp = i + 1;
-									break;
+							uae_char *command = NULL;
+							if (cli) {
+								if (processname)
+									command = (char*)get_real_address_debug(BPTR2APTR(get_long_debug (cli + 16)));
+								seglist = BPTR2APTR(get_long_debug (cli + 60));
+							} else {
+								seglist = BPTR2APTR(get_long_debug (activetask + 128));
+								seglist = BPTR2APTR(get_long_debug (seglist + 12));
+							}
+							if (activetask == processptr || (processname && (!stricmp (name, processname) || (command && command[0] && !strnicmp (command + 1, processname, ((uae_u8*)command)[0]) && processname[command[0]] == 0)))) {
+								while (seglist) {
+									uae_u32 size = get_long_debug (seglist - 4) - 4;
+									if (pc >= (seglist + 4) && pc < (seglist + size)) {
+										bp = i + 1;
+										break;
+									}
+									seglist = BPTR2APTR(get_long_debug (seglist));
 								}
-								seglist = BPTR2APTR(get_long_debug (seglist));
 							}
 						}
 					}
@@ -6914,6 +7187,9 @@ void debug (void)
 #endif
 				} else if (trace_mode == TRACE_RANGE_PC) {
 					if (pc >= trace_param[0] && pc < trace_param[1])
+						bp = -1;
+				} else if(trace_mode == TRACE_NRANGE_PC) { // BARTO
+					if(pc < trace_param[0] || pc >= trace_param[1])
 						bp = -1;
 				} else if (trace_mode == TRACE_SKIP_LINE) {
 					if (trace_param[0] != 0)
@@ -6976,7 +7252,8 @@ void debug (void)
 	}
 	trace_cycles = 0;
 
-	debug_1 ();
+	if(!barto_gdbserver::debug()) // BARTO
+		debug_1 ();
 	debugmem_enable();
 	if (!debug_rewind && !currprefs.cachesize
 #ifdef FILESYS

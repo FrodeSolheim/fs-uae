@@ -859,6 +859,19 @@ extern bool is_cpu_tracer (void);
 extern bool set_cpu_tracer (bool force);
 extern bool can_cpu_tracer (void);
 
+// BARTO
+#pragma pack(push, 2)
+struct cpu_profiler_unwind {
+	uint16_t cfa; // (cfaReg << 12) | (u.cfaOfs)
+	int16_t r13; // ofs from cfa
+	int16_t ra; // ofs from cfa
+};
+#pragma pack(pop)
+extern void start_cpu_profiler(uaecptr start_addr, uaecptr end_addr, cpu_profiler_unwind* unwind_buffer);
+extern uint32_t get_cpu_profiler_output_count();
+extern const uint32_t* get_cpu_profiler_output(); // format: callstack (offsets), ..., ~0 - cycles
+extern void stop_cpu_profiler();
+
 #define CPU_HALT_PPC_ONLY -1
 #define CPU_HALT_BUS_ERROR_DOUBLE_FAULT 1
 #define CPU_HALT_DOUBLE_FAULT 2

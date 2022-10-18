@@ -254,6 +254,7 @@ libuae_a_SOURCES = \
 	src/archivers/zip/unzip.h \
 	src/audio.cpp \
 	src/autoconf.cpp \
+	src/barto_gdbserver.cpp \
 	src/blitter.cpp \
 	src/blkdev.cpp \
 	src/blkdev_cdimage.cpp \

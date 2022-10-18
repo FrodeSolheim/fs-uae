@@ -27,11 +27,41 @@
 #define	MAX_HIST 500
 #define MAX_LINEWIDTH 10000
 
+struct barto_debug_bitmap {
+	short width;
+	short height;
+	short numPlanes;
+};
+struct barto_debug_palette {
+	short numEntries;
+};
+
+// BARTO
+struct barto_debug_resource {
+	unsigned int address;
+	unsigned int size;
+	char name[32];
+	unsigned short /*enum debug_resource_type*/ type;
+	unsigned short /*enum debug_resource_flags*/ flags;
+
+	union {
+		barto_debug_bitmap bitmap;
+		barto_debug_palette palette;
+	};
+};
+extern int barto_debug_resources_count;
+extern barto_debug_resource barto_debug_resources[1024];
+extern unsigned int barto_debug_idle_count;
+extern uint32_t barto_debug_idle[1024]; // top bit: idle, other bits: cycle / (CYCLE_UNIT / 2)
+// BARTO END
+
 extern int debugging;
 extern int memwatch_enabled;
 extern int exception_debugging;
 extern int debug_copper;
 extern int debug_dma, debug_heatmap;
+extern int debug_barto; // BARTO
+extern int debug_barto_cmd(struct TrapContext* ctx, uae_u32 arg1, uae_u32 arg2, uae_u32 arg3, uae_u32 arg4, uae_u32 arg5); // BARTO
 extern int debug_sprite_mask;
 extern int debug_bpl_mask, debug_bpl_mask_one;
 extern int debugger_active;
@@ -220,6 +250,7 @@ struct peekdma
 };
 extern struct peekdma peekdma_data;
 
+#pragma pack(1) // BARTO
 struct dma_rec
 {
     uae_u16 reg;
@@ -239,6 +270,7 @@ struct dma_rec
 	uae_u16 ciavalue;
 	bool end;
 };
+#pragma pack() // BARTO
 
 extern struct dma_rec *last_dma_rec;
 
@@ -302,6 +334,7 @@ extern void record_dma_vsync(int);
 extern void record_cia_access(int r, int mask, uae_u16 value, bool rw, int hpos, int vpos);
 extern void record_dma_ipl(int hpos, int vpos);
 extern void debug_mark_refreshed(uaecptr);
+extern struct dma_rec* get_dma_records(); // BARTO
 extern void debug_draw(uae_u8 *buf, int bpp, int line, int width, int height, uae_u32 *xredcolors, uae_u32 *xgreencolors, uae_u32 *xbluescolors);
 
 #define TRACE_SKIP_INS 1
@@ -310,6 +343,7 @@ extern void debug_draw(uae_u8 *buf, int bpp, int line, int width, int height, ua
 #define TRACE_RANGE_PC 4
 #define TRACE_SKIP_LINE 5
 #define TRACE_RAM_PC 6
+#define TRACE_NRANGE_PC 7 //BARTO
 #define TRACE_CHECKONLY 10
 
 #else

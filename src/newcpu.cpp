@@ -93,7 +93,7 @@ static void exception3_read_special(uae_u32 opcode, uaecptr addr, int size, int 
 int mmu_enabled, mmu_triggered;
 int cpu_cycles;
 int hardware_bus_error;
-static int baseclock;
+/*static*/ int baseclock; // BARTO
 int m68k_pc_indirect;
 bool m68k_interrupt_delay;
 static bool m68k_reset_delay;
@@ -112,6 +112,110 @@ static int cpu_prefs_changed_flag;
 int cpuipldelay;
 int cpucycleunit;
 int cpu_tracer;
+
+// BARTO
+uaecptr cpu_profiler_start_addr = 0;
+uaecptr cpu_profiler_end_addr = 0;
+evt_t cpu_profiler_last_cycles = 0;
+cpu_profiler_unwind* cpu_profiler_unwind_buffer = nullptr; // for each possible code location (every 2 bytes) 2 s16: cfa, return address
+#include <vector>
+std::vector<uint32_t> cpu_profiler_output;
+
+void start_cpu_profiler(uaecptr start_addr, uaecptr end_addr, cpu_profiler_unwind* unwind_buffer) {
+	cpu_profiler_start_addr = start_addr;
+	cpu_profiler_end_addr = end_addr;
+	cpu_profiler_last_cycles = get_cycles();
+	cpu_profiler_unwind_buffer = unwind_buffer;
+	cpu_profiler_output.clear();
+}
+
+uint32_t get_cpu_profiler_output_count() {
+	return static_cast<uint32_t>(cpu_profiler_output.size());
+}
+
+const uint32_t* get_cpu_profiler_output() {
+	return cpu_profiler_output.data();
+}
+
+void stop_cpu_profiler() {
+	cpu_profiler_start_addr = 0;
+	cpu_profiler_end_addr = 0;
+	cpu_profiler_last_cycles = 0;
+	cpu_profiler_unwind_buffer = nullptr;
+}
+
+struct cpu_profiler {
+	evt_t cycles = 0;
+	uae_u32 callstack[16];
+	uae_u32 callstack_depth = 0;
+	uae_u32 registers[16];
+	uae_u16 sr;
+
+	explicit cpu_profiler(uae_u32 pc) {
+		if(cpu_profiler_end_addr) {
+			auto get_long_debug_no_custom = [](uaecptr addr) -> int {
+				if(&get_mem_bank(addr) == &custom_bank)
+					return -1;
+				return get_long_debug(addr);
+			};
+
+			cycles = get_cycles();
+			memcpy(registers, regs.regs, sizeof(registers));
+			sr = regs.sr;
+			// some cycles burned by IRQ, etc.
+			if(cycles > cpu_profiler_last_cycles) {
+				auto cycles_for_instr = static_cast<uae_u32>((cycles - cpu_profiler_last_cycles) / cpucycleunit);
+				cpu_profiler_output.push_back(0x7fff'ffff); // PC: IRQ marker
+				cpu_profiler_output.push_back(~0 - cycles_for_instr);
+				for(const auto& r : registers)
+					cpu_profiler_output.push_back(r);
+				cpu_profiler_output.push_back(sr); // 16->32 bit. hmm...
+			}
+
+			// kickstart
+			if(pc >= 0x00f8'0000 && pc < 0x0100'0000) {
+				callstack[callstack_depth++] = pc;
+			} else {
+				// record PC & unwind callstack
+				auto r13 = regs.regs[13] /* a5 = fp */, r15 = regs.regs[15] /* a7 = sp */;
+				while(pc >= cpu_profiler_start_addr && pc < cpu_profiler_end_addr) {
+					callstack[callstack_depth++] = pc - cpu_profiler_start_addr;
+					if(!cpu_profiler_unwind_buffer) // null for savestate profiling
+						break;
+					const auto& unwind = cpu_profiler_unwind_buffer[(pc - cpu_profiler_start_addr) >> 1];
+					if(unwind.cfa == ~0 || unwind.ra == ~0) break; // should not happen
+					uae_u32 new_cfa{};
+					switch(unwind.cfa >> 12) {
+					case 13: new_cfa = r13; break;
+					case 15: new_cfa = r15; break;
+					default: break; // should not happen
+					}
+					new_cfa += unwind.cfa & ((1 << 12) - 1);
+					auto new_pc = get_long_debug_no_custom(new_cfa + unwind.ra);
+					if(unwind.r13 != -1)
+						r13 = get_long_debug_no_custom(new_cfa + unwind.r13);
+					if(new_cfa == r15 || new_pc == pc) break; // should not happen
+					r15 = new_cfa;
+					pc = new_pc;
+				}
+			}
+		}
+	}
+
+	~cpu_profiler() {
+		if(cpu_profiler_end_addr && cycles) { // profiling may have been switched on or off in vsync (which is called from 'r->opcode' above)
+			cpu_profiler_last_cycles = get_cycles();
+			auto cycles_for_instr = static_cast<uae_u32>((cpu_profiler_last_cycles - cycles) / cpucycleunit);
+			for(int i = 0; i < callstack_depth; i++)
+				cpu_profiler_output.push_back(callstack[i]);
+			cpu_profiler_output.push_back(~0 - cycles_for_instr);
+			for(const auto& r : registers)
+				cpu_profiler_output.push_back(r);
+			cpu_profiler_output.push_back(sr); // 16->32 bit. hmm...
+		}
+	}
+};
+// BARTO-END
 
 const int areg_byteinc[] = { 1, 1, 1, 1, 1, 1, 1, 2 };
 const int imm8_table[] = { 8, 1, 2, 3, 4, 5, 6, 7 };
@@ -4852,14 +4956,16 @@ static void m68k_run_1_ce (void)
 					record_dma_event_data(DMA_EVENT_CPUINS, current_hpos(), vpos, r->opcode);
 				}
 
-				(*cpufunctbl[r->opcode])(r->opcode);
-				if (!regs.loop_mode)
-					regs.ird = regs.opcode;
-				regs.instruction_cnt++;
-				wait_memory_cycles();
-				if (cpu_tracer) {
-					cputrace.state = 0;
-				}
+				{ cpu_profiler profiler(r->instruction_pc); // BARTO
+					(*cpufunctbl[r->opcode])(r->opcode);
+					if (!regs.loop_mode)
+						regs.ird = regs.opcode;
+					regs.instruction_cnt++;
+					wait_memory_cycles();
+					if (cpu_tracer) {
+						cputrace.state = 0;
+					}
+				} // BARTO
 cont:
 				if (cputrace.needendcycles) {
 					cputrace.needendcycles = 0;
@@ -5924,10 +6030,12 @@ static void m68k_run_2ce (void)
 					debug_trainer_match();
 				}
 
-				(*cpufunctbl[r->opcode])(r->opcode);
-	
-				wait_memory_cycles();
-				regs.instruction_cnt++;
+				{ cpu_profiler profiler(r->instruction_pc); // BARTO
+					(*cpufunctbl[r->opcode])(r->opcode);
+		
+					wait_memory_cycles();
+					regs.instruction_cnt++;
+				} // BARTO
 
 		cont:
 				regs.ipl[0] = regs.ipl_pin;

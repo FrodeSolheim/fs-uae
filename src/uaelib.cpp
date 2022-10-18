@@ -405,7 +405,7 @@ static uae_u32 uaelib_demux_common(TrapContext *ctx, uae_u32 ARG0, uae_u32 ARG1,
 			trap_set_dreg(ctx, 1, d1);
 			return d0;
 		}
-
+		case 88: return debug_barto_cmd(ctx, ARG1, ARG2, ARG3, ARG4, ARG5);
 	}
 	return 0;
 }

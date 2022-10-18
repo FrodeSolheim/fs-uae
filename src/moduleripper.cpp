@@ -74,7 +74,7 @@ void moduleripper (void)
 #ifdef _WIN32
 	__try {
 #endif
-		prowizard_search (buf, size);
+		//prowizard_search (buf, size);
 #ifdef _WIN32
 	} __except(ExceptionFilter (GetExceptionInformation (), GetExceptionCode ())) {
 		write_log (_T("prowizard scan crashed\n"));

@@ -80,15 +80,6 @@ bool debugmem_trace;
 #define MAX_STACKFRAMES 100
 
 
-struct debugstackframe
-{
-	uaecptr current_pc;
-	uaecptr branch_pc;
-	uaecptr next_pc;
-	uaecptr stack;
-	uae_u32 regs[16];
-	uae_u16 sr;
-};
 static struct debugstackframe *stackframes, *stackframessuper;
 static int stackframecnt, stackframecntsuper;
 
@@ -4020,4 +4011,37 @@ struct zfile *read_executable_rom(struct zfile *z, int size, int maxblocks)
 	}
 	xfree(file);
 	return NULL;
+}
+
+// Given a traceframe number NUM, find the NUMth traceframe in the buffer.
+struct debugstackframe* debugmem_find_traceframe(bool super, int num, int* tfnump)
+{
+	debugstackframe* sf = NULL;
+	*tfnump = -1;
+	if (debugmem_bank.baseaddr || stackframemode)
+	{
+		struct debugstackframe* tframe;
+		int tfnum = 0;
+		int cnt = super ? stackframecntsuper : stackframecnt;
+		if (cnt > 0)
+		{
+			if (num < 0)
+			{
+				// asking for last frame
+				*tfnump = cnt - 1;
+				sf = super ? &stackframessuper[*tfnump] : &stackframes[*tfnump];
+			}
+			else if (num < cnt)
+			{
+				*tfnump = num;
+				sf = super ? &stackframessuper[num] : &stackframes[num];
+			}
+		}
+	}
+	return sf;
+}
+
+// Returns the number of stack frames
+int debugmem_get_traceframe_count(bool super) {
+	return super ? stackframecntsuper : stackframecnt;
 }

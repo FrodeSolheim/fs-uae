@@ -4563,9 +4563,13 @@ static void draw_frame2(struct vidbuffer *vbin, struct vidbuffer *vbout)
 #endif
 }
 
+static bool barto_always_changed = false; // BARTO
+
 static void draw_frame_extras(struct vidbuffer *vb, int y_start, int y_end)
 {
-	if (debug_dma > 1 || debug_heatmap > 1) {
+	if (debug_barto > 0 || debug_dma > 1 || debug_heatmap > 1) {
+		if(debug_barto > 0)
+			barto_always_changed = true;
 		for (int i = 0; i < vb->outheight; i++) {
 			int line = i;
 			draw_debug_status_line(vb->monitor_id, line);
@@ -5094,6 +5098,7 @@ void hsync_record_line_state (int lineno, enum nln_how how, int changed)
 	changed |= ad->frame_redraw_necessary != 0 || refresh_indicator_buffer != NULL ||
 		((lineno >= lightpen_y1[0] && lineno < lightpen_y2[0]) ||
 		(lineno >= lightpen_y1[1] && lineno < lightpen_y2[1]));
+	changed |= barto_always_changed ? 1 : 0; // BARTO
 
 	switch (how) {
 	case nln_normal:

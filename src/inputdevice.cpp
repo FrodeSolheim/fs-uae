@@ -4523,7 +4523,22 @@ static bool inputdevice_handle_inputcode2(int monid, int code, int state, const 
 		autopause = 1;
 		break;
 	case AKS_WARP:
-		warpmode (newstate);
+		{ // BARTO
+//			auto old_turbo = currprefs.turbo_emulation;
+//			if(!currprefs.turbo_emulation) {
+//				cfgfile_modify(-1, _T("cpu_speed max"), 0, nullptr, 0);
+//				cfgfile_modify(-1, _T("cpu_cycle_exact false"), 0, nullptr, 0);
+//				cfgfile_modify(-1, _T("cpu_memory_cycle_exact false"), 0, nullptr, 0);
+//				cfgfile_modify(-1, _T("blitter_cycle_exact false"), 0, nullptr, 0);
+//			}
+			warpmode (newstate);
+//			if(old_turbo) {
+//				cfgfile_modify(-1, _T("cpu_speed real"), 0, nullptr, 0);
+//				cfgfile_modify(-1, _T("cpu_cycle_exact true"), 0, nullptr, 0);
+//				cfgfile_modify(-1, _T("cpu_memory_cycle_exact true"), 0, nullptr, 0);
+//				cfgfile_modify(-1, _T("blitter_cycle_exact true"), 0, nullptr, 0);
+//			}
+		}
 		break;
 	case AKS_INHIBITSCREEN:
 		toggle_inhibit_frame(monid, IHF_SCROLLLOCK);

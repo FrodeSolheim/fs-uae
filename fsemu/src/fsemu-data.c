@@ -192,6 +192,7 @@ static int fs_get_application_exe_dir(char *buffer, int size)
 
 bool fsemu_data_development_mode(void)
 {
+	return true; // GB force dev mode for standalone build
     static bool initialized;
     static bool development_mode;
     if (fsemu_unlikely(!initialized)) {

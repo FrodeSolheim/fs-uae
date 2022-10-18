@@ -435,12 +435,14 @@ static void fsemu_frame_update_timing_timer_based(int frame_number,
         late_frames = 0;
     }
 
+#if 0
     if (late_frames >= 10) {
         // We might not be able to catch up normally, so we reset origin.
         fsemu_frame_origin_at = now;
         printf("\n--------------------------------\n\n");
         // FIXME: REGISTER THIS AS AN UNDERRUN EVENT
     }
+#endif
 
     fsemu_frame_end_at = fsemu_frame_origin_at + frame_duration;
 

@@ -19,6 +19,7 @@
 #include <codecvt>
 #include <locale>
 #include <algorithm>
+#include <cstring>
 
 #ifndef _WIN32
 #include <dlfcn.h>

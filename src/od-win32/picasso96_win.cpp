@@ -1400,7 +1400,7 @@ void picasso_handle_vsync(void)
 	}
 }
 
-static void picasso_handle_hsync(void)
+void picasso_handle_hsync(void)
 {
 	struct AmigaMonitor *mon = &AMonitors[currprefs.rtgboards[0].monitor_id];
 	struct amigadisplay *ad = &adisplays[currprefs.rtgboards[0].monitor_id];
@@ -5825,7 +5825,7 @@ void picasso_invalidate(int monid, int x, int y, int w, int h)
 #endif
 }
 
-static void picasso_flushpixels(int index, uae_u8 *src, int off, bool render)
+void picasso_flushpixels(int index, uae_u8 *src, int off, bool render)
 {
 	int monid = currprefs.rtgboards[index].monitor_id;
 	struct picasso96_state_struct *state = &picasso96_state[monid];

@@ -277,7 +277,7 @@ static FPU fpus_builtin[] =
 	{ NULL, NULL, 0 }
 };
 
-static CPU cpus_8088[] =
+CPU cpus_8088[] =
 {
 	/*8088 standard*/
 	{ "8088/4.77", CPU_8088, fpus_8088, 0, 4772728, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
@@ -289,7 +289,7 @@ static CPU cpus_8088[] =
 	{ "", -1, 0, 0, 0, 0 }
 };
 
-static CPU cpus_286[] =
+CPU cpus_286[] =
 {
 	/*286*/
 	{ "286/6", CPU_286, fpus_80286, 0, 6000000, 1, 0, 0, 0, 0, 0, 2, 2, 2, 2, 1 },
@@ -302,7 +302,7 @@ static CPU cpus_286[] =
 	{ "", -1, 0, 0, 0, 0 }
 };
 
-static CPU cpus_i386SX[] =
+CPU cpus_i386SX[] =
 {
 	/*i386SX*/
 	{ "i386SX/16", CPU_386SX, fpus_80386, 0, 16000000, 1, 0, 0x2308, 0, 0, 0, 3, 3, 3, 3, 2 },
@@ -312,7 +312,7 @@ static CPU cpus_i386SX[] =
 	{ "", -1, 0, 0, 0 }
 };
 
-static CPU cpus_i386DX[] =
+CPU cpus_i386DX[] =
 {
 	/*i386DX*/
 	{ "i386DX/16", CPU_386DX, fpus_80386, 0, 16000000, 1, 0, 0x0308, 0, 0, 0, 3, 3, 3, 3, 2 },
@@ -322,7 +322,7 @@ static CPU cpus_i386DX[] =
 	{ "", -1, 0, 0, 0 }
 };
 
-static CPU cpus_i486[] =
+CPU cpus_i486[] =
 {
 	/*i486*/
 	{ "i486SX/16", CPU_i486SX, fpus_none, 0, 16000000, 1, 16000000, 0x42a, 0, 0, CPU_SUPPORTS_DYNAREC, 3, 3, 3, 3, 2 },

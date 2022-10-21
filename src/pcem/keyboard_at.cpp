@@ -94,7 +94,7 @@ static int key_ctrl_queue_start = 0, key_ctrl_queue_end = 0;
 static uint8_t key_queue[16];
 static int key_queue_start = 0, key_queue_end = 0;
 
-static uint8_t mouse_queue[16];
+uint8_t mouse_queue[16];
 int mouse_queue_start = 0, mouse_queue_end = 0;
 
 void keyboard_at_adddata_keyboard(uint8_t val);
@@ -190,7 +190,6 @@ void keyboard_at_adddata(uint8_t val)
         }
 }
 
-static
 void keyboard_at_adddata_keyboard(uint8_t val)
 {
         if (keyboard_at.reset_delay)

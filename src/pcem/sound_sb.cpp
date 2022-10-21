@@ -396,7 +396,6 @@ void sb_ct1335_mixer_reset(sb_t* sb)
         sb_ct1335_mixer_write(0x255,0,sb);
 }
 
-static
 void sb_ct1345_mixer_write(uint16_t addr, uint8_t val, void *p)
 {
         sb_t *sb = (sb_t *)p;
@@ -492,7 +491,6 @@ void sb_ct1345_mixer_write(uint16_t addr, uint8_t val, void *p)
         }
 }
 
-static
 uint8_t sb_ct1345_mixer_read(uint16_t addr, void *p)
 {
         sb_t *sb = (sb_t *)p;
@@ -516,7 +514,6 @@ uint8_t sb_ct1345_mixer_read(uint16_t addr, void *p)
         return 0xff;
 }
 
-static
 void sb_ct1345_mixer_reset(sb_t* sb)
 {
         sb_ct1345_mixer_write(4,0,sb);
@@ -1112,7 +1109,6 @@ void *sb_awe32_init()
 
 #endif
 
-static
 void sb_close(void *p)
 {
         sb_t *sb = (sb_t *)p;
@@ -1146,7 +1142,6 @@ void sb_awe32_close(void *p)
 
 #endif
 
-static
 void sb_speed_changed(void *p)
 {
         sb_t *sb = (sb_t *)p;
@@ -1154,7 +1149,6 @@ void sb_speed_changed(void *p)
         sb_dsp_speed_changed(&sb->dsp);
 }
 
-static
 void sb_add_status_info(char *s, int max_len, void *p)
 {
         sb_t *sb = (sb_t *)p;

@@ -93,14 +93,14 @@ jobs:
         run: |
           ./bootstrap
           ./configure
-          make
+          make -j2
         if: matrix.os == 'windows-latest'
 
       - name: Make (non-Windows)
         run: |
           ./bootstrap
           ./configure
-          make
+          make -j2
         if: matrix.os != 'windows-latest'
 
       - name: Dist (Windows)

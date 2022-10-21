@@ -81,7 +81,7 @@ fs_thread *fs_thread_create(
     pthread_attr_setdetachstate(&thread->attr, PTHREAD_CREATE_JOINABLE);
     pthread_create(&thread->thread, &thread->attr, fn, data);
 #elif defined(USE_GLIB)
-    thread->thread = g_thread_new(name, fn, data);
+    thread->thread = g_thread_new(name, &fn, data);
 #else
 #error no thread support
 #endif

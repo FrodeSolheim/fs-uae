@@ -597,7 +597,7 @@ static void from_native(fptype fp, fpdata *fpd)
 		expon++;
 	}
 	fpd->fpx.high |= (expon + 16383 - 1) & 0x7fff;
-	fpd->fpx.low = (uint64_t)(frac * (fptype)(twoto32 * twoto32));
+	fpd->fpx.low = (uae_u64)(frac * (fptype)(twoto32 * twoto32));
 
 	while (!(fpd->fpx.low & LIT64( 0x8000000000000000))) {
 		if (fpd->fpx.high == 0) {

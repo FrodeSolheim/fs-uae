@@ -47,7 +47,7 @@
  | Function for compactifying extended double-precision floating point values.
  *----------------------------------------------------------------------------*/
 
-static int32_t floatx80_make_compact(int32_t aExp, uint64_t aSig)
+static uae_s32 floatx80_make_compact(uae_s32 aExp, uae_u64 aSig)
 {
 	return (aExp<<16)|(aSig>>48);
 }
@@ -60,18 +60,18 @@ static int32_t floatx80_make_compact(int32_t aExp, uint64_t aSig)
 floatx80 floatx80_acos(floatx80 a, float_status *status)
 {
 	flag aSign;
-	int32_t aExp;
-	uint64_t aSig;
+	uae_s32 aExp;
+	uae_u64 aSig;
 	
 	
-	int32_t compact;
+	uae_s32 compact;
 	floatx80 fp0, fp1, one;
 	
 	aSig = extractFloatx80Frac(a);
 	aExp = extractFloatx80Exp(a);
 	aSign = extractFloatx80Sign(a);
 	
-	if (aExp == 0x7FFF && (uint64_t) (aSig<<1)) {
+	if (aExp == 0x7FFF && (uae_u64) (aSig<<1)) {
 		return propagateFloatx80NaNOneArg(a, status);
 	}
 	if (aExp == 0 && aSig == 0) {
@@ -123,17 +123,17 @@ floatx80 floatx80_acos(floatx80 a, float_status *status)
 floatx80 floatx80_asin(floatx80 a, float_status *status)
 {
 	flag aSign;
-	int32_t aExp;
-	uint64_t aSig;
+	uae_s32 aExp;
+	uae_u64 aSig;
 	
-	int32_t compact;
+	uae_s32 compact;
 	floatx80 fp0, fp1, fp2, one;
 	
 	aSig = extractFloatx80Frac(a);
 	aExp = extractFloatx80Exp(a);
 	aSign = extractFloatx80Sign(a);
 	
-	if (aExp == 0x7FFF && (uint64_t) (aSig<<1)) {
+	if (aExp == 0x7FFF && (uae_u64) (aSig<<1)) {
 		return propagateFloatx80NaNOneArg(a, status);
 	}
 	
@@ -182,10 +182,10 @@ floatx80 floatx80_asin(floatx80 a, float_status *status)
 floatx80 floatx80_atan(floatx80 a, float_status *status)
 {
 	flag aSign;
-	int32_t aExp;
-	uint64_t aSig;
+	uae_s32 aExp;
+	uae_u64 aSig;
 	
-	int32_t compact, tbl_index;
+	uae_s32 compact, tbl_index;
 	floatx80 fp0, fp1, fp2, fp3, xsave;
 
 	aSig = extractFloatx80Frac(a);
@@ -193,7 +193,7 @@ floatx80 floatx80_atan(floatx80 a, float_status *status)
 	aSign = extractFloatx80Sign(a);
 	
 	if (aExp == 0x7FFF) {
-		if ((uint64_t) (aSig<<1)) return propagateFloatx80NaNOneArg(a, status);
+		if ((uae_u64) (aSig<<1)) return propagateFloatx80NaNOneArg(a, status);
 		a = packFloatx80(aSign, piby2_exp, pi_sig);
 		float_raise(float_flag_inexact, status);
 		return floatx80_move(a, status);
@@ -339,17 +339,17 @@ floatx80 floatx80_atan(floatx80 a, float_status *status)
 floatx80 floatx80_atanh(floatx80 a, float_status *status)
 {
 	flag aSign;
-	int32_t aExp;
-	uint64_t aSig;
+	uae_s32 aExp;
+	uae_u64 aSig;
 	
-	int32_t compact;
+	uae_s32 compact;
 	floatx80 fp0, fp1, fp2, one;
 
 	aSig = extractFloatx80Frac(a);
 	aExp = extractFloatx80Exp(a);
 	aSign = extractFloatx80Sign(a);
 	
-	if (aExp == 0x7FFF && (uint64_t) (aSig<<1)) {
+	if (aExp == 0x7FFF && (uae_u64) (aSig<<1)) {
 		return propagateFloatx80NaNOneArg(a, status);
 	}
 	
@@ -396,10 +396,10 @@ floatx80 floatx80_atanh(floatx80 a, float_status *status)
 floatx80 floatx80_cos(floatx80 a, float_status *status)
 {
 	flag aSign, xSign;
-	int32_t aExp, xExp;
-	uint64_t aSig, xSig;
+	uae_s32 aExp, xExp;
+	uae_u64 aSig, xSig;
 	
-	int32_t compact, l, n, j;
+	uae_s32 compact, l, n, j;
 	floatx80 fp0, fp1, fp2, fp3, fp4, fp5, x, invtwopi, twopi1, twopi2;
 	float32 posneg1, twoto63;
 	flag adjn, endflag;
@@ -409,7 +409,7 @@ floatx80 floatx80_cos(floatx80 a, float_status *status)
 	aSign = extractFloatx80Sign(a);
 	
 	if (aExp == 0x7FFF) {
-		if ((uint64_t) (aSig<<1)) return propagateFloatx80NaNOneArg(a, status);
+		if ((uae_u64) (aSig<<1)) return propagateFloatx80NaNOneArg(a, status);
 		float_raise(float_flag_invalid, status);
 		return floatx80_default_nan(status);
 	}
@@ -599,10 +599,10 @@ floatx80 floatx80_cos(floatx80 a, float_status *status)
 floatx80 floatx80_cosh(floatx80 a, float_status *status)
 {
 	flag aSign;
-	int32_t aExp;
-	uint64_t aSig;
+	uae_s32 aExp;
+	uae_u64 aSig;
 	
-	int32_t compact;
+	uae_s32 compact;
 	floatx80 fp0, fp1;
 	
 	aSig = extractFloatx80Frac(a);
@@ -610,7 +610,7 @@ floatx80 floatx80_cosh(floatx80 a, float_status *status)
 	aSign = extractFloatx80Sign(a);
 	
 	if (aExp == 0x7FFF) {
-		if ((uint64_t) (aSig<<1)) return propagateFloatx80NaNOneArg(a, status);
+		if ((uae_u64) (aSig<<1)) return propagateFloatx80NaNOneArg(a, status);
 		return packFloatx80(0, aExp, aSig);
 	}
 	
@@ -667,10 +667,10 @@ floatx80 floatx80_cosh(floatx80 a, float_status *status)
 floatx80 floatx80_etox(floatx80 a, float_status *status)
 {
 	flag aSign;
-	int32_t aExp;
-	uint64_t aSig;
+	uae_s32 aExp;
+	uae_u64 aSig;
 	
-	int32_t compact, n, j, k, m, m1;
+	uae_s32 compact, n, j, k, m, m1;
 	floatx80 fp0, fp1, fp2, fp3, l2, scale, adjscale;
 	flag adjflag;
 
@@ -679,7 +679,7 @@ floatx80 floatx80_etox(floatx80 a, float_status *status)
 	aSign = extractFloatx80Sign(a);
 	
 	if (aExp == 0x7FFF) {
-		if ((uint64_t) (aSig<<1)) return propagateFloatx80NaNOneArg(a, status);
+		if ((uae_u64) (aSig<<1)) return propagateFloatx80NaNOneArg(a, status);
 		if (aSign) return packFloatx80(0, 0, 0);
 		return a;
 	}
@@ -803,10 +803,10 @@ floatx80 floatx80_etox(floatx80 a, float_status *status)
 floatx80 floatx80_etoxm1(floatx80 a, float_status *status)
 {
 	flag aSign;
-	int32_t aExp;
-	uint64_t aSig;
+	uae_s32 aExp;
+	uae_u64 aSig;
 	
-	int32_t compact, n, j, m, m1;
+	uae_s32 compact, n, j, m, m1;
 	floatx80 fp0, fp1, fp2, fp3, l2, sc, onebysc;
 	
 	aSig = extractFloatx80Frac(a);
@@ -814,7 +814,7 @@ floatx80 floatx80_etoxm1(floatx80 a, float_status *status)
 	aSign = extractFloatx80Sign(a);
 	
 	if (aExp == 0x7FFF) {
-		if ((uint64_t) (aSig<<1)) return propagateFloatx80NaNOneArg(a, status);
+		if ((uae_u64) (aSig<<1)) return propagateFloatx80NaNOneArg(a, status);
 		if (aSign) return packFloatx80(aSign, one_exp, one_sig);
 		return a;
 	}
@@ -987,8 +987,8 @@ floatx80 floatx80_etoxm1(floatx80 a, float_status *status)
 floatx80 floatx80_log10(floatx80 a, float_status *status)
 {
 	flag aSign;
-	int32_t aExp;
-	uint64_t aSig;
+	uae_s32 aExp;
+	uae_u64 aSig;
 	
 	floatx80 fp0, fp1;
 	
@@ -997,7 +997,7 @@ floatx80 floatx80_log10(floatx80 a, float_status *status)
 	aSign = extractFloatx80Sign(a);
 	
 	if (aExp == 0x7FFF) {
-		if ((uint64_t) (aSig<<1)) return propagateFloatx80NaNOneArg(a, status);
+		if ((uae_u64) (aSig<<1)) return propagateFloatx80NaNOneArg(a, status);
 		if (aSign == 0)
 			return a;
 	}
@@ -1033,8 +1033,8 @@ floatx80 floatx80_log10(floatx80 a, float_status *status)
 floatx80 floatx80_log2(floatx80 a, float_status *status)
 {
 	flag aSign;
-	int32_t aExp;
-	uint64_t aSig;
+	uae_s32 aExp;
+	uae_u64 aSig;
 	
 	floatx80 fp0, fp1;
 	
@@ -1043,7 +1043,7 @@ floatx80 floatx80_log2(floatx80 a, float_status *status)
 	aSign = extractFloatx80Sign(a);
 	
 	if (aExp == 0x7FFF) {
-		if ((uint64_t) (aSig<<1)) return propagateFloatx80NaNOneArg(a, status);
+		if ((uae_u64) (aSig<<1)) return propagateFloatx80NaNOneArg(a, status);
 		if (aSign == 0)
 			return a;
 	}
@@ -1088,10 +1088,10 @@ floatx80 floatx80_log2(floatx80 a, float_status *status)
 floatx80 floatx80_logn(floatx80 a, float_status *status)
 {
 	flag aSign;
-	int32_t aExp;
-	uint64_t aSig, fSig;
+	uae_s32 aExp;
+	uae_u64 aSig, fSig;
 	
-	int32_t compact, j, k, adjk;
+	uae_s32 compact, j, k, adjk;
 	floatx80 fp0, fp1, fp2, fp3, f, logof2, klog2, saveu;
 	
 	aSig = extractFloatx80Frac(a);
@@ -1099,7 +1099,7 @@ floatx80 floatx80_logn(floatx80 a, float_status *status)
 	aSign = extractFloatx80Sign(a);
 	
 	if (aExp == 0x7FFF) {
-		if ((uint64_t) (aSig<<1)) return propagateFloatx80NaNOneArg(a, status);
+		if ((uae_u64) (aSig<<1)) return propagateFloatx80NaNOneArg(a, status);
 		if (aSign == 0)
 			return a;
 	}
@@ -1221,10 +1221,10 @@ floatx80 floatx80_logn(floatx80 a, float_status *status)
 floatx80 floatx80_lognp1(floatx80 a, float_status *status)
 {
 	flag aSign;
-	int32_t aExp;
-	uint64_t aSig, fSig;
+	uae_s32 aExp;
+	uae_u64 aSig, fSig;
 	
-	int32_t compact, j, k;
+	uae_s32 compact, j, k;
 	floatx80 fp0, fp1, fp2, fp3, f, logof2, klog2, saveu;
 	
 	aSig = extractFloatx80Frac(a);
@@ -1232,7 +1232,7 @@ floatx80 floatx80_lognp1(floatx80 a, float_status *status)
 	aSign = extractFloatx80Sign(a);
 	
 	if (aExp == 0x7FFF) {
-		if ((uint64_t) (aSig<<1)) return propagateFloatx80NaNOneArg(a, status);
+		if ((uae_u64) (aSig<<1)) return propagateFloatx80NaNOneArg(a, status);
 		if (aSign) {
 			float_raise(float_flag_invalid, status);
 			return floatx80_default_nan(status);
@@ -1378,10 +1378,10 @@ floatx80 floatx80_lognp1(floatx80 a, float_status *status)
 floatx80 floatx80_sin(floatx80 a, float_status *status)
 {
 	flag aSign, xSign;
-	int32_t aExp, xExp;
-	uint64_t aSig, xSig;
+	uae_s32 aExp, xExp;
+	uae_u64 aSig, xSig;
 	
-	int32_t compact, l, n, j;
+	uae_s32 compact, l, n, j;
 	floatx80 fp0, fp1, fp2, fp3, fp4, fp5, x, invtwopi, twopi1, twopi2;
 	float32 posneg1, twoto63;
 	flag adjn, endflag;
@@ -1391,7 +1391,7 @@ floatx80 floatx80_sin(floatx80 a, float_status *status)
 	aSign = extractFloatx80Sign(a);
 	
 	if (aExp == 0x7FFF) {
-		if ((uint64_t) (aSig<<1)) return propagateFloatx80NaNOneArg(a, status);
+		if ((uae_u64) (aSig<<1)) return propagateFloatx80NaNOneArg(a, status);
 		float_raise(float_flag_invalid, status);
 		return floatx80_default_nan(status);
 	}
@@ -1581,10 +1581,10 @@ floatx80 floatx80_sin(floatx80 a, float_status *status)
 floatx80 floatx80_sincos(floatx80 a, floatx80 *c, float_status * status)
  {
 	flag aSign, xSign, rSign, sSign;
-	int32_t aExp, xExp, rExp, sExp;
-	uint64_t aSig, rSig, sSig;
+	uae_s32 aExp, xExp, rExp, sExp;
+	uae_u64 aSig, rSig, sSig;
 	
-	int32_t compact, l, n, i, j1, j2;
+	uae_s32 compact, l, n, i, j1, j2;
 	floatx80 fp0, fp1, fp2, fp3, fp4, fp5, r, s, invtwopi, twopi1, twopi2;
 	float32 posneg1, twoto63;
 	flag endflag;
@@ -1594,7 +1594,7 @@ floatx80 floatx80_sincos(floatx80 a, floatx80 *c, float_status * status)
 	aSign = extractFloatx80Sign(a);
 	
 	if (aExp == 0x7FFF) {
-		if ((uint64_t)(aSig << 1)) {
+		if ((uae_u64)(aSig << 1)) {
 			*c = propagateFloatx80NaNOneArg(a, status);
 			return *c;
 			
@@ -1842,10 +1842,10 @@ floatx80 floatx80_sincos(floatx80 a, floatx80 *c, float_status * status)
 floatx80 floatx80_sinh(floatx80 a, float_status *status)
 {
 	flag aSign;
-	int32_t aExp;
-	uint64_t aSig;
+	uae_s32 aExp;
+	uae_u64 aSig;
 	
-	int32_t compact;
+	uae_s32 compact;
 	floatx80 fp0, fp1, fp2;
 	float32 fact;
 	
@@ -1854,7 +1854,7 @@ floatx80 floatx80_sinh(floatx80 a, float_status *status)
 	aSign = extractFloatx80Sign(a);
 	
 	if (aExp == 0x7FFF) {
-		if ((uint64_t) (aSig<<1)) return propagateFloatx80NaNOneArg(a, status);
+		if ((uae_u64) (aSig<<1)) return propagateFloatx80NaNOneArg(a, status);
 		return a;
 	}
 	
@@ -1917,10 +1917,10 @@ floatx80 floatx80_sinh(floatx80 a, float_status *status)
 floatx80 floatx80_tan(floatx80 a, float_status *status)
 {
 	flag aSign, xSign;
-	int32_t aExp, xExp;
-	uint64_t aSig, xSig;
+	uae_s32 aExp, xExp;
+	uae_u64 aSig, xSig;
 	
-	int32_t compact, l, n, j;
+	uae_s32 compact, l, n, j;
 	floatx80 fp0, fp1, fp2, fp3, fp4, fp5, invtwopi, twopi1, twopi2;
 	float32 twoto63;
 	flag endflag;
@@ -1930,7 +1930,7 @@ floatx80 floatx80_tan(floatx80 a, float_status *status)
 	aSign = extractFloatx80Sign(a);
 	
 	if (aExp == 0x7FFF) {
-		if ((uint64_t) (aSig<<1)) return propagateFloatx80NaNOneArg(a, status);
+		if ((uae_u64) (aSig<<1)) return propagateFloatx80NaNOneArg(a, status);
 		float_raise(float_flag_invalid, status);
 		return floatx80_default_nan(status);
 	}
@@ -2096,10 +2096,10 @@ floatx80 floatx80_tan(floatx80 a, float_status *status)
 floatx80 floatx80_tanh(floatx80 a, float_status *status)
 {
 	flag aSign, vSign;
-	int32_t aExp, vExp;
-	uint64_t aSig, vSig;
+	uae_s32 aExp, vExp;
+	uae_u64 aSig, vSig;
 	
-	int32_t compact;
+	uae_s32 compact;
 	floatx80 fp0, fp1;
 	float32 sign;
 	
@@ -2108,7 +2108,7 @@ floatx80 floatx80_tanh(floatx80 a, float_status *status)
 	aSign = extractFloatx80Sign(a);
 	
 	if (aExp == 0x7FFF) {
-		if ((uint64_t) (aSig<<1)) return propagateFloatx80NaNOneArg(a, status);
+		if ((uae_u64) (aSig<<1)) return propagateFloatx80NaNOneArg(a, status);
 		return packFloatx80(aSign, one_exp, one_sig);
 	}
 	
@@ -2192,10 +2192,10 @@ floatx80 floatx80_tanh(floatx80 a, float_status *status)
 floatx80 floatx80_tentox(floatx80 a, float_status *status)
 {
 	flag aSign;
-	int32_t aExp;
-	uint64_t aSig;
+	uae_s32 aExp;
+	uae_u64 aSig;
 	
-	int32_t compact, n, j, l, m, m1;
+	uae_s32 compact, n, j, l, m, m1;
 	floatx80 fp0, fp1, fp2, fp3, adjfact, fact1, fact2;
 	
 	aSig = extractFloatx80Frac(a);
@@ -2203,7 +2203,7 @@ floatx80 floatx80_tentox(floatx80 a, float_status *status)
 	aSign = extractFloatx80Sign(a);
 	
 	if (aExp == 0x7FFF) {
-		if ((uint64_t) (aSig<<1)) return propagateFloatx80NaNOneArg(a, status);
+		if ((uae_u64) (aSig<<1)) return propagateFloatx80NaNOneArg(a, status);
 		if (aSign) return packFloatx80(0, 0, 0);
 		return a;
 	}
@@ -2259,7 +2259,7 @@ floatx80 floatx80_tentox(floatx80 a, float_status *status)
 		fact1.high += m;
 		fact2.high = exp2_tbl2[j]>>16;
 		fact2.high += m;
-		fact2.low = (uint64_t)(exp2_tbl2[j] & 0xFFFF);
+		fact2.low = (uae_u64)(exp2_tbl2[j] & 0xFFFF);
 		fact2.low <<= 48;
 		
 		fp2 = fp1; // N
@@ -2309,10 +2309,10 @@ floatx80 floatx80_tentox(floatx80 a, float_status *status)
 floatx80 floatx80_twotox(floatx80 a, float_status *status)
 {
 	flag aSign;
-	int32_t aExp;
-	uint64_t aSig;
+	uae_s32 aExp;
+	uae_u64 aSig;
 	
-	int32_t compact, n, j, l, m, m1;
+	uae_s32 compact, n, j, l, m, m1;
 	floatx80 fp0, fp1, fp2, fp3, adjfact, fact1, fact2;
 	
 	aSig = extractFloatx80Frac(a);
@@ -2320,7 +2320,7 @@ floatx80 floatx80_twotox(floatx80 a, float_status *status)
 	aSign = extractFloatx80Sign(a);
 	
 	if (aExp == 0x7FFF) {
-		if ((uint64_t) (aSig<<1)) return propagateFloatx80NaNOneArg(a, status);
+		if ((uae_u64) (aSig<<1)) return propagateFloatx80NaNOneArg(a, status);
 		if (aSign) return packFloatx80(0, 0, 0);
 		return a;
 	}
@@ -2375,7 +2375,7 @@ floatx80 floatx80_twotox(floatx80 a, float_status *status)
 		fact1.high += m;
 		fact2.high = exp2_tbl2[j]>>16;
 		fact2.high += m;
-		fact2.low = (uint64_t)(exp2_tbl2[j] & 0xFFFF);
+		fact2.low = (uae_u64)(exp2_tbl2[j] & 0xFFFF);
 		fact2.low <<= 48;
 		
 		fp1 = floatx80_mul(fp1, float32_to_floatx80(0x3C800000, status), status); // (1/64)*N

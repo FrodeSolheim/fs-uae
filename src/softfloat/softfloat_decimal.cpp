@@ -26,17 +26,17 @@ Arithmetic Package, Release 2a.
 | Methods for converting decimal floats to binary extended precision floats.
 *----------------------------------------------------------------------------*/
 
-static void round128to64(flag aSign, int32_t *aExp, uint64_t *aSig0, uint64_t *aSig1, float_status *status)
+static void round128to64(flag aSign, uae_s32 *aExp, uae_u64 *aSig0, uae_u64 *aSig1, float_status *status)
 {
 	flag increment;
-	int32_t zExp;
-	uint64_t zSig0, zSig1;
+	uae_s32 zExp;
+	uae_u64 zSig0, zSig1;
 	
 	zExp = *aExp;
 	zSig0 = *aSig0;
 	zSig1 = *aSig1;
 	
-	increment = ( (int64_t) zSig1 < 0 );
+	increment = ( (uae_s64) zSig1 < 0 );
 	if (status->float_rounding_mode != float_round_nearest_even) {
 		if (status->float_rounding_mode == float_round_to_zero) {
 			increment = 0;
@@ -67,10 +67,10 @@ static void round128to64(flag aSign, int32_t *aExp, uint64_t *aSig0, uint64_t *a
 	*aSig1 = 0;
 }
 
-static void mul128by128round(int32_t *aExp, uint64_t *aSig0, uint64_t *aSig1, int32_t bExp, uint64_t bSig0, uint64_t bSig1, float_status *status)
+static void mul128by128round(uae_s32 *aExp, uae_u64 *aSig0, uae_u64 *aSig1, uae_s32 bExp, uae_u64 bSig0, uae_u64 bSig1, float_status *status)
 {
-	int32_t zExp;
-	uint64_t zSig0, zSig1, zSig2, zSig3;
+	uae_s32 zExp;
+	uae_u64 zSig0, zSig1, zSig2, zSig3;
 	
 	zExp = *aExp;
 	zSig0 = *aSig0;
@@ -81,7 +81,7 @@ static void mul128by128round(int32_t *aExp, uint64_t *aSig0, uint64_t *aSig1, in
 	zExp += bExp - 0x3FFE;
 	mul128To256(zSig0, zSig1, bSig0, bSig1, &zSig0, &zSig1, &zSig2, &zSig3);
 	zSig1 |= (zSig2 | zSig3) != 0;
-	if ( 0 < (int64_t) zSig0 ) {
+	if ( 0 < (uae_s64) zSig0 ) {
 		shortShift128Left( zSig0, zSig1, 1, &zSig0, &zSig1 );
 		--zExp;
 	}
@@ -92,10 +92,10 @@ static void mul128by128round(int32_t *aExp, uint64_t *aSig0, uint64_t *aSig1, in
 	round128to64(0, aExp, aSig0, aSig1, status);
 }
 
-static void mul128by128(int32_t *aExp, uint64_t *aSig0, uint64_t *aSig1, int32_t bExp, uint64_t bSig0, uint64_t bSig1)
+static void mul128by128(uae_s32 *aExp, uae_u64 *aSig0, uae_u64 *aSig1, uae_s32 bExp, uae_u64 bSig0, uae_u64 bSig1)
 {
-	int32_t zExp;
-	uint64_t zSig0, zSig1, zSig2, zSig3;
+	uae_s32 zExp;
+	uae_u64 zSig0, zSig1, zSig2, zSig3;
 	
 	zExp = *aExp;
 	zSig0 = *aSig0;
@@ -104,7 +104,7 @@ static void mul128by128(int32_t *aExp, uint64_t *aSig0, uint64_t *aSig1, int32_t
 	zExp += bExp - 0x3FFE;
 	mul128To256(zSig0, zSig1, bSig0, bSig1, &zSig0, &zSig1, &zSig2, &zSig3);
 	zSig1 |= (zSig2 | zSig3) != 0;
-	if ( 0 < (int64_t) zSig0 ) {
+	if ( 0 < (uae_s64) zSig0 ) {
 		shortShift128Left( zSig0, zSig1, 1, &zSig0, &zSig1 );
 		--zExp;
 	}
@@ -113,11 +113,11 @@ static void mul128by128(int32_t *aExp, uint64_t *aSig0, uint64_t *aSig1, int32_t
 	*aSig1 = zSig1;
 }
 
-static void div128by128(int32_t *paExp, uint64_t *paSig0, uint64_t *paSig1, int32_t bExp, uint64_t bSig0, uint64_t bSig1)
+static void div128by128(uae_s32 *paExp, uae_u64 *paSig0, uae_u64 *paSig1, uae_s32 bExp, uae_u64 bSig0, uae_u64 bSig1)
 {
-	int32_t zExp, aExp;
-	uint64_t zSig0, zSig1, aSig0, aSig1;
-	uint64_t rem0, rem1, rem2, rem3, term0, term1, term2, term3;
+	uae_s32 zExp, aExp;
+	uae_u64 zSig0, zSig1, aSig0, aSig1;
+	uae_u64 rem0, rem1, rem2, rem3, term0, term1, term2, term3;
 	
 	aExp = *paExp;
 	aSig0 = *paSig0;
@@ -131,7 +131,7 @@ static void div128by128(int32_t *paExp, uint64_t *paSig0, uint64_t *paSig1, int3
 	zSig0 = estimateDiv128To64( aSig0, aSig1, bSig0 );
 	mul128By64To192( bSig0, bSig1, zSig0, &term0, &term1, &term2 );
 	sub192( aSig0, aSig1, 0, term0, term1, term2, &rem0, &rem1, &rem2 );
-	while ( (int64_t) rem0 < 0 ) {
+	while ( (uae_s64) rem0 < 0 ) {
 		--zSig0;
 		add192( rem0, rem1, rem2, 0, bSig0, bSig1, &rem0, &rem1, &rem2 );
 	}
@@ -139,7 +139,7 @@ static void div128by128(int32_t *paExp, uint64_t *paSig0, uint64_t *paSig1, int3
 	if ( ( zSig1 & 0x3FFF ) <= 4 ) {
 		mul128By64To192( bSig0, bSig1, zSig1, &term1, &term2, &term3 );
 		sub192( rem1, rem2, 0, term1, term2, term3, &rem1, &rem2, &rem3 );
-		while ( (int64_t) rem1 < 0 ) {
+		while ( (uae_s64) rem1 < 0 ) {
 			--zSig1;
 			add192( rem1, rem2, rem3, 0, bSig0, bSig1, &rem1, &rem2, &rem3 );
 		}
@@ -153,10 +153,10 @@ static void div128by128(int32_t *paExp, uint64_t *paSig0, uint64_t *paSig1, int3
 
 #if 0
 
-void tentoint128(flag mSign, flag eSign, int32_t *aExp, uint64_t *aSig0, uint64_t *aSig1, int32_t scale, float_status *status)
+void tentoint128(flag mSign, flag eSign, uae_s32 *aExp, uae_u64 *aSig0, uae_u64 *aSig1, uae_s32 scale, float_status *status)
 {
-    int32_t mExp;
-    uint64_t mSig0, mSig1;
+    uae_s32 mExp;
+    uae_u64 mSig0, mSig1;
 
     
     *aExp = 0x3FFF;
@@ -179,11 +179,11 @@ void tentoint128(flag mSign, flag eSign, int32_t *aExp, uint64_t *aSig0, uint64_
 
 #else
 
-static void tentoint128(flag mSign, flag eSign, int32_t *aExp, uint64_t *aSig0, uint64_t *aSig1, int32_t scale, float_status *status)
+static void tentoint128(flag mSign, flag eSign, uae_s32 *aExp, uae_u64 *aSig0, uae_u64 *aSig1, uae_s32 scale, float_status *status)
  {
     int8_t save_rounding_mode;
-    int32_t mExp;
-    uint64_t mSig0, mSig1;
+    uae_s32 mExp;
+    uae_u64 mSig0, mSig1;
      
     save_rounding_mode = status->float_rounding_mode;
     switch (status->float_rounding_mode) {
@@ -231,9 +231,9 @@ static void tentoint128(flag mSign, flag eSign, int32_t *aExp, uint64_t *aSig0, 
 
 #endif
 
-static int64_t tentointdec(int32_t scale)
+static uae_s64 tentointdec(uae_s32 scale)
 {
-	uint64_t decM, decX;
+	uae_u64 decM, decX;
 	 
 	decX = 1;
 	decM = 10;
@@ -250,17 +250,17 @@ static int64_t tentointdec(int32_t scale)
 }
 
 
-static int64_t float128toint64(flag zSign, int32_t zExp, uint64_t zSig0, uint64_t zSig1, float_status *status)
+static uae_s64 float128toint64(flag zSign, uae_s32 zExp, uae_u64 zSig0, uae_u64 zSig1, float_status *status)
 {
 	int8_t roundingMode;
 	flag roundNearestEven, increment;
-	int64_t z;
+	uae_s64 z;
 	
 	shift128RightJamming(zSig0, zSig1, 0x403E - zExp, &zSig0, &zSig1);
 
 	roundingMode = status->float_rounding_mode;
 	roundNearestEven = (roundingMode == float_round_nearest_even);
-	increment = ((int64_t)zSig1 < 0);
+	increment = ((uae_s64)zSig1 < 0);
 	if (!roundNearestEven) {
 		if (roundingMode == float_round_to_zero) {
 			increment = 0;
@@ -274,18 +274,18 @@ static int64_t float128toint64(flag zSign, int32_t zExp, uint64_t zSig0, uint64_
 	}
 	if (increment) {
 		++zSig0;
-		zSig0 &= ~ (((uint64_t)(zSig1<<1) == 0) & roundNearestEven);
+		zSig0 &= ~ (((uae_u64)(zSig1<<1) == 0) & roundNearestEven);
 	}
 	z = zSig0;
 	if (zSig1) float_raise(float_flag_inexact, status);
 	return z;
 }
 
-static int32_t getDecimalExponent(int32_t aExp, uint64_t aSig)
+static uae_s32 getDecimalExponent(uae_s32 aExp, uae_u64 aSig)
 {
 	flag zSign;
-	int32_t zExp, shiftCount;
-	uint64_t zSig0, zSig1;
+	uae_s32 zExp, shiftCount;
+	uae_u64 zSig0, zSig1;
 	
 	if (aSig == 0 || aExp == 0x3FFF) {
 		return 0;
@@ -305,7 +305,7 @@ static int32_t getDecimalExponent(int32_t aExp, uint64_t aSig)
 		shortShift128Left(aSig, 0, -shiftCount, &zSig0, &zSig1);
 	} else {
 		shift128Right(aSig, 0, shiftCount, &zSig0, &zSig1);
-		aSig = (uint64_t)aExp << (63 - shiftCount);
+		aSig = (uae_u64)aExp << (63 - shiftCount);
 		if (zSign) {
 			sub128(aSig, 0, zSig0, zSig1, &zSig0, &zSig1);
 		} else {
@@ -321,12 +321,12 @@ static int32_t getDecimalExponent(int32_t aExp, uint64_t aSig)
 	shiftCount = 0x403E - zExp;
 	shift128RightJamming(zSig0, zSig1, shiftCount, &zSig0, &zSig1);
 
-	if ((int64_t)zSig1 < 0) {
+	if ((uae_s64)zSig1 < 0) {
 		++zSig0;
-		zSig0 &= ~(((int64_t)(zSig1<<1) == 0) & 1);
+		zSig0 &= ~(((uae_s64)(zSig1<<1) == 0) & 1);
 	}
 	
-	zExp = (int32_t)(zSign ? (0 - zSig0) : zSig0);
+	zExp = (uae_s32)(zSign ? (0 - zSig0) : zSig0);
 
 	return zExp;
 }
@@ -338,8 +338,8 @@ static int32_t getDecimalExponent(int32_t aExp, uint64_t aSig)
 floatx80 floatdecimal_to_floatx80(floatx80 a, float_status *status)
 {
 	flag decSign, zSign, decExpSign;
-	int32_t decExp, zExp, xExp, shiftCount;
-	uint64_t decSig, zSig0, zSig1, xSig0, xSig1;
+	uae_s32 decExp, zExp, xExp, shiftCount;
+	uae_u64 decSig, zSig0, zSig1, xSig0, xSig1;
 	
 	decSign = extractFloatx80Sign(a);
 	decExp = extractFloatx80Exp(a);
@@ -377,20 +377,20 @@ floatx80 floatdecimal_to_floatx80(floatx80 a, float_status *status)
  | Binary to decimal
  *----------------------------------------------------------------------------*/
 
-floatx80 floatx80_to_floatdecimal(floatx80 a, int32_t *k, float_status *status)
+floatx80 floatx80_to_floatdecimal(floatx80 a, uae_s32 *k, float_status *status)
 {
 	flag aSign, decSign;
-	int32_t aExp, decExp, zExp, xExp;
-	uint64_t aSig, decSig, decX, zSig0, zSig1, xSig0, xSig1;
+	uae_s32 aExp, decExp, zExp, xExp;
+	uae_u64 aSig, decSig, decX, zSig0, zSig1, xSig0, xSig1;
 	flag ictr, lambda;
-	int32_t kfactor, ilog, iscale, len;
+	uae_s32 kfactor, ilog, iscale, len;
 	
 	aSign = extractFloatx80Sign(a);
 	aExp = extractFloatx80Exp(a);
 	aSig = extractFloatx80Frac(a);
 	
 	if (aExp == 0x7FFF) {
-		if ((uint64_t) (aSig<<1)) return propagateFloatx80NaNOneArg(a, status);
+		if ((uae_u64) (aSig<<1)) return propagateFloatx80NaNOneArg(a, status);
 		return a;
 	}
 	

@@ -88,12 +88,14 @@ this code that are retained.
 #include <sunmath.h>
 #endif
 
+#include "uae/types.h"
+
 
 /* This 'flag' type must be able to hold at least 0 and 1. It should
  * probably be replaced with 'bool' but the uses would need to be audited
  * to check that they weren't accidentally relying on it being a larger type.
  */
-typedef uint8_t flag;
+typedef uae_u8 flag;
 
 #define LIT64( a ) a##ULL
 
@@ -117,28 +119,28 @@ enum {
 //#define USE_SOFTFLOAT_STRUCT_TYPES
 #ifdef USE_SOFTFLOAT_STRUCT_TYPES
 typedef struct {
-    uint16_t v;
+    uae_u16 v;
 } float16;
 #define float16_val(x) (((float16)(x)).v)
 #define make_float16(x) __extension__ ({ float16 f16_val = {x}; f16_val; })
 #define const_float16(x) { x }
 typedef struct {
-    uint32_t v;
+    uae_u32 v;
 } float32;
 /* The cast ensures an error if the wrong type is passed.  */
 #define float32_val(x) (((float32)(x)).v)
 #define make_float32(x) __extension__ ({ float32 f32_val = {x}; f32_val; })
 #define const_float32(x) { x }
 typedef struct {
-    uint64_t v;
+    uae_u64 v;
 } float64;
 #define float64_val(x) (((float64)(x)).v)
 #define make_float64(x) __extension__ ({ float64 f64_val = {x}; f64_val; })
 #define const_float64(x) { x }
 #else
-typedef uint16_t float16;
-typedef uint32_t float32;
-typedef uint64_t float64;
+typedef uae_u16 float16;
+typedef uae_u32 float32;
+typedef uae_u64 float64;
 #define float16_val(x) (x)
 #define float32_val(x) (x)
 #define float64_val(x) (x)
@@ -150,14 +152,14 @@ typedef uint64_t float64;
 #define const_float64(x) (x)
 #endif
 typedef struct {
-    uint16_t high;
-    uint64_t low;
+    uae_u16 high;
+    uae_u64 low;
 } floatx80;
 typedef struct {
 #ifdef HOST_WORDS_BIGENDIAN
-    uint64_t high, low;
+    uae_u64 high, low;
 #else
-    uint64_t low, high;
+    uae_u64 low, high;
 #endif
 } float128;
 
@@ -202,18 +204,18 @@ enum {
  *----------------------------------------------------------------------------*/
 
 extern flag floatx80_internal_sign;
-extern int32_t floatx80_internal_exp;
-extern uint64_t floatx80_internal_sig;
-extern int32_t floatx80_internal_exp0;
-extern uint64_t floatx80_internal_sig0;
-extern uint64_t floatx80_internal_sig1;
-extern int8_t floatx80_internal_precision;
-extern int8_t floatx80_internal_mode;
+extern uae_s32 floatx80_internal_exp;
+extern uae_u64 floatx80_internal_sig;
+extern uae_s32 floatx80_internal_exp0;
+extern uae_u64 floatx80_internal_sig0;
+extern uae_u64 floatx80_internal_sig1;
+extern uae_s8 floatx80_internal_precision;
+extern uae_s8 floatx80_internal_mode;
 
 typedef struct float_status {
     signed char float_detect_tininess;
     signed char float_rounding_mode;
-    uint8_t     float_exception_flags;
+    uae_u8     float_exception_flags;
     signed char floatx80_rounding_precision;
     /* should denormalised results go to zero and set the inexact flag? */
     flag flush_to_zero;
@@ -234,7 +236,7 @@ floatx80 getFloatInternalRoundedAll( void );
 floatx80 getFloatInternalRoundedSome( void );
 floatx80 getFloatInternalUnrounded( void );
 floatx80 getFloatInternalFloatx80( void );
-uint64_t getFloatInternalGRS( void );
+uae_u64 getFloatInternalGRS( void );
 
 static inline void set_float_detect_tininess(int val, float_status *status)
 {
@@ -305,19 +307,19 @@ enum {
 	cmp_signed_nan = 0x01, addsub_swap_inf = 0x02, infinity_clear_intbit = 0x04
 };
 
-static inline void set_special_flags(uint8_t flags, float_status *status)
+static inline void set_special_flags(uae_u8 flags, float_status *status)
 {
 	status->floatx80_special_flags = flags;
 }
-static inline int8_t fcmp_signed_nan(float_status *status)
+static inline uae_s8 fcmp_signed_nan(float_status *status)
 {
 	return status->floatx80_special_flags & cmp_signed_nan;
 }
-static inline int8_t faddsub_swap_inf(float_status *status)
+static inline uae_s8 faddsub_swap_inf(float_status *status)
 {
 	return status->floatx80_special_flags & addsub_swap_inf;
 }
-static inline int8_t inf_clear_intbit(float_status *status)
+static inline uae_s8 inf_clear_intbit(float_status *status)
 {
 	return status->floatx80_special_flags & infinity_clear_intbit;
 }
@@ -326,7 +328,7 @@ static inline int8_t inf_clear_intbit(float_status *status)
 | Routine to raise any or all of the software IEC/IEEE floating-point
 | exception flags.
 *----------------------------------------------------------------------------*/
-void float_raise(uint8_t flags, float_status *status);
+void float_raise(uae_u8 flags, float_status *status);
 
 
 /*----------------------------------------------------------------------------
@@ -377,8 +379,8 @@ enum {
 | Software IEC/IEEE integer-to-floating-point conversion routines.
 *----------------------------------------------------------------------------*/
 
-floatx80 int32_to_floatx80(int32_t);
-floatx80 int64_to_floatx80(int64_t);
+floatx80 int32_to_floatx80(uae_s32);
+floatx80 int64_to_floatx80(uae_s64);
 
 /*----------------------------------------------------------------------------
 | Software IEC/IEEE single-precision conversion routines.
@@ -396,23 +398,23 @@ floatx80 float64_to_floatx80_allowunnormal( float64 a, float_status *status );
 /*----------------------------------------------------------------------------
 | Software IEC/IEEE extended double-precision conversion routines.
 *----------------------------------------------------------------------------*/
-int32_t floatx80_to_int32(floatx80, float_status *status);
+uae_s32 floatx80_to_int32(floatx80, float_status *status);
 #ifdef SOFTFLOAT_68K
-int16_t floatx80_to_int16(floatx80, float_status *status);
-int8_t floatx80_to_int8(floatx80, float_status *status);
+uae_s16 floatx80_to_int16(floatx80, float_status *status);
+uae_s8 floatx80_to_int8(floatx80, float_status *status);
 #endif
-int32_t floatx80_to_int32_round_to_zero(floatx80, float_status *status);
-int64_t floatx80_to_int64(floatx80, float_status *status);
+uae_s32 floatx80_to_int32_round_to_zero(floatx80, float_status *status);
+uae_s64 floatx80_to_int64(floatx80, float_status *status);
 float32 floatx80_to_float32(floatx80, float_status *status);
 float64 floatx80_to_float64(floatx80, float_status *status);
 #ifdef SOFTFLOAT_68K
 floatx80 floatx80_to_floatx80( floatx80, float_status *status);
 floatx80 floatdecimal_to_floatx80(floatx80, float_status *status);
-floatx80 floatx80_to_floatdecimal(floatx80, int32_t*, float_status *status);
+floatx80 floatx80_to_floatdecimal(floatx80, uae_s32*, float_status *status);
 #endif
 
-uint64_t extractFloatx80Frac( floatx80 a );
-int32_t extractFloatx80Exp( floatx80 a );
+uae_u64 extractFloatx80Frac( floatx80 a );
+uae_s32 extractFloatx80Exp( floatx80 a );
 flag extractFloatx80Sign( floatx80 a );
 
 floatx80 floatx80_round_to_int_toward_zero( floatx80 a, float_status *status);
@@ -433,8 +435,8 @@ floatx80 floatx80_neg( floatx80 a, float_status *status );
 floatx80 floatx80_getexp( floatx80 a, float_status *status );
 floatx80 floatx80_getman( floatx80 a, float_status *status );
 floatx80 floatx80_scale(floatx80 a, floatx80 b, float_status *status );
-floatx80 floatx80_rem( floatx80 a, floatx80 b, uint64_t *q, flag *s, float_status *status );
-floatx80 floatx80_mod( floatx80 a, floatx80 b, uint64_t *q, flag *s, float_status *status );
+floatx80 floatx80_rem( floatx80 a, floatx80 b, uae_u64 *q, flag *s, float_status *status );
+floatx80 floatx80_mod( floatx80 a, floatx80 b, uae_u64 *q, flag *s, float_status *status );
 floatx80 floatx80_sglmul( floatx80 a, floatx80 b, float_status *status );
 floatx80 floatx80_sgldiv( floatx80 a, floatx80 b, float_status *status );
 floatx80 floatx80_cmp( floatx80 a, floatx80 b, float_status *status );
@@ -463,9 +465,9 @@ floatx80 floatx80_sincos(floatx80 a, floatx80 *c, float_status *status);
 #endif
 
 // functions originally internal to softfloat.c
-void normalizeFloatx80Subnormal( uint64_t aSig, int32_t *zExpPtr, uint64_t *zSigPtr );
-floatx80 packFloatx80( flag zSign, int32_t zExp, uint64_t zSig );
-floatx80 roundAndPackFloatx80(int8_t roundingPrecision, flag zSign, int32_t zExp, uint64_t zSig0, uint64_t zSig1, float_status *status);
+void normalizeFloatx80Subnormal( uae_u64 aSig, uae_s32 *zExpPtr, uae_u64 *zSigPtr );
+floatx80 packFloatx80( flag zSign, uae_s32 zExp, uae_u64 zSig );
+floatx80 roundAndPackFloatx80(uae_s8 roundingPrecision, flag zSign, uae_s32 zExp, uae_u64 zSig0, uae_u64 zSig1, float_status *status);
 
 /*----------------------------------------------------------------------------
 | Software IEC/IEEE extended double-precision operations.

@@ -2295,7 +2295,7 @@ struct png_cb
 	size_t size;
 };
 
-static void __cdecl readcallback(png_structp png_ptr, png_bytep out, png_size_t count)
+static void readcallback(png_structp png_ptr, png_bytep out, png_size_t count)
 {
 	png_voidp io_ptr = png_get_io_ptr(png_ptr);
 

@@ -685,6 +685,12 @@ void write_logx(const char *format, ...)
 #include <glib/gprintf.h>
 #define MAX_LINE 4068
 
+// BARTO
+namespace barto_gdbserver {
+	void log_output(const TCHAR* string);
+	bool is_enabled();
+}
+
 void write_log (const TCHAR *format, ...)
 {
 	// write_log is sometimes called multiple times for a single line. We
@@ -706,7 +712,8 @@ void write_log (const TCHAR *format, ...)
 	static char buffer[MAX_LINE];
 	static int partial;
 
-	if (partial == 0) {
+	bool gdb_enabled = barto_gdbserver::is_enabled();
+	if (partial == 0 && !gdb_enabled) {
 		// strcpy(buffer, "[ UAE ] ");
 		// partial = 8;
 		// strcpy(buffer, "[ UAE ] [     ] ");
@@ -751,6 +758,12 @@ void write_log (const TCHAR *format, ...)
     } else {
         printf("%s", buffer);
     }
+
+
+	// BARTO
+	if(gdb_enabled)
+		barto_gdbserver::log_output(buffer);
+
     // free(buffer);
     if (buffer2) {
         free(buffer2);

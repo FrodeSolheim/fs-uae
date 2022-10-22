@@ -12,7 +12,7 @@ CM_CFLAGS += @GLIB_CFLAGS@
 # CM_CFLAGS += @GTK3_CFLAGS@
 CM_CFLAGS += @LUA_CFLAGS@
 CM_CFLAGS += @MIR_CFLAGS@
-CM_CFLAGS += @OPENAL_CFLAGS@
+# CM_CFLAGS += @OPENAL_CFLAGS@
 CM_CFLAGS += @OPENGL_CFLAGS@
 # CM_CFLAGS += @OS_CFLAGS@
 CM_CFLAGS += @PNG_CFLAGS@
@@ -76,7 +76,7 @@ LIBS += @GLIB_LIBS@
 # LIBS += @GTK3_LIBS@
 LIBS += @IOKIT_LIBS@
 # LIBS += @MIR_LIBS@
-LIBS += @OPENAL_LIBS@
+# LIBS += @OPENAL_LIBS@
 LIBS += @OPENGL_LIBS@
 # LIBS += @OS_LIBS@
 LIBS += @PNG_LIBS@
@@ -111,7 +111,7 @@ AM_LDFLAGS += -static
 AM_CPPFLAGS += -DGLEW_STATIC
 AM_CPPFLAGS += -DAL_LIBTYPE_STATIC
 # Hack for OpenAL static missing libcommon.a
-LIBS += ../openal-soft/libcommon.a
+# LIBS += ../openal-soft/libcommon.a
 # One or more .pc files are missing -liconv
 LIBS += -liconv
 endif

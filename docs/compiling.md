@@ -21,12 +21,16 @@ Install dependencies for bootstrapping and building FS-UAE:
     libopenal-dev libpng-dev libsdl2-dev libsdl2-ttf-dev libtool libxi-dev \
     libxtst-dev zip zlib1g-dev
 
+FIXME: Add portmidi
+
 ### openSUSE
 
 Install dependencies for bootstrapping and building FS-UAE:
 
     sudo zypper install autoconf automake freetype2-devel gcc gcc-c++ gettext \
     glib2-devel libpng-devel libtool libXi-devel openal-devel SDL2-devel zip
+
+FIXME: Add portmidi
 
 ### Fedora
 
@@ -37,6 +41,8 @@ Install dependencies for running bootstrap:
 Install dependencies for building FS-UAE:
 
     sudo dnf install SDL2-devel glib2-devel libpng-devel gcc gcc-c++ openal-devel libXi-devel zip libmpeg2-devel SDL2_ttf-devel glew-devel zlib-devel freetype-devel hicolor-icon-theme
+
+FIXME: Add portmidi
 
 ### Windows
 

@@ -5,9 +5,9 @@ set -e
 # Dependency: pulseaudio?
 # Dependency: wayland?
 
-PACKAGE=SDL2-2.0.18
-CHECKSUM=94d40cd73dbfa10bb6eadfbc28f355992bb2d6ef6761ad9d4074eff95ee5711c
-REVISION=0
+PACKAGE=SDL2-2.0.22
+CHECKSUM=fe7cbf3127882e3fc7259a75a0cb585620272c51745d3852ab9dd87960697f2e
+REVISION=1
 
 . fsdeps/dep.sh
 
@@ -18,6 +18,66 @@ sha256:$CHECKSUM
 rm -Rf fsdeps/_build && mkdir fsdeps/_build && cd fsdeps/_build
 tar xf ../_sources/$PACKAGE.tar.gz
 cd $PACKAGE
+
+patch -p1<<EOF
+diff --git a/src/video/x11/SDL_x11window.c b/src/video/x11/SDL_x11window.c
+index d31ac012ae00..3c78beaa5356 100644
+--- a/src/video/x11/SDL_x11window.c
++++ b/src/video/x11/SDL_x11window.c
+@@ -27,6 +27,7 @@
+ #include "../SDL_pixels_c.h"
+ #include "../../events/SDL_keyboard_c.h"
+ #include "../../events/SDL_mouse_c.h"
++#include "../../events/SDL_events_c.h"
+ 
+ #include "SDL_x11video.h"
+ #include "SDL_x11mouse.h"
+@@ -1392,12 +1393,19 @@ X11_SetWindowFullscreenViaWM(_THIS, SDL_Window * window, SDL_VideoDisplay * _dis
+                                       attrs.x, attrs.y, &x, &y, &childReturn);
+ 
+             if (!caught_x11_error) {
+-                if ((x != orig_x) || (y != orig_y) || (attrs.width != orig_w) || (attrs.height != orig_h)) {
+-                    window->x = x;
+-                    window->y = y;
+-                    window->w = attrs.width;
+-                    window->h = attrs.height;
+-                    break;  /* window moved, time to go. */
++                SDL_bool window_changed = SDL_FALSE;
++                if ((x != orig_x) || (y != orig_y)) {
++                    SDL_SendWindowEvent(data->window, SDL_WINDOWEVENT_MOVED, x, y);
++                    window_changed = SDL_TRUE;
++                }
++
++                if ((attrs.width != orig_w) || (attrs.height != orig_h)) {
++                    SDL_SendWindowEvent(data->window, SDL_WINDOWEVENT_RESIZED, attrs.width, attrs.height);
++                    window_changed = SDL_TRUE;
++                }
++
++                if (window_changed) {
++                    break;  /* window changed, time to go. */
+                 }
+             }
+ 
+EOF
+
+patch -p1 <<EOF
+diff --git a/src/joystick/windows/SDL_windows_gaming_input.c b/src/joystick/windows/SDL_windows_gaming_input.c
+index 8b552bb7dad..c1608a797ae 100644
+--- a/src/joystick/windows/SDL_windows_gaming_input.c
++++ b/src/joystick/windows/SDL_windows_gaming_input.c
+@@ -34,6 +34,11 @@
+ #include <cfgmgr32.h>
+ #include <roapi.h>
+ 
++#ifdef __MINGW32__
++#define __FIReference_1_int __FIReference_1_INT32
++#define __FIReference_1_int_get_Value __FIReference_1_INT32_get_Value
++#define __FIReference_1_int_Release __FIReference_1_INT32_Release
++#endif
+ 
+ struct joystick_hwdata
+ {
+EOF
 
 if [ "`uname`" = "Darwin" ]; then
 python3 ../../replace.py \

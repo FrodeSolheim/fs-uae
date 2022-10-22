@@ -6,7 +6,7 @@ import os
 import sys
 
 
-def verify():
+def verify(archive: str, h, checksum):
     with open(archive, "rb") as f:
         actual_checksum = h(f.read()).hexdigest()
     result = actual_checksum == checksum
@@ -16,7 +16,6 @@ def verify():
         print("Checksum verification failed")
         print("Expected", checksum)
         print("But got:", actual_checksum)
-
     return result
 
 
@@ -36,7 +35,7 @@ def main():
     archive = os.path.join("fsbuild/_sources", archive)
 
     if os.path.exists(archive):
-        if verify():
+        if verify(archive, h, checksum):
             sys.exit(0)
         print("Removing archive", archive)
         os.remove(archive)
@@ -46,7 +45,7 @@ def main():
         print("Failed to download")
         sys.exit(1)
 
-    if not verify():
+    if not verify(archive, h, checksum):
         sys.exit(2)
 
 

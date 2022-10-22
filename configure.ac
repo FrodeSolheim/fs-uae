@@ -281,29 +281,29 @@ PKG_CHECK_MODULES([MIR], [mirclient], [
 	AC_SUBST([MIR_CFLAGS])
 ])
 
-AC_ARG_WITH(openal, AS_HELP_STRING(
-    [--without-openal], [Disable OpenAL audio usage]))
-AS_IF([test "x$with_openal" != xno], [
-    # AC_SUBST([USE_OPENAL], [1])
-    AC_DEFINE([WITH_OPENAL], [1], [Define to 1 to use OpenAL])
-    PKG_CHECK_MODULES([OPENAL], [openal], [
-    ], [
-          AS_CASE([$host_os],
-          [darwin*], [
-                  AC_MSG_NOTICE([Using OpenAL.framework])
-                  OPENAL_LIBS="-framework OpenAL"
-          ],
-          [
-                  AC_CHECK_LIB([openal], [alcOpenDevice], [
-                          OPENAL_LIBS="-lopenal"
-                  ], [
-                          AC_MSG_FAILURE([OpenAL not found])
-                  ])
-          ])
-          AC_SUBST([OPENAL_CFLAGS])
-          AC_SUBST([OPENAL_LIBS])
-    ])
-])
+# AC_ARG_WITH(openal, AS_HELP_STRING(
+#     [--without-openal], [Disable OpenAL audio usage]))
+# AS_IF([test "x$with_openal" != xno], [
+#     # AC_SUBST([USE_OPENAL], [1])
+#     AC_DEFINE([WITH_OPENAL], [1], [Define to 1 to use OpenAL])
+#     PKG_CHECK_MODULES([OPENAL], [openal], [
+#     ], [
+#           AS_CASE([$host_os],
+#           [darwin*], [
+#                   AC_MSG_NOTICE([Using OpenAL.framework])
+#                   OPENAL_LIBS="-framework OpenAL"
+#           ],
+#           [
+#                   AC_CHECK_LIB([openal], [alcOpenDevice], [
+#                           OPENAL_LIBS="-lopenal"
+#                   ], [
+#                           AC_MSG_FAILURE([OpenAL not found])
+#                   ])
+#           ])
+#           AC_SUBST([OPENAL_CFLAGS])
+#           AC_SUBST([OPENAL_LIBS])
+#     ])
+# ])
 
 # AC_SUBST([USE_OPENGL], [1])
 AC_DEFINE([USE_OPENGL], [1], [Define to 1 to use OpenGL])
@@ -510,8 +510,8 @@ AC_CHECK_HEADERS([locale.h])
 AC_CHECK_HEADERS([malloc.h])
 AC_CHECK_HEADERS([netdb.h])
 AC_CHECK_HEADERS([netinet/in.h])
-AC_CHECK_HEADERS([OpenAL/al.h])
-AC_CHECK_HEADERS([OpenAL/alc.h])
+# AC_CHECK_HEADERS([OpenAL/al.h])
+# AC_CHECK_HEADERS([OpenAL/alc.h])
 AC_CHECK_HEADERS([stddef.h])
 AC_CHECK_HEADERS([stdint.h])
 AC_CHECK_HEADERS([stdlib.h])
@@ -931,8 +931,8 @@ echo "  Module extension:  $LOADABLE_MODULE_EXT"
 echo ""
 echo "  LIBMPEG2_CFLAGS:   $LIBMPEG2_CFLAGS"
 echo "  LIBMPEG2_LIBS:     $LIBMPEG2_LIBS"
-echo "  OPENAL_CFLAGS:     $OPENAL_CFLAGS"
-echo "  OPENAL_LIBS:       $OPENAL_LIBS"
+# echo "  OPENAL_CFLAGS:     $OPENAL_CFLAGS"
+# echo "  OPENAL_LIBS:       $OPENAL_LIBS"
 echo "  OPENGL_CFLAGS:     $OPENGL_CFLAGS"
 echo "  OPENGL_LIBS:       $OPENGL_LIBS"
 echo "  OS_CPPFLAGS:       $OS_CPPFLAGS"

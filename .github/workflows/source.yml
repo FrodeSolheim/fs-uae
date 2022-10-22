@@ -5,106 +5,114 @@ on:
     branches:
       - master
       - dev
+      - beta
       - stable
   pull_request:
     branches:
       - master
       - dev
+      - beta
       - stable
 
 jobs:
   Source:
     runs-on: ubuntu-18.04
 
+    env:
+      UPLOAD_ENABLED: ${{ secrets.DROPBOX_ACCESS_TOKEN }}
+
     steps:
-    - name: Update package repositories
-      run: >-
-        sudo apt update
+      - name: Update package repositories
+        run: >-
+          sudo apt update
 
-    - name: Install deb packages
-      run: >-
-        sudo apt install
-        dos2unix
-        gettext
-        intltool
-        libao-dev
-        libasound2-dev
-        libevdev-dev
-        libgbm-dev
-        libgl-dev
-        libglu-dev
-        libopenal-dev
-        libpulse-dev
-        libudev-dev
-        libusb-1.0-0-dev
-        libx11-dev
-        libx11-xcb-dev
-        libxcb1-dev
-        libxcb-glx0-dev
-        libxcb-icccm4-dev
-        libxcb-image0-dev
-        libxcb-keysyms1-dev
-        libxcb-randr0-dev
-        libxcb-render-util0-dev
-        libxcb-shape0-dev
-        libxcb-shm0-dev
-        libxcb-sync0-dev
-        libxcb-xfixes0-dev
-        libxcb-xinerama0-dev
-        libxcursor-dev
-        libxext-dev
-        libxfixes-dev
-        libxi-dev
-        libxinerama-dev
-        libxrandr-dev
-        libxrender-dev
-        x11proto-dev
+      - name: Install deb packages
+        run: >-
+          sudo apt install
+          dos2unix
+          gettext
+          intltool
+          libao-dev
+          libasound2-dev
+          libevdev-dev
+          libgbm-dev
+          libgl-dev
+          libglu-dev
+          libopenal-dev
+          libpulse-dev
+          libudev-dev
+          libusb-1.0-0-dev
+          libx11-dev
+          libx11-xcb-dev
+          libxcb1-dev
+          libxcb-glx0-dev
+          libxcb-icccm4-dev
+          libxcb-image0-dev
+          libxcb-keysyms1-dev
+          libxcb-randr0-dev
+          libxcb-render-util0-dev
+          libxcb-shape0-dev
+          libxcb-shm0-dev
+          libxcb-sync0-dev
+          libxcb-xfixes0-dev
+          libxcb-xinerama0-dev
+          libxcursor-dev
+          libxext-dev
+          libxfixes-dev
+          libxi-dev
+          libxinerama-dev
+          libxrandr-dev
+          libxrender-dev
+          x11proto-dev
 
-    - name: Install pip packages
-      run: |
-        sudo python3 -m pip install -U pip setuptools
-        sudo python3 -m pip install -U meson ninja
+      - name: Install pip packages
+        run: |
+          sudo python3 -m pip install -U pip setuptools
+          sudo python3 -m pip install -U meson ninja
 
-    - uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
 
-    - name: Cache dependencies
-      uses: actions/cache@v2
-      id: fsdeps_cache
-      with:
-        path: fsdeps/_prefix
-        key: fsdeps_${{ hashFiles('fsdeps/**/*') }}_${{ runner.os }}
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        id: fsdeps_cache
+        with:
+          path: fsdeps/_prefix
+          key: fsdeps_${{ hashFiles('fsdeps/**/*') }}_${{ runner.os }}
 
-    - name: Build dependencies
-      if: steps.fsdeps_cache.outputs.cache-hit != 'true'
-      run: fsdeps/make
+      - name: Build dependencies
+        if: steps.fsdeps_cache.outputs.cache-hit != 'true'
+        run: fsdeps/make
 
-    - name: Update version
-      run: fsbuild/version --update --auto
+      - name: Update version
+        run: fsbuild/version --update --auto
 
-    - name: Bootstrap
-      run: fsdeps/use fsbuild/bootstrap
+      - name: Bootstrap
+        run: fsdeps/use fsbuild/bootstrap
 
-    - name: Configure
-      run: fsdeps/use fsbuild/configure
+      - name: Configure
+        run: fsdeps/use fsbuild/configure
 
-    - name: Source
-      run: fsdeps/use fsbuild/source
+      - name: Source
+        run: fsdeps/use fsbuild/source
 
-    - uses: actions/upload-artifact@v2
-      with:
-        name: Source
-        path: fsbuild/_dist/*
+      - uses: actions/upload-artifact@v2
+        with:
+          name: Source
+          path: fsbuild/_dist/*
 
-    - name: Upload build to Dropbox folder
-      if: >-
-        github.ref == 'refs/heads/master' ||
-        github.ref == 'refs/heads/dev' ||
-        github.ref == 'refs/heads/stable'
-      run: |
-        python3 -m pip install dropbox
-        fsbuild/upload
-      env:
-        DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-        DROPBOX_ACCESS_TOKEN: ${{ secrets.DROPBOX_ACCESS_TOKEN }}
+      - name: Upload build to Dropbox folder
+        if: >-
+          env.UPLOAD_ENABLED != null && (
+            github.ref == 'refs/heads/master' ||
+            github.ref == 'refs/heads/dev' ||
+            github.ref == 'refs/heads/beta' ||
+            github.ref == 'refs/heads/stable'
+          )
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DROPBOX_ACCESS_TOKEN: ${{ secrets.DROPBOX_ACCESS_TOKEN }}
+        run: |
+          python3 -m pip install dropbox==11.23.0
+          fsbuild/upload

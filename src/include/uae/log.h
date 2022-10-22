@@ -55,10 +55,14 @@ void uae_fatal(const char *format, ...) UAE_PRINTF_FORMAT(1, 2);
 #define __func__ __FUNCTION__
 #endif
 
+#if 1
+#define UAE_LOG_STUB(format, ...) {}
+#else
 #define UAE_LOG_STUB(format, ...) \
 { \
 	uae_log(" -- stub -- %s " format "\n", __func__, ##__VA_ARGS__); \
 }
+#endif
 
 #define UAE_LOG_STUB_MAX(max, format, ...) \
 { \

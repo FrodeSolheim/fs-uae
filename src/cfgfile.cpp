@@ -7665,7 +7665,7 @@ uae_u32 cfgfile_modify (uae_u32 index, const TCHAR *parms, uae_u32 size, TCHAR *
 	static TCHAR *configsearch;
 
 #ifdef FSUAE // NL
-	write_log("*** cfgfile_modify *** %s\n", parms);
+	//write_log("*** cfgfile_modify *** %s\n", parms);
 #endif
 
 	if (out)

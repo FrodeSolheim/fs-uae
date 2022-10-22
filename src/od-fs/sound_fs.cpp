@@ -413,7 +413,7 @@ int init_sound (void)
 
 void pause_sound (void)
 {
-    write_log("STUB: pause_sound\n");
+    //write_log("STUB: pause_sound\n");
     if (!have_sound)
         return;
 #if 0
@@ -423,7 +423,7 @@ void pause_sound (void)
 
 void resume_sound (void)
 {
-    write_log("STUB: resume_sound\n");
+    //write_log("STUB: resume_sound\n");
     if (!have_sound)
         return;
     clearbuffer();
@@ -491,7 +491,7 @@ void master_sound_volume (int dir)
 
 void sound_mute(int newmute)
 {
-    write_log("STUB: sound_mute\n");
+    //write_log("STUB: sound_mute\n");
 }
 
 int audio_is_pull(void)

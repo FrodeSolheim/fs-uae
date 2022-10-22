@@ -233,7 +233,7 @@ int handle_msgpump (bool vblank) {
     // FIXME: call g_libamiga_callbacks.event from hsync handler instead?
     static int last_vpos;
     if (vpos == last_vpos) {
-        uae_log("Ignoring call to handle_msgpump\n");
+        //uae_log("Ignoring call to handle_msgpump\n");
     } else {
         if (g_libamiga_callbacks.event) {
             // g_libamiga_callbacks.event(hsync_counter);

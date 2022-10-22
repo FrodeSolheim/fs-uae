@@ -974,7 +974,7 @@ int get_custom_limits (int *pw, int *ph, int *pdx, int *pdy, int *prealh)
 	*ph = h;
 	*pdx = dx;
 	*pdy = dy;
-#if 1
+#if 0
 	write_log (_T("Display Size: %dx%d Offset: %dx%d\n"), w, h, dx, dy);
 	write_log (_T("First: %d Last: %d MinV: %d MaxV: %d Min: %d\n"),
 		plffirstline_total, plflastline_total,

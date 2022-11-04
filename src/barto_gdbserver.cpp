@@ -70,6 +70,8 @@
 
 // from custom.cpp
 /*static*/ extern struct color_entry current_colors;
+extern uae_u8 *save_custom(size_t *len, uae_u8 *dstptr, int full);
+extern int debug_safe_addr(uaecptr addr, int size);
 
 // from debug.cpp
 extern uae_u8 *get_real_address_debug(uaecptr addr);
@@ -895,24 +897,33 @@ namespace barto_gdbserver {
 										std::string mem;
 										uaecptr adr = strtoul(request.data() + strlen("m"), nullptr, 16);
 										int len = strtoul(request.data() + comma + 1, nullptr, 16);
+										addrbank* ad;
+										uae_u8 *custom_data = NULL;
+										size_t custom_save_length = 0;
 										barto_log("GDBSERVER: want 0x%x bytes at 0x%x\n", len, adr);
 										while(len-- > 0) {
-											auto debug_read_memory_8_no_custom = [](uaecptr addr) -> int {
-												addrbank* ad;
-												ad = &get_mem_bank(addr);
-												if(ad && ad != &custom_bank)
-													return ad->bget(addr);
-												return -1;
-											};
+											int data = -1;
+											if (debug_safe_addr(adr, 1)) {
+												ad = &get_mem_bank(adr);
+												data = ad->bget(adr);
+											} else {
+												if ((adr >= 0xdff000) && (adr < 0xdff1fe)) {
+													if (custom_data == NULL) {
+														custom_data = save_custom(&custom_save_length, 0, 1);
+													}
+													int idx = (adr & 0x1ff) + 4;
+													if ((idx > 0) && (idx < custom_save_length)) {
+														data = custom_data[idx];
+													}
+												}
+											}
 
-											auto data = debug_read_memory_8_no_custom(adr);
 											if(data == -1) {
 												barto_log("GDBSERVER: error reading memory at 0x%x\n", len, adr);
 												response += "E01";
 												mem.clear();
 												break;
 											}
-											data &= 0xff; // custom_bget seems to have a problem?
 											mem += hex[data >> 4];
 											mem += hex[data & 0xf];
 											adr++;

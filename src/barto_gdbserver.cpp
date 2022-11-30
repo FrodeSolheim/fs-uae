@@ -1314,7 +1314,7 @@ start_profile:
 					barto_log("GDBSERVER: connected\n");
 					useAck = true;
 					debugger_state = state::debugging;
-					debugmem_enable_stackframe(true);
+					//debugmem_enable_stackframe(true); // crashes FS-UAE if stackframe overrun
 					debugmem_trace = true;
 					break;
 				}

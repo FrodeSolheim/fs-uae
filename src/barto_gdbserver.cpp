@@ -326,23 +326,23 @@ namespace barto_gdbserver {
 
 		gdbsocket = socket(AF_INET, SOCK_STREAM, 0);
 		if(gdbsocket == INVALID_SOCKET) {
-			barto_log(_T("GDBSERVER: socket() failed\n"), sock_err);
+			barto_log(_T("GDBSERVER: socket() failed, %d\n"), sock_err);
 			return false;
 		}
 		if(setsockopt(gdbsocket, SOL_SOCKET, SO_LINGER, (char*)&linger_1s, sizeof linger_1s) < 0) {
-			barto_log(_T("GDBSERVER: setsockopt(SO_LINGER) failed\n"), sock_err);
+			barto_log(_T("GDBSERVER: setsockopt(SO_LINGER) failed, %d\n"), sock_err);
 			return false;
 		}
 		if(setsockopt(gdbsocket, SOL_SOCKET, SO_REUSEADDR, (char*)&one, sizeof one) < 0) {
-			barto_log(_T("GDBSERVER: setsockopt(SO_REUSEADDR) failed\n"), sock_err);
+			barto_log(_T("GDBSERVER: setsockopt(SO_REUSEADDR) failed, %d\n"), sock_err);
 			return false;
 		}
 		if(::bind(gdbsocket, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
-			barto_log(_T("GDBSERVER: bind() failed\n"), sock_err);
+			barto_log(_T("GDBSERVER: bind() failed, %s:%d: %d\n"), name, port, sock_err);
 			return false;
 		}
 		if(::listen(gdbsocket, 1) < 0) {
-			barto_log(_T("GDBSERVER: listen() failed\n"), sock_err);
+			barto_log(_T("GDBSERVER: listen() failed, %s:%d: %d\n"), name, port, sock_err);
 			return false;
 		}
 
